@@ -1,0 +1,64 @@
+<Elements>
+
+<!-- this belongs somewhere else -->
+<element name="NotifyOnItemChange">
+  <InlineTuple>
+    <!-- 0 -->
+    <object type="util.Row">
+      <InlineDict>
+        <string name="string0" />
+        <list name="list1" />
+        <string name="string2" />
+        <stringlist name="list3" />
+      </InlineDict>
+    </object>
+    <!-- 1 -->
+    <intdict name="dict4" type="int" />
+  </InlineTuple>
+</element>
+
+	
+<element name="CallCharStartTrainingSkill">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="skillItemID" />                 
+  </InlineTuple>
+</element>
+
+<element name="NotifyOnSkillStartTraining">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="skillItemID" />
+    <!-- 1 -->
+	<!-- not sure exactly -->
+    <int64 name="complete_time" />
+  </InlineTuple>
+</element>
+
+<element name="RspMachoBindObject/CharStartTrainingSkill">
+  <int name="skillItemID" />
+</element>
+
+<element name="CallItemGetInfo">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="itemID" />
+  </InlineTuple>
+</element>
+
+<element name="RspItemGetInfo">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <element name="row" type="util_Row" />
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+
+
+
+
+
+
+</Elements>

@@ -1,0 +1,149 @@
+
+
+<Elements>
+
+<!-- this is not being used at the moment, more hrer for completeness -->
+<element name="VersionExchange">
+ <InlineTuple>
+	<int name="birthday" value="170472" />
+	<int name="macho_version" />
+	<int name="user_count" />
+	<real name="version_number" />
+	<int name="build_version" />
+	<string name="project_version" />
+ </InlineTuple>
+</element>
+
+
+<element name="CryptoRequestPacket">
+  <InlineTuple>
+	<!-- 0 -->
+	<string name="keyVersion" />
+	<!-- 1 -->
+	<dict name="keyParams" />
+  </InlineTuple>
+</element>
+
+<element name="CryptoAPIRequestPacket">
+  <InlineTuple>
+	<!-- 0 -->
+	<string name="keyVersion" />
+	<!-- 1 -->
+	<InlineDict>
+	  <IDEntry key="crypting_sessionkey">
+		<string name="sessionkey" />                                         
+	  </IDEntry>
+	  <IDEntry key="signing_hashmethod">
+		<string name="hashmethod" />
+	  </IDEntry>
+	  <IDEntry key="crypting_sessionkeylength">
+		<int name="sessionkeylength" />
+	  </IDEntry>
+	  <IDEntry key="crypting_securityprovidertype">
+		<string name="provider" />
+	  </IDEntry>
+	  <IDEntry key="crypting_sessionkeymethod">
+		<string name="sessionkeymethod" />
+	  </IDEntry>
+	</InlineDict>
+  </InlineTuple>
+</element>
+
+<element name="CryptoChallengePacket">
+  <InlineSubStream>
+  <InlineTuple>
+	<!-- 0 -->
+	<string name="clientChallenge" />
+	<!-- 1 -->
+	<InlineDict>
+	  <IDEntry key="macho_version">
+		<int name="macho_version" />
+	  </IDEntry>
+	  <IDEntry key="boot_version">
+		<real name="boot_version" />
+	  </IDEntry>
+	  <IDEntry key="boot_build">
+		<int name="boot_build" />
+	  </IDEntry>
+	  <IDEntry key="boot_codename">
+		<string name="boot_codename" />
+	  </IDEntry>
+	  <IDEntry key="boot_region">
+		<string name="boot_region" />
+	  </IDEntry>
+	  <IDEntry key="user_name">
+		<string name="user_name" />
+	  </IDEntry>
+	  <IDEntry key="user_password">
+		<raw name="user_password" />
+	  </IDEntry>
+	  <IDEntry key="user_languageid">
+		<string name="user_languageid" />
+	  </IDEntry>
+	  <IDEntry key="user_affiliateid">
+		<int name="user_affiliateid" />
+	  </IDEntry>
+	</InlineDict>
+  </InlineTuple>
+  </InlineSubStream>
+</element>
+
+<element name="CryptoServerHandshake">
+  <InlineSubStream>
+  <InlineTuple>
+	<!-- 0: serverChallenge -->
+	<string name="serverChallenge" />
+	<!-- 1: func -->
+	<string name="func" />
+	<!-- 2: context -->
+	<strdict name="context" />
+	<!-- 3: response -->
+	<InlineDict>
+	  <IDEntry key="challenge_responsehash">
+		<string name="challenge_responsehash" />
+	  </IDEntry>
+	  <IDEntry key="macho_version">
+		<int name="macho_version" />
+	  </IDEntry>
+	  <IDEntry key="boot_version">
+		<real name="boot_version" />
+	  </IDEntry>
+	  <IDEntry key="boot_build">
+		<int name="boot_build" />
+	  </IDEntry>
+	  <IDEntry key="boot_codename">
+		<string name="boot_codename" />
+	  </IDEntry>
+	  <IDEntry key="boot_region">
+		<string name="boot_region" />
+	  </IDEntry>
+	  <IDEntry key="cluster_usercount">
+		<int name="cluster_usercount" />
+	  </IDEntry>
+	  <IDEntry key="proxy_nodeid">
+		<int name="proxy_nodeid" />
+	  </IDEntry>
+	  <IDEntry key="user_logonqueueposition">
+		<int name="user_logonqueueposition" />
+	  </IDEntry>
+	</InlineDict>
+  </InlineTuple>
+  </InlineSubStream>
+</element>
+
+<element name="CryptoHandshakeResult">
+  <InlineSubStream>
+  <InlineTuple>
+	<!-- 0 -->
+	<string name="challenge_responsehash" />
+	<!-- 1 -->
+	<string name="func_output" />
+	<!-- 2 -->
+	<int name="func_result" />
+  </InlineTuple>
+  </InlineSubStream>
+</element>
+
+</Elements>
+
+

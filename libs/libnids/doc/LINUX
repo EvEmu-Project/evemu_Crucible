@@ -1,0 +1,21 @@
+
+                             ====================
+                                 libnids-1.21
+                             ====================
+
+	The following applies to Linux only.
+	Linux 2.0.x kernels introduces sockets of family PF_PACKET which
+allow to gather packets from all devices, including loopback (!). Recent
+libpcap versions (0.6.x for sure) support this feature; you have to pass
+device "any" to pcap_open_live in order to listen on such a socket. For
+backwards compatibility with libnids <= 1.16, you can also assign device "all"
+to nids_params.device. If nids_params.promisc is nonzero, libnids (because
+libpcap does not support it) will try to set all interfaces into promiscuous 
+mode, one by one.  
+	A certain problem may arise, if the machine routes packets among its
+interfaces. Libpcap will pass to userspace a copy of a packet per each
+interface this packet travels through. This is no problem for libnids TCP
+reassembly, as it deals perfectly with duplicate packets - tcp callback
+functions will not notice anything unusual. However, UDP and IP callbacks
+will receive duplicate packets. 
+  

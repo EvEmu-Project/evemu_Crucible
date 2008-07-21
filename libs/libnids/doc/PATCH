@@ -1,0 +1,22 @@
+--- linux-2.0.37/net/ipv4/tcp_input.c.orig	Fri Jul 23 17:25:14 1999
++++ linux/net/ipv4/tcp_input.c	Fri Jul 23 17:29:43 1999
+@@ -2764,7 +2764,18 @@
+ 		kfree_skb(skb, FREE_READ);
+ 		return 0;
+ 	}
+-	
++
++        if (sk->state==TCP_SYN_RECV && th->ack && skb->ack_seq!=sk->sent_seq)
++        {
++                /*
++                 *      Quick fix to detect too small ack_seq
++                 *      in 3rd packet of 3ws and force a RST segment.
++                 */
++                 tcp_send_reset(daddr, saddr, th,sk->prot, opt, dev,0,255);
++                 kfree_skb(skb, FREE_READ);
++                 return 0;
++        }
++                                                                                                                                                                    	
+ rfc_step6:
+ 	/*
+ 	 *	If the accepted buffer put us over our queue size we

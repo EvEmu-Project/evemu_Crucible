@@ -1,0 +1,141 @@
+
+
+<Elements>
+
+<include file="General.h" />
+	
+<element name="RspGetCharactersToSelect">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+		<element type="util_Rowset" name="chars" />
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="CallGetCharacterToSelect">            
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="charID" />
+  </InlineTuple>
+</element>
+
+<element name="RspGetCharacterToSelect">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+	  <element type="util_Rowset" name="character" />
+    </InlineSubStream>
+  </InlineTuple>     
+</element>
+
+<element name="RspGetCharCreationInfo">
+  <InlineTuple>           
+    <!-- 0 -->
+    <InlineSubStream>
+	  <strdict name="caches" type="element" element="objectCaching_CachedObject_spec" />
+	</InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="CallSelectCharacterID">               
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="charID" />         
+  </InlineTuple>
+</element>
+
+
+
+
+
+<element name="CallValidateName">
+  <InlineTuple>
+    <!-- 0 -->
+    <string name="name" />
+  </InlineTuple>
+</element>
+
+<element name="RspValidateName">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <bool name="result" />
+    </InlineSubStream>       
+  </InlineTuple>
+</element>
+
+<element name="CallCreateCharacter">
+  <InlineTuple>
+    <!-- 0 -->
+    <string name="name" />
+    <!-- 1 -->
+    <int name="bloodlineID" />
+    <!-- 2 -->
+    <int name="genderID" />
+    <!-- 3 -->
+    <int name="ancestryID" />
+    <!-- 4 -->
+    <int name="schoolID" />
+    <!-- 5 -->
+    <int name="departmentID" />
+    <!-- 6 -->
+    <int name="fieldID" />
+    <!-- 7 -->
+    <int name="specialityID" />
+    <!-- 8 -->
+    <int name="IntelligenceAdd" />
+    <!-- 9 -->
+    <int name="CharismaAdd" />
+    <!-- 10 -->
+    <int name="PerceptionAdd" />
+    <!-- 11 -->
+    <int name="MemoryAdd" />    
+    <!-- 12 -->
+    <int name="WillpowerAdd" />
+    <!-- 13 -->
+    <strdict name="appearance" />
+  </InlineTuple>                
+</element>
+
+<element name="RspCreateCharacter">
+  <InlineTuple>                 
+    <!-- 0 -->  
+    <InlineSubStream>
+      <int name="charID" />
+    </InlineSubStream>      
+  </InlineTuple>                   
+</element>
+
+<element name="NotifyOnCharNowInStation">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="charID" />
+  </InlineTuple>
+</element>
+
+<element name="Call_SetNote">
+	<InlineTuple>
+		<int name="itemID" />
+		<string name="note" />
+	</InlineTuple>
+</element>
+
+  <element name="Call_AddOwnerNote">
+    <InlineTuple>
+      <string name="label" />
+      <string name="content" />
+    </InlineTuple>
+  </element>
+
+  <element name="Call_EditOwnerNote">
+    <InlineTuple>
+      <int name="noteID" />
+      <string name="label" />
+      <string name="content" />
+    </InlineTuple>
+  </element>
+
+</Elements>
+
+

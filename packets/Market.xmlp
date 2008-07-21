@@ -1,0 +1,104 @@
+
+
+<Elements>
+
+<!-- this really dosent belong here -->
+<element name="MarketGroup_Entry">
+  <InlineList>
+    <int name="marketGroupID" />
+    <raw name="parentGroupID" />    <!-- may be None -->
+    <string name="marketGroupName" />
+    <string name="description" />
+    <raw name="graphicID" />        <!-- may be None -->
+    <int name="hasTypes" />
+    <intlist name="types" />
+  </InlineList>
+</element>
+
+
+
+<element name="GetPriceHistory_Header">
+    <object type="blue.DBRowDescriptor">
+      <InlineTuple>
+        <InlineTuple>
+          <string name="_historyDate" default="historyDate" />
+          <int name="_historyDateV" default="64" />
+        </InlineTuple>
+        <InlineTuple>
+          <string name="_lowPrice" default="lowPrice" />
+          <int name="_lowPriceV" default="6" />
+        </InlineTuple>
+        <InlineTuple>
+          <string name="_highPrice" default="highPrice" />
+          <int name="_highPriceV" default="6" />
+        </InlineTuple>
+        <InlineTuple>
+          <string name="_avgPrice" default="avgPrice" />
+          <int name="_avgPriceV" default="6" />
+        </InlineTuple>
+        <InlineTuple>
+          <string name="_volume" default="volume" />
+          <int name="_volumeV" default="20" />
+        </InlineTuple>
+        <InlineTuple>
+          <string name="_orders" default="orders" />
+          <int name="_ordersV" default="3" />
+        </InlineTuple>
+      </InlineTuple>
+    </object>
+</element>
+
+<element name="GetPriceHistory_Entry">
+  <object type="blue.DBRow">
+    <InlineTuple>
+      <element type="GetPriceHistory_Header" name="header" />
+      <InlineTuple>
+        <int64 name="historyDate" />
+        <real name="lowPrice" />
+        <real name="highPrice" />
+        <real name="avgPrice" />
+        <int64 name="volume" />
+        <int name="orders" />
+      </InlineTuple>
+    </InlineTuple>
+  </object>
+</element>
+
+<element name="Rsp_GetPriceHistory">
+  <InlineTuple>
+    <element type="GetPriceHistory_Header" name="header" />
+    <list name="rows" />
+  </InlineTuple>
+</element>
+
+<element name="Call_PlaceCharOrder">
+  <InlineTuple>
+    <int name="stationID" />
+    <int name="typeID" />
+    <real name="price" />
+    <int name="quantity" />
+    <bool name="bid" soft="true" />
+    <int name="orderRange" />
+    <int name="itemID" none_marker="0" />
+    <int name="minVolume" />
+    <int name="duration" /> <!-- in days -->
+    <bool name="useCorp" soft="true" />
+    <bool name="located" none_marker="false" />
+  </InlineTuple>
+</element>
+
+<element name="Notify_OnOwnOrderChanged">
+  <InlineTuple>
+    <raw name="PackedRow" />
+    <!-- Reason: Add or Expiry (prolly a "Change" or something too) -->
+    <string name="reason" />
+  </InlineTuple>
+</element>
+
+
+
+
+
+</Elements>
+
+

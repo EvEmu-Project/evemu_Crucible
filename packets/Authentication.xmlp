@@ -1,0 +1,580 @@
+
+
+<Elements>
+
+<element name="objectCaching_CachedObject_data">
+  <object type="objectCaching.CachedObject">
+	<InlineTuple>
+	  <!-- 0 -->
+	  <InlineTuple>
+		<!-- 0 -->
+		<int64 name="timestamp" />
+		<!-- 1 -->
+		<int name="version" />
+	  </InlineTuple>
+	  <!-- 1 -->
+	  <none />
+	  <!-- 2 -->
+	  <!-- 2 -->
+	  <int name="nodeID" />
+	  <!-- 3 -->
+	  <int name="shared" />    
+	  <!-- 4 -->
+	  <buffer name="data" />
+	  <!-- 5 -->
+	  <int name="compressed" />
+	  <!-- 6 -->
+	  <!-- either a string or a tuple -->
+	  <raw name="objectID" />
+	</InlineTuple>
+  </object>
+</element>
+
+<element name="objectCaching_CachedObject_spec">
+  <object type="util.CachedObject">
+	<InlineTuple>
+	  <!-- 0 -->
+	  <raw name="objectID" />
+	  <!-- 1 -->
+	  <int name="nodeID" />
+	  <!-- 2 -->
+	  <InlineTuple>
+		<!-- 0 -->
+		<int64 name="timestamp" />
+		<!-- 1 -->
+		<int name="version" />
+	  </InlineTuple>
+	</InlineTuple>
+  </object>
+</element>
+
+<element name="util_Rowset">
+  <object type="util.Rowset">
+	<InlineDict>
+	  <IDEntry key="header">
+		<strlist name="header" />                                         
+	  </IDEntry>
+	  <IDEntry key="RowClass">
+		<string name="rowclass" />
+	  </IDEntry>
+	  <IDEntry key="lines">
+		<list name="lines" />
+	  </IDEntry>
+	</InlineDict>
+  </object>
+</element>
+
+
+<element name="list_rowset">
+  <InlineTuple>
+	<!-- 0 -->
+	<strlist name="header" />
+	<!-- 1 -->
+	<!-- each element of this list is a list itself, with one element per element in header -->
+	<list name="lines" />
+  </InlineTuple>
+</element>
+
+
+<element name="objectCaching_CachedMethodCallResult">
+  <object type="objectCaching.CachedMethodCallResult">
+	<InlineTuple>
+	  <!-- 0 -->
+	  <InlineDict>
+		<IDEntry key="sessionInfo">
+		  <string name="string0" />
+		</IDEntry>
+		<IDEntry key="versionCheck">
+		  <InlineTuple name="versionCheck">
+			<!-- 0 -->
+			<string name="string1" />
+			<!-- 1 -->
+			<none />
+			<!-- 2 -->
+			<none />       
+		  </InlineTuple>
+		</IDEntry>
+	  </InlineDict>
+	  <!-- 1 -->
+	  <InlineSubStream>
+		  <raw name="call_return" />
+	  </InlineSubStream>
+	  <!-- 2 -->  
+	  <InlineList> 
+		<!-- 0 -->
+		<int64 name="integer7" />
+		<!-- 1 -->                 
+		<int name="integer8" />
+	  </InlineList>                
+	</InlineTuple>                 
+  </object>     
+</element>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+empty calls:
+CallPing
+CallGetPostAuthenticationMessage
+CallGetCharactersToSelect
+CallGetCharCreationInfo
+CallGetAttributeTypes
+CallShipGetInfo
+CallCharGetInfo
+CallGetMyKillRights
+CallGetBookmarks
+CallGetChannels
+CallGetInitialState
+CallGetMyMessages
+CallGetFactionInfo
+CallGetStuckSystems
+CallGetOwnerNoteLabels
+CallGetStationItemBits
+CallGetStationExtraInfo
+CallGetCorporateStationInfo
+CallGetCorporation
+CallList (inventory)
+CallGetAgents
+CallGetGuests
+-->
+
+
+
+
+<element name="CallGetCachableObject">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="shared" />
+    <!-- 1 -->
+	<!-- either a string or a tuple -->
+    <raw name="objectID" />
+    <!-- 2 -->
+    <InlineTuple>
+      <!-- 0 -->
+      <int64 name="timestamp" />
+      <!-- 1 -->
+      <int name="version" />
+    </InlineTuple>
+    <!-- 3 -->
+    <int name="nodeID" />
+  </InlineTuple>
+</element>
+
+<element name="RspGetCachableObject">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream> 
+	  <element type="objectCaching_CachedObject_spec" name="object" />    
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="RspPing">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <int64 name="timestamp" />         
+    </InlineSubStream>    
+  </InlineTuple>
+</element>
+
+<element name="RspGetPostAuthenticationMessage">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <object type="util.KeyVal">
+        <InlineDict>
+          <IDEntry key="message">
+            <string name="message" />
+          </IDEntry>
+          <IDEntry key="args">
+            <InlineDict name="args">
+              <IDEntry key="showStatusBar">
+                <int name="showStatusBar" />
+              </IDEntry>
+              <IDEntry key="center">
+                <int name="center" />
+              </IDEntry> 
+              <IDEntry key="showAddressBar">
+                <int name="showAddressBar" />         
+              </IDEntry>
+              <IDEntry key="url">
+                <string name="url" />
+              </IDEntry>         
+              <IDEntry key="showOptions">
+                <int name="showOptions" />
+              </IDEntry>             
+              <IDEntry key="showButtons">
+                <int name="showButtons" />
+              </IDEntry>
+              <IDEntry key="showModal">    
+                <int name="showModal" />
+              </IDEntry>
+            </InlineDict>           
+          </IDEntry>
+        </InlineDict>    
+      </object>
+    </InlineSubStream>                          
+  </InlineTuple>        
+</element>
+
+<element name="RspGetCharactersToSelect">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+		<element type="util_Rowset" name="chars" />
+    </InlineSubStream>
+  </InlineTuple>     
+</element>
+
+<element name="CallGetCharacterToSelect">            
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="charID" />
+  </InlineTuple>
+</element>
+
+<element name="RspGetCharacterToSelect">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+	  <element type="util_Rowset" name="character" />
+    </InlineSubStream>
+  </InlineTuple>     
+</element>
+
+<element name="RspGetCharCreationInfo">
+  <InlineTuple>           
+    <!-- 0 -->
+    <InlineSubStream>
+	  <strdict name="caches" type="element" element="objectCaching_CachedObject_spec" />
+	</InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="CallGetMultiOwnersEx">
+  <InlineTuple>
+    <!-- 0 -->
+    <intlist name="entities" />
+  </InlineTuple>
+</element>
+
+
+
+<element name="RspGetMultiOwnersEx">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+		<element type="list_rowset" name="rowset" />
+    </InlineSubStream>
+  </InlineTuple>
+</element>          
+
+<element name="CallSelectCharacterID">               
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="charID" />         
+  </InlineTuple>
+</element>
+
+<element name="NotifyOnAggressionChange">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="integer0" />
+    <!-- 1 -->
+	<!-- maps _something_ to a timestamp -->
+    <intdict name="entries" type="int64" />
+  </InlineTuple>
+</element>
+
+<element name="CallMachoResolveObject">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineTuple>
+      <!-- 0 -->
+      <int name="entityID" />
+      <!-- 1 -->
+      <int name="integer1" />
+    </InlineTuple>
+    <!-- 1 -->
+    <int name="justQuery" />     
+  </InlineTuple>   
+</element>
+
+<element name="RspMachoResolveObject"> 
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <int name="nodeID" />
+    </InlineSubStream>          
+  </InlineTuple>   
+</element>   
+
+
+<element name="CallMachoBindObject_call">
+	<InlineTuple>        
+	  <!-- 0 -->                
+	  <string name="method_name" />              
+	  <!-- 1 -->
+	  <tuple name="arguments" />
+	  <!-- 2 -->
+	  <dict name="dict_arguments" />    
+	</InlineTuple>
+</element>
+
+<element name="CallMachoBindObject">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineTuple>
+      <!-- 0 -->
+      <int name="entityID" />
+      <!-- 1 -->      
+      <int name="integer1" />
+    </InlineTuple> 
+    <!-- 1 --> 
+	<!-- either 'None', or a CallMachoBindObject_call -->
+	<raw name="call" />
+  </InlineTuple>
+</element>
+
+
+<element name="BoundObject">
+	<InlineSubStruct>
+	  <InlineSubStream>
+		<InlineTuple>
+		  <!-- 0 -->
+		  <string name="bindspec" />
+		  <!-- 1 -->
+		  <int64 name="timestamp" />
+		</InlineTuple>
+	  </InlineSubStream>
+	</InlineSubStruct>
+</element>
+
+<element name="RspMachoBindObject">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <InlineTuple>
+        <!-- 0 -->
+		<element name="bind" type="BoundObject" />
+        <!-- 1 -->
+		<raw name="call_return" />
+      </InlineTuple>
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+
+<!-- returns a tuple of two BoundObject specs -->
+<element name="CallGetInventoryFromId">
+  <InlineTuple>
+	<!-- 0 -->
+	<int name="entityID" />              
+	<!-- 1 -->
+	<int name="passive" />
+  </InlineTuple>
+</element>
+
+<element name="RspGetMyKillRights">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>        
+      <InlineTuple>
+        <!-- 0 -->
+        <dict name="unknown0" />
+        <!-- 1 -->
+        <dict name="unknown1" />
+      </InlineTuple>                
+    </InlineSubStream>
+  </InlineTuple>     
+</element>
+
+<element name="RspGetInitialState">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+	  <element name="rowset" type="util_Rowset" />
+	</InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="RspGetChannels">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+	  <element name="cachedcall" type="objectCaching_CachedMethodCallResult" />
+    </InlineSubStream>                  
+  </InlineTuple>
+</element>                
+
+<element name="CallJoinChannels">
+  <InlineTuple>
+    <!-- 0 -->
+	<intlist name="channels" />           
+  </InlineTuple>            
+</element>  
+
+<element name="RspJoinChannels">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <!-- list of complex elements, one for each requested channel
+	    with details about the channel -->
+	  <list name="channels" />
+    </InlineSubStream>  
+  </InlineTuple>
+</element>
+
+<element name="NotifyOnLSC">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineTuple>
+      <!-- 0 -->
+      <InlineTuple>
+        <!-- 0 -->
+        <string name="channeltype" />   
+        <!-- 1 -->              
+        <int name="entityID" />
+      </InlineTuple>        
+    </InlineTuple>           
+    <!-- 1 -->                  
+    <int name="integer2" />
+    <!-- 2 -->  
+    <string name="function" />
+    <!-- 3 -->
+	<tuple name="arguments" />
+    <!-- 4 -->
+    <InlineTuple>          
+    </InlineTuple>          
+  </InlineTuple>
+</element>      
+
+<element name="CallGetCashBalance">    
+  <InlineTuple>       
+    <!-- 0 -->
+    <int name="isCorpWallet" />
+  </InlineTuple>      
+</element>
+
+<element name="RspGetCashBalance">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <real name="credits" />
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="RspGetOwnerNoteLabels">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <element name="notes" type="util_Rowset" />
+    </InlineSubStream>
+  </InlineTuple>    
+</element>
+
+<element name="RspGetStationItemBits">
+  <InlineTuple>                       
+    <!-- 0 -->      
+    <InlineSubStream>             
+      <InlineTuple>
+        <!-- 0 -->  
+        <int name="integer0" />
+        <!-- 1 -->
+        <int name="integer1" />
+        <!-- 2 -->
+        <int name="integer2" />   
+        <!-- 3 -->
+        <int name="integer3" /> 
+        <!-- 4 -->
+        <int name="integer4" />             
+      </InlineTuple>
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="RspGetGuests">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+	  <intlist name="guests" />
+    </InlineSubStream>
+  </InlineTuple>  
+</element>
+
+<element name="CallGetMessageDetails">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="channelID" />
+    <!-- 1 -->
+    <int name="messageID" />
+  </InlineTuple>
+</element>
+
+<element name="CallMarkMessagesRead">
+  <InlineTuple>       
+    <!-- 0 -->         
+    <InlineList>   
+      <!-- 0 -->
+      <int name="messageID" />
+    </InlineList>                  
+  </InlineTuple>      
+</element>   
+
+<element name="NotifyOnSkillStartTraining">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="itemID" />
+    <!-- 1 -->
+    <int64 name="training_end" />                                   
+  </InlineTuple>
+</element>
+
+<!-- called on a bound object -->
+<element name="CharStartTrainingSkill">
+  <InlineTuple>
+    <!-- 0 -->    
+    <int name="itemID" />
+  </InlineTuple>
+</element>
+
+<element name="CallGetEndOfTraining">
+  <InlineTuple>      
+    <!-- 0 --> 
+    <int name="itemID" />
+  </InlineTuple>
+</element>
+
+<element name="RspGetEndOfTraining">
+  <InlineTuple>                      
+    <!-- 0 -->               
+    <InlineSubStream>           
+      <int64 name="timestamp" />
+    </InlineSubStream>
+  </InlineTuple>
+</element> 
+
+
+
+
+
+
+
+
+
+</Elements>
+
+

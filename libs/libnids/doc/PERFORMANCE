@@ -1,0 +1,48 @@
+
+                            ====================
+                                libnids-1.20
+                            ====================
+	Libnids uses efficient data structures (hash tables), so it imposes as 
+little overhead on packets processing as possible. However, in some cases,
+packet content must be copies several times, which can result in burst of
+CPU activity. The following notes refer rather to libpcap, not libnids, but 
+because many people seem to encounter similar performance-related problems 
+when running libnids on fast network, this may be worth reading.
+	Keep in mind that even if a single packet, belonging to TCP connection 
+X, is not delivered to libnids, libnids will likely loose all the following
+data in X. Therefore you must avoid packet loss, at all cost. If you use the 
+default syslog routine and see messages like "Max number of TCP streams 
+reached" or "Too much data in TCP receive queue" then (assuming you are not 
+under sophisticated NIDS evasion attack) most likely you are loosing packets. 
+	The packet loss usually happens when CPU is busy and cannot handle
+all incoming packets. It must be stressed that even if CPU seems to be fairly 
+idle (say, load average 10%), during traffic burst it may be unable to queue
+all the packets, if the buffer space reserved for packets queuing is too
+small. And this is where the problem with libpcap is. It uses rather small
+buffers, and there is no API to enlarge them.
+	So, we are left with unofficial methods. In case of Linux, libpcap
+0.7.1, one can call 
+  int rcvbuf=100*1024;
+  setsockopt(nids_getfd(),SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof(rcvbuf));
+This setsockopt doubles (approximately) the default kernel buffers size.
+Unfortunately, there seems to be a limit (about 100KB) for buffers
+allocated this way, which is way too small.
+	Recent Linux 2.4 kernels offer PACKET_RX_RING setsockopt, which is 
+supposed to allow to specify arbitrary buffer size. 640 K^H^H^H^H^H 10 MB
+buffer ought to be enough for everyone ;) This feature has not yet been 
+integrated into libpcap (not in 0.7.1). There are floating some libpcap
+patches which merge this capability.
+	In case of BSD, you may play with BIOCSBLEN, but I have no experience
+with it.
+	If you know how to enlarge libpcap buffers on other OS, let me know. 
+	A portable solution has been suggested by Yoav Weiss
+<sniffer@unpatched.net>. Especially on SMP, it could be beneficial to split a 
+libpcap application into two processes. The first one would receive packets 
+via libpcap interface, and store them in arbitrarily large buffer; this process
+should run with high priority, perhaps even real time one. The second
+process, running with low priority, would retrieve packets from the first
+process and pass them to higher layers (for example to libnids). However, the 
+efficient implementation is nontrivial.
+	UPDATE: the current version of libnids adds experimental support for
+the solution mentioned above. See the documentation for nids_prm.multiproc for
+more information.

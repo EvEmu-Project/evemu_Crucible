@@ -1,0 +1,78 @@
+[cut]
+	Libnids was implemented with regard to results of Linux kernel 2.0.x
+networking code analysis, included in my Master Thesis. This analysis was
+conducted from NIDS developer's point of view. Of course, 2.0.x family is
+obsolete now (still widely used though), but some points mentioned below are 
+worth checking against any OS. 
+	1) In their famous paper, Ptacek and Newsham mention that a packet can
+be discarded by a kernel if OS resources are low (e.g. too many packets arrives
+in a unit of time), which makes an insertion attack possible. However, it was 
+not stated that an attacker can create such a condition deterministicly and 
+repeatably. 
+	One obvious target is IP defragmentation. If many IP fragments arrive,
+kernel has to drop some of them to avoid a DOS attack (IP fragment bomb). NIDS
+has to employ the same defragmentation algorithm (including the order in
+which fragments are discarded) which is used by protected systems; otherwise, 
+all discrepancies can be exploited by an attacker to construct an insertion or
+evasion attack. The above statement is valid considering any OS type; what 
+makes things even worse in case of Linux is the fact that the behaviour of the 
+defragmentation algorithm used by Linux depends on kernel compilation options 
+(size of struct sk_buff is critical).
+	TCP segments queuing algorithm used by Linux 2.0.x is vulnerable to a 
+similar attack. Linux queues TCP segments that fit in a connection window until
+the kernel memory consumed for this purpose (counted by rmem_alloc variable) 
+reaches 64 KB; when it happens, all unacknowledged segments are discarded. TCP
+segments queuing requires a lot of auxiliary structures; as a result, TCP 
+segments can be dropped, even if their sequence numbers are acceptable. For 
+example, a tested 2.0.36 kernel could queue only 284 TCP segments carrying one
+byte of data each (announced connection window was about 32K). Again, the 
+succesful emulation of this algorithm by NIDS requires knowledge of size of 
+struct sk_buff. 
+	To sum up, it is obvious that DOS attacks against NIDS are a threat,
+but that's not all. A mild DOS attack against a monitored host can trigger
+some OS-dependent resource management algorithm, which can be tough to
+emulate by NIDS.
+	Another nasty feature of Linux TCP queuing was found. If an
+application doesn't receive data from kernel (doesn't perform read calls on a 
+socket for some time) all acknowledged (that is, ready to be passed to an app),
+buffered segments still consume kernel memory (rmem_alloc counter is not zero).
+As a result, even less packets can be queued (because some of 64KB pool is
+still in use). It means that the number of queued packets (and consequently,
+received data) depends on an application behaviour (!). To verify such 
+possibility, the same stream of packets was sent twice. First, the receiving 
+application A performed immediate read call. In the second case, the receiving
+application B executed
+sleep(1);
+read(sockfd, buffer, num);
+sequence of system calls. App A received different data than app B. The
+delay imposed by sleep(1) call was unnecessarily large; a delay resulting
+from a context switch can be big enough.
+	Libnids uses algorithms equivalent to or taken directly from Linux
+kernel sources. If libnids is given a correct value of struct sk_buff size (it
+is configurable in run-time, along with many other parameters) the above
+mentioned attacks will not bypass libnids (with an exception of the last
+one; libnids has no way to determine frequency of read calls performed by an
+app). It also mean that at least IP defragmentation performed by libnids is
+as reliable as one offered by Linux 2.0.36 kernel. 
+	2) Linux firewall implementation includes one hard-coded rule. Quoting
+from ip_fw.c: 
+        /*
+         *      Don't allow a fragment of TCP 8 bytes in. Nobody
+         *      normal causes this. Its a cracker trying to break
+         *      in by doing a flag overwrite to pass the direction
+         *      checks.
+         */
+
+        if (offset == 1 && ip->protocol == IPPROTO_TCP)
+                return FW_BLOCK;
+So, if the kernel was compiled with CONFIG_FIREWALL (for instance, Redhat
+install kernels are), it can block some packets (short fragmented TCP 
+segments), even if no firewall rules was defined by the administrator. If NIDS
+accepts such a packet for further processing, an insertion attack is possible.
+It's another example that NIDS has to know the compilation options of 
+monitored kernels.
+[cut]
+	The description of other tests on libnids is included in libnids
+distribution.
+Save yourself,
+Nergal

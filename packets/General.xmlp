@@ -1,0 +1,526 @@
+
+
+<Elements>
+
+<element name="util_Row">
+  <object type="util.Row">
+	<InlineDict>
+	  <IDEntry key="header">
+		<strlist name="header" />
+	  </IDEntry>
+	  <IDEntry key="line">
+		<list name="line" />
+	  </IDEntry>
+	</InlineDict>
+  </object>
+</element>
+
+<element name="util_Rowset">
+  <object type="util.Rowset">
+	<InlineDict>
+	  <IDEntry key="header">
+		<strlist name="header" />
+	  </IDEntry>
+	  <IDEntry key="RowClass">
+		<string name="rowclass" default="util.Row" type1="true"/>
+	  </IDEntry>
+	  <IDEntry key="lines">
+		<list name="lines" />
+	  </IDEntry>
+	</InlineDict>
+  </object>
+</element>
+
+<element name="util_IndexRowset">
+  <object type="util.IndexRowset">
+	<InlineDict>
+	  <IDEntry key="header">
+		<strlist name="header" />
+	  </IDEntry>
+	  <IDEntry key="RowClass">
+		<string name="rowclass" type1="true"/>
+	  </IDEntry>
+	  <IDEntry key="idName">
+		<string name="idName"/>
+	  </IDEntry>
+	  <IDEntry key="items">
+		<intdict name="items" />
+	  </IDEntry>
+	</InlineDict>
+  </object>
+</element>
+
+<!-- this object is not really an object type on live, just convenience here -->
+<element name="util_Tupleset">
+  <InlineTuple>
+	<strlist name="header" />
+	<list name="lines" />
+  </InlineTuple>
+</element>
+
+
+<element name="list_rowset">
+  <InlineTuple>
+	<!-- 0 -->
+	<strlist name="header" />
+	<!-- 1 -->
+	<!-- each element of this list is a list itself, with one element per element in header -->
+	<list name="lines" />
+  </InlineTuple>
+</element>
+
+
+
+<!-- This should prolly find a new home some day, as its really a detail of the marshalling procedure -->
+<element name="dbutil_RowList_header">
+  <InlineTuple>
+   <InlineTuple>
+     <string name="type" default="dbutil.RowList" type1="true" />
+   </InlineTuple>
+   <InlineDict>
+    <IDEntry key="header">
+      <raw name="packed_header" />
+    </IDEntry>
+    <IDEntry key="columns">
+      <strlist name="columns" />
+    </IDEntry>
+   </InlineDict>
+  </InlineTuple>
+</element>
+<element name="dbutil_RowDict_header">
+  <InlineTuple>
+   <InlineTuple>
+     <string name="type" default="dbutil.RowDict" type1="true" />
+   </InlineTuple>
+   <InlineDict>
+    <IDEntry key="header">
+      <raw name="packed_header" />
+    </IDEntry>
+    <IDEntry key="columns">
+      <strlist name="columns" />
+    </IDEntry>
+    <IDEntry key="key">
+      <string name="key" />
+    </IDEntry>
+   </InlineDict>
+  </InlineTuple>
+</element>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+empty calls:
+CallPing
+CallGetPostAuthenticationMessage
+CallGetCharactersToSelect
+CallGetCharCreationInfo
+CallGetAttributeTypes
+CallShipGetInfo
+CallCharGetInfo
+CallGetMyKillRights
+CallGetBookmarks
+CallGetChannels
+CallGetInitialState
+CallGetMyMessages
+CallGetFactionInfo
+CallGetStuckSystems
+CallGetOwnerNoteLabels
+CallGetStationItemBits
+CallGetStationExtraInfo
+CallGetCorporateStationInfo
+CallGetCorporation
+CallList (inventory)
+CallGetAgents
+CallGetGuests
+-->
+
+
+
+<element name="CallGetMultiOwnersEx">
+  <InlineTuple>
+    <!-- 0 -->
+    <intlist name="entities" />
+  </InlineTuple>
+</element>
+
+<element name="RspGetMultiOwnersEx">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+		<element type="list_rowset" name="rowset" />
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="CallMachoResolveObject">
+  <InlineTuple>
+    <!-- 0 -->
+	<raw name="entitySpec" />
+    <!-- 1 -->
+    <int name="justQuery" />     
+  </InlineTuple>   
+</element>
+
+<element name="RspMachoResolveObject"> 
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <int name="nodeID" />
+    </InlineSubStream>          
+  </InlineTuple>   
+</element>   
+
+
+<element name="CallMachoBindObject_call">
+	<InlineTuple>        
+	  <!-- 0 -->                
+	  <string name="method_name" />              
+	  <!-- 1 -->
+	  <tuple name="arguments" />
+	  <!-- 2 -->
+	  <dict name="dict_arguments" />    
+	</InlineTuple>
+</element>
+
+<element name="CallMachoBindObject">
+  <InlineTuple>
+    <!-- 0 -->
+	<raw name="entitySpec" />
+    <!-- 1 --> 
+	<!-- either 'None', or a CallMachoBindObject_call -->
+	<raw name="call" />
+  </InlineTuple>
+</element>
+
+
+<element name="BoundObject">
+	<InlineSubStruct>
+	  <InlineSubStream>
+		<InlineTuple>
+		  <!-- 0 -->
+		  <string name="bindspec" />
+		  <!-- 1 -->
+		  <int64 name="timestamp" />
+		</InlineTuple>
+	  </InlineSubStream>
+	</InlineSubStruct>
+</element>
+
+<element name="RspMachoBindObject">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <InlineTuple>
+        <!-- 0 -->
+		<element name="bind" type="BoundObject" />
+        <!-- 1 -->
+		<raw name="call_return" />
+      </InlineTuple>
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="ErrorResponseBody">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="CauseMsgType" />
+    <!-- 1 -->
+    <int name="ErrorCode" />
+    <!-- 2 -->
+    <InlineTuple>
+      <!-- 0 -->
+      <InlineSubStream>
+		<raw name="payload" />
+      </InlineSubStream>
+    </InlineTuple>
+  </InlineTuple>
+</element>
+
+<element name="macho_WrongMachoNode">
+	<object type="macho.WrongMachoNode">
+	  <InlineDict>
+		<IDEntry key="payload">
+		  <int name="nodeID" />
+		</IDEntry>
+	  </InlineDict>
+	</object>
+</element>
+
+<element name="macho_MachoException">
+  <InlineTuple>
+    <!-- MACHONETMSG_TYPE -->
+    <int name="in_response_to" />
+    <!-- MACHONETERR_TYPE -->
+    <int name="exception_type" />
+    <InlineTuple>
+      <!-- substream -->
+      <raw name="payload" />
+    </InlineTuple>
+  </InlineTuple>
+</element>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<element name="NotifyOnAggressionChange">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="integer0" />
+    <!-- 1 -->
+	<!-- maps _something_ to a timestamp -->
+    <intdict name="entries" type="int64" />
+  </InlineTuple>
+</element>
+
+<element name="CallGetInventoryFromId">
+  <InlineTuple>
+	<!-- 0 -->
+	<int name="entityID" />              
+	<!-- 1 -->
+	<int name="passive" />
+  </InlineTuple>
+</element>
+
+<element name="RspGetInventoryFromId">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+		<element name="bind" type="BoundObject" />
+    </InlineSubStream>
+  </InlineTuple>     
+</element>
+
+<element name="RspGetMyKillRights">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>        
+      <InlineTuple>
+        <!-- 0 -->
+        <dict name="unknown0" />
+        <!-- 1 -->
+        <dict name="unknown1" />
+      </InlineTuple>                
+    </InlineSubStream>
+  </InlineTuple>     
+</element>
+
+<element name="RspGetInitialState">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+	  <element name="rowset" type="util_Rowset" />
+	</InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="CallGetCashBalance">    
+  <InlineTuple>       
+    <!-- 0 -->
+    <int name="isCorpWallet" />
+  </InlineTuple>      
+</element>
+
+<element name="RspGetCashBalance">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <real name="credits" />
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="RspGetOwnerNoteLabels">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <element name="notes" type="util_Rowset" />
+    </InlineSubStream>
+  </InlineTuple>    
+</element>
+
+<element name="RspGetStationItemBits">
+  <InlineTuple>                       
+    <!-- 0 -->      
+    <InlineSubStream>             
+      <InlineTuple>
+        <!-- 0 -->  
+        <int name="integer0" />
+        <!-- 1 -->
+        <int name="integer1" />
+        <!-- 2 -->
+        <int name="integer2" />   
+        <!-- 3 -->
+        <int name="integer3" /> 
+        <!-- 4 -->
+        <int name="integer4" />             
+      </InlineTuple>
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="RspGetGuests">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+	  <intlist name="guests" />
+    </InlineSubStream>
+  </InlineTuple>  
+</element>
+
+<element name="CallGetMessageDetails">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="channelID" />
+    <!-- 1 -->
+    <int name="messageID" />
+  </InlineTuple>
+</element>
+
+<element name="CallMarkMessagesRead">
+  <InlineTuple>       
+    <!-- 0 -->         
+    <InlineList>   
+      <!-- 0 -->
+      <int name="messageID" />
+    </InlineList>                  
+  </InlineTuple>      
+</element>
+
+<element name="SessionChangeNotification">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineTuple>
+      <!-- 0 -->
+      <int name="clueless" />
+      <!-- 1 -->
+	  <dict name="changes" />
+    </InlineTuple>                 
+    <!-- 1 --> <!-- this is actually optional... -->
+	<intlist name="nodesOfInterest" />
+  </InlineTuple>       
+</element>
+
+
+<element name="ServerNotification">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineTuple>
+      <!-- 0 -->
+      <int name="unknown" />
+      <!-- 1 -->
+      <InlineSubStream>
+        <InlineTuple>
+            <!-- 0 -->
+            <InlineList>
+                <InlineTuple>
+                    <string name="boundID" />
+                    <int64 name="timestamp" />
+                </InlineTuple>
+            </InlineList>
+            <!-- 1 -->
+            <string name="method" />
+            <!-- 2 -->
+            <tuple name="arguments" />
+            <!-- 3 -->
+            <strdict name="keywords" />
+        </InlineTuple>
+      </InlineSubStream>
+    </InlineTuple>
+    <!-- 1 -->
+	<none />
+  </InlineTuple>       
+</element>
+
+<element name="Call_SingleIntegerArg">
+  <InlineTuple>
+    <int name="arg" />
+  </InlineTuple>
+</element>
+
+<element name="Call_SingleRealArg">
+  <InlineTuple>
+    <real name="arg" />
+  </InlineTuple>
+</element>
+
+<element name="Call_TwoIntegerArgs">
+  <InlineTuple>
+    <int name="arg1" />
+    <int name="arg2" />
+  </InlineTuple>
+</element>
+
+<element name="Call_PointArg">
+  <InlineTuple>
+    <real name="x" />
+    <real name="y" />
+    <real name="z" />
+  </InlineTuple>
+</element>
+
+<element name="Call_SingleBoolArg">
+  <InlineTuple>
+    <bool name="arg" />
+  </InlineTuple>
+</element>
+
+<element name="Call_SingleStringArg">
+  <InlineTuple>
+    <string name="arg" />
+  </InlineTuple>
+</element>
+
+<element name="Call_SingleArg">
+  <InlineTuple>
+    <raw name="arg" />
+  </InlineTuple>
+</element>
+
+<element name="Call_SingleIntList">
+  <InlineTuple>
+      <intlist name="ints" />
+  </InlineTuple>
+</element>
+
+
+<element name="CallWarpToStuff">
+  <InlineTuple>
+    <!-- really this call uses keywords, and I think the item ID just happens to end up in the args as a fluke. -->
+    <string name="itemStr" default="item" />
+    <int name="item" />
+  </InlineTuple>
+</element>
+
+<element name="Notify_OnRemoteMessage">
+  <InlineTuple>
+    <string name="msgType" />
+    <strdict name="args" />
+  </InlineTuple>
+</element>
+
+
+
+
+</Elements>
+
+

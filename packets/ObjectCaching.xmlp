@@ -1,0 +1,172 @@
+
+
+<Elements>
+
+<element name="objectCaching_CachedObject_data">
+  <object type="objectCaching.CachedObject">
+	<InlineTuple>
+	  <!-- 0 -->
+	  <InlineTuple>
+		<!-- 0 -->
+		<int64 name="timestamp" />
+		<!-- 1 -->
+		<int name="version" />
+	  </InlineTuple>
+	  <!-- 1 -->
+	  <none />
+	  <!-- 2 -->
+	  <!-- 2 -->
+	  <int name="nodeID" />
+	  <!-- 3 -->
+	  <int name="shared" />    
+	  <!-- 4 -->
+	  <buffer name="data" />
+	  <!-- 5 -->
+	  <int name="compressed" />
+	  <!-- 6 -->
+	  <!-- either a string or a tuple -->
+	  <raw name="objectID" />
+	</InlineTuple>
+  </object>
+</element>
+
+<element name="objectCaching_CachedObject_spec">
+  <object type="util.CachedObject">
+	<InlineTuple>
+	  <!-- 0 -->
+	  <raw name="objectID" />
+	  <!-- 1 -->
+	  <int name="nodeID" />
+	  <!-- 2 -->
+	  <InlineTuple>
+		<!-- 0 -->
+		<int64 name="timestamp" />
+		<!-- 1 -->
+		<int name="version" />
+	  </InlineTuple>
+	</InlineTuple>
+  </object>
+</element>
+
+
+
+<element name="objectCaching_CachedMethodCallResult">
+  <object type="objectCaching.CachedMethodCallResult">
+	<InlineTuple>
+	  <!-- 0: details -->
+	  <InlineDict>
+		<IDEntry key="sessionInfo">
+          <!-- sessionInfo: if this field is present, then it contains a string which
+               is the string of a key in the session. The value of that element in the
+               current session is used as part of the key for the cache item.
+          -->
+		  <string name="sessionInfo" />
+		</IDEntry>
+		<IDEntry key="versionCheck">
+          <!-- these fields are one of:
+            (always, never, (set of times))
+            -->
+		  <InlineTuple name="hack_for_XML_validation">
+			<!-- 0: clientWhen: expiry in the client -->
+			<string name="clientWhen" />
+			<!-- 1: proxyWhen: expiry on the proxy, may be None -->
+			<string name="proxyWhen" />
+			<!-- 2: serverWhen: expiry on the server, may be None -->
+			<string name="serverWhen" /> 
+		  </InlineTuple>
+		</IDEntry>
+	  </InlineDict>
+	  <!-- 1: result -->
+      <raw name="call_return" />
+	  <!-- 2: version -->  
+	  <InlineList> 
+		<!-- 0 -->
+		<int64 name="timeStamp" />
+		<!-- 1: binascii.crc_hqx(call_return, (macho.version + 170472)) -->
+		<int name="version" />
+	  </InlineList>                
+	</InlineTuple>                 
+  </object>
+</element>
+
+
+<element name="objectCaching_CachedMethodCallResult_object">
+  <object type="objectCaching.CachedMethodCallResult">
+	<InlineTuple>
+	  <!-- 0: details -->
+	  <InlineDict>
+		<IDEntry key="versionCheck">
+            <!-- almost all simple objects on live use never... 
+                a few use run, we default to run to be more flexible. -->
+            <string name="versionCheck" default="run" />
+		</IDEntry>
+	  </InlineDict>
+	  <!-- 1: result, in this case it is always a util.CachedObject hint -->
+      <!-- <element type="objectCaching_CachedObject_spec" name="object" /> -->
+      <raw name="object" />
+	  <!-- 2: version, never present on a cached object cached method -->
+      <none />
+	</InlineTuple>
+  </object>
+</element>
+
+<!-- A representation of a simple cached method call objectID, with no arguments -->
+<element name="SimpleMethodCallID">
+  <InlineTuple>
+    <!-- 0 -->
+    <string name="type" default="Method Call"/>
+    <!-- 1 -->
+    <string name="where" default="server"/>
+    <!-- 2 -->
+    <InlineTuple>
+      <!-- 0 -->
+      <string name="service" />
+      <!-- 1 -->
+      <string name="method" />
+    </InlineTuple>
+  </InlineTuple>
+</element>
+
+<element name="CallGetCachableObject">
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="shared" />
+    <!-- 1 -->
+	<!-- either a string or a tuple -->
+    <raw name="objectID" />
+    <!-- 2 -->
+    <InlineTuple>
+      <!-- 0 -->
+      <int64 name="timestamp" />
+      <!-- 1 -->
+      <int name="version" />
+    </InlineTuple>
+    <!-- 3 -->
+    <int name="nodeID" />
+  </InlineTuple>
+</element>
+
+<element name="RspGetCachableObject">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream> 
+	  <element type="objectCaching_CachedObject_spec" name="object" />    
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="objectCaching_CacheOK">
+  <object type="objectCaching.CacheOK">
+      <InlineDict>
+        <IDEntry key="args">
+          <InlineTuple name="args_tuple">
+            <string name="exception_string" default="CacheOK"/>
+          </InlineTuple>
+        </IDEntry>
+      </InlineDict>
+  </object>
+</element>
+
+</Elements>
+
+

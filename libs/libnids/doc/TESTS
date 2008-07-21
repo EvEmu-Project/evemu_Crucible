@@ -1,0 +1,97 @@
+
+                             ====================
+                                 libnids-1.21
+                             ====================
+
+	In order to verify reliability of libnids, a number of tests were 
+conducted. A small applications were composed, which displayed on stdout data 
+received from libnids (contents of IP packets or data exchanged in TCP 
+connections). Test packets were sent to a host running Linux 2.0.36. As we 
+will see, libnids accurately emulated behaviour of the target host. 
+	As mentioned in README, libnids resisted all attack implemented by
+fragrouter 1.3. The following tests were conducted with custom tools.
+
+1. IP defragmentation
+Libnids was put to the following tests:
+a) sending overlapping and/or duplicate IP fragments. All possible combinations 
+   of fragments positions in the final packet were tried. 
+b) sending multiple fragments with the flag "no more fragments"
+c) sending a fragmented packet, pause for 30+epsilon second, then sending
+   remaining fragments. If epsilon has been greater than zero, Linux
+   discarded the first fragment (and ICMP message of type TIME_EXCEEDED was
+   generated). In the other case, defragmentation succeeded.
+d) two fragments F1 and F2 of a packet P with header id X were build. A packet
+   P' with header id X, but contents different to P was build as well.
+   Finally, packets F1, P', F2 were sent (in the mentioned order).  
+e) as a last test, resource managing was abused. Linux 2.0.x queues fragments
+   until they consume 256 KB of kernel memory, than some of queued fragments 
+   are discarded so that less than 192 KB of kernel memory is consumed. A
+   helper program, sendtcpfrag, was built. It accepts two command line
+   parameters, x and y. Sendtcpfrag builds a certain TCP packet, which is
+   than split into two fragments, named A and B. Next x random IP fragments
+   carrying 8 data bytes are sent, than fragment A, than y random IP fragments    
+   carrying 8 data bytes are sent, finally fragment B.
+   If all sent packets consume less than 256 KB of kernel memory, no packet
+   is dropped, and the target host will assemble packets A and B. Otherwise,
+   packet A can be dropped.
+   After execution of
+   # ./sendtcpfrag 650 61
+   target host received a TCP segment. The situation looked similarly when
+   second parameter was less than 61. After execution of
+   # ./sendtcpfrag 650 62
+   target host received no TCP segments. As we can see, 650+1+61 was the
+   threshold number of packets, which could be queued.
+   In the last test, libnids had to be fed a correct value of parameter
+   sk_buff_size (see more on libnids parameters in file API).
+
+Libnids passed all above tests.
+
+2) TCP segments assembly
+Libnids was put to the following tests:
+a) sending overlapping and/or duplicate segments. All possible
+   combinations of segments sequence numbers precedence were tried.
+b) sending segments with sequence numbers ahead of expected values (test of
+   segments queuing)
+c) sending segments [partially] out of connection window
+d) sending segments carrying invalid TCP flags
+e) sending segments carrying SYN flags after the sockets reached ESTABLISHED
+   state
+f) sending segments carrying urgent data
+g) closing of previously established TCP connection with a RST segment, then
+   setting up another connection with the same tuple (saddr, daddr, sport,
+   dport), but different sequence numbers
+h) sending segments with incorrect IP or TCP checksum
+i) sequence numbers wrap
+j) initializing a TCP connection with a segment carrying not only SYN flag
+k) resource managing. Linux queues TCP segments which fit in the connection
+   window until kernel memory used for this purpose reaches SK_RMEM_MAX
+   (typically 64 KB). Queuing uses lots of auxiliary data structures;
+   therefore Linux can discard TCP segments, which belong to the connection
+   window.
+   Another tool was written, tcpqueue. It sends a flow of TCP segments
+   carrying 1 byte of data. Segments have got consecutive, decreasing
+   sequence numbers (so they're sent in reversed order than any OS do). 
+   Tcpqueue accepts two command line parameters: S - the last segment sequence
+   number, and N - number of segments to be sent. If S is the expected 
+   sequence number of the connection and N is not big, all sent segments are 
+   queued, then after the arrival of the last segments data from all segments 
+   is passed to the application. If N is large, some of segments will be 
+   discarded.
+   After execution of
+   # ./tcpqueue 2 283
+   (connection was set up with initial sequence number equal 1) application
+   (namely netcat) run on the target host received all 283 bytes of data.
+   After execution of
+   # ./tcpqueue 285 284
+   application received data from the last segment only. As we can see,
+   Linux queues up to 283 one-byte TCP segments, though it announces window
+   close to 32768.
+   Analogically to the last IP fragmentation test, libnids had to be fed a 
+   correct value of parameter sk_buff_size.
+Libnids passed all above tests, with one exception of test f. However, it is
+due to a bug in Linux kernel, not libnids. In certain conditions, a byte of
+urgent data can be included in normal data flow. Kernel developers were
+notified, perhaps the bug will be squashed soon. 
+
+3. Additionally, libnids handles properly ICMP Destination Unreachable
+packets. Source routed IP packets are discarded.

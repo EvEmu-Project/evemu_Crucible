@@ -1,0 +1,76 @@
+/*  EVEmu: EVE Online Server Emulator
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; version 2 of the License.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY except by those people which sell it, which
+  are required to give you total support for your newly bought product;
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+  A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+	
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+#ifndef __ASTEROIDBELTMANAGER_H_INCL__
+#define __ASTEROIDBELTMANAGER_H_INCL__
+
+
+#include "../system/SystemEntities.h"
+
+class Asteroid;
+class MiningDB;
+
+//There is no solid reason for having this as a different object
+//than the SystemEntity subclass, it is just the way the code came out.
+//It is very likely that this will need to be merged into the entity object
+//once the system matures more.
+class AsteroidBeltManager {
+public:
+	AsteroidBeltManager(MiningDB *db, uint32 belt_id);
+	~AsteroidBeltManager();
+
+	//Database operations.
+	bool LoadState();
+	bool SaveState();
+
+	void Process();
+	void ForceGrowth();
+	
+protected:
+	const uint32 m_beltID;
+	MiningDB *const m_db;	//we own this.
+
+	//runtime state:
+	Timer m_growthTimer;
+	std::vector<Asteroid *> m_asteroids;	//we own these
+	
+	void _TriggerGrowth();
+	
+	void _Clear();
+};
+
+
+class SystemAsteroidBeltEntity : public SimpleSystemEntity {
+public:
+	SystemAsteroidBeltEntity(SystemManager *system, const DBSystemEntity &entity);
+	virtual ~SystemAsteroidBeltEntity();
+
+	//SystemEntity:
+	virtual void EncodeDestiny(std::vector<byte> &into) const;
+	virtual void Process();
+	//SimpleSystemEntity:
+	virtual bool LoadExtras(SystemDB *db);
+	
+protected:
+	AsteroidBeltManager *m_manager;	//dynamic to simplify dependancy issues.
+};
+
+
+
+
+#endif
+
+

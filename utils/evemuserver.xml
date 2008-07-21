@@ -1,0 +1,23 @@
+<!-- 
+The goal of this file is to specify as little as possible. Try the defaults
+for each parameter, and set them only if it does not work. (DB params are 
+a likely exception to this goal).
+-->
+<eve>
+ <server>
+  <!-- <port>26001</port> -->
+ </server>
+
+ <database>
+  <host>127.0.0.1</host>
+  <username>eve</username>
+  <password>eve</password>
+  <db>eve</db>
+ </database>
+
+ <files>
+  <!-- <strings>strings.txt</strings> -->
+  <!-- <logsettings>log.ini</logsettings> -->
+ </files>
+</eve>
+
