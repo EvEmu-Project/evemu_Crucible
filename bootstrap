@@ -1,0 +1,13 @@
+#! /usr/bin/env sh
+
+autoreconf -fi
+
+## uncomment the following lines if autoreconf doesnt work
+#aclocal && \
+#libtoolize --copy --automake && \
+#autoconf && \
+#autoheader && \
+#automake --foreign -acf
+
+
+
