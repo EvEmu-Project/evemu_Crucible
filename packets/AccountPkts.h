@@ -23,8 +23,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _____packets_AccountPkts_h__
-#define _____packets_AccountPkts_h__
+#ifndef __AccountPkts_h__
+#define __AccountPkts_h__
 
 #include <string>
 #include <vector>

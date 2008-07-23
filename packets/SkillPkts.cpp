@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "..\packets\SkillPkts.h"
+#include "SkillPkts.h"
 #include "../common/PyRep.h"
 
 
@@ -40,16 +40,6 @@ NotifyOnItemChange::NotifyOnItemChange() {
 
 NotifyOnItemChange::~NotifyOnItemChange() {
 	/*  0  */
-	/*  1  */
-	std::map<uint32, PyRep *>::iterator dict4_cur, dict4_end;
-	//free any existing elements first
-	dict4_cur = dict4.begin();
-	dict4_end = dict4.end();
-	for(; dict4_cur != dict4_end; dict4_cur++) {
-		delete dict4_cur->second;
-	}
-	
-}
 
 void NotifyOnItemChange::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%sNotifyOnItemChange", pfx);
@@ -86,6 +76,39 @@ PyRepTuple *NotifyOnItemChange::Encode() {
 			new PyRepInteger(dict4_cur->first)
 		] = dict4_cur->second->Clone();
 	}
+	tuple0->items[1] = dict3;
+	
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *NotifyOnItemChange::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(2);
+	/*  0  */
+	PyRep *args1;
+	PyRepDict *dict2 = new PyRepDict();
+	args1 = dict2;
+	
+	tuple0->items[0] = new PyRepObject(
+			"util.Row",
+			args1
+		);
+	
+	/*  1  */
+	
+	PyRepDict *dict3 = new PyRepDict();
+	std::map<uint32, PyRep *>::iterator dict4_cur, dict4_end;
+	dict4_cur = dict4.begin();
+	dict4_end = dict4.end();
+	for(; dict4_cur != dict4_end; dict4_cur++) {
+		dict3->items[
+			new PyRepInteger(dict4_cur->first)
+		] = dict4_cur->second;
+	}
+	dict4.clear();
 	tuple0->items[1] = dict3;
 	
 	res = tuple0;
@@ -169,11 +192,16 @@ bool NotifyOnItemChange::Decode(PyRep **in_packet) {
 
 NotifyOnItemChange *NotifyOnItemChange::Clone() const {
 	NotifyOnItemChange *res = new NotifyOnItemChange;
+	res->CloneFrom(this);
+	return(res);
+}
+
+void NotifyOnItemChange::CloneFrom(const NotifyOnItemChange *from) {
 	/*  0  */
 	/* object of type util.Row */
-	res->string0 = string0;
-	res->list1.CloneFrom(&list1);
-	res->string2 = string2;
+	string0 = from->string0;
+	list1.CloneFrom(&from->list1);
+	string2 = from->string2;
 
 CallCharStartTrainingSkill::CallCharStartTrainingSkill() {
 	/*  0  */
@@ -191,6 +219,17 @@ void CallCharStartTrainingSkill::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallCharStartTrainingSkill::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(skillItemID);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallCharStartTrainingSkill::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -242,11 +281,16 @@ bool CallCharStartTrainingSkill::Decode(PyRep **in_packet) {
 
 CallCharStartTrainingSkill *CallCharStartTrainingSkill::Clone() const {
 	CallCharStartTrainingSkill *res = new CallCharStartTrainingSkill;
-	/*  0  */
-	res->skillItemID = skillItemID;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallCharStartTrainingSkill::CloneFrom(const CallCharStartTrainingSkill *from) {
+	/*  0  */
+	skillItemID = from->skillItemID;
+	
+}
+
 
 NotifyOnSkillStartTraining::NotifyOnSkillStartTraining() {
 	/*  0  */
@@ -272,6 +316,20 @@ void NotifyOnSkillStartTraining::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *NotifyOnSkillStartTraining::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(2);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(skillItemID);
+	/*  1  */
+	/*  not sure exactly  */
+	tuple0->items[1] = new PyRepInteger(complete_time);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *NotifyOnSkillStartTraining::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(2);
 	/*  0  */
@@ -335,14 +393,19 @@ bool NotifyOnSkillStartTraining::Decode(PyRep **in_packet) {
 
 NotifyOnSkillStartTraining *NotifyOnSkillStartTraining::Clone() const {
 	NotifyOnSkillStartTraining *res = new NotifyOnSkillStartTraining;
-	/*  0  */
-	res->skillItemID = skillItemID;
-	/*  1  */
-	/*  not sure exactly  */
-	res->complete_time = complete_time;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void NotifyOnSkillStartTraining::CloneFrom(const NotifyOnSkillStartTraining *from) {
+	/*  0  */
+	skillItemID = from->skillItemID;
+	/*  1  */
+	/*  not sure exactly  */
+	complete_time = from->complete_time;
+	
+}
+
 
 RspMachoBindObject/CharStartTrainingSkill::RspMachoBindObject/CharStartTrainingSkill() {
 	skillItemID = 0;
@@ -357,6 +420,13 @@ void RspMachoBindObject/CharStartTrainingSkill::Dump(LogType l_type, const char 
 }
 
 PyRepInteger *RspMachoBindObject/CharStartTrainingSkill::Encode() {
+	PyRepInteger *res = NULL;
+	res = new PyRepInteger(skillItemID);
+
+	return(res);
+}
+
+PyRepInteger *RspMachoBindObject/CharStartTrainingSkill::FastEncode() {
 	PyRepInteger *res = NULL;
 	res = new PyRepInteger(skillItemID);
 
@@ -391,10 +461,15 @@ bool RspMachoBindObject/CharStartTrainingSkill::Decode(PyRep **in_packet) {
 
 RspMachoBindObject/CharStartTrainingSkill *RspMachoBindObject/CharStartTrainingSkill::Clone() const {
 	RspMachoBindObject/CharStartTrainingSkill *res = new RspMachoBindObject/CharStartTrainingSkill;
-	res->skillItemID = skillItemID;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspMachoBindObject/CharStartTrainingSkill::CloneFrom(const RspMachoBindObject/CharStartTrainingSkill *from) {
+	skillItemID = from->skillItemID;
+	
+}
+
 
 CallItemGetInfo::CallItemGetInfo() {
 	/*  0  */
@@ -412,6 +487,17 @@ void CallItemGetInfo::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallItemGetInfo::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(itemID);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallItemGetInfo::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -463,20 +549,23 @@ bool CallItemGetInfo::Decode(PyRep **in_packet) {
 
 CallItemGetInfo *CallItemGetInfo::Clone() const {
 	CallItemGetInfo *res = new CallItemGetInfo;
-	/*  0  */
-	res->itemID = itemID;
-
+	res->CloneFrom(this);
 	return(res);
 }
 
+void CallItemGetInfo::CloneFrom(const CallItemGetInfo *from) {
+	/*  0  */
+	itemID = from->itemID;
+	
+}
+
+
 RspItemGetInfo::RspItemGetInfo() {
 	/*  0  */
-	row = NULL;
 }
 
 RspItemGetInfo::~RspItemGetInfo() {
 	/*  0  */
-	delete row;
 }
 
 void RspItemGetInfo::Dump(LogType l_type, const char *pfx) const {
@@ -485,7 +574,7 @@ void RspItemGetInfo::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%srow:", pfx);
 	std::string row_n(pfx);
 	row_n += "    ";
-	row->Dump(l_type, row_n.c_str());
+	row.Dump(l_type, row_n.c_str());
 }
 
 PyRepTuple *RspItemGetInfo::Encode() {
@@ -493,7 +582,20 @@ PyRepTuple *RspItemGetInfo::Encode() {
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
 	PyRep *ss_1;
-	ss_1 = row->Encode();
+		ss_1 = row.Encode();
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspItemGetInfo::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+		ss_1 = row.FastEncode();
 	tuple0->items[0] = new PyRepSubStream(ss_1);
 	res = tuple0;
 	
@@ -541,9 +643,7 @@ bool RspItemGetInfo::Decode(PyRep **in_packet) {
 	
 	PyRep *rep_2 = ss_1->decoded;
 	ss_1->decoded = NULL;
-	delete row;
-	row = new util_Row;
-	if(!row->Decode(&rep_2)) {
+	if(!row.Decode(&rep_2)) {
 		_log(NET__PACKET_ERROR, "Decode RspItemGetInfo failed: unable to decode element row");
 		delete packet;
 		return(false);
@@ -556,10 +656,15 @@ bool RspItemGetInfo::Decode(PyRep **in_packet) {
 
 RspItemGetInfo *RspItemGetInfo::Clone() const {
 	RspItemGetInfo *res = new RspItemGetInfo;
-	/*  0  */
-	res->row = row->Clone();
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspItemGetInfo::CloneFrom(const RspItemGetInfo *from) {
+	/*  0  */
+	row.CloneFrom(&from->row);
+	
+}
+
 
 

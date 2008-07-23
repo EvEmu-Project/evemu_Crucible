@@ -15,6 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "common.h"
 #include "crc32.h"
 #include <assert.h>
 #include <memory.h>
@@ -100,7 +101,9 @@ uint32 CRC32::GenerateNoFlip(const int8* buf, uint32 bufsize) {
 
 #ifndef WIN32
 #warning "Comment out i386 define if your arch isn't x86"
+#undef X86
 #endif
+
 //#if !defined(i386)
 //#define i386	// If you are on a non-Intel based platform (Sparc/HP/NEC/etc), you will want to comment this define.
 //#endif
@@ -161,7 +164,8 @@ uint32 CRC32::Update(const int8* buf, uint32 bufsize, uint32 crc32) {
 	
 	return crc32;
 }
-#elif defined(i386)
+#elif defined(X86)
+		#warning "Using x86"
 		register uint32  val __asm ( "ax" );
 		val = crc32;
 

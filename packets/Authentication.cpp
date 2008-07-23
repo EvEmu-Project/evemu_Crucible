@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "..\packets\Authentication.h"
+#include "Authentication.h"
 #include "../common/PyRep.h"
 
 
@@ -54,6 +54,19 @@ objectCaching_CachedObject_data::objectCaching_CachedObject_data() {
 }
 
 objectCaching_CachedObject_data::~objectCaching_CachedObject_data() {
+	/*  0  */
+	/*  0  */
+	/*  1  */
+	/*  1  */
+	/*  2  */
+	/*  2  */
+	/*  3  */
+	/*  4  */
+	delete data;
+	/*  5  */
+	/*  6  */
+	/*  either a string or a tuple  */
+	delete objectID;
 }
 
 void objectCaching_CachedObject_data::Dump(LogType l_type, const char *pfx) const {
@@ -79,10 +92,14 @@ void objectCaching_CachedObject_data::Dump(LogType l_type, const char *pfx) cons
 	_log(l_type, "%scompressed=%lu", pfx, compressed);
 	/*  6  */
 	/*  either a string or a tuple  */
-	_log(l_type, "%sobjectID: ", pfx);
+	_log(l_type, "%sobjectID:", pfx);
 	std::string objectID_n(pfx);
 	objectID_n += "    ";
-	objectID->Dump(l_type, objectID_n.c_str());
+	if(objectID == NULL) {
+		_log(l_type, "%sERROR: NULL REP!", objectID_n.c_str());
+	} else {
+		objectID->Dump(l_type, objectID_n.c_str());
+	}
 }
 
 PyRepObject *objectCaching_CachedObject_data::Encode() {
@@ -105,12 +122,67 @@ PyRepObject *objectCaching_CachedObject_data::Encode() {
 	/*  3  */
 	tuple1->items[3] = new PyRepInteger(shared);
 	/*  4  */
+	if(data == NULL) {
+		_log(NET__PACKET_ERROR, "Encode objectCaching_CachedObject_data: data is NULL! hacking in an empty buffer.");
+		data = new PyRepBuffer(0);
+	}
 	tuple1->items[4] = data->Clone();
 	/*  5  */
 	tuple1->items[5] = new PyRepInteger(compressed);
 	/*  6  */
 	/*  either a string or a tuple  */
+	if(objectID == NULL) {
+		_log(NET__PACKET_ERROR, "Encode objectCaching_CachedObject_data: objectID is NULL! hacking in a PyRepNone");
+		objectID = new PyRepNone();
+	}
 	tuple1->items[6] = objectID->Clone();
+	args0 = tuple1;
+	
+	res = new PyRepObject(
+			"objectCaching.CachedObject",
+			args0
+		);
+	
+
+	return(res);
+}
+
+PyRepObject *objectCaching_CachedObject_data::FastEncode() {
+	PyRepObject *res = NULL;
+	PyRep *args0;
+	PyRepTuple *tuple1 = new PyRepTuple(7);
+	/*  0  */
+	PyRepTuple *tuple2 = new PyRepTuple(2);
+	/*  0  */
+	tuple2->items[0] = new PyRepInteger(timestamp);
+	/*  1  */
+	tuple2->items[1] = new PyRepInteger(version);
+	tuple1->items[0] = tuple2;
+	
+	/*  1  */
+	tuple1->items[1] = new PyRepNone();
+	/*  2  */
+	/*  2  */
+	tuple1->items[2] = new PyRepInteger(nodeID);
+	/*  3  */
+	tuple1->items[3] = new PyRepInteger(shared);
+	/*  4  */
+	if(data == NULL) {
+		_log(NET__PACKET_ERROR, "Encode objectCaching_CachedObject_data: data is NULL! hacking in an empty buffer.");
+		data = new PyRepBuffer(0);
+	}
+	tuple1->items[4] = data;
+	data = NULL;
+	/*  5  */
+	tuple1->items[5] = new PyRepInteger(compressed);
+	/*  6  */
+	/*  either a string or a tuple  */
+	if(objectID == NULL) {
+		_log(NET__PACKET_ERROR, "Encode objectCaching_CachedObject_data: objectID is NULL! hacking in a PyRepNone");
+		objectID = new PyRepNone();
+	}
+	tuple1->items[6] = objectID;
+	objectID = NULL;
 	args0 = tuple1;
 	
 	res = new PyRepObject(
@@ -248,6 +320,7 @@ bool objectCaching_CachedObject_data::Decode(PyRep **in_packet) {
 	compressed = int_7->value;
 	/*  6  */
 	/*  either a string or a tuple  */
+	delete objectID;
 	objectID = tuple1->items[6];
 	tuple1->items[6] = NULL;
 	
@@ -258,28 +331,43 @@ bool objectCaching_CachedObject_data::Decode(PyRep **in_packet) {
 
 objectCaching_CachedObject_data *objectCaching_CachedObject_data::Clone() const {
 	objectCaching_CachedObject_data *res = new objectCaching_CachedObject_data;
+	res->CloneFrom(this);
+	return(res);
+}
+
+void objectCaching_CachedObject_data::CloneFrom(const objectCaching_CachedObject_data *from) {
 	/* object of type objectCaching.CachedObject */
 	/*  0  */
 	/*  0  */
-	res->timestamp = timestamp;
+	timestamp = from->timestamp;
 	/*  1  */
-	res->version = version;
+	version = from->version;
 	/*  1  */
 	/*  2  */
 	/*  2  */
-	res->nodeID = nodeID;
+	nodeID = from->nodeID;
 	/*  3  */
-	res->shared = shared;
+	shared = from->shared;
 	/*  4  */
-	res->data = (PyRepBuffer *) data->Clone();
+	delete data;
+	if(from->data == NULL) {
+		data = NULL;
+	} else {
+		data = from->data->TypedClone();
+	}
 	/*  5  */
-	res->compressed = compressed;
+	compressed = from->compressed;
 	/*  6  */
 	/*  either a string or a tuple  */
-	res->objectID = objectID->Clone();
-
-	return(res);
+	delete objectID;
+	if(from->objectID == NULL) {
+		objectID = NULL;
+	} else {
+		objectID = from->objectID->Clone();
+	}
+	
 }
+
 
 objectCaching_CachedObject_spec::objectCaching_CachedObject_spec() {
 	/* object of type util.CachedObject */
@@ -295,16 +383,26 @@ objectCaching_CachedObject_spec::objectCaching_CachedObject_spec() {
 }
 
 objectCaching_CachedObject_spec::~objectCaching_CachedObject_spec() {
+	/*  0  */
+	delete objectID;
+	/*  1  */
+	/*  2  */
+	/*  0  */
+	/*  1  */
 }
 
 void objectCaching_CachedObject_spec::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%sobjectCaching_CachedObject_spec", pfx);
 	_log(l_type, "%sObject of type util.CachedObject:", pfx);
 	/*  0  */
-	_log(l_type, "%sobjectID: ", pfx);
+	_log(l_type, "%sobjectID:", pfx);
 	std::string objectID_n(pfx);
 	objectID_n += "    ";
-	objectID->Dump(l_type, objectID_n.c_str());
+	if(objectID == NULL) {
+		_log(l_type, "%sERROR: NULL REP!", objectID_n.c_str());
+	} else {
+		objectID->Dump(l_type, objectID_n.c_str());
+	}
 	/*  1  */
 	_log(l_type, "%snodeID=%lu", pfx, nodeID);
 	/*  2  */
@@ -319,7 +417,43 @@ PyRepObject *objectCaching_CachedObject_spec::Encode() {
 	PyRep *args0;
 	PyRepTuple *tuple1 = new PyRepTuple(3);
 	/*  0  */
+	if(objectID == NULL) {
+		_log(NET__PACKET_ERROR, "Encode objectCaching_CachedObject_spec: objectID is NULL! hacking in a PyRepNone");
+		objectID = new PyRepNone();
+	}
 	tuple1->items[0] = objectID->Clone();
+	/*  1  */
+	tuple1->items[1] = new PyRepInteger(nodeID);
+	/*  2  */
+	PyRepTuple *tuple2 = new PyRepTuple(2);
+	/*  0  */
+	tuple2->items[0] = new PyRepInteger(timestamp);
+	/*  1  */
+	tuple2->items[1] = new PyRepInteger(version);
+	tuple1->items[2] = tuple2;
+	
+	args0 = tuple1;
+	
+	res = new PyRepObject(
+			"util.CachedObject",
+			args0
+		);
+	
+
+	return(res);
+}
+
+PyRepObject *objectCaching_CachedObject_spec::FastEncode() {
+	PyRepObject *res = NULL;
+	PyRep *args0;
+	PyRepTuple *tuple1 = new PyRepTuple(3);
+	/*  0  */
+	if(objectID == NULL) {
+		_log(NET__PACKET_ERROR, "Encode objectCaching_CachedObject_spec: objectID is NULL! hacking in a PyRepNone");
+		objectID = new PyRepNone();
+	}
+	tuple1->items[0] = objectID;
+	objectID = NULL;
 	/*  1  */
 	tuple1->items[1] = new PyRepInteger(nodeID);
 	/*  2  */
@@ -378,6 +512,7 @@ bool objectCaching_CachedObject_spec::Decode(PyRep **in_packet) {
 	}
 
 	/*  0  */
+	delete objectID;
 	objectID = tuple1->items[0];
 	tuple1->items[0] = NULL;
 	
@@ -431,19 +566,29 @@ bool objectCaching_CachedObject_spec::Decode(PyRep **in_packet) {
 
 objectCaching_CachedObject_spec *objectCaching_CachedObject_spec::Clone() const {
 	objectCaching_CachedObject_spec *res = new objectCaching_CachedObject_spec;
-	/* object of type util.CachedObject */
-	/*  0  */
-	res->objectID = objectID->Clone();
-	/*  1  */
-	res->nodeID = nodeID;
-	/*  2  */
-	/*  0  */
-	res->timestamp = timestamp;
-	/*  1  */
-	res->version = version;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void objectCaching_CachedObject_spec::CloneFrom(const objectCaching_CachedObject_spec *from) {
+	/* object of type util.CachedObject */
+	/*  0  */
+	delete objectID;
+	if(from->objectID == NULL) {
+		objectID = NULL;
+	} else {
+		objectID = from->objectID->Clone();
+	}
+	/*  1  */
+	nodeID = from->nodeID;
+	/*  2  */
+	/*  0  */
+	timestamp = from->timestamp;
+	/*  1  */
+	version = from->version;
+	
+}
+
 
 util_Rowset::util_Rowset() {
 	/* object of type util.Rowset */
@@ -513,6 +658,51 @@ PyRepObject *util_Rowset::Encode() {
 	return(res);
 }
 
+PyRepObject *util_Rowset::FastEncode() {
+	PyRepObject *res = NULL;
+	PyRep *args0;
+	PyRepDict *dict1 = new PyRepDict();
+	PyRep *dict1_0;
+	
+	PyRepList *list2 = new PyRepList();
+	std::vector<std::string>::iterator header_cur, header_end;
+	header_cur = header.begin();
+	header_end = header.end();
+	for(; header_cur != header_end; header_cur++) {
+		list2->items.push_back(
+			new PyRepString(*header_cur)
+		);
+	}
+	dict1_0 = list2;
+	
+	dict1->items[
+		new PyRepString("header")
+	] = dict1_0;
+	PyRep *dict1_1;
+	dict1_1 = new PyRepString(rowclass);
+	dict1->items[
+		new PyRepString("RowClass")
+	] = dict1_1;
+	PyRep *dict1_2;
+	
+	PyRepList *list3 = new PyRepList();
+	list3->items = lines.items;
+	lines.items.clear();
+	dict1_2 = list3;
+	dict1->items[
+		new PyRepString("lines")
+	] = dict1_2;
+	args0 = dict1;
+	
+	res = new PyRepObject(
+			"util.Rowset",
+			args0
+		);
+	
+
+	return(res);
+}
+
 bool util_Rowset::Decode(PyRepObject **in_packet) {
 	//quick forwarder to avoid making the user cast it if they have a properly typed object
 	PyRep *packet = *in_packet;
@@ -551,15 +741,15 @@ bool util_Rowset::Decode(PyRep **in_packet) {
 	dict1_cur = dict1->items.begin();
 	dict1_end = dict1->items.end();
 	for(; dict1_cur != dict1_end; dict1_cur++) {
-		PyRep *key = dict1_cur->first;
-		if(!key->CheckType(PyRep::String)) {
-			_log(NET__PACKET_ERROR, "Decode util_Rowset failed: a key in dict1 is the wrong type: %s", key->TypeString());
+		PyRep *key__ = dict1_cur->first;
+		if(!key__->CheckType(PyRep::String)) {
+			_log(NET__PACKET_ERROR, "Decode util_Rowset failed: a key in dict1 is the wrong type: %s", key__->TypeString());
 			delete packet;
 			return(false);
 		}
-		PyRepString *key_string = (PyRepString *) key;
+		PyRepString *key_string__ = (PyRepString *) key__;
 		
-		if(key_string->value == "header") {
+		if(key_string__->value == "header") {
 			dict1_header = true;
 	if(!dict1_cur->second->CheckType(PyRep::List)) {
 		_log(NET__PACKET_ERROR, "Decode util_Rowset failed: header is not a list: %s", dict1_cur->second->TypeString());
@@ -583,7 +773,7 @@ bool util_Rowset::Decode(PyRep **in_packet) {
 	}
 
 		} else
-		if(key_string->value == "RowClass") {
+		if(key_string__->value == "RowClass") {
 			dict1_rowclass = true;
 	if(!dict1_cur->second->CheckType(PyRep::String)) {
 		_log(NET__PACKET_ERROR, "Decode util_Rowset failed: rowclass is not a string: %s", dict1_cur->second->TypeString());
@@ -593,7 +783,7 @@ bool util_Rowset::Decode(PyRep **in_packet) {
 	PyRepString *string_3 = (PyRepString *) dict1_cur->second;
 	rowclass = string_3->value;
 		} else
-		if(key_string->value == "lines") {
+		if(key_string__->value == "lines") {
 			dict1_lines = true;
 	if(!dict1_cur->second->CheckType(PyRep::List)) {
 		_log(NET__PACKET_ERROR, "Decode util_Rowset failed: lines is not a list: %s", dict1_cur->second->TypeString());
@@ -605,7 +795,7 @@ bool util_Rowset::Decode(PyRep **in_packet) {
 	
 		} else
 		{
-			_log(NET__PACKET_ERROR, "Decode util_Rowset failed: Unknown key string '%s' in dict1", key_string->value.c_str());
+			_log(NET__PACKET_ERROR, "Decode util_Rowset failed: Unknown key string '%s' in dict1", key_string__->value.c_str());
 			delete packet;
 			return(false);
 		}
@@ -636,13 +826,18 @@ bool util_Rowset::Decode(PyRep **in_packet) {
 
 util_Rowset *util_Rowset::Clone() const {
 	util_Rowset *res = new util_Rowset;
-	/* object of type util.Rowset */
-	res->header = header;
-	res->rowclass = rowclass;
-	res->lines.CloneFrom(&lines);
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void util_Rowset::CloneFrom(const util_Rowset *from) {
+	/* object of type util.Rowset */
+	header = from->header;
+	rowclass = from->rowclass;
+	lines.CloneFrom(&from->lines);
+	
+}
+
 
 list_rowset::list_rowset() {
 	/*  0  */
@@ -695,6 +890,35 @@ PyRepTuple *list_rowset::Encode() {
 	/*  1  */
 	/*  each element of this list is a list itself, with one element per element in header  */
 	tuple0->items[1] = lines.Clone();
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *list_rowset::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(2);
+	/*  0  */
+	
+	PyRepList *list1 = new PyRepList();
+	std::vector<std::string>::iterator header_cur, header_end;
+	header_cur = header.begin();
+	header_end = header.end();
+	for(; header_cur != header_end; header_cur++) {
+		list1->items.push_back(
+			new PyRepString(*header_cur)
+		);
+	}
+	tuple0->items[0] = list1;
+	
+	/*  1  */
+	/*  each element of this list is a list itself, with one element per element in header  */
+	
+	PyRepList *list2 = new PyRepList();
+	list2->items = lines.items;
+	lines.items.clear();
+	tuple0->items[1] = list2;
 	res = tuple0;
 	
 
@@ -763,14 +987,19 @@ bool list_rowset::Decode(PyRep **in_packet) {
 
 list_rowset *list_rowset::Clone() const {
 	list_rowset *res = new list_rowset;
-	/*  0  */
-	res->header = header;
-	/*  1  */
-	/*  each element of this list is a list itself, with one element per element in header  */
-	res->lines.CloneFrom(&lines);
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void list_rowset::CloneFrom(const list_rowset *from) {
+	/*  0  */
+	header = from->header;
+	/*  1  */
+	/*  each element of this list is a list itself, with one element per element in header  */
+	lines.CloneFrom(&from->lines);
+	
+}
+
 
 objectCaching_CachedMethodCallResult::objectCaching_CachedMethodCallResult() {
 	/* object of type objectCaching.CachedMethodCallResult */
@@ -790,6 +1019,15 @@ objectCaching_CachedMethodCallResult::objectCaching_CachedMethodCallResult() {
 }
 
 objectCaching_CachedMethodCallResult::~objectCaching_CachedMethodCallResult() {
+	/*  0  */
+	/*  0  */
+	/*  1  */
+	/*  2  */
+	/*  1  */
+	delete call_return;
+	/*  2  */
+	/*  0  */
+	/*  1  */
 }
 
 void objectCaching_CachedMethodCallResult::Dump(LogType l_type, const char *pfx) const {
@@ -802,10 +1040,14 @@ void objectCaching_CachedMethodCallResult::Dump(LogType l_type, const char *pfx)
 	/*  1  */
 	/*  2  */
 	/*  1  */
-	_log(l_type, "%scall_return: ", pfx);
+	_log(l_type, "%scall_return:", pfx);
 	std::string call_return_n(pfx);
 	call_return_n += "    ";
-	call_return->Dump(l_type, call_return_n.c_str());
+	if(call_return == NULL) {
+		_log(l_type, "%sERROR: NULL REP!", call_return_n.c_str());
+	} else {
+		call_return->Dump(l_type, call_return_n.c_str());
+	}
 	/*  2  */
 	/*  0  */
 	_log(l_type, "%sinteger7=" I64u, pfx, integer7);
@@ -841,7 +1083,66 @@ PyRepObject *objectCaching_CachedMethodCallResult::Encode() {
 	
 	/*  1  */
 	PyRep *ss_4;
+	if(call_return == NULL) {
+		_log(NET__PACKET_ERROR, "Encode objectCaching_CachedMethodCallResult: call_return is NULL! hacking in a PyRepNone");
+		call_return = new PyRepNone();
+	}
 	ss_4 = call_return->Clone();
+	tuple1->items[1] = new PyRepSubStream(ss_4);
+	/*  2  */
+	PyRepList *list5 = new PyRepList();
+	list5->items.resize(2, NULL);
+	/*  0  */
+	list5->items[0] = new PyRepInteger(integer7);
+	/*  1  */
+	list5->items[1] = new PyRepInteger(integer8);
+	tuple1->items[2] = list5;
+	
+	args0 = tuple1;
+	
+	res = new PyRepObject(
+			"objectCaching.CachedMethodCallResult",
+			args0
+		);
+	
+
+	return(res);
+}
+
+PyRepObject *objectCaching_CachedMethodCallResult::FastEncode() {
+	PyRepObject *res = NULL;
+	PyRep *args0;
+	PyRepTuple *tuple1 = new PyRepTuple(3);
+	/*  0  */
+	PyRepDict *dict2 = new PyRepDict();
+	PyRep *dict2_0;
+	dict2_0 = new PyRepString(string0);
+	dict2->items[
+		new PyRepString("sessionInfo")
+	] = dict2_0;
+	PyRep *dict2_1;
+	PyRepTuple *tuple3 = new PyRepTuple(3);
+	/*  0  */
+	tuple3->items[0] = new PyRepString(string1);
+	/*  1  */
+	tuple3->items[1] = new PyRepNone();
+	/*  2  */
+	tuple3->items[2] = new PyRepNone();
+	dict2_1 = tuple3;
+	
+	dict2->items[
+		new PyRepString("versionCheck")
+	] = dict2_1;
+	tuple1->items[0] = dict2;
+	
+	/*  1  */
+	PyRep *ss_4;
+	if(call_return == NULL) {
+		_log(NET__PACKET_ERROR, "Encode objectCaching_CachedMethodCallResult: call_return is NULL! hacking in a PyRepNone");
+		call_return = new PyRepNone();
+	}
+	ss_4 = call_return;
+	call_return = NULL;
 	tuple1->items[1] = new PyRepSubStream(ss_4);
 	/*  2  */
 	PyRepList *list5 = new PyRepList();
@@ -913,15 +1214,15 @@ bool objectCaching_CachedMethodCallResult::Decode(PyRep **in_packet) {
 	dict2_cur = dict2->items.begin();
 	dict2_end = dict2->items.end();
 	for(; dict2_cur != dict2_end; dict2_cur++) {
-		PyRep *key = dict2_cur->first;
-		if(!key->CheckType(PyRep::String)) {
-			_log(NET__PACKET_ERROR, "Decode objectCaching_CachedMethodCallResult failed: a key in dict2 is the wrong type: %s", key->TypeString());
+		PyRep *key__ = dict2_cur->first;
+		if(!key__->CheckType(PyRep::String)) {
+			_log(NET__PACKET_ERROR, "Decode objectCaching_CachedMethodCallResult failed: a key in dict2 is the wrong type: %s", key__->TypeString());
 			delete packet;
 			return(false);
 		}
-		PyRepString *key_string = (PyRepString *) key;
+		PyRepString *key_string__ = (PyRepString *) key__;
 		
-		if(key_string->value == "sessionInfo") {
+		if(key_string__->value == "sessionInfo") {
 			dict2_string0 = true;
 	if(!dict2_cur->second->CheckType(PyRep::String)) {
 		_log(NET__PACKET_ERROR, "Decode objectCaching_CachedMethodCallResult failed: string0 is not a string: %s", dict2_cur->second->TypeString());
@@ -931,7 +1232,7 @@ bool objectCaching_CachedMethodCallResult::Decode(PyRep **in_packet) {
 	PyRepString *string_3 = (PyRepString *) dict2_cur->second;
 	string0 = string_3->value;
 		} else
-		if(key_string->value == "versionCheck") {
+		if(key_string__->value == "versionCheck") {
 			dict2_versionCheck = true;
 	if(!dict2_cur->second->CheckType(PyRep::Tuple)) {
 		_log(NET__PACKET_ERROR, "Decode objectCaching_CachedMethodCallResult failed: tuple4 is the wrong type: %s", dict2_cur->second->TypeString());
@@ -969,7 +1270,7 @@ bool objectCaching_CachedMethodCallResult::Decode(PyRep **in_packet) {
 	
 		} else
 		{
-			_log(NET__PACKET_ERROR, "Decode objectCaching_CachedMethodCallResult failed: Unknown key string '%s' in dict2", key_string->value.c_str());
+			_log(NET__PACKET_ERROR, "Decode objectCaching_CachedMethodCallResult failed: Unknown key string '%s' in dict2", key_string__->value.c_str());
 			delete packet;
 			return(false);
 		}
@@ -1002,6 +1303,7 @@ bool objectCaching_CachedMethodCallResult::Decode(PyRep **in_packet) {
 		return(false);
 	}
 	
+	delete call_return;
 	call_return = ss_6->decoded;
 	ss_6->decoded = NULL;
 	
@@ -1044,23 +1346,33 @@ bool objectCaching_CachedMethodCallResult::Decode(PyRep **in_packet) {
 
 objectCaching_CachedMethodCallResult *objectCaching_CachedMethodCallResult::Clone() const {
 	objectCaching_CachedMethodCallResult *res = new objectCaching_CachedMethodCallResult;
-	/* object of type objectCaching.CachedMethodCallResult */
-	/*  0  */
-	res->string0 = string0;
-	/*  0  */
-	res->string1 = string1;
-	/*  1  */
-	/*  2  */
-	/*  1  */
-	res->call_return = call_return->Clone();
-	/*  2  */
-	/*  0  */
-	res->integer7 = integer7;
-	/*  1  */
-	res->integer8 = integer8;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void objectCaching_CachedMethodCallResult::CloneFrom(const objectCaching_CachedMethodCallResult *from) {
+	/* object of type objectCaching.CachedMethodCallResult */
+	/*  0  */
+	string0 = from->string0;
+	/*  0  */
+	string1 = from->string1;
+	/*  1  */
+	/*  2  */
+	/*  1  */
+	delete call_return;
+	if(from->call_return == NULL) {
+		call_return = NULL;
+	} else {
+		call_return = from->call_return->Clone();
+	}
+	/*  2  */
+	/*  0  */
+	integer7 = from->integer7;
+	/*  1  */
+	integer8 = from->integer8;
+	
+}
+
 	/*  
 empty calls:
 CallPing
@@ -1119,10 +1431,14 @@ void CallGetCachableObject::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%sshared=%lu", pfx, shared);
 	/*  1  */
 	/*  either a string or a tuple  */
-	_log(l_type, "%sobjectID: ", pfx);
+	_log(l_type, "%sobjectID:", pfx);
 	std::string objectID_n(pfx);
 	objectID_n += "    ";
-	objectID->Dump(l_type, objectID_n.c_str());
+	if(objectID == NULL) {
+		_log(l_type, "%sERROR: NULL REP!", objectID_n.c_str());
+	} else {
+		objectID->Dump(l_type, objectID_n.c_str());
+	}
 	/*  2  */
 	/*  0  */
 	_log(l_type, "%stimestamp=" I64u, pfx, timestamp);
@@ -1139,7 +1455,40 @@ PyRepTuple *CallGetCachableObject::Encode() {
 	tuple0->items[0] = new PyRepInteger(shared);
 	/*  1  */
 	/*  either a string or a tuple  */
+	if(objectID == NULL) {
+		_log(NET__PACKET_ERROR, "Encode CallGetCachableObject: objectID is NULL! hacking in a PyRepNone");
+		objectID = new PyRepNone();
+	}
 	tuple0->items[1] = objectID->Clone();
+	/*  2  */
+	PyRepTuple *tuple1 = new PyRepTuple(2);
+	/*  0  */
+	tuple1->items[0] = new PyRepInteger(timestamp);
+	/*  1  */
+	tuple1->items[1] = new PyRepInteger(version);
+	tuple0->items[2] = tuple1;
+	
+	/*  3  */
+	tuple0->items[3] = new PyRepInteger(nodeID);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallGetCachableObject::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(4);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(shared);
+	/*  1  */
+	/*  either a string or a tuple  */
+	if(objectID == NULL) {
+		_log(NET__PACKET_ERROR, "Encode CallGetCachableObject: objectID is NULL! hacking in a PyRepNone");
+		objectID = new PyRepNone();
+	}
+	tuple0->items[1] = objectID;
+	objectID = NULL;
 	/*  2  */
 	PyRepTuple *tuple1 = new PyRepTuple(2);
 	/*  0  */
@@ -1192,6 +1541,7 @@ bool CallGetCachableObject::Decode(PyRep **in_packet) {
 	shared = int_1->value;
 	/*  1  */
 	/*  either a string or a tuple  */
+	delete objectID;
 	objectID = tuple0->items[1];
 	tuple0->items[1] = NULL;
 	
@@ -1245,30 +1595,38 @@ bool CallGetCachableObject::Decode(PyRep **in_packet) {
 
 CallGetCachableObject *CallGetCachableObject::Clone() const {
 	CallGetCachableObject *res = new CallGetCachableObject;
-	/*  0  */
-	res->shared = shared;
-	/*  1  */
-	/*  either a string or a tuple  */
-	res->objectID = objectID->Clone();
-	/*  2  */
-	/*  0  */
-	res->timestamp = timestamp;
-	/*  1  */
-	res->version = version;
-	/*  3  */
-	res->nodeID = nodeID;
-
+	res->CloneFrom(this);
 	return(res);
 }
 
+void CallGetCachableObject::CloneFrom(const CallGetCachableObject *from) {
+	/*  0  */
+	shared = from->shared;
+	/*  1  */
+	/*  either a string or a tuple  */
+	delete objectID;
+	if(from->objectID == NULL) {
+		objectID = NULL;
+	} else {
+		objectID = from->objectID->Clone();
+	}
+	/*  2  */
+	/*  0  */
+	timestamp = from->timestamp;
+	/*  1  */
+	version = from->version;
+	/*  3  */
+	nodeID = from->nodeID;
+	
+}
+
+
 RspGetCachableObject::RspGetCachableObject() {
 	/*  0  */
-	object = NULL;
 }
 
 RspGetCachableObject::~RspGetCachableObject() {
 	/*  0  */
-	delete object;
 }
 
 void RspGetCachableObject::Dump(LogType l_type, const char *pfx) const {
@@ -1277,7 +1635,7 @@ void RspGetCachableObject::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%sobject:", pfx);
 	std::string object_n(pfx);
 	object_n += "    ";
-	object->Dump(l_type, object_n.c_str());
+	object.Dump(l_type, object_n.c_str());
 }
 
 PyRepTuple *RspGetCachableObject::Encode() {
@@ -1285,7 +1643,20 @@ PyRepTuple *RspGetCachableObject::Encode() {
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
 	PyRep *ss_1;
-	ss_1 = object->Encode();
+		ss_1 = object.Encode();
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetCachableObject::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+		ss_1 = object.FastEncode();
 	tuple0->items[0] = new PyRepSubStream(ss_1);
 	res = tuple0;
 	
@@ -1333,9 +1704,7 @@ bool RspGetCachableObject::Decode(PyRep **in_packet) {
 	
 	PyRep *rep_2 = ss_1->decoded;
 	ss_1->decoded = NULL;
-	delete object;
-	object = new objectCaching_CachedObject_spec;
-	if(!object->Decode(&rep_2)) {
+	if(!object.Decode(&rep_2)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetCachableObject failed: unable to decode element object");
 		delete packet;
 		return(false);
@@ -1348,11 +1717,16 @@ bool RspGetCachableObject::Decode(PyRep **in_packet) {
 
 RspGetCachableObject *RspGetCachableObject::Clone() const {
 	RspGetCachableObject *res = new RspGetCachableObject;
-	/*  0  */
-	res->object = object->Clone();
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspGetCachableObject::CloneFrom(const RspGetCachableObject *from) {
+	/*  0  */
+	object.CloneFrom(&from->object);
+	
+}
+
 
 RspPing::RspPing() {
 	/*  0  */
@@ -1370,6 +1744,19 @@ void RspPing::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *RspPing::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	ss_1 = new PyRepInteger(timestamp);
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspPing::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -1434,11 +1821,16 @@ bool RspPing::Decode(PyRep **in_packet) {
 
 RspPing *RspPing::Clone() const {
 	RspPing *res = new RspPing;
-	/*  0  */
-	res->timestamp = timestamp;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspPing::CloneFrom(const RspPing *from) {
+	/*  0  */
+	timestamp = from->timestamp;
+	
+}
+
 
 RspGetPostAuthenticationMessage::RspGetPostAuthenticationMessage() {
 	/*  0  */
@@ -1472,6 +1864,74 @@ void RspGetPostAuthenticationMessage::Dump(LogType l_type, const char *pfx) cons
 }
 
 PyRepTuple *RspGetPostAuthenticationMessage::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	PyRep *args2;
+	PyRepDict *dict3 = new PyRepDict();
+	PyRep *dict3_0;
+	dict3_0 = new PyRepString(message);
+	dict3->items[
+		new PyRepString("message")
+	] = dict3_0;
+	PyRep *dict3_1;
+	PyRepDict *dict4 = new PyRepDict();
+	PyRep *dict4_0;
+	dict4_0 = new PyRepInteger(showStatusBar);
+	dict4->items[
+		new PyRepString("showStatusBar")
+	] = dict4_0;
+	PyRep *dict4_1;
+	dict4_1 = new PyRepInteger(center);
+	dict4->items[
+		new PyRepString("center")
+	] = dict4_1;
+	PyRep *dict4_2;
+	dict4_2 = new PyRepInteger(showAddressBar);
+	dict4->items[
+		new PyRepString("showAddressBar")
+	] = dict4_2;
+	PyRep *dict4_3;
+	dict4_3 = new PyRepString(url);
+	dict4->items[
+		new PyRepString("url")
+	] = dict4_3;
+	PyRep *dict4_4;
+	dict4_4 = new PyRepInteger(showOptions);
+	dict4->items[
+		new PyRepString("showOptions")
+	] = dict4_4;
+	PyRep *dict4_5;
+	dict4_5 = new PyRepInteger(showButtons);
+	dict4->items[
+		new PyRepString("showButtons")
+	] = dict4_5;
+	PyRep *dict4_6;
+	dict4_6 = new PyRepInteger(showModal);
+	dict4->items[
+		new PyRepString("showModal")
+	] = dict4_6;
+	dict3_1 = dict4;
+	
+	dict3->items[
+		new PyRepString("args")
+	] = dict3_1;
+	args2 = dict3;
+	
+	ss_1 = new PyRepObject(
+			"util.KeyVal",
+			args2
+		);
+	
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetPostAuthenticationMessage::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -1603,15 +2063,15 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	dict3_cur = dict3->items.begin();
 	dict3_end = dict3->items.end();
 	for(; dict3_cur != dict3_end; dict3_cur++) {
-		PyRep *key = dict3_cur->first;
-		if(!key->CheckType(PyRep::String)) {
-			_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: a key in dict3 is the wrong type: %s", key->TypeString());
+		PyRep *key__ = dict3_cur->first;
+		if(!key__->CheckType(PyRep::String)) {
+			_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: a key in dict3 is the wrong type: %s", key__->TypeString());
 			delete packet;
 			return(false);
 		}
-		PyRepString *key_string = (PyRepString *) key;
+		PyRepString *key_string__ = (PyRepString *) key__;
 		
-		if(key_string->value == "message") {
+		if(key_string__->value == "message") {
 			dict3_message = true;
 	if(!dict3_cur->second->CheckType(PyRep::String)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: message is not a string: %s", dict3_cur->second->TypeString());
@@ -1621,7 +2081,7 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	PyRepString *string_4 = (PyRepString *) dict3_cur->second;
 	message = string_4->value;
 		} else
-		if(key_string->value == "args") {
+		if(key_string__->value == "args") {
 			dict3_args = true;
 	if(!dict3_cur->second->CheckType(PyRep::Dict)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: dict5 is the wrong type: %s", dict3_cur->second->TypeString());
@@ -1641,15 +2101,15 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	dict5_cur = dict5->items.begin();
 	dict5_end = dict5->items.end();
 	for(; dict5_cur != dict5_end; dict5_cur++) {
-		PyRep *key = dict5_cur->first;
-		if(!key->CheckType(PyRep::String)) {
-			_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: a key in dict5 is the wrong type: %s", key->TypeString());
+		PyRep *key__ = dict5_cur->first;
+		if(!key__->CheckType(PyRep::String)) {
+			_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: a key in dict5 is the wrong type: %s", key__->TypeString());
 			delete packet;
 			return(false);
 		}
-		PyRepString *key_string = (PyRepString *) key;
+		PyRepString *key_string__ = (PyRepString *) key__;
 		
-		if(key_string->value == "showStatusBar") {
+		if(key_string__->value == "showStatusBar") {
 			dict5_showStatusBar = true;
 	if(!dict5_cur->second->CheckType(PyRep::Integer)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: showStatusBar is not an int: %s", dict5_cur->second->TypeString());
@@ -1662,7 +2122,7 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	}
 	showStatusBar = int_6->value;
 		} else
-		if(key_string->value == "center") {
+		if(key_string__->value == "center") {
 			dict5_center = true;
 	if(!dict5_cur->second->CheckType(PyRep::Integer)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: center is not an int: %s", dict5_cur->second->TypeString());
@@ -1675,7 +2135,7 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	}
 	center = int_7->value;
 		} else
-		if(key_string->value == "showAddressBar") {
+		if(key_string__->value == "showAddressBar") {
 			dict5_showAddressBar = true;
 	if(!dict5_cur->second->CheckType(PyRep::Integer)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: showAddressBar is not an int: %s", dict5_cur->second->TypeString());
@@ -1688,7 +2148,7 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	}
 	showAddressBar = int_8->value;
 		} else
-		if(key_string->value == "url") {
+		if(key_string__->value == "url") {
 			dict5_url = true;
 	if(!dict5_cur->second->CheckType(PyRep::String)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: url is not a string: %s", dict5_cur->second->TypeString());
@@ -1698,7 +2158,7 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	PyRepString *string_9 = (PyRepString *) dict5_cur->second;
 	url = string_9->value;
 		} else
-		if(key_string->value == "showOptions") {
+		if(key_string__->value == "showOptions") {
 			dict5_showOptions = true;
 	if(!dict5_cur->second->CheckType(PyRep::Integer)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: showOptions is not an int: %s", dict5_cur->second->TypeString());
@@ -1711,7 +2171,7 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	}
 	showOptions = int_10->value;
 		} else
-		if(key_string->value == "showButtons") {
+		if(key_string__->value == "showButtons") {
 			dict5_showButtons = true;
 	if(!dict5_cur->second->CheckType(PyRep::Integer)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: showButtons is not an int: %s", dict5_cur->second->TypeString());
@@ -1724,7 +2184,7 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	}
 	showButtons = int_11->value;
 		} else
-		if(key_string->value == "showModal") {
+		if(key_string__->value == "showModal") {
 			dict5_showModal = true;
 	if(!dict5_cur->second->CheckType(PyRep::Integer)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: showModal is not an int: %s", dict5_cur->second->TypeString());
@@ -1738,7 +2198,7 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	showModal = int_12->value;
 		} else
 		{
-			_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: Unknown key string '%s' in dict5", key_string->value.c_str());
+			_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: Unknown key string '%s' in dict5", key_string__->value.c_str());
 			delete packet;
 			return(false);
 		}
@@ -1788,7 +2248,7 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 	
 		} else
 		{
-			_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: Unknown key string '%s' in dict3", key_string->value.c_str());
+			_log(NET__PACKET_ERROR, "Decode RspGetPostAuthenticationMessage failed: Unknown key string '%s' in dict3", key_string__->value.c_str());
 			delete packet;
 			return(false);
 		}
@@ -1813,28 +2273,31 @@ bool RspGetPostAuthenticationMessage::Decode(PyRep **in_packet) {
 
 RspGetPostAuthenticationMessage *RspGetPostAuthenticationMessage::Clone() const {
 	RspGetPostAuthenticationMessage *res = new RspGetPostAuthenticationMessage;
-	/*  0  */
-	/* object of type util.KeyVal */
-	res->message = message;
-	res->showStatusBar = showStatusBar;
-	res->center = center;
-	res->showAddressBar = showAddressBar;
-	res->url = url;
-	res->showOptions = showOptions;
-	res->showButtons = showButtons;
-	res->showModal = showModal;
-
+	res->CloneFrom(this);
 	return(res);
 }
 
+void RspGetPostAuthenticationMessage::CloneFrom(const RspGetPostAuthenticationMessage *from) {
+	/*  0  */
+	/* object of type util.KeyVal */
+	message = from->message;
+	showStatusBar = from->showStatusBar;
+	center = from->center;
+	showAddressBar = from->showAddressBar;
+	url = from->url;
+	showOptions = from->showOptions;
+	showButtons = from->showButtons;
+	showModal = from->showModal;
+	
+}
+
+
 RspGetCharactersToSelect::RspGetCharactersToSelect() {
 	/*  0  */
-	chars = NULL;
 }
 
 RspGetCharactersToSelect::~RspGetCharactersToSelect() {
 	/*  0  */
-	delete chars;
 }
 
 void RspGetCharactersToSelect::Dump(LogType l_type, const char *pfx) const {
@@ -1843,7 +2306,7 @@ void RspGetCharactersToSelect::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%schars:", pfx);
 	std::string chars_n(pfx);
 	chars_n += "    ";
-	chars->Dump(l_type, chars_n.c_str());
+	chars.Dump(l_type, chars_n.c_str());
 }
 
 PyRepTuple *RspGetCharactersToSelect::Encode() {
@@ -1851,7 +2314,20 @@ PyRepTuple *RspGetCharactersToSelect::Encode() {
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
 	PyRep *ss_1;
-	ss_1 = chars->Encode();
+		ss_1 = chars.Encode();
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetCharactersToSelect::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+		ss_1 = chars.FastEncode();
 	tuple0->items[0] = new PyRepSubStream(ss_1);
 	res = tuple0;
 	
@@ -1899,9 +2375,7 @@ bool RspGetCharactersToSelect::Decode(PyRep **in_packet) {
 	
 	PyRep *rep_2 = ss_1->decoded;
 	ss_1->decoded = NULL;
-	delete chars;
-	chars = new util_Rowset;
-	if(!chars->Decode(&rep_2)) {
+	if(!chars.Decode(&rep_2)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetCharactersToSelect failed: unable to decode element chars");
 		delete packet;
 		return(false);
@@ -1914,11 +2388,16 @@ bool RspGetCharactersToSelect::Decode(PyRep **in_packet) {
 
 RspGetCharactersToSelect *RspGetCharactersToSelect::Clone() const {
 	RspGetCharactersToSelect *res = new RspGetCharactersToSelect;
-	/*  0  */
-	res->chars = chars->Clone();
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspGetCharactersToSelect::CloneFrom(const RspGetCharactersToSelect *from) {
+	/*  0  */
+	chars.CloneFrom(&from->chars);
+	
+}
+
 
 CallGetCharacterToSelect::CallGetCharacterToSelect() {
 	/*  0  */
@@ -1936,6 +2415,17 @@ void CallGetCharacterToSelect::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallGetCharacterToSelect::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(charID);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallGetCharacterToSelect::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -1987,20 +2477,23 @@ bool CallGetCharacterToSelect::Decode(PyRep **in_packet) {
 
 CallGetCharacterToSelect *CallGetCharacterToSelect::Clone() const {
 	CallGetCharacterToSelect *res = new CallGetCharacterToSelect;
-	/*  0  */
-	res->charID = charID;
-
+	res->CloneFrom(this);
 	return(res);
 }
 
+void CallGetCharacterToSelect::CloneFrom(const CallGetCharacterToSelect *from) {
+	/*  0  */
+	charID = from->charID;
+	
+}
+
+
 RspGetCharacterToSelect::RspGetCharacterToSelect() {
 	/*  0  */
-	character = NULL;
 }
 
 RspGetCharacterToSelect::~RspGetCharacterToSelect() {
 	/*  0  */
-	delete character;
 }
 
 void RspGetCharacterToSelect::Dump(LogType l_type, const char *pfx) const {
@@ -2009,7 +2502,7 @@ void RspGetCharacterToSelect::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%scharacter:", pfx);
 	std::string character_n(pfx);
 	character_n += "    ";
-	character->Dump(l_type, character_n.c_str());
+	character.Dump(l_type, character_n.c_str());
 }
 
 PyRepTuple *RspGetCharacterToSelect::Encode() {
@@ -2017,7 +2510,20 @@ PyRepTuple *RspGetCharacterToSelect::Encode() {
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
 	PyRep *ss_1;
-	ss_1 = character->Encode();
+		ss_1 = character.Encode();
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetCharacterToSelect::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+		ss_1 = character.FastEncode();
 	tuple0->items[0] = new PyRepSubStream(ss_1);
 	res = tuple0;
 	
@@ -2065,9 +2571,7 @@ bool RspGetCharacterToSelect::Decode(PyRep **in_packet) {
 	
 	PyRep *rep_2 = ss_1->decoded;
 	ss_1->decoded = NULL;
-	delete character;
-	character = new util_Rowset;
-	if(!character->Decode(&rep_2)) {
+	if(!character.Decode(&rep_2)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetCharacterToSelect failed: unable to decode element character");
 		delete packet;
 		return(false);
@@ -2080,11 +2584,16 @@ bool RspGetCharacterToSelect::Decode(PyRep **in_packet) {
 
 RspGetCharacterToSelect *RspGetCharacterToSelect::Clone() const {
 	RspGetCharacterToSelect *res = new RspGetCharacterToSelect;
-	/*  0  */
-	res->character = character->Clone();
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspGetCharacterToSelect::CloneFrom(const RspGetCharacterToSelect *from) {
+	/*  0  */
+	character.CloneFrom(&from->character);
+	
+}
+
 
 RspGetCharCreationInfo::RspGetCharCreationInfo() {
 	/*  0  */
@@ -2133,6 +2642,31 @@ PyRepTuple *RspGetCharCreationInfo::Encode() {
 			new PyRepString(caches_cur->first)
 		] = caches_cur->second->Clone();
 	}
+	ss_1 = dict2;
+	
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetCharCreationInfo::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	
+	PyRepDict *dict2 = new PyRepDict();
+	std::map<std::string, PyRep *>::iterator caches_cur, caches_end;
+	caches_cur = caches.begin();
+	caches_end = caches.end();
+	for(; caches_cur != caches_end; caches_cur++) {
+		dict2->items[
+			new PyRepString(caches_cur->first)
+		] = caches_cur->second;
+	}
+	caches.clear();
 	ss_1 = dict2;
 	
 	tuple0->items[0] = new PyRepSubStream(ss_1);
@@ -2208,25 +2742,30 @@ bool RspGetCharCreationInfo::Decode(PyRep **in_packet) {
 
 RspGetCharCreationInfo *RspGetCharCreationInfo::Clone() const {
 	RspGetCharCreationInfo *res = new RspGetCharCreationInfo;
+	res->CloneFrom(this);
+	return(res);
+}
+
+void RspGetCharCreationInfo::CloneFrom(const RspGetCharCreationInfo *from) {
 	/*  0  */
 	std::map<std::string, PyRep *>::const_iterator caches_cur, caches_end;
 	//free any existing elements first
-	caches_cur = res->caches.begin();
-	caches_end = res->caches.end();
-	for(; caches_cur != caches_end; caches_cur++) {
-		delete caches_cur->second;
-	}
-	res->caches.clear();
-	//now we can copy in the new ones...
 	caches_cur = caches.begin();
 	caches_end = caches.end();
 	for(; caches_cur != caches_end; caches_cur++) {
-		res->caches[caches_cur->first] = caches_cur->second->Clone();
+		delete caches_cur->second;
+	}
+	caches.clear();
+	//now we can copy in the new ones...
+	caches_cur = from->caches.begin();
+	caches_end = from->caches.end();
+	for(; caches_cur != caches_end; caches_cur++) {
+		caches[caches_cur->first] = caches_cur->second->Clone();
 	}
 	
-
-	return(res);
+	
 }
+
 
 CallGetMultiOwnersEx::CallGetMultiOwnersEx() {
 	/*  0  */
@@ -2251,6 +2790,28 @@ void CallGetMultiOwnersEx::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallGetMultiOwnersEx::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	
+	PyRepList *list1 = new PyRepList();
+	std::vector<uint32>::iterator entities_cur, entities_end;
+	entities_cur = entities.begin();
+	entities_end = entities.end();
+	for(; entities_cur != entities_end; entities_cur++) {
+		list1->items.push_back(
+			new PyRepInteger(*entities_cur)
+		);
+	}
+	tuple0->items[0] = list1;
+	
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallGetMultiOwnersEx::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -2327,20 +2888,23 @@ bool CallGetMultiOwnersEx::Decode(PyRep **in_packet) {
 
 CallGetMultiOwnersEx *CallGetMultiOwnersEx::Clone() const {
 	CallGetMultiOwnersEx *res = new CallGetMultiOwnersEx;
-	/*  0  */
-	res->entities = entities;
-
+	res->CloneFrom(this);
 	return(res);
 }
 
+void CallGetMultiOwnersEx::CloneFrom(const CallGetMultiOwnersEx *from) {
+	/*  0  */
+	entities = from->entities;
+	
+}
+
+
 RspGetMultiOwnersEx::RspGetMultiOwnersEx() {
 	/*  0  */
-	rowset = NULL;
 }
 
 RspGetMultiOwnersEx::~RspGetMultiOwnersEx() {
 	/*  0  */
-	delete rowset;
 }
 
 void RspGetMultiOwnersEx::Dump(LogType l_type, const char *pfx) const {
@@ -2349,7 +2913,7 @@ void RspGetMultiOwnersEx::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%srowset:", pfx);
 	std::string rowset_n(pfx);
 	rowset_n += "    ";
-	rowset->Dump(l_type, rowset_n.c_str());
+	rowset.Dump(l_type, rowset_n.c_str());
 }
 
 PyRepTuple *RspGetMultiOwnersEx::Encode() {
@@ -2357,7 +2921,20 @@ PyRepTuple *RspGetMultiOwnersEx::Encode() {
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
 	PyRep *ss_1;
-	ss_1 = rowset->Encode();
+		ss_1 = rowset.Encode();
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetMultiOwnersEx::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+		ss_1 = rowset.FastEncode();
 	tuple0->items[0] = new PyRepSubStream(ss_1);
 	res = tuple0;
 	
@@ -2405,9 +2982,7 @@ bool RspGetMultiOwnersEx::Decode(PyRep **in_packet) {
 	
 	PyRep *rep_2 = ss_1->decoded;
 	ss_1->decoded = NULL;
-	delete rowset;
-	rowset = new list_rowset;
-	if(!rowset->Decode(&rep_2)) {
+	if(!rowset.Decode(&rep_2)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetMultiOwnersEx failed: unable to decode element rowset");
 		delete packet;
 		return(false);
@@ -2420,11 +2995,16 @@ bool RspGetMultiOwnersEx::Decode(PyRep **in_packet) {
 
 RspGetMultiOwnersEx *RspGetMultiOwnersEx::Clone() const {
 	RspGetMultiOwnersEx *res = new RspGetMultiOwnersEx;
-	/*  0  */
-	res->rowset = rowset->Clone();
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspGetMultiOwnersEx::CloneFrom(const RspGetMultiOwnersEx *from) {
+	/*  0  */
+	rowset.CloneFrom(&from->rowset);
+	
+}
+
 
 CallSelectCharacterID::CallSelectCharacterID() {
 	/*  0  */
@@ -2442,6 +3022,17 @@ void CallSelectCharacterID::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallSelectCharacterID::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(charID);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallSelectCharacterID::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -2493,11 +3084,16 @@ bool CallSelectCharacterID::Decode(PyRep **in_packet) {
 
 CallSelectCharacterID *CallSelectCharacterID::Clone() const {
 	CallSelectCharacterID *res = new CallSelectCharacterID;
-	/*  0  */
-	res->charID = charID;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallSelectCharacterID::CloneFrom(const CallSelectCharacterID *from) {
+	/*  0  */
+	charID = from->charID;
+	
+}
+
 
 NotifyOnAggressionChange::NotifyOnAggressionChange() {
 	/*  0  */
@@ -2556,6 +3152,32 @@ PyRepTuple *NotifyOnAggressionChange::Encode() {
 			new PyRepInteger(entries_cur->first)
 		] = entries_cur->second->Clone();
 	}
+	tuple0->items[1] = dict1;
+	
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *NotifyOnAggressionChange::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(2);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(integer0);
+	/*  1  */
+	/*  maps _something_ to a timestamp  */
+	
+	PyRepDict *dict1 = new PyRepDict();
+	std::map<uint32, PyRep *>::iterator entries_cur, entries_end;
+	entries_cur = entries.begin();
+	entries_end = entries.end();
+	for(; entries_cur != entries_end; entries_cur++) {
+		dict1->items[
+			new PyRepInteger(entries_cur->first)
+		] = entries_cur->second;
+	}
+	entries.clear();
 	tuple0->items[1] = dict1;
 	
 	res = tuple0;
@@ -2631,28 +3253,33 @@ bool NotifyOnAggressionChange::Decode(PyRep **in_packet) {
 
 NotifyOnAggressionChange *NotifyOnAggressionChange::Clone() const {
 	NotifyOnAggressionChange *res = new NotifyOnAggressionChange;
+	res->CloneFrom(this);
+	return(res);
+}
+
+void NotifyOnAggressionChange::CloneFrom(const NotifyOnAggressionChange *from) {
 	/*  0  */
-	res->integer0 = integer0;
+	integer0 = from->integer0;
 	/*  1  */
 	/*  maps _something_ to a timestamp  */
 	std::map<uint32, PyRep *>::const_iterator entries_cur, entries_end;
 	//free any existing elements first
-	entries_cur = res->entries.begin();
-	entries_end = res->entries.end();
-	for(; entries_cur != entries_end; entries_cur++) {
-		delete entries_cur->second;
-	}
-	res->entries.clear();
-	//now we can copy in the new ones...
 	entries_cur = entries.begin();
 	entries_end = entries.end();
 	for(; entries_cur != entries_end; entries_cur++) {
-		res->entries[entries_cur->first] = entries_cur->second->Clone();
+		delete entries_cur->second;
+	}
+	entries.clear();
+	//now we can copy in the new ones...
+	entries_cur = from->entries.begin();
+	entries_end = from->entries.end();
+	for(; entries_cur != entries_end; entries_cur++) {
+		entries[entries_cur->first] = entries_cur->second->Clone();
 	}
 	
-
-	return(res);
+	
 }
+
 
 CallMachoResolveObject::CallMachoResolveObject() {
 	/*  0  */
@@ -2683,6 +3310,25 @@ void CallMachoResolveObject::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallMachoResolveObject::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(2);
+	/*  0  */
+	PyRepTuple *tuple1 = new PyRepTuple(2);
+	/*  0  */
+	tuple1->items[0] = new PyRepInteger(entityID);
+	/*  1  */
+	tuple1->items[1] = new PyRepInteger(integer1);
+	tuple0->items[0] = tuple1;
+	
+	/*  1  */
+	tuple0->items[1] = new PyRepInteger(justQuery);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallMachoResolveObject::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(2);
 	/*  0  */
@@ -2777,16 +3423,21 @@ bool CallMachoResolveObject::Decode(PyRep **in_packet) {
 
 CallMachoResolveObject *CallMachoResolveObject::Clone() const {
 	CallMachoResolveObject *res = new CallMachoResolveObject;
-	/*  0  */
-	/*  0  */
-	res->entityID = entityID;
-	/*  1  */
-	res->integer1 = integer1;
-	/*  1  */
-	res->justQuery = justQuery;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallMachoResolveObject::CloneFrom(const CallMachoResolveObject *from) {
+	/*  0  */
+	/*  0  */
+	entityID = from->entityID;
+	/*  1  */
+	integer1 = from->integer1;
+	/*  1  */
+	justQuery = from->justQuery;
+	
+}
+
 
 RspMachoResolveObject::RspMachoResolveObject() {
 	/*  0  */
@@ -2804,6 +3455,19 @@ void RspMachoResolveObject::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *RspMachoResolveObject::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	ss_1 = new PyRepInteger(nodeID);
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspMachoResolveObject::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -2871,11 +3535,16 @@ bool RspMachoResolveObject::Decode(PyRep **in_packet) {
 
 RspMachoResolveObject *RspMachoResolveObject::Clone() const {
 	RspMachoResolveObject *res = new RspMachoResolveObject;
-	/*  0  */
-	res->nodeID = nodeID;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspMachoResolveObject::CloneFrom(const RspMachoResolveObject *from) {
+	/*  0  */
+	nodeID = from->nodeID;
+	
+}
+
 
 CallMachoBindObject_call::CallMachoBindObject_call() {
 	/*  0  */
@@ -2897,10 +3566,14 @@ void CallMachoBindObject_call::Dump(LogType l_type, const char *pfx) const {
 	/*  0  */
 	_log(l_type, "%smethod_name='%s'", pfx, method_name.c_str());
 	/*  1  */
-	_log(l_type, "%sarguments: ", pfx);
+	_log(l_type, "%sarguments:", pfx);
 	std::string arguments_n(pfx);
 	arguments_n += "    ";
-	arguments->Dump(l_type, arguments_n.c_str());
+	if(arguments == NULL) {
+		_log(l_type, "%sERROR: NULL TUPLE!", arguments_n.c_str());
+	} else {
+		arguments->Dump(l_type, arguments_n.c_str());
+	}
 	/*  2  */
 	_log(l_type, "%sdict_arguments: ", pfx);
 	std::string dict_arguments_n(pfx);
@@ -2914,9 +3587,40 @@ PyRepTuple *CallMachoBindObject_call::Encode() {
 	/*  0  */
 	tuple0->items[0] = new PyRepString(method_name);
 	/*  1  */
+	if(arguments == NULL) {
+		_log(NET__PACKET_ERROR, "Encode CallMachoBindObject_call: arguments is NULL! hacking in an empty tuple.");
+		arguments = new PyRepTuple(0);
+	}
 	tuple0->items[1] = arguments->Clone();
 	/*  2  */
-	tuple0->items[2] = dict_arguments.Clone(); //could avoid, see notes in PyPacket
+	tuple0->items[2] = dict_arguments.Clone();
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallMachoBindObject_call::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(3);
+	/*  0  */
+	tuple0->items[0] = new PyRepString(method_name);
+	/*  1  */
+	if(arguments == NULL) {
+		_log(NET__PACKET_ERROR, "Encode CallMachoBindObject_call: arguments is NULL! hacking in an empty tuple.");
+		arguments = new PyRepTuple(0);
+	}
+	
+	PyRepTuple *list1 = new PyRepTuple(0);
+	list1->items = arguments->items;
+	arguments->items.clear();
+	tuple0->items[1] = list1;
+	/*  2  */
+	
+	PyRepDict *dict2 = new PyRepDict();
+	dict2->items = dict_arguments.items;
+	dict_arguments.items.clear();
+	tuple0->items[2] = dict2;
 	res = tuple0;
 	
 
@@ -2979,15 +3683,25 @@ bool CallMachoBindObject_call::Decode(PyRep **in_packet) {
 
 CallMachoBindObject_call *CallMachoBindObject_call::Clone() const {
 	CallMachoBindObject_call *res = new CallMachoBindObject_call;
-	/*  0  */
-	res->method_name = method_name;
-	/*  1  */
-	res->arguments = (PyRepTuple *) arguments->Clone();
-	/*  2  */
-	res->dict_arguments.CloneFrom(&dict_arguments);
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallMachoBindObject_call::CloneFrom(const CallMachoBindObject_call *from) {
+	/*  0  */
+	method_name = from->method_name;
+	/*  1  */
+	delete arguments;
+	if(from->arguments == NULL) {
+		arguments = NULL;
+	} else {
+		arguments = from->arguments->TypedClone();
+	}
+	/*  2  */
+	dict_arguments.CloneFrom(&from->dict_arguments);
+	
+}
+
 
 CallMachoBindObject::CallMachoBindObject() {
 	/*  0  */
@@ -3018,10 +3732,14 @@ void CallMachoBindObject::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%sinteger1=%lu", pfx, integer1);
 	/*  1  */
 	/*  either 'None', or a CallMachoBindObject_call  */
-	_log(l_type, "%scall: ", pfx);
+	_log(l_type, "%scall:", pfx);
 	std::string call_n(pfx);
 	call_n += "    ";
-	call->Dump(l_type, call_n.c_str());
+	if(call == NULL) {
+		_log(l_type, "%sERROR: NULL REP!", call_n.c_str());
+	} else {
+		call->Dump(l_type, call_n.c_str());
+	}
 }
 
 PyRepTuple *CallMachoBindObject::Encode() {
@@ -3037,7 +3755,36 @@ PyRepTuple *CallMachoBindObject::Encode() {
 	
 	/*  1  */
 	/*  either 'None', or a CallMachoBindObject_call  */
+	if(call == NULL) {
+		_log(NET__PACKET_ERROR, "Encode CallMachoBindObject: call is NULL! hacking in a PyRepNone");
+		call = new PyRepNone();
+	}
 	tuple0->items[1] = call->Clone();
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallMachoBindObject::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(2);
+	/*  0  */
+	PyRepTuple *tuple1 = new PyRepTuple(2);
+	/*  0  */
+	tuple1->items[0] = new PyRepInteger(entityID);
+	/*  1  */
+	tuple1->items[1] = new PyRepInteger(integer1);
+	tuple0->items[0] = tuple1;
+	
+	/*  1  */
+	/*  either 'None', or a CallMachoBindObject_call  */
+	if(call == NULL) {
+		_log(NET__PACKET_ERROR, "Encode CallMachoBindObject: call is NULL! hacking in a PyRepNone");
+		call = new PyRepNone();
+	}
+	tuple0->items[1] = call;
+	call = NULL;
 	res = tuple0;
 	
 
@@ -3104,6 +3851,7 @@ bool CallMachoBindObject::Decode(PyRep **in_packet) {
 	integer1 = int_3->value;
 	/*  1  */
 	/*  either 'None', or a CallMachoBindObject_call  */
+	delete call;
 	call = tuple0->items[1];
 	tuple0->items[1] = NULL;
 	
@@ -3114,17 +3862,27 @@ bool CallMachoBindObject::Decode(PyRep **in_packet) {
 
 CallMachoBindObject *CallMachoBindObject::Clone() const {
 	CallMachoBindObject *res = new CallMachoBindObject;
-	/*  0  */
-	/*  0  */
-	res->entityID = entityID;
-	/*  1  */
-	res->integer1 = integer1;
-	/*  1  */
-	/*  either 'None', or a CallMachoBindObject_call  */
-	res->call = call->Clone();
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallMachoBindObject::CloneFrom(const CallMachoBindObject *from) {
+	/*  0  */
+	/*  0  */
+	entityID = from->entityID;
+	/*  1  */
+	integer1 = from->integer1;
+	/*  1  */
+	/*  either 'None', or a CallMachoBindObject_call  */
+	delete call;
+	if(from->call == NULL) {
+		call = NULL;
+	} else {
+		call = from->call->Clone();
+	}
+	
+}
+
 
 BoundObject::BoundObject() {
 	/*  0  */
@@ -3147,6 +3905,23 @@ void BoundObject::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepSubStruct *BoundObject::Encode() {
+	PyRepSubStruct *res = NULL;
+	PyRep *ss_0;
+	PyRep *ss_1;
+	PyRepTuple *tuple2 = new PyRepTuple(2);
+	/*  0  */
+	tuple2->items[0] = new PyRepString(bindspec);
+	/*  1  */
+	tuple2->items[1] = new PyRepInteger(timestamp);
+	ss_1 = tuple2;
+	
+	ss_0 = new PyRepSubStream(ss_1);
+	res = new PyRepSubStruct(ss_0);
+
+	return(res);
+}
+
+PyRepSubStruct *BoundObject::FastEncode() {
 	PyRepSubStruct *res = NULL;
 	PyRep *ss_0;
 	PyRep *ss_1;
@@ -3230,18 +4005,22 @@ bool BoundObject::Decode(PyRep **in_packet) {
 
 BoundObject *BoundObject::Clone() const {
 	BoundObject *res = new BoundObject;
-	/*  0  */
-	res->bindspec = bindspec;
-	/*  1  */
-	res->timestamp = timestamp;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void BoundObject::CloneFrom(const BoundObject *from) {
+	/*  0  */
+	bindspec = from->bindspec;
+	/*  1  */
+	timestamp = from->timestamp;
+	
+}
+
 
 RspMachoBindObject::RspMachoBindObject() {
 	/*  0  */
 	/*  0  */
-	bind = NULL;
 	/*  1  */
 	call_return = NULL;
 }
@@ -3249,7 +4028,6 @@ RspMachoBindObject::RspMachoBindObject() {
 RspMachoBindObject::~RspMachoBindObject() {
 	/*  0  */
 	/*  0  */
-	delete bind;
 	/*  1  */
 	delete call_return;
 }
@@ -3261,12 +4039,16 @@ void RspMachoBindObject::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%sbind:", pfx);
 	std::string bind_n(pfx);
 	bind_n += "    ";
-	bind->Dump(l_type, bind_n.c_str());
+	bind.Dump(l_type, bind_n.c_str());
 	/*  1  */
-	_log(l_type, "%scall_return: ", pfx);
+	_log(l_type, "%scall_return:", pfx);
 	std::string call_return_n(pfx);
 	call_return_n += "    ";
-	call_return->Dump(l_type, call_return_n.c_str());
+	if(call_return == NULL) {
+		_log(l_type, "%sERROR: NULL REP!", call_return_n.c_str());
+	} else {
+		call_return->Dump(l_type, call_return_n.c_str());
+	}
 }
 
 PyRepTuple *RspMachoBindObject::Encode() {
@@ -3276,9 +4058,37 @@ PyRepTuple *RspMachoBindObject::Encode() {
 	PyRep *ss_1;
 	PyRepTuple *tuple2 = new PyRepTuple(2);
 	/*  0  */
-	tuple2->items[0] = bind->Encode();
+		tuple2->items[0] = bind.Encode();
 	/*  1  */
+	if(call_return == NULL) {
+		_log(NET__PACKET_ERROR, "Encode RspMachoBindObject: call_return is NULL! hacking in a PyRepNone");
+		call_return = new PyRepNone();
+	}
 	tuple2->items[1] = call_return->Clone();
+	ss_1 = tuple2;
+	
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspMachoBindObject::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	PyRepTuple *tuple2 = new PyRepTuple(2);
+	/*  0  */
+		tuple2->items[0] = bind.FastEncode();
+	/*  1  */
+	if(call_return == NULL) {
+		_log(NET__PACKET_ERROR, "Encode RspMachoBindObject: call_return is NULL! hacking in a PyRepNone");
+		call_return = new PyRepNone();
+	}
+	tuple2->items[1] = call_return;
+	call_return = NULL;
 	ss_1 = tuple2;
 	
 	tuple0->items[0] = new PyRepSubStream(ss_1);
@@ -3341,15 +4151,14 @@ bool RspMachoBindObject::Decode(PyRep **in_packet) {
 	/*  0  */
 	PyRep *rep_3 = tuple2->items[0];
 	tuple2->items[0] = NULL;
-	delete bind;
-	bind = new BoundObject;
-	if(!bind->Decode(&rep_3)) {
+	if(!bind.Decode(&rep_3)) {
 		_log(NET__PACKET_ERROR, "Decode RspMachoBindObject failed: unable to decode element bind");
 		delete packet;
 		return(false);
 	}
 	
 	/*  1  */
+	delete call_return;
 	call_return = tuple2->items[1];
 	tuple2->items[1] = NULL;
 	
@@ -3360,14 +4169,24 @@ bool RspMachoBindObject::Decode(PyRep **in_packet) {
 
 RspMachoBindObject *RspMachoBindObject::Clone() const {
 	RspMachoBindObject *res = new RspMachoBindObject;
-	/*  0  */
-	/*  0  */
-	res->bind = bind->Clone();
-	/*  1  */
-	res->call_return = call_return->Clone();
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspMachoBindObject::CloneFrom(const RspMachoBindObject *from) {
+	/*  0  */
+	/*  0  */
+	bind.CloneFrom(&from->bind);
+	/*  1  */
+	delete call_return;
+	if(from->call_return == NULL) {
+		call_return = NULL;
+	} else {
+		call_return = from->call_return->Clone();
+	}
+	
+}
+
 	/*  returns a tuple of two BoundObject specs  */
 
 CallGetInventoryFromId::CallGetInventoryFromId() {
@@ -3391,6 +4210,19 @@ void CallGetInventoryFromId::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallGetInventoryFromId::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(2);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(entityID);
+	/*  1  */
+	tuple0->items[1] = new PyRepInteger(passive);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallGetInventoryFromId::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(2);
 	/*  0  */
@@ -3455,13 +4287,18 @@ bool CallGetInventoryFromId::Decode(PyRep **in_packet) {
 
 CallGetInventoryFromId *CallGetInventoryFromId::Clone() const {
 	CallGetInventoryFromId *res = new CallGetInventoryFromId;
-	/*  0  */
-	res->entityID = entityID;
-	/*  1  */
-	res->passive = passive;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallGetInventoryFromId::CloneFrom(const CallGetInventoryFromId *from) {
+	/*  0  */
+	entityID = from->entityID;
+	/*  1  */
+	passive = from->passive;
+	
+}
+
 
 RspGetMyKillRights::RspGetMyKillRights() {
 	/*  0  */
@@ -3497,9 +4334,36 @@ PyRepTuple *RspGetMyKillRights::Encode() {
 	PyRep *ss_1;
 	PyRepTuple *tuple2 = new PyRepTuple(2);
 	/*  0  */
-	tuple2->items[0] = unknown0.Clone(); //could avoid, see notes in PyPacket
+	tuple2->items[0] = unknown0.Clone();
 	/*  1  */
-	tuple2->items[1] = unknown1.Clone(); //could avoid, see notes in PyPacket
+	tuple2->items[1] = unknown1.Clone();
+	ss_1 = tuple2;
+	
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetMyKillRights::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	PyRepTuple *tuple2 = new PyRepTuple(2);
+	/*  0  */
+	
+	PyRepDict *dict3 = new PyRepDict();
+	dict3->items = unknown0.items;
+	unknown0.items.clear();
+	tuple2->items[0] = dict3;
+	/*  1  */
+	
+	PyRepDict *dict4 = new PyRepDict();
+	dict4->items = unknown1.items;
+	unknown1.items.clear();
+	tuple2->items[1] = dict4;
 	ss_1 = tuple2;
 	
 	tuple0->items[0] = new PyRepSubStream(ss_1);
@@ -3584,23 +4448,26 @@ bool RspGetMyKillRights::Decode(PyRep **in_packet) {
 
 RspGetMyKillRights *RspGetMyKillRights::Clone() const {
 	RspGetMyKillRights *res = new RspGetMyKillRights;
-	/*  0  */
-	/*  0  */
-	res->unknown0.CloneFrom(&unknown0);
-	/*  1  */
-	res->unknown1.CloneFrom(&unknown1);
-
+	res->CloneFrom(this);
 	return(res);
 }
 
+void RspGetMyKillRights::CloneFrom(const RspGetMyKillRights *from) {
+	/*  0  */
+	/*  0  */
+	unknown0.CloneFrom(&from->unknown0);
+	/*  1  */
+	unknown1.CloneFrom(&from->unknown1);
+	
+}
+
+
 RspGetInitialState::RspGetInitialState() {
 	/*  0  */
-	rowset = NULL;
 }
 
 RspGetInitialState::~RspGetInitialState() {
 	/*  0  */
-	delete rowset;
 }
 
 void RspGetInitialState::Dump(LogType l_type, const char *pfx) const {
@@ -3609,7 +4476,7 @@ void RspGetInitialState::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%srowset:", pfx);
 	std::string rowset_n(pfx);
 	rowset_n += "    ";
-	rowset->Dump(l_type, rowset_n.c_str());
+	rowset.Dump(l_type, rowset_n.c_str());
 }
 
 PyRepTuple *RspGetInitialState::Encode() {
@@ -3617,7 +4484,20 @@ PyRepTuple *RspGetInitialState::Encode() {
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
 	PyRep *ss_1;
-	ss_1 = rowset->Encode();
+		ss_1 = rowset.Encode();
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetInitialState::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+		ss_1 = rowset.FastEncode();
 	tuple0->items[0] = new PyRepSubStream(ss_1);
 	res = tuple0;
 	
@@ -3665,9 +4545,7 @@ bool RspGetInitialState::Decode(PyRep **in_packet) {
 	
 	PyRep *rep_2 = ss_1->decoded;
 	ss_1->decoded = NULL;
-	delete rowset;
-	rowset = new util_Rowset;
-	if(!rowset->Decode(&rep_2)) {
+	if(!rowset.Decode(&rep_2)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetInitialState failed: unable to decode element rowset");
 		delete packet;
 		return(false);
@@ -3680,20 +4558,23 @@ bool RspGetInitialState::Decode(PyRep **in_packet) {
 
 RspGetInitialState *RspGetInitialState::Clone() const {
 	RspGetInitialState *res = new RspGetInitialState;
-	/*  0  */
-	res->rowset = rowset->Clone();
-
+	res->CloneFrom(this);
 	return(res);
 }
 
+void RspGetInitialState::CloneFrom(const RspGetInitialState *from) {
+	/*  0  */
+	rowset.CloneFrom(&from->rowset);
+	
+}
+
+
 RspGetChannels::RspGetChannels() {
 	/*  0  */
-	cachedcall = NULL;
 }
 
 RspGetChannels::~RspGetChannels() {
 	/*  0  */
-	delete cachedcall;
 }
 
 void RspGetChannels::Dump(LogType l_type, const char *pfx) const {
@@ -3702,7 +4583,7 @@ void RspGetChannels::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%scachedcall:", pfx);
 	std::string cachedcall_n(pfx);
 	cachedcall_n += "    ";
-	cachedcall->Dump(l_type, cachedcall_n.c_str());
+	cachedcall.Dump(l_type, cachedcall_n.c_str());
 }
 
 PyRepTuple *RspGetChannels::Encode() {
@@ -3710,7 +4591,20 @@ PyRepTuple *RspGetChannels::Encode() {
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
 	PyRep *ss_1;
-	ss_1 = cachedcall->Encode();
+		ss_1 = cachedcall.Encode();
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetChannels::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+		ss_1 = cachedcall.FastEncode();
 	tuple0->items[0] = new PyRepSubStream(ss_1);
 	res = tuple0;
 	
@@ -3758,9 +4652,7 @@ bool RspGetChannels::Decode(PyRep **in_packet) {
 	
 	PyRep *rep_2 = ss_1->decoded;
 	ss_1->decoded = NULL;
-	delete cachedcall;
-	cachedcall = new objectCaching_CachedMethodCallResult;
-	if(!cachedcall->Decode(&rep_2)) {
+	if(!cachedcall.Decode(&rep_2)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetChannels failed: unable to decode element cachedcall");
 		delete packet;
 		return(false);
@@ -3773,11 +4665,16 @@ bool RspGetChannels::Decode(PyRep **in_packet) {
 
 RspGetChannels *RspGetChannels::Clone() const {
 	RspGetChannels *res = new RspGetChannels;
-	/*  0  */
-	res->cachedcall = cachedcall->Clone();
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspGetChannels::CloneFrom(const RspGetChannels *from) {
+	/*  0  */
+	cachedcall.CloneFrom(&from->cachedcall);
+	
+}
+
 
 CallJoinChannels::CallJoinChannels() {
 	/*  0  */
@@ -3802,6 +4699,28 @@ void CallJoinChannels::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallJoinChannels::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	
+	PyRepList *list1 = new PyRepList();
+	std::vector<uint32>::iterator channels_cur, channels_end;
+	channels_cur = channels.begin();
+	channels_end = channels.end();
+	for(; channels_cur != channels_end; channels_cur++) {
+		list1->items.push_back(
+			new PyRepInteger(*channels_cur)
+		);
+	}
+	tuple0->items[0] = list1;
+	
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallJoinChannels::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -3878,11 +4797,16 @@ bool CallJoinChannels::Decode(PyRep **in_packet) {
 
 CallJoinChannels *CallJoinChannels::Clone() const {
 	CallJoinChannels *res = new CallJoinChannels;
-	/*  0  */
-	res->channels = channels;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallJoinChannels::CloneFrom(const CallJoinChannels *from) {
+	/*  0  */
+	channels = from->channels;
+	
+}
+
 
 RspJoinChannels::RspJoinChannels() {
 	/*  0  */
@@ -3915,6 +4839,25 @@ PyRepTuple *RspJoinChannels::Encode() {
 	/*  list of complex elements, one for each requested channel
 	    with details about the channel  */
 	ss_1 = channels.Clone();
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspJoinChannels::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	/*  list of complex elements, one for each requested channel
+	    with details about the channel  */
+	
+	PyRepList *list2 = new PyRepList();
+	list2->items = channels.items;
+	channels.items.clear();
+	ss_1 = list2;
 	tuple0->items[0] = new PyRepSubStream(ss_1);
 	res = tuple0;
 	
@@ -3977,13 +4920,18 @@ bool RspJoinChannels::Decode(PyRep **in_packet) {
 
 RspJoinChannels *RspJoinChannels::Clone() const {
 	RspJoinChannels *res = new RspJoinChannels;
+	res->CloneFrom(this);
+	return(res);
+}
+
+void RspJoinChannels::CloneFrom(const RspJoinChannels *from) {
 	/*  0  */
 	/*  list of complex elements, one for each requested channel
 	    with details about the channel  */
-	res->channels.CloneFrom(&channels);
-
-	return(res);
+	channels.CloneFrom(&from->channels);
+	
 }
+
 
 NotifyOnLSC::NotifyOnLSC() {
 	/*  0  */
@@ -4026,10 +4974,14 @@ void NotifyOnLSC::Dump(LogType l_type, const char *pfx) const {
 	/*  2  */
 	_log(l_type, "%sfunction='%s'", pfx, function.c_str());
 	/*  3  */
-	_log(l_type, "%sarguments: ", pfx);
+	_log(l_type, "%sarguments:", pfx);
 	std::string arguments_n(pfx);
 	arguments_n += "    ";
-	arguments->Dump(l_type, arguments_n.c_str());
+	if(arguments == NULL) {
+		_log(l_type, "%sERROR: NULL TUPLE!", arguments_n.c_str());
+	} else {
+		arguments->Dump(l_type, arguments_n.c_str());
+	}
 	/*  4  */
 }
 
@@ -4053,10 +5005,53 @@ PyRepTuple *NotifyOnLSC::Encode() {
 	/*  2  */
 	tuple0->items[2] = new PyRepString(function);
 	/*  3  */
+	if(arguments == NULL) {
+		_log(NET__PACKET_ERROR, "Encode NotifyOnLSC: arguments is NULL! hacking in an empty tuple.");
+		arguments = new PyRepTuple(0);
+	}
 	tuple0->items[3] = arguments->Clone();
 	/*  4  */
 	PyRepTuple *tuple3 = new PyRepTuple(0);
 	tuple0->items[4] = tuple3;
+	
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *NotifyOnLSC::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(5);
+	/*  0  */
+	PyRepTuple *tuple1 = new PyRepTuple(1);
+	/*  0  */
+	PyRepTuple *tuple2 = new PyRepTuple(2);
+	/*  0  */
+	tuple2->items[0] = new PyRepString(channeltype);
+	/*  1  */
+	tuple2->items[1] = new PyRepInteger(entityID);
+	tuple1->items[0] = tuple2;
+	
+	tuple0->items[0] = tuple1;
+	
+	/*  1  */
+	tuple0->items[1] = new PyRepInteger(integer2);
+	/*  2  */
+	tuple0->items[2] = new PyRepString(function);
+	/*  3  */
+	if(arguments == NULL) {
+		_log(NET__PACKET_ERROR, "Encode NotifyOnLSC: arguments is NULL! hacking in an empty tuple.");
+		arguments = new PyRepTuple(0);
+	}
+	
+	PyRepTuple *list3 = new PyRepTuple(0);
+	list3->items = arguments->items;
+	arguments->items.clear();
+	tuple0->items[3] = list3;
+	/*  4  */
+	PyRepTuple *tuple4 = new PyRepTuple(0);
+	tuple0->items[4] = tuple4;
 	
 	res = tuple0;
 	
@@ -4180,22 +5175,32 @@ bool NotifyOnLSC::Decode(PyRep **in_packet) {
 
 NotifyOnLSC *NotifyOnLSC::Clone() const {
 	NotifyOnLSC *res = new NotifyOnLSC;
-	/*  0  */
-	/*  0  */
-	/*  0  */
-	res->channeltype = channeltype;
-	/*  1  */
-	res->entityID = entityID;
-	/*  1  */
-	res->integer2 = integer2;
-	/*  2  */
-	res->function = function;
-	/*  3  */
-	res->arguments = (PyRepTuple *) arguments->Clone();
-	/*  4  */
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void NotifyOnLSC::CloneFrom(const NotifyOnLSC *from) {
+	/*  0  */
+	/*  0  */
+	/*  0  */
+	channeltype = from->channeltype;
+	/*  1  */
+	entityID = from->entityID;
+	/*  1  */
+	integer2 = from->integer2;
+	/*  2  */
+	function = from->function;
+	/*  3  */
+	delete arguments;
+	if(from->arguments == NULL) {
+		arguments = NULL;
+	} else {
+		arguments = from->arguments->TypedClone();
+	}
+	/*  4  */
+	
+}
+
 
 CallGetCashBalance::CallGetCashBalance() {
 	/*  0  */
@@ -4213,6 +5218,17 @@ void CallGetCashBalance::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallGetCashBalance::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(isCorpWallet);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallGetCashBalance::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -4264,11 +5280,16 @@ bool CallGetCashBalance::Decode(PyRep **in_packet) {
 
 CallGetCashBalance *CallGetCashBalance::Clone() const {
 	CallGetCashBalance *res = new CallGetCashBalance;
-	/*  0  */
-	res->isCorpWallet = isCorpWallet;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallGetCashBalance::CloneFrom(const CallGetCashBalance *from) {
+	/*  0  */
+	isCorpWallet = from->isCorpWallet;
+	
+}
+
 
 RspGetCashBalance::RspGetCashBalance() {
 	/*  0  */
@@ -4286,6 +5307,19 @@ void RspGetCashBalance::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *RspGetCashBalance::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	ss_1 = new PyRepReal(credits);
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetCashBalance::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -4350,20 +5384,23 @@ bool RspGetCashBalance::Decode(PyRep **in_packet) {
 
 RspGetCashBalance *RspGetCashBalance::Clone() const {
 	RspGetCashBalance *res = new RspGetCashBalance;
-	/*  0  */
-	res->credits = credits;
-
+	res->CloneFrom(this);
 	return(res);
 }
 
+void RspGetCashBalance::CloneFrom(const RspGetCashBalance *from) {
+	/*  0  */
+	credits = from->credits;
+	
+}
+
+
 RspGetOwnerNoteLabels::RspGetOwnerNoteLabels() {
 	/*  0  */
-	notes = NULL;
 }
 
 RspGetOwnerNoteLabels::~RspGetOwnerNoteLabels() {
 	/*  0  */
-	delete notes;
 }
 
 void RspGetOwnerNoteLabels::Dump(LogType l_type, const char *pfx) const {
@@ -4372,7 +5409,7 @@ void RspGetOwnerNoteLabels::Dump(LogType l_type, const char *pfx) const {
 	_log(l_type, "%snotes:", pfx);
 	std::string notes_n(pfx);
 	notes_n += "    ";
-	notes->Dump(l_type, notes_n.c_str());
+	notes.Dump(l_type, notes_n.c_str());
 }
 
 PyRepTuple *RspGetOwnerNoteLabels::Encode() {
@@ -4380,7 +5417,20 @@ PyRepTuple *RspGetOwnerNoteLabels::Encode() {
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
 	PyRep *ss_1;
-	ss_1 = notes->Encode();
+		ss_1 = notes.Encode();
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetOwnerNoteLabels::FastEncode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+		ss_1 = notes.FastEncode();
 	tuple0->items[0] = new PyRepSubStream(ss_1);
 	res = tuple0;
 	
@@ -4428,9 +5478,7 @@ bool RspGetOwnerNoteLabels::Decode(PyRep **in_packet) {
 	
 	PyRep *rep_2 = ss_1->decoded;
 	ss_1->decoded = NULL;
-	delete notes;
-	notes = new util_Rowset;
-	if(!notes->Decode(&rep_2)) {
+	if(!notes.Decode(&rep_2)) {
 		_log(NET__PACKET_ERROR, "Decode RspGetOwnerNoteLabels failed: unable to decode element notes");
 		delete packet;
 		return(false);
@@ -4443,11 +5491,16 @@ bool RspGetOwnerNoteLabels::Decode(PyRep **in_packet) {
 
 RspGetOwnerNoteLabels *RspGetOwnerNoteLabels::Clone() const {
 	RspGetOwnerNoteLabels *res = new RspGetOwnerNoteLabels;
-	/*  0  */
-	res->notes = notes->Clone();
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspGetOwnerNoteLabels::CloneFrom(const RspGetOwnerNoteLabels *from) {
+	/*  0  */
+	notes.CloneFrom(&from->notes);
+	
+}
+
 
 RspGetStationItemBits::RspGetStationItemBits() {
 	/*  0  */
@@ -4488,6 +5541,31 @@ void RspGetStationItemBits::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *RspGetStationItemBits::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	PyRepTuple *tuple2 = new PyRepTuple(5);
+	/*  0  */
+	tuple2->items[0] = new PyRepInteger(integer0);
+	/*  1  */
+	tuple2->items[1] = new PyRepInteger(integer1);
+	/*  2  */
+	tuple2->items[2] = new PyRepInteger(integer2);
+	/*  3  */
+	tuple2->items[3] = new PyRepInteger(integer3);
+	/*  4  */
+	tuple2->items[4] = new PyRepInteger(integer4);
+	ss_1 = tuple2;
+	
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetStationItemBits::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -4624,20 +5702,25 @@ bool RspGetStationItemBits::Decode(PyRep **in_packet) {
 
 RspGetStationItemBits *RspGetStationItemBits::Clone() const {
 	RspGetStationItemBits *res = new RspGetStationItemBits;
-	/*  0  */
-	/*  0  */
-	res->integer0 = integer0;
-	/*  1  */
-	res->integer1 = integer1;
-	/*  2  */
-	res->integer2 = integer2;
-	/*  3  */
-	res->integer3 = integer3;
-	/*  4  */
-	res->integer4 = integer4;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspGetStationItemBits::CloneFrom(const RspGetStationItemBits *from) {
+	/*  0  */
+	/*  0  */
+	integer0 = from->integer0;
+	/*  1  */
+	integer1 = from->integer1;
+	/*  2  */
+	integer2 = from->integer2;
+	/*  3  */
+	integer3 = from->integer3;
+	/*  4  */
+	integer4 = from->integer4;
+	
+}
+
 
 RspGetGuests::RspGetGuests() {
 	/*  0  */
@@ -4662,6 +5745,30 @@ void RspGetGuests::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *RspGetGuests::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	
+	PyRepList *list2 = new PyRepList();
+	std::vector<uint32>::iterator guests_cur, guests_end;
+	guests_cur = guests.begin();
+	guests_end = guests.end();
+	for(; guests_cur != guests_end; guests_cur++) {
+		list2->items.push_back(
+			new PyRepInteger(*guests_cur)
+		);
+	}
+	ss_1 = list2;
+	
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetGuests::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -4754,11 +5861,16 @@ bool RspGetGuests::Decode(PyRep **in_packet) {
 
 RspGetGuests *RspGetGuests::Clone() const {
 	RspGetGuests *res = new RspGetGuests;
-	/*  0  */
-	res->guests = guests;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspGetGuests::CloneFrom(const RspGetGuests *from) {
+	/*  0  */
+	guests = from->guests;
+	
+}
+
 
 CallGetMessageDetails::CallGetMessageDetails() {
 	/*  0  */
@@ -4781,6 +5893,19 @@ void CallGetMessageDetails::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallGetMessageDetails::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(2);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(channelID);
+	/*  1  */
+	tuple0->items[1] = new PyRepInteger(messageID);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallGetMessageDetails::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(2);
 	/*  0  */
@@ -4845,13 +5970,18 @@ bool CallGetMessageDetails::Decode(PyRep **in_packet) {
 
 CallGetMessageDetails *CallGetMessageDetails::Clone() const {
 	CallGetMessageDetails *res = new CallGetMessageDetails;
-	/*  0  */
-	res->channelID = channelID;
-	/*  1  */
-	res->messageID = messageID;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallGetMessageDetails::CloneFrom(const CallGetMessageDetails *from) {
+	/*  0  */
+	channelID = from->channelID;
+	/*  1  */
+	messageID = from->messageID;
+	
+}
+
 
 CallMarkMessagesRead::CallMarkMessagesRead() {
 	/*  0  */
@@ -4872,6 +6002,22 @@ void CallMarkMessagesRead::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallMarkMessagesRead::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRepList *list1 = new PyRepList();
+	list1->items.resize(1, NULL);
+	/*  0  */
+	list1->items[0] = new PyRepInteger(messageID);
+	tuple0->items[0] = list1;
+	
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallMarkMessagesRead::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -4941,12 +6087,17 @@ bool CallMarkMessagesRead::Decode(PyRep **in_packet) {
 
 CallMarkMessagesRead *CallMarkMessagesRead::Clone() const {
 	CallMarkMessagesRead *res = new CallMarkMessagesRead;
-	/*  0  */
-	/*  0  */
-	res->messageID = messageID;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallMarkMessagesRead::CloneFrom(const CallMarkMessagesRead *from) {
+	/*  0  */
+	/*  0  */
+	messageID = from->messageID;
+	
+}
+
 
 NotifyOnSkillStartTraining::NotifyOnSkillStartTraining() {
 	/*  0  */
@@ -4969,6 +6120,19 @@ void NotifyOnSkillStartTraining::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *NotifyOnSkillStartTraining::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(2);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(itemID);
+	/*  1  */
+	tuple0->items[1] = new PyRepInteger(training_end);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *NotifyOnSkillStartTraining::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(2);
 	/*  0  */
@@ -5030,13 +6194,18 @@ bool NotifyOnSkillStartTraining::Decode(PyRep **in_packet) {
 
 NotifyOnSkillStartTraining *NotifyOnSkillStartTraining::Clone() const {
 	NotifyOnSkillStartTraining *res = new NotifyOnSkillStartTraining;
-	/*  0  */
-	res->itemID = itemID;
-	/*  1  */
-	res->training_end = training_end;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void NotifyOnSkillStartTraining::CloneFrom(const NotifyOnSkillStartTraining *from) {
+	/*  0  */
+	itemID = from->itemID;
+	/*  1  */
+	training_end = from->training_end;
+	
+}
+
 	/*  called on a bound object  */
 
 CharStartTrainingSkill::CharStartTrainingSkill() {
@@ -5055,6 +6224,17 @@ void CharStartTrainingSkill::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CharStartTrainingSkill::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(itemID);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CharStartTrainingSkill::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -5106,11 +6286,16 @@ bool CharStartTrainingSkill::Decode(PyRep **in_packet) {
 
 CharStartTrainingSkill *CharStartTrainingSkill::Clone() const {
 	CharStartTrainingSkill *res = new CharStartTrainingSkill;
-	/*  0  */
-	res->itemID = itemID;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CharStartTrainingSkill::CloneFrom(const CharStartTrainingSkill *from) {
+	/*  0  */
+	itemID = from->itemID;
+	
+}
+
 
 CallGetEndOfTraining::CallGetEndOfTraining() {
 	/*  0  */
@@ -5128,6 +6313,17 @@ void CallGetEndOfTraining::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *CallGetEndOfTraining::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	tuple0->items[0] = new PyRepInteger(itemID);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *CallGetEndOfTraining::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -5179,11 +6375,16 @@ bool CallGetEndOfTraining::Decode(PyRep **in_packet) {
 
 CallGetEndOfTraining *CallGetEndOfTraining::Clone() const {
 	CallGetEndOfTraining *res = new CallGetEndOfTraining;
-	/*  0  */
-	res->itemID = itemID;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void CallGetEndOfTraining::CloneFrom(const CallGetEndOfTraining *from) {
+	/*  0  */
+	itemID = from->itemID;
+	
+}
+
 
 RspGetEndOfTraining::RspGetEndOfTraining() {
 	/*  0  */
@@ -5201,6 +6402,19 @@ void RspGetEndOfTraining::Dump(LogType l_type, const char *pfx) const {
 }
 
 PyRepTuple *RspGetEndOfTraining::Encode() {
+	PyRepTuple *res = NULL;
+	PyRepTuple *tuple0 = new PyRepTuple(1);
+	/*  0  */
+	PyRep *ss_1;
+	ss_1 = new PyRepInteger(timestamp);
+	tuple0->items[0] = new PyRepSubStream(ss_1);
+	res = tuple0;
+	
+
+	return(res);
+}
+
+PyRepTuple *RspGetEndOfTraining::FastEncode() {
 	PyRepTuple *res = NULL;
 	PyRepTuple *tuple0 = new PyRepTuple(1);
 	/*  0  */
@@ -5265,10 +6479,15 @@ bool RspGetEndOfTraining::Decode(PyRep **in_packet) {
 
 RspGetEndOfTraining *RspGetEndOfTraining::Clone() const {
 	RspGetEndOfTraining *res = new RspGetEndOfTraining;
-	/*  0  */
-	res->timestamp = timestamp;
-
+	res->CloneFrom(this);
 	return(res);
 }
+
+void RspGetEndOfTraining::CloneFrom(const RspGetEndOfTraining *from) {
+	/*  0  */
+	timestamp = from->timestamp;
+	
+}
+
 
 

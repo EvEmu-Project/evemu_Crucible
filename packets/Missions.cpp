@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "../packets/Missions.h"
+#include "Missions.h"
 #include "../common/PyRep.h"
 
 

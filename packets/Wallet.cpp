@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "../packets/Wallet.h"
+#include "Wallet.h"
 #include "../common/PyRep.h"
 
 

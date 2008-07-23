@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "../packets/Character.h"
+#include "Character.h"
 #include "../common/PyRep.h"
 
 

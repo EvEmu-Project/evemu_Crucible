@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "../packets/Crypto.h"
+#include "Crypto.h"
 #include "../common/PyRep.h"
 
 

@@ -23,8 +23,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _____packets____packets_ObjectCaching_h__
-#define _____packets____packets_ObjectCaching_h__
+#ifndef _____packets_ObjectCaching_h__
+#define _____packets_ObjectCaching_h__
 
 #include <string>
 #include <vector>

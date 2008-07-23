@@ -30,14 +30,14 @@ class MiningDB;
 class AsteroidBeltManager {
 public:
 	AsteroidBeltManager(MiningDB *db, uint32 belt_id);
-	~AsteroidBeltManager();
+	virtual ~AsteroidBeltManager();
 
 	//Database operations.
-	bool LoadState();
-	bool SaveState();
+	virtual bool LoadState();
+	virtual bool SaveState();
 
-	void Process();
-	void ForceGrowth();
+	virtual void Process();
+	virtual void ForceGrowth();
 	
 protected:
 	const uint32 m_beltID;

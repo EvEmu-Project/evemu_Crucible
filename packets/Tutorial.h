@@ -23,8 +23,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _____packets_Tutorial_h__
-#define _____packets_Tutorial_h__
+#ifndef __Tutorial_h__
+#define __Tutorial_h__
 
 #include <string>
 #include <vector>

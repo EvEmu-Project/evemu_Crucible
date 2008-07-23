@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "../packets/Destiny.h"
+#include "Destiny.h"
 #include "../common/PyRep.h"
 
 

@@ -19,6 +19,9 @@
 #ifndef __COMMON_H
 #define __COMMON_H
 
+#ifdef HAVE_CONFIG_H
+#	include "config.h"
+#endif
 
 #if defined(_DEBUG) && defined(WIN32)
 	#ifndef _CRTDBG_MAP_ALLOC

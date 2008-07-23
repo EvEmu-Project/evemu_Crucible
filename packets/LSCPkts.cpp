@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "../packets/LSCPkts.h"
+#include "LSCPkts.h"
 #include "../common/PyRep.h"
 
 

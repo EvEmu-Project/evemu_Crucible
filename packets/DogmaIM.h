@@ -23,8 +23,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _____packets_DogmaIM_h__
-#define _____packets_DogmaIM_h__
+#ifndef __DogmaIM_h__
+#define __DogmaIM_h__
 
 #include <string>
 #include <vector>

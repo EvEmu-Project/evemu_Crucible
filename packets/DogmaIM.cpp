@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "../packets/DogmaIM.h"
+#include "DogmaIM.h"
 #include "../common/PyRep.h"
 
 

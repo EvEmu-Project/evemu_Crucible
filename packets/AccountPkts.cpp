@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "../packets/AccountPkts.h"
+#include "AccountPkts.h"
 #include "../common/PyRep.h"
 
 

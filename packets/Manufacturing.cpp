@@ -25,7 +25,7 @@
 
 
 #include <string>
-#include "../packets/Manufacturing.h"
+#include "Manufacturing.h"
 #include "../common/PyRep.h"
 
 

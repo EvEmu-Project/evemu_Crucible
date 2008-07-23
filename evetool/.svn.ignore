@@ -1,0 +1,7 @@
+*.a
+.deps
+evetool
+.libs
+Makefile
+Makefile.in
+stuff_extract
