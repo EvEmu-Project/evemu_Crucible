@@ -23,7 +23,8 @@
 #include <map>
 
 #include "PyRep.h"
-#include "../server/inventory/InventoryItem.h"
+
+class InventoryItem;
 
 /*                                                                              
  *

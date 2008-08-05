@@ -19,10 +19,6 @@ CREATE TABLE `intro` (
   KEY `textLabel` (`textLabel`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
--- 
--- Tábla adatok: `intro`
--- 
-
 INSERT INTO `intro` (`langID`, `textgroup`, `textLabel`, `text`) VALUES 
 ('EN', 4, 'G_EI_01_01', 'Earth'),
 ('EN', 4, 'G_EI_01_02', 'A world outgrown'),
@@ -91,6 +87,7 @@ INSERT INTO `intro` (`langID`, `textgroup`, `textLabel`, `text`) VALUES
 ('EN', 4, 'G_EI_15_03', 'On the strength of your wings the fate of empires'),
 ('EN', 4, 'G_EI_15_04', 'and the hopes of worlds will be decided'),
 ('EN', 4, 'G_EI_15_05', 'Take control of the destiny that is rightfully yours');
+
 # useless tables, we can pull their content from elsewhere
 DROP TABLE IF EXISTS ramALTypes;
 DROP TABLE IF EXISTS ramALTypeGroup;
@@ -139,27 +136,6 @@ CREATE TABLE invBlueprints (
 DELETE FROM ramAssemblyLineTypeDetailPerGroup
 WHERE groupID NOT IN (SELECT groupID FROM invGroups);
 
--- phpMyAdmin SQL Dump
--- version 2.10.1
--- http://www.phpmyadmin.net
--- 
--- Hoszt: localhost
--- Létrehozás ideje: 2008. Máj 11. 14:50
--- Szerver verzió: 5.0.27
--- PHP Verzió: 5.2.1
-
-SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
-
--- 
--- Adatbázis: `eve`
--- 
-
--- --------------------------------------------------------
-
--- 
--- Tábla szerkezet: `roidDistribution`
--- 
-
 DROP TABLE IF EXISTS `roidDistribution`;
 CREATE TABLE IF NOT EXISTS `roidDistribution` (
   `systemSec` varchar(2) NOT NULL,
@@ -167,10 +143,6 @@ CREATE TABLE IF NOT EXISTS `roidDistribution` (
   `percent` double NOT NULL,
   KEY `systemSec` (`systemSec`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
--- 
--- Tábla adatok: `roidDistribution`
--- 
 
 INSERT INTO `roidDistribution` (`systemSec`, `roidID`, `percent`) VALUES 
 ('A', 1230, 0.271003),
@@ -1589,7 +1561,9 @@ INSERT INTO `roidDistribution` (`systemSec`, `roidID`, `percent`) VALUES
 ('K7', 1229, 0.010676),
 ('K7', 17865, 0.024911),
 ('K7', 17866, 0.039146);
+
 ALTER TABLE `character_` ADD `Online` TINYINT( 1 ) NOT NULL DEFAULT '0';
+
 ALTER TABLE `corporation` CHANGE `division1` `division1` VARCHAR( 100 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '1st division',
 CHANGE `division2` `division2` VARCHAR( 100 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '2nd division',
 CHANGE `division3` `division3` VARCHAR( 100 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '3rd division',
@@ -1597,6 +1571,7 @@ CHANGE `division4` `division4` VARCHAR( 100 ) CHARACTER SET utf8 COLLATE utf8_ge
 CHANGE `division5` `division5` VARCHAR( 100 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '5th division',
 CHANGE `division6` `division6` VARCHAR( 100 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '6th division',
 CHANGE `division7` `division7` VARCHAR( 100 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '7th division';
+
 CREATE TABLE `billsPayable` (
   `billID` int(10) UNSIGNED NOT NULL DEFAULT '0',
   `billTypeID` int(10) UNSIGNED DEFAULT NULL,
@@ -1610,11 +1585,14 @@ CREATE TABLE `billsPayable` (
   `externalID2` text NOT NULL,
   PRIMARY KEY  (`billID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 UPDATE TL2MaterialsForTypeWithActivity SET recycle = 1;
 
 INSERT INTO TL2MaterialsForTypeWithActivity SELECT oreTypeID, 6 AS activity, mineralTypeID, amountPerBatch, 1 AS damagePerJob, 0 AS recycle FROM invOreReprocessing;
 
-DROP TABLE invOreReprocessing;CREATE TABLE `srvStatus` (
+DROP TABLE IF EXISTS invOreReprocessing;
+
+CREATE TABLE `srvStatus` (
 	`config_name` VARCHAR( 32 ) NOT NULL ,
 	`config_value` VARCHAR( 64 ) NOT NULL ,
 	UNIQUE (`config_name`)

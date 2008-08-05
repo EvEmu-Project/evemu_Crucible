@@ -18,6 +18,7 @@
 
 #include "common.h"
 #include "EVEUtils.h"
+#include "../server/inventory/InventoryItem.h"
 
 static const uint64 SECS_BETWEEN_EPOCHS = 11644473600LL;
 static const uint64 SECS_TO_100NS = 10000000; // 10^7
@@ -98,20 +99,26 @@ PyRepObject *MakeException(const char *exceptionType, const std::map<std::string
 	obj->type = "ccp_exceptions.UserError";
 	obj->arguments = dict;
 
-	PyRepDict *args_dict = new PyRepDict;
-	std::map<std::string, PyRep *>::const_iterator cur, end;
-	cur = args.begin();
-	end = args.end();
-	for(; cur != end; cur++)
-		args_dict->add(cur->first.c_str(), cur->second);
+	PyRep *py_args;
+	if(args.empty())
+		py_args = new PyRepNone;
+	else {
+		PyRepDict *dict = new PyRepDict;
+		py_args = dict;
+		std::map<std::string, PyRep *>::const_iterator cur, end;
+		cur = args.begin();
+		end = args.end();
+		for(; cur != end; cur++)
+			dict->add(cur->first.c_str(), cur->second);
+	}
 
 	dict->add("msg", new PyRepString(exceptionType));
-	dict->add("dict", args_dict);
+	dict->add("dict", py_args);
 
 	PyRepTuple *tuple = new PyRepTuple(2);
 	// here should be used PySavedStreamElement, but our marshaling doesnt support it yet
 	tuple->items[0] = new PyRepString(exceptionType);
-	tuple->items[1] = args_dict->Clone();
+	tuple->items[1] = py_args->Clone();
 	dict->add("args", tuple);
 
 	return(obj);

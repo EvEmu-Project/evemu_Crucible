@@ -83,7 +83,7 @@ bool ClassDumpGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		return(false);
 	}
 	fprintf(into, 
-		"	_log(l_type, \"%%s%s: Dictionaty with %%d enetires\", pfx, %s.size());\n"
+		"	_log(l_type, \"%%s%s: Dictionary with %%d entries\", pfx, %s.size());\n"
 		"	std::map<std::string, PyRep *>::const_iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s.begin();\n"
 		"	%s_end = %s.end();\n"
@@ -91,7 +91,7 @@ bool ClassDumpGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		"		_log(l_type, \"%%s Key: %%s\", pfx, %s_cur->first.c_str());\n"
 		"		std::string n(pfx);\n"
 		"		n += \"      \";\n"
-		"		%s_cur->second->Dump(stdout, n.c_str());\n"
+		"		%s_cur->second->Dump(l_type, n.c_str());\n"
 		"	}\n"
 		"	\n", 
 		name, name, name,
@@ -110,7 +110,7 @@ bool ClassDumpGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		return(false);
 	}
 	fprintf(into, 
-		"	_log(l_type, \"%%s%s: Dictionaty with %%d enetires\", pfx, %s.size());\n"
+		"	_log(l_type, \"%%s%s: Dictionary with %%d entries\", pfx, %s.size());\n"
 		"	std::map<uint32, PyRep *>::const_iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s.begin();\n"
 		"	%s_end = %s.end();\n"
@@ -118,7 +118,7 @@ bool ClassDumpGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		"		_log(l_type, \"%%s   Key: %%lu\", pfx, %s_cur->first);\n"
 		"		std::string n(pfx);\n"
 		"		n += \"        \";\n"
-		"		%s_cur->second->Dump(stdout, n.c_str());\n"
+		"		%s_cur->second->Dump(l_type, n.c_str());\n"
 		"	}\n"
 		"	\n", 
 		name, name, name,
@@ -161,7 +161,7 @@ bool ClassDumpGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 	//could make PyRep's out of them and use ->Dump, but thats annoying
 	
 	fprintf(into, 
-		"	_log(l_type, \"%%s%s: Dictionaty with %%d enetires\", pfx, %s.size());\n"
+		"	_log(l_type, \"%%s%s: Dictionary with %%d entries\", pfx, %s.size());\n"
 		"	std::map<%s, %s>::const_iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s.begin();\n"
 		"	%s_end = %s.end();\n"
@@ -187,7 +187,7 @@ bool ClassDumpGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 		return(false);
 	}
 	fprintf(into, 
-		"	_log(l_type, \"%%s%s: String list with %%d enetires\", pfx, %s.size());\n"
+		"	_log(l_type, \"%%s%s: String list with %%d entries\", pfx, %s.size());\n"
 		"	std::vector<std::string>::const_iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s.begin();\n"
 		"	%s_end = %s.end();\n"
@@ -213,7 +213,7 @@ bool ClassDumpGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 		return(false);
 	}
 	fprintf(into, 
-		"	_log(l_type, \"%%s%s: Integer list with %%d enetires\", pfx, %s.size());\n"
+		"	_log(l_type, \"%%s%s: Integer list with %%d entries\", pfx, %s.size());\n"
 		"	std::vector<uint32>::const_iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s.begin();\n"
 		"	%s_end = %s.end();\n"
@@ -239,7 +239,7 @@ bool ClassDumpGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 		return(false);
 	}
 	fprintf(into, 
-		"	_log(l_type, \"%%s%s: Integer list with %%d enetires\", pfx, %s.size());\n"
+		"	_log(l_type, \"%%s%s: Integer list with %%d entries\", pfx, %s.size());\n"
 		"	std::vector<uint64>::const_iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s.begin();\n"
 		"	%s_end = %s.end();\n"
