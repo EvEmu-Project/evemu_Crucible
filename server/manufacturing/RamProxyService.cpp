@@ -244,8 +244,6 @@ PyCallResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 					if(qtyNeeded >= (*curi)->quantity()) {
 						InventoryItem *i = (*curi)->Ref();
 						qtyNeeded -= i->quantity();
-						i->Move(6, flagAutoFit);
-						i->ChangeOwner(2);
 						i->Delete();
 					} else {
 						(*curi)->AlterQuantity(-(sint32)qtyNeeded);

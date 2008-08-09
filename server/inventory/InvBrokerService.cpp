@@ -267,45 +267,18 @@ PyCallResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
 	}
 	
 	std::vector<uint32>::const_iterator cur, end;
-
 	cur = args.ints.begin();
 	end = args.ints.end();
-
-	for( ;cur != end; cur++)
+	for(; cur != end; cur++)
 	{
 		InventoryItem *item = m_manager->item_factory->Load(*cur, false);
-		
 		if(item == NULL) 
-		{
-			codelog(SERVICE__ERROR, "%s: Unable to load item %lu", call.client->GetName(), *cur);
-			return (new PyRepList());
-		}
-		
-		if (call.client->GetCharacterID() == item->ownerID())
-		{
-			
-			//Notify client that we trashed the item
-
-			//TODO: Add proper defs for for these values
-			//6 = Junk location
-			//2 = Junk Owner
-			//0 = Junk Flag?
-			item->Move(6, flagAutoFit, true); //Move item to junk location
-			item->ChangeOwner(2, true); //Set owner as junk owner
-
-			//Release our loaded ref (just kidding, Delete does this)
-			//item->Release();		
-			
-			//Finally Delete the item from the DB
-			item->Delete();
-		}
-		else
-		{
-			codelog(SERVICE__ERROR, "Character %s tried to trash item %lu, this item isn't owned by them", call.client->GetName(), *cur);
+			codelog(SERVICE__ERROR, "%s: Unable to load item %lu to delete it. Skipping.", call.client->GetName(), *cur);
+		else if(call.client->GetCharacterID() != item->ownerID()) {
+			codelog(SERVICE__ERROR, "%s: Tried to trash item %lu which is not yours. Skipping.", call.client->GetName(), *cur);
 			item->Release();
-			return (new PyRepList());
-		}
-	
+		} else
+			item->Delete();
 	}
 	return(new PyRepList());
 }
@@ -358,7 +331,7 @@ PyCallResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 	if(new_charge->quantity() < args.quantity) {
 		codelog(SERVICE__ERROR, "%s: Item %lu: Requested quantity (%d) exceeds actual quantity (%d), using actual.", call.client->GetName(), args.itemID, args.quantity, new_charge->quantity());
 	} else if(new_charge->quantity() > args.quantity) {
-		InventoryItem *new_charge_split = m_item->Split(new_charge, args.quantity);	// get new ref on a splitted item
+		InventoryItem *new_charge_split = new_charge->Split(args.quantity);	// get new ref on a splitted item
 		new_charge->Release();	// release the old ref
 		new_charge = new_charge_split;	// copy the new ref
 		if(new_charge == NULL) {
@@ -375,30 +348,14 @@ PyCallResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 
 
 PyCallResult InventoryBound::Handle_ListStations(PyCallArgs &call) {
-	PyRep *result = NULL;
-
 	codelog(SERVICE__ERROR, "Unimplemented.");
 
-	PyRepObject *rowset = new PyRepObject();
-	result = rowset;
-	rowset->type = "util.Rowset";
-	PyRepDict *args = new PyRepDict();
-	rowset->arguments = args;
+	util_Rowset rowset;
 
-	//RowClass:
-	args->add("RowClass", new PyRepString("util.Row", true));
-
-	//header:
-	PyRepList *header = new PyRepList();
-	args->add("header", header);
-	header->add("stationID");
-	header->add("itemCount");
-
-	//lines:
-	PyRepList *invlist = new PyRepList();
-	args->add("lines", invlist);
+	rowset.header.push_back("stationID");
+	rowset.header.push_back("itemCount");
 	
-	return(result);
+	return(rowset.Encode());
 }
 
 PyCallResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
@@ -479,10 +436,9 @@ PyCallResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 	//Decode Args
 	Inventory_CallMultiMerge elements;
 
-	if(!elements.Decode(&call.tuple)) 
-	{
+	if(!elements.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Unable to decode elements");
-		return(new PyRepNone());
+		return(NULL);
 	}	
 
 	Inventory_CallMultiMergeElement element;
@@ -492,78 +448,33 @@ PyCallResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 	current = elements.MMElements.items.begin();
 	endlist = elements.MMElements.items.end();
 
-	for (;current != endlist; current++) 
-	{
+	for (;current != endlist; current++) {
 		codedElement = *current;
-		
-		if(!element.Decode(&codedElement)) 
-		{
-			codelog(SERVICE__ERROR, "Unable to decode element");
-			return(new PyRepNone());
+		if(!element.Decode(&codedElement)) {
+			codelog(SERVICE__ERROR, "Unable to decode element. Skipping.");
+			continue;
 		}
-	
 
-		InventoryItem *draggedItem = m_manager->item_factory->Load(element.draggedItemID,false);
-		InventoryItem *stationaryItem = m_manager->item_factory->Load(element.stationaryItemID,false);
+		InventoryItem *stationaryItem = m_manager->item_factory->Load(element.stationaryItemID, false);
+		if(stationaryItem == NULL) {
+			_log(SERVICE__ERROR, "Failed to load stationary item %lu. Skipping.", element.stationaryItemID);
+			continue;
+		}
 
-		if(draggedItem->ownerID() != call.client->GetCharacterID() || stationaryItem->ownerID() != call.client->GetCharacterID()) {
-			_log(SERVICE__MESSAGE, "Character %lu tried to merge item %lu of character %lu with item %lu of character %lu.", call.client->GetCharacterID(), draggedItem->itemID(), draggedItem->ownerID(), stationaryItem->itemID(), stationaryItem->ownerID());
-			draggedItem->Release();
+		InventoryItem *draggedItem = m_manager->item_factory->Load(element.draggedItemID, false);
+		if(draggedItem == NULL) {
+			_log(SERVICE__ERROR, "Failed to load dragged item %lu. Skipping.", element.draggedItemID);
 			stationaryItem->Release();
 			continue;
 		}
 
-		//If the items have the same type and both have the singletons unset we can merge
-		if( (draggedItem->typeID() == stationaryItem->typeID()) && (draggedItem->singleton() == false) && (stationaryItem->singleton() == false) )
-		{
-
-			//Merge the 2 items
-			if( !stationaryItem->AlterQuantity(element.draggedQty, true) )
-			{
-				codelog(SERVICE__ERROR, "Unable to add %lu qty to item %lu",element.draggedQty, element.stationaryItemID);
-				stationaryItem->Release();
-				draggedItem->Release();
-			}
-			else
-			{
-				
-				//Set the dragged item qty to 0
-				draggedItem->SetQuantity(0, true);
-				//move to blank location
-				draggedItem->Move( 6, flagAutoFit, false);
-				draggedItem->ChangeOwner(2);
-				
-				//release out Loaded Ref
-				//draggedItem->Release();
-
-				//Delete the dragged item					
-				draggedItem->Delete();
-
-				//Release Stationary item
-				stationaryItem->Release();
-			}
-		}
-		else
-		{
-			//Items cannot be merged
-			//Log it
-			codelog(SERVICE__ERROR,"Error Stacking items for %lu", m_item);
-			
-			
-			//TODO: Send an proper error response like the live server instead of this
-			//should be error response:UserException-CannotMergeSingletonItems
-			call.client->SendErrorMsg("Cannot Merge items with singleton set.");
-
-			//Release items
+		if(!stationaryItem->Merge(draggedItem, element.draggedQty))
 			draggedItem->Release();
-			stationaryItem->Release();
-
-		}
-
+		stationaryItem->Release();
 	}
 
 	elements.MMElements.items.clear();
-	return(new PyRepNone());
+	return(NULL);
 }
 
 PyCallResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
@@ -573,22 +484,16 @@ PyCallResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
 	EVEItemFlags stackFlag = flagHangar;
 	
 	if( call.tuple->items.size() != 0)
-	{
-		if( !arg.Decode( &call.tuple ))
-		{
-			return(new PyRepNone());
-		}
-
-		stackFlag = (EVEItemFlags)arg.arg;
-	}
+		if( !arg.Decode( &call.tuple )) {
+			_log(SERVICE__ERROR, "Failed to decode args.");
+			return(NULL);
+		} else
+			stackFlag = (EVEItemFlags)arg.arg;
 	
 	//Stack Items contained in this inventory
-	if( !m_item->StackContainedItems(stackFlag, call.client->GetCharacterID()))
-	{
-		codelog(SERVICE__ERROR,"Error Stacking items for %lu", m_item);
-	}
+	m_item->StackContainedItems(stackFlag, call.client->GetCharacterID());
 
-	return(new PyRepNone());
+	return(NULL);
 }
 
 PyCallResult InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag)
@@ -702,13 +607,8 @@ PyCallResult InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &item
 		  split also multiple items cannot be split so the size() should be 1*/
 		if( (quantity != 0) && (quantity != sourceItem->quantity()) && (items.size() == 1) )
 		{
-			InventoryItem *sourceContainer = m_manager->item_factory->Load(sourceItem->locationID(), true);
-			if(sourceContainer == NULL)
-				return(NULL);
+			InventoryItem *newItem = sourceItem->Split(quantity);
 
-			InventoryItem *newItem = sourceContainer->Split(sourceItem, quantity);
-			sourceContainer->Release();
-		
 			//Move New item to its new location
 			if( newItem != NULL )
 			{

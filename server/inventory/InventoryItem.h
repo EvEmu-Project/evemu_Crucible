@@ -87,7 +87,7 @@ public:
 	InventoryItem *Ref();
 	
 	void Save(bool recursive=false);	//save the item to the DB.
-	void Delete();	//remove the item from the DB, and Release() it. Throws an error if refcount != 1
+	void Delete();	//remove the item from the DB, and Release() it. Consumes a ref!
 	
 	/*
      *   Primary public interface:
@@ -107,11 +107,12 @@ public:
 	bool AlterQuantity(sint32 qty_change, bool notify=true);
 	bool SetQuantity(sint32 qty_new, bool notify=true);
 	bool ChangeSingleton(bool singleton, bool notify=true);
-	bool StackContainedItems( EVEItemFlags flag, uint32 forOwner = NULL);
+	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = NULL);
 	double GetRemainingCapacity( EVEItemFlags flag) const;
 	
-	//call this on the container of the item to split.
-	InventoryItem *Split(InventoryItem *to_split, sint32 qty_to_take, bool notify=true);
+	InventoryItem *Split(sint32 qty_to_take, bool notify=true);
+	//consumes ref!
+	bool Merge(InventoryItem *to_merge, sint32 qty=0, bool notify=true);
 	
 	//do we want to impose recursive const?
 	InventoryItem *FindFirstByFlag(EVEItemFlags flag, bool newref = false);

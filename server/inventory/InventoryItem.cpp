@@ -115,36 +115,35 @@ InventoryItem *InventoryItem::Ref() {
 }
 
 void InventoryItem::Delete() {
-	//first, we need to delete anything that we contain. This will be recursive.
+	//first, get out of client's sight.
+	//this also removes us from our container.
+	Move(6);
+	ChangeOwner(2);
+
+	//we need to delete anything that we contain. This will be recursive.
 	LoadContents(true);
+
 	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
-	for(; cur != end; cur++) {
-		//i = cur->second;
+	for(; cur != end; ) {
 		i = cur->second->Ref();
-		// You can't call Delete() on simply copied ref, code 6 lines (!!) below makes it invalid! And we have to notify owner too ...
-		i->Move(6, flagAutoFit);
-		i->ChangeOwner(2);
+		//iterator will become invalid after calling
+		//Delete(), so increment now.
+		cur++;
+
 		i->Delete();
 	}
-	m_contents.clear();	//a Delete() releases our ref on these.
+	//Delete() releases our ref on these.
+	//so it should be empty anyway.
+	m_contents.clear();
 
-	//delete ourself from our parent object.
-	InventoryItem *old_container = factory->GetIfContentsLoaded(m_locationID);
-	if(old_container != NULL) {
-		old_container->RemoveContainedItem(this);	//releases its ref
-		old_container->Release(); old_container = NULL;
-	}
-	
 	//now we need to tell the factory to get rid of us from its cache.
 	factory->_DeleteItem(this);
 	
 	//now we take ourself out of the DB
 	m_db->DeleteItem(this);
-	if(m_categoryID == EVEDB::invCategories::Blueprint)
-		m_db->DeleteBlueprintEntry(m_itemID);
 	
 	//and now we destroy ourself.
 	if(m_refCount != 1) {
@@ -809,35 +808,65 @@ bool InventoryItem::SetQuantity(sint32 qty_new, bool notify) {
 	return(true);
 }
 
-InventoryItem *InventoryItem::Split(InventoryItem *to_split, sint32 qty_to_take, bool notify) {
-	if(GetByID(to_split->itemID()) != to_split || to_split->locationID() != m_itemID) {
-		codelog(ITEM__ERROR, "%s (%lu): Asked to split item %lu, but we do not contain it. (%lu)", m_itemName.c_str(), m_itemID, to_split->itemID(), to_split->locationID());
-		return(NULL);	//we do not contain the item!
-	}
+InventoryItem *InventoryItem::Split(sint32 qty_to_take, bool notify) {
 	if(qty_to_take <= 0) {
-		_log(ITEM__ERROR, "%s (%lu): Asked to split item %lu into a chunk of %ld", m_itemName.c_str(), m_itemID, to_split->itemID(), qty_to_take);
+		_log(ITEM__ERROR, "%s (%lu): Asked to split into a chunk of %ld", itemName().c_str(), itemID(), qty_to_take);
 		return(NULL);
 	}
-	if(!to_split->AlterQuantity(-qty_to_take, notify)) {
-		_log(ITEM__ERROR, "%s (%lu): Failed to remove quantity %ld during split of item %lu", m_itemName.c_str(), m_itemID, qty_to_take, to_split->itemID());
+	if(!AlterQuantity(-qty_to_take, notify)) {
+		_log(ITEM__ERROR, "%s (%lu): Failed to remove quantity %ld during split.", itemName().c_str(), itemID(), qty_to_take);
 		return(NULL);
 	}
-	//Bloody.Rabbit: Changed temp owner to temp location ... I know it's worse than InventoryItem::Spawn, but
-	//it seems like temp owner doesn't refresh client's cargohold as good as temp location ...
+
 	InventoryItem *res = factory->Spawn(
-		to_split->typeID(), qty_to_take, to_split->ownerID(), (notify ? 1 : m_itemID), to_split->flag()	//temp location to cause the spawn via update
+		typeID(), qty_to_take, ownerID(), (notify ? 1 : locationID()), flag()	//temp location to cause the spawn via update
 		);
 	if(notify)
-		res->Move(m_itemID, to_split->flag());
+		res->Move(locationID(), flag());
 
 	if(res->categoryID() == EVEDB::invCategories::Blueprint) {
 		// copy blueprint properties
 		BlueprintProperties bp;
-		m_db->GetBlueprintProperties(to_split->itemID(), bp);
+		m_db->GetBlueprintProperties(itemID(), bp);
 		m_db->SetBlueprintProperties(res->itemID(), bp);
 	}
 
 	return( res );
+}
+
+bool InventoryItem::Merge(InventoryItem *to_merge, sint32 qty, bool notify) {
+	if(to_merge == NULL) {
+		_log(ITEM__ERROR, "%s (%lu): Cannot merge with NULL item.", itemName().c_str(), itemID());
+		return(false);
+	}
+	if(typeID() != to_merge->typeID()) {
+		_log(ITEM__ERROR, "%s (%lu): Asked to merge with %s (%lu).", itemName().c_str(), itemID(), to_merge->itemName().c_str(), to_merge->itemID());
+		return(false);
+	}
+	if(locationID() != to_merge->locationID() || flag() != to_merge->flag()) {
+		_log(ITEM__ERROR, "%s (%lu) in location %lu, flag %lu: Asked to merge with item %lu in location %lu, flag %lu.", itemName().c_str(), itemID(), locationID(), flag(), to_merge->itemID(), to_merge->locationID(), to_merge->flag());
+		return(false);
+	}
+	if(qty == 0)
+		qty = to_merge->quantity();
+	if(qty <= 0) {
+		_log(ITEM__ERROR, "%s (%lu): Asked to merge with %ld units of item %lu.", itemName().c_str(), itemID(), qty, to_merge->itemID());
+		return(false);
+	}
+	if(!AlterQuantity(qty, notify)) {
+		_log(ITEM__ERROR, "%s (%lu): Failed to add quantity %ld.", itemName().c_str(), itemID(), qty);
+		return(false);
+	}
+
+	if(qty == to_merge->quantity())
+		to_merge->Delete();	//consumes ref
+	else if(!to_merge->AlterQuantity(-qty, notify)) {
+		_log(ITEM__ERROR, "%s (%lu): Failed to remove quantity %ld.", to_merge->itemName().c_str(), to_merge->itemID(), qty);
+		return(false);
+	} else
+		to_merge->Release();	//consume ref
+
+	return(true);
 }
 
 bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify)
@@ -1086,75 +1115,24 @@ void InventoryItem::Relocate(const GPoint &pos) {
 	m_db->RelocateEntity(m_itemID, m_position.x, m_position.y, m_position.z);
 }
 
-bool InventoryItem::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner)
-{
-	std::map<uint32, InventoryItem *> combinedList;
-	std::set<InventoryItem *> deleteList;
+void InventoryItem::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner) {
+	std::map<uint32, InventoryItem *> types;
+
 	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::iterator cur, end;
-
 	cur = m_contents.begin();
 	end = m_contents.end();
-
-	while(cur != end) 
-	{
+	for(; cur != end; ) {
 		i = cur->second;
-		//Check if its in the flagged location and has desired owner
-		if( i->flag() == locFlag && (forOwner == NULL || i->ownerID() == forOwner ) )
-		{
-			//Check if its stackable (Has the singleton set and is not this item)
-			if( (i->singleton() == false) )
-			{
-				
-				if( combinedList.find(i->typeID()) == combinedList.end() )
-				{
-					//Add the item to this list
-					combinedList[i->typeID()] = i;
-				}
-				else
-				{
-					//Add Qty to the item already in the list
-					if( combinedList[i->typeID()]->AlterQuantity(i->quantity(), true) == true)
-					{
-						//add it to delete list
-						//deleteList.insert(i);
-						deleteList.insert(i->Ref());
-						// The problem here is that InventoryItem::Delete() called below expects that at time of call there are at least 2 refs:
-						// 1. factory one and 2. the one Delete() was called from. If we simply copy the pointer from our contents, it means that
-						// Delete()'ll find us in container and releases this ref, so our copied ref becomes invalid. So we have to make our own one.
-
-						//Change item to merge's qty to 0
-						i->SetQuantity(0,true);
-					}
-					else
-					{
-						codelog(ITEM__ERROR, "%s (%lu): Couldn't add qty %lu to Item %s (%lu). SKIPPING", m_itemName.c_str(), m_itemID, i->quantity(), i->itemName().c_str(), i->itemID());
-					}
-				}
-			}
-			
-		}
-		//Set next item
 		cur++;
-	}
 
-	//delete all redundant items
-	std::set<InventoryItem *>::iterator curd, endd;
-	curd = deleteList.begin();
-	endd = deleteList.end();
-	
-	for( ; curd != endd; curd++)
-	{
-		i = *curd;
-		//this->RemoveContainedItem(i);
-		// and what to notify client? or client will have empty items left in inventory ...
-		i->Move(6, flagAutoFit);
-		i->ChangeOwner(2);
-		//delete item
-		i->Delete();	//calls RemoveContainedItem to remove itself from m_contents
+		if( !i->singleton() && (forOwner == i->ownerID() || forOwner == NULL) )
+			if(types.find(i->typeID()) == types.end())
+				types[i->typeID()] = i;
+			else
+				//dont forget to make ref
+				types[i->typeID()]->Merge(i->Ref());
 	}
-
-	return(true);
 }
 
 double InventoryItem::GetRemainingCapacity(EVEItemFlags locationFlag) const

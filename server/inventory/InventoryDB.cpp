@@ -482,32 +482,29 @@ bool InventoryDB::ChangeSingletonEntity(uint32 itemID, bool singleton)
 
 bool InventoryDB::DeleteItem(InventoryItem *item) {
 	DBerror err;
-	
-	//TODO: delete per-entity attributes when they come around.
+
+	//delete all attributes first
+	if(!m_db->RunQuery(err,
+		"DELETE FROM entity_attributes"
+		" WHERE itemID=%lu",
+		item->itemID()))
+	{
+		codelog(DATABASE__ERROR, "Failed to delete attributes of item %lu: %s.", item->itemID(), err.c_str());
+		return(false);
+	}
 	
 	//note: all child entities should be deleted by the caller first.
 	
+	//delete standart entity entry and blueprint entry as well (if there is some)
 	if(!m_db->RunQuery(err,
-		"DELETE FROM entity"
-		" WHERE itemID=%lu",
+		"DELETE entity, invBlueprints"
+		" FROM entity"
+		" LEFT JOIN invBlueprints ON itemID = blueprintID"
+		" WHERE itemID = %lu",
 			item->itemID()
 	))
 	{
-		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
-		return(false);
-	}
-	return(true);
-}
-
-bool InventoryDB::DeleteBlueprintEntry(const uint32 blueprintID) {
-	DBerror err;
-
-	if(!m_db->RunQuery(err,
-		"DELETE FROM invBlueprints"
-		" WHERE blueprintID = %lu",
-		blueprintID))
-	{
-		_log(DATABASE__ERROR, "Unable to delete blueprint entry for blueprint %lu: %s.", blueprintID, err.c_str());
+		codelog(DATABASE__ERROR, "Failed to delete item %lu: %s", item->itemID(), err.c_str());
 		return(false);
 	}
 	return(true);
@@ -552,32 +549,20 @@ bool InventoryDB::RelocateEntity(uint32 itemID, double x, double y, double z) {
 }
 
 bool InventoryDB::SaveAttributes(InventoryItem *item) {
+	//this func saves every persistent attribute
 	DBerror err;
-	
-	//first we need to clear any existing attributes.
-	if(!m_db->RunQuery(err,
-		"DELETE FROM entity_attributes WHERE itemID=%lu", item->itemID())
-	) {
-		codelog(SERVICE__ERROR, "Failed to clear attributes for item %lu: %s", item->itemID(), err.c_str());
-	}
-	
+
+	//we used to clear all attributes for this item,
+	//but as we can save non-persistent attribute only
+	//by calling Set_persist, we can assume they know
+	//what are they doing. so we dont clear anymore.
 	{
 		std::map<InventoryItem::Attr, int>::const_iterator curi, endi;
 		curi = item->m_int_attributes.begin();
 		endi = item->m_int_attributes.end();
 		for(; curi != endi; curi++) {
-			if(!item->IsPersistent(curi->first))
-				continue;
-			//we have a persistent INT attribute, store it.
-			if(!m_db->RunQuery(err,
-				"INSERT INTO entity_attributes "
-				"	(itemID, attributeID, valueInt, valueFloat)"
-				" VALUES"
-				"	(%lu, %d, %d, NULL)",
-				item->itemID(), curi->first, curi->second)
-			) {
-				codelog(SERVICE__ERROR, "Failed to store attribute %d for item %lu: %s", curi->first, item->itemID(), err.c_str());
-			}
+			if(item->IsPersistent(curi->first))
+				UpdateAttribute_int(item->itemID(), curi->first, curi->second);
 		}
 	}
 
@@ -586,18 +571,8 @@ bool InventoryDB::SaveAttributes(InventoryItem *item) {
 		curd = item->m_double_attributes.begin();
 		endd = item->m_double_attributes.end();
 		for(; curd != endd; curd++) {
-			if(!item->IsPersistent(curd->first))
-				continue;
-			//we have a persistent INT attribute, store it.
-			if(!m_db->RunQuery(err,
-				"INSERT INTO entity_attributes "
-				"	(itemID, attributeID, valueInt, valueFloat)"
-				" VALUES"
-				"	(%lu, %d, NULL, %f)",
-				item->itemID(), curd->first, curd->second)
-			) {
-				codelog(SERVICE__ERROR, "Failed to store attribute %d for item %lu: %s", curd->first, item->itemID(), err.c_str());
-			}
+			if(item->IsPersistent(curd->first))
+				UpdateAttribute_double(item->itemID(), curd->first, curd->second);
 		}
 	}
 	return(true);

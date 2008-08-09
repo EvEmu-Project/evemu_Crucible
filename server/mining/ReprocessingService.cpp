@@ -272,11 +272,9 @@ PyCallResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 		}
 
 		uint32 qtyLeft = item->quantity() % portionSize;
-		if(qtyLeft == 0) {
-			item->Move(6, flagAutoFit);
-			item->ChangeOwner(2);
+		if(qtyLeft == 0)
 			item->Delete();
-		} else {
+		else {
 			item->SetQuantity(qtyLeft);
 			item->Release();
 		}

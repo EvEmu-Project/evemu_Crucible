@@ -377,6 +377,7 @@ PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		if(item->ownerID() != call.client->GetCharacterID()) {
 			codelog(MARKET__ERROR, "%s: Char %d Tried to sell item %d with owner %d.", call.client->GetName(), call.client->GetCharacterID(), item->itemID(), item->ownerID());
 			call.client->SendErrorMsg("You cannot sell items you do not own.");
+			item->Release();
 			return(NULL);
 		}
 		
@@ -390,6 +391,7 @@ PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		) {
 			codelog(MARKET__ERROR, "%s: Tried to sell item %d which is in location %d through station %d while in station %d", call.client->GetName(), item->itemID(), item->locationID(), args.stationID, call.client->GetStationID());
 			call.client->SendErrorMsg("You cannot sell that item in that station.");
+			item->Release();
 			return(NULL);
 		}
 
@@ -397,12 +399,14 @@ PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		   || item->quantity() < args.quantity ) {
 			codelog(MARKET__ERROR, "%s: Tried to sell %d of item %d which has qty %d singleton %d", call.client->GetName(), args.quantity, item->itemID(), item->quantity(), item->singleton());
 			call.client->SendErrorMsg("You cannot sell more than you have.");
+			item->Release();
 			return(NULL);
 		}
 
 		if(item->typeID() != args.typeID) {
 			codelog(MARKET__ERROR, "%s: Tried to sell item %d of type %d using type ID %d", call.client->GetName(), item->itemID(), item->typeID(), args.typeID);
 			call.client->SendErrorMsg("Invalid sell order item type.");
+			item->Release();
 			return(NULL);
 		}
 
@@ -431,10 +435,24 @@ PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		
 		if(args.duration == 0) {
 			_log(MARKET__ERROR, "%s: Failed to satisfy order for %d of %d at %f ISK.", call.client->GetName(), args.typeID, args.quantity, args.price);
+			item->Release();
 			return(NULL);
 		}
 
 		//TODO: take broker cost.
+		
+		//take item from seller
+		if(item->quantity() == args.quantity) {
+			item->Delete();
+		} else {
+			//update the item.
+			if(!item->AlterQuantity(-sint32(args.quantity), true)) {
+				codelog(MARKET__ERROR, "%s: Failed to consume %lu units from item %lu", call.client->GetName(), args.quantity, item->itemID());
+				item->Release();
+				return(NULL);
+			} else
+				item->Release();
+		}
 		
 		//store the order in the DB.
 		uint32 orderID = m_db.StoreSellOrder(
@@ -453,21 +471,6 @@ PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 			call.client->SendErrorMsg("Failed to record the order in the DB!");
 			return(NULL);
 		}
-		
-		//TODO: consume the item from the seller...
-		if(item->quantity() == args.quantity) {
-			//delete the item.
-			//changing owner to 1 takes it away from the seller..
-			item->ChangeOwner(1, true);
-			//TODO: Delete the item from the DB... item->Delete();
-		} else {
-			//update the item.
-			if(!item->AlterQuantity(-sint32(args.quantity), true)) {
-				codelog(MARKET__ERROR, "%s: Failed to consume %lu units from item %lu", call.client->GetName(), args.quantity, item->itemID());
-				//TODO: delete the order...
-			}
-		}
-		item->Release();
 		
 		//notify client about new order.
 		_SendOnOwnOrderChanged(call.client, orderID, "Add");

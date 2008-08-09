@@ -38,7 +38,6 @@ public:
 	bool RelocateEntity(uint32 itemID, double x, double y, double z);
 	
 	bool DeleteItem(InventoryItem *item);
-	bool DeleteBlueprintEntry(const uint32 blueprintID);
 	bool LoadEntityAttributes(InventoryItem *item);
 	bool LoadItemAttributes(InventoryItem *item);
 	bool LoadPersistentAttributes(InventoryItem *item);
