@@ -172,26 +172,14 @@ PyCallResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
 }
 
 PyCallResult CharacterService::Handle_ValidateName(PyCallArgs &call) {
-	PyRepTuple *args = call.tuple;
+	Call_SingleStringArg arg;
 
-	bool res = false;
-	//passes a single string in the arg tuple
-	if(args->items.size() != 1) {
-		_log(CLIENT__ERROR, "Invalid arg count to ValidateName: %d", args->items.size());
-		res = false;
-	} else if(!args->items[0]->CheckType(PyRep::String)) {
-		_log(CLIENT__ERROR, "Invalid argument to ValidateName: string expected");
-		res = false;
-	} else {
-		PyRepString *s = (PyRepString *) args->items[0];
-		
-		res = m_db.ValidateCharName(s->value.c_str());
+	if(!arg.Decode(&call.tuple)) {
+		_log(SERVICE__ERROR, "Failed to decode args.");
+		return(NULL);
 	}
-	
-	PyRep *result = NULL;
-	result = new PyRepBoolean(res);
 
-	return(result);
+	return(new PyRepBoolean(m_db.ValidateCharName(arg.arg.c_str())));
 }
 
 PyCallResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
@@ -663,7 +651,8 @@ PyCallResult CharacterService::Handle_GetCloneTypeID(PyCallArgs &call) {
 	
 	_log(CLIENT__ERROR, "GetCloneTypeID() is not really implemented.");
 	
-	result = new PyRepInteger(8);
+	//currently hardcoded Clone Grade Alpha
+	result = new PyRepInteger(164);
 
 	return(result);
 }

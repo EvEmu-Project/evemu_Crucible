@@ -158,7 +158,7 @@ PyCallResult AccountService::Handle_GiveCash(PyCallArgs &call) {
 		return(NULL);
 	}
 	
-	SystemManager *system = call.client->GetSystem();
+	SystemManager *system = call.client->System();
 	if(system == NULL) {
 		codelog(CLIENT__ERROR, "%s: bad system", call.client->GetName());
 		return(NULL);
@@ -381,7 +381,7 @@ PyCallResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call) {
 		return(NULL);
 	}
 	
-	SystemManager *system = call.client->GetSystem();
+	SystemManager *system = call.client->System();
 	if(system == NULL) {
 		codelog(CLIENT__ERROR, "%s: bad system", call.client->GetName());
 		return(NULL);

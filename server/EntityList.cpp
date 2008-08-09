@@ -91,20 +91,20 @@ void EntityList::Process() {
 		}
 		
 		//first process any systems, watching for deletion.
-		system_list::iterator cur, end, tmp;
+		system_list::iterator cur, end;
 		cur = m_systems.begin();
-		while(cur != m_systems.end()) {
+		end = m_systems.end();
+		while(cur != end) {
+			active_system = cur->second;
 			//if it is destiny time, process it first.
 			if(destiny) {
-				cur->second->ProcessDestiny(m_nextDestinyStamp);
+				active_system->ProcessDestiny(m_nextDestinyStamp);
 			}
 			
-			if(!cur->second->Process()) {
+			if(!active_system->Process()) {
 				_log(SERVER__CLIENTS, "Destroying system\n");
-				tmp = cur;
-				cur++;
-				delete tmp->second;
-				m_systems.erase(tmp);
+				delete cur->second;
+				cur = m_systems.erase(cur);
 			} else {
 				cur++;
 			}

@@ -262,21 +262,23 @@ public:
 	virtual void	ProcessDestiny(uint32 stamp);
 
 	uint32 GetAccountID() const { return(m_accountID); }
-	uint32 GetCharacterID() const { return(m_char.charid); }
-	uint32 GetConstellationID() const { return(m_char.constellationID); }
-	uint32 GetLocationID() const { return(m_char.stationID == 0? m_char.solarSystemID : m_char.stationID); }
-	uint32 GetSystemID() const { return(m_char.solarSystemID); }
-	uint32 GetAllianceID() const { return(m_char.allianceID); }
-	uint32 GetRegionID() const { return(m_char.regionID); }
-	uint32 GetStationID() const { return(m_char.stationID); }
-	CharacterData &GetChar() { return(m_char); }
 	uint32 GetRole() const { return(m_role); }
+
+	uint32 GetCharacterID() const { return(m_char.charid); }
+	CharacterData &GetChar() { return(m_char); }
+	uint32 GetCorporationID() const { return(m_char.corporationID); }
+	uint32 GetAllianceID() const { return(m_char.allianceID); }
 	const CorpMemberInfo &GetCorpInfo() const { return(m_corpstate); }
+
+	uint32 GetLocationID() const { return(IsInSpace() ? GetSystemID() : GetStationID()); }
+	uint32 GetStationID() const { return(m_char.stationID); }
+	uint32 GetSystemID() const { return(m_char.solarSystemID); }
+	uint32 GetConstellationID() const { return(m_char.constellationID); }
+	uint32 GetRegionID() const { return(m_char.regionID); }
 	inline double x() const { return(GetPosition().x); }	//this is terribly inefficient.
 	inline double y() const { return(GetPosition().y); }	//this is terribly inefficient.
 	inline double z() const { return(GetPosition().z); }	//this is terribly inefficient.
-	SystemManager *GetSystem() const { return(m_system); }
-	bool IsInSpace() const { return(m_char.stationID == 0); }
+	bool IsInSpace() const { return(GetStationID() == 0); }
 	
 	double GetBalance() const { return(m_char.balance); }
 	bool AddBalance(double amount);
@@ -322,22 +324,25 @@ public:
 	virtual bool IsClient() const { return(true); }
 	virtual Client *CastToClient() { return(this); }
 	virtual const Client *CastToClient() const { return(this); }
+
 	virtual uint32 GetID() const { return(GetShipID()); }	//our entity in space is our ship!
+	virtual const char *GetName() const { return(m_char.name.c_str()); }
 	virtual double GetRadius() const;
 	virtual PyRepDict *MakeSlimItem() const;
 	virtual void MakeDamageState(DoDestinyDamageState &into) const;
+	virtual void QueueDestinyUpdate(PyRepTuple **du);
+	virtual void QueueDestinyEvent(PyRepTuple **multiEvent);
+
 	virtual void TargetAdded(SystemEntity *who);
 	virtual void TargetLost(SystemEntity *who);
 	virtual void TargetedAdd(SystemEntity *who);
 	virtual void TargetedLost(SystemEntity *who);
 	virtual void TargetsCleared();
-	virtual void QueueDestinyUpdate(PyRepTuple **du);
-	virtual void QueueDestinyEvent(PyRepTuple **multiEvent);
-	virtual const char *GetName() const { return(m_char.name.c_str()); }
-	virtual uint32 GetCorporationID() const { return(m_char.corporationID); }
+
 	virtual double GetMass() const;
 	virtual double GetMaxVelocity() const;
 	virtual double GetAgility() const;
+
 	virtual void ApplyDamageModifiers(Damage &d, SystemEntity *target);
 	virtual void ApplyDamage(Damage &d);
 	virtual void Killed(Damage &fatal_blow);
@@ -378,13 +383,6 @@ protected:
 	void _ProcessCallRequest(PyPacket *packet);
 	void _SendCallReturn(PyPacket *req, PyRepTuple **return_value, const char *channel = NULL);
 	void _SendException(PyPacket *req, MACHONETERR_TYPE type, PyRep **payload);
-	
-	//specific calls:
-	//void Handle_MachoBindObject(PyPacket *packet, PyCallStream *call);
-	//calls on bound objects:
-	void Handle_GetInventoryFromId(PyPacket *packet, PyCallStream *call);
-	void _AddItem(PyRepDict *items, uint32 id);
-	void Handle_List(PyPacket *packet, PyCallStream *call);
 
 	InventoryItem *m_ship;
 
@@ -398,12 +396,9 @@ protected:
 
 	SystemManager *m_system;	//we do not own this
 
-	bool char_valid;
 	CharacterData m_char;
 	CorpMemberInfo m_corpstate;
 
-	//GPoint m_position;	//TODO: move into a base class. everything has a position.
-	
 	std::set<LSCChannel *> m_channels;	//we do not own these.
 	
 	//this whole move system is a piece of crap:

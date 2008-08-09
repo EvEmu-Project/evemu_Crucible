@@ -310,13 +310,13 @@ double SystemManager::GetWarpSpeed() const {
 	return(3.0f * one_AU_in_m);
 }
 
-void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState &ss, uint32 updateID) const {
+void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState &ss) const {
 	std::vector<byte> setstate_buffer(sizeof(Destiny::AddBall_header));
 	setstate_buffer.reserve(10240);
 	
 	Destiny::AddBall_header *head = (Destiny::AddBall_header *) &setstate_buffer[0];
 	head->more = 0;
-	head->sequence = updateID;
+	head->sequence = ss.stamp;
 	
 	//I am not thrilled with this mechanism, but I cant think of a better
 	//way to deal with it right now. The issue is that we need to send out

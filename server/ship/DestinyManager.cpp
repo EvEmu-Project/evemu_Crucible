@@ -1076,9 +1076,9 @@ void DestinyManager::SendAddBall() const {
 void DestinyManager::SendSetState(const SystemBubble *b) const {
 	DoDestiny_SetState ss;
 	
-	m_system->MakeSetState(b, ss, m_lastDestinyStamp);
 	ss.stamp = m_lastDestinyStamp;
 	ss.ego = m_self->GetID();
+	m_system->MakeSetState(b, ss);
 
 	PyRepTuple *tmp = ss.FastEncode();
 	SendSingleDestinyUpdate(&tmp, true);	//consumed

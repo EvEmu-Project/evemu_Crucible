@@ -242,7 +242,7 @@ void Command_spawn(Client *who, CommandDB *db, PyServiceMgr *services, const Sep
 		return;
 	}
 
-	if(who->IsInSpace() == false) {
+	if(!who->IsInSpace()) {
 		who->SendErrorMsg("You must be in space to spawn things.");
 		return;
 	}
@@ -263,7 +263,7 @@ void Command_spawn(Client *who, CommandDB *db, PyServiceMgr *services, const Sep
 	GPoint loc(who->GetPosition());
 	loc.x += 1500;
 
-	SystemManager *sys = who->GetSystem();
+	SystemManager *sys = who->System();
 	NPC *it = new NPC(sys, services, i, who->GetCorporationID(), loc);
 	sys->AddNPC(it);
 }

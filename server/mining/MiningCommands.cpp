@@ -127,7 +127,7 @@ void GetAsteroid(Client *who, uint32 typeID, double radius, const Ga::GaVec3 & p
 	i->Set_radius(radius);
 	i->Save();
 
-	SystemManager *sys = who->GetSystem();
+	SystemManager *sys = who->System();
 	Asteroid *new_roid = new Asteroid(sys, i);	//takes a ref.
 	//TODO: check for a local asteroid belt object?
 	//TODO: actually add this to the asteroid belt too...

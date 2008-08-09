@@ -52,7 +52,7 @@ public:
 	void RangecastDestinyEvent(const GPoint &pt, double range, PyRepTuple **payload) const;
 	
 	uint32 GetID() const { return(m_systemID); }
-	const std::string & GetName() const { return(m_systemName); }
+	const std::string &GetName() const { return(m_systemName); }
 	uint32 GetNextDestinyStamp() const;	//not intended for normal use, only for destiny initilization
 	double GetWarpSpeed() const;
 	
@@ -70,14 +70,14 @@ public:
 	
 	SystemEntity *get(uint32 entityID) const;
 	
-	void MakeSetState(const SystemBubble *bubble, DoDestiny_SetState &into, uint32 updateID) const;
+	void MakeSetState(const SystemBubble *bubble, DoDestiny_SetState &into) const;
 
 	uint32 AllocateNPCID() { return(m_nextNPCID++); }
 	
 	SystemDB *GetSystemDB() { return(&m_db); }
 	const char * GetSystemSecurity() { return m_systemSecurity.c_str(); }
 
-	ItemFactory *itemFactory() const;
+	inline ItemFactory *itemFactory() const;
 	
 protected:
 	bool _LoadSystemCelestials();

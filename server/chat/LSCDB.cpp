@@ -348,14 +348,18 @@ std::string LSCDB::GetChannelName(uint32 id, const char * table, const char * co
 		" WHERE %s = %lu ", column, table, key, id))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return "";
+		char err[20];
+		sprintf_s(err, 20, "Unknown %lu", id);
+		return(err);
 	}
 
 	DBResultRow row;
 
 	if (!res.GetRow(row)) {
 		_log(SERVICE__ERROR, "Couldn't find %s %lu in table %s", key, id, table);
-		return "";
+		char err[20];
+		sprintf_s(err, 20, "Unknown %lu", id);
+		return(err);
 	}
 
 	return (row.GetText(0));

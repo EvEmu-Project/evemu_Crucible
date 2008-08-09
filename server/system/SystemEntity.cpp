@@ -125,9 +125,9 @@ double ItemSystemEntity::GetRadius() const {
 }
 
 const GPoint &ItemSystemEntity::GetPosition() const {
-	static const GPoint err_return(1, 2, 3);
+	static const GPoint err(0.0, 0.0, 0.0);
 	if(m_self == NULL)
-		return(err_return);
+		return(err);
 	return(m_self->position());
 }
 
@@ -163,9 +163,8 @@ void DynamicSystemEntity::ProcessDestiny(uint32 stamp) {
 }
 
 const GPoint &DynamicSystemEntity::GetPosition() const {
-	static const GPoint _zeroPoint(0.0, 0.0, 0.0);
 	if(m_destiny == NULL)
-		return(_zeroPoint);
+		return(ItemSystemEntity::GetPosition());
 	return(m_destiny->GetPosition());
 }
 

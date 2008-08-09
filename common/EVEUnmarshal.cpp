@@ -736,10 +736,8 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 		n = pfx;
 		n += "  Args: ";
 		uint32 value_len = UnmarshalData(state, packet, len, arguments, n.c_str());
-		if(arguments == NULL) {
-			delete type;
+		if(arguments == NULL)
 			break;
-		}
 		packet += value_len;
 		len -= value_len;
 		len_used += value_len;

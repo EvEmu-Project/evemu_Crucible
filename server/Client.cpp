@@ -76,7 +76,6 @@ Client::Client(PyServiceMgr *services, EVEPresentation **n)
   m_role(1),
   m_gangRole(1),
   m_system(NULL),
-  char_valid(false),
 //  m_destinyTimer(1000, true),	//accurate timing is essential
 //  m_lastDestinyTime(Timer::GetTimeSeconds()),
   m_moveState(msIdle),
@@ -91,7 +90,6 @@ Client::Client(PyServiceMgr *services, EVEPresentation **n)
 	m_pingTimer.Start();
 	//m_destinyTimer.Start();
 
-	char_valid = true;
 	m_char.name = "monkey";
 	m_char.charid = 444666;
 	m_char.bloodlineID = 1;
@@ -359,37 +357,14 @@ void Client::SendHandshake() {
 }
 
 void Client::_ProcessLogin(PyPacket *packet) {
-	PyRep *payload = packet->payload;	//stupid casting thing..
-	packet->payload = NULL;
-	
 	AuthenticationReq req;
-	if(!req.Decode(&payload)) {
+	if(!req.Decode(&packet->payload)) {
 		_log(CLIENT__ERROR, "Failed to decode AuthenticationReq, rejecting.\n");
 		_SendLoginFailed(packet->source.callID);
 		return;
 	}
-	/*
-	if(packet->payload->items.size() != 3) {
-		_log(CLIENT__ERROR, "macho.AuthenticationReq: invalid tuple length %d", packet->payload->items.size());
-		_SendLoginFailed(packet->source.callID);
-		return;
-	}
-	if(!packet->payload->items[1]->CheckType(PyRep::String)) {
-		_log(CLIENT__ERROR, "macho.AuthenticationReq: non-string login name");
-		_SendLoginFailed(packet->source.callID);
-		return;
-	}
-	if(!packet->payload->items[2]->CheckType(PyRep::String)) {
-		_log(CLIENT__ERROR, "macho.AuthenticationReq: non-string password");
-		_SendLoginFailed(packet->source.callID);
-		return;
-	}
-	PyRepString *login = (PyRepString *) packet->payload->items[1];
-	PyRepString *password = (PyRepString *) packet->payload->items[2];
-*/
 	//_log(CLIENT__MESSAGE, "Login with %s/%s", req.login.c_str(), req.password.c_str());
 	_log(CLIENT__MESSAGE, "Login with %s", req.login.c_str());
-	//req.Dump(CLIENT__MESSAGE, "");
 	
 	if(!m_services->GetServiceDB()->DoLogin(req.login.c_str(), req.password.c_str(), m_accountID, m_role)) {
 		_log(CLIENT__MESSAGE, "Login rejected by DB");
@@ -410,7 +385,6 @@ void Client::_ProcessLogin(PyPacket *packet) {
 	_CheckSessionChange();	// get session change out before success reply
 	
 	_SendLoginSuccess(packet->source.callID);
-	//_SendLoginFailed(packet->source.callID);
 }
 
 void Client::_SendLoginSuccess(uint32 callid) {
@@ -856,30 +830,10 @@ void Client::BoardExistingShip(InventoryItem *new_ship, bool do_destiny_updates)
 void Client::_SendLoginFailed(uint32 callid) {
 	
 	//build the exception
-	PyRepTuple *t = new PyRepTuple(3);
-		t->items[0] = new PyRepInteger(0);
-		t->items[1] = new PyRepInteger(2);
-		PyRepTuple *et = new PyRepTuple(1);
-		t->items[2] = et;
-			PyRepSubStream *ss = new PyRepSubStream();
-			et->items[0] = ss;
-				PyRepObject *sso = new PyRepObject();
-				ss->decoded = sso;
-					sso->type = "ccp_exceptions.UserError";
-					PyRepDict *ssa = new PyRepDict();   
-					sso->arguments = ssa;
-						PyRepTuple *ssaa = new PyRepTuple(1);
-						ssa->items[ new PyRepString("args") ] = ssaa;
-							ssaa->items[0] = new PyRepString("LoginAuthFailed");
-						ssa->items[ new PyRepString("dict") ] =
-							new PyRepNone();
-						ssa->items[ new PyRepString("msg") ] =
-							new PyRepString("LoginAuthFailed");
-					//end arguments to obj
-				//end obj
-			//end substream
-		//end tuple[2]
-	//end tuple
+	macho_MachoException e;
+	e.in_response_to = AUTHENTICATION_REQ;
+	e.exception_type = WRAPPEDEXCEPTION;
+	e.payload = new PyRepSubStream(MakeException("LoginAuthFailed"));
 
 	//build the packet:
 	PyPacket *p = new PyPacket();
@@ -894,7 +848,7 @@ void Client::_SendLoginFailed(uint32 callid) {
 
 	p->userid = 0;
 	
-	p->payload = t;
+	p->payload = e.Encode();
 	
 	p->named_payload = new PyRepDict();
 	p->named_payload->add("channel", new PyRepString("authentication"));
@@ -1141,66 +1095,6 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream *noti
 	}
 	
 	FastQueuePacket(&p);
-}
-
-//dogmaIM
-/*void Client::Handle_MachoBindObject(PyPacket *packet, PyCallStream *call) {
-	//takes ((stationID, u1_2=15 from above), (command, tuple, dict))
-
-	call->args->Dump(stdout, "    ");
-
-	if(call->args->items.size() != 2) {
-		_log(CLIENT__ERROR, "Invalid arg tuple size in MachoBindObject: %d", call->args->items.size());
-		return;
-	}
-	
-	if(call->args->items[0]->CheckType(PyRep::Integer)) {
-		_log(CLIENT__MESSAGE, "Hacking integer-only bind argument");
-	
-		PyRepTuple *t = new PyRepTuple(1);
-		PyRepSubStream *ss = new PyRepSubStream();
-		t->items[0] = ss;
-	
-		PyRepTuple *robjs = new PyRepTuple(2);
-		ss->decoded = robjs;
-	
-		PyRepTuple *objt;
-		
-		objt = new PyRepTuple(2);
-		objt->items[0] = new PyRepString("N=126774:147");
-		objt->items[1] = new PyRepInteger(127943660267991372LL);
-		robjs->items[0] = new PyRepSubStruct(new PyRepSubStream(objt));
-
-		robjs->items[1] = new PyRepNone();
-	
-		_SendCallReturn(packet, &t);
-		
-		
-		return;
-	}
-	
-	_log(CLIENT__ERROR, "Unknown MachoBindObject!");
-}*/
-
-
-void Client::Handle_GetInventoryFromId(PyPacket *packet, PyCallStream *call) {
-	_log(CLIENT__MESSAGE, "got GetInventoryFromId:");
-	call->arg_tuple->Dump(stdout, "    ");
-
-	
-	//returns a list of remote objects?
-
-	PyRepTuple *t = new PyRepTuple(1);
-	PyRepSubStream *ss = new PyRepSubStream();
-	t->items[0] = ss;
-
-	PyRepTuple *objt;
-	objt = new PyRepTuple(2);
-	objt->items[0] = new PyRepString("N=126774:80367");
-	objt->items[1] = new PyRepInteger(127943660215796209LL);
-	ss->decoded = new PyRepSubStruct(new PyRepSubStream(objt));
-
-	_SendCallReturn(packet, &t);
 }
 
 void Client::SendInitialDestinySetstate() {

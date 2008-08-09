@@ -250,7 +250,7 @@ PyCallResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
 	cur = args.ints.begin();
 	end = args.ints.end();
 	for(; cur != end; cur++) {
-		SystemManager *sm = call.client->GetSystem();
+		SystemManager *sm = call.client->System();
 		SystemEntity *npc = sm->get(*cur);
 		if(npc == NULL) {
 			_log(SERVICE__ERROR, "%s: Unable to find drone %lu to scoop.", call.client->GetName(), *cur);
@@ -306,7 +306,7 @@ PyCallResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 	
 	//Get location of our ship
 	//GPoint loc(call.client->GetPosition());
-	//NPC *cargoNpc = new NPC(call.client->GetSystem(), m_manager, cargoItem, call.client->GetCorporationID(), loc);
+	//NPC *cargoNpc = new NPC(call.client->System(), m_manager, cargoItem, call.client->GetCorporationID(), loc);
 	
 	//args contains id's of items to jettison
 	std::vector<uint32>::const_iterator cur, end;

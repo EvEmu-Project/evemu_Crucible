@@ -240,7 +240,7 @@ PyCallResult BeyonceBound::Handle_FollowBall(PyCallArgs &call) {
 			distance = (uint32) unknown->value;
 		}
 
-		SystemManager *system = call.client->GetSystem();
+		SystemManager *system = call.client->System();
 		if(system == NULL) {
 			codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
 			return(NULL);
@@ -308,7 +308,7 @@ PyCallResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 		return(NULL);
 	}
 
-	SystemManager *system = call.client->GetSystem();
+	SystemManager *system = call.client->System();
 	if(system == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
 		return(NULL);

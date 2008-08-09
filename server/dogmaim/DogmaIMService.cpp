@@ -249,7 +249,7 @@ PyCallResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {
 		return(NULL);
 	}
 	
-	SystemManager *smgr = call.client->GetSystem();
+	SystemManager *smgr = call.client->System();
 	if(smgr == NULL) {
 		codelog(SERVICE__ERROR, "Unable to find system manager from '%s'", call.client->GetName());
 		return(NULL);
@@ -278,7 +278,7 @@ PyCallResult DogmaIMBound::Handle_RemoveTarget(PyCallArgs &call) {
 		return(NULL);
 	}
 	
-	SystemManager *smgr = call.client->GetSystem();
+	SystemManager *smgr = call.client->System();
 	if(smgr == NULL) {
 		codelog(SERVICE__ERROR, "Unable to find system manager from '%s'", call.client->GetName());
 		return(NULL);
