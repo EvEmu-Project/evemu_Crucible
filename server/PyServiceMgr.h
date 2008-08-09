@@ -60,7 +60,7 @@ public:
 	PyRepSubStruct *BindObject(Client *who, PyBoundObject *obj, PyRepDict **dict = NULL);
 	void ClearBoundObjects(Client *who);
 	PyBoundObject *FindBoundObject(const char *bindID);
-	void ClientHasReleasedTheseObjects(const char *bindID);
+	void ClearBoundObject(const char *bindID);
 
 	// General purpose EVEMail functions... sine all kinds of places need to send it.
 	// These would fit much better in LSCService, maybe the service manager needs to keep a typed pointer to it???

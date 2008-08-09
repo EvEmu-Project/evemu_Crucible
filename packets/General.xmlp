@@ -430,25 +430,27 @@ CallGetGuests
       <!-- 1 -->
       <InlineSubStream>
         <InlineTuple>
-            <!-- 0 -->
-            <InlineList>
-                <InlineTuple>
-                    <string name="boundID" />
-                    <int64 name="timestamp" />
-                </InlineTuple>
-            </InlineList>
-            <!-- 1 -->
-            <string name="method" />
-            <!-- 2 -->
-            <tuple name="arguments" />
-            <!-- 3 -->
-            <strdict name="keywords" />
+          <!-- 0 -->
+          <list name="elements" />
+          <!-- 1 -->
+          <string name="method" />
+          <!-- 2 -->
+          <tuple name="arguments" />
+          <!-- 3 -->
+          <strdict name="keywords" />
         </InlineTuple>
       </InlineSubStream>
     </InlineTuple>
     <!-- 1 -->
-	<none />
-  </InlineTuple>       
+    <none />
+  </InlineTuple>
+</element>
+
+<element name="ServerNotification_ReleaseObj">
+  <InlineTuple>
+	<string name="boundID" />
+	<int64 name="timestamp" />
+  </InlineTuple>
 </element>
 
 <element name="Call_SingleIntegerArg">

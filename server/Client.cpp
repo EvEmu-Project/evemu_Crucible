@@ -917,18 +917,29 @@ void Client::_ProcessCallRequest(PyPacket *packet) {
 
 void Client::_ProcessNotification(PyPacket *packet) {
 	//turn this thing into a notify stream:
-	ServerNotification *notify = new ServerNotification();
-	if(!notify->Decode(&packet->payload)) {	//payload is consumed
+	ServerNotification notify;
+	if(!notify.Decode(&packet->payload)) {	//payload is consumed
 		_log(CLIENT__ERROR, "Failed to convert rep into a notify stream");
-		delete notify;
 		return;
 	}
 	
-	if(notify->method == "ClientHasReleasedTheseObjects") {
-		m_services->ClientHasReleasedTheseObjects(notify->boundID.c_str());
-	} else {
-		_log(CLIENT__ERROR, "Unhandled notification from %s: %s", GetName(), notify->boundID.c_str());
-	}
+	if(notify.method == "ClientHasReleasedTheseObjects") {
+		PyRep *tmp;
+		ServerNotification_ReleaseObj element;
+		PyRepList::iterator cur, end;
+		cur = notify.elements.begin();
+		end = notify.elements.end();
+		for(; cur != end; cur++) {
+			//damn casting thing...
+			tmp = *cur;
+			*cur = NULL;
+			if(!element.Decode(&tmp))
+				_log(CLIENT__ERROR, "Notification '%s' from %s: Failed to decode element. Skipping.", notify.method.c_str(), GetName());
+			else
+				m_services->ClearBoundObject(element.boundID.c_str());
+		}
+	} else
+		_log(CLIENT__ERROR, "Unhandled notification from %s: unknown method '%s'", GetName(), notify.method.c_str());
 	
 	_CheckSessionChange();	//just for good measure...
 }

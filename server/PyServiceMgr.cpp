@@ -171,16 +171,14 @@ PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict
 }
 
 void PyServiceMgr::ClearBoundObjects(Client *who) {
-	std::map<std::string, BoundObject>::iterator cur, end, tmp;
+	std::map<std::string, BoundObject>::iterator cur, end;
 	cur = m_boundObjects.begin();
 	end = m_boundObjects.end();
 	while(cur != end) {
 		if(cur->second.client == who) {
-			tmp = cur;
-			cur++;
-			PyBoundObject *bo = tmp->second.destination;
-			_log(SERVICE__MESSAGE, "Clearing bound object %s", tmp->first.c_str());
-			m_boundObjects.erase(tmp);
+			_log(SERVICE__MESSAGE, "Clearing bound object %s", cur->first.c_str());
+			PyBoundObject *bo = cur->second.destination;
+			cur = m_boundObjects.erase(cur);
 			bo->Release();
 		} else {
 			cur++;
@@ -196,7 +194,7 @@ PyBoundObject *PyServiceMgr::FindBoundObject(const char *bindID) {
 	return(res->second.destination);
 }
 
-void PyServiceMgr::ClientHasReleasedTheseObjects(const char *bindID) {
+void PyServiceMgr::ClearBoundObject(const char *bindID) {
 	
 	std::map<std::string, BoundObject>::iterator res;
 	res = m_boundObjects.find(bindID);
@@ -205,8 +203,8 @@ void PyServiceMgr::ClientHasReleasedTheseObjects(const char *bindID) {
 		return;
 	}
 	
-	PyBoundObject *bo = res->second.destination;
 	_log(SERVICE__MESSAGE, "Clearing bound object %s (released)", res->first.c_str());
+	PyBoundObject *bo = res->second.destination;
 	m_boundObjects.erase(res);
 	bo->Release();
 }
