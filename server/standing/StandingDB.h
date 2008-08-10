@@ -31,6 +31,7 @@ public:
 	PyRepObject *GetCharStandings(uint32 characterID);
 	PyRepObject *GetCharPrimeStandings(uint32 characterID);
 	PyRepObject *GetCharNPCStandings(uint32 characterID);
+	double GetSecurityRating(uint32 characterID);
 	PyRepObject *GetStandingTransactions(uint32 characterID);
 
 protected:

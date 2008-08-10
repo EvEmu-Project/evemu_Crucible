@@ -149,7 +149,15 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, cons
 		codelog(SERVICE__ERROR, "Failed to create character entity!");
 		return(NULL);
 	}
-	
+
+	//set some attributes to char_item
+	//use the Set_persist as they are not persistent by default
+	char_item->Set_intelligence_persist(data.Intelligence);
+	char_item->Set_charisma_persist(data.Charisma);
+	char_item->Set_perception_persist(data.Perception);
+	char_item->Set_memory_persist(data.Memory);
+	char_item->Set_willpower_persist(data.Willpower);
+
 	std::string nameEsc;
 	m_db->DoEscapeString(nameEsc, data.name);
 	std::string titleEsc;
@@ -164,7 +172,7 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, cons
 	"	bounty,balance,securityRating,petitionMessage,logonMinutes,"
 	"	corporationID,corporationDateTime,"
 	"	stationID,solarSystemID,constellationID,regionID,"
-	"	bloodlineID,gender,"
+	"	raceID,bloodlineID,gender,"
 	"	accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,"
 	"	hairID,lipstickID,makeupID,skinID,backgroundID,lightID,"
 	"	headRotation1,headRotation2,headRotation3,"
@@ -180,7 +188,7 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, cons
 	"	%.13f, %.13f, %.13f, '', %lu,"
 	"	%ld,%lld,"		//corp
 	"	%ld,%ld,%ld,%ld,"	//loc
-	"	%lu,%lu,"
+	"	%lu,%lu,%lu,"
 	"	%s,%s,%ld,%s,%ld,%ld,"
 	"	%ld,%s,%s,%ld,%ld,%ld,"
 	"	%.13f,%.13f,%.13f,"	//head
@@ -196,7 +204,7 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, cons
 		data.bounty,data.balance,data.securityRating,data.logonMinutes,
 		data.corporationID, data.corporationDateTime,
 		data.stationID, data.solarSystemID, data.constellationID, data.regionID,
-		data.bloodlineID, data.genderID,
+		data.raceID, data.bloodlineID, data.genderID,
 		_IoN(app.accessoryID).c_str(),_IoN(app.beardID).c_str(),app.costumeID,_IoN(app.decoID).c_str(),app.eyebrowsID,app.eyesID,
 		app.hairID,_IoN(app.lipstickID).c_str(),_IoN(app.makeupID).c_str(),app.skinID,app.backgroundID,app.lightID,
 		app.headRotation1, app.headRotation2, app.headRotation3, 
@@ -488,6 +496,27 @@ bool CharacterDB::SetCharDesc(uint32 characterID, const char *str) {
 	return (true);
 }
 
+//just return all itemIDs which has ownerID set to characterID
+bool CharacterDB::GetCharItems(uint32 characterID, std::set<uint32> &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT itemID"
+		" FROM entity"
+		" WHERE ownerID = %lu",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query items of char %lu: %s.", characterID, res.error.c_str());
+		return(false);
+	}
+
+	DBResultRow row;
+	while(res.GetRow(row))
+		into.insert(row.GetUInt(0));
+	
+	return(true);
+}
+
 //Try to run through all of the tables which might have data relavent to
 //this person in it, and run a delete against it.
 bool CharacterDB::DeleteCharacter(uint32 characterID) {
@@ -570,14 +599,6 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 
 	if(!m_db->RunQuery(err,
 		"DELETE FROM chrEmployment WHERE characterID=%lu", characterID))
-	{
-		codelog(SERVICE__ERROR, "Error in query (not stopping): %s", err.c_str());
-	}
-
-	//TODO: we really need to do a hierarchial delete! ownerID will prolly get most of 
-	// it, but its possible to still break things.
-	if(!m_db->RunQuery(err,
-		"DELETE FROM entity WHERE itemID=%lu OR ownerID=%lu", characterID, characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query (not stopping): %s", err.c_str());
 	}

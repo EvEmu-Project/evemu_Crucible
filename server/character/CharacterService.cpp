@@ -546,7 +546,6 @@ PyCallResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 }
 
 PyCallResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
-	
 	/*                                                                              
      * Deletion is apparently a timed process, and is related to the
      * deletePrepareDateTime column in the char select result.
@@ -563,13 +562,37 @@ PyCallResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call
 	//TODO: make sure this person actually owns this char...
 	
 	_log(CLIENT__MESSAGE, "Timed delete of char %lu unimplemented. Deleting Immediately.", args.arg);
-	m_db.DeleteCharacter(args.arg);
-	
-	//we return deletePrepareDateTime, in eve time format.
-	PyRep *result = NULL;
-	result = new PyRepInteger(Win32TimeNow() + Win32Time_Second*5);
+	InventoryItem *char_item = m_manager->item_factory->Load(args.arg, true);
+	if(char_item == NULL) {
+		codelog(CLIENT__ERROR, "Failed to load char item %lu.", args.arg);
+		return(NULL);
+	}
+	//does the recursive delete of all contained items
+	char_item->Delete();
 
-	return(result);
+	//now, clean up all items which werent deleted
+	std::set<uint32> items;
+	if(!m_db.GetCharItems(args.arg, items)) {
+		codelog(CLIENT__ERROR, "Unable to get items of char %lu.", args.arg);
+		return(NULL);
+	}
+
+	InventoryItem *i;
+	std::set<uint32>::iterator cur, end;
+	cur = items.begin();
+	end = items.end();
+	for(; cur != end; cur++) {
+		i = m_manager->item_factory->Load(*cur, true);
+		if(i == NULL)
+			codelog(CLIENT__ERROR, "Failed to load item %lu to delete. Skipping.", *cur);
+		else
+			i->Delete();
+	}
+	//finally, delete all 'character_' related tables
+	m_db.DeleteCharacter(args.arg);
+
+	//we return deletePrepareDateTime, in eve time format.
+	return(new PyRepInteger(Win32TimeNow() + Win32Time_Second*5));
 }
 
 PyCallResult CharacterService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call) {

@@ -115,14 +115,13 @@ PyCallResult Standing2Service::Handle_GetNPCNPCStandings(PyCallArgs &call) {
 
 PyCallResult Standing2Service::Handle_GetSecurityRating(PyCallArgs &call) {
 	//takes an integer: characterID
-	PyRep *result = NULL;
+	Call_SingleIntegerArg arg;
+	if(!arg.Decode(&call.tuple)) {
+		_log(SERVICE__ERROR, "Failed to decode args.");
+		return(NULL);
+	}
 
-	_log(SERVICE__ERROR, "%s: GetSecurityRating not implemented!", GetName());
-
-	//returns the security status as a float.
-	result = new PyRepReal(1.0);
-	
-	return(result);
+	return(new PyRepReal(m_db.GetSecurityRating(arg.arg)));
 }
 
 PyCallResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) {

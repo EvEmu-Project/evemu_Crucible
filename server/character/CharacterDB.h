@@ -19,6 +19,8 @@
 #ifndef __CHARACTERDB_H_INCL__
 #define __CHARACTERDB_H_INCL__
 
+#include <set>
+
 #include "../ServiceDB.h"
 
 class PyRepObject;
@@ -34,8 +36,9 @@ public:
 	CharacterDB(DBcore *db);
 	virtual ~CharacterDB();
 
+	bool GetCharItems(uint32 characterID, std::set<uint32> &into);
 	bool DeleteCharacter(uint32 characterID);
-	
+
 	PyRepObject *GetCharacterList(uint32 accountID);
 	PyRepObject *GetCharSelectInfo(uint32 characterID);
 	PyRepObject *GetCharPublicInfo(uint32 characterID);

@@ -106,6 +106,27 @@ PyRepObject *StandingDB::GetCharNPCStandings(uint32 characterID) {
 	return(DBResultToRowset(res));
 }
 
+double StandingDB::GetSecurityRating(uint32 characterID) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT securityRating"
+		" FROM character_"
+		" WHERE characterID = %lu",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Error in query: %s.", res.error.c_str());
+		return(0.0);
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "Character %lu not found.", characterID);
+		return(0.0);
+	} else
+		return(row.GetDouble(0));
+}
+
 PyRepObject *StandingDB::GetStandingTransactions(uint32 characterID) {
 	DBQueryResult res;
 
