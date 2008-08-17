@@ -448,7 +448,7 @@ void Client::Killed(Damage &fatal_blow) {
 		
 		//this updates m_self and manages destiny updates as needed.
 		//This sends the RemoveBall for the old ship.
-		BoardExistingShip(capsule, true);
+		BoardShip(capsule);
 		
 		m_destiny->SendTerminalExplosion();	//I think they actually delay this one a second.
 		

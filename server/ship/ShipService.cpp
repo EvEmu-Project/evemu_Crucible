@@ -116,8 +116,14 @@ PyCallResult ShipBound::Handle_Board(PyCallArgs &call) {
 		//TODO: handle the logistics of this!
 		codelog(CLIENT__ERROR, "%s: Boarding a ship in space is not yet implemented!!!!", call.client->GetName());
 	}
-	
-	call.client->BoardShip(args.arg);
+
+	InventoryItem *ship = m_manager->item_factory->Load(args.arg, true);
+	if(ship == NULL) {
+		_log(CLIENT__ERROR, "%s: Failed to get new ship %lu.", call.client->GetName(), args.arg);
+	} else {
+		call.client->BoardShip(ship);
+		ship->Release();
+	}
 	
 	return(NULL);
 }

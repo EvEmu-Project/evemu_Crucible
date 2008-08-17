@@ -128,7 +128,7 @@ PyCallResult CharacterService::Handle_SelectCharacterID(PyCallArgs &call) {
 		} else {
 			call.client->InitialEnterGame();
 			//send the session changes to kick off the client state changes.
-			call.client->SessionSyncChar();
+			call.client->SessionSync();
 		}
 	}
 	

@@ -569,28 +569,41 @@ void Client::_CheckSessionChange() {
 	FastQueuePacket(&p);
 }
 
-/* sync the session with m_char. */
-void Client::SessionSyncChar() {
-	session.Set_constellationid(m_char.constellationID);
-	session.Set_corpid(m_char.corporationID);
-	session.Set_regionid(m_char.regionID);
-	if(m_char.stationID != 0) {
-		session.Set_stationid(m_char.stationID);
-		session.Clear_solarsystemid();
-		session.Set_locationid(m_char.stationID);
-	} else {
-		session.Clear_stationid();
-		session.Set_solarsystemid(m_char.solarSystemID);
-		session.Set_locationid(m_char.solarSystemID);
-	}
-	session.Set_gangrole(m_gangRole);
-#ifndef WIN32
-#warning hqID hacked for station
-#endif
-	session.Set_hqID(60004420);
-	session.Set_solarsystemid2(m_char.solarSystemID);
+/* sync the session with our current state. */
+void Client::SessionSync() {
+	//account
+	session.Set_userid(GetAccountID());
+	session.Set_role(GetRole());
+
+	//character
+	session.Set_charid(GetCharacterID());
+	session.Set_corpid(GetCorporationID());
 	session.Set_shipid(GetShipID());
-	session.Set_charid(m_char.charid);
+
+	//location
+	if(IsInSpace()) {
+		session.Set_locationid(GetSystemID());
+		session.Clear_stationid();
+		session.Set_solarsystemid(GetSystemID());
+	} else {
+		session.Set_locationid(GetStationID());
+		session.Set_stationid(GetStationID());
+		session.Clear_solarsystemid();
+	}
+	session.Set_solarsystemid2(GetSystemID());
+	session.Set_constellationid(GetConstellationID());
+	session.Set_regionid(GetRegionID());
+
+	//corporation
+	session.Set_corprole(m_corpstate.corprole);
+	session.Set_rolesAtAll(m_corpstate.rolesAtAll);
+	session.Set_rolesAtBase(m_corpstate.rolesAtBase);
+	session.Set_rolesAtHQ(m_corpstate.rolesAtHQ);
+	session.Set_rolesAtOther(m_corpstate.rolesAtOther);
+	session.Set_hqID(m_corpstate.corpHQ);
+
+	//gang
+	session.Set_gangrole(m_gangRole);
 
 	//force a session send.
 	_CheckSessionChange();
@@ -646,49 +659,6 @@ bool Client::EnterSystem(const GPoint &point) {
 	return(true);
 }
 
-void Client::MoveToJumpGate(uint32 systemID, uint32 gateID) {
-	if(!IsSolarSystem(systemID)) {
-		codelog(CLIENT__ERROR, "%s: system %lu, gate %lu: NOT A SYSTEM!", GetName(), systemID, gateID);
-		return;
-	}
-	//TODO: verify that this is actually a gate?
-	// (no real harm I guess in using this on other static celestial objects)
-	if(!IsStargate(gateID)) {
-		codelog(CLIENT__ERROR, "%s: system %lu, gate %lu: NOT A GATE!", GetName(), systemID, gateID);
-		return;
-	}
-	GPoint pos;
-	//TODO: verify that this gate is actually in this system
-	if(!m_services->GetServiceDB()->GetStaticPosition(gateID, pos.x, pos.y, pos.z)) {
-		codelog(CLIENT__ERROR, "%s: system %lu, gate %lu: Unable to find gate.", GetName(), systemID, gateID);
-		return;
-	}
-	pos.x += 100.0;
-	pos.y += 100.0;
-	pos.z += 100.0;
-	_log(CLIENT__TRACE, "%s: move to jump gate %lu in system %lu,: (%.2f, %.2f, %.2f).", GetName(), gateID, systemID, pos.x, pos.y, pos.z);
-	MoveToLocation(systemID, pos);
-}
-
-void Client::MoveToStationDock(uint32 systemID, uint32 stationID) {
-	if(!IsSolarSystem(systemID)) {
-		codelog(CLIENT__ERROR, "%s: system %lu, station %lu: NOT A SYSTEM!", GetName(), systemID, stationID);
-		return;
-	}
-	if(!IsStation(stationID)) {
-		codelog(CLIENT__ERROR, "%s: system %lu, station %lu: NOT A STATION!", GetName(), systemID, stationID);
-		return;
-	}
-	GPoint pos;
-	//TODO: verify that this station is actually in this system
-	if(!m_services->GetServiceDB()->GetStationDockPosition(stationID, pos)) {
-		codelog(CLIENT__ERROR, "%s: system %lu, station %lu: NOT A SYSTEM!", GetName(), systemID, stationID);
-		return;
-	}
-	_log(CLIENT__TRACE, "%s: move to station %lu's dock in system %lu,: (%.2f, %.2f, %.2f).", GetName(), stationID, systemID, pos.x, pos.y, pos.z);
-	MoveToLocation(systemID, pos);
-}
-
 void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 	EVEItemFlags flag;
 
@@ -739,7 +709,7 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		m_char.constellationID, m_char.regionID );
 	
 	
-	SessionSyncChar();
+	SessionSync();
 	
 	//move the ship into space
 	MoveItem(GetShipID(), location, flag);
@@ -774,44 +744,23 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag) {
 	item->Release();
 }
 
-void Client::BoardShip(uint32 ship_id, bool do_destiny_updates) {
-	//get the real item...
-	InventoryItem *new_ship;
-	new_ship = m_services->item_factory->Load(ship_id, true);
-	if(new_ship == NULL) {
-		_log(CLIENT__ERROR, "%s: Unable to find ship %lu in order to board it!", GetName(), ship_id);
-		return;
-	}
-	
-	if(!new_ship->LoadContents(true)) {
-		_log(CLIENT__ERROR, "%s: Unable to load contents of ship %lu in order to board it!", GetName(), ship_id);
-		return;
-	}
-	
-	BoardExistingShip(new_ship, do_destiny_updates);	//makes its own ref.
-	
-	new_ship->Release();
-}
-
-void Client::BoardExistingShip(InventoryItem *new_ship, bool do_destiny_updates) {
+void Client::BoardShip(InventoryItem *new_ship) {
 	//TODO: make sure we are really allowed to board this thing...
 	
-	if(new_ship->singleton() == false) {
+	if(!new_ship->singleton()) {
 		_log(CLIENT__ERROR, "%s: tried to board ship %lu, which is not assembled.", GetName(), new_ship->itemID());
 		SendErrorMsg("You cannot board a ship which is not assembled!");
 		return;
 	}
 	
-	if(do_destiny_updates && m_destiny != NULL) {
-		m_destiny->SendRemoveBall();
-	}
+	if(m_system != NULL)
+		m_system->RemoveClient(this);
 	
-	session.Set_shipid(new_ship->itemID());
+	m_ship->Release();			//release old ref
+	m_ship = new_ship->Ref();	//get new ref
 	m_self->MoveInto(new_ship, flagPilot, false);
-	InventoryItem *old_ship = m_ship;
-	m_ship = new_ship->Ref();
-	//we are not longer referencing m_ship directly (its still in our inventory though)
-	old_ship->Release();
+
+	session.Set_shipid(new_ship->itemID());
 
 	//I am not sure where the right place to do this is, but until
 	//we properly persist ship attributes into the DB, we are just
@@ -820,11 +769,12 @@ void Client::BoardExistingShip(InventoryItem *new_ship, bool do_destiny_updates)
 	m_ship->Set_shieldCharge(m_ship->shieldCapacity());
 	
 	modules.UpdateModules();
-	
-	if(do_destiny_updates && m_destiny != NULL) {
+
+	if(m_system != NULL)
+		m_system->AddClient(this);
+
+	if(m_destiny != NULL)
 		m_destiny->SetShipCapabilities(m_ship);
-		m_destiny->SendAddBall();
-	}
 }
 
 void Client::_SendLoginFailed(uint32 callid) {

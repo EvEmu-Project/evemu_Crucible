@@ -273,7 +273,7 @@ DST_WARPEXIT = 11
 		<!-- 5: completely unknown contents, prolly not really an intlist -->
 		<intlist name="area" />
 		<!-- 6: see scripts/parklife/fxSequencer.py -->
-		<string name="effect_type" default="effects.Warping"/>
+		<string name="effect_type"/>
 		<!-- 7: isOffensive: soft boolean -->
 		<int name="isOffensive" />
 		<!-- 8: start: soft boolean -->

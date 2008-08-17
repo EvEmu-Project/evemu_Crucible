@@ -284,11 +284,8 @@ public:
 	bool AddBalance(double amount);
 
 	uint32 GetShipID() const;
-	void BoardShip(uint32 ship_id, bool do_destiny_updates=false);
-	void BoardExistingShip(InventoryItem *new_ship, bool do_destiny_updates);
+	void BoardShip(InventoryItem *new_ship);
 	void MoveToLocation(uint32 location, const GPoint &pt);
-	void MoveToJumpGate(uint32 systemID, uint32 gateID);
-	void MoveToStationDock(uint32 systemID, uint32 stationID);
 	void MoveToPosition(const GPoint &pt);
 	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
 	bool EnterSystem(const GPoint &p);
@@ -307,8 +304,7 @@ public:
 	
 	void SendNotification(const PyAddress &dest, EVENotificationStream *noti, bool seq=true);
 	void SendNotification(const char *notifyType, const char *idType, PyRepTuple **payload, bool seq=true);
-	//void SendSessionChangeStation();
-	void SessionSyncChar();
+	void SessionSync();
 
 	//destiny stuff...
 	void SendInitialDestinySetstate();
