@@ -37,6 +37,7 @@
 #include "../common/RowsetReader.h"
 #include "../common/RowsetToSQL.h"
 #include "../common/packet_types.h"
+#include "../common/DestinyBinDump.h"
 #include "../packets/General.h"
 #include "TriFile.h"
 #include <queue>
@@ -63,6 +64,7 @@ static std::queue<char *> InputQueue;	//consumer must free() these strings.
 
 static ThreadReturnType UserInputThread(void *data);
 void ProcessInput(char *input);
+void LoadScript(const char *filename);
 
 
 int main(int argc, char *argv[]) {
@@ -100,17 +102,14 @@ int main(int argc, char *argv[]) {
 	pthread_create(&thread, NULL, UserInputThread, NULL);
 #endif
 
-	if(argc == 2) {
-		FILE *script = fopen(argv[1], "r");
-		if(script == NULL) {
-			_log(CCLIENT__INIT_ERR, "Unable to open script '%s'", argv[1]);
-		} else {
-			_log(CCLIENT__INIT, "Queuing commands from script '%s'", argv[1]);
-			char linebuf[1024];
-			while(fgets(linebuf, sizeof(linebuf), script) != NULL) {
-				InputQueue.push(strdup(linebuf));
-			}
-		}
+	//skip first argument (launch path), we dont need it
+	argc--;
+	argv++;
+
+	while(argc > 0) {
+		LoadScript(argv[0]);
+		argc--;
+		argv++;
 	}
 	
 	/*
@@ -222,6 +221,7 @@ void TimeToString(const char *time);
 void ObjectToSQL(const Seperator &command);
 void TriToOBJ(const Seperator &command);
 void UnmarshalLogText(const Seperator &command);
+void DestinyDumpLogText(const Seperator &command);
 void PrintTimeNow();
 void TestMarshal();
 
@@ -270,6 +270,12 @@ void ProcessInput(char *input) {
 		return;
 	} else if(strcasecmp(sep.arg[0], "unmarshal") == 0) {
 		UnmarshalLogText(sep);
+		return;
+	} else if(strcasecmp(sep.arg[0], "script") == 0) {
+		LoadScript(sep.arg[1]);
+		return;
+	} else if(strcasecmp(sep.arg[0], "destinydump") == 0) {
+		DestinyDumpLogText(sep);
 		return;
 	} else {
 		printf("Unknown command '%s'\n", sep.arg[0]);
@@ -694,8 +700,8 @@ void UnmarshalLogText(const Seperator &command) {
 		printf("Failed to decode string... trying with what we did get (%d bytes).\n", result.size());
 	}
 
-	_log(NET__UNMARSHAL_TRACE, "Decoded bytes:");
-	_hex(NET__UNMARSHAL_TRACE, &result[0], result.size());
+	_log(NET__UNMARSHAL_TRACE, "Decoded %lu bytes:", result.size());
+	_hex(NET__UNMARSHAL_BUFHEX, &result[0], result.size());
 	
 	PyRep *r = InflateAndUnmarshal(&result[0], result.size());
 	if(r == NULL) {
@@ -795,6 +801,42 @@ void TestMarshal() {
 	if(rep != NULL) {
 		rep->Dump(stderr, " Final: ");
 	}
+}
+
+void LoadScript(const char *filename) {
+	FILE *script = fopen(filename, "r");
+	if(script == NULL) {
+		_log(CCLIENT__INIT_ERR, "Unable to open script '%s'", filename);
+	} else {
+		_log(CCLIENT__INIT, "Queuing commands from script '%s'", filename);
+		std::string cmd;
+
+		char input = fgetc(script);
+		while(input != EOF) {
+			if(input == '\n') {
+				InputQueue.push(strdup(cmd.c_str()));
+				cmd.clear();
+			} else
+				cmd += input;
+			input = fgetc(script);
+		}
+		if(feof(script)) {
+			InputQueue.push(strdup(cmd.c_str()));
+			_log(CCLIENT__INIT, "Load of script '%s' successfully completed.", filename);
+		} else
+			_log(CCLIENT__INIT_ERR, "Error occured while reading script '%s'.", filename);
+
+		fclose(script);
+	}
+}
+
+void DestinyDumpLogText(const Seperator &command) {
+	std::vector<byte> result;
+
+	if(!PyString_DecodeEscape(command.argplus[1], result))
+		return;
+
+	Destiny::DumpUpdate(DESTINY__MESSAGE, &result[0], result.size());
 }
 
 
