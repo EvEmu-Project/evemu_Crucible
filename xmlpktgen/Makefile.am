@@ -3,6 +3,14 @@ INCLUDES += -I$(srcdir)/../common/
 bin_PROGRAMS = xmlpktgen
 
 xmlpktgen_SOURCES = \
+	../common/PyRep.cpp \
+	../common/logsys.cpp \
+	../common/misc.cpp \
+	../common/EVEUnmarshal.cpp \
+	../common/EVEMarshal.cpp \
+	../common/packet_functions.cpp \
+	../common/EVEZeroCompress.cpp \
+	../common/PyVisitor.cpp \
 	CloneGenerator.cpp \
 	CloneGenerator.h \
 	ConstructGenerator.cpp \
@@ -27,8 +35,9 @@ xmlpktgen_SOURCES = \
 	XMLPacketGen.cpp \
 	XMLPacketGen.h
 
+#-lcommon
+
 xmlpktgen_LDADD = \
-	-lcommon \
 	-lz \
 	-ldl \
 	-lpthread \
