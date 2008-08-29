@@ -22,6 +22,8 @@
 #include "ClientSession.h"
 #include "../common/PyRep.h"
 
+#include "../packets/General.h"
+
 
 ClientSession::ClientSession()
 : m_dirty(false)
@@ -69,8 +71,8 @@ ClientSession::ClientSession()
 	}
 #include "ClientSession_fields.h"
 	
-PyRepDict *ClientSession::EncodeChange() {
-	PyRepDict *keys = new PyRepDict();
+void ClientSession::EncodeChange(SessionChangeNotification &into) {
+	//PyRepDict *keys = new PyRepDict();
 	PyRepTuple *t;
 	
 #define ENCODE(name, PyType, argtype) \
@@ -101,7 +103,7 @@ PyRepDict *ClientSession::EncodeChange() {
 		*(m_last.name) = *(m_current.name); \
 	} \
 	if(t != NULL) \
-		keys->items[ new PyRepString(#name) ] = t;
+		into.changes.add(#name, t);
 #define SI(name) ENCODE(name, PyRepInteger, uint32 )
 #define SL(name) ENCODE(name, PyRepInteger, uint64 )
 #define SS(name) ENCODE(name, PyRepString , std::string )
@@ -109,7 +111,6 @@ PyRepDict *ClientSession::EncodeChange() {
 #undef ENCODE
 	
 	m_dirty = false;
-	return(keys);
 }
 	
 void ClientSession::Dump(LogType type) const {

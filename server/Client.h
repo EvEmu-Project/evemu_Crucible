@@ -354,8 +354,8 @@ public:
 
 	PyServiceMgr *GetServices() const { return(m_services); }
 	
-	FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, void (Client::* clientCall)() );
-	FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, ClientFunctor **functor );
+	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, void (Client::* clientCall)() );
+	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, ClientFunctor **functor );
 	
 protected:
 	//login stuff:
@@ -371,7 +371,7 @@ protected:
 	void _ExecuteLogIntoSpace();
 	void _ExecuteLogIntoStation();
 	void _ExecuteUndockIntoSpace();
-	void _SendInitialSkillTraining();
+	//void _SendInitialSkillTraining();
 	
 	void _ReduceDamage(Damage &d);
 	
@@ -425,14 +425,15 @@ private:
 	std::vector<PyRepTuple *> m_destinyUpdateQueue;	//we own these. They are the `update` which go into DoDestinyAction
 	void _SendQueuedUpdates(uint32 stamp);
 	
-	FunctorTimerQueue m_delayQueue;
+	//FunctorTimerQueue m_delayQueue;
 	
 	uint32 m_nextNotifySequence;
 };
 
 
 //simple functor for void calls.
-class SimpleClientFunctor : public ClientFunctor {
+//not needed right now
+/*class SimpleClientFunctor : public ClientFunctor {
 public:
 	typedef void (Client::* clientCall)();
 	SimpleClientFunctor(Client *c, clientCall call) : ClientFunctor(c), m_call(call) {}
@@ -442,7 +443,7 @@ public:
 	}
 public:
 	const clientCall m_call;
-};
+};*/
 
 
 

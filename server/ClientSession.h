@@ -25,7 +25,8 @@
 #include "../common/logsys.h"
 #include <string>
 
-class PyRepDict;
+//class PyRepDict;
+class SessionChangeNotification;
 
 class ClientSession {
 public:
@@ -47,7 +48,8 @@ public:
 	#include "ClientSession_fields.h"
 	
 	bool IsDirty() const { return(m_dirty); }
-	PyRepDict *EncodeChange();
+	//PyRepDict *EncodeChange();
+	void EncodeChange(SessionChangeNotification &into);
 	void Dump(LogType type) const;
 
 protected:

@@ -523,28 +523,18 @@ void Client::_BuildServiceListDict(PyRepDict *into) {
 void Client::_CheckSessionChange() {
 	if(!session.IsDirty())
 		return;
-	
-	PyRepDict *d = session.EncodeChange();
-	if(d->items.size() == 0) {
-		delete d;
+
+	SessionChangeNotification scn;
+
+	session.EncodeChange(scn);
+	if(scn.changes.empty())
 		return;
-	}
-
-	_log(CLIENT__SESSION, "Session updated, sending session change");
-	d->Dump(CLIENT__SESSION, "  Changes: ");
-	session.Dump(CLIENT__SESSION);
 	
-	PyRepTuple *t = new PyRepTuple(2);
-		PyRepTuple *maint = new PyRepTuple(2);
-		t->items[0] = maint;
-			maint->items[0] = new PyRepInteger(0);
-			maint->items[1] = d;
-		PyRepList *nodesOfInterest = new PyRepList();
-		t->items[1] = nodesOfInterest;
-			//this is prolly not nescesary... and is a little kludgy
-			if(GetCharacterID() != 0)
-				nodesOfInterest->add(new PyRepInteger(m_services->GetNodeID()));
+	_log(CLIENT__SESSION, "Session updated, sending session change");
+	scn.changes.Dump(CLIENT__SESSION, "  Changes: ");
 
+	//this is prolly not nescesary...
+	scn.nodesOfInterest.push_back(m_services->GetNodeID());
 
 	//build the packet:
 	PyPacket *p = new PyPacket();
@@ -561,7 +551,7 @@ void Client::_CheckSessionChange() {
 
 	p->userid = 0;
 	
-	p->payload = t;
+	p->payload = scn.Encode();
 	
 	p->named_payload = new PyRepDict();
 	p->named_payload->add("channel", new PyRepString("sessionchange"));
@@ -1168,7 +1158,7 @@ void Client::InitialEnterGame() {
 void Client::UndockingIntoSpace() {
 	_postMove(msUndockIntoSpace, 1000);
 }
-
+/*
 void Client::_SendInitialSkillTraining() {
 	InventoryItem *skill = Item()->FindFirstByFlag(flagSkill, false);
 	if(skill != NULL) {
@@ -1180,7 +1170,7 @@ void Client::_SendInitialSkillTraining() {
 		SendNotification("OnSkillStartTraining", "charid", &tmp);
 	}
 }
-
+*/
 void Client::CheckLogIntoSpace() {
 	if(m_moveState == msLogIntoSpace) {
 		m_moveTimer.Disable();
@@ -1193,11 +1183,11 @@ void Client::_ExecuteLogIntoSpace() {
 	SendInitialDestinySetstate();
 	
 	//this may be a little early...
-	_SendInitialSkillTraining();
+	//_SendInitialSkillTraining();
 }
 
 void Client::_ExecuteLogIntoStation() {
-	_SendInitialSkillTraining();
+	//_SendInitialSkillTraining();
 }
 
 void Client::_ExecuteUndockIntoSpace() {
@@ -1428,8 +1418,8 @@ DoDestinyUpdate ,*args= ([(31759,
 	//first, the item gets moved into space
 	//TODO: set customInfo to a tuple: (shipID, None)
 	drone->Move(GetSystemID(), flagAutoFit);
-//temp for testing:
-drone->Move(GetShipID(), flagDroneBay, false);
+	//temp for testing:
+	drone->Move(GetShipID(), flagDroneBay, false);
 
 	//now we create an NPC to represent it.
 	GPoint position(GetPosition());
@@ -1534,7 +1524,7 @@ void Client::JoinCorporationUpdate(uint32 corp_id) {
 	//logs indicate that we need to push this update out asap.
 	_CheckSessionChange();
 }
-
+/*
 FunctorTimerQueue::TimerID Client::Delay( uint32 time_in_ms, void (Client::* clientCall)() ) {
 	Functor *f = new SimpleClientFunctor(this, clientCall);
 	return(m_delayQueue.Schedule( &f, time_in_ms ));
@@ -1611,7 +1601,7 @@ FunctorTimerQueue::Entry::Entry(TimerID _id, Functor *_func, uint32 time_ms)
 FunctorTimerQueue::Entry::~Entry() {
 	delete func;
 }
-
+*/
 
 
 

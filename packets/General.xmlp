@@ -411,7 +411,7 @@ CallGetGuests
     <!-- 0 -->
     <InlineTuple>
       <!-- 0 -->
-      <int name="clueless" />
+      <int name="clueless" default="0" />
       <!-- 1 -->
 	  <dict name="changes" />
     </InlineTuple>                 
