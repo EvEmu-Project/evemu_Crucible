@@ -60,7 +60,7 @@ public:
 	virtual ~LSCService();
 
 	bool ExecuteCommand(Client *from, const char *msg);
-	void StargateJump(Client * c, uint32 fromID, uint32 toID);
+	void CreateSystemChannel(uint32 systemID);
 	void CharacterLogout(uint32 charID, OnLSC_SenderInfo * si);
 	
 protected:

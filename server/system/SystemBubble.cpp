@@ -18,6 +18,7 @@
 #include "SystemBubble.h"
 #include "SystemEntity.h"
 #include "SystemManager.h"
+#include "../ship/DestinyManager.h"
 
 #include "../common/PyRep.h"
 #include "../common/DestinyStructs.h"
@@ -215,7 +216,7 @@ void SystemBubble::_SendAddBalls(SystemEntity *to_who) {
 	}
 	
 	//this is pretty crappy...
-	uint32 updateID = to_who->System()->GetNextDestinyStamp();
+	uint32 updateID = DestinyManager::GetStamp();
 		
 	std::vector<byte> destiny_buffer(sizeof(Destiny::AddBall_header));
 	destiny_buffer.reserve(1024);
@@ -290,7 +291,7 @@ void SystemBubble::_BubblecastAddBall(SystemEntity *about_who) {
 	DoDestiny_AddBall addball;
 	about_who->MakeAddBall(addball, 
 		//this is pretty crappy... but it kinda makes sense too...
-		about_who->System()->GetNextDestinyStamp()
+		DestinyManager::GetStamp()
 		);
 	
 	PyRepTuple *tmp = addball.FastEncode();

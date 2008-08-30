@@ -414,8 +414,8 @@ PyCallResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
 	
 	destiny->GotoDirection(direction);
 
-	GPoint p(0, 0, 0);	//when docking, xyz dosent matter...
-	call.client->MoveToLocation(arg.arg, p);
+	//when docking, xyz dosent matter...
+	call.client->MoveToLocation(arg.arg, GPoint(0, 0, 0));
 
 	return(NULL);
 }

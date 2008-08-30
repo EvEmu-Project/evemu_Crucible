@@ -25,7 +25,7 @@
 #include "../common/gpoint.h"
 #include "inventory/InventoryItem.h"
 #include "inventory/ItemFactory.h"
-#include "Client.h"	//for CorpMemberInfo
+#include "Client.h"	//for CharacterData and CorpMemberInfo
 
 ServiceDB::ServiceDB(DBcore *db)
 : m_db(db)
@@ -500,6 +500,59 @@ bool ServiceDB::GetConstant(const char *name, uint32 &into) {
 	
 	into = row.GetUInt64(0);
 	
+	return(true);
+}
+
+bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
+	
+	DBQueryResult res;
+	
+	//we really should derive the char's location from the entity table...
+	if(!m_db->RunQuery(res,
+	"SELECT "
+	"	character_.characterName,character_.title,character_.description,character_.typeID,"
+	"	character_.createDateTime,character_.startDateTime,"
+	"	character_.bounty,character_.balance,character_.securityRating,character_.logonMinutes,"
+	"	character_.corporationID,character_.corporationDateTime,corporation.allianceID,"
+	"	character_.stationID,character_.solarSystemID,character_.constellationID,character_.regionID,"
+	"	character_.bloodlineID,character_.gender,character_.raceID"
+	" FROM character_"
+	" LEFT JOIN corporation ON corporation.corporationID = character_.corporationID"
+	" WHERE characterID=%lu", characterID))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		return(false);
+	}
+	
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(SERVICE__ERROR, "Error in LoadCharacter query: no data for char %d", characterID);
+		return(false);
+	}
+
+	uint32 i = 0;
+	into.name = row.GetText(i++);
+	into.title = row.GetText(i++);
+	into.description = row.GetText(i++);
+	into.typeID = row.GetUInt(i++);
+	into.createDateTime = row.GetUInt64(i++);
+	into.startDateTime = row.GetUInt64(i++);
+	into.bounty = row.GetDouble(i++);
+	into.balance = row.GetDouble(i++);
+	into.securityRating = row.GetDouble(i++);
+	into.logonMinutes = row.GetUInt(i++);
+	into.corporationID = row.GetUInt(i++);
+	into.corporationDateTime = row.GetUInt64(i++);
+	into.allianceID = row.GetUInt(i++);
+	into.stationID = row.GetUInt(i++);
+	into.solarSystemID = row.GetUInt(i++);
+	into.constellationID = row.GetUInt(i++);
+	into.regionID = row.GetUInt(i++);
+	into.bloodlineID = row.GetUInt(i++);
+	into.genderID = row.GetUInt(i++);
+	into.raceID = row.GetUInt(i++);
+	
+	into.charid = characterID;
 	return(true);
 }
 

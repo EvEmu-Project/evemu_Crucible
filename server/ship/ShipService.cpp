@@ -164,9 +164,8 @@ PyCallResult ShipBound::Handle_Undock(PyCallArgs &call) {
 	
 	//do session change...
 	call.client->MoveToLocation(call.client->GetSystemID(), position);
-	call.client->UndockingIntoSpace();
 
-//revert custom info, for testing.
+	//revert custom info, for testing.
 	call.client->Ship()->SetCustomInfo(NULL);
 	
 	//send OnCharNoLongerInStation

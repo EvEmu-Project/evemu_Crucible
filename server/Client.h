@@ -259,13 +259,13 @@ public:
 	virtual void	FastQueuePacket(PyPacket **p);
 	bool			ProcessNet();
 	virtual void	Process();
-	virtual void	ProcessDestiny(uint32 stamp);
+	virtual void	ProcessDestiny();
 
 	uint32 GetAccountID() const { return(m_accountID); }
 	uint32 GetRole() const { return(m_role); }
 
 	uint32 GetCharacterID() const { return(m_char.charid); }
-	CharacterData &GetChar() { return(m_char); }
+	const CharacterData &GetChar() { return(m_char); }
 	uint32 GetCorporationID() const { return(m_char.corporationID); }
 	uint32 GetAllianceID() const { return(m_char.allianceID); }
 	const CorpMemberInfo &GetCorpInfo() const { return(m_corpstate); }
@@ -288,9 +288,8 @@ public:
 	void MoveToLocation(uint32 location, const GPoint &pt);
 	void MoveToPosition(const GPoint &pt);
 	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
-	bool EnterSystem(const GPoint &p);
-	void WarpTo(const GPoint &p);
-	bool LoadInventory(uint32 ship_id);
+	bool EnterSystem();
+	bool Load(uint32 char_id);
 	void JoinCorporationUpdate(uint32 corp_id);
 	inline InventoryItem *Ship() const { return(m_ship); }
 	void SavePosition();
@@ -299,7 +298,6 @@ public:
 	
 	bool LaunchDrone(InventoryItem *drone);
 	
-	//
 	void SendHandshake();
 	
 	void SendNotification(const PyAddress &dest, EVENotificationStream *noti, bool seq=true);
@@ -307,13 +305,8 @@ public:
 	void SessionSync();
 
 	//destiny stuff...
-	void SendInitialDestinySetstate();
+	void WarpTo(const GPoint &p);
 	void StargateJump(uint32 fromGate, uint32 toGate);
-	
-	//some hacks to handle movement updates until a better destiny system is figured out...
-	void InitialEnterGame();
-	void UndockingIntoSpace();
-	void CheckLogIntoSpace();
 	
 	//SystemEntity interface:
 	virtual EntityClass GetClass() const { return(ecClient); }
@@ -367,11 +360,6 @@ protected:
 	
 	void _ProcessNotification(PyPacket *packet);
 	void _CheckSessionChange();
-
-	void _ExecuteLogIntoSpace();
-	void _ExecuteLogIntoStation();
-	void _ExecuteUndockIntoSpace();
-	//void _SendInitialSkillTraining();
 	
 	void _ReduceDamage(Damage &d);
 	
@@ -400,13 +388,8 @@ protected:
 	//this whole move system is a piece of crap:
 	typedef enum {
 		msIdle,
-		msWarp,
-		msJump,
-		msJump2,
-		msJump3,
-		msLogIntoSpace,		//initial login into space
-		msLogIntoStation,	//initial login into a station
-		msUndockIntoSpace
+		msStateChange,
+		msJump
 	} _MoveState;
 	void _postMove(_MoveState type, uint32 wait_ms=500);
 	_MoveState m_moveState;
@@ -414,17 +397,15 @@ protected:
 	uint32 m_moveSystemID;
 	GPoint m_movePoint;
 	//bool m_warpActive;	//only for destiny setstate right now...
-	void _ExecuteWarp();
+	void _ExecuteSetState();
 	void _ExecuteJump();
-	void _ExecuteJump_Phase2();
-	void _ExecuteJump_Phase3();
 	
 private:
 	//queues for destiny updates:
 	std::vector<PyRep *> m_destinyEventQueue;	//we own these. These are events as used in OnMultiEvent
 	std::vector<PyRepTuple *> m_destinyUpdateQueue;	//we own these. They are the `update` which go into DoDestinyAction
 	void _SendQueuedUpdates(uint32 stamp);
-	
+
 	//FunctorTimerQueue m_delayQueue;
 	
 	uint32 m_nextNotifySequence;

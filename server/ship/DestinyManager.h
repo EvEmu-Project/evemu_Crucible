@@ -34,16 +34,18 @@ class SystemBubble;
 //NOTE: we currently have no inertial mass
 class DestinyManager {
 public:
+	static uint32 GetStamp() { return(m_stamp); }
+	static bool IsTicActive() { return(m_stampTimer.Check(false)); }
+	static void TicCompleted() { if(m_stampTimer.Check(true)) m_stamp++; }
+
 	DestinyManager(SystemEntity *self, SystemManager *system);
 	~DestinyManager();
 
-	void Process(uint32 stamp);
+	void Process();
 
 	void SendSingleDestinyUpdate(PyRepTuple **up, bool self_only=false) const;
 	void SendDestinyUpdate(std::vector<PyRepTuple *> &updates, bool self_only) const;
 	void SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::vector<PyRepTuple *> &events, bool self_only) const;
-	
-	uint32 GetLastDestinyStamp() const { return(m_lastDestinyStamp); }
 	
 	const GPoint &GetPosition() const { return(m_position); }
 	
@@ -71,7 +73,7 @@ public:
 	void SendAddBall() const;
 	void SendSetState(const SystemBubble *b) const;
 	void SendJumpIn() const;
-	void SendJumpOut() const;
+	void SendJumpOut(uint32 stargateID) const;
 	void SendGateActivity() const;
 	void SendRemoveBall() const;
 	void SendTerminalExplosion() const;
@@ -88,8 +90,8 @@ protected:
 //	Ga::Shape *m_shape;		//we own a reference to this
 	
 //	Timer m_destinyTimer;
-	uint32 m_lastDestinyStamp;
-	uint32 NextDestinyUpdateID() const { return(m_lastDestinyStamp+1); }
+	static uint32 m_stamp;
+	static Timer m_stampTimer;
 //	uint32 m_lastDestinyTime;	//from Timer::GetTimeSeconds()
 	
 	//the results of our labors:

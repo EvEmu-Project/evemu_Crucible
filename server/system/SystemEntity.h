@@ -54,7 +54,7 @@ public:
 	TargetManager targets;
 	
 	virtual void Process();
-	virtual void ProcessDestiny(uint32 stamp) = 0;
+	virtual void ProcessDestiny() = 0;
 
 	//this is a bit crude, but I prefer this over RTTI.
 	virtual EntityClass GetClass() const { return(ecOther); }
@@ -158,7 +158,7 @@ public:
 	virtual ~DynamicSystemEntity();
 
 	//partial implementation of SystemEntity interface:
-	virtual void ProcessDestiny(uint32 stamp);
+	virtual void ProcessDestiny();
 	virtual const GPoint &GetPosition() const;
 	virtual void EncodeDestiny(std::vector<byte> &into) const;
 	virtual bool IsStaticEntity() const { return(false); }

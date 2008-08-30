@@ -16,25 +16,23 @@
 */
 
 
-
 #include <list>
-#include "../common/common.h"
 
 #include "EntityList.h"
 #include "Client.h"
+#include "system/SystemManager.h"
+#include "ship/DestinyManager.h"
+
+#include "../common/common.h"
 #include "../common/logsys.h"
 #include "../common/PyPacket.h"
 #include "../common/PyRep.h"
-#include "system/SystemManager.h"
 #include "../common/sigexcept/sigexcept.h"
 
 EntityList::EntityList(DBcore *db)
 : m_services(NULL),
-  m_db(db),
-  m_destinyTimer(1000, true),	//accurate timing is essential.
-  m_nextDestinyStamp(40000)			//completely arbitrary starting point.
+  m_db(db)
 {
-	m_destinyTimer.Start();
 }
 
 EntityList::~EntityList() {
@@ -85,9 +83,9 @@ void EntityList::Process() {
 	
 	SystemManager *active_system = NULL;
 	TRY_SIGEXCEPT {
-		bool destiny = m_destinyTimer.Check();
+		bool destiny = DestinyManager::IsTicActive();
 		if(destiny) {
-			_log(DESTINY__TRACE, "Triggering destiny tick for stamp %lu", m_nextDestinyStamp);
+			_log(DESTINY__TRACE, "Triggering destiny tick for stamp %lu", DestinyManager::GetStamp());
 		}
 		
 		//first process any systems, watching for deletion.
@@ -98,7 +96,7 @@ void EntityList::Process() {
 			active_system = cur->second;
 			//if it is destiny time, process it first.
 			if(destiny) {
-				active_system->ProcessDestiny(m_nextDestinyStamp);
+				active_system->ProcessDestiny();
 			}
 			
 			if(!active_system->Process()) {
@@ -110,7 +108,7 @@ void EntityList::Process() {
 			}
 		}
 		if(destiny) {
-			m_nextDestinyStamp++;
+			DestinyManager::TicCompleted();
 		}
 	} CATCH_SIGEXCEPT(e) {
 		  _log(COMMON__ERROR, "Exception caught processing in system %lu:\n%s", (active_system==NULL)?0:active_system->GetID(), e.stack_string().c_str());

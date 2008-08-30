@@ -157,9 +157,9 @@ DynamicSystemEntity::~DynamicSystemEntity() {
 	}
 }
 
-void DynamicSystemEntity::ProcessDestiny(uint32 stamp) {
+void DynamicSystemEntity::ProcessDestiny() {
 	if(m_destiny != NULL)
-		m_destiny->Process(stamp);
+		m_destiny->Process();
 }
 
 const GPoint &DynamicSystemEntity::GetPosition() const {

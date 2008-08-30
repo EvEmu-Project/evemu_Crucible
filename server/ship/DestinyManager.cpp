@@ -35,15 +35,19 @@ using namespace Destiny;
 
 
 static const double DESTINY_UPDATE_RANGE = 1.0e8;	//totally made up. a more complex spatial partitioning system is needed.
+static const double SPACE_FRICTION = 1.0e6;			//straight from client. Do not change.
+static const double SPACE_FRICTION_SQUARED = SPACE_FRICTION*SPACE_FRICTION;
+static const double TIC_DURATION_IN_SECONDS = 1.0;	//straight from client. Do not change.
+static const double FOLLOW_BAND_WIDTH = 100.0f;	//totally made up
 
-
+uint32 DestinyManager::m_stamp(40000);	//completely arbitrary starting point.
+Timer DestinyManager::m_stampTimer(TIC_DURATION_IN_SECONDS * 1000, true);	//accurate timing is essential.
 
 DestinyManager::DestinyManager(SystemEntity *self, SystemManager *system)
 : m_self(self),
   m_system(system),
 //  m_body(NULL),
 //  m_shape(NULL),
-  m_lastDestinyStamp(system->GetNextDestinyStamp()-1),
 //  m_lastDestinyTime(Timer::GetTimeSeconds()),
   m_position(0, 0, 0),	//generally right in the middle of the star!
 //  m_direction(0, 0, 0),
@@ -73,11 +77,7 @@ DestinyManager::~DestinyManager() {
 	delete m_warpState;
 }
 
-//called every second with incremental `stamp`... promised to 
-//never skip, so dont bother checking it.
-void DestinyManager::Process(uint32 stamp) {
-	m_lastDestinyStamp = stamp;
-	
+void DestinyManager::Process() {
 	//process 1 second worth of destiny activities
 	ProcessTic();
 }
@@ -98,7 +98,7 @@ void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, bool 
 
 void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::vector<PyRepTuple *> &events, bool self_only) const {
 	if(self_only) {
-		_log(DESTINY__TRACE, "[%lu] Sending destiny update to self.", NextDestinyUpdateID());
+		_log(DESTINY__TRACE, "[%lu] Sending destiny update to self.", GetStamp());
 		std::vector<PyRepTuple *>::iterator cur, end;
 		
 		cur = updates.begin();
@@ -119,16 +119,11 @@ void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::
 		}
 		events.clear();
 	} else {
-		_log(DESTINY__TRACE, "[%lu] Broadcasting destiny update (%d, %d)", NextDestinyUpdateID(), updates.size(), events.size());
+		_log(DESTINY__TRACE, "[%lu] Broadcasting destiny update (%d, %d)", GetStamp(), updates.size(), events.size());
 		//this should really be something like "bubblecast"
 		m_system->RangecastDestiny(m_position, DESTINY_UPDATE_RANGE, updates, events);
 	}
 }
-
-static const double SPACE_FRICTION = 1.0e6;			//straight from client. Do not change.
-static const double SPACE_FRICTION_SQUARED = SPACE_FRICTION*SPACE_FRICTION;
-static const double TIC_DURATION_IN_SECONDS = 1.0;	//straight from client. Do not change.
-static const double FOLLOW_BAND_WIDTH = 100.0f;	//totally made up
 
 void DestinyManager::_UpdateDerrived() {
 	m_maxVelocity = m_maxShipVelocity * m_activeSpeedFraction;
@@ -142,7 +137,7 @@ void DestinyManager::_UpdateDerrived() {
 void DestinyManager::ProcessTic() {
 	
 	_log(PHYSICS__TRACEPOS, "[%d] Entity %lu starts at (%.3f, %.3f, %.3f) with velocity (%f, %f, %f)=%.1f in mode %s",
-		m_lastDestinyStamp,
+		GetStamp(),
 		m_self->GetID(),
 		m_position.x, m_position.y, m_position.z,
 		m_velocity.x, m_velocity.y, m_velocity.z,
@@ -462,7 +457,7 @@ void DestinyManager::_InitWarp() {
 
 	delete m_warpState;
 	m_warpState = new WarpState(
-		m_lastDestinyStamp,
+		GetStamp(),
 		warp_distance, 
 		warp_speed, 
 		warp_acceleration_time, 
@@ -478,7 +473,7 @@ void DestinyManager::_Warp() {
 		codelog(DESTINY__ERROR, "Error: _Warp() called with no warp state!");
 		return;
 	}
-	const double seconds_into_warp = (m_lastDestinyStamp - m_warpState->start_stamp) * TIC_DURATION_IN_SECONDS;
+	const double seconds_into_warp = (GetStamp() - m_warpState->start_stamp) * TIC_DURATION_IN_SECONDS;
 	_log(PHYSICS__TRACEPOS, "Seconds into warp %.1f", seconds_into_warp);
 	
 	
@@ -588,7 +583,7 @@ void DestinyManager::_Orbit() {
 	_log(PHYSICS__TRACEPOS, "something = %.15e", something);
 
 //this seems to be correct, without rounding error.
-	double v488 = double(m_lastDestinyStamp-m_stateStamp) * something;
+	double v488 = double(GetStamp()-m_stateStamp) * something;
 	_log(PHYSICS__TRACEPOS, "v488 = %.15e", v488);
 	
 //this is not quite right... some sort of rounding I think.
@@ -798,7 +793,7 @@ void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {
 		return;
 	
 	State = DSTBALL_ORBIT;
-	m_stateStamp = m_lastDestinyStamp+1;
+	m_stateStamp = GetStamp()+1;
 	
 	m_targetEntity = who;
 	m_targetDistance = distance;
@@ -989,7 +984,7 @@ bool DestinyManager::_Turn() {
 	return(false);
 }
 
-void DestinyManager::SendJumpOut() const {
+void DestinyManager::SendJumpOut(uint32 stargateID) const {
 	std::vector<PyRepTuple *> updates;
 	
 	{
@@ -1000,9 +995,14 @@ void DestinyManager::SendJumpOut() const {
 
 	{
 	//send a warping special effects update...
-	DoDestiny_OnSpecialFX_JumpOut du;
-	du.entityID = m_self->GetID();
-	updates.push_back(du.FastEncode());
+	DoDestiny_OnSpecialFX10 effect;
+	effect.entityID = m_self->GetID();
+	effect.targetID = stargateID;
+	effect.effect_type = "effects.JumpOut";
+	effect.isOffensive = 0;
+	effect.start = 1;
+	effect.active = 0;
+	updates.push_back(effect.Encode());
 	}
 	
 	SendDestinyUpdate(updates, false);
@@ -1067,7 +1067,7 @@ void DestinyManager::SendGateActivity() const {
 
 void DestinyManager::SendAddBall() const {
 	DoDestiny_AddBall addball;
-	m_self->MakeAddBall(addball, NextDestinyUpdateID());
+	m_self->MakeAddBall(addball, GetStamp());
 
 	PyRepTuple *tmp = addball.FastEncode();
 	SendSingleDestinyUpdate(&tmp);	//consumed
@@ -1076,7 +1076,7 @@ void DestinyManager::SendAddBall() const {
 void DestinyManager::SendSetState(const SystemBubble *b) const {
 	DoDestiny_SetState ss;
 	
-	ss.stamp = m_lastDestinyStamp;
+	ss.stamp = GetStamp();
 	ss.ego = m_self->GetID();
 	m_system->MakeSetState(b, ss);
 

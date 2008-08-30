@@ -40,7 +40,7 @@ public:
 	virtual void TargetedAdd(SystemEntity *who) {}
 	virtual void TargetedLost(SystemEntity *who) {}
 	virtual void TargetsCleared() {}
-	virtual void ProcessDestiny(uint32 stamp) {}
+	virtual void ProcessDestiny() {}
 	virtual void QueueDestinyUpdate(PyRepTuple **du);
 	virtual void QueueDestinyEvent(PyRepTuple **multiEvent);
 	//virtual const GPoint &GetPosition() const;

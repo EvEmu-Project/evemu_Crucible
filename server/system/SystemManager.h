@@ -53,13 +53,12 @@ public:
 	
 	uint32 GetID() const { return(m_systemID); }
 	const std::string &GetName() const { return(m_systemName); }
-	uint32 GetNextDestinyStamp() const;	//not intended for normal use, only for destiny initilization
 	double GetWarpSpeed() const;
 	
 	bool BootSystem();
 	
 	bool Process();
-	void ProcessDestiny(uint32 stamp);	//called once for each destiny second.
+	void ProcessDestiny();	//called once for each destiny second.
 
 	void AddClient(Client *who);
 	void RemoveClient(Client *who);

@@ -25,7 +25,6 @@
 
 class PyRepObject;
 class PyRepString;
-class CharacterData;
 class CharacterAppearance;
 class ItemFactory;
 class InventoryItem;
@@ -48,7 +47,6 @@ public:
 	PyRepObject *GetOwnerNote(uint32 charID, uint32 noteID);
 	bool ValidateCharName(const char *name);
 	InventoryItem *CreateCharacter(uint32 acct, ItemFactory *fact, const CharacterData &data, CharacterAppearance &app);
-	bool LoadCharacter(uint32 char_id, CharacterData &into);
 	bool LoadCharacterAppearance(uint32 characterID, CharacterAppearance &into);
 	
 	PyRepObject *GetCharacterAppearance(uint32 characterID);

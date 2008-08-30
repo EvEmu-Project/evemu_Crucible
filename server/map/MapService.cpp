@@ -99,9 +99,6 @@ PyCallResult MapService::Handle_GetStationExtraInfo(PyCallArgs &call) {
 PyCallResult MapService::Handle_GetSolarSystemPseudoSecurities(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	//pretty hacky, but I needed a better trigger than a timer:
-	call.client->CheckLogIntoSpace();
-
 	ObjectCachedMethodID method_id(GetName(), "GetSolarSystemPseudoSecurities");
 
 	//check to see if this method is in the cache already.

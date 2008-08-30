@@ -284,36 +284,6 @@ DST_WARPEXIT = 11
 	</InlineTuple>
 </element>
 
-<element name="DoDestiny_OnSpecialFX_JumpOut">
-	<InlineTuple>
-	  <!-- 0 -->
-	  <string name="update_name" default="OnSpecialFX" />
-	  <!-- 1 -->
-	  <InlineTuple>
-		<!-- 0 -->
-		<int name="entityID" />
-		<!-- 1 -->
-		<none />
-		<!-- 2 -->
-		<none />
-		<!-- 3 -->
-		<int name="usingGateID" />
-		<!-- 4 -->
-		<none />
-		<!-- 5: completely unknown contents, prolly not really an intlist -->
-		<intlist name="area" />
-		<!-- 6: see scripts/parklife/fxSequencer.py -->
-		<string name="effect_type" default="effects.JumpOut"/>
-		<!-- 7: saw 0 -->
-		<int name="isOffensive" default="0" />
-		<!-- 8: saw 1 -->
-		<int name="start" default="1" />
-		<!-- 9: saw 0 -->
-		<int name="active" default="0" />
-	  </InlineTuple>
-	</InlineTuple>
-</element>
-
 <element name="DoDestiny_DamageDetails">
   <InlineList>
     <InlineTuple>

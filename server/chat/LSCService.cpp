@@ -417,7 +417,7 @@ LSCChannel *LSCService::CreateChannel(uint32 channelID) {
 	std::string motd;
 	if (IsRegion(channelID)) { type = LSCChannel::region; name = "System Channels\\Region"; motd = m_db.GetRegionName(channelID); }
 	else if (IsConstellation(channelID)) {type = LSCChannel::constellation; name = "System Channels\\Constellation"; motd = m_db.GetConstellationName(channelID); }
-	else if (IsSolarSystem(channelID)) { type = LSCChannel::constellation; name = "System Channels\\Local"; motd = m_db.GetSolarSystemName(channelID); }
+	else if (IsSolarSystem(channelID)) { type = LSCChannel::solarsystem; name = "System Channels\\Local"; motd = m_db.GetSolarSystemName(channelID); }
 	// official corporations
 	else if ((channelID >= 1000000) && (channelID < 2000000)) { type = LSCChannel::corp; name = "System Channels\\Corp"; motd = m_db.GetCorporationName(channelID); }
 	// player-created corporations
@@ -445,9 +445,9 @@ LSCChannel *LSCService::CreateChannel(const char * name, bool maillist) {
 	uint32 channelID = nextFreeChannelID++;
 	return CreateChannel(channelID, name, LSCChannel::normal, maillist);
 }
-void LSCService::StargateJump(Client * c, uint32 fromID, uint32 toID) {
-	if (m_channels.find(toID) == m_channels.end()) {
-		CreateChannel(toID, "System Channels\\Local", m_db.GetSolarSystemName(toID).c_str(), LSCChannel::solarsystem);
+void LSCService::CreateSystemChannel(uint32 systemID) {
+	if (m_channels.find(systemID) == m_channels.end()) {
+		CreateChannel(systemID, "System Channels\\Local", m_db.GetSolarSystemName(systemID).c_str(), LSCChannel::solarsystem);
 	}
 }
 void LSCService::InitiateStaticChannels() {

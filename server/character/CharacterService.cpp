@@ -109,7 +109,7 @@ PyCallResult CharacterService::Handle_SelectCharacterID(PyCallArgs &call) {
 		return(NULL);
 	}
 	
-	uint32 ship_id = m_db.GetCurrentShipID(args.arg);
+	/*uint32 ship_id = m_db.GetCurrentShipID(args.arg);
 	_log(CLIENT__MESSAGE, "Determined that %lu is the current ship for char %lu", ship_id, args.arg);
 	
 	if(!m_db.LoadCharacter(args.arg, call.client->GetChar())) {
@@ -117,8 +117,6 @@ PyCallResult CharacterService::Handle_SelectCharacterID(PyCallArgs &call) {
 		//TODO: throw exception
 	} else {
 
-		//johnsus - characterOnline mod
-		m_db.SetCharacterOnlineStatus(args.arg,true);
 
 		if(!call.client->LoadInventory(ship_id)) {
 			_log(CLIENT__ERROR, "Failed to load character inventory");
@@ -130,8 +128,12 @@ PyCallResult CharacterService::Handle_SelectCharacterID(PyCallArgs &call) {
 			//send the session changes to kick off the client state changes.
 			call.client->SessionSync();
 		}
-	}
-	
+	}*/
+
+	if(call.client->Load(args.arg))
+		//johnsus - characterOnline mod
+		m_db.SetCharacterOnlineStatus(args.arg,true);
+
 	return(NULL);
 }
 

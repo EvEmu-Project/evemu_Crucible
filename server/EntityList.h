@@ -57,7 +57,6 @@ public:
 	virtual ~EntityList();
 
 	void UseServices(PyServiceMgr *svc) { m_services = svc; }
-	uint32 GetDestinyStamp() const { return(m_nextDestinyStamp); }	//not intended for normal use
 
 	typedef std::set<uint32> character_set;
 	
@@ -89,9 +88,6 @@ protected:
 
 	PyServiceMgr *m_services;	//we do not own this, only used for booting systems.
 	DBcore *const m_db;	//only used for booting systems.
-	
-	Timer m_destinyTimer;
-	uint32 m_nextDestinyStamp;
 };
 
 

@@ -29,6 +29,7 @@
 #include "../NPC.h"
 #include "../inventory/InventoryItem.h"
 #include "../spawn/SpawnManager.h"
+#include "../chat/LSCService.h"
 #include "../EntityList.h"
 #include "../PyServiceMgr.h"
 
@@ -48,6 +49,8 @@ SystemManager::SystemManager(const char *systemName, uint32 systemID, DBcore *db
   m_entityChanged(false)
 {
 	m_systemSecurity = m_db.GetSystemSecurity(m_systemID);
+	//create our chat channel
+	m_services->lsc_service->CreateSystemChannel(m_systemID);
 }
 
 SystemManager::~SystemManager() {
@@ -73,10 +76,6 @@ SystemManager::~SystemManager() {
 	delete m_spawnManager;
 
 	bubbles.clear();
-}
-
-uint32 SystemManager::GetNextDestinyStamp() const {
-	return(m_services->entity_list->GetDestinyStamp());
 }
 
 static const int num_hack_sentry_locs = 8;
@@ -227,7 +226,7 @@ bool SystemManager::Process() {
 }
 
 //called once per second.
-void SystemManager::ProcessDestiny(uint32 stamp) {
+void SystemManager::ProcessDestiny() {
 	//this is here so it isnt called so frequently.
 	m_spawnManager->Process();
 
@@ -236,7 +235,7 @@ void SystemManager::ProcessDestiny(uint32 stamp) {
 	std::map<uint32, SystemEntity *>::const_iterator cur;
 	cur = m_entities.begin();
 	while(cur != m_entities.end()) {
-		cur->second->ProcessDestiny(stamp);
+		cur->second->ProcessDestiny();
 		if(m_entityChanged) {
 			//somebody changed the entity list, need to start over or bail...
 			m_entityChanged = false;

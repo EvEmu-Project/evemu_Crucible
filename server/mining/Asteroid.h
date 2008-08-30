@@ -85,7 +85,7 @@ public:
 	virtual void TargetedAdd(SystemEntity *who) {}
 	virtual void TargetedLost(SystemEntity *who) {}
 	virtual void TargetsCleared() {}
-	virtual void ProcessDestiny(uint32 stamp) {}
+	virtual void ProcessDestiny() {}
 	virtual SystemManager *System() const { return(m_system); }
 	virtual bool IsStaticEntity() const { return(true); }
 	virtual void ApplyDamage(Damage &d);
