@@ -349,7 +349,7 @@ std::string LSCDB::GetChannelName(uint32 id, const char * table, const char * co
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		char err[20];
-		sprintf_s(err, 20, "Unknown %lu", id);
+		snprintf(err, 20, "Unknown %lu", id);
 		return(err);
 	}
 
@@ -358,7 +358,7 @@ std::string LSCDB::GetChannelName(uint32 id, const char * table, const char * co
 	if (!res.GetRow(row)) {
 		_log(SERVICE__ERROR, "Couldn't find %s %lu in table %s", key, id, table);
 		char err[20];
-		sprintf_s(err, 20, "Unknown %lu", id);
+		snprintf(err, 20, "Unknown %lu", id);
 		return(err);
 	}
 

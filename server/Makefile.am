@@ -1,3 +1,4 @@
+INCLUDES += -I$(srcdir)/../3rdparty/
 INCLUDES+= -I$(srcdir)/../common/
 
 noinst_LIBRARIES = \

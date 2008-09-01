@@ -2,13 +2,13 @@ INCLUDES += -I$(srcdir)/../common/
 
 BUILT_DISTS = \
 	ObjectCaching.xmlp \
+	General.xmlp \
 	AccountPkts.xmlp \
 	Character.xmlp \
 	CorporationPkts.xmlp \
 	Crypto.xmlp \
 	Destiny.xmlp \
 	DogmaIM.xmlp \
-	General.xmlp \
 	Inventory.xmlp \
 	Language.xmlp \
 	LSCPkts.xmlp \
@@ -33,13 +33,13 @@ noinst_LIBRARIES = \
 libpackets_a_SOURCES = \
 	$(BUILT_DISTS) \
   ObjectCaching.cpp \
+  General.cpp \
   AccountPkts.cpp \
   Character.cpp \
   CorporationPkts.cpp \
   Crypto.cpp \
   Destiny.cpp \
   DogmaIM.cpp \
-  General.cpp \
   Inventory.cpp \
   Language.cpp \
   LSCPkts.cpp \

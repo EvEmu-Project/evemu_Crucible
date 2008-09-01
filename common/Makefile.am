@@ -1,7 +1,7 @@
+INCLUDES += -I$(srcdir)/../3rdparty/
 
 noinst_LIBRARIES = \
-	libcommon.a \
-	libtinyxml.a
+	libcommon.a
 
 libcommon_a_SOURCES = \
 	logsys.cpp \
@@ -98,14 +98,3 @@ libcommon_a_SOURCES = \
 	XMLParser.cpp \
 	XMLParser.h
 
-libtinyxml_a_SOURCES = \
-	tinyxml/tinystr.cpp \
-	tinyxml/tinystr.h \
-	tinyxml/tinyxml.cpp \
-	tinyxml/tinyxmlerror.cpp \
-	tinyxml/tinyxml.h \
-	tinyxml/tinyxmlparser.cpp
-
-libtinyxml_a_CXXFLAGS = \
-	-DTIXML_USE_STL
-#AM_CXXFLAGS+= -fno-inline

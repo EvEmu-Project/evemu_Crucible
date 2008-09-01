@@ -1,3 +1,4 @@
+INCLUDES += -I$(srcdir)/../3rdparty/
 
 bin_PROGRAMS = collector 
 

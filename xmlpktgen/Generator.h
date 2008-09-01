@@ -1,7 +1,7 @@
 #ifndef __GENERATOR_H_INCL__
 #define __GENERATOR_H_INCL__
 
-#include "../common/tinyxml/tinyxml.h"
+#include "tinyxml/tinyxml.h"
 #include "../common/logsys.h"
 #include <stdio.h>
 #include <map>

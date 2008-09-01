@@ -116,6 +116,8 @@ AC_C_INLINE
 
 AC_CONFIG_FILES([
 	Makefile
+	3rdparty/Makefile
+	3rdparty/tinyxml/Makefile
 	common/Makefile
 	xmlpktgen/Makefile
 	packets/Makefile
