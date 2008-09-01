@@ -1,8 +1,0 @@
-<Elements>
-  <element name="Call_GetTextsForGroup">
-    <InlineTuple>
-      <int name="textgroup" />
-      <string name="languageID" />
-    </InlineTuple>
-  </element>
-</Elements>

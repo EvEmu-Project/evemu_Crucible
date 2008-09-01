@@ -30,8 +30,6 @@ xmlpktgen_SOURCES = \
 	HeaderGenerator.h \
 	ImplGenerator.cpp \
 	ImplGenerator.h \
-	Language.cpp \
-	Language.h \
 	main.cpp \
 	XMLPacketGen.cpp \
 	XMLPacketGen.h
