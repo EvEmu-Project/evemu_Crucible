@@ -301,6 +301,7 @@ server_LDADD = \
 	-ldl 
 
 server_LDFLAGS = \
+	-L$(srcdir)/../3rdparty/tinyxml \
 	-L$(srcdir)/../server/ \
 	-L$(srcdir)/../common/ \
 	-L$(srcdir)/../packets/ \

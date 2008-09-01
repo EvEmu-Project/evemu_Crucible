@@ -171,14 +171,15 @@ PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict
 }
 
 void PyServiceMgr::ClearBoundObjects(Client *who) {
-	std::map<std::string, BoundObject>::iterator cur, end;
+	std::map<std::string, BoundObject>::iterator cur, end, tmp;
 	cur = m_boundObjects.begin();
 	end = m_boundObjects.end();
 	while(cur != end) {
 		if(cur->second.client == who) {
 			_log(SERVICE__MESSAGE, "Clearing bound object %s", cur->first.c_str());
 			PyBoundObject *bo = cur->second.destination;
-			cur = m_boundObjects.erase(cur);
+			tmp = cur++;
+			m_boundObjects.erase(tmp);
 			bo->Release();
 		} else {
 			cur++;

@@ -89,7 +89,7 @@ void EntityList::Process() {
 		}
 		
 		//first process any systems, watching for deletion.
-		system_list::iterator cur, end;
+		system_list::iterator cur, end, tmp;
 		cur = m_systems.begin();
 		end = m_systems.end();
 		while(cur != end) {
@@ -101,8 +101,9 @@ void EntityList::Process() {
 			
 			if(!active_system->Process()) {
 				_log(SERVER__CLIENTS, "Destroying system\n");
+				tmp = cur++;
 				delete cur->second;
-				cur = m_systems.erase(cur);
+				m_systems.erase(tmp);
 			} else {
 				cur++;
 			}

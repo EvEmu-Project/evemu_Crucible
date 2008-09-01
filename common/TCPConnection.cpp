@@ -140,11 +140,7 @@ bool TCPConnection::GetSockName(char *host, uint16 *port)
 #ifdef WIN32
 	int addrlen;
 #else
-#ifdef FREEBSD
 	socklen_t addrlen;
-#else
-	size_t addrlen;
-#endif
 #endif
 	addrlen=sizeof(struct sockaddr_in);
 	if (!getsockname(connection_socket,(struct sockaddr *)&local,&addrlen)) {
