@@ -80,6 +80,7 @@
 #include "mining/ReprocessingService.h"
 #include "manufacturing/FactoryService.h"
 #include "manufacturing/RamProxyService.h"
+#include "posmgr/PosMgrService.h"
 
 //int catch_segv;
 
@@ -211,6 +212,7 @@ int main(int argc, char *argv[]) {
 	services.RegisterService(new ReprocessingService(&services, &db));
 	services.RegisterService(new FactoryService(&services, &db));
 	services.RegisterService(new RamProxyService(&services, &db));
+	services.RegisterService(new PosMgrService(&services, &db));
 	
 	_log(SERVER__INIT, "Priming cached objects");
 //#ifndef WIN32

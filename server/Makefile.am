@@ -22,9 +22,16 @@ noinst_LIBRARIES = \
 	libship.a \
 	libstation.a \
 	libsystem.a \
+	libposmgr.a \
 	libtutorial.a
 
 bin_PROGRAMS = server
+
+libposmgr_a_SOURCES = \
+	posmgr/PosMgrDB.cpp \
+	posmgr/PosMgrDB.h \
+	posmgr/PosMgrService.cpp \
+	posmgr/PosMgrService.h
 
 libaccount_a_SOURCES = \
 	account/AccountDB.cpp \
@@ -293,6 +300,7 @@ server_LDADD = \
   -lstation \
   -lsystem \
 	-ltutorial \
+	-lposmgr \
 	-lcommon \
 	-ltinyxml \
 	-lpackets \

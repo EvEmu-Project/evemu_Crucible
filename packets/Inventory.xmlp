@@ -402,6 +402,13 @@
 	</InlineList>
 </element>
 
+<element name="Call_Drop2">
+  <InlineTuple>
+    <intlist name="toDrop" />
+    <int name="ownerID" />
+  </InlineTuple>
+</element>
+
 <element name="Call_Reprocess">
 	<InlineTuple>
 		<intlist name="itemIDs" />

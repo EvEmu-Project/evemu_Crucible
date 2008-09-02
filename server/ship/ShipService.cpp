@@ -194,23 +194,40 @@ PyCallResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
 }
 
 PyCallResult ShipBound::Handle_Drop(PyCallArgs &call) {
-	Call_SingleIntList args;
-	if(!args.Decode(&call.tuple)) {
-		codelog(SERVICE__ERROR, "Failed to decode arguments");
-		//TODO: throw exception
-		return(NULL);
-	}
-	
 	if(!IsSolarSystem(call.client->GetLocationID())) {
 		_log(SERVICE__ERROR, "%s: Trying to drop items when not in space!", call.client->GetName());
 		return(new PyRepList());
 	}
 
+	Call_SingleIntList args;
+	Call_Drop2 dropargs;
 	Call_SingleIntList successfully_dropped;
-
 	std::vector<uint32>::const_iterator cur, end;
+	uint32 contID = 0;
+
+	PyRepTuple * t = call.tuple;
+	bool d2 = t->items.size() == 2;
+
+	if (d2) {
+		if(!dropargs.Decode(&call.tuple)) {
+		codelog(SERVICE__ERROR, "Failed to decode arguments");
+		//TODO: throw exception
+		return(NULL);
+	}
+	
+		cur = dropargs.toDrop.begin();
+		end = dropargs.toDrop.end();
+	} else {
+		if(!args.Decode(&call.tuple)) {
+			codelog(SERVICE__ERROR, "Failed to decode arguments");
+			//TODO: throw exception
+			return(NULL);
+	}
+
 	cur = args.ints.begin();
 	end = args.ints.end();
+	}
+
 	for(; cur != end; cur++) {
 		InventoryItem *item = m_manager->item_factory->Load(*cur, false);
 		if(item == NULL) {
@@ -231,6 +248,21 @@ PyCallResult ShipBound::Handle_Drop(PyCallArgs &call) {
 		} else {
 			//TODO: drop the crap into a can in space.
 			codelog(SERVICE__ERROR, "%s: Dropping non-drones is not yet implemented.", call.client->GetName());
+
+			if (d2) {
+				// We just dropped something for our corporation's new station into space
+				// Let's put it into space and mark it as ours
+			} else {
+				// We just dropped something into space
+				// Either create a new container or put it into an existing one
+
+				if (contID == 0) {
+					// Create new container
+					// Set contID as this new ID
+				}
+				// Add item into container
+			}
+
 		}
 		item->Release();
 	}
