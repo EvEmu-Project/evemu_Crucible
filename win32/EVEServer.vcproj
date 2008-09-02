@@ -459,6 +459,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\server\posmgr\PosMgrDB.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\server\posmgr\PosMgrService.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\server\PyBoundObject.cpp"
 				>
 			</File>
@@ -979,19 +987,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\common\tinyxml\tinystr.cpp"
+				RelativePath="..\3rdparty\tinyxml\tinystr.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\common\tinyxml\tinyxml.cpp"
+				RelativePath="..\3rdparty\tinyxml\tinyxml.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\common\tinyxml\tinyxmlerror.cpp"
+				RelativePath="..\3rdparty\tinyxml\tinyxmlerror.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\common\tinyxml\tinyxmlparser.cpp"
+				RelativePath="..\3rdparty\tinyxml\tinyxmlparser.cpp"
 				>
 			</File>
 			<File

@@ -18,7 +18,7 @@
 #define XMLParser_H
 
 #include "common.h"
-#include "tinyxml/tinyxml.h"
+#include "../3rdparty/tinyxml/tinyxml.h"
 #include "../common/types.h"
 
 #include <string>

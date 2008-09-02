@@ -1,7 +1,7 @@
 #ifndef __XMLPACKETGEN_H_INCL__
 #define __XMLPACKETGEN_H_INCL__
 
-#include "tinyxml/tinyxml.h"
+#include "../3rdparty/tinyxml/tinyxml.h"
 
 class XMLPacketGen {
 public:

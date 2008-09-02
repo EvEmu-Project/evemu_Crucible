@@ -699,8 +699,7 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		GetCharacterID(),
 		m_char.stationID, m_char.solarSystemID, 
 		m_char.constellationID, m_char.regionID );
-	
-	
+
 	SessionSync();
 }
 
