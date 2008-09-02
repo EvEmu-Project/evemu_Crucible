@@ -1,0 +1,6 @@
+*.a
+.deps
+.libs
+Makefile
+Makefile.in
+server

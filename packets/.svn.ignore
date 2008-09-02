@@ -1,0 +1,7 @@
+*.a
+*.cpp
+.deps
+*.h
+.libs
+Makefile
+Makefile.in
