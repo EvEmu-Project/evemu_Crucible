@@ -60,7 +60,7 @@ bool SystemDB::LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &
 		entry.position.y = row.GetDouble(5);
 		entry.position.z = row.GetDouble(6);
 		entry.radius = row.GetDouble(7);
-		entry.security = row.GetDouble(8);
+		entry.security = (row.IsNull(8) ? 0.0 : row.GetDouble(8));
 		entry.itemName = row.GetText(9);
 		into.push_back(entry);
 	}
