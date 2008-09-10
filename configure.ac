@@ -1,5 +1,4 @@
 # License here
-# 
 
 AC_PREREQ(2.61)
 AC_INIT(evemu, 0.6-trunk, nospam@evemu.sf.net)
