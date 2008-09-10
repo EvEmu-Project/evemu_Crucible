@@ -11,3 +11,4 @@ endif
 if EVETOOL
 SUBDIRS+= evetool
 endif
+
