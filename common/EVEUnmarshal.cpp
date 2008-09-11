@@ -15,6 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <math.h>	//for pow()
 
 #include "common.h"
 #include "PyRep.h"
@@ -1721,26 +1722,14 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 		}
 		len_used += data_length;
 
-		uint64 intval = 0;
-		bool intval_valid = false;
-		if(len == sizeof(uint8)) {
-			intval = *((const uint8 *) packet);
-			intval_valid = true;
-		} else if(len == sizeof(uint16)) {
-			intval = *((const uint16 *) packet);
-			intval_valid = true;
-		} else if(len == sizeof(uint32)) {
-			intval = *((const uint32 *) packet);
-			intval_valid = true;
-		} else if(len == sizeof(uint64)) {
-			intval = *((const uint64 *) packet);
-			intval_valid = true;
-		}
+		if(data_length <= sizeof(uint64)) {
+			uint64 intval = pow(double(256), double(data_length)) - 1;
+			intval &= *((const uint64 *) packet);
 
-		if(intval_valid) {
 			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyVarInteger(len=%d) = " I64u, pfx, opcode, data_length, intval);
 			res = new PyRepInteger(intval);
 		} else {
+			//uint64 is not big enough
 			//just pass it up to the application layer as a buffer...
 			PyRepBuffer *r = new PyRepBuffer(packet, data_length);
 

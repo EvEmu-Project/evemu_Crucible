@@ -111,7 +111,7 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
 	delete[] msg;
 
 	printf(message.c_str());
-	if (logsys_log_file != NULL) { fprintf(logsys_log_file, message.c_str()); }
+	if (logsys_log_file != NULL) { fprintf(logsys_log_file, message.c_str()); fflush(logsys_log_file); /* keep the logfile updated */}
 	memory_log.push_back(message);
 	if (memory_log.size() > 1000) memory_log.pop_front();
 	
