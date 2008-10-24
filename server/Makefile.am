@@ -185,6 +185,8 @@ libmissions_a_SOURCES = \
 	missions/MissionMgrService.h
 
 libnpc_a_SOURCES = \
+	npc/NPC.cpp \
+	npc/NPC.h \
 	npc/NPCAI.cpp \
 	npc/NPCAI.h
 
@@ -243,6 +245,8 @@ libstation_a_SOURCES = \
 	station/StationSvcService.h
 
 libsystem_a_SOURCES = \
+	system/BookmarkService.cpp \
+	system/BookmarkService.h \
 	system/BubbleManager.cpp \
 	system/BubbleManager.h \
 	system/Damage.cpp \
@@ -273,8 +277,6 @@ libtutorial_a_SOURCES = \
 server_SOURCES = \
 	NetService.cpp \
 	NetService.h \
-	BookmarkService.cpp \
-	BookmarkService.h \
 	Client.cpp \
 	Client.h \
 	ClientSession.cpp \
@@ -286,8 +288,6 @@ server_SOURCES = \
 	EVEmuServerConfig_elements.h \
 	EVEmuServerConfig.h \
 	main.cpp \
-	NPC.cpp \
-	NPC.h \
 	PyBoundObject.cpp \
 	PyBoundObject.h \
 	PyCallable.cpp \
