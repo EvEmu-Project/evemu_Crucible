@@ -115,10 +115,6 @@
 
 #include "../server/PyBoundObject.h"
 
-#include "../server/BookmarkService.h"
-
-#include "../server/NPC.h"
-
 
 #include "../packets/AccountPkts.h"
 
@@ -230,8 +226,10 @@
 #include "../server/posmgr/PosMgrDB.h"
 #include "../server/posmgr/PosMgrService.h"
 
+#include "../server/npc/NPC.h"
 #include "../server/npc/NPCAI.h"
 
+#include "../server/system/BookmarkService.h"
 #include "../server/system/BubbleManager.h"
 #include "../server/system/Damage.h"
 #include "../server/system/DungeonService.h"
@@ -270,9 +268,6 @@
 #include "../server/tutorial/TutorialDB.h"
 #include "../server/tutorial/TutorialService.h"
 
-
-
-#include "../server/system/SystemEntity.h"
 // client stuff
 #include "../server/Client.h"
 #include "../server/PyServiceCD.h"
