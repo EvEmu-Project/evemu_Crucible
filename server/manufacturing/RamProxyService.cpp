@@ -14,17 +14,7 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-
-#include <math.h>	// for ceil() and floor() to properly round quantities
-#include "RamProxyService.h"
-#include "../Client.h"
-#include "../packets/Manufacturing.h"
-#include "../packets/General.h"
-#include "../PyServiceCD.h"
-#include "PyRep.h"
-#include "logsys.h"
-
-static const uint32 ramProductionTimeLimit = 2592000L;	// 30 days
+#include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(RamProxyService)
 
@@ -46,7 +36,7 @@ RamProxyService::~RamProxyService() {
 	delete m_dispatch;
 }
 
-PyCallResult RamProxyService::Handle_GetJobs2(PyCallArgs &call) {
+PyResult RamProxyService::Handle_GetJobs2(PyCallArgs &call) {
 	Call_GetJobs2 args;
 	if(!args.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Failed to decode call args.");
@@ -63,7 +53,7 @@ PyCallResult RamProxyService::Handle_GetJobs2(PyCallArgs &call) {
 	return(m_db.GetJobs2(args.ownerID, args.completed, args.fromDate, args.toDate));
 }
 
-PyCallResult RamProxyService::Handle_AssemblyLinesSelect(PyCallArgs &call) {
+PyResult RamProxyService::Handle_AssemblyLinesSelect(PyCallArgs &call) {
 	Call_AssemblyLinesSelect args;
 
 	if(!args.Decode(&call.tuple)) {
@@ -88,7 +78,7 @@ PyCallResult RamProxyService::Handle_AssemblyLinesSelect(PyCallArgs &call) {
 	}
 }
 
-PyCallResult RamProxyService::Handle_AssemblyLinesGet(PyCallArgs &call) {
+PyResult RamProxyService::Handle_AssemblyLinesGet(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;	// containerID
 
 	if(!arg.Decode(&call.tuple)) {
@@ -99,7 +89,7 @@ PyCallResult RamProxyService::Handle_AssemblyLinesGet(PyCallArgs &call) {
 	return(m_db.AssemblyLinesGet(arg.arg));
 }
 
-PyCallResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
+PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	Call_InstallJob args;
 	if(!args.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Failed to decode args.");
@@ -124,10 +114,11 @@ PyCallResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	}
 
 	// verify call
-	PyCallResult verifyRes = _VerifyInstallJob_Call(args, installedItem, pathBomLocation, call.client);
-	if(verifyRes.type != PyCallResult::RegularResult) {
+	try {
+		_VerifyInstallJob_Call(args, installedItem, pathBomLocation, call.client);
+	} catch(...) {
 		installedItem->Release();
-		return(verifyRes);
+		throw;
 	}
 
 	// this calculates some useful multipliers ... Rsp_InstallJob is used as container ...
@@ -140,7 +131,7 @@ PyCallResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	// I understand sent maxJobStartTime as a limit, so this checks whether it's in limit
 	if(rsp.maxJobStartTime > ((PyRepInteger *)call.byname["maxJobStartTime"])->value) {
 		installedItem->Release();
-		return(PyCallException(MakeException("RamCannotGuaranteeStartTime")));
+		throw(PyException(MakeUserError("RamCannotGuaranteeStartTime")));
 	}
 
 	// query required items for activity
@@ -153,14 +144,16 @@ PyCallResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	// if 'quoteOnly' is 1 -> send quote, if 0 -> install job
 	if(((PyRepInteger *)call.byname["quoteOnly"])->value) {
 		installedItem->Release();	// not needed anymore
-		_FillBillOfMaterials(reqItems, rsp.materialMultiplier * rsp.charMaterialMultiplier, args.runs, rsp.bom);
+		_EncodeBillOfMaterials(reqItems, rsp.materialMultiplier, rsp.charMaterialMultiplier, args.runs, rsp.bom);
+		_EncodeMissingMaterials(reqItems, pathBomLocation, call.client, rsp.materialMultiplier, rsp.charMaterialMultiplier, args.runs, rsp.missingMaterials);
 		return(rsp.Encode());
 	} else {
 		// verify install
-		PyCallResult verifyRes = _VerifyInstallJob_Install(rsp, pathBomLocation, reqItems, args.runs, call.client);
-		if(verifyRes.type != PyCallResult::RegularResult) {
+		try {
+			_VerifyInstallJob_Install(rsp, pathBomLocation, reqItems, args.runs, call.client);
+		} catch(...) {
 			installedItem->Release();
-			return(verifyRes);
+			throw;
 		}
 
 		// now we are sure we have all requirements, we can start it ...
@@ -172,12 +165,14 @@ PyCallResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 				installedItem->Release();
 				return(NULL);
 			}
-		} else
-			bp.m_copy = bp.m_materialLevel = bp.m_productivityLevel = bp.m_licensedProductionRunsRemaining = NULL;
+		} else {
+			bp.copy = false;
+			bp.materialLevel = bp.productivityLevel = bp.licensedProductionRunsRemaining = 0;
+		}
 
 		// if manufacturing from BPC, decrease licensed runs
-		if(args.activityID == ramActivityManufacturing && bp.m_copy) {
-			bp.m_licensedProductionRunsRemaining -= args.runs;
+		if(args.activityID == ramActivityManufacturing && bp.copy) {
+			bp.licensedProductionRunsRemaining -= args.runs;
 			if(!m_db.SetBlueprintProperties(installedItem->itemID(), bp)) {
 				installedItem->Release();
 				return(NULL);
@@ -201,8 +196,8 @@ PyCallResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 							args.installationAssemblyLineID, installedItem->itemID(), beginProductionTime, beginProductionTime + uint64(rsp.productionTime) * 10000000L,
 							args.description.c_str(), args.runs, (EVEItemFlags)args.flagOutput, bomLocation->locationID(), args.licensedProductionRuns))
 		{
-			if(args.activityID == ramActivityManufacturing && bp.m_copy) {
-				bp.m_licensedProductionRunsRemaining += args.runs;
+			if(args.activityID == ramActivityManufacturing && bp.copy) {
+				bp.licensedProductionRunsRemaining += args.runs;
 				m_db.SetBlueprintProperties(installedItem->itemID(), bp);
 			}
 
@@ -226,12 +221,12 @@ PyCallResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 		end = reqItems.end();
 
 		for(; cur != end; cur++) {
-			if(cur->m_isSkill)
+			if(cur->isSkill)
 				continue;		// not interested
 
 			// calculate needed quantity
-			uint32 qtyNeeded = ceil(cur->m_quantity * rsp.materialMultiplier * args.runs);
-			if(cur->m_damagePerJob == 1.0)
+			uint32 qtyNeeded = ceil(cur->quantity * rsp.materialMultiplier * args.runs);
+			if(cur->damagePerJob == 1.0)
 				qtyNeeded = ceil(qtyNeeded * rsp.charMaterialMultiplier);	// skill multiplier is applied only on fully consumed materials
 
 			std::vector<InventoryItem *>::iterator curi, endi;
@@ -240,13 +235,13 @@ PyCallResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 
 			// remove required materials
 			for(; curi != endi; curi++) {
-				if((*curi)->typeID() == cur->m_typeID && (*curi)->ownerID() == call.client->GetCharacterID()) {
+				if((*curi)->typeID() == cur->typeID && (*curi)->ownerID() == call.client->GetCharacterID()) {
 					if(qtyNeeded >= (*curi)->quantity()) {
 						InventoryItem *i = (*curi)->Ref();
 						qtyNeeded -= i->quantity();
 						i->Delete();
 					} else {
-						(*curi)->AlterQuantity(-(sint32)qtyNeeded);
+						(*curi)->AlterQuantity(-(int32)qtyNeeded);
 						break;	// we are done, stop searching
 					}
 				}
@@ -257,7 +252,7 @@ PyCallResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	}
 }
 
-PyCallResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
+PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 	Call_CompleteJob args;
 
 	if(!args.Decode(&call.tuple)) {
@@ -265,9 +260,7 @@ PyCallResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 		return(NULL);
 	}
 
-	PyCallResult verifyRes = _VerifyCompleteJob(args, call.client);
-	if(verifyRes.type != PyCallResult::RegularResult)
-		return(verifyRes);
+	_VerifyCompleteJob(args, call.client);
 
 	// hundreds of variables to allocate ... maybe we can make struct for GetJobProperties and InstallJob?
 	uint32 installedItemID, ownerID, runs, licensedProductionRuns;
@@ -293,11 +286,11 @@ PyCallResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 	cur = reqItems.begin();
 	end = reqItems.end();
 	for(; cur != end; cur++) {
-		if(!cur->m_isSkill && cur->m_damagePerJob != 1.0) {
-			uint32 quantity = floor(cur->m_quantity * runs * (1.0 - cur->m_damagePerJob));
+		if(!cur->isSkill && cur->damagePerJob != 1.0) {
+			uint32 quantity = floor(cur->quantity * runs * (1.0 - cur->damagePerJob));
 			if(quantity == 0)
 				continue;
-			InventoryItem *item = m_manager->item_factory->Spawn(cur->m_typeID, quantity, ownerID, 0, outputFlag);
+			InventoryItem *item = m_manager->item_factory->Spawn(cur->typeID, quantity, ownerID, 0, outputFlag);
 			if(item == NULL) {
 				installedItem->Release();
 				return(NULL);
@@ -310,69 +303,65 @@ PyCallResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 	// if not cancelled, realize result of activity
 	if(!args.cancel)
 		switch(activity) {
-			case ramActivityManufacturing:
-				{
-					uint32 productTypeID = m_db.GetBlueprintProduct(installedItem->typeID());
-					if(productTypeID == NULL) {
-						installedItem->Release();
-						return(NULL);
-					}
-					uint32 portionSize = m_db.GetPortionSize(productTypeID);
-					if(portionSize == NULL) {
-						installedItem->Release();
-						return(NULL);
-					}
-					InventoryItem *item = m_manager->item_factory->Spawn(productTypeID, portionSize * runs, ownerID, 0, outputFlag);
-					if(item == NULL) {
-						installedItem->Release();
-						return(NULL);
-					}
-					item->Move(args.containerID, outputFlag);
-					item->Release();
-					break;
+			case ramActivityManufacturing: {
+				uint32 productTypeID = m_db.GetBlueprintProduct(installedItem->typeID());
+				if(productTypeID == NULL) {
+					installedItem->Release();
+					return(NULL);
 				}
-
+				uint32 portionSize = m_db.GetPortionSize(productTypeID);
+				if(portionSize == NULL) {
+					installedItem->Release();
+					return(NULL);
+				}
+				InventoryItem *item = m_manager->item_factory->Spawn(productTypeID, portionSize * runs, ownerID, 0, outputFlag);
+				if(item == NULL) {
+					installedItem->Release();
+					return(NULL);
+				}
+				item->Move(args.containerID, outputFlag);
+				item->Release();
+				break;
+			}
 			case ramActivityResearchingTimeProductivity:
-			case ramActivityResearchingMaterialProductivity:
-				{
-					BlueprintProperties bp;
-					if(!m_db.GetBlueprintProperties(installedItem->itemID(), bp)) {
-						installedItem->Release();
-						return(NULL);
-					}
-
-					if(activity == ramActivityResearchingTimeProductivity)
-						bp.m_productivityLevel += runs;
-					else if(activity == ramActivityResearchingMaterialProductivity)
-						bp.m_materialLevel += runs;
-
-					if(!m_db.SetBlueprintProperties(installedItem->itemID(), bp)) {
-						installedItem->Release();
-						return(NULL);
-					}
-					break;
+			case ramActivityResearchingMaterialProductivity: {
+				BlueprintProperties bp;
+				if(!m_db.GetBlueprintProperties(installedItem->itemID(), bp)) {
+					installedItem->Release();
+					return(NULL);
 				}
-			case ramActivityCopying:
-				{
-					BlueprintProperties bp;
-					if(!m_db.GetBlueprintProperties(installedItem->itemID(), bp)) {
-						installedItem->Release();
-						return(NULL);
-					}
-					bp.m_copy = true;
-					bp.m_licensedProductionRunsRemaining = licensedProductionRuns;
 
-					InventoryItem *copy;
-					for(uint32 c = 0; c < runs; c++) {
-						// I think blueprints are always singleton ... BTW I can't understand why SpawnSigleton requires more args than Spawn
-						copy = m_manager->item_factory->SpawnSingleton(installedItem->typeID(), ownerID, 0, outputFlag, installedItem->itemName().c_str(), GPoint());
-						if(copy == NULL)
-							continue;
-						m_db.SetBlueprintProperties(copy->itemID(), bp);	// when this fails, nothing we can do about it, blueprint is already spawned
-						copy->Move(args.containerID, outputFlag);
-						copy->Release();
-					}
+				if(activity == ramActivityResearchingTimeProductivity)
+					bp.productivityLevel += runs;
+				else if(activity == ramActivityResearchingMaterialProductivity)
+					bp.materialLevel += runs;
+
+				if(!m_db.SetBlueprintProperties(installedItem->itemID(), bp)) {
+					installedItem->Release();
+					return(NULL);
 				}
+				break;
+			}
+			case ramActivityCopying: {
+				BlueprintProperties bp;
+				if(!m_db.GetBlueprintProperties(installedItem->itemID(), bp)) {
+					installedItem->Release();
+					return(NULL);
+				}
+				bp.copy = true;
+				bp.licensedProductionRunsRemaining = licensedProductionRuns;
+
+				InventoryItem *copy;
+				for(uint32 c = 0; c < runs; c++) {
+					// I think blueprints are always singleton ... BTW I can't understand why SpawnSigleton requires more args than Spawn
+					copy = m_manager->item_factory->SpawnSingleton(installedItem->typeID(), ownerID, 0, outputFlag, installedItem->itemName().c_str(), GPoint());
+					if(copy == NULL)
+						continue;
+					m_db.SetBlueprintProperties(copy->itemID(), bp);	// when this fails, nothing we can do about it, blueprint is already spawned
+					copy->Move(args.containerID, outputFlag);
+					copy->Release();
+				}
+			}
 		}
 
 	installedItem->Release();
@@ -393,7 +382,7 @@ PyCallResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 	RamAccessDeniedWrongAlliance				- alliances not implemented
 */
 
-PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const InventoryItem *const installedItem, const PathElement &bomLocation, Client *const c) {
+void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const InventoryItem *const installedItem, const PathElement &bomLocation, Client *const c) {
 	// ACTIVITY CHECK
 	// ***************
 
@@ -403,7 +392,7 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 		args.activityID != ramActivityResearchingMaterialProductivity &&
 		args.activityID != ramActivityCopying)
 	{
-		return(PyCallException(MakeException("RamActivityInvalid")));
+		throw(PyException(MakeUserError("RamActivityInvalid")));
 	}
 
 	// enumerate activities again as there are activities which doesnt require blueprint
@@ -413,7 +402,7 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 		args.activityID == ramActivityCopying) &&
 		installedItem->categoryID() != EVEDB::invCategories::Blueprint)
 	{
-		return(PyCallException(MakeException("RamActivityRequiresABlueprint")));
+		throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
 	}
 
 	// JOBS CHECK
@@ -425,7 +414,7 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 			std::map<std::string, PyRep *> exceptArgs;
 			exceptArgs["current"] = new PyRepInteger(jobCount);
 			exceptArgs["max"] = new PyRepInteger(c->Item()->manufactureSlotLimit());
-			return(PyCallException(MakeException("MaxFactorySlotUsageReached", exceptArgs)));
+			throw(PyException(MakeUserError("MaxFactorySlotUsageReached", exceptArgs)));
 		}
 	} else {
 		uint32 jobCount = m_db.CountResearchJobs(c->GetCharacterID());
@@ -433,7 +422,7 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 			std::map<std::string, PyRep *> exceptArgs;
 			exceptArgs["current"] = new PyRepInteger(jobCount);
 			exceptArgs["max"] = new PyRepInteger(c->Item()->maxLaborotorySlots());
-			return(PyCallException(MakeException("MaxResearchFacilitySlotUsageReached", exceptArgs)));
+			throw(PyException(MakeUserError("MaxResearchFacilitySlotUsageReached", exceptArgs)));
 		}
 	}
 
@@ -442,10 +431,10 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 
 	uint32 regionID = m_db.GetRegionOfContainer(args.installationContainerID);
 	if(regionID == NULL)
-		return(PyCallException(MakeException("RamIsNotAnInstallation")));
+		throw(PyException(MakeUserError("RamIsNotAnInstallation")));
 
 	if(c->GetRegionID() != regionID)
-		return(PyCallException(MakeException("RamRangeLimitationRegion")));
+		throw(PyException(MakeUserError("RamRangeLimitationRegion")));
 
 	// RamStructureNotInSpace
 	// RamStructureNotIsSolarsystem
@@ -463,19 +452,19 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 
 	// get properties
 	if(!m_db.GetAssemblyLineVerifyProperties(args.installationAssemblyLineID, ownerID, minCharSec, maxCharSec, restrictionMask, activity))
-		return(PyCallException(MakeException("RamInstallationHasNoDefaultContent")));
+		throw(PyException(MakeUserError("RamInstallationHasNoDefaultContent")));
 
 	// check validity of activity
 	if(activity < ramActivityManufacturing || activity > ramActivityInvention)
-		return(PyCallException(MakeException("RamAssemblyLineHasNoActivity")));
+		throw(PyException(MakeUserError("RamAssemblyLineHasNoActivity")));
 
 	// check security rating if required
 	if((restrictionMask & ramRestrictBySecurity) == ramRestrictBySecurity) {
 		if(minCharSec > c->GetChar().securityRating)
-			return(PyCallException(MakeException("RamAccessDeniedSecStatusTooLow")));
+			throw(PyException(MakeUserError("RamAccessDeniedSecStatusTooLow")));
 
 		if(maxCharSec < c->GetChar().securityRating)
-			return(PyCallException(MakeException("RamAccessDeniedSecStatusTooHigh")));
+			throw(PyException(MakeUserError("RamAccessDeniedSecStatusTooHigh")));
 
 		// RamAccessDeniedCorpSecStatusTooHigh
 		// RamAccessDeniedCorpSecStatusTooLow
@@ -489,22 +478,22 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 
 	if((restrictionMask & ramRestrictByAlliance) == ramRestrictByAlliance) {
 //		if(...)
-			return(PyCallException(MakeException("RamAccessDeniedWrongAlliance")));
+			throw(PyException(MakeUserError("RamAccessDeniedWrongAlliance")));
 	} else if((restrictionMask & ramRestrictByCorp) == ramRestrictByCorp) {
 		if(ownerID != c->GetCorporationID())
-			return(PyCallException(MakeException("RamAccessDeniedWrongCorp")));
+			throw(PyException(MakeUserError("RamAccessDeniedWrongCorp")));
 	}
 
 	if(args.isCorpJob) {
 		if((c->GetCorpInfo().corprole & corpRoleFactoryManager) != corpRoleFactoryManager)
-			return(PyCallException(MakeException("RamCannotInstallForCorpByRoleFactoryManager")));
+			throw(PyException(MakeUserError("RamCannotInstallForCorpByRoleFactoryManager")));
 
 		if(args.activityID == ramActivityManufacturing) {
 			if((c->GetCorpInfo().corprole & corpRoleCanRentFactorySlot) != corpRoleCanRentFactorySlot)
-				return(PyCallException(MakeException("RamCannotInstallForCorpByRole")));
+				throw(PyException(MakeUserError("RamCannotInstallForCorpByRole")));
 		} else {
 			if((c->GetCorpInfo().corprole & corpRoleCanRentResearchSlot) != corpRoleCanRentResearchSlot)
-				return(PyCallException(MakeException("RamCannotInstallForCorpByRole")));
+				throw(PyException(MakeUserError("RamCannotInstallForCorpByRole")));
 		}
 	}
 
@@ -516,13 +505,13 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 		case ramActivityManufacturing:
 			productTypeID = m_db.GetBlueprintProduct(installedItem->typeID());
 			if(productTypeID == NULL)
-				return(PyCallException(MakeException("RamNoKnownOutputType")));
+				throw(PyException(MakeUserError("RamNoKnownOutputType")));
 			break;
 
 		case ramActivityInvention:
 			productTypeID = m_db.GetTech2Blueprint(installedItem->typeID());
 			if(productTypeID == NULL)
-				return(PyCallException(MakeException("RamInventionNoOutput")));
+				throw(PyException(MakeUserError("RamInventionNoOutput")));
 			break;
 
 		case ramActivityResearchingTimeProductivity:
@@ -536,11 +525,11 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 		case ramActivityResearchingTechnology:
 		case ramActivityReverseEngineering:
 		default:
-			return(PyCallException(MakeException("RamNoKnownOutputType")));
+			throw(PyException(MakeUserError("RamNoKnownOutputType")));
 	}
 
 	if(!m_db.IsProducableBy(args.installationAssemblyLineID, m_db.GetGroup(productTypeID)))
-		return(PyCallException(MakeException("RamBadEndProductForActivity")));
+		throw(PyException(MakeUserError("RamBadEndProductForActivity")));
 
 	// INSTALLED ITEM CHECK
 	// *********************
@@ -548,10 +537,10 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 	// ownership
 	if(args.isCorpJob) {
 		if(installedItem->ownerID() != c->GetCorporationID())
-			return(PyCallException(MakeException("RamCannotInstallItemForAnotherCorp")));
+			throw(PyException(MakeUserError("RamCannotInstallItemForAnotherCorp")));
 	} else {
 		if(installedItem->ownerID() != c->GetCharacterID())
-			return(PyCallException(MakeException("RamCannotInstallItemForAnother")));
+			throw(PyException(MakeUserError("RamCannotInstallItemForAnother")));
 	}
 
 	// corp hangar permission
@@ -561,29 +550,29 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 		(installedItem->flag() == flagCorpSecurityAccessGroup5 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake5) != corpRoleHangarCanTake5) ||
 		(installedItem->flag() == flagCorpSecurityAccessGroup6 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake6) != corpRoleHangarCanTake6) ||
 		(installedItem->flag() == flagCorpSecurityAccessGroup7 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake7) != corpRoleHangarCanTake7))
-			return(PyCallException(MakeException("RamAccessDeniedToBOMHangar")));
+			throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
 
 	// special checks for blueprints
 	BlueprintProperties bp;
 	if(m_db.GetBlueprintProperties(installedItem->itemID(), bp)) {
-		if(bp.m_copy &&
+		if(bp.copy &&
 			(args.activityID == ramActivityResearchingTimeProductivity || args.activityID == ramActivityResearchingMaterialProductivity))
-				return(PyCallException(MakeException("RamCannotResearchABlueprintCopy")));
+				throw(PyException(MakeUserError("RamCannotResearchABlueprintCopy")));
 
-		if(bp.m_copy && args.activityID == ramActivityCopying)
-			return(PyCallException(MakeException("RamCannotCopyABlueprintCopy")));
+		if(bp.copy && args.activityID == ramActivityCopying)
+			throw(PyException(MakeUserError("RamCannotCopyABlueprintCopy")));
 
-		if(!bp.m_copy && args.activityID == ramActivityInvention)
-			return(PyCallException(MakeException("RamCannotInventABlueprintOriginal")));
+		if(!bp.copy && args.activityID == ramActivityInvention)
+			throw(PyException(MakeUserError("RamCannotInventABlueprintOriginal")));
 
-		if(bp.m_licensedProductionRunsRemaining - args.runs < 0)
-			return(PyCallException(MakeException("RamTooManyProductionRuns")));
+		if(bp.licensedProductionRunsRemaining - args.runs < 0)
+			throw(PyException(MakeUserError("RamTooManyProductionRuns")));
 	}
 
 	// large location check
 	if(IsStation(args.installationContainerID)) {
 		if(/*args.isCorpJob && */installedItem->flag() == flagCargoHold)
-			return(PyCallException(MakeException("RamCorpInstalledItemNotInCargo")));
+			throw(PyException(MakeUserError("RamCorpInstalledItemNotInCargo")));
 
 		if(installedItem->locationID() != args.installationContainerID) {
 			if(args.installationContainerID == c->GetLocationID()) {
@@ -591,11 +580,11 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 				exceptArgs["location"] = new PyRepString(m_db.GetStationName(args.installationContainerID));
 
 				if(args.isCorpJob)
-					return(PyCallException(MakeException("RamCorpInstalledItemWrongLocation", exceptArgs)));
+					throw(PyException(MakeUserError("RamCorpInstalledItemWrongLocation", exceptArgs)));
 				else
-					return(PyCallException(MakeException("RamInstalledItemWrongLocation", exceptArgs)));
+					throw(PyException(MakeUserError("RamInstalledItemWrongLocation", exceptArgs)));
 			} else
-				return(PyCallException(MakeException("RamRemoteInstalledItemNotInStation")));
+				throw(PyException(MakeUserError("RamRemoteInstalledItemNotInStation")));
 		} else {
 			if(args.isCorpJob) {
 				if(installedItem->flag() < flagCorpSecurityAccessGroup2 || installedItem->flag() > flagCorpSecurityAccessGroup7) {
@@ -603,9 +592,9 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 						std::map<std::string, PyRep *> exceptArgs;
 						exceptArgs["location"] = new PyRepString(m_db.GetStationName(args.installationContainerID));
 
-						return(PyCallException(MakeException("RamCorpInstalledItemWrongLocation", exceptArgs)));
+						throw(PyException(MakeUserError("RamCorpInstalledItemWrongLocation", exceptArgs)));
 					} else
-						return(PyCallException(MakeException("RamRemoteInstalledItemNotInOffice")));
+						throw(PyException(MakeUserError("RamRemoteInstalledItemNotInOffice")));
 				}
 			} else {
 				if(installedItem->flag() != flagHangar) {
@@ -613,9 +602,9 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 						std::map<std::string, PyRep *> exceptArgs;
 						exceptArgs["location"] = new PyRepString(m_db.GetStationName(args.installationContainerID));
 
-						return(PyCallException(MakeException("RamInstalledItemWrongLocation", exceptArgs)));
+						throw(PyException(MakeUserError("RamInstalledItemWrongLocation", exceptArgs)));
 					} else {
-						return(PyCallException(MakeException("RamRemoteInstalledItemInStationNotHangar")));
+						throw(PyException(MakeUserError("RamRemoteInstalledItemInStationNotHangar")));
 					}
 				}
 			}
@@ -623,10 +612,10 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 	} else {
 		if(args.installationContainerID == c->GetShipID()) {
 			if(c->Item()->flag() != flagPilot)
-				return(PyCallException(MakeException("RamAccessDeniedNotPilot")));
+				throw(PyException(MakeUserError("RamAccessDeniedNotPilot")));
 
 			if(installedItem->locationID() != args.installationContainerID)
-				return(PyCallException(MakeException("RamInstalledItemMustBeInShip")));
+				throw(PyException(MakeUserError("RamInstalledItemMustBeInShip")));
 		} else {
 			// here should be stuff around POS, but I dont certainly know how it should work, so ...
 			// RamInstalledItemBadLocationStructure
@@ -645,13 +634,10 @@ PyCallResult RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args
 		(bomLocation.flag == flagCorpSecurityAccessGroup5 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake5) != corpRoleHangarCanTake5) ||
 		(bomLocation.flag == flagCorpSecurityAccessGroup6 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake6) != corpRoleHangarCanTake6) ||
 		(bomLocation.flag == flagCorpSecurityAccessGroup7 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake7) != corpRoleHangarCanTake7))
-			return(PyCallException(MakeException("RamAccessDeniedToBOMHangar")));
-
-	// return no exception
-	return(NULL);
+			throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
 }
 
-PyCallResult RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const PathElement &pathBomLocation, const std::vector<RequiredItem> &reqItems, const uint32 runs, Client *const c) {
+void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const PathElement &pathBomLocation, const std::vector<RequiredItem> &reqItems, const uint32 runs, Client *const c) {
 	// MONEY CHECK
 	// ************
 	if(rsp.cost > c->GetBalance()) {
@@ -659,7 +645,7 @@ PyCallResult RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rs
 		args["amount"] = new PyRepReal(rsp.cost);
 		args["balance"] = new PyRepReal(c->GetBalance());
 
-		return(PyCallException(MakeException("NotEnoughMoney", args)));
+		throw(PyException(MakeUserError("NotEnoughMoney", args)));
 	}
 
 	// PRODUCTION TIME CHECK
@@ -669,7 +655,7 @@ PyCallResult RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rs
 		args["productionTime"] = new PyRepInteger(rsp.productionTime);
 		args["limit"] = new PyRepInteger(ramProductionTimeLimit);
 
-		return(PyCallException(MakeException("RamProductionTimeExceedsLimits")));
+		throw(PyException(MakeUserError("RamProductionTimeExceedsLimits")));
 	}
 
 	// SKILLS & ITEMS CHECK
@@ -685,7 +671,7 @@ PyCallResult RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rs
 	// ... and items
 	InventoryItem *bomLocation = m_manager->item_factory->Load(pathBomLocation.locationID, true);
 	if(bomLocation == NULL)
-		return(PyCallException(new PyRepObject()));
+		throw(PyException(NULL));
 	bomLocation->FindByFlag((EVEItemFlags)pathBomLocation.flag, items);
 	bomLocation->Release();	// not needed anymore
 
@@ -694,21 +680,20 @@ PyCallResult RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rs
 	end = reqItems.end();
 	for(; cur != end; cur++) {
 		// check skill (quantity is required level)
-		if(cur->m_isSkill) {
-			if(GetSkillLevel(skills, cur->m_typeID) < cur->m_quantity) {
+		if(cur->isSkill) {
+			if(GetSkillLevel(skills, cur->typeID) < cur->quantity) {
 				std::map<std::string, PyRep *> args;
-				args["skill"] = new PyRepString(m_db.GetTypeName(cur->m_typeID));
-				args["skillLevel"] = new PyRepInteger(cur->m_quantity);
+				args["item"] = new PyRepString(m_db.GetTypeName(cur->typeID));
+				args["skillLevel"] = new PyRepInteger(cur->quantity);
 
-				return(PyCallException(MakeException("NeedSkillForJob", args)));
-			} else
-				continue;
+				throw(PyException(MakeUserError("RamNeedSkillForJob", args)));
+			}
 		} else {
 			// check materials
 
 			// calculate needed quantity
-			uint32 qtyNeeded = ceil(cur->m_quantity * rsp.materialMultiplier * runs);
-			if(cur->m_damagePerJob == 1.0)
+			uint32 qtyNeeded = ceil(cur->quantity * rsp.materialMultiplier * runs);
+			if(cur->damagePerJob == 1.0)
 				qtyNeeded = ceil(qtyNeeded * rsp.charMaterialMultiplier);	// skill multiplier is applied only on fully consumed materials
 
 			std::vector<const InventoryItem *>::iterator curi, endi;
@@ -716,49 +701,44 @@ PyCallResult RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rs
 			endi = items.end();
 
 			for(; curi != endi && qtyNeeded > 0; curi++)
-				if((*curi)->typeID() == cur->m_typeID && (*curi)->ownerID() == c->GetCharacterID())
+				if((*curi)->typeID() == cur->typeID && (*curi)->ownerID() == c->GetCharacterID())
 					qtyNeeded = (*curi)->quantity() > qtyNeeded ? 0 : qtyNeeded - (*curi)->quantity();
 
 			if(qtyNeeded > 0) {
 				std::map<std::string, PyRep *> args;
-				args["item"] = new PyRepString(m_db.GetTypeName(cur->m_typeID));
+				args["item"] = new PyRepString(m_db.GetTypeName(cur->typeID));
 
-				return(PyCallException(MakeException("NeedMoreForJob", args)));
+				throw(PyException(MakeUserError("RamNeedMoreForJob", args)));
 			}
 		}
 	}
-
-	// return no exception
-	return(NULL);
 }
 
-PyCallResult RamProxyService::_VerifyCompleteJob(const Call_CompleteJob &args, Client *const c) {
+void RamProxyService::_VerifyCompleteJob(const Call_CompleteJob &args, Client *const c) {
 	if(args.containerID == c->GetShipID())
 		if(c->GetLocationID() != args.containerID || c->Item()->flag() != flagPilot)
-			return(PyCallException(MakeException("RamCompletionMustBeInShip")));
+			throw(PyException(MakeUserError("RamCompletionMustBeInShip")));
 
 	uint32 ownerID;
 	uint64 endProductionTime;
 	EVERamCompletedStatus status;
 	EVERamRestrictionMask restrictionMask;
 	if(!m_db.GetJobVerifyProperties(args.jobID, ownerID, endProductionTime, restrictionMask, status))
-		return(PyCallException(MakeException("RamCompletionNoSuchJob")));
+		throw(PyException(MakeUserError("RamCompletionNoSuchJob")));
 
 	if(ownerID != c->GetCharacterID()) {
 		if(ownerID == c->GetCorporationID()) {
 			if((c->GetCorpInfo().corprole & corpRoleFactoryManager) != corpRoleFactoryManager)
-				return(PyCallException(MakeException("RamCompletionAccessDeniedByCorpRole")));
+				throw(PyException(MakeUserError("RamCompletionAccessDeniedByCorpRole")));
 		} else	// alliances not implemented
-			return(PyCallException(MakeException("RamCompletionAccessDenied")));
+			throw(PyException(MakeUserError("RamCompletionAccessDenied")));
 	}
 
 	if(status != 0)
-		return(PyCallException(MakeException("RamCompletionJobCompleted")));
+		throw(PyException(MakeUserError("RamCompletionJobCompleted")));
 
 	if(!args.cancel && endProductionTime > Win32TimeNow())
-		return(PyCallException(MakeException("RamCompletionInProduction")));
-
-	return(NULL);
+		throw(PyException(MakeUserError("RamCompletionInProduction")));
 }
 
 bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryItem *const installedItem, Client *const c, Rsp_InstallJob &into) {
@@ -769,7 +749,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 	if(!into.productionTime)
 		return(false);
 
-	uint32 productGroupID = NULL;
+	uint32 productGroupID = installedItem->groupID();	//default
 	// perform some activity-specific actions
 	switch(args.activityID) {
 		case ramActivityManufacturing: {
@@ -788,45 +768,24 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 			into.charTimeMultiplier = c->Item()->manufactureTimeMultiplier();
 
 			switch(m_db.GetRace(productTypeID)) {
-				case raceCaldari:
-					into.charTimeMultiplier *= double(c->Item()->caldariTechTimePercent()) / 100.0;
-					break;
-
-				case raceMinmatar:
-					into.charTimeMultiplier *= double(c->Item()->minmatarTechTimePercent()) / 100.0;
-					break;
-
-				case raceAmarr:
-					into.charTimeMultiplier *= double(c->Item()->amarrTechTimePercent()) / 100.0;
-					break;
-
-				case raceGallente:
-					into.charTimeMultiplier *= double(c->Item()->gallenteTechTimePercent()) / 100.0;
-					break;
+				case raceCaldari:	into.charTimeMultiplier *= double(c->Item()->caldariTechTimePercent()) / 100.0; break;
+				case raceMinmatar:	into.charTimeMultiplier *= double(c->Item()->minmatarTechTimePercent()) / 100.0; break;
+				case raceAmarr:		into.charTimeMultiplier *= double(c->Item()->amarrTechTimePercent()) / 100.0; break;
+				case raceGallente:	into.charTimeMultiplier *= double(c->Item()->gallenteTechTimePercent()) / 100.0; break;
 			}
-
 			break;
 		}
-
 		case ramActivityResearchingTimeProductivity: {
-			productGroupID = installedItem->groupID();
-
 			into.charMaterialMultiplier = double(c->Item()->researchCostPercent()) / 100.0;
 			into.charTimeMultiplier = c->Item()->manufacturingTimeResearchSpeed();
 			break;
 		}
-
 		case ramActivityResearchingMaterialProductivity: {
-			productGroupID = installedItem->groupID();
-
 			into.charMaterialMultiplier = double(c->Item()->researchCostPercent()) / 100.0;
 			into.charTimeMultiplier = c->Item()->mineralNeedResearchSpeed();
 			break;
 		}
-
 		case ramActivityCopying: {
-			productGroupID = installedItem->groupID();
-
 			uint32 maxProductionLimit = m_db.GetMaxProductionLimit(installedItem->typeID());
 			if(!maxProductionLimit)
 				return(false);
@@ -838,10 +797,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 			into.charTimeMultiplier = c->Item()->copySpeedPercent();
 			break;
 		}
-
 		default: {
-			productGroupID = NULL;
-
 			into.charMaterialMultiplier = 1.0;
 			into.charTimeMultiplier = 1.0;
 			break;
@@ -854,7 +810,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 
 	// calculate the remaining things
 	into.productionTime *= into.timeMultiplier * into.charTimeMultiplier * args.runs;
-	into.usageCost *= into.productionTime % 3600 ? (into.productionTime / 3600) + 1 : into.productionTime / 3600;
+	into.usageCost *= ceil(into.productionTime / 3600.0);
 	into.cost = into.installCost + into.usageCost;
 
 	// I "hope" this is right, simple tells client how soon will his job be started
@@ -865,22 +821,22 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 	return(true);
 }
 
-void RamProxyService::_FillBillOfMaterials(const std::vector<RequiredItem> &reqItems, const double materialMultiplier, const uint32 runs, BillOfMaterials &into) {
+void RamProxyService::_EncodeBillOfMaterials(const std::vector<RequiredItem> &reqItems, double materialMultiplier, double charMaterialMultiplier, uint32 runs, BillOfMaterials &into) {
 	std::vector<RequiredItem>::const_iterator cur, end;
 	cur = reqItems.begin();
 	end = reqItems.end();
 	for(; cur != end; cur++) {
 		// if it's skill, insert it into special dict for skills
-		if(cur->m_isSkill) {
-			into.skills[cur->m_typeID] = new PyRepInteger(cur->m_quantity);
+		if(cur->isSkill) {
+			into.skills[cur->typeID] = new PyRepInteger(cur->quantity);
 			continue;
 		}
 
 		// otherwise, make line for material list
 		MaterialList_Line line;
-		line.requiredTypeID = cur->m_typeID;
-		line.quantity = cur->m_quantity * runs;
-		line.damagePerJob = cur->m_damagePerJob;
+		line.requiredTypeID = cur->typeID;
+		line.quantity = ceil(cur->quantity * materialMultiplier * runs);
+		line.damagePerJob = cur->damagePerJob;
 		line.isSkillCheck = false;	// no idea what is this for
 		line.requiresHP = false;	// no idea what is this for
 
@@ -890,17 +846,57 @@ void RamProxyService::_FillBillOfMaterials(const std::vector<RequiredItem> &reqI
 			into.extras.lines.add(line.Encode());
 		} else {
 			// if there are losses, make line for waste material list
-			if(materialMultiplier > 1.0) {
+			if(charMaterialMultiplier > 1.0) {
 				MaterialList_Line wastage;
 				wastage.CloneFrom(&line);		// simply copy origial line ...
-				wastage.quantity = ceil(wastage.quantity * (materialMultiplier - 1.0));	// ... and calculate proper quantity
+				wastage.quantity = ceil(wastage.quantity * (charMaterialMultiplier - 1.0));	// ... and calculate proper quantity
 
 				into.wasteMaterials.lines.add(wastage.Encode());
 			}
 			into.rawMaterials.lines.add(line.Encode());
 		}
 	}
+}
 
-	return;
+void RamProxyService::_EncodeMissingMaterials(const std::vector<RequiredItem> &reqItems, const PathElement &bomLocation, Client *const c, double materialMultiplier, double charMaterialMultiplier, uint32 runs, std::map<uint32, PyRep *> &into) {
+	//query out what we need
+	std::vector<const InventoryItem *> skills, items;
+
+	//get the skills
+	c->Item()->FindByFlag(flagSkill, skills);
+	c->Item()->FindByFlag(flagSkillInTraining, skills);
+
+	//get the items
+	InventoryItem *bomContainer = m_manager->item_factory->Load(bomLocation.locationID, true);
+	if(bomContainer == NULL)
+		return;
+	bomContainer->FindByFlag(EVEItemFlags(bomLocation.flag), items);
+	bomContainer->Release();
+
+	//now do the check
+	std::vector<RequiredItem>::const_iterator cur, end;
+	cur = reqItems.begin();
+	end = reqItems.end();
+	for(; cur != end; cur++) {
+		uint32 qtyReq = cur->quantity;
+		if(!cur->isSkill) {
+			qtyReq = ceil(qtyReq * materialMultiplier * runs);
+			if(cur->damagePerJob == 1.0)
+				qtyReq = ceil(qtyReq * charMaterialMultiplier);
+		}
+		std::vector<const InventoryItem *>::const_iterator curi, endi;
+		curi = cur->isSkill ? skills.begin() : items.begin();
+		endi = cur->isSkill ? skills.end() : items.end();
+		for(; curi != endi && qtyReq > 0; curi++) {
+			if((*curi)->typeID() == cur->typeID && (*curi)->ownerID() == c->GetCharacterID()) {
+				if(cur->isSkill)
+					qtyReq -= std::min((uint32)qtyReq, (uint32)(*curi)->skillLevel());
+				else
+					qtyReq -= std::min((uint32)qtyReq, (uint32)(*curi)->quantity());
+			}
+		}
+		if(qtyReq > 0)
+			into[cur->typeID] = new PyRepInteger(qtyReq);
+	}
 }
 

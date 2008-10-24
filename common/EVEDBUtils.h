@@ -26,12 +26,16 @@
 #include <string>
 #include <vector>
 
-class PyRep;
-class PyRepObject;
 class DBQueryResult;
 class DBResultRow;
+
+class PyRep;
+class PyRepObject;
 class PyRepTuple;
+class PyRepList;
 class PyRepDict;
+class PyRepPackedRow;
+class PyRepPackedObject2;
 
 /*typedef enum {
 	StringContentsInteger,
@@ -40,9 +44,6 @@ class PyRepDict;
 	StringContentsUnknown
 } StringContentsType;
 StringContentsType ClassifyStringContents(const char *str);*/
-
-typedef std::map<std::string, DBTYPE> DBColumnTypeMap;
-typedef std::vector<std::string> DBColumnOrdering;
 
 PyRep *DBColumnToPyRep(DBResultRow &row, uint32 column_index);
 
@@ -56,11 +57,13 @@ void DBResultToIntIntDict(DBQueryResult &result, std::map<uint32, uint32> &into)
 void DBResultToIntIntlistDict(DBQueryResult &result, std::map<uint32, PyRep *> &into);
 
 //new packed stuff:
-PyRep *DBResultToPackedRowList(DBQueryResult &result, const DBColumnTypeMap &types, const DBColumnOrdering &ordering);
-PyRep *DBResultToPackedRowListTuple(DBQueryResult &result, const DBColumnTypeMap &types, const DBColumnOrdering &ordering);
+PyRepList *DBResultToPackedRowList(DBQueryResult &result);
+PyRepTuple *DBResultToPackedRowListTuple(DBQueryResult &result);
+PyRepPackedObject2 *DBResultToPackedRowset(DBQueryResult &result, const char *type = "dbutil.CRowset");
 
 PyRepObject *DBRowToKeyVal(DBResultRow &row);
 PyRepObject *DBRowToRow(DBResultRow &row, const char *type = "util.Row");
+PyRepPackedRow *DBRowToPackedRow(DBResultRow &row);
 
 
 #endif

@@ -15,11 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "MissionDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "Agent.h"
+#include "EvemuPCH.h"
 
 MissionDB::MissionDB(DBcore *db)
 : ServiceDB(db)
@@ -33,9 +29,10 @@ PyRepObject *MissionDB::GetAgents() {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
-		"SELECT agentID,agentTypeID,divisionID,level,stationID,"
-		"	bloodlineID,quality,corporationID,gender"
-		" FROM agtAgents"
+		"SELECT agt.agentID,agt.agentTypeID,agt.divisionID,agt.level,agt.stationID,"
+		"	agt.quality,agt.corporationID,chr.bloodlineID,chr.gender"
+		" FROM agtAgents AS agt"
+		" LEFT JOIN character_ AS chr ON chr.characterID=agt.agentID"
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());

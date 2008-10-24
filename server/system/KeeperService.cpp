@@ -15,15 +15,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
-#include "KeeperService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../PyBoundObject.h"
 
 PyCallable_Make_InnerDispatcher(KeeperService)
 
@@ -85,7 +78,7 @@ PyBoundObject *KeeperService::_CreateBoundObject(Client *c, const PyRep *bind_ar
 }
 
 
-PyCallResult KeeperService::Handle_GetLevelEditor(PyCallArgs &call) {
+PyResult KeeperService::Handle_GetLevelEditor(PyCallArgs &call) {
 	PyRep *result = NULL;
 	
 	KeeperBound *ib = new KeeperBound(m_manager, &m_db);

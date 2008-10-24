@@ -15,18 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-#include "AlertService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
+#include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(AlertService)
-
 
 AlertService::AlertService(PyServiceMgr *mgr)
 : PyService(mgr, "alert"),
@@ -43,7 +34,7 @@ AlertService::~AlertService() {
 }
 
 
-PyCallResult AlertService::Handle_BeanCount(PyCallArgs &call) {
+PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	PyRepTuple *tt;
@@ -65,7 +56,7 @@ PyCallResult AlertService::Handle_BeanCount(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult AlertService::Handle_BeanDelivery(PyCallArgs &call) {
+PyResult AlertService::Handle_BeanDelivery(PyCallArgs &call) {
 	PyRep *result = NULL;
 	/*                                                                              
      *

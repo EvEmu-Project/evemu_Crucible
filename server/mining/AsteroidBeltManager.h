@@ -17,11 +17,12 @@
 #ifndef __ASTEROIDBELTMANAGER_H_INCL__
 #define __ASTEROIDBELTMANAGER_H_INCL__
 
-
 #include "../system/SystemEntities.h"
 
 class Asteroid;
 class MiningDB;
+
+static const uint32 ASTEROID_GROWTH_INTERVAL_MS = 3600000;	//RuleI(Mining, AsteroidGrowthInterval_ms)
 
 //There is no solid reason for having this as a different object
 //than the SystemEntity subclass, it is just the way the code came out.
@@ -51,7 +52,6 @@ protected:
 	
 	void _Clear();
 };
-
 
 class SystemAsteroidBeltEntity : public SimpleSystemEntity {
 public:

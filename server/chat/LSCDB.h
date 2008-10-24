@@ -34,14 +34,16 @@ public:
 	virtual ~LSCDB();
 	
 	PyRepObject *LookupChars(const char *match, bool exact);
-	PyRepObject *GetEVEMailHeaders(uint32 recID);
+	PyRepObject *LookupPlayerChars(const char *match, bool exact);
 	PyRepObject *LookupCorporations(const std::string &);
 	PyRepObject *LookupFactions(const std::string &);
 	PyRepObject *LookupCorporationTickers(const std::string &);
 	PyRepObject *LookupStations(const std::string &);
 	PyRepObject *LookupLocationsByGroup(const std::string &, uint32);
 
-	PyRep *GetEVEMailDetails(uint32 messageID, uint32 readerID);
+	uint32 StoreMail(uint32 senderID, uint32 recipID, const char * subject, const char * message, uint64 sentTime);
+	PyRepObject *GetMailHeaders(uint32 recID);
+	PyRep *GetMailDetails(uint32 messageID, uint32 readerID);
 	bool MarkMessageRead(uint32 messageID);
 	bool DeleteMessage(uint32 messageID, uint32 readerID);
 	void GetChannelNames(uint32 charID, std::vector<std::string> & names);
@@ -52,9 +54,8 @@ public:
 	std::string GetCorporationName(uint32 id) { return GetChannelName(id, "corporation", "corporationName", "corporationID"); }
 	std::string GetChatacterName(uint32 id) { return GetChannelName(id, "character_", "characterName", "characterID"); }
 
-	std::string GetChannelName(uint32 id, const char * table, const char * column, const char * key);
-
 protected:
+	std::string GetChannelName(uint32 id, const char * table, const char * column, const char * key);
 };
 
 

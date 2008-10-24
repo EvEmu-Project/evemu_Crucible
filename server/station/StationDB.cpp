@@ -15,13 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-#include "StationDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "../common/PyRep.h"
+#include "EvemuPCH.h"
 
 StationDB::StationDB(DBcore *db)
 : ServiceDB(db)
@@ -37,9 +31,19 @@ PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 	
 	if(!m_db->RunQuery(res,
 		"SELECT "
-		" solarSystemID,solarSystemName,x,y,z,radius,"
-		" security,constellationID,factionID,"
-		" sunTypeID,regionID,allianceID"
+		" solarSystemID,"
+		" solarSystemName,"
+		" x, y, z,"
+		" radius,"
+		" security,"
+		" constellationID,"
+		" factionID,"
+		" sunTypeID,"
+		" regionID,"
+		//crap
+		" NULL AS allianceID,"
+		" 0 AS sovereigntyLevel,"
+		" 0 AS constellationSovereignty"
 		" FROM mapSolarSystems"
 		" WHERE solarSystemID=%lu", solarSystemID
 	))
@@ -54,7 +58,7 @@ PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 		return(NULL);
 	}
 	
-	return(DBRowToRow(row, "dbrow.SolarSystemRow"));
+	return(DBRowToRow(row));
 }
 
 PyRep *StationDB::DoGetStation(uint32 sid) {

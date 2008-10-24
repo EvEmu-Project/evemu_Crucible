@@ -17,11 +17,7 @@
 
 
 
-#include "MiningDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "../common/EVEUtils.h"
+#include "EvemuPCH.h"
 
 MiningDB::MiningDB(ServiceDB *db)
 : ServiceDB(db)

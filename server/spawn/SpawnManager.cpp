@@ -15,15 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "SpawnManager.h"
-#include "../system/SystemManager.h"
-#include "MiscFunctions.h"
-#include "../common/logsys.h"
-#include "../PyServiceMgr.h"
-#include "../NPC.h"
-#include "../ship/DestinyManager.h"
-#include "../inventory/InventoryItem.h"
-#include <vector>
+#include "EvemuPCH.h"
 
 SpawnGroup::Entry::Entry(
 	uint32 _spawnGroupID,
@@ -161,7 +153,7 @@ void SpawnEntry::_DoSpawn(SystemManager *mgr, PyServiceMgr *svc) {
 			//create them all at the same point to start with...
 			//we will move them before they get added to the system
 			NPC *npc = new NPC(mgr, svc,
-				i, cur->corporationID, spawn_point, this);
+				i, cur->corporationID, 0, spawn_point, this);	//TODO: add allianceID
 			spawned.push_back(npc);
 		}
 	}

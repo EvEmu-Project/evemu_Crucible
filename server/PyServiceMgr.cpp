@@ -17,18 +17,7 @@
 
 
 
-#include "PyServiceMgr.h"
-
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../common/EVEUtils.h"
-
-#include "PyService.h"
-#include "PyCallable.h"
-#include "PyBoundObject.h"
-#include "EntityList.h"
-#include "cache/ObjCacheService.h"
+#include "EvemuPCH.h"
 
 /*                                                                              
  * This is a quick proxy object which receives any calls with no service in
@@ -43,7 +32,7 @@ public:
 	BoundCaller(PyServiceMgr *mgr)
 	: PyService(mgr, "BoundCallFakeService") {
 	}
-	virtual PyCallResult Call(PyCallStream &call, PyCallArgs &args) {
+	virtual PyResult Call(PyCallStream &call, PyCallArgs &args) {
 		if(call.remoteObject != 0) {
 			_log(SERVICE__ERROR, "Service-less message received with an integer remote object ID %lu!", call.remoteObject);
 			return(NULL);
@@ -61,7 +50,7 @@ public:
 
 
 PyServiceMgr::PyServiceMgr(
-	uint32 global_node_ID, 
+	uint32 nodeID, 
 	DBcore *db, 
 	EntityList *elist, 
 	ItemFactory *ifactory, 
@@ -71,7 +60,7 @@ PyServiceMgr::PyServiceMgr(
   entity_list(elist),
   lsc_service(NULL),
   m_cache(new ObjCacheService(this, db, CacheDirectory)),
-  m_globalNodeID(global_node_ID),
+  m_nodeID(nodeID),
   m_nextBindID(100),
   m_svcDB(new ServiceDB(db))
 {
@@ -137,11 +126,11 @@ PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict
 		_log(SERVICE__ERROR, "Tried to bind a NULL object!");
 		return(new PyRepSubStruct(new PyRepNone()));
 	}
-	
+
 	//generate a nice bind string:
 	char bind_str[128];
 	snprintf(bind_str, sizeof(bind_str), "N=%lu:%lu", GetNodeID(), _AllocateBindID());
-	
+
 	//not sure what this really is...
 	uint64 expiration = Win32TimeNow();
 	expiration += 10000000LL * 1000;
@@ -149,12 +138,12 @@ PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict
 	BoundObject obj;
 	obj.client = c;
 	obj.destination = cb;
-	
+
 	m_boundObjects[bind_str] = obj;
 	cb->m_bindID = bind_str;	//tell the object what its bind ID is.
-	
+
 	_log(SERVICE__MESSAGE, "Binding %s to service %s", bind_str, cb->GetName());
-	
+
 	PyRepTuple *objt;
 	if(dict == NULL || *dict == NULL) {
 		objt = new PyRepTuple(2);

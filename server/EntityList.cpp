@@ -15,19 +15,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
-#include <list>
-
-#include "EntityList.h"
-#include "Client.h"
-#include "system/SystemManager.h"
-#include "ship/DestinyManager.h"
-
-#include "../common/common.h"
-#include "../common/logsys.h"
-#include "../common/PyPacket.h"
-#include "../common/PyRep.h"
-#include "../common/sigexcept/sigexcept.h"
 
 EntityList::EntityList(DBcore *db)
 : m_services(NULL),
@@ -82,7 +71,7 @@ void EntityList::Process() {
 	}
 	
 	SystemManager *active_system = NULL;
-	TRY_SIGEXCEPT {
+	//TRY_SIGEXCEPT {
 		bool destiny = DestinyManager::IsTicActive();
 		if(destiny) {
 			_log(DESTINY__TRACE, "Triggering destiny tick for stamp %lu", DestinyManager::GetStamp());
@@ -111,9 +100,9 @@ void EntityList::Process() {
 		if(destiny) {
 			DestinyManager::TicCompleted();
 		}
-	} CATCH_SIGEXCEPT(e) {
-		  _log(COMMON__ERROR, "Exception caught processing in system %lu:\n%s", (active_system==NULL)?0:active_system->GetID(), e.stack_string().c_str());
-	}
+	//} CATCH_SIGEXCEPT(e) {
+	//	  _log(COMMON__ERROR, "Exception caught processing in system %lu:\n%s", (active_system==NULL)?0:active_system->GetID(), e.stack_string().c_str());
+	//}
 }
 
 Client *EntityList::FindCharacter(uint32 char_id) const {

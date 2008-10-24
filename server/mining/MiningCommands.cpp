@@ -15,54 +15,39 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "../admin/AllCommands.h"
-#include "../PyServiceMgr.h"
-#include "../inventory/InventoryItem.h"
-#include "../inventory/ItemFactory.h"
-#include "../system/SystemManager.h"
-#include "Asteroid.h"
-//#include "../NPC.h"
-//#include "../ship/DestinyManager.h"
-
-//#include "../packets/Inventory.h"
-//#include "../packets/General.h"
+#include "EvemuPCH.h"
 
 double randf() {
 	return rand() / (RAND_MAX + 1.);
 }
 
-void Command_roid(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
-	_log(COMMAND__MESSAGE, "Roid %s", args.arg[1]);
-	if(!args.IsNumber(1)) {
-		who->SendErrorMsg("argument 1 should be an item type ID");
-		return;
-	}
-	if(!args.IsNumber(2)) {
-		who->SendErrorMsg("argument 2 should be a radius");
-		return;
-	}
-	double radius = atof(args.arg[2]);
-	if(radius <= 0) {
-		who->SendErrorMsg("Invalid radius.");
-		return;
-	}
+PyResult Command_roid(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+	if(!args.IsNumber(1))
+		throw(PyException(MakeCustomError("Argument 1 should be an item type ID")));
 
-	if(who->IsInSpace() == false) {
-		who->SendErrorMsg("You must be in space to spawn things.");
-		return;
-	}
+	if(!args.IsNumber(2))
+		throw(PyException(MakeCustomError("Argument 2 should be a radius")));
+
+	double radius = atof(args.arg[2]);
+	if(radius <= 0)
+		throw(PyException(MakeCustomError("Invalid radius.")));
+
+	if(!who->IsInSpace()) 
+		throw(PyException(MakeCustomError("You must be in space to spawn things.")));
+
+	_log(COMMAND__MESSAGE, "Roid %s of radius %f", args.arg[1], radius);
 
 	GPoint position(who->GetPosition());
 	position.x += radius + 1 + who->GetRadius();	//put it raw enough away to not push us around.
 	
 	GetAsteroid(who, atoi(args.arg[1]), radius, position);
+
+	return(new PyRepString("Spawn successsfull."));
 }
 
-void Command_spawnbelt(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
-	if(who->IsInSpace() == false) {
-		who->SendErrorMsg("You must be in space to spawn things.");
-		return;
-	}
+PyResult Command_spawnbelt(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+	if(!who->IsInSpace()) 
+		throw(PyException(MakeCustomError("You must be in space to spawn things.")));
 
 	GPoint position(who->GetPosition());
 	
@@ -83,9 +68,9 @@ void Command_spawnbelt(Client *who, CommandDB *db, PyServiceMgr *services, const
 
 	SystemManager * sys = who->System();
 	std::map<double, uint32> roidDist;
-	if (!db->GetRoidDist(sys->GetSystemSecurity(), roidDist)) {
+	if(!db->GetRoidDist(sys->GetSystemSecurity(), roidDist)) {
 		codelog(SERVICE__ERROR, "Couldn't get roid list for system security %s", sys->GetSystemSecurity());
-		return;
+		throw(PyException(MakeCustomError("Couldn't get roid list for system security %s", sys->GetSystemSecurity())));
 	}
 
 	for ( int i=0;i<pcs;i++ ) {
@@ -96,7 +81,10 @@ void Command_spawnbelt(Client *who, CommandDB *db, PyServiceMgr *services, const
 
 		GetAsteroid(who, GetRoidType(randf(), roidDist), (randf() + 0.5) * roidradius, r + mposition);
 	}
+
+	return(new PyRepString("Spawn successsfull."));
 }
+
 uint32 GetRoidType(double p, const std::map<double, uint32> & roids) {
 	std::map<double, uint32>::const_iterator cur, end;
 	cur = roids.begin();
@@ -119,10 +107,8 @@ void GetAsteroid(Client *who, uint32 typeID, double radius, const Ga::GaVec3 & p
 		NULL,	//name
 		position
 		);
-	if(i == NULL) {
-		who->SendErrorMsg("Unable to spawn item of type %d.", typeID);
-		return;
-	}
+	if(i == NULL)
+		throw(PyException(MakeCustomError("Unable to spawn item of type %lu.", typeID)));
 
 	i->Set_radius(radius);
 	i->Save();
@@ -134,7 +120,8 @@ void GetAsteroid(Client *who, uint32 typeID, double radius, const Ga::GaVec3 & p
 	sys->AddEntity(new_roid);
 }
 
-void Command_growbelt(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+PyResult Command_growbelt(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+	throw(PyException(MakeCustomError("Not implemented yet.")));
 }
 
 

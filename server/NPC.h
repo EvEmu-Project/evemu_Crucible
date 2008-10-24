@@ -39,6 +39,7 @@ public:
 		PyServiceMgr *services,
 		InventoryItem *self,
 		uint32 corporationID,
+		uint32 allianceID,
 		const GPoint &position,
 		SpawnEntry *spawner = NULL);
 	virtual ~NPC();
@@ -47,8 +48,6 @@ public:
 
 	void Orbit(SystemEntity *who);
 	
-//	inline uint32 GetOwnerID() const { return(m_ownerID); }
-//	inline uint32 GetType() const { return(m_typeID); }
 	inline double x() const { return(GetPosition().x); }
 	inline double y() const { return(GetPosition().y); }
 	inline double z() const { return(GetPosition().z); }
@@ -59,7 +58,6 @@ public:
 	virtual NPC *CastToNPC() { return(this); }
 	virtual const NPC *CastToNPC() const { return(this); }
 	virtual void Process();
-	virtual double GetRadius() const;
 	virtual void EncodeDestiny(std::vector<byte> &into) const;
 	virtual void TargetAdded(SystemEntity *who) {}
 	virtual void TargetLost(SystemEntity *who);
@@ -69,9 +67,7 @@ public:
 	virtual void QueueDestinyUpdate(PyRepTuple **du) {/* not required to consume */}
 	virtual void QueueDestinyEvent(PyRepTuple **multiEvent) {/* not required to consume */}
 	virtual uint32 GetCorporationID() const { return(m_corporationID); }
-	virtual double GetMass() const;
-	virtual double GetMaxVelocity() const;
-	virtual double GetAgility() const;
+	virtual uint32 GetAllianceID() const { /* hack for now */ return(m_allianceID); }
 	virtual void Killed(Damage &fatal_blow);
 	virtual SystemManager *System() const { return(m_system); }
 	
@@ -103,19 +99,14 @@ protected:
 	void _AwardBounty(SystemEntity *who);
 	void _DropLoot(SystemEntity *owner);
 
-	
 	SystemManager *const m_system;	//we do not own this
 	PyServiceMgr *const m_services;	//we do not own this
 	SpawnEntry *const m_spawner;	//we do not own this, may be NULL
-//	const uint32 m_itemID;
-//	const uint32 m_typeID;
-//	uint32 m_ownerID;
 	uint32 m_corporationID;
-	
-	//GPoint m_position;	//TODO: move into a base class. everything has a position.
-	
+	uint32 m_allianceID;
+
 	uint32 m_orbitingID;
-	
+
 	NPCAIMgr *m_AI;	//never NULL
 };
 

@@ -15,12 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-#include "DogmaIMDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
+#include "EvemuPCH.h"
 
 DogmaIMDB::DogmaIMDB(DBcore *db)
 : ServiceDB(db)

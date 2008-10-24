@@ -36,6 +36,7 @@ protected:
 	LSCDB m_db;
 
 	PyCallable_DECL_CALL(LookupCharacters)
+	PyCallable_DECL_CALL(LookupPlayerCharacters)
 	PyCallable_DECL_CALL(LookupCorporations)
 	PyCallable_DECL_CALL(LookupFactions)
 	PyCallable_DECL_CALL(LookupCorporationTickers)

@@ -30,6 +30,9 @@ public:
 	ItemFactory(DBcore *db, EntityList *el);
 	~ItemFactory();
 	
+	EntityList *const entity_list;	//we do not own this.
+	InventoryDB &db() { return(m_db); }
+
 	InventoryItem *Load(uint32 itemID, bool recurse);
 	
 	//a somewhat specialized function to deal with item movement.
@@ -111,7 +114,6 @@ private:
 	bool _SpawnCommon(InventoryItem *i);
 	
 	InventoryDB m_db;
-	EntityList *const m_entity_list;	//we do not own this.
 	
 	std::map<uint32, InventoryItem *> m_items;	//we own a ref to these.
 };

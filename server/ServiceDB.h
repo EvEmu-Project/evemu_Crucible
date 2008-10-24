@@ -50,10 +50,10 @@ class CorpMemberInfo;
 // struct for encapsulating blueprint's attributes
 // for futher info about implementation of blueprints, see notes in file InventoryDB.cpp, line 342
 struct BlueprintProperties {
-	bool m_copy;
-	uint32 m_materialLevel;
-	uint32 m_productivityLevel;
-	sint32 m_licensedProductionRunsRemaining;
+	bool copy;
+	uint32 materialLevel;
+	uint32 productivityLevel;
+	int32 licensedProductionRunsRemaining;
 };
 
 class ServiceDB {
@@ -68,16 +68,12 @@ public:
 	bool ListEntitiesByCategory(uint32 ownerID, uint32 categoryID, std::vector<uint32> &into);
 	uint32 GetCurrentShipID(uint32 characterID);
 	PyRepObject *GetInventory(uint32 entityID, EVEItemFlags flag);
-	bool GetStaticLocation(uint32 entityID, uint32 &regionID, uint32 &constellationID, uint32 &solarSystemID, GPoint &location);
 
 	//blueprint stuff
 	bool GetBlueprintProperties(const uint32 blueprintID, BlueprintProperties &into);
 	bool SetBlueprintProperties(const uint32 blueprintID, const BlueprintProperties &bp);
 	uint32 GetBlueprintProduct(const uint32 blueprintTypeID);
 
-	//this really wants to move back to LSCDB:
-	uint32 StoreNewEVEMail(uint32 senderID, uint32 recipID, const char * subject, const char * message, uint64 sentTime);
-	
 	void SetCharacterLocation(uint32 characterID, uint32 stationID, uint32 systemID, uint32 constellationID, uint32 regionID);
 	bool SetCharacterBalance(uint32 char_id, double newbalance);
 	bool AddCharacterBalance(uint32 char_id, double delta);
@@ -91,11 +87,12 @@ public:
 	
 	bool GetSystemParents(uint32 systemID, uint32 &constellationID, uint32 &regionID);
 	bool GetStationParents(uint32 stationID, uint32 &systemID, uint32 &constellationID, uint32 &regionID);
+	bool GetStaticLocation(uint32 entityID, uint32 &regionID, uint32 &constellationID, uint32 &solarSystemID, GPoint &location);
 	bool GetStaticPosition(uint32 itemID, double &x, double &y, double &z);
 	bool GetStaticPosition(uint32 itemID, uint32 &systemID, double &x, double &y, double &z);
 	bool GetStationDockPosition(uint32 stationID, GPoint &pos);
 	uint32 GetDestinationStargateID(uint32 fromSystem, uint32 toSystem);
-	
+
 	bool GetConstant(const char *name, uint32 &into);
 	
 	//these really want to move back into AccountDB
@@ -105,14 +102,13 @@ public:
 
 	//johnsus - serverStartType mod
 	void SetServerOnlineStatus(bool onoff_status);
-	
+
 	//johnsus - characterOnline mod
 	void SetCharacterOnlineStatus(uint32 char_id, bool onoff_status);
 
 	void SetAccountOnlineStatus(uint32 accountID, bool onoff_status);
 
 protected:
-	
 	DBcore *const m_db;	//we do not own this pointer
 	
 	void ProcessStringChange(const char * key, const std::string & oldValue, const std::string & newValue, PyRepDict * notif, std::vector<std::string> & dbQ);

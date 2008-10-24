@@ -23,8 +23,8 @@
 class PyRep;
 
 //returns ownership!
-extern byte *MarshalAndDeflate(const PyRep *rep, uint32 &len);
-extern byte *MarshalOnly(const PyRep *rep, uint32 &len);
+//default deflate to false as deflation is not implemented yet
+extern byte *Marshal(const PyRep *rep, uint32 &len, bool inlineSubStream=true);
 
 #endif
 

@@ -43,17 +43,7 @@ Static Bodies:
 	- position
 
 
-detech clients moving into aggro radii
-
-
-
-
-
-
-
-
-
-
+detect clients moving into agro radius
 
 */
 
@@ -63,7 +53,7 @@ detech clients moving into aggro radii
 #ifndef EVE_CLIENT_H
 #define EVE_CLIENT_H
 
-#include "../common/packet_types.h"
+/*#include "../common/packet_types.h"
 #include "../common/timer.h"
 #include "../common/gpoint.h"
 
@@ -75,8 +65,11 @@ detech clients moving into aggro radii
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
 #include "../common/EVEUtils.h"
+#include "../common/EVEPresentation.h"*/
 
-class EVEPresentation;
+#include "system/SystemEntity.h"
+#include "ship/ModuleManager.h"
+
 class PyPacket;
 class PyRep;
 class PyRepDict;
@@ -90,6 +83,7 @@ class EVENotificationStream;
 class InventoryItem;
 class LSCChannel;
 class SystemManager;
+class CryptoChallengePacket;
 
 class CharacterData {
 public:
@@ -117,10 +111,9 @@ public:
 	uint32 bloodlineID;
 	uint32 genderID;
 	uint32 ancestryID;
+	uint32 careerID;
 	uint32 schoolID;
-	uint32 departmentID;
-	uint32 fieldID;
-	uint32 specialityID;
+	uint32 careerSpecialityID;
 	
 	uint32 Intelligence;
 	uint32 Charisma;
@@ -144,44 +137,57 @@ public:
 
 class CharacterAppearance {
 public:
-	uint32 accessoryID;
-	uint32 beardID;
-	uint32 costumeID;
-	uint32 decoID;
-	uint32 eyebrowsID;
-	uint32 eyesID;
-	uint32 hairID;
-	uint32 lipstickID;
-	uint32 makeupID;
-	uint32 skinID;
-	uint32 backgroundID;
-	uint32 lightID;
-	
-	double headRotation1;
-	double headRotation2;
-	double headRotation3;
-	double eyeRotation1;
-	double eyeRotation2;
-	double eyeRotation3;
-	double camPos1;
-	double camPos2;
-	double camPos3;
-	double morph1e;
-	double morph1n;
-	double morph1s;
-	double morph1w;
-	double morph2e;
-	double morph2n;
-	double morph2s;
-	double morph2w;
-	double morph3e;
-	double morph3n;
-	double morph3s;
-	double morph3w;
-	double morph4e;
-	double morph4n;
-	double morph4s;
-	double morph4w;
+	CharacterAppearance();
+	CharacterAppearance(const CharacterAppearance &from);
+	~CharacterAppearance();
+
+#define INT(v) \
+	uint32 v;
+#define INT_DYN(v) \
+	bool IsNull_##v() const { \
+		return(v == NULL); \
+	} \
+	uint32 Get_##v() const { \
+		return(IsNull_##v() ? NULL : *v); \
+	} \
+	void Set_##v(uint32 val) { \
+		Clear_##v(); \
+		v = new uint32(val); \
+	} \
+	void Clear_##v() { \
+		if(!IsNull_##v()) \
+			delete v; \
+		v = NULL; \
+	}
+#define REAL(v) \
+	double v;
+#define REAL_DYN(v) \
+	bool IsNull_##v() const { \
+		return(v == NULL); \
+	} \
+	double Get_##v() const { \
+		return(IsNull_##v() ? NULL : *v); \
+	} \
+	void Set_##v(double val) { \
+		Clear_##v(); \
+		v = new double(val); \
+	} \
+	void Clear_##v() { \
+		if(!IsNull_##v()) \
+			delete v; \
+		v = NULL; \
+	}
+#include "character/CharacterAppearance_fields.h"
+
+	void Build(const std::map<std::string, PyRep *> &from);
+	void operator=(const CharacterAppearance &from);
+
+protected:
+#define INT_DYN(v) \
+	uint32 *v;
+#define REAL_DYN(v) \
+	double *v;
+#include "character/CharacterAppearance_fields.h"
 };
 
 class CorpMemberInfo {
@@ -229,7 +235,7 @@ public:
 	
 protected:
 	//this could be done a TON better, but want to get something
-	//working first, it is call encapsulated in here, so it shoud
+	//working first, it is call encapsulated in here, so it should
 	//be simple to gut this object and put in a real scheduler.
 	class Entry {
 	public:
@@ -249,7 +255,7 @@ protected:
 //DO NOT INHERIT THIS OBJECT!
 class Client : public DynamicSystemEntity {
 public:
-	Client(PyServiceMgr *services, EVEPresentation **net);
+	Client(PyServiceMgr *services, EVETCPConnection **con);
 	virtual ~Client();
 	
 	ClientSession session;
@@ -265,7 +271,7 @@ public:
 	uint32 GetRole() const { return(m_role); }
 
 	uint32 GetCharacterID() const { return(m_char.charid); }
-	const CharacterData &GetChar() { return(m_char); }
+	const CharacterData &GetChar() const { return(m_char); }
 	uint32 GetCorporationID() const { return(m_char.corporationID); }
 	uint32 GetAllianceID() const { return(m_char.allianceID); }
 	const CorpMemberInfo &GetCorpInfo() const { return(m_corpstate); }
@@ -283,6 +289,7 @@ public:
 	double GetBalance() const { return(m_char.balance); }
 	bool AddBalance(double amount);
 
+	void Login(CryptoChallengePacket *pack);
 	uint32 GetShipID() const;
 	void BoardShip(InventoryItem *new_ship);
 	void MoveToLocation(uint32 location, const GPoint &pt);
@@ -297,8 +304,6 @@ public:
 	double GetPropulsionStrength() const;
 	
 	bool LaunchDrone(InventoryItem *drone);
-	
-	void SendHandshake();
 	
 	void SendNotification(const PyAddress &dest, EVENotificationStream *noti, bool seq=true);
 	void SendNotification(const char *notifyType, const char *idType, PyRepTuple **payload, bool seq=true);
@@ -351,12 +356,7 @@ public:
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, ClientFunctor **functor );
 	
 protected:
-	//login stuff:
-	void _ProcessLogin(PyPacket *packet);
-	void _SendLoginFailed(uint32 callid);
-	void _SendLoginSuccess(uint32 callid);
 	void _SendPingRequest();
-	void _BuildServiceListDict(PyRepDict *into);
 	
 	void _ProcessNotification(PyPacket *packet);
 	void _CheckSessionChange();
@@ -365,13 +365,13 @@ protected:
 	
 	//call stuff
 	void _ProcessCallRequest(PyPacket *packet);
-	void _SendCallReturn(PyPacket *req, PyRepTuple **return_value, const char *channel = NULL);
+	void _SendCallReturn(PyPacket *req, PyRep **return_value, const char *channel = NULL);
 	void _SendException(PyPacket *req, MACHONETERR_TYPE type, PyRep **payload);
 
 	InventoryItem *m_ship;
 
 	PyServiceMgr *const m_services;
-	EVEPresentation *const m_net;	//we own this! never NULL.
+	EVEPresentation m_net;
 	Timer m_pingTimer;
 
 	uint32 m_accountID;
@@ -388,7 +388,6 @@ protected:
 	//this whole move system is a piece of crap:
 	typedef enum {
 		msIdle,
-		msStateChange,
 		msJump
 	} _MoveState;
 	void _postMove(_MoveState type, uint32 wait_ms=500);
@@ -396,8 +395,6 @@ protected:
 	Timer m_moveTimer;
 	uint32 m_moveSystemID;
 	GPoint m_movePoint;
-	//bool m_warpActive;	//only for destiny setstate right now...
-	void _ExecuteSetState();
 	void _ExecuteJump();
 	
 private:

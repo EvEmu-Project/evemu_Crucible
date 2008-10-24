@@ -134,111 +134,102 @@ void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep) {
 
 	//kinda hackish:
 	if(rep->GetLength() > 2 && *(rep->GetBuffer()) == GZipStreamHeaderByte) {
-		byte *ucbuf = new byte[rep->GetLength()*10];	//bullshit length
-		uint32 outlen = InflatePacket(rep->GetBuffer(), rep->GetLength(), ucbuf, rep->GetLength()*10, true);
-		if(outlen > 0) {
+		uint32 len = rep->GetLength();
+		byte *buf = InflatePacket(rep->GetBuffer(), len, true);
+		if(buf != NULL) {
 			std::string p(top());
 			p += "  ";
-			_print("  Data buffer contains gzipped data of length %lu", outlen);
-			_hexDump(ucbuf, outlen);
+			_print("  Data buffer contains gzipped data of length %lu", len);
+			_hexDump(buf, len);
+			delete[] buf;
 		}
-		delete[] ucbuf;
 	} else if(rep->GetLength() > 0) {
 		_hexDump(rep->GetBuffer(), rep->GetLength());
 	}
 }
 
-void PyDumpVisitor::VisitPackedRowHeader(const PyRepPackedRowHeader *rep) {
-	const char *format_string = "UNKNOWN TYPE";
-	switch(rep->format) {
-	case PyRepPackedRowHeader::RowList: format_string = "dbutil.RowList"; break;
-	case PyRepPackedRowHeader::RowDict: format_string = "dbutil.RowDict"; break;
-	}
-	
-	_print("Packed Row Header: (data format=%s)", format_string);
-	std::string n(top());
-	n += "  Header Type: ";
-	push(n.c_str());
-	rep->header_type->visit(this);
-	pop();
-	
-	std::string m(top());
-	m += "  Args: ";
-	push(m.c_str());
-	rep->arguments->visit(this);
-	pop();
-
-	std::string o(top());
-	o += "  Rows: ";
-	push(o.c_str());
-	
-	PyRepPackedRowHeader::const_iterator cur, end;
-	uint32 r;
-	cur = rep->rows.begin();
-	end = rep->rows.end();
-	for(r = 0; cur != end; cur++, r++) {
-		VisitPackedRowHeaderElement(rep, r, *cur);
-	}
-	
-	pop();
+void PyDumpVisitor::VisitPackedObjectList(const PyRepPackedObject *rep) {
+	_print("ListData: %lu entries", rep->list_data.size());
+	PyVisitor::VisitPackedObjectList(rep);
 }
 
-void PyDumpVisitor::VisitPackedRowHeaderElement(const PyRepPackedRowHeader *rep, uint32 index, const PyRepPackedRow *element) {
+void PyDumpVisitor::VisitPackedObjectListElement(const PyRepPackedObject *rep, uint32 index, const PyRep *ele) {
 	std::string n(top());
 	{
-		char t[15];
-		snprintf(t, 14, "  [%2ld] ", index);
+		char t[16];
+		snprintf(t, 16, "  [%2d] ", index);
 		n += t;
 	}
 	push(n.c_str());
-	PyVisitor::VisitPackedRowHeaderElement(rep, index, element);
+	PyVisitor::VisitPackedObjectListElement(rep, index, ele);
 	pop();
 }
 
-void PyDumpVisitor::VisitPackedResultSet(const PyRepPackedResultSet *rep) {
-	const char *format_string = "UNKNOWN TYPE";
-	switch(rep->format) {
-	case PyRepPackedResultSet::RowList: format_string = "dbutil.RowList"; break;
-	case PyRepPackedResultSet::RowDict: format_string = "dbutil.RowDict"; break;
-	}
-	
-	_print("Packed Result Set: (data format=%s)", format_string);
-	
-	std::string n(top());
-	n += "  Header: ";
-	push(n.c_str());
-	rep->header->visit(this);
-	pop();
-	
-	std::string m(top());
-	m += "  Rows: ";
-	push(m.c_str());
-	
-	PyRepPackedResultSet::const_iterator cur, end;
-	cur = rep->begin();
-	end = rep->end();
-	uint32 r;
-	for(r = 0; cur != end; cur++, r++) {
-		VisitPackedResultSetElement(rep, r, *cur);
-	}
-	pop();
+void PyDumpVisitor::VisitPackedObjectDict(const PyRepPackedObject *rep) {
+	_print("DictData: %lu entries", rep->dict_data.size());
+	PyVisitor::VisitPackedObjectDict(rep);
 }
 
-void PyDumpVisitor::VisitPackedResultSetElement(const PyRepPackedResultSet *rep, uint32 index, const PyRepPackedRow *element) {
+void PyDumpVisitor::VisitPackedObjectDictElement(const PyRepPackedObject *rep, uint32 index, const PyRep *key, const PyRep *value) {
 	std::string n(top());
 	{
-		char t[15];
-		snprintf(t, 14, "  [%2ld] ", index);
+		char t[16];
+		snprintf(t, 16, "  [%2d] Key: ", index);
 		n += t;
 	}
 	push(n.c_str());
-	PyVisitor::VisitPackedResultSetElement(rep, index, element);
+	key->visit(this);
+	pop();
+
+	n = top();
+	{
+		char t[16];
+		snprintf(t, 16, "  [%2d] Value: ", index);
+		n += t;
+	}
+	push(n.c_str());
+	value->visit(this);
 	pop();
 }
 
+void PyDumpVisitor::VisitPackedObject1(const PyRepPackedObject1 *rep) {
+	_print("PackedObject1: '%s'", rep->type.c_str());
 
-void PyDumpVisitor::VisitPacked(const PyRepPackedRow *rep) {
-	_print("Packed data of length %d", rep->GetLength());
+	_print("Args:");
+	if(rep->args == NULL)
+		_print("  None");
+	else
+		rep->args->visit(this);
+
+	_print("Keywords:");
+	if(rep->keywords.empty())
+		_print("  None");
+	else
+		rep->keywords.visit(this);
+
+	VisitPackedObject(rep);
+}
+
+void PyDumpVisitor::VisitPackedObject2(const PyRepPackedObject2 *rep) {
+	_print("PackedObject2: '%s'", rep->type.c_str());
+
+	_print("Args1:");
+	if(rep->args1 == NULL)
+		_print("  None");
+	else
+		rep->args1->visit(this);
+
+	_print("Args2:");
+	if(rep->args2 == NULL)
+		_print("  None");
+	else
+		rep->args2->visit(this);
+
+	VisitPackedObject(rep);
+}
+
+void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {
+	_print("Packed data of length %d", rep->GetBufferSize());
 	
 	std::string m(top());
 	m += "  Header: ";
@@ -246,11 +237,11 @@ void PyDumpVisitor::VisitPacked(const PyRepPackedRow *rep) {
 	rep->GetHeader()->visit(this);
 	pop();
 
-	if(rep->GetLength() > 0) {
-		_hexDump(rep->GetBuffer(), rep->GetLength());
+	if(rep->GetBufferSize() > 0) {
+		_hexDump(rep->GetBuffer(), rep->GetBufferSize());
 	}
 
-	switch(rep->GetLength()) {
+	switch(rep->GetBufferSize()) {
 	case 0x2b: {
 		const byte *buf = rep->GetBuffer();
 		_print("  Len 0x2b decode:");

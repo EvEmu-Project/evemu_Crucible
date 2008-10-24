@@ -31,6 +31,7 @@ AH_TEMPLATE([USING_BIG_ENDIAN], Define this if you are on a big-endian system.)
 AH_TEMPLATE([USING_LITTLE_ENDIAN], Define this if you are on a non-big-endian system.)
 AH_TEMPLATE([X64], Define this if you are under an X64-based operating system.)
 AH_TEMPLATE([X86], Define this if you are under an X86-based 32bit operating system.)
+AH_TEMPLATE([EVEMU_REVISION], The revision of the latest checkout)
 
 # Checks for libraries.
 
@@ -86,19 +87,21 @@ AM_CONDITIONAL(EVETOOL, test x$evetool = xtrue)
 # Check for zlib
 AC_CHECK_LIB(z, deflate,, AC_MSG_ERROR([can't find zlib]))
 
-	# Check for pcap
-	AC_CHECK_LIB(pcap, pcap_open_live,, AC_MSG_ERROR([can't find libpcap]))
-	AC_CHECK_HEADERS(pcap.h,, AC_MSG_ERROR([can't find pcap.h]))
+# Check for pcap
+AC_CHECK_LIB(pcap, pcap_open_live,, AC_MSG_ERROR([can't find libpcap]))
+AC_CHECK_HEADERS(pcap.h,, AC_MSG_ERROR([can't find pcap.h]))
 
-	# nids
-	AC_CHECK_LIB(nids, nids_init,, AC_MSG_ERROR([can't find libnids]))
-	AC_CHECK_HEADERS(nids.h,, AC_MSG_ERROR([can't find nids.h]))
+# nids
+AC_CHECK_LIB(nids, nids_init,, AC_MSG_ERROR([can't find libnids]))
+AC_CHECK_HEADERS(nids.h,, AC_MSG_ERROR([can't find nids.h]))
 
-	# libnet
-	AC_CHECK_LIB(net, main,, AC_MSG_ERROR([can't find libnet]))
-	LIBNET_CFLAGS=`libnet-config --defines`
-	AC_SUBST(LIBNET_CFLAGS)
+# libnet
+AC_CHECK_LIB(net, main,, AC_MSG_ERROR([can't find libnet]))
+LIBNET_CFLAGS=`libnet-config --defines`
+AC_SUBST(LIBNET_CFLAGS)
 
+# readline
+AC_CHECK_HEADERS(readline/readline.h,, AC_MSG_ERROR([can't find readline]))
 
 # Define compile/library flags.
 AC_SUBST(AM_CXXFLAGS, "$AM_CXXFLAGS $INCLUDES $MYSQL_CFLAGS -Wall -DTIXML_USE_STL $LIBNET_CFLAGS")
@@ -112,6 +115,19 @@ AC_C_CONST
 AC_C_INLINE
 
 # Checks for library functions.
+
+# Extract the latest SVN revision
+AC_CHECK_PROG([SVNVERSION], [svnversion], yes)
+if test -z "$SVNVERSION"; then
+	AC_MSG_ERROR(Subversion 'svnversion' not found)
+else
+	EVEMU_REVISION=`/usr/bin/env svnversion -n`
+	if test -z "$EVEMU_REVISION"; then EVEMU_REVISION="n/a"; fi
+
+	AC_MSG_NOTICE(Extracted SVN version: $EVEMU_REVISION)
+	AC_DEFINE_UNQUOTED(EVEMU_REVISION,["\$Rev: $EVEMU_REVISION \$"])
+	AC_SUBST(EVEMU_REVISION)
+fi
 
 AC_CONFIG_FILES([
 	Makefile

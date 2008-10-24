@@ -17,13 +17,7 @@
 
 
 
-#include "PosMgrDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "../common/EVEUtils.h"
-
-#include "../packets/General.h"
+#include "EvemuPCH.h"
 
 PosMgrDB::PosMgrDB(DBcore *db)
 : ServiceDB(db)

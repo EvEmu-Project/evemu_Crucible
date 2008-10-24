@@ -35,7 +35,7 @@ class PyBoundObject;
 class EntityList;
 
 //convenience macro, you do not HAVE to use this
-#define PyCallable_DECL_CALL(n) PyCallResult Handle_##n(PyCallArgs &call);
+#define PyCallable_DECL_CALL(n) PyResult Handle_##n(PyCallArgs &call);
 
 
 class PyService : public PyCallable {
@@ -46,7 +46,7 @@ public:
 	bool IsPacketFor(const PyPacket *packet) const;
 	
 	//overload Callable for binding:
-	virtual PyCallResult Call(PyCallStream &call, PyCallArgs &args);
+	virtual PyResult Call(PyCallStream &call, PyCallArgs &args);
 	
 	EntityList *GetEntityList() const { return(m_manager->entity_list); }
 	
@@ -82,8 +82,8 @@ protected:
 	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
 	
 	//some service-level remote calls, need to be reworked:
-	virtual PyCallResult Handle_MachoResolveObject(PyCallArgs &call);
-	virtual PyCallResult Handle_MachoBindObject(PyCallArgs &call);
+	virtual PyResult Handle_MachoResolveObject(PyCallArgs &call);
+	virtual PyResult Handle_MachoBindObject(PyCallArgs &call);
 };
 
 #if 0

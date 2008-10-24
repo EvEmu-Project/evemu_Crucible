@@ -33,8 +33,6 @@ class PyRepObject;
 class ServiceDB;
 
 class ItemFactory;
-class InventoryDB;
-class EntityList;
 class Rsp_CommonGetInfo_Entry;
 
 /*
@@ -51,14 +49,11 @@ static const uint32 SkillBasePoints = 250;
 
 class InventoryItem {
 	friend class ItemFactory;
-//	friend class ServiceDB; //this needs to die
 	friend class InventoryDB;
 private:
 	uint16 m_refCount;
 	//creation and destruction of this is protected for reference counting reasons.
 	InventoryItem(
-		InventoryDB *db,
-		EntityList *ents,
 		ItemFactory *factory,
 		uint32 _itemID, 
 		const char *_itemName,
@@ -77,55 +72,57 @@ private:
 	virtual ~InventoryItem();
 	
 	//for use by ItemFactory:
-	bool LoadStatic();
+	bool LoadStatic();	//load static type attributes
 	bool Load(bool recurse=true);
 	bool ContentsLoaded() const { return(m_contentsLoaded); }
 	void AddContainedItem(InventoryItem *it);
 	void RemoveContainedItem(InventoryItem *it);
+
 public:
 	void Release();
 	InventoryItem *Ref();
 	
 	void Save(bool recursive=false);	//save the item to the DB.
+	bool LoadContents(bool recursive=true);
 	void Delete();	//remove the item from the DB, and Release() it. Consumes a ref!
 	
 	/*
      *   Primary public interface:
      */
-	bool LoadContents(bool recursive=true);
-	
 	void Rename(const char *to);
-	void Move(uint32 location, EVEItemFlags flag=flagAutoFit, bool notify=true);
 	void ChangeOwner(uint32 new_owner, bool notify=true);
+	void Move(uint32 location, EVEItemFlags flag=flagAutoFit, bool notify=true);
 	void MoveInto(InventoryItem *new_home, EVEItemFlags flag=flagAutoFit, bool notify=true);
-	void SetCustomInfo(const char *ci);
-	void Relocate(const GPoint &pos);
-	void PutOnline();
-	void PutOffline();
 	void ChangeFlag(EVEItemFlags flag, bool notify=true);
-	bool Contains(InventoryItem *item, bool recursive=false) const;
-	bool AlterQuantity(sint32 qty_change, bool notify=true);
-	bool SetQuantity(sint32 qty_new, bool notify=true);
+	void Relocate(const GPoint &pos);
+	void SetCustomInfo(const char *ci);
+	bool AlterQuantity(int32 qty_change, bool notify=true);
+	bool SetQuantity(uint32 qty_new, bool notify=true);
 	bool ChangeSingleton(bool singleton, bool notify=true);
-	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = NULL);
-	double GetRemainingCapacity( EVEItemFlags flag) const;
 	
-	InventoryItem *Split(sint32 qty_to_take, bool notify=true);
-	//consumes ref!
-	bool Merge(InventoryItem *to_merge, sint32 qty=0, bool notify=true);
+	/*
+     *   Helper routines:
+     */
+	InventoryItem *Split(int32 qty_to_take, bool notify=true);
+	bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
 	
 	//do we want to impose recursive const?
+	bool Contains(InventoryItem *item, bool recursive=false) const;
 	InventoryItem *FindFirstByFlag(EVEItemFlags flag, bool newref = false);
 	InventoryItem *GetByID(uint32 id, bool newref = false);
 	uint32 FindByFlag(EVEItemFlags flag, std::vector<InventoryItem *> &items, bool newref = false);
-	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref = false);
 	uint32 FindByFlag(EVEItemFlags flag, std::vector<const InventoryItem *> &items, bool newref = false) const;
+	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref = false);
 	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<const InventoryItem *> &items, bool newref = false) const;
+	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref = false);
 	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<const InventoryItem *> &items, bool newref = false) const;
-	
-	//skill stuff
+	double GetRemainingCapacity( EVEItemFlags flag) const;
+	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = NULL);
+
+	void PutOnline();
+	void PutOffline();
 	void TrainSkill(InventoryItem *skill);	//call on the character object.
-	
+
 	//spawn a new item with the specified information, creating it in the DB as well.
 	InventoryItem *SpawnSingleton(
 		uint32 typeID,
@@ -166,7 +163,6 @@ public:
 	uint32				groupID() const { return(m_groupID); }
 	EVEItemCategories	categoryID() const { return(m_categoryID); }
 
-	
 	/*
      * Attribute access:
      */
@@ -219,8 +215,7 @@ public:
 	static bool IsPersistent(Attr attr);
 	static bool IsIntAttr(Attr attr);
 	static bool IsDoubleAttr(Attr attr);
-	
-	
+
 protected:
 	// our item data:
 	const uint32	m_itemID;
@@ -246,14 +241,6 @@ protected:
 	bool Populate(Rsp_CommonGetInfo_Entry &into) const;
 	void SetOnline(bool newval);
 
-	/*
-     * Internal state:
-     */
-	//these are currently copies of things from our factory, 
-	// we could just get them from there...
-	InventoryDB *const m_db;		//we do not own this
-	EntityList *const m_entities;	//we do not own this.
-	
 	//attribute storage:
 	std::map<Attr, int> m_int_attributes;
 	std::map<Attr, double> m_double_attributes;
@@ -261,7 +248,7 @@ protected:
 	void SaveAttribute_double(Attr attr) const;
 	
 	bool m_inDB;	//true if this item is stored in the DB as well.
-	bool m_staticLoaded;
+	bool m_staticLoaded;	//true if static type attributes have been loaded
 	bool m_attributesLoaded;	//have persistent attributes from the DB been loaded?
 	bool m_contentsLoaded;
 	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.

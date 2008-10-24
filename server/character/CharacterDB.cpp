@@ -15,17 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-#include "CharacterDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "../common/PyRep.h"
-#include "../Client.h"
-#include "../common/EVEUtils.h"
-#include "../inventory/InventoryItem.h"
-#include "../inventory/ItemFactory.h"
+#include "EvemuPCH.h"
 
 CharacterDB::CharacterDB(DBcore *db)
 : ServiceDB(db)
@@ -89,7 +79,7 @@ PyRepObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 	
 	if(!m_db->RunQuery(res,
 		"SELECT "
-		" bloodlineID,gender,bounty,character_.corporationID,title,startDateTime,"
+		" characterName AS shortName,bloodlineID,gender,bounty,character_.corporationID,allianceID,title,startDateTime,createDateTime,"
 		" securityRating,character_.balance,character_.stationID,solarSystemID,constellationID,regionID,"
 		" petitionMessage,logonMinutes,tickerName"
 		" FROM character_ "
@@ -103,19 +93,18 @@ PyRepObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 	return(DBResultToRowset(res));
 }
 
-//if the value is not 999, return it, otherwise, return NULL
-static std::string _FoN(double v) {
-	if(v == 999)
-		return("NULL");
+#define _VoN(v, capp) \
+	(capp.IsNull_##v() ? "NULL" : _ToStr(capp.Get_##v()).c_str())
+
+static std::string _ToStr(uint32 v) {
 	char buf[32];
-	snprintf(buf, 32, "%.13f", v);
+	snprintf(buf, 32, "%u", v);
 	return(buf);
 }
-static std::string _IoN(uint32 v) {
-	if(v == 999999)
-		return("NULL");
+
+static std::string _ToStr(double v) {
 	char buf[32];
-	snprintf(buf, 32, "%lu", v);
+	snprintf(buf, 32, "%.13f", v);
 	return(buf);
 }
 
@@ -164,7 +153,7 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, cons
 	m_db->DoEscapeString(titleEsc, data.title);
 	std::string descEsc;
 	m_db->DoEscapeString(descEsc, data.description);
-	
+
 	if(!m_db->RunQuery(err,
 	"INSERT INTO character_ ("
 	"	characterID,characterName,accountID,title,description,typeID,"
@@ -172,7 +161,7 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, cons
 	"	bounty,balance,securityRating,petitionMessage,logonMinutes,"
 	"	corporationID,corporationDateTime,"
 	"	stationID,solarSystemID,constellationID,regionID,"
-	"	raceID,bloodlineID,gender,"
+	"	raceID,bloodlineID,ancestryID,careerID,schoolID,careerSpecialityID,gender,"
 	"	accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,"
 	"	hairID,lipstickID,makeupID,skinID,backgroundID,lightID,"
 	"	headRotation1,headRotation2,headRotation3,"
@@ -188,7 +177,7 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, cons
 	"	%.13f, %.13f, %.13f, '', %lu,"
 	"	%ld,%lld,"		//corp
 	"	%ld,%ld,%ld,%ld,"	//loc
-	"	%lu,%lu,%lu,"
+	"	%lu,%lu,%lu,%lu,%lu,%lu,%lu,"
 	"	%s,%s,%ld,%s,%ld,%ld,"
 	"	%ld,%s,%s,%ld,%ld,%ld,"
 	"	%.13f,%.13f,%.13f,"	//head
@@ -204,28 +193,21 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, cons
 		data.bounty,data.balance,data.securityRating,data.logonMinutes,
 		data.corporationID, data.corporationDateTime,
 		data.stationID, data.solarSystemID, data.constellationID, data.regionID,
-		data.raceID, data.bloodlineID, data.genderID,
-		_IoN(app.accessoryID).c_str(),_IoN(app.beardID).c_str(),app.costumeID,_IoN(app.decoID).c_str(),app.eyebrowsID,app.eyesID,
-		app.hairID,_IoN(app.lipstickID).c_str(),_IoN(app.makeupID).c_str(),app.skinID,app.backgroundID,app.lightID,
+		data.raceID, data.bloodlineID, data.ancestryID, data.careerID, data.schoolID, data.careerSpecialityID, data.genderID,
+		_VoN(accessoryID,app),_VoN(beardID,app),app.costumeID,_VoN(decoID,app),app.eyebrowsID,app.eyesID,
+		app.hairID,_VoN(lipstickID,app),_VoN(makeupID,app),app.skinID,app.backgroundID,app.lightID,
 		app.headRotation1, app.headRotation2, app.headRotation3, 
 		app.eyeRotation1, app.eyeRotation2, app.eyeRotation3,
 		app.camPos1, app.camPos2, app.camPos3,
-		_FoN(app.morph1e).c_str(), _FoN(app.morph1n).c_str(), _FoN(app.morph1s).c_str(), _FoN(app.morph1w).c_str(),
-		_FoN(app.morph2e).c_str(), _FoN(app.morph2n).c_str(), _FoN(app.morph2s).c_str(), _FoN(app.morph2w).c_str(),
-		_FoN(app.morph3e).c_str(), _FoN(app.morph3n).c_str(), _FoN(app.morph3s).c_str(), _FoN(app.morph3w).c_str(),
-		_FoN(app.morph4e).c_str(), _FoN(app.morph4n).c_str(), _FoN(app.morph4s).c_str(), _FoN(app.morph4w).c_str()
+		_VoN(morph1e,app), _VoN(morph1n,app), _VoN(morph1s,app), _VoN(morph1w,app),
+		_VoN(morph2e,app), _VoN(morph2n,app), _VoN(morph2s,app), _VoN(morph2w,app),
+		_VoN(morph3e,app), _VoN(morph3n,app), _VoN(morph3s,app), _VoN(morph3w,app),
+		_VoN(morph4e,app), _VoN(morph4n,app), _VoN(morph4s,app), _VoN(morph4w,app)
 	)) {
 		codelog(SERVICE__ERROR, "Failed to inser new char: %s", err.c_str());
 		char_item->Delete();
 		return(NULL);
 	}
-	
-	
-
-#ifndef WIN32
-#warning hacking a channel in for new chars:
-#endif
-	m_db->RunQuery(err, "INSERT INTO channels VALUES(%lu, %lu, NULL, NULL, NULL, 1, NULL, 1, 100, 0, 15, 1, 0)", char_item->itemID(), char_item->itemID());
 
 	// Hack in the first employment record
 	// TODO: Eventually, this should go under corp stuff...
@@ -239,7 +221,7 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, cons
 	}
 
 	// And one more member to the corporation
-	if (!m_db->RunQuery(
+	if (!m_db->RunQuery(err,
 		" UPDATE "
 		" corporation "
 		" SET memberCount = memberCount + 1 "
@@ -272,9 +254,8 @@ uint32 CharacterDB::GetRaceFromBloodline(uint32 bloodline) {
 }*/
 
 PyRepObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
-
 	DBQueryResult res;
-	
+
 	if(!m_db->RunQuery(res,
 		"SELECT "
 		" character_.typeID,"
@@ -282,6 +263,10 @@ PyRepObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
         /*" chrBloodlines.raceID,"*/
 		" character_.raceID,"
 		" character_.bloodlineID,"
+		" character_.ancestryID,"
+		" character_.careerID,"
+		" character_.schoolID,"
+		" character_.careerSpecialityID,"
 		" character_.characterName,"
 		" 0 as age,"	//hack
 		" character_.createDateTime,"
@@ -357,43 +342,47 @@ bool CharacterDB::LoadCharacterAppearance(uint32 characterID, CharacterAppearanc
 	}
 
 	uint32 i = 0;
-	into.accessoryID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.beardID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.costumeID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.decoID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.eyebrowsID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.eyesID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.hairID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.lipstickID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.makeupID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.skinID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.backgroundID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.lightID = row.IsNull(i)?999999:row.GetUInt(i); i++;
-	into.headRotation1 = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.headRotation2 = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.headRotation3 = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.eyeRotation1 = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.eyeRotation2 = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.eyeRotation3 = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.camPos1 = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.camPos2 = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.camPos3 = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph1e = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph1n = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph1s = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph1w = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph2e = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph2n = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph2s = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph2w = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph3e = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph3n = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph3s = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph3w = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph4e = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph4n = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph4s = row.IsNull(i)?999:row.GetDouble(i); i++;
-	into.morph4w = row.IsNull(i)?999:row.GetDouble(i); i++;
+	row.IsNull(i)?into.Clear_accessoryID():into.Set_accessoryID(row.GetUInt(i)); i++;
+	row.IsNull(i)?into.Clear_beardID():into.Set_beardID(row.GetUInt(i)); i++;
+	into.costumeID = row.GetUInt(i); i++;
+	row.IsNull(i)?into.Clear_decoID():into.Set_decoID(row.GetUInt(i)); i++;
+	into.eyebrowsID = row.GetUInt(i); i++;
+	into.eyesID = row.GetUInt(i); i++;
+	into.hairID = row.GetUInt(i); i++;
+	row.IsNull(i)?into.Clear_lipstickID():into.Set_lipstickID(row.GetUInt(i)); i++;
+	row.IsNull(i)?into.Clear_makeupID():into.Set_makeupID(row.GetUInt(i)); i++;
+	into.skinID = row.GetUInt(i); i++;
+	into.backgroundID = row.GetUInt(i); i++;
+	into.lightID = row.GetUInt(i); i++;
+
+	//none of these may be NULL
+	into.headRotation1 = row.GetDouble(i); i++;
+	into.headRotation2 = row.GetDouble(i); i++;
+	into.headRotation3 = row.GetDouble(i); i++;
+	into.eyeRotation1 = row.GetDouble(i); i++;
+	into.eyeRotation2 = row.GetDouble(i); i++;
+	into.eyeRotation3 = row.GetDouble(i); i++;
+	into.camPos1 = row.GetDouble(i); i++;
+	into.camPos2 = row.GetDouble(i); i++;
+	into.camPos3 = row.GetDouble(i); i++;
+
+	//all of these may be NULL
+	row.IsNull(i)?into.Clear_morph1e():into.Set_morph1e(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph1n():into.Set_morph1n(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph1s():into.Set_morph1s(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph1w():into.Set_morph1w(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph2e():into.Set_morph2e(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph2n():into.Set_morph2n(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph2s():into.Set_morph2s(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph2w():into.Set_morph2w(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph3e():into.Set_morph3e(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph3n():into.Set_morph3n(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph3s():into.Set_morph3s(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph3w():into.Set_morph3w(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph4e():into.Set_morph4e(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph4n():into.Set_morph4n(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph4s():into.Set_morph4s(row.GetDouble(i)); i++;
+	row.IsNull(i)?into.Clear_morph4w():into.Set_morph4w(row.GetDouble(i)); i++;
 	
 	return(true);
 }
@@ -471,16 +460,9 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	DBQueryResult res;
 	DBResultRow row;
 	
-	//from now on, if the query fails, keep going.
-	if(!m_db->RunQuery(err,
-		"DELETE FROM channels WHERE channelID=%lu OR ownerID=%lu", characterID, characterID))
-	{
-		codelog(SERVICE__ERROR, "Error in query (not stopping): %s", err.c_str());
-	}
-
 	//we delete mail sent FROM this player too, otherwise intersting things will happen when it is read again.
 	if (!m_db->RunQuery(res,
-		"SELECT messageID FROM evemail WHERE channelID=%lu OR senderID=%lu", characterID, characterID))
+		"SELECT messageID FROM eveMail WHERE channelID=%lu OR senderID=%lu", characterID, characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in mail query (not stopping): %s", res.error.c_str());
 	} else {
@@ -488,14 +470,14 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 		while (res.GetRow(row)) {
 			found = true;
 			if (!m_db->RunQuery(err, 
-				"DELETE FROM evemailDetails WHERE messageID=%lu", row.GetUInt(0)))
+				"DELETE FROM eveMailDetails WHERE messageID=%lu", row.GetUInt(0)))
 			{
 				codelog(SERVICE__ERROR, "Error in query (not stopping): %s", err.c_str());
 			}
 		}
 		if(found) {
 			if(!m_db->RunQuery(err,
-				"DELETE FROM evemail WHERE channelID=%lu OR senderID=%lu", characterID, characterID))
+				"DELETE FROM eveMail WHERE channelID=%lu OR senderID=%lu", characterID, characterID))
 			{
 				codelog(SERVICE__ERROR, "Error in query (not stopping): %s", err.c_str());
 			}
@@ -653,12 +635,14 @@ bool CharacterDB::GetAttributesFromAncestry(CharacterData & cdata) {
 /**
   * @todo Here should come a call to Corp??::CharacterJoinToCorp or what the heck... for now we only put it there
   */
-bool CharacterDB::GetLocationCorporationFromSchool(CharacterData & cdata, double & x, double & y, double & z) {
+bool CharacterDB::GetLocationCorporationByCareer(CharacterData & cdata, double & x, double & y, double & z) {
 	// Getting corporation id from school's info
 	DBQueryResult res;
 	if (!m_db->RunQuery(res, 
 	 "SELECT "
 	 "	chrSchools.corporationID, "
+	 "  chrSchools.schoolID,"
+	 "  corporation.allianceID, "
 	 "	corporation.stationID, "
 	 "	staStations.solarSystemID, "
 	 "	staStations.constellationID, "
@@ -671,7 +655,9 @@ bool CharacterDB::GetLocationCorporationFromSchool(CharacterData & cdata, double
 	 "		ON corporation.stationID=staStations.stationID"
 	 "	LEFT JOIN chrSchools"
 	 "		ON corporation.corporationID=chrSchools.corporationID"
-	 " WHERE schoolID = %lu ", cdata.schoolID))
+	 "	LEFT JOIN chrCareers"
+	 "		ON chrSchools.careerID=chrCareers.careerID"
+	 " WHERE chrCareers.careerID = %lu", cdata.careerID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return (false);
@@ -679,177 +665,127 @@ bool CharacterDB::GetLocationCorporationFromSchool(CharacterData & cdata, double
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Failed to find school %lu", cdata.schoolID);
+		codelog(SERVICE__ERROR, "Failed to find career %lu", cdata.careerID);
 		return(false);
 	}
 	
 	cdata.corporationID = row.GetUInt(0);
-	cdata.stationID = row.GetUInt(1);
-	cdata.solarSystemID = row.GetUInt(2);
-	cdata.constellationID = row.GetUInt(3);
-	cdata.regionID = row.GetUInt(4);
+	cdata.schoolID = row.GetUInt(1);
+	cdata.allianceID = row.GetUInt(2);
+	cdata.stationID = row.GetUInt(3);
+	cdata.solarSystemID = row.GetUInt(4);
+	cdata.constellationID = row.GetUInt(5);
+	cdata.regionID = row.GetUInt(6);
 	
-	x = row.GetDouble(5);
-	y = row.GetDouble(6);
-	z = row.GetDouble(7);
+	x = row.GetDouble(7);
+	y = row.GetDouble(8);
+	z = row.GetDouble(9);
 	
 	return (true);
 }
 
-bool CharacterDB::GetSkillsFromBloodline(uint32 bloodlineID, std::vector<uint32> &into, uint32 & shipTypeID) {
+bool CharacterDB::GetShipTypeByBloodline(uint32 bloodlineID, uint32 &shipTypeID) {
 	DBQueryResult res;
 
-	if (!m_db->RunQuery(res,
-		" SELECT "
-		"        skillTypeID1, skillTypeID2, shipTypeID, raceID "
-		" FROM chrBloodlines "
-		" WHERE bloodlineID = %lu ", bloodlineID))
+	if(!m_db->RunQuery(res,
+		"SELECT shipTypeID"
+		" FROM chrBloodlines"
+		" WHERE bloodlineID = %lu",
+		bloodlineID))
 	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return (false);
+		_log(DATABASE__ERROR, "Failed to query ship type for bloodline %lu: %s.", bloodlineID, res.error.c_str());
+		return(false);
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Failed to find bloodline information for bloodline %lu", bloodlineID);
+		_log(DATABASE__ERROR, "Bloodline %lu not found.", bloodlineID);
 		return(false);
 	}
 
-	if (!row.IsNull(0))
-		into.push_back(row.GetUInt(0));
-	if (!row.IsNull(1))
-		into.push_back(row.GetUInt(1));
+	shipTypeID = row.GetUInt(0);
 
-	shipTypeID = row.GetUInt(2);
-	uint32 raceID = row.GetUInt(3);
-
-	if (!m_db->RunQuery(res,
-		" SELECT "
-		"        skillTypeID1 "
-		" FROM chrRaces "
-		" WHERE raceID = %ld ", raceID))
-	{
-		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return false;
-	}
-
-	if(!res.GetRow(row) ) {
-		codelog(SERVICE__ERROR, "Failed to find race information for race %lu", raceID);
-		return(false);
-	}
-
-	if (!row.IsNull(0))
-		into.push_back(row.GetUInt(0));
-	return (true);
+	return(true);
 }
 
 
-bool CharacterDB::GetSkillsFromAncestry(uint32 ancestryID, std::vector<uint32> &into) {
+bool CharacterDB::GetSkillsByRace(uint32 raceID, std::map<uint32, uint32> &into) {
 	DBQueryResult res;
-	DBResultRow row;
 
 	if (!m_db->RunQuery(res,
-		" SELECT "
-		"        skillTypeID1, skillTypeID2 "
-		" FROM chrAncestries "
-		" WHERE ancestryID = %ld ", ancestryID))
+		"SELECT "
+		"        skillTypeID, levels"
+		" FROM chrRaceSkills "
+		" WHERE raceID = %lu ", raceID))
 	{
 		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
 	}
 
-	if(!res.GetRow(row) ) {
-		codelog(SERVICE__ERROR, "Failed to find ancestry information for ancestry %lu", ancestryID);
-		return(false);
-	}
-
-	if (!row.IsNull(0))
-		into.push_back(row.GetUInt(0));
-	if (!row.IsNull(1))
-		into.push_back(row.GetUInt(1));
-	
-	return true;
-}
-
-bool CharacterDB::GetSkillsFromDepartment(uint32 departmentID, std::vector<uint32> &into) {
-	DBQueryResult res;
 	DBResultRow row;
-
-	if (!m_db->RunQuery(res,
-		" SELECT "
-		"        skillTypeID1, skillTypeID2, skillTypeID3 "
-		" FROM chrDepartments "
-		" WHERE departmentID = %ld ", departmentID))
-	{
-		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return false;
+	while(res.GetRow(row)) {
+		if(into.find(row.GetUInt(0)) == into.end())
+			into[row.GetUInt(0)] = row.GetUInt(1);
+		else
+			into[row.GetUInt(0)] += row.GetUInt(1);
+		//check to avoid more than 5 levels by skill
+		if(into[row.GetUInt(0)] > 5)
+			into[row.GetUInt(0)] = 5;
 	}
-	
-	if(!res.GetRow(row) ) {
-		codelog(SERVICE__ERROR, "Failed to find department information for departmentID %lu", departmentID);
-		return(false);
-	}
-
-	if (!row.IsNull(0))
-		into.push_back(row.GetUInt(0));
-	if (!row.IsNull(1))
-		into.push_back(row.GetUInt(1));
-	if (!row.IsNull(2))
-		into.push_back(row.GetUInt(2));
 
 	return true;
 }
 
-bool CharacterDB::GetSkillsFromField(uint32 fieldID, std::vector<uint32> &into) {
+bool CharacterDB::GetSkillsByCareer(uint32 careerID, std::map<uint32, uint32> &into) {
 	DBQueryResult res;
-	DBResultRow row;
 
 	if (!m_db->RunQuery(res,
-		" SELECT "
-		"        skillTypeID1, skillTypeID2 "
-		" FROM chrFields "
-		" WHERE fieldID = %ld ", fieldID))
+		"SELECT "
+		"        skillTypeID, levels"
+		" FROM chrCareerSkills"
+		" WHERE careerID = %lu", careerID))
 	{
 		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
 	}
 	
-	if(!res.GetRow(row) ) {
-		codelog(SERVICE__ERROR, "Failed to find field information for fieldID %lu", fieldID);
-		return(false);
+	DBResultRow row;
+	while(res.GetRow(row)) {
+		if(into.find(row.GetUInt(0)) == into.end())
+			into[row.GetUInt(0)] = row.GetUInt(1);
+		else
+			into[row.GetUInt(0)] += row.GetUInt(1);
+		//check to avoid more than 5 levels by skill
+		if(into[row.GetUInt(0)] > 5)
+			into[row.GetUInt(0)] = 5;
 	}
 
-	if (!row.IsNull(0))
-		into.push_back(row.GetUInt(0));
-	if (!row.IsNull(1))
-		into.push_back(row.GetUInt(1));
-	
 	return true;
 }
 
-bool CharacterDB::GetSkillsFromSpeciality(uint32 specialityID, std::vector<uint32> &into) {
+bool CharacterDB::GetSkillsByCareerSpeciality(uint32 careerSpecialityID, std::map<uint32, uint32> &into) {
 	DBQueryResult res;
-	DBResultRow row;
 
 	if (!m_db->RunQuery(res,
-		" SELECT "
-		"        skillTypeID1, skillTypeID2 "
-		" FROM chrSpecialities "
-		" WHERE specialityID = %ld ", specialityID))
+		"SELECT "
+		"        skillTypeID, levels"
+		" FROM chrCareerSpecialitySkills"
+		" WHERE specialityID = %lu", careerSpecialityID))
 	{
 		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
 	}
 	
-	if(!res.GetRow(row) ) {
-		codelog(SERVICE__ERROR, "Failed to find speciality information for specialityID %lu", specialityID);
-		return(false);
+	DBResultRow row;
+	while(res.GetRow(row)) {
+		if(into.find(row.GetUInt(0)) == into.end())
+			into[row.GetUInt(0)] = row.GetUInt(1);
+		else
+			into[row.GetUInt(0)] += row.GetUInt(1);
+		//check to avoid more than 5 levels by skill
+		if(into[row.GetUInt(0)] > 5)
+			into[row.GetUInt(0)] = 5;
 	}
-
-	if (!row.IsNull(0))
-		into.push_back(row.GetUInt(0));
-	if (!row.IsNull(1))
-		into.push_back(row.GetUInt(1));
 
 	return true;
 }

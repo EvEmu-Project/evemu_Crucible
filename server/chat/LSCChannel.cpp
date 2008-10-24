@@ -15,14 +15,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
-#include "LSCChannel.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../packets/LSCPkts.h"
-#include "LSCService.h"
-#include "../Client.h"
 
 PyRep *LSCChannelChar::Encode() {
 	ChannelJoinChannelCharsLine line;

@@ -39,9 +39,12 @@ protected:
 	PyCallable_DECL_CALL(SelectCharacterID)
 	PyCallable_DECL_CALL(GetOwnerNoteLabels)
 	PyCallable_DECL_CALL(GetCharCreationInfo)
+	PyCallable_DECL_CALL(GetCharNewExtraCreationInfo)
 	PyCallable_DECL_CALL(GetAppearanceInfo)
 	PyCallable_DECL_CALL(ValidateName)
+	PyCallable_DECL_CALL(ValidateNameEx)
 	PyCallable_DECL_CALL(CreateCharacter)
+	PyCallable_DECL_CALL(Ping)
 	PyCallable_DECL_CALL(PrepareCharacterForDelete)
 	PyCallable_DECL_CALL(CancelCharacterDeletePrepare)
 	PyCallable_DECL_CALL(AddOwnerNote)
@@ -50,6 +53,7 @@ protected:
 	PyCallable_DECL_CALL(GetHomeStation)
 	PyCallable_DECL_CALL(GetCloneTypeID)
 	PyCallable_DECL_CALL(GetCharacterAppearanceList)
+	PyCallable_DECL_CALL(GetRecentShipKillsAndLosses)
 
 	PyCallable_DECL_CALL(GetCharacterDescription)//mandela
 	PyCallable_DECL_CALL(SetCharacterDescription)//mandela
@@ -57,7 +61,7 @@ protected:
 	PyCallable_DECL_CALL(GetNote) // LSMoura
 	PyCallable_DECL_CALL(SetNote) // LSMoura
 
-	int32 GetSkillPointsForSkillLevel(InventoryItem *i, int level); // Johnsus
+	uint32 GetSkillPointsForSkillLevel(InventoryItem *i, uint8 level); // Johnsus
 };
 
 

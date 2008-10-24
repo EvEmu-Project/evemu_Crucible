@@ -16,15 +16,8 @@
 */
 
 
+#include "EvemuPCH.h"
 
-#include "LookupService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../packets/LSCPkts.h"
 
 PyCallable_Make_InnerDispatcher(LookupService)
 
@@ -75,6 +68,7 @@ m_db(db)
 	_SetCallDispatcher(m_dispatch);
 
 	PyCallable_REG_CALL(LookupService, LookupCharacters)
+	PyCallable_REG_CALL(LookupService, LookupPlayerCharacters)
 	PyCallable_REG_CALL(LookupService, LookupCorporations)
 	PyCallable_REG_CALL(LookupService, LookupFactions)
 	PyCallable_REG_CALL(LookupService, LookupCorporationTickers)
@@ -97,7 +91,7 @@ PyBoundObject *LookupService::_CreateBoundObject(Client *c, PyRep *bind_args) {
 }*/
 
 
-PyCallResult LookupService::Handle_LookupCharacters(PyCallArgs &call) {
+PyResult LookupService::Handle_LookupCharacters(PyCallArgs &call) {
 	Call_LookupStringInt args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Wrong incoming param in LookupCharacters");
@@ -106,7 +100,16 @@ PyCallResult LookupService::Handle_LookupCharacters(PyCallArgs &call) {
 	
 	return m_db.LookupChars(args.searchString.c_str(), args.searchOption);
 }
-PyCallResult LookupService::Handle_LookupCorporations(PyCallArgs &call) {
+PyResult LookupService::Handle_LookupPlayerCharacters(PyCallArgs &call) {
+	Call_LookupStringInt args;
+	if (!args.Decode(&call.tuple)) {
+		codelog(SERVICE__ERROR, "Wrong incoming param in LookupPlayerCharacters");
+		return false;
+	}
+
+	return m_db.LookupPlayerChars(args.searchString.c_str(), args.searchOption);
+}
+PyResult LookupService::Handle_LookupCorporations(PyCallArgs &call) {
 	Call_LookupStringInt args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");
@@ -115,7 +118,7 @@ PyCallResult LookupService::Handle_LookupCorporations(PyCallArgs &call) {
 	
 	return m_db.LookupCorporations(args.searchString);
 }
-PyCallResult LookupService::Handle_LookupFactions(PyCallArgs &call) {
+PyResult LookupService::Handle_LookupFactions(PyCallArgs &call) {
 	Call_LookupStringInt args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");
@@ -124,7 +127,7 @@ PyCallResult LookupService::Handle_LookupFactions(PyCallArgs &call) {
 	
 	return m_db.LookupFactions(args.searchString);
 }
-PyCallResult LookupService::Handle_LookupCorporationTickers(PyCallArgs &call) {
+PyResult LookupService::Handle_LookupCorporationTickers(PyCallArgs &call) {
 	Call_LookupStringInt args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");
@@ -133,7 +136,7 @@ PyCallResult LookupService::Handle_LookupCorporationTickers(PyCallArgs &call) {
 	
 	return m_db.LookupCorporationTickers(args.searchString);
 }
-PyCallResult LookupService::Handle_LookupStations(PyCallArgs &call) {
+PyResult LookupService::Handle_LookupStations(PyCallArgs &call) {
 	Call_LookupStringInt args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");
@@ -143,7 +146,7 @@ PyCallResult LookupService::Handle_LookupStations(PyCallArgs &call) {
 	return m_db.LookupStations(args.searchString);
 }
 // Asteroids, constellations and regions should be injected into the entity table...
-PyCallResult LookupService::Handle_LookupLocationsByGroup(PyCallArgs &call) {
+PyResult LookupService::Handle_LookupLocationsByGroup(PyCallArgs &call) {
 	Call_LookupIntString args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");

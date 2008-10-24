@@ -15,62 +15,111 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-
-#include "../common/common.h"
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "Client.h"
-#include "../common/PyPacket.h"
-#include "../common/PyRep.h"
-#include "../common/EVEPresentation.h"
-#include "../common/logsys.h"
-#include "../common/EVEMarshal.h"
-#include "../common/packet_functions.h"
-#include "../common/Base64.h"
-#include "../common/misc.h"
-#include "../common/EVEUnmarshal.h"
-#include "../common/EVEVersion.h"
-#include "../common/PyDumpVisitor.h"
-#include "../common/DestinyStructs.h"
-#include "../common/EVEUtils.h"
-#include "../common/MiscFunctions.h"
-#include "../common/sigexcept/sigexcept.h"
-
-#include "../packets/AccountPkts.h"
-#include "../packets/General.h"
-#include "../packets/Inventory.h"
-#include "../packets/Wallet.h"
-#include "../packets/Character.h"
-#include "../packets/DogmaIM.h"
-#include "../packets/Destiny.h"
-
-#include "PyService.h"
-#include "PyServiceMgr.h"
-#include "ServiceDB.h"
-#include "EntityList.h"
-#include "chat/LSCChannel.h"
-#include "chat/LSCService.h"
-#include "inventory/InventoryItem.h"
-#include "inventory/ItemFactory.h"
-#include "cache/ObjCacheService.h"
-#include "ship/DestinyManager.h"
-#include "system/SystemManager.h"
-#include "system/Damage.h"
-#include "NPC.h"
+#include "EvemuPCH.h"
 
 static const uint32 PING_INTERVAL_US = 60000;
-static const uint64 HackFixedClientID = 130293001608LL;	//should prolly generate these for each client some day...
 
-Client::Client(PyServiceMgr *services, EVEPresentation **n)
+CharacterAppearance::CharacterAppearance() {
+	//NULL all dynamic fields
+#define NULL_FIELD(v) \
+	v = NULL;
+
+#define INT_DYN(v) NULL_FIELD(v)
+#define REAL_DYN(v) NULL_FIELD(v)
+#include "character/CharacterAppearance_fields.h"
+
+#undef NULL_FIELD
+}
+
+CharacterAppearance::CharacterAppearance(const CharacterAppearance &from) {
+	//just do deep copy
+	*this = from;
+}
+
+CharacterAppearance::~CharacterAppearance() {
+	//delete all dynamic fields
+#define CLEAR_FIELD(v) \
+	Clear_##v();
+
+#define INT_DYN(v) CLEAR_FIELD(v)
+#define REAL_DYN(v) CLEAR_FIELD(v)
+#include "character/CharacterAppearance_fields.h"
+
+#undef CLEAR_FIELD
+}
+
+void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
+	//builds our contents from strdict
+	std::map<std::string, PyRep *>::const_iterator itr;
+
+	_log(CLIENT__MESSAGE, "  Appearance Data:");
+
+#define INT(v) \
+	itr = from.find(#v); \
+	if(itr != from.end()) { \
+		if(!itr->second->CheckType(PyRep::Integer)) \
+			_log(CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString()); \
+		else { \
+			v = ((PyRepInteger *)itr->second)->value; \
+			_log(CLIENT__MESSAGE, "     %s: %lu", itr->first.c_str(), v); \
+		} \
+	}
+#define INT_DYN(v) \
+	itr = from.find(#v); \
+	if(itr != from.end()) { \
+		if(!itr->second->CheckType(PyRep::Integer)) \
+			_log(CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString()); \
+		else { \
+			Set_##v(((PyRepInteger *)itr->second)->value); \
+			_log(CLIENT__MESSAGE, "     %s: %lu", itr->first.c_str(), Get_##v()); \
+		} \
+	}
+#define REAL(v) \
+	itr = from.find(#v); \
+	if(itr != from.end()) { \
+		if(!itr->second->CheckType(PyRep::Real)) \
+			_log(CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString()); \
+		else { \
+			v = ((PyRepReal *)itr->second)->value; \
+			_log(CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), v); \
+		} \
+	}
+#define REAL_DYN(v) \
+	itr = from.find(#v); \
+	if(itr != from.end()) { \
+		if(!itr->second->CheckType(PyRep::Real)) \
+			_log(CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString()); \
+		else { \
+			Set_##v(((PyRepReal *)itr->second)->value); \
+			_log(CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), Get_##v()); \
+		} \
+	}
+#include "character/CharacterAppearance_fields.h"
+}
+
+void CharacterAppearance::operator=(const CharacterAppearance &from) {
+#define COPY(v) \
+	v = from.v;
+#define COPY_DYN(v) \
+	if(!from.IsNull_##v()) \
+		Set_##v(from.Get_##v());
+
+#define INT(v) COPY(v)
+#define INT_DYN(v) COPY_DYN(v)
+#define REAL(v) COPY(v)
+#define REAL_DYN(v) COPY_DYN(v)
+#include "character/CharacterAppearance_fields.h"
+
+#undef COPY
+#undef COPY_DYN
+}
+
+Client::Client(PyServiceMgr *services, EVETCPConnection **con)
 : DynamicSystemEntity(NULL),
   modules(this),
   m_ship(NULL),
   m_services(services),
-  m_net(*n),
+  m_net(*con, this),
   m_pingTimer(PING_INTERVAL_US),
   m_accountID(0),
   m_role(1),
@@ -84,26 +133,27 @@ Client::Client(PyServiceMgr *services, EVEPresentation **n)
   m_nextNotifySequence(1)
 //  m_nextDestinyUpdate(46751)
 {
-	*n = NULL;
+	*con = NULL;
 
 	m_moveTimer.Disable();
 	m_pingTimer.Start();
-	//m_destinyTimer.Start();
 
 	m_char.name = "monkey";
 	m_char.charid = 444666;
-	m_char.bloodlineID = 1;
-	m_char.genderID = 0;
+	m_char.bloodlineID = 0;
+	m_char.genderID = 1;
 	m_char.ancestryID = 2;
-	m_char.schoolID = 3;
-	m_char.departmentID = 4;
-	m_char.fieldID = 5;
-	m_char.specialityID = 6;
-	m_char.Intelligence = 7;
-	m_char.Charisma = 8;
-	m_char.Perception = 9;
-	m_char.Memory = 10;
-	m_char.Willpower = 11;
+	m_char.careerID = 3;
+	m_char.schoolID = 4;
+	m_char.careerSpecialityID = 5;
+	m_char.Intelligence = 6;
+	m_char.Charisma = 7;
+	m_char.Perception = 8;
+	m_char.Memory = 9;
+	m_char.Willpower = 10;
+
+	//initialize connection
+	m_net.SendHandshake(m_services->entity_list->GetClientCount());
 }
 
 Client::~Client() {
@@ -134,33 +184,32 @@ Client::~Client() {
 	if(m_system != NULL)
 		m_system->RemoveClient(this);	//handles removing us from bubbles and sending RemoveBall events.
 	
-	delete m_net;
-	
 	m_ship->Release();
 	targets.DoDestruction();
 }
 
 void Client::QueuePacket(PyPacket *p) {
 	p->userid = m_accountID;
-	m_net->QueuePacket(p);
+	m_net.QueuePacket(p);
 }
 
 void Client::FastQueuePacket(PyPacket **p) {
-	m_net->FastQueuePacket(p);
+	m_net.FastQueuePacket(p);
 }
 
 bool Client::ProcessNet() {
-	TRY_SIGEXCEPT {
+	//TRY_SIGEXCEPT {
 		
-		if(!m_net->Connected())
+		if(!m_net.Connected())
 			return(false);
 		
 		if(m_pingTimer.Check()) {
+			_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
 			_SendPingRequest();
 		}
 		
 		PyPacket *p;
-		while((p = m_net->PopPacket())) {
+		while((p = m_net.PopPacket())) {
 			{
 				PyLogsysDump dumper(CLIENT__IN_ALL);
 				_log(CLIENT__IN_ALL, "Received packet:");
@@ -168,14 +217,14 @@ bool Client::ProcessNet() {
 			}
 	
 			switch(p->type) {
-			case AUTHENTICATION_REQ:
-				_ProcessLogin(p);
-				break;
 			case CALL_REQ:
 				_ProcessCallRequest(p);
 				break;
 			case NOTIFICATION:
 				_ProcessNotification(p);
+				break;
+			case PING_REQ:
+				_log(CLIENT__TRACE, "%s: Unhandled ping request.", GetName());
 				break;
 			case PING_RSP:
 				_log(CLIENT__TRACE, "%s: Received ping response.", GetName());
@@ -189,10 +238,10 @@ bool Client::ProcessNet() {
 		}
 	
 		return(true);
-	} CATCH_SIGEXCEPT(e) {
+	/*} CATCH_SIGEXCEPT(e) {
 		  _log(CLIENT__ERROR, "%s: Exception caught processing network packets\n%s", GetName(), e.stack_string().c_str());
 		  return(false);
-	}
+	}*/
 }
 
 void Client::Process() {
@@ -203,10 +252,6 @@ void Client::Process() {
 		switch(s) {
 		case msIdle:
 			_log(CLIENT__ERROR, "%s: Move timer expired when no move is pending.", GetName());
-			break;
-		//used to delay SetState update so they can init their ballpark
-		case msStateChange:
-			_ExecuteSetState();
 			break;
 		//used to delay stargate animation
 		case msJump:
@@ -344,81 +389,58 @@ void Client::ChannelLeft(LSCChannel *chan) {
 	m_channels.erase(chan);
 }
 
-void Client::SendHandshake() {
-	uint32 user_count = 17973;
-	m_net->SendHandshake(MachoNetVersion, user_count, EVEVersionNumber, EVEBuildVersion, EVEProjectVersion);
-}
+void Client::Login(CryptoChallengePacket *pack) {
+	_log(CLIENT__MESSAGE, "Login with %s", pack->user_name.c_str());
 
-void Client::_ProcessLogin(PyPacket *packet) {
-	AuthenticationReq req;
-	if(!req.Decode(&packet->payload)) {
-		_log(CLIENT__ERROR, "Failed to decode AuthenticationReq, rejecting.\n");
-		_SendLoginFailed(packet->source.callID);
+	if(!pack->user_password->CheckType(PyRep::PackedObject2)) {
+		_log(CLIENT__ERROR, "Failed to get password: user password is not PackedObject2.");
 		return;
 	}
-	//_log(CLIENT__MESSAGE, "Login with %s/%s", req.login.c_str(), req.password.c_str());
-	_log(CLIENT__MESSAGE, "Login with %s", req.login.c_str());
-	
-	if(!m_services->GetServiceDB()->DoLogin(req.login.c_str(), req.password.c_str(), m_accountID, m_role)) {
-		_log(CLIENT__MESSAGE, "Login rejected by DB");
-		_SendLoginFailed(packet->source.callID);
+	PyRepPackedObject2 *obj = (PyRepPackedObject2 *)pack->user_password;
+	//we can check type, should be "util.PasswordString"
+
+	Call_SingleStringArg pass;
+	if(!pass.Decode(&obj->args1)) {
+		_log(CLIENT__ERROR, "Failed to decode password.");
 		return;
+	}
+	
+	if(!m_services->GetServiceDB()->DoLogin(pack->user_name.c_str(), pass.arg.c_str(), m_accountID, m_role)) {
+		_log(CLIENT__MESSAGE, "%s: Login rejected by DB", pack->user_name.c_str());
+
+		PyRepPackedObject1 *e = new PyRepPackedObject1("exceptions.GPSTransportClosed");
+		e->args = new PyRepTuple(1);
+		e->args->items[0] = new PyRepString("LoginAuthFailed");
+
+		throw(PyException(e));
 	}
 	
 	// this is needed so if we exit before selecting a character, the account online flag would switch back to 0
 	m_char.charid = 0;
 	m_services->GetServiceDB()->SetAccountOnlineStatus(m_accountID, true);
 
-	session.Set_userType(23);	//TODO: what is this??
+	//send this before session change
+	CryptoHandshakeAck ack;
+	ack.connectionLogID = 1;	//TODO: what is this??
+	ack.jit = pack->user_languageid;
+	ack.userid = m_accountID;
+	ack.maxSessionTime = new PyRepNone;
+	ack.userType = 1;	//TODO: what is this??
+	ack.role = m_role;
+	ack.address = m_net.GetConnectedAddress();
+	ack.inDetention = new PyRepNone;
+	ack.user_clientid = m_accountID;
+
+	m_net._QueueRep(ack.Encode());
+
+	session.Set_userType(1);	//TODO: what is this??
 	session.Set_userid(m_accountID);
-	session.Set_address(m_net->GetConnectedAddress().c_str());
+	session.Set_address(m_net.GetConnectedAddress().c_str());
 	session.Set_role(m_role);
-	session.Set_languageID(req.languageID.c_str());
-	
-	_CheckSessionChange();	// get session change out before success reply
-	
-	_SendLoginSuccess(packet->source.callID);
+	session.Set_languageID(pack->user_languageid.c_str());
+
+	_CheckSessionChange();
 }
-
-void Client::_SendLoginSuccess(uint32 callid) {
-
-	AuthenticationRsp rsp;
-	rsp.project_version = EVEProjectVersion;
-	rsp.version_number = EVEVersionNumber;
-	rsp.build_version = EVEBuildVersion;
-
-	rsp.accountID = m_accountID;
-	rsp.role = m_role;
-	rsp.proxyNodeID = 10012002;
-
-	m_services->GetCache()->InsertCacheHints(
-		ObjCacheService::hLoginCachables, 
-		&rsp.cachables);
-
-	_BuildServiceListDict(&rsp.services);
-	
-
-	//build the packet:
-	PyPacket *p = new PyPacket();
-	p->type_string = "macho.AuthenticationRsp";
-	p->type = AUTHENTICATION_RSP;
-	
-	p->source.type = PyAddress::Any;
-
-	p->dest.type = PyAddress::Client;
-	p->dest.typeID = HackFixedClientID;
-	p->dest.callID = callid;
-
-	p->userid = m_accountID;
-	
-	p->payload = (PyRepTuple *) rsp.Encode();
-	
-	p->named_payload = new PyRepDict();
-	p->named_payload->add("channel", new PyRepString("authentication"));
-	
-	FastQueuePacket(&p);
-}
-
 
 void Client::_SendPingRequest() {
 	PyPacket *ping_req = new PyPacket();
@@ -432,7 +454,7 @@ void Client::_SendPingRequest() {
 	ping_req->source.callID = 0;
 	
 	ping_req->dest.type = PyAddress::Client;
-	ping_req->dest.typeID = HackFixedClientID;
+	ping_req->dest.typeID = GetAccountID();
 	ping_req->dest.callID = 0;
 	
 	ping_req->userid = m_accountID;
@@ -443,75 +465,6 @@ void Client::_SendPingRequest() {
 	
 	FastQueuePacket(&ping_req);
 }
-
-void Client::_BuildServiceListDict(PyRepDict *into) {
-	into->items[ new PyRepString("objectCaching") ] = new PyRepNone();
-	into->items[ new PyRepString("lookupSvc") ] = new PyRepNone();
-	into->items[ new PyRepString("beyonce") ] = new PyRepNone();
-	into->items[ new PyRepString("standing2") ] = new PyRepNone();
-	into->items[ new PyRepString("ram") ] = new PyRepNone();
-	into->items[ new PyRepString("lien") ] = new PyRepNone();
-	into->items[ new PyRepString("voucher") ] = new PyRepNone();
-	into->items[ new PyRepString("entity") ] = new PyRepNone();
-	into->items[ new PyRepString("keeper") ] = new PyRepString("solarsystem");
-	into->items[ new PyRepString("agentMgr") ] = new PyRepNone();
-	into->items[ new PyRepString("dogmaIM") ] = new PyRepNone();
-	into->items[ new PyRepString("machoNet") ] = new PyRepNone();
-	into->items[ new PyRepString("watchdog") ] = new PyRepNone();
-	into->items[ new PyRepString("ship") ] = new PyRepNone();
-	into->items[ new PyRepString("npcSvc") ] = new PyRepNone();
-	into->items[ new PyRepString("cacheSvc") ] = new PyRepNone();
-	into->items[ new PyRepString("market") ] = new PyRepNone();
-	into->items[ new PyRepString("dungeon") ] = new PyRepNone();
-	into->items[ new PyRepString("aggressionMgr") ] = new PyRepNone();
-	into->items[ new PyRepString("sessionMgr") ] = new PyRepNone();
-	into->items[ new PyRepString("LSC") ] = new PyRepString("location");
-	into->items[ new PyRepString("allianceRegistry") ] = new PyRepNone();
-	into->items[ new PyRepString("bookmark") ] = new PyRepString("location");
-	into->items[ new PyRepString("invbroker") ] = new PyRepNone();
-	into->items[ new PyRepString("character") ] = new PyRepNone();
-	into->items[ new PyRepString("factory") ] = new PyRepNone();
-	into->items[ new PyRepString("corpStationMgr") ] = new PyRepNone();
-	into->items[ new PyRepString("authentication") ] = new PyRepNone();
-	into->items[ new PyRepString("station") ] = new PyRepString("station");
-	into->items[ new PyRepString("slash") ] = new PyRepNone();
-	into->items[ new PyRepString("charmgr") ] = new PyRepNone();
-	into->items[ new PyRepString("stationSvc") ] = new PyRepNone();
-	into->items[ new PyRepString("gangsta") ] = new PyRepNone();
-	into->items[ new PyRepString("config") ] = new PyRepString("locationPreferred");
-	into->items[ new PyRepString("deadlineMgr") ] = new PyRepNone();
-	into->items[ new PyRepString("billingMgr") ] = new PyRepNone();
-	into->items[ new PyRepString("billMgr") ] = new PyRepNone();
-	into->items[ new PyRepString("map") ] = new PyRepNone();
-	into->items[ new PyRepString("posMgr") ] = new PyRepNone();
-	into->items[ new PyRepString("lootSvc") ] = new PyRepNone();
-	into->items[ new PyRepString("http") ] = new PyRepNone();
-	into->items[ new PyRepString("gagger") ] = new PyRepNone();
-	into->items[ new PyRepString("dataconfig") ] = new PyRepNone();
-	into->items[ new PyRepString("DB") ] = new PyRepNone();
-	into->items[ new PyRepString("i2") ] = new PyRepNone();
-	into->items[ new PyRepString("account") ] = new PyRepString("location");
-	into->items[ new PyRepString("telnet") ] = new PyRepNone();
-	into->items[ new PyRepString("alert") ] = new PyRepNone();
-	into->items[ new PyRepString("director") ] = new PyRepNone();
-	into->items[ new PyRepString("dogma") ] = new PyRepNone();
-	into->items[ new PyRepString("pathfinder") ] = new PyRepNone();
-	into->items[ new PyRepString("corporationSvc") ] = new PyRepNone();
-	into->items[ new PyRepString("clones") ] = new PyRepNone();
-	into->items[ new PyRepString("effectCompiler") ] = new PyRepNone();
-	into->items[ new PyRepString("corpmgr") ] = new PyRepNone();
-	into->items[ new PyRepString("warRegistry") ] = new PyRepNone();
-	into->items[ new PyRepString("corpRegistry") ] = new PyRepNone();
-	into->items[ new PyRepString("missionMgr") ] = new PyRepNone();
-	into->items[ new PyRepString("userSvc") ] = new PyRepNone();
-	into->items[ new PyRepString("counter") ] = new PyRepNone();
-	into->items[ new PyRepString("petitioner") ] = new PyRepNone();
-	into->items[ new PyRepString("debug") ] = new PyRepNone();
-	into->items[ new PyRepString("shipSvc") ] = new PyRepNone();
-	into->items[ new PyRepString("onlineStatus") ] = new PyRepNone();
-	into->items[ new PyRepString("skillMgr") ] = new PyRepNone();
-}
-
 
 void Client::_CheckSessionChange() {
 	if(!session.IsDirty())
@@ -526,7 +479,7 @@ void Client::_CheckSessionChange() {
 	_log(CLIENT__SESSION, "Session updated, sending session change");
 	scn.changes.Dump(CLIENT__SESSION, "  Changes: ");
 
-	//this is prolly not nescesary...
+	//this is prolly not necessary...
 	scn.nodesOfInterest.push_back(m_services->GetNodeID());
 
 	//build the packet:
@@ -539,7 +492,7 @@ void Client::_CheckSessionChange() {
 	p->source.callID = 0;
 
 	p->dest.type = PyAddress::Client;
-	p->dest.typeID = HackFixedClientID;
+	p->dest.typeID = GetAccountID();
 	p->dest.callID = 0;
 
 	p->userid = 0;
@@ -626,6 +579,8 @@ bool Client::EnterSystem() {
 
 		NotifyOnCharNowInStation n;
 		n.charID = GetCharacterID();
+		n.corpID = GetCorporationID();
+		n.allianceID = GetAllianceID();
 		PyRepTuple *tmp = n.Encode();
 		m_services->entity_list->Broadcast("OnCharNowInStation", "stationid", &tmp);
 	} else if(IsSolarSystem(GetLocationID())) {
@@ -637,12 +592,6 @@ bool Client::EnterSystem() {
 		m_destiny->SetPosition(Ship()->position(), false);
 		//for now, we always enter a system stopped.
 		m_destiny->Halt(false);
-		
-		//send add ball before we add ourself to the system, so we dont get it.
-		//m_destiny->SendAddBall();	//bubble manager does this now.
-		//m_destiny->SendJumpIn();
-		//delay the SetState update so they can initialize their ballpark
-		_postMove(msStateChange, 4000);
 	} /*else {	//just dont do anything extra and let them be where they are
 		_log(CLIENT__ERROR, "Char %s (%lu) is in a bad location %lu", GetName(), GetCharacterID(), GetLocationID());
 		SendErrorMsg("In a bad location %lu", GetLocationID());
@@ -766,35 +715,6 @@ void Client::BoardShip(InventoryItem *new_ship) {
 		m_destiny->SetShipCapabilities(m_ship);
 }
 
-void Client::_SendLoginFailed(uint32 callid) {
-	
-	//build the exception
-	macho_MachoException e;
-	e.in_response_to = AUTHENTICATION_REQ;
-	e.exception_type = WRAPPEDEXCEPTION;
-	e.payload = new PyRepSubStream(MakeException("LoginAuthFailed"));
-
-	//build the packet:
-	PyPacket *p = new PyPacket();
-	p->type_string = "macho.ErrorResponse";
-	p->type = ERRORRESPONSE;
-	
-	p->source.type = PyAddress::Any;
-
-	p->dest.type = PyAddress::Client;
-	p->dest.typeID = HackFixedClientID;
-	p->dest.callID = callid;
-
-	p->userid = 0;
-	
-	p->payload = e.Encode();
-	
-	p->named_payload = new PyRepDict();
-	p->named_payload->add("channel", new PyRepString("authentication"));
-	
-	FastQueuePacket(&p);
-}
-
 void Client::_ProcessCallRequest(PyPacket *packet) {
 
 	PyService *svc = m_services->LookupService(packet);
@@ -802,7 +722,7 @@ void Client::_ProcessCallRequest(PyPacket *packet) {
 		_log(CLIENT__ERROR, "Unable to find service to handle call to:");
 		packet->dest.Dump(stdout, "    ");
 #ifndef WIN32
-#warning TODO: throw proper exception to client.
+#warning TODO: throw proper exception to client (exceptions.ServiceNotFound).
 #endif
 		PyRep *except = new PyRepNone();
 		_SendException(packet, WRAPPEDEXCEPTION, &except);
@@ -828,30 +748,46 @@ void Client::_ProcessCallRequest(PyPacket *packet) {
 		packet->dest.Dump(CLIENT__CALL_DUMP, "  To: ");
 		call.Dump(CLIENT__CALL_DUMP, &dumper);
 	}
-	
+
 	//build arguments
 	PyCallArgs args(this, &call.arg_tuple, &call.arg_dict);
-	
-	//parts of call may be consumed here
-	PyCallResult result = svc->Call(call, args);
-	
-	switch(result.type) {
-	case PyCallResult::RegularResult: {
+
+	//try {
+		//parts of call may be consumed here
+		PyResult result = svc->Call(call, args);
+
 		//successful call.
-		PyRepTuple *t = new PyRepTuple(1);
-		t->items[0] = result.ssResult.hijack();
-		
+		PyRep *res = result.ssResult.hijack();
+
 		_CheckSessionChange();	//send out the session change before the return.
-		
-		_SendCallReturn(packet, &t);
-	} break;
-	
-	case PyCallResult::ThrowException: {
-		PyRep *except = result.ssResult.hijack();
+
+		_SendCallReturn(packet, &res);
+	/*} catch(sigexcept_exception e)
+		std::string str = e.to_string();
+
+		_log(CLIENT__ERROR, "%s invoked exception %s by calling %s::%s\n%s",
+			GetName(), e.type_string(), svc->GetName(), call.method.c_str(), str.c_str());
+
+		//replace newline with <br>
+		for(size_t i = str.find("\n"); i < str.max_size(); i = str.find("\n", i))
+			str.replace(i, 1, "<br>");
+
+		//build exception
+		PyRep *except = MakeCustomError(
+			"Exception %s occured while processing %s::%s<br>"
+			"<br>"
+			"%s",
+			e.type_string(), svc->GetName(), call.method.c_str(),
+			str.c_str()
+			);
+
+		//send it to client
 		_SendException(packet, WRAPPEDEXCEPTION, &except);
-	} break;
-	//no default on purpose
-	}
+	} catch(PyException &e) {
+		PyRep *except = e.ssException.hijack();
+
+		_SendException(packet, WRAPPEDEXCEPTION, &except);
+	}*/
 }
 
 void Client::_ProcessNotification(PyPacket *packet) {
@@ -883,7 +819,7 @@ void Client::_ProcessNotification(PyPacket *packet) {
 	_CheckSessionChange();	//just for good measure...
 }
 
-void Client::_SendCallReturn(PyPacket *req, PyRepTuple **return_value, const char *channel) {
+void Client::_SendCallReturn(PyPacket *req, PyRep **return_value, const char *channel) {
 	
 	//build the packet:
 	PyPacket *p = new PyPacket();
@@ -893,12 +829,13 @@ void Client::_SendCallReturn(PyPacket *req, PyRepTuple **return_value, const cha
 	p->source = req->dest;
 
 	p->dest.type = PyAddress::Client;
-	p->dest.typeID = HackFixedClientID;
+	p->dest.typeID = GetAccountID();
 	p->dest.callID = req->source.callID;
 
 	p->userid = m_accountID;
 	
-	p->payload = *return_value;
+	p->payload = new PyRepTuple(1);
+	p->payload->items[0] = new PyRepSubStream(*return_value);
 	*return_value = NULL;	//consumed
 	
 	if(channel != NULL) {
@@ -918,7 +855,7 @@ void Client::_SendException(PyPacket *req, MACHONETERR_TYPE type, PyRep **payloa
 	p->source = req->dest;
 
 	p->dest.type = PyAddress::Client;
-	p->dest.typeID = HackFixedClientID;
+	p->dest.typeID = GetAccountID();
 	p->dest.callID = req->source.callID;
 
 	p->userid = m_accountID;
@@ -979,7 +916,7 @@ void Client::_SendQueuedUpdates(uint32 stamp) {
 	m_destinyUpdateQueue.clear();
 	
 	//right now, we never wait. I am sure they do this for a reason, but
-	//I havent found it yet
+	//I haven't found it yet
 	dum.waitForBubble = false;
 
 	//encode any multi-events which go along with it.
@@ -1016,18 +953,17 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream *noti
 	p->type = NOTIFICATION;
 
 	p->source.type = PyAddress::Node;
-	p->source.typeID = 111555;
+	p->source.typeID = m_services->GetNodeID();
 
 	p->dest = dest;
 
-	p->userid = m_accountID;
+	p->userid = GetAccountID();
 
 	p->payload = noti->Encode();
 
 	if(seq) {
 		p->named_payload = new PyRepDict();
-		p->named_payload->add("sn", new PyRepInteger(m_nextNotifySequence));
-		m_nextNotifySequence++;
+		p->named_payload->add("sn", new PyRepInteger(m_nextNotifySequence++));
 	}
 
 	_log(CLIENT__NOTIFY_DUMP, "Sending notify of type %s with ID type %s", dest.service.c_str(), dest.bcast_idtype.c_str());
@@ -1086,15 +1022,6 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 void Client::_postMove(_MoveState type, uint32 wait_ms) {
 	m_moveState = type;
 	m_moveTimer.Start(wait_ms);
-}
-
-void Client::_ExecuteSetState() {
-	if(m_destiny == NULL)
-		return;
-	
-	//m_warpActive = as_warp;
-	m_destiny->SendSetState(Bubble());
-	//m_warpActive = false;
 }
 
 void Client::_ExecuteJump() {
@@ -1340,6 +1267,7 @@ DoDestinyUpdate ,*args= ([(31759,
 		m_services,
 		drone, 
 		GetCorporationID(),
+		GetAllianceID(),
 		position);
 	m_system->AddNPC(drone_npc);
 
@@ -1433,6 +1361,7 @@ void Client::JoinCorporationUpdate(uint32 corp_id) {
 	//logs indicate that we need to push this update out asap.
 	_CheckSessionChange();
 }
+
 /*
 FunctorTimerQueue::TimerID Client::Delay( uint32 time_in_ms, void (Client::* clientCall)() ) {
 	Functor *f = new SimpleClientFunctor(this, clientCall);

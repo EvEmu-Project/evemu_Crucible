@@ -203,7 +203,7 @@ RowsetReader::iterator RowsetReader::begin() {
 	return(iterator(this, false));
 }
 
-uint32 RowsetReader::size() const {
+size_t RowsetReader::size() const {
 	return(m_set->lines.items.size());
 }
 

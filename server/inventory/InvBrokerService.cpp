@@ -16,21 +16,8 @@
 */
 
 
+#include "EvemuPCH.h"
 
-#include "InvBrokerService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../PyBoundObject.h"
-#include "../inventory/ItemFactory.h"
-#include "../inventory/InventoryItem.h"
-#include "../common/EVEUtils.h"
-
-#include "../packets/General.h"
-#include "../packets/Inventory.h"
 
 PyCallable_Make_InnerDispatcher(InvBrokerService)
 
@@ -126,8 +113,8 @@ protected:
 	
 	InventoryDB *const m_db;
 
-	PyCallResult _ExecAdd(Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag);
-	PyCallResult _ValidateAdd( Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag);
+	PyRep *_ExecAdd(Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag);
+	void _ValidateAdd( Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag);
 };
 
 
@@ -161,7 +148,7 @@ PyBoundObject *InvBrokerService::_CreateBoundObject(Client *c, const PyRep *bind
 }
 
 //this is a view into the entire inventory item.
-PyCallResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
+PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
 	Call_TwoIntegerArgs args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -183,7 +170,7 @@ PyCallResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
 }
 
 //this is a view into an inventory item using a specific flag.
-PyCallResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
+PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 	Inventory_GetInventory args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Unable to decode arguments");
@@ -232,7 +219,7 @@ PyCallResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
+PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
 	CallSetLabel args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Unable to decode arguments");
@@ -259,23 +246,26 @@ PyCallResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
 	return(NULL);
 }
 
-PyCallResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
-	Call_SingleIntList args;
+PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
+	Call_TrashItems args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Unable to decode arguments");
 		return(new PyRepList());
 	}
-	
+
+	InventoryItem *item;
 	std::vector<uint32>::const_iterator cur, end;
-	cur = args.ints.begin();
-	end = args.ints.end();
-	for(; cur != end; cur++)
-	{
-		InventoryItem *item = m_manager->item_factory->Load(*cur, false);
+	cur = args.items.begin();
+	end = args.items.end();
+	for(; cur != end; cur++) {
+		item = m_manager->item_factory->Load(*cur, false);
 		if(item == NULL) 
 			codelog(SERVICE__ERROR, "%s: Unable to load item %lu to delete it. Skipping.", call.client->GetName(), *cur);
 		else if(call.client->GetCharacterID() != item->ownerID()) {
 			codelog(SERVICE__ERROR, "%s: Tried to trash item %lu which is not yours. Skipping.", call.client->GetName(), *cur);
+			item->Release();
+		} else if(item->locationID() != args.locationID) {
+			codelog(SERVICE__ERROR, "%s: Item %lu is not in location %lu. Skipping.", call.client->GetName(), *cur, args.locationID);
 			item->Release();
 		} else
 			item->Delete();
@@ -283,7 +273,7 @@ PyCallResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
 	return(new PyRepList());
 }
 
-PyCallResult InventoryBound::Handle_List(PyCallArgs &call) {
+PyResult InventoryBound::Handle_List(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	//TODO: check to make sure we are allowed to list this container
@@ -302,7 +292,7 @@ PyCallResult InventoryBound::Handle_List(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
+PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 	Inventory_CallReplaceCharges args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Unable to decode arguments");
@@ -347,7 +337,7 @@ PyCallResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 }
 
 
-PyCallResult InventoryBound::Handle_ListStations(PyCallArgs &call) {
+PyResult InventoryBound::Handle_ListStations(PyCallArgs &call) {
 	codelog(SERVICE__ERROR, "Unimplemented.");
 
 	util_Rowset rowset;
@@ -358,7 +348,7 @@ PyCallResult InventoryBound::Handle_ListStations(PyCallArgs &call) {
 	return(rowset.Encode());
 }
 
-PyCallResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
+PyResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	result = m_item->GetEntityRow();
@@ -368,7 +358,7 @@ PyCallResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult InventoryBound::Handle_Add(PyCallArgs &call) {
+PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 
 	
 	if((call.tuple)->items.size() == 3) {
@@ -403,7 +393,7 @@ PyCallResult InventoryBound::Handle_Add(PyCallArgs &call) {
 	return(NULL);
 }
 
-PyCallResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
+PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
 	if((call.tuple)->items.size() == 1) {
 		
 		Call_SingleIntList args;
@@ -431,7 +421,7 @@ PyCallResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
 	return(NULL);
 }
 
-PyCallResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
+PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 	
 	//Decode Args
 	Inventory_CallMultiMerge elements;
@@ -477,7 +467,7 @@ PyCallResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 	return(NULL);
 }
 
-PyCallResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
+PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
 
 	Call_SingleIntegerArg arg;
 
@@ -496,7 +486,7 @@ PyCallResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
 	return(NULL);
 }
 
-PyCallResult InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag)
+void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag)
 {
 
 	double totalVolume = 0.0;
@@ -528,7 +518,7 @@ PyCallResult InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> 
 			//Can only put drones in drone bay
 			//Return ErrorResponse
 			sourceItem->Release();
-			return(PyCallException(MakeException("ItemCannotBeInDroneBay", std::map<std::string, PyRep *>())));
+			throw(PyException(MakeUserError("ItemCannotBeInDroneBay")));
 	}
 
 
@@ -554,14 +544,13 @@ PyCallResult InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> 
 			std::map<std::string, PyRep *> args;
 			args["available"] = new PyRepReal(m_item->GetRemainingCapacity( flag ));
 			args["volume"] = new PyRepReal(totalVolume);
-			return(PyCallException(MakeException("NotEnoughCargoSpace", args)));
+			throw(PyException(MakeUserError("NotEnoughCargoSpace", args)));
 		}
 	}
-	return(NULL);
 }
 	
 
-PyCallResult InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag) {
+PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag) {
 	
 	bool fLoadoutRequest = false;
 	
@@ -580,14 +569,7 @@ PyCallResult InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &item
 	else
 	{
 		//Make sure all items can be moved successfully will be ok
-		PyCallResult returnResult = _ValidateAdd(c, items, quantity, flag);
-
-		if( returnResult.type != PyCallResult::RegularResult )
-		{
-			//Invalid add, return the ErrorResponse
-			return(returnResult);
-		}
-
+		_ValidateAdd(c, items, quantity, flag);
 	}
 	
 	

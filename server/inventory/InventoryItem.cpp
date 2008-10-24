@@ -14,24 +14,12 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#include "EvemuPCH.h"
 
-#include "InventoryItem.h"
-#include "ItemFactory.h"
-#include "../common/PyRep.h"
-#include "../ServiceDB.h"
-#include "../EntityList.h"
-#include "../Client.h"
-#include "../common/EVEUtils.h"
-
-#include "../packets/Inventory.h"
-#include "../packets/General.h"
-#include "../packets/DogmaIM.h"
 
 
 
 InventoryItem::InventoryItem(
-	InventoryDB *db,
-	EntityList *ents,
 	ItemFactory *fact,
 	uint32 _itemID, 
 	const char *_itemName,
@@ -62,8 +50,6 @@ InventoryItem::InventoryItem(
   m_customInfo(_customInfo),
   m_groupID(_groupID),
   m_categoryID(_categoryID),
-  m_db(db),
-  m_entities(ents),
   m_inDB(inDB),
   m_staticLoaded(false),
   m_attributesLoaded(inDB?false:true),	//non-DB items have no attributes stored in the DB...
@@ -143,7 +129,7 @@ void InventoryItem::Delete() {
 	factory->_DeleteItem(this);
 	
 	//now we take ourself out of the DB
-	m_db->DeleteItem(this);
+	factory->db().DeleteItem(this);
 	
 	//and now we destroy ourself.
 	if(m_refCount != 1) {
@@ -161,7 +147,7 @@ void InventoryItem::Delete() {
 }
 
 void InventoryItem::Save(bool recursive) {
-	m_db->SaveAttributes(this);
+	factory->db().SaveAttributes(this);
 	
 	if(recursive) {
 		InventoryItem *i;
@@ -182,9 +168,9 @@ bool InventoryItem::LoadStatic() {
 	m_int_attributes.clear();
 	m_double_attributes.clear();
 	
-	if(!m_db->LoadEntityAttributes(this))
+	if(!factory->db().LoadEntityAttributes(this))
 		return(false);
-	if(!m_db->LoadItemAttributes(this))
+	if(!factory->db().LoadItemAttributes(this))
 		return(false);
 	
 	m_staticLoaded = true;
@@ -199,7 +185,7 @@ bool InventoryItem::Load(bool recurse) {
 	//load player/ship/other non-static attributes.
 	if(!m_attributesLoaded) {
 		if(m_inDB) {	//no bother checking the DB if the item has never been there..
-			if(!m_db->LoadPersistentAttributes(this))
+			if(!factory->db().LoadPersistentAttributes(this))
 				return(false);
 		}
 		m_attributesLoaded = true;
@@ -221,7 +207,7 @@ bool InventoryItem::LoadContents(bool recursive) {
 
 	//load the list of items we need
 	std::vector<uint32> m_itemIDs;
-	if(!m_db->GetItemContents(this, m_itemIDs))
+	if(!factory->db().GetItemContents(this, m_itemIDs))
 		return(false);
 	
 	//Now get each one from the factory (possibly recursing)
@@ -660,7 +646,7 @@ void InventoryItem::RemoveContainedItem(InventoryItem *it) {
 }
 
 void InventoryItem::Rename(const char *to) {
-	if(!m_db->RenameItem(m_itemID, to)) {
+	if(!factory->db().RenameItem(m_itemID, to)) {
 		codelog(ITEM__ERROR, "%s (%lu): Failed to rename in the DB", m_itemName.c_str(), m_itemID);
 		return;
 	}
@@ -678,7 +664,7 @@ void InventoryItem::Move(uint32 location, EVEItemFlags new_flag, bool notify) {
 	if(location == old_location && new_flag == old_flag)
 		return;	//nothing to do...
 	
-	if(!m_db->MoveEntity(m_itemID, location, new_flag)) {
+	if(!factory->db().MoveEntity(m_itemID, location, new_flag)) {
 		codelog(ITEM__ERROR, "%s (%lu): Failed to move in the DB to %lu", m_itemName.c_str(), m_itemID, location);
 		return;
 	}
@@ -713,15 +699,15 @@ void InventoryItem::Move(uint32 location, EVEItemFlags new_flag, bool notify) {
 
 void InventoryItem::ChangeFlag(EVEItemFlags new_flag, bool notify) {
 	EVEItemFlags old_flag = m_flag;
-	
+
 	if(new_flag == old_flag)
 		return;	//nothing to do...
-	
-	if(!m_db->MoveEntity(m_itemID, m_locationID, new_flag)) {
+
+	if(!factory->db().MoveEntity(m_itemID, m_locationID, new_flag)) {
 		codelog(ITEM__ERROR, "%s (%lu): Failed to change flag to %d", m_itemName.c_str(), m_itemID, new_flag);
 		return;
 	}
-	
+
 	m_flag = new_flag;
 
 	//notify about the changes.
@@ -732,53 +718,21 @@ void InventoryItem::ChangeFlag(EVEItemFlags new_flag, bool notify) {
 	}
 }
 
-bool InventoryItem::AlterQuantity(sint32 qty_change, bool notify) {
+bool InventoryItem::AlterQuantity(int32 qty_change, bool notify) {
 	if(qty_change == 0)
 		return(true);
 
-	//if an object has its singleton set then it shouldn't be able to add/remove qty
-	if( m_singleton == true)
-	{
-		//Print error
-		codelog(ITEM__ERROR, "%s (%lu): Failed to add/remove quantity %lu , the items singleton bit is set", m_itemName.c_str(), m_itemID, qty_change);
-		//return false
-		return(false);
-	}
-
-	uint32 old_qty = m_quantity;
-	uint32 new_qty = m_quantity + qty_change;
-
-	if(qty_change < 0 && m_quantity < uint32(-qty_change)) {
+	if((int32(m_quantity) + qty_change) < 0) {
 		codelog(ITEM__ERROR, "%s (%lu): Tried to remove %ld quantity from stack of %lu", m_itemName.c_str(), m_itemID, -qty_change, m_quantity);
 		return(false);
 	}
-	
-	if(!m_db->ChangeQuantity(m_itemID, new_qty)) {
-		codelog(ITEM__ERROR, "%s (%lu): Failed to change quantity in the DB to %lu", m_itemName.c_str(), m_itemID, new_qty);
-		return(false);
-	}
-	
-	m_quantity = new_qty;
 
-	
-
-	//notify about the changes.
-	if(notify) {
-		std::map<uint32, PyRep *> changes;
-
-		//send the notify to the new owner.
-		changes[ixQuantity] = new PyRepInteger(old_qty);
-		SendItemChange(m_ownerID, changes);	//changes is consumed
-	}
-	
-	return(true);
+	return(SetQuantity(uint32(m_quantity + qty_change), notify));
 }
 
-bool InventoryItem::SetQuantity(sint32 qty_new, bool notify) {
-		
+bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
 	//if an object has its singleton set then it shouldn't be able to add/remove qty
-	if( m_singleton == true)
-	{
+	if(m_singleton) {
 		//Print error
 		codelog(ITEM__ERROR, "%s (%lu): Failed to set quantity %lu , the items singleton bit is set", m_itemName.c_str(), m_itemID, qty_new);
 		//return false
@@ -788,14 +742,13 @@ bool InventoryItem::SetQuantity(sint32 qty_new, bool notify) {
 	uint32 old_qty = m_quantity;
 	uint32 new_qty = qty_new;
 	
-	if(!m_db->ChangeQuantity(m_itemID, new_qty)) {
+	if(!factory->db().ChangeQuantity(m_itemID, new_qty)) {
 		codelog(ITEM__ERROR, "%s (%lu): Failed to change quantity in the DB to %lu", m_itemName.c_str(), m_itemID, new_qty);
 		return(false);
 	}
-	
+
 	m_quantity = new_qty;
-	
-	
+
 	//notify about the changes.
 	if(notify) {
 		std::map<uint32, PyRep *> changes;
@@ -808,7 +761,7 @@ bool InventoryItem::SetQuantity(sint32 qty_new, bool notify) {
 	return(true);
 }
 
-InventoryItem *InventoryItem::Split(sint32 qty_to_take, bool notify) {
+InventoryItem *InventoryItem::Split(int32 qty_to_take, bool notify) {
 	if(qty_to_take <= 0) {
 		_log(ITEM__ERROR, "%s (%lu): Asked to split into a chunk of %ld", itemName().c_str(), itemID(), qty_to_take);
 		return(NULL);
@@ -827,14 +780,14 @@ InventoryItem *InventoryItem::Split(sint32 qty_to_take, bool notify) {
 	if(res->categoryID() == EVEDB::invCategories::Blueprint) {
 		// copy blueprint properties
 		BlueprintProperties bp;
-		m_db->GetBlueprintProperties(itemID(), bp);
-		m_db->SetBlueprintProperties(res->itemID(), bp);
+		factory->db().GetBlueprintProperties(itemID(), bp);
+		factory->db().SetBlueprintProperties(res->itemID(), bp);
 	}
 
 	return( res );
 }
 
-bool InventoryItem::Merge(InventoryItem *to_merge, sint32 qty, bool notify) {
+bool InventoryItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
 	if(to_merge == NULL) {
 		_log(ITEM__ERROR, "%s (%lu): Cannot merge with NULL item.", itemName().c_str(), itemID());
 		return(false);
@@ -876,7 +829,7 @@ bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify)
 	if(new_singleton == old_singleton)
 		return(true);	//nothing to do...
 	
-	if(!m_db->ChangeSingletonEntity(m_itemID, new_singleton)) {
+	if(!factory->db().ChangeSingletonEntity(m_itemID, new_singleton)) {
 		codelog(ITEM__ERROR, "%s (%lu): Failed to change singleton to %d", m_itemName.c_str(), m_itemID, new_singleton);
 		return(false);
 	}
@@ -898,7 +851,7 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
 	if(new_owner == old_owner)
 		return;	//nothing to do...
 	
-	if(!m_db->ChangeOwner(m_itemID, new_owner)) {
+	if(!factory->db().ChangeOwner(m_itemID, new_owner)) {
 		codelog(ITEM__ERROR, "%s (%lu): Failed to change owner in the DB to %lu", m_itemName.c_str(), m_itemID, new_owner);
 		return;
 	}
@@ -922,7 +875,7 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
 //contents of changes are consumed and cleared
 void InventoryItem::SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const {
 	//TODO: figure out the appropriate list of interested people...
-	Client *c = m_entities->FindCharacter(toID);
+	Client *c = factory->entity_list->FindCharacter(toID);
 	if(c == NULL)
 		return;	//not found or not online...
 	
@@ -952,7 +905,7 @@ void InventoryItem::SetOnline(bool newval) {
 	//bool old = isOnline();
 	Set_isOnline(newval);
 	
-	Client *c = m_entities->FindCharacter(m_ownerID);
+	Client *c = factory->entity_list->FindCharacter(m_ownerID);
 	if(c == NULL)
 		return;	//not found or not online...
 	
@@ -995,11 +948,11 @@ void InventoryItem::SaveAttribute_int(Attr attr) const {
 	std::map<Attr, int>::const_iterator res;
 	res = m_int_attributes.find(attr);
 	if(res == m_int_attributes.end()) {
-		if(!m_db->EraseAttribute(itemID(), attr)) {
+		if(!factory->db().EraseAttribute(itemID(), attr)) {
 			codelog(ITEM__ERROR, "%s (%lu): Failed to delete attribute %d", m_itemName.c_str(), m_itemID, attr);
 		}
 	} else {
-		if(!m_db->UpdateAttribute_int(itemID(), attr, res->second)) {
+		if(!factory->db().UpdateAttribute_int(itemID(), attr, res->second)) {
 			codelog(ITEM__ERROR, "%s (%lu): Failed to save int attribute %d", m_itemName.c_str(), m_itemID, attr);
 		}
 	}
@@ -1009,11 +962,11 @@ void InventoryItem::SaveAttribute_double(Attr attr) const {
 	std::map<Attr, double>::const_iterator res;
 	res = m_double_attributes.find(attr);
 	if(res == m_double_attributes.end()) {
-		if(!m_db->EraseAttribute(itemID(), attr)) {
+		if(!factory->db().EraseAttribute(itemID(), attr)) {
 			codelog(ITEM__ERROR, "%s (%lu): Failed to delete attribute %d", m_itemName.c_str(), m_itemID, attr);
 		}
 	} else {
-		if(!m_db->UpdateAttribute_double(itemID(), attr, res->second)) {
+		if(!factory->db().UpdateAttribute_double(itemID(), attr, res->second)) {
 			codelog(ITEM__ERROR, "%s (%lu): Failed to save double attribute %d", m_itemName.c_str(), m_itemID, attr);
 		}
 	}
@@ -1024,7 +977,7 @@ void InventoryItem::SetCustomInfo(const char *ci) {
 		m_customInfo = "";
 	else
 		m_customInfo = ci;
-	m_db->SetCustomInfo(m_itemID, ci);
+	factory->db().SetCustomInfo(m_itemID, ci);
 }
 
 bool InventoryItem::Contains(InventoryItem *item, bool recursive) const {
@@ -1059,7 +1012,7 @@ void InventoryItem::TrainSkill(InventoryItem *skill) {
 		return;
 	}
 	
-	Client *c = m_entities->FindCharacter(m_ownerID);
+	Client *c = factory->entity_list->FindCharacter(m_ownerID);
 	
 	//stop training our old skill...
 	//search for all, just in case we screwed up
@@ -1111,8 +1064,11 @@ void InventoryItem::TrainSkill(InventoryItem *skill) {
 }
 
 void InventoryItem::Relocate(const GPoint &pos) {
+	if(m_position == pos)
+		return;
+
 	m_position = pos;
-	m_db->RelocateEntity(m_itemID, m_position.x, m_position.y, m_position.z);
+	factory->db().RelocateEntity(m_itemID, m_position.x, m_position.y, m_position.z);
 }
 
 void InventoryItem::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner) {
@@ -1135,22 +1091,14 @@ void InventoryItem::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner) {
 	}
 }
 
-double InventoryItem::GetRemainingCapacity(EVEItemFlags locationFlag) const
-{
+double InventoryItem::GetRemainingCapacity(EVEItemFlags locationFlag) const {
 	double remainingCargoSpace;
 	//Get correct initial cargo value
 	//TODO: Deal with cargo space bonuses
-	switch (locationFlag)
-	{
-	case flagCargoHold:
-		remainingCargoSpace = capacity();
-		break;
-	case flagDroneBay:
-		remainingCargoSpace = droneCapacity();
-		break;
-	default:
-		remainingCargoSpace = 0.0;
-		break;
+	switch (locationFlag) {
+		case flagCargoHold: remainingCargoSpace = capacity(); break;
+		case flagDroneBay:	remainingCargoSpace = droneCapacity(); break;
+		default:			remainingCargoSpace = 0.0; break;
 	}
 	
 	//TODO: And implement Sizes for packaged ships
@@ -1159,10 +1107,8 @@ double InventoryItem::GetRemainingCapacity(EVEItemFlags locationFlag) const
 	end = m_contents.end();
 	
 	for(; cur != end; cur++) {
-		if( cur->second->flag() == locationFlag)
-		{
-		remainingCargoSpace -= (cur->second->quantity()*cur->second->volume());
-		}
+		if(cur->second->flag() == locationFlag)
+			remainingCargoSpace -= (cur->second->quantity() * cur->second->volume());
 	}
 
 	return(remainingCargoSpace);

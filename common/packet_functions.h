@@ -18,16 +18,17 @@
 
 #ifndef PACKET_FUNCTIONS_H
 #define PACKET_FUNCTIONS_H
+
 #include "types.h"
+
+static const uint8 GZipStreamHeaderByte = 0x78;	// 'x'
 
 int32 roll(int32 in, int8 bits);
 int64 roll(int64 in, int8 bits);
 int32 rorl(int32 in, int8 bits);
 int64 rorl(int64 in, int8 bits);
 
-static const uint8 GZipStreamHeaderByte = 0x78;
-
-int DeflatePacket(const unsigned char* in_data, int in_length, unsigned char* out_data, int max_out_length);
-uint32 InflatePacket(const uchar* indata, uint32 indatalen, uchar* outdata, uint32 outdatalen, bool iQuiet = false);
+byte *DeflatePacket(const byte *data, uint32 &length);	//returns ownership of buffer!
+byte *InflatePacket(const byte *data, uint32 &length, bool quiet = false);	//returns ownership of buffer!
 
 #endif

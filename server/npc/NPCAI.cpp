@@ -15,16 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "NPCAI.h"
-#include "../NPC.h"
-#include "../inventory/InventoryItem.h"
-#include "../ship/DestinyManager.h"
-#include "../system/Damage.h"
-#include "../common/MiscFunctions.h"
-#include "../common/EVEUtils.h"
-
-#include "../packets/DogmaIM.h"
-#include "../packets/Destiny.h"
+#include "EvemuPCH.h"
 
 NPCAIMgr::NPCAIMgr(NPC *who)
 : m_state(Idle),

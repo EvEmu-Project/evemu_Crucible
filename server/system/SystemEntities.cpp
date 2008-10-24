@@ -15,17 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "SystemEntities.h"
-#include "../common/DestinyStructs.h"
-#include "../common/PyRep.h"
-#include "../packets/Destiny.h"
-#include "../common/EVEUtils.h"
-#include "../common/tables/invGroups.h"
-#include "../mining/AsteroidBeltManager.h"
-
+#include "EvemuPCH.h"
 
 using namespace Destiny;
-
 
 SimpleSystemEntity *SimpleSystemEntity::MakeEntity(SystemManager *system, const DBSystemEntity &entity) {
 	switch(entity.groupID) {
@@ -348,14 +340,14 @@ void SystemDungeonEntranceEntity::EncodeDestiny(std::vector<byte> &into) const {
 
 	item->head.entityID = m_self->itemID();
 	item->head.mode = Destiny::DSTBALL_STOP;
-	item->head.radius = m_self->radius();
+	item->head.radius = GetRadius();
 	const GPoint &pos = m_self->position();
 	item->head.x = pos.x;
 	item->head.y = pos.y;
 	item->head.z = pos.z;
 	item->head.sub_type = AddBallSubType_dungeonEntrance;
 	item->mass.mass = 10000000000.00;
-	item->mass.unknown51 = 0;
+	item->mass.cloak = 0;
 	item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
 	item->mass.corpID = m_self->ownerID();	//a little hacky...
 	item->mass.allianceID = 0xFFFFFFFF;
@@ -366,7 +358,7 @@ void SystemDungeonEntranceEntity::EncodeDestiny(std::vector<byte> &into) const {
 	item->miniballs.balls[0].x = -7701.181;
 	item->miniballs.balls[0].y = 8060.06;
 	item->miniballs.balls[0].z = 2778.900;
-	item->miniballs.balls[0].radius = m_self->radius();
+	item->miniballs.balls[0].radius = GetRadius();
 
 	//slide pointer over points...
 	item = (AddBall_Dungeon *) (((byte *) item)+(miniball_count-1)*sizeof(MiniBall));

@@ -37,12 +37,6 @@
 	#endif
 #endif
 
-#ifdef WIN32
-	// VS6 doesn't like the length of STL generated names: disabling
-	#pragma warning(disable:4786)
-	#pragma warning(disable:4996)
-#endif
-
 #ifndef WIN32
 	#define DebugBreak()			if(0) {}
 #endif
@@ -58,16 +52,65 @@
 	#include <windows.h>
 	#include <winsock2.h>
 	#define snprintf	_snprintf
+	#if _MSC_VER < 1500
+		#define vsnprintf	_vsnprintf
+	#else
+		#define strdup _strdup
+	#endif
 	#define strncasecmp	_strnicmp
 	#define strcasecmp	_stricmp
 	#include <process.h>
+
 #else
 	#include "unix.h"
 	#include <pthread.h>
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
+#include <time.h>
+#include <math.h>
+#include <errno.h>
+
+#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
+#  define WIN32_LEAN_AND_MEAN
+#  if!defined(_WIN32_WINNT)
+#    define _WIN32_WINNT 0x0500
+#  endif
+#  define NOMINMAX
+#  include <windows.h>
+#else
+#  include <string.h>
+#  define MAX_PATH 1024
+#endif
+
+#ifdef min
+#undef min
+#endif
+
+#ifdef max
+#undef max
+#endif
+
+/*#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <time.h>
+#include <math.h>
+#include <errno.h>*/
+#include <string>
+#include <vector>
+#include <list>
+#include <set>
+#include <list>
+#include <string>
+#include <map>
+#include <queue>
+#include <sstream>
+#include <algorithm>
+
+using namespace std;
 
 #include "./types.h"
 #include "./unix.h"

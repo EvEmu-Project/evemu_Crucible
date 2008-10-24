@@ -26,14 +26,14 @@
 #include "ServiceDB.h"
 #include "../common/EVEUtils.h"
 
-class PyRepSubStream;
 class Client;
-class PyCallStream;
+
+class PyRep;
 class PyRepTuple;
 class PyRepDict;
-class PyRepObject;
-class PyRep;
+
 class PyServiceMgr;
+class PyCallStream;
 
 
 
@@ -42,7 +42,9 @@ class PyCallArgs {
 public:
 	PyCallArgs(Client *c, PyRepTuple **tup, PyRepDict **dict);
 	~PyCallArgs();
+
 	void Dump(LogType type) const;
+
 	Client *const client;	//we do not own this
 	PyRepTuple *tuple;		//we own this, but it may be taken
 	std::map<std::string, PyRep *> byname;	//we own this, but elements may be taken.
@@ -51,46 +53,25 @@ public:
 
 
 
-class PyCallRawResult;
-class PyCallException;
-
-class PyCallResult {
+class PyResult {
 protected:
-	friend class PyCallRawResult;
-	friend class PyCallException;
-	PyCallResult();
+	PyResult();
 public:
-	typedef enum {
-		RegularResult,
-		ThrowException
-	} ResultType;
-	
-	PyCallResult(PyRep *result);	//takes ownership
-	~PyCallResult();
-	
-	ResultType type;
+	PyResult(PyRep *result);	//takes ownership
+	~PyResult();
 	
 	//I dislike smart pointers, but I need them here due to copying when returning objects
-	counted_ptr<PyRepSubStream> ssResult;	//must never be NULL
+	counted_ptr<PyRep> ssResult;	//must never be NULL
 };
 
-class PyCallRawResult {
-public:
-	//ss is consumed
-	PyCallRawResult(PyRepSubStream *ss);
-	~PyCallRawResult();
-	operator PyCallResult();
+class PyException {
 protected:
-	counted_ptr<PyRepSubStream> m_ss;
-};
+	PyException();
+public:
+	PyException(PyRep *except);		//takes ownership
+	~PyException();
 
-class PyCallException {
-public:
-	PyCallException(PyRepObject *except);
-	~PyCallException();
-	operator PyCallResult();
-protected:
-	counted_ptr<PyRepSubStream> m_ss;
+	counted_ptr<PyRep> ssException;	//must never be NULL
 };
 
 
@@ -102,7 +83,7 @@ public:
 	class CallDispatcher {
 	public:
 		virtual ~CallDispatcher() {}
-		virtual PyCallResult Dispatch(const std::string &method_name, PyCallArgs &call) = 0;
+		virtual PyResult Dispatch(const std::string &method_name, PyCallArgs &call) = 0;
 	};
 	
 	PyCallable(PyServiceMgr *mgr, const char *callableName);
@@ -111,7 +92,7 @@ public:
 	const char *GetName() const { return(m_callableName.c_str()); }
 	
 	//returns ownership:
-	virtual PyCallResult Call(PyCallStream &call, PyCallArgs &args);
+	virtual PyResult Call(PyCallStream &call, PyCallArgs &args);
 	
 protected:
 	void _SetCallDispatcher(CallDispatcher *d) { m_serviceDispatch = d; }

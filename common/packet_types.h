@@ -257,6 +257,16 @@ typedef enum {
 	itemTypeCapsule = 670
 } EVEItemTypeID;
 
+//raceID as in table 'entity'
+enum EVERace {
+	raceCaldari = 1,
+	raceMinmatar = 2,
+	raceAmarr = 4,
+	raceGallente = 8,
+	raceJove = 16,
+	racePirate = 32
+};
+
 //eve standing change messages
 //If oFromID and oToID != fromID and toID, the following message is added (except for those marked with x):
 //This standing change was initiated by a change from _oFromID towards _oToID

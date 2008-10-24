@@ -15,17 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-#include "ConfigDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "../common/PyRep.h"
-#include "../common/packet_types.h"
-#include "../common/tables/invGroups.h"
-
-#include <string>
+#include "EvemuPCH.h"
 
 ConfigDB::ConfigDB(DBcore *db)
 : ServiceDB(db)

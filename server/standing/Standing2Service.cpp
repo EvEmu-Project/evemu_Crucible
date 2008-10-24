@@ -16,17 +16,8 @@
 */
 
 
+#include "EvemuPCH.h"
 
-#include "Standing2Service.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../cache/ObjCacheService.h"
-#include "../packets/Standing2.h"
-#include "../packets/General.h"
 
 PyCallable_Make_InnerDispatcher(Standing2Service)
 
@@ -42,6 +33,7 @@ Standing2Service::Standing2Service(PyServiceMgr *mgr, DBcore *db)
 	PyCallable_REG_CALL(Standing2Service, GetMyStandings)
 	PyCallable_REG_CALL(Standing2Service, GetSecurityRating)
 	PyCallable_REG_CALL(Standing2Service, GetStandingTransactions)
+	PyCallable_REG_CALL(Standing2Service, GetCharStandings)
 	
 }
 
@@ -50,7 +42,7 @@ Standing2Service::~Standing2Service() {
 }
 
 
-PyCallResult Standing2Service::Handle_GetMyKillRights(PyCallArgs &call) {
+PyResult Standing2Service::Handle_GetMyKillRights(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	PyRepTuple *tu = new PyRepTuple(2);
@@ -63,7 +55,7 @@ PyCallResult Standing2Service::Handle_GetMyKillRights(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult Standing2Service::Handle_GetMyStandings(PyCallArgs &call) {
+PyResult Standing2Service::Handle_GetMyStandings(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	PyRep *charstandings;
@@ -91,7 +83,7 @@ PyCallResult Standing2Service::Handle_GetMyStandings(PyCallArgs &call) {
 }
 
 
-PyCallResult Standing2Service::Handle_GetNPCNPCStandings(PyCallArgs &call) {
+PyResult Standing2Service::Handle_GetNPCNPCStandings(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	ObjectCachedMethodID method_id(GetName(), "GetNPCNPCStandings");
@@ -113,7 +105,7 @@ PyCallResult Standing2Service::Handle_GetNPCNPCStandings(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult Standing2Service::Handle_GetSecurityRating(PyCallArgs &call) {
+PyResult Standing2Service::Handle_GetSecurityRating(PyCallArgs &call) {
 	//takes an integer: characterID
 	Call_SingleIntegerArg arg;
 	if(!arg.Decode(&call.tuple)) {
@@ -124,7 +116,7 @@ PyCallResult Standing2Service::Handle_GetSecurityRating(PyCallArgs &call) {
 	return(new PyRepReal(m_db.GetSecurityRating(arg.arg)));
 }
 
-PyCallResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) {
+PyResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) {
 	Call_GetStandingTransactions args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -134,6 +126,22 @@ PyCallResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) 
 	PyRepObject * result = m_db.GetStandingTransactions(args.toID);
 
 	return (result);
+}
+
+PyResult Standing2Service::Handle_GetCharStandings(PyCallArgs &call) {
+	ObjectCachedMethodID method_id(GetName(), "GetCharStandings");
+
+	if(!m_manager->GetCache()->IsCacheLoaded(method_id)) {
+		PyRepTuple *t = new PyRepTuple(3);
+
+		t->items[0] = m_db.GetCharStandings(call.client->GetCharacterID());
+		t->items[1] = m_db.GetCharPrimeStandings(call.client->GetCharacterID());
+		t->items[2] = m_db.GetCharNPCStandings(call.client->GetCharacterID());
+
+		m_manager->GetCache()->GiveCache(method_id, (PyRep **)&t);
+	}
+
+	return(m_manager->GetCache()->MakeObjectCachedMethodCallResult(method_id));
 }
 
 

@@ -17,10 +17,7 @@
 
 
 
-#include "ShipDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
+#include "EvemuPCH.h"
 
 ShipDB::ShipDB(DBcore *db)
 : ServiceDB(db)

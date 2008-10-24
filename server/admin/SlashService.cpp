@@ -19,18 +19,8 @@
 //note, using /slashes from LSC requires ROLE_SLASH
 
 
+#include "EvemuPCH.h"
 
-#include "SlashService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "CommandDispatcher.h"
-//#include "../PyBoundObject.h"
-
-#include "../packets/General.h"
 
 PyCallable_Make_InnerDispatcher(SlashService)
 
@@ -93,22 +83,19 @@ PyBoundObject *SlashService::_CreateBoundObject(Client *c, PyRepTuple *bind_args
 }*/
 
 
-PyCallResult SlashService::Handle_SlashCmd(PyCallArgs &call) {
+PyResult SlashService::Handle_SlashCmd(PyCallArgs &call) {
+	if(!(call.client->GetRole() & ROLE_SLASH)) {
+		_log(SERVICE__ERROR, "%s: Client '%s' used a slash command but does not have ROLE_SLASH. Modified client?", GetName(), call.client->GetName());
+		throw(PyException(MakeCustomError("You need to have ROLE_SLASH to execute commands.")));
+	}
+
 	Call_SingleStringArg args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Failed to decode arguments");
 		return(NULL);
 	}
 
-	if(!(call.client->GetRole() & ROLE_SLASH)) {
-		_log(SERVICE__ERROR, "%s: Client '%s' used a slash command but does not have ROLE_SLASH. Modified client?", GetName(), call.client->GetName());
-		return(NULL);
-	}
-
-	m_commandDispatch->Execute(call.client, args.arg.c_str());
-
-	//this string appears in the character's LOG window.
-	return(new PyRepString("Slash Result Test"));
+	return(m_commandDispatch->Execute(call.client, args.arg.c_str()));
 }
 
 

@@ -15,11 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "AccountDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "../common/EVEUtils.h"
+#include "EvemuPCH.h"
 
 AccountDB::AccountDB(DBcore *db)
 : ServiceDB(db)
@@ -101,7 +97,7 @@ bool ServiceDB::GiveCash(
 	double balance,
 	const char *reason)
 {
-//the only unknow it is argID1 , what is it ?
+//the only unknown it is argID1 , what is it ?
 	DBQueryResult res;
 	DBerror err;	
 	

@@ -21,53 +21,54 @@
 
 class PyPacket;
 class PyRep;
-class VersionExchange;
+class CryptoChallengePacket;
+class Client;
 
-#include "EVETCPConnection.h"
+class EVETCPConnection;
 
 static const uint32 EVESocketMaxNumberOfBytes = 1000000; //this is a limit hard coded in the eve client! (NetClient.dll)
+static const uint32 EVEDeflationBytesLimit = 10000;	//every packet larger than this is deflated
 
 class EVEPresentation {
+	friend class Client;	//TODO: get rid of this crap
 public:
-	EVEPresentation(EVETCPConnection *net);
+	EVEPresentation(EVETCPConnection *n, Client *c);
 	virtual ~EVEPresentation();
-	
-	bool Process();
 	
 	void QueuePacket(PyPacket *p);
 	void FastQueuePacket(PyPacket **p);
 	
 	bool Connected() const;
 	void Disconnect();
-	
+
 	PyPacket *PopPacket();
 
 	std::string GetConnectedAddress() const;
 
 	//hack for now:
-	void SendHandshake(uint32 macho_version, uint32 user_count, double version_number, uint16 build_version, const char *project_version);
+	void SendHandshake(uint32 user_count) { m_userCount = user_count; _SendHandshake(); }
 	
 protected:
-	//virtual void FastQueueRaw(PyRep **rep);
 	void _QueueRep(const PyRep *rep);
-	virtual void _NetQueuePacket(EVENetPacket **p);
+	void _NetQueuePacket(EVENetPacket **p);
+	PyPacket *_Dispatch(PyRep *r);
+	void _SendHandshake();
+
 	EVETCPConnection *const net;	//we do not own this, is never NULL
+	Client *const client;	//we do not own this, never NULL; used for low-level login (see state CryptoHandshakeSent)
+	CryptoChallengePacket *m_request;
+	uint32 m_userCount;
 
-	VersionExchange *m_version;	//only a pointer to obscure the type
-
-#ifdef DRAGON
-	typedef enum {
+	enum State {
 		VersionNotReceived,
-		CryptoNotNegotiated,
+		WaitingForCommand,
+		CryptoRequestNotReceived,
 		CryptoRequestReceived_ChallengeWait,
 		CryptoHandshakeSent,	//waiting for handshake result
-		CryptoActive
-		
-	} CryptoState;
-	CryptoState m_state;
-#endif
+		AcceptingPackets
+	};
+	State m_state;
 };
-
 
 #endif
 

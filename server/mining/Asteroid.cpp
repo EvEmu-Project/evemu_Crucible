@@ -1,10 +1,5 @@
 
-#include "Asteroid.h"
-#include "../common/DestinyStructs.h"
-#include "../common/gpoint.h"
-#include "../common/logsys.h"
-#include "../inventory/InventoryItem.h"
-#include "../system/Damage.h"
+#include "EvemuPCH.h"
 
 using namespace Destiny;
 
@@ -29,6 +24,8 @@ void Asteroid::ApplyDamage(Damage &d) {
 }
 
 void Asteroid::EncodeDestiny(std::vector<byte> &into) const {
+	const GPoint &position = GetPosition();
+
 	#pragma pack(1)
 	struct AddBall_Asteroid {
 		BallHeader head;
@@ -36,16 +33,13 @@ void Asteroid::EncodeDestiny(std::vector<byte> &into) const {
 		NameStruct name;
 	};
 	#pragma pack()
-	int start = into.size();
+
+	size_t start = into.size();
 	into.resize(start 
 		+ sizeof(AddBall_Asteroid)
 		);
-	byte *ptr = &into[start];
-	AddBall_Asteroid *item = (AddBall_Asteroid *) ptr;
-	ptr += sizeof(AddBall_Asteroid);
-	
-	const GPoint &position = GetPosition();
-	
+	AddBall_Asteroid *item = (AddBall_Asteroid *) &into[start];
+
 	item->head.entityID = GetID();
 	item->head.mode = Destiny::DSTBALL_RIGID;
 	item->head.radius = GetRadius();
@@ -53,6 +47,7 @@ void Asteroid::EncodeDestiny(std::vector<byte> &into) const {
 	item->head.y = position.y;
 	item->head.z = position.z;
 	item->head.sub_type = AddBallSubType_cargoContainer_asteroid;
+
 	item->main.formationID = 0xFF;
 	
 	item->name.name_len = 0;

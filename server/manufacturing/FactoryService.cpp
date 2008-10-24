@@ -14,12 +14,8 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#include "EvemuPCH.h"
 
-#include "FactoryService.h"
-#include "../Client.h"
-#include "PyRep.h"
-#include "../PyServiceCD.h"
-#include "../packets/General.h"
 
 PyCallable_Make_InnerDispatcher(FactoryService)
 
@@ -39,7 +35,7 @@ FactoryService::~FactoryService() {
 	delete m_dispatch;
 }
 
-PyCallResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
+PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	Call_SingleIntegerArg args;
@@ -56,7 +52,7 @@ PyCallResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
 	return(rsp.Encode());
 }
 
-PyCallResult FactoryService::Handle_GetMaterialsForTypeWithActivity(PyCallArgs &call) {
+PyResult FactoryService::Handle_GetMaterialsForTypeWithActivity(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	Call_TwoIntegerArgs call_args;
@@ -73,7 +69,7 @@ PyCallResult FactoryService::Handle_GetMaterialsForTypeWithActivity(PyCallArgs &
 	return(result);
 }
 
-PyCallResult FactoryService::Handle_GetMaterialCompositionOfItemType(PyCallArgs &call) {
+PyResult FactoryService::Handle_GetMaterialCompositionOfItemType(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	Call_SingleIntegerArg call_args;
@@ -89,3 +85,4 @@ PyCallResult FactoryService::Handle_GetMaterialCompositionOfItemType(PyCallArgs 
 
 	return(result);
 }
+

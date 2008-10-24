@@ -41,7 +41,12 @@
 <element name="CallSelectCharacterID">               
   <InlineTuple>
     <!-- 0 -->
-    <int name="charID" />         
+    <int name="charID" />
+	<!-- 1 -->
+	<!-- may be boolean or integer -->
+	<raw name="loadTutorialDungeon" />
+	<!-- 2 -->
+	<raw name="unknown" />
   </InlineTuple>
 </element>
 
@@ -75,14 +80,14 @@
     <int name="genderID" />
     <!-- 3 -->
     <int name="ancestryID" />
-    <!-- 4 -->
-    <int name="schoolID" />
-    <!-- 5 -->
-    <int name="departmentID" />
-    <!-- 6 -->
-    <int name="fieldID" />
-    <!-- 7 -->
-    <int name="specialityID" />
+	<!-- 4: schoolID -->
+	<none />
+	<!-- 5: departmentID -->
+	<none />
+	<!-- 6: fieldID -->
+	<none />
+	<!-- 7: specialityID -->
+	<none />
     <!-- 8 -->
     <int name="IntelligenceAdd" />
     <!-- 9 -->
@@ -109,8 +114,16 @@
 
 <element name="NotifyOnCharNowInStation">
   <InlineTuple>
-    <!-- 0 -->
-    <int name="charID" />
+	  <InlineTuple>
+		  <!-- 0 -->
+		  <int name="charID" />
+		  <!-- 1 -->
+		  <int name="corpID" />
+		  <!-- 2 -->
+		  <int name="allianceID" default="0" none_marker="0" />
+		  <!-- 3 -->
+		  <int name="unknown" default="0" none_marker="0" />
+	  </InlineTuple>
   </InlineTuple>
 </element>
 

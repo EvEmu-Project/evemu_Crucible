@@ -15,12 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "logsys.h"
-#include "dbcore.h"
-#include "PyRep.h"
-#include "EVEDBUtils.h"
-#include "../ServiceDB.h"
-#include "FactoryDB.h"
+#include "EvemuPCH.h"
 
 FactoryDB::FactoryDB(DBcore *db)
 : ServiceDB(db)
@@ -84,8 +79,8 @@ PyRep *FactoryDB::GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) 
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
-				"SELECT requiredTypeID, quantity, damagePerJob, activity"
-				" FROM TL2MaterialsForTypeWithActivity"
+				"SELECT requiredTypeID, quantity, damagePerJob, activityID"
+				" FROM typeActivityMaterials"
 				" WHERE typeID = %lu",
 				blueprintTypeID))
 	{
@@ -101,9 +96,9 @@ PyRep *FactoryDB::GetMaterialCompositionOfItemType(const uint32 typeID) const {
 
 	if(!m_db->RunQuery(res,
 				"SELECT requiredTypeID AS typeID, quantity"
-				" FROM TL2MaterialsForTypeWithActivity"
+				" FROM typeActivityMaterials"
 				" WHERE typeID = (SELECT blueprintTypeID FROM invBlueprintTypes WHERE productTypeID = %lu)"
-				" AND activity = 1"
+				" AND activityID = 1"
 				" AND damagePerJob = 1",
 				typeID))
 	{

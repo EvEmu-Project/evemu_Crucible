@@ -15,22 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-#include "CorporationService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../common/EVEUtils.h"
-
-#include "../packets/CorporationPkts.h"
-#include "../packets/General.h"
+#include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(CorporationService)
-
 
 CorporationService::CorporationService(PyServiceMgr *mgr, DBcore *db)
 : PyService(mgr, "corporationSvc"),
@@ -49,7 +36,7 @@ CorporationService::~CorporationService() {
 }
 
 
-PyCallResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
+PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 	
 	GetFactionInfoRsp rsp;
 	
@@ -119,13 +106,13 @@ PyCallResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 }
 
 
-PyCallResult CorporationService::Handle_GetNPCDivisions(PyCallArgs &call) {
+PyResult CorporationService::Handle_GetNPCDivisions(PyCallArgs &call) {
 	PyRep *result = m_db.ListNPCDivisions();
 	
 	return(result);
 }
 
-PyCallResult CorporationService::Handle_GetEmploymentRecord(PyCallArgs &call) {
+PyResult CorporationService::Handle_GetEmploymentRecord(PyCallArgs &call) {
 	Call_SingleIntegerArg args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Bad arguments");

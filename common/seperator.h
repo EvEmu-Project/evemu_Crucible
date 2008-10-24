@@ -28,7 +28,7 @@ public:
 		argnum = 0;
 		size_t len = strlen(message_in);
 		
-		if(arglen > len)
+		if(size_t(arglen) > len)
 			arglen = int16(len+1);
 		
 		//msg = strdup(message);
@@ -38,7 +38,8 @@ public:
 		this->maxargnum = in_maxargnum;
 		argplus = new const char *[maxargnum+1];
 		arg = new char *[maxargnum+1];
-		for (i=0; i<=maxargnum; i++) {
+
+		for (i=0; i<=size_t(maxargnum); i++) {
 			argplus[i]=arg[i] = new char[arglen+1];
 			memset(arg[i], 0, arglen+1);
 		}
@@ -55,8 +56,8 @@ public:
 				if ((inquote == false && (message[i] == div || message[i] == div2 || message[i] == div3)) || (inquote && (message[i] == '\'' || message[i] == '\"') && (message[i+1] == div || message[i+1] == div2 || message[i+1] == div3 || message[i+1] == 0))) {
 					inquote = false;
 					l = i-s;
-					if (l >= arglen)
-						l = arglen;
+					if (l >= size_t(arglen))
+						l = size_t(arglen);
 					if (l)
 						memcpy(arg[argnum], argplus[argnum], l);
 					arg[argnum][l] = 0;
@@ -84,7 +85,7 @@ public:
 		}
 		if (inarg && argnum <= maxargnum) {
 			l = i-s;
-			if (l >= arglen)
+			if (l >= size_t(arglen))
 				l = arglen;
 			if (l)
 				memcpy(arg[argnum], argplus[argnum], l);

@@ -15,26 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#include "CorpStationMgrService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../common/packet_types.h"
-#include "../packets/General.h"
-#include "../packets/Wallet.h"
-#include "../packets/LSCPkts.h"
-#include "../Client.h"
-#include "../EntityList.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../PyBoundObject.h"
-#include "../cache/ObjCacheService.h"
-#include "../common/EVEUtils.h"
-#include "CorporationCarrier.h"
+#include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(CorpStationMgrService)
-
 
 class CorpStationMgrIMBound
 : public PyBoundObject {
@@ -107,7 +90,7 @@ PyBoundObject *CorpStationMgrService::_CreateBoundObject(Client *c, const PyRep 
 }
 
 
-PyCallResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call) {
 	PyRep *result = NULL;
 	
 	//start building the Rowset
@@ -142,7 +125,7 @@ PyCallResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call) {
 }
 
 
-PyCallResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call) {
     /* returns:
      *  list(
      *      eveowners:
@@ -206,7 +189,7 @@ PyCallResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &c
 }
 
 
-PyCallResult CorpStationMgrIMBound::Handle_DoStandingCheckForStationService(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::Handle_DoStandingCheckForStationService(PyCallArgs &call) {
 	
 	// takes an int (seen 512 and 1024 and 2048)
 	//seems to return None, or throw an exception
@@ -215,7 +198,7 @@ PyCallResult CorpStationMgrIMBound::Handle_DoStandingCheckForStationService(PyCa
 	return(result);
 }
 
-PyCallResult CorpStationMgrIMBound::Handle_GetPotentialHomeStations(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::Handle_GetPotentialHomeStations(PyCallArgs &call) {
 	PyRep *result = NULL;
 	//returns a rowset: stationID, typeID
 
@@ -225,7 +208,7 @@ PyCallResult CorpStationMgrIMBound::Handle_GetPotentialHomeStations(PyCallArgs &
 	return(result);
 }
 
-PyCallResult CorpStationMgrIMBound::Handle_SetHomeStation(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::Handle_SetHomeStation(PyCallArgs &call) {
 
 	//this takes an integer: stationID
 	//price is prompted for on the client side.
@@ -235,7 +218,7 @@ PyCallResult CorpStationMgrIMBound::Handle_SetHomeStation(PyCallArgs &call) {
 	return(new PyRepNone());
 }
 
-PyCallResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
 
 	//this takes an integer: cloneTypeID
 	//price is prompted for on the client side.
@@ -245,7 +228,7 @@ PyCallResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
 	return(new PyRepNone());
 }
 
-PyCallResult CorpStationMgrIMBound::Handle_GetQuoteForRentingAnOffice(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::Handle_GetQuoteForRentingAnOffice(PyCallArgs &call) {
 	// No incoming params...
 	uint32 stationID = call.client->GetStationID();
 
@@ -253,7 +236,7 @@ PyCallResult CorpStationMgrIMBound::Handle_GetQuoteForRentingAnOffice(PyCallArgs
 	// the dialog box will be displayed... have to make sure this doesn't fail
 	return (new PyRepInteger(m_db->GetQuoteForRentingAnOffice(stationID)));
 }
-PyCallResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	// 1 param, corp rent price	//TODO: check against what we think it should cost.
 	Call_SingleIntegerArg arg;
 	if (!arg.Decode(&call.tuple)) {
@@ -369,7 +352,7 @@ PyCallResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	// Who to send notification? corpRoleJuniorAccountant and equiv? atm it's enough to send it to the renter
 	// TODO: get the correct evemail content from somewhere
 	// TODO: send it to every corp member who's affected by it. corpRoleAccountant, corpRoleJuniorAccountant or equiv
-	m_manager->SendNewEveMail(
+	m_manager->lsc_service->SendMail(
 		m_db->GetStationCorporationCEO(oInfo.stationID), 
 		call.client->GetCharacterID(), 
 		"Bill issued", 

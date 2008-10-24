@@ -297,9 +297,9 @@ uint32 CalcCRC16(byte *bin_data, int len, uint32 initial_crc) {
 #ifdef WIN32
 // there has to be a better function for this...
 //we do not support base 16 here... 
-sint64 strtoll(const char *str, const char **end, int8 base)
+int64 strtoll(const char *str, const char **end, int8 base)
 {
-        sint64 result = 0;
+        int64 result = 0;
         int negative=0;
 
         while (*str == ' ' || *str == '\t' )

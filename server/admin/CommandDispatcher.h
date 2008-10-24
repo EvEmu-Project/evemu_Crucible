@@ -8,12 +8,13 @@
 class Client;
 class Seperator;
 class CommandDB;
+class PyResult;
 class PyServiceMgr;
 
 class CommandDispatcher {
 public:
 	//this is the prototype for a command function:
-	typedef void (*CommandFunc)(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args);
+	typedef PyResult (*CommandFunc)(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args);
 	
 	class CommandRecord {
 	public:
@@ -23,11 +24,10 @@ public:
 		CommandFunc function;
 	};
 
-	
 	CommandDispatcher(CommandDB *db, PyServiceMgr *services);
 	virtual ~CommandDispatcher();
 
-	bool Execute(Client *from, const char *msg) const;
+	PyResult Execute(Client *from, const char *msg) const;
 
 	void AddCommand(const char *cmd, const char *desc, uint32 required_role, CommandFunc function);
 	

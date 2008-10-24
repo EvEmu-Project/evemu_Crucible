@@ -139,14 +139,14 @@ private:
 	public:
 		WarpState(uint32 start_stamp_, double total_distance_, double speed_, double acceleration_time_, double slow_time_, const GVector &normvec_them_to_us_)
 			: start_stamp(start_stamp_), total_distance(total_distance_), speed(speed_), acceleration_time(acceleration_time_), slow_time(slow_time_), normvec_them_to_us(normvec_them_to_us_) {}
-		const uint32 start_stamp;	//destiny stamp of when the warp started.
-		const double total_distance;
-		const double speed;
-		const double acceleration_time;
-		const double slow_time;
-		const GVector normvec_them_to_us;
+		uint32 start_stamp;	//destiny stamp of when the warp started.
+		double total_distance;
+		double speed;
+		double acceleration_time;
+		double slow_time;
+		GVector normvec_them_to_us;
 	};
-	WarpState *m_warpState;	//we own this. Allocated so we can have consts.
+	const WarpState *m_warpState;	//we own this. Allocated so we can have consts.
 	void _InitWarp();
 };
 

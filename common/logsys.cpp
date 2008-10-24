@@ -26,20 +26,20 @@
 #include <string>
 
 #ifdef WIN32
-	extern int gettimeofday (timeval *tp, ...);
-	#define NO_LOG_TIME	//temp disabled on windows because I dont wanna deal with it right now.
+#include <time.h>
 #else
 #include <sys/time.h>
-#endif
+#endif /* WIN32 */
 
 static FILE *logsys_log_file = NULL;
+
+std::list<std::string> memory_log;
+const uint32 memory_log_limit = 1000;
 
 #define LOG_CATEGORY(category) #category ,
 const char *log_category_names[NUMBER_OF_LOG_CATEGORIES] = {
 	#include "logtypes.h"
 };
-std::list<std::string> memory_log;
-
 
 //this array is private to this file, only a const version of it is exposed
 #define LOG_TYPE(category, type, enabled, str) { enabled, LOG_ ##category, #category "__" #type, str },
@@ -49,7 +49,6 @@ static LogTypeStatus real_log_type_info[NUMBER_OF_LOG_TYPES+1] =
 	{ false, NUMBER_OF_LOG_CATEGORIES, "BAD TYPE", "Bad Name" }	/* dummy trailing record */
 };
 const LogTypeStatus *log_type_info = real_log_type_info;
-
 
 
 void log_hex(LogType type, const void *data, unsigned long length, unsigned char padding) {
@@ -87,17 +86,26 @@ void log_message(LogType type, const char *fmt, ...) {
 
 void log_messageVA(LogType type, const char *fmt, va_list args) {
 	std::string message("");
+
 #ifndef NO_LOG_TIME
+#ifdef WIN32
+	time_t t;
+	time(&t);
+	char buf[32];
+	strftime(buf, sizeof(buf), "%X ", localtime(&t));
+	message += buf;
+#else
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	char buf[32];
 	strftime(buf, sizeof(buf), "%T", localtime(&tv.tv_sec));
 	//printf("%s.%04d ", buf, tv.tv_usec/100);
-	message = buf;
+	message += buf;
 	message += '.';
 	snprintf(buf, sizeof(buf), "%04d", tv.tv_usec/100); buf[sizeof(buf)-1] = '\0';
 	message += buf;	
-#endif
+#endif /* WIN32 */
+#endif /* NO_LOG_TIME */
 
 	message += "[";
 	message += log_type_info[type].display_name;
@@ -107,22 +115,20 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
 	char * msg = new char[size + 1];
 	vsnprintf(msg, size + 1, fmt, args); msg[size] = '\0';
 	message += msg;
-	message += "\n";
 	delete[] msg;
 
-	printf(message.c_str());
-	if (logsys_log_file != NULL) { fprintf(logsys_log_file, message.c_str()); fflush(logsys_log_file); /* keep the logfile updated */}
-	memory_log.push_back(message);
-	if (memory_log.size() > 1000) memory_log.pop_front();
-	
-	/*printf("[%s] ", log_type_info[type].display_name);
-	vprintf(fmt, args);
-	printf("\n");
+	//print into the console
+	printf("%s\n", message.c_str());
+	//print into the logfile (if any)
 	if(logsys_log_file != NULL) {
-		fprintf(logsys_log_file, "[%s] ", log_type_info[type].display_name);
-		vfprintf(logsys_log_file, fmt, args);
-		fprintf(logsys_log_file, "\n");
-	}*/
+		fprintf(logsys_log_file, "%s\n", message.c_str());
+		fflush(logsys_log_file);	//keep the logfile updated
+	}
+	//print into the memory log
+	memory_log.push_back(message);
+	if(memory_log.size() > memory_log_limit)
+		//limit reached, pop the oldest record
+		memory_log.pop_front();
 }
 
 void log_enable(LogType t) {

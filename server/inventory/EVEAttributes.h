@@ -1,6 +1,6 @@
 /*
-this file is generated from the dgmattributes table.
- echo "select attributeID,attributeName,defaultValue from dgmattributes" \
+this file is generated from the dgmAttributeTypes table.
+ echo "select attributeID,attributeName,defaultValue from dgmAttributeTypes" \
     | /mysql -u root -B eve \
     | sed -e 's/^/ATTR(/g' -e 's/$/, int, int)/g' -e 's/\t/, /g'
 

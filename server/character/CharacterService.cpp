@@ -15,26 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#include "CharacterService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../common/EVEUtils.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../cache/ObjCacheService.h"
-#include "../EntityList.h"
-#include "../common/EVEUtils.h"
-#include "../inventory/InventoryItem.h"
-#include "../inventory/ItemFactory.h"
-
-#include "../packets/General.h"
-#include "../packets/Character.h"
+#include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(CharacterService)
-
 
 CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc)
 : PyService(mgr, "character"),
@@ -48,9 +31,12 @@ CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc)
 	PyCallable_REG_CALL(CharacterService, SelectCharacterID)
 	PyCallable_REG_CALL(CharacterService, GetOwnerNoteLabels)
 	PyCallable_REG_CALL(CharacterService, GetCharCreationInfo)
+	PyCallable_REG_CALL(CharacterService, GetCharNewExtraCreationInfo)
 	PyCallable_REG_CALL(CharacterService, GetAppearanceInfo)
 	PyCallable_REG_CALL(CharacterService, ValidateName)
+	PyCallable_REG_CALL(CharacterService, ValidateNameEx)
 	PyCallable_REG_CALL(CharacterService, CreateCharacter)
+	PyCallable_REG_CALL(CharacterService, Ping)
 	PyCallable_REG_CALL(CharacterService, PrepareCharacterForDelete)
 	PyCallable_REG_CALL(CharacterService, CancelCharacterDeletePrepare)
 	PyCallable_REG_CALL(CharacterService, AddOwnerNote)
@@ -59,6 +45,7 @@ CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc)
 	PyCallable_REG_CALL(CharacterService, GetHomeStation)
 	PyCallable_REG_CALL(CharacterService, GetCloneTypeID)
 	PyCallable_REG_CALL(CharacterService, GetCharacterAppearanceList)
+	PyCallable_REG_CALL(CharacterService, GetRecentShipKillsAndLosses)
 
 	PyCallable_REG_CALL(CharacterService, GetCharacterDescription)//mandela
 	PyCallable_REG_CALL(CharacterService, SetCharacterDescription)//mandela
@@ -71,7 +58,7 @@ CharacterService::~CharacterService() {
 	delete m_dispatch;
 }
 
-PyCallResult CharacterService::Handle_GetCharactersToSelect(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetCharactersToSelect(PyCallArgs &call) {
 	
 	PyRep *result = NULL;
 
@@ -84,7 +71,7 @@ PyCallResult CharacterService::Handle_GetCharactersToSelect(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult CharacterService::Handle_GetCharacterToSelect(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetCharacterToSelect(PyCallArgs &call) {
 	PyRep *result = NULL;
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {
@@ -101,8 +88,8 @@ PyCallResult CharacterService::Handle_GetCharacterToSelect(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult CharacterService::Handle_SelectCharacterID(PyCallArgs &call) {
-	Call_SingleIntegerArg args;
+PyResult CharacterService::Handle_SelectCharacterID(PyCallArgs &call) {
+	CallSelectCharacterID args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Failed to parse args from account %lu", call.client->GetAccountID());
 		//TODO: throw exception
@@ -130,18 +117,19 @@ PyCallResult CharacterService::Handle_SelectCharacterID(PyCallArgs &call) {
 		}
 	}*/
 
-	if(call.client->Load(args.arg))
+	//we don't care about tutorial dungeon right now
+	if(call.client->Load(args.charID))
 		//johnsus - characterOnline mod
-		m_db.SetCharacterOnlineStatus(args.arg,true);
+		m_db.SetCharacterOnlineStatus(args.charID,true);
 
 	return(NULL);
 }
 
-PyCallResult CharacterService::Handle_GetOwnerNoteLabels(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetOwnerNoteLabels(PyCallArgs &call) {
 	return m_db.GetOwnerNoteLabels(call.client->GetCharacterID());
 }
 
-PyCallResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	PyRepDict *cachables = new PyRepDict();
@@ -157,7 +145,18 @@ PyCallResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetCharNewExtraCreationInfo(PyCallArgs &call) {
+	PyRepDict *result = new PyRepDict();
+
+	m_manager->GetCache()->InsertCacheHints(
+		ObjCacheService::hCharNewExtraCreateCachables,
+		result);
+	_log(CLIENT__MESSAGE, "Sending char new extra creation info reply");
+
+	return(result);
+}
+
+PyResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	PyRepDict *cachables = new PyRepDict();
@@ -173,7 +172,7 @@ PyCallResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult CharacterService::Handle_ValidateName(PyCallArgs &call) {
+PyResult CharacterService::Handle_ValidateName(PyCallArgs &call) {
 	Call_SingleStringArg arg;
 
 	if(!arg.Decode(&call.tuple)) {
@@ -184,191 +183,74 @@ PyCallResult CharacterService::Handle_ValidateName(PyCallArgs &call) {
 	return(new PyRepBoolean(m_db.ValidateCharName(arg.arg.c_str())));
 }
 
-PyCallResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
-	PyRepTuple *call_args = call.tuple;
-	
-	PyRep *result = NULL;
-	if(call_args->items.size() != 14) {
-		_log(CLIENT__ERROR, "Invalid arg tuple size in CreateCharacter: %d", call_args->items.size());
-		return(new PyRepNone());
+PyResult CharacterService::Handle_ValidateNameEx(PyCallArgs &call) {
+	//just redirect it now
+	return(Handle_ValidateName(call));
+}
+
+PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
+	CallCreateCharacter arg;
+	if(!arg.Decode(&call.tuple)) {
+		_log(CLIENT__ERROR, "Failed to decode CreateCharacter arg.");
+		return(NULL);
 	}
 
 	CharacterData cdata;
-	CharacterAppearance capp;
-	
-	if(!call_args->items[0]->CheckType(PyRep::String)) {
-		_log(CLIENT__ERROR, "Invalid CreateCharacter name type");
-		return(new PyRepNone());
-	}
-	PyRepString *char_name = (PyRepString *) call_args->items[0];
-	cdata.name = char_name->value;
+	cdata.name = arg.name;
+	cdata.bloodlineID = arg.bloodlineID;
+	cdata.genderID = arg.genderID;
+	cdata.ancestryID = arg.ancestryID;
+	cdata.Intelligence = arg.IntelligenceAdd;
+	cdata.Charisma = arg.CharismaAdd;
+	cdata.Perception = arg.PerceptionAdd;
+	cdata.Memory = arg.MemoryAdd;
+	cdata.Willpower = arg.WillpowerAdd;
 
-	uint32 args[12];
-	uint8 r;
-	for(r = 1; r < 13; r++) {
-		if(!call_args->items[r]->CheckType(PyRep::Integer)) {
-			_log(CLIENT__ERROR, "Invalid CreateCharacter argument %d, expected integer", r);
-			return(new PyRepNone());
+	std::map<std::string, PyRep *>::iterator itr = call.byname.find("careerID");
+	if(itr != call.byname.end()) {
+		if(!itr->second->CheckType(PyRep::Integer)) {
+			_log(CLIENT__ERROR, "Wrong careerID type! Expected integer, got %s.", itr->second->TypeString());
+			return(NULL);
 		}
-		PyRepInteger *i = (PyRepInteger *) call_args->items[r];
-		args[r-1] = i->value;
-	}
-
-
-	cdata.bloodlineID = args[0];
-	cdata.genderID = args[1];
-	cdata.ancestryID = args[2];
-	cdata.schoolID = args[3];
-	cdata.departmentID = args[4];
-	cdata.fieldID = args[5];
-	cdata.specialityID = args[6];
-	cdata.Intelligence = args[7];
-	cdata.Charisma = args[8];
-	cdata.Perception = args[9];
-	cdata.Memory = args[10];
-	cdata.Willpower = args[11];
-
-	_log(CLIENT__MESSAGE, "CreateCharacter called for '%s'", char_name->value.c_str());
-	_log(CLIENT__MESSAGE, "  bloodlineID=%d genderID=%d ancestryID=%d schoolID=%d", 
-			cdata.bloodlineID, cdata.genderID, cdata.ancestryID, cdata.schoolID);
-	_log(CLIENT__MESSAGE, "  departmentID=%d fieldID=%d specialityID=%d", 
-			cdata.departmentID, cdata.fieldID, cdata.specialityID);
-	_log(CLIENT__MESSAGE, "  +INT=%d +CHA=%d +PER=%d +MEM=%d +WIL=%d", 
-			cdata.Intelligence, cdata.Charisma, cdata.Perception, cdata.Memory, cdata.Willpower);
-	_log(CLIENT__MESSAGE, "  Appearance Data:");
-
-
-	//must default all the fields to 'NULL'
-#define M(n) \
-	capp.n = 999999;
-			M(accessoryID)
-			M(beardID)
-			M(costumeID)
-			M(decoID)
-			M(eyebrowsID)
-			M(eyesID)
-			M(hairID)
-			M(lipstickID)
-			M(makeupID)
-			M(skinID)
-			M(backgroundID)
-			M(lightID)
-#undef M
-#define M(n) \
-	capp.n = 999;
-			M(morph1e)
-			M(morph1n)
-			M(morph1s)
-			M(morph1w)
-			M(morph2e)
-			M(morph2n)
-			M(morph2s)
-			M(morph2w)
-			M(morph3e)
-			M(morph3n)
-			M(morph3s)
-			M(morph3w)
-			M(morph4e)
-			M(morph4n)
-			M(morph4s)
-			M(morph4w)
-#undef M
-	
-
-
-	if(!call_args->items[13]->CheckType(PyRep::Dict)) {
-		_log(CLIENT__ERROR, "Invalid CreateCharacter appearance type");
+		cdata.careerID = ((PyRepInteger *)itr->second)->value;
+	} else {
+		_log(CLIENT__ERROR, "CareerID not found.");
 		return(NULL);
 	}
-	PyRepDict *appearance = (PyRepDict *) call_args->items[13];
-	std::map<PyRep *, PyRep *>::iterator cur, end;
-	cur = appearance->items.begin();
-	end = appearance->items.end();
-	for(; cur != end; cur++) {
-		if(!cur->first->CheckType(PyRep::String)) {
-			_log(CLIENT__ERROR, "Invalid CreateCharacter appearance element key type");
-			continue;
+
+	itr = call.byname.find("careerSpecialityID");
+	if(itr != call.byname.end()) {
+		if(!itr->second->CheckType(PyRep::Integer)) {
+			_log(CLIENT__ERROR, "Wrong careerSpecialityID type! Expected integer, got %s.", itr->second->TypeString());
+			return(NULL);
 		}
-		PyRepString *k = (PyRepString *) cur->first;
-		if(cur->second->CheckType(PyRep::Integer)) {
-			PyRepInteger *v = (PyRepInteger *) cur->second;
-			//this is terrible...
-#define M(n) \
-	if(k->value == #n) { \
-		capp.n = v->value; \
-	} else 
-			M(accessoryID)
-			M(beardID)
-			M(costumeID)
-			M(decoID)
-			M(eyebrowsID)
-			M(eyesID)
-			M(hairID)
-			M(lipstickID)
-			M(makeupID)
-			M(skinID)
-			M(backgroundID)
-			M(lightID)
-#undef M
-			{	//end of if chain...
-				_log(CLIENT__ERROR, "Unknown integer appearance element %s: %d", k->value.c_str(), v->value);
-			}
-			_log(CLIENT__MESSAGE, "     %s: %d", k->value.c_str(), v->value);
-		} else if(cur->second->CheckType(PyRep::Real)) {
-			PyRepReal *v = (PyRepReal *) cur->second;
-#define M(n) \
-	if(k->value == #n) { \
-		capp.n = v->value; \
-	} else 
-			M(headRotation1)
-			M(headRotation2)
-			M(headRotation3)
-			M(eyeRotation1)
-			M(eyeRotation2)
-			M(eyeRotation3)
-			M(camPos1)
-			M(camPos2)
-			M(camPos3)
-			M(morph1e)
-			M(morph1n)
-			M(morph1s)
-			M(morph1w)
-			M(morph2e)
-			M(morph2n)
-			M(morph2s)
-			M(morph2w)
-			M(morph3e)
-			M(morph3n)
-			M(morph3s)
-			M(morph3w)
-			M(morph4e)
-			M(morph4n)
-			M(morph4s)
-			M(morph4w)
-#undef M
-			{	//end of if chain...
-				_log(CLIENT__ERROR, "Unknown float appearance element %s: %.13f", k->value.c_str(), v->value);
-			}
-			_log(CLIENT__MESSAGE, "     %s: %f", k->value.c_str(), v->value);
-		} else {
-			_log(CLIENT__ERROR, "Invalid CreateCharacter appearance element value type for %s: %s", k->value.c_str(), cur->second->TypeString());
-			continue;
-		}
+		cdata.careerSpecialityID = ((PyRepInteger *)itr->second)->value;
+	} else {
+		_log(CLIENT__ERROR, "CareerSpecialityID not found.");
+		return(NULL);
 	}
 
-	
+	_log(CLIENT__MESSAGE, "CreateCharacter called for '%s'", cdata.name.c_str());
+	_log(CLIENT__MESSAGE, "  bloodlineID=%lu genderID=%lu ancestryID=%lu careerID=%lu careerSpecialityID=%lu", 
+			cdata.bloodlineID, cdata.genderID, cdata.ancestryID, cdata.careerID, cdata.careerSpecialityID);
+	_log(CLIENT__MESSAGE, "  +INT=%lu +CHA=%lu +PER=%lu +MEM=%lu +WIL=%lu", 
+			cdata.Intelligence, cdata.Charisma, cdata.Perception, cdata.Memory, cdata.Willpower);
+
+	CharacterAppearance capp;
+	//this builds appearance data from strdict
+	capp.Build(arg.appearance);
+
 	//TODO: choose these based on selected parameters...
 	// Setting character's starting position, and getting it's location...
 	double x=0,y=0,z=0;
 
-	if(   !m_db.GetLocationCorporationFromSchool(cdata, x, y, z)
+	if(   !m_db.GetLocationCorporationByCareer(cdata, x, y, z)
 	   || !m_db.GetAttributesFromBloodline(cdata)
 	   || !m_db.GetAttributesFromAncestry(cdata) ) {
-		codelog(CLIENT__ERROR, "Failed to load char create details. School %lu, bloodline %lu, ancestry %lu.",
-			cdata.schoolID, cdata.bloodlineID, cdata.ancestryID);
+		codelog(CLIENT__ERROR, "Failed to load char create details. Bloodline %lu, ancestry %lu, career %lu.",
+			cdata.bloodlineID, cdata.ancestryID, cdata.careerID);
 		return(NULL);
 	}
-	cdata.allianceID = 0;
 	
 	cdata.raceID = m_db.GetRaceByBloodline(cdata.bloodlineID);
 	if(cdata.raceID == 0) {
@@ -384,39 +266,68 @@ PyCallResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	cdata.solarSystemID = 30001407;
 	cdata.constellationID = 20000206;
 	cdata.regionID = 10000016;
-	cdata.corporationID = 1000044;
 
-
-	
-	
 	cdata.bounty = 0;
 	cdata.balance = 6666000000.0f;
 	cdata.securityRating = 0;
-	cdata.logonMinutes = 13;
-	cdata.title = "CharTitle";
-	
+	cdata.logonMinutes = 0;
+	cdata.title = "No Title";
+
 	cdata.startDateTime = Win32TimeNow();
 	cdata.createDateTime = cdata.startDateTime;
 	cdata.corporationDateTime = cdata.startDateTime;
 
-	//now we have all the data in our happy struct, stick it in the DB
+	//obtain ship type
+	uint32 shipTypeID;
+	if(!m_db.GetShipTypeByBloodline(cdata.bloodlineID, shipTypeID))
+		//error was already printed
+		return(NULL);
+
+	//load skills
+	std::map<uint32, uint32> startingSkills;
+	if(   !m_db.GetSkillsByRace(cdata.raceID, startingSkills)
+	   || !m_db.GetSkillsByCareer(cdata.careerID, startingSkills)
+	   || !m_db.GetSkillsByCareerSpeciality(cdata.careerSpecialityID, startingSkills)
+	) {
+		codelog(CLIENT__ERROR, "Failed to load char create skills. Bloodline %lu, ancestry %lu.",
+			cdata.bloodlineID, cdata.ancestryID);
+		return(NULL);
+	}
+
+	//now we have all the data we need, stick it in the DB
 	InventoryItem *char_item = m_db.CreateCharacter(call.client->GetAccountID(), m_manager->item_factory, cdata, capp);
 	if(char_item == NULL) {
 		//a return to the client of 0 seems to be the only means of marking failure
 		codelog(CLIENT__ERROR, "Failed to create character '%s'", cdata.name.c_str());
 		return(NULL);
 	}
-	uint32 charid = char_item->itemID();
-	cdata.charid = charid;
-	
-	//now set up some initial inventory:
+	cdata.charid = char_item->itemID();
 
-	//create them a nice capsule
+	//spawn all the skills
+	InventoryItem *i;
+	std::map<uint32, uint32>::iterator cur, end;
+	cur = startingSkills.begin();
+	end = startingSkills.end();
+	for(; cur != end; cur++) {
+		i = char_item->SpawnSingleton(cur->first, cdata.charid, flagSkill);
+		if(i == NULL) {
+			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
+		} else {
+			i->Set_skillLevel(cur->second);
+			i->Set_skillPoints(GetSkillPointsForSkillLevel(i, cur->second));
+			_log(CLIENT__MESSAGE, "Training skill %lu to level %d (%d points)", i->typeID(), i->skillLevel(), i->skillPoints());
+			//we dont actually need the item anymore...
+			i->Release();
+		}
+	}
+
+	//now set up some initial inventory:
 	{
+		//create them a nice capsule
 		std::string capsule_name = cdata.name + "'s Capsule";
 		InventoryItem *capsule = m_manager->item_factory->SpawnSingleton(
 			itemTypeCapsule,
-			charid,
+			cdata.charid,
 			cdata.stationID,
 			flagHangar,
 			capsule_name.c_str());
@@ -425,8 +336,6 @@ PyCallResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 			//what to do?
 			return(NULL);
 		}
-		//hack in a relocation
-		//capsule->Relocate(-1464808120320.0, 96202629120.0, -2573596385280.0);
 		capsule->Relocate(GPoint(x,y,z));
 	
 		//put the player in their capsule
@@ -434,83 +343,27 @@ PyCallResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 		capsule->Release();	//no longer needed.
 	}
 	
-	//add some skills for good measure...
-	uint32 shipTypeID;
-	// TODO: when adding same skill several times, instead of adding n times, raise level
-	//       btw. how is level and skill points are handled?
-	// DONE: Johnsus 2008.04.15
-	std::vector<uint32> startingSkills;
-	if(   !m_db.GetSkillsFromBloodline(cdata.bloodlineID, startingSkills, shipTypeID)
-	   || !m_db.GetSkillsFromAncestry(cdata.ancestryID, startingSkills)
-	   || !m_db.GetSkillsFromDepartment(cdata.departmentID, startingSkills)
-	   || !m_db.GetSkillsFromField(cdata.fieldID, startingSkills)
-	   || !m_db.GetSkillsFromSpeciality(cdata.specialityID, startingSkills) ) {
-		codelog(CLIENT__ERROR, "Failed to load char create skills. bloodline %lu, ancestry %lu, department %lu, field %lu, speciality %lu.",
-			cdata.bloodlineID, cdata.ancestryID, cdata.departmentID, cdata.fieldID, cdata.specialityID);
-		m_db.DeleteCharacter(cdata.charid);
-		char_item->Delete();
-		return(NULL);
-	}
-
-	//all skills loaded, now stick them in the DB
-	std::map<uint32,uint32> skillMap;
-	std::map<uint32,uint32>::iterator p;
-
-	std::vector<uint32>::iterator curs, ends;
-	curs = startingSkills.begin();
-	ends = startingSkills.end();
-	for(; curs != ends; curs++) {
-		if(*curs == 0)
-			continue;
-
-		p=skillMap.find(*curs);
-		if(p != skillMap.end()) {
-			p->second++;
-		} else {
-			skillMap[*curs] = 1;
-		}
-	}
-	for( p = skillMap.begin(); p != skillMap.end(); p++ ) {
-		InventoryItem *i;
-		i = char_item->SpawnSingleton(p->first, cdata.charid, flagSkill);
-		if(i == NULL) {
-			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", p->first, cdata.name.c_str(), cdata.charid);
-		} else {
-			float points = GetSkillPointsForSkillLevel(i,p->second);
-			i->Set_skillLevel(p->second);
-			i->Set_skillPoints(int(points));
-			_log(CLIENT__MESSAGE, "Training skill %lu to level %d (%d points)", i->typeID(), i->skillLevel(), i->skillPoints());
-			//we dont actually need the item anymore...
-			i->Release();
-		}
-	}
-
-	
-	//now some items:
 	{	//item scope
 		InventoryItem *junk;
 		junk = m_manager->item_factory->Spawn(
 			2046,	//Damage Control I
 			1,
-			charid, cdata.stationID, flagHangar);
-		if(junk == NULL) {
+			cdata.charid, cdata.stationID, flagHangar);
+		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
-		} else {
+		else
 			junk->Release();
-		}
 		
 		junk = m_manager->item_factory->Spawn(
 			34,		//Tritanium
 			1,
-			charid,
+			cdata.charid,
 			cdata.stationID,
 			flagHangar);
-		if(junk == NULL) {
+		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
-		} else {
+		else
 			junk->Release();
-		}
-		junk = NULL;
 	}
 
 	{	//item scope
@@ -518,17 +371,15 @@ PyCallResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 		InventoryItem *ship_item;
 		ship_item = m_manager->item_factory->SpawnSingleton(
 			shipTypeID,		// The race-specific start ship
-			charid,
+			cdata.charid,
 			cdata.stationID,
 			flagHangar,
 			ship_name.c_str());
 		if(ship_item == NULL) {
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		} else {
-			//hack in a relocation
-			//ship_item->Relocate(-1464808120320.0, 96202629120.0, -2573596385280.0);
 			ship_item->Relocate(GPoint(x,y,z));
-			
+
 			ship_item->Release();
 			ship_item = NULL;
 		}
@@ -537,17 +388,17 @@ PyCallResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	//recursively save everything we just did.
 	char_item->Save(true);
 	char_item->Release();
-	
-	
-	
-	_log(CLIENT__MESSAGE, "Sending char create ID %d as reply", charid);
-	
-	result = new PyRepInteger(charid);
 
-	return(result);
+	_log(CLIENT__MESSAGE, "Sending char create ID %d as reply", cdata.charid);
+
+	return(new PyRepInteger(cdata.charid));
 }
 
-PyCallResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
+PyResult CharacterService::Handle_Ping(PyCallArgs &call) {
+	return(new PyRepInteger(call.client->GetAccountID()));
+}
+
+PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	/*                                                                              
      * Deletion is apparently a timed process, and is related to the
      * deletePrepareDateTime column in the char select result.
@@ -597,7 +448,7 @@ PyCallResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call
 	return(new PyRepInteger(Win32TimeNow() + Win32Time_Second*5));
 }
 
-PyCallResult CharacterService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call) {
+PyResult CharacterService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call) {
 	
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {
@@ -608,13 +459,10 @@ PyCallResult CharacterService::Handle_CancelCharacterDeletePrepare(PyCallArgs &c
 	_log(CLIENT__ERROR, "Cancel delete (of char %lu) unimplemented.", args.arg);
 
 	//returns nothing.
-	PyRep *result = NULL;
-	result = new PyRepNone();
-
-	return(result);
+	return(NULL);
 }
 
-PyCallResult CharacterService::Handle_AddOwnerNote(PyCallArgs &call) {
+PyResult CharacterService::Handle_AddOwnerNote(PyCallArgs &call) {
 	
 	Call_AddOwnerNote args;
 
@@ -633,7 +481,7 @@ PyCallResult CharacterService::Handle_AddOwnerNote(PyCallArgs &call) {
 	return(new PyRepInteger(noteID));
 }
 
-PyCallResult CharacterService::Handle_EditOwnerNote(PyCallArgs &call) {
+PyResult CharacterService::Handle_EditOwnerNote(PyCallArgs &call) {
 	
 	Call_EditOwnerNote args;
 
@@ -650,7 +498,7 @@ PyCallResult CharacterService::Handle_EditOwnerNote(PyCallArgs &call) {
 	return(new PyRepInteger(args.noteID));
 }
 
-PyCallResult CharacterService::Handle_GetOwnerNote(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetOwnerNote(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if (!arg.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -660,7 +508,7 @@ PyCallResult CharacterService::Handle_GetOwnerNote(PyCallArgs &call) {
 }
 
 
-PyCallResult CharacterService::Handle_GetHomeStation(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetHomeStation(PyCallArgs &call) {
 	//returns the station ID of the station where this player's Clone is
 	PyRep *result = NULL;
 
@@ -671,7 +519,7 @@ PyCallResult CharacterService::Handle_GetHomeStation(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult CharacterService::Handle_GetCloneTypeID(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetCloneTypeID(PyCallArgs &call) {
 	PyRep *result = NULL;
 	
 	_log(CLIENT__ERROR, "GetCloneTypeID() is not really implemented.");
@@ -682,11 +530,39 @@ PyCallResult CharacterService::Handle_GetCloneTypeID(PyCallArgs &call) {
 	return(result);
 }
 
+PyResult CharacterService::Handle_GetRecentShipKillsAndLosses(PyCallArgs &call) {
+	_log(SERVICE__WARNING, "%s::GetRecentShipKillsAndLosses unimplemented.", GetName());
+
+	util_Rowset rs;
+
+	rs.header.push_back("killID");
+	rs.header.push_back("solarSystemID");
+	rs.header.push_back("victimCharacterID");
+	rs.header.push_back("victimCorporationID");
+	rs.header.push_back("victimAllianceID");
+	rs.header.push_back("victimFactionID");
+	rs.header.push_back("victimShipTypeID");
+	rs.header.push_back("finalCharacterID");
+	rs.header.push_back("finalCorporationID");
+	rs.header.push_back("finalAllianceID");
+	rs.header.push_back("finalFactionID");
+	rs.header.push_back("finalShipTypeID");
+	rs.header.push_back("finalWeaponTypeID");
+	rs.header.push_back("killBlob");	//string
+	rs.header.push_back("killTime");	//uint64
+	rs.header.push_back("victimDamageTaken");
+	rs.header.push_back("finalSecurityStatus");	//real
+	rs.header.push_back("finalDamageDone");
+	rs.header.push_back("moonID");
+
+	return(rs.Encode());
+}
+
 
 
 
 /////////////////////////
-PyCallResult CharacterService::Handle_GetCharacterDescription(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetCharacterDescription(PyCallArgs &call) {
 	PyRep *result = NULL;
 	Call_SingleIntegerArg args;
 	
@@ -707,7 +583,7 @@ PyCallResult CharacterService::Handle_GetCharacterDescription(PyCallArgs &call) 
 
 
 //////////////////////////////////
-PyCallResult CharacterService::Handle_SetCharacterDescription(PyCallArgs &call) {
+PyResult CharacterService::Handle_SetCharacterDescription(PyCallArgs &call) {
 	Call_SingleStringArg args;
 	
 	if(!args.Decode(&call.tuple)) {
@@ -720,7 +596,7 @@ PyCallResult CharacterService::Handle_SetCharacterDescription(PyCallArgs &call) 
 	return(NULL);
 }
 
-PyCallResult CharacterService::Handle_GetCharacterAppearanceList(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetCharacterAppearanceList(PyCallArgs &call) {
 	Call_SingleIntList args;
 	
 	if(!args.Decode(&call.tuple)) {
@@ -751,21 +627,15 @@ PyCallResult CharacterService::Handle_GetCharacterAppearanceList(PyCallArgs &cal
  *
  *  **LSMoura
  */
-PyCallResult CharacterService::Handle_GetNote(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetNote(PyCallArgs &call) {
 	Call_SingleIntegerArg args;
-	PyRep *result;
 
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");
 		return(NULL);
 	}
 
-	result = m_db.GetNote(call.client->GetCharacterID(), args.arg);
-
-	if (!result)
-		result = new PyRepNone();
-
-	return(result);
+	return(m_db.GetNote(call.client->GetCharacterID(), args.arg));
 }
 
 /** Stores a Character note.
@@ -776,7 +646,7 @@ PyCallResult CharacterService::Handle_GetNote(PyCallArgs &call) {
  *
  *  **LSMoura
  */
-PyCallResult CharacterService::Handle_SetNote(PyCallArgs &call) {
+PyResult CharacterService::Handle_SetNote(PyCallArgs &call) {
 	Call_SetNote args;
 	
 	if(!args.Decode(&call.tuple)) {
@@ -794,6 +664,6 @@ PyCallResult CharacterService::Handle_SetNote(PyCallArgs &call) {
  *
  *  Johnsus: 5/11/2008
  */
-int32 CharacterService::GetSkillPointsForSkillLevel(InventoryItem *i, int level) {
-	return(SkillBasePoints * i->skillTimeConstant() * pow(32, (level - 1.) / 2));
+uint32 CharacterService::GetSkillPointsForSkillLevel(InventoryItem *i, uint8 level) {
+	return(SkillBasePoints * i->skillTimeConstant() * pow(32, (level - 1) / 2.0));
 }

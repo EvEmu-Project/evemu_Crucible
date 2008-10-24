@@ -16,11 +16,12 @@
 */
 
 
-#include "../common/common.h"
-#include <iostream>
-#include <iomanip>
 #include <string.h>
 #include <zlib.h>
+
+#include "../common/common.h"
+#include "../common/logsys.h"
+
 #include "packet_dump.h"
 #include "packet_functions.h"
 
@@ -28,9 +29,7 @@
 	#include <netinet/in.h>
 #endif
 
-using namespace std;
-
-#define MEMORY_DEBUG
+//#define MEMORY_DEBUG
 
 #ifndef MEMORY_DEBUG
 #define e_alloc_func Z_NULL
@@ -41,17 +40,17 @@ voidpf e_alloc_func(voidpf opaque, uInt items, uInt size);
 void e_free_func(voidpf opaque, voidpf address);
 
 voidpf e_alloc_func(voidpf opaque, uInt items, uInt size) {
-	voidpf tmp = new char[items*size];
+	voidpf tmp = new byte[items * size];
 	return(tmp);
 }
 
 void e_free_func(voidpf opaque, voidpf address) {
-	delete[] (char *)address;
+	delete[] (byte *)address;
 }
 #endif
 
-
-int DeflatePacket(const unsigned char* in_data, int in_length, unsigned char* out_data, int max_out_length) {
+//returns ownership of buffer!
+byte *DeflatePacket(const byte *data, uint32 &length) {
 #ifdef REUSE_ZLIB
 	static bool inited = false;
 	static z_stream zstream;
@@ -93,38 +92,57 @@ int DeflatePacket(const unsigned char* in_data, int in_length, unsigned char* ou
 		return 0;
 	}
 #else
-	if(in_data == NULL) {
+	if(data == NULL || length == 0)
 		return(0);
-	}
-	
+
 	z_stream zstream;
-	memset(&zstream, 0, sizeof(zstream));
-    int zerror;
-	
-	zstream.next_in   = const_cast<unsigned char *>(in_data);
-	zstream.avail_in  = in_length;
+	zstream.next_in   = const_cast<byte *>(data);
+	zstream.avail_in  = length;
 	zstream.zalloc    = e_alloc_func;
 	zstream.zfree     = e_free_func;
 	zstream.opaque    = Z_NULL;
-	deflateInit(&zstream, Z_FINISH);
-	zstream.next_out  = out_data;
-	zstream.avail_out = max_out_length;
-	zerror = deflate(&zstream, Z_FINISH);
-	
-	if (zerror == Z_STREAM_END)
-	{
-		deflateEnd(&zstream);
-		return zstream.total_out;
+
+	int zerror = deflateInit(&zstream, Z_DEFAULT_COMPRESSION);
+	if(zerror != Z_OK) {
+		_log(COMMON__ERROR, "Error: DeflatePacket: deflateInit() returned %d (%s).",
+			zerror, (zstream.msg == NULL ? "No additional message" : zstream.msg));
+
+		return(0);
 	}
-	else
-	{
-		zerror = deflateEnd(&zstream);
-		return 0;
+
+	length = deflateBound(&zstream, length);
+	byte *out_data = new byte[length];
+
+	zstream.next_out  = out_data;
+	zstream.avail_out = length;
+
+	zerror = deflate(&zstream, Z_FINISH);
+
+	if(zerror == Z_STREAM_END) {
+		//deflation successfull
+		deflateEnd(&zstream);
+		//truncate output buffer to necessary size
+		length = zstream.total_out;
+		out_data = (byte *)realloc(out_data, length);
+
+		return(out_data);
+	} else {
+		//error occured
+		_log(COMMON__ERROR, "Error: DeflatePacket: deflate() returned %d (%s).",
+			zerror, (zstream.msg == NULL ? "No additional message" : zstream.msg));
+
+		deflateEnd(&zstream);
+		//delete output buffer
+		length = 0;
+		delete out_data;
+
+		return(NULL);
 	}
 #endif
 }
 
-uint32 InflatePacket(const uchar* indata, uint32 indatalen, uchar* outdata, uint32 outdatalen, bool iQuiet) {
+//returns ownership of buffer!
+byte *InflatePacket(const byte *data, uint32 &length, bool quiet) {
 #ifdef REUSE_ZLIB
 	static bool inited = false;
 	static z_stream zstream;
@@ -178,47 +196,57 @@ uint32 InflatePacket(const uchar* indata, uint32 indatalen, uchar* outdata, uint
 		return 0;
 	}
 #else
-	if(indata == NULL)
+	if(data == NULL || length == 0)
 		return(0);
-	
-	z_stream zstream;
-	int zerror = 0;
-	int i;
-	
-	zstream.next_in		= const_cast<unsigned char *>(indata);
-	zstream.avail_in	= indatalen;
-	zstream.next_out	= outdata;
-	zstream.avail_out	= outdatalen;
+
+	z_stream zstream;	
+	zstream.next_in   = const_cast<byte *>(data);
+	zstream.avail_in  = length;
 	zstream.zalloc    = e_alloc_func;
 	zstream.zfree     = e_free_func;
-	zstream.opaque		= Z_NULL;
-	
-	i = inflateInit2( &zstream, 15 ); 
-	if (i != Z_OK) { 
-		return 0;
+	zstream.opaque    = Z_NULL;
+
+	int zerror = inflateInit2(&zstream, 15);
+	if(zerror != Z_OK) {
+		if(!quiet)
+			_log(COMMON__ERROR, "Error: InflatePacket: inflateInit2() returned %d (%s).",
+				zerror, (zstream.msg == NULL ? "No additional message" : zstream.msg));
+
+		return(0);
 	}
-	
-	zerror = inflate( &zstream, Z_FINISH );
-	
+
+	byte *out_data = NULL;
+	zstream.total_out = 0;
+	do {
+		length *= 2;	//increase buffer size
+		out_data = (byte *)realloc(out_data, length);	//(re)allocate output buffer twice as big as before
+
+		zstream.next_out  = &out_data[zstream.total_out];
+		zstream.avail_out = length - zstream.total_out;
+
+		zerror = inflate(&zstream, Z_FINISH);
+	} while(zerror == Z_BUF_ERROR);	//continue while we get "not enough room in buffer" error
+
 	if(zerror == Z_STREAM_END) {
-		inflateEnd( &zstream );
-		return zstream.total_out;
-	}
-	else {
-		if (!iQuiet) {
-			cout << "Error: InflatePacket: inflate() returned " << zerror << " '";
-			if (zstream.msg)
-				cout << zstream.msg;
-			cout << "'" << endl;
-		}
-		
-		if (zerror == -4 && zstream.msg == 0)
-		{
-			return 0;
-		}
-		
-		zerror = inflateEnd( &zstream );
-		return 0;
+		//inflation successfull
+		inflateEnd(&zstream);
+		//truncate output buffer to necessary size
+		length = zstream.total_out;
+		out_data = (byte *)realloc(out_data, length);
+
+		return(out_data);
+	} else {
+		//error occured
+		if(!quiet)
+			_log(COMMON__ERROR, "Error: InflatePacket: inflate() returned %d (%s).",
+				zerror, (zstream.msg == NULL ? "No additional message" : zstream.msg));
+
+		inflateEnd(&zstream);
+		//delete output buffer
+		length = 0;
+		delete out_data;
+
+		return(NULL);
 	}
 #endif
 }

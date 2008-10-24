@@ -77,6 +77,7 @@ typedef enum {
 
 extern const char *log_category_names[NUMBER_OF_LOG_CATEGORIES];
 extern std::list<std::string> memory_log;
+extern const uint32 memory_log_limit;
 
 typedef struct {
 	bool enabled;

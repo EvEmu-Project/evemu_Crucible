@@ -59,10 +59,16 @@ public:
 	LSCService(PyServiceMgr *mgr, DBcore *db, CommandDispatcher *cd);
 	virtual ~LSCService();
 
-	bool ExecuteCommand(Client *from, const char *msg);
+	PyResult ExecuteCommand(Client *from, const char *msg);
 	void CreateSystemChannel(uint32 systemID);
 	void CharacterLogout(uint32 charID, OnLSC_SenderInfo * si);
-	
+
+	void SendMail(uint32 sender, uint32 recipient, const std::string &subject, const std::string &content) {
+		std::vector<uint32> recs(1, recipient);
+		SendMail(sender, recs, subject, content);
+	}
+	void SendMail(uint32 sender, const std::vector<uint32> &recipients, const std::string &subject, const std::string &content);
+
 protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
@@ -75,6 +81,7 @@ protected:
 	
 	//make sure you add things to the constructor too
 	PyCallable_DECL_CALL(GetChannels)
+	PyCallable_DECL_CALL(GetRookieHelpChannel)
 	PyCallable_DECL_CALL(JoinChannels)
 	PyCallable_DECL_CALL(LeaveChannels)
 	PyCallable_DECL_CALL(LeaveChannel)

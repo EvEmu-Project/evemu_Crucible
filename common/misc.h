@@ -25,7 +25,7 @@
 using namespace std;
 
 #ifdef WIN32
-sint64 strtoll(const char *str, const char **end, int8 base);
+int64 strtoll(const char *str, const char **end, int8 base);
 uint64 strtoull(const char *str, const char **end, int8 base);
 #else
 int print_stacktrace();

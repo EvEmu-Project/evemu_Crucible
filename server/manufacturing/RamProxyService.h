@@ -22,6 +22,8 @@
 #include "../PyService.h"
 #include "../packets/Manufacturing.h"
 
+static const uint32 ramProductionTimeLimit = 60*60*24*30;	//30 days
+
 class RamProxyService : public PyService {
 public:
 	RamProxyService(PyServiceMgr *mgr, DBcore *db);
@@ -34,12 +36,13 @@ private:
 	RamProxyDB m_db;
 
 	// verifying functions
-	PyCallResult _VerifyInstallJob_Call(const Call_InstallJob &args, const InventoryItem *const installedItem, const PathElement &bomLocation, Client *const c);
-	PyCallResult _VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const PathElement &bomLocation, const std::vector<RequiredItem> &reqItems, const uint32 runs, Client *const c);
-	PyCallResult _VerifyCompleteJob(const Call_CompleteJob &args, Client *const c);
+	void _VerifyInstallJob_Call(const Call_InstallJob &args, const InventoryItem *const installedItem, const PathElement &bomLocation, Client *const c);
+	void _VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const PathElement &bomLocation, const std::vector<RequiredItem> &reqItems, const uint32 runs, Client *const c);
+	void _VerifyCompleteJob(const Call_CompleteJob &args, Client *const c);
 
 	bool _Calculate(const Call_InstallJob &args, const InventoryItem *const installedItem, Client *const c, Rsp_InstallJob &into);
-	void _FillBillOfMaterials(const std::vector<RequiredItem> &reqItems, const double materialMultiplier, const uint32 runs, BillOfMaterials &into);
+	void _EncodeBillOfMaterials(const std::vector<RequiredItem> &reqItems, double materialMultiplier, double charMaterialMultiplier, uint32 runs, BillOfMaterials &into);
+	void _EncodeMissingMaterials(const std::vector<RequiredItem> &reqItems, const PathElement &bomLocation, Client *const c, double materialMultiplier, double charMaterialMultiplier, uint32 runs, std::map<uint32, PyRep *> &into);
 
 	PyCallable_DECL_CALL(GetJobs2)
 	PyCallable_DECL_CALL(AssemblyLinesSelect)

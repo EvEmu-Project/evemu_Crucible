@@ -15,8 +15,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <math.h>	//for pow()
-
 #include "common.h"
 #include "PyRep.h"
 #include "logsys.h"
@@ -56,11 +54,9 @@ PyRep *InflateAndUnmarshal(const byte *body, uint32 body_len) {
 	if(*body != SubStreamHeaderByte) {
 		if(body_len > sizeof(uint32) && *((const uint32 *) body) == 0) {
 			//winging it here...
-			uint32 buflen = body_len*10;	//bullshit multiplier!
-			uchar *buf = new uchar[buflen];
-			body_len = InflatePacket(body+12, body_len-12, buf, buflen);
-			if(body_len == 0) {
-				delete[] buf;
+			body_len -= 12;
+			byte *buf = InflatePacket(body+12, body_len);
+			if(buf == NULL) {
 				_log(NET__PRES_ERROR, "Failed to inflate special packet!");
 				_log(NET__PRES_DEBUG, "Raw Hex Dump:");
 				_hex(NET__PRES_DEBUG, body, body_len);
@@ -70,11 +66,8 @@ PyRep *InflateAndUnmarshal(const byte *body, uint32 body_len) {
 				_log(NET__UNMARSHAL_ERROR, "Special Inflated packet of len %d to length %d\n", orig_body_len, body_len);
 			}
 		} else {
-			uint32 buflen = body_len*10;	//bullshit multiplier!
-			uchar *buf = new uchar[buflen];
-			body_len = InflatePacket(body, body_len, buf, buflen);
-			if(body_len == 0) {
-				delete[] buf;
+			byte *buf = InflatePacket(body, body_len);
+			if(buf == NULL) {
 				_log(NET__PRES_ERROR, "Failed to inflate packet!");
 				_log(NET__PRES_DEBUG, "Raw Hex Dump:");
 				_hex(NET__PRES_DEBUG, body, body_len);
@@ -247,7 +240,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for short arg\n");
 			break;
 		}
-		sint16 value = *((const sint16 *) packet);
+		int16 value = *((const int16 *) packet);
 		
 		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyShort %d", pfx, opcode, value);
 		
@@ -1034,88 +1027,106 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 	*/
 		break; }
 	
-	case Op_PackedRowHeader:
+	case Op_PackedObject1:
 		{
-		
-		PyRep *type;
-		PyRep *arguments;
-		
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PackedRowHeader", pfx, opcode);
-		
+		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PackedObject1", pfx, opcode);
+
+		PyRep *rep;
+
 		std::string n(pfx);
-		n += "  RowHeader: ";
-		
-		uint32 key_len = UnmarshalData(state, packet, len, type, n.c_str());
-		if(type == NULL)
+		n += "    ";
+		uint32 clen = UnmarshalData(state, packet, len, rep, n.c_str());
+		if(rep == NULL)
 			break;
-		packet += key_len;
-		len -= key_len;
-		len_used += key_len;
+		packet += clen;
+		len -= clen;
+		len_used += clen;
 
-		//this is such crap...
-		if(!type->CheckType(PyRep::Tuple)) {
-			_log(NET__UNMARSHAL_ERROR, "Non-tuple body in PackedRowHeader: %s", type->TypeString());
-			delete type;
+		//crap
+		if(!rep->CheckType(PyRep::Tuple)) {
+			_log(NET__UNMARSHAL_ERROR, "PackedObject1 has non-tuple body: %s", rep->TypeString());
 			break;
 		}
-
-		PyRepTuple *t = (PyRepTuple *) type;
-		if(t->items.size() != 2) {
-			_log(NET__UNMARSHAL_ERROR, "Non-two length on PackedRowHeader tuple: %d", t->items.size());
-			delete type;
+		PyRepTuple *body = (PyRepTuple *)rep;
+		if(body->items.size() != 2 && body->items.size() != 3) {
+			_log(NET__UNMARSHAL_ERROR, "Not enough elements in PackedObject1's body (expected 2 or 3, got %lu)", body->items.size());
 			break;
 		}
-		type = t->items[0];
-		arguments = t->items[1];
-		
-		PyRepPackedRowHeader *rh = new PyRepPackedRowHeader(PyRepPackedRowHeader::RowList, type, arguments);
-		
-		
-		//ok, we have decoded the tuple now. Time for the data loop...
-		n = pfx;
-		n += " PackedData: ";
-		int empty_count = 0;
-		bool seen_data = false;
-		while(len > 0 && empty_count < 2) {
-			PyRep *stream;
-			
-			uint32 sslen = UnmarshalData(state, packet, len, stream, n.c_str());
-			if(stream == NULL)
+		if(!body->items[0]->CheckType(PyRep::String)) {
+			_log(NET__UNMARSHAL_ERROR, "Invalid type of PackedObject1: expected String, got %s", body->items[0]->TypeString());
+			break;
+		}
+		std::string type = ((PyRepString *)body->items[0])->value;
+		if(!body->items[1]->CheckType(PyRep::Tuple)) {
+			_log(NET__UNMARSHAL_ERROR, "Invalid args of PackedObject1: expected Tuple, got %s", body->items[1]->TypeString());
+			break;
+		}
+		PyRepTuple *args = (PyRepTuple *)body->items[1];
+		body->items[1] = NULL;
+		PyRepDict kw;
+		if(body->items.size() == 3) {
+			if(!body->items[2]->CheckType(PyRep::Dict)) {
+				_log(NET__UNMARSHAL_ERROR, "Invalid keywords of PackedObject1: expected Dict, got %s", body->items[2]->TypeString());
 				break;
-			packet += sslen;
-			len -= sslen;
-			len_used += sslen;
-			if(stream->CheckType(PyRep::None)) {	//really an 0x2d
-				empty_count++;
-				delete stream;
-				continue;
 			}
-			if(!stream->CheckType(PyRep::PackedRow)) {
-				_log(NET__UNMARSHAL_ERROR, "Unhandled type %s in PackedRowHeader", stream->TypeString());
-				delete stream;
-				continue;	//we are screwed anyways...
-			}
-			//else, this is some useful data...
-			
-			if(seen_data) {
-				if(empty_count == 1 && rh->format == PyRepPackedRowHeader::RowList) {
-					_log(NET__UNMARSHAL_ERROR, "PackedRowHeader contains data in the RowList AND RowDict section. What does this even mean?", stream->TypeString());
-				}
-			} else {
-				//set the format based on the first data seen.
-				if(empty_count == 0)
-					rh->format = PyRepPackedRowHeader::RowList;
-				else
-					rh->format = PyRepPackedRowHeader::RowDict;
-				seen_data = true;
-			}
-			rh->rows.push_back((PyRepPackedRow *) stream);
+			PyRepDict *d = (PyRepDict *)body->items[2];
+			kw.items = d->items;
+			d->items.clear();
 		}
+		delete rep;
 
-		res = rh;
-		
-            /*_log(NET__UNMARSHAL_ERROR, "Unhandled field type 0x%x\n", opcode);
-            _hex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);*/
+		PyRepPackedObject1 *obj = new PyRepPackedObject1(type.c_str(), args, kw);
+		kw.items.clear();	//to not delete them
+
+		n = pfx;
+		n += "  ListData: ";
+		while(*packet != Op_PackedTerminator) {
+			PyRep *el;
+
+			clen = UnmarshalData(state, packet, len, el, n.c_str());
+			if(el == NULL)
+				break;
+			packet += clen;
+			len -= clen;
+			len_used += clen;
+
+			obj->list_data.push_back(el);
+		}
+		packet++;
+		len--;
+		len_used++;
+
+		n = pfx;
+		n += "  DictData: ";
+		while(*packet != Op_PackedTerminator) {
+			PyRep *key;
+			PyRep *value;
+
+			clen = UnmarshalData(state, packet, len, key, n.c_str());
+			if(key == NULL)
+				break;
+			packet += clen;
+			len -= clen;
+			len_used += clen;
+
+			clen = UnmarshalData(state, packet, len, value, n.c_str());
+			if(value == NULL)
+				break;
+			packet += clen;
+			len -= clen;
+			len_used += clen;
+
+			obj->dict_data[key] = value;
+		}
+		packet++;
+		len--;
+		len_used++;
+
+		res = obj;
+		break;
+
+        /*_log(NET__UNMARSHAL_ERROR, "Unhandled field type 0x%x\n", opcode);
+        _hex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);*/
 	/*
 	.text:1005D9DC loc_1005D9DC:                           ; CODE XREF: Marshal_Something+3Cj
 	.text:1005D9DC                                         ; DATA XREF: .text:off_1005DA58o
@@ -1139,78 +1150,109 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 	*/
 		break; }
 	
-	case Op_PackedResultSet: {
-		
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PackedResultSet", pfx, opcode);
+	case Op_PackedObject2: {
+		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PackedObject2", pfx, opcode);
+
+		PyRep *rep;
 		
 		std::string n(pfx);
-		n += " Header: ";
-		PyRep *header;
-		uint32 e_len = UnmarshalData(state, packet, len, header, n.c_str());
-		if(header == NULL)
+		n += "    ";
+		uint32 clen = UnmarshalData(state, packet, len, rep, n.c_str());
+		if(rep == NULL)
 			break;
-		packet += e_len;
-		len -= e_len;
-		len_used += e_len;
-		
-		PyRepPackedResultSet *rs = new PyRepPackedResultSet(PyRepPackedResultSet::RowList, header);
-		
-		/*
-         * It seems as though there is actually two types of payload here,
-         * and this is what the two unmarshal sequences are all about. Each
-         * sequence is terminated with an 0x2d
-         *
-         * If you do not encounter an 0x2d before data, then you are likely
-         * dealing with a dbutil.RowList, and you will just have a stream of
-         * PyPacked data.
-         *
-         * If you encounter an 0x2d first, you likely have a dbutil.RowDict,
-         * in which case you will encounter sequences of data as a key value
-         * followed by a PyPacked data entry.
-         *
-         *
-        */
-		
-		n += " Rows: ";
-		int empty_count = 0;
-		bool seen_data = false;
-		while(len > 0 && empty_count < 2) {
-			PyRep *stream;
-			
-			uint32 sslen = UnmarshalData(state, packet, len, stream, n.c_str());
-			if(stream == NULL)
-				break;
-			packet += sslen;
-			len -= sslen;
-			len_used += sslen;
-			if(stream->CheckType(PyRep::None)) {	//really an 0x2d
-				empty_count++;
-				delete stream;
-				continue;
-			}
-			if(!stream->CheckType(PyRep::PackedRow)) {
-				_log(NET__UNMARSHAL_ERROR, "Unhandled type %s in hack 0x23", stream->TypeString());
-				delete stream;
-				continue;	//we are screwed anyways...
-			}
-			//else, this is some useful data...
-			
-			if(seen_data) {
-				if(empty_count == 1 && rs->format == PyRepPackedResultSet::RowList) {
-					_log(NET__UNMARSHAL_ERROR, "PackedRowHeader contains data in the RowList AND RowDict section. What does this even mean?", stream->TypeString());
-				}
-			} else {
-				//set the format based on the first data seen.
-				if(empty_count == 0)
-					rs->format = PyRepPackedResultSet::RowList;
-				else
-					rs->format = PyRepPackedResultSet::RowDict;
-				seen_data = true;
-			}
-			rs->rows.push_back((PyRepPackedRow *) stream);
+		packet += clen;
+		len -= clen;
+		len_used += clen;
+
+		//crap
+		if(!rep->CheckType(PyRep::Tuple)) {
+			_log(NET__UNMARSHAL_ERROR, "Invalid body of PackedObject2 (expected Tuple, got %s)", rep->TypeString());
+			break;
+		}
+		PyRepTuple *body = (PyRepTuple *)rep;
+		if(body->items.size() < 1) {
+			_log(NET__UNMARSHAL_ERROR, "Invalid body of PackedObject2 (got empty tuple)", body->items[0]->TypeString());
+			break;
+		}
+		if(!body->items[0]->CheckType(PyRep::Tuple)) {
+			_log(NET__UNMARSHAL_ERROR, "Invalid args1 of PackedObject2 (expected Tuple, got %s)", body->items[0]->TypeString());
+			break;
+		}
+		PyRepTuple *args1 = (PyRepTuple *)body->items[0];
+		body->items[0] = NULL;
+		if(args1->items.size() < 1) {
+			_log(NET__UNMARSHAL_ERROR, "Invalid args1 of PackedObject2 (got empty tuple)");
+			break;
+		}
+		if(!args1->items[0]->CheckType(PyRep::String)) {
+			_log(NET__UNMARSHAL_ERROR, "Invalid type of PackedObject2 (expected String, got %s)", args1->items[0]->TypeString());
+			break;
+		}
+		std::string type = ((PyRepString *)args1->items[0])->value;
+		if(args1->items.size() == 1) {
+			delete args1;
+			args1 = NULL;
+		} else {
+			delete args1->items[0];
+			args1->items.erase(args1->items.begin());
 		}
 
-		res = rs;
+		PyRep *args2 = NULL;
+		if(body->items.size() > 1) {
+			args2 = body->items[1];
+			body->items[1] = NULL;
+		}
+		delete rep;
+
+		PyRepPackedObject2 *obj = new PyRepPackedObject2(type.c_str(), args1, args2);
+
+		n = pfx;
+		n += "  ListData: ";
+		while(*packet != Op_PackedTerminator) {
+			PyRep *el;
+
+			clen = UnmarshalData(state, packet, len, el, n.c_str());
+			if(el == NULL)
+				break;
+			packet += clen;
+			len -= clen;
+			len_used += clen;
+
+			obj->list_data.push_back(el);
+		}
+		packet++;
+		len--;
+		len_used++;
+
+		n = pfx;
+		n += "  DictData: ";
+		while(*packet != Op_PackedTerminator) {
+			PyRep *key;
+			PyRep *value;
+
+			clen = UnmarshalData(state, packet, len, key, n.c_str());
+			if(key == NULL)
+				break;
+			packet += clen;
+			len -= clen;
+			len_used += clen;
+
+			clen = UnmarshalData(state, packet, len, value, n.c_str());
+			if(value == NULL)
+				break;
+			packet += clen;
+			len -= clen;
+			len_used += clen;
+
+			obj->dict_data[key] = value;
+		}
+		packet++;
+		len--;
+		len_used++;
+
+		res = obj;
+		break;
+
 //		_hex(NET__UNMARSHAL_TRACE, packet, len>32?32:len);
 	/*
 	.text:1005D9F5 loc_1005D9F5:                           ; CODE XREF: Marshal_Something+3Cj
@@ -1367,9 +1409,8 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 		len -= header_len;
 		len_used += header_len;
 #endif
+		PyRepPackedRow *row = new PyRepPackedRow(header_element, true);
 
-		
-		
 		if(len < 1) {
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for packed length (missing length and data)\n");
 			break;
@@ -1415,10 +1456,12 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 		phex(NET__UNMARSHAL_TRACE, &unpacked[0], unpacked.size());
 		
 #ifdef PACKED_ROW_HEADER_HACK
-		do something...
+		//do something...
 #else
-		res = new PyRepPackedRow(&unpacked[0], unpacked.size(), true, header_element);
+		row->Push(&unpacked[0], (uint32)unpacked.size());
 #endif
+		//TODO: unmarshal following PyReps as well
+		res = row;
 	/*
 	.text:1005DA0E loc_1005DA0E:                           ; CODE XREF: Marshal_Something+3Cj
 	.text:1005DA0E                                         ; DATA XREF: .text:off_1005DA58o
@@ -1723,7 +1766,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 		len_used += data_length;
 
 		if(data_length <= sizeof(uint64)) {
-			uint64 intval = pow(double(256), double(data_length)) - 1;
+			uint64 intval = (1LL << (8 * data_length)) - 1;
 			intval &= *((const uint64 *) packet);
 
 			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyVarInteger(len=%d) = " I64u, pfx, opcode, data_length, intval);

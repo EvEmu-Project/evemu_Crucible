@@ -15,10 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "RamProxyDB.h"
-#include "dbcore.h"
-#include "../common/EVEUtils.h"
-#include "../common/EVEDBUtils.h"
+#include "EvemuPCH.h"
 
 RamProxyDB::RamProxyDB(DBcore *db)
 : ServiceDB(db)
@@ -49,6 +46,7 @@ PyRep *RamProxyDB::GetJobs2(const uint32 ownerID, const bool completed, const ui
 		" job.runs,"
 		" job.installTime,"
 		" job.beginProductionTime,"
+		" job.pauseProductionTime,"
 		" job.endProductionTime,"
 		" job.completedStatusID != 0 AS completed,"
 		" job.licensedProductionRuns,"
@@ -65,7 +63,8 @@ PyRep *RamProxyDB::GetJobs2(const uint32 ownerID, const bool completed, const ui
 		" WHERE job.ownerID = %lu"
 		" AND job.completedStatusID %s 0"
 		" AND job.installTime >= " I64u
-		" AND job.endProductionTime <= " I64u,
+		" AND job.endProductionTime <= " I64u
+		" GROUP BY job.jobID",
 		ownerID, (completed ? "!=" : "="), fromDate, toDate))
 	{
 		_log(DATABASE__ERROR, "Failed to query jobs for owner %lu: %s", ownerID, res.error.c_str());
@@ -263,7 +262,7 @@ bool RamProxyDB::GetAssemblyLineVerifyProperties(const uint32 assemblyLineID, ui
 	return(true);
 }
 
-bool RamProxyDB::InstallJob(const uint32 ownerID, const  uint32 installerID, const uint32 assemblyLineID, const uint32 installedItemID, const uint64 beginProductionTime, const uint64 endProductionTime, const char *description, const uint32 runs, const EVEItemFlags outputFlag, const uint32 installedInSolarSystem, const sint32 licensedProductionRuns) {
+bool RamProxyDB::InstallJob(const uint32 ownerID, const  uint32 installerID, const uint32 assemblyLineID, const uint32 installedItemID, const uint64 beginProductionTime, const uint64 endProductionTime, const char *description, const uint32 runs, const EVEItemFlags outputFlag, const uint32 installedInSolarSystem, const int32 licensedProductionRuns) {
 	DBerror err;
 
 	// insert job
@@ -402,11 +401,13 @@ bool RamProxyDB::GetRequiredItems(const uint32 typeID, const EVERamActivity acti
 		" material.quantity,"
 		" material.damagePerJob,"
 		" IF(materialGroup.categoryID = 16, 1, 0) AS isSkill"
-		" FROM TL2MaterialsForTypeWithActivity AS material"
+		" FROM typeActivityMaterials AS material"
 		" LEFT JOIN invTypes AS materialType ON material.requiredTypeID = materialType.typeID"
 		" LEFT JOIN invGroups AS materialGroup ON materialType.groupID = materialGroup.groupID"
 		" WHERE material.typeID = %lu"
-		" AND material.activity = %d",
+		" AND material.activityID = %d"
+		//this is needed as db is quite crappy ...
+		" AND material.quantity > 0",
 		typeID, (const int)activity))
 	{
 		_log(DATABASE__ERROR, "Failed to query data to build BillOfMaterials: %s.", res.error.c_str());
@@ -415,7 +416,7 @@ bool RamProxyDB::GetRequiredItems(const uint32 typeID, const EVERamActivity acti
 
 	DBResultRow row;
 	while(res.GetRow(row))
-		into.push_back(RequiredItem(row.GetUInt(0), row.GetUInt(1), row.GetFloat(2), row.GetInt(3)));
+		into.push_back(RequiredItem(row.GetUInt(0), row.GetUInt(1), row.GetFloat(2), row.GetInt(3) ? true : false));
 
 	return(true);
 }
@@ -733,10 +734,10 @@ bool RamProxyDB::_GetMultipliers(const uint32 assemblyLineID, uint32 groupID, do
 	// check table ramAssemblyLineTypeDetailPerGroup first
 	if(!m_db->RunQuery(res,
 				"SELECT materialMultiplier, timeMultiplier"
-				" FROM ramAssemblyLineTypeDetailPerGroup AS grpDetail"
-				" LEFT JOIN ramAssemblyLines AS assemblyLine ON assemblyLine.assemblyLineTypeID = grpDetail.assemblyLineTypeID"
-				" WHERE assemblyLine.assemblyLineID = %lu"
-				" AND grpDetail.groupID = %lu",
+				" FROM ramAssemblyLineTypeDetailPerGroup"
+				" JOIN ramAssemblyLines USING (assemblyLineTypeID)"
+				" WHERE assemblyLineID = %lu"
+				" AND groupID = %lu",
 				assemblyLineID, groupID))
 	{
 		_log(DATABASE__ERROR, "Failed to check producability of group %lu by line %lu: %s", groupID, assemblyLineID, res.error.c_str());
@@ -753,11 +754,11 @@ bool RamProxyDB::_GetMultipliers(const uint32 assemblyLineID, uint32 groupID, do
 	// then ramAssemblyLineTypeDetailPerCategory
 	if(!m_db->RunQuery(res,
 				"SELECT materialMultiplier, timeMultiplier"
-				" FROM ramAssemblyLineTypeDetailPerCategory AS catDetail"
-				" LEFT JOIN ramAssemblyLines AS assemblyLine ON assemblyLine.assemblyLineTypeID = catDetail.assemblyLineTypeID"
-				" LEFT JOIN invGroups AS grp ON grp.categoryID = catDetail.categoryID"
-				" WHERE assemblyLine.assemblyLineID = %lu"
-				" AND grp.groupID = %lu",
+				" FROM ramAssemblyLineTypeDetailPerCategory"
+				" JOIN ramAssemblyLines USING (assemblyLineTypeID)"
+				" JOIN invGroups USING (categoryID)"
+				" WHERE assemblyLineID = %lu"
+				" AND groupID = %lu",
 				assemblyLineID, groupID))
 	{
 		_log(DATABASE__ERROR, "Failed to check producability of group %lu by line %lu: %s", groupID, assemblyLineID, res.error.c_str());

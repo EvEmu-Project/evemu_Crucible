@@ -15,11 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "BubbleManager.h"
-#include "SystemBubble.h"
-#include "SystemEntity.h"
-#include "SystemManager.h"
-#include "../common/logsys.h"
+#include "EvemuPCH.h"
 
 //upon this interval, check for entities which may have wandered out of their bubble without a major event happening.
 static const uint32 BubbleWanderTimer_S = 30;

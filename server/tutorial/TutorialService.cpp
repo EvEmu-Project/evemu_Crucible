@@ -15,16 +15,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
-#include "TutorialService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-
-#include "../packets/Tutorial.h"
 
 PyCallable_Make_InnerDispatcher(TutorialService)
 
@@ -38,109 +30,78 @@ TutorialService::TutorialService(PyServiceMgr *mgr, DBcore *dbc)
 	PyCallable_REG_CALL(TutorialService, GetTutorialInfo)
 	PyCallable_REG_CALL(TutorialService, GetTutorials)
 	PyCallable_REG_CALL(TutorialService, GetCriterias)
+	PyCallable_REG_CALL(TutorialService, GetCategories)
+	PyCallable_REG_CALL(TutorialService, GetContextHelp)
+	PyCallable_REG_CALL(TutorialService, GetCharacterTutorialState)
 }
 
 TutorialService::~TutorialService() {
 	delete m_dispatch;
 }
 
-
-PyCallResult TutorialService::Handle_GetTutorialInfo(PyCallArgs &call) {
-	PyRep *result = NULL;
+PyResult TutorialService::Handle_GetTutorialInfo(PyCallArgs &call) {
 	Call_GetTutorialInfo args;
-	
-	if(!args.Decode(&call.tuple))
-	{
+	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Can't parse args.");
 		return(NULL);
 	}
 
-	PyRepObject *keyval = new PyRepObject();
-	result = keyval;
+	Rsp_GetTutorialInfo rsp;
 
-	keyval->type = "util.KeyVal";
-	PyRepDict *keyval_args = new PyRepDict();
-	keyval->arguments = keyval_args;
-
-
-	//pagecriterias item
-	{
-		PyRepObject *rowset = m_db.GetPageCriterias(args.tutorialID);
-		if(rowset == NULL)
-		{
-			codelog(CLIENT__ERROR, "An error occured while getting pagecriterias.");
-			return(NULL);
-		}
-		keyval_args->add("pagecriterias", rowset);
-	}
-
-	//pages item
-	{
-		PyRepObject *rowset = m_db.GetPages(args.tutorialID);
-		if(rowset == NULL)
-		{
-			codelog(CLIENT__ERROR, "An error occured while getting pages.");
-			return(NULL);
-		}
-		keyval_args->add("pages", rowset);
-	}
-
-
-	//tutorial item
-	{
-		PyRepObject *rowset = m_db.GetTutorial(args.tutorialID);
-		if(rowset == NULL)
-		{
-			codelog(CLIENT__ERROR, "An error occured while getting tutorial.");
-			return(NULL);
-		}
-		keyval_args->add("tutorial", rowset);
-	}
-
-	//criterias item
-	{
-		PyRepObject *rowset = m_db.GetTutorialCriterias(args.tutorialID);
-		if(rowset == NULL)
-		{
-			codelog(CLIENT__ERROR, "An error occured while getting tutorial criterias.");
-			return(NULL);
-		}
-		keyval_args->add("criterias", rowset);
-	}
-
-	return(result);
-}
-
-
-PyCallResult TutorialService::Handle_GetTutorials(PyCallArgs &call) {
-	PyRep *result = NULL;
-
-	PyRepObject *rowset = m_db.GetAllTutorials();
-	if(rowset == NULL)
-	{
-		codelog(CLIENT__ERROR, "An error occured while getting all tutorials.");
+	rsp.pagecriterias = m_db.GetPageCriterias(args.tutorialID);
+	if(rsp.pagecriterias == NULL) {
+		codelog(SERVICE__ERROR, "An error occured while getting pagecriterias for tutorial %lu.", args.tutorialID);
 		return(NULL);
 	}
-	result = rowset;
 
-	return(result);
-}
-
-
-PyCallResult TutorialService::Handle_GetCriterias(PyCallArgs &call) {
-	PyRep *result = NULL;
-
-	PyRepObject *rowset = m_db.GetAllCriterias();
-	if(rowset == NULL)
-	{
-		codelog(CLIENT__ERROR, "An error occured while getting criterias.");
+	rsp.pages = m_db.GetPages(args.tutorialID);
+	if(rsp.pages == NULL) {
+		codelog(SERVICE__ERROR, "An error occured while getting pages for tutorial %lu.", args.tutorialID);
 		return(NULL);
 	}
-	result = rowset;
 
-	return(result);
+	rsp.tutorial = m_db.GetTutorial(args.tutorialID);
+	if(rsp.tutorial == NULL) {
+		codelog(SERVICE__ERROR, "An error occured while getting tutorial %lu.", args.tutorialID);
+		return(NULL);
+	}
+
+	rsp.criterias = m_db.GetTutorialCriterias(args.tutorialID);
+	if(rsp.criterias == NULL) {
+		codelog(SERVICE__ERROR, "An error occured while getting criterias for tutorial %lu.", args.tutorialID);
+		return(NULL);
+	}
+
+	return(rsp.Encode());
 }
 
+PyResult TutorialService::Handle_GetTutorials(PyCallArgs &call) {
+	return(m_db.GetAllTutorials());
+}
+
+PyResult TutorialService::Handle_GetCriterias(PyCallArgs &call) {
+	return(m_db.GetAllCriterias());
+}
+
+PyResult TutorialService::Handle_GetCategories(PyCallArgs &call) {
+	return(m_db.GetCategories());
+}
+
+PyResult TutorialService::Handle_GetContextHelp(PyCallArgs &call) {
+	//unimplemented
+	return(new PyRepList());
+}
+
+PyResult TutorialService::Handle_GetCharacterTutorialState(PyCallArgs &call) {
+	util_Rowset rs;
+
+	rs.header.push_back("characterID");
+	rs.header.push_back("tutorialID");
+	rs.header.push_back("pageID");
+	rs.header.push_back("eventTypeID");
+
+	return(rs.Encode());
+}
 
 
 

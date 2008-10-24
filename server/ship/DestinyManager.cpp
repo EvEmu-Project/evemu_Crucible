@@ -15,24 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "DestinyManager.h"
-#include "../system/SystemManager.h"
-#include "../system/SystemEntity.h"
-#include "../system/SystemBubble.h"
-#include "../inventory/InventoryItem.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/DestinyBinDump.h"
-
-#include "../packets/Destiny.h"
-#include "../packets/DogmaIM.h"
-
-//#include "GaWorld.h"
-//#include "GaShape.h"
-//#include "GaBody.h"
+#include "EvemuPCH.h"
 
 using namespace Destiny;
-
 
 static const double DESTINY_UPDATE_RANGE = 1.0e8;	//totally made up. a more complex spatial partitioning system is needed.
 static const double SPACE_FRICTION = 1.0e6;			//straight from client. Do not change.

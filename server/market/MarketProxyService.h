@@ -45,9 +45,9 @@ protected:
 	PyCallable_DECL_CALL(GetCharOrders)
 	//PyCallable_DECL_CALL(GetCorporationOrders) //()
 	
-	void _ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID, uint32 quantity, Client *seller, InventoryItem *item);
-	void _ExecuteSellOrder(uint32 sell_order_id, uint32 stationID, uint32 quantity, Client *buyer);
-	void _SendOnOwnOrderChanged(Client *who, uint32 orderID, const char *action);
+	void _ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID, uint32 quantity, Client *seller, InventoryItem *item, bool isCorp);
+	void _ExecuteSellOrder(uint32 sell_order_id, uint32 stationID, uint32 quantity, Client *buyer, bool isCorp);
+	void _SendOnOwnOrderChanged(Client *who, uint32 orderID, const char *action, bool isCorp);
 	
 	//overloaded in order to support bound objects:
 	//virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);

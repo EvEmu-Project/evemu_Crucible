@@ -19,7 +19,7 @@
 
 namespace Destiny {
 
-const char *const DSTBALL_modeNames[] = {
+	const char *const DSTBALL_modeNames[] = {
 	"GOTO",
 	"FOLLOW",
 	"STOP",
@@ -74,8 +74,8 @@ uint32 DumpBall(LogType into, const byte *data, uint32 len) {
 		data += sizeof(Destiny::MassSector);
 		len -= sizeof(Destiny::MassSector);
 		
-		_log(into, "   mass=%.2f, u51=%d, u52=0x"I64x", corp=%lu, alliance=0x%lx",
-			masschunk->mass, masschunk->unknown51, masschunk->unknown52, masschunk->corpID, masschunk->allianceID);
+		_log(into, "   mass=%.2f, cloak=%d, u52=0x"I64x", corp=%lu, alliance=0x%lx",
+			masschunk->mass, masschunk->cloak, masschunk->unknown52, masschunk->corpID, masschunk->allianceID);
 	}
 	
 	//this seems a little strange, but this is how it works...

@@ -15,12 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#include "../common/common.h"
-#include "../common/logsys.h"
-#include "EVEmuServerConfig.h"
-#include "MiscFunctions.h"
-#include <iostream>
+#include "EvemuPCH.h"
 
 std::string EVEmuServerConfig::ConfigFile = "evemuserver.xml";
 EVEmuServerConfig *EVEmuServerConfig::_config = NULL;

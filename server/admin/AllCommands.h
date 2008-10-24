@@ -25,6 +25,8 @@
 #include "../common/logsys.h"
 #include "../common/seperator.h"
 #include "CommandDB.h"
+#include "../PyServiceMgr.h"
+#include "../PyCallable.h"
 #include "../Client.h"
 #include "../EntityList.h"
 #include "../mining/Asteroid.h"
@@ -37,7 +39,7 @@
  */
 
 #define COMMAND(name, role, description) \
-	void Command_##name(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args);
+	PyResult Command_##name(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args);
 #include "AllCommandsList.h"
 
 

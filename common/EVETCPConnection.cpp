@@ -15,22 +15,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#include "../common/common.h"
-
-#include <string.h>
-#include <stdio.h>
-
-#include "EVETCPConnection.h"
-#include "EVETCPServer.h"
-
+#include "EvemuPCH.h"
 
 //client side
 EVETCPConnection::EVETCPConnection()
 : TCPConnection(),
   timeout_timer(EVE_TCP_SERVER_TIMEOUT_MS)
 {
-	Server = NULL;	
+	Server = NULL;
 }
 
 
@@ -122,15 +114,3 @@ bool EVETCPConnection::RecvData(char* errbuf) {
 	
 	return(true);
 }
-
-
-
-
-
-
-
-
-
-
-
-

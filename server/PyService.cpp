@@ -15,19 +15,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
-#include "PyService.h"
-#include "PyServiceMgr.h"
-#include "PyBoundObject.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../common/misc.h"
-#include "../common/EVEUtils.h"
-#include "Client.h"
-
-#include "../packets/ObjectCaching.h"
-#include "../packets/General.h"
 
 PyService::PyService(PyServiceMgr *mgr, const char *serviceName)
 : PyCallable(mgr, serviceName)
@@ -43,7 +32,7 @@ bool PyService::IsPacketFor(const PyPacket *packet) const {
 }
 
 //overload this to hack in our special bind routines at the service level
-PyCallResult PyService::Call(PyCallStream &call, PyCallArgs &args) {
+PyResult PyService::Call(PyCallStream &call, PyCallArgs &args) {
 	if(call.method == "MachoBindObject") {
 		_log(SERVICE__CALLS, "%s Service: handling MachoBindObject request directly", GetName());
 		return(Handle_MachoBindObject(args));
@@ -62,26 +51,20 @@ PyCallResult PyService::Call(PyCallStream &call, PyCallArgs &args) {
  *
 */
 
-PyCallResult PyService::Handle_MachoResolveObject(PyCallArgs &call) {
-	PyRep *result = NULL;
-//takes ((stationID, u1_2=15), u2=0)
-
-	//returns a single integer. like 126774 (last element in session change, version number on dogmaIM.attributesByName)
-	
-//	PyRepTuple *t = new PyRepTuple(1);
-//	PyRepSubStream *ss = new PyRepSubStream();
-//	t->items[0] = ss;
-	
-	PyRepInteger *i = new PyRepInteger(m_manager->GetNodeID());
-	result = i;
-
+PyResult PyService::Handle_MachoResolveObject(PyCallArgs &call) {
+/*	CallMachoResolveObject args;
+	if(!args.Decode(!call.packet)) {
+		_log(CLIENT__ERROR, "Failed to decode params for MachoResolveObject.");
+		return(NULL);
+	}
+*/
+	//returns nodeID
 	_log(CLIENT__MESSAGE, "%s Service: MachoResolveObject requested, returning %lu", GetName(), m_manager->GetNodeID());
-	
-	return(result);
+	return(new PyRepInteger(m_manager->GetNodeID()));
 }
 
 
-PyCallResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
+PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 	CallMachoBindObject args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s Service: %s: Failed to decode arguments", GetName(), call.client->GetName());
@@ -93,10 +76,10 @@ PyCallResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 	//first we need to get our implementation to actually create the object
 	//which they are trying to bind to.
 	PyBoundObject *our_obj;
-	our_obj = _CreateBoundObject(call.client, args.entitySpec);
+	our_obj = _CreateBoundObject(call.client, args.bindParams);
 	if(our_obj == NULL) {
 		_log(SERVICE__ERROR, "%s Service: %s: Unable to create bound object for:", GetName(), call.client->GetName());
-		args.entitySpec->Dump(SERVICE__ERROR, "    ");
+		args.bindParams->Dump(SERVICE__ERROR, "    ");
 		return(NULL);
 	}
 
@@ -130,27 +113,9 @@ PyCallResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 		
 		PyCallArgs sub_args(call.client, &boundcall.arguments, &tmp_dict);
 		
-		PyCallResult result = our_obj->Call(sub_call, sub_args);
+		PyResult result = our_obj->Call(sub_call, sub_args);
 
-				
-		switch(result.type) {
-		case PyCallResult::RegularResult:
-			break;	//continue processing.
-		
-		case PyCallResult::ThrowException:
-			return(result);
-		//no default on purpose
-		}
-
-		//we have to strip off the substream wrapper.
-		result.ssResult->DecodeData();	//just to be sure.
-		if(result.ssResult->decoded == NULL) {
-			_log(SERVICE__ERROR, "%s Service: MachoBindObject's call to %s returned an invalid stream!", GetName(), boundcall.method_name.c_str());
-			robjs->items[1] = new PyRepNone();
-		} else {
-			robjs->items[1] = result.ssResult->decoded;
-			result.ssResult->decoded = NULL;
-		}
+		robjs->items[1] = result.ssResult.hijack();
 
 		//ok, now we have finished our sub-call... hooray.
 	}

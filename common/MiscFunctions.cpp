@@ -1,4 +1,4 @@
-/*  EVEmu: EVE Online Server Emulator
+/*  eVEmu: EVE Online Server Emulator
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -15,15 +15,17 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #include "../common/common.h"
 #include "MiscFunctions.h"
 #include <string.h>
 #include <time.h>
 #include <math.h>
 #ifndef WIN32
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #endif
 #include <iostream>
 #include <iomanip>
@@ -31,15 +33,16 @@
 	#include <io.h>
 #endif
 #include "../common/timer.h"
-//#include "../common/seperator.h"
 
 using namespace std;
 
-#ifdef WIN32
+/*#ifdef WIN32
 	#include <windows.h>
 
 	#define snprintf	_snprintf
+#if _MSC_VER < 1500
 	#define vsnprintf	_vsnprintf
+#endif
 	#define strncasecmp	_strnicmp
 	#define strcasecmp  _stricmp
 #else
@@ -56,9 +59,9 @@ using namespace std;
 	#include <unistd.h>
 	#include <netdb.h>
 	#include <errno.h>
-#endif
+#endif*/
 
-// normal strncpy doesnt put a null term on copied strings, this one does
+// normal strncpy doesn't put a null term on copied strings, this one does
 // ref: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcecrt/htm/_wcecrt_strncpy_wcsncpy.asp
 char* strn0cpy(char* dest, const char* source, int32 size) {
 	if (!dest)
@@ -160,7 +163,7 @@ int32 AppendAnyLenString(char** ret, int32* bufsize, int32* strlen, const char* 
 	char* oldret = 0;
 	va_list argptr;
 	va_start(argptr, format);
-	while (chars == -1 || chars >= (sint32)(*bufsize-*strlen)) {
+	while (chars == -1 || chars >= (int32)(*bufsize-*strlen)) {
 		if (chars == -1)
 			*bufsize += 256;
 		else
@@ -180,7 +183,7 @@ int32 AppendAnyLenString(char** ret, int32* bufsize, int32* strlen, const char* 
 }
 
 int32 hextoi(char* num) {
-	int len = strlen(num);
+	size_t len = strlen(num);
 	if (len < 3)
 		return 0;
 
@@ -189,7 +192,7 @@ int32 hextoi(char* num) {
 
 	int32 ret = 0;
 	int mul = 1;
-	for (int i=len-1; i>=2; i--) {
+	for (size_t i=len-1; i>=2; i--) {
 		if (num[i] >= 'A' && num[i] <= 'F')
 			ret += ((num[i] - 'A') + 10) * mul;
 		else if (num[i] >= 'a' && num[i] <= 'f')
@@ -204,7 +207,7 @@ int32 hextoi(char* num) {
 }
 
 int64 hextoi64(char* num) {
-	int len = strlen(num);
+	size_t len = strlen(num);
 	if (len < 3)
 		return 0;
 
@@ -213,7 +216,7 @@ int64 hextoi64(char* num) {
 
 	int64 ret = 0;
 	int mul = 1;
-	for (int i=len-1; i>=2; i--) {
+	for (size_t i=len-1; i>=2; i--) {
 		if (num[i] >= 'A' && num[i] <= 'F')
 			ret += ((num[i] - 'A') + 10) * mul;
 		else if (num[i] >= 'a' && num[i] <= 'f')
@@ -257,13 +260,13 @@ bool atobool(char* iBool) {
 	return false;
 }
 
-sint32 filesize(FILE* fp) {
+int32 filesize(FILE* fp) {
 #ifdef WIN32
 	return _filelength(_fileno(fp));
 #else
 	struct stat file_stat;
 	fstat(fileno(fp), &file_stat);
-	return (sint32) file_stat.st_size;
+	return (int32) file_stat.st_size;
 /*	int32 tmp = 0;
 	while (!feof(fp)) {
 		fseek(fp, tmp++, SEEK_SET);
@@ -391,15 +394,9 @@ double MakeRandomFloat(double low, double high)
 
 	if(!seeded)
 	{
-		SeedRandom(time(0) * (time(0) % (int)diff));
+		SeedRandom((unsigned int)time(0) * (unsigned int)(time(0) % (int)diff));
 		seeded = true;
 	}
   
 	return (GenerateRandom() / (double)RAND_MAX * diff + (low > high ? high : low));
 }
-
-
-
-
-
-

@@ -22,6 +22,7 @@
 #include "PyRep.h"
 #include "../inventory/InventoryItem.h"
 
+//from table 'ramActivities'
 enum EVERamActivity {
 	ramActivityNone = 0,
 	ramActivityManufacturing = 1,
@@ -34,7 +35,9 @@ enum EVERamActivity {
 	ramActivityInvention = 8
 };
 
+//from table 'ramCompletedStatuses'
 enum EVERamCompletedStatus {
+	ramCompletedStatusInProgress = 0,
 	ramCompletedStatusDelivered = 1,
 	ramCompletedStatusAbort = 2,
 	ramCompletedStatusGMAbort = 3,
@@ -42,6 +45,7 @@ enum EVERamCompletedStatus {
 	ramCompletedStatusDestruction = 5
 };
 
+//restrictionMask from table 'ramAssemblyLines'
 enum EVERamRestrictionMask {
 	ramRestrictNone = 0,
 	ramRestrictBySecurity = 1,
@@ -50,24 +54,14 @@ enum EVERamRestrictionMask {
 	ramRestrictByAlliance = 8
 };
 
-// I'm pretty sure this shouldn't be here
-enum EVERace {
-	raceCaldari = 1,
-	raceMinmatar = 2,
-	raceAmarr = 4,
-	raceGallente = 8,
-	raceJove = 16,
-	racePirate = 32
-};
-
 struct RequiredItem {
-	RequiredItem(uint32 typeID, uint32 quantity, double damagePerJob, bool isSkill)
-		: m_typeID(typeID), m_quantity(quantity), m_damagePerJob(damagePerJob), m_isSkill(isSkill) {}
+	RequiredItem(uint32 _typeID, uint32 _quantity, double _damagePerJob, bool _isSkill)
+		: typeID(_typeID), quantity(_quantity), damagePerJob(_damagePerJob), isSkill(_isSkill) {}
 
-	uint32 m_typeID;
-	uint32 m_quantity;
-	double m_damagePerJob;
-	bool m_isSkill;
+	uint32 typeID;
+	uint32 quantity;
+	double damagePerJob;
+	bool isSkill;
 };
 
 class RamProxyDB : public ServiceDB {
@@ -88,7 +82,7 @@ public:
 	// InstallJob stuff
 	bool GetAssemblyLineProperties(const uint32 assemblyLineID, double &baseMaterialMultiplier, double &baseTimeMultiplier, double &costInstall, double &costPerHour);
 	bool GetAssemblyLineVerifyProperties(const uint32 assemblyLineID, uint32 &ownerID, double &minCharSecurity, double &maxCharSecurity, EVERamRestrictionMask &restrictionMask, EVERamActivity &activity);
-	bool InstallJob(const uint32 ownerID, const uint32 installerID, const uint32 assemblyLineID, const uint32 installedItemID, const uint64 beginProductionTime, const uint64 endProductionTime, const char *description, const uint32 runs, const EVEItemFlags outputFlag, const uint32 installedInSolarSystem, const sint32 licensedProductionRuns);
+	bool InstallJob(const uint32 ownerID, const uint32 installerID, const uint32 assemblyLineID, const uint32 installedItemID, const uint64 beginProductionTime, const uint64 endProductionTime, const char *description, const uint32 runs, const EVEItemFlags outputFlag, const uint32 installedInSolarSystem, const int32 licensedProductionRuns);
 
 	bool IsProducableBy(const uint32 assemblyLineID, const uint32 groupID);
 	bool MultiplyMultipliers(const uint32 assemblyLineID, const uint32 productGroupID, double &materialMultiplier, double &timeMultiplier);
@@ -120,3 +114,4 @@ public:
 };
 
 #endif
+

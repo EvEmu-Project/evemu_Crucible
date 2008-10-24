@@ -16,15 +16,7 @@
 */
 
 
-#include "MarketDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "../common/PyRep.h"
-#include "../common/EVEUtils.h"
-#include <set>
-
-#include "../packets/Market.h"
+#include "EvemuPCH.h"
 
 MarketDB::MarketDB(DBcore *db)
 : ServiceDB(db)
@@ -41,8 +33,8 @@ PyRep *MarketDB::GetStationAsks(uint32 stationID) {
 		"SELECT"
 		"	typeID, MAX(price) AS price, volRemaining, stationID "
 		" FROM market_orders "
-		" WHERE stationID=%lu AND bid=0"
-		" GROUP BY typeID", stationID))
+		" WHERE stationID=%lu AND bid=%d"
+		" GROUP BY typeID", stationID, TransactionTypeSell))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
 		return(NULL);
@@ -100,7 +92,7 @@ PyRep *MarketDB::GetRegionBest(uint32 regionID) {
 PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 	DBQueryResult res;
 
-	DBColumnTypeMap colmap;
+	/*DBColumnTypeMap colmap;
 	colmap["volRemaining"] = DBTYPE_R8;
 	colmap["price"] = DBTYPE_CY;
 	colmap["issued"] = DBTYPE_FILETIME;
@@ -130,23 +122,21 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 	ordering.push_back("stationID");
 	ordering.push_back("regionID");
 	ordering.push_back("solarSystemID");
-		ordering.push_back("jumps");	//not working right...
+	ordering.push_back("jumps");	//not working right...
 	ordering.push_back("typeID");
 	ordering.push_back("range");
 	ordering.push_back("duration");
-	ordering.push_back("bid");
-	
-	
-	
+	ordering.push_back("bid");*/
+
 	//query sell orders
 	//TODO: consider the `jumps` field... is it actually used? might be a pain in the ass if we need to actually populate it based on each queryier's location
 	if(!m_db->RunQuery(res,
 		"SELECT"
 		"	price, volRemaining, typeID, range, orderID,"
 		"   volEntered, minVolume, bid, issued, duration,"
-		"   stationID, regionID, solarSystemID, jumps "
+		"   stationID, regionID, solarSystemID, jumps"
 		" FROM market_orders "
-		" WHERE regionID=%lu AND typeID=%lu AND bid=0", regionID, typeID))
+		" WHERE regionID=%lu AND typeID=%lu AND bid=%d", regionID, typeID, TransactionTypeSell))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
 		return(NULL);
@@ -154,16 +144,16 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 
 	PyRepTuple *tup = new PyRepTuple(2);
 	//this is wrong.
-	tup->items[0] = DBResultToPackedRowList(res, colmap, ordering);
+	tup->items[0] = DBResultToPackedRowset(res);
 	
 	//query buy orders
 	if(!m_db->RunQuery(res,
 		"SELECT"
 		"	price, volRemaining, typeID, range, orderID,"
 		"   volEntered, minVolume, bid, issued, duration,"
-		"   stationID, regionID, solarSystemID, jumps "
+		"   stationID, regionID, solarSystemID, jumps"
 		" FROM market_orders "
-		" WHERE regionID=%lu AND typeID=%lu AND bid=1", regionID, typeID))
+		" WHERE regionID=%lu AND typeID=%lu AND bid=%d", regionID, typeID, TransactionTypeBuy))
 	{
 		delete tup;
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
@@ -171,7 +161,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 	}
 	
 	//this is wrong.
-	tup->items[1] = DBResultToPackedRowList(res, colmap, ordering);
+	tup->items[1] = DBResultToPackedRowset(res);
 	
 	return(tup);
 }
@@ -185,7 +175,7 @@ PyRep *MarketDB::GetCharOrders(uint32 characterID) {
 		"   range, bid, price, volEntered, volRemaining,"
 		"   issued, orderState, minVolume, contraband,"
 		"   accountID, duration, isCorp, solarSystemID,"
-		"   escrow "
+		"   escrow"
 		" FROM market_orders "
 		" WHERE charID=%lu", characterID))
 	{
@@ -196,10 +186,34 @@ PyRep *MarketDB::GetCharOrders(uint32 characterID) {
 	return(DBResultToRowset(res));
 }
 
+PyRep *MarketDB::GetOrderRow(uint32 orderID) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		"	price, volRemaining, typeID, range, orderID,"
+		"   volEntered, minVolume, bid, issued, duration,"
+		"   stationID, regionID, solarSystemID, jumps"
+		" FROM market_orders"
+		" WHERE orderID=%lu", orderID))
+	{
+		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
+		return(NULL);
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		codelog(MARKET__ERROR, "Order %lu not found.", orderID);
+		return(NULL);
+	}
+
+	return(DBRowToPackedRow(row));
+}
+
 PyRep *MarketDB::GetOldPriceHistory(uint32 regionID, uint32 typeID) {
 	DBQueryResult res;
 
-	DBColumnTypeMap colmap;
+	/*DBColumnTypeMap colmap;
 	colmap["historyDate"] = DBTYPE_FILETIME;
 	colmap["lowPrice"] = DBTYPE_CY;
 	colmap["highPrice"] = DBTYPE_CY;
@@ -214,7 +228,7 @@ PyRep *MarketDB::GetOldPriceHistory(uint32 regionID, uint32 typeID) {
 	ordering.push_back("highPrice");
 	ordering.push_back("avgPrice");
 	ordering.push_back("volume");
-	ordering.push_back("orders");
+	ordering.push_back("orders");*/
 	
 	if(!m_db->RunQuery(res,
 		"SELECT"
@@ -227,13 +241,13 @@ PyRep *MarketDB::GetOldPriceHistory(uint32 regionID, uint32 typeID) {
 		return(NULL);
 	}
 	
-	return(DBResultToPackedRowListTuple(res, colmap, ordering));
+	return(DBResultToPackedRowset(res));
 }
 
 PyRep *MarketDB::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
 	DBQueryResult res;
 
-	DBColumnTypeMap colmap;
+	/*DBColumnTypeMap colmap;
 	colmap["historyDate"] = DBTYPE_FILETIME;
 	colmap["lowPrice"] = DBTYPE_CY;
 	colmap["highPrice"] = DBTYPE_CY;
@@ -248,7 +262,7 @@ PyRep *MarketDB::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
 	ordering.push_back("highPrice");
 	ordering.push_back("avgPrice");
 	ordering.push_back("volume");
-	ordering.push_back("orders");
+	ordering.push_back("orders");*/
 
 	//build the history record from the recent market transactions.
 	//NOTE: it may be a good idea to cache the historyDate column in each
@@ -260,19 +274,19 @@ PyRep *MarketDB::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
 		"	MIN(price) AS lowPrice,"
 		"	MAX(price) AS highPrice,"
 		"	AVG(price) AS avgPrice,"
-		"	SUM(quantity) AS volume,"
+		"	CAST(SUM(quantity) AS UNSIGNED INTEGER) AS volume,"
 		"	COUNT(transactionID) AS orders"
 		" FROM market_transactions "
 		" WHERE regionID=%lu AND typeID=%lu"
 		"	AND transactionType=%d "	//both buy and sell transactions get recorded, only compound one set of data... choice was arbitrary.
-		" GROUP BY historyDate", 
+		" GROUP BY historyDate",
 		Win32Time_Day, regionID, typeID, TransactionTypeBuy))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
 		return(NULL);
 	}
 	
-	return(DBResultToPackedRowListTuple(res, colmap, ordering));
+	return(DBResultToPackedRowset(res));
 }
 
 bool MarketDB::BuildOldPriceHistory() {
@@ -365,6 +379,9 @@ static void _PropigateItems(std::map< int, std::set<uint32> > &types, std::map<i
 		}
 	}
 
+	if(group == -1) {
+		return;	//we are root, we have no parent
+	}
 	//find our parent.
 	std::map<int, int>::iterator parent_res;
 	parent_res = parentChild.find(group);
@@ -376,33 +393,21 @@ static void _PropigateItems(std::map< int, std::set<uint32> > &types, std::map<i
 	if(parentID == -1) {
 		return;	//do not propigate up to NULL, we dont need it, and it would contain ALL items..
 	}
-	
-	
+
 	//now propigate all our items (which now includes all children items) up to our parent.
-	std::map< int, std::set<uint32> >::iterator pres, self_res;
+	//find our items
+	std::map< int, std::set<uint32> >::iterator self_res;
 	self_res = types.find(group);
-	if(self_res == types.end()) {
-		return;	//we have nothing for this type??
-	}
-	pres = types.find(parentID);
-	if(pres == types.end()) {
-		types[parentID] = self_res->second;
-	} else {
-		//add all of self into parent.
-		std::set<uint32>::iterator ccur, cend;
-		ccur = self_res->second.begin();
-		cend = self_res->second.end();
-		for(; ccur != cend; ccur++) {
-			pres->second.insert(*ccur);
-		}
-	}
-	
+	if(self_res == types.end())
+		return;	//we have nothing for this group??
+
+	//add all of our items into parent.
+	types[parentID].insert(self_res->second.begin(), self_res->second.end());
 }
 
 //this is a crap load of work... there HAS to be a better way to do this..
 PyRepObject *MarketDB::GetMarketGroups() {
 	DBQueryResult res;
-
 
 	//returns cached object marketProxy.GetMarketGroups
 	//marketGroupID, parentGroupID, marketGroupName, description, graphicID, hasTypes, types
@@ -410,16 +415,14 @@ PyRepObject *MarketDB::GetMarketGroups() {
 	// I really wanna know how they do this crap with their MS SQL server.. 
 	// I hope its not as much of a nightmare as it is for us....
 
-	
 	//first we need to query out all the types because we need them to 
 	// fill in the 'types' subquery for each row of the result
-	std::map< int, std::set<uint32> > types;
-	uint32 currentGroup = 0;
-	std::set<uint32> currentTypes;
+	std::map< int, std::set<uint32> > types;	//maps marketGroupID -> typeID
 	if(!m_db->RunQuery(res,
 		"SELECT"
 		"	marketGroupID,typeID"
 		" FROM invTypes"
+		" WHERE marketGroupID IS NOT NULL"
 		" ORDER BY marketGroupID"))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
@@ -427,26 +430,9 @@ PyRepObject *MarketDB::GetMarketGroups() {
 	}
 	
 	DBResultRow row;
-	while(res.GetRow(row)) {
-		uint32 g = row.GetUInt(0);
-		if(currentGroup != g) {
-			//group has changed
-			if(currentGroup != 0) {
-				types[currentGroup] = currentTypes;
-				currentTypes.clear();
-			}
-			currentGroup = g;
-		}
-		currentTypes.insert(row.GetUInt(1));
-	}
+	while(res.GetRow(row))
+		types[row.GetUInt(0)].insert(row.GetUInt(1));
 
-
-
-
-	
-	
-	std::map<int, int> parentChild;	//maps client -> parent
-	std::map<int, std::set<int> > childParent; //maps parent -> all children.
 	if(!m_db->RunQuery(res,
 		"SELECT"
 		"	marketGroupID, parentGroupID"
@@ -455,22 +441,21 @@ PyRepObject *MarketDB::GetMarketGroups() {
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
 		return(NULL);
 	}
+
+	std::map<int, int> parentChild;	//maps child -> parent
+	std::map<int, std::set<int> > childParent; //maps parent -> all children.
 	while(res.GetRow(row)) {
-		int marketGroupID = row.GetUInt(0);
 		//figure out the parent ID, mapping NULL to -1 for our map.
-		int parentID;
-		if(row.IsNull(1)) {
-			parentID = -1;
-		} else {
-			parentID = row.GetUInt(1);
-		}
-		parentChild[marketGroupID] = parentID;
-		childParent[parentID].insert(marketGroupID);
+		int marketGroupID = row.GetUInt(0);
+		int parentGroupID = row.IsNull(1) ? -1 : row.GetUInt(1);
+
+		parentChild[marketGroupID] = parentGroupID;
+		childParent[parentGroupID].insert(marketGroupID);
 	}
 
 	//now we need to propigate all of the items up the tree (a parent group's items list contains ALL items of its children.)
 	_PropigateItems(types, parentChild, childParent, -1);
-	
+
 	//now we get to do the other query.
 	if(!m_db->RunQuery(res,
 		"SELECT"
@@ -483,7 +468,6 @@ PyRepObject *MarketDB::GetMarketGroups() {
 
 	//doing this the long (non XML) way to avoid the extra copies due to the huge volume of data here.
 	PyRepDict *args = new PyRepDict();
-	PyRepObject *o = new PyRepObject("util.FilterRowset", args);
 
 	PyRepDict *parentSets = new PyRepDict();
 	PyRepList *header = new PyRepList();
@@ -495,6 +479,7 @@ PyRepObject *MarketDB::GetMarketGroups() {
 	header->add("graphicID");
 	header->add("hasTypes");
 	header->add("types");	//this column really contains an entire list.
+	header->add("dataID");
 	
 	args->add("header", header);
 	args->add("idName", new PyRepString("parentGroupID"));
@@ -502,7 +487,7 @@ PyRepObject *MarketDB::GetMarketGroups() {
 	args->add("idName2", new PyRepNone());
 	args->add("items", parentSets);
 
-	std::map<int, PyRepList *> parentLists;
+	std::map<int, PyRepList *> parentLists;	//maps marketGroupID -> list of children MarketGroup_Entry-s
 	std::map<int, PyRepList *>::iterator cur, end;
 	
 	//now fill in items.
@@ -521,11 +506,10 @@ PyRepObject *MarketDB::GetMarketGroups() {
 		//figure out the parent ID, mapping NULL to -1 for our map.
 		int parentID;
 		if(row.IsNull(1)) {
-			entry.parentGroupID = &none_gid;
 			parentID = -1;
+			entry.parentGroupID = &none_gid;
 		} else {
-			int_pgid.value = row.GetUInt(1);
-			parentID = int_pgid.value;
+			parentID = int_pgid.value = row.GetUInt(1);
 			entry.parentGroupID = &int_pgid;
 		}
 		//find the list for this parent ID
@@ -534,8 +518,7 @@ PyRepObject *MarketDB::GetMarketGroups() {
 		if(cur != parentLists.end()) {
 			parentList = cur->second;
 		} else {
-			parentList = new PyRepList();
-			parentLists[parentID] = parentList;
+			parentList = parentLists[parentID] = new PyRepList();
 		}
 		
 		entry.marketGroupName = row.GetText(2);
@@ -550,16 +533,10 @@ PyRepObject *MarketDB::GetMarketGroups() {
 		
 		entry.hasTypes = row.GetUInt(5);
 
-		tt = types.find(entry.marketGroupID);
 		entry.types.clear();
-		if(tt != types.end()) {
-			std::set<uint32>::const_iterator curi, endi;
-			curi = tt->second.begin();
-			endi = tt->second.end();
-			for(; curi != endi; curi++) {
-				entry.types.push_back(*curi);
-			}
-		}
+		tt = types.find(entry.marketGroupID);
+		if(tt != types.end())
+			entry.types.insert(entry.types.begin(), tt->second.begin(), tt->second.end());
 
 		//record ourself in the parent's list.
 		parentList->add( entry.Encode() );
@@ -570,16 +547,14 @@ PyRepObject *MarketDB::GetMarketGroups() {
 	//now we actually stick the parent lists into the FilterRowset's items dict.
 	cur = parentLists.begin();
 	end = parentLists.end();
-	for(; cur != end; cur++) {
-		PyRep *key;
+	for(; cur != end; cur++)
+		//takes ownership of the list.
 		if(cur->first == -1)
-			key = new PyRepNone();
+			parentSets->add(new PyRepNone, cur->second);
 		else
-			key = new PyRepInteger(cur->first);
-		parentSets->add(key, cur->second);	//takes ownership of the list.
-	}
+			parentSets->add(new PyRepInteger(cur->first), cur->second);
 
-	return(o);
+	return(new PyRepObject("util.FilterRowset", args));
 }
 
 uint32 MarketDB::StoreBuyOrder(
@@ -592,9 +567,9 @@ uint32 MarketDB::StoreBuyOrder(
 	uint8 orderRange, 
 	uint32 minVolume, 
 	uint8 duration,
-	bool useCorp
+	bool isCorp
 ) {
-	return(StoreGenericOrder(clientID, accountID, stationID, typeID, price, quantity, orderRange, minVolume, duration, useCorp, true));
+	return(_StoreOrder(clientID, accountID, stationID, typeID, price, quantity, orderRange, minVolume, duration, isCorp, true));
 }
 
 uint32 MarketDB::StoreSellOrder(
@@ -607,62 +582,9 @@ uint32 MarketDB::StoreSellOrder(
 	uint8 orderRange, 
 	uint32 minVolume, 
 	uint8 duration,
-	bool useCorp
+	bool isCorp
 ) {
-	return(StoreGenericOrder(clientID, accountID, stationID, typeID, price, quantity, orderRange, minVolume, duration, useCorp, false));
-}
-
-uint32 MarketDB::StoreGenericOrder(
-	uint32 clientID, 
-	uint32 accountID, 
-	uint32 stationID, 
-	uint32 typeID, 
-	double price, 
-	uint32 quantity, 
-	uint8 orderRange, 
-	uint32 minVolume, 
-	uint8 duration,
-	bool useCorp,
-	bool isBuy
-) {
-	DBerror err;
-
-	uint32 solarSystemID;
-	uint32 constellationID;
-	uint32 regionID;
-	if(!GetStationParents(stationID, solarSystemID, constellationID, regionID)) {
-		codelog(MARKET__ERROR, "Char %lu: Failed to find parents for station %lu", clientID, stationID);
-		return(0);
-	}
-
-	//TODO: figure out what the orderState field means...
-	//TODO: implement the contraband flag properly.
-	//TODO: implement the isCorp flag properly.
-	uint32 orderID;
-	if(!m_db->RunQueryLID(err, orderID,
-		"INSERT INTO market_orders ("
-		"	orderID, typeID, charID, regionID, stationID,"
-		"	range, bid, price, volEntered, volRemaining, issued,"
-		"	orderState, minVolume, contraband, accountID, duration,"
-		"	isCorp, solarSystemID, escrow, jumps "
-		" ) VALUES ("
-		"	NULL, %lu, %lu, %lu, %lu, "
-		"	%d, %d, %f, %lu, %lu, " I64u ", "
-		"	1, %lu, 0, %lu, %d, "
-		"	%d, %lu, 0, 1"
-		" )",
-			typeID, clientID, regionID, stationID,
-			orderRange, isBuy?1:0, price, quantity, quantity, Win32TimeNow(),
-			minVolume, accountID, duration,
-			useCorp?1:0, solarSystemID
-		))
-
-	{
-		codelog(MARKET__ERROR, "Error in query: %s", err.c_str());
-		return(0);
-	}
-
-	return(orderID);
+	return(_StoreOrder(clientID, accountID, stationID, typeID, price, quantity, orderRange, minVolume, duration, isCorp, false));
 }
 
 //NOTE: needs a lot of work to implement orderRange
@@ -683,6 +605,7 @@ uint32 MarketDB::FindBuyOrder(
 		"		AND stationID=%lu"
 		"		AND volRemaining >= %lu"
 		"		AND price <= %f"
+		"	ORDER BY price DESC"
 		"	LIMIT 1",	//right now, we just care about the first order which can satisfy our needs.
 		typeID,
 		stationID,
@@ -717,6 +640,7 @@ uint32 MarketDB::FindSellOrder(
 		"		AND stationID=%lu"
 		"		AND volRemaining >= %lu"
 		"		AND price <= %f"
+		"	ORDER BY price ASC"
 		"	LIMIT 1",	//right now, we just care about the first order which can satisfy our needs.
 		typeID,
 		stationID,
@@ -734,68 +658,85 @@ uint32 MarketDB::FindSellOrder(
 	return(row.GetUInt(0));
 }
 
-
-//NOTE: this logic needs some work if there are multiple concurrent market services running at once.
-bool MarketDB::DBExecuteOrder(
-	uint32 buy_order_id,
-	uint32 quantity,
-	bool &order_deleted,
-	uint32 &orderOwnerID,
-	uint32 &typeID,
-	double &price
-) {
+bool MarketDB::GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID, uint32 &quantity, double &price) {
 	DBQueryResult res;
-	
+
 	if(!m_db->RunQuery(res,
-		"SELECT volRemaining,price,typeID,charID"
-		"	FROM market_orders"
-		"	WHERE orderID=%lu",
-		buy_order_id))
+		"SELECT"
+		" volRemaining,"
+		" price,"
+		" typeID,"
+		" charID"
+		" FROM market_orders"
+		" WHERE orderID=%lu",
+		orderID))
 	{
-		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
+		_log(MARKET__ERROR, "Error in query: %s.", res.error.c_str());
 		return(false);
 	}
-	
+
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		codelog(MARKET__ERROR, "No row for order %lu", buy_order_id);
+		_log(MARKET__ERROR, "Order %lu not found.", orderID);
 		return(false);
 	}
-	uint32 volRemaining = row.GetUInt(0);
-	
-	if(volRemaining < quantity) {
-		codelog(MARKET__ERROR, "Order %lu only has %lu remaining, not the requested %lu!", buy_order_id, volRemaining, quantity);
-		return(false);
-	}
-	
+
+	quantity = row.GetUInt(0);
 	price = row.GetDouble(1);
 	typeID = row.GetUInt(2);
 	orderOwnerID = row.GetUInt(3);
-	
-	if(volRemaining == quantity) {
-		DBerror err;
-		if(!m_db->RunQuery(err,
-			"DELETE FROM market_orders WHERE orderID=%lu",
-			buy_order_id)
-		) {
-			codelog(MARKET__ERROR, "Error in query: %s", err.c_str());
-			return(false);
-		}
-		order_deleted = true;
-	} else {
-		DBerror err;
-		if(!m_db->RunQuery(err,
-			"UPDATE market_orders "
-			"	SET volRemaining=volRemaining-%lu"
-			"	WHERE orderID=%lu",
-			quantity,
-			buy_order_id)
-		) {
-			codelog(MARKET__ERROR, "Error in query: %s", err.c_str());
-			return(false);
-		}
-		order_deleted = false;
+
+	return(true);
+}
+
+//NOTE: this logic needs some work if there are multiple concurrent market services running at once.
+bool MarketDB::AlterOrderQuantity(uint32 orderID, uint32 new_qty) {
+	DBerror err;
+
+	if(!m_db->RunQuery(err,
+		"UPDATE"
+		" market_orders"
+		" SET volRemaining = %lu"
+		" WHERE orderID = %lu",
+		new_qty, orderID))
+	{
+		_log(MARKET__ERROR, "Error in query: %s.", err.c_str());
+		return(false);
 	}
+
+	return(true);
+}
+
+bool MarketDB::AlterOrderPrice(uint32 orderID, double new_price) {
+	DBerror err;
+
+	if(!m_db->RunQuery(err,
+		"UPDATE"
+		" market_orders"
+		" SET price = %f"
+		" WHERE orderID = %lu",
+		new_price, orderID))
+	{
+		_log(MARKET__ERROR, "Error in query: %s.", err.c_str());
+		return(false);
+	}
+
+	return(true);
+}
+
+bool MarketDB::DeleteOrder(uint32 orderID) {
+	DBerror err;
+
+	if(!m_db->RunQuery(err,
+		"DELETE"
+		" FROM market_orders"
+		" WHERE orderID = %lu",
+		orderID))
+	{
+		_log(MARKET__ERROR, "Error in query: %s.", orderID);
+		return(false);
+	}
+
 	return(true);
 }
 
@@ -827,6 +768,59 @@ bool MarketDB::RecordTransaction(
 		return(false);
 	}
 	return(true);
+}
+
+uint32 MarketDB::_StoreOrder(
+	uint32 clientID, 
+	uint32 accountID, 
+	uint32 stationID, 
+	uint32 typeID, 
+	double price, 
+	uint32 quantity, 
+	uint8 orderRange, 
+	uint32 minVolume, 
+	uint8 duration,
+	bool isCorp,
+	bool isBuy
+) {
+	DBerror err;
+
+	uint32 solarSystemID;
+	uint32 constellationID;
+	uint32 regionID;
+	if(!GetStationParents(stationID, solarSystemID, constellationID, regionID)) {
+		codelog(MARKET__ERROR, "Char %lu: Failed to find parents for station %lu", clientID, stationID);
+		return(0);
+	}
+
+	//TODO: figure out what the orderState field means...
+	//TODO: implement the contraband flag properly.
+	//TODO: implement the isCorp flag properly.
+	uint32 orderID;
+	if(!m_db->RunQueryLID(err, orderID,
+		"INSERT INTO market_orders ("
+		"	typeID, charID, regionID, stationID,"
+		"	range, bid, price, volEntered, volRemaining, issued,"
+		"	orderState, minVolume, contraband, accountID, duration,"
+		"	isCorp, solarSystemID, escrow, jumps "
+		" ) VALUES ("
+		"	%lu, %lu, %lu, %lu, "
+		"	%u, %u, %f, %lu, %lu, " I64u ", "
+		"	1, %lu, 0, %lu, %u, "
+		"	%u, %lu, 0, 1"
+		" )",
+			typeID, clientID, regionID, stationID,
+			orderRange, isBuy?1:0, price, quantity, quantity, Win32TimeNow(),
+			minVolume, accountID, duration,
+			isCorp?1:0, solarSystemID
+		))
+
+	{
+		codelog(MARKET__ERROR, "Error in query: %s", err.c_str());
+		return(0);
+	}
+
+	return(orderID);
 }
 
 

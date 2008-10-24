@@ -49,7 +49,7 @@
       <int name="mode" />
       <bool name="subscribed" />
       <int name="estimatedMemberCount" />
-    </InlineList>
+	</InlineList>
   </element>
 
 
@@ -70,10 +70,11 @@
             <string name="uu_9" default="cspa" />
             <string name="uu_10" default="temporary" />
             <string name="uu_12" default="subscribed" />
+			<string name="uu_13" default="languageRestriction" />
           </InlineList>
         </IDEntry>
         <IDEntry key="line">
-          <InlineList name="uu_13">
+          <InlineList name="uu_14">
             <int name="channelID" />
             <int name="ownerID" />
             <string name="displayName" />
@@ -85,7 +86,8 @@
             <int name="cspa" />
             <int name="temporary" />
             <int name="subscribed" />
-          </InlineList>
+			<bool name="languageRestriction" default="false" />
+		  </InlineList>
         </IDEntry>
       </InlineDict>
     </object>
@@ -219,7 +221,7 @@
 <element name="OnLSC_SenderInfo">
   <InlineTuple>
     <!-- 0: whoAllianceID -->
-    <none />
+    <int name="allianceID" default="0" none_marker="0" />
     <!-- 1: whoCorpID -->                  
     <int name="corpID" />
     <!-- 2: who (could be this list, or could be just an integer ID) -->  
@@ -232,6 +234,8 @@
 	<int64 name="role" />
     <!-- 4: whoCorpRole -->
 	<int64 name="corp_role" />
+	<!-- 5: not sure its factionID -->
+	<int name="factionID" default="0" none_marker="0" />
   </InlineTuple>
 </element>
 
@@ -320,7 +324,7 @@
     <!-- 0 -->
     <list name="channels" />
     <!-- 1 -->
-    <int name="unsubscribe" />
+    <bool name="unsubscribe" />
   </InlineTuple>
 </element>
 

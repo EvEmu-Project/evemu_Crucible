@@ -25,7 +25,6 @@ namespace Destiny {
 	extern uint32 DumpBall(LogType into, const byte *data, uint32 len);
 	
 	extern const char *const DSTBALL_modeNames[];
-	
 }
 
 #endif

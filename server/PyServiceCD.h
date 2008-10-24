@@ -32,7 +32,7 @@ template <class Svc>
 class PyCallableDispatcher
 	: public PyCallable::CallDispatcher
 {
-	typedef PyCallResult (Svc::*CallProc)(PyCallArgs &call);
+	typedef PyResult (Svc::*CallProc)(PyCallArgs &call);
 	typedef typename std::map<std::string, CallProc>::iterator mapitr;
 public:
 	PyCallableDispatcher(Svc *parent)
@@ -47,7 +47,7 @@ public:
 	}
 
 	//CallDispatcher interface:
-	virtual PyCallResult Dispatch(const std::string &method_name, PyCallArgs &call) {
+	virtual PyResult Dispatch(const std::string &method_name, PyCallArgs &call) {
 		//this could be done a lot more efficiently with a custom data structure IF NEEDED
 		mapitr res;
 		res = m_serviceCalls.find(method_name);

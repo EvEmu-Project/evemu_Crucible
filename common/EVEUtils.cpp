@@ -18,6 +18,8 @@
 
 #include "common.h"
 #include "EVEUtils.h"
+#include "MiscFunctions.h"
+
 #include "../server/inventory/InventoryItem.h"
 
 static const uint64 SECS_BETWEEN_EPOCHS = 11644473600LL;
@@ -92,36 +94,45 @@ int GetSkillLevel(const std::vector<const InventoryItem *> &skills, const uint32
 	return 0;
 }
 
-PyRepObject *MakeException(const char *exceptionType, const std::map<std::string, PyRep *> &args) {
-	PyRepObject *obj = new PyRepObject;
-
-	PyRepDict *dict = new PyRepDict;
-	obj->type = "ccp_exceptions.UserError";
-	obj->arguments = dict;
+PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args) {
+	PyRepPackedObject1 *res = new PyRepPackedObject1("ccp_exceptions.UserError");
 
 	PyRep *py_args;
 	if(args.empty())
 		py_args = new PyRepNone;
 	else {
-		PyRepDict *dict = new PyRepDict;
-		py_args = dict;
+		PyRepDict *d = new PyRepDict;
+		py_args = d;
 		std::map<std::string, PyRep *>::const_iterator cur, end;
 		cur = args.begin();
 		end = args.end();
 		for(; cur != end; cur++)
-			dict->add(cur->first.c_str(), cur->second);
+			d->add(cur->first.c_str(), cur->second);
 	}
 
-	dict->add("msg", new PyRepString(exceptionType));
-	dict->add("dict", py_args);
+	res->args = new PyRepTuple(2);
+	res->args->items[0] = new PyRepString(exceptionType);
+	res->args->items[1] = py_args;
 
-	PyRepTuple *tuple = new PyRepTuple(2);
+	res->keywords.add("msgkey", new PyRepString(exceptionType));
 	// here should be used PySavedStreamElement, but our marshaling doesnt support it yet
-	tuple->items[0] = new PyRepString(exceptionType);
-	tuple->items[1] = py_args->Clone();
-	dict->add("args", tuple);
+	res->keywords.add("dict", py_args->Clone());
 
-	return(obj);
+	return(res);
+}
+
+PyRep *MakeCustomError(const char *fmt, ...) {
+	va_list va;
+	va_start(va, fmt);
+	char *str = NULL;
+	vaMakeAnyLenString(&str, fmt, va);
+	va_end(va);
+
+	std::map<std::string, PyRep *> args;
+	args["error"] = new PyRepString(str);
+	delete[] str;
+
+	return(MakeUserError("CustomError", args));
 }
 
 

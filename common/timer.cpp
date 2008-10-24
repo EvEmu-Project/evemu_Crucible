@@ -65,7 +65,7 @@ int gettimeofday (timeval *tp, ...)
 
 	ftime (&tb);
 
-	tp->tv_sec  = tb.time;
+	tp->tv_sec  = long( tb.time );
 	tp->tv_usec = tb.millitm * 1000;
 
 	return 0;
@@ -187,6 +187,5 @@ const int32 Timer::SetCurrentTime()
 	last_time = this_time;
 	current_seconds = read_time.tv_sec;
 
-//	cerr << "Current time:" << current_time << endl;
 	return current_time;
 }

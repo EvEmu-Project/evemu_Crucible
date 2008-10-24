@@ -15,16 +15,12 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
-
-#include "common.h"
-#include "TCPServer.h"
-#include "logsys.h"
-
-#include <stdio.h>
 #ifdef WIN32
 	#include <process.h>
 #else
+	#include <sys/time.h>
 	#include <sys/socket.h>
 	#include <netinet/in.h>
 	#include <arpa/inet.h>
@@ -36,9 +32,6 @@
 
 
 #define SERVER_LOOP_GRANULARITY 3	//# of ms between checking our socket/queues
-
-
-
 
 BaseTCPServer::BaseTCPServer(int16 in_port) {
 	NextID = 1;
@@ -137,7 +130,7 @@ void BaseTCPServer::ListenNewConnections() {
 #endif
 		fcntl(tmpsock, F_SETFL, O_NONBLOCK);
 #endif
-		int bufsize = 64 * 1024; // 64kbyte recieve buffer, up from default of 8k
+		int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
 		setsockopt(tmpsock, SOL_SOCKET, SO_RCVBUF, (char*) &bufsize, sizeof(bufsize));
 		port = from.sin_port;
 		in.s_addr = from.sin_addr.s_addr;
@@ -148,14 +141,23 @@ void BaseTCPServer::ListenNewConnections() {
 }
 
 bool BaseTCPServer::Open(int16 in_port, char* errbuf) {
-	if (errbuf)
+	
+	if (errbuf != NULL)
+	{
 		errbuf[0] = 0;
+	}
+
+	// mutex lock
 	LockMutex lock(&MSock);
-	if (sock != 0) {
-		if (errbuf)
+	if (sock != 0) 
+	{
+		if (errbuf != NULL)
+		{
 			snprintf(errbuf, TCPServer_ErrorBufferSize, "Listening socket already open");
+		}
 		return false;
 	}
+
 	if (in_port != 0) {
 		pPort = in_port;
 	}
@@ -183,11 +185,10 @@ bool BaseTCPServer::Open(int16 in_port, char* errbuf) {
 		return false;
 	}
 
-// Quag: dont think following is good stuff for TCP, good for UDP
+// Quag: don't think following is good stuff for TCP, good for UDP
 // Mis: SO_REUSEADDR shouldn't be a problem for tcp--allows you to restart
-// without waiting for conns in TIME_WAIT to die
+// without waiting for conn's in TIME_WAIT to die
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &reuse_addr, sizeof(reuse_addr));
-
 
 	if (bind(sock, (struct sockaddr *) &address, sizeof(address)) < 0) {
 #ifdef WIN32
@@ -201,7 +202,7 @@ bool BaseTCPServer::Open(int16 in_port, char* errbuf) {
 		return false;
 	}
 
-	int bufsize = 64 * 1024; // 64kbyte recieve buffer, up from default of 8k
+	int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
 	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char*) &bufsize, sizeof(bufsize));
 #ifdef WIN32
 	ioctlsocket (sock, FIONBIO, &nonblocking);
@@ -246,5 +247,3 @@ bool BaseTCPServer::IsOpen() {
 	MSock.unlock();
 	return ret;
 }
-
-

@@ -24,7 +24,6 @@ using namespace std;
 
 #define DEBUG_MUTEX_CLASS 0
 #if DEBUG_MUTEX_CLASS >= 1
-	
 #endif
 
 #ifdef WIN32
@@ -124,17 +123,12 @@ bool Mutex::trylock() {
 	cout << "TryLocking Mutex" << endl;
 #endif
 #ifdef WIN32
-	#if(_WIN32_WINNT >= 0x0400)
-		if (TrylockSupported)
-			return (TryEnterCriticalSection(&CSMutex) == TRUE);
-		else {
-			EnterCriticalSection(&CSMutex);
-			return true;
-		}
-	#else
+	if (TrylockSupported)
+		return (TryEnterCriticalSection(&CSMutex) == TRUE);
+	else {
 		EnterCriticalSection(&CSMutex);
 		return true;
-	#endif
+	}
 #else
 	return (pthread_mutex_trylock(&CSMutex) == 0);
 #endif
@@ -270,16 +264,16 @@ void MRMutex::UnWriteLock() {
 	MCounters.unlock();
 }
 
-sint32 MRMutex::ReadLockCount() {
+int32 MRMutex::ReadLockCount() {
 	MCounters.lock();
-	sint32 ret = rl;
+	int32 ret = rl;
 	MCounters.unlock();
 	return ret;
 }
 
-sint32 MRMutex::WriteLockCount() {
+int32 MRMutex::WriteLockCount() {
 	MCounters.lock();
-	sint32 ret = wl;
+	int32 ret = wl;
 	MCounters.unlock();
 	return ret;
 }

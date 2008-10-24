@@ -55,7 +55,6 @@ private:
 	Mutex*	mut;
 };
 
-
 // Somewhat untested...
 // Multi-read, single write mutex -Quagmire
 class MRMutex {
@@ -71,12 +70,12 @@ public:
 	bool	TryWriteLock();
 	void	UnWriteLock();
 
-	sint32	ReadLockCount();
-	sint32	WriteLockCount();
+	int32	ReadLockCount();
+	int32	WriteLockCount();
 private:
-	sint32	rl;	// read locks in effect
-	sint32	wr;	// write lock requests pending
-	sint32	wl;	// write locks in effect (should never be more than 1)
+	int32	rl;	// read locks in effect
+	int32	wr;	// write lock requests pending
+	int32	wl;	// write locks in effect (should never be more than 1)
 	Mutex	MCounters;
 };
 

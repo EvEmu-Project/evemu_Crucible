@@ -17,16 +17,7 @@
 
 
 
-#include "LSCDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "../common/EVEUtils.h"
-#include "LSCService.h"
-#include "LSCChannel.h"
-
-#include "../packets/General.h"
-#include "../packets/LSCPkts.h"
+#include "EvemuPCH.h"
 
 LSCDB::LSCDB(DBcore *db)
 : ServiceDB(db)
@@ -69,8 +60,28 @@ PyRepObject *LSCDB::LookupChars(const char *match, bool exact) {
 	return(DBResultToRowset(res));
 }
 
+PyRepObject *LSCDB::LookupPlayerChars(const char *match, bool exact) {
+	DBQueryResult res;
+
+	std::string matchEsc;
+	m_db->DoEscapeString(matchEsc, match);
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" characterID, characterName, typeID"
+		" FROM character_"
+		" WHERE characterID >= 140000000"
+		" AND characterName %s '%s'",
+		exact?"=":"RLIKE", matchEsc.c_str()))
+	{
+		_log(DATABASE__ERROR, "Failed to lookup player char '%s': %s.", matchEsc.c_str(), res.error.c_str());
+		return(NULL);
+	}
+
+	return(DBResultToRowset(res));
+}
+
 //temporarily relocated into ServiceDB until some things get cleaned up...
-uint32 ServiceDB::StoreNewEVEMail(uint32 senderID, uint32 recipID, const char * subject, const char * message, uint64 sentTime) {
+uint32 LSCDB::StoreMail(uint32 senderID, uint32 recipID, const char * subject, const char * message, uint64 sentTime) {
 	DBQueryResult res;
 	DBerror err;
 	DBResultRow row;
@@ -83,7 +94,7 @@ uint32 ServiceDB::StoreNewEVEMail(uint32 senderID, uint32 recipID, const char * 
 	uint32 messageID;
 	if (!m_db->RunQueryLID(err, messageID, 
 		" INSERT INTO "
-		" evemail "
+		" eveMail "
 		" (channelID, senderID, subject, created) "
 		" VALUES (%lu, %lu, '%s', %llu) ",
 		recipID, senderID, escaped.c_str(), sentTime ))
@@ -99,14 +110,14 @@ uint32 ServiceDB::StoreNewEVEMail(uint32 senderID, uint32 recipID, const char * 
 
 	// Store message content
 	if (!m_db->RunQuery(err,
-		" INSERT INTO evemailDetails "
+		" INSERT INTO eveMailDetails "
 		" (messageID, mimeTypeID, attachment) VALUES (%lu, 1, '%s') ",
 		messageID, escaped.c_str()
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query, message content couldn't be saved: %s", err.c_str());
 		// Delete message header
-		if (!m_db->RunQuery(err, "DELETE FROM `evemail` WHERE `messageID` = %lu;", messageID))
+		if (!m_db->RunQuery(err, "DELETE FROM `eveMail` WHERE `messageID` = %lu;", messageID))
 		{
 			codelog(SERVICE__ERROR, "Failed to remove invalid header data for messgae id %lu: %s", messageID, err.c_str());
 		}
@@ -117,12 +128,12 @@ uint32 ServiceDB::StoreNewEVEMail(uint32 senderID, uint32 recipID, const char * 
 	return (messageID);
 }
 
-PyRepObject *LSCDB::GetEVEMailHeaders(uint32 recID) {
+PyRepObject *LSCDB::GetMailHeaders(uint32 recID) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
 		"SELECT channelID, messageID, senderID, subject, created, `read` "
-		" FROM evemail "
+		" FROM eveMail "
 		" WHERE channelID=%lu", recID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -132,23 +143,23 @@ PyRepObject *LSCDB::GetEVEMailHeaders(uint32 recID) {
 	return(DBResultToRowset(res));
 }
 
-PyRep *LSCDB::GetEVEMailDetails(uint32 messageID, uint32 readerID) {
+PyRep *LSCDB::GetMailDetails(uint32 messageID, uint32 readerID) {
 	DBQueryResult result;
 	DBResultRow row;
 
 	//we need to query out the primary message here... not sure how to properly
 	//grab the "main message" though... the text/plain clause is pretty hackish.
 	if (!m_db->RunQuery(result,
-		" SELECT evemail.messageID, evemail.senderID, evemail.subject, " // need messageID as char*
-		" evemailDetails.attachment, evemailDetails.mimeTypeID, "
-		" evemailMimeType.mimeType, evemailMimeType.`binary`, "
-		" evemail.created, evemail.channelID "
-		" FROM evemail "
-		" LEFT JOIN evemailDetails"
-		"	ON evemailDetails.messageID = evemail.messageID "
-		" LEFT JOIN evemailMimeType"
-		"	ON evemailMimeType.mimeTypeID = evemailDetails.mimeTypeID "
-		" WHERE evemail.messageID=%lu"
+		" SELECT eveMail.messageID, eveMail.senderID, eveMail.subject, " // need messageID as char*
+		" eveMailDetails.attachment, eveMailDetails.mimeTypeID, "
+		" eveMailMimeType.mimeType, eveMailMimeType.`binary`, "
+		" eveMail.created, eveMail.channelID "
+		" FROM eveMail "
+		" LEFT JOIN eveMailDetails"
+		"	ON eveMailDetails.messageID = eveMail.messageID "
+		" LEFT JOIN eveMailMimeType"
+		"	ON eveMailMimeType.mimeTypeID = eveMailDetails.mimeTypeID "
+		" WHERE eveMail.messageID=%lu"
 		"	AND channelID=%lu",
 			messageID, readerID
 		))
@@ -181,7 +192,7 @@ bool LSCDB::MarkMessageRead(uint32 messageID) {
 	DBerror err;
 
 	if (!m_db->RunQuery(err,
-		" UPDATE evemail "
+		" UPDATE eveMail "
 		" SET `read` = 1 "
 		" WHERE messageID=%lu", messageID
 		))
@@ -198,7 +209,7 @@ bool LSCDB::DeleteMessage(uint32 messageID, uint32 readerID) {
 	bool ret = true;
 
 	if (!m_db->RunQuery(err,
-		" DELETE FROM evemail "
+		" DELETE FROM eveMail "
 		" WHERE messageID=%lu AND channelID=%lu", messageID, readerID
 		))
 	{
@@ -206,7 +217,7 @@ bool LSCDB::DeleteMessage(uint32 messageID, uint32 readerID) {
 		ret = false;
 	}
 	if (!m_db->RunQuery(err,
-		" DELETE FROM evemailDetails "
+		" DELETE FROM eveMailDetails "
 		" WHERE messageID=%lu", messageID
 		))
 	{
@@ -349,7 +360,7 @@ std::string LSCDB::GetChannelName(uint32 id, const char * table, const char * co
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		char err[20];
-		snprintf(err, 20, "Unknown %lu", id);
+		snprintf(err, 20, "Unknown %u", id);
 		return(err);
 	}
 
@@ -358,14 +369,12 @@ std::string LSCDB::GetChannelName(uint32 id, const char * table, const char * co
 	if (!res.GetRow(row)) {
 		_log(SERVICE__ERROR, "Couldn't find %s %lu in table %s", key, id, table);
 		char err[20];
-		snprintf(err, 20, "Unknown %lu", id);
+		snprintf(err, 20, "Unknown %u", id);
 		return(err);
 	}
 
 	return (row.GetText(0));
 }
-
-
 
 
 

@@ -15,20 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "Damage.h"
-#include "../common/EVEUtils.h"
-#include "../spawn/SpawnManager.h"
-#include "../inventory/InventoryItem.h"
-#include "../inventory/ItemFactory.h"
-#include "../system/SystemEntity.h"
-#include "../system/SystemManager.h"
-#include "../ship/DestinyManager.h"
-#include "../Client.h"
-#include "../NPC.h"
-#include "../PyServiceMgr.h"
+#include "EvemuPCH.h"
 
-#include "../packets/DogmaIM.h"
-#include "../packets/Destiny.h"
+
 
 
 Damage::Damage(
@@ -402,8 +391,8 @@ void DynamicSystemEntity::Killed(Damage &fatal_blow) {
 	//NOTE: Client::Killed intentionally skips over this function in order to
 	//handle the destiny stuff more carefully.
 	if(m_destiny != NULL) {
-		m_destiny->SendRemoveBall();
 		m_destiny->SendTerminalExplosion();
+		m_destiny->SendRemoveBall();
 	}
 }
 
@@ -415,7 +404,6 @@ void Client::Killed(Damage &fatal_blow) {
 	if(m_ship->typeID() == itemTypeCapsule) {
 		//we have been pod killed... off we go.
 		
-		m_destiny->SendRemoveBall();
 		m_destiny->SendTerminalExplosion();	//I think they actually delay this one a second.
 		
 		//TODO: destroy all implants

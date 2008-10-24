@@ -15,15 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-
-#include "../common/common.h"
-#include "ClientSession.h"
-#include "../common/PyRep.h"
-
-#include "../packets/General.h"
-
+#include "EvemuPCH.h"
 
 ClientSession::ClientSession()
 : m_dirty(false)

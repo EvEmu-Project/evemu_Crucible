@@ -68,6 +68,7 @@ public:
 	Client *FindCharacter(const char *name) const;
 	Client *FindByShip(uint32 ship_id) const;
 	Client *FindAccount(uint32 account_id) const;
+	uint32 GetClientCount() const { return(uint32(m_clients.size())); }
 
 	SystemManager *FindOrBootSystem(uint32 systemID);
 

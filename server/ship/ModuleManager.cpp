@@ -14,17 +14,8 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#include "ModuleManager.h"
+#include "EvemuPCH.h"
 
-#include "../common/EVEUtils.h"
-#include "../Client.h"
-#include "../inventory/InventoryItem.h"
-#include "../system/Damage.h"
-#include "../system/SystemEntity.h"
-#include "../ship/DestinyManager.h"
-
-#include "../packets/DogmaIM.h"
-#include "../packets/Destiny.h"
 
 ModuleManager::ModuleManager(Client *pilot)
 : m_pilot(pilot)

@@ -132,42 +132,51 @@
 </element>
 
 <element name="Rsp_InstallJob">
-	<InlineTuple>
-		<object name="quote" type="util.Row">
-			<InlineDict>
-				<IDEntry key="header">
-					<InlineList name="header">
-						<string name="header_bom" default="bom" />
-						<string name="header_materialMultiplier" default="materialMultiplier" />
-						<string name="header_charMaterialMultiplier" default="charMaterialMultiplier" />
-						<string name="header_timeMultiplier" default="timeMultiplier" />
-						<string name="header_charTimeMultiplier" default="charTimeMultiplier" />
-						<string name="header_cost" default="cost" />
-						<string name="header_installCost" default="installCost" />
-						<string name="header_usageCost" default="usageCost" />
-						<string name="header_productionTime" default="productionTime" />
-						<string name="header_maxJobStartTime" default="maxJobStartTime" />
-					</InlineList>
-				</IDEntry>
-				<IDEntry key="line">
-					<InlineList name="line">
-						<element name="bom" type="BillOfMaterials" />
-						<real name="materialMultiplier" />
-						<real name="charMaterialMultiplier" />
-						<real name="timeMultiplier" />
-						<real name="charTimeMultiplier" />
-						<real name="cost" />
-						<real name="installCost" />
-						<real name="usageCost" />
-						<int name="productionTime" />
-						<int64 name="maxJobStartTime" />
-					</InlineList>
-				</IDEntry>
-			</InlineDict>
-		</object>
-		<!-- optional -->
-		<int name="installedItemID" default="0" />
-	</InlineTuple>
+	<object type="util.KeyVal">
+		<InlineDict>
+			<IDEntry key="quote">
+				<object name="quote" type="util.Row">
+					<InlineDict>
+						<IDEntry key="header">
+							<InlineList name="header">
+								<string name="header_bom" default="bom" />
+								<string name="header_materialMultiplier" default="materialMultiplier" />
+								<string name="header_charMaterialMultiplier" default="charMaterialMultiplier" />
+								<string name="header_timeMultiplier" default="timeMultiplier" />
+								<string name="header_charTimeMultiplier" default="charTimeMultiplier" />
+								<string name="header_cost" default="cost" />
+								<string name="header_installCost" default="installCost" />
+								<string name="header_usageCost" default="usageCost" />
+								<string name="header_productionTime" default="productionTime" />
+								<string name="header_maxJobStartTime" default="maxJobStartTime" />
+								<string name="header_bomLocationData" default="bomLocationData" />
+								<string name="header_missingMaterials" default="missingMaterials" />
+							</InlineList>
+						</IDEntry>
+						<IDEntry key="line">
+							<InlineList name="line">
+								<element name="bom" type="BillOfMaterials" />
+								<real name="materialMultiplier" />
+								<real name="charMaterialMultiplier" />
+								<real name="timeMultiplier" />
+								<real name="charTimeMultiplier" />
+								<real name="cost" />
+								<real name="installCost" />
+								<real name="usageCost" />
+								<int name="productionTime" />
+								<int64 name="maxJobStartTime" />
+								<raw name="bomLocationData" />
+								<intdict name="missingMaterials" />
+							</InlineList>
+						</IDEntry>
+					</InlineDict>
+				</object>
+			</IDEntry>
+			<IDEntry key="installedItemID">
+				<int name="installedItemID" default="0" />
+			</IDEntry>
+		</InlineDict>
+	</object>
 </element>
 
 <element name="Call_CompleteJob">

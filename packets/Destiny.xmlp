@@ -714,6 +714,9 @@ DST_WARPEXIT = 11
               <!-- not really an intlist, each element should be a tuple: (694930434, 7088433) -->
               <list name="charGangs" />
             </IDEntry>
+			<IDEntry key="allianceBridges">
+			  <list name="allianceBridges" />
+			</IDEntry>
           </InlineDict>
         </object>
       </InlineTuple>

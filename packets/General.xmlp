@@ -38,7 +38,7 @@
 		<strlist name="header" />
 	  </IDEntry>
 	  <IDEntry key="RowClass">
-		<string name="rowclass" type1="true"/>
+		<string name="rowclass" default="util.Row"  type1="true"/>
 	  </IDEntry>
 	  <IDEntry key="idName">
 		<string name="idName"/>
@@ -166,7 +166,7 @@ CallGetGuests
 <element name="CallMachoResolveObject">
   <InlineTuple>
     <!-- 0 -->
-	<raw name="entitySpec" />
+	<raw name="bindParams" />
     <!-- 1 -->
     <int name="justQuery" />     
   </InlineTuple>   
@@ -196,7 +196,7 @@ CallGetGuests
 <element name="CallMachoBindObject">
   <InlineTuple>
     <!-- 0 -->
-	<raw name="entitySpec" />
+	<raw name="bindParams" />
     <!-- 1 --> 
 	<!-- either 'None', or a CallMachoBindObject_call -->
 	<raw name="call" />
@@ -264,8 +264,9 @@ CallGetGuests
     <!-- MACHONETERR_TYPE -->
     <int name="exception_type" />
     <InlineTuple>
-      <!-- substream -->
-      <raw name="payload" />
+      <InlineSubStream>
+	    <raw name="payload" />
+      </InlineSubStream>
     </InlineTuple>
   </InlineTuple>
 </element>

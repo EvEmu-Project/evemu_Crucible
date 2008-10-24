@@ -15,14 +15,11 @@
 CACHABLE("config.BulkData.billtypes", BillTypes, TupleSet,
 	"SELECT billTypeID,billTypeName,description FROM billTypes"
 );
-CACHABLE("config.BulkData.messages", EveMessages, TupleSet,
-	"SELECT messageID,messageType,messageText,urlAudio,urlIcon FROM eveMessages"
-);
 CACHABLE("config.BulkData.allianceshortnames", AllianceShortnames, TupleSet,
 	"SELECT allianceID,shortName FROM alliance_shortnames"
 );
-CACHABLE("config.BulkData.categories", EveCategories, TupleSet,
-	"SELECT categoryID,categoryName,description,graphicID FROM eveCategories"
+CACHABLE("config.BulkData.categories", invCategories, TupleSet,
+	"SELECT categoryID,categoryName,description,graphicID,0 AS dataID FROM invCategories"
 );
 CACHABLE("config.BulkData.invtypereactions", invTypeReactions, TupleSet,
 	"SELECT reactionTypeID,input,typeID,quantity FROM invTypeReactions"
@@ -37,27 +34,28 @@ CACHABLE("config.BulkData.invtypereactions", invTypeReactions, TupleSet,
  * string value type, so it makes the client unhappy)... they must have some
  * sort of filter, but hell if I can figure it out...
  */
-CACHABLE("config.BulkData.dgmtypeattribs", dgmTypeAttribs, TupleSet,
-	"SELECT "
+CACHABLE("config.BulkData.dgmtypeattribs", dgmTypeAttribs, Rowset,
+	"SELECT"
 	"	dgmTypeAttributes.typeID,"
 	"	dgmTypeAttributes.attributeID,"
-	"	IF(valueInt IS NULL, valueFloat, valueInt) AS value "
+	"	IF(valueInt IS NULL, valueFloat, valueInt) AS value"
 	" FROM dgmTypeAttributes"
 	"	NATURAL JOIN dgmAttributeTypes"
 	" WHERE"
-	"	defaultValue!=valueInt "
+//	"	defaultValue!=valueInt"
+	"	published=1"	//not sure if this is right, but default value exclusion doesnt work with trinity
 );
-CACHABLE("config.BulkData.dgmtypeeffects", dgmTypeEffects, TupleSet,
+CACHABLE("config.BulkData.dgmtypeeffects", dgmTypeEffects, Rowset,
 	"SELECT typeID,effectID,isDefault FROM dgmTypeEffects"
 );
 CACHABLE("config.BulkData.dgmeffects", dgmEffects, TupleSet,
-	"SELECT effectID,effectName,effectCategory,preExpression,postExpression,description,guid,graphicID,isOffensive,isAssistance,durationAttributeID,trackingSpeedAttributeID,dischargeAttributeID,rangeAttributeID,falloffAttributeID,published,displayName,isWarpSafe,rangeChance,electronicChance,propulsionChance,distribution,sfxName,npcUsageChanceAttributeID,npcActivationChanceAttributeID FROM dgmEffects"
+	"SELECT effectID,effectName,effectCategory,preExpression,postExpression,description,guid,graphicID,isOffensive,isAssistance,durationAttributeID,trackingSpeedAttributeID,dischargeAttributeID,rangeAttributeID,falloffAttributeID,published,displayName,isWarpSafe,rangeChance,electronicChance,propulsionChance,distribution,sfxName,npcUsageChanceAttributeID,npcActivationChanceAttributeID,0 AS fittingUsageChanceAttributeID,0 AS dataID FROM dgmEffects"
 );
 CACHABLE("config.BulkData.dgmattribs", dgmAttribs, TupleSet,
-	"SELECT attributeID,attributeName,attributeCategory,description,maxAttributeID,attributeIdx,graphicID,chargeRechargeTimeID,defaultValue,published,unitID,displayName,stackable,highIsGood FROM dgmAttributes"
+	"SELECT attributeID,attributeName,attributeCategory,description,maxAttributeID,attributeIdx,graphicID,chargeRechargeTimeID,defaultValue,published,displayName,unitID,stackable,highIsGood,categoryID,0 AS dataID FROM dgmAttributeTypes"
 );
 CACHABLE("config.BulkData.metagroups", invMetaGroups, TupleSet,
-	"SELECT metaGroupID,metaGroupName,description,graphicID FROM invMetaGroups"
+	"SELECT metaGroupID,metaGroupName,description,graphicID,0 AS dataID FROM invMetaGroups"
 );
 CACHABLE("config.BulkData.ramactivities", ramActivities, TupleSet,
 	"SELECT activityID,activityName,iconNo,description,published FROM ramActivities"
@@ -74,22 +72,38 @@ CACHABLE("config.BulkData.ramaltypes", ramALTypes, TupleSet,
 CACHABLE("config.BulkData.ramcompletedstatuses", ramCompletedStatuses, TupleSet,
 	"SELECT completedStatusID,completedStatusName,completedStatusText FROM ramCompletedStatuses"
 );
-//no:
-CACHABLE("config.BulkData.ramtypematerials", ramTypeMaterials, RowsetTuple,
-	"SELECT typeID,requiredTypeID AS materialTypeID,quantity FROM TL2MaterialsForTypeWithActivity"
-	//as a blue.DBRow set
-	//SELECT requiredTypeID AS typeID,typeID AS materialTypeID,quantity FROM TL2MaterialsForTypeWithActivity
-	/*
-uint32 quantity;
-uint16 materialTypeID;
-uint16 typeID;
-    */
+//returns what each item consists of
+CACHABLE("config.BulkData.ramtypematerials", ramTypeMaterials, Rowset,
+	"SELECT"
+		" typeID,"
+		" requiredTypeID AS materialTypeID,"
+		" quantity"
+	" FROM typeActivityMaterials"
+		" WHERE activityID = 6"	//duplicating
+		" AND damagePerJob = 1.0"
+	" UNION"
+	" SELECT"
+		" productTypeID AS typeID,"
+		" requiredTypeID AS materialTypeID,"
+		" quantity"
+	" FROM typeActivityMaterials"
+	" JOIN invBlueprintTypes ON typeID = blueprintTypeID"
+		" WHERE activityID = 1"	//manufacturing
+		" AND damagePerJob = 1.0"
 );
 //no:
-CACHABLE("config.BulkData.ramtyperequirements", ramTypeRequirements, RowsetTuple,
-	"SELECT typeID,activity,requiredTypeID,quantity,damagePerJob,recycle FROM TL2MaterialsForTypeWithActivity"
+CACHABLE("config.BulkData.ramtyperequirements", ramTypeRequirements, Rowset,
+	"SELECT"
+		" typeID,"
+		" activityID,"
+		" requiredTypeID,"
+		" quantity,"
+		" damagePerJob,"
+		" 0 AS recycle"	//hacking
+	" FROM typeActivityMaterials"
+		" WHERE damagePerJob != 1.0"
+		//" OR recycle = 1"	//this is valid as well, but since we hack recycle it's not usable
 	//as a blue.DBRow set
-	//SELECT typeID,activity,requiredTypeID,quantity,damagePerJob,recycle FROM TL2MaterialsForTypeWithActivity
 	/*
 double damagePerJob;
 uint32 activity;
@@ -99,22 +113,22 @@ uint16 typeID;
 uint8 recycle;
     */
 );
+CACHABLE("config.BulkData.mapcelestialdescriptions", mapCelestialDescriptions, TupleSet,
+	"SELECT celestialID,description FROM mapCelestialDescriptions"
+);
 CACHABLE("config.BulkData.tickernames", tickerNames, TupleSet,
 	//npc corps only I think.
 	"SELECT corporationID,tickerName,shape1,shape2,shape3,color1,color2,color3 FROM corporation WHERE hasPlayerPersonnelManager=0"
 );
 CACHABLE("config.BulkData.groups", invGroups, TupleSet,
-	"SELECT groupID,categoryID,groupName,description,graphicID,useBasePrice,allowManufacture,allowRecycler,anchored,anchorable,fittableNonSingleton FROM invGroups"
+	"SELECT groupID,categoryID,groupName,description,graphicID,useBasePrice,allowManufacture,allowRecycler,anchored,anchorable,fittableNonSingleton,1 AS published,0 AS dataID FROM invGroups"
 );
 CACHABLE("config.BulkData.shiptypes", invShipTypes, TupleSet,
-	"SELECT shipTypeID,powerCoreTypeID,capacitorTypeID,shieldTypeID,propulsionTypeID,sensorTypeID,armorTypeID,computerTypeID,weaponTypeID,miningTypeID,skillTypeID FROM invShipTypes"
+	"SELECT shipTypeID,weaponTypeID,miningTypeID,skillTypeID FROM invShipTypes"
 );
 CACHABLE("config.BulkData.locations", cacheLocations, TupleSet,
 	//this is such as worthless cache item...
 	"SELECT locationID,locationName,x,y,z FROM cacheLocations"
-);
-CACHABLE("config.BulkData.constants", eveConstants, TupleSet,
-	"SELECT constantID,constantValue FROM eveConstants"
 );
 CACHABLE("config.BulkData.bptypes", invBlueprintTypes, TupleSet,
 	//old method used dedicated table invBlueprints
@@ -126,25 +140,19 @@ CACHABLE("config.BulkData.graphics", eveGraphics, TupleSet,
 	"SELECT graphicID,url3D,urlWeb,icon,urlSound,explosionID FROM eveGraphics"
 );
 CACHABLE("config.BulkData.types", invTypes, TupleSet,
-	"SELECT typeID,groupID,typeName,description,graphicID,radius,mass,volume,capacity,portionSize,raceID,basePrice,published,marketGroupID,chanceOfDuplicating FROM invTypes"
+	"SELECT typeID,groupID,typeName,description,graphicID,radius,mass,volume,capacity,portionSize,raceID,basePrice,published,marketGroupID,chanceOfDuplicating,0 AS dataID FROM invTypes"
 );
 CACHABLE("config.BulkData.invmetatypes", invMetaTypes, TupleSet,
 	"SELECT typeID,parentTypeID,metaGroupID FROM invMetaTypes"
 );
 CACHABLE("config.Bloodlines", chrBloodlines, Rowset,
-	"SELECT bloodlineID,bloodlineName,raceID,description,maleDescription,femaleDescription,shipTypeID,corporationID,perception,willpower,charisma,memory,intelligence,bonusTypeID,skillTypeID1,skillTypeID2,graphicID FROM chrBloodlines"
+	"SELECT bloodlineID,bloodlineName,raceID,description,maleDescription,femaleDescription,shipTypeID,corporationID,perception,willpower,charisma,memory,intelligence,graphicID,shortDescription,shortMaleDescription,shortFemaleDescription,0 AS dataID FROM chrBloodlines"
 );
 CACHABLE("config.Units", eveUnits, Rowset,
 	"SELECT unitID,unitName,displayName FROM eveUnits"
 );
-CACHABLE("config.Statistics", eveStatistics, Rowset,
-	"SELECT statisticID,statisticName,statisticType,description,orderID,graphicID FROM eveStatistics"
-);
-CACHABLE("config.EncyclopediaTypes", eveEncyclTypes, Rowset,
-	"SELECT encyclopediaTypeID,encyclopediaTypeName FROM eveEncyclTypes"
-);
-CACHABLE("config.ChannelTypes", channelTypes, Rowset,
-	"SELECT channelTypeID,channelTypeName,defaultName FROM channelTypes"
+CACHABLE("config.BulkData.units", eveBulkDataUnits, TupleSet,
+	"SELECT unitID,unitName,displayName FROM eveUnits"
 );
 CACHABLE("config.BulkData.owners", cacheOwners, TupleSet,
 	"SELECT ownerID,ownerName,typeID FROM cacheOwners"
@@ -154,16 +162,13 @@ CACHABLE("config.StaticOwners", eveStaticOwners, Rowset,
 	"SELECT ownerID,ownerName,typeID FROM eveStaticOwners"
 );
 CACHABLE("config.Races", chrRaces, Rowset,
-	"SELECT raceID,raceName,description,skillTypeID1,typeID,typeQuantity,graphicID FROM chrRaces"
+	"SELECT raceID,raceName,description,graphicID,shortDescription,0 AS dataID FROM chrRaces"
 );
 CACHABLE("config.Attributes", chrAttributes, Rowset,
 	"SELECT attributeID,attributeName,description,graphicID FROM chrAttributes"
 );
-CACHABLE("config.Roles", eveRoles, Rowset,
-	"SELECT roleID,roleName,description FROM eveRoles"
-);
-CACHABLE("config.Flags", eveFlags, Rowset,
-	"SELECT flagID,flagName,flagText,flagType,orderID FROM eveFlags"
+CACHABLE("config.Flags", invFlags, Rowset,
+	"SELECT flagID,flagName,flagText,flagType,orderID FROM invFlags"
 );
 CACHABLE("config.StaticLocations", eveStaticLocations, Rowset,
 	//im pretty sure this data should not be in its own table, but I cant figure out the filter on mapDenormalize to get it.
@@ -174,29 +179,20 @@ CACHABLE("config.InvContrabandTypes", invContrabandTypes, Rowset,
 );
 
 //GetCharCreationInfo
-KCACHABLE("charCreationInfo.bloodlines", "bloodlines", c_chrBloodlines, Rowset,
-	"SELECT bloodlineID,bloodlineName,raceID,description,maleDescription,femaleDescription,shipTypeID,corporationID,perception,willpower,charisma,memory,intelligence,bonusTypeID,skillTypeID1,skillTypeID2,graphicID FROM chrBloodlines"
+KCACHABLE("charCreationInfo.bloodlines", "bloodlines", c_chrBloodlines, PackedRowset,
+	"SELECT bloodlineID,bloodlineName,raceID,description,maleDescription,femaleDescription,shipTypeID,corporationID,perception,willpower,charisma,memory,intelligence,graphicID,shortDescription,shortMaleDescription,shortFemaleDescription,0 AS dataID FROM chrBloodlines"
 );
-KCACHABLE("charCreationInfo.departments", "departments", c_chrDepartments, Rowset,
-	"SELECT schoolID,departmentID,departmentName,description,skillTypeID1,skillTypeID2,skillTypeID3,graphicID FROM chrDepartments"
+KCACHABLE("charCreationInfo.races", "races", c_chrRaces, PackedRowset,
+	"SELECT raceID,raceName,description,graphicID,shortDescription,0 AS dataID FROM chrRaces"
 );
-KCACHABLE("charCreationInfo.races", "races", c_chrRaces, Rowset,
-	"SELECT raceID,raceName,description,skillTypeID1,typeID,typeQuantity,graphicID FROM chrRaces"
+KCACHABLE("charCreationInfo.ancestries", "ancestries", c_chrAncestries, PackedRowset,
+	"SELECT ancestryID,ancestryName,bloodlineID,description,perception,willpower,charisma,memory,intelligence,graphicID,shortDescription,0 AS dataID FROM chrAncestries"
 );
-KCACHABLE("charCreationInfo.ancestries", "ancestries", c_chrAncestries, Rowset,
-	"SELECT ancestryID,ancestryName,bloodlineID,description,postPerception,postWillpower,postCharisma,postMemory,postIntelligence,perception,willpower,charisma,memory,intelligence,skillTypeID1,skillTypeID2,typeID,typeQuantity,typeID2,typeQuantity2,graphicID FROM chrAncestries"
-);
-KCACHABLE("charCreationInfo.specialities", "specialities", c_chrSpecialities, Rowset,
-	"SELECT fieldID,specialityID,specialityName,description,skillTypeID1,skillTypeID2,typeID,typeQuantity,typeID2,typeQuantity2,graphicID FROM chrSpecialities"
-);
-KCACHABLE("charCreationInfo.schools", "schools", c_chrSchools, Rowset,
+KCACHABLE("charCreationInfo.schools", "schools", c_chrSchools, PackedRowset,
 	"SELECT raceID,schoolID,schoolName,description,graphicID,corporationID,agentID,newAgentID FROM chrSchools"
 );
-KCACHABLE("charCreationInfo.attributes", "attributes", c_chrAttributes, Rowset,
+KCACHABLE("charCreationInfo.attributes", "attributes", c_chrAttributes, PackedRowset,
 	"SELECT attributeID,attributeName,description,graphicID FROM chrAttributes"
-);
-KCACHABLE("charCreationInfo.fields", "fields", c_chrFields, Rowset,
-	"SELECT departmentID,fieldID,fieldName,description,skillTypeID1,skillTypeID2,typeID,typeQuantity,typeID2,typeQuantity2,graphicID FROM chrFields"
 );
 KCACHABLE("charCreationInfo.bl_accessories", "accessories", bl_accessories, Rowset,
 	"SELECT bloodlineID,gender,accessoryID,npc FROM chrBLAccessories"
@@ -233,6 +229,23 @@ KCACHABLE("charCreationInfo.bl_eyebrows", "eyebrows", bl_eyebrows, Rowset,
 );
 KCACHABLE("charCreationInfo.bl_costumes", "costumes", bl_costumes, Rowset,
 	"SELECT bloodlineID,gender,costumeID,npc FROM chrBLCostumes"
+);
+
+//GetCharNewExtraCreationInfo
+KCACHABLE("charNewExtraCreationInfo.raceskills", "raceskills", nec_raceskills, Rowset,
+	"SELECT raceID, skillTypeID, levels FROM chrRaceSkills"
+);
+KCACHABLE("charNewExtraCreationInfo.careerskills", "careerskills", nec_careerskills, Rowset,
+	"SELECT careerID, skillTypeID, levels FROM chrCareerSkills"
+);
+KCACHABLE("charNewExtraCreationInfo.specialityskills", "specialityskills", nec_specialityskills, Rowset,
+	"SELECT specialityID, skillTypeID, levels FROM chrCareerSpecialitySkills"
+);
+KCACHABLE("charNewExtraCreationInfo.careers", "careers", nec_careers, Rowset,
+	"SELECT raceID, careerID, careerName, description, shortDescription, graphicID, schoolID, 0 AS dataID FROM chrCareers"
+);
+KCACHABLE("charNewExtraCreationInfo.specialities", "specialities", nec_specialities, Rowset,
+	"SELECT specialityID, careerID, specialityName, description, shortDescription, graphicID, departmentID, 0 AS dataID FROM chrCareerSpecialities"
 );
 
 //GetAppearanceInfo
@@ -275,7 +288,7 @@ KCACHABLE("charCreationInfo.lipsticks", "lipsticks", a_lipsticks, Rowset,
 
 //other
 ICACHABLE("dogmaIM.attributesByName", dgmAttributesByName, IndexRowset, "attributeName",
-	"SELECT attributeID,attributeName,attributeCategory,description,maxAttributeID,attributeIdx,graphicID,chargeRechargeTimeID,defaultValue,published,displayName,unitID,stackable,highIsGood FROM dgmAttributeTypes"
+	"SELECT attributeID,attributeName,attributeCategory,description,maxAttributeID,attributeIdx,graphicID,chargeRechargeTimeID,defaultValue,published,displayName,unitID,stackable,highIsGood,categoryID,0 AS dataID FROM dgmAttributeTypes"
 );
 
 

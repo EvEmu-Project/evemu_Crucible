@@ -16,21 +16,8 @@
 */
 
 
+#include "EvemuPCH.h"
 
-#include "LSCService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../common/packet_types.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../admin/CommandDispatcher.h"
-#include "../common/EVEUtils.h"
-#include "../common/MiscFunctions.h"
-
-#include "../packets/LSCPkts.h"
-#include "../packets/General.h"
 
 PyCallable_Make_InnerDispatcher(LSCService)
 
@@ -46,6 +33,7 @@ LSCService::LSCService(PyServiceMgr *mgr, DBcore *db, CommandDispatcher* cd)
 
 	//make sure you edit the header file too
 	PyCallable_REG_CALL(LSCService, GetChannels)
+	PyCallable_REG_CALL(LSCService, GetRookieHelpChannel)
 	PyCallable_REG_CALL(LSCService, JoinChannels)
 	PyCallable_REG_CALL(LSCService, LeaveChannels)
 	PyCallable_REG_CALL(LSCService, LeaveChannel)
@@ -72,7 +60,7 @@ LSCService::~LSCService() {
 	}
 }
 
-PyCallResult LSCService::Handle_GetChannels(PyCallArgs &call) {
+PyResult LSCService::Handle_GetChannels(PyCallArgs &call) {
 	/*
 		Assume this is only called when the char's logging in.
 		Next step from the client is to join to all channels that's been sent by this
@@ -137,7 +125,11 @@ PyCallResult LSCService::Handle_GetChannels(PyCallArgs &call) {
 	return info.Encode();
 }
 
-PyCallResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
+PyResult LSCService::Handle_GetRookieHelpChannel(PyCallArgs &call) {
+	return(new PyRepInteger(1));
+}
+
+PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
 	CallJoinChannels args;
 	
 	std::set<uint32> toJoin;
@@ -213,7 +205,7 @@ PyCallResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
 	return ml;
 }
 
-PyCallResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
+PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
 	CallLeaveChannels args;
 
 	if(!args.Decode(&call.tuple)) {
@@ -278,7 +270,7 @@ void LSCService::CharacterLogout(uint32 charID, OnLSC_SenderInfo * si) {
 	delete si;
 }
 
-PyCallResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
+PyResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
 	CallLeaveChannel arg;
 	if (!arg.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -318,7 +310,7 @@ PyCallResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
 
 	return NULL;
 }
-PyCallResult LSCService::Handle_CreateChannel(PyCallArgs &call) {
+PyResult LSCService::Handle_CreateChannel(PyCallArgs &call) {
 	Call_SingleStringArg name;
 	if (!name.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -336,7 +328,7 @@ PyCallResult LSCService::Handle_CreateChannel(PyCallArgs &call) {
 
 	return reply.Encode();
 }
-PyCallResult LSCService::Handle_DestroyChannel(PyCallArgs &call) {
+PyResult LSCService::Handle_DestroyChannel(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if (!arg.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -353,7 +345,7 @@ PyCallResult LSCService::Handle_DestroyChannel(PyCallArgs &call) {
 
 	return new PyRepNone();
 }
-PyCallResult LSCService::Handle_SendMessage(PyCallArgs &call) {
+PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
 	uint32 channelID;
 	PyRepTuple * arg = call.tuple;
 
@@ -442,8 +434,7 @@ LSCChannel *LSCService::CreateChannel(uint32 channelID, LSCChannel::Type type) {
 	return m_channels[channelID] = new LSCChannel(this, channelID, type, channelID, name.c_str(), motd.c_str(), NULL, true, NULL, false, true, false, cmode);
 }
 LSCChannel *LSCService::CreateChannel(const char * name, bool maillist) {
-	uint32 channelID = nextFreeChannelID++;
-	return CreateChannel(channelID, name, LSCChannel::normal, maillist);
+	return CreateChannel(nextFreeChannelID++, name, LSCChannel::normal, maillist);
 }
 void LSCService::CreateSystemChannel(uint32 systemID) {
 	if (m_channels.find(systemID) == m_channels.end()) {
@@ -457,15 +448,11 @@ void LSCService::InitiateStaticChannels() {
 }
 
 	
-PyCallResult LSCService::Handle_GetMyMessages(PyCallArgs &call) {
-	PyRep *result = m_db.GetEVEMailHeaders(call.client->GetCharacterID());
-	if (!result) {
-	result = new PyRepNone();
-	}
-	return(result);
+PyResult LSCService::Handle_GetMyMessages(PyCallArgs &call) {
+	return(m_db.GetMailHeaders(call.client->GetCharacterID()));
 }
 
-PyCallResult LSCService::Handle_GetMessageDetails(PyCallArgs &call) {
+PyResult LSCService::Handle_GetMessageDetails(PyCallArgs &call) {
 	Call_TwoIntegerArgs args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -474,16 +461,10 @@ PyCallResult LSCService::Handle_GetMessageDetails(PyCallArgs &call) {
 
 	//TODO: verify ability to read this message...
 
-	PyRep *result = m_db.GetEVEMailDetails(args.arg2, args.arg1);
-	if(result == NULL) {
-		codelog(SERVICE__ERROR, "%s: Failed to get details for message %lu", call.client->GetName(), args.arg2);
-		return(NULL);
-	}
-
-	return (result);
+	return(m_db.GetMailDetails(args.arg2, args.arg1));
 }
 
-PyCallResult LSCService::Handle_Page(PyCallArgs &call) {
+PyResult LSCService::Handle_Page(PyCallArgs &call) {
 	Call_Page args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -492,13 +473,13 @@ PyCallResult LSCService::Handle_Page(PyCallArgs &call) {
 
 	_log(SERVICE__MESSAGE, "%s: Received evemail msg with subject '%s': %s", call.client->GetName(), args.subject.c_str(), args.body.c_str());
 	
-	m_manager->SendNewEveMail(call.client->GetCharacterID(), args.recipients, args.subject, args.body);
+	SendMail(call.client->GetCharacterID(), args.recipients, args.subject, args.body);
 	
 	return(NULL);
 }
 
 //stuck here to be close to related functionality
-void PyServiceMgr::SendNewEveMail(uint32 sender, std::vector<uint32> recipients, const std::string &subject, const std::string &content) {
+void LSCService::SendMail(uint32 sender, const std::vector<uint32> &recipients, const std::string &subject, const std::string &content) {
 	NotifyOnMessage notify;
 	std::set<uint32> successful_recipients;
 	
@@ -510,13 +491,12 @@ void PyServiceMgr::SendNewEveMail(uint32 sender, std::vector<uint32> recipients,
 	// eg. text/plain and text/html? we should be watching for this at reading mails...
 	// created should be creation time. But Win32TimeNow returns uint64, and is stored as bigint(20),
 	// so change in the db is needed
-	std::vector<uint32>::iterator cur, end;
+	std::vector<uint32>::const_iterator cur, end;
 	cur = recipients.begin();
 	end = recipients.end();
 
 	for(; cur != end; cur++) {
-		
-		uint32 messageID = m_svcDB->StoreNewEVEMail(sender, *cur, subject.c_str(), content.c_str(), notify.sentTime);
+		uint32 messageID = m_db.StoreMail(sender, *cur, subject.c_str(), content.c_str(), notify.sentTime);
 		if(messageID == 0) {
 			_log(SERVICE__ERROR, "Failed to store message from %lu for recipient %lu", sender, *cur);
 			continue;
@@ -532,7 +512,7 @@ void PyServiceMgr::SendNewEveMail(uint32 sender, std::vector<uint32> recipients,
 	
 	//now, send a notification to each successful recipient
 	PyRepTuple *answer = notify.Encode();
-	entity_list->Multicast(successful_recipients, "OnMessage", "*multicastID", &answer, false);
+	m_manager->entity_list->Multicast(successful_recipients, "OnMessage", "*multicastID", &answer, false);
 }
 
 //stuck here to be close to related functionality
@@ -544,31 +524,11 @@ void Client::SelfEveMail(const char *subject, const char *fmt, ...) {
 	char *str = NULL;
 	vaMakeAnyLenString(&str, fmt, args);
 	va_end(args);
-	
-	NotifyOnMessage notify;
-	notify.sentTime = Win32TimeNow();
 
-
-	uint32 messageID = m_services->GetServiceDB()->StoreNewEVEMail(GetCharacterID(), GetCharacterID(), subject, str, notify.sentTime);
-	if(messageID == 0) {
-		_log(SERVICE__ERROR, "%s: Failed to store message '%s' for self %lu", GetName(), subject, GetCharacterID());
-		delete[] str;
-		return;
-	}
-	delete[] str;
-	
-	notify.messageID = messageID;
-	notify.senderID = GetCharacterID();
-	notify.recipients.push_back(GetCharacterID());
-	notify.subject = subject;
-	PyRepTuple *alert = notify.Encode();
-	
-	SendNotification("OnMessage", "*multicastID", &alert, false);
+	m_services->lsc_service->SendMail(GetCharacterID(), GetCharacterID(), subject, str);
 }
 
-
-
-PyCallResult LSCService::Handle_MarkMessagesRead(PyCallArgs &call) {
+PyResult LSCService::Handle_MarkMessagesRead(PyCallArgs &call) {
 	Call_SingleIntList args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -584,7 +544,7 @@ PyCallResult LSCService::Handle_MarkMessagesRead(PyCallArgs &call) {
 	return(NULL);
 }
 
-PyCallResult LSCService::Handle_DeleteMessages(PyCallArgs &call) {
+PyResult LSCService::Handle_DeleteMessages(PyCallArgs &call) {
 	Call_DeleteMessages args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -607,7 +567,7 @@ PyCallResult LSCService::Handle_DeleteMessages(PyCallArgs &call) {
 }
 
 
-bool LSCService::ExecuteCommand(Client *from, const char *msg) {
+PyResult LSCService::ExecuteCommand(Client *from, const char *msg) {
 	return(m_commandDispatch->Execute(from, msg));
 }
 

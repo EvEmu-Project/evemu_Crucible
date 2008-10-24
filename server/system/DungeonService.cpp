@@ -15,15 +15,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
-#include "DungeonService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../PyBoundObject.h"
 
 PyCallable_Make_InnerDispatcher(DungeonService)
 
@@ -88,7 +81,7 @@ PyBoundObject *DungeonService::_CreateBoundObject(Client *c, const PyRep *bind_a
 }*/
 
 
-PyCallResult DungeonService::Handle_DEGetFactions(PyCallArgs &call) {
+PyResult DungeonService::Handle_DEGetFactions(PyCallArgs &call) {
 	//PyRep *result = NULL;
 
 	_log(SERVICE__ERROR, "Unhandled DEGetFactions");
@@ -97,7 +90,7 @@ PyCallResult DungeonService::Handle_DEGetFactions(PyCallArgs &call) {
 }
 
 
-PyCallResult DungeonService::Handle_DEGetDungeons(PyCallArgs &call) {
+PyResult DungeonService::Handle_DEGetDungeons(PyCallArgs &call) {
 	//PyRep *result = NULL;
 	//dict args:
 	// factionID
@@ -113,7 +106,7 @@ PyCallResult DungeonService::Handle_DEGetDungeons(PyCallArgs &call) {
 }
 
 
-PyCallResult DungeonService::Handle_DEGetRooms(PyCallArgs &call) {
+PyResult DungeonService::Handle_DEGetRooms(PyCallArgs &call) {
 	//dict arg: dungeonVID
 	//PyRep *result = NULL;
 

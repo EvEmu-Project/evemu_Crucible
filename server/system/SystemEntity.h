@@ -166,9 +166,10 @@ public:
 	//Added interface:
 	//get the corporation of this entity
 	virtual uint32 GetCorporationID() const = 0;
-	virtual double GetMass() const = 0;
-	virtual double GetMaxVelocity() const = 0;
-	virtual double GetAgility() const = 0;
+	virtual uint32 GetAllianceID() const = 0;
+	virtual double GetMass() const;
+	virtual double GetMaxVelocity() const;
+	virtual double GetAgility() const;
 	
 	inline DestinyManager *Destiny() const { return(m_destiny); }
 	

@@ -14,17 +14,8 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#include "EvemuPCH.h"
 
-#include "ReprocessingService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../PyBoundObject.h"
-#include "../packets/General.h"
-#include "../packets/Inventory.h"
-#include "../inventory/InventoryItem.h"
 
 PyCallable_Make_InnerDispatcher(ReprocessingService)
 
@@ -53,7 +44,7 @@ protected:
 	double m_tax;
 	
 	double _CalcReprocessingEfficiency(const InventoryItem *const client, const InventoryItem *const item = NULL) const;
-	PyCallResult _GetQuote(const uint32 itemID, const Client *const c, bool throwException = false) const;
+	PyRep *_GetQuote(const uint32 itemID, const Client *const c, bool throwException = false) const;
 };
 
 PyCallable_Make_InnerDispatcher(ReprocessingServiceBound)
@@ -123,7 +114,7 @@ bool ReprocessingServiceBound::Load() {
 	return(m_db->LoadStatic(m_stationID, m_staEfficiency, m_tax));
 }
 
-PyCallResult ReprocessingServiceBound::Handle_GetOptionsForItemTypes(PyCallArgs &call) {
+PyResult ReprocessingServiceBound::Handle_GetOptionsForItemTypes(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	Call_GetOptionsForItemTypes call_args;
@@ -150,7 +141,7 @@ PyCallResult ReprocessingServiceBound::Handle_GetOptionsForItemTypes(PyCallArgs 
 	return(result);
 }
 
-PyCallResult ReprocessingServiceBound::Handle_GetReprocessingInfo(PyCallArgs &call) {
+PyResult ReprocessingServiceBound::Handle_GetReprocessingInfo(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	Rsp_GetReprocessingInfo rsp;
@@ -165,7 +156,7 @@ PyCallResult ReprocessingServiceBound::Handle_GetReprocessingInfo(PyCallArgs &ca
 	return(result);
 }
 
-PyCallResult ReprocessingServiceBound::Handle_GetQuote(PyCallArgs &call) {
+PyResult ReprocessingServiceBound::Handle_GetQuote(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	Call_SingleIntegerArg call_args;	// itemID
@@ -177,7 +168,7 @@ PyCallResult ReprocessingServiceBound::Handle_GetQuote(PyCallArgs &call) {
 	return(_GetQuote(call_args.arg, call.client, true));
 }
 
-PyCallResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
+PyResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	Call_GetQuotes call_arg;
@@ -192,9 +183,9 @@ PyCallResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
 	end = call_arg.itemIDs.end();
 
 	for(; cur != end; cur++) {
-		PyCallResult quote = _GetQuote(*cur, call.client, false);
-		if( quote.type == PyCallResult::RegularResult && !quote.ssResult->decoded->CheckType(PyRep::None) )
-			rsp.quotes[*cur] = quote.ssResult->decoded->Clone();
+		PyRep *quote = _GetQuote(*cur, call.client, false);
+		if(quote != NULL)
+			rsp.quotes[*cur] = quote;
 	}
 
 	result = rsp.Encode();
@@ -202,7 +193,7 @@ PyCallResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
+PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 	if(!IsStation(call.client->GetLocationID())) {
 		_log(SERVICE__MESSAGE, "Character %s tried to reprocess, but isn't is station.", call.client->GetName());
 		return(NULL);
@@ -312,7 +303,7 @@ double ReprocessingServiceBound::_CalcReprocessingEfficiency(const InventoryItem
 	return(efficiency);
 }
 
-PyCallResult ReprocessingServiceBound::_GetQuote(const uint32 itemID, const Client *const c, bool throwException) const {
+PyRep *ReprocessingServiceBound::_GetQuote(const uint32 itemID, const Client *const c, bool throwException) const {
 	InventoryItem *item = m_manager->item_factory->Load(itemID, true);
 	if(item == NULL)
 		return(NULL);	// No action as GetQuote is also called for reprocessed items (prolly for check)
@@ -329,13 +320,12 @@ PyCallResult ReprocessingServiceBound::_GetQuote(const uint32 itemID, const Clie
 		return(NULL);
 	}
 	if(item->quantity() < portionSize && throwException) {
-		Inventory_QuantityLessThanMinimumPortionException except;
-		except.exceptionType = except.exceptTypeDict = "QuantityLessThanMinimumPortion";
-		except.portionSize = except.portionSize_dict = portionSize;
-		except.typeName = except.typeName_dict = item->itemName().c_str();
+		std::map<std::string, PyRep *> args;
+		args["typename"] = new PyRepString(item->itemName().c_str());
+		args["portion"] = new PyRepInteger(portionSize);
 
 		item->Release();
-		return(PyCallException(except.Encode()));
+		throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
 	}
 
 	Rsp_GetQuote res;

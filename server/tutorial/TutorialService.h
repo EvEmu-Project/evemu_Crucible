@@ -37,6 +37,9 @@ protected:
 	PyCallable_DECL_CALL(GetTutorials)
 	PyCallable_DECL_CALL(GetCriterias)
 	//LogAborted(tutnum=5, int=1, int=11)
+	PyCallable_DECL_CALL(GetCategories)
+	PyCallable_DECL_CALL(GetContextHelp)
+	PyCallable_DECL_CALL(GetCharacterTutorialState)
 };
 
 

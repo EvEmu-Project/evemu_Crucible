@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 	pthread_create(&thread, NULL, UserInputThread, NULL);
 #endif
 
-	//skip first argument (launch path), we dont need it
+	//skip first argument (launch path), we don't need it
 	argc--;
 	argv++;
 
@@ -154,7 +154,7 @@ void TestCache() {
 	PyRepString *s = new PyRepString("charCreationInfo.departments");
 
 	uint32 len = 0;
-	byte *data = MarshalOnly(s, len);
+	byte *data = Marshal(s, len, false);
 	
 	std::string into;
 	Base64::encode(data, len, into, false);
@@ -198,6 +198,7 @@ static ThreadReturnType UserInputThread(void *data) {
 		InputQueue.push(strdup(input_buffer));
 		MInputQueue.unlock();
 	}
+	delete input_buffer;
 #endif
 	
 	THREAD_RETURN(0);
@@ -328,7 +329,7 @@ void ListCache(const char *in_filter) {
 		if(len < 4 || b[0] != '~')
 			continue;
 		
-		PyRep *rep = InflateAndUnmarshal(b, len-3);
+		PyRep *rep = InflateAndUnmarshal(b, uint32(len-3));
 
 		std::string hexed;
 		char buf[10];
@@ -610,8 +611,7 @@ void TriToOBJ(const Seperator &command) {
 }
 
 //based on PyString_DecodeEscape from python.
-static bool PyString_DecodeEscape(const char *s,
-				vector<byte> &result)
+static bool PyString_DecodeEscape(const char *s, vector<byte> &result)
 {
 	int c;
 	const char *end;
@@ -624,7 +624,7 @@ static bool PyString_DecodeEscape(const char *s,
 		return NULL;
 	p = buf = PyString_AsString(v);
 	*/
-	int len = strlen(s);
+	int len = (int)strlen(s);
 	end = s + len;
 	while (s < end) {
 		if (*s != '\\') {
@@ -717,15 +717,11 @@ void UnmarshalLogText(const Seperator &command) {
 
 void TestMarshal() {
 	//PyRepTuple *t = new PyRepTuple(2);
-	
-	
-	PyRepPackedRowHeader *rhead = new PyRepPackedRowHeader();
-	rhead->header_type = new PyRepString("blue.DBRowDescriptor", true);
-	
-	PyRepTuple *arg_tuple = new PyRepTuple(1);
-	rhead->arguments = arg_tuple;
+	PyRepPackedObject1 *dbrowdesc = new PyRepPackedObject1("blue.DBRowDescriptor");
+	dbrowdesc->args = new PyRepTuple(1);
+
 		PyRepTuple *arg_list = new PyRepTuple(6);
-		arg_tuple->items[0] = arg_list;
+		dbrowdesc->args->items[0] = arg_list;
 			PyRepTuple *pair_tuple;
 			int r = 0;
 			
@@ -758,21 +754,11 @@ void TestMarshal() {
 			pair_tuple->items[0] = new PyRepString("orders");
 			pair_tuple->items[1] = new PyRepInteger(DBTYPE_I4);
 			arg_list->items[r++] = pair_tuple;
-			
-	//t->items[0] = rhead;
-	
-	PyRepPackedResultSet *rs = new PyRepPackedResultSet();
-	rs->format = PyRepPackedResultSet::RowList;
-	dbutil_RowList_header head_coder;
-	head_coder.type = "dbutil.RowList";
-	head_coder.packed_header = rhead;
-	head_coder.columns.push_back("historyDate");
-	head_coder.columns.push_back("lowPrice");
-	head_coder.columns.push_back("highPrice");
-	head_coder.columns.push_back("avgPrice");
-	head_coder.columns.push_back("volume");
-	head_coder.columns.push_back("orders");
-	rs->header = head_coder.FastEncode();
+
+	PyRepPackedObject2 *rs = new PyRepPackedObject2("dbutil.RowList");
+	PyRepDict *d = new PyRepDict;
+	rs->args2 = d;
+	d->add("header", dbrowdesc);
 	
 	//PyRepList *l = new PyRepList();
 		PyRepPackedRow *row;
@@ -783,15 +769,15 @@ void TestMarshal() {
 			0x38, 0x4a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x47, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x01, 0xee, 0x95, 0x31, 0x00, 0x00, 0x00, 0x00, 0x2f, 0x0f, 0x00, 0x00
 		};
-		row = new PyRepPackedRow(data, sizeof(data), false, rhead);
+		row = new PyRepPackedRow(dbrowdesc, false, data, sizeof(data));
 		//l->add(row);
-		rs->rows.push_back(row);
+		rs->list_data.push_back(row);
 		}
 	//t->items[1] = l;
 
 	uint32 mlen = 0;
 	printf("Marshaling...\n");
-	byte *marshaled = MarshalOnly(rs, mlen);
+	byte *marshaled = Marshal(rs, mlen, false);
 	delete rs;
 	//byte *marshaled = MarshalOnly(t, mlen);
 	//delete t;
@@ -799,7 +785,7 @@ void TestMarshal() {
 	printf("Unmarshaling...\n");
 	PyRep *rep = InflateAndUnmarshal(marshaled, mlen);
 	if(rep != NULL) {
-		rep->Dump(stderr, " Final: ");
+		rep->Dump(stdout, " Final: ");
 	}
 }
 

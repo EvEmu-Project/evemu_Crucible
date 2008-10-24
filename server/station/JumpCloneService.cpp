@@ -15,20 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#include "JumpCloneService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../PyBoundObject.h"
+#include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(JumpCloneService)
-
-
-
 
 class JumpCloneBound
 : public PyBoundObject {
@@ -83,7 +72,7 @@ PyBoundObject *JumpCloneService::_CreateBoundObject(Client *c, const PyRep *bind
 	return(new JumpCloneBound(m_manager, &m_db));
 }
 
-PyCallResult JumpCloneBound::Handle_InstallCloneInStation(PyCallArgs &call) {
+PyResult JumpCloneBound::Handle_InstallCloneInStation(PyCallArgs &call) {
 	//takes no arguments, returns no arguments
 
 	_log(CLIENT__ERROR, "%s: Unhandled InstallCloneInStation", GetName());
@@ -91,22 +80,23 @@ PyCallResult JumpCloneBound::Handle_InstallCloneInStation(PyCallArgs &call) {
 	return(new PyRepNone());
 }
 
-PyCallResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
+PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
 	
-	//returns (jumpClones, jumpCloneImplants)
+	//returns (clones, implants, timeLastJump)
 	//where jumpClones is a rowset? with at least columns: jumpCloneID, locationID
 
 	_log(CLIENT__ERROR, "%s: Unimplemented GetCloneState", GetName());
-	
-	PyRepTuple *t = new PyRepTuple(2);
-	t->items[0] = new PyRepNone();
-	t->items[1] = new PyRepNone();
-	
-	return(t);
+
+	PyRepDict *d = new PyRepDict;
+	d->add("clones", new PyRepNone);
+	d->add("implants", new PyRepNone);
+	d->add("timeLastJump", new PyRepNone);
+
+	return(new PyRepObject("util.KeyVal", d));
 }
 
 /*
-PyCallResult JumpCloneService::Handle_(PyCallArgs &call) {
+PyResult JumpCloneService::Handle_(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	return(result);

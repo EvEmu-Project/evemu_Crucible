@@ -16,16 +16,8 @@
 */
 
 
+#include "EvemuPCH.h"
 
-#include "StationSvcService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../PyBoundObject.h"
-#include "../packets/General.h"
 
 PyCallable_Make_InnerDispatcher(StationSvcService)
 
@@ -93,27 +85,16 @@ PyBoundObject *StationSvcService::_CreateBoundObject(Client *c, PyRep *bind_args
 }*/
 
 
-PyCallResult StationSvcService::Handle_GetSolarSystem(PyCallArgs &call) {
-	PyRepTuple *iargs = call.tuple;
-	PyRep *result = NULL;
-
-	if(iargs->items.size() != 1) {
-		_log(CLIENT__ERROR, "Invalid arg count to GetSolarSystem: %d", iargs->items.size());
-		//TODO: throw exception
-	} else if(!iargs->items[0]->CheckType(PyRep::Integer)) {
-		_log(CLIENT__ERROR, "Invalid argument to GetSolarSystem: got %s, int expected", iargs->items[0]->TypeString());
-	} else {
-		PyRepInteger *ss_id = (PyRepInteger *) iargs->items[0];
-		
-		result = m_db.GetSolarSystem(ss_id->value);
+PyResult StationSvcService::Handle_GetSolarSystem(PyCallArgs &call) {
+	Call_SingleIntegerArg arg;
+	if(!arg.Decode(&call.tuple)) {
+		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
+		return(NULL);
 	}
-
-	if(result == NULL)
-		result = new PyRepNone();
-	return(result);
+	return(m_db.GetSolarSystem(arg.arg));
 }
 
-PyCallResult StationSvcService::Handle_GetStation(PyCallArgs &call) {
+PyResult StationSvcService::Handle_GetStation(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if (!arg.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());

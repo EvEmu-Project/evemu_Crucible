@@ -47,7 +47,6 @@ protected:
 	virtual void VisitString(const PyRepString *rep);
 	
 	virtual void VisitObject(const PyRepObject *rep);
-	virtual void VisitPackedRowHeader(const PyRepPackedRowHeader *rep);
 	
 	virtual void VisitSubStruct(const PyRepSubStruct *rep);
 	virtual void VisitSubStream(const PyRepSubStream *rep);

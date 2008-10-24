@@ -1,0 +1,14 @@
+Database installation guide:
+=============================
+1. Download base DB:
+    http://eve.no-ip.de/ea10/bunjiboys-empyrean_1.0-mysql5.sql.bz2
+    http://www.vwgn.com/eve/EmpAgeDB/bunjiboys-empyrean_1.0-mysql5.sql.bz2
+    http://rapidshare.com/files/148194965/bunjiboys-empyrean_1.0-mysql5.sql.bz2
+
+3. Create database
+
+4. Import base DB
+
+5. Import evemu_db.sql
+
+6. Import prime_db.sql

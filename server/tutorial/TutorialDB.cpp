@@ -15,13 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#include "TutorialDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "../common/PyRep.h"
-
+#include "EvemuPCH.h"
 
 TutorialDB::TutorialDB(DBcore *db) 
 : ServiceDB(db)
@@ -32,58 +26,54 @@ TutorialDB::~TutorialDB()
 {
 }
 
-PyRepObject *TutorialDB::GetPageCriterias(uint32 tutorialID)
-{
+PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
-		"SELECT tutorial_page_criteria.pageID, criteriaID"
-		" FROM tutorial_page_criteria, tutorial_pages"
-		" WHERE tutorial_page_criteria.pageID=tutorial_pages.pageID"
-		" AND tutorial_pages.tutorialID=%lu", tutorialID))
+		"SELECT pageID, criteriaID"
+		" FROM tutorial_pages"
+		" JOIN tutorial_page_criteria USING (pageID)"
+		" WHERE tutorialID=%lu", tutorialID))
 	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		return(NULL);
 	}
 
 	return(DBResultToRowset(res));
 }
 
-PyRepObject *TutorialDB::GetPages(uint32 tutorialID)
-{
+PyRep *TutorialDB::GetPages(uint32 tutorialID) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
-		"SELECT pageID, pageNumber, pageName, text, imagePath, audioPath" 
+		"SELECT pageID, pageNumber, pageName, text, imagePath, audioPath, 0 AS dataID" 
 		" FROM tutorial_pages"
 		" WHERE tutorialID=%lu"
 		" ORDER BY pageNumber", tutorialID))
 	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		return(NULL);
 	}
 
 	return(DBResultToRowset(res));
 }
 
-PyRepObject *TutorialDB::GetTutorial(uint32 tutorialID)
-{
+PyRep *TutorialDB::GetTutorial(uint32 tutorialID) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res, 
-		"SELECT tutorialID, tutorialVName, nextTutorialID" 
+		"SELECT tutorialID, tutorialName, nextTutorialID, 0 AS dataID" 
 		" FROM tutorials"
 		" WHERE tutorialID=%lu", tutorialID))
 	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		return(NULL);
 	}
 
 	return(DBResultToRowset(res));
 }
 
-PyRepObject *TutorialDB::GetTutorialCriterias(uint32 tutorialID)
-{
+PyRep *TutorialDB::GetTutorialCriterias(uint32 tutorialID) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res, 
@@ -91,37 +81,50 @@ PyRepObject *TutorialDB::GetTutorialCriterias(uint32 tutorialID)
 		" FROM tutorials_criterias"
 		" WHERE tutorialID=%lu", tutorialID))
 	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		return(NULL);
 	}
 
 	return(DBResultToRowset(res));
 }
 
-PyRepObject *TutorialDB::GetAllTutorials()
-{
+PyRep *TutorialDB::GetAllTutorials() {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res, 
-		"SELECT tutorialID, tutorialVName, nextTutorialID" 
+		"SELECT tutorialID, tutorialName, nextTutorialID, categoryID, 0 AS dataID"
 		" FROM tutorials"))
 	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+		return(NULL);
+	}
+
+	return(DBResultToPackedRowset(res));
+}
+
+PyRep *TutorialDB::GetAllCriterias() {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res, 
+		"SELECT criteriaID, criteriaName, messageText, audioPath, 0 AS dataID" 
+		" FROM tutorial_criteria"))
+	{
+		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		return(NULL);
 	}
 
 	return(DBResultToRowset(res));
 }
 
-PyRepObject *TutorialDB::GetAllCriterias()
-{
+PyRep *TutorialDB::GetCategories() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res, 
-		"SELECT criteriaID, criteriaName, messageText, audioPath" 
-		" FROM tutorial_criteria"))
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" categoryID, categoryName, description, 0 AS dataID"
+		" FROM tutorial_categories"))
 	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		return(NULL);
 	}
 

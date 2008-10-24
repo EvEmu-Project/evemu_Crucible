@@ -23,15 +23,6 @@
 #include <vector>
 #include <string>
 
-typedef unsigned char		int8;
-typedef unsigned short		int16;
-typedef unsigned int		int32;
-
-typedef unsigned char		uint8;
-typedef  signed  char		sint8;
-typedef unsigned short		uint16;
-typedef  signed  short		sint16;
-
 #ifdef WIN32 
 
 #define S_IRWXU 0

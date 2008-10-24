@@ -16,16 +16,8 @@
 */
 
 
+#include "EvemuPCH.h"
 
-#include "ServiceDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/EVEDBUtils.h"
-#include "../common/gpoint.h"
-#include "inventory/InventoryItem.h"
-#include "inventory/ItemFactory.h"
-#include "Client.h"	//for CharacterData and CorpMemberInfo
 
 ServiceDB::ServiceDB(DBcore *db)
 : m_db(db)
@@ -515,7 +507,8 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	"	character_.bounty,character_.balance,character_.securityRating,character_.logonMinutes,"
 	"	character_.corporationID,character_.corporationDateTime,corporation.allianceID,"
 	"	character_.stationID,character_.solarSystemID,character_.constellationID,character_.regionID,"
-	"	character_.bloodlineID,character_.gender,character_.raceID"
+	"	character_.bloodlineID,character_.gender,character_.raceID,character_.ancestryID,"
+	"	character_.careerID,character_.schoolID,character_.careerSpecialityID"
 	" FROM character_"
 	" LEFT JOIN corporation ON corporation.corporationID = character_.corporationID"
 	" WHERE characterID=%lu", characterID))
@@ -551,6 +544,10 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	into.bloodlineID = row.GetUInt(i++);
 	into.genderID = row.GetUInt(i++);
 	into.raceID = row.GetUInt(i++);
+	into.ancestryID = row.GetUInt(i++);
+	into.careerID = row.GetUInt(i++);
+	into.schoolID = row.GetUInt(i++);
+	into.careerSpecialityID = row.GetUInt(i++);
 	
 	into.charid = characterID;
 	return(true);
@@ -730,10 +727,10 @@ bool ServiceDB::GetBlueprintProperties(const uint32 blueprintID, BlueprintProper
 
 	}
 
-	into.m_copy = row.GetInt(0);
-	into.m_materialLevel = row.GetUInt(1);
-	into.m_productivityLevel = row.GetUInt(2);
-	into.m_licensedProductionRunsRemaining = row.GetInt(3);
+	into.copy = row.GetInt(0);
+	into.materialLevel = row.GetUInt(1);
+	into.productivityLevel = row.GetUInt(2);
+	into.licensedProductionRunsRemaining = row.GetInt(3);
 
 	return(true);
 }
@@ -745,7 +742,7 @@ bool ServiceDB::SetBlueprintProperties(const uint32 blueprintID, const Blueprint
 		"UPDATE invBlueprints"
 		" SET copy = %d, materialLevel = %lu, productivityLevel = %lu, licensedProductionRunsRemaining = %d"
 		" WHERE blueprintID = %lu",
-		(int)bp.m_copy, bp.m_materialLevel, bp.m_productivityLevel, bp.m_licensedProductionRunsRemaining, blueprintID))
+		(int)bp.copy, bp.materialLevel, bp.productivityLevel, bp.licensedProductionRunsRemaining, blueprintID))
 	{
 		_log(DATABASE__ERROR, "Failed to set blueprint properties for blueprintID %lu: %s.", blueprintID, err.c_str());
 		return(false);

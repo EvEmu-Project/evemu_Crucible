@@ -15,77 +15,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-#include "../common/common.h"
+#include "EvemuPCH.h"
 
 #include <signal.h>
 
-#include "../common/EVETCPServer.h"
-#include "../common/logsys.h"
-#include "../common/EVETCPConnection.h"
-#include "../common/EVEPresentation.h"
-#include "../common/timer.h"
-#include "../common/PyRep.h"
-#include "../common/dbcore.h"
-#include "../common/EVEmuRevision.h"
-#include "../common/EVEVersion.h"
-#include "PyServiceMgr.h"
-#include "EVEmuServerConfig.h"
-
-
-#include "EntityList.h"
-#include "Client.h"
-
-//services:
-#include "account/AccountService.h"
-#include "missions/AgentMgrService.h"
-#include "missions/MissionMgrService.h"
-#include "admin/AlertService.h"
-#include "account/AuthService.h"
-#include "market/BillMgrService.h"
-#include "BookmarkService.h"
-#include "character/CharacterService.h"
-#include "character/CharMgrService.h"
-#include "character/SkillMgrService.h"
-#include "config/ConfigService.h"
-#include "config/LanguageService.h"
-#include "corporation/CorpMgrService.h"
-#include "corporation/CorpStationMgrService.h"
-#include "corporation/CorporationService.h"
-#include "corporation/CorpRegistryService.h"
-#include "dogmaim/DogmaIMService.h"
-#include "inventory/InvBrokerService.h"
-#include "chat/LSCService.h"
-#include "chat/LookupService.h"
-#include "admin/AllCommands.h"
-#include "admin/CommandDispatcher.h"
-#include "admin/CommandDB.h"
-#include "admin/PetitionerService.h"
-#include "admin/SlashService.h"
-#include "ship/ShipService.h"
-#include "ship/InsuranceService.h"
-#include "ship/BeyonceService.h"
-#include "map/MapService.h"
-#include "cache/ObjCacheService.h"
-#include "chat/OnlineStatusService.h"
-#include "standing/Standing2Service.h"
-#include "station/StationService.h"
-#include "station/StationSvcService.h"
-#include "station/JumpCloneService.h"
-#include "system/KeeperService.h"
-#include "system/DungeonService.h"
-#include "market/MarketProxyService.h"
-#include "tutorial/TutorialService.h"
-#include "mining/ReprocessingService.h"
-#include "manufacturing/FactoryService.h"
-#include "manufacturing/RamProxyService.h"
-#include "posmgr/PosMgrService.h"
-
-//int catch_segv;
-
-#define IMPLEMENT_SIGEXCEPT
-#include "../common/sigexcept/sigexcept.h"
+//#define USE_RUNTIME_EXCEPTIONS 1
+//#define IMPLEMENT_SIGEXCEPT 1
+//#include "../common/sigexcept/sigexcept.h"
 
 static void CatchSignal(int sig_num);
 static bool InitSignalHandlers();
@@ -93,11 +29,13 @@ static bool InitSignalHandlers();
 static volatile bool RunLoops = true;
 
 int main(int argc, char *argv[]) {
-	INIT_SIGEXCEPT();
+	//INIT_SIGEXCEPT();
 	
 	_log(SERVER__INIT, "EVEmu %s", EVEMU_REVISION);
-	_log(SERVER__INIT, " Supported Client: %s, Version %f, Build %d, MachoNet %d",
+	_log(SERVER__INIT, " Supported Client: %s, Version %.2f, Build %d, MachoNet %d",
 		EVEProjectVersion, EVEVersionNumber, EVEBuildVersion, MachoNetVersion);
+
+	//ThreadPool.Startup();
 
 	//it is important to do this before doing much of anything, in case they use it.
 	Timer::SetCurrentTime();
@@ -193,12 +131,15 @@ int main(int argc, char *argv[]) {
 	services.RegisterService(new InvBrokerService(&services, &db));
 	services.RegisterService(services.lsc_service = new LSCService(&services, &db, &command_dispatcher));
 	services.RegisterService(new LookupService(&services, &db));
+	services.RegisterService(new VoiceMgrService(&services));
 	services.RegisterService(new ShipService(&services, &db));
 	services.RegisterService(new InsuranceService(&services, &db));
 	services.RegisterService(new BeyonceService(&services, &db));
 	services.RegisterService(new MapService(&services, &db));
 	services.RegisterService(new OnlineStatusService(&services));
 	services.RegisterService(new Standing2Service(&services, &db));
+	services.RegisterService(new WarRegistryService(&services));
+	services.RegisterService(new FactionWarMgrService(&services, &db));
 	services.RegisterService(new StationService(&services, &db));
 	services.RegisterService(new StationSvcService(&services, &db));
 	services.RegisterService(new JumpCloneService(&services, &db));
@@ -209,10 +150,12 @@ int main(int argc, char *argv[]) {
 	services.RegisterService(new PetitionerService(&services));
 	services.RegisterService(new SlashService(&services, &command_dispatcher));
 	services.RegisterService(new MarketProxyService(&services, &db));
+	services.RegisterService(new ContractMgrService(&services));
 	services.RegisterService(new ReprocessingService(&services, &db));
 	services.RegisterService(new FactoryService(&services, &db));
 	services.RegisterService(new RamProxyService(&services, &db));
 	services.RegisterService(new PosMgrService(&services, &db));
+	services.RegisterService(new NetService(&services));
 	
 	_log(SERVER__INIT, "Priming cached objects");
 //#ifndef WIN32
@@ -250,29 +193,23 @@ int main(int argc, char *argv[]) {
 		
 		//check for timeouts in other threads
 		//timeout_manager.CheckTimeouts();
-		
-		
-		while ((tcpc = tcps.NewQueuePop())) {
+
+		while ((tcpc = tcps.NewQueuePop())) 
+		{
 			struct in_addr in;
 			in.s_addr = tcpc->GetrIP();
 			_log(SERVER__CLIENTS, "New TCP connection from %s:%d", inet_ntoa(in),tcpc->GetrPort());
-			EVEPresentation *p = new EVEPresentation(tcpc);
-			Client *c = new Client(&services, &p);
-			
-			c->SendHandshake();
-			
+			Client *c = new Client(&services, &tcpc);
+					
 			entity_list.Add(&c);
 		}
 		
 		entity_list.Process();
 		services.Process();
 		
-		/*if (numclients == 0) {
-			Sleep(50);
-			continue;
-		}*/
 		Sleep(3);	//this should be a parameter
 	}
+
 	_log(SERVER__SHUTDOWN,"main loop stopped");
 	_log(SERVER__SHUTDOWN,"TCP listener stopped.");
 	tcps.Close();

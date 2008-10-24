@@ -28,12 +28,8 @@
 #include "logsys.h"
 #include "MiscFunctions.h"
 #include "misc.h"
-//#include "../common/MiscFunctions.h"
 
 #define COLUMN_BOUNDS_CHECKING
-
-
-
 
 DBcore::DBcore() {
 	mysql_init(&mysql);
@@ -394,7 +390,7 @@ bool DBQueryResult::GetRow(DBResultRow &into) {
 	MYSQL_ROW row = mysql_fetch_row(m_res);
 	if(row == NULL)
 		return(false);
-	unsigned long *lengths = mysql_fetch_lengths(m_res);
+	uint32 *lengths = (uint32*)mysql_fetch_lengths(m_res);
 	if(lengths == NULL)
 		return(false);
 	into.SetData(this, row, lengths);
@@ -419,15 +415,18 @@ DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
 	}
 #endif
 	switch(m_fields[column].type) {
-	case FIELD_TYPE_DECIMAL:
 	case FIELD_TYPE_TINY:
+		return(Int8);
 	case FIELD_TYPE_SHORT:
+		return(Int16);
+	case FIELD_TYPE_INT24:	//3-byte medium int
 	case FIELD_TYPE_LONG:
+		return(Int32);
 	case FIELD_TYPE_LONGLONG:
-	case FIELD_TYPE_INT24:
-		return(Integer);
+		return(Int64);
 	case FIELD_TYPE_FLOAT:
 	case FIELD_TYPE_DOUBLE:
+	case FIELD_TYPE_DECIMAL:	//fixed-point number
 		return(Real);
 	case FIELD_TYPE_TIMESTAMP:
 	case FIELD_TYPE_DATE:
@@ -514,7 +513,7 @@ uint32 DBResultRow::GetColumnLength(uint32 column) const {
 
 //these all assume that row is valid.. its your fault if it is not!
 
-sint32 DBResultRow::GetInt(uint32 column) const {
+int32 DBResultRow::GetInt(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
@@ -536,7 +535,7 @@ uint32 DBResultRow::GetUInt(uint32 column) const {
 	return(strtoul(m_row[column], NULL, 0));
 }
 
-sint64 DBResultRow::GetInt64(uint32 column) const {
+int64 DBResultRow::GetInt64(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());

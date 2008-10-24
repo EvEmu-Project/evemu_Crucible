@@ -49,7 +49,12 @@ static const uint64 Win32Time_Month = Win32Time_Day*30;	//according to the eve c
 static const uint64 Win32Time_Year = Win32Time_Month*12;	//according to the eve client
 
 int GetSkillLevel(const std::vector<const InventoryItem *> &skills, const uint32 skillID);
-PyRepObject *MakeException(const char *exceptionType, const std::map<std::string, PyRep *> &args = std::map<std::string, PyRep *>());
+
+//these may be later converted to classes, but now it's easier this way
+//makes ccp_exceptions.UserError exception
+PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args = std::map<std::string, PyRep *>());
+//makes UserError with type "CustomError"
+PyRep *MakeCustomError(const char *fmt, ...);
 
 #endif
 

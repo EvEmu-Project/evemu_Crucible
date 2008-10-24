@@ -85,29 +85,6 @@ void PyXMLGenerator::VisitObject(const PyRepObject *rep) {
 	
 }
 
-void PyXMLGenerator::VisitPackedRowHeader(const PyRepPackedRowHeader *rep) {
-	//do not visit the type:
-	/*if(!rep->header_type->CheckType(PyRep::String)) {
-		fprintf(m_into, "<!-- ERROR: non-string object2 type (%s), skipping -->\n", rep->type->TypeString());
-		return;
-	}
-	PyRepString *str = (PyRepString *) rep->type;
-
-	fprintf(m_into, "%s<object2 type=\"%s\">\n", top(),
-		str->value.c_str()
-		);
-	
-	std::string indent(top());
-	indent += indent_amount;
-	push(indent.c_str());
-	rep->arguments->visit(this);
-	pop();
-	
-	fprintf(m_into, "%s</object>\n", top()
-		);*/
-	fprintf(m_into, "<!-- SKIPPING PackedRowHeader! XML isnt equipped to handle this. -->\n");
-}
-	
 void PyXMLGenerator::VisitSubStruct(const PyRepSubStruct *rep) {
 	fprintf(m_into, "%s<InlineSubStruct>\n", top()
 		);

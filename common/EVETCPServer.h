@@ -18,8 +18,6 @@
 #ifndef EVETCPSERVER_H_
 #define EVETCPSERVER_H_
 
-#include "TCPServer.h"
-
 class EVETCPConnection;
 struct EVETCPNetPacket_Struct;
 class ServerPacket;

@@ -1,4 +1,4 @@
-INCLUDES += -I$(srcdir)/../3rdparty/
+INCLUDES += -I$(srcdir)/../3rdparty/ -I$(srcdir)/../server/
 
 noinst_LIBRARIES = \
 	libcommon.a

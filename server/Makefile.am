@@ -76,6 +76,8 @@ libcharacter_a_SOURCES = \
 	character/SkillMgrService.h
 
 libchat_a_SOURCES = \
+	chat/VoiceMgrService.cpp \
+	chat/VoiceMgrService.h \
 	chat/LookupService.cpp \
 	chat/LookupService.h \
 	chat/LSCChannel.cpp \
@@ -85,7 +87,9 @@ libchat_a_SOURCES = \
 	chat/LSCService.cpp \
 	chat/LSCService.h \
 	chat/OnlineStatusService.cpp \
-	chat/OnlineStatusService.h
+	chat/OnlineStatusService.h \
+	chat/VoiceMgrService.cpp \
+	chat/VoiceMgrService.h
 
 libconfig_a_SOURCES = \
 	config/ConfigDB.cpp \
@@ -145,12 +149,16 @@ libmap_a_SOURCES = \
 	map/MapService.h
 
 libmarket_a_SOURCES = \
+	market/ContractMgrService.h \
+	market/ContractMgrService.cpp \
 	market/BillMgrService.cpp \
 	market/BillMgrService.h \
 	market/MarketDB.cpp \
 	market/MarketDB.h \
 	market/MarketProxyService.cpp \
-	market/MarketProxyService.h
+	market/MarketProxyService.h \
+	market/ContractMgrService.cpp \
+	market/ContractMgrService.h
 
 libmining_a_SOURCES = \
 	mining/AsteroidBeltManager.cpp \
@@ -207,10 +215,22 @@ libspawn_a_SOURCES = \
 	spawn/SpawnManager.h
 
 libstanding_a_SOURCES = \
+	standing/FactionWarMgrService.h \
+	standing/FactionWarMgrDB.cpp \
+	standing/WarRegistryService.h \
+	standing/FactionWarMgrService.cpp \
+	standing/WarRegistryService.cpp \
+	standing/FactionWarMgrDB.h \
 	standing/Standing2Service.cpp \
 	standing/Standing2Service.h \
 	standing/StandingDB.cpp \
-	standing/StandingDB.h
+	standing/StandingDB.h \
+	standing/WarRegistryService.cpp \
+	standing/WarRegistryService.h \
+	standing/FactionWarMgrService.cpp \
+	standing/FactionWarMgrService.h \
+	standing/FactionWarMgrDB.cpp \
+	standing/FactionWarMgrDB.h
 
 libstation_a_SOURCES = \
 	station/JumpCloneService.cpp \
@@ -251,6 +271,8 @@ libtutorial_a_SOURCES = \
 	tutorial/TutorialService.h
 
 server_SOURCES = \
+	NetService.cpp \
+	NetService.h \
 	BookmarkService.cpp \
 	BookmarkService.h \
 	Client.cpp \

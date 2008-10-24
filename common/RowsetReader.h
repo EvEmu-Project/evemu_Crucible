@@ -14,6 +14,7 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 #ifndef __ROWSETREADER_H_INCL__
 #define __ROWSETREADER_H_INCL__
 
@@ -21,7 +22,6 @@
 #include <string>
 #include "../packets/General.h"
 #include "PyVisitor.h"
-//#include "logsys.h"
 
 /*
  * this object is incredibly slow, so dont use it a lot...
@@ -37,7 +37,7 @@ public:
 	uint32 ColumnCount() const;
 	const char *ColumnName(uint32 index) const;
 	*/
-	virtual uint32 size() const = 0;	//number of rows
+	virtual size_t size() const = 0;	//number of rows
 	
 	//void Dump(LogType type);
 	
@@ -48,10 +48,10 @@ protected:
 	class base_iterator {
 	public:
 		const char *GetString(const char *fieldname) const;
-		bool IsNone(const char *fieldname) const { return(IsNone(_find(fieldname))); }
-		uint32 GetInt(const char *fieldname) const { return(GetInt(_find(fieldname))); }
-		uint64 GetInt64(const char *fieldname) const { return(GetInt64(_find(fieldname))); }
-		double GetReal(const char *fieldname) const { return(GetReal(_find(fieldname))); }
+		bool IsNone(const char *fieldname) const		{ return(IsNone(_find(fieldname))); }
+		uint32 GetInt(const char *fieldname) const		{ return(GetInt(_find(fieldname))); }
+		uint64 GetInt64(const char *fieldname) const	{ return(GetInt64(_find(fieldname))); }
+		double GetReal(const char *fieldname) const		{ return(GetReal(_find(fieldname))); }
 		const char *GetString(uint32 index) const;
 		bool IsNone(uint32 index) const;
 		uint32 GetInt(uint32 index) const;
@@ -79,7 +79,7 @@ protected:
 	};
 
 	//for vc6 compat (access to _getRow())
-	friend class base_iterator;
+	//friend class base_iterator;
 	virtual PyRep *_getRow(uint32 index) const = 0;
 	
 	std::map<std::string, uint32> m_fieldMap;

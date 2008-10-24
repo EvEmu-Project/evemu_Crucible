@@ -466,16 +466,16 @@ bool InventoryDB::MoveEntity(uint32 itemID, uint32 newLocation, EVEItemFlags fla
 	return(true);
 }
 
-bool InventoryDB::ChangeSingletonEntity(uint32 itemID, bool singleton) 
-{
+bool InventoryDB::ChangeSingletonEntity(uint32 itemID, bool singleton) {
 	DBerror err;
 
-		if(!m_db->RunQuery(err, "UPDATE entity SET singleton=%lu WHERE itemID=%lu",
-			singleton, itemID))
-		{
-			_log(SERVICE__ERROR, "Failed to set singleton for entity %li: %s", itemID, err.c_str());
-			return(false);
-		}
+	if(!m_db->RunQuery(err,
+		"UPDATE entity SET singleton=%lu WHERE itemID=%lu",
+		singleton, itemID))
+	{
+		_log(SERVICE__ERROR, "Failed to set singleton for entity %li: %s", itemID, err.c_str());
+		return(false);
+	}
 	
 	return(true);
 }

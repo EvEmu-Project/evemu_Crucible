@@ -15,8 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "Agent.h"
-#include "../Client.h"
+
+#include "EvemuPCH.h"
+
 
 Agent::Agent(uint32 id)
 : m_agentID(id)

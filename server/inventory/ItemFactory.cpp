@@ -20,8 +20,8 @@
 #include "../common/logsys.h"
 
 ItemFactory::ItemFactory(DBcore *db, EntityList *el)
-: m_db(db),
-  m_entity_list(el)
+: entity_list(el),
+  m_db(db)
 {
 }
 
@@ -100,8 +100,6 @@ InventoryItem *ItemFactory::Create(
 	}
 	
 	InventoryItem *i = new InventoryItem(
-		&m_db,
-		m_entity_list,
 		this,
 		_itemID, 
 		_itemName,

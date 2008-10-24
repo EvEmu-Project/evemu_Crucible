@@ -15,26 +15,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
-#include "SystemManager.h"
-#include "SystemEntity.h"
-#include "SystemEntities.h"
-#include "SystemBubble.h"
-#include "../common/DestinyStructs.h"
-#include "../common/DestinyBinDump.h"
-#include "../packets/Destiny.h"
-#include "../common/PyRep.h"
-#include "../common/EVEUtils.h"
-#include "../Client.h"
-#include "../NPC.h"
-#include "../inventory/InventoryItem.h"
-#include "../spawn/SpawnManager.h"
-#include "../chat/LSCService.h"
-#include "../EntityList.h"
-#include "../PyServiceMgr.h"
-
-//temp until we move the dynamic entity factory out.
-#include "../mining/Asteroid.h"
 
 using namespace Destiny;
 
@@ -189,6 +171,8 @@ bool SystemManager::BootSystem() {
 	if(!_LoadSystemDynamics())
 		return(false);
 	
+	/* temporarily commented out until we find out why they
+	 * make client angry ...
 	//the statics have been loaded, now load up the spawns...
 	if(!m_spawnManager->Load()) {
 		_log(SERVICE__ERROR, "Unable to load spawns during boot of system %lu.", m_systemID);
@@ -199,6 +183,7 @@ bool SystemManager::BootSystem() {
 		_log(SERVICE__ERROR, "Unable to do initial spawns during boot of system %lu.", m_systemID);
 		return(false);
 	}
+	*/
 	
 	return(true);
 }

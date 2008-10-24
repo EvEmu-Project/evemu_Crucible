@@ -15,16 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
 
-#include "BillMgrService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../cache/ObjCacheService.h"
 
 PyCallable_Make_InnerDispatcher(BillMgrService)
 
@@ -46,7 +39,7 @@ BillMgrService::~BillMgrService() {
 }
 
 
-PyCallResult BillMgrService::Handle_GetBillTypes(PyCallArgs &call) {
+PyResult BillMgrService::Handle_GetBillTypes(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	ObjectCachedMethodID method_id(GetName(), "GetRefTypes");
@@ -126,13 +119,13 @@ PyCallResult BillMgrService::Handle_GetBillTypes(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult BillMgrService::Handle_GetCorporationBills(PyCallArgs &call) {
+PyResult BillMgrService::Handle_GetCorporationBills(PyCallArgs &call) {
 	// No incoming params
 	uint32 corpID = call.client->GetCorporationID();
 
 	return m_db.GetCorporationBills(corpID, true);
 }
-PyCallResult BillMgrService::Handle_GetCorporationBillsReceivable(PyCallArgs &call) {
+PyResult BillMgrService::Handle_GetCorporationBillsReceivable(PyCallArgs &call) {
 	uint32 corpID = call.client->GetCorporationID();
 
 	return m_db.GetCorporationBills(corpID, false);

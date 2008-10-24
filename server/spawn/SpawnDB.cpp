@@ -15,10 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "SpawnDB.h"
-#include "SpawnManager.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
+#include "EvemuPCH.h"
 
 SpawnDB::SpawnDB(DBcore *db)
 : ServiceDB(db)

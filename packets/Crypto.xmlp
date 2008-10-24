@@ -14,6 +14,22 @@
  </InlineTuple>
 </element>
 
+<element name="NetCommand_QC">
+	<InlineTuple>
+		<none />
+		<!-- This should be "QC" -->
+		<string name="command" />
+	</InlineTuple>
+</element>
+
+<element name="NetCommand_VK">
+	<InlineTuple>
+		<none />
+		<!-- This should be "VK" -->
+		<string name="command" />
+		<string name="vipKey" />
+	</InlineTuple>
+</element>
 
 <element name="CryptoRequestPacket">
   <InlineTuple>
@@ -24,33 +40,27 @@
   </InlineTuple>
 </element>
 
-<element name="CryptoAPIRequestPacket">
-  <InlineTuple>
-	<!-- 0 -->
-	<string name="keyVersion" />
-	<!-- 1 -->
-	<InlineDict>
-	  <IDEntry key="crypting_sessionkey">
-		<string name="sessionkey" />                                         
-	  </IDEntry>
-	  <IDEntry key="signing_hashmethod">
-		<string name="hashmethod" />
-	  </IDEntry>
-	  <IDEntry key="crypting_sessionkeylength">
-		<int name="sessionkeylength" />
-	  </IDEntry>
-	  <IDEntry key="crypting_securityprovidertype">
-		<string name="provider" />
-	  </IDEntry>
-	  <IDEntry key="crypting_sessionkeymethod">
-		<string name="sessionkeymethod" />
-	  </IDEntry>
-	</InlineDict>
-  </InlineTuple>
+<element name="CryptoAPIRequestParams">
+  <InlineDict>
+    <IDEntry key="crypting_sessionkey">
+  	  <string name="sessionkey" />                                         
+    </IDEntry>
+    <IDEntry key="signing_hashmethod">
+      <string name="hashmethod" />
+    </IDEntry>
+    <IDEntry key="crypting_sessionkeylength">
+      <int name="sessionkeylength" />
+    </IDEntry>
+    <IDEntry key="crypting_securityprovidertype">
+      <string name="provider" />
+    </IDEntry>
+    <IDEntry key="crypting_sessionkeymethod">
+      <string name="sessionkeymethod" />
+    </IDEntry>
+  </InlineDict>
 </element>
 
 <element name="CryptoChallengePacket">
-  <InlineSubStream>
   <InlineTuple>
 	<!-- 0 -->
 	<string name="clientChallenge" />
@@ -77,6 +87,9 @@
 	  <IDEntry key="user_password">
 		<raw name="user_password" />
 	  </IDEntry>
+	  <IDEntry key="user_password_hash">
+		<string name="user_password_hash" none_marker="" />
+	  </IDEntry>
 	  <IDEntry key="user_languageid">
 		<string name="user_languageid" />
 	  </IDEntry>
@@ -85,16 +98,19 @@
 	  </IDEntry>
 	</InlineDict>
   </InlineTuple>
-  </InlineSubStream>
 </element>
 
 <element name="CryptoServerHandshake">
-  <InlineSubStream>
   <InlineTuple>
 	<!-- 0: serverChallenge -->
 	<string name="serverChallenge" />
 	<!-- 1: func -->
-	<string name="func" />
+	<InlineTuple>
+		<!-- 0: marshaled code -->
+		<buffer name="func_marshaled_code" />
+		<!-- 1: verification, must be false! -->
+		<bool name="verification" default="false" />
+	</InlineTuple>
 	<!-- 2: context -->
 	<strdict name="context" />
 	<!-- 3: response -->
@@ -128,20 +144,61 @@
 	  </IDEntry>
 	</InlineDict>
   </InlineTuple>
-  </InlineSubStream>
 </element>
 
 <element name="CryptoHandshakeResult">
-  <InlineSubStream>
   <InlineTuple>
 	<!-- 0 -->
 	<string name="challenge_responsehash" />
 	<!-- 1 -->
 	<string name="func_output" />
 	<!-- 2 -->
-	<int name="func_result" />
+	<raw name="func_result" />
   </InlineTuple>
-  </InlineSubStream>
+</element>
+
+<element name="CryptoHandshakeAck">
+	<InlineDict>
+		<IDEntry key="live_updates">
+			<list name="live_updates" />
+		</IDEntry>
+		<IDEntry key="session_init">
+			<InlineDict name="session_init">
+				<IDEntry key="connectionLogID">
+					<int name="connectionLogID" />
+				</IDEntry>
+				<IDEntry key="jit">
+					<string name="jit" />
+				</IDEntry>
+				<IDEntry key="userid">
+					<int name="userid" />
+				</IDEntry>
+				<IDEntry key="maxsessiontime">
+					<!-- Seen 'None' -->
+					<raw name="maxSessionTime" />
+				</IDEntry>
+				<IDEntry key="userType">
+					<int name="userType" />
+				</IDEntry>
+				<IDEntry key="role">
+					<int name="role" />
+				</IDEntry>
+				<IDEntry key="address">
+					<string name="address" />
+				</IDEntry>
+				<IDEntry key="inDetention">
+					<!-- Seen 'None' -->
+					<raw name="inDetention" />
+				</IDEntry>
+			</InlineDict>
+		</IDEntry>
+		<IDEntry key="client_hashes">
+			<list name="client_hashes" />
+		</IDEntry>
+		<IDEntry key="user_clientid">
+			<int name="user_clientid" />
+		</IDEntry>
+	</InlineDict>
 </element>
 
 </Elements>

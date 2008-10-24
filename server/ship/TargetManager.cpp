@@ -15,12 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#include "TargetManager.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../system/SystemManager.h"
-#include "../system/SystemEntity.h"
+#include "EvemuPCH.h"
 
 TargetManager::TargetManager(SystemEntity *self)
 : m_destroyed(false),
@@ -377,7 +372,7 @@ PyRep *TargetManager::Encode_GetTargets() const {
 	cur = m_targets.begin();
 	end = m_targets.end();
 	for(; cur != end; cur++) {
-		result->add(new PyRepInteger(cur->first->GetID()));
+		result->addInt(cur->first->GetID());
 	}
 
 	return(result);
@@ -390,7 +385,7 @@ PyRep *TargetManager::Encode_GetTargeters() const {
 	cur = m_targetedBy.begin();
 	end = m_targetedBy.end();
 	for(; cur != end; cur++) {
-		result->add(new PyRepInteger(cur->first->GetID()));
+		result->addInt(cur->first->GetID());
 	}
 
 	return(result);

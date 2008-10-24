@@ -30,27 +30,53 @@ void PyVisitor::VisitObject(const PyRepObject *rep) {
 	rep->arguments->visit(this);
 }
 
-void PyVisitor::VisitPacked(const PyRepPackedRow *rep) { }
+void PyVisitor::VisitPackedRow(const PyRepPackedRow *rep) { }
 
-void PyVisitor::VisitPackedRowHeader(const PyRepPackedRowHeader *rep) {
-	rep->header_type->visit(this);
-	rep->arguments->visit(this);
-	
-	PyRepPackedResultSet::const_iterator cur, end;
-	uint32 r;
-	
-	cur = rep->rows.begin();
-	end = rep->rows.end();
-	for(r = 0; cur != end; cur++, r++) {
-		VisitPackedRowHeaderElement(rep, r, *cur);
-	}
+void PyVisitor::VisitPackedObject(const PyRepPackedObject *rep) {
+	VisitPackedObjectList(rep);
+	VisitPackedObjectDict(rep);
 }
 
-void PyVisitor::VisitPackedRowHeaderElement(const PyRepPackedRowHeader *rep, uint32 index, const PyRepPackedRow *element) {
-	element->visit(this);
+void PyVisitor::VisitPackedObjectList(const PyRepPackedObject *rep) {
+	PyRepPackedObject::const_list_iterator cur, end;
+	cur = rep->list_data.begin();
+	end = rep->list_data.end();
+	for(int i = 0; cur != end; cur++, i++)
+		VisitPackedObjectListElement(rep, i, *cur);
 }
 
+void PyVisitor::VisitPackedObjectListElement(const PyRepPackedObject *rep, uint32 index, const PyRep *ele) {
+	ele->visit(this);
+}
 
+void PyVisitor::VisitPackedObjectDict(const PyRepPackedObject *rep) {
+	PyRepPackedObject::const_dict_iterator cur, end;
+	cur = rep->dict_data.begin();
+	end = rep->dict_data.end();
+	for(int i = 0; cur != end; cur++, i++)
+		VisitPackedObjectDictElement(rep, i, cur->first, cur->second);
+}
+
+void PyVisitor::VisitPackedObjectDictElement(const PyRepPackedObject *rep, uint32 index, const PyRep *key, const PyRep *value) {
+	key->visit(this);
+	value->visit(this);
+}
+
+void PyVisitor::VisitPackedObject1(const PyRepPackedObject1 *rep) {
+	if(rep->args != NULL)
+		rep->args->visit(this);
+	rep->keywords.visit(this);
+	VisitPackedObject(rep);
+}
+
+void PyVisitor::VisitPackedObject2(const PyRepPackedObject2 *rep) {
+	if(rep->args1 != NULL)
+		rep->args1->visit(this);
+	if(rep->args2 != NULL)
+		rep->args2->visit(this);
+	VisitPackedObject(rep);
+}
+/*
 void PyVisitor::VisitPackedResultSet(const PyRepPackedResultSet *rep) {
 	rep->header->visit(this);
 	
@@ -66,7 +92,7 @@ void PyVisitor::VisitPackedResultSet(const PyRepPackedResultSet *rep) {
 void PyVisitor::VisitPackedResultSetElement(const PyRepPackedResultSet *rep, uint32 index, const PyRepPackedRow *element) {
 	element->visit(this);
 }
-
+*/
 
 void PyVisitor::VisitSubStruct(const PyRepSubStruct *rep) {
 	rep->sub->visit(this);

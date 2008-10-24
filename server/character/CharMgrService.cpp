@@ -15,20 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-#include "CharMgrService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-
-#include "../packets/General.h"
+#include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(CharMgrService)
-
 
 CharMgrService::CharMgrService(PyServiceMgr *mgr, DBcore *dbc)
 : PyService(mgr, "charmgr"),
@@ -45,7 +34,7 @@ CharMgrService::~CharMgrService() {
 	delete m_dispatch;
 }
 
-PyCallResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
+PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
 	//takes a single int arg: char id
 	// or corp id
 	Call_SingleIntegerArg args;
@@ -73,7 +62,7 @@ PyCallResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult CharMgrService::Handle_GetPublicInfo3(PyCallArgs &call) {
+PyResult CharMgrService::Handle_GetPublicInfo3(PyCallArgs &call) {
 	//takes a single int arg: char id
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {

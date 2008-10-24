@@ -37,7 +37,7 @@
 static const uint32 HackCacheNodeID = 333444;
 
 
-//run through the rep, concatinating all the strings together and noting if
+//run through the rep, concatenating all the strings together and noting if
 //there are ano non-string types in the rep (lists and tuples are OK)
 class StringCollapseVisitor : public PyVisitor {
 public:
@@ -67,10 +67,16 @@ public:
 	virtual void VisitObject(const PyRepObject *rep) {
 		good = false;
 	}
-	virtual void VisitPackedRowHeader(const PyRepPackedRowHeader *rep) {
+	virtual void VisitPackedObject(const PyRepPackedObject *rep) {
 		good = false;
 	}
-	virtual void VisitPacked(const PyRepPackedRow *rep) {
+	virtual void VisitPackedObject1(const PyRepPackedObject1 *rep) {
+		good = false;
+	}
+	virtual void VisitPackedObject2(const PyRepPackedObject2 *rep) {
+		good = false;
+	}
+	virtual void VisitPackedRow(const PyRepPackedRow *rep) {
 		good = false;
 	}
 	virtual void VisitReal(const PyRepReal *rep) {
@@ -176,7 +182,7 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
 	*in_cached_data = NULL;
 
 	uint32 len;
-	byte *buf = MarshalOnly(cached_data, len);
+	byte *buf = Marshal(cached_data, len);
 
 	_UpdateCache(objectID, &buf, len);
 
@@ -198,9 +204,9 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, byte **data, uint32 le
 
 	//This is not as complete as the python, as they indicate to the netcode (with compressedPart) 
 	//how much of the packet is compressed when considering this packet for compression when sending
-	byte *buf = new byte[length];
-	uint32 deflen = DeflatePacket(*data, length, buf, length);
-	if(deflen == 0 || deflen >= length) {
+	uint32 deflen = length;
+	byte *buf = DeflatePacket(*data, deflen);
+	if(buf == NULL || deflen >= length) {
 		//failed to deflate or it did no good (client checks this)
 		//passes ownership of the encoded buffer to the new PyRepBuffer
 		delete[] buf;
@@ -507,7 +513,7 @@ PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(PyRep *key, const char 
 void CachedObjectMgr::GetCacheFileName(PyRep *key, std::string &into) {
 	
 	uint32 len = 0;
-	byte *data = MarshalOnly(key, len);
+	byte *data = Marshal(key, len);
 	
 	Base64::encode(data, len, into, false);
 	
@@ -679,12 +685,12 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 
 	PyRepTuple *objVt = (PyRepTuple *) args->items[0];
 	if(!objVt->items[0]->CheckType(PyRep::Integer)) {
-		_log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 0, args->items[0]->TypeString());
+		_log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 0, objVt->items[0]->TypeString());
 		delete ss;
 		return(false);
 	}
 	if(!objVt->items[1]->CheckType(PyRep::Integer)) {
-		_log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 1, args->items[1]->TypeString());
+		_log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 1, objVt->items[1]->TypeString());
 		delete ss;
 		return(false);
 	}

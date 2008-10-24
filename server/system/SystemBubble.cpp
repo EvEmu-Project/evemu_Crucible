@@ -15,18 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "SystemBubble.h"
-#include "SystemEntity.h"
-#include "SystemManager.h"
-#include "../ship/DestinyManager.h"
-
-#include "../common/PyRep.h"
-#include "../common/DestinyStructs.h"
-#include "../common/DestinyBinDump.h"
-#include "../common/logsys.h"
-
-#include "../packets/Destiny.h"
-
+#include "EvemuPCH.h"
 
 SystemBubble::SystemBubble(const GPoint &center, double radius)
 : m_center(center),
@@ -215,7 +204,6 @@ void SystemBubble::_SendAddBalls(SystemEntity *to_who) {
 		return;
 	}
 	
-	//this is pretty crappy...
 	uint32 updateID = DestinyManager::GetStamp();
 		
 	std::vector<byte> destiny_buffer(sizeof(Destiny::AddBall_header));
@@ -290,7 +278,6 @@ void SystemBubble::_BubblecastAddBall(SystemEntity *about_who) {
 	
 	DoDestiny_AddBall addball;
 	about_who->MakeAddBall(addball, 
-		//this is pretty crappy... but it kinda makes sense too...
 		DestinyManager::GetStamp()
 		);
 	

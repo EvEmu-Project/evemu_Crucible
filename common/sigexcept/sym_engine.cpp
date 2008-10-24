@@ -15,7 +15,7 @@
 
 */
 #if (_WIN32_WINNT < 0x0400)
-#error This now requires an NT based system.
+//#error This now requires an NT based system.
 #endif
 
 #ifndef _UNICODE

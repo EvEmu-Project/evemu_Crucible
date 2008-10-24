@@ -15,20 +15,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
-#include "SkillMgrService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../common/EVEUtils.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../PyBoundObject.h"
-#include "../inventory/InventoryItem.h"
-#include "../inventory/ItemFactory.h"
-
-#include "../packets/General.h"
 
 PyCallable_Make_InnerDispatcher(SkillMgrService)
 
@@ -50,6 +38,7 @@ public:
 		
 		PyCallable_REG_CALL(SkillMgrBound, CharStartTrainingSkill)
 		PyCallable_REG_CALL(SkillMgrBound, GetEndOfTraining)
+		PyCallable_REG_CALL(SkillMgrBound, GetSkillHistory)
 		PyCallable_REG_CALL(SkillMgrBound, CharAddImplant)
 		PyCallable_REG_CALL(SkillMgrBound, RemoveImplantFromCharacter)
 	}
@@ -61,6 +50,7 @@ public:
 	
 	PyCallable_DECL_CALL(CharStartTrainingSkill)
 	PyCallable_DECL_CALL(GetEndOfTraining)
+	PyCallable_DECL_CALL(GetSkillHistory)
 	PyCallable_DECL_CALL(CharAddImplant)
 	PyCallable_DECL_CALL(RemoveImplantFromCharacter)
 
@@ -93,7 +83,7 @@ PyBoundObject *SkillMgrService::_CreateBoundObject(Client *c, const PyRep *bind_
 }
 
 
-PyCallResult SkillMgrBound::Handle_CharStartTrainingSkill(PyCallArgs &call) {
+PyResult SkillMgrBound::Handle_CharStartTrainingSkill(PyCallArgs &call) {
 	//takes itemid
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {
@@ -115,7 +105,7 @@ PyCallResult SkillMgrBound::Handle_CharStartTrainingSkill(PyCallArgs &call) {
 }
 
 
-PyCallResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
+PyResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
 	//takes itemid
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {
@@ -134,8 +124,21 @@ PyCallResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
 	return(result);
 }
 
+PyResult SkillMgrBound::Handle_GetSkillHistory(PyCallArgs &call) {
+	_log(SERVICE__WARNING, "%s: GetSkillHistory unimplemented.", GetName());
 
-PyCallResult SkillMgrBound::Handle_CharAddImplant(PyCallArgs &call) {
+	util_Rowset rowset;
+
+	rowset.header.push_back("logDateTime");
+	rowset.header.push_back("eventID");
+	rowset.header.push_back("skillTypeID");
+	rowset.header.push_back("relativePoints");
+	rowset.header.push_back("absolutePoints");
+
+	return(rowset.Encode());
+}
+
+PyResult SkillMgrBound::Handle_CharAddImplant(PyCallArgs &call) {
 	//takes itemid
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {
@@ -151,7 +154,7 @@ PyCallResult SkillMgrBound::Handle_CharAddImplant(PyCallArgs &call) {
 }
 
 
-PyCallResult SkillMgrBound::Handle_RemoveImplantFromCharacter(PyCallArgs &call) {
+PyResult SkillMgrBound::Handle_RemoveImplantFromCharacter(PyCallArgs &call) {
 	//takes itemid
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {

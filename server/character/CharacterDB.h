@@ -56,14 +56,15 @@ public:
 	
 	uint8 GetRaceByBloodline(uint32 bloodlineID);
 
+	bool GetLocationCorporationByCareer(CharacterData & cdata, double & x, double & y, double & z);
+	bool GetShipTypeByBloodline(uint32 bloodlineID, uint32 &shipTypeID);
+
 	bool GetAttributesFromBloodline(CharacterData & cdata);
 	bool GetAttributesFromAncestry(CharacterData & cdata);
-	bool GetLocationCorporationFromSchool(CharacterData & cdata, double & x, double & y, double & z);
-	bool GetSkillsFromBloodline(uint32 bloodlineID, std::vector<uint32> &into, uint32 & shipTypeID);
-	bool GetSkillsFromAncestry(uint32 ancestryID, std::vector<uint32> &into);
-	bool GetSkillsFromDepartment(uint32 departmentID, std::vector<uint32> &into);
-	bool GetSkillsFromField(uint32 fieldID, std::vector<uint32> &into);
-	bool GetSkillsFromSpeciality(uint32 specialityID, std::vector<uint32> &into);
+
+	bool GetSkillsByRace(uint32 raceID, std::map<uint32, uint32> &into);
+	bool GetSkillsByCareer(uint32 careerID, std::map<uint32, uint32> &into);
+	bool GetSkillsByCareerSpeciality(uint32 careerSpecialityID, std::map<uint32, uint32> &into);
 
 	PyRepString *GetNote(uint32 ownerID, uint32 itemID); // LSMoura
 	bool SetNote(uint32 ownerID, uint32 itemID, const char *str); // LSMoura

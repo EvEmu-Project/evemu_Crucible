@@ -523,7 +523,7 @@ struct BallHeader {
 //included if not a RIGID body
 struct MassSector {
 /*043*/double mass;		//1.7e6			object+0x010
-/*051*/uint8  unknown51;		// seen 0
+/*051*/uint8  cloak;		// indicates cloak
 /*052*/uint64 unknown52;	// seen all 1's  "harmonic_30"
 /*060*/uint32 corpID;		//may be all 1's
 /*064*/uint32 allianceID;	// seen all 1's

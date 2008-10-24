@@ -22,15 +22,15 @@
 class CRC32 {
 public:
 	// one buffer CRC32
-	static uint32			Generate(const int8* buf, uint32 bufsize);
-	static uint32			GenerateNoFlip(const int8* buf, uint32 bufsize); // Same as Generate(), but without the ~
+	static uint32			Generate(const uint8* buf, uint32 bufsize);
+	static uint32			GenerateNoFlip(const uint8* buf, uint32 bufsize); // Same as Generate(), but without the ~
 	
 	// Multiple buffer CRC32
-	static uint32			Update(const int8* buf, uint32 bufsize, uint32 crc32 = 0xFFFFFFFF);
+	static uint32			Update(const uint8* buf, uint32 bufsize, uint32 _crc32 = 0xFFFFFFFF);
 	static inline uint32	Finish(uint32 crc32)	{ return ~crc32; }
 	static inline void		Finish(uint32* crc32)	{ *crc32 = ~(*crc32); }
 	
 private:
-	static inline void		Calc(const int8 byte, uint32& crc32);
+	static inline void		Calc(const uint8 byte, uint32& crc32);
 };
 #endif

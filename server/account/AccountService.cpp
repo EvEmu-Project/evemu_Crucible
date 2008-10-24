@@ -16,20 +16,9 @@
 */
 
 
+#include "EvemuPCH.h"
 
-#include "AccountService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../common/EVEUtils.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../EntityList.h"
-#include "../packets/General.h"
-#include "../packets/Inventory.h"
-#include "../packets/Wallet.h"
-#include "../cache/ObjCacheService.h"
+
 
 PyCallable_Make_InnerDispatcher(AccountService)
 
@@ -54,7 +43,7 @@ AccountService::~AccountService() {
 }
 
 
-PyCallResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
+PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	Call_SingleArg args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");
@@ -93,7 +82,7 @@ PyCallResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 // notify OnAccountChange:
 // 		accountKey: 'cash', ownerID: charID or corpID, new balance
 
-PyCallResult AccountService::Handle_GetRefTypes(PyCallArgs &call) {
+PyResult AccountService::Handle_GetRefTypes(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	ObjectCachedMethodID method_id(GetName(), "GetRefTypes");
@@ -117,7 +106,7 @@ PyCallResult AccountService::Handle_GetRefTypes(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult AccountService::Handle_GetKeyMap(PyCallArgs &call) {
+PyResult AccountService::Handle_GetKeyMap(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	ObjectCachedMethodID method_id(GetName(), "GetKeyMap");
@@ -142,7 +131,7 @@ PyCallResult AccountService::Handle_GetKeyMap(PyCallArgs &call) {
 }
 
 //givecache takes (ownerID, retval['qty'], retval['reason'][:40])
-PyCallResult AccountService::Handle_GiveCash(PyCallArgs &call) {
+PyResult AccountService::Handle_GiveCash(PyCallArgs &call) {
 	Call_GiveCash args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");
@@ -340,7 +329,7 @@ PyRepTuple * AccountService::GiveCashToChar(Client * const client, Client * cons
 	return ans;
 }
 
-PyCallResult AccountService::Handle_GetJournal(PyCallArgs &call) {
+PyResult AccountService::Handle_GetJournal(PyCallArgs &call) {
 	Call_GetJournal args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");
@@ -365,7 +354,7 @@ PyCallResult AccountService::Handle_GetJournal(PyCallArgs &call) {
 	}
 }
 
-PyCallResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call) {
+PyResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call) {
 	Call_GiveCash args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");

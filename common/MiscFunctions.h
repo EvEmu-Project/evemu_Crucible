@@ -51,7 +51,7 @@ int32	AppendAnyLenString(char** ret, int32* bufsize, int32* strlen, const char* 
 int32	hextoi(char* num);
 int64	hextoi64(char* num);
 bool	atobool(char* iBool);
-sint32	filesize(FILE* fp);
+int32	filesize(FILE* fp);
 int32	ResolveIP(const char* hostname, char* errbuf = 0);
 //bool	ParseAddress(const char* iAddress, int32* oIP, int16* oPort, char* errbuf = 0);
 void	CoutTimestamp(bool ms = true);

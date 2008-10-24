@@ -16,11 +16,7 @@
 */
 
 
-#include "ObjCacheDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/EVEDBUtils.h"
+#include "EvemuPCH.h"
 
 ObjCacheDB::ObjCacheDB(DBcore *db)
 : ServiceDB(db)

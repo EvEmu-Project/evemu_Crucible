@@ -15,18 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-#include "BookmarkService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "Client.h"
-#include "PyServiceCD.h"
-#include "PyServiceMgr.h"
+#include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(BookmarkService)
-
 
 BookmarkService::BookmarkService(PyServiceMgr *mgr)
 : PyService(mgr, "bookmark"),
@@ -43,7 +34,7 @@ BookmarkService::~BookmarkService() {
 }
 
 
-PyCallResult BookmarkService::Handle_GetBookmarks(PyCallArgs &call) {
+PyResult BookmarkService::Handle_GetBookmarks(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	PyRepObject *rowset = new PyRepObject();
@@ -78,7 +69,7 @@ PyCallResult BookmarkService::Handle_GetBookmarks(PyCallArgs &call) {
 }
 
 
-PyCallResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call) {
+PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call) {
 	//takes (locationID, None, description)
 	PyRep *result = NULL;
 

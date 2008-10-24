@@ -14,15 +14,8 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#include "EvemuPCH.h"
 
-#include "PosMgrService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../packets/LSCPkts.h"
 
 PyCallable_Make_InnerDispatcher(PosMgrService)
 
@@ -49,7 +42,7 @@ PyBoundObject *PosMgrService::_CreateBoundObject(Client *c, PyRep *bind_args) {
 	return(new PosMgrServiceBound(m_manager, &m_db));
 }*/
 
-PyCallResult PosMgrService::Handle_GetControlTowerFuelRequirements(PyCallArgs &args) {
+PyResult PosMgrService::Handle_GetControlTowerFuelRequirements(PyCallArgs &args) {
 	return m_db.GetControlTowerFuelRequirements();
 }
 

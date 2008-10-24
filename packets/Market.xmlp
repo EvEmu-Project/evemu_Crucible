@@ -12,6 +12,7 @@
     <raw name="graphicID" />        <!-- may be None -->
     <int name="hasTypes" />
     <intlist name="types" />
+	<int name="dataID" default="0" />
   </InlineList>
 </element>
 
@@ -89,9 +90,10 @@
 
 <element name="Notify_OnOwnOrderChanged">
   <InlineTuple>
-    <raw name="PackedRow" />
+    <raw name="order" />
     <!-- Reason: Add or Expiry (prolly a "Change" or something too) -->
     <string name="reason" />
+	<bool name="isCorp" />
   </InlineTuple>
 </element>
 

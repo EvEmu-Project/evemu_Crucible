@@ -14,15 +14,8 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-
-#include "PetitionerService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../PyBoundObject.h"
+#include "EvemuPCH.h"
+#
 
 PyCallable_Make_InnerDispatcher(PetitionerService)
 
@@ -86,7 +79,7 @@ PyBoundObject *PetitionerService::_CreateBoundObject(Client *c, PyRep *bind_args
 }*/
 
 
-PyCallResult PetitionerService::Handle_GetCategories(PyCallArgs &call) {
+PyResult PetitionerService::Handle_GetCategories(PyCallArgs &call) {
 	//takes no arguments
 	
 	PyRepList *result = new PyRepList();
@@ -98,7 +91,7 @@ PyCallResult PetitionerService::Handle_GetCategories(PyCallArgs &call) {
 }
 
 
-PyCallResult PetitionerService::Handle_GetUnreadMessages(PyCallArgs &call) {
+PyResult PetitionerService::Handle_GetUnreadMessages(PyCallArgs &call) {
 	//takes no arguments
 
 	//unknown...

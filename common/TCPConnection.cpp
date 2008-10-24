@@ -170,7 +170,7 @@ void TCPConnection::Free() {
 	pFree = true;
 }
 
-bool TCPConnection::Send(const uchar* data, sint32 size) {
+bool TCPConnection::Send(const uchar* data, int32 size) {
 	if (!Connected())
 		return false;
 	if (!size)
@@ -181,8 +181,8 @@ bool TCPConnection::Send(const uchar* data, sint32 size) {
 
 //TODO: this send queue could be rewritten to be an actual queue
 //to avoid all these memcpy's
-void TCPConnection::ServerSendQueuePushEnd(const uchar* head_data, sint32 head_size, const uchar* data, sint32 data_size) {
-	sint32 size = head_size + data_size;
+void TCPConnection::ServerSendQueuePushEnd(const uchar* head_data, int32 head_size, const uchar* data, int32 data_size) {
+	int32 size = head_size + data_size;
 	MSendQueue.lock();
 	if (sendbuf == NULL) {
 		sendbuf = new uchar[size+128];
@@ -204,8 +204,8 @@ void TCPConnection::ServerSendQueuePushEnd(const uchar* head_data, sint32 head_s
 }
 
 
-void TCPConnection::ServerSendQueuePushEnd(const uchar* head_data, sint32 head_size, uchar** data, sint32 data_size) {
-	sint32 size = head_size + data_size;
+void TCPConnection::ServerSendQueuePushEnd(const uchar* head_data, int32 head_size, uchar** data, int32 data_size) {
+	int32 size = head_size + data_size;
 	//This is not taking any advantage of the fact that we consume `data` until we put a real queue in here.
 	//
 	MSendQueue.lock();
@@ -229,7 +229,7 @@ void TCPConnection::ServerSendQueuePushEnd(const uchar* head_data, sint32 head_s
 	safe_delete_array(*data);
 }
 
-void TCPConnection::ServerSendQueuePushEnd(const uchar* data, sint32 size) {
+void TCPConnection::ServerSendQueuePushEnd(const uchar* data, int32 size) {
 	MSendQueue.lock();
 	if (sendbuf == NULL) {
 		sendbuf = new uchar[size+128];
@@ -248,7 +248,7 @@ void TCPConnection::ServerSendQueuePushEnd(const uchar* data, sint32 size) {
 	MSendQueue.unlock();
 }
 
-void TCPConnection::ServerSendQueuePushEnd(uchar** data, sint32 size) {
+void TCPConnection::ServerSendQueuePushEnd(uchar** data, int32 size) {
 	MSendQueue.lock();
 	if (sendbuf == NULL) {
 		sendbuf = *data;
@@ -271,7 +271,7 @@ void TCPConnection::ServerSendQueuePushEnd(uchar** data, sint32 size) {
 	safe_delete_array(*data);
 }
 
-void TCPConnection::ServerSendQueuePushFront(uchar* data, sint32 size) {
+void TCPConnection::ServerSendQueuePushFront(uchar* data, int32 size) {
 	MSendQueue.lock();
 	if (sendbuf == 0) {
 		sendbuf = new uchar[size];
@@ -290,7 +290,7 @@ void TCPConnection::ServerSendQueuePushFront(uchar* data, sint32 size) {
 	MSendQueue.unlock();
 }
 
-bool TCPConnection::ServerSendQueuePop(uchar** data, sint32* size) {
+bool TCPConnection::ServerSendQueuePop(uchar** data, int32* size) {
 	bool ret;
 	if (!MSendQueue.trylock())
 		return false;
@@ -307,7 +307,7 @@ bool TCPConnection::ServerSendQueuePop(uchar** data, sint32* size) {
 	return ret;
 }
 
-bool TCPConnection::ServerSendQueuePopForce(uchar** data, sint32* size) {
+bool TCPConnection::ServerSendQueuePopForce(uchar** data, int32* size) {
 	bool ret;
 	MSendQueue.lock();
 	if (sendbuf) {
@@ -595,8 +595,8 @@ bool TCPConnection::Process() {
 	case TCPS_Connected:
 		// only receive data in the connected state, no others...
 		if (!RecvData(errbuf)) {
-		    struct in_addr	in;
-			in.s_addr = GetrIP();
+		    //struct in_addr	in;
+			//in.s_addr = GetrIP();
 			//cout << inet_ntoa(in) << ":" << GetrPort() << ": " << errbuf << endl;
 			return false;
 		}
@@ -670,9 +670,9 @@ bool TCPConnection::RecvData(char* errbuf) {
 		recvbuf_size += 5120;
 		safe_delete_array(recvbuf);
 		recvbuf = tmpbuf;
-		if (recvbuf_size >= MaxTCPReceiveBuffferSize) {
+		if (recvbuf_size >= MaxTCPReceiveBufferSize) {
 			if (errbuf)
-				snprintf(errbuf, TCPConnection_ErrorBufferSize, "TCPConnection::RecvData(): recvbuf_size >= MaxTCPReceiveBuffferSize");
+				snprintf(errbuf, TCPConnection_ErrorBufferSize, "TCPConnection::RecvData(): recvbuf_size >= MaxTCPReceiveBufferSize");
 			return false;
 		}
 	}
@@ -687,7 +687,7 @@ bool TCPConnection::RecvData(char* errbuf) {
 		cout << ": Read " << status << " bytes from network. (recvbuf_used = " << recvbuf_used << ") " << inet_ntoa(in) << ":" << GetrPort();
 		cout << endl;
 	#if TCPN_LOG_RAW_DATA_IN == 2
-		sint32 tmp = status;
+		int32 tmp = status;
 		if (tmp > 32)
 			tmp = 32;
 		DumpPacket(&recvbuf[recvbuf_used], status);
@@ -732,19 +732,24 @@ void TCPConnection::SetEcho(bool iValue) {
 	pEcho = iValue;
 }
 
-bool TCPConnection::ProcessReceivedData(char* errbuf) {
-	if (errbuf)
+bool TCPConnection::ProcessReceivedData(char* errbuf) 
+{
+	if (errbuf != NULL)
 		errbuf[0] = 0;
-	if (!recvbuf)
+	if (recvbuf == NULL)
 		return true;
+
 #if TCPN_DEBUG_Console >= 4
 	if (recvbuf_used) {
 		cout << "Starting Processing: recvbuf=" << recvbuf_used << endl;
 		DumpPacket(recvbuf, recvbuf_used);
 	}
 #endif
-	for (int i=0; i < recvbuf_used; i++) {
-		if (GetEcho() && i >= recvbuf_echo) {
+
+	for (int i=0; i < recvbuf_used; i++) 
+	{
+		if (GetEcho() && i >= recvbuf_echo) 
+		{
 			Send(&recvbuf[i], 1);
 			recvbuf_echo = i + 1;
 		}
@@ -839,7 +844,7 @@ bool TCPConnection::ProcessReceivedData(char* errbuf) {
 			}
 			case 8: // backspace
 			{
-				if (i==0) { // nothin to backspace
+				if (i==0) { // nothing to backspace
 					recvbuf_used--;
 					recvbuf_echo--;
 					memmove(recvbuf, &recvbuf[1], recvbuf_used);
@@ -871,7 +876,7 @@ bool TCPConnection::SendData(bool &sent_something, char* errbuf) {
 		errbuf[0] = 0;
 	/************ Get first send packet on queue and send it! ************/
 	uchar* data = 0;
-	sint32 size = 0;
+	int32 size = 0;
 	int status = 0;
 	if (ServerSendQueuePop(&data, &size)) {
 #ifdef WIN32
@@ -888,7 +893,7 @@ bool TCPConnection::SendData(bool &sent_something, char* errbuf) {
 			cout << ": Wrote " << status << " bytes to network. " << inet_ntoa(in) << ":" << GetrPort();
 			cout << endl;
 	#if TCPN_LOG_RAW_DATA_OUT == 2
-			sint32 tmp = status;
+			int32 tmp = status;
 			if (tmp > 32)
 				tmp = 32;
 			DumpPacket(data, status);

@@ -18,7 +18,7 @@
 #ifndef TCPBASICSERVER_H_
 #define TCPBASICSERVER_H_
 
-#include "TCPServer.h"
+/*#include "TCPServer.h"
 #include "TCPConnection.h"
 
 class TCPBasicServer : public TCPServer<TCPConnection> {
@@ -28,7 +28,7 @@ public:
 		TCPConnection *conn = new TCPConnection(ID, in_socket, irIP, irPort);
 		AddConnection(conn);
 	}
-};
+};*/
 
 #endif /*TCPBASICSERVER_H_*/
 

@@ -15,13 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#include "PyCallable.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "EntityList.h"
-#include "PyServiceMgr.h"
+#include "EvemuPCH.h"
 
 PyCallable::PyCallable(PyServiceMgr *mgr, const char *callableName)
 : m_manager(mgr),
@@ -34,28 +28,25 @@ PyCallable::~PyCallable()
 {
 }
 
-PyCallResult PyCallable::Call(PyCallStream &call, PyCallArgs &args) {
+PyResult PyCallable::Call(PyCallStream &call, PyCallArgs &args) {
 
 	_log(SERVICE__CALLS, "%s Service: calling %s", m_callableName.c_str(), call.method.c_str());
 	args.Dump(SERVICE__CALL_TRACE);
 	
 	//call the dispatcher, capturing the result.
-	PyCallResult res = m_serviceDispatch->Dispatch(call.method, args);
-	
-	if(is_log_enabled(SERVICE__CALL_TRACE)) {
-		switch(res.type) {
-		case PyCallResult::RegularResult:
-			_log(SERVICE__CALL_TRACE, "%s Service: Call %s returned:", m_callableName.c_str(), call.method.c_str());
-			break;
-		case PyCallResult::ThrowException:
-			_log(SERVICE__CALL_TRACE, "%s Service: Call %s threw exception:", m_callableName.c_str(), call.method.c_str());
-			break;
-		//no default on purpose
-		}
+	try {
+		PyResult res = m_serviceDispatch->Dispatch(call.method, args);
+
+		_log(SERVICE__CALL_TRACE, "%s Service: Call %s returned:", m_callableName.c_str(), call.method.c_str());
 		res.ssResult->Dump(SERVICE__CALL_TRACE, "      ");
+
+		return(res);
+	} catch(PyException &e) {
+		_log(SERVICE__CALL_TRACE, "%s Service: Call %s threw exception:", m_callableName.c_str(), call.method.c_str());
+		e.ssException->Dump(SERVICE__CALL_TRACE, "      ");
+
+		throw;
 	}
-	
-	return(res);
 }
 
 
@@ -96,77 +87,61 @@ PyCallArgs::~PyCallArgs() {
 }
 
 void PyCallArgs::Dump(LogType type) const {
-	if(!is_log_enabled(SERVICE__CALL_TRACE))
+	if(!is_log_enabled(type))
 		return;
 	
-	_log(SERVICE__CALL_TRACE, "  Call Arguments:");
-	tuple->Dump(stdout, "      ");
+	_log(type, "  Call Arguments:");
+	tuple->Dump(type, "      ");
 	if(!byname.empty()) {
-		_log(SERVICE__CALL_TRACE, "  Call Named Arguments:");
+		_log(type, "  Call Named Arguments:");
 		std::map<std::string, PyRep *>::const_iterator cur, end;
 		cur = byname.begin();
 		end = byname.end();
 		for(; cur != end; cur++) {
-			_log(SERVICE__CALL_TRACE, "    Argument '%s':", cur->first.c_str());
-			cur->second->Dump(SERVICE__CALL_TRACE, "        ");
+			_log(type, "    Argument '%s':", cur->first.c_str());
+			cur->second->Dump(type, "        ");
 		}
 	}
 }
 
-PyCallResult::PyCallResult()
-: type(RegularResult),
-  ssResult(NULL)
+PyResult::PyResult()
+: ssResult(NULL)
 {
-	_log(SERVER__INIT, "Constructing regular NULL");
+	_log(SERVER__INIT, "Constructing Regular NULL");
 }
 
-PyCallResult::PyCallResult(PyRep *result)
-: type(RegularResult),
-  ssResult(
+PyResult::PyResult(PyRep *result)
+: ssResult(
 	  (result==NULL)
-	  ? (new PyRepSubStream(new PyRepNone()))
-	  : (new PyRepSubStream(result))
+	  ? new PyRepNone()
+	  : result
 	  )
 {
 	_log(SERVER__INIT, "Constructing Regular %p", &(*ssResult));
 }
 
-PyCallResult::~PyCallResult() {
+PyResult::~PyResult() {
 	_log(SERVER__INIT, "Destroying Regular %p", &(*ssResult));
 }
 
-PyCallRawResult::PyCallRawResult(PyRepSubStream *ss)
-: m_ss(ss) {
-	_log(SERVER__INIT, "Constructing Raw %p", &(*m_ss));
+PyException::PyException()
+: ssException(NULL)
+{
+	_log(SERVER__INIT, "Constructing Exception NULL");
 }
 
-PyCallRawResult::~PyCallRawResult() {
-	_log(SERVER__INIT, "Destroying Raw %p", &(*m_ss));
+PyException::PyException(PyRep *except)
+: ssException(
+		(except==NULL)
+		? new PyRepNone
+		: except
+		)
+{
+	_log(SERVER__INIT, "Constructing Exception %p", &(*ssException));
 }
 
-PyCallRawResult::operator PyCallResult() {
-	_log(SERVER__INIT, "Casting Raw %p", &(*m_ss));
-	PyCallResult res;
-	res.ssResult = m_ss;
-	res.type = PyCallResult::RegularResult;
-	return(res);
-}
-
-PyCallException::PyCallException(PyRepObject *except)
-: m_ss(new PyRepSubStream(except)) {
-	_log(SERVER__INIT, "Constructing Exception %p", &(*m_ss));
-}
-
-PyCallException::~PyCallException() {
-	_log(SERVER__INIT, "Destroying Exception %p", &(*m_ss));
-}
-
-PyCallException::operator PyCallResult() {
-	_log(SERVER__INIT, "Casting Exception %p", &(*m_ss));
-	PyCallResult res;
-	res.ssResult = m_ss;
-	res.type = PyCallResult::ThrowException;
-	return(res);
+PyException::~PyException() {
+	_log(SERVER__INIT, "Destroying Exception %p", &(*ssException));
 }
 
 

@@ -15,22 +15,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
 
-#include "MarketProxyService.h"
-#include "../common/logsys.h"
-#include "../common/PyRep.h"
-#include "../common/PyPacket.h"
-#include "../cache/ObjCacheService.h"
-#include "../Client.h"
-#include "../PyServiceCD.h"
-#include "../PyServiceMgr.h"
-#include "../PyBoundObject.h"
-#include "../EntityList.h"
-
-#include "../packets/General.h"
-#include "../packets/Market.h"
-#include "../inventory/InventoryItem.h"
-#include "../inventory/ItemFactory.h"
 
 PyCallable_Make_InnerDispatcher(MarketProxyService)
 
@@ -101,7 +87,7 @@ PyBoundObject *MarketProxyService::_CreateBoundObject(Client *c, const PyRep *bi
 }*/
 
 
-PyCallResult MarketProxyService::Handle_GetStationAsks(PyCallArgs &call) {
+PyResult MarketProxyService::Handle_GetStationAsks(PyCallArgs &call) {
 	PyRep *result = NULL;
 	
 	uint32 locid = call.client->GetLocationID();
@@ -119,7 +105,7 @@ PyCallResult MarketProxyService::Handle_GetStationAsks(PyCallArgs &call) {
 }
 
 
-PyCallResult MarketProxyService::Handle_GetSystemAsks(PyCallArgs &call) {
+PyResult MarketProxyService::Handle_GetSystemAsks(PyCallArgs &call) {
 	PyRep *result = NULL;
 	
 	uint32 locid = call.client->GetSystemID();
@@ -137,7 +123,7 @@ PyCallResult MarketProxyService::Handle_GetSystemAsks(PyCallArgs &call) {
 }
 
 
-PyCallResult MarketProxyService::Handle_GetRegionBest(PyCallArgs &call) {
+PyResult MarketProxyService::Handle_GetRegionBest(PyCallArgs &call) {
 	PyRep *result = NULL;
 	
 	uint32 locid = call.client->GetSystemID();
@@ -162,7 +148,7 @@ PyCallResult MarketProxyService::Handle_GetRegionBest(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult MarketProxyService::Handle_GetMarketGroups(PyCallArgs &call) {
+PyResult MarketProxyService::Handle_GetMarketGroups(PyCallArgs &call) {
 	PyRep *result = NULL;
 
 	ObjectCachedMethodID method_id(GetName(), "GetMarketGroups");
@@ -186,7 +172,7 @@ PyCallResult MarketProxyService::Handle_GetMarketGroups(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
+PyResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
 	Call_SingleIntegerArg args;	//itemID
 	if(!args.Decode(&call.tuple)) {
 		codelog(MARKET__ERROR, "Invalid arguments");
@@ -217,7 +203,7 @@ PyCallResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult MarketProxyService::Handle_GetCharOrders(PyCallArgs &call) {
+PyResult MarketProxyService::Handle_GetCharOrders(PyCallArgs &call) {
 	//no arguments
 	PyRep *result = NULL;
 	
@@ -230,7 +216,7 @@ PyCallResult MarketProxyService::Handle_GetCharOrders(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult MarketProxyService::Handle_GetOldPriceHistory(PyCallArgs &call) {
+PyResult MarketProxyService::Handle_GetOldPriceHistory(PyCallArgs &call) {
 	Call_SingleIntegerArg args;	//itemID
 	if(!args.Decode(&call.tuple)) {
 		codelog(MARKET__ERROR, "Invalid arguments");
@@ -261,7 +247,7 @@ PyCallResult MarketProxyService::Handle_GetOldPriceHistory(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult MarketProxyService::Handle_GetNewPriceHistory(PyCallArgs &call) {
+PyResult MarketProxyService::Handle_GetNewPriceHistory(PyCallArgs &call) {
 	Call_SingleIntegerArg args;	//itemID
 	if(!args.Decode(&call.tuple)) {
 		codelog(MARKET__ERROR, "Invalid arguments");
@@ -292,7 +278,7 @@ PyCallResult MarketProxyService::Handle_GetNewPriceHistory(PyCallArgs &call) {
 	return(result);
 }
 
-PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
+PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 	Call_PlaceCharOrder args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(MARKET__ERROR, "Invalid arguments");
@@ -304,21 +290,17 @@ PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		
 		//TODO: do something with args.itemID
 		
-		//try to satisfy the order immediately...
-		codelog(MARKET__ERROR, "Immediate buy is unimplemented!");
-		
 		//try to satisfy immediately...
-		uint32 order_id = 0;
-		if((order_id = m_db.FindSellOrder(
+		uint32 order_id = m_db.FindSellOrder(
 			args.stationID,
 			args.typeID,
 			args.price,
 			args.quantity,
-			args.orderRange )) != 0
-		) {
+			args.orderRange);
+		if(order_id != 0) {
 			_log(MARKET__TRACE, "%s: Found sell order %lu to satisfy (type %lu, station %lu, price %f, qty %lu, range %lu)", call.client->GetName(), order_id, args.stationID, args.typeID, args.price, args.quantity, args.orderRange);
 			
-			_ExecuteSellOrder(order_id, args.stationID, args.quantity, call.client);
+			_ExecuteSellOrder(order_id, args.stationID, args.quantity, call.client, args.useCorp);
 			return(NULL);
 		}
 		
@@ -361,7 +343,7 @@ PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		}
 
 		//send notification of new order...
-		_SendOnOwnOrderChanged(call.client, orderID, "Add");
+		_SendOnOwnOrderChanged(call.client, orderID, "Add", args.useCorp);
 	} else {
 		//sell order
 		
@@ -415,17 +397,16 @@ PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		//ok, we think they are allowed to sell this thing...
 		
 		//try to satisfy immediately...
-		uint32 order_id = 0;
-		if((order_id = m_db.FindBuyOrder(
+		uint32 order_id = m_db.FindBuyOrder(
 			args.stationID,
 			args.typeID,
 			args.price,
 			args.quantity,
-			args.orderRange )) != 0
-		) {
+			args.orderRange);
+		if(order_id != 0) {
 			_log(MARKET__TRACE, "%s: Found order %lu to satisfy (type %lu, station %lu, price %f, qty %lu, range %lu)", call.client->GetName(), order_id, args.stationID, args.typeID, args.price, args.quantity, args.orderRange);
 			
-			_ExecuteBuyOrder(order_id, args.stationID, args.quantity, call.client, item);
+			_ExecuteBuyOrder(order_id, args.stationID, args.quantity, call.client, item, args.useCorp);
 			item->Release();
 			return(NULL);
 		}
@@ -446,7 +427,7 @@ PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 			item->Delete();
 		} else {
 			//update the item.
-			if(!item->AlterQuantity(-sint32(args.quantity), true)) {
+			if(!item->AlterQuantity(-int32(args.quantity), true)) {
 				codelog(MARKET__ERROR, "%s: Failed to consume %lu units from item %lu", call.client->GetName(), args.quantity, item->itemID());
 				item->Release();
 				return(NULL);
@@ -473,47 +454,50 @@ PyCallResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		}
 		
 		//notify client about new order.
-		_SendOnOwnOrderChanged(call.client, orderID, "Add");
+		_SendOnOwnOrderChanged(call.client, orderID, "Add", args.useCorp);
 	}
 	
 	//returns nothing.
 	return(NULL);
 }
 
-void MarketProxyService::_SendOnOwnOrderChanged(Client *who, uint32 orderID, const char *action) {
+void MarketProxyService::_SendOnOwnOrderChanged(Client *who, uint32 orderID, const char *action, bool isCorp) {
 	Notify_OnOwnOrderChanged ooc;
+	ooc.order = m_db.GetOrderRow(orderID);
 	ooc.reason = action;
-	//NOTE: we should put the order row in here, but I dont wanna write it right now,
-	//and it dosent seem to change anything anyhow...
-	//ooc.PackedRow = m_db.GetOrderRowList(orderID);
-	ooc.PackedRow = new PyRepNone();
+	ooc.isCorp = isCorp;
 	PyRepTuple *tmp = ooc.FastEncode();
 	who->SendNotification("OnOwnOrderChanged", "clientID", &tmp);	//tmp consumed.
 }
 
 //NOTE: there are a lot of race conditions to deal with here if we ever
 //allow multiple market services to run at the same time.
-void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID, uint32 quantity, Client *seller, InventoryItem *item) {
-	bool order_deleted = false;
+void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID, uint32 quantity, Client *seller, InventoryItem *item, bool isCorp) {
 	uint32 orderOwnerID = 0;
 	uint32 typeID = 0;
+	uint32 qtyReq = 0;
 	double price = 0;
-	if(!m_db.DBExecuteOrder(buy_order_id, quantity, order_deleted, orderOwnerID, typeID, price)) {
-		codelog(MARKET__ERROR, "%s: Failed to consume %d units from order %lu", seller->GetName(), quantity, buy_order_id);
-		seller->SendErrorMsg("Failed to consume buy order.");
+
+	if(!m_db.GetOrderInfo(buy_order_id, orderOwnerID, typeID, qtyReq, price)) {
+		codelog(MARKET__ERROR, "%s: Failed to get info about buy order %lu.", seller->GetName(), buy_order_id);
 		return;
 	}
-	
-	if(orderOwnerID == item->ownerID()) {
-		//I just have a bad feeling that this is not going to work very well...
-		codelog(MARKET__WARNING, "%s: Selling an item to ourself... this may not work...", seller->GetName());
-	}
-	
+
 	if(typeID != item->typeID()) {
 		//should never happen.
 		codelog(MARKET__ERROR, "%s: Type mismatch executing order %lu: order %lu item %lu", seller->GetName(), buy_order_id, typeID, item->typeID());
 		seller->SendErrorMsg("Order type mismatch.");
 		return;
+	}
+
+	if(quantity > qtyReq) {
+		codelog(MARKET__ERROR, "%s: Tried to sell more (%lu) than %lu required (%lu). Selling only what required.", seller->GetName(), quantity, orderOwnerID, qtyReq);
+		quantity = qtyReq;
+	}
+	
+	if(orderOwnerID == item->ownerID()) {
+		//I just have a bad feeling that this is not going to work very well...
+		codelog(MARKET__WARNING, "%s: Selling an item to ourself... this may not work...", seller->GetName());
 	}
 	
 	if(item->singleton() || item->quantity() == quantity) {
@@ -525,24 +509,16 @@ void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID,
 			item->Move(stationID, flagHangar, false);
 		}
 		item->ChangeOwner(orderOwnerID, true);
-		item = NULL;	//we need to change a little logic if we use item below here...
 	} else {
-		//need to split item item up... so delete the quantity from the seller and make a new item for the buyer.
-		if(!item->AlterQuantity(-sint32(quantity), true)) {
-			codelog(MARKET__ERROR, "%s: Failed to consume %lu units from item %lu for %lu", seller->GetName(), quantity, item->itemID(), buy_order_id);
-			//just let it go for now..
+		//need to split item up...
+		InventoryItem *new_item = item->Split(quantity, true);
+		if(new_item == NULL) {
+			codelog(MARKET__ERROR, "Failed to split item %lu.", item->itemID());
+			return;
 		}
-		InventoryItem *new_item;
-		new_item = m_manager->item_factory->Spawn(
-			item->typeID(),
-			quantity,
-			item->ownerID(),	//temp owner ID
-			stationID,
-			flagHangar );
 		//use the owner change packet to alert the buyer of the new item
 		new_item->ChangeOwner(orderOwnerID, true);
 		new_item->Release();
-		item = NULL;	//we need to change a little logic if we use item below here...	
 	}
 
 	//the buyer has already paid out the money before the buy order
@@ -553,6 +529,26 @@ void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID,
 	seller->AddBalance(money);
 	//TODO: record this in the wallet history.
 	
+	//they seem to send OnOwnOrderChanged with "Add" to the seller too...
+	//followed shortly by an OnOwnOrderChanged with "Expiry"...
+	//I dont feel like it though... seems dumb...
+	_SendOnOwnOrderChanged(seller, buy_order_id, "Expiry", isCorp);	//force a refresh of market data.
+
+	//change order AFTER notification has been sent out
+	if(quantity == qtyReq) {
+		_log(MARKET__TRACE, "%s: Completely satisfied order %lu, deleting.", seller->GetName(), buy_order_id);
+		if(!m_db.DeleteOrder(buy_order_id)) {
+			codelog(MARKET__ERROR, "Failed to delete order %lu.", buy_order_id);
+			return;
+		}
+	} else {
+		_log(MARKET__TRACE, "%s: Partially satisfied order %lu, altering quantity to %lu.", seller->GetName(), buy_order_id, qtyReq - quantity);
+		if(!m_db.AlterOrderQuantity(buy_order_id, qtyReq - quantity)) {
+			codelog(MARKET__ERROR, "Failed to alter quantity of order %lu.", buy_order_id);
+			return;
+		}
+	}
+
 	//record this transaction in market_transactions
 	//NOTE: regionID may not be accurate here...
 	if(!m_db.RecordTransaction(typeID, quantity, price, TransactionTypeSell, seller->GetCharacterID(), seller->GetRegionID(), stationID)) {
@@ -561,45 +557,42 @@ void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID,
 	if(!m_db.RecordTransaction(typeID, quantity, price, TransactionTypeBuy, orderOwnerID, seller->GetRegionID(), stationID)) {
 		codelog(MARKET__ERROR, "%s: Failed to record buy side of transaction.", seller->GetName());
 	}
-	
-	//they seem to send OnOwnOrderChanged with "Add" to the seller too...
-	//followed shortly by an OnOwnOrderChanged with "Expiry"...
-	//I dont feel like it though... seems dumb...
-	_SendOnOwnOrderChanged(seller, 0, "Expiry");	//force a refresh of market data.
 }
 
 //NOTE: there are a lot of race conditions to deal with here if we ever
 //allow multiple market services to run at the same time.
-void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationID, uint32 quantity, Client *buyer) {
-	bool order_deleted = false;
+void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationID, uint32 quantity, Client *buyer, bool isCorp) {
 	uint32 orderOwnerID = 0;
 	uint32 typeID = 0;
+	uint32 qtyAvail = 0;
 	double price = 0;
-		// 		- removes the specified quantity from the order
-		// 		- deletes the order if it is now empty.
-	if(!m_db.DBExecuteOrder(sell_order_id, quantity, order_deleted, orderOwnerID, typeID, price)) {
-		codelog(MARKET__ERROR, "%s: Failed to consume %d units from order %lu", buyer->GetName(), quantity, sell_order_id);
-		buyer->SendErrorMsg("Failed to consume buy order.");
+
+	if(!m_db.GetOrderInfo(sell_order_id, orderOwnerID, typeID, qtyAvail, price)) {
+		codelog(MARKET__ERROR, "%s: Failed to get info about sell order %lu.", buyer->GetName(), sell_order_id);
 		return;
 	}
-	
+
+	if(quantity > qtyAvail) {
+		codelog(MARKET__ERROR, "%s: Tried to buy more (%lu) than available (%lu). Buying all available.", buyer->GetName(), quantity, qtyAvail);
+		quantity = qtyAvail;
+	}
+
 	if(orderOwnerID == buyer->GetCharacterID()) {
 		//I just have a bad feeling that this is not going to work very well...
 		codelog(MARKET__WARNING, "%s: Buying an item from ourself... this may not work...", buyer->GetName());
 	}
-	
+
 	double money = price * quantity;
-	
+
 	//take the money from the buyer before we spawn the item.
 	if(!buyer->AddBalance(-money)) {
 		codelog(MARKET__ERROR, "%s: Failed to take buyer %s (%lu)'s money (%.2f ISK) for order %lu", buyer->GetName(), buyer->GetName(), buyer->GetCharacterID(), money, sell_order_id);
 		buyer->SendErrorMsg("You cannot afford that.");
 		return;
 	}
-	
+
 	//spawn the item in the buyer's hangar.
-	InventoryItem *new_item;
-	new_item = m_manager->item_factory->Spawn(
+	InventoryItem *new_item = m_manager->item_factory->Spawn(
 		typeID,
 		quantity,
 		1,	//temp owner ID, should really put the seller's ID in here...
@@ -608,7 +601,7 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 	//use the owner change packet to alert the buyer of the new item
 	new_item->ChangeOwner(buyer->GetCharacterID(), true);
 	new_item->Release();
-	
+
 	//give the money to the seller...
 	//TODO: take off market overhead fees...
 	Client *seller = m_manager->entity_list->FindCharacter(orderOwnerID);
@@ -617,11 +610,31 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 		if(!seller->AddBalance(money))
 			codelog(MARKET__ERROR, "%s: Failed to give seller %s (%lu) %.2f ISK from order %lu", buyer->GetName(), seller->GetName(), orderOwnerID, money, sell_order_id);
 		//send them an update.
-		_SendOnOwnOrderChanged(seller, sell_order_id, "Change");	//made up action.
+		_SendOnOwnOrderChanged(seller, sell_order_id, "Change", false);	//made up action; we know it's not a corp
 	} else {
 		//seller is not online right now...
 		if(!m_db.AddCharacterBalance(orderOwnerID, money))
 		   codelog(MARKET__ERROR, "%s: Failed to give seller ID %lu %.2f ISK from order %lu", buyer->GetName(), orderOwnerID, money, sell_order_id);
+	}
+
+	//they seem to send OnOwnOrderChanged with "Add" to the seller too...
+	//followed shortly by an OnOwnOrderChanged with "Expiry"...
+	//I dont feel like it though... seems dumb...
+	_SendOnOwnOrderChanged(buyer, sell_order_id, "Expiry", isCorp);	//force a refresh of market data.
+
+	//change order AFTER notification has been sent out
+	if(quantity == qtyAvail) {
+		_log(MARKET__TRACE, "%s: Completely satisfied order %lu, deleting.", buyer->GetName(), sell_order_id);
+		if(!m_db.DeleteOrder(sell_order_id)) {
+			codelog(MARKET__ERROR, "Failed to delete order %lu.", sell_order_id);
+			return;
+		}
+	} else {
+		_log(MARKET__TRACE, "%s: Partially satisfied order %lu, altering quantity to %lu.", buyer->GetName(), sell_order_id, qtyAvail - quantity);
+		if(!m_db.AlterOrderQuantity(sell_order_id, qtyAvail - quantity)) {
+			codelog(MARKET__ERROR, "Failed to alter quantity of order %lu.", sell_order_id);
+			return;
+		}
 	}
 
 	//record this transaction in market_transactions
@@ -632,11 +645,6 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 	if(!m_db.RecordTransaction(typeID, quantity, price, TransactionTypeBuy, buyer->GetCharacterID(), buyer->GetRegionID(), stationID)) {
 		codelog(MARKET__ERROR, "%s: Failed to record buy side of transaction.", buyer->GetName());
 	}
-	
-	//they seem to send OnOwnOrderChanged with "Add" to the seller too...
-	//followed shortly by an OnOwnOrderChanged with "Expiry"...
-	//I dont feel like it though... seems dumb...
-	_SendOnOwnOrderChanged(buyer, 0, "Expiry");	//force a refresh of market data.
 }
 
 

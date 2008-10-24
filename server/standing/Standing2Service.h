@@ -81,6 +81,7 @@ protected:
       Args:   [ 4]   [ 0]       Args:   [ 1]       [ 5] Dictionary: 0 entries                      
 	*/
 	PyCallable_DECL_CALL(GetStandingTransactions)
+	PyCallable_DECL_CALL(GetCharStandings)
 };
 
 
