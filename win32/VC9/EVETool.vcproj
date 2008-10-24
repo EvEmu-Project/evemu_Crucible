@@ -97,7 +97,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)_evetool"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)_evetool"
 			ConfigurationType="1"
 			CharacterSet="0"
 			WholeProgramOptimization="1"
