@@ -298,8 +298,8 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 
 template <class Reader>
 bool ReaderToSQL(const char *table_name, const char *key_field, FILE *out, Reader &reader) {
-	int col;
-	int cc = reader.ColumnCount();
+	size_t col;
+	size_t cc = reader.ColumnCount();
 	int key_col = -1;
 
 	if(key_field != NULL) {

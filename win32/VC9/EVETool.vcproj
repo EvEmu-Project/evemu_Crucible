@@ -96,7 +96,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)_evetool"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="0"
@@ -120,7 +120,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="C:\mysql\include;..\..\3rdparty\zlib;..\..\common"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;NO_READLINE;_WIN32_WINNT=0x0400"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;NO_READLINE;_WIN32_WINNT=0x0400;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"

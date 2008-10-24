@@ -242,7 +242,7 @@ PyRep *RowsetReader::_getRow(uint32 index) const {
 	return(l->items[index]);
 }
 
-uint32 RowsetReader::ColumnCount() const {
+size_t RowsetReader::ColumnCount() const {
 	return(m_set->header.size());
 }
 
@@ -281,7 +281,7 @@ TuplesetReader::iterator TuplesetReader::begin() {
 	return(iterator(this, false));
 }
 
-uint32 TuplesetReader::size() const {
+size_t TuplesetReader::size() const {
 	return(m_set->lines.items.size());
 }
 
@@ -320,7 +320,7 @@ PyRep *TuplesetReader::_getRow(uint32 index) const {
 	return(l->items[index]);
 }
 
-uint32 TuplesetReader::ColumnCount() const {
+size_t TuplesetReader::ColumnCount() const {
 	return(m_set->header.size());
 }
 

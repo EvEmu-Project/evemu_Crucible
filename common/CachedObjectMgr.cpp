@@ -451,7 +451,7 @@ bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, P
 	}
 	
 	byte *b = new byte[file_length+10];
-	int32 len = fread(b, 1, file_length+10, f);
+	int32 len = (int32)fread(b, 1, file_length+10, f);
 	fclose(f);
 
 	into->data = b;
@@ -702,8 +702,8 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 	PyRepInteger *versionr = (PyRepInteger *) objVt->items[1];
 
 	timestamp = timer->value;
-	version = versionr->value;
-	nodeID = nodeidr->value;
+	version = (uint32)versionr->value;				//TODO loose the typecasts
+	nodeID = (uint32)nodeidr->value;
 	shared = (sharedr->value != 0);
 	compressed = (compressedr->value != 0);
 

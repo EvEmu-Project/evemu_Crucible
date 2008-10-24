@@ -375,16 +375,3 @@ std::string LSCDB::GetChannelName(uint32 id, const char * table, const char * co
 
 	return (row.GetText(0));
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

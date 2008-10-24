@@ -121,7 +121,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\..\3rdparty\zlib;..\..\common"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"

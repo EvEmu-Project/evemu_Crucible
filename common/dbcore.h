@@ -172,9 +172,9 @@ private:
 	bool	pSSL;
 };
 
-//helper class to implement a sequence concept.
-//made an object because the mysql method for implementing them feels 
-// like a hack and I didnt want it spread around the code.
+// helper class to implement a sequence concept.
+// made an object because the mysql method for implementing them feels 
+// like a hack and I didn't want it spread around the code.
 class DBSequence {
 public:
 	DBSequence(DBcore *db, const char *table_name)
@@ -192,6 +192,4 @@ protected:
 
 void ListToINString(const std::vector<uint32> &ints, std::string &into, const char *if_empty);
 
-
 #endif
-

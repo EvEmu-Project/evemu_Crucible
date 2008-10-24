@@ -701,9 +701,9 @@ void UnmarshalLogText(const Seperator &command) {
 	}
 
 	_log(NET__UNMARSHAL_TRACE, "Decoded %lu bytes:", result.size());
-	_hex(NET__UNMARSHAL_BUFHEX, &result[0], result.size());
+	_hex(NET__UNMARSHAL_BUFHEX, &result[0], uint32(result.size()));
 	
-	PyRep *r = InflateAndUnmarshal(&result[0], result.size());
+	PyRep *r = InflateAndUnmarshal(&result[0], uint32(result.size()));
 	if(r == NULL) {
 		printf("Failed to unmarshal.\n");
 	} else {
@@ -822,7 +822,7 @@ void DestinyDumpLogText(const Seperator &command) {
 	if(!PyString_DecodeEscape(command.argplus[1], result))
 		return;
 
-	Destiny::DumpUpdate(DESTINY__MESSAGE, &result[0], result.size());
+	Destiny::DumpUpdate(DESTINY__MESSAGE, &result[0], uint32(result.size()));
 }
 
 

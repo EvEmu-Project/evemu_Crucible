@@ -206,7 +206,7 @@ PyRepSubStream *PyRepBuffer::CreateSubStream() const {
 		delete[] buf;
 		return(res);
 	}
-	//else, we dont think this is a substream, so dont become one.
+	//else, we don't think this is a substream, so don't become one.
 	return(NULL);
 }
 
