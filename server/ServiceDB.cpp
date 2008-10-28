@@ -727,7 +727,7 @@ bool ServiceDB::GetBlueprintProperties(const uint32 blueprintID, BlueprintProper
 
 	}
 
-	into.copy = row.GetInt(0);
+	into.copy = row.GetInt(0) ? true : false;
 	into.materialLevel = row.GetUInt(1);
 	into.productivityLevel = row.GetUInt(2);
 	into.licensedProductionRunsRemaining = row.GetInt(3);

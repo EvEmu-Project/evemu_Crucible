@@ -15,9 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "ItemFactory.h"
-#include "InventoryItem.h"
-#include "../common/logsys.h"
+#include "EvemuPCH.h"
 
 ItemFactory::ItemFactory(DBcore *db, EntityList *el)
 : entity_list(el),

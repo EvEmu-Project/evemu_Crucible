@@ -15,7 +15,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "EvemuPCH.h"
+#include "EVEDBUtils.h"
+#include "PyRep.h"
+#include "dbcore.h"
 
 //this is such crap
 /*StringContentsType ClassifyStringContents(const char *str) {

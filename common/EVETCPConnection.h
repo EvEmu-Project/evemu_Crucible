@@ -18,6 +18,10 @@
 #ifndef EVETCPCONNECTION_H_
 #define EVETCPCONNECTION_H_
 
+#include "StreamPacketizer.h"
+#include "TCPConnection.h"
+#include "timer.h"
+
 struct SPackSendQueue;
 class EVETCPServer;
 

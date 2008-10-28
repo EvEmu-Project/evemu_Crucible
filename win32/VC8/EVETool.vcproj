@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)_evetool"
-			IntermediateDirectory="$(ConfigurationName)_evetool"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)/$(ProjectName)"
+			IntermediateDirectory="$(ConfigurationName)/$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="0"
 			>
@@ -95,8 +95,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)/$(ProjectName)"
+			IntermediateDirectory="$(ConfigurationName)/$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="0"
 			WholeProgramOptimization="1"
@@ -200,122 +200,6 @@
 			>
 			<File
 				RelativePath="..\..\evetool\TriFile.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Common Source"
-			>
-			<File
-				RelativePath="..\..\common\Base64.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\CachedObjectMgr.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\crc32.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\DestinyBinDump.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\DirWalker.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\EVEMarshal.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\EVEUnmarshal.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\EVEUtils.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\EVEZeroCompress.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\logsys.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\misc.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\MiscFunctions.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\Mutex.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\packet_functions.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\PyDumpVisitor.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\PyPacket.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\PyRep.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\PyUtils.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\PyVisitor.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\RowsetReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\tinyxml\tinystr.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\tinyxml\tinyxml.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\tinyxml\tinyxmlerror.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\tinyxml\tinyxmlparser.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\XMLParser.cpp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Packet"
-			>
-			<File
-				RelativePath="..\..\packets\General.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\packets\ObjectCaching.cpp"
 				>
 			</File>
 		</Filter>

@@ -15,7 +15,18 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "EvemuPCH.h"
+#include "EVEPresentation.h"
+#include "PyRep.h"
+#include "PyPacket.h"
+#include "PyDumpVisitor.h"
+#include "packet_functions.h"
+#include "EVEMarshal.h"
+#include "EVEUnmarshal.h"
+#include "EVEVersion.h"
+
+#include "../packets/Crypto.h"
+#include "../server/Client.h"
+#include "../server/PyCallable.h"
 
 static const byte handshakeFunc[] = {
 	0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65	//marshaled Python string "None"

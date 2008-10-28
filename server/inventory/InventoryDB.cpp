@@ -15,15 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
-#include "InventoryDB.h"
-#include "../common/dbcore.h"
-#include "../common/logsys.h"
-#include "../common/EVEDBUtils.h"
-#include "../inventory/InventoryItem.h"
-#include "../inventory/ItemFactory.h"
-
+#include "EvemuPCH.h"
 
 std::map<uint32, InventoryDB::AttrCacheEntry *> InventoryDB::m_attrCache;
 std::map<EVEDB::invGroups::invGroups, EVEDB::invCategories::invCategories> InventoryDB::s_categoryByGroup;

@@ -19,6 +19,11 @@
 #ifndef EVE_PRESENTATION_H
 #define EVE_PRESENTATION_H
 
+#include <string>
+
+#include "types.h"
+#include "EVETCPConnection.h"
+
 class PyPacket;
 class PyRep;
 class CryptoChallengePacket;

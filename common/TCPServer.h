@@ -20,6 +20,9 @@
 
 #define TCPServer_ErrorBufferSize	1024
 
+#include "common.h"
+#include "Mutex.h"
+
 //this is the non-connection type specific server.
 class BaseTCPServer {
 public:

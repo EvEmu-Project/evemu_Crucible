@@ -53,7 +53,7 @@ detect clients moving into agro radius
 #ifndef EVE_CLIENT_H
 #define EVE_CLIENT_H
 
-/*#include "../common/packet_types.h"
+#include "../common/packet_types.h"
 #include "../common/timer.h"
 #include "../common/gpoint.h"
 
@@ -65,7 +65,7 @@ detect clients moving into agro radius
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
 #include "../common/EVEUtils.h"
-#include "../common/EVEPresentation.h"*/
+#include "../common/EVEPresentation.h"
 
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"

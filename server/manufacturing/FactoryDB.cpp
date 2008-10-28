@@ -60,7 +60,7 @@ bool FactoryDB::GetBlueprintAttributes(const uint32 blueprintID, Rsp_GetBlueprin
 
 	into.blueprintID = blueprintID;
 	into.productTypeID = row.GetInt(0);
-	into.copy = row.GetInt(1);
+	into.copy = row.GetInt(1) ? true : false;
 	into.productivityLevel = row.GetUInt(2);
 	into.materialLevel = row.GetUInt(3);
 	into.wastageFactor = row.GetDouble(4) / (1 + into.materialLevel);	// this isn't calulated in client, we must calc it ourselves
