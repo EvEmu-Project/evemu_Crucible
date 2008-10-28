@@ -752,7 +752,7 @@ void Client::_ProcessCallRequest(PyPacket *packet) {
 	//build arguments
 	PyCallArgs args(this, &call.arg_tuple, &call.arg_dict);
 
-	//try {
+	try {
 		//parts of call may be consumed here
 		PyResult result = svc->Call(call, args);
 
@@ -782,12 +782,12 @@ void Client::_ProcessCallRequest(PyPacket *packet) {
 			);
 
 		//send it to client
-		_SendException(packet, WRAPPEDEXCEPTION, &except);
+		_SendException(packet, WRAPPEDEXCEPTION, &except);*/
 	} catch(PyException &e) {
 		PyRep *except = e.ssException.hijack();
 
 		_SendException(packet, WRAPPEDEXCEPTION, &except);
-	}*/
+	}
 }
 
 void Client::_ProcessNotification(PyPacket *packet) {

@@ -278,7 +278,7 @@ PyResult Command_setbpattr(Client *who, CommandDB *db, PyServiceMgr *services, c
 
 
 	BlueprintProperties bp = {
-		atoi(args.arg[2]),
+		atoi(args.arg[2]) ? true : false,
 		atoi(args.arg[3]),
 		atoi(args.arg[4]),
 		atoi(args.arg[5])

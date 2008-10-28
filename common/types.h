@@ -41,46 +41,28 @@
 	typedef int32_t int32;
 	typedef int16_t int16;
 	typedef int8_t int8;
+
 	typedef uint64_t uint64;
 	typedef uint32_t uint32;
 	typedef uint16_t uint16;
 	typedef uint8_t uint8;
+
 	typedef uint32_t DWORD;
 #endif
 
-typedef uint8 byte;
+typedef uint8				byte;
 
+typedef unsigned long		ulong;
+typedef unsigned short		ushort;
+typedef unsigned char		uchar;
 
-
-/*typedef unsigned char		int8;
-typedef unsigned char		byte;
-typedef unsigned short		int16;
-typedef unsigned int		int32;
-
-typedef unsigned char		uint8;
-typedef  signed  char		int8;
-typedef unsigned short		uint16;
-typedef  signed  short		int16;
-typedef unsigned long		uint32;*/
-
+//for printf() compatibility, I don't like this but its needed.
 #ifdef WIN32
-	/*#if defined(_INTEGRAL_MAX_BITS) && _INTEGRAL_MAX_BITS >= 64
-		typedef unsigned __int64	int64;
-		typedef unsigned __int64	uint64;
-		typedef signed __int64		int64;
-	#else
-		#error __int64 not supported
-	#endif*/
-	//for printf() compatibility, I don't like this but its needed.
 	#define I64d "%I64d"
 	#define I64u "%I64u"
 	#define I64x "%I64x"
 	#define I64X "%I64X"
 #else
-	//typedef unsigned long long	int64;
-	//typedef unsigned long long	uint64;
-	//typedef signed long long	int64;
-	//for printf() compatibility
 	#define I64d "%lld"
 	#define I64u "%llu"
 	#define I64x "%llx"
@@ -90,10 +72,6 @@ typedef unsigned long		uint32;*/
 #ifndef __cplusplus
 typedef enum { true, false } bool;
 #endif
-
-typedef unsigned long		ulong;
-typedef unsigned short		ushort;
-typedef unsigned char		uchar;
 
 typedef const char Const_char;	//for perl XS
 
@@ -115,9 +93,11 @@ typedef const char Const_char;	//for perl XS
 
 #define safe_delete(d) if(d) { delete d; d=0; }
 #define safe_delete_array(d) if(d) { delete[] d; d=0; }
+
 #define L32(i)	((int32) i)
 #define H32(i)	((int32) (i >> 32))
 #define L16(i)	((int16) i)
+#define H16(i)  ((int16) (i >> 16))
 
 #ifndef WIN32
 // More WIN32 compatibility
