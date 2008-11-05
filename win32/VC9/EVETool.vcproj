@@ -119,6 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				AdditionalIncludeDirectories="C:\mysql\include;..\..\3rdparty\zlib;..\..\common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;NO_READLINE;_WIN32_WINNT=0x0400;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"

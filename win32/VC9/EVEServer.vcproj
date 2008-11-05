@@ -46,7 +46,6 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/MP"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\3rdparty\mysql\include;..\..\3rdparty\zlib;..\..\common;..\..\server;..\"
 				PreprocessorDefinitions="WIN32;_DEBUG;USE_RUNTIME_EXCEPTIONS;_CRT_SECURE_NO_WARNINGS"
@@ -133,6 +132,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				AdditionalIncludeDirectories="..\..\3rdparty\mysql\include;..\..\3rdparty\zlib;..\..\common;..\..\server;..\"
 				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x0400;_NDEBUG;USE_RUNTIME_EXCEPTIONS;_CRT_SECURE_NO_WARNINGS"
 				ExceptionHandling="2"
@@ -241,7 +241,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\BookmarkService.cpp"
+				RelativePath="..\..\server\system\BookmarkService.cpp"
 				>
 			</File>
 			<File
@@ -453,7 +453,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\server\NPC.cpp"
+				RelativePath="..\..\server\npc\NPC.cpp"
 				>
 			</File>
 			<File
