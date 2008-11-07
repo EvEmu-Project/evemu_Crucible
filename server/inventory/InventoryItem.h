@@ -64,13 +64,6 @@ public:
 		const char *_customInfo);
 	virtual ~InventoryItem();
 
-	virtual bool Load(bool recurse=false);
-
-	// for use by ItemFactory:
-	bool ContentsLoaded() const { return(m_contentsLoaded); }
-	void AddContainedItem(InventoryItem *it);
-	void RemoveContainedItem(InventoryItem *it);
-
 	/*
 	 * Factory method:
 	 */
@@ -82,9 +75,12 @@ public:
 	void Release();
 	InventoryItem *Ref();
 
-	virtual bool LoadContents(bool recursive=true);
+	virtual bool Load(bool recurse=false);
 	virtual void Save(bool recursive=false, bool saveAttributes=true) const;	//save the item to the DB.
 	virtual void Delete();	//remove the item from the DB, and Release() it. Consumes a ref!
+
+	bool ContentsLoaded() const { return(m_contentsLoaded); }
+	bool LoadContents(bool recursive=true);
 
 	void Rename(const char *to);
 	void ChangeOwner(uint32 new_owner, bool notify=true);
@@ -215,6 +211,10 @@ protected:
     void SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const;
 	bool Populate(Rsp_CommonGetInfo_Entry &into) const;
 	void SetOnline(bool newval);
+
+	// for use by ItemFactory:
+	void AddContainedItem(InventoryItem *it);
+	void RemoveContainedItem(InventoryItem *it);
 
 	bool m_contentsLoaded;
 	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.
