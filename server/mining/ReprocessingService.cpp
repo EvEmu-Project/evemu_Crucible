@@ -256,6 +256,8 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 		end_rec = recoverables.end();
 		for(; cur_rec != end_rec; cur_rec++) {
 			uint32 quantity = cur_rec->amountPerBatch * efficiency * (1.0 - m_tax) * item->quantity() / item->type()->portionSize;
+			if(quantity == 0)
+				continue;
 			InventoryItem *i = m_manager->item_factory->Spawn(
 				cur_rec->typeID,
 				call.client->GetCharacterID(),

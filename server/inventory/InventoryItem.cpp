@@ -176,6 +176,13 @@ InventoryItem *InventoryItem::LoadItem(ItemFactory &factory, uint32 itemID, bool
 		return(NULL);
 	}
 
+	// update container
+	InventoryItem *container = factory.GetIfContentsLoaded(locationID);
+	if(container != NULL) {
+		container->AddContainedItem(i);
+		container->Release();
+	}
+
 	return(i);
 }
 
@@ -664,8 +671,11 @@ void InventoryItem::AddContainedItem(InventoryItem *it) {
 	res = m_contents.find(it->itemID());
 	if(res == m_contents.end()) {
 		m_contents[it->itemID()] = it->Ref();
+
+		_log(ITEM__TRACE, "   Updated location %lu to contain item %lu", itemID(), it->itemID());
+	} else if(res->second != it) {
+		_log(ITEM__ERROR, "Both object %p and object %p represent item %lu!", res->second, it, it->itemID());
 	}
-	_log(ITEM__TRACE, "   Updated location %lu to contain item %lu", itemID(), it->itemID());
 }
 
 void InventoryItem::RemoveContainedItem(InventoryItem *it) {
@@ -674,8 +684,9 @@ void InventoryItem::RemoveContainedItem(InventoryItem *it) {
 	if(old_inst != m_contents.end()) {
 		old_inst->second->Release();
 		m_contents.erase(old_inst);
+
+		_log(ITEM__TRACE, "   Updated location %lu to no longer contain item %lu", itemID(), it->itemID());
 	}
-	_log(ITEM__TRACE, "   Updated location %lu to no longer contain item %lu", itemID(), it->itemID());
 }
 
 void InventoryItem::Rename(const char *to) {

@@ -61,7 +61,7 @@ void EntityList::Process() {
 		while(cur != end) {
 			active_client = *cur;
 			if(!active_client->ProcessNet()) {
-				_log(SERVER__CLIENTS, "Destroying client for account %lu\n", active_client->GetAccountID());
+				_log(SERVER__CLIENTS, "Destroying client for account %lu", active_client->GetAccountID());
 				delete active_client;
 				cur = m_clients.erase(cur);
 			} else {

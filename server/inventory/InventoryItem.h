@@ -47,7 +47,6 @@ class Rsp_CommonGetInfo_Entry;
 static const uint32 SkillBasePoints = 250;
 
 class InventoryItem {
-	friend class ItemFactory;
 public:
 	InventoryItem(
 		ItemFactory &_factory,
@@ -212,7 +211,6 @@ protected:
 	bool Populate(Rsp_CommonGetInfo_Entry &into) const;
 	void SetOnline(bool newval);
 
-	// for use by ItemFactory:
 	void AddContainedItem(InventoryItem *it);
 	void RemoveContainedItem(InventoryItem *it);
 

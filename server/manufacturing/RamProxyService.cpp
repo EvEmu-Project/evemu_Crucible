@@ -280,7 +280,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 	end = reqItems.end();
 	for(; cur != end; cur++) {
 		if(!cur->isSkill && cur->damagePerJob != 1.0) {
-			uint32 quantity = floor(cur->quantity * runs * (1.0 - cur->damagePerJob));
+			uint32 quantity = cur->quantity * runs * (1.0 - cur->damagePerJob);
 			if(quantity == 0)
 				continue;
 			InventoryItem *item = m_manager->item_factory->Spawn(cur->typeID, ownerID, 0, outputFlag, quantity);

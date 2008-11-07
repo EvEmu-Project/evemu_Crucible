@@ -118,13 +118,6 @@ InventoryItem *ItemFactory::Load(uint32 itemID, bool recurse) {
 		if(i == NULL)
 			return(NULL);
 
-		//if we have the item `locationID` loaded, we need to update it.
-		InventoryItem *container = GetIfContentsLoaded(i->locationID());
-		if(container != NULL) {
-			container->AddContainedItem(i);
-			container->Release();
-		}
-
 		//we keep the original ref.
 		res = m_items.insert(
 			std::pair<uint32, InventoryItem *>(itemID, i)
