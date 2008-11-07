@@ -188,7 +188,9 @@
 #include "../server/dogmaim/DogmaIMService.h"
 
 // item stuff
-#include "../server/inventory/EVEAttributes.h"
+#include "../server/inventory/AttributeMgr.h"
+#include "../server/inventory/EVEAttributeMgr.h"
+#include "../server/inventory/Type.h"
 #include "../server/inventory/InvBrokerService.h"
 #include "../server/inventory/InventoryDB.h"
 #include "../server/inventory/InventoryItem.h"

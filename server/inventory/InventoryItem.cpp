@@ -14,16 +14,17 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 #include "EvemuPCH.h"
 
-
-
-
+/*
+ * InventoryItem
+ */
 InventoryItem::InventoryItem(
-	ItemFactory *fact,
-	uint32 _itemID, 
+	ItemFactory &_factory,
+	uint32 _itemID,
 	const char *_itemName,
-	uint32 _typeID, 
+	const Type *_type, 
 	uint32 _ownerID, 
 	uint32 _locationID,
 	EVEItemFlags _flag,
@@ -31,15 +32,13 @@ InventoryItem::InventoryItem(
 	bool _singleton,
 	uint32 _quantity,
 	const GPoint &_position,
-	const char *_customInfo,
-	uint32 _groupID, 
-	EVEItemCategories _categoryID,
-	bool inDB )
+	const char *_customInfo)
 : m_refCount(1),
-  factory(fact),
+  attributes(*this, _factory.db()),
+  m_factory(_factory),
   m_itemID(_itemID),
   m_itemName(_itemName),
-  m_typeID(_typeID),
+  m_type(_type),
   m_ownerID(_ownerID),
   m_locationID(_locationID),
   m_flag(_flag),
@@ -48,20 +47,16 @@ InventoryItem::InventoryItem(
   m_quantity(_quantity),
   m_position(_position),
   m_customInfo(_customInfo),
-  m_groupID(_groupID),
-  m_categoryID(_categoryID),
-  m_inDB(inDB),
-  m_staticLoaded(false),
-  m_attributesLoaded(inDB?false:true),	//non-DB items have no attributes stored in the DB...
-  m_contentsLoaded(inDB?false:true)	//non-DB items have no DB contents...
+  m_contentsLoaded(false)
 {
+	_log(ITEM__TRACE, "Created object %p for item ID %lu", this, itemID());
 }
 
 InventoryItem::~InventoryItem() {
 	if(m_refCount > 0) {
 		_log(ITEM__ERROR, "Destructing an inventory item (%p) which has %d references!", this, m_refCount);
 	}
-	
+
 	std::map<uint32, InventoryItem *>::iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
@@ -100,6 +95,154 @@ InventoryItem *InventoryItem::Ref() {
 	return(this);
 }
 
+InventoryItem *InventoryItem::LoadItem(ItemFactory &factory, uint32 itemID, bool recurse) {
+	// This is a bit messy ...
+
+	// pull the item info
+	uint32 typeID, ownerID, locationID, quantity;
+	std::string itemName, customInfo;
+	bool contraband, singleton;
+	EVEItemFlags flag;
+	GPoint position;
+
+	if(!factory.db().GetItem(itemID,
+		itemName, typeID, ownerID, locationID, flag, contraband, singleton, quantity, position, customInfo))
+	{
+		return(NULL);
+	}
+
+	// obtain type
+	const Type *type = factory.type(typeID);
+	if(type == NULL)
+		return(NULL);
+
+	InventoryItem *i;
+	if(type->categoryID() == EVEDB::invCategories::Blueprint) {
+		// we are blueprint
+
+		// pull additional blueprint info
+		bool copy;
+		uint32 materialLevel, productivityLevel;
+		int32 licensedProductionRunsRemaining;
+
+		if(!factory.db().GetBlueprint(itemID,
+			copy, materialLevel, productivityLevel, licensedProductionRunsRemaining))
+		{
+			return(NULL);
+		}
+
+		// create the blueprint
+		i = new BlueprintItem(
+			factory,
+			itemID,
+			itemName.c_str(),
+			type,
+			ownerID,
+			locationID,
+			flag,
+			contraband,
+			singleton,
+			quantity,
+			position,
+			customInfo.c_str(),
+			copy,
+			materialLevel,
+			productivityLevel,
+			licensedProductionRunsRemaining
+		);
+	} else {
+		// we are generic item
+
+		// create item
+		i = new InventoryItem(
+			factory,
+			itemID,
+			itemName.c_str(),
+			type,
+			ownerID,
+			locationID,
+			flag,
+			contraband,
+			singleton,
+			quantity,
+			position,
+			customInfo.c_str()
+		);
+	}
+
+	// load up
+	if(!i->Load(recurse)) {
+		i->Release();	// should delete the item
+		return(NULL);
+	}
+
+	return(i);
+}
+
+bool InventoryItem::Load(bool recurse) {
+	// load attributes
+	if(!attributes.Load())
+		return(false);
+
+	// now load contained items
+	if(recurse) {
+		if(!LoadContents(recurse))
+			return(false);
+	}
+
+	return(true);
+}
+
+bool InventoryItem::LoadContents(bool recursive) {
+	if(m_contentsLoaded)
+		return(true);
+
+	_log(ITEM__TRACE, "Recursively loading contents of cached item %lu", m_itemID);
+
+	//load the list of items we need
+	std::vector<uint32> m_itemIDs;
+	if(!m_factory.db().GetItemContents(this, m_itemIDs))
+		return(false);
+	
+	//Now get each one from the factory (possibly recursing)
+	InventoryItem *i;
+	std::vector<uint32>::iterator cur, end;
+	cur = m_itemIDs.begin();
+	end = m_itemIDs.end();
+	for(; cur != end; cur++) {
+		i = m_factory.Load(*cur, recursive);
+		if(i == NULL) {
+			_log(ITEM__ERROR, "Failed to load item %lu contained in %lu. Skipping.", *cur, m_itemID);
+			continue;
+		}
+		AddContainedItem(i);
+		i->Release();
+	}
+
+	m_contentsLoaded = true;
+	return(true);
+}
+
+void InventoryItem::Save(bool recursive, bool saveAttributes) const {
+	m_factory.db().SaveItem(itemID(),
+		itemName().c_str(), typeID(), ownerID(), locationID(), flag(), contraband(),
+		singleton(), quantity(), position(), customInfo().c_str());
+
+	if(saveAttributes)
+		attributes.Save();
+	
+	if(recursive) {
+		InventoryItem *i;
+		std::map<uint32, InventoryItem *>::const_iterator cur, end;
+		cur = m_contents.begin();
+		end = m_contents.end();
+		for(; cur != end; cur++) {
+			i = cur->second;
+			i->Save(true);
+		}
+	}
+}
+
 void InventoryItem::Delete() {
 	//first, get out of client's sight.
 	//this also removes us from our container.
@@ -126,19 +269,17 @@ void InventoryItem::Delete() {
 	m_contents.clear();
 
 	//now we need to tell the factory to get rid of us from its cache.
-	factory->_DeleteItem(this);
+	m_factory._DeleteItem(m_itemID);
 	
 	//now we take ourself out of the DB
-	factory->db().DeleteItem(this);
+	attributes.Delete();
+	m_factory.db().DeleteItem(m_itemID);
 	
 	//and now we destroy ourself.
 	if(m_refCount != 1) {
 		_log(ITEM__ERROR, "Delete() called on item %lu (%p) which has %d references! Invalidating as best as possible..", m_itemID, this, m_refCount);
-		m_int_attributes.clear();
-		m_double_attributes.clear();
 		m_itemName = "BAD DELETED ITEM";
 		m_quantity = 0;
-		m_inDB = false;
 		m_contentsLoaded = true;
 		//TODO: mark the item for death so that if it does get Release()'d, it will properly die.
 	}
@@ -146,124 +287,18 @@ void InventoryItem::Delete() {
 	//we should be deleted now.... so dont do anything!
 }
 
-void InventoryItem::Save(bool recursive) {
-	factory->db().SaveAttributes(this);
-	
-	if(recursive) {
-		InventoryItem *i;
-		std::map<uint32, InventoryItem *>::iterator cur, end;
-		cur = m_contents.begin();
-		end = m_contents.end();
-		for(; cur != end; cur++) {
-			i = cur->second;
-			i->Save(true);
-		}
-	}
-}
-
-bool InventoryItem::LoadStatic() {
-	if(m_staticLoaded)
-		return(true);
-	
-	m_int_attributes.clear();
-	m_double_attributes.clear();
-	
-	if(!factory->db().LoadEntityAttributes(this))
-		return(false);
-	if(!factory->db().LoadItemAttributes(this))
-		return(false);
-	
-	m_staticLoaded = true;
-	return(true);
-}
-
-//this is intended for items loaded from the DB
-bool InventoryItem::Load(bool recurse) {
-	if(!LoadStatic())
-		return(false);
-	
-	//load player/ship/other non-static attributes.
-	if(!m_attributesLoaded) {
-		if(m_inDB) {	//no bother checking the DB if the item has never been there..
-			if(!factory->db().LoadPersistentAttributes(this))
-				return(false);
-		}
-		m_attributesLoaded = true;
-	}
-	
-	//now load contained items
-	if(recurse) {
-		if(!LoadContents(recurse))
-			return(false);
-	}
-	
-	return(true);
-}
-
-bool InventoryItem::LoadContents(bool recursive) {
-	if(m_contentsLoaded)
-		return(true);
-	m_contentsLoaded = true;
-
-	//load the list of items we need
-	std::vector<uint32> m_itemIDs;
-	if(!factory->db().GetItemContents(this, m_itemIDs))
-		return(false);
-	
-	//Now get each one from the factory (possibly recursing)
-	InventoryItem *i;
-	std::vector<uint32>::iterator cur, end;
-	cur = m_itemIDs.begin();
-	end = m_itemIDs.end();
-	for(; cur != end; cur++) {
-		i = factory->Load(*cur, recursive);
-		if(i == NULL) {
-			_log(ITEM__ERROR, "Failed to load item %lu contained in %lu. Skipping.", *cur, m_itemID);
-			continue;
-		}
-		//m_contents[i->m_itemID] = i;
-		AddContainedItem(i);
-		i->Release();
-		// The problem was that Create() adds the item to container ... this gained item ref from factory and stick it
-		// into contents before checking if item isn't already in m_contents, so we were having 2 or more refs at once
-	}
-	
-	return(true);
-}
-
-PyRepDict *InventoryItem::GetEntityAttributes() const {
-	PyRepDict *res = new PyRepDict();
-
-	//TODO: combine this with BuildAttributesDict somehow.
-	std::map<Attr, int>::const_iterator curi, endi;
-	curi = m_int_attributes.begin();
-	endi = m_int_attributes.end();
-	for(; curi != endi; curi++) {
-		res->add(new PyRepInteger(curi->first), new PyRepInteger(curi->second));
-	}
-	
-	std::map<Attr, double>::const_iterator curd, endd;
-	curd = m_double_attributes.begin();
-	endd = m_double_attributes.end();
-	for(; curd != endd; curd++) {
-		res->add(new PyRepInteger(curd->first), new PyRepReal(curd->second));
-	}
-
-	return(res);
-}
-
 PyRepObject *InventoryItem::GetEntityRow() const {
 	EntityRowObject ero;
 	ero.itemID = m_itemID;
-	ero.typeID = m_typeID;
+	ero.typeID = typeID();
 	ero.ownerID = m_ownerID;
 	ero.locationID = m_locationID;
 	ero.flag = m_flag;
 	ero.contraband = m_contraband?1:0;
 	ero.singleton = m_singleton?1:0;
 	ero.quantity = m_quantity;
-	ero.groupID = m_groupID;
-	ero.categoryID = m_categoryID;
+	ero.groupID = groupID();
+	ero.categoryID = categoryID();
 	ero.customInfo = m_customInfo;
 	return(ero.Encode());
 }
@@ -292,51 +327,30 @@ PyRepObject *InventoryItem::GetInventoryRowset(EVEItemFlags _flag, uint32 forOwn
 	end = m_contents.end();
 	for(; cur != end; cur++) {
 		i = cur->second;
-		if((_flag == flagAnywhere || i->m_flag == _flag) &&
-			(forOwner == NULL || i->m_ownerID == forOwner)
-			) {
+		if((_flag == flagAnywhere || i->flag() == _flag) &&
+			(forOwner == NULL || i->ownerID() == forOwner))
+		{
 			PyRepList *item = new PyRepList();
-			item->addInt(i->m_itemID);
-			item->addInt(i->m_typeID);
-			item->addInt(i->m_ownerID);
-			item->addInt(i->m_locationID);
-			item->addInt(i->m_flag);
-			item->addInt(i->m_contraband);
-			item->addInt(i->m_singleton);
-			item->addInt(i->m_quantity);
-			item->addInt(i->m_groupID);
-			item->addInt(i->m_categoryID);
-			if(i->m_customInfo.empty()) {
+			item->addInt(i->itemID());
+			item->addInt(i->typeID());
+			item->addInt(i->ownerID());
+			item->addInt(i->locationID());
+			item->addInt(i->flag());
+			item->addInt(i->contraband());
+			item->addInt(i->singleton());
+			item->addInt(i->quantity());
+			item->addInt(i->groupID());
+			item->addInt(i->categoryID());
+			if(i->customInfo().empty()) {
 				item->add(new PyRepNone());
 			} else {
-				item->addStr(i->m_customInfo.c_str());
+				item->addStr(i->customInfo().c_str());
 			}
 			rowset.lines.add(item);
 		}
 	}
 	
 	return(rowset.FastEncode());
-}
-
-void InventoryItem::BuildAttributesDict(std::map<uint32, PyRep *> &into) const {
-	//NOTE: I suspect we will need to filter these some day..
-	{
-		std::map<Attr, int>::const_iterator curi, endi;
-		curi = m_int_attributes.begin();
-		endi = m_int_attributes.end();
-		for(; curi != endi; curi++) {
-			into[curi->first] = new PyRepInteger(curi->second);
-		}
-	}
-
-	{
-		std::map<Attr, double>::const_iterator curd, endd;
-		curd = m_double_attributes.begin();
-		endd = m_double_attributes.end();
-		for(; curd != endd; curd++) {
-			into[curd->first] = new PyRepReal(curd->second);
-		}
-	}
 }
 
 bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
@@ -372,7 +386,7 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 	//result.entry.activeEffects[id] = List[11];
 	
 	//attributes:
-	BuildAttributesDict(result.attributes);
+	attributes.BuildAttributesDict(result.attributes);
 	
 	//no idea what time this is supposed to be
 	codelog(SERVICE__WARNING, "%s (%lu): sending faked time", m_itemName.c_str(), m_itemID);
@@ -407,14 +421,13 @@ PyRepObject *InventoryItem::ShipGetInfo() {
 	
 //hackin:
 	//charge
-		entry.attributes[Attr_charge] = new PyRepReal(100.000000);
+		entry.attributes[ItemAttributeMgr::Attr_charge] = new PyRepReal(100.000000);
 	//shieldCharge
-		entry.attributes[264] = new PyRepReal(63.000000);
+		entry.attributes[ItemAttributeMgr::Attr_shieldCharge] = new PyRepReal(63.000000);
 	//maximumRangeCap
 		entry.attributes[797] = new PyRepReal(250000.000000);
 	
 	result.items[m_itemID] = entry.FastEncode();
-
 
 	//now encode contents...
 	std::vector<InventoryItem *> equipped;
@@ -451,7 +464,6 @@ PyRepObject *InventoryItem::CharGetInfo() {
 		return(NULL);	//print already done.
 	
 	result.items[m_itemID] = entry.FastEncode();
-	
 
 	//now encode skills...
 	std::vector<InventoryItem *> skills;
@@ -525,7 +537,7 @@ uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *
 	return(count);
 }
 
-uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref) {
+uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<const InventoryItem *> &items, bool newref) const {
 	uint32 count = 0;
 	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
@@ -533,7 +545,7 @@ uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_f
 	end = m_contents.end();
 	for(; cur != end; cur++) {
 		i = cur->second;
-		if(i->m_flag >= low_flag && i->m_flag <= high_flag) {
+		if(i->m_flag == _flag) {
 			if(newref)
 				items.push_back(i->Ref());
 			else
@@ -544,8 +556,7 @@ uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_f
 	return(count);
 }
 
-//annoying duplication, but I am over it.
-uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<const InventoryItem *> &items, bool newref) const {
+uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref) {
 	uint32 count = 0;
 	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
@@ -553,7 +564,7 @@ uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<const Inventory
 	end = m_contents.end();
 	for(; cur != end; cur++) {
 		i = cur->second;
-		if(i->m_flag == _flag) {
+		if(i->m_flag >= low_flag && i->m_flag <= high_flag) {
 			if(newref)
 				items.push_back(i->Ref());
 			else
@@ -583,6 +594,26 @@ uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_f
 	return(count);
 }
 
+uint32 InventoryItem::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref) {
+	uint32 count = 0;
+	InventoryItem *i;
+	std::map<uint32, InventoryItem *>::const_iterator cur, end;
+	cur = m_contents.begin();
+	end = m_contents.end();
+	for(; cur != end; cur++) {
+		i = cur->second;
+		if(flags.count(i->flag())) {
+			if(newref)
+				items.push_back(i->Ref());
+			else
+				items.push_back(i);
+			count++;
+		}
+	}
+	return(count);
+
+}
+
 uint32 InventoryItem::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<const InventoryItem *> &items, bool newref) const {
 	uint32 count = 0;
 	InventoryItem *i;
@@ -603,7 +634,18 @@ uint32 InventoryItem::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<co
 
 }
 
-InventoryItem *InventoryItem::SpawnSingleton(
+InventoryItem *InventoryItem::SpawnInto(
+	uint32 _typeID,
+	uint32 _ownerID,
+	EVEItemFlags _flag,
+	uint32 _quantity
+) {
+	//see note in other overload.
+	return(m_factory.Spawn(_typeID, _ownerID, 
+						   m_itemID, //location
+						   _flag, _quantity));
+}
+InventoryItem *InventoryItem::SpawnSingletonInto(
 	uint32 _typeID,
 	uint32 _ownerID,
 	EVEItemFlags _flag,
@@ -612,20 +654,9 @@ InventoryItem *InventoryItem::SpawnSingleton(
 	//for now, just call into the factory, we might eventually make this
 	//the only way to spawn items, in which case we can move some of the
 	// "update your container" logic from the factory into here...
-	return(factory->SpawnSingleton(_typeID, _ownerID, 
+	return(m_factory.SpawnSingleton(_typeID, _ownerID, 
 									m_itemID, //location
 									_flag, name));
-}
-InventoryItem *InventoryItem::Spawn(
-	uint32 _typeID,
-	uint32 _quantity,
-	uint32 _ownerID,
-	EVEItemFlags _flag
-) {
-	//see note in other overload.
-	return(factory->Spawn(_typeID, _quantity, _ownerID, 
-						   m_itemID, //location
-						   _flag));
 }
 
 void InventoryItem::AddContainedItem(InventoryItem *it) {
@@ -634,6 +665,7 @@ void InventoryItem::AddContainedItem(InventoryItem *it) {
 	if(res == m_contents.end()) {
 		m_contents[it->itemID()] = it->Ref();
 	}
+	_log(ITEM__TRACE, "   Updated location %lu to contain item %lu", itemID(), it->itemID());
 }
 
 void InventoryItem::RemoveContainedItem(InventoryItem *it) {
@@ -643,14 +675,12 @@ void InventoryItem::RemoveContainedItem(InventoryItem *it) {
 		old_inst->second->Release();
 		m_contents.erase(old_inst);
 	}
+	_log(ITEM__TRACE, "   Updated location %lu to no longer contain item %lu", itemID(), it->itemID());
 }
 
 void InventoryItem::Rename(const char *to) {
-	if(!factory->db().RenameItem(m_itemID, to)) {
-		codelog(ITEM__ERROR, "%s (%lu): Failed to rename in the DB", m_itemName.c_str(), m_itemID);
-		return;
-	}
 	m_itemName = to;
+	Save(false, false);
 }
 
 void InventoryItem::MoveInto(InventoryItem *new_home, EVEItemFlags _flag, bool notify) {
@@ -664,28 +694,24 @@ void InventoryItem::Move(uint32 location, EVEItemFlags new_flag, bool notify) {
 	if(location == old_location && new_flag == old_flag)
 		return;	//nothing to do...
 	
-	if(!factory->db().MoveEntity(m_itemID, location, new_flag)) {
-		codelog(ITEM__ERROR, "%s (%lu): Failed to move in the DB to %lu", m_itemName.c_str(), m_itemID, location);
-		return;
-	}
-	
 	//first, take myself out of my old container, if its loaded.
-	InventoryItem *old_container = factory->GetIfContentsLoaded(old_location);
+	InventoryItem *old_container = m_factory.GetIfContentsLoaded(old_location);
 	if(old_container != NULL) {
 		old_container->RemoveContainedItem(this);	//releases its ref
 		old_container->Release();
 	}
 	
 	//then make sure that my new container is updated, if its loaded.
-	InventoryItem *new_container = factory->GetIfContentsLoaded(location);
+	InventoryItem *new_container = m_factory.GetIfContentsLoaded(location);
 	if(new_container != NULL) {
 		new_container->AddContainedItem(this);	//makes a new ref
 		new_container->Release();
 	}
-	
-	
+
 	m_locationID = location;
 	m_flag = new_flag;
+
+	Save(false, false);
 
 	//notify about the changes.
 	if(notify) {
@@ -703,12 +729,9 @@ void InventoryItem::ChangeFlag(EVEItemFlags new_flag, bool notify) {
 	if(new_flag == old_flag)
 		return;	//nothing to do...
 
-	if(!factory->db().MoveEntity(m_itemID, m_locationID, new_flag)) {
-		codelog(ITEM__ERROR, "%s (%lu): Failed to change flag to %d", m_itemName.c_str(), m_itemID, new_flag);
-		return;
-	}
-
 	m_flag = new_flag;
+
+	Save(false, false);
 
 	//notify about the changes.
 	if(notify) {
@@ -722,12 +745,14 @@ bool InventoryItem::AlterQuantity(int32 qty_change, bool notify) {
 	if(qty_change == 0)
 		return(true);
 
-	if((int32(m_quantity) + qty_change) < 0) {
+	int32 new_qty = m_quantity + qty_change;
+
+	if(new_qty < 0) {
 		codelog(ITEM__ERROR, "%s (%lu): Tried to remove %ld quantity from stack of %lu", m_itemName.c_str(), m_itemID, -qty_change, m_quantity);
 		return(false);
 	}
 
-	return(SetQuantity(uint32(m_quantity + qty_change), notify));
+	return(SetQuantity(new_qty, notify));
 }
 
 bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
@@ -742,12 +767,9 @@ bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
 	uint32 old_qty = m_quantity;
 	uint32 new_qty = qty_new;
 	
-	if(!factory->db().ChangeQuantity(m_itemID, new_qty)) {
-		codelog(ITEM__ERROR, "%s (%lu): Failed to change quantity in the DB to %lu", m_itemName.c_str(), m_itemID, new_qty);
-		return(false);
-	}
-
 	m_quantity = new_qty;
+
+	Save(false, false);
 
 	//notify about the changes.
 	if(notify) {
@@ -771,18 +793,11 @@ InventoryItem *InventoryItem::Split(int32 qty_to_take, bool notify) {
 		return(NULL);
 	}
 
-	InventoryItem *res = factory->Spawn(
-		typeID(), qty_to_take, ownerID(), (notify ? 1 : locationID()), flag()	//temp location to cause the spawn via update
+	InventoryItem *res = m_factory.Spawn(
+		typeID(), ownerID(), (notify ? 1 : locationID()), flag(), qty_to_take	//temp location to cause the spawn via update
 		);
 	if(notify)
 		res->Move(locationID(), flag());
-
-	if(res->categoryID() == EVEDB::invCategories::Blueprint) {
-		// copy blueprint properties
-		BlueprintProperties bp;
-		factory->db().GetBlueprintProperties(itemID(), bp);
-		factory->db().SetBlueprintProperties(res->itemID(), bp);
-	}
 
 	return( res );
 }
@@ -822,19 +837,15 @@ bool InventoryItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
 	return(true);
 }
 
-bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify)
-{
+bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify) {
 	bool old_singleton = m_singleton;
 	
 	if(new_singleton == old_singleton)
 		return(true);	//nothing to do...
-	
-	if(!factory->db().ChangeSingletonEntity(m_itemID, new_singleton)) {
-		codelog(ITEM__ERROR, "%s (%lu): Failed to change singleton to %d", m_itemName.c_str(), m_itemID, new_singleton);
-		return(false);
-	}
-	
+
 	m_singleton = new_singleton;
+
+	Save(false, false);
 
 	//notify about the changes.
 	if(notify) {
@@ -851,12 +862,9 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
 	if(new_owner == old_owner)
 		return;	//nothing to do...
 	
-	if(!factory->db().ChangeOwner(m_itemID, new_owner)) {
-		codelog(ITEM__ERROR, "%s (%lu): Failed to change owner in the DB to %lu", m_itemName.c_str(), m_itemID, new_owner);
-		return;
-	}
-	
 	m_ownerID = new_owner;
+
+	Save(false, false);
 	
 	//notify about the changes.
 	if(notify) {
@@ -875,7 +883,7 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
 //contents of changes are consumed and cleared
 void InventoryItem::SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const {
 	//TODO: figure out the appropriate list of interested people...
-	Client *c = factory->entity_list->FindCharacter(toID);
+	Client *c = m_factory.entity_list->FindCharacter(toID);
 	if(c == NULL)
 		return;	//not found or not online...
 	
@@ -898,21 +906,21 @@ void InventoryItem::PutOnline() {
 }
 
 void InventoryItem::PutOffline() {
-	SetOnline(true);
+	SetOnline(false);
 }
 
 void InventoryItem::SetOnline(bool newval) {
 	//bool old = isOnline();
 	Set_isOnline(newval);
 	
-	Client *c = factory->entity_list->FindCharacter(m_ownerID);
+	Client *c = m_factory.entity_list->FindCharacter(m_ownerID);
 	if(c == NULL)
 		return;	//not found or not online...
 	
 	Notify_OnModuleAttributeChange omac;
 	omac.ownerID = m_ownerID;
 	omac.itemKey = m_itemID;
-	omac.attributeID = Attr_isOnline;
+	omac.attributeID = ItemAttributeMgr::Attr_isOnline;
 	omac.time = Win32TimeNow();
 	omac.newValue = new PyRepInteger(newval?1:0);
 	omac.oldValue = new PyRepInteger(newval?0:1);	//hack... should use old, but its not cooperating today.
@@ -944,40 +952,12 @@ void InventoryItem::SetOnline(bool newval) {
 	
 }
 
-void InventoryItem::SaveAttribute_int(Attr attr) const {
-	std::map<Attr, int>::const_iterator res;
-	res = m_int_attributes.find(attr);
-	if(res == m_int_attributes.end()) {
-		if(!factory->db().EraseAttribute(itemID(), attr)) {
-			codelog(ITEM__ERROR, "%s (%lu): Failed to delete attribute %d", m_itemName.c_str(), m_itemID, attr);
-		}
-	} else {
-		if(!factory->db().UpdateAttribute_int(itemID(), attr, res->second)) {
-			codelog(ITEM__ERROR, "%s (%lu): Failed to save int attribute %d", m_itemName.c_str(), m_itemID, attr);
-		}
-	}
-}
-
-void InventoryItem::SaveAttribute_double(Attr attr) const {
-	std::map<Attr, double>::const_iterator res;
-	res = m_double_attributes.find(attr);
-	if(res == m_double_attributes.end()) {
-		if(!factory->db().EraseAttribute(itemID(), attr)) {
-			codelog(ITEM__ERROR, "%s (%lu): Failed to delete attribute %d", m_itemName.c_str(), m_itemID, attr);
-		}
-	} else {
-		if(!factory->db().UpdateAttribute_double(itemID(), attr, res->second)) {
-			codelog(ITEM__ERROR, "%s (%lu): Failed to save double attribute %d", m_itemName.c_str(), m_itemID, attr);
-		}
-	}
-}
-
 void InventoryItem::SetCustomInfo(const char *ci) {
 	if(ci == NULL)
 		m_customInfo = "";
 	else
 		m_customInfo = ci;
-	factory->db().SetCustomInfo(m_itemID, ci);
+	Save(false, false);
 }
 
 bool InventoryItem::Contains(InventoryItem *item, bool recursive) const {
@@ -1012,7 +992,7 @@ void InventoryItem::TrainSkill(InventoryItem *skill) {
 		return;
 	}
 	
-	Client *c = factory->entity_list->FindCharacter(m_ownerID);
+	Client *c = m_factory.entity_list->FindCharacter(m_ownerID);
 	
 	//stop training our old skill...
 	//search for all, just in case we screwed up
@@ -1068,7 +1048,8 @@ void InventoryItem::Relocate(const GPoint &pos) {
 		return;
 
 	m_position = pos;
-	factory->db().RelocateEntity(m_itemID, m_position.x, m_position.y, m_position.z);
+
+	Save(false, false);
 }
 
 void InventoryItem::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner) {
@@ -1086,7 +1067,7 @@ void InventoryItem::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner) {
 			if(types.find(i->typeID()) == types.end())
 				types[i->typeID()] = i;
 			else
-				//dont forget to make ref
+				//dont forget to make ref (which is consumed)
 				types[i->typeID()]->Merge(i->Ref());
 	}
 }
@@ -1114,38 +1095,145 @@ double InventoryItem::GetRemainingCapacity(EVEItemFlags locationFlag) const {
 	return(remainingCargoSpace);
 }
 
+/*
+ * BlueprintItem
+ */
+BlueprintItem::BlueprintItem(
+	ItemFactory &_factory,
+	uint32 _itemID,
+	const char *_itemName,
+	const Type *_type,
+	uint32 _ownerID,
+	uint32 _locationID,
+	EVEItemFlags _flag,
+	bool _contraband,
+	bool _singleton,
+	uint32 _quantity,
+	const GPoint &_position,
+	const char *_customInfo,
+	bool _copy,
+	uint32 _materialLevel,
+	uint32 _productivityLevel,
+	int32 _licensedProductionRunsRemaining)
+: InventoryItem(_factory, _itemID, _itemName, _type, _ownerID, _locationID, _flag, _contraband, _singleton, _quantity, _position, _customInfo),
+  m_copy(_copy),
+  m_materialLevel(_materialLevel),
+  m_productivityLevel(_productivityLevel),
+  m_licensedProductionRunsRemaining(_licensedProductionRunsRemaining)
+{
+}
 
-//this is a very convoluted way to deal with a non-continuous array.
-class internalAttrDataKeeper {
-private:
-	enum {
-		TypeInd_int,
-		TypeInd_double
-	};
-public:
-	internalAttrDataKeeper() {
-		memset(persistent, false, sizeof(persistent));
-		memset(is_int, false, sizeof(persistent));
-		
-		#define ATTR(ID, name, default_value, type, persistent_value) \
-			persistent[ID] = persistent_value; \
-			is_int[ID] = ( TypeInd_##type == TypeInd_int );
-		#include "EVEAttributes.h"
+void BlueprintItem::Save(bool recursive, bool saveAttributes) const {
+	// save our parent
+	InventoryItem::Save(recursive, saveAttributes);
+	// save ourselves
+	m_factory.db().SaveBlueprint(m_itemID,
+		m_copy, m_materialLevel, m_productivityLevel, m_licensedProductionRunsRemaining);
+}
+
+void BlueprintItem::Delete() {
+	// delete our blueprint record
+	m_factory.db().DeleteBlueprint(m_itemID);
+	// redirect to parent
+	InventoryItem::Delete();
+}
+
+BlueprintItem *BlueprintItem::SplitBlueprint(int32 qty_to_take, bool notify) {
+	// split item
+	BlueprintItem *res = (BlueprintItem *)(InventoryItem::Split(qty_to_take, notify));
+	if(res == NULL)
+		return(NULL);
+
+	// copy our attributes
+	res->SetCopy(m_copy);
+	res->SetMaterialLevel(m_materialLevel);
+	res->SetProductivityLevel(m_productivityLevel);
+	res->SetLicensedProductionRunsRemaining(m_licensedProductionRunsRemaining);
+
+	return(res);
+}
+
+bool BlueprintItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
+	if(!InventoryItem::Merge(to_merge, qty, notify))
+		return(false);
+	// do something special? merge material level etc.?
+	return(true);
+}
+
+void BlueprintItem::SetCopy(bool copy) {
+	m_copy = copy;
+
+	Save(false, false);
+}
+
+void BlueprintItem::SetMaterialLevel(uint32 materialLevel) {
+	m_materialLevel = materialLevel;
+
+	Save(false, false);
+}
+
+bool BlueprintItem::AlterMaterialLevel(int32 materialLevelChange) {
+	int32 new_material_level = m_materialLevel + materialLevelChange;
+
+	if(new_material_level < 0) {
+		_log(ITEM__ERROR, "%s (%lu): Tried to remove %lu material levels while having %lu levels.", m_itemName.c_str(), m_itemID, -materialLevelChange, m_materialLevel);
+		return(false);
 	}
-	bool persistent[InventoryItem::Invalid_Attr];
-	bool is_int[InventoryItem::Invalid_Attr];
-};
 
-static internalAttrDataKeeper _internalAttrDataKeeper;
+	SetMaterialLevel(new_material_level);
+	return(true);
+}
 
-bool InventoryItem::IsPersistent(Attr attr) {
-	return(_internalAttrDataKeeper.persistent[attr]);
+void BlueprintItem::SetProductivityLevel(uint32 productivityLevel) {
+	m_productivityLevel = productivityLevel;
+
+	Save(false, false);
 }
-bool InventoryItem::IsIntAttr(Attr attr) {
-	return(_internalAttrDataKeeper.is_int[attr]);
+
+bool BlueprintItem::AlterProductivityLevel(int32 producitvityLevelChange) {
+	int32 new_productivity_level = m_productivityLevel + producitvityLevelChange;
+
+	if(new_productivity_level < 0) {
+		_log(ITEM__ERROR, "%s (%lu): Tried to remove %lu productivity levels while having %lu levels.", m_itemName.c_str(), m_itemID, -producitvityLevelChange, m_productivityLevel);
+		return(false);
+	}
+
+	SetProductivityLevel(new_productivity_level);
+	return(true);
 }
-bool InventoryItem::IsDoubleAttr(Attr attr) {
-	return(!_internalAttrDataKeeper.is_int[attr]);
+
+void BlueprintItem::SetLicensedProductionRunsRemaining(int32 licensedProductionRunsRemaining) {
+	m_licensedProductionRunsRemaining = licensedProductionRunsRemaining;
+
+	Save(false, false);
+}
+
+void BlueprintItem::AlterLicensedProductionRunsRemaining(int32 licensedProductionRunsRemainingChange) {
+	int32 new_licensed_production_runs_remaining = m_licensedProductionRunsRemaining + licensedProductionRunsRemainingChange;
+
+	SetLicensedProductionRunsRemaining(new_licensed_production_runs_remaining);
+}
+
+PyRepDict *BlueprintItem::GetBlueprintAttributes() const {
+	Rsp_GetBlueprintAttributes rsp;
+
+	// fill in our attribute info
+	rsp.blueprintID = itemID();
+	rsp.copy = copy() ? 1 : 0;
+	rsp.productivityLevel = productivityLevel();
+	rsp.materialLevel = materialLevel();
+	rsp.licensedProductionRunsRemaining = licensedProductionRunsRemaining();
+	rsp.wastageFactor = wasteFactor();
+
+	rsp.productTypeID = productType()->id;
+	rsp.manufacturingTime = bptype()->productionTime;
+	rsp.maxProductionLimit = bptype()->maxProductionLimit;
+	rsp.researchMaterialTime = bptype()->researchMaterialTime;
+	rsp.researchTechTime = bptype()->researchTechTime;
+	rsp.researchProductivityTime = bptype()->researchProductivityTime;
+	rsp.researchCopyTime = bptype()->researchCopyTime;
+
+	return(rsp.Encode());
 }
 
 

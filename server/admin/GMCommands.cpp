@@ -38,10 +38,10 @@ PyResult Command_summon(Client *who, CommandDB *db, PyServiceMgr *services, cons
 	InventoryItem *i;
 	i = services->item_factory->Spawn(
 		atoi(args.arg[1]),
-		qty,
 		who->GetCharacterID(),
 		0,	//temp location.
-		flag
+		flag,
+		qty
 		);
 	if(i == NULL)
 		throw(PyException(MakeCustomError("Unable to spawn item of type %s.", args.arg[1])));
@@ -276,16 +276,14 @@ PyResult Command_setbpattr(Client *who, CommandDB *db, PyServiceMgr *services, c
 	if(!args.IsNumber(5))
 		throw(PyException(MakeCustomError("Argument 5 must be remaining licensed production runs. (got %s)", args.arg[5])));
 
+	BlueprintItem *bp = services->item_factory->LoadBlueprint(atoi(args.arg[1]), false);
+	if(bp == NULL)
+		throw(PyException(MakeCustomError("Failed to load blueprint %s.", args.arg[1])));
 
-	BlueprintProperties bp = {
-		atoi(args.arg[2]) ? true : false,
-		atoi(args.arg[3]),
-		atoi(args.arg[4]),
-		atoi(args.arg[5])
-	};
-
-	if(!db->SetBlueprintProperties(atoi(args.arg[1]), bp))
-		throw(PyException(MakeCustomError("Failed to change attributes.")));
+	bp->SetCopy(atoi(args.arg[2]) ? true : false);
+	bp->SetMaterialLevel(atoi(args.arg[3]));
+	bp->SetProductivityLevel(atoi(args.arg[4]));
+	bp->SetLicensedProductionRunsRemaining(atoi(args.arg[5]));
 
 	return(new PyRepString("Properties modified."));
 }

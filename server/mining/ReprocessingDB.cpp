@@ -53,8 +53,8 @@ bool ReprocessingDB::IsRecyclable(const uint32 typeID) {
 				" WHERE damagePerJob = 1 AND ("
 				"   (activityID = 6 AND typeID = %lu)"
 				"   OR"
-				"	(activityID = 1 AND productTypeID = %lu))"
-				" AND recycle = 1"
+				"	(activityID = 1 AND productTypeID = %lu)"
+				") AND recycle = 1"
 				" LIMIT 1",
 				typeID, typeID))
 	{
@@ -90,31 +90,6 @@ bool ReprocessingDB::LoadStatic(const uint32 stationID, double &efficiency, doub
 	tax = row.GetDouble(1);
 
 	return(true);
-}
-
-uint32 ReprocessingDB::GetPortionSize(const uint32 typeID) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-				"SELECT portionSize"
-				" FROM invTypes"
-				" WHERE typeID=%lu",
-				typeID
-				))
-	{
-		_log(DATABASE__ERROR, "Unable to get portion size for type ID %lu: '%s'", typeID, res.error.c_str());
-		return(0);
-	}
-
-	DBResultRow row;
-
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No portion size found for type ID %lu.", typeID);
-		return(0);
-	}
-
-	return(row.GetUInt(0));
-
 }
 
 bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverable> &into) {

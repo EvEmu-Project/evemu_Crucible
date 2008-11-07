@@ -72,7 +72,7 @@ CACHABLE("config.BulkData.ramaltypes", ramALTypes, TupleSet,
 CACHABLE("config.BulkData.ramcompletedstatuses", ramCompletedStatuses, TupleSet,
 	"SELECT completedStatusID,completedStatusName,completedStatusText FROM ramCompletedStatuses"
 );
-//returns what each item consists of
+//returns what each type consists of
 CACHABLE("config.BulkData.ramtypematerials", ramTypeMaterials, Rowset,
 	"SELECT"
 		" typeID,"

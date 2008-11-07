@@ -47,15 +47,6 @@ class CharacterData;
 class CorpMemberInfo;
 //class InventoryItem;
 
-// struct for encapsulating blueprint's attributes
-// for futher info about implementation of blueprints, see notes in file InventoryDB.cpp, line 342
-struct BlueprintProperties {
-	bool copy;
-	uint32 materialLevel;
-	uint32 productivityLevel;
-	int32 licensedProductionRunsRemaining;
-};
-
 class ServiceDB {
 public:
 	ServiceDB(DBcore *db);
@@ -68,11 +59,6 @@ public:
 	bool ListEntitiesByCategory(uint32 ownerID, uint32 categoryID, std::vector<uint32> &into);
 	uint32 GetCurrentShipID(uint32 characterID);
 	PyRepObject *GetInventory(uint32 entityID, EVEItemFlags flag);
-
-	//blueprint stuff
-	bool GetBlueprintProperties(const uint32 blueprintID, BlueprintProperties &into);
-	bool SetBlueprintProperties(const uint32 blueprintID, const BlueprintProperties &bp);
-	uint32 GetBlueprintProduct(const uint32 blueprintTypeID);
 
 	void SetCharacterLocation(uint32 characterID, uint32 stationID, uint32 systemID, uint32 constellationID, uint32 regionID);
 	bool SetCharacterBalance(uint32 char_id, double newbalance);

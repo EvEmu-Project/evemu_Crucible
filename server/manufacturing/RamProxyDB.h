@@ -24,7 +24,6 @@
 
 //from table 'ramActivities'
 enum EVERamActivity {
-	ramActivityNone = 0,
 	ramActivityManufacturing = 1,
 	ramActivityResearchingTechnology = 2,
 	ramActivityResearchingTimeProductivity = 3,
@@ -65,9 +64,6 @@ struct RequiredItem {
 };
 
 class RamProxyDB : public ServiceDB {
-private:
-	bool _GetMultipliers(const uint32 assemblyLineID, uint32 groupID, double &materialMultiplier, double &timeMultiplier);
-
 public:
 	RamProxyDB(DBcore *db);
 	virtual ~RamProxyDB();
@@ -89,7 +85,6 @@ public:
 	uint32 CountManufacturingJobs(const uint32 installerID);
 	uint32 CountResearchJobs(const uint32 installerID);
 
-	bool GetAdditionalBlueprintProperties(const uint32 blueprintID, uint32 &materialLevel, double &wasteFactor, uint32 &productivityLevel, uint32 &productivityModifier);
 	bool GetRequiredItems(const uint32 typeID, const EVERamActivity activity, std::vector<RequiredItem> &into);
 
 	// CompleteJob stuff
@@ -98,19 +93,13 @@ public:
 	bool CompleteJob(const uint32 jobID, const EVERamCompletedStatus completedStatus);
 
 	// other
-	std::string GetTypeName(const uint32 typeID);
-	uint32 GetGroup(const uint32 typeID);
-	EVERace GetRace(const uint32 typeID);
-	uint32 GetPortionSize(const uint32 typeID);
-
 	std::string GetStationName(const uint32 stationID);
 	uint32 GetRegionOfContainer(const uint32 containerID);
-
-	uint32 GetBlueprintProductionTime(const uint32 blueprintTypeID, const EVERamActivity activity);
-	uint32 GetMaxProductionLimit(const uint32 blueprintTypeID);
 	uint32 GetTech2Blueprint(const uint32 blueprintTypeID);
-
 	uint64 GetNextFreeTime(const uint32 assemblyLineID);
+
+protected:
+	bool _GetMultipliers(const uint32 assemblyLineID, uint32 groupID, double &materialMultiplier, double &timeMultiplier);
 };
 
 #endif

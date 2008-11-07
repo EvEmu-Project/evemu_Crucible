@@ -24,8 +24,14 @@
 #include "InventoryDB.h"
 
 class InventoryItem;
+class BlueprintItem;
+
+class Type;
+class Group;
+class Category;
 
 class ItemFactory {
+	friend class InventoryItem;	//only for access to _DeleteItem
 public:
 	ItemFactory(DBcore *db, EntityList *el);
 	~ItemFactory();
@@ -33,65 +39,29 @@ public:
 	EntityList *const entity_list;	//we do not own this.
 	InventoryDB &db() { return(m_db); }
 
-	InventoryItem *Load(uint32 itemID, bool recurse);
-	
+	/*
+	 * Type stuff
+	 */
+	const Category *category(EVEItemCategories category);
+	const Group *group(uint32 groupID);
+	const Type *type(uint32 typeID);
+
+	/*
+	 * Item stuff
+	 */
+	InventoryItem *Load(uint32 itemID, bool recurse=true);
+	BlueprintItem *LoadBlueprint(uint32 blueprintID, bool recurse=true);
+
 	//a somewhat specialized function to deal with item movement.
 	InventoryItem *GetIfContentsLoaded(uint32 itemID);
 
-	//create items from data obtained directly..
-	InventoryItem *Create(
-		uint32 _itemID, 
-		const char *_itemName,
-		uint32 _typeID, 
-		uint32 _ownerID,
-		uint32 _locationID,
-		EVEItemFlags _flag,
-		bool _contraband,
-		bool _singleton,
-		uint32 _quantity,
-		const GPoint &_position,
-		const char *_customInfo,
-		uint32 _groupID, 
-		EVEItemCategories _categoryID,
-		bool _inDB = false);
-	//and some useful overloads
-	InventoryItem *Create(
-		uint32 _itemID, 
-		const char *_itemName,
-		uint32 _typeID, 
-		uint32 _ownerID,
-		uint32 _locationID,
-		EVEItemFlags _flag,
-		bool _contraband,
-		bool _singleton,
-		uint32 _quantity,
-		const char *_customInfo,
-		uint32 _groupID, 
-		EVEItemCategories _categoryID,
-		bool _inDB = false);
-	InventoryItem *Create(
-		uint32 _itemID, 
-		const char *_itemName,
-		uint32 _typeID, 
-		uint32 _ownerID, 
-		uint32 _locationID,
-		EVEItemFlags _flag,
-		uint32 _groupID, 
-		EVEItemCategories _categoryID,
-		bool _inDB = false);
-	InventoryItem *Create(
-		uint32 _itemID, 
-		const char *_itemName,
-		uint32 _typeID, 
-		uint32 _ownerID, 
-		uint32 _locationID,
-		EVEItemFlags _flag,
-		const GPoint &_position,
-		uint32 _groupID, 
-		EVEItemCategories _categoryID,
-		bool _inDB = false);
-	
 	//spawn a new item with the specified information, creating it in the DB as well.
+	InventoryItem *Spawn(
+		uint32 typeID,
+		uint32 ownerID,
+		uint32 locationID,
+		EVEItemFlags flag,
+		uint32 quantity);
 	InventoryItem *SpawnSingleton(
 		uint32 typeID,
 		uint32 ownerID,
@@ -99,22 +69,43 @@ public:
 		EVEItemFlags flag,
 		const char *name = NULL,
 		const GPoint &pos = GPoint());
-	InventoryItem *Spawn(
+	BlueprintItem *SpawnBlueprint(
 		uint32 typeID,
-		uint32 quantity,
 		uint32 ownerID,
 		uint32 locationID,
-		EVEItemFlags flag);
+		EVEItemFlags flag,
+		uint32 quantity,
+		bool copy,
+		uint32 materialLevel,
+		uint32 productivityLevel,
+		int32 licensedProductionRunsRemaining);
+	BlueprintItem *SpawnBlueprintSingleton(
+		uint32 typeID,
+		uint32 ownerID,
+		uint32 locationID,
+		EVEItemFlags flag,
+		bool copy,
+		uint32 materialLevel,
+		uint32 productivityLevel,
+		int32 licensedProductionRunsRemaining,
+		const char *name = NULL,
+		const GPoint &pos = GPoint());
 
 protected:
-	friend class InventoryItem;	//only for access to _DeleteItem
-	void _DeleteItem(InventoryItem *i);
-	
-private:
-	bool _SpawnCommon(InventoryItem *i);
-	
 	InventoryDB m_db;
-	
+
+	/*
+	 * Type cache
+	 */
+	std::map<EVEItemCategories, Category *> m_categories;
+	std::map<uint32, Group *> m_groups;
+	std::map<uint32, Type *> m_types;
+
+	/*
+	 * Items
+	 */
+	void _DeleteItem(uint32 itemID);
+
 	std::map<uint32, InventoryItem *> m_items;	//we own a ref to these.
 };
 

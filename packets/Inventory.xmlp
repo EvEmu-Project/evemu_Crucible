@@ -385,7 +385,11 @@
 
 <element name="Call_Reprocess">
 	<InlineTuple>
-		<intlist name="itemIDs" />
+		<intlist name="items" />
+		<int name="ownerID" none_marker="0" />
+		<int name="flag" none_marker="0" />
+		<bool name="unknown" />
+		<strlist name="skipChecks" />
 	</InlineTuple>
 </element>
 

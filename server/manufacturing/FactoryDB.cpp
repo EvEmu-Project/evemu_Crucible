@@ -25,56 +25,6 @@ FactoryDB::FactoryDB(DBcore *db)
 FactoryDB::~FactoryDB() {
 }
 
-bool FactoryDB::GetBlueprintAttributes(const uint32 blueprintID, Rsp_GetBlueprintAttributes &into) const {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-				"SELECT"
-				" productTypeID,"
-				" copy,"
-				" productivityLevel,"
-				" materialLevel,"
-				" wasteFactor / 100,"
-				" productionTime,"
-				" maxProductionLimit,"
-				" licensedProductionRunsRemaining,"
-				" researchMaterialTime,"
-				" researchTechTime,"
-				" researchProductivityTime,"
-				" researchCopyTime"
-				" FROM invBlueprints"
-				" LEFT JOIN entity ON blueprintID = itemID"
-				" LEFT JOIN invBlueprintTypes ON typeID = blueprintTypeID"
-				" WHERE blueprintID = %lu",
-				blueprintID))
-	{
-		_log(DATABASE__ERROR, "Could not retrieve attributes for blueprint type %lu : %s", blueprintID, res.error.c_str());
-		return(false);
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No data found for blueprint ID %lu.", blueprintID);
-		return(false);
-	}
-
-	into.blueprintID = blueprintID;
-	into.productTypeID = row.GetInt(0);
-	into.copy = row.GetInt(1) ? true : false;
-	into.productivityLevel = row.GetUInt(2);
-	into.materialLevel = row.GetUInt(3);
-	into.wastageFactor = row.GetDouble(4) / (1 + into.materialLevel);	// this isn't calulated in client, we must calc it ourselves
-	into.manufacturingTime = row.GetInt(5);
-	into.maxProductionLimit = row.GetInt(6);
-	into.licensedProductionRunsRemaining = row.GetInt(7);
-	into.researchMaterialTime = row.GetInt(8);
-	into.researchTechTime = row.GetInt(9);
-	into.researchProductivityTime = row.GetInt(10);
-	into.researchCopyTime = row.GetInt(11);
-
-	return(true);
-}
-
 PyRep *FactoryDB::GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) const {
 	DBQueryResult res;
 

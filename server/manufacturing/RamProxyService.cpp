@@ -156,28 +156,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 			throw;
 		}
 
-		// now we are sure we have all requirements, we can start it ...
-
-		// if blueprint, load properties
-		BlueprintProperties bp;
-		if(installedItem->categoryID() == EVEDB::invCategories::Blueprint) {
-			if(!m_db.GetBlueprintProperties(installedItem->itemID(), bp)) {
-				installedItem->Release();
-				return(NULL);
-			}
-		} else {
-			bp.copy = false;
-			bp.materialLevel = bp.productivityLevel = bp.licensedProductionRunsRemaining = 0;
-		}
-
-		// if manufacturing from BPC, decrease licensed runs
-		if(args.activityID == ramActivityManufacturing && bp.copy) {
-			bp.licensedProductionRunsRemaining -= args.runs;
-			if(!m_db.SetBlueprintProperties(installedItem->itemID(), bp)) {
-				installedItem->Release();
-				return(NULL);
-			}
-		}
+		// now we are sure everything from the client side is right, we can start it ...
 
 		// load location where are located all materials
 		InventoryItem *bomLocation = m_manager->item_factory->Load(pathBomLocation.locationID, true);
@@ -192,21 +171,35 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 			beginProductionTime = rsp.maxJobStartTime;
 
 		// register our job
-		if(!m_db.InstallJob(args.isCorpJob ? call.client->GetCorporationID() : call.client->GetCharacterID(), call.client->GetCharacterID(),
-							args.installationAssemblyLineID, installedItem->itemID(), beginProductionTime, beginProductionTime + uint64(rsp.productionTime) * 10000000L,
-							args.description.c_str(), args.runs, (EVEItemFlags)args.flagOutput, bomLocation->locationID(), args.licensedProductionRuns))
-		{
-			if(args.activityID == ramActivityManufacturing && bp.copy) {
-				bp.licensedProductionRunsRemaining += args.runs;
-				m_db.SetBlueprintProperties(installedItem->itemID(), bp);
-			}
-
+		if(!m_db.InstallJob(
+			args.isCorpJob ? call.client->GetCorporationID() : call.client->GetCharacterID(),
+			call.client->GetCharacterID(),
+			args.installationAssemblyLineID,
+			installedItem->itemID(),
+			beginProductionTime,
+			beginProductionTime + uint64(rsp.productionTime) * Win32Time_Second,
+			args.description.c_str(),
+			args.runs,
+			(EVEItemFlags)args.flagOutput,
+			bomLocation->locationID(),
+			args.licensedProductionRuns
+		)) {
 			bomLocation->Release();
 			installedItem->Release();
 			return(NULL);
 		}
 
-		// pay for assembly lines, move the blueprint away
+		// do some activity-specific actions
+		switch(args.activityID) {
+			case ramActivityManufacturing: {
+				// decrease licensed production runs
+				BlueprintItem *bp = (BlueprintItem *)installedItem;
+				if(!bp->infinite())
+					bp->AlterLicensedProductionRunsRemaining(-1);
+			}
+		}
+
+		// pay for assembly lines, move the item away
 		call.client->AddBalance(-rsp.cost);
 		installedItem->ChangeFlag(flagFactoryBlueprint);
 		installedItem->Release();	//  not needed anymore
@@ -233,7 +226,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 			curi = items.begin();
 			endi = items.end();
 
-			// remove required materials
+			// consume required materials
 			for(; curi != endi; curi++) {
 				if((*curi)->typeID() == cur->typeID && (*curi)->ownerID() == call.client->GetCharacterID()) {
 					if(qtyNeeded >= (*curi)->quantity()) {
@@ -269,7 +262,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 	if(!m_db.GetJobProperties(args.jobID, installedItemID, ownerID, outputFlag, runs, licensedProductionRuns, activity))
 		return(NULL);
 
-	// return blueprint
+	// return item
 	InventoryItem *installedItem = m_manager->item_factory->Load(installedItemID, false);
 	if(installedItem == NULL)
 		return(NULL);
@@ -290,7 +283,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			uint32 quantity = floor(cur->quantity * runs * (1.0 - cur->damagePerJob));
 			if(quantity == 0)
 				continue;
-			InventoryItem *item = m_manager->item_factory->Spawn(cur->typeID, quantity, ownerID, 0, outputFlag);
+			InventoryItem *item = m_manager->item_factory->Spawn(cur->typeID, ownerID, 0, outputFlag, quantity);
 			if(item == NULL) {
 				installedItem->Release();
 				return(NULL);
@@ -301,20 +294,21 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 	}
 
 	// if not cancelled, realize result of activity
-	if(!args.cancel)
+	if(!args.cancel) {
 		switch(activity) {
+			/*
+			 * Manufacturing
+			 */
 			case ramActivityManufacturing: {
-				uint32 productTypeID = m_db.GetBlueprintProduct(installedItem->typeID());
-				if(productTypeID == NULL) {
-					installedItem->Release();
-					return(NULL);
-				}
-				uint32 portionSize = m_db.GetPortionSize(productTypeID);
-				if(portionSize == NULL) {
-					installedItem->Release();
-					return(NULL);
-				}
-				InventoryItem *item = m_manager->item_factory->Spawn(productTypeID, portionSize * runs, ownerID, 0, outputFlag);
+				BlueprintItem *bp = (BlueprintItem *)installedItem;
+
+				InventoryItem *item = m_manager->item_factory->Spawn(
+					bp->productType()->id,
+					ownerID,
+					0,	// temp location
+					outputFlag,
+					bp->productType()->portionSize * runs
+				);
 				if(item == NULL) {
 					installedItem->Release();
 					return(NULL);
@@ -323,46 +317,49 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 				item->Release();
 				break;
 			}
-			case ramActivityResearchingTimeProductivity:
-			case ramActivityResearchingMaterialProductivity: {
-				BlueprintProperties bp;
-				if(!m_db.GetBlueprintProperties(installedItem->itemID(), bp)) {
-					installedItem->Release();
-					return(NULL);
-				}
+			/*
+			 * Time productivity research
+			 */
+			case ramActivityResearchingTimeProductivity: {
+				BlueprintItem *bp = (BlueprintItem *)installedItem;
 
-				if(activity == ramActivityResearchingTimeProductivity)
-					bp.productivityLevel += runs;
-				else if(activity == ramActivityResearchingMaterialProductivity)
-					bp.materialLevel += runs;
-
-				if(!m_db.SetBlueprintProperties(installedItem->itemID(), bp)) {
-					installedItem->Release();
-					return(NULL);
-				}
+				bp->AlterProductivityLevel(runs);
 				break;
 			}
+			/*
+			 * Material productivity research
+			 */
+			case ramActivityResearchingMaterialProductivity: {
+				BlueprintItem *bp = (BlueprintItem *)installedItem;
+
+				bp->AlterMaterialLevel(runs);
+				break;
+			}
+			/*
+			 * Copying
+			 */
 			case ramActivityCopying: {
-				BlueprintProperties bp;
-				if(!m_db.GetBlueprintProperties(installedItem->itemID(), bp)) {
+				BlueprintItem *bp = (BlueprintItem *)installedItem;
+
+				BlueprintItem *copy = m_manager->item_factory->SpawnBlueprint(
+					installedItem->typeID(),
+					ownerID,
+					0,	//temp location
+					outputFlag,
+					runs,
+					true,
+					bp->materialLevel(),
+					bp->productivityLevel(),
+					licensedProductionRuns);
+				if(copy == NULL) {
 					installedItem->Release();
 					return(NULL);
 				}
-				bp.copy = true;
-				bp.licensedProductionRunsRemaining = licensedProductionRuns;
-
-				InventoryItem *copy;
-				for(uint32 c = 0; c < runs; c++) {
-					// I think blueprints are always singleton ... BTW I can't understand why SpawnSigleton requires more args than Spawn
-					copy = m_manager->item_factory->SpawnSingleton(installedItem->typeID(), ownerID, 0, outputFlag, installedItem->itemName().c_str(), GPoint());
-					if(copy == NULL)
-						continue;
-					m_db.SetBlueprintProperties(copy->itemID(), bp);	// when this fails, nothing we can do about it, blueprint is already spawned
-					copy->Move(args.containerID, outputFlag);
-					copy->Release();
-				}
+				copy->Move(args.containerID, outputFlag);
+				copy->Release();
 			}
 		}
+	}
 
 	installedItem->Release();
 
@@ -386,24 +383,85 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 	// ACTIVITY CHECK
 	// ***************
 
-	// anything else is not supported
-	if( args.activityID != ramActivityManufacturing &&
-		args.activityID != ramActivityResearchingTimeProductivity &&
-		args.activityID != ramActivityResearchingMaterialProductivity &&
-		args.activityID != ramActivityCopying)
-	{
-		throw(PyException(MakeUserError("RamActivityInvalid")));
+	const Type *productType;
+	switch(args.activityID) {
+		/*
+		 * Manufacturing
+		 */
+		case ramActivityManufacturing: {
+			if(installedItem->categoryID() != EVEDB::invCategories::Blueprint)
+				throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
+
+			BlueprintItem *bp = (BlueprintItem *)installedItem;
+
+			if(!bp->infinite() && (bp->licensedProductionRunsRemaining() - args.runs) < 0)
+				throw(PyException(MakeUserError("RamTooManyProductionRuns")));
+
+			productType = bp->productType();
+			break;
+		}
+		/*
+		 * Time/Material Research
+		 */
+		case ramActivityResearchingMaterialProductivity:
+		case ramActivityResearchingTimeProductivity: {
+			if(installedItem->categoryID() != EVEDB::invCategories::Blueprint)
+				throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
+
+			BlueprintItem *bp = (BlueprintItem *)installedItem;
+
+			if(bp->copy())
+				throw(PyException(MakeUserError("RamCannotResearchABlueprintCopy")));
+
+			productType = bp->type();
+			break;
+		}
+		/*
+		 * Copying
+		 */
+		case ramActivityCopying: {
+			if(installedItem->categoryID() != EVEDB::invCategories::Blueprint)
+				throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
+
+			BlueprintItem *bp = (BlueprintItem *)installedItem;
+
+			if(bp->copy())
+				throw(PyException(MakeUserError("RamCannotCopyABlueprintCopy")));
+
+			productType = bp->type();
+			break;
+		}
+		/*
+		 * The rest
+		 */
+		case ramActivityResearchingTechnology:
+		case ramActivityDuplicating:
+		case ramActivityReverseEngineering:
+		case ramActivityInvention: /* {
+			if(installedItem->categoryID() != EVEDB::invCategories::Blueprint)
+				throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
+
+			BlueprintItem *bp = (BlueprintItem *)installedItem;
+
+			if(!bp->copy())
+				throw(PyException(MakeUserError("RamCannotInventABlueprintOriginal")));
+
+			uint32 productTypeID = m_db.GetTech2Blueprint(installedItem->typeID());
+			if(productTypeID == NULL)
+				throw(PyException(MakeUserError("RamInventionNoOutput")));
+
+			productType = m_manager->item_factory->type(productTypeID);
+			break;
+		} */
+		default: {
+			// not supported
+			throw(PyException(MakeUserError("RamActivityInvalid")));
+			//throw(PyException(MakeUserError("RamNoKnownOutputType")));
+		}
 	}
 
-	// enumerate activities again as there are activities which doesnt require blueprint
-	if((args.activityID == ramActivityManufacturing ||
-		args.activityID == ramActivityResearchingTimeProductivity ||
-		args.activityID == ramActivityResearchingMaterialProductivity ||
-		args.activityID == ramActivityCopying) &&
-		installedItem->categoryID() != EVEDB::invCategories::Blueprint)
-	{
-		throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
-	}
+	if(!m_db.IsProducableBy(args.installationAssemblyLineID, productType->groupID()))
+		throw(PyException(MakeUserError("RamBadEndProductForActivity")));
 
 	// JOBS CHECK
 	// ***********
@@ -497,40 +555,6 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 		}
 	}
 
-	// PRODUCT CHECK
-	// **************
-
-	uint32 productTypeID;
-	switch(args.activityID) {
-		case ramActivityManufacturing:
-			productTypeID = m_db.GetBlueprintProduct(installedItem->typeID());
-			if(productTypeID == NULL)
-				throw(PyException(MakeUserError("RamNoKnownOutputType")));
-			break;
-
-		case ramActivityInvention:
-			productTypeID = m_db.GetTech2Blueprint(installedItem->typeID());
-			if(productTypeID == NULL)
-				throw(PyException(MakeUserError("RamInventionNoOutput")));
-			break;
-
-		case ramActivityResearchingTimeProductivity:
-		case ramActivityResearchingMaterialProductivity:
-		case ramActivityCopying:
-		case ramActivityDuplicating:
-			productTypeID = installedItem->typeID();
-			break;
-
-		case ramActivityNone:
-		case ramActivityResearchingTechnology:
-		case ramActivityReverseEngineering:
-		default:
-			throw(PyException(MakeUserError("RamNoKnownOutputType")));
-	}
-
-	if(!m_db.IsProducableBy(args.installationAssemblyLineID, m_db.GetGroup(productTypeID)))
-		throw(PyException(MakeUserError("RamBadEndProductForActivity")));
-
 	// INSTALLED ITEM CHECK
 	// *********************
 
@@ -551,23 +575,6 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 		(installedItem->flag() == flagCorpSecurityAccessGroup6 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake6) != corpRoleHangarCanTake6) ||
 		(installedItem->flag() == flagCorpSecurityAccessGroup7 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake7) != corpRoleHangarCanTake7))
 			throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
-
-	// special checks for blueprints
-	BlueprintProperties bp;
-	if(m_db.GetBlueprintProperties(installedItem->itemID(), bp)) {
-		if(bp.copy &&
-			(args.activityID == ramActivityResearchingTimeProductivity || args.activityID == ramActivityResearchingMaterialProductivity))
-				throw(PyException(MakeUserError("RamCannotResearchABlueprintCopy")));
-
-		if(bp.copy && args.activityID == ramActivityCopying)
-			throw(PyException(MakeUserError("RamCannotCopyABlueprintCopy")));
-
-		if(!bp.copy && args.activityID == ramActivityInvention)
-			throw(PyException(MakeUserError("RamCannotInventABlueprintOriginal")));
-
-		if(bp.licensedProductionRunsRemaining - args.runs < 0)
-			throw(PyException(MakeUserError("RamTooManyProductionRuns")));
-	}
 
 	// large location check
 	if(IsStation(args.installationContainerID)) {
@@ -609,19 +616,17 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 				}
 			}
 		}
-	} else {
-		if(args.installationContainerID == c->GetShipID()) {
-			if(c->Item()->flag() != flagPilot)
-				throw(PyException(MakeUserError("RamAccessDeniedNotPilot")));
+	} else if(args.installationContainerID == c->GetShipID()) {
+		if(c->Item()->flag() != flagPilot)
+			throw(PyException(MakeUserError("RamAccessDeniedNotPilot")));
 
-			if(installedItem->locationID() != args.installationContainerID)
-				throw(PyException(MakeUserError("RamInstalledItemMustBeInShip")));
-		} else {
-			// here should be stuff around POS, but I dont certainly know how it should work, so ...
-			// RamInstalledItemBadLocationStructure
-			// RamInstalledItemInStructureNotInContainer
-			// RamInstalledItemInStructureUnknownLocation
-		}
+		if(installedItem->locationID() != args.installationContainerID)
+			throw(PyException(MakeUserError("RamInstalledItemMustBeInShip")));
+	} else {
+		// here should be stuff around POS, but I dont certainly know how it should work, so ...
+		// RamInstalledItemBadLocationStructure
+		// RamInstalledItemInStructureNotInContainer
+		// RamInstalledItemInStructureUnknownLocation
 	}
 
 	// BOM LOCATION CHECK
@@ -683,7 +688,9 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
 		if(cur->isSkill) {
 			if(GetSkillLevel(skills, cur->typeID) < cur->quantity) {
 				std::map<std::string, PyRep *> args;
-				args["item"] = new PyRepString(m_db.GetTypeName(cur->typeID));
+				args["item"] = new PyRepString(
+					m_manager->item_factory->type(cur->typeID)->name.c_str()
+				);
 				args["skillLevel"] = new PyRepInteger(cur->quantity);
 
 				throw(PyException(MakeUserError("RamNeedSkillForJob", args)));
@@ -706,7 +713,9 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
 
 			if(qtyNeeded > 0) {
 				std::map<std::string, PyRep *> args;
-				args["item"] = new PyRepString(m_db.GetTypeName(cur->typeID));
+				args["item"] = new PyRepString(
+					m_manager->item_factory->type(cur->typeID)->name.c_str()
+				);
 
 				throw(PyException(MakeUserError("RamNeedMoreForJob", args)));
 			}
@@ -734,7 +743,7 @@ void RamProxyService::_VerifyCompleteJob(const Call_CompleteJob &args, Client *c
 			throw(PyException(MakeUserError("RamCompletionAccessDenied")));
 	}
 
-	if(status != 0)
+	if(status != ramCompletedStatusInProgress)
 		throw(PyException(MakeUserError("RamCompletionJobCompleted")));
 
 	if(!args.cancel && endProductionTime > Win32TimeNow())
@@ -745,29 +754,26 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 	if(!m_db.GetAssemblyLineProperties(args.installationAssemblyLineID, into.materialMultiplier, into.timeMultiplier, into.installCost, into.usageCost))
 		return(false);
 
-	into.productionTime = m_db.GetBlueprintProductionTime(installedItem->typeID(), (EVERamActivity)args.activityID);
-	if(!into.productionTime)
-		return(false);
-
-	uint32 productGroupID = installedItem->groupID();	//default
+	const Type *productType;
 	// perform some activity-specific actions
 	switch(args.activityID) {
+		/*
+		 * Manufacturing
+		 */
 		case ramActivityManufacturing: {
-			uint32 productTypeID = m_db.GetBlueprintProduct(installedItem->typeID());
-			productGroupID = m_db.GetGroup(productTypeID);
+			BlueprintItem *bp = (BlueprintItem *)installedItem;
 
-			double wasteFactor;
-			uint32 materialLevel, productivityLevel, productivityModifier;
-			if(!m_db.GetAdditionalBlueprintProperties(installedItem->itemID(), materialLevel, wasteFactor, productivityLevel, productivityModifier))
-				return(false);
+			productType = bp->productType();
 
-			into.materialMultiplier *= 1.0 + (wasteFactor / (1 + materialLevel));
-			into.timeMultiplier *= (into.productionTime - (1.0 - (1.0 / (1 + productivityLevel))) * productivityModifier) / into.productionTime;
+			into.productionTime = bp->bptype()->productionTime;
+
+			into.materialMultiplier *= bp->materialMultiplier();
+			into.timeMultiplier *= bp->timeMultiplier();
 
 			into.charMaterialMultiplier = c->Item()->manufactureCostMultiplier();
 			into.charTimeMultiplier = c->Item()->manufactureTimeMultiplier();
 
-			switch(m_db.GetRace(productTypeID)) {
+			switch(productType->race()) {
 				case raceCaldari:	into.charTimeMultiplier *= double(c->Item()->caldariTechTimePercent()) / 100.0; break;
 				case raceMinmatar:	into.charTimeMultiplier *= double(c->Item()->minmatarTechTimePercent()) / 100.0; break;
 				case raceAmarr:		into.charTimeMultiplier *= double(c->Item()->amarrTechTimePercent()) / 100.0; break;
@@ -775,38 +781,58 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 			}
 			break;
 		}
+		/*
+		 * Time productivity research
+		 */
 		case ramActivityResearchingTimeProductivity: {
+			BlueprintItem *bp = (BlueprintItem *)installedItem;
+
+			productType = installedItem->type();
+
+			into.productionTime = bp->bptype()->researchProductivityTime;
 			into.charMaterialMultiplier = double(c->Item()->researchCostPercent()) / 100.0;
 			into.charTimeMultiplier = c->Item()->manufacturingTimeResearchSpeed();
 			break;
 		}
+		/*
+		 * Material productivity research
+		 */
 		case ramActivityResearchingMaterialProductivity: {
+			BlueprintItem *bp = (BlueprintItem *)installedItem;
+
+			productType = installedItem->type();
+
+			into.productionTime = bp->bptype()->researchMaterialTime;
 			into.charMaterialMultiplier = double(c->Item()->researchCostPercent()) / 100.0;
 			into.charTimeMultiplier = c->Item()->mineralNeedResearchSpeed();
 			break;
 		}
+		/*
+		 * Copying
+		 */
 		case ramActivityCopying: {
-			uint32 maxProductionLimit = m_db.GetMaxProductionLimit(installedItem->typeID());
-			if(!maxProductionLimit)
-				return(false);
+			BlueprintItem *bp = (BlueprintItem *)installedItem;
+
+			productType = installedItem->type();
 
 			// no ceil() here on purpose
-			into.productionTime = (into.productionTime / maxProductionLimit) * args.licensedProductionRuns;
-			
+			into.productionTime = (bp->bptype()->researchCopyTime / bp->bptype()->maxProductionLimit) * args.licensedProductionRuns;
+
 			into.charMaterialMultiplier = double(c->Item()->researchCostPercent()) / 100.0;
 			into.charTimeMultiplier = c->Item()->copySpeedPercent();
 			break;
 		}
 		default: {
+			productType = installedItem->type();
+
 			into.charMaterialMultiplier = 1.0;
 			into.charTimeMultiplier = 1.0;
 			break;
 		}
 	}
 
-	if(productGroupID != NULL)
-		if(!m_db.MultiplyMultipliers(args.installationAssemblyLineID, productGroupID, into.materialMultiplier, into.timeMultiplier))
-			return(false);
+	if(!m_db.MultiplyMultipliers(args.installationAssemblyLineID, productType->groupID(), into.materialMultiplier, into.timeMultiplier))
+		return(false);
 
 	// calculate the remaining things
 	into.productionTime *= into.timeMultiplier * into.charTimeMultiplier * args.runs;

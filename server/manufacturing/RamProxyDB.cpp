@@ -359,38 +359,6 @@ uint32 RamProxyDB::CountResearchJobs(const uint32 installerID) {
 
 	return(row.GetUInt(0));
 }
-bool RamProxyDB::GetAdditionalBlueprintProperties(const uint32 blueprintID, uint32 &materialLevel, double &wasteFactor, uint32 &productivityLevel, uint32 &productivityModifier) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-		"SELECT"
-		" blueprint.materialLevel,"
-		" blueprintType.wasteFactor / 100,"
-		" blueprint.productivityLevel,"
-		" blueprintType.productivityModifier"
-		" FROM invBlueprints AS blueprint"
-		" LEFT JOIN entity ON blueprint.blueprintID = entity.itemID"
-		" LEFT JOIN invBlueprintTypes AS blueprintType ON blueprintType.blueprintTypeID = entity.typeID"
-		" WHERE blueprint.blueprintID = %lu",
-		blueprintID))
-	{
-		_log(DATABASE__ERROR, "Failed to query additional properties for blueprint type %lu: %s.", blueprintID, res.error.c_str());
-		return(false);
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No additional properties found for blueprint type %lu.", blueprintID);
-		return(false);
-	}
-
-	materialLevel = row.GetUInt(0);
-	wasteFactor = row.GetDouble(1);
-	productivityLevel = row.GetUInt(2);
-	productivityModifier = row.GetUInt(3);
-
-	return(true);
-}
 
 bool RamProxyDB::GetRequiredItems(const uint32 typeID, const EVERamActivity activity, std::vector<RequiredItem> &into) {
 	DBQueryResult res;
@@ -495,28 +463,6 @@ bool RamProxyDB::CompleteJob(const uint32 jobID, const EVERamCompletedStatus com
 	return(true);
 }
 
-std::string RamProxyDB::GetTypeName(const uint32 typeID) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-		"SELECT typeName"
-		" FROM invTypes"
-		" WHERE typeID = %lu",
-		typeID))
-	{
-		_log(DATABASE__ERROR, "Failed to query type name of type %lu: %s.", typeID, res.error.c_str());
-		return("");
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No type name found for type %lu.", typeID);
-		return("");
-	}
-
-	return(row.GetText(0));
-}
-
 std::string RamProxyDB::GetStationName(const uint32 stationID) {
 	DBQueryResult res;
 
@@ -539,71 +485,6 @@ std::string RamProxyDB::GetStationName(const uint32 stationID) {
 	return(row.GetText(0));
 }
 
-uint32 RamProxyDB::GetMaxProductionLimit(const uint32 blueprintTypeID) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-		"SELECT maxProductionLimit"
-		" FROM invBlueprintTypes"
-		" WHERE blueprintTypeID = %lu",
-		blueprintTypeID))
-	{
-		_log(DATABASE__ERROR, "Failed to query max production limit of type %lu: %s.", blueprintTypeID, res.error.c_str());
-		return(NULL);
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No max production limit found for type %lu.", blueprintTypeID);
-		return(NULL);
-	}
-
-	return(row.GetUInt(0));
-}
-
-uint32 RamProxyDB::GetGroup(const uint32 typeID) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-				"SELECT groupID"
-				" FROM invTypes"
-				" WHERE typeID = %lu",
-				typeID))
-	{
-		_log(DATABASE__ERROR, "Unable to get group for type %lu: %s", typeID, res.error.c_str());
-		return(NULL);
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Type %lu not found.", typeID);
-		return(NULL);
-	}
-
-	return(row.GetUInt(0));
-}
-
-EVERace RamProxyDB::GetRace(const uint32 typeID) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-				"SELECT raceID"
-				" FROM invTypes"
-				" WHERE typeID = %lu",
-				typeID))
-	{
-		_log(DATABASE__ERROR, "Unable to get race for type %lu: %s", typeID, res.error.c_str());
-		return((EVERace)NULL);
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Type %lu not found.", typeID);
-		return((EVERace)NULL);
-	}
-
-	return(row.IsNull(0) ? (EVERace)NULL : (EVERace)row.GetUInt(0));
-}
 uint32 RamProxyDB::GetTech2Blueprint(const uint32 blueprintTypeID) {
 	DBQueryResult res;
 
@@ -620,29 +501,6 @@ uint32 RamProxyDB::GetTech2Blueprint(const uint32 blueprintTypeID) {
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		// no error because it's normal
-		return(NULL);
-	}
-
-	return(row.GetUInt(0));
-}
-
-uint32 RamProxyDB::GetPortionSize(const uint32 typeID) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-				"SELECT portionSize"
-				" FROM invTypes"
-				" WHERE typeID=%lu",
-				typeID
-				))
-	{
-		_log(DATABASE__ERROR, "Unable to get portion size for type ID %lu: %s", typeID, res.error.c_str());
-		return(NULL);
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No portion size found for type ID %lu.", typeID);
 		return(NULL);
 	}
 
@@ -694,40 +552,6 @@ uint32 RamProxyDB::GetRegionOfContainer(const uint32 containerID) {
 
 }
 
-uint32 RamProxyDB::GetBlueprintProductionTime(const uint32 blueprintTypeID, const EVERamActivity activity) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-		"SELECT"
-		" blueprintType.productionTime,"
-		" blueprintType.researchProductivityTime,"
-		" blueprintType.researchMaterialTime,"
-		" blueprintType.researchCopyTime,"
-		" blueprintType.researchTechTime"
-		" FROM invBlueprintTypes AS blueprintType"
-		" WHERE blueprintType.blueprintTypeID = %lu",
-		blueprintTypeID))
-	{
-		_log(DATABASE__ERROR, "Failed to query production times for blueprint type %lu: %s.", blueprintTypeID, res.error.c_str());
-		return(NULL);
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No production times found for blueprint type %lu.", blueprintTypeID);
-		return(NULL);
-	}
-
-	switch(activity) {
-		case ramActivityManufacturing:						return(row.GetUInt(0));
-		case ramActivityResearchingTimeProductivity:		return(row.GetUInt(1));
-		case ramActivityResearchingMaterialProductivity:	return(row.GetUInt(2));
-		case ramActivityCopying:							return(row.GetUInt(3));
-		case ramActivityInvention:							return(row.GetUInt(4));
-		default:											return(NULL);
-	}
-}
-
 bool RamProxyDB::_GetMultipliers(const uint32 assemblyLineID, uint32 groupID, double &materialMultiplier, double &timeMultiplier) {
 	DBQueryResult res;
 
@@ -770,7 +594,6 @@ bool RamProxyDB::_GetMultipliers(const uint32 assemblyLineID, uint32 groupID, do
 		timeMultiplier = row.GetDouble(1);
 		return(true);
 	} else {
-		_log(DATABASE__ERROR, "Failed to find multipliers for group %lu for assembly line %lu. Group is probably not producable by this line.", groupID, assemblyLineID);
 		return(false);
 	}
 }

@@ -27,7 +27,6 @@ public:
 	FactoryDB(DBcore *db);
 	virtual ~FactoryDB();
 
-	bool GetBlueprintAttributes(const uint32 blueprintID, Rsp_GetBlueprintAttributes &into) const;
 	PyRep *GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) const;
 	PyRep *GetMaterialCompositionOfItemType(const uint32 typeID) const;
 };

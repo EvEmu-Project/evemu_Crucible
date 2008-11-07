@@ -24,291 +24,316 @@ ItemFactory::ItemFactory(DBcore *db, EntityList *el)
 }
 
 ItemFactory::~ItemFactory() {
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
-	cur = m_items.begin();
-	end = m_items.end();
-	for(; cur != end; cur++) {
-		cur->second->Release();
+	// categories
+	{
+		std::map<EVEItemCategories, Category *>::const_iterator cur, end;
+		cur = m_categories.begin();
+		end = m_categories.end();
+		for(; cur != end; cur++)
+			delete cur->second;
 	}
+	// groups
+	{
+		std::map<uint32, Group *>::const_iterator cur, end;
+		cur = m_groups.begin();
+		end = m_groups.end();
+		for(; cur != end; cur++)
+			delete cur->second;
+	}
+	// types
+	{
+		std::map<uint32, Type *>::const_iterator cur, end;
+		cur = m_types.begin();
+		end = m_types.end();
+		for(; cur != end; cur++)
+			delete cur->second;
+	}
+	// items
+	{
+		std::map<uint32, InventoryItem *>::const_iterator cur, end;
+		cur = m_items.begin();
+		end = m_items.end();
+		for(; cur != end; cur++)
+			cur->second->Release();
+	}
+}
+
+const Category *ItemFactory::category(EVEItemCategories category) {
+	std::map<EVEItemCategories, Category *>::iterator res = m_categories.find(category);
+	if(res == m_categories.end()) {
+		_log(ITEM__TRACE, "Loading category %lu.", category);
+
+		Category *cat = Category::LoadCategory(*this, category);
+		if(cat == NULL)
+			return(NULL);
+
+		// insert it into our cache
+		res = m_categories.insert(
+			std::pair<EVEItemCategories, Category *>(category, cat)
+		).first;
+	}
+	return(res->second);
+}
+
+const Group *ItemFactory::group(uint32 groupID) {
+	std::map<uint32, Group *>::iterator res = m_groups.find(groupID);
+	if(res == m_groups.end()) {
+		_log(ITEM__TRACE, "Loading group %lu.", groupID);
+
+		Group *group = Group::LoadGroup(*this, groupID);
+		if(group == NULL)
+			return(NULL);
+
+		// insert it into cache
+		res = m_groups.insert(
+			std::pair<uint32, Group *>(groupID, group)
+		).first;
+	}
+	return(res->second);
+}
+
+const Type *ItemFactory::type(uint32 typeID) {
+	std::map<uint32, Type *>::iterator res = m_types.find(typeID);
+	if(res == m_types.end()) {
+		_log(ITEM__TRACE, "Loading type %lu.", typeID);
+
+		Type *type = Type::LoadType(*this, typeID);
+		if(type == NULL)
+			return(NULL);
+
+		// insert into cache
+		res = m_types.insert(
+			std::pair<uint32, Type *>(typeID, type)
+		).first;
+	}
+	return(res->second);
 }
 	
 InventoryItem *ItemFactory::Load(uint32 itemID, bool recurse) {
-	std::map<uint32, InventoryItem *>::const_iterator res;
-	res = m_items.find(itemID);
-	if(res != m_items.end()) {
-		if(recurse) {
-			_log(ITEM__TRACE, "Recursively loading contents of cached item %lu", itemID);
-			if(!res->second->LoadContents(recurse)) {
-				codelog(SERVICE__ERROR, "Failed to load recursive contents of item ID %d. Returning it unloaded.", itemID);
-			}
+	std::map<uint32, InventoryItem *>::iterator res = m_items.find(itemID);
+	if(res == m_items.end()) {
+		_log(ITEM__TRACE, "Loading item %lu.", itemID);
+
+		InventoryItem *i = InventoryItem::LoadItem(*this, itemID, recurse);
+		if(i == NULL)
+			return(NULL);
+
+		//if we have the item `locationID` loaded, we need to update it.
+		InventoryItem *container = GetIfContentsLoaded(i->locationID());
+		if(container != NULL) {
+			container->AddContainedItem(i);
+			container->Release();
 		}
-		return(res->second->Ref());
+
+		//we keep the original ref.
+		res = m_items.insert(
+			std::pair<uint32, InventoryItem *>(itemID, i)
+		).first;
 	}
-	
-	//item not cached, load it up. This calls back on our Create()
-	InventoryItem *i = m_db.LoadItem(itemID, this);
+	if(recurse)
+		res->second->LoadContents(true);
+	//we return an additional ref to the user.
+	return(res->second->Ref());
+}
+
+BlueprintItem *ItemFactory::LoadBlueprint(uint32 blueprintID, bool recurse) {
+	InventoryItem *i = Load(blueprintID, recurse);
 	if(i == NULL)
 		return(NULL);
-	
-	//load up any additional features of this item from the DB
-	if(!i->Load(recurse)) {
-		_log(ITEM__DEBUG, "Failed to load details for item %lu", i->itemID());
+	if(i->categoryID() != EVEDB::invCategories::Blueprint) {
 		i->Release();
-		//TODO: clear this item out from its container....
 		return(NULL);
 	}
-	
-	//we give the ref which we were given by m_db.LoadItem to our caller.
-	return(i);
+	return((BlueprintItem *)(i));
 }
 
 InventoryItem *ItemFactory::GetIfContentsLoaded(uint32 itemID) {
-	std::map<uint32, InventoryItem *>::const_iterator res;
-	res = m_items.find(itemID);
+	std::map<uint32, InventoryItem *>::const_iterator res = m_items.find(itemID);
 	if(res != m_items.end()) {
-		if(res->second->ContentsLoaded()) {
+		if(res->second->ContentsLoaded())
 			return(res->second->Ref());
-		}
-		return(NULL);
+		else
+			return(NULL);
 	}
 	return(NULL);
 }
 	
-InventoryItem *ItemFactory::Create(
-	uint32 _itemID, 
-	const char *_itemName,
-	uint32 _typeID, 
-	uint32 _ownerID,
-	uint32 _locationID,
-	EVEItemFlags _flag,
-	bool _contraband,
-	bool _singleton,
-	uint32 _quantity,
-	const GPoint &_position,
-	const char *_customInfo,
-	uint32 _groupID, 
-	EVEItemCategories _categoryID,
-	bool _inDB
+InventoryItem *ItemFactory::Spawn(
+	uint32 typeID,
+	uint32 ownerID,
+	uint32 locationID,
+	EVEItemFlags flag,
+	uint32 quantity
 ) {
-	std::map<uint32, InventoryItem *>::iterator res;
-	res = m_items.find(_itemID);
-	if(res != m_items.end()) {
-		codelog(SERVICE__ERROR, "Item ID %d already exixts, refusing to create it.", _itemID);
+	const Type *t = type(typeID);
+	if(t == NULL)
 		return(NULL);
-	}
-	
-	InventoryItem *i = new InventoryItem(
-		this,
-		_itemID, 
-		_itemName,
-		_typeID, 
-		_ownerID,
-		_locationID,
-		_flag,
-		_contraband,
-		_singleton,
-		_quantity,
-		_position,
-		_customInfo,
-		_groupID, 
-		_categoryID,
-		_inDB
-		);
 
-	//load up attributes (even non-DB objects have item attributes)
-	if(!i->LoadStatic()) {
-		_log(ITEM__ERROR, "Failed to load static data for item %lu of type %lu", i->itemID(), i->typeID());
-		i->Release();
+	if(t->categoryID() == EVEDB::invCategories::Blueprint)
+		return(SpawnBlueprint(typeID, ownerID, locationID, flag, quantity, false, 0, 0, 0));
+
+	GPoint pos(0, 0, 0);
+	uint32 itemID = m_db.NewItem(
+		t->name.c_str(),
+		typeID,
+		ownerID,
+		locationID,
+		flag,
+		false,	// contraband
+		false,
+		quantity,
+		pos,
+		""	// customInfo
+	);
+	if(itemID == NULL)
 		return(NULL);
-	}
 	
-	_log(ITEM__TRACE, "Created object %p for item ID %lu of type %lu", i, i->itemID(), i->typeID());
-	
-	//if we have the item `locationID` loaded, we need to update it.
-	std::map<uint32, InventoryItem *>::iterator parent_res;
-	parent_res = m_items.find(i->locationID());
-	if(parent_res != m_items.end()) {
-		//we just created a new item, make sure its properly in the container
-		_log(ITEM__TRACE, "   Updated loaded location %lu to contain created item %lu", i->locationID(), i->itemID());
-		if(parent_res->second->ContentsLoaded()) {
-			parent_res->second->AddContainedItem(i);
-		}
-	}
-
-	//we keep the original ref.
-	m_items[_itemID] = i;
-
-	//we return an additional ref to the user.
-	return(i->Ref());
-}
-
-InventoryItem *ItemFactory::Create(
-	uint32 _itemID, 
-	const char *_itemName,
-	uint32 _typeID, 
-	uint32 _ownerID,
-	uint32 _locationID,
-	EVEItemFlags _flag,
-	bool _contraband,
-	bool _singleton,
-	uint32 _quantity,
-	const char *_customInfo,
-	uint32 _groupID, 
-	EVEItemCategories _categoryID,
-	bool _inDB
-) {
-	GPoint z(0,0,0);
-	return(Create(
-		_itemID, 
-		_itemName,
-		_typeID, 
-		_ownerID, 
-		_locationID,
-		_flag,
-		_contraband,
-		_singleton,
-		_quantity,
-		z,
-		_customInfo,
-		_groupID, 
-		_categoryID,
-		_inDB
-		) );
-}
-
-InventoryItem *ItemFactory::Create(
-	uint32 _itemID, 
-	const char *_itemName,
-	uint32 _typeID, 
-	uint32 _ownerID, 
-	uint32 _locationID,
-	EVEItemFlags _flag,
-	uint32 _groupID, 
-	EVEItemCategories _categoryID,
-	bool _inDB
-) {
-	GPoint z(0,0,0);
-	return(Create(
-		_itemID, 
-		_itemName,
-		_typeID, 
-		_ownerID, 
-		_locationID,
-		_flag,
-		false,
-		true,
-		1,
-		z,
-		"",
-		_groupID, 
-		_categoryID,
-		_inDB
-		) );
-}
-
-InventoryItem *ItemFactory::Create(
-	uint32 _itemID, 
-	const char *_itemName,
-	uint32 _typeID, 
-	uint32 _ownerID, 
-	uint32 _locationID,
-	EVEItemFlags _flag,
-	const GPoint &_position,
-	uint32 _groupID, 
-	EVEItemCategories _categoryID,
-	bool _inDB
-) {
-	return(Create(
-		_itemID, 
-		_itemName,
-		_typeID, 
-		_ownerID, 
-		_locationID,
-		_flag,
-		false,
-		true,
-		1,
-		_position,
-		"",
-		_groupID, 
-		_categoryID,
-		_inDB
-		) );
+	return(Load(itemID));
 }
 
 InventoryItem *ItemFactory::SpawnSingleton(
-		uint32 typeID,
-		uint32 ownerID,
-		uint32 locationID,
-		EVEItemFlags flag,
-		const char *name,
-		const GPoint &pos
+	uint32 typeID,
+	uint32 ownerID,
+	uint32 locationID,
+	EVEItemFlags flag,
+	const char *name,
+	const GPoint &pos
 ) {
-	InventoryItem *new_item;
+	const Type *t = type(typeID);
+	if(t == NULL)
+		return(NULL);
 
-	//this will create the item in the DB, and calls back on
-	//Create() above after loading it from the DB.
-	new_item = m_db.NewItemSingleton(this, typeID, ownerID, locationID, flag, name, pos);
-	if(new_item == NULL) {
+	if(t->categoryID() == EVEDB::invCategories::Blueprint)
+		return(SpawnBlueprintSingleton(typeID, ownerID, locationID, flag, false, 0, 0, 0, name, pos));
+
+	uint32 itemID = m_db.NewItem(
+		name == NULL ? t->name.c_str() : name,
+		typeID,
+		ownerID,
+		locationID,
+		flag,
+		false,	// contraband
+		true,
+		1,
+		pos,
+		""	// customInfo
+	);
+	if(itemID == NULL)
 		return(NULL);
-	}
 	
-	if(!_SpawnCommon(new_item)) {
-		new_item->Release();
-		return(NULL);
-	}
-	
-	_log(ITEM__TRACE, "Spawned new singleton item of type %lu for owner %lu with item ID %lu", typeID, ownerID, new_item->itemID());
-	
-	return(new_item);
+	return(Load(itemID));
 }
 
-InventoryItem *ItemFactory::Spawn(
-		uint32 typeID,
-		uint32 quantity,
-		uint32 ownerID,
-		uint32 locationID,
-		EVEItemFlags flag
+BlueprintItem *ItemFactory::SpawnBlueprint(
+	uint32 typeID,
+	uint32 ownerID,
+	uint32 locationID,
+	EVEItemFlags flag,
+	uint32 quantity,
+	bool copy,
+	uint32 materialLevel,
+	uint32 productivityLevel,
+	int32 licensedProductionRunsRemaining
 ) {
-	InventoryItem *new_item;
+	const Type *t = type(typeID);
+	if(t == NULL)
+		return(NULL);
 
-	//this will create the item in the DB, and calls back on
-	//Create() above after loading it from the DB.
+	if(t->categoryID() != EVEDB::invCategories::Blueprint) {
+		_log(ITEM__ERROR, "Trying to spawn blueprint with non-blueprint type %lu.", typeID);
+		return(NULL);
+	}
+
 	GPoint pos(0, 0, 0);
-	new_item = m_db.NewItem(this, typeID, quantity, ownerID, locationID, flag, pos);
-	if(new_item == NULL) {
-		codelog(ITEM__DEBUG, "Failed create new item of type %lu for owner %lu in the DB.", typeID, ownerID);
+	uint32 itemID = m_db.NewItem(
+		t->name.c_str(),
+		typeID,
+		ownerID,
+		locationID,
+		flag,
+		false,	// contraband
+		false,
+		quantity,
+		pos,
+		""	// customInfo
+	);
+	if(itemID == NULL)
+		return(NULL);
+
+	if(!m_db.NewBlueprint(
+		itemID,
+		copy,
+		materialLevel,
+		productivityLevel,
+		licensedProductionRunsRemaining))
+	{
+		m_db.DeleteItem(itemID);
 		return(NULL);
 	}
-	
-	if(!_SpawnCommon(new_item)) {
-		new_item->Release();
+
+	return((BlueprintItem *)(Load(itemID)));
+}
+
+BlueprintItem *ItemFactory::SpawnBlueprintSingleton(
+	uint32 typeID,
+	uint32 ownerID,
+	uint32 locationID,
+	EVEItemFlags flag,
+	bool copy,
+	uint32 materialLevel,
+	uint32 productivityLevel,
+	int32 licensedProductionRunsRemaining,
+	const char *name,
+	const GPoint &pos
+) {
+	const Type *t = type(typeID);
+	if(t == NULL)
+		return(NULL);
+
+	if(t->categoryID() != EVEDB::invCategories::Blueprint) {
+		_log(ITEM__ERROR, "Trying to spawn blueprint with non-blueprint type %lu.", typeID);
 		return(NULL);
 	}
-	
-	_log(ITEM__TRACE, "Spawned new item of type %lu quantity %lu for owner %lu with item ID %lu", typeID, quantity, ownerID, new_item->itemID());
-	
-	return(new_item);
-}
 
-bool ItemFactory::_SpawnCommon(InventoryItem *i) {
-	if(!i->Load(true)) {
-		codelog(ITEM__DEBUG, "Failed load new item of type %lu for owner %lu in the DB.", i->typeID(), i->ownerID());
-		return(false);
+	uint32 itemID = m_db.NewItem(
+		name == NULL ? t->name.c_str() : name,
+		typeID,
+		ownerID,
+		locationID,
+		flag,
+		false,	// contraband
+		true,
+		1,
+		pos,
+		""	// customInfo
+	);
+	if(itemID == NULL)
+		return(NULL);
+
+	if(!m_db.NewBlueprint(
+		itemID,
+		copy,
+		materialLevel,
+		productivityLevel,
+		licensedProductionRunsRemaining))
+	{
+		m_db.DeleteItem(itemID);
+		return(NULL);
 	}
-	
-	return(true);
+
+	return((BlueprintItem *)(Load(itemID)));
 }
 
-void ItemFactory::_DeleteItem(InventoryItem *i) {
+
+void ItemFactory::_DeleteItem(uint32 itemID) {
 	std::map<uint32, InventoryItem *>::iterator res;
-	res = m_items.find(i->itemID());
+	res = m_items.find(itemID);
 	if(res == m_items.end()) {
-		codelog(SERVICE__ERROR, "Item ID %d not found when requesting deletion!", i->itemID());
+		codelog(SERVICE__ERROR, "Item ID %d not found when requesting deletion!", itemID);
 		return;
 	}
+	res->second->Release();
 	m_items.erase(res);
-	i->Release();	//we own a ref, so release it
 }
 
 

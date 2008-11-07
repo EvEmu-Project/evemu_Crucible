@@ -410,6 +410,10 @@
 				Name="inventory"
 				>
 				<File
+					RelativePath="..\..\server\inventory\EVEAttributeMgr.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\server\inventory\InvBrokerService.cpp"
 					>
 				</File>
@@ -427,6 +431,10 @@
 				</File>
 				<File
 					RelativePath="..\..\server\inventory\ItemFactory.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\server\inventory\Type.cpp"
 					>
 				</File>
 			</Filter>
@@ -944,6 +952,14 @@
 				Name="inventory"
 				>
 				<File
+					RelativePath="..\..\server\inventory\AttributeMgr.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\server\inventory\EVEAttributeMgr.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\server\inventory\EVEAttributes.h"
 					>
 				</File>
@@ -965,6 +981,10 @@
 				</File>
 				<File
 					RelativePath="..\..\server\inventory\ItemFactory.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\server\inventory\Type.h"
 					>
 				</File>
 			</Filter>

@@ -309,7 +309,7 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	cur = startingSkills.begin();
 	end = startingSkills.end();
 	for(; cur != end; cur++) {
-		i = char_item->SpawnSingleton(cur->first, cdata.charid, flagSkill);
+		i = char_item->SpawnSingletonInto(cur->first, cdata.charid, flagSkill);
 		if(i == NULL) {
 			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
 		} else {
@@ -347,8 +347,8 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 		InventoryItem *junk;
 		junk = m_manager->item_factory->Spawn(
 			2046,	//Damage Control I
-			1,
-			cdata.charid, cdata.stationID, flagHangar);
+			cdata.charid, cdata.stationID, flagHangar,
+			1);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		else
@@ -356,10 +356,10 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 		
 		junk = m_manager->item_factory->Spawn(
 			34,		//Tritanium
-			1,
 			cdata.charid,
 			cdata.stationID,
-			flagHangar);
+			flagHangar,
+			1);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		else

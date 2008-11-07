@@ -25,6 +25,8 @@
 #include "../common/packet_types.h"
 #include "../common/gpoint.h"
 //#include "InventoryDB.h"
+#include "EVEAttributeMgr.h"
+#include "Type.h"
 
 class PyRep;
 class PyRepDict;
@@ -36,28 +38,22 @@ class ItemFactory;
 class Rsp_CommonGetInfo_Entry;
 
 /*
-
-NOTE: this object system should somehow be merged with the SystemEntity stuff
-and class hierarchy built from it (Client, NPC, etc..) in the system manager...
-
-however, the creation and destruction time logic is why it has not been done.
-
-
-*/
+ * NOTE:
+ * this object system should somehow be merged with the SystemEntity stuff
+ * and class hierarchy built from it (Client, NPC, etc..) in the system manager...
+ * however, the creation and destruction time logic is why it has not been done.
+ */
 
 static const uint32 SkillBasePoints = 250;
 
 class InventoryItem {
 	friend class ItemFactory;
-	friend class InventoryDB;
-private:
-	uint16 m_refCount;
-	//creation and destruction of this is protected for reference counting reasons.
+public:
 	InventoryItem(
-		ItemFactory *factory,
-		uint32 _itemID, 
+		ItemFactory &_factory,
+		uint32 _itemID,
 		const char *_itemName,
-		uint32 _typeID, 
+		const Type *_type,
 		uint32 _ownerID,
 		uint32 _locationID,
 		EVEItemFlags _flag,
@@ -65,30 +61,31 @@ private:
 		bool _singleton,
 		uint32 _quantity,
 		const GPoint &_position,
-		const char *_customInfo,
-		uint32 _groupID, 
-		EVEItemCategories _categoryID,
-		bool inDB);
+		const char *_customInfo);
 	virtual ~InventoryItem();
-	
-	//for use by ItemFactory:
-	bool LoadStatic();	//load static type attributes
-	bool Load(bool recurse=true);
+
+	virtual bool Load(bool recurse=false);
+
+	// for use by ItemFactory:
 	bool ContentsLoaded() const { return(m_contentsLoaded); }
 	void AddContainedItem(InventoryItem *it);
 	void RemoveContainedItem(InventoryItem *it);
 
-public:
+	/*
+	 * Factory method:
+	 */
+	static InventoryItem *LoadItem(ItemFactory &factory, uint32 itemID, bool recurse=false);
+
+	/*
+     * Primary public interface:
+     */
 	void Release();
 	InventoryItem *Ref();
-	
-	void Save(bool recursive=false);	//save the item to the DB.
-	bool LoadContents(bool recursive=true);
-	void Delete();	//remove the item from the DB, and Release() it. Consumes a ref!
-	
-	/*
-     *   Primary public interface:
-     */
+
+	virtual bool LoadContents(bool recursive=true);
+	virtual void Save(bool recursive=false, bool saveAttributes=true) const;	//save the item to the DB.
+	virtual void Delete();	//remove the item from the DB, and Release() it. Consumes a ref!
+
 	void Rename(const char *to);
 	void ChangeOwner(uint32 new_owner, bool notify=true);
 	void Move(uint32 location, EVEItemFlags flag=flagAutoFit, bool notify=true);
@@ -101,11 +98,11 @@ public:
 	bool ChangeSingleton(bool singleton, bool notify=true);
 	
 	/*
-     *   Helper routines:
+     * Helper routines:
      */
-	InventoryItem *Split(int32 qty_to_take, bool notify=true);
-	bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
-	
+	virtual InventoryItem *Split(int32 qty_to_take, bool notify=true);
+	virtual bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
+
 	//do we want to impose recursive const?
 	bool Contains(InventoryItem *item, bool recursive=false) const;
 	InventoryItem *FindFirstByFlag(EVEItemFlags flag, bool newref = false);
@@ -124,21 +121,20 @@ public:
 	void TrainSkill(InventoryItem *skill);	//call on the character object.
 
 	//spawn a new item with the specified information, creating it in the DB as well.
-	InventoryItem *SpawnSingleton(
+	InventoryItem *SpawnInto(
+		uint32 typeID,
+		uint32 ownerID,
+		EVEItemFlags flag,
+		uint32 quantity);
+	InventoryItem *SpawnSingletonInto(
 		uint32 typeID,
 		uint32 ownerID,
 		EVEItemFlags flag,
 		const char *name = NULL);
-	InventoryItem *Spawn(
-		uint32 typeID,
-		uint32 quantity,
-		uint32 ownerID,
-		EVEItemFlags flag);
 	
 	/*
-     *  Primary public packet builders:
+     * Primary public packet builders:
      */
-	PyRepDict *GetEntityAttributes() const;
 	PyRepObject *GetEntityRow() const;
 	PyRepObject *GetInventoryRowset(EVEItemFlags flag, uint32 forOwner = NULL) const;
 	PyRepObject *ItemGetInfo() const;
@@ -148,10 +144,10 @@ public:
 	/*
      * Public Fields:
      */
-	ItemFactory *const factory;	//for now, this needs to be public... I would like to change this eventually.
 	uint32				itemID() const { return(m_itemID); }
 	const std::string &	itemName() const { return(m_itemName); }
-	uint32				typeID() const { return(m_typeID); }
+	const Type *		type() const { return(m_type); }
+	uint32				typeID() const { return(m_type->id); }
 	uint32				ownerID() const { return(m_ownerID); }
 	uint32				locationID() const { return(m_locationID); }
 	EVEItemFlags		flag() const { return(m_flag); }
@@ -160,67 +156,50 @@ public:
 	uint32				quantity() const { return(m_quantity); }
 	const GPoint &		position() const { return(m_position); }
 	const std::string &	customInfo() const { return(m_customInfo); }
-	uint32				groupID() const { return(m_groupID); }
-	EVEItemCategories	categoryID() const { return(m_categoryID); }
+
+	// helper type methods
+	const Group *		group() const { return(m_type->group); }
+	uint32				groupID() const { return(m_type->groupID()); }
+	const Category *	category() const { return(m_type->category()); }
+	EVEItemCategories	categoryID() const { return(m_type->categoryID()); }
 
 	/*
      * Attribute access:
      */
-	//setup all the attribute access functions... what a nightmare...
-	typedef enum {
-		#define ATTR(ID, name, default_value, type, persistent) \
-			Attr_##name = ID,
-		#include "EVEAttributes.h"
-		Invalid_Attr
-	} Attr;
-	
-	#define ATTR(ID, name, default_value, type, persistent) \
+	ItemAttributeMgr attributes;
+
+	/*
+	 * Redirections
+	 */
+	#define ATTRFUNC(name, type) \
 		inline type name() const { \
-			std::map<Attr, type>::const_iterator res; \
-			res = m_##type##_attributes.find(Attr_##name); \
-			if(res == m_##type##_attributes.end()) \
-				return(default_value); \
-			return(res->second); \
+			return(attributes.name()); \
 		} \
-		inline void Set_##name(type value) { \
-			m_##type##_attributes[Attr_##name] = value; \
-			if(m_inDB && m_attributesLoaded && IsPersistent(Attr_##name)) { \
-				SaveAttribute_##type(Attr_##name); \
-			} \
+		inline void Set_##name(const type &value) { \
+			attributes.Set_##name(value); \
 		} \
-		inline void Set_##name##_persist(type value) { \
-			m_##type##_attributes[Attr_##name] = value; \
-			if(m_inDB) { \
-				SaveAttribute_##type(Attr_##name); \
-			} \
+		inline void Set_##name##_persist(const type &value) { \
+			attributes.Set_##name##_persist(value); \
 		} \
-		inline void Clear_##name(type value) { \
-			m_##type##_attributes.erase(Attr_##name); \
-			if(m_inDB && m_attributesLoaded && IsPersistent(Attr_##name)) { \
-				SaveAttribute_##type(Attr_##name); \
-			} \
+		inline void Clear_##name() { \
+			attributes.Clear_##name(); \
 		}
+	#define ATTRI(ID, name, default_value, persistent) \
+		ATTRFUNC(name, int)
+	#define ATTRD(ID, name, default_value, persistent) \
+		ATTRFUNC(name, double)
 	#include "EVEAttributes.h"
-
-	//access by index, be sure you know what your doing....
-	void SetAttributeByIndexInt(uint32 index, int value) {	//I dont trust overloading with number types
-		//should be checking index for validity, but it wont really hurt anything if its not in the enum right now.
-		m_int_attributes[Attr(index)] = value;
-	}
-	void SetAttributeByIndexDouble(uint32 index, double value) {	//I dont trust overloading with number types
-		//should be checking index for validity, but it wont really hurt anything if its not in the enum right now.
-		m_double_attributes[Attr(index)] = value;
-	}
 	
-	static bool IsPersistent(Attr attr);
-	static bool IsIntAttr(Attr attr);
-	static bool IsDoubleAttr(Attr attr);
-
 protected:
+	uint16 m_refCount;
+
+	// our factory
+	ItemFactory &	m_factory;
+
 	// our item data:
 	const uint32	m_itemID;
 	std::string		m_itemName;
-	const uint32	m_typeID;
+	const Type *	m_type;
 	uint32			m_ownerID;
 	uint32			m_locationID;	//where is this item located
 	EVEItemFlags	m_flag;
@@ -229,29 +208,105 @@ protected:
 	uint32			m_quantity;
 	GPoint			m_position;
 	std::string		m_customInfo;
-	//derived fields (based on typeID):
-	const uint32	m_groupID;
-	const EVEItemCategories	m_categoryID;
 	
 	/*
      * Internal helper routines:
      */
     void SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const;
-	void BuildAttributesDict(std::map<uint32, PyRep *> &into) const;
 	bool Populate(Rsp_CommonGetInfo_Entry &into) const;
 	void SetOnline(bool newval);
 
-	//attribute storage:
-	std::map<Attr, int> m_int_attributes;
-	std::map<Attr, double> m_double_attributes;
-	void SaveAttribute_int(Attr attr) const;
-	void SaveAttribute_double(Attr attr) const;
-	
-	bool m_inDB;	//true if this item is stored in the DB as well.
-	bool m_staticLoaded;	//true if static type attributes have been loaded
-	bool m_attributesLoaded;	//have persistent attributes from the DB been loaded?
 	bool m_contentsLoaded;
 	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.
+};
+
+/*
+ * InventoryItem, which represents blueprint
+ */
+class BlueprintItem
+: public InventoryItem
+{
+public:
+	BlueprintItem(
+		ItemFactory &_factory,
+		uint32 _itemID,
+		const char *_itemName,
+		const Type *_type,
+		uint32 _ownerID,
+		uint32 _locationID,
+		EVEItemFlags _flag,
+		bool _contraband,
+		bool _singleton,
+		uint32 _quantity,
+		const GPoint &_position,
+		const char *_customInfo,
+		bool _copy,
+		uint32 _materialLevel,
+		uint32 _productivityLevel,
+		int32 _licensedProductionRunsRemaining);
+
+	/*
+     * Primary public interface:
+     */
+	void Save(bool recursive=false, bool saveAttributes=true) const;
+	void Delete();
+
+	// copy
+	void SetCopy(bool copy);
+	// material level
+	void SetMaterialLevel(uint32 materialLevel);
+	bool AlterMaterialLevel(int32 materialLevelChange);
+	// productivity level
+	void SetProductivityLevel(uint32 productivityLevel);
+	bool AlterProductivityLevel(int32 producitvityLevelChange);
+	// licensed production runs
+	void SetLicensedProductionRunsRemaining(int32 licensedProductionRunsRemaining);
+	void AlterLicensedProductionRunsRemaining(int32 licensedProductionRunsRemainingChange);
+
+	// overload to split the blueprints properly
+	InventoryItem *Split(int32 qty_to_take, bool notify=true) { return(SplitBlueprint(qty_to_take, notify)); }
+	BlueprintItem *SplitBlueprint(int32 qty_to_take, bool notify=true);
+
+	// overload to do proper merge
+	bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
+
+	/*
+     * Primary public packet builders:
+     */
+	PyRepDict *GetBlueprintAttributes() const;
+
+	/*
+	 * Public fields:
+	 */
+	const BlueprintType *	bptype() const { return((const BlueprintType *)(InventoryItem::type())); }
+	bool					copy() const { return(m_copy); }
+	uint32					materialLevel() const { return(m_materialLevel); }
+	uint32					productivityLevel() const { return(m_productivityLevel); }
+	int32					licensedProductionRunsRemaining() const { return(m_licensedProductionRunsRemaining); }
+
+	/*
+     * Helper routines:
+     */
+	const Type *parentBlueprintType() const { return(bptype()->parentBlueprintType); }
+	const Type *productType() const { return(bptype()->productType); }
+
+	bool infinite() const { return(licensedProductionRunsRemaining() < 0); }
+	double wasteFactor() const { return(bptype()->wasteFactor / (1 + materialLevel())); }
+
+	// these are for manufacturing!
+	double materialMultiplier() const {
+		return(1.0 + wasteFactor());
+	}
+	double timeMultiplier() const {
+		return((bptype()->productionTime - (1.0 - (1.0 / (1 + productivityLevel()))) * bptype()->productivityModifier) / bptype()->productionTime);
+	}
+
+protected:
+	// our blueprint data:
+	bool m_copy;
+	uint32 m_materialLevel;
+	uint32 m_productivityLevel;
+	int32 m_licensedProductionRunsRemaining;
 };
 
 

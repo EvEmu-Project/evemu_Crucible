@@ -23,7 +23,7 @@ PyCallable_Make_InnerDispatcher(ReprocessingService)
 class ReprocessingServiceBound
 : public PyBoundObject {
 public:
-	ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB *db, const uint32 stationID);
+	ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB *db, uint32 stationID);
 	virtual ~ReprocessingServiceBound();
 
 	PyCallable_DECL_CALL(GetOptionsForItemTypes)
@@ -38,13 +38,15 @@ public:
 protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
-	const uint32 m_stationID;
+
 	ReprocessingDB *const m_db;
+
+	uint32 m_stationID;
 	double m_staEfficiency;
 	double m_tax;
 	
-	double _CalcReprocessingEfficiency(const InventoryItem *const client, const InventoryItem *const item = NULL) const;
-	PyRep *_GetQuote(const uint32 itemID, const Client *const c, bool throwException = false) const;
+	double _CalcReprocessingEfficiency(const Client *client, const InventoryItem *item = NULL) const;
+	PyRep *_GetQuote(uint32 itemID, const Client *c) const;
 };
 
 PyCallable_Make_InnerDispatcher(ReprocessingServiceBound)
@@ -85,7 +87,7 @@ PyBoundObject *ReprocessingService::_CreateBoundObject(Client *c, const PyRep *b
 
 //******************************************************************************
 
-ReprocessingServiceBound::ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB *db, const uint32 stationID)
+ReprocessingServiceBound::ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB *db, uint32 stationID)
 : PyBoundObject(mgr, "reprocessingSvcBound"),
   m_dispatch(new Dispatcher(this)),
   m_stationID(stationID),
@@ -149,7 +151,7 @@ PyResult ReprocessingServiceBound::Handle_GetReprocessingInfo(PyCallArgs &call) 
 	rsp.tax = m_tax;
 	rsp.reputation = 0.0;	// this should be drain from DB
 	rsp.yield = m_staEfficiency;
-	rsp.combinedyield = _CalcReprocessingEfficiency(call.client->Item());
+	rsp.combinedyield = _CalcReprocessingEfficiency(call.client);
 
 	result = rsp.Encode();
 
@@ -165,7 +167,7 @@ PyResult ReprocessingServiceBound::Handle_GetQuote(PyCallArgs &call) {
 		return(NULL);
 	}
 
-	return(_GetQuote(call_args.arg, call.client, true));
+	return(_GetQuote(call_args.arg, call.client));
 }
 
 PyResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
@@ -183,7 +185,13 @@ PyResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
 	end = call_arg.itemIDs.end();
 
 	for(; cur != end; cur++) {
-		PyRep *quote = _GetQuote(*cur, call.client, false);
+		PyRep *quote = NULL;
+		try {
+			quote = _GetQuote(*cur, call.client);
+		} catch(PyException &) {
+			// ignore all exceptions
+			continue;
+		}
 		if(quote != NULL)
 			rsp.quotes[*cur] = quote;
 	}
@@ -206,38 +214,36 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 		return(NULL);
 	}
 
+	if(call_args.ownerID == 0)
+		call_args.ownerID = call.client->GetCharacterID();
+
+	if(call_args.flag == 0)
+		call_args.flag = flagHangar;
+
 	std::vector<uint32>::iterator cur, end;
-	cur = call_args.itemIDs.begin();
-	end = call_args.itemIDs.end();
+	cur = call_args.items.begin();
+	end = call_args.items.end();
 	for(; cur != end; cur++) {
 		InventoryItem *item = m_manager->item_factory->Load(*cur, true);
 		if(item == NULL)
 			continue;
 
-		if(item->ownerID() != call.client->GetCharacterID()) {
+		if(item->ownerID() != call_args.ownerID) {
 			_log(SERVICE__ERROR, "Character %lu tried to reprocess item %lu of character %lu. Skipping.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
 			continue;
 		}
 
-		uint32 portionSize = m_db->GetPortionSize(item->typeID());
-		if(portionSize == 0) {
-			item->Release();
-			continue;
-		}
 		// this should never happen, but for sure ...
-		if(portionSize > item->quantity()) {
-			Notify_OnRemoteMessage msg;
-			msg.msgType = "QuantityLessThanMinimumPortion";
-			msg.args["typename"] = new PyRepString(item->itemName().c_str());
-			msg.args["portion"] = new PyRepInteger(portionSize);
-			PyRepTuple *tmp = msg.Encode();
+		if(item->type()->portionSize > item->quantity()) {
+			std::map<std::string, PyRep *> args;
+			args["typename"] = new PyRepString(item->itemName().c_str());
+			args["portion"] = new PyRepInteger(item->type()->portionSize);
 
-			call.client->SendNotification("OnRemoteMessage", "charid", &tmp);
 			item->Release();
-			continue;
+			throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
 		}
 
-		double efficiency = _CalcReprocessingEfficiency(call.client->Item(), item);
+		double efficiency = _CalcReprocessingEfficiency(call.client, item);
 		
 		std::vector<Recoverable> recoverables;
 		if(!m_db->GetRecoverables(item->typeID(), recoverables)) {
@@ -249,12 +255,13 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 		cur_rec = recoverables.begin();
 		end_rec = recoverables.end();
 		for(; cur_rec != end_rec; cur_rec++) {
-			uint32 quantity = cur_rec->amountPerBatch * efficiency * (1.0 - m_tax) * item->quantity() / portionSize;
-			InventoryItem *i = m_manager->item_factory->Spawn(cur_rec->typeID,
-				quantity,
+			uint32 quantity = cur_rec->amountPerBatch * efficiency * (1.0 - m_tax) * item->quantity() / item->type()->portionSize;
+			InventoryItem *i = m_manager->item_factory->Spawn(
+				cur_rec->typeID,
 				call.client->GetCharacterID(),
 				0,
-				flagHangar);
+				flagHangar,
+				quantity);
 			if(i == NULL)
 				continue;
 
@@ -262,7 +269,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 			i->Release();
 		}
 
-		uint32 qtyLeft = item->quantity() % portionSize;
+		uint32 qtyLeft = item->quantity() % item->type()->portionSize;
 		if(qtyLeft == 0)
 			item->Delete();
 		else {
@@ -274,14 +281,14 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 	return(NULL);
 }
 
-double ReprocessingServiceBound::_CalcReprocessingEfficiency(const InventoryItem *const client, const InventoryItem *const item) const {
+double ReprocessingServiceBound::_CalcReprocessingEfficiency(const Client *c, const InventoryItem *item) const {
 	std::set<EVEItemFlags> flags;
 	flags.insert(flagSkill);
 	flags.insert(flagSkillInTraining);
 
 	std::vector<const InventoryItem *> skills;
 
-	client->FindByFlagSet(flags, skills);
+	c->Item()->FindByFlagSet(flags, skills);
 
 	// formula is: reprocessingEfficiency + 0.375*(1 + 0.02*RefiningSkill)*(1 + 0.04*RefineryEfficiencySkill)*(1 + 0.05*OreProcessingSkill)
 	double efficiency =	0.375*(1 + 0.02*GetSkillLevel(skills, skillRefining))*
@@ -303,7 +310,7 @@ double ReprocessingServiceBound::_CalcReprocessingEfficiency(const InventoryItem
 	return(efficiency);
 }
 
-PyRep *ReprocessingServiceBound::_GetQuote(const uint32 itemID, const Client *const c, bool throwException) const {
+PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const {
 	InventoryItem *item = m_manager->item_factory->Load(itemID, true);
 	if(item == NULL)
 		return(NULL);	// No action as GetQuote is also called for reprocessed items (prolly for check)
@@ -314,33 +321,28 @@ PyRep *ReprocessingServiceBound::_GetQuote(const uint32 itemID, const Client *co
 		return(NULL);
 	}
 
-	uint32 portionSize = m_db->GetPortionSize(item->typeID());
-	if(portionSize == 0) {
-		item->Release();
-		return(NULL);
-	}
-	if(item->quantity() < portionSize && throwException) {
+	if(item->quantity() < item->type()->portionSize) {
 		std::map<std::string, PyRep *> args;
 		args["typename"] = new PyRepString(item->itemName().c_str());
-		args["portion"] = new PyRepInteger(portionSize);
+		args["portion"] = new PyRepInteger(item->type()->portionSize);
 
 		item->Release();
 		throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
 	}
 
 	Rsp_GetQuote res;
-	res.leftOvers = item->quantity() % portionSize;
+	res.leftOvers = item->quantity() % item->type()->portionSize;
 	res.quantityToProcess = item->quantity() - res.leftOvers;
 	res.playerStanding = 0.0;	// hack
 
-	if(item->quantity() >= portionSize) {
+	if(item->quantity() >= item->type()->portionSize) {
 		std::vector<Recoverable> recoverables;
 		if(!m_db->GetRecoverables(item->typeID(), recoverables)) {
 			item->Release();
 			return(NULL);
 		}
 
-		double efficiency = _CalcReprocessingEfficiency(c->Item(), item);
+		double efficiency = _CalcReprocessingEfficiency(c, item);
 
 		std::vector<Recoverable>::const_iterator cur, end;
 		cur = recoverables.begin();
@@ -350,7 +352,7 @@ PyRep *ReprocessingServiceBound::_GetQuote(const uint32 itemID, const Client *co
 			Rsp_GetQuote_Recoverables_Line line;
 
 			line.typeID =			cur->typeID;
-			uint32 ratio = cur->amountPerBatch * res.quantityToProcess / portionSize;
+			uint32 ratio = cur->amountPerBatch * res.quantityToProcess / item->type()->portionSize;
 			line.unrecoverable =	uint32((1.0 - efficiency)			* ratio);
 			line.station =			uint32(efficiency * m_tax			* ratio);
 			line.client =			uint32(efficiency * (1.0 - m_tax)	* ratio);

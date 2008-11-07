@@ -38,18 +38,21 @@ FactoryService::~FactoryService() {
 PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	Call_SingleIntegerArg args;
-	if(!args.Decode(&call.tuple)) {
+	Call_SingleIntegerArg arg;
+	if(!arg.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Failed to decode args.");
 		return(NULL);
 	}
 
-	Rsp_GetBlueprintAttributes rsp;
-
-	if(!m_db.GetBlueprintAttributes(args.arg, rsp))
+	BlueprintItem *b = m_manager->item_factory->LoadBlueprint(arg.arg, false);
+	if(b == NULL)
 		return(NULL);
 
-	return(rsp.Encode());
+	PyRep *res = b->GetBlueprintAttributes();
+
+	b->Release();
+
+	return(res);
 }
 
 PyResult FactoryService::Handle_GetMaterialsForTypeWithActivity(PyCallArgs &call) {

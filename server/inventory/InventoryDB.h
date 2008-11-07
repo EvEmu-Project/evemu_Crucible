@@ -23,7 +23,7 @@
 #include "../common/tables/invGroups.h"
 #include "../common/tables/invCategories.h"
 
-class InventoryItem;
+class EVEAttributeMgr;
 
 class InventoryDB
 : public ServiceDB {
@@ -31,46 +31,58 @@ public:
 	InventoryDB(DBcore *db);
 	virtual ~InventoryDB();
 
-	bool RenameItem(uint32 itemID, const char *name);
-	bool ChangeOwner(uint32 itemID, uint32 ownerID);
-	bool ChangeQuantity(uint32 itemID, uint32 quantity);
-	bool SetCustomInfo(uint32 itemID, const char *ci);
-	bool RelocateEntity(uint32 itemID, double x, double y, double z);
-	
-	bool DeleteItem(InventoryItem *item);
-	bool LoadEntityAttributes(InventoryItem *item);
-	bool LoadItemAttributes(InventoryItem *item);
-	bool LoadPersistentAttributes(InventoryItem *item);
-	bool SaveAttributes(InventoryItem *item);
-	bool EraseAttribute(uint32 itemID, uint32 attributeID);
+	/*
+	 * Type stuff
+	 */
+	bool GetCategory(EVEItemCategories category,
+		std::string &name, std::string &desc, bool &published);
+
+	bool GetGroup(uint32 groupID, EVEItemCategories &category,
+		std::string &name, std::string &desc, bool &useBasePrice, bool &allowManufacture, bool &allowRecycler,
+		bool &anchored, bool &anchorable, bool &fittableNonSingleton, bool &published);
+
+	bool GetType(uint32 typeID, uint32 &groupID,
+		std::string &name, std::string &desc, double &radius, double &mass, double &volume, double &capacity, uint32 &portionSize,
+		EVERace &raceID, double &basePrice, bool &published, uint32 &marketGroupID, double &chanceOfDuplicating);
+
+	bool GetBlueprintType(uint32 blueprintTypeID,
+		uint32 &parentBlueprintTypeID, uint32 &productTypeID, uint32 &productionTime, uint32 &techLevel, uint32 &researchProductivityTime,
+		uint32 &researchMaterialTime, uint32 &researchCopyTime, uint32 &researchTechTime, uint32 &productivityModifier,
+		uint32 &materialModifier, double &wasteFactor, double &chanceOfReverseEngineering, uint32 &maxProductionLimit);
+
+	// attributes
+	bool LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into);
+
+	/*
+	 * Item stuff
+	 */
+	bool GetItem(uint32 itemID,
+		std::string &name, uint32 &typeID, uint32 &ownerID, uint32 &locationID, EVEItemFlags &flag, bool &contraband, bool &singleton,
+		uint32 &quantity, GPoint &position, std::string &customInfo);
+
+	uint32 NewItem(const char *name, uint32 typeID, uint32 ownerID, uint32 locationID, EVEItemFlags flag, bool contraband, bool singleton, uint32 quantity, const GPoint &pos, const char *customInfo);
+	bool SaveItem(uint32 itemID, const char *name, uint32 typeID, uint32 ownerID, uint32 locationID, EVEItemFlags flag, bool contraband, bool singleton, uint32 quantity, const GPoint &pos, const char *customInfo);
+	bool DeleteItem(uint32 itemID);
+
+	/*
+	 * Blueprint stuff
+	 */
+	bool GetBlueprint(uint32 blueprintID,
+		bool &copy, uint32 &materialLevel, uint32 &productivityLevel, int32 &licensedProductionRunsRemaining);
+
+	bool NewBlueprint(uint32 blueprintID, bool copy, uint32 materialLevel, uint32 productivityLevel, int32 licensedProductionRunsRemaining);
+	bool SaveBlueprint(uint32 blueprintID, bool copy, uint32 materialLevel, uint32 productivityLevel, int32 licensedProductionRunsRemaining);
+	bool DeleteBlueprint(uint32 blueprintID);
+
+	// attributes
+	bool LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into);
 	bool UpdateAttribute_int(uint32 itemID, uint32 attributeID, int v);
 	bool UpdateAttribute_double(uint32 itemID, uint32 attributeID, double v);
-	InventoryItem *LoadItem(uint32 itemID, ItemFactory *factory, bool recurse=true);
+	bool EraseAttribute(uint32 itemID, uint32 attributeID);
+	bool EraseAttributes(uint32 itemID);
+
+	// other
 	bool GetItemContents(InventoryItem *item, std::vector<uint32> &items);
-	InventoryItem *NewItemSingleton(ItemFactory *factory, uint32 typeID, uint32 ownerID, uint32 locationID, EVEItemFlags flag, const char *name, const GPoint &pos);
-	InventoryItem *NewItem(ItemFactory *factory, uint32 typeID, uint32 quantity, uint32 ownerID, uint32 locationID, EVEItemFlags flag, const GPoint &pos);
-
-	bool MoveEntity(uint32 itemID, uint32 newLocation, EVEItemFlags flag = flagAutoFit);
-	bool ChangeSingletonEntity(uint32 itemID, bool singleton);
-
-	EVEDB::invCategories::invCategories GetCatByGroup(EVEDB::invGroups::invGroups g);
-protected:
-	uint32 NewDBItem(uint32 typeID, uint32 ownerID, uint32 locationID, EVEItemFlags flag, bool singleton, uint32 quantity, const char *name, const GPoint &pos);
-	InventoryItem * _RowToItem(ItemFactory *factory, DBResultRow &row, bool recurse);
-	bool _NewBlueprintEntry(const uint32 itemID);
-
-	class AttrCacheEntry {
-	public:
-		AttrCacheEntry(uint32 type) : typeID(type) { }
-		uint32 typeID;
-		std::map<uint16, int> int_attributes;
-		std::map<uint16, double> double_attributes;
-	};
-	//making it static to share amongst all the children.
-	static std::map<uint32, AttrCacheEntry *> m_attrCache;	//we own these items.
-
-	void _LoadCatByGroup();
-	static std::map<EVEDB::invGroups::invGroups, EVEDB::invCategories::invCategories> s_categoryByGroup;
 };
 
 
