@@ -7,6 +7,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EVEServer", "VC8\EVEServer.
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XMLPktGen", "VC8\XMLPktGen.vcproj", "{22CD0D69-A133-45EB-BFA8-407A61E1822A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F472E2F2-3CA4-4E09-B4D5-0783A4A4A893} = {F472E2F2-3CA4-4E09-B4D5-0783A4A4A893}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EVETool", "VC8\EVETool.vcproj", "{A8DC0868-C2AA-4C5A-BAE3-F3CB77D4B3A6}"
 	ProjectSection(ProjectDependencies) = postProject
