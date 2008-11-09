@@ -285,6 +285,8 @@ PyResult Command_setbpattr(Client *who, CommandDB *db, PyServiceMgr *services, c
 	bp->SetProductivityLevel(atoi(args.arg[4]));
 	bp->SetLicensedProductionRunsRemaining(atoi(args.arg[5]));
 
+	bp->Release();
+
 	return(new PyRepString("Properties modified."));
 }
 
@@ -301,6 +303,47 @@ PyResult Command_state(Client *who, CommandDB *db, PyServiceMgr *services, const
 	return(new PyRepString("Update sent."));
 }
 
+PyResult Command_getattr(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+	if(!args.IsNumber(1))
+		throw(PyException(MakeCustomError("1st argument must be itemID (got %s).", args.arg[1])));
+
+	if(!args.IsNumber(2))
+		throw(PyException(MakeCustomError("2nd argument must be attributeID (got %s).", args.arg[2])));
+
+	InventoryItem *item = services->item_factory->Load(atoi(args.arg[1]), false);
+	if(item == NULL)
+		throw(PyException(MakeCustomError("Failed to load item %s.", args.arg[1])));
+
+	PyRep *res = item->attributes.PyGet(
+		ItemAttributeMgr::Attr(atoi(args.arg[2]))
+	);
+
+	item->Release();
+	return(res);
+}
+
+PyResult Command_setattr(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+	if(!args.IsNumber(1))
+		throw(PyException(MakeCustomError("1st argument must be itemID (got %s).", args.arg[1])));
+
+	if(!args.IsNumber(2))
+		throw(PyException(MakeCustomError("2nd argument must be attributeID (got %s).", args.arg[2])));
+
+	if(!args.IsNumber(3))
+		throw(PyException(MakeCustomError("3rd argument must be value (got %s).", args.arg[3])));
+
+	InventoryItem *item = services->item_factory->Load(atoi(args.arg[1]), false);
+	if(item == NULL)
+		throw(PyException(MakeCustomError("Failed to load item %s.", args.arg[1])));
+
+	item->attributes.SetReal(
+		ItemAttributeMgr::Attr(atoi(args.arg[2])),
+		atof(args.arg[3])
+	);
+
+	item->Release();
+	return(new PyRepString("Operation successfull."));
+}
 
 
 

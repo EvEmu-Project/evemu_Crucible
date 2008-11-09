@@ -34,7 +34,7 @@ InventoryItem::InventoryItem(
 	const GPoint &_position,
 	const char *_customInfo)
 : m_refCount(1),
-  attributes(*this, _factory.db()),
+  attributes(*this, &_factory.db(), &_factory.entity_list),
   m_factory(_factory),
   m_itemID(_itemID),
   m_itemName(_itemName),
@@ -231,6 +231,8 @@ bool InventoryItem::LoadContents(bool recursive) {
 }
 
 void InventoryItem::Save(bool recursive, bool saveAttributes) const {
+	_log(ITEM__TRACE, "Saving item %lu.", m_itemID);
+
 	m_factory.db().SaveItem(itemID(),
 		itemName().c_str(), typeID(), ownerID(), locationID(), flag(), contraband(),
 		singleton(), quantity(), position(), customInfo().c_str());
@@ -427,10 +429,6 @@ PyRepObject *InventoryItem::ShipGetInfo() {
 		return(NULL);	//print already done.
 	
 //hackin:
-	//charge
-		entry.attributes[ItemAttributeMgr::Attr_charge] = new PyRepReal(100.000000);
-	//shieldCharge
-		entry.attributes[ItemAttributeMgr::Attr_shieldCharge] = new PyRepReal(63.000000);
 	//maximumRangeCap
 		entry.attributes[797] = new PyRepReal(250000.000000);
 	
@@ -894,7 +892,7 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
 //contents of changes are consumed and cleared
 void InventoryItem::SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const {
 	//TODO: figure out the appropriate list of interested people...
-	Client *c = m_factory.entity_list->FindCharacter(toID);
+	Client *c = m_factory.entity_list.FindCharacter(toID);
 	if(c == NULL)
 		return;	//not found or not online...
 	
@@ -924,7 +922,7 @@ void InventoryItem::SetOnline(bool newval) {
 	//bool old = isOnline();
 	Set_isOnline(newval);
 	
-	Client *c = m_factory.entity_list->FindCharacter(m_ownerID);
+	Client *c = m_factory.entity_list.FindCharacter(m_ownerID);
 	if(c == NULL)
 		return;	//not found or not online...
 	
@@ -1003,7 +1001,7 @@ void InventoryItem::TrainSkill(InventoryItem *skill) {
 		return;
 	}
 	
-	Client *c = m_factory.entity_list->FindCharacter(m_ownerID);
+	Client *c = m_factory.entity_list.FindCharacter(m_ownerID);
 	
 	//stop training our old skill...
 	//search for all, just in case we screwed up

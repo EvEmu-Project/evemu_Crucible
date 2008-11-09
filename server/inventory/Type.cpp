@@ -128,12 +128,7 @@ Type::Type(
 	const Group *_group,
 	const char *_name,
 	const char *_description,
-	double _radius,
-	double _mass,
-	double _volume,
-	double _capacity,
 	uint32 _portionSize,
-	EVERace _raceID,
 	double _basePrice,
 	bool _published,
 	uint32 _marketGroupID,
@@ -149,11 +144,6 @@ Type::Type(
   marketGroupID(_marketGroupID),
   chanceOfDuplicating(_chanceOfDuplicating)
 {
-	attributes.Set_radius(_radius);
-	attributes.Set_mass(_mass);
-	attributes.Set_volume(_volume);
-	attributes.Set_capacity(_capacity);
-	attributes.Set_raceID(_raceID);
 }
 
 Type *Type::LoadType(ItemFactory &factory, uint32 typeID) {
@@ -218,12 +208,7 @@ Type *Type::LoadType(ItemFactory &factory, uint32 typeID) {
 			g,
 			name.c_str(),
 			description.c_str(),
-			radius,
-			mass,
-			volume,
-			capacity,
 			portionSize,
-			race,
 			basePrice,
 			published,
 			marketGroupID,
@@ -251,18 +236,24 @@ Type *Type::LoadType(ItemFactory &factory, uint32 typeID) {
 			g,
 			name.c_str(),
 			description.c_str(),
-			radius,
-			mass,
-			volume,
-			capacity,
 			portionSize,
-			race,
 			basePrice,
 			published,
 			marketGroupID,
 			chanceOfDuplicating
 		);
 	}
+
+	if(!t->attributes.Load(factory.db())) {
+		delete t;
+		return(NULL);
+	}
+
+	t->attributes.Set_radius(radius);
+	t->attributes.Set_mass(mass);
+	t->attributes.Set_volume(volume);
+	t->attributes.Set_capacity(capacity);
+	t->attributes.Set_raceID(race);
 
 	return(t);
 }
@@ -275,12 +266,7 @@ BlueprintType::BlueprintType(
 	const Group *_group,
 	const char *_name,
 	const char *_description,
-	double _radius,
-	double _mass,
-	double _volume,
-	double _capacity,
 	uint32 _portionSize,
-	EVERace _raceID,
 	double _basePrice,
 	bool _published,
 	uint32 _marketGroupID,
@@ -298,7 +284,7 @@ BlueprintType::BlueprintType(
 	double _wasteFactor,
 	double _chanceOfReverseEngineering,
 	uint32 _maxProductionLimit)
-: Type(_id, _group, _name, _description, _radius, _mass, _volume, _capacity, _portionSize, _raceID, _basePrice, _published, _marketGroupID, _chanceOfDuplicating),
+: Type(_id, _group, _name, _description, _portionSize, _basePrice, _published, _marketGroupID, _chanceOfDuplicating),
   parentBlueprintType(_parentBlueprintType),
   productType(_productType),
   productionTime(_productionTime),

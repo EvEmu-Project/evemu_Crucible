@@ -104,41 +104,6 @@
     </InlineTuple>
 </element>
 
-<element name="OnModuleAttributeChange">
-  <InlineTuple>
-    <!-- 0 -->
-    <InlineList>
-      <!-- 0 -->
-      <InlineTuple>
-        <!-- 0 -->
-        <string name="string0" default="OnModuleAttributeChange" />
-        <!-- 1 -->
-        <int name="ownerID" />
-        <!-- 2 -->
-        <int name="itemKey" />
-        <!-- 3 -->
-        <int name="attributeID" />
-        <!-- 4 -->
-        <int64 name="time" />
-        <!-- 5 -->
-        <real name="newValue" />
-        <!-- 6 -->
-        <InlineList>
-          <!-- 0 -->
-          <real name="newValue2" />
-          <!-- 1 -->
-          <int64 name="time2" />
-          <!-- 2 -->
-          <real name="real8" />
-          <!-- 3 -->
-          <real name="oldValue" />
-        </InlineList>
-      </InlineTuple>
-    </InlineList>
-  </InlineTuple>
-</element>
-
-
 <element name="Call_GetJournal">
   <InlineTuple>
     <int name="accountKey" />
@@ -185,6 +150,7 @@
 			<!-- randomSeed -->
   </InlineList>
 </element>
+
 <element name="Rsp_CommonGetInfo_Entry">
     <InlineList name="line">
       <int name="itemID" />

@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	EntityList entity_list(&db);
-	ItemFactory item_factory(&db, &entity_list);
+	ItemFactory item_factory(&db, entity_list);
 
 
 	//now, the service manager...

@@ -242,44 +242,6 @@ bool InventoryDB::GetBlueprintType(
 	return(true);
 }
 
-bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-		"SELECT"
-		" attributeID,"
-		" valueInt,"
-		" valueFloat"
-		" FROM dgmTypeAttributes"
-		" WHERE typeID=%lu",
-		typeID))
-	{
-		_log(DATABASE__ERROR, "Failed to query type attributes for type %lu: %s.", typeID, res.error.c_str());
-		return(false);
-	}
-
-	DBResultRow row;
-	EVEAttributeMgr::Attr attr;
-	while(res.GetRow(row)) {
-		if(row.IsNull(0)) {
-			_log(DATABASE__ERROR, "Attribute row for type %lu has attributeID NULL. Skipping.", typeID);
-			continue;
-		}
-		attr = EVEAttributeMgr::Attr(row.GetUInt(0));
-		if(row.IsNull(2)) {
-			if(row.IsNull(1))
-				_log(DATABASE__ERROR, "Attribute %lu for type %lu has both values NULL. Skipping.", attr, typeID);
-			else
-				into.SetInt(attr, row.GetInt(1));
-		} else {
-			if(!row.IsNull(1))
-				_log(DATABASE__ERROR, "Attribute %lu for type %lu has both values non-NULL. Using float.", attr, typeID);
-			into.SetReal(attr, row.GetDouble(2));
-		}
-	}
-	return(true);
-}
-
 bool InventoryDB::GetItem(
 	uint32 itemID,
 	std::string &name,
@@ -517,6 +479,44 @@ bool InventoryDB::DeleteBlueprint(uint32 blueprintID) {
 	{
 		codelog(DATABASE__ERROR, "Failed to delete blueprint %lu: %s.", blueprintID, err.c_str());
 		return(false);
+	}
+	return(true);
+}
+
+bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" attributeID,"
+		" valueInt,"
+		" valueFloat"
+		" FROM dgmTypeAttributes"
+		" WHERE typeID=%lu",
+		typeID))
+	{
+		_log(DATABASE__ERROR, "Failed to query type attributes for type %lu: %s.", typeID, res.error.c_str());
+		return(false);
+	}
+
+	DBResultRow row;
+	EVEAttributeMgr::Attr attr;
+	while(res.GetRow(row)) {
+		if(row.IsNull(0)) {
+			_log(DATABASE__ERROR, "Attribute row for type %lu has attributeID NULL. Skipping.", typeID);
+			continue;
+		}
+		attr = EVEAttributeMgr::Attr(row.GetUInt(0));
+		if(row.IsNull(2)) {
+			if(row.IsNull(1))
+				_log(DATABASE__ERROR, "Attribute %lu for type %lu has both values NULL. Skipping.", attr, typeID);
+			else
+				into.SetInt(attr, row.GetInt(1));
+		} else {
+			if(!row.IsNull(1))
+				_log(DATABASE__ERROR, "Attribute %lu for type %lu has both values non-NULL. Using float.", attr, typeID);
+			into.SetReal(attr, row.GetDouble(2));
+		}
 	}
 	return(true);
 }

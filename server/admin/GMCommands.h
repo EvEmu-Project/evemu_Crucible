@@ -26,6 +26,10 @@ COMMAND( setbpattr, ROLE_ADMIN,
          "(itemID) (copy) (materialLevel) (productivityLevel) (licensedProductionRunsRemaining) - Change blueprint's attributes." )
 COMMAND( state, ROLE_ADMIN,
 		 "- Sends DoDestinyUpdate SetState." )
+COMMAND( getattr, ROLE_ADMIN,
+		 "(itemID) (attributeID) - Retrieves attribute value." )
+COMMAND( setattr, ROLE_ADMIN,
+		 "(itemID) (attributeID) (value) - Sets attributeID of itemID to value." )
 
 
 

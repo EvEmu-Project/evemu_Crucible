@@ -28,18 +28,24 @@ class PyRep;
 class Type;
 class InventoryItem;
 class InventoryDB;
+class EntityList;
 
 /*
  * Base EVE attribute manager
  */
 class EVEAttributeMgr
-: public AttributeMgr<int, double>
+: virtual public AttributeMgr<int, double>
 {
 public:
 	/*
-	 * Falls to default if not found
+	 * Returns attribute value as PyRep
 	 */
-	real_t GetReal(Attr attr) const;
+	PyRep *PyGet(Attr attr) const;
+
+	/*
+	 * Builds intdict from attributes
+	 */
+	virtual void BuildAttributesDict(std::map<uint32, PyRep *> &into) const;
 
 	/*
 	 * Checks whether the attribute is persistent
@@ -49,20 +55,12 @@ public:
 		return(m_persistent[attr]);
 	}
 
-	/*
-	 * Returns default value of attribute
-	 */
-	static int_t GetDefault(Attr attr) {
-		_LoadDefault();
-		return(m_default[attr]);
-	}
-
-	/*
-	 * Builds intdict from attributes
-	 */
-	void BuildAttributesDict(std::map<uint32, PyRep *> &into) const;
-
 protected:
+	/*
+	 * Turns given value into proper PyRep
+	 */
+	static PyRep *_PyGet(const real_t &v);
+
 	/*
 	 * Persistent stuff
 	 */
@@ -70,14 +68,24 @@ protected:
 
 	static bool m_persistentLoaded;
 	static bool m_persistent[Invalid_Attr];
+};
+
+class EVEAdvancedAttributeMgr
+: public AdvancedAttributeMgr<int, double>,
+  public EVEAttributeMgr
+{
+public:
+	void BuildAttributesDict(std::map<uint32, PyRep *> &into) const;
 
 	/*
-	 * Default stuff
+	 * These kill warnings about inheritation dominance
 	 */
-	static void _LoadDefault();
+	/*real_t GetReal(Attr attr) const { return(AdvancedAttributeMgr::GetReal(attr)); }
 
-	static bool m_defaultLoaded;
-	static int_t m_default[Invalid_Attr];
+	void SetReal(Attr attr, const real_t &v) { AdvancedAttributeMgr::SetReal(attr, v); }
+	void SetInt(Attr attr, const int_t &v) { AdvancedAttributeMgr::SetInt(attr, v); }
+
+	void Clear(Attr attr) { AdvancedAttributeMgr::Clear(attr); }*/
 };
 
 class ItemAttributeMgr;
@@ -91,6 +99,8 @@ class TypeAttributeMgr
 public:
 	TypeAttributeMgr(const Type &type)
 		: m_type(type) {}
+
+	const Type &type() const { return(m_type); }
 
 	/*
 	 * Attribute load from DB
@@ -107,11 +117,18 @@ protected:
  * InventoryItem attribute manager
  */
 class ItemAttributeMgr
-: public EVEAttributeMgr
+: public EVEAdvancedAttributeMgr
 {
 public:
-	ItemAttributeMgr(const InventoryItem &item, InventoryDB &db)
-		: m_item(item), m_db(db) {}
+	ItemAttributeMgr(const InventoryItem &item, InventoryDB *db = NULL, const EntityList *el = NULL)
+		: m_item(item) { SetDB(db); SetEntityList(el); }
+
+	const InventoryItem &item() const { return(m_item); }
+
+	bool notify() const { return(m_el != NULL); }
+
+	void SetDB(InventoryDB *db) { m_db = db; }
+	void SetEntityList(const EntityList *el) { m_el = el; }
 
 	/*
 	 * Falls to type attributes and then to default if not found
@@ -119,31 +136,23 @@ public:
 	real_t GetReal(Attr attr) const;
 
 	/*
-	 * Overload to save to DB (if persistent)
+	 * Common functions and their expanded versions
 	 */
-	void SetInt(Attr attr, const int_t &v);
-	void SetReal(Attr attr, const real_t &v);
+	void SetInt(Attr attr, const int_t &v) { SetIntEx(attr, v); }
+	void SetIntEx(Attr attr, const int_t &v, bool persist=false);
 
-	/*
-	 * Overloads to delete attribute(s) from DB
-	 */
+	void SetReal(Attr attr, const real_t &v) { SetRealEx(attr, v); }
+	void SetRealEx(Attr attr, const real_t &v, bool persist=false);
+
 	void Clear(Attr attr);
-	void Delete();
+
+	void Delete() { DeleteEx(); }
+	void DeleteEx(bool notify=false);
 
 	/*
-	 * These enforce save to DB
+	 * Additional DB stuff
 	 */
-	void SetIntPersist(Attr attr, const int_t &v);
-	void SetRealPersist(Attr attr, const real_t &v);
-
-	/*
-	 * Attribute load from DB
-	 */
-	bool Load();
-
-	/*
-	 * Attribute save to DB
-	 */
+	bool Load(bool notify=false);
 	void Save() const;
 
 	/*
@@ -156,17 +165,20 @@ public:
 	 */
 	#define ATTRI(ID, name, default_value, persistent) \
 		void Set_##name##_persist(const int_t &v) { \
-			SetIntPersist(Attr_##name, v); \
+			SetIntEx(Attr_##name, v, true); \
 		}
 	#define ATTRD(ID, name, default_value, persistent) \
 		void Set_##name##_persist(const real_t &v) { \
-			SetRealPersist(Attr_##name, v); \
+			SetRealEx(Attr_##name, v, true); \
 		}
 	#include "EVEAttributes.h"
 
 protected:
+	void SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *newValue);
+
 	const InventoryItem &m_item;
-	InventoryDB &m_db;
+	InventoryDB *m_db;
+	const EntityList *m_el;
 };
 
 #endif /* __EVE_ATTRIBUTE_MGR__H__INCL__ */

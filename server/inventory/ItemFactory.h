@@ -33,10 +33,10 @@ class Category;
 class ItemFactory {
 	friend class InventoryItem;	//only for access to _DeleteItem
 public:
-	ItemFactory(DBcore *db, EntityList *el);
+	ItemFactory(DBcore *db, EntityList &el);
 	~ItemFactory();
 	
-	EntityList *const entity_list;	//we do not own this.
+	EntityList &entity_list;	//we do not own this.
 	InventoryDB &db() { return(m_db); }
 
 	/*

@@ -23,9 +23,12 @@
  */
 
 #include <map>
+#include <math.h>
+
+#include "../common/EVEUtils.h"
 
 /*
- * The most basic attribute manager
+ * The most basic attribute manager, supports default values
  */
 template<class _Int, class _Real>
 class AttributeMgr {
@@ -68,12 +71,9 @@ public:
 	 */
 	virtual real_t GetReal(Attr attr) const {
 		real_t v;
-		if(_Get(attr, v)) {
-			// we found it, return
-			return(v);
-		}
-		// nothing found ...
-		return(0);
+		if(!_Get(attr, v))
+			v = GetDefault(attr);
+		return(v);
 	}
 
 	/*
@@ -115,10 +115,29 @@ public:
 	 * Complete deletion of all contents
 	 */
 	virtual void Delete() {
-		// clear integers
-		m_ints.clear();
-		// clear reals
-		m_reals.clear();
+		Attr attr;
+		// clear integers first
+		{
+			std::map<Attr, int_t>::const_iterator cur, end;
+			cur = m_ints.begin();
+			end = m_ints.end();
+			while(cur != end) {
+				attr = cur->first;
+				cur++;
+				Clear(attr);
+			}
+		}
+		// then clear reals
+		{
+			std::map<Attr, real_t>::const_iterator cur, end;
+			cur = m_reals.begin();
+			end = m_reals.end();
+			while(cur != end) {
+				attr = cur->first;
+				cur++;
+				Clear(attr);
+			}
+		}
 	}
 
 	/*
@@ -145,6 +164,14 @@ public:
 			Clear(Attr_##name); \
 		}
 	#include "EVEAttributes.h"
+
+	/*
+	 * Returns default value of attribute
+	 */
+	static int_t GetDefault(Attr attr) {
+		_LoadDefault();
+		return(m_default[attr]);
+	}
 
 protected:
 	/*
@@ -185,7 +212,171 @@ protected:
 	 */
 	std::map<Attr, int_t> m_ints;
 	std::map<Attr, real_t> m_reals;
+
+	/*
+	 * Default value stuff
+	 */
+	static void _LoadDefault() {
+		if(!m_defaultLoaded) {
+			memset(m_default, 0, sizeof(m_default));
+
+			#define ATTR(ID, name, default_value, persistent) \
+				m_default[Attr_##name] = default_value;
+			#include "EVEAttributes.h"
+
+			m_defaultLoaded = true;
+		}
+	}
+
+	static bool m_defaultLoaded;
+	static int_t m_default[Invalid_Attr];
 };
+
+template<class _Int, class _Real>
+bool AttributeMgr<_Int, _Real>::m_defaultLoaded = false;
+
+template<class _Int, class _Real>
+typename AttributeMgr<_Int, _Real>::int_t
+	AttributeMgr<_Int, _Real>::m_default[AttributeMgr<_Int, _Real>::Invalid_Attr];
+
+/*
+ * Attribute manager which supports rechargable attributes
+ */
+template<class _Int, class _Real>
+class AdvancedAttributeMgr
+: virtual public AttributeMgr<_Int, _Real>
+{
+public:
+	AdvancedAttributeMgr() {
+		_LoadTauCap();
+
+		std::map<Attr, TauCap>::const_iterator cur, end;
+		cur = m_tauCap.begin();
+		end = m_tauCap.end();
+		for(; cur != end; cur++)
+			_SetLastChange(cur->first, Win32TimeNow());
+	}
+
+	/*
+	 * Common functions overloads
+	 */
+	real_t GetReal(Attr attr) const {
+		real_t v = AttributeMgr::GetReal(attr);
+
+		_CalcTauCap(attr, v);
+
+		return(v);
+	}
+
+	void SetReal(Attr attr, const real_t &v) {
+		AttributeMgr::SetReal(attr, v);
+		if(IsRechargable(attr))
+			_SetLastChange(attr, Win32TimeNow());
+	}
+	void SetInt(Attr attr, const int_t &v) {
+		AttributeMgr::SetInt(attr, v);
+		if(IsRechargable(attr))
+			_SetLastChange(attr, Win32TimeNow());
+	}
+
+	void Clear(Attr attr) {
+		AttributeMgr::Clear(attr);
+		if(IsRechargable(attr))
+			_SetLastChange(attr, Win32TimeNow());
+	}
+
+	/*
+	 * Checks whether given attribute is rechargable
+	 */
+	static bool IsRechargable(Attr attr) {
+		_LoadTauCap();
+		return(m_tauCap.find(attr) != m_tauCap.end());
+	}
+
+protected:
+	/*
+	 * recharge calculation
+	 */
+	void _CalcTauCap(Attr attr, real_t &v) const {
+		_LoadTauCap();
+
+		/*
+		def GetChargeValue(self, oldVal, oldTime, tau, Ec):
+			if (Ec == 0):
+				return 0
+			newTime = blue.os.GetTime(1)
+			sq = math.sqrt((oldVal / Ec))
+			timePassed = ((oldTime - newTime) / float(const.dgmTauConstant))
+			exp = math.exp((timePassed / tau))
+			ret = (((1.0 + ((sq - 1.0) * exp)) ** 2) * Ec)
+			return ret
+		*/
+
+		std::map<Attr, TauCap>::const_iterator i;
+
+		i = m_tauCap.find(attr);
+		if(i != m_tauCap.end()) {
+			real_t cap = GetReal(i->second.cap);
+			if(cap == 0) {
+				v = 0;
+				return;
+			}
+			real_t tau = GetReal(i->second.tau) / 5.0;
+
+			real_t sq = sqrt(v / cap);
+			int64 time = int64(_GetLastChange(attr) - Win32TimeNow()) / 10000;	// dgmTauConstant
+			real_t e = exp(time / tau);
+
+			v = (pow(1.0 + ((sq - 1.0) * e), 2.0) * cap);
+		}
+	}
+
+	/*
+	 * last change stuff
+	 */
+	uint64 _GetLastChange(Attr attr) const {
+		std::map<Attr, uint64>::const_iterator res = m_lastChange.find(attr);
+		if(res != m_lastChange.end())
+			return(res->second);
+		return(Win32TimeNow());
+	}
+	void _SetLastChange(Attr attr, const uint64 &time) {
+		m_lastChange[attr] = time;
+	}
+
+	std::map<Attr, uint64> m_lastChange;
+
+	/*
+	 * tau/cap stuff
+	 */
+	static void _LoadTauCap() {
+		if(!m_tauCapLoaded) {
+			// hackin for now
+			m_tauCap[Attr_charge].tau = Attr_rechargeRate;
+			m_tauCap[Attr_charge].cap = Attr_capacitorCapacity;
+
+			m_tauCap[Attr_shieldCharge].tau = Attr_shieldRechargeRate;
+			m_tauCap[Attr_shieldCharge].cap = Attr_shieldCapacity;
+
+			m_tauCapLoaded = true;
+		}
+	}
+
+	static bool m_tauCapLoaded;
+	struct TauCap {
+		Attr tau, cap;
+	};
+	static std::map<Attr, TauCap> m_tauCap;
+};
+
+template<class _Int, class _Real>
+bool AdvancedAttributeMgr<_Int, _Real>::m_tauCapLoaded = false;
+
+template<class _Int, class _Real>
+std::map<
+	typename AdvancedAttributeMgr<_Int, _Real>::Attr,
+	typename AdvancedAttributeMgr<_Int, _Real>::TauCap
+> AdvancedAttributeMgr<_Int, _Real>::m_tauCap;
 
 #endif /* __ATTRIBUTE_MGR__H__INCL__ */
 

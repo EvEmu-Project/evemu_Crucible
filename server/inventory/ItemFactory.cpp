@@ -17,18 +17,29 @@
 
 #include "EvemuPCH.h"
 
-ItemFactory::ItemFactory(DBcore *db, EntityList *el)
+ItemFactory::ItemFactory(DBcore *db, EntityList &el)
 : entity_list(el),
   m_db(db)
 {
 }
 
 ItemFactory::~ItemFactory() {
-	// categories
+	// items
 	{
-		std::map<EVEItemCategories, Category *>::const_iterator cur, end;
-		cur = m_categories.begin();
-		end = m_categories.end();
+		std::map<uint32, InventoryItem *>::const_iterator cur, end;
+		cur = m_items.begin();
+		end = m_items.end();
+		for(; cur != end; cur++) {
+			// save item
+			cur->second->Save(false);	// do not recurse
+			cur->second->Release();
+		}
+	}
+	// types
+	{
+		std::map<uint32, Type *>::const_iterator cur, end;
+		cur = m_types.begin();
+		end = m_types.end();
 		for(; cur != end; cur++)
 			delete cur->second;
 	}
@@ -40,21 +51,13 @@ ItemFactory::~ItemFactory() {
 		for(; cur != end; cur++)
 			delete cur->second;
 	}
-	// types
+	// categories
 	{
-		std::map<uint32, Type *>::const_iterator cur, end;
-		cur = m_types.begin();
-		end = m_types.end();
+		std::map<EVEItemCategories, Category *>::const_iterator cur, end;
+		cur = m_categories.begin();
+		end = m_categories.end();
 		for(; cur != end; cur++)
 			delete cur->second;
-	}
-	// items
-	{
-		std::map<uint32, InventoryItem *>::const_iterator cur, end;
-		cur = m_items.begin();
-		end = m_items.end();
-		for(; cur != end; cur++)
-			cur->second->Release();
 	}
 }
 
@@ -125,7 +128,7 @@ InventoryItem *ItemFactory::Load(uint32 itemID, bool recurse) {
 	}
 	if(recurse)
 		res->second->LoadContents(true);
-	//we return an additional ref to the user.
+	//we return new ref to the user.
 	return(res->second->Ref());
 }
 

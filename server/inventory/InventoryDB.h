@@ -50,9 +50,6 @@ public:
 		uint32 &researchMaterialTime, uint32 &researchCopyTime, uint32 &researchTechTime, uint32 &productivityModifier,
 		uint32 &materialModifier, double &wasteFactor, double &chanceOfReverseEngineering, uint32 &maxProductionLimit);
 
-	// attributes
-	bool LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into);
-
 	/*
 	 * Item stuff
 	 */
@@ -74,14 +71,20 @@ public:
 	bool SaveBlueprint(uint32 blueprintID, bool copy, uint32 materialLevel, uint32 productivityLevel, int32 licensedProductionRunsRemaining);
 	bool DeleteBlueprint(uint32 blueprintID);
 
-	// attributes
+	/*
+	 * Attribute stuff
+	 */
+	bool LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into);
 	bool LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into);
+
 	bool UpdateAttribute_int(uint32 itemID, uint32 attributeID, int v);
 	bool UpdateAttribute_double(uint32 itemID, uint32 attributeID, double v);
 	bool EraseAttribute(uint32 itemID, uint32 attributeID);
 	bool EraseAttributes(uint32 itemID);
 
-	// other
+	/*
+	 * Other
+	 */
 	bool GetItemContents(InventoryItem *item, std::vector<uint32> &items);
 };
 
