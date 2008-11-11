@@ -15,7 +15,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #include "common.h"
 #include "PyRep.h"
 #include "packet_dump.h"
@@ -28,55 +27,70 @@
 #include <string>
 #include <zlib.h>
 
-using std::string;
-
-
-class MarshalVisitor : public PyVisitor {
+class MarshalVisitor : public PyVisitor
+{
 public:
 	virtual ~MarshalVisitor() {}
 	
+	/** adds a integer to the data stream
+	*  Note:	assuming the value is unsigned
+	*			research shows that Op_PyByte can be negative
+	*/
 	virtual void VisitInteger(const PyRepInteger *rep) {
-//printf("int\n");
-		//logic assumes value is unsigned
-		if(rep->value > 0xFFFFFFFF) {
+		//printf("int\n");
+		if(rep->value > 0xFFFFFFFF)
+		{
 			PutByte(Op_PyLongLong);
-			uint64 value = rep->value;
-			//TODO: byte swap.
-			PutBytes(&value, sizeof(value));
-		} else if(rep->value > 0x7FFF) {
+			//TODO: uint8 swap.
+			PutUint64(rep->value);
+		}
+		else if(rep->value > 0x7FFF && rep->value <= 0xFFFFFFFF)
+		{
 			PutByte(Op_PyLong);
-			uint32 value = rep->value;
-			//TODO: byte swap.
-			PutBytes(&value, sizeof(value));
-		} else if(rep->value > 1) {
+			//TODO: uint8 swap.
+			PutUint32((uint32)rep->value);
+		}
+		else if(rep->value > 0x7F && rep->value <= 0xFFFF)
+		{
 			PutByte(Op_PySignedShort);
-			uint16 value = rep->value;
-			//TODO: byte swap.
-			PutBytes(&value, sizeof(value));
-/*      } else if(rep->value > 0xFF) {
+			//TODO: uint8 swap.
+			PutUint16((uint16)rep->value);
+		}
+/*		else if(rep->value > 0xFF)
+		{
 			PutByte(Op_PyShort);
 			uint16 value = rep->value;
-			//TODO: byte swap.
+			//TODO: uint8 swap.
 			PutBytes(&value, sizeof(value));
-		} else if(rep->value > 1) {
+		}*/
+
+		// Op_PyByte can be negative
+		else if(rep->value > 1 && rep->value <= 0x7F)
+		{
 			PutByte(Op_PyByte);
-			PutByte(rep->value);*/
-		} else if(rep->value == 1) {
+			PutByte((uint8)rep->value);
+		}
+		else if(rep->value == 1)
+		{
 			PutByte(Op_PyOneInteger);
-		} else if(rep->value == 0) {
+		}
+		else if(rep->value == 0)
+		{
 			PutByte(Op_PyZeroInteger);
 		}
 	}
 	
-	virtual void VisitBoolean(const PyRepBoolean *rep) {
+	virtual void VisitBoolean(const PyRepBoolean *rep)
+	{
 //printf("bool\n");
-		if(rep->value)
+		if(rep->value == true)
 			PutByte(Op_PyTrue);
 		else
 			PutByte(Op_PyFalse);
 	}
 	
-	virtual void VisitReal(const PyRepReal *rep) {
+	virtual void VisitReal(const PyRepReal *rep)
+	{
 //printf("real\n");
 		if(rep->value == 0.0) {
 			PutByte(Op_PyZeroReal);
@@ -111,7 +125,7 @@ public:
 		rep->GetHeader()->visit(this);
 		
 		//pack the bytes with the zero compression algorithm.
-		std::vector<byte> packed;
+		std::vector<uint8> packed;
 		PackZeroCompressed(rep->GetBuffer(), rep->GetBufferSize(), packed);
 		
 		if(packed.size() >= 0xFF) {
@@ -120,7 +134,7 @@ public:
 			uint32 len = (uint32)packed.size();
 			PutUint32(len);
 		} else {
-			PutByte((byte)packed.size());
+			PutByte((uint8)packed.size());
 		}
 		if(!packed.empty())
 			//out goes the data...
@@ -134,23 +148,36 @@ public:
 			(*cur)->visit(this);
 	}
 	
-	virtual void VisitString(const PyRepString *rep) {
+	/** add a string object to the data stream
+	 *
+	 */
+	virtual void VisitString(const PyRepString *rep)
+	{
 		uint32 len = (uint32)rep->value.length();
 //printf("string\n");
-		if(rep->is_type_1) {
-			if(len < 0xFF) {
+		if(rep->is_type_1)
+		{
+			if(len < 0xFF)
+			{
 				PutByte(Op_PyByteString);
 				PutByte(len);
 				PutBytes(rep->value.c_str(), len);
-			} else {
-				//almost certain this isnt supported.
-				_log(NET__MARSHAL_ERROR, "Error: Length extension on Type1 string is untested, and prolly wont work.");
+			}
+			else
+			{
+				/* large string support
+				 * old comment: almost certain this isn't supported.
+				 * Note: when I check the asm i'm almost certain its supported.				
+				 */
+				//_log(NET__MARSHAL_ERROR, "Error: Length extension on Type1 string is untested, and probably wont work.");
 				PutByte(Op_PyByteString);
 				PutByte(0xFF);
-				PutBytes(&len, sizeof(len));
+				PutBytes(&len, sizeof(len));		// size
 				PutBytes(rep->value.c_str(), len);
 			}
-		} else {
+		}
+		else
+		{
 			if(len == 0) {
 				PutByte(Op_PyEmptyString);
 			} else if(len == 1) {
@@ -160,7 +187,7 @@ public:
 				//string is long enough for a string table entry, check it.
 				uint8 sid = PyRepString::GetStringTable()->LookupString(rep->value);
 				if(sid != EVEStringTable::None) {
-					_log(NET__MARSHAL_TRACE, "Replaced string '%s' with string table index %d", rep->value.c_str(), sid);
+					//_log(NET__MARSHAL_TRACE, "Replaced string '%s' with string table index %d", rep->value.c_str(), sid);
 					//we have a string table entry, send that out:
 					PutByte(Op_PyStringTableItem);
 					PutByte(sid);
@@ -170,8 +197,8 @@ public:
 					PutBytes(rep->value.c_str(), len);
 				} else {
 					//well, this type does not seem to support a length
-					//extension, so im hacking it to a buffer for now. We should
-					//prolly use a unicode string in the future
+					//extension, so I'm hacking it to a buffer for now. We should
+					//probably use a unicode string in the future
 					PutByte(Op_PyUnicodeString);
 					PutByte(0xFF);
 					PutBytes(&len, sizeof(len));
@@ -203,7 +230,7 @@ public:
 
 	virtual void VisitPackedObject1(const PyRepPackedObject1 *rep) {
 		PutByte(Op_PackedObject1);
-		//this is little hackish, but we dont have to clone whole contents
+		//this is little 'hackish', but we don't have to clone whole contents
 		if(rep->keywords.empty())
 			PutByte(Op_PyTwoTuple);
 		else {
@@ -239,7 +266,7 @@ public:
 			PutByte(Op_PyTwoTuple);
 		else {
 			PutByte(Op_PyTuple);
-			PutByte(1 + (byte)rep->args1->items.size()); // possible overload (size is 32 bits and your sending a byte)
+			PutByte(1 + (uint8)rep->args1->items.size()); // possible overload (size is 32 bits and your sending a uint8)
 		}
 
 		PyRepString s(rep->type, true);
@@ -267,7 +294,7 @@ public:
 		if(rep->length == 0 || rep->data == NULL) {
 			if(rep->decoded == NULL) {
 				PutByte(0);
-				_log(NET__MARSHAL_ERROR, "Error: substream with no data or rep being marshaled!");
+				//_log(NET__MARSHAL_ERROR, "Error: substream with no data or rep being marshaled!");
 				return;
 			}
 			
@@ -373,12 +400,12 @@ public:
 	}
 	
 	//TODO: optimize this, it could be done so much better than a vector.
-	inline void PutByte(byte b) {
+	inline void PutByte(uint8 b) {
 //printf("Byte 0x%02x\n", b);
 		m_result.push_back(b);
 	}
 	inline void PutBytes(const void *v, uint32 len) {
-		const byte *b = (const byte *) v;
+		const uint8 *b = (const uint8 *) v;
 		while(len > 0) {
 //printf("Byte 0x%02x -\n", *b);
 			m_result.push_back(*b);
@@ -387,18 +414,67 @@ public:
 		}
 	}
 
-	inline void PutUint32(uint32 data) {
-		PutBytes((void*)&data,sizeof(uint32));
+	inline void PutUint64(const uint64& value)
+	{
+		m_result.push_back(((uint8*)&value)[0]);
+		m_result.push_back(((uint8*)&value)[1]);
+		m_result.push_back(((uint8*)&value)[2]);
+		m_result.push_back(((uint8*)&value)[3]);
+		m_result.push_back(((uint8*)&value)[4]);
+		m_result.push_back(((uint8*)&value)[5]);
+		m_result.push_back(((uint8*)&value)[6]);
+		m_result.push_back(((uint8*)&value)[7]);
+	}
+
+	/**	adds a uint64 do the data stream
+	*/
+	inline void PutUint64(uint64& value)
+	{
+		m_result.push_back(((uint8*)&value)[0]);
+		m_result.push_back(((uint8*)&value)[1]);
+		m_result.push_back(((uint8*)&value)[2]);
+		m_result.push_back(((uint8*)&value)[3]);
+		m_result.push_back(((uint8*)&value)[4]);
+		m_result.push_back(((uint8*)&value)[5]);
+		m_result.push_back(((uint8*)&value)[6]);
+		m_result.push_back(((uint8*)&value)[7]);
+	}
+
+	/**	adds a uint32 do the data stream
+	*/
+	inline void PutUint32(uint32 value)
+	{
+		m_result.push_back(((uint8*)&value)[0]);
+		m_result.push_back(((uint8*)&value)[1]);
+		m_result.push_back(((uint8*)&value)[2]);
+		m_result.push_back(((uint8*)&value)[3]);
+	}
+
+	/**	adds a uint16 do the data stream
+	*/
+	inline void PutUint16(uint16 value)
+	{
+		m_result.push_back(((uint8*)&value)[0]);
+		m_result.push_back(((uint8*)&value)[1]);
+	}
+
+	/**	adds a uint8 do the data stream
+	*/
+	inline void PutUint8(uint8 value)
+	{
+		m_result.push_back(value);
 	}
 	
-	std::vector<byte> m_result;
+	std::vector<uint8> m_result;
 };
 
 //returns ownership of the buffer
-byte *Marshal(const PyRep *rep, uint32 &len, bool inlineSubStream) {
+uint8 *Marshal(const PyRep *rep, uint32& len, bool inlineSubStream)
+{
 	MarshalVisitor v;
 
-	if(inlineSubStream) {
+	if(inlineSubStream == true)
+	{
 		v.PutByte(SubStreamHeaderByte);
 		v.PutByte(0);		//not sure what these zeros are about right now.
 		v.PutByte(0);
@@ -409,14 +485,9 @@ byte *Marshal(const PyRep *rep, uint32 &len, bool inlineSubStream) {
 	rep->visit(&v);
 
 	len = (uint32)v.m_result.size();
-	byte *b = new byte[len];
+	uint8 *b = new uint8[len];
 
 	memcpy(b, &v.m_result[0], len);
 
-	return(b);
+	return b;
 }
-
-
-
-
-
