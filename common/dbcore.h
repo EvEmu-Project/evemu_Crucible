@@ -22,12 +22,12 @@
 //if you can get over the SQL incompatibilities and mysql auto increment problems.
 
 #include "common.h"
-//#include <string>
-#include <mysql/mysql.h>
+#include <string>
+#include <mysql.h>
 #include "Mutex.h"
 
-//#include <string>
-//#include <vector>
+#include <string>
+#include <vector>
 
 class DBcore;
 

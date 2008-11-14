@@ -62,7 +62,8 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 	va_end(args);
 	
 	if(!DoQuery_locked(into.error, query, querylen)) {
-		SafeDeleteArray(query);
+		delete [] query;
+		query = NULL;
 		return(false);
 	}
 
@@ -71,10 +72,12 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 		into.error.SetError(0xFFFF, "DBcore::RunQuery: No Result");
 		_log(DATABASE__QUERIES, "Query failed due to no result");
 		_log(DATABASE__ALL_ERRORS, "DB Query '%s' did not return a result, but the caller requested them.", query);
-		SafeDeleteArray(query);
+		delete [] query;
+		query = NULL;
 		return(false);
 	}
-	SafeDeleteArray(query);
+	delete [] query;
+	query = NULL;
 
 	MYSQL_RES *result = mysql_store_result(&mysql);
 
@@ -140,11 +143,12 @@ bool DBcore::RunQuery(DBerror &err, const char *query_fmt, ...) {
 	va_end(args);
 
 	if(!DoQuery_locked(err, query, querylen)) {
-		SafeDeleteArray(query);
+		delete [] query;
 		return(false);
 	}
 	
-	SafeDeleteArray(query);
+	delete [] query;
+	query = NULL;
 	return(true);
 }
 
@@ -159,10 +163,11 @@ bool DBcore::RunQuery(DBerror &err, uint32 &affected_rows, const char *query_fmt
 	va_end(args);
 
 	if(!DoQuery_locked(err, query, querylen)) {
-		SafeDeleteArray(query);
+		delete [] query;
+		query = NULL;
 		return(false);
 	}
-	SafeDeleteArray(query);
+	delete [] query;
 	
 	affected_rows = mysql_affected_rows(&mysql);
 	
@@ -180,10 +185,11 @@ bool DBcore::RunQueryLID(DBerror &err, uint32 &last_insert_id, const char *query
 	va_end(args);
 	
 	if(!DoQuery_locked(err, query, querylen)) {
-		SafeDeleteArray(query);
+		delete [] query;
 		return(false);
 	}
-	SafeDeleteArray(query);
+	delete [] query;
+	query = NULL;
 	
 	last_insert_id = mysql_insert_id(&mysql);
 	
@@ -270,7 +276,8 @@ void DBcore::DoEscapeString(std::string &to, const std::string &from) {
 	char *buf = new char[len*2 + 1];
 	len = mysql_real_escape_string(&mysql, buf, from.c_str(), len);
 	to.assign(buf, len);
-	SafeDeleteArray(buf);
+	delete [] buf;
+	buf = NULL;
 }
 
 //look for things in the string which might cause SQL problems
@@ -384,7 +391,8 @@ DBQueryResult::~DBQueryResult() {
 	// also check if the first entry has data........
 	if (m_fields != NULL && m_fields[0] != NULL)
 	{
-		SafeDeleteArray(m_fields);
+		delete [] m_fields;
+		m_fields = NULL;
 	}
 
 	if(m_res != NULL)
@@ -635,7 +643,8 @@ void ListToINString(const std::vector<uint32> &ints, std::string &into, const ch
 	}
 
 	into = inbuffer;
-	SafeDeleteArray(inbuffer);
+	delete [] inbuffer;
+	inbuffer = NULL;
 }
 
 
