@@ -15,15 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "EvemuPCH.h"
-#include <mysql/errmsg.h>
-#include <mysql/mysqld_error.h>
-#include <limits.h>
-#include <string.h>
-#include <stdarg.h>
-
-
-/*#include "../common/common.h"
+#include "../common/common.h"
 
 #include "dbcore.h"
 
@@ -34,7 +26,7 @@
 #include <stdarg.h>
 #include "logsys.h"
 #include "MiscFunctions.h"
-#include "misc.h"*/
+#include "misc.h"
 
 #define COLUMN_BOUNDS_CHECKING
 
@@ -487,11 +479,6 @@ void DBQueryResult::SetResult(MYSQL_RES **res, uint32 colcount) {
 	{
 		m_fields[i] = mysql_fetch_field(m_res);
 	}
-
-	/*if(m_res != NULL)
-		m_fields = mysql_fetch_fields(m_res);
-	else
-		m_fields = NULL;*/
 }
 
 void DBQueryResult::Reset() {
