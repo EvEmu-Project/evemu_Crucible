@@ -15,8 +15,15 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "EvemuPCH.h"
+#include <mysql/errmsg.h>
+#include <mysql/mysqld_error.h>
+#include <limits.h>
+#include <string.h>
+#include <stdarg.h>
 
-#include "../common/common.h"
+
+/*#include "../common/common.h"
 
 #include "dbcore.h"
 
@@ -27,7 +34,7 @@
 #include <stdarg.h>
 #include "logsys.h"
 #include "MiscFunctions.h"
-#include "misc.h"
+#include "misc.h"*/
 
 #define COLUMN_BOUNDS_CHECKING
 
@@ -63,7 +70,7 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 	va_end(args);
 	
 	if(!DoQuery_locked(into.error, query, querylen)) {
-		delete[] query;
+		SafeDeleteArray(query);
 		return(false);
 	}
 
@@ -72,10 +79,10 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 		into.error.SetError(0xFFFF, "DBcore::RunQuery: No Result");
 		_log(DATABASE__QUERIES, "Query failed due to no result");
 		_log(DATABASE__ALL_ERRORS, "DB Query '%s' did not return a result, but the caller requested them.", query);
-		delete[] query;
+		SafeDeleteArray(query);
 		return(false);
 	}
-	delete[] query;
+	SafeDeleteArray(query);
 
 	MYSQL_RES *result = mysql_store_result(&mysql);
 
@@ -141,11 +148,11 @@ bool DBcore::RunQuery(DBerror &err, const char *query_fmt, ...) {
 	va_end(args);
 
 	if(!DoQuery_locked(err, query, querylen)) {
-		delete[] query;
+		SafeDeleteArray(query);
 		return(false);
 	}
 	
-	delete[] query;
+	SafeDeleteArray(query);
 	return(true);
 }
 
@@ -160,10 +167,10 @@ bool DBcore::RunQuery(DBerror &err, uint32 &affected_rows, const char *query_fmt
 	va_end(args);
 
 	if(!DoQuery_locked(err, query, querylen)) {
-		delete[] query;
+		SafeDeleteArray(query);
 		return(false);
 	}
-	delete[] query;
+	SafeDeleteArray(query);
 	
 	affected_rows = mysql_affected_rows(&mysql);
 	
@@ -181,10 +188,10 @@ bool DBcore::RunQueryLID(DBerror &err, uint32 &last_insert_id, const char *query
 	va_end(args);
 	
 	if(!DoQuery_locked(err, query, querylen)) {
-		delete[] query;
+		SafeDeleteArray(query);
 		return(false);
 	}
-	delete[] query;
+	SafeDeleteArray(query);
 	
 	last_insert_id = mysql_insert_id(&mysql);
 	
@@ -267,11 +274,11 @@ int32 DBcore::DoEscapeString(char* tobuf, const char* frombuf, int32 fromlen) {
 }
 
 void DBcore::DoEscapeString(std::string &to, const std::string &from) {
-	uint32 len = from.length();
+	uint32 len = (uint32)from.length();
 	char *buf = new char[len*2 + 1];
 	len = mysql_real_escape_string(&mysql, buf, from.c_str(), len);
 	to.assign(buf, len);
-	delete[] buf;
+	SafeDeleteArray(buf);
 }
 
 //look for things in the string which might cause SQL problems
@@ -380,6 +387,14 @@ DBQueryResult::DBQueryResult()
 }
 
 DBQueryResult::~DBQueryResult() {
+
+	// check if the field double pointer has a real pointer
+	// also check if the first entry has data........
+	if (m_fields != NULL && m_fields[0] != NULL)
+	{
+		SafeDeleteArray(m_fields);
+	}
+
 	if(m_res != NULL)
 		mysql_free_result(m_res);
 }
@@ -404,7 +419,7 @@ const char *DBQueryResult::ColumnName(uint32 column) const {
 		return("(ERROR)");		//nothing better to do...
 	}
 #endif
-	return(m_fields[column].name);
+	return(m_fields[column]->name);
 }
 
 DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
@@ -414,7 +429,7 @@ DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
 		return(String);		//nothing better to do...
 	}
 #endif
-	switch(m_fields[column].type) {
+	switch(m_fields[column]->type) {
 	case FIELD_TYPE_TINY:
 		return(Int8);
 	case FIELD_TYPE_SHORT:
@@ -458,10 +473,25 @@ void DBQueryResult::SetResult(MYSQL_RES **res, uint32 colcount) {
 	m_res = *res;
 	*res = NULL;
 	m_col_count = colcount;
-	if(m_res != NULL)
+
+	if (m_res == NULL)
+	{
+		m_fields = NULL;
+		return;
+	}
+
+	m_fields = new MYSQL_FIELD*[m_col_count];
+
+	// we are
+	for (uint32 i = 0; i < colcount; i++)
+	{
+		m_fields[i] = mysql_fetch_field(m_res);
+	}
+
+	/*if(m_res != NULL)
 		m_fields = mysql_fetch_fields(m_res);
 	else
-		m_fields = NULL;
+		m_fields = NULL;*/
 }
 
 void DBQueryResult::Reset() {
@@ -484,7 +514,7 @@ void DBResultRow::SetData(DBQueryResult *res, MYSQL_ROW &row, const uint32 *leng
 
 uint32 DBResultRow::ColumnCount() const {
 	if(m_result == NULL)
-		return(0);
+		return 0;
 	return(m_result->ColumnCount());
 }
 
@@ -504,7 +534,7 @@ uint32 DBResultRow::GetColumnLength(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetColumnLength: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		return(0);		//nothing better to do...
+		return 0;		//nothing better to do...
 	}
 #endif
 	return(m_lengths[column]);
@@ -517,7 +547,7 @@ int32 DBResultRow::GetInt(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		return(0);		//nothing better to do...
+		return 0;		//nothing better to do...
 	}
 #endif
 	//use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
@@ -528,7 +558,7 @@ uint32 DBResultRow::GetUInt(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetUInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		return(0);		//nothing better to do...
+		return 0;		//nothing better to do...
 	}
 #endif
 	//use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
@@ -539,7 +569,7 @@ int64 DBResultRow::GetInt64(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		return(0);		//nothing better to do...
+		return 0;		//nothing better to do...
 	}
 #endif
 	//use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
@@ -550,7 +580,7 @@ uint64 DBResultRow::GetUInt64(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetUInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		return(0);		//nothing better to do...
+		return 0;		//nothing better to do...
 	}
 #endif
 	//use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
@@ -561,7 +591,7 @@ float DBResultRow::GetFloat(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetFloat: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		return(0);		//nothing better to do...
+		return 0;		//nothing better to do...
 	}
 #endif
 #ifdef WIN32
@@ -575,7 +605,7 @@ double DBResultRow::GetDouble(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetDouble: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		return(0);		//nothing better to do...
+		return 0;		//nothing better to do...
 	}
 #endif
 	return(strtod(m_row[column], NULL));
@@ -585,12 +615,12 @@ uint32 DBResultRow::GetBinary(uint32 column, byte *into, uint32 in_length) const
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetBinary: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		return(0);		//nothing better to do...
+		return 0;		//nothing better to do...
 	}
 #endif
 	if(in_length < m_lengths[column]) {
 		_log(DATABASE__ERROR, "GetBinary: insufficient buffer space provided for column %d of length %d (%d provided)", column, m_lengths[column], in_length);
-		return(0);
+		return 0;
 	}
 	memcpy(into, m_row[column], m_lengths[column]);
 	return(m_lengths[column]);
@@ -618,7 +648,7 @@ void ListToINString(const std::vector<uint32> &ints, std::string &into, const ch
 	}
 
 	into = inbuffer;
-	delete[] inbuffer;
+	SafeDeleteArray(inbuffer);
 }
 
 
@@ -675,7 +705,7 @@ uint32 DBSequence::NextValue() {
 	))
 	{
 		_log(DATABASE__ERROR, "Failed to query value for sequence '%s': %s", m_table.c_str(), err.c_str());
-		return(0);
+		return 0;
 	}
 	return(last_insert_id);
 }

@@ -22,12 +22,12 @@
 //if you can get over the SQL incompatibilities and mysql auto increment problems.
 
 #include "common.h"
-#include <string>
-#include <mysql.h>
+//#include <string>
+#include <mysql/mysql.h>
 #include "Mutex.h"
 
-#include <string>
-#include <vector>
+//#include <string>
+//#include <vector>
 
 class DBcore;
 
@@ -86,7 +86,7 @@ protected:
 
 	uint32 m_col_count;
 	MYSQL_RES *m_res;
-	MYSQL_FIELD *m_fields;
+	MYSQL_FIELD **m_fields;
 };
 
 class DBResultRow {
