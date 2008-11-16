@@ -41,6 +41,7 @@ public:
 	PyRepObject *ListStationCorps(uint32 station_id);
 	PyRepObject *ListStationOwners(uint32 station_id);
 	PyRepObject *GetEmploymentRecord(uint32 charID);
+	PyRepObject *GetMedalsReceived(uint32 charID);
 	
 	PyRepDict *ListAllCorpInfo();
 	bool ListAllCorpFactions(std::map<uint32, uint32> &into);

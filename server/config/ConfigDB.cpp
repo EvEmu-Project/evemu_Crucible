@@ -456,6 +456,41 @@ PyRep *ConfigDB::GetCertificateRelationships() {
 	return(irs.Encode());
 }
 
+PyRep *ConfigDB::GetCertificateCategories() {
+	_log(DATABASE__ERROR, "GetCertificateCategories unimplemented.");
+
+	util_IndexRowset irs;
+
+	irs.header.push_back("categoryID");
+	irs.header.push_back("categoryName");
+	irs.header.push_back("description");
+	irs.header.push_back("dataID");
+
+	irs.idName = "categoryID";
+
+	return(irs.Encode());
+}
+
+PyRep *ConfigDB::GetCertificates() {
+	_log(DATABASE__ERROR, "GetCertificates unimplemented.");
+
+	util_IndexRowset irs;
+
+	irs.header.push_back("certificateID");
+	irs.header.push_back("categoryID");
+	irs.header.push_back("classID");
+	irs.header.push_back("grade");
+	irs.header.push_back("iconID");
+	irs.header.push_back("corpID");
+	irs.header.push_back("description");
+	irs.header.push_back("dataID");
+
+	irs.idName = "certificateID";
+
+	return(irs.Encode());
+}
+
+
 
 
 

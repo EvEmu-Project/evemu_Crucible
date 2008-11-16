@@ -29,6 +29,7 @@ CorporationService::CorporationService(PyServiceMgr *mgr, DBcore *db)
 	PyCallable_REG_CALL(CorporationService, GetFactionInfo)
 	PyCallable_REG_CALL(CorporationService, GetNPCDivisions)
 	PyCallable_REG_CALL(CorporationService, GetEmploymentRecord)
+	PyCallable_REG_CALL(CorporationService, GetMedalsReceived)
 }
 
 CorporationService::~CorporationService() {
@@ -122,6 +123,17 @@ PyResult CorporationService::Handle_GetEmploymentRecord(PyCallArgs &call) {
 	PyRep * answer = m_db.GetEmploymentRecord(args.arg);
 	
 	return (answer);
+}
+
+PyResult CorporationService::Handle_GetMedalsReceived(PyCallArgs &call) {
+	Call_SingleIntegerArg arg;
+
+	if(!arg.Decode(&call.tuple)) {
+		codelog(SERVICE__ERROR, "Bad arguments");
+		return (NULL);
+	}
+
+	return(m_db.GetMedalsReceived(arg.arg));
 }
 
 

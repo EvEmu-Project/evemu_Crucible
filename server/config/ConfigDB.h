@@ -44,7 +44,8 @@ public:
 	PyRep *GetCelestialStatistic(uint32 celestialID);
 	PyRep *GetTextsForGroup(const std::string & langID, uint32 textgroup);
 	PyRep *GetCertificateRelationships();
-	
+	PyRep *GetCertificateCategories();
+	PyRep *GetCertificates();
 	
 protected:
 };

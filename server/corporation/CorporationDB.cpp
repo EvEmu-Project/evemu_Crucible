@@ -321,6 +321,24 @@ PyRepObject *CorporationDB::GetEmploymentRecord(uint32 charID) {
 	return (DBResultToRowset(res));
 }
 
+PyRepObject *CorporationDB::GetMedalsReceived(uint32 charID) {
+	_log(DATABASE__ERROR, "GetMedalsReceived unimplemented.");
+
+	util_Rowset rs;
+
+	rs.header.push_back("medalID");
+	rs.header.push_back("title");
+	rs.header.push_back("description");
+	rs.header.push_back("ownerID");
+	rs.header.push_back("");	//wtf??
+	rs.header.push_back("issuerID");
+	rs.header.push_back("date");
+	rs.header.push_back("reason");
+	rs.header.push_back("status");
+
+	return(rs.Encode());
+}
+
 static std::string _IoN(PyRep *r) {
 	if(!r->CheckType(PyRep::Integer))
 		return("NULL");

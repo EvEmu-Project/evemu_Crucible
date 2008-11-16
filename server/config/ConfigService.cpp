@@ -39,6 +39,9 @@ ConfigService::ConfigService(PyServiceMgr *mgr, DBcore *db)
 	PyCallable_REG_CALL(ConfigService, GetStationSolarSystemsByOwner)
 	PyCallable_REG_CALL(ConfigService, GetCelestialStatistic)
 	PyCallable_REG_CALL(ConfigService, GetCertificateRelationships)
+	PyCallable_REG_CALL(ConfigService, GetCertificateCategories)
+	PyCallable_REG_CALL(ConfigService, GetCertificates)
+	PyCallable_REG_CALL(ConfigService, GetCertificateRecommendationsByCertificateID)
 }
 
 ConfigService::~ConfigService() {
@@ -323,6 +326,44 @@ PyResult ConfigService::Handle_GetCertificateRelationships(PyCallArgs &call) {
 	}
 
 	return(cache->MakeObjectCachedMethodCallResult(method_id));
+}
+
+PyResult ConfigService::Handle_GetCertificateCategories(PyCallArgs &call) {
+	ObjectCachedMethodID method_id(GetName(), "GetCertificateCategories");
+
+	ObjCacheService *cache = m_manager->GetCache();
+	if(!cache->IsCacheLoaded(method_id)) {
+		PyRep *res = m_db.GetCertificateCategories();
+		if(res == NULL) {
+			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
+			res = new PyRepNone();
+		}
+		cache->GiveCache(method_id, &res);
+	}
+
+	return(cache->MakeObjectCachedMethodCallResult(method_id));
+}
+
+PyResult ConfigService::Handle_GetCertificates(PyCallArgs &call) {
+	ObjectCachedMethodID method_id(GetName(), "GetCertificates");
+
+	ObjCacheService *cache = m_manager->GetCache();
+	if(!cache->IsCacheLoaded(method_id)) {
+		PyRep *res = m_db.GetCertificates();
+		if(res == NULL) {
+			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
+			res = new PyRepNone();
+		}
+		cache->GiveCache(method_id, &res);
+	}
+
+	return(cache->MakeObjectCachedMethodCallResult(method_id));
+}
+
+PyResult ConfigService::Handle_GetCertificateRecommendationsByCertificateID(PyCallArgs &call) {
+	_log(SERVICE__ERROR, "%s::GetCertificateRecommendationsByCertificateID unimplemented.", GetName());
+
+	return(NULL);
 }
 
 

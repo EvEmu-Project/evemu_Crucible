@@ -310,6 +310,14 @@
 				Name="character"
 				>
 				<File
+					RelativePath="..\..\server\character\CertificateMgrDB.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\server\character\CertificateMgrService.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\server\character\CharacterDB.cpp"
 					>
 				</File>
@@ -843,6 +851,14 @@
 			<Filter
 				Name="character"
 				>
+				<File
+					RelativePath="..\..\server\character\CertificateMgrDB.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\server\character\CertificateMgrService.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\server\character\CharacterAppearance_fields.h"
 					>

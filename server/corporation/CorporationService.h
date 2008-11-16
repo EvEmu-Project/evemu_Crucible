@@ -36,6 +36,7 @@ protected:
 	PyCallable_DECL_CALL(GetFactionInfo)
 	PyCallable_DECL_CALL(GetNPCDivisions)
 	PyCallable_DECL_CALL(GetEmploymentRecord)
+	PyCallable_DECL_CALL(GetMedalsReceived)
 };
 
 
