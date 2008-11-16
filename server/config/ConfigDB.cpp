@@ -439,10 +439,22 @@ PyRep *ConfigDB::GetTextsForGroup(const std::string & langID, uint32 textgroup) 
 	return DBResultToRowset(res);
 }
 
+PyRep *ConfigDB::GetCertificateRelationships() {
+	_log(DATABASE__ERROR, "GetCertificateRelationships unimplemented.");
 
+	util_IndexRowset irs;
 
+	irs.header.push_back("relationshipID");
+	irs.header.push_back("parentID");
+	irs.header.push_back("parentTypeID");
+	irs.header.push_back("parentLevel");
+	irs.header.push_back("childID");
+	irs.header.push_back("childTypeID");
 
+	irs.idName = "relationshipID";
 
+	return(irs.Encode());
+}
 
 
 

@@ -45,6 +45,7 @@ public:
 		PyCallable_REG_CALL(DogmaIMBound, AddTarget)
 		PyCallable_REG_CALL(DogmaIMBound, RemoveTarget)
 		PyCallable_REG_CALL(DogmaIMBound, ClearTargets)
+		PyCallable_REG_CALL(DogmaIMBound, GetWeaponBankInfoForShip)
 	}
 	virtual ~DogmaIMBound() {}
 	virtual void Release() {
@@ -63,6 +64,7 @@ public:
 	PyCallable_DECL_CALL(AddTarget)
 	PyCallable_DECL_CALL(RemoveTarget)
 	PyCallable_DECL_CALL(ClearTargets)
+	PyCallable_DECL_CALL(GetWeaponBankInfoForShip)
 
 protected:
 	
@@ -277,7 +279,11 @@ PyResult DogmaIMBound::Handle_ClearTargets(PyCallArgs &call) {
 	return(NULL);
 }
 
+PyResult DogmaIMBound::Handle_GetWeaponBankInfoForShip(PyCallArgs &call) {
+	_log(SERVICE__ERROR, "%s::GetWeaponBankInfoForShip unimplemented.", GetName());
 
+	return(new PyRepDict);
+}
 
 
 
