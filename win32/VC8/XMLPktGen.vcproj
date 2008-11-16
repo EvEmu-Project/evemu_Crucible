@@ -267,6 +267,62 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Common"
+			>
+			<Filter
+				Name="Header Files"
+				>
+				<File
+					RelativePath="..\..\common\logsys.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\common\logtypes.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\common\misc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\3rdparty\tinyxml\tinystr.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\3rdparty\tinyxml\tinyxml.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Source Files"
+				>
+				<File
+					RelativePath="..\..\common\logsys.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\common\misc.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\3rdparty\tinyxml\tinystr.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\3rdparty\tinyxml\tinyxml.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\3rdparty\tinyxml\tinyxmlerror.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\3rdparty\tinyxml\tinyxmlparser.cpp"
+					>
+				</File>
+			</Filter>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
