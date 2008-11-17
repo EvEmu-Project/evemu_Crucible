@@ -151,7 +151,6 @@
 
 // client object cache stuff
 #include "../server/cache/ObjCacheService.h"
-#include "../server/cache/CachableList.h"
 #include "../server/cache/ObjCacheDB.h"
 
 // character stuff
