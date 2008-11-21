@@ -46,6 +46,8 @@ public:
 	PyRep *GetCertificateRelationships();
 	PyRep *GetCertificateCategories();
 	PyRep *GetCertificates();
+	PyRep *GetCertificateRecommendationsByCertificateID();
+	PyRep *GetCertificateRecommendationsByShipTypeID();
 	
 protected:
 };

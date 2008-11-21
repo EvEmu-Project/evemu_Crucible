@@ -490,6 +490,36 @@ PyRep *ConfigDB::GetCertificates() {
 	return(irs.Encode());
 }
 
+PyRep *ConfigDB::GetCertificateRecommendationsByCertificateID() {
+	_log(DATABASE__ERROR, "GetCertificateRecommendationsByCertificateID unimplemented.");
+
+	util_IndexRowset irs;
+
+	irs.header.push_back("shipTypeID");
+	irs.header.push_back("certificateID");
+	irs.header.push_back("recommendationLevel");
+	irs.header.push_back("recommendationID");
+
+	irs.idName = "shipTypeID";
+
+	return(irs.Encode());
+}
+
+PyRep *ConfigDB::GetCertificateRecommendationsByShipTypeID() {
+	_log(DATABASE__ERROR, "GetCertificateRecommendationsByShipTypeID unimplemented.");
+
+	util_IndexRowset irs;
+
+	irs.header.push_back("shipTypeID");
+	irs.header.push_back("certificateID");
+	irs.header.push_back("recommendationLevel");
+	irs.header.push_back("recommendationID");
+
+	irs.idName = "shipTypeID";
+
+	return(irs.Encode());
+}
+
 
 
 

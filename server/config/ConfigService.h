@@ -50,6 +50,7 @@ protected:
 	PyCallable_DECL_CALL(GetCertificateCategories)
 	PyCallable_DECL_CALL(GetCertificates)
 	PyCallable_DECL_CALL(GetCertificateRecommendationsByCertificateID)
+	PyCallable_DECL_CALL(GetCertificateRecommendationsByShipTypeID)
 	
 };
 

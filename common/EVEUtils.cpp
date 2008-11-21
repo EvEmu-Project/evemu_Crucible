@@ -40,34 +40,27 @@ void Win32TimeToUnixTime( uint64 win32t, time_t &unix_time, uint32 &nsec ) {
 }
 
 std::string Win32TimeToString(uint64 win32t) {
-#ifdef WIN32
-	SYSTEMTIME st;
-	GetSystemTime(&st);
-
-	char buf[256];
-	snprintf(buf, 255, "%d-%d-%d %d:%d:%d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
-	return(buf);
-#else
-	struct tm ut;
 	time_t unix_time;
 	uint32 nsec;
 	Win32TimeToUnixTime(win32t, unix_time, nsec);
 	
-	memcpy(&ut, localtime(&unix_time), sizeof(ut));
-
 	char buf[256];
-	strftime(buf, 255, "%F %T", &ut);
+	strftime(buf, 256,
+#ifdef WIN32
+		"%Y-%m-%d %X",
+#else
+		"%F %T",
+#endif /* !WIN32 */
+	localtime(&unix_time));
+
 	return(buf);
-#endif
 }
 
 uint64 Win32TimeNow() {
 #ifdef WIN32
-	SYSTEMTIME st;
 	FILETIME ft;
-	GetSystemTime(&st);
-	SystemTimeToFileTime(&st, &ft);
-    return((int64(ft.dwHighDateTime) << 32) | int64(ft.dwLowDateTime));
+	GetSystemTimeAsFileTime(&ft);
+    return((uint64(ft.dwHighDateTime) << 32) | uint64(ft.dwLowDateTime));
 #else
 	return(UnixTimeToWin32Time(time(NULL), 0));
 #endif
