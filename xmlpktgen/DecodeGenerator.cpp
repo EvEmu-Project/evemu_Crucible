@@ -868,6 +868,63 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return(true);
 }
 
+bool ClassDecodeGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+	const char *name = field->Attribute("name");
+	if(name == NULL) {
+		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+		return(false);
+	}
+	bool type1 = false;
+	const char *type = field->Attribute("type1");
+	if(type != NULL)
+		if(strcmp(type, "true") == 0)
+			type1 = true;
+
+	char iname[16];
+	snprintf(iname, sizeof(iname), "nobj_%d", m_itemNumber++);
+	const char *v = top();
+
+	fprintf(into,
+		"	if(!%s->CheckType(PyRep::NewObject)) {\n"
+		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
+		"		delete packet;\n"
+		"		return(false);\n"
+		"	}\n"
+		"	PyRepNewObject *%s = (PyRepNewObject *) %s;\n"
+		"	if(%s%s->is_type_1) {\n"
+		"		_log(NET__PACKET_ERROR, \"Decode %s failed: expected %s to %s of type 1, but it %s\");\n"
+		"		delete packet;\n"
+		"		return(false);\n"
+		"	}\n",
+		v,
+			m_name, iname, v,
+		iname, v,
+		(type1 ? "!" : ""), iname,
+			m_name, iname, (type1 ? "be" : "not be"), (type1 ? "is not" : "is")
+	);
+
+	char hname[32];
+	snprintf(hname, sizeof(hname), "%s->header", iname);
+	// decode the header
+	push(hname);
+	if(!ProcessFields(into, field, 1))
+		return(false);
+
+	fprintf(into,
+		"	%s_list = %s->list_data;\n"
+		"	%s->list_data.clear();\n"
+		"	%s_dict = %s->dict_data;\n"
+		"	%s->dict_data.clear();\n",
+		name, iname,
+		iname,
+		name, iname,
+		iname
+	);
+
+	pop();
+	return(true);
+}
+
 bool ClassDecodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {

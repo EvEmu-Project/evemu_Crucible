@@ -1027,56 +1027,23 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 	*/
 		break; }
 	
-	case Op_PackedObject1:
+	case Op_NewObject1:
+	case Op_NewObject2:
 		{
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PackedObject1", pfx, opcode);
+		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_NewObject", pfx, opcode);
 
-		PyRep *rep;
+		PyRep *header;
 
 		std::string n(pfx);
 		n += "    ";
-		uint32 clen = UnmarshalData(state, packet, len, rep, n.c_str());
-		if(rep == NULL)
+		uint32 clen = UnmarshalData(state, packet, len, header, n.c_str());
+		if(header == NULL)
 			break;
 		packet += clen;
 		len -= clen;
 		len_used += clen;
 
-		//crap
-		if(!rep->CheckType(PyRep::Tuple)) {
-			_log(NET__UNMARSHAL_ERROR, "PackedObject1 has non-tuple body: %s", rep->TypeString());
-			break;
-		}
-		PyRepTuple *body = (PyRepTuple *)rep;
-		if(body->items.size() != 2 && body->items.size() != 3) {
-			_log(NET__UNMARSHAL_ERROR, "Not enough elements in PackedObject1's body (expected 2 or 3, got %lu)", body->items.size());
-			break;
-		}
-		if(!body->items[0]->CheckType(PyRep::String)) {
-			_log(NET__UNMARSHAL_ERROR, "Invalid type of PackedObject1: expected String, got %s", body->items[0]->TypeString());
-			break;
-		}
-		std::string type = ((PyRepString *)body->items[0])->value;
-		if(!body->items[1]->CheckType(PyRep::Tuple)) {
-			_log(NET__UNMARSHAL_ERROR, "Invalid args of PackedObject1: expected Tuple, got %s", body->items[1]->TypeString());
-			break;
-		}
-		PyRepTuple *args = (PyRepTuple *)body->items[1];
-		body->items[1] = NULL;
-		PyRepDict kw;
-		if(body->items.size() == 3) {
-			if(!body->items[2]->CheckType(PyRep::Dict)) {
-				_log(NET__UNMARSHAL_ERROR, "Invalid keywords of PackedObject1: expected Dict, got %s", body->items[2]->TypeString());
-				break;
-			}
-			PyRepDict *d = (PyRepDict *)body->items[2];
-			kw.items = d->items;
-			d->items.clear();
-		}
-		delete rep;
-
-		PyRepPackedObject1 *obj = new PyRepPackedObject1(type.c_str(), args, kw);
-		kw.items.clear();	//to not delete them
+		PyRepNewObject *obj = new PyRepNewObject(opcode == Op_NewObject2, header);
 
 		n = pfx;
 		n += "  ListData: ";
@@ -1148,110 +1115,6 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 	---------------------------------------------------------------------------
 	.text:1005D9F5
 	*/
-		break; }
-	
-	case Op_PackedObject2: {
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PackedObject2", pfx, opcode);
-
-		PyRep *rep;
-		
-		std::string n(pfx);
-		n += "    ";
-		uint32 clen = UnmarshalData(state, packet, len, rep, n.c_str());
-		if(rep == NULL)
-			break;
-		packet += clen;
-		len -= clen;
-		len_used += clen;
-
-		//crap
-		if(!rep->CheckType(PyRep::Tuple)) {
-			_log(NET__UNMARSHAL_ERROR, "Invalid body of PackedObject2 (expected Tuple, got %s)", rep->TypeString());
-			break;
-		}
-		PyRepTuple *body = (PyRepTuple *)rep;
-		if(body->items.size() < 1) {
-			_log(NET__UNMARSHAL_ERROR, "Invalid body of PackedObject2 (got empty tuple)", body->items[0]->TypeString());
-			break;
-		}
-		if(!body->items[0]->CheckType(PyRep::Tuple)) {
-			_log(NET__UNMARSHAL_ERROR, "Invalid args1 of PackedObject2 (expected Tuple, got %s)", body->items[0]->TypeString());
-			break;
-		}
-		PyRepTuple *args1 = (PyRepTuple *)body->items[0];
-		body->items[0] = NULL;
-		if(args1->items.size() < 1) {
-			_log(NET__UNMARSHAL_ERROR, "Invalid args1 of PackedObject2 (got empty tuple)");
-			break;
-		}
-		if(!args1->items[0]->CheckType(PyRep::String)) {
-			_log(NET__UNMARSHAL_ERROR, "Invalid type of PackedObject2 (expected String, got %s)", args1->items[0]->TypeString());
-			break;
-		}
-		std::string type = ((PyRepString *)args1->items[0])->value;
-		if(args1->items.size() == 1) {
-			delete args1;
-			args1 = NULL;
-		} else {
-			delete args1->items[0];
-			args1->items.erase(args1->items.begin());
-		}
-
-		PyRep *args2 = NULL;
-		if(body->items.size() > 1) {
-			args2 = body->items[1];
-			body->items[1] = NULL;
-		}
-		delete rep;
-
-		PyRepPackedObject2 *obj = new PyRepPackedObject2(type.c_str(), args1, args2);
-
-		n = pfx;
-		n += "  ListData: ";
-		while(*packet != Op_PackedTerminator) {
-			PyRep *el;
-
-			clen = UnmarshalData(state, packet, len, el, n.c_str());
-			if(el == NULL)
-				break;
-			packet += clen;
-			len -= clen;
-			len_used += clen;
-
-			obj->list_data.push_back(el);
-		}
-		packet++;
-		len--;
-		len_used++;
-
-		n = pfx;
-		n += "  DictData: ";
-		while(*packet != Op_PackedTerminator) {
-			PyRep *key;
-			PyRep *value;
-
-			clen = UnmarshalData(state, packet, len, key, n.c_str());
-			if(key == NULL)
-				break;
-			packet += clen;
-			len -= clen;
-			len_used += clen;
-
-			clen = UnmarshalData(state, packet, len, value, n.c_str());
-			if(value == NULL)
-				break;
-			packet += clen;
-			len -= clen;
-			len_used += clen;
-
-			obj->dict_data[key] = value;
-		}
-		packet++;
-		len--;
-		len_used++;
-
-		res = obj;
-		break;
 
 //		_hex(NET__UNMARSHAL_TRACE, packet, len>32?32:len);
 	/*

@@ -34,8 +34,8 @@ class PyRepObject;
 class PyRepTuple;
 class PyRepList;
 class PyRepDict;
+class PyRepNewObject;
 class PyRepPackedRow;
-class PyRepPackedObject2;
 
 /*typedef enum {
 	StringContentsInteger,
@@ -59,8 +59,9 @@ void DBResultToIntIntlistDict(DBQueryResult &result, std::map<uint32, PyRep *> &
 //new packed stuff:
 PyRepList *DBResultToPackedRowList(DBQueryResult &result);
 PyRepTuple *DBResultToPackedRowListTuple(DBQueryResult &result);
-PyRepPackedObject2 *DBResultToPackedRowset(DBQueryResult &result, const char *type = "dbutil.CRowset");
+PyRepNewObject *DBResultToPackedRowset(DBQueryResult &result, const char *type = "dbutil.CRowset");
 
+//single rows:
 PyRepObject *DBRowToKeyVal(DBResultRow &row);
 PyRepObject *DBRowToRow(DBResultRow &row, const char *type = "util.Row");
 PyRepPackedRow *DBRowToPackedRow(DBResultRow &row);

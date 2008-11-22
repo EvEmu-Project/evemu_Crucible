@@ -599,6 +599,76 @@ bool ClassEncodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return(true);
 }
 
+bool ClassEncodeGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+	const char *name = field->Attribute("name");
+	if(name == NULL) {
+		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+		return(false);
+	}
+	bool type1 = false;
+	const char *type = field->Attribute("type1");
+	if(type != NULL)
+		if(strcmp(type, "true") == 0)
+			type1 = true;
+
+	// generate header name
+	char hname[16];
+	snprintf(hname, sizeof(hname), "header%d", m_itemNumber++);
+
+	fprintf(into,
+		"	PyRep *%s;\n",
+		hname
+	);
+
+	// encode header
+	push(hname);
+	if(!ProcessFields(into, field, 1))
+		return(false);
+
+	// generate our temp name
+	char iname[16];
+	snprintf(iname, sizeof(iname), "nobj_%d", m_itemNumber++);
+
+	// create object
+	fprintf(into,
+		"	PyRepNewObject *%s = new PyRepNewObject(\n"
+		"		%s, %s\n"
+		"	);\n",
+		iname,
+			(type1 ? "true" : "false"), hname
+	);
+
+	fprintf(into,
+		"	PyRepNewObject::list_iterator lcur, lend;\n"
+		"	lcur = %s_list.begin();\n"
+		"	lend = %s_list.end();\n"
+		"	for(; lcur != lend; lcur++)\n"
+		"		%s->list_data.push_back((*lcur)->Clone());\n",
+		name,
+		name,
+			iname
+	);
+
+	fprintf(into,
+		"	PyRepNewObject::dict_iterator dcur, dend;\n"
+		"	dcur = %s_dict.begin();\n"
+		"	dend = %s_dict.end();\n"
+		"	for(; dcur != dend; dcur++)\n"
+		"		%s->dict_data[dcur->first->Clone()] = dcur->second->Clone();\n",
+		name,
+		name,
+			iname
+	);
+
+	fprintf(into,
+		"	%s = %s;\n",
+		top(), iname
+	);
+
+	pop();
+	return(true);
+}
+
 bool ClassEncodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {

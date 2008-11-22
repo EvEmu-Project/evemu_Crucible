@@ -21,7 +21,7 @@ CACHABLE("config.BulkData.allianceshortnames", AllianceShortnames, TupleSet,
 CACHABLE("config.BulkData.categories", invCategories, TupleSet,
 	"SELECT categoryID,categoryName,description,graphicID,0 AS dataID FROM invCategories"
 );
-CACHABLE("config.BulkData.invtypereactions", invTypeReactions, TupleSet,
+CACHABLE("config.BulkData.invtypereactions", invTypeReactions, PackedRowset,
 	"SELECT reactionTypeID,input,typeID,quantity FROM invTypeReactions"
 );
 /* this query is a strange one, we might have to develop a non-macro based
@@ -60,10 +60,10 @@ CACHABLE("config.BulkData.metagroups", invMetaGroups, TupleSet,
 CACHABLE("config.BulkData.ramactivities", ramActivities, TupleSet,
 	"SELECT activityID,activityName,iconNo,description,published FROM ramActivities"
 );
-CACHABLE("config.BulkData.ramaltypesdetailpergroup", ramALTypeGroup, TupleSet,
+CACHABLE("config.BulkData.ramaltypesdetailpergroup", ramALTypeGroup, PackedRowset,
 	"SELECT a.assemblyLineTypeID,b.activityID,a.groupID,a.timeMultiplier,a.materialMultiplier FROM ramAssemblyLineTypeDetailPerGroup AS a LEFT JOIN ramAssemblyLineTypes AS b ON a.assemblyLineTypeID = b.assemblyLineTypeID"
 );
-CACHABLE("config.BulkData.ramaltypesdetailpercategory", ramALTypeCategory, TupleSet,
+CACHABLE("config.BulkData.ramaltypesdetailpercategory", ramALTypeCategory, PackedRowset,
 	"SELECT a.assemblyLineTypeID,b.activityID,a.categoryID,a.timeMultiplier,a.materialMultiplier FROM ramAssemblyLineTypeDetailPerCategory AS a LEFT JOIN ramAssemblyLineTypes AS b ON a.assemblyLineTypeID = b.assemblyLineTypeID"
 );
 CACHABLE("config.BulkData.ramaltypes", ramALTypes, TupleSet,

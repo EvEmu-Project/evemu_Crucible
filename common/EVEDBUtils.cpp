@@ -19,6 +19,8 @@
 #include "PyRep.h"
 #include "dbcore.h"
 
+#include "../packets/General.h"
+
 //this is such crap
 /*StringContentsType ClassifyStringContents(const char *str) {
 	if(str == NULL || *str == '\0')
@@ -457,24 +459,23 @@ static void GetPackedColumnList(const DBResultRow &row, DBPackedColumnList &into
 }
 
 //builds blue.DBRowDescriptor from DBPackedColumnList
-static PyRepPackedObject1 *BuildRowDescriptor(const DBPackedColumnList &columns) {
-	PyRepPackedObject1 *desc = new PyRepPackedObject1("blue.DBRowDescriptor");
-	desc->args = new PyRepTuple(1);
-	PyRepTuple *col_list = new PyRepTuple(0);
-	desc->args->items[0] = col_list;
+static PyRepNewObject *BuildRowDescriptor(const DBPackedColumnList &columns) {
+	blue_DBRowDescriptor desc;
+	desc.columns = new PyRepTuple(columns.size());
 
 	PyRepTuple *col;
 	DBPackedColumnList::const_iterator cur, end;
 	cur = columns.begin();
 	end = columns.end();
-	for(; cur != end; cur++) {
+	for(size_t i = 0; cur != end; cur++, i++) {
 		col = new PyRepTuple(2);
 		col->items[0] = new PyRepString(cur->name);
 		col->items[1] = new PyRepInteger(cur->type);
-		col_list->items.push_back(col);
+
+		desc.columns->items[i] = col;
 	}
 
-	return(desc);
+	return(desc.Encode());
 }
 
 //orders DBPackedColumnList by DBTYPE
@@ -703,7 +704,7 @@ PyRepList *DBResultToPackedRowList(
 	DBPackedColumnList columns;
 	GetPackedColumnList(result, columns);
 
-	PyRepPackedObject1 *header = BuildRowDescriptor(columns);
+	PyRepNewObject *header = BuildRowDescriptor(columns);
 
 	OrderPackedColumnList(columns);
 
@@ -724,57 +725,45 @@ PyRepTuple *DBResultToPackedRowListTuple(
 	DBPackedColumnList columns;
 	GetPackedColumnList(result, columns);
 
-	PyRepPackedObject1 *header = BuildRowDescriptor(columns);
-
-	PyRepTuple *res = new PyRepTuple(2);
-	res->items[0] = header->Clone();
-	PyRepList *rowlist = new PyRepList;
-	res->items[1] = rowlist;
+	util_PackedRowListTuple res;
+	res.header = BuildRowDescriptor(columns);
 
 	OrderPackedColumnList(columns);
 
 	DBResultRow row;
 	while(result.GetRow(row))
 		//this is piece of crap due to header cloning
-		rowlist->add(PackRow(row, columns, true, header->Clone()));
+		res.rows.add(PackRow(row, columns, true, res.header->Clone()));
 
-	delete header;
-	return(res);
+	return(res.Encode());
 }
 
-PyRepPackedObject2 *DBResultToPackedRowset(
+PyRepNewObject *DBResultToPackedRowset(
 	DBQueryResult &result,
 	const char *type
 ) {
 	DBPackedColumnList columns;
 	GetPackedColumnList(result, columns);
 
-	PyRepPackedObject1 *header = BuildRowDescriptor(columns);
-
-	PyRepPackedObject2 *res = new PyRepPackedObject2(type);
-	PyRepDict *d = new PyRepDict;
-	res->args2 = d;
-
-	d->add("header", header->Clone());
-
-	PyRepList *col_list = new PyRepList;
-	d->add("columns", col_list);
+	util_PackedRowset res;
+	res.type = type;
+	res.header = BuildRowDescriptor(columns);
 
 	DBPackedColumnList::const_iterator cur, end;
 	cur = columns.begin();
 	end = columns.end();
 	for(; cur != end; cur++)
-		col_list->add(new PyRepString(cur->name));
+		res.columns.add(new PyRepString(cur->name));
 
 	OrderPackedColumnList(columns);
 
 	DBResultRow row;
-	while(result.GetRow(row))
+	while(result.GetRow(row)) {
 		//this is piece of crap due to header cloning
-		res->list_data.push_back(PackRow(row, columns, true, header->Clone()));
+		res.root_list.push_back(PackRow(row, columns, true, res.header->Clone()));
+	}
 
-	delete header;
-	return(res);
+	return(res.Encode());
 }
 
 PyRepPackedRow *DBRowToPackedRow(
@@ -783,7 +772,7 @@ PyRepPackedRow *DBRowToPackedRow(
 	DBPackedColumnList columns;
 	GetPackedColumnList(row, columns);
 
-	PyRepPackedObject1 *header = BuildRowDescriptor(columns);
+	PyRepNewObject *header = BuildRowDescriptor(columns);
 
 	OrderPackedColumnList(columns);
 

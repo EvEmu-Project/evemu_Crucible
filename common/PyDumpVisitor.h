@@ -51,12 +51,13 @@ protected:
 	virtual void VisitObject(const PyRepObject *rep);
 	
 	virtual void VisitPackedRow(const PyRepPackedRow *rep);
-	virtual void VisitPackedObjectList(const PyRepPackedObject *rep);
-	virtual void VisitPackedObjectListElement(const PyRepPackedObject *rep, uint32 index, const PyRep *ele);
-	virtual void VisitPackedObjectDict(const PyRepPackedObject *rep);
-	virtual void VisitPackedObjectDictElement(const PyRepPackedObject *rep, uint32 index, const PyRep *key, const PyRep *value);
-	virtual void VisitPackedObject1(const PyRepPackedObject1 *rep);
-	virtual void VisitPackedObject2(const PyRepPackedObject2 *rep);
+
+	virtual void VisitNewObject(const PyRepNewObject *rep);
+	virtual void VisitNewObjectHeader(const PyRepNewObject *rep);
+	virtual void VisitNewObjectList(const PyRepNewObject *rep);
+	virtual void VisitNewObjectListElement(const PyRepNewObject *rep, uint32 index, const PyRep *ele);
+	virtual void VisitNewObjectDict(const PyRepNewObject *rep);
+	virtual void VisitNewObjectDictElement(const PyRepNewObject *rep, uint32 index, const PyRep *key, const PyRep *value);
 	
 	virtual void VisitSubStruct(const PyRepSubStruct *rep);
 	virtual void VisitSubStream(const PyRepSubStream *rep);

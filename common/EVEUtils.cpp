@@ -22,6 +22,8 @@
 
 #include "../server/inventory/InventoryItem.h"
 
+#include "../packets/General.h"
+
 static const uint64 SECS_BETWEEN_EPOCHS = 11644473600LL;
 static const uint64 SECS_TO_100NS = 10000000; // 10^7
 
@@ -88,30 +90,12 @@ int GetSkillLevel(const std::vector<const InventoryItem *> &skills, const uint32
 }
 
 PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args) {
-	PyRepPackedObject1 *res = new PyRepPackedObject1("ccp_exceptions.UserError");
+	util_Exception res;
+	res.type = "ccp_exceptions.UserError";
+	res.exceptionType_tuple = res.exceptionType_dict = exceptionType;
+	res.args_tuple = res.args_dict = args;
 
-	PyRep *py_args;
-	if(args.empty())
-		py_args = new PyRepNone;
-	else {
-		PyRepDict *d = new PyRepDict;
-		py_args = d;
-		std::map<std::string, PyRep *>::const_iterator cur, end;
-		cur = args.begin();
-		end = args.end();
-		for(; cur != end; cur++)
-			d->add(cur->first.c_str(), cur->second);
-	}
-
-	res->args = new PyRepTuple(2);
-	res->args->items[0] = new PyRepString(exceptionType);
-	res->args->items[1] = py_args;
-
-	res->keywords.add("msgkey", new PyRepString(exceptionType));
-	// here should be used PySavedStreamElement, but our marshaling doesnt support it yet
-	res->keywords.add("dict", py_args->Clone());
-
-	return(res);
+	return(res.Encode());
 }
 
 PyRep *MakeCustomError(const char *fmt, ...) {

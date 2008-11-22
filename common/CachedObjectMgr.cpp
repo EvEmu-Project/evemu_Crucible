@@ -67,13 +67,7 @@ public:
 	virtual void VisitObject(const PyRepObject *rep) {
 		good = false;
 	}
-	virtual void VisitPackedObject(const PyRepPackedObject *rep) {
-		good = false;
-	}
-	virtual void VisitPackedObject1(const PyRepPackedObject1 *rep) {
-		good = false;
-	}
-	virtual void VisitPackedObject2(const PyRepPackedObject2 *rep) {
+	virtual void VisitNewObject(const PyRepNewObject *rep) {
 		good = false;
 	}
 	virtual void VisitPackedRow(const PyRepPackedRow *rep) {

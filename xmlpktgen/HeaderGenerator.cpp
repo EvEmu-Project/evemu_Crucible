@@ -271,6 +271,36 @@ bool ClassHeaderGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return(true);
 }
 
+bool ClassHeaderGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+	const char *name = field->Attribute("name");
+	if(name == NULL) {
+		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+		return(false);
+	}
+	char lname[16];
+	snprintf(lname, sizeof(lname), "%s_list", name);
+	if(m_namesUsed.find(lname) != m_namesUsed.end()) {
+		_log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), lname);
+		return(false);
+	}
+	char dname[16];
+	snprintf(dname, sizeof(dname), "%s_dict", name);
+	if(m_namesUsed.find(dname) != m_namesUsed.end()) {
+		_log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), dname);
+		return(false);
+	}
+
+	fprintf(into, "\t/* NewObject %s's header: */\n", name);
+	if(!ProcessFields(into, field, 1))
+		return(false);
+
+	fprintf(into, "\t/* NewObject %s's contents: */\n", name);
+	fprintf(into, "\tPyRepNewObject::list_type\t%s;\n", lname);
+	fprintf(into, "\tPyRepNewObject::dict_type\t%s;\n", dname);
+
+	return(true);
+}
+
 bool ClassHeaderGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {

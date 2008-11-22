@@ -316,6 +316,62 @@ bool ClassDumpGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return(true);
 }
 
+bool ClassDumpGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+	const char *name = field->Attribute("name");
+	if(name == NULL) {
+		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+		return(false);
+	}
+
+	fprintf(into,
+		"	_log(l_type, \"%%sNewObject:\", pfx);\n"
+		"	_log(l_type, \"%%sHeader:\", pfx);\n"
+	);
+
+	if(!ProcessFields(into, field, 1))
+		return(false);
+
+	fprintf(into,
+		"	_log(l_type, \"%%sList data:\", pfx);\n"
+		"	PyRepNewObject::const_list_iterator lcur, lend;\n"
+		"	lcur = %s_list.begin();\n"
+		"	lend = %s_list.end();\n"
+		"	for(uint32 i = 0; lcur != lend; lcur++, i++) {\n"
+		"		char istr[16];\n"
+		"		sprintf_s(istr, sizeof(istr), \"  [%%02lu] \", i);\n"
+		"		std::string n(pfx);\n"
+		"		n += istr;\n"
+		"		(*lcur)->Dump(l_type, n.c_str());\n"
+		"	}\n",
+		name,
+		name
+	);
+
+	fprintf(into,
+		"	_log(l_type, \"%%sDict data:\", pfx);\n"
+		"	PyRepNewObject::const_dict_iterator dcur, dend;\n"
+		"	dcur = %s_dict.begin();\n"
+		"	dend = %s_dict.end();\n"
+		"	for(uint32 i = 0; dcur != dend; dcur++) {\n"
+		"		char istr[16];\n"
+		"\n"
+		"		sprintf_s(istr, sizeof(istr), \"  [%%02lu] Key: \", i);\n"
+		"		std::string n(pfx);\n"
+		"		n += istr;\n"
+		"		dcur->first->Dump(l_type, n.c_str());\n"
+		"\n"
+		"		sprintf_s(istr, sizeof(istr), \"  [%%02lu] Value: \", i);\n"
+		"		n = pfx;\n"
+		"		n += istr;\n"
+		"		dcur->second->Dump(l_type, n.c_str());\n"
+		"	}\n",
+		name,
+		name
+	);
+
+	return(true);
+}
+
 bool ClassDumpGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {

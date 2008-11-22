@@ -218,67 +218,21 @@ public:
 		PyVisitor::VisitObject(rep);
 	}
 
-	virtual void VisitPackedObjectList(const PyRepPackedObject *rep) {
-		PyVisitor::VisitPackedObjectList(rep);
+	virtual void VisitNewObject(const PyRepNewObject *rep) {
+		PutByte(
+			rep->is_type_1 ? Op_NewObject2 : Op_NewObject1
+		);
+		PyVisitor::VisitNewObject(rep);
+	}
+
+	virtual void VisitNewObjectList(const PyRepNewObject *rep) {
+		PyVisitor::VisitNewObjectList(rep);
 		PutByte(Op_PackedTerminator);
 	}
 
-	virtual void VisitPackedObjectDict(const PyRepPackedObject *rep) {
-		PyVisitor::VisitPackedObjectDict(rep);
+	virtual void VisitNewObjectDict(const PyRepNewObject *rep) {
+		PyVisitor::VisitNewObjectDict(rep);
 		PutByte(Op_PackedTerminator);
-	}
-
-	virtual void VisitPackedObject1(const PyRepPackedObject1 *rep) {
-		PutByte(Op_PackedObject1);
-		//this is little 'hackish', but we don't have to clone whole contents
-		if(rep->keywords.empty())
-			PutByte(Op_PyTwoTuple);
-		else {
-			PutByte(Op_PyTuple);
-			PutByte(3);
-		}
-		PyRepString s(rep->type, true);
-		s.visit(this);
-		
-		if(rep->args == NULL)
-			PutByte(Op_PyEmptyTuple);
-		else
-			rep->args->visit(this);
-
-		//if not empty, insert keywords
-		if(!rep->keywords.empty())
-			rep->keywords.visit(this);
-
-		VisitPackedObject(rep);
-	}
-
-	virtual void VisitPackedObject2(const PyRepPackedObject2 *rep) {
-		PutByte(Op_PackedObject2);
-		//this is little hackish, but we don't have to clone whole contents
-		if(rep->args2 == NULL)
-			PutByte(Op_PyOneTuple);
-		else
-			PutByte(Op_PyTwoTuple);
-
-		if(rep->args1 == NULL)
-			PutByte(Op_PyOneTuple);
-		else if(rep->args1->items.size() == 1)
-			PutByte(Op_PyTwoTuple);
-		else {
-			PutByte(Op_PyTuple);
-			PutByte(1 + (uint8)rep->args1->items.size()); // possible overload (size is 32 bits and your sending a uint8)
-		}
-
-		PyRepString s(rep->type, true);
-		s.visit(this);
-
-		if(rep->args1 != NULL)
-			rep->args1->visit(this);
-
-		if(rep->args2 != NULL)
-			rep->args2->visit(this);
-
-		VisitPackedObject(rep);
 	}
 	
 	virtual void VisitSubStruct(const PyRepSubStruct *rep) {

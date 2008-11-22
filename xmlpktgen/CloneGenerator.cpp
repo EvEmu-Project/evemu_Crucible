@@ -241,6 +241,41 @@ bool ClassCloneGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return(true);
 }
 
+bool ClassCloneGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+	const char *name = field->Attribute("name");
+	if(name == NULL) {
+		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+		return(false);
+	}
+
+	if(!ProcessFields(into, field, 1))
+		return(false);
+
+	fprintf(into,
+		"	PyRepNewObject::const_list_iterator lcur, lend;\n"
+		"	lcur = from->%s_list.begin();\n"
+		"	lend = from->%s_list.end();\n"
+		"	for(; lcur != lend; lcur++)\n"
+		"		%s_list.push_back((*lcur)->Clone());\n",
+		name,
+		name,
+			name
+	);
+
+	fprintf(into,
+		"	PyRepNewObject::const_dict_iterator dcur, dend;\n"
+		"	dcur = from->%s_dict.begin();\n"
+		"	dend = from->%s_dict.end();\n"
+		"	for(; dcur != dend; dcur++)\n"
+		"		%s_dict[dcur->first->Clone()] = dcur->second->Clone();\n",
+		name,
+		name,
+			name
+	);
+
+	return(true);
+}
+
 bool ClassCloneGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {

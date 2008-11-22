@@ -122,6 +122,12 @@ bool ClassConstructGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return(true);
 }
 
+bool ClassConstructGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+	if(!ProcessFields(into, field, 1))
+		return(false);
+	return(true);
+}
+
 bool ClassConstructGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {

@@ -22,7 +22,7 @@
 		<strlist name="header" />
 	  </IDEntry>
 	  <IDEntry key="RowClass">
-		<string name="rowclass" default="util.Row" type1="true"/>
+		<string name="rowclass" default="util.Row" type1="true" />
 	  </IDEntry>
 	  <IDEntry key="lines">
 		<list name="lines" />
@@ -38,7 +38,7 @@
 		<strlist name="header" />
 	  </IDEntry>
 	  <IDEntry key="RowClass">
-		<string name="rowclass" default="util.Row"  type1="true"/>
+		<string name="rowclass" default="util.Row"  type1="true" />
 	  </IDEntry>
 	  <IDEntry key="idName">
 		<string name="idName"/>
@@ -48,6 +48,87 @@
 	  </IDEntry>
 	</InlineDict>
   </object>
+</element>
+
+<!-- generic skeleton of non-type1 NewObject -->
+<element name="util_NewObject1">
+  <newobject name="root">
+	<InlineTuple>
+	  <string name="type" type1="true" />
+	  <tuple name="args" />
+	  <!-- optional -->
+	  <dict name="keywords" />
+	</InlineTuple>
+  </newobject>
+</element>
+
+<element name="util_PasswordString">
+  <newobject name="root" type1="true">
+	<InlineTuple>
+	  <InlineTuple>
+		<string name="type" default="util.PasswordString" type1="true" />
+		<string name="password" />
+	  </InlineTuple>
+	  <InlineDict>
+	  </InlineDict>
+	</InlineTuple>
+  </newobject>	   
+</element>
+
+<element name="util_PackedRowListTuple">
+  <InlineTuple>
+	<raw name="header" />
+	<list name="rows" />
+  </InlineTuple>
+</element>
+
+<element name="util_PackedRowset">
+  <newobject name="root" type1="true">
+	<InlineTuple>
+	  <InlineTuple>
+		<string name="type" default="dbutil.CRowset"  type1="true" />
+	  </InlineTuple>
+	  <InlineDict>
+		<IDEntry key="header">
+		  <raw name="header" />
+		</IDEntry>
+		<IDEntry key="columns">
+		  <list name="columns" />
+		</IDEntry>
+	  </InlineDict>
+	</InlineTuple>
+  </newobject>
+</element>
+
+<element name="blue_DBRowDescriptor">
+  <newobject name="root">
+	<InlineTuple>
+	  <string name="type" default="blue.DBRowDescriptor" type1="true" />
+	  <InlineTuple>
+		<tuple name="columns" />
+	  </InlineTuple>
+	</InlineTuple>
+  </newobject>
+</element>
+
+<element name="util_Exception">
+  <newobject name="root">
+	<InlineTuple>
+	  <string name="type" default="ccp_exception.UserError"  type1="true" />
+	  <InlineTuple>
+		<string name="exceptionType_tuple" />
+		<strdict name="args_tuple" />
+	  </InlineTuple>
+	  <InlineDict>
+		<IDEntry key="msgkey">
+		  <string name="exceptionType_dict" />
+		</IDEntry>
+		<IDEntry key="dict">
+		  <strdict name="args_dict" />
+		</IDEntry>
+	  </InlineDict>
+	</InlineTuple>
+  </newobject>
 </element>
 
 <!-- this object is not really an object type on live, just convenience here -->

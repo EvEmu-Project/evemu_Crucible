@@ -53,8 +53,8 @@ typedef enum {	//PyRepOpcodes
 	Op_PyTrue = 0x1F,
 	Op_PyFalse = 0x20,				//  
 	//unknown 0x21					// !
-	Op_PackedObject1 = 0x22,		// "
-	Op_PackedObject2 = 0x23,		// # still not 100% comleted
+	Op_NewObject1 = 0x22,			// "
+	Op_NewObject2 = 0x23,			// # still not 100% comleted
 	Op_PyEmptyTuple = 0x24,			// $
 	Op_PyOneTuple = 0x25,			// %
 	Op_PyEmptyList = 0x26,			// &

@@ -392,27 +392,20 @@ void Client::ChannelLeft(LSCChannel *chan) {
 void Client::Login(CryptoChallengePacket *pack) {
 	_log(CLIENT__MESSAGE, "Login with %s", pack->user_name.c_str());
 
-	if(!pack->user_password->CheckType(PyRep::PackedObject2)) {
-		_log(CLIENT__ERROR, "Failed to get password: user password is not PackedObject2.");
-		return;
-	}
-	PyRepPackedObject2 *obj = (PyRepPackedObject2 *)pack->user_password;
-	//we can check type, should be "util.PasswordString"
-
-	Call_SingleStringArg pass;
-	if(!pass.Decode(&obj->args1)) {
+	util_PasswordString pass;
+	if(!pass.Decode(&pack->user_password)) {
 		_log(CLIENT__ERROR, "Failed to decode password.");
 		return;
 	}
 	
-	if(!m_services->GetServiceDB()->DoLogin(pack->user_name.c_str(), pass.arg.c_str(), m_accountID, m_role)) {
+	if(!m_services->GetServiceDB()->DoLogin(pack->user_name.c_str(), pass.password.c_str(), m_accountID, m_role)) {
 		_log(CLIENT__MESSAGE, "%s: Login rejected by DB", pack->user_name.c_str());
 
-		PyRepPackedObject1 *e = new PyRepPackedObject1("exceptions.GPSTransportClosed");
-		e->args = new PyRepTuple(1);
-		e->args->items[0] = new PyRepString("LoginAuthFailed");
+		util_Exception e;
+		e.type = "exceptions.GPSTransportClosed";
+		e.exceptionType_tuple = e.exceptionType_dict = "LoginAuthFailed";
 
-		throw(PyException(e));
+		throw(PyException(e.Encode()));
 	}
 	
 	// this is needed so if we exit before selecting a character, the account online flag would switch back to 0

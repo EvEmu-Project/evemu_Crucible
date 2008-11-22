@@ -148,12 +148,22 @@ void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep) {
 	}
 }
 
-void PyDumpVisitor::VisitPackedObjectList(const PyRepPackedObject *rep) {
-	_print("ListData: %lu entries", rep->list_data.size());
-	PyVisitor::VisitPackedObjectList(rep);
+void PyDumpVisitor::VisitNewObject(const PyRepNewObject *rep) {
+	_print("%sNewObject:", top());
+	PyVisitor::VisitNewObject(rep);
 }
 
-void PyDumpVisitor::VisitPackedObjectListElement(const PyRepPackedObject *rep, uint32 index, const PyRep *ele) {
+void PyDumpVisitor::VisitNewObjectHeader(const PyRepNewObject *rep) {
+	_print("%sHeader:", top());
+	PyVisitor::VisitNewObjectHeader(rep);
+}
+
+void PyDumpVisitor::VisitNewObjectList(const PyRepNewObject *rep) {
+	_print("ListData: %lu entries", rep->list_data.size());
+	PyVisitor::VisitNewObjectList(rep);
+}
+
+void PyDumpVisitor::VisitNewObjectListElement(const PyRepNewObject *rep, uint32 index, const PyRep *ele) {
 	std::string n(top());
 	{
 		char t[16];
@@ -161,16 +171,16 @@ void PyDumpVisitor::VisitPackedObjectListElement(const PyRepPackedObject *rep, u
 		n += t;
 	}
 	push(n.c_str());
-	PyVisitor::VisitPackedObjectListElement(rep, index, ele);
+	PyVisitor::VisitNewObjectListElement(rep, index, ele);
 	pop();
 }
 
-void PyDumpVisitor::VisitPackedObjectDict(const PyRepPackedObject *rep) {
+void PyDumpVisitor::VisitNewObjectDict(const PyRepNewObject *rep) {
 	_print("DictData: %lu entries", rep->dict_data.size());
-	PyVisitor::VisitPackedObjectDict(rep);
+	PyVisitor::VisitNewObjectDict(rep);
 }
 
-void PyDumpVisitor::VisitPackedObjectDictElement(const PyRepPackedObject *rep, uint32 index, const PyRep *key, const PyRep *value) {
+void PyDumpVisitor::VisitNewObjectDictElement(const PyRepNewObject *rep, uint32 index, const PyRep *key, const PyRep *value) {
 	std::string n(top());
 	{
 		char t[16];
@@ -190,42 +200,6 @@ void PyDumpVisitor::VisitPackedObjectDictElement(const PyRepPackedObject *rep, u
 	push(n.c_str());
 	value->visit(this);
 	pop();
-}
-
-void PyDumpVisitor::VisitPackedObject1(const PyRepPackedObject1 *rep) {
-	_print("PackedObject1: '%s'", rep->type.c_str());
-
-	_print("Args:");
-	if(rep->args == NULL)
-		_print("  None");
-	else
-		rep->args->visit(this);
-
-	_print("Keywords:");
-	if(rep->keywords.empty())
-		_print("  None");
-	else
-		rep->keywords.visit(this);
-
-	VisitPackedObject(rep);
-}
-
-void PyDumpVisitor::VisitPackedObject2(const PyRepPackedObject2 *rep) {
-	_print("PackedObject2: '%s'", rep->type.c_str());
-
-	_print("Args1:");
-	if(rep->args1 == NULL)
-		_print("  None");
-	else
-		rep->args1->visit(this);
-
-	_print("Args2:");
-	if(rep->args2 == NULL)
-		_print("  None");
-	else
-		rep->args2->visit(this);
-
-	VisitPackedObject(rep);
 }
 
 void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {

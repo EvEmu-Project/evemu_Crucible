@@ -45,9 +45,8 @@ public:
 		SubStream,
 		ChecksumedStream,
 		Object,
-		PackedRow,
-		PackedObject1,
-		PackedObject2
+		NewObject,
+		PackedRow
 	} Type;
 	
 	PyRep(Type t) : m_type(t) { }
@@ -281,6 +280,37 @@ public:
 };
 
 
+//opcodes 0x22 and 0x23 (merged for simplicity)
+class PyRepNewObject : public PyRep {
+public:
+	//for list data (before first PackedTerminator)
+	typedef std::vector<PyRep *> list_type;
+	typedef std::vector<PyRep *>::iterator list_iterator;
+	typedef std::vector<PyRep *>::const_iterator const_list_iterator;
+
+	//for dict data (after first PackedTerminator)
+	typedef std::map<PyRep *, PyRep *> dict_type;
+	typedef std::map<PyRep *, PyRep *>::iterator dict_iterator;
+	typedef std::map<PyRep *, PyRep *>::const_iterator const_dict_iterator;
+
+	PyRepNewObject(bool _is_type_1, PyRep *_header = NULL) : PyRep(PyRep::NewObject), header(_header), is_type_1(_is_type_1) {}
+	virtual ~PyRepNewObject();
+	virtual void Dump(FILE *into, const char *pfx) const;
+	virtual void Dump(LogType type, const char *pfx) const;
+	virtual PyRep *Clone() const { return(TypedClone()); }
+	virtual void visit(PyVisitor *v) const;
+
+	PyRepNewObject *TypedClone() const;
+	void CloneFrom(const PyRepNewObject *from);
+
+	PyRep *header;
+	const bool is_type_1;	// true if opcode is 0x26 instead of 0x25
+
+	list_type list_data;
+	dict_type dict_data;
+
+};
+
 class PyRepPackedRow : public PyRep {
 public:
 	typedef std::vector<byte> buffer;
@@ -336,69 +366,6 @@ protected:
 
 	const bool m_ownsHeader;
 	const PyRep *const m_header;
-};
-
-//base for opcodes 0x22 and 0x23
-class PyRepPackedObject : public PyRep {
-public:
-	//for list data (before first PackedTerminator)
-	typedef std::vector<PyRep *> list_type;
-	typedef std::vector<PyRep *>::iterator list_iterator;
-	typedef std::vector<PyRep *>::const_iterator const_list_iterator;
-
-	//for dict data (after first PackedTerminator)
-	typedef std::map<PyRep *, PyRep *> dict_type;
-	typedef std::map<PyRep *, PyRep *>::iterator dict_iterator;
-	typedef std::map<PyRep *, PyRep *>::const_iterator const_dict_iterator;
-
-	PyRepPackedObject(Type t) : PyRep(t) {}
-	virtual ~PyRepPackedObject();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const = 0;
-	virtual void visit(PyVisitor *v) const;
-
-	void CloneFrom(const PyRepPackedObject *from);
-
-	list_type list_data;
-	dict_type dict_data;
-};
-
-//opcode 0x22
-class PyRepPackedObject1 : public PyRepPackedObject {
-public:
-	PyRepPackedObject1(const char *_type = "", PyRepTuple *_args = NULL, const PyRepDict &_keywords = PyRepDict());
-	~PyRepPackedObject1();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType ltype, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
-
-	PyRepPackedObject1 *TypedClone() const;
-	void CloneFrom(const PyRepPackedObject1 *from);
-
-	std::string type;
-	PyRepTuple *args;
-	PyRepDict keywords;
-};
-
-//opcode 0x23
-//not 100% completed
-class PyRepPackedObject2 : public PyRepPackedObject {
-public:
-	PyRepPackedObject2(const char *_type = "", PyRepTuple *_args1 = NULL, PyRep *_args2 = NULL);
-	~PyRepPackedObject2();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
-
-	PyRepPackedObject2 *TypedClone() const;
-	void CloneFrom(const PyRepPackedObject2 *from);
-
-	std::string type;
-	PyRepTuple *args1;
-	PyRep *args2;
 };
 
 class PyRepSubStruct : public PyRep {
