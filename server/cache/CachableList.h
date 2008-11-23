@@ -21,7 +21,7 @@ CACHABLE("config.BulkData.allianceshortnames", AllianceShortnames, TupleSet,
 CACHABLE("config.BulkData.categories", invCategories, TupleSet,
 	"SELECT categoryID,categoryName,description,graphicID,0 AS dataID FROM invCategories"
 );
-CACHABLE("config.BulkData.invtypereactions", invTypeReactions, PackedRowset,
+CACHABLE("config.BulkData.invtypereactions", invTypeReactions, CRowset,
 	"SELECT reactionTypeID,input,typeID,quantity FROM invTypeReactions"
 );
 /* this query is a strange one, we might have to develop a non-macro based
@@ -60,10 +60,10 @@ CACHABLE("config.BulkData.metagroups", invMetaGroups, TupleSet,
 CACHABLE("config.BulkData.ramactivities", ramActivities, TupleSet,
 	"SELECT activityID,activityName,iconNo,description,published FROM ramActivities"
 );
-CACHABLE("config.BulkData.ramaltypesdetailpergroup", ramALTypeGroup, PackedRowset,
+CACHABLE("config.BulkData.ramaltypesdetailpergroup", ramALTypeGroup, CRowset,
 	"SELECT a.assemblyLineTypeID,b.activityID,a.groupID,a.timeMultiplier,a.materialMultiplier FROM ramAssemblyLineTypeDetailPerGroup AS a LEFT JOIN ramAssemblyLineTypes AS b ON a.assemblyLineTypeID = b.assemblyLineTypeID"
 );
-CACHABLE("config.BulkData.ramaltypesdetailpercategory", ramALTypeCategory, PackedRowset,
+CACHABLE("config.BulkData.ramaltypesdetailpercategory", ramALTypeCategory, CRowset,
 	"SELECT a.assemblyLineTypeID,b.activityID,a.categoryID,a.timeMultiplier,a.materialMultiplier FROM ramAssemblyLineTypeDetailPerCategory AS a LEFT JOIN ramAssemblyLineTypes AS b ON a.assemblyLineTypeID = b.assemblyLineTypeID"
 );
 CACHABLE("config.BulkData.ramaltypes", ramALTypes, TupleSet,
@@ -179,19 +179,19 @@ CACHABLE("config.InvContrabandTypes", invContrabandTypes, Rowset,
 );
 
 //GetCharCreationInfo
-KCACHABLE("charCreationInfo.bloodlines", "bloodlines", c_chrBloodlines, PackedRowset,
+KCACHABLE("charCreationInfo.bloodlines", "bloodlines", c_chrBloodlines, CRowset,
 	"SELECT bloodlineID,bloodlineName,raceID,description,maleDescription,femaleDescription,shipTypeID,corporationID,perception,willpower,charisma,memory,intelligence,graphicID,shortDescription,shortMaleDescription,shortFemaleDescription,0 AS dataID FROM chrBloodlines"
 );
-KCACHABLE("charCreationInfo.races", "races", c_chrRaces, PackedRowset,
+KCACHABLE("charCreationInfo.races", "races", c_chrRaces, CRowset,
 	"SELECT raceID,raceName,description,graphicID,shortDescription,0 AS dataID FROM chrRaces"
 );
-KCACHABLE("charCreationInfo.ancestries", "ancestries", c_chrAncestries, PackedRowset,
+KCACHABLE("charCreationInfo.ancestries", "ancestries", c_chrAncestries, CRowset,
 	"SELECT ancestryID,ancestryName,bloodlineID,description,perception,willpower,charisma,memory,intelligence,graphicID,shortDescription,0 AS dataID FROM chrAncestries"
 );
-KCACHABLE("charCreationInfo.schools", "schools", c_chrSchools, PackedRowset,
+KCACHABLE("charCreationInfo.schools", "schools", c_chrSchools, CRowset,
 	"SELECT raceID,schoolID,schoolName,description,graphicID,corporationID,agentID,newAgentID FROM chrSchools"
 );
-KCACHABLE("charCreationInfo.attributes", "attributes", c_chrAttributes, PackedRowset,
+KCACHABLE("charCreationInfo.attributes", "attributes", c_chrAttributes, CRowset,
 	"SELECT attributeID,attributeName,description,graphicID FROM chrAttributes"
 );
 KCACHABLE("charCreationInfo.bl_accessories", "accessories", bl_accessories, Rowset,

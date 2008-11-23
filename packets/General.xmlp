@@ -75,14 +75,49 @@
   </newobject>	   
 </element>
 
-<element name="util_PackedRowListTuple">
+<element name="util_Exception">
+  <newobject name="root">
+	<InlineTuple>
+	  <string name="type" default="ccp_exception.UserError"  type1="true" />
+	  <InlineTuple>
+		<string name="exceptionType_tuple" />
+		<strdict name="args_tuple" />
+	  </InlineTuple>
+	  <InlineDict>
+		<IDEntry key="msgkey">
+		  <string name="exceptionType_dict" />
+		</IDEntry>
+		<IDEntry key="dict">
+		  <strdict name="args_dict" />
+		</IDEntry>
+	  </InlineDict>
+	</InlineTuple>
+  </newobject>
+</element>
+
+<element name="dbutil_RowListTuple">
   <InlineTuple>
 	<raw name="header" />
 	<list name="rows" />
   </InlineTuple>
 </element>
 
-<element name="util_PackedRowset">
+<element name="dbutil_RowList">
+  <newobject name="root" type1="true">
+	<InlineTuple>
+	  <InlineTuple>
+		<string name="type" default="dbutil.RowList" type1="true" />
+	  </InlineTuple>
+	  <InlineDict>
+		<IDEntry key="header">
+		  <raw name="header" />
+		</IDEntry>
+	  </InlineDict>
+	</InlineTuple>
+  </newobject>
+</element>
+
+<element name="dbutil_CRowset">
   <newobject name="root" type1="true">
 	<InlineTuple>
 	  <InlineTuple>
@@ -107,26 +142,6 @@
 	  <InlineTuple>
 		<tuple name="columns" />
 	  </InlineTuple>
-	</InlineTuple>
-  </newobject>
-</element>
-
-<element name="util_Exception">
-  <newobject name="root">
-	<InlineTuple>
-	  <string name="type" default="ccp_exception.UserError"  type1="true" />
-	  <InlineTuple>
-		<string name="exceptionType_tuple" />
-		<strdict name="args_tuple" />
-	  </InlineTuple>
-	  <InlineDict>
-		<IDEntry key="msgkey">
-		  <string name="exceptionType_dict" />
-		</IDEntry>
-		<IDEntry key="dict">
-		  <strdict name="args_dict" />
-		</IDEntry>
-	  </InlineDict>
 	</InlineTuple>
   </newobject>
 </element>

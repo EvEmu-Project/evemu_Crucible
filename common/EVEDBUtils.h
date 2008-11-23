@@ -59,7 +59,7 @@ void DBResultToIntIntlistDict(DBQueryResult &result, std::map<uint32, PyRep *> &
 //new packed stuff:
 PyRepList *DBResultToPackedRowList(DBQueryResult &result);
 PyRepTuple *DBResultToPackedRowListTuple(DBQueryResult &result);
-PyRepNewObject *DBResultToPackedRowset(DBQueryResult &result, const char *type = "dbutil.CRowset");
+PyRepNewObject *DBResultToCRowset(DBQueryResult &result);
 
 //single rows:
 PyRepObject *DBRowToKeyVal(DBResultRow &row);

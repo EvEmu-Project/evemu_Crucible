@@ -144,7 +144,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 
 	PyRepTuple *tup = new PyRepTuple(2);
 	//this is wrong.
-	tup->items[0] = DBResultToPackedRowset(res);
+	tup->items[0] = DBResultToCRowset(res);
 	
 	//query buy orders
 	if(!m_db->RunQuery(res,
@@ -161,7 +161,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 	}
 	
 	//this is wrong.
-	tup->items[1] = DBResultToPackedRowset(res);
+	tup->items[1] = DBResultToCRowset(res);
 	
 	return(tup);
 }
@@ -241,7 +241,7 @@ PyRep *MarketDB::GetOldPriceHistory(uint32 regionID, uint32 typeID) {
 		return(NULL);
 	}
 	
-	return(DBResultToPackedRowset(res));
+	return(DBResultToCRowset(res));
 }
 
 PyRep *MarketDB::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
@@ -286,7 +286,7 @@ PyRep *MarketDB::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
 		return(NULL);
 	}
 	
-	return(DBResultToPackedRowset(res));
+	return(DBResultToCRowset(res));
 }
 
 bool MarketDB::BuildOldPriceHistory() {

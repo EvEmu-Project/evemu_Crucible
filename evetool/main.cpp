@@ -716,71 +716,61 @@ void UnmarshalLogText(const Seperator &command) {
 }
 
 void TestMarshal() {
-	//PyRepTuple *t = new PyRepTuple(2);
-	PyRepPackedObject1 *dbrowdesc = new PyRepPackedObject1("blue.DBRowDescriptor");
-	dbrowdesc->args = new PyRepTuple(1);
+	blue_DBRowDescriptor dbrowdesc;
+	{
+		dbrowdesc.columns = new PyRepTuple(6);
 
-		PyRepTuple *arg_list = new PyRepTuple(6);
-		dbrowdesc->args->items[0] = arg_list;
-			PyRepTuple *pair_tuple;
-			int r = 0;
-			
-			pair_tuple = new PyRepTuple(2);
-			pair_tuple->items[0] = new PyRepString("historyDate");
-			pair_tuple->items[1] = new PyRepInteger(DBTYPE_FILETIME);
-			arg_list->items[r++] = pair_tuple;
-			
-			pair_tuple = new PyRepTuple(2);
-			pair_tuple->items[0] = new PyRepString("lowPrice");
-			pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
-			arg_list->items[r++] = pair_tuple;
-			
-			pair_tuple = new PyRepTuple(2);
-			pair_tuple->items[0] = new PyRepString("highPrice");
-			pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
-			arg_list->items[r++] = pair_tuple;
-			
-			pair_tuple = new PyRepTuple(2);
-			pair_tuple->items[0] = new PyRepString("avgPrice");
-			pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
-			arg_list->items[r++] = pair_tuple;
-			
-			pair_tuple = new PyRepTuple(2);
-			pair_tuple->items[0] = new PyRepString("volume");
-			pair_tuple->items[1] = new PyRepInteger(DBTYPE_I8);
-			arg_list->items[r++] = pair_tuple;
-			
-			pair_tuple = new PyRepTuple(2);
-			pair_tuple->items[0] = new PyRepString("orders");
-			pair_tuple->items[1] = new PyRepInteger(DBTYPE_I4);
-			arg_list->items[r++] = pair_tuple;
+		PyRepTuple *pair_tuple;
+		int r = 0;
+		
+		pair_tuple = new PyRepTuple(2);
+		pair_tuple->items[0] = new PyRepString("historyDate");
+		pair_tuple->items[1] = new PyRepInteger(DBTYPE_FILETIME);
+		dbrowdesc.columns->items[r++] = pair_tuple;
+		
+		pair_tuple = new PyRepTuple(2);
+		pair_tuple->items[0] = new PyRepString("lowPrice");
+		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
+		dbrowdesc.columns->items[r++] = pair_tuple;
+		
+		pair_tuple = new PyRepTuple(2);
+		pair_tuple->items[0] = new PyRepString("highPrice");
+		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
+		dbrowdesc.columns->items[r++] = pair_tuple;
+		
+		pair_tuple = new PyRepTuple(2);
+		pair_tuple->items[0] = new PyRepString("avgPrice");
+		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
+		dbrowdesc.columns->items[r++] = pair_tuple;
+		
+		pair_tuple = new PyRepTuple(2);
+		pair_tuple->items[0] = new PyRepString("volume");
+		pair_tuple->items[1] = new PyRepInteger(DBTYPE_I8);
+		dbrowdesc.columns->items[r++] = pair_tuple;
+		
+		pair_tuple = new PyRepTuple(2);
+		pair_tuple->items[0] = new PyRepString("orders");
+		pair_tuple->items[1] = new PyRepInteger(DBTYPE_I4);
+		dbrowdesc.columns->items[r++] = pair_tuple;
+	}
 
-	PyRepPackedObject2 *rs = new PyRepPackedObject2("dbutil.RowList");
-	PyRepDict *d = new PyRepDict;
-	rs->args2 = d;
-	d->add("header", dbrowdesc);
+	dbutil_RowList rs;
+	rs.header = dbrowdesc.Encode();
 	
-	//PyRepList *l = new PyRepList();
-		PyRepPackedRow *row;
-
-		{
+	PyRepPackedRow *row;
+	{
 		static byte data[] = {
 			0x00, 0x40, 0x7b, 0x30, 0xb2, 0x6c, 0xc6, 0x01, 0x68, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x38, 0x4a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x47, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x01, 0xee, 0x95, 0x31, 0x00, 0x00, 0x00, 0x00, 0x2f, 0x0f, 0x00, 0x00
 		};
-		row = new PyRepPackedRow(dbrowdesc, false, data, sizeof(data));
-		//l->add(row);
-		rs->list_data.push_back(row);
-		}
-	//t->items[1] = l;
+		row = new PyRepPackedRow(rs.header, false, data, sizeof(data));
+		rs.root_list.push_back(row);
+	}
 
 	uint32 mlen = 0;
 	printf("Marshaling...\n");
-	byte *marshaled = Marshal(rs, mlen, false);
-	delete rs;
-	//byte *marshaled = MarshalOnly(t, mlen);
-	//delete t;
+	byte *marshaled = Marshal(rs.Encode(), mlen, false);
 	
 	printf("Unmarshaling...\n");
 	PyRep *rep = InflateAndUnmarshal(marshaled, mlen);

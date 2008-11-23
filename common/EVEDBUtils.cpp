@@ -725,7 +725,7 @@ PyRepTuple *DBResultToPackedRowListTuple(
 	DBPackedColumnList columns;
 	GetPackedColumnList(result, columns);
 
-	util_PackedRowListTuple res;
+	dbutil_RowListTuple res;
 	res.header = BuildRowDescriptor(columns);
 
 	OrderPackedColumnList(columns);
@@ -738,15 +738,13 @@ PyRepTuple *DBResultToPackedRowListTuple(
 	return(res.Encode());
 }
 
-PyRepNewObject *DBResultToPackedRowset(
-	DBQueryResult &result,
-	const char *type
+PyRepNewObject *DBResultToCRowset(
+	DBQueryResult &result
 ) {
 	DBPackedColumnList columns;
 	GetPackedColumnList(result, columns);
 
-	util_PackedRowset res;
-	res.type = type;
+	dbutil_CRowset res;
 	res.header = BuildRowDescriptor(columns);
 
 	DBPackedColumnList::const_iterator cur, end;
