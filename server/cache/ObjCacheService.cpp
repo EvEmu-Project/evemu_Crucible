@@ -15,10 +15,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #include "EvemuPCH.h"
-
-
 
 const char *const ObjCacheService::LoginCachableObjects[] = {
 	"config.BulkData.ramactivities",
@@ -104,8 +101,6 @@ const char *const ObjCacheService::AppearanceCachableObjects[] = {
 	"charCreationInfo.lipsticks"
 };
 const uint32 ObjCacheService::AppearanceCachableObjectCount = sizeof(ObjCacheService::AppearanceCachableObjects) / sizeof(const char *);
-
-
 
 PyCallable_Make_InnerDispatcher(ObjCacheService)
 

@@ -107,7 +107,7 @@ void PyCallArgs::Dump(LogType type) const {
 PyResult::PyResult()
 : ssResult(NULL)
 {
-	_log(SERVER__INIT, "Constructing Regular NULL");
+	//_log(SERVER__INIT, "Constructing Regular NULL");
 }
 
 PyResult::PyResult(PyRep *result)
@@ -117,11 +117,11 @@ PyResult::PyResult(PyRep *result)
 	  : result
 	  )
 {
-	_log(SERVER__INIT, "Constructing Regular %p", &(*ssResult));
+	//_log(SERVER__INIT, "Constructing Regular %p", &(*ssResult));
 }
 
 PyResult::~PyResult() {
-	_log(SERVER__INIT, "Destroying Regular %p", &(*ssResult));
+	//_log(SERVER__INIT, "Destroying Regular %p", &(*ssResult));
 }
 
 PyException::PyException()
