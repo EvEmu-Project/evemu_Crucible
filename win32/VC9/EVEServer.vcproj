@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="D:\Dev\Evemu\trunk\3rdparty\mysql\include;C:\mysql\include;..\..\common;..\..\server;..\..\3rdparty\mysq\include;&quot;..\..\libs\zlib-win32\include&quot;;."
-				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x0400;_DEBUG;_NDEBUG;USE_RUNTIME_EXCEPTIONS"
+				PreprocessorDefinitions="WIN32;_DEBUG;USE_RUNTIME_EXCEPTIONS"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
@@ -52,7 +52,6 @@
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
-				DisableSpecificWarnings="4244;4355;4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

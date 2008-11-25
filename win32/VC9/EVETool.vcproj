@@ -21,7 +21,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)/$(ProjectName)"
 			IntermediateDirectory="$(ConfigurationName)/$(ProjectName)"
 			ConfigurationType="1"
-			CharacterSet="0"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="C:\mysql\include;..\..\common;."
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;NO_READLINE;_WIN32_WINNT=0x0400"
+				PreprocessorDefinitions="WIN32;_DEBUG;NO_READLINE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

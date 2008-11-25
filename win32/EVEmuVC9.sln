@@ -1,9 +1,9 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EVEServer", "VC8\EVEServer.vcproj", "{7EBEC2E7-7322-475E-B76C-769397DD23BB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EVEServer", "VC9\EVEServer.vcproj", "{7EBEC2E7-7322-475E-B76C-769397DD23BB}"
 	ProjectSection(ProjectDependencies) = postProject
-		{F472E2F2-3CA4-4E09-B4D5-0783A4A4A893} = {F472E2F2-3CA4-4E09-B4D5-0783A4A4A893}
 		{93BD74E6-DB5F-4FE6-B31A-9911BDDEC1C3} = {93BD74E6-DB5F-4FE6-B31A-9911BDDEC1C3}
+		{F472E2F2-3CA4-4E09-B4D5-0783A4A4A893} = {F472E2F2-3CA4-4E09-B4D5-0783A4A4A893}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XMLPktGen", "VC9\XMLPktGen.vcproj", "{22CD0D69-A133-45EB-BFA8-407A61E1822A}"
@@ -20,9 +20,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Packets", "VC9\Packets.vcpr
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "VC9\Common.vcproj", "{F472E2F2-3CA4-4E09-B4D5-0783A4A4A893}"
-	ProjectSection(ProjectDependencies) = postProject
-		{93BD74E6-DB5F-4FE6-B31A-9911BDDEC1C3} = {93BD74E6-DB5F-4FE6-B31A-9911BDDEC1C3}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

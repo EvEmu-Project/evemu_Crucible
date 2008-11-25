@@ -42,15 +42,14 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\3rdparty\mysq\include;..\..\common"
-				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x0400;_DEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				BrowseInformation="1"
+				BrowseInformation="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
-				DisableSpecificWarnings="4244;4355;4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
