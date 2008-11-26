@@ -376,7 +376,7 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 	//hacky, but it dosent really hurt anything.
 	if(isOnline() != 0) {
 		//there is an effect that goes along with this. We should
-		//prolly be properly tracking the effect due to some
+		//probably be properly tracking the effect due to some
 		// timer things, but for now, were hackin it.
 		EntityEffectState es;
 		es.env_itemID = m_itemID;

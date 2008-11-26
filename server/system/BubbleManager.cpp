@@ -107,7 +107,7 @@ void BubbleManager::Remove(SystemEntity *ent, bool notify) {
 	b->Remove(ent, notify);
 }
 
-//NOTE: this should prolly eventually be optimized to use a
+//NOTE: this should probably eventually be optimized to use a
 //spacial partitioning scheme to speed up this search.
 SystemBubble * BubbleManager::_FindBubble(const GPoint &pos) const {
 	std::vector<SystemBubble *>::const_iterator cur, end;

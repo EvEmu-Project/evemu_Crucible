@@ -359,7 +359,7 @@ PyResult ShipBound::Handle_Eject(PyCallArgs &call) {
 	//send session change for shipID change
 	
 	return(NULL);
-	//things which came after the return (but prolly do not have to...
+	//things which came after the return (but probably do not have to...
 
 	//DoDestinyUpdate
 		//addball for only the capsule.

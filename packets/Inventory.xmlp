@@ -108,7 +108,7 @@
   <InlineTuple>
     <int name="accountKey" />
 			<int64 name="fromDate" none_marker="0"/>
-			<!-- may be None (but prolly wont be) -->
+			<!-- may be None (but probably wont be) -->
 			<int name="refTypeID" none_marker="0"/>
 			<!-- may be None -->
 			<raw name="corpAccount" none_marker="0"/>

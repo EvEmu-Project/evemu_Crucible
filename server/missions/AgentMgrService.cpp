@@ -103,7 +103,7 @@ PyBoundObject *AgentMgrService::_CreateBoundObject(Client *c, const PyRep *bind_
 	_log(CLIENT__MESSAGE, "%s bind request for:", GetName());
 	bind_args->Dump(CLIENT__MESSAGE, "    ");
 
-	if(!bind_args->CheckType(PyRep::Integer)) {
+	if(!bind_args->IsInteger()) {
 		codelog(CLIENT__ERROR, "%s: Non-integer bind argument '%s'", c->GetName(), bind_args->TypeString());
 		return(NULL);
 	}
@@ -173,7 +173,7 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
 	}
 	
 	uint32 actionID = 0;
-	if(args.arg->CheckType(PyRep::Integer)) {
+	if(args.arg->IsInteger()) {
 		PyRepInteger *i = (PyRepInteger *) args.arg;
 		actionID = i->value;
 	}

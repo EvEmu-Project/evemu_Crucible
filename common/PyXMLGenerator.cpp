@@ -142,7 +142,7 @@ void PyXMLGenerator::VisitDict(const PyRepDict *rep) {
 	cur = rep->begin();
 	end = rep->end();
 	for(; cur != end; cur++) {
-		if(cur->first->CheckType(PyRep::String)) {
+		if(cur->first->IsString()) {
 			if(ktype == DictIntKey) {
 				//we have varying key types, raw dict it is.
 				ktype = DictRaw;
@@ -150,7 +150,7 @@ void PyXMLGenerator::VisitDict(const PyRepDict *rep) {
 			} else if(ktype == DictInline) {
 				ktype = DictStringKey;
 			}
-		} else if(cur->first->CheckType(PyRep::Integer)) {
+		} else if(cur->first->IsInteger()) {
 			if(ktype == DictStringKey) {
 				//we have varying key types, raw dict it is.
 				ktype = DictRaw;
@@ -164,17 +164,17 @@ void PyXMLGenerator::VisitDict(const PyRepDict *rep) {
 			break;
 		}
 
-		if(cur->second->CheckType(PyRep::String)) {
+		if(cur->second->IsString()) {
 			if(vtype == ValueInt || vtype == ValueReal) {
 				vtype = ValueMixed;
 			} else if(vtype == ValueUnknown)
 				vtype = ValueString;
-		} else if(cur->second->CheckType(PyRep::Integer)) {
+		} else if(cur->second->IsInteger()) {
 			if(vtype == ValueString || vtype == ValueReal) {
 				vtype = ValueMixed;
 			} else if(vtype == ValueUnknown)
 				vtype = ValueInt;
-		} else if(cur->second->CheckType(PyRep::Real)) {
+		} else if(cur->second->IsReal()) {
 			if(vtype == ValueString || vtype == ValueInt) {
 				vtype = ValueMixed;
 			} else if(vtype == ValueUnknown)
@@ -223,7 +223,7 @@ void PyXMLGenerator::VisitDict(const PyRepDict *rep) {
 }
 
 void PyXMLGenerator::VisitDictElement(const PyRepDict *rep, uint32 index, const PyRep *key, const PyRep *value) {
-	if(!key->CheckType(PyRep::String)) {
+	if(!key->IsString()) {
 		fprintf(m_into, "%s<!-- non-string dict key of type %s -->\n", top(), key->TypeString());
 		return;
 	}
@@ -272,19 +272,19 @@ void PyXMLGenerator::VisitList(const PyRepList *rep) {
 		cur = rep->begin();
 		end = rep->end();
 		for(; cur != end; cur++) {
-			if((*cur)->CheckType(PyRep::String)) {
+			if((*cur)->IsString()) {
 				if(eletype == TypeInteger || eletype == TypeReal) {
 					eletype = TypeMixed;
 					break;
 				} else if(eletype == TypeUnknown)
 					eletype = TypeString;
-			} else if((*cur)->CheckType(PyRep::Integer)) {
+			} else if((*cur)->IsInteger()) {
 				if(eletype == TypeString || eletype == TypeReal) {
 					eletype = TypeMixed;
 					break;
 				} else if(eletype == TypeUnknown)
 					eletype = TypeInteger;
-			} else if((*cur)->CheckType(PyRep::Real)) {
+			} else if((*cur)->IsReal()) {
 				if(eletype == TypeString || eletype == TypeInteger) {
 					eletype = TypeMixed;
 					break;

@@ -26,7 +26,7 @@ using namespace std;
 
 #include "packet_dump.h"
 
-void DumpPacketAscii(const uchar* buf, int32 size, int32 cols, int32 skip) {
+void DumpPacketAscii(const uint8* buf, int32 size, int32 cols, int32 skip) {
 	// Output as ASCII
 	for(int32 i=skip; i<size; i++)
 	{
@@ -50,7 +50,7 @@ void DumpPacketAscii(const uchar* buf, int32 size, int32 cols, int32 skip) {
 	cout << endl << endl;
 }
 
-void DumpPacketHex(const uchar* buf, int32 size, int32 cols, int32 skip) {
+void DumpPacketHex(const uint8* buf, int32 size, int32 cols, int32 skip) {
 	if (size == 0 || size > 39565)
 		return;
 	// Output as HEX
@@ -87,25 +87,25 @@ void DumpPacketHex(const uchar* buf, int32 size, int32 cols, int32 skip) {
 		cout << "   ";
 	}
 	cout << " | " << ascii << endl;
-	safe_delete_array(ascii);
+	SafeDeleteArray(ascii);
 }
 
-void DumpPacket(const uchar* buf, int32 size)
+void DumpPacket(const uint8* buf, int32 size)
 {
 	DumpPacketHex(buf, size);
 //	DumpPacketAscii(buf,size);
 }
 
 void DumpPacketBin(int32 data) {
-	DumpPacketBin((uchar*)&data, sizeof(int32));
+	DumpPacketBin((uint8*)&data, sizeof(int32));
 }
 
 void DumpPacketBin(int16 data) {
-	DumpPacketBin((uchar*)&data, sizeof(int16));
+	DumpPacketBin((uint8*)&data, sizeof(int16));
 }
 
 void DumpPacketBin(int8 data) {
-	DumpPacketBin((uchar*)&data, sizeof(int8));
+	DumpPacketBin((uint8*)&data, sizeof(int8));
 }
 
 
@@ -189,7 +189,7 @@ static void _HexDump(const byte *data, uint32 length) {
 	}
 }
 
-void DumpPacketPreview(const uchar* data, int32 length) {
+void DumpPacketPreview(const uint8* data, int32 length) {
 	char buffer[80];
 
 	if(length > 256) {

@@ -57,7 +57,7 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
 #define INT(v) \
 	itr = from.find(#v); \
 	if(itr != from.end()) { \
-		if(!itr->second->CheckType(PyRep::Integer)) \
+		if(!itr->second->IsInteger()) \
 			_log(CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString()); \
 		else { \
 			v = ((PyRepInteger *)itr->second)->value; \
@@ -67,7 +67,7 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
 #define INT_DYN(v) \
 	itr = from.find(#v); \
 	if(itr != from.end()) { \
-		if(!itr->second->CheckType(PyRep::Integer)) \
+		if(!itr->second->IsInteger()) \
 			_log(CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString()); \
 		else { \
 			Set_##v(((PyRepInteger *)itr->second)->value); \
@@ -472,7 +472,7 @@ void Client::_CheckSessionChange() {
 	_log(CLIENT__SESSION, "Session updated, sending session change");
 	scn.changes.Dump(CLIENT__SESSION, "  Changes: ");
 
-	//this is prolly not necessary...
+	//this is probably not necessary...
 	scn.nodesOfInterest.push_back(m_services->GetNodeID());
 
 	//build the packet:
@@ -1193,7 +1193,7 @@ void Client::TargetsCleared() {
 
 void Client::SavePosition() {
 	if(m_ship == NULL || m_destiny == NULL) {
-		_log(CLIENT__TRACE, "%s: Unable to save position. We are prolly not in space.", GetName());
+		_log(CLIENT__TRACE, "%s: Unable to save position. We are probably not in space.", GetName());
 		return;
 	}
 	m_ship->Relocate( m_destiny->GetPosition() );

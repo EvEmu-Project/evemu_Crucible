@@ -60,7 +60,7 @@ PyRep *BaseRowsetReader::base_iterator::_find(uint32 index) const {
 		return(NULL);
 	
 	PyRep *row = m_baseReader->_getRow(m_index);
-	if(row == NULL || !row->CheckType(PyRep::List))
+	if(row == NULL || !row->IsList())
 		return(NULL);
 	
 	PyRepList *rowl = (PyRepList *) row;
@@ -84,13 +84,13 @@ const char *BaseRowsetReader::base_iterator::GetString(const char *fieldname) co
 //not using _find to allow for more verbose error messages
 const char *BaseRowsetReader::base_iterator::GetString(uint32 index) const {
 	PyRep *row = m_baseReader->_getRow(m_index);
-	if(row == NULL || !row->CheckType(PyRep::List))
+	if(row == NULL || !row->IsList())
 		return("NON-LIST ROW");
 	PyRepList *rowl = (PyRepList *) row;
 	if(rowl->items.size() <= index)
 		return("INVALID INDEX");
 	PyRep *ele = rowl->items[index];
-	if(!ele->CheckType(PyRep::String))
+	if(!ele->IsString())
 		return("NON-STRING ELEMENT");
 	PyRepString *str = (PyRepString *) ele;
 	return(str->value.c_str());
@@ -98,7 +98,7 @@ const char *BaseRowsetReader::base_iterator::GetString(uint32 index) const {
 
 uint32 BaseRowsetReader::base_iterator::GetInt(uint32 index) const {
 	PyRep *ele = _find(index);
-	if(ele == NULL || !ele->CheckType(PyRep::Integer))
+	if(ele == NULL || !ele->IsInteger())
 		return(0x7F000000LL);
 	PyRepInteger *e = (PyRepInteger *) ele;
 	return(e->value);
@@ -106,7 +106,7 @@ uint32 BaseRowsetReader::base_iterator::GetInt(uint32 index) const {
 
 uint64 BaseRowsetReader::base_iterator::GetInt64(uint32 index) const {
 	PyRep *ele = _find(index);
-	if(ele == NULL || !ele->CheckType(PyRep::Integer))
+	if(ele == NULL || !ele->IsInteger())
 		return(0x7F0000007F000000LL);
 	PyRepInteger *e = (PyRepInteger *) ele;
 	return(e->value);
@@ -114,15 +114,15 @@ uint64 BaseRowsetReader::base_iterator::GetInt64(uint32 index) const {
 
 double BaseRowsetReader::base_iterator::GetReal(uint32 index) const {
 	PyRep *ele = _find(index);
-	if(ele == NULL || !ele->CheckType(PyRep::Real))
-		return(-9999999);
+	if(ele == NULL || !ele->IsReal())
+		return(-9999999.0);
 	PyRepReal *e = (PyRepReal *) ele;
 	return(e->value);
 }
 
 bool BaseRowsetReader::base_iterator::IsNone(uint32 index) const {
 	PyRep *ele = _find(index);
-	return(ele != NULL && ele->CheckType(PyRep::None));
+	return(ele != NULL && ele->IsNone());
 }
 
 PyRep::Type BaseRowsetReader::base_iterator::GetType(uint32 index) const {
@@ -151,21 +151,21 @@ std::string BaseRowsetReader::base_iterator::GetAsString(const char *fieldname) 
 
 std::string BaseRowsetReader::base_iterator::GetAsString(uint32 index) const {
 	PyRep *row = m_baseReader->_getRow(m_index);
-	if(row == NULL || !row->CheckType(PyRep::List))
+	if(row == NULL || !row->IsList())
 		return("NON-LIST ROW");
 	PyRepList *rowl = (PyRepList *) row;
 	if(rowl->items.size() <= index)
 		return("INVALID INDEX");
 	PyRep *ele = rowl->items[index];
-	if(ele->CheckType(PyRep::String)) {
+	if(ele->IsString()) {
 		PyRepString *str = (PyRepString *) ele;
 		return(str->value.c_str());
-	} else if(ele->CheckType(PyRep::Integer)) {
+	} else if(ele->IsInteger()) {
 		PyRepInteger *i = (PyRepInteger *) ele;
 		char buf[64];
 		snprintf(buf, sizeof(buf), I64u, i->value);
 		return(std::string(buf));
-	} else if(ele->CheckType(PyRep::Real)) {
+	} else if(ele->IsReal()) {
 		PyRepReal *i = (PyRepReal *) ele;
 		char buf[64];
 		snprintf(buf, sizeof(buf), "%f", i->value);
@@ -367,8 +367,8 @@ void SetSQLDumper::VisitTuple(const PyRepTuple *rep) {
 	//first we want to check to see if this could possibly even be a tupleset.
 
 	if(		rep->items.size() != 2
-	   ||	!rep->items[0]->CheckType(PyRep::List)
-	   ||	!rep->items[1]->CheckType(PyRep::List) ) {
+	   ||	!rep->items[0]->IsList()
+	   ||	!rep->items[1]->IsList() ) {
 		PyVisitor::VisitTuple(rep);
 		return;
 	}
@@ -381,7 +381,7 @@ void SetSQLDumper::VisitTuple(const PyRepTuple *rep) {
 	cur = possible_header->begin();
 	end = possible_header->end();
 	for(; cur != end; cur++) {
-		if(! (*cur)->CheckType(PyRep::String)) {
+		if(! (*cur)->IsString()) {
 			//nope...
 			PyVisitor::VisitTuple(rep);
 			return;
@@ -390,7 +390,7 @@ void SetSQLDumper::VisitTuple(const PyRepTuple *rep) {
 	cur = possible_items->begin();
 	end = possible_items->end();
 	for(; cur != end; cur++) {
-		if(! (*cur)->CheckType(PyRep::List)) {
+		if(! (*cur)->IsList()) {
 			//nope...
 			PyVisitor::VisitTuple(rep);
 			return;

@@ -208,7 +208,7 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	std::map<std::string, PyRep *>::iterator itr = call.byname.find("careerID");
 	if(itr != call.byname.end()) {
-		if(!itr->second->CheckType(PyRep::Integer)) {
+		if(!itr->second->IsInteger()) {
 			_log(CLIENT__ERROR, "Wrong careerID type! Expected integer, got %s.", itr->second->TypeString());
 			return(NULL);
 		}
@@ -220,7 +220,7 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	itr = call.byname.find("careerSpecialityID");
 	if(itr != call.byname.end()) {
-		if(!itr->second->CheckType(PyRep::Integer)) {
+		if(!itr->second->IsInteger()) {
 			_log(CLIENT__ERROR, "Wrong careerSpecialityID type! Expected integer, got %s.", itr->second->TypeString());
 			return(NULL);
 		}

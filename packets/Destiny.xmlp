@@ -234,7 +234,7 @@ DST_WARPEXIT = 11
 		<int name="targetID" default="0" none_marker="0" />
 		<!-- 4: otherTypeID -->
 		<int name="otherTypeID" default="0" none_marker="0" />
-		<!-- 5: area, completely unknown contents, prolly not really an intlist -->
+		<!-- 5: area, completely unknown contents, probably not really an intlist -->
 		<intlist name="area" />
 		<!-- 6: guid: see scripts/parklife/fxSequencer.py -->
 		<string name="effect_type" />
@@ -270,7 +270,7 @@ DST_WARPEXIT = 11
 		<int name="targetID" default="0" none_marker="0" />
 		<!-- 4: otherTypeID -->
 		<int name="otherTypeID" default="0" none_marker="0" />
-		<!-- 5: completely unknown contents, prolly not really an intlist -->
+		<!-- 5: completely unknown contents, probably not really an intlist -->
 		<intlist name="area" />
 		<!-- 6: see scripts/parklife/fxSequencer.py -->
 		<string name="effect_type"/>

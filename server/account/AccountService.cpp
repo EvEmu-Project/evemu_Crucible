@@ -53,10 +53,10 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	//we can get an integer or a boolean right now...
 	bool corporate_wallet = false;
 	
-	if(args.arg->CheckType(PyRep::Integer)) {
+	if(args.arg->IsInteger()) {
 		PyRepInteger *i = (PyRepInteger *) args.arg;
 		corporate_wallet = (i->value != 0);
-	} else if(args.arg->CheckType(PyRep::Boolean)) {
+	} else if(args.arg->IsBool()) {
 		PyRepBoolean *i = (PyRepBoolean *) args.arg;
 		corporate_wallet = i->value;
 	} else {
@@ -337,9 +337,9 @@ PyResult AccountService::Handle_GetJournal(PyCallArgs &call) {
 	}
 
 	bool ca = false;
-	if (args.corpAccount->CheckType(PyRep::Boolean)) {
+	if (args.corpAccount->IsBool()) {
 		ca = ((PyRepBoolean *)args.corpAccount)->value;
-	} else if (args.corpAccount->CheckType(PyRep::Integer)) {
+	} else if (args.corpAccount->IsInteger()) {
 		ca = (((PyRepInteger *)args.corpAccount)->value != 0);
 	} else {
 		// problem

@@ -65,7 +65,7 @@ void EVETCPConnection::ClearBuffers() {
 	LockMutex lock2(&MOutQueueLock);
 	EVENetPacket* pack = 0;
 	while ((pack = OutQueue.pop()))
-		safe_delete(pack);
+		SafeDelete(pack);
 	
 	MInQueue.lock();
 		timeout_timer.Start();
@@ -88,7 +88,7 @@ bool EVETCPConnection::ProcessReceivedData(char* errbuf) {
 		if(recvbuf_size > 1024) {
 			//if the recvbuf grows too large, kill it off and start over
 			//this is purely an optimization, it could be killed each time or never...
-			safe_delete_array(recvbuf);
+			SafeDeleteArray(recvbuf);
 			recvbuf_size = 0;
 		}
 		recvbuf_used = 0;

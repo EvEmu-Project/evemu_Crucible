@@ -62,7 +62,7 @@ PyCallArgs::PyCallArgs(Client *c, PyRepTuple **tup, PyRepDict **dict)
 	cur = d->begin();
 	end = d->end();
 	for(; cur != end; cur++) {
-		if(!cur->first->CheckType(PyRep::String)) {
+		if(!cur->first->IsString()) {
 			_log(SERVICE__ERROR, "Non-string key in call named arguments. Skipping.");
 			cur->first->Dump(SERVICE__ERROR, "    ");
 			continue;

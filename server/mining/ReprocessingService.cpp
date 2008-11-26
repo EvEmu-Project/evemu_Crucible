@@ -64,7 +64,7 @@ ReprocessingService::~ReprocessingService() {
 }
 
 PyBoundObject *ReprocessingService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
-	if(!bind_args->CheckType(PyRep::Integer)) {
+	if(!bind_args->IsInteger()) {
 		codelog(CLIENT__ERROR, "%s: Non-integer bind argument '%s'", c->GetName(), bind_args->TypeString());
 		return(NULL);
 	}
@@ -315,7 +315,7 @@ double ReprocessingServiceBound::_CalcReprocessingEfficiency(const Client *c, co
 PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const {
 	InventoryItem *item = m_manager->item_factory->Load(itemID, true);
 	if(item == NULL)
-		return(NULL);	// No action as GetQuote is also called for reprocessed items (prolly for check)
+		return(NULL);	// No action as GetQuote is also called for reprocessed items (probably for check)
 
 	if(item->ownerID() != c->GetCharacterID()) {
 		_log(SERVICE__ERROR, "Character %lu tried to reprocess item %lu of character %lu.", c->GetCharacterID(), item->itemID(), item->ownerID());

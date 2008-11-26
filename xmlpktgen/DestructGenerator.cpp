@@ -1,4 +1,5 @@
 
+#include "common.h"
 #include "DestructGenerator.h"
 #include "../common/logsys.h"
 

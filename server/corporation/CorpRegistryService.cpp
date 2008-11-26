@@ -525,7 +525,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
 		return(NULL);
 	}
 
-	// OnCorporationApplicationChanged event, prolly be good to make it two (or more) times, independently, depending on update type
+	// OnCorporationApplicationChanged event, probably be good to make it two (or more) times, independently, depending on update type
 
 	Notify_OnCorporationApplicationChanged OCAC;
 	PyRepTuple * answer;
@@ -600,7 +600,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
 			"OnCorporationApplicationChanged", 
 			"*corpid&corprole", &answer, mct);
 
-//TODO: should prolly put this into a function, since there may be other
+//TODO: should probably put this into a function, since there may be other
 //places (gm commands at a minimum) where we want to change corp.
 /** TODO: Update employment history object, if present
  */

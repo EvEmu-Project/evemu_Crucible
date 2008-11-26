@@ -199,7 +199,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
 
 		case WaitingForCommand: {
 			//check if it actually is tuple
-			if(!r->CheckType(PyRep::Tuple)) {
+			if(!r->IsTuple()) {
 				_log(NET__PRES_ERROR, "%s: Invalid packet during waiting for command (tuple expected).", GetConnectedAddress().c_str());
 				break;
 			}
@@ -287,7 +287,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
 
 			_log(NET__PRES_DEBUG, "%s: Received Client Challenge.", GetConnectedAddress().c_str(), m_request->user_name.c_str());
 
-			if(m_request->user_password->CheckType(PyRep::None)) {
+			if(m_request->user_password->IsNone()) {
 				//this is little wrong because on live they send password version always, but only once,
 				//but we send password version when we get request with hashed password ...
 				_log(NET__PRES_DEBUG, "%s: Got hashed password, requesting plain.", GetConnectedAddress().c_str());

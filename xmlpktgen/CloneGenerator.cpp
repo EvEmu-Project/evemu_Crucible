@@ -1,4 +1,5 @@
 
+#include "common.h"
 #include "CloneGenerator.h"
 #include "../common/logsys.h"
 

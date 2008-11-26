@@ -10,7 +10,7 @@ bool ParseIntegerList(const PyRepTuple *iargs, const char *caller, std::vector<u
 		_log(SERVICE__ERROR, "Invalid arg count to %s: %d", caller, iargs->items.size());
 		//TODO: throw exception
 		return(false);
-	} else if(!iargs->items[0]->CheckType(PyRep::List)) {
+	} else if(!iargs->items[0]->IsList()) {
 		_log(SERVICE__ERROR, "Invalid argument to %s: got %s, list expected", caller, iargs->items[0]->TypeString());
 		return(false);
 	}
@@ -21,7 +21,7 @@ bool ParseIntegerList(const PyRepTuple *iargs, const char *caller, std::vector<u
 	cur = chanlist->begin();
 	end = chanlist->end();
 	for(; cur != end; cur++) {
-		if(!(*cur)->CheckType(PyRep::Integer)) {
+		if(!(*cur)->IsInteger()) {
 			_log(SERVICE__ERROR, "Invalid argument to %s: got %s, int expected", caller, (*cur)->TypeString());
 			return(false);
 		}

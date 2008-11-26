@@ -1,8 +1,7 @@
 
+#include "common.h"
 #include "EncodeGenerator.h"
 #include "../common/logsys.h"
-
-
 
 ClassEncodeGenerator::ClassEncodeGenerator()
 : m_fast(false)

@@ -22,39 +22,58 @@
 #include "common.h"
 #include "logsys.h"
 
-#include <vector>
-#include <map>
-#include <string>
-#include <stdio.h>
-
 class PyVisitor;
+class PyRepSubStream;
 
+/** PyRep base Python wire object
+  */
 class PyRep {
 public:
+
+	/** PyRep Python wire object types
+	  */
 	typedef enum {
-		Integer,
-		Real,
-		Boolean,
-		Buffer,
-		String,
-		Tuple,
-		List,
-		Dict,
-		None,
-		SubStruct,
-		SubStream,
-		ChecksumedStream,
-		Object,
-		NewObject,
-		PackedRow
+		PyTypeInteger,
+		PyTypeReal,
+		PyTypeBoolean,
+		PyTypeBuffer,
+		PyTypeString,
+		PyTypeTuple,
+		PyTypeList,
+		PyTypeDict,
+		PyTypeNone,
+		PyTypeSubStruct,
+		PyTypeSubStream,
+		PyTypeChecksumedStream,
+		PyTypeObject,
+		PyTypeNewObject,
+		PyTypePackedRow
 	} Type;
 	
 	PyRep(Type t) : m_type(t) { }
 	virtual ~PyRep() {}
 
-	bool CheckType(Type t) const { return(m_type == t); }
-	bool CheckType(Type t, Type t2) const { return(m_type == t || m_type == t2); }
-	const char *TypeString() const;
+	/** 
+	  */
+	ASCENT_INLINE bool IsInteger() {return m_type == PyTypeInteger;}
+	ASCENT_INLINE bool IsReal() {return m_type == PyTypeReal;}
+	ASCENT_INLINE bool IsBool() {return m_type == PyTypeBoolean;}
+	ASCENT_INLINE bool IsBuffer() {return m_type == PyTypeBuffer;}
+	ASCENT_INLINE bool IsString() {return m_type == PyTypeString;}
+	ASCENT_INLINE bool IsTuple() {return m_type == PyTypeTuple;}
+	ASCENT_INLINE bool IsList() {return m_type == PyTypeList;}
+	ASCENT_INLINE bool IsDict() {return m_type == PyTypeDict;}
+	ASCENT_INLINE bool IsNone() {return m_type == PyTypeNone;}
+	ASCENT_INLINE bool IsSubStruct() {return m_type == PyTypeSubStruct;}
+	ASCENT_INLINE bool IsSubStream() {return m_type == PyTypeSubStream;}
+	ASCENT_INLINE bool IsChecksumedStream() {return m_type == PyTypeChecksumedStream;}
+	ASCENT_INLINE bool IsObject() {return m_type == PyTypeObject;}
+	ASCENT_INLINE bool IsNewObject() {return m_type == PyTypeNewObject;}
+	ASCENT_INLINE bool IsPackedRow() {return m_type == PyTypePackedRow;}
+
+	ASCENT_INLINE bool CheckType(Type t) const { return(m_type == t); }
+	ASCENT_INLINE bool CheckType(Type t, Type t2) const { return(m_type == t || m_type == t2); }
+	ASCENT_INLINE const char *TypeString() const;
 	
 	virtual void Dump(FILE *into, const char *pfx) const = 0;
 	virtual void Dump(LogType type, const char *pfx) const = 0;
@@ -67,30 +86,29 @@ protected:
 	const Type m_type;
 };
 
-//storing all integers (and bools) as uint64s is a lot of craziness right now
+//storing all integers (and booleans) as uint64s is a lot of craziness right now
 //but its better than a ton of virtual functions to achieve the same thing.
 class PyRepInteger : public PyRep {
 public:
-	PyRepInteger(uint64 i) : PyRep(PyRep::Integer), value(i) {}
+	PyRepInteger(uint64 i) : PyRep(PyRep::PyTypeInteger), value(i) {}
 	virtual ~PyRepInteger() {}
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
-	PyRepInteger *TypedClone() const;
-	
+	PyRepInteger *TypedClone() const;	
 	uint64 value;
 };
 
 class PyRepReal : public PyRep {
 public:
-	PyRepReal(double i) : PyRep(PyRep::Real), value(i) {}
+	PyRepReal(double i) : PyRep(PyRep::PyTypeReal), value(i) {}
 	virtual ~PyRepReal() {}
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	PyRepReal *TypedClone() const;
 	
@@ -99,12 +117,12 @@ public:
 
 class PyRepBoolean : public PyRep {
 public:
-	PyRepBoolean(bool i) : PyRep(PyRep::Boolean), value(i) {}
+	PyRepBoolean(bool i) : PyRep(PyRep::PyTypeBoolean), value(i) {}
 	virtual ~PyRepBoolean() {}
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	PyRepBoolean *TypedClone() const;
 	
@@ -113,33 +131,36 @@ public:
 
 class PyRepNone : public PyRep {
 public:
-	PyRepNone() : PyRep(PyRep::None) {}
+	PyRepNone() : PyRep(PyRep::PyTypeNone) {}
 	virtual ~PyRepNone() {}
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	PyRepNone *TypedClone() const;
 };
 
-class PyRepSubStream;
+
 class PyRepBuffer : public PyRep {
 public:
 	PyRepBuffer(const byte *buffer, uint32 length);
 	PyRepBuffer(byte **buffer, uint32 length);
 	PyRepBuffer(uint32 length);
+
+	PyRepBuffer(std::string &buffer);
+
 	virtual ~PyRepBuffer();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return TypedClone(); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	PyRepBuffer *TypedClone() const;
 	
 	//treat it as a buffer:
-	byte *GetBuffer() const { return(m_value); }
-	uint32 GetLength() const { return(m_length); }
+	byte *GetBuffer() const { return m_value; }
+	uint32 GetLength() const { return m_length; }
 
 	PyRepSubStream *CreateSubStream() const;
 	
@@ -151,14 +172,14 @@ protected:
 class EVEStringTable;
 class PyRepString : public PyRep {
 public:
-	PyRepString(const char *str = "", bool type_1=false) : PyRep(PyRep::String), value(str), is_type_1(type_1) {}
-	PyRepString(const std::string &str, bool type_1=false) : PyRep(PyRep::String), is_type_1(type_1) { value.assign(str.c_str(), str.length()); } //to deal with non-string buffers poorly placed in strings (CCP)
-	PyRepString(const byte *data, uint32 len, bool type_1=false) : PyRep(PyRep::String), value((const char *) data, len), is_type_1(type_1) {}
+	PyRepString(const char *str = "", bool type_1=false) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1) {}
+	PyRepString(const std::string &str, bool type_1=false) : PyRep(PyRep::PyTypeString), is_type_1(type_1) { value.assign(str.c_str(), str.length()); } //to deal with non-string buffers poorly placed in strings (CCP)
+	PyRepString(const byte *data, uint32 len, bool type_1=false) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1) {}
 	virtual ~PyRepString() {}
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	PyRepString *TypedClone() const;
 
@@ -180,12 +201,12 @@ public:
 	typedef std::vector<PyRep *>::iterator iterator;
 	typedef std::vector<PyRep *>::const_iterator const_iterator;
 	
-	PyRepTuple(uint32 item_count) : PyRep(PyRep::Tuple), items(item_count, NULL) {}
+	PyRepTuple(uint32 item_count) : PyRep(PyRep::PyTypeTuple), items(item_count, NULL) {}
 	virtual ~PyRepTuple();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 
 	void CloneFrom(const PyRepTuple *from);
 	PyRepTuple *TypedClone() const;
@@ -206,12 +227,12 @@ public:
 	typedef std::vector<PyRep *>::iterator iterator;
 	typedef std::vector<PyRep *>::const_iterator const_iterator;
 	
-	PyRepList() : PyRep(PyRep::List) {}
+	PyRepList() : PyRep(PyRep::PyTypeList) {}
 	virtual ~PyRepList();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	void CloneFrom(const PyRepList *from);
 	PyRepList *TypedClone() const;
@@ -238,12 +259,12 @@ public:
 	typedef std::map<PyRep *, PyRep *>::iterator iterator;
 	typedef std::map<PyRep *, PyRep *>::const_iterator const_iterator;
 	
-	PyRepDict() : PyRep(PyRep::Dict) {}
+	PyRepDict() : PyRep(PyRep::PyTypeDict) {}
 	virtual ~PyRepDict();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	void CloneFrom(const PyRepDict *from);
 	PyRepDict *TypedClone() const;
@@ -266,12 +287,12 @@ public:
 
 class PyRepObject : public PyRep {
 public:
-	PyRepObject(const std::string &t = "", PyRep *a = NULL) : PyRep(PyRep::Object), type(t), arguments(a) {}
+	PyRepObject(const std::string &t = "", PyRep *a = NULL) : PyRep(PyRep::PyTypeObject), type(t), arguments(a) {}
 	virtual ~PyRepObject();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	PyRepObject *TypedClone() const;
 	
@@ -293,12 +314,12 @@ public:
 	typedef std::map<PyRep *, PyRep *>::iterator dict_iterator;
 	typedef std::map<PyRep *, PyRep *>::const_iterator const_dict_iterator;
 
-	PyRepNewObject(bool _is_type_1, PyRep *_header = NULL) : PyRep(PyRep::NewObject), header(_header), is_type_1(_is_type_1) {}
+	PyRepNewObject(bool _is_type_1, PyRep *_header = NULL) : PyRep(PyRep::PyTypeNewObject), header(_header), is_type_1(_is_type_1) {}
 	virtual ~PyRepNewObject();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 
 	PyRepNewObject *TypedClone() const;
 	void CloneFrom(const PyRepNewObject *from);
@@ -318,10 +339,10 @@ public:
 
 	PyRepPackedRow(const PyRep *header, bool own_header, const byte *data = NULL, const uint32 len = 0);
 	virtual ~PyRepPackedRow();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	PyRepPackedRow *TypedClone() const;
 	void CloneFrom(const PyRepPackedRow *from);
@@ -370,13 +391,13 @@ protected:
 
 class PyRepSubStruct : public PyRep {
 public:
-	PyRepSubStruct() : PyRep(PyRep::SubStruct), sub(NULL) {}
-	PyRepSubStruct(PyRep *t) : PyRep(PyRep::SubStruct), sub(t) {}
+	PyRepSubStruct() : PyRep(PyRep::PyTypeSubStruct), sub(NULL) {}
+	PyRepSubStruct(PyRep *t) : PyRep(PyRep::PyTypeSubStruct), sub(t) {}
 	virtual ~PyRepSubStruct();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	PyRepSubStruct *TypedClone() const;
 	
@@ -385,15 +406,15 @@ public:
 
 class PyRepSubStream : public PyRep {
 public:
-	PyRepSubStream() : PyRep(PyRep::SubStream), length(0), data(NULL), decoded(NULL) {}
-	PyRepSubStream(PyRep *t) : PyRep(PyRep::SubStream), length(0), data(NULL), decoded(t) {}
+	PyRepSubStream() : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(NULL) {}
+	PyRepSubStream(PyRep *t) : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(t) {}
 	PyRepSubStream(const byte *buffer, uint32 len);
 	
 	virtual ~PyRepSubStream();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	PyRepSubStream *TypedClone() const;
 
@@ -413,13 +434,13 @@ public:
 
 class PyRepChecksumedStream : public PyRep {
 public:
-	PyRepChecksumedStream() : PyRep(PyRep::ChecksumedStream), checksum(0), stream(NULL) {}
-	PyRepChecksumedStream(uint32 sum, PyRep *t) : PyRep(PyRep::ChecksumedStream), checksum(sum), stream(t) {}
+	PyRepChecksumedStream() : PyRep(PyRep::PyTypeChecksumedStream), checksum(0), stream(NULL) {}
+	PyRepChecksumedStream(uint32 sum, PyRep *t) : PyRep(PyRep::PyTypeChecksumedStream), checksum(sum), stream(t) {}
 	virtual ~PyRepChecksumedStream();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const { return(TypedClone()); }
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
 	PyRepChecksumedStream *TypedClone() const;
 
@@ -436,17 +457,15 @@ public:
 public:
 	PyRepReference(PyRep *to);
 	virtual ~PyRepReference();
-	virtual void Dump(FILE *into, const char *pfx) const;
-	virtual void Dump(LogType type, const char *pfx) const;
-	virtual PyRep *Clone() const;
-	virtual void visit(PyVisitor *v) const;
+	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
+	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
+	ASCENT_INLINE PyRep *Clone() const;
+	ASCENT_INLINE void visit(PyVisitor *v) const;
 
 	PyRep *const to;
 };*/
 
-
-
-//this prolly belongs in its own file
+//this probably belongs in its own file
 class EVEStringTable {
 public:
 	static const uint8 None = 0;	//returned for no match
@@ -462,8 +481,4 @@ protected:
 	std::map<std::string, uint8> m_reverseLookup;
 };
 
-
-
-
 #endif
-

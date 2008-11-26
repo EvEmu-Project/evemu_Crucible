@@ -87,7 +87,7 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 	//now we register 
 	robjs->items[0] = m_manager->BindObject(call.client, our_obj);
 
-	if(args.call->CheckType(PyRep::None)) {
+	if(args.call->IsNone()) {
 		//no call was specified...
 		robjs->items[1] = new PyRepNone();
 	} else {
@@ -128,7 +128,7 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 PyBoundObject *PyService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
 	_log(SERVICE__ERROR, "%s Service: Default _CreateBoundObject called, somebody didnt read the comments. This method must be overridden if bound objects are provided by the service!", GetName());
 	bind_args->Dump(stdout, "  Bind Args: ");
-	//this is prolly going to cause us to crash:
+	//this is probably going to cause us to crash:
 	return(NULL);
 }
 

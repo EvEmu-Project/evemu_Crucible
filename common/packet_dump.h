@@ -21,13 +21,13 @@
 
 #include "../common/types.h"
 
-void DumpPacketAscii(const uchar* buf, int32 size, int32 cols=16, int32 skip=0);
-void DumpPacketHex(const uchar* buf, int32 size, int32 cols=16, int32 skip=0);
+void DumpPacketAscii(const uint8* buf, int32 size, int32 cols=16, int32 skip=0);
+void DumpPacketHex(const uint8* buf, int32 size, int32 cols=16, int32 skip=0);
 void DumpPacketBin(const void* data, int32 len);
-void DumpPacket(const uchar* buf, int32 size);
+void DumpPacket(const uint8* buf, int32 size);
 void DumpPacketBin(int32 data);
 void DumpPacketBin(int16 data);
 void DumpPacketBin(int8 data);
-void DumpPacketPreview(const uchar* buf, int32 size);
+void DumpPacketPreview(const uint8* buf, int32 size);
 
 #endif

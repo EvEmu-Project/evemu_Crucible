@@ -36,31 +36,6 @@
 
 using namespace std;
 
-/*#ifdef WIN32
-	#include <windows.h>
-
-	#define snprintf	_snprintf
-#if _MSC_VER < 1500
-	#define vsnprintf	_vsnprintf
-#endif
-	#define strncasecmp	_strnicmp
-	#define strcasecmp  _stricmp
-#else
-	#include <stdlib.h>
-	#include <ctype.h>
-	#include <stdarg.h>
-	#include <sys/types.h>
-	#include <sys/time.h>
-#ifdef FREEBSD //Timothy Whitman - January 7, 2003
-       #include <sys/socket.h>
-       #include <netinet/in.h>
- #endif
-	#include <sys/stat.h>
-	#include <unistd.h>
-	#include <netdb.h>
-	#include <errno.h>
-#endif*/
-
 // normal strncpy doesn't put a null term on copied strings, this one does
 // ref: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcecrt/htm/_wcecrt_strncpy_wcsncpy.asp
 char* strn0cpy(char* dest, const char* source, int32 size) {
@@ -143,7 +118,7 @@ int vaMakeAnyLenString(char** ret, const char* format, va_list argptr) {
 	int buf_len = 256;
     int chars = -1;
 	while (chars == -1 || chars >= buf_len) {
-		safe_delete_array(*ret);
+		SafeDeleteArray(*ret);
 		if (chars == -1)
 			buf_len *= 2;
 		else
@@ -173,7 +148,7 @@ int32 AppendAnyLenString(char** ret, int32* bufsize, int32* strlen, const char* 
 		if (oldret) {
 			if (*strlen)
 				memcpy(*ret, oldret, *strlen);
-			safe_delete(oldret);
+			SafeDelete(oldret);
 		}
 		chars = vsnprintf(&(*ret)[*strlen], (*bufsize-*strlen), format, argptr);
 	}

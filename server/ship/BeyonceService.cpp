@@ -209,15 +209,15 @@ PyResult BeyonceBound::Handle_FollowBall(PyCallArgs &call) {
 	if(iargs->items.size() != 2) {
 		codelog(CLIENT__ERROR, "Invalid arg count: %d", iargs->items.size());
 		//TODO: throw exception
-	} else if(!iargs->items[0]->CheckType(PyRep::Integer)) {
+	} else if(!iargs->items[0]->IsInteger()) {
 		codelog(CLIENT__ERROR, "Invalid argument: got %s, int expected", iargs->items[0]->TypeString());
-	} else if(!iargs->items[1]->CheckType(PyRep::Integer) && !iargs->items[1]->CheckType(PyRep::Real)) {
+	} else if(!iargs->items[1]->IsInteger() && !iargs->items[1]->IsReal()) {
 		codelog(CLIENT__ERROR, "Invalid argument: got %s, int or real expected", iargs->items[0]->TypeString());
 	} else {
 		PyRepInteger *ball_id = (PyRepInteger *) iargs->items[0];
 		
 		uint32 distance = 0;
-		if(iargs->items[1]->CheckType(PyRep::Integer)) {
+		if(iargs->items[1]->IsInteger()) {
 			PyRepInteger *unknown = (PyRepInteger *) iargs->items[1];
 			distance= unknown->value;
 		} else {

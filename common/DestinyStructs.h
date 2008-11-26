@@ -429,7 +429,7 @@ struct AddBall_npc {
 /*018*/double x;
 /*026*/double y;
 /*034*/double z;
-/*042*/uint8  unknown42;		// seen 5, prolly a type
+/*042*/uint8  unknown42;		// seen 5, probably a type
 /*043*/double mass;
 /*051*/uint8  unknown51;		// seen 0
 /*052*/uint64 unknown52;	// seen -2

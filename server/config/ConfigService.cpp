@@ -179,7 +179,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 	}
 	if(packet->items.size() > 4) {
 		PyRep *v = packet->items[4];
-		if(!v->CheckType(PyRep::Integer)) {
+		if(!v->IsInteger()) {
 			_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 4 is not an int: %s", 
 				v->TypeString());
 			delete packet;
@@ -190,7 +190,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 	}
 	if(packet->items.size() > 3) {
 		PyRep *v = packet->items[3];
-		if(!v->CheckType(PyRep::Integer)) {
+		if(!v->IsInteger()) {
 			_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 3 is not an int: %s", 
 				v->TypeString());
 			delete packet;
@@ -201,7 +201,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 	}
 	if(packet->items.size() > 2) {
 		PyRep *v = packet->items[2];
-		if(!v->CheckType(PyRep::Integer)) {
+		if(!v->IsInteger()) {
 			_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 2 is not an int: %s", 
 				v->TypeString());
 			delete packet;
@@ -212,7 +212,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 	}
 	if(packet->items.size() > 1) {
 		PyRep *v = packet->items[1];
-		if(!v->CheckType(PyRep::Integer)) {
+		if(!v->IsInteger()) {
 			_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 1 is not an int: %s", 
 				v->TypeString());
 			delete packet;
@@ -223,7 +223,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 	}
 	if(packet->items.size() > 0) {
 		PyRep *v = packet->items[0];
-		if(!v->CheckType(PyRep::Integer)) {
+		if(!v->IsInteger()) {
 			_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 0 is not an int: %s", 
 				v->TypeString());
 			delete packet;

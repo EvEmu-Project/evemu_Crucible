@@ -563,7 +563,7 @@ void ObjectToSQL(const Seperator &command) {
 	}
 
 	bool success = false;
-	if(obj->cache->decoded->CheckType(PyRep::Object)) {
+	if(obj->cache->decoded->IsObject()) {
 		util_Rowset rowset;
 		if(!rowset.Decode(&obj->cache->decoded)) {
 			_log(CLIENT__ERROR, "Unable to load a rowset from the object body!");
@@ -573,7 +573,7 @@ void ObjectToSQL(const Seperator &command) {
 	
 		RowsetReader reader(&rowset);
 		success = ReaderToSQL<RowsetReader>(command.arg[2], command.arg[3], out, reader);
-	} else if(obj->cache->decoded->CheckType(PyRep::Tuple)) {
+	} else if(obj->cache->decoded->IsTuple()) {
 		util_Tupleset rowset;
 		if(!rowset.Decode(&obj->cache->decoded)) {
 			_log(CLIENT__ERROR, "Unable to load a tupleset from the object body!");

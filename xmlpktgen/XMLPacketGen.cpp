@@ -1,4 +1,5 @@
 
+#include "common.h"
 #include "XMLPacketGen.h"
 #include "../common/logsys.h"
 #include <string>

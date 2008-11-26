@@ -584,7 +584,7 @@ void PyCachedObjectDecoder::Dump(FILE *into, const char *pfx, bool contents_too)
 	s += "    ";
 	fprintf(into, "%sCached Object:\n", pfx);
 	fprintf(into, "%s  ObjectID:\n", pfx);
-		objectID->Dump(into, s.c_str());
+	objectID->Dump(into, s.c_str());
 	fprintf(into, "%s  Version Time: %llu\n", pfx, timestamp);
 	fprintf(into, "%s  Version: %lu\n", pfx, version);
 	fprintf(into, "%s  NodeID: %lu\n", pfx, nodeID);
@@ -629,7 +629,7 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 		return(false);
 	}
 	
-	if(!ss->decoded->CheckType(PyRep::Object)) {
+	if(!ss->decoded->IsObject()) {
 		_log(CLIENT__ERROR, "Cache substream does not contain an object: %s", ss->decoded->TypeString());
 		delete ss;
 		return(false);
@@ -637,7 +637,7 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 	PyRepObject *po = (PyRepObject *) ss->decoded;
 	//TODO: could check type string, dont care... (should be objectCaching.CachedObject)
 	
-	if(!po->arguments->CheckType(PyRep::Tuple)) {
+	if(!po->arguments->IsTuple()) {
 		_log(CLIENT__ERROR, "Cache object's args is not a tuple: %s", po->arguments->TypeString());
 		delete ss;
 		return(false);
@@ -650,40 +650,40 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 		return(false);
 	}
 
-	if(!args->items[0]->CheckType(PyRep::Tuple)) {
+	if(!args->items[0]->IsTuple()) {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not a Tuple: %s", 0, args->items[0]->TypeString());
 		delete ss;
 		return(false);
 	}
 	//ignore unknown [1]
-	/*if(!args->items[1]->CheckType(PyRep::Integer)) {
+	/*if(!args->items[1]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not a None: %s", 1, args->items[1]->TypeString());
 		delete ss;
 		return(false);
 	}*/
-	if(!args->items[2]->CheckType(PyRep::Integer)) {
+	if(!args->items[2]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not an Integer: %s", 2, args->items[2]->TypeString());
 		delete ss;
 		return(false);
 	}
-	if(!args->items[3]->CheckType(PyRep::Integer)) {
+	if(!args->items[3]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not an Integer: %s", 3, args->items[3]->TypeString());
 		delete ss;
 		return(false);
 	}
-	if(!args->items[5]->CheckType(PyRep::Integer)) {
+	if(!args->items[5]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not a : %s", 5, args->items[5]->TypeString());
 		delete ss;
 		return(false);
 	}
 
 	PyRepTuple *objVt = (PyRepTuple *) args->items[0];
-	if(!objVt->items[0]->CheckType(PyRep::Integer)) {
+	if(!objVt->items[0]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 0, objVt->items[0]->TypeString());
 		delete ss;
 		return(false);
 	}
-	if(!objVt->items[1]->CheckType(PyRep::Integer)) {
+	if(!objVt->items[1]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 1, objVt->items[1]->TypeString());
 		delete ss;
 		return(false);
@@ -704,11 +704,11 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 	
 	
 	//content (do this as the last thing, since its the heavy lifting):
-	if(args->items[4]->CheckType(PyRep::SubStream)) {
+	if(args->items[4]->IsSubStream()) {
 		cache = (PyRepSubStream *) args->items[4];
 		//take it
 		args->items[4] = NULL;
-	} else if(args->items[4]->CheckType(PyRep::Buffer)) {
+	} else if(args->items[4]->IsBuffer()) {
 		//this is a data buffer, likely compressed.
 		PyRepBuffer *buf = (PyRepBuffer *) args->items[4];
 		cache = buf->CreateSubStream();
@@ -717,7 +717,7 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 			delete ss;
 			return(false);
 		}
-	} else if(args->items[4]->CheckType(PyRep::String)) {
+	} else if(args->items[4]->IsString()) {
 		//this is a data buffer, likely compressed, not sure why it comes through as a string...
 		PyRepString *buf = (PyRepString *) args->items[4];
 		//hack for now:
@@ -852,7 +852,7 @@ bool PyCachedCall::Decode(PyRepSubStream **in_ss) {
 		return(false);
 	}
 	
-	if(!ss->decoded->CheckType(PyRep::Dict)) {
+	if(!ss->decoded->IsDict()) {
 		_log(CLIENT__ERROR, "Cached call substream does not contain a dict: %s", ss->decoded->TypeString());
 		delete ss;
 		return(false);
@@ -863,7 +863,7 @@ bool PyCachedCall::Decode(PyRepSubStream **in_ss) {
 	cur = po->begin();
 	end = po->end();
 	for(; cur != end; cur++) {
-		if(!cur->first->CheckType(PyRep::String))
+		if(!cur->first->IsString())
 			continue;
 		PyRepString *key = (PyRepString *) cur->first;
 		if(key->value == "lret") {

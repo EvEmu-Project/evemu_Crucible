@@ -116,7 +116,7 @@ public:
 	uint32 included_options;
 	uint8 macho_version;	//if oMachoVersion. this is used for cached  calls. If the value of this is a single 
                             // digit/entry, it is ignored, but if it is a list, with a timestamp and
-                            //(something else, prolly version), then it is telling the server what cached
+                            //(something else, probably version), then it is telling the server what cached
                             //version of this call the client has cached, so the server can return "cache
                             //OK" if possible
 	std::string channel;

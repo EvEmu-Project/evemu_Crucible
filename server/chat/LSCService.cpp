@@ -143,16 +143,16 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
 	PyRepTuple * prt;
 
 	for (;cur!=end;cur++) {
-		if ((*cur)->CheckType(PyRep::Integer)) {
+		if ((*cur)->IsInteger()) {
 			toJoin.insert(((PyRepInteger *)(*cur))->value);
-		} else if ((*cur)->CheckType(PyRep::Tuple)) {
+		} else if ((*cur)->IsTuple()) {
 			prt = (PyRepTuple*)*cur;
-			if (prt->items.size() != 1 || !prt->items[0]->CheckType(PyRep::Tuple)) {
+			if (prt->items.size() != 1 || !prt->items[0]->IsTuple()) {
 				codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
 				continue;
 			}
 			prt = (PyRepTuple*)prt->items[0];
-			if (prt->items.size() != 2 || /* !prt->items[0]->CheckType(PyRep::String) || unnessecary */ !prt->items[1]->CheckType(PyRep::Integer)) {
+			if (prt->items.size() != 2 || /* !prt->items[0]->IsString() || unnessecary */ !prt->items[1]->IsInteger()) {
 				codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
 				continue;
 			}
@@ -223,23 +223,23 @@ PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
 		PyRepTuple * prt;
 
 		for(;cur!=end;cur++) {
-			if ((*cur)->CheckType(PyRep::Integer)) {
+			if ((*cur)->IsInteger()) {
 				toLeave.insert(((PyRepInteger*)(*cur))->value);
-			} else if ((*cur)->CheckType(PyRep::Tuple)) {
+			} else if ((*cur)->IsTuple()) {
 				prt = (PyRepTuple*)(*cur);
-				if (prt->items[0]->CheckType(PyRep::Integer)) {
+				if (prt->items[0]->IsInteger()) {
 					toLeave.insert(((PyRepInteger*)prt->items[0])->value);
 					continue;
 				}
-				if (!prt->items[0]->CheckType(PyRep::Tuple)) {
+				if (!prt->items[0]->IsTuple()) {
 					codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
 					continue;
 				}
 				prt = (PyRepTuple*)prt->items[0];
-				if (prt->items[0]->CheckType(PyRep::Tuple)) {
+				if (prt->items[0]->IsTuple()) {
 					prt = (PyRepTuple*)prt->items[0];
 				}
-				if (prt->items.size() != 2 || !prt->items[1]->CheckType(PyRep::Integer)) {
+				if (prt->items.size() != 2 || !prt->items[1]->IsInteger()) {
 					codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
 					continue;
 				}
@@ -280,19 +280,19 @@ PyResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
 	uint32 toLeave;
 	PyRepTuple * prt;
 		
-	if (arg.channel->CheckType(PyRep::Integer)) {
+	if (arg.channel->IsInteger()) {
 		toLeave = ((PyRepInteger*)(arg.channel))->value;
-	} else if (arg.channel->CheckType(PyRep::Tuple)) {
+	} else if (arg.channel->IsTuple()) {
 		prt = (PyRepTuple*)(arg.channel);
-		if (prt->items[0]->CheckType(PyRep::Integer)) {
+		if (prt->items[0]->IsInteger()) {
 			toLeave = ((PyRepInteger*)prt->items[0])->value;
 	} else {
-			if (!prt->items[0]->CheckType(PyRep::Tuple)) {
+			if (!prt->items[0]->IsTuple()) {
 				codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
 				return NULL;
 			}
 			prt = (PyRepTuple*)prt->items[0];
-			if (prt->items.size() != 2 || !prt->items[1]->CheckType(PyRep::Integer)) {
+			if (prt->items.size() != 2 || !prt->items[1]->IsInteger()) {
 				codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
 				return NULL;
 			}
@@ -349,7 +349,7 @@ PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
 	uint32 channelID;
 	PyRepTuple * arg = call.tuple;
 
-	if (arg->items.size() != 2 || !arg->items[0]->CheckType(PyRep::Tuple) && !arg->items[1]->CheckType(PyRep::String)) {
+	if (arg->items.size() != 2 || !arg->items[0]->IsTuple() && !arg->items[1]->IsString()) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments (T0)", call.client->GetName());
 		return new PyRepInteger(0);
 	}
@@ -358,15 +358,15 @@ PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
 	arg = (PyRepTuple *)arg->items[0];
 
 	
-	if (arg->CheckType(PyRep::Integer)) {
+	if (arg->IsInteger()) {
 		channelID = ((PyRepInteger*)arg)->value;
-	} else if (arg->CheckType(PyRep::Tuple)) {
-		if (arg->items.size() != 1 || !arg->items[0]->CheckType(PyRep::Tuple)) {
+	} else if (arg->IsTuple()) {
+		if (arg->items.size() != 1 || !arg->items[0]->IsTuple()) {
 			codelog(SERVICE__ERROR, "%s: Bad arguments (T1)", call.client->GetName());
 			return new PyRepInteger(0);
 		}
 		arg = (PyRepTuple *)arg->items[0];
-		if (arg->items.size() != 2 || !arg->items[1]->CheckType(PyRep::Integer)) {
+		if (arg->items.size() != 2 || !arg->items[1]->IsInteger()) {
 			codelog(SERVICE__ERROR, "%s: Bad arguments (T2)", call.client->GetName());
 			return new PyRepInteger(0);
 		}

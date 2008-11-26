@@ -1,4 +1,5 @@
 
+#include "common.h"
 #include "DecodeGenerator.h"
 #include "../common/logsys.h"
 
@@ -65,7 +66,7 @@ bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 	snprintf(iname, sizeof(iname), "tuple%d", num);
 	//now we can generate the tuple decl
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Tuple)) {\n"
+		"	if(!%s->IsTuple()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -116,7 +117,7 @@ bool ClassDecodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 	snprintf(iname, sizeof(iname), "list%d", num);
 	//now we can generate the tuple decl
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::List)) {\n"
+		"	if(!%s->IsList()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a list: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -165,7 +166,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 
 	//make sure its a dict
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Dict)) {\n"
+		"	if(!%s->IsDict()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -212,7 +213,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 			"	%s_end = %s->items.end();\n"
 			"	for(; %s_cur != %s_end; %s_cur++) {\n"
 			"		PyRep *key__ = %s_cur->first;\n"
-			"		if(!key__->CheckType(PyRep::String)) {\n"
+			"		if(!key__->IsString()) {\n"
 			"			_log(NET__PACKET_ERROR, \"Decode %s failed: a key in %s is the wrong type: %%s\", key__->TypeString());\n"
 			"			delete packet;\n"
 			"			return(false);\n"
@@ -336,7 +337,7 @@ bool ClassDecodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *fie
 	//make sure its a substream
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::SubStream)) {\n"
+		"	if(!%s->IsSubStream()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a substream: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -373,7 +374,7 @@ bool ClassDecodeGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *fie
 	//make sure its a substream
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::SubStruct)) {\n"
+		"	if(!%s->IsSubStruct()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a substruct: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -409,7 +410,7 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 	const char *v = top();
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Dict)) {\n"
+		"	if(!%s->IsDict()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a dict: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -421,7 +422,7 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
 		"	for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-		"		if(!%s_cur->first->CheckType(PyRep::String)) {\n"
+		"		if(!%s_cur->first->IsString()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Key %%d in dict %s is not a string: %%s\", %s_index, %s_cur->first->TypeString());\n"
 		"			delete packet;\n"
 		"			return(false);\n"
@@ -462,7 +463,7 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 	const char *v = top();
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Dict)) {\n"
+		"	if(!%s->IsDict()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a dict: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -474,7 +475,7 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
 		"	for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-		"		if(!%s_cur->first->CheckType(PyRep::Integer)) {\n"
+		"		if(!%s_cur->first->IsInteger()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Key %%d in dict %s is not an integer: %%s\", %s_index, %s_cur->first->TypeString());\n"
 		"			delete packet;\n"
 		"			return(false);\n"
@@ -539,7 +540,7 @@ bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 	const char *v = top();
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Dict)) {\n"
+		"	if(!%s->IsDict()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a dict: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -603,7 +604,7 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 	
 	//make sure its a dict
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::List)) {\n"
+		"	if(!%s->IsList()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a list: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -615,7 +616,7 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
 		"	for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-		"		if(!(*%s_cur)->CheckType(PyRep::String)) {\n"
+		"		if(!(*%s_cur)->IsString()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not a string: %%s\", %s_index, (*%s_cur)->TypeString());\n"
 		"			delete packet;\n"
 		"			return(false);\n"
@@ -650,7 +651,7 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 	
 	//make sure its a dict
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::List)) {\n"
+		"	if(!%s->IsList()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a list: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -662,7 +663,7 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
 		"	for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-		"		if(!(*%s_cur)->CheckType(PyRep::Integer)) {\n"
+		"		if(!(*%s_cur)->IsInteger()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not an integer: %%s\", %s_index, (*%s_cur)->TypeString());\n"
 		"			delete packet;\n"
 		"			return(false);\n"
@@ -702,7 +703,7 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 	
 	//make sure its a dict
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::List)) {\n"
+		"	if(!%s->IsList()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a list: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -714,7 +715,7 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
 		"	for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-		"		if(!(*%s_cur)->CheckType(PyRep::Integer)) {\n"
+		"		if(!(*%s_cur)->IsInteger()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not an integer: %%s\", %s_index, (*%s_cur)->TypeString());\n"
 		"			delete packet;\n"
 		"			return(false);\n"
@@ -814,7 +815,7 @@ bool ClassDecodeGenerator::Process_none(FILE *into, TiXmlElement *field) {
 	
 	const char *v = top();
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::None)) {\n"
+		"	if(!%s->IsNone()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: expecting a None but got a %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -842,7 +843,7 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	//make sure its a substream
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Object)) {\n"
+		"	if(!%s->IsObject()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -885,7 +886,7 @@ bool ClassDecodeGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 	const char *v = top();
 
 	fprintf(into,
-		"	if(!%s->CheckType(PyRep::NewObject)) {\n"
+		"	if(!%s->IsNewObject()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -934,10 +935,10 @@ bool ClassDecodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 	
 	const char *v = top();
 	fprintf(into, 
-		"	if(%s->CheckType(PyRep::Buffer)) {\n"
+		"	if(%s->IsBuffer()) {\n"
 		"		%s = (PyRepBuffer *) %s;\n"
 		"		%s = NULL;\n"
-		"	} else if(%s->CheckType(PyRep::String)) {\n"
+		"	} else if(%s->IsString()) {\n"
 		"		PyRepString *__sss = (PyRepString *) %s;\n"
 		"		%s = NULL;\n"
 		"		%s = new PyRepBuffer((const byte *) __sss->value.c_str(), __sss->value.length());\n"
@@ -1000,7 +1001,7 @@ bool ClassDecodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 		is_optional = true;
 	if(is_optional) {
 		fprintf(into, 
-			"	if(%s->CheckType(PyRep::None)) {\n"
+			"	if(%s->IsNone()) {\n"
 			"		%s.clear();\n"
 			"	} else {\n",
 			v,
@@ -1009,7 +1010,7 @@ bool ClassDecodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 	}
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::List)) {\n"
+		"	if(!%s->IsList()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a list: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -1048,7 +1049,7 @@ bool ClassDecodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 		is_optional = true;
 	if(is_optional) {
 		fprintf(into, 
-			"	if(%s->CheckType(PyRep::None)) {\n"
+			"	if(%s->IsNone()) {\n"
 			"		%s.clear();\n"
 			"	} else {\n",
 			v,
@@ -1057,7 +1058,7 @@ bool ClassDecodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 	}
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Tuple)) {\n"
+		"	if(!%s->IsTuple()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a tuple: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -1092,7 +1093,7 @@ bool ClassDecodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 		is_optional = true;
 	if(is_optional) {
 		fprintf(into, 
-			"	if(%s->CheckType(PyRep::None)) {\n"
+			"	if(%s->IsNone()) {\n"
 			"		%s.clear();\n"
 			"	} else {\n",
 			v,
@@ -1101,7 +1102,7 @@ bool ClassDecodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 	}
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Dict)) {\n"
+		"	if(!%s->IsDict()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a dict: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -1142,7 +1143,7 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 	bool is_optional = false;
 	if(none_marker != NULL) {
 		fprintf(into, 
-			"	if(%s->CheckType(PyRep::None)) {\n"
+			"	if(%s->IsNone()) {\n"
 			"		%s = %s;\n"
 			"	} else {\n",
 			v,
@@ -1152,7 +1153,7 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 	
 	if(field->Attribute("soft") == NULL || field->Attribute("soft") != std::string("true")) {
 		fprintf(into, 
-			"	if(!%s->CheckType(PyRep::Boolean)) {\n"
+			"	if(!%s->IsBool()) {\n"
 			"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a boolean: %%s\", %s->TypeString());\n"
 			"		delete packet;\n"
 			"		return(false);\n"
@@ -1164,10 +1165,10 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 			);
 	} else {
 			fprintf(into, 
-			"	if(%s->CheckType(PyRep::Boolean)) {\n"
+			"	if(%s->IsBool()) {\n"
 			"		PyRepBoolean *%s = (PyRepBoolean *) %s;\n"
 			"		%s = %s->value;\n"
-			"	} else if(%s->CheckType(PyRep::Integer)) {\n"
+			"	} else if(%s->IsInteger()) {\n"
 			"		PyRepInteger *%s = (PyRepInteger *) %s;\n"
 			"		%s = (%s->value != 0);\n"
 			"	} else {\n"
@@ -1208,7 +1209,7 @@ bool ClassDecodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
 	bool is_optional = false;
 	if(none_marker != NULL) {
 		fprintf(into, 
-			"	if(%s->CheckType(PyRep::None)) {\n"
+			"	if(%s->IsNone()) {\n"
 			"		%s = %s;\n"
 			"	} else {\n",
 			v,
@@ -1221,7 +1222,7 @@ bool ClassDecodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
 	snprintf(iname, sizeof(iname), "int_%d", num);
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Integer)) {\n"
+		"	if(!%s->IsInteger()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not an int: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -1257,7 +1258,7 @@ bool ClassDecodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 	bool is_optional = false;
 	if(none_marker != NULL) {
 		fprintf(into, 
-			"	if(%s->CheckType(PyRep::None)) {\n"
+			"	if(%s->IsNone()) {\n"
 			"		%s = %s;\n"
 			"	} else {\n",
 			v,
@@ -1270,7 +1271,7 @@ bool ClassDecodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 	snprintf(iname, sizeof(iname), "int64_%d", num);
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Integer)) {\n"
+		"	if(!%s->IsInteger()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not an int: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -1304,7 +1305,7 @@ bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 	bool is_optional = false;
 	if(none_marker != NULL) {
 		fprintf(into, 
-			"	if(%s->CheckType(PyRep::None)) {\n"
+			"	if(%s->IsNone()) {\n"
 			"		%s = \"%s\";\n"
 			"	} else {\n",
 			v,
@@ -1318,7 +1319,7 @@ bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 	
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::String)) {\n"
+		"	if(!%s->IsString()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a string: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"
@@ -1365,7 +1366,7 @@ bool ClassDecodeGenerator::Process_real(FILE *into, TiXmlElement *field) {
 	bool is_optional = false;
 	if(none_marker != NULL) {
 		fprintf(into, 
-			"	if(%s->CheckType(PyRep::None)) {\n"
+			"	if(%s->IsNone()) {\n"
 			"		%s = %s;\n"
 			"	} else {\n",
 			v,
@@ -1378,7 +1379,7 @@ bool ClassDecodeGenerator::Process_real(FILE *into, TiXmlElement *field) {
 	snprintf(iname, sizeof(iname), "real_%d", num);
 	
 	fprintf(into, 
-		"	if(!%s->CheckType(PyRep::Real)) {\n"
+		"	if(!%s->IsReal()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a real: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return(false);\n"

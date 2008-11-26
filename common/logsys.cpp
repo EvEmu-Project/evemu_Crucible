@@ -144,7 +144,7 @@ void log_toggle(LogType t) {
 }
 
 bool log_open_logfile(const char *fname) {
-	//TODO: prolly need a mutex here...
+	//TODO: probably need a mutex here...
 	if(logsys_log_file != NULL)
 		fclose(logsys_log_file);
 	logsys_log_file = fopen(fname, "w");

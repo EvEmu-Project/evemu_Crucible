@@ -203,7 +203,7 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
 		InventoryItem *self = m_npc->Item();
 
 		//reset the attack timer.
-		//NOTE: there is prolly a more intelligent way to make this descision.
+		//NOTE: there is probably a more intelligent way to make this descision.
 		//if(self->entityAttackDelayMax() <= 0) {
 			//use speed field...
 			m_mainAttackTimer.Start(self->speed());

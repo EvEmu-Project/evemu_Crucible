@@ -1,4 +1,5 @@
 
+#include "common.h"
 #include "ImplGenerator.h"
 
 void ClassImplementationGenerator::Process_root(FILE *into, TiXmlElement *element) {

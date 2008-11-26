@@ -123,7 +123,7 @@ static const char *DamageMessageIDs_Other[6] = {
 };
 
 
-//the notifications which this puts out prolly needs some work.
+//the notifications which this puts out probably needs some work.
 void Client::ApplyDamage(Damage &d) {
 	_ReduceDamage(d);
 	
@@ -507,7 +507,7 @@ void NPC::_AwardBounty(SystemEntity *who) {
 	if(!m_services->GetServiceDB()->GiveCash(
 			killer->GetID(),
 			RefType_playerDonation,	//TODO: find the proper type
-			m_self->itemID(),	//prolly actually a special concord item ID or something.
+			m_self->itemID(),	//probably actually a special concord item ID or something.
 			killer->GetID(),
 			"",	//unknown const char *argID1,
 			killer->GetAccountID(),

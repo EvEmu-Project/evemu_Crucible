@@ -240,7 +240,7 @@ void DestinyManager::_Follow() {
 		//swap around the direction, see what that does...
 		targetDirection *= -1.0f;
 		
-		_log(PHYSICS__TRACEPOS, " Entity %lu is %f/%f away from followed entity. Should prolly back off...", m_self->GetID());
+		_log(PHYSICS__TRACEPOS, " Entity %lu is %f/%f away from followed entity. Should probably back off...", m_self->GetID());
 		return;
 	}
 	

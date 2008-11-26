@@ -91,7 +91,7 @@
 <element name="Notify_OnOwnOrderChanged">
   <InlineTuple>
     <raw name="order" />
-    <!-- Reason: Add or Expiry (prolly a "Change" or something too) -->
+    <!-- Reason: Add or Expiry (probably a "Change" or something too) -->
     <string name="reason" />
 	<bool name="isCorp" />
   </InlineTuple>

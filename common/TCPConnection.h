@@ -15,20 +15,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #ifndef TCP_CONNECTION_H
 #define TCP_CONNECTION_H
 
-#ifdef WIN32
-	#define snprintf	_snprintf
-#if _MSC_VER < 1500
-	#define vsnprintf	_vsnprintf
-#endif
-	#define strncasecmp	_strnicmp
-	#define strcasecmp  _stricmp
-
-	#include <process.h>
-#else
+#ifndef WIN32
 	#include <pthread.h>
 	#include <sys/socket.h>
 	#include <netinet/in.h>
@@ -39,7 +29,6 @@
 	#include <fcntl.h>
 	#define INVALID_SOCKET -1
 	#define SOCKET_ERROR -1
-
 #endif
 
 #include "types.h"
@@ -86,7 +75,7 @@ public:
 	void			AsyncConnect(int32 irIP, int16 irPort);
 	virtual void	Disconnect();
 
-	bool			Send(const uchar* data, int32 size);
+	bool			Send(const uint8* data, int32 size);
 	
 	char*			PopLine();		//returns ownership of allocated byte array
 	inline int32	GetrIP()	const		{ return rIP; }
@@ -149,7 +138,7 @@ protected:
 	virtual bool	LineOutQueuePush(char* line);	//this is really kinda a hack for the transition to packet mode. Returns true to stop processing the output.
 	MyQueue<char> LineOutQueue;
 	
-	uchar*	recvbuf;
+	uint8*	recvbuf;
 	int32	recvbuf_size;
 	int32	recvbuf_used;
 	
@@ -157,17 +146,17 @@ protected:
 	volatile bool	pEcho;
 	
 	Mutex	MSendQueue;
-	uchar*	sendbuf;
+	uint8*	sendbuf;
 	int32	sendbuf_size;
 	int32	sendbuf_used;
-	bool	ServerSendQueuePop(uchar** data, int32* size);
-	bool	ServerSendQueuePopForce(uchar** data, int32* size);		//does a lock() instead of a trylock()
+	bool	ServerSendQueuePop(uint8** data, int32* size);
+	bool	ServerSendQueuePopForce(uint8** data, int32* size);		//does a lock() instead of a trylock()
 	
-	void	ServerSendQueuePushEnd(const uchar* head_data, int32 head_size, const uchar* data, int32 size);
-	void	ServerSendQueuePushEnd(const uchar* data, int32 size);
-	void	ServerSendQueuePushEnd(const uchar* head_data, int32 head_size, uchar** data, int32 size);
-	void	ServerSendQueuePushEnd(uchar** data, int32 size);
-	void	ServerSendQueuePushFront(uchar* data, int32 size);
+	void	ServerSendQueuePushEnd(const uint8* head_data, int32 head_size, const uint8* data, int32 size);
+	void	ServerSendQueuePushEnd(const uint8* data, int32 size);
+	void	ServerSendQueuePushEnd(const uint8* head_data, int32 head_size, uint8** data, int32 size);
+	void	ServerSendQueuePushEnd(uint8** data, int32 size);
+	void	ServerSendQueuePushFront(uint8* data, int32 size);
 	
 private:
 	void FinishDisconnect();

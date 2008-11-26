@@ -340,7 +340,7 @@ PyRepObject *CorporationDB::GetMedalsReceived(uint32 charID) {
 }
 
 static std::string _IoN(PyRep *r) {
-	if(!r->CheckType(PyRep::Integer))
+	if(!r->IsInteger())
 		return("NULL");
 	char buf[32];
 	snprintf(buf, 32, "%lu", uint32(((PyRepInteger*)r)->value));
@@ -819,7 +819,7 @@ PyRep *CorporationDB::Fetch(uint32 corpID, uint32 from, uint32 count) {
 	res.GetRow(rr);
 
 	// Have to send back a list that contains a tuple that contains an int and a list...
-	// params prolly needs the following stuff: stationID, typeID, officeID, officeFolderID
+	// params probably needs the following stuff: stationID, typeID, officeID, officeFolderID
 	Reply_FetchOffice reply;
 	reply.params.add(new PyRepInteger(rr.GetInt(0)));
 	reply.params.add(new PyRepInteger(rr.GetInt(1)));
