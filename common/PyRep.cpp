@@ -15,7 +15,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #include "common.h"
 #include "PyRep.h"
 #include "PyVisitor.h"
@@ -25,6 +24,9 @@
 #include "EVEMarshal.h"
 #include "EVEMarshalOpcodes.h"
 
+/************************************************************************/
+/* PyRep utilities                                                      */
+/************************************************************************/
 static void pfxHexDump(const char *pfx, FILE *into, const byte *data, uint32 length) {
 	char buffer[80];
 	uint32 offset;
@@ -69,29 +71,19 @@ static void pfxPreviewHexDump(const char *pfx, LogType type, const byte *data, u
 	}
 }
 
+/** TypeString function to retrieve the name of the object type
+  */
 const char *PyRep::TypeString() const {
-	switch(m_type) {
-	case Integer: return("Integer");
-	case Real: return("Real");
-	case Boolean: return("Boolean");
-	case Buffer: return("Buffer");
-	case String: return("String");
-	case Tuple: return("Tuple");
-	case List: return("List");
-	case Dict: return("Dict");
-	case None: return("None");
-	case SubStruct: return("SubStruct");
-	case SubStream: return("SubStream");
-	case ChecksumedStream: return("ChecksumedStream");
-	case Object: return("Object");
-	case NewObject: return("NewObject");
-	case PackedRow: return("PackedRow");
-	//no default on purpose
+	if (m_type >= 0 && m_type < 15)
+	{
+		return PyRepTypeString[m_type];
 	}
-	return("UNKNOWN TYPE");
+	return PyRepTypeString[15];
 }
 
-
+/************************************************************************/
+/* PyRep Integer Class                                                  */
+/************************************************************************/
 void PyRepInteger::Dump(FILE *into, const char *pfx) const {
 	fprintf(into, "%sInteger field: %lld\n", pfx, value);
 }
@@ -99,6 +91,10 @@ void PyRepInteger::Dump(FILE *into, const char *pfx) const {
 void PyRepInteger::Dump(LogType type, const char *pfx) const {
 	_log(type, "%sInteger field: %lld", pfx, value);
 }
+
+/************************************************************************/
+/* PyRep Real/float/double Class                                        */
+/************************************************************************/
 
 void PyRepReal::Dump(FILE *into, const char *pfx) const {
 	fprintf(into, "%sReal Field: %f\n", pfx, value);
@@ -108,6 +104,9 @@ void PyRepReal::Dump(LogType type, const char *pfx) const {
 	_log(type, "%sReal Field: %f", pfx, value);
 }
 
+/************************************************************************/
+/* PyRep Boolean Class                                                  */
+/************************************************************************/
 void PyRepBoolean::Dump(FILE *into, const char *pfx) const {
 	fprintf(into, "%sBoolean field: %s\n", pfx, value?"true":"false");
 }
@@ -116,6 +115,9 @@ void PyRepBoolean::Dump(LogType type, const char *pfx) const {
 	_log(type, "%sBoolean field: %s", pfx, value?"true":"false");
 }
 
+/************************************************************************/
+/* PyRep None Class                                                     */
+/************************************************************************/
 void PyRepNone::Dump(FILE *into, const char *pfx) const {
 	fprintf(into, "%s(None)\n", pfx);
 }
@@ -124,9 +126,10 @@ void PyRepNone::Dump(LogType type, const char *pfx) const {
 	_log(type, "%s(None)", pfx);
 }
 
-
-PyRepBuffer::PyRepBuffer(const byte *buffer, uint32 length)
-: PyRep(PyRep::Buffer),
+/************************************************************************/
+/* PyRep Buffer Class                                                   */
+/************************************************************************/
+PyRepBuffer::PyRepBuffer(const byte *buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
   m_value(new byte[length]),
   m_length(length)
 {
@@ -134,14 +137,14 @@ PyRepBuffer::PyRepBuffer(const byte *buffer, uint32 length)
 }
 
 PyRepBuffer::PyRepBuffer(uint32 length)
-: PyRep(PyRep::Buffer),
+: PyRep(PyRep::PyTypeBuffer),
   m_value(new byte[length]),
   m_length(length)
 {
 }
 
 PyRepBuffer::PyRepBuffer(byte **buffer, uint32 length)
-: PyRep(PyRep::Buffer),
+: PyRep(PyRep::PyTypeBuffer),
   m_value(*buffer),
   m_length(length)
 {
@@ -149,7 +152,7 @@ PyRepBuffer::PyRepBuffer(byte **buffer, uint32 length)
 }
 
 PyRepBuffer::~PyRepBuffer() {
-	delete[] m_value;
+	delete [] m_value;
 }
 
 void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
@@ -209,6 +212,9 @@ PyRepSubStream *PyRepBuffer::CreateSubStream() const {
 	return(NULL);
 }
 
+/************************************************************************/
+/* PyRep String Class                                                   */
+/************************************************************************/
 void PyRepString::Dump(FILE *into, const char *pfx) const {
 	if(ContainsNonPrintables(value.c_str(), (uint32)value.length())) {
 		fprintf(into, "%sString%s: '<binary, len=%d>'\n", pfx, is_type_1?" (Type1)":"", value.length());
@@ -225,6 +231,9 @@ void PyRepString::Dump(LogType type, const char *pfx) const {
 	}
 }
 
+/************************************************************************/
+/* PyRep Tuple Class                                                    */
+/************************************************************************/
 PyRepTuple::~PyRepTuple() {
 	clear();
 }
@@ -284,6 +293,9 @@ PyRepList::~PyRepList() {
 	clear();
 }
 
+/************************************************************************/
+/* PyRep List Class                                                     */
+/************************************************************************/
 void PyRepList::clear() {
 	std::vector<PyRep *>::iterator cur, _end;
 	cur = items.begin();
@@ -363,6 +375,9 @@ void PyRepList::add(PyRep *i) {
 	items.push_back(i);
 }
 
+/************************************************************************/
+/* PyRep Dict Class                                                     */
+/************************************************************************/
 PyRepDict::~PyRepDict() {
 	clear();
 }
@@ -439,6 +454,9 @@ void PyRepDict::add(const char *key, const char *value) {
 	items[new PyRepString(key)] = new PyRepString(value);
 }
 
+/************************************************************************/
+/* PyRep Object Class                                                   */
+/************************************************************************/
 PyRepObject::~PyRepObject() {
 	delete arguments;
 }
@@ -461,6 +479,9 @@ void PyRepObject::Dump(LogType ltype, const char *pfx) const {
 	arguments->Dump(ltype, m.c_str());
 }
 
+/************************************************************************/
+/* PyRep SubStruct Class                                                */
+/************************************************************************/
 PyRepSubStruct::~PyRepSubStruct() {
 	delete sub;
 }
@@ -479,8 +500,11 @@ void PyRepSubStruct::Dump(LogType type, const char *pfx) const {
 	sub->Dump(type, m.c_str());
 }
 
+/************************************************************************/
+/* PyRep SubStream Class                                                */
+/************************************************************************/
 PyRepSubStream::PyRepSubStream(const byte *buffer, uint32 len)
-: PyRep(PyRep::SubStream),
+: PyRep(PyRep::PyTypeSubStream),
   length(len),
   data(new byte[len]),
   decoded(NULL)
@@ -549,7 +573,9 @@ void PyRepSubStream::DecodeData() const {
 	decoded = InflateAndUnmarshal(data, length);
 }
 
-
+/************************************************************************/
+/* PyRep ChecksumedStream Class                                         */
+/************************************************************************/
 PyRepChecksumedStream::~PyRepChecksumedStream() {
 	delete stream;
 }
@@ -563,16 +589,6 @@ void PyRepChecksumedStream::Dump(LogType type, const char *pfx) const {
 	_log(type, "%sStream With Checksum: 0x%08x", pfx, checksum);
 	stream->Dump(type, pfx);
 }
-
-
-
-
-
-
-
-
-
-
 
 PyRepInteger *PyRepInteger::TypedClone() const {
 	return(new PyRepInteger(value));
@@ -682,9 +698,6 @@ PyRepChecksumedStream *PyRepChecksumedStream::TypedClone() const {
 	return(new PyRepChecksumedStream( checksum, stream->Clone() ));
 }
 
-
-
-
 void PyRepInteger::visit(PyVisitor *v) const {
 	v->VisitInteger(this);
 }
@@ -742,7 +755,7 @@ void PyRepChecksumedStream::visit(PyVisitor *v) const {
 
 
 PyRepPackedRow::PyRepPackedRow(const PyRep *header, bool own_header, const byte *data, const uint32 len)
-: PyRep(PyRep::PackedRow),
+: PyRep(PyRep::PyTypePackedRow),
   m_ownsHeader(own_header),
   m_header(header)
 {
@@ -762,13 +775,16 @@ PyRepPackedRow::~PyRepPackedRow() {
 }
 
 
-void PyRepPackedRow::Dump(FILE *into, const char *pfx) const {
+void PyRepPackedRow::Dump(FILE *into, const char *pfx) const
+{
 	fprintf(into, "%sPacked Row of length %ld (owned header? %s)\n", pfx, m_buffer.size(), m_ownsHeader?"yes":"no");
-	if(!m_buffer.empty()) {
+	if(!m_buffer.empty())
+	{
 		string p(pfx);
 		p += "  ";
-		pfxPreviewHexDump(p.c_str(), into, &m_buffer[0], m_buffer.size());
+		pfxPreviewHexDump(p.c_str(), into, &m_buffer[0], (uint32)m_buffer.size());
 	}
+
 	if(!m_reps.empty()) {
 		std::string n(pfx);
 		n += "  Reps: ";
@@ -776,7 +792,9 @@ void PyRepPackedRow::Dump(FILE *into, const char *pfx) const {
 		rcur = begin();
 		rend = end();
 		for(; rcur != rend; rcur++)
+		{
 			(*rcur)->Dump(into, n.c_str());
+		}
 	}
 }
 
@@ -785,7 +803,7 @@ void PyRepPackedRow::Dump(LogType ltype, const char *pfx) const {
 	if(!m_buffer.empty()) {
 		string p(pfx);
 		p += "  ";
-		pfxPreviewHexDump(p.c_str(), ltype, &m_buffer[0], m_buffer.size());
+		pfxPreviewHexDump(p.c_str(), ltype, &m_buffer[0], (uint32)m_buffer.size());
 	}
 	if(!m_reps.empty()) {
 		std::string n(pfx);
@@ -1047,21 +1065,3 @@ const char *EVEStringTable::LookupIndex(uint8 index) const {
 		return(NULL);
 	return(m_forwardLookup[index].c_str());
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

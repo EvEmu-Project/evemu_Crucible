@@ -25,6 +25,27 @@
 class PyVisitor;
 class PyRepSubStream;
 
+/** Static lookup table for PyRep type object type names.
+*/
+static const char *PyRepTypeString[] = {
+	"Integer",			//0
+	"Real",				//1
+	"Boolean",			//2
+	"Buffer",			//3
+	"String",			//4
+	"Tuple",			//5
+	"List",				//6
+	"Dict",				//7
+	"None",				//8
+	"SubStruct",		//9
+	"SubStream",		//10
+	"ChecksumedStream",	//11
+	"Object",			//12
+	"NewObject",		//13
+	"PackedRow",		//14
+	"UNKNOWN TYPE",		//15
+};
+
 /** PyRep base Python wire object
   */
 class PyRep {
@@ -33,7 +54,7 @@ public:
 	/** PyRep Python wire object types
 	  */
 	typedef enum {
-		PyTypeInteger,
+		PyTypeInteger = 0,
 		PyTypeReal,
 		PyTypeBoolean,
 		PyTypeBuffer,
@@ -481,4 +502,4 @@ protected:
 	std::map<std::string, uint8> m_reverseLookup;
 };
 
-#endif
+#endif//EVE_PY_REP_H

@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <VisualStudioToolFile
 	Name="XMLPKT Generator"
-	Version="8.00"
+	Version="9,00"
 	>
 	<Rules>
 		<CustomBuildRule
 			Name="XMLPkt"
 			DisplayName="XML Packet Generator"
-			CommandLine="$(OutDir)_xmlpkt/xmlpktgen.exe [inputs]"
+			CommandLine="$(SolutionDir)$(ConfigurationName)/xmlpktgen/XMLPktGen.exe [inputs]"
 			Outputs="$(InputName).h"
-			AdditionalDependencies="$(OutDir)_xmlpkt/xmlpktgen.exe"
+			AdditionalDependencies="$(SolutionDir)$(ConfigurationName)/xmlpktgen/XMLPktGen.exe"
 			FileExtensions="*.xmlp"
 			ExecutionDescription="Generating packet processors from XML: $(InputName)"
 			ShowOnlyRuleProperties="false"

@@ -24,6 +24,7 @@
 			IntermediateDirectory="$(ConfigurationName)/$(ProjectName)"
 			ConfigurationType="4"
 			CharacterSet="2"
+			DeleteExtensionsOnClean="*.obj;*.ilk;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;$(TargetPath)"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -51,7 +52,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				WarningLevel="3"
+				WarningLevel="1"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 			/>

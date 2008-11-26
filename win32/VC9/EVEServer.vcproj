@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)/$(ProjectName)"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)/$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -1245,18 +1245,6 @@
 				</File>
 				<File
 					RelativePath="..\..\server\tutorial\TutorialService.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="debug"
-				>
-				<File
-					RelativePath="..\..\server\debugSvc.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\server\debugSvc.h"
 					>
 				</File>
 			</Filter>
