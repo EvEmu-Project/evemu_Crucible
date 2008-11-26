@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\common"
-				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x0400;_NDEBUG;_DEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x0400;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
