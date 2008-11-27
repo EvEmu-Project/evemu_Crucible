@@ -143,9 +143,9 @@ typedef unsigned int UINT,*PUINT,*LPUINT;
 /** dll interface stuff
   */
 #ifdef WIN32
-#define DLLFUNC extern "C" __declspec(dllexport)
+#  define DLLFUNC extern "C" __declspec(dllexport)
 #else
-#define DLLFUNC extern "C"
+#  define DLLFUNC extern "C"
 #endif//WIN32
 
 #endif

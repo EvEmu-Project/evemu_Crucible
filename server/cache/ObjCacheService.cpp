@@ -115,9 +115,81 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, DBcore *dbc, const std::stri
 	PyCallable_REG_CALL(ObjCacheService, GetCachableObject)
 
 	//register full name -> short key in m_cacheKeys
-	#define KCACHABLE(name, key, symbol, type, query) \
-		m_cacheKeys[name] = key;
-	#include "CachableList.h"
+	m_cacheKeys["config.BulkData.billtypes"] = "config.BulkData.billtypes";
+	m_cacheKeys["config.BulkData.allianceshortnames"] = "config.BulkData.allianceshortnames";
+	m_cacheKeys["config.BulkData.categories"] = "config.BulkData.categories";
+	m_cacheKeys["config.BulkData.invtypereactions"] = "config.BulkData.invtypereactions";
+	m_cacheKeys["config.BulkData.dgmtypeattribs"] = "config.BulkData.dgmtypeattribs";
+	m_cacheKeys["config.BulkData.dgmtypeeffects"] = "config.BulkData.dgmtypeeffects";
+	m_cacheKeys["config.BulkData.dgmeffects"] = "config.BulkData.dgmeffects";
+	m_cacheKeys["config.BulkData.dgmattribs"] = "config.BulkData.dgmattribs";
+	m_cacheKeys["config.BulkData.metagroups"] = "config.BulkData.metagroups";
+	m_cacheKeys["config.BulkData.ramactivities"] = "config.BulkData.ramactivities";
+	m_cacheKeys["config.BulkData.ramaltypesdetailpergroup"] = "config.BulkData.ramaltypesdetailpergroup";
+	m_cacheKeys["config.BulkData.ramaltypesdetailpercategory"] = "config.BulkData.ramaltypesdetailpercategory";
+	m_cacheKeys["config.BulkData.ramaltypes"] = "config.BulkData.ramaltypes";
+	m_cacheKeys["config.BulkData.ramcompletedstatuses"] = "config.BulkData.ramcompletedstatuses";
+	m_cacheKeys["config.BulkData.ramtypematerials"] = "config.BulkData.ramtypematerials";
+
+	m_cacheKeys["config.BulkData.ramtyperequirements"] = "config.BulkData.ramtyperequirements";
+	m_cacheKeys["config.BulkData.mapcelestialdescriptions"] = "config.BulkData.mapcelestialdescriptions";
+	m_cacheKeys["config.BulkData.tickernames"] = "config.BulkData.tickernames";
+	m_cacheKeys["config.BulkData.groups"] = "config.BulkData.groups";
+	m_cacheKeys["config.BulkData.shiptypes"] = "config.BulkData.shiptypes";
+	m_cacheKeys["config.BulkData.locations"] = "config.BulkData.locations";
+	m_cacheKeys["config.BulkData.bptypes"] = "config.BulkData.bptypes";
+	m_cacheKeys["config.BulkData.graphics"] = "config.BulkData.graphics";
+	m_cacheKeys["config.BulkData.types"] = "config.BulkData.types";
+	m_cacheKeys["config.BulkData.invmetatypes"] = "config.BulkData.invmetatypes";
+	m_cacheKeys["config.Bloodlines"] = "config.Bloodlines";
+	m_cacheKeys["config.Units"] = "config.Units";
+	m_cacheKeys["config.BulkData.units"] = "config.BulkData.units";
+	m_cacheKeys["config.BulkData.owners"] = "config.BulkData.owners";
+	m_cacheKeys["config.StaticOwners"] = "config.StaticOwners";
+	m_cacheKeys["config.Races"] = "config.Races";
+	m_cacheKeys["config.Attributes"] = "config.Attributes";
+	m_cacheKeys["config.Flags"] = "config.Flags";
+	m_cacheKeys["config.StaticLocations"] = "config.StaticLocations";
+	m_cacheKeys["config.InvContrabandTypes"] = "config.InvContrabandTypes";
+
+	m_cacheKeys["charCreationInfo.bloodlines"] = "bloodlines";
+	m_cacheKeys["charCreationInfo.races"] = "races";
+	m_cacheKeys["charCreationInfo.ancestries"] = "ancestries";
+	m_cacheKeys["charCreationInfo.schools"] = "schools";
+	m_cacheKeys["charCreationInfo.attributes"] = "attributes";
+	m_cacheKeys["charCreationInfo.bl_accessories"] = "accessories";
+	m_cacheKeys["charCreationInfo.bl_lights"] = "lights";
+	m_cacheKeys["charCreationInfo.bl_skins"] = "skins";
+	m_cacheKeys["charCreationInfo.bl_beards"] = "beards";
+	m_cacheKeys["charCreationInfo.bl_eyes"] = "eyes";
+	m_cacheKeys["charCreationInfo.bl_lipsticks"] = "lipsticks";
+	m_cacheKeys["charCreationInfo.bl_makeups"] = "makeups";
+	m_cacheKeys["charCreationInfo.bl_hairs"] = "hairs";
+	m_cacheKeys["charCreationInfo.bl_backgrounds"] = "backgrounds";
+	m_cacheKeys["charCreationInfo.bl_decos"] = "decos";
+	m_cacheKeys["charCreationInfo.bl_eyebrows"] = "eyebrows";
+	m_cacheKeys["charCreationInfo.bl_costumes"] = "costumes";
+
+	m_cacheKeys["charNewExtraCreationInfo.raceskills"] = "raceskills";
+	m_cacheKeys["charNewExtraCreationInfo.careerskills"] = "careerskills";
+	m_cacheKeys["charNewExtraCreationInfo.specialityskills"] = "specialityskills";
+	m_cacheKeys["charNewExtraCreationInfo.careers"] = "careers";
+	m_cacheKeys["charNewExtraCreationInfo.specialities"] = "specialities";
+
+	m_cacheKeys["charCreationInfo.eyebrows"] = "eyebrows";
+	m_cacheKeys["charCreationInfo.eyes"] = "eyes";
+	m_cacheKeys["charCreationInfo.decos"] = "decos";
+	m_cacheKeys["charCreationInfo.hairs"] = "hairs";
+	m_cacheKeys["charCreationInfo.backgrounds"] = "backgrounds";
+	m_cacheKeys["charCreationInfo.accessories"] = "accessories";
+	m_cacheKeys["charCreationInfo.lights"] = "lights";
+	m_cacheKeys["charCreationInfo.costumes"] = "costumes";
+	m_cacheKeys["charCreationInfo.makeups"] = "makeups";
+	m_cacheKeys["charCreationInfo.beards"] = "beards";
+	m_cacheKeys["charCreationInfo.skins"] = "skins";
+	m_cacheKeys["charCreationInfo.lipsticks"] = "lipsticks";
+
+	m_cacheKeys["dogmaIM.attributesByName"] = "dogmaIM.attributesByName";
 }
 
 ObjCacheService::~ObjCacheService() {
@@ -300,24 +372,3 @@ ObjectCachedMethodID::ObjectCachedMethodID(const char *service, const char *meth
 ObjectCachedMethodID::~ObjectCachedMethodID() {
 	delete objectID;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
