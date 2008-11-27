@@ -76,21 +76,21 @@ public:
 
 	/** 
 	  */
-	ASCENT_INLINE bool IsInteger() {return m_type == PyTypeInteger;}
-	ASCENT_INLINE bool IsReal() {return m_type == PyTypeReal;}
-	ASCENT_INLINE bool IsBool() {return m_type == PyTypeBoolean;}
-	ASCENT_INLINE bool IsBuffer() {return m_type == PyTypeBuffer;}
-	ASCENT_INLINE bool IsString() {return m_type == PyTypeString;}
-	ASCENT_INLINE bool IsTuple() {return m_type == PyTypeTuple;}
-	ASCENT_INLINE bool IsList() {return m_type == PyTypeList;}
-	ASCENT_INLINE bool IsDict() {return m_type == PyTypeDict;}
-	ASCENT_INLINE bool IsNone() {return m_type == PyTypeNone;}
-	ASCENT_INLINE bool IsSubStruct() {return m_type == PyTypeSubStruct;}
-	ASCENT_INLINE bool IsSubStream() {return m_type == PyTypeSubStream;}
-	ASCENT_INLINE bool IsChecksumedStream() {return m_type == PyTypeChecksumedStream;}
-	ASCENT_INLINE bool IsObject() {return m_type == PyTypeObject;}
-	ASCENT_INLINE bool IsNewObject() {return m_type == PyTypeNewObject;}
-	ASCENT_INLINE bool IsPackedRow() {return m_type == PyTypePackedRow;}
+	bool IsInteger()const {return m_type == PyTypeInteger;}
+	bool IsReal()const {return m_type == PyTypeReal;}
+	bool IsBool()const {return m_type == PyTypeBoolean;}
+	bool IsBuffer()const {return m_type == PyTypeBuffer;}
+	bool IsString()const {return m_type == PyTypeString;}
+	bool IsTuple()const {return m_type == PyTypeTuple;}
+	bool IsList()const {return m_type == PyTypeList;}
+	bool IsDict()const {return m_type == PyTypeDict;}
+	bool IsNone()const {return m_type == PyTypeNone;}
+	bool IsSubStruct()const {return m_type == PyTypeSubStruct;}
+	bool IsSubStream()const {return m_type == PyTypeSubStream;}
+	bool IsChecksumedStream()const {return m_type == PyTypeChecksumedStream;}
+	bool IsObject()const {return m_type == PyTypeObject;}
+	bool IsNewObject()const {return m_type == PyTypeNewObject;}
+	bool IsPackedRow()const {return m_type == PyTypePackedRow;}
 
 	ASCENT_INLINE bool CheckType(Type t) const { return(m_type == t); }
 	ASCENT_INLINE bool CheckType(Type t, Type t2) const { return(m_type == t || m_type == t2); }

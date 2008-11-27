@@ -80,7 +80,6 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 	into.clear();
 	into.resize(cc, ReaderColumnUnknown);
 
-	
 	typedef typename Reader::iterator T_iterator;
 	T_iterator cur, end;
 	cur = reader.begin();
@@ -90,16 +89,16 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 			switch(into[col]) {
 			case ReaderColumnInteger:
 				switch(cur.GetType(col)) {
-				case PyRep::None:
+				case PyRep::PyTypeNone:
 					into[col] = ReaderColumnIntegerNull;
 					break;
-				case PyRep::Integer:
+				case PyRep::PyTypeInteger:
 					break;	//no transition
-				case PyRep::Real:
+				case PyRep::PyTypeReal:
 					//we can become a real
 					into[col] = ReaderColumnReal;
 					break;
-				case PyRep::String:
+				case PyRep::PyTypeString:
 					//we can become a string
 					into[col] = ReaderColumnString;
 					break;
@@ -111,15 +110,15 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 				break;
 			case ReaderColumnIntegerNull:
 				switch(cur.GetType(col)) {
-				case PyRep::None:
+				case PyRep::PyTypeNone:
 					break;	//no transition
-				case PyRep::Integer:
+				case PyRep::PyTypeInteger:
 					break;	//no transition
-				case PyRep::Real:
+				case PyRep::PyTypeReal:
 					//we can become a real
 					into[col] = ReaderColumnRealNull;
 					break;
-				case PyRep::String:
+				case PyRep::PyTypeString:
 					//we can become a string
 					into[col] = ReaderColumnStringNull;
 					break;
@@ -131,14 +130,14 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 				break;
 			case ReaderColumnReal:
 				switch(cur.GetType(col)) {
-				case PyRep::None:
+				case PyRep::PyTypeNone:
 					into[col] = ReaderColumnRealNull;
 					break;
-				case PyRep::Integer:
+				case PyRep::PyTypeInteger:
 					break;	//no transition, stay in real land
-				case PyRep::Real:
+				case PyRep::PyTypeReal:
 					break;	//no transition
-				case PyRep::String:
+				case PyRep::PyTypeString:
 					//we can become a string
 					into[col] = ReaderColumnString;
 					break;
@@ -150,13 +149,13 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 				break;
 			case ReaderColumnRealNull:
 				switch(cur.GetType(col)) {
-				case PyRep::None:
+				case PyRep::PyTypeNone:
 					break;	//no transition
-				case PyRep::Integer:
+				case PyRep::PyTypeInteger:
 					break;	//no transition, stay in real land
-				case PyRep::Real:
+				case PyRep::PyTypeReal:
 					break;	//no transition
-				case PyRep::String:
+				case PyRep::PyTypeString:
 					//we can become a string
 					into[col] = ReaderColumnString;
 					break;
@@ -168,13 +167,13 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 				break;
 			case ReaderColumnString:
 				switch(cur.GetType(col)) {
-				case PyRep::None:
+				case PyRep::PyTypeNone:
 					into[col] = ReaderColumnStringNull;
-				case PyRep::Integer:
+				case PyRep::PyTypeInteger:
 					break;	//no transition, stay in string land
-				case PyRep::Real:
+				case PyRep::PyTypeReal:
 					break;	//no transition, stay in string land
-				case PyRep::String: {
+				case PyRep::PyTypeString: {
 					std::string contents = cur.GetAsString(col);
 					if(contents.length() > ReaderColumnLongStringCutoff)
 						into[col] = ReaderColumnLongString;
@@ -188,13 +187,13 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 				break;
 			case ReaderColumnStringNull:
 				switch(cur.GetType(col)) {
-				case PyRep::None:
+				case PyRep::PyTypeNone:
 					break;	//no transition
-				case PyRep::Integer:
+				case PyRep::PyTypeInteger:
 					break;	//no transition, stay in string land
-				case PyRep::Real:
+				case PyRep::PyTypeReal:
 					break;	//no transition, stay in string land
-				case PyRep::String: {
+				case PyRep::PyTypeString: {
 					std::string contents = cur.GetAsString(col);
 					if(contents.length() > ReaderColumnLongStringCutoff)
 						into[col] = ReaderColumnLongStringNull;
@@ -208,14 +207,14 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 				break;
 			case ReaderColumnLongString:
 				switch(cur.GetType(col)) {
-				case PyRep::None:
+				case PyRep::PyTypeNone:
 					into[col] = ReaderColumnLongStringNull;
 					break;
-				case PyRep::Integer:
+				case PyRep::PyTypeInteger:
 					break;	//no transition, stay in string land
-				case PyRep::Real:
+				case PyRep::PyTypeReal:
 					break;	//no transition, stay in string land
-				case PyRep::String:
+				case PyRep::PyTypeString:
 					break;	//no transition
 				default:
 					//anything else is an error.
@@ -225,13 +224,13 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 				break;
 			case ReaderColumnLongStringNull:
 				switch(cur.GetType(col)) {
-				case PyRep::None:
+				case PyRep::PyTypeNone:
 					break;	//no transition
-				case PyRep::Integer:
+				case PyRep::PyTypeInteger:
 					break;	//no transition, stay in string land
-				case PyRep::Real:
+				case PyRep::PyTypeReal:
 					break;	//no transition, stay in string land
-				case PyRep::String:
+				case PyRep::PyTypeString:
 					break;	//no transition
 				default:
 					//anything else is an error.
@@ -241,16 +240,16 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 				break;
 			case ReaderColumnUnknown:
 				switch(cur.GetType(col)) {
-				case PyRep::None:
+				case PyRep::PyTypeNone:
 					into[col] = ReaderColumnUnknownNull;
 					break;
-				case PyRep::Integer:
+				case PyRep::PyTypeInteger:
 					into[col] = ReaderColumnInteger;
 					break;
-				case PyRep::Real:
+				case PyRep::PyTypeReal:
 					into[col] = ReaderColumnReal;
 					break;
-				case PyRep::String: {
+				case PyRep::PyTypeString: {
 					std::string contents = cur.GetAsString(col);
 					if(contents.length() > ReaderColumnLongStringCutoff)
 						into[col] = ReaderColumnLongString;
@@ -266,15 +265,15 @@ void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &re
 				break;
 			case ReaderColumnUnknownNull:
 				switch(cur.GetType(col)) {
-				case PyRep::None:
+				case PyRep::PyTypeNone:
 					break;	//no transition
-				case PyRep::Integer:
+				case PyRep::PyTypeInteger:
 					into[col] = ReaderColumnIntegerNull;
 					break;
-				case PyRep::Real:
+				case PyRep::PyTypeReal:
 					into[col] = ReaderColumnRealNull;
 					break;
-				case PyRep::String: {
+				case PyRep::PyTypeString: {
 					std::string contents = cur.GetAsString(col);
 					if(contents.length() > ReaderColumnLongStringCutoff)
 						into[col] = ReaderColumnLongStringNull;
