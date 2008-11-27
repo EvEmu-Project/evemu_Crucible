@@ -42,20 +42,6 @@ PyRep *ObjCacheDB::GetCachableObject(const std::string &type) {
 	return((this->*f)());
 }
 
-PyRep *ObjCacheDB::DBResultToRowsetTuple(DBQueryResult &result) {
-	//this is a vicious hack to get around the fact that we do not know 
-	//how to build a blue.DBRow/blue.DBRowDescriptor object representation
-	//of a table for transmission over the wire.
-	// 
-	// after studying the python, I figured out a representation that 
-	// could pass, functionality wise, for how they were using the real one.
-	PyRepTuple *t = new PyRepTuple(2);
-	t->items[0] = new PyRepNone();
-	t->items[1] = DBResultToRowset(result);
-
-	return(t);
-}
-
 //implement all the generators:
 #define KCACHABLE(name, key, symbol, type, query) \
 PyRep *ObjCacheDB::Generate_##symbol() { \

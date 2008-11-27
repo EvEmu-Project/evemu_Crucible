@@ -26,7 +26,6 @@
 #include <map>
 
 class PyRepDict;
-class Dispatcher;
 
 //little helper class for repeated code and memory management
 class ObjectCachedMethodID {
@@ -76,6 +75,7 @@ protected:
 	static const char *const AppearanceCachableObjects[];
 	static const uint32 AppearanceCachableObjectCount;
 	
+	class Dispatcher;
 	Dispatcher *const m_dispatch;
 
 	ObjCacheDB m_db;

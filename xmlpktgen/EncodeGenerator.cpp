@@ -637,27 +637,45 @@ bool ClassEncodeGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 			(type1 ? "true" : "false"), hname
 	);
 
-	fprintf(into,
-		"	PyRepNewObject::list_iterator lcur, lend;\n"
-		"	lcur = %s_list.begin();\n"
-		"	lend = %s_list.end();\n"
-		"	for(; lcur != lend; lcur++)\n"
-		"		%s->list_data.push_back((*lcur)->Clone());\n",
-		name,
-		name,
-			iname
-	);
+	if(m_fast) {
+		fprintf(into,
+			"	%s->list_data = %s_list;	// steal the items\n"
+			"	%s_list.clear();\n",
+			iname, name,
+			name
+		);
+	} else {
+		fprintf(into,
+			"	PyRepNewObject::list_iterator lcur, lend;\n"
+			"	lcur = %s_list.begin();\n"
+			"	lend = %s_list.end();\n"
+			"	for(; lcur != lend; lcur++)\n"
+			"		%s->list_data.push_back((*lcur)->Clone());\n",
+			name,
+			name,
+				iname
+		);
+	}
 
-	fprintf(into,
-		"	PyRepNewObject::dict_iterator dcur, dend;\n"
-		"	dcur = %s_dict.begin();\n"
-		"	dend = %s_dict.end();\n"
-		"	for(; dcur != dend; dcur++)\n"
-		"		%s->dict_data[dcur->first->Clone()] = dcur->second->Clone();\n",
-		name,
-		name,
-			iname
-	);
+	if(m_fast) {
+		fprintf(into,
+			"	%s->dict_data = %s_dict;	// steal the items\n"
+			"	%s_dict.clear();\n",
+			iname, name,
+			name
+		);
+	} else {
+		fprintf(into,
+			"	PyRepNewObject::dict_iterator dcur, dend;\n"
+			"	dcur = %s_dict.begin();\n"
+			"	dend = %s_dict.end();\n"
+			"	for(; dcur != dend; dcur++)\n"
+			"		%s->dict_data[dcur->first->Clone()] = dcur->second->Clone();\n",
+			name,
+			name,
+				iname
+		);
+	}
 
 	fprintf(into,
 		"	%s = %s;\n",
