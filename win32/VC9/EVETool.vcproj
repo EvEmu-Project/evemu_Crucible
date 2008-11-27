@@ -184,10 +184,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\common\timer.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\evetool\TriFile.cpp"
 				>
 			</File>
