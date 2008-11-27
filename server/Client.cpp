@@ -77,7 +77,7 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
 #define REAL(v) \
 	itr = from.find(#v); \
 	if(itr != from.end()) { \
-		if(!itr->second->CheckType(PyRep::Real)) \
+		if(!itr->second->IsReal()) \
 			_log(CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString()); \
 		else { \
 			v = ((PyRepReal *)itr->second)->value; \
@@ -87,7 +87,7 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
 #define REAL_DYN(v) \
 	itr = from.find(#v); \
 	if(itr != from.end()) { \
-		if(!itr->second->CheckType(PyRep::Real)) \
+		if(!itr->second->IsReal()) \
 			_log(CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString()); \
 		else { \
 			Set_##v(((PyRepReal *)itr->second)->value); \

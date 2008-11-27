@@ -210,7 +210,7 @@ bool PyPacket::Decode(PyRep *&in_packet) {
 	}
 
 	//payload
-	if(!tuple->items[4]->CheckType(PyRep::Buffer, PyRep::Tuple)) {
+	if(!(tuple->items[4]->IsBuffer() || tuple->items[4]->IsTuple())) {
 		codelog(NET__PACKET_ERROR, "failed: Fifth main tuple element is not a tuple");
 		delete packet;
 		return(false);
