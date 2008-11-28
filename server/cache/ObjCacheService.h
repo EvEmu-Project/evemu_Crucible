@@ -23,7 +23,6 @@
 
 #include "ObjCacheDB.h"
 #include "../common/CachedObjectMgr.h"
-#include <map>
 
 class PyRepDict;
 

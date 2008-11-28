@@ -41,15 +41,83 @@ protected:
 	PyRep *DBResultToRowsetTuple(DBQueryResult &result);
 	
 	//declare all the generators
-	#define KCACHABLE(name, key, symbol, type, query) \
-		PyRep *Generate_##symbol();
-	#include "CachableList.h"
+	PyRep *Generate_BillTypes();
+	PyRep *Generate_AllianceShortnames();
+	PyRep *Generate_invCategories();
+	PyRep *Generate_invTypeReactions();
+
+	PyRep *Generate_dgmTypeAttribs();
+	PyRep *Generate_dgmTypeEffects();
+	PyRep *Generate_dgmEffects();
+	PyRep *Generate_dgmAttribs();
+	PyRep *Generate_dgmAttributesByName();
+
+	PyRep *Generate_invMetaGroups();
+
+	PyRep *Generate_ramActivities();
+	PyRep *Generate_ramALTypeGroup();
+	PyRep *Generate_ramALTypeCategory();
+	PyRep *Generate_ramALTypes();
+	PyRep *Generate_ramCompletedStatuses();
+	PyRep *Generate_ramTypeMaterials();
+	PyRep *Generate_ramTypeRequirements();
+
+	PyRep *Generate_mapCelestialDescriptions();
+	PyRep *Generate_tickerNames();
+	PyRep *Generate_invGroups();
+	PyRep *Generate_invShipTypes();
+	PyRep *Generate_cacheLocations();
+	PyRep *Generate_invBlueprintTypes();
+	PyRep *Generate_eveGraphics();
+	PyRep *Generate_invTypes();
+	PyRep *Generate_invMetaTypes();
+	PyRep *Generate_chrBloodlines();
+	PyRep *Generate_eveUnits();
+	PyRep *Generate_eveBulkDataUnits();
+	PyRep *Generate_cacheOwners();
+	PyRep *Generate_eveStaticOwners();
+	PyRep *Generate_chrRaces();
+	PyRep *Generate_chrAttributes();
+	PyRep *Generate_invFlags();
+	PyRep *Generate_eveStaticLocations();
+	PyRep *Generate_invContrabandTypes();
+
+	PyRep *Generate_c_chrBloodlines();
+	PyRep *Generate_c_chrRaces();
+	PyRep *Generate_c_chrAncestries();
+	PyRep *Generate_c_chrSchools();
+	PyRep *Generate_c_chrAttributes();
+	PyRep *Generate_bl_accessories();
+	PyRep *Generate_bl_lights();
+	PyRep *Generate_bl_skins();
+	PyRep *Generate_bl_beards();
+	PyRep *Generate_bl_eyes();
+	PyRep *Generate_bl_lipsticks();
+	PyRep *Generate_bl_makeups();
+	PyRep *Generate_bl_hairs();
+	PyRep *Generate_bl_backgrounds();
+	PyRep *Generate_bl_decos();
+	PyRep *Generate_bl_eyebrows();
+	PyRep *Generate_bl_costumes();
+
+	PyRep *Generate_nec_raceskills();
+	PyRep *Generate_nec_careerskills();
+	PyRep *Generate_nec_specialityskills();
+	PyRep *Generate_nec_careers();
+	PyRep *Generate_nec_specialities();
+
+	PyRep *Generate_a_eyebrows();
+	PyRep *Generate_a_eyes();
+	PyRep *Generate_a_decos();
+	PyRep *Generate_a_hairs();
+	PyRep *Generate_a_backgrounds();
+	PyRep *Generate_a_accessories();
+	PyRep *Generate_a_lights();
+	PyRep *Generate_a_costumes();
+	PyRep *Generate_a_makeups();
+	PyRep *Generate_a_beards();
+	PyRep *Generate_a_skins();
+	PyRep *Generate_a_lipsticks();
 };
 
-
-
-
-
 #endif
-
-
