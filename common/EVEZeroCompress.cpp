@@ -25,64 +25,78 @@
 	#include "logsys.h"
 #endif
 
-void UnpackZeroCompressed(const byte *in_buf, int32 in_length, std::vector<byte> &buffer) {
+// ZeroCompress OpCode
+struct ZCOpCode {
+	// first part
+	uint8 f_len : 3;
+	bool f_isZero : 1;
+
+	// second part
+	uint8 s_len : 3;
+	bool s_isZero : 1;
+};
+
+void UnpackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte> &buffer) {
 	buffer.clear();
 	if(in_buf == NULL || in_length == 0)
 		return;
 	
-	buffer.reserve(in_length*2);	//just a reasonable start
-
-	_log(NET__ZEROINFL, "Zero-inflating buffer of length %d", in_length);
+	_log(NET__ZEROINFL, "Zero-inflating buffer of length %d",
+		in_length
+	);
 	
-	byte leftover_opcode = 0;
-	bool have_leftover = false;
-
+	ZCOpCode opcode;
 	const byte *end = in_buf + in_length;
-	while(have_leftover || in_buf < end) {
-		byte opcode;
-		if(have_leftover) {
-			opcode = leftover_opcode;
-			have_leftover = false;
-			_log(NET__ZEROINFL, "  Processing left over opcode 0x%x", opcode);
-		} else {
-			opcode = *in_buf;
-			in_buf++;
-			leftover_opcode = opcode >> 4;
-			have_leftover = true;
-			opcode &= 0xF;
-			_log(NET__ZEROINFL, "  Processing opcode 0x%x (leaving 0x%x)", opcode, leftover_opcode);
-		}
 
-		if(opcode < 8) {
-			byte count = (8-opcode);
-			_log(NET__ZEROINFL, "    Opcode 0x%x yields %d data bytes at %d", opcode, count, buffer.size());
-			//caution: if we are at the end of the buffer, its possible to be processing a '0' opcode, which should mean "8 bytes", but really means "end"
-			for(; count > 0 && in_buf < end; count--) {
-				buffer.push_back(*in_buf);
-				in_buf++;
-			}
-		} else {
-			byte count = opcode - 8 + 1;
-			_log(NET__ZEROINFL, "    Opcode 0x%x yields %d zero bytes at %d", opcode, count, buffer.size());
+	while(in_buf < end) {
+		opcode = *(ZCOpCode *)(in_buf++);
+
+		if(opcode.f_isZero) {
+			byte count = opcode.f_len+1;
+			_log(NET__ZEROINFL, "    Opcode 0x%x (first part) yields %d zero bytes at %d", opcode, count, buffer.size());
 			for(; count > 0; count--) {
 				buffer.push_back(0);
+			}
+		} else {
+			byte count = 8-opcode.f_len;
+			_log(NET__ZEROINFL, "    Opcode 0x%x (first part) yields %d data bytes at %d", opcode, count, buffer.size());
+			//caution: if we are at the end of the buffer, its possible to be processing a '0' opcode, which should mean "8 bytes", but really means "end"
+			for(; count > 0 && in_buf < end; count--) {
+				buffer.push_back(*in_buf++);
+			}
+		}
+
+		if(opcode.s_isZero) {
+			byte count = opcode.s_len+1;
+			_log(NET__ZEROINFL, "    Opcode 0x%x (second part) yields %d zero bytes at %d", opcode, count, buffer.size());
+			for(; count > 0; count--) {
+				buffer.push_back(0);
+			}
+		} else {
+			byte count = 8-opcode.s_len;
+			_log(NET__ZEROINFL, "    Opcode 0x%x (second part) yields %d data bytes at %d", opcode, count, buffer.size());
+			//caution: if we are at the end of the buffer, its possible to be processing a '0' opcode, which should mean "8 bytes", but really means "end"
+			for(; count > 0 && in_buf < end; count--) {
+				buffer.push_back(*in_buf++);
 			}
 		}
 	}
 
-	_log(NET__ZEROINFL, "  Zero-inflating buffer yields %d inflated bytes", buffer.size());
+	_log(NET__ZEROINFL, "  Zero-inflating buffer yields %d inflated bytes (ratio %.02f)",
+		buffer.size(), double(in_length) / double(buffer.size())
+	);
 }
 
-void PackZeroCompressed(const byte *in_buf, int32 in_length, std::vector<byte> &out_buf) {
+void PackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte> &out_buf) {
 	out_buf.clear();
 	if(in_buf == NULL || in_length == 0)
 		return;
 
-	_log(NET__ZEROCOMP, "Zero-compressing buffer of length %d", in_length);
+	_log(NET__ZEROCOMP, "Zero-compressing buffer of length %d",
+		in_length
+	);
 
-	out_buf.reserve(in_length);	//its unlikely that we will exceed this
-
-    const byte *last_data_start = NULL;
+    /*const byte *last_data_start = NULL;
 	byte last_opcode = 0;
 	//only one of these two is ever non-zero at a time:
 	byte last_data_count = 0;
@@ -190,51 +204,63 @@ void PackZeroCompressed(const byte *in_buf, int32 in_length, std::vector<byte> &
 			out_buf.push_back(*last_data_start);
 			last_data_start++;
 		}
+	}*/
+
+	const byte *end = in_buf + in_length;
+	out_buf.reserve(in_length);
+
+	while(in_buf < end) {
+		// insert opcode
+		out_buf.push_back(0);	// insert opcode placeholder
+		ZCOpCode *opcode = (ZCOpCode *)&out_buf.back();	// obtain pointer to it
+
+		// encode first part
+		if(*in_buf == 0x00) {
+			//we are starting with zero, hunting for non-zero
+			opcode->f_isZero = true;
+			opcode->f_len = 0;
+			in_buf++;
+
+			for(; in_buf < end && *in_buf == 0x00 && opcode->f_len < 8; opcode->f_len++)
+				in_buf++;
+		} else {
+			//we are starting with data, hunting for zero
+			opcode->f_isZero = false;
+			opcode->f_len = 7;
+			out_buf.push_back(*in_buf++);
+
+			for(; in_buf < end && *in_buf != 0x00 && opcode->f_len > 0; opcode->f_len--)
+				out_buf.push_back(*in_buf++);
+		}
+
+		if(in_buf >= end)
+			break;
+
+		// encode second part
+		if(*in_buf == 0x00) {
+			//we are starting with zero, hunting for non-zero
+			opcode->s_isZero = true;
+			opcode->s_len = 0;
+			in_buf++;
+
+			for(; in_buf < end && *in_buf == 0x00 && opcode->s_len < 8; opcode->s_len++)
+				in_buf++;
+		} else {
+			//we are starting with data, hunting for zero
+			opcode->s_isZero = false;
+			opcode->s_len = 7;
+			out_buf.push_back(*in_buf++);
+
+			for(; in_buf < end && *in_buf != 0x00 && opcode->s_len > 0; opcode->s_len--)
+				out_buf.push_back(*in_buf++);
+		}
 	}
 
-	_log(NET__ZEROCOMP, "  Zero-compressing buffer resulted in %d bytes", out_buf.size());
+	_log(NET__ZEROCOMP,
+		"  Zero-compressing buffer resulted in %d bytes (ratio %.02f)",
+		out_buf.size(), double(out_buf.size()) / double(in_length)
+	);
 }
-
-
-
-#ifdef ZC_TEST
-
-int main() {
-	byte input[] = {
-        //0x5d, 0xf0, 0x3f, 0x06, 0x7a, 0x03, 0x7a, 0xf2, 0x78, 0x22, 0x78, 0x01
-		0x7f, 0x06, 0x7a, 0x04, 0x4a, 0xb6, 0x01, 0x34, 0x0d
-		//0x70, 0x9a, 0x99, 0x99, 0x99, 0x99, 0x99, 0xa9, 0x3f, 0x06, 0x7a, 0x01, 0x4a, 0xb6, 0x01, 0xd1, 0x2c
-	};
-	
-	printf("Original: %d bytes\n", sizeof(input));
-	uint32 r;
-	for(r = 0; r < sizeof(input); r++) {
-		printf("%02X ", input[r]);
-	}
-	printf("\n");
-
-	std::vector<byte> unpacked;
-	UnpackZeroCompressed(input, sizeof(input), unpacked);
-
-	printf("Unpacked: %d bytes\n", unpacked.size());
-	for(r = 0; r < unpacked.size(); r++) {
-		printf("%02X ", unpacked[r]);
-	}
-	printf("\n");
-
-	std::vector<byte> repacked;
-	PackZeroCompressed(&unpacked[0], unpacked.size(), repacked);
-	
-	printf("Re-packed: %d bytes\n", repacked.size());
-	for(r = 0; r < repacked.size(); r++) {
-		if(repacked[r] != input[r])
-			printf("(%02X) ", repacked[r]);
-		else
-			printf("%02X ", repacked[r]);
-	}
-	printf("\n");
-}
-#endif
 
 
 
