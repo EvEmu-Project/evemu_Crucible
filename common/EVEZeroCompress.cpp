@@ -207,9 +207,13 @@ void PackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte> 
 	}*/
 
 	const byte *end = in_buf + in_length;
-	out_buf.reserve(in_length);
 
 	while(in_buf < end) {
+		// we need to have enough room without moving (otherwise
+		// it would invalidate our pointer obtained below); size
+		// is 1 byte of opcode + at most 2x 8 bytes
+		out_buf.reserve(out_buf.size() + 1 + 16);
+
 		// insert opcode
 		out_buf.push_back(0);	// insert opcode placeholder
 		ZCOpCode *opcode = (ZCOpCode *)&out_buf.back();	// obtain pointer to it

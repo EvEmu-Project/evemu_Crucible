@@ -381,7 +381,9 @@ void DBerror::ClearError() {
 }
 
 DBQueryResult::DBQueryResult()
-: m_res(NULL)
+: m_col_count(0),
+  m_res(NULL),
+  m_fields(NULL)
 {
 }
 
