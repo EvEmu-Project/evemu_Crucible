@@ -203,21 +203,21 @@ void PyDumpVisitor::VisitNewObjectDictElement(const PyRepNewObject *rep, uint32 
 }
 
 void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {
-	_print("Packed data of length %d", rep->GetBufferSize());
+	_print("Packed data of length %d", rep->bufferSize());
 	
 	std::string m(top());
 	m += "  Header: ";
 	push(m.c_str());
-	rep->GetHeader()->visit(this);
+	rep->header->visit(this);
 	pop();
 
-	if(rep->GetBufferSize() > 0) {
-		_hexDump(rep->GetBuffer(), rep->GetBufferSize());
+	if(rep->bufferSize() > 0) {
+		_hexDump(rep->buffer(), rep->bufferSize());
 	}
 
-	switch(rep->GetBufferSize()) {
+	switch(rep->bufferSize()) {
 	case 0x2b: {
-		const byte *buf = rep->GetBuffer();
+		const byte *buf = rep->buffer();
 		_print("  Len 0x2b decode:");
 		_print("     u0: 0x%x", *buf); buf += sizeof(byte);
 		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
@@ -237,7 +237,7 @@ void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {
 		_print("     duration?: %d", *((const byte *) buf) ); buf += sizeof(byte);
 	} break;
 	case 0x2c: {
-		const byte *buf = rep->GetBuffer();
+		const byte *buf = rep->buffer();
 		_print("  Len 0x2c decode:");
 		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
 		_print("     issued: " I64u , *((const uint64 *) buf) ); buf += sizeof(uint64);
@@ -258,7 +258,7 @@ void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {
 		_print("     u17: %d", *((const byte *) buf) ); buf += sizeof(byte);
 	} break;
 	case 0x2d: {
-		const byte *buf = rep->GetBuffer();
+		const byte *buf = rep->buffer();
 		_print("  Len 0x2d decode:");
 		_print("     u0: %d", *((const byte *) buf) ); buf += sizeof(byte);
 		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);

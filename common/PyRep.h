@@ -76,21 +76,21 @@ public:
 
 	/** 
 	  */
-	bool IsInteger()const {return m_type == PyTypeInteger;}
-	bool IsReal()const {return m_type == PyTypeReal;}
-	bool IsBool()const {return m_type == PyTypeBoolean;}
-	bool IsBuffer()const {return m_type == PyTypeBuffer;}
-	bool IsString()const {return m_type == PyTypeString;}
-	bool IsTuple()const {return m_type == PyTypeTuple;}
-	bool IsList()const {return m_type == PyTypeList;}
-	bool IsDict()const {return m_type == PyTypeDict;}
-	bool IsNone()const {return m_type == PyTypeNone;}
-	bool IsSubStruct()const {return m_type == PyTypeSubStruct;}
-	bool IsSubStream()const {return m_type == PyTypeSubStream;}
-	bool IsChecksumedStream()const {return m_type == PyTypeChecksumedStream;}
-	bool IsObject()const {return m_type == PyTypeObject;}
-	bool IsNewObject()const {return m_type == PyTypeNewObject;}
-	bool IsPackedRow()const {return m_type == PyTypePackedRow;}
+	bool IsInteger() const {return m_type == PyTypeInteger;}
+	bool IsReal() const {return m_type == PyTypeReal;}
+	bool IsBool() const {return m_type == PyTypeBoolean;}
+	bool IsBuffer() const {return m_type == PyTypeBuffer;}
+	bool IsString() const {return m_type == PyTypeString;}
+	bool IsTuple() const {return m_type == PyTypeTuple;}
+	bool IsList() const {return m_type == PyTypeList;}
+	bool IsDict() const {return m_type == PyTypeDict;}
+	bool IsNone() const {return m_type == PyTypeNone;}
+	bool IsSubStruct() const {return m_type == PyTypeSubStruct;}
+	bool IsSubStream() const {return m_type == PyTypeSubStream;}
+	bool IsChecksumedStream() const {return m_type == PyTypeChecksumedStream;}
+	bool IsObject() const {return m_type == PyTypeObject;}
+	bool IsNewObject() const {return m_type == PyTypeNewObject;}
+	bool IsPackedRow() const {return m_type == PyTypePackedRow;}
 
 	ASCENT_INLINE bool CheckType(Type t) const { return(m_type == t); }
 	ASCENT_INLINE bool CheckType(Type t, Type t2) const { return(m_type == t || m_type == t2); }
@@ -355,7 +355,7 @@ public:
 
 class PyRepPackedRow : public PyRep {
 public:
-	typedef std::vector<byte> buffer;
+	typedef std::vector<byte> buffer_t;
 	typedef std::vector<PyRep *> rep_list;
 
 	PyRepPackedRow(const PyRep *header, bool own_header, const byte *data = NULL, const uint32 len = 0);
@@ -368,6 +368,9 @@ public:
 	PyRepPackedRow *TypedClone() const;
 	void CloneFrom(const PyRepPackedRow *from);
 
+	/*
+	 * Push
+	 */
 	//integers
 	void PushInt8(const int8 v) { Push(&v, sizeof(int8)); }
 	void PushUInt8(const uint8 v) { Push(&v, sizeof(uint8)); }
@@ -388,26 +391,50 @@ public:
 	//PyRep
 	void PushPyRep(PyRep *const v) { m_reps.push_back(v); }
 
-	//header access
-	const PyRep *GetHeader() const { return(m_header); }
-	bool OwnsHeader() const { return(m_ownsHeader); }
+	/*
+	 * Get
+	 */
+	//integers
+	int8 GetInt8(size_t offset) const { return(*(const int8 *)Get(offset)); }
+	uint8 GetUInt8(size_t offset) const { return(*(const uint8 *)Get(offset)); }
+	int16 GetInt16(size_t offset) const { return(*(const int16 *)Get(offset)); }
+	uint16 GetUInt16(size_t offset) const { return(*(const uint16 *)Get(offset)); }
+	int32 GetInt32(size_t offset) const { return(*(const int32 *)Get(offset)); }
+	uint32 GetUInt32(size_t offset) const { return(*(const uint32 *)Get(offset)); }
+	int64 GetInt64(size_t offset) const { return(*(const int64 *)Get(offset)); }
+	uint64 GetUInt64(size_t offset) const { return(*(const uint64 *)Get(offset)); }
+
+	//floating point
+	float GetFloat(size_t offset) const { return(*(const float *)Get(offset)); }
+	double GetDouble(size_t offset) const { return(*(const double *)Get(offset)); }
+
+	//raw
+	const byte *Get(size_t offset) const { return(m_buffer.empty() ? NULL : &m_buffer[offset]); }
+
+	//PyRep
+	PyRep *GetPyRep(size_t offset) const { return(m_reps[offset]); }
+
+	/*
+	 * Other
+	 */
+	//header
+	const bool ownsHeader;
+	const PyRep *const header;
 
 	//buffer access
-	const byte *GetBuffer() const { return(m_buffer.empty() ? NULL : &m_buffer[0]); }
-	uint32 GetBufferSize() const { return(uint32(m_buffer.size())); }
+	const byte *buffer() const { return(Get(0)); }
+	uint32 bufferSize() const { return(uint32(m_buffer.size())); }
 
-	//reps access
+	//reps
 	rep_list::iterator begin() { return(m_reps.begin()); }
 	rep_list::iterator end() { return(m_reps.end()); }
 	rep_list::const_iterator begin() const { return(m_reps.begin()); }
 	rep_list::const_iterator end() const { return(m_reps.end()); }
 
-protected:
-	buffer m_buffer;
 	rep_list m_reps;
 
-	const bool m_ownsHeader;
-	const PyRep *const m_header;
+protected:
+	buffer_t m_buffer;
 };
 
 class PyRepSubStruct : public PyRep {

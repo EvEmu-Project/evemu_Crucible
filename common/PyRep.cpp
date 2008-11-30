@@ -756,16 +756,16 @@ void PyRepChecksumedStream::visit(PyVisitor *v) const {
 
 PyRepPackedRow::PyRepPackedRow(const PyRep *header, bool own_header, const byte *data, const uint32 len)
 : PyRep(PyRep::PyTypePackedRow),
-  m_ownsHeader(own_header),
-  m_header(header)
+  ownsHeader(own_header),
+  header(header)
 {
 	if(data != NULL)
 		Push(data, len);
 }
 
 PyRepPackedRow::~PyRepPackedRow() {
-	if(m_ownsHeader)
-		delete m_header;
+	if(ownsHeader)
+		delete header;
 
 	rep_list::iterator rcur, rend;
 	rcur = begin();
@@ -777,7 +777,7 @@ PyRepPackedRow::~PyRepPackedRow() {
 
 void PyRepPackedRow::Dump(FILE *into, const char *pfx) const
 {
-	fprintf(into, "%sPacked Row of length %ld (owned header? %s)\n", pfx, m_buffer.size(), m_ownsHeader?"yes":"no");
+	fprintf(into, "%sPacked Row of length %ld (owned header? %s)\n", pfx, m_buffer.size(), ownsHeader?"yes":"no");
 	if(!m_buffer.empty())
 	{
 		string p(pfx);
@@ -799,7 +799,7 @@ void PyRepPackedRow::Dump(FILE *into, const char *pfx) const
 }
 
 void PyRepPackedRow::Dump(LogType ltype, const char *pfx) const {
-	_log(ltype, "%sPacked Row of length %ld (owned header? %s)\n", pfx, m_buffer.size(), m_ownsHeader?"yes":"no");
+	_log(ltype, "%sPacked Row of length %ld (owned header? %s)\n", pfx, m_buffer.size(), ownsHeader?"yes":"no");
 	if(!m_buffer.empty()) {
 		string p(pfx);
 		p += "  ";
@@ -818,14 +818,14 @@ void PyRepPackedRow::Dump(LogType ltype, const char *pfx) const {
 
 PyRepPackedRow *PyRepPackedRow::TypedClone() const {
 	PyRepPackedRow *res = new PyRepPackedRow(
-		m_ownsHeader ? m_header->Clone() : m_header,
-		m_ownsHeader);
+		ownsHeader ? header->Clone() : header,
+		ownsHeader);
 	res->CloneFrom(this);
 	return(res);
 }
 
 void PyRepPackedRow::CloneFrom(const PyRepPackedRow *from) {
-	Push(from->GetBuffer(), from->GetBufferSize());
+	Push(from->buffer(), from->bufferSize());
 
 	rep_list::const_iterator rcur, rend;
 	rcur = from->begin();
@@ -869,6 +869,7 @@ PyRepNewObject::~PyRepNewObject() {
 }
 
 void PyRepNewObject::Dump(FILE *into, const char *pfx) const {
+	fprintf(into, "%sNewObject%s\n", pfx, (is_type_1 ? " (Type1)" : ""));
 	fprintf(into, "%sHeader:\n", pfx);
 	if(header == NULL)
 		fprintf(into, "%s  None\n", pfx);
@@ -921,6 +922,7 @@ void PyRepNewObject::Dump(LogType ltype, const char *pfx) const {
 	if(!is_log_enabled(ltype))
 		return;
 
+	_log(ltype, "%sNewObject%s\n", pfx, (is_type_1 ? " (Type1)" : ""));
 	_log(ltype, "%sHeader:\n", pfx);
 	if(header == NULL)
 		_log(ltype, "%s  None\n", pfx);

@@ -122,11 +122,11 @@ public:
 	virtual void VisitPackedRow(const PyRepPackedRow *rep) {
 		PutByte(Op_PyPackedRow);
 		
-		rep->GetHeader()->visit(this);
+		rep->header->visit(this);
 		
 		//pack the bytes with the zero compression algorithm.
 		std::vector<uint8> packed;
-		PackZeroCompressed(rep->GetBuffer(), rep->GetBufferSize(), packed);
+		PackZeroCompressed(rep->buffer(), rep->bufferSize(), packed);
 		
 		if(packed.size() >= 0xFF) {
 			PutByte(0xFF);

@@ -377,46 +377,8 @@ void DBResultToIntIntlistDict(DBQueryResult &result, std::map<uint32, PyRep *> &
 	}
 }
 
-struct DBPackedColumnInfo {
-	uint32 index;
-	std::string name;
-	DBTYPE type;
-};
-
-typedef std::vector<DBPackedColumnInfo> DBPackedColumnList;
-
-//this routine is used to order the fields in a packed row.
-static const uint8 DBTypeSizeBucketCount = 5;
-static uint8 GetTypeSizeIndex(DBTYPE t) {
-	switch(t) {
-	case DBTYPE_I8:
-	case DBTYPE_R8:
-	case DBTYPE_UI8:
-	case DBTYPE_CY:
-	case DBTYPE_FILETIME:
-		return(0);
-	case DBTYPE_I4:
-	case DBTYPE_UI4:
-	case DBTYPE_R4:
-		return(1);
-	case DBTYPE_I2:
-	case DBTYPE_UI2:
-		return(2);
-	case DBTYPE_I1:
-	case DBTYPE_UI1:
-	case DBTYPE_BOOL:
-		return(3);
-	//these follow encoded buffer as PyRep
-	case DBTYPE_BYTES:
-	case DBTYPE_STR:
-	case DBTYPE_WSTR:
-		return(4);
-	}
-	return(0);
-}
-
 //returns "their" DBTYPE based on "our" column type
-static DBTYPE GetPackedColumnType(DBQueryResult::ColType colType) {
+DBTYPE GetPackedColumnType(DBQueryResult::ColType colType) {
 	switch(colType) {
 		case DBQueryResult::Int8:		return(DBTYPE_UI1);
 		case DBQueryResult::Int16:		return(DBTYPE_UI2);
@@ -430,76 +392,236 @@ static DBTYPE GetPackedColumnType(DBQueryResult::ColType colType) {
 	}
 }
 
-//builds PackedColumnList from DBQueryResult
-static void GetPackedColumnList(const DBQueryResult &res, DBPackedColumnList &into) {
-	into.clear();
-
+/*
+ * DBPackedColumnList
+ */
+DBPackedColumnList::DBPackedColumnList(
+	const DBQueryResult &res
+)
+: m_order(orderByIndex)
+{
 	uint32 cc = res.ColumnCount();
 	for(uint32 i = 0; i < cc; i++) {
-		DBPackedColumnInfo info;
+		ColumnInfo info;
 		info.index = i;
 		info.name = res.ColumnName(i);
 		info.type = GetPackedColumnType(res.ColumnType(i));
-		into.push_back(info);
+
+		m_columnList.push_back(info);
 	}
 }
 
-//builds PackedColumnList from DBResultRow
-static void GetPackedColumnList(const DBResultRow &row, DBPackedColumnList &into) {
-	into.clear();
-
+DBPackedColumnList::DBPackedColumnList(
+	const DBResultRow &row
+)
+: m_order(orderByIndex)
+{
 	uint32 cc = row.ColumnCount();
 	for(uint32 i = 0; i < cc; i++) {
-		DBPackedColumnInfo info;
+		ColumnInfo info;
 		info.index = i;
 		info.name = row.ColumnName(i);
 		info.type = GetPackedColumnType(row.ColumnType(i));
-		into.push_back(info);
+
+		m_columnList.push_back(info);
 	}
 }
 
-//builds blue.DBRowDescriptor from DBPackedColumnList
-static PyRepNewObject *BuildRowDescriptor(const DBPackedColumnList &columns) {
-	blue_DBRowDescriptor desc;
-	desc.columns = new PyRepTuple(columns.size());
+DBPackedColumnList::DBPackedColumnList(
+	const blue_DBRowDescriptor &desc
+)
+: m_order(orderByIndex)
+{
+	PyRepTuple::iterator cur, end;
+	cur = desc.columns->begin();
+	end = desc.columns->end();
+	for(uint32 index = 0; cur != end; cur++, index++) {
+		if(!(*cur)->IsTuple())
+			continue;
+		PyRepTuple *col = (PyRepTuple *)(*cur);
+
+		if(	col->items.size() != 2 ||
+			!col->items[0]->IsString() ||
+			!col->items[1]->IsInteger()
+		)
+			continue;
+		PyRepString *name = (PyRepString *) col->items[0];
+		PyRepInteger *type = (PyRepInteger *) col->items[1];
+
+		ColumnInfo info;
+		info.index = index;
+		info.name = name->value;
+		info.type = (DBTYPE)(type->value);
+
+		m_columnList.push_back(info);
+	}
+}
+
+void DBPackedColumnList::OrderBy(Order o) {
+	if(m_order == o)
+		return;
+
+	if(o == orderByIndex) {
+		//could be probably done better
+		std::vector<ColumnInfo> ordered(m_columnList.size());
+
+		iterator cur, end;
+		cur = m_columnList.begin();
+		end = m_columnList.end();
+		for(; cur != end; cur++)
+			ordered[cur->index] = *cur;
+
+		m_columnList = ordered;
+		m_order = orderByIndex;
+	} else if(o == orderByType) {
+		//could be probably done better
+		std::vector<ColumnInfo> ordered;
+
+		iterator cur, end, scur;
+		cur = m_columnList.begin();
+		end = m_columnList.end();
+		for(; cur != end; cur++) {
+			scur = ordered.begin();
+			for(; scur != ordered.end(); scur++)
+				if(GetTypeSize(cur->type) > GetTypeSize(scur->type)) {
+					scur = ordered.insert(scur, *cur);
+					break;
+				}
+			if(scur == ordered.end())
+				ordered.push_back(*cur);
+		}
+
+		m_columnList = ordered;
+		m_order = orderByType;
+	}
+}
+
+void DBPackedColumnList::Encode(blue_DBRowDescriptor &into) const {
+	into.columns = new PyRepTuple(m_columnList.size());
 
 	PyRepTuple *col;
-	DBPackedColumnList::const_iterator cur, end;
-	cur = columns.begin();
-	end = columns.end();
+	const_iterator cur, end;
+	cur = m_columnList.begin();
+	end = m_columnList.end();
 	for(size_t i = 0; cur != end; cur++, i++) {
 		col = new PyRepTuple(2);
 		col->items[0] = new PyRepString(cur->name);
 		col->items[1] = new PyRepInteger(cur->type);
 
-		desc.columns->items[i] = col;
+		into.columns->items[i] = col;
 	}
-
-	return(desc.Encode());
 }
 
-//orders DBPackedColumnList by DBTYPE
-//could be probably done better
-static void OrderPackedColumnList(DBPackedColumnList &columns) {
-	DBPackedColumnList ordered;
-	DBPackedColumnList::iterator cur, end, scur;
-	cur = columns.begin();
-	end = columns.end();
+PyRep *DBPackedColumnList::Encode() const {
+	blue_DBRowDescriptor desc;
+	Encode(desc);
+	return(desc.FastEncode());
+}
+
+size_t DBPackedColumnList::CountBufferTypes() const {
+	const_iterator cur, end;
+	cur = m_columnList.begin();
+	end = m_columnList.end();
+	uint32 c = 0;
 	for(; cur != end; cur++) {
-		scur = ordered.begin();
-		for(; scur != ordered.end(); scur++)
-			if(GetTypeSizeIndex(cur->type) < GetTypeSizeIndex(scur->type)) {
-				scur = ordered.insert(scur, *cur);
-				break;
-			}
-		if(scur == ordered.end())
-			ordered.push_back(*cur);
+		if(IsBufferType(cur->type))
+			c++;
 	}
-	columns = ordered;
+	return(c);
+}
+
+size_t DBPackedColumnList::CountPyRepTypes() const {
+	const_iterator cur, end;
+	cur = m_columnList.begin();
+	end = m_columnList.end();
+	uint32 c = 0;
+	for(; cur != end; cur++) {
+		if(IsPyRepType(cur->type))
+			c++;
+	}
+	return(c);
+}
+
+uint8 GetTypeSize(DBTYPE t) {
+	switch(t) {
+		case DBTYPE_I8:
+		case DBTYPE_R8:
+		case DBTYPE_UI8:
+		case DBTYPE_CY:
+		case DBTYPE_FILETIME:
+			return(8);
+		case DBTYPE_I4:
+		case DBTYPE_UI4:
+		case DBTYPE_R4:
+			return(4);
+		case DBTYPE_I2:
+		case DBTYPE_UI2:
+			return(2);
+		case DBTYPE_I1:
+		case DBTYPE_UI1:
+		case DBTYPE_BOOL:
+			return(1);
+		//these follow encoded buffer as PyRep
+		case DBTYPE_BYTES:
+		case DBTYPE_STR:
+		case DBTYPE_WSTR:
+			return(0);
+	}
+	return(0);
+}
+
+bool IsBufferType(DBTYPE t) {
+	switch(t) {
+		case DBTYPE_I8:
+		case DBTYPE_R8:
+		case DBTYPE_UI8:
+		case DBTYPE_CY:
+		case DBTYPE_FILETIME:
+		case DBTYPE_I4:
+		case DBTYPE_UI4:
+		case DBTYPE_R4:
+		case DBTYPE_I2:
+		case DBTYPE_UI2:
+		case DBTYPE_I1:
+		case DBTYPE_UI1:
+		case DBTYPE_BOOL:
+			return(true);
+		case DBTYPE_BYTES:
+		case DBTYPE_STR:
+		case DBTYPE_WSTR:
+			return(false);
+		default:
+			return(false);
+	}
+}
+
+bool IsPyRepType(DBTYPE t) {
+	switch(t) {
+		case DBTYPE_I8:
+		case DBTYPE_R8:
+		case DBTYPE_UI8:
+		case DBTYPE_CY:
+		case DBTYPE_FILETIME:
+		case DBTYPE_I4:
+		case DBTYPE_UI4:
+		case DBTYPE_R4:
+		case DBTYPE_I2:
+		case DBTYPE_UI2:
+		case DBTYPE_I1:
+		case DBTYPE_UI1:
+		case DBTYPE_BOOL:
+			return(false);
+		case DBTYPE_BYTES:
+		case DBTYPE_STR:
+		case DBTYPE_WSTR:
+			return(true);
+		default:
+			return(false);
+	}
 }
 
 //puts value into PackedRow based on DBTYPE
-static void EncodePackedField(const DBResultRow &row, const DBPackedColumnInfo &col, PyRepPackedRow &into) {
+void EncodePackedField(const DBResultRow &row, const DBPackedColumnList::ColumnInfo &col, PyRepPackedRow &into) {
 	switch(col.type) {
 	case DBTYPE_I1: into.PushInt8(row.IsNull(col.index) ? 0 : row.GetInt(col.index)); break;
 	case DBTYPE_I2: into.PushInt16(row.IsNull(col.index) ? 0 : row.GetInt(col.index)); break;
@@ -528,7 +650,7 @@ static void EncodePackedField(const DBResultRow &row, const DBPackedColumnInfo &
 }
 
 //packs row, order is determined by DBPackedColumnList
-static PyRepPackedRow *PackRow(const DBResultRow &row, const DBPackedColumnList &columns, bool owns_header, const PyRep *header) {
+PyRepPackedRow *PackRow(const DBResultRow &row, const DBPackedColumnList &columns, bool owns_header, const PyRep *header) {
 	PyRepPackedRow *res = new PyRepPackedRow(header, owns_header);
 	DBPackedColumnList::const_iterator cur, end;
 
@@ -540,241 +662,73 @@ static PyRepPackedRow *PackRow(const DBResultRow &row, const DBPackedColumnList 
 	return(res);
 }
 
-/*
-class fieldinfo {
-public:
-	fieldinfo(uint32 i, DBTYPE t) : index(i), type(t) {}
-	uint32 index;
-	DBTYPE type;
-};
-
-static void _packRowList(
-	DBQueryResult &result, 
-	const DBColumnTypeMap &types, 
-	const DBColumnOrdering &ordering, 
-	PyRepPackedResultSet::storage_type &rows_into, 
-	PyRepPackedRowHeader *rhead
-) {
-	uint32 cc = result.ColumnCount();
-	uint32 r;
-	
-	rhead->header_type = new PyRepString("blue.DBRowDescriptor", true);
-	PyRepTuple *arg_tuple = new PyRepTuple(1);
-	rhead->arguments = arg_tuple;
-		PyRepTuple *arg_list = new PyRepTuple(cc);
-		arg_tuple->items[0] = arg_list;
-
-	_log(DATABASE__PACKED, "Building a packed dbutil.RowList result set:");
-
-	std::vector<uint32> field_ordering_buckets[DBTypeSizeBucketCount];
-	std::map<std::string, uint32> field_name_to_index;
-	
-	_log(DATABASE__PACKED, "   Initial columns:");
-	for(r = 0; r < cc; r++) {
-		//determine the field type.
-		DBTYPE field_type;
-		DBColumnTypeMap::const_iterator res = types.find(result.ColumnName(r));
-		if(res == types.end()) {
-			codelog(DATABASE__ERROR, "Unable to find column '%s' in typemap. Hacking it to a string.", result.ColumnName(r));
-			field_type = DBTYPE_STR;
-		} else {
-			field_type = res->second;
-		}
-		
-		//fill in the PackedRowHeader entry.
-		PyRepTuple *pair_tuple = new PyRepTuple(2);
-		pair_tuple->items[0] = new PyRepString(result.ColumnName(r));
-		pair_tuple->items[1] = new PyRepInteger(field_type);
-		arg_list->items[r] = pair_tuple;
-
-		field_name_to_index[result.ColumnName(r)] = r;
-		
-		//now handle the ordering used to pack each row.
-		int8 order = GetTypeSizeIndex(field_type);
-		field_ordering_buckets[order].push_back(r);
-		
-		_log(DATABASE__PACKED, "       [%d] %s (DBTYPE %d, order %d)", r, result.ColumnName(r), field_type, order);
-	}
-
-	//we need to pull the first row in order to properly check types.
-	DBResultRow row;
-	if(!result.GetRow(row)) {
-		//no data...
-		return;
-	}    
-	
-	//turn the ordering buckets into a strict ordering.
-	std::vector<fieldinfo> field_orderings;
-	field_orderings.reserve(cc);
-	
-	if(ordering.empty()) {
-		_log(DATABASE__PACKED, "   Trying to auto-determine column ordering:");
-		//try to figure out the ordering... this isnt quite right yet,
-		//which is why we support the hard coded crap...
-		
-		uint32 k = 0;
-		for(r = 0; r < DBTypeSizeBucketCount; r++) {
-			std::vector<uint32>::const_iterator cur, end;
-			cur = field_ordering_buckets[r].begin();
-			end = field_ordering_buckets[r].end();
-			for(; cur != end; cur++) {
-				DBTYPE field_type;
-				DBColumnTypeMap::const_iterator res = types.find(result.ColumnName(*cur));
-				if(res == types.end()) {
-					//should never happen...
-					codelog(DATABASE__ERROR, "Unable to find column '%s' in typemap. Hacking it to a string.", result.ColumnName(*cur));
-					field_type = DBTYPE_STR;
-				} else {
-					field_type = res->second;
-				}
-				
-				//do a bit of sanity checking on the field types...
-				if(!CheckTypeMatch(field_type, row.ColumnType(*cur))) {
-					codelog(DATABASE__ERROR, "Column type mismatch: column '%s' has DBTYPE %d but mysql type %d.", result.ColumnName(*cur), field_type, row.ColumnType(*cur));
-					//may as well let them go...
-				}
-				field_orderings.push_back(
-					fieldinfo(*cur, field_type)
-					);
-				_log(DATABASE__PACKED, "       [%d] %s (col %d, DBTYPE %d)", k, result.ColumnName(*cur), *cur, field_type);
-				k++;
-			}
-		}
-	} else {
-		_log(DATABASE__PACKED, "   Using pre-determined column ordering:");
-		DBColumnOrdering::const_iterator curo, endo;
-		std::map<std::string, uint32>::const_iterator ci;
-		curo = ordering.begin();
-		endo = ordering.end();
-		for(; curo != endo; ++curo) {
-			ci = field_name_to_index.find(*curo);
-			if(ci == field_name_to_index.end()) {
-				codelog(DATABASE__ERROR, "Unable to find column '%s' in ordering.", curo->c_str());
-				return;
-			}
-			
-			DBTYPE field_type;
-			DBColumnTypeMap::const_iterator res = types.find(curo->c_str());
-			if(res == types.end()) {
-				//should never happen...
-				codelog(DATABASE__ERROR, "Unable to find column '%s' in typemap. Hacking it to a string.", curo->c_str());
-				field_type = DBTYPE_STR;
-			} else {
-				field_type = res->second;
-			}
-			
-			field_orderings.push_back(
-				fieldinfo(ci->second, field_type)
-				);
-		}
-	}
-
-	//now start packing in the data...
-	std::vector<fieldinfo>::const_iterator curf, endf;
-
-	//we got the first row above...
-	std::vector<byte> encoded_data;
-	encoded_data.reserve(cc * sizeof(uint32));	//something reasonable...
-	do {
-		encoded_data.clear();
-		
-		curf = field_orderings.begin();
-		endf = field_orderings.end();
-		for(; curf != endf; curf++) {
-			EncodePackedField(row, curf->index, curf->type, encoded_data);
-		}
-		
-		_log(DATABASE__PACKED, "Resulting Packed Row:");
-		_hex(DATABASE__PACKED, &encoded_data[0], encoded_data.size());
-		
-		//NOTE: apparently, they chop off any trailing zeros on this stream,
-		//and the client will just pad with as many zeros as needed...
-		rows_into.push_back(
-			new PyRepPackedRow(
-				&encoded_data[0], encoded_data.size(), 
-				true, rhead->Clone()
-				)
-			);
-	} while (result.GetRow(row));
-}*/
-
 PyRepList *DBResultToPackedRowList(
 	DBQueryResult &result
 ) {
-	DBPackedColumnList columns;
-	GetPackedColumnList(result, columns);
+	DBPackedColumnList columns(result);
 
-	PyRepNewObject *header = BuildRowDescriptor(columns);
+	blue_DBRowDescriptor desc;
+	columns.Encode(desc);
 
-	OrderPackedColumnList(columns);
+	columns.OrderBy(DBPackedColumnList::orderByType);
 
 	PyRepList *res = new PyRepList;
 
 	DBResultRow row;
 	while(result.GetRow(row))
 		//this is piece of crap due to header cloning
-		res->add(PackRow(row, columns, true, header->Clone()));
+		res->add(PackRow(row, columns, true, desc.Encode()));
 
-	delete header;
 	return(res);
 }
 
 PyRepTuple *DBResultToPackedRowListTuple(
 	DBQueryResult &result
 ) {
-	DBPackedColumnList columns;
-	GetPackedColumnList(result, columns);
+	DBPackedColumnList columns(result);
 
 	dbutil_RowListTuple res;
-	res.header = BuildRowDescriptor(columns);
+	columns.Encode(res.header);
 
-	OrderPackedColumnList(columns);
+	columns.OrderBy(DBPackedColumnList::orderByType);
 
 	DBResultRow row;
 	while(result.GetRow(row))
 		//this is piece of crap due to header cloning
-		res.rows.add(PackRow(row, columns, true, res.header->Clone()));
+		res.rows.add(PackRow(row, columns, true, res.header.Encode()));
 
-	return(res.Encode());
+	return(res.FastEncode());
 }
 
 PyRepNewObject *DBResultToCRowset(
 	DBQueryResult &result
 ) {
-	DBPackedColumnList columns;
-	GetPackedColumnList(result, columns);
+	DBPackedColumnList columns(result);
 
 	dbutil_CRowset res;
-	res.header = BuildRowDescriptor(columns);
+	columns.Encode(res.header);
 
-	DBPackedColumnList::const_iterator cur, end;
-	cur = columns.begin();
-	end = columns.end();
-	for(; cur != end; cur++)
-		res.columns.add(new PyRepString(cur->name));
-
-	OrderPackedColumnList(columns);
+	columns.OrderBy(DBPackedColumnList::orderByType);
 
 	DBResultRow row;
-	while(result.GetRow(row)) {
+	while(result.GetRow(row))
 		//this is piece of crap due to header cloning
-		res.root_list.push_back(PackRow(row, columns, true, res.header->Clone()));
-	}
+		res.root_list.push_back(PackRow(row, columns, true, res.header.Encode()));
 
-	return(res.Encode());
+	return(res.FastEncode());
 }
 
 PyRepPackedRow *DBRowToPackedRow(
 	DBResultRow &row
 ) {
-	DBPackedColumnList columns;
-	GetPackedColumnList(row, columns);
+	DBPackedColumnList columns(row);
 
-	PyRepNewObject *header = BuildRowDescriptor(columns);
+	blue_DBRowDescriptor desc;
+	columns.Encode(desc);
 
-	OrderPackedColumnList(columns);
+	columns.OrderBy(DBPackedColumnList::orderByType);
 
-	return(PackRow(row, columns, true, header));
+	return(PackRow(row, columns, true, desc.FastEncode()));
 }
 
 

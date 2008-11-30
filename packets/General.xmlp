@@ -95,9 +95,20 @@
   </newobject>
 </element>
 
+<element name="blue_DBRowDescriptor">
+  <newobject name="root">
+	<InlineTuple>
+	  <string name="type" default="blue.DBRowDescriptor" type1="true" />
+	  <InlineTuple>
+		<tuple name="columns" />
+	  </InlineTuple>
+	</InlineTuple>
+  </newobject>
+</element>
+
 <element name="dbutil_RowListTuple">
   <InlineTuple>
-	<raw name="header" />
+	<element name="header" type="blue_DBRowDescriptor" />
 	<list name="rows" />
   </InlineTuple>
 </element>
@@ -110,7 +121,7 @@
 	  </InlineTuple>
 	  <InlineDict>
 		<IDEntry key="header">
-		  <raw name="header" />
+      <element name="header" type="blue_DBRowDescriptor" />
 		</IDEntry>
 	  </InlineDict>
 	</InlineTuple>
@@ -125,23 +136,9 @@
 	  </InlineTuple>
 	  <InlineDict>
 		<IDEntry key="header">
-		  <raw name="header" />
-		</IDEntry>
-		<IDEntry key="columns">
-		  <list name="columns" />
+      <element name="header" type="blue_DBRowDescriptor" />
 		</IDEntry>
 	  </InlineDict>
-	</InlineTuple>
-  </newobject>
-</element>
-
-<element name="blue_DBRowDescriptor">
-  <newobject name="root">
-	<InlineTuple>
-	  <string name="type" default="blue.DBRowDescriptor" type1="true" />
-	  <InlineTuple>
-		<tuple name="columns" />
-	  </InlineTuple>
 	</InlineTuple>
   </newobject>
 </element>
