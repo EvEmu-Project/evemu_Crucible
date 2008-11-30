@@ -219,16 +219,16 @@ void PackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte> 
 			//we are starting with zero, hunting for non-zero
 			opcode->f_isZero = true;
 			opcode->f_len = 0;
-			in_buf++;
 
-			for(; in_buf < end && *in_buf == 0x00 && opcode->f_len < 8; opcode->f_len++)
+			in_buf++;
+			for(; in_buf < end && *in_buf == 0x00 && opcode->f_len < 7; opcode->f_len++)
 				in_buf++;
 		} else {
 			//we are starting with data, hunting for zero
 			opcode->f_isZero = false;
 			opcode->f_len = 7;
-			out_buf.push_back(*in_buf++);
 
+			out_buf.push_back(*in_buf++);
 			for(; in_buf < end && *in_buf != 0x00 && opcode->f_len > 0; opcode->f_len--)
 				out_buf.push_back(*in_buf++);
 		}
@@ -241,16 +241,16 @@ void PackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte> 
 			//we are starting with zero, hunting for non-zero
 			opcode->s_isZero = true;
 			opcode->s_len = 0;
-			in_buf++;
 
-			for(; in_buf < end && *in_buf == 0x00 && opcode->s_len < 8; opcode->s_len++)
+			in_buf++;
+			for(; in_buf < end && *in_buf == 0x00 && opcode->s_len < 7; opcode->s_len++)
 				in_buf++;
 		} else {
 			//we are starting with data, hunting for zero
 			opcode->s_isZero = false;
 			opcode->s_len = 7;
-			out_buf.push_back(*in_buf++);
 
+			out_buf.push_back(*in_buf++);
 			for(; in_buf < end && *in_buf != 0x00 && opcode->s_len > 0; opcode->s_len--)
 				out_buf.push_back(*in_buf++);
 		}
