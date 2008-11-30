@@ -24,6 +24,7 @@
 #include "../common/logsys.h"
 #include "../common/EVEMarshal.h"
 #include "../common/EVEUnmarshal.h"
+#include "../common/EVEZeroCompress.h"
 #include "../common/timer.h"
 #include "../common/Mutex.h"
 #include "../common/PyRep.h"
@@ -225,6 +226,7 @@ void UnmarshalLogText(const Seperator &command);
 void DestinyDumpLogText(const Seperator &command);
 void PrintTimeNow();
 void TestMarshal();
+void TestZeroCompress();
 
 void ProcessInput(char *input) {
 	//strip newlines
@@ -277,6 +279,9 @@ void ProcessInput(char *input) {
 		return;
 	} else if(strcasecmp(sep.arg[0], "destinydump") == 0) {
 		DestinyDumpLogText(sep);
+		return;
+	} else if(strcasecmp(sep.arg[0], "zctest") == 0) {
+		TestZeroCompress();
 		return;
 	} else {
 		printf("Unknown command '%s'\n", sep.arg[0]);
@@ -468,67 +473,6 @@ void CatCacheCall(const char *file) {
 	into->Dump(stdout, "    ");*/
 }
 
-//we template this function to avoid duplicating the code for these two
-//reader types which present the same interface, but are not polymorphic
-template <class T>
-bool _ObjectToSQLHelper(const Seperator &command, FILE *out, T &reader) {
-	int col;
-	int cc = reader.ColumnCount();
-	int key_col = -1;
-	for(col = 0; col < cc; col++) {
-		if(strcmp(command.arg[3], reader.ColumnName(col)) == 0) {
-			key_col = col;
-			break;
-		}
-	}
-	if(key_col == -1) {
-		_log(CLIENT__ERROR, "Unable to find key column '%s'", command.arg[3]);
-		return(false);
-	}
-	
-	std::string field_list;
-	printf("Columns:\n");
-	fprintf(out, "CREATE TABLE %s (\n", command.arg[2]);
-	for(col = 0; col < cc; col++) {
-		if(col != 0)
-			fprintf(out, ",\n");
-		if(col == key_col)
-			fprintf(out, "  %s INT NOT NULL PRIMARY KEY", reader.ColumnName(col));
-		else	//hack it to TEXT for simplicity for now
-			fprintf(out, "  %s TEXT", reader.ColumnName(col));
-		
-		if(col != 0)
-			field_list += ",";
-		field_list += reader.ColumnName(col);
-		
-		printf(" %s |", reader.ColumnName(col));
-	}
-	printf("\n");
-	fprintf(out, "\n);\n\n\n--- data ---\n\n");
-
-	typedef typename T::iterator T_iterator;
-	T_iterator cur, end;
-	cur = reader.begin();
-	end = reader.end();
-	for(; cur != end; ++cur) {
-		fprintf(out, "INSERT INTO %s (%s) VALUES(", command.arg[2], field_list.c_str());
-		for(col = 0; col < cc; col++) {
-			if(col != 0)
-				fprintf(out, ",");
-			if(cur.IsNone(col)) {
-				fprintf(out, "NULL");
-			} else {
-				std::string colval = cur.GetAsString(col);
-				EscapeStringSequence(colval, "'", "\\'");
-				fprintf(out, "'%s'", colval.c_str());
-			}
-		}
-		fprintf(out, ");\n");
-	}
-
-	return(true);
-}
-
 void ObjectToSQL(const Seperator &command) {
 	if(command.argnum != 4) {
 		printf("Usage: obj2sql [cache_file] [table_name] [key_field] [file_name]\n");
@@ -716,9 +660,9 @@ void UnmarshalLogText(const Seperator &command) {
 }
 
 void TestMarshal() {
-	blue_DBRowDescriptor dbrowdesc;
+	dbutil_CRowset rs;
 	{
-		dbrowdesc.columns = new PyRepTuple(6);
+		rs.header.columns = new PyRepTuple(6);
 
 		PyRepTuple *pair_tuple;
 		int r = 0;
@@ -726,36 +670,33 @@ void TestMarshal() {
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("historyDate");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_FILETIME);
-		dbrowdesc.columns->items[r++] = pair_tuple;
+		rs.header.columns->items[r++] = pair_tuple;
 		
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("lowPrice");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
-		dbrowdesc.columns->items[r++] = pair_tuple;
+		rs.header.columns->items[r++] = pair_tuple;
 		
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("highPrice");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
-		dbrowdesc.columns->items[r++] = pair_tuple;
+		rs.header.columns->items[r++] = pair_tuple;
 		
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("avgPrice");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
-		dbrowdesc.columns->items[r++] = pair_tuple;
-		
+		rs.header.columns->items[r++] = pair_tuple;
+
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("volume");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_I8);
-		dbrowdesc.columns->items[r++] = pair_tuple;
+		rs.header.columns->items[r++] = pair_tuple;
 		
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("orders");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_I4);
-		dbrowdesc.columns->items[r++] = pair_tuple;
+		rs.header.columns->items[r++] = pair_tuple;
 	}
-
-	dbutil_RowList rs;
-	rs.header = dbrowdesc.Encode();
 	
 	PyRepPackedRow *row;
 	{
@@ -764,15 +705,15 @@ void TestMarshal() {
 			0x38, 0x4a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x47, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x01, 0xee, 0x95, 0x31, 0x00, 0x00, 0x00, 0x00, 0x2f, 0x0f, 0x00, 0x00
 		};
-		row = new PyRepPackedRow(rs.header, false, data, sizeof(data));
+		row = new PyRepPackedRow(rs.header.Encode(), true, data, sizeof(data));
 		rs.root_list.push_back(row);
 	}
 
 	uint32 mlen = 0;
-	printf("Marshaling...\n");
-	byte *marshaled = Marshal(rs.Encode(), mlen, false);
+	_log(COMMON__MESSAGE, "Marshaling...");
+	byte *marshaled = Marshal(rs.Encode(), mlen, true);
 	
-	printf("Unmarshaling...\n");
+	_log(COMMON__MESSAGE, "Unmarshaling...");
 	PyRep *rep = InflateAndUnmarshal(marshaled, mlen);
 	if(rep != NULL) {
 		rep->Dump(stdout, " Final: ");
@@ -815,11 +756,37 @@ void DestinyDumpLogText(const Seperator &command) {
 	Destiny::DumpUpdate(DESTINY__MESSAGE, &result[0], uint32(result.size()));
 }
 
+void TestZeroCompress() {
+	byte input[] = {
+		0x00, 0xC3, 0xF5, 0x28, 0x5C, 0x8F, 0x16, 0x85, 0x40, 0x90, 0x38, 0x0C, 0x23, 0x20, 0x27, 0xC9, 0x01, 0xA7, 0x14, 0xA7, 0x15, 0xA7,
+		0xFF, 0xA7, 0x05, 0xA7, 0x14, 0xA7, 0x01, 0xA7, 0x01, 0x81, 0x31, 0x96, 0x93, 0x03, 0x90, 0x96, 0x98, 0x84, 0xFD, 0xC8, 0xC9, 0x01,
+		0x07, 0x01
+	};
 
+	_log(COMMON__MESSAGE, "Original: %d bytes", sizeof(input));
+	_hex(COMMON__MESSAGE, input, sizeof(input));
 
+	std::vector<byte> unpacked;
+	UnpackZeroCompressed(input, sizeof(input), unpacked);
 
+	_log(COMMON__MESSAGE, "Unpacked: %d bytes", unpacked.size());
+	_hex(COMMON__MESSAGE, &unpacked[0], unpacked.size());
 
+	std::vector<byte> repacked;
+	PackZeroCompressed(&unpacked[0], unpacked.size(), repacked);
+	
+	_log(COMMON__MESSAGE, "Re-packed: %d bytes", repacked.size());
+	for(size_t r = 0; r < repacked.size(); r++) {
+		if(r % 16 == 0 && r != 0)
+			printf("\n");
 
+		if(repacked[r] != input[r])
+			printf("(%02X) ", repacked[r]);
+		else
+			printf("%02X ", repacked[r]);
+	}
+	printf("\n");
+}
 
 
 
