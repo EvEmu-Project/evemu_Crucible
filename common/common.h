@@ -163,10 +163,16 @@
 #endif
 
 
-/** set platform depended typedefs
+/** platform depended typedefs and prototypes
   */
 #if !WIN32
   typedef int SOCKET;
+
+  void Sleep(unsigned int x);
+#  ifndef __CYGWIN__
+    char* strupr(char* tmp);
+    char* strlwr(char* tmp);
+#  endif//__CYGWIN__
 #endif//WIN32
 
 

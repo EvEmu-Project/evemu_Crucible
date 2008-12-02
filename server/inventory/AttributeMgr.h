@@ -36,8 +36,8 @@ public:
 	/*
 	 * helper typedefs
 	 */
-	typedef _Int int_t;
-	typedef _Real real_t;
+	typedef _Int		int_t;
+	typedef _Real		real_t;
 
 	/*
 	 * Attribute definition
@@ -118,7 +118,7 @@ public:
 		Attr attr;
 		// clear integers first
 		{
-			std::map<Attr, int_t>::const_iterator cur, end;
+			typename std::map<Attr, int_t>::const_iterator cur, end;
 			cur = m_ints.begin();
 			end = m_ints.end();
 			while(cur != end) {
@@ -129,7 +129,7 @@ public:
 		}
 		// then clear reals
 		{
-			std::map<Attr, real_t>::const_iterator cur, end;
+			typename std::map<Attr, real_t>::const_iterator cur, end;
 			cur = m_reals.begin();
 			end = m_reals.end();
 			while(cur != end) {
@@ -181,7 +181,7 @@ protected:
 	 */
 	bool _Get(Attr attr, real_t &into) const {
 		// try real value
-		std::map<Attr, real_t>::const_iterator ri = m_reals.find(attr);
+		typename std::map<Attr, real_t>::const_iterator ri = m_reals.find(attr);
 		if(ri != m_reals.end()) {
 			// found real value
 			into = ri->second;
@@ -189,7 +189,7 @@ protected:
 		}
 
 		// real not found, try integer
-		std::map<Attr, int_t>::const_iterator ii = m_ints.find(attr);
+		typename std::map<Attr, int_t>::const_iterator ii = m_ints.find(attr);
 		if(ii != m_ints.end()) {
 			// found integer value
 			into = ii->second;
@@ -247,10 +247,22 @@ class AdvancedAttributeMgr
 : virtual public AttributeMgr<_Int, _Real>
 {
 public:
+	/*
+ 	 * Access to our parent
+	 */
+	typedef AttributeMgr<_Int, _Real>	_Base;
+
+	typedef typename _Base::Attr		Attr;
+	typedef typename _Base::int_t		int_t;
+	typedef typename _Base::real_t		real_t;
+
+	/*
+	 * Constructor
+	 */
 	AdvancedAttributeMgr() {
 		_LoadTauCap();
 
-		std::map<Attr, TauCap>::const_iterator cur, end;
+		typename std::map<Attr, TauCap>::const_iterator cur, end;
 		cur = m_tauCap.begin();
 		end = m_tauCap.end();
 		for(; cur != end; cur++)
@@ -261,7 +273,7 @@ public:
 	 * Common functions overloads
 	 */
 	real_t GetReal(Attr attr) const {
-		real_t v = AttributeMgr::GetReal(attr);
+		real_t v = _Base::GetReal(attr);
 
 		_CalcTauCap(attr, v);
 
@@ -269,18 +281,18 @@ public:
 	}
 
 	void SetReal(Attr attr, const real_t &v) {
-		AttributeMgr::SetReal(attr, v);
+		_Base::SetReal(attr, v);
 		if(IsRechargable(attr))
 			_SetLastChange(attr, Win32TimeNow());
 	}
 	void SetInt(Attr attr, const int_t &v) {
-		AttributeMgr::SetInt(attr, v);
+		_Base::SetInt(attr, v);
 		if(IsRechargable(attr))
 			_SetLastChange(attr, Win32TimeNow());
 	}
 
 	void Clear(Attr attr) {
-		AttributeMgr::Clear(attr);
+		_Base::Clear(attr);
 		if(IsRechargable(attr))
 			_SetLastChange(attr, Win32TimeNow());
 	}
@@ -312,7 +324,7 @@ protected:
 			return ret
 		*/
 
-		std::map<Attr, TauCap>::const_iterator i;
+		typename std::map<Attr, TauCap>::const_iterator i;
 
 		i = m_tauCap.find(attr);
 		if(i != m_tauCap.end()) {
@@ -335,7 +347,7 @@ protected:
 	 * last change stuff
 	 */
 	uint64 _GetLastChange(Attr attr) const {
-		std::map<Attr, uint64>::const_iterator res = m_lastChange.find(attr);
+		typename std::map<Attr, uint64>::const_iterator res = m_lastChange.find(attr);
 		if(res != m_lastChange.end())
 			return(res->second);
 		return(Win32TimeNow());
@@ -352,11 +364,11 @@ protected:
 	static void _LoadTauCap() {
 		if(!m_tauCapLoaded) {
 			// hackin for now
-			m_tauCap[Attr_charge].tau = Attr_rechargeRate;
-			m_tauCap[Attr_charge].cap = Attr_capacitorCapacity;
+			m_tauCap[_Base::Attr_charge].tau = _Base::Attr_rechargeRate;
+			m_tauCap[_Base::Attr_charge].cap = _Base::Attr_capacitorCapacity;
 
-			m_tauCap[Attr_shieldCharge].tau = Attr_shieldRechargeRate;
-			m_tauCap[Attr_shieldCharge].cap = Attr_shieldCapacity;
+			m_tauCap[_Base::Attr_shieldCharge].tau = _Base::Attr_shieldRechargeRate;
+			m_tauCap[_Base::Attr_shieldCharge].cap = _Base::Attr_shieldCapacity;
 
 			m_tauCapLoaded = true;
 		}

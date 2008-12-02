@@ -107,7 +107,7 @@ public:
 
 	iterator begin();
 	iterator end() { return(iterator(this, true)); }
-	uint32 size() const;	//number of rows
+	size_t size() const;	//number of rows
 	bool empty() const;
 	size_t ColumnCount() const;
 	const char *ColumnName(uint32 index) const;
@@ -139,9 +139,9 @@ public:
 
 	iterator begin();
 	iterator end() { return(iterator(this, true)); }
-	uint32 size() const;	//number of rows
+	size_t size() const;	//number of rows
 	bool empty() const;
-	uint32 ColumnCount() const;
+	size_t ColumnCount() const;
 	const char *ColumnName(uint32 index) const;
 
 protected:

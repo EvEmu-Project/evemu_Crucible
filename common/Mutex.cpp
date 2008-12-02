@@ -14,11 +14,8 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-//#include "../common/common.h"
-#include "../common/Mutex.h"
 
-#include <iostream>
-using namespace std;
+#include "../common/Mutex.h"
 
 #define DEBUG_MUTEX_CLASS 0
 #if DEBUG_MUTEX_CLASS >= 1

@@ -16,6 +16,7 @@
 */
 
 #include "TCPServer.h"
+#include "logsys.h"
 
 #ifdef WIN32
 	#include <process.h>

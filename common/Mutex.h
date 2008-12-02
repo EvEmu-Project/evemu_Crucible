@@ -18,13 +18,8 @@
 
 #ifndef MYMUTEX_H
 #define MYMUTEX_H
-#ifdef WIN32
-	#include <windows.h>
-#else
-	#include <pthread.h>
-	#include "../common/unix.h"
-#endif
-#include "../common/types.h"
+
+#include "common.h"
 
 class Mutex {
 public:

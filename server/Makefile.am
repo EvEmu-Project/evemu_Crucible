@@ -1,5 +1,5 @@
 INCLUDES += -I$(srcdir)/../3rdparty/
-INCLUDES+= -I$(srcdir)/../common/
+INCLUDES += -I$(srcdir)/../common/
 
 noinst_LIBRARIES = \
 	libaccount.a \
@@ -66,6 +66,10 @@ libcache_a_SOURCES = \
 	cache/ObjCacheService.h
 
 libcharacter_a_SOURCES = \
+	character/CertificateMgrDB.cpp \
+	character/CertificateMgrDB.h \
+	character/CertificateMgrService.cpp \
+	character/CertificateMgrService.h \
 	character/CharacterDB.cpp \
 	character/CharacterDB.h \
 	character/CharacterService.cpp \
@@ -120,6 +124,8 @@ libdogmaim_a_SOURCES = \
 
 libinventory_a_SOURCES = \
 	inventory/EVEAttributes.h \
+	inventory/EVEAttributeMgr.cpp \
+	inventory/EVEAttributeMgr.h \
 	inventory/InvBrokerService.cpp \
 	inventory/InvBrokerService.h \
 	inventory/InventoryDB.cpp \
@@ -127,7 +133,9 @@ libinventory_a_SOURCES = \
 	inventory/InventoryItem.cpp \
 	inventory/InventoryItem.h \
 	inventory/ItemFactory.cpp \
-	inventory/ItemFactory.h
+	inventory/ItemFactory.h \
+	inventory/Type.cpp \
+	inventory/Type.h
 # Seems not to be included
 #	inventory/ItemDB.cpp 
 #	inventory/ItemDB.h 
