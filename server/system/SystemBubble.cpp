@@ -118,7 +118,7 @@ bool SystemBubble::ProcessWander(std::vector<SystemEntity *> &wanderers) {
 	for(; curw != endw; ++curw) {
 		Remove(*curw);
 	}
-	return(false);
+	return false;
 }
 
 void SystemBubble::Add(SystemEntity *ent, bool notify) {

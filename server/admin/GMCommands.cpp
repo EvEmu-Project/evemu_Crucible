@@ -215,7 +215,7 @@ PyResult Command_spawn(Client *who, CommandDB *db, PyServiceMgr *services, const
 	if(i == NULL)
 		throw(PyException(MakeCustomError("Unable to spawn item of type %s.", args.arg[1])));
 
-	//hackin it...
+	//hacking it...
 	GPoint loc(who->GetPosition());
 	loc.x += 1500;
 

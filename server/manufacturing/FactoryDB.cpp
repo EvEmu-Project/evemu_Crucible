@@ -35,7 +35,7 @@ PyRep *FactoryDB::GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) 
 				blueprintTypeID))
 	{
 		_log(DATABASE__ERROR, "Could not retrieve materials for type with activity %lu : %s", blueprintTypeID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -53,7 +53,7 @@ PyRep *FactoryDB::GetMaterialCompositionOfItemType(const uint32 typeID) const {
 				typeID))
 	{
 		_log(DATABASE__ERROR, "Could not retrieve materials for type with activity %lu : %s", typeID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));

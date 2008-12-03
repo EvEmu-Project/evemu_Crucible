@@ -42,12 +42,12 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_account
 
 	if(pass[0] == '\0') {
 		_log(SERVICE__ERROR, "Empty password not allowed (%s)", login);
-		return(false);
+		return false;
 	}
 
 	if(!m_db->IsSafeString(login) || !m_db->IsSafeString(pass)) {
 		_log(SERVICE__ERROR, "Invalid characters in login or password!");
-		return(false);
+		return false;
 	}
 	
 	if(!m_db->RunQuery(res,
@@ -56,31 +56,31 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_account
 		" WHERE accountName='%s'", pass, pass, login))
 	{
 		_log(SERVICE__ERROR, "Error in login query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(SERVICE__ERROR, "Unknown account '%s'", login);
-		return(false);
+		return false;
 	}
 
 	if (row.GetInt(5)) {
 		_log(SERVICE__ERROR, "Account '%s' already logged in", login);
-		return(false);
+		return false;
 	}
 
 	if(   strcmp(row.GetText(2), row.GetText(3)) != 0
 	   && strcmp(row.GetText(2), row.GetText(4)) != 0
 	   && strcmp(row.GetText(2), pass) != 0) {
 		_log(SERVICE__ERROR, "Login failed for account '%s'", login);
-		return(false);
+		return false;
 	}
 	
 	out_accountID = row.GetUInt(0);
 	out_role = row.GetUInt(1);
 	
-	return(true);
+	return true;
 }
 
 void ServiceDB::SetCharacterLocation(uint32 characterID, uint32 stationID, 
@@ -113,14 +113,14 @@ bool ServiceDB::ListEntitiesByCategory(uint32 ownerID, uint32 categoryID, std::v
 	" WHERE invGroups.categoryID=%lu AND entity.ownerID=%lu", categoryID, ownerID))
 	{
 		_log(SERVICE__ERROR, "Error in ListEntitiesByCategory query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
 	while(res.GetRow(row)) {
 		into.push_back(row.GetInt(0));
 	}
-	return(true);
+	return true;
 }
 
 uint32 ServiceDB::GetCurrentShipID(uint32 characterID) {
@@ -179,7 +179,7 @@ PyRepObject *ServiceDB::GetInventory(uint32 containerID, EVEItemFlags flag) {
 			containerID, flag, flag))
 	{
 		codelog(SERVICE__ERROR, "Error in query for %d,%d: %s", containerID, flag, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -231,7 +231,7 @@ PyRepObject *ServiceDB::GetSolDroneState(uint32 systemID) const {
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetSolDroneState query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -249,19 +249,19 @@ bool ServiceDB::GetSystemParents(uint32 systemID, uint32 &constellationID, uint3
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetSystemParents query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(SERVICE__ERROR, "Error in GetSystemParents query: no system data for %d", systemID);
-		return(false);
+		return false;
 	}
 	
 	constellationID = row.GetUInt(0);
 	regionID = row.GetUInt(1);
 	
-	return(true);
+	return true;
 }
 
 bool ServiceDB::GetStationParents(uint32 stationID, uint32 &systemID, uint32 &constellationID, uint32 &regionID) {
@@ -275,20 +275,20 @@ bool ServiceDB::GetStationParents(uint32 stationID, uint32 &systemID, uint32 &co
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetStationParents query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(SERVICE__ERROR, "Error in GetStationParents query: no station data for %d", stationID);
-		return(false);
+		return false;
 	}
 
 	systemID = row.GetUInt(0);
 	constellationID = row.GetUInt(1);
 	regionID = row.GetUInt(2);
 	
-	return(true);
+	return true;
 }
 
 bool ServiceDB::GetStaticPosition(uint32 itemID, double &x, double &y, double &z) {
@@ -302,20 +302,20 @@ bool ServiceDB::GetStaticPosition(uint32 itemID, double &x, double &y, double &z
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		codelog(SERVICE__ERROR, "Error in query: no data for %d", itemID);
-		return(false);
+		return false;
 	}
 
 	x = row.GetDouble(0);
 	y = row.GetDouble(1);
 	z = row.GetDouble(2);
 	
-	return(true);
+	return true;
 }
 
 bool ServiceDB::GetStaticPosition(uint32 itemID, uint32 &systemID, double &x, double &y, double &z) {
@@ -329,13 +329,13 @@ bool ServiceDB::GetStaticPosition(uint32 itemID, uint32 &systemID, double &x, do
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		codelog(SERVICE__ERROR, "Error in query: no data for %d", itemID);
-		return(false);
+		return false;
 	}
 
 	systemID = row.GetUInt(0);
@@ -343,7 +343,7 @@ bool ServiceDB::GetStaticPosition(uint32 itemID, uint32 &systemID, double &x, do
 	y = row.GetDouble(2);
 	z = row.GetDouble(3);
 	
-	return(true);
+	return true;
 }
 
 bool ServiceDB::GetStaticLocation(uint32 entityID, uint32 &regionID, uint32 &constellationID, uint32 &solarSystemID, GPoint &location) {
@@ -358,13 +358,13 @@ bool ServiceDB::GetStaticLocation(uint32 entityID, uint32 &regionID, uint32 &con
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		codelog(SERVICE__ERROR, "Error in query: no data for %d", entityID);
-		return(false);
+		return false;
 	}
 
 	regionID = row.GetUInt(0);
@@ -374,7 +374,7 @@ bool ServiceDB::GetStaticLocation(uint32 entityID, uint32 &regionID, uint32 &con
 	location.y = row.GetDouble(4);
 	location.z = row.GetDouble(5);
 	
-	return(true);
+	return true;
 }
 
 bool ServiceDB::GetStationDockPosition(uint32 stationID, GPoint &location) {
@@ -392,20 +392,20 @@ bool ServiceDB::GetStationDockPosition(uint32 stationID, GPoint &location) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		codelog(SERVICE__ERROR, "Error in query: no data for %d", stationID);
-		return(false);
+		return false;
 	}
 
 	location.x = row.GetDouble(0);
 	location.y = row.GetDouble(1);
 	location.z = row.GetDouble(2);
 	
-	return(true);
+	return true;
 }
 
 uint32 ServiceDB::GetDestinationStargateID(uint32 fromSystem, uint32 toSystem) {
@@ -446,7 +446,7 @@ bool ServiceDB::SetCharacterBalance(uint32 char_id, double newbalance)
 		"UPDATE character_ SET balance=%.2f WHERE characterID=%lu",newbalance,char_id))
 	{
 		_log(SERVICE__ERROR, "Error in query : %s", err.c_str());
-		return(false);
+		return false;
 	}
 
 	return (true);
@@ -460,7 +460,7 @@ bool ServiceDB::AddCharacterBalance(uint32 char_id, double delta)
 		"UPDATE character_ SET balance=balance+%.2f WHERE characterID=%lu",delta,char_id))
 	{
 		_log(SERVICE__ERROR, "Error in query : %s", err.c_str());
-		return(false);
+		return false;
 	}
 
 	return (true);
@@ -481,18 +481,18 @@ bool ServiceDB::GetConstant(const char *name, uint32 &into) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		codelog(SERVICE__ERROR, "Unable to find constant %s", name);
-		return(false);
+		return false;
 	}
 	
 	into = row.GetUInt64(0);
 	
-	return(true);
+	return true;
 }
 
 bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
@@ -514,13 +514,13 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	" WHERE characterID=%lu", characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(SERVICE__ERROR, "Error in LoadCharacter query: no data for char %d", characterID);
-		return(false);
+		return false;
 	}
 
 	uint32 i = 0;
@@ -550,7 +550,7 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	into.careerSpecialityID = row.GetUInt(i++);
 	
 	into.charid = characterID;
-	return(true);
+	return true;
 }
 
 bool ServiceDB::LoadCorporationMemberInfo(uint32 charID, CorpMemberInfo &info) {
@@ -596,17 +596,17 @@ bool ServiceDB::LoadCorporationMemberInfo(uint32 charID, CorpMemberInfo &info) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	if(!res.GetRow(row)) {
 		codelog(SERVICE__ERROR, "Unable to find corporatioin for %lu", charID);
-		return(false);
+		return false;
 	}
 	
 	info.corpHQ = row.GetUInt(0);
 	
-	return(true);
+	return true;
 }
 void ServiceDB::ProcessStringChange(const char * key, const std::string & oldValue, const std::string & newValue, PyRepDict * notif, std::vector<std::string> & dbQ) {
 	if (oldValue != newValue) {

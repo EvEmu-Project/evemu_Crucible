@@ -578,7 +578,7 @@ static bool PyString_DecodeEscape(const char *s, vector<byte> &result)
 		s++;
         if (s==end) {
             //ended with a \ char
-			return(false);
+			return false;
 		}
 		switch (*s++) {
 		/* XXX This assumes ASCII! */
@@ -628,12 +628,12 @@ static bool PyString_DecodeEscape(const char *s, vector<byte> &result)
 				break;
 			}
 			//"invalid \\x escape");
-			return(false);
+			return false;
 		default:
-			return(false);
+			return false;
 		}
 	}
-	return(true);
+	return true;
 }
 
 

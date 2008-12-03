@@ -110,7 +110,7 @@ PyResult Standing2Service::Handle_GetSecurityRating(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Failed to decode args.");
-		return(NULL);
+		return NULL;
 	}
 
 	return(new PyRepReal(m_db.GetSecurityRating(arg.arg)));
@@ -120,7 +120,7 @@ PyResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) {
 	Call_GetStandingTransactions args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	PyRepObject * result = m_db.GetStandingTransactions(args.toID);

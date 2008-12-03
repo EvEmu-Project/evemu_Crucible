@@ -185,7 +185,7 @@ protected:
 		if(ri != m_reals.end()) {
 			// found real value
 			into = ri->second;
-			return(true);
+			return true;
 		}
 
 		// real not found, try integer
@@ -193,11 +193,11 @@ protected:
 		if(ii != m_ints.end()) {
 			// found integer value
 			into = ii->second;
-			return(true);
+			return true;
 		}
 
 		// nothing at all, return false
-		return(false);
+		return false;
 	}
 
 	/*
@@ -363,7 +363,7 @@ protected:
 	 */
 	static void _LoadTauCap() {
 		if(!m_tauCapLoaded) {
-			// hackin for now
+			// hacking for now
 			m_tauCap[_Base::Attr_charge].tau = _Base::Attr_rechargeRate;
 			m_tauCap[_Base::Attr_charge].cap = _Base::Attr_capacitorCapacity;
 

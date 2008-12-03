@@ -43,7 +43,7 @@ PyResult TutorialService::Handle_GetTutorialInfo(PyCallArgs &call) {
 	Call_GetTutorialInfo args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Can't parse args.");
-		return(NULL);
+		return NULL;
 	}
 
 	Rsp_GetTutorialInfo rsp;
@@ -51,25 +51,25 @@ PyResult TutorialService::Handle_GetTutorialInfo(PyCallArgs &call) {
 	rsp.pagecriterias = m_db.GetPageCriterias(args.tutorialID);
 	if(rsp.pagecriterias == NULL) {
 		codelog(SERVICE__ERROR, "An error occured while getting pagecriterias for tutorial %lu.", args.tutorialID);
-		return(NULL);
+		return NULL;
 	}
 
 	rsp.pages = m_db.GetPages(args.tutorialID);
 	if(rsp.pages == NULL) {
 		codelog(SERVICE__ERROR, "An error occured while getting pages for tutorial %lu.", args.tutorialID);
-		return(NULL);
+		return NULL;
 	}
 
 	rsp.tutorial = m_db.GetTutorial(args.tutorialID);
 	if(rsp.tutorial == NULL) {
 		codelog(SERVICE__ERROR, "An error occured while getting tutorial %lu.", args.tutorialID);
-		return(NULL);
+		return NULL;
 	}
 
 	rsp.criterias = m_db.GetTutorialCriterias(args.tutorialID);
 	if(rsp.criterias == NULL) {
 		codelog(SERVICE__ERROR, "An error occured while getting criterias for tutorial %lu.", args.tutorialID);
-		return(NULL);
+		return NULL;
 	}
 
 	return(rsp.Encode());

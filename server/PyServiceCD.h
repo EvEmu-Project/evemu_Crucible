@@ -53,7 +53,7 @@ public:
 		res = m_serviceCalls.find(method_name);
 		if(res == m_serviceCalls.end()) {
 			_log(SERVICE__ERROR, "%s: Unknown call to '%s' by '%s'", m_parent->GetName(), method_name.c_str(), call.client->GetName());
-			return(NULL);
+			return NULL;
 		}
 		
 		CallProc p = res->second;

@@ -135,7 +135,7 @@ void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep) {
 	//kinda hackish:
 	if(rep->GetLength() > 2 && *(rep->GetBuffer()) == GZipStreamHeaderByte) {
 		uint32 len = rep->GetLength();
-		byte *buf = InflatePacket(rep->GetBuffer(), len, true);
+		byte *buf = InflatePacket(rep->GetBuffer(), &len, true);
 		if(buf != NULL) {
 			std::string p(top());
 			p += "  ";

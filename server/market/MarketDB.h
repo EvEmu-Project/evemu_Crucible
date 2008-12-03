@@ -39,7 +39,7 @@ public:
 	PyRep *GetSystemAsks(uint32 solarSystemID);
 	PyRep *GetRegionBest(uint32 regionID);
 
-	PyRep *GetOrders(uint32 regionID, uint32 typeID);	//dosent work right now
+	PyRep *GetOrders(uint32 regionID, uint32 typeID);	//doesn't work right now
 	PyRep *GetCharOrders(uint32 characterID);
 	PyRep *GetOrderRow(uint32 orderID);
 

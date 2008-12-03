@@ -336,7 +336,7 @@ bool TCPConnection::LineOutQueuePush(char* line) {
 	MLineOutQueue.lock();
 	LineOutQueue.push(line);
 	MLineOutQueue.unlock();
-	return(false);
+	return false;
 }
 
 
@@ -392,7 +392,7 @@ bool TCPConnection::SetAsyncConnect(bool iValue) {
 bool TCPConnection::ConnectReady() const {
 	State_t s = GetState();
 	if (s != TCPS_Ready && s != TCPS_Disconnected)
-		return(false);
+		return false;
 	return(ConnectionType == Outgoing);
 }
 
@@ -590,7 +590,7 @@ bool TCPConnection::Process() {
 				ConnectIP(rIP, rPort);
 			}
 		}
-		return(true);
+		return true;
 	
 	case TCPS_Connected:
 		// only receive data in the connected state, no others...
@@ -625,7 +625,7 @@ bool TCPConnection::Process() {
 		pRunLoop = false;
 		MRunLoop.unlock();
 //		SetState(TCPS_Ready);	//reset the state in case they want to use it again...
-		return(false);
+		return false;
 	
 	case TCPS_Closing:
 		//I dont understand this state...
@@ -634,7 +634,7 @@ bool TCPConnection::Process() {
 		MRunLoop.lock();
 		pRunLoop = false;
 		MRunLoop.unlock();
-		return(false);
+		return false;
 	}
 	
 	/* we get here in connected or disconnecting with more data to send */
@@ -837,7 +837,7 @@ bool TCPConnection::ProcessReceivedData(char* errbuf)
 					bool finish_proc = false;
 					finish_proc = LineOutQueuePush(line);
 					if(finish_proc)
-						return(true);	//break early as requested by LineOutQueuePush
+						return true;	//break early as requested by LineOutQueuePush
 				}
 				
 				break;

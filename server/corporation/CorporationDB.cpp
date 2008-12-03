@@ -37,7 +37,7 @@ PyRepObject *CorporationDB::ListCorpStations(uint32 corp_id) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -56,7 +56,7 @@ PyRepObject *CorporationDB::ListStationOffices(uint32 station_id) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -82,7 +82,7 @@ PyRepObject *CorporationDB::ListStationCorps(uint32 station_id) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -102,7 +102,7 @@ PyRepObject *CorporationDB::ListStationOwners(uint32 station_id) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -128,7 +128,7 @@ PyRepDict *CorporationDB::ListAllCorpInfo() {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToIntRowDict(res, 1));
@@ -144,11 +144,11 @@ bool CorporationDB::ListAllCorpFactions(std::map<uint32, uint32> &into) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultToIntIntDict(res, into);
-	return(true);
+	return true;
 }
 
 bool CorporationDB::ListAllFactionStationCounts(std::map<uint32, uint32> &into) {
@@ -166,11 +166,11 @@ bool CorporationDB::ListAllFactionStationCounts(std::map<uint32, uint32> &into) 
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultToIntIntDict(res, into);
-	return(true);
+	return true;
 }
 
 bool CorporationDB::ListAllFactionSystemCounts(std::map<uint32, uint32> &into) {
@@ -187,11 +187,11 @@ bool CorporationDB::ListAllFactionSystemCounts(std::map<uint32, uint32> &into) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultToIntIntDict(res, into);
-	return(true);
+	return true;
 }
 
 bool CorporationDB::ListAllFactionRegions(std::map<uint32, PyRep *> &into) {
@@ -210,11 +210,11 @@ bool CorporationDB::ListAllFactionRegions(std::map<uint32, PyRep *> &into) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultToIntIntlistDict(res, into);
-	return(true);
+	return true;
 }
 
 bool CorporationDB::ListAllFactionConstellations(std::map<uint32, PyRep *> &into) {
@@ -233,11 +233,11 @@ bool CorporationDB::ListAllFactionConstellations(std::map<uint32, PyRep *> &into
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultToIntIntlistDict(res, into);
-	return(true);
+	return true;
 }
 
 bool CorporationDB::ListAllFactionSolarSystems(std::map<uint32, PyRep *> &into) {
@@ -256,11 +256,11 @@ bool CorporationDB::ListAllFactionSolarSystems(std::map<uint32, PyRep *> &into) 
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultToIntIntlistDict(res, into);
-	return(true);
+	return true;
 }
 
 bool CorporationDB::ListAllFactionRaces(std::map<uint32, PyRep *> &into) {
@@ -279,11 +279,11 @@ bool CorporationDB::ListAllFactionRaces(std::map<uint32, PyRep *> &into) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultToIntIntlistDict(res, into);
-	return(true);
+	return true;
 }
 
 PyRepObject *CorporationDB::ListNPCDivisions() {
@@ -296,7 +296,7 @@ PyRepObject *CorporationDB::ListNPCDivisions() {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -315,7 +315,7 @@ PyRepObject *CorporationDB::GetEmploymentRecord(uint32 charID) {
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return (DBResultToRowset(res));
@@ -565,7 +565,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in prev corp member decrease query: %s", err.c_str());
-		return(false);
+		return false;
 	}
 	
 	// Set new corp
@@ -578,7 +578,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 	{
 		codelog(SERVICE__ERROR, "Error in char update query: %s", err.c_str());
 		//TODO: undo previous member count decrement.
-		return(false);
+		return false;
 	}
 
 	// Increase new corp's member number...
@@ -743,7 +743,7 @@ PyRepObject *CorporationDB::GetEveOwners() {
 		" SELECT * FROM eveStaticOwners "))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return DBResultToRowset(res);
@@ -759,7 +759,7 @@ bool CorporationDB::StoreCharacterRoles(uint32 charID, const CorpMemberInfo &rol
 		charID, roles.corprole, roles.rolesAtAll, roles.rolesAtBase, roles.rolesAtHQ, roles.rolesAtOther
 	)) {
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
-		return(false);
+		return false;
 	}
 	return true;
 }
@@ -775,7 +775,7 @@ PyRepObject *CorporationDB::GetStations(uint32 corpID) {
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	return DBResultToRowset(res);
 }
@@ -813,7 +813,7 @@ PyRep *CorporationDB::Fetch(uint32 corpID, uint32 from, uint32 count) {
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	res.GetRow(rr);
@@ -1019,14 +1019,14 @@ bool CorporationDB::GetCurrentApplicationInfo(uint32 charID, uint32 corpID, Appl
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		aInfo.valid = false;
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if (!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "There's no previous application.");
 		aInfo.valid = false;
-		return(false);
+		return false;
 	}
 
 	aInfo.charID = charID;
@@ -1039,7 +1039,7 @@ bool CorporationDB::GetCurrentApplicationInfo(uint32 charID, uint32 corpID, Appl
 	aInfo.lastCID = row.GetUInt(5);
 	aInfo.deleted = row.GetUInt(6);
 	aInfo.valid = true;
-	return(true);
+	return true;
 }
 
 bool CorporationDB::UpdateApplication(const ApplicationInfo & info) {
@@ -1057,9 +1057,9 @@ bool CorporationDB::UpdateApplication(const ApplicationInfo & info) {
 		" WHERE corporationID = %lu AND characterID = %lu ", info.status, info.lastCID, clear.c_str(), info.corpID, info.charID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 
 bool CorporationDB::DeleteApplication(const ApplicationInfo & info) {
@@ -1069,9 +1069,9 @@ bool CorporationDB::DeleteApplication(const ApplicationInfo & info) {
 		" WHERE corporationID = %lu AND characterID = %lu ", info.corpID, info.charID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 
 bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, uint32 newCorpID, uint32 charID) {
@@ -1145,7 +1145,7 @@ bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivision
 		" WHERE corporationID = %lu ", corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
@@ -1176,7 +1176,7 @@ bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivision
 
 	if ((N > 0) && (!m_db->RunQuery(res.error, query.c_str(), corpID))) {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	return true;
@@ -1191,7 +1191,7 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
 		" WHERE corporationID = %lu ", corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
@@ -1218,7 +1218,7 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
 	// only update if there is anything to update
 	if ((N > 0) && (!m_db->RunQuery(res.error, query.c_str(), corpID))) {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	return true;
@@ -1234,7 +1234,7 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyRep
 		" WHERE corporationID = %lu ", corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
@@ -1264,7 +1264,7 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyRep
 	query += " WHERE corporationID = %lu ";
 	if ((N > 0) && (!m_db->RunQuery(res.error, query.c_str(), corpID))) {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	return true;

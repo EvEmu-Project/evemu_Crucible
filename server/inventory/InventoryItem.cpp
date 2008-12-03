@@ -85,11 +85,11 @@ InventoryItem *InventoryItem::Ref() {
 	if(this == NULL) {
 		_log(ITEM__ERROR, "Trying to make a ref of a NULL inventory item!");
 		//TODO: log a stack.
-		return(NULL);
+		return NULL;
 	}
 	if(m_refCount < 1) {
 		_log(ITEM__ERROR, "Attempting to make a ref of inventory item (%p) which has no references at all!", this);
-		return(NULL);	//NULL is easier to debug than a bad pointer
+		return NULL;	//NULL is easier to debug than a bad pointer
 	}
 	m_refCount++;
 	return(this);
@@ -108,13 +108,13 @@ InventoryItem *InventoryItem::LoadItem(ItemFactory &factory, uint32 itemID, bool
 	if(!factory.db().GetItem(itemID,
 		itemName, typeID, ownerID, locationID, flag, contraband, singleton, quantity, position, customInfo))
 	{
-		return(NULL);
+		return NULL;
 	}
 
 	// obtain type
 	const Type *type = factory.type(typeID);
 	if(type == NULL)
-		return(NULL);
+		return NULL;
 
 	InventoryItem *i;
 	if(type->categoryID() == EVEDB::invCategories::Blueprint) {
@@ -128,7 +128,7 @@ InventoryItem *InventoryItem::LoadItem(ItemFactory &factory, uint32 itemID, bool
 		if(!factory.db().GetBlueprint(itemID,
 			copy, materialLevel, productivityLevel, licensedProductionRunsRemaining))
 		{
-			return(NULL);
+			return NULL;
 		}
 
 		// create the blueprint
@@ -173,7 +173,7 @@ InventoryItem *InventoryItem::LoadItem(ItemFactory &factory, uint32 itemID, bool
 	// load up
 	if(!i->Load(recurse)) {
 		i->Release();	// should delete the item
-		return(NULL);
+		return NULL;
 	}
 
 	// update container
@@ -189,27 +189,27 @@ InventoryItem *InventoryItem::LoadItem(ItemFactory &factory, uint32 itemID, bool
 bool InventoryItem::Load(bool recurse) {
 	// load attributes
 	if(!attributes.Load())
-		return(false);
+		return false;
 
 	// now load contained items
 	if(recurse) {
 		if(!LoadContents(recurse))
-			return(false);
+			return false;
 	}
 
-	return(true);
+	return true;
 }
 
 bool InventoryItem::LoadContents(bool recursive) {
 	if(m_contentsLoaded)
-		return(true);
+		return true;
 
 	_log(ITEM__TRACE, "Recursively loading contents of cached item %lu", m_itemID);
 
 	//load the list of items we need
 	std::vector<uint32> m_itemIDs;
 	if(!m_factory.db().GetItemContents(this, m_itemIDs))
-		return(false);
+		return false;
 	
 	//Now get each one from the factory (possibly recursing)
 	InventoryItem *i;
@@ -227,7 +227,7 @@ bool InventoryItem::LoadContents(bool recursive) {
 	}
 
 	m_contentsLoaded = true;
-	return(true);
+	return true;
 }
 
 void InventoryItem::Save(bool recursive, bool saveAttributes) const {
@@ -370,14 +370,14 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 	result.invItem = GetEntityRow();
 	if(result.invItem == NULL) {
 		codelog(ITEM__ERROR, "%s (%lu): Unable to build item row for move", m_itemName.c_str(), m_itemID);
-		return(false);
+		return false;
 	}
 
 	//hacky, but it dosent really hurt anything.
 	if(isOnline() != 0) {
 		//there is an effect that goes along with this. We should
 		//probably be properly tracking the effect due to some
-		// timer things, but for now, were hackin it.
+		// timer things, but for now, were hacking it.
 		EntityEffectState es;
 		es.env_itemID = m_itemID;
 		es.env_charID = m_ownerID;	//may not be quite right...
@@ -399,16 +399,16 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 	
 	//no idea what time this is supposed to be
 	codelog(SERVICE__WARNING, "%s (%lu): sending faked time", m_itemName.c_str(), m_itemID);
-	result.time = Win32TimeNow();
+	//result.time = Win32TimeNow();
 
-	return(true);
+	return true;
 }
 
 PyRepObject *InventoryItem::ItemGetInfo() const {
 	Rsp_ItemGetInfo result;
 
 	if(!Populate(result.entry))
-		return(NULL);	//print already done.
+		return NULL;	//print already done.
 	
 	return(result.FastEncode());
 }
@@ -418,7 +418,7 @@ PyRepObject *InventoryItem::ShipGetInfo() {
 	
 	if(!LoadContents(true)) {
 		codelog(ITEM__ERROR, "%s (%lu): Failed to load contents for ShipGetInfo", m_itemName.c_str(), m_itemID);
-		return(NULL);
+		return NULL;
 	}
 
 	Rsp_CommonGetInfo result;
@@ -426,9 +426,9 @@ PyRepObject *InventoryItem::ShipGetInfo() {
 
 	//first populate the ship.
 	if(!Populate(entry))
-		return(NULL);	//print already done.
+		return NULL;	//print already done.
 	
-//hackin:
+//hacking:
 	//maximumRangeCap
 		entry.attributes[797] = new PyRepReal(250000.000000);
 	
@@ -458,7 +458,7 @@ PyRepObject *InventoryItem::CharGetInfo() {
 	
 	if(!LoadContents(true)) {
 		codelog(ITEM__ERROR, "%s (%lu): Failed to load contents for CharGetInfo", m_itemName.c_str(), m_itemID);
-		return(NULL);
+		return NULL;
 	}
 
 	Rsp_CommonGetInfo result;
@@ -466,7 +466,7 @@ PyRepObject *InventoryItem::CharGetInfo() {
 
 	//first encode self.
 	if(!Populate(entry))
-		return(NULL);	//print already done.
+		return NULL;	//print already done.
 	
 	result.items[m_itemID] = entry.FastEncode();
 
@@ -503,7 +503,7 @@ InventoryItem *InventoryItem::FindFirstByFlag(EVEItemFlags _flag, bool newref) {
 			return(i);
 		}
 	}
-	return(NULL);
+	return NULL;
 }
 
 InventoryItem *InventoryItem::GetByID(uint32 id, bool newref) {
@@ -520,7 +520,7 @@ InventoryItem *InventoryItem::GetByID(uint32 id, bool newref) {
 				return(i);
 		}
 	}
-	return(NULL);
+	return NULL;
 }
 
 uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *> &items, bool newref) {
@@ -752,13 +752,13 @@ void InventoryItem::ChangeFlag(EVEItemFlags new_flag, bool notify) {
 
 bool InventoryItem::AlterQuantity(int32 qty_change, bool notify) {
 	if(qty_change == 0)
-		return(true);
+		return true;
 
 	int32 new_qty = m_quantity + qty_change;
 
 	if(new_qty < 0) {
 		codelog(ITEM__ERROR, "%s (%lu): Tried to remove %ld quantity from stack of %lu", m_itemName.c_str(), m_itemID, -qty_change, m_quantity);
-		return(false);
+		return false;
 	}
 
 	return(SetQuantity(new_qty, notify));
@@ -770,7 +770,7 @@ bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
 		//Print error
 		codelog(ITEM__ERROR, "%s (%lu): Failed to set quantity %lu , the items singleton bit is set", m_itemName.c_str(), m_itemID, qty_new);
 		//return false
-		return(false);
+		return false;
 	}
 
 	uint32 old_qty = m_quantity;
@@ -789,17 +789,17 @@ bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
 		SendItemChange(m_ownerID, changes);	//changes is consumed
 	}
 	
-	return(true);
+	return true;
 }
 
 InventoryItem *InventoryItem::Split(int32 qty_to_take, bool notify) {
 	if(qty_to_take <= 0) {
 		_log(ITEM__ERROR, "%s (%lu): Asked to split into a chunk of %ld", itemName().c_str(), itemID(), qty_to_take);
-		return(NULL);
+		return NULL;
 	}
 	if(!AlterQuantity(-qty_to_take, notify)) {
 		_log(ITEM__ERROR, "%s (%lu): Failed to remove quantity %ld during split.", itemName().c_str(), itemID(), qty_to_take);
-		return(NULL);
+		return NULL;
 	}
 
 	InventoryItem *res = m_factory.Spawn(
@@ -814,43 +814,43 @@ InventoryItem *InventoryItem::Split(int32 qty_to_take, bool notify) {
 bool InventoryItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
 	if(to_merge == NULL) {
 		_log(ITEM__ERROR, "%s (%lu): Cannot merge with NULL item.", itemName().c_str(), itemID());
-		return(false);
+		return false;
 	}
 	if(typeID() != to_merge->typeID()) {
 		_log(ITEM__ERROR, "%s (%lu): Asked to merge with %s (%lu).", itemName().c_str(), itemID(), to_merge->itemName().c_str(), to_merge->itemID());
-		return(false);
+		return false;
 	}
 	if(locationID() != to_merge->locationID() || flag() != to_merge->flag()) {
 		_log(ITEM__ERROR, "%s (%lu) in location %lu, flag %lu: Asked to merge with item %lu in location %lu, flag %lu.", itemName().c_str(), itemID(), locationID(), flag(), to_merge->itemID(), to_merge->locationID(), to_merge->flag());
-		return(false);
+		return false;
 	}
 	if(qty == 0)
 		qty = to_merge->quantity();
 	if(qty <= 0) {
 		_log(ITEM__ERROR, "%s (%lu): Asked to merge with %ld units of item %lu.", itemName().c_str(), itemID(), qty, to_merge->itemID());
-		return(false);
+		return false;
 	}
 	if(!AlterQuantity(qty, notify)) {
 		_log(ITEM__ERROR, "%s (%lu): Failed to add quantity %ld.", itemName().c_str(), itemID(), qty);
-		return(false);
+		return false;
 	}
 
 	if(qty == to_merge->quantity())
 		to_merge->Delete();	//consumes ref
 	else if(!to_merge->AlterQuantity(-qty, notify)) {
 		_log(ITEM__ERROR, "%s (%lu): Failed to remove quantity %ld.", to_merge->itemName().c_str(), to_merge->itemID(), qty);
-		return(false);
+		return false;
 	} else
 		to_merge->Release();	//consume ref
 
-	return(true);
+	return true;
 }
 
 bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify) {
 	bool old_singleton = m_singleton;
 	
 	if(new_singleton == old_singleton)
-		return(true);	//nothing to do...
+		return true;	//nothing to do...
 
 	m_singleton = new_singleton;
 
@@ -862,7 +862,7 @@ bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify) {
 		changes[ixSingleton] = new PyRepInteger(old_singleton);
 		SendItemChange(m_ownerID, changes);	//changes is consumed
 	}
-	return(true);
+	return true;
 }
 
 void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
@@ -971,9 +971,9 @@ void InventoryItem::SetCustomInfo(const char *ci) {
 
 bool InventoryItem::Contains(InventoryItem *item, bool recursive) const {
 	if(m_contents.find(item->itemID()) != m_contents.end())
-		return(true);
+		return true;
 	if(!recursive)
-		return(false);
+		return false;
 	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
@@ -981,9 +981,9 @@ bool InventoryItem::Contains(InventoryItem *item, bool recursive) const {
 	for(; cur != end; cur++) {
 		i = cur->second;
 		if(i->Contains(item, true))
-			return(true);
+			return true;
 	}
-	return(false);
+	return false;
 }
 
 //I think I ultimately want this logic somewhere else...
@@ -1151,7 +1151,7 @@ BlueprintItem *BlueprintItem::SplitBlueprint(int32 qty_to_take, bool notify) {
 	// split item
 	BlueprintItem *res = (BlueprintItem *)(InventoryItem::Split(qty_to_take, notify));
 	if(res == NULL)
-		return(NULL);
+		return NULL;
 
 	// copy our attributes
 	res->SetCopy(m_copy);
@@ -1164,9 +1164,9 @@ BlueprintItem *BlueprintItem::SplitBlueprint(int32 qty_to_take, bool notify) {
 
 bool BlueprintItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
 	if(!InventoryItem::Merge(to_merge, qty, notify))
-		return(false);
+		return false;
 	// do something special? merge material level etc.?
-	return(true);
+	return true;
 }
 
 void BlueprintItem::SetCopy(bool copy) {
@@ -1186,11 +1186,11 @@ bool BlueprintItem::AlterMaterialLevel(int32 materialLevelChange) {
 
 	if(new_material_level < 0) {
 		_log(ITEM__ERROR, "%s (%lu): Tried to remove %lu material levels while having %lu levels.", m_itemName.c_str(), m_itemID, -materialLevelChange, m_materialLevel);
-		return(false);
+		return false;
 	}
 
 	SetMaterialLevel(new_material_level);
-	return(true);
+	return true;
 }
 
 void BlueprintItem::SetProductivityLevel(uint32 productivityLevel) {
@@ -1204,11 +1204,11 @@ bool BlueprintItem::AlterProductivityLevel(int32 producitvityLevelChange) {
 
 	if(new_productivity_level < 0) {
 		_log(ITEM__ERROR, "%s (%lu): Tried to remove %lu productivity levels while having %lu levels.", m_itemName.c_str(), m_itemID, -producitvityLevelChange, m_productivityLevel);
-		return(false);
+		return false;
 	}
 
 	SetProductivityLevel(new_productivity_level);
-	return(true);
+	return true;
 }
 
 void BlueprintItem::SetLicensedProductionRunsRemaining(int32 licensedProductionRunsRemaining) {
@@ -1244,25 +1244,3 @@ PyRepDict *BlueprintItem::GetBlueprintAttributes() const {
 
 	return(rsp.Encode());
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

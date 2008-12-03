@@ -495,7 +495,7 @@ void NPC::_AwardBounty(SystemEntity *who) {
 	
 	if(who->IsClient() == false) {
 		_log(NPC__TRACE, "Refusing to award bounty on %lu to non-client %lu", GetID(), who->GetID());
-		return;	//bounty dosent make sense for anything other than clients.
+		return;	//bounty doesn't make sense for anything other than clients.
 	}
 
 	Client *killer = who->CastToClient();

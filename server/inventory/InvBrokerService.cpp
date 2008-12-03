@@ -139,7 +139,7 @@ PyBoundObject *InvBrokerService::_CreateBoundObject(Client *c, const PyRep *bind
 	PyRep *t = bind_args->Clone();
 	if(!args.Decode(&t)) {
 		codelog(SERVICE__ERROR, "Failed to decode bind args from '%s'", c->GetName());
-		return(NULL);
+		return NULL;
 	}
 	_log(CLIENT__MESSAGE, "InvBrokerService bind request for:");
 	args.Dump(CLIENT__MESSAGE, "    ");
@@ -174,7 +174,7 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 	Inventory_GetInventory args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Unable to decode arguments");
-		return(NULL);
+		return NULL;
 	}
 	PyRep *result = NULL;
 	
@@ -201,7 +201,7 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 	case containerCorpMarket:
 	default:
 		codelog(SERVICE__ERROR, "Unhandled container type %d", args.container);
-		return(NULL);
+		return NULL;
 	}
 	
 	InventoryItem *item = m_manager->item_factory->Load(m_entityID, true);
@@ -223,7 +223,7 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
 	CallSetLabel args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Unable to decode arguments");
-		return(NULL);
+		return NULL;
 	}
 	
 	InventoryItem *item = m_manager->item_factory->Load(args.itemID, false);
@@ -235,7 +235,7 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
 	if(item->ownerID() != call.client->GetCharacterID()) {
 		_log(SERVICE__ERROR, "Character %lu tried to rename item %lu of character %lu.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
 		item->Release();
-		return(NULL);
+		return NULL;
 	}
 
 	item->Rename(args.itemName.c_str());
@@ -243,7 +243,7 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
 	
 	//do we need to send some sort of update?
 	
-	return(NULL);
+	return NULL;
 }
 
 PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
@@ -296,26 +296,26 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 	Inventory_CallReplaceCharges args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Unable to decode arguments");
-		return(NULL);
+		return NULL;
 	}
 	
 	//validate flag.
 	if(args.flag < flagSlotFirst || args.flag > flagSlotLast) {
 		codelog(SERVICE__ERROR, "%s: Invalid flag %d", call.client->GetName(), args.flag);
-		return(NULL);
+		return NULL;
 	}
 	
 	// returns new ref
 	InventoryItem *new_charge = m_item->GetByID(args.itemID, true);
 	if(new_charge == NULL) {
 		codelog(SERVICE__ERROR, "%s: Unable to find charge %d", call.client->GetName(), args.itemID);
-		return(NULL);
+		return NULL;
 	}
 
 	if(new_charge->ownerID() != call.client->GetCharacterID()) {
 		codelog(SERVICE__ERROR, "Character %lu tried to load charge %lu of character %lu.", call.client->GetCharacterID(), new_charge->itemID(), new_charge->ownerID());
 		new_charge->Release();
-		return(NULL);
+		return NULL;
 	}
 
 	if(new_charge->quantity() < args.quantity) {
@@ -326,7 +326,7 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 		new_charge = new_charge_split;	// copy the new ref
 		if(new_charge == NULL) {
 			codelog(SERVICE__ERROR, "%s: Unable to split charge %d into %d", call.client->GetName(), args.itemID, args.quantity);
-			return(NULL);
+			return NULL;
 		}
 	}
 
@@ -365,7 +365,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 	Inventory_CallAdd args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	std::vector<uint32> items;
@@ -378,7 +378,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 		//chances are its trying to transfer into a cargo container
 		if(!args.Decode(&call.tuple)) {
 			codelog(SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName());
-			return(NULL);
+			return NULL;
 		}
 
 		std::vector<uint32> items;
@@ -387,10 +387,10 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 
 	} else {
 		codelog(SERVICE__ERROR, "[Add]Unknown number of args in tuple");
-		return(NULL);
+		return NULL;
 	}
 		
-	return(NULL);
+	return NULL;
 }
 
 PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
@@ -399,7 +399,7 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
 		Call_SingleIntList args;
 		if(!args.Decode(&call.tuple)) {
 			codelog(SERVICE__ERROR, "Unable to decode arguments");
-			return(NULL);
+			return NULL;
 		}
 
 		//not sure about what flag to use here...
@@ -408,7 +408,7 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
 		Inventory_CallMultiAdd args;
 		if(!args.Decode(&call.tuple)) {
 			codelog(SERVICE__ERROR, "Unable to decode arguments");
-			return(NULL);
+			return NULL;
 		}
 
 		//NOTE: They can specify "None" in the quantity field to indicate
@@ -418,7 +418,7 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
 		return(_ExecAdd(call.client, args.itemIDs, args.quantity, (EVEItemFlags)args.flag));
 	}
 
-	return(NULL);
+	return NULL;
 }
 
 PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
@@ -428,7 +428,7 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 
 	if(!elements.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Unable to decode elements");
-		return(NULL);
+		return NULL;
 	}	
 
 	Inventory_CallMultiMergeElement element;
@@ -464,7 +464,7 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 	}
 
 	elements.MMElements.items.clear();
-	return(NULL);
+	return NULL;
 }
 
 PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
@@ -476,14 +476,14 @@ PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
 	if( call.tuple->items.size() != 0)
 		if( !arg.Decode( &call.tuple )) {
 			_log(SERVICE__ERROR, "Failed to decode args.");
-			return(NULL);
+			return NULL;
 		} else
 			stackFlag = (EVEItemFlags)arg.arg;
 	
 	//Stack Items contained in this inventory
 	m_item->StackContainedItems(stackFlag, call.client->GetCharacterID());
 
-	return(NULL);
+	return NULL;
 }
 
 void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag)
@@ -633,7 +633,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 		
 	}
 	//Return Null if no item was created
-	return(NULL);
+	return NULL;
 }
 
 

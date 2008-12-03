@@ -94,7 +94,7 @@ bool EVETCPConnection::ProcessReceivedData(char* errbuf) {
 		recvbuf_used = 0;
 	MInQueue.unlock();
 	
-	return(true);
+	return true;
 }
 
 bool EVETCPConnection::RecvData(char* errbuf) {
@@ -112,5 +112,5 @@ bool EVETCPConnection::RecvData(char* errbuf) {
 		return false;
 	}
 	
-	return(true);
+	return true;
 }

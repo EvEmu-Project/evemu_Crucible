@@ -81,7 +81,7 @@ PyBoundObject *MissionMgrService::_CreateBoundObject(Client *c, PyRepTuple *bind
 PyResult MissionMgrService::Handle_GetMyCourierMissions(PyCallArgs &call) {
 	codelog(SERVICE__ERROR, "GetMyCourierMissions unimplemented");
 	//SELECT * FROM courierMissions
-	return(NULL);
+	return NULL;
 }
 
 

@@ -23,11 +23,11 @@
 bool DirWalker::ListDirectory(const char *dir, std::vector<std::string> &into) {
 	DirWalker d(dir);
 	if(!d.GetFile())
-		return(false);	//empty list
+		return false;	//empty list
 	into.push_back(d.CurrentFileName());
 	while(d.GetFile())
 		into.push_back(d.CurrentFileName());
-	return(true);
+	return true;
 }
 
 DirWalker::DirWalker(const char *dir)
@@ -59,19 +59,19 @@ bool DirWalker::GetFile() {
 #ifdef WIN32
 	if(m_find == INVALID_HANDLE_VALUE) {
 		m_valid = false;
-		return(false);
+		return false;
 	}
 	if(m_first) {
 		m_first = false;
-		return(true);
+		return true;
 	}
 	
 	m_valid = (FindNextFile(m_find, &m_data) == TRUE);
-	return(true);
+	return true;
 #else
 	if(m_dir == NULL) {
 		m_valid = false;
-		return(false);
+		return false;
 	}
 	
 	m_data = readdir(m_dir);
@@ -83,7 +83,7 @@ bool DirWalker::GetFile() {
 //access to the current file.
 const char *DirWalker::CurrentFileName() {
 	if(!m_valid)
-		return(NULL);
+		return NULL;
 #ifdef WIN32
 	//may not work, it is really a WCHAR
 	return((const char *)m_data.cFileName);

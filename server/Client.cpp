@@ -201,7 +201,7 @@ bool Client::ProcessNet() {
 	//TRY_SIGEXCEPT {
 		
 		if(!m_net.Connected())
-			return(false);
+			return false;
 		
 		if(m_pingTimer.Check()) {
 			_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
@@ -237,10 +237,10 @@ bool Client::ProcessNet() {
 			p = NULL;
 		}
 	
-		return(true);
+		return true;
 	/*} CATCH_SIGEXCEPT(e) {
 		  _log(CLIENT__ERROR, "%s: Exception caught processing network packets\n%s", GetName(), e.stack_string().c_str());
-		  return(false);
+		  return false;
 	}*/
 }
 
@@ -557,7 +557,7 @@ bool Client::EnterSystem() {
 		if(m_system == NULL) {
 			_log(CLIENT__ERROR, "Failed to boot system %lu for char %s (%lu)", GetSystemID(), GetName(), GetCharacterID());
 			SendErrorMsg("Unable to boot system %lu", GetSystemID());
-			return(false);
+			return false;
 		}
 		m_system->AddClient(this);
 	}
@@ -588,10 +588,10 @@ bool Client::EnterSystem() {
 	} /*else {	//just dont do anything extra and let them be where they are
 		_log(CLIENT__ERROR, "Char %s (%lu) is in a bad location %lu", GetName(), GetCharacterID(), GetLocationID());
 		SendErrorMsg("In a bad location %lu", GetLocationID());
-		return(false);
+		return false;
 	}*/
 	
-	return(true);
+	return true;
 }
 
 void Client::MoveToLocation(uint32 location, const GPoint &pt) {
@@ -1026,19 +1026,19 @@ void Client::_ExecuteJump() {
 
 bool Client::AddBalance(double amount) {
 	if(amount == 0)
-		return(true);
+		return true;
 	
 	double result = m_char.balance + amount;
 	
 	//remember, this can take a negative amount...
 	if(result < 0) {
-		return(false);
+		return false;
 	}
 	
 	m_char.balance = result;
 	
 	if(!m_services->GetServiceDB()->SetCharacterBalance(GetCharacterID(), m_char.balance))
-		return(false);
+		return false;
 	
 	//send notification of change
 	OnAccountChange ac;
@@ -1048,7 +1048,7 @@ bool Client::AddBalance(double amount) {
 	PyRepTuple *answer = ac.Encode();
 	SendNotification("OnAccountChange", "cash", &answer, false);
 
-	return(true);
+	return true;
 }
 
 
@@ -1056,32 +1056,32 @@ bool Client::AddBalance(double amount) {
 bool Client::Load(uint32 char_id) {
 	if(!m_services->GetServiceDB()->LoadCharacter(char_id, m_char)) {
 		_log(CLIENT__ERROR, "Failed to load character data for char %lu.", char_id);
-		return(false);
+		return false;
 	}
 	if(!m_services->GetServiceDB()->LoadCorporationMemberInfo(char_id, m_corpstate)) {
 		_log(CLIENT__ERROR, "Failed to load corp member info for char %lu.", char_id);
-		return(false);
+		return false;
 	}
 
 	//get char
 	InventoryItem *character = m_services->item_factory->Load(char_id, true);
 	if(character == NULL)
-		return(false);
+		return false;
 
 	InventoryItem *ship = m_services->item_factory->Load(character->locationID(), true);
 	if(ship == NULL)
-		return(false);
+		return false;
 
 	_SetSelf(character);	//ref is stored
 	BoardShip(ship);	//updates modules
 	ship->Release();
 
 	if(!EnterSystem())
-		return(false);
+		return false;
 
 	SessionSync();
 
-	return(true);
+	return true;
 }
 
 uint32 Client::GetShipID() const {
@@ -1239,7 +1239,7 @@ DoDestinyUpdate ,*args= ([(31759,
 
 	if(!IsSolarSystem(GetLocationID())) {
 		_log(SERVICE__ERROR, "%s: Trying to launch drone when not in space!", GetName());
-		return(false);
+		return false;
 	}
 
 	_log(CLIENT__MESSAGE, "%s: Launching drone %lu", GetName(), drone->itemID());
@@ -1333,7 +1333,7 @@ DoDestinyUpdate ,*args= ([(31759,
 	//TODO: delay this until after the return.
 	//_SendDestinyUpdate(&actions, false);
 
-	return(false);
+	return false;
 }
 
 //assumes that the backend DB stuff was already done.
@@ -1398,10 +1398,10 @@ bool FunctorTimerQueue::Cancel(TimerID id) {
 	for(; cur != end; cur++) {
 		if((*cur)->id == id) {
 			m_queue.erase(cur);
-			return(true);
+			return true;
 		}
 	}
-	return(false);
+	return false;
 }
 
 void FunctorTimerQueue::Process() {

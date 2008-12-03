@@ -108,7 +108,7 @@ PyRep *ObjCacheDB::GetCachableObject(const std::string &type)
 	if(res == m_generators.end())
 	{
 		_log(SERVICE__ERROR, "Unable to find cachable object generator for type '%s'", type.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	genFunc f = res->second;

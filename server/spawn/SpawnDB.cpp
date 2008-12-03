@@ -44,7 +44,7 @@ bool SpawnDB::LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup 
 			solarSystemID))
 	{
 		codelog(SPAWN__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
@@ -92,7 +92,7 @@ bool SpawnDB::LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup 
 		}
 		into.clear();
 		
-		return(false);
+		return false;
 	}
 	
 	while(res.GetRow(row)) {
@@ -112,7 +112,7 @@ bool SpawnDB::LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup 
 		cur->second->entries.push_back(entry);
 	}
 	
-	return(true);
+	return true;
 }
 
 
@@ -137,7 +137,7 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 			solarSystemID))
 	{
 		codelog(SPAWN__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
@@ -220,7 +220,7 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 		}
 		into.clear();
 		
-		return(false);
+		return false;
 	}
 	
 	while(res.GetRow(row)) {
@@ -257,7 +257,7 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 		}
 	}
 	
-	return(true);
+	return true;
 }
 
 

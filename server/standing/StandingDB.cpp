@@ -36,7 +36,7 @@ PyRepObject *StandingDB::GetNPCStandings() {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -54,7 +54,7 @@ PyRepObject *StandingDB::GetCharStandings(uint32 characterID) {
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetCharStandings query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -77,7 +77,7 @@ PyRepObject *StandingDB::GetCharPrimeStandings(uint32 characterID) {
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetCharPrimeStandings query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -95,7 +95,7 @@ PyRepObject *StandingDB::GetCharNPCStandings(uint32 characterID) {
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetCharNPCStandings query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -131,7 +131,7 @@ PyRepObject *StandingDB::GetStandingTransactions(uint32 characterID) {
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return (DBResultToRowset(res));*/

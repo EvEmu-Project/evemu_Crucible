@@ -55,7 +55,7 @@ PyResult PyService::Handle_MachoResolveObject(PyCallArgs &call) {
 /*	CallMachoResolveObject args;
 	if(!args.Decode(!call.packet)) {
 		_log(CLIENT__ERROR, "Failed to decode params for MachoResolveObject.");
-		return(NULL);
+		return NULL;
 	}
 */
 	//returns nodeID
@@ -68,7 +68,7 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 	CallMachoBindObject args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s Service: %s: Failed to decode arguments", GetName(), call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	_log(SERVICE__MESSAGE, "%s Service: %s: Processing MachoBindObject", GetName(), call.client->GetName());
@@ -80,7 +80,7 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 	if(our_obj == NULL) {
 		_log(SERVICE__ERROR, "%s Service: %s: Unable to create bound object for:", GetName(), call.client->GetName());
 		args.bindParams->Dump(SERVICE__ERROR, "    ");
-		return(NULL);
+		return NULL;
 	}
 
 	PyRepTuple *robjs = new PyRepTuple(2);
@@ -94,7 +94,7 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 		CallMachoBindObject_call boundcall;
 		if(!boundcall.Decode(&args.call)) {
 			codelog(SERVICE__ERROR, "%s Service: %s: Failed to decode boundcall arguments", GetName(), call.client->GetName());
-			return(NULL);
+			return NULL;
 		}
 		
 		_log(SERVICE__MESSAGE, "%s Service: MachoBindObject also contains call to %s", GetName(), boundcall.method_name.c_str());
@@ -129,7 +129,7 @@ PyBoundObject *PyService::_CreateBoundObject(Client *c, const PyRep *bind_args) 
 	_log(SERVICE__ERROR, "%s Service: Default _CreateBoundObject called, somebody didnt read the comments. This method must be overridden if bound objects are provided by the service!", GetName());
 	bind_args->Dump(stdout, "  Bind Args: ");
 	//this is probably going to cause us to crash:
-	return(NULL);
+	return NULL;
 }
 
 const char *const PyService::s_checkTimeStrings[_checkCount] = {
@@ -168,7 +168,7 @@ PyRepObject *PyService::_BuildCachedReturn(PyRepSubStream **in_result, const cha
 	if(result->data == NULL) {
 		_log(SERVICE__ERROR, "%s: Failed to build cached return", GetName());
 		delete result;
-		return(NULL);
+		return NULL;
 	}
 	
 	cached.call_return = result;	//this entire result is going to get cloned in the Encode(), and then destroyed when we return... what a waste...

@@ -38,7 +38,7 @@ PyResult FactionWarMgrService::Handle_GetWarFactions(PyCallArgs &call) {
 	if(!m_manager->GetCache()->IsCacheLoaded(method_id)) {
 		PyRep *res = m_db.GetWarFactions();
 		if(res == NULL)
-			return(NULL);
+			return NULL;
 		m_manager->GetCache()->GiveCache(method_id, &res);
 	}
 
@@ -53,7 +53,7 @@ PyResult FactionWarMgrService::Handle_GetFacWarSystems(PyCallArgs &call) {
 	if(!m_manager->GetCache()->IsCacheLoaded(method_id)) {
 		PyRep *res = m_db.GetWarFactions();
 		if(res == NULL)
-			return(NULL);
+			return NULL;
 		m_manager->GetCache()->GiveCache(method_id, &res);
 	}
 
@@ -64,7 +64,7 @@ PyResult FactionWarMgrService::Handle_GetCharacterRankOverview(PyCallArgs &call)
 	Call_SingleIntegerArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Failed to decode args.");
-		return(NULL);
+		return NULL;
 	}
 
 	_log(SERVICE__WARNING, "%s::GetCharacterRankOverview(charid=%lu) unimplemented.", GetName(), arg.arg);
@@ -83,7 +83,7 @@ PyResult FactionWarMgrService::Handle_GetFactionMilitiaCorporation(PyCallArgs &c
 	Call_SingleIntegerArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Failed to decode args.");
-		return(NULL);
+		return NULL;
 	}
 	return(new PyRepInteger(m_db.GetFactionMilitiaCorporation(arg.arg)));
 }

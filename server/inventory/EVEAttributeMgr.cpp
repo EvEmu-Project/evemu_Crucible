@@ -233,7 +233,7 @@ void ItemAttributeMgr::DeleteEx(bool notify) {
 
 bool ItemAttributeMgr::Load(bool notify) {
 	if(m_db == NULL)
-		return(false);
+		return false;
 
 	const EntityList *el = m_el;
 	if(!notify)

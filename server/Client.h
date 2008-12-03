@@ -315,7 +315,7 @@ public:
 	
 	//SystemEntity interface:
 	virtual EntityClass GetClass() const { return(ecClient); }
-	virtual bool IsClient() const { return(true); }
+	virtual bool IsClient() const { return true; }
 	virtual Client *CastToClient() { return(this); }
 	virtual const Client *CastToClient() const { return(this); }
 

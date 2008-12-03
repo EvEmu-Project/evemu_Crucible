@@ -68,7 +68,7 @@ const Category *ItemFactory::category(EVEItemCategories category) {
 
 		Category *cat = Category::LoadCategory(*this, category);
 		if(cat == NULL)
-			return(NULL);
+			return NULL;
 
 		// insert it into our cache
 		res = m_categories.insert(
@@ -85,7 +85,7 @@ const Group *ItemFactory::group(uint32 groupID) {
 
 		Group *group = Group::LoadGroup(*this, groupID);
 		if(group == NULL)
-			return(NULL);
+			return NULL;
 
 		// insert it into cache
 		res = m_groups.insert(
@@ -102,7 +102,7 @@ const Type *ItemFactory::type(uint32 typeID) {
 
 		Type *type = Type::LoadType(*this, typeID);
 		if(type == NULL)
-			return(NULL);
+			return NULL;
 
 		// insert into cache
 		res = m_types.insert(
@@ -119,7 +119,7 @@ InventoryItem *ItemFactory::Load(uint32 itemID, bool recurse) {
 
 		InventoryItem *i = InventoryItem::LoadItem(*this, itemID, recurse);
 		if(i == NULL)
-			return(NULL);
+			return NULL;
 
 		//we keep the original ref.
 		res = m_items.insert(
@@ -135,10 +135,10 @@ InventoryItem *ItemFactory::Load(uint32 itemID, bool recurse) {
 BlueprintItem *ItemFactory::LoadBlueprint(uint32 blueprintID, bool recurse) {
 	InventoryItem *i = Load(blueprintID, recurse);
 	if(i == NULL)
-		return(NULL);
+		return NULL;
 	if(i->categoryID() != EVEDB::invCategories::Blueprint) {
 		i->Release();
-		return(NULL);
+		return NULL;
 	}
 	return((BlueprintItem *)(i));
 }
@@ -149,9 +149,9 @@ InventoryItem *ItemFactory::GetIfContentsLoaded(uint32 itemID) {
 		if(res->second->ContentsLoaded())
 			return(res->second->Ref());
 		else
-			return(NULL);
+			return NULL;
 	}
-	return(NULL);
+	return NULL;
 }
 	
 InventoryItem *ItemFactory::Spawn(
@@ -163,7 +163,7 @@ InventoryItem *ItemFactory::Spawn(
 ) {
 	const Type *t = type(typeID);
 	if(t == NULL)
-		return(NULL);
+		return NULL;
 
 	if(t->categoryID() == EVEDB::invCategories::Blueprint)
 		return(SpawnBlueprint(typeID, ownerID, locationID, flag, quantity, false, 0, 0, 0));
@@ -182,7 +182,7 @@ InventoryItem *ItemFactory::Spawn(
 		""	// customInfo
 	);
 	if(itemID == NULL)
-		return(NULL);
+		return NULL;
 	
 	return(Load(itemID));
 }
@@ -197,7 +197,7 @@ InventoryItem *ItemFactory::SpawnSingleton(
 ) {
 	const Type *t = type(typeID);
 	if(t == NULL)
-		return(NULL);
+		return NULL;
 
 	if(t->categoryID() == EVEDB::invCategories::Blueprint)
 		return(SpawnBlueprintSingleton(typeID, ownerID, locationID, flag, false, 0, 0, 0, name, pos));
@@ -215,7 +215,7 @@ InventoryItem *ItemFactory::SpawnSingleton(
 		""	// customInfo
 	);
 	if(itemID == NULL)
-		return(NULL);
+		return NULL;
 	
 	return(Load(itemID));
 }
@@ -233,11 +233,11 @@ BlueprintItem *ItemFactory::SpawnBlueprint(
 ) {
 	const Type *t = type(typeID);
 	if(t == NULL)
-		return(NULL);
+		return NULL;
 
 	if(t->categoryID() != EVEDB::invCategories::Blueprint) {
 		_log(ITEM__ERROR, "Trying to spawn blueprint with non-blueprint type %lu.", typeID);
-		return(NULL);
+		return NULL;
 	}
 
 	GPoint pos(0, 0, 0);
@@ -254,7 +254,7 @@ BlueprintItem *ItemFactory::SpawnBlueprint(
 		""	// customInfo
 	);
 	if(itemID == NULL)
-		return(NULL);
+		return NULL;
 
 	if(!m_db.NewBlueprint(
 		itemID,
@@ -264,7 +264,7 @@ BlueprintItem *ItemFactory::SpawnBlueprint(
 		licensedProductionRunsRemaining))
 	{
 		m_db.DeleteItem(itemID);
-		return(NULL);
+		return NULL;
 	}
 
 	return((BlueprintItem *)(Load(itemID)));
@@ -284,11 +284,11 @@ BlueprintItem *ItemFactory::SpawnBlueprintSingleton(
 ) {
 	const Type *t = type(typeID);
 	if(t == NULL)
-		return(NULL);
+		return NULL;
 
 	if(t->categoryID() != EVEDB::invCategories::Blueprint) {
 		_log(ITEM__ERROR, "Trying to spawn blueprint with non-blueprint type %lu.", typeID);
-		return(NULL);
+		return NULL;
 	}
 
 	uint32 itemID = m_db.NewItem(
@@ -304,7 +304,7 @@ BlueprintItem *ItemFactory::SpawnBlueprintSingleton(
 		""	// customInfo
 	);
 	if(itemID == NULL)
-		return(NULL);
+		return NULL;
 
 	if(!m_db.NewBlueprint(
 		itemID,
@@ -314,7 +314,7 @@ BlueprintItem *ItemFactory::SpawnBlueprintSingleton(
 		licensedProductionRunsRemaining))
 	{
 		m_db.DeleteItem(itemID);
-		return(NULL);
+		return NULL;
 	}
 
 	return((BlueprintItem *)(Load(itemID)));

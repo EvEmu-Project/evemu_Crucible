@@ -49,13 +49,13 @@ PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetSolarSystem query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(SERVICE__ERROR, "Error in GetSolarSystem query: no solarsystem for id %d", solarSystemID);
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBRowToRow(row));
@@ -80,13 +80,13 @@ PyRep *StationDB::DoGetStation(uint32 sid) {
 	))
 	{
 		_log(SERVICE__ERROR, "Error in DoGetStation query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(SERVICE__ERROR, "Error in DoGetStation query: no station for id %d", sid);
-		return(NULL);
+		return NULL;
 	}
 
 	//only a guess that this is row
@@ -117,13 +117,13 @@ PyRep *StationDB::GetStationItemBits(uint32 sid) {
 	))
 	{
 		_log(SERVICE__ERROR, "Error in DoGetStation query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(SERVICE__ERROR, "Error in DoGetStation query: no station for id %d", sid);
-		return(NULL);
+		return NULL;
 	}
 
 	PyRepTuple * result = new PyRepTuple(5);

@@ -47,7 +47,7 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	Call_SingleArg args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");
-		return(NULL);
+		return NULL;
 	}
 	
 	//we can get an integer or a boolean right now...
@@ -61,7 +61,7 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 		corporate_wallet = i->value;
 	} else {
 		codelog(CLIENT__ERROR, "Invalid arguments");
-		return(NULL);
+		return NULL;
 	}
 	
 	
@@ -74,7 +74,7 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 			);
 		return(result);
 	}
-	return(NULL);
+	return NULL;
 }
 
 //givecache takes (ownerID, retval['qty'], retval['reason'][:40])
@@ -135,22 +135,22 @@ PyResult AccountService::Handle_GiveCash(PyCallArgs &call) {
 	Call_GiveCash args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");
-		return(NULL);
+		return NULL;
 	}
 
 	if(args.amount == 0)
-		return(NULL);
+		return NULL;
 
 	if(args.amount < 0 || args.amount > call.client->GetBalance()) {
 		_log(CLIENT__ERROR, "%s: Invalid amount in GiveCash(): %.2f", call.client->GetName(), args.amount);
 		call.client->SendErrorMsg("Invalid amount '%.2f'", args.amount);
-		return(NULL);
+		return NULL;
 	}
 	
 	SystemManager *system = call.client->System();
 	if(system == NULL) {
 		codelog(CLIENT__ERROR, "%s: bad system", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	//NOTE: this will need work once we reorganize the entity list...
@@ -164,7 +164,7 @@ PyResult AccountService::Handle_GiveCash(PyCallArgs &call) {
 		} else {
 			_log(CLIENT__ERROR, "%s: Failed to find character %lu", call.client->GetName(), args.destination);
 			call.client->SendErrorMsg("Unable to find the target");
-			return(NULL);
+			return NULL;
 		}
 	} else {
 		targetIsChar = true;
@@ -187,7 +187,7 @@ PyRepTuple * AccountService::GiveCashToCorp(Client * const client, uint32 corpID
 			client->GetCharacterID(),
 			corpID );
 		client->SendErrorMsg("Failed to transfer money from your account.");
-		return(NULL);
+		return NULL;
 	}
 	if(!m_db.AddBalanceToCorp(corpID, amount)) {
 		_log(CLIENT__ERROR, "%s: Failed to add %.2f ISK to %lu for donation from %lu", 
@@ -200,7 +200,7 @@ PyRepTuple * AccountService::GiveCashToCorp(Client * const client, uint32 corpID
 		//try to refund the money..
 		client->AddBalance(amount);
 		
-		return(NULL);
+		return NULL;
 	}
 	
 	double cnb = m_db.GetCorpBalance(corpID);
@@ -267,7 +267,7 @@ PyRepTuple * AccountService::GiveCashToChar(Client * const client, Client * cons
 			client->GetCharacterID(),
 			other->GetCharacterID() );
 		client->SendErrorMsg("Failed to transfer money from your account.");
-		return(NULL);
+		return NULL;
 	}
 	if(!other->AddBalance(amount)) {
 		_log(CLIENT__ERROR, "%s: Failed to add %.2f ISK to %lu for donation from %lu", 
@@ -280,7 +280,7 @@ PyRepTuple * AccountService::GiveCashToChar(Client * const client, Client * cons
 		//try to refund the money..
 		client->AddBalance(amount);
 		
-		return(NULL);
+		return NULL;
 	}
 	
 	//record the transactions in the wallet.
@@ -333,7 +333,7 @@ PyResult AccountService::Handle_GetJournal(PyCallArgs &call) {
 	Call_GetJournal args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");
-		return(NULL);
+		return NULL;
 	}
 
 	bool ca = false;
@@ -358,22 +358,22 @@ PyResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call) {
 	Call_GiveCash args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");
-		return(NULL);
+		return NULL;
 	}
 
 	if(args.amount == 0)
-		return(NULL);
+		return NULL;
 
 	if(args.amount < 0 || args.amount > m_db.GetCorpBalance(call.client->GetCorporationID())) {
 		_log(CLIENT__ERROR, "%s: Invalid amount in GiveCashFromCorpAccount(): %.2f", call.client->GetName(), args.amount);
 		call.client->SendErrorMsg("Invalid amount '%.2f'", args.amount);
-		return(NULL);
+		return NULL;
 	}
 	
 	SystemManager *system = call.client->System();
 	if(system == NULL) {
 		codelog(CLIENT__ERROR, "%s: bad system", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	//NOTE: this will need work once we reorganize the entity list...
@@ -381,7 +381,7 @@ PyResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call) {
 	if(other == NULL) {
 		_log(CLIENT__ERROR, "%s: Failed to find character %lu", call.client->GetName(), args.destination);
 		call.client->SendErrorMsg("Unable to find the target");
-		return(NULL);
+		return NULL;
 	}
 
 
@@ -398,7 +398,7 @@ PyRepTuple * AccountService::WithdrawCashToChar(Client * const client, Client * 
 			corpID,
 			other->GetCharacterID() );
 		client->SendErrorMsg("Failed to transfer money from your account.");
-		return(NULL);
+		return NULL;
 	}
 
 	double ncb = m_db.GetCorpBalance(corpID);
@@ -427,7 +427,7 @@ PyRepTuple * AccountService::WithdrawCashToChar(Client * const client, Client * 
 		// if we're here, we have a more serious problem than
 		// corp's balance not being displayed properly, so i won't bother with it
 		
-		return(NULL);
+		return NULL;
 	}
 	
 	//record the transactions in the wallet.

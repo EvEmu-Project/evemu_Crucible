@@ -46,7 +46,7 @@ void ClassDecodeGenerator::Process_root(FILE *into, TiXmlElement *element) {
 	
 	fprintf(into, "\n"
 				  "	delete packet;\n"
-				  "	return(true);\n}\n");
+				  "	return true;\n}\n");
 }
 
 bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) {
@@ -69,13 +69,13 @@ bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 		"	if(!%s->IsTuple()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	PyRepTuple *%s = (PyRepTuple *) %s;\n"
 		"	if(%s->items.size() != %d) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong size: expected %d, but got %%d\", %s->items.size());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"\n",
 		v, 
@@ -94,10 +94,10 @@ bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 	}
 	
 	if(!ProcessFields(into, field))
-		return(false);
+		return false;
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
@@ -120,13 +120,13 @@ bool ClassDecodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsList()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a list: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	PyRepList *%s = (PyRepList *) %s;\n"
 		"	if(%s->items.size() != %d) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong size: expected %d, but got %%d\", %s->items.size());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"\n",
 		v, 
@@ -145,10 +145,10 @@ bool ClassDecodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 	}
 	
 	if(!ProcessFields(into, field))
-		return(false);
+		return false;
 	
 	pop();
-	return(true);
+	return true;
 }
 
 /*
@@ -169,7 +169,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsDict()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}"
 		"\n",
 		v, m_name, iname, v
@@ -189,12 +189,12 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 		TiXmlElement *val = ele->FirstChildElement();
 		if(val == NULL) {
 			_log(COMMON__ERROR, "<IDEntry> at line %d lacks a value element", ele->Row());
-			return(false);
+			return false;
 		}
 		const char *vname = val->Attribute("name");
 		if(vname == NULL) {
 			_log(COMMON__ERROR, "<IDEntry>'s value element at line %d lacks a name", val->Row());
-			return(false);
+			return false;
 		}
 		fprintf(into,
 			"\tbool %s_%s = false;\n", iname, vname);
@@ -216,7 +216,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 			"		if(!key__->IsString()) {\n"
 			"			_log(NET__PACKET_ERROR, \"Decode %s failed: a key in %s is the wrong type: %%s\", key__->TypeString());\n"
 			"			delete packet;\n"
-			"			return(false);\n"
+			"			return false;\n"
 			"		}\n"
 			"		PyRepString *key_string__ = (PyRepString *) key__;\n"
 			"		\n",
@@ -241,17 +241,17 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 			const char *key = ele->Attribute("key");
 			if(key == NULL) {
 				_log(COMMON__ERROR, "<IDEntry> at line %d lacks a key attribute", ele->Row());
-				return(false);
+				return false;
 			}
 			TiXmlElement *val = ele->FirstChildElement();
 			if(val == NULL) {
 				_log(COMMON__ERROR, "<IDEntry> at line %d lacks a value element", ele->Row());
-				return(false);
+				return false;
 			}
 			const char *vname = val->Attribute("name");
 			if(vname == NULL) {
 				_log(COMMON__ERROR, "<IDEntry>'s value element at line %d lacks a name", val->Row());
-				return(false);
+				return false;
 			}
 	
 			//conditional prefix...
@@ -267,7 +267,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 			push(vvname);
 			
 			if(!ProcessFields(into, ele, 1))
-				return(false);
+				return false;
 			//fixed suffix...
 			fprintf(into, 
 				"		} else\n");
@@ -278,7 +278,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 				"		{\n"
 				"			_log(NET__PACKET_ERROR, \"Decode %s failed: Unknown key string '%%s' in %s\", key_string__->value.c_str());\n"
 				"			delete packet;\n"
-				"			return(false);\n"
+				"			return false;\n"
 				"		}\n"
 				"	}\n"
 				"	\n",
@@ -303,19 +303,19 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 			TiXmlElement *val = ele->FirstChildElement();
 			if(val == NULL) {
 				_log(COMMON__ERROR, "<IDEntry> at line %d lacks a value element", ele->Row());
-				return(false);
+				return false;
 			}
 			const char *vname = val->Attribute("name");
 			if(vname == NULL) {
 				_log(COMMON__ERROR, "<IDEntry>'s value element at line %d lacks a name", val->Row());
-				return(false);
+				return false;
 			}
 			
 			fprintf(into, 
 				"	if(!%s_%s) {\n"
 				"		_log(NET__PACKET_ERROR, \"Decode %s failed: Missing dict entry for '%s' in %s\");\n"
 				"		delete packet;\n"
-				"		return(false);\n"
+				"		return false;\n"
 				"	}\n"
 				"	\n",
 				iname, vname, m_name, vname, iname);
@@ -325,7 +325,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field) {
@@ -340,7 +340,7 @@ bool ClassDecodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *fie
 		"	if(!%s->IsSubStream()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a substream: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}"
 		"	\n"
 		"	PyRepSubStream *%s = (PyRepSubStream *) %s;\n"
@@ -349,7 +349,7 @@ bool ClassDecodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *fie
 		"	if(%s->decoded == NULL) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: Unable to decode %s\");\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	\n",
 		v, m_name, iname, v, iname, v, iname, iname, m_name, iname
@@ -359,10 +359,10 @@ bool ClassDecodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *fie
 	//Decode the sub-element
 	push(ssname);
 	if(!ProcessFields(into, field, 1))
-		return(false);
+		return false;
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field) {
@@ -377,7 +377,7 @@ bool ClassDecodeGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *fie
 		"	if(!%s->IsSubStruct()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a substruct: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}"
 		"	\n"
 		"	PyRepSubStruct *%s = (PyRepSubStruct *) %s;\n"
@@ -391,17 +391,17 @@ bool ClassDecodeGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *fie
 	//Decode the sub-element
 	push(ssname);
 	if(!ProcessFields(into, field, 1))
-		return(false);
+		return false;
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	char iname[16];
@@ -413,7 +413,7 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsDict()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a dict: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
 		"	PyRepDict *%s = (PyRepDict *) %s;\n"
@@ -425,7 +425,7 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		"		if(!%s_cur->first->IsString()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Key %%d in dict %s is not a string: %%s\", %s_index, %s_cur->first->TypeString());\n"
 		"			delete packet;\n"
-		"			return(false);\n"
+		"			return false;\n"
 		"		}\n"
 		"		PyRepString *k = (PyRepString *) %s_cur->first;\n"
 		"		%s[k->value] = %s_cur->second->Clone();\n"
@@ -447,14 +447,14 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 	);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	char iname[16];
@@ -466,7 +466,7 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsDict()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a dict: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
 		"	PyRepDict *%s = (PyRepDict *) %s;\n"
@@ -478,7 +478,7 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		"		if(!%s_cur->first->IsInteger()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Key %%d in dict %s is not an integer: %%s\", %s_index, %s_cur->first->TypeString());\n"
 		"			delete packet;\n"
-		"			return(false);\n"
+		"			return false;\n"
 		"		}\n"
 		"		PyRepInteger *k = (PyRepInteger *) %s_cur->first;\n"
 		"		if(k->value > 0xFFFFFFFFLL) {\n"
@@ -504,34 +504,34 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 	);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *key = field->Attribute("key");
 	if(key == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the key attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *pykey = field->Attribute("pykey");
 	if(pykey == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the pykey attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *value = field->Attribute("value");
 	if(value == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the value attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *pyvalue = field->Attribute("pyvalue");
 	if(pyvalue == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the pyvalue attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	char iname[16];
@@ -543,7 +543,7 @@ bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsDict()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a dict: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
 		"	PyRepDict *%s = (PyRepDict *) %s;\n"
@@ -555,12 +555,12 @@ bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 		"		if(!%s_cur->first->Is%s()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Key %%d in dict %s is not %s: %%s\", %s_index, %s_cur->first->TypeString());\n"
 		"			delete packet;\n"
-		"			return(false);\n"
+		"			return false;\n"
 		"		}\n"
 		"		if(!%s_cur->second->Is%s()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Value %%d in dict %s is not %s: %%s\", %s_index, %s_cur->second->TypeString());\n"
 		"			delete packet;\n"
-		"			return(false);\n"
+		"			return false;\n"
 		"		}\n"
 		"		PyRep%s *k = (PyRep%s *) %s_cur->first;\n"
 		"		PyRep%s *v = (PyRep%s *) %s_cur->second;\n"
@@ -586,14 +586,14 @@ bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 	);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	char iname[16];
@@ -607,7 +607,7 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsList()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a list: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
 		"	PyRepList *%s = (PyRepList *) %s;\n"
@@ -619,7 +619,7 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 		"		if(!(*%s_cur)->IsString()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not a string: %%s\", %s_index, (*%s_cur)->TypeString());\n"
 		"			delete packet;\n"
-		"			return(false);\n"
+		"			return false;\n"
 		"		}\n"
 		"		PyRepString *t = (PyRepString *) (*%s_cur);\n"
 		"		%s.push_back(t->value);\n"
@@ -633,14 +633,14 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 	);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	char iname[16];
@@ -654,7 +654,7 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsList()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a list: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
 		"	PyRepList *%s = (PyRepList *) %s;\n"
@@ -666,7 +666,7 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 		"		if(!(*%s_cur)->IsInteger()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not an integer: %%s\", %s_index, (*%s_cur)->TypeString());\n"
 		"			delete packet;\n"
-		"			return(false);\n"
+		"			return false;\n"
 		"		}\n"
 		"		PyRepInteger *t = (PyRepInteger *) (*%s_cur);\n"
 		"		if(t->value > 0xFFFFFFFFLL) {\n"
@@ -685,14 +685,14 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 	);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	char iname[16];
@@ -706,7 +706,7 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsList()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a list: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
 		"	PyRepList *%s = (PyRepList *) %s;\n"
@@ -718,7 +718,7 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 		"		if(!(*%s_cur)->IsInteger()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not an integer: %%s\", %s_index, (*%s_cur)->TypeString());\n"
 		"			delete packet;\n"
-		"			return(false);\n"
+		"			return false;\n"
 		"		}\n"
 		"		PyRepInteger *t = (PyRepInteger *) (*%s_cur);\n"
 		"		%s.push_back(t->value);\n"
@@ -732,19 +732,19 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 	);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_element(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *type = field->Attribute("type");
 	if(type == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the type attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 
 	char iname[16];
@@ -758,7 +758,7 @@ bool ClassDecodeGenerator::Process_element(FILE *into, TiXmlElement *field) {
 		"	if(!%s.Decode(&%s)) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: unable to decode element %s\");\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	\n",
 		iname, v,
@@ -768,19 +768,19 @@ bool ClassDecodeGenerator::Process_element(FILE *into, TiXmlElement *field) {
 		);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *type = field->Attribute("type");
 	if(type == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the type attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 
 	char iname[16];
@@ -796,7 +796,7 @@ bool ClassDecodeGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
 		"	if(!%s->Decode(&%s)) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: unable to decode element %s\");\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	\n",
 		iname, v,
@@ -808,7 +808,7 @@ bool ClassDecodeGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
 		);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_none(FILE *into, TiXmlElement *field) {
@@ -818,21 +818,21 @@ bool ClassDecodeGenerator::Process_none(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsNone()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: expecting a None but got a %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	\n",
 		v, m_name, v
 		);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	const char *type = field->Attribute("type");
 	if(type == NULL) {
 		_log(COMMON__ERROR, "object at line %d is missing the type attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 
 	char iname[16];
@@ -846,14 +846,14 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsObject()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	PyRepObject *%s = (PyRepObject *) %s;\n"
 		"	\n"
 		"	if(%s->type != \"%s\") {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong object type. Expected '%s', got '%%s'\", %s->type.c_str());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	\n",
 		v, m_name, iname, v, iname, v, iname, type, m_name, iname  , type, iname
@@ -863,17 +863,17 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	//Decode the sub-element
 	push(ssname);
 	if(!ProcessFields(into, field, 1))
-		return(false);
+		return false;
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	bool type1 = false;
 	const char *type = field->Attribute("type1");
@@ -889,13 +889,13 @@ bool ClassDecodeGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsNewObject()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	PyRepNewObject *%s = (PyRepNewObject *) %s;\n"
 		"	if(%s%s->is_type_1) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: expected %s to %s of type 1, but it %s\");\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n",
 		v,
 			m_name, iname, v,
@@ -909,7 +909,7 @@ bool ClassDecodeGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 	// decode the header
 	push(hname);
 	if(!ProcessFields(into, field, 1))
-		return(false);
+		return false;
 
 	fprintf(into,
 		"	%s_list = %s->list_data;\n"
@@ -923,14 +923,14 @@ bool ClassDecodeGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 	);
 
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	const char *v = top();
@@ -946,7 +946,7 @@ bool ClassDecodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 		"	} else {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a buffer: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	\n",
 			v,
@@ -961,14 +961,14 @@ bool ClassDecodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 		);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_raw(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	const char *v = top();
@@ -983,14 +983,14 @@ bool ClassDecodeGenerator::Process_raw(FILE *into, TiXmlElement *field) {
 		);
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *v = top();
 	
@@ -1013,7 +1013,7 @@ bool ClassDecodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsList()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a list: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	PyRepList *list_%s = (PyRepList *) %s;"
 		"	%s.items = list_%s->items;\n"
@@ -1030,14 +1030,14 @@ bool ClassDecodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 	}
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	const char *v = top();
@@ -1061,7 +1061,7 @@ bool ClassDecodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsTuple()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a tuple: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	%s = (PyRepTuple *) %s;\n"
 		"	%s = NULL;\n"
@@ -1074,14 +1074,14 @@ bool ClassDecodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 	}
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	const char *v = top();
@@ -1105,7 +1105,7 @@ bool ClassDecodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsDict()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a dict: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	PyRepDict *list_%s = (PyRepDict *) %s;"
 		"	%s.items = list_%s->items;\n"
@@ -1122,14 +1122,14 @@ bool ClassDecodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 	}
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	char iname[16];
@@ -1156,7 +1156,7 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 			"	if(!%s->IsBool()) {\n"
 			"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a boolean: %%s\", %s->TypeString());\n"
 			"		delete packet;\n"
-			"		return(false);\n"
+			"		return false;\n"
 			"	}\n"
 			"	PyRepBoolean *%s = (PyRepBoolean *) %s;\n"
 			"	%s = %s->value;\n"
@@ -1174,7 +1174,7 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 			"	} else {\n"
 			"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a boolean (or int): %%s\", %s->TypeString());\n"
 			"		delete packet;\n"
-			"		return(false);\n"
+			"		return false;\n"
 			"	}\n"
 			"",
 			v, 
@@ -1192,14 +1192,14 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 	}
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	
 	const char *v = top();
@@ -1225,7 +1225,7 @@ bool ClassDecodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsInteger()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not an int: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	PyRepInteger *%s = (PyRepInteger *) %s;\n"
 		"	if(%s->value > 0xFFFFFFFF) {\n"
@@ -1242,14 +1242,14 @@ bool ClassDecodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
 	}
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *v = top();
 	
@@ -1274,7 +1274,7 @@ bool ClassDecodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsInteger()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not an int: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	PyRepInteger *%s = (PyRepInteger *) %s;\n"
 		"	%s = %s->value;\n"
@@ -1287,14 +1287,14 @@ bool ClassDecodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 	}
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *type1 = field->Attribute("type1");
 	
@@ -1322,7 +1322,7 @@ bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsString()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a string: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	PyRepString *%s = (PyRepString *) %s;\n"
 		"	%s = %s->value;\n"
@@ -1350,14 +1350,14 @@ bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 	}
 	
 	pop();
-	return(true);
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_real(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *v = top();
 
@@ -1382,7 +1382,7 @@ bool ClassDecodeGenerator::Process_real(FILE *into, TiXmlElement *field) {
 		"	if(!%s->IsReal()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a real: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
-		"		return(false);\n"
+		"		return false;\n"
 		"	}\n"
 		"	PyRepReal *%s = (PyRepReal *) %s;\n"
 		"	%s = %s->value;\n"
@@ -1395,7 +1395,7 @@ bool ClassDecodeGenerator::Process_real(FILE *into, TiXmlElement *field) {
 	}
 	
 	pop();
-	return(true);
+	return true;
 }
 
 

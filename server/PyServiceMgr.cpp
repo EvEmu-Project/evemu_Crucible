@@ -35,13 +35,13 @@ public:
 	virtual PyResult Call(PyCallStream &call, PyCallArgs &args) {
 		if(call.remoteObject != 0) {
 			_log(SERVICE__ERROR, "Service-less message received with an integer remote object ID %lu!", call.remoteObject);
-			return(NULL);
+			return NULL;
 		}
 
 		PyBoundObject *called = m_manager->FindBoundObject(call.remoteObjectStr.c_str());
 		if(called == NULL) {
 			_log(SERVICE__ERROR, "Service-less message received for unknown bound object %s", call.remoteObjectStr.c_str());
-			return(NULL);
+			return NULL;
 		}
 
 		return(called->Call(call, args));
@@ -114,7 +114,7 @@ PyService *PyServiceMgr::LookupService(const PyPacket *p) {
 		if((*cur)->IsPacketFor(p))
 			return(*cur);
 	}
-	return(NULL);
+	return NULL;
 }
 
 uint32 PyServiceMgr::_AllocateBindID() {
@@ -180,7 +180,7 @@ PyBoundObject *PyServiceMgr::FindBoundObject(const char *bindID) {
 	std::map<std::string, BoundObject>::iterator res;
 	res = m_boundObjects.find(bindID);
 	if(res == m_boundObjects.end())
-		return(NULL);
+		return NULL;
 	return(res->second.destination);
 }
 

@@ -46,10 +46,10 @@
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="EvemuPCH.h"
-				WarningLevel="3"
+				WarningLevel="1"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 			/>
@@ -299,10 +299,26 @@
 				<File
 					RelativePath="..\..\server\cache\ObjCacheDB.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							GeneratePreprocessedFile="2"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\server\cache\ObjCacheService.cpp"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							GeneratePreprocessedFile="0"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter

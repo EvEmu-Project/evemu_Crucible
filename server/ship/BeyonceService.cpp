@@ -228,99 +228,99 @@ PyResult BeyonceBound::Handle_FollowBall(PyCallArgs &call) {
 		SystemManager *system = call.client->System();
 		if(system == NULL) {
 			codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
-			return(NULL);
+			return NULL;
 		}
 		
 		SystemEntity *entity = system->get(ball_id->value);
 		if(entity == NULL) {
 			_log(CLIENT__ERROR, "%s: Unable to find entity %lu to Orbit.", call.client->GetName(), ball_id->value);
-			return(NULL);
+			return NULL;
 		}
 		
 		DestinyManager *destiny = call.client->Destiny();
 		if(destiny == NULL) {
 			codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-			return(NULL);
+			return NULL;
 		}
 		
 		destiny->Follow(entity, distance);
 	}
 	
 
-	return(NULL);
+	return NULL;
 }
 
 PyResult BeyonceBound::Handle_SetSpeedFraction(PyCallArgs &call) {
 	Call_SingleRealArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 		
 	DestinyManager *destiny = call.client->Destiny();
 	if(destiny == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	destiny->SetSpeedFraction(arg.arg);
 
-	return(NULL);
+	return NULL;
 }
 
 PyResult BeyonceBound::Handle_GotoDirection(PyCallArgs &call) {
 	Call_PointArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	DestinyManager *destiny = call.client->Destiny();
 	if(destiny == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	destiny->GotoDirection( GPoint( arg.x, arg.y, arg.z ) );
 
-	return(NULL);
+	return NULL;
 }
 
 PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 	Call_TwoIntegerArgs arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	SystemManager *system = call.client->System();
 	if(system == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	SystemEntity *entity = system->get(arg.arg1);
 	if(entity == NULL) {
 		_log(CLIENT__ERROR, "%s: Unable to find entity %lu to Orbit.", call.client->GetName(), arg.arg1);
-		return(NULL);
+		return NULL;
 	}
 	
 	DestinyManager *destiny = call.client->Destiny();
 	if(destiny == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	destiny->Orbit(entity, arg.arg2);
 
-	return(NULL);
+	return NULL;
 }
 
 PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 	CallWarpToStuff arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	//we need to delay the destiny updates until after we return
@@ -328,12 +328,12 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 	GPoint pos;
 	if(!m_db->GetStaticPosition(arg.item, pos.x, pos.y, pos.z)) {
 		codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.item);
-		return(NULL);
+		return NULL;
 	}
 
 	call.client->WarpTo(pos);
 	
-	return(NULL);
+	return NULL;
 }
 
 PyResult BeyonceBound::Handle_UpdateStateRequest(PyCallArgs &call) {
@@ -342,13 +342,13 @@ PyResult BeyonceBound::Handle_UpdateStateRequest(PyCallArgs &call) {
 	DestinyManager *destiny = call.client->Destiny();
 	if(destiny == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	codelog(CLIENT__ERROR, "%s: Client sent UpdateStateRequest! that means we messed up pretty bad.", call.client->GetName());
 	destiny->SendSetState(call.client->Bubble());
 	
-	return(NULL);
+	return NULL;
 }
 
 PyResult BeyonceBound::Handle_Stop(PyCallArgs &call) {
@@ -356,31 +356,31 @@ PyResult BeyonceBound::Handle_Stop(PyCallArgs &call) {
 	DestinyManager *destiny = call.client->Destiny();
 	if(destiny == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	destiny->Stop();
 
-	return(NULL);
+	return NULL;
 }
 
 PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	DestinyManager *destiny = call.client->Destiny();
 	if(destiny == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	double x,y,z;
 	if(!m_db->GetStaticPosition(arg.arg, x, y, z)) {
 		codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.arg);
-		return(NULL);
+		return NULL;
 	}
 
 	OnDockingAccepted da;
@@ -399,22 +399,22 @@ PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
 	
 	destiny->GotoDirection(direction);
 
-	//when docking, xyz dosent matter...
+	//when docking, xyz doesn't matter...
 	call.client->MoveToLocation(arg.arg, GPoint(0, 0, 0));
 
-	return(NULL);
+	return NULL;
 }
 
 PyResult BeyonceBound::Handle_StargateJump(PyCallArgs &call) {
 	Call_TwoIntegerArgs arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	call.client->StargateJump(arg.arg1, arg.arg2);
 	
-	return(NULL);
+	return NULL;
 }
 
 

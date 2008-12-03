@@ -226,19 +226,19 @@ int main(int argc, char *argv[]) {
 static bool InitSignalHandlers() {
 	if (signal(SIGINT, CatchSignal) == SIG_ERR)	{
 		_log(SERVER__INIT_ERR, "Could not set signal handler");
-		return(false);
+		return false;
 	}
 	if (signal(SIGTERM, CatchSignal) == SIG_ERR)	{
 		_log(SERVER__INIT_ERR, "Could not set signal handler");
-		return(false);
+		return false;
 	}
 	#ifndef WIN32
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)	{
 		_log(SERVER__INIT_ERR, "Could not set signal handler");
-		return(false);
+		return false;
 	}
 	#endif
-	return(true);
+	return true;
 }
 
 static void CatchSignal(int sig_num) {

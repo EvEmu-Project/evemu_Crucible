@@ -60,19 +60,19 @@ PyResult MapService::Handle_GetStationExtraInfo(PyCallArgs &call) {
 		resultt->items[0] = m_db.GetStationExtraInfo();
 		if(resultt->items[0] == NULL) {
 			codelog(SERVICE__ERROR, "Failed to query station info");
-			return(NULL);
+			return NULL;
 		}
 		
 		resultt->items[1] = m_db.GetStationOpServices();
 		if(resultt->items[1] == NULL) {
 			codelog(SERVICE__ERROR, "Failed to query op services");
-			return(NULL);
+			return NULL;
 		}
 		
 		resultt->items[2] = m_db.GetStationServiceInfo();
 		if(resultt->items[2] == NULL) {
 			codelog(SERVICE__ERROR, "Failed to query service info");
-			return(NULL);
+			return NULL;
 		}
 
 		result = resultt;

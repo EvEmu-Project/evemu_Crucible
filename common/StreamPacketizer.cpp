@@ -151,7 +151,7 @@ void StreamPacketizer::InputBytes(const byte *data, uint32 len) {
 
 StreamPacketizer::Packet *StreamPacketizer::PopPacket() {
 	if(m_packets.empty())
-		return(NULL);
+		return NULL;
 	Packet *r = m_packets.front();
 	m_packets.pop();
 	return(r);

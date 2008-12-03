@@ -36,9 +36,9 @@ const BaseRowsetReader::base_iterator &RowsetReader::base_iterator::operator++()
 
 bool BaseRowsetReader::base_iterator::_baseEqual(const base_iterator &other) const {
 	if(m_end && other.m_end)
-		return(true);	//'end' iterator
+		return true;	//'end' iterator
 	if(m_end || other.m_end)
-		return(false);
+		return false;
 	return(m_index == other.m_index);
 }
 
@@ -55,17 +55,17 @@ uint32 BaseRowsetReader::base_iterator::_find(const char *fieldname) const {
 
 PyRep *BaseRowsetReader::base_iterator::_find(uint32 index) const {
 	if(m_end)
-		return(NULL);
+		return NULL;
 	if(index == InvalidRow)
-		return(NULL);
+		return NULL;
 	
 	PyRep *row = m_baseReader->_getRow(m_index);
 	if(row == NULL || !row->IsList())
-		return(NULL);
+		return NULL;
 	
 	PyRepList *rowl = (PyRepList *) row;
 	if(rowl->items.size() <= index)
-		return(NULL);
+		return NULL;
 	
 	return(rowl->items[index]);
 }
@@ -225,20 +225,20 @@ RowsetReader::iterator::iterator(RowsetReader *parent, bool is_end)
 
 bool RowsetReader::iterator::operator==(const iterator &other) {
 	if(m_parent != other.m_parent)
-		return(false);
+		return false;
 	return(_baseEqual(other));
 }
 
 bool RowsetReader::iterator::operator!=(const iterator &other) {
 	if(m_parent != other.m_parent)
-		return(true);
+		return true;
 	return(!_baseEqual(other));
 }
 
 PyRep *RowsetReader::_getRow(uint32 index) const {
 	const PyRepList *l = &m_set->lines;
 	if(l->items.size() <= index)	//InvalidRow will be caught here!
-		return(NULL);
+		return NULL;
 	return(l->items[index]);
 }
 
@@ -303,20 +303,20 @@ TuplesetReader::iterator::iterator(TuplesetReader *parent, bool is_end)
 
 bool TuplesetReader::iterator::operator==(const iterator &other) {
 	if(m_parent != other.m_parent)
-		return(false);
+		return false;
 	return(_baseEqual(other));
 }
 
 bool TuplesetReader::iterator::operator!=(const iterator &other) {
 	if(m_parent != other.m_parent)
-		return(true);
+		return true;
 	return(!_baseEqual(other));
 }
 
 PyRep *TuplesetReader::_getRow(uint32 index) const {
 	const PyRepList *l = &m_set->lines;
 	if(l->items.size() <= index)	//InvalidRow will be caught here!
-		return(NULL);
+		return NULL;
 	return(l->items[index]);
 }
 

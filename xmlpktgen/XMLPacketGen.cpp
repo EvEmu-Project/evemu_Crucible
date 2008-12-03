@@ -73,25 +73,25 @@ bool XMLPacketGen::GenPackets(
 	TiXmlDocument doc( xml_file );
 	if(!doc.LoadFile()) {
 		_log(COMMON__ERROR, "Failed to parse XML file '%s' line %d: %s", xml_file, doc.ErrorRow(), doc.ErrorDesc());
-		return(false);
+		return false;
 	}
 	
 	TiXmlElement *root = doc.RootElement ();
 	if(root == NULL) {
 		_log(COMMON__ERROR, "Unable to find root 'Elements' in %s", xml_file);
-		return(false);
+		return false;
 	}
 
 	FILE *h = fopen(out_h, "w");
 	if(h == NULL) {
 		_log(COMMON__ERROR, "Unable to open output file %s: %s", out_h, strerror(errno));
-		return(false);
+		return false;
 	}
 	FILE *cpp = fopen(out_cpp, "w");
 	if(cpp == NULL) {
 		_log(COMMON__ERROR, "Unable to open output file %s: %s", out_cpp, strerror(errno));
 		fclose(h);
-		return(false);
+		return false;
 	}
 
 	std::string def = FNameToDef(out_h);
@@ -154,7 +154,7 @@ bool XMLPacketGen::GenPackets(
 	);
 	
 	
-	return(true);
+	return true;
 }
 
 

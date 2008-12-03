@@ -50,7 +50,7 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<uint32> &entityIDs) {
 		" WHERE itemID in (%s)", ids.c_str()))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	//this is pretty hackish... will NOT work if they mix things...
@@ -63,7 +63,7 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<uint32> &entityIDs) {
 			" WHERE ownerID in (%s)", ids.c_str()))
 		{
 			codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-			return(NULL);
+			return NULL;
 		}
 	} else {
 		res.Reset();
@@ -94,7 +94,7 @@ PyRep *ConfigDB::GetMultiAllianceShortNamesEx(const std::vector<uint32> &entityI
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToTupleSet(res));
@@ -131,7 +131,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<uint32> &entityIDs) {
 			" WHERE itemID in (%s)", ids.c_str()))
 		{
 			codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-			return(NULL);
+			return NULL;
 		}
 	} else {
 		if(!m_db->RunQuery(res,
@@ -145,7 +145,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<uint32> &entityIDs) {
 			" WHERE itemID in (%s)", ids.c_str()))
 		{
 			codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-			return(NULL);
+			return NULL;
 		}
 	}
 
@@ -169,7 +169,7 @@ PyRep *ConfigDB::GetMultiCorpTickerNamesEx(const std::vector<uint32> &entityIDs)
 		" WHERE corporationID in (%s)", ids.c_str()))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowList(res));
@@ -190,7 +190,7 @@ PyRep *ConfigDB::GetMultiGraphicsEx(const std::vector<uint32> &entityIDs) {
 		" WHERE graphicID in (%s)", ids.c_str()))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowList(res));
@@ -206,7 +206,7 @@ PyRepObject *ConfigDB::GetUnits() {
 		" FROM eveUnits "))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToIndexRowset("unitID", res));
@@ -243,7 +243,7 @@ PyRepObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -277,7 +277,7 @@ PyRepObject *ConfigDB::GetMap(uint32 solarSystemID) {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -294,7 +294,7 @@ PyRepObject *ConfigDB::ListLanguages() {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -317,7 +317,7 @@ PyRep *ConfigDB::GetMultiInvTypesEx(const std::vector<uint32> &entityIDs) {
 		" WHERE typeID in (%s)", ids.c_str()))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowList(res));
@@ -334,7 +334,7 @@ PyRep *ConfigDB::GetStationSolarSystemsByOwner(uint32 ownerID) {
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return DBResultToRowset(res);
@@ -351,12 +351,12 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
 		" WHERE itemID = %lu ", celestialID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	if (!res.GetRow(row)) {
 		codelog(SERVICE__ERROR, "Unable to find celestial object %lu", celestialID);
-		return(NULL);
+		return NULL;
 	}
 
 	uint32 groupID = row.GetUInt(0);
@@ -422,7 +422,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
 	if (!m_db->RunQuery(res, query.c_str(), celestialID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return DBResultToRowset(res);
@@ -433,7 +433,7 @@ PyRep *ConfigDB::GetTextsForGroup(const std::string & langID, uint32 textgroup) 
 	if (!m_db->RunQuery(res, "SELECT textLabel, `text` FROM intro WHERE langID = '%s' AND textgroup = %lu", langID.c_str(), textgroup))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return DBResultToRowset(res);
@@ -519,11 +519,3 @@ PyRep *ConfigDB::GetCertificateRecommendationsByShipTypeID() {
 
 	return(irs.Encode());
 }
-
-
-
-
-
-
-
-

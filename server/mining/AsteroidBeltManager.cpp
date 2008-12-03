@@ -59,7 +59,7 @@ void AsteroidBeltManager::_TriggerGrowth() {
 bool AsteroidBeltManager::LoadState() {
 	//load list of asteroids.
 	//load next grow time
-	return(false);	//until this is written.
+	return false;	//until this is written.
 }
 
 bool AsteroidBeltManager::SaveState() {
@@ -69,7 +69,7 @@ bool AsteroidBeltManager::SaveState() {
 	for(; cur != end; cur++) {
 		//TODO: something useful.
 	}
-	return(false);	//until this is written.
+	return false;	//until this is written.
 }
 
 void AsteroidBeltManager::ForceGrowth() {

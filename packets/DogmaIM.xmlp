@@ -172,7 +172,7 @@
     -->
     <string name="mode" />
     <int name="targetID" />
-    <!-- only seen on `target lost` events, but dosent seem to do anything -->
+    <!-- only seen on `target lost` events, but doesn't seem to do anything -->
     <string name="reason" />
   </InlineTuple>
 </element>

@@ -2,7 +2,7 @@
 
 <Elements>
 
-<!-- this really dosent belong here -->
+<!-- this really doesn't belong here -->
 <element name="MarketGroup_Entry">
   <InlineList>
     <int name="marketGroupID" />

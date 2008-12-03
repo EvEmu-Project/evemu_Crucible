@@ -310,7 +310,7 @@ bool ReaderToSQL(const char *table_name, const char *key_field, FILE *out, Reade
 		}
 		if(key_col == -1) {
 			_log(CLIENT__ERROR, "Unable to find key column '%s'", key_field);
-			return(false);
+			return false;
 		}
 	}
 
@@ -365,7 +365,7 @@ bool ReaderToSQL(const char *table_name, const char *key_field, FILE *out, Reade
 	}
 	fprintf(out, "\n\n--- end %s ---\n\n", table_name);
 
-	return(true);
+	return true;
 }
 
 #endif

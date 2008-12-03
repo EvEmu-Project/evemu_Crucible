@@ -199,7 +199,7 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, byte **data, uint32 le
 	//This is not as complete as the python, as they indicate to the netcode (with compressedPart) 
 	//how much of the packet is compressed when considering this packet for compression when sending
 	uint32 deflen = length;
-	byte *buf = DeflatePacket(*data, deflen);
+	byte *buf = DeflatePacket(*data, &deflen);
 	if(buf == NULL || deflen >= length) {
 		//failed to deflate or it did no good (client checks this)
 		//passes ownership of the encoded buffer to the new PyRepBuffer
@@ -241,7 +241,7 @@ PyRepObject *CachedObjectMgr::MakeCacheHint(const PyRep *objectID) {
 	std::map<std::string, CacheRecord *>::iterator res;
 	res = m_cachedObjects.find(str);
 	if(res == m_cachedObjects.end())
-		return(NULL);
+		return NULL;
 	return(res->second->EncodeHint());
 }
 
@@ -256,7 +256,7 @@ PyRepObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
 	std::map<std::string, CacheRecord *>::iterator res;
 	res = m_cachedObjects.find(str);
 	if(res == m_cachedObjects.end())
-		return(NULL);
+		return NULL;
 	
 	PyCachedObject co;
 	co.timestamp = res->second->timestamp;
@@ -282,13 +282,13 @@ bool CachedObjectMgr::IsCacheUpToDate(const PyRep *objectID, uint32 version, uin
 	std::map<std::string, CacheRecord *>::iterator res;
 	res = m_cachedObjects.find(str);
 	if(res == m_cachedObjects.end())
-		return(false);
+		return false;
 	//for now, only support exact matches...
 	if(res->second->version != version)
-		return(false);
+		return false;
 	if(res->second->timestamp != timestamp)
-		return(false);
-	return(true);
+		return false;
+	return true;
 }
 
 
@@ -318,18 +318,18 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
 	
 	FILE *f = fopen(filename.c_str(), "rb");
 	if(f == NULL) {
-		return(false);
+		return false;
 	}
 
 	CacheFileHeader header;
 	if(fread(&header, sizeof(header), 1, f) != 1) {
 		fclose(f);
-		return(false);
+		return false;
 	}
 	if(header.magic != CacheFileMagic) {
 		//not a valid cache file.
 		fclose(f);
-		return(false);
+		return false;
 	}
 
 	CacheRecord *cache = new CacheRecord();
@@ -341,7 +341,7 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
 	if(fread(cache->cache->GetBuffer(), sizeof(byte), header.length, f) != header.length) {
 		delete cache;
 		fclose(f);
-		return(false);
+		return false;
 	}
 	fclose(f);
 	
@@ -354,7 +354,7 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
 	
 	m_cachedObjects[str] = cache;
 	
-	return(true);
+	return true;
 }
 
 bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const std::string &objectID) const {
@@ -368,7 +368,7 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
 	std::map<std::string, CacheRecord *>::const_iterator res;
 	res = m_cachedObjects.find(str);
 	if(res == m_cachedObjects.end())
-		return(false);	//cant save something we dont have...
+		return false;	//cant save something we dont have...
 	
 	std::string filename(cacheDir);
 	filename += "/";
@@ -377,7 +377,7 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
 	
 	FILE *f = fopen(filename.c_str(), "wb");
 	if(f == NULL) {
-		return(false);
+		return false;
 	}
 
 	CacheFileHeader header;
@@ -387,14 +387,14 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
 	header.length = res->second->cache->GetLength();
 	if(fwrite(&header, sizeof(header), 1, f) != 1) {
 		fclose(f);
-		return(false);
+		return false;
 	}
 	if(fwrite(res->second->cache->GetBuffer(), sizeof(byte), header.length, f) != header.length) {
 		fclose(f);
-		return(false);
+		return false;
 	}
 	fclose(f);
-	return(true);
+	return true;
 }
 
 
@@ -427,7 +427,7 @@ bool CachedObjectMgr::LoadCachedObject(PyRep *key, const char *oname, PyRepSubSt
 /*bool CachedObjectMgr::AddCachedFileContents(const char *filename, const char
     *oname, PyRepSubStream *into) { PyRepSubStream *cache;
 	if(!LoadCachedFile(filename, oname, cache))
-		return(false);
+		return false;
 	
 }*/
 
@@ -435,13 +435,13 @@ bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, P
 	uint32 file_length = GetFileLength(abs_fname);
 	if(file_length == 0) {
 		_log(CLIENT__ERROR, "Unable to stat cache file '%s' for oname '%s'", abs_fname, oname);
-		return(false);
+		return false;
 	}
 	
 	FILE *f = fopen(abs_fname, "rb");
 	if(f == NULL) {
 		_log(CLIENT__ERROR, "Unable to open cache file '%s' for oname '%s': %s", abs_fname, oname, strerror(errno));
-		return(false);
+		return false;
 	}
 	
 	byte *b = new byte[file_length+10];
@@ -453,7 +453,7 @@ bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, P
 
 	_log(CLIENT__MESSAGE, "Loaded cache file for '%s': length %d/%d", oname, len, file_length+10);
 	
-	return(true);
+	return true;
 }
 
 PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(const char *obj_name) {
@@ -465,13 +465,13 @@ PyCachedObjectDecoder *CachedObjectMgr::LoadCachedFile(const char *filename, con
 	PyRepSubStream *into = new PyRepSubStream();
 	if(!LoadCachedFile(filename, oname, into)) {
 		delete into;
-		return(NULL);
+		return NULL;
 	}
 
 	PyCachedObjectDecoder *obj = new PyCachedObjectDecoder();
 	if(!obj->Decode(&into)) {	//into is consumed.
 		delete obj;
-		return(NULL);
+		return NULL;
 	}
 
 	return(obj);
@@ -481,13 +481,13 @@ PyCachedCall *CachedObjectMgr::LoadCachedCall(const char *filename, const char *
 	PyRepSubStream *into = new PyRepSubStream();
 	if(!LoadCachedFile(filename, oname, into)) {
 		delete into;
-		return(NULL);
+		return NULL;
 	}
 
 	PyCachedCall *obj = new PyCachedCall();
 	if(!obj->Decode(&into)) {	//into is consumed.
 		delete obj;
-		return(NULL);
+		return NULL;
 	}
 
 	return(obj);
@@ -526,7 +526,7 @@ PyRep *CachedObjectMgr::_MakeCacheHint(const char *oname) {
 	PyCachedObject *obj = LoadCachedObject(oname);
 	if(obj == NULL) {
 		_log(CLIENT__ERROR, "Unable to load cache file for '%s' in order to build hint", oname);
-		return(NULL);
+		return NULL;
 	}
 
 	PyRep *hint = obj->EncodeHint();
@@ -626,13 +626,13 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 	if(ss->decoded == NULL) {
 		_log(CLIENT__ERROR, "Unable to decode initial stream for PyCachedObject");
 		delete ss;
-		return(false);
+		return false;
 	}
 	
 	if(!ss->decoded->IsObject()) {
 		_log(CLIENT__ERROR, "Cache substream does not contain an object: %s", ss->decoded->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}
 	PyRepObject *po = (PyRepObject *) ss->decoded;
 	//TODO: could check type string, dont care... (should be objectCaching.CachedObject)
@@ -640,53 +640,53 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 	if(!po->arguments->IsTuple()) {
 		_log(CLIENT__ERROR, "Cache object's args is not a tuple: %s", po->arguments->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}
 	PyRepTuple *args = (PyRepTuple *) po->arguments;
 	
 	if(args->items.size() != 7) {
 		_log(CLIENT__ERROR, "Cache object's args tuple has %d elements instead of 7", args->items.size());
 		delete ss;
-		return(false);
+		return false;
 	}
 
 	if(!args->items[0]->IsTuple()) {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not a Tuple: %s", 0, args->items[0]->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}
 	//ignore unknown [1]
 	/*if(!args->items[1]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not a None: %s", 1, args->items[1]->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}*/
 	if(!args->items[2]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not an Integer: %s", 2, args->items[2]->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}
 	if(!args->items[3]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not an Integer: %s", 3, args->items[3]->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}
 	if(!args->items[5]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not a : %s", 5, args->items[5]->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}
 
 	PyRepTuple *objVt = (PyRepTuple *) args->items[0];
 	if(!objVt->items[0]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 0, objVt->items[0]->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}
 	if(!objVt->items[1]->IsInteger()) {
 		_log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 1, objVt->items[1]->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}
 	
 	PyRepInteger *nodeidr = (PyRepInteger *) args->items[2];
@@ -715,7 +715,7 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 		if(cache == NULL) {
 			_log(CLIENT__ERROR, "Cache object's content buffer is not a substream!");
 			delete ss;
-			return(false);
+			return false;
 		}
 	} else if(args->items[4]->IsString()) {
 		//this is a data buffer, likely compressed, not sure why it comes through as a string...
@@ -726,18 +726,18 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 		if(cache == NULL) {
 			_log(CLIENT__ERROR, "Cache object's content buffer is not a substream!");
 			delete ss;
-			return(false);
+			return false;
 		}
 	} else {
 		_log(CLIENT__ERROR, "Cache object's arg %d is not a substream or buffer: %s", 4, args->items[4]->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}
 
 	objectID = args->items[6]->Clone();
 
 	delete ss;
-	return(true);
+	return true;
 }
 
 PyRepObject *PyCachedObject::Encode() {
@@ -849,13 +849,13 @@ bool PyCachedCall::Decode(PyRepSubStream **in_ss) {
 	if(ss->decoded == NULL) {
 		_log(CLIENT__ERROR, "Unable to decode initial stream for PyCachedCall");
 		delete ss;
-		return(false);
+		return false;
 	}
 	
 	if(!ss->decoded->IsDict()) {
 		_log(CLIENT__ERROR, "Cached call substream does not contain a dict: %s", ss->decoded->TypeString());
 		delete ss;
-		return(false);
+		return false;
 	}
 	PyRepDict *po = (PyRepDict *) ss->decoded;
 	

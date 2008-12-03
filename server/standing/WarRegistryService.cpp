@@ -60,7 +60,7 @@ PyBoundObject *WarRegistryService::_CreateBoundObject(Client *c, const PyRep *bi
 	PyRep *t = bind_args->Clone();
 	if(!args.Decode(&t)) {
 		_log(SERVICE__ERROR, "%s: Failed to decode bind object params.", GetName());
-		return(NULL);
+		return NULL;
 	}
 	//arg1 = corporationID
 	//arg2 = ???

@@ -37,7 +37,7 @@ bool ReprocessingDB::IsRefinable(const uint32 typeID) {
 				typeID))
 	{
 		_log(DATABASE__ERROR, "Failed to check ore type ID: %s.", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
@@ -59,7 +59,7 @@ bool ReprocessingDB::IsRecyclable(const uint32 typeID) {
 				typeID, typeID))
 	{
 		_log(DATABASE__ERROR, "Failed to check item type ID: %s.", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
@@ -76,20 +76,20 @@ bool ReprocessingDB::LoadStatic(const uint32 stationID, double &efficiency, doub
 				stationID))
 	{
 		_log(DATABASE__ERROR, "Failed to get reprocessing info for station %lu: '%s'.", stationID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No data found for stationID %lu.", stationID);
-		return(false);
+		return false;
 	}
 
 	efficiency = row.GetDouble(0);
 	tax = row.GetDouble(1);
 
-	return(true);
+	return true;
 }
 
 bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverable> &into) {
@@ -107,7 +107,7 @@ bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverabl
 				typeID, typeID, typeID))
 	{
 		_log(DATABASE__ERROR, "Unable to get recoverables for type ID %lu: '%s'", typeID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	Recoverable rec;
@@ -118,5 +118,5 @@ bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverabl
 		into.push_back(rec);
 	}
 
-	return(true);
+	return true;
 }

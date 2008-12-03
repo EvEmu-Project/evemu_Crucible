@@ -585,13 +585,13 @@ bool IsBufferType(DBTYPE t) {
 		case DBTYPE_I1:
 		case DBTYPE_UI1:
 		case DBTYPE_BOOL:
-			return(true);
+			return true;
 		case DBTYPE_BYTES:
 		case DBTYPE_STR:
 		case DBTYPE_WSTR:
-			return(false);
+			return false;
 		default:
-			return(false);
+			return false;
 	}
 }
 
@@ -610,13 +610,13 @@ bool IsPyRepType(DBTYPE t) {
 		case DBTYPE_I1:
 		case DBTYPE_UI1:
 		case DBTYPE_BOOL:
-			return(false);
+			return false;
 		case DBTYPE_BYTES:
 		case DBTYPE_STR:
 		case DBTYPE_WSTR:
-			return(true);
+			return true;
 		default:
-			return(false);
+			return false;
 	}
 }
 

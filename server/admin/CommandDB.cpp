@@ -53,7 +53,7 @@ bool CommandDB::ItemSearch(const char *query, std::map<uint32, std::string> &int
 	while(result.GetRow(row)) {
 		into[row.GetUInt(0)] = row.GetText(1);
 	}
-	return(true);
+	return true;
 }
 
 bool CommandDB::GetRoidDist(const char * sec, std::map<double, uint32> &roids) {

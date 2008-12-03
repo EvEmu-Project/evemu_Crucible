@@ -68,7 +68,7 @@ PyRep *RamProxyDB::GetJobs2(const uint32 ownerID, const bool completed, const ui
 		ownerID, (completed ? "!=" : "="), fromDate, toDate))
 	{
 		_log(DATABASE__ERROR, "Failed to query jobs for owner %lu: %s", ownerID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -92,7 +92,7 @@ PyRep *RamProxyDB::AssemblyLinesSelectPublic(const uint32 regionID) {
 		regionID))
 	{
 		_log(DATABASE__ERROR, "Failed to query public assembly lines for region %lu: %s.", regionID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -115,7 +115,7 @@ PyRep *RamProxyDB::AssemblyLinesSelectPersonal(const uint32 charID) {
 		charID))
 	{
 		_log(DATABASE__ERROR, "Failed to query personal assembly lines for char %lu: %s.", charID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -138,7 +138,7 @@ PyRep *RamProxyDB::AssemblyLinesSelectCorporation(const uint32 corporationID) {
 		corporationID))
 	{
 		_log(DATABASE__ERROR, "Failed to query corporation assembly lines for corp %lu: %s.", corporationID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -162,7 +162,7 @@ PyRep *RamProxyDB::AssemblyLinesSelectAlliance(const uint32 allianceID) {
 		allianceID))
 	{
 		_log(DATABASE__ERROR, "Failed to query alliance assembly lines for alliance %lu: %s.", allianceID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -191,7 +191,7 @@ PyRep *RamProxyDB::AssemblyLinesGet(const uint32 containerID) {
 		containerID))
 	{
 		_log(DATABASE__ERROR, "Failed to query assembly lines for container %lu: %s.", containerID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -212,13 +212,13 @@ bool RamProxyDB::GetAssemblyLineProperties(const uint32 assemblyLineID, double &
 		assemblyLineID))
 	{
 		_log(DATABASE__ERROR, "Failed to query properties for assembly line %lu: %s.", assemblyLineID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No properties found for assembly line %lu.", assemblyLineID);
-		return(false);
+		return false;
 	}
 
 	baseMaterialMultiplier = row.GetDouble(0);
@@ -226,7 +226,7 @@ bool RamProxyDB::GetAssemblyLineProperties(const uint32 assemblyLineID, double &
 	costInstall = row.GetDouble(2);
 	costPerHour = row.GetDouble(3);
 
-	return(true);
+	return true;
 }
 
 bool RamProxyDB::GetAssemblyLineVerifyProperties(const uint32 assemblyLineID, uint32 &ownerID, double &minCharSecurity, double &maxCharSecurity, EVERamRestrictionMask &restrictionMask, EVERamActivity &activity) {
@@ -244,13 +244,13 @@ bool RamProxyDB::GetAssemblyLineVerifyProperties(const uint32 assemblyLineID, ui
 		assemblyLineID))
 	{
 		_log(DATABASE__ERROR, "Failed to query verify properties for assembly line %lu: %s.", assemblyLineID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No verify properties found for assembly line %lu.", assemblyLineID);
-		return(false);
+		return false;
 	}
 
 	ownerID = row.GetUInt(0);
@@ -259,7 +259,7 @@ bool RamProxyDB::GetAssemblyLineVerifyProperties(const uint32 assemblyLineID, ui
 	restrictionMask = (EVERamRestrictionMask)row.GetUInt(3);
 	activity = (EVERamActivity)row.GetUInt(4);
 
-	return(true);
+	return true;
 }
 
 bool RamProxyDB::InstallJob(const uint32 ownerID, const  uint32 installerID, const uint32 assemblyLineID, const uint32 installedItemID, const uint64 beginProductionTime, const uint64 endProductionTime, const char *description, const uint32 runs, const EVEItemFlags outputFlag, const uint32 installedInSolarSystem, const int32 licensedProductionRuns) {
@@ -276,7 +276,7 @@ bool RamProxyDB::InstallJob(const uint32 ownerID, const  uint32 installerID, con
 		runs, (int)outputFlag, installedInSolarSystem, licensedProductionRuns))
 	{
 		_log(DATABASE__ERROR, "Failed to insert new job to database: %s.", err.c_str());
-		return(false);
+		return false;
 	}
 
 	// update nextFreeTime
@@ -287,10 +287,10 @@ bool RamProxyDB::InstallJob(const uint32 ownerID, const  uint32 installerID, con
 		endProductionTime, assemblyLineID))
 	{
 		_log(DATABASE__ERROR, "Failed to update next free time for assembly line %lu: %s.", assemblyLineID, err.c_str());
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 bool RamProxyDB::IsProducableBy(const uint32 assemblyLineID, const uint32 groupID) {
@@ -301,12 +301,12 @@ bool RamProxyDB::IsProducableBy(const uint32 assemblyLineID, const uint32 groupI
 bool RamProxyDB::MultiplyMultipliers(const uint32 assemblyLineID, const uint32 productGroupID, double &materialMultiplier, double &timeMultiplier) {
 	double tmpMat, tmpTime;
 	if(!_GetMultipliers(assemblyLineID, productGroupID, tmpMat, tmpTime))
-		return(false);
+		return false;
 
 	materialMultiplier *= tmpMat;
 	timeMultiplier *= tmpTime;
 
-	return(true);
+	return true;
 }
 
 uint32 RamProxyDB::CountManufacturingJobs(const uint32 installerID) {
@@ -323,13 +323,13 @@ uint32 RamProxyDB::CountManufacturingJobs(const uint32 installerID) {
 		installerID))
 	{
 		_log(DATABASE__ERROR, "Failed to count manufacturing jobs for installer %lu.", installerID);
-		return(NULL);
+		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No rows returned while counting manufacturing jobs for installer %lu.", installerID);
-		return(NULL);
+		return NULL;
 	}
 
 	return(row.GetUInt(0));
@@ -348,13 +348,13 @@ uint32 RamProxyDB::CountResearchJobs(const uint32 installerID) {
 		installerID))
 	{
 		_log(DATABASE__ERROR, "Failed to count research jobs for installer %lu.", installerID);
-		return(NULL);
+		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No rows returned while counting research jobs for installer %lu.", installerID);
-		return(NULL);
+		return NULL;
 	}
 
 	return(row.GetUInt(0));
@@ -379,14 +379,14 @@ bool RamProxyDB::GetRequiredItems(const uint32 typeID, const EVERamActivity acti
 		typeID, (const int)activity))
 	{
 		_log(DATABASE__ERROR, "Failed to query data to build BillOfMaterials: %s.", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	while(res.GetRow(row))
 		into.push_back(RequiredItem(row.GetUInt(0), row.GetUInt(1), row.GetFloat(2), row.GetInt(3) ? true : false));
 
-	return(true);
+	return true;
 }
 
 bool RamProxyDB::GetJobProperties(const uint32 jobID, uint32 &installedItemID, uint32 &ownerID, EVEItemFlags &outputFlag, uint32 &runs, uint32 &licensedProductionRuns, EVERamActivity &activity) {
@@ -400,13 +400,13 @@ bool RamProxyDB::GetJobProperties(const uint32 jobID, uint32 &installedItemID, u
 		jobID))
 	{
 		_log(DATABASE__ERROR, "Failed to query properties of job %lu: %s.", jobID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No properties found for job %lu.", jobID);
-		return(false);
+		return false;
 	}
 
 	installedItemID = row.GetUInt(0);
@@ -416,7 +416,7 @@ bool RamProxyDB::GetJobProperties(const uint32 jobID, uint32 &installedItemID, u
 	licensedProductionRuns = row.GetUInt(4);
 	activity = (EVERamActivity)row.GetUInt(5);
 
-	return(true);
+	return true;
 }
 
 bool RamProxyDB::GetJobVerifyProperties(const uint32 jobID, uint32 &ownerID, uint64 &endProductionTime, EVERamRestrictionMask &restrictionMask, EVERamCompletedStatus &status) {
@@ -430,13 +430,13 @@ bool RamProxyDB::GetJobVerifyProperties(const uint32 jobID, uint32 &ownerID, uin
 				jobID))
 	{
 		_log(DATABASE__ERROR, "Unable to query completion properties for job %lu: %s", jobID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No completion properties found for job %lu.", jobID);
-		return(false);
+		return false;
 	}
 
 	ownerID = row.GetUInt(0);
@@ -444,7 +444,7 @@ bool RamProxyDB::GetJobVerifyProperties(const uint32 jobID, uint32 &ownerID, uin
 	status = (EVERamCompletedStatus)row.GetUInt(2);
 	restrictionMask = (EVERamRestrictionMask)row.GetUInt(3);
 
-	return(true);
+	return true;
 }
 
 bool RamProxyDB::CompleteJob(const uint32 jobID, const EVERamCompletedStatus completedStatus) {
@@ -457,10 +457,10 @@ bool RamProxyDB::CompleteJob(const uint32 jobID, const EVERamCompletedStatus com
 		(uint32)completedStatus, jobID))
 	{
 		_log(DATABASE__ERROR, "Failed to complete job %lu (completed status = %lu): %s.", jobID, (uint32)completedStatus, err.c_str());
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 std::string RamProxyDB::GetStationName(const uint32 stationID) {
@@ -495,13 +495,13 @@ uint32 RamProxyDB::GetTech2Blueprint(const uint32 blueprintTypeID) {
 				blueprintTypeID))
 	{
 		_log(DATABASE__ERROR, "Unable to get T2 type for type ID %lu: %s", blueprintTypeID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		// no error because it's normal
-		return(NULL);
+		return NULL;
 	}
 
 	return(row.GetUInt(0));
@@ -518,13 +518,13 @@ uint64 RamProxyDB::GetNextFreeTime(const uint32 assemblyLineID) {
 		assemblyLineID))
 	{
 		_log(DATABASE__ERROR, "Failed to query next free time for assembly line %lu: %s.", assemblyLineID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "Assembly line %lu not found.", assemblyLineID);
-		return(NULL);
+		return NULL;
 	} else
 		return(row.GetUInt64(0));
 }
@@ -539,13 +539,13 @@ uint32 RamProxyDB::GetRegionOfContainer(const uint32 containerID) {
 				containerID))
 	{
 		_log(DATABASE__ERROR, "Unable to query region for container %lu: %s", containerID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No region found for container %lu.", containerID);
-		return(NULL);
+		return NULL;
 	}
 
 	return(row.GetUInt(0));
@@ -565,14 +565,14 @@ bool RamProxyDB::_GetMultipliers(const uint32 assemblyLineID, uint32 groupID, do
 				assemblyLineID, groupID))
 	{
 		_log(DATABASE__ERROR, "Failed to check producability of group %lu by line %lu: %s", groupID, assemblyLineID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(res.GetRow(row)) {
 		materialMultiplier = row.GetDouble(0);
 		timeMultiplier = row.GetDouble(1);
-		return(true);
+		return true;
 	}
 
 	// then ramAssemblyLineTypeDetailPerCategory
@@ -586,15 +586,15 @@ bool RamProxyDB::_GetMultipliers(const uint32 assemblyLineID, uint32 groupID, do
 				assemblyLineID, groupID))
 	{
 		_log(DATABASE__ERROR, "Failed to check producability of group %lu by line %lu: %s", groupID, assemblyLineID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	if(res.GetRow(row)) {
 		materialMultiplier = row.GetDouble(0);
 		timeMultiplier = row.GetDouble(1);
-		return(true);
+		return true;
 	} else {
-		return(false);
+		return false;
 	}
 }
 

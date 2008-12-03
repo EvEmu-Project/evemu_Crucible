@@ -40,14 +40,14 @@ PyResult RamProxyService::Handle_GetJobs2(PyCallArgs &call) {
 	Call_GetJobs2 args;
 	if(!args.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Failed to decode call args.");
-		return(NULL);
+		return NULL;
 	}
 
 	if(args.ownerID == call.client->GetCorporationID())
 		if((call.client->GetCorpInfo().corprole & corpRoleFactoryManager) != corpRoleFactoryManager) {
 			// I'm afraid we don't have right error in our DB ...
 			call.client->SendInfoModalMsg("You cannot view your corporation's jobs because you do not possess the role \"Factory Manager\".");
-			return(NULL);
+			return NULL;
 		}
 
 	return(m_db.GetJobs2(args.ownerID, args.completed, args.fromDate, args.toDate));
@@ -58,7 +58,7 @@ PyResult RamProxyService::Handle_AssemblyLinesSelect(PyCallArgs &call) {
 
 	if(!args.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Unable to decode args.");
-		return(NULL);
+		return NULL;
 	}
 
 	// unfinished
@@ -71,10 +71,10 @@ PyResult RamProxyService::Handle_AssemblyLinesSelect(PyCallArgs &call) {
 	else if(args.filter == "alliance") {
 //		return(m_db.AssemblyLinesSelectAlliance(...));
 		call.client->SendInfoModalMsg("Alliances are not implemented yet.");
-		return(NULL);
+		return NULL;
 	} else {
 		_log(SERVICE__ERROR, "Unknown filter '%s'.", args.filter.c_str());
-		return(NULL);
+		return NULL;
 	}
 }
 
@@ -83,7 +83,7 @@ PyResult RamProxyService::Handle_AssemblyLinesGet(PyCallArgs &call) {
 
 	if(!arg.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Unable to decode args.");
-		return(NULL);
+		return NULL;
 	}
 
 	return(m_db.AssemblyLinesGet(arg.arg));
@@ -93,13 +93,13 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	Call_InstallJob args;
 	if(!args.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Failed to decode args.");
-		return(NULL);
+		return NULL;
 	}
 
 	// load installed item
 	InventoryItem *installedItem = m_manager->item_factory->Load(args.installedItemID, false);
 	if(installedItem == NULL)
-		return(NULL);
+		return NULL;
 
 	// if output flag not set, put it where it was
 	if(args.flagOutput == flagAutoFit)
@@ -110,7 +110,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	if(!pathBomLocation.Decode(&args.bomPath.items[0])) {
 		_log(SERVICE__ERROR, "Failed to decode BOM location.");
 		installedItem->Release();
-		return(NULL);
+		return NULL;
 	}
 
 	// verify call
@@ -125,7 +125,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	Rsp_InstallJob rsp;
 	if(!_Calculate(args, installedItem, call.client, rsp)) {
 		installedItem->Release();
-		return(NULL);
+		return NULL;
 	}
 
 	// I understand sent maxJobStartTime as a limit, so this checks whether it's in limit
@@ -138,7 +138,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	std::vector<RequiredItem> reqItems;
 	if(!m_db.GetRequiredItems(installedItem->typeID(), (EVERamActivity)args.activityID, reqItems)) {
 		installedItem->Release();
-		return(NULL);
+		return NULL;
 	}
 
 	// if 'quoteOnly' is 1 -> send quote, if 0 -> install job
@@ -162,7 +162,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 		InventoryItem *bomLocation = m_manager->item_factory->Load(pathBomLocation.locationID, true);
 		if(bomLocation == NULL) {
 			installedItem->Release();
-			return(NULL);
+			return NULL;
 		}
 
 		// calculate proper start time
@@ -186,7 +186,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 		)) {
 			bomLocation->Release();
 			installedItem->Release();
-			return(NULL);
+			return NULL;
 		}
 
 		// do some activity-specific actions
@@ -241,7 +241,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 			}
 		}
 
-		return(NULL);
+		return NULL;
 	}
 }
 
@@ -250,7 +250,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 
 	if(!args.Decode(&call.tuple)) {
 		_log(CLIENT__ERROR, "Failed to decode args.");
-		return(NULL);
+		return NULL;
 	}
 
 	_VerifyCompleteJob(args, call.client);
@@ -260,18 +260,18 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 	EVEItemFlags outputFlag;
 	EVERamActivity activity;
 	if(!m_db.GetJobProperties(args.jobID, installedItemID, ownerID, outputFlag, runs, licensedProductionRuns, activity))
-		return(NULL);
+		return NULL;
 
 	// return item
 	InventoryItem *installedItem = m_manager->item_factory->Load(installedItemID, false);
 	if(installedItem == NULL)
-		return(NULL);
+		return NULL;
 	installedItem->ChangeFlag(outputFlag);
 
 	std::vector<RequiredItem> reqItems;
 	if(!m_db.GetRequiredItems(installedItem->typeID(), activity, reqItems)) {
 		installedItem->Release();
-		return(NULL);
+		return NULL;
 	}
 
 	// return materials which weren't completely consumed
@@ -286,7 +286,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			InventoryItem *item = m_manager->item_factory->Spawn(cur->typeID, ownerID, 0, outputFlag, quantity);
 			if(item == NULL) {
 				installedItem->Release();
-				return(NULL);
+				return NULL;
 			}
 			item->Move(args.containerID, outputFlag);
 			item->Release();
@@ -311,7 +311,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 				);
 				if(item == NULL) {
 					installedItem->Release();
-					return(NULL);
+					return NULL;
 				}
 				item->Move(args.containerID, outputFlag);
 				item->Release();
@@ -353,7 +353,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 					licensedProductionRuns);
 				if(copy == NULL) {
 					installedItem->Release();
-					return(NULL);
+					return NULL;
 				}
 				copy->Move(args.containerID, outputFlag);
 				copy->Release();
@@ -366,7 +366,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 	// regardless on success of this, we will return NULL, so there's no condition here
 	m_db.CompleteJob(args.jobID, args.cancel ? ramCompletedStatusAbort : ramCompletedStatusDelivered);
 
-	return(NULL);
+	return NULL;
 }
 
 /*
@@ -752,7 +752,7 @@ void RamProxyService::_VerifyCompleteJob(const Call_CompleteJob &args, Client *c
 
 bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryItem *const installedItem, Client *const c, Rsp_InstallJob &into) {
 	if(!m_db.GetAssemblyLineProperties(args.installationAssemblyLineID, into.materialMultiplier, into.timeMultiplier, into.installCost, into.usageCost))
-		return(false);
+		return false;
 
 	const Type *productType;
 	// perform some activity-specific actions
@@ -832,7 +832,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 	}
 
 	if(!m_db.MultiplyMultipliers(args.installationAssemblyLineID, productType->groupID(), into.materialMultiplier, into.timeMultiplier))
-		return(false);
+		return false;
 
 	// calculate the remaining things
 	into.productionTime *= into.timeMultiplier * into.charTimeMultiplier * args.runs;
@@ -844,7 +844,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 	// I have no idea how to avoid this ...
 	into.maxJobStartTime = m_db.GetNextFreeTime(args.installationAssemblyLineID);
 
-	return(true);
+	return true;
 }
 
 void RamProxyService::_EncodeBillOfMaterials(const std::vector<RequiredItem> &reqItems, double materialMultiplier, double charMaterialMultiplier, uint32 runs, BillOfMaterials &into) {

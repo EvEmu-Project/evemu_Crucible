@@ -200,11 +200,11 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
 	CallGetCachableObject args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Unable to decode arguments", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	if(!_LoadCachableObject(args.objectID))
-		return(NULL);	//print done already
+		return NULL;	//print done already
 	
 	//should we check their version? I am pretty sure they check it and only request what they want.
 	//well, we want to do something like this, but this dosent seem to be it. taken
@@ -224,11 +224,15 @@ void ObjCacheService::PrimeCache() {
 	std::map<std::string, std::string>::const_iterator cur, end;
 	cur = m_cacheKeys.begin();
 	end = m_cacheKeys.end();
+	printf("Loading cache:");
 	for(; cur != end; cur++) {
 		_log(SERVICE__CACHE, "Priming cache object '%s'", cur->first.c_str());
 		PyRepString str(cur->first);
 		_LoadCachableObject(&str);
+		
+		printf("."); // print a dot so we have a indication of loading. I know this sucks.
 	}
+	printf("\nLoading done\n");
 }
 
 bool ObjCacheService::LoadCachedFile(const char *filename, const char *oname, PyRepSubStream *into) {
@@ -239,14 +243,14 @@ bool ObjCacheService::LoadCachedFile(const char *filename, const char *oname, Py
 
 bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 	if(m_cache.HaveCached(objectID))
-		return(true);
+		return true;
 	
 	const std::string objectID_string = CachedObjectMgr::OIDToString(objectID);
 
 	if(!m_cacheDir.empty()) {
 		if(m_cache.LoadCachedFromFile(m_cacheDir, objectID)) {
 			_log(SERVICE__CACHE, "Loaded cached object '%s' from file.", objectID_string.c_str());
-			return(true);
+			return true;
 		}
 	}
 	
@@ -264,7 +268,7 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 		ss = new PyRepSubStream();
 		if(!m_cache.LoadCachedObject(objectID_string.c_str(), ss)) {
 			_log(SERVICE__ERROR, "Failed to create or load cache file for '%s'", objectID_string.c_str());
-			return(false);
+			return false;
 		}
 		
 		//we have generated the cache file in question, remember it
@@ -280,19 +284,19 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 		}
 	}
 
-	return(true);
+	return true;
 }
 
 PyRep *ObjCacheService::GetCacheHint(const char *objectID) {
 	PyRepString str(objectID);
 	
 	if(!_LoadCachableObject(&str))
-		return(NULL);	//print done already
+		return NULL;	//print done already
 
 	PyRepObject *cache_hint = m_cache.MakeCacheHint(&str);
 	if(cache_hint == NULL) {
 		_log(SERVICE__ERROR, "Unable to build cache hint for object ID '%s' (h), skipping.", objectID);
-		return(NULL);
+		return NULL;
 	}
 
 	return(cache_hint);
@@ -355,7 +359,7 @@ void ObjCacheService::GiveCache(const PyRep *objectID, PyRep **contents) {
 
 PyRepObject *ObjCacheService::MakeObjectCachedMethodCallResult(const PyRep *objectID, const char *versionCheck) {
 	if(!IsCacheLoaded(objectID))
-		return(NULL);
+		return NULL;
 	objectCaching_CachedMethodCallResult_object c;
 	c.versionCheck = versionCheck;
 	c.object = m_cache.MakeCacheHint(objectID);

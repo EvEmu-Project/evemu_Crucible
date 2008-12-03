@@ -40,7 +40,7 @@ PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: Failed to decode arguments.", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	/*if(IsAgent(args.arg)) {
@@ -48,7 +48,7 @@ PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
 		PyRep *result = m_db.GetAgentPublicInfo(args.arg);
 		if(result == NULL) {
 			codelog(CLIENT__ERROR, "%s: Failed to find agent %lu", call.client->GetName(), args.arg);
-			return(NULL);
+			return NULL;
 		}
 		return(result);
 	}*/
@@ -56,7 +56,7 @@ PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
 	PyRep *result = m_db.GetCharPublicInfo(args.arg);
 	if(result == NULL) {
 		codelog(CLIENT__ERROR, "%s: Failed to find char %lu", call.client->GetName(), args.arg);
-		return(NULL);
+		return NULL;
 	}
 	
 	return(result);
@@ -67,13 +67,13 @@ PyResult CharMgrService::Handle_GetPublicInfo3(PyCallArgs &call) {
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: Failed to decode arguments.", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	PyRep *result = m_db.GetCharPublicInfo3(args.arg);
 	if(result == NULL) {
 		codelog(CLIENT__ERROR, "%s: Failed to find char %lu", call.client->GetName(), args.arg);
-		return(NULL);
+		return NULL;
 	}
 	
 	return(result);

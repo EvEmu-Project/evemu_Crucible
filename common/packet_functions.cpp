@@ -50,7 +50,8 @@ void e_free_func(voidpf opaque, voidpf address) {
 #endif
 
 //returns ownership of buffer!
-byte *DeflatePacket(const byte *data, uint32 &length) {
+byte *DeflatePacket(const byte *data, uint32 *length)
+{
 #ifdef REUSE_ZLIB
 	static bool inited = false;
 	static z_stream zstream;
@@ -92,12 +93,12 @@ byte *DeflatePacket(const byte *data, uint32 &length) {
 		return 0;
 	}
 #else
-	if(data == NULL || length == 0)
+	if(data == NULL || length == NULL || *length == 0)
 		return(0);
 
 	z_stream zstream;
 	zstream.next_in   = const_cast<byte *>(data);
-	zstream.avail_in  = length;
+	zstream.avail_in  = *length;
 	zstream.zalloc    = e_alloc_func;
 	zstream.zfree     = e_free_func;
 	zstream.opaque    = Z_NULL;
@@ -110,11 +111,11 @@ byte *DeflatePacket(const byte *data, uint32 &length) {
 		return(0);
 	}
 
-	length = deflateBound(&zstream, length);
-	byte *out_data = new byte[length];
+	*length = deflateBound(&zstream, *length);
+	byte *out_data = new byte[*length];
 
 	zstream.next_out  = out_data;
-	zstream.avail_out = length;
+	zstream.avail_out = *length;
 
 	zerror = deflate(&zstream, Z_FINISH);
 
@@ -122,8 +123,8 @@ byte *DeflatePacket(const byte *data, uint32 &length) {
 		//deflation successfull
 		deflateEnd(&zstream);
 		//truncate output buffer to necessary size
-		length = zstream.total_out;
-		out_data = (byte *)realloc(out_data, length);
+		*length = zstream.total_out;
+		out_data = (byte *)realloc(out_data, *length);
 
 		return(out_data);
 	} else {
@@ -133,17 +134,34 @@ byte *DeflatePacket(const byte *data, uint32 &length) {
 
 		deflateEnd(&zstream);
 		//delete output buffer
-		length = 0;
+		*length = 0;
 		delete out_data;
 
-		return(NULL);
+		return NULL;
 	}
 #endif
 }
 
-//returns ownership of buffer!
-byte *InflatePacket(const byte *data, uint32 &length, bool quiet) {
-#ifdef REUSE_ZLIB
+/** Inflate the packet and allocate enough memory for decompression
+  * Note: returns ownership of buffer!
+  */
+byte *InflatePacket(const byte *data, uint32 *length, bool quiet)
+{
+	u_long rsize = *length * 4;
+	byte* buffer = (byte*)malloc(rsize);
+	if(uncompress(buffer, &rsize, data, (u_long)*length) != Z_OK)
+	{
+		//printf("Uncompress of mapping failed.\n");
+		free(buffer);
+		buffer = NULL;
+		return NULL;
+	}
+
+	realloc(buffer, rsize);
+
+	return buffer;
+
+/*#ifdef REUSE_ZLIB
 	static bool inited = false;
 	static z_stream zstream;
     int zerror;
@@ -246,9 +264,9 @@ byte *InflatePacket(const byte *data, uint32 &length, bool quiet) {
 		length = 0;
 		delete out_data;
 
-		return(NULL);
+		return NULL;
 	}
-#endif
+#endif*/
 }
 
 int32 roll(int32 in, int8 bits) {
@@ -266,6 +284,3 @@ int32 rorl(int32 in, int8 bits) {
 int64 rorl(int64 in, int8 bits) {
 	return ((in >> bits) | (in << (64-bits)));
 }
-
-
-

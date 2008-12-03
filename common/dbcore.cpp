@@ -64,7 +64,7 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 	if(!DoQuery_locked(into.error, query, querylen)) {
 		delete [] query;
 		query = NULL;
-		return(false);
+		return false;
 	}
 
 	uint32 col_count = mysql_field_count(&mysql);
@@ -74,7 +74,7 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 		_log(DATABASE__ALL_ERRORS, "DB Query '%s' did not return a result, but the caller requested them.", query);
 		delete [] query;
 		query = NULL;
-		return(false);
+		return false;
 	}
 	delete [] query;
 	query = NULL;
@@ -129,7 +129,7 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 	//give them the result set.
 	into.SetResult(&result, col_count);
 	
-	return(true);
+	return true;
 }
 
 //query which returns no information except error status
@@ -144,12 +144,12 @@ bool DBcore::RunQuery(DBerror &err, const char *query_fmt, ...) {
 
 	if(!DoQuery_locked(err, query, querylen)) {
 		delete [] query;
-		return(false);
+		return false;
 	}
 	
 	delete [] query;
 	query = NULL;
-	return(true);
+	return true;
 }
 
 //query which returns affected rows:
@@ -165,13 +165,13 @@ bool DBcore::RunQuery(DBerror &err, uint32 &affected_rows, const char *query_fmt
 	if(!DoQuery_locked(err, query, querylen)) {
 		delete [] query;
 		query = NULL;
-		return(false);
+		return false;
 	}
 	delete [] query;
 	
 	affected_rows = mysql_affected_rows(&mysql);
 	
-	return(true);
+	return true;
 }
 
 //query which returns last insert ID:
@@ -186,14 +186,14 @@ bool DBcore::RunQueryLID(DBerror &err, uint32 &last_insert_id, const char *query
 	
 	if(!DoQuery_locked(err, query, querylen)) {
 		delete [] query;
-		return(false);
+		return false;
 	}
 	delete [] query;
 	query = NULL;
 	
 	last_insert_id = mysql_insert_id(&mysql);
 	
-	return(true);
+	return true;
 }
 
 bool DBcore::DoQuery_locked(DBerror &err, const char *query, int32 querylen, bool retry) {
@@ -216,11 +216,11 @@ bool DBcore::DoQuery_locked(DBerror &err, const char *query, int32 querylen, boo
 		pStatus = Error;
 		err.SetError(num, mysql_error(&mysql));
 		_log(DATABASE__ALL_ERRORS, "DB Query Error #%d in '%s': %s", err.GetErrno(), query, err.c_str());
-		return(false);
+		return false;
 	}
 	
 	err.ClearError();
-	return(true);
+	return true;
 }
 	
 
@@ -240,7 +240,7 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
 			*errnum = err.GetErrno();
 		if(errbuf != NULL)
 			strcpy(errbuf, err.c_str());
-		return(false);
+		return false;
 	}
 	
 	if (result) {
@@ -254,7 +254,7 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
 				strcpy(errbuf, "DBcore::RunQuery: No Result");
 			_log(DATABASE__QUERIES, "Query failed due to no result");
 			_log(DATABASE__ALL_ERRORS, "DB Query '%s' did not return a result, but the caller requested them.", query);
-			return(false);
+			return false;
 		}
 	}
 	if (affected_rows)
@@ -262,7 +262,7 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
 	if (last_insert_id)
 		*last_insert_id = mysql_insert_id(&mysql);
 	_log(DATABASE__QUERIES, "Query successful");
-	return(true);
+	return true;
 }
 
 int32 DBcore::DoEscapeString(char* tobuf, const char* frombuf, int32 fromlen) {
@@ -286,10 +286,10 @@ bool DBcore::IsSafeString(const char *str) {
 		switch(*str) {
 		case '\'':
 		case '\\':
-			return(false);
+			return false;
 		}
 	}
-	return(true);
+	return true;
 }
 
 bool DBcore::Open(const char* iHost, const char* iUser, const char* iPassword, const char* iDatabase, int16 iPort, int32* errnum, char* errbuf, bool iCompress, bool iSSL) {
@@ -322,10 +322,10 @@ bool DBcore::Open(DBerror &err, const char* iHost, const char* iUser, const char
 	
 	if(!Open_locked(&errnum, errbuf)) {
 		err.SetError(errnum, errbuf);
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 
@@ -403,15 +403,15 @@ DBQueryResult::~DBQueryResult() {
 
 bool DBQueryResult::GetRow(DBResultRow &into) {
 	if(m_res == NULL)
-		return(false);
+		return false;
 	MYSQL_ROW row = mysql_fetch_row(m_res);
 	if(row == NULL)
-		return(false);
+		return false;
 	uint32 *lengths = (uint32*)mysql_fetch_lengths(m_res);
 	if(lengths == NULL)
-		return(false);
+		return false;
 	into.SetData(this, row, lengths);
-	return(true);
+	return true;
 }
 
 const char *DBQueryResult::ColumnName(uint32 column) const {
@@ -651,7 +651,7 @@ void ListToINString(const std::vector<uint32> &ints, std::string &into, const ch
 
 
 bool DBSequence::Init() {
-	return(true);
+	return true;
 }
 
 bool DBSequence::Init(uint32 last_used_value) {
@@ -662,7 +662,7 @@ bool DBSequence::Init(uint32 last_used_value) {
 	))
 	{
 		_log(DATABASE__ERROR, "Failed to create table for sequence '%s': %s", m_table.c_str(), err.c_str());
-		return(false);
+		return false;
 	}
 	
 	if(!m_db->RunQuery(err, 
@@ -671,9 +671,9 @@ bool DBSequence::Init(uint32 last_used_value) {
 	))
 	{
 		_log(DATABASE__ERROR, "Failed to prime value for sequence '%s': %s", m_table.c_str(), err.c_str());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 bool DBSequence::Init(const char *last_used_query, uint32 default_if_empty) {
 	DBQueryResult res;
@@ -683,12 +683,12 @@ bool DBSequence::Init(const char *last_used_query, uint32 default_if_empty) {
 	))
 	{
 		_log(DATABASE__ERROR, "Failed to query prime value for sequence '%s': %s", m_table.c_str(), res.error.c_str());
-		return(false);
+		return false;
 	}
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		//_log(DATABASE__ERROR, "Failed to query prime value for sequence '%s': Query '%s' returned no results.", m_table.c_str(), last_used_query);
-		//return(false);
+		//return false;
 		return(Init( default_if_empty ));
 	}
 	return(Init( row.GetUInt(0) ));

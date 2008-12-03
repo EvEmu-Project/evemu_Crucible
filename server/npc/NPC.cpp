@@ -74,7 +74,7 @@ void NPC::ForcedSetPosition(const GPoint &pt) {
 bool NPC::Load(ServiceDB *from) {
 	//The old purpose for this was eliminated. But we might find
 	//something else to stick in here eventually, so it stays for now.
-	return(true);
+	return true;
 }
 
 void NPC::TargetLost(SystemEntity *who) {

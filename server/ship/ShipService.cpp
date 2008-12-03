@@ -92,7 +92,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	if(call.client->IsInSpace()) {
@@ -108,7 +108,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 		ship->Release();
 	}
 	
-	return(NULL);
+	return NULL;
 }
 
 
@@ -117,7 +117,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Failed to decode arguments");
 		//TODO: throw exception
-		return(NULL);
+		return NULL;
 	}
 	
 	//int ignoreContraband = args.arg;
@@ -126,7 +126,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 	if(!m_db->GetStationDockPosition(call.client->GetLocationID(), position)) {
 		_log(SERVICE__ERROR, "%s: Failed to query location of station %lu for undock.", call.client->GetLocationID());
 		//TODO: throw exception
-		return(NULL);
+		return NULL;
 	}
 
 	
@@ -155,7 +155,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 
 	//should get a stationSvc.GetSolarSystem(solarsystemID)
 	
-	return(NULL);
+	return NULL;
 }
 
 PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
@@ -164,7 +164,7 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Failed to decode arguments");
 		//TODO: throw exception
-		return(NULL);
+		return NULL;
 	}
 
 	//Start sloppy implementation
@@ -173,7 +173,7 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
 	item->ChangeSingleton(true, true);
 	item->Release();
 	//TODO: something...
-	return(NULL);
+	return NULL;
 }
 
 PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
@@ -195,7 +195,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
 		if(!dropargs.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Failed to decode arguments");
 		//TODO: throw exception
-		return(NULL);
+		return NULL;
 	}
 	
 		cur = dropargs.toDrop.begin();
@@ -204,7 +204,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
 		if(!args.Decode(&call.tuple)) {
 			codelog(SERVICE__ERROR, "Failed to decode arguments");
 			//TODO: throw exception
-			return(NULL);
+			return NULL;
 	}
 
 	cur = args.ints.begin();
@@ -258,12 +258,12 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Failed to decode arguments");
 		//TODO: throw exception
-		return(NULL);
+		return NULL;
 	}
 	
 	if(!IsSolarSystem(call.client->GetLocationID())) {
 		_log(SERVICE__ERROR, "%s: Trying to drop items when not in space!", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	std::vector<uint32>::const_iterator cur, end;
@@ -290,7 +290,7 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
 		delete npc;	//should remove itself from everything.
 	}
 	
-	return(NULL);
+	return NULL;
 }
 
 PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
@@ -300,12 +300,12 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Failed to decode arguments");
 		//TODO: throw exception
-		return(NULL);
+		return NULL;
 	}
 
 	if(!IsSolarSystem(call.client->GetLocationID())) {
 		_log(SERVICE__ERROR, "%s: Trying to jettision items when not in space!", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 
@@ -321,7 +321,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 
 	if(cargoItem == NULL) {
 		call.client->SendErrorMsg("Unable to spawn a container for jettison.");
-		return(NULL);
+		return NULL;
 	}
 	
 	//Get location of our ship
@@ -346,7 +346,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 	//add cargo container to system
 	//cargoNpc->Destiny()->SendAddBall();
 	//TODO: Send notification SFX effects.jettison
-	return(NULL);
+	return NULL;
 }
 
 
@@ -358,7 +358,7 @@ PyResult ShipBound::Handle_Eject(PyCallArgs &call) {
 
 	//send session change for shipID change
 	
-	return(NULL);
+	return NULL;
 	//things which came after the return (but probably do not have to...
 
 	//DoDestinyUpdate

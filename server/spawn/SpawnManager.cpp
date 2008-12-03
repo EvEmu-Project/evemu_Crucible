@@ -166,7 +166,7 @@ void SpawnEntry::_DoSpawn(SystemManager *mgr, PyServiceMgr *svc) {
 	}
 	
 	//TODO: apply formation..
-	//hackin it for now...
+	//hacking it for now...
 	std::vector<NPC *>::iterator curn, endn;
 	curn = spawned.begin();
 	endn = spawned.end();
@@ -222,29 +222,29 @@ bool SpawnEntry::CheckBounds() const {
 	case boundsPoint: {
 		if(bounds.size() != 1) {
 			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %lu with type %lu: %lu != 1", GetID(), m_boundsType, bounds.size());
-			return(false);
+			return false;
 		}
 	} break;
 	
 	case boundsLine: {
 		if(bounds.size() != 2) {
 			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %lu with type %lu: %lu != 2", GetID(), m_boundsType, bounds.size());
-			return(false);
+			return false;
 		}
 	} break;
 	
 	case boundsCube: {
 		if(bounds.size() != 2) {
 			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %lu with type %lu: %lu != 2", GetID(), m_boundsType, bounds.size());
-			return(false);
+			return false;
 		}
 	} break;
 	
 	default:
 		_log(SPAWN__ERROR, "Invalid bounds type %lu on spawn entry %lu", m_boundsType, GetID());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 
 
@@ -257,21 +257,21 @@ bool SpawnManager::Load() {
 	// (Drones too?)
 	if(!m_db.LoadSpawnGroups(m_system->GetID(), m_groups)) {
 		_log(SPAWN__ERROR, "Failed to load spawn groups for system %lu!", m_system->GetID());
-		return(false);
+		return false;
 	}
 	
 	if(!m_db.LoadSpawnEntries(m_system->GetID(), m_groups, m_spawns)) {
 		_log(SPAWN__ERROR, "Failed to load spawn entries for system %lu!", m_system->GetID());
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 bool SpawnManager::DoInitialSpawn() {
 	//right now, just running through Process will spawn what needs to be spawned.
 	Process();
-	return(true);
+	return true;
 }
 
 void SpawnManager::Process() {

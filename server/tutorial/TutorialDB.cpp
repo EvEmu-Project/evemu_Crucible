@@ -36,7 +36,7 @@ PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
 		" WHERE tutorialID=%lu", tutorialID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -52,7 +52,7 @@ PyRep *TutorialDB::GetPages(uint32 tutorialID) {
 		" ORDER BY pageNumber", tutorialID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -67,7 +67,7 @@ PyRep *TutorialDB::GetTutorial(uint32 tutorialID) {
 		" WHERE tutorialID=%lu", tutorialID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -82,7 +82,7 @@ PyRep *TutorialDB::GetTutorialCriterias(uint32 tutorialID) {
 		" WHERE tutorialID=%lu", tutorialID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -96,7 +96,7 @@ PyRep *TutorialDB::GetAllTutorials() {
 		" FROM tutorials"))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToCRowset(res));
@@ -110,7 +110,7 @@ PyRep *TutorialDB::GetAllCriterias() {
 		" FROM tutorial_criteria"))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -125,7 +125,7 @@ PyRep *TutorialDB::GetCategories() {
 		" FROM tutorial_categories"))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));

@@ -264,7 +264,7 @@ struct AddBall_spaceItem_planet {
 struct AddBall_spaceItem_station {
 /*043*/uint8  unknown43;		//seen 0xFF
 /*044*/uint16 point_count;
-/*046*/double points[1];	//point_count*4 of them... (windows dosent like two [0] arrays in one struct)
+/*046*/double points[1];	//point_count*4 of them... (windows doesn't like two [0] arrays in one struct)
 							// I think this is (x,y,z,radius) for miniballs w/ relative coordinates.
 /*069*/uint8  name_len;		//in 16 bit increments
 /*070*/uint16 name[0]; 		//utf16
@@ -330,7 +330,7 @@ struct AddBall_ship9 {
 /*118*/uint16 name[0]; 		//utf16
 };
 
-#ifndef WIN32 /*windows dosent like two [0] in a struct.. */
+#ifndef WIN32 /*windows doesn't like two [0] in a struct.. */
 struct AddBall_ship64_collideable {
 /*068*/uint8  formationID;	// seen 0xFF
 /*069*/uint16 point_count;

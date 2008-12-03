@@ -216,23 +216,23 @@ uint32 GetFileLength(const char *file) {
 bool ContainsNonPrintables(const char *c) {
 	for(; *c != '\0'; c++) {
 		if(*c < ' ' && *c != '\r' && *c != '\n') {
-			return(true);
+			return true;
 		} else if(*c > '~') {
-			return(true);
+			return true;
 		}
 	}
-	return(false);
+	return false;
 }
 
 bool ContainsNonPrintables(const char *c, uint32 length) {
 	for(; length > 0; c++, length--) {
 		if(*c < ' ' && *c != '\r' && *c != '\n') {
-			return(true);
+			return true;
 		} else if(*c > '~') {
-			return(true);
+			return true;
 		}
 	}
-	return(false);
+	return false;
 }
 
 void EscapeStringSequence(std::string &subject,  const std::string &find, const std::string &replace) {

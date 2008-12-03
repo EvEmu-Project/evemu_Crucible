@@ -43,20 +43,20 @@ bool InventoryDB::GetCategory(
 		uint32(category)))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s.", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "Category %lu not found.", uint32(category));
-		return(false);
+		return false;
 	}
 
 	name = row.GetText(0);
 	desc = row.GetText(1);
 	published = row.GetInt(2) ? true : false;
 
-	return(true);
+	return true;
 }
 
 bool InventoryDB::GetGroup(
@@ -91,13 +91,13 @@ bool InventoryDB::GetGroup(
 		groupID))
 	{
 		_log(DATABASE__ERROR, "Failed to query group %lu: %s.", groupID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "Group %lu not found.", groupID);
-		return(false);
+		return false;
 	}
 
 	category = EVEItemCategories(row.GetUInt(0));
@@ -111,7 +111,7 @@ bool InventoryDB::GetGroup(
 	fittableNonSingleton = row.GetInt(8) ? true : false;
 	published = row.GetInt(9) ? true : false;
 
-	return(true);
+	return true;
 }
 
 bool InventoryDB::GetType(
@@ -152,13 +152,13 @@ bool InventoryDB::GetType(
 		typeID))
 	{
 		_log(DATABASE__ERROR, "Failed to query type %lu: %s.", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "Type %lu not found.", typeID);
-		return(false);
+		return false;
 	}
 
 	groupID = row.GetUInt(0);
@@ -175,7 +175,7 @@ bool InventoryDB::GetType(
 	marketGroupID = row.IsNull(11) ? 0 : row.GetUInt(11);
 	chanceOfDuplicating = row.GetDouble(12);
 
-	return(true);
+	return true;
 }
 
 bool InventoryDB::GetBlueprintType(
@@ -216,13 +216,13 @@ bool InventoryDB::GetBlueprintType(
 		blueprintTypeID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s.", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "Blueprint type %lu not found.", blueprintTypeID);
-		return(false);
+		return false;
 	}
 
 	parentBlueprintTypeID = row.IsNull(0) ? 0 : row.GetUInt(0);
@@ -239,7 +239,7 @@ bool InventoryDB::GetBlueprintType(
 	chanceOfReverseEngineering = row.GetDouble(11);
 	maxProductionLimit = row.GetUInt(12);
 
-	return(true);
+	return true;
 }
 
 bool InventoryDB::GetItem(
@@ -274,13 +274,13 @@ bool InventoryDB::GetItem(
 			itemID))
 	{
 		codelog(SERVICE__ERROR, "Error in query for item %lu: %s", itemID, res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		codelog(SERVICE__ERROR, "Unable to load item %lu", itemID);
-		return(false);
+		return false;
 	}
 
 	name = row.GetText(0);
@@ -296,7 +296,7 @@ bool InventoryDB::GetItem(
 	position.z = row.GetDouble(10);
 	customInfo = row.IsNull(11) ? "" : row.GetText(11);
 
-	return(true);
+	return true;
 }
 
 uint32 InventoryDB::NewItem(const char *name, uint32 typeID, uint32 ownerID, uint32 locationID, EVEItemFlags flag, bool contraband, bool singleton, uint32 quantity, const GPoint &pos, const char *customInfo) {
@@ -366,10 +366,10 @@ bool InventoryDB::SaveItem(uint32 itemID, const char *name, uint32 typeID, uint3
 		itemID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s.", err.c_str());
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 bool InventoryDB::DeleteItem(uint32 itemID) {
@@ -385,9 +385,9 @@ bool InventoryDB::DeleteItem(uint32 itemID) {
 	))
 	{
 		codelog(DATABASE__ERROR, "Failed to delete item %lu: %s", itemID, err.c_str());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 
 bool InventoryDB::GetBlueprint(
@@ -410,13 +410,13 @@ bool InventoryDB::GetBlueprint(
 		blueprintID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s.", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "Blueprint %lu not found.", blueprintID);
-		return(false);
+		return false;
 	}
 
 	copy = row.GetInt(0) ? true : false;
@@ -424,7 +424,7 @@ bool InventoryDB::GetBlueprint(
 	productivityLevel = row.GetUInt(2);
 	licensedProductionRunsRemaining = row.GetInt(3);
 
-	return(true);
+	return true;
 }
 
 bool InventoryDB::NewBlueprint(uint32 blueprintID, bool copy, uint32 materialLevel, uint32 productivityLevel, int32 licensedProductionRunsRemaining) {
@@ -439,10 +439,10 @@ bool InventoryDB::NewBlueprint(uint32 blueprintID, bool copy, uint32 materialLev
 		blueprintID, copy, materialLevel, productivityLevel, licensedProductionRunsRemaining))
 	{
 		_log(DATABASE__ERROR, "Unable to create new blueprint entry for blueprint %lu: %s.", blueprintID, err.c_str());
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 bool InventoryDB::SaveBlueprint(uint32 blueprintID, bool copy, uint32 materialLevel, uint32 productivityLevel, int32 licensedProductionRunsRemaining) {
@@ -462,10 +462,10 @@ bool InventoryDB::SaveBlueprint(uint32 blueprintID, bool copy, uint32 materialLe
 		licensedProductionRunsRemaining))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s.", err.c_str());
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 bool InventoryDB::DeleteBlueprint(uint32 blueprintID) {
@@ -478,9 +478,9 @@ bool InventoryDB::DeleteBlueprint(uint32 blueprintID) {
 		blueprintID))
 	{
 		codelog(DATABASE__ERROR, "Failed to delete blueprint %lu: %s.", blueprintID, err.c_str());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 
 bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
@@ -496,7 +496,7 @@ bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
 		typeID))
 	{
 		_log(DATABASE__ERROR, "Failed to query type attributes for type %lu: %s.", typeID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
@@ -518,7 +518,7 @@ bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
 			into.SetReal(attr, row.GetDouble(2));
 		}
 	}
-	return(true);
+	return true;
 }
 
 bool InventoryDB::LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into) {
@@ -534,7 +534,7 @@ bool InventoryDB::LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into) {
 		itemID))
 	{
 		_log(DATABASE__ERROR, "Failed to query item attributes for item %lu: %s.", itemID, res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
@@ -556,7 +556,7 @@ bool InventoryDB::LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into) {
 			into.SetReal(attr, row.GetDouble(2));
 		}
 	}
-	return(true);
+	return true;
 }
 
 bool InventoryDB::UpdateAttribute_int(uint32 itemID, uint32 attributeID, int v) {
@@ -569,9 +569,9 @@ bool InventoryDB::UpdateAttribute_int(uint32 itemID, uint32 attributeID, int v) 
 		itemID, attributeID, v)
 	) {
 		codelog(SERVICE__ERROR, "Failed to store attribute %d for item %lu: %s", attributeID, itemID, err.c_str());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 
 bool InventoryDB::UpdateAttribute_double(uint32 itemID, uint32 attributeID, double v) {
@@ -584,9 +584,9 @@ bool InventoryDB::UpdateAttribute_double(uint32 itemID, uint32 attributeID, doub
 		itemID, attributeID, v)
 	) {
 		codelog(SERVICE__ERROR, "Failed to store attribute %d for item %lu: %s", attributeID, itemID, err.c_str());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 bool InventoryDB::EraseAttribute(uint32 itemID, uint32 attributeID) {
 	DBerror err;
@@ -596,9 +596,9 @@ bool InventoryDB::EraseAttribute(uint32 itemID, uint32 attributeID) {
 		itemID, attributeID)
 	) {
 		codelog(SERVICE__ERROR, "Failed to erase attribute %d for item %lu: %s", attributeID, itemID, err.c_str());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 
 bool InventoryDB::EraseAttributes(uint32 itemID) {
@@ -610,9 +610,9 @@ bool InventoryDB::EraseAttributes(uint32 itemID) {
 		itemID))
 	{
 		_log(DATABASE__ERROR, "Failed to erase attributes for item %lu: %s", itemID, err.c_str());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 
 bool InventoryDB::GetItemContents(InventoryItem *item, std::vector<uint32> &items) {
@@ -631,14 +631,14 @@ bool InventoryDB::GetItemContents(InventoryItem *item, std::vector<uint32> &item
 			item->itemID()))
 	{
 		codelog(SERVICE__ERROR, "Error in query for item %lu: %s", item->itemID(), res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
 	while(res.GetRow(row)) {
 		items.push_back(row.GetUInt(0));
 	}
-	return(true);
+	return true;
 }
 
 

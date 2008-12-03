@@ -29,13 +29,13 @@ bool XMLParser::ParseFile(const char *file, const char *root_ele) {
 	TiXmlDocument doc( file );
 	if(!doc.LoadFile()) {
 		printf("Unable to load '%s': %s\n", file, doc.ErrorDesc());
-		return(false);
+		return false;
 	}
 	
 	TiXmlElement *root = doc.FirstChildElement( root_ele );
 	if(root == NULL) {
 		printf("Unable to find root '%s' in %s\n",root_ele, file);
-		return(false);
+		return false;
 	}
 
 	ParseOkay=true;
@@ -78,13 +78,13 @@ const char *XMLParser::ParseTextBlock(TiXmlNode *within, const char *name, bool 
 			printf("Unable to find a '%s' element on %s element at line %d\n", name, within->Value(), within->Row());
 			ParseOkay=false;
 		}
-		return(NULL);
+		return NULL;
 	}
 	TiXmlNode *contents = txt->FirstChild();
 	if(contents == NULL || contents->Type() != TiXmlNode::TEXT) {
 		if(!optional)
 			printf("Node '%s' was expected to be a text element in %s element at line %d\n", name, txt->Value(), txt->Row());
-		return(NULL);
+		return NULL;
 	}
 	return(contents->Value());
 }
@@ -96,7 +96,7 @@ const char *XMLParser::GetText(TiXmlNode *within, bool optional) {
 			printf("Node was expected to be a text element in %s element at line %d\n", within->Value(), within->Row());
 			ParseOkay=false;
 		}
-		return(NULL);
+		return NULL;
 	}
 	return(contents->Value());
 }

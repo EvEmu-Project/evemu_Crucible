@@ -43,37 +43,37 @@ PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 	
 	if(!m_db.ListAllCorpFactions(rsp.factionIDbyNPCCorpID)) {
 		codelog(SERVICE__ERROR, "Failed to service request");
-		return(NULL);
+		return NULL;
 	}
 	if(!m_db.ListAllFactionStationCounts(rsp.factionStationCount)) {
 		codelog(SERVICE__ERROR, "Failed to service request");
-		return(NULL);
+		return NULL;
 	}
 	if(!m_db.ListAllFactionSystemCounts(rsp.factionSolarSystemCount)) {
 		codelog(SERVICE__ERROR, "Failed to service request");
-		return(NULL);
+		return NULL;
 	}
 	if(!m_db.ListAllFactionRegions(rsp.factionRegions)) {
 		codelog(SERVICE__ERROR, "Failed to service request");
-		return(NULL);
+		return NULL;
 	}
 	if(!m_db.ListAllFactionConstellations(rsp.factionConstellations)) {
 		codelog(SERVICE__ERROR, "Failed to service request");
-		return(NULL);
+		return NULL;
 	}
 	if(!m_db.ListAllFactionSolarSystems(rsp.factionSolarSystems)) {
 		codelog(SERVICE__ERROR, "Failed to service request");
-		return(NULL);
+		return NULL;
 	}
 	if(!m_db.ListAllFactionRaces(rsp.factionRaces)) {
 		codelog(SERVICE__ERROR, "Failed to service request");
-		return(NULL);
+		return NULL;
 	}
 	
 	rsp.npcCorpInfo = m_db.ListAllCorpInfo();
 	if(rsp.npcCorpInfo == NULL) {
 		codelog(SERVICE__ERROR, "Failed to service request");
-		return(NULL);
+		return NULL;
 	}
 	
 	return(rsp.FastEncode());

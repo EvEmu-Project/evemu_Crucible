@@ -39,20 +39,20 @@ void ClassCloneGenerator::Process_root(FILE *into, TiXmlElement *element) {
 
 bool ClassCloneGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) {
 	if(!ProcessFields(into, field))
-		return(false);
-	return(true);
+		return false;
+	return true;
 }
 
 bool ClassCloneGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 	if(!ProcessFields(into, field))
-		return(false);
-	return(true);
+		return false;
+	return true;
 }
 
 bool ClassCloneGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 	if(!ProcessFields(into, field))
-		return(false);
-	return(true);
+		return false;
+	return true;
 }
 
 bool ClassCloneGenerator::Process_IDEntry(FILE *into, TiXmlElement *field) {
@@ -60,30 +60,30 @@ bool ClassCloneGenerator::Process_IDEntry(FILE *into, TiXmlElement *field) {
 	const char *key = field->Attribute("key");
 	if(key == NULL) {
 		_log(COMMON__ERROR, "<IDEntry> at line %d is missing the key attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	if(!ProcessFields(into, field, 1))
-		return(false);
-	return(true);
+		return false;
+	return true;
 }
 
 bool ClassCloneGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field) {
 	if(!ProcessFields(into, field, 1))
-		return(false);
-	return(true);
+		return false;
+	return true;
 }
 
 bool ClassCloneGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field) {
 	if(!ProcessFields(into, field, 1))
-		return(false);
-	return(true);
+		return false;
+	return true;
 }
 
 bool ClassCloneGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, 
 		"	std::map<std::string, PyRep *>::const_iterator %s_cur, %s_end;\n"
@@ -109,14 +109,14 @@ bool ClassCloneGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		name, name, name,
 		name, name, name
 	);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, 
 		"	std::map<uint32, PyRep *>::const_iterator %s_cur, %s_end;\n"
@@ -142,74 +142,74 @@ bool ClassCloneGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		name, name, name,
 		name, name, name
 	);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s = from->%s;\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s = from->%s;\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s = from->%s;\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s = from->%s;\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_element(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *type = field->Attribute("type");
 	if(type == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the type attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s.CloneFrom(&from->%s);\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	const char *type = field->Attribute("type");
 	if(type == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the type attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, 
 		"	delete %s;\n"
@@ -223,34 +223,34 @@ bool ClassCloneGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
 		name,
 			name,
 			name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_none(FILE *into, TiXmlElement *field) {
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	const char *type = field->Attribute("type");
 	if(type == NULL) {
 		_log(COMMON__ERROR, "object at line %d is missing the type attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t/* object of type %s */\n", type);
 	if(!ProcessFields(into, field, 1))
-		return(false);
-	return(true);
+		return false;
+	return true;
 }
 
 bool ClassCloneGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 
 	if(!ProcessFields(into, field, 1))
-		return(false);
+		return false;
 
 	fprintf(into,
 		"	PyRepNewObject::const_list_iterator lcur, lend;\n"
@@ -274,14 +274,14 @@ bool ClassCloneGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 			name
 	);
 
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, 
 		"	delete %s;\n"
@@ -295,14 +295,14 @@ bool ClassCloneGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 		name,
 			name,
 			name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_raw(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, 
 		"	delete %s;\n"
@@ -316,24 +316,24 @@ bool ClassCloneGenerator::Process_raw(FILE *into, TiXmlElement *field) {
 		name,
 			name,
 			name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_list(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s.CloneFrom(&from->%s);\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, 
 		"	delete %s;\n"
@@ -347,67 +347,67 @@ bool ClassCloneGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 		name,
 			name,
 			name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s.CloneFrom(&from->%s);\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s = from->%s;\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_int(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s = from->%s;\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s = from->%s;\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_string(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s = from->%s;\n", name, name);
-	return(true);
+	return true;
 }
 
 bool ClassCloneGenerator::Process_real(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return(false);
+		return false;
 	}
 	fprintf(into, "\t%s = from->%s;\n", name, name);
-	return(true);
+	return true;
 }
 
 

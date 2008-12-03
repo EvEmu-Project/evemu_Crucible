@@ -63,7 +63,7 @@ PyLookupResolver::PyLookupResolver() {
 bool PyLookupResolver::LoadIntFile(const char *file) {
 	FILE *f = fopen(file, "r");
 	if(f == NULL)
-		return(false);
+		return false;
 	char *buf = new char[10240];
 	while(fgets(buf, 10240, f)) {
 		//kill empty lines
@@ -93,13 +93,13 @@ bool PyLookupResolver::LoadIntFile(const char *file) {
 	}
 	delete[] buf;
 	fclose(f);
-	return(true);
+	return true;
 }
 
 bool PyLookupResolver::LoadStringFile(const char *file) {
 	FILE *f = fopen(file, "r");
 	if(f == NULL)
-		return(false);
+		return false;
 	char *buf = new char[10240];
 	while(fgets(buf, 10240, f)) {
 		//kill empty lines
@@ -127,7 +127,7 @@ bool PyLookupResolver::LoadStringFile(const char *file) {
 	}
 	delete[] buf;
 	fclose(f);
-	return(true);
+	return true;
 }
 
 const char *PyLookupResolver::LookupInt(uint64 value) const {
@@ -139,21 +139,21 @@ const char *PyLookupResolver::LookupInt(uint64 value) const {
 	}
 	
 	if(value > 0xFFFFFFFFLL || value < MIN_RESOLVABLE_INT)
-		return(NULL);
+		return NULL;
 	std::map<uint32, std::string>::const_iterator res;
 	res = m_intRecords.find(uint32(value));
 	if(res == m_intRecords.end())
-		return(NULL);
+		return NULL;
 	return(res->second.c_str());
 }
 
 const char *PyLookupResolver::LookupString(const char *value) const {
 	if(*value == '\0')
-		return(NULL);
+		return NULL;
 	std::map<std::string, std::string>::const_iterator res;
 	res = m_strRecords.find(value);
 	if(res == m_strRecords.end())
-		return(NULL);
+		return NULL;
 	return(res->second.c_str());
 }
 

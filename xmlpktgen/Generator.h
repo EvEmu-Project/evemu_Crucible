@@ -46,12 +46,12 @@ protected:
 			count++;
 			if(max > 0 && count > max) {
 				_log(COMMON__ERROR, "Element at line %d has too many children elements, at most %d expected.", element->Row(), max);
-				return(false);
+				return false;
 			}
 			if(!DispatchField(into, field->ToElement()))
-				return(false);
+				return false;
 		}
-		return(true);
+		return true;
 	}
 	
 	bool DispatchField(FILE *into, TiXmlElement *field) {
@@ -59,7 +59,7 @@ protected:
 		res = m_procs.find(field->Value());
 		if(res == m_procs.end()) {
 			_log(COMMON__ERROR, "Unexpected field type '%s' on line %d", field->Value(), field->Row());
-			return(false);
+			return false;
 		}
 		fProcPtr p = res->second;
 		T *t = (T *) this;

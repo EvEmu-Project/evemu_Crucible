@@ -86,7 +86,7 @@ PyResult DungeonService::Handle_DEGetFactions(PyCallArgs &call) {
 
 	_log(SERVICE__ERROR, "Unhandled DEGetFactions");
 
-	return(NULL);
+	return NULL;
 }
 
 
@@ -102,7 +102,7 @@ PyResult DungeonService::Handle_DEGetDungeons(PyCallArgs &call) {
 
 	_log(SERVICE__ERROR, "Unhandled DEGetDungeons");
 	
-	return(NULL);
+	return NULL;
 }
 
 
@@ -114,7 +114,7 @@ PyResult DungeonService::Handle_DEGetRooms(PyCallArgs &call) {
 
 	_log(SERVICE__ERROR, "Unhandled DEGetRooms");
 
-	return(NULL);
+	return NULL;
 }
 
 

@@ -34,7 +34,7 @@ Agent::~Agent() {
 }
 
 bool Agent::Load(MissionDB *from) {
-	return(true);
+	return true;
 }
 
 uint32 Agent::GetLoyaltyPoints(Client *who) {

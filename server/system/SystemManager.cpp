@@ -76,7 +76,7 @@ bool SystemManager::_LoadSystemCelestials() {
 	std::vector<DBSystemEntity> entities;
 	if(!m_db.LoadSystemEntities(m_systemID, entities)) {
 		_log(SERVICE__ERROR, "Unable to load celestial entities during boot of system %lu.", m_systemID);
-		return(false);
+		return false;
     }
 
 	//uint32 next_hack_entity_ID = m_systemID + 900000000;
@@ -100,7 +100,7 @@ bool SystemManager::_LoadSystemCelestials() {
 		m_entityChanged = true;
 	}
 	
-	return(true);
+	return true;
 }
 
 class DynamicEntityFactory {
@@ -116,7 +116,7 @@ public:
 			if(i == NULL) {
 				//this should not happen... we just got this list from the DB...
 				codelog(SERVICE__ERROR, "Unable to load item for entity %lu", entity.itemID);
-				return(NULL);
+				return NULL;
 			}
 			return(new Asteroid(system, i));	//takes a ref.
 		} break;
@@ -129,7 +129,7 @@ public:
 			codelog(SERVICE__ERROR, "Unhandled dynamic entity category %d for item %lu of type %lu", entity.categoryID, entity.itemID, entity.typeID);
 			break;
 		}
-		return(NULL);
+		return NULL;
 	}
 };
 
@@ -137,7 +137,7 @@ bool SystemManager::_LoadSystemDynamics() {
 	std::vector<DBSystemDynamicEntity> entities;
 	if(!m_db.LoadSystemDynamicEntities(m_systemID, entities)) {
 		_log(SERVICE__ERROR, "Unable to load dynamic entities during boot of system %lu.", m_systemID);
-		return(false);
+		return false;
     }
 
 	//uint32 next_hack_entity_ID = m_systemID + 900000000;
@@ -158,34 +158,34 @@ bool SystemManager::_LoadSystemDynamics() {
 		m_entityChanged = true;
 	}
 	
-	return(true);
+	return true;
 }
 
 bool SystemManager::BootSystem() {
 	
 	//load the static system stuff...
 	if(!_LoadSystemCelestials())
-		return(false);
+		return false;
 	
 	//load the dynamic system stuff (items, roids, etc...)
 	if(!_LoadSystemDynamics())
-		return(false);
+		return false;
 	
 	/* temporarily commented out until we find out why they
 	 * make client angry ...
 	//the statics have been loaded, now load up the spawns...
 	if(!m_spawnManager->Load()) {
 		_log(SERVICE__ERROR, "Unable to load spawns during boot of system %lu.", m_systemID);
-		return(false);
+		return false;
 	}
 	//spawns are loaded, fire up the initial spawn.
 	if(!m_spawnManager->DoInitialSpawn()) {
 		_log(SERVICE__ERROR, "Unable to do initial spawns during boot of system %lu.", m_systemID);
-		return(false);
+		return false;
 	}
 	*/
 	
-	return(true);
+	return true;
 }
 
 //called many times a second
@@ -207,7 +207,7 @@ bool SystemManager::Process() {
 	
 	bubbles.Process();
 	
-	return(true);
+	return true;
 }
 
 //called once per second.
@@ -282,7 +282,7 @@ SystemEntity *SystemManager::get(uint32 entityID) const {
 	std::map<uint32, SystemEntity *>::const_iterator res;
 	res = m_entities.find(entityID);
 	if(res == m_entities.end())
-		return(NULL);
+		return NULL;
 	return(res->second);
 }
 

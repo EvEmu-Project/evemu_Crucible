@@ -136,7 +136,7 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
 
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	PyRepList::const_iterator cur = args.channels.begin(), end = args.channels.end();
@@ -456,7 +456,7 @@ PyResult LSCService::Handle_GetMessageDetails(PyCallArgs &call) {
 	Call_TwoIntegerArgs args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	//TODO: verify ability to read this message...
@@ -468,14 +468,14 @@ PyResult LSCService::Handle_Page(PyCallArgs &call) {
 	Call_Page args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	_log(SERVICE__MESSAGE, "%s: Received evemail msg with subject '%s': %s", call.client->GetName(), args.subject.c_str(), args.body.c_str());
 	
 	SendMail(call.client->GetCharacterID(), args.recipients, args.subject, args.body);
 	
-	return(NULL);
+	return NULL;
 }
 
 //stuck here to be close to related functionality
@@ -532,7 +532,7 @@ PyResult LSCService::Handle_MarkMessagesRead(PyCallArgs &call) {
 	Call_SingleIntList args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	std::vector<uint32>::iterator cur, end;
@@ -541,19 +541,19 @@ PyResult LSCService::Handle_MarkMessagesRead(PyCallArgs &call) {
 	for(; cur != end; cur++) {
 		m_db.MarkMessageRead(*cur);
 	}
-	return(NULL);
+	return NULL;
 }
 
 PyResult LSCService::Handle_DeleteMessages(PyCallArgs &call) {
 	Call_DeleteMessages args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 
 	if(args.channelID != call.client->GetCharacterID()) {
 		_log(SERVICE__ERROR, "%s (%d) tried to delete messages in channel %lu. Denied.", call.client->GetName(), call.client->GetCharacterID(), args.channelID);
-		return(NULL);
+		return NULL;
 	}
 	
 	std::vector<uint32>::iterator cur, end;
@@ -563,7 +563,7 @@ PyResult LSCService::Handle_DeleteMessages(PyCallArgs &call) {
 		m_db.DeleteMessage(*cur, args.channelID);
 	}
 
-	return(NULL);
+	return NULL;
 }
 
 

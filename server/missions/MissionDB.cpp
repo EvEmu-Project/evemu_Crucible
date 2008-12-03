@@ -36,7 +36,7 @@ PyRepObject *MissionDB::GetAgents() {
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -60,7 +60,7 @@ AgentLevel *MissionDB::LoadAgentLevel(uint8 level) {
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		delete result;
-		return(NULL);
+		return NULL;
 	}
 
 	std::vector<uint32> IDs;

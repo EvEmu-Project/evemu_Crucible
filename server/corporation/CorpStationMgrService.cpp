@@ -82,7 +82,7 @@ CorpStationMgrService::~CorpStationMgrService() {
 PyBoundObject *CorpStationMgrService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
 	if(!bind_args->IsInteger()) {
 		codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bind_args->TypeString());
-		return(NULL);
+		return NULL;
 	}
 	const PyRepInteger *i = (const PyRepInteger *) bind_args;
 
@@ -144,21 +144,21 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call)
 	tmp = m_db->ListStationOwners(m_stationID);
 	if(tmp == NULL) {
 		codelog(SERVICE__ERROR, "Failed to get owners.");
-		return(NULL);
+		return NULL;
 	}
 	l->add( tmp );
 	
 	tmp = m_db->ListStationCorps(m_stationID);
 	if(tmp == NULL) {
 		codelog(SERVICE__ERROR, "Failed to get corps");
-		return(NULL);
+		return NULL;
 	}
 	l->add( tmp );
 	
 	tmp = m_db->ListStationOffices(m_stationID);
 	if(tmp == NULL) {
 		codelog(SERVICE__ERROR, "Failed to get offices.");
-		return(NULL);
+		return NULL;
 	}
 	l->add( tmp );
 

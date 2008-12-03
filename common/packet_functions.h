@@ -28,7 +28,7 @@ int64 roll(int64 in, int8 bits);
 int32 rorl(int32 in, int8 bits);
 int64 rorl(int64 in, int8 bits);
 
-byte *DeflatePacket(const byte *data, uint32 &length);	//returns ownership of buffer!
-byte *InflatePacket(const byte *data, uint32 &length, bool quiet = false);	//returns ownership of buffer!
+byte *DeflatePacket(const byte *data, uint32 *length);						//returns ownership of buffer!
+byte *InflatePacket(const byte *data, uint32 *length, bool quiet = false);	//returns ownership of buffer!
 
 #endif

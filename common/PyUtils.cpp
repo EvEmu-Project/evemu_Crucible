@@ -9,10 +9,10 @@ bool ParseIntegerList(const PyRepTuple *iargs, const char *caller, std::vector<u
 	if(iargs->items.size() != 1) {
 		_log(SERVICE__ERROR, "Invalid arg count to %s: %d", caller, iargs->items.size());
 		//TODO: throw exception
-		return(false);
+		return false;
 	} else if(!iargs->items[0]->IsList()) {
 		_log(SERVICE__ERROR, "Invalid argument to %s: got %s, list expected", caller, iargs->items[0]->TypeString());
-		return(false);
+		return false;
 	}
 	
 	const PyRepList *chanlist = (const PyRepList *) iargs->items[0];
@@ -23,13 +23,13 @@ bool ParseIntegerList(const PyRepTuple *iargs, const char *caller, std::vector<u
 	for(; cur != end; cur++) {
 		if(!(*cur)->IsInteger()) {
 			_log(SERVICE__ERROR, "Invalid argument to %s: got %s, int expected", caller, (*cur)->TypeString());
-			return(false);
+			return false;
 		}
 		const PyRepInteger *i = (const PyRepInteger *) *cur;
 		into.push_back(i->value);
 	}
 
-	return(true);
+	return true;
 }
 
 

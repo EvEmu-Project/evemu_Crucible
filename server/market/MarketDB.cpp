@@ -37,7 +37,7 @@ PyRep *MarketDB::GetStationAsks(uint32 stationID) {
 		" GROUP BY typeID", stationID, TransactionTypeSell))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	//NOTE: this SHOULD return a crazy dbutil.RowDict object which is
@@ -58,7 +58,7 @@ PyRep *MarketDB::GetSystemAsks(uint32 solarSystemID) {
 		" GROUP BY typeID", solarSystemID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	//NOTE: this SHOULD return a crazy dbutil.RowDict object which is
@@ -79,7 +79,7 @@ PyRep *MarketDB::GetRegionBest(uint32 regionID) {
 		" GROUP BY typeID", regionID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	//NOTE: this SHOULD return a crazy dbutil.RowDict object which is
@@ -139,7 +139,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 		" WHERE regionID=%lu AND typeID=%lu AND bid=%d", regionID, typeID, TransactionTypeSell))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	PyRepTuple *tup = new PyRepTuple(2);
@@ -157,7 +157,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 	{
 		delete tup;
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	//this is wrong.
@@ -180,7 +180,7 @@ PyRep *MarketDB::GetCharOrders(uint32 characterID) {
 		" WHERE charID=%lu", characterID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -198,13 +198,13 @@ PyRep *MarketDB::GetOrderRow(uint32 orderID) {
 		" WHERE orderID=%lu", orderID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		codelog(MARKET__ERROR, "Order %lu not found.", orderID);
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBRowToPackedRow(row));
@@ -238,7 +238,7 @@ PyRep *MarketDB::GetOldPriceHistory(uint32 regionID, uint32 typeID) {
 		" WHERE regionID=%lu AND typeID=%lu", regionID, typeID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToCRowset(res));
@@ -283,7 +283,7 @@ PyRep *MarketDB::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
 		Win32Time_Day, regionID, typeID, TransactionTypeBuy))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToCRowset(res));
@@ -322,7 +322,7 @@ bool MarketDB::BuildOldPriceHistory() {
 			))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", err.c_str());
-		return(false);
+		return false;
 	}
 	
 	//now remove the transactions which have been aged out?
@@ -335,10 +335,10 @@ bool MarketDB::BuildOldPriceHistory() {
 
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", err.c_str());
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 PyRepObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable) {
 	DBQueryResult res;
@@ -426,7 +426,7 @@ PyRepObject *MarketDB::GetMarketGroups() {
 		" ORDER BY marketGroupID"))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	DBResultRow row;
@@ -439,7 +439,7 @@ PyRepObject *MarketDB::GetMarketGroups() {
 		" FROM invMarketGroups"))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	std::map<int, int> parentChild;	//maps child -> parent
@@ -463,7 +463,7 @@ PyRepObject *MarketDB::GetMarketGroups() {
 		" FROM invMarketGroups"))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	//doing this the long (non XML) way to avoid the extra copies due to the huge volume of data here.
@@ -613,7 +613,7 @@ uint32 MarketDB::FindBuyOrder(
 		price))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
@@ -648,7 +648,7 @@ uint32 MarketDB::FindSellOrder(
 		price))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return(false);
+		return false;
 	}
 	
 	DBResultRow row;
@@ -672,13 +672,13 @@ bool MarketDB::GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID
 		orderID))
 	{
 		_log(MARKET__ERROR, "Error in query: %s.", res.error.c_str());
-		return(false);
+		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(MARKET__ERROR, "Order %lu not found.", orderID);
-		return(false);
+		return false;
 	}
 
 	quantity = row.GetUInt(0);
@@ -686,7 +686,7 @@ bool MarketDB::GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID
 	typeID = row.GetUInt(2);
 	orderOwnerID = row.GetUInt(3);
 
-	return(true);
+	return true;
 }
 
 //NOTE: this logic needs some work if there are multiple concurrent market services running at once.
@@ -701,10 +701,10 @@ bool MarketDB::AlterOrderQuantity(uint32 orderID, uint32 new_qty) {
 		new_qty, orderID))
 	{
 		_log(MARKET__ERROR, "Error in query: %s.", err.c_str());
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 bool MarketDB::AlterOrderPrice(uint32 orderID, double new_price) {
@@ -718,10 +718,10 @@ bool MarketDB::AlterOrderPrice(uint32 orderID, double new_price) {
 		new_price, orderID))
 	{
 		_log(MARKET__ERROR, "Error in query: %s.", err.c_str());
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 bool MarketDB::DeleteOrder(uint32 orderID) {
@@ -734,10 +734,10 @@ bool MarketDB::DeleteOrder(uint32 orderID) {
 		orderID))
 	{
 		_log(MARKET__ERROR, "Error in query: %s.", orderID);
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 bool MarketDB::RecordTransaction(
@@ -765,9 +765,9 @@ bool MarketDB::RecordTransaction(
 			))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", err.c_str());
-		return(false);
+		return false;
 	}
-	return(true);
+	return true;
 }
 
 uint32 MarketDB::_StoreOrder(

@@ -34,7 +34,7 @@ PyRepObject *AccountDB::GetRefTypes() {
 		" FROM market_refTypes"
 	)) {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -49,7 +49,7 @@ PyRepObject *AccountDB::GetKeyMap() {
 		" FROM market_keyMap"
 	)) {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -75,7 +75,7 @@ PyRepObject *AccountDB::GetJournal(uint32 charID, uint32 refTypeID, uint32 accou
 		" 	AND characterID=%lu" , dT, transDate, accountKey, refTypeID, refTypeID, charID
 	)) {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 	
 	return(DBResultToRowset(res));
@@ -121,7 +121,7 @@ bool ServiceDB::GiveCash(
 
 	{
 		_log(SERVICE__ERROR, "Error in query : %s", err.c_str());
-		return(false);
+		return false;
 	}
 
 	return (true);

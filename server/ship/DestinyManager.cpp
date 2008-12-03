@@ -217,7 +217,7 @@ void DestinyManager::ProcessTic() {
 void DestinyManager::_Follow() {
 	
     /*
-    this was my idea of how it should be done, which dosent agree with
+    this was my idea of how it should be done, which doesn't agree with
     the client.
 
 	GVector targetDirection = GVector(m_position, goal);
@@ -518,7 +518,7 @@ void DestinyManager::_Warp() {
 			velocity_magnitude, dist_remaining);
 
 		//note, this should actually be checked AFTER we change new_velocity.
-		//but hey, it dosent get copied into ball.velocity until later anyhow.
+		//but hey, it doesn't get copied into ball.velocity until later anyhow.
 		if(velocity_magnitude < m_maxShipVelocity) {
 			stop = true;
 		}
@@ -783,7 +783,7 @@ void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {
 	m_targetEntity = who;
 	m_targetDistance = distance;
     /*if(m_userSpeedFraction == 0.0f)
-        m_userSpeedFraction = 1.0f;*/	//dosent seem to do this.
+        m_userSpeedFraction = 1.0f;*/	//doesn't seem to do this.
 	if(m_activeSpeedFraction != m_userSpeedFraction) {
 		m_activeSpeedFraction = m_userSpeedFraction;
 		_UpdateDerrived();
@@ -951,7 +951,7 @@ bool DestinyManager::_Turn() {
 			Ga::GaVec3 vel = Ga::GaVec3(m_direction);
 			vel *= m_velocity;
 			m_body->setLinearVelocity(vel);
-			return(false);
+			return false;
 		}
 		
 		//else, we need some turning action... apply our "turning" forces
@@ -962,11 +962,11 @@ bool DestinyManager::_Turn() {
 		
 		if(direction_cross < 0.5) {
 			//we have a lot of turning to do, let the caller know in case they want to delay acceleration
-			return(true);
+			return true;
 		}
 	}
 #endif
-	return(false);
+	return false;
 }
 
 void DestinyManager::SendJumpOut(uint32 stargateID) const {

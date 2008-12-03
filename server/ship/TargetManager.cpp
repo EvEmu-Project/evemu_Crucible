@@ -162,7 +162,7 @@ bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {
 	if(res != m_targets.end()) {
 		//what to do?
 		_log(TARGET__TRACE, "Told to start targeting %lu, but we are already processing them. Ignoring request.", who->GetID());
-		return(false);
+		return false;
 	}
 
 	//TODO: check against max locked target.
@@ -173,7 +173,7 @@ bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {
 	m_targets[who] = te;
 	
 	_log(TARGET__TRACE, "%lu started targeting %lu (%lu ms lock time)", m_self->GetID(), who->GetID(), lock_time);
-	return(true);
+	return true;
 }
 
 void TargetManager::TargetEntry::Dump() const {
@@ -259,7 +259,7 @@ SystemEntity *TargetManager::GetTarget(uint32 targetID, bool need_locked) const 
 		return(cur->first);
 	}
 	//_log(TARGET__TRACE, "Unable to find target %lu (nl? %s)", targetID, need_locked?"yes":"no");
-	return(NULL);	//not found.
+	return NULL;	//not found.
 }
 
 void TargetManager::QueueTBDestinyEvent(PyRepTuple **up_in) const {
@@ -349,7 +349,7 @@ void TargetManager::TargetedByLost(SystemEntity *from_who) {
 
 SystemEntity *TargetManager::GetFirstTarget(bool need_locked) {
 	if(m_targets.empty())
-		return(NULL);
+		return NULL;
 	if(!need_locked) {
 		//we know there is at least one entry here...
 		return(m_targets.begin()->first);
@@ -362,7 +362,7 @@ SystemEntity *TargetManager::GetFirstTarget(bool need_locked) {
 		if(cur->second->state == TargetEntry::Locked)
 			return(cur->first);
 	}
-	return(NULL);
+	return NULL;
 }
 
 PyRep *TargetManager::Encode_GetTargets() const {

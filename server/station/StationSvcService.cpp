@@ -89,7 +89,7 @@ PyResult StationSvcService::Handle_GetSolarSystem(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	return(m_db.GetSolarSystem(arg.arg));
 }

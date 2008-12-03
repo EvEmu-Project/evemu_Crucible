@@ -40,7 +40,7 @@ PyRepObject *LSCDB::LookupChars(const char *match, bool exact) {
 			" WHERE characterID >= 140000000"))
 		{
 			_log(SERVICE__ERROR, "Error in LookupChars query: %s", res.error.c_str());
-			return(NULL);
+			return NULL;
 		}
 	} else {
 		if(!m_db->RunQuery(res,
@@ -52,7 +52,7 @@ PyRepObject *LSCDB::LookupChars(const char *match, bool exact) {
 		))
 		{
 			_log(SERVICE__ERROR, "Error in LookupChars query: %s", res.error.c_str());
-			return(NULL);
+			return NULL;
 		}
 	}
 	
@@ -74,7 +74,7 @@ PyRepObject *LSCDB::LookupPlayerChars(const char *match, bool exact) {
 		exact?"=":"RLIKE", matchEsc.c_str()))
 	{
 		_log(DATABASE__ERROR, "Failed to lookup player char '%s': %s.", matchEsc.c_str(), res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));
@@ -137,7 +137,7 @@ PyRepObject *LSCDB::GetMailHeaders(uint32 recID) {
 		" WHERE channelID=%lu", recID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return(NULL);
+		return NULL;
 	}
 
 	return(DBResultToRowset(res));

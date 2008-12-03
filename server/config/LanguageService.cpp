@@ -91,7 +91,7 @@ PyResult LanguageService::Handle_GetTextsForGroup(PyCallArgs &call) {
 
 	if (!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");
-		return(NULL);
+		return NULL;
 	}
 
 	return m_db.GetTextsForGroup(args.languageID, args.textgroup);

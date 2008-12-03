@@ -172,7 +172,7 @@ void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
 	//kinda hackish:
 	if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
 		uint32 len = GetLength();
-		byte *buf = InflatePacket(GetBuffer(), len, true);
+		byte *buf = InflatePacket(GetBuffer(), &len, true);
 		if(buf != NULL) {
 			string p(pfx);
 			p += "  ";
@@ -189,7 +189,7 @@ void PyRepBuffer::Dump(LogType type, const char *pfx) const {
 	//kinda hackish:
 	if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
 		uint32 len = GetLength();
-		byte *buf = InflatePacket(GetBuffer(), len, true);
+		byte *buf = InflatePacket(GetBuffer(), &len, true);
 		if(buf != NULL) {
 			string p(pfx);
 			p += "  ";
@@ -205,7 +205,7 @@ PyRepSubStream *PyRepBuffer::CreateSubStream() const {
 		return(new PyRepSubStream(m_value, m_length));
 	} else if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
 		uint32 len = GetLength();
-		byte *buf = InflatePacket(GetBuffer(), len, true);
+		byte *buf = InflatePacket(GetBuffer(), &len, true);
 
 		PyRepSubStream *res = NULL;
 		if(buf == NULL) {
@@ -220,7 +220,7 @@ PyRepSubStream *PyRepBuffer::CreateSubStream() const {
 		return(res);
 	}
 	//else, we don't think this is a substream, so don't become one.
-	return(NULL);
+	return NULL;
 }
 
 /************************************************************************/
@@ -1043,7 +1043,7 @@ bool EVEStringTable::LoadFile(const char *file) {
 
 	FILE *f = fopen(file, "r");
 	if(f == NULL)
-		return(false);
+		return false;
 
 	uint8 index = 1;
 	
@@ -1060,7 +1060,7 @@ bool EVEStringTable::LoadFile(const char *file) {
 		index++;
 	}
 	fclose(f);
-	return(true);
+	return true;
 }
 
 //takes a string as an argument since its going to be converted to
@@ -1075,6 +1075,6 @@ uint8 EVEStringTable::LookupString(const std::string &str) const {
 
 const char *EVEStringTable::LookupIndex(uint8 index) const {
 	if(index == None || index >= m_forwardLookup.size())
-		return(NULL);
+		return NULL;
 	return(m_forwardLookup[index].c_str());
 }

@@ -40,7 +40,7 @@ Category *Category::LoadCategory(ItemFactory &factory, EVEItemCategories categor
 	if(!factory.db().GetCategory(category,
 		name, description, published))
 	{
-		return(NULL);
+		return NULL;
 	}
 
 	// create category
@@ -93,13 +93,13 @@ Group *Group::LoadGroup(ItemFactory &factory, uint32 groupID) {
 	if(!factory.db().GetGroup(groupID, category,
 		name, description, useBasePrice, allowManufacture, allowRecycler, anchored, anchorable, fittableNonSingleton, published))
 	{
-		return(NULL);
+		return NULL;
 	}
 
 	// retrieve category
 	const Category *c = factory.category(category);
 	if(c == NULL)
-		return(NULL);
+		return NULL;
 
 	// create group
 	Group *g = new Group(
@@ -160,13 +160,13 @@ Type *Type::LoadType(ItemFactory &factory, uint32 typeID) {
 		name, description, radius, mass, volume, capacity, portionSize, race, basePrice, published, marketGroupID,
 		chanceOfDuplicating))
 	{
-		return(NULL);
+		return NULL;
 	}
 
 	// obtain group
 	const Group *g = factory.group(groupID);
 	if(g == NULL)
-		return(NULL);
+		return NULL;
 
 	// create type
 	Type *t;
@@ -182,7 +182,7 @@ Type *Type::LoadType(ItemFactory &factory, uint32 typeID) {
 			productionTime, techLevel, researchProductivityTime, researchMaterialTime, researchCopyTime, researchTechTime,
 			productivityModifier, materialModifier, wasteFactor, chanceOfReverseEngineering, maxProductionLimit))
 		{
-			return(NULL);
+			return NULL;
 		}
 
 		// obtain parent blueprint type
@@ -191,7 +191,7 @@ Type *Type::LoadType(ItemFactory &factory, uint32 typeID) {
 			// we have parent type, get it
 			parentBlueprintType = factory.type(parentBlueprintTypeID);
 			if(parentBlueprintType == NULL)
-				return(NULL);
+				return NULL;
 		} else
 			// we have no parent type, set to NULL
 			parentBlueprintType = NULL;
@@ -200,7 +200,7 @@ Type *Type::LoadType(ItemFactory &factory, uint32 typeID) {
 		const Type *productType;
 		productType = factory.type(productTypeID);
 		if(productType == NULL)
-			return(NULL);
+			return NULL;
 
 		// create blueprint type
 		t = new BlueprintType(
@@ -246,7 +246,7 @@ Type *Type::LoadType(ItemFactory &factory, uint32 typeID) {
 
 	if(!t->attributes.Load(factory.db())) {
 		delete t;
-		return(NULL);
+		return NULL;
 	}
 
 	t->attributes.Set_radius(radius);

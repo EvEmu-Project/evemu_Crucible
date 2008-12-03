@@ -93,7 +93,7 @@ Agent *AgentMgrService::_GetAgent(uint32 agentID) {
 	Agent *a = new Agent(agentID);
 	if(!a->Load(&m_db)) {
 		delete a;
-		return(NULL);
+		return NULL;
 	}
 	m_agents[agentID] = a;
 	return(a);
@@ -105,7 +105,7 @@ PyBoundObject *AgentMgrService::_CreateBoundObject(Client *c, const PyRep *bind_
 
 	if(!bind_args->IsInteger()) {
 		codelog(CLIENT__ERROR, "%s: Non-integer bind argument '%s'", c->GetName(), bind_args->TypeString());
-		return(NULL);
+		return NULL;
 	}
 	
 	const PyRepInteger *a = (const PyRepInteger *) bind_args;
@@ -113,7 +113,7 @@ PyBoundObject *AgentMgrService::_CreateBoundObject(Client *c, const PyRep *bind_
 	Agent *agent = _GetAgent(a->value);
 	if(agent == NULL) {
 		codelog(CLIENT__ERROR, "%s: Unable to obtain agent %lu", c->GetName(), a->value);
-		return(NULL);
+		return NULL;
 	}
 	
 	return(new AgentMgrBound(m_manager, &m_db, agent));
@@ -169,7 +169,7 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
 	Call_SingleArg args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Failed to decode args from '%s'", call.client->GetName());
-		return(NULL);
+		return NULL;
 	}
 	
 	uint32 actionID = 0;

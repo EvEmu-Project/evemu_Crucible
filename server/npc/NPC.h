@@ -54,7 +54,7 @@ public:
 
 	//SystemEntity interface:
 	virtual EntityClass GetClass() const { return(ecNPC); }
-	virtual bool IsNPC() const { return(true); }
+	virtual bool IsNPC() const { return true; }
 	virtual NPC *CastToNPC() { return(this); }
 	virtual const NPC *CastToNPC() const { return(this); }
 	virtual void Process();
