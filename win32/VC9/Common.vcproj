@@ -102,7 +102,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x0400;USE_RUNTIME_EXCEPTIONS"
+				PreprocessorDefinitions="WIN32;USE_RUNTIME_EXCEPTIONS"
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"

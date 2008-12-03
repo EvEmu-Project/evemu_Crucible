@@ -122,7 +122,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="C:\mysql\include;..\..\common;..\..\server;."
-				PreprocessorDefinitions="WIN32;_WIN32_WINNT=0x0400;USE_RUNTIME_EXCEPTIONS"
+				PreprocessorDefinitions="WIN32;USE_RUNTIME_EXCEPTIONS"
 				ExceptionHandling="2"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"

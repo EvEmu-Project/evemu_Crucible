@@ -27,6 +27,27 @@
 /************************************************************************/
 /* PyRep utilities                                                      */
 /************************************************************************/
+/** Lookup table for PyRep type object type names.
+*/
+const char *PyRepTypeString[] = {
+	"Integer",			//0
+	"Real",				//1
+	"Boolean",			//2
+	"Buffer",			//3
+	"String",			//4
+	"Tuple",			//5
+	"List",				//6
+	"Dict",				//7
+	"None",				//8
+	"SubStruct",		//9
+	"SubStream",		//10
+	"ChecksumedStream",	//11
+	"Object",			//12
+	"NewObject",		//13
+	"PackedRow",		//14
+	"UNKNOWN TYPE",		//15
+};
+
 static void pfxHexDump(const char *pfx, FILE *into, const byte *data, uint32 length) {
 	char buffer[80];
 	uint32 offset;
@@ -69,16 +90,6 @@ static void pfxPreviewHexDump(const char *pfx, LogType type, const byte *data, u
 	} else {
 		pfxHexDump(pfx, type, data, length);
 	}
-}
-
-/** TypeString function to retrieve the name of the object type
-  */
-const char *PyRep::TypeString() const {
-	if (m_type >= 0 && m_type < 15)
-	{
-		return PyRepTypeString[m_type];
-	}
-	return PyRepTypeString[15];
 }
 
 /************************************************************************/

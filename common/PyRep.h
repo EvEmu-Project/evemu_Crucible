@@ -25,26 +25,9 @@
 class PyVisitor;
 class PyRepSubStream;
 
-/** Static lookup table for PyRep type object type names.
+/** Lookup table for PyRep type object type names.
 */
-static const char *PyRepTypeString[] = {
-	"Integer",			//0
-	"Real",				//1
-	"Boolean",			//2
-	"Buffer",			//3
-	"String",			//4
-	"Tuple",			//5
-	"List",				//6
-	"Dict",				//7
-	"None",				//8
-	"SubStruct",		//9
-	"SubStream",		//10
-	"ChecksumedStream",	//11
-	"Object",			//12
-	"NewObject",		//13
-	"PackedRow",		//14
-	"UNKNOWN TYPE",		//15
-};
+extern const char *PyRepTypeString[];
 
 /** PyRep base Python wire object
   */
@@ -94,7 +77,11 @@ public:
 
 	ASCENT_INLINE bool CheckType(Type t) const { return(m_type == t); }
 	ASCENT_INLINE bool CheckType(Type t, Type t2) const { return(m_type == t || m_type == t2); }
-	ASCENT_INLINE const char *TypeString() const;
+	ASCENT_INLINE const char *TypeString() const {
+		if (m_type >= 0 && m_type < 15)
+			return PyRepTypeString[m_type];
+		return PyRepTypeString[15];
+	}
 	
 	virtual void Dump(FILE *into, const char *pfx) const = 0;
 	virtual void Dump(LogType type, const char *pfx) const = 0;
