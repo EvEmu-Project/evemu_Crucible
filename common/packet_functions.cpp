@@ -158,6 +158,7 @@ byte *InflatePacket(const byte *data, uint32 *length, bool quiet)
 	}
 
 	realloc(buffer, rsize);
+	*length = rsize;
 
 	return buffer;
 
