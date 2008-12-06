@@ -41,12 +41,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="D:\Dev\Evemu\trunk\3rdparty\mysql\include;C:\mysql\include;..\..\common;..\..\server;..\..\3rdparty\mysq\include;&quot;..\..\libs\zlib-win32\include&quot;;."
+				AdditionalIncludeDirectories="..\..\common;..\..\server;."
 				PreprocessorDefinitions="WIN32;_DEBUG;USE_RUNTIME_EXCEPTIONS"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="EvemuPCH.h"
 				WarningLevel="1"
@@ -64,10 +64,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib zlib.lib mysqlclient.lib Advapi32.lib user32.lib"
+				AdditionalDependencies="zlib.lib libmysql.lib wsock32.lib Advapi32.lib user32.lib"
 				OutputFile="..\..\bin\$(ConfigurationName)\$(ProjectName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="D:\Dev\Evemu\trunk\3rdparty\mysql\lib\debug;D:\Dev\Evemu\trunk\lib;C:\mysql\lib\debug;&quot;..\..\libs\zlib-win32\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
@@ -121,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="C:\mysql\include;..\..\common;..\..\server;."
+				AdditionalIncludeDirectories="..\..\common;..\..\server;."
 				PreprocessorDefinitions="WIN32;USE_RUNTIME_EXCEPTIONS"
 				ExceptionHandling="2"
 				RuntimeLibrary="2"
@@ -143,9 +142,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wsock32.lib zlib.lib mysqlclient.lib Advapi32.lib user32.lib"
+				AdditionalDependencies="zlib.lib libmysql.lib wsock32.lib Advapi32.lib user32.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="C:\mysql\lib\opt"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -299,26 +297,10 @@
 				<File
 					RelativePath="..\..\server\cache\ObjCacheDB.cpp"
 					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							GeneratePreprocessedFile="0"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\server\cache\ObjCacheService.cpp"
 					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							GeneratePreprocessedFile="0"
-						/>
-					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
