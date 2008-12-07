@@ -22,8 +22,8 @@ CertificateMgrDB::CertificateMgrDB(DBcore *db)
 {
 }
 
-PyRep *CertificateMgrDB::GetMyCertificates() {
-	_log(DATABASE__ERROR, "GetMyCertificates unimplemented.");
+PyRep *CertificateMgrDB::GetMyCertificates(uint32 characterID) {
+	_log(DATABASE__ERROR, "%lu: GetMyCertificates unimplemented.", characterID);
 
 	util_Rowset rs;
 
@@ -33,5 +33,55 @@ PyRep *CertificateMgrDB::GetMyCertificates() {
 
 	return(rs.Encode());
 }
+
+PyRep *CertificateMgrDB::GetCertificateCategories() {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" categoryID,"
+		" categoryName,"
+		" description,"
+		" 0 AS dataID"
+		" FROM crtCategories"))
+	{
+		_log(DATABASE__ERROR, "Failed to query certificate categories: %s.", res.error.c_str());
+		return(NULL);
+	}
+
+	return(DBResultToIndexRowset("categoryID", res));
+}
+
+PyRep *CertificateMgrDB::GetAllShipCertificateRecommendations() {
+	_log(DATABASE__ERROR, "GetAllShipCertificateRecommendations unimplemented.");
+
+	util_Rowset rs;
+
+	rs.header.push_back("shipTypeID");
+	rs.header.push_back("certificateID");
+	rs.header.push_back("recommendationLevel");
+	rs.header.push_back("recommendationID");
+
+	return(rs.Encode());
+}
+
+PyRep *CertificateMgrDB::GetCertificateClasses() {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" classID,"
+		" className,"
+		" description,"
+		" 0 AS dataID"
+		" FROM crtClasses"))
+	{
+		_log(DATABASE__ERROR, "Failed to query certificate classes: %s.", res.error.c_str());
+		return(NULL);
+	}
+
+	return(DBResultToIndexRowset("classID", res));
+}
+
 
 

@@ -46,12 +46,6 @@ protected:
 	PyCallable_DECL_CALL(GetMultiInvTypesEx)
 	PyCallable_DECL_CALL(GetStationSolarSystemsByOwner)
 	PyCallable_DECL_CALL(GetCelestialStatistic)
-	PyCallable_DECL_CALL(GetCertificateRelationships)
-	PyCallable_DECL_CALL(GetCertificateCategories)
-	PyCallable_DECL_CALL(GetCertificates)
-	PyCallable_DECL_CALL(GetCertificateRecommendationsByCertificateID)
-	PyCallable_DECL_CALL(GetCertificateRecommendationsByShipTypeID)
-	
 };
 
 

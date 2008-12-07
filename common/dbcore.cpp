@@ -30,10 +30,11 @@
 
 #define COLUMN_BOUNDS_CHECKING
 
-DBcore::DBcore() {
+DBcore::DBcore(bool compress, bool ssl)
+: pCompress(compress),
+  pSSL(ssl)
+{
 	mysql_init(&mysql);
-	pCompress = false;
-	pSSL = false;
 	pStatus = Closed;
 }
 
@@ -353,16 +354,27 @@ bool DBcore::Open_locked(int32* errnum, char* errbuf) {
 		flags |= CLIENT_SSL;
 	if (mysql_real_connect(&mysql, pHost.c_str(), pUser.c_str(), pPassword.c_str(), pDatabase.c_str(), pPort, 0, flags)) {
 		pStatus = Connected;
-		return true;
-	}
-	else {
+	} else {
+		pStatus = Error;
 		if (errnum)
 			*errnum = mysql_errno(&mysql);
 		if (errbuf)
 			snprintf(errbuf, MYSQL_ERRMSG_SIZE, "#%i: %s", mysql_errno(&mysql), mysql_error(&mysql));
-		pStatus = Error;
 		return false;
 	}
+
+	// force MySQL to not convert utf8 to latin1, because
+	// client wants unconverted raw utf8
+	if(mysql_set_character_set(&mysql, "utf8") != 0) {
+		pStatus = Error;
+		if(errnum)
+			*errnum = mysql_errno(&mysql);
+		if(errbuf)
+			snprintf(errbuf, MYSQL_ERRMSG_SIZE, "#%i: %s", mysql_errno(&mysql), mysql_error(&mysql));
+		return(false);
+	}
+
+	return(true);
 }
 
 

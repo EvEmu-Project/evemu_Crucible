@@ -1,7 +1,7 @@
 #ifndef __EVE_VERSION_H
 #define __EVE_VERSION_H
 
-//supported client is the Quantum Rise client build 70124
+//supported client is the Quantum Rise client build 70393
 
 static const uint8 MachoNetVersion = 201;
 static const double EVEVersionNumber = 5.20;

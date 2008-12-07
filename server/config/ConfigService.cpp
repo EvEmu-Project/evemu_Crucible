@@ -38,11 +38,6 @@ ConfigService::ConfigService(PyServiceMgr *mgr, DBcore *db)
 	PyCallable_REG_CALL(ConfigService, GetMultiInvTypesEx)
 	PyCallable_REG_CALL(ConfigService, GetStationSolarSystemsByOwner)
 	PyCallable_REG_CALL(ConfigService, GetCelestialStatistic)
-	PyCallable_REG_CALL(ConfigService, GetCertificateRelationships)
-	PyCallable_REG_CALL(ConfigService, GetCertificateCategories)
-	PyCallable_REG_CALL(ConfigService, GetCertificates)
-	PyCallable_REG_CALL(ConfigService, GetCertificateRecommendationsByCertificateID)
-	PyCallable_REG_CALL(ConfigService, GetCertificateRecommendationsByShipTypeID)
 }
 
 ConfigService::~ConfigService() {
@@ -313,82 +308,5 @@ PyResult ConfigService::Handle_GetCelestialStatistic(PyCallArgs &call) {
 	return m_db.GetCelestialStatistic(arg.arg);
 }
 
-PyResult ConfigService::Handle_GetCertificateRelationships(PyCallArgs &call) {
-	ObjectCachedMethodID method_id(GetName(), "GetCertificateRelationships");
 
-	ObjCacheService *cache = m_manager->GetCache();
-	if(!cache->IsCacheLoaded(method_id)) {
-		PyRep *res = m_db.GetCertificateRelationships();
-		if(res == NULL) {
-			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			res = new PyRepNone();
-		}
-		cache->GiveCache(method_id, &res);
-	}
 
-	return(cache->MakeObjectCachedMethodCallResult(method_id));
-}
-
-PyResult ConfigService::Handle_GetCertificateCategories(PyCallArgs &call) {
-	ObjectCachedMethodID method_id(GetName(), "GetCertificateCategories");
-
-	ObjCacheService *cache = m_manager->GetCache();
-	if(!cache->IsCacheLoaded(method_id)) {
-		PyRep *res = m_db.GetCertificateCategories();
-		if(res == NULL) {
-			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			res = new PyRepNone();
-		}
-		cache->GiveCache(method_id, &res);
-	}
-
-	return(cache->MakeObjectCachedMethodCallResult(method_id));
-}
-
-PyResult ConfigService::Handle_GetCertificates(PyCallArgs &call) {
-	ObjectCachedMethodID method_id(GetName(), "GetCertificates");
-
-	ObjCacheService *cache = m_manager->GetCache();
-	if(!cache->IsCacheLoaded(method_id)) {
-		PyRep *res = m_db.GetCertificates();
-		if(res == NULL) {
-			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			res = new PyRepNone();
-		}
-		cache->GiveCache(method_id, &res);
-	}
-
-	return(cache->MakeObjectCachedMethodCallResult(method_id));
-}
-
-PyResult ConfigService::Handle_GetCertificateRecommendationsByCertificateID(PyCallArgs &call) {
-	ObjectCachedMethodID method_id(GetName(), "GetCertificateRecommendationsByCertificateID");
-
-	ObjCacheService *cache = m_manager->GetCache();
-	if(!cache->IsCacheLoaded(method_id)) {
-		PyRep *res = m_db.GetCertificateRecommendationsByCertificateID();
-		if(res == NULL) {
-			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			res = new PyRepNone();
-		}
-		cache->GiveCache(method_id, &res);
-	}
-
-	return(cache->MakeObjectCachedMethodCallResult(method_id));
-}
-
-PyResult ConfigService::Handle_GetCertificateRecommendationsByShipTypeID(PyCallArgs &call) {
-	ObjectCachedMethodID method_id(GetName(), "GetCertificateRecommendationsByShipTypeID");
-
-	ObjCacheService *cache = m_manager->GetCache();
-	if(!cache->IsCacheLoaded(method_id)) {
-		PyRep *res = m_db.GetCertificateRecommendationsByShipTypeID();
-		if(res == NULL) {
-			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			res = new PyRepNone();
-		}
-		cache->GiveCache(method_id, &res);
-	}
-
-	return(cache->MakeObjectCachedMethodCallResult(method_id));
-}

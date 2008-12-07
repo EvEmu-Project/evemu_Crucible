@@ -125,7 +125,7 @@ class DBcore {
 public:
 	enum eStatus { Closed, Connected, Error };
 	
-	DBcore();
+	DBcore(bool compress=false, bool ssl=false);
 	~DBcore();
 	eStatus	GetStatus() const { return pStatus; }
 	

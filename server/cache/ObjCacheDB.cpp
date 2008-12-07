@@ -41,6 +41,8 @@ ObjCacheDB::ObjCacheDB(DBcore *db) : ServiceDB(db)
 	m_generators["config.BulkData.mapcelestialdescriptions"] = &ObjCacheDB::Generate_mapCelestialDescriptions;
 	m_generators["config.BulkData.tickernames"] = &ObjCacheDB::Generate_tickerNames;
 	m_generators["config.BulkData.groups"] = &ObjCacheDB::Generate_invGroups;
+	m_generators["config.BulkData.certificates"] = &ObjCacheDB::Generate_certificates;
+	m_generators["config.BulkData.certificaterelationships"] = &ObjCacheDB::Generate_certificateRelationships;
 	m_generators["config.BulkData.shiptypes"] = &ObjCacheDB::Generate_invShipTypes;
 	m_generators["config.BulkData.locations"] = &ObjCacheDB::Generate_cacheLocations;
 	m_generators["config.BulkData.bptypes"] = &ObjCacheDB::Generate_invBlueprintTypes;
@@ -299,7 +301,7 @@ PyRep *ObjCacheDB::Generate_ramTypeMaterials()
 PyRep *ObjCacheDB::Generate_ramTypeRequirements()
 {
 	DBQueryResult res;
-	const char *q = "SELECT typeID, activityID, requiredTypeID, quantity, damagePerJob, 0 AS recycle FROM typeActivityMaterials WHERE damagePerJob != 1.0";
+	const char *q = "SELECT typeID, activityID, requiredTypeID, quantity, damagePerJob, recycle FROM typeActivityMaterials WHERE damagePerJob != 1.0 OR recycle = 1";
 	if(m_db->RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.ramtyperequirements': %s", res.error.c_str());
@@ -342,6 +344,31 @@ PyRep *ObjCacheDB::Generate_invGroups()
 		return NULL;
 	}
 	return DBResultToTupleSet(res);
+}
+
+PyRep *ObjCacheDB::Generate_certificates()
+{
+	DBQueryResult res;
+	const char *q = "SELECT certificateID,categoryID,classID,grade,iconID,corpID,description,0 AS dataID FROM crtCertificates";
+	if(m_db->RunQuery(res, q)==false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.groups': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_certificateRelationships()
+{
+	DBQueryResult res;
+	//right now we're hacking typeID as there is nothing but zeros in table, but this may change over time
+	const char *q = "SELECT relationshipID,parentID,0 AS parentTypeID,parentLevel,childID,0 AS childTypeID FROM crtRelationships";
+	if(m_db->RunQuery(res, q)==false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.groups': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_invShipTypes()

@@ -47,8 +47,10 @@ const char *const ObjCacheService::LoginCachableObjects[] = {
 	"config.BulkData.bptypes",
 	"config.BulkData.graphics",
 	"config.BulkData.mapcelestialdescriptions",
+	"config.BulkData.certificates",
 	"config.StaticLocations",
 	"config.InvContrabandTypes",
+	"config.BulkData.certificaterelationships",
 	"config.BulkData.units",
 	"config.BulkData.dgmeffects",
 	"config.BulkData.types",
@@ -60,20 +62,20 @@ const char *const ObjCacheService::CharCreateCachableObjects[] = {
 	"charCreationInfo.bl_eyebrows",
 	"charCreationInfo.bl_eyes",
 	"charCreationInfo.bl_decos",
-	"charCreationInfo.schools",
+	"charCreationInfo.bloodlines",
 	"charCreationInfo.bl_hairs",
 	"charCreationInfo.bl_backgrounds",
 	"charCreationInfo.bl_accessories",
 	"charCreationInfo.bl_costumes",
 	"charCreationInfo.bl_lights",
-	"charCreationInfo.bl_makeups",
-	"charCreationInfo.bloodlines",
-	"charCreationInfo.ancestries",
 	"charCreationInfo.races",
+	"charCreationInfo.ancestries",
+	"charCreationInfo.schools",
 	"charCreationInfo.attributes",
 	"charCreationInfo.bl_beards",
 	"charCreationInfo.bl_skins",
-	"charCreationInfo.bl_lipsticks"
+	"charCreationInfo.bl_lipsticks",
+	"charCreationInfo.bl_makeups"
 };
 const uint32 ObjCacheService::CharCreateCachableObjectCount = sizeof(ObjCacheService::CharCreateCachableObjects) / sizeof(const char *);
 
@@ -135,6 +137,8 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, DBcore *dbc, const std::stri
 	m_cacheKeys["config.BulkData.mapcelestialdescriptions"] = "config.BulkData.mapcelestialdescriptions";
 	m_cacheKeys["config.BulkData.tickernames"] = "config.BulkData.tickernames";
 	m_cacheKeys["config.BulkData.groups"] = "config.BulkData.groups";
+	m_cacheKeys["config.BulkData.certificates"] = "config.BulkData.certificates";
+	m_cacheKeys["config.BulkData.certificaterelationships"] = "config.BulkData.certificaterelationships";
 	m_cacheKeys["config.BulkData.shiptypes"] = "config.BulkData.shiptypes";
 	m_cacheKeys["config.BulkData.locations"] = "config.BulkData.locations";
 	m_cacheKeys["config.BulkData.bptypes"] = "config.BulkData.bptypes";
@@ -224,13 +228,13 @@ void ObjCacheService::PrimeCache() {
 	std::map<std::string, std::string>::const_iterator cur, end;
 	cur = m_cacheKeys.begin();
 	end = m_cacheKeys.end();
-	printf("Loading cache:");
+	printf("Loading cache");
 	for(; cur != end; cur++) {
 		_log(SERVICE__CACHE, "Priming cache object '%s'", cur->first.c_str());
 		PyRepString str(cur->first);
 		_LoadCachableObject(&str);
 		
-		printf("."); // print a dot so we have a indication of loading. I know this sucks.
+		putchar('.'); // print a dot so we have a indication of loading. I know this sucks.
 	}
 	printf("\nLoading done\n");
 }

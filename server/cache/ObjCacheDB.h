@@ -65,6 +65,8 @@ protected:
 	PyRep *Generate_mapCelestialDescriptions();
 	PyRep *Generate_tickerNames();
 	PyRep *Generate_invGroups();
+	PyRep *Generate_certificates();
+	PyRep *Generate_certificateRelationships();
 	PyRep *Generate_invShipTypes();
 	PyRep *Generate_cacheLocations();
 	PyRep *Generate_invBlueprintTypes();

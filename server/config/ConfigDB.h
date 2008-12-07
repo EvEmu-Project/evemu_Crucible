@@ -43,11 +43,6 @@ public:
 	PyRep *GetStationSolarSystemsByOwner(uint32 ownerID);
 	PyRep *GetCelestialStatistic(uint32 celestialID);
 	PyRep *GetTextsForGroup(const std::string & langID, uint32 textgroup);
-	PyRep *GetCertificateRelationships();
-	PyRep *GetCertificateCategories();
-	PyRep *GetCertificates();
-	PyRep *GetCertificateRecommendationsByCertificateID();
-	PyRep *GetCertificateRecommendationsByShipTypeID();
 	
 protected:
 };

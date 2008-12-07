@@ -134,20 +134,26 @@
 	</InlineTuple>
 </element>
 
-  <element name="Call_AddOwnerNote">
-    <InlineTuple>
-      <string name="label" />
-      <string name="content" />
-    </InlineTuple>
-  </element>
+<element name="Call_AddOwnerNote">
+  <InlineTuple>
+    <string name="label" />
+    <string name="content" />
+  </InlineTuple>
+</element>
 
-  <element name="Call_EditOwnerNote">
-    <InlineTuple>
-      <int name="noteID" />
-      <string name="label" />
-      <string name="content" />
-    </InlineTuple>
-  </element>
+<element name="Call_EditOwnerNote">
+  <InlineTuple>
+    <int name="noteID" />
+    <string name="label" />
+    <string name="content" />
+  </InlineTuple>
+</element>
+
+<element name="Call_BatchCertificateUpdate">
+  <InlineTuple>
+    <primdict name="update" key="uint32" pykey="Integer" value="uint32" pyvalue="Integer" />
+  </InlineTuple>
+</element>
 
 </Elements>
 

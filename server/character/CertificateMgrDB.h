@@ -28,7 +28,10 @@ class CertificateMgrDB
 public:
 	CertificateMgrDB(DBcore *db);
 
-	PyRep *GetMyCertificates();
+	PyRep *GetMyCertificates(uint32 characterID);
+	PyRep *GetCertificateCategories();
+	PyRep *GetAllShipCertificateRecommendations();
+	PyRep *GetCertificateClasses();
 };
 
 #endif /* __CERTIFICATE_MGR_DB__H__INCL__ */
