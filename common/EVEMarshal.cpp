@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <string>
 #include <zlib.h>
+#include <assert.h>
 
 static const uint32 EVEDeflationBytesLimit = 10000;	//every packet larger than this is deflated
 
@@ -195,7 +196,6 @@ public:
 		uint32 len = (uint32)rep->value.length();
 		if(rep->is_type_1)
 		{
-			assert(len != 0); // personal debug thingy
 			PutByte(Op_PyByteString);
 			if(len < 0xFF)
 			{
