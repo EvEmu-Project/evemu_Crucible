@@ -27,6 +27,8 @@
 #include <string>
 #include <zlib.h>
 
+static const uint32 EVEDeflationBytesLimit = 10000;	//every packet larger than this is deflated
+
 class MarshalVisitor : public PyVisitor
 {
 public:

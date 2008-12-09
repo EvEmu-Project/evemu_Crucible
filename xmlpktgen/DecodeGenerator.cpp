@@ -941,7 +941,7 @@ bool ClassDecodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 		"	} else if(%s->IsString()) {\n"
 		"		PyRepString *__sss = (PyRepString *) %s;\n"
 		"		%s = NULL;\n"
-		"		%s = new PyRepBuffer((const byte *) __sss->value.c_str(), __sss->value.length());\n"
+		"		%s = new PyRepBuffer((const uint8 *) __sss->value.c_str(), __sss->value.length());\n"
 		"		delete __sss;\n"
 		"	} else {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a buffer: %%s\", %s->TypeString());\n"
