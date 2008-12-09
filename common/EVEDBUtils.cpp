@@ -72,7 +72,7 @@ PyRep *DBColumnToPyRep(DBResultRow &row, uint32 column_index) {
 			return(new PyRepInteger(row.GetInt64(column_index)));
 		return(new PyRepInteger(row.GetUInt64(column_index)));
 	case DBQueryResult::Binary:
-		return(new PyRepBuffer((const byte *) row.GetText(column_index), row.GetColumnLength(column_index)));
+		return(new PyRepBuffer((const uint8 *) row.GetText(column_index), row.GetColumnLength(column_index)));
 	case DBQueryResult::DateTime:
 	case DBQueryResult::String:
 	default:
@@ -645,7 +645,7 @@ void EncodePackedField(const DBResultRow &row, const DBPackedColumnList::ColumnI
 	case DBTYPE_WSTR: into.PushPyRep(new PyRepString(row.IsNull(col.index) ? "" : row.GetText(col.index))); break;
 
 	case DBTYPE_BYTES:
-	default: into.PushPyRep(row.IsNull(col.index) ? new PyRepBuffer(0) : new PyRepBuffer((const byte *)row.GetText(col.index), row.GetColumnLength(col.index))); break;
+	default: into.PushPyRep(row.IsNull(col.index) ? new PyRepBuffer(0) : new PyRepBuffer((const uint8 *)row.GetText(col.index), row.GetColumnLength(col.index))); break;
 	}
 }
 

@@ -82,7 +82,7 @@ SystemPlanetEntity::SystemPlanetEntity(SystemManager *system, const DBSystemEnti
 : SimpleSystemEntity(system, entity) {
 }
 
-void SystemPlanetEntity::EncodeDestiny(std::vector<byte> &into) const {
+void SystemPlanetEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	#pragma pack(1)
 	struct AddBall_Planet {
 		BallHeader head;
@@ -94,7 +94,7 @@ void SystemPlanetEntity::EncodeDestiny(std::vector<byte> &into) const {
 	into.resize(start 
 		+ sizeof(AddBall_Planet)
 		+ data.itemName.length()*sizeof(uint16) );
-	byte *ptr = &into[start];
+	uint8 *ptr = &into[start];
 	AddBall_Planet *item = (AddBall_Planet *) ptr;
 	ptr += sizeof(AddBall_Planet);
 
@@ -121,7 +121,7 @@ SystemStationEntity::SystemStationEntity(SystemManager *system, const DBSystemEn
 : SimpleSystemEntity(system, entity) {
 }
 
-void SystemStationEntity::EncodeDestiny(std::vector<byte> &into) const {
+void SystemStationEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	#pragma pack(1)
 	struct AddBall_Station {
 		BallHeader head;
@@ -138,7 +138,7 @@ void SystemStationEntity::EncodeDestiny(std::vector<byte> &into) const {
 		+ sizeof(AddBall_Station) 
 		+ (miniball_count-1)*sizeof(MiniBall)
 		+ data.itemName.length()*sizeof(uint16) );
-	byte *ptr = &into[start];
+	uint8 *ptr = &into[start];
 	AddBall_Station *item = (AddBall_Station *) ptr;
 
 	item->head.entityID = data.itemID;
@@ -158,7 +158,7 @@ void SystemStationEntity::EncodeDestiny(std::vector<byte> &into) const {
 	item->miniballs.balls[0].radius = 1639.241;
 	
 	//slide pointer over points...
-	item = (AddBall_Station *) (((byte *) item)+(miniball_count-1)*sizeof(MiniBall));
+	item = (AddBall_Station *) (((uint8 *) item)+(miniball_count-1)*sizeof(MiniBall));
 	
 	item->name.name_len = data.itemName.length();
 	strcpy_fake_unicode(item->name.name, data.itemName.c_str());
@@ -219,7 +219,7 @@ SystemAsteroidBeltEntity::~SystemAsteroidBeltEntity() {
 	delete m_manager;
 }
 
-void SystemAsteroidBeltEntity::EncodeDestiny(std::vector<byte> &into) const {
+void SystemAsteroidBeltEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	#pragma pack(1)
 	struct AddBall_AsteroidBelt {
 		BallHeader head;
@@ -233,7 +233,7 @@ void SystemAsteroidBeltEntity::EncodeDestiny(std::vector<byte> &into) const {
 	into.resize(start 
 		+ sizeof(AddBall_AsteroidBelt)
 		+ data.itemName.length()*sizeof(uint16) );
-	byte *ptr = &into[start];
+	uint8 *ptr = &into[start];
 	AddBall_AsteroidBelt *item = (AddBall_AsteroidBelt *) ptr;
 	ptr += sizeof(AddBall_AsteroidBelt);
 
@@ -314,7 +314,7 @@ PyRepDict *SystemDungeonEntranceEntity::MakeSlimItem() const {
 	return(slim);
 }
 
-void SystemDungeonEntranceEntity::EncodeDestiny(std::vector<byte> &into) const {
+void SystemDungeonEntranceEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	#pragma pack(1)
 	struct AddBall_Dungeon {
 		BallHeader head;
@@ -334,7 +334,7 @@ void SystemDungeonEntranceEntity::EncodeDestiny(std::vector<byte> &into) const {
 		+ sizeof(AddBall_Dungeon)
 		+ (miniball_count-1)*sizeof(MiniBall)
 		+ itemName.length()*sizeof(uint16) );
-	byte *ptr = &into[start];
+	uint8 *ptr = &into[start];
 	AddBall_Dungeon *item = (AddBall_Dungeon *) ptr;
 	ptr += sizeof(AddBall_Dungeon);
 
@@ -361,7 +361,7 @@ void SystemDungeonEntranceEntity::EncodeDestiny(std::vector<byte> &into) const {
 	item->miniballs.balls[0].radius = GetRadius();
 
 	//slide pointer over points...
-	item = (AddBall_Dungeon *) (((byte *) item)+(miniball_count-1)*sizeof(MiniBall));
+	item = (AddBall_Dungeon *) (((uint8 *) item)+(miniball_count-1)*sizeof(MiniBall));
 
 	item->name.name_len = itemName.length();
 	strcpy_fake_unicode(item->name.name, itemName.c_str());

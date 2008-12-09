@@ -40,17 +40,17 @@ voidpf e_alloc_func(voidpf opaque, uInt items, uInt size);
 void e_free_func(voidpf opaque, voidpf address);
 
 voidpf e_alloc_func(voidpf opaque, uInt items, uInt size) {
-	voidpf tmp = new byte[items * size];
+	voidpf tmp = new uint8[items * size];
 	return(tmp);
 }
 
 void e_free_func(voidpf opaque, voidpf address) {
-	delete[] (byte *)address;
+	delete[] (uint8 *)address;
 }
 #endif
 
 //returns ownership of buffer!
-byte *DeflatePacket(const byte *data, uint32 *length)
+uint8 *DeflatePacket(const uint8 *data, uint32 *length)
 {
 #ifdef REUSE_ZLIB
 	static bool inited = false;
@@ -97,13 +97,15 @@ byte *DeflatePacket(const byte *data, uint32 *length)
 		return(0);
 
 	z_stream zstream;
-	zstream.next_in   = const_cast<byte *>(data);
+	zstream.next_in   = const_cast<uint8 *>(data);
 	zstream.avail_in  = *length;
 	zstream.zalloc    = e_alloc_func;
 	zstream.zfree     = e_free_func;
 	zstream.opaque    = Z_NULL;
 
-	int zerror = deflateInit(&zstream, Z_DEFAULT_COMPRESSION);
+	//int zerror = deflateInit(&zstream, Z_DEFAULT_COMPRESSION);
+	int zerror = deflateInit(&zstream, Z_BEST_SPEED);
+	
 	if(zerror != Z_OK) {
 		_log(COMMON__ERROR, "Error: DeflatePacket: deflateInit() returned %d (%s).",
 			zerror, (zstream.msg == NULL ? "No additional message" : zstream.msg));
@@ -112,7 +114,7 @@ byte *DeflatePacket(const byte *data, uint32 *length)
 	}
 
 	*length = deflateBound(&zstream, *length);
-	byte *out_data = new byte[*length];
+	uint8 *out_data = new uint8[*length];
 
 	zstream.next_out  = out_data;
 	zstream.avail_out = *length;
@@ -124,7 +126,7 @@ byte *DeflatePacket(const byte *data, uint32 *length)
 		deflateEnd(&zstream);
 		//truncate output buffer to necessary size
 		*length = zstream.total_out;
-		out_data = (byte *)realloc(out_data, *length);
+		out_data = (uint8 *)realloc(out_data, *length);
 
 		return(out_data);
 	} else {
@@ -145,10 +147,10 @@ byte *DeflatePacket(const byte *data, uint32 *length)
 /** Inflate the packet and allocate enough memory for decompression
   * Note: returns ownership of buffer!
   */
-byte *InflatePacket(const byte *data, uint32 *length, bool quiet)
+uint8 *InflatePacket(const uint8 *data, uint32 *length, bool quiet)
 {
 	u_long rsize = *length * 4;
-	byte* buffer = (byte*)malloc(rsize);
+	uint8* buffer = (uint8*)malloc(rsize);
 	if(uncompress(buffer, &rsize, data, (u_long)*length) != Z_OK)
 	{
 		//printf("Uncompress of mapping failed.\n");
@@ -219,7 +221,7 @@ byte *InflatePacket(const byte *data, uint32 *length, bool quiet)
 		return(0);
 
 	z_stream zstream;	
-	zstream.next_in   = const_cast<byte *>(data);
+	zstream.next_in   = const_cast<uint8 *>(data);
 	zstream.avail_in  = length;
 	zstream.zalloc    = e_alloc_func;
 	zstream.zfree     = e_free_func;
@@ -234,11 +236,11 @@ byte *InflatePacket(const byte *data, uint32 *length, bool quiet)
 		return(0);
 	}
 
-	byte *out_data = NULL;
+	uint8 *out_data = NULL;
 	zstream.total_out = 0;
 	do {
 		length *= 2;	//increase buffer size
-		out_data = (byte *)realloc(out_data, length);	//(re)allocate output buffer twice as big as before
+		out_data = (uint8 *)realloc(out_data, length);	//(re)allocate output buffer twice as big as before
 
 		zstream.next_out  = &out_data[zstream.total_out];
 		zstream.avail_out = length - zstream.total_out;
@@ -251,7 +253,7 @@ byte *InflatePacket(const byte *data, uint32 *length, bool quiet)
 		inflateEnd(&zstream);
 		//truncate output buffer to necessary size
 		length = zstream.total_out;
-		out_data = (byte *)realloc(out_data, length);
+		out_data = (uint8 *)realloc(out_data, length);
 
 		return(out_data);
 	} else {

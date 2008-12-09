@@ -152,8 +152,8 @@ public:
 
 class PyRepBuffer : public PyRep {
 public:
-	PyRepBuffer(const byte *buffer, uint32 length);
-	PyRepBuffer(byte **buffer, uint32 length);
+	PyRepBuffer(const uint8 *buffer, uint32 length);
+	PyRepBuffer(uint8 **buffer, uint32 length);
 	PyRepBuffer(uint32 length);
 
 	PyRepBuffer(std::string &buffer);
@@ -167,13 +167,13 @@ public:
 	PyRepBuffer *TypedClone() const;
 	
 	//treat it as a buffer:
-	byte *GetBuffer() const { return m_value; }
+	uint8 *GetBuffer() const { return m_value; }
 	uint32 GetLength() const { return m_length; }
 
 	PyRepSubStream *CreateSubStream() const;
 	
 protected:
-	byte *const m_value;
+	uint8 *const m_value;
 	const uint32 m_length;
 };
 
@@ -182,7 +182,7 @@ class PyRepString : public PyRep {
 public:
 	PyRepString(const char *str = "", bool type_1=false) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1) {}
 	PyRepString(const std::string &str, bool type_1=false) : PyRep(PyRep::PyTypeString), is_type_1(type_1) { value.assign(str.c_str(), str.length()); } //to deal with non-string buffers poorly placed in strings (CCP)
-	PyRepString(const byte *data, uint32 len, bool type_1=false) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1) {}
+	PyRepString(const uint8 *data, uint32 len, bool type_1=false) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1) {}
 	virtual ~PyRepString() {}
 	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
 	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
@@ -342,10 +342,10 @@ public:
 
 class PyRepPackedRow : public PyRep {
 public:
-	typedef std::vector<byte> buffer_t;
+	typedef std::vector<uint8> buffer_t;
 	typedef std::vector<PyRep *> rep_list;
 
-	PyRepPackedRow(const PyRep *header, bool own_header, const byte *data = NULL, const uint32 len = 0);
+	PyRepPackedRow(const PyRep *header, bool own_header, const uint8 *data = NULL, const uint32 len = 0);
 	virtual ~PyRepPackedRow();
 	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
 	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
@@ -396,7 +396,7 @@ public:
 	double GetDouble(size_t offset) const { return(*(const double *)Get(offset)); }
 
 	//raw
-	const byte *Get(size_t offset) const { return(m_buffer.empty() ? NULL : &m_buffer[offset]); }
+	const uint8 *Get(size_t offset) const { return(m_buffer.empty() ? NULL : &m_buffer[offset]); }
 
 	//PyRep
 	PyRep *GetPyRep(size_t offset) const { return(m_reps[offset]); }
@@ -409,7 +409,7 @@ public:
 	const PyRep *const header;
 
 	//buffer access
-	const byte *buffer() const { return(Get(0)); }
+	const uint8 *buffer() const { return(Get(0)); }
 	uint32 bufferSize() const { return(uint32(m_buffer.size())); }
 
 	//reps
@@ -443,7 +443,7 @@ class PyRepSubStream : public PyRep {
 public:
 	PyRepSubStream() : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(NULL) {}
 	PyRepSubStream(PyRep *t) : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(t) {}
-	PyRepSubStream(const byte *buffer, uint32 len);
+	PyRepSubStream(const uint8 *buffer, uint32 len);
 	
 	virtual ~PyRepSubStream();
 	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
@@ -460,7 +460,7 @@ public:
 	void DecodeData() const;
 	
 	uint32 length;
-	byte *data;
+	uint8 *data;
 
 	//set this and make data NULL to make somebody else marshal it
 	//if both are non-NULL, they are considered to be equivalent

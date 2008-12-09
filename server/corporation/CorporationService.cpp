@@ -93,8 +93,8 @@ PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 
 	//total hack:
 	ss->length -= 79;
-	byte *data = ss->data;
-	ss->data = new byte[ss->length];
+	uint8 *data = ss->data;
+	ss->data = new uint8[ss->length];
 	memcpy(ss->data, data + 79, ss->length);
 	delete[] data;
 	delete ss->decoded;

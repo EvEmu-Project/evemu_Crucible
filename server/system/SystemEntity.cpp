@@ -40,7 +40,7 @@ double SystemEntity::DistanceTo2(const SystemEntity *other) const {
 }
 
 void SystemEntity::MakeAddBall(DoDestiny_AddBall &addball, uint32 updateID) const {
-	std::vector<byte> ball_buffer(sizeof(Destiny::AddBall_header));
+	std::vector<uint8> ball_buffer(sizeof(Destiny::AddBall_header));
 	ball_buffer.reserve(512);
 	
 	Destiny::AddBall_header *head = (Destiny::AddBall_header *) &ball_buffer[0];
@@ -61,7 +61,7 @@ void SystemEntity::MakeAddBall(DoDestiny_AddBall &addball, uint32 updateID) cons
 	_log(DESTINY__TRACE, "    Ball Binary: (%lu bytes)", addball.destiny_binary.length());
 	_hex(DESTINY__TRACE, addball.destiny_binary.c_str(), addball.destiny_binary.length());
 	_log(DESTINY__TRACE, "    Ball Decoded:");
-	Destiny::DumpUpdate(DESTINY__TRACE, (const byte *) addball.destiny_binary.c_str(), addball.destiny_binary.length());
+	Destiny::DumpUpdate(DESTINY__TRACE, (const uint8 *) addball.destiny_binary.c_str(), addball.destiny_binary.length());
 }
 
 PyRepTuple *SystemEntity::MakeDamageState() const {
@@ -176,7 +176,7 @@ double DynamicSystemEntity::GetAgility() const {
 }
 
 //TODO: ask the destiny manager to do this for us!
-void DynamicSystemEntity::EncodeDestiny(std::vector<byte> &into) const {
+void DynamicSystemEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	int start = into.size();
 	int slen = strlen(GetName());
 	
@@ -196,7 +196,7 @@ void DynamicSystemEntity::EncodeDestiny(std::vector<byte> &into) const {
 		into.resize(start 
 			+ sizeof(AddBall_Warp) 
 			+ slen*sizeof(uint16) );
-		byte *ptr = &into[start];
+		uint8 *ptr = &into[start];
 		AddBall_Warp *item = (AddBall_Warp *) ptr;
 		ptr += sizeof(AddBall_Warp);
 		
@@ -249,7 +249,7 @@ void DynamicSystemEntity::EncodeDestiny(std::vector<byte> &into) const {
 		into.resize(start 
 			+ sizeof(AddBall_Stop) 
 			+ slen*sizeof(uint16) );
-		byte *ptr = &into[start];
+		uint8 *ptr = &into[start];
 		AddBall_Stop *item = (AddBall_Stop *) ptr;
 		ptr += sizeof(AddBall_Stop);
 		
@@ -334,7 +334,7 @@ void Client::MakeDamageState(DoDestinyDamageState &into) const {
 	into.structure = 1.0 - (m_ship->damage() / m_ship->hp());
 }
 
-void NPC::EncodeDestiny(std::vector<byte> &into) const {
+void NPC::EncodeDestiny(std::vector<uint8> &into) const {
 	int start = into.size();
 	int slen = 0;
 
@@ -354,7 +354,7 @@ void NPC::EncodeDestiny(std::vector<byte> &into) const {
 		into.resize(start 
 			+ sizeof(AddBall_Orbit) 
 			+ slen*sizeof(uint16) );
-		byte *ptr = &into[start];
+		uint8 *ptr = &into[start];
 		AddBall_Orbit *item = (AddBall_Orbit *) ptr;
 		ptr += sizeof(AddBall_Orbit);
 		
@@ -399,7 +399,7 @@ void NPC::EncodeDestiny(std::vector<byte> &into) const {
 		into.resize(start 
 			+ sizeof(AddBall_Stop) 
 			+ slen*sizeof(uint16) );
-		byte *ptr = &into[start];
+		uint8 *ptr = &into[start];
 		AddBall_Stop *item = (AddBall_Stop *) ptr;
 		ptr += sizeof(AddBall_Stop);
 

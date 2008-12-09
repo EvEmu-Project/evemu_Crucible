@@ -15,8 +15,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
 #include "common.h"
 #include <string>
 #include <stdio.h>
@@ -34,7 +32,6 @@
 #include "types.h"
 
 using namespace std;
-
 
 #ifndef WIN32
 #if defined(FREEBSD) || defined(__CYGWIN__)
@@ -283,7 +280,7 @@ static uint16 crc16_table[256] = {
  *
  * this is functionally equivalent to python's binascii.crc_hqx
  */
-uint32 CalcCRC16(byte *bin_data, int len, uint32 initial_crc) {
+uint32 CalcCRC16(uint8 *bin_data, int len, uint32 initial_crc) {
 	uint32 crc;
 
 	crc = initial_crc;

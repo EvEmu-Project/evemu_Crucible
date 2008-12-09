@@ -41,7 +41,7 @@ void build_hex_line(const char *buffer, unsigned long length, unsigned long offs
 bool ContainsNonPrintables(const char *str);
 bool ContainsNonPrintables(const char *str, uint32 length);
 void EscapeStringSequence(std::string &subject,  const std::string &find, const std::string &replace);
-uint32 CalcCRC16(byte *bin_data, int len, uint32 initial_crc);
+uint32 CalcCRC16(uint8 *bin_data, int len, uint32 initial_crc);
 
 uint32 GetFileLength(const char *file);
 

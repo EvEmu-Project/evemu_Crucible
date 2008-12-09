@@ -28,7 +28,7 @@
 #include "../server/Client.h"
 #include "../server/PyCallable.h"
 
-static const byte handshakeFunc[] = {
+static const uint8 handshakeFunc[] = {
 	0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65	//marshaled Python string "None"
 };
 
@@ -130,22 +130,6 @@ void EVEPresentation::_QueueRep(const PyRep *rep) {
 	if(packet->data == NULL) {
 		_log(NET__PRES_ERROR, "%s: Error marshaling packet!", GetConnectedAddress().c_str());
 		return;
-	}
-
-	if(packet->length > EVEDeflationBytesLimit) {
-		//packet large enough, deflate it
-		uint32 deflen = packet->length;
-		byte *deflated = DeflatePacket(packet->data, &deflen);
-
-		if(deflen != 0 && deflated != NULL) {
-			//deflation successful
-			_log(NET__PRES_TRACE, "%s: Successfully deflated packet from length %lu to length %lu (%.02f).", GetConnectedAddress().c_str(), packet->length, deflen, double(deflen)/double(packet->length));
-
-			delete[] packet->data;
-			packet->length = deflen;
-			packet->data = deflated;
-		} else
-			_log(NET__PRES_ERROR, "%s: Failed to deflate packet of length %lu, sending uncompressed.", GetConnectedAddress().c_str(), packet->length);
 	}
 
 	_NetQueuePacket(&packet);

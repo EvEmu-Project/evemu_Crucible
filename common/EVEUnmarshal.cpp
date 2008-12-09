@@ -42,20 +42,20 @@ public:
 	vector<PyRep *> saves;	//we do not own the pointers in this list
 };
 
-static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 len, PyRep *&res, const char *indent);
-//static byte *UnpackZeroCompressedDup(const byte *in_buf, uint32 in_length, uint32 *unpacked_length);	//retuns ownership of bytes
+static uint32 UnmarshalData(UnmarshalState *state, const uint8 *packet, uint32 len, PyRep *&res, const char *indent);
+//static uint8 *UnpackZeroCompressedDup(const uint8 *in_buf, uint32 in_length, uint32 *unpacked_length);	//retuns ownership of bytes
 
 
 //returns ownership
-PyRep *InflateAndUnmarshal(const byte *body, uint32 body_len) {
-	const byte *const orig_body = body;
+PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len) {
+	const uint8 *const orig_body = body;
 	const uint32 orig_body_len = body_len;
 	
 	if(*body != SubStreamHeaderByte) {
 		if(body_len > sizeof(uint32) && *((const uint32 *) body) == 0) {
 			//winging it here...
 			body_len -= 12;
-			byte *buf = InflatePacket(body+12, &body_len);
+			uint8 *buf = InflatePacket(body+12, &body_len);
 			if(buf == NULL) {
 				_log(NET__PRES_ERROR, "Failed to inflate special packet!");
 				_log(NET__PRES_DEBUG, "Raw Hex Dump:");
@@ -66,7 +66,7 @@ PyRep *InflateAndUnmarshal(const byte *body, uint32 body_len) {
 				_log(NET__UNMARSHAL_ERROR, "Special Inflated packet of len %d to length %d\n", orig_body_len, body_len);
 			}
 		} else {
-			byte *buf = InflatePacket(body, &body_len);
+			uint8 *buf = InflatePacket(body, &body_len);
 			if(buf == NULL) {
 				_log(NET__PRES_ERROR, "Failed to inflate packet!");
 				_log(NET__PRES_DEBUG, "Raw Hex Dump:");
@@ -79,7 +79,7 @@ PyRep *InflateAndUnmarshal(const byte *body, uint32 body_len) {
 		}
 	} //end inflation conditional
 
-	const byte *post_inflate_body = body;
+	const uint8 *post_inflate_body = body;
 	
 	_log(NET__PRES_RAW, "Raw Hex Dump (post-inflation):");
 	phex(NET__PRES_RAW, body, body_len);
@@ -88,7 +88,7 @@ PyRep *InflateAndUnmarshal(const byte *body, uint32 body_len) {
 	body++;
 	body_len--;
 
-	byte save_count = *body;
+	uint8 save_count = *body;
 	//no idea what the other three bytes are, this might be a uint32, but that would be stupid
 	body += 4;
 	body_len -= 4;
@@ -135,7 +135,33 @@ PyRep *InflateAndUnmarshal(const byte *body, uint32 body_len) {
 	return(rep);
 }
 
-static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 len, PyRep *&res, const char *pfx) {
+static uint32 UnmarshalData(UnmarshalState *state, const uint8 *packet, uint32 len, PyRep *&res, const char *pfx) {
+/************************************************************************/
+/*                                                                      */
+/************************************************************************/
+
+#define GetByType(x) \
+	*(x*)packet;\
+	packet+= sizeof(x);\
+	len -= sizeof(x);\
+	len_used += sizeof(x);
+
+#define IncreaseIndex(count) \
+	packet+= count;\
+	len -= count;\
+	len_used += count;
+
+#define Getuint8() GetByType(uint8)
+#define Getchar() GetByType(char)
+#define Getuint16() GetByType(uint16)
+#define Getuint32() GetByType(uint32)
+#define Getuint64() GetByType(uint64)
+#define GetDouble() GetByType(double)
+
+/************************************************************************/
+/*                                                                      */
+/************************************************************************/
+
 	res = NULL;
 	uint32 len_used = 0;
 	if(len < 1) {
@@ -143,10 +169,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 		return(len_used);
 	}
 	
-	byte raw_opcode = *packet;
-	packet++;
-	len--;
-	len_used++;
+	uint8 raw_opcode = Getuint8();
 	
 	if(raw_opcode & PyRepSaveMask) {
 		_log(NET__UNMARSHAL_TRACE, "Raw opcode 0x%x has PyRepSaveMask set", raw_opcode);
@@ -155,25 +178,25 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 		_log(NET__UNMARSHAL_TRACE, "Raw opcode 0x%x has PyRepUnknownMask set", raw_opcode);
 	}
 	
-	byte opcode = raw_opcode & PyRepOpcodeMask;
+	uint8 opcode = raw_opcode & PyRepOpcodeMask;
 	
-//	_log(NET__UNMARSHAL_TRACE, "%sOpcode 0x%02x", pfx, opcode);
+	_log(NET__UNMARSHAL_TRACE, "%sOpcode 0x%02x", pfx, opcode);
 	
-	switch(opcode) {
-	case Op_PyNone: {
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyNone", pfx, opcode);
-		res = new PyRepNone();
-		break; }
+	switch(opcode)
+	{
+		case Op_PyNone:
+		{
+			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyNone", pfx, opcode);
+			res = new PyRepNone();
+		}break;
 	
-	case Op_PyByteString: {
+	case Op_PyByteString:
+	{
 		if(len < 1) {
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for string length (missing length and data)\n");
 			break;
 		}
-		byte str_len = *packet;
-		packet++;
-		len--;
-		len_used++;
+		uint8 str_len = Getuint8();
 	
 		if(len < str_len) {
 			_log(NET__UNMARSHAL_ERROR, "Ran out of data in string of length %d, %d bytes remain.\n", str_len, len);
@@ -255,7 +278,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for byte integer arg\n");
 			break;
 		}
-		byte value = *packet;
+		uint8 value = *packet;
 		
 		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByte %u", pfx, opcode, value);
 		
@@ -432,7 +455,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for String Table Item argument\n");
 			break;
 		}
-		byte value = *packet;
+		uint8 value = *packet;
 
 		const char *v = PyRepString::GetStringTable()->LookupIndex(value);
 		if(v == NULL) {
@@ -452,45 +475,36 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 		break; }
 	
 	case Op_PyUnicodeByteString: {
-		if(len < 1) {
+		if(len < 1)
+		{
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for wchar_t string argument\n");
 			break;
 		}
-		byte value = *packet;
-		
-		packet++;
-		len--;
-		len_used++;
 
-		//probably supports length extension...
+		uint32 stringLength = Getuint8();
 
+		if (stringLength == 0xFF)
+		{
+			if (len < 4)
+			{
+				//_log(NET__UNMARSHAL_ERROR, "Not enough data for wchar_t string argument\n");
+				break;
+			}
+			stringLength = Getuint32();
+		}
 		
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyUnicodeByteString of len %d*2", pfx, opcode, value);
+		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyUnicodeByteString of len %d*2", pfx, opcode, stringLength);
 		_log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
-		phex(NET__UNMARSHAL_BUFHEX, packet, value*2);
+		phex(NET__UNMARSHAL_BUFHEX, packet, stringLength * 2);
 		
-		res = new PyRepString(packet, value*2, false);
+		res = new PyRepString(packet, stringLength * 2, false);
 		
-		packet += value*2;
-		len -= value*2;
-		len_used += value*2;
-		
+		IncreaseIndex(stringLength*2);
 		break; }
 	
 	case 0x13:
 		{ _log(NET__UNMARSHAL_ERROR, "Unhandled field type 0x%x\n", opcode);
 			phex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);
-	/*
-	.text:1005D3E8 loc_1005D3E8:                           ; CODE XREF: Marshal_Something+3Cj
-	.text:1005D3E8                                         ; DATA XREF: .text:off_1005DA58o
-	.text:1005D3E8                 push    esi             ; case 0x13
-	.text:1005D3E9                 mov     ecx, edi
-	.text:1005D3EB                 call    sub_10058D60
-	PyString_FromStringAndSize
-	.text:1005D3F0                 jmp     loc_1005D935
-	.text:1005D3F5 ; ---------------------------------------------------------------------------
-	.text:1005D3F5
-	*/
 		break; }
 
 	/*                                                                              
@@ -740,99 +754,6 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 	case 0x18:
 		{ _log(NET__UNMARSHAL_ERROR, "Unhandled field type 0x%x\n", opcode);
 			phex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);
-	/*
-	.text:1005D774 loc_1005D774:                           ; CODE XREF: Marshal_Something+3Cj
-	.text:1005D774                                         ; DATA XREF: .text:off_1005DA58o
-	.text:1005D774                 lea     eax, [esp+3Ch+str_data] ; case 0x18
-	.text:1005D778                 push    eax
-	.text:1005D779                 mov     ecx, esi
-	.text:1005D77B                 call    sub_10058C50
-	.text:1005D780                 test    al, al
-	.text:1005D782                 jz      loc_1005DA4B
-	.text:1005D788                 mov     edi, [esp+3Ch+str_data]
-	.text:1005D78C                 push    edi
-	.text:1005D78D                 lea     ecx, [esp+40h+str_data]
-	.text:1005D791                 push    ecx
-	.text:1005D792                 mov     ecx, esi
-	.text:1005D794                 call    sub_10040A30
-	.text:1005D799                 test    al, al
-	.text:1005D79B                 jz      loc_1005DA4B
-	.text:1005D7A1                 lea     ecx, [esp+3Ch+var_1C]
-	.text:1005D7A5                 call    sub_100575A0
-	.text:1005D7AA                 mov     edx, [esp+3Ch+str_data]
-	.text:1005D7AE                 push    edi
-	.text:1005D7AF                 push    edx
-	.text:1005D7B0                 lea     ecx, [esp+44h+var_1C]
-	.text:1005D7B4                 call    sub_10004D80
-	.text:1005D7B9                 mov     eax, BeROT
-	.text:1005D7BE                 lea     edx, [esp+3Ch+var_1C]
-	.text:1005D7C2                 push    edx
-	.text:1005D7C3                 xor     ebp, ebp
-	.text:1005D7C5                 push    ebp
-	.text:1005D7C6                 lea     edx, [esp+44h+var_28]
-	.text:1005D7CA                 push    edx
-	.text:1005D7CB                 mov     [esp+48h+var_28], ebp
-	.text:1005D7CF                 mov     ecx, [eax]
-	.text:1005D7D1                 push    eax
-	.text:1005D7D2                 call    dword ptr [ecx+5Ch]
-	.text:1005D7D5                 test    al, al
-	.text:1005D7D7                 jz      short loc_1005D819
-	.text:1005D7D9                 mov     edx, [esp+4Ch+var_38]
-	.text:1005D7DD                 mov     eax, PyOS
-	.text:1005D7E2                 mov     ecx, [eax]
-	.text:1005D7E4                 push    0FFFFFFFFh
-	.text:1005D7E6                 push    edx
-	.text:1005D7E7                 push    eax
-	.text:1005D7E8                 call    dword ptr [ecx+14h]
-	.text:1005D7EB                 mov     edi, eax
-	.text:1005D7ED                 mov     eax, dword ptr [esp+58h+var_44]
-	.text:1005D7F1                 mov     ecx, [eax]
-	.text:1005D7F3                 push    eax
-	.text:1005D7F4                 mov     [esp+5Ch+var_18], edi
-	.text:1005D7F8                 call    dword ptr [ecx+0Ch]
-	.text:1005D7FB                 cmp     edi, ebp
-	.text:1005D7FD                 jz      short loc_1005D810
-	.text:1005D7FF                 test    bl, 40h
-	.text:1005D802                 jz      short loc_1005D82E
-	.text:1005D804                 push    edi
-	.text:1005D805                 mov     ecx, esi
-	.text:1005D807                 call    sub_10056110
-	.text:1005D80C                 test    al, al
-	.text:1005D80E                 jnz     short loc_1005D82E
-	.text:1005D810
-	.text:1005D810 loc_1005D810:                           ; CODE XREF: Marshal_Something+88Dj
-	.text:1005D810                 lea     ecx, [esp+5Ch+var_1C]
-	.text:1005D814                 call    sub_100057D0
-	.text:1005D819
-	.text:1005D819 loc_1005D819:                           ; CODE XREF: Marshal_Something+867j
-	.text:1005D819                 lea     ecx, [esp+5Ch+var_3C]
-	.text:1005D81D                 call    sub_10004D60
-	.text:1005D822                 pop     edi
-	.text:1005D823                 pop     esi
-	.text:1005D824                 pop     ebp
-	.text:1005D825                 xor     eax, eax
-	.text:1005D827                 pop     ebx
-	.text:1005D828                 add     esp, 2Ch
-	.text:1005D82B                 retn    4
-	.text:1005D82E ; ---------------------------------------------------------------------------
-	.text:1005D82E
-	.text:1005D82E loc_1005D82E:                           ; CODE XREF: Marshal_Something+892j
-	.text:1005D82E                                         ; Marshal_Something+89Ej
-	.text:1005D82E                 lea     ecx, [esp+5Ch+var_1C]
-	.text:1005D832                 mov     [esp+5Ch+var_1C], ebp
-	.text:1005D836                 call    sub_100057D0
-	.text:1005D83B                 lea     ecx, [esp+5Ch+var_3C]
-	.text:1005D83F                 call    sub_10004D60
-	.text:1005D844                 mov     eax, edi
-	.text:1005D846                 pop     edi
-	.text:1005D847                 pop     esi
-	.text:1005D848                 pop     ebp
-	.text:1005D849                 pop     ebx
-	.text:1005D84A                 add     esp, 2Ch
-	.text:1005D84D                 retn    4
-	.text:1005D850 ; ---------------------------------------------------------------------------
-	.text:1005D850
-	*/
 		break; }
 	
 	case Op_PySubStruct: {
@@ -859,34 +780,6 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 	case 0x1A:
 		{ _log(NET__UNMARSHAL_ERROR, "Unhandled field type 0x%x\n", opcode);
 			phex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);
-	/*
-	.text:1005D8D7 loc_1005D8D7:                           ; CODE XREF: Marshal_Something+3Cj
-	.text:1005D8D7                                         ; DATA XREF: .text:off_1005DA58o
-	.text:1005D8D7                 lea     ecx, [esp+3Ch+str_data] ; case 0x1A
-	.text:1005D8DB                 push    ecx
-	.text:1005D8DC                 mov     ecx, esi
-	.text:1005D8DE                 call    sub_10058C50
-	.text:1005D8E3                 test    al, al
-	.text:1005D8E5                 jz      loc_1005DA4B
-	.text:1005D8EB                 push    edi
-	.text:1005D8EC                 mov     ecx, esi
-	.text:1005D8EE                 call    sub_100574D0
-	.text:1005D8F3                 test    eax, eax
-	.text:1005D8F5                 jz      loc_1005DA4B
-	.text:1005D8FB                 push    0
-	.text:1005D8FD                 push    offset aLoad    ; "load"
-	.text:1005D902                 push    eax
-	.text:1005D903                 call    PyObject_CallMethod
-	.text:1005D908                 add     esp, 0Ch
-	.text:1005D90B                 pop     edi
-	.text:1005D90C                 pop     esi
-	.text:1005D90D                 pop     ebp
-	.text:1005D90E                 pop     ebx
-	.text:1005D90F                 add     esp, 2Ch
-	.text:1005D912                 retn    4
-	.text:1005D915 ; ---------------------------------------------------------------------------
-	.text:1005D915
-	*/
 		break; }
 	
 	case Op_PySavedStreamElement:
@@ -895,7 +788,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for saved reference index\n");
 			break;
 		}
-		byte save_index = *packet;
+		uint8 save_index = *packet;
 		packet++;
 		len--;
 		len_used++;
@@ -915,8 +808,6 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 			break;
 		}
 
-		//.text:1005D982
-		
 		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PySavedStreamElement with index 0x%x", pfx, opcode, save_index+1);
 
 		res = state->saves[save_index]->Clone();
@@ -965,64 +856,6 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 	case 0x21:
 		{ _log(NET__UNMARSHAL_ERROR, "Unhandled field type 0x%x\n", opcode);
 			phex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);
-	/*
-	.text:1005D915 loc_1005D915:                           ; CODE XREF: Marshal_Something+3Cj
-	.text:1005D915                                         ; DATA XREF: .text:off_1005DA58o
-	.text:1005D915                 push    edi             ; case 0x21
-	.text:1005D916                 mov     ecx, esi
-	.text:1005D918                 call    sub_10057460
-	.text:1005D91D                 test    eax, eax
-	.text:1005D91F                 jz      loc_1005DA4B
-	.text:1005D925                 push    0
-	.text:1005D927                 push    offset aLoad    ; "load"
-	.text:1005D92C                 push    eax
-	.text:1005D92D                 call    PyObject_CallMethod
-	.text:1005D932                 add     esp, 0Ch
-	.text:1005D935
-	.text:1005D935 loc_1005D935:                           ; CODE XREF: Marshal_Something+480j
-	.text:1005D935                 mov     edi, eax
-	.text:1005D937                 test    edi, edi
-	.text:1005D939                 mov     [esp+3Ch+str_data], edi
-	.text:1005D93D                 jz      short loc_1005D950
-	.text:1005D93F                 test    bl, 40h
-	.text:1005D942                 jz      short loc_1005D965
-	.text:1005D944                 mov     ecx, esi
-	.text:1005D946                 push    edi
-	.text:1005D947                 call    sub_10056110
-	.text:1005D94C                 test    al, al
-	.text:1005D94E                 jnz     short loc_1005D965
-	.text:1005D950
-	.text:1005D950 loc_1005D950:                           ; CODE XREF: Marshal_Something+4ABj
-	.text:1005D950                                         ; Marshal_Something+4C0j ...
-	.text:1005D950                 lea     ecx, [esp+3Ch+str_data]
-	.text:1005D954
-	.text:1005D954 loc_1005D954:                           ; CODE XREF: Marshal_Something+4D4j
-	.text:1005D954                                         ; Marshal_Something+544j
-	.text:1005D954                 call    sub_100057D0
-	.text:1005D959                 pop     edi
-	.text:1005D95A                 pop     esi
-	.text:1005D95B                 pop     ebp
-	.text:1005D95C                 xor     eax, eax
-	.text:1005D95E                 pop     ebx
-	.text:1005D95F                 add     esp, 2Ch
-	.text:1005D962                 retn    4
-	.text:1005D965 ; ---------------------------------------------------------------------------
-	.text:1005D965
-	.text:1005D965 loc_1005D965:                           ; CODE XREF: Marshal_Something+9D2j
-	.text:1005D965                                         ; Marshal_Something+9DEj
-	.text:1005D965                 lea     ecx, [esp+3Ch+str_data]
-	.text:1005D969                 mov     [esp+3Ch+str_data], 0
-	.text:1005D971                 call    sub_100057D0
-	.text:1005D976                 mov     eax, edi
-	.text:1005D978                 pop     edi
-	.text:1005D979                 pop     esi
-	.text:1005D97A                 pop     ebp
-	.text:1005D97B                 pop     ebx
-	.text:1005D97C                 add     esp, 2Ch
-	.text:1005D97F                 retn    4
-	.text:1005D982 ; ---------------------------------------------------------------------------
-	.text:1005D982
-	*/
 		break; }
 	
 	case Op_NewObject1:
@@ -1089,56 +922,8 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 
 		res = obj;
 		break;
+		}
 
-        /*_log(NET__UNMARSHAL_ERROR, "Unhandled field type 0x%x\n", opcode);
-        _hex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);*/
-	/*
-	.text:1005D9DC loc_1005D9DC:                           ; CODE XREF: Marshal_Something+3Cj
-	.text:1005D9DC                                         ; DATA XREF: .text:off_1005DA58o
-	.text:1005D9DC                 shr     ebx, 6          ; case 0x22
-	.text:1005D9DF                 and     bl, 1
-	.text:1005D9E2                 mov     ecx, edi
-	.text:1005D9E4                 push    ebx
-	.text:1005D9E5                 push    esi
-	.text:1005D9E6                 call    sub_10057630
-	"Shared object table overflow"
-	PyTuple_GetItem
-	PyDict_Update
-	.text:1005D9EB                 pop     edi
-	.text:1005D9EC pop esi
-	.text:1005D9ED pop     ebp
-	.text:1005D9EE                 pop ebx
-	.text:1005D9EF add esp, 2Ch
-	.text:1005D9F2 retn    4 .text:1005D9F5 ;
-	---------------------------------------------------------------------------
-	.text:1005D9F5
-	*/
-
-//		_hex(NET__UNMARSHAL_TRACE, packet, len>32?32:len);
-	/*
-	.text:1005D9F5 loc_1005D9F5:                           ; CODE XREF: Marshal_Something+3Cj
-	.text:1005D9F5                                         ; DATA XREF: .text:off_1005DA58o
-	.text:1005D9F5                 shr     ebx, 6          ; case 0x23
-	.text:1005D9F8                 and     bl, 1
-	.text:1005D9FB                 mov     ecx, edi
-	.text:1005D9FD                 push    ebx
-	.text:1005D9FE                 push    esi
-	.text:1005D9FF                 call    sub_10057850
-	"Shared object table overflow"
-	PyTuple_GetItem
-	...
-	
-	.text:1005DA04                 pop     edi
-	.text:1005DA05                 pop     esi
-	.text:1005DA06                 pop     ebp
-	.text:1005DA07                 pop     ebx
-	.text:1005DA08                 add     esp, 2Ch
-	.text:1005DA0B                 retn    4
-	.text:1005DA0E ; ---------------------------------------------------------------------------
-	.text:1005DA0E
-	*/
-		break; }
-	
 	case Op_PyEmptyTuple: {
 		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyEmptyTuple", pfx, opcode);
 		res = new PyRepTuple(0);
@@ -1207,7 +992,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 		
 		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyUnicodeCharString 0x%x", pfx, opcode, lval);
 		
-		res = new PyRepString((const byte *) &lval, sizeof(uint16), false);
+		res = new PyRepString((const uint8 *) &lval, sizeof(uint16), false);
 		
 		packet += sizeof(uint16);
 		len -= sizeof(uint16);
@@ -1237,7 +1022,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for packed u1\n");
 			break;
 		}
-		byte u1 = *packet;
+		uint8 u1 = *packet;
 		packet++;
 		len--;
 		len_used++;
@@ -1250,7 +1035,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for packed type");
 			break;
 		}
-		byte header_element = *packet;
+		uint8 header_element = *packet;
 		packet++;
 		len--;
 		len_used++;
@@ -1307,7 +1092,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
         //we need this information to determine how many zeros to fill
         //the end of the buffer with, but im leaving that to somebody
         //else at a higher layer which understands the dbrowdesc.
-		std::vector<byte> unpacked;
+		std::vector<uint8> unpacked;
 		UnpackZeroCompressed(packet, data_len, unpacked);
 		packet += data_len;
 		len -= data_len;
@@ -1323,24 +1108,6 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 #endif
 		//TODO: unmarshal following PyReps as well
 		res = row;
-	/*
-	.text:1005DA0E loc_1005DA0E:                           ; CODE XREF: Marshal_Something+3Cj
-	.text:1005DA0E                                         ; DATA XREF: .text:off_1005DA58o
-	.text:1005DA0E                 push    esi             ; case 0x2A
-	.text:1005DA0F                 push    edi
-	.text:1005DA10                 call    sub_100460E0
-	Marshal_Something
-	... Marshal_Something
-	.text:1005DA15                 add     esp, 8
-	.text:1005DA18                 pop     edi
-	.text:1005DA19                 pop     esi
-	.text:1005DA1A                 pop     ebp
-	.text:1005DA1B                 pop     ebx
-	.text:1005DA1C                 add     esp, 2Ch
-	.text:1005DA1F                 retn    4
-	.text:1005DA22 ; ---------------------------------------------------------------------------
-	.text:1005DA22
-	*/
 		break; }
 	
 	case Op_PySubStream: {	//'+'
@@ -1457,13 +1224,11 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for saved reference index\n");
 			break;
 		}
-		byte save_index = *packet;
+		uint8 save_index = *packet;
 		packet++;
 		len--;
 		len_used++;
 
-		//.text:1005D982
-		
 		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_SomeUnkownMarker total hack 2", pfx, opcode, save_index+1);
 		int r;
 		PyRep *i;
@@ -1537,19 +1302,6 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
         */
 //			_log(NET__UNMARSHAL_ERROR, "Unhandled field type 0x%x (maybe code related)", opcode);
 //          _hex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);
-	/*
-	.text:1005D02E loc_1005D02E:                           ; CODE XREF: Marshal_Something+3Cj
-	.text:1005D02E                                         ; DATA XREF: .text:off_1005DA58o
-	.text:1005D02E                 mov     eax, [edi+6Ch]  ; case 0x2D
-	.text:1005D031                 pop     edi
-	.text:1005D032                 pop     esi
-	.text:1005D033                 pop     ebp
-	.text:1005D034                 pop     ebx
-	.text:1005D035                 add     esp, 2Ch
-	.text:1005D038                 retn    4
-	.text:1005D03B ; ---------------------------------------------------------------------------
-	.text:1005D03B
-	*/
 		break; }
 	
 	case Op_PyUnicodeString: {
@@ -1649,30 +1401,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 	default:
 		{ _log(NET__UNMARSHAL_ERROR, "Unhandled (default) field type 0x%x\n", opcode);
 			phex(NET__UNMARSHAL_ERROR, packet-1, len>32?32:len);
-		break;
-	/*
-	.text:1005DA36 loc_1005DA36:                           ; CODE XREF: Marshal_Something+36j
-	.text:1005DA36                                         ; Marshal_Something+3Cj
-	.text:1005DA36                                         ; DATA XREF: ...
-	.text:1005DA36                 mov     ecx, PyExc_RuntimeError ; default
-	.text:1005DA3C                 push    ebx
-	.text:1005DA3D                 push    offset aInvalidTypeTag ; "Invalid type tag %d in stream."
-	.text:1005DA42                 push    ecx
-	.text:1005DA43                 call    PyErr_Format
-	.text:1005DA48                 add     esp, 0Ch
-	.text:1005DA4B
-	.text:1005DA4B loc_1005DA4B:                           ; CODE XREF: Marshal_Something+55j
-	.text:1005DA4B                                         ; Marshal_Something+108j ...
-	.text:1005DA4B                 pop     edi
-	.text:1005DA4C                 pop     esi
-	.text:1005DA4D                 pop     ebp
-	.text:1005DA4E                 xor     eax, eax
-	.text:1005DA50                 pop     ebx
-	.text:1005DA51                 add     esp, 2Ch
-	.text:1005DA54                 retn    4
-	.text:1005DA54 Marshal_Something endp
-	*/
-		}
+		} break;
 		}	//end switch
 	if(raw_opcode & PyRepSaveMask) {
 		//save off this pointer. We do not need to clone it since this function is the only
@@ -1686,33 +1415,14 @@ static uint32 UnmarshalData(UnmarshalState *state, const byte *packet, uint32 le
 //retuns ownership of bytes
 //this could be implemented a lot more efficiently, but I dont care right now
 #ifdef NOT_USED_RIGHT_NOW
-static byte *UnpackZeroCompressedDup(const byte *in_buf, uint32 in_length, uint32 *unpacked_length) {
-	std::vector<byte> buffer;
+static uint8 *UnpackZeroCompressedDup(const uint8 *in_buf, uint32 in_length, uint32 *unpacked_length) {
+	std::vector<uint8> buffer;
 
 	UnpackZeroCompressed(in_buf, in_length, buffer);
 
 	*unpacked_length = buffer.size();
-	byte *out_buffer = new byte[*unpacked_length];
+	uint8 *out_buffer = new uint8[*unpacked_length];
 	memcpy(out_buffer, &buffer[0], *unpacked_length);
 	return(out_buffer);
 }
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

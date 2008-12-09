@@ -73,11 +73,9 @@ protected:   //_MAY_ consume args
 
 //macro of a template... nice.
 #define PyCallable_Make_Dispatcher(objname) \
-	class Dispatcher \
-	: public PyCallableDispatcher<objname> { \
+	class Dispatcher : public PyCallableDispatcher<objname> { \
 	public: \
-		Dispatcher(objname *c) \
-		: PyCallableDispatcher<objname>(c) {} \
+		Dispatcher(objname *c) : PyCallableDispatcher<objname>(c) {} \
 	};
 	
 #define PyCallable_Make_InnerDispatcher(objname) \

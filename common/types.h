@@ -50,7 +50,7 @@
 #endif//WIN32
 
 // Note: please get rid of this one
-typedef uint8 byte;
+//typedef uint8 byte;
 
 /** for printf() compatibility, I don't like this but its needed.
   */

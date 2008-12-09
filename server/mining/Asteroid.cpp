@@ -23,7 +23,7 @@ void Asteroid::ApplyDamage(Damage &d) {
 	_log(MINING__DEBUG, "Asteroid %lu Ignoring %d damage from %lu", m_self->itemID(), d.GetTotal(), d.source->GetName());
 }
 
-void Asteroid::EncodeDestiny(std::vector<byte> &into) const {
+void Asteroid::EncodeDestiny(std::vector<uint8> &into) const {
 	const GPoint &position = GetPosition();
 
 	#pragma pack(1)

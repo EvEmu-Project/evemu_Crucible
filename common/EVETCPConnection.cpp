@@ -46,7 +46,7 @@ void EVETCPConnection::QueuePacket(EVENetPacket *pack) {
 //consumes the supplied packet!
 void EVETCPConnection::FastQueuePacket(EVENetPacket **pack) {
 	uint32 length = (*pack)->length;
-	ServerSendQueuePushEnd((const byte *) &length, sizeof(length), &(*pack)->data, (*pack)->length);
+	ServerSendQueuePushEnd((const uint8 *) &length, sizeof(length), &(*pack)->data, (*pack)->length);
 	delete *pack;
 }
 

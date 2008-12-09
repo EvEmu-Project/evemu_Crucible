@@ -37,7 +37,6 @@ class EntityList;
 //convenience macro, you do not HAVE to use this
 #define PyCallable_DECL_CALL(n) PyResult Handle_##n(PyCallArgs &call);
 
-
 class PyService : public PyCallable {
 public:
 	PyService(PyServiceMgr *mgr, const char *serviceName);

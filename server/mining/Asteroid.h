@@ -97,7 +97,7 @@ public:
 	
 	void Grow();
 	
-	virtual void EncodeDestiny(std::vector<byte> &into) const;
+	virtual void EncodeDestiny(std::vector<uint8> &into) const;
 	//virtual PyRepDict *MakeSlimItem() const;
 	
 protected:

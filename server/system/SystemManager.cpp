@@ -295,7 +295,7 @@ double SystemManager::GetWarpSpeed() const {
 }
 
 void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState &ss) const {
-	std::vector<byte> setstate_buffer(sizeof(Destiny::AddBall_header));
+	std::vector<uint8> setstate_buffer(sizeof(Destiny::AddBall_header));
 	setstate_buffer.reserve(10240);
 	
 	Destiny::AddBall_header *head = (Destiny::AddBall_header *) &setstate_buffer[0];

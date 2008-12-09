@@ -104,7 +104,7 @@ public:
 	uint64 GetUInt64(uint32 column) const;
 	float GetFloat(uint32 column) const;
 	double GetDouble(uint32 column) const;
-	uint32 GetBinary(uint32 column, byte *into, uint32 in_length) const;
+	uint32 GetBinary(uint32 column, uint8 *into, uint32 in_length) const;
 	
 	//proxy methods up to our query result:
 	uint32 ColumnCount() const;

@@ -177,7 +177,7 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call)
 	} else {
 		//hack:
 		ss->length -= 82;
-		byte *d = new byte[ss->length];
+		uint8 *d = new uint8[ss->length];
 		memcpy(d, ss->data+82, ss->length);
 		delete ss->data;
 		delete ss->decoded;

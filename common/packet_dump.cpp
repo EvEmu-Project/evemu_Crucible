@@ -180,7 +180,7 @@ void DumpPacketBin(const void* iData, int32 len) {
 	cout << endl;
 }
 
-static void _HexDump(const byte *data, uint32 length) {
+static void _HexDump(const uint8 *data, uint32 length) {
 	char buffer[80];
 	uint32 offset;
 	for(offset=0;offset<length;offset+=16) {

@@ -102,27 +102,3 @@ PyResult TutorialService::Handle_GetCharacterTutorialState(PyCallArgs &call) {
 
 	return(rs.Encode());
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

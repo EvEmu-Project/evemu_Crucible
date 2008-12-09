@@ -45,7 +45,7 @@ public:
 	bool IsEmpty() const { return(m_entities.empty()); }
 	void GetEntities(std::set<SystemEntity *> &into) const;
 	
-	void AppendBalls(DoDestiny_SetState &ss, std::vector<byte> &setstate_buffer) const;
+	void AppendBalls(DoDestiny_SetState &ss, std::vector<uint8> &setstate_buffer) const;
 	
 	bool InBubble(const GPoint &pt) const { return(GVector(m_center, pt).lengthSquared() < m_radius2); }
 	

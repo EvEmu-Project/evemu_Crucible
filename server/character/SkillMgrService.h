@@ -15,15 +15,32 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef __SKILLMGR_SERVICE_H_INCL__
-#define __SKILLMGR_SERVICE_H_INCL__
+#ifndef _SKILLMGR_SERVICE_H
+#define _SKILLMGR_SERVICE_H
 
 #include "../PyService.h"
-
 #include "CharacterDB.h"
 
-class SkillMgrService
-: public PyService {
+class Dispatcher;
+class SkillMgrBound : public PyBoundObject
+{
+public:
+	SkillMgrBound(PyServiceMgr *mgr, CharacterDB *db);
+	virtual ~SkillMgrBound();
+	virtual void Release();
+
+	PyCallable_DECL_CALL(CharStartTrainingSkill)
+	PyCallable_DECL_CALL(GetEndOfTraining)
+	PyCallable_DECL_CALL(GetSkillHistory)
+	PyCallable_DECL_CALL(CharAddImplant)
+	PyCallable_DECL_CALL(RemoveImplantFromCharacter)
+
+protected:
+	CharacterDB *m_db;
+	Dispatcher *m_dispatch;
+};
+
+class SkillMgrService : public PyService {
 public:
 	SkillMgrService(PyServiceMgr *mgr, DBcore *db);
 	virtual ~SkillMgrService();
@@ -38,10 +55,4 @@ protected:
 	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
 };
 
-
-
-
-
 #endif
-
-

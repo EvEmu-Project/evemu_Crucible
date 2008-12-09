@@ -59,7 +59,7 @@ void PyLogsysDump::_print(const char *str, ...) {
 	va_end(l);
 }
 
-void PyLogsysDump::_hexDump(const byte *bytes, uint32 len) {
+void PyLogsysDump::_hexDump(const uint8 *bytes, uint32 len) {
 	if(m_full_hex)
 		_hex(m_hex_type, bytes, len);
 	else
@@ -85,7 +85,7 @@ void PyFileDump::_print(const char *str, ...) {
 	va_end(l);
 }
 
-void PyFileDump::_hexDump(const byte *bytes, uint32 len) {
+void PyFileDump::_hexDump(const uint8 *bytes, uint32 len) {
 	if(!m_full_hex && len > 1024) {
 		char buffer[80];
 		_pfxHexDump(bytes, 1024-32);
@@ -97,7 +97,7 @@ void PyFileDump::_hexDump(const byte *bytes, uint32 len) {
 	}
 }
 
-void PyFileDump::_pfxHexDump(const byte *data, uint32 length) {
+void PyFileDump::_pfxHexDump(const uint8 *data, uint32 length) {
 	char buffer[80];
 	uint32 offset;
 	for(offset=0;offset<length;offset+=16) {
@@ -135,7 +135,7 @@ void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep) {
 	//kinda hackish:
 	if(rep->GetLength() > 2 && *(rep->GetBuffer()) == GZipStreamHeaderByte) {
 		uint32 len = rep->GetLength();
-		byte *buf = InflatePacket(rep->GetBuffer(), &len, true);
+		uint8 *buf = InflatePacket(rep->GetBuffer(), &len, true);
 		if(buf != NULL) {
 			std::string p(top());
 			p += "  ";
@@ -217,67 +217,67 @@ void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {
 
 	switch(rep->bufferSize()) {
 	case 0x2b: {
-		const byte *buf = rep->buffer();
+		const uint8 *buf = rep->buffer();
 		_print("  Len 0x2b decode:");
-		_print("     u0: 0x%x", *buf); buf += sizeof(byte);
+		_print("     u0: 0x%x", *buf); buf += sizeof(uint8);
 		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
 		_print("     issued: " I64u , *((const uint64 *) buf) ); buf += sizeof(uint64);
 		_print("     orderID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     ???: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     u5: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     ???: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     u7: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     u5: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     u7: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     stationID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     regionID: %lu", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(byte);
-		_print("     u10: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     regionID: %lu", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
+		_print("     u10: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     solarSystemID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     u12: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     u12: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     typeID: %lu", *((const uint16 *) buf) ); buf += sizeof(uint16);
 		_print("     jumps: %u (0x%x)", *((const uint16 *) buf), *((const uint16 *) buf) ); buf += sizeof(uint16);
-		_print("     duration?: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     duration?: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 	} break;
 	case 0x2c: {
-		const byte *buf = rep->buffer();
+		const uint8 *buf = rep->buffer();
 		_print("  Len 0x2c decode:");
 		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
 		_print("     issued: " I64u , *((const uint64 *) buf) ); buf += sizeof(uint64);
 		_print("     orderID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     ???: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     u5: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     ???: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     u7: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     u5: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     u7: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     stationID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     regionID: %lu", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(byte);
-		_print("     u10: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     regionID: %lu", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
+		_print("     u10: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     solarSystemID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     u12: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     u12: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     typeID: %lu", *((const uint16 *) buf) ); buf += sizeof(uint16);
 		_print("     jumps: %u (0x%x)", *((const uint16 *) buf), *((const uint16 *) buf) ); buf += sizeof(uint16);
-		_print("     duration?: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     u16: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     u17: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     duration?: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     u16: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     u17: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 	} break;
 	case 0x2d: {
-		const byte *buf = rep->buffer();
+		const uint8 *buf = rep->buffer();
 		_print("  Len 0x2d decode:");
-		_print("     u0: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     u0: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
 		_print("     issued: " I64u , *((const uint64 *) buf) ); buf += sizeof(uint64);
 		_print("     orderID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     ???: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     u5: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     ???: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     u7: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     u5: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     u7: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     stationID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     regionID: %lu", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(byte);
-		_print("     u10: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     regionID: %lu", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
+		_print("     u10: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     solarSystemID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     u12: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     u12: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     typeID: %lu", *((const uint16 *) buf) ); buf += sizeof(uint16);
 		_print("     jumps: %u (0x%x)", *((const uint16 *) buf), *((const uint16 *) buf) ); buf += sizeof(uint16);
-		_print("     duration?: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     u16: %d", *((const byte *) buf) ); buf += sizeof(byte);
-		_print("     u17: %d", *((const byte *) buf) ); buf += sizeof(byte);
+		_print("     duration?: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     u16: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
+		_print("     u17: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 	} break;
 	default:
 		_print("  Unknown packed type");

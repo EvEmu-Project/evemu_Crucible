@@ -48,7 +48,7 @@ const char *PyRepTypeString[] = {
 	"UNKNOWN TYPE",		//15
 };
 
-static void pfxHexDump(const char *pfx, FILE *into, const byte *data, uint32 length) {
+static void pfxHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length) {
 	char buffer[80];
 	uint32 offset;
 	for(offset=0;offset<length;offset+=16) {
@@ -57,7 +57,7 @@ static void pfxHexDump(const char *pfx, FILE *into, const byte *data, uint32 len
 	}
 }
 
-static void pfxPreviewHexDump(const char *pfx, FILE *into, const byte *data, uint32 length) {
+static void pfxPreviewHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length) {
 	char buffer[80];
 
 	if(length > 1024) {
@@ -70,7 +70,7 @@ static void pfxPreviewHexDump(const char *pfx, FILE *into, const byte *data, uin
 	}
 }
 
-static void pfxHexDump(const char *pfx, LogType type, const byte *data, uint32 length) {
+static void pfxHexDump(const char *pfx, LogType type, const uint8 *data, uint32 length) {
 	char buffer[80];
 	uint32 offset;
 	for(offset=0;offset<length;offset+=16) {
@@ -79,7 +79,7 @@ static void pfxHexDump(const char *pfx, LogType type, const byte *data, uint32 l
 	}
 }
 
-static void pfxPreviewHexDump(const char *pfx, LogType type, const byte *data, uint32 length) {
+static void pfxPreviewHexDump(const char *pfx, LogType type, const uint8 *data, uint32 length) {
 	char buffer[80];
 
 	if(length > 1024) {
@@ -140,8 +140,8 @@ void PyRepNone::Dump(LogType type, const char *pfx) const {
 /************************************************************************/
 /* PyRep Buffer Class                                                   */
 /************************************************************************/
-PyRepBuffer::PyRepBuffer(const byte *buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
-  m_value(new byte[length]),
+PyRepBuffer::PyRepBuffer(const uint8 *buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
+  m_value(new uint8[length]),
   m_length(length)
 {
 	memcpy(m_value, buffer, length);
@@ -149,12 +149,12 @@ PyRepBuffer::PyRepBuffer(const byte *buffer, uint32 length) : PyRep(PyRep::PyTyp
 
 PyRepBuffer::PyRepBuffer(uint32 length)
 : PyRep(PyRep::PyTypeBuffer),
-  m_value(new byte[length]),
+  m_value(new uint8[length]),
   m_length(length)
 {
 }
 
-PyRepBuffer::PyRepBuffer(byte **buffer, uint32 length)
+PyRepBuffer::PyRepBuffer(uint8 **buffer, uint32 length)
 : PyRep(PyRep::PyTypeBuffer),
   m_value(*buffer),
   m_length(length)
@@ -172,7 +172,7 @@ void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
 	//kinda hackish:
 	if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
 		uint32 len = GetLength();
-		byte *buf = InflatePacket(GetBuffer(), &len, true);
+		uint8 *buf = InflatePacket(GetBuffer(), &len, true);
 		if(buf != NULL) {
 			string p(pfx);
 			p += "  ";
@@ -189,7 +189,7 @@ void PyRepBuffer::Dump(LogType type, const char *pfx) const {
 	//kinda hackish:
 	if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
 		uint32 len = GetLength();
-		byte *buf = InflatePacket(GetBuffer(), &len, true);
+		uint8 *buf = InflatePacket(GetBuffer(), &len, true);
 		if(buf != NULL) {
 			string p(pfx);
 			p += "  ";
@@ -205,7 +205,7 @@ PyRepSubStream *PyRepBuffer::CreateSubStream() const {
 		return(new PyRepSubStream(m_value, m_length));
 	} else if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
 		uint32 len = GetLength();
-		byte *buf = InflatePacket(GetBuffer(), &len, true);
+		uint8 *buf = InflatePacket(GetBuffer(), &len, true);
 
 		PyRepSubStream *res = NULL;
 		if(buf == NULL) {
@@ -514,10 +514,10 @@ void PyRepSubStruct::Dump(LogType type, const char *pfx) const {
 /************************************************************************/
 /* PyRep SubStream Class                                                */
 /************************************************************************/
-PyRepSubStream::PyRepSubStream(const byte *buffer, uint32 len)
+PyRepSubStream::PyRepSubStream(const uint8 *buffer, uint32 len)
 : PyRep(PyRep::PyTypeSubStream),
   length(len),
-  data(new byte[len]),
+  data(new uint8[len]),
   decoded(NULL)
 {
 	memcpy(data, buffer, length);
@@ -765,7 +765,7 @@ void PyRepChecksumedStream::visit(PyVisitor *v) const {
 
 
 
-PyRepPackedRow::PyRepPackedRow(const PyRep *header, bool own_header, const byte *data, const uint32 len)
+PyRepPackedRow::PyRepPackedRow(const PyRep *header, bool own_header, const uint8 *data, const uint32 len)
 : PyRep(PyRep::PyTypePackedRow),
   ownsHeader(own_header),
   header(header)
@@ -851,7 +851,7 @@ void PyRepPackedRow::visit(PyVisitor *v) const {
 
 //this could be done a lot better... will not work on big endian systems.
 void PyRepPackedRow::Push(const void *data, uint32 len) {
-	for(const byte *_data = (const byte *)data; len > 0; _data++, len--)
+	for(const uint8 *_data = (const uint8 *)data; len > 0; _data++, len--)
 		m_buffer.push_back(*_data);
 }
 

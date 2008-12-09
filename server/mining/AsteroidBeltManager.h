@@ -59,7 +59,7 @@ public:
 	virtual ~SystemAsteroidBeltEntity();
 
 	//SystemEntity:
-	virtual void EncodeDestiny(std::vector<byte> &into) const;
+	virtual void EncodeDestiny(std::vector<uint8> &into) const;
 	virtual void Process();
 	//SimpleSystemEntity:
 	virtual bool LoadExtras(SystemDB *db);

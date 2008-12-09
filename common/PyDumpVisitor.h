@@ -31,7 +31,7 @@ public:
 	
 protected:
 	virtual void _print(const char *str, ...) = 0;
-	virtual void _hexDump(const byte *bytes, uint32 len) = 0;
+	virtual void _hexDump(const uint8 *bytes, uint32 len) = 0;
 	
 	const bool m_full_lists;
 	
@@ -90,7 +90,7 @@ protected:
 	const LogType m_hex_type;
 	const bool m_full_hex;
 	virtual void _print(const char *str, ...);
-	virtual void _hexDump(const byte *bytes, uint32 len);
+	virtual void _hexDump(const uint8 *bytes, uint32 len);
 };
 
 class PyFileDump : public PyDumpVisitor {
@@ -102,8 +102,8 @@ protected:
 	FILE *const m_into;
 	const bool m_full_hex;
 	virtual void _print(const char *str, ...);
-	virtual void _hexDump(const byte *bytes, uint32 len);
-	void _pfxHexDump(const byte *bytes, uint32 len);
+	virtual void _hexDump(const uint8 *bytes, uint32 len);
+	void _pfxHexDump(const uint8 *bytes, uint32 len);
 };
 
 #endif

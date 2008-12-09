@@ -17,49 +17,32 @@
 
 #include "EvemuPCH.h"
 
-
 PyCallable_Make_InnerDispatcher(SkillMgrService)
+PyCallable_Make_Dispatcher(SkillMgrBound)
 
 
+SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB *db) : PyBoundObject(mgr, "SkillMgrBound"), m_db(db), m_dispatch(new Dispatcher(this))
+{
+	_SetCallDispatcher(m_dispatch);
 
+	PyCallable_REG_CALL(SkillMgrBound, CharStartTrainingSkill)
+	PyCallable_REG_CALL(SkillMgrBound, GetEndOfTraining)
+	PyCallable_REG_CALL(SkillMgrBound, GetSkillHistory)
+	PyCallable_REG_CALL(SkillMgrBound, CharAddImplant)
+	PyCallable_REG_CALL(SkillMgrBound, RemoveImplantFromCharacter)
+}
 
-class SkillMgrBound
-: public PyBoundObject {
-public:
-	
-	PyCallable_Make_Dispatcher(SkillMgrBound)
-	
-	SkillMgrBound(PyServiceMgr *mgr, CharacterDB *db)
-	: PyBoundObject(mgr, "SkillMgrBound"),
-	  m_db(db),
-	  m_dispatch(new Dispatcher(this))
-	{
-		_SetCallDispatcher(m_dispatch);
-		
-		PyCallable_REG_CALL(SkillMgrBound, CharStartTrainingSkill)
-		PyCallable_REG_CALL(SkillMgrBound, GetEndOfTraining)
-		PyCallable_REG_CALL(SkillMgrBound, GetSkillHistory)
-		PyCallable_REG_CALL(SkillMgrBound, CharAddImplant)
-		PyCallable_REG_CALL(SkillMgrBound, RemoveImplantFromCharacter)
-	}
-	virtual ~SkillMgrBound() { delete m_dispatch; }
-	virtual void Release() {
-		//I hate this statement
-		delete this;
-	}
-	
-	PyCallable_DECL_CALL(CharStartTrainingSkill)
-	PyCallable_DECL_CALL(GetEndOfTraining)
-	PyCallable_DECL_CALL(GetSkillHistory)
-	PyCallable_DECL_CALL(CharAddImplant)
-	PyCallable_DECL_CALL(RemoveImplantFromCharacter)
+SkillMgrBound::~SkillMgrBound()
+{
+	delete m_dispatch;
+	m_dispatch = NULL;
+}
 
-protected:
-	CharacterDB *const m_db;
-	Dispatcher *const m_dispatch;   //we own this
-};
-
-
+// TODO: redesign this so this is not needed
+void SkillMgrBound::Release()
+{
+	delete this;
+}
 
 SkillMgrService::SkillMgrService(PyServiceMgr *mgr, DBcore *db)
 : PyService(mgr, "skillMgr"),
@@ -73,15 +56,12 @@ SkillMgrService::~SkillMgrService() {
 	delete m_dispatch;
 }
 
-
-
 PyBoundObject *SkillMgrService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
 	_log(CLIENT__MESSAGE, "SkillMgrService bind request for:");
 	bind_args->Dump(CLIENT__MESSAGE, "    ");
 
 	return(new SkillMgrBound(m_manager, &m_db));
 }
-
 
 PyResult SkillMgrBound::Handle_CharStartTrainingSkill(PyCallArgs &call) {
 	//takes itemid
@@ -103,7 +83,6 @@ PyResult SkillMgrBound::Handle_CharStartTrainingSkill(PyCallArgs &call) {
 	
 	return NULL;
 }
-
 
 PyResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
 	//takes itemid
@@ -153,7 +132,6 @@ PyResult SkillMgrBound::Handle_CharAddImplant(PyCallArgs &call) {
 	return(result);
 }
 
-
 PyResult SkillMgrBound::Handle_RemoveImplantFromCharacter(PyCallArgs &call) {
 	//takes itemid
 	Call_SingleIntegerArg args;
@@ -168,31 +146,3 @@ PyResult SkillMgrBound::Handle_RemoveImplantFromCharacter(PyCallArgs &call) {
 
 	return(result);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

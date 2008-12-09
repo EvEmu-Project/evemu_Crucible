@@ -32,19 +32,19 @@ public:
 		
 		Packet *Clone() const;
 		uint32 length;
-		byte *data;
+		uint8 *data;
 	};
 	
 	StreamPacketizer();
 	~StreamPacketizer();
 
-	void InputBytes(const byte *data, uint32 len);	
+	void InputBytes(const uint8 *data, uint32 len);	
 	Packet *PopPacket();
 	
 	void ClearBuffers();
 
 protected:
-	byte *m_partial;
+	uint8 *m_partial;
 	uint32 m_partialLength;
 	uint32 m_payloadLength;
 	

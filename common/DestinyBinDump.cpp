@@ -35,7 +35,7 @@ namespace Destiny {
 	"FORMATION"
 };
 
-void DumpUpdate(LogType into, const byte *data, uint32 len) {
+void DumpUpdate(LogType into, const uint8 *data, uint32 len) {
 
 	const Destiny::AddBall_header *global_head = (const Destiny::AddBall_header *) data;
 	_log(into, "AddBall: more=%d, sequence=%d (len %d)", global_head->more, global_head->sequence, len);
@@ -51,7 +51,7 @@ void DumpUpdate(LogType into, const byte *data, uint32 len) {
 	}
 }
 
-uint32 DumpBall(LogType into, const byte *data, uint32 len) {
+uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 	uint32 init_len = len;
 	
 #ifndef OLD_DESTINY_DECODER

@@ -176,7 +176,7 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
 	*in_cached_data = NULL;
 
 	uint32 len;
-	byte *buf = Marshal(cached_data, len);
+	uint8 *buf = Marshal(cached_data, len);
 
 	_UpdateCache(objectID, &buf, len);
 
@@ -187,31 +187,14 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
 	delete cached_data;
 }
 
-void CachedObjectMgr::_UpdateCache(const PyRep *objectID, byte **data, uint32 length) {
+void CachedObjectMgr::_UpdateCache(const PyRep *objectID, uint8 **data, uint32 length) {
 	
 	//this is the hard one..
 	CacheRecord *r = new CacheRecord;
 	r->timestamp = Win32TimeNow();
 	r->objectID = objectID->Clone();
 
-	//consider compressing it.
-
-	//This is not as complete as the python, as they indicate to the netcode (with compressedPart) 
-	//how much of the packet is compressed when considering this packet for compression when sending
-	uint32 deflen = length;
-	byte *buf = DeflatePacket(*data, &deflen);
-	if(buf == NULL || deflen >= length) {
-		//failed to deflate or it did no good (client checks this)
-		//passes ownership of the encoded buffer to the new PyRepBuffer
-		delete[] buf;
-		buf = NULL;
-		r->cache = new PyRepBuffer(data, length);
-	} else {
-		//compression successful, use that.
-		r->cache = new PyRepBuffer(&buf, deflen);
-		delete[] *data;
-		*data = NULL;
-	}
+	r->cache = new PyRepBuffer(data, length);
 	
 	r->version = CRC32::Generate(r->cache->GetBuffer(), r->cache->GetLength());
 
@@ -220,7 +203,8 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, byte **data, uint32 le
 	//find and destroy any older version of this object.
 	std::map<std::string, CacheRecord *>::iterator res;
 	res = m_cachedObjects.find(str);
-	if(res != m_cachedObjects.end()) {
+	if(res != m_cachedObjects.end())
+	{
 		_log(SERVICE__CACHE, "Destroying old cached object with ID '%s' of length %lu with checksum 0x%lx", str.c_str(), res->second->cache->GetLength(), res->second->version);
 		delete res->second;
 	}
@@ -338,7 +322,7 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
 	cache->timestamp = header.timestamp;
 	cache->version = header.version;
 	
-	if(fread(cache->cache->GetBuffer(), sizeof(byte), header.length, f) != header.length) {
+	if(fread(cache->cache->GetBuffer(), sizeof(uint8), header.length, f) != header.length) {
 		delete cache;
 		fclose(f);
 		return false;
@@ -389,7 +373,7 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
 		fclose(f);
 		return false;
 	}
-	if(fwrite(res->second->cache->GetBuffer(), sizeof(byte), header.length, f) != header.length) {
+	if(fwrite(res->second->cache->GetBuffer(), sizeof(uint8), header.length, f) != header.length) {
 		fclose(f);
 		return false;
 	}
@@ -444,7 +428,7 @@ bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, P
 		return false;
 	}
 	
-	byte *b = new byte[file_length+10];
+	uint8 *b = new uint8[file_length+10];
 	int32 len = (int32)fread(b, 1, file_length+10, f);
 	fclose(f);
 
@@ -507,7 +491,7 @@ PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(PyRep *key, const char 
 void CachedObjectMgr::GetCacheFileName(PyRep *key, std::string &into) {
 	
 	uint32 len = 0;
-	byte *data = Marshal(key, len);
+	uint8 *data = Marshal(key, len);
 	
 	Base64::encode(data, len, into, false);
 	
@@ -721,7 +705,7 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 		//this is a data buffer, likely compressed, not sure why it comes through as a string...
 		PyRepString *buf = (PyRepString *) args->items[4];
 		//hack for now:
-		PyRepBuffer tmpbuf((const byte *) buf->value.c_str(), buf->value.length());
+		PyRepBuffer tmpbuf((const uint8 *) buf->value.c_str(), buf->value.length());
 		cache = tmpbuf.CreateSubStream();
 		if(cache == NULL) {
 			_log(CLIENT__ERROR, "Cache object's content buffer is not a substream!");
@@ -764,7 +748,7 @@ PyRepObject *PyCachedObject::Encode() {
 	//get cloned in obect form just to be encoded later
 /*	cache->EncodeData();
 	if(compressed) {
-		byte *buf = new byte[cache->length];
+		uint8 *buf = new uint8[cache->length];
 		uint32 deflen = DeflatePacket(cache->data, cache->length, buf, cache->length);
 		if(deflen == 0 || deflen >= cache->length) {
 			//failed to deflate or it did no good (client checks this)

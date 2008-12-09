@@ -58,7 +58,7 @@ public:
 	virtual NPC *CastToNPC() { return(this); }
 	virtual const NPC *CastToNPC() const { return(this); }
 	virtual void Process();
-	virtual void EncodeDestiny(std::vector<byte> &into) const;
+	virtual void EncodeDestiny(std::vector<uint8> &into) const;
 	virtual void TargetAdded(SystemEntity *who) {}
 	virtual void TargetLost(SystemEntity *who);
 	virtual void TargetedAdd(SystemEntity *who);

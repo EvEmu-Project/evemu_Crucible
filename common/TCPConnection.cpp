@@ -209,12 +209,14 @@ void TCPConnection::ServerSendQueuePushEnd(const uint8* head_data, int32 head_si
 	//This is not taking any advantage of the fact that we consume `data` until we put a real queue in here.
 	//
 	MSendQueue.lock();
-	if (sendbuf == NULL) {
+	if (sendbuf == NULL)
+	{
 		sendbuf = new uint8[size+128];
 		sendbuf_size = size+128;
 		sendbuf_used = 0;
 	}
-	else if (size > (sendbuf_size - sendbuf_used)) {
+	else if (size > (sendbuf_size - sendbuf_used))
+	{
 		sendbuf_size += size + 1024;
 		uint8* tmp = new uint8[sendbuf_size];
 		memcpy(tmp, sendbuf, sendbuf_used);

@@ -83,7 +83,7 @@ PyBoundObject *SlashService::_CreateBoundObject(Client *c, PyRepTuple *bind_args
 }*/
 
 
-PyResult SlashService::Handle_SlashCmd(PyCallArgs &call) {
+PyResult SlashService::Handle_SlashCmd(PyCallArgs &call){
 	if(!(call.client->GetRole() & ROLE_SLASH)) {
 		_log(SERVICE__ERROR, "%s: Client '%s' used a slash command but does not have ROLE_SLASH. Modified client?", GetName(), call.client->GetName());
 		throw(PyException(MakeCustomError("You need to have ROLE_SLASH to execute commands.")));
@@ -97,28 +97,3 @@ PyResult SlashService::Handle_SlashCmd(PyCallArgs &call) {
 
 	return(m_commandDispatch->Execute(call.client, args.arg.c_str()));
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

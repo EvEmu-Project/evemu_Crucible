@@ -36,7 +36,7 @@ struct ZCOpCode {
 	bool s_isZero : 1;
 };
 
-void UnpackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte> &buffer) {
+void UnpackZeroCompressed(const uint8 *in_buf, uint32 in_length, std::vector<uint8> &buffer) {
 	buffer.clear();
 	if(in_buf == NULL || in_length == 0)
 		return;
@@ -46,19 +46,19 @@ void UnpackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte
 	);
 	
 	ZCOpCode opcode;
-	const byte *end = in_buf + in_length;
+	const uint8 *end = in_buf + in_length;
 
 	while(in_buf < end) {
 		opcode = *(ZCOpCode *)(in_buf++);
 
 		if(opcode.f_isZero) {
-			byte count = opcode.f_len+1;
+			uint8 count = opcode.f_len+1;
 			_log(NET__ZEROINFL, "    Opcode 0x%x (first part) yields %d zero bytes at %d", opcode, count, buffer.size());
 			for(; count > 0; count--) {
 				buffer.push_back(0);
 			}
 		} else {
-			byte count = 8-opcode.f_len;
+			uint8 count = 8-opcode.f_len;
 			_log(NET__ZEROINFL, "    Opcode 0x%x (first part) yields %d data bytes at %d", opcode, count, buffer.size());
 			//caution: if we are at the end of the buffer, its possible to be processing a '0' opcode, which should mean "8 bytes", but really means "end"
 			for(; count > 0 && in_buf < end; count--) {
@@ -67,13 +67,13 @@ void UnpackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte
 		}
 
 		if(opcode.s_isZero) {
-			byte count = opcode.s_len+1;
+			uint8 count = opcode.s_len+1;
 			_log(NET__ZEROINFL, "    Opcode 0x%x (second part) yields %d zero bytes at %d", opcode, count, buffer.size());
 			for(; count > 0; count--) {
 				buffer.push_back(0);
 			}
 		} else {
-			byte count = 8-opcode.s_len;
+			uint8 count = 8-opcode.s_len;
 			_log(NET__ZEROINFL, "    Opcode 0x%x (second part) yields %d data bytes at %d", opcode, count, buffer.size());
 			//caution: if we are at the end of the buffer, its possible to be processing a '0' opcode, which should mean "8 bytes", but really means "end"
 			for(; count > 0 && in_buf < end; count--) {
@@ -87,7 +87,7 @@ void UnpackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte
 	);
 }
 
-void PackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte> &out_buf) {
+void PackZeroCompressed(const uint8 *in_buf, uint32 in_length, std::vector<uint8> &out_buf) {
 	out_buf.clear();
 	if(in_buf == NULL || in_length == 0)
 		return;
@@ -96,7 +96,7 @@ void PackZeroCompressed(const byte *in_buf, uint32 in_length, std::vector<byte> 
 		in_length
 	);
 
-	const byte *end = in_buf + in_length;
+	const uint8 *end = in_buf + in_length;
 
 	while(in_buf < end) {
 		// we need to have enough room without moving (otherwise

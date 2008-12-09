@@ -24,7 +24,7 @@
 class PyRep;
 
 //returns ownership!
-extern PyRep *InflateAndUnmarshal(const byte *body, uint32 body_len);
+extern PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len);
 
 #endif
 

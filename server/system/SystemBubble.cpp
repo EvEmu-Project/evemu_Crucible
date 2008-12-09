@@ -175,7 +175,7 @@ void SystemBubble::GetEntities(std::set<SystemEntity *> &into) const {
 //this is called as a part of the SetState routine for initial enter space.
 //it appends information for all entities contained within the bubble.
 #if 0
-void SystemBubble::AppendBalls(DoDestiny_SetState &ss, std::vector<byte> &setstate_buffer) const {
+void SystemBubble::AppendBalls(DoDestiny_SetState &ss, std::vector<uint8> &setstate_buffer) const {
 	if(m_entities.empty()) {
 		return;
 	}
@@ -206,7 +206,7 @@ void SystemBubble::_SendAddBalls(SystemEntity *to_who) {
 	
 	uint32 updateID = DestinyManager::GetStamp();
 		
-	std::vector<byte> destiny_buffer(sizeof(Destiny::AddBall_header));
+	std::vector<uint8> destiny_buffer(sizeof(Destiny::AddBall_header));
 	destiny_buffer.reserve(1024);
 	
 	Destiny::AddBall_header *head = (Destiny::AddBall_header *) &destiny_buffer[0];

@@ -26,7 +26,7 @@ StreamPacketizer::Packet::Packet() {
 StreamPacketizer::Packet::Packet(uint32 len) {
 	length = len;
 	if(len > 0)
-		data = new byte[len];
+		data = new uint8[len];
 	else
 		data = NULL;
 }
@@ -60,14 +60,14 @@ void StreamPacketizer::ClearBuffers() {
 	}
 }
 
-void StreamPacketizer::InputBytes(const byte *data, uint32 len) {
+void StreamPacketizer::InputBytes(const uint8 *data, uint32 len) {
 	while(len > 0) {
 //fprintf(stderr, "%p: IB len %d partial %p %d/%d\n", this, len, m_partial, m_partialLength, m_payloadLength);
 		if(m_partial == NULL) {
 			//no partial packet to start with...
 			if(len < sizeof(uint32)) {
 				//not even enough for a length, just save it.
-				m_partial = new byte[sizeof(uint32)];
+				m_partial = new uint8[sizeof(uint32)];
 				memcpy(m_partial, data, len);
 				m_partialLength = len;
 				return;
@@ -79,7 +79,7 @@ void StreamPacketizer::InputBytes(const byte *data, uint32 len) {
 
 			if(len < m_payloadLength) {
 				//we do not have the entire packet.
-				m_partial = new byte[m_payloadLength];
+				m_partial = new uint8[m_payloadLength];
 				memcpy(m_partial, data, len);
 				m_partialLength = len;
 //fprintf(stderr, "%p: New partial packet %d/%d received.\n", this, m_partialLength, m_payloadLength);

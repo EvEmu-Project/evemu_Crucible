@@ -620,7 +620,7 @@ double DBResultRow::GetDouble(uint32 column) const {
 	return(strtod(m_row[column], NULL));
 }
 
-uint32 DBResultRow::GetBinary(uint32 column, byte *into, uint32 in_length) const {
+uint32 DBResultRow::GetBinary(uint32 column, uint8 *into, uint32 in_length) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
 		_log(DATABASE__ERROR, "GetBinary: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
