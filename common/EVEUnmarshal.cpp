@@ -416,19 +416,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const uint8 *packet, uint32 l
 		packet++;
 		len--;
 		len_used++;
-		
-		if(str_len == 0xFF) {
-			//extended length
-			if(len < sizeof(uint32)) {
-				_log(NET__UNMARSHAL_ERROR, "Not enough data for string length 4-byte element");
-				break;
-			}
-			str_len = *((const uint32 *) packet);
-			packet += sizeof(uint32);
-			len -= sizeof(uint32);
-			len_used += sizeof(uint32);
-		}
-		
+				
 		if(len < str_len) {
 			_log(NET__UNMARSHAL_ERROR, "Ran out of data in string of length %d, %d bytes remain.\n", str_len, len);
 			break;
