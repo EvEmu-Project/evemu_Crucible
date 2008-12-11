@@ -85,7 +85,7 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 	/*                                                                              
      * Debug logging
     */
-	if(is_log_enabled(DATABASE__RESULTS)) {
+	/*if(is_log_enabled(DATABASE__RESULTS)) {
 		MYSQL_ROW row;
 		_log(DATABASE__RESULTS, "Query Results:");
 		std::string c;
@@ -121,11 +121,11 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 				c += " | ";
 			}
 			_log(DATABASE__RESULTS, "%s", c.c_str());
-		}
+		}*/
 		
 		//reset the result.
-		mysql_data_seek(result, 0);
-	}
+		//mysql_data_seek(result, 0);
+	//}
 
 	//give them the result set.
 	into.SetResult(&result, col_count);
@@ -719,13 +719,3 @@ uint32 DBSequence::NextValue() {
 	}
 	return(last_insert_id);
 }
-
-
-
-
-
-
-
-
-
-

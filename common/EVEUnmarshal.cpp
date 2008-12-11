@@ -43,60 +43,74 @@ public:
 };
 
 static uint32 UnmarshalData(UnmarshalState *state, const uint8 *packet, uint32 len, PyRep *&res, const char *indent);
-//static uint8 *UnpackZeroCompressedDup(const uint8 *in_buf, uint32 in_length, uint32 *unpacked_length);	//retuns ownership of bytes
-
 
 //returns ownership
-PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len) {
+PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len)
+{
 	const uint8 *const orig_body = body;
 	const uint32 orig_body_len = body_len;
 	
-	if(*body != SubStreamHeaderByte) {
-		if(body_len > sizeof(uint32) && *((const uint32 *) body) == 0) {
+	bool   inflated = false;
+	uint8* work_buffer = *((uint8**)&body);
+	uint8* inflated_buffer = NULL;
+	
+	if(*body != SubStreamHeaderByte) // peek first character
+	{
+		if(body_len > sizeof(uint32) && *((const uint32 *) body) == 0)
+		{
 			//winging it here...
 			body_len -= 12;
-			uint8 *buf = InflatePacket(body+12, &body_len);
-			if(buf == NULL) {
+			inflated_buffer = InflatePacket(body+12, &body_len);
+			if(inflated_buffer == NULL)
+			{
 				_log(NET__PRES_ERROR, "Failed to inflate special packet!");
 				_log(NET__PRES_DEBUG, "Raw Hex Dump:");
-				_hex(NET__PRES_DEBUG, body, body_len);
+				_hex(NET__PRES_DEBUG, inflated_buffer, body_len);
 				return NULL;
-			} else {
-				body = buf;
-				_log(NET__UNMARSHAL_ERROR, "Special Inflated packet of len %d to length %d\n", orig_body_len, body_len);
+			//} else {
+			//	_log(NET__UNMARSHAL_ERROR, "Special Inflated packet of len %d to length %d\n", orig_body_len, body_len);
 			}
-		} else {
-			uint8 *buf = InflatePacket(body, &body_len);
-			if(buf == NULL) {
+			inflated = true;
+		}
+		else
+		{
+			inflated_buffer = InflatePacket(body, &body_len);
+			if(inflated_buffer == NULL)
+			{
 				_log(NET__PRES_ERROR, "Failed to inflate packet!");
 				_log(NET__PRES_DEBUG, "Raw Hex Dump:");
-				_hex(NET__PRES_DEBUG, body, body_len);
+				_hex(NET__PRES_DEBUG, inflated_buffer, body_len);
 				return NULL;
-			} else {
-				body = buf;
-				_log(NET__PRES_TRACE, "Inflated packet of len %d to length %d", orig_body_len, body_len);
+			//} else {
+			//	body = buf;
+			//	_log(NET__PRES_TRACE, "Inflated packet of len %d to length %d", orig_body_len, body_len);
 			}
+			inflated = true;
 		}
 	} //end inflation conditional
 
-	const uint8 *post_inflate_body = body;
+	const uint8 *post_inflate_body = inflated_buffer;
+
+	/* if we have inflated data replace our work buffer*/
+	if (inflated_buffer != NULL)
+		work_buffer = inflated_buffer;
 	
-	_log(NET__PRES_RAW, "Raw Hex Dump (post-inflation):");
-	phex(NET__PRES_RAW, body, body_len);
+	//_log(NET__PRES_RAW, "Raw Hex Dump (post-inflation):");
+	//phex(NET__PRES_RAW, work_buffer, body_len);
 
 	//skip SubStreamHeaderByte
-	body++;
+	work_buffer++;
 	body_len--;
 
-	uint8 save_count = *body;
+	uint8 save_count = *work_buffer;
 	//no idea what the other three bytes are, this might be a uint32, but that would be stupid
-	body += 4;
+	work_buffer += 4;
 	body_len -= 4;
 
 	UnmarshalState *state = new UnmarshalState(save_count);
 	
 	PyRep *rep;
-	uint32 used_len = UnmarshalData(state, body, body_len, rep, "    ");
+	uint32 used_len = UnmarshalData(state, work_buffer, body_len, rep, "    ");
 	if(rep == NULL) {
 		_log(NET__PRES_ERROR, "Failed to unmarshal data!");
 		if(post_inflate_body != orig_body)
@@ -113,7 +127,7 @@ PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len) {
 			if(rlen < sizeof(uint32)) {
 				_log(NET__UNMARSHAL_TRACE, "Insufficient length for hack 0x2d trailer %d/%d", index+1, state->count_packedobj);
 			} else {
-				uint32 val = *((const uint32 *) (body+used_len));
+				uint32 val = *((const uint32 *) (work_buffer+used_len));
 				
 				_log(NET__UNMARSHAL_TRACE, "Hack 0x23/Obj2 value[%d]: 0x%lx", index, val);
 				
@@ -127,11 +141,12 @@ PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len) {
 	
 	if(used_len != body_len) {
 		_log(NET__UNMARSHAL_TRACE, "Unmarshal did not consume entire data: %d/%d used", used_len, body_len);
-		_hex(NET__UNMARSHAL_TRACE, body+used_len, body_len-used_len);
+		_hex(NET__UNMARSHAL_TRACE, work_buffer+used_len, body_len-used_len);
 	}
+
+	if (inflated == true)
+		SafeDeleteArray(inflated_buffer);
 	
-	if(post_inflate_body != orig_body)
-		delete[] post_inflate_body;
 	return(rep);
 }
 
@@ -993,7 +1008,7 @@ static uint32 UnmarshalData(UnmarshalState *state, const uint8 *packet, uint32 l
         /*
          * As far as I can tell, this opcode is really a packed
          * form of blue.DBRow, which takes a row descriptor and a
-         * data stream (the body here)
+         * data stream (the work_buffer here)
          *
          */
 		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyPackedRow", pfx, opcode);
@@ -1399,18 +1414,3 @@ static uint32 UnmarshalData(UnmarshalState *state, const uint8 *packet, uint32 l
 	
 	return(len_used);
 }
-
-//retuns ownership of bytes
-//this could be implemented a lot more efficiently, but I dont care right now
-#ifdef NOT_USED_RIGHT_NOW
-static uint8 *UnpackZeroCompressedDup(const uint8 *in_buf, uint32 in_length, uint32 *unpacked_length) {
-	std::vector<uint8> buffer;
-
-	UnpackZeroCompressed(in_buf, in_length, buffer);
-
-	*unpacked_length = buffer.size();
-	uint8 *out_buffer = new uint8[*unpacked_length];
-	memcpy(out_buffer, &buffer[0], *unpacked_length);
-	return(out_buffer);
-}
-#endif

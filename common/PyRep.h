@@ -24,40 +24,42 @@
 
 class PyVisitor;
 class PyRepSubStream;
+class EVEStringTable;
 
 /** Lookup table for PyRep type object type names.
-*/
+  */
 extern const char *PyRepTypeString[];
 
 /** PyRep base Python wire object
   */
 class PyRep {
 public:
-
 	/** PyRep Python wire object types
-	  */
-	typedef enum {
-		PyTypeInteger = 0,
-		PyTypeReal,
-		PyTypeBoolean,
-		PyTypeBuffer,
-		PyTypeString,
-		PyTypeTuple,
-		PyTypeList,
-		PyTypeDict,
-		PyTypeNone,
-		PyTypeSubStruct,
-		PyTypeSubStream,
-		PyTypeChecksumedStream,
-		PyTypeObject,
-		PyTypeNewObject,
-		PyTypePackedRow
+	*/
+	typedef enum _Type {
+		PyTypeInteger			= 0,
+		PyTypeReal				= 1,
+		PyTypeBoolean			= 2,
+		PyTypeBuffer			= 3,
+		PyTypeString			= 4,
+		PyTypeTuple				= 5,
+		PyTypeList				= 6,
+		PyTypeDict				= 7,
+		PyTypeNone				= 8,
+		PyTypeSubStruct			= 9,
+		PyTypeSubStream			= 10,
+		PyTypeChecksumedStream	= 11,
+		PyTypeObject			= 12,
+		PyTypeNewObject			= 13,
+		PyTypePackedRow			= 14,
+		PyTypeError				= 15,
+		PyTypeMax				= 15,
 	} Type;
-	
-	PyRep(Type t) : m_type(t) { }
-	virtual ~PyRep() {}
 
-	/** 
+	PyRep(Type t);
+	virtual ~PyRep();
+
+	/** Type check functions
 	  */
 	bool IsInteger() const {return m_type == PyTypeInteger;}
 	bool IsReal() const {return m_type == PyTypeReal;}
@@ -75,21 +77,16 @@ public:
 	bool IsNewObject() const {return m_type == PyTypeNewObject;}
 	bool IsPackedRow() const {return m_type == PyTypePackedRow;}
 
-	ASCENT_INLINE bool CheckType(Type t) const { return(m_type == t); }
-	ASCENT_INLINE bool CheckType(Type t, Type t2) const { return(m_type == t || m_type == t2); }
-	ASCENT_INLINE const char *TypeString() const {
-		if (m_type >= 0 && m_type < 15)
-			return PyRepTypeString[m_type];
-		return PyRepTypeString[15];
-	}
-	
+	ASCENT_INLINE const char *TypeString() const;
+		
 	virtual void Dump(FILE *into, const char *pfx) const = 0;
 	virtual void Dump(LogType type, const char *pfx) const = 0;
 	virtual PyRep *Clone() const = 0;
 	virtual void visit(PyVisitor *v) const = 0;
 
 	//using this method is discouraged, it generally means your doing something wrong... CheckType() should cover almost all needs
-	Type youreallyshouldentbeusingthis_GetType() const { return(m_type); }
+	Type youreallyshouldentbeusingthis_GetType() const { return m_type; }
+
 protected:
 	const Type m_type;
 };
@@ -150,7 +147,8 @@ public:
 };
 
 
-class PyRepBuffer : public PyRep {
+class PyRepBuffer : public PyRep
+{
 public:
 	PyRepBuffer(const uint8 *buffer, uint32 length);
 	PyRepBuffer(uint8 **buffer, uint32 length);
@@ -173,12 +171,12 @@ public:
 	PyRepSubStream *CreateSubStream() const;
 	
 protected:
-	uint8 *const m_value;
+	uint8 *m_value;
 	const uint32 m_length;
 };
 
-class EVEStringTable;
-class PyRepString : public PyRep {
+class PyRepString : public PyRep
+{
 public:
 	PyRepString(const char *str = "", bool type_1=false) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1) {}
 	PyRepString(const std::string &str, bool type_1=false) : PyRep(PyRep::PyTypeString), is_type_1(type_1) { value.assign(str.c_str(), str.length()); } //to deal with non-string buffers poorly placed in strings (CCP)
@@ -501,8 +499,12 @@ public:
 };*/
 
 //this probably belongs in its own file
-class EVEStringTable {
+class EVEStringTable
+{
 public:
+	EVEStringTable();
+	~EVEStringTable();
+
 	static const uint8 None = 0;	//returned for no match
 
 	bool LoadFile(const char *file);
@@ -512,8 +514,18 @@ public:
 
 protected:
 	//there are better implementations of this, but this works:
-	std::vector<std::string> m_forwardLookup;
-	std::map<std::string, uint8> m_reverseLookup;
+	typedef std::vector<char*>							LookupVector;
+	typedef LookupVector::iterator						LookupVectorItr;
+	typedef LookupVector::const_iterator				LookupVectorConstItr;
+
+	typedef std::tr1::unordered_map<std::string, uint8> LookupMap;
+	typedef LookupMap::iterator							LookupMapItr;
+	typedef LookupMap::const_iterator					LookupMapConstItr;
+
+	
+	LookupVector	m_forwardLookup;
+	LookupMap		m_reverseLookup;
+	uint32			m_size;
 };
 
 #endif//EVE_PY_REP_H

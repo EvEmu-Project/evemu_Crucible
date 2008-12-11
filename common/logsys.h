@@ -165,9 +165,6 @@ extern bool log_open_logfile(const char *file);
 
 extern bool load_log_settings(const char *filename);
 
-
-
-
 #endif /*LOGSYS_H_*/
 
 	

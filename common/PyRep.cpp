@@ -48,6 +48,9 @@ const char *PyRepTypeString[] = {
 	"UNKNOWN TYPE",		//15
 };
 
+//#undef _log
+//#define _log //
+
 static void pfxHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length) {
 	char buffer[80];
 	uint32 offset;
@@ -90,6 +93,21 @@ static void pfxPreviewHexDump(const char *pfx, LogType type, const uint8 *data, 
 	} else {
 		pfxHexDump(pfx, type, data, length);
 	}
+}
+
+/************************************************************************/
+/* PyRep base Class                                                     */
+/************************************************************************/
+
+PyRep::PyRep(Type t) : m_type(t) {}
+PyRep::~PyRep() {}
+
+const char *PyRep::TypeString() const
+{
+	if (m_type >= 0 && m_type < PyTypeMax)
+		return PyRepTypeString[m_type];
+
+	return PyRepTypeString[PyTypeError];
 }
 
 /************************************************************************/
@@ -163,7 +181,7 @@ PyRepBuffer::PyRepBuffer(uint8 **buffer, uint32 length)
 }
 
 PyRepBuffer::~PyRepBuffer() {
-	delete [] m_value;
+	SafeDeleteArray(m_value);
 }
 
 void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
@@ -178,7 +196,7 @@ void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
 			p += "  ";
 			fprintf(into, "%sData buffer contains gzipped data of length %lu\n", p.c_str(), len);
 			pfxPreviewHexDump(p.c_str(), into, buf, len);
-			delete[] buf;
+			SafeDeleteArray(buf);
 		}
 	}
 }
@@ -195,7 +213,7 @@ void PyRepBuffer::Dump(LogType type, const char *pfx) const {
 			p += "  ";
 			_log(type, "%sData buffer contains gzipped data of length %lu", p.c_str(), len);
 			pfxPreviewHexDump(p.c_str(), type, buf, len);
-			delete[] buf;
+			SafeDeleteArray(buf);
 		}
 	}
 }
@@ -216,8 +234,8 @@ PyRepSubStream *PyRepBuffer::CreateSubStream() const {
 			res = new PyRepSubStream(buf, len);
 		}
 
-		delete[] buf;
-		return(res);
+		SafeDeleteArray(buf);
+		return res;
 	}
 	//else, we don't think this is a substream, so don't become one.
 	return NULL;
@@ -469,7 +487,7 @@ void PyRepDict::add(const char *key, const char *value) {
 /* PyRep Object Class                                                   */
 /************************************************************************/
 PyRepObject::~PyRepObject() {
-	delete arguments;
+	SafeDelete(arguments);
 }
 
 void PyRepObject::Dump(FILE *into, const char *pfx) const {
@@ -493,8 +511,9 @@ void PyRepObject::Dump(LogType ltype, const char *pfx) const {
 /************************************************************************/
 /* PyRep SubStruct Class                                                */
 /************************************************************************/
-PyRepSubStruct::~PyRepSubStruct() {
-	delete sub;
+PyRepSubStruct::~PyRepSubStruct()
+{
+	SafeDelete(sub);
 }
 
 void PyRepSubStruct::Dump(FILE *into, const char *pfx) const {
@@ -524,8 +543,8 @@ PyRepSubStream::PyRepSubStream(const uint8 *buffer, uint32 len)
 }
 
 PyRepSubStream::~PyRepSubStream() {
-	delete[] data;
-	delete decoded;
+	SafeDeleteArray(data);
+	SafeDelete(decoded);
 }
 
 void PyRepSubStream::Dump(FILE *into, const char *pfx) const {
@@ -588,7 +607,7 @@ void PyRepSubStream::DecodeData() const {
 /* PyRep ChecksumedStream Class                                         */
 /************************************************************************/
 PyRepChecksumedStream::~PyRepChecksumedStream() {
-	delete stream;
+	SafeDelete(stream);
 }
 
 void PyRepChecksumedStream::Dump(FILE *into, const char *pfx) const {
@@ -774,8 +793,9 @@ PyRepPackedRow::PyRepPackedRow(const PyRep *header, bool own_header, const uint8
 		Push(data, len);
 }
 
-PyRepPackedRow::~PyRepPackedRow() {
-	if(ownsHeader)
+PyRepPackedRow::~PyRepPackedRow()
+{
+	if(ownsHeader == true && header != NULL)
 		delete header;
 
 	rep_list::iterator rcur, rend;
@@ -832,7 +852,7 @@ PyRepPackedRow *PyRepPackedRow::TypedClone() const {
 		ownsHeader ? header->Clone() : header,
 		ownsHeader);
 	res->CloneFrom(this);
-	return(res);
+	return res;
 }
 
 void PyRepPackedRow::CloneFrom(const PyRepPackedRow *from) {
@@ -1015,66 +1035,91 @@ void PyRepNewObject::CloneFrom(const PyRepNewObject *from) {
 }
 
 
-
-
-
-
+/************************************************************************/
+/* string table code                                                    */
+/************************************************************************/
 EVEStringTable *PyRepString::s_stringTable = NULL;
-bool PyRepString::LoadStringFile(const char *file) {
+bool PyRepString::LoadStringFile(const char *file)
+{
 	if(s_stringTable != NULL)
-		delete s_stringTable;
+		SafeDelete(s_stringTable);
+
 	s_stringTable = new EVEStringTable;
-	return(s_stringTable->LoadFile(file));
+	return s_stringTable->LoadFile(file);
 }
 
-EVEStringTable *PyRepString::GetStringTable() {
+EVEStringTable *PyRepString::GetStringTable()
+{
 	if(s_stringTable == NULL)
 		s_stringTable = new EVEStringTable(); //make an empty one.
-	return(s_stringTable);
+
+	return s_stringTable;
 }
 
+EVEStringTable::EVEStringTable() : m_size(0) { }
+EVEStringTable::~EVEStringTable()
+{
+	char *entry = NULL;
+	for (uint32 i = 0; i != m_size; i++)
+	{
+		entry = m_forwardLookup[i];
+		if (entry != NULL)
+			delete []entry;
+	}
+	m_forwardLookup.clear();
+	m_reverseLookup.clear();
+}
 
-bool EVEStringTable::LoadFile(const char *file) {
+bool EVEStringTable::LoadFile(const char *file)
+{
 	m_forwardLookup.clear();
 	m_reverseLookup.clear();
 
 	//first line of the file is item 1
-	m_forwardLookup.push_back("");	//should never be used.
+	m_forwardLookup.push_back(NULL);	//should never be used.
 
 	FILE *f = fopen(file, "r");
 	if(f == NULL)
 		return false;
 
-	uint8 index = 1;
+	uint8 indexNr = 1;
 	
 	char buf[256];
-	while(fgets(buf, 255, f) != NULL) {
-		char *e;
-		e = strchr(buf, '\r');
+	while(fgets(buf, 255, f) != NULL)
+	{
+		char *e = strchr(buf, '\r');
 		if(e == NULL)
 			e = strchr(buf, '\n');
 		if(e != NULL)
 			*e = '\0';
-		m_forwardLookup.push_back(buf);
-		m_reverseLookup[buf] = index;
-		index++;
+
+		uint8 lookupStrLen = strlen(buf);
+		char* lookupStr = new char[lookupStrLen];
+
+		m_forwardLookup.push_back(lookupStr);
+		m_reverseLookup[buf] = indexNr;
+		indexNr++;
 	}
+	m_size = indexNr;
 	fclose(f);
 	return true;
 }
 
 //takes a string as an argument since its going to be converted to
 //one anyhow when we give it to the map.
-uint8 EVEStringTable::LookupString(const std::string &str) const {
-	std::map<std::string, uint8>::const_iterator res;
-	res = m_reverseLookup.find(str);
+uint8 EVEStringTable::LookupString(const std::string &str) const
+{
+	LookupMapConstItr res = m_reverseLookup.find(str);
 	if(res == m_reverseLookup.end())
-		return(None);
-	return(res->second);
+		return None;
+
+	return res->second;
 }
 
-const char *EVEStringTable::LookupIndex(uint8 index) const {
-	if(index == None || index >= m_forwardLookup.size())
+const char *EVEStringTable::LookupIndex(uint8 index) const
+{
+	if(index == None || index >= m_size)
 		return NULL;
-	return(m_forwardLookup[index].c_str());
+
+	return m_forwardLookup[index];
 }

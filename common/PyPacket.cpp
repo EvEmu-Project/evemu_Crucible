@@ -51,6 +51,11 @@ const char *MACHONETMSG_TYPE_str[_MACHONETMSG_TYPE_next]
 	"PING_RSP"
 };
 
+//#undef codelog
+//#define codelog //
+//#undef _log
+//#define _log //
+
 PyPacket::PyPacket()
 : type_string("none"),
   type(__Fake_Invalid_Type),
@@ -60,12 +65,14 @@ PyPacket::PyPacket()
 {
 }
 
-PyPacket::~PyPacket() {
-	delete payload;
-	delete named_payload;
+PyPacket::~PyPacket()
+{
+	SafeDelete(payload);
+	SafeDelete(named_payload);
 }
 
-PyPacket *PyPacket::Clone() const {
+PyPacket *PyPacket::Clone() const
+{
 	PyPacket *res = new PyPacket();
 	res->type_string = type_string;
 	res->type = type;
@@ -73,15 +80,19 @@ PyPacket *PyPacket::Clone() const {
 	res->dest = dest;
 	res->userid = userid;
 	res->payload = (PyRepTuple *) payload->Clone();
-	if(named_payload == NULL) {
+	if(named_payload == NULL)
+	{
 		res->named_payload = NULL;
-	} else {
+	}
+	else
+	{
 		res->named_payload = (PyRepDict *) named_payload->Clone();
 	}
 	return(res);
 }
 
-void PyPacket::Dump(LogType ltype, PyVisitor *dumper) {
+void PyPacket::Dump(LogType ltype, PyVisitor *dumper)
+{
 	_log(ltype, "Packet:");
 	_log(ltype, "  Type: %s", type_string.c_str());
 	_log(ltype, "  Command: %s (%d)", MACHONETMSG_TYPE_str[type], type);
@@ -100,63 +111,71 @@ void PyPacket::Dump(LogType ltype, PyVisitor *dumper) {
 	}
 }
 
-bool PyPacket::Decode(PyRep *&in_packet) {
+bool PyPacket::Decode(PyRep *in_packet)
+{
 	PyRep *packet = in_packet;	//consume
 	in_packet = NULL;
 	
-	delete payload;
-	delete named_payload;
-	payload = NULL;
-	named_payload = NULL;
+	SafeDelete(payload);
+	SafeDelete(named_payload);
 
-	if(packet->IsChecksumedStream()) {
+	if(packet->IsChecksumedStream())
+	{
 		PyRepChecksumedStream *cs = (PyRepChecksumedStream *) packet;
 		//TODO: check cs->checksum
 		packet = cs->stream;
 		cs->stream = NULL;
-		delete cs;
+		SafeDelete(cs);
 	}
 
 	//Dragon nuance... it gets wrapped again
-	if(packet->IsSubStream()) {
+	if(packet->IsSubStream())
+	{
 		PyRepSubStream *cs = (PyRepSubStream *) packet;
 		cs->DecodeData();
-		if(cs->decoded == NULL) {
+		if(cs->decoded == NULL)
+		{
 			codelog(NET__PACKET_ERROR, "failed: unable to decode initial packet substream.");
-			delete packet;
+			SafeDelete(packet);
 			return false;
 		}
 		packet = cs->decoded;
 		cs->decoded = NULL;
-		delete cs;
+		SafeDelete(cs);
 	}
 
-	if(!packet->IsObject()) {
+	if(!packet->IsObject())
+	{
 		codelog(NET__PACKET_ERROR, "failed: packet body is not an 'Object': %s", packet->TypeString());
-		delete packet;
+		SafeDelete(packet);
 		return false;
 	}
 
 	PyRepObject *packeto = (PyRepObject *) packet;
 	type_string = packeto->type;
 
-	if(!packeto->arguments->IsTuple()) {
+	if(!packeto->arguments->IsTuple())
+	{
 		codelog(NET__PACKET_ERROR, "failed: packet body does not contain a tuple");
-		delete packet;
+		SafeDelete(packet);
 		return false;
 	}
 	
 	PyRepTuple *tuple = (PyRepTuple *) packeto->arguments;
 
-	if(tuple->items.size() != 6) {
+	if(tuple->items.size() != 6)
+	{
 		codelog(NET__PACKET_ERROR, "failed: packet body does not contain a tuple of length 6");
-		delete packet;
+		SafeDelete(packet);
+
 		return false;
 	}
 
-	if(!tuple->items[0]->IsInteger()) {
+	if(!tuple->items[0]->IsInteger())
+	{
 		codelog(NET__PACKET_ERROR, "failed: First main tuple element is not an integer");
-		delete packet;
+		SafeDelete(packet);
+
 		return false;
 	}
 	PyRepInteger *typer = (PyRepInteger *) tuple->items[0];
@@ -180,39 +199,45 @@ bool PyPacket::Decode(PyRep *&in_packet) {
 		break;
 	default:
 		codelog(NET__PACKET_ERROR, "failed: Unknown message type %lld", typer->value);
-		delete packet;
+		SafeDelete(packet);
+
 		return false;
 		break;
 	}
 
 	//source address
-	if(!source.Decode(tuple->items[1])) {
+	if(!source.Decode(tuple->items[1]))
+	{
 		//error printed in decoder
-		delete packet;
+		SafeDelete(packet);
+
 		return false;
 	}
 	//dest address
-	if(!dest.Decode(tuple->items[2])) {
+	if(!dest.Decode(tuple->items[2]))
+	{
 		//error printed in decoder
-		delete packet;
+		SafeDelete(packet);
+
 		return false;
 	}
 
-	if(tuple->items[3]->IsInteger()) {
+	if(tuple->items[3]->IsInteger())
+	{
 		PyRepInteger *i = (PyRepInteger *) tuple->items[3];
 		userid = i->value;
 	} else if(tuple->items[3]->IsNone()) {
 		userid = 0;
 	} else {
 		codelog(NET__PACKET_ERROR, "failed: User ID has invalid type");
-		delete packet;
+		SafeDelete(packet);
 		return false;
 	}
 
 	//payload
 	if(!(tuple->items[4]->IsBuffer() || tuple->items[4]->IsTuple())) {
 		codelog(NET__PACKET_ERROR, "failed: Fifth main tuple element is not a tuple");
-		delete packet;
+		SafeDelete(packet);
 		return false;
 	}
 	payload = (PyRepTuple *) tuple->items[4];
@@ -220,18 +245,23 @@ bool PyPacket::Decode(PyRep *&in_packet) {
 
 
 	//options dict
-	if(tuple->items[5]->IsNone()) {
+	if(tuple->items[5]->IsNone())
+	{
 		named_payload = NULL;
-	} else if(tuple->items[5]->IsDict()) {
+	}
+	else if(tuple->items[5]->IsDict())
+	{
 		named_payload = (PyRepDict *) tuple->items[5];
 		tuple->items[5] = NULL;	//we keep this too.
-	} else {
+	}
+	else
+	{
 		codelog(NET__PACKET_ERROR, "failed: Sixth main tuple element is not a dict");
-		delete packet;
+		SafeDelete(packet);
 		return false;
 	}
 
-	delete packet;
+	SafeDelete(packet);
 	
 	return true;
 }
@@ -337,7 +367,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
 
 	if(!base->IsObject()) {
 		codelog(NET__PACKET_ERROR, "Invalid element type, expected object");
-		delete base;
+		SafeDelete(base);
 		return false;
 	}
 
@@ -346,7 +376,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
 
 	if(!obj->arguments->IsTuple()) {
 		codelog(NET__PACKET_ERROR, "Invalid argument type, expected tuple");
-		delete base;
+		SafeDelete(base);
 		return false;
 	}
 	
@@ -354,7 +384,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
 	if(args->items.size() < 3) {
 		codelog(NET__PACKET_ERROR, "Not enough elements in address tuple: %d", args->items.size());
 		args->Dump(NET__PACKET_ERROR, "  ");
-		delete base;
+		SafeDelete(base);
 		return false;
 	}
 
@@ -362,27 +392,27 @@ bool PyAddress::Decode(PyRep *&in_object) {
 	if(!args->items[0]->IsString()) {
 		codelog(NET__PACKET_ERROR, "Wrong type on address type element (0)");
 		args->items[0]->Dump(NET__PACKET_ERROR, "  ");
-		delete base;
+		SafeDelete(base);
 		return false;
 	}
 	PyRepString *types = (PyRepString *) args->items[0];
 	if(types->value.empty()) {
 		codelog(NET__PACKET_ERROR, "Empty string for address type element (0)");
-		delete base;
+		SafeDelete(base);
 		return false;
 	}
 	switch(types->value[0]) {
 	case Any: {
 		if(args->items.size() != 3) {
 			codelog(NET__PACKET_ERROR, "Invalid number of elements in Any address tuple: %d", args->items.size());
-			delete base;
+			SafeDelete(base);
 			return false;
 		}
 		type = Any;
 		
 		if(!_DecodeService(args->items[1])
 		|| !_DecodeCallID(args->items[2])) {
-			delete base;
+			SafeDelete(base);
 			return false;
 		}
 		
@@ -391,7 +421,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
 	case Node: {
 		if(args->items.size() != 4) {
 			codelog(NET__PACKET_ERROR, "Invalid number of elements in Node address tuple: %d", args->items.size());
-			delete base;
+			SafeDelete(base);
 			return false;
 		}
 		type = Node;
@@ -399,7 +429,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
 		if(!_DecodeTypeID(args->items[1])
 		|| !_DecodeService(args->items[2])
 		|| !_DecodeCallID(args->items[3])) {
-			delete base;
+			SafeDelete(base);
 			return false;
 		}
 		break;
@@ -407,7 +437,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
 	case Client: {
 		if(args->items.size() != 4) {
 			codelog(NET__PACKET_ERROR, "Invalid number of elements in Client address tuple: %d", args->items.size());
-			delete base;
+			SafeDelete(base);
 			return false;
 		}
 		type = Client;
@@ -415,7 +445,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
 		if(!_DecodeTypeID(args->items[1])
 		|| !_DecodeCallID(args->items[2])
 		|| !_DecodeService(args->items[3])) {
-			delete base;
+			SafeDelete(base);
 			return false;
 		}
 		
@@ -424,18 +454,18 @@ bool PyAddress::Decode(PyRep *&in_object) {
 	case Broadcast: {
 		if(args->items.size() != 4) {
 			codelog(NET__PACKET_ERROR, "Invalid number of elements in Broadcast address tuple: %d", args->items.size());
-			delete base;
+			SafeDelete(base);
 			return false;
 		}
 		type = Broadcast;
 
 		if(!args->items[1]->IsString()) {
 			codelog(NET__PACKET_ERROR, "Invalid type %s for brodcastID", args->items[1]->TypeString());
-			delete base;
+			SafeDelete(base);
 			return false;
 		} else if(!args->items[3]->IsString()) {
 			codelog(NET__PACKET_ERROR, "Invalid type %s for idtype", args->items[3]->TypeString());
-			delete base;
+			SafeDelete(base);
 			return false;
 		}
 
@@ -457,11 +487,11 @@ bool PyAddress::Decode(PyRep *&in_object) {
 	}
 	default:
 		codelog(NET__PACKET_ERROR, "Unknown address type: %c", types->value[0]);
-		delete base;
+		SafeDelete(base);
 		return false;
 	}
 
-	delete base;
+	SafeDelete(base);
 	return true;
 }
 
@@ -589,8 +619,8 @@ PyCallStream::PyCallStream()
 }
 
 PyCallStream::~PyCallStream() {
-	delete arg_tuple;
-	delete arg_dict;
+	SafeDelete(arg_tuple);
+	SafeDelete(arg_dict);
 }
 
 PyCallStream *PyCallStream::Clone() const {
@@ -628,32 +658,32 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
 	PyRepTuple *payload = in_payload;	//consume
 	in_payload = NULL;
 	
-	delete arg_tuple;
-	delete arg_dict;
+	SafeDelete(arg_tuple);
+	SafeDelete(arg_dict);
 	arg_tuple = NULL;
 	arg_dict = NULL;
 	
 	if(type != "macho.CallReq") {
 		codelog(NET__PACKET_ERROR, "failed: packet payload has unknown string type '%s'", type.c_str());
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
 	//decode payload tuple
 	if(payload->items.size() != 2) {
 		codelog(NET__PACKET_ERROR, "invalid tuple length %d", payload->items.size());
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	if(!payload->items[0]->IsTuple()) {
 		codelog(NET__PACKET_ERROR, "non-tuple payload[0]");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	PyRepTuple *payload2 = (PyRepTuple *) payload->items[0];
 	if(payload2->items.size() != 2) {
 		codelog(NET__PACKET_ERROR, "invalid tuple2 length %d", payload2->items.size());
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
@@ -661,7 +691,7 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
 	//ignore tuple 0, it should be an int, dont know what it is
 	if(!payload2->items[1]->IsSubStream()) {
 		codelog(NET__PACKET_ERROR, "non-substream type");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	PyRepSubStream *ss = (PyRepSubStream *) payload2->items[1];
@@ -669,20 +699,20 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
 	ss->DecodeData();
 	if(ss->decoded == NULL) {
 		codelog(NET__PACKET_ERROR, "Unable to decode call stream");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	
 	if(!ss->decoded->IsTuple()) {
 		codelog(NET__PACKET_ERROR, "packet body does not contain a tuple");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
 	PyRepTuple *maint = (PyRepTuple *) ss->decoded;
 	if(maint->items.size() != 4) {
 		codelog(NET__PACKET_ERROR, "packet body has %d elements, expected %d", maint->items.size(), 4);
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
@@ -699,7 +729,7 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
 		codelog(NET__PACKET_ERROR, "tuple[0] has invalid type %s", maint->items[0]->TypeString());
 		codelog(NET__PACKET_ERROR, " in:");
 		payload->Dump(NET__PACKET_ERROR, "    ");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
@@ -712,7 +742,7 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
 		maint->items[1]->Dump(NET__PACKET_ERROR, " --> ");
 		codelog(NET__PACKET_ERROR, " in:");
 		payload->Dump(NET__PACKET_ERROR, "    ");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
@@ -722,7 +752,7 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
 		maint->items[2]->Dump(NET__PACKET_ERROR, " --> ");
 		codelog(NET__PACKET_ERROR, "in:");
 		payload->Dump(NET__PACKET_ERROR, "    ");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	arg_tuple = (PyRepTuple *) maint->items[2];
@@ -739,11 +769,11 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
 		maint->items[3]->Dump(NET__PACKET_ERROR, " --> ");
 		codelog(NET__PACKET_ERROR, "in:");
 		payload->Dump(NET__PACKET_ERROR, "    ");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	
-	delete payload;
+	SafeDelete(payload);
 	return true;
 }
 
@@ -793,7 +823,7 @@ EVENotificationStream::EVENotificationStream()
 }
 
 EVENotificationStream::~EVENotificationStream() {
-	delete args;
+	SafeDelete(args);
 }
 
 EVENotificationStream *EVENotificationStream::Clone() const {
@@ -817,30 +847,30 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 	PyRepTuple *payload = in_payload;	//consume
 	in_payload = NULL;
 	
-	delete args;
+	SafeDelete(args);
 	args = NULL;
 	
 	if(pkt_type != "macho.Notification") {
 		codelog(NET__PACKET_ERROR, "notification payload has unknown string type %s", pkt_type.c_str());
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
 	//decode payload tuple
 	if(payload->items.size() != 2) {
 		codelog(NET__PACKET_ERROR, "invalid tuple length %d", payload->items.size());
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	if(!payload->items[0]->IsTuple()) {
 		codelog(NET__PACKET_ERROR, "non-tuple payload[0]");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	PyRepTuple *payload2 = (PyRepTuple *) payload->items[0];
 	if(payload2->items.size() != 2) {
 		codelog(NET__PACKET_ERROR, "invalid tuple2 length %d", payload2->items.size());
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
@@ -848,7 +878,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 	//ignore tuple 0, it should be an int, dont know what it is
 	if(!payload2->items[1]->IsSubStream()) {
 		codelog(NET__PACKET_ERROR, "non-substream type");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	PyRepSubStream *ss = (PyRepSubStream *) payload2->items[1];
@@ -856,20 +886,20 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 	ss->DecodeData();
 	if(ss->decoded == NULL) {
 		codelog(NET__PACKET_ERROR, "Unable to decode call stream");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	
 	if(!ss->decoded->IsTuple()) {
 		codelog(NET__PACKET_ERROR, "packet body does not contain a tuple");
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
 	PyRepTuple *robjt = (PyRepTuple *) ss->decoded;
 	if(robjt->items.size() != 2) {
 		codelog(NET__PACKET_ERROR, "packet body has %d elements, expected %d", robjt->items.size(), 2);
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
@@ -887,7 +917,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 		_log(NET__PACKET_ERROR, " in:");
 		PyLogsysDump d(NET__PACKET_ERROR);
 		payload->visit(&d);
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
@@ -896,7 +926,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 		_log(NET__PACKET_ERROR, " it is:");
 		PyLogsysDump d(NET__PACKET_ERROR);
 		payload->visit(&d);
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
@@ -905,7 +935,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 	PyRepTuple *subt = (PyRepTuple *) robjt->items[1];
 	if(subt->items.size() != 2) {
 		codelog(NET__PACKET_ERROR, "packet body has %d elements, expected %d", subt->items.size(), 2);
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
@@ -918,7 +948,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 		_log(NET__PACKET_ERROR, " in:");
 		PyLogsysDump d(NET__PACKET_ERROR);
 		payload->visit(&d);
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 
@@ -929,7 +959,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 		_log(NET__PACKET_ERROR, " it is:");
 		PyLogsysDump d(NET__PACKET_ERROR);
 		payload->visit(&d);
-		delete payload;
+		SafeDelete(payload);
 		return false;
 	}
 	
@@ -938,7 +968,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 
 	notifyType = notify_type;
 	
-	delete payload;
+	SafeDelete(payload);
 	return true;
 }
 
@@ -990,158 +1020,3 @@ PyRepTuple *EVENotificationStream::Encode() {
 	return(arg_tuple);
 	*/
 }
-
-
-/*
-
-
-      Args:   [ 4] Tuple: 2 elements
-      Args:   [ 4]   [ 0] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 0] Integer field: 0
-      Args:   [ 4]   [ 0]   [ 1] Substream: length 82 from data
-      Args:   [ 4]   [ 0]   [ 1]     Tuple: 2 elements
-		  remote object:
-      Args:   [ 4]   [ 0]   [ 1]       [ 0] Integer field: 0
-
-		  
-      Args:   [ 4]   [ 0]   [ 1]       [ 1] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 0] Integer field: 1
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1] Tuple: 5 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0] Integer field: 1
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1] Integer field: 2228
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 2] String: 'SendMessage'
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 3] Tuple: 5 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 3]   [ 0] (None)
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 3]   [ 1] Integer field: 1000166
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 3]   [ 2] List: 3 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 3]   [ 2]   [ 0] Integer field: 106271822
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 3]   [ 2]   [ 1] String: 'Amarr Citizen 84528'
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 3]   [ 2]   [ 2] Integer field: 1374
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 3]   [ 3] Integer field: 268435459
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 3]   [ 4] Integer field: 0
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 4] Tuple: 1 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 4]   [ 0] String: 'ok thx'
-      Args:   [ 4]   [ 1] (None)
-
-
-
-
-      Args:   [ 4] Tuple: 2 elements
-      Args:   [ 4]   [ 0] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 0] Integer field: 0
-      Args:   [ 4]   [ 0]   [ 1] Substream: length 213 from data
-      Args:   [ 4]   [ 0]   [ 1]     Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 0] Integer field: 0
-      Args:   [ 4]   [ 0]   [ 1]       [ 1] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 0] Integer field: 1
-		  
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0] Integer field: 30001407
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1] Dictionary: 20 entries
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 0] Key: Integer field: 734233532
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 0] Value: Dictionary: 0 entries
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 1] Key: Integer field: 293063150
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 1] Value: Dictionary: 0 entries
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 2] Key: Integer field: 164866354
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 2] Value: Dictionary: 0 entries
-...
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [18] Value:   [ 0] Value: Integer field: 127943639122103341
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [19] Key: Integer field: 229111461
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [19] Value: Dictionary: 0 entries 
-      Args:   [ 4]   [ 1] (None)
-      Args:   [ 5] Dictionary: 1 entries
-      Args:   [ 5]   [ 0] Key: String: 'sn'
-      Args:   [ 5]   [ 0] Value: Integer field: 1
-
-
-      Args:   [ 4] Tuple: 2 elements
-      Args:   [ 4]   [ 0] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 0] Integer field: 0
-      Args:   [ 4]   [ 0]   [ 1] Substream: length 276 from data
-      Args:   [ 4]   [ 0]   [ 1]     Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 0] Integer field: 0
-      Args:   [ 4]   [ 0]   [ 1]       [ 1] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 0] Integer field: 1
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1] Tuple: 1 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0] List: 6 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 0] Tuple: 7 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 0]   [ 0] String: 'OnModuleAttributeChange'
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 0]   [ 1] Integer field: 104954155
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 0]   [ 2] Integer field: 104954155
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 0]   [ 3] Integer field: 219
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 0]   [ 4] Integer field: 127943650195891707
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 0]   [ 5] Real Field: 0.960000
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 0]   [ 6] Real Field: 0.960000
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 1] Tuple: 7 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 1]   [ 0] String: 'OnModuleAttributeChange'
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 1]   [ 1] Integer field: 104954155
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 1]   [ 2] Integer field: 104954155
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 1]   [ 3] Integer field: 378
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 1]   [ 4] Integer field: 127943650195909572
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 1]   [ 5] Real Field: 0.765000
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   [ 1]   [ 6] Real Field: 0.765000
-...
-      Args:   [ 4]   [ 1] (None)
-      Args:   [ 5] Dictionary: 1 entries
-      Args:   [ 5]   [ 0] Key: String: 'sn'
-      Args:   [ 5]   [ 0] Value: Integer field: 2
-
-
-
-OnCharNowInStation(686980647):
-      Args:   [ 4] Tuple: 2 elements
-      Args:   [ 4]   [ 0] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 0] Integer field: 0
-      Args:   [ 4]   [ 0]   [ 1] Substream: length 15 from data
-      Args:   [ 4]   [ 0]   [ 1]     Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 0] Integer field: 0
-      Args:   [ 4]   [ 0]   [ 1]       [ 1] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 0] Integer field: 1
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1] Tuple: 1 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0] Integer field: 686980647
-
-ScatterEvent( OnItemChange ,*args= (Row(itemID: 104947580,typeID: 670,ownerID: 2,locationID: 6,flag: 0,contraband: 0,singleton: 1,quantity: 1,groupID: 29,categoryID: 6,customInfo: None), {2: 104954155, 3: 60004420, 4: 4}) ,**kw= {} )
-      Args:   [ 2] Object:
-      Args:   [ 2]   Type: String: 'macho.MachoAddress'
-      Args:   [ 2]   Args: Tuple: 4 elements
-      Args:   [ 2]   Args:   [ 0] String: 'B'
-      Args:   [ 2]   Args:   [ 1] String: 'OnItemChange'
-      Args:   [ 2]   Args:   [ 2] List: Empty
-      Args:   [ 2]   Args:   [ 3] String: 'charid'
-      Args:   [ 3] Integer field: 1152568
-      Args:   [ 4] Tuple: 2 elements
-      Args:   [ 4]   [ 0] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 0] Integer field: 0
-      Args:   [ 4]   [ 0]   [ 1] Substream: length 86 from data
-      Args:   [ 4]   [ 0]   [ 1]     Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 0] Integer field: 0
-      Args:   [ 4]   [ 0]   [ 1]       [ 1] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 0] Integer field: 1
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1] Tuple: 2 elements
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0] Object:
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 0]   Type: String: 'util.Row'
-....
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1] Dictionary: 3 entries
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 0] Key: Integer field: 2
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 0] Value: Integer field: 104954155
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 1] Key: Integer field: 4
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 1] Value: Integer field: 4
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 2] Key: Integer field: 3           
-      Args:   [ 4]   [ 0]   [ 1]       [ 1]   [ 1]   [ 1]   [ 2] Value: Integer field: 60004420        
-      Args:   [ 4]   [ 1] (None)
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
