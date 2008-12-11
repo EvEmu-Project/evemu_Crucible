@@ -330,7 +330,7 @@ public:
 			v.PutByte(SubStreamHeaderByte);
 
 			uint32 SubStreamMapCount = 0;
-			PutUint32(SubStreamMapCount);
+			v.PutUint32(SubStreamMapCount);
 			
 			rep->decoded->visit(&v);
 			

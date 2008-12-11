@@ -155,7 +155,7 @@ void TestCache() {
 	PyRepString *s = new PyRepString("charCreationInfo.departments");
 
 	uint32 len = 0;
-	byte *data = Marshal(s, len, false);
+	uint8 *data = Marshal(s, len, false);
 	
 	std::string into;
 	Base64::encode(data, len, into, false);
@@ -326,7 +326,7 @@ void ListCache(const char *in_filter) {
 		
 		s.erase(s.find('.'));
 		s.append("=======");
-		byte *b = new byte[s.length()];
+		uint8 *b = new uint8[s.length()];
 		size_t len = s.length();
 		Base64::decode(s, b, len);
 		
@@ -454,7 +454,7 @@ void CatCacheCall(const char *file) {
 		return;
 	}
 	
-	byte *b = new byte[file_length+10];
+	uint8 *b = new uint8[file_length+10];
 	int32 len = fread(b, 1, file_length+10, f);
 	fclose(f);
 
@@ -555,7 +555,7 @@ void TriToOBJ(const Seperator &command) {
 }
 
 //based on PyString_DecodeEscape from python.
-static bool PyString_DecodeEscape(const char *s, vector<byte> &result)
+static bool PyString_DecodeEscape(const char *s, vector<uint8> &result)
 {
 	int c;
 	const char *end;
@@ -639,7 +639,7 @@ static bool PyString_DecodeEscape(const char *s, vector<byte> &result)
 
 
 void UnmarshalLogText(const Seperator &command) {
-	vector<byte> result;
+	vector<uint8> result;
 	if(!PyString_DecodeEscape(command.argplus[1], result)) {
 		printf("Failed to decode string... trying with what we did get (%d bytes).\n", result.size());
 	}
@@ -700,7 +700,7 @@ void TestMarshal() {
 	
 	PyRepPackedRow *row;
 	{
-		static byte data[] = {
+		static uint8 data[] = {
 			0x00, 0x40, 0x7b, 0x30, 0xb2, 0x6c, 0xc6, 0x01, 0x68, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x38, 0x4a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x47, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x01, 0xee, 0x95, 0x31, 0x00, 0x00, 0x00, 0x00, 0x2f, 0x0f, 0x00, 0x00
@@ -711,7 +711,7 @@ void TestMarshal() {
 
 	uint32 mlen = 0;
 	_log(COMMON__MESSAGE, "Marshaling...");
-	byte *marshaled = Marshal(rs.Encode(), mlen, true);
+	uint8 *marshaled = Marshal(rs.Encode(), mlen, true);
 	
 	_log(COMMON__MESSAGE, "Unmarshaling...");
 	PyRep *rep = InflateAndUnmarshal(marshaled, mlen);
@@ -748,7 +748,7 @@ void LoadScript(const char *filename) {
 }
 
 void DestinyDumpLogText(const Seperator &command) {
-	std::vector<byte> result;
+	std::vector<uint8> result;
 
 	if(!PyString_DecodeEscape(command.argplus[1], result))
 		return;
@@ -757,7 +757,7 @@ void DestinyDumpLogText(const Seperator &command) {
 }
 
 void TestZeroCompress() {
-	byte input[] = {
+	uint8 input[] = {
 		0x00, 0xC3, 0xF5, 0x28, 0x5C, 0x8F, 0x16, 0x85, 0x40, 0x90, 0x38, 0x0C, 0x23, 0x20, 0x27, 0xC9, 0x01, 0xA7, 0x14, 0xA7, 0x15, 0xA7,
 		0xFF, 0xA7, 0x05, 0xA7, 0x14, 0xA7, 0x01, 0xA7, 0x01, 0x81, 0x31, 0x96, 0x93, 0x03, 0x90, 0x96, 0x98, 0x84, 0xFD, 0xC8, 0xC9, 0x01,
 		0x07, 0x01
@@ -766,13 +766,13 @@ void TestZeroCompress() {
 	_log(COMMON__MESSAGE, "Original: %d bytes", sizeof(input));
 	_hex(COMMON__MESSAGE, input, sizeof(input));
 
-	std::vector<byte> unpacked;
+	std::vector<uint8> unpacked;
 	UnpackZeroCompressed(input, sizeof(input), unpacked);
 
 	_log(COMMON__MESSAGE, "Unpacked: %d bytes", unpacked.size());
 	_hex(COMMON__MESSAGE, &unpacked[0], unpacked.size());
 
-	std::vector<byte> repacked;
+	std::vector<uint8> repacked;
 	PackZeroCompressed(&unpacked[0], unpacked.size(), repacked);
 	
 	_log(COMMON__MESSAGE, "Re-packed: %d bytes", repacked.size());
