@@ -1095,6 +1095,8 @@ bool EVEStringTable::LoadFile(const char *file)
 
 		uint8 lookupStrLen = strlen(buf);
 		char* lookupStr = new char[lookupStrLen];
+		memcpy(lookupStr,buf,lookupStrLen);
+		lookupStr[lookupStrLen] = '\0';
 
 		m_forwardLookup.push_back(lookupStr);
 		m_reverseLookup[buf] = indexNr;
