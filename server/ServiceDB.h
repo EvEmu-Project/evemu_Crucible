@@ -53,7 +53,7 @@ public:
 	ServiceDB(ServiceDB *db);	//alternate constructor which simply steals the dbcore from a different serviceDB object to prevent having to expose it.
 	virtual ~ServiceDB();
 
-	bool DoLogin(const char *login, const char *pass, uint32 &out_accountID, uint32 &out_role);
+	bool DoLogin(const char *login, const char *pass, uint32 &out_accountID, uint64 &out_role);
 
 	//entity/item stuff:
 	bool ListEntitiesByCategory(uint32 ownerID, uint32 categoryID, std::vector<uint32> &into);

@@ -35,9 +35,6 @@ class PyRepDict;
 class PyServiceMgr;
 class PyCallStream;
 
-
-
-
 class PyCallArgs {
 public:
 	PyCallArgs(Client *c, PyRepTuple **tup, PyRepDict **dict);
@@ -49,9 +46,6 @@ public:
 	PyRepTuple *tuple;		//we own this, but it may be taken
 	std::map<std::string, PyRep *> byname;	//we own this, but elements may be taken.
 };
-
-
-
 
 class PyResult {
 protected:

@@ -19,10 +19,8 @@
 
 PyCallable_Make_InnerDispatcher(CharacterService)
 
-CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc)
-: PyService(mgr, "character"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(dbc)
+CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc) : PyService(mgr, "character"),
+  m_dispatch(new Dispatcher(this)), m_db(dbc)
 {
 	_SetCallDispatcher(m_dispatch);
 	
@@ -558,9 +556,6 @@ PyResult CharacterService::Handle_GetRecentShipKillsAndLosses(PyCallArgs &call) 
 	return(rs.Encode());
 }
 
-
-
-
 /////////////////////////
 PyResult CharacterService::Handle_GetCharacterDescription(PyCallArgs &call) {
 	PyRep *result = NULL;
@@ -579,8 +574,6 @@ PyResult CharacterService::Handle_GetCharacterDescription(PyCallArgs &call) {
 		
 	return(result);
 }
-
-
 
 //////////////////////////////////
 PyResult CharacterService::Handle_SetCharacterDescription(PyCallArgs &call) {

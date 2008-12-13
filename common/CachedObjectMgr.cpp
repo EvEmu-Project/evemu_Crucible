@@ -245,7 +245,7 @@ PyRepObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
 	PyCachedObject co;
 	co.timestamp = res->second->timestamp;
 	co.version = res->second->version;
-	co.nodeID = HackCacheNodeID;	//hack, dosent matter until we have multi-node networks.
+	co.nodeID = HackCacheNodeID;	//hack, doesn't matter until we have multi-node networks.
 	co.shared = true;
 	co.objectID = res->second->objectID->Clone();
 	if(res->second->cache->GetLength() == 0 || res->second->cache->GetBuffer()[0] == SubStreamHeaderByte)
@@ -744,7 +744,7 @@ PyRepObject *PyCachedObject::Encode() {
 	
 	arg_tuple->items[3] = new PyRepInteger(shared?1:0);
 
-	//compression or not, we want to encode this into bytes so it dosent
+	//compression or not, we want to encode this into bytes so it doesn't
 	//get cloned in obect form just to be encoded later
 /*	cache->EncodeData();
 	if(compressed) {

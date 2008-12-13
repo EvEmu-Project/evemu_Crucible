@@ -40,7 +40,6 @@ public:
 	PyRep *Encode();
 	void operator=(const PyAddress &right);
 
-
 	typedef enum {
 		Any 	= 'A',
 			/*                                                                              

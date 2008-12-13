@@ -211,7 +211,7 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
 		return NULL;	//print done already
 	
 	//should we check their version? I am pretty sure they check it and only request what they want.
-	//well, we want to do something like this, but this dosent seem to be it. taken
+	//well, we want to do something like this, but this doesn't seem to be it. taken
 	// out until we have time to figure out how to properly throw the CacheOK exception.
 	/*if(m_cache.IsCacheUpToDate(args.objectID, args.version, args.timestamp)) {
 		//they throw an exception for "its up to date", lets give it a try...

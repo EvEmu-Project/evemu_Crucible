@@ -416,26 +416,3 @@ PyResult BeyonceBound::Handle_StargateJump(PyCallArgs &call) {
 	
 	return NULL;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

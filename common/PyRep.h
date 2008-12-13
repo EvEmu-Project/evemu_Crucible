@@ -219,10 +219,10 @@ public:
 	
 	storage_type items;
 	
-	iterator begin() { return(items.begin()); }
-	iterator end() { return(items.end()); }
-	const_iterator begin() const { return(items.begin()); }
-	const_iterator end() const { return(items.end()); }
+	inline iterator begin() { return(items.begin()); }
+	inline iterator end() { return(items.end()); }
+	inline const_iterator begin() const { return(items.begin()); }
+	inline const_iterator end() const { return(items.end()); }
 	bool empty() const { return(items.empty()); }
 	void clear();
 };

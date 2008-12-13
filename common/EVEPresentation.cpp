@@ -107,12 +107,10 @@ void EVEPresentation::FastQueuePacket(PyPacket **p) {
 	PyRep *r = (*p)->Encode();
 	if(r == NULL) {
 		_log(NET__PRES_ERROR, "%s: Failed to encode???", GetConnectedAddress().c_str());
-		delete *p;
-		*p = NULL;
+		SafeDelete(*p);
 		return;
 	}
-	delete *p;
-	*p = NULL;
+	SafeDelete(*p);
 
 	_QueueRep(r);
 	delete r;

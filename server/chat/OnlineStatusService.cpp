@@ -63,25 +63,3 @@ PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
 
 	return(result);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

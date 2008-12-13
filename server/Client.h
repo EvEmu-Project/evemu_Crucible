@@ -16,7 +16,6 @@
 */
 
 /*
-
 Dynamic Bodies:
 	- shape
 	- `mass`
@@ -42,13 +41,8 @@ Static Bodies:
 	- shape
 	- position
 
-
 detect clients moving into agro radius
-
 */
-
-
-
 
 #ifndef EVE_CLIENT_H
 #define EVE_CLIENT_H
@@ -56,10 +50,6 @@ detect clients moving into agro radius
 #include "../common/packet_types.h"
 #include "../common/timer.h"
 #include "../common/gpoint.h"
-
-#include <string>
-#include <map>
-#include <set>
 
 #include "ClientSession.h"
 #include "system/SystemEntity.h"
@@ -70,20 +60,21 @@ detect clients moving into agro radius
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
 
-class PyPacket;
-class PyRep;
-class PyRepDict;
-class PyRepTuple;
-class PyRepList;
-class PyRepSubStream;
-class PyCallStream;
-class PyServiceMgr;
-class PyAddress;
-class EVENotificationStream;
-class InventoryItem;
-class LSCChannel;
-class SystemManager;
 class CryptoChallengePacket;
+class EVENotificationStream;
+class PyRepSubStream;
+class InventoryItem;
+class SystemManager;
+class PyServiceMgr;
+class PyCallStream;
+class PyRepTuple;
+class LSCChannel;
+class PyAddress;
+class PyRepList;
+class PyRepDict;
+class PyPacket;
+class Client;
+class PyRep;
 
 class CharacterData {
 public:
@@ -192,17 +183,14 @@ protected:
 
 class CorpMemberInfo {
 public:
-	CorpMemberInfo()
-	: corpHQ(0), corprole(0), rolesAtAll(0), rolesAtBase(0), rolesAtHQ(0), rolesAtOther(0) {}
-	uint32 corpHQ;	//this really dosent belong here...
+	CorpMemberInfo() : corpHQ(0), corprole(0), rolesAtAll(0), rolesAtBase(0), rolesAtHQ(0), rolesAtOther(0) {}
+	uint32 corpHQ;	//this really doesn't belong here...
 	uint64 corprole;
 	uint64 rolesAtAll;
 	uint64 rolesAtBase;
 	uint64 rolesAtHQ;
 	uint64 rolesAtOther;
 };
-
-class Client;
 
 class Functor {
 public:
@@ -249,9 +237,6 @@ protected:
 	std::vector<Entry *> m_queue;	//not ordered or anything useful.
 };
 
-
-
-
 //DO NOT INHERIT THIS OBJECT!
 class Client : public DynamicSystemEntity {
 public:
@@ -267,26 +252,37 @@ public:
 	virtual void	Process();
 	virtual void	ProcessDestiny();
 
-	uint32 GetAccountID() const { return(m_accountID); }
-	uint32 GetRole() const { return(m_role); }
+	uint32 GetAccountID() const			{ return m_accountID; }
+	uint32 GetRole() const				{ return m_role; }
 
-	uint32 GetCharacterID() const { return(m_char.charid); }
-	const CharacterData &GetChar() const { return(m_char); }
-	uint32 GetCorporationID() const { return(m_char.corporationID); }
-	uint32 GetAllianceID() const { return(m_char.allianceID); }
-	const CorpMemberInfo &GetCorpInfo() const { return(m_corpstate); }
+	// character data
+	uint32 GetCharacterID() const		{ return m_char.charid; }
+	uint32 GetCorporationID() const		{ return m_char.corporationID; }
+	uint32 GetAllianceID() const		{ return m_char.allianceID; }
+	uint32 GetStationID() const			{ return m_char.stationID; }
+	uint32 GetSystemID() const			{ return m_char.solarSystemID; }
+	uint32 GetConstellationID() const	{ return m_char.constellationID; }
+	uint32 GetRegionID() const			{ return m_char.regionID; }
+	
+	const CorpMemberInfo &GetCorpInfo() const { return m_corpstate; }
+	const CharacterData &GetChar() const { return m_char; }
 
-	uint32 GetLocationID() const { return(IsInSpace() ? GetSystemID() : GetStationID()); }
-	uint32 GetStationID() const { return(m_char.stationID); }
-	uint32 GetSystemID() const { return(m_char.solarSystemID); }
-	uint32 GetConstellationID() const { return(m_char.constellationID); }
-	uint32 GetRegionID() const { return(m_char.regionID); }
+	uint32 GetLocationID() const
+	{
+		if (IsInSpace() == true)
+			return GetSystemID();
+		else
+			return GetStationID();
+	}
+
+	
+
 	inline double x() const { return(GetPosition().x); }	//this is terribly inefficient.
 	inline double y() const { return(GetPosition().y); }	//this is terribly inefficient.
 	inline double z() const { return(GetPosition().z); }	//this is terribly inefficient.
 	bool IsInSpace() const { return(GetStationID() == 0); }
 	
-	double GetBalance() const { return(m_char.balance); }
+	double GetBalance() const { return m_char.balance; }
 	bool AddBalance(double amount);
 
 	void Login(CryptoChallengePacket *pack);
@@ -298,7 +294,7 @@ public:
 	bool EnterSystem();
 	bool Load(uint32 char_id);
 	void JoinCorporationUpdate(uint32 corp_id);
-	inline InventoryItem *Ship() const { return(m_ship); }
+	inline InventoryItem *Ship() const { return m_ship; }
 	void SavePosition();
 	
 	double GetPropulsionStrength() const;
@@ -375,7 +371,7 @@ protected:
 	Timer m_pingTimer;
 
 	uint32 m_accountID;
-	uint32 m_role;		//really should be a uint64
+	uint64 m_role;
 	uint32 m_gangRole;
 
 	SystemManager *m_system;	//we do not own this
@@ -423,7 +419,4 @@ public:
 	const clientCall m_call;
 };*/
 
-
-
 #endif
-

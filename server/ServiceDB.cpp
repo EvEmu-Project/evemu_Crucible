@@ -37,7 +37,7 @@ ServiceDB::ServiceDB(ServiceDB *existing_db)
 ServiceDB::~ServiceDB() {
 }
 
-bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_accountID, uint32 &out_role) {
+bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_accountID, uint64 &out_role) {
 	DBQueryResult res;
 
 	if(pass[0] == '\0') {

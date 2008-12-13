@@ -30,14 +30,9 @@ protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
 
-	PyCallable_DECL_CALL(BeanCount)
-	PyCallable_DECL_CALL(BeanDelivery)
+	PyResult Handle_BeanCount(PyCallArgs &call);
+	PyResult Handle_BeanDelivery(PyCallArgs &call);
+	PyResult Handle_SendClientStackTraceAlert(PyCallArgs &call);
 };
 
-
-
-
-
-#endif
-
-
+#endif//__ALERT_SERVICE_H_INCL__

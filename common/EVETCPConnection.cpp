@@ -47,7 +47,7 @@ void EVETCPConnection::QueuePacket(EVENetPacket *pack) {
 void EVETCPConnection::FastQueuePacket(EVENetPacket **pack) {
 	uint32 length = (*pack)->length;
 	ServerSendQueuePushEnd((const uint8 *) &length, sizeof(length), &(*pack)->data, (*pack)->length);
-	delete *pack;
+	SafeDelete(*pack);
 }
 
 EVENetPacket* EVETCPConnection::PopPacket() {
@@ -68,11 +68,10 @@ void EVETCPConnection::ClearBuffers() {
 		SafeDelete(pack);
 	
 	MInQueue.lock();
-		timeout_timer.Start();
+	timeout_timer.Start();
 		
-		InQueue.ClearBuffers();
+	InQueue.ClearBuffers();
 	MInQueue.unlock();
-	
 }
 
 bool EVETCPConnection::ProcessReceivedData(char* errbuf) {

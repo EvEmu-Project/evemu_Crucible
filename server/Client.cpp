@@ -197,51 +197,126 @@ void Client::FastQueuePacket(PyPacket **p) {
 	m_net.FastQueuePacket(p);
 }
 
+/** Small utility wrapper function to handle client ping request
+  * reason why its not cleanly in the client class: The client isn't clean in the first place.
+  * TODO insert into client class.
+  */
+void HandlePingRequest(Client* client, PyPacket * packet)
+{
+	if (client == NULL)
+		return;
+
+	if (packet == NULL)
+		return;
+
+	/* clone the incoming packet as our outgoing packet looks a lot like it */
+	PyPacket * ret = packet->Clone();	// cloning is evil
+	ret->type = PING_RSP;
+	ret->type_string = "macho.PingReq";
+	
+	// evil hacking
+	PyAddress temp = ret->source;
+	ret->source = ret->dest;
+	ret->dest = temp;
+
+	ret->source.typeID = client->GetServices()->GetNodeID();
+
+	ret->dest.typeID = client->GetAccountID();
+	
+	/*	Here the hacking begins, the ping packet handles the timestamps of various packet handling steps.
+		To really simulate/emulate that we need the various packet handlers which in fact we don't have ( :P ).
+		So the next piece of code "fake's" it, with a slight delay on the received packet time.
+	*/
+	PyRepList* pingList = (PyRepList*)ret->payload->items[0];
+	if (pingList->IsList())
+	{
+		PyRepTuple * pingTuple = new PyRepTuple(3);
+
+		pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);		// this should be the time the packet was received (we cheat here a bit)
+		pingTuple->items[1] = new PyRepInteger(Win32TimeNow());				// this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
+		pingTuple->items[2] = new PyRepString("proxy::handle_message");
+
+		pingList->add(pingTuple);
+
+		pingTuple = new PyRepTuple(3);
+		pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);
+		pingTuple->items[1] = new PyRepInteger(Win32TimeNow());
+		pingTuple->items[2] = new PyRepString("proxy::writing");
+
+		pingList->add(pingTuple);
+
+		pingTuple = new PyRepTuple(3);
+		pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);
+		pingTuple->items[1] = new PyRepInteger(Win32TimeNow());
+		pingTuple->items[2] = new PyRepString("server::handle_message");
+
+		pingList->add(pingTuple);
+
+		pingTuple = new PyRepTuple(3);
+		pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);	
+		pingTuple->items[1] = new PyRepInteger(Win32TimeNow());			
+		pingTuple->items[2] = new PyRepString("server::turnaround");
+
+		pingList->add(pingTuple);
+
+		pingTuple = new PyRepTuple(3);
+		pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);
+		pingTuple->items[1] = new PyRepInteger(Win32TimeNow());
+		pingTuple->items[2] = new PyRepString("proxy::handle_message");
+
+		pingList->add(pingTuple);
+
+		pingTuple = new PyRepTuple(3);
+		pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);
+		pingTuple->items[1] = new PyRepInteger(Win32TimeNow());
+		pingTuple->items[2] = new PyRepString("proxy::writing");
+
+		pingList->add(pingTuple);
+	}
+
+	client->FastQueuePacket(&ret);	// doesn't clone so eats the ret object upon sending.
+}
+
 bool Client::ProcessNet() {
-	//TRY_SIGEXCEPT {
 		
-		if(!m_net.Connected())
-			return false;
-		
-		if(m_pingTimer.Check()) {
-			_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
-			_SendPingRequest();
+	if(!m_net.Connected())
+		return false;
+	
+	if(m_pingTimer.Check()) {
+		_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
+		_SendPingRequest();
+	}
+	
+	PyPacket *p;
+	while((p = m_net.PopPacket())) {
+		{
+			PyLogsysDump dumper(CLIENT__IN_ALL);
+			_log(CLIENT__IN_ALL, "Received packet:");
+			p->Dump(CLIENT__IN_ALL, &dumper);
+		}
+
+		switch(p->type) {
+		case CALL_REQ:
+			_ProcessCallRequest(p);
+			break;
+		case NOTIFICATION:
+			_ProcessNotification(p);
+			break;
+		case PING_REQ:
+			//_log(CLIENT__TRACE, "%s: Unhandled ping request.", GetName());
+			HandlePingRequest(this,p);
+			break;
+		case PING_RSP:
+			_log(CLIENT__TRACE, "%s: Received ping response.", GetName());
+			break;
+		default:
+			_log(CLIENT__ERROR, "%s: Unhandled message type %d", GetName(), p->type);
 		}
 		
-		PyPacket *p;
-		while((p = m_net.PopPacket())) {
-			{
-				PyLogsysDump dumper(CLIENT__IN_ALL);
-				_log(CLIENT__IN_ALL, "Received packet:");
-				p->Dump(CLIENT__IN_ALL, &dumper);
-			}
-	
-			switch(p->type) {
-			case CALL_REQ:
-				_ProcessCallRequest(p);
-				break;
-			case NOTIFICATION:
-				_ProcessNotification(p);
-				break;
-			case PING_REQ:
-				_log(CLIENT__TRACE, "%s: Unhandled ping request.", GetName());
-				break;
-			case PING_RSP:
-				_log(CLIENT__TRACE, "%s: Received ping response.", GetName());
-				break;
-			default:
-				_log(CLIENT__ERROR, "%s: Unhandled message type %d", GetName(), p->type);
-			}
-			
-			delete p;
-			p = NULL;
-		}
-	
-		return true;
-	/*} CATCH_SIGEXCEPT(e) {
-		  _log(CLIENT__ERROR, "%s: Exception caught processing network packets\n%s", GetName(), e.stack_string().c_str());
-		  return false;
-	}*/
+		SafeDelete(p);
+	}
+
+	return true;
 }
 
 void Client::Process() {
@@ -1433,24 +1508,3 @@ FunctorTimerQueue::Entry::~Entry() {
 	delete func;
 }
 */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

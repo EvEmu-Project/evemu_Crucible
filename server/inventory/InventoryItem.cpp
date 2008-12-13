@@ -373,7 +373,7 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 		return false;
 	}
 
-	//hacky, but it dosent really hurt anything.
+	//hacky, but it doesn't really hurt anything.
 	if(isOnline() != 0) {
 		//there is an effect that goes along with this. We should
 		//probably be properly tracking the effect due to some
@@ -987,7 +987,7 @@ bool InventoryItem::Contains(InventoryItem *item, bool recursive) const {
 }
 
 //I think I ultimately want this logic somewhere else...
-//this dosent seem to be working either... for some reason, the client is
+//this doesn't seem to be working either... for some reason, the client is
 //getting 0 for its skill points per minute field and throwing a division
 // exception.
 void InventoryItem::TrainSkill(InventoryItem *skill) {
