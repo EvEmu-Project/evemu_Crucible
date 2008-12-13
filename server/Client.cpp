@@ -484,11 +484,15 @@ void Client::Login(CryptoChallengePacket *pack) {
 	if(!m_services->GetServiceDB()->DoLogin(pack->user_name.c_str(), pass.password.c_str(), m_accountID, m_role)) {
 		_log(CLIENT__MESSAGE, "%s: Login rejected by DB", pack->user_name.c_str());
 
-		util_Exception e;
-		e.type = "exceptions.GPSTransportClosed";
-		e.exceptionType_tuple = e.exceptionType_dict = "LoginAuthFailed";
+		util_NewObject1 no;
+		no.type = "exceptions.GPSTransportClosed";
 
-		throw(PyException(e.Encode()));
+		no.args = new PyRepTuple(1);
+		no.args->items[0] = new PyRepString("LoginAuthFailed");
+
+		no.keywords.add("msgkey", "LoginAuthFailed");
+
+		throw(PyException(no.FastEncode()));
 	}
 	
 	// this is needed so if we exit before selecting a character, the account online flag would switch back to 0

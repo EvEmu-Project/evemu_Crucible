@@ -75,26 +75,6 @@
   </newobject>	   
 </element>
 
-<element name="util_Exception">
-  <newobject name="root">
-	<InlineTuple>
-	  <string name="type" default="ccp_exception.UserError"  type1="true" />
-	  <InlineTuple>
-		<string name="exceptionType_tuple" />
-		<strdict name="args_tuple" />
-	  </InlineTuple>
-	  <InlineDict>
-		<IDEntry key="msgkey">
-		  <string name="exceptionType_dict" />
-		</IDEntry>
-		<IDEntry key="dict">
-		  <strdict name="args_dict" />
-		</IDEntry>
-	  </InlineDict>
-	</InlineTuple>
-  </newobject>
-</element>
-
 <element name="blue_DBRowDescriptor">
   <newobject name="root">
 	<InlineTuple>

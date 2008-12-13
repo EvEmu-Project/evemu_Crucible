@@ -97,12 +97,33 @@ int GetSkillLevel(const std::vector<const InventoryItem *> &skills, const uint32
 }
 
 PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args) {
-	util_Exception res;
-	res.type = "ccp_exceptions.UserError";
-	res.exceptionType_tuple = res.exceptionType_dict = exceptionType;
-	res.args_tuple = res.args_dict = args;
+	PyRep *pyType = new PyRepString(exceptionType);
+	PyRep *pyArgs;
+	if(args.empty())
+		pyArgs = new PyRepNone;
+	else {
+		PyRepDict *d = new PyRepDict;
 
-	return(res.Encode());
+		std::map<std::string, PyRep *>::const_iterator cur, end;
+		cur = args.begin();
+		end = args.end();
+		for(; cur != end; cur++)
+			d->add(cur->first.c_str(), cur->second);
+
+		pyArgs = d;
+	}
+
+	util_NewObject1 no;
+	no.type = "ccp_exceptions.UserError";
+
+	no.args = new PyRepTuple(2);
+	no.args->items[0] = pyType;
+	no.args->items[1] = pyArgs;
+
+	no.keywords.add("msgkey", pyType->Clone());
+	no.keywords.add("dict", pyArgs->Clone());
+
+	return(no.FastEncode());
 }
 
 PyRep *MakeCustomError(const char *fmt, ...) {
