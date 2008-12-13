@@ -149,7 +149,8 @@ uint8 *DeflatePacket(const uint8 *data, uint32 *length)
   */
 uint8 *InflatePacket(const uint8 *data, uint32 *length, bool quiet)
 {
-	u_long rsize = *length * 4;
+	//u_long rsize = *length * 4;
+	u_long rsize = *length * 12;
 	uint8* buffer = (uint8*)malloc(rsize);
 	if(uncompress(buffer, &rsize, data, (u_long)*length) != Z_OK)
 	{

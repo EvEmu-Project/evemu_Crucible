@@ -429,7 +429,8 @@ bool DBQueryResult::GetRow(DBResultRow &into) {
 const char *DBQueryResult::ColumnName(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "ColumnName: Column index %d exceeds number of columns (%s) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "ColumnName: Column index %d exceeds number of columns (%s) in row", column, ColumnCount());
+		printf("ColumnName: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
 		return("(ERROR)");		//nothing better to do...
 	}
 #endif
@@ -439,7 +440,8 @@ const char *DBQueryResult::ColumnName(uint32 column) const {
 DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "ColumnType: Column index %d exceeds number of columns (%s) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "ColumnType: Column index %d exceeds number of columns (%s) in row", column, ColumnCount());
+		printf("ColumnType: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
 		return(String);		//nothing better to do...
 	}
 #endif
@@ -542,7 +544,8 @@ DBQueryResult::ColType DBResultRow::ColumnType(uint32 column) const {
 uint32 DBResultRow::GetColumnLength(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "GetColumnLength: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "GetColumnLength: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		printf("GetColumnLength: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -555,7 +558,8 @@ uint32 DBResultRow::GetColumnLength(uint32 column) const {
 int32 DBResultRow::GetInt(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "GetInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "GetInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		printf("GetInt: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -566,7 +570,8 @@ int32 DBResultRow::GetInt(uint32 column) const {
 uint32 DBResultRow::GetUInt(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "GetUInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "GetUInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		printf("GetUInt: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -577,7 +582,8 @@ uint32 DBResultRow::GetUInt(uint32 column) const {
 int64 DBResultRow::GetInt64(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "GetInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "GetInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		printf("GetInt: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -588,7 +594,8 @@ int64 DBResultRow::GetInt64(uint32 column) const {
 uint64 DBResultRow::GetUInt64(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "GetUInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "GetUInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		printf("GetUInt: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -599,7 +606,8 @@ uint64 DBResultRow::GetUInt64(uint32 column) const {
 float DBResultRow::GetFloat(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "GetFloat: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "GetFloat: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		printf("GetFloat: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -613,7 +621,8 @@ float DBResultRow::GetFloat(uint32 column) const {
 double DBResultRow::GetDouble(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "GetDouble: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "GetDouble: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		printf("GetDouble: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -623,12 +632,14 @@ double DBResultRow::GetDouble(uint32 column) const {
 uint32 DBResultRow::GetBinary(uint32 column, uint8 *into, uint32 in_length) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "GetBinary: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "GetBinary: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
+		printf("GetBinary: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
 	if(in_length < m_lengths[column]) {
-		_log(DATABASE__ERROR, "GetBinary: insufficient buffer space provided for column %d of length %d (%d provided)", column, m_lengths[column], in_length);
+		//_log(DATABASE__ERROR, "GetBinary: insufficient buffer space provided for column %d of length %d (%d provided)", column, m_lengths[column], in_length);
+		printf("GetBinary: insufficient buffer space provided for column %d of length %d (%d provided)\n", column, m_lengths[column], in_length);
 		return 0;
 	}
 	memcpy(into, m_row[column], m_lengths[column]);

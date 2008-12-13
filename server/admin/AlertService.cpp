@@ -1,18 +1,26 @@
-/*  EVEmu: EVE Online Server Emulator
+/*
+	------------------------------------------------------------------------------------
+	LICENSE:
+	------------------------------------------------------------------------------------
+	This file is part of EVEmu: EVE Online Server Emulator
+	Copyright 2006 - 2008 The EVEmu Team
+	For the latest information visit http://evemu.mmoforge.org
+	------------------------------------------------------------------------------------
+	This program is free software; you can redistribute it and/or modify it under
+	the terms of the GNU Lesser General Public License as published by the Free Software
+	Foundation; either version 2 of the License, or (at your option) any later
+	version.
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; version 2 of the License.
-  
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY except by those people which sell it, which
-  are required to give you total support for your newly bought product;
-  without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-  A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-	
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+	This program is distributed in the hope that it will be useful, but WITHOUT
+	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License along with
+	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+	http://www.gnu.org/copyleft/lesser.txt.
+	------------------------------------------------------------------------------------
+	Author:		Zhur
 */
 
 #include "EvemuPCH.h"
@@ -34,7 +42,7 @@ AlertService::~AlertService()
 }
 
 /* please only enable this when your a developer who knows how to use it. Its NOT suitable for normal evemu users */
-//#define DEV_DEBUG_TREAT
+#define DEV_DEBUG_TREAT
 
 /** Basically BeanCount means that a error has accured in the client python code, and it asks
   * the server how to handle it.
@@ -53,7 +61,7 @@ PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
 	result->items[0] = new PyRepInteger(34135);	//errorID
 #endif//DEV_DEBUG_TREAT
 	
-	result->items[1] = new PyRepInteger(1);//0		//loggingMode, 0=local, 1=DB
+	result->items[1] = new PyRepInteger(0);		//loggingMode, 0=local, 1=DB (Capt: This isn't correct at all as it seems..)
 
 	return (PyRep*)result;
 }
@@ -65,7 +73,9 @@ PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
 PyResult AlertService::Handle_BeanDelivery(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	//_log(CLIENT__ERROR, "Unhandled BeanDelivery!");
+	/* Unhandled for now as we have no interest in receiving batched python stack traces
+	 * nor official style debugging... Just gimme the info dude (see Handle_SendClientStackTraceAlert).
+	 */
 
 	result = new PyRepNone();
 	
