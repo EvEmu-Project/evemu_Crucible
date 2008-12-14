@@ -1058,14 +1058,6 @@ void DestinyManager::SendGateActivity() const {
 	SendSingleDestinyUpdate(&tmp);	//consumed
 }
 
-void DestinyManager::SendAddBall() const {
-	DoDestiny_AddBall addball;
-	m_self->MakeAddBall(addball, GetStamp());
-
-	PyRepTuple *tmp = addball.FastEncode();
-	SendSingleDestinyUpdate(&tmp);	//consumed
-}
-
 void DestinyManager::SendSetState(const SystemBubble *b) const {
 	DoDestiny_SetState ss;
 	
@@ -1076,32 +1068,6 @@ void DestinyManager::SendSetState(const SystemBubble *b) const {
 	PyRepTuple *tmp = ss.FastEncode();
 	SendSingleDestinyUpdate(&tmp, true);	//consumed
 }
-
-void DestinyManager::SendRemoveBall() const {
-	DoDestiny_RemoveBalls du;
-	du.balls.push_back(m_self->GetID());
-	
-	PyRepTuple *tmp = du.FastEncode();
-	SendSingleDestinyUpdate(&tmp);	//consumed
-}
-
-void DestinyManager::DoTargetAdded(SystemEntity *who) const {
-	DoDestiny_OnDamageStateChange odsc;
-	odsc.entityID = who->GetID();
-	odsc.state = who->MakeDamageState();
-	PyRepTuple *tmp = odsc.FastEncode();
-	SendSingleDestinyUpdate(&tmp);	//consumed
-	
-    Notify_OnTarget te;
-    te.mode = "add";
-	te.targetID = who->GetID();
-	PyRepTuple *tmp2 = te.FastEncode();
-	m_self->QueueDestinyEvent(&tmp2);
-	delete tmp2;
-}
-
-
-
 
 
 

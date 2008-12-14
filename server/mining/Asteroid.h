@@ -96,7 +96,7 @@ public:
 	virtual void ProcessDestiny() {}
 	virtual SystemManager *System() const { return(m_system); }
 	virtual bool IsStaticEntity() const { return(true); }
-	virtual void ApplyDamage(Damage &d);
+	virtual bool ApplyDamage(Damage &d);
 	
 	//inline const GPoint &GetPosition() const { return(m_position); }
 	//uint32 GetID() const { return(m_asteroidID); }

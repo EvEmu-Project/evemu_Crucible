@@ -127,27 +127,27 @@
 
 <element name="EntityEffectState">
   <InlineList>
-    <!-- the first 7 fields are the standard effect `environment`
+      <!-- the first 7 fields are the standard effect `environment`
          fields indexed by ENV_IDX_*, see OnGodmaShipEffect -->
-    <!-- Begin Environment -->
-      <int name="env_itemID" />
-      <int name="env_charID" />
-      <int name="env_shipID" />
-			<int name="env_target" none_marker="0" default="0"/>
-			<!-- optional -->
-			<int name="env_other" none_marker="0" default="0"/>
-			<!-- optional (not positive that this is an int) -->
-			<list name="env_area"/>
-			<!-- not sure what data goes in here. -->
-			<int name="env_effectID" />
-			<!-- End Environment -->
-			<int64 name="startTime" />
-			<int name="duration"/>
-			<!-- saw 0x7 placeholder -->
-			<int name="repeat"/>
-			<!-- saw 0 -->
-			<none/>
-			<!-- randomSeed -->
+      <!-- Begin Environment -->
+        <int name="env_itemID" />
+        <int name="env_charID" />
+        <int name="env_shipID" />
+	    <!-- optional -->
+	    <int name="env_target" none_marker="0" default="0" />
+	    <!-- can be complex -->
+	    <raw name="env_other" />
+	    <!-- not sure what data goes in here. -->
+	    <list name="env_area"/>
+	    <int name="env_effectID" />
+	  <!-- End Environment -->
+	  <int64 name="startTime" />
+	  <!-- saw 0x7 placeholder -->
+	  <int name="duration"/>
+	  <!-- saw 0 -->
+	  <int name="repeat"/>
+	  <!-- randomSeed -->
+	  <raw name="randomSeed" />
   </InlineList>
 </element>
 

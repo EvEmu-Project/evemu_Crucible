@@ -53,7 +53,7 @@ public:
 	virtual void QueueDestinyEvent(PyRepTuple **multiEvent);
 	//virtual const GPoint &GetPosition() const;
 	virtual void ApplyDamageModifiers(Damage &d, SystemEntity *target) {}
-	virtual void ApplyDamage(Damage &d) {}
+	virtual bool ApplyDamage(Damage &d) { return(false); }
 	virtual void Killed(Damage &fatal_blow) {}
 	virtual SystemManager *System() const { return(m_system); }
 	

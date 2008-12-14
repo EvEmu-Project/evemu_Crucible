@@ -113,8 +113,8 @@ public:
 
 	//process outgoing damage, applying any bonuses...
 	virtual void ApplyDamageModifiers(Damage &d, SystemEntity *target) = 0;
-	//process incoming damage.
-	virtual void ApplyDamage(Damage &d) = 0;
+	//process incoming damage, returns true on death.
+	virtual bool ApplyDamage(Damage &d) = 0;
 	//handles death.
 	virtual void Killed(Damage &fatal_blow);
 	
@@ -147,8 +147,8 @@ public:
 	
 	//process outgoing damage, applying any bonuses...
 	virtual void ApplyDamageModifiers(Damage &d, SystemEntity *target);
-	//process incoming damage.
-	virtual void ApplyDamage(Damage &d);
+	//process incoming damage, returns true on death.
+	virtual bool ApplyDamage(Damage &d);
 	
 protected:
 	InventoryItem *m_self;	// we have a ref of this

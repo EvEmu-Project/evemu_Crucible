@@ -299,8 +299,10 @@ void SystemBubble::_BubblecastRemoveBall(SystemEntity *about_who) {
 		return;
 	}
 	
-	DoDestiny_RemoveBall removeball;
-	removeball.entityID = about_who->GetID();
+	// using RemoveBalls instead of RemoveBall because client
+	// seems not to trigger explosion on RemoveBall
+	DoDestiny_RemoveBalls removeball;
+	removeball.balls.push_back(about_who->GetID());
 	
 	_log(DESTINY__TRACE, "Remove Ball:");
 	removeball.Dump(DESTINY__TRACE, "    ");

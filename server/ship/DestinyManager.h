@@ -78,17 +78,12 @@ public:
 	void WarpTo(const GPoint &where, double distance, bool update=true);
 
 	//Destiny Update stuff:
-	void SendAddBall() const;
 	void SendSetState(const SystemBubble *b) const;
 	void SendJumpIn() const;
 	void SendJumpOut(uint32 stargateID) const;
 	void SendGateActivity() const;
-	void SendRemoveBall() const;
 	void SendTerminalExplosion() const;
 
-	//Misc stuff I am not happy with:
-	void DoTargetAdded(SystemEntity *who) const;
-	
 protected:
 	void ProcessTic();
 	

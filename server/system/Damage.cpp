@@ -131,64 +131,10 @@ static const char *DamageMessageIDs_Other[6] = {
 };
 
 
-//the notifications which this puts out probably needs some work.
-void Client::ApplyDamage(Damage &d) {
-	_ReduceDamage(d);
-	
-	//shieldUniformity
-	//structureUniformity
-	
-	double damage = d.GetTotal();
-	
-	Notify_OnEffectHit noeh;
-	noeh.itemID = d.source->GetID();
-	noeh.effectID = d.effect;
-	noeh.targetID = GetID();
-	noeh.damage = damage;
-
-	PyRepTuple *up;
-	
-	//Notifications to ourself:
-		up = noeh.Encode();
-		QueueDestinyEvent(&up);
-		delete up;
-		
-	
-		//NOTE: could send out the RD version of this message instead of the R version, which
-		//includes "weapon" and "owner" instead of "source".
-		Notify_OnDamageMessage_Self ondam;
-		ondam.messageID = "AttackHit2R";	//TODO: randomize/select this somehow.
-		ondam.damage = damage;
-		ondam.source = d.source->GetID();
-		ondam.splash = "";
-		up = ondam.FastEncode();
-		QueueDestinyEvent(&up);
-		delete up;
-
-	//Notifications to others:
-		//I am not sure what the correct scope of this broadcast
-		//should be. For now, it goes to anybody targeting us.
-		if(targets.IsTargetedBySomething()) {
-			up = noeh.Encode();
-			targets.QueueTBDestinyEvent(&up);
-			delete up;
-			
-			Notify_OnDamageMessage_Other ondamo;
-			ondamo.messageID = "AttackHit3";		//TODO: randomize/select this somehow.
-			ondamo.format_type = fmtMapping_itemTypeName;
-			ondamo.weaponType = d.weapon->typeID();
-			ondamo.damage = damage;
-			ondamo.target = GetID();
-			ondamo.splash = "";
-			up = ondamo.FastEncode();
-			targets.QueueTBDestinyEvent(&up);
-			delete up;
-		}
-}
-
 //default implementation bases everything directly on our item.
 void ItemSystemEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target) {
 	//m_self->damageMultiplier()
+
 	//these are straight additives to the damage.
 	//emDamageBonus
 	//explosiveDamageBonus
@@ -198,8 +144,8 @@ void ItemSystemEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target) {
 }
 
 //default implementation bases everything directly on our item.
-void ItemSystemEntity::ApplyDamage(Damage &d) {
-	
+//the notifications which this puts out probably needs some work.
+bool ItemSystemEntity::ApplyDamage(Damage &d) {
 	_log(ITEM__TRACE, "%lu: Applying %.1f total damage from %lu", GetID(), d.GetTotal(), d.source->GetID());
 	
 	double total_damage = 0;
@@ -210,12 +156,12 @@ void ItemSystemEntity::ApplyDamage(Damage &d) {
 	
 	//Shield:
 	double available_shield = m_self->shieldCharge();
-	Damage shield_damage = 
-		d.MultiplyDup(
-		 		  m_self->shieldKineticDamageResonance(),
-				  m_self->shieldThermalDamageResonance(),
-				  m_self->shieldEmDamageResonance(),
-					m_self->shieldExplosiveDamageResonance() );
+	Damage shield_damage = d.MultiplyDup(
+		m_self->shieldKineticDamageResonance(),
+		m_self->shieldThermalDamageResonance(),
+		m_self->shieldEmDamageResonance(),
+		m_self->shieldExplosiveDamageResonance()
+	);
 	//other:
 	//emDamageResistanceBonus
 	//explosiveDamageResistanceBonus
@@ -251,12 +197,12 @@ void ItemSystemEntity::ApplyDamage(Damage &d) {
 		
 		//Armor:
 		double available_armor = m_self->armorHP() - m_self->armorDamage();
-		Damage armor_damage = 
-			d.MultiplyDup(
-						m_self->armorKineticDamageResonance(),
-						m_self->armorThermalDamageResonance(),
-						m_self->armorEmDamageResonance(),
-						m_self->armorExplosiveDamageResonance() );
+		Damage armor_damage = d.MultiplyDup(
+			m_self->armorKineticDamageResonance(),
+			m_self->armorThermalDamageResonance(),
+			m_self->armorEmDamageResonance(),
+			m_self->armorExplosiveDamageResonance()
+		);
 		//other:
 		//activeEmResistanceBonus
 		//activeExplosiveResistanceBonus
@@ -298,12 +244,12 @@ void ItemSystemEntity::ApplyDamage(Damage &d) {
 			
 			//The base hp and damage attributes represent structure.
 			double available_hull = m_self->hp() - m_self->damage();
-			Damage hull_damage = 
-				d.MultiplyDup(
-						m_self->hullKineticDamageResonance(),
-						m_self->hullThermalDamageResonance(),
-						m_self->hullEmDamageResonance(),
-						m_self->hullExplosiveDamageResonance() );
+			Damage hull_damage = d.MultiplyDup(
+				m_self->hullKineticDamageResonance(),
+				m_self->hullThermalDamageResonance(),
+				m_self->hullEmDamageResonance(),
+				m_self->hullExplosiveDamageResonance()
+			);
 			//other:
 			//passiveEmDamageResonanceMultiplier
 			//passiveThermalDamageResonanceMultiplier
@@ -333,30 +279,49 @@ void ItemSystemEntity::ApplyDamage(Damage &d) {
 	}
 	
 	if(total_damage <= 0.0)
-		return;
+		return(killed);
 	
+	PyRepTuple *up;
+
+	//Notifications to ourself:
+	Notify_OnEffectHit noeh;
+	noeh.itemID = d.source->GetID();
+	noeh.effectID = d.effect;
+	noeh.targetID = GetID();
+	noeh.damage = total_damage;
+
+	up = noeh.Encode();
+	QueueDestinyEvent(&up);
+	delete up;
+
+	//NOTE: could send out the RD version of this message instead of the R version, which
+	//includes "weapon" and "owner" instead of "source".
+	Notify_OnDamageMessage_Self ondam;
+	ondam.messageID = "AttackHit2R";	//TODO: randomize/select this somehow.
+	ondam.damage = total_damage;
+	ondam.source = d.source->GetID();
+	ondam.splash = "";
+	up = ondam.FastEncode();
+	QueueDestinyEvent(&up);
+	delete up;
+
 	//Notifications to others:
 	//I am not sure what the correct scope of this broadcast
 	//should be. For now, it goes to anybody targeting us.
 	if(targets.IsTargetedBySomething()) {
-		PyRepTuple *up;
-		Notify_OnEffectHit noeh;
-		noeh.itemID = d.source->GetID();
-		noeh.effectID = d.effect;
-		noeh.targetID = GetID();
-		noeh.damage = total_damage;
 		up = noeh.Encode();
 		targets.QueueTBDestinyEvent(&up);
 		delete up;
-		
-		Notify_OnDamageMessage_Other ondam;
-		ondam.messageID = "AttackHit3";		//TODO: select this based on the severity of the hit...
-		ondam.format_type = fmtMapping_itemTypeName;
-		ondam.weaponType = d.weapon->typeID();
-		ondam.damage = total_damage;
-		ondam.target = GetID();
-		ondam.splash = "";
-		up = ondam.FastEncode();
+
+		Notify_OnDamageMessage_Other ondamo;
+		ondamo.messageID = "AttackHit3";		//TODO: select this based on the severity of the hit...
+		ondamo.format_type = fmtMapping_itemTypeName;
+		ondamo.weaponType = d.weapon->typeID();
+		ondamo.damage = total_damage;
+		ondamo.target = GetID();
+		ondamo.splash = "";
+
+		up = ondamo.FastEncode();
 		targets.QueueTBDestinyEvent(&up);
 		delete up;
 	}
@@ -366,17 +331,20 @@ void ItemSystemEntity::ApplyDamage(Damage &d) {
 	} else {
 		_SendDamageStateChanged();
 	}
+
+	return(killed);
+}
+
+bool Client::ApplyDamage(Damage &d) {
+	_ReduceDamage(d);
+	
+	//shieldUniformity
+	//structureUniformity
+
+	return(false);
 }
 
 void ItemSystemEntity::_SendDamageStateChanged() const {
-	//armorHP
-	/*double damage = m_self->hp();
-	if(damage > hp) {
-		blah
-	}
-	damage = damage + delta;
-	m_self->Set_hp(hp);*/
-	
 	DoDestinyDamageState state;
 	MakeDamageState(state);
 	
@@ -396,24 +364,18 @@ void SystemEntity::Killed(Damage &fatal_blow) {
 
 void DynamicSystemEntity::Killed(Damage &fatal_blow) {
 	ItemSystemEntity::Killed(fatal_blow);
-	//NOTE: Client::Killed intentionally skips over this function in order to
-	//handle the destiny stuff more carefully.
 	if(m_destiny != NULL) {
 		m_destiny->SendTerminalExplosion();
-		m_destiny->SendRemoveBall();
 	}
 }
 
 
 void Client::Killed(Damage &fatal_blow) {
-	//we intentionally skip over dynamic system entity because we 
-	ItemSystemEntity::Killed(fatal_blow);
-	
+	DynamicSystemEntity::Killed(fatal_blow);
+
 	if(m_ship->typeID() == itemTypeCapsule) {
 		//we have been pod killed... off we go.
-		
-		m_destiny->SendTerminalExplosion();	//I think they actually delay this one a second.
-		
+
 		//TODO: destroy all implants
 		
 		//TODO: send them back to their clone.
@@ -424,11 +386,12 @@ void Client::Killed(Damage &fatal_blow) {
 		
 		std::string capsule_name = m_char.name + "'s Capsule";
 		InventoryItem *capsule = m_services->item_factory->SpawnSingleton(
-																		 itemTypeCapsule,
-																		 m_char.charid,
-																		 m_char.stationID,
-																		 flagCapsule,
-																		 capsule_name.c_str());
+			itemTypeCapsule,
+			m_char.charid,
+			m_char.stationID,
+			flagCapsule,
+			capsule_name.c_str()
+		);
 		if(capsule == NULL) {
 			codelog(CLIENT__ERROR, "Failed to create capsule for character '%s'", m_char.name.c_str());
 			//what to do?
@@ -446,15 +409,12 @@ void Client::Killed(Damage &fatal_blow) {
 		//This sends the RemoveBall for the old ship.
 		BoardShip(capsule);
 		
-		m_destiny->SendTerminalExplosion();	//I think they actually delay this one a second.
-		
 		//and off we go into our new ship.
 		capsule->Release();	//we are done with our instance, others may have kept one for themself.
 		
 		//kill off the old ship.
 		//TODO: figure out anybody else which may be referencing this ship...
 		dead_ship->Delete();	//remove from the DB.
-		//dead_ship->Release();	//delete does our release for us.
 	}
 }
 
@@ -464,15 +424,15 @@ void NPC::Killed(Damage &fatal_blow) {
 	//TODO: drop loot.
 	_DropLoot(fatal_blow.source);
 	
-	//TODO: award status changes. (entitySecurityStatusKillBonus)
-
-   //notify our spawner that we are gone.
-   if(m_spawner != NULL) {
-      m_spawner->SpawnDepoped(m_self->itemID());
-   }
-	
 	//award kill bounty.
 	_AwardBounty(fatal_blow.source);
+	
+	//TODO: award status changes. (entitySecurityStatusKillBonus)
+
+	//notify our spawner that we are gone.
+	if(m_spawner != NULL) {
+	  m_spawner->SpawnDepoped(m_self->itemID());
+	}
 	
 	m_system->RemoveNPC(this);
 }

@@ -342,7 +342,7 @@ public:
 	virtual double GetAgility() const;
 
 	virtual void ApplyDamageModifiers(Damage &d, SystemEntity *target);
-	virtual void ApplyDamage(Damage &d);
+	virtual bool ApplyDamage(Damage &d);
 	virtual void Killed(Damage &fatal_blow);
 	virtual SystemManager *System() const { return(m_system); }
 	

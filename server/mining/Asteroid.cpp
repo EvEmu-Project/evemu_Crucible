@@ -18,9 +18,10 @@ Asteroid::~Asteroid() {
 void Asteroid::Grow() {
 }
 
-void Asteroid::ApplyDamage(Damage &d) {
+bool Asteroid::ApplyDamage(Damage &d) {
 	//ignore it.
 	_log(MINING__DEBUG, "Asteroid %lu Ignoring %d damage from %lu", m_self->itemID(), d.GetTotal(), d.source->GetName());
+	return(false);
 }
 
 void Asteroid::EncodeDestiny(std::vector<uint8> &into) const {

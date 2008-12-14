@@ -1214,16 +1214,21 @@ double Client::GetPropulsionStrength() const {
 }
 
 void Client::TargetAdded(SystemEntity *who) {
+	PyRepTuple *up = NULL;
 
-	/*send a destiny update with:
-		destiny: OnDamageStateChange
-		OnMultiEvent: OnTarget add*/
-	//then maybe OnMultiEvent: OnTarget try? for auto target?
-
-	//this is pretty weak
-	if(m_destiny != NULL) {
-		m_destiny->DoTargetAdded(who);
-	}
+	DoDestiny_OnDamageStateChange odsc;
+	odsc.entityID = who->GetID();
+	odsc.state = who->MakeDamageState();
+	up = odsc.FastEncode();
+	QueueDestinyUpdate(&up);
+	delete up;
+	
+	Notify_OnTarget te;
+	te.mode = "add";
+	te.targetID = who->GetID();
+	up = te.FastEncode();
+	QueueDestinyEvent(&up);
+	delete up;
 }
 
 void Client::TargetLost(SystemEntity *who) {

@@ -53,7 +53,7 @@ public:
 	/*
 	 * Builds intdict from attributes
 	 */
-	virtual void BuildAttributesDict(std::map<uint32, PyRep *> &into) const;
+	virtual void EncodeAttributes(std::map<uint32, PyRep *> &into) const;
 
 	/*
 	 * Checks whether the attribute is persistent
@@ -83,7 +83,7 @@ class EVEAdvancedAttributeMgr
   public EVEAttributeMgr
 {
 public:
-	void BuildAttributesDict(std::map<uint32, PyRep *> &into) const;
+	void EncodeAttributes(std::map<uint32, PyRep *> &into) const;
 
 	/*
 	 * These kill warnings about inheritation dominance
@@ -133,8 +133,9 @@ public:
 
 	const InventoryItem &item() const { return(m_item); }
 
-	bool notify() const { return(m_el != NULL); }
-
+	/*
+	 * These may be used to enable/disable saving or notifications
+	 */
 	void SetDB(InventoryDB *db) { m_db = db; }
 	void SetEntityList(const EntityList *el) { m_el = el; }
 
@@ -166,7 +167,7 @@ public:
 	/*
 	 * Overload to include type attributes
 	 */
-	void BuildAttributesDict(std::map<uint32, PyRep *> &into) const;
+	void EncodeAttributes(std::map<uint32, PyRep *> &into) const;
 
 	/*
 	 * Additional name access
@@ -182,9 +183,13 @@ public:
 	#include "EVEAttributes.h"
 
 protected:
-	void SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *newValue);
+	void _SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *newValue);
 
+	/*
+	 * Member variables
+	 */
 	const InventoryItem &m_item;
+
 	InventoryDB *m_db;
 	const EntityList *m_el;
 };

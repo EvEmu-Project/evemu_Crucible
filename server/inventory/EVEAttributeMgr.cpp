@@ -35,7 +35,7 @@ PyRep *EVEAttributeMgr::PyGet(Attr attr) const {
 	return(_PyGet(GetReal(attr)));
 }
 
-void EVEAttributeMgr::BuildAttributesDict(std::map<uint32, PyRep *> &into) const {
+void EVEAttributeMgr::EncodeAttributes(std::map<uint32, PyRep *> &into) const {
 	// integers first
 	{
 		std::map<Attr, int_t>::const_iterator cur, end;
@@ -82,7 +82,7 @@ void EVEAttributeMgr::_LoadPersistent() {
 /*
  * EVEAdvancedAttributeMgr
  */
-void EVEAdvancedAttributeMgr::BuildAttributesDict(std::map<uint32, PyRep *> &into) const {
+void EVEAdvancedAttributeMgr::EncodeAttributes(std::map<uint32, PyRep *> &into) const {
 	// integers first
 	{
 		std::map<Attr, int_t>::const_iterator cur, end;
@@ -133,7 +133,7 @@ ItemAttributeMgr::real_t ItemAttributeMgr::GetReal(Attr attr) const {
 
 void ItemAttributeMgr::SetIntEx(Attr attr, const int_t &v, bool persist) {
 	PyRep *oldValue = NULL;
-	if(notify() && !IsRechargable(attr)) {
+	if(m_el != NULL && !IsRechargable(attr)) {
 		// get old value
 		oldValue = PyGet(attr);
 	}
@@ -144,7 +144,7 @@ void ItemAttributeMgr::SetIntEx(Attr attr, const int_t &v, bool persist) {
 		// save to DB
 		m_db->UpdateAttribute_int(m_item.itemID(), attr, v);
 	}
-	if(notify()) {
+	if(m_el != NULL) {
 		std::map<Attr, TauCap>::const_iterator i = m_tauCap.find(attr);
 		if(i != m_tauCap.end()) {
 			// build the special list for rechargables
@@ -157,7 +157,7 @@ void ItemAttributeMgr::SetIntEx(Attr attr, const int_t &v, bool persist) {
 			oldValue = l;
 		}
 		// send change
-		SendAttributeChange(attr, oldValue, new PyRepReal(v));
+		_SendAttributeChange(attr, oldValue, new PyRepReal(v));
 	}
 }
 
@@ -169,7 +169,7 @@ void ItemAttributeMgr::SetRealEx(Attr attr, const real_t &v, bool persist) {
 	} else {
 		// store as real
 		PyRep *oldValue = NULL;
-		if(notify() && !IsRechargable(attr)) {
+		if(m_el != NULL && !IsRechargable(attr)) {
 			// get old value
 			oldValue = PyGet(attr);
 		}
@@ -180,7 +180,7 @@ void ItemAttributeMgr::SetRealEx(Attr attr, const real_t &v, bool persist) {
 			// save to DB
 			m_db->UpdateAttribute_double(m_item.itemID(), attr, v);
 		}
-		if(notify()) {
+		if(m_el != NULL) {
 			std::map<Attr, TauCap>::const_iterator i = m_tauCap.find(attr);
 			if(i != m_tauCap.end()) {
 				// build the special list for rechargables
@@ -193,14 +193,14 @@ void ItemAttributeMgr::SetRealEx(Attr attr, const real_t &v, bool persist) {
 				oldValue = l;
 			}
 			// send change
-			SendAttributeChange(attr, oldValue, new PyRepReal(v));
+			_SendAttributeChange(attr, oldValue, new PyRepReal(v));
 		}
 	}
 }
 
 void ItemAttributeMgr::Clear(Attr attr) {
 	PyRep *oldValue = NULL;
-	if(notify() && !IsRechargable(attr)) {
+	if(m_el != NULL && !IsRechargable(attr)) {
 		// get old value
 		oldValue = PyGet(attr);
 	}
@@ -209,7 +209,7 @@ void ItemAttributeMgr::Clear(Attr attr) {
 	// delete the attribute from DB (no matter if it really is there)
 	if(m_db != NULL)
 		m_db->EraseAttribute(m_item.itemID(), attr);
-	if(notify()) {
+	if(m_el != NULL) {
 		std::map<Attr, TauCap>::const_iterator i = m_tauCap.find(attr);
 		if(i != m_tauCap.end()) {
 			// build the special list for rechargables
@@ -222,7 +222,7 @@ void ItemAttributeMgr::Clear(Attr attr) {
 			oldValue = l;
 		}
 		// send change
-		SendAttributeChange(attr, oldValue, new PyRepReal(GetReal(attr)));
+		_SendAttributeChange(attr, oldValue, new PyRepReal(GetReal(attr)));
 	}
 }
 
@@ -300,14 +300,14 @@ void ItemAttributeMgr::Save() const {
 	}
 }
 
-void ItemAttributeMgr::BuildAttributesDict(std::map<uint32, PyRep *> &into) const {
+void ItemAttributeMgr::EncodeAttributes(std::map<uint32, PyRep *> &into) const {
 	// first insert type attributes
-	m_item.type()->attributes.BuildAttributesDict(into);
+	m_item.type()->attributes.EncodeAttributes(into);
 	// now isert (or overwrite) with our values
-	EVEAdvancedAttributeMgr::BuildAttributesDict(into);
+	EVEAdvancedAttributeMgr::EncodeAttributes(into);
 }
 
-void ItemAttributeMgr::SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *newValue) {
+void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *newValue) {
 	Client *c = NULL;
 	if(m_el != NULL)
 		c = m_el->FindCharacter(m_item.ownerID());
