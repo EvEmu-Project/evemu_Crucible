@@ -358,6 +358,11 @@ public:
 	
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, void (Client::* clientCall)() );
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, ClientFunctor **functor );
+
+	/** character notification messages
+	  */
+	void OnCharNoLongerInStation();
+	void OnCharNowInStation();
 	
 protected:
 	void _SendPingRequest();

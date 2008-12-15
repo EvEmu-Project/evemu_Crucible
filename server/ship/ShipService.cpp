@@ -23,23 +23,16 @@
 	Author:		Zhur
 */
 
-
 #include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(ShipService)
 
-
-
-class ShipBound
-: public PyBoundObject {
+class ShipBound : public PyBoundObject {
 public:
-
 	PyCallable_Make_Dispatcher(ShipBound)
 	
-	ShipBound(PyServiceMgr *mgr, ShipDB *db)
-	: PyBoundObject(mgr, "ShipBound"),
-	  m_db(db),
-	  m_dispatch(new Dispatcher(this))
+	ShipBound(PyServiceMgr *mgr, ShipDB *db) : PyBoundObject(mgr, "ShipBound"),
+	  m_db(db), m_dispatch(new Dispatcher(this))
 	{
 		_SetCallDispatcher(m_dispatch);
 		
@@ -49,8 +42,8 @@ public:
 		PyCallable_REG_CALL(ShipBound, Drop)
 		PyCallable_REG_CALL(ShipBound, ScoopDrone)
 		PyCallable_REG_CALL(ShipBound, Jettison)
-		//PyCallable_REG_CALL(ShipBound, )
 	}
+
 	virtual ~ShipBound() {}
 	virtual void Release() {
 		//I hate this statement
@@ -64,7 +57,6 @@ public:
 	PyCallable_DECL_CALL(ScoopDrone)
 	PyCallable_DECL_CALL(Jettison)
 	PyCallable_DECL_CALL(Eject)
-	//PyCallable_DECL_CALL()
 
 protected:
 	ShipDB *const m_db;
@@ -72,10 +64,8 @@ protected:
 };
 
 
-ShipService::ShipService(PyServiceMgr *mgr, DBcore *db)
-: PyService(mgr, "ship"),
-m_dispatch(new Dispatcher(this)),
-m_db(db)
+ShipService::ShipService(PyServiceMgr *mgr, DBcore *db) : PyService(mgr, "ship"),
+m_dispatch(new Dispatcher(this)), m_db(db)
 {
 	_SetCallDispatcher(m_dispatch);
 
@@ -86,15 +76,12 @@ ShipService::~ShipService() {
 	delete m_dispatch;
 }
 
-
-
 PyBoundObject *ShipService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
 	_log(CLIENT__MESSAGE, "ShipService bind request for:");
 	bind_args->Dump(CLIENT__MESSAGE, "    ");
 	
 	return(new ShipBound(m_manager, &m_db));
 }
-
 
 PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 	Call_SingleIntegerArg args;
@@ -158,9 +145,8 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 
 	//revert custom info, for testing.
 	call.client->Ship()->SetCustomInfo(NULL);
-	
-	//send OnCharNoLongerInStation
 
+	call.client->OnCharNoLongerInStation();
 	//should get a stationSvc.GetSolarSystem(solarsystemID)
 	
 	return NULL;

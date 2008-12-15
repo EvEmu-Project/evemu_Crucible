@@ -232,6 +232,15 @@ public:
 	inline const_iterator end() const { return(items.end()); }
 	bool empty() const { return(items.empty()); }
 	void clear();
+
+	/** polymorphic overload to make the PyRepTuple do nice lookups.
+	  */
+	PyRep& operator[](size_t pos) {
+		if (pos < items.size())
+			return *items[pos];
+		else
+			return *((PyRep*)NULL); // this is gonne crash...
+	}
 };
 
 class PyRepList : public PyRep {

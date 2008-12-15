@@ -44,16 +44,13 @@
 
 static const uint32 HackCacheNodeID = 333444;
 
-
 //run through the rep, concatenating all the strings together and noting if
 //there are ano non-string types in the rep (lists and tuples are OK)
 class StringCollapseVisitor : public PyVisitor {
 public:
 	std::string result;
 	bool good;
-	StringCollapseVisitor()
-	: good(true) {
-	}
+	StringCollapseVisitor()	: good(true) {}
 	virtual void VisitBoolean(const PyRepBoolean *rep) {
 		good = false;
 	}
@@ -98,10 +95,8 @@ public:
 	//allow tuples and lists.
 };
 
-
-
-
-CachedObjectMgr::~CachedObjectMgr() {
+CachedObjectMgr::~CachedObjectMgr()
+{
 	std::map<std::string, CacheRecord *>::iterator cur, end;
 	cur = m_cachedObjects.begin();
 	end = m_cachedObjects.end();

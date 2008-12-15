@@ -714,20 +714,3 @@ void ServiceDB::SetAccountOnlineStatus(uint32 accountID, bool onoff_status) {
 	}
 	_log(CLIENT__TRACE, "AccStatus: Setting account (%lu) %s.", accountID, (onoff_status) ? "Online" : "Offline");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -28,15 +28,8 @@
 #include "misc.h"
 #include "packet_functions.h"
 
-PyDumpVisitor::PyDumpVisitor(bool full_lists)
-: PyVisitor(),
-  m_full_lists(full_lists)
-{
-	push("");
-}
-
-PyDumpVisitor::~PyDumpVisitor() {
-}
+PyDumpVisitor::PyDumpVisitor(bool full_lists) : PyVisitor(), m_full_lists(full_lists) { push("");}
+PyDumpVisitor::~PyDumpVisitor() {}
 
 PyLogsysDump::PyLogsysDump(LogType type, bool full_hex, bool full_lists)
 : PyDumpVisitor(full_lists),

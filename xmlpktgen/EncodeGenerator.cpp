@@ -45,7 +45,7 @@ void ClassEncodeGenerator::Process_root(FILE *into, TiXmlElement *element) {
 		return;
 
 	
-	fprintf(into, "\n\treturn(res);\n}\n");
+	fprintf(into, "\n\treturn res;\n}\n");
 
 	/*
      * Now build the fast encode
@@ -73,7 +73,7 @@ void ClassEncodeGenerator::Process_root(FILE *into, TiXmlElement *element) {
 		return;
 
 	
-	fprintf(into, "\n\treturn(res);\n}\n");
+	fprintf(into, "\n\treturn res;\n}\n");
 }
 
 bool ClassEncodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) {

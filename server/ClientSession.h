@@ -23,62 +23,104 @@
 	Author:		Zhur
 */
 
-
-
-
-
 #ifndef EVE_CLIENT_SESSION_H
 #define EVE_CLIENT_SESSION_H
 
 #include "../common/logsys.h"
-#include <string>
 
-//class PyRepDict;
 class SessionChangeNotification;
 
 class ClientSession {
 public:
 	ClientSession();
-	
+
 	/*
-	each attribute has a Set_* method and a Clear_* method.
+		each attribute has a Set_* method and a Clear_* method.
 	*/
-	
-	#define SI(name) \
-		void Set_##name(uint32 v); \
-		void Clear_##name();
-	#define SL(name) \
-		void Set_##name(uint64 v); \
-		void Clear_##name();
-	#define SS(name) \
-		void Set_##name(const char *v); \
-		void Clear_##name();
-	#include "ClientSession_fields.h"
-	
+
+	void Set_userType(uint32 v);
+	void Clear_userType();
+	void Set_userid(uint32 v);
+	void Clear_userid();
+	void Set_address(const char *v);
+	void Clear_address();
+	void Set_role(uint32 v);
+	void Clear_role();
+	void Set_languageID(const char *v);
+	void Clear_languageID();
+	void Set_constellationid(uint32 v);
+	void Clear_constellationid();
+	void Set_corpid(uint32 v);
+	void Clear_corpid();
+	void Set_regionid(uint32 v);
+	void Clear_regionid();
+	void Set_stationid(uint32 v);
+	void Clear_stationid();
+	void Set_solarsystemid(uint32 v);
+	void Clear_solarsystemid();
+	void Set_locationid(uint32 v);
+	void Clear_locationid();
+	void Set_gangrole(uint32 v);
+	void Clear_gangrole();
+	void Set_hqID(uint32 v);
+	void Clear_hqID();
+	void Set_solarsystemid2(uint32 v);
+	void Clear_solarsystemid2();
+	void Set_shipid(uint32 v);
+	void Clear_shipid();
+	void Set_charid(uint32 v);
+	void Clear_charid();
+	void Set_corprole(uint64 v);
+	void Clear_corprole();
+	void Set_rolesAtAll(uint64 v);
+	void Clear_rolesAtAll();
+	void Set_rolesAtBase(uint64 v);
+	void Clear_rolesAtBase();
+	void Set_rolesAtHQ(uint64 v);
+	void Clear_rolesAtHQ();
+	void Set_rolesAtOther(uint64 v);
+	void Clear_rolesAtOther();
+
 	bool IsDirty() const { return(m_dirty); }
-	//PyRepDict *EncodeChange();
+
 	void EncodeChange(SessionChangeNotification &into);
 	void Dump(LogType type) const;
 
 protected:
-	class SessionData {
+	class SessionData
+	{
 	public:
 		SessionData();
 		~SessionData();
-		#define SI(name) \
-			uint32 *name;
-		#define SL(name) \
-			uint64 *name;
-		#define SS(name) \
-			std::string *name;
-		#include "ClientSession_fields.h"
+
+		std::string *address;
+		std::string *languageID;
+
+		uint32 *userType;
+		uint32 *userid;
+		uint32 *role;
+		uint32 *constellationid;
+		uint32 *corpid;
+		uint32 *regionid;
+		uint32 *stationid;
+		uint32 *solarsystemid;
+		uint32 *locationid;
+		uint32 *gangrole;
+		uint32 *hqID;
+		uint32 *solarsystemid2;
+		uint32 *shipid;
+		uint32 *charid;
+		uint64 *corprole;
+		uint64 *rolesAtAll;
+		uint64 *rolesAtBase;
+		uint64 *rolesAtHQ;
+		uint64 *rolesAtOther;
 	};
-	
+
 	bool m_dirty;
 	SessionData m_current;
 	SessionData m_last;
 };
-
 
 
 #endif

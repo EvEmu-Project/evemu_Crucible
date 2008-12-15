@@ -20,7 +20,7 @@ void ClassCloneGenerator::Process_root(FILE *into, TiXmlElement *element) {
 		"%s *%s::Clone() const {\n"
 		"	%s *res = new %s;\n"
 		"	res->CloneFrom(this);\n"
-		"	return(res);\n"
+		"	return res;\n"
 		"}\n"
 		"\n"
 		"void %s::CloneFrom(const %s *from) {\n",

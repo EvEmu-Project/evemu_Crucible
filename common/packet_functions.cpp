@@ -111,7 +111,7 @@ uint8 *DeflatePacket(const uint8 *data, uint32 *length)
 	zstream.opaque    = Z_NULL;
 
 	//int zerror = deflateInit(&zstream, Z_DEFAULT_COMPRESSION);
-	int zerror = deflateInit(&zstream, Z_BEST_SPEED);
+	int zerror = deflateInit(&zstream, Z_DEFAULT_COMPRESSION);
 	
 	if(zerror != Z_OK) {
 		_log(COMMON__ERROR, "Error: DeflatePacket: deflateInit() returned %d (%s).",
@@ -129,14 +129,16 @@ uint8 *DeflatePacket(const uint8 *data, uint32 *length)
 	zerror = deflate(&zstream, Z_FINISH);
 
 	if(zerror == Z_STREAM_END) {
-		//deflation successfull
+		//deflation successfully
 		deflateEnd(&zstream);
 		//truncate output buffer to necessary size
 		*length = zstream.total_out;
 		out_data = (uint8 *)realloc(out_data, *length);
 
 		return(out_data);
-	} else {
+	}
+	else
+	{
 		//error occured
 		_log(COMMON__ERROR, "Error: DeflatePacket: deflate() returned %d (%s).",
 			zerror, (zstream.msg == NULL ? "No additional message" : zstream.msg));

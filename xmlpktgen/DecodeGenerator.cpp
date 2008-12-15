@@ -27,7 +27,7 @@ void ClassDecodeGenerator::Process_root(FILE *into, TiXmlElement *element) {
 		"	//quick forwarder to avoid making the user cast it if they have a properly typed object\n"
 		"	PyRep *packet = *in_packet;\n"
 		"	*in_packet = NULL;\n"
-		"	return(Decode(&packet));\n"
+		"	return Decode(&packet);\n"
 		"}\n"
 		"\n"
 		"bool %s::Decode(PyRep **in_packet) {\n"

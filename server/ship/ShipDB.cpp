@@ -23,40 +23,7 @@
 	Author:		Zhur
 */
 
-
-
 #include "EvemuPCH.h"
 
-ShipDB::ShipDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-ShipDB::~ShipDB() {
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ShipDB::ShipDB(DBcore *db) : ServiceDB(db) {}
+ShipDB::~ShipDB() {}

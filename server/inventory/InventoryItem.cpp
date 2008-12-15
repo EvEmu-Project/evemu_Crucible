@@ -406,8 +406,8 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 	attributes.EncodeAttributes(result.attributes);
 	
 	//no idea what time this is supposed to be
-	codelog(ITEM__WARNING, "%s (%lu): sending faked time", m_itemName.c_str(), m_itemID);
-	//result.time = Win32TimeNow();
+	//codelog(ITEM__WARNING, "%s (%lu): sending faked time", m_itemName.c_str(), m_itemID);
+	result.time = Win32TimeNow();
 
 	return true;
 }

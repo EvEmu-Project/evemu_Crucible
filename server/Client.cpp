@@ -290,10 +290,10 @@ bool Client::ProcessNet() {
 	if(!m_net.Connected())
 		return false;
 	
-	if(m_pingTimer.Check()) {
+	/*if(m_pingTimer.Check()) {
 		_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
 		_SendPingRequest();
-	}
+	}*/
 	
 	PyPacket *p;
 	while((p = m_net.PopPacket())) {
@@ -657,12 +657,7 @@ bool Client::EnterSystem() {
 		//remove ourselves from any bubble
 		m_system->bubbles.Remove(this, false);
 
-		NotifyOnCharNowInStation n;
-		n.charID = GetCharacterID();
-		n.corpID = GetCorporationID();
-		n.allianceID = GetAllianceID();
-		PyRepTuple *tmp = n.Encode();
-		m_services->entity_list->Broadcast("OnCharNowInStation", "stationid", &tmp);
+		OnCharNowInStation();
 	} else if(IsSolarSystem(GetLocationID())) {
 		//if we are not in a station, we are in a system, so we need a destiny manager
 		m_destiny = new DestinyManager(this, m_system);
@@ -689,7 +684,7 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 	}
 	
 	if(IsStation(GetLocationID())) {
-		//TODO: send OnCharNoLongerInStation
+		OnCharNoLongerInStation();
 	}
 	
 	if(IsStation(location)) {
@@ -1445,6 +1440,33 @@ void Client::JoinCorporationUpdate(uint32 corp_id) {
 
 	//logs indicate that we need to push this update out asap.
 	_CheckSessionChange();
+}
+
+/************************************************************************/
+/* character notification messages wrapper                              */
+/************************************************************************/
+void Client::OnCharNoLongerInStation()
+{
+	NotifyOnCharNoLongerInStation packet;
+
+	packet.charID = GetCharacterID();
+	packet.corpID = GetCorporationID();
+	packet.allianceID = GetAllianceID();
+	PyRepTuple *tmp = packet.Encode();
+
+	// this entire line should be something like this Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
+	GetServices()->entity_list->Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
+}
+
+/* besides broadcasting the message this function should handle everything for this event */
+void Client::OnCharNowInStation()
+{
+	NotifyOnCharNowInStation n;
+	n.charID = GetCharacterID();
+	n.corpID = GetCorporationID();
+	n.allianceID = GetAllianceID();
+	PyRepTuple *tmp = n.Encode();
+	GetServices()->entity_list->Broadcast("OnCharNowInStation", "stationid", &tmp);
 }
 
 /*

@@ -150,7 +150,7 @@ PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict
 	m_boundObjects[bind_str] = obj;
 	cb->m_bindID = bind_str;	//tell the object what its bind ID is.
 
-	_log(SERVICE__MESSAGE, "Binding %s to service %s", bind_str, cb->GetName());
+	//_log(SERVICE__MESSAGE, "Binding %s to service %s", bind_str, cb->GetName());
 
 	PyRepTuple *objt;
 	if(dict == NULL || *dict == NULL) {
@@ -173,7 +173,7 @@ void PyServiceMgr::ClearBoundObjects(Client *who) {
 	end = m_boundObjects.end();
 	while(cur != end) {
 		if(cur->second.client == who) {
-			_log(SERVICE__MESSAGE, "Clearing bound object %s", cur->first.c_str());
+			//_log(SERVICE__MESSAGE, "Clearing bound object %s", cur->first.c_str());
 			PyBoundObject *bo = cur->second.destination;
 			tmp = cur++;
 			m_boundObjects.erase(tmp);
@@ -201,7 +201,7 @@ void PyServiceMgr::ClearBoundObject(const char *bindID) {
 		return;
 	}
 	
-	_log(SERVICE__MESSAGE, "Clearing bound object %s (released)", res->first.c_str());
+	//_log(SERVICE__MESSAGE, "Clearing bound object %s (released)", res->first.c_str());
 	PyBoundObject *bo = res->second.destination;
 	m_boundObjects.erase(res);
 	bo->Release();
