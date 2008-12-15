@@ -294,7 +294,7 @@ PyRep *PyPacket::Encode() {
 		arg_tuple->items[3] = new PyRepInteger(userid);
 	
 	//payload
-	//TODO: we dont really need to clone this if we can figure out a way to say "this is read only"
+	//TODO: we don't really need to clone this if we can figure out a way to say "this is read only"
 	//or if we can change this encode method to consume the PyPacket (which will almost always be the case)
 	arg_tuple->items[4] = payload->Clone();
 	

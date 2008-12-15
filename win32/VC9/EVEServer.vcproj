@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\common;..\..\server;."
+				AdditionalIncludeDirectories="..\..\common;..\..\server;..\..\dep\mysql\include;."
 				PreprocessorDefinitions="WIN32;_DEBUG;USE_RUNTIME_EXCEPTIONS"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -67,6 +67,7 @@
 				AdditionalDependencies="zlib.lib libmysql.lib wsock32.lib Advapi32.lib user32.lib"
 				OutputFile="..\..\bin\$(ConfigurationName)\$(ProjectName).exe"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\..\dep\mysql\lib\debug;..\..\dep\zlib\lib;..\..\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
@@ -978,6 +979,14 @@
 				</File>
 				<File
 					RelativePath="..\..\server\inventory\InvBrokerService.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\server\inventory\InventoryBound.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\server\inventory\InventoryBound.h"
 					>
 				</File>
 				<File

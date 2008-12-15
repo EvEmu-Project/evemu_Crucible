@@ -23,7 +23,6 @@
 	Author:		Zhur
 */
 
-
 #ifndef __INVBROKER_SERVICE_H_INCL__
 #define __INVBROKER_SERVICE_H_INCL__
 
