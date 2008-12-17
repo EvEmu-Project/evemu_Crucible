@@ -793,35 +793,41 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 	
 	case Op_PySavedStreamElement:
 		{ 
-		if(len < 1) {
-			_log(NET__UNMARSHAL_ERROR, "Not enough data for saved reference index\n");
-			break;
-		}
-		uint8 save_index = *packet;
-		packet++;
-		len--;
-		len_used++;
+			if(len < 1)
+			{
+				_log(NET__UNMARSHAL_ERROR, "Not enough data for saved reference index\n");
+				break;
+			}
+			uint32 reference_index = Getuint8();
+			if (reference_index == 0xFF)
+			{
+				// TODO: add size check..
+				reference_index = Getuint32();
+			}
 
-		if(save_index > state->GetMaxStoredCount()) {
-			_log(NET__UNMARSHAL_ERROR, "Save index %d is higher than the save count %d for this stream\n", save_index, state->GetMaxStoredCount());
-			break;
-		} else if(save_index == 0) {
-			_log(NET__UNMARSHAL_ERROR, "Save index 0 is invalid");
-			break;
-		}
+			// referenced objects start with 1
+			if (reference_index == 0)
+			{
+				_log(NET__UNMARSHAL_ERROR, "Save index 0 is invalid");
+				break;
+			}
 
-		save_index--;
+			if(reference_index > state->GetMaxStoredCount())
+			{
+				_log(NET__UNMARSHAL_ERROR, "Save index %d is higher than the save count %d for this stream\n", reference_index, state->GetMaxStoredCount());
+				break;
+			}
 
-		if(save_index >= state->GetStoredCount()) {
-			_log(NET__UNMARSHAL_ERROR, "Save index %d is higher than the number of saved elements %d for this stream so far\n", save_index+1, state->GetStoredCount());
-			break;
-		}
+			if(reference_index > state->GetStoredCount())
+			{
+				_log(NET__UNMARSHAL_ERROR, "Save index %d is higher than the number of saved elements %d for this stream so far\n", reference_index, state->GetStoredCount());
+				break;
+			}
 
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PySavedStreamElement with index 0x%x", pfx, opcode, save_index+1);
+			//_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PySavedStreamElement with index 0x%x", pfx, opcode, reference_index);
 
-		res = state->GetStoredObject(save_index)->Clone();
-		
-		break; }
+			res = state->GetStoredObject(reference_index)->Clone();
+		} break;
 	
 	case Op_PyChecksumedStream: {
 		if(len < sizeof(uint32)) {
