@@ -83,7 +83,7 @@ public:
 		{
 			mStorageContainer[row.GetUInt(0)] = DBRowToRow(row);
 
-			if (i % 200)
+			if (!(i % 200))
 				printf(".");
 			i++;
 		}
