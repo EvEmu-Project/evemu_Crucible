@@ -49,10 +49,6 @@ protected:
 	//PyCallable_DECL_CALL(MachoBindObject)
 };
 
-
-
-
-
 #endif
 
 

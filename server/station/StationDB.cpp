@@ -25,34 +25,44 @@
 
 #include "EvemuPCH.h"
 
+storage * mmthingy = NULL;
+
 StationDB::StationDB(DBcore *db)
 : ServiceDB(db)
 {
+	if (mmthingy == NULL)
+		mmthingy = new storage();
+	thingy = mmthingy;
 }
 
 StationDB::~StationDB() {
+	if (thingy)
+		delete thingy;
 }
 
 PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 	
-	DBQueryResult res;
+	return thingy->find(solarSystemID)->Clone();
+
+	// old code for reference.
+	/*DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
 		"SELECT "
-		" solarSystemID,"
-		" solarSystemName,"
-		" x, y, z,"
-		" radius,"
-		" security,"
-		" constellationID,"
-		" factionID,"
-		" sunTypeID,"
+		" solarSystemID,"			// nr
+		" solarSystemName,"			// string
+		" x, y, z,"					// double
+		" radius,"					// double
+		" security,"				// double
+		" constellationID,"			// nr
+		" factionID,"				// nr
+		" sunTypeID,"				// nr
 		" regionID,"
 		//crap
-		" NULL AS allianceID,"
-		" 0 AS sovereigntyLevel,"
-		" 0 AS constellationSovereignty"
-		" FROM mapSolarSystems"
+		" NULL AS allianceID,"		// nr
+		" 0 AS sovereigntyLevel,"	// nr
+		" 0 AS constellationSovereignty"	// nr
+		" FROM mapSolarSystems"		
 		" WHERE solarSystemID=%lu", solarSystemID
 	))
 	{
@@ -66,7 +76,7 @@ PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 		return NULL;
 	}
 	
-	return(DBRowToRow(row));
+	return(DBRowToRow(row));*/
 }
 
 PyRep *StationDB::DoGetStation(uint32 sid) {

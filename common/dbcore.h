@@ -201,3 +201,6 @@ protected:
 void ListToINString(const std::vector<uint32> &ints, std::string &into, const char *if_empty);
 
 #endif
+
+extern DBcore * general_database;
+#define GetDatabase (*general_database)

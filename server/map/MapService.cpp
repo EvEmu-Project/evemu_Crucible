@@ -26,7 +26,6 @@
 
 #include "EvemuPCH.h"
 
-
 PyCallable_Make_InnerDispatcher(MapService)
 
 MapService::MapService(PyServiceMgr *mgr, DBcore *db)
@@ -44,7 +43,6 @@ MapService::MapService(PyServiceMgr *mgr, DBcore *db)
 MapService::~MapService() {
 	delete m_dispatch;
 }
-
 
 PyResult MapService::Handle_GetStationExtraInfo(PyCallArgs &call) {
 	//takes no arguments
@@ -117,7 +115,7 @@ PyResult MapService::Handle_GetSolarSystemPseudoSecurities(PyCallArgs &call) {
 	return(result);
 }
 
-
+/* not handled */
 PyResult MapService::Handle_GetStuckSystems(PyCallArgs &call) {
 	PyRep *result = NULL;
 
@@ -125,28 +123,3 @@ PyResult MapService::Handle_GetStuckSystems(PyCallArgs &call) {
 	
 	return(result);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -25,6 +25,8 @@
 
 #include "EvemuPCH.h"
 
+#include "../server/account/ClientStatMgrService.h"
+
 #include <signal.h>
 
 //#define USE_RUNTIME_EXCEPTIONS 1
@@ -33,6 +35,9 @@
 
 static void CatchSignal(int sig_num);
 static bool InitSignalHandlers();
+
+// global database hook.
+DBcore * general_database;
 
 static volatile bool RunLoops = true;
 
@@ -98,6 +103,8 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	general_database = &db;
+
 	
 	//Start up the TCP server
 	EVETCPServer tcps;
@@ -127,6 +134,8 @@ int main(int argc, char *argv[]) {
      *
      */
 	_log(SERVER__INIT, "Creating services.");
+	
+	services.RegisterService(new ClientStatsMgr(&services));
 	services.RegisterService(new AgentMgrService(&services, &db));
 	services.RegisterService(new MissionMgrService(&services, &db));
 	services.RegisterService(new AccountService(&services, &db));

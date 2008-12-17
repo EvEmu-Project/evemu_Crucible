@@ -290,10 +290,10 @@ bool Client::ProcessNet() {
 	if(!m_net.Connected())
 		return false;
 	
-	/*if(m_pingTimer.Check()) {
+	if(m_pingTimer.Check()) {
 		_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
 		_SendPingRequest();
-	}*/
+	}
 	
 	PyPacket *p;
 	while((p = m_net.PopPacket())) {

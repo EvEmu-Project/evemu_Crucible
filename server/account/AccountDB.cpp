@@ -36,10 +36,7 @@ AccountDB::~AccountDB() {
 PyRepObject *AccountDB::GetRefTypes() {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
-		"SELECT "
-		"	refTypeID,refTypeText,description"
-		" FROM market_refTypes"
+	if(!m_db->RunQuery(res, "SELECT refTypeID,refTypeText,description FROM market_refTypes"
 	)) {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -184,16 +181,3 @@ double ServiceDB::GetCorpBalance(uint32 corpID) {
 	}
 	return row.GetDouble(0);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

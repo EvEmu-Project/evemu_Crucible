@@ -29,10 +29,96 @@
 
 #include "../ServiceDB.h"
 
+#include "dbcore.h"
+
 class PyRep;
 
-class StationDB
-: public ServiceDB {
+class storage;
+extern storage * mmthingy;
+
+
+/**
+ * a example of a storage class for static db data. not exactly doxygen commented.
+ */
+class storage
+{
+public:
+	storage()
+	{
+		// this should never happen
+		if (mStorageContainer.size() != 0)
+		{
+			printf("double create fuckored whoo get the hell out of here\n");
+			assert(false);
+		}
+
+		DBQueryResult res;
+
+		if(!GetDatabase.RunQuery(res,	"SELECT "
+			" solarSystemID,"					// int
+			" solarSystemName,"					// string
+			" x, y, z,"							// double
+			" radius,"							// double
+			" security,"						// double
+			" constellationID,"					// int
+			" factionID,"						// int
+			" sunTypeID,"						// int
+			" regionID,"
+
+			//haxor: I think this is dynamic data.... meaning it should be stored somewhere else in the db...
+			" NULL AS allianceID,"				// int
+			" 0 AS sovereigntyLevel,"			// int
+			" 0 AS constellationSovereignty"	// int
+			" FROM mapSolarSystems"))
+		{
+			_log(SERVICE__ERROR, "Error in storage GetSolarSystem query: %s", res.error.c_str());
+			return NULL;
+		}
+
+		/* I am aware of the fact that the next piece of code is spamming the console */
+		printf("Loading Solar systems:.");
+		DBResultRow row;
+		unsigned int i = 0;
+		while(res.GetRow(row))
+		{
+			mStorageContainer[row.GetUInt(0)] = DBRowToRow(row);
+
+			if (i % 10)
+				printf(".");
+			i++;
+		}
+		printf("\nStoring solar system data Done\n");
+	}
+
+	PyRepObject* find(uint32 id)
+	{
+		DataContainerConstItr Itr = mStorageContainer.find(id);
+		if (Itr != mStorageContainer.end())
+		{
+			return (PyRepObject*)((PyRepObject*)Itr->second)->Clone(); // HELL FIRE TALKING ABOUT STATEMENTS I HATE---->>>> Clone?:S:S::S
+		}
+		return NULL;
+	}
+
+	~storage()
+	{
+		DataContainerItr Itr = mStorageContainer.begin();
+		for (; Itr != mStorageContainer.end(); Itr++)
+		{
+			delete Itr->second;
+		}
+	}
+
+	typedef std::tr1::unordered_map<uint32, PyRepObject*>	DataContainer;
+	typedef DataContainer::iterator							DataContainerItr;
+	typedef DataContainer::const_iterator					DataContainerConstItr;
+
+	DataContainer mStorageContainer;
+};
+
+
+
+class StationDB : public ServiceDB {
 public:
 	StationDB(DBcore *db);
 	virtual ~StationDB();
@@ -41,13 +127,8 @@ public:
 	PyRep *DoGetStation(uint32 ssid);
 	PyRep *GetStationItemBits(uint32 sid);
 
-protected:
+//protected:
+	storage * thingy;
 };
 
-
-
-
-
 #endif
-
-

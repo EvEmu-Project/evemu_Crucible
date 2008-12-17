@@ -247,7 +247,6 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 
 		InventoryItem *sourceItem = m_manager->item_factory->Load((*cur), true);
 
-
 		//If hold already contains this item then we can ignore remaining space
 		if ((!m_item->Contains(sourceItem)) || (m_item->flag() != flag))
 		{

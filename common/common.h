@@ -58,7 +58,7 @@
 #    define ASCENT_INLINE
 #    define ASCENT_FORCEINLINE __forceinline
 #  else
-#    define ASCENT_INLINE __forceinline
+#    define ASCENT_INLINE inline
 #    define ASCENT_FORCEINLINE __forceinline
 #  endif//_DEBUG
 #else

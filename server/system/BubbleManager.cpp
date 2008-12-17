@@ -130,24 +130,3 @@ SystemBubble * BubbleManager::_FindBubble(const GPoint &pos) const {
 	//not in any existing bubble.
 	return NULL;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

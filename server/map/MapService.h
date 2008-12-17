@@ -46,10 +46,4 @@ protected:
 	PyCallable_DECL_CALL(GetStuckSystems)
 };
 
-
-
-
-
 #endif
-
-

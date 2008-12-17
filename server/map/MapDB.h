@@ -41,10 +41,4 @@ public:
 protected:
 };
 
-
-
-
-
 #endif
-
-

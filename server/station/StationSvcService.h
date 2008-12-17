@@ -49,11 +49,4 @@ protected:
 	//overloaded in order to support bound objects:
 	//virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
 };
-
-
-
-
-
 #endif
-
-

@@ -22,6 +22,7 @@
 			IntermediateDirectory="$(ConfigurationName)/$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="2"
+			DeleteExtensionsOnClean="*.obj;*.ilk;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;$(TargetPath)"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -41,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\common"
+				AdditionalIncludeDirectories="..\..\dep\mysql\include;..\..\dep\zlib\include;..\..\common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

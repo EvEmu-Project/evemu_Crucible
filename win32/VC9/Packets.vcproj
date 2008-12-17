@@ -24,7 +24,7 @@
 			IntermediateDirectory="$(ConfigurationName)/$(ProjectName)"
 			ConfigurationType="4"
 			CharacterSet="2"
-			DeleteExtensionsOnClean="*.obj;*.ilk;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;$(TargetPath)"
+			DeleteExtensionsOnClean="*.obj;*.ilk;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.h;*.cpp;$(TargetPath)"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -47,7 +47,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="."
+				AdditionalIncludeDirectories="D:\Dev\Evemu\trunk\3rdparty\mysql\include;."
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;USE_RUNTIME_EXCEPTIONS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

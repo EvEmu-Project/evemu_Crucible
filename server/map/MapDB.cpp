@@ -36,11 +36,7 @@ MapDB::~MapDB() {
 PyRepObject *MapDB::GetPseudoSecurities() {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
-		"SELECT "
-		"	solarSystemID, security"
-		" FROM mapSolarSystems"
-	))
+	if(!m_db->RunQuery(res, "SELECT solarSystemID, security FROM mapSolarSystems"))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;

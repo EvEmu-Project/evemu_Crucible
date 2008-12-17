@@ -40,6 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="..\..\dep\mysql\include;..\..\dep\zlib\include;."
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;USE_RUNTIME_EXCEPTIONS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -174,10 +175,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\common\EVEMarshal.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\common\EVEPktDispatch.cpp"
 				>
 			</File>
@@ -191,10 +188,6 @@
 			</File>
 			<File
 				RelativePath="..\..\common\EVETCPServer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\EVEUnmarshal.cpp"
 				>
 			</File>
 			<File
@@ -246,10 +239,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\common\sigexcept\sym_engine.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\common\TCPConnection.cpp"
 				>
 			</File>
@@ -290,6 +279,10 @@
 				</File>
 				<File
 					RelativePath="..\..\common\PyLookupDump.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\PyObjectBase.h"
 					>
 				</File>
 				<File
@@ -360,14 +353,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\common\EVEMarshal.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\EVEMarshalOpcodes.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\common\EVEPktDispatch.h"
 				>
 			</File>
@@ -381,10 +366,6 @@
 			</File>
 			<File
 				RelativePath="..\..\common\EVETCPServer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\EVEUnmarshal.h"
 				>
 			</File>
 			<File
@@ -519,6 +500,34 @@
 					>
 				</File>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="Marshal"
+			>
+			<File
+				RelativePath="..\..\common\EVEMarshal.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\EVEMarshal.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\EVEMarshalOpcodes.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\EVEUnmarshal.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\EVEUnmarshal.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\MarshalReferenceMap.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

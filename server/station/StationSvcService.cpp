@@ -83,7 +83,6 @@ StationSvcService::~StationSvcService() {
 	delete m_dispatch;
 }
 
-
 /*
 PyBoundObject *StationSvcService::_CreateBoundObject(Client *c, PyRep *bind_args) {
 	_log(CLIENT__MESSAGE, "StationSvcService bind request for:");
@@ -111,28 +110,3 @@ PyResult StationSvcService::Handle_GetStation(PyCallArgs &call) {
 
 	return m_db.DoGetStation(arg.arg);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -29,6 +29,8 @@
 #include "common.h"
 #include "logsys.h"
 
+#include <assert.h>
+
 class PyVisitor;
 class PyRepSubStream;
 class EVEStringTable;
@@ -100,22 +102,27 @@ protected:
 
 //storing all integers (and booleans) as uint64s is a lot of craziness right now
 //but its better than a ton of virtual functions to achieve the same thing.
+
 class PyRepInteger : public PyRep {
 public:
-	PyRepInteger(uint64 i) : PyRep(PyRep::PyTypeInteger), value(i) {}
+	PyRepInteger(uint32 i) : PyRep(PyRep::PyTypeInteger), value(i) {}
+	PyRepInteger(uint64 &i) : PyRep(PyRep::PyTypeInteger), value(i) {}
+	
 	virtual ~PyRepInteger() {}
 	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
 	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
 	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
 	ASCENT_INLINE void visit(PyVisitor *v) const;
 	
-	PyRepInteger *TypedClone() const;	
+	PyRepInteger *TypedClone() const;
 	uint64 value;
 };
 
 class PyRepReal : public PyRep {
 public:
-	PyRepReal(double i) : PyRep(PyRep::PyTypeReal), value(i) {}
+	PyRepReal(double &i) : PyRep(PyRep::PyTypeReal), value(i) {}
+	PyRepReal(const double &i) : PyRep(PyRep::PyTypeReal), value(i) {}
+
 	virtual ~PyRepReal() {}
 	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
 	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
@@ -152,7 +159,6 @@ public:
 	
 	PyRepNone *TypedClone() const;
 };
-
 
 class PyRepBuffer : public PyRep
 {
@@ -193,14 +199,14 @@ public:
 	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
 	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
 	ASCENT_INLINE void visit(PyVisitor *v) const;
-	
+
 	PyRepString *TypedClone() const;
 
 	std::string value;
 	bool is_type_1;	//true if this is an Op_PyByteString instead of the default Op_PyByteString2
 
 
-//string table stuff:
+	//string table stuff:
 	static bool LoadStringFile(const char *file);
 	static EVEStringTable *GetStringTable();	//always returns a valid pointer
 
