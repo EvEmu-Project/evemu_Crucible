@@ -72,7 +72,7 @@ public:
 			" FROM mapSolarSystems"))
 		{
 			_log(SERVICE__ERROR, "Error in storage GetSolarSystem query: %s", res.error.c_str());
-			return NULL;
+			return;
 		}
 
 		/* I am aware of the fact that the next piece of code is spamming the console */
@@ -83,7 +83,7 @@ public:
 		{
 			mStorageContainer[row.GetUInt(0)] = DBRowToRow(row);
 
-			if (i % 10)
+			if (i % 200)
 				printf(".");
 			i++;
 		}

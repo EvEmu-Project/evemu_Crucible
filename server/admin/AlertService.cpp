@@ -92,7 +92,19 @@ PyResult AlertService::Handle_SendClientStackTraceAlert(PyCallArgs &call) {
 #ifdef DEV_DEBUG_TREAT
 	/* TODO: write a proper track trace dump class, to store and handle these traces */
 	printf("SendClientStackTraceAlert:\n");
-	call.Dump(CLIENT__ERROR);
+	//call.Dump(CLIENT__ERROR);
+	PyRepTuple & traceMessage = *call.tuple;
+
+	traceMessage.Dump(CLIENT__ERROR, "trace");
+
+	printf("TraceObject type: %s\n", traceMessage[0].TypeString());
+	if (traceMessage[0].IsBuffer())
+	{
+		PyRepBuffer & MessagePayload = (PyRepBuffer &)traceMessage[0];
+		printf("DebugMessage: %s\n", MessagePayload.GetBuffer());
+	}
+
+
 #endif//DEV_DEBUG_TREAT
 
 	PyRep *result = new PyRepNone();
