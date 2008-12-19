@@ -62,7 +62,7 @@ public:
 	 */
 	ASCENT_INLINE PyRep* GetStoredObject(uint32 location)
 	{
-		if (location < 1 || location > storedObjectCount )
+		if (location == 0 || location > storedObjectCount )
 			return NULL;
 		return mReferenceObjects[location-1];
 	}
