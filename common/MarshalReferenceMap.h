@@ -33,6 +33,9 @@
  * MarshalReferenceMap.h only implement the UnmarshalReferenceMap, the Marshal reference tech
  * isn't researched/implemented for the moment. a cpp file should be created from the code in
  * this header but for the moment this will do.
+ * @note because we don't own the pointer / own the memory of the referenced objects. Its unclear when the refered object is deleted so
+ * we have to eighter keep the Object here ( own the pointer ) or make sure that the referenced object know he is a referenced object so
+ * it isn't accidentally deleted.
  */
 
 /**
