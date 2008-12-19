@@ -52,7 +52,6 @@ public:
 	UnmarshalReferenceMap(const uint32 objectCount) : expectedObjectsCount(objectCount), storedObjectCount(0), storeObjectIndex(0)
 	{
 		assert(expectedObjectsCount < 0x100); // kinda normal..... 256 referenced objects otherwise crash
-		//mReferenceObjects.resize(expectedObjectsCount);
 		mReferenceObjects = new PyRep*[expectedObjectsCount];
 	}
 
