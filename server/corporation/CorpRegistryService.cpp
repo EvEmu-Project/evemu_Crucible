@@ -865,7 +865,7 @@ PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
 	}
 
 	//take the money out of their wallet (sends wallet blink event)
-	// The ammount has to be double!!!
+	// The amount has to be double!!!
 	if(!m_db->AddBalanceToCorp(notif.key, -logo_change)) {
 		codelog(SERVICE__ERROR, "%s: Failed to take money for corp logo change!", call.client->GetName());
 		delete notif.data; notif.data = NULL;

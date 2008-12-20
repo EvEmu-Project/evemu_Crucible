@@ -20,14 +20,18 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Zhur, captnoord
 */
 
-
-#ifndef __ALERT_SERVICE_H_INCL__
-#define __ALERT_SERVICE_H_INCL__
+#ifndef _ALERT_SERVICE_H
+#define _ALERT_SERVICE_H
 
 #include "../PyService.h"
+#ifdef DEV_DEBUG_TREAT
+#include "PyTraceLog.h"
+#else
+class PyTraceLog;
+#endif//DEV_DEBUG_TREAT
 
 class AlertService : public PyService {
 public:
@@ -41,6 +45,9 @@ protected:
 	PyResult Handle_BeanCount(PyCallArgs &call);
 	PyResult Handle_BeanDelivery(PyCallArgs &call);
 	PyResult Handle_SendClientStackTraceAlert(PyCallArgs &call);
+
+protected:
+	PyTraceLog *traceLogger;
 };
 
-#endif//__ALERT_SERVICE_H_INCL__
+#endif//_ALERT_SERVICE_H

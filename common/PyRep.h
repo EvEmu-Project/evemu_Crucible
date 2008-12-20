@@ -32,8 +32,23 @@
 #include <assert.h>
 
 class PyVisitor;
-class PyRepSubStream;
 class EVEStringTable;
+
+class PyRepInteger;
+class PyRepReal;
+class PyRepBoolean;
+class PyRepBuffer;
+class PyRepString;
+class PyRepTuple;
+class PyRepList;
+class PyRepDict;
+class PyRepNone;
+class PyRepSubStruct;
+class PyRepSubStream;
+class PyRepChecksumedStream;
+class PyRepObject;
+class PyRepNewObject;
+class PyRepPackedRow;
 
 /** Lookup table for PyRep type object type names.
   */
@@ -85,6 +100,24 @@ public:
 	bool IsObject() const {return m_type == PyTypeObject;}
 	bool IsNewObject() const {return m_type == PyTypeNewObject;}
 	bool IsPackedRow() const {return m_type == PyTypePackedRow;}
+
+
+	// tools for easy access... less typecasting, TODO assrt when wrong "as" is done
+	PyRepInteger& AsInteger() {return *((PyRepInteger*)this);}
+	PyRepReal& AsReal() {return *((PyRepReal*)this);}
+	PyRepBoolean& AsBool() {return *((PyRepBoolean*)this);}
+	PyRepBuffer& AsBuffer() {return *((PyRepBuffer*)this);}
+	PyRepString& AsString() {return *((PyRepString*)this);}
+	PyRepTuple& AsTuple() {return *((PyRepTuple*)this);}
+	PyRepList& AsLAst() {return *((PyRepList*)this);}
+	PyRepDict& AsDict() {return *((PyRepDict*)this);}
+	PyRepNone& AsNone() {return *((PyRepNone*)this);}
+	PyRepSubStruct& AsSubStruct() {return *((PyRepSubStruct*)this);}
+	PyRepSubStream& AsSubStream() {return *((PyRepSubStream*)this);}
+	PyRepChecksumedStream& AsChecksumedStream() {return *((PyRepChecksumedStream*)this);}
+	PyRepObject& AsObject() {return *((PyRepObject*)this);}
+	PyRepNewObject& AsNewObject() {return *((PyRepNewObject*)this);}
+	PyRepPackedRow& AsPackedRow() {return *((PyRepPackedRow*)this);}
 
 	ASCENT_INLINE const char *TypeString() const;
 		
@@ -181,6 +214,24 @@ public:
 	uint8 *GetBuffer() const { return m_value; }
 	uint32 GetLength() const { return m_length; }
 
+	/**
+	 * @brief Get the PyBuffer size.
+	 *
+	 * 
+	 *
+	 * @return return the size of the buffer.
+	 */
+	size_t size() const {return (size_t)m_length;}
+
+	/**
+	 * @brief Get the PyBuffer content
+	 *
+	 * 
+	 *
+	 * @return the pointer to the PyBuffer content
+	 */
+	uint8* content() const {return m_value;}
+
 	PyRepSubStream *CreateSubStream() const;
 	
 protected:
@@ -205,6 +256,23 @@ public:
 	std::string value;
 	bool is_type_1;	//true if this is an Op_PyByteString instead of the default Op_PyByteString2
 
+	/**
+	 * @brief get the length of the PyString
+	 *
+	 * 
+	 *
+	 * @return the length of the string as size_t
+	 */
+	size_t size() { return value.size(); }
+
+	/**
+	* @brief Get the PyString content
+	*
+	* 
+	*
+	* @return the pointer to the char* array.
+	*/
+	const char* content() { return value.c_str(); }
 
 	//string table stuff:
 	static bool LoadStringFile(const char *file);
@@ -216,9 +284,9 @@ protected:
 
 class PyRepTuple : public PyRep {
 public:
-	typedef std::vector<PyRep *> storage_type;
-	typedef std::vector<PyRep *>::iterator iterator;
-	typedef std::vector<PyRep *>::const_iterator const_iterator;
+	typedef std::vector<PyRep *>			storage_type;
+	typedef storage_type::iterator			iterator;
+	typedef storage_type::const_iterator	const_iterator;
 	
 	PyRepTuple(uint32 item_count) : PyRep(PyRep::PyTypeTuple), items(item_count, NULL) {}
 	virtual ~PyRepTuple();
@@ -239,13 +307,34 @@ public:
 	bool empty() const { return(items.empty()); }
 	void clear();
 
-	/** polymorphic overload to make the PyRepTuple do nice lookups.
-	  */
-	PyRep& operator[](size_t pos) {
-		if (pos < items.size())
-			return *items[pos];
-		else
-			return *((PyRep*)NULL); // this is gonne crash...
+	/* polymorphic overload to make the PyRepTuple do nice lookups. */
+	
+	/**
+	 * @brief overloading the [] operator for reference lookup.
+	 *
+	 * 
+	 *
+	 * @param[in] pos the position of the required object.
+	 * @return The reference to the indexed object.
+	 */
+	inline PyRep& operator[](const size_t pos) const {
+		/* we should crash here if we are trying to lookup a object that isn't in our range */
+		assert(pos < items.size());
+		return *items[pos];
+	}
+
+	/**
+	 * @brief overloading the [] operator for pointer lookup.
+	 *
+	 * 
+	 *
+	 * @param[in] pos the position of the required object.
+	 * @return The reference to the indexed object.
+	 */
+	inline PyRep* operator[](const size_t pos) {
+		/* we should crash here if we are trying to lookup a object that isn't in our range */
+		assert(pos < items.size());
+		return items[pos];
 	}
 };
 

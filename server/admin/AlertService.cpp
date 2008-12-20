@@ -20,20 +20,24 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Zhur, Captnoord
 */
 
 #include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(AlertService)
 
-AlertService::AlertService(PyServiceMgr *mgr) : PyService(mgr, "alert"), m_dispatch(new Dispatcher(this))
+AlertService::AlertService(PyServiceMgr *mgr) : PyService(mgr, "alert"), m_dispatch(new Dispatcher(this)), traceLogger(NULL)
 {
 	_SetCallDispatcher(m_dispatch);
 
 	m_dispatch->RegisterCall("BeanCount", &AlertService::Handle_BeanCount);
 	m_dispatch->RegisterCall("BeanDelivery", &AlertService::Handle_BeanDelivery);
 	m_dispatch->RegisterCall("SendClientStackTraceAlert", &AlertService::Handle_SendClientStackTraceAlert);
+
+#ifdef DEV_DEBUG_TREAT
+	traceLogger = new PyTraceLog("evemu_client_stack_trace.txt", true, true);
+#endif DEV_DEBUG_TREAT
 }
 
 AlertService::~AlertService()
@@ -41,14 +45,11 @@ AlertService::~AlertService()
 	delete m_dispatch;
 }
 
-/* please only enable this when your a developer who knows how to use it. Its NOT suitable for normal evemu users */
-#define DEV_DEBUG_TREAT
-
 /** Basically BeanCount means that a error has accured in the client python code, and it asks
   * the server how to handle it.
-  *\Note: in normal operations we should send back a unique errorID to the client, it saves it and sends the stack traces
-  *\      to us through BeanDelivery every 15 minutes. When we are in developer mode we should send back PyNone asking the
-  *\      to send us the stack trace immediately.
+  * @Note: in normal operations we should send back a unique errorID to the client, it saves it and sends the stack traces
+  *      to us through BeanDelivery every 15 minutes. When we are in developer mode we should send back PyNone asking the
+  *      to send us the stack trace immediately.
   */
 PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
 
@@ -67,8 +68,8 @@ PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
 }
 
 /** The client "stacks" up the python "stack" traces and sends them every 15 minutes.
-  *\Note: this process is only usefully when we supply the client with a valid errorID.
-  *\      meaning that we should code a errorID tracker for it. To handle these.
+  * @Note: this process is only usefully when we supply the client with a valid errorID.
+  *      meaning that we should code a errorID tracker for it. To handle these.
   */
 PyResult AlertService::Handle_BeanDelivery(PyCallArgs &call) {
 	PyRep *result = NULL;
@@ -76,37 +77,27 @@ PyResult AlertService::Handle_BeanDelivery(PyCallArgs &call) {
 	/* Unhandled for now as we have no interest in receiving batched python stack traces
 	 * nor official style debugging... Just gimme the info dude (see Handle_SendClientStackTraceAlert).
 	 */
-
 	result = new PyRepNone();
 	
 	return result;
 }
 
-/** The client sends us a python stack trace, from which we could make up what we did wrong.
-  *\Note: I'm sending PyNone back, this is just a wild guess. I don't know its actually required.
-  *\Note: function is part of a system that allows us to ask the client to send the trace directly,
-  *\      and skip the BeanDelivery system.
-  */
+/**
+ * @brief The client sends us a python stack trace, from which we could make up what we did wrong.
+ *
+ * 
+ *
+ * @param[in] call is the python packet that contains the info for this function
+ *
+ * @note I'm sending PyNone back, this is just a wild guess. I don't know its actually required.
+ * function is part of a system that allows us to ask the client to send the trace directly,
+ * and skip the BeanDelivery system.
+ * @return guess it should have PyRepNone back.
+ */
 PyResult AlertService::Handle_SendClientStackTraceAlert(PyCallArgs &call) {
 
 #ifdef DEV_DEBUG_TREAT
-	/* TODO: write a proper track trace dump class, to store and handle these traces */
-	printf("SendClientStackTraceAlert:\n");
-	//call.Dump(CLIENT__ERROR);
-	PyRepTuple & traceMessage = *call.tuple;
-
-	traceMessage.Dump(CLIENT__ERROR, "trace");
-
-	printf("TraceObject type: %s\n", traceMessage[0].TypeString());
-	if (traceMessage[0].IsBuffer())
-	{
-		PyRepBuffer & MessagePayload = (PyRepBuffer &)traceMessage[0];
-		printf("DebugMessage: %s\n", MessagePayload.GetBuffer());
-	}
-
-
+	traceLogger->logTrace(*call.tuple);
 #endif//DEV_DEBUG_TREAT
-
-	PyRep *result = new PyRepNone();
-	return result;
+	return new PyRepNone();
 }
