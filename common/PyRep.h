@@ -119,7 +119,7 @@ public:
 	PyRepNewObject& AsNewObject() {return *((PyRepNewObject*)this);}
 	PyRepPackedRow& AsPackedRow() {return *((PyRepPackedRow*)this);}
 
-	ASCENT_INLINE const char *TypeString() const;
+	const char *TypeString() const;
 		
 	virtual void Dump(FILE *into, const char *pfx) const = 0;
 	virtual void Dump(LogType type, const char *pfx) const = 0;
@@ -138,9 +138,7 @@ protected:
 
 class PyRepInteger : public PyRep {
 public:
-	PyRepInteger(uint32 i) : PyRep(PyRep::PyTypeInteger), value(i) {}
-	PyRepInteger(uint64 &i) : PyRep(PyRep::PyTypeInteger), value(i) {}
-	
+	PyRepInteger(const uint64 &i) : PyRep(PyRep::PyTypeInteger), value(i) {}
 	virtual ~PyRepInteger() {}
 	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
 	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
@@ -153,9 +151,7 @@ public:
 
 class PyRepReal : public PyRep {
 public:
-	PyRepReal(double &i) : PyRep(PyRep::PyTypeReal), value(i) {}
 	PyRepReal(const double &i) : PyRep(PyRep::PyTypeReal), value(i) {}
-
 	virtual ~PyRepReal() {}
 	ASCENT_INLINE void Dump(FILE *into, const char *pfx) const;
 	ASCENT_INLINE void Dump(LogType type, const char *pfx) const;
