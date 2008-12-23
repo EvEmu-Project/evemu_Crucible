@@ -39,7 +39,9 @@ libaccount_a_SOURCES = \
 	account/AccountService.cpp \
 	account/AccountService.h \
 	account/AuthService.cpp \
-	account/AuthService.h
+	account/AuthService.h \
+	account/ClientStatMgrService.cpp \
+	account/ClientStatMgrService.h
 
 libadmin_a_SOURCES = \
 	admin/AlertService.cpp \
@@ -134,6 +136,8 @@ libinventory_a_SOURCES = \
 	inventory/InventoryItem.h \
 	inventory/ItemFactory.cpp \
 	inventory/ItemFactory.h \
+	inventory/InventoryBound.cpp \
+	inventory/InventoryBound.h \
 	inventory/Type.cpp \
 	inventory/Type.h
 # Seems not to be included
