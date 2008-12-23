@@ -158,9 +158,9 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
 PyResult DogmaIMBound::Handle_CharGetInfo(PyCallArgs &call) {
 	//no arguments
 	
-	PyRepObject *result = call.client->Item()->CharGetInfo();
+	PyRepObject *result = call.client->Char()->CharGetInfo();
 	if(result == NULL) {
-		codelog(SERVICE__ERROR, "%s: Unable to build char info for char %lu", GetName(), call.client->Item()->itemID());
+		codelog(SERVICE__ERROR, "%s: Unable to build char info for char %lu", GetName(), call.client->Char()->itemID());
 		return NULL;
 	}
 

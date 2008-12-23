@@ -171,14 +171,15 @@ public:
 	virtual void EncodeDestiny(std::vector<uint8> &into) const;
 	virtual bool IsStaticEntity() const { return false; }
 
+	virtual double GetMass() const;
+	virtual double GetMaxVelocity() const;
+	virtual double GetAgility() const;
+
 	//Added interface:
 	//get the corporation of this entity
 	virtual uint32 GetCorporationID() const = 0;
 	virtual uint32 GetAllianceID() const = 0;
-	virtual double GetMass() const;
-	virtual double GetMaxVelocity() const;
-	virtual double GetAgility() const;
-	
+
 	inline DestinyManager *Destiny() const { return(m_destiny); }
 	
 	virtual void Killed(Damage &fatal_blow);

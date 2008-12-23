@@ -103,6 +103,10 @@ void ItemSystemEntity::_SetSelf(InventoryItem *self) {
 	}
 	m_self = self;
 	
+	//I am not sure where the right place to do this is, but until
+	//we properly persist ship attributes into the DB, we are just
+	//going to do it here. Could be exploited. oh well.
+	// TODO: use the ship aggregate value.
 	int sc = m_self->shieldCapacity();
 	if(sc > 0) {	//avoid polluting the attribute list with worthless entries.
 		m_self->Set_shieldCharge(m_self->shieldCapacity());
@@ -289,10 +293,6 @@ void DynamicSystemEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	}
 }
 
-double Client::GetRadius() const {
-	return(Ship()->radius());
-}
-
 PyRepDict *Client::MakeSlimItem() const {
 	PyRepDict *slim = new PyRepDict();
 	slim->add("itemID", new PyRepInteger(GetID()));
@@ -331,15 +331,6 @@ void ItemSystemEntity::MakeDamageState(DoDestinyDamageState &into) const {
 //	armor damage isnt working...
 	into.armor = 1.0 - (m_self->armorDamage() / m_self->armorHP());
 	into.structure = 1.0 - (m_self->damage() / m_self->hp());
-}
-
-//clients use their ship, not their char.
-void Client::MakeDamageState(DoDestinyDamageState &into) const {
-	into.shield = m_ship->shieldCharge() / m_ship->shieldCapacity();
-	into.tau = 100000;	//no freakin clue.
-	into.timestamp = Win32TimeNow();
-	into.armor = 1.0 - (m_ship->armorDamage() / m_ship->armorHP());
-	into.structure = 1.0 - (m_ship->damage() / m_ship->hp());
 }
 
 void NPC::EncodeDestiny(std::vector<uint8> &into) const {

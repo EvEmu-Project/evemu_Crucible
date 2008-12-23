@@ -373,7 +373,7 @@ void DynamicSystemEntity::Killed(Damage &fatal_blow) {
 void Client::Killed(Damage &fatal_blow) {
 	DynamicSystemEntity::Killed(fatal_blow);
 
-	if(m_ship->typeID() == itemTypeCapsule) {
+	if(Ship()->typeID() == itemTypeCapsule) {
 		//we have been pod killed... off we go.
 
 		//TODO: destroy all implants
@@ -384,26 +384,27 @@ void Client::Killed(Damage &fatal_blow) {
 		//our ship has been destroyed. Off to our capsule.
 		//We are currently not keeping our real capsule around in the DB, so we need to make a new one.
 		
-		std::string capsule_name = m_char.name + "'s Capsule";
+		std::string capsule_name = GetName();
+		capsule_name += "'s Capsule";
 		InventoryItem *capsule = m_services->item_factory->SpawnSingleton(
 			itemTypeCapsule,
-			m_char.charid,
-			m_char.stationID,
+			GetCharacterID(),
+			GetStationID(),
 			flagCapsule,
 			capsule_name.c_str()
 		);
 		if(capsule == NULL) {
-			codelog(CLIENT__ERROR, "Failed to create capsule for character '%s'", m_char.name.c_str());
+			codelog(CLIENT__ERROR, "Failed to create capsule for character '%s'", GetName());
 			//what to do?
 			return;
 		}
 		
-		InventoryItem *dead_ship = m_ship->Ref();	//grab a ship ref to ensure that nobody else nukes it first.
+		InventoryItem *dead_ship = Ship()->Ref();	//grab a ship ref to ensure that nobody else nukes it first.
 		
 		//ok, nothing can fail now, we need have our capsule, make the transition.
 		
 		//put the capsule where the ship was
-		capsule->Relocate(m_ship->position());
+		capsule->Relocate(Ship()->position());
 		
 		//this updates m_self and manages destiny updates as needed.
 		//This sends the RemoveBall for the old ship.

@@ -36,11 +36,14 @@ PyResult Command_summon(Client *who, CommandDB *db, PyServiceMgr *services, cons
 
 	//summon into their cargo hold unless they are docked in a station,
 	//then stick it in their hangar instead.
-	EVEItemFlags flag = flagCargoHold;
-	uint32 locationID = who->GetShipID();
-	if(IsStation(who->GetLocationID())) {
-		flag = flagHangar;
+	uint32 locationID;
+	EVEItemFlags flag;
+	if(who->IsInSpace()) {
+		locationID = who->GetShipID();
+		flag = flagCargoHold;
+	} else {
 		locationID = who->GetStationID();
+		flag = flagHangar;
 	}
 	
 	InventoryItem *i;

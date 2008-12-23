@@ -86,7 +86,7 @@ PyResult SkillMgrBound::Handle_CharStartTrainingSkill(PyCallArgs &call) {
 	}
 	
 	//TODO: check to see that we are allowed to train this skill (ownership and prerequisits)
-	call.client->Item()->TrainSkill(skill);
+	call.client->Char()->TrainSkill(skill);
 	skill->Release();
 	
 	return NULL;

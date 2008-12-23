@@ -125,7 +125,7 @@ void CharacterAppearance::operator=(const CharacterAppearance &from) {
 Client::Client(PyServiceMgr *services, EVETCPConnection **con)
 : DynamicSystemEntity(NULL),
   modules(this),
-  m_ship(NULL),
+  m_char(NULL),
   m_services(services),
   m_net(*con, this),
   m_pingTimer(PING_INTERVAL_US),
@@ -146,53 +146,43 @@ Client::Client(PyServiceMgr *services, EVETCPConnection **con)
 	m_moveTimer.Disable();
 	m_pingTimer.Start();
 
-	m_char.name = "monkey";
-	m_char.charid = 444666;
-	m_char.bloodlineID = 0;
-	m_char.genderID = 1;
-	m_char.ancestryID = 2;
-	m_char.careerID = 3;
-	m_char.schoolID = 4;
-	m_char.careerSpecialityID = 5;
-	m_char.Intelligence = 6;
-	m_char.Charisma = 7;
-	m_char.Perception = 8;
-	m_char.Memory = 9;
-	m_char.Willpower = 10;
+	m_chardata.name = "monkey";
+	m_chardata.charid = 444666;
+	m_chardata.bloodlineID = 0;
+	m_chardata.genderID = 1;
+	m_chardata.ancestryID = 2;
+	m_chardata.careerID = 3;
+	m_chardata.schoolID = 4;
+	m_chardata.careerSpecialityID = 5;
+	m_chardata.Intelligence = 6;
+	m_chardata.Charisma = 7;
+	m_chardata.Perception = 8;
+	m_chardata.Memory = 9;
+	m_chardata.Willpower = 10;
 
 	//initialize connection
 	m_net.SendHandshake(m_services->entity_list->GetClientCount());
 }
 
 Client::~Client() {
-	{
-		m_services->lsc_service->CharacterLogout(GetCharacterID(), LSCChannel::_MakeSenderInfo(this));
-		/*std::list<uint32> toLeave;
-		std::set<LSCChannel *>::iterator cur, end;
-		cur = m_channels.begin();
-		end = m_channels.end();
-		for(; cur != end; cur++) {
-			
-			(*cur)->LeaveChannel(this, false);
-		}*/
-	}
-	
-	
+	m_services->lsc_service->CharacterLogout(GetCharacterID(), LSCChannel::_MakeSenderInfo(this));
 	m_services->ClearBoundObjects(this);
 	
 	//before we remove ourself from the system, store our last location.
 	SavePosition();
 
-	if(m_char.charid != 444666) {
+	if(GetCharacterID() != 444666) {
  		//johnsus - characterOnline mod
-		m_services->GetServiceDB()->SetCharacterOnlineStatus(m_char.charid, false);
-		m_services->GetServiceDB()->SetAccountOnlineStatus(m_accountID, false);
+		m_services->GetServiceDB()->SetCharacterOnlineStatus(GetCharacterID(), false);
+		m_services->GetServiceDB()->SetAccountOnlineStatus(GetAccountID(), false);
 	}
 
 	if(m_system != NULL)
 		m_system->RemoveClient(this);	//handles removing us from bubbles and sending RemoveBall events.
-	
-	m_ship->Release();
+
+	if(m_char != NULL)
+		m_char->Release();
+
 	targets.DoDestruction();
 }
 
@@ -496,7 +486,7 @@ void Client::Login(CryptoChallengePacket *pack) {
 	}
 	
 	// this is needed so if we exit before selecting a character, the account online flag would switch back to 0
-	m_char.charid = 0;
+	m_chardata.charid = 0;
 	m_services->GetServiceDB()->SetAccountOnlineStatus(m_accountID, true);
 
 	//send this before session change
@@ -630,9 +620,7 @@ bool Client::EnterSystem() {
 		//we have different m_system
 		m_system->RemoveClient(this);
 		m_system = NULL;
-		//send removeball after we are removed from the system, so we dont get it.
-		//if(m_destiny != NULL)	//if we were in a station, we have no destiny manager.
-		//	m_destiny->SendRemoveBall();
+
 		delete m_destiny;
 		m_destiny = NULL;
 	}
@@ -659,19 +647,15 @@ bool Client::EnterSystem() {
 
 		OnCharNowInStation();
 	} else if(IsSolarSystem(GetLocationID())) {
-		//if we are not in a station, we are in a system, so we need a destiny manager
+		//we are in a system, so we need a destiny manager
 		m_destiny = new DestinyManager(this, m_system);
 		//ship should never be NULL.
-		m_destiny->SetShipCapabilities(m_ship);
+		m_destiny->SetShipCapabilities(Ship());
 		//set position.
 		m_destiny->SetPosition(Ship()->position(), false);
 		//for now, we always enter a system stopped.
 		m_destiny->Halt(false);
-	} /*else {	//just dont do anything extra and let them be where they are
-		_log(CLIENT__ERROR, "Char %s (%lu) is in a bad location %lu", GetName(), GetCharacterID(), GetLocationID());
-		SendErrorMsg("In a bad location %lu", GetLocationID());
-		return false;
-	}*/
+	}
 	
 	return true;
 }
@@ -689,11 +673,11 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 	
 	if(IsStation(location)) {
 		// Entering station
-		m_char.stationID = location;
+		m_chardata.stationID = location;
 		
 		m_services->GetServiceDB()->GetStationParents(
-			m_char.stationID,
-			m_char.solarSystemID, m_char.constellationID, m_char.regionID );
+			m_chardata.stationID,
+			m_chardata.solarSystemID, m_chardata.constellationID, m_chardata.regionID );
 
 		Ship()->Move(location, flagHangar);
 	} else if(IsSolarSystem(location)) {
@@ -701,12 +685,12 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		// source is GetLocation()
 		// destinaion is location
 
-		m_char.stationID = 0;
-		m_char.solarSystemID = location;
+		m_chardata.stationID = 0;
+		m_chardata.solarSystemID = location;
 		
 		m_services->GetServiceDB()->GetSystemParents(
-			m_char.solarSystemID,
-			m_char.constellationID, m_char.regionID );
+			m_chardata.solarSystemID,
+			m_chardata.constellationID, m_chardata.regionID );
 
 		Ship()->Move(location, flagShipOffline);
 		Ship()->Relocate(pt);
@@ -721,8 +705,9 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 	//move the character_ record... we really should derive the char's location from the entity table...
 	m_services->GetServiceDB()->SetCharacterLocation(
 		GetCharacterID(),
-		m_char.stationID, m_char.solarSystemID, 
-		m_char.constellationID, m_char.regionID );
+		m_chardata.stationID, m_chardata.solarSystemID, 
+		m_chardata.constellationID, m_chardata.regionID
+	);
 
 	SessionSync();
 }
@@ -768,26 +753,19 @@ void Client::BoardShip(InventoryItem *new_ship) {
 	
 	if(m_system != NULL)
 		m_system->RemoveClient(this);
-	
-	m_ship->Release();			//release old ref
-	m_ship = new_ship->Ref();	//get new ref
-	m_self->MoveInto(new_ship, flagPilot, false);
+
+	_SetSelf(new_ship->Ref());
+	m_char->MoveInto(new_ship, flagPilot, false);
 
 	session.Set_shipid(new_ship->itemID());
 
-	//I am not sure where the right place to do this is, but until
-	//we properly persist ship attributes into the DB, we are just
-	//going to do it here. Could be exploited. oh well.
-	// TODO: use the ship aggregate value.
-	m_ship->Set_shieldCharge(m_ship->shieldCapacity());
-	
 	modules.UpdateModules();
 
 	if(m_system != NULL)
 		m_system->AddClient(this);
 
 	if(m_destiny != NULL)
-		m_destiny->SetShipCapabilities(m_ship);
+		m_destiny->SetShipCapabilities(Ship());
 }
 
 void Client::_ProcessCallRequest(PyPacket *packet) {
@@ -1110,23 +1088,23 @@ bool Client::AddBalance(double amount) {
 	if(amount == 0)
 		return true;
 	
-	double result = m_char.balance + amount;
+	double result = m_chardata.balance + amount;
 	
 	//remember, this can take a negative amount...
 	if(result < 0) {
 		return false;
 	}
 	
-	m_char.balance = result;
+	m_chardata.balance = result;
 	
-	if(!m_services->GetServiceDB()->SetCharacterBalance(GetCharacterID(), m_char.balance))
+	if(!m_services->GetServiceDB()->SetCharacterBalance(GetCharacterID(), m_chardata.balance))
 		return false;
 	
 	//send notification of change
 	OnAccountChange ac;
 	ac.accountKey = "cash";
 	ac.ownerid = GetCharacterID();
-	ac.balance = m_char.balance;
+	ac.balance = m_chardata.balance;
 	PyRepTuple *answer = ac.Encode();
 	SendNotification("OnAccountChange", "cash", &answer, false);
 
@@ -1136,7 +1114,7 @@ bool Client::AddBalance(double amount) {
 
 
 bool Client::Load(uint32 char_id) {
-	if(!m_services->GetServiceDB()->LoadCharacter(char_id, m_char)) {
+	if(!m_services->GetServiceDB()->LoadCharacter(char_id, m_chardata)) {
 		_log(CLIENT__ERROR, "Failed to load character data for char %lu.", char_id);
 		return false;
 	}
@@ -1154,7 +1132,7 @@ bool Client::Load(uint32 char_id) {
 	if(ship == NULL)
 		return false;
 
-	_SetSelf(character);	//ref is stored
+	m_char = character;	//ref is stored
 	BoardShip(ship);	//updates modules
 	ship->Release();
 
@@ -1166,44 +1144,20 @@ bool Client::Load(uint32 char_id) {
 	return true;
 }
 
-uint32 Client::GetShipID() const {
-	if(m_ship == NULL)
-		return(0);
-	return(m_ship->itemID());
-}
-
-double Client::GetMass() const {
-	if(m_ship == NULL)
-		return(0);
-	return(m_ship->mass());
-}
-
-double Client::GetMaxVelocity() const {
-	if(m_ship == NULL)
-		return(0);
-	return(m_ship->maxVelocity());
-}
-
-double Client::GetAgility() const {
-	if(m_ship == NULL)
-		return(0);
-	return(m_ship->agility());
-}
-
 double Client::GetPropulsionStrength() const {
-	if(m_ship == NULL)
+	if(Ship() == NULL)
 		return(3.0f);
 	//just making shit up, I think skills modify this, as newbies
 	//tend to end up with 3.038 instead of the base 3.0 on their ship..
 	double res;
-	res =  m_ship->propulsionFusionStrength();
-	res += m_ship->propulsionIonStrength();
-	res += m_ship->propulsionMagpulseStrength();
-	res += m_ship->propulsionPlasmaStrength();
-	res += m_ship->propulsionFusionStrengthBonus();
-	res += m_ship->propulsionIonStrengthBonus();
-	res += m_ship->propulsionMagpulseStrengthBonus();
-	res += m_ship->propulsionPlasmaStrengthBonus();
+	res =  Ship()->propulsionFusionStrength();
+	res += Ship()->propulsionIonStrength();
+	res += Ship()->propulsionMagpulseStrength();
+	res += Ship()->propulsionPlasmaStrength();
+	res += Ship()->propulsionFusionStrengthBonus();
+	res += Ship()->propulsionIonStrengthBonus();
+	res += Ship()->propulsionMagpulseStrengthBonus();
+	res += Ship()->propulsionPlasmaStrengthBonus();
 	res += 0.038f;
 	return(res);
 }
@@ -1279,11 +1233,11 @@ void Client::TargetsCleared() {
 }
 
 void Client::SavePosition() {
-	if(m_ship == NULL || m_destiny == NULL) {
+	if(Ship() == NULL || m_destiny == NULL) {
 		_log(CLIENT__TRACE, "%s: Unable to save position. We are probably not in space.", GetName());
 		return;
 	}
-	m_ship->Relocate( m_destiny->GetPosition() );
+	Ship()->Relocate( m_destiny->GetPosition() );
 }
 
 bool Client::LaunchDrone(InventoryItem *drone) {
@@ -1425,7 +1379,7 @@ DoDestinyUpdate ,*args= ([(31759,
 
 //assumes that the backend DB stuff was already done.
 void Client::JoinCorporationUpdate(uint32 corp_id) {
-	m_char.corporationID = corp_id;
+	m_chardata.corporationID = corp_id;
 	
 	//TODO: recursively change corp on all our items.
 	

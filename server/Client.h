@@ -264,16 +264,17 @@ public:
 	uint32 GetRole() const				{ return m_role; }
 
 	// character data
-	uint32 GetCharacterID() const		{ return m_char.charid; }
-	uint32 GetCorporationID() const		{ return m_char.corporationID; }
-	uint32 GetAllianceID() const		{ return m_char.allianceID; }
-	uint32 GetStationID() const			{ return m_char.stationID; }
-	uint32 GetSystemID() const			{ return m_char.solarSystemID; }
-	uint32 GetConstellationID() const	{ return m_char.constellationID; }
-	uint32 GetRegionID() const			{ return m_char.regionID; }
+	uint32 GetCharacterID() const		{ return m_chardata.charid; }
+	uint32 GetCorporationID() const		{ return m_chardata.corporationID; }
+	uint32 GetAllianceID() const		{ return m_chardata.allianceID; }
+	uint32 GetStationID() const			{ return m_chardata.stationID; }
+	uint32 GetSystemID() const			{ return m_chardata.solarSystemID; }
+	uint32 GetConstellationID() const	{ return m_chardata.constellationID; }
+	uint32 GetRegionID() const			{ return m_chardata.regionID; }
 	
 	const CorpMemberInfo &GetCorpInfo() const { return m_corpstate; }
-	const CharacterData &GetChar() const { return m_char; }
+	const CharacterData &GetChar() const { return m_chardata; }
+	InventoryItem *Char() const { return m_char; }
 
 	uint32 GetLocationID() const
 	{
@@ -283,18 +284,18 @@ public:
 			return GetStationID();
 	}
 
-	
+	uint32 GetShipID() const { return(GetID()); }
+	InventoryItem *Ship() const { return(Item()); }
 
 	inline double x() const { return(GetPosition().x); }	//this is terribly inefficient.
 	inline double y() const { return(GetPosition().y); }	//this is terribly inefficient.
 	inline double z() const { return(GetPosition().z); }	//this is terribly inefficient.
 	bool IsInSpace() const { return(GetStationID() == 0); }
 	
-	double GetBalance() const { return m_char.balance; }
+	double GetBalance() const { return m_chardata.balance; }
 	bool AddBalance(double amount);
 
 	void Login(CryptoChallengePacket *pack);
-	uint32 GetShipID() const;
 	void BoardShip(InventoryItem *new_ship);
 	void MoveToLocation(uint32 location, const GPoint &pt);
 	void MoveToPosition(const GPoint &pt);
@@ -302,7 +303,6 @@ public:
 	bool EnterSystem();
 	bool Load(uint32 char_id);
 	void JoinCorporationUpdate(uint32 corp_id);
-	inline InventoryItem *Ship() const { return m_ship; }
 	void SavePosition();
 	
 	double GetPropulsionStrength() const;
@@ -323,11 +323,8 @@ public:
 	virtual Client *CastToClient() { return(this); }
 	virtual const Client *CastToClient() const { return(this); }
 
-	virtual uint32 GetID() const { return(GetShipID()); }	//our entity in space is our ship!
-	virtual const char *GetName() const { return(m_char.name.c_str()); }
-	virtual double GetRadius() const;
+	virtual const char *GetName() const { return(m_chardata.name.c_str()); }
 	virtual PyRepDict *MakeSlimItem() const;
-	virtual void MakeDamageState(DoDestinyDamageState &into) const;
 	virtual void QueueDestinyUpdate(PyRepTuple **du);
 	virtual void QueueDestinyEvent(PyRepTuple **multiEvent);
 
@@ -336,10 +333,6 @@ public:
 	virtual void TargetedAdd(SystemEntity *who);
 	virtual void TargetedLost(SystemEntity *who);
 	virtual void TargetsCleared();
-
-	virtual double GetMass() const;
-	virtual double GetMaxVelocity() const;
-	virtual double GetAgility() const;
 
 	virtual void ApplyDamageModifiers(Damage &d, SystemEntity *target);
 	virtual bool ApplyDamage(Damage &d);
@@ -377,7 +370,7 @@ protected:
 	void _SendCallReturn(PyPacket *req, PyRep **return_value, const char *channel = NULL);
 	void _SendException(PyPacket *req, MACHONETERR_TYPE type, PyRep **payload);
 
-	InventoryItem *m_ship;
+	InventoryItem *m_char;
 
 	PyServiceMgr *const m_services;
 	EVEPresentation m_net;
@@ -389,7 +382,7 @@ protected:
 
 	SystemManager *m_system;	//we do not own this
 
-	CharacterData m_char;
+	CharacterData m_chardata;
 	CorpMemberInfo m_corpstate;
 
 	std::set<LSCChannel *> m_channels;	//we do not own these.
