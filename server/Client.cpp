@@ -281,7 +281,7 @@ bool Client::ProcessNet() {
 		return false;
 	
 	if(m_pingTimer.Check()) {
-		_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
+		//_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
 		_SendPingRequest();
 	}
 	
@@ -305,7 +305,7 @@ bool Client::ProcessNet() {
 			HandlePingRequest(this,p);
 			break;
 		case PING_RSP:
-			_log(CLIENT__TRACE, "%s: Received ping response.", GetName());
+			//_log(CLIENT__TRACE, "%s: Received ping response.", GetName());
 			break;
 		default:
 			_log(CLIENT__ERROR, "%s: Unhandled message type %d", GetName(), p->type);
