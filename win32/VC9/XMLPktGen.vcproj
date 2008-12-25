@@ -284,14 +284,6 @@
 					RelativePath="..\..\common\misc.h"
 					>
 				</File>
-				<File
-					RelativePath="..\..\3rdparty\tinyxml\tinystr.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\3rdparty\tinyxml\tinyxml.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="Source Files"
@@ -304,20 +296,32 @@
 					RelativePath="..\..\common\misc.cpp"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="tinyxml"
+				>
 				<File
-					RelativePath="..\..\3rdparty\tinyxml\tinystr.cpp"
+					RelativePath="..\..\dep\tinyxml\tinystr.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\3rdparty\tinyxml\tinyxml.cpp"
+					RelativePath="..\..\dep\tinyxml\tinystr.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\3rdparty\tinyxml\tinyxmlerror.cpp"
+					RelativePath="..\..\dep\tinyxml\tinyxml.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\3rdparty\tinyxml\tinyxmlparser.cpp"
+					RelativePath="..\..\dep\tinyxml\tinyxml.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\dep\tinyxml\tinyxmlerror.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\dep\tinyxml\tinyxmlparser.cpp"
 					>
 				</File>
 			</Filter>

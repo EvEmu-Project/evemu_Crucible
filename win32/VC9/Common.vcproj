@@ -251,22 +251,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdparty\tinyxml\tinystr.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\tinyxml\tinyxml.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\tinyxml\tinyxmlerror.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdparty\tinyxml\tinyxmlparser.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\common\XMLParser.cpp"
 				>
 			</File>
@@ -526,6 +510,34 @@
 			</File>
 			<File
 				RelativePath="..\..\common\MarshalReferenceMap.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="tinyxml"
+			>
+			<File
+				RelativePath="..\..\dep\tinyxml\tinystr.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\dep\tinyxml\tinystr.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\dep\tinyxml\tinyxml.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\dep\tinyxml\tinyxml.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\dep\tinyxml\tinyxmlerror.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\dep\tinyxml\tinyxmlparser.cpp"
 				>
 			</File>
 		</Filter>
