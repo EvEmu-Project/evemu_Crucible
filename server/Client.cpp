@@ -1028,6 +1028,37 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream *noti
 	FastQueuePacket(&p);
 }
 
+PyRepDict *Client::MakeSlimItem() const {
+	PyRepDict *slim = new PyRepDict();
+	slim->add("itemID", new PyRepInteger(GetID()));
+	slim->add("typeID", new PyRepInteger(Ship()->typeID()));
+	slim->add("ownerID", new PyRepInteger(GetCharacterID()));
+	slim->add("charID", new PyRepInteger(GetCharacterID()));
+	slim->add("corpID", new PyRepInteger(GetCorporationID()));
+	slim->add("bounty", new PyRepInteger(GetChar().bounty));
+	slim->add("securityStatus", new PyRepReal(GetChar().securityRating));
+	
+	//encode the modules list, if we have any visible modules
+	std::vector<InventoryItem *> items;
+	Ship()->FindByFlagRange(flagHiSlot0, flagHiSlot7, items, false);
+	if(!items.empty()) {
+		PyRepList *l = new PyRepList();
+		std::vector<InventoryItem *>::iterator cur, end;
+		cur = items.begin();
+		end = items.end();
+		for(; cur != end; cur++) {
+			InventoryItem *i = *cur;
+			PyRepTuple *t = new PyRepTuple(2);
+			t->items[0] = new PyRepInteger(i->itemID());
+			t->items[1] = new PyRepInteger(i->typeID());
+			l->add(t);
+		}
+		slim->add("modules", l);
+	}
+	
+	return(slim);
+}
+
 void Client::WarpTo(const GPoint &to) {
 	if(m_moveState != msIdle || m_moveTimer.Enabled()) {
 		_log(CLIENT__ERROR, "%s: WarpTo called when a move is already pending. Ignoring.", GetName());
