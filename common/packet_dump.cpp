@@ -62,7 +62,9 @@ void DumpPacketHex(const uint8* buf, int32 size, int32 cols, int32 skip) {
 		return;
 	// Output as HEX
 	char output[4];
-	int j = 0; char* ascii = new char[cols+1]; memset(ascii, 0, cols+1);
+	int j = 0;
+	char* ascii = new char[cols+1];
+	memset(ascii, 0, cols+1);
 	int32 i;
     for(i=skip; i<size; i++)
     {
