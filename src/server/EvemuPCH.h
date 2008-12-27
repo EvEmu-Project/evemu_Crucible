@@ -122,25 +122,25 @@
 #include "../server/PyBoundObject.h"
 
 
-#include "../packets/AccountPkts.h"
+#include "../../packets/AccountPkts.h"
 
-#include "../packets/Crypto.h"
-#include "../packets/Character.h"
-#include "../packets/Destiny.h"
-#include "../packets/DogmaIM.h"
+#include "../../packets/Crypto.h"
+#include "../../packets/Character.h"
+#include "../../packets/Destiny.h"
+#include "../../packets/DogmaIM.h"
 
-#include "../packets/General.h"
-#include "../packets/Inventory.h"
-#include "../packets/Wallet.h"
-#include "../packets/Missions.h"
-#include "../packets/Language.h"
-#include "../packets/LSCPkts.h"
-#include "../packets/Manufacturing.h"
-#include "../packets/ObjectCaching.h"
+#include "../../packets/General.h"
+#include "../../packets/Inventory.h"
+#include "../../packets/Wallet.h"
+#include "../../packets/Missions.h"
+#include "../../packets/Language.h"
+#include "../../packets/LSCPkts.h"
+#include "../../packets/Manufacturing.h"
+#include "../../packets/ObjectCaching.h"
 
-#include "../packets/Market.h"
-#include "../packets/Standing2.h"
-#include "../packets/Tutorial.h"
+#include "../../packets/Market.h"
+#include "../../packets/Standing2.h"
+#include "../../packets/Tutorial.h"
 
 
 // then class files

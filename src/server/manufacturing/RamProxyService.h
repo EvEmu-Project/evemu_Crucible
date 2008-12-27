@@ -28,7 +28,7 @@
 
 #include "RamProxyDB.h"
 #include "../PyService.h"
-#include "../packets/Manufacturing.h"
+#include "../../packets/Manufacturing.h"
 
 static const uint32 ramProductionTimeLimit = 60*60*24*30;	//30 days
 

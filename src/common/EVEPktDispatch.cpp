@@ -27,8 +27,8 @@
 #include "../common/logsys.h"
 #include "../common/PyPacket.h"
 #include "../common/PyRep.h"
-#include "../packets/AccountPkts.h"
-#include "../packets/General.h"
+#include "../../packets/AccountPkts.h"
+#include "../../packets/General.h"
 
 EVEPacketDispatcher::EVEPacketDispatcher() {
 }

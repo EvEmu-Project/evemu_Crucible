@@ -32,7 +32,7 @@
 #include "EVEUnmarshal.h"
 #include "EVEVersion.h"
 
-#include "../packets/Crypto.h"
+#include "../../packets/Crypto.h"
 #include "../server/Client.h"
 #include "../server/PyCallable.h"
 

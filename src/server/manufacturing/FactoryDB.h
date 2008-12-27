@@ -28,7 +28,7 @@
 
 #include "PyRep.h"
 #include "../ServiceDB.h"
-#include "../packets/Inventory.h"
+#include "../../packets/Inventory.h"
 
 class FactoryDB : public ServiceDB {
 public:
