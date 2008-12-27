@@ -2,13 +2,13 @@ ACLOCAL_AMFLAGS = -I m4
 AUTOMAKE_OPTIONS = foreign
 EXTRA_DIST = configure
 
-SUBDIRS = dep xmlpktgen packets common server
+SUBDIRS = dep src/xmlpktgen src/packets src/common src/server
 
 if COLLECTOR
-SUBDIRS+= collector
+SUBDIRS+= src/collector
 endif
 
 if EVETOOL
-SUBDIRS+= evetool
+SUBDIRS+= src/evetool
 endif
 

@@ -131,14 +131,14 @@ fi
 
 AC_CONFIG_FILES([
 	Makefile
-	3rdparty/Makefile
-	3rdparty/tinyxml/Makefile
-	common/Makefile
-	xmlpktgen/Makefile
+	dep/Makefile
+	dep/tinyxml/Makefile
+	src/common/Makefile
+	src/xmlpktgen/Makefile
 	packets/Makefile
-	collector/Makefile
-	evetool/Makefile
-	server/Makefile
+	src/collector/Makefile
+	src/evetool/Makefile
+	src/server/Makefile
 ])
 
 AC_OUTPUT
