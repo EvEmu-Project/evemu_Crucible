@@ -1,7 +1,7 @@
 #ifndef __XMLPACKETGEN_H_INCL__
 #define __XMLPACKETGEN_H_INCL__
 
-#include "../dep/tinyxml/tinyxml.h"
+#include <tinyxml.h>
 
 class XMLPacketGen {
 public:
@@ -9,15 +9,6 @@ public:
 	virtual ~XMLPacketGen();
 
 	bool GenPackets(const char *xml_file, const char *out_h, const char *out_cpp);
-	
-protected:
-	
 };
 
-
-
-
-
-#endif
-
-
+#endif//__XMLPACKETGEN_H_INCL__
