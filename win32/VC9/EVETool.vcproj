@@ -178,11 +178,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\evetool\main.cpp"
+				RelativePath="..\..\src\evetool\main.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\evetool\TriFile.cpp"
+				RelativePath="..\..\src\evetool\TriFile.cpp"
 				>
 			</File>
 		</Filter>
@@ -192,7 +192,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\evetool\TriFile.h"
+				RelativePath="..\..\src\evetool\TriFile.h"
 				>
 			</File>
 		</Filter>

@@ -176,47 +176,47 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\xmlpktgen\CloneGenerator.cpp"
+				RelativePath="..\..\src\xmlpktgen\CloneGenerator.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\ConstructGenerator.cpp"
+				RelativePath="..\..\src\xmlpktgen\ConstructGenerator.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\DecodeGenerator.cpp"
+				RelativePath="..\..\src\xmlpktgen\DecodeGenerator.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\DestructGenerator.cpp"
+				RelativePath="..\..\src\xmlpktgen\DestructGenerator.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\DumpGenerator.cpp"
+				RelativePath="..\..\src\xmlpktgen\DumpGenerator.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\EncodeGenerator.cpp"
+				RelativePath="..\..\src\xmlpktgen\EncodeGenerator.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\Generator.cpp"
+				RelativePath="..\..\src\xmlpktgen\Generator.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\HeaderGenerator.cpp"
+				RelativePath="..\..\src\xmlpktgen\HeaderGenerator.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\ImplGenerator.cpp"
+				RelativePath="..\..\src\xmlpktgen\ImplGenerator.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\main.cpp"
+				RelativePath="..\..\src\xmlpktgen\main.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\XMLPacketGen.cpp"
+				RelativePath="..\..\src\xmlpktgen\XMLPacketGen.cpp"
 				>
 			</File>
 		</Filter>
@@ -226,43 +226,43 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\xmlpktgen\CloneGenerator.h"
+				RelativePath="..\..\src\xmlpktgen\CloneGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\ConstructGenerator.h"
+				RelativePath="..\..\src\xmlpktgen\ConstructGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\DecodeGenerator.h"
+				RelativePath="..\..\src\xmlpktgen\DecodeGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\DestructGenerator.h"
+				RelativePath="..\..\src\xmlpktgen\DestructGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\DumpGenerator.h"
+				RelativePath="..\..\src\xmlpktgen\DumpGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\EncodeGenerator.h"
+				RelativePath="..\..\src\xmlpktgen\EncodeGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\Generator.h"
+				RelativePath="..\..\src\xmlpktgen\Generator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\HeaderGenerator.h"
+				RelativePath="..\..\src\xmlpktgen\HeaderGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\ImplGenerator.h"
+				RelativePath="..\..\src\xmlpktgen\ImplGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\xmlpktgen\XMLPacketGen.h"
+				RelativePath="..\..\src\xmlpktgen\XMLPacketGen.h"
 				>
 			</File>
 		</Filter>
@@ -273,15 +273,15 @@
 				Name="Header Files"
 				>
 				<File
-					RelativePath="..\..\common\logsys.h"
+					RelativePath="..\..\src\common\logsys.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\common\logtypes.h"
+					RelativePath="..\..\src\common\logtypes.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\common\misc.h"
+					RelativePath="..\..\src\common\misc.h"
 					>
 				</File>
 			</Filter>
@@ -289,11 +289,11 @@
 				Name="Source Files"
 				>
 				<File
-					RelativePath="..\..\common\logsys.cpp"
+					RelativePath="..\..\src\common\logsys.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\common\misc.cpp"
+					RelativePath="..\..\src\common\misc.cpp"
 					>
 				</File>
 			</Filter>
@@ -301,27 +301,27 @@
 				Name="tinyxml"
 				>
 				<File
-					RelativePath="..\..\dep\tinyxml\tinystr.cpp"
+					RelativePath="..\..\src\dep\tinyxml\tinystr.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\dep\tinyxml\tinystr.h"
+					RelativePath="..\..\src\dep\tinyxml\tinystr.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\dep\tinyxml\tinyxml.cpp"
+					RelativePath="..\..\src\dep\tinyxml\tinyxml.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\dep\tinyxml\tinyxml.h"
+					RelativePath="..\..\src\dep\tinyxml\tinyxml.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\dep\tinyxml\tinyxmlerror.cpp"
+					RelativePath="..\..\src\dep\tinyxml\tinyxmlerror.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\dep\tinyxml\tinyxmlparser.cpp"
+					RelativePath="..\..\src\dep\tinyxml\tinyxmlparser.cpp"
 					>
 				</File>
 			</Filter>
