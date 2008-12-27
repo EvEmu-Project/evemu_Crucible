@@ -24,7 +24,7 @@
 */
 
 #include "EvemuPCH.h"
-#include "InventoryBound.h"
+#include "inventory/InventoryBound.h"
 
 PyCallable_Make_InnerDispatcher(InvBrokerService)
 

@@ -24,7 +24,7 @@
 */
 
 #include "EvemuPCH.h"
-#include "InventoryBound.h"
+#include "inventory/InventoryBound.h"
 
 PyResult InventoryBound::Handle_List(PyCallArgs &call) {
 	PyRep *result = NULL;

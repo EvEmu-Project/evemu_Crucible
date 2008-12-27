@@ -276,13 +276,8 @@ void SystemAsteroidBeltEntity::Process() {
 	
 }
 
-
-
-
-
-
 //TODO: split this into its own file.
-#include "../inventory/InventoryItem.h"
+#include "inventory/InventoryItem.h"
 
 SystemDungeonEntranceEntity::SystemDungeonEntranceEntity(SystemManager *system, InventoryItem *self)
 : ItemSystemEntity(self),

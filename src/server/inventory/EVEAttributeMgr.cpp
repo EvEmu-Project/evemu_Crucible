@@ -73,7 +73,7 @@ void EVEAttributeMgr::_LoadPersistent() {
 
 		#define ATTR(ID, name, default_value, persistent) \
 			m_persistent[Attr_##name] = persistent;
-		#include "EVEAttributes.h"
+		#include "inventory/EVEAttributes.h"
 
 		m_persistentLoaded = true;
 	}

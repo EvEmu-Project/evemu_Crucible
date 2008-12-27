@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include\common;..\..\include\server;..\..\dep\mysql\include;..\..\dep\zlib\include;."
+				AdditionalIncludeDirectories="..\..\include\common;..\..\include\server;..\..\dep\mysql\include;..\..\dep\zlib\include;..\..\dep\tinyxml;."
 				PreprocessorDefinitions="WIN32;_DEBUG;USE_RUNTIME_EXCEPTIONS"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -794,7 +794,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\include\server\account\ClientStatMgrService.cpp"
+					RelativePath="..\..\src\server\account\ClientStatMgrService.cpp"
 					>
 				</File>
 				<File
@@ -990,7 +990,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\include\server\inventory\InventoryBound.cpp"
+					RelativePath="..\..\src\server\inventory\InventoryBound.cpp"
 					>
 				</File>
 				<File
