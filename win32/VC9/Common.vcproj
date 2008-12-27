@@ -305,170 +305,170 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\src\common\Base64.h"
+				RelativePath="..\..\include\common\Base64.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\CachedObjectMgr.h"
+				RelativePath="..\..\include\common\CachedObjectMgr.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\common.h"
+				RelativePath="..\..\include\common\common.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\crc32.h"
+				RelativePath="..\..\include\common\crc32.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\dbcore.h"
+				RelativePath="..\..\include\common\dbcore.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\DestinyStructs.h"
+				RelativePath="..\..\include\common\DestinyStructs.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\DirWalker.h"
+				RelativePath="..\..\include\common\DirWalker.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVEDBUtils.h"
+				RelativePath="..\..\include\common\EVEDBUtils.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVEPktDispatch.h"
+				RelativePath="..\..\include\common\EVEPktDispatch.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVEPresentation.h"
+				RelativePath="..\..\include\common\EVEPresentation.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVETCPConnection.h"
+				RelativePath="..\..\include\common\EVETCPConnection.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVETCPServer.h"
+				RelativePath="..\..\include\common\EVETCPServer.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVEUtils.h"
+				RelativePath="..\..\include\common\EVEUtils.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVEVersion.h"
+				RelativePath="..\..\include\common\EVEVersion.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVEZeroCompress.h"
+				RelativePath="..\..\include\common\EVEZeroCompress.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\GaMath.h"
+				RelativePath="..\..\include\common\GaMath.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\GaPreReqs.h"
+				RelativePath="..\..\include\common\GaPreReqs.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\GaTypes.h"
+				RelativePath="..\..\include\common\GaTypes.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\misc.h"
+				RelativePath="..\..\include\common\misc.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\MiscFunctions.h"
+				RelativePath="..\..\include\common\MiscFunctions.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\Mutex.h"
+				RelativePath="..\..\include\common\Mutex.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\packet_dump.h"
+				RelativePath="..\..\include\common\packet_dump.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\packet_functions.h"
+				RelativePath="..\..\include\common\packet_functions.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\packet_types.h"
+				RelativePath="..\..\include\common\packet_types.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\queue.h"
+				RelativePath="..\..\include\common\queue.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\RowsetReader.h"
+				RelativePath="..\..\include\common\RowsetReader.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\RowsetToSQL.h"
+				RelativePath="..\..\include\common\RowsetToSQL.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\seperator.h"
+				RelativePath="..\..\include\common\seperator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\StreamPacketizer.h"
+				RelativePath="..\..\include\common\StreamPacketizer.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\TCPBasicServer.h"
+				RelativePath="..\..\include\common\TCPBasicServer.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\TCPConnection.h"
+				RelativePath="..\..\include\common\TCPConnection.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\TCPServer.h"
+				RelativePath="..\..\include\common\TCPServer.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\timer.h"
+				RelativePath="..\..\include\common\timer.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\types.h"
+				RelativePath="..\..\include\common\types.h"
 				>
 			</File>
 			<Filter
 				Name="Python"
 				>
 				<File
-					RelativePath="..\..\src\common\PyDumpVisitor.h"
+					RelativePath="..\..\include\common\PyDumpVisitor.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\PyLookupDump.h"
+					RelativePath="..\..\include\common\PyLookupDump.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\PyPacket.h"
+					RelativePath="..\..\include\common\PyPacket.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\PyRep.h"
+					RelativePath="..\..\include\common\PyRep.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\PyUtils.h"
+					RelativePath="..\..\include\common\PyUtils.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\PyVisitor.h"
+					RelativePath="..\..\include\common\PyVisitor.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\PyXMLGenerator.h"
+					RelativePath="..\..\include\common\PyXMLGenerator.h"
 					>
 				</File>
 			</Filter>
@@ -476,11 +476,11 @@
 				Name="Log"
 				>
 				<File
-					RelativePath="..\..\src\common\logsys.h"
+					RelativePath="..\..\include\common\logsys.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\logtypes.h"
+					RelativePath="..\..\include\common\logtypes.h"
 					>
 				</File>
 			</Filter>
@@ -493,11 +493,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVEMarshal.h"
+				RelativePath="..\..\include\common\EVEMarshal.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVEMarshalOpcodes.h"
+				RelativePath="..\..\include\common\EVEMarshalOpcodes.h"
 				>
 			</File>
 			<File
@@ -505,11 +505,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\EVEUnmarshal.h"
+				RelativePath="..\..\include\common\EVEUnmarshal.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\MarshalReferenceMap.h"
+				RelativePath="..\..\include\common\MarshalReferenceMap.h"
 				>
 			</File>
 		</Filter>
