@@ -121,7 +121,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\include\common;..\..\include\server;..\..\dep\mysql\include;..\..\dep\zlib\include;."
+				AdditionalIncludeDirectories="..\..\include\common;..\..\include\server;..\..\dep\mysql\include;..\..\dep\zlib\include;..\..\dep\tinyxml;."
 				PreprocessorDefinitions="WIN32;USE_RUNTIME_EXCEPTIONS"
 				ExceptionHandling="2"
 				RuntimeLibrary="2"
@@ -144,7 +144,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="zlib.lib libmysql.lib wsock32.lib Advapi32.lib user32.lib"
+				OutputFile="..\..\bin\$(ConfigurationName)\$(ProjectName).exe"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\dep\mysql\lib\opt;..\..\dep\zlib\lib;..\..\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

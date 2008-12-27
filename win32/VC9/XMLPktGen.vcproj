@@ -117,8 +117,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\dep\mysql\include;..\..\dep\zlib\include;..\..\dep\tinyxml;..\..\include\common"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="..\..\dep\mysql\include;..\..\dep\zlib\include;..\..\dep\tinyxml;..\..\include\common;..\..\include\xmlpktgen"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"

@@ -52,7 +52,7 @@ void PyLogsysDump::_print(const char *str, ...) {
 		return;	//calling log_message directly forces us to mask it
 	va_list l;
 	va_start(l, str);
-	int len = strlen(top())+strlen(str)+2;
+	size_t len = strlen(top())+strlen(str)+2;
 	char *buf = new char[len];
 	snprintf(buf, len, "%s%s", top(), str);
 	log_messageVA(m_type, buf, l);
@@ -78,7 +78,7 @@ PyFileDump::PyFileDump(FILE *into, bool full_hex)
 void PyFileDump::_print(const char *str, ...) {
 	va_list l;
 	va_start(l, str);
-	int len = strlen(top())+strlen(str)+2;
+	size_t len = strlen(top())+strlen(str)+2;
 	char *buf = new char[len];
 	snprintf(buf, len, "%s%s\n", top(), str);
 	vfprintf(m_into, buf, l);
