@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\dep\mysql\include;..\..\dep\zlib\include;."
+				AdditionalIncludeDirectories="..\..\dep\mysql\include;..\..\dep\zlib\include;..\..\dep\tinyxml;..\..\include\common;."
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;USE_RUNTIME_EXCEPTIONS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

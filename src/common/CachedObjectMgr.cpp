@@ -23,16 +23,14 @@
 	Author:		Zhur
 */
 
-
 #include "CachedObjectMgr.h"
-
+#include "../common/crc32.h"
 #include "PyRep.h"
 #include "logsys.h"
 #include "Base64.h"
 #include "misc.h"
 #include "EVEMarshal.h"
 #include "packet_functions.h"
-#include "crc32.h"
 #include "EVEUtils.h"
 #include "EVEMarshalOpcodes.h"
 #include "PyDumpVisitor.h"

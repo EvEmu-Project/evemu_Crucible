@@ -24,7 +24,7 @@
 */
 
 #include "common.h"
-#include "crc32.h"
+#include "../common/crc32.h"
 #include <assert.h>
 #include <memory.h>
 
