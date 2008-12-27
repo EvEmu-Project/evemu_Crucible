@@ -517,27 +517,27 @@
 			Name="tinyxml"
 			>
 			<File
-				RelativePath="..\..\src\dep\tinyxml\tinystr.cpp"
+				RelativePath="..\..\dep\tinyxml\tinystr.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\dep\tinyxml\tinystr.h"
+				RelativePath="..\..\dep\tinyxml\tinystr.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\dep\tinyxml\tinyxml.cpp"
+				RelativePath="..\..\dep\tinyxml\tinyxml.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\dep\tinyxml\tinyxml.h"
+				RelativePath="..\..\dep\tinyxml\tinyxml.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\dep\tinyxml\tinyxmlerror.cpp"
+				RelativePath="..\..\dep\tinyxml\tinyxmlerror.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\dep\tinyxml\tinyxmlparser.cpp"
+				RelativePath="..\..\dep\tinyxml\tinyxmlparser.cpp"
 				>
 			</File>
 		</Filter>
