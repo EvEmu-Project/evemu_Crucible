@@ -47,7 +47,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="D:\Dev\Evemu\trunk\3rdparty\mysql\include;."
+				AdditionalIncludeDirectories="..\..\dep\mysql\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;USE_RUNTIME_EXCEPTIONS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -112,7 +112,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="."
+				AdditionalIncludeDirectories="..\..\dep\mysql\include"
 				PreprocessorDefinitions="WIN32;USE_RUNTIME_EXCEPTIONS"
 				RuntimeLibrary="2"
 				WarningLevel="3"

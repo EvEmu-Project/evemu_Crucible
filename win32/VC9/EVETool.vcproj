@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\src\common;."
+				AdditionalIncludeDirectories="..\..\include\common;."
 				PreprocessorDefinitions="WIN32;_DEBUG;NO_READLINE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\src\common;."
+				AdditionalIncludeDirectories="..\..\include\common;."
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;NO_READLINE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"

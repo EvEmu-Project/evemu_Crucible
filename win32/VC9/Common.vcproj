@@ -102,6 +102,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\dep\mysql\include;..\..\dep\zlib\include;."
 				PreprocessorDefinitions="WIN32;USE_RUNTIME_EXCEPTIONS"
 				RuntimeLibrary="2"
 				WarningLevel="3"
