@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\common;..\..\server;..\..\dep\mysql\include;..\..\dep\zlib\include;."
+				AdditionalIncludeDirectories="..\..\src\common;..\..\src\server;..\..\dep\mysql\include;..\..\dep\zlib\include;."
 				PreprocessorDefinitions="WIN32;_DEBUG;USE_RUNTIME_EXCEPTIONS"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
@@ -121,7 +121,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\common;..\..\server;."
+				AdditionalIncludeDirectories="..\..\src\common;..\..\src\server;."
 				PreprocessorDefinitions="WIN32;USE_RUNTIME_EXCEPTIONS"
 				ExceptionHandling="2"
 				RuntimeLibrary="2"
