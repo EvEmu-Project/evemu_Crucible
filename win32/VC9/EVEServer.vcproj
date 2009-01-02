@@ -261,6 +261,10 @@
 					RelativePath="..\..\src\server\account\AuthService.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\server\account\ClientStatMgrService.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="admin"
@@ -423,6 +427,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\server\inventory\InvBrokerService.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\server\inventory\InventoryBound.cpp"
 					>
 				</File>
 				<File
@@ -725,7 +733,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\src\server\Client.h"
+				RelativePath="..\..\include\server\Client.h"
 				>
 			</File>
 			<File
@@ -793,10 +801,6 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\account\AuthService.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\server\account\ClientStatMgrService.cpp"
 					>
 				</File>
 				<File
@@ -989,10 +993,6 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\inventory\InvBrokerService.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\server\inventory\InventoryBound.cpp"
 					>
 				</File>
 				<File
@@ -1261,6 +1261,34 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\tutorial\TutorialService.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="mining"
+				>
+				<File
+					RelativePath="..\..\include\server\mining\Asteroid.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\mining\AsteroidBeltManager.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\mining\MiningCommands.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\mining\MiningDB.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\mining\ReprocessingDB.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\mining\ReprocessingService.h"
 					>
 				</File>
 			</Filter>

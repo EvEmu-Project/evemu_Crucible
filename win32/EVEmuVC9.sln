@@ -18,6 +18,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "VC9\Common.vcproj
 		{93BD74E6-DB5F-4FE6-B31A-9911BDDEC1C3} = {93BD74E6-DB5F-4FE6-B31A-9911BDDEC1C3}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EVETool", "VC9\EVETool.vcproj", "{A8DC0868-C2AA-4C5A-BAE3-F3CB77D4B3A6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{93BD74E6-DB5F-4FE6-B31A-9911BDDEC1C3} = {93BD74E6-DB5F-4FE6-B31A-9911BDDEC1C3}
+		{F472E2F2-3CA4-4E09-B4D5-0783A4A4A893} = {F472E2F2-3CA4-4E09-B4D5-0783A4A4A893}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -40,6 +46,10 @@ Global
 		{F472E2F2-3CA4-4E09-B4D5-0783A4A4A893}.Debug|Win32.Build.0 = Debug|Win32
 		{F472E2F2-3CA4-4E09-B4D5-0783A4A4A893}.Release|Win32.ActiveCfg = Release|Win32
 		{F472E2F2-3CA4-4E09-B4D5-0783A4A4A893}.Release|Win32.Build.0 = Release|Win32
+		{A8DC0868-C2AA-4C5A-BAE3-F3CB77D4B3A6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A8DC0868-C2AA-4C5A-BAE3-F3CB77D4B3A6}.Debug|Win32.Build.0 = Debug|Win32
+		{A8DC0868-C2AA-4C5A-BAE3-F3CB77D4B3A6}.Release|Win32.ActiveCfg = Release|Win32
+		{A8DC0868-C2AA-4C5A-BAE3-F3CB77D4B3A6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

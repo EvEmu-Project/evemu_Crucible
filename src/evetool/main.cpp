@@ -46,7 +46,7 @@
 #include "../common/RowsetToSQL.h"
 #include "../common/packet_types.h"
 #include "../common/DestinyBinDump.h"
-#include "../packets/General.h"
+#include "../../packets/General.h"
 #include "TriFile.h"
 #include <queue>
 #ifndef WIN32
