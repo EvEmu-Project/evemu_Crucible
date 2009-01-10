@@ -76,8 +76,8 @@ uint64 Win32TimeNow() {
 }
 
 
-int strcpy_fake_unicode(uint16 *into, const char *from) {
-	int r;
+size_t strcpy_fake_unicode(wchar_t *into, const char *from) {
+	size_t r;
 	for(r = 0; *from != '\0'; r++) {
 		*into = *from;
 		into++;

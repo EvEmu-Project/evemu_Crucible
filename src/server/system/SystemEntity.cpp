@@ -134,14 +134,16 @@ const GPoint &ItemSystemEntity::GetPosition() const {
 
 PyRepDict *ItemSystemEntity::MakeSlimItem() const {
 	PyRepDict *slim = new PyRepDict();
-	slim->add("itemID", new PyRepInteger(m_self->itemID()));
-	slim->add("typeID", new PyRepInteger(m_self->typeID()));
-	slim->add("ownerID", new PyRepInteger(m_self->ownerID()));
+	slim->add("itemID", new PyRepInteger(Item()->itemID()));
+	slim->add("typeID", new PyRepInteger(Item()->typeID()));
+	slim->add("ownerID", new PyRepInteger(Item()->ownerID()));
 	return(slim);
 }
 
 uint32 ItemSystemEntity::GetID() const {
-	return(m_self->itemID());
+	if(Item() == NULL)
+		return(0);
+	return(Item()->itemID());
 }
 
 DynamicSystemEntity::DynamicSystemEntity(DestinyManager *dm, InventoryItem *self)
