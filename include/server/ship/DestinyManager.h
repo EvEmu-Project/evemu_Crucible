@@ -38,6 +38,10 @@ class PyRepList;
 class PyRepTuple;
 class SystemBubble;
 
+extern const double SPACE_FRICTION;
+extern const double SPACE_FRICTION_SQUARED;
+extern const double TIC_DURATION_IN_SECONDS;
+
 //this object manages an entity's position in the system.
 //NOTE: we currently have no inertial mass
 class DestinyManager {
@@ -56,6 +60,7 @@ public:
 	void SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::vector<PyRepTuple *> &events, bool self_only) const;
 	
 	const GPoint &GetPosition() const { return(m_position); }
+	const GVector &GetVelocity() const { return(m_velocity); }
 	
 	//called whenever an entity is going away and can no longer be used as a target
 	void EntityRemoved(SystemEntity *who);

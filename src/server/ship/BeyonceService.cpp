@@ -295,7 +295,7 @@ PyResult BeyonceBound::Handle_GotoDirection(PyCallArgs &call) {
 }
 
 PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
-	Call_TwoIntegerArgs arg;
+	Call_Orbit arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
 		return NULL;
@@ -307,9 +307,9 @@ PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	SystemEntity *entity = system->get(arg.arg1);
+	SystemEntity *entity = system->get(arg.entityID);
 	if(entity == NULL) {
-		_log(CLIENT__ERROR, "%s: Unable to find entity %lu to Orbit.", call.client->GetName(), arg.arg1);
+		_log(CLIENT__ERROR, "%s: Unable to find entity %lu to Orbit.", call.client->GetName(), arg.entityID);
 		return NULL;
 	}
 	
@@ -319,7 +319,7 @@ PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 		return NULL;
 	}
 
-	destiny->Orbit(entity, arg.arg2);
+	destiny->Orbit(entity, arg.distance);
 
 	return NULL;
 }

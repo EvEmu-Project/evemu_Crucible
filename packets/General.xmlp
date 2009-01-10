@@ -587,6 +587,13 @@ CallGetGuests
   </InlineTuple>
 </element>
 
+<element name="Call_Orbit">
+  <InlineTuple>
+    <int name="entityID" />
+    <real name="distance" />
+  </InlineTuple>
+</element>
+
 <element name="Notify_OnRemoteMessage">
   <InlineTuple>
     <string name="msgType" />

@@ -27,10 +27,11 @@
 
 using namespace Destiny;
 
+const double SPACE_FRICTION = 1.0e+6;		//straight from client. Do not change.
+const double SPACE_FRICTION_SQUARED = SPACE_FRICTION*SPACE_FRICTION;
+const double TIC_DURATION_IN_SECONDS = 1.0;	//straight from client. Do not change.
+
 static const double DESTINY_UPDATE_RANGE = 1.0e8;	//totally made up. a more complex spatial partitioning system is needed.
-static const double SPACE_FRICTION = 1.0e6;			//straight from client. Do not change.
-static const double SPACE_FRICTION_SQUARED = SPACE_FRICTION*SPACE_FRICTION;
-static const double TIC_DURATION_IN_SECONDS = 1.0;	//straight from client. Do not change.
 static const double FOLLOW_BAND_WIDTH = 100.0f;	//totally made up
 
 uint32 DestinyManager::m_stamp(40000);	//completely arbitrary starting point.
@@ -305,21 +306,16 @@ void DestinyManager::_MoveAccel(const GVector &calc_acceleration) {
 		m_targetPoint.x, m_targetPoint.y, m_targetPoint.z,
 		calc_acceleration.x, calc_acceleration.y, calc_acceleration.z);
 
-	double mass_times_agility = m_mass * m_shipAgility;
+	double mass_agility_friction = m_mass * m_shipAgility / SPACE_FRICTION;
 	
-	GVector velocity_change_and_adjust = 
-		(calc_acceleration * TIC_DURATION_IN_SECONDS) + m_velocity*(1 - m_velocityAdjuster);
+	GVector max_velocity = calc_acceleration * mass_agility_friction;
 	
-	GVector max_velocity_times_friction = calc_acceleration * mass_times_agility;	//m*kg*agi/s^2 = m*fric/s
-	
-	GVector friction_application = max_velocity_times_friction * (m_velocityAdjuster - 1);	//m*kg*agi/s^2 = m*fric/s
-	
-	GVector position_change_sum = 
-		friction_application/SPACE_FRICTION + velocity_change_and_adjust;
-	position_change_sum *= mass_times_agility/SPACE_FRICTION;	//yeilds m
 
-	GVector position_adjusted = position_change_sum + m_position;	//m
-	m_position = position_adjusted;
+	// position:
+
+	m_position +=
+		max_velocity * TIC_DURATION_IN_SECONDS
+		- (max_velocity - m_velocity) * (1 - m_velocityAdjuster) * mass_agility_friction;
 	
 	
 	//now on to velocity:
@@ -327,14 +323,8 @@ void DestinyManager::_MoveAccel(const GVector &calc_acceleration) {
 	
 
 	//velocity_to_m_us:
-	GVector maxVelocityVector = max_velocity_times_friction / SPACE_FRICTION;	//m/s
-	
-	GVector allowed_acceleration = maxVelocityVector - m_velocity;	//m/s
-	
-	GVector allowed_acceleration_adjusted = allowed_acceleration * m_velocityAdjuster;	//m/s
-	
-	GVector velocity_adjusted = maxVelocityVector - allowed_acceleration_adjusted;  //m/s
-	m_velocity = velocity_adjusted;
+	m_velocity =
+		max_velocity - (max_velocity - m_velocity) * m_velocityAdjuster;
 
 
 	
