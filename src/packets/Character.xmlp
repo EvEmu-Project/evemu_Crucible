@@ -1,0 +1,175 @@
+
+
+<Elements>
+
+<include file="General.h" />
+	
+<element name="RspGetCharactersToSelect">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+		<element type="util_Rowset" name="chars" />
+    </InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="CallGetCharacterToSelect">            
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="charID" />
+  </InlineTuple>
+</element>
+
+<element name="RspGetCharacterToSelect">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+	  <element type="util_Rowset" name="character" />
+    </InlineSubStream>
+  </InlineTuple>     
+</element>
+
+<element name="RspGetCharCreationInfo">
+  <InlineTuple>           
+    <!-- 0 -->
+    <InlineSubStream>
+	  <strdict name="caches" type="element" element="objectCaching_CachedObject_spec" />
+	</InlineSubStream>
+  </InlineTuple>
+</element>
+
+<element name="CallSelectCharacterID">               
+  <InlineTuple>
+    <!-- 0 -->
+    <int name="charID" />
+	<!-- 1 -->
+	<!-- may be boolean or integer -->
+	<raw name="loadTutorialDungeon" />
+	<!-- 2 -->
+	<raw name="unknown" />
+  </InlineTuple>
+</element>
+
+
+
+
+
+<element name="CallValidateName">
+  <InlineTuple>
+    <!-- 0 -->
+    <string name="name" />
+  </InlineTuple>
+</element>
+
+<element name="RspValidateName">
+  <InlineTuple>
+    <!-- 0 -->
+    <InlineSubStream>
+      <bool name="result" />
+    </InlineSubStream>       
+  </InlineTuple>
+</element>
+
+<element name="CallCreateCharacter">
+  <InlineTuple>
+    <!-- 0 -->
+    <string name="name" />
+    <!-- 1 -->
+    <int name="bloodlineID" />
+    <!-- 2 -->
+    <int name="genderID" />
+    <!-- 3 -->
+    <int name="ancestryID" />
+	<!-- 4: schoolID -->
+	<none />
+	<!-- 5: departmentID -->
+	<none />
+	<!-- 6: fieldID -->
+	<none />
+	<!-- 7: specialityID -->
+	<none />
+    <!-- 8 -->
+    <int name="IntelligenceAdd" />
+    <!-- 9 -->
+    <int name="CharismaAdd" />
+    <!-- 10 -->
+    <int name="PerceptionAdd" />
+    <!-- 11 -->
+    <int name="MemoryAdd" />    
+    <!-- 12 -->
+    <int name="WillpowerAdd" />
+    <!-- 13 -->
+    <strdict name="appearance" />
+  </InlineTuple>                
+</element>
+
+<element name="RspCreateCharacter">
+  <InlineTuple>                 
+    <!-- 0 -->  
+    <InlineSubStream>
+      <int name="charID" />
+    </InlineSubStream>      
+  </InlineTuple>                   
+</element>
+
+<element name="NotifyOnCharNowInStation">
+  <InlineTuple>
+	  <InlineTuple>
+		  <!-- 0 -->
+		  <int name="charID" />
+		  <!-- 1 -->
+		  <int name="corpID" />
+		  <!-- 2 -->
+		  <int name="allianceID" default="0" none_marker="0" />
+		  <!-- 3 -->
+		  <int name="unknown" default="0" none_marker="0" />
+	  </InlineTuple>
+  </InlineTuple>
+</element>
+
+<element name="NotifyOnCharNoLongerInStation">
+  <InlineTuple>
+    <InlineTuple>
+      <!-- 0 -->
+      <int name="charID" />
+      <!-- 1 -->
+      <int name="corpID" />
+      <!-- 2 -->
+      <int name="allianceID" default="0" none_marker="0" />
+      <!-- 3 -->
+      <int name="unknown" default="0" none_marker="0" />
+    </InlineTuple>
+  </InlineTuple>
+</element>
+
+<element name="Call_SetNote">
+	<InlineTuple>
+		<int name="itemID" />
+		<string name="note" />
+	</InlineTuple>
+</element>
+
+<element name="Call_AddOwnerNote">
+  <InlineTuple>
+    <string name="label" />
+    <string name="content" />
+  </InlineTuple>
+</element>
+
+<element name="Call_EditOwnerNote">
+  <InlineTuple>
+    <int name="noteID" />
+    <string name="label" />
+    <string name="content" />
+  </InlineTuple>
+</element>
+
+<element name="Call_BatchCertificateUpdate">
+  <InlineTuple>
+    <primdict name="update" key="uint32" pykey="Integer" value="uint32" pyvalue="Integer" />
+  </InlineTuple>
+</element>
+
+</Elements>
+
+

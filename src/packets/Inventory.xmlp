@@ -1,0 +1,416 @@
+
+
+<Elements>
+
+<element name="NotifyOnItemChange">
+  <InlineTuple>
+    <!-- 0: this is a util.Row -->
+    <raw name="itemRow" />
+    <!-- 1: map from row index (ix* constants) to the old value for the item.  -->
+    <intdict name="changes" />
+  </InlineTuple>
+</element>
+
+<element name="NotifyOnSkillStartTraining">
+  <InlineTuple>
+    <int name="itemID" />
+    <int64 name="endOfTraining" />
+  </InlineTuple>
+</element>
+
+<element name="NotifyOnSkillTrainingStopped">
+  <InlineTuple>
+    <int name="itemID" />
+    <int64 name="endOfTraining" />
+  </InlineTuple>
+</element>
+
+<element name="CallSetLabel">
+  <InlineTuple>
+      <int name="itemID" />
+      <string name="itemName" />
+  </InlineTuple>
+</element>
+
+<element name="InvBroker_BindArgs">
+  <InlineTuple>
+      <int name="entityID" />
+      <raw name="unknown1" />
+  </InlineTuple>
+</element>
+
+<element name="Inventory_GetInventory">
+  <InlineTuple>
+      <int name="container" />
+      <raw name="argument" />
+  </InlineTuple>
+</element>
+
+<element name="Call_TrashItems">
+	<InlineTuple>
+		<intlist name="items" />
+		<int name="locationID" />
+	</InlineTuple>
+</element>
+
+<element name="Inventory_CallAdd">
+  <InlineTuple>
+      <int name="itemID" />
+      <int name="quantity" />
+      <int name="flag" />
+  </InlineTuple>
+</element>
+
+<element name="Inventory_CallAddCargoContainer">
+  <InlineTuple>
+    <int name="itemID"/>
+    <int name="quantity"/>
+  </InlineTuple>
+</element>
+
+<element name="Inventory_CallMultiAdd">
+  <InlineTuple>
+      <intlist name="itemIDs" />
+      <int name="quantity" none_marker="1" /> <!-- almost always 1 on a multiadd -->
+      <int name="flag" />
+  </InlineTuple>
+</element>
+
+<element name="Inventory_CallReplaceCharges">
+  <InlineTuple>
+      <int name="flag" />
+      <int name="itemID" />
+      <int name="quantity" />
+  </InlineTuple>
+</element>
+
+<element name="Inventory_CallMultiMergeElement">
+    <InlineTuple>
+        <int name="draggedItemID"/>
+        <int name="stationaryItemID"/>
+        <int name="draggedQty"/>
+    </InlineTuple>
+</element>
+
+<element name="Inventory_CallMultiMerge">
+    <InlineTuple>
+        <list name="MMElements"/>
+    </InlineTuple>
+</element>
+
+<element name="Inventory_CallStackAll">
+    <InlineTuple none_marker="0">
+        <int name="locationFlag" none_marker="0"/>
+    </InlineTuple>
+</element>
+
+<element name="Call_GetJournal">
+  <InlineTuple>
+    <int name="accountKey" />
+			<int64 name="fromDate" none_marker="0"/>
+			<!-- may be None (but probably wont be) -->
+			<int name="refTypeID" none_marker="0"/>
+			<!-- may be None -->
+			<raw name="corpAccount" none_marker="0"/>
+			<!-- soft bool -->
+			<raw name="refID"/>
+			<!-- may be None -->
+    <int name="rev" />
+  </InlineTuple>
+</element>
+
+<element name="Call_AssembleShip">
+  <InlineTuple>
+    <intlist name="items" />
+  </InlineTuple>
+</element>
+
+<element name="EntityEffectState">
+  <InlineList>
+      <!-- the first 7 fields are the standard effect `environment`
+         fields indexed by ENV_IDX_*, see OnGodmaShipEffect -->
+      <!-- Begin Environment -->
+        <int name="env_itemID" />
+        <int name="env_charID" />
+        <int name="env_shipID" />
+	    <!-- optional -->
+	    <int name="env_target" none_marker="0" default="0" />
+	    <!-- can be complex -->
+	    <raw name="env_other" />
+	    <!-- not sure what data goes in here. -->
+	    <list name="env_area"/>
+	    <int name="env_effectID" />
+	  <!-- End Environment -->
+	  <int64 name="startTime" />
+	  <!-- saw 0x7 placeholder -->
+	  <int name="duration"/>
+	  <!-- saw 0 -->
+	  <int name="repeat"/>
+	  <!-- randomSeed -->
+	  <raw name="randomSeed" />
+  </InlineList>
+</element>
+
+<element name="Rsp_CommonGetInfo_Entry">
+    <InlineList name="line">
+      <int name="itemID" />
+      <!-- this is an EntityRowObject -->
+      <raw name="invItem" />
+      <!-- this maps effectType to EntityEffectState -->
+      <intdict name="activeEffects" />
+      <!-- maps attribute ID to it's value, which may be int or real -->
+      <intdict name="attributes" />
+      <int64 name="time" />
+    </InlineList>
+</element>
+
+<element name="Rsp_ItemGetInfo">
+  <object type="util.Row">
+	<InlineDict>
+	  <IDEntry key="header">
+		<InlineList name="header">
+		  <string name="head_itemID" default="itemID" />
+		  <string name="head_invItem" default="invItem" />
+		  <string name="head_activeEffects" default="activeEffects" />
+		  <string name="head_attributes" default="attributes" />
+		  <string name="head_time" default="time" />
+        </InlineList>
+	  </IDEntry>
+	  <IDEntry key="line">
+		<element name="entry" type="Rsp_CommonGetInfo_Entry" />
+	  </IDEntry>
+	</InlineDict>
+  </object>
+</element>
+
+<element name="Rsp_CommonGetInfo">
+  <object type="util.IndexRowset">
+	<InlineDict>
+	  <IDEntry key="header">
+		<InlineList name="header">
+		  <string name="head_itemID" default="itemID" />
+		  <string name="head_invItem" default="invItem" />
+		  <string name="head_activeEffects" default="activeEffects" />
+		  <string name="head_attributes" default="attributes" />
+		  <string name="head_time" default="time" />
+        </InlineList>
+	  </IDEntry>
+	  <IDEntry key="RowClass">
+		<string name="rowclass" type1="true" default="util.Row"/>
+	  </IDEntry>
+	  <IDEntry key="idName">
+		<string name="idName" default="itemID" />
+	  </IDEntry>
+	  <IDEntry key="items">
+          <!-- For ShipGetInfo: contains a single Rsp_CommonGetInfo_Entry for the ship -->
+          <!-- For CharGetInfo: contains an Rsp_CommonGetInfo_Entry for the char and each of their skills (and implants?) -->
+		<intdict name="items" />
+	  </IDEntry>
+	</InlineDict>
+  </object>
+</element>
+
+<element name="EntityRowObject">
+  <object type="util.Row">
+	<InlineDict>
+	  <IDEntry key="header">
+		<InlineList name="header">
+		  <string name="head_itemID" default="itemID" />
+		  <string name="head_typeID" default="typeID" />
+		  <string name="head_ownerID" default="ownerID" />
+		  <string name="head_locationID" default="locationID" />
+		  <string name="head_flag" default="flag" />
+		  <string name="head_contraband" default="contraband" />
+		  <string name="head_singleton" default="singleton" />
+		  <string name="head_quantity" default="quantity" />
+		  <string name="head_groupID" default="groupID" />
+		  <string name="head_categoryID" default="categoryID" />
+		  <string name="head_customInfo" default="customInfo" />
+		</InlineList>
+	  </IDEntry>
+	  <IDEntry key="line">
+		<InlineList name="line">
+		  <int name="itemID" />
+		  <int name="typeID" />
+		  <int name="ownerID" />
+		  <int name="locationID" />
+		  <int name="flag" />
+		  <int name="contraband" />
+		  <int name="singleton" />
+		  <int name="quantity" />
+		  <int name="groupID" />
+		  <int name="categoryID" />
+		  <string name="customInfo" none_marker="" />
+		</InlineList>
+	  </IDEntry>
+	</InlineDict>
+  </object>
+</element>
+
+<element name="Call_GetOptionsForItemTypes">
+  <InlineTuple>
+	<intdict name="typeIDs" />
+  </InlineTuple>
+</element>
+
+<element name="Rsp_GetOptionsForItemTypes">
+	<intdict name="typeIDs" />
+</element>
+
+<element name="Rsp_GetOptionsForItemTypes_Arg">
+	<object type="util.KeyVal">
+		<InlineDict>
+			<IDEntry key="isRecyclable">
+				<bool name="isRecyclable" />
+			</IDEntry>
+			<IDEntry key="isRefinable">
+				<bool name="isRefinable" />
+			</IDEntry>
+		</InlineDict>
+	</object>
+</element>
+
+<element name="Rsp_GetReprocessingInfo">
+	<InlineDict>
+		<IDEntry key="wetake">
+			<InlineList name="wetake">
+				<real name="tax" />
+				<real name="reputation" />
+			</InlineList>
+		</IDEntry>
+		<IDEntry key="yield">
+			<real name="yield" />
+		</IDEntry>
+		<IDEntry key="combinedyield">
+			<real name="combinedyield" />
+		</IDEntry>
+	</InlineDict>
+</element>
+
+<!-- this is ugly, but we dont really have a better way to deal with it right now. -->
+<!-- Don't change headerX ! -->
+<element name="Rsp_GetQuote">
+	<object type="util.Row">
+		<InlineDict>
+			<IDEntry key="header">
+				<InlineList name="header">
+					<string name="header1" default="quantityToProcess" />
+					<string name="header2" default="leftOvers" />
+					<string name="header3" default="playerStanding" />
+					<string name="header4" default="recoverables" />
+				</InlineList>
+			</IDEntry>
+			<IDEntry key="line">
+				<InlineList name="line">
+					<int name="quantityToProcess" />
+					<int name="leftOvers" />
+					<real name="playerStanding" />
+					<object name="recoverables"  type="util.Rowset">
+						<InlineDict>
+							<IDEntry key="header">
+								<InlineList name="header">
+									<string name="header5" default="typeID" />
+									<string name="header6" default="unrecoverable" />
+									<string name="header7" default="station" />
+									<string name="header8" default="client" />
+								</InlineList>
+							</IDEntry>
+							<IDEntry key="RowClass">
+								<string name="RowClass" default="util.Row" type1="true" />
+							</IDEntry>
+							<IDEntry key="lines">
+								<list name="lines" />
+							</IDEntry>
+						</InlineDict>
+					</object>
+				</InlineList>
+			</IDEntry>
+		</InlineDict>
+	</object>
+</element>
+
+<element name="Rsp_GetQuotes">
+	<intdict name="quotes" />
+</element>
+
+<element name="Rsp_GetQuote_Recoverables_Line">
+	<InlineList>
+		<int name="typeID" />
+		<int name="unrecoverable" />
+		<int name="station" />
+		<int name="client" />
+	</InlineList>
+</element>
+
+<element name="Call_Drop2">
+  <InlineTuple>
+    <intlist name="toDrop" />
+    <int name="ownerID" />
+  </InlineTuple>
+</element>
+
+<element name="Call_Reprocess">
+	<InlineTuple>
+		<intlist name="items" />
+		<int name="ownerID" none_marker="0" />
+		<int name="flag" none_marker="0" />
+		<bool name="unknown" />
+		<strlist name="skipChecks" />
+	</InlineTuple>
+</element>
+
+<element name="Call_GetQuotes">
+	<InlineTuple>
+		<intlist name="itemIDs" />
+	</InlineTuple>
+</element>
+
+<element name="Rsp_GetBlueprintAttributes">
+	<InlineDict>
+		<IDEntry key="blueprintID">
+			<int name="blueprintID" />
+		</IDEntry>
+		<IDEntry key="productTypeID">
+			<int name="productTypeID" />
+		</IDEntry>
+		<IDEntry key="copy">
+			<bool name="copy" />
+		</IDEntry>
+		<IDEntry key="productivityLevel">
+			<int name="productivityLevel" />
+		</IDEntry>
+		<IDEntry key="materialLevel">
+			<int name="materialLevel" />
+		</IDEntry>
+		<IDEntry key="wastageFactor">
+			<real name="wastageFactor" />
+		</IDEntry>
+		<IDEntry key="manufacturingTime">
+			<int name="manufacturingTime" />
+		</IDEntry>
+		<IDEntry key="maxProductionLimit">
+			<int name="maxProductionLimit" />
+		</IDEntry>
+		<IDEntry key="licensedProductionRunsRemaining">
+			<int name="licensedProductionRunsRemaining" />
+		</IDEntry>
+		<IDEntry key="researchMaterialTime">
+			<int name="researchMaterialTime" />
+		</IDEntry>
+		<IDEntry key="researchTechTime">
+			<int name="researchTechTime" />
+		</IDEntry>
+		<IDEntry key="researchProductivityTime">
+			<int name="researchProductivityTime" />
+		</IDEntry>
+		<IDEntry key="researchCopyTime">
+			<int name="researchCopyTime" />
+		</IDEntry>
+	</InlineDict>
+</element>
+
+
+
+</Elements>
+
+
