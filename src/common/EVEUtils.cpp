@@ -29,7 +29,7 @@
 
 #include "../server/inventory/InventoryItem.h"
 
-#include "../../packets/General.h"
+#include "../packets/General.h"
 
 static const uint64 SECS_BETWEEN_EPOCHS = 11644473600LL;
 static const uint64 SECS_TO_100NS = 10000000; // 10^7

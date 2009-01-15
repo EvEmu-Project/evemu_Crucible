@@ -1,5 +1,6 @@
 INCLUDES += -I$(srcdir)/../3rdparty/
-INCLUDES += -I$(srcdir)/../common/
+INCLUDES += -I$(srcdir)/../../include/common/
+INCLUDES += -I$(srcdir)/../../include/server/
 
 noinst_LIBRARIES = \
 	libaccount.a \
@@ -343,7 +344,7 @@ server_LDADD = \
 	-ldl 
 
 server_LDFLAGS = \
-	-L$(srcdir)/../3rdparty/tinyxml \
+	-L$(srcdir)/../../dep/tinyxml \
 	-L$(srcdir)/../server/ \
 	-L$(srcdir)/../common/ \
 	-L$(srcdir)/../packets/ \

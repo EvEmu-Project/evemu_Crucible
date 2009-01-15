@@ -1,5 +1,7 @@
 INCLUDES += -I$(srcdir)/../3rdparty/
-INCLUDES += -I$(srcdir)/../common/
+INCLUDES += -I$(srcdir)/../../include/common/
+INCLUDES += -I$(srcdir)/../../include/xmlpktgen/
+INCLUDES += -I$(srcdir)/../../dep/tinyxml/
 
 bin_PROGRAMS = xmlpktgen
 
@@ -45,7 +47,7 @@ xmlpktgen_LDADD = \
 
 xmlpktgen_LDFLAGS = \
 	-L$(srcdir)/../common/ \
-	-L$(srcdir)/../3rdparty/tinyxml \
+	-L$(srcdir)/../../dep/tinyxml \
 	-rdynamic \
 	@MYSQL_LDFLAGS@ \
 	@AM_LDFLAGS@

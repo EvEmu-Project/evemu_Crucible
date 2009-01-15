@@ -135,7 +135,7 @@ AC_CONFIG_FILES([
 	dep/tinyxml/Makefile
 	src/common/Makefile
 	src/xmlpktgen/Makefile
-	packets/Makefile
+	src/packets/Makefile
 	src/collector/Makefile
 	src/evetool/Makefile
 	src/server/Makefile

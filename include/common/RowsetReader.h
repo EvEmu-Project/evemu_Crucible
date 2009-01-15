@@ -28,7 +28,7 @@
 
 #include <map>
 #include <string>
-#include "../../packets/General.h"
+#include "../../src/packets/General.h"
 #include "PyVisitor.h"
 
 /*

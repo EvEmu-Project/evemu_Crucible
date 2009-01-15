@@ -26,7 +26,7 @@
 #include "PyRep.h"
 #include "dbcore.h"
 
-#include "../../packets/General.h"
+#include "../packets/General.h"
 
 //this is such crap
 /*StringContentsType ClassifyStringContents(const char *str) {

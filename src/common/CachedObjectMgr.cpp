@@ -35,7 +35,7 @@
 #include "EVEMarshalOpcodes.h"
 #include "PyDumpVisitor.h"
 
-#include "../../packets/ObjectCaching.h"
+#include "../packets/ObjectCaching.h"
 
 #include <errno.h>
 #include <string.h>

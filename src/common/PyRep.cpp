@@ -1095,18 +1095,19 @@ bool EVEStringTable::LoadFile(const char *file)
 	while(fgets(buf, 255, f) != NULL)
 	{
 		char *e = strchr(buf, '\r');
+		 
 		if(e == NULL)
 			e = strchr(buf, '\n');
 		if(e != NULL)
 			*e = '\0';
 
 		uint8 lookupStrLen = strlen(buf);
-		char* lookupStr = new char[lookupStrLen];
-		memcpy(lookupStr,buf,lookupStrLen);
+		char* lookupStr = new char[lookupStrLen+1];
+		memcpy(lookupStr,buf,lookupStrLen+1);
 		lookupStr[lookupStrLen] = '\0';
 
 		m_forwardLookup.push_back(lookupStr);
-		m_reverseLookup[buf] = indexNr;
+		m_reverseLookup.insert(LookupMap::value_type(lookupStr, indexNr)); 
 		indexNr++;
 	}
 	m_size = indexNr;

@@ -37,6 +37,8 @@
 
 using std::string;
 
+#define INT_MAX 0x07FF
+
 class UnmarshalState {
 public:
 	UnmarshalState(uint8 save_count_in)

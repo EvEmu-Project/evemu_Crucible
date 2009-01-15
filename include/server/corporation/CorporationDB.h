@@ -30,8 +30,8 @@
 #include "../ServiceDB.h"
 #include <map>
 #include "../common/PyRep.h"
-#include "../../packets/CorporationPkts.h"
-#include "../../packets/General.h"
+#include "../../src/packets/CorporationPkts.h"
+#include "../../src/packets/General.h"
 #include "CorporationCarrier.h"
 
 class PyRep;

@@ -29,7 +29,7 @@
 #include <map>
 #include <string>
 
-#include "../../packets/Missions.h"
+#include "../../src/packets/Missions.h"
 
 class MissionDB;
 class Agent;

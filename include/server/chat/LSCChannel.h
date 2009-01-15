@@ -28,7 +28,7 @@
 
 #include "types.h"
 #include "../EntityList.h"
-#include "../../packets/LSCPkts.h"
+#include "../../src/packets/LSCPkts.h"
 
 class PyRep;
 class LSCService;

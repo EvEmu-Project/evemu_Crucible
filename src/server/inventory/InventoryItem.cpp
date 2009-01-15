@@ -25,6 +25,8 @@
 
 #include "EvemuPCH.h"
 
+#define INT_MAX 0x07FF
+
 /*
  * InventoryItem
  */

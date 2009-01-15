@@ -49,6 +49,8 @@
 #include <stdarg.h>
 #include "types.h"
 #include <list>
+#include <string>
+
 
 #ifdef WIN32
 	//only VC2003+ has variadic macro support
