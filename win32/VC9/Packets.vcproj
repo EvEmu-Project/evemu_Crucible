@@ -47,7 +47,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;..\..\dep\mysql\include"
+				AdditionalIncludeDirectories=".;..\..\dep\mysql\include;..\..\include\common;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;USE_RUNTIME_EXCEPTIONS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -156,15 +156,15 @@
 			Name="AccountPkts"
 			>
 			<File
-				RelativePath="..\..\packets\AccountPkts.cpp"
+				RelativePath="..\..\src\packets\AccountPkts.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\AccountPkts.h"
+				RelativePath="..\..\src\packets\AccountPkts.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\AccountPkts.xmlp"
+				RelativePath="..\..\src\packets\AccountPkts.xmlp"
 				>
 			</File>
 		</Filter>
@@ -172,15 +172,15 @@
 			Name="Wallet"
 			>
 			<File
-				RelativePath="..\..\packets\Wallet.cpp"
+				RelativePath="..\..\src\packets\Wallet.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Wallet.h"
+				RelativePath="..\..\src\packets\Wallet.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Wallet.xmlp"
+				RelativePath="..\..\src\packets\Wallet.xmlp"
 				>
 			</File>
 		</Filter>
@@ -188,15 +188,15 @@
 			Name="Character"
 			>
 			<File
-				RelativePath="..\..\packets\Character.cpp"
+				RelativePath="..\..\src\packets\Character.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Character.h"
+				RelativePath="..\..\src\packets\Character.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Character.xmlp"
+				RelativePath="..\..\src\packets\Character.xmlp"
 				>
 			</File>
 		</Filter>
@@ -204,15 +204,15 @@
 			Name="CorporationPkts"
 			>
 			<File
-				RelativePath="..\..\packets\CorporationPkts.cpp"
+				RelativePath="..\..\src\packets\CorporationPkts.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\CorporationPkts.h"
+				RelativePath="..\..\src\packets\CorporationPkts.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\CorporationPkts.xmlp"
+				RelativePath="..\..\src\packets\CorporationPkts.xmlp"
 				>
 			</File>
 		</Filter>
@@ -220,15 +220,15 @@
 			Name="Crypto"
 			>
 			<File
-				RelativePath="..\..\packets\Crypto.cpp"
+				RelativePath="..\..\src\packets\Crypto.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Crypto.h"
+				RelativePath="..\..\src\packets\Crypto.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Crypto.xmlp"
+				RelativePath="..\..\src\packets\Crypto.xmlp"
 				>
 			</File>
 		</Filter>
@@ -236,15 +236,15 @@
 			Name="Destiny"
 			>
 			<File
-				RelativePath="..\..\packets\Destiny.cpp"
+				RelativePath="..\..\src\packets\Destiny.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Destiny.h"
+				RelativePath="..\..\src\packets\Destiny.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Destiny.xmlp"
+				RelativePath="..\..\src\packets\Destiny.xmlp"
 				>
 			</File>
 		</Filter>
@@ -252,15 +252,15 @@
 			Name="DogmaIM"
 			>
 			<File
-				RelativePath="..\..\packets\DogmaIM.cpp"
+				RelativePath="..\..\src\packets\DogmaIM.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\DogmaIM.h"
+				RelativePath="..\..\src\packets\DogmaIM.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\DogmaIM.xmlp"
+				RelativePath="..\..\src\packets\DogmaIM.xmlp"
 				>
 			</File>
 		</Filter>
@@ -268,15 +268,15 @@
 			Name="General"
 			>
 			<File
-				RelativePath="..\..\packets\General.cpp"
+				RelativePath="..\..\src\packets\General.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\General.h"
+				RelativePath="..\..\src\packets\General.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\General.xmlp"
+				RelativePath="..\..\src\packets\General.xmlp"
 				>
 			</File>
 		</Filter>
@@ -284,15 +284,15 @@
 			Name="Inventory"
 			>
 			<File
-				RelativePath="..\..\packets\Inventory.cpp"
+				RelativePath="..\..\src\packets\Inventory.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Inventory.h"
+				RelativePath="..\..\src\packets\Inventory.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Inventory.xmlp"
+				RelativePath="..\..\src\packets\Inventory.xmlp"
 				>
 			</File>
 		</Filter>
@@ -300,15 +300,15 @@
 			Name="Language"
 			>
 			<File
-				RelativePath="..\..\packets\Language.cpp"
+				RelativePath="..\..\src\packets\Language.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Language.h"
+				RelativePath="..\..\src\packets\Language.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Language.xmlp"
+				RelativePath="..\..\src\packets\Language.xmlp"
 				>
 			</File>
 		</Filter>
@@ -316,15 +316,15 @@
 			Name="LSCPkts"
 			>
 			<File
-				RelativePath="..\..\packets\LSCPkts.cpp"
+				RelativePath="..\..\src\packets\LSCPkts.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\LSCPkts.h"
+				RelativePath="..\..\src\packets\LSCPkts.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\LSCPkts.xmlp"
+				RelativePath="..\..\src\packets\LSCPkts.xmlp"
 				>
 			</File>
 		</Filter>
@@ -332,15 +332,15 @@
 			Name="Manufacturing"
 			>
 			<File
-				RelativePath="..\..\packets\Manufacturing.cpp"
+				RelativePath="..\..\src\packets\Manufacturing.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Manufacturing.h"
+				RelativePath="..\..\src\packets\Manufacturing.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Manufacturing.xmlp"
+				RelativePath="..\..\src\packets\Manufacturing.xmlp"
 				>
 			</File>
 		</Filter>
@@ -348,15 +348,15 @@
 			Name="Market"
 			>
 			<File
-				RelativePath="..\..\packets\Market.cpp"
+				RelativePath="..\..\src\packets\Market.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Market.h"
+				RelativePath="..\..\src\packets\Market.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Market.xmlp"
+				RelativePath="..\..\src\packets\Market.xmlp"
 				>
 			</File>
 		</Filter>
@@ -364,15 +364,15 @@
 			Name="Missions"
 			>
 			<File
-				RelativePath="..\..\packets\Missions.cpp"
+				RelativePath="..\..\src\packets\Missions.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Missions.h"
+				RelativePath="..\..\src\packets\Missions.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Missions.xmlp"
+				RelativePath="..\..\src\packets\Missions.xmlp"
 				>
 			</File>
 		</Filter>
@@ -380,15 +380,15 @@
 			Name="ObjectCaching"
 			>
 			<File
-				RelativePath="..\..\packets\ObjectCaching.cpp"
+				RelativePath="..\..\src\packets\ObjectCaching.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\ObjectCaching.h"
+				RelativePath="..\..\src\packets\ObjectCaching.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\ObjectCaching.xmlp"
+				RelativePath="..\..\src\packets\ObjectCaching.xmlp"
 				>
 			</File>
 		</Filter>
@@ -396,15 +396,15 @@
 			Name="Standing2"
 			>
 			<File
-				RelativePath="..\..\packets\Standing2.cpp"
+				RelativePath="..\..\src\packets\Standing2.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Standing2.h"
+				RelativePath="..\..\src\packets\Standing2.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Standing2.xmlp"
+				RelativePath="..\..\src\packets\Standing2.xmlp"
 				>
 			</File>
 		</Filter>
@@ -412,15 +412,15 @@
 			Name="Tutorial"
 			>
 			<File
-				RelativePath="..\..\packets\Tutorial.cpp"
+				RelativePath="..\..\src\packets\Tutorial.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Tutorial.h"
+				RelativePath="..\..\src\packets\Tutorial.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\packets\Tutorial.xmlp"
+				RelativePath="..\..\src\packets\Tutorial.xmlp"
 				>
 			</File>
 		</Filter>

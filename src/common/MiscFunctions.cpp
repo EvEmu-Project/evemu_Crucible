@@ -39,6 +39,7 @@
 #include <iomanip>
 #ifdef WIN32
 	#include <io.h>
+#define vsnprintf _vsnprintf
 #endif
 #include "../common/timer.h"
 

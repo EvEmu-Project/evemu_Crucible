@@ -31,10 +31,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <string>
 
 #ifdef WIN32
 #include <time.h>
+#define vsnprintf _vsnprintf
 #else
 #include <sys/time.h>
 #endif /* WIN32 */

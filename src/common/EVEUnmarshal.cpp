@@ -37,7 +37,9 @@
 
 using std::string;
 
-#define INT_MAX 0x07FF
+#ifndef WIN32
+#define INT_MAX 0x7FFFFFFF
+#endif
 
 class UnmarshalState {
 public:
