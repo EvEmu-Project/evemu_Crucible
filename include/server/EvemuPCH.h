@@ -147,6 +147,7 @@
 #include "../server/account/AccountDB.h"
 #include "../server/account/AccountService.h"
 #include "../server/account/AuthService.h"
+#include "../server/account/UserService.h"
 
 #include "../server/admin/AlertService.h"
 #include "../server/admin/AllCommands.h"

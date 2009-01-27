@@ -265,6 +265,10 @@
 					RelativePath="..\..\src\server\account\ClientStatMgrService.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\server\account\UserService.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="admin"
@@ -805,6 +809,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\account\ClientStatMgrService.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\account\UserService.h"
 					>
 				</File>
 			</Filter>

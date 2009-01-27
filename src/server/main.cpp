@@ -139,6 +139,7 @@ int main(int argc, char *argv[]) {
 	services.RegisterService(new AgentMgrService(&services, &db));
 	services.RegisterService(new MissionMgrService(&services, &db));
 	services.RegisterService(new AccountService(&services, &db));
+	services.RegisterService(new UserService(&services));
 	services.RegisterService(new AlertService(&services));
 	services.RegisterService(new AuthService(&services));
 	services.RegisterService(new BillMgrService(&services, &db));
