@@ -42,7 +42,9 @@ libaccount_a_SOURCES = \
 	account/AuthService.cpp \
 	account/AuthService.h \
 	account/ClientStatMgrService.cpp \
-	account/ClientStatMgrService.h
+	account/ClientStatMgrService.h \
+        account/UserService.cpp \
+        account/UserService.h
 
 libadmin_a_SOURCES = \
 	admin/AlertService.cpp \
