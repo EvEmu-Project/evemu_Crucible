@@ -41,7 +41,7 @@ class Category;
 class ItemFactory {
 	friend class InventoryItem;	//only for access to _DeleteItem
 public:
-	ItemFactory(DBcore *db, EntityList &el);
+	ItemFactory(DBcore &db, EntityList &el);
 	~ItemFactory();
 	
 	EntityList &entity_list;	//we do not own this.

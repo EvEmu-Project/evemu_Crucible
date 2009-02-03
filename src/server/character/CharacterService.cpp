@@ -142,7 +142,7 @@ PyResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
 	result = cachables;
 
 	//send all the cache hints needed for char creation.
-	call.client->GetServices()->GetCache()->InsertCacheHints(
+	call.client->services().GetCache()->InsertCacheHints(
 		ObjCacheService::hCharCreateCachables,
 		cachables );
 		
@@ -169,7 +169,7 @@ PyResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
 	result = cachables;
 
 	//send all the cache hints needed for char creation.
-	call.client->GetServices()->GetCache()->InsertCacheHints(
+	call.client->services().GetCache()->InsertCacheHints(
 		ObjCacheService::hAppearanceCachables,
 		cachables );
 	
@@ -331,7 +331,7 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	{
 		//create them a nice capsule
 		std::string capsule_name = cdata.name + "'s Capsule";
-		InventoryItem *capsule = m_manager->item_factory->SpawnSingleton(
+		InventoryItem *capsule = m_manager->item_factory.SpawnSingleton(
 			itemTypeCapsule,
 			cdata.charid,
 			cdata.stationID,
@@ -351,7 +351,7 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	
 	{	//item scope
 		InventoryItem *junk;
-		junk = m_manager->item_factory->Spawn(
+		junk = m_manager->item_factory.Spawn(
 			2046,	//Damage Control I
 			cdata.charid, cdata.stationID, flagHangar,
 			1);
@@ -360,7 +360,7 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 		else
 			junk->Release();
 		
-		junk = m_manager->item_factory->Spawn(
+		junk = m_manager->item_factory.Spawn(
 			34,		//Tritanium
 			cdata.charid,
 			cdata.stationID,
@@ -375,7 +375,7 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	{	//item scope
 		std::string ship_name = cdata.name + "'s Ship";
 		InventoryItem *ship_item;
-		ship_item = m_manager->item_factory->SpawnSingleton(
+		ship_item = m_manager->item_factory.SpawnSingleton(
 			shipTypeID,		// The race-specific start ship
 			cdata.charid,
 			cdata.stationID,
@@ -421,7 +421,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	//TODO: make sure this person actually owns this char...
 	
 	_log(CLIENT__MESSAGE, "Timed delete of char %lu unimplemented. Deleting Immediately.", args.arg);
-	InventoryItem *char_item = m_manager->item_factory->Load(args.arg, true);
+	InventoryItem *char_item = m_manager->item_factory.Load(args.arg, true);
 	if(char_item == NULL) {
 		codelog(CLIENT__ERROR, "Failed to load char item %lu.", args.arg);
 		return NULL;
@@ -441,7 +441,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-		i = m_manager->item_factory->Load(*cur, true);
+		i = m_manager->item_factory.Load(*cur, true);
 		if(i == NULL)
 			codelog(CLIENT__ERROR, "Failed to load item %lu to delete. Skipping.", *cur);
 		else

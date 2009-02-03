@@ -25,9 +25,9 @@
 
 #include "EvemuPCH.h"
 
-ItemFactory::ItemFactory(DBcore *db, EntityList &el)
+ItemFactory::ItemFactory(DBcore &db, EntityList &el)
 : entity_list(el),
-  m_db(db)
+  m_db(&db)
 {
 }
 

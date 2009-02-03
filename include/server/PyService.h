@@ -55,7 +55,7 @@ public:
 	//overload Callable for binding:
 	virtual PyResult Call(PyCallStream &call, PyCallArgs &args);
 	
-	EntityList *GetEntityList() const { return(m_manager->entity_list); }
+	EntityList &entityList() const { return(m_manager->entity_list); }
 	
 protected:
 	typedef enum {	//enum to make sure the caller uses legit values.

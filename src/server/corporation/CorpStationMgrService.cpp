@@ -293,7 +293,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
 		// This has to be sent to everyone in the station
 		// For now, broadcast it
-		m_manager->entity_list->Multicast("OnObjectPublicAttributesUpdated", "objectID", &res1, NOTIF_DEST__LOCATION, location, false);
+		m_manager->entity_list.Multicast("OnObjectPublicAttributesUpdated", "objectID", &res1, NOTIF_DEST__LOCATION, location, false);
 
 		// This was the first broadcast...
 	//}
@@ -312,7 +312,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	ac.ownerid = oInfo.corporationID; //call.client->GetCharacterID();
 	ac.balance = corpBalance;
 	PyRepTuple *res2 = ac.Encode();
-	m_manager->entity_list->Multicast("OnAccountChange", "*corpid&corpAccountKey", &res2, mct);
+	m_manager->entity_list.Multicast("OnAccountChange", "*corpid&corpAccountKey", &res2, mct);
 
 	// This was the second notification
 
@@ -325,7 +325,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
 	PyRepTuple * res3 = N_oic.FastEncode();
 	// This is a possible broadcast-candidate
-	m_manager->entity_list->Multicast("OnItemChange", "*stationid&corpid", &res3, NOTIF_DEST__LOCATION, location, false);
+	m_manager->entity_list.Multicast("OnItemChange", "*stationid&corpid", &res3, NOTIF_DEST__LOCATION, location, false);
 
 	// End of the third notification
 
@@ -339,7 +339,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
 	PyRepTuple * res4 = N_oorc.Encode(); // No need for fastencode, no null values
 	// This is definately a broadcast-candidate
-	m_manager->entity_list->Multicast("OnOfficeRentalChanged", "stationid", &res4, NOTIF_DEST__LOCATION, location);
+	m_manager->entity_list.Multicast("OnOfficeRentalChanged", "stationid", &res4, NOTIF_DEST__LOCATION, location);
 
 	// End of the fourth notification
 

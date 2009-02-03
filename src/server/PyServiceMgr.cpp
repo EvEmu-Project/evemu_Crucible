@@ -59,20 +59,20 @@ public:
 
 PyServiceMgr::PyServiceMgr(
 	uint32 nodeID, 
-	DBcore *db, 
-	EntityList *elist, 
-	ItemFactory *ifactory, 
+	DBcore &db, 
+	EntityList &elist, 
+	ItemFactory &ifactory, 
 	const std::string &CacheDirectory
 )
 : item_factory(ifactory),
   entity_list(elist),
   lsc_service(NULL),
-  m_cache(new ObjCacheService(this, db, CacheDirectory)),
+  m_cache(new ObjCacheService(this, &db, CacheDirectory)),
   m_nodeID(nodeID),
   m_nextBindID(100),
-  m_svcDB(new ServiceDB(db))
+  m_svcDB(&db)
 {
-	entity_list->UseServices(this);
+	entity_list.UseServices(this);
 	//cannot call this on the init list since it needs us to be fully constructed.
 	m_BoundCallDispatcher = new BoundCaller(this);
 	RegisterService(m_cache);
@@ -98,7 +98,6 @@ PyServiceMgr::~PyServiceMgr() {
 	}
 
 	delete m_BoundCallDispatcher;
-	delete m_svcDB;
 	//m_cache was in m_services
 }
 

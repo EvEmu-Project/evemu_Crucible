@@ -93,7 +93,7 @@ PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 	
 	PyRepSubStream *ss = new PyRepSubStream();
 
-	if(!call.client->GetServices()->GetCache()->LoadCachedFile(abs_fname.c_str(), "GetFactionInfo", ss)) {
+	if(!call.client->services().GetCache()->LoadCachedFile(abs_fname.c_str(), "GetFactionInfo", ss)) {
 		_log(CLIENT__ERROR, "GetFactionInfo Failed to load cache file '%s'", abs_fname.c_str());
 		ss->decoded = new PyRepNone();
 		return(ss);

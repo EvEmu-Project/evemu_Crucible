@@ -386,7 +386,7 @@ void Client::Killed(Damage &fatal_blow) {
 		
 		std::string capsule_name = GetName();
 		capsule_name += "'s Capsule";
-		InventoryItem *capsule = m_services->item_factory->SpawnSingleton(
+		InventoryItem *capsule = m_services.item_factory.SpawnSingleton(
 			itemTypeCapsule,
 			GetCharacterID(),
 			GetStationID(),
@@ -473,7 +473,7 @@ void NPC::_AwardBounty(SystemEntity *who) {
 
 	std::string reason = "Bounty";	//TODO: improve this.
 	
-	if(!m_services->GetServiceDB()->GiveCash(
+	if(!m_services.serviceDB().GiveCash(
 			killer->GetID(),
 			RefType_playerDonation,	//TODO: find the proper type
 			m_self->itemID(),	//probably actually a special concord item ID or something.

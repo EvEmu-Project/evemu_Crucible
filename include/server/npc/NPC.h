@@ -44,7 +44,7 @@ class NPC
 public:
 	NPC(
 		SystemManager *system,
-		PyServiceMgr *services,
+		PyServiceMgr &services,
 		InventoryItem *self,
 		uint32 corporationID,
 		uint32 allianceID,
@@ -52,7 +52,7 @@ public:
 		SpawnEntry *spawner = NULL);
 	virtual ~NPC();
 
-	bool Load(ServiceDB *from);
+	bool Load(ServiceDB &from);
 
 	void Orbit(SystemEntity *who);
 	
@@ -108,7 +108,7 @@ protected:
 	void _DropLoot(SystemEntity *owner);
 
 	SystemManager *const m_system;	//we do not own this
-	PyServiceMgr *const m_services;	//we do not own this
+	PyServiceMgr &m_services;	//we do not own this
 	SpawnEntry *const m_spawner;	//we do not own this, may be NULL
 	uint32 m_corporationID;
 	uint32 m_allianceID;

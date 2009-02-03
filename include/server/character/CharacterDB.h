@@ -54,7 +54,7 @@ public:
 	PyRepObject *GetOwnerNoteLabels(uint32 charID);
 	PyRepObject *GetOwnerNote(uint32 charID, uint32 noteID);
 	bool ValidateCharName(const char *name);
-	InventoryItem *CreateCharacter(uint32 acct, ItemFactory *fact, const CharacterData &data, CharacterAppearance &app);
+	InventoryItem *CreateCharacter(uint32 acct, ItemFactory &fact, const CharacterData &data, CharacterAppearance &app);
 	bool LoadCharacterAppearance(uint32 characterID, CharacterAppearance &into);
 	
 	PyRepObject *GetCharacterAppearance(uint32 characterID);

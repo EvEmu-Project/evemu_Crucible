@@ -25,9 +25,9 @@
 
 #include "EvemuPCH.h"
 
-CommandDispatcher::CommandDispatcher(CommandDB *db, PyServiceMgr *services)
-: m_db(db),
-  m_services(services)
+CommandDispatcher::CommandDispatcher(PyServiceMgr &services, DBcore &db)
+: m_services(services),
+  m_db(&db)
 {
 }
 
@@ -38,11 +38,9 @@ CommandDispatcher::~CommandDispatcher() {
 	for(; cur != end; cur++) {
 		delete cur->second;
 	}
-
-	delete m_db;
 }
 
-PyResult CommandDispatcher::Execute(Client *from, const char *msg) const {
+PyResult CommandDispatcher::Execute(Client *from, const char *msg) {
 	//might want to check for # or / at the begining of this crap.
 	Seperator sep(msg+1);
 
@@ -77,7 +75,7 @@ PyResult CommandDispatcher::Execute(Client *from, const char *msg) const {
 		throw(PyException(MakeCustomError("Access denied to command '%s'", sep.arg[0])));
 	}
 
-	return(rec->function(from, m_db, m_services, sep));
+	return(rec->function(from, &m_db, &m_services, sep));
 }
 
 void CommandDispatcher::AddCommand(const char *cmd, const char *desc, uint32 required_role, CommandFunc function) {

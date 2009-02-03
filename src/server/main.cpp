@@ -118,16 +118,16 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 	
-	EntityList entity_list(&db);
-	ItemFactory item_factory(&db, entity_list);
+	EntityList entity_list(db);
+	ItemFactory item_factory(db, entity_list);
 
 
 	//now, the service manager...
-	PyServiceMgr services(888444, &db, &entity_list, &item_factory, Config->CacheDirectory);
+	PyServiceMgr services(888444, db, entity_list, item_factory, Config->CacheDirectory);
 
 	//setup the command dispatcher
-	CommandDispatcher command_dispatcher(new CommandDB(&db), &services);
-	RegisterAllCommands(&command_dispatcher);
+	CommandDispatcher command_dispatcher(services, db);
+	RegisterAllCommands(command_dispatcher);
 
 	/*                                                                              
      * Service creation and registration.
@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
 //#endif
 
 	// johnsus - serverStartTime mod
-	services.GetServiceDB()->SetServerOnlineStatus(true);
+	services.serviceDB().SetServerOnlineStatus(true);
 
 	_log(SERVER__INIT, "Init done.");
 
@@ -225,7 +225,7 @@ int main(int argc, char *argv[]) {
 			struct in_addr in;
 			in.s_addr = tcpc->GetrIP();
 			_log(SERVER__CLIENTS, "New TCP connection from %s:%d", inet_ntoa(in),tcpc->GetrPort());
-			Client *c = new Client(&services, &tcpc);
+			Client *c = new Client(services, tcpc);
 					
 			entity_list.Add(&c);
 		}
@@ -241,7 +241,7 @@ int main(int argc, char *argv[]) {
 	tcps.Close();
 	
 	// johnsus - serverStartTime mod
-	services.GetServiceDB()->SetServerOnlineStatus(false);
+	services.serviceDB().SetServerOnlineStatus(false);
 
 	//TODO: properly free physics driver
 

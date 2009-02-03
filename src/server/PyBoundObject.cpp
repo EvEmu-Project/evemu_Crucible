@@ -28,7 +28,7 @@
 #include "EvemuPCH.h"
 
 PyBoundObject::PyBoundObject(PyServiceMgr *mgr, const char *boundObjName)
-: PyCallable(mgr, boundObjName),
+: PyCallable(*mgr, boundObjName),
   m_bindID("NOT_YET_BOUND")
 {
 }

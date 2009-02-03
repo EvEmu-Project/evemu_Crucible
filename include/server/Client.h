@@ -248,7 +248,7 @@ protected:
 //DO NOT INHERIT THIS OBJECT!
 class Client : public DynamicSystemEntity {
 public:
-	Client(PyServiceMgr *services, EVETCPConnection **con);
+	Client(PyServiceMgr &services, EVETCPConnection *&con);
 	virtual ~Client();
 	
 	ClientSession session;
@@ -347,7 +347,7 @@ public:
 	void ChannelJoined(LSCChannel *chan);
 	void ChannelLeft(LSCChannel *chan);
 
-	PyServiceMgr *GetServices() const { return(m_services); }
+	PyServiceMgr &services() const { return(m_services); }
 	
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, void (Client::* clientCall)() );
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, ClientFunctor **functor );
@@ -372,7 +372,7 @@ protected:
 
 	InventoryItem *m_char;
 
-	PyServiceMgr *const m_services;
+	PyServiceMgr &m_services;
 	EVEPresentation m_net;
 	Timer m_pingTimer;
 

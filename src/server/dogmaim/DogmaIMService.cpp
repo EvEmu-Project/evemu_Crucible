@@ -107,7 +107,7 @@ PyBoundObject *DogmaIMService::_CreateBoundObject(Client *c, const PyRep *bind_a
 PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	PyRep *hint = call.client->GetServices()->GetCache()->GetCacheHint("dogmaIM.attributesByName");
+	PyRep *hint = call.client->services().GetCache()->GetCacheHint("dogmaIM.attributesByName");
 	if(hint == NULL) {
 		_log(CLIENT__ERROR, "Unable to load cache hint for dogmaIM.attributesByName");
 		return(new PyRepNone());
@@ -139,7 +139,7 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	InventoryItem *item = m_manager->item_factory->Load(args.arg, false);
+	InventoryItem *item = m_manager->item_factory.Load(args.arg, false);
 	if(item == NULL) {
 		codelog(SERVICE__ERROR, "%s: Unable to load item %lu", GetName(), args.arg);
 		return NULL;

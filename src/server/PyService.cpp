@@ -27,7 +27,7 @@
 
 
 PyService::PyService(PyServiceMgr *mgr, const char *serviceName)
-: PyCallable(mgr, serviceName)
+: PyCallable(*mgr, serviceName)
 {
 }
 

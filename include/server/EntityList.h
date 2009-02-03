@@ -61,7 +61,7 @@ public:
 
 class EntityList {
 public:
-	EntityList(DBcore *db);
+	EntityList(DBcore &db);
 	virtual ~EntityList();
 
 	void UseServices(PyServiceMgr *svc) { m_services = svc; }
@@ -96,7 +96,7 @@ protected:
 	system_list m_systems;
 
 	PyServiceMgr *m_services;	//we do not own this, only used for booting systems.
-	DBcore *const m_db;	//only used for booting systems.
+	DBcore &m_db;	//only used for booting systems.
 };
 
 

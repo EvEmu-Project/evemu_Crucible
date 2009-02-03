@@ -29,7 +29,7 @@ using namespace Destiny;
 
 NPC::NPC(
 	SystemManager *system,
-	PyServiceMgr *services,
+	PyServiceMgr &services,
 	InventoryItem *self,
 	uint32 corporationID,
 	uint32 allianceID,
@@ -81,7 +81,7 @@ void NPC::ForcedSetPosition(const GPoint &pt) {
 	m_destiny->SetPosition(pt, false);
 }
 
-bool NPC::Load(ServiceDB *from) {
+bool NPC::Load(ServiceDB &from) {
 	//The old purpose for this was eliminated. But we might find
 	//something else to stick in here eventually, so it stays for now.
 	return true;

@@ -53,7 +53,7 @@ class LSCService;
 
 class PyServiceMgr {
 public:
-	PyServiceMgr(uint32 nodeID, DBcore *db, EntityList *elist, ItemFactory *ifactory, const std::string &CacheDirectory);
+	PyServiceMgr(uint32 nodeID, DBcore &db, EntityList &elist, ItemFactory &ifactory, const std::string &CacheDirectory);
 	~PyServiceMgr();
 	
 	void Process();
@@ -71,10 +71,10 @@ public:
 	void ClearBoundObject(const char *bindID);
 
 	//this is a hack and needs to die:
-	ServiceDB *GetServiceDB() const { return(m_svcDB); }
+	ServiceDB &serviceDB() { return(m_svcDB); }
 
-	ItemFactory *const item_factory;	//here for anybody to use. we do not own this.
-	EntityList *const entity_list;	//here for anybody to use. we do not own this.
+	ItemFactory &item_factory;	//here for anybody to use. we do not own this.
+	EntityList &entity_list;	//here for anybody to use. we do not own this.
 	
 	//Area to access services by name. This isnt ideal, but it avoids casting.
 	//these may be NULL during service init, but should never be after that.
@@ -99,7 +99,7 @@ protected:
 	class BoundCaller;
 	BoundCaller *m_BoundCallDispatcher;
 
-	ServiceDB *const m_svcDB;	//this is crap, get rid of this
+	ServiceDB m_svcDB;	//this is crap, get rid of this
 };
 
 

@@ -164,14 +164,14 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 		//process bounds type
 		SpawnEntry::SpawnBoundsType boundsType;
 		switch(row.GetUInt(2)) {	//enum checking.
-		case SpawnEntry::boundsPoint: boundsType = SpawnEntry::boundsPoint; break;
-		case SpawnEntry::boundsLine: boundsType = SpawnEntry::boundsLine; break;
-		//case SpawnEntry::boundsTriangle: boundsType = SpawnEntry::boundsTriangle; break;
-		//case SpawnEntry::boundsSquare: boundsType = SpawnEntry::boundsSquare; break;
-		case SpawnEntry::boundsCube: boundsType = SpawnEntry::boundsCube; break;
-		default:
-			_log(SPAWN__ERROR, "Error loading spawn entry %lu: Bounds type %lu is invalid. Skipping.", row.GetUInt(0), row.GetUInt(2));
-			continue;
+			case SpawnEntry::boundsPoint:		boundsType = SpawnEntry::boundsPoint; break;
+			case SpawnEntry::boundsLine:		boundsType = SpawnEntry::boundsLine; break;
+			//case SpawnEntry::boundsTriangle:	boundsType = SpawnEntry::boundsTriangle; break;
+			//case SpawnEntry::boundsSquare:	boundsType = SpawnEntry::boundsSquare; break;
+			case SpawnEntry::boundsCube:		boundsType = SpawnEntry::boundsCube; break;
+			default:
+				_log(SPAWN__ERROR, "Error loading spawn entry %lu: Bounds type %lu is invalid. Skipping.", row.GetUInt(0), row.GetUInt(2));
+				continue;
 		}
 		
 		//convert stored timer value into a future milliseconds timer.
@@ -183,12 +183,12 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 		
 		SpawnEntry *e = new SpawnEntry(
 			row.GetUInt(0),
-			result->second,
+			*result->second,
 			row.GetUInt(4),
 			row.GetUInt(5),
 			timer_val,
 			boundsType
-			);
+		);
 		into[ e->GetID() ] = e;
 	}
 	

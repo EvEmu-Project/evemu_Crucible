@@ -195,13 +195,13 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 			continue;
 		}
 
-		InventoryItem *stationaryItem = m_manager->item_factory->Load(element.stationaryItemID, false);
+		InventoryItem *stationaryItem = m_manager->item_factory.Load(element.stationaryItemID, false);
 		if(stationaryItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load stationary item %lu. Skipping.", element.stationaryItemID);
 			continue;
 		}
 
-		InventoryItem *draggedItem = m_manager->item_factory->Load(element.draggedItemID, false);
+		InventoryItem *draggedItem = m_manager->item_factory.Load(element.draggedItemID, false);
 		if(draggedItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load dragged item %lu. Skipping.", element.draggedItemID);
 			stationaryItem->Release();
@@ -245,7 +245,7 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 	end = items.end();
 	for(; cur != end; cur++) {
 
-		InventoryItem *sourceItem = m_manager->item_factory->Load((*cur), true);
+		InventoryItem *sourceItem = m_manager->item_factory.Load((*cur), true);
 
 		//If hold already contains this item then we can ignore remaining space
 		if ((!m_item->Contains(sourceItem)) || (m_item->flag() != flag))
@@ -330,7 +330,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 	end = items.end();
 	for(; cur != end; cur++) {
 
-		InventoryItem *sourceItem = m_manager->item_factory->Load((*cur), true);			
+		InventoryItem *sourceItem = m_manager->item_factory.Load((*cur), true);			
 
 		//NOTE: a multiadd can come in with quantity 0 to indicate "all"
 

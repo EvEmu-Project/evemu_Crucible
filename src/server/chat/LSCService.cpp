@@ -520,7 +520,7 @@ void LSCService::SendMail(uint32 sender, const std::vector<uint32> &recipients, 
 	
 	//now, send a notification to each successful recipient
 	PyRepTuple *answer = notify.Encode();
-	m_manager->entity_list->Multicast(successful_recipients, "OnMessage", "*multicastID", &answer, false);
+	m_manager->entity_list.Multicast(successful_recipients, "OnMessage", "*multicastID", &answer, false);
 }
 
 //stuck here to be close to related functionality
@@ -533,7 +533,7 @@ void Client::SelfEveMail(const char *subject, const char *fmt, ...) {
 	vaMakeAnyLenString(&str, fmt, args);
 	va_end(args);
 
-	m_services->lsc_service->SendMail(GetCharacterID(), GetCharacterID(), subject, str);
+	m_services.lsc_service->SendMail(GetCharacterID(), GetCharacterID(), subject, str);
 }
 
 PyResult LSCService::Handle_MarkMessagesRead(PyCallArgs &call) {

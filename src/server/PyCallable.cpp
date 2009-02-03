@@ -25,8 +25,8 @@
 
 #include "EvemuPCH.h"
 
-PyCallable::PyCallable(PyServiceMgr *mgr, const char *callableName)
-: m_manager(mgr),
+PyCallable::PyCallable(PyServiceMgr &mgr, const char *callableName)
+: m_manager(&mgr),
   m_callableName(callableName),
   m_serviceDispatch(NULL)
 {

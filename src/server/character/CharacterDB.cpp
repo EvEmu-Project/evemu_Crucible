@@ -116,7 +116,7 @@ static std::string _ToStr(double v) {
 	return(buf);
 }
 
-InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, const CharacterData &data, CharacterAppearance &app) {
+InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory &fact, const CharacterData &data, CharacterAppearance &app) {
 	DBerror err;
 
 	uint32 locationID = 60004420;
@@ -141,7 +141,7 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory *fact, cons
 	typeID = row.GetUInt(0);
 
 	//do the insert into the entity table to get our char ID.
-	InventoryItem *char_item = fact->SpawnSingleton(typeID, 1, locationID, flagPilot, data.name.c_str());
+	InventoryItem *char_item = fact.SpawnSingleton(typeID, 1, locationID, flagPilot, data.name.c_str());
 	if(char_item == NULL) {
 		codelog(SERVICE__ERROR, "Failed to create character entity!");
 		return NULL;

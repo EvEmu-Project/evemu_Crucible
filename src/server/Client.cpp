@@ -122,12 +122,12 @@ void CharacterAppearance::operator=(const CharacterAppearance &from) {
 #undef COPY_DYN
 }
 
-Client::Client(PyServiceMgr *services, EVETCPConnection **con)
+Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
 : DynamicSystemEntity(NULL),
   modules(this),
   m_char(NULL),
   m_services(services),
-  m_net(*con, this),
+  m_net(con, this),
   m_pingTimer(PING_INTERVAL_US),
   m_accountID(0),
   m_role(1),
@@ -141,7 +141,7 @@ Client::Client(PyServiceMgr *services, EVETCPConnection **con)
   m_nextNotifySequence(1)
 //  m_nextDestinyUpdate(46751)
 {
-	*con = NULL;
+	con = NULL;
 
 	m_moveTimer.Disable();
 	m_pingTimer.Start();
@@ -161,20 +161,20 @@ Client::Client(PyServiceMgr *services, EVETCPConnection **con)
 	m_chardata.Willpower = 10;
 
 	//initialize connection
-	m_net.SendHandshake(m_services->entity_list->GetClientCount());
+	m_net.SendHandshake(m_services.entity_list.GetClientCount());
 }
 
 Client::~Client() {
-	m_services->lsc_service->CharacterLogout(GetCharacterID(), LSCChannel::_MakeSenderInfo(this));
-	m_services->ClearBoundObjects(this);
+	m_services.lsc_service->CharacterLogout(GetCharacterID(), LSCChannel::_MakeSenderInfo(this));
+	m_services.ClearBoundObjects(this);
 	
 	//before we remove ourself from the system, store our last location.
 	SavePosition();
 
 	if(GetCharacterID() != 444666) {
  		//johnsus - characterOnline mod
-		m_services->GetServiceDB()->SetCharacterOnlineStatus(GetCharacterID(), false);
-		m_services->GetServiceDB()->SetAccountOnlineStatus(GetAccountID(), false);
+		m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), false);
+		m_services.serviceDB().SetAccountOnlineStatus(GetAccountID(), false);
 	}
 
 	if(m_system != NULL)
@@ -217,7 +217,7 @@ void HandlePingRequest(Client* client, PyPacket * packet)
 	ret->source = ret->dest;
 	ret->dest = temp;
 
-	ret->source.typeID = client->GetServices()->GetNodeID();
+	ret->source.typeID = client->services().GetNodeID();
 
 	ret->dest.typeID = client->GetAccountID();
 	
@@ -471,7 +471,7 @@ void Client::Login(CryptoChallengePacket *pack) {
 		return;
 	}
 	
-	if(!m_services->GetServiceDB()->DoLogin(pack->user_name.c_str(), pass.password.c_str(), m_accountID, m_role)) {
+	if(!m_services.serviceDB().DoLogin(pack->user_name.c_str(), pass.password.c_str(), m_accountID, m_role)) {
 		_log(CLIENT__MESSAGE, "%s: Login rejected by DB", pack->user_name.c_str());
 
 		util_NewObject1 no;
@@ -487,7 +487,7 @@ void Client::Login(CryptoChallengePacket *pack) {
 	
 	// this is needed so if we exit before selecting a character, the account online flag would switch back to 0
 	m_chardata.charid = 0;
-	m_services->GetServiceDB()->SetAccountOnlineStatus(m_accountID, true);
+	m_services.serviceDB().SetAccountOnlineStatus(m_accountID, true);
 
 	//send this before session change
 	CryptoHandshakeAck ack;
@@ -519,7 +519,7 @@ void Client::_SendPingRequest() {
 	ping_req->type_string = "macho.PingReq";
 	
 	ping_req->source.type = PyAddress::Node;
-	ping_req->source.typeID = m_services->GetNodeID();
+	ping_req->source.typeID = m_services.GetNodeID();
 	ping_req->source.service = "ping";
 	ping_req->source.callID = 0;
 	
@@ -550,7 +550,7 @@ void Client::_CheckSessionChange() {
 	scn.changes.Dump(CLIENT__SESSION, "  Changes: ");
 
 	//this is probably not necessary...
-	scn.nodesOfInterest.push_back(m_services->GetNodeID());
+	scn.nodesOfInterest.push_back(m_services.GetNodeID());
 
 	//build the packet:
 	PyPacket *p = new PyPacket();
@@ -558,7 +558,7 @@ void Client::_CheckSessionChange() {
 	p->type = SESSIONCHANGENOTIFICATION;
 	
 	p->source.type = PyAddress::Node;
-	p->source.typeID = m_services->GetNodeID();
+	p->source.typeID = m_services.GetNodeID();
 	p->source.callID = 0;
 
 	p->dest.type = PyAddress::Client;
@@ -628,7 +628,7 @@ bool Client::EnterSystem() {
 	if(m_system == NULL) {
 		//m_system is NULL, we need new system
 		//find our system manager and register ourself with it.
-		m_system = m_services->entity_list->FindOrBootSystem(GetSystemID());
+		m_system = m_services.entity_list.FindOrBootSystem(GetSystemID());
 		if(m_system == NULL) {
 			_log(CLIENT__ERROR, "Failed to boot system %lu for char %s (%lu)", GetSystemID(), GetName(), GetCharacterID());
 			SendErrorMsg("Unable to boot system %lu", GetSystemID());
@@ -675,7 +675,7 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		// Entering station
 		m_chardata.stationID = location;
 		
-		m_services->GetServiceDB()->GetStationParents(
+		m_services.serviceDB().GetStationParents(
 			m_chardata.stationID,
 			m_chardata.solarSystemID, m_chardata.constellationID, m_chardata.regionID );
 
@@ -688,7 +688,7 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		m_chardata.stationID = 0;
 		m_chardata.solarSystemID = location;
 		
-		m_services->GetServiceDB()->GetSystemParents(
+		m_services.serviceDB().GetSystemParents(
 			m_chardata.solarSystemID,
 			m_chardata.constellationID, m_chardata.regionID );
 
@@ -703,7 +703,7 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		return;
 	
 	//move the character_ record... we really should derive the char's location from the entity table...
-	m_services->GetServiceDB()->SetCharacterLocation(
+	m_services.serviceDB().SetCharacterLocation(
 		GetCharacterID(),
 		m_chardata.stationID, m_chardata.solarSystemID, 
 		m_chardata.constellationID, m_chardata.regionID
@@ -722,7 +722,7 @@ void Client::MoveToPosition(const GPoint &pt) {
 
 void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag) {
 	
-	InventoryItem *item = m_services->item_factory->Load(itemID, false);
+	InventoryItem *item = m_services.item_factory.Load(itemID, false);
 	if(item == NULL) {
 		codelog(SERVICE__ERROR, "%s: Unable to load item %lu", GetName(), itemID);
 		return;
@@ -770,7 +770,7 @@ void Client::BoardShip(InventoryItem *new_ship) {
 
 void Client::_ProcessCallRequest(PyPacket *packet) {
 
-	PyService *svc = m_services->LookupService(packet);
+	PyService *svc = m_services.LookupService(packet);
 	if(svc == NULL) {
 		_log(CLIENT__ERROR, "Unable to find service to handle call to:");
 		packet->dest.Dump(stdout, "    ");
@@ -864,7 +864,7 @@ void Client::_ProcessNotification(PyPacket *packet) {
 			if(!element.Decode(&tmp))
 				_log(CLIENT__ERROR, "Notification '%s' from %s: Failed to decode element. Skipping.", notify.method.c_str(), GetName());
 			else
-				m_services->ClearBoundObject(element.boundID.c_str());
+				m_services.ClearBoundObject(element.boundID.c_str());
 		}
 	} else
 		_log(CLIENT__ERROR, "Unhandled notification from %s: unknown method '%s'", GetName(), notify.method.c_str());
@@ -1006,7 +1006,7 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream *noti
 	p->type = NOTIFICATION;
 
 	p->source.type = PyAddress::Node;
-	p->source.typeID = m_services->GetNodeID();
+	p->source.typeID = m_services.GetNodeID();
 
 	p->dest = dest;
 
@@ -1082,7 +1082,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 	uint32 constellationID;
 	uint32 solarSystemID;
 	GPoint location;
-	if(!m_services->GetServiceDB()->GetStaticLocation(
+	if(!m_services.serviceDB().GetStaticLocation(
 		toGate,
 		regionID, constellationID, solarSystemID,
 		location
@@ -1128,7 +1128,7 @@ bool Client::AddBalance(double amount) {
 	
 	m_chardata.balance = result;
 	
-	if(!m_services->GetServiceDB()->SetCharacterBalance(GetCharacterID(), m_chardata.balance))
+	if(!m_services.serviceDB().SetCharacterBalance(GetCharacterID(), m_chardata.balance))
 		return false;
 	
 	//send notification of change
@@ -1145,21 +1145,21 @@ bool Client::AddBalance(double amount) {
 
 
 bool Client::Load(uint32 char_id) {
-	if(!m_services->GetServiceDB()->LoadCharacter(char_id, m_chardata)) {
+	if(!m_services.serviceDB().LoadCharacter(char_id, m_chardata)) {
 		_log(CLIENT__ERROR, "Failed to load character data for char %lu.", char_id);
 		return false;
 	}
-	if(!m_services->GetServiceDB()->LoadCorporationMemberInfo(char_id, m_corpstate)) {
+	if(!m_services.serviceDB().LoadCorporationMemberInfo(char_id, m_corpstate)) {
 		_log(CLIENT__ERROR, "Failed to load corp member info for char %lu.", char_id);
 		return false;
 	}
 
 	//get char
-	InventoryItem *character = m_services->item_factory->Load(char_id, true);
+	InventoryItem *character = m_services.item_factory.Load(char_id, true);
 	if(character == NULL)
 		return false;
 
-	InventoryItem *ship = m_services->item_factory->Load(character->locationID(), true);
+	InventoryItem *ship = m_services.item_factory.Load(character->locationID(), true);
 	if(ship == NULL)
 		return false;
 
@@ -1414,7 +1414,7 @@ void Client::JoinCorporationUpdate(uint32 corp_id) {
 	
 	//TODO: recursively change corp on all our items.
 	
-	m_services->GetServiceDB()->LoadCorporationMemberInfo(GetCharacterID(), m_corpstate);
+	m_services.serviceDB().LoadCorporationMemberInfo(GetCharacterID(), m_corpstate);
 	
 	session.Set_corpid(corp_id);
 	session.Set_corprole(m_corpstate.corprole);
@@ -1440,7 +1440,7 @@ void Client::OnCharNoLongerInStation()
 	PyRepTuple *tmp = packet.Encode();
 
 	// this entire line should be something like this Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
-	GetServices()->entity_list->Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
+	services().entity_list.Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
 }
 
 /* besides broadcasting the message this function should handle everything for this event */
@@ -1451,7 +1451,7 @@ void Client::OnCharNowInStation()
 	n.corpID = GetCorporationID();
 	n.allianceID = GetAllianceID();
 	PyRepTuple *tmp = n.Encode();
-	GetServices()->entity_list->Broadcast("OnCharNowInStation", "stationid", &tmp);
+	services().entity_list.Broadcast("OnCharNowInStation", "stationid", &tmp);
 }
 
 /*

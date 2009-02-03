@@ -356,7 +356,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		//sell order
 		
 		//verify that they actually have the item in the quantity specified...
-		InventoryItem *item = m_manager->item_factory->Load(args.itemID, true);
+		InventoryItem *item = m_manager->item_factory.Load(args.itemID, true);
 		if(item == NULL) {
 			codelog(MARKET__ERROR, "%s: Failed to find item %d for sell order.", call.client->GetName(), args.itemID);
 			call.client->SendErrorMsg("Unable to find items %d to sell!", args.itemID);
@@ -600,7 +600,7 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 	}
 
 	//spawn the item in the buyer's hangar.
-	InventoryItem *new_item = m_manager->item_factory->Spawn(
+	InventoryItem *new_item = m_manager->item_factory.Spawn(
 		typeID,
 		1,	//temp owner ID, should really put the seller's ID in here...
 		stationID,
@@ -612,7 +612,7 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 
 	//give the money to the seller...
 	//TODO: take off market overhead fees...
-	Client *seller = m_manager->entity_list->FindCharacter(orderOwnerID);
+	Client *seller = m_manager->entity_list.FindCharacter(orderOwnerID);
 	if(seller != NULL) {
 		//the seller is logged in, send them a notification...
 		if(!seller->AddBalance(money))

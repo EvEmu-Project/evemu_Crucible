@@ -50,7 +50,7 @@ SpawnGroup::SpawnGroup(uint32 _id, const char *_name, uint32 _formation)
 
 SpawnEntry::SpawnEntry(
 	uint32 id, 
-	SpawnGroup *group, 
+	SpawnGroup &group, 
 	uint32 timerMin, 
 	uint32 timerMax, 
 	uint32 timerValue,
@@ -64,10 +64,10 @@ SpawnEntry::SpawnEntry(
 {
 }
 
-SpawnManager::SpawnManager(DBcore *db, SystemManager *mgr, PyServiceMgr *svc)
+SpawnManager::SpawnManager(DBcore &db, SystemManager &mgr, PyServiceMgr &svc)
 : m_system(mgr),
   m_services(svc),
-  m_db(db)
+  m_db(&db)
 {
 }
 
@@ -87,7 +87,7 @@ SpawnManager::~SpawnManager() {
 	}
 }
 
-void SpawnEntry::Process(SystemManager *mgr, PyServiceMgr *svc) {
+void SpawnEntry::Process(SystemManager &mgr, PyServiceMgr &svc) {
 	if(m_timer.Check()) {
 		if(!m_spawnedIDs.empty()) {
 			_log(SPAWN__ERROR, "ERROR: spawn entry %lu's timer went off when we have active spawn IDs!", m_id);
@@ -99,8 +99,8 @@ void SpawnEntry::Process(SystemManager *mgr, PyServiceMgr *svc) {
 	}
 }
 
-void SpawnEntry::_DoSpawn(SystemManager *mgr, PyServiceMgr *svc) {
-	_log(SPAWN__POP, "Spawning spawn entry %lu with group %lu", m_id, m_group->id);
+void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
+	_log(SPAWN__POP, "Spawning spawn entry %lu with group %lu", m_id, m_group.id);
 	
 	//pick our spawn point...
 	GPoint spawn_point;
@@ -127,8 +127,8 @@ void SpawnEntry::_DoSpawn(SystemManager *mgr, PyServiceMgr *svc) {
 	
 	//now see what is gunna spawn...
 	std::vector<SpawnGroup::Entry>::const_iterator cur, end;
-	cur = m_group->entries.begin();
-	end = m_group->entries.end();
+	cur = m_group.entries.begin();
+	end = m_group.entries.end();
 	for(; cur != end; cur++) {
 		_log(SPAWN__POP, "    Evaluating spawn entry for NPC type %lu in group %lu", cur->npcTypeID, cur->spawnGroupID);
 		int r;
@@ -145,10 +145,10 @@ void SpawnEntry::_DoSpawn(SystemManager *mgr, PyServiceMgr *svc) {
 			//which is terrible... we need to make an "in-memory only"
 			// item concept.
 			InventoryItem *i;
-			i = svc->item_factory->SpawnSingleton(
+			i = svc.item_factory.SpawnSingleton(
 				cur->npcTypeID,
 				cur->ownerID,	//owner
-				mgr->GetID(),
+				mgr.GetID(),
 				flagAutoFit
 				);
 			if(i == NULL) {
@@ -160,7 +160,7 @@ void SpawnEntry::_DoSpawn(SystemManager *mgr, PyServiceMgr *svc) {
 			
 			//create them all at the same point to start with...
 			//we will move them before they get added to the system
-			NPC *npc = new NPC(mgr, svc,
+			NPC *npc = new NPC(&mgr, svc,
 				i, cur->corporationID, 0, spawn_point, this);	//TODO: add allianceID
 			spawned.push_back(npc);
 		}
@@ -190,7 +190,7 @@ void SpawnEntry::_DoSpawn(SystemManager *mgr, PyServiceMgr *svc) {
 	endn = spawned.end();
 	for(; curn != endn; curn++) {
 		//load up any NPC attributes...
-		if(!(*curn)->Load(svc->GetServiceDB())) {
+		if(!(*curn)->Load(svc.serviceDB())) {
 			_log(SPAWN__POP, "Failed to load NPC data for NPC %lu with type %lu, depoping.", (*curn)->GetID(), (*curn)->Item()->typeID());
 			delete *curn;
 			continue;
@@ -199,7 +199,7 @@ void SpawnEntry::_DoSpawn(SystemManager *mgr, PyServiceMgr *svc) {
 		//record this NPC as something we spawned.
 		m_spawnedIDs.insert((*curn)->GetID());
 		
-		mgr->AddNPC(*curn);
+		mgr.AddNPC(*curn);
 	}
 	
 	//timer is disabled while the spawn is up.
@@ -263,13 +263,13 @@ bool SpawnManager::Load() {
 	// the spawn manager to be more persistent. This would require a table
 	// mapping the entity table to the spawns table
 	// (Drones too?)
-	if(!m_db.LoadSpawnGroups(m_system->GetID(), m_groups)) {
-		_log(SPAWN__ERROR, "Failed to load spawn groups for system %lu!", m_system->GetID());
+	if(!m_db.LoadSpawnGroups(m_system.GetID(), m_groups)) {
+		_log(SPAWN__ERROR, "Failed to load spawn groups for system %lu!", m_system.GetID());
 		return false;
 	}
 	
-	if(!m_db.LoadSpawnEntries(m_system->GetID(), m_groups, m_spawns)) {
-		_log(SPAWN__ERROR, "Failed to load spawn entries for system %lu!", m_system->GetID());
+	if(!m_db.LoadSpawnEntries(m_system.GetID(), m_groups, m_spawns)) {
+		_log(SPAWN__ERROR, "Failed to load spawn entries for system %lu!", m_system.GetID());
 		return false;
 	}
 

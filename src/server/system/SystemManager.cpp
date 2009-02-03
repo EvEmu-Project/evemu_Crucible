@@ -28,19 +28,19 @@
 
 using namespace Destiny;
 
-SystemManager::SystemManager(const char *systemName, uint32 systemID, DBcore *db, PyServiceMgr *svc)
+SystemManager::SystemManager(const char *systemName, uint32 systemID, DBcore &db, PyServiceMgr &svc)
 : m_systemName(systemName),
   m_systemID(systemID),
-  m_db(db),
+  m_db(&db),
   m_services(svc),
-  m_spawnManager(new SpawnManager(db, this, m_services)),
+  m_spawnManager(new SpawnManager(db, *this, m_services)),
   m_nextNPCID(900000000),	//TODO: look in logs to figure out what they really use.
   m_clientChanged(false),
   m_entityChanged(false)
 {
 	m_systemSecurity = m_db.GetSystemSecurity(m_systemID);
 	//create our chat channel
-	m_services->lsc_service->CreateSystemChannel(m_systemID);
+	m_services.lsc_service->CreateSystemChannel(m_systemID);
 }
 
 SystemManager::~SystemManager() {
@@ -113,29 +113,27 @@ bool SystemManager::_LoadSystemCelestials() {
 
 class DynamicEntityFactory {
 public:
-	static SystemEntity *BuildEntity(SystemManager *system, ItemFactory *factory, const DBSystemDynamicEntity &entity) {
+	static SystemEntity *BuildEntity(SystemManager &system, ItemFactory &factory, const DBSystemDynamicEntity &entity) {
 		using namespace EVEDB;
 		switch(entity.categoryID) {
-		
-		case invCategories::Asteroid: {
-			//first load up the item.
-			InventoryItem *i;
-			i = factory->Load(entity.itemID, false);	//should not have any contents...
-			if(i == NULL) {
-				//this should not happen... we just got this list from the DB...
-				codelog(SERVICE__ERROR, "Unable to load item for entity %lu", entity.itemID);
-				return NULL;
-			}
-			return(new Asteroid(system, i));	//takes a ref.
-		} break;
-		case invCategories::Ship: {
-			codelog(SERVICE__ERROR, "Ship item in space unhandled: item %lu of type %lu", entity.itemID, entity.typeID);
-			//TODO: figure out if it is occupied or not.. can we
-			//filter this in the DB instead?
-		} break;
-		default:
-			codelog(SERVICE__ERROR, "Unhandled dynamic entity category %d for item %lu of type %lu", entity.categoryID, entity.itemID, entity.typeID);
-			break;
+			case invCategories::Asteroid: {
+				//first load up the item.
+				InventoryItem *i = factory.Load(entity.itemID, false);	//should not have any contents...
+				if(i == NULL) {
+					//this should not happen... we just got this list from the DB...
+					codelog(SERVICE__ERROR, "Unable to load item for entity %lu", entity.itemID);
+					return NULL;
+				}
+				return(new Asteroid(&system, i));	//takes a ref.
+			} break;
+			case invCategories::Ship: {
+				codelog(SERVICE__ERROR, "Ship item in space unhandled: item %lu of type %lu", entity.itemID, entity.typeID);
+				//TODO: figure out if it is occupied or not.. can we
+				//filter this in the DB instead?
+			} break;
+			default: {
+				codelog(SERVICE__ERROR, "Unhandled dynamic entity category %d for item %lu of type %lu", entity.categoryID, entity.itemID, entity.typeID);
+			} break;
 		}
 		return NULL;
 	}
@@ -154,7 +152,7 @@ bool SystemManager::_LoadSystemDynamics() {
 	cur = entities.begin();
 	end = entities.end();
 	for(; cur != end; cur++) {
-		SystemEntity *se = DynamicEntityFactory::BuildEntity(this, m_services->item_factory, *cur);
+		SystemEntity *se = DynamicEntityFactory::BuildEntity(*this, m_services.item_factory, *cur);
 		if(se == NULL) {
 			codelog(SERVICE__ERROR, "Failed to create entity for item %lu (type %lu)", cur->itemID, cur->typeID);
 			continue;
@@ -484,8 +482,8 @@ void SystemManager::RangecastDestiny(const GPoint &pt, double range, std::vector
 	events.clear();
 }
 
-ItemFactory *SystemManager::itemFactory() const {
-	return(m_services->item_factory);
+ItemFactory &SystemManager::itemFactory() const {
+	return(m_services.item_factory);
 }
 
 

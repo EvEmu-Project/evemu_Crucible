@@ -107,7 +107,7 @@ uint32 GetRoidType(double p, const std::map<double, uint32> & roids) {
 void GetAsteroid(Client *who, uint32 typeID, double radius, const Ga::GaVec3 & position) {
 	InventoryItem *i;
 	//TODO: make item in IsUniverseAsteroid() range...
-	i = who->GetServices()->item_factory->SpawnSingleton(
+	i = who->services().item_factory.SpawnSingleton(
 		typeID,
 		1,	//who->GetCorporationID(),	//owner
 		who->GetLocationID(),

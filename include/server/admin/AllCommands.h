@@ -52,7 +52,7 @@
 
 
 class CommandDispatcher;
-extern void RegisterAllCommands(CommandDispatcher *into);
+extern void RegisterAllCommands(CommandDispatcher &into);
 void GetAsteroid(Client *who, uint32 typeID, double radius, const Ga::GaVec3 & position);
 
 #endif

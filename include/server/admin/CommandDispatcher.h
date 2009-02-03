@@ -5,9 +5,10 @@
 #include <string>
 #include <map>
 
+#include "admin/CommandDB.h"
+
 class Client;
 class Seperator;
-class CommandDB;
 class PyResult;
 class PyServiceMgr;
 
@@ -24,16 +25,16 @@ public:
 		CommandFunc function;
 	};
 
-	CommandDispatcher(CommandDB *db, PyServiceMgr *services);
+	CommandDispatcher(PyServiceMgr &services, DBcore &db);
 	virtual ~CommandDispatcher();
 
-	PyResult Execute(Client *from, const char *msg) const;
+	PyResult Execute(Client *from, const char *msg);
 
 	void AddCommand(const char *cmd, const char *desc, uint32 required_role, CommandFunc function);
 	
 protected:
-	CommandDB *const m_db;	//we own this
-	PyServiceMgr *const m_services;	//we do not own this
+	PyServiceMgr &m_services;
+	CommandDB m_db;
 	
 	std::map<std::string, CommandRecord *> m_commands;	//we own these pointers
 };

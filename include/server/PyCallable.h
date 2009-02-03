@@ -88,7 +88,7 @@ public:
 		virtual PyResult Dispatch(const std::string &method_name, PyCallArgs &call) = 0;
 	};
 	
-	PyCallable(PyServiceMgr *mgr, const char *callableName);
+	PyCallable(PyServiceMgr &mgr, const char *callableName);
 	virtual ~PyCallable();
 
 	const char *GetName() const { return(m_callableName.c_str()); }

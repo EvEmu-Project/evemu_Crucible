@@ -25,9 +25,9 @@
 
 #include "EvemuPCH.h"
 
-void RegisterAllCommands(CommandDispatcher *into) {
+void RegisterAllCommands(CommandDispatcher &into) {
 	
 	#define COMMAND(name, role, description) \
-		into->AddCommand( #name, description, role, Command_##name );
+		into.AddCommand( #name, description, role, Command_##name );
 	#include "admin/AllCommandsList.h"
 }

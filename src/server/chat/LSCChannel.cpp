@@ -106,7 +106,7 @@ bool LSCChannel::JoinChannel(Client * c) {
 		for(;cur!=end;cur++)
 			mct.characters.insert((*cur).first);
 		PyRepTuple * answer = join.Encode();
-		m_service->GetEntityList()->Multicast("OnLSC", GetTypeString(), &answer, mct);
+		m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 	//}
 
 	return true;
@@ -130,7 +130,7 @@ void LSCChannel::LeaveChannel(uint32 charID, OnLSC_SenderInfo * si) {
 	for(;cur!=end;cur++)
 		mct.characters.insert((*cur).first);
 	PyRepTuple * answer = leave.Encode();
-	m_service->GetEntityList()->Multicast("OnLSC", GetTypeString(), &answer, mct);
+	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
 void LSCChannel::LeaveChannel(Client *c, bool self) {
 	_log(LSC__CHANNELS, "Channel %s: Leave from %s", m_displayName.c_str(), c->GetName());
@@ -151,7 +151,7 @@ void LSCChannel::LeaveChannel(Client *c, bool self) {
 	for(;cur!=end;cur++)
 		mct.characters.insert((*cur).first);
 	PyRepTuple * answer = leave.Encode();
-	m_service->GetEntityList()->Multicast("OnLSC", GetTypeString(), &answer, mct);
+	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 
 	m_chars.erase(charID);
 	c->ChannelLeft(this);
@@ -170,7 +170,7 @@ void LSCChannel::Evacuate(Client * c) {
 	}
 	
 	PyRepTuple *answer = dc.Encode();
-	m_service->GetEntityList()->Multicast("OnLSC", GetTypeString(), &answer, mct);
+	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
 void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
 	MulticastTarget mct;
@@ -199,7 +199,7 @@ void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
 	sm.member_count = m_chars.size();
 
 	PyRepTuple *answer = sm.Encode();
-	m_service->GetEntityList()->Multicast("OnLSC", GetTypeString(), &answer, mct);
+	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
 
 	

@@ -88,7 +88,7 @@ public:
 	
 	SpawnEntry(
 		uint32 id, 
-		SpawnGroup *group, 
+		SpawnGroup &group, 
 		uint32 timerMin, 
 		uint32 timerMax, 
 		uint32 timerValue,
@@ -97,7 +97,7 @@ public:
 	inline uint32 GetID() const { return(m_id); }
 
 	//passing these pointers so we dont have to store them in each entry.
-	void Process(SystemManager *mgr, PyServiceMgr *svc);
+	void Process(SystemManager &mgr, PyServiceMgr &svc);
 	
 	bool CheckBounds() const;
 
@@ -107,14 +107,14 @@ public:
 	//easier right now, so here it is.
 	std::vector<GPoint> bounds;
 protected:
-	void _DoSpawn(SystemManager *mgr, PyServiceMgr *svc);
+	void _DoSpawn(SystemManager &mgr, PyServiceMgr &svc);
 
 	//curently spawned information:
 	std::set<uint32> m_spawnedIDs;
 	
 	//static info:
 	const uint32 m_id;
-	SpawnGroup *const m_group;
+	SpawnGroup &m_group;
 	
 	//spawn timer:
 	const uint32 m_timerMin;	//in seconds
@@ -127,7 +127,7 @@ protected:
 
 class SpawnManager {
 public:
-	SpawnManager(DBcore *db, SystemManager *mgr, PyServiceMgr *svc);
+	SpawnManager(DBcore &db, SystemManager &mgr, PyServiceMgr &svc);
 	~SpawnManager();
 	
 	bool Load();
@@ -135,8 +135,8 @@ public:
 	void Process();
 	
 protected:
-	SystemManager *const m_system;	//we do not own this
-	PyServiceMgr *const m_services;	//we do not own this
+	SystemManager &m_system;	//we do not own this
+	PyServiceMgr &m_services;	//we do not own this
 	
 	SpawnDB m_db;
 	

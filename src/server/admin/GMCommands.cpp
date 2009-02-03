@@ -47,7 +47,7 @@ PyResult Command_summon(Client *who, CommandDB *db, PyServiceMgr *services, cons
 	}
 	
 	InventoryItem *i;
-	i = services->item_factory->Spawn(
+	i = services->item_factory.Spawn(
 		atoi(args.arg[1]),
 		who->GetCharacterID(),
 		0,	//temp location.
@@ -111,9 +111,9 @@ PyResult Command_translocate(Client *who, CommandDB *db, PyServiceMgr *services,
 	
 	if(!IsStation(loc) && !IsSolarSystem(loc)) {
 		Client *tgt;
-		tgt = services->entity_list->FindCharacter(loc);
+		tgt = services->entity_list.FindCharacter(loc);
 		if(tgt == NULL)
-			tgt = services->entity_list->FindByShip(loc);
+			tgt = services->entity_list.FindByShip(loc);
 		if(tgt == NULL)
 			throw(PyException(MakeCustomError("Unable to find location %d", loc)));
 		loc = tgt->GetLocationID();
@@ -139,9 +139,9 @@ PyResult Command_tr(Client *who, CommandDB *db, PyServiceMgr *services, const Se
 	
 	if(!IsStation(loc) && !IsSolarSystem(loc)) {
 		Client *tgt;
-		tgt = services->entity_list->FindCharacter(loc);
+		tgt = services->entity_list.FindCharacter(loc);
 		if(tgt == NULL)
-			tgt = services->entity_list->FindByShip(loc);
+			tgt = services->entity_list.FindByShip(loc);
 		if(tgt == NULL)
 			throw(PyException(MakeCustomError("Unable to find location %d", loc)));
 		loc = tgt->GetLocationID();
@@ -166,7 +166,7 @@ PyResult Command_giveisk(Client *who, CommandDB *db, PyServiceMgr *services, con
 	if(entity == 0) {
 		tgt = who;
 	} else {
-		tgt = services->entity_list->FindCharacter(entity);
+		tgt = services->entity_list.FindCharacter(entity);
 		if(tgt == NULL)
 			throw(PyException(MakeCustomError("Unable to find character %lu", entity)));
 	}
@@ -217,7 +217,7 @@ PyResult Command_spawn(Client *who, CommandDB *db, PyServiceMgr *services, const
 		throw(PyException(MakeCustomError("You must be in space to spawn things.")));
 	
 	InventoryItem *i;
-	i = services->item_factory->SpawnSingleton(
+	i = services->item_factory.SpawnSingleton(
 		atoi(args.arg[1]),
 		who->GetCorporationID(),	//owner
 		who->GetLocationID(),
@@ -231,7 +231,7 @@ PyResult Command_spawn(Client *who, CommandDB *db, PyServiceMgr *services, const
 	loc.x += 1500;
 
 	SystemManager *sys = who->System();
-	NPC *it = new NPC(sys, services, i, who->GetCorporationID(), who->GetAllianceID(), loc);
+	NPC *it = new NPC(sys, *services, i, who->GetCorporationID(), who->GetAllianceID(), loc);
 	sys->AddNPC(it);
 
 	return(new PyRepString("Spawn successfull."));
@@ -287,7 +287,7 @@ PyResult Command_setbpattr(Client *who, CommandDB *db, PyServiceMgr *services, c
 	if(!args.IsNumber(5))
 		throw(PyException(MakeCustomError("Argument 5 must be remaining licensed production runs. (got %s)", args.arg[5])));
 
-	BlueprintItem *bp = services->item_factory->LoadBlueprint(atoi(args.arg[1]), false);
+	BlueprintItem *bp = services->item_factory.LoadBlueprint(atoi(args.arg[1]), false);
 	if(bp == NULL)
 		throw(PyException(MakeCustomError("Failed to load blueprint %s.", args.arg[1])));
 
@@ -321,7 +321,7 @@ PyResult Command_getattr(Client *who, CommandDB *db, PyServiceMgr *services, con
 	if(!args.IsNumber(2))
 		throw(PyException(MakeCustomError("2nd argument must be attributeID (got %s).", args.arg[2])));
 
-	InventoryItem *item = services->item_factory->Load(atoi(args.arg[1]), false);
+	InventoryItem *item = services->item_factory.Load(atoi(args.arg[1]), false);
 	if(item == NULL)
 		throw(PyException(MakeCustomError("Failed to load item %s.", args.arg[1])));
 
@@ -343,7 +343,7 @@ PyResult Command_setattr(Client *who, CommandDB *db, PyServiceMgr *services, con
 	if(!args.IsNumber(3))
 		throw(PyException(MakeCustomError("3rd argument must be value (got %s).", args.arg[3])));
 
-	InventoryItem *item = services->item_factory->Load(atoi(args.arg[1]), false);
+	InventoryItem *item = services->item_factory.Load(atoi(args.arg[1]), false);
 	if(item == NULL)
 		throw(PyException(MakeCustomError("Failed to load item %s.", args.arg[1])));
 
