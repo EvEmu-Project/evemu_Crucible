@@ -25,24 +25,20 @@
 
 #include "EvemuPCH.h"
 
-storage * mmthingy = NULL;
+storage StationDB::thingy;
 
 StationDB::StationDB(DBcore *db)
 : ServiceDB(db)
 {
-	if (mmthingy == NULL)
-		mmthingy = new storage();
-	thingy = mmthingy;
+	thingy.load();
 }
 
 StationDB::~StationDB() {
-	if (thingy)
-		delete thingy;
 }
 
 PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 	
-	return thingy->find(solarSystemID)->Clone();
+	return thingy.find(solarSystemID)->Clone();
 
 	// old code for reference.
 	/*DBQueryResult res;

@@ -33,10 +33,6 @@
 
 class PyRep;
 
-class storage;
-extern storage * mmthingy;
-
-
 /**
  * a example of a storage class for static db data. not exactly doxygen commented.
  */
@@ -44,12 +40,16 @@ class storage
 {
 public:
 	storage()
+	: mLoaded(false)
 	{
-		// this should never happen
-		if (mStorageContainer.size() != 0)
+	}
+
+	bool load()
+	{
+		if (mLoaded)
 		{
-			printf("double create fuckored whoo get the hell out of here\n");
-			assert(false);
+			// already loaded
+			return true;
 		}
 
 		DBQueryResult res;
@@ -72,7 +72,7 @@ public:
 			" FROM mapSolarSystems"))
 		{
 			_log(SERVICE__ERROR, "Error in storage GetSolarSystem query: %s", res.error.c_str());
-			return;
+			return false;
 		}
 
 		/* I am aware of the fact that the next piece of code is spamming the console */
@@ -88,14 +88,19 @@ public:
 			i++;
 		}
 		printf("\nStoring solar system data Done\n");
+		mLoaded = true;
+
+		return true;
 	}
 
-	PyRepObject* find(uint32 id)
+	// returned pointer doesn't have to be const, but I don't think
+	// we would like anyone to change static db data, so ...
+	const PyRepObject* find(uint32 id) const
 	{
 		DataContainerConstItr Itr = mStorageContainer.find(id);
 		if (Itr != mStorageContainer.end())
 		{
-			return (PyRepObject*)((PyRepObject*)Itr->second)->Clone(); // HELL FIRE TALKING ABOUT STATEMENTS I HATE---->>>> Clone?:S:S::S
+			return Itr->second;
 		}
 		return NULL;
 	}
@@ -109,11 +114,13 @@ public:
 		}
 	}
 
+protected:
 	typedef std::tr1::unordered_map<uint32, PyRepObject*>	DataContainer;
 	typedef DataContainer::iterator							DataContainerItr;
 	typedef DataContainer::const_iterator					DataContainerConstItr;
 
 	DataContainer mStorageContainer;
+	bool mLoaded;
 };
 
 
@@ -127,8 +134,8 @@ public:
 	PyRep *DoGetStation(uint32 ssid);
 	PyRep *GetStationItemBits(uint32 sid);
 
-//protected:
-	storage * thingy;
+protected:
+	static storage thingy;
 };
 
 #endif
