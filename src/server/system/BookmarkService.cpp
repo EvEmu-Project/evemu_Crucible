@@ -27,9 +27,10 @@
 
 PyCallable_Make_InnerDispatcher(BookmarkService)
 
-BookmarkService::BookmarkService(PyServiceMgr *mgr)
+BookmarkService::BookmarkService(PyServiceMgr *mgr, DBcore *db)
 : PyService(mgr, "bookmark"),
-m_dispatch(new Dispatcher(this))
+  m_db(db),
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 
@@ -43,49 +44,17 @@ BookmarkService::~BookmarkService() {
 
 
 PyResult BookmarkService::Handle_GetBookmarks(PyCallArgs &call) {
-	PyRep *result = NULL;
-
-	PyRepObject *rowset = new PyRepObject();
-	result = rowset;
-	rowset->type = "util.Rowset";
-	PyRepDict *args = new PyRepDict();
-	rowset->arguments = args;
-
-	//RowClass:
-	args->add("RowClass", new PyRepString("util.Row", true));
-
-	//header:
-	PyRepList *header = new PyRepList();
-	args->add("header", header);
-	header->add("bookmarkID");
-	header->add("ownerID");
-	header->add("itemID");
-	header->add("typeID");
-	header->add("flag");
-	header->add("memo");
-	header->add("created");
-	header->add("x");
-	header->add("y");
-	header->add("z");
-	header->add("locationID");
-
-	//lines:
-	PyRepList *charlist = new PyRepList();
-	args->add("lines", charlist);
-
-	return(result);
+	return(m_db.GetBookmarks(call.client->GetCharacterID()));
 }
 
 
 PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call) {
 	//takes (locationID, None, description)
-	PyRep *result = NULL;
 
 	//returns:
 	//(bookmarkID, itemID, typeID, x, y, z, locationID,) 
-	result = new PyRepNone();
 	
-	return(result);
+	return(new PyRepNone);
 }
 
 

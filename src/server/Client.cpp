@@ -675,9 +675,11 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		// Entering station
 		m_chardata.stationID = location;
 		
-		m_services.serviceDB().GetStationParents(
+		m_services.serviceDB().GetStationInfo(
 			m_chardata.stationID,
-			m_chardata.solarSystemID, m_chardata.constellationID, m_chardata.regionID );
+			&m_chardata.solarSystemID, &m_chardata.constellationID, &m_chardata.regionID,
+			NULL, NULL, NULL
+		);
 
 		Ship()->Move(location, flagHangar);
 	} else if(IsSolarSystem(location)) {
@@ -688,9 +690,11 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		m_chardata.stationID = 0;
 		m_chardata.solarSystemID = location;
 		
-		m_services.serviceDB().GetSystemParents(
+		m_services.serviceDB().GetSystemInfo(
 			m_chardata.solarSystemID,
-			m_chardata.constellationID, m_chardata.regionID );
+			&m_chardata.constellationID, &m_chardata.regionID,
+			NULL, NULL
+		);
 
 		Ship()->Move(location, flagShipOffline);
 		Ship()->Relocate(pt);
@@ -1081,11 +1085,10 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 	uint32 regionID;
 	uint32 constellationID;
 	uint32 solarSystemID;
-	GPoint location;
-	if(!m_services.serviceDB().GetStaticLocation(
-		toGate,
-		regionID, constellationID, solarSystemID,
-		location
+	GPoint position;
+	if(!m_services.serviceDB().GetStaticItemInfo(
+			toGate,
+			&regionID, &constellationID, &solarSystemID, &position
 		)
 	) {
 		codelog(CLIENT__ERROR, "%s: Failed to query information for stargate %lu", GetName(), toGate);
@@ -1093,7 +1096,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 	}
 	
 	m_moveSystemID = solarSystemID;
-	m_movePoint = location;
+	m_movePoint = position;
 	m_movePoint.x -= 15000;
 
 	m_destiny->SendJumpOut(fromGate);

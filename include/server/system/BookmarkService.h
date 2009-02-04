@@ -31,12 +31,14 @@
 
 class BookmarkService : public PyService {
 public:
-	BookmarkService(PyServiceMgr *mgr);
+	BookmarkService(PyServiceMgr *mgr, DBcore *db);
 	virtual ~BookmarkService();
 
 protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
+
+	BookmarkDB m_db;
 
 	PyCallable_DECL_CALL(GetBookmarks)
 	PyCallable_DECL_CALL(BookmarkLocation)

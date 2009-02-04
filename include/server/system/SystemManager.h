@@ -49,7 +49,7 @@ class PyServiceMgr;
 
 class SystemManager {
 public:
-	SystemManager(const char *systemName, uint32 systemID, DBcore &db, PyServiceMgr &svc);
+	SystemManager(uint32 systemID, DBcore &db, PyServiceMgr &svc);
 	virtual ~SystemManager();
 	
 	//bubble stuff:
@@ -79,8 +79,6 @@ public:
 	
 	void MakeSetState(const SystemBubble *bubble, DoDestiny_SetState &into) const;
 
-	uint32 AllocateNPCID() { return(m_nextNPCID++); }
-	
 	SystemDB *GetSystemDB() { return(&m_db); }
 	const char * GetSystemSecurity() { return m_systemSecurity.c_str(); }
 
@@ -90,14 +88,13 @@ protected:
 	bool _LoadSystemCelestials();
 	bool _LoadSystemDynamics();
 	
-	const std::string m_systemName;
 	const uint32 m_systemID;
+	std::string m_systemName;
 	std::string m_systemSecurity;
+
 	SystemDB m_db;
 	PyServiceMgr &m_services;	//we do not own this
 	SpawnManager *m_spawnManager;	//we own this, never NULL, dynamic to keep the knowledge down.
-	
-	uint32 m_nextNPCID;
 	
 	//overall system entity lists:
 	bool m_clientChanged;

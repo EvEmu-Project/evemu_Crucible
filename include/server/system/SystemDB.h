@@ -59,7 +59,6 @@ public:
 	
 	bool LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &into);
 	bool LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity> &into);
-	std::string GetSystemSecurity(uint32 sysid);
 
 	PyRepObject *ListFactions();
 	PyRepObject *ListJumps(uint32 stargateID);

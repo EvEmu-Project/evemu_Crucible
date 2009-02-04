@@ -117,8 +117,8 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 	
 	//int ignoreContraband = args.arg;
 	
-	GPoint position;
-	if(!m_db->GetStationDockPosition(call.client->GetLocationID(), position)) {
+	GPoint dockPosition;
+	if(!m_db->GetStationInfo(call.client->GetLocationID(), NULL, NULL, NULL, NULL, &dockPosition, NULL)) {
 		_log(SERVICE__ERROR, "%s: Failed to query location of station %lu for undock.", call.client->GetLocationID());
 		//TODO: throw exception
 		return NULL;
@@ -141,7 +141,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 	call.client->Ship()->SetCustomInfo(ci);
 	
 	//do session change...
-	call.client->MoveToLocation(call.client->GetSystemID(), position);
+	call.client->MoveToLocation(call.client->GetSystemID(), dockPosition);
 
 	//revert custom info, for testing.
 	call.client->Ship()->SetCustomInfo(NULL);

@@ -28,17 +28,16 @@
 
 using namespace Destiny;
 
-SystemManager::SystemManager(const char *systemName, uint32 systemID, DBcore &db, PyServiceMgr &svc)
-: m_systemName(systemName),
-  m_systemID(systemID),
+SystemManager::SystemManager(uint32 systemID, DBcore &db, PyServiceMgr &svc)
+: m_systemID(systemID),
+  m_systemName(""),
   m_db(&db),
   m_services(svc),
   m_spawnManager(new SpawnManager(db, *this, m_services)),
-  m_nextNPCID(900000000),	//TODO: look in logs to figure out what they really use.
   m_clientChanged(false),
   m_entityChanged(false)
 {
-	m_systemSecurity = m_db.GetSystemSecurity(m_systemID);
+	m_db.GetSystemInfo(GetID(), NULL, NULL, &m_systemName, &m_systemSecurity);
 	//create our chat channel
 	m_services.lsc_service->CreateSystemChannel(m_systemID);
 }

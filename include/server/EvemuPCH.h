@@ -239,6 +239,7 @@
 #include "../server/npc/NPC.h"
 #include "../server/npc/NPCAI.h"
 
+#include "../server/system/BookmarkDB.h"
 #include "../server/system/BookmarkService.h"
 #include "../server/system/BubbleManager.h"
 #include "../server/system/Damage.h"

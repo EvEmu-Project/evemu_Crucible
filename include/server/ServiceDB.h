@@ -79,12 +79,10 @@ public:
 
 	void MoveCharacter(uint32 charID);
 	
-	bool GetSystemParents(uint32 systemID, uint32 &constellationID, uint32 &regionID);
-	bool GetStationParents(uint32 stationID, uint32 &systemID, uint32 &constellationID, uint32 &regionID);
-	bool GetStaticLocation(uint32 entityID, uint32 &regionID, uint32 &constellationID, uint32 &solarSystemID, GPoint &location);
-	bool GetStaticPosition(uint32 itemID, double &x, double &y, double &z);
-	bool GetStaticPosition(uint32 itemID, uint32 &systemID, double &x, double &y, double &z);
-	bool GetStationDockPosition(uint32 stationID, GPoint &pos);
+	bool GetSystemInfo(uint32 systemID, uint32 *constellationID, uint32 *regionID, std::string *name, std::string *securityClass);	// mapSolarSystems
+	bool GetStaticItemInfo(uint32 itemID, uint32 *systemID, uint32 *constellationID, uint32 *regionID, GPoint *position);	// mapDenormalize
+	bool GetStationInfo(uint32 stationID, uint32 *systemID, uint32 *constellationID, uint32 *regionID, GPoint *position, GPoint *dockPosition, GVector *dockOrientation);	// staStations
+
 	uint32 GetDestinationStargateID(uint32 fromSystem, uint32 toSystem);
 
 	bool GetConstant(const char *name, uint32 &into);

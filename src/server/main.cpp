@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
 	services.RegisterService(new AlertService(&services));
 	services.RegisterService(new AuthService(&services));
 	services.RegisterService(new BillMgrService(&services, &db));
-	services.RegisterService(new BookmarkService(&services));
+	services.RegisterService(new BookmarkService(&services, &db));
 	services.RegisterService(new CertificateMgrService(&services, &db));
 	services.RegisterService(new CharacterService(&services, &db));
 	services.RegisterService(new CharMgrService(&services, &db));

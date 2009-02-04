@@ -245,191 +245,173 @@ PyRepObject *ServiceDB::GetSolDroneState(uint32 systemID) const {
 	return(DBResultToRowset(res));
 }
 
+bool ServiceDB::GetSystemInfo(uint32 systemID, uint32 *constellationID, uint32 *regionID, std::string *name, std::string *securityClass) {
+	if(	   constellationID == NULL
+		&& regionID == NULL
+		&& name == NULL
+		&& securityClass == NULL
+	)
+		return true;
 
-bool ServiceDB::GetSystemParents(uint32 systemID, uint32 &constellationID, uint32 &regionID) {
 	DBQueryResult res;
-	
 	if(!m_db->RunQuery(res,
-	"SELECT"
-	"	constellationID,regionID"
-	" FROM mapSolarSystems"
-	" WHERE solarSystemID=%lu", systemID
-	))
+		"SELECT"
+		" constellationID,"
+		" regionID,"
+		" solarSystemName,"
+		" securityClass"
+		" FROM mapSolarSystems"
+		" WHERE solarSystemID = %lu",
+		systemID))
 	{
-		_log(SERVICE__ERROR, "Error in GetSystemParents query: %s", res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query info for system %lu: %s.", systemID, res.error.c_str());
 		return false;
 	}
-	
+
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(SERVICE__ERROR, "Error in GetSystemParents query: no system data for %d", systemID);
+		_log(DATABASE__ERROR, "Failed to query info for system %lu: System not found.", systemID);
 		return false;
 	}
-	
-	constellationID = row.GetUInt(0);
-	regionID = row.GetUInt(1);
-	
+
+	if(constellationID != NULL)
+		*constellationID = row.GetUInt(0);
+	if(regionID != NULL)
+		*regionID = row.GetUInt(1);
+	if(name != NULL)
+		*name = row.GetText(2);
+	if(securityClass != NULL)
+		*securityClass = row.GetText(3);
+
 	return true;
 }
 
-bool ServiceDB::GetStationParents(uint32 stationID, uint32 &systemID, uint32 &constellationID, uint32 &regionID) {
+bool ServiceDB::GetStaticItemInfo(uint32 itemID, uint32 *systemID, uint32 *constellationID, uint32 *regionID, GPoint *position) {
+	if(	   systemID == NULL
+		&& constellationID == NULL
+		&& regionID == NULL
+		&& position == NULL
+	)
+		return true;
+
 	DBQueryResult res;
-	
 	if(!m_db->RunQuery(res,
-	"SELECT"
-	"	solarSystemID,constellationID,regionID"
-	" FROM staStations"
-	" WHERE stationID=%lu", stationID
-	))
+		"SELECT"
+		" solarSystemID,"
+		" constellationID,"
+		" regionID,"
+		" x, y, z"
+		" FROM mapDenormalize"
+		" WHERE itemID = %lu",
+		itemID))
 	{
-		_log(SERVICE__ERROR, "Error in GetStationParents query: %s", res.error.c_str());
-		return false;
-	}
-	
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(SERVICE__ERROR, "Error in GetStationParents query: no station data for %d", stationID);
+		_log(DATABASE__ERROR, "Failed to query info for static item %lu: %s.", itemID, res.error.c_str());
 		return false;
 	}
 
-	systemID = row.GetUInt(0);
-	constellationID = row.GetUInt(1);
-	regionID = row.GetUInt(2);
-	
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "Failed to query info for static item %lu: Item not found.", itemID);
+		return false;
+	}
+
+	if(systemID != NULL)
+		*systemID = row.GetUInt(0);
+	if(constellationID != NULL)
+		*constellationID = row.GetUInt(1);
+	if(regionID != NULL)
+		*regionID = row.GetUInt(2);
+	if(position != NULL)
+		*position = GPoint(
+			row.GetDouble(3),
+			row.GetDouble(4),
+			row.GetDouble(5)
+		);
+
 	return true;
 }
 
-bool ServiceDB::GetStaticPosition(uint32 itemID, double &x, double &y, double &z) {
+bool ServiceDB::GetStationInfo(uint32 stationID, uint32 *systemID, uint32 *constellationID, uint32 *regionID, GPoint *position, GPoint *dockPosition, GVector *dockOrientation) {
+	if(	   systemID == NULL
+		&& constellationID == NULL
+		&& regionID == NULL
+		&& position == NULL
+		&& dockPosition == NULL
+		&& dockOrientation == NULL
+	)
+		return true;
+
 	DBQueryResult res;
-	
 	if(!m_db->RunQuery(res,
-	"SELECT"
-	"	x, y, z"
-	" FROM mapDenormalize"
-	" WHERE itemID=%lu", itemID
-	))
+		"SELECT"
+		" solarSystemID,"
+		" constellationID,"
+		" regionID,"
+		" x, y, z,"
+		" dockEntryX, dockEntryY, dockEntryZ,"
+		" dockOrientationX, dockOrientationY, dockOrientationZ"
+		" FROM staStations"
+		" LEFT JOIN staStationTypes USING (stationTypeID)"
+		" WHERE stationID = %lu",
+		stationID))
 	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query info for station %lu: %s.", stationID, res.error.c_str());
 		return false;
 	}
-	
+
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Error in query: no data for %d", itemID);
+		_log(DATABASE__ERROR, "Failed to query info for station %lu: Station not found.", stationID);
 		return false;
 	}
 
-	x = row.GetDouble(0);
-	y = row.GetDouble(1);
-	z = row.GetDouble(2);
-	
-	return true;
-}
-
-bool ServiceDB::GetStaticPosition(uint32 itemID, uint32 &systemID, double &x, double &y, double &z) {
-	DBQueryResult res;
-	
-	if(!m_db->RunQuery(res,
-	"SELECT"
-	"	solarSystemID, x, y, z"
-	" FROM mapDenormalize"
-	" WHERE itemID=%lu", itemID
-	))
-	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return false;
-	}
-	
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Error in query: no data for %d", itemID);
-		return false;
-	}
-
-	systemID = row.GetUInt(0);
-	x = row.GetDouble(1);
-	y = row.GetDouble(2);
-	z = row.GetDouble(3);
-	
-	return true;
-}
-
-bool ServiceDB::GetStaticLocation(uint32 entityID, uint32 &regionID, uint32 &constellationID, uint32 &solarSystemID, GPoint &location) {
-	DBQueryResult res;
-	
-	if(!m_db->RunQuery(res,
-	"SELECT"
-	"	regionID, constellationID, solarSystemID, "
-	"	x, y, z"
-	" FROM mapDenormalize"
-	" WHERE itemID=%lu", entityID
-	))
-	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return false;
-	}
-	
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Error in query: no data for %d", entityID);
-		return false;
+	if(systemID != NULL)
+		*systemID = row.GetUInt(0);
+	if(constellationID != NULL)
+		*constellationID = row.GetUInt(1);
+	if(regionID != NULL)
+		*regionID = row.GetUInt(2);
+	if(position != NULL)
+		*position = GPoint(
+			row.GetDouble(3),
+			row.GetDouble(4),
+			row.GetDouble(5)
+		);
+	if(dockPosition != NULL)
+		*dockPosition = GPoint(
+			row.GetDouble(3) + row.GetDouble(6),
+			row.GetDouble(4) + row.GetDouble(7),
+			row.GetDouble(5) + row.GetDouble(8)
+		);
+	if(dockOrientation != NULL) {
+		*dockOrientation = GVector(
+			row.GetDouble(9),
+			row.GetDouble(10),
+			row.GetDouble(11)
+		);
+		// as it's direction, it should be normalized
+		dockOrientation->normalize();
 	}
 
-	regionID = row.GetUInt(0);
-	constellationID = row.GetUInt(1);
-	solarSystemID = row.GetUInt(2);
-	location.x = row.GetDouble(3);
-	location.y = row.GetDouble(4);
-	location.z = row.GetDouble(5);
-	
-	return true;
-}
-
-bool ServiceDB::GetStationDockPosition(uint32 stationID, GPoint &location) {
-	DBQueryResult res;
-	
-	if(!m_db->RunQuery(res,
-		" SELECT "
-		"   staStations.x + staStationTypes.dockEntryX, "
-		"   staStations.y + staStationTypes.dockEntryY, "
-		"   staStations.z + staStationTypes.dockEntryZ "
-		" FROM staStations "
-		" LEFT JOIN staStationTypes "
-		" ON staStations.stationTypeID = staStationTypes.stationTypeID "
-		" WHERE staStations.stationID = %lu ", stationID
-	))
-	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return false;
-	}
-	
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Error in query: no data for %d", stationID);
-		return false;
-	}
-
-	location.x = row.GetDouble(0);
-	location.y = row.GetDouble(1);
-	location.z = row.GetDouble(2);
-	
 	return true;
 }
 
 uint32 ServiceDB::GetDestinationStargateID(uint32 fromSystem, uint32 toSystem) {
-DBQueryResult res;
+	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
 		" SELECT "
-		"    mapDenormalize.solarSystemID AS FromSystem, mapJumps.stargateID AS FromGate, "
-		"    mapJumps.celestialID AS ToGate, mapDenormalize2.solarSystemID AS ToSystem "
-		" FROM mapJumps "
-		" LEFT JOIN mapDenormalize "
-		" ON mapDenormalize.itemID = mapJumps.stargateID "
-		" LEFT JOIN mapDenormalize AS mapDenormalize2 "
-		" ON mapDenormalize2.itemID = mapJumps.celestialID "
-		" WHERE mapDenormalize.solarSystemID = %lu "
-		" AND mapDenormalize2.solarSystemID = %lu ",
+		"    fromStargate.solarSystemID AS fromSystem,"
+		"    fromStargate.itemID AS fromGate,"
+		"    toStargate.itemID AS toGate,"
+		"    toStargate.solarSystemID AS toSystem"
+		" FROM mapJumps AS jump"
+		" LEFT JOIN mapDenormalize AS fromStargate"
+		"    ON fromStargate.itemID = jump.stargateID"
+		" LEFT JOIN mapDenormalize AS toStargate"
+		"    ON toStargate.itemID = jump.celestialID"
+		" WHERE fromStargate.solarSystemID = %lu"
+		"    AND toStargate.solarSystemID = %lu",
 		fromSystem, toSystem
 	))
 	{

@@ -327,11 +327,7 @@ SystemManager *EntityList::FindOrBootSystem(uint32 systemID) {
 
 	_log(SERVICE__MESSAGE, "Booting system %lu", systemID);
 	
-	//hack for now:
-	char systemName[64];
-	snprintf(systemName, sizeof(systemName), "System %lu", systemID);
-	
-	SystemManager *mgr = new SystemManager(systemName, systemID, m_db, *m_services);
+	SystemManager *mgr = new SystemManager(systemID, m_db, *m_services);
 	if(!mgr->BootSystem()) {
 		delete mgr;
 		return NULL;

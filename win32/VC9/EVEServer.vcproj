@@ -586,6 +586,10 @@
 				Name="system"
 				>
 				<File
+					RelativePath="..\..\src\server\system\BookmarkDB.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\server\system\BookmarkService.cpp"
 					>
 				</File>
@@ -1215,6 +1219,10 @@
 			<Filter
 				Name="system"
 				>
+				<File
+					RelativePath="..\..\include\server\system\BookmarkDB.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\include\server\system\BookmarkService.h"
 					>

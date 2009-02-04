@@ -53,10 +53,7 @@ bool SystemDB::LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &
 		entry.itemID = row.GetInt(0);
 		entry.typeID = row.GetInt(1);
 		entry.groupID = row.GetInt(2);
-		if(row.IsNull(3))
-			entry.orbitID = 0;
-		else
-			entry.orbitID = row.GetInt(3);
+		entry.orbitID = (row.IsNull(3) ? 0 : row.GetInt(3));
 		entry.position.x = row.GetDouble(4);
 		entry.position.y = row.GetDouble(5);
 		entry.position.z = row.GetDouble(6);
@@ -142,26 +139,6 @@ PyRepObject *SystemDB::ListJumps(uint32 stargateID) {
 	}
 	
 	return(DBResultToRowset(res));
-}
-std::string SystemDB::GetSystemSecurity(uint32 sysid) {
-	DBQueryResult res;
-
-	if (!m_db->RunQuery(res,
-		" SELECT "
-		" securityClass "
-		" FROM mapSolarSystems "
-		" WHERE solarsystemID = %lu ", sysid))
-	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return "A";
-	}
-
-	DBResultRow row;
-	res.GetRow(row);
-
-	// easier handling
-	std::string ret(row.GetText(0));
-	return ret;
 }
 
 

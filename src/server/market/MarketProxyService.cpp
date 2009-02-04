@@ -140,9 +140,8 @@ PyResult MarketProxyService::Handle_GetRegionBest(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	uint32 constellationID;
 	uint32 regionID;
-	if(!m_db.GetSystemParents(locid, constellationID, regionID)) {
+	if(!m_db.GetSystemInfo(locid, NULL, &regionID, NULL, NULL)) {
 		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %lu!", call.client->GetName(), locid);
 		return NULL;
 	}
@@ -195,9 +194,8 @@ PyResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	uint32 constellationID;
 	uint32 regionID;
-	if(!m_db.GetSystemParents(locid, constellationID, regionID)) {
+	if(!m_db.GetSystemInfo(locid, NULL, &regionID, NULL, NULL)) {
 		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %lu!", call.client->GetName(), locid);
 		return NULL;
 	}
@@ -239,9 +237,8 @@ PyResult MarketProxyService::Handle_GetOldPriceHistory(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	uint32 constellationID;
 	uint32 regionID;
-	if(!m_db.GetSystemParents(locid, constellationID, regionID)) {
+	if(!m_db.GetSystemInfo(locid, NULL, &regionID, NULL, NULL)) {
 		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %lu!", call.client->GetName(), locid);
 		return NULL;
 	}
@@ -270,9 +267,8 @@ PyResult MarketProxyService::Handle_GetNewPriceHistory(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	uint32 constellationID;
 	uint32 regionID;
-	if(!m_db.GetSystemParents(locid, constellationID, regionID)) {
+	if(!m_db.GetSystemInfo(locid, NULL, &regionID, NULL, NULL)) {
 		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %lu!", call.client->GetName(), locid);
 		return NULL;
 	}

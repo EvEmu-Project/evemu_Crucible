@@ -794,9 +794,8 @@ uint32 MarketDB::_StoreOrder(
 	DBerror err;
 
 	uint32 solarSystemID;
-	uint32 constellationID;
 	uint32 regionID;
-	if(!GetStationParents(stationID, solarSystemID, constellationID, regionID)) {
+	if(!GetStationInfo(stationID, &solarSystemID, NULL, &regionID, NULL, NULL, NULL)) {
 		codelog(MARKET__ERROR, "Char %lu: Failed to find parents for station %lu", clientID, stationID);
 		return(0);
 	}

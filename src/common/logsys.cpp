@@ -102,20 +102,21 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
 	time_t t;
 	time(&t);
 	char buf[32];
-	strftime(buf, sizeof(buf), "%X ", localtime(&t));
+	strftime(buf, sizeof(buf), "%X", localtime(&t));
 	message += buf;
-#else
-	struct timeval tv;
+#else /* !WIN32 */
+	timeval tv;
 	gettimeofday(&tv, NULL);
 	char buf[32];
 	strftime(buf, sizeof(buf), "%T", localtime(&tv.tv_sec));
-	//printf("%s.%04d ", buf, tv.tv_usec/100);
 	message += buf;
+
 	message += '.';
-	snprintf(buf, sizeof(buf), "%04d", tv.tv_usec/100); buf[sizeof(buf)-1] = '\0';
+	snprintf(buf, sizeof(buf), "%04d", tv.tv_usec/100);
 	message += buf;	
-#endif /* WIN32 */
-#endif /* NO_LOG_TIME */
+#endif /* !WIN32 */
+	message += " ";	// make a space between log time and message itself
+#endif /* !NO_LOG_TIME */
 
 	message += "[";
 	message += log_type_info[type].display_name;

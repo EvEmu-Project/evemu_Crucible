@@ -73,8 +73,7 @@ PyResult AuthService::Handle_Ping(PyCallArgs &call) {
 
 
 PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call) {
-	//PyRep *result = NULL;
-	PyRep *result = new PyRepNone;
+	PyRep *result = NULL;
 /*
 	PyRepObject *o = new PyRepObject();
 	result = o;
@@ -101,7 +100,9 @@ PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call) {
 	PyRepDict *args = new PyRepDict;
 	args->add("message", loginMessage);
 	result = new PyRepObject("util.KeyVal", args);
-#endif /* SHOW_LOGIN_MESSAGE */
+#else /* !SHOW_LOGIN_MESSAGE */
+	result = new PyRepNone;
+#endif /* !SHOW_LOGIN_MESSAGE */
 
 	return(result);
 }

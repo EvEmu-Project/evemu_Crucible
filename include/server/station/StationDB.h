@@ -53,7 +53,6 @@ public:
 		}
 
 		DBQueryResult res;
-
 		if(!GetDatabase.RunQuery(res,	"SELECT "
 			" solarSystemID,"					// int
 			" solarSystemName,"					// string
@@ -78,14 +77,12 @@ public:
 		/* I am aware of the fact that the next piece of code is spamming the console */
 		printf("Loading Solar systems:.");
 		DBResultRow row;
-		unsigned int i = 0;
-		while(res.GetRow(row))
+		for(unsigned int i = 0; res.GetRow(row); i++)
 		{
 			mStorageContainer[row.GetUInt(0)] = DBRowToRow(row);
 
-			if (!(i % 200))
+			if ((i % 200) == 0)
 				printf(".");
-			i++;
 		}
 		printf("\nStoring solar system data Done\n");
 		mLoaded = true;
@@ -122,7 +119,6 @@ protected:
 	DataContainer mStorageContainer;
 	bool mLoaded;
 };
-
 
 
 class StationDB : public ServiceDB {

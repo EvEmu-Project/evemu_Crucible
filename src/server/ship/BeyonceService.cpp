@@ -334,7 +334,7 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 	//we need to delay the destiny updates until after we return
 
 	GPoint pos;
-	if(!m_db->GetStaticPosition(arg.item, pos.x, pos.y, pos.z)) {
+	if(!m_db->GetStaticItemInfo(arg.item, NULL, NULL, NULL, &pos)) {
 		codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.item);
 		return NULL;
 	}
@@ -385,19 +385,16 @@ PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	double x,y,z;
-	if(!m_db->GetStaticPosition(arg.arg, x, y, z)) {
+	GPoint position;
+	if(!m_db->GetStaticItemInfo(arg.arg, NULL, NULL, NULL, &position)) {
 		codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.arg);
 		return NULL;
 	}
 
 	OnDockingAccepted da;
-	da.start_x = x;
-	da.start_y = y;
-	da.start_z = z;
-	da.end_x = x;
-	da.end_y = y;
-	da.end_z = z;
+	da.start_x = da.end_x = position.x;
+	da.start_y = da.end_y = position.y;
+	da.start_z = da.end_z = position.z;
 	da.stationID = arg.arg;
 
 	GPoint start(da.start_x, da.start_y, da.start_z);

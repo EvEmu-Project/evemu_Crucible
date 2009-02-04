@@ -260,6 +260,8 @@ libstation_a_SOURCES = \
 	station/StationSvcService.h
 
 libsystem_a_SOURCES = \
+	system/BookmarkDB.cpp \
+	system/BookmarkDB.h \
 	system/BookmarkService.cpp \
 	system/BookmarkService.h \
 	system/BubbleManager.cpp \
