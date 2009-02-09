@@ -1063,13 +1063,13 @@ PyRepDict *Client::MakeSlimItem() const {
 	return(slim);
 }
 
-void Client::WarpTo(const GPoint &to) {
+void Client::WarpTo(const GPoint &to, double distance) {
 	if(m_moveState != msIdle || m_moveTimer.Enabled()) {
 		_log(CLIENT__ERROR, "%s: WarpTo called when a move is already pending. Ignoring.", GetName());
 		return;
 	}
 
-	m_destiny->WarpTo(to, 15000.0);
+	m_destiny->WarpTo(to, distance);
 	//TODO: OnModuleAttributeChange with attribute 18 for capacitory charge
 }
 

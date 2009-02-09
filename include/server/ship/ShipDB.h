@@ -30,14 +30,13 @@
 #include "../ServiceDB.h"
 
 class ShipDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
 	ShipDB(DBcore *db);
 	virtual ~ShipDB();
 
-
-
-protected:
+	PyRepTuple *GetFormations();
 };
 
 

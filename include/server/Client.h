@@ -314,7 +314,7 @@ public:
 	void SessionSync();
 
 	//destiny stuff...
-	void WarpTo(const GPoint &p);
+	void WarpTo(const GPoint &p, double distance);
 	void StargateJump(uint32 fromGate, uint32 toGate);
 	
 	//SystemEntity interface:

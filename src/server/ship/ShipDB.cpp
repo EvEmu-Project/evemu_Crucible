@@ -25,5 +25,51 @@
 
 #include "EvemuPCH.h"
 
-ShipDB::ShipDB(DBcore *db) : ServiceDB(db) {}
-ShipDB::~ShipDB() {}
+ShipDB::ShipDB(DBcore *db)
+: ServiceDB(db)
+{
+}
+
+ShipDB::~ShipDB() {
+}
+
+PyRepTuple *ShipDB::GetFormations() {
+	//vicious crap... but this is gunna be a bit of work to load from the DB (nested tuples)
+	PyRepTuple *res = new PyRepTuple(2);
+
+	cache_Formation f;
+	Call_PointArg pos;
+
+	//Diamond formation
+	f.name = "Diamond";
+	f.positions = new PyRepTuple(4);
+
+	pos.x = 100;	pos.y = 0;		pos.z = 0;
+	f.positions->items[0] = pos.FastEncode();
+	pos.x = 0;		pos.y = 100;	pos.z = 0;
+	f.positions->items[1] = pos.FastEncode();
+	pos.x = -100;	pos.y = 0;		pos.z = 0;
+	f.positions->items[2] = pos.FastEncode();
+	pos.x = 0;		pos.y = -100;	pos.z = 0;
+	f.positions->items[3] = pos.FastEncode();
+
+	res->items[0] = f.FastEncode();
+
+	//Arrow formation
+	f.name = "Arrow";
+	f.positions = new PyRepTuple(4);
+
+	pos.x = 100;	pos.y = 0;		pos.z = -50;
+	f.positions->items[0] = pos.FastEncode();
+	pos.x = 50;		pos.y = 0;		pos.z = 0;
+	f.positions->items[1] = pos.FastEncode();
+	pos.x = -100;	pos.y = 0;		pos.z = -50;
+	f.positions->items[2] = pos.FastEncode();
+	pos.x = -50;	pos.y = 0;		pos.z = 0;
+	f.positions->items[3] = pos.FastEncode();
+
+	res->items[1] = f.FastEncode();
+
+	return(res);
+}
+

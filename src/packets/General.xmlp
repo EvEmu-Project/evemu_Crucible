@@ -587,10 +587,19 @@ CallGetGuests
   </InlineTuple>
 </element>
 
+<element name="Call_FollowBall">
+  <InlineTuple>
+    <int name="ballID" />
+    <!-- may be integer or real -->
+    <raw name="distance" />
+  </InlineTuple>
+</element>
+
 <element name="Call_Orbit">
   <InlineTuple>
     <int name="entityID" />
-    <real name="distance" />
+    <!-- may be integer or real -->
+    <raw name="distance" />
   </InlineTuple>
 </element>
 

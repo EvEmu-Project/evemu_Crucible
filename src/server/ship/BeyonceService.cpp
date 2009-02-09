@@ -33,9 +33,8 @@ public:
 
 	PyCallable_Make_Dispatcher(BeyonceBound)
 	
-	BeyonceBound(PyServiceMgr *mgr, Client *c, ShipDB *db)
+	BeyonceBound(PyServiceMgr *mgr, Client *c)
 	: PyBoundObject(mgr, "BeyonceBound"),
-	  m_db(db),
 	  m_dispatch(new Dispatcher(this))
 	{
 		_SetCallDispatcher(m_dispatch);
@@ -70,15 +69,14 @@ public:
 	PyCallable_DECL_CALL(UpdateStateRequest)
 
 protected:
-	ShipDB *const m_db;
 	Dispatcher *const m_dispatch;
 };
 
 
 BeyonceService::BeyonceService(PyServiceMgr *mgr, DBcore *db)
 : PyService(mgr, "beyonce"),
-m_dispatch(new Dispatcher(this)),
-m_db(db)
+  m_dispatch(new Dispatcher(this)),
+  m_db(db)
 {
 	_SetCallDispatcher(m_dispatch);
 
@@ -95,107 +93,30 @@ PyBoundObject *BeyonceService::_CreateBoundObject(Client *c, const PyRep *bind_a
 	_log(CLIENT__MESSAGE, "BeyonceService bind request for:");
 	bind_args->Dump(stdout, "    ");
 
-	return(new BeyonceBound(m_manager, c, &m_db));
+	return(new BeyonceBound(m_manager, c));
 }
 
 
 PyResult BeyonceService::Handle_GetFormations(PyCallArgs &call) {
-	PyRep *result = NULL;
+	ObjectCachedMethodID method_id(GetName(), "GetFormations");
 
-	ObjectCachedMethodID method_id(GetName(), "GetRefTypes");
+	ObjCacheService *cache = m_manager->GetCache();
 
 	//check to see if this method is in the cache already.
-	ObjCacheService *cache = m_manager->GetCache();
 	if(!cache->IsCacheLoaded(method_id)) {
 		//this method is not in cache yet, load up the contents and cache it.
-
-		//vicious crap... but this is gunna be a bit of work to load from the DB (nested tuples)
-		PyRepTuple *forms = new PyRepTuple(2);
-		result = forms;
-		
-		PyRepTuple *formation_t;
-		PyRepTuple *list_t;
-		PyRepTuple *item_t;
-	
-		//Diamond formation
-		list_t = new PyRepTuple(4);
-	
-		item_t = new PyRepTuple(3);
-		item_t->items[0] = new PyRepReal(100);
-		item_t->items[1] = new PyRepReal(0);
-		item_t->items[2] = new PyRepReal(0);
-		list_t->items[0] = item_t;
-	
-		item_t = new PyRepTuple(3);
-		item_t->items[0] = new PyRepReal(0);
-		item_t->items[1] = new PyRepReal(100);
-		item_t->items[2] = new PyRepReal(0);
-		list_t->items[1] = item_t;
-	
-		item_t = new PyRepTuple(3);
-		item_t->items[0] = new PyRepReal(-100);
-		item_t->items[1] = new PyRepReal(0);
-		item_t->items[2] = new PyRepReal(0);
-		list_t->items[2] = item_t;
-	
-		item_t = new PyRepTuple(3);
-		item_t->items[0] = new PyRepReal(0);
-		item_t->items[1] = new PyRepReal(-100);
-		item_t->items[2] = new PyRepReal(0);
-		list_t->items[3] = item_t;
-		
-		formation_t = new PyRepTuple(2);
-		formation_t->items[0] = new PyRepString("Diamond");
-		formation_t->items[1] = list_t;
-	
-		forms->items[0] = formation_t;
-	
-	
-		//Arrow formation
-		list_t = new PyRepTuple(4);
-	
-		item_t = new PyRepTuple(3);
-		item_t->items[0] = new PyRepReal(100);
-		item_t->items[1] = new PyRepReal(0);
-		item_t->items[2] = new PyRepReal(-50);
-		list_t->items[0] = item_t;
-	
-		item_t = new PyRepTuple(3);
-		item_t->items[0] = new PyRepReal(50);
-		item_t->items[1] = new PyRepReal(0);
-		item_t->items[2] = new PyRepReal(0);
-		list_t->items[1] = item_t;
-	
-		item_t = new PyRepTuple(3);
-		item_t->items[0] = new PyRepReal(-100);
-		item_t->items[1] = new PyRepReal(0);
-		item_t->items[2] = new PyRepReal(-50);
-		list_t->items[2] = item_t;
-	
-		item_t = new PyRepTuple(3);
-		item_t->items[0] = new PyRepReal(-50);
-		item_t->items[1] = new PyRepReal(0);
-		item_t->items[2] = new PyRepReal(0);
-		list_t->items[3] = item_t;
-		
-		formation_t = new PyRepTuple(2);
-		formation_t->items[0] = new PyRepString("Arrow");
-		formation_t->items[1] = list_t;
-	
-		forms->items[1] = formation_t;
-		
-		if(result == NULL) {
+		PyRep *res = m_db.GetFormations();
+		if(res == NULL) {
 			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			result = new PyRepNone();
+			res = new PyRepNone();
 		}
-		cache->GiveCache(method_id, &result);
+
+		cache->GiveCache(method_id, &res);
 	}
 	
 	//now we know its in the cache one way or the other, so build a 
 	//cached object cached method call result.
-	result = cache->MakeObjectCachedMethodCallResult(method_id);
-	
-	return(result);
+	return(cache->MakeObjectCachedMethodCallResult(method_id));
 }
 
 
@@ -210,50 +131,40 @@ PyResult BeyonceService::Handle_(PyCallArgs &call) {
 
 
 PyResult BeyonceBound::Handle_FollowBall(PyCallArgs &call) {
-	//freakin python... the second arg is coming in as a real some times..
-	PyRepTuple *iargs = call.tuple;
+	Call_FollowBall args;
+	if(!args.Decode(&call.tuple)) {
+		codelog(CLIENT__ERROR, "%s: Failed to decode arguments.", call.client->GetName());
+		return NULL;
+	}
 
-	//argument is a single integer, the ship id
-	if(iargs->items.size() != 2) {
-		codelog(CLIENT__ERROR, "Invalid arg count: %d", iargs->items.size());
-		//TODO: throw exception
-	} else if(!iargs->items[0]->IsInteger()) {
-		codelog(CLIENT__ERROR, "Invalid argument: got %s, int expected", iargs->items[0]->TypeString());
-	} else if(!iargs->items[1]->IsInteger() && !iargs->items[1]->IsReal()) {
-		codelog(CLIENT__ERROR, "Invalid argument: got %s, int or real expected", iargs->items[0]->TypeString());
+	double distance;
+	if(args.distance->IsInteger()) {
+		distance = args.distance->AsInteger().value;
+	} else if(args.distance->IsReal()) {
+		distance = args.distance->AsReal().value;
 	} else {
-		PyRepInteger *ball_id = (PyRepInteger *) iargs->items[0];
-		
-		uint32 distance = 0;
-		if(iargs->items[1]->IsInteger()) {
-			PyRepInteger *unknown = (PyRepInteger *) iargs->items[1];
-			distance= unknown->value;
-		} else {
-			PyRepReal *unknown = (PyRepReal *) iargs->items[1];
-			distance = (uint32) unknown->value;
-		}
+		codelog(CLIENT__ERROR, "%s: Invalid type %s for distance argument received.", call.client->GetName(), args.distance->TypeString());
+		return NULL;
+	}
 
-		SystemManager *system = call.client->System();
-		if(system == NULL) {
-			codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
-			return NULL;
-		}
-		
-		SystemEntity *entity = system->get(ball_id->value);
-		if(entity == NULL) {
-			_log(CLIENT__ERROR, "%s: Unable to find entity %lu to Orbit.", call.client->GetName(), ball_id->value);
-			return NULL;
-		}
-		
-		DestinyManager *destiny = call.client->Destiny();
-		if(destiny == NULL) {
-			codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-			return NULL;
-		}
-		
-		destiny->Follow(entity, distance);
+	DestinyManager *destiny = call.client->Destiny();
+	if(destiny == NULL) {
+		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+		return NULL;
 	}
 	
+	SystemManager *system = call.client->System();
+	if(system == NULL) {
+		codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
+		return NULL;
+	}
+	SystemEntity *entity = system->get(args.ballID);
+	if(entity == NULL) {
+		_log(CLIENT__ERROR, "%s: Unable to find entity %lu to Orbit.", call.client->GetName(), args.ballID);
+		return NULL;
+	}
+	
+	destiny->Follow(entity, distance);
 
 	return NULL;
 }
@@ -301,25 +212,34 @@ PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 		return NULL;
 	}
 
-	SystemManager *system = call.client->System();
-	if(system == NULL) {
-		codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
+	double distance;
+	if(arg.distance->IsInteger()) {
+		distance = arg.distance->AsInteger().value;
+	} else if(arg.distance->IsReal()) {
+		distance = arg.distance->AsReal().value;
+	} else {
+		codelog(CLIENT__ERROR, "%s: Invalid type %s for distance argument received.", call.client->GetName(), arg.distance->TypeString());
 		return NULL;
 	}
-	
-	SystemEntity *entity = system->get(arg.entityID);
-	if(entity == NULL) {
-		_log(CLIENT__ERROR, "%s: Unable to find entity %lu to Orbit.", call.client->GetName(), arg.entityID);
-		return NULL;
-	}
-	
+
 	DestinyManager *destiny = call.client->Destiny();
 	if(destiny == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
 		return NULL;
 	}
 
-	destiny->Orbit(entity, arg.distance);
+	SystemManager *system = call.client->System();
+	if(system == NULL) {
+		codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
+		return NULL;
+	}
+	SystemEntity *entity = system->get(arg.entityID);
+	if(entity == NULL) {
+		_log(CLIENT__ERROR, "%s: Unable to find entity %lu to Orbit.", call.client->GetName(), arg.entityID);
+		return NULL;
+	}
+
+	destiny->Orbit(entity, distance);
 
 	return NULL;
 }
@@ -331,20 +251,44 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 		return NULL;
 	}
 
+	double distance;
+	std::map<std::string, PyRep *>::const_iterator res = call.byname.find("minRange");
+	if(res == call.byname.end()) {
+		codelog(CLIENT__ERROR, "%s: range not found, using 15 km.", call.client->GetName());
+		distance = 15000.0;
+	} else if(!res->second->IsInteger() && !res->second->IsReal()) {
+		codelog(CLIENT__ERROR, "%s: range of invalid type %s, expected Integer or Real; using 15 km.", call.client->GetName(), res->second->TypeString());
+		distance = 15000.0;
+	} else {
+		distance =
+			res->second->IsInteger()
+			? res->second->AsInteger().value
+			: res->second->AsReal().value;
+	}
+
 	//we need to delay the destiny updates until after we return
 
-	GPoint pos;
-	if(!m_db->GetStaticItemInfo(arg.item, NULL, NULL, NULL, &pos)) {
+	SystemManager *sm = call.client->System();
+	if(sm == NULL) {
+		codelog(CLIENT__ERROR, "%s: no system manager found", call.client->GetName());
+		return NULL;
+	}
+	SystemEntity *se = sm->get(arg.item);
+	if(se ==  NULL) {
 		codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.item);
 		return NULL;
 	}
+	// don't forget to add radiuses
+	distance += call.client->GetRadius() + se->GetRadius();
 
-	call.client->WarpTo(pos);
+	call.client->WarpTo(se->GetPosition(), distance);
 	
 	return NULL;
 }
 
 PyResult BeyonceBound::Handle_UpdateStateRequest(PyCallArgs &call) {
+	codelog(CLIENT__ERROR, "%s: Client sent UpdateStateRequest! that means we messed up pretty bad.", call.client->GetName());
+
 	//no arguments.
 	
 	DestinyManager *destiny = call.client->Destiny();
@@ -353,14 +297,12 @@ PyResult BeyonceBound::Handle_UpdateStateRequest(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	codelog(CLIENT__ERROR, "%s: Client sent UpdateStateRequest! that means we messed up pretty bad.", call.client->GetName());
 	destiny->SendSetState(call.client->Bubble());
 	
 	return NULL;
 }
 
 PyResult BeyonceBound::Handle_Stop(PyCallArgs &call) {
-
 	DestinyManager *destiny = call.client->Destiny();
 	if(destiny == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
@@ -384,12 +326,18 @@ PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
 		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
 		return NULL;
 	}
-	
-	GPoint position;
-	if(!m_db->GetStaticItemInfo(arg.arg, NULL, NULL, NULL, &position)) {
-		codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.arg);
+	SystemManager *sm = call.client->System();
+	if(sm == NULL) {
+		codelog(CLIENT__ERROR, "%s: Client has no system manager.", call.client->GetName());
 		return NULL;
 	}
+	SystemEntity *station = sm->get(arg.arg);
+	if(station == NULL) {
+		codelog(CLIENT__ERROR, "%s: Station %lu not found.", call.client->GetName(), arg.arg);
+		return NULL;
+	}
+	
+	const GPoint &position = station->GetPosition();
 
 	OnDockingAccepted da;
 	da.start_x = da.end_x = position.x;

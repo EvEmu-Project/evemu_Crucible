@@ -158,10 +158,11 @@ void DestinyManager::ProcessTic() {
 		
 	case DSTBALL_STOP:
 		if(m_velocity.isNotZero()) {
-			if(m_velocity.y > 0) {
-				//no freakin clue what this is all about, maybe to dampen vertical movement.
-				m_velocity.y = (m_velocity.y-(m_velocity.y*.07))/1.07;
-			}
+			//no freakin clue what this is about, maybe to dampen vertical movement.
+			//you can see result of this just by going directly up or down in space and
+			//then stopping ... deaccelerate is faster than normal.
+			m_velocity.y *= 0.93/1.07;
+
 			_Move();
 		}
 		break;
@@ -914,7 +915,7 @@ void DestinyManager::WarpTo(const GPoint &where, double distance, bool update) {
 		du.dest_x = where.x;
 		du.dest_y = where.y;
 		du.dest_z = where.z;
-		du.distance = 15000;
+		du.distance = distance;
 		du.u5 = 30;
 		
 		updates.push_back(du.FastEncode());

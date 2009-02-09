@@ -167,6 +167,15 @@
   </object>
 </element>
 
+<element name="cache_Formation">
+  <InlineTuple>
+    <!-- 0: Name of formation -->
+    <string name="name" />
+    <!-- 1: Tuple of positions -->
+    <tuple name="positions" />
+  </InlineTuple>
+</element>
+
 </Elements>
 
 

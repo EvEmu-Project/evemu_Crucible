@@ -18,6 +18,8 @@ COMMAND( spawn, ROLE_ADMIN,
          "(typeID) - Spawn an NPC with the specified type." )
 COMMAND( location, ROLE_ADMIN,
          "- Gives you back your current location in space." )
+COMMAND( syncloc, ROLE_ADMIN,
+		 "- Synchonizes your location in client with location on server." )
 COMMAND( clearlog, ROLE_ADMIN,
 		 "- Clears server log." )
 COMMAND( getlog, ROLE_ADMIN,

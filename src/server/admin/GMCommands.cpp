@@ -241,11 +241,38 @@ PyResult Command_location(Client *who, CommandDB *db, PyServiceMgr *services, co
 	if (!who->IsInSpace())
 		throw(PyException(MakeCustomError("You're not in space")));
 
-	char reply[64];
-	GPoint loc(who->GetPosition());
-	snprintf(reply, 64, "x: %lf, y: %lf, z: %lf", loc.x, loc.y, loc.z);
+	if(who->Destiny() == NULL)
+		throw(PyException(MakeCustomError("You have no Destiny Manager.")));
+
+	DestinyManager *dm = who->Destiny();
+
+	const GPoint &loc = dm->GetPosition();
+	const GVector &vel = dm->GetVelocity();
+
+	char reply[128];
+	snprintf(reply, 128, "<br>"
+		"x: %lf<br>"
+		"y: %lf<br>"
+		"z: %lf<br>"
+		"speed: %lf",
+		loc.x, loc.y, loc.z,
+		vel.length()
+	);
 
 	return(new PyRepString(reply));
+}
+
+PyResult Command_syncloc(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+	if(!who->IsInSpace())
+		throw(PyException(MakeCustomError("You must be in space.")));
+
+	if(who->Destiny() == NULL)
+		throw(PyException(MakeCustomError("You have no Destiny Manager.")));
+	
+	DestinyManager *dm = who->Destiny();
+	dm->SetPosition(dm->GetPosition(), true);
+
+	return(new PyRepString("Position synchronized."));
 }
 
 PyResult Command_clearlog(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
