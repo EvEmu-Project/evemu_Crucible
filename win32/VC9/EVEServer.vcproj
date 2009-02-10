@@ -409,6 +409,10 @@
 					RelativePath="..\..\src\server\corporation\CorpStationMgrService.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\server\corporation\LPService.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="dogmaim"
@@ -973,6 +977,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\corporation\CorpStationMgrService.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\corporation\LPService.h"
 					>
 				</File>
 			</Filter>

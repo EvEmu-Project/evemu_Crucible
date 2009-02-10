@@ -153,6 +153,7 @@ int main(int argc, char *argv[]) {
 	services.RegisterService(new CorpStationMgrService(&services, &db));
 	services.RegisterService(new CorporationService(&services, &db));
 	services.RegisterService(new CorpRegistryService(&services, &db));
+	services.RegisterService(new LPService(&services));
 	services.RegisterService(new DogmaIMService(&services, &db));
 	services.RegisterService(new InvBrokerService(&services, &db));
 	services.RegisterService(services.lsc_service = new LSCService(&services, &db, &command_dispatcher));

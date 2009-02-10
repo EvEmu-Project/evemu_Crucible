@@ -119,7 +119,9 @@ libcorporation_a_SOURCES = \
 	corporation/CorpRegistryService.cpp \
 	corporation/CorpRegistryService.h \
 	corporation/CorpStationMgrService.cpp \
-	corporation/CorpStationMgrService.h
+	corporation/CorpStationMgrService.h \
+	corporation/LPService.cpp \
+	corporation/LPService.h
 
 libdogmaim_a_SOURCES = \
 	dogmaim/DogmaIMDB.cpp \

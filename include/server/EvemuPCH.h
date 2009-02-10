@@ -190,6 +190,7 @@
 #include "../server/corporation/CorporationService.h"
 #include "../server/corporation/CorpRegistryService.h"
 #include "../server/corporation/CorpStationMgrService.h"
+#include "../server/corporation/LPService.h"
 
 // dogma crap dono what this is
 #include "../server/dogmaim/DogmaIMDB.h"
