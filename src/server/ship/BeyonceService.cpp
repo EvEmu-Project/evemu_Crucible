@@ -34,7 +34,7 @@ public:
 	PyCallable_Make_Dispatcher(BeyonceBound)
 	
 	BeyonceBound(PyServiceMgr *mgr, Client *c)
-	: PyBoundObject(mgr, "BeyonceBound"),
+	: PyBoundObject(mgr),
 	  m_dispatch(new Dispatcher(this))
 	{
 		_SetCallDispatcher(m_dispatch);
@@ -100,10 +100,8 @@ PyBoundObject *BeyonceService::_CreateBoundObject(Client *c, const PyRep *bind_a
 PyResult BeyonceService::Handle_GetFormations(PyCallArgs &call) {
 	ObjectCachedMethodID method_id(GetName(), "GetFormations");
 
-	ObjCacheService *cache = m_manager->GetCache();
-
 	//check to see if this method is in the cache already.
-	if(!cache->IsCacheLoaded(method_id)) {
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		//this method is not in cache yet, load up the contents and cache it.
 		PyRep *res = m_db.GetFormations();
 		if(res == NULL) {
@@ -111,12 +109,12 @@ PyResult BeyonceService::Handle_GetFormations(PyCallArgs &call) {
 			res = new PyRepNone();
 		}
 
-		cache->GiveCache(method_id, &res);
+		m_manager->cache_service->GiveCache(method_id, &res);
 	}
 	
 	//now we know its in the cache one way or the other, so build a 
 	//cached object cached method call result.
-	return(cache->MakeObjectCachedMethodCallResult(method_id));
+	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
 }
 
 

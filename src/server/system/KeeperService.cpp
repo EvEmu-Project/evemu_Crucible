@@ -38,7 +38,7 @@ public:
 	PyCallable_Make_Dispatcher(KeeperBound)
 	
 	KeeperBound(PyServiceMgr *mgr, SystemDB *db)
-	: PyBoundObject(mgr, "KeeperBound"),
+	: PyBoundObject(mgr),
 	  m_db(db),
 	  m_dispatch(new Dispatcher(this))
 	{

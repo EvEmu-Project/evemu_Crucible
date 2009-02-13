@@ -34,7 +34,7 @@ public:
 	PyCallable_Make_Dispatcher(JumpCloneBound)
 	
 	JumpCloneBound(PyServiceMgr *mgr, StationDB *db)
-	: PyBoundObject(mgr, "JumpCloneBound"),
+	: PyBoundObject(mgr),
 	  m_db(db),
 	  m_dispatch(new Dispatcher(this))
 	{
@@ -83,7 +83,7 @@ PyBoundObject *JumpCloneService::_CreateBoundObject(Client *c, const PyRep *bind
 PyResult JumpCloneBound::Handle_InstallCloneInStation(PyCallArgs &call) {
 	//takes no arguments, returns no arguments
 
-	_log(CLIENT__ERROR, "%s: Unhandled InstallCloneInStation", GetName());
+	_log(CLIENT__ERROR, "Unhandled InstallCloneInStation");
 	
 	return(new PyRepNone());
 }
@@ -93,7 +93,7 @@ PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
 	//returns (clones, implants, timeLastJump)
 	//where jumpClones is a rowset? with at least columns: jumpCloneID, locationID
 
-	_log(CLIENT__ERROR, "%s: Unimplemented GetCloneState", GetName());
+	_log(CLIENT__ERROR, "Unimplemented GetCloneState");
 
 	PyRepDict *d = new PyRepDict;
 	d->add("clones", new PyRepNone);

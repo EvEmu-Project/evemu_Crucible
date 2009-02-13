@@ -773,17 +773,21 @@ void Client::BoardShip(InventoryItem *new_ship) {
 }
 
 void Client::_ProcessCallRequest(PyPacket *packet) {
+	PyCallable *dest;
+	if(!packet->dest.service.empty()) {
+		//service
+		dest = m_services.LookupService(packet->dest.service);
 
-	PyService *svc = m_services.LookupService(packet);
-	if(svc == NULL) {
-		_log(CLIENT__ERROR, "Unable to find service to handle call to:");
-		packet->dest.Dump(stdout, "    ");
+		if(dest == NULL) {
+			_log(CLIENT__ERROR, "Unable to find service to handle call to:");
+			packet->dest.Dump(CLIENT__ERROR, "    ");
 #ifndef WIN32
-#warning TODO: throw proper exception to client (exceptions.ServiceNotFound).
+#	warning TODO: throw proper exception to client (exceptions.ServiceNotFound).
 #endif
-		PyRep *except = new PyRepNone();
-		_SendException(packet, WRAPPEDEXCEPTION, &except);
-		return;
+			PyRep *except = new PyRepNone();
+			_SendException(packet, WRAPPEDEXCEPTION, &except);
+			return;
+		}
 	}
 	
 	//turn this thing into a call:
@@ -806,12 +810,32 @@ void Client::_ProcessCallRequest(PyPacket *packet) {
 		call.Dump(CLIENT__CALL_DUMP, &dumper);
 	}
 
+	if(packet->dest.service.empty()) {
+		//bound object
+		uint32 nodeID, bindID;
+		if(sscanf(call.remoteObjectStr.c_str(), "N=%lu:%lu", &nodeID, &bindID) != 2) {
+			_log(CLIENT__ERROR, "Failed to parse bind string '%s'.", call.remoteObjectStr.c_str());
+			return;
+		}
+
+		if(nodeID != m_services.GetNodeID()) {
+			_log(CLIENT__ERROR, "Unknown nodeID %lu received (expected %lu).", nodeID, m_services.GetNodeID());
+			return;
+		}
+
+		dest = m_services.FindBoundObject(bindID);
+		if(dest == NULL) {
+			_log(CLIENT__ERROR, "Failed to find bound object %lu.", bindID);
+			return;
+		}
+	}
+
 	//build arguments
 	PyCallArgs args(this, &call.arg_tuple, &call.arg_dict);
 
 	try {
 		//parts of call may be consumed here
-		PyResult result = svc->Call(call, args);
+		PyResult result = dest->Call(call.method, args);
 
 		//successful call.
 		PyRep *res = result.ssResult.hijack();
@@ -856,19 +880,35 @@ void Client::_ProcessNotification(PyPacket *packet) {
 	}
 	
 	if(notify.method == "ClientHasReleasedTheseObjects") {
-		PyRep *tmp;
+		PyRep *n;
 		ServerNotification_ReleaseObj element;
 		PyRepList::iterator cur, end;
 		cur = notify.elements.begin();
 		end = notify.elements.end();
 		for(; cur != end; cur++) {
 			//damn casting thing...
-			tmp = *cur;
+			n = *cur;
 			*cur = NULL;
-			if(!element.Decode(&tmp))
+
+			if(!element.Decode(&n)) {
 				_log(CLIENT__ERROR, "Notification '%s' from %s: Failed to decode element. Skipping.", notify.method.c_str(), GetName());
-			else
-				m_services.ClearBoundObject(element.boundID.c_str());
+				continue;
+			}
+
+			uint32 nodeID, bindID;
+			if(sscanf(element.boundID.c_str(), "N=%lu:%lu", &nodeID, &bindID) != 2) {
+				_log(CLIENT__ERROR, "Notification '%s' from %s: Failed to parse bind string '%s'. Skipping.",
+					notify.method.c_str(), GetName(), element.boundID.c_str());
+				continue;
+			}
+
+			if(nodeID != m_services.GetNodeID()) {
+				_log(CLIENT__ERROR, "Notification '%s' from %s: Unknown nodeID %lu received (expected %lu). Skipping.",
+					notify.method.c_str(), GetName(), nodeID, m_services.GetNodeID());
+				continue;
+			}
+
+			m_services.ClearBoundObject(bindID);
 		}
 	} else
 		_log(CLIENT__ERROR, "Unhandled notification from %s: unknown method '%s'", GetName(), notify.method.c_str());

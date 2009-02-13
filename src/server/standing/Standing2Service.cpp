@@ -97,18 +97,17 @@ PyResult Standing2Service::Handle_GetNPCNPCStandings(PyCallArgs &call) {
 	ObjectCachedMethodID method_id(GetName(), "GetNPCNPCStandings");
 
 	//check to see if this method is in the cache already.
-	ObjCacheService *cache = m_manager->GetCache();
-	if(!cache->IsCacheLoaded(method_id)) {
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		//this method is not in cache yet, load up the contents and cache it.
 		result = m_db.GetNPCStandings();
 		if(result == NULL)
 			result = new PyRepNone();
-		cache->GiveCache(method_id, &result);
+		m_manager->cache_service->GiveCache(method_id, &result);
 	}
 	
 	//now we know its in the cache one way or the other, so build a 
 	//cached object cached method call result.
-	result = cache->MakeObjectCachedMethodCallResult(method_id);
+	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
 	return(result);
 }
@@ -139,17 +138,17 @@ PyResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) {
 PyResult Standing2Service::Handle_GetCharStandings(PyCallArgs &call) {
 	ObjectCachedMethodID method_id(GetName(), "GetCharStandings");
 
-	if(!m_manager->GetCache()->IsCacheLoaded(method_id)) {
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		PyRepTuple *t = new PyRepTuple(3);
 
 		t->items[0] = m_db.GetCharStandings(call.client->GetCharacterID());
 		t->items[1] = m_db.GetCharPrimeStandings(call.client->GetCharacterID());
 		t->items[2] = m_db.GetCharNPCStandings(call.client->GetCharacterID());
 
-		m_manager->GetCache()->GiveCache(method_id, (PyRep **)&t);
+		m_manager->cache_service->GiveCache(method_id, (PyRep **)&t);
 	}
 
-	return(m_manager->GetCache()->MakeObjectCachedMethodCallResult(method_id));
+	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
 }
 
 

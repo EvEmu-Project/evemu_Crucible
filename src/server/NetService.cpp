@@ -48,7 +48,7 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 	PyRepString str("machoNet.serviceInfo");
 
 	PyRep *serverinfo;
-	if(!m_manager->GetCache()->IsCacheLoaded(&str)) {
+	if(!m_manager->cache_service->IsCacheLoaded(&str)) {
 		//not cached yet, we have to generate it
 		PyRepDict *dict = new PyRepDict;
 
@@ -126,13 +126,13 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 		dict->add("standing2", new PyRepNone());
 
 		//register it
-		m_manager->GetCache()->GiveCache(&str, (PyRep **)&dict);
+		m_manager->cache_service->GiveCache(&str, (PyRep **)&dict);
 	}
-	serverinfo = m_manager->GetCache()->GetCacheHint(str.value.c_str());
+	serverinfo = m_manager->cache_service->GetCacheHint(str.value.c_str());
 
 	PyRepDict *initvals = new PyRepDict();
     //send all the cache hints needed for server info.
-	m_manager->GetCache()->InsertCacheHints(ObjCacheService::hLoginCachables, initvals);
+	m_manager->cache_service->InsertCacheHints(ObjCacheService::hLoginCachables, initvals);
 
 	result->items[0] = serverinfo;
 	result->items[1] = initvals;

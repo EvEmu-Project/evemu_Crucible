@@ -34,7 +34,7 @@ public:
 	PyCallable_Make_Dispatcher(CorpStationMgrIMBound)
 	
 	CorpStationMgrIMBound(PyServiceMgr *mgr, CorporationDB *db, uint32 station_id)
-	: PyBoundObject(mgr, "CorpStationMgrIMBound"),
+	: PyBoundObject(mgr),
 	  m_dispatch(new Dispatcher(this)),
 	  m_db(db),
 	  m_stationID(station_id)
@@ -210,7 +210,7 @@ PyResult CorpStationMgrIMBound::Handle_GetPotentialHomeStations(PyCallArgs &call
 	PyRep *result = NULL;
 	//returns a rowset: stationID, typeID
 
-	_log(CLIENT__ERROR, "%s: Hacking GetPotentialHomeStations", GetName());
+	_log(CLIENT__ERROR, "Hacking GetPotentialHomeStations");
 	result = m_db->ListCorpStations(call.client->GetCorporationID());
 
 	return(result);
@@ -221,7 +221,7 @@ PyResult CorpStationMgrIMBound::Handle_SetHomeStation(PyCallArgs &call) {
 	//this takes an integer: stationID
 	//price is prompted for on the client side.
 	
-	_log(CLIENT__ERROR, "%s: SetHomeStation is not implemented", GetName());
+	_log(CLIENT__ERROR, "SetHomeStation is not implemented");
 
 	return(new PyRepNone());
 }
@@ -231,7 +231,7 @@ PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
 	//this takes an integer: cloneTypeID
 	//price is prompted for on the client side.
 	
-	_log(CLIENT__ERROR, "%s: SetCloneTypeID is not implemented", GetName());
+	_log(CLIENT__ERROR, "SetCloneTypeID is not implemented");
 
 	return(new PyRepNone());
 }
@@ -279,7 +279,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
 		// This way we can get the current bounded object's boundID
 		N_pau.realRowCount = 2;
-		N_pau.bindID = GetBindID();
+		N_pau.bindID = GetBindStr();
 		N_pau.changePKIndexValue = oInfo.stationID;
 
 		change.newOfficeFolderID = oInfo.officeFolderID;

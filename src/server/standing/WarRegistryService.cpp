@@ -34,7 +34,7 @@ public:
 	PyCallable_Make_Dispatcher(WarRegistryBound)
 
 	WarRegistryBound(PyServiceMgr *mgr, uint32 corporationID)
-	: PyBoundObject(mgr, "warRegistryBound"),
+	: PyBoundObject(mgr),
 	  m_dispatch(new Dispatcher(this)),
 	  m_corporationID(corporationID)
 	{

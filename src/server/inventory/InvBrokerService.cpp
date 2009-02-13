@@ -34,7 +34,7 @@ public:
 	PyCallable_Make_Dispatcher(InvBrokerBound)
 	
 	InvBrokerBound(uint32 entityID, PyServiceMgr *mgr, InventoryDB *db)
-	: PyBoundObject(mgr, "InvBrokerBound"),
+	: PyBoundObject(mgr),
 	  m_dispatch(new Dispatcher(this)),
 	  m_entityID(entityID),
 	  m_db(db)
@@ -158,7 +158,7 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 		return (NULL);
 	}
 
-	_log(SERVICE__MESSAGE, "%s: Binding inventory object for %s for container %lu with flag %lu", GetName(), call.client->GetName(), m_entityID, flag);
+	_log(SERVICE__MESSAGE, "Binding inventory object for %s for container %lu with flag %lu", call.client->GetName(), m_entityID, flag);
 	
 	//we just bind up a new inventory object and give it back to them.
 	InventoryBound *ib = new InventoryBound(item, flag, m_manager, m_db);

@@ -34,7 +34,7 @@ public:
 	PyCallable_Make_Dispatcher(CorpRegistryBound)
 	
 	CorpRegistryBound(PyServiceMgr *mgr, CorporationDB *db)
-	: PyBoundObject(mgr, "CorpRegistryBound"),
+	: PyBoundObject(mgr),
 	  m_db(db),
 	  m_dispatch(new Dispatcher(this))
 	{
@@ -100,7 +100,7 @@ public:
 	PyCallable_Make_Dispatcher(SparseCorpOfficeListBound)
 
 	SparseCorpOfficeListBound(PyServiceMgr *mgr, CorporationDB *db)
-	: PyBoundObject(mgr, "SparseCorpOfficeListBound"),
+	: PyBoundObject(mgr),
 	  m_dispatch(new Dispatcher(this)),
 	  m_db(db)
 	{
@@ -158,7 +158,7 @@ PyResult CorpRegistryBound::Handle_GetEveOwners(PyCallArgs &call) {
 PyResult CorpRegistryBound::Handle_GetInfoWindowDataForChar(PyCallArgs &call) {
 	//takes characterID
 
-	_log(CLIENT__MESSAGE, "%s: GetInfoWindowDataForChar not implemented!", GetName());
+	_log(CLIENT__MESSAGE, "GetInfoWindowDataForChar not implemented!");
 	
 	return(new PyRepNone());
 }
@@ -166,7 +166,7 @@ PyResult CorpRegistryBound::Handle_GetInfoWindowDataForChar(PyCallArgs &call) {
 PyResult CorpRegistryBound::Handle_GetLockedItemLocations(PyCallArgs &call) {
 	//takes characterID
 
-	_log(CLIENT__MESSAGE, "%s: GetLockedItemLocations not implemented!", GetName());
+	_log(CLIENT__MESSAGE, "GetLockedItemLocations not implemented!");
 
 	//this returns an empty list for me on live.
 	
@@ -218,7 +218,7 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
 	}
 	//adding a corporation might affect eveStaticOwners, so we gotta invalidate the cache...
 	PyRepString cache_name("config.StaticOwners");
-	m_manager->GetCache()->InvalidateCache(&cache_name);
+	m_manager->cache_service->InvalidateCache(&cache_name);
 	
 	
 	
@@ -338,7 +338,7 @@ PyResult CorpRegistryBound::Handle_GetOffices(PyCallArgs &call) {
 	PyBoundObject *bObj;
 	bObj = new SparseCorpOfficeListBound(m_manager, m_db);
 	if(bObj == NULL) {
-		_log(SERVICE__ERROR, "%s Service: %s: Unable to create bound object for:", GetName(), call.client->GetName());
+		_log(SERVICE__ERROR, "%s: Unable to create bound object for:", call.client->GetName());
 		return NULL;
 	}
 
@@ -617,7 +617,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
 		MemberAttributeUpdate change;
 
 		N_pau.realRowCount = 4;
-		N_pau.bindID = GetBindID();
+		N_pau.bindID = GetBindStr();
 		N_pau.changePKIndexValue = args.charID;
 
 		if (!m_db->CreateMemberAttributeUpdate(change, oldInfo.corpID, args.charID)) {

@@ -33,16 +33,29 @@
 class PyBoundObject
 : public PyCallable {
 public:
-	PyBoundObject(PyServiceMgr *mgr, const char *boundObjName);
+	PyBoundObject(PyServiceMgr *mgr);
 	virtual ~PyBoundObject();
 
 	virtual void Release() = 0;
-	
-	const std::string &GetBindID() const { return(m_bindID); }
-	
-private:	//only PyServiceMgr may alter the bindID field.
-	friend class PyServiceMgr;	//for access to m_bindID only.
-	std::string m_bindID;
+
+	uint32 nodeID() const { return(m_nodeID); }
+	uint32 bindID() const { return(m_bindID); }
+
+	//returns string "N=(nodeID):(bindID)"
+	std::string GetBindStr() const;
+
+	//just to say who we are:
+	virtual PyResult Call(const std::string &method, PyCallArgs &args);
+
+protected:
+	friend class PyServiceMgr;	//for access to _SetNodeBindID only.
+	void _SetNodeBindID(uint32 nodeID, uint32 bindID) { m_nodeID = nodeID; m_bindID = bindID; }
+
+	PyServiceMgr *const m_manager;
+
+private:
+	uint32 m_nodeID;
+	uint32 m_bindID;
 };
 
 #endif

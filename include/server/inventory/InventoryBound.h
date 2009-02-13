@@ -32,7 +32,7 @@ public:
 	PyCallable_Make_Dispatcher(InventoryBound)
 
 	InventoryBound(InventoryItem *item, EVEItemFlags flag, PyServiceMgr *mgr, InventoryDB *db)
-		: PyBoundObject(mgr, "InventoryBound"),
+		: PyBoundObject(mgr),
 		m_dispatch(new Dispatcher(this)),
 		m_item(item),
 		m_flag(flag),

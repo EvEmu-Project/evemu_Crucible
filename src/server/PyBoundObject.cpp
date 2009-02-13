@@ -27,14 +27,31 @@
 
 #include "EvemuPCH.h"
 
-PyBoundObject::PyBoundObject(PyServiceMgr *mgr, const char *boundObjName)
-: PyCallable(*mgr, boundObjName),
-  m_bindID("NOT_YET_BOUND")
+PyBoundObject::PyBoundObject(PyServiceMgr *mgr)
+: m_manager(mgr),
+  m_bindID(0),
+  m_nodeID(0)
 {
 }
 
 PyBoundObject::~PyBoundObject() {
 }
+
+PyResult PyBoundObject::Call(const std::string &method, PyCallArgs &args) {
+	_log(SERVICE__CALLS, "Bound object %lu:%lu: calling %s", nodeID(), bindID(), method.c_str());
+	args.Dump(SERVICE__CALL_TRACE);
+
+	return(PyCallable::Call(method, args));
+}
+
+std::string PyBoundObject::GetBindStr() const {
+	//generate a nice bind string:
+	char bind_str[128];
+	snprintf(bind_str, sizeof(bind_str), "N=%lu:%lu", nodeID(), bindID());
+
+	return(std::string(bind_str));
+}
+
 
 
 

@@ -29,7 +29,10 @@ PyCallable_Make_InnerDispatcher(SkillMgrService)
 PyCallable_Make_Dispatcher(SkillMgrBound)
 
 
-SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB *db) : PyBoundObject(mgr, "SkillMgrBound"), m_db(db), m_dispatch(new Dispatcher(this))
+SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB *db)
+: PyBoundObject(mgr),
+  m_db(db),
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 
@@ -112,7 +115,7 @@ PyResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
 }
 
 PyResult SkillMgrBound::Handle_GetSkillHistory(PyCallArgs &call) {
-	_log(SERVICE__WARNING, "%s: GetSkillHistory unimplemented.", GetName());
+	_log(SERVICE__WARNING, "GetSkillHistory unimplemented.");
 
 	util_Rowset rowset;
 

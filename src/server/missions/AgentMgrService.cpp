@@ -45,7 +45,7 @@ public:
 	PyCallable_Make_Dispatcher(AgentMgrBound)
 	
 	AgentMgrBound(PyServiceMgr *mgr, MissionDB *db, Agent *agt)
-	: PyBoundObject(mgr, "AgentMgrBound"),
+	: PyBoundObject(mgr),
 	  m_db(db),
 	  m_dispatch(new Dispatcher(this)),
 	  m_agent(agt)
@@ -134,20 +134,19 @@ PyResult AgentMgrService::Handle_GetAgents(PyCallArgs &call) {
 	ObjectCachedMethodID method_id(GetName(), "GetAgents");
 
 	//check to see if this method is in the cache already.
-	ObjCacheService *cache = m_manager->GetCache();
-	if(!cache->IsCacheLoaded(method_id)) {
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		//this method is not in cache yet, load up the contents and cache it.
 		result = m_db.GetAgents();
 		if(result == NULL) {
 			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
 			result = new PyRepNone();
 		}
-		cache->GiveCache(method_id, &result);
+		m_manager->cache_service->GiveCache(method_id, &result);
 	}
 	
 	//now we know its in the cache one way or the other, so build a 
 	//cached object cached method call result.
-	result = cache->MakeObjectCachedMethodCallResult(method_id);
+	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
 	return(result);
 }
@@ -167,7 +166,7 @@ PyResult AgentMgrService::Handle_GetMyJournalDetails(PyCallArgs &call) {
 PyResult AgentMgrBound::Handle_GetInfoServiceDetails(PyCallArgs &call) {
 	//takes no arguments
 	
-	codelog(SERVICE__ERROR, "%s: GetInfoServiceDetails unimplemented.", GetName());
+	codelog(SERVICE__ERROR, "GetInfoServiceDetails unimplemented.");
 	
 	return(new PyRepNone());
 }

@@ -36,7 +36,7 @@ public:
 	PyCallable_Make_Dispatcher(DogmaIMBound)
 	
 	DogmaIMBound(PyServiceMgr *mgr, DogmaIMDB *db)
-	: PyBoundObject(mgr, "DogmaIMBound"),
+	: PyBoundObject(mgr),
 	  m_db(db),
 	  m_dispatch(new Dispatcher(this))
 	{
@@ -107,7 +107,7 @@ PyBoundObject *DogmaIMService::_CreateBoundObject(Client *c, const PyRep *bind_a
 PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	PyRep *hint = call.client->services().GetCache()->GetCacheHint("dogmaIM.attributesByName");
+	PyRep *hint = m_manager->cache_service->GetCacheHint("dogmaIM.attributesByName");
 	if(hint == NULL) {
 		_log(CLIENT__ERROR, "Unable to load cache hint for dogmaIM.attributesByName");
 		return(new PyRepNone());
@@ -125,7 +125,7 @@ PyResult DogmaIMBound::Handle_ShipGetInfo(PyCallArgs &call) {
 	
 	PyRepObject *result = call.client->Ship()->ShipGetInfo();
 	if(result == NULL) {
-		codelog(SERVICE__ERROR, "%s: Unable to build ship info for ship %lu", GetName(), call.client->Ship()->itemID());
+		codelog(SERVICE__ERROR, "Unable to build ship info for ship %lu", call.client->Ship()->itemID());
 		return NULL;
 	}
 	
@@ -141,14 +141,14 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
 	
 	InventoryItem *item = m_manager->item_factory.Load(args.arg, false);
 	if(item == NULL) {
-		codelog(SERVICE__ERROR, "%s: Unable to load item %lu", GetName(), args.arg);
+		codelog(SERVICE__ERROR, "Unable to load item %lu", args.arg);
 		return NULL;
 	}
 
 	PyRepObject *result = item->ItemGetInfo();
 	item->Release();
 	if(result == NULL) {
-		codelog(SERVICE__ERROR, "%s: Unable to build item info for item %lu", GetName(), args.arg);
+		codelog(SERVICE__ERROR, "Unable to build item info for item %lu", args.arg);
 		return NULL;
 	}
 	
@@ -160,7 +160,7 @@ PyResult DogmaIMBound::Handle_CharGetInfo(PyCallArgs &call) {
 	
 	PyRepObject *result = call.client->Char()->CharGetInfo();
 	if(result == NULL) {
-		codelog(SERVICE__ERROR, "%s: Unable to build char info for char %lu", GetName(), call.client->Char()->itemID());
+		codelog(SERVICE__ERROR, "Unable to build char info for char %lu", call.client->Char()->itemID());
 		return NULL;
 	}
 
@@ -288,7 +288,7 @@ PyResult DogmaIMBound::Handle_ClearTargets(PyCallArgs &call) {
 }
 
 PyResult DogmaIMBound::Handle_GetWeaponBankInfoForShip(PyCallArgs &call) {
-	_log(SERVICE__ERROR, "%s::GetWeaponBankInfoForShip unimplemented.", GetName());
+	_log(SERVICE__ERROR, "GetWeaponBankInfoForShip unimplemented.");
 
 	return(new PyRepDict);
 }

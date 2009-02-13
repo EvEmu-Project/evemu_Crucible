@@ -53,76 +53,19 @@ PyResult BillMgrService::Handle_GetBillTypes(PyCallArgs &call) {
 	ObjectCachedMethodID method_id(GetName(), "GetRefTypes");
 
 	//check to see if this method is in the cache already.
-	ObjCacheService *cache = m_manager->GetCache();
-	if(!cache->IsCacheLoaded(method_id)) {
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		//this method is not in cache yet, load up the contents and cache it.
-
-#ifndef WIN32
-#warning can pull these from billTypes now.
-#endif
-
-		//start building the Rowset
-		PyRepObject *rowset = new PyRepObject();
-		result = rowset;
-	
-		rowset->type = "util.Rowset";
-		PyRepDict *args = new PyRepDict();
-		rowset->arguments = args;
-	
-		//header:
-		PyRepList *header = new PyRepList();
-		args->add("header", header);
-		header->add("billTypeID");
-		header->add("billTypeName");
-		header->add("description");
-	
-		//RowClass:
-		args->add("RowClass", new PyRepString("util.Row", true));
-	
-		//lines:
-		PyRepList *alist = new PyRepList();
-		args->add("lines", alist);
-	
-		PyRepList *idata = new PyRepList();
-		alist->items.push_back(idata);
-		idata->add(new PyRepInteger(1));
-		idata->add(new PyRepString("Market Fine"));
-		idata->add(new PyRepString(""));
-	
-		idata = new PyRepList();
-		alist->items.push_back(idata);
-		idata->add(new PyRepInteger(2));
-		idata->add(new PyRepString("Rental Bill"));
-		idata->add(new PyRepString(""));
-	
-		idata = new PyRepList();
-		alist->items.push_back(idata);
-		idata->add(new PyRepInteger(3));
-		idata->add(new PyRepString("Broker Bill"));
-		idata->add(new PyRepString(""));
-	
-		idata = new PyRepList();
-		alist->items.push_back(idata);
-		idata->add(new PyRepInteger(4));
-		idata->add(new PyRepString("War Bill"));
-		idata->add(new PyRepString(""));
-	
-		idata = new PyRepList();
-		alist->items.push_back(idata);
-		idata->add(new PyRepInteger(5));
-		idata->add(new PyRepString("Alliance Maintainance Bill"));
-		idata->add(new PyRepString(""));
-		
+		result = m_db.GetRefTypes();
 		if(result == NULL) {
 			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
 			result = new PyRepNone();
 		}
-		cache->GiveCache(method_id, &result);
+		m_manager->cache_service->GiveCache(method_id, &result);
 	}
 	
 	//now we know its in the cache one way or the other, so build a 
 	//cached object cached method call result.
-	result = cache->MakeObjectCachedMethodCallResult(method_id);
+	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
 	return(result);
 }

@@ -161,20 +161,19 @@ PyResult MarketProxyService::Handle_GetMarketGroups(PyCallArgs &call) {
 	ObjectCachedMethodID method_id(GetName(), "GetMarketGroups");
 
 	//check to see if this method is in the cache already.
-	ObjCacheService *cache = m_manager->GetCache();
-	if(!cache->IsCacheLoaded(method_id)) {
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		//this method is not in cache yet, load up the contents and cache it.
 		result = m_db.GetMarketGroups();
 		if(result == NULL) {
 			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
 			result = new PyRepNone();
 		}
-		cache->GiveCache(method_id, &result);
+		m_manager->cache_service->GiveCache(method_id, &result);
 	}
 	
 	//now we know its in the cache one way or the other, so build a 
 	//cached object cached method call result.
-	result = cache->MakeObjectCachedMethodCallResult(method_id);
+	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
 	return(result);
 }

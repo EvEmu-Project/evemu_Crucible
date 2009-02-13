@@ -96,7 +96,7 @@ PyBoundObject *ReprocessingService::_CreateBoundObject(Client *c, const PyRep *b
 //******************************************************************************
 
 ReprocessingServiceBound::ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB *db, uint32 stationID)
-: PyBoundObject(mgr, "reprocessingSvcBound"),
+: PyBoundObject(mgr),
   m_dispatch(new Dispatcher(this)),
   m_stationID(stationID),
   m_db(db),

@@ -43,14 +43,14 @@ FactionWarMgrService::FactionWarMgrService(PyServiceMgr *mgr, DBcore *db)
 PyResult FactionWarMgrService::Handle_GetWarFactions(PyCallArgs &call) {
 	ObjectCachedMethodID method_id(GetName(), "GetWarFactions");
 
-	if(!m_manager->GetCache()->IsCacheLoaded(method_id)) {
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		PyRep *res = m_db.GetWarFactions();
 		if(res == NULL)
 			return NULL;
-		m_manager->GetCache()->GiveCache(method_id, &res);
+		m_manager->cache_service->GiveCache(method_id, &res);
 	}
 
-	return(m_manager->GetCache()->MakeObjectCachedMethodCallResult(method_id));
+	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
 }
 
 PyResult FactionWarMgrService::Handle_GetFacWarSystems(PyCallArgs &call) {
@@ -58,14 +58,14 @@ PyResult FactionWarMgrService::Handle_GetFacWarSystems(PyCallArgs &call) {
 
 	ObjectCachedMethodID method_id(GetName(), "GetFacWarSystems");
 
-	if(!m_manager->GetCache()->IsCacheLoaded(method_id)) {
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		PyRep *res = m_db.GetWarFactions();
 		if(res == NULL)
 			return NULL;
-		m_manager->GetCache()->GiveCache(method_id, &res);
+		m_manager->cache_service->GiveCache(method_id, &res);
 	}
 
-	return(m_manager->GetCache()->MakeObjectCachedMethodCallResult(method_id));
+	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
 }
 
 PyResult FactionWarMgrService::Handle_GetCharacterRankOverview(PyCallArgs &call) {

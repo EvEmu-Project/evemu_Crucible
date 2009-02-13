@@ -31,8 +31,10 @@ class ShipBound : public PyBoundObject {
 public:
 	PyCallable_Make_Dispatcher(ShipBound)
 	
-	ShipBound(PyServiceMgr *mgr, ShipDB *db) : PyBoundObject(mgr, "ShipBound"),
-	  m_db(db), m_dispatch(new Dispatcher(this))
+	ShipBound(PyServiceMgr *mgr, ShipDB *db)
+	: PyBoundObject(mgr),
+	  m_db(db),
+	  m_dispatch(new Dispatcher(this))
 	{
 		_SetCallDispatcher(m_dispatch);
 		

@@ -27,7 +27,8 @@
 
 
 PyService::PyService(PyServiceMgr *mgr, const char *serviceName)
-: PyCallable(*mgr, serviceName)
+: m_manager(mgr),
+  m_name(serviceName)
 {
 }
 
@@ -35,28 +36,25 @@ PyService::~PyService()
 {
 }
 
-bool PyService::IsPacketFor(const PyPacket *packet) const {
-	return(packet->dest.service == GetName());	//assume one of these is an std::string
-}
-
 //overload this to hack in our special bind routines at the service level
-PyResult PyService::Call(PyCallStream &call, PyCallArgs &args) {
-	if(call.method == "MachoBindObject") {
-		_log(SERVICE__CALLS, "%s Service: handling MachoBindObject request directly", GetName());
+PyResult PyService::Call(const std::string &method, PyCallArgs &args) {
+	if(method == "MachoBindObject") {
+		_log(SERVICE__CALLS, "Service %s: handling MachoBindObject request directly", GetName());
 		return(Handle_MachoBindObject(args));
-	} else if(call.method == "MachoResolveObject"){
-		_log(SERVICE__CALLS, "%s Service: handling MachoResolveObject request directly", GetName());
+	} else if(method == "MachoResolveObject"){
+		_log(SERVICE__CALLS, "Service %s: handling MachoResolveObject request directly", GetName());
 		return(Handle_MachoResolveObject(args));
+	} else {
+		_log(SERVICE__CALLS, "Service %s: calling %s", GetName(), method.c_str());
+		args.Dump(SERVICE__CALL_TRACE);
+		return(PyCallable::Call(method, args));
 	}
-
-	return(PyCallable::Call(call, args));
 }
 
 
 /*                                                                              
  * For now, we are going to keep it simple by trying to use only a single
  * node ID, this may have to change some day.
- *
 */
 
 PyResult PyService::Handle_MachoResolveObject(PyCallArgs &call) {
@@ -107,13 +105,6 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 		
 		_log(SERVICE__MESSAGE, "%s Service: MachoBindObject also contains call to %s", GetName(), boundcall.method_name.c_str());
 
-		//we have to build our own call stream:
-		PyCallStream sub_call;
-		sub_call.remoteObject = 1;
-		sub_call.method = boundcall.method_name;
-		sub_call.arg_tuple = NULL;	//stored directly in the args below
-		sub_call.arg_dict = NULL;
-
 		//grr.. ownership transfer.
 		PyRepDict *tmp_dict = new PyRepDict();
 		tmp_dict->items = boundcall.dict_arguments.items;
@@ -121,7 +112,8 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 		
 		PyCallArgs sub_args(call.client, &boundcall.arguments, &tmp_dict);
 		
-		PyResult result = our_obj->Call(sub_call, sub_args);
+		//do the call:
+		PyResult result = our_obj->Call(boundcall.method_name, sub_args);
 
 		robjs->items[1] = result.ssResult.hijack();
 

@@ -53,22 +53,21 @@ class LSCService;
 
 class PyServiceMgr {
 public:
-	PyServiceMgr(uint32 nodeID, DBcore &db, EntityList &elist, ItemFactory &ifactory, const std::string &CacheDirectory);
+	PyServiceMgr(uint32 nodeID, DBcore &db, EntityList &elist, ItemFactory &ifactory);
 	~PyServiceMgr();
 	
 	void Process();
 		
 	void RegisterService(PyService *d);
-	PyService *LookupService(const PyPacket *p);
+	PyService *LookupService(const std::string &name);
 	
-	ObjCacheService *GetCache() { return(m_cache); }
 	uint32 GetNodeID() const { return(m_nodeID); }
 	
 	//object binding, not fully understood yet.
 	PyRepSubStruct *BindObject(Client *who, PyBoundObject *obj, PyRepDict **dict = NULL);
+	PyBoundObject *FindBoundObject(uint32 bindID);
+	void ClearBoundObject(uint32 bindID);
 	void ClearBoundObjects(Client *who);
-	PyBoundObject *FindBoundObject(const char *bindID);
-	void ClearBoundObject(const char *bindID);
 
 	//this is a hack and needs to die:
 	ServiceDB &serviceDB() { return(m_svcDB); }
@@ -80,25 +79,22 @@ public:
 	//these may be NULL during service init, but should never be after that.
 	//we do not own these pointers (we do in their PyService * form though)
 	LSCService *lsc_service; 
-	
+	ObjCacheService *cache_service;
+
 protected:
 	std::set<PyService *> m_services;	//we own these pointers.
 
-	ObjCacheService *const m_cache;
-	
 	//this is getting messy:
-	uint32 _AllocateBindID();
-	uint32 m_nodeID;
 	uint32 m_nextBindID;
-	class BoundObject {
-	public:
+	uint32 _GetBindID() { return(m_nextBindID++); }
+
+	struct BoundObject {
 		Client *client;	//we do not own this.
 		PyBoundObject *destination;	//we own this. PyServiceMgr deletes it
 	};
-	std::map<std::string, BoundObject> m_boundObjects;
-	class BoundCaller;
-	BoundCaller *m_BoundCallDispatcher;
+	std::map<uint32, BoundObject> m_boundObjects;
 
+	uint32 m_nodeID;
 	ServiceDB m_svcDB;	//this is crap, get rid of this
 };
 

@@ -50,11 +50,10 @@ public:
 	PyService(PyServiceMgr *mgr, const char *serviceName);
 	virtual ~PyService();
 	
-	bool IsPacketFor(const PyPacket *packet) const;
-	
 	//overload Callable for binding:
-	virtual PyResult Call(PyCallStream &call, PyCallArgs &args);
+	virtual PyResult Call(const std::string &method, PyCallArgs &args);
 	
+	const char *GetName() const { return(m_name.c_str()); }
 	EntityList &entityList() const { return(m_manager->entity_list); }
 	
 protected:
@@ -91,6 +90,11 @@ protected:
 	//some service-level remote calls, need to be reworked:
 	virtual PyResult Handle_MachoResolveObject(PyCallArgs &call);
 	virtual PyResult Handle_MachoBindObject(PyCallArgs &call);
+
+	PyServiceMgr *const m_manager;
+
+private:
+	std::string m_name;
 };
 
 #if 0

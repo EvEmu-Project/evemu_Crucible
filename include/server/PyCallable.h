@@ -85,23 +85,20 @@ public:
 	class CallDispatcher {
 	public:
 		virtual ~CallDispatcher() {}
+
 		virtual PyResult Dispatch(const std::string &method_name, PyCallArgs &call) = 0;
 	};
 	
-	PyCallable(PyServiceMgr &mgr, const char *callableName);
+	PyCallable();
 	virtual ~PyCallable();
 
-	const char *GetName() const { return(m_callableName.c_str()); }
-	
 	//returns ownership:
-	virtual PyResult Call(PyCallStream &call, PyCallArgs &args);
+	virtual PyResult Call(const std::string &method, PyCallArgs &args);
 	
 protected:
 	void _SetCallDispatcher(CallDispatcher *d) { m_serviceDispatch = d; }
-	
-	PyServiceMgr *const m_manager;
+
 private:
-	const std::string m_callableName;
 	CallDispatcher *m_serviceDispatch;	//must not be NULL after constructor, we do not own this.
 };
 

@@ -372,6 +372,22 @@ PyRepObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable) {
 	return DBResultToRowset(res);
 }
 
+PyRepObject *MarketDB::GetRefTypes() {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" billTypeID,"
+		" billTypeName,"
+		" description"
+		" FROM billTypes"
+	)) {
+		_log(DATABASE__ERROR, "Failed to query bill types: %s.", res.error.c_str());
+		return NULL;
+	}
+
+	return(DBResultToRowset(res));
+}
 
 //helper routine for GetMarketGroups
 static void _PropigateItems(std::map< int, std::set<uint32> > &types, std::map<int, int> &parentChild, std::map<int, std::set<int> > &childParent, int group) {

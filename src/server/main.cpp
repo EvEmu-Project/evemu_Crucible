@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
 
 
 	//now, the service manager...
-	PyServiceMgr services(888444, db, entity_list, item_factory, Config->CacheDirectory);
+	PyServiceMgr services(888444, db, entity_list, item_factory);
 
 	//setup the command dispatcher
 	CommandDispatcher command_dispatcher(services, db);
@@ -157,6 +157,7 @@ int main(int argc, char *argv[]) {
 	services.RegisterService(new DogmaIMService(&services, &db));
 	services.RegisterService(new InvBrokerService(&services, &db));
 	services.RegisterService(services.lsc_service = new LSCService(&services, &db, &command_dispatcher));
+	services.RegisterService(services.cache_service = new ObjCacheService(&services, &db, Config->CacheDirectory));
 	services.RegisterService(new LookupService(&services, &db));
 	services.RegisterService(new VoiceMgrService(&services));
 	services.RegisterService(new ShipService(&services, &db));
@@ -187,7 +188,7 @@ int main(int argc, char *argv[]) {
 	_log(SERVER__INIT, "Priming cached objects");
 //#ifndef WIN32
 //#warning CACHABLES DISABLED!
-	services.GetCache()->PrimeCache();
+	services.cache_service->PrimeCache();
 //#endif
 
 	// johnsus - serverStartTime mod

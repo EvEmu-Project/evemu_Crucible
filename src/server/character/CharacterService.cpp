@@ -27,8 +27,10 @@
 
 PyCallable_Make_InnerDispatcher(CharacterService)
 
-CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc) : PyService(mgr, "character"),
-  m_dispatch(new Dispatcher(this)), m_db(dbc)
+CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc)
+: PyService(mgr, "character"),
+  m_dispatch(new Dispatcher(this)),
+  m_db(dbc)
 {
 	_SetCallDispatcher(m_dispatch);
 	
@@ -142,10 +144,9 @@ PyResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
 	result = cachables;
 
 	//send all the cache hints needed for char creation.
-	call.client->services().GetCache()->InsertCacheHints(
+	m_manager->cache_service->InsertCacheHints(
 		ObjCacheService::hCharCreateCachables,
-		cachables );
-		
+		cachables);
 	_log(CLIENT__MESSAGE, "Sending char creation info reply");
 	
 	return(result);
@@ -154,7 +155,7 @@ PyResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
 PyResult CharacterService::Handle_GetCharNewExtraCreationInfo(PyCallArgs &call) {
 	PyRepDict *result = new PyRepDict();
 
-	m_manager->GetCache()->InsertCacheHints(
+	m_manager->cache_service->InsertCacheHints(
 		ObjCacheService::hCharNewExtraCreateCachables,
 		result);
 	_log(CLIENT__MESSAGE, "Sending char new extra creation info reply");
@@ -169,7 +170,7 @@ PyResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
 	result = cachables;
 
 	//send all the cache hints needed for char creation.
-	call.client->services().GetCache()->InsertCacheHints(
+	m_manager->cache_service->InsertCacheHints(
 		ObjCacheService::hAppearanceCachables,
 		cachables );
 	

@@ -25,10 +25,8 @@
 
 #include "EvemuPCH.h"
 
-PyCallable::PyCallable(PyServiceMgr &mgr, const char *callableName)
-: m_manager(&mgr),
-  m_callableName(callableName),
-  m_serviceDispatch(NULL)
+PyCallable::PyCallable()
+: m_serviceDispatch(NULL)
 {
 }
 
@@ -36,21 +34,17 @@ PyCallable::~PyCallable()
 {
 }
 
-PyResult PyCallable::Call(PyCallStream &call, PyCallArgs &args) {
-
-	_log(SERVICE__CALLS, "%s Service: calling %s", m_callableName.c_str(), call.method.c_str());
-	args.Dump(SERVICE__CALL_TRACE);
-	
+PyResult PyCallable::Call(const std::string &method, PyCallArgs &args) {
 	//call the dispatcher, capturing the result.
 	try {
-		PyResult res = m_serviceDispatch->Dispatch(call.method, args);
+		PyResult res = m_serviceDispatch->Dispatch(method, args);
 
-		_log(SERVICE__CALL_TRACE, "%s Service: Call %s returned:", m_callableName.c_str(), call.method.c_str());
+		_log(SERVICE__CALL_TRACE, "Call %s returned:", method.c_str());
 		res.ssResult->Dump(SERVICE__CALL_TRACE, "      ");
 
 		return(res);
 	} catch(PyException &e) {
-		_log(SERVICE__CALL_TRACE, "%s Service: Call %s threw exception:", m_callableName.c_str(), call.method.c_str());
+		_log(SERVICE__CALL_TRACE, "Call %s threw exception:", method.c_str());
 		e.ssException->Dump(SERVICE__CALL_TRACE, "      ");
 
 		throw;
