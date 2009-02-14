@@ -32,16 +32,16 @@
 
 class PyRep;
 
-class InvBrokerService : public PyService {
+class InvBrokerService
+: public PyService
+{
 public:
-	InvBrokerService(PyServiceMgr *mgr, DBcore *db);
+	InvBrokerService(PyServiceMgr *mgr);
 	virtual ~InvBrokerService();
 
 protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
-
-	InventoryDB m_db;
 
 	//overloaded in order to support bound objects:
 	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);

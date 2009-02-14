@@ -112,8 +112,7 @@ PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict
 		objt = new PyRepTuple(3);
 
 		objt->items[0] = new PyRepString(bind_str);
-		objt->items[1] = *dict; 
-		*dict = NULL;	//consumed
+		objt->items[1] = *dict; *dict = NULL;	//consumed
 		objt->items[2] = new PyRepInteger(expiration);	//expiration?
 	}
 

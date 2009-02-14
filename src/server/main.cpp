@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
 	services.RegisterService(new CorpRegistryService(&services, &db));
 	services.RegisterService(new LPService(&services));
 	services.RegisterService(new DogmaIMService(&services, &db));
-	services.RegisterService(new InvBrokerService(&services, &db));
+	services.RegisterService(new InvBrokerService(&services));
 	services.RegisterService(services.lsc_service = new LSCService(&services, &db, &command_dispatcher));
 	services.RegisterService(services.cache_service = new ObjCacheService(&services, &db, Config->CacheDirectory));
 	services.RegisterService(new LookupService(&services, &db));

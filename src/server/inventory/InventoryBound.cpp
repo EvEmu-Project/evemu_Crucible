@@ -26,6 +26,33 @@
 #include "EvemuPCH.h"
 #include "inventory/InventoryBound.h"
 
+PyCallable_Make_InnerDispatcher(InventoryBound)
+
+InventoryBound::InventoryBound(
+	PyServiceMgr *mgr,
+	InventoryItem *item,
+	EVEItemFlags flag)
+: PyBoundObject(mgr),
+  m_dispatch(new Dispatcher(this)),
+  m_item(item),
+  m_flag(flag)
+{
+	_SetCallDispatcher(m_dispatch);
+
+	PyCallable_REG_CALL(InventoryBound, List)
+	PyCallable_REG_CALL(InventoryBound, Add)
+	PyCallable_REG_CALL(InventoryBound, MultiAdd)
+	PyCallable_REG_CALL(InventoryBound, GetItem)
+	PyCallable_REG_CALL(InventoryBound, ListStations)
+	PyCallable_REG_CALL(InventoryBound, ReplaceCharges)
+	PyCallable_REG_CALL(InventoryBound, MultiMerge)
+	PyCallable_REG_CALL(InventoryBound, StackAll)
+}
+
+InventoryBound::~InventoryBound() {
+	m_item->Release();
+}
+
 PyResult InventoryBound::Handle_List(PyCallArgs &call) {
 	PyRep *result = NULL;
 
@@ -34,7 +61,7 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
 	//this is such crap, need better logic.
 	/*uint32 list_flag = flagCargoHold;
 	if(m_entityID == call.client->GetLocationID())
-	list_flag = flagInventory;*/
+		list_flag = flagInventory;*/
 
 	result = m_item->GetInventoryRowset(m_flag, call.client->GetCharacterID());
 	if(result == NULL)
@@ -96,7 +123,7 @@ PyResult InventoryBound::Handle_ListStations(PyCallArgs &call) {
 	rowset.header.push_back("stationID");
 	rowset.header.push_back("itemCount");
 
-	return(rowset.Encode());
+	return(rowset.FastEncode());
 }
 
 PyResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
@@ -110,8 +137,7 @@ PyResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
-
-	if((call.tuple)->items.size() == 3) {
+	if(call.tuple->items.size() == 3) {
 		Inventory_CallAdd args;
 		if(!args.Decode(&call.tuple)) {
 			codelog(SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName());
@@ -122,8 +148,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 		items.push_back(args.itemID);
 
 		return(_ExecAdd(call.client, items, args.quantity, (EVEItemFlags)args.flag));
-
-	} else if((call.tuple)->items.size() == 2) {
+	} else if(call.tuple->items.size() == 2) {
 		Inventory_CallAddCargoContainer args;
 		//chances are its trying to transfer into a cargo container
 		if(!args.Decode(&call.tuple)) {
@@ -133,19 +158,16 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 
 		std::vector<uint32> items;
 		items.push_back(args.itemID);
-		return(_ExecAdd(call.client, items, args.quantity, flagAutoFit));
 
+		return(_ExecAdd(call.client, items, args.quantity, flagAutoFit));
 	} else {
-		codelog(SERVICE__ERROR, "[Add]Unknown number of args in tuple");
+		codelog(SERVICE__ERROR, "[Add] Unknown number of args in tuple");
 		return NULL;
 	}
-
-	return NULL;
 }
 
 PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
-	if((call.tuple)->items.size() == 1) {
-
+	if(call.tuple->items.size() == 1) {
 		Call_SingleIntList args;
 		if(!args.Decode(&call.tuple)) {
 			codelog(SERVICE__ERROR, "Unable to decode arguments");
@@ -172,7 +194,6 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
-
 	//Decode Args
 	Inventory_CallMultiMerge elements;
 
@@ -184,12 +205,13 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 	Inventory_CallMultiMergeElement element;
 	PyRep* codedElement;
 
-	std::vector<PyRep *>::const_iterator current, endlist;
-	current = elements.MMElements.items.begin();
-	endlist = elements.MMElements.items.end();
+	std::vector<PyRep *>::const_iterator cur, end;
+	cur = elements.MMElements.items.begin();
+	end = elements.MMElements.items.end();
 
-	for (;current != endlist; current++) {
-		codedElement = *current;
+	for (; cur != end; cur++) {
+		codedElement = *cur;
+
 		if(!element.Decode(&codedElement)) {
 			codelog(SERVICE__ERROR, "Unable to decode element. Skipping.");
 			continue;
@@ -209,7 +231,9 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 		}
 
 		if(!stationaryItem->Merge(draggedItem, element.draggedQty))
+			// if Merge failed, draggedItem ref wasn't relased ...
 			draggedItem->Release();
+
 		stationaryItem->Release();
 	}
 
@@ -218,34 +242,36 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
-
-	Call_SingleIntegerArg arg;
-
 	EVEItemFlags stackFlag = flagHangar;
 
-	if( call.tuple->items.size() != 0)
-		if( !arg.Decode( &call.tuple )) {
+	if(call.tuple->items.size() != 0) {
+		Call_SingleIntegerArg arg;
+		if(!arg.Decode(&call.tuple)) {
 			_log(SERVICE__ERROR, "Failed to decode args.");
 			return NULL;
-		} else
-			stackFlag = (EVEItemFlags)arg.arg;
+		}
 
-		//Stack Items contained in this inventory
-		m_item->StackContainedItems(stackFlag, call.client->GetCharacterID());
+		stackFlag = (EVEItemFlags)arg.arg;
+	}
 
-		return NULL;
+	//Stack Items contained in this inventory
+	m_item->StackContainedItems(stackFlag, call.client->GetCharacterID());
+
+	return NULL;
 }
 
-void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag)
-{
-
+void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag) {
 	double totalVolume = 0.0;
+
 	std::vector<uint32>::const_iterator cur, end;
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-
 		InventoryItem *sourceItem = m_manager->item_factory.Load((*cur), true);
+		if(sourceItem == NULL) {
+			_log(SERVICE__ERROR, "Failed to load item %lu. Skipping.", *cur);
+			continue;
+		}
 
 		//If hold already contains this item then we can ignore remaining space
 		if ((!m_item->Contains(sourceItem)) || (m_item->flag() != flag))
@@ -277,21 +303,23 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 
 	//Check total volume used size
 	if( flag != flagHangar)
-	{		
-		if( totalVolume > m_item->GetRemainingCapacity(flag))
+	{
+		double remainingCapacity = m_item->GetRemainingCapacity(flag);
+
+		if( totalVolume > remainingCapacity )
 		{
 			//The moving item is too big to fit into dest space
 			//Log Error
 			if( items.size() > 1)
 			{
-				_log(ITEM__ERROR, "Cannot Perform Add. Items are too large (%f m3) to fit into destination %lu (%f m3 capacity remaining)",totalVolume, m_item->itemID(), m_item->GetRemainingCapacity(flag)); 
+				_log(ITEM__ERROR, "Cannot Perform Add. Items are too large (%f m3) to fit into destination %lu (%f m3 capacity remaining)", totalVolume, m_item->itemID(), remainingCapacity); 
 			}
 			else
 			{
-				_log(ITEM__ERROR, "Cannot Perform Add. Item %lu is too large (%f m3) to fit into destination %lu (%f m3 capacity remaining)",items[0],totalVolume, m_item->itemID(), m_item->GetRemainingCapacity(flag));
+				_log(ITEM__ERROR, "Cannot Perform Add. Item %lu is too large (%f m3) to fit into destination %lu (%f m3 capacity remaining)", items[0], totalVolume, m_item->itemID(), remainingCapacity);
 			}
 			std::map<std::string, PyRep *> args;
-			args["available"] = new PyRepReal(m_item->GetRemainingCapacity( flag ));
+			args["available"] = new PyRepReal(remainingCapacity);
 			args["volume"] = new PyRepReal(totalVolume);
 			throw(PyException(MakeUserError("NotEnoughCargoSpace", args)));
 		}
@@ -300,7 +328,6 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 
 
 PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag) {
-
 	bool fLoadoutRequest = false;
 
 	//TODO: handle auto-fit flag
@@ -321,16 +348,16 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 		_ValidateAdd(c, items, quantity, flag);
 	}
 
-
-
-
 	//If were here, we can try move all the items (validated)
 	std::vector<uint32>::const_iterator cur, end;
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-
-		InventoryItem *sourceItem = m_manager->item_factory.Load((*cur), true);			
+		InventoryItem *sourceItem = m_manager->item_factory.Load((*cur), true);
+		if(sourceItem == NULL) {
+			_log(SERVICE__ERROR, "Failed to load item %lu. Skipping.", *cur);
+			continue;
+		}
 
 		//NOTE: a multiadd can come in with quantity 0 to indicate "all"
 
@@ -341,7 +368,11 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 			InventoryItem *newItem = sourceItem->Split(quantity);
 
 			//Move New item to its new location
-			if( newItem != NULL )
+			if( newItem == NULL )
+			{
+				codelog(SERVICE__ERROR, "Error spawning an item of type %lu", sourceItem->typeID());
+			}
+			else
 			{
 				c->MoveItem(newItem->itemID(), m_item->itemID(), flag);	// properly refresh modules
 				if(fLoadoutRequest == true)
@@ -359,10 +390,6 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 
 				//Return new item result
 				return( result.FastEncode() );
-			}
-			else
-			{
-				codelog(SERVICE__ERROR,"Error spawning an item of type %lu", sourceItem->typeID());
 			}
 		}
 		else

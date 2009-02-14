@@ -84,7 +84,6 @@ public:
 protected:
 	std::set<PyService *> m_services;	//we own these pointers.
 
-	//this is getting messy:
 	uint32 m_nextBindID;
 	uint32 _GetBindID() { return(m_nextBindID++); }
 

@@ -26,31 +26,13 @@
 #ifndef _INVENTORY_BOUND_H
 #define _INVENTORY_BOUND_H
 
-class InventoryBound : public PyBoundObject {
+class InventoryBound
+: public PyBoundObject
+{
 public:
+	InventoryBound(PyServiceMgr *mgr, InventoryItem *item, EVEItemFlags flag);
+	~InventoryBound();
 
-	PyCallable_Make_Dispatcher(InventoryBound)
-
-	InventoryBound(InventoryItem *item, EVEItemFlags flag, PyServiceMgr *mgr, InventoryDB *db)
-		: PyBoundObject(mgr),
-		m_dispatch(new Dispatcher(this)),
-		m_item(item),
-		m_flag(flag),
-		m_db(db)
-	{
-		_SetCallDispatcher(m_dispatch);
-
-		PyCallable_REG_CALL(InventoryBound, List)
-		PyCallable_REG_CALL(InventoryBound, Add)
-		PyCallable_REG_CALL(InventoryBound, MultiAdd)
-		PyCallable_REG_CALL(InventoryBound, GetItem)
-		PyCallable_REG_CALL(InventoryBound, ListStations)
-		PyCallable_REG_CALL(InventoryBound, ReplaceCharges)
-		PyCallable_REG_CALL(InventoryBound, MultiMerge)
-		PyCallable_REG_CALL(InventoryBound, StackAll)
-
-	}
-	virtual ~InventoryBound() { m_item->Release(); }
 	virtual void Release() {
 		//I hate this statement
 		delete this;
@@ -66,12 +48,11 @@ public:
 	PyCallable_DECL_CALL(StackAll)
 
 protected:
+	class Dispatcher;
 	Dispatcher *const m_dispatch;
 
 	InventoryItem *const m_item;	//we own a reference of this
 	const EVEItemFlags m_flag;
-
-	InventoryDB *const m_db;
 
 	PyRep *_ExecAdd(Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag);
 	void _ValidateAdd( Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag);

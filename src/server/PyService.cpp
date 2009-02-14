@@ -81,8 +81,7 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 	
 	//first we need to get our implementation to actually create the object
 	//which they are trying to bind to.
-	PyBoundObject *our_obj;
-	our_obj = _CreateBoundObject(call.client, args.bindParams);
+	PyBoundObject *our_obj = _CreateBoundObject(call.client, args.bindParams);
 	if(our_obj == NULL) {
 		_log(SERVICE__ERROR, "%s Service: %s: Unable to create bound object for:", GetName(), call.client->GetName());
 		args.bindParams->Dump(SERVICE__ERROR, "    ");

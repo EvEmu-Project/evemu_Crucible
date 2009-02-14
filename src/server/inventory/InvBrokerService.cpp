@@ -28,16 +28,17 @@
 
 PyCallable_Make_InnerDispatcher(InvBrokerService)
 
-class InvBrokerBound : public PyBoundObject {
+class InvBrokerBound
+: public PyBoundObject
+{
 public:
 
 	PyCallable_Make_Dispatcher(InvBrokerBound)
 	
-	InvBrokerBound(uint32 entityID, PyServiceMgr *mgr, InventoryDB *db)
+	InvBrokerBound(PyServiceMgr *mgr, uint32 entityID)
 	: PyBoundObject(mgr),
 	  m_dispatch(new Dispatcher(this)),
-	  m_entityID(entityID),
-	  m_db(db)
+	  m_entityID(entityID)
 	{
 		_SetCallDispatcher(m_dispatch);
 		
@@ -62,14 +63,11 @@ protected:
 	Dispatcher *const m_dispatch;
 
 	uint32 m_entityID;
-	
-	InventoryDB *const m_db;
 };
 
-InvBrokerService::InvBrokerService(PyServiceMgr *mgr, DBcore *db)
+InvBrokerService::InvBrokerService(PyServiceMgr *mgr)
 : PyService(mgr, "invbroker"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 	
@@ -92,7 +90,7 @@ PyBoundObject *InvBrokerService::_CreateBoundObject(Client *c, const PyRep *bind
 	_log(CLIENT__MESSAGE, "InvBrokerService bind request for:");
 	args.Dump(CLIENT__MESSAGE, "    ");
 
-	return(new InvBrokerBound(args.entityID, m_manager, &m_db));
+	return(new InvBrokerBound(m_manager, args.entityID));
 }
 
 //this is a view into the entire inventory item.
@@ -111,7 +109,7 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
 	}
 	
 	//we just bind up a new inventory object and give it back to them.
-	InventoryBound *ib = new InventoryBound(item, flagAutoFit, m_manager, m_db);
+	InventoryBound *ib = new InventoryBound(m_manager, item, flagAutoFit);
 	PyRep *result = m_manager->BindObject(call.client, ib);
 
 	return(result);
@@ -124,32 +122,31 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 		codelog(SERVICE__ERROR, "Unable to decode arguments");
 		return NULL;
 	}
-	PyRep *result = NULL;
-	
+
 	EVEItemFlags flag;
 	switch(args.container) {
-	case containerWallet:
-		flag = flagWallet;
-		break;
-	case containerCharacter:
-		flag = flagSkill;
-		break;
-	case containerHangar:
-		flag = flagHangar;
-		break;
-		
-	case containerGlobal:
-	case containerSolarSystem:
-	case containerScrapHeap:
-	case containerFactory:
-	case containerBank:
-	case containerRecycler:
-	case containerOffices:
-	case containerStationCharacters:
-	case containerCorpMarket:
-	default:
-		codelog(SERVICE__ERROR, "Unhandled container type %d", args.container);
-		return NULL;
+		case containerWallet:
+			flag = flagWallet;
+			break;
+		case containerCharacter:
+			flag = flagSkill;
+			break;
+		case containerHangar:
+			flag = flagHangar;
+			break;
+			
+		case containerGlobal:
+		case containerSolarSystem:
+		case containerScrapHeap:
+		case containerFactory:
+		case containerBank:
+		case containerRecycler:
+		case containerOffices:
+		case containerStationCharacters:
+		case containerCorpMarket:
+		default:
+			codelog(SERVICE__ERROR, "Unhandled container type %d", args.container);
+			return NULL;
 	}
 	
 	InventoryItem *item = m_manager->item_factory.Load(m_entityID, true);
@@ -161,8 +158,8 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 	_log(SERVICE__MESSAGE, "Binding inventory object for %s for container %lu with flag %lu", call.client->GetName(), m_entityID, flag);
 	
 	//we just bind up a new inventory object and give it back to them.
-	InventoryBound *ib = new InventoryBound(item, flag, m_manager, m_db);
-	result = m_manager->BindObject(call.client, ib);
+	InventoryBound *ib = new InventoryBound(m_manager, item, flag);
+	PyRep *result = m_manager->BindObject(call.client, ib);
 	
 	return(result);
 }
@@ -207,16 +204,18 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
 	end = args.items.end();
 	for(; cur != end; cur++) {
 		item = m_manager->item_factory.Load(*cur, false);
-		if(item == NULL) 
+		if(item == NULL) {
 			codelog(SERVICE__ERROR, "%s: Unable to load item %lu to delete it. Skipping.", call.client->GetName(), *cur);
-		else if(call.client->GetCharacterID() != item->ownerID()) {
+		} else if(call.client->GetCharacterID() != item->ownerID()) {
 			codelog(SERVICE__ERROR, "%s: Tried to trash item %lu which is not yours. Skipping.", call.client->GetName(), *cur);
 			item->Release();
 		} else if(item->locationID() != args.locationID) {
 			codelog(SERVICE__ERROR, "%s: Item %lu is not in location %lu. Skipping.", call.client->GetName(), *cur, args.locationID);
 			item->Release();
-		} else
+		} else {
 			item->Delete();
+			// ref was consumed
+		}
 	}
 	return(new PyRepList());
 }
