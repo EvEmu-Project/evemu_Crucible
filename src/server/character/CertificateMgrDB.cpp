@@ -39,7 +39,7 @@ PyRep *CertificateMgrDB::GetMyCertificates(uint32 characterID) {
 	rs.header.push_back("grantDate");
 	rs.header.push_back("visiblityFlags");
 
-	return(rs.Encode());
+	return(rs.FastEncode());
 }
 
 PyRep *CertificateMgrDB::GetCertificateCategories() {
@@ -61,16 +61,21 @@ PyRep *CertificateMgrDB::GetCertificateCategories() {
 }
 
 PyRep *CertificateMgrDB::GetAllShipCertificateRecommendations() {
-	_log(DATABASE__ERROR, "GetAllShipCertificateRecommendations unimplemented.");
+	DBQueryResult res;
 
-	util_Rowset rs;
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" shipTypeID,"
+		" certificateID,"
+		" recommendationLevel,"
+		" recommendationID"
+		" FROM crtRecommendations"))
+	{
+		_log(DATABASE__ERROR, "Failed to query certificate categories: %s.", res.error.c_str());
+		return(NULL);
+	}
 
-	rs.header.push_back("shipTypeID");
-	rs.header.push_back("certificateID");
-	rs.header.push_back("recommendationLevel");
-	rs.header.push_back("recommendationID");
-
-	return(rs.Encode());
+	return(DBResultToRowset(res));
 }
 
 PyRep *CertificateMgrDB::GetCertificateClasses() {

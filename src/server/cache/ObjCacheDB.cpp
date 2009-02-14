@@ -369,8 +369,7 @@ PyRep *ObjCacheDB::Generate_certificates()
 PyRep *ObjCacheDB::Generate_certificateRelationships()
 {
 	DBQueryResult res;
-	//right now we're hacking typeID as there is nothing but zeros in table, but this may change over time
-	const char *q = "SELECT relationshipID,parentID,0 AS parentTypeID,parentLevel,childID,0 AS childTypeID FROM crtRelationships";
+	const char *q = "SELECT relationshipID,parentID,parentTypeID,parentLevel,childID,childTypeID FROM crtRelationships";
 	if(m_db->RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.groups': %s", res.error.c_str());
