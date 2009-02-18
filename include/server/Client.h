@@ -258,7 +258,6 @@ public:
 	virtual void	FastQueuePacket(PyPacket **p);
 	bool			ProcessNet();
 	virtual void	Process();
-	virtual void	ProcessDestiny();
 
 	uint32 GetAccountID() const			{ return m_accountID; }
 	uint32 GetRole() const				{ return m_role; }
@@ -402,8 +401,8 @@ protected:
 private:
 	//queues for destiny updates:
 	std::vector<PyRep *> m_destinyEventQueue;	//we own these. These are events as used in OnMultiEvent
-	std::vector<PyRepTuple *> m_destinyUpdateQueue;	//we own these. They are the `update` which go into DoDestinyAction
-	void _SendQueuedUpdates(uint32 stamp);
+	std::vector<PyRep *> m_destinyUpdateQueue;	//we own these. They are the `update` which go into DoDestinyAction
+	void _SendQueuedUpdates();
 
 	//FunctorTimerQueue m_delayQueue;
 	

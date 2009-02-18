@@ -314,6 +314,9 @@ bool Client::ProcessNet() {
 		SafeDelete(p);
 	}
 
+	// send queued updates
+	_SendQueuedUpdates();
+
 	return true;
 }
 
@@ -336,12 +339,6 @@ void Client::Process() {
 	modules.Process();
 	
 	SystemEntity::Process();
-}
-
-void Client::ProcessDestiny() {
-	//send changes from previous tic
-	_SendQueuedUpdates(DestinyManager::GetStamp()-1);
-	DynamicSystemEntity::ProcessDestiny();
 }
 
 //this displays a modal error dialog on the client side.
@@ -970,8 +967,12 @@ void Client::_SendException(PyPacket *req, MACHONETERR_TYPE type, PyRep **payloa
 //these are specialized Queue functions when our caller can
 //easily provide us with our own copy of the data.
 void Client::QueueDestinyUpdate(PyRepTuple **du) {
-	m_destinyUpdateQueue.push_back(*du);
+	DoDestinyAction act;
+	act.update_id = DestinyManager::GetStamp();
+	act.update = *du;
 	*du = NULL;
+
+	m_destinyUpdateQueue.push_back( act.FastEncode() );
 }
 
 void Client::QueueDestinyEvent(PyRepTuple **multiEvent) {
@@ -979,50 +980,38 @@ void Client::QueueDestinyEvent(PyRepTuple **multiEvent) {
 	*multiEvent = NULL;
 }
 
-void Client::_SendQueuedUpdates(uint32 stamp) {
-	std::vector<PyRepTuple *>::const_iterator cur, end;
-	
-	if(m_destinyUpdateQueue.empty()) {
-		//no destiny stuff to do...
-		if(m_destinyEventQueue.empty()) {
-			//no multi-events either...
-			return;
-		}
-		//so, we have multi-event stuff, but no destiny stuff to send.
-		//send it out as an OnMultiEvent instead.
+void Client::_SendQueuedUpdates() {
+	if(!m_destinyUpdateQueue.empty()) {
+		DoDestinyUpdateMain dum;
+
+		//first insert the destiny updates.
+		dum.updates.items = m_destinyUpdateQueue;
+		m_destinyUpdateQueue.clear();
+		
+		//encode any multi-events which go along with it.
+		dum.events.items = m_destinyEventQueue;
+		m_destinyEventQueue.clear();
+
+		//right now, we never wait. I am sure they do this for a reason, but
+		//I haven't found it yet
+		dum.waitForBubble = false;
+
+		//now send it
+		PyRepTuple *t = dum.FastEncode();
+		t->Dump(DESTINY__UPDATES, "");
+		SendNotification("DoDestinyUpdate", "clientID", &t);
+	} else if(!m_destinyEventQueue.empty()) {
 		Notify_OnMultiEvent nom;
+
+		//insert updates, clear our queue
 		nom.events.items = m_destinyEventQueue;
 		m_destinyEventQueue.clear();
-		PyRepTuple *tmp = nom.FastEncode();	//this is consumed below
-		tmp->Dump(DESTINY__UPDATES, "");
-		SendNotification("OnMultiEvent", "charid", &tmp);
-		return;
-	}
-	
-	DoDestinyUpdateMain dum;
 
-	//first encode the destiny updates.
-	cur = m_destinyUpdateQueue.begin();
-	end = m_destinyUpdateQueue.end();
-	for(; cur != end; cur++) {
-		DoDestinyAction act;	//inside the loop just in case memory management techniques ever chance.
-		act.update_id = stamp;
-		act.update = *cur;
-		dum.updates.add( act.FastEncode() );
-	}
-	m_destinyUpdateQueue.clear();
-	
-	//right now, we never wait. I am sure they do this for a reason, but
-	//I haven't found it yet
-	dum.waitForBubble = false;
-
-	//encode any multi-events which go along with it.
-	dum.events.items = m_destinyEventQueue;
-	m_destinyEventQueue.clear();
-
-	PyRepTuple *tmp = dum.FastEncode();
-	tmp->Dump(DESTINY__UPDATES, "");
-	SendNotification("DoDestinyUpdate", "clientID", &tmp);
+		//send it
+		PyRepTuple *t = nom.FastEncode();	//this is consumed below
+		t->Dump(DESTINY__UPDATES, "");
+		SendNotification("OnMultiEvent", "charid", &t);
+	} //else nothing to do ...
 }
 
 void Client::SendNotification(const char *notifyType, const char *idType, PyRepTuple **payload, bool seq) {
