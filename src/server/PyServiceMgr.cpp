@@ -126,10 +126,10 @@ void PyServiceMgr::ClearBoundObjects(Client *who) {
 	while(cur != end) {
 		if(cur->second.client == who) {
 			//_log(SERVICE__MESSAGE, "Clearing bound object %s", cur->first.c_str());
-			PyBoundObject *bo = cur->second.destination;
+			cur->second.destination->Release();
 
-			cur = m_boundObjects.erase(cur);
-			bo->Release();
+			std::map<uint32, BoundObject>::iterator tmp = cur++;
+			m_boundObjects.erase(tmp);
 		} else {
 			cur++;
 		}
