@@ -281,7 +281,7 @@ bool ServiceDB::GetSystemInfo(uint32 systemID, uint32 *constellationID, uint32 *
 	if(name != NULL)
 		*name = row.GetText(2);
 	if(securityClass != NULL)
-		*securityClass = row.GetText(3);
+		*securityClass = row.IsNull(3) ? "" : row.GetText(3);
 
 	return true;
 }

@@ -1111,15 +1111,12 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 	//TODO: verify that they are actually close to 'fromGate'
 	//TODO: verify that 'fromGate' actually jumps to 'toGate'
 	
-	uint32 regionID;
-	uint32 constellationID;
-	uint32 solarSystemID;
+	uint32 solarSystemID, constellationID, regionID;
 	GPoint position;
 	if(!m_services.serviceDB().GetStaticItemInfo(
-			toGate,
-			&regionID, &constellationID, &solarSystemID, &position
-		)
-	) {
+		toGate,
+		&solarSystemID, &constellationID, &regionID, &position
+	)) {
 		codelog(CLIENT__ERROR, "%s: Failed to query information for stargate %lu", GetName(), toGate);
 		return;
 	}
