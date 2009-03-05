@@ -60,7 +60,7 @@ public:
 		const uint64 & val = rep->value;
 		if (val == -1)
 		{
-			PutByte(Op_PyInfinite);
+			PutByte(Op_PyMinusOne);
 			return;
 		}
 

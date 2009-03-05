@@ -315,7 +315,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		
 		break; }
 	
-	case Op_PyInfinite:
+	case Op_PyMinusOne:
 		{ 
 			//.text:1005D11D loc_1005D11D:
 			//this looks like it is a 0-length opcode based on the asm.
@@ -324,7 +324,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 			
 			//TODO: I think this can be used for floats and ints... further, I think
 			//we need a better internal representation of this...
-			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyInfinite", pfx, opcode);
+			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyMinusOne", pfx, opcode);
 			res = new PyRepInteger(INT_MAX);
 		break; }
 	

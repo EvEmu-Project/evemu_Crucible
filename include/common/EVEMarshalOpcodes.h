@@ -35,7 +35,7 @@ typedef enum
 	Op_PyLong				= 0x04,
 	Op_PySignedShort		= 0x05,
 	Op_PyByte				= 0x06,
-	Op_PyInfinite			= 0x07,
+	Op_PyMinusOne			= 0x07,
 	Op_PyZeroInteger		= 0x08,
 	Op_PyOneInteger			= 0x09,
 	Op_PyReal				= 0x0A,
