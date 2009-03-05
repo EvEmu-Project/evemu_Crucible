@@ -61,7 +61,7 @@ typedef enum
 	//Op_PyUnused3			= 0x1E,
 	Op_PyTrue				= 0x1F,
 	Op_PyFalse				= 0x20,
-	//Op_Pyunk4				= 0x21,
+	Op_cPicked				= 0x21,
 	Op_NewObject1			= 0x22,
 	Op_NewObject2			= 0x23, // still not 100% completed
 	Op_PyEmptyTuple			= 0x24,
