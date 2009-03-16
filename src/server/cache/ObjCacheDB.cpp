@@ -53,6 +53,7 @@ ObjCacheDB::ObjCacheDB(DBcore *db) : ServiceDB(db)
 	m_generators["config.BulkData.certificaterelationships"] = &ObjCacheDB::Generate_certificateRelationships;
 	m_generators["config.BulkData.shiptypes"] = &ObjCacheDB::Generate_invShipTypes;
 	m_generators["config.BulkData.locations"] = &ObjCacheDB::Generate_cacheLocations;
+	m_generators["config.BulkData.locationwormholeclasses"] = &ObjCacheDB::Generate_locationWormholeClasses;
 	m_generators["config.BulkData.bptypes"] = &ObjCacheDB::Generate_invBlueprintTypes;
 	m_generators["config.BulkData.graphics"] = &ObjCacheDB::Generate_eveGraphics;
 	m_generators["config.BulkData.types"] = &ObjCacheDB::Generate_invTypes;
@@ -400,6 +401,18 @@ PyRep *ObjCacheDB::Generate_cacheLocations()
 		return NULL;
 	}
 	return DBResultToTupleSet(res);
+}
+
+PyRep *ObjCacheDB::Generate_locationWormholeClasses()
+{
+	DBQueryResult res;
+	const char *q = "SELECT locationID,wormholeClassID FROM mapLocationWormholeClasses";
+	if(m_db->RunQuery(res, q)==false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.locationwormholeclasses': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_invBlueprintTypes()

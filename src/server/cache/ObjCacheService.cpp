@@ -48,6 +48,7 @@ const char *const ObjCacheService::LoginCachableObjects[] = {
 	"config.Attributes",
 	"config.BulkData.dgmtypeattribs",
 	"config.BulkData.locations",
+	"config.BulkData.locationwormholeclasses",
 	"config.BulkData.groups",
 	"config.BulkData.shiptypes",
 	"config.BulkData.dgmattribs",
@@ -149,6 +150,7 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, DBcore *dbc, const std::stri
 	m_cacheKeys["config.BulkData.certificaterelationships"] = "config.BulkData.certificaterelationships";
 	m_cacheKeys["config.BulkData.shiptypes"] = "config.BulkData.shiptypes";
 	m_cacheKeys["config.BulkData.locations"] = "config.BulkData.locations";
+	m_cacheKeys["config.BulkData.locationwormholeclasses"] = "config.BulkData.locationwormholeclasses";
 	m_cacheKeys["config.BulkData.bptypes"] = "config.BulkData.bptypes";
 	m_cacheKeys["config.BulkData.graphics"] = "config.BulkData.graphics";
 	m_cacheKeys["config.BulkData.types"] = "config.BulkData.types";

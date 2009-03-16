@@ -77,6 +77,7 @@ protected:
 	PyRep *Generate_certificateRelationships();
 	PyRep *Generate_invShipTypes();
 	PyRep *Generate_cacheLocations();
+	PyRep *Generate_locationWormholeClasses();
 	PyRep *Generate_invBlueprintTypes();
 	PyRep *Generate_eveGraphics();
 	PyRep *Generate_invTypes();
