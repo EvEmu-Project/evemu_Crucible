@@ -643,7 +643,7 @@ bool CharacterDB::GetAttributesFromAncestry(CharacterData & cdata) {
 /**
   * @todo Here should come a call to Corp??::CharacterJoinToCorp or what the heck... for now we only put it there
   */
-bool CharacterDB::GetLocationCorporationByCareer(CharacterData & cdata, double & x, double & y, double & z) {
+bool CharacterDB::GetLocationCorporationByCareer(CharacterData & cdata, GPoint & pos) {
 	// Getting corporation id from school's info
 	DBQueryResult res;
 	if (!m_db->RunQuery(res, 
@@ -685,9 +685,9 @@ bool CharacterDB::GetLocationCorporationByCareer(CharacterData & cdata, double &
 	cdata.constellationID = row.GetUInt(5);
 	cdata.regionID = row.GetUInt(6);
 	
-	x = row.GetDouble(7);
-	y = row.GetDouble(8);
-	z = row.GetDouble(9);
+	pos.x = row.GetDouble(7);
+	pos.y = row.GetDouble(8);
+	pos.z = row.GetDouble(9);
 	
 	return (true);
 }

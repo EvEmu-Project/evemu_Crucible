@@ -64,7 +64,7 @@ public:
 	
 	uint8 GetRaceByBloodline(uint32 bloodlineID);
 
-	bool GetLocationCorporationByCareer(CharacterData & cdata, double & x, double & y, double & z);
+	bool GetLocationCorporationByCareer(CharacterData & cdata, GPoint & pos);
 	bool GetShipTypeByBloodline(uint32 bloodlineID, uint32 &shipTypeID);
 
 	bool GetAttributesFromBloodline(CharacterData & cdata);
