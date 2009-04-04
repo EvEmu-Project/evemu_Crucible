@@ -6,6 +6,7 @@ a likely exception to this goal).
 <eve>
  <server>
   <!-- <port>26001</port> -->
+  <!-- <startBalance>6666000000.0</startBalance> -->
  </server>
 
  <database>
@@ -13,11 +14,14 @@ a likely exception to this goal).
   <username>eve</username>
   <password>eve</password>
   <db>eve</db>
+  <!-- <port>3306</port> -->
  </database>
 
  <files>
   <!-- <strings>strings.txt</strings> -->
+  <!-- <log>logs/eveserver.log</log> -->
   <!-- <logsettings>log.ini</logsettings> -->
+  <!-- <cache></cache> -->
  </files>
 </eve>
 

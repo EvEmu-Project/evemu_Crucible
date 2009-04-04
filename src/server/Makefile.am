@@ -304,7 +304,6 @@ server_SOURCES = \
 	EntityList.cpp \
 	EntityList.h \
 	EVEmuServerConfig.cpp \
-	EVEmuServerConfig_elements.h \
 	EVEmuServerConfig.h \
 	main.cpp \
 	PyBoundObject.cpp \

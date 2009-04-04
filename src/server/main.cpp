@@ -61,29 +61,28 @@ int main(int argc, char *argv[]) {
 	Timer::SetCurrentTime();
 	
 	// Load server configuration
-	_log(SERVER__INIT, "Loading server configuration..");
-	if (!EVEmuServerConfig::LoadConfig()) {
+	_log(SERVER__INIT, "Loading server configuration...");
+	if (!sConfig.ParseFile("evemuserver.xml", "eve")) {
 		_log(SERVER__INIT_ERR, "Loading server configuration failed.");
 		return(1);
 	}
-	const EVEmuServerConfig *Config=EVEmuServerConfig::get();
 
-	if(!load_log_settings(Config->LogSettingsFile.c_str()))
-		_log(SERVER__INIT, "Warning: Unable to read %s (this file is optional)", Config->LogSettingsFile.c_str());
+	if(!load_log_settings(sConfig.files.logSettings.c_str()))
+		_log(SERVER__INIT, "Warning: Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str());
 	else
-		_log(SERVER__INIT, "Log settings loaded from %s", Config->LogSettingsFile.c_str());
+		_log(SERVER__INIT, "Log settings loaded from %s", sConfig.files.logSettings.c_str());
 
 	//open up the log file if specified.
-	if(!Config->LogFile.empty()) {
-		if(log_open_logfile(Config->LogFile.c_str())) {
-			_log(SERVER__INIT, "Opened log file %s", Config->LogFile.c_str());
+	if(!sConfig.files.log.empty()) {
+		if(log_open_logfile(sConfig.files.log.c_str())) {
+			_log(SERVER__INIT, "Opened log file %s", sConfig.files.log.c_str());
 		} else {
-			_log(SERVER__INIT_ERR, "Unable to open log file '%s', only logging to the screen now.", Config->LogFile.c_str());
+			_log(SERVER__INIT_ERR, "Unable to open log file '%s', only logging to the screen now.", sConfig.files.log.c_str());
 		}
 	}
-	
-	if(!PyRepString::LoadStringFile(Config->StringsFile.c_str())) {
-		_log(SERVER__INIT_ERR, "Unable to open %s, i need it to decode string table elements!", Config->StringsFile.c_str());
+
+	if(!PyRepString::LoadStringFile(sConfig.files.strings.c_str())) {
+		_log(SERVER__INIT_ERR, "Unable to open %s, i need it to decode string table elements!", sConfig.files.strings.c_str());
 		return(1);
 	}
 
@@ -92,11 +91,11 @@ int main(int argc, char *argv[]) {
 	{
 		DBerror err;
 		if(!db.Open(err, 
-			Config->DatabaseHost.c_str(),
-			Config->DatabaseUsername.c_str(),
-			Config->DatabasePassword.c_str(),
-			Config->DatabaseDB.c_str(),
-			Config->DatabasePort)
+			sConfig.database.host.c_str(),
+			sConfig.database.username.c_str(),
+			sConfig.database.password.c_str(),
+			sConfig.database.db.c_str(),
+			sConfig.database.port)
 		) {
 			_log(SERVER__INIT_ERR, "Unable to connect to the database: %s", err.c_str());
 			return(1);
@@ -110,10 +109,10 @@ int main(int argc, char *argv[]) {
 	EVETCPServer tcps;
 	
 	char errbuf[TCPConnection_ErrorBufferSize];
-	if (tcps.Open(Config->ServerPort, errbuf)) {
-		_log(SERVER__INIT,"TCP listener started on port %d.", Config->ServerPort);
+	if (tcps.Open(sConfig.server.port, errbuf)) {
+		_log(SERVER__INIT,"TCP listener started on port %d.", sConfig.server.port);
 	} else {
-		_log(SERVER__INIT_ERR,"Failed to start TCP listener on port %d:", Config->ServerPort);
+		_log(SERVER__INIT_ERR,"Failed to start TCP listener on port %d:", sConfig.server.port);
 		_log(SERVER__INIT_ERR,"        %s",errbuf);
 		return 1;
 	}
@@ -130,9 +129,9 @@ int main(int argc, char *argv[]) {
 	RegisterAllCommands(command_dispatcher);
 
 	/*                                                                              
-     * Service creation and registration.
-     *
-     */
+	 * Service creation and registration.
+	 *
+	 */
 	_log(SERVER__INIT, "Creating services.");
 	
 	services.RegisterService(new ClientStatsMgr(&services));
@@ -157,7 +156,7 @@ int main(int argc, char *argv[]) {
 	services.RegisterService(new DogmaIMService(&services, &db));
 	services.RegisterService(new InvBrokerService(&services));
 	services.RegisterService(services.lsc_service = new LSCService(&services, &db, &command_dispatcher));
-	services.RegisterService(services.cache_service = new ObjCacheService(&services, &db, Config->CacheDirectory));
+	services.RegisterService(services.cache_service = new ObjCacheService(&services, &db, sConfig.files.cacheDir));
 	services.RegisterService(new LookupService(&services, &db));
 	services.RegisterService(new VoiceMgrService(&services));
 	services.RegisterService(new ShipService(&services, &db));
@@ -259,12 +258,12 @@ static bool InitSignalHandlers() {
 		_log(SERVER__INIT_ERR, "Could not set signal handler");
 		return false;
 	}
-	#ifndef WIN32
+#ifndef WIN32
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)	{
 		_log(SERVER__INIT_ERR, "Could not set signal handler");
 		return false;
 	}
-	#endif
+#endif
 	return true;
 }
 

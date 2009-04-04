@@ -769,10 +769,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\server\EVEmuServerConfig_elements.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\server\NetService.h"
 				>
 			</File>

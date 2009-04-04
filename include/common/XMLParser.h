@@ -52,10 +52,9 @@ protected:
 	const char *ParseTextBlock(TiXmlNode *within, const char *name, bool optional = false);
 	const char *GetText(TiXmlNode *within, bool optional = false);
 
-	std::map<std::string,ElementHandler> Handlers;
+	std::map<std::string, ElementHandler> Handlers;
 
 	bool ParseOkay;
-	
 };
 
 
