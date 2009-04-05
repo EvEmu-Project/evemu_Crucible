@@ -25,13 +25,8 @@
 
 #include "EvemuPCH.h"
 
-CharacterDB::CharacterDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-CharacterDB::~CharacterDB() {
-}
+CharacterDB::CharacterDB(DBcore *db) : ServiceDB(db) {}
+CharacterDB::~CharacterDB() {}
 
 PyRepObject *CharacterDB::GetCharacterList(uint32 accountID) {
 	DBQueryResult res;
@@ -55,19 +50,21 @@ PyRepObject *CharacterDB::GetCharacterList(uint32 accountID) {
 	return(DBResultToRowset(res));
 }
 
-bool CharacterDB::ValidateCharName(const char *name) {
+bool CharacterDB::ValidateCharName(const char *name)
+{
+	if (name == NULL || *name == '\0')
+		return false;
 
-	if(!m_db->IsSafeString(name)) {
+	if(m_db->IsSafeString(name) == false)
+	{
 		_log(SERVICE__ERROR, "Name '%s' contains invalid characters.", name);
 		return false;
 	}
 	
-	//TODO: should reserve the name, but I dont wanna insert a fake char in order to do it.
+	//TODO: should reserve the name, but I don't wanna insert a fake char in order to do it.
 	
 	DBQueryResult res;
-	if(!m_db->RunQuery(res, 
-		"SELECT characterID FROM character_ WHERE characterName='%s'",
-		name))
+	if(!m_db->RunQuery(res, "SELECT characterID FROM character_ WHERE characterName='%s'", name))
 	{
 		codelog(SERVICE__ERROR, "Error in query for '%s': %s", name, res.error.c_str());
 		return false;
@@ -104,9 +101,16 @@ PyRepObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 #define _VoN(v, capp) \
 	(capp.IsNull_##v() ? "NULL" : _ToStr(capp.Get_##v()).c_str())
 
+/* a 32 bits unsigned integer can be max 0xFFFFFFFF.
+   this results in a text string: '4294967295' which
+   is 10 long. Including the '\0' at the end of the
+   string it is max 11.
+   @note why is this god slow function still in the source.
+   @note why is that macro above so important?
+ */
 static std::string _ToStr(uint32 v) {
-	char buf[32];
-	snprintf(buf, 32, "%u", v);
+	char buf[11];
+	snprintf(buf, 11, "%u", v);
 	return(buf);
 }
 
@@ -267,7 +271,7 @@ uint32 CharacterDB::GetRaceFromBloodline(uint32 bloodline) {
  *
  *
  *
-*/
+ */
 InventoryItem *CharacterDB::CreateCharacter2(uint32 acct, ItemFactory &fact, const CharacterData &data, CharacterAppearance &app) {
 	DBerror err;
 
@@ -286,11 +290,10 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 acct, ItemFactory &fact, con
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 	   _log(SERVICE__MESSAGE, "Unable to find typeID in bloodlineTypes for %lu", data.bloodlineID);
-	   return NULL; 
+	   return NULL;
 	}
 
-	uint32 typeID;
-	typeID = row.GetUInt(0);
+	uint32 typeID = row.GetUInt(0);
 
 	// grab the initial attributes for the characters bloodline.
 	if(!m_db->RunQuery(res, 
@@ -305,17 +308,11 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 acct, ItemFactory &fact, con
 	   return NULL; 
 	}
 
-	uint32 perception;
-	uint32 willpower;
-	uint32 charisma;
-	uint32 memory;
-	uint32 intelligence;
-	
-	perception = row.GetUInt(0);
-	willpower = row.GetUInt(1);
-	charisma = row.GetUInt(2);
-	memory = row.GetUInt(3);
-	intelligence = row.GetUInt(4);
+	uint32 perception	= row.GetUInt(0);
+	uint32 willpower	= row.GetUInt(1);
+	uint32 charisma		= row.GetUInt(2);
+	uint32 memory		= row.GetUInt(3);
+	uint32 intelligence = row.GetUInt(4);
 
 	//do the insert into the entity table to get our char ID.
 	InventoryItem *char_item = fact.SpawnSingleton(typeID, 1, locationID, flagPilot, data.name.c_str());
@@ -332,10 +329,10 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 acct, ItemFactory &fact, con
 	char_item->Set_willpower_persist( willpower );
 
 	std::string nameEsc;
-	m_db->DoEscapeString(nameEsc, data.name);
 	std::string titleEsc;
-	m_db->DoEscapeString(titleEsc, data.title);
 	std::string descEsc;
+	m_db->DoEscapeString(nameEsc, data.name);
+	m_db->DoEscapeString(titleEsc, data.title);
 	m_db->DoEscapeString(descEsc, data.description);
 
 	if(!m_db->RunQuery(err,
@@ -405,11 +402,7 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 acct, ItemFactory &fact, con
 	}
 
 	// And one more member to the corporation
-	if (!m_db->RunQuery(err,
-		" UPDATE "
-		" corporation "
-		" SET memberCount = memberCount + 1 "
-		" WHERE corporationID = %lu ", data.corporationID))
+	if (!m_db->RunQuery(err, "UPDATE corporation SET memberCount = memberCount + 1 WHERE corporationID = %lu", data.corporationID))
 	{
 		codelog(SERVICE__ERROR, "Couldn't raise corporation's member count for some reason: %s", err.c_str());
 		//just let it go... its a lot easier this way
@@ -436,9 +429,6 @@ uint32 CharacterDB::GetRaceFromBloodline(uint32 bloodline) {
 
 	return true;
 }*/
-
-
-
 
 PyRepObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
 	DBQueryResult res;
@@ -999,11 +989,6 @@ uint8 CharacterDB::GetRaceByBloodline(uint32 bloodlineID) {
 	return(row.GetUInt(0));
 }
 
-/**
- * Retrieves the character note from the database as a PyRepString pointer.
- *
- * **LSMoura
- */
 PyRepString *CharacterDB::GetNote(uint32 ownerID, uint32 itemID) {
 	DBQueryResult res;
 
@@ -1022,17 +1007,6 @@ PyRepString *CharacterDB::GetNote(uint32 ownerID, uint32 itemID) {
 	return(new PyRepString(row.GetText(0)));
 }
 
-
-
-/**
- * Stores the character note on the database, given the ownerID and itemID and the string itself.
- *
- * If the String is null or size zero, the entry is removed from the database.
- *
- * @return boolean true if success.
- *
- * **LSMoura
- */
 bool CharacterDB::SetNote(uint32 ownerID, uint32 itemID, const char *str) {
 	DBerror err;
 	std::string escaped;

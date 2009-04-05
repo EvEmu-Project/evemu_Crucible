@@ -407,7 +407,9 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	return(new PyRepInteger(cdata.charid));
 }
 
-
+/**
+ * @todo clean this from unneeded comments. Replace the read query actions by a system that uses memory.
+ */
 PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	CallCreateCharacter2 arg;
 	if(!arg.Decode(&call.tuple)) {
@@ -504,8 +506,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	//obtain ship type
 	uint32 shipTypeID;
 	if(!m_db.GetShipTypeByBloodline(cdata.bloodlineID, shipTypeID))
-		//error was already printed
-		return NULL;
+		return NULL;		//error was already printed
 
 	//load skills
 	std::map<uint32, uint32> startingSkills;
@@ -547,11 +548,6 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	}
 
 	//now set up some initial inventory:
-	/*
-	Capsule-creation removed, we don't need it. Capsule is created when player's ship is destroyed or jump out event.
-	->Jesaja
-	*/
-
 	{	//item scope
 		InventoryItem *junk;
 
@@ -611,8 +607,8 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	return(new PyRepInteger(cdata.charid));
 }
 
-
-PyResult CharacterService::Handle_Ping(PyCallArgs &call) {
+PyResult CharacterService::Handle_Ping(PyCallArgs &call)
+{
 	return(new PyRepInteger(call.client->GetAccountID()));
 }
 

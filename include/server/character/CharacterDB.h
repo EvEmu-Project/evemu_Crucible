@@ -23,7 +23,6 @@
 	Author:		Zhur
 */
 
-
 #ifndef __CHARACTERDB_H_INCL__
 #define __CHARACTERDB_H_INCL__
 
@@ -75,8 +74,23 @@ public:
 	bool GetSkillsByCareer(uint32 careerID, std::map<uint32, uint32> &into);
 	bool GetSkillsByCareerSpeciality(uint32 careerSpecialityID, std::map<uint32, uint32> &into);
 
-	PyRepString *GetNote(uint32 ownerID, uint32 itemID); // LSMoura
-	bool SetNote(uint32 ownerID, uint32 itemID, const char *str); // LSMoura
+	/**
+	 * Retrieves the character note from the database as a PyRepString pointer.
+	 *
+	 * @author LSMoura
+	 */
+	PyRepString *GetNote(uint32 ownerID, uint32 itemID);
+
+	/**
+	 * Stores the character note on the database, given the ownerID and itemID and the string itself.
+	 *
+	 * If the String is null or size zero, the entry is removed from the database.
+	 *
+	 * @return boolean true if success.
+	 *
+	 * @author LSMoura
+	 */
+	bool SetNote(uint32 ownerID, uint32 itemID, const char *str);
 	
 	//hack, needs to move and be cached:
 	//uint32 GetRaceFromBloodline(uint32 bloodline);
@@ -88,10 +102,4 @@ protected:
 	void AddNewSkill(const CharacterData & cdata, uint32 skillID);
 };
 
-
-
-
-
 #endif
-
-
