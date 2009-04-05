@@ -44,6 +44,7 @@ CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc)
 	PyCallable_REG_CALL(CharacterService, ValidateName)
 	PyCallable_REG_CALL(CharacterService, ValidateNameEx)
 	PyCallable_REG_CALL(CharacterService, CreateCharacter)
+	PyCallable_REG_CALL(CharacterService, CreateCharacter2) // replica of CreateCharacter for now.
 	PyCallable_REG_CALL(CharacterService, Ping)
 	PyCallable_REG_CALL(CharacterService, PrepareCharacterForDelete)
 	PyCallable_REG_CALL(CharacterService, CancelCharacterDeletePrepare)
@@ -183,6 +184,14 @@ PyResult CharacterService::Handle_ValidateName(PyCallArgs &call) {
 	Call_SingleStringArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Failed to decode args.");
+		return NULL;
+	}
+
+	// perform checks on the "name" that is passed.  we may want to impliment something
+	// to limit the kind of names allowed.  We also dont want blank names being allowed.
+	if( arg.arg == "" )
+	{
+		_log(CLIENT__ERROR, "Blank character name passed.  Bailing.");
 		return NULL;
 	}
 
@@ -397,6 +406,211 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	return(new PyRepInteger(cdata.charid));
 }
+
+
+PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
+	CallCreateCharacter2 arg;
+	if(!arg.Decode(&call.tuple)) {
+		_log(CLIENT__ERROR, "Failed to decode CreateCharacter2 arg.");
+		return NULL;
+	}
+
+	CharacterData cdata;
+	cdata.name = arg.name;
+	cdata.bloodlineID = arg.bloodlineID;
+	cdata.genderID = arg.genderID;
+	cdata.ancestryID = arg.ancestryID;
+
+	// Since the careerID is no longer passed to CreateCharacter2, we need to find another way to get this,
+	// or alter the DB to remove career related fields and FK's from the table defs.
+	/* 
+	std::map<std::string, PyRep *>::iterator itr = call.byname.find("careerID");
+	if(itr != call.byname.end()) {
+		if(!itr->second->IsInteger()) {
+			_log(CLIENT__ERROR, "Wrong careerID type! Expected integer, got %s.", itr->second->TypeString());
+			return NULL;
+		}
+		cdata.careerID = itr->second->AsInteger().value;
+	} else {
+		_log(CLIENT__ERROR, "CareerID not found.");
+		return NULL;
+	}
+	*/
+
+	// same with careerSpecialityID, it's not longer passed in CreateCharacter2, find another way to get this and set it.
+	/*
+	itr = call.byname.find("careerSpecialityID");
+	if(itr != call.byname.end()) {
+		if(!itr->second->IsInteger()) {
+			_log(CLIENT__ERROR, "Wrong careerSpecialityID type! Expected integer, got %s.", itr->second->TypeString());
+			return NULL;
+		}
+		cdata.careerSpecialityID = itr->second->AsInteger().value;
+	} else {
+		_log(CLIENT__ERROR, "CareerSpecialityID not found.");
+		return NULL;
+	}
+	*/
+
+	_log(CLIENT__MESSAGE, "CreateCharacter2 called for '%s'", cdata.name.c_str());
+	_log(CLIENT__MESSAGE, "  bloodlineID=%lu genderID=%lu ancestryID=%lu careerID=%lu careerSpecialityID=%lu",
+			cdata.bloodlineID, cdata.genderID, cdata.ancestryID, cdata.careerID, cdata.careerSpecialityID);
+	_log(CLIENT__MESSAGE, "  +INT=%lu +CHA=%lu +PER=%lu +MEM=%lu +WIL=%lu",
+			cdata.Intelligence, cdata.Charisma, cdata.Perception, cdata.Memory, cdata.Willpower);
+
+	CharacterAppearance capp;
+	//this builds appearance data from strdict
+	capp.Build(arg.appearance);
+
+	//TODO: choose these based on selected parameters...
+	// Setting character's starting position, and getting it's location...
+	//double x=0,y=0,z=0;
+	GPoint pos(0.0, 0.0, 0.0);
+
+	if(	!m_db.GetLocationCorporationByCareer(cdata, pos)
+		|| !m_db.GetAttributesFromBloodline(cdata)
+		|| !m_db.GetAttributesFromAncestry(cdata) ) {
+		codelog(CLIENT__ERROR, "Failed to load char create details. Bloodline %lu, ancestry %lu, career %lu.",
+			cdata.bloodlineID, cdata.ancestryID, cdata.careerID);
+		return NULL;
+	}
+	
+	cdata.raceID = m_db.GetRaceByBloodline(cdata.bloodlineID);
+	if(cdata.raceID == 0) {
+		codelog(CLIENT__ERROR, "Failed to find raceID from bloodline %lu",
+			cdata.bloodlineID);
+		return NULL;
+	}
+
+	//NOTE: these are currently hard coded to Todaki because other things are
+	//also hard coded to only work in Todaki. Once these various things get fixed,
+	//just take this code out and the above calls should have cdata populated correctly.
+
+	cdata.stationID = 60004420;
+	cdata.solarSystemID = 30001407;
+	cdata.constellationID = 20000206;
+	cdata.regionID = 10000016;
+
+	cdata.bounty = 0;
+	cdata.balance = 6666000000.0f;
+	cdata.securityRating = 0;
+	cdata.logonMinutes = 0;
+	cdata.title = "No Title";
+
+	cdata.startDateTime = Win32TimeNow();
+	cdata.createDateTime = cdata.startDateTime;
+	cdata.corporationDateTime = cdata.startDateTime;
+
+	//obtain ship type
+	uint32 shipTypeID;
+	if(!m_db.GetShipTypeByBloodline(cdata.bloodlineID, shipTypeID))
+		//error was already printed
+		return NULL;
+
+	//load skills
+	std::map<uint32, uint32> startingSkills;
+	if( !m_db.GetSkillsByRace(cdata.raceID, startingSkills) )
+	{
+		codelog(CLIENT__ERROR, "Failed to load char create skills. Bloodline %lu, Ancestry %lu.",
+			cdata.bloodlineID, cdata.ancestryID);
+		return NULL;
+	}
+
+	//now we have all the data we need, stick it in the DB
+	InventoryItem *char_item = m_db.CreateCharacter2(call.client->GetAccountID(), m_manager->item_factory, cdata, capp);
+	if(char_item == NULL) {
+		//a return to the client of 0 seems to be the only means of marking failure
+		codelog(CLIENT__ERROR, "Failed to create character '%s'", cdata.name.c_str());
+		return NULL;
+	}
+	cdata.charid = char_item->itemID();
+
+	//spawn all the skills
+	std::map<uint32, uint32>::iterator cur, end;
+	cur = startingSkills.begin();
+	end = startingSkills.end();
+	for(; cur != end; cur++) {
+		InventoryItem *i = char_item->SpawnSingletonInto(cur->first, cdata.charid, flagSkill);
+		if(i == NULL) {
+			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
+			continue;
+		}
+
+		_log(CLIENT__MESSAGE, "Training skill %lu to level %d (%d points)", i->typeID(), i->skillLevel(), i->skillPoints());
+		i->Set_skillLevel(cur->second);
+		i->Set_skillPoints(
+			GetSkillPointsForSkillLevel(i, cur->second)
+		);
+
+		//we dont actually need the item anymore...
+		i->Release();
+	}
+
+	//now set up some initial inventory:
+	/*
+	Capsule-creation removed, we don't need it. Capsule is created when player's ship is destroyed or jump out event.
+	->Jesaja
+	*/
+
+	{	//item scope
+		InventoryItem *junk;
+
+		// spawn Damage Control I ...
+		junk = m_manager->item_factory.Spawn(
+			2046,
+			cdata.charid,
+			cdata.stationID,
+			flagHangar,
+			1
+		);
+		if(junk == NULL)
+			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+		else
+			junk->Release();
+
+		// ... and 1 unit of Tritanium
+		junk = m_manager->item_factory.Spawn(
+			34,
+			cdata.charid,
+			cdata.stationID,
+			flagHangar,
+			1
+		);
+		if(junk == NULL)
+			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+		else
+			junk->Release();
+
+		}
+
+	{	//item scope
+		std::string ship_name = cdata.name + "'s Ship";
+		InventoryItem *ship_item = m_manager->item_factory.SpawnSingleton(
+			shipTypeID,		// The race-specific start ship
+			cdata.charid,
+			cdata.stationID,
+			flagHangar,
+			ship_name.c_str()
+		);
+		if(ship_item == NULL) {
+			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+		} else {
+			//ship_item->Relocate(GPoint(x,y,z));<<< Why relocate already known pos?
+			//welcome onboard your starting ship
+			char_item->MoveInto(ship_item, flagPilot, false);
+			ship_item->Release();
+		}
+	}
+
+	//recursively save everything we just did.
+	char_item->Save(true);
+	char_item->Release();
+
+	_log(CLIENT__MESSAGE, "Sending char create ID %d as reply", cdata.charid);
+
+	return(new PyRepInteger(cdata.charid));
+}
+
 
 PyResult CharacterService::Handle_Ping(PyCallArgs &call) {
 	return(new PyRepInteger(call.client->GetAccountID()));

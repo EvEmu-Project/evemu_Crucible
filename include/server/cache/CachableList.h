@@ -134,7 +134,8 @@ CACHABLE("config.BulkData.bptypes", invBlueprintTypes, TupleSet,
 	//old method used dedicated table invBlueprints
 	//"SELECT blueprintTypeName,description,graphicID,basePrice,blueprintTypeID,parentBlueprintTypeID,productTypeID,productionTime,techLevel,researchProductivityTime,researchMaterialTime,researchCopyTime,researchTechTime,productivityModifier,materialModifier,wasteFactor,chanceOfReverseEngineering,maxProductionLimit FROM invBlueprints"
 	//all data can be obtained from existing tables:
-	"SELECT invTypes.typeName AS blueprintTypeName,invTypes.description,invTypes.graphicID,invTypes.basePrice,blueprintTypeID,parentBlueprintTypeID,productTypeID,productionTime,techLevel,researchProductivityTime,researchMaterialTime,researchCopyTime,researchTechTime,productivityModifier,materialModifier,wasteFactor,chanceOfReverseEngineering,maxProductionLimit FROM invBlueprintTypes,invTypes WHERE invBlueprintTypes.blueprintTypeID=invTypes.typeID"
+	//"SELECT invTypes.typeName AS blueprintTypeName,invTypes.description,invTypes.graphicID,invTypes.basePrice,blueprintTypeID,parentBlueprintTypeID,productTypeID,productionTime,techLevel,researchProductivityTime,researchMaterialTime,researchCopyTime,researchTechTime,productivityModifier,materialModifier,wasteFactor,chanceOfReverseEngineering,maxProductionLimit FROM invBlueprintTypes,invTypes WHERE invBlueprintTypes.blueprintTypeID=invTypes.typeID"
+	"SELECT invTypes.typeName AS blueprintTypeName,invTypes.description,invTypes.graphicID,invTypes.basePrice,blueprintTypeID,parentBlueprintTypeID,productTypeID,productionTime,techLevel,researchProductivityTime,researchMaterialTime,researchCopyTime,researchTechTime,productivityModifier,materialModifier,wasteFactor,maxProductionLimit FROM invBlueprintTypes,invTypes WHERE invBlueprintTypes.blueprintTypeID=invTypes.typeID"
 );
 CACHABLE("config.BulkData.graphics", eveGraphics, TupleSet,
 	"SELECT graphicID,url3D,urlWeb,icon,urlSound,explosionID FROM eveGraphics"
@@ -245,7 +246,7 @@ KCACHABLE("charNewExtraCreationInfo.careers", "careers", nec_careers, Rowset,
 	"SELECT raceID, careerID, careerName, description, shortDescription, graphicID, schoolID, 0 AS dataID FROM chrCareers"
 );
 KCACHABLE("charNewExtraCreationInfo.specialities", "specialities", nec_specialities, Rowset,
-	"SELECT specialityID, careerID, specialityName, description, shortDescription, graphicID, departmentID, 0 AS dataID FROM chrCareerSpecialities"
+	"SELECT specialityID, careerID, specialityName, description, shortDescription, graphicID, 0 AS dataID FROM chrCareerSpecialities"
 );
 
 //GetAppearanceInfo

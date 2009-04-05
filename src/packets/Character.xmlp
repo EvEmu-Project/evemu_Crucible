@@ -103,6 +103,22 @@
   </InlineTuple>                
 </element>
 
+<element name="CallCreateCharacter2">
+  <InlineTuple>
+    <!-- 0 -->
+    <string name="name" />
+    <!-- 1 -->
+    <int name="bloodlineID" />
+    <!-- 2 -->
+    <int name="genderID" />
+    <!-- 3 -->
+    <int name="ancestryID" />
+    <!-- 4: appearence -->
+    <strdict name="appearance" />
+  </InlineTuple>
+</element>
+  
+  
 <element name="RspCreateCharacter">
   <InlineTuple>                 
     <!-- 0 -->  
