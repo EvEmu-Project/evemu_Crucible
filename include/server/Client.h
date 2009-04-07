@@ -199,7 +199,8 @@ public:
 	uint64 rolesAtHQ;
 	uint64 rolesAtOther;
 };
-
+// not needed now:
+/*
 class Functor {
 public:
 	Functor() {}
@@ -244,7 +245,7 @@ protected:
 	TimerID m_nextID;
 	std::vector<Entry *> m_queue;	//not ordered or anything useful.
 };
-
+*/
 //DO NOT INHERIT THIS OBJECT!
 class Client : public DynamicSystemEntity {
 public:

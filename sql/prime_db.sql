@@ -51,10 +51,6 @@ INSERT INTO eveStaticOwners
  SELECT corporationID, corporationName, 2 AS typeID
  FROM corporationStatic;
 
--- Copy over the static channel info
-TRUNCATE TABLE channels;
-INSERT INTO channels SELECT * FROM channelsStatic;
-
 -- set the auto-increment lower bounds on the shared tables.
 ALTER TABLE `corporation`  AUTO_INCREMENT=2000001;
 ALTER TABLE `entity` AUTO_INCREMENT=140000000;

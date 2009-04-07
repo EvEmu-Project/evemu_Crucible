@@ -1,17 +1,47 @@
-Database installation guide:
+DATABASE INSTALLATION GUIDE:
 =============================
-1. Download evemu_db.7z:
-    (Anyone is welcome to upload it anywhere else and put his link here.)
+ 1. Download official EVE database dump:
+     http://eve.no-ip.de/apo100/apo100-mysql5-v1.sql.bz2
+ 2. Unpack it - you should get file with ".sql" extension.
+ 3. Create database into which you want to stick all the EVEmu DB stuff.
+ 4. Import the official dump (the one you downloaded and unpacked).
+ 5. Import ofic-update.sql.
+ 6. Import evemu_static.sql.
+ 7. Import evemu_dynamic.sql.
+ 8. Import all the updates from subdirectory /updates.
+ 9. Import prime_db.sql.
 
-    http://rapidshare.com/files/169316682/evemu_db.7z.html
-    http://gremlin.integral.net.au/evemu_db.rar
+FILE DESCRIPTION:
+===================
+ofic-update.sql
+****************
+This file contains following updates for official EVE database dump:
 
-2. Unpack it - you should get file called evemu_db.sql.
+Table name                           Note
+---------------------------------------------------------------
+chrCareerSpecialities                incomplete, missing column `departmentID`
+crpNPCCorporations                   incomplete, missing columns `mainActivityID`, `secondaryActivityID`
+crpNPCCorporationTrades              used to be in dump, removed
+crpNPCTickerNames                    not in dump
+crtRelationships                     incomplete, missing column `childTypeID`, missing data for skills
+crtRecommendations                   not in dump
+dgmAttributeTypes                    incomplete, missing columns `attributeCategory`, `attributeIdx`, `maxAttributeID`, `chargeRechargeTimeID`
+eveConstants                         not in dump
+eveMessages                          not in dump
+eveRoles                             not in dump
+invBlueprintTypes                    incomplete, missing column `chanceOfReverseEngineering`
+invShipTypes                         not in dump
+mapCelestialDescriptions             not in dump
+mapLocationWormholeClasses           not in dump
 
-3. Create database.
+evemu_static.sql
+*****************
+This file contains static data required by EVEmu.
 
-4. Import evemu_db.sql.
+evemu_dynamic.sql
+******************
+This file contains dynamic database schema required by EVEmu.
 
-5. Import all the updates from subdirectory /updates.
-
-5. Import prime_db.sql.
+prime_db.sql
+*************
+This is special SQL batch, which is intended to reset all the dynamic stuff into default state.

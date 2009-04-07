@@ -64,7 +64,6 @@ libadmin_a_SOURCES = \
 	admin/SlashService.h
 
 libcache_a_SOURCES = \
-	cache/CachableList.h \
 	cache/ObjCacheDB.cpp \
 	cache/ObjCacheDB.h \
 	cache/ObjCacheService.cpp \

@@ -657,7 +657,7 @@ void ServiceDB::SetCharacterOnlineStatus(uint32 char_id, bool onoff_status) {
 	DBerror err;	
 	if(!m_db->RunQuery(err,
 		"UPDATE character_"
-		" SET Online = %d"
+		" SET online = %d"
 		" WHERE characterID=%lu", onoff_status, char_id))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -677,7 +677,7 @@ void ServiceDB::SetServerOnlineStatus(bool onoff_status) {
 	}
 	_log(SERVER__INIT, "SvrStatus: Setting serverStartTime. Server is %s",(onoff_status)?"coming Online":"going Offline");
 
-	if(!m_db->RunQuery(err,"UPDATE character_, account SET character_.Online = 0, account.online = 0"))
+	if(!m_db->RunQuery(err,"UPDATE character_, account SET character_.online = 0, account.online = 0"))
         {
                 codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
         }

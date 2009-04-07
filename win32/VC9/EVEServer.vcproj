@@ -860,10 +860,6 @@
 				Name="cache"
 				>
 				<File
-					RelativePath="..\..\include\server\cache\CachableList.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\include\server\cache\ObjCacheDB.h"
 					>
 				</File>
