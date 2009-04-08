@@ -53,19 +53,22 @@ public:
 	
 	bool HaveCached(const std::string &objectID) const;
 	bool HaveCached(const PyRep *objectID) const;
+
+	bool IsCacheUpToDate(const PyRep *objectID, uint32 version, uint64 timestamp);
+
 	void InvalidateCache(const PyRep *objectID);
-	
-//	bool IsObjectFresh(const std::string &objectID, uint32 version, uint64 timestamp);
+
+	//bool IsObjectFresh(const std::string &objectID, uint32 version, uint64 timestamp);
 	void UpdateCacheFromSS(const std::string &objectID, PyRepSubStream **in_cached_data);
 	void UpdateCache(const std::string &objectID, PyRep **in_cached_data);
 	void UpdateCache(const PyRep *objectID, PyRep **in_cached_data);
-	PyRepObject *MakeCacheHint(const std::string &objectID);
-	PyRepObject *GetCachedObject(const std::string &objectID);
-	PyRepObject *MakeCacheHint(const PyRep *objectID);
-	PyRepObject *GetCachedObject(const PyRep *objectID);
 
-	bool IsCacheUpToDate(const PyRep *objectID, uint32 version, uint64 timestamp);
-	
+	PyRepObject *MakeCacheHint(const PyRep *objectID);
+	PyRepObject *MakeCacheHint(const std::string &objectID);
+
+	PyRepObject *GetCachedObject(const PyRep *objectID);
+	PyRepObject *GetCachedObject(const std::string &objectID);
+
 //OLD CCP FILE BASED ACCESS:
 	//PyRep *_MakeCacheHint(const char *oname);
 	//void AddCacheHint(const char *oname, const char *key, PyRepDict *into);
@@ -86,7 +89,7 @@ protected:
 	PyCachedObjectDecoder *LoadCachedObject(const char *obj_name);	//returns ownership
 	PyCachedObjectDecoder *LoadCachedObject(PyRep *key, const char *oname);	//returns ownership
 
-//	static bool AddCachedFileContents(const char *filename, const char *oname, PyRepSubStream *into);
+	//static bool AddCachedFileContents(const char *filename, const char *oname, PyRepSubStream *into);
 
 	void GetCacheFileName(PyRep *key, std::string &into);
 
@@ -95,12 +98,13 @@ protected:
 	class CacheRecord {
 	public:
 		~CacheRecord();
+
+		PyRepObject *EncodeHint() const;
+
 		PyRep *objectID;	//we own this
 		uint64 timestamp;
 		uint32 version;
-//		PyRep *cache;	//we own this.
 		PyRepBuffer *cache;	//we own this.
-		PyRepObject *EncodeHint() const;
 	};
 	std::map<std::string, CacheRecord *> m_cachedObjects;	//we own these pointers
 };

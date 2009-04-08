@@ -217,7 +217,7 @@ PyRepObject *ConfigDB::GetUnits() {
 		return NULL;
 	}
 	
-	return(DBResultToIndexRowset("unitID", res));
+	return(DBResultToIndexRowset(res, "unitID"));
 }
 
 PyRepObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions, 

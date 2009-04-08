@@ -159,11 +159,25 @@ PyRepTuple *DBResultToTupleSet(DBQueryResult &result) {
 	return(res);
 }
 
-PyRepObject *DBResultToIndexRowset(const char *key, DBQueryResult &result) {
+PyRepObject *DBResultToIndexRowset(DBQueryResult &result, const char *key) {
 	uint32 cc = result.ColumnCount();
-	if(cc == 0)
+	uint32 key_index;
+	for(key_index = 0; key_index < cc; key_index++)
+		if(strcmp(key, result.ColumnName(key_index)) == 0)
+			break;
+
+	if(key_index == cc) {
+		_log(DATABASE__ERROR, "Failed to find key column '%s' in result for IndexRowset", key);
+		return(NULL);
+	}
+
+	return DBResultToIndexRowset(result, key_index);
+}
+
+PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
+	uint32 cc = result.ColumnCount();
+	if(cc == 0 || cc < key_index)
 		return(new PyRepObject("util.IndexRowset", new PyRepDict()));
-	uint32 r;
 
 	//start building the IndexRowset
 	PyRepObject *res = new PyRepObject();
@@ -171,43 +185,31 @@ PyRepObject *DBResultToIndexRowset(const char *key, DBQueryResult &result) {
 	PyRepDict *args = new PyRepDict();
 	res->arguments = args;
 
+	//list off the column names:
+	PyRepList *header = new PyRepList();
+	args->add("header", header);
+	for(uint32 i = 0; i < cc; i++)
+		header->add(result.ColumnName(i));
+
 	//RowClass:
 	args->add("RowClass", new PyRepString("util.Row", true));
 	//idName:
-	args->add("idName", new PyRepString(key));
+	args->add("idName", new PyRepString(result.ColumnName(key_index)));
 	
 	//items:
 	PyRepDict *items = new PyRepDict();
 	args->add("items", items);
 	
-	//list off the column names:
-	PyRepList *header = new PyRepList();
-	args->add("header", header);
-	int32 index_id = 0xFFFFFFFF;
-	for(r = 0; r < cc; r++) {
-		if(strcmp(result.ColumnName(r), key) == 0)
-			index_id = r;
-		header->add(result.ColumnName(r));
-	}
-	if(index_id == 0xFFFFFFFF) {
-		_log(DATABASE__ERROR, "Failed to find key column '%s' in result for IndexRowset", key);
-		//not really the best course of action, but this is a programming error, so they can fix it.
-		return(res);
-	}
-	
-	
-
 	//add a line entry for each result row:
 	DBResultRow row;
 	while(result.GetRow(row)) {
-		PyRep *keyv = DBColumnToPyRep(row, index_id);
+		PyRep *key = DBColumnToPyRep(row, key_index);
 		
-		PyRepList *linedata = new PyRepList();
-		for(r = 0; r < cc; r++) {
-			linedata->add(DBColumnToPyRep(row, r));
-		}
+		PyRepList *line = new PyRepList();
+		for(uint32 i = 0; i < cc; i++)
+			line->add(DBColumnToPyRep(row, i));
 
-		items->add(keyv, linedata);
+		items->add(key, line);
 	}
 
 	return(res);

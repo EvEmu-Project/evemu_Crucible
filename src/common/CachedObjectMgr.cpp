@@ -46,51 +46,30 @@ static const uint32 HackCacheNodeID = 333444;
 //there are ano non-string types in the rep (lists and tuples are OK)
 class StringCollapseVisitor : public PyVisitor {
 public:
-	std::string result;
-	bool good;
-	StringCollapseVisitor()	: good(true) {}
-	virtual void VisitBoolean(const PyRepBoolean *rep) {
-		good = false;
-	}
-	virtual void VisitBuffer(const PyRepBuffer *rep) {
-		good = false;
-	}
-	virtual void VisitChecksumedStream(const PyRepChecksumedStream *rep) {
-		good = false;
-	}
-	virtual void VisitDict(const PyRepDict *rep) {
-		good = false;
-	}
-	virtual void VisitInteger(const PyRepInteger *rep) {
-		good = false;
-	}
-	virtual void VisitNone(const PyRepNone *rep) {
-		good = false;
-	}
-	virtual void VisitObject(const PyRepObject *rep) {
-		good = false;
-	}
-	virtual void VisitNewObject(const PyRepNewObject *rep) {
-		good = false;
-	}
-	virtual void VisitPackedRow(const PyRepPackedRow *rep) {
-		good = false;
-	}
-	virtual void VisitReal(const PyRepReal *rep) {
-		good = false;
-	}
+	StringCollapseVisitor()
+		: good(true) {}
+
+	virtual void VisitBoolean(const PyRepBoolean *rep) { good = false; }
+	virtual void VisitBuffer(const PyRepBuffer *rep) { good = false; }
+	virtual void VisitChecksumedStream(const PyRepChecksumedStream *rep) { good = false; }
+	virtual void VisitDict(const PyRepDict *rep) { good = false; }
+	virtual void VisitInteger(const PyRepInteger *rep) { good = false; }
+	virtual void VisitNone(const PyRepNone *rep) { good = false; }
+	virtual void VisitObject(const PyRepObject *rep) { good = false; }
+	virtual void VisitNewObject(const PyRepNewObject *rep) { good = false; }
+	virtual void VisitPackedRow(const PyRepPackedRow *rep) { good = false; }
+	virtual void VisitReal(const PyRepReal *rep) { good = false; }
 	virtual void VisitString(const PyRepString *rep) {
 		if(!result.empty())
 			result += ".";
 		result += rep->value;
 	}
-	virtual void VisitSubStream(const PyRepSubStream *rep) {
-		good = false;
-	}
-	virtual void VisitSubStruct(const PyRepSubStruct *rep) {
-		good = false;
-	}
+	virtual void VisitSubStream(const PyRepSubStream *rep) { good = false; }
+	virtual void VisitSubStruct(const PyRepSubStruct *rep) { good = false; }
 	//allow tuples and lists.
+
+	std::string result;
+	bool good;
 };
 
 CachedObjectMgr::~CachedObjectMgr()
@@ -141,13 +120,14 @@ bool CachedObjectMgr::HaveCached(const std::string &objectID) const {
 
 bool CachedObjectMgr::HaveCached(const PyRep *objectID) const {
 	const std::string str = OIDToString(objectID);
+
 	return(m_cachedObjects.find(str) != m_cachedObjects.end());
 }
 
 void CachedObjectMgr::InvalidateCache(const PyRep *objectID) {
 	const std::string str = OIDToString(objectID);
-	std::map<std::string, CacheRecord *>::iterator res;
-	res = m_cachedObjects.find(str);
+
+	std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);;
 	if(res != m_cachedObjects.end()) {
 		delete res->second;
 		m_cachedObjects.erase(res);
@@ -223,8 +203,8 @@ PyRepObject *CachedObjectMgr::MakeCacheHint(const std::string &objectID) {
 
 PyRepObject *CachedObjectMgr::MakeCacheHint(const PyRep *objectID) {
 	const std::string str = OIDToString(objectID);
-	std::map<std::string, CacheRecord *>::iterator res;
-	res = m_cachedObjects.find(str);
+
+	std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);
 	if(res == m_cachedObjects.end())
 		return NULL;
 	return(res->second->EncodeHint());
@@ -238,8 +218,8 @@ PyRepObject *CachedObjectMgr::GetCachedObject(const std::string &objectID) {
 
 PyRepObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
 	const std::string str = OIDToString(objectID);
-	std::map<std::string, CacheRecord *>::iterator res;
-	res = m_cachedObjects.find(str);
+
+	std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);
 	if(res == m_cachedObjects.end())
 		return NULL;
 	
@@ -249,6 +229,7 @@ PyRepObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
 	co.nodeID = HackCacheNodeID;	//hack, doesn't matter until we have multi-node networks.
 	co.shared = true;
 	co.objectID = res->second->objectID->Clone();
+	co.cache = res->second->cache;
 	if(res->second->cache->GetLength() == 0 || res->second->cache->GetBuffer()[0] == SubStreamHeaderByte)
 		co.compressed = false;
 	else
@@ -256,24 +237,22 @@ PyRepObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
 
 	_log(SERVICE__CACHE, "Returning cached object '%s' with checksum 0x%x", str.c_str(), co.version);
 	
-	co.cache = res->second->cache;
-		PyRepObject *result = co.Encode();
+	PyRepObject *result = co.Encode();
 	co.cache = NULL;	//avoid a copy
+
 	return(result);
 }
 
 bool CachedObjectMgr::IsCacheUpToDate(const PyRep *objectID, uint32 version, uint64 timestamp) {
 	const std::string str = OIDToString(objectID);
-	std::map<std::string, CacheRecord *>::iterator res;
-	res = m_cachedObjects.find(str);
+
+	std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);
 	if(res == m_cachedObjects.end())
 		return false;
+
 	//for now, only support exact matches...
-	if(res->second->version != version)
-		return false;
-	if(res->second->timestamp != timestamp)
-		return false;
-	return true;
+	return (   res->second->version == version
+	        && res->second->timestamp == timestamp);
 }
 
 
@@ -422,6 +401,7 @@ bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, P
 		_log(CLIENT__ERROR, "Unable to stat cache file '%s' for oname '%s'", abs_fname, oname);
 		return false;
 	}
+	file_length += 10; // reserve?
 	
 	FILE *f = fopen(abs_fname, "rb");
 	if(f == NULL) {
@@ -429,14 +409,12 @@ bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, P
 		return false;
 	}
 	
-	uint8 *b = new uint8[file_length+10];
-	int32 len = (int32)fread(b, 1, file_length+10, f);
+	into->data = new uint8[file_length];
+	into->length = fread(into->data, 1, file_length, f);
+
 	fclose(f);
 
-	into->data = b;
-	into->length = len;
-
-	_log(CLIENT__MESSAGE, "Loaded cache file for '%s': length %d/%d", oname, len, file_length+10);
+	_log(CLIENT__MESSAGE, "Loaded cache file for '%s': length %d/%d", oname, into->length, file_length);
 	
 	return true;
 }
@@ -480,7 +458,6 @@ PyCachedCall *CachedObjectMgr::LoadCachedCall(const char *filename, const char *
 
 PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(PyRep *key, const char *oname) {
 	std::string fname;
-	
 	GetCacheFileName(key, fname);
 	
 	std::string abs_fname = "../data/cache/";
@@ -490,7 +467,6 @@ PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(PyRep *key, const char 
 }
 
 void CachedObjectMgr::GetCacheFileName(PyRep *key, std::string &into) {
-	
 	uint32 len = 0;
 	uint8 *data = Marshal(key, len);
 	

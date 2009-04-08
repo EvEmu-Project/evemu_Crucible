@@ -975,7 +975,7 @@ PyRep *CorporationDB::GetApplications(uint32 corpID) {
 		return NULL;
 	}
 
-	return DBResultToIndexRowset("characterID", res);
+	return DBResultToIndexRowset(res, "characterID");
 }
 
 uint32 CorporationDB::GetStationCorporationCEO(uint32 stationID) {

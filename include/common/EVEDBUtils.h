@@ -57,7 +57,8 @@ StringContentsType ClassifyStringContents(const char *str);*/
 PyRep *DBColumnToPyRep(DBResultRow &row, uint32 column_index);
 
 PyRepObject *DBResultToRowset(DBQueryResult &result);
-PyRepObject *DBResultToIndexRowset(const char *key, DBQueryResult &result);
+PyRepObject *DBResultToIndexRowset(DBQueryResult &result, const char *key);
+PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index);
 PyRepTuple *DBResultToTupleSet(DBQueryResult &result);
 PyRepTuple *DBResultToRowList(DBQueryResult &result, const char *type = "util.Row");
 PyRepDict *DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const char *type = "util.Row");

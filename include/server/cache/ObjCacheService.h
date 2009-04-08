@@ -44,7 +44,7 @@ public:
 
 class ObjCacheService : public PyService {
 public:
-	ObjCacheService(PyServiceMgr *mgr, DBcore *dbc, const std::string &CacheDirectory);
+	ObjCacheService(PyServiceMgr *mgr, DBcore *dbc, const char *cacheDir);
 	virtual ~ObjCacheService();
 
 	void PrimeCache();

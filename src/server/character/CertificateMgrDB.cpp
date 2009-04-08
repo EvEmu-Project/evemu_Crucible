@@ -57,7 +57,7 @@ PyRep *CertificateMgrDB::GetCertificateCategories() {
 		return(NULL);
 	}
 
-	return(DBResultToIndexRowset("categoryID", res));
+	return(DBResultToIndexRowset(res, "categoryID"));
 }
 
 PyRep *CertificateMgrDB::GetAllShipCertificateRecommendations() {
@@ -93,7 +93,7 @@ PyRep *CertificateMgrDB::GetCertificateClasses() {
 		return(NULL);
 	}
 
-	return(DBResultToIndexRowset("classID", res));
+	return(DBResultToIndexRowset(res, "classID"));
 }
 
 
