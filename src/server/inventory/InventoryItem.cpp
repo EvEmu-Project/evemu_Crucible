@@ -26,8 +26,10 @@
 #include "EvemuPCH.h"
 
 #ifndef WIN32
-#define INT_MAX 0x7FFFFFFF
+#	define INT_MAX 0x7FFFFFFF
 #endif
+
+const uint32 SKILL_BASE_POINTS = 250;
 
 /*
  * InventoryItem
@@ -395,11 +397,13 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 		es.env_charID = m_ownerID;	//may not be quite right...
 		es.env_shipID = m_locationID;
 		es.env_target = m_locationID;	//this is what they do.
-		es.env_other = 0;
+		es.env_other = new PyRepNone;
 		es.env_effectID = effectOnline;
-		es.startTime = Win32TimeNow() - 0x60000;	//act like it happened a long time ago
+		es.startTime = Win32TimeNow() - Win32Time_Hour;	//act like it happened an hour ago
 		es.duration = INT_MAX;
 		es.repeat = 0;
+		es.randomSeed = new PyRepNone;
+
 		result.activeEffects[es.env_effectID] = es.FastEncode();
 	}
 	

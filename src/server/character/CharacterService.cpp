@@ -865,7 +865,6 @@ PyResult CharacterService::Handle_SetNote(PyCallArgs &call) {
 * @date 5/11/2008
 */
 uint32 CharacterService::GetSkillPointsForSkillLevel(InventoryItem *i, uint8 level) {
-	const uint8 SKILL_BASE_POINTS = 500;
 	return(
 		SKILL_BASE_POINTS * i->skillTimeConstant() * pow(32, (level - 1) / 2.0)
 	);

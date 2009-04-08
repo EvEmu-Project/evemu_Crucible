@@ -116,7 +116,10 @@
 	  </InlineTuple>
 	  <InlineDict>
 		<IDEntry key="header">
-      <element name="header" type="blue_DBRowDescriptor" />
+		  <element name="header" type="blue_DBRowDescriptor" />
+		</IDEntry>
+		<IDEntry key="columns">
+		  <strlist name="columns" />
 		</IDEntry>
 	  </InlineDict>
 	</InlineTuple>

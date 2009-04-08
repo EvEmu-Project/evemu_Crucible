@@ -52,7 +52,7 @@ class Rsp_CommonGetInfo_Entry;
  * however, the creation and destruction time logic is why it has not been done.
  */
 
-static const uint32 SkillBasePoints = 250;
+extern const uint32 SKILL_BASE_POINTS;
 
 class InventoryItem {
 public:
@@ -77,8 +77,8 @@ public:
 	static InventoryItem *LoadItem(ItemFactory &factory, uint32 itemID, bool recurse=false);
 
 	/*
-     * Primary public interface:
-     */
+	 * Primary public interface:
+	 */
 	void Release();
 	InventoryItem *Ref();
 
@@ -101,8 +101,8 @@ public:
 	bool ChangeSingleton(bool singleton, bool notify=true);
 	
 	/*
-     * Helper routines:
-     */
+	 * Helper routines:
+	 */
 	virtual InventoryItem *Split(int32 qty_to_take, bool notify=true);
 	virtual bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
 
@@ -136,8 +136,8 @@ public:
 		const char *name = NULL);
 	
 	/*
-     * Primary public packet builders:
-     */
+	 * Primary public packet builders:
+	 */
 	PyRepObject *GetEntityRow() const;
 	PyRepObject *GetInventoryRowset(EVEItemFlags flag, uint32 forOwner = NULL) const;
 	PyRepObject *ItemGetInfo() const;
@@ -145,8 +145,8 @@ public:
 	PyRepObject *CharGetInfo();
 
 	/*
-     * Public Fields:
-     */
+	 * Public Fields:
+	 */
 	uint32				itemID() const { return(m_itemID); }
 	const std::string &	itemName() const { return(m_itemName); }
 	const Type *		type() const { return(m_type); }
@@ -167,8 +167,8 @@ public:
 	EVEItemCategories	categoryID() const { return(m_type->categoryID()); }
 
 	/*
-     * Attribute access:
-     */
+	 * Attribute access:
+	 */
 	ItemAttributeMgr attributes;
 
 	/*
@@ -213,9 +213,9 @@ protected:
 	std::string		m_customInfo;
 	
 	/*
-     * Internal helper routines:
-     */
-    void SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const;
+	 * Internal helper routines:
+	 */
+	void SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const;
 	bool Populate(Rsp_CommonGetInfo_Entry &into) const;
 	void SetOnline(bool newval);
 
@@ -252,8 +252,8 @@ public:
 		int32 _licensedProductionRunsRemaining);
 
 	/*
-     * Primary public interface:
-     */
+	 * Primary public interface:
+	 */
 	void Save(bool recursive=false, bool saveAttributes=true) const;
 	void Delete();
 
@@ -277,8 +277,8 @@ public:
 	bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
 
 	/*
-     * Primary public packet builders:
-     */
+	 * Primary public packet builders:
+	 */
 	PyRepDict *GetBlueprintAttributes() const;
 
 	/*
@@ -291,8 +291,8 @@ public:
 	int32					licensedProductionRunsRemaining() const { return(m_licensedProductionRunsRemaining); }
 
 	/*
-     * Helper routines:
-     */
+	 * Helper routines:
+	 */
 	const Type *parentBlueprintType() const { return(bptype()->parentBlueprintType); }
 	const Type *productType() const { return(bptype()->productType); }
 

@@ -715,6 +715,10 @@ PyRepNewObject *DBResultToCRowset(
 	dbutil_CRowset res;
 	columns.Encode(res.header);
 
+	uint32 cc = result.ColumnCount();
+	for(uint32 i = 0; i < cc; i++)
+		res.columns.push_back(result.ColumnName(i));
+
 	columns.OrderBy(DBPackedColumnList::orderByType);
 
 	DBResultRow row;
