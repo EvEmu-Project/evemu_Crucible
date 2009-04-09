@@ -1,7 +1,7 @@
 //no macroguard on purpose
 
-COMMAND( summon, ROLE_ADMIN,
-         "(itemID) [count] - Summon count or 1 of the specified item." )
+COMMAND( create, ROLE_ADMIN,
+         "(itemID) [count] - Create count or 1 of the specified item." )
 COMMAND( search, ROLE_ADMIN,
          "(text) - Search for items matching the specified query" )
 COMMAND( translocate, ROLE_ADMIN,
@@ -19,19 +19,19 @@ COMMAND( spawn, ROLE_ADMIN,
 COMMAND( location, ROLE_ADMIN,
          "- Gives you back your current location in space." )
 COMMAND( syncloc, ROLE_ADMIN,
-		 "- Synchonizes your location in client with location on server." )
+         "- Synchonizes your location in client with location on server." )
 COMMAND( clearlog, ROLE_ADMIN,
-		 "- Clears server log." )
+         "- Clears server log." )
 COMMAND( getlog, ROLE_ADMIN,
-		 "- Sends server log." )
+         "- Sends server log." )
 COMMAND( setbpattr, ROLE_ADMIN,
          "(itemID) (copy) (materialLevel) (productivityLevel) (licensedProductionRunsRemaining) - Change blueprint's attributes." )
 COMMAND( state, ROLE_ADMIN,
-		 "- Sends DoDestinyUpdate SetState." )
+         "- Sends DoDestinyUpdate SetState." )
 COMMAND( getattr, ROLE_ADMIN,
-		 "(itemID) (attributeID) - Retrieves attribute value." )
+         "(itemID) (attributeID) - Retrieves attribute value." )
 COMMAND( setattr, ROLE_ADMIN,
-		 "(itemID) (attributeID) (value) - Sets attributeID of itemID to value." )
+         "(itemID) (attributeID) (value) - Sets attributeID of itemID to value." )
 
 
 

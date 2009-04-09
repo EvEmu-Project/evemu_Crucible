@@ -25,16 +25,16 @@
 
 #include "EvemuPCH.h"
 
-PyResult Command_summon(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+PyResult Command_create(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
 	if(!args.IsNumber(1)) {
 		throw(PyException(MakeCustomError("Argument 1 must be type ID.")));
 	}
 	uint32 qty = 1;
 	if(args.IsNumber(2))
 		qty = atoi(args.arg[2]);
-	_log(COMMAND__MESSAGE, "Summon %s %lu times", args.arg[1], qty);
+	_log(COMMAND__MESSAGE, "Create %s %lu times", args.arg[1], qty);
 
-	//summon into their cargo hold unless they are docked in a station,
+	//create into their cargo hold unless they are docked in a station,
 	//then stick it in their hangar instead.
 	uint32 locationID;
 	EVEItemFlags flag;
@@ -55,14 +55,14 @@ PyResult Command_summon(Client *who, CommandDB *db, PyServiceMgr *services, cons
 		qty
 		);
 	if(i == NULL)
-		throw(PyException(MakeCustomError("Unable to spawn item of type %s.", args.arg[1])));
+		throw(PyException(MakeCustomError("Unable to create item of type %s.", args.arg[1])));
 
 	//Move to location
 	i->Move( locationID, flag, true );
 	//we dont need our reference anymore...
 	i->Release();
 
-	return(new PyRepString("Summon successfull."));
+	return(new PyRepString("Creation successfull."));
 }
 
 PyResult Command_search(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
