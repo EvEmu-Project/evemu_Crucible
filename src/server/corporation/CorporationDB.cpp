@@ -344,7 +344,7 @@ PyRepObject *CorporationDB::GetMedalsReceived(uint32 charID) {
 	rs.header.push_back("reason");
 	rs.header.push_back("status");
 
-	return(rs.Encode());
+	return(rs.FastEncode());
 }
 
 static std::string _IoN(PyRep *r) {

@@ -61,6 +61,7 @@ SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db)
 	PyCallable_REG_CALL(SkillMgrBound, RemoveImplantFromCharacter)
 	PyCallable_REG_CALL(SkillMgrBound, GetSkillQueue)
 	PyCallable_REG_CALL(SkillMgrBound, SaveSkillQueue)
+	PyCallable_REG_CALL(SkillMgrBound, GetRespecInfo)
 }
 
 SkillMgrBound::~SkillMgrBound()
@@ -188,5 +189,18 @@ PyResult SkillMgrBound::Handle_SaveSkillQueue(PyCallArgs &call) {
 	_log(SERVICE__MESSAGE, "%s: SaveSkillQueue unimplemented.", GetBindStr().c_str());
 
 	return NULL;
+}
+
+PyResult SkillMgrBound::Handle_GetRespecInfo(PyCallArgs &call) {
+	// takes no arguments
+
+	_log(SERVICE__MESSAGE, "%s: GetRespecInfo unimplemented.", GetBindStr().c_str());
+
+	// return dict
+	PyRepDict *result = new PyRepDict;
+	result->add("freeRespecs", new PyRepInteger(0));
+	result->add("nextRespecTime", new PyRepInteger(Win32TimeNow() + Win32Time_Year));
+
+	return result;
 }
 

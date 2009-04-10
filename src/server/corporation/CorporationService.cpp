@@ -141,7 +141,11 @@ PyResult CorporationService::Handle_GetMedalsReceived(PyCallArgs &call) {
 		return (NULL);
 	}
 
-	return(m_db.GetMedalsReceived(arg.arg));
+	PyRepTuple *t = new PyRepTuple(2);
+	t->items[0] = m_db.GetMedalsReceived(arg.arg);
+	t->items[1] = new PyRepList;
+
+	return t;
 }
 
 

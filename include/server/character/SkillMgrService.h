@@ -60,6 +60,7 @@ public:
 	PyCallable_DECL_CALL(RemoveImplantFromCharacter)
 	PyCallable_DECL_CALL(GetSkillQueue)
 	PyCallable_DECL_CALL(SaveSkillQueue)
+	PyCallable_DECL_CALL(GetRespecInfo)
 
 protected:
 	class Dispatcher;
