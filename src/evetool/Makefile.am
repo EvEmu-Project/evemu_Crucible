@@ -1,3 +1,5 @@
+INCLUDES += -I$(srcdir)/../../include/common/
+INCLUDES += -I$(srcdir)/../../include/evetool/
 
 bin_PROGRAMS = evetool stuff_extract
 

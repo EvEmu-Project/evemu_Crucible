@@ -122,19 +122,32 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
 	message += log_type_info[type].display_name;
 	message += "] ";
 
+#ifdef WIN32
 	int size = vsnprintf(NULL, 0, fmt, args);
-	char * msg = new char[size + 1];
-	vsnprintf(msg, size + 1, fmt, args); msg[size] = '\0';
+
+	char *msg = new char[size+1];
+	vsnprintf(msg, size+1, fmt, args); msg[size] = '\0';
+
 	message += msg;
 	delete[] msg;
+#else /* !WIN32 */
+	char *msg = NULL;
+	vasprintf(&msg, fmt, args);
+
+	message += msg;
+	free(msg);
+#endif /* !WIN32 */
 
 	//print into the console
 	printf("%s\n", message.c_str());
+
 	//print into the logfile (if any)
 	if(logsys_log_file != NULL) {
 		fprintf(logsys_log_file, "%s\n", message.c_str());
-		fflush(logsys_log_file);	//keep the logfile updated
+		//keep the logfile updated
+		fflush(logsys_log_file);
 	}
+
 	//print into the memory log
 	memory_log.push_back(message);
 	if(memory_log.size() > memory_log_limit)
