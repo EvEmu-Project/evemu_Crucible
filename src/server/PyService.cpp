@@ -132,9 +132,9 @@ PyBoundObject *PyService::_CreateBoundObject(Client *c, const PyRep *bind_args) 
 }
 
 const char *const PyService::s_checkTimeStrings[_checkCount] = {
-	 "always",
-	 "never",
-	 "year",
+     "always",
+     "never",
+     "year",
      "6 months",
      "3 months",
      "month",

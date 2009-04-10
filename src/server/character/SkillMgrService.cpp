@@ -26,39 +26,12 @@
 #include "EvemuPCH.h"
 
 PyCallable_Make_InnerDispatcher(SkillMgrService)
-PyCallable_Make_Dispatcher(SkillMgrBound)
-
-
-SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB *db)
-: PyBoundObject(mgr),
-  m_db(db),
-  m_dispatch(new Dispatcher(this))
-{
-	_SetCallDispatcher(m_dispatch);
-
-	PyCallable_REG_CALL(SkillMgrBound, CharStartTrainingSkill)
-	PyCallable_REG_CALL(SkillMgrBound, GetEndOfTraining)
-	PyCallable_REG_CALL(SkillMgrBound, GetSkillHistory)
-	PyCallable_REG_CALL(SkillMgrBound, CharAddImplant)
-	PyCallable_REG_CALL(SkillMgrBound, RemoveImplantFromCharacter)
-}
-
-SkillMgrBound::~SkillMgrBound()
-{
-	delete m_dispatch;
-	m_dispatch = NULL;
-}
-
-// TODO: redesign this so this is not needed
-void SkillMgrBound::Release()
-{
-	delete this;
-}
+PyCallable_Make_InnerDispatcher(SkillMgrBound)
 
 SkillMgrService::SkillMgrService(PyServiceMgr *mgr, DBcore *db)
 : PyService(mgr, "skillMgr"),
-m_dispatch(new Dispatcher(this)),
-m_db(db)
+  m_dispatch(new Dispatcher(this)),
+  m_db(db)
 {
 	_SetCallDispatcher(m_dispatch);
 }
@@ -71,7 +44,34 @@ PyBoundObject *SkillMgrService::_CreateBoundObject(Client *c, const PyRep *bind_
 	_log(CLIENT__MESSAGE, "SkillMgrService bind request for:");
 	bind_args->Dump(CLIENT__MESSAGE, "    ");
 
-	return(new SkillMgrBound(m_manager, &m_db));
+	return(new SkillMgrBound(m_manager, m_db));
+}
+
+SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db)
+: PyBoundObject(mgr),
+  m_dispatch(new Dispatcher(this)),
+  m_db(db)
+{
+	_SetCallDispatcher(m_dispatch);
+
+	PyCallable_REG_CALL(SkillMgrBound, CharStartTrainingSkill)
+	PyCallable_REG_CALL(SkillMgrBound, GetEndOfTraining)
+	PyCallable_REG_CALL(SkillMgrBound, GetSkillHistory)
+	PyCallable_REG_CALL(SkillMgrBound, CharAddImplant)
+	PyCallable_REG_CALL(SkillMgrBound, RemoveImplantFromCharacter)
+	PyCallable_REG_CALL(SkillMgrBound, GetSkillQueue)
+	PyCallable_REG_CALL(SkillMgrBound, SaveSkillQueue)
+}
+
+SkillMgrBound::~SkillMgrBound()
+{
+	delete m_dispatch;
+}
+
+// TODO: redesign this so this is not needed
+void SkillMgrBound::Release()
+{
+	delete this;
 }
 
 PyResult SkillMgrBound::Handle_CharStartTrainingSkill(PyCallArgs &call) {
@@ -157,3 +157,36 @@ PyResult SkillMgrBound::Handle_RemoveImplantFromCharacter(PyCallArgs &call) {
 
 	return(result);
 }
+
+PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
+	// returns list of skills currently in training
+	PyRepList *result = new PyRepList;
+
+	// fill the result
+	/*
+	PyRepTuple *t;
+
+	t = new PyRepTuple(2);
+	t->items[0] = new PyRepInteger(3300); // Gunnery
+	t->items[1] = new PyRepInteger(4); // Level to be trained
+	result->add(t);
+
+	t = new PyRepTuple(2);
+	t->items[0] = new PyRepInteger(3327); // Spaceship command
+	t->items[1] = new PyRepInteger(4);
+	result->add(t);
+	*/
+
+	// return the result
+	return result;
+}
+
+PyResult SkillMgrBound::Handle_SaveSkillQueue(PyCallArgs &call) {
+	// Takes list of skills to train;
+	// exactly same format as GetSkillQueue.
+
+	_log(SERVICE__MESSAGE, "%s: SaveSkillQueue unimplemented.", GetBindStr().c_str());
+
+	return NULL;
+}
+

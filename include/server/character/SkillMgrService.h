@@ -29,25 +29,6 @@
 #include "../PyService.h"
 #include "CharacterDB.h"
 
-class Dispatcher;
-class SkillMgrBound : public PyBoundObject
-{
-public:
-	SkillMgrBound(PyServiceMgr *mgr, CharacterDB *db);
-	virtual ~SkillMgrBound();
-	virtual void Release();
-
-	PyCallable_DECL_CALL(CharStartTrainingSkill)
-	PyCallable_DECL_CALL(GetEndOfTraining)
-	PyCallable_DECL_CALL(GetSkillHistory)
-	PyCallable_DECL_CALL(CharAddImplant)
-	PyCallable_DECL_CALL(RemoveImplantFromCharacter)
-
-protected:
-	CharacterDB *m_db;
-	Dispatcher *m_dispatch;
-};
-
 class SkillMgrService : public PyService {
 public:
 	SkillMgrService(PyServiceMgr *mgr, DBcore *db);
@@ -61,6 +42,30 @@ protected:
 
 	//overloaded in order to support bound objects:
 	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+};
+
+class SkillMgrBound
+: public PyBoundObject
+{
+public:
+	SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db);
+	virtual ~SkillMgrBound();
+
+	virtual void Release();
+
+	PyCallable_DECL_CALL(CharStartTrainingSkill)
+	PyCallable_DECL_CALL(GetEndOfTraining)
+	PyCallable_DECL_CALL(GetSkillHistory)
+	PyCallable_DECL_CALL(CharAddImplant)
+	PyCallable_DECL_CALL(RemoveImplantFromCharacter)
+	PyCallable_DECL_CALL(GetSkillQueue)
+	PyCallable_DECL_CALL(SaveSkillQueue)
+
+protected:
+	class Dispatcher;
+	Dispatcher *const m_dispatch;
+
+	CharacterDB &m_db;
 };
 
 #endif
