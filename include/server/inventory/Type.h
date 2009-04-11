@@ -20,7 +20,7 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Bloody.Rabbit
 */
 
 #ifndef __TYPE__H__INCL__
@@ -226,7 +226,7 @@ public:
 		double _volume = 0.0,
 		double _capacity = 0.0,
 		uint32 _portionSize = 0,
-		EVERace _raceID = (EVERace)0,
+		EVERace _race = (EVERace)0,
 		double _basePrice = 0.0,
 		bool _published = false,
 		uint32 _marketGroupID = 0,
@@ -242,7 +242,7 @@ public:
 	double volume;
 	double capacity;
 	uint32 portionSize;
-	EVERace raceID;
+	EVERace race;
 	double basePrice;
 	bool published;
 	uint32 marketGroupID;
@@ -380,7 +380,7 @@ public:
 	const BlueprintType *parentBlueprintType() const { return(m_parentBlueprintType); }
 	uint32 parentBlueprintTypeID() const { return(parentBlueprintType() == NULL ? 0 : parentBlueprintType()->id()); }
 
-	const Type &productType() const { return(*m_productType); }
+	const Type &productType() const { return(m_productType); }
 	uint32 productTypeID() const { return(productType().id()); }
 
 	uint32 productionTime() const { return(m_productionTime); }
@@ -423,11 +423,13 @@ protected:
 		const BlueprintType *parentBlueprintType, const Type &productType, const BlueprintTypeData &bpData
 	);
 
+	virtual bool _Load(ItemFactory &factory) { return Type::_Load(factory); }
+
 	/*
 	 * Data members
 	 */
 	const BlueprintType *m_parentBlueprintType;
-	const Type *m_productType;	// must never be NULL
+	const Type &m_productType;
 
 	uint32 m_productionTime;
 	uint32 m_techLevel;

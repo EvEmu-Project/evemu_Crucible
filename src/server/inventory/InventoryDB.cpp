@@ -145,7 +145,7 @@ bool InventoryDB::GetType(uint32 typeID, TypeData &into) {
 	into.volume = row.GetDouble(5);
 	into.capacity = row.GetDouble(6);
 	into.portionSize = row.GetUInt(7);
-	into.raceID = EVERace(row.IsNull(8) ? 0 : row.GetUInt(8));
+	into.race = EVERace(row.IsNull(8) ? 0 : row.GetUInt(8));
 	into.basePrice = row.GetDouble(9);
 	into.published = row.GetInt(10) ? true : false;
 	into.marketGroupID = row.IsNull(11) ? 0 : row.GetUInt(11);

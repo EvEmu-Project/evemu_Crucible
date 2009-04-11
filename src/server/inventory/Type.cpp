@@ -20,7 +20,7 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Bloody.Rabbit
 */
 
 #include "EvemuPCH.h"
@@ -189,7 +189,7 @@ TypeData::TypeData(
 	double _volume,
 	double _capacity,
 	uint32 _portionSize,
-	EVERace _raceID,
+	EVERace _race,
 	double _basePrice,
 	bool _published,
 	uint32 _marketGroupID,
@@ -202,7 +202,7 @@ TypeData::TypeData(
   volume(_volume),
   capacity(_capacity),
   portionSize(_portionSize),
-  raceID(_raceID),
+  race(_race),
   basePrice(_basePrice),
   published(_published),
   marketGroupID(_marketGroupID),
@@ -236,7 +236,7 @@ Type::Type(
 	attributes.Set_mass(_data.mass);
 	attributes.Set_volume(_data.volume);
 	attributes.Set_capacity(_data.capacity);
-	attributes.Set_raceID(_data.raceID);
+	attributes.Set_raceID(_data.race);
 
 	_log(ITEM__TRACE, "Created object %p for type %s (%lu).", this, name().c_str(), id());
 }
@@ -279,7 +279,7 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID,
 	const Group &group, const TypeData &data
 ) {
 	// We have enough data for general Type, but we might
-	// need more (for BlueprintType). Let's check it out:
+	// need more. Let's check it out:
 	switch(group.categoryID()) {
 		///////////////////////////////////////
 		// Blueprint:
@@ -353,7 +353,7 @@ BlueprintType::BlueprintType(
 	const BlueprintTypeData &_bpData)
 : Type(_id, _group, _data),
   m_parentBlueprintType(_parentBlueprintType),
-  m_productType(&_productType),
+  m_productType(_productType),
   m_productionTime(_bpData.productionTime),
   m_techLevel(_bpData.techLevel),
   m_researchProductivityTime(_bpData.researchProductivityTime),
@@ -379,7 +379,7 @@ BlueprintType *BlueprintType::Load(ItemFactory &factory, uint32 typeID) {
 		return NULL;
 
 	// finish load
-	if(!bt->_Load(factory, typeID)) {
+	if(!bt->_Load(factory)) {
 		delete bt;
 		return NULL;
 	}

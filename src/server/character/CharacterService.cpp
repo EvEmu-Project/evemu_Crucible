@@ -68,27 +68,17 @@ CharacterService::~CharacterService() {
 }
 
 PyResult CharacterService::Handle_GetCharactersToSelect(PyCallArgs &call) {
-
-	PyRep *result = NULL;
-
-	result = m_db.GetCharacterList(call.client->GetAccountID());
-	if(result == NULL) {
-		//TODO: throw exception
-		result = new PyRepNone();
-	}
-
-	return(result);
+	return(m_db.GetCharacterList(call.client->GetAccountID()));
 }
 
 PyResult CharacterService::Handle_GetCharacterToSelect(PyCallArgs &call) {
-	PyRep *result = NULL;
 	Call_SingleIntegerArg args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "Invalid arguments");
 		return NULL;
 	}
 
-	result = m_db.GetCharSelectInfo(args.arg);
+	PyRep *result = m_db.GetCharSelectInfo(args.arg);
 	if(result == NULL) {
 		_log(CLIENT__ERROR, "Failed to load character %d", args.arg);
 		return NULL;
@@ -139,15 +129,12 @@ PyResult CharacterService::Handle_GetOwnerNoteLabels(PyCallArgs &call) {
 }
 
 PyResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
-	PyRep *result = NULL;
-
-	PyRepDict *cachables = new PyRepDict();
-	result = cachables;
+	PyRepDict *result = new PyRepDict();
 
 	//send all the cache hints needed for char creation.
 	m_manager->cache_service->InsertCacheHints(
 		ObjCacheService::hCharCreateCachables,
-		cachables);
+		result);
 	_log(CLIENT__MESSAGE, "Sending char creation info reply");
 
 	return(result);
@@ -165,15 +152,12 @@ PyResult CharacterService::Handle_GetCharNewExtraCreationInfo(PyCallArgs &call) 
 }
 
 PyResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
-	PyRep *result = NULL;
-
-	PyRepDict *cachables = new PyRepDict();
-	result = cachables;
+	PyRepDict *result = new PyRepDict();
 
 	//send all the cache hints needed for char creation.
 	m_manager->cache_service->InsertCacheHints(
 		ObjCacheService::hAppearanceCachables,
-		cachables );
+		result );
 
 	_log(CLIENT__MESSAGE, "Sending appearance info reply");
 
