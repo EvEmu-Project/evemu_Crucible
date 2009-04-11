@@ -75,8 +75,6 @@ libcommon_a_SOURCES = \
 	PyPacket.h \
 	PyRep.cpp \
 	PyRep.h \
-	PyUtils.cpp \
-	PyUtils.h \
 	PyVisitor.cpp \
 	PyVisitor.h \
 	PyXMLGenerator.cpp \

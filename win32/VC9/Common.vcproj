@@ -279,10 +279,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\PyUtils.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\src\common\PyVisitor.cpp"
 					>
 				</File>
@@ -458,10 +454,6 @@
 				</File>
 				<File
 					RelativePath="..\..\include\common\PyRep.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\common\PyUtils.h"
 					>
 				</File>
 				<File

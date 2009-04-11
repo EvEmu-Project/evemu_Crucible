@@ -40,7 +40,6 @@
 #include "../common/PyPacket.h"
 #include "../common/PyDumpVisitor.h"
 #include "../common/PyLookupDump.h"
-#include "../common/PyUtils.h"
 #include "../common/PyVisitor.h"
 #include "../common/PyXMLGenerator.h"
 

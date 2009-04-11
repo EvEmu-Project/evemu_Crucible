@@ -53,89 +53,65 @@ ConfigService::~ConfigService() {
 }
 
 PyResult ConfigService::Handle_GetMultiOwnersEx(PyCallArgs &call) {
-	PyRep *result = NULL;
-
 	//parse the PyRep to get the list of IDs to query.
-	std::vector<uint32> ids;
-	if(ParseIntegerList(call.tuple, "GetMultiOwnersEx", ids)) {
-		result = m_db.GetMultiOwnersEx(ids);
+	Call_SingleIntList arg;
+	if(!arg.Decode(&call.tuple)) {
+		_log(SERVICE__ERROR, "Failed to decode arguments.");
+		return NULL;
 	}
 
-	if(result == NULL)
-		result = new PyRepNone();
-	
-	return(result);
+	return(m_db.GetMultiOwnersEx(arg.ints));
 }
 
 PyResult ConfigService::Handle_GetMultiAllianceShortNamesEx(PyCallArgs &call) {
-	PyRep *result = NULL;
-
 	//parse the PyRep to get the list of IDs to query.
-	std::vector<uint32> ids;
-	if(ParseIntegerList(call.tuple, "GetMultiAllianceShortNamesEx", ids)) {
-		result = m_db.GetMultiAllianceShortNamesEx(ids);
+	Call_SingleIntList arg;
+	if(!arg.Decode(&call.tuple)) {
+		_log(SERVICE__ERROR, "Failed to decode arguments.");
+		return NULL;
 	}
-	
-	if(result == NULL)
-		result = new PyRepNone();
-	
-	return(result);
+
+	return(m_db.GetMultiAllianceShortNamesEx(arg.ints));
 }
 
 
 PyResult ConfigService::Handle_GetMultiLocationsEx(PyCallArgs &call) {
-	PyRep *result = NULL;
-
 	//parse the PyRep to get the list of IDs to query.
-	std::vector<uint32> ids;
-	if(ParseIntegerList(call.tuple, "GetMultiLocationsEx", ids)) {
-		result = m_db.GetMultiLocationsEx(ids);
+	Call_SingleIntList arg;
+	if(!arg.Decode(&call.tuple)) {
+		_log(SERVICE__ERROR, "Failed to decode arguments.");
+		return NULL;
 	}
-	
-	if(result == NULL)
-		result = new PyRepNone();
-	
-	return(result);
+
+	return(m_db.GetMultiLocationsEx(arg.ints));
 }
 
 PyResult ConfigService::Handle_GetMultiCorpTickerNamesEx(PyCallArgs &call) {
-	PyRep *result = NULL;
-
 	//parse the PyRep to get the list of IDs to query.
-	std::vector<uint32> ids;
-	if(ParseIntegerList(call.tuple, "GetMultiCorpTickerNamesEx", ids)) {
-		result = m_db.GetMultiCorpTickerNamesEx(ids);
+	Call_SingleIntList arg;
+	if(!arg.Decode(&call.tuple)) {
+		_log(SERVICE__ERROR, "Failed to decode arguments.");
+		return NULL;
 	}
-	
-	if(result == NULL)
-		result = new PyRepNone();
-	
-	return(result);
+
+	return(m_db.GetMultiCorpTickerNamesEx(arg.ints));
 }
 
 PyResult ConfigService::Handle_GetMultiGraphicsEx(PyCallArgs &call) {
-	PyRep *result = NULL;
-
 	//parse the PyRep to get the list of IDs to query.
-	std::vector<uint32> ids;
-	if(ParseIntegerList(call.tuple, "GetMultiGraphicsEx", ids)) {
-		result = m_db.GetMultiGraphicsEx(ids);
+	Call_SingleIntList arg;
+	if(!arg.Decode(&call.tuple)) {
+		_log(SERVICE__ERROR, "Failed to decode arguments.");
+		return NULL;
 	}
-	
-	if(result == NULL)
-		result = new PyRepNone();
-	
-	return(result);
+
+	return(m_db.GetMultiGraphicsEx(arg.ints));
 }
 
 
 
 PyResult ConfigService::Handle_GetUnits(PyCallArgs &call) {
-	PyRep *result = NULL;
-	
-	result = m_db.GetUnits();
-	
-	return(result);
+	return(m_db.GetUnits());
 }
 
 
@@ -145,10 +121,8 @@ PyResult ConfigService::Handle_GetMap(PyCallArgs &call) {
 		codelog(SERVICE__ERROR, "Failed to decode arguments");
 		return NULL;
 	}
-		
-	PyRep *result = m_db.GetMap(args.arg);
-	
-	return(result);
+
+	return(m_db.GetMap(args.arg));
 }
 
 PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
@@ -250,24 +224,19 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 }
 
 PyResult ConfigService::Handle_GetMultiInvTypesEx(PyCallArgs &call) {
-	PyRep *result = NULL;
-
 	//parse the PyRep to get the list of IDs to query.
-	std::vector<uint32> ids;
-	if(ParseIntegerList(call.tuple, "GetMultiInvTypesEx", ids)) {
-		result = m_db.GetMultiInvTypesEx(ids);
+	Call_SingleIntList arg;
+	if(!arg.Decode(&call.tuple)) {
+		_log(SERVICE__ERROR, "Failed to decode arguments.");
+		return NULL;
 	}
-	
-	if(result == NULL)
-		result = new PyRepNone();
-	
-	return(result);
+
+	return(m_db.GetMultiInvTypesEx(arg.ints));
 }
 
 
 PyResult ConfigService::Handle_GetMapConnections(PyCallArgs &call) {
-_log(SERVICE__ERROR, "Unhandled ConfigService::GetMapConnections");
-	/*
+/*
 [PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 1] String: 'GetMapConnections'
 [PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 2] Tuple: 6 elements
 [PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 2]   [ 0] Integer field: 10000016 (Lonetrek (region))
@@ -289,8 +258,8 @@ CREATE TABLE GetMapConnections (
   toRegionID INT UNSIGNED NOT NULL,
   PRIMARY KEY()
 );
-
 */
+	_log(SERVICE__ERROR, "Unhandled ConfigService::GetMapConnections");
 
 	return NULL;
 }
