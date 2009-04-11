@@ -104,6 +104,7 @@ class ItemAttributeMgr;
 class TypeAttributeMgr
 : public EVEAttributeMgr
 {
+	friend class ItemAttributeMgr;	// for access to _Get
 public:
 	TypeAttributeMgr(const Type &type)
 		: m_type(type) {}
@@ -116,7 +117,6 @@ public:
 	bool Load(InventoryDB &db);
 
 protected:
-	friend class ItemAttributeMgr;	// for access to _Get
 
 	const Type &m_type;
 };

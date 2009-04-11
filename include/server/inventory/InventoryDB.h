@@ -33,54 +33,59 @@
 
 class EVEAttributeMgr;
 
+class CategoryData;
+class GroupData;
+class TypeData;
+class BlueprintTypeData;
+
+class ItemData;
+class BlueprintData;
+class CharacterData;
+
 class InventoryDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
+	/*
+	 * Constructor & Destructor
+	 */
 	InventoryDB(DBcore *db);
 	virtual ~InventoryDB();
 
 	/*
 	 * Type stuff
+	 * (invCategories, invGroups, invTypes, invBlueprintTypes)
 	 */
-	bool GetCategory(EVEItemCategories category,
-		std::string &name, std::string &desc, bool &published);
-
-	bool GetGroup(uint32 groupID, EVEItemCategories &category,
-		std::string &name, std::string &desc, bool &useBasePrice, bool &allowManufacture, bool &allowRecycler,
-		bool &anchored, bool &anchorable, bool &fittableNonSingleton, bool &published);
-
-	bool GetType(uint32 typeID, uint32 &groupID,
-		std::string &name, std::string &desc, double &radius, double &mass, double &volume, double &capacity, uint32 &portionSize,
-		EVERace &raceID, double &basePrice, bool &published, uint32 &marketGroupID, double &chanceOfDuplicating);
-
-	bool GetBlueprintType(uint32 blueprintTypeID,
-		uint32 &parentBlueprintTypeID, uint32 &productTypeID, uint32 &productionTime, uint32 &techLevel, uint32 &researchProductivityTime,
-		uint32 &researchMaterialTime, uint32 &researchCopyTime, uint32 &researchTechTime, uint32 &productivityModifier,
-		uint32 &materialModifier, double &wasteFactor, double &chanceOfReverseEngineering, uint32 &maxProductionLimit);
+	bool GetCategory(EVEItemCategories category, CategoryData &into);
+	bool GetGroup(uint32 groupID, GroupData &into);
+	bool GetType(uint32 typeID, TypeData &into);
+	bool GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &into);
 
 	/*
 	 * Item stuff
+	 * (entity)
 	 */
-	bool GetItem(uint32 itemID,
-		std::string &name, uint32 &typeID, uint32 &ownerID, uint32 &locationID, EVEItemFlags &flag, bool &contraband, bool &singleton,
-		uint32 &quantity, GPoint &position, std::string &customInfo);
+	bool GetItem(uint32 itemID, ItemData &into);
 
-	uint32 NewItem(const char *name, uint32 typeID, uint32 ownerID, uint32 locationID, EVEItemFlags flag, bool contraband, bool singleton, uint32 quantity, const GPoint &pos, const char *customInfo);
-	bool SaveItem(uint32 itemID, const char *name, uint32 typeID, uint32 ownerID, uint32 locationID, EVEItemFlags flag, bool contraband, bool singleton, uint32 quantity, const GPoint &pos, const char *customInfo);
+	uint32 NewItem(const ItemData &data);
+	bool SaveItem(uint32 itemID, const ItemData &data);
 	bool DeleteItem(uint32 itemID);
+
+	bool GetItemContents(uint32 itemID, std::vector<uint32> &items);
 
 	/*
 	 * Blueprint stuff
+	 * (invBlueprints)
 	 */
-	bool GetBlueprint(uint32 blueprintID,
-		bool &copy, uint32 &materialLevel, uint32 &productivityLevel, int32 &licensedProductionRunsRemaining);
+	bool GetBlueprint(uint32 blueprintID, BlueprintData &into);
 
-	bool NewBlueprint(uint32 blueprintID, bool copy, uint32 materialLevel, uint32 productivityLevel, int32 licensedProductionRunsRemaining);
-	bool SaveBlueprint(uint32 blueprintID, bool copy, uint32 materialLevel, uint32 productivityLevel, int32 licensedProductionRunsRemaining);
+	bool NewBlueprint(uint32 blueprintID, const BlueprintData &data);
+	bool SaveBlueprint(uint32 blueprintID, const BlueprintData &data);
 	bool DeleteBlueprint(uint32 blueprintID);
 
 	/*
 	 * Attribute stuff
+	 * (entity_attributes)
 	 */
 	bool LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into);
 	bool LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into);
@@ -89,14 +94,7 @@ public:
 	bool UpdateAttribute_double(uint32 itemID, uint32 attributeID, double v);
 	bool EraseAttribute(uint32 itemID, uint32 attributeID);
 	bool EraseAttributes(uint32 itemID);
-
-	/*
-	 * Other
-	 */
-	bool GetItemContents(InventoryItem *item, std::vector<uint32> &items);
 };
-
-
 
 
 

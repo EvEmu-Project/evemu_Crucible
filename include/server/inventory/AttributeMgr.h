@@ -344,7 +344,7 @@ protected:
 			real_t tau = GetReal(i->second.tau) / 5.0;
 
 			real_t sq = sqrt(v / cap);
-			int64 time = int64(_GetLastChange(attr) - Win32TimeNow()) / 10000;	// dgmTauConstant
+			int64 time = int64(_GetLastChange(attr) - Win32TimeNow()) / 10000/* = dgmTauConstant */; 
 			real_t e = exp(time / tau);
 
 			v = (pow(1.0 + ((sq - 1.0) * e), 2.0) * cap);

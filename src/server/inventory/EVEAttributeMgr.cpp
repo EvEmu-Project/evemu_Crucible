@@ -111,10 +111,8 @@ void EVEAdvancedAttributeMgr::EncodeAttributes(std::map<uint32, PyRep *> &into) 
  * TypeAttributeMgr
  */
 bool TypeAttributeMgr::Load(InventoryDB &db) {
-	// delete old contents
-	EVEAttributeMgr::Delete();
-	// load the new contents
-	return(db.LoadTypeAttributes(type().id, *this));
+	// load new contents from DB
+	return(db.LoadTypeAttributes(type().id(), *this));
 }
 
 /*
@@ -123,7 +121,7 @@ bool TypeAttributeMgr::Load(InventoryDB &db) {
 ItemAttributeMgr::real_t ItemAttributeMgr::GetReal(Attr attr) const {
 	real_t v;
 	if(!_Get(attr, v))
-		if(!m_item.type()->attributes._Get(attr, v))	// try the type attributes
+		if(!m_item.type().attributes._Get(attr, v))	// try the type attributes
 			v = GetDefault(attr);
 
 	_CalcTauCap(attr, v);
@@ -302,7 +300,7 @@ void ItemAttributeMgr::Save() const {
 
 void ItemAttributeMgr::EncodeAttributes(std::map<uint32, PyRep *> &into) const {
 	// first insert type attributes
-	m_item.type()->attributes.EncodeAttributes(into);
+	m_item.type().attributes.EncodeAttributes(into);
 	// now isert (or overwrite) with our values
 	EVEAdvancedAttributeMgr::EncodeAttributes(into);
 }

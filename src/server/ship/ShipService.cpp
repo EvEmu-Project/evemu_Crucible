@@ -97,7 +97,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 		codelog(CLIENT__ERROR, "%s: Boarding a ship in space is not yet implemented!!!!", call.client->GetName());
 	}
 
-	InventoryItem *ship = m_manager->item_factory.Load(args.arg, true);
+	InventoryItem *ship = m_manager->item_factory.GetItem(args.arg, true);
 	if(ship == NULL) {
 		_log(CLIENT__ERROR, "%s: Failed to get new ship %lu.", call.client->GetName(), args.arg);
 	} else {
@@ -165,7 +165,7 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
 
 	//Start sloppy implementation
 	InventoryItem* item;
-	item = m_manager->item_factory.Load( args.items.front(), false);
+	item = m_manager->item_factory.GetItem( args.items.front(), false);
 	item->ChangeSingleton(true, true);
 	item->Release();
 	//TODO: something...
@@ -208,7 +208,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
 	}
 
 	for(; cur != end; cur++) {
-		InventoryItem *item = m_manager->item_factory.Load(*cur, false);
+		InventoryItem *item = m_manager->item_factory.GetItem(*cur, false);
 		if(item == NULL) {
 			_log(SERVICE__ERROR, "%s: Unable to find item %lu to drop.", call.client->GetName(), *cur);
 			continue;
@@ -306,15 +306,14 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 	
 
 	//spawn cargo container
-	InventoryItem *cargoItem;
-
-	cargoItem = m_manager->item_factory.SpawnSingleton(
-		23, //23 = Cargo Container
-		call.client->GetCharacterID(),	//owner
-		call.client->GetLocationID(),
-		flagAutoFit
-		);
-
+	InventoryItem *cargoItem = m_manager->item_factory.SpawnItem(
+		ItemData(
+			23, //23 = Cargo Container
+			call.client->GetCharacterID(),	//owner
+			call.client->GetLocationID(),
+			flagAutoFit
+		)
+	);
 	if(cargoItem == NULL) {
 		call.client->SendErrorMsg("Unable to spawn a container for jettison.");
 		return NULL;

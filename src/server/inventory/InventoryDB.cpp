@@ -33,12 +33,7 @@ InventoryDB::InventoryDB(DBcore *db)
 InventoryDB::~InventoryDB() {
 }
 
-bool InventoryDB::GetCategory(
-	EVEItemCategories category,
-	std::string &name,
-	std::string &desc,
-	bool &published)
-{
+bool InventoryDB::GetCategory(EVEItemCategories category, CategoryData &into) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -60,26 +55,14 @@ bool InventoryDB::GetCategory(
 		return false;
 	}
 
-	name = row.GetText(0);
-	desc = row.GetText(1);
-	published = row.GetInt(2) ? true : false;
+	into.name = row.GetText(0);
+	into.description = row.GetText(1);
+	into.published = row.GetInt(2) ? true : false;
 
 	return true;
 }
 
-bool InventoryDB::GetGroup(
-	uint32 groupID,
-	EVEItemCategories &category,
-	std::string &name,
-	std::string &desc,
-	bool &useBasePrice,
-	bool &allowManufacture,
-	bool &allowRecycler,
-	bool &anchored,
-	bool &anchorable,
-	bool &fittableNonSingleton,
-	bool &published)
-{
+bool InventoryDB::GetGroup(uint32 groupID, GroupData &into) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -108,36 +91,21 @@ bool InventoryDB::GetGroup(
 		return false;
 	}
 
-	category = EVEItemCategories(row.GetUInt(0));
-	name = row.GetText(1);
-	desc = row.GetText(2);
-	useBasePrice = row.GetInt(3) ? true : false;
-	allowManufacture = row.GetInt(4) ? true : false;
-	allowRecycler = row.GetInt(5) ? true : false;
-	anchored = row.GetInt(6) ? true : false;
-	anchorable = row.GetInt(7) ? true : false;
-	fittableNonSingleton = row.GetInt(8) ? true : false;
-	published = row.GetInt(9) ? true : false;
+	into.category = EVEItemCategories(row.GetUInt(0));
+	into.name = row.GetText(1);
+	into.description = row.GetText(2);
+	into.useBasePrice = row.GetInt(3) ? true : false;
+	into.allowManufacture = row.GetInt(4) ? true : false;
+	into.allowRecycler = row.GetInt(5) ? true : false;
+	into.anchored = row.GetInt(6) ? true : false;
+	into.anchorable = row.GetInt(7) ? true : false;
+	into.fittableNonSingleton = row.GetInt(8) ? true : false;
+	into.published = row.GetInt(9) ? true : false;
 
 	return true;
 }
 
-bool InventoryDB::GetType(
-	uint32 typeID,
-	uint32 &groupID,
-	std::string &name,
-	std::string &desc,
-	double &radius,
-	double &mass,
-	double &volume,
-	double &capacity,
-	uint32 &portionSize,
-	EVERace &raceID,
-	double &basePrice,
-	bool &published,
-	uint32 &marketGroupID,
-	double &chanceOfDuplicating)
-{
+bool InventoryDB::GetType(uint32 typeID, TypeData &into) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -169,39 +137,24 @@ bool InventoryDB::GetType(
 		return false;
 	}
 
-	groupID = row.GetUInt(0);
-	name = row.GetText(1);
-	desc = row.GetText(2);
-	radius = row.GetDouble(3);
-	mass = row.GetDouble(4);
-	volume = row.GetDouble(5);
-	capacity = row.GetDouble(6);
-	portionSize = row.GetUInt(7);
-	raceID = EVERace(row.IsNull(8) ? 0 : row.GetUInt(8));
-	basePrice = row.GetDouble(9);
-	published = row.GetInt(10) ? true : false;
-	marketGroupID = row.IsNull(11) ? 0 : row.GetUInt(11);
-	chanceOfDuplicating = row.GetDouble(12);
+	into.groupID = row.GetUInt(0);
+	into.name = row.GetText(1);
+	into.description = row.GetText(2);
+	into.radius = row.GetDouble(3);
+	into.mass = row.GetDouble(4);
+	into.volume = row.GetDouble(5);
+	into.capacity = row.GetDouble(6);
+	into.portionSize = row.GetUInt(7);
+	into.raceID = EVERace(row.IsNull(8) ? 0 : row.GetUInt(8));
+	into.basePrice = row.GetDouble(9);
+	into.published = row.GetInt(10) ? true : false;
+	into.marketGroupID = row.IsNull(11) ? 0 : row.GetUInt(11);
+	into.chanceOfDuplicating = row.GetDouble(12);
 
 	return true;
 }
 
-bool InventoryDB::GetBlueprintType(
-	uint32 blueprintTypeID,
-	uint32 &parentBlueprintTypeID,
-	uint32 &productTypeID,
-	uint32 &productionTime,
-	uint32 &techLevel,
-	uint32 &researchProductivityTime,
-	uint32 &researchMaterialTime,
-	uint32 &researchCopyTime,
-	uint32 &researchTechTime,
-	uint32 &productivityModifier,
-	uint32 &materialModifier,
-	double &wasteFactor,
-	double &chanceOfReverseEngineering,
-	uint32 &maxProductionLimit)
-{
+bool InventoryDB::GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &into) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -233,36 +186,24 @@ bool InventoryDB::GetBlueprintType(
 		return false;
 	}
 
-	parentBlueprintTypeID = row.IsNull(0) ? 0 : row.GetUInt(0);
-	productTypeID = row.GetUInt(1);
-	productionTime = row.GetUInt(2);
-	techLevel = row.GetUInt(3);
-	researchProductivityTime = row.GetUInt(4);
-	researchMaterialTime = row.GetUInt(5);
-	researchCopyTime = row.GetUInt(6);
-	researchTechTime = row.GetUInt(7);
-	productivityModifier = row.GetUInt(8);
-	materialModifier = row.GetUInt(9);
-	wasteFactor = row.GetDouble(10);
-	chanceOfReverseEngineering = row.GetDouble(11);
-	maxProductionLimit = row.GetUInt(12);
+	into.parentBlueprintTypeID = row.IsNull(0) ? 0 : row.GetUInt(0);
+	into.productTypeID = row.GetUInt(1);
+	into.productionTime = row.GetUInt(2);
+	into.techLevel = row.GetUInt(3);
+	into.researchProductivityTime = row.GetUInt(4);
+	into.researchMaterialTime = row.GetUInt(5);
+	into.researchCopyTime = row.GetUInt(6);
+	into.researchTechTime = row.GetUInt(7);
+	into.productivityModifier = row.GetUInt(8);
+	into.materialModifier = row.GetUInt(9);
+	into.wasteFactor = row.GetDouble(10);
+	into.chanceOfReverseEngineering = row.GetDouble(11);
+	into.maxProductionLimit = row.GetUInt(12);
 
 	return true;
 }
 
-bool InventoryDB::GetItem(
-	uint32 itemID,
-	std::string &name,
-	uint32 &typeID,
-	uint32 &ownerID,
-	uint32 &locationID,
-	EVEItemFlags &flag,
-	bool &contraband,
-	bool &singleton,
-	uint32 &quantity,
-	GPoint &position,
-	std::string &customInfo)
-{
+bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
@@ -291,31 +232,29 @@ bool InventoryDB::GetItem(
 		return false;
 	}
 
-	name = row.GetText(0);
-	typeID = row.GetUInt(1);
-	ownerID = row.GetUInt(2);
-	locationID = row.GetUInt(3);
-	flag = EVEItemFlags(row.GetUInt(4));
-	contraband = row.GetInt(5) ? true : false;
-	singleton = row.GetInt(6) ? true : false;
-	quantity = row.GetUInt(7);
-	position.x = row.GetDouble(8);
-	position.y = row.GetDouble(9);
-	position.z = row.GetDouble(10);
-	customInfo = row.IsNull(11) ? "" : row.GetText(11);
+	into.name = row.GetText(0);
+	into.typeID = row.GetUInt(1);
+	into.ownerID = row.GetUInt(2);
+	into.locationID = row.GetUInt(3);
+	into.flag = EVEItemFlags(row.GetUInt(4));
+	into.contraband = row.GetInt(5) ? true : false;
+	into.singleton = row.GetInt(6) ? true : false;
+	into.quantity = row.GetUInt(7);
+	into.position = GPoint(row.GetDouble(8), row.GetDouble(9), row.GetDouble(10));
+	into.customInfo = row.IsNull(11) ? "" : row.GetText(11);
 
 	return true;
 }
 
-uint32 InventoryDB::NewItem(const char *name, uint32 typeID, uint32 ownerID, uint32 locationID, EVEItemFlags flag, bool contraband, bool singleton, uint32 quantity, const GPoint &pos, const char *customInfo) {
+uint32 InventoryDB::NewItem(const ItemData &data) {
 	DBerror err;
 	uint32 eid;
 
 	std::string nameEsc;
-	m_db->DoEscapeString(nameEsc, name);
+	m_db->DoEscapeString(nameEsc, data.name);
 
 	std::string customInfoEsc;
-	m_db->DoEscapeString(customInfoEsc, customInfo);
+	m_db->DoEscapeString(customInfoEsc, data.customInfo);
 	
 	if(!m_db->RunQueryLID(err, eid,
 		"INSERT INTO entity ("
@@ -326,8 +265,8 @@ uint32 InventoryDB::NewItem(const char *name, uint32 typeID, uint32 ownerID, uin
 		"VALUES('%s', %lu, %lu, %lu, %lu,"
 		"	%lu, %lu, %lu, %f, %f, %f,"
 		"	'%s' )",
-		nameEsc.c_str(), typeID, ownerID, locationID, flag,
-		contraband?1:0, singleton?1:0, quantity, pos.x, pos.y, pos.z,
+		nameEsc.c_str(), data.typeID, data.ownerID, data.locationID, data.flag,
+		data.contraband?1:0, data.singleton?1:0, data.quantity, data.position.x, data.position.y, data.position.z,
 		customInfoEsc.c_str()
 		)
 	) {
@@ -338,14 +277,14 @@ uint32 InventoryDB::NewItem(const char *name, uint32 typeID, uint32 ownerID, uin
 	return(eid);
 }
 
-bool InventoryDB::SaveItem(uint32 itemID, const char *name, uint32 typeID, uint32 ownerID, uint32 locationID, EVEItemFlags flag, bool contraband, bool singleton, uint32 quantity, const GPoint &pos, const char *customInfo) {
+bool InventoryDB::SaveItem(uint32 itemID, const ItemData &data) {
 	DBerror err;
 
 	std::string nameEsc;
-	m_db->DoEscapeString(nameEsc, name);
+	m_db->DoEscapeString(nameEsc, data.name);
 
 	std::string customInfoEsc;
-	m_db->DoEscapeString(customInfoEsc, customInfo);
+	m_db->DoEscapeString(customInfoEsc, data.customInfo);
 
 	if(!m_db->RunQuery(err,
 		"UPDATE entity"
@@ -362,14 +301,14 @@ bool InventoryDB::SaveItem(uint32 itemID, const char *name, uint32 typeID, uint3
 		" customInfo = '%s'"
 		" WHERE itemID = %lu",
 		nameEsc.c_str(),
-		typeID,
-		ownerID,
-		locationID,
-		flag,
-		uint32(contraband),
-		uint32(singleton),
-		quantity,
-		pos.x, pos.y, pos.z,
+		data.typeID,
+		data.ownerID,
+		data.locationID,
+		data.flag,
+		uint32(data.contraband),
+		uint32(data.singleton),
+		data.quantity,
+		data.position.x, data.position.y, data.position.z,
 		customInfoEsc.c_str(),
 		itemID))
 	{
@@ -398,13 +337,34 @@ bool InventoryDB::DeleteItem(uint32 itemID) {
 	return true;
 }
 
-bool InventoryDB::GetBlueprint(
-	uint32 blueprintID,
-	bool &copy,
-	uint32 &materialLevel,
-	uint32 &productivityLevel,
-	int32 &licensedProductionRunsRemaining)
-{
+bool InventoryDB::GetItemContents(uint32 itemID, std::vector<uint32> &items) {
+	//this could be optimized to load the full row of each
+	//item which is to be loaded (and used to be), but it made
+	//for some overly complex knowledge in the DB side which
+	// really did not belong here, so weo go to the simpler
+	// solution until it becomes a problem.
+	DBQueryResult res;
+	
+	if(!m_db->RunQuery(res,
+		"SELECT "
+		" itemID"
+		" FROM entity "
+		" WHERE locationID=%lu",
+		itemID))
+	{
+		codelog(SERVICE__ERROR, "Error in query for item %lu: %s", itemID, res.error.c_str());
+		return false;
+	}
+	
+	DBResultRow row;
+	while(res.GetRow(row)) {
+		items.push_back(row.GetUInt(0));
+	}
+
+	return true;
+}
+
+bool InventoryDB::GetBlueprint(uint32 blueprintID, BlueprintData &into) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -427,15 +387,15 @@ bool InventoryDB::GetBlueprint(
 		return false;
 	}
 
-	copy = row.GetInt(0) ? true : false;
-	materialLevel = row.GetUInt(1);
-	productivityLevel = row.GetUInt(2);
-	licensedProductionRunsRemaining = row.GetInt(3);
+	into.copy = row.GetInt(0) ? true : false;
+	into.materialLevel = row.GetUInt(1);
+	into.productivityLevel = row.GetUInt(2);
+	into.licensedProductionRunsRemaining = row.GetInt(3);
 
 	return true;
 }
 
-bool InventoryDB::NewBlueprint(uint32 blueprintID, bool copy, uint32 materialLevel, uint32 productivityLevel, int32 licensedProductionRunsRemaining) {
+bool InventoryDB::NewBlueprint(uint32 blueprintID, const BlueprintData &data) {
 	DBerror err;
 
 	if(!m_db->RunQuery(err,
@@ -444,7 +404,7 @@ bool InventoryDB::NewBlueprint(uint32 blueprintID, bool copy, uint32 materialLev
 		" (blueprintID, copy, materialLevel, productivityLevel, licensedProductionRunsRemaining)"
 		" VALUES"
 		" (%lu, %lu, %lu, %lu, %ld)",
-		blueprintID, copy, materialLevel, productivityLevel, licensedProductionRunsRemaining))
+		blueprintID, data.copy, data.materialLevel, data.productivityLevel, data.licensedProductionRunsRemaining))
 	{
 		_log(DATABASE__ERROR, "Unable to create new blueprint entry for blueprint %lu: %s.", blueprintID, err.c_str());
 		return false;
@@ -453,7 +413,7 @@ bool InventoryDB::NewBlueprint(uint32 blueprintID, bool copy, uint32 materialLev
 	return true;
 }
 
-bool InventoryDB::SaveBlueprint(uint32 blueprintID, bool copy, uint32 materialLevel, uint32 productivityLevel, int32 licensedProductionRunsRemaining) {
+bool InventoryDB::SaveBlueprint(uint32 blueprintID, const BlueprintData &data) {
 	DBerror err;
 
 	if(!m_db->RunQuery(err,
@@ -464,10 +424,10 @@ bool InventoryDB::SaveBlueprint(uint32 blueprintID, bool copy, uint32 materialLe
 		" productivityLevel = %lu,"
 		" licensedProductionRunsRemaining = %ld"
 		" WHERE blueprintID = %lu",
-		uint32(copy),
-		materialLevel,
-		productivityLevel,
-		licensedProductionRunsRemaining))
+		uint32(data.copy),
+		data.materialLevel,
+		data.productivityLevel,
+		data.licensedProductionRunsRemaining))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s.", err.c_str());
 		return false;
@@ -623,31 +583,6 @@ bool InventoryDB::EraseAttributes(uint32 itemID) {
 	return true;
 }
 
-bool InventoryDB::GetItemContents(InventoryItem *item, std::vector<uint32> &items) {
-	//this could be optimized to load the full row of each
-	//item which is to be loaded (and used to be), but it made
-	//for some overly complex knowledge in the DB side which
-	// really did not belong here, so weo go to the simpler
-	// solution until it becomes a problem.
-	DBQueryResult res;
-	
-	if(!m_db->RunQuery(res,
-		"SELECT "
-		" itemID"
-		" FROM entity "
-		" WHERE locationID=%lu",
-			item->itemID()))
-	{
-		codelog(SERVICE__ERROR, "Error in query for item %lu: %s", item->itemID(), res.error.c_str());
-		return false;
-	}
-	
-	DBResultRow row;
-	while(res.GetRow(row)) {
-		items.push_back(row.GetUInt(0));
-	}
-	return true;
-}
 
 
 

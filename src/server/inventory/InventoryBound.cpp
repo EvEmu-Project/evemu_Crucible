@@ -217,13 +217,13 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 			continue;
 		}
 
-		InventoryItem *stationaryItem = m_manager->item_factory.Load(element.stationaryItemID, false);
+		InventoryItem *stationaryItem = m_manager->item_factory.GetItem(element.stationaryItemID, false);
 		if(stationaryItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load stationary item %lu. Skipping.", element.stationaryItemID);
 			continue;
 		}
 
-		InventoryItem *draggedItem = m_manager->item_factory.Load(element.draggedItemID, false);
+		InventoryItem *draggedItem = m_manager->item_factory.GetItem(element.draggedItemID, false);
 		if(draggedItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load dragged item %lu. Skipping.", element.draggedItemID);
 			stationaryItem->Release();
@@ -267,7 +267,7 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *sourceItem = m_manager->item_factory.Load((*cur), true);
+		InventoryItem *sourceItem = m_manager->item_factory.GetItem((*cur), true);
 		if(sourceItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load item %lu. Skipping.", *cur);
 			continue;
@@ -353,7 +353,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *sourceItem = m_manager->item_factory.Load((*cur), true);
+		InventoryItem *sourceItem = m_manager->item_factory.GetItem((*cur), true);
 		if(sourceItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load item %lu. Skipping.", *cur);
 			continue;

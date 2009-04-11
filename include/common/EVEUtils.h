@@ -32,8 +32,6 @@
 
 #include "PyRep.h"
 
-class InventoryItem;
-
 /*                                                                              
  *
 SEC = 10000000L
@@ -55,8 +53,6 @@ static const uint64 Win32Time_Hour = Win32Time_Minute*60;
 static const uint64 Win32Time_Day = Win32Time_Hour*24;
 static const uint64 Win32Time_Month = Win32Time_Day*30;	//according to the eve client
 static const uint64 Win32Time_Year = Win32Time_Month*12;	//according to the eve client
-
-int GetSkillLevel(const std::vector<const InventoryItem *> &skills, const uint32 skillID);
 
 //these may be later converted to classes, but now it's easier this way
 //makes ccp_exceptions.UserError exception

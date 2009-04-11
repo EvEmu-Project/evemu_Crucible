@@ -326,17 +326,24 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	cur = startingSkills.begin();
 	end = startingSkills.end();
 	for(; cur != end; cur++) {
-		InventoryItem *i = char_item->SpawnSingletonInto(cur->first, cdata.charid, flagSkill);
+		InventoryItem *i = m_manager->item_factory.SpawnItem(
+			ItemData(
+				cur->first,
+				cdata.charid,
+				cdata.charid,
+				flagSkill
+			)
+		);
 		if(i == NULL) {
 			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
 			continue;
 		}
 
-		_log(CLIENT__MESSAGE, "Training skill %lu to level %d (%d points)", i->typeID(), i->skillLevel(), i->skillPoints());
 		i->Set_skillLevel(cur->second);
 		i->Set_skillPoints(
 			GetSkillPointsForSkillLevel(i, cur->second)
 		);
+		_log(CLIENT__MESSAGE, "Trained skill %s to level %d (%d points)", i->itemName().c_str(), i->skillLevel(), i->skillPoints());
 
 		//we dont actually need the item anymore...
 		i->Release();
@@ -352,12 +359,14 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 		InventoryItem *junk;
 
 		// spawn Damage Control I ...
-		junk = m_manager->item_factory.Spawn(
-			2046,
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			1
+		junk = m_manager->item_factory.SpawnItem(
+			ItemData(
+				2046,
+				cdata.charid,
+				cdata.stationID,
+				flagHangar,
+				1
+			)
 		);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
@@ -365,12 +374,14 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 			junk->Release();
 
 		// ... and 1 unit of Tritanium
-		junk = m_manager->item_factory.Spawn(
-			34,
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			1
+		junk = m_manager->item_factory.SpawnItem(
+			ItemData(
+				34,
+				cdata.charid,
+				cdata.stationID,
+				flagHangar,
+				1
+			)
 		);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
@@ -381,17 +392,18 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	{	//item scope
 		std::string ship_name = cdata.name + "'s Ship";
-		InventoryItem *ship_item = m_manager->item_factory.SpawnSingleton(
-			shipTypeID,		// The race-specific start ship
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			ship_name.c_str()
+		InventoryItem *ship_item = m_manager->item_factory.SpawnItem(
+			ItemData(
+				shipTypeID, // The race-specific start ship
+				cdata.charid,
+				cdata.stationID,
+				flagHangar,
+				ship_name.c_str()
+			)
 		);
 		if(ship_item == NULL) {
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		} else {
-			//ship_item->Relocate(GPoint(x,y,z));<<< Why relocate already known pos?
 			//welcome onboard your starting ship
 			char_item->MoveInto(ship_item, flagPilot, false);
 			ship_item->Release();
@@ -531,7 +543,14 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	cur = startingSkills.begin();
 	end = startingSkills.end();
 	for(; cur != end; cur++) {
-		InventoryItem *i = char_item->SpawnSingletonInto(cur->first, cdata.charid, flagSkill);
+		InventoryItem *i = m_manager->item_factory.SpawnItem(
+			ItemData(
+				cur->first,
+				cdata.charid,
+				cdata.charid,
+				flagSkill
+			)
+		);
 		if(i == NULL) {
 			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
 			continue;
@@ -552,12 +571,14 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 		InventoryItem *junk;
 
 		// spawn Damage Control I ...
-		junk = m_manager->item_factory.Spawn(
-			2046,
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			1
+		junk = m_manager->item_factory.SpawnItem(
+			ItemData(
+				2046,
+				cdata.charid,
+				cdata.stationID,
+				flagHangar,
+				1
+			)
 		);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
@@ -565,12 +586,14 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 			junk->Release();
 
 		// ... and 1 unit of Tritanium
-		junk = m_manager->item_factory.Spawn(
-			34,
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			1
+		junk = m_manager->item_factory.SpawnItem(
+			ItemData(
+				34,
+				cdata.charid,
+				cdata.stationID,
+				flagHangar,
+				1
+			)
 		);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
@@ -581,12 +604,14 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
 	{	//item scope
 		std::string ship_name = cdata.name + "'s Ship";
-		InventoryItem *ship_item = m_manager->item_factory.SpawnSingleton(
-			shipTypeID,		// The race-specific start ship
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			ship_name.c_str()
+		InventoryItem *ship_item = m_manager->item_factory.SpawnItem(
+			ItemData(
+				shipTypeID, // The race-specific start ship
+				cdata.charid,
+				cdata.stationID,
+				flagHangar,
+				ship_name.c_str()
+			)
 		);
 		if(ship_item == NULL) {
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
@@ -629,7 +654,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	//TODO: make sure this person actually owns this char...
 
 	_log(CLIENT__MESSAGE, "Timed delete of char %lu unimplemented. Deleting Immediately.", args.arg);
-	InventoryItem *char_item = m_manager->item_factory.Load(args.arg, true);
+	InventoryItem *char_item = m_manager->item_factory.GetItem(args.arg, true);
 	if(char_item == NULL) {
 		codelog(CLIENT__ERROR, "Failed to load char item %lu.", args.arg);
 		return NULL;
@@ -648,7 +673,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *i = m_manager->item_factory.Load(*cur, true);
+		InventoryItem *i = m_manager->item_factory.GetItem(*cur, true);
 		if(i == NULL) {
 			codelog(CLIENT__ERROR, "Failed to load item %lu to delete. Skipping.", *cur);
 			continue;

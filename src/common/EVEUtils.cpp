@@ -27,8 +27,6 @@
 #include "EVEUtils.h"
 #include "MiscFunctions.h"
 
-#include "../server/inventory/InventoryItem.h"
-
 #include "../packets/General.h"
 
 static const uint64 SECS_BETWEEN_EPOCHS = 11644473600LL;
@@ -84,16 +82,6 @@ size_t strcpy_fake_unicode(wchar_t *into, const char *from) {
 		from++;
 	}
 	return(r*2);
-}
-
-int GetSkillLevel(const std::vector<const InventoryItem *> &skills, const uint32 skillID) {
-	std::vector<const InventoryItem *>::const_iterator cur, end;
-	cur = skills.begin();
-	end = skills.end();
-	for(; cur != end; cur++)
-		if((*cur)->typeID() == skillID)
-			return((*cur)->skillLevel());
-	return 0;
 }
 
 PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args) {

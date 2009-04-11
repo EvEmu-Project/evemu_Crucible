@@ -105,7 +105,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	}
 
 	// load installed item
-	InventoryItem *installedItem = m_manager->item_factory.Load(args.installedItemID, false);
+	InventoryItem *installedItem = m_manager->item_factory.GetItem(args.installedItemID, false);
 	if(installedItem == NULL)
 		return NULL;
 
@@ -167,7 +167,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 		// now we are sure everything from the client side is right, we can start it ...
 
 		// load location where are located all materials
-		InventoryItem *bomLocation = m_manager->item_factory.Load(pathBomLocation.locationID, true);
+		InventoryItem *bomLocation = m_manager->item_factory.GetItem(pathBomLocation.locationID, true);
 		if(bomLocation == NULL) {
 			installedItem->Release();
 			return NULL;
@@ -271,7 +271,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 		return NULL;
 
 	// return item
-	InventoryItem *installedItem = m_manager->item_factory.Load(installedItemID, false);
+	InventoryItem *installedItem = m_manager->item_factory.GetItem(installedItemID, false);
 	if(installedItem == NULL)
 		return NULL;
 	installedItem->ChangeFlag(outputFlag);
@@ -291,11 +291,21 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			uint32 quantity = cur->quantity * runs * (1.0 - cur->damagePerJob);
 			if(quantity == 0)
 				continue;
-			InventoryItem *item = m_manager->item_factory.Spawn(cur->typeID, ownerID, 0, outputFlag, quantity);
+
+			InventoryItem *item = m_manager->item_factory.SpawnItem(
+				ItemData(
+					cur->typeID,
+					ownerID,
+					0, //temp location
+					outputFlag,
+					quantity
+				)
+			);
 			if(item == NULL) {
 				installedItem->Release();
 				return NULL;
 			}
+
 			item->Move(args.containerID, outputFlag);
 			item->Release();
 		}
@@ -310,12 +320,14 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			case ramActivityManufacturing: {
 				BlueprintItem *bp = (BlueprintItem *)installedItem;
 
-				InventoryItem *item = m_manager->item_factory.Spawn(
-					bp->productType()->id,
-					ownerID,
-					0,	// temp location
-					outputFlag,
-					bp->productType()->portionSize * runs
+				InventoryItem *item = m_manager->item_factory.SpawnItem(
+					ItemData(
+						bp->productTypeID(),
+						ownerID,
+						0,	// temp location
+						outputFlag,
+						bp->productType().portionSize() * runs
+					)
 				);
 				if(item == NULL) {
 					installedItem->Release();
@@ -350,19 +362,25 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 				BlueprintItem *bp = (BlueprintItem *)installedItem;
 
 				BlueprintItem *copy = m_manager->item_factory.SpawnBlueprint(
-					installedItem->typeID(),
-					ownerID,
-					0,	//temp location
-					outputFlag,
-					runs,
-					true,
-					bp->materialLevel(),
-					bp->productivityLevel(),
-					licensedProductionRuns);
+					ItemData(
+						installedItem->typeID(),
+						ownerID,
+						0, //temp location
+						outputFlag,
+						runs
+					),
+					BlueprintData(
+						true,
+						bp->materialLevel(),
+						bp->productivityLevel(),
+						licensedProductionRuns
+					)
+				);
 				if(copy == NULL) {
 					installedItem->Release();
 					return NULL;
 				}
+
 				copy->Move(args.containerID, outputFlag);
 				copy->Release();
 			}
@@ -405,7 +423,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 			if(!bp->infinite() && (bp->licensedProductionRunsRemaining() - args.runs) < 0)
 				throw(PyException(MakeUserError("RamTooManyProductionRuns")));
 
-			productType = bp->productType();
+			productType = &bp->productType();
 			break;
 		}
 		/*
@@ -421,7 +439,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 			if(bp->copy())
 				throw(PyException(MakeUserError("RamCannotResearchABlueprintCopy")));
 
-			productType = bp->type();
+			productType = &bp->type();
 			break;
 		}
 		/*
@@ -436,7 +454,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 			if(bp->copy())
 				throw(PyException(MakeUserError("RamCannotCopyABlueprintCopy")));
 
-			productType = bp->type();
+			productType = &bp->type();
 			break;
 		}
 		/*
@@ -673,7 +691,7 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
 
 	// SKILLS & ITEMS CHECK
 	// *********************
-	std::vector<const InventoryItem *> skills, items;
+	std::vector<InventoryItem *> skills, items;
 
 	// get skills ...
 	std::set<EVEItemFlags> flags;
@@ -682,7 +700,7 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
 	c->Char()->FindByFlagSet(flags, skills);
 
 	// ... and items
-	InventoryItem *bomLocation = m_manager->item_factory.Load(pathBomLocation.locationID, true);
+	InventoryItem *bomLocation = m_manager->item_factory.GetItem(pathBomLocation.locationID, true);
 	if(bomLocation == NULL)
 		throw(PyException(NULL));
 	bomLocation->FindByFlag((EVEItemFlags)pathBomLocation.flag, items);
@@ -694,15 +712,16 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
 	for(; cur != end; cur++) {
 		// check skill (quantity is required level)
 		if(cur->isSkill) {
+			/* Commented out until we get skills working some different way ... 
 			if(GetSkillLevel(skills, cur->typeID) < cur->quantity) {
 				std::map<std::string, PyRep *> args;
 				args["item"] = new PyRepString(
-					m_manager->item_factory.type(cur->typeID)->name.c_str()
+					m_manager->item_factory.type(cur->typeID)->name().c_str()
 				);
 				args["skillLevel"] = new PyRepInteger(cur->quantity);
 
 				throw(PyException(MakeUserError("RamNeedSkillForJob", args)));
-			}
+			}*/
 		} else {
 			// check materials
 
@@ -711,18 +730,24 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
 			if(cur->damagePerJob == 1.0)
 				qtyNeeded = ceil(qtyNeeded * rsp.charMaterialMultiplier);	// skill multiplier is applied only on fully consumed materials
 
-			std::vector<const InventoryItem *>::iterator curi, endi;
+			std::vector<InventoryItem *>::iterator curi, endi;
 			curi = items.begin();
 			endi = items.end();
-
-			for(; curi != endi && qtyNeeded > 0; curi++)
-				if((*curi)->typeID() == cur->typeID && (*curi)->ownerID() == c->GetCharacterID())
-					qtyNeeded = (*curi)->quantity() > qtyNeeded ? 0 : qtyNeeded - (*curi)->quantity();
+			for(; curi != endi; curi++) {
+				if(    (*curi)->typeID() == cur->typeID
+					&& (*curi)->ownerID() == c->GetCharacterID()
+				) {
+					if((*curi)->quantity() < qtyNeeded)
+						qtyNeeded -= (*curi)->quantity();
+					else
+						break;
+				}
+			}
 
 			if(qtyNeeded > 0) {
 				std::map<std::string, PyRep *> args;
 				args["item"] = new PyRepString(
-					m_manager->item_factory.type(cur->typeID)->name.c_str()
+					m_manager->item_factory.GetType(cur->typeID)->name().c_str()
 				);
 
 				throw(PyException(MakeUserError("RamNeedMoreForJob", args)));
@@ -771,9 +796,9 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 		case ramActivityManufacturing: {
 			BlueprintItem *bp = (BlueprintItem *)installedItem;
 
-			productType = bp->productType();
+			productType = &bp->productType();
 
-			into.productionTime = bp->bptype()->productionTime;
+			into.productionTime = bp->type().productionTime();
 
 			into.materialMultiplier *= bp->materialMultiplier();
 			into.timeMultiplier *= bp->timeMultiplier();
@@ -795,9 +820,9 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 		case ramActivityResearchingTimeProductivity: {
 			BlueprintItem *bp = (BlueprintItem *)installedItem;
 
-			productType = installedItem->type();
+			productType = &installedItem->type();
 
-			into.productionTime = bp->bptype()->researchProductivityTime;
+			into.productionTime = bp->type().researchProductivityTime();
 			into.charMaterialMultiplier = double(c->Char()->researchCostPercent()) / 100.0;
 			into.charTimeMultiplier = c->Char()->manufacturingTimeResearchSpeed();
 			break;
@@ -808,9 +833,9 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 		case ramActivityResearchingMaterialProductivity: {
 			BlueprintItem *bp = (BlueprintItem *)installedItem;
 
-			productType = installedItem->type();
+			productType = &installedItem->type();
 
-			into.productionTime = bp->bptype()->researchMaterialTime;
+			into.productionTime = bp->type().researchMaterialTime();
 			into.charMaterialMultiplier = double(c->Char()->researchCostPercent()) / 100.0;
 			into.charTimeMultiplier = c->Char()->mineralNeedResearchSpeed();
 			break;
@@ -821,17 +846,17 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 		case ramActivityCopying: {
 			BlueprintItem *bp = (BlueprintItem *)installedItem;
 
-			productType = installedItem->type();
+			productType = &installedItem->type();
 
 			// no ceil() here on purpose
-			into.productionTime = (bp->bptype()->researchCopyTime / bp->bptype()->maxProductionLimit) * args.licensedProductionRuns;
+			into.productionTime = (bp->type().researchCopyTime() / bp->type().maxProductionLimit()) * args.licensedProductionRuns;
 
 			into.charMaterialMultiplier = double(c->Char()->researchCostPercent()) / 100.0;
 			into.charTimeMultiplier = c->Char()->copySpeedPercent();
 			break;
 		}
 		default: {
-			productType = installedItem->type();
+			productType = &installedItem->type();
 
 			into.charMaterialMultiplier = 1.0;
 			into.charTimeMultiplier = 1.0;
@@ -894,14 +919,14 @@ void RamProxyService::_EncodeBillOfMaterials(const std::vector<RequiredItem> &re
 
 void RamProxyService::_EncodeMissingMaterials(const std::vector<RequiredItem> &reqItems, const PathElement &bomLocation, Client *const c, double materialMultiplier, double charMaterialMultiplier, uint32 runs, std::map<uint32, PyRep *> &into) {
 	//query out what we need
-	std::vector<const InventoryItem *> skills, items;
+	std::vector<InventoryItem *> skills, items;
 
 	//get the skills
 	c->Char()->FindByFlag(flagSkill, skills);
 	c->Char()->FindByFlag(flagSkillInTraining, skills);
 
 	//get the items
-	InventoryItem *bomContainer = m_manager->item_factory.Load(bomLocation.locationID, true);
+	InventoryItem *bomContainer = m_manager->item_factory.GetItem(bomLocation.locationID, true);
 	if(bomContainer == NULL)
 		return;
 	bomContainer->FindByFlag(EVEItemFlags(bomLocation.flag), items);
@@ -918,9 +943,9 @@ void RamProxyService::_EncodeMissingMaterials(const std::vector<RequiredItem> &r
 			if(cur->damagePerJob == 1.0)
 				qtyReq = ceil(qtyReq * charMaterialMultiplier);
 		}
-		std::vector<const InventoryItem *>::const_iterator curi, endi;
-		curi = cur->isSkill ? skills.begin() : items.begin();
-		endi = cur->isSkill ? skills.end() : items.end();
+		std::vector<InventoryItem *>::const_iterator curi, endi;
+		curi = (cur->isSkill ? skills.begin() : items.begin());
+		endi = (cur->isSkill ? skills.end() : items.end());
 		for(; curi != endi && qtyReq > 0; curi++) {
 			if((*curi)->typeID() == cur->typeID && (*curi)->ownerID() == c->GetCharacterID()) {
 				if(cur->isSkill)

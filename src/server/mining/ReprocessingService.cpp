@@ -232,7 +232,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 	cur = call_args.items.begin();
 	end = call_args.items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *item = m_manager->item_factory.Load(*cur, true);
+		InventoryItem *item = m_manager->item_factory.GetItem(*cur, true);
 		if(item == NULL)
 			continue;
 
@@ -242,10 +242,10 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 		}
 
 		// this should never happen, but for sure ...
-		if(item->type()->portionSize > item->quantity()) {
+		if(item->type().portionSize() > item->quantity()) {
 			std::map<std::string, PyRep *> args;
 			args["typename"] = new PyRepString(item->itemName().c_str());
-			args["portion"] = new PyRepInteger(item->type()->portionSize);
+			args["portion"] = new PyRepInteger(item->type().portionSize());
 
 			item->Release();
 			throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
@@ -263,15 +263,19 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 		cur_rec = recoverables.begin();
 		end_rec = recoverables.end();
 		for(; cur_rec != end_rec; cur_rec++) {
-			uint32 quantity = cur_rec->amountPerBatch * efficiency * (1.0 - m_tax) * item->quantity() / item->type()->portionSize;
+			uint32 quantity = cur_rec->amountPerBatch * efficiency * (1.0 - m_tax) * item->quantity() / item->type().portionSize();
 			if(quantity == 0)
 				continue;
-			InventoryItem *i = m_manager->item_factory.Spawn(
-				cur_rec->typeID,
-				call.client->GetCharacterID(),
-				0,
-				flagHangar,
-				quantity);
+
+			InventoryItem *i = m_manager->item_factory.SpawnItem(
+				ItemData(
+					cur_rec->typeID,
+					call.client->GetCharacterID(),
+					0, //temp location
+					flagHangar,
+					quantity
+				)
+			);
 			if(i == NULL)
 				continue;
 
@@ -279,7 +283,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 			i->Release();
 		}
 
-		uint32 qtyLeft = item->quantity() % item->type()->portionSize;
+		uint32 qtyLeft = item->quantity() % item->type().portionSize();
 		if(qtyLeft == 0)
 			item->Delete();
 		else {
@@ -296,12 +300,14 @@ double ReprocessingServiceBound::_CalcReprocessingEfficiency(const Client *c, co
 	flags.insert(flagSkill);
 	flags.insert(flagSkillInTraining);
 
-	std::vector<const InventoryItem *> skills;
+	std::vector<InventoryItem *> skills;
 
 	c->Char()->FindByFlagSet(flags, skills);
 
 	// formula is: reprocessingEfficiency + 0.375*(1 + 0.02*RefiningSkill)*(1 + 0.04*RefineryEfficiencySkill)*(1 + 0.05*OreProcessingSkill)
-	double efficiency =	0.375*(1 + 0.02*GetSkillLevel(skills, skillRefining))*
+	// commented out until we have skills working different way ...
+	double efficiency = 0.375;
+	/*double efficiency =	0.375*(1 + 0.02*GetSkillLevel(skills, skillRefining))*
 						(1 + 0.04*GetSkillLevel(skills, skillRefineryEfficiency));
 
 	if(item != NULL) {
@@ -310,7 +316,7 @@ double ReprocessingServiceBound::_CalcReprocessingEfficiency(const Client *c, co
 			efficiency *= 1 + 0.05*GetSkillLevel(skills, specificSkill);
 		else
 			efficiency *= 1 + 0.05*GetSkillLevel(skills, skillScrapmetalProcessing);	// use Scrapmetal Processing as default
-	}
+	}*/
 
 	efficiency += m_staEfficiency;
 
@@ -321,7 +327,7 @@ double ReprocessingServiceBound::_CalcReprocessingEfficiency(const Client *c, co
 }
 
 PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const {
-	InventoryItem *item = m_manager->item_factory.Load(itemID, true);
+	InventoryItem *item = m_manager->item_factory.GetItem(itemID, true);
 	if(item == NULL)
 		return NULL;	// No action as GetQuote is also called for reprocessed items (probably for check)
 
@@ -331,21 +337,21 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 		return NULL;
 	}
 
-	if(item->quantity() < item->type()->portionSize) {
+	if(item->quantity() < item->type().portionSize()) {
 		std::map<std::string, PyRep *> args;
 		args["typename"] = new PyRepString(item->itemName().c_str());
-		args["portion"] = new PyRepInteger(item->type()->portionSize);
+		args["portion"] = new PyRepInteger(item->type().portionSize());
 
 		item->Release();
 		throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
 	}
 
 	Rsp_GetQuote res;
-	res.leftOvers = item->quantity() % item->type()->portionSize;
+	res.leftOvers = item->quantity() % item->type().portionSize();
 	res.quantityToProcess = item->quantity() - res.leftOvers;
 	res.playerStanding = 0.0;	// hack
 
-	if(item->quantity() >= item->type()->portionSize) {
+	if(item->quantity() >= item->type().portionSize()) {
 		std::vector<Recoverable> recoverables;
 		if(!m_db->GetRecoverables(item->typeID(), recoverables)) {
 			item->Release();
@@ -362,7 +368,7 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 			Rsp_GetQuote_Recoverables_Line line;
 
 			line.typeID =			cur->typeID;
-			uint32 ratio = cur->amountPerBatch * res.quantityToProcess / item->type()->portionSize;
+			uint32 ratio = cur->amountPerBatch * res.quantityToProcess / item->type().portionSize();
 			line.unrecoverable =	uint32((1.0 - efficiency)			* ratio);
 			line.station =			uint32(efficiency * m_tax			* ratio);
 			line.client =			uint32(efficiency * (1.0 - m_tax)	* ratio);

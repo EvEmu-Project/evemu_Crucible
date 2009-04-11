@@ -723,7 +723,7 @@ void Client::MoveToPosition(const GPoint &pt) {
 
 void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag) {
 	
-	InventoryItem *item = m_services.item_factory.Load(itemID, false);
+	InventoryItem *item = m_services.item_factory.GetItem(itemID, false);
 	if(item == NULL) {
 		codelog(SERVICE__ERROR, "%s: Unable to load item %lu", GetName(), itemID);
 		return;
@@ -1184,11 +1184,11 @@ bool Client::Load(uint32 char_id) {
 	}
 
 	//get char
-	InventoryItem *character = m_services.item_factory.Load(char_id, true);
+	InventoryItem *character = m_services.item_factory.GetItem(char_id, true);
 	if(character == NULL)
 		return false;
 
-	InventoryItem *ship = m_services.item_factory.Load(character->locationID(), true);
+	InventoryItem *ship = m_services.item_factory.GetItem(character->locationID(), true);
 	if(ship == NULL)
 		return false;
 

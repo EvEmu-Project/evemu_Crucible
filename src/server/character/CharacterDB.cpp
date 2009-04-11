@@ -145,7 +145,16 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory &fact, cons
 	typeID = row.GetUInt(0);
 
 	//do the insert into the entity table to get our char ID.
-	InventoryItem *char_item = fact.SpawnSingleton(typeID, 1, locationID, flagPilot, data.name.c_str());
+	InventoryItem *char_item = fact.SpawnItem(
+		ItemData(
+			typeID,
+			1, //owner
+			locationID,
+			flagPilot,
+			data.name.c_str(),
+			GPoint(0, 0, 0)
+		)
+	);
 	if(char_item == NULL) {
 		codelog(SERVICE__ERROR, "Failed to create character entity!");
 		return NULL;
@@ -315,7 +324,16 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 acct, ItemFactory &fact, con
 	uint32 intelligence = row.GetUInt(4);
 
 	//do the insert into the entity table to get our char ID.
-	InventoryItem *char_item = fact.SpawnSingleton(typeID, 1, locationID, flagPilot, data.name.c_str());
+	InventoryItem *char_item = fact.SpawnItem(
+		ItemData(
+			typeID,
+			1, //owner
+			locationID,
+			flagPilot,
+			data.name.c_str(),
+			GPoint(0, 0, 0)
+		)
+	);
 	if(char_item == NULL) {
 		codelog(SERVICE__ERROR, "Failed to create character entity!");
 		return NULL;

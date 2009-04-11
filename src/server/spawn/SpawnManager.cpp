@@ -144,13 +144,14 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 			//NOTE: this is currently creating an entry in the DB...
 			//which is terrible... we need to make an "in-memory only"
 			// item concept.
-			InventoryItem *i;
-			i = svc.item_factory.SpawnSingleton(
-				cur->npcTypeID,
-				cur->ownerID,	//owner
-				mgr.GetID(),
-				flagAutoFit
-				);
+			InventoryItem *i = svc.item_factory.SpawnItem(
+				ItemData(
+					cur->npcTypeID,
+					cur->ownerID,	//owner
+					mgr.GetID(),
+					flagAutoFit
+				)
+			);
 			if(i == NULL) {
 				_log(SPAWN__ERROR, "Failed to spawn item with type %lu for group %lu.", cur->npcTypeID, cur->spawnGroupID);
 				continue;

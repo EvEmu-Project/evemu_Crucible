@@ -54,27 +54,66 @@ class Rsp_CommonGetInfo_Entry;
 
 extern const uint32 SKILL_BASE_POINTS;
 
-class InventoryItem {
+/*
+ * Simple container for raw item data.
+ */
+class ItemData {
 public:
-	InventoryItem(
-		ItemFactory &_factory,
-		uint32 _itemID,
-		const char *_itemName,
-		const Type *_type,
+	// Full + default constructor:
+	ItemData(
+		const char *_name = "",
+		uint32 _typeID = 0,
+		uint32 _ownerID = 0,
+		uint32 _locationID = 0,
+		EVEItemFlags _flag = flagAutoFit,
+		bool _contraband = false,
+		bool _singleton = false,
+		uint32 _quantity = 0,
+		const GPoint &_position = GPoint(0, 0, 0),
+		const char *_customInfo = "");
+	// Usual-item friendly constructor:
+	ItemData(
+		uint32 _typeID,
 		uint32 _ownerID,
 		uint32 _locationID,
 		EVEItemFlags _flag,
-		bool _contraband,
-		bool _singleton,
 		uint32 _quantity,
-		const GPoint &_position,
-		const char *_customInfo);
-	virtual ~InventoryItem();
+		const char *_customInfo = "",
+		bool _contraband = false);
+	// Singleton friendly constructor:
+	ItemData(
+		uint32 _typeID,
+		uint32 _ownerID,
+		uint32 _locationID,
+		EVEItemFlags _flag,
+		const char *_name = "",
+		const GPoint &_position = GPoint(0, 0, 0),
+		const char *_customInfo = "",
+		bool _contraband = false);
 
+	// Content:
+	std::string name;
+	uint32 typeID;
+	uint32 ownerID;
+	uint32 locationID;
+	EVEItemFlags flag;
+	bool contraband;
+	bool singleton;
+	uint32 quantity;
+	GPoint position;
+	std::string customInfo;
+};
+
+/*
+ * Class which maintains generic item.
+ */
+class InventoryItem {
+public:
 	/*
-	 * Factory method:
+	 * Factory methods:
 	 */
-	static InventoryItem *LoadItem(ItemFactory &factory, uint32 itemID, bool recurse=false);
+	static InventoryItem *Load(ItemFactory &factory, uint32 itemID, bool recurse=false);
+	static InventoryItem *Spawn(ItemFactory &factory, ItemData &data);
 
 	/*
 	 * Primary public interface:
@@ -82,7 +121,6 @@ public:
 	void Release();
 	InventoryItem *Ref();
 
-	virtual bool Load(bool recurse=false);
 	virtual void Save(bool recursive=false, bool saveAttributes=true) const;	//save the item to the DB.
 	virtual void Delete();	//remove the item from the DB, and Release() it. Consumes a ref!
 
@@ -99,7 +137,7 @@ public:
 	bool AlterQuantity(int32 qty_change, bool notify=true);
 	bool SetQuantity(uint32 qty_new, bool notify=true);
 	bool ChangeSingleton(bool singleton, bool notify=true);
-	
+
 	/*
 	 * Helper routines:
 	 */
@@ -108,14 +146,13 @@ public:
 
 	//do we want to impose recursive const?
 	bool Contains(InventoryItem *item, bool recursive=false) const;
-	InventoryItem *FindFirstByFlag(EVEItemFlags flag, bool newref = false);
 	InventoryItem *GetByID(uint32 id, bool newref = false);
+
+	InventoryItem *FindFirstByFlag(EVEItemFlags flag, bool newref = false);
 	uint32 FindByFlag(EVEItemFlags flag, std::vector<InventoryItem *> &items, bool newref = false);
-	uint32 FindByFlag(EVEItemFlags flag, std::vector<const InventoryItem *> &items, bool newref = false) const;
 	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref = false);
-	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<const InventoryItem *> &items, bool newref = false) const;
 	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref = false);
-	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<const InventoryItem *> &items, bool newref = false) const;
+
 	double GetRemainingCapacity( EVEItemFlags flag) const;
 	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = NULL);
 
@@ -123,18 +160,6 @@ public:
 	void PutOffline();
 	void TrainSkill(InventoryItem *skill);	//call on the character object.
 
-	//spawn a new item with the specified information, creating it in the DB as well.
-	InventoryItem *SpawnInto(
-		uint32 typeID,
-		uint32 ownerID,
-		EVEItemFlags flag,
-		uint32 quantity);
-	InventoryItem *SpawnSingletonInto(
-		uint32 typeID,
-		uint32 ownerID,
-		EVEItemFlags flag,
-		const char *name = NULL);
-	
 	/*
 	 * Primary public packet builders:
 	 */
@@ -147,24 +172,24 @@ public:
 	/*
 	 * Public Fields:
 	 */
-	uint32				itemID() const { return(m_itemID); }
-	const std::string &	itemName() const { return(m_itemName); }
-	const Type *		type() const { return(m_type); }
-	uint32				typeID() const { return(m_type->id); }
-	uint32				ownerID() const { return(m_ownerID); }
-	uint32				locationID() const { return(m_locationID); }
-	EVEItemFlags		flag() const { return(m_flag); }
-	bool				contraband() const { return(m_contraband); }
-	bool				singleton() const { return(m_singleton); }
-	uint32				quantity() const { return(m_quantity); }
-	const GPoint &		position() const { return(m_position); }
-	const std::string &	customInfo() const { return(m_customInfo); }
+	uint32                  itemID() const { return(m_itemID); }
+	const std::string &     itemName() const { return(m_itemName); }
+	const Type &            type() const { return(m_type); }
+	uint32                  ownerID() const { return(m_ownerID); }
+	uint32                  locationID() const { return(m_locationID); }
+	EVEItemFlags            flag() const { return(m_flag); }
+	bool                    contraband() const { return(m_contraband); }
+	bool                    singleton() const { return(m_singleton); }
+	uint32                  quantity() const { return(m_quantity); }
+	const GPoint &          position() const { return(m_position); }
+	const std::string &     customInfo() const { return(m_customInfo); }
 
 	// helper type methods
-	const Group *		group() const { return(m_type->group); }
-	uint32				groupID() const { return(m_type->groupID()); }
-	const Category *	category() const { return(m_type->category()); }
-	EVEItemCategories	categoryID() const { return(m_type->categoryID()); }
+	uint32                  typeID() const { return(type().id()); }
+	const Group &           group() const { return(type().group()); }
+	uint32                  groupID() const { return(type().groupID()); }
+	const Category &        category() const { return(type().category()); }
+	EVEItemCategories       categoryID() const { return(type().categoryID()); }
 
 	/*
 	 * Attribute access:
@@ -192,29 +217,33 @@ public:
 	#define ATTRD(ID, name, default_value, persistent) \
 		ATTRFUNC(name, double)
 	#include "EVEAttributes.h"
-	
+
 protected:
-	uint16 m_refCount;
+	InventoryItem(
+		ItemFactory &_factory,
+		uint32 _itemID,
+		// InventoryItem stuff:
+		const Type &_type,
+		const ItemData &_data);
+	virtual ~InventoryItem();
 
-	// our factory
-	ItemFactory &	m_factory;
-
-	// our item data:
-	const uint32	m_itemID;
-	std::string		m_itemName;
-	const Type *	m_type;
-	uint32			m_ownerID;
-	uint32			m_locationID;	//where is this item located
-	EVEItemFlags	m_flag;
-	bool			m_contraband;
-	bool			m_singleton;
-	uint32			m_quantity;
-	GPoint			m_position;
-	std::string		m_customInfo;
-	
 	/*
 	 * Internal helper routines:
 	 */
+	static InventoryItem *_Load(ItemFactory &factory, uint32 itemID
+	);
+	static InventoryItem *_Load(ItemFactory &factory, uint32 itemID,
+		// InventoryItem stuff:
+		const Type &type, const ItemData &data
+	);
+
+	virtual bool _Load(bool recurse=false);
+
+	static InventoryItem *_Spawn(ItemFactory &factory,
+		// InventoryItem stuff:
+		const ItemData &data
+	);
+
 	void SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const;
 	bool Populate(Rsp_CommonGetInfo_Entry &into) const;
 	void SetOnline(bool newval);
@@ -222,8 +251,49 @@ protected:
 	void AddContainedItem(InventoryItem *it);
 	void RemoveContainedItem(InventoryItem *it);
 
+	/*
+	 * Member variables
+	 */
+	// our reference count:
+	uint16          m_refCount;
+
+	// our factory
+	ItemFactory &   m_factory;
+
+	// our item data:
+	const uint32    m_itemID;
+	std::string     m_itemName;
+	const Type &    m_type;
+	uint32          m_ownerID;
+	uint32          m_locationID; //where is this item located
+	EVEItemFlags    m_flag;
+	bool            m_contraband;
+	bool            m_singleton;
+	uint32          m_quantity;
+	GPoint          m_position;
+	std::string     m_customInfo;
+
 	bool m_contentsLoaded;
 	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.
+};
+
+/*
+ * Basic container for raw blueprint data.
+ */
+class BlueprintData {
+public:
+	BlueprintData(
+		bool _copy = false,
+		uint32 _materialLevel = 0,
+		uint32 _productivityLevel = 0,
+		int32 _licensedProductionRunsRemaining = 0
+	);
+
+	// Content:
+	bool copy;
+	uint32 materialLevel;
+	uint32 productivityLevel;
+	int32 licensedProductionRunsRemaining;
 };
 
 /*
@@ -232,39 +302,46 @@ protected:
 class BlueprintItem
 : public InventoryItem
 {
+	friend class InventoryItem;	// to let it construct us
 public:
-	BlueprintItem(
-		ItemFactory &_factory,
-		uint32 _itemID,
-		const char *_itemName,
-		const Type *_type,
-		uint32 _ownerID,
-		uint32 _locationID,
-		EVEItemFlags _flag,
-		bool _contraband,
-		bool _singleton,
-		uint32 _quantity,
-		const GPoint &_position,
-		const char *_customInfo,
-		bool _copy,
-		uint32 _materialLevel,
-		uint32 _productivityLevel,
-		int32 _licensedProductionRunsRemaining);
+	/*
+	 * Factory methods:
+	 */
+	static BlueprintItem *Load(ItemFactory &factory, uint32 blueprintID, bool recurse=false);
+	static BlueprintItem *Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData);
+
+	/*
+	 * Public fields:
+	 */
+	const BlueprintType &   type() const { return(static_cast<const BlueprintType &>(InventoryItem::type())); }
+	const BlueprintType *   parentBlueprintType() const { return(type().parentBlueprintType()); }
+	uint32                  parentBlueprintTypeID() const { return(type().parentBlueprintTypeID()); }
+	const Type &            productType() const { return(type().productType()); }
+	uint32                  productTypeID() const { return(type().productTypeID()); }
+	bool                    copy() const { return(m_copy); }
+	uint32                  materialLevel() const { return(m_materialLevel); }
+	uint32                  productivityLevel() const { return(m_productivityLevel); }
+	int32                   licensedProductionRunsRemaining() const { return(m_licensedProductionRunsRemaining); }
 
 	/*
 	 * Primary public interface:
 	 */
+	BlueprintItem *Ref() { return static_cast<BlueprintItem *>(InventoryItem::Ref()); }
+
 	void Save(bool recursive=false, bool saveAttributes=true) const;
 	void Delete();
 
 	// copy
 	void SetCopy(bool copy);
+
 	// material level
 	void SetMaterialLevel(uint32 materialLevel);
 	bool AlterMaterialLevel(int32 materialLevelChange);
+
 	// productivity level
 	void SetProductivityLevel(uint32 productivityLevel);
 	bool AlterProductivityLevel(int32 producitvityLevelChange);
+
 	// licensed production runs
 	void SetLicensedProductionRunsRemaining(int32 licensedProductionRunsRemaining);
 	void AlterLicensedProductionRunsRemaining(int32 licensedProductionRunsRemainingChange);
@@ -277,38 +354,63 @@ public:
 	bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
 
 	/*
+	 * Helper routines:
+	 */
+	bool infinite() const { return(licensedProductionRunsRemaining() < 0); }
+	double wasteFactor() const { return(type().wasteFactor() / (1 + materialLevel())); }
+	// these are for manufacturing:
+	double materialMultiplier() const { return(1.0 + wasteFactor()); }
+	double timeMultiplier() const {
+		return(1.0 - (timeSaved() / type().productionTime()));
+	}
+	double timeSaved() const {
+		return((1.0 - (1.0 / (1 + productivityLevel()))) * type().productivityModifier());
+	}
+
+	/*
 	 * Primary public packet builders:
 	 */
 	PyRepDict *GetBlueprintAttributes() const;
 
-	/*
-	 * Public fields:
-	 */
-	const BlueprintType *	bptype() const { return((const BlueprintType *)(InventoryItem::type())); }
-	bool					copy() const { return(m_copy); }
-	uint32					materialLevel() const { return(m_materialLevel); }
-	uint32					productivityLevel() const { return(m_productivityLevel); }
-	int32					licensedProductionRunsRemaining() const { return(m_licensedProductionRunsRemaining); }
-
-	/*
-	 * Helper routines:
-	 */
-	const Type *parentBlueprintType() const { return(bptype()->parentBlueprintType); }
-	const Type *productType() const { return(bptype()->productType); }
-
-	bool infinite() const { return(licensedProductionRunsRemaining() < 0); }
-	double wasteFactor() const { return(bptype()->wasteFactor / (1 + materialLevel())); }
-
-	// these are for manufacturing!
-	double materialMultiplier() const {
-		return(1.0 + wasteFactor());
-	}
-	double timeMultiplier() const {
-		return((bptype()->productionTime - (1.0 - (1.0 / (1 + productivityLevel()))) * bptype()->productivityModifier) / bptype()->productionTime);
-	}
-
 protected:
-	// our blueprint data:
+	BlueprintItem(
+		ItemFactory &_factory,
+		uint32 _blueprintID,
+		// InventoryItem stuff:
+		const BlueprintType &_bpType,
+		const ItemData &_data,
+		// BlueprintItem stuff:
+		const BlueprintData &_bpData
+	);
+
+	/*
+	 * Member functions
+	 */
+	static BlueprintItem *_Load(ItemFactory &factory, uint32 blueprintID
+	);
+	static BlueprintItem *_Load(ItemFactory &factory, uint32 blueprintID,
+		// InventoryItem stuff:
+		const BlueprintType &bpType, const ItemData &data
+	);
+	static BlueprintItem *_Load(ItemFactory &factory, uint32 blueprintID,
+		// InventoryItem stuff:
+		const BlueprintType &bpType, const ItemData &data,
+		// BlueprintItem stuff:
+		const BlueprintData &bpData
+	);
+	virtual bool _Load(bool recurse=false);
+
+	static BlueprintItem *_Spawn(ItemFactory &factory,
+		// InventoryItem stuff:
+		const ItemData &data,
+		// BlueprintItem stuff:
+		const BlueprintData &bpData
+	);
+
+
+	/*
+	 * Member variables
+	 */
 	bool m_copy;
 	uint32 m_materialLevel;
 	uint32 m_productivityLevel;

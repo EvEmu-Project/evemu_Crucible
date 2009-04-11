@@ -32,14 +32,12 @@
 const uint32 SKILL_BASE_POINTS = 250;
 
 /*
- * InventoryItem
+ * ItemData
  */
-InventoryItem::InventoryItem(
-	ItemFactory &_factory,
-	uint32 _itemID,
-	const char *_itemName,
-	const Type *_type, 
-	uint32 _ownerID, 
+ItemData::ItemData(
+	const char *_name,
+	uint32 _typeID,
+	uint32 _ownerID,
 	uint32 _locationID,
 	EVEItemFlags _flag,
 	bool _contraband,
@@ -47,23 +45,90 @@ InventoryItem::InventoryItem(
 	uint32 _quantity,
 	const GPoint &_position,
 	const char *_customInfo)
+: name(_name),
+  typeID(_typeID),
+  ownerID(_ownerID),
+  locationID(_locationID),
+  flag(_flag),
+  contraband(_contraband),
+  singleton(_singleton),
+  quantity(_quantity),
+  position(_position),
+  customInfo(_customInfo)
+{
+}
+
+ItemData::ItemData(
+	uint32 _typeID,
+	uint32 _ownerID,
+	uint32 _locationID,
+	EVEItemFlags _flag,
+	uint32 _quantity,
+	const char *_customInfo,
+	bool _contraband)
+: name(""),
+  typeID(_typeID),
+  ownerID(_ownerID),
+  locationID(_locationID),
+  flag(_flag),
+  contraband(_contraband),
+  singleton(false),
+  quantity(_quantity),
+  position(0, 0, 0),
+  customInfo(_customInfo)
+{
+}
+
+ItemData::ItemData(
+	uint32 _typeID,
+	uint32 _ownerID,
+	uint32 _locationID,
+	EVEItemFlags _flag,
+	const char *_name,
+	const GPoint &_position,
+	const char *_customInfo,
+	bool _contraband)
+: name(_name),
+  typeID(_typeID),
+  ownerID(_ownerID),
+  locationID(_locationID),
+  flag(_flag),
+  contraband(_contraband),
+  singleton(true),
+  quantity(1),
+  position(_position),
+  customInfo(_customInfo)
+{
+}
+
+/*
+ * InventoryItem
+ */
+InventoryItem::InventoryItem(
+	ItemFactory &_factory,
+	uint32 _itemID,
+	const Type &_type,
+	const ItemData &_data)
 : m_refCount(1),
   attributes(*this, &_factory.db(), &_factory.entity_list),
   m_factory(_factory),
   m_itemID(_itemID),
-  m_itemName(_itemName),
   m_type(_type),
-  m_ownerID(_ownerID),
-  m_locationID(_locationID),
-  m_flag(_flag),
-  m_contraband(_contraband),
-  m_singleton(_singleton),
-  m_quantity(_quantity),
-  m_position(_position),
-  m_customInfo(_customInfo),
+  m_itemName(_data.name),
+  m_ownerID(_data.ownerID),
+  m_locationID(_data.locationID),
+  m_flag(_data.flag),
+  m_contraband(_data.contraband),
+  m_singleton(_data.singleton),
+  m_quantity(_data.quantity),
+  m_position(_data.position),
+  m_customInfo(_data.customInfo),
   m_contentsLoaded(false)
 {
-	_log(ITEM__TRACE, "Created object %p for item ID %lu", this, itemID());
+	// assert for data consistency
+	assert(_data.typeID == _type.id());
+
+	_log(ITEM__TRACE, "Created object %p for item %s (%lu).", this, itemName().c_str(), itemID());
 }
 
 InventoryItem::~InventoryItem() {
@@ -109,101 +174,80 @@ InventoryItem *InventoryItem::Ref() {
 	return(this);
 }
 
-InventoryItem *InventoryItem::LoadItem(ItemFactory &factory, uint32 itemID, bool recurse) {
-	// This is a bit messy ...
-
-	// pull the item info
-	uint32 typeID, ownerID, locationID, quantity;
-	std::string itemName, customInfo;
-	bool contraband, singleton;
-	EVEItemFlags flag;
-	GPoint position;
-
-	if(!factory.db().GetItem(itemID,
-		itemName, typeID, ownerID, locationID, flag, contraband, singleton, quantity, position, customInfo))
-	{
-		return NULL;
-	}
-
-	// obtain type
-	const Type *type = factory.type(typeID);
-	if(type == NULL)
+InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID, bool recurse) {
+	// get the object
+	InventoryItem *i = InventoryItem::_Load(factory, itemID);
+	if(i == NULL)
 		return NULL;
 
-	InventoryItem *i;
-	if(type->categoryID() == EVEDB::invCategories::Blueprint) {
-		// we are blueprint
-
-		// pull additional blueprint info
-		bool copy;
-		uint32 materialLevel, productivityLevel;
-		int32 licensedProductionRunsRemaining;
-
-		if(!factory.db().GetBlueprint(itemID,
-			copy, materialLevel, productivityLevel, licensedProductionRunsRemaining))
-		{
-			return NULL;
-		}
-
-		// create the blueprint
-		i = new BlueprintItem(
-			factory,
-			itemID,
-			itemName.c_str(),
-			type,
-			ownerID,
-			locationID,
-			flag,
-			contraband,
-			singleton,
-			quantity,
-			position,
-			customInfo.c_str(),
-			copy,
-			materialLevel,
-			productivityLevel,
-			licensedProductionRunsRemaining
-		);
-	} else {
-		// we are generic item
-
-		// create item
-		i = new InventoryItem(
-			factory,
-			itemID,
-			itemName.c_str(),
-			type,
-			ownerID,
-			locationID,
-			flag,
-			contraband,
-			singleton,
-			quantity,
-			position,
-			customInfo.c_str()
-		);
-	}
-
-	// load up
-	if(!i->Load(recurse)) {
+	// do the dynamic load
+	if(!i->_Load(recurse)) {
 		i->Release();	// should delete the item
 		return NULL;
-	}
-
-	// update container
-	InventoryItem *container = factory.GetIfContentsLoaded(locationID);
-	if(container != NULL) {
-		container->AddContainedItem(i);
-		container->Release();
 	}
 
 	return(i);
 }
 
-bool InventoryItem::Load(bool recurse) {
+InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
+) {
+	// pull the item info
+	ItemData data;
+	if(!factory.db().GetItem(itemID, data))
+		return NULL;
+
+	// obtain type
+	const Type *type = factory.GetType(data.typeID);
+	if(type == NULL)
+		return NULL;
+
+	return(
+		InventoryItem::_Load(factory, itemID, *type, data)
+	);
+}
+
+InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
+	// InventoryItem stuff:
+	const Type &type, const ItemData &data
+) {
+	// construct actual object
+	switch(type.categoryID()) {
+		///////////////////////////////////////
+		// Blueprint:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Blueprint: {
+			// cast the type into what it really is ...
+			const BlueprintType &bpType = static_cast<const BlueprintType &>(type);
+
+			// create the blueprint
+			return(BlueprintItem::_Load(
+				factory, itemID, bpType, data
+			));
+		};
+
+		///////////////////////////////////////
+		// Default:
+		///////////////////////////////////////
+		default: {
+			// we are generic item; create one
+			return(new InventoryItem(
+				factory, itemID, type, data
+			));
+		};
+	}
+}
+
+bool InventoryItem::_Load(bool recurse) {
 	// load attributes
 	if(!attributes.Load())
 		return false;
+
+	// update container
+	InventoryItem *container = m_factory._GetIfContentsLoaded(locationID());
+	if(container != NULL) {
+		container->AddContainedItem(this);
+		container->Release();
+	}
 
 	// now load contained items
 	if(recurse) {
@@ -214,6 +258,53 @@ bool InventoryItem::Load(bool recurse) {
 	return true;
 }
 
+InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
+	// obtain type of new item
+	const Type *t = factory.GetType(data.typeID);
+	if(t == NULL)
+		return NULL;
+
+	// fix the name
+	if(data.name.empty())
+		data.name = t->name();
+
+	switch(t->categoryID()) {
+		///////////////////////////////////////
+		// Blueprint:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Blueprint: {
+			return(BlueprintItem::Spawn(
+				factory, data, BlueprintData(/* use default blueprint attributes */)
+			));
+		}
+
+		///////////////////////////////////////
+		// Default:
+		///////////////////////////////////////
+		default: {
+			return(InventoryItem::_Spawn(
+				factory, data
+			));
+		};
+	}
+}
+
+InventoryItem *InventoryItem::_Spawn(ItemFactory &factory,
+	// InventoryItem stuff:
+	const ItemData &data
+) {
+	// insert new entry into DB
+	uint32 itemID = factory.db().NewItem(data);
+	if(itemID == 0)
+		return NULL;
+
+	// load the item
+	// recurse is useless since item cannot contain anything yet
+	return(
+		InventoryItem::Load(factory, itemID, false)
+	);
+}
+
 bool InventoryItem::LoadContents(bool recursive) {
 	if(m_contentsLoaded)
 		return true;
@@ -222,20 +313,20 @@ bool InventoryItem::LoadContents(bool recursive) {
 
 	//load the list of items we need
 	std::vector<uint32> m_itemIDs;
-	if(!m_factory.db().GetItemContents(this, m_itemIDs))
+	if(!m_factory.db().GetItemContents(itemID(), m_itemIDs))
 		return false;
 	
 	//Now get each one from the factory (possibly recursing)
-	InventoryItem *i;
 	std::vector<uint32>::iterator cur, end;
 	cur = m_itemIDs.begin();
 	end = m_itemIDs.end();
 	for(; cur != end; cur++) {
-		i = m_factory.Load(*cur, recursive);
+		InventoryItem *i = m_factory.GetItem(*cur, recursive);
 		if(i == NULL) {
 			_log(ITEM__ERROR, "Failed to load item %lu contained in %lu. Skipping.", *cur, m_itemID);
 			continue;
 		}
+
 		AddContainedItem(i);
 		i->Release();
 	}
@@ -247,20 +338,32 @@ bool InventoryItem::LoadContents(bool recursive) {
 void InventoryItem::Save(bool recursive, bool saveAttributes) const {
 	_log(ITEM__TRACE, "Saving item %lu.", m_itemID);
 
-	m_factory.db().SaveItem(itemID(),
-		itemName().c_str(), typeID(), ownerID(), locationID(), flag(), contraband(),
-		singleton(), quantity(), position(), customInfo().c_str());
+	m_factory.db().SaveItem(
+		itemID(),
+		ItemData(
+			itemName().c_str(),
+			typeID(),
+			ownerID(),
+			locationID(),
+			flag(),
+			contraband(),
+			singleton(),
+			quantity(),
+			position(),
+			customInfo().c_str()
+		)
+	);
 
 	if(saveAttributes)
 		attributes.Save();
 	
 	if(recursive) {
-		InventoryItem *i;
 		std::map<uint32, InventoryItem *>::const_iterator cur, end;
 		cur = m_contents.begin();
 		end = m_contents.end();
 		for(; cur != end; cur++) {
-			i = cur->second;
+			InventoryItem *i = cur->second;
+
 			i->Save(true);
 		}
 	}
@@ -275,12 +378,11 @@ void InventoryItem::Delete() {
 	//we need to delete anything that we contain. This will be recursive.
 	LoadContents(true);
 
-	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; ) {
-		i = cur->second->Ref();
+		InventoryItem *i = cur->second->Ref();
 		//iterator will become invalid after calling
 		//Delete(), so increment now.
 		cur++;
@@ -507,177 +609,87 @@ PyRepObject *InventoryItem::CharGetInfo() {
 
 
 InventoryItem *InventoryItem::FindFirstByFlag(EVEItemFlags _flag, bool newref) {
-	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
-		i = cur->second;
+		InventoryItem *i = cur->second;
+
 		if(i->m_flag == _flag) {
-			if(newref)
-				return(i->Ref());
-			return(i);
+			return(newref ? i->Ref() : i);
 		}
 	}
+
 	return NULL;
 }
 
 InventoryItem *InventoryItem::GetByID(uint32 id, bool newref) {
-	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
-		i = cur->second;
+		InventoryItem *i = cur->second;
+
 		if(i->m_itemID == id) {
-			if(newref)
-				return(i->Ref());
-			else
-				return(i);
+			return(newref ? i->Ref() : i);
 		}
 	}
+
 	return NULL;
 }
 
 uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *> &items, bool newref) {
 	uint32 count = 0;
-	InventoryItem *i;
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
-	cur = m_contents.begin();
-	end = m_contents.end();
-	for(; cur != end; cur++) {
-		i = cur->second;
-		if(i->m_flag == _flag) {
-			if(newref)
-				items.push_back(i->Ref());
-			else
-				items.push_back(i);
-			count++;
-		}
-	}
-	return(count);
-}
 
-uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<const InventoryItem *> &items, bool newref) const {
-	uint32 count = 0;
-	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
-		i = cur->second;
+		InventoryItem *i = cur->second;
+
 		if(i->m_flag == _flag) {
-			if(newref)
-				items.push_back(i->Ref());
-			else
-				items.push_back(i);
+			items.push_back(newref ? i->Ref() : i);
 			count++;
 		}
 	}
+
 	return(count);
 }
 
 uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref) {
 	uint32 count = 0;
-	InventoryItem *i;
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
-	cur = m_contents.begin();
-	end = m_contents.end();
-	for(; cur != end; cur++) {
-		i = cur->second;
-		if(i->m_flag >= low_flag && i->m_flag <= high_flag) {
-			if(newref)
-				items.push_back(i->Ref());
-			else
-				items.push_back(i);
-			count++;
-		}
-	}
-	return(count);
-}
 
-uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<const InventoryItem *> &items, bool newref) const {
-	uint32 count = 0;
-	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
-		i = cur->second;
+		InventoryItem *i = cur->second;
+
 		if(i->m_flag >= low_flag && i->m_flag <= high_flag) {
-			if(newref)
-				items.push_back(i->Ref());
-			else
-				items.push_back(i);
+			items.push_back(newref ? i->Ref() : i);
 			count++;
 		}
 	}
+
 	return(count);
 }
 
 uint32 InventoryItem::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref) {
 	uint32 count = 0;
-	InventoryItem *i;
+
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
-		i = cur->second;
-		if(flags.count(i->flag())) {
-			if(newref)
-				items.push_back(i->Ref());
-			else
-				items.push_back(i);
+		InventoryItem *i = cur->second;
+
+		if(flags.find(i->flag()) != flags.end()) {
+			items.push_back(newref ? i->Ref() : i);
 			count++;
 		}
 	}
+
 	return(count);
-
-}
-
-uint32 InventoryItem::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<const InventoryItem *> &items, bool newref) const {
-	uint32 count = 0;
-	InventoryItem *i;
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
-	cur = m_contents.begin();
-	end = m_contents.end();
-	for(; cur != end; cur++) {
-		i = cur->second;
-		if(flags.count(i->flag())) {
-			if(newref)
-				items.push_back(i->Ref());
-			else
-				items.push_back(i);
-			count++;
-		}
-	}
-	return(count);
-
-}
-
-InventoryItem *InventoryItem::SpawnInto(
-	uint32 _typeID,
-	uint32 _ownerID,
-	EVEItemFlags _flag,
-	uint32 _quantity
-) {
-	//see note in other overload.
-	return(m_factory.Spawn(_typeID, _ownerID, 
-						   m_itemID, //location
-						   _flag, _quantity));
-}
-InventoryItem *InventoryItem::SpawnSingletonInto(
-	uint32 _typeID,
-	uint32 _ownerID,
-	EVEItemFlags _flag,
-	const char *name
-) {
-	//for now, just call into the factory, we might eventually make this
-	//the only way to spawn items, in which case we can move some of the
-	// "update your container" logic from the factory into here...
-	return(m_factory.SpawnSingleton(_typeID, _ownerID, 
-									m_itemID, //location
-									_flag, name));
 }
 
 void InventoryItem::AddContainedItem(InventoryItem *it) {
@@ -689,7 +701,7 @@ void InventoryItem::AddContainedItem(InventoryItem *it) {
 		_log(ITEM__TRACE, "   Updated location %lu to contain item %lu", itemID(), it->itemID());
 	} else if(res->second != it) {
 		_log(ITEM__ERROR, "Both object %p and object %p represent item %lu!", res->second, it, it->itemID());
-	}
+	} //else already here
 }
 
 void InventoryItem::RemoveContainedItem(InventoryItem *it) {
@@ -705,6 +717,7 @@ void InventoryItem::RemoveContainedItem(InventoryItem *it) {
 
 void InventoryItem::Rename(const char *to) {
 	m_itemName = to;
+	// TODO: send some kind of update?
 	Save(false, false);
 }
 
@@ -720,14 +733,14 @@ void InventoryItem::Move(uint32 location, EVEItemFlags new_flag, bool notify) {
 		return;	//nothing to do...
 	
 	//first, take myself out of my old container, if its loaded.
-	InventoryItem *old_container = m_factory.GetIfContentsLoaded(old_location);
+	InventoryItem *old_container = m_factory._GetIfContentsLoaded(old_location);
 	if(old_container != NULL) {
 		old_container->RemoveContainedItem(this);	//releases its ref
 		old_container->Release();
 	}
 	
 	//then make sure that my new container is updated, if its loaded.
-	InventoryItem *new_container = m_factory.GetIfContentsLoaded(location);
+	InventoryItem *new_container = m_factory._GetIfContentsLoaded(location);
 	if(new_container != NULL) {
 		new_container->AddContainedItem(this);	//makes a new ref
 		new_container->Release();
@@ -818,9 +831,15 @@ InventoryItem *InventoryItem::Split(int32 qty_to_take, bool notify) {
 		return NULL;
 	}
 
-	InventoryItem *res = m_factory.Spawn(
-		typeID(), ownerID(), (notify ? 1 : locationID()), flag(), qty_to_take	//temp location to cause the spawn via update
-		);
+	InventoryItem *res = m_factory.SpawnItem(
+		ItemData(
+			typeID(),
+			ownerID(),
+			(notify ? 1 : locationID()), //temp location to cause the spawn via update
+			flag(),
+			qty_to_take
+		)
+	);
 	if(notify)
 		res->Move(locationID(), flag());
 
@@ -1088,12 +1107,16 @@ void InventoryItem::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner) {
 		i = cur->second;
 		cur++;
 
-		if( !i->singleton() && (forOwner == i->ownerID() || forOwner == NULL) )
-			if(types.find(i->typeID()) == types.end())
+		if(	   !i->singleton()
+			&& (forOwner == i->ownerID() || forOwner == NULL)
+		) {
+			std::map<uint32, InventoryItem *>::iterator res = types.find(i->typeID());
+			if(res == types.end())
 				types[i->typeID()] = i;
 			else
 				//dont forget to make ref (which is consumed)
-				types[i->typeID()]->Merge(i->Ref());
+				res->second->Merge(i->Ref());
+		}
 	}
 }
 
@@ -1121,39 +1144,161 @@ double InventoryItem::GetRemainingCapacity(EVEItemFlags locationFlag) const {
 }
 
 /*
- * BlueprintItem
+ * BlueprintData
  */
-BlueprintItem::BlueprintItem(
-	ItemFactory &_factory,
-	uint32 _itemID,
-	const char *_itemName,
-	const Type *_type,
-	uint32 _ownerID,
-	uint32 _locationID,
-	EVEItemFlags _flag,
-	bool _contraband,
-	bool _singleton,
-	uint32 _quantity,
-	const GPoint &_position,
-	const char *_customInfo,
+BlueprintData::BlueprintData(
 	bool _copy,
 	uint32 _materialLevel,
 	uint32 _productivityLevel,
 	int32 _licensedProductionRunsRemaining)
-: InventoryItem(_factory, _itemID, _itemName, _type, _ownerID, _locationID, _flag, _contraband, _singleton, _quantity, _position, _customInfo),
-  m_copy(_copy),
-  m_materialLevel(_materialLevel),
-  m_productivityLevel(_productivityLevel),
-  m_licensedProductionRunsRemaining(_licensedProductionRunsRemaining)
+: copy(_copy),
+  materialLevel(_materialLevel),
+  productivityLevel(_productivityLevel),
+  licensedProductionRunsRemaining(_licensedProductionRunsRemaining)
 {
+}
+
+/*
+ * BlueprintItem
+ */
+BlueprintItem::BlueprintItem(
+	ItemFactory &_factory,
+	uint32 _blueprintID,
+	// InventoryItem stuff:
+	const BlueprintType &_bpType,
+	const ItemData &_data,
+	// BlueprintItem stuff:
+	const BlueprintData &_bpData)
+: InventoryItem(_factory, _blueprintID, _bpType, _data),
+  m_copy(_bpData.copy),
+  m_materialLevel(_bpData.materialLevel),
+  m_productivityLevel(_bpData.productivityLevel),
+  m_licensedProductionRunsRemaining(_bpData.licensedProductionRunsRemaining)
+{
+	// data consistency asserts
+	assert(_bpType.categoryID() == EVEDB::invCategories::Blueprint);
+}
+
+BlueprintItem *BlueprintItem::Load(ItemFactory &factory, uint32 blueprintID, bool recurse) {
+	BlueprintItem *bi = BlueprintItem::_Load(factory, blueprintID);
+	if(bi == NULL)
+		return NULL;
+
+	// finish load
+	if(!bi->_Load(recurse)) {
+		bi->Release();	// should delete the item
+		return NULL;
+	}
+
+	// return
+	return(bi);
+}
+
+BlueprintItem *BlueprintItem::_Load(ItemFactory &factory, uint32 blueprintID
+) {
+	// pull the item info
+	ItemData data;
+	if(!factory.db().GetItem(blueprintID, data))
+		return NULL;
+
+	// obtain type
+	const BlueprintType *bpType = factory.GetBlueprintType(data.typeID);
+	if(bpType == NULL)
+		return NULL;
+
+	// Since we have successfully got the blueprint type it's really a blueprint,
+	// so there's no need to check it.
+
+	return(
+		BlueprintItem::_Load(factory, blueprintID, *bpType, data)
+	);
+}
+
+BlueprintItem *BlueprintItem::_Load(ItemFactory &factory, uint32 blueprintID,
+	// InventoryItem stuff:
+	const BlueprintType &bpType, const ItemData &data
+) {
+	// we are blueprint; pull additional blueprint info
+	BlueprintData bpData;
+	if(!factory.db().GetBlueprint(blueprintID, bpData))
+		return NULL;
+
+	return(
+		BlueprintItem::_Load(factory, blueprintID, bpType, data, bpData)
+	);
+}
+
+BlueprintItem *BlueprintItem::_Load(ItemFactory &factory, uint32 blueprintID,
+	// InventoryItem stuff:
+	const BlueprintType &bpType, const ItemData &data,
+	// BlueprintItem stuff:
+	const BlueprintData &bpData
+) {
+	// we have enough data, construct the item
+	return(new BlueprintItem(
+		factory, blueprintID, bpType, data, bpData
+	));
+}
+
+bool BlueprintItem::_Load(bool recurse) {
+	// redirect to parent
+	return(InventoryItem::_Load(recurse));
+}
+
+BlueprintItem *BlueprintItem::Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData) {
+	const Type *t = factory.GetType(data.typeID);
+	if(t == NULL)
+		return NULL;
+
+	// fix the name
+	if(data.name.empty())
+		data.name = t->name();
+
+	// check if it's really a blueprint
+	if(t->categoryID() != EVEDB::invCategories::Blueprint) {
+		_log(ITEM__ERROR, "Trying to create blueprint with type %s.", t->name().c_str());
+		return NULL;
+	}
+
+	return(
+		BlueprintItem::_Spawn(factory, data, bpData)
+	);
+}
+
+BlueprintItem *BlueprintItem::_Spawn(ItemFactory &factory,
+	// InventoryItem stuff:
+	const ItemData &data,
+	// BlueprintItem stuff:
+	const BlueprintData &bpData
+) {
+	// insert new entry into DB
+	uint32 blueprintID = factory.db().NewItem(data);
+	if(blueprintID == 0)
+		return NULL;
+
+	// insert blueprint entry into DB
+	if(!factory.db().NewBlueprint(blueprintID, bpData))
+		return NULL;
+
+	return(
+		BlueprintItem::Load(factory, blueprintID)
+	);
 }
 
 void BlueprintItem::Save(bool recursive, bool saveAttributes) const {
 	// save our parent
 	InventoryItem::Save(recursive, saveAttributes);
+
 	// save ourselves
-	m_factory.db().SaveBlueprint(m_itemID,
-		m_copy, m_materialLevel, m_productivityLevel, m_licensedProductionRunsRemaining);
+	m_factory.db().SaveBlueprint(
+		itemID(),
+		BlueprintData(
+			copy(),
+			materialLevel(),
+			productivityLevel(),
+			licensedProductionRunsRemaining()
+		)
+	);
 }
 
 void BlueprintItem::Delete() {
@@ -1165,7 +1310,9 @@ void BlueprintItem::Delete() {
 
 BlueprintItem *BlueprintItem::SplitBlueprint(int32 qty_to_take, bool notify) {
 	// split item
-	BlueprintItem *res = (BlueprintItem *)(InventoryItem::Split(qty_to_take, notify));
+	BlueprintItem *res = static_cast<BlueprintItem *>(
+		InventoryItem::Split(qty_to_take, notify)
+	);
 	if(res == NULL)
 		return NULL;
 
@@ -1250,13 +1397,13 @@ PyRepDict *BlueprintItem::GetBlueprintAttributes() const {
 	rsp.licensedProductionRunsRemaining = licensedProductionRunsRemaining();
 	rsp.wastageFactor = wasteFactor();
 
-	rsp.productTypeID = productType()->id;
-	rsp.manufacturingTime = bptype()->productionTime;
-	rsp.maxProductionLimit = bptype()->maxProductionLimit;
-	rsp.researchMaterialTime = bptype()->researchMaterialTime;
-	rsp.researchTechTime = bptype()->researchTechTime;
-	rsp.researchProductivityTime = bptype()->researchProductivityTime;
-	rsp.researchCopyTime = bptype()->researchCopyTime;
+	rsp.productTypeID = productTypeID();
+	rsp.manufacturingTime = type().productionTime();
+	rsp.maxProductionLimit = type().maxProductionLimit();
+	rsp.researchMaterialTime = type().researchMaterialTime();
+	rsp.researchTechTime = type().researchTechTime();
+	rsp.researchProductivityTime = type().researchProductivityTime();
+	rsp.researchCopyTime = type().researchCopyTime();
 
-	return(rsp.Encode());
+	return(rsp.FastEncode());
 }

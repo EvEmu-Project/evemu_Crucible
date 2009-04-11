@@ -139,7 +139,7 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	InventoryItem *item = m_manager->item_factory.Load(args.arg, false);
+	InventoryItem *item = m_manager->item_factory.GetItem(args.arg, false);
 	if(item == NULL) {
 		codelog(SERVICE__ERROR, "Unable to load item %lu", args.arg);
 		return NULL;

@@ -31,15 +31,16 @@
 #include "../common/gpoint.h"
 #include "InventoryDB.h"
 
+class Category;
+class Group;
+class Type;
+class BlueprintType;
+
 class InventoryItem;
 class BlueprintItem;
 
-class Type;
-class Group;
-class Category;
-
 class ItemFactory {
-	friend class InventoryItem;	//only for access to _DeleteItem
+	friend class InventoryItem;	//only for access to _GetIfContentsLoaded and _DeleteItem
 public:
 	ItemFactory(DBcore &db, EntityList &el);
 	~ItemFactory();
@@ -48,70 +49,51 @@ public:
 	InventoryDB &db() { return(m_db); }
 
 	/*
+	 * Category stuff
+	 */
+	const Category *GetCategory(EVEItemCategories category);
+
+	/*
+	 * Group stuff
+	 */
+	const Group *GetGroup(uint32 groupID);
+
+	/*
 	 * Type stuff
 	 */
-	const Category *category(EVEItemCategories category);
-	const Group *group(uint32 groupID);
-	const Type *type(uint32 typeID);
+	const Type *GetType(uint32 typeID);
+	const BlueprintType *GetBlueprintType(uint32 blueprintTypeID);
 
 	/*
 	 * Item stuff
 	 */
-	InventoryItem *Load(uint32 itemID, bool recurse=true);
-	BlueprintItem *LoadBlueprint(uint32 blueprintID, bool recurse=true);
-
-	//a somewhat specialized function to deal with item movement.
-	InventoryItem *GetIfContentsLoaded(uint32 itemID);
+	InventoryItem *GetItem(uint32 itemID, bool recurse=true);
+	BlueprintItem *GetBlueprint(uint32 blueprintID, bool recurse=true);
 
 	//spawn a new item with the specified information, creating it in the DB as well.
-	InventoryItem *Spawn(
-		uint32 typeID,
-		uint32 ownerID,
-		uint32 locationID,
-		EVEItemFlags flag,
-		uint32 quantity);
-	InventoryItem *SpawnSingleton(
-		uint32 typeID,
-		uint32 ownerID,
-		uint32 locationID,
-		EVEItemFlags flag,
-		const char *name = NULL,
-		const GPoint &pos = GPoint());
+	InventoryItem *SpawnItem(
+		ItemData &data);
 	BlueprintItem *SpawnBlueprint(
-		uint32 typeID,
-		uint32 ownerID,
-		uint32 locationID,
-		EVEItemFlags flag,
-		uint32 quantity,
-		bool copy,
-		uint32 materialLevel,
-		uint32 productivityLevel,
-		int32 licensedProductionRunsRemaining);
-	BlueprintItem *SpawnBlueprintSingleton(
-		uint32 typeID,
-		uint32 ownerID,
-		uint32 locationID,
-		EVEItemFlags flag,
-		bool copy,
-		uint32 materialLevel,
-		uint32 productivityLevel,
-		int32 licensedProductionRunsRemaining,
-		const char *name = NULL,
-		const GPoint &pos = GPoint());
+		ItemData &data,
+		BlueprintData &bpData);
 
 protected:
 	InventoryDB m_db;
 
 	/*
-	 * Type cache
+	 * Member functions and variables:
 	 */
+	// Categories:
 	std::map<EVEItemCategories, Category *> m_categories;
+
+	// Groups:
 	std::map<uint32, Group *> m_groups;
+
+	// Types:
 	std::map<uint32, Type *> m_types;
 
-	/*
-	 * Items
-	 */
+	// Items:
+	InventoryItem *_GetIfContentsLoaded(uint32 itemID); // specialized function to deal with item movement.
 	void _DeleteItem(uint32 itemID);
 
 	std::map<uint32, InventoryItem *> m_items;	//we own a ref to these.

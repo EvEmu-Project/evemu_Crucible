@@ -351,7 +351,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		//sell order
 		
 		//verify that they actually have the item in the quantity specified...
-		InventoryItem *item = m_manager->item_factory.Load(args.itemID, true);
+		InventoryItem *item = m_manager->item_factory.GetItem(args.itemID, true);
 		if(item == NULL) {
 			codelog(MARKET__ERROR, "%s: Failed to find item %d for sell order.", call.client->GetName(), args.itemID);
 			call.client->SendErrorMsg("Unable to find items %d to sell!", args.itemID);
@@ -595,12 +595,15 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 	}
 
 	//spawn the item in the buyer's hangar.
-	InventoryItem *new_item = m_manager->item_factory.Spawn(
-		typeID,
-		1,	//temp owner ID, should really put the seller's ID in here...
-		stationID,
-		flagHangar,
-		quantity );
+	InventoryItem *new_item = m_manager->item_factory.SpawnItem(
+		ItemData(
+			typeID,
+			1, //temp owner ID, should really put the seller's ID in here...
+			stationID,
+			flagHangar,
+			quantity
+		)
+	);
 	//use the owner change packet to alert the buyer of the new item
 	new_item->ChangeOwner(buyer->GetCharacterID(), true);
 	new_item->Release();

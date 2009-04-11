@@ -26,51 +26,73 @@
 #include "EvemuPCH.h"
 
 /*
- * Category
+ * CategoryData
  */
-Category::Category(
-	EVEItemCategories _id,
+CategoryData::CategoryData(
 	const char *_name,
-	const char *_description,
+	const char *_desc,
 	bool _published)
-: id(_id),
-  name(_name),
-  description(_description),
+: name(_name),
+  description(_desc),
   published(_published)
 {
 }
 
-Category *Category::LoadCategory(ItemFactory &factory, EVEItemCategories category) {
-	std::string name, description;
-	bool published;
+/*
+ * Category
+ */
+Category::Category(
+	EVEItemCategories _id,
+	// Category stuff:
+	const CategoryData &_data)
+: m_id(_id),
+  m_name(_data.name),
+  m_description(_data.description),
+  m_published(_data.published)
+{
+	_log(ITEM__TRACE, "Created object %p for category %s (%lu).", this, name().c_str(), (uint32)id());
+}
 
-	// pull data
-	if(!factory.db().GetCategory(category,
-		name, description, published))
-	{
-		return NULL;
-	}
-
+Category *Category::Load(ItemFactory &factory, EVEItemCategories category) {
 	// create category
-	Category *c = new Category(
-		category,
-		name.c_str(),
-		description.c_str(),
-		published
-	);
+	Category *c = Category::_Load(factory, category);
+	if(c == NULL)
+		return NULL;
 
-	// return
+	// Category has no virtual _Load()
+
 	return(c);
 }
 
+Category *Category::_Load(ItemFactory &factory, EVEItemCategories category
+) {
+	// pull data
+	CategoryData data;
+	if(!factory.db().GetCategory(category, data))
+		return NULL;
+
+	return(
+		Category::_Load(factory, category, data)
+	);
+}
+
+Category *Category::_Load(ItemFactory &factory, EVEItemCategories category,
+	// Category stuff:
+	const CategoryData &data
+) {
+	// enough data for construction
+	return(new Category(
+		category, data
+	));
+}
+
 /*
- * Group
+ * GroupData
  */
-Group::Group(
-	uint32 _id,
-	const Category *_category,
+GroupData::GroupData(
+	EVEItemCategories _category,
 	const char *_name,
-	const char *_description,
+	const char *_desc,
 	bool _useBasePrice,
 	bool _allowManufacture,
 	bool _allowRecycler,
@@ -78,10 +100,9 @@ Group::Group(
 	bool _anchorable,
 	bool _fittableNonSingleton,
 	bool _published)
-: id(_id),
-  category(_category),
+: category(_category),
   name(_name),
-  description(_description),
+  description(_desc),
   useBasePrice(_useBasePrice),
   allowManufacture(_allowManufacture),
   allowRecycler(_allowRecycler),
@@ -92,61 +113,96 @@ Group::Group(
 {
 }
 
-Group *Group::LoadGroup(ItemFactory &factory, uint32 groupID) {
-	// pull data
-	EVEItemCategories category;
-	std::string name, description;
-	bool useBasePrice, allowManufacture, allowRecycler, anchored, anchorable, fittableNonSingleton, published;
+/*
+ * Group
+ */
+Group::Group(
+	uint32 _id,
+	// Group stuff:
+	const Category &_category,
+	const GroupData &_data)
+: m_id(_id),
+  m_category(&_category),
+  m_name(_data.name),
+  m_description(_data.description),
+  m_useBasePrice(_data.useBasePrice),
+  m_allowManufacture(_data.allowManufacture),
+  m_allowRecycler(_data.allowRecycler),
+  m_anchored(_data.anchored),
+  m_anchorable(_data.anchorable),
+  m_fittableNonSingleton(_data.fittableNonSingleton),
+  m_published(_data.published)
+{
+	// assert for data consistency
+	assert(_data.category == _category.id());
 
-	if(!factory.db().GetGroup(groupID, category,
-		name, description, useBasePrice, allowManufacture, allowRecycler, anchored, anchorable, fittableNonSingleton, published))
-	{
-		return NULL;
-	}
+	_log(ITEM__TRACE, "Created object %p for group %s (%lu).", this, name().c_str(), id());
+}
 
-	// retrieve category
-	const Category *c = factory.category(category);
-	if(c == NULL)
-		return NULL;
-
+Group *Group::Load(ItemFactory &factory, uint32 groupID) {
 	// create group
-	Group *g = new Group(
-		groupID,
-		c,
-		name.c_str(),
-		description.c_str(),
-		useBasePrice,
-		allowManufacture,
-		allowRecycler,
-		anchored,
-		anchorable,
-		fittableNonSingleton,
-		published
-	);
+	Group *g = Group::_Load(factory, groupID);
+	if(g == NULL)
+		return NULL;
 
-	// return
+	// Group has no virtual _Load()
+
 	return(g);
 }
 
+Group *Group::_Load(ItemFactory &factory, uint32 groupID
+) {
+	// pull data
+	GroupData data;
+	if(!factory.db().GetGroup(groupID, data))
+		return NULL;
+
+	// retrieve category
+	const Category *c = factory.GetCategory(data.category);
+	if(c == NULL)
+		return NULL;
+
+	return(
+		Group::_Load(factory, groupID, *c, data)
+	);
+}
+
+Group *Group::_Load(ItemFactory &factory, uint32 groupID,
+	// Group stuff:
+	const Category &category, const GroupData &data
+) {
+	// enough data for construction
+	return(new Group(
+		groupID, category, data
+	));
+}
+
 /*
- * Type
+ * TypeData
  */
-Type::Type(
-	uint32 _id,
-	const Group *_group,
+TypeData::TypeData(
+	uint32 _groupID,
 	const char *_name,
-	const char *_description,
+	const char *_desc,
+	double _radius,
+	double _mass,
+	double _volume,
+	double _capacity,
 	uint32 _portionSize,
+	EVERace _raceID,
 	double _basePrice,
 	bool _published,
 	uint32 _marketGroupID,
 	double _chanceOfDuplicating)
-: id(_id),
-  attributes(*this),
-  group(_group),
+: groupID(_groupID),
   name(_name),
-  description(_description),
+  description(_desc),
+  radius(_radius),
+  mass(_mass),
+  volume(_volume),
+  capacity(_capacity),
   portionSize(_portionSize),
+  raceID(_raceID),
   basePrice(_basePrice),
   published(_published),
   marketGroupID(_marketGroupID),
@@ -154,133 +210,110 @@ Type::Type(
 {
 }
 
-Type *Type::LoadType(ItemFactory &factory, uint32 typeID) {
-	// This is a bit messy ...
+/*
+ * Type
+ */
+Type::Type(
+	uint32 _id,
+	const Group &_group,
+	const TypeData &_data)
+: attributes(*this),
+  m_id(_id),
+  m_group(&_group),
+  m_name(_data.name),
+  m_description(_data.description),
+  m_portionSize(_data.portionSize),
+  m_basePrice(_data.basePrice),
+  m_published(_data.published),
+  m_marketGroupID(_data.marketGroupID),
+  m_chanceOfDuplicating(_data.chanceOfDuplicating)
+{
+	// assert for data consistency
+	assert(_data.groupID == _group.id());
 
-	// pull data
-	std::string name, description;
-	uint32 groupID, portionSize, marketGroupID;
-	double radius, mass, volume, capacity, basePrice, chanceOfDuplicating;
-	EVERace race;
-	bool published;
+	// set some attributes
+	attributes.Set_radius(_data.radius);
+	attributes.Set_mass(_data.mass);
+	attributes.Set_volume(_data.volume);
+	attributes.Set_capacity(_data.capacity);
+	attributes.Set_raceID(_data.raceID);
 
-	if(!factory.db().GetType(typeID, groupID,
-		name, description, radius, mass, volume, capacity, portionSize, race, basePrice, published, marketGroupID,
-		chanceOfDuplicating))
-	{
+	_log(ITEM__TRACE, "Created object %p for type %s (%lu).", this, name().c_str(), id());
+}
+
+Type *Type::Load(ItemFactory &factory, uint32 typeID) {
+	Type *t = Type::_Load(factory, typeID);
+	if(t == NULL)
 		return NULL;
-	}
 
-	// obtain group
-	const Group *g = factory.group(groupID);
-	if(g == NULL)
-		return NULL;
-
-	// create type
-	Type *t;
-	if(g->categoryID() == EVEDB::invCategories::Blueprint) {
-		// we are blueprint
-
-		// pull additional blueprint data
-		uint32 parentBlueprintTypeID, productTypeID, productionTime, techLevel, researchProductivityTime, researchMaterialTime,
-				researchCopyTime, researchTechTime, productivityModifier, materialModifier, maxProductionLimit;
-		double wasteFactor, chanceOfReverseEngineering;
-
-		if(!factory.db().GetBlueprintType(typeID, parentBlueprintTypeID, productTypeID,
-			productionTime, techLevel, researchProductivityTime, researchMaterialTime, researchCopyTime, researchTechTime,
-			productivityModifier, materialModifier, wasteFactor, chanceOfReverseEngineering, maxProductionLimit))
-		{
-			return NULL;
-		}
-
-		// obtain parent blueprint type
-		const Type *parentBlueprintType;
-		if(parentBlueprintTypeID != 0) {
-			// we have parent type, get it
-			parentBlueprintType = factory.type(parentBlueprintTypeID);
-			if(parentBlueprintType == NULL)
-				return NULL;
-		} else
-			// we have no parent type, set to NULL
-			parentBlueprintType = NULL;
-
-		// obtain product type
-		const Type *productType;
-		productType = factory.type(productTypeID);
-		if(productType == NULL)
-			return NULL;
-
-		// create blueprint type
-		t = new BlueprintType(
-			typeID,
-			g,
-			name.c_str(),
-			description.c_str(),
-			portionSize,
-			basePrice,
-			published,
-			marketGroupID,
-			chanceOfDuplicating,
-			parentBlueprintType,
-			productType,
-			productionTime,
-			techLevel,
-			researchProductivityTime,
-			researchMaterialTime,
-			researchCopyTime,
-			researchTechTime,
-			productivityModifier,
-			materialModifier,
-			wasteFactor,
-			chanceOfReverseEngineering,
-			maxProductionLimit
-		);
-	} else {
-		// we are generic type
-
-		// create type
-		t = new Type(
-			typeID,
-			g,
-			name.c_str(),
-			description.c_str(),
-			portionSize,
-			basePrice,
-			published,
-			marketGroupID,
-			chanceOfDuplicating
-		);
-	}
-
-	if(!t->attributes.Load(factory.db())) {
+	// finish load
+	if(!t->_Load(factory)) {
 		delete t;
 		return NULL;
 	}
 
-	t->attributes.Set_radius(radius);
-	t->attributes.Set_mass(mass);
-	t->attributes.Set_volume(volume);
-	t->attributes.Set_capacity(capacity);
-	t->attributes.Set_raceID(race);
-
+	// return
 	return(t);
 }
 
+Type *Type::_Load(ItemFactory &factory, uint32 typeID
+) {
+	// pull data
+	TypeData data;
+	if(!factory.db().GetType(typeID, data))
+		return NULL;
+
+	// obtain group
+	const Group *g = factory.GetGroup(data.groupID);
+	if(g == NULL)
+		return NULL;
+
+	// return
+	return(
+		Type::_Load(factory, typeID, *g, data)
+	);
+}
+
+Type *Type::_Load(ItemFactory &factory, uint32 typeID,
+	// Type stuff:
+	const Group &group, const TypeData &data
+) {
+	// We have enough data for general Type, but we might
+	// need more (for BlueprintType). Let's check it out:
+	switch(group.categoryID()) {
+		///////////////////////////////////////
+		// Blueprint:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Blueprint: {
+			// redirect further loading to BlueprintType
+			return(BlueprintType::_Load(
+				factory, typeID, group, data
+			));
+		}
+
+		///////////////////////////////////////
+		// Default:
+		///////////////////////////////////////
+		default: {
+			// create the object
+			return(new Type(
+				typeID, group, data
+			));
+		}
+	}
+}
+
+bool Type::_Load(ItemFactory &factory) {
+	// load type attributes
+	return(attributes.Load(factory.db()));
+}
+
 /*
- * BlueprintType
+ * BlueprintTypeData
  */
-BlueprintType::BlueprintType(
-	uint32 _id,
-	const Group *_group,
-	const char *_name,
-	const char *_description,
-	uint32 _portionSize,
-	double _basePrice,
-	bool _published,
-	uint32 _marketGroupID,
-	double _chanceOfDuplicating,
-	const Type *_parentBlueprintType,
-	const Type *_productType,
+BlueprintTypeData::BlueprintTypeData(
+	uint32 _parentBlueprintTypeID,
+	uint32 _productTypeID,
 	uint32 _productionTime,
 	uint32 _techLevel,
 	uint32 _researchProductivityTime,
@@ -292,9 +325,8 @@ BlueprintType::BlueprintType(
 	double _wasteFactor,
 	double _chanceOfReverseEngineering,
 	uint32 _maxProductionLimit)
-: Type(_id, _group, _name, _description, _portionSize, _basePrice, _published, _marketGroupID, _chanceOfDuplicating),
-  parentBlueprintType(_parentBlueprintType),
-  productType(_productType),
+: parentBlueprintTypeID(_parentBlueprintTypeID),
+  productTypeID(_productTypeID),
   productionTime(_productionTime),
   techLevel(_techLevel),
   researchProductivityTime(_researchProductivityTime),
@@ -302,11 +334,124 @@ BlueprintType::BlueprintType(
   researchCopyTime(_researchCopyTime),
   researchTechTime(_researchTechTime),
   productivityModifier(_productivityModifier),
+  materialModifier(_materialModifier),
   wasteFactor(_wasteFactor),
   chanceOfReverseEngineering(_chanceOfReverseEngineering),
   maxProductionLimit(_maxProductionLimit)
 {
 }
+
+/*
+ * BlueprintType
+ */
+BlueprintType::BlueprintType(
+	uint32 _id,
+	const Group &_group,
+	const TypeData &_data,
+	const BlueprintType *_parentBlueprintType,
+	const Type &_productType,
+	const BlueprintTypeData &_bpData)
+: Type(_id, _group, _data),
+  m_parentBlueprintType(_parentBlueprintType),
+  m_productType(&_productType),
+  m_productionTime(_bpData.productionTime),
+  m_techLevel(_bpData.techLevel),
+  m_researchProductivityTime(_bpData.researchProductivityTime),
+  m_researchMaterialTime(_bpData.researchMaterialTime),
+  m_researchCopyTime(_bpData.researchCopyTime),
+  m_researchTechTime(_bpData.researchTechTime),
+  m_productivityModifier(_bpData.productivityModifier),
+  m_wasteFactor(_bpData.wasteFactor),
+  m_chanceOfReverseEngineering(_bpData.chanceOfReverseEngineering),
+  m_maxProductionLimit(_bpData.maxProductionLimit)
+{
+	// asserts for data consistency
+	assert(categoryID() == EVEDB::invCategories::Blueprint);
+
+	assert(_bpData.productTypeID == _productType.id());
+	if(_parentBlueprintType != NULL)
+		assert(_bpData.parentBlueprintTypeID == _parentBlueprintType->id());
+}
+
+BlueprintType *BlueprintType::Load(ItemFactory &factory, uint32 typeID) {
+	BlueprintType *bt = BlueprintType::_Load(factory, typeID);
+	if(bt == NULL)
+		return NULL;
+
+	// finish load
+	if(!bt->_Load(factory, typeID)) {
+		delete bt;
+		return NULL;
+	}
+
+	return(bt);
+}
+
+BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID
+) {
+	// pull data
+	TypeData data;
+	if(!factory.db().GetType(typeID, data))
+		return NULL;
+
+	// obtain group
+	const Group *g = factory.GetGroup(data.groupID);
+	if(g == NULL)
+		return NULL;
+
+	// check if we are really loading a blueprint
+	if(g->categoryID() != EVEDB::invCategories::Blueprint) {
+		_log(ITEM__ERROR, "Load of blueprint type %lu requested, but it's %s.", typeID, g->category().name().c_str());
+		return NULL;
+	}
+
+	// return
+	return(
+		BlueprintType::_Load(factory, typeID, *g, data)
+	);
+}
+
+BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID,
+	// Type stuff:
+	const Group &group, const TypeData &data
+) {
+	// pull additional blueprint data
+	BlueprintTypeData bpData;
+	if(!factory.db().GetBlueprintType(typeID, bpData))
+		return NULL;
+
+	// obtain parent blueprint type (might be NULL)
+	const BlueprintType *parentBlueprintType = NULL;
+	if(bpData.parentBlueprintTypeID != 0) {
+		// we have parent type, get it
+		parentBlueprintType = factory.GetBlueprintType(bpData.parentBlueprintTypeID);
+		if(parentBlueprintType == NULL)
+			return NULL;
+	}
+
+	// obtain product type
+	const Type *productType = factory.GetType(bpData.productTypeID);
+	if(productType == NULL)
+		return NULL;
+
+	// create blueprint type
+	return(
+		BlueprintType::_Load(factory, typeID, group, data, parentBlueprintType, *productType, bpData)
+	);
+}
+
+BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID,
+	// Type stuff:
+	const Group &group, const TypeData &data,
+	// BlueprintType stuff:
+	const BlueprintType *parentBlueprintType, const Type &productType, const BlueprintTypeData &bpData
+) {
+	return(new BlueprintType(typeID,
+		group, data,
+		parentBlueprintType, productType, bpData
+	));
+}
+
 
 
 

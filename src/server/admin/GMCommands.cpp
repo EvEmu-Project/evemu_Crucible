@@ -46,14 +46,16 @@ PyResult Command_create(Client *who, CommandDB *db, PyServiceMgr *services, cons
 		flag = flagHangar;
 	}
 	
-	InventoryItem *i;
-	i = services->item_factory.Spawn(
-		atoi(args.arg[1]),
-		who->GetCharacterID(),
-		0,	//temp location.
-		flag,
-		qty
-		);
+	InventoryItem *i = services->item_factory.SpawnItem(
+		ItemData(
+			atoi(args.arg[1]),
+			who->GetCharacterID(),
+			0, //temp location
+			flag,
+			qty
+		)
+	);
+
 	if(i == NULL)
 		throw(PyException(MakeCustomError("Unable to create item of type %s.", args.arg[1])));
 
@@ -216,19 +218,22 @@ PyResult Command_spawn(Client *who, CommandDB *db, PyServiceMgr *services, const
 	if(!who->IsInSpace())
 		throw(PyException(MakeCustomError("You must be in space to spawn things.")));
 	
-	InventoryItem *i;
-	i = services->item_factory.SpawnSingleton(
-		atoi(args.arg[1]),
-		who->GetCorporationID(),	//owner
-		who->GetLocationID(),
-		flagAutoFit
-		);
-	if(i == NULL)
-		throw(PyException(MakeCustomError("Unable to spawn item of type %s.", args.arg[1])));
-
 	//hacking it...
 	GPoint loc(who->GetPosition());
 	loc.x += 1500;
+
+	InventoryItem *i = services->item_factory.SpawnItem(
+		ItemData(
+			atoi(args.arg[1]),
+			who->GetCorporationID(), //owner
+			who->GetLocationID(),
+			flagAutoFit,
+			"",
+			loc
+		)
+	);
+	if(i == NULL)
+		throw(PyException(MakeCustomError("Unable to spawn item of type %s.", args.arg[1])));
 
 	SystemManager *sys = who->System();
 	NPC *it = new NPC(sys, *services, i, who->GetCorporationID(), who->GetAllianceID(), loc);
@@ -314,7 +319,7 @@ PyResult Command_setbpattr(Client *who, CommandDB *db, PyServiceMgr *services, c
 	if(!args.IsNumber(5))
 		throw(PyException(MakeCustomError("Argument 5 must be remaining licensed production runs. (got %s)", args.arg[5])));
 
-	BlueprintItem *bp = services->item_factory.LoadBlueprint(atoi(args.arg[1]), false);
+	BlueprintItem *bp = services->item_factory.GetBlueprint(atoi(args.arg[1]), false);
 	if(bp == NULL)
 		throw(PyException(MakeCustomError("Failed to load blueprint %s.", args.arg[1])));
 
@@ -348,7 +353,7 @@ PyResult Command_getattr(Client *who, CommandDB *db, PyServiceMgr *services, con
 	if(!args.IsNumber(2))
 		throw(PyException(MakeCustomError("2nd argument must be attributeID (got %s).", args.arg[2])));
 
-	InventoryItem *item = services->item_factory.Load(atoi(args.arg[1]), false);
+	InventoryItem *item = services->item_factory.GetItem(atoi(args.arg[1]), false);
 	if(item == NULL)
 		throw(PyException(MakeCustomError("Failed to load item %s.", args.arg[1])));
 
@@ -370,7 +375,7 @@ PyResult Command_setattr(Client *who, CommandDB *db, PyServiceMgr *services, con
 	if(!args.IsNumber(3))
 		throw(PyException(MakeCustomError("3rd argument must be value (got %s).", args.arg[3])));
 
-	InventoryItem *item = services->item_factory.Load(atoi(args.arg[1]), false);
+	InventoryItem *item = services->item_factory.GetItem(atoi(args.arg[1]), false);
 	if(item == NULL)
 		throw(PyException(MakeCustomError("Failed to load item %s.", args.arg[1])));
 
