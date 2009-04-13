@@ -140,7 +140,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 	//TODO: consider the `jumps` field... is it actually used? might be a pain in the ass if we need to actually populate it based on each queryier's location
 	if(!m_db->RunQuery(res,
 		"SELECT"
-		"	price, volRemaining, typeID, range, orderID,"
+		"	price, volRemaining, typeID, `range`, orderID,"
 		"   volEntered, minVolume, bid, issued, duration,"
 		"   stationID, regionID, solarSystemID, jumps"
 		" FROM market_orders "
@@ -157,7 +157,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 	//query buy orders
 	if(!m_db->RunQuery(res,
 		"SELECT"
-		"	price, volRemaining, typeID, range, orderID,"
+		"	price, volRemaining, typeID, `range`, orderID,"
 		"   volEntered, minVolume, bid, issued, duration,"
 		"   stationID, regionID, solarSystemID, jumps"
 		" FROM market_orders "
@@ -180,7 +180,7 @@ PyRep *MarketDB::GetCharOrders(uint32 characterID) {
 	if(!m_db->RunQuery(res,
 		"SELECT"
 		"   orderID, typeID, charID, regionID, stationID,"
-		"   range, bid, price, volEntered, volRemaining,"
+		"   `range`, bid, price, volEntered, volRemaining,"
 		"   issued, orderState, minVolume, contraband,"
 		"   accountID, duration, isCorp, solarSystemID,"
 		"   escrow"
@@ -199,7 +199,7 @@ PyRep *MarketDB::GetOrderRow(uint32 orderID) {
 
 	if(!m_db->RunQuery(res,
 		"SELECT"
-		"	price, volRemaining, typeID, range, orderID,"
+		"	price, volRemaining, typeID, `range`, orderID,"
 		"   volEntered, minVolume, bid, issued, duration,"
 		"   stationID, regionID, solarSystemID, jumps"
 		" FROM market_orders"
@@ -823,7 +823,7 @@ uint32 MarketDB::_StoreOrder(
 	if(!m_db->RunQueryLID(err, orderID,
 		"INSERT INTO market_orders ("
 		"	typeID, charID, regionID, stationID,"
-		"	range, bid, price, volEntered, volRemaining, issued,"
+		"	`range`, bid, price, volEntered, volRemaining, issued,"
 		"	orderState, minVolume, contraband, accountID, duration,"
 		"	isCorp, solarSystemID, escrow, jumps "
 		" ) VALUES ("
