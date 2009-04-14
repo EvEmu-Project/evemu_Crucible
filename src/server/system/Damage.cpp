@@ -386,15 +386,15 @@ void Client::Killed(Damage &fatal_blow) {
 		
 		std::string capsule_name = GetName();
 		capsule_name += "'s Capsule";
-		InventoryItem *capsule = m_services.item_factory.SpawnItem(
-			ItemData(
-				itemTypeCapsule,
-				GetCharacterID(),
-				GetStationID(),
-				flagCapsule,
-				capsule_name.c_str()
-			)
+		ItemData idata(
+			itemTypeCapsule,
+			GetCharacterID(),
+			GetStationID(),
+			flagCapsule,
+			capsule_name.c_str()
 		);
+
+		InventoryItem *capsule = m_services.item_factory.SpawnItem(idata);
 		if(capsule == NULL) {
 			codelog(CLIENT__ERROR, "Failed to create capsule for character '%s'", GetName());
 			//what to do?

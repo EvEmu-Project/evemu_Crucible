@@ -46,16 +46,15 @@ PyResult Command_create(Client *who, CommandDB *db, PyServiceMgr *services, cons
 		flag = flagHangar;
 	}
 	
-	InventoryItem *i = services->item_factory.SpawnItem(
-		ItemData(
-			atoi(args.arg[1]),
-			who->GetCharacterID(),
-			0, //temp location
-			flag,
-			qty
-		)
+	ItemData idata(
+		atoi(args.arg[1]),
+		who->GetCharacterID(),
+		0, //temp location
+		flag,
+		qty
 	);
 
+	InventoryItem *i = services->item_factory.SpawnItem(idata);
 	if(i == NULL)
 		throw(PyException(MakeCustomError("Unable to create item of type %s.", args.arg[1])));
 
@@ -222,16 +221,16 @@ PyResult Command_spawn(Client *who, CommandDB *db, PyServiceMgr *services, const
 	GPoint loc(who->GetPosition());
 	loc.x += 1500;
 
-	InventoryItem *i = services->item_factory.SpawnItem(
-		ItemData(
-			atoi(args.arg[1]),
-			who->GetCorporationID(), //owner
-			who->GetLocationID(),
-			flagAutoFit,
-			"",
-			loc
-		)
+	ItemData idata(
+		atoi(args.arg[1]),
+		who->GetCorporationID(), //owner
+		who->GetLocationID(),
+		flagAutoFit,
+		"",
+		loc
 	);
+
+	InventoryItem *i = services->item_factory.SpawnItem(idata);
 	if(i == NULL)
 		throw(PyException(MakeCustomError("Unable to spawn item of type %s.", args.arg[1])));
 

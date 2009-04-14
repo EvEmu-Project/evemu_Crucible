@@ -107,16 +107,16 @@ uint32 GetRoidType(double p, const std::map<double, uint32> & roids) {
 
 void GetAsteroid(Client *who, uint32 typeID, double radius, const Ga::GaVec3 & position) {
 	//TODO: make item in IsUniverseAsteroid() range...
-	InventoryItem *i = who->services().item_factory.SpawnItem(
-		ItemData(
-			typeID,
-			1 /* who->GetCorporationID() */, //owner
-			who->GetLocationID(),
-			flagAutoFit,
-			"",	//name
-			position
-		)
+	ItemData idata(
+		typeID,
+		1 /* who->GetCorporationID() */, //owner
+		who->GetLocationID(),
+		flagAutoFit,
+		"",	//name
+		position
 	);
+
+	InventoryItem *i = who->services().item_factory.SpawnItem(idata);
 	if(i == NULL)
 		throw(PyException(MakeCustomError("Unable to spawn item of type %lu.", typeID)));
 

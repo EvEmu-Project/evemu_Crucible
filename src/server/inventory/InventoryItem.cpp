@@ -25,7 +25,7 @@
 
 #include "EvemuPCH.h"
 
-#ifndef WIN32
+#ifndef INT_MAX
 #	define INT_MAX 0x7FFFFFFF
 #endif
 
@@ -273,8 +273,10 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 		// Blueprint:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Blueprint: {
+			BlueprintData bdata; // use default blueprint attributes
+
 			return(BlueprintItem::Spawn(
-				factory, data, BlueprintData(/* use default blueprint attributes */)
+				factory, data, bdata
 			));
 		}
 
@@ -831,15 +833,15 @@ InventoryItem *InventoryItem::Split(int32 qty_to_take, bool notify) {
 		return NULL;
 	}
 
-	InventoryItem *res = m_factory.SpawnItem(
-		ItemData(
-			typeID(),
-			ownerID(),
-			(notify ? 1 : locationID()), //temp location to cause the spawn via update
-			flag(),
-			qty_to_take
-		)
+	ItemData idata(
+		typeID(),
+		ownerID(),
+		(notify ? 1 : locationID()), //temp location to cause the spawn via update
+		flag(),
+		qty_to_take
 	);
+
+	InventoryItem *res = m_factory.SpawnItem(idata);
 	if(notify)
 		res->Move(locationID(), flag());
 

@@ -310,14 +310,14 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	cur = startingSkills.begin();
 	end = startingSkills.end();
 	for(; cur != end; cur++) {
-		InventoryItem *i = m_manager->item_factory.SpawnItem(
-			ItemData(
-				cur->first,
-				cdata.charid,
-				cdata.charid,
-				flagSkill
-			)
+		ItemData idata(
+			cur->first,
+			cdata.charid,
+			cdata.charid,
+			flagSkill
 		);
+
+		InventoryItem *i = m_manager->item_factory.SpawnItem(idata);
 		if(i == NULL) {
 			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
 			continue;
@@ -343,30 +343,30 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 		InventoryItem *junk;
 
 		// spawn Damage Control I ...
-		junk = m_manager->item_factory.SpawnItem(
-			ItemData(
-				2046,
-				cdata.charid,
-				cdata.stationID,
-				flagHangar,
-				1
-			)
+		ItemData idata(
+			2046,
+			cdata.charid,
+			cdata.stationID,
+			flagHangar,
+			1
 		);
+
+		junk = m_manager->item_factory.SpawnItem(idata);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		else
 			junk->Release();
 
 		// ... and 1 unit of Tritanium
-		junk = m_manager->item_factory.SpawnItem(
-			ItemData(
-				34,
-				cdata.charid,
-				cdata.stationID,
-				flagHangar,
-				1
-			)
+		idata = ItemData(
+			34,
+			cdata.charid,
+			cdata.stationID,
+			flagHangar,
+			1
 		);
+
+		junk = m_manager->item_factory.SpawnItem(idata);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		else
@@ -376,15 +376,15 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	{	//item scope
 		std::string ship_name = cdata.name + "'s Ship";
-		InventoryItem *ship_item = m_manager->item_factory.SpawnItem(
-			ItemData(
-				shipTypeID, // The race-specific start ship
-				cdata.charid,
-				cdata.stationID,
-				flagHangar,
-				ship_name.c_str()
-			)
+		ItemData idata(
+			shipTypeID, // The race-specific start ship
+			cdata.charid,
+			cdata.stationID,
+			flagHangar,
+			ship_name.c_str()
 		);
+
+		InventoryItem *ship_item = m_manager->item_factory.SpawnItem(idata);
 		if(ship_item == NULL) {
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		} else {
@@ -527,14 +527,14 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	cur = startingSkills.begin();
 	end = startingSkills.end();
 	for(; cur != end; cur++) {
-		InventoryItem *i = m_manager->item_factory.SpawnItem(
-			ItemData(
-				cur->first,
-				cdata.charid,
-				cdata.charid,
-				flagSkill
-			)
+		ItemData idata(
+			cur->first,
+			cdata.charid,
+			cdata.charid,
+			flagSkill
 		);
+
+		InventoryItem *i = m_manager->item_factory.SpawnItem(idata);
 		if(i == NULL) {
 			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
 			continue;
@@ -555,30 +555,30 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 		InventoryItem *junk;
 
 		// spawn Damage Control I ...
-		junk = m_manager->item_factory.SpawnItem(
-			ItemData(
-				2046,
-				cdata.charid,
-				cdata.stationID,
-				flagHangar,
-				1
-			)
+		ItemData idata(
+			2046,
+			cdata.charid,
+			cdata.stationID,
+			flagHangar,
+			1
 		);
+
+		junk = m_manager->item_factory.SpawnItem(idata);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		else
 			junk->Release();
 
 		// ... and 1 unit of Tritanium
-		junk = m_manager->item_factory.SpawnItem(
-			ItemData(
-				34,
-				cdata.charid,
-				cdata.stationID,
-				flagHangar,
-				1
-			)
+		idata = ItemData(
+			34,
+			cdata.charid,
+			cdata.stationID,
+			flagHangar,
+			1
 		);
+
+		junk = m_manager->item_factory.SpawnItem(idata);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		else
@@ -588,15 +588,15 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
 	{	//item scope
 		std::string ship_name = cdata.name + "'s Ship";
-		InventoryItem *ship_item = m_manager->item_factory.SpawnItem(
-			ItemData(
-				shipTypeID, // The race-specific start ship
-				cdata.charid,
-				cdata.stationID,
-				flagHangar,
-				ship_name.c_str()
-			)
+		ItemData idata(
+			shipTypeID, // The race-specific start ship
+			cdata.charid,
+			cdata.stationID,
+			flagHangar,
+			ship_name.c_str()
 		);
+
+		InventoryItem *ship_item = m_manager->item_factory.SpawnItem(idata);
 		if(ship_item == NULL) {
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		} else {

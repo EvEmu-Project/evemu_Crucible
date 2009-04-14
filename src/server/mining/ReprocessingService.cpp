@@ -267,15 +267,15 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 			if(quantity == 0)
 				continue;
 
-			InventoryItem *i = m_manager->item_factory.SpawnItem(
-				ItemData(
-					cur_rec->typeID,
-					call.client->GetCharacterID(),
-					0, //temp location
-					flagHangar,
-					quantity
-				)
+			ItemData idata(
+				cur_rec->typeID,
+				call.client->GetCharacterID(),
+				0, //temp location
+				flagHangar,
+				quantity
 			);
+
+			InventoryItem *i = m_manager->item_factory.SpawnItem(idata);
 			if(i == NULL)
 				continue;
 

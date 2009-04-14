@@ -306,14 +306,14 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 	
 
 	//spawn cargo container
-	InventoryItem *cargoItem = m_manager->item_factory.SpawnItem(
-		ItemData(
-			23, //23 = Cargo Container
-			call.client->GetCharacterID(),	//owner
-			call.client->GetLocationID(),
-			flagAutoFit
-		)
+	ItemData idata(
+		23, //23 = Cargo Container
+		call.client->GetCharacterID(),	//owner
+		call.client->GetLocationID(),
+		flagAutoFit
 	);
+
+	InventoryItem *cargoItem = m_manager->item_factory.SpawnItem(idata);
 	if(cargoItem == NULL) {
 		call.client->SendErrorMsg("Unable to spawn a container for jettison.");
 		return NULL;

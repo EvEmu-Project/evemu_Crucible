@@ -595,15 +595,15 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 	}
 
 	//spawn the item in the buyer's hangar.
-	InventoryItem *new_item = m_manager->item_factory.SpawnItem(
-		ItemData(
-			typeID,
-			1, //temp owner ID, should really put the seller's ID in here...
-			stationID,
-			flagHangar,
-			quantity
-		)
+	ItemData idata(
+		typeID,
+		1, //temp owner ID, should really put the seller's ID in here...
+		stationID,
+		flagHangar,
+		quantity
 	);
+
+	InventoryItem *new_item = m_manager->item_factory.SpawnItem(idata);
 	//use the owner change packet to alert the buyer of the new item
 	new_item->ChangeOwner(buyer->GetCharacterID(), true);
 	new_item->Release();

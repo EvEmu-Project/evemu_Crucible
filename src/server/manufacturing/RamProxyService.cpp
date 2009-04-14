@@ -292,15 +292,15 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			if(quantity == 0)
 				continue;
 
-			InventoryItem *item = m_manager->item_factory.SpawnItem(
-				ItemData(
-					cur->typeID,
-					ownerID,
-					0, //temp location
-					outputFlag,
-					quantity
-				)
+			ItemData idata(
+				cur->typeID,
+				ownerID,
+				0, //temp location
+				outputFlag,
+				quantity
 			);
+
+			InventoryItem *item = m_manager->item_factory.SpawnItem(idata);
 			if(item == NULL) {
 				installedItem->Release();
 				return NULL;
@@ -320,15 +320,15 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			case ramActivityManufacturing: {
 				BlueprintItem *bp = (BlueprintItem *)installedItem;
 
-				InventoryItem *item = m_manager->item_factory.SpawnItem(
-					ItemData(
-						bp->productTypeID(),
-						ownerID,
-						0,	// temp location
-						outputFlag,
-						bp->productType().portionSize() * runs
-					)
+				ItemData idata(
+					bp->productTypeID(),
+					ownerID,
+					0,	// temp location
+					outputFlag,
+					bp->productType().portionSize() * runs
 				);
+
+				InventoryItem *item = m_manager->item_factory.SpawnItem(idata);
 				if(item == NULL) {
 					installedItem->Release();
 					return NULL;
@@ -361,21 +361,21 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			case ramActivityCopying: {
 				BlueprintItem *bp = (BlueprintItem *)installedItem;
 
-				BlueprintItem *copy = m_manager->item_factory.SpawnBlueprint(
-					ItemData(
-						installedItem->typeID(),
-						ownerID,
-						0, //temp location
-						outputFlag,
-						runs
-					),
-					BlueprintData(
-						true,
-						bp->materialLevel(),
-						bp->productivityLevel(),
-						licensedProductionRuns
-					)
+				ItemData idata(
+					installedItem->typeID(),
+					ownerID,
+					0, //temp location
+					outputFlag,
+					runs
 				);
+				BlueprintData bdata(
+					true,
+					bp->materialLevel(),
+					bp->productivityLevel(),
+					licensedProductionRuns
+				);
+
+				BlueprintItem *copy = m_manager->item_factory.SpawnBlueprint(idata, bdata);
 				if(copy == NULL) {
 					installedItem->Release();
 					return NULL;
