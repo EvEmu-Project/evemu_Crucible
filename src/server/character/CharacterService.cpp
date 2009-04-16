@@ -332,22 +332,22 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	//now set up some initial inventory:
 
-	InventoryItem *junk;
+	InventoryItem *initInvItem;
 
 	// add Damage Control I ...
-	junk = m_manager->item_factory.SpawnItem( ItemData( 2046, cdata.charid, cdata.stationID, flagHangar, 1 ) );
-	if(junk == NULL)
+	initInvItem = m_manager->item_factory.SpawnItem( ItemData( 2046, cdata.charid, cdata.stationID, flagHangar, 1 ) );
+	if(initInvItem == NULL)
 		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 	else
-		junk->Release();
+		initInvItem->Release();
 
 	// add 1 unit of Tritanium
-	junk = m_manager->item_factory.SpawnItem( ItemData( 34, cdata.charid, cdata.stationID, flagHangar, 1 ) );
+	initInvItem = m_manager->item_factory.SpawnItem( ItemData( 34, cdata.charid, cdata.stationID, flagHangar, 1 ) );
 
-	if(junk == NULL)
+	if(initInvItem == NULL)
 		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 	else
-		junk->Release();
+		initInvItem->Release();
 	
 	// give the player its ship.
 	std::string ship_name = cdata.name + "'s Ship";
