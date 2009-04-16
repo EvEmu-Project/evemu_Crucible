@@ -19,7 +19,7 @@ BUILT_DISTS = \
 	Tutorial.xmlp \
 	Wallet.xmlp 
 #	Authentication.xmlp 
-#  SkillPkts.xmlp 
+#	SkillPkts.xmlp 
 
 noinst_LIBRARIES = \
 	libpackets.a
@@ -32,23 +32,23 @@ noinst_LIBRARIES = \
 
 libpackets_a_SOURCES = \
 	$(BUILT_DISTS) \
-  ObjectCaching.cpp \
-  General.cpp \
-  AccountPkts.cpp \
-  Character.cpp \
-  CorporationPkts.cpp \
-  Crypto.cpp \
-  Destiny.cpp \
-  DogmaIM.cpp \
-  Inventory.cpp \
-  Language.cpp \
-  LSCPkts.cpp \
-  Manufacturing.cpp \
-  Market.cpp \
-  Missions.cpp \
-  Standing2.cpp \
-  Tutorial.cpp \
-  Wallet.cpp
+	ObjectCaching.cpp \
+	General.cpp \
+	AccountPkts.cpp \
+	Character.cpp \
+	CorporationPkts.cpp \
+	Crypto.cpp \
+	Destiny.cpp \
+	DogmaIM.cpp \
+	Inventory.cpp \
+	Language.cpp \
+	LSCPkts.cpp \
+	Manufacturing.cpp \
+	Market.cpp \
+	Missions.cpp \
+	Standing2.cpp \
+	Tutorial.cpp \
+	Wallet.cpp
 #	SkillPkts.cpp 
 
 %.cpp: %.xmlp

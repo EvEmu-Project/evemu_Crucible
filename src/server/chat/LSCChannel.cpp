@@ -67,9 +67,9 @@ LSCChannel::LSCChannel(
 	uint32 mode
 )
 : m_service(svc),
+  m_ownerID(ownerID),
   m_channelID(channelID),
   m_type(type),
-  m_ownerID(ownerID),
   m_displayName(displayName==NULL?"":displayName),
   m_motd(motd==NULL?"":motd),
   m_comparisonKey(comparisonKey==NULL?"":comparisonKey),

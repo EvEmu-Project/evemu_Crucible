@@ -45,9 +45,9 @@ EVEPresentation::EVEPresentation(
 	Client *c)
 : net(n),
   client(c),
-  m_state(VersionNotReceived),
   m_request(NULL),
-  m_userCount(0)
+  m_userCount(0),
+  m_state(VersionNotReceived)
 {
 	//do not touch client here, its not fully constructed
 }

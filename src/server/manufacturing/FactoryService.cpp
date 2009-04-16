@@ -29,8 +29,8 @@ PyCallable_Make_InnerDispatcher(FactoryService)
 
 FactoryService::FactoryService(PyServiceMgr *mgr, DBcore *db)
 : PyService(mgr, "factory"),
-  m_db(db),
-  m_dispatch(new Dispatcher(this))
+  m_dispatch(new Dispatcher(this)),
+  m_db(db)
 {
 	_SetCallDispatcher(m_dispatch);
 

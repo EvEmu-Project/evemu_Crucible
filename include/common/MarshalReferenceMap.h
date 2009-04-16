@@ -102,6 +102,12 @@ public:
 	}
 
 protected:
+	/**
+	 * max amount of objects that are referenced objects in this stream
+	 * this value is supplied by the client (regarding the 'unmarshal' process).
+	 */
+	const uint32 expectedObjectsCount;
+
 	/** 
 	 * keeps track of the amount of objects that are actually stored
 	 */
@@ -111,12 +117,6 @@ protected:
 	 * keeps track of the store index
 	 */
 	uint32 storeObjectIndex;
-
-	/**
-	 * max amount of objects that are referenced objects in this stream
-	 * this value is supplied by the client (regarding the 'unmarshal' process).
-	 */
-	const uint32 expectedObjectsCount;
 
 	/**
 	 * pointer container to keep track of the pointers...

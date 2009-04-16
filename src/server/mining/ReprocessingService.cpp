@@ -98,10 +98,10 @@ PyBoundObject *ReprocessingService::_CreateBoundObject(Client *c, const PyRep *b
 ReprocessingServiceBound::ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB *db, uint32 stationID)
 : PyBoundObject(mgr),
   m_dispatch(new Dispatcher(this)),
-  m_stationID(stationID),
   m_db(db),
-  m_staEfficiency(0),
-  m_tax(0)
+  m_stationID(stationID),
+  m_staEfficiency(0.0),
+  m_tax(0.0)
 {
 	_SetCallDispatcher(m_dispatch);
 

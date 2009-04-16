@@ -19,7 +19,7 @@ a likely exception to this goal).
 
  <files>
   <!-- <strings>strings.txt</strings> -->
-  <!-- <log>logs/eveserver.log</log> -->
+  <!-- <logfile>logs/eveserver.log</logfile> -->
   <!-- <logsettings>log.ini</logsettings> -->
   <!-- <cache></cache> -->
  </files>

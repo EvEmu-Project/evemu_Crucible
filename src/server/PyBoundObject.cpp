@@ -29,8 +29,8 @@
 
 PyBoundObject::PyBoundObject(PyServiceMgr *mgr)
 : m_manager(mgr),
-  m_bindID(0),
-  m_nodeID(0)
+  m_nodeID(0),
+  m_bindID(0)
 {
 }
 
