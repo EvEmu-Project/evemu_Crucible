@@ -156,28 +156,3 @@ void EVEmuServerConfig::Dump() const {
 	_log(COMMON__MESSAGE, "files.logSettings = %s",   files.logSettings.c_str());
 	_log(COMMON__MESSAGE, "files.cacheDir = %s",      files.cacheDir.c_str());
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

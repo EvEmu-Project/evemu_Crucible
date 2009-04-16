@@ -243,21 +243,21 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	//TODO: choose these based on selected parameters...
 	// Setting character's starting position, and getting it's location...
-	//double x=0,y=0,z=0;
 	GPoint pos(0.0, 0.0, 0.0);
 
 	if(	!m_db.GetLocationCorporationByCareer(cdata, pos)
 		|| !m_db.GetAttributesFromBloodline(cdata)
-		|| !m_db.GetAttributesFromAncestry(cdata) ) {
+		|| !m_db.GetAttributesFromAncestry(cdata) ) 
+	{
 		codelog(CLIENT__ERROR, "Failed to load char create details. Bloodline %lu, ancestry %lu, career %lu.",
 			cdata.bloodlineID, cdata.ancestryID, cdata.careerID);
 		return NULL;
 	}
 
 	cdata.raceID = m_db.GetRaceByBloodline(cdata.bloodlineID);
-	if(cdata.raceID == 0) {
-		codelog(CLIENT__ERROR, "Failed to find raceID from bloodline %lu",
-			cdata.bloodlineID);
+	if(cdata.raceID == 0)
+	{
+		codelog(CLIENT__ERROR, "Failed to find raceID from bloodline %lu", cdata.bloodlineID);
 		return NULL;
 	}
 
@@ -284,15 +284,17 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	//obtain ship type
 	uint32 shipTypeID;
 	if(!m_db.GetShipTypeByBloodline(cdata.bloodlineID, shipTypeID))
-		//error was already printed
 		return NULL;
 
+	typedef std::map<uint32, uint32>	CharSkillMap;
+	typedef CharSkillMap::iterator		CharSkillMapItr;
+
 	//load skills
-	std::map<uint32, uint32> startingSkills;
+	CharSkillMap startingSkills;
 	if(	   !m_db.GetSkillsByRace(cdata.raceID, startingSkills)
 		|| !m_db.GetSkillsByCareer(cdata.careerID, startingSkills)
-		|| !m_db.GetSkillsByCareerSpeciality(cdata.careerSpecialityID, startingSkills)
-	) {
+		|| !m_db.GetSkillsByCareerSpeciality(cdata.careerSpecialityID, startingSkills ))
+	{
 		codelog(CLIENT__ERROR, "Failed to load char create skills. Bloodline %lu, ancestry %lu.",
 			cdata.bloodlineID, cdata.ancestryID);
 		return NULL;
@@ -300,7 +302,8 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	//now we have all the data we need, stick it in the DB
 	InventoryItem *char_item = m_db.CreateCharacter(call.client->GetAccountID(), m_manager->item_factory, cdata, capp);
-	if(char_item == NULL) {
+	if(char_item == NULL)
+	{
 		//a return to the client of 0 seems to be the only means of marking failure
 		codelog(CLIENT__ERROR, "Failed to create character '%s'", cdata.name.c_str());
 		return NULL;
@@ -308,27 +311,19 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	cdata.charid = char_item->itemID();
 
 	//spawn all the skills
-	std::map<uint32, uint32>::iterator cur, end;
+	CharSkillMapItr cur, end;
 	cur = startingSkills.begin();
 	end = startingSkills.end();
-	for(; cur != end; cur++) {
-		InventoryItem *i = m_manager->item_factory.SpawnItem(
-			ItemData(
-				cur->first,
-				cdata.charid,
-				cdata.charid,
-				flagSkill
-			)
-		);
+	for(; cur != end; cur++)
+	{
+		InventoryItem *i = m_manager->item_factory.SpawnItem( ItemData( cur->first, cdata.charid, cdata.charid, flagSkill	) );
 		if(i == NULL) {
 			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
 			continue;
 		}
 
 		i->Set_skillLevel(cur->second);
-		i->Set_skillPoints(
-			GetSkillPointsForSkillLevel(i, cur->second)
-		);
+		i->Set_skillPoints( GetSkillPointsForSkillLevel(i, cur->second));
 		_log(CLIENT__MESSAGE, "Trained skill %s to level %d (%d points)", i->itemName().c_str(), i->skillLevel(), i->skillPoints());
 
 		//we dont actually need the item anymore...
@@ -336,64 +331,44 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	}
 
 	//now set up some initial inventory:
-	/*
-	Capsule-creation removed, we don't need it. Capsule is created when player's ship is destroyed or jump out event.
-	->Jesaja
-	*/
 
-	{	//item scope
-		InventoryItem *junk;
+	InventoryItem *junk;
 
-		// spawn Damage Control I ...
-		junk = m_manager->item_factory.SpawnItem(
-			ItemData(
-				2046,
-				cdata.charid,
-				cdata.stationID,
-				flagHangar,
-				1
-			)
-		);
-		if(junk == NULL)
-			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
-		else
-			junk->Release();
+	// add Damage Control I ...
+	junk = m_manager->item_factory.SpawnItem( ItemData( 2046, cdata.charid, cdata.stationID, flagHangar, 1 ) );
+	if(junk == NULL)
+		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+	else
+		junk->Release();
 
-		// ... and 1 unit of Tritanium
-		junk = m_manager->item_factory.SpawnItem(
-			ItemData(
-				34,
-				cdata.charid,
-				cdata.stationID,
-				flagHangar,
-				1
-			)
-		);
-		if(junk == NULL)
-			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
-		else
-			junk->Release();
+	// add 1 unit of Tritanium
+	junk = m_manager->item_factory.SpawnItem( ItemData( 34, cdata.charid, cdata.stationID, flagHangar, 1 ) );
 
-		}
+	if(junk == NULL)
+		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+	else
+		junk->Release();
+	
+	// give the player its ship.
+	std::string ship_name = cdata.name + "'s Ship";
+	InventoryItem *ship_item = m_manager->item_factory.SpawnItem(
+		ItemData(
+			shipTypeID, // The race-specific start ship
+			cdata.charid,
+			cdata.stationID,
+			flagHangar,
+			ship_name.c_str()
+		));
 
-	{	//item scope
-		std::string ship_name = cdata.name + "'s Ship";
-		InventoryItem *ship_item = m_manager->item_factory.SpawnItem(
-			ItemData(
-				shipTypeID, // The race-specific start ship
-				cdata.charid,
-				cdata.stationID,
-				flagHangar,
-				ship_name.c_str()
-			)
-		);
-		if(ship_item == NULL) {
-			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
-		} else {
-			//welcome onboard your starting ship
-			char_item->MoveInto(ship_item, flagPilot, false);
-			ship_item->Release();
-		}
+	if(ship_item == NULL)
+	{
+		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+	}
+	else
+	{
+		//welcome on board your starting ship
+		char_item->MoveInto(ship_item, flagPilot, false);
+		ship_item->Release();
 	}
 
 	//recursively save everything we just did.
@@ -402,7 +377,7 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	_log(CLIENT__MESSAGE, "Sending char create ID %d as reply", cdata.charid);
 
-	return(new PyRepInteger(cdata.charid));
+	return new PyRepInteger(cdata.charid);
 }
 
 /**
