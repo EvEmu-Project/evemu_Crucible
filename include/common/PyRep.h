@@ -238,8 +238,16 @@ protected:
 class PyRepString : public PyRep
 {
 public:
-	PyRepString(const char *str = "", bool type_1=false) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1) {}
-	PyRepString(const std::string &str, bool type_1=false) : PyRep(PyRep::PyTypeString), is_type_1(type_1) { value.assign(str.c_str(), str.length()); } //to deal with non-string buffers poorly placed in strings (CCP)
+	PyRepString(const char *str = "", bool type_1=false) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1)
+	{
+
+	}
+
+	PyRepString(const std::string &str, bool type_1=false) : PyRep(PyRep::PyTypeString), is_type_1(type_1)
+	{
+		value.assign(str.c_str(), str.length());
+	} //to deal with non-string buffers poorly placed in strings (CCP)
+
 	PyRepString(const uint8 *data, uint32 len, bool type_1=false) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1) {}
 	virtual ~PyRepString() {}
 	void Dump(FILE *into, const char *pfx) const;

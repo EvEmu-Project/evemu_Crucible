@@ -23,12 +23,10 @@
 	Author:		Zhur
 */
 
-
 #ifndef __CHARACTERSERVICE_H_INCL__
 #define __CHARACTERSERVICE_H_INCL__
 
 #include "../PyService.h"
-
 #include "CharacterDB.h"
 
 class CharacterService : public PyService {
@@ -64,14 +62,29 @@ protected:
 	PyCallable_DECL_CALL(GetCharacterAppearanceList)
 	PyCallable_DECL_CALL(GetRecentShipKillsAndLosses)
 
-	PyCallable_DECL_CALL(GetCharacterDescription)//mandela
-	PyCallable_DECL_CALL(SetCharacterDescription)//mandela
+	PyCallable_DECL_CALL(GetCharacterDescription)
+	PyCallable_DECL_CALL(SetCharacterDescription)
 
-	PyCallable_DECL_CALL(GetNote) // LSMoura
-	PyCallable_DECL_CALL(SetNote) // LSMoura
+	PyCallable_DECL_CALL(GetNote)
+	PyCallable_DECL_CALL(SetNote)
 
-	uint32 GetSkillPointsForSkillLevel(InventoryItem *i, uint8 level); // Johnsus
+	/**
+	 * \brief client message to tell the server to log the char creation (I think).
+	 *
+	 * no long description.
+	 *
+	 * @param[in] call containing the clients argument info regarding the call.
+	 * @return PyResult containing the server's response.
+	 */
+	PyCallable_DECL_CALL(LogStartOfCharacterCreation)
+
+	/**
+	 * \brief Calculates skill points for current level.
+	 *
+	 * @author Johnsus
+	 * @date 5/11/2008
+	 */
+	uint32 GetSkillPointsForSkillLevel(InventoryItem *i, uint8 level);
 };
-
 
 #endif // __CHARACTERSERVICE_H_INCL__

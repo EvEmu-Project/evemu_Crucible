@@ -56,11 +56,13 @@ CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc)
 	PyCallable_REG_CALL(CharacterService, GetCharacterAppearanceList)
 	PyCallable_REG_CALL(CharacterService, GetRecentShipKillsAndLosses)
 
-	PyCallable_REG_CALL(CharacterService, GetCharacterDescription)//mandela
-	PyCallable_REG_CALL(CharacterService, SetCharacterDescription)//mandela
+	PyCallable_REG_CALL(CharacterService, GetCharacterDescription)
+	PyCallable_REG_CALL(CharacterService, SetCharacterDescription)
 
-	PyCallable_REG_CALL(CharacterService, GetNote)//LSMoura
-	PyCallable_REG_CALL(CharacterService, SetNote)//LSMoura
+	PyCallable_REG_CALL(CharacterService, GetNote)
+	PyCallable_REG_CALL(CharacterService, SetNote)
+
+	PyCallable_REG_CALL(CharacterService, LogStartOfCharacterCreation)
 }
 
 CharacterService::~CharacterService() {
@@ -310,14 +312,14 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	cur = startingSkills.begin();
 	end = startingSkills.end();
 	for(; cur != end; cur++) {
-		ItemData idata(
-			cur->first,
-			cdata.charid,
-			cdata.charid,
-			flagSkill
+		InventoryItem *i = m_manager->item_factory.SpawnItem(
+			ItemData(
+				cur->first,
+				cdata.charid,
+				cdata.charid,
+				flagSkill
+			)
 		);
-
-		InventoryItem *i = m_manager->item_factory.SpawnItem(idata);
 		if(i == NULL) {
 			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
 			continue;
@@ -343,30 +345,30 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 		InventoryItem *junk;
 
 		// spawn Damage Control I ...
-		ItemData idata(
-			2046,
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			1
+		junk = m_manager->item_factory.SpawnItem(
+			ItemData(
+				2046,
+				cdata.charid,
+				cdata.stationID,
+				flagHangar,
+				1
+			)
 		);
-
-		junk = m_manager->item_factory.SpawnItem(idata);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		else
 			junk->Release();
 
 		// ... and 1 unit of Tritanium
-		idata = ItemData(
-			34,
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			1
+		junk = m_manager->item_factory.SpawnItem(
+			ItemData(
+				34,
+				cdata.charid,
+				cdata.stationID,
+				flagHangar,
+				1
+			)
 		);
-
-		junk = m_manager->item_factory.SpawnItem(idata);
 		if(junk == NULL)
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		else
@@ -376,15 +378,15 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	{	//item scope
 		std::string ship_name = cdata.name + "'s Ship";
-		ItemData idata(
-			shipTypeID, // The race-specific start ship
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			ship_name.c_str()
+		InventoryItem *ship_item = m_manager->item_factory.SpawnItem(
+			ItemData(
+				shipTypeID, // The race-specific start ship
+				cdata.charid,
+				cdata.stationID,
+				flagHangar,
+				ship_name.c_str()
+			)
 		);
-
-		InventoryItem *ship_item = m_manager->item_factory.SpawnItem(idata);
 		if(ship_item == NULL) {
 			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 		} else {
@@ -406,7 +408,8 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 /**
  * @todo clean this from unneeded comments. Replace the read query actions by a system that uses memory.
  */
-PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
+PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call)
+{
 	CallCreateCharacter2 arg;
 	if(!arg.Decode(&call.tuple)) {
 		_log(CLIENT__ERROR, "Failed to decode CreateCharacter2 arg.");
@@ -414,6 +417,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	}
 
 	CharacterData cdata;
+	memset(&cdata, 0, sizeof(CharacterData));
 	cdata.name = arg.name;
 	cdata.bloodlineID = arg.bloodlineID;
 	cdata.genderID = arg.genderID;
@@ -462,7 +466,6 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
 	//TODO: choose these based on selected parameters...
 	// Setting character's starting position, and getting it's location...
-	//double x=0,y=0,z=0;
 	GPoint pos(0.0, 0.0, 0.0);
 
 	if(	!m_db.GetLocationCorporationByCareer(cdata, pos)
@@ -490,7 +493,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	cdata.regionID = 10000016;
 
 	cdata.bounty = 0;
-	cdata.balance = 6666000000.0f;
+	cdata.balance = sConfig.server.startBalance;
 	cdata.securityRating = 0;
 	cdata.logonMinutes = 0;
 	cdata.title = "No Title";
@@ -502,10 +505,13 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	//obtain ship type
 	uint32 shipTypeID;
 	if(!m_db.GetShipTypeByBloodline(cdata.bloodlineID, shipTypeID))
-		return NULL;		//error was already printed
+		return NULL;
 
+	typedef std::map<uint32, uint32>	CharSkillMap;
+	typedef CharSkillMap::iterator		CharSkillMapItr;
+	
 	//load skills
-	std::map<uint32, uint32> startingSkills;
+	CharSkillMap startingSkills;
 	if( !m_db.GetSkillsByRace(cdata.raceID, startingSkills) )
 	{
 		codelog(CLIENT__ERROR, "Failed to load char create skills. Bloodline %lu, Ancestry %lu.",
@@ -523,18 +529,12 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	cdata.charid = char_item->itemID();
 
 	//spawn all the skills
-	std::map<uint32, uint32>::iterator cur, end;
+	CharSkillMapItr cur, end;
 	cur = startingSkills.begin();
 	end = startingSkills.end();
-	for(; cur != end; cur++) {
-		ItemData idata(
-			cur->first,
-			cdata.charid,
-			cdata.charid,
-			flagSkill
-		);
-
-		InventoryItem *i = m_manager->item_factory.SpawnItem(idata);
+	for(; cur != end; cur++) 
+	{
+		InventoryItem *i = m_manager->item_factory.SpawnItem( ItemData(cur->first, cdata.charid, cdata.charid, flagSkill ) );
 		if(i == NULL) {
 			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
 			continue;
@@ -542,69 +542,51 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
 		_log(CLIENT__MESSAGE, "Training skill %lu to level %d (%d points)", i->typeID(), i->skillLevel(), i->skillPoints());
 		i->Set_skillLevel(cur->second);
-		i->Set_skillPoints(
-			GetSkillPointsForSkillLevel(i, cur->second)
-		);
+		i->Set_skillPoints(GetSkillPointsForSkillLevel(i, cur->second));
 
-		//we dont actually need the item anymore...
+		//we don't actually need the item anymore...
 		i->Release();
 	}
 
 	//now set up some initial inventory:
-	{	//item scope
-		InventoryItem *junk;
+	InventoryItem *initInvItem;
 
-		// spawn Damage Control I ...
-		ItemData idata(
-			2046,
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			1
-		);
+	// add Damage Control I
+	initInvItem = m_manager->item_factory.SpawnItem( ItemData( 2046, cdata.charid, cdata.stationID, flagHangar, 1 ));
+	if(initInvItem == NULL)
+		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+	else
+		initInvItem->Release();
+	initInvItem = NULL;
 
-		junk = m_manager->item_factory.SpawnItem(idata);
-		if(junk == NULL)
-			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
-		else
-			junk->Release();
+	// add 1 unit of Tritanium
+	initInvItem = m_manager->item_factory.SpawnItem( ItemData( 34, cdata.charid, cdata.stationID, flagHangar, 1 ));
+	if(initInvItem == NULL)
+		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+	else
+		initInvItem->Release();
+	initInvItem = NULL;
 
-		// ... and 1 unit of Tritanium
-		idata = ItemData(
-			34,
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			1
-		);
 
-		junk = m_manager->item_factory.SpawnItem(idata);
-		if(junk == NULL)
-			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
-		else
-			junk->Release();
-
-		}
-
-	{	//item scope
-		std::string ship_name = cdata.name + "'s Ship";
-		ItemData idata(
-			shipTypeID, // The race-specific start ship
-			cdata.charid,
-			cdata.stationID,
-			flagHangar,
-			ship_name.c_str()
-		);
-
-		InventoryItem *ship_item = m_manager->item_factory.SpawnItem(idata);
-		if(ship_item == NULL) {
-			codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
-		} else {
-			//ship_item->Relocate(GPoint(x,y,z));<<< Why relocate already known pos?
-			//welcome onboard your starting ship
-			char_item->MoveInto(ship_item, flagPilot, false);
-			ship_item->Release();
-		}
+	std::string ship_name = cdata.name + "'s Ship";
+	InventoryItem *ship_item;
+	ship_item = m_manager->item_factory.SpawnItem( ItemData(
+				shipTypeID, // The race-specific start ship
+				cdata.charid,
+				cdata.stationID,
+				flagHangar,
+				ship_name.c_str() ) );
+	
+	if(ship_item == NULL)
+	{
+		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+	}
+	else
+	{
+		//ship_item->Relocate(GPoint(x,y,z));<<< Why relocate already known pos?
+		//welcome on board your starting ship
+		char_item->MoveInto(ship_item, flagPilot, false);
+		ship_item->Release();
 	}
 
 	//recursively save everything we just did.
@@ -613,7 +595,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
 	_log(CLIENT__MESSAGE, "Sending char create ID %d as reply", cdata.charid);
 
-	return(new PyRepInteger(cdata.charid));
+	return new PyRepInteger(cdata.charid);
 }
 
 PyResult CharacterService::Handle_Ping(PyCallArgs &call)
@@ -868,13 +850,20 @@ PyResult CharacterService::Handle_SetNote(PyCallArgs &call) {
 	return NULL;
 }
 
-/** Calculates skill points for current level.
-*
-* @author Johnsus
-* @date 5/11/2008
-*/
-uint32 CharacterService::GetSkillPointsForSkillLevel(InventoryItem *i, uint8 level) {
-	return(
-		SKILL_BASE_POINTS * i->skillTimeConstant() * pow(32, (level - 1) / 2.0)
-	);
+uint32 CharacterService::GetSkillPointsForSkillLevel(InventoryItem *i, uint8 level)
+{
+	if (i == NULL)
+		return 0;
+
+	float fLevel = level;
+	fLevel = (fLevel - 1.0) * 0.5;
+
+	uint32 calcSkillPoints = SKILL_BASE_POINTS * i->skillTimeConstant() * pow(32, fLevel);
+	return calcSkillPoints;
+}
+
+PyResult CharacterService::Handle_LogStartOfCharacterCreation(PyCallArgs &call)
+{
+	/* we seem to send nothing back. */
+	return NULL;
 }
