@@ -122,6 +122,4 @@ protected:
 	SessionData m_last;
 };
 
-
 #endif
-

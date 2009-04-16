@@ -23,14 +23,11 @@
 	Author:		Zhur
 */
 
-
 #include "EvemuPCH.h"
-
 
 PyCallable_Make_InnerDispatcher(DogmaIMService)
 
-class DogmaIMBound
-: public PyBoundObject {
+class DogmaIMBound : public PyBoundObject {
 public:
 
 	PyCallable_Make_Dispatcher(DogmaIMBound)
@@ -95,14 +92,12 @@ DogmaIMService::~DogmaIMService() {
 	delete m_dispatch;
 }
 
-
 PyBoundObject *DogmaIMService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
 	_log(CLIENT__MESSAGE, "DogmaIMService bind request for:");
 	bind_args->Dump(CLIENT__MESSAGE, "    ");
 
 	return(new DogmaIMBound(m_manager, &m_db));
 }
-
 
 PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {
 	PyRep *result = NULL;
@@ -113,7 +108,6 @@ PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {
 		return(new PyRepNone());
 	}
 	result = hint;
-
 
 	_log(CLIENT__MESSAGE, "Sending attributes type reply");
 
@@ -292,24 +286,3 @@ PyResult DogmaIMBound::Handle_GetWeaponBankInfoForShip(PyCallArgs &call) {
 
 	return(new PyRepDict);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -492,7 +492,7 @@ void Client::Login(CryptoChallengePacket *pack) {
 	ack.jit = pack->user_languageid;
 	ack.userid = m_accountID;
 	ack.maxSessionTime = new PyRepNone;
-	ack.userType = 1;	//TODO: what is this??
+	ack.userType = 1;
 	ack.role = m_role;
 	ack.address = m_net.GetConnectedAddress();
 	ack.inDetention = new PyRepNone;
@@ -500,7 +500,7 @@ void Client::Login(CryptoChallengePacket *pack) {
 
 	m_net._QueueRep(ack.Encode());
 
-	session.Set_userType(1);	//TODO: what is this??
+	session.Set_userType(1);	//user type 1 is normal user, type 23 is a trial account user.
 	session.Set_userid(m_accountID);
 	session.Set_address(m_net.GetConnectedAddress().c_str());
 	session.Set_role(m_role);

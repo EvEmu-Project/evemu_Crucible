@@ -23,10 +23,7 @@
 	Author:		Zhur
 */
 
-
 #include "EvemuPCH.h"
-
-
 
 PyCallable_Make_InnerDispatcher(AccountService)
 
@@ -40,16 +37,14 @@ AccountService::AccountService(PyServiceMgr *mgr, DBcore *db)
 	PyCallable_REG_CALL(AccountService, GetCashBalance)
 	PyCallable_REG_CALL(AccountService, GetRefTypes)
 	PyCallable_REG_CALL(AccountService, GetKeyMap)
-	PyCallable_REG_CALL(AccountService, GiveCash)//mandela
+	PyCallable_REG_CALL(AccountService, GiveCash)
 	PyCallable_REG_CALL(AccountService, GiveCashFromCorpAccount)
-	PyCallable_REG_CALL(AccountService, GetJournal)//mandela
-	
+	PyCallable_REG_CALL(AccountService, GetJournal)	
 }
 
 AccountService::~AccountService() {
 	delete m_dispatch;
 }
-
 
 PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	Call_SingleArg args;
@@ -72,7 +67,6 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	
 	if(!corporate_wallet) { //personal wallet
 		PyRep *result = new PyRepReal(call.client->GetBalance());
 		return(result);
@@ -85,7 +79,7 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	return NULL;
 }
 
-//givecache takes (ownerID, retval['qty'], retval['reason'][:40])
+//givecash takes (ownerID, retval['qty'], retval['reason'][:40])
 //GiveCashFromCorpAccount(ownerID, retval['qty'], retval['reason'][:40])
 // notify OnAccountChange:
 // 		accountKey: 'cash', ownerID: charID or corpID, new balance
@@ -136,7 +130,7 @@ PyResult AccountService::Handle_GetKeyMap(PyCallArgs &call) {
 	return(result);
 }
 
-//givecache takes (ownerID, retval['qty'], retval['reason'][:40])
+//give cash takes (ownerID, retval['qty'], retval['reason'][:40])
 PyResult AccountService::Handle_GiveCash(PyCallArgs &call) {
 	Call_GiveCash args;
 	if(!args.Decode(&call.tuple)) {
@@ -486,18 +480,3 @@ PyRepTuple * AccountService::WithdrawCashToChar(Client * const client, Client * 
 	
 	return ans;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

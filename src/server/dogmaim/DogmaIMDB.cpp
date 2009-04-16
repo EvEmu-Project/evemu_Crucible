@@ -25,13 +25,8 @@
 
 #include "EvemuPCH.h"
 
-DogmaIMDB::DogmaIMDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-DogmaIMDB::~DogmaIMDB() {
-}
+DogmaIMDB::DogmaIMDB(DBcore *db) : ServiceDB(db) {}
+DogmaIMDB::~DogmaIMDB() {}
 
 
 
