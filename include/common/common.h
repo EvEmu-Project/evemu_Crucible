@@ -162,6 +162,7 @@
 #else
 #  include <unistd.h>
 #  include <pthread.h>
+#  include <sys/time.h>
 #endif//WIN32
 
 
