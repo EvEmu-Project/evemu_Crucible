@@ -167,8 +167,6 @@ PyResult ReprocessingServiceBound::Handle_GetReprocessingInfo(PyCallArgs &call) 
 }
 
 PyResult ReprocessingServiceBound::Handle_GetQuote(PyCallArgs &call) {
-	PyRep *result = NULL;
-
 	Call_SingleIntegerArg call_args;	// itemID
 	if(!call_args.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Unable to decode args.");
@@ -179,8 +177,6 @@ PyResult ReprocessingServiceBound::Handle_GetQuote(PyCallArgs &call) {
 }
 
 PyResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
-	PyRep *result = NULL;
-
 	Call_GetQuotes call_arg;
 	if(!call_arg.Decode(&call.tuple)) {
 		_log(SERVICE__ERROR, "Unable to decode args.");
@@ -204,9 +200,7 @@ PyResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
 			rsp.quotes[*cur] = quote;
 	}
 
-	result = rsp.Encode();
-
-	return(result);
+	return(rsp.FastEncode());
 }
 
 PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {

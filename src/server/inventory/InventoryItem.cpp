@@ -454,8 +454,9 @@ PyRepObject *InventoryItem::GetInventoryRowset(EVEItemFlags _flag, uint32 forOwn
 	end = m_contents.end();
 	for(; cur != end; cur++) {
 		i = cur->second;
-		if((_flag == flagAnywhere || i->flag() == _flag) &&
-			(forOwner == NULL || i->ownerID() == forOwner))
+
+		if(    (_flag == flagAnywhere || i->flag() == _flag)
+		    && (forOwner == 0 || i->ownerID() == forOwner)) 
 		{
 			PyRepList *item = new PyRepList();
 			item->addInt(i->itemID());
@@ -1109,8 +1110,8 @@ void InventoryItem::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner) {
 		i = cur->second;
 		cur++;
 
-		if(	   !i->singleton()
-			&& (forOwner == i->ownerID() || forOwner == NULL)
+		if(    !i->singleton()
+		    && (forOwner == 0 || forOwner == i->ownerID())
 		) {
 			std::map<uint32, InventoryItem *>::iterator res = types.find(i->typeID());
 			if(res == types.end())

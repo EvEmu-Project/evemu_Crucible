@@ -1260,7 +1260,6 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyRep
 	ProcessIntChange("color2", NI(4), upd.color2, notif, dbQ);
 	ProcessIntChange("color3", NI(5), upd.color3, notif, dbQ);
 
-	uint32 i = 1;
 	std::string query = " UPDATE corporation SET ";
 
 	int N = dbQ.size();

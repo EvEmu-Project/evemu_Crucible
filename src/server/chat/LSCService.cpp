@@ -357,7 +357,7 @@ PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
 	uint32 channelID;
 	PyRepTuple * arg = call.tuple;
 
-	if (arg->items.size() != 2 || !arg->items[0]->IsTuple() && !arg->items[1]->IsString()) {
+	if (arg->items.size() != 2 || !arg->items[0]->IsTuple() || !arg->items[1]->IsString()) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments (T0)", call.client->GetName());
 		return new PyRepInteger(0);
 	}
@@ -365,7 +365,6 @@ PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
 	const char * message = ((PyRepString*)arg->items[1])->value.c_str();
 	arg = (PyRepTuple *)arg->items[0];
 
-	
 	if (arg->IsInteger()) {
 		channelID = ((PyRepInteger*)arg)->value;
 	} else if (arg->IsTuple()) {

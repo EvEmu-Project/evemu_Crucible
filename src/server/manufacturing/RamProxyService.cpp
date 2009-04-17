@@ -335,8 +335,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 				}
 				item->Move(args.containerID, outputFlag);
 				item->Release();
-				break;
-			}
+			} break;
 			/*
 			 * Time productivity research
 			 */
@@ -344,8 +343,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 				BlueprintItem *bp = (BlueprintItem *)installedItem;
 
 				bp->AlterProductivityLevel(runs);
-				break;
-			}
+			} break;
 			/*
 			 * Material productivity research
 			 */
@@ -353,8 +351,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 				BlueprintItem *bp = (BlueprintItem *)installedItem;
 
 				bp->AlterMaterialLevel(runs);
-				break;
-			}
+			} break;
 			/*
 			 * Copying
 			 */
@@ -383,7 +380,17 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 
 				copy->Move(args.containerID, outputFlag);
 				copy->Release();
-			}
+			} break;
+			/*
+			 * The rest is unsupported
+			 */
+			case ramActivityResearchingTechnology:
+			case ramActivityDuplicating:
+			case ramActivityReverseEngineering:
+			case ramActivityInvention:
+			default: {
+				_log(SERVICE__ERROR, "Activity %lu is currently unsupported.", activity);
+			} break;
 		}
 	}
 
@@ -514,7 +521,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 	// *******************
 
 	uint32 regionID = m_db.GetRegionOfContainer(args.installationContainerID);
-	if(regionID == NULL)
+	if(regionID == 0)
 		throw(PyException(MakeUserError("RamIsNotAnInstallation")));
 
 	if(c->GetRegionID() != regionID)
@@ -807,10 +814,12 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 			into.charTimeMultiplier = c->Char()->manufactureTimeMultiplier();
 
 			switch(productType->race()) {
-				case raceCaldari:	into.charTimeMultiplier *= double(c->Char()->caldariTechTimePercent()) / 100.0; break;
-				case raceMinmatar:	into.charTimeMultiplier *= double(c->Char()->minmatarTechTimePercent()) / 100.0; break;
-				case raceAmarr:		into.charTimeMultiplier *= double(c->Char()->amarrTechTimePercent()) / 100.0; break;
-				case raceGallente:	into.charTimeMultiplier *= double(c->Char()->gallenteTechTimePercent()) / 100.0; break;
+				case raceCaldari:       into.charTimeMultiplier *= double(c->Char()->caldariTechTimePercent()) / 100.0; break;
+				case raceMinmatar:      into.charTimeMultiplier *= double(c->Char()->minmatarTechTimePercent()) / 100.0; break;
+				case raceAmarr:         into.charTimeMultiplier *= double(c->Char()->amarrTechTimePercent()) / 100.0; break;
+				case raceGallente:      into.charTimeMultiplier *= double(c->Char()->gallenteTechTimePercent()) / 100.0; break;
+				case raceJove:          break;
+				case racePirate:        break;
 			}
 			break;
 		}

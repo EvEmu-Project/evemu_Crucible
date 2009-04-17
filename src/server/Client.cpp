@@ -770,7 +770,7 @@ void Client::BoardShip(InventoryItem *new_ship) {
 }
 
 void Client::_ProcessCallRequest(PyPacket *packet) {
-	PyCallable *dest;
+	PyCallable *dest = NULL;
 	if(!packet->dest.service.empty()) {
 		//service
 		dest = m_services.LookupService(packet->dest.service);

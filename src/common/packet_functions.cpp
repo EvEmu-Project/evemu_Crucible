@@ -169,7 +169,7 @@ uint8 *InflatePacket(const uint8 *data, uint32 *length, bool quiet)
 		return NULL;
 	}
 
-	realloc(buffer, rsize);
+	buffer = (uint8*)realloc(buffer, rsize);
 	*length = rsize;
 
 	return buffer;

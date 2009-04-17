@@ -154,7 +154,7 @@ public:
 	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref = false);
 
 	double GetRemainingCapacity( EVEItemFlags flag) const;
-	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = NULL);
+	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = 0);
 
 	void PutOnline();
 	void PutOffline();
@@ -164,7 +164,7 @@ public:
 	 * Primary public packet builders:
 	 */
 	PyRepObject *GetEntityRow() const;
-	PyRepObject *GetInventoryRowset(EVEItemFlags flag, uint32 forOwner = NULL) const;
+	PyRepObject *GetInventoryRowset(EVEItemFlags flag, uint32 forOwner = 0) const;
 	PyRepObject *ItemGetInfo() const;
 	PyRepObject *ShipGetInfo();
 	PyRepObject *CharGetInfo();
