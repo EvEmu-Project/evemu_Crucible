@@ -226,7 +226,14 @@ using namespace std;
 
 #include "./types.h"
 
-/* Capt: the logger isn't finished yet */
-//#include "../../src/logger.h"
+/* unix hack for GetTickCount */
+#ifndef WIN32
+inline uint32 GetTickCount()
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+}
+#endif//!WIN32
 	
 #endif

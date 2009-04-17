@@ -100,8 +100,8 @@ unsigned long rows,offset=0;
 
 string long2ip(unsigned long ip)
 {
-char temp[16];
-union { unsigned long ip; struct { unsigned char a,b,c,d; } octet;} ipoctet;
+	char temp[16];
+	union { unsigned long ip; struct { unsigned char a,b,c,d; } octet;} ipoctet;
 
 	ipoctet.ip=ip;
 	sprintf(temp,"%d.%d.%d.%d",ipoctet.octet.a,ipoctet.octet.b,ipoctet.octet.c,ipoctet.octet.d);
@@ -111,8 +111,8 @@ union { unsigned long ip; struct { unsigned char a,b,c,d; } octet;} ipoctet;
 
 string string_from_time(string pattern, time_t now)
 {
-struct tm *now_tm;
-char time_string[51];
+	struct tm *now_tm;
+	char time_string[51];
 
 	if (!now)
 		time(&now);
@@ -127,7 +127,6 @@ string timestamp(time_t now)
 {
 	return string_from_time("[%Y%m%d.%H%M%S] ",now);
 }
-
 
 string pop_arg(string &s, string seps, bool obey_quotes)
 {
@@ -155,7 +154,6 @@ bool in_quote=false;
 		ret=s.substr(0,i);
 		s.erase(0,i+1);
 	}
-
 
 	return ret;
 }
@@ -247,7 +245,6 @@ void EscapeStringSequence(std::string &subject,  const std::string &find, const 
 		pos += replace.length();
 	}
 }
-
 
 static uint16 crc16_table[256] = {
 	0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
@@ -417,6 +414,3 @@ uint64 strtoull(const char *str, const char **end, int8 base)
         return result;
 }
 #endif
-
-
-

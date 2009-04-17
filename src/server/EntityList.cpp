@@ -60,57 +60,61 @@ void EntityList::Add(Client **client) {
 	*client = NULL;
 }
 
-void EntityList::Process() {
+void EntityList::Process()
+{
+	Client *active_client = NULL;
+	client_list::iterator client_cur = m_clients.begin();
+	client_list::iterator client_end = m_clients.end();
+
+	while(client_cur != client_end)
 	{
-		Client *active_client = NULL;
-		client_list::iterator cur, end;
-		cur = m_clients.begin();
-		end = m_clients.end();
-		while(cur != end) {
-			active_client = *cur;
-			if(!active_client->ProcessNet()) {
-				_log(SERVER__CLIENTS, "Destroying client for account %lu", active_client->GetAccountID());
-				delete active_client;
-				cur = m_clients.erase(cur);
-			} else {
-				cur++;
-			}
+		active_client = *client_cur;
+		if(!active_client->ProcessNet())
+		{
+			_log(SERVER__CLIENTS, "Destroying client for account %lu", active_client->GetAccountID());
+			delete active_client;
+			active_client = NULL;
+			client_cur = m_clients.erase(client_cur);
+		}
+		else
+		{
+			client_cur++;
 		}
 	}
 	
 	SystemManager *active_system = NULL;
-	//TRY_SIGEXCEPT {
-		bool destiny = DestinyManager::IsTicActive();
-		if(destiny) {
-			_log(DESTINY__TRACE, "Triggering destiny tick for stamp %lu", DestinyManager::GetStamp());
+	bool destiny = DestinyManager::IsTicActive();
+	if(destiny)
+	{
+		_log(DESTINY__TRACE, "Triggering destiny tick for stamp %lu", DestinyManager::GetStamp());
+	}
+		
+	//first process any systems, watching for deletion.
+	system_list::iterator cur, end, tmp;
+	cur = m_systems.begin();
+	end = m_systems.end();
+	while(cur != end)
+	{
+		active_system = cur->second;
+		//if it is destiny time, process it first.
+		if(destiny)
+		{
+			active_system->ProcessDestiny();
 		}
 		
-		//first process any systems, watching for deletion.
-		system_list::iterator cur, end, tmp;
-		cur = m_systems.begin();
-		end = m_systems.end();
-		while(cur != end) {
-			active_system = cur->second;
-			//if it is destiny time, process it first.
-			if(destiny) {
-				active_system->ProcessDestiny();
-			}
-			
-			if(!active_system->Process()) {
-				_log(SERVER__CLIENTS, "Destroying system\n");
-				tmp = cur++;
-				delete cur->second;
-				m_systems.erase(tmp);
-			} else {
-				cur++;
-			}
+		if(!active_system->Process()) {
+			_log(SERVER__CLIENTS, "Destroying system\n");
+			tmp = cur++;
+			delete cur->second;
+			m_systems.erase(tmp);
+		} else {
+			cur++;
 		}
-		if(destiny) {
-			DestinyManager::TicCompleted();
-		}
-	//} CATCH_SIGEXCEPT(e) {
-	//	  _log(COMMON__ERROR, "Exception caught processing in system %lu:\n%s", (active_system==NULL)?0:active_system->GetID(), e.stack_string().c_str());
-	//}
+	}
+	if(destiny)
+	{
+		DestinyManager::TicCompleted();
+	}
 }
 
 Client *EntityList::FindCharacter(uint32 char_id) const {
@@ -184,7 +188,6 @@ void EntityList::Broadcast(const char *notifyType, const char *idType, PyRepTupl
 	Broadcast(dest, &notify);
 }
 
-
 void EntityList::Broadcast(const PyAddress &dest, EVENotificationStream *noti) const {
 	client_list::const_iterator cur, end;
 	cur = m_clients.begin();
@@ -193,7 +196,6 @@ void EntityList::Broadcast(const PyAddress &dest, EVENotificationStream *noti) c
 		(*cur)->SendNotification(dest, noti);
 	}
 }
-
 
 void EntityList::Multicast(const character_set &cset, const PyAddress &dest, EVENotificationStream *noti) const {
 	//this could likely be done better
@@ -302,8 +304,6 @@ void EntityList::Unicast(uint32 charID, const char *notifyType, const char *idTy
 	Multicast(cset, notifyType, idType, payload, seq);
 }
 
-
-
 void EntityList::GetClients(const character_set &cset, std::vector<Client *> &result) const {
 	//this could likely be done better
 
@@ -336,9 +336,3 @@ SystemManager *EntityList::FindOrBootSystem(uint32 systemID) {
 	m_systems[systemID] = mgr;
 	return(mgr);
 }
-
-
-
-
-
-

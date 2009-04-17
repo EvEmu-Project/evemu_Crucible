@@ -24,7 +24,7 @@
 */
 
 #include "EvemuPCH.h"
-
+#include "EVEVersion.h"
 #include "../server/account/ClientStatMgrService.h"
 
 #include <signal.h>
@@ -41,21 +41,12 @@ DBcore * general_database;
 
 static volatile bool RunLoops = true;
 
-/* Capt: file logger isn't committed yet... as its not finished yet
- *       Note: would be used for comparing server packet with my parsed packets
-*/
-//FileLogger* flogger;
-
 int main(int argc, char *argv[]) {
 	//INIT_SIGEXCEPT();
 
-	//flogger = new FileLogger("server_log.bin");
-	
 	_log(SERVER__INIT, "EVEmu %s", EVEMU_REVISION);
 	_log(SERVER__INIT, " Supported Client: %s, Version %.2f, Build %d, MachoNet %d",
 		EVEProjectVersion, EVEVersionNumber, EVEBuildVersion, MachoNetVersion);
-
-	//ThreadPool.Startup();
 
 	//it is important to do this before doing much of anything, in case they use it.
 	Timer::SetCurrentTime();
@@ -213,19 +204,26 @@ int main(int argc, char *argv[]) {
 	 *
 	 */
 	if(!InitSignalHandlers())	//do not set these up until the main loop is about to start, else we cannot abort init.
-		return(1);
+		return 1;
+
+	uint32 start;
+	uint32 etime;
+	uint32 last_time = GetTickCount();
+	uint32 server_main_loop_delay = 10; // delay 10 ms.
+
 	EVETCPConnection *tcpc;
-	while(RunLoops) {
+	while(RunLoops)
+	{
 		Timer::SetCurrentTime();
+		start = GetTickCount();
 		
 		//check for timeouts in other threads
 		//timeout_manager.CheckTimeouts();
 
 		while ((tcpc = tcps.NewQueuePop())) 
 		{
-			struct in_addr in;
-			in.s_addr = tcpc->GetrIP();
-			_log(SERVER__CLIENTS, "New TCP connection from %s:%d", inet_ntoa(in),tcpc->GetrPort());
+			std::string connectionAddress = tcpc->GetAddress();
+			_log(SERVER__CLIENTS, "New TCP connection from %s", connectionAddress.c_str());
 			Client *c = new Client(services, tcpc);
 					
 			entity_list.Add(&c);
@@ -233,20 +231,25 @@ int main(int argc, char *argv[]) {
 		
 		entity_list.Process();
 		services.Process();
-		
-		Sleep(3);	//this should be a parameter
+
+		/* UPDATE */
+		last_time = GetTickCount();
+		etime = last_time - start;
+
+		// do the stuff for thread sleeping
+		if( server_main_loop_delay > etime )
+		{
+			Sleep( server_main_loop_delay - etime );
+		}
 	}
 
 	_log(SERVER__SHUTDOWN,"main loop stopped");
 	_log(SERVER__SHUTDOWN,"TCP listener stopped.");
 	tcps.Close();
 	
-	// johnsus - serverStartTime mod
 	services.serviceDB().SetServerOnlineStatus(false);
 
-	//TODO: properly free physics driver
-
-	return(0);
+	return 0;
 }
 
 static bool InitSignalHandlers() {

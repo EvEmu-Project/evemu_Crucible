@@ -127,8 +127,3 @@ PyRep *MakeCustomError(const char *fmt, ...) {
 
 	return(MakeUserError("CustomError", args));
 }
-
-
-
-
-

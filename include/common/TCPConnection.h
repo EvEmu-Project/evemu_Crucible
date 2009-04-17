@@ -86,11 +86,36 @@ public:
 	bool			Send(const uint8* data, int32 size);
 	
 	char*			PopLine();		//returns ownership of allocated byte array
-	inline int32	GetrIP()	const		{ return rIP; }
+	inline int32	GetrIP()		const	{ return rIP; }
 	inline int16	GetrPort()		const	{ return rPort; }
+	
+	/**
+	 * \brief GetAddress returns a string containing the ip and the port number
+	 *
+	 * @return std::string ip and port address.
+	 * @note its kinda slow this way.
+	 */
+	std::string		GetAddress()
+	{
+		char address[22];
+
+		/* "The Matrix is a system, 'Neo'. That system is our enemy. But when you're inside, you look around, what do you see?"
+		* @note Aim I'm sorry :'( but I don't think this is cross platform compatible.
+		*/
+		uint8 *addr = (uint8*)&rIP;
+		uint16 port = *(uint16*)&rPort;
+
+		int len = snprintf(address, 21, "%u.%u.%u.%u:%d", addr[0], addr[1],addr[2],addr[3], port);
+
+		/* snprintf will return < 0 when a error occurs so return NULL */
+		if (len < 0)
+			return NULL;
+		return address;
+	}	
+
 	virtual State_t	GetState() const;
 	inline bool		Connected()	const	{ return (GetState() == TCPS_Connected); }
-	bool		ConnectReady() const;
+	bool			ConnectReady() const;
 	void			Free();		// Inform TCPServer that this connection object is no longer referanced
 
 	inline int32	GetID()	const		{ return id; }

@@ -92,7 +92,6 @@
 #include "../common/EVETCPServer.h"
 #include "../common/EVEUnmarshal.h"
 #include "../common/EVEUtils.h"
-#include "../common/EVEVersion.h"
 #include "../common/EVEZeroCompress.h"
 #include "../common/GaPreReqs.h"
 #include "../common/GaMath.h"
