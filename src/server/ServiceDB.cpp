@@ -649,47 +649,59 @@ void ServiceDB::ProcessIntChange(const char * key, uint32 oldValue, uint32 newVa
 	}
 }
 
-void ServiceDB::SetCharacterOnlineStatus(uint32 char_id, bool onoff_status) {
 //johnsus - characterOnline mod
+void ServiceDB::SetCharacterOnlineStatus(uint32 char_id, bool onoff_status) {
 	DBerror err;	
+
+	_log(CLIENT__TRACE, "ChrStatus: Setting character %lu %s.", char_id, onoff_status ? "Online" : "Offline");
+
 	if(!m_db->RunQuery(err,
 		"UPDATE character_"
 		" SET online = %d"
-		" WHERE characterID=%lu", onoff_status, char_id))
+		" WHERE characterID = %lu",
+		onoff_status, char_id))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 	}
-	_log(CLIENT__TRACE, "ChrStatus: Setting character (%lu) %s.", char_id, (onoff_status)?"Online":"Offline");
 }
 
-void ServiceDB::SetServerOnlineStatus(bool onoff_status) {
 //johnsus - serverStartType mod
+void ServiceDB::SetServerOnlineStatus(bool onoff_status) {
 	DBerror err;
+
+	_log(onoff_status ? SERVER__INIT : SERVER__SHUTDOWN, "SrvStatus: Server is %s, setting serverStartTime.", onoff_status ? "coming Online" : "going Offline");
+
 	if(!m_db->RunQuery(err,
-		"UPDATE srvStatus"
-		" SET config_value = %s"
-		" WHERE config_name='serverStartTime'",(onoff_status)?"UNIX_TIMESTAMP(CURRENT_TIMESTAMP)":"0"))
+		"REPLACE INTO srvStatus (config_name, config_value)"
+		" VALUES ('%s', %s)",
+		"serverStartTime",
+		onoff_status ? "UNIX_TIMESTAMP(CURRENT_TIMESTAMP)" : "0"))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 	}
-	_log(SERVER__INIT, "SvrStatus: Setting serverStartTime. Server is %s",(onoff_status)?"coming Online":"going Offline");
 
-	if(!m_db->RunQuery(err,"UPDATE character_, account SET character_.online = 0, account.online = 0"))
+	_log(CLIENT__TRACE, "ChrStatus: Setting all characters and accounts offline.");
+
+	if(!m_db->RunQuery(err,
+		"UPDATE character_, account"
+		" SET character_.online = 0,"
+		"     account.online = 0"))
         {
                 codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
         }
-	_log(CLIENT__TRACE, "ChrStatus: Setting all characters and accounts offline.");
-
 }
 
 void ServiceDB::SetAccountOnlineStatus(uint32 accountID, bool onoff_status) {
 	DBerror err;
+
+	_log(CLIENT__TRACE, "AccStatus: Setting account %lu %s.", accountID, onoff_status ? "Online" : "Offline");
+
 	if(!m_db->RunQuery(err,
-		" UPDATE account "
+		"UPDATE account "
 		" SET account.online = %d "
-		" WHERE accountID = %lu ", onoff_status, accountID))
+		" WHERE accountID = %lu ",
+		onoff_status, accountID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 	}
-	_log(CLIENT__TRACE, "AccStatus: Setting account (%lu) %s.", accountID, (onoff_status) ? "Online" : "Offline");
 }

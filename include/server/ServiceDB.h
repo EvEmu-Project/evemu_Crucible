@@ -94,7 +94,6 @@ public:
 
 	//johnsus - serverStartType mod
 	void SetServerOnlineStatus(bool onoff_status);
-
 	//johnsus - characterOnline mod
 	void SetCharacterOnlineStatus(uint32 char_id, bool onoff_status);
 

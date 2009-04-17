@@ -783,6 +783,4 @@ CREATE TABLE `srvStatus` (
 
 /*Data for the table `srvStatus` */
 
-insert  into `srvStatus`(`config_name`,`config_value`) values ('serverStartTime','0');
-
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
