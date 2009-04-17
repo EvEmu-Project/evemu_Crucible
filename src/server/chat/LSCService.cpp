@@ -102,7 +102,7 @@ PyResult LSCService::Handle_GetChannels(PyCallArgs &call) {
 
 	if 
 		(m_channels.find(channelID) == m_channels.end())
-		CreateChannel(channelID, call.client->GetChar().name.c_str(), LSCChannel::normal, true);
+		CreateChannel(channelID, call.client->GetName(), LSCChannel::normal, true);
 	
 	channelID = c->GetCorporationID();
 	if

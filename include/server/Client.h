@@ -58,13 +58,10 @@ detect clients moving into agro radius
 #include "../common/packet_types.h"
 #include "../common/timer.h"
 #include "../common/gpoint.h"
-
-#include "ClientSession.h"
-#include "system/SystemEntity.h"
-#include "ship/ModuleManager.h"
 #include "../common/EVEUtils.h"
 #include "../common/EVEPresentation.h"
 
+#include "ClientSession.h"
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
 
@@ -91,6 +88,7 @@ public:
 	std::string name;
 	std::string title;
 	std::string description;
+	bool gender;
 
 	double bounty;
 	double balance;
@@ -108,30 +106,21 @@ public:
 
 	uint32 typeID;
 	uint32 bloodlineID;
-	uint32 genderID;
 	uint32 ancestryID;
 	uint32 careerID;
 	uint32 schoolID;
 	uint32 careerSpecialityID;
 	
-	uint32 Intelligence;
-	uint32 Charisma;
-	uint32 Perception;
-	uint32 Memory;
-	uint32 Willpower;
+	uint8 intelligence;
+	uint8 charisma;
+	uint8 perception;
+	uint8 memory;
+	uint8 willpower;
 
 	uint64 startDateTime;
 	uint64 createDateTime;
 
 	uint8 raceID;	//must correspond to our bloodlineID!
-
-	void ModifyAttributes(uint32 add_int, uint32 add_cha, uint32 add_per, uint32 add_mem, uint32 add_wll) {
-		Intelligence += add_int;
-		Charisma += add_cha;
-		Perception += add_per;
-		Memory += add_mem;
-		Willpower += add_wll;
-	}
 };
 
 class CharacterAppearance {
@@ -247,7 +236,9 @@ protected:
 };
 */
 //DO NOT INHERIT THIS OBJECT!
-class Client : public DynamicSystemEntity {
+class Client
+: public DynamicSystemEntity
+{
 public:
 	Client(PyServiceMgr &services, EVETCPConnection *&con);
 	virtual ~Client();
@@ -255,26 +246,24 @@ public:
 	ClientSession session;
 	ModuleManager modules;
 
-	virtual void	QueuePacket(PyPacket *p);
-	virtual void	FastQueuePacket(PyPacket **p);
-	bool			ProcessNet();
-	virtual void	Process();
+	virtual void    QueuePacket(PyPacket *p);
+	virtual void    FastQueuePacket(PyPacket **p);
+	bool            ProcessNet();
+	virtual void    Process();
 
-	uint32 GetAccountID() const			{ return m_accountID; }
-	uint32 GetRole() const				{ return m_role; }
+	uint32 GetAccountID() const                     { return m_accountID; }
+	uint32 GetRole() const                          { return m_role; }
 
 	// character data
-	uint32 GetCharacterID() const		{ return m_chardata.charid; }
-	uint32 GetCorporationID() const		{ return m_chardata.corporationID; }
-	uint32 GetAllianceID() const		{ return m_chardata.allianceID; }
-	uint32 GetStationID() const			{ return m_chardata.stationID; }
-	uint32 GetSystemID() const			{ return m_chardata.solarSystemID; }
-	uint32 GetConstellationID() const	{ return m_chardata.constellationID; }
-	uint32 GetRegionID() const			{ return m_chardata.regionID; }
-	
-	const CorpMemberInfo &GetCorpInfo() const { return m_corpstate; }
-	const CharacterData &GetChar() const { return m_chardata; }
-	InventoryItem *Char() const { return m_char; }
+	InventoryItem *Char() const                     { return m_char; }
+
+	uint32 GetCharacterID() const                   { return m_chardata.charid; }
+	uint32 GetCorporationID() const                 { return m_chardata.corporationID; }
+	uint32 GetAllianceID() const                    { return m_chardata.allianceID; }
+	uint32 GetStationID() const                     { return m_chardata.stationID; }
+	uint32 GetSystemID() const                      { return m_chardata.solarSystemID; }
+	uint32 GetConstellationID() const               { return m_chardata.constellationID; }
+	uint32 GetRegionID() const                      { return m_chardata.regionID; }
 
 	uint32 GetLocationID() const
 	{
@@ -284,16 +273,27 @@ public:
 			return GetStationID();
 	}
 
+	uint32 GetCorpHQ() const                        { return m_corpstate.corpHQ; }
+	uint32 GetCorpRole() const                      { return m_corpstate.corprole; }
+	uint32 GetRolesAtAll() const                    { return m_corpstate.rolesAtAll; }
+	uint32 GetRolesAtBase() const                   { return m_corpstate.rolesAtBase; }
+	uint32 GetRolesAtHQ() const                     { return m_corpstate.rolesAtHQ; }
+	uint32 GetRolesAtOther() const                  { return m_corpstate.rolesAtOther; }
+
 	uint32 GetShipID() const { return(GetID()); }
 	InventoryItem *Ship() const { return(Item()); }
 
+	bool IsInSpace() const { return(GetStationID() == 0); }
 	inline double x() const { return(GetPosition().x); }	//this is terribly inefficient.
 	inline double y() const { return(GetPosition().y); }	//this is terribly inefficient.
 	inline double z() const { return(GetPosition().z); }	//this is terribly inefficient.
-	bool IsInSpace() const { return(GetStationID() == 0); }
-	
-	double GetBalance() const { return m_chardata.balance; }
+
+	double GetBounty() const                       { return m_chardata.bounty; }
+	double GetSecurityRating() const               { return m_chardata.securityRating; }
+	double GetBalance() const                      { return m_chardata.balance; }
 	bool AddBalance(double amount);
+
+	PyServiceMgr &services() const { return(m_services); }
 
 	void Login(CryptoChallengePacket *pack);
 	void BoardShip(InventoryItem *new_ship);
@@ -301,7 +301,7 @@ public:
 	void MoveToPosition(const GPoint &pt);
 	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
 	bool EnterSystem();
-	bool Load(uint32 char_id);
+	bool SelectCharacter(uint32 char_id);
 	void JoinCorporationUpdate(uint32 corp_id);
 	void SavePosition();
 	
@@ -347,8 +347,6 @@ public:
 	void ChannelJoined(LSCChannel *chan);
 	void ChannelLeft(LSCChannel *chan);
 
-	PyServiceMgr &services() const { return(m_services); }
-	
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, void (Client::* clientCall)() );
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, ClientFunctor **functor );
 

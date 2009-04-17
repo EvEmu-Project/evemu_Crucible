@@ -529,7 +529,7 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	into.constellationID = row.GetUInt(i++);
 	into.regionID = row.GetUInt(i++);
 	into.bloodlineID = row.GetUInt(i++);
-	into.genderID = row.GetUInt(i++);
+	into.gender = row.GetUInt(i++);
 	into.raceID = row.GetUInt(i++);
 	into.ancestryID = row.GetUInt(i++);
 	into.careerID = row.GetUInt(i++);

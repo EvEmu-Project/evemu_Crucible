@@ -162,11 +162,11 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory &fact, cons
 
 	//set some attributes to char_item
 	//use the Set_persist as they are not persistent by default
-	char_item->Set_intelligence_persist(data.Intelligence);
-	char_item->Set_charisma_persist(data.Charisma);
-	char_item->Set_perception_persist(data.Perception);
-	char_item->Set_memory_persist(data.Memory);
-	char_item->Set_willpower_persist(data.Willpower);
+	char_item->Set_intelligence_persist(data.intelligence);
+	char_item->Set_charisma_persist(data.charisma);
+	char_item->Set_perception_persist(data.perception);
+	char_item->Set_memory_persist(data.memory);
+	char_item->Set_willpower_persist(data.willpower);
 
 	std::string nameEsc;
 	m_db->DoEscapeString(nameEsc, data.name);
@@ -214,7 +214,7 @@ InventoryItem *CharacterDB::CreateCharacter(uint32 acct, ItemFactory &fact, cons
 		data.bounty,data.balance,data.securityRating,data.logonMinutes,
 		data.corporationID, data.corporationDateTime,
 		data.stationID, data.solarSystemID, data.constellationID, data.regionID,
-		data.raceID, data.bloodlineID, data.ancestryID, data.careerID, data.schoolID, data.careerSpecialityID, data.genderID,
+		data.raceID, data.bloodlineID, data.ancestryID, data.careerID, data.schoolID, data.careerSpecialityID, data.gender,
 		_VoN(accessoryID,app),_VoN(beardID,app),app.costumeID,_VoN(decoID,app),app.eyebrowsID,app.eyesID,
 		app.hairID,_VoN(lipstickID,app),_VoN(makeupID,app),app.skinID,app.backgroundID,app.lightID,
 		app.headRotation1, app.headRotation2, app.headRotation3, 
@@ -392,7 +392,7 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 acct, ItemFactory &fact, con
 		data.bounty,data.balance,data.securityRating,data.logonMinutes,
 		data.corporationID, data.corporationDateTime,
 		data.stationID, data.solarSystemID, data.constellationID, data.regionID,
-		data.raceID, data.bloodlineID, data.ancestryID, 11 /*data.careerID*/, 17 /*data.schoolID*/, 11 /*data.careerSpecialityID*/, data.genderID,
+		data.raceID, data.bloodlineID, data.ancestryID, 11 /*data.careerID*/, 17 /*data.schoolID*/, 11 /*data.careerSpecialityID*/, data.gender,
 		_VoN(accessoryID,app),_VoN(beardID,app),app.costumeID,_VoN(decoID,app),app.eyebrowsID,app.eyesID,
 		app.hairID,_VoN(lipstickID,app),_VoN(makeupID,app),app.skinID,app.backgroundID,app.lightID,
 		app.headRotation1, app.headRotation2, app.headRotation3, 
@@ -786,12 +786,11 @@ bool CharacterDB::GetAttributesFromBloodline(CharacterData & cdata) {
 
 	cdata.typeID = row.GetUInt(0);
 
-	cdata.ModifyAttributes(
-		row.GetUInt(1),
-		row.GetUInt(2),
-		row.GetUInt(3),
-		row.GetUInt(4),
-		row.GetUInt(5));
+	cdata.intelligence += row.GetUInt(1);
+	cdata.charisma += row.GetUInt(2);
+	cdata.perception += row.GetUInt(3);
+	cdata.memory += row.GetUInt(4);
+	cdata.willpower += row.GetUInt(5);
 	
 	return (true);
 }
@@ -816,12 +815,11 @@ bool CharacterDB::GetAttributesFromAncestry(CharacterData & cdata) {
 		return false;
 	}
 	
-	cdata.ModifyAttributes(
-		row.GetUInt(0),
-		row.GetUInt(1),
-		row.GetUInt(2),
-		row.GetUInt(3),
-		row.GetUInt(4));
+	cdata.intelligence += row.GetUInt(0);
+	cdata.charisma += row.GetUInt(1);
+	cdata.perception += row.GetUInt(2);
+	cdata.memory += row.GetUInt(3);
+	cdata.willpower += row.GetUInt(4);
 
 	return (true);
 }

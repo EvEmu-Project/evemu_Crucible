@@ -428,7 +428,7 @@ PyResult CorpRegistryBound::Handle_InsertApplication(PyCallArgs &call) {
 	/// Send an evemail to those who can decide
 	/// Well, for the moment, send it to the ceo
 	std::string
-		subject = "New application from " + call.client->GetChar().name,
+		subject = std::string("New application from ") + call.client->GetName(),
 		body = res.message;
 	std::vector<uint32> recipients;
 	recipients.push_back(m_db->GetCorporationCEO(res.corpID));

@@ -139,8 +139,12 @@ Client *EntityList::FindCharacter(const char *name) const {
 	cur = m_clients.begin();
 	end = m_clients.end();
 	for(; cur != end; cur++) {
-		if((*cur)->GetChar().name == name)
-			return(*cur);
+		InventoryItem *c = (*cur)->Char();
+
+		if(c != NULL) {
+			if(c->itemName() == name)
+				return *cur;
+		}
 	}
 	return NULL;
 }

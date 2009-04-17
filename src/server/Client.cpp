@@ -149,39 +149,45 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
 	m_chardata.name = "monkey";
 	m_chardata.charid = 444666;
 	m_chardata.bloodlineID = 0;
-	m_chardata.genderID = 1;
+	m_chardata.gender = 1;
 	m_chardata.ancestryID = 2;
 	m_chardata.careerID = 3;
 	m_chardata.schoolID = 4;
 	m_chardata.careerSpecialityID = 5;
-	m_chardata.Intelligence = 6;
-	m_chardata.Charisma = 7;
-	m_chardata.Perception = 8;
-	m_chardata.Memory = 9;
-	m_chardata.Willpower = 10;
+	m_chardata.intelligence = 6;
+	m_chardata.charisma = 7;
+	m_chardata.perception = 8;
+	m_chardata.memory = 9;
+	m_chardata.willpower = 10;
 
 	//initialize connection
 	m_net.SendHandshake(m_services.entity_list.GetClientCount());
 }
 
 Client::~Client() {
-	m_services.lsc_service->CharacterLogout(GetCharacterID(), LSCChannel::_MakeSenderInfo(this));
-	m_services.ClearBoundObjects(this);
-	
-	//before we remove ourself from the system, store our last location.
-	SavePosition();
+	if(m_char != NULL) {
+		// we have valid character
 
-	if(GetCharacterID() != 444666) {
+		// LSC logout
+		m_services.lsc_service->CharacterLogout(GetCharacterID(), LSCChannel::_MakeSenderInfo(this));
+
+		//before we remove ourself from the system, store our last location.
+		SavePosition();
+
+		// remove ourselves from system
+		if(m_system != NULL)
+			m_system->RemoveClient(this);	//handles removing us from bubbles and sending RemoveBall events.
+
  		//johnsus - characterOnline mod
+		// switch character online flag to 0
 		m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), false);
+	}
+
+	if(GetAccountID() != 0) { // this is not very good ....
 		m_services.serviceDB().SetAccountOnlineStatus(GetAccountID(), false);
 	}
 
-	if(m_system != NULL)
-		m_system->RemoveClient(this);	//handles removing us from bubbles and sending RemoveBall events.
-
-	if(m_char != NULL)
-		m_char->Release();
+	m_services.ClearBoundObjects(this);
 
 	targets.DoDestruction();
 }
@@ -481,9 +487,7 @@ void Client::Login(CryptoChallengePacket *pack) {
 
 		throw(PyException(no.FastEncode()));
 	}
-	
-	// this is needed so if we exit before selecting a character, the account online flag would switch back to 0
-	m_chardata.charid = 0;
+
 	m_services.serviceDB().SetAccountOnlineStatus(m_accountID, true);
 
 	//send this before session change
@@ -574,6 +578,11 @@ void Client::_CheckSessionChange() {
 
 /* sync the session with our current state. */
 void Client::SessionSync() {
+	if(m_char == NULL) {
+		// print a warning because we're probably gonna mess up our session values with bunch of zeroes.
+		_log(CLIENT__MESSAGE, "SessionSync() called with no valid character!");
+	}
+
 	//account
 	session.Set_userid(GetAccountID());
 	session.Set_role(GetRole());
@@ -598,12 +607,12 @@ void Client::SessionSync() {
 	session.Set_regionid(GetRegionID());
 
 	//corporation
-	session.Set_corprole(m_corpstate.corprole);
-	session.Set_rolesAtAll(m_corpstate.rolesAtAll);
-	session.Set_rolesAtBase(m_corpstate.rolesAtBase);
-	session.Set_rolesAtHQ(m_corpstate.rolesAtHQ);
-	session.Set_rolesAtOther(m_corpstate.rolesAtOther);
-	session.Set_hqID(m_corpstate.corpHQ);
+	session.Set_hqID(GetCorpHQ());
+	session.Set_corprole(GetCorpRole());
+	session.Set_rolesAtAll(GetRolesAtAll());
+	session.Set_rolesAtBase(GetRolesAtBase());
+	session.Set_rolesAtHQ(GetRolesAtHQ());
+	session.Set_rolesAtOther(GetRolesAtOther());
 
 	//gang
 	session.Set_gangrole(m_gangRole);
@@ -663,11 +672,11 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		MoveToPosition(pt);
 		return;
 	}
-	
+
 	if(IsStation(GetLocationID())) {
 		OnCharNoLongerInStation();
 	}
-	
+
 	if(IsStation(location)) {
 		// Entering station
 		m_chardata.stationID = location;
@@ -1068,8 +1077,8 @@ PyRepDict *Client::MakeSlimItem() const {
 	slim->add("ownerID", new PyRepInteger(GetCharacterID()));
 	slim->add("charID", new PyRepInteger(GetCharacterID()));
 	slim->add("corpID", new PyRepInteger(GetCorporationID()));
-	slim->add("bounty", new PyRepInteger(GetChar().bounty));
-	slim->add("securityStatus", new PyRepReal(GetChar().securityRating));
+	slim->add("bounty", new PyRepInteger(GetBounty()));
+	slim->add("securityStatus", new PyRepReal(GetSecurityRating()));
 	
 	//encode the modules list, if we have any visible modules
 	std::vector<InventoryItem *> items;
@@ -1173,7 +1182,7 @@ bool Client::AddBalance(double amount) {
 
 
 
-bool Client::Load(uint32 char_id) {
+bool Client::SelectCharacter(uint32 char_id) {
 	if(!m_services.serviceDB().LoadCharacter(char_id, m_chardata)) {
 		_log(CLIENT__ERROR, "Failed to load character data for char %lu.", char_id);
 		return false;
@@ -1200,6 +1209,9 @@ bool Client::Load(uint32 char_id) {
 		return false;
 
 	SessionSync();
+
+	//johnsus - characterOnline mod
+	m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), true);
 
 	return true;
 }

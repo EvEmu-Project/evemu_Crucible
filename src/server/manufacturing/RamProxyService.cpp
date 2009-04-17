@@ -51,12 +51,13 @@ PyResult RamProxyService::Handle_GetJobs2(PyCallArgs &call) {
 		return NULL;
 	}
 
-	if(args.ownerID == call.client->GetCorporationID())
-		if((call.client->GetCorpInfo().corprole & corpRoleFactoryManager) != corpRoleFactoryManager) {
-			// I'm afraid we don't have right error in our DB ...
+	if(args.ownerID == call.client->GetCorporationID()) {
+		if((call.client->GetCorpRole() & corpRoleFactoryManager) != corpRoleFactoryManager) {
+			// I'm afraid we don't have proper error in our DB ...
 			call.client->SendInfoModalMsg("You cannot view your corporation's jobs because you do not possess the role \"Factory Manager\".");
 			return NULL;
 		}
+	}
 
 	return(m_db.GetJobs2(args.ownerID, args.completed, args.fromDate, args.toDate));
 }
@@ -551,10 +552,10 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 
 	// check security rating if required
 	if((restrictionMask & ramRestrictBySecurity) == ramRestrictBySecurity) {
-		if(minCharSec > c->GetChar().securityRating)
+		if(minCharSec > c->GetSecurityRating())
 			throw(PyException(MakeUserError("RamAccessDeniedSecStatusTooLow")));
 
-		if(maxCharSec < c->GetChar().securityRating)
+		if(maxCharSec < c->GetSecurityRating())
 			throw(PyException(MakeUserError("RamAccessDeniedSecStatusTooHigh")));
 
 		// RamAccessDeniedCorpSecStatusTooHigh
@@ -576,14 +577,14 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 	}
 
 	if(args.isCorpJob) {
-		if((c->GetCorpInfo().corprole & corpRoleFactoryManager) != corpRoleFactoryManager)
+		if((c->GetCorpRole() & corpRoleFactoryManager) != corpRoleFactoryManager)
 			throw(PyException(MakeUserError("RamCannotInstallForCorpByRoleFactoryManager")));
 
 		if(args.activityID == ramActivityManufacturing) {
-			if((c->GetCorpInfo().corprole & corpRoleCanRentFactorySlot) != corpRoleCanRentFactorySlot)
+			if((c->GetCorpRole() & corpRoleCanRentFactorySlot) != corpRoleCanRentFactorySlot)
 				throw(PyException(MakeUserError("RamCannotInstallForCorpByRole")));
 		} else {
-			if((c->GetCorpInfo().corprole & corpRoleCanRentResearchSlot) != corpRoleCanRentResearchSlot)
+			if((c->GetCorpRole() & corpRoleCanRentResearchSlot) != corpRoleCanRentResearchSlot)
 				throw(PyException(MakeUserError("RamCannotInstallForCorpByRole")));
 		}
 	}
@@ -601,12 +602,13 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 	}
 
 	// corp hangar permission
-	if( (installedItem->flag() == flagCorpSecurityAccessGroup2 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake2) != corpRoleHangarCanTake2) ||
-		(installedItem->flag() == flagCorpSecurityAccessGroup3 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake3) != corpRoleHangarCanTake3) ||
-		(installedItem->flag() == flagCorpSecurityAccessGroup4 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake4) != corpRoleHangarCanTake4) ||
-		(installedItem->flag() == flagCorpSecurityAccessGroup5 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake5) != corpRoleHangarCanTake5) ||
-		(installedItem->flag() == flagCorpSecurityAccessGroup6 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake6) != corpRoleHangarCanTake6) ||
-		(installedItem->flag() == flagCorpSecurityAccessGroup7 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake7) != corpRoleHangarCanTake7))
+	if(    (installedItem->flag() == flagCorpSecurityAccessGroup2 && (c->GetCorpRole() & corpRoleHangarCanTake2) != corpRoleHangarCanTake2)
+	    || (installedItem->flag() == flagCorpSecurityAccessGroup3 && (c->GetCorpRole() & corpRoleHangarCanTake3) != corpRoleHangarCanTake3)
+	    || (installedItem->flag() == flagCorpSecurityAccessGroup4 && (c->GetCorpRole() & corpRoleHangarCanTake4) != corpRoleHangarCanTake4)
+	    || (installedItem->flag() == flagCorpSecurityAccessGroup5 && (c->GetCorpRole() & corpRoleHangarCanTake5) != corpRoleHangarCanTake5)
+	    || (installedItem->flag() == flagCorpSecurityAccessGroup6 && (c->GetCorpRole() & corpRoleHangarCanTake6) != corpRoleHangarCanTake6)
+	    || (installedItem->flag() == flagCorpSecurityAccessGroup7 && (c->GetCorpRole() & corpRoleHangarCanTake7) != corpRoleHangarCanTake7)
+	)
 			throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
 
 	// large location check
@@ -666,12 +668,13 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 	// *******************
 
 	// corp hangar permission
-	if( (bomLocation.flag == flagCorpSecurityAccessGroup2 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake2) != corpRoleHangarCanTake2) ||
-		(bomLocation.flag == flagCorpSecurityAccessGroup3 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake3) != corpRoleHangarCanTake3) ||
-		(bomLocation.flag == flagCorpSecurityAccessGroup4 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake4) != corpRoleHangarCanTake4) ||
-		(bomLocation.flag == flagCorpSecurityAccessGroup5 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake5) != corpRoleHangarCanTake5) ||
-		(bomLocation.flag == flagCorpSecurityAccessGroup6 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake6) != corpRoleHangarCanTake6) ||
-		(bomLocation.flag == flagCorpSecurityAccessGroup7 && (c->GetCorpInfo().corprole & corpRoleHangarCanTake7) != corpRoleHangarCanTake7))
+	if(    (bomLocation.flag == flagCorpSecurityAccessGroup2 && (c->GetCorpRole() & corpRoleHangarCanTake2) != corpRoleHangarCanTake2)
+	    || (bomLocation.flag == flagCorpSecurityAccessGroup3 && (c->GetCorpRole() & corpRoleHangarCanTake3) != corpRoleHangarCanTake3)
+	    || (bomLocation.flag == flagCorpSecurityAccessGroup4 && (c->GetCorpRole() & corpRoleHangarCanTake4) != corpRoleHangarCanTake4)
+	    || (bomLocation.flag == flagCorpSecurityAccessGroup5 && (c->GetCorpRole() & corpRoleHangarCanTake5) != corpRoleHangarCanTake5)
+	    || (bomLocation.flag == flagCorpSecurityAccessGroup6 && (c->GetCorpRole() & corpRoleHangarCanTake6) != corpRoleHangarCanTake6)
+	    || (bomLocation.flag == flagCorpSecurityAccessGroup7 && (c->GetCorpRole() & corpRoleHangarCanTake7) != corpRoleHangarCanTake7)
+	)
 			throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
 }
 
@@ -777,7 +780,7 @@ void RamProxyService::_VerifyCompleteJob(const Call_CompleteJob &args, Client *c
 
 	if(ownerID != c->GetCharacterID()) {
 		if(ownerID == c->GetCorporationID()) {
-			if((c->GetCorpInfo().corprole & corpRoleFactoryManager) != corpRoleFactoryManager)
+			if((c->GetCorpRole() & corpRoleFactoryManager) != corpRoleFactoryManager)
 				throw(PyException(MakeUserError("RamCompletionAccessDeniedByCorpRole")));
 		} else	// alliances not implemented
 			throw(PyException(MakeUserError("RamCompletionAccessDenied")));

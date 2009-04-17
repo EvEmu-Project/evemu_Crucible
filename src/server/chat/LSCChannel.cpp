@@ -222,10 +222,10 @@ OnLSC_SenderInfo *LSCChannel::_MakeSenderInfo(Client *c) {
 	
 	sender->senderID = c->GetCharacterID();
 	sender->senderName = c->GetName();
-	sender->senderType = c->GetChar().typeID;
+	sender->senderType = c->Char()->typeID();
 	sender->corpID = c->GetCorporationID();
 	sender->role = c->GetRole();
-	sender->corp_role = c->GetCorpInfo().corprole;
+	sender->corp_role = c->GetCorpRole();
 
 	return(sender);
 }

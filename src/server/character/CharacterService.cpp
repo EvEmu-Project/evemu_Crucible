@@ -97,31 +97,8 @@ PyResult CharacterService::Handle_SelectCharacterID(PyCallArgs &call) {
 		return NULL;
 	}
 
-	/*uint32 ship_id = m_db.GetCurrentShipID(args.arg);
-	_log(CLIENT__MESSAGE, "Determined that %lu is the current ship for char %lu", ship_id, args.arg);
-
-	if(!m_db.LoadCharacter(args.arg, call.client->GetChar())) {
-		_log(CLIENT__ERROR, "Failed to load char %lu for selection", args.arg);
-		//TODO: throw exception
-	} else {
-
-
-		if(!call.client->LoadInventory(ship_id)) {
-			_log(CLIENT__ERROR, "Failed to load character inventory");
-		} else if(!call.client->EnterSystem(call.client->Ship()->position())) {
-			//error prints handled in EnterSystem.
-			//TODO: throw exception
-		} else {
-			call.client->InitialEnterGame();
-			//send the session changes to kick off the client state changes.
-			call.client->SessionSync();
-		}
-	}*/
-
 	//we don't care about tutorial dungeon right now
-	if(call.client->Load(args.charID))
-		//johnsus - characterOnline mod
-		m_db.SetCharacterOnlineStatus(args.charID,true);
+	call.client->SelectCharacter(args.charID);
 
 	return NULL;
 }
@@ -199,13 +176,13 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 	CharacterData cdata;
 	cdata.name = arg.name;
 	cdata.bloodlineID = arg.bloodlineID;
-	cdata.genderID = arg.genderID;
+	cdata.gender = arg.genderID;
 	cdata.ancestryID = arg.ancestryID;
-	cdata.Intelligence = arg.IntelligenceAdd;
-	cdata.Charisma = arg.CharismaAdd;
-	cdata.Perception = arg.PerceptionAdd;
-	cdata.Memory = arg.MemoryAdd;
-	cdata.Willpower = arg.WillpowerAdd;
+	cdata.intelligence = arg.IntelligenceAdd;
+	cdata.charisma = arg.CharismaAdd;
+	cdata.perception = arg.PerceptionAdd;
+	cdata.memory = arg.MemoryAdd;
+	cdata.willpower = arg.WillpowerAdd;
 
 	std::map<std::string, PyRep *>::iterator itr = call.byname.find("careerID");
 	if(itr != call.byname.end()) {
@@ -233,9 +210,9 @@ PyResult CharacterService::Handle_CreateCharacter(PyCallArgs &call) {
 
 	_log(CLIENT__MESSAGE, "CreateCharacter called for '%s'", cdata.name.c_str());
 	_log(CLIENT__MESSAGE, "  bloodlineID=%lu genderID=%lu ancestryID=%lu careerID=%lu careerSpecialityID=%lu",
-			cdata.bloodlineID, cdata.genderID, cdata.ancestryID, cdata.careerID, cdata.careerSpecialityID);
+			cdata.bloodlineID, cdata.gender, cdata.ancestryID, cdata.careerID, cdata.careerSpecialityID);
 	_log(CLIENT__MESSAGE, "  +INT=%lu +CHA=%lu +PER=%lu +MEM=%lu +WIL=%lu",
-			cdata.Intelligence, cdata.Charisma, cdata.Perception, cdata.Memory, cdata.Willpower);
+			cdata.intelligence, cdata.charisma, cdata.perception, cdata.memory, cdata.willpower);
 
 	CharacterAppearance capp;
 	//this builds appearance data from strdict
@@ -392,7 +369,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call)
 	memset(&cdata, 0, sizeof(CharacterData));
 	cdata.name = arg.name;
 	cdata.bloodlineID = arg.bloodlineID;
-	cdata.genderID = arg.genderID;
+	cdata.gender = arg.genderID;
 	cdata.ancestryID = arg.ancestryID;
 
 	// Since the careerID is no longer passed to CreateCharacter2, we need to find another way to get this,
@@ -428,9 +405,9 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call)
 
 	_log(CLIENT__MESSAGE, "CreateCharacter2 called for '%s'", cdata.name.c_str());
 	_log(CLIENT__MESSAGE, "  bloodlineID=%lu genderID=%lu ancestryID=%lu careerID=%lu careerSpecialityID=%lu",
-			cdata.bloodlineID, cdata.genderID, cdata.ancestryID, cdata.careerID, cdata.careerSpecialityID);
+			cdata.bloodlineID, cdata.gender, cdata.ancestryID, cdata.careerID, cdata.careerSpecialityID);
 	_log(CLIENT__MESSAGE, "  +INT=%lu +CHA=%lu +PER=%lu +MEM=%lu +WIL=%lu",
-			cdata.Intelligence, cdata.Charisma, cdata.Perception, cdata.Memory, cdata.Willpower);
+			cdata.intelligence, cdata.charisma, cdata.perception, cdata.memory, cdata.willpower);
 
 	CharacterAppearance capp;
 	//this builds appearance data from strdict
@@ -684,7 +661,7 @@ PyResult CharacterService::Handle_GetHomeStation(PyCallArgs &call) {
 
 	_log(CLIENT__ERROR, "GetHomeStation() is not really implemented.");
 
-	result = new PyRepInteger(call.client->GetChar().stationID);
+	result = new PyRepInteger(call.client->GetStationID());
 
 	return(result);
 }
