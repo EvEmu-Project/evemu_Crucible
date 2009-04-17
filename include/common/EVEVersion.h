@@ -26,11 +26,11 @@
 #ifndef __EVE_VERSION_H
 #define __EVE_VERSION_H
 
-//supported client is the Apocrypha client build 85476
+//supported client is the Apocrypha client build 86756
 
-static const uint8 MachoNetVersion = 206;
+static const uint8 MachoNetVersion = 207;
 static const double EVEVersionNumber = 6.10;
-static const uint32 EVEBuildVersion = 85476;
+static const uint32 EVEBuildVersion = 86756;
 static const char *const EVEProjectCodename = "EVE-EVE-RELEASE";
 static const char *const EVEProjectRegion = "ccp";
 static const char *const EVEProjectVersion = "EVE-EVE-RELEASE@ccp";
