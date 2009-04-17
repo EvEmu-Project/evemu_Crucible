@@ -59,7 +59,7 @@ public:
 		PyCallable_REG_CALL(CorpRegistryBound, UpdateCorporation)
 		PyCallable_REG_CALL(CorpRegistryBound, UpdateLogo)
 	}
-	virtual ~CorpRegistryBound() {}
+	virtual ~CorpRegistryBound() {delete m_dispatch;}
 	virtual void Release() {
 		//I hate this statement
 		delete this;
@@ -110,7 +110,7 @@ public:
 		//PyCallable_REG_CALL(SparseCorpOfficeListBound, FetchByKey)
 		//PyCallable_REG_CALL(SparseCorpOfficeListBound, GetByKey)
 	}
-	virtual ~SparseCorpOfficeListBound() {}
+	virtual ~SparseCorpOfficeListBound() {delete m_dispatch;}
 	virtual void Release() {
 		delete this;
 	}

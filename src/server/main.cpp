@@ -181,7 +181,6 @@ int main(int argc, char *argv[]) {
 	services.cache_service->PrimeCache();
 //#endif
 
-	// johnsus - serverStartTime mod
 	services.serviceDB().SetServerOnlineStatus(true);
 
 	_log(SERVER__INIT, "Init done.");
@@ -195,7 +194,6 @@ int main(int argc, char *argv[]) {
 		argc--;
 		argv++;
 	}
-
 	
 	/*
 	 * THE MAIN LOOP
@@ -274,4 +272,3 @@ static void CatchSignal(int sig_num) {
 	_log(SERVER__SHUTDOWN,"Caught signal %d",sig_num);
 	RunLoops = false;
 }
-

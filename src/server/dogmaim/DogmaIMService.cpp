@@ -52,7 +52,7 @@ public:
 		PyCallable_REG_CALL(DogmaIMBound, ClearTargets)
 		PyCallable_REG_CALL(DogmaIMBound, GetWeaponBankInfoForShip)
 	}
-	virtual ~DogmaIMBound() {}
+	virtual ~DogmaIMBound() {delete m_dispatch;}
 	virtual void Release() {
 		//I hate this statement
 		delete this;

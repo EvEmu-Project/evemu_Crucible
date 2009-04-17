@@ -75,10 +75,10 @@ public:
 	ItemFactory &item_factory;	//here for anybody to use. we do not own this.
 	EntityList &entity_list;	//here for anybody to use. we do not own this.
 	
-	//Area to access services by name. This isnt ideal, but it avoids casting.
+	//Area to access services by name. This isn't ideal, but it avoids casting.
 	//these may be NULL during service init, but should never be after that.
 	//we do not own these pointers (we do in their PyService * form though)
-	LSCService *lsc_service; 
+	LSCService *lsc_service;
 	ObjCacheService *cache_service;
 
 protected:
@@ -87,7 +87,8 @@ protected:
 	uint32 m_nextBindID;
 	uint32 _GetBindID() { return(m_nextBindID++); }
 
-	struct BoundObject {
+	struct BoundObject
+	{
 		Client *client;	//we do not own this.
 		PyBoundObject *destination;	//we own this. PyServiceMgr deletes it
 	};
@@ -97,10 +98,4 @@ protected:
 	ServiceDB m_svcDB;	//this is crap, get rid of this
 };
 
-
-
-
-
 #endif
-
-

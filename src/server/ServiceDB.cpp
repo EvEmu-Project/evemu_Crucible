@@ -23,9 +23,7 @@
 	Author:		Zhur
 */
 
-
 #include "EvemuPCH.h"
-
 
 ServiceDB::ServiceDB(DBcore *db)
 : m_db(db)
@@ -42,8 +40,7 @@ ServiceDB::ServiceDB(ServiceDB *existing_db)
 {
 }
 
-ServiceDB::~ServiceDB() {
-}
+ServiceDB::~ServiceDB() {}
 
 bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_accountID, uint64 &out_role) {
 	DBQueryResult res;

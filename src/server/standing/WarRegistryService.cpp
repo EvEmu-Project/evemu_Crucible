@@ -25,8 +25,6 @@
 
 #include "EvemuPCH.h"
 
-
-
 PyCallable_Make_InnerDispatcher(WarRegistryService)
 
 class WarRegistryBound : public PyBoundObject {
@@ -42,6 +40,8 @@ public:
 
 		PyCallable_REG_CALL(WarRegistryBound, GetWars);
 	}
+
+	~WarRegistryBound(){delete m_dispatch;}
 	void Release() {
 		//I hate this statement
 		delete this;

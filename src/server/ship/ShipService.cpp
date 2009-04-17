@@ -46,7 +46,7 @@ public:
 		PyCallable_REG_CALL(ShipBound, Jettison)
 	}
 
-	virtual ~ShipBound() {}
+	virtual ~ShipBound() {delete m_dispatch;}
 	virtual void Release() {
 		//I hate this statement
 		delete this;

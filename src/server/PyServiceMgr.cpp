@@ -103,16 +103,19 @@ PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict
 	uint64 expiration = Win32TimeNow() + Win32Time_Hour;
 
 	PyRepTuple *objt;
-	if(dict == NULL || *dict == NULL) {
+	if(dict == NULL || *dict == NULL)
+	{
 		objt = new PyRepTuple(2);
 
 		objt->items[0] = new PyRepString(bind_str);
 		objt->items[1] = new PyRepInteger(expiration);	//expiration?
-	} else {
+	}
+	else
+	{
 		objt = new PyRepTuple(3);
 
 		objt->items[0] = new PyRepString(bind_str);
-		objt->items[1] = *dict; *dict = NULL;	//consumed
+		objt->items[1] = *dict; *dict = NULL;			//consumed
 		objt->items[2] = new PyRepInteger(expiration);	//expiration?
 	}
 
@@ -159,19 +162,3 @@ void PyServiceMgr::ClearBoundObject(uint32 bindID) {
 	m_boundObjects.erase(res);
 	bo->Release();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

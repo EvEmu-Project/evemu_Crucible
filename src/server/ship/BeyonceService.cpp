@@ -52,7 +52,7 @@ public:
 		if(c->Destiny() != NULL)
 			c->Destiny()->SendSetState(c->Bubble());
 	}
-	virtual ~BeyonceBound() {}
+	virtual ~BeyonceBound() {delete m_dispatch;}
 	virtual void Release() {
 		//I hate this statement
 		delete this;
