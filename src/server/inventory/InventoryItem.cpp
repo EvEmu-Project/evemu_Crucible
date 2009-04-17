@@ -210,7 +210,7 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data
 ) {
-	// construct actual object
+	// See what to do next:
 	switch(type.categoryID()) {
 		///////////////////////////////////////
 		// Blueprint:
@@ -220,7 +220,7 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
 			const BlueprintType &bpType = static_cast<const BlueprintType &>(type);
 
 			// create the blueprint
-			return(BlueprintItem::_Load(
+			return(Blueprint::_Load(
 				factory, itemID, bpType, data
 			));
 		};
@@ -268,6 +268,7 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 	if(data.name.empty())
 		data.name = t->name();
 
+	// See what to do next:
 	switch(t->categoryID()) {
 		///////////////////////////////////////
 		// Blueprint:
@@ -275,7 +276,7 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 		case EVEDB::invCategories::Blueprint: {
 			BlueprintData bdata; // use default blueprint attributes
 
-			return(BlueprintItem::Spawn(
+			return(Blueprint::Spawn(
 				factory, data, bdata
 			));
 		}
@@ -427,7 +428,8 @@ PyRepObject *InventoryItem::GetEntityRow() const {
 	ero.groupID = groupID();
 	ero.categoryID = categoryID();
 	ero.customInfo = m_customInfo;
-	return(ero.Encode());
+
+	return(ero.FastEncode());
 }
 
 PyRepObject *InventoryItem::GetInventoryRowset(EVEItemFlags _flag, uint32 forOwner) const {
@@ -469,11 +471,11 @@ PyRepObject *InventoryItem::GetInventoryRowset(EVEItemFlags _flag, uint32 forOwn
 			item->addInt(i->quantity());
 			item->addInt(i->groupID());
 			item->addInt(i->categoryID());
-			if(i->customInfo().empty()) {
-				item->add(new PyRepNone());
-			} else {
+			if(i->customInfo().empty())
+				item->add(new PyRepNone);
+			else
 				item->addStr(i->customInfo().c_str());
-			}
+
 			rowset.lines.add(item);
 		}
 	}
@@ -517,9 +519,8 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 	
 	//attributes:
 	attributes.EncodeAttributes(result.attributes);
-	
+
 	//no idea what time this is supposed to be
-	//codelog(ITEM__WARNING, "%s (%lu): sending faked time", m_itemName.c_str(), m_itemID);
 	result.time = Win32TimeNow();
 
 	return true;
@@ -609,7 +610,6 @@ PyRepObject *InventoryItem::CharGetInfo() {
 	
 	return(result.FastEncode());
 }
-
 
 InventoryItem *InventoryItem::FindFirstByFlag(EVEItemFlags _flag, bool newref) {
 	std::map<uint32, InventoryItem *>::iterator cur, end;
@@ -873,9 +873,9 @@ bool InventoryItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
 		return false;
 	}
 
-	if(qty == to_merge->quantity())
+	if(qty == to_merge->quantity()) {
 		to_merge->Delete();	//consumes ref
-	else if(!to_merge->AlterQuantity(-qty, notify)) {
+	} else if(!to_merge->AlterQuantity(-qty, notify)) {
 		_log(ITEM__ERROR, "%s (%lu): Failed to remove quantity %ld.", to_merge->itemName().c_str(), to_merge->itemID(), qty);
 		return false;
 	} else
@@ -900,6 +900,7 @@ bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify) {
 		changes[ixSingleton] = new PyRepInteger(old_singleton);
 		SendItemChange(m_ownerID, changes);	//changes is consumed
 	}
+
 	return true;
 }
 
@@ -946,14 +947,6 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<uint32, PyRep *> &chang
 
 	PyRepTuple *tmp = change.Encode();	//this is consumed below
 	c->SendNotification("OnItemChange", "charid", &tmp, false);	//unsequenced.
-}
-
-void InventoryItem::PutOnline() {
-	SetOnline(true);
-}
-
-void InventoryItem::PutOffline() {
-	SetOnline(false);
 }
 
 void InventoryItem::SetOnline(bool newval) {
@@ -1146,267 +1139,3 @@ double InventoryItem::GetRemainingCapacity(EVEItemFlags locationFlag) const {
 	return(remainingCargoSpace);
 }
 
-/*
- * BlueprintData
- */
-BlueprintData::BlueprintData(
-	bool _copy,
-	uint32 _materialLevel,
-	uint32 _productivityLevel,
-	int32 _licensedProductionRunsRemaining)
-: copy(_copy),
-  materialLevel(_materialLevel),
-  productivityLevel(_productivityLevel),
-  licensedProductionRunsRemaining(_licensedProductionRunsRemaining)
-{
-}
-
-/*
- * BlueprintItem
- */
-BlueprintItem::BlueprintItem(
-	ItemFactory &_factory,
-	uint32 _blueprintID,
-	// InventoryItem stuff:
-	const BlueprintType &_bpType,
-	const ItemData &_data,
-	// BlueprintItem stuff:
-	const BlueprintData &_bpData)
-: InventoryItem(_factory, _blueprintID, _bpType, _data),
-  m_copy(_bpData.copy),
-  m_materialLevel(_bpData.materialLevel),
-  m_productivityLevel(_bpData.productivityLevel),
-  m_licensedProductionRunsRemaining(_bpData.licensedProductionRunsRemaining)
-{
-	// data consistency asserts
-	assert(_bpType.categoryID() == EVEDB::invCategories::Blueprint);
-}
-
-BlueprintItem *BlueprintItem::Load(ItemFactory &factory, uint32 blueprintID, bool recurse) {
-	BlueprintItem *bi = BlueprintItem::_Load(factory, blueprintID);
-	if(bi == NULL)
-		return NULL;
-
-	// finish load
-	if(!bi->_Load(recurse)) {
-		bi->Release();	// should delete the item
-		return NULL;
-	}
-
-	// return
-	return(bi);
-}
-
-BlueprintItem *BlueprintItem::_Load(ItemFactory &factory, uint32 blueprintID
-) {
-	// pull the item info
-	ItemData data;
-	if(!factory.db().GetItem(blueprintID, data))
-		return NULL;
-
-	// obtain type
-	const BlueprintType *bpType = factory.GetBlueprintType(data.typeID);
-	if(bpType == NULL)
-		return NULL;
-
-	// Since we have successfully got the blueprint type it's really a blueprint,
-	// so there's no need to check it.
-
-	return(
-		BlueprintItem::_Load(factory, blueprintID, *bpType, data)
-	);
-}
-
-BlueprintItem *BlueprintItem::_Load(ItemFactory &factory, uint32 blueprintID,
-	// InventoryItem stuff:
-	const BlueprintType &bpType, const ItemData &data
-) {
-	// we are blueprint; pull additional blueprint info
-	BlueprintData bpData;
-	if(!factory.db().GetBlueprint(blueprintID, bpData))
-		return NULL;
-
-	return(
-		BlueprintItem::_Load(factory, blueprintID, bpType, data, bpData)
-	);
-}
-
-BlueprintItem *BlueprintItem::_Load(ItemFactory &factory, uint32 blueprintID,
-	// InventoryItem stuff:
-	const BlueprintType &bpType, const ItemData &data,
-	// BlueprintItem stuff:
-	const BlueprintData &bpData
-) {
-	// we have enough data, construct the item
-	return(new BlueprintItem(
-		factory, blueprintID, bpType, data, bpData
-	));
-}
-
-bool BlueprintItem::_Load(bool recurse) {
-	// redirect to parent
-	return(InventoryItem::_Load(recurse));
-}
-
-BlueprintItem *BlueprintItem::Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData) {
-	const Type *t = factory.GetType(data.typeID);
-	if(t == NULL)
-		return NULL;
-
-	// fix the name
-	if(data.name.empty())
-		data.name = t->name();
-
-	// check if it's really a blueprint
-	if(t->categoryID() != EVEDB::invCategories::Blueprint) {
-		_log(ITEM__ERROR, "Trying to create blueprint with type %s.", t->name().c_str());
-		return NULL;
-	}
-
-	return(
-		BlueprintItem::_Spawn(factory, data, bpData)
-	);
-}
-
-BlueprintItem *BlueprintItem::_Spawn(ItemFactory &factory,
-	// InventoryItem stuff:
-	const ItemData &data,
-	// BlueprintItem stuff:
-	const BlueprintData &bpData
-) {
-	// insert new entry into DB
-	uint32 blueprintID = factory.db().NewItem(data);
-	if(blueprintID == 0)
-		return NULL;
-
-	// insert blueprint entry into DB
-	if(!factory.db().NewBlueprint(blueprintID, bpData))
-		return NULL;
-
-	return(
-		BlueprintItem::Load(factory, blueprintID)
-	);
-}
-
-void BlueprintItem::Save(bool recursive, bool saveAttributes) const {
-	// save our parent
-	InventoryItem::Save(recursive, saveAttributes);
-
-	// save ourselves
-	m_factory.db().SaveBlueprint(
-		itemID(),
-		BlueprintData(
-			copy(),
-			materialLevel(),
-			productivityLevel(),
-			licensedProductionRunsRemaining()
-		)
-	);
-}
-
-void BlueprintItem::Delete() {
-	// delete our blueprint record
-	m_factory.db().DeleteBlueprint(m_itemID);
-	// redirect to parent
-	InventoryItem::Delete();
-}
-
-BlueprintItem *BlueprintItem::SplitBlueprint(int32 qty_to_take, bool notify) {
-	// split item
-	BlueprintItem *res = static_cast<BlueprintItem *>(
-		InventoryItem::Split(qty_to_take, notify)
-	);
-	if(res == NULL)
-		return NULL;
-
-	// copy our attributes
-	res->SetCopy(m_copy);
-	res->SetMaterialLevel(m_materialLevel);
-	res->SetProductivityLevel(m_productivityLevel);
-	res->SetLicensedProductionRunsRemaining(m_licensedProductionRunsRemaining);
-
-	return(res);
-}
-
-bool BlueprintItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
-	if(!InventoryItem::Merge(to_merge, qty, notify))
-		return false;
-	// do something special? merge material level etc.?
-	return true;
-}
-
-void BlueprintItem::SetCopy(bool copy) {
-	m_copy = copy;
-
-	Save(false, false);
-}
-
-void BlueprintItem::SetMaterialLevel(uint32 materialLevel) {
-	m_materialLevel = materialLevel;
-
-	Save(false, false);
-}
-
-bool BlueprintItem::AlterMaterialLevel(int32 materialLevelChange) {
-	int32 new_material_level = m_materialLevel + materialLevelChange;
-
-	if(new_material_level < 0) {
-		_log(ITEM__ERROR, "%s (%lu): Tried to remove %lu material levels while having %lu levels.", m_itemName.c_str(), m_itemID, -materialLevelChange, m_materialLevel);
-		return false;
-	}
-
-	SetMaterialLevel(new_material_level);
-	return true;
-}
-
-void BlueprintItem::SetProductivityLevel(uint32 productivityLevel) {
-	m_productivityLevel = productivityLevel;
-
-	Save(false, false);
-}
-
-bool BlueprintItem::AlterProductivityLevel(int32 producitvityLevelChange) {
-	int32 new_productivity_level = m_productivityLevel + producitvityLevelChange;
-
-	if(new_productivity_level < 0) {
-		_log(ITEM__ERROR, "%s (%lu): Tried to remove %lu productivity levels while having %lu levels.", m_itemName.c_str(), m_itemID, -producitvityLevelChange, m_productivityLevel);
-		return false;
-	}
-
-	SetProductivityLevel(new_productivity_level);
-	return true;
-}
-
-void BlueprintItem::SetLicensedProductionRunsRemaining(int32 licensedProductionRunsRemaining) {
-	m_licensedProductionRunsRemaining = licensedProductionRunsRemaining;
-
-	Save(false, false);
-}
-
-void BlueprintItem::AlterLicensedProductionRunsRemaining(int32 licensedProductionRunsRemainingChange) {
-	int32 new_licensed_production_runs_remaining = m_licensedProductionRunsRemaining + licensedProductionRunsRemainingChange;
-
-	SetLicensedProductionRunsRemaining(new_licensed_production_runs_remaining);
-}
-
-PyRepDict *BlueprintItem::GetBlueprintAttributes() const {
-	Rsp_GetBlueprintAttributes rsp;
-
-	// fill in our attribute info
-	rsp.blueprintID = itemID();
-	rsp.copy = copy() ? 1 : 0;
-	rsp.productivityLevel = productivityLevel();
-	rsp.materialLevel = materialLevel();
-	rsp.licensedProductionRunsRemaining = licensedProductionRunsRemaining();
-	rsp.wastageFactor = wasteFactor();
-
-	rsp.productTypeID = productTypeID();
-	rsp.manufacturingTime = type().productionTime();
-	rsp.maxProductionLimit = type().maxProductionLimit();
-	rsp.researchMaterialTime = type().researchMaterialTime();
-	rsp.researchTechTime = type().researchTechTime();
-	rsp.researchProductivityTime = type().researchProductivityTime();
-	rsp.researchCopyTime = type().researchCopyTime();
-
-	return(rsp.FastEncode());
-}

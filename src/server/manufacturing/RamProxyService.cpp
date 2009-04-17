@@ -202,7 +202,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 		switch(args.activityID) {
 			case ramActivityManufacturing: {
 				// decrease licensed production runs
-				BlueprintItem *bp = (BlueprintItem *)installedItem;
+				Blueprint *bp = (Blueprint *)installedItem;
 				if(!bp->infinite())
 					bp->AlterLicensedProductionRunsRemaining(-1);
 			}
@@ -319,7 +319,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			 * Manufacturing
 			 */
 			case ramActivityManufacturing: {
-				BlueprintItem *bp = (BlueprintItem *)installedItem;
+				Blueprint *bp = (Blueprint *)installedItem;
 
 				ItemData idata(
 					bp->productTypeID(),
@@ -341,7 +341,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			 * Time productivity research
 			 */
 			case ramActivityResearchingTimeProductivity: {
-				BlueprintItem *bp = (BlueprintItem *)installedItem;
+				Blueprint *bp = (Blueprint *)installedItem;
 
 				bp->AlterProductivityLevel(runs);
 			} break;
@@ -349,7 +349,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			 * Material productivity research
 			 */
 			case ramActivityResearchingMaterialProductivity: {
-				BlueprintItem *bp = (BlueprintItem *)installedItem;
+				Blueprint *bp = (Blueprint *)installedItem;
 
 				bp->AlterMaterialLevel(runs);
 			} break;
@@ -357,7 +357,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			 * Copying
 			 */
 			case ramActivityCopying: {
-				BlueprintItem *bp = (BlueprintItem *)installedItem;
+				Blueprint *bp = (Blueprint *)installedItem;
 
 				ItemData idata(
 					installedItem->typeID(),
@@ -373,7 +373,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 					licensedProductionRuns
 				);
 
-				BlueprintItem *copy = m_manager->item_factory.SpawnBlueprint(idata, bdata);
+				Blueprint *copy = m_manager->item_factory.SpawnBlueprint(idata, bdata);
 				if(copy == NULL) {
 					installedItem->Release();
 					return NULL;
@@ -426,7 +426,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 			if(installedItem->categoryID() != EVEDB::invCategories::Blueprint)
 				throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
 
-			BlueprintItem *bp = (BlueprintItem *)installedItem;
+			Blueprint *bp = (Blueprint *)installedItem;
 
 			if(!bp->infinite() && (bp->licensedProductionRunsRemaining() - args.runs) < 0)
 				throw(PyException(MakeUserError("RamTooManyProductionRuns")));
@@ -442,7 +442,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 			if(installedItem->categoryID() != EVEDB::invCategories::Blueprint)
 				throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
 
-			BlueprintItem *bp = (BlueprintItem *)installedItem;
+			Blueprint *bp = (Blueprint *)installedItem;
 
 			if(bp->copy())
 				throw(PyException(MakeUserError("RamCannotResearchABlueprintCopy")));
@@ -457,7 +457,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 			if(installedItem->categoryID() != EVEDB::invCategories::Blueprint)
 				throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
 
-			BlueprintItem *bp = (BlueprintItem *)installedItem;
+			Blueprint *bp = (Blueprint *)installedItem;
 
 			if(bp->copy())
 				throw(PyException(MakeUserError("RamCannotCopyABlueprintCopy")));
@@ -475,7 +475,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 			if(installedItem->categoryID() != EVEDB::invCategories::Blueprint)
 				throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
 
-			BlueprintItem *bp = (BlueprintItem *)installedItem;
+			Blueprint *bp = (Blueprint *)installedItem;
 
 			if(!bp->copy())
 				throw(PyException(MakeUserError("RamCannotInventABlueprintOriginal")));
@@ -804,7 +804,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 		 * Manufacturing
 		 */
 		case ramActivityManufacturing: {
-			BlueprintItem *bp = (BlueprintItem *)installedItem;
+			Blueprint *bp = (Blueprint *)installedItem;
 
 			productType = &bp->productType();
 
@@ -830,7 +830,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 		 * Time productivity research
 		 */
 		case ramActivityResearchingTimeProductivity: {
-			BlueprintItem *bp = (BlueprintItem *)installedItem;
+			Blueprint *bp = (Blueprint *)installedItem;
 
 			productType = &installedItem->type();
 
@@ -843,7 +843,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 		 * Material productivity research
 		 */
 		case ramActivityResearchingMaterialProductivity: {
-			BlueprintItem *bp = (BlueprintItem *)installedItem;
+			Blueprint *bp = (Blueprint *)installedItem;
 
 			productType = &installedItem->type();
 
@@ -856,7 +856,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 		 * Copying
 		 */
 		case ramActivityCopying: {
-			BlueprintItem *bp = (BlueprintItem *)installedItem;
+			Blueprint *bp = (Blueprint *)installedItem;
 
 			productType = &installedItem->type();
 

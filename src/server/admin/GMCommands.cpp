@@ -318,7 +318,7 @@ PyResult Command_setbpattr(Client *who, CommandDB *db, PyServiceMgr *services, c
 	if(!args.IsNumber(5))
 		throw(PyException(MakeCustomError("Argument 5 must be remaining licensed production runs. (got %s)", args.arg[5])));
 
-	BlueprintItem *bp = services->item_factory.GetBlueprint(atoi(args.arg[1]), false);
+	Blueprint *bp = services->item_factory.GetBlueprint(atoi(args.arg[1]), false);
 	if(bp == NULL)
 		throw(PyException(MakeCustomError("Failed to load blueprint %s.", args.arg[1])));
 

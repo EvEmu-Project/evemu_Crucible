@@ -37,7 +37,7 @@ class Type;
 class BlueprintType;
 
 class InventoryItem;
-class BlueprintItem;
+class Blueprint;
 
 class ItemFactory {
 	friend class InventoryItem;	//only for access to _GetIfContentsLoaded and _DeleteItem
@@ -62,18 +62,19 @@ public:
 	 * Type stuff
 	 */
 	const Type *GetType(uint32 typeID);
+
 	const BlueprintType *GetBlueprintType(uint32 blueprintTypeID);
 
 	/*
 	 * Item stuff
 	 */
 	InventoryItem *GetItem(uint32 itemID, bool recurse=true);
-	BlueprintItem *GetBlueprint(uint32 blueprintID, bool recurse=true);
+	Blueprint *GetBlueprint(uint32 blueprintID, bool recurse=true);
 
 	//spawn a new item with the specified information, creating it in the DB as well.
 	InventoryItem *SpawnItem(
 		ItemData &data);
-	BlueprintItem *SpawnBlueprint(
+	Blueprint *SpawnBlueprint(
 		ItemData &data,
 		BlueprintData &bpData);
 

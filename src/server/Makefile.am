@@ -129,6 +129,8 @@ libdogmaim_a_SOURCES = \
 	dogmaim/DogmaIMService.h
 
 libinventory_a_SOURCES = \
+	inventory/Blueprint.h \
+	inventory/Blueprint.cpp \
 	inventory/EVEAttributes.h \
 	inventory/EVEAttributeMgr.cpp \
 	inventory/EVEAttributeMgr.h \

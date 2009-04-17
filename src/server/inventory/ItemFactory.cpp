@@ -131,6 +131,7 @@ const BlueprintType *ItemFactory::GetBlueprintType(uint32 blueprintTypeID) {
 InventoryItem *ItemFactory::GetItem(uint32 itemID, bool recurse) {
 	std::map<uint32, InventoryItem *>::iterator res = m_items.find(itemID);
 	if(res == m_items.end()) {
+		// load the item
 		InventoryItem *i = InventoryItem::Load(*this, itemID, recurse);
 		if(i == NULL)
 			return NULL;
@@ -139,23 +140,30 @@ InventoryItem *ItemFactory::GetItem(uint32 itemID, bool recurse) {
 		res = m_items.insert(
 			std::pair<uint32, InventoryItem *>(itemID, i)
 		).first;
+	} else if(recurse) {
+		// ensure its recursively loaded
+		if(!res->second->LoadContents(true))
+			return NULL;
 	}
 	//we return new ref to the user.
 	return(res->second->Ref());
 }
 
-BlueprintItem *ItemFactory::GetBlueprint(uint32 blueprintID, bool recurse) {
+Blueprint *ItemFactory::GetBlueprint(uint32 blueprintID, bool recurse) {
 	std::map<uint32, InventoryItem *>::iterator res = m_items.find(blueprintID);
 	if(res == m_items.end()) {
-		BlueprintItem *bi = BlueprintItem::Load(*this, blueprintID, recurse);
+		Blueprint *bi = Blueprint::Load(*this, blueprintID, recurse);
 		if(bi == NULL)
 			return NULL;
 
 		res = m_items.insert(
 			std::pair<uint32, InventoryItem *>(blueprintID, bi)
 		).first;
+	} else if(recurse) {
+		if(!res->second->LoadContents(true))
+			return NULL;
 	}
-	return(static_cast<BlueprintItem *>(res->second->Ref()));
+	return(static_cast<Blueprint *>(res->second->Ref()));
 }
 
 InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
@@ -169,8 +177,8 @@ InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
 	return i->Ref();
 }
 
-BlueprintItem *ItemFactory::SpawnBlueprint(ItemData &data, BlueprintData &bpData) {
-	BlueprintItem *bi = BlueprintItem::Spawn(*this, data, bpData);
+Blueprint *ItemFactory::SpawnBlueprint(ItemData &data, BlueprintData &bpData) {
+	Blueprint *bi = Blueprint::Spawn(*this, data, bpData);
 	if(bi == NULL)
 		return NULL;
 

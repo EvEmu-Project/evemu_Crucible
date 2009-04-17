@@ -53,12 +53,23 @@ public:
 	virtual ~InventoryDB();
 
 	/*
-	 * Type stuff
-	 * (invCategories, invGroups, invTypes, invBlueprintTypes)
+	 * Category stuff
+	 * (invCategories)
 	 */
 	bool GetCategory(EVEItemCategories category, CategoryData &into);
+
+	/*
+	 * Group stuff
+	 * (invGroups)
+	 */
 	bool GetGroup(uint32 groupID, GroupData &into);
+
+	/*
+	 * Type stuff
+	 * (invTypes, invBlueprintTypes, bloodlineTypes, chrBloodlines)
+	 */
 	bool GetType(uint32 typeID, TypeData &into);
+
 	bool GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &into);
 
 	/*
@@ -74,16 +85,6 @@ public:
 	bool GetItemContents(uint32 itemID, std::vector<uint32> &items);
 
 	/*
-	 * Blueprint stuff
-	 * (invBlueprints)
-	 */
-	bool GetBlueprint(uint32 blueprintID, BlueprintData &into);
-
-	bool NewBlueprint(uint32 blueprintID, const BlueprintData &data);
-	bool SaveBlueprint(uint32 blueprintID, const BlueprintData &data);
-	bool DeleteBlueprint(uint32 blueprintID);
-
-	/*
 	 * Attribute stuff
 	 * (entity_attributes)
 	 */
@@ -94,6 +95,16 @@ public:
 	bool UpdateAttribute_double(uint32 itemID, uint32 attributeID, double v);
 	bool EraseAttribute(uint32 itemID, uint32 attributeID);
 	bool EraseAttributes(uint32 itemID);
+
+	/*
+	 * Blueprint stuff
+	 * (invBlueprints)
+	 */
+	bool GetBlueprint(uint32 blueprintID, BlueprintData &into);
+
+	bool NewBlueprint(uint32 blueprintID, const BlueprintData &data);
+	bool SaveBlueprint(uint32 blueprintID, const BlueprintData &data);
+	bool DeleteBlueprint(uint32 blueprintID);
 };
 
 

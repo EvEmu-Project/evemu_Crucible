@@ -220,7 +220,7 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
 		" customInfo"
 		" FROM entity"
 		" WHERE itemID=%lu",
-			itemID))
+		itemID))
 	{
 		codelog(SERVICE__ERROR, "Error in query for item %lu: %s", itemID, res.error.c_str());
 		return NULL;
@@ -364,93 +364,6 @@ bool InventoryDB::GetItemContents(uint32 itemID, std::vector<uint32> &items) {
 	return true;
 }
 
-bool InventoryDB::GetBlueprint(uint32 blueprintID, BlueprintData &into) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-		"SELECT"
-		" copy,"
-		" materialLevel,"
-		" productivityLevel,"
-		" licensedProductionRunsRemaining"
-		" FROM invBlueprints"
-		" WHERE blueprintID=%lu",
-		blueprintID))
-	{
-		_log(DATABASE__ERROR, "Error in query: %s.", res.error.c_str());
-		return false;
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Blueprint %lu not found.", blueprintID);
-		return false;
-	}
-
-	into.copy = row.GetInt(0) ? true : false;
-	into.materialLevel = row.GetUInt(1);
-	into.productivityLevel = row.GetUInt(2);
-	into.licensedProductionRunsRemaining = row.GetInt(3);
-
-	return true;
-}
-
-bool InventoryDB::NewBlueprint(uint32 blueprintID, const BlueprintData &data) {
-	DBerror err;
-
-	if(!m_db->RunQuery(err,
-		"INSERT"
-		" INTO invBlueprints"
-		" (blueprintID, copy, materialLevel, productivityLevel, licensedProductionRunsRemaining)"
-		" VALUES"
-		" (%lu, %lu, %lu, %lu, %ld)",
-		blueprintID, data.copy, data.materialLevel, data.productivityLevel, data.licensedProductionRunsRemaining))
-	{
-		_log(DATABASE__ERROR, "Unable to create new blueprint entry for blueprint %lu: %s.", blueprintID, err.c_str());
-		return false;
-	}
-
-	return true;
-}
-
-bool InventoryDB::SaveBlueprint(uint32 blueprintID, const BlueprintData &data) {
-	DBerror err;
-
-	if(!m_db->RunQuery(err,
-		"UPDATE invBlueprints"
-		" SET"
-		" copy = %lu,"
-		" materialLevel = %lu,"
-		" productivityLevel = %lu,"
-		" licensedProductionRunsRemaining = %ld"
-		" WHERE blueprintID = %lu",
-		uint32(data.copy),
-		data.materialLevel,
-		data.productivityLevel,
-		data.licensedProductionRunsRemaining))
-	{
-		_log(DATABASE__ERROR, "Error in query: %s.", err.c_str());
-		return false;
-	}
-
-	return true;
-}
-
-bool InventoryDB::DeleteBlueprint(uint32 blueprintID) {
-	DBerror err;
-
-	if(!m_db->RunQuery(err,
-		"DELETE"
-		" FROM invBlueprints"
-		" WHERE blueprintID=%lu",
-		blueprintID))
-	{
-		codelog(DATABASE__ERROR, "Failed to delete blueprint %lu: %s.", blueprintID, err.c_str());
-		return false;
-	}
-	return true;
-}
-
 bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
 	DBQueryResult res;
 
@@ -578,6 +491,93 @@ bool InventoryDB::EraseAttributes(uint32 itemID) {
 		itemID))
 	{
 		_log(DATABASE__ERROR, "Failed to erase attributes for item %lu: %s", itemID, err.c_str());
+		return false;
+	}
+	return true;
+}
+
+bool InventoryDB::GetBlueprint(uint32 blueprintID, BlueprintData &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" copy,"
+		" materialLevel,"
+		" productivityLevel,"
+		" licensedProductionRunsRemaining"
+		" FROM invBlueprints"
+		" WHERE blueprintID=%lu",
+		blueprintID))
+	{
+		_log(DATABASE__ERROR, "Error in query: %s.", res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "Blueprint %lu not found.", blueprintID);
+		return false;
+	}
+
+	into.copy = row.GetInt(0) ? true : false;
+	into.materialLevel = row.GetUInt(1);
+	into.productivityLevel = row.GetUInt(2);
+	into.licensedProductionRunsRemaining = row.GetInt(3);
+
+	return true;
+}
+
+bool InventoryDB::NewBlueprint(uint32 blueprintID, const BlueprintData &data) {
+	DBerror err;
+
+	if(!m_db->RunQuery(err,
+		"INSERT"
+		" INTO invBlueprints"
+		" (blueprintID, copy, materialLevel, productivityLevel, licensedProductionRunsRemaining)"
+		" VALUES"
+		" (%lu, %lu, %lu, %lu, %ld)",
+		blueprintID, data.copy, data.materialLevel, data.productivityLevel, data.licensedProductionRunsRemaining))
+	{
+		_log(DATABASE__ERROR, "Unable to create new blueprint entry for blueprint %lu: %s.", blueprintID, err.c_str());
+		return false;
+	}
+
+	return true;
+}
+
+bool InventoryDB::SaveBlueprint(uint32 blueprintID, const BlueprintData &data) {
+	DBerror err;
+
+	if(!m_db->RunQuery(err,
+		"UPDATE invBlueprints"
+		" SET"
+		" copy = %lu,"
+		" materialLevel = %lu,"
+		" productivityLevel = %lu,"
+		" licensedProductionRunsRemaining = %ld"
+		" WHERE blueprintID = %lu",
+		uint32(data.copy),
+		data.materialLevel,
+		data.productivityLevel,
+		data.licensedProductionRunsRemaining))
+	{
+		_log(DATABASE__ERROR, "Error in query: %s.", err.c_str());
+		return false;
+	}
+
+	return true;
+}
+
+bool InventoryDB::DeleteBlueprint(uint32 blueprintID) {
+	DBerror err;
+
+	if(!m_db->RunQuery(err,
+		"DELETE"
+		" FROM invBlueprints"
+		" WHERE blueprintID=%lu",
+		blueprintID))
+	{
+		codelog(DATABASE__ERROR, "Failed to delete blueprint %lu: %s.", blueprintID, err.c_str());
 		return false;
 	}
 	return true;

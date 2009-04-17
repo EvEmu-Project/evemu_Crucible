@@ -430,6 +430,10 @@
 				Name="inventory"
 				>
 				<File
+					RelativePath="..\..\src\server\inventory\Blueprint.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\server\inventory\EVEAttributeMgr.cpp"
 					>
 				</File>
@@ -993,6 +997,10 @@
 				>
 				<File
 					RelativePath="..\..\include\server\inventory\AttributeMgr.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\inventory\Blueprint.h"
 					>
 				</File>
 				<File

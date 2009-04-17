@@ -118,8 +118,8 @@ public:
 	/*
 	 * Primary public interface:
 	 */
-	void Release();
 	InventoryItem *Ref();
+	void Release();
 
 	virtual void Save(bool recursive=false, bool saveAttributes=true) const;	//save the item to the DB.
 	virtual void Delete();	//remove the item from the DB, and Release() it. Consumes a ref!
@@ -132,11 +132,11 @@ public:
 	void Move(uint32 location, EVEItemFlags flag=flagAutoFit, bool notify=true);
 	void MoveInto(InventoryItem *new_home, EVEItemFlags flag=flagAutoFit, bool notify=true);
 	void ChangeFlag(EVEItemFlags flag, bool notify=true);
-	void Relocate(const GPoint &pos);
-	void SetCustomInfo(const char *ci);
+	bool ChangeSingleton(bool singleton, bool notify=true);
 	bool AlterQuantity(int32 qty_change, bool notify=true);
 	bool SetQuantity(uint32 qty_new, bool notify=true);
-	bool ChangeSingleton(bool singleton, bool notify=true);
+	void Relocate(const GPoint &pos);
+	void SetCustomInfo(const char *ci);
 
 	/*
 	 * Helper routines:
@@ -156,8 +156,8 @@ public:
 	double GetRemainingCapacity( EVEItemFlags flag) const;
 	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = 0);
 
-	void PutOnline();
-	void PutOffline();
+	void PutOnline() { SetOnline(true); }
+	void PutOffline() { SetOnline(false); }
 	void TrainSkill(InventoryItem *skill);	//call on the character object.
 
 	/*
@@ -277,145 +277,6 @@ protected:
 	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.
 };
 
-/*
- * Basic container for raw blueprint data.
- */
-class BlueprintData {
-public:
-	BlueprintData(
-		bool _copy = false,
-		uint32 _materialLevel = 0,
-		uint32 _productivityLevel = 0,
-		int32 _licensedProductionRunsRemaining = 0
-	);
-
-	// Content:
-	bool copy;
-	uint32 materialLevel;
-	uint32 productivityLevel;
-	int32 licensedProductionRunsRemaining;
-};
-
-/*
- * InventoryItem, which represents blueprint
- */
-class BlueprintItem
-: public InventoryItem
-{
-	friend class InventoryItem;	// to let it construct us
-public:
-	/*
-	 * Factory methods:
-	 */
-	static BlueprintItem *Load(ItemFactory &factory, uint32 blueprintID, bool recurse=false);
-	static BlueprintItem *Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData);
-
-	/*
-	 * Public fields:
-	 */
-	const BlueprintType &   type() const { return(static_cast<const BlueprintType &>(InventoryItem::type())); }
-	const BlueprintType *   parentBlueprintType() const { return(type().parentBlueprintType()); }
-	uint32                  parentBlueprintTypeID() const { return(type().parentBlueprintTypeID()); }
-	const Type &            productType() const { return(type().productType()); }
-	uint32                  productTypeID() const { return(type().productTypeID()); }
-	bool                    copy() const { return(m_copy); }
-	uint32                  materialLevel() const { return(m_materialLevel); }
-	uint32                  productivityLevel() const { return(m_productivityLevel); }
-	int32                   licensedProductionRunsRemaining() const { return(m_licensedProductionRunsRemaining); }
-
-	/*
-	 * Primary public interface:
-	 */
-	BlueprintItem *Ref() { return static_cast<BlueprintItem *>(InventoryItem::Ref()); }
-
-	void Save(bool recursive=false, bool saveAttributes=true) const;
-	void Delete();
-
-	// copy
-	void SetCopy(bool copy);
-
-	// material level
-	void SetMaterialLevel(uint32 materialLevel);
-	bool AlterMaterialLevel(int32 materialLevelChange);
-
-	// productivity level
-	void SetProductivityLevel(uint32 productivityLevel);
-	bool AlterProductivityLevel(int32 producitvityLevelChange);
-
-	// licensed production runs
-	void SetLicensedProductionRunsRemaining(int32 licensedProductionRunsRemaining);
-	void AlterLicensedProductionRunsRemaining(int32 licensedProductionRunsRemainingChange);
-
-	// overload to split the blueprints properly
-	InventoryItem *Split(int32 qty_to_take, bool notify=true) { return(SplitBlueprint(qty_to_take, notify)); }
-	BlueprintItem *SplitBlueprint(int32 qty_to_take, bool notify=true);
-
-	// overload to do proper merge
-	bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
-
-	/*
-	 * Helper routines:
-	 */
-	bool infinite() const { return(licensedProductionRunsRemaining() < 0); }
-	double wasteFactor() const { return(type().wasteFactor() / (1 + materialLevel())); }
-	// these are for manufacturing:
-	double materialMultiplier() const { return(1.0 + wasteFactor()); }
-	double timeMultiplier() const {
-		return(1.0 - (timeSaved() / type().productionTime()));
-	}
-	double timeSaved() const {
-		return((1.0 - (1.0 / (1 + productivityLevel()))) * type().productivityModifier());
-	}
-
-	/*
-	 * Primary public packet builders:
-	 */
-	PyRepDict *GetBlueprintAttributes() const;
-
-protected:
-	BlueprintItem(
-		ItemFactory &_factory,
-		uint32 _blueprintID,
-		// InventoryItem stuff:
-		const BlueprintType &_bpType,
-		const ItemData &_data,
-		// BlueprintItem stuff:
-		const BlueprintData &_bpData
-	);
-
-	/*
-	 * Member functions
-	 */
-	static BlueprintItem *_Load(ItemFactory &factory, uint32 blueprintID
-	);
-	static BlueprintItem *_Load(ItemFactory &factory, uint32 blueprintID,
-		// InventoryItem stuff:
-		const BlueprintType &bpType, const ItemData &data
-	);
-	static BlueprintItem *_Load(ItemFactory &factory, uint32 blueprintID,
-		// InventoryItem stuff:
-		const BlueprintType &bpType, const ItemData &data,
-		// BlueprintItem stuff:
-		const BlueprintData &bpData
-	);
-	virtual bool _Load(bool recurse=false);
-
-	static BlueprintItem *_Spawn(ItemFactory &factory,
-		// InventoryItem stuff:
-		const ItemData &data,
-		// BlueprintItem stuff:
-		const BlueprintData &bpData
-	);
-
-
-	/*
-	 * Member variables
-	 */
-	bool m_copy;
-	uint32 m_materialLevel;
-	uint32 m_productivityLevel;
-	int32 m_licensedProductionRunsRemaining;
-};
 
 
 #endif

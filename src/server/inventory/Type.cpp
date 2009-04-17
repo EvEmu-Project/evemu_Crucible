@@ -268,7 +268,6 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID
 	if(g == NULL)
 		return NULL;
 
-	// return
 	return(
 		Type::_Load(factory, typeID, *g, data)
 	);
@@ -278,8 +277,7 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID,
 	// Type stuff:
 	const Group &group, const TypeData &data
 ) {
-	// We have enough data for general Type, but we might
-	// need more. Let's check it out:
+	// See what to do next:
 	switch(group.categoryID()) {
 		///////////////////////////////////////
 		// Blueprint:
@@ -307,151 +305,6 @@ bool Type::_Load(ItemFactory &factory) {
 	// load type attributes
 	return(attributes.Load(factory.db()));
 }
-
-/*
- * BlueprintTypeData
- */
-BlueprintTypeData::BlueprintTypeData(
-	uint32 _parentBlueprintTypeID,
-	uint32 _productTypeID,
-	uint32 _productionTime,
-	uint32 _techLevel,
-	uint32 _researchProductivityTime,
-	uint32 _researchMaterialTime,
-	uint32 _researchCopyTime,
-	uint32 _researchTechTime,
-	uint32 _productivityModifier,
-	uint32 _materialModifier,
-	double _wasteFactor,
-	double _chanceOfReverseEngineering,
-	uint32 _maxProductionLimit)
-: parentBlueprintTypeID(_parentBlueprintTypeID),
-  productTypeID(_productTypeID),
-  productionTime(_productionTime),
-  techLevel(_techLevel),
-  researchProductivityTime(_researchProductivityTime),
-  researchMaterialTime(_researchMaterialTime),
-  researchCopyTime(_researchCopyTime),
-  researchTechTime(_researchTechTime),
-  productivityModifier(_productivityModifier),
-  materialModifier(_materialModifier),
-  wasteFactor(_wasteFactor),
-  chanceOfReverseEngineering(_chanceOfReverseEngineering),
-  maxProductionLimit(_maxProductionLimit)
-{
-}
-
-/*
- * BlueprintType
- */
-BlueprintType::BlueprintType(
-	uint32 _id,
-	const Group &_group,
-	const TypeData &_data,
-	const BlueprintType *_parentBlueprintType,
-	const Type &_productType,
-	const BlueprintTypeData &_bpData)
-: Type(_id, _group, _data),
-  m_parentBlueprintType(_parentBlueprintType),
-  m_productType(_productType),
-  m_productionTime(_bpData.productionTime),
-  m_techLevel(_bpData.techLevel),
-  m_researchProductivityTime(_bpData.researchProductivityTime),
-  m_researchMaterialTime(_bpData.researchMaterialTime),
-  m_researchCopyTime(_bpData.researchCopyTime),
-  m_researchTechTime(_bpData.researchTechTime),
-  m_productivityModifier(_bpData.productivityModifier),
-  m_wasteFactor(_bpData.wasteFactor),
-  m_chanceOfReverseEngineering(_bpData.chanceOfReverseEngineering),
-  m_maxProductionLimit(_bpData.maxProductionLimit)
-{
-	// asserts for data consistency
-	assert(categoryID() == EVEDB::invCategories::Blueprint);
-
-	assert(_bpData.productTypeID == _productType.id());
-	if(_parentBlueprintType != NULL)
-		assert(_bpData.parentBlueprintTypeID == _parentBlueprintType->id());
-}
-
-BlueprintType *BlueprintType::Load(ItemFactory &factory, uint32 typeID) {
-	BlueprintType *bt = BlueprintType::_Load(factory, typeID);
-	if(bt == NULL)
-		return NULL;
-
-	// finish load
-	if(!bt->_Load(factory)) {
-		delete bt;
-		return NULL;
-	}
-
-	return(bt);
-}
-
-BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID
-) {
-	// pull data
-	TypeData data;
-	if(!factory.db().GetType(typeID, data))
-		return NULL;
-
-	// obtain group
-	const Group *g = factory.GetGroup(data.groupID);
-	if(g == NULL)
-		return NULL;
-
-	// check if we are really loading a blueprint
-	if(g->categoryID() != EVEDB::invCategories::Blueprint) {
-		_log(ITEM__ERROR, "Load of blueprint type %lu requested, but it's %s.", typeID, g->category().name().c_str());
-		return NULL;
-	}
-
-	// return
-	return(
-		BlueprintType::_Load(factory, typeID, *g, data)
-	);
-}
-
-BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID,
-	// Type stuff:
-	const Group &group, const TypeData &data
-) {
-	// pull additional blueprint data
-	BlueprintTypeData bpData;
-	if(!factory.db().GetBlueprintType(typeID, bpData))
-		return NULL;
-
-	// obtain parent blueprint type (might be NULL)
-	const BlueprintType *parentBlueprintType = NULL;
-	if(bpData.parentBlueprintTypeID != 0) {
-		// we have parent type, get it
-		parentBlueprintType = factory.GetBlueprintType(bpData.parentBlueprintTypeID);
-		if(parentBlueprintType == NULL)
-			return NULL;
-	}
-
-	// obtain product type
-	const Type *productType = factory.GetType(bpData.productTypeID);
-	if(productType == NULL)
-		return NULL;
-
-	// create blueprint type
-	return(
-		BlueprintType::_Load(factory, typeID, group, data, parentBlueprintType, *productType, bpData)
-	);
-}
-
-BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID,
-	// Type stuff:
-	const Group &group, const TypeData &data,
-	// BlueprintType stuff:
-	const BlueprintType *parentBlueprintType, const Type &productType, const BlueprintTypeData &bpData
-) {
-	return(new BlueprintType(typeID,
-		group, data,
-		parentBlueprintType, productType, bpData
-	));
-}
-
 
 
 
