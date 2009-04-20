@@ -117,25 +117,40 @@ void MakeLowerString(const char *source, char *target) {
 
 int MakeAnyLenString(char** ret, const char* format, ...) {
 	va_list argptr;
+
 	va_start(argptr, format);
 	int res = vaMakeAnyLenString(ret, format, argptr);
 	va_end(argptr);
+
 	return(res);
 }
 
 int vaMakeAnyLenString(char** ret, const char* format, va_list argptr) {
-	int buf_len = 256;
-    int chars = -1;
-	while (chars == -1 || chars >= buf_len) {
-		SafeDeleteArray(*ret);
-		if (chars == -1)
-			buf_len *= 2;
-		else
-			buf_len = chars + 1;
-		*ret = new char[buf_len];
-		chars = vsnprintf(*ret, buf_len, format, argptr);
-	}
-	return chars;
+#ifdef WIN32
+	// First, we need to determine length of string.
+	// Since va_list is consumed during vsnprintf, we need to make a copy.
+	va_list argptr_cp;
+	va_copy(argptr_cp, argptr);
+	// Consume copy of argptr.
+	int size = vsnprintf(NULL, 0, format, argptr_cp);
+	// Destroy the copy.
+	va_end(argptr_cp);
+
+	// Length of string is stored in size.
+	// +1 because of terminating zero.
+	*ret = new char[size+1];
+	// Consume original argptr.
+	vsnprintf(*ret, size+1, format, argptr);
+	// Leave va_end up to our caller.
+	// Append terminating zero.
+	(*ret)[size] = '\0';
+
+	// Return length of string.
+	return size;
+#else
+	// Linux has this function already implemented.
+	return vasprintf(ret, format, argptr);
+#endif
 }
 
 int32 AppendAnyLenString(char** ret, int32* bufsize, int32* strlen, const char* format, ...) {
@@ -143,7 +158,7 @@ int32 AppendAnyLenString(char** ret, int32* bufsize, int32* strlen, const char* 
 		*bufsize = 256;
 	if (*ret == 0)
 		*strlen = 0;
-    int chars = -1;
+	int chars = -1;
 	char* oldret = 0;
 	va_list argptr;
 	va_start(argptr, format);

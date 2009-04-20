@@ -94,7 +94,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	general_database = &db;
-
 	
 	//Start up the TCP server
 	EVETCPServer tcps;
@@ -110,7 +109,6 @@ int main(int argc, char *argv[]) {
 	
 	EntityList entity_list(db);
 	ItemFactory item_factory(db, entity_list);
-
 
 	//now, the service manager...
 	PyServiceMgr services(888444, db, entity_list, item_factory);

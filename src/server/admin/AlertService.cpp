@@ -37,7 +37,7 @@ AlertService::AlertService(PyServiceMgr *mgr) : PyService(mgr, "alert"), m_dispa
 
 #ifdef DEV_DEBUG_TREAT
 	traceLogger = new PyTraceLog("evemu_client_stack_trace.txt", true, true);
-#endif DEV_DEBUG_TREAT
+#endif//DEV_DEBUG_TREAT
 }
 
 AlertService::~AlertService()

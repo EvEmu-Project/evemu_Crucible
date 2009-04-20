@@ -9,6 +9,7 @@ xmlpktgen_SOURCES = \
 	../common/PyRep.cpp \
 	../common/logsys.cpp \
 	../common/misc.cpp \
+	../common/MiscFunctions.cpp \
 	../common/EVEUnmarshal.cpp \
 	../common/EVEMarshal.cpp \
 	../common/packet_functions.cpp \

@@ -27,6 +27,7 @@
 #include "logsys.h"
 #include "common.h"
 #include "misc.h"
+#include "MiscFunctions.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -122,22 +123,12 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
 	message += log_type_info[type].display_name;
 	message += "] ";
 
-#ifdef WIN32
-	int size = vsnprintf(NULL, 0, fmt, args);
-
-	char *msg = new char[size+1];
-	vsnprintf(msg, size+1, fmt, args); msg[size] = '\0';
-
-	message += msg;
-	delete[] msg;
-#else /* !WIN32 */
 	char *msg = NULL;
-	vasprintf(&msg, fmt, args);
+	vaMakeAnyLenString(&msg, fmt, args);
 
 	message += msg;
-	free(msg);
-#endif /* !WIN32 */
-
+	SafeDeleteArray(msg);
+	
 	//print into the console
 	printf("%s\n", message.c_str());
 
