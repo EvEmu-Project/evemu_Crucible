@@ -63,6 +63,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -135,6 +136,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="wsock32.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -284,6 +286,10 @@
 					RelativePath="..\..\src\common\misc.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\include\common\MiscFunctions.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="Source Files"
@@ -294,6 +300,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\common\misc.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\common\MiscFunctions.cpp"
 					>
 				</File>
 			</Filter>

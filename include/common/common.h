@@ -177,6 +177,9 @@
 #  endif
 #  define strncasecmp _strnicmp
 #  define strcasecmp _stricmp
+#  ifndef va_copy
+#    define va_copy(a, b) ((va_list)((a) = (b)))
+#  endif
 #else
 #  ifndef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
 #    define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP {0, 0, 0, PTHREAD_MUTEX_RECURSIVE_NP, __LOCK_INITIALIZER}
