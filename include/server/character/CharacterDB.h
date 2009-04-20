@@ -26,8 +26,6 @@
 #ifndef __CHARACTERDB_H_INCL__
 #define __CHARACTERDB_H_INCL__
 
-#include <set>
-
 #include "../ServiceDB.h"
 
 class PyRepObject;
@@ -42,9 +40,6 @@ public:
 	CharacterDB(DBcore *db);
 	virtual ~CharacterDB();
 
-	bool GetCharItems(uint32 characterID, std::set<uint32> &into);
-	bool DeleteCharacter(uint32 characterID);
-
 	PyRepObject *GetCharacterList(uint32 accountID);
 	PyRepObject *GetCharSelectInfo(uint32 characterID);
 	PyRepObject *GetCharPublicInfo(uint32 characterID);
@@ -52,20 +47,16 @@ public:
 	//PyRepObject *GetAgentPublicInfo(uint32 agentID);
 	PyRepObject *GetOwnerNoteLabels(uint32 charID);
 	PyRepObject *GetOwnerNote(uint32 charID, uint32 noteID);
-	bool ValidateCharName(const char *name);
-	InventoryItem *CreateCharacter(uint32 acct, ItemFactory &fact, const CharacterData &data, CharacterAppearance &app);
-	InventoryItem *CreateCharacter2(uint32 acct, ItemFactory &fact, const CharacterData &data, CharacterAppearance &app);
-	bool LoadCharacterAppearance(uint32 characterID, CharacterAppearance &into);
-	
-	PyRepObject *GetCharacterAppearance(uint32 characterID);
-	
-	PyRepObject *GetCharDesc(uint32 characterID);//mandela
-	bool SetCharDesc(uint32 characterID, const char *str);//mandela
-	
-	uint8 GetRaceByBloodline(uint32 bloodlineID);
 
-	bool GetLocationCorporationByCareer(CharacterData & cdata, GPoint & pos);
-	bool GetShipTypeByBloodline(uint32 bloodlineID, uint32 &shipTypeID);
+	bool ValidateCharName(const char *name);
+	InventoryItem *CreateCharacter2(uint32 accountID, ItemFactory &fact, const CharacterData &data, const CharacterAppearance &app, const CorpMemberInfo &corpData);
+	bool GetCharItems(uint32 characterID, std::vector<uint32> &into);
+	bool DeleteCharacter(uint32 characterID);
+
+	PyRepObject *GetCharacterAppearance(uint32 characterID);
+
+	bool GetInfoByBloodline(CharacterData &cdata, uint32 &shipTypeID);
+	bool GetLocationCorporationByCareer(CharacterData &cdata);
 
 	bool GetAttributesFromBloodline(CharacterData & cdata);
 	bool GetAttributesFromAncestry(CharacterData & cdata);
@@ -92,14 +83,11 @@ public:
 	 */
 	bool SetNote(uint32 ownerID, uint32 itemID, const char *str);
 	
-	//hack, needs to move and be cached:
-	//uint32 GetRaceFromBloodline(uint32 bloodline);
+	PyRepObject *GetCharDesc(uint32 characterID);
+	bool SetCharDesc(uint32 characterID, const char *str);
 
-	uint32 AddOwnerNote(uint32 charID, const std::string & label, const std::string & content);
-	bool EditOwnerNote(uint32 charID, uint32 noteID, const std::string & label, const std::string & content);
-	
-protected:
-	void AddNewSkill(const CharacterData & cdata, uint32 skillID);
+	uint32 AddOwnerNote(uint32 charID, const std::string &label, const std::string &content);
+	bool EditOwnerNote(uint32 charID, uint32 noteID, const std::string &label, const std::string &content);
 };
 
 #endif

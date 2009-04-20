@@ -181,6 +181,9 @@ Client::~Client() {
  		//johnsus - characterOnline mod
 		// switch character online flag to 0
 		m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), false);
+
+		// release our char ref
+		m_char->Release();
 	}
 
 	if(GetAccountID() != 0) { // this is not very good ....
