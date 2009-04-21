@@ -659,12 +659,13 @@ bool TCPConnection::Process() {
 	return true;
 }
 
-bool TCPConnection::RecvData(char* errbuf) {
-	if (errbuf)
+bool TCPConnection::RecvData(char* errbuf)
+{
+	if (errbuf != NULL)
 		errbuf[0] = 0;
-	if (!Connected()) {
+
+	if (Connected() == false)
 		return false;
-	}
 
 	int	status = 0;
 	if (recvbuf == 0) {
@@ -673,7 +674,8 @@ bool TCPConnection::RecvData(char* errbuf) {
 		recvbuf_used = 0;
 		recvbuf_echo = 0;
 	}
-	else if ((recvbuf_size - recvbuf_used) < 2048) {
+	else if ((recvbuf_size - recvbuf_used) < 2048)
+	{
 		uint8* tmpbuf = new uint8[recvbuf_size + 5120];
 		memcpy(tmpbuf, recvbuf, recvbuf_used);
 		recvbuf_size += 5120;
@@ -755,9 +757,9 @@ bool TCPConnection::ProcessReceivedData(char* errbuf)
 	}
 #endif
 
-	for (int i=0; i < recvbuf_used; i++) 
+	for (int i=0; i < recvbuf_used; i++)
 	{
-		if (GetEcho() && i >= recvbuf_echo) 
+		if (GetEcho() && i >= recvbuf_echo)
 		{
 			Send(&recvbuf[i], 1);
 			recvbuf_echo = i + 1;
@@ -976,28 +978,44 @@ ThreadReturnType TCPConnection::TCPConnectionLoop(void* tmp) {
 	_log(COMMON__THREADS, "Starting TCPConnectionLoop with thread ID %d", pthread_self());
 #endif
 	tcpc->MLoopRunning.lock();
-	while (tcpc->RunLoop()) {
-		Sleep(LOOP_GRANULARITY);
-		if (!tcpc->ConnectReady()) {
-			//_CP(TCPConnectionLoop);
-			if (!tcpc->Process()) {
+
+	uint32 start;
+	uint32 etime;
+	uint32 last_time = GetTickCount();
+	uint32 server_network_loop_delay = LOOP_GRANULARITY+2; // delay 5 ms.
+
+	while (tcpc->RunLoop())
+	{
+		start = GetTickCount();
+		if (!tcpc->ConnectReady())
+		{
+			if (!tcpc->Process())
+			{
 				//the processing loop has detecting an error.. 
 				//we want to drop the link immediately, so we clear buffers too.
 				tcpc->ClearBuffers();
 				tcpc->Disconnect();
 			}
-			Sleep(1);
+			Sleep(1);/* huh... ? why? */
 		}
-		else if (tcpc->GetAsyncConnect()) {
-			//_CP(TCPConnectionLoop);
+		else if (tcpc->GetAsyncConnect())
+		{
 			if (tcpc->charAsyncConnect)
 				tcpc->Connect(tcpc->charAsyncConnect, tcpc->GetrPort());
 			else
 				tcpc->ConnectIP(tcpc->GetrIP(), tcpc->GetrPort());
 			tcpc->SetAsyncConnect(false);
 		}
-		else
-			Sleep(10);	//nothing to do.
+
+		/* UPDATE */
+		last_time = GetTickCount();
+		etime = last_time - start;
+
+		// do the stuff for thread sleeping
+		if( server_network_loop_delay > etime )
+		{
+			Sleep( server_network_loop_delay - etime );
+		}
 	}
 	tcpc->MLoopRunning.unlock();
 	
@@ -1015,8 +1033,3 @@ bool TCPConnection::RunLoop() {
 	MRunLoop.unlock();
 	return ret;
 }
-
-
-
-
-

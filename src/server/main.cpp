@@ -215,7 +215,6 @@ int main(int argc, char *argv[]) {
 		
 		//check for timeouts in other threads
 		//timeout_manager.CheckTimeouts();
-
 		while ((tcpc = tcps.NewQueuePop())) 
 		{
 			std::string connectionAddress = tcpc->GetAddress();
@@ -234,39 +233,33 @@ int main(int argc, char *argv[]) {
 
 		// do the stuff for thread sleeping
 		if( server_main_loop_delay > etime )
-		{
 			Sleep( server_main_loop_delay - etime );
-		}
 	}
 
 	_log(SERVER__SHUTDOWN,"main loop stopped");
 	_log(SERVER__SHUTDOWN,"TCP listener stopped.");
 	tcps.Close();
-	
+
 	services.serviceDB().SetServerOnlineStatus(false);
 
 	return 0;
 }
 
-static bool InitSignalHandlers() {
-	if (signal(SIGINT, CatchSignal) == SIG_ERR)	{
-		_log(SERVER__INIT_ERR, "Could not set signal handler");
-		return false;
-	}
-	if (signal(SIGTERM, CatchSignal) == SIG_ERR)	{
-		_log(SERVER__INIT_ERR, "Could not set signal handler");
-		return false;
-	}
-#ifndef WIN32
-	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)	{
-		_log(SERVER__INIT_ERR, "Could not set signal handler");
-		return false;
-	}
+static bool InitSignalHandlers()
+{
+	signal( SIGINT, CatchSignal );
+	signal( SIGTERM, CatchSignal );
+	signal( SIGABRT, CatchSignal );
+#ifdef _WIN32
+	signal( SIGBREAK, CatchSignal );
+#else
+	signal( SIGHUP, CatchSignal );
+	signal( SIGUSR1, CatchSignal );
 #endif
 	return true;
 }
 
 static void CatchSignal(int sig_num) {
-	_log(SERVER__SHUTDOWN,"Caught signal %d",sig_num);
+	_log(SERVER__SHUTDOWN,"Caught signal: %d", sig_num);
 	RunLoops = false;
 }

@@ -370,7 +370,7 @@ void Client::SendErrorMsg(const char *fmt, ...) {
 	
 	SendNotification("OnRemoteMessage", "charid", &tmp);
 	
-	delete[] str;
+	SafeDeleteArray(str);
 }
 
 //this displays a modal info dialog on the client side.

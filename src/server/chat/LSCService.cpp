@@ -533,6 +533,7 @@ void Client::SelfEveMail(const char *subject, const char *fmt, ...) {
 	va_end(args);
 
 	m_services.lsc_service->SendMail(GetCharacterID(), GetCharacterID(), subject, str);
+	SafeDeleteArray(str);
 }
 
 PyResult LSCService::Handle_MarkMessagesRead(PyCallArgs &call) {

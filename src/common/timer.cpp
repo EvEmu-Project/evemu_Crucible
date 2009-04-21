@@ -120,7 +120,7 @@ void Timer::Start(int32 set_timer_time, bool ChangeResetTimer) {
     if (set_timer_time != 0)
     {	
 		timer_time = set_timer_time;
-		if (ChangeResetTimer)
+		if (ChangeResetTimer == true)
 			set_at_trigger = set_timer_time;
     }
 }

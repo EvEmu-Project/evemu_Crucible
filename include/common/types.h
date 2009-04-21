@@ -88,7 +88,7 @@
   */
 #ifdef WIN32
 typedef void ThreadReturnType;
-#  define THREAD_RETURN(x) return; 
+#  define THREAD_RETURN(x) return;
 #else
 typedef void* ThreadReturnType;
 #  define THREAD_RETURN(x) return(x);

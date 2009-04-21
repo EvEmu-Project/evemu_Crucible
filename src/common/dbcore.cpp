@@ -620,7 +620,7 @@ float DBResultRow::GetFloat(uint32 column) const {
 	}
 #endif
 #ifdef WIN32
-	return(atof(m_row[column]));
+	return((float)atof(m_row[column]));
 #else
 	return(strtof(m_row[column], NULL));
 #endif

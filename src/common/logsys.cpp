@@ -23,7 +23,6 @@
 	Author:		Zhur
 */
 
-
 #include "logsys.h"
 #include "common.h"
 #include "misc.h"
@@ -59,7 +58,6 @@ static LogTypeStatus real_log_type_info[NUMBER_OF_LOG_TYPES+1] =
 };
 const LogTypeStatus *log_type_info = real_log_type_info;
 
-
 void log_hex(LogType type, const void *data, unsigned long length, unsigned char padding) {
 	if(!is_log_enabled(type))
 		return;
@@ -82,7 +80,6 @@ void log_phex(LogType type, const void *data, unsigned long length, unsigned cha
 		log_message(type, " ... truncated ...");
 		build_hex_line((const char *)data,length,length-16,buffer,padding);
 		log_message(type, "%s", buffer);
-		
 	}
 }
 
@@ -238,7 +235,3 @@ bool load_log_settings(const char *filename) {
 	fclose(f);
 	return true;
 }
-
-
-
-

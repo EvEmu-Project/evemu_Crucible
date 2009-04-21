@@ -92,12 +92,22 @@ ThreadReturnType BaseTCPServer::TCPServerLoop(void* tmp) {
 #ifndef WIN32
 	_log(COMMON__THREADS, "Starting TCPServerLoop with thread ID %d", pthread_self());
 #endif
-	
+
+	uint32 start;
+	uint32 etime;
+	uint32 last_time = GetTickCount();
 	tcps->MLoopRunning.lock();
-	while (tcps->RunLoop()) {
-//		_CP(BaseTCPServerLoop);
-		Sleep(SERVER_LOOP_GRANULARITY);
+	while (tcps->RunLoop())
+	{
+		start = GetTickCount();
 		tcps->Process();
+		/* UPDATE */
+		last_time = GetTickCount();
+		etime = last_time - start;
+
+		// do the stuff for thread sleeping
+		if( SERVER_LOOP_GRANULARITY > etime )
+			Sleep( SERVER_LOOP_GRANULARITY - etime );
 	}
 	tcps->MLoopRunning.unlock();
 	

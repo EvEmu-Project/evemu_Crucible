@@ -23,7 +23,6 @@
 	Author:		Zhur
 */
 
-
 #ifndef TIMER_H
 #define TIMER_H
 
@@ -66,7 +65,7 @@ private:
 	bool	enabled;
 	int32	set_at_trigger;
 
-	// Tells the timer to be more acurate about happening every X ms.
+	// Tells the timer to be more accurate about happening every X ms.
 	// Instead of Check() setting the start_time = now,
 	// it it sets it to start_time += timer_time
 	bool	pUseAcurateTiming;

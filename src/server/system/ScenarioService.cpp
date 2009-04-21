@@ -25,10 +25,7 @@
 
 #include "EvemuPCH.h"
 
-
 PyCallable_Make_InnerDispatcher(ScenarioService)
-
-
 
 /*
 class ScenarioBound
