@@ -86,7 +86,7 @@ enum { //destiny mode!
 
 
 typedef enum {
-	DSTBALL_GOTO = 0,
+	DSTBALL_GOTO = 0, // Also used for AlignTo
 	DSTBALL_FOLLOW = 1,
 	DSTBALL_STOP = 2,
 	DSTBALL_WARP = 3,

@@ -868,6 +868,37 @@ void DestinyManager::SetSpeedFraction(double fraction, bool update) {
 	}
 }
 
+/* AlignTo
+ * align the ship/pod to an entity in the same system.  Respond with 
+ * a GotoPoint.
+ *
+ * @author xanarox
+*/
+void DestinyManager::AlignTo(const GPoint &direction, bool update) {
+	State = DSTBALL_GOTO;
+	m_targetPoint = m_position + (direction * 1.0e16);
+	bool process = false;
+	if(m_userSpeedFraction == 0.0f) {
+		m_userSpeedFraction = 1.0f;
+		process = true;
+	}
+	if(m_activeSpeedFraction != m_userSpeedFraction) {
+		m_activeSpeedFraction = m_userSpeedFraction;
+		_UpdateDerrived();
+	}
+
+	if(update) {
+		DoDestiny_GotoPoint du;
+		du.entityID = m_self->GetID();
+		du.x = direction.x;
+		du.y = direction.y;
+		du.z = direction.z;
+		
+		PyRepTuple *tmp = du.FastEncode();
+		SendSingleDestinyUpdate(&tmp);	//consumed
+	}
+}
+
 void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
 	State = DSTBALL_GOTO;
 	m_targetPoint = m_position + (direction * 1.0e16);

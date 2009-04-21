@@ -77,6 +77,7 @@ public:
 	void Follow(SystemEntity *who, double distance, bool update=true);
 	void Orbit(SystemEntity *who, double distance, bool update=true);
 	void SetSpeedFraction(double fraction, bool update=true);
+	void AlignTo(const GPoint &direction, bool update=true);
 	void GotoDirection(const GPoint &direction, bool update=true);
 	
 	//bigger movement:

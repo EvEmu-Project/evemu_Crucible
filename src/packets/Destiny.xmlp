@@ -47,6 +47,7 @@ FormationFollow
 Parent (_parent_) calls with OnBallparkCall Scatter:
 Orbit
 GotoDirection
+AlignTo
 GotoPoint
 WarpTo
 SetBallRadius
@@ -73,6 +74,7 @@ DSTBALL_FIELD = 10
 DSTBALL_MINIBALL = 9
 DSTBALL_RIGID = 11
 DSTBALL_FORMATION = 12
+DSTBALL_ALIGN = 12
 
 DST_CREATE = 1
 DST_DESTROY = 2
@@ -428,6 +430,17 @@ DST_WARPEXIT = 11
 	</InlineTuple>
 </element>
 
+<element name="DoDestiny_AlignTo">
+  <InlineTuple>
+    <!-- 0 -->
+    <string name="update_name" default="AlignTo" />
+    <!-- 1 -->
+    <InlineTuple>
+      <int name="entityID" />
+    </InlineTuple>
+  </InlineTuple>
+</element>
+  
 <element name="DoDestiny_GotoPoint">
 	<InlineTuple>
 	  <!-- 0 -->

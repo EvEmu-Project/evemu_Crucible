@@ -581,7 +581,12 @@ CallGetGuests
   </InlineTuple>
 </element>
 
-
+<element name="CallAlignTo">
+  <InlineTuple>
+    <int name="entityID" />
+  </InlineTuple>
+</element>
+  
 <element name="CallWarpToStuff">
   <InlineTuple>
     <!-- really this call uses keywords, and I think the item ID just happens to end up in the args as a fluke. -->

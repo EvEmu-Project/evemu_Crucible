@@ -41,6 +41,7 @@ public:
 		
 		PyCallable_REG_CALL(BeyonceBound, FollowBall)
 		PyCallable_REG_CALL(BeyonceBound, Orbit)
+		PyCallable_REG_CALL(BeyonceBound, AlignTo)
 		PyCallable_REG_CALL(BeyonceBound, GotoDirection)
 		PyCallable_REG_CALL(BeyonceBound, SetSpeedFraction)
 		PyCallable_REG_CALL(BeyonceBound, Stop)
@@ -60,6 +61,7 @@ public:
 	
 	PyCallable_DECL_CALL(FollowBall)
 	PyCallable_DECL_CALL(Orbit)
+	PyCallable_DECL_CALL(AlignTo)
 	PyCallable_DECL_CALL(GotoDirection)
 	PyCallable_DECL_CALL(SetSpeedFraction)
 	PyCallable_DECL_CALL(Stop)
@@ -181,6 +183,42 @@ PyResult BeyonceBound::Handle_SetSpeedFraction(PyCallArgs &call) {
 	}
 	
 	destiny->SetSpeedFraction(arg.arg);
+
+	return NULL;
+}
+
+/* AlignTo
+ * This will look up the entityID to get it's position in space, then call
+ * AlignTo to have it respond with gotopoint.
+ * @author Xanarox
+*/
+PyResult BeyonceBound::Handle_AlignTo(PyCallArgs &call) {
+	CallAlignTo arg;
+	if(!arg.Decode(&call.tuple)) {
+		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
+		return NULL;
+	}
+
+	DestinyManager *destiny = call.client->Destiny();
+	if(destiny == NULL) {
+		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+		return NULL;
+	}
+
+	SystemManager *system = call.client->System();
+	if(system == NULL) {
+		codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
+		return NULL;
+	}
+
+	SystemEntity *entity = system->get(arg.entityID);
+	if(entity == NULL) {
+		_log(CLIENT__ERROR, "%s: Unable to find entity %lu to AlignTo.", call.client->GetName(), arg.entityID);
+		return NULL;
+	}
+
+	const GPoint &position = entity->GetPosition();
+	destiny->AlignTo( position );
 
 	return NULL;
 }
