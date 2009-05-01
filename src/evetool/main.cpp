@@ -648,10 +648,10 @@ static bool PyString_DecodeEscape(const char *s, vector<uint8> &result)
 void UnmarshalLogText(const Seperator &command) {
 	vector<uint8> result;
 	if(!PyString_DecodeEscape(command.argplus[1], result)) {
-		printf("Failed to decode string... trying with what we did get (%d bytes).\n", result.size());
+		printf("Failed to decode string... trying with what we did get (%lu bytes).\n", result.size());
 	}
 
-	_log(NET__UNMARSHAL_TRACE, "Decoded %lu bytes:", result.size());
+	_log(NET__UNMARSHAL_TRACE, "Decoded %u bytes:", result.size());
 	_hex(NET__UNMARSHAL_BUFHEX, &result[0], uint32(result.size()));
 	
 	PyRep *r = InflateAndUnmarshal(&result[0], uint32(result.size()));

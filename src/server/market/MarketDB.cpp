@@ -41,7 +41,7 @@ PyRep *MarketDB::GetStationAsks(uint32 stationID) {
 		"SELECT"
 		"	typeID, MAX(price) AS price, volRemaining, stationID "
 		" FROM market_orders "
-		" WHERE stationID=%lu AND bid=%d"
+		" WHERE stationID=%u AND bid=%d"
 		" GROUP BY typeID", stationID, TransactionTypeSell))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
@@ -62,7 +62,7 @@ PyRep *MarketDB::GetSystemAsks(uint32 solarSystemID) {
 		"SELECT"
 		"	typeID, MAX(price) AS price, volRemaining, stationID "
 		" FROM market_orders "
-		" WHERE solarSystemID=%lu AND bid=0"
+		" WHERE solarSystemID=%u AND bid=0"
 		" GROUP BY typeID", solarSystemID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
@@ -83,7 +83,7 @@ PyRep *MarketDB::GetRegionBest(uint32 regionID) {
 		"SELECT"
 		"	typeID, MAX(price) AS price, volRemaining, stationID "
 		" FROM market_orders "
-		" WHERE regionID=%lu AND bid=0"
+		" WHERE regionID=%u AND bid=0"
 		" GROUP BY typeID", regionID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
@@ -144,7 +144,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 		"   volEntered, minVolume, bid, issued, duration,"
 		"   stationID, regionID, solarSystemID, jumps"
 		" FROM market_orders "
-		" WHERE regionID=%lu AND typeID=%lu AND bid=%d", regionID, typeID, TransactionTypeSell))
+		" WHERE regionID=%u AND typeID=%u AND bid=%d", regionID, typeID, TransactionTypeSell))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -161,7 +161,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 		"   volEntered, minVolume, bid, issued, duration,"
 		"   stationID, regionID, solarSystemID, jumps"
 		" FROM market_orders "
-		" WHERE regionID=%lu AND typeID=%lu AND bid=%d", regionID, typeID, TransactionTypeBuy))
+		" WHERE regionID=%u AND typeID=%u AND bid=%d", regionID, typeID, TransactionTypeBuy))
 	{
 		delete tup;
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
@@ -185,7 +185,7 @@ PyRep *MarketDB::GetCharOrders(uint32 characterID) {
 		"   accountID, duration, isCorp, solarSystemID,"
 		"   escrow"
 		" FROM market_orders "
-		" WHERE charID=%lu", characterID))
+		" WHERE charID=%u", characterID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -203,7 +203,7 @@ PyRep *MarketDB::GetOrderRow(uint32 orderID) {
 		"   volEntered, minVolume, bid, issued, duration,"
 		"   stationID, regionID, solarSystemID, jumps"
 		" FROM market_orders"
-		" WHERE orderID=%lu", orderID))
+		" WHERE orderID=%u", orderID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -211,7 +211,7 @@ PyRep *MarketDB::GetOrderRow(uint32 orderID) {
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		codelog(MARKET__ERROR, "Order %lu not found.", orderID);
+		codelog(MARKET__ERROR, "Order %u not found.", orderID);
 		return NULL;
 	}
 
@@ -243,7 +243,7 @@ PyRep *MarketDB::GetOldPriceHistory(uint32 regionID, uint32 typeID) {
 		"	historyDate, lowPrice, highPrice, avgPrice,"
 		"	volume, orders "
 		" FROM market_history_old "
-		" WHERE regionID=%lu AND typeID=%lu", regionID, typeID))
+		" WHERE regionID=%u AND typeID=%u", regionID, typeID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -285,7 +285,7 @@ PyRep *MarketDB::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
 		"	CAST(SUM(quantity) AS UNSIGNED INTEGER) AS volume,"
 		"	COUNT(transactionID) AS orders"
 		" FROM market_transactions "
-		" WHERE regionID=%lu AND typeID=%lu"
+		" WHERE regionID=%u AND typeID=%u"
 		"	AND transactionType=%d "	//both buy and sell transactions get recorded, only compound one set of data... choice was arbitrary.
 		" GROUP BY historyDate",
 		Win32Time_Day, regionID, typeID, TransactionTypeBuy))
@@ -362,7 +362,7 @@ PyRepObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable) {
 		" SELECT "
 		" billID, billTypeID, debtorID, creditorID, amount, dueDateTime, interest, externalID, paid externalID2 "
 		" FROM %s "
-		" WHERE %s = %lu ",
+		" WHERE %s = %u ",
 		table.c_str(), field.c_str(), corpID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
@@ -625,9 +625,9 @@ uint32 MarketDB::FindBuyOrder(
 		"SELECT orderID"
 		"	FROM market_orders"
 		"	WHERE bid=1"
-		"		AND typeID=%lu"
-		"		AND stationID=%lu"
-		"		AND volRemaining >= %lu"
+		"		AND typeID=%u"
+		"		AND stationID=%u"
+		"		AND volRemaining >= %u"
 		"		AND price <= %f"
 		"	ORDER BY price DESC"
 		"	LIMIT 1",	//right now, we just care about the first order which can satisfy our needs.
@@ -660,9 +660,9 @@ uint32 MarketDB::FindSellOrder(
 		"SELECT orderID"
 		"	FROM market_orders"
 		"	WHERE bid=0"
-		"		AND typeID=%lu"
-		"		AND stationID=%lu"
-		"		AND volRemaining >= %lu"
+		"		AND typeID=%u"
+		"		AND stationID=%u"
+		"		AND volRemaining >= %u"
 		"		AND price <= %f"
 		"	ORDER BY price ASC"
 		"	LIMIT 1",	//right now, we just care about the first order which can satisfy our needs.
@@ -692,7 +692,7 @@ bool MarketDB::GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID
 		" typeID,"
 		" charID"
 		" FROM market_orders"
-		" WHERE orderID=%lu",
+		" WHERE orderID=%u",
 		orderID))
 	{
 		_log(MARKET__ERROR, "Error in query: %s.", res.error.c_str());
@@ -701,7 +701,7 @@ bool MarketDB::GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(MARKET__ERROR, "Order %lu not found.", orderID);
+		_log(MARKET__ERROR, "Order %u not found.", orderID);
 		return false;
 	}
 
@@ -720,8 +720,8 @@ bool MarketDB::AlterOrderQuantity(uint32 orderID, uint32 new_qty) {
 	if(!m_db->RunQuery(err,
 		"UPDATE"
 		" market_orders"
-		" SET volRemaining = %lu"
-		" WHERE orderID = %lu",
+		" SET volRemaining = %u"
+		" WHERE orderID = %u",
 		new_qty, orderID))
 	{
 		_log(MARKET__ERROR, "Error in query: %s.", err.c_str());
@@ -738,7 +738,7 @@ bool MarketDB::AlterOrderPrice(uint32 orderID, double new_price) {
 		"UPDATE"
 		" market_orders"
 		" SET price = %f"
-		" WHERE orderID = %lu",
+		" WHERE orderID = %u",
 		new_price, orderID))
 	{
 		_log(MARKET__ERROR, "Error in query: %s.", err.c_str());
@@ -754,7 +754,7 @@ bool MarketDB::DeleteOrder(uint32 orderID) {
 	if(!m_db->RunQuery(err,
 		"DELETE"
 		" FROM market_orders"
-		" WHERE orderID = %lu",
+		" WHERE orderID = %u",
 		orderID))
 	{
 		_log(MARKET__ERROR, "Error in query: %s.", orderID);
@@ -781,8 +781,8 @@ bool MarketDB::RecordTransaction(
 		"	transactionID, transactionDateTime, typeID, quantity,"
 		"	price, transactionType, clientID, regionID, stationID"
 		" ) VALUES ("
-		"	NULL, " I64u ", %lu, %lu,"
-		"	%f, %d, %lu, %lu, %lu"
+		"	NULL, " I64u ", %u, %u,"
+		"	%f, %d, %u, %u, %u"
 		" )", 
 			Win32TimeNow(), typeID, quantity,
 			price, transactionType, charID, regionID, stationID
@@ -812,7 +812,7 @@ uint32 MarketDB::_StoreOrder(
 	uint32 solarSystemID;
 	uint32 regionID;
 	if(!GetStationInfo(stationID, &solarSystemID, NULL, &regionID, NULL, NULL, NULL)) {
-		codelog(MARKET__ERROR, "Char %lu: Failed to find parents for station %lu", clientID, stationID);
+		codelog(MARKET__ERROR, "Char %u: Failed to find parents for station %u", clientID, stationID);
 		return(0);
 	}
 
@@ -827,10 +827,10 @@ uint32 MarketDB::_StoreOrder(
 		"	orderState, minVolume, contraband, accountID, duration,"
 		"	isCorp, solarSystemID, escrow, jumps "
 		" ) VALUES ("
-		"	%lu, %lu, %lu, %lu, "
-		"	%u, %u, %f, %lu, %lu, " I64u ", "
-		"	1, %lu, 0, %lu, %u, "
-		"	%u, %lu, 0, 1"
+		"	%u, %u, %u, %u, "
+		"	%u, %u, %f, %u, %u, " I64u ", "
+		"	1, %u, 0, %u, %u, "
+		"	%u, %u, 0, 1"
 		" )",
 			typeID, clientID, regionID, stationID,
 			orderRange, isBuy?1:0, price, quantity, quantity, Win32TimeNow(),

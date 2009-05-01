@@ -384,7 +384,7 @@ PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
 	}
 
 	if (m_channels.find(channelID) == m_channels.end()) {
-		codelog(SERVICE__ERROR, "%s: Couldn't find channel %lu", call.client->GetName(), channelID);
+		codelog(SERVICE__ERROR, "%s: Couldn't find channel %u", call.client->GetName(), channelID);
 		return new PyRepInteger(0);
 	}
 	LSCChannel * channel = m_channels[channelID];
@@ -505,13 +505,13 @@ void LSCService::SendMail(uint32 sender, const std::vector<uint32> &recipients, 
 	for(; cur != end; cur++) {
 		uint32 messageID = m_db.StoreMail(sender, *cur, subject.c_str(), content.c_str(), notify.sentTime);
 		if(messageID == 0) {
-			_log(SERVICE__ERROR, "Failed to store message from %lu for recipient %lu", sender, *cur);
+			_log(SERVICE__ERROR, "Failed to store message from %u for recipient %u", sender, *cur);
 			continue;
 		}
 		//TODO: supposed to have a different messageID in each notify I suspect..
 		notify.messageID = messageID;
 		
-		_log(SERVICE__MESSAGE, "Delivered message from %lu to recipient %lu", sender, *cur);
+		_log(SERVICE__MESSAGE, "Delivered message from %u to recipient %u", sender, *cur);
 		//record this person in the 'delivered to' list:
 		notify.recipients.push_back(*cur);
 		successful_recipients.insert(*cur);
@@ -560,7 +560,7 @@ PyResult LSCService::Handle_DeleteMessages(PyCallArgs &call) {
 	}
 
 	if(args.channelID != call.client->GetCharacterID()) {
-		_log(SERVICE__ERROR, "%s (%d) tried to delete messages in channel %lu. Denied.", call.client->GetName(), call.client->GetCharacterID(), args.channelID);
+		_log(SERVICE__ERROR, "%s (%d) tried to delete messages in channel %u. Denied.", call.client->GetName(), call.client->GetCharacterID(), args.channelID);
 		return NULL;
 	}
 	

@@ -71,7 +71,7 @@ void SystemBubble::BubblecastDestinyUpdate(PyRepTuple **payload, const char *des
 	for(; cur != end; ++cur) {
 		if(up_dup == NULL)
 			up_dup = up->TypedClone();
-		_log(DESTINY__BUBBLE_TRACE, "Bubblecast %s update to %s (%lu)", desc, (*cur)->GetName(), (*cur)->GetID());
+		_log(DESTINY__BUBBLE_TRACE, "Bubblecast %s update to %s (%u)", desc, (*cur)->GetName(), (*cur)->GetID());
 		(*cur)->QueueDestinyUpdate(&up_dup);
 		//they may not have consumed it (NPCs for example), so dont re-dup it in that case.
 	}
@@ -93,7 +93,7 @@ void SystemBubble::BubblecastDestinyEvent(PyRepTuple **payload, const char *desc
 	for(; cur != end; ++cur) {
 		if(up_dup == NULL)
 			up_dup = up->TypedClone();
-		_log(DESTINY__BUBBLE_TRACE, "Bubblecast %s event to %s (%lu)", desc, (*cur)->GetName(), (*cur)->GetID());
+		_log(DESTINY__BUBBLE_TRACE, "Bubblecast %s event to %s (%u)", desc, (*cur)->GetName(), (*cur)->GetID());
 		(*cur)->QueueDestinyEvent(&up_dup);
 		//they may not have consumed it (NPCs for example), so dont re-dup it in that case.
 	}
@@ -136,13 +136,13 @@ void SystemBubble::Add(SystemEntity *ent, bool notify) {
 	}
 	//if they are already in this bubble, do not continue.
 	if(m_entities.find(ent->GetID()) != m_entities.end()) {
-		_log(DESTINY__BUBBLE_TRACE, "Tried to add entity %lu to bubble %p, but it is already in here.", ent->GetID(), this);
+		_log(DESTINY__BUBBLE_TRACE, "Tried to add entity %u to bubble %p, but it is already in here.", ent->GetID(), this);
 		return;
 	}
 	//regardless, notify everybody else in the bubble of the add.
 	_BubblecastAddBall(ent);
 	
-	_log(DESTINY__BUBBLE_DEBUG, "Adding entity %lu to bubble %p at (%.2f,%.2f,%.2f) with radius %.2f", ent->GetID(), this, m_center.x, m_center.y, m_center.z, m_radius);
+	_log(DESTINY__BUBBLE_DEBUG, "Adding entity %u to bubble %p at (%.2f,%.2f,%.2f) with radius %.2f", ent->GetID(), this, m_center.x, m_center.y, m_center.z, m_radius);
 	m_entities[ent->GetID()] = ent;
 	ent->m_bubble = this;
 	if(ent->IsStaticEntity() == false) {
@@ -153,7 +153,7 @@ void SystemBubble::Add(SystemEntity *ent, bool notify) {
 void SystemBubble::Remove(SystemEntity *ent, bool notify) {
 	//assume that the entity is properly registered for its ID, and that
 	//we do not need to search other values.
-	_log(DESTINY__BUBBLE_DEBUG, "Removing entity %lu from bubble %p at (%.2f,%.2f,%.2f) with radius %.2f", ent->GetID(), this, m_center.x, m_center.y, m_center.z, m_radius);
+	_log(DESTINY__BUBBLE_DEBUG, "Removing entity %u from bubble %p at (%.2f,%.2f,%.2f) with radius %.2f", ent->GetID(), this, m_center.x, m_center.y, m_center.z, m_radius);
 	ent->m_bubble = NULL;
 	m_entities.erase(ent->GetID());
 	m_dynamicEntities.erase(ent);

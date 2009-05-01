@@ -64,7 +64,7 @@ void TargetManager::Process() {
 					cur->second->timer.Disable();
 					//yay, they are locked..
 					cur->second->state = TargetEntry::Locked;
-					_log(TARGET__TRACE, "%lu has finished locking %lu", m_self->GetID(), cur->first->GetID());
+					_log(TARGET__TRACE, "%u has finished locking %u", m_self->GetID(), cur->first->GetID());
 					m_self->TargetAdded(cur->first);
 					cur->first->targets.TargetedByLocked(m_self);
 				}
@@ -90,13 +90,13 @@ void TargetManager::Process() {
 }
 
 void TargetManager::ClearTargets(bool notify_self) {
-	_log(TARGET__TRACE, "%lu is clearing all targets", m_self->GetID());
+	_log(TARGET__TRACE, "%u is clearing all targets", m_self->GetID());
 	{
 		std::map<SystemEntity *, TargetEntry *>::iterator cur, end;
 		cur = m_targets.begin();
 		end = m_targets.end();
 		for(; cur != end; cur++) {
-			_log(TARGET__TRACE, "%lu has cleared target %lu during clear all.", m_self->GetID(), cur->first->GetID());
+			_log(TARGET__TRACE, "%u has cleared target %u during clear all.", m_self->GetID(), cur->first->GetID());
 			cur->first->targets.TargetedByLost(m_self);
 			delete cur->second;
 		}
@@ -109,7 +109,7 @@ void TargetManager::ClearTargets(bool notify_self) {
 void TargetManager::ClearAllTargets(bool notify_self) {
 	ClearFromTargets();
 	ClearTargets(notify_self);
-	_log(TARGET__TRACE, "%lu has cleared all targeting information.", m_self->GetID());
+	_log(TARGET__TRACE, "%u has cleared all targeting information.", m_self->GetID());
 }
 
 void TargetManager::ClearFromTargets() {
@@ -158,7 +158,7 @@ void TargetManager::TargetLost(SystemEntity *who) {
 	//clear our internal state for this target (BEFORE the callback!)
 	m_targets.erase(res);
 	
-	_log(TARGET__TRACE, "%lu has lost target %lu", m_self->GetID(), who->GetID());
+	_log(TARGET__TRACE, "%u has lost target %u", m_self->GetID(), who->GetID());
 	
 	m_self->TargetLost(who);
 }
@@ -169,7 +169,7 @@ bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {
 	res = m_targets.find(who);
 	if(res != m_targets.end()) {
 		//what to do?
-		_log(TARGET__TRACE, "Told to start targeting %lu, but we are already processing them. Ignoring request.", who->GetID());
+		_log(TARGET__TRACE, "Told to start targeting %u, but we are already processing them. Ignoring request.", who->GetID());
 		return false;
 	}
 
@@ -180,7 +180,7 @@ bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {
 	te->timer.Start(lock_time);
 	m_targets[who] = te;
 	
-	_log(TARGET__TRACE, "%lu started targeting %lu (%lu ms lock time)", m_self->GetID(), who->GetID(), lock_time);
+	_log(TARGET__TRACE, "%u started targeting %u (%u ms lock time)", m_self->GetID(), who->GetID(), lock_time);
 	return true;
 }
 
@@ -201,7 +201,7 @@ void TargetManager::TargetEntry::Dump() const {
 		break;
 	//no default on purpose.
 	}
-	_log(TARGET__TRACE, "	Targeted %s (%lu): %s (%s %d ms)",
+	_log(TARGET__TRACE, "	Targeted %s (%u): %s (%s %d ms)",
 		who->GetName(),
 		who->GetID(),
 		sname,
@@ -224,7 +224,7 @@ void TargetManager::TargetedByEntry::Dump() const {
 		break;
 	//no default on purpose.
 	}
-	_log(TARGET__TRACE, "	Targeted By %s (%lu): %s",
+	_log(TARGET__TRACE, "	Targeted By %s (%u): %s",
 		who->GetName(),
 		who->GetID(),
 		sname
@@ -232,7 +232,7 @@ void TargetManager::TargetedByEntry::Dump() const {
 }
 
 void TargetManager::Dump() const {
-	_log(TARGET__TRACE, "Target Dump for %lu:", m_self->GetID());
+	_log(TARGET__TRACE, "Target Dump for %u:", m_self->GetID());
 	{
 		std::map<SystemEntity *, TargetEntry *>::const_iterator cur, end;
 		cur = m_targets.begin();
@@ -260,13 +260,13 @@ SystemEntity *TargetManager::GetTarget(uint32 targetID, bool need_locked) const 
 			continue;
 		//found it...
 		if(need_locked && cur->second->state != TargetEntry::Locked) {
-			_log(TARGET__TRACE, "Found target %lu, but it is not locked.", targetID);
+			_log(TARGET__TRACE, "Found target %u, but it is not locked.", targetID);
 			continue;
 		}
-		//_log(TARGET__TRACE, "Found target %lu: %s (nl? %s)", targetID, cur->first->GetName(), need_locked?"yes":"no");
+		//_log(TARGET__TRACE, "Found target %u: %s (nl? %s)", targetID, cur->first->GetName(), need_locked?"yes":"no");
 		return(cur->first);
 	}
-	//_log(TARGET__TRACE, "Unable to find target %lu (nl? %s)", targetID, need_locked?"yes":"no");
+	//_log(TARGET__TRACE, "Unable to find target %u (nl? %s)", targetID, need_locked?"yes":"no");
 	return NULL;	//not found.
 }
 
@@ -336,7 +336,7 @@ void TargetManager::TargetedByLocked(SystemEntity *from_who) {
 		te->state = TargetedByEntry::Locking;
 		m_targetedBy[from_who] = te;
 	}
-	_log(TARGET__TRACE, "%lu has been locked by %lu", m_self->GetID(), from_who->GetID());
+	_log(TARGET__TRACE, "%u has been locked by %u", m_self->GetID(), from_who->GetID());
 	m_self->TargetedAdd(from_who);
 }
 
@@ -348,10 +348,10 @@ void TargetManager::TargetedByLost(SystemEntity *from_who) {
 		delete res->second;
 		m_targetedBy.erase(res);
 		m_self->TargetedLost(from_who);
-		_log(TARGET__TRACE, "%lu is no longer locked by %lu", m_self->GetID(), from_who->GetID());
+		_log(TARGET__TRACE, "%u is no longer locked by %u", m_self->GetID(), from_who->GetID());
 	} else {
 		//not found.. do nothing to our state, no notification?
-		_log(TARGET__TRACE, "%lu was notified of targeted lost by %lu, but they did not have us targeted in the first place.", m_self->GetID(), from_who->GetID());
+		_log(TARGET__TRACE, "%u was notified of targeted lost by %u, but they did not have us targeted in the first place.", m_self->GetID(), from_who->GetID());
 	}
 }
 

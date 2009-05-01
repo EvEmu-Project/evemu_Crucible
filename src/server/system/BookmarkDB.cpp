@@ -45,10 +45,10 @@ PyRepObject *BookmarkDB::GetBookmarks(uint32 ownerID) {
 		" x, y, z,"
 		" locationID"
 		" FROM bookmarks"
-		" WHERE ownerID = %lu",
+		" WHERE ownerID = %u",
 		ownerID))
 	{
-		_log(DATABASE__ERROR, "Failed to query bookmarks for owner %lu: %s.", ownerID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query bookmarks for owner %u: %s.", ownerID, res.error.c_str());
 		return(NULL);
 	}
 

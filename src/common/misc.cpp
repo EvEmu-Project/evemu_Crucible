@@ -78,7 +78,7 @@ unsigned long i,j;
 unsigned long rows,offset=0;
 	rows=(length/16)+1;
 	for(i=0;i<rows;i++) {
-		fprintf(to, "%s%05ld: ",leader.c_str(),i*16);
+		fprintf(to, "%s%05lu: ",leader.c_str(),i*16);
 		for(j=0;j<16;j++) {
 			if(j == 8)
 				fprintf(to, "- ");

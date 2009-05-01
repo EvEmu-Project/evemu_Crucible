@@ -94,11 +94,11 @@ void ServiceDB::SetCharacterLocation(uint32 characterID, uint32 stationID,
 	if(!m_db->RunQuery(err,
 	"UPDATE character_"
 	" SET"
-	"	stationID=%lu,"
-	"	solarSystemID=%lu,"
-	"	constellationID=%lu,"
-	"	regionID=%lu"
-	" WHERE characterID=%lu",
+	"	stationID=%u,"
+	"	solarSystemID=%u,"
+	"	constellationID=%u,"
+	"	regionID=%u"
+	" WHERE characterID=%u",
 		stationID, systemID, constellationID, regionID,
 		characterID)
 	) {
@@ -115,7 +115,7 @@ bool ServiceDB::ListEntitiesByCategory(uint32 ownerID, uint32 categoryID, std::v
 	" FROM entity"
 	"	LEFT JOIN invTypes ON entity.typeID=invTypes.typeID"
 	"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
-	" WHERE invGroups.categoryID=%lu AND entity.ownerID=%lu", categoryID, ownerID))
+	" WHERE invGroups.categoryID=%u AND entity.ownerID=%u", categoryID, ownerID))
 	{
 		_log(SERVICE__ERROR, "Error in ListEntitiesByCategory query: %s", res.error.c_str());
 		return false;
@@ -136,14 +136,14 @@ uint32 ServiceDB::GetCurrentShipID(uint32 characterID) {
 	"SELECT"
 	"	locationID"
 	" FROM entity"
-	" WHERE itemID=%lu", characterID
+	" WHERE itemID=%u", characterID
 	/*"SELECT "
 	"	itemID"
 	" FROM entity AS chare LEFT JOIN entity AS shipe"
 	"	LEFT JOIN invTypes ON shipe.typeID=invTypes.typeID"
 	"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
 	" WHERE invGroups.categoryID=6 AND 
-	" WHERE typeID=%lu", typeID*/
+	" WHERE typeID=%u", typeID*/
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetCurrentShipID query: %s", res.error.c_str());
@@ -179,8 +179,8 @@ PyRepObject *ServiceDB::GetInventory(uint32 containerID, EVEItemFlags flag) {
 		" FROM entity "
 		"	LEFT JOIN invTypes ON entity.typeID=invTypes.typeID"
 		"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
-		" WHERE entity.locationID=%lu "
-		"	AND ( %lu=0 OR entity.flag=%lu)",	//crazy =0 logic is to make 0 match any flag without copying the entire query
+		" WHERE entity.locationID=%u "
+		"	AND ( %u=0 OR entity.flag=%u)",	//crazy =0 logic is to make 0 match any flag without copying the entire query
 			containerID, flag, flag))
 	{
 		codelog(SERVICE__ERROR, "Error in query for %d,%d: %s", containerID, flag, res.error.c_str());
@@ -204,7 +204,7 @@ PyRepObject *ServiceDB::GetSolRow(uint32 systemID) const {
     " FROM entity "
 	"	LEFT JOIN invTypes ON entity.typeID=invTypes.typeID"
 	"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
-	" WHERE entity.itemID=%lu",
+	" WHERE entity.itemID=%u",
 		systemID
 	))
 	{
@@ -231,7 +231,7 @@ PyRepObject *ServiceDB::GetSolDroneState(uint32 systemID) const {
 	"	droneID, solarSystemID, ownerID, controllerID,"
 	"	activityState, typeID, controllerOwnerID"
     " FROM droneState "
-	" WHERE solarSystemID=%lu",
+	" WHERE solarSystemID=%u",
 		systemID
 	))
 	{
@@ -258,16 +258,16 @@ bool ServiceDB::GetSystemInfo(uint32 systemID, uint32 *constellationID, uint32 *
 		" solarSystemName,"
 		" securityClass"
 		" FROM mapSolarSystems"
-		" WHERE solarSystemID = %lu",
+		" WHERE solarSystemID = %u",
 		systemID))
 	{
-		_log(DATABASE__ERROR, "Failed to query info for system %lu: %s.", systemID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query info for system %u: %s.", systemID, res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Failed to query info for system %lu: System not found.", systemID);
+		_log(DATABASE__ERROR, "Failed to query info for system %u: System not found.", systemID);
 		return false;
 	}
 
@@ -299,16 +299,16 @@ bool ServiceDB::GetStaticItemInfo(uint32 itemID, uint32 *systemID, uint32 *const
 		" regionID,"
 		" x, y, z"
 		" FROM mapDenormalize"
-		" WHERE itemID = %lu",
+		" WHERE itemID = %u",
 		itemID))
 	{
-		_log(DATABASE__ERROR, "Failed to query info for static item %lu: %s.", itemID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query info for static item %u: %s.", itemID, res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Failed to query info for static item %lu: Item not found.", itemID);
+		_log(DATABASE__ERROR, "Failed to query info for static item %u: Item not found.", itemID);
 		return false;
 	}
 
@@ -349,16 +349,16 @@ bool ServiceDB::GetStationInfo(uint32 stationID, uint32 *systemID, uint32 *const
 		" dockOrientationX, dockOrientationY, dockOrientationZ"
 		" FROM staStations"
 		" LEFT JOIN staStationTypes USING (stationTypeID)"
-		" WHERE stationID = %lu",
+		" WHERE stationID = %u",
 		stationID))
 	{
-		_log(DATABASE__ERROR, "Failed to query info for station %lu: %s.", stationID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query info for station %u: %s.", stationID, res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Failed to query info for station %lu: Station not found.", stationID);
+		_log(DATABASE__ERROR, "Failed to query info for station %u: Station not found.", stationID);
 		return false;
 	}
 
@@ -407,8 +407,8 @@ uint32 ServiceDB::GetDestinationStargateID(uint32 fromSystem, uint32 toSystem) {
 		"    ON fromStargate.itemID = jump.stargateID"
 		" LEFT JOIN mapDenormalize AS toStargate"
 		"    ON toStargate.itemID = jump.celestialID"
-		" WHERE fromStargate.solarSystemID = %lu"
-		"    AND toStargate.solarSystemID = %lu",
+		" WHERE fromStargate.solarSystemID = %u"
+		"    AND toStargate.solarSystemID = %u",
 		fromSystem, toSystem
 	))
 	{
@@ -430,7 +430,7 @@ bool ServiceDB::SetCharacterBalance(uint32 char_id, double newbalance)
 	DBerror err;
 
 	if(!m_db->RunQuery(err,
-		"UPDATE character_ SET balance=%.2f WHERE characterID=%lu",newbalance,char_id))
+		"UPDATE character_ SET balance=%.2f WHERE characterID=%u",newbalance,char_id))
 	{
 		_log(SERVICE__ERROR, "Error in query : %s", err.c_str());
 		return false;
@@ -444,7 +444,7 @@ bool ServiceDB::AddCharacterBalance(uint32 char_id, double delta)
 	DBerror err;
 
 	if(!m_db->RunQuery(err,
-		"UPDATE character_ SET balance=balance+%.2f WHERE characterID=%lu",delta,char_id))
+		"UPDATE character_ SET balance=balance+%.2f WHERE characterID=%u",delta,char_id))
 	{
 		_log(SERVICE__ERROR, "Error in query : %s", err.c_str());
 		return false;
@@ -498,7 +498,7 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	"	character_.careerID,character_.schoolID,character_.careerSpecialityID"
 	" FROM character_"
 	" LEFT JOIN corporation ON corporation.corporationID = character_.corporationID"
-	" WHERE characterID=%lu", characterID))
+	" WHERE characterID=%u", characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
@@ -548,7 +548,7 @@ bool ServiceDB::LoadCorporationMemberInfo(uint32 charID, CorpMemberInfo &info) {
 		" SELECT"
 		"	corprole,rolesAtAll,rolesAtBase,rolesAtHQ,rolesAtOther "
 		" FROM chrCorporationRoles"
-		" WHERE characterID = %lu ", 
+		" WHERE characterID = %u ", 
 		charID))
 	{
 			codelog(CLIENT__ERROR, "Error on query: %s", res.error.c_str());
@@ -578,7 +578,7 @@ bool ServiceDB::LoadCorporationMemberInfo(uint32 charID, CorpMemberInfo &info) {
 	"	corporation.stationID"
 	" FROM corporation"
 	"	LEFT JOIN character_ ON corporation.corporationID=character_.corporationID"
-	" WHERE character_.characterID='%lu'",
+	" WHERE character_.characterID='%u'",
 		charID
 	))
 	{
@@ -587,7 +587,7 @@ bool ServiceDB::LoadCorporationMemberInfo(uint32 charID, CorpMemberInfo &info) {
 	}
 	
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Unable to find corporatioin for %lu", charID);
+		codelog(SERVICE__ERROR, "Unable to find corporatioin for %u", charID);
 		return false;
 	}
 	
@@ -642,7 +642,7 @@ void ServiceDB::ProcessIntChange(const char * key, uint32 oldValue, uint32 newVa
 		notif->add(key, val);
 
 		char cc[10];
-		snprintf(cc, 9, "%lu", newValue);
+		snprintf(cc, 9, "%u", newValue);
 		qValue += " = ";
 		qValue += cc;
 		dbQ.push_back(qValue);
@@ -653,12 +653,12 @@ void ServiceDB::ProcessIntChange(const char * key, uint32 oldValue, uint32 newVa
 void ServiceDB::SetCharacterOnlineStatus(uint32 char_id, bool onoff_status) {
 	DBerror err;	
 
-	_log(CLIENT__TRACE, "ChrStatus: Setting character %lu %s.", char_id, onoff_status ? "Online" : "Offline");
+	_log(CLIENT__TRACE, "ChrStatus: Setting character %u %s.", char_id, onoff_status ? "Online" : "Offline");
 
 	if(!m_db->RunQuery(err,
 		"UPDATE character_"
 		" SET online = %d"
-		" WHERE characterID = %lu",
+		" WHERE characterID = %u",
 		onoff_status, char_id))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -694,12 +694,12 @@ void ServiceDB::SetServerOnlineStatus(bool onoff_status) {
 void ServiceDB::SetAccountOnlineStatus(uint32 accountID, bool onoff_status) {
 	DBerror err;
 
-	_log(CLIENT__TRACE, "AccStatus: Setting account %lu %s.", accountID, onoff_status ? "Online" : "Offline");
+	_log(CLIENT__TRACE, "AccStatus: Setting account %u %s.", accountID, onoff_status ? "Online" : "Offline");
 
 	if(!m_db->RunQuery(err,
 		"UPDATE account "
 		" SET account.online = %d "
-		" WHERE accountID = %lu ",
+		" WHERE accountID = %u ",
 		onoff_status, accountID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());

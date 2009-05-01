@@ -58,7 +58,7 @@ PyRepObject *StandingDB::GetCharStandings(uint32 characterID) {
 		"SELECT "
 		" toID, standing"
 		" FROM chrStandings"
-		" WHERE characterID=%lu", characterID
+		" WHERE characterID=%u", characterID
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetCharStandings query: %s", res.error.c_str());
@@ -99,7 +99,7 @@ PyRepObject *StandingDB::GetCharNPCStandings(uint32 characterID) {
 		"SELECT "
 		" fromID, standing"
 		" FROM chrNPCStandings"
-		" WHERE characterID=%lu", characterID
+		" WHERE characterID=%u", characterID
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetCharNPCStandings query: %s", res.error.c_str());
@@ -115,7 +115,7 @@ double StandingDB::GetSecurityRating(uint32 characterID) {
 	if(!m_db->RunQuery(res,
 		"SELECT securityRating"
 		" FROM character_"
-		" WHERE characterID = %lu",
+		" WHERE characterID = %u",
 		characterID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s.", res.error.c_str());
@@ -124,7 +124,7 @@ double StandingDB::GetSecurityRating(uint32 characterID) {
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Character %lu not found.", characterID);
+		_log(DATABASE__ERROR, "Character %u not found.", characterID);
 		return(0.0);
 	} else
 		return(row.GetDouble(0));
@@ -135,7 +135,7 @@ PyRepObject *StandingDB::GetStandingTransactions(uint32 characterID) {
 
 	if (!m_db->RunQuery(res,
 		" SELECT * FROM chrStandingChanges "
-		" WHERE toID = %lu ", characterID
+		" WHERE toID = %u ", characterID
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());

@@ -42,7 +42,7 @@ bool InventoryDB::GetCategory(EVEItemCategories category, CategoryData &into) {
 		" description,"
 		" published"
 		" FROM invCategories"
-		" WHERE categoryID=%lu",
+		" WHERE categoryID=%u",
 		uint32(category)))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s.", res.error.c_str());
@@ -51,7 +51,7 @@ bool InventoryDB::GetCategory(EVEItemCategories category, CategoryData &into) {
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Category %lu not found.", uint32(category));
+		_log(DATABASE__ERROR, "Category %u not found.", uint32(category));
 		return false;
 	}
 
@@ -78,16 +78,16 @@ bool InventoryDB::GetGroup(uint32 groupID, GroupData &into) {
 		" fittableNonSingleton,"
 		" published"
 		" FROM invGroups"
-		" WHERE groupID=%lu",
+		" WHERE groupID=%u",
 		groupID))
 	{
-		_log(DATABASE__ERROR, "Failed to query group %lu: %s.", groupID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query group %u: %s.", groupID, res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Group %lu not found.", groupID);
+		_log(DATABASE__ERROR, "Group %u not found.", groupID);
 		return false;
 	}
 
@@ -124,16 +124,16 @@ bool InventoryDB::GetType(uint32 typeID, TypeData &into) {
 		" marketGroupID,"
 		" chanceOfDuplicating"
 		" FROM invTypes"
-		" WHERE typeID=%lu",
+		" WHERE typeID=%u",
 		typeID))
 	{
-		_log(DATABASE__ERROR, "Failed to query type %lu: %s.", res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query type %u: %s.", res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Type %lu not found.", typeID);
+		_log(DATABASE__ERROR, "Type %u not found.", typeID);
 		return false;
 	}
 
@@ -173,7 +173,7 @@ bool InventoryDB::GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &in
 		" chanceOfReverseEngineering,"
 		" maxProductionLimit"
 		" FROM invBlueprintTypes"
-		" WHERE blueprintTypeID=%lu",
+		" WHERE blueprintTypeID=%u",
 		blueprintTypeID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s.", res.error.c_str());
@@ -182,7 +182,7 @@ bool InventoryDB::GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &in
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Blueprint type %lu not found.", blueprintTypeID);
+		_log(DATABASE__ERROR, "Blueprint type %u not found.", blueprintTypeID);
 		return false;
 	}
 
@@ -219,16 +219,16 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
 		" x, y, z,"
 		" customInfo"
 		" FROM entity"
-		" WHERE itemID=%lu",
+		" WHERE itemID=%u",
 		itemID))
 	{
-		codelog(SERVICE__ERROR, "Error in query for item %lu: %s", itemID, res.error.c_str());
+		codelog(SERVICE__ERROR, "Error in query for item %u: %s", itemID, res.error.c_str());
 		return NULL;
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Unable to load item %lu", itemID);
+		codelog(SERVICE__ERROR, "Unable to load item %u", itemID);
 		return false;
 	}
 
@@ -262,8 +262,8 @@ uint32 InventoryDB::NewItem(const ItemData &data) {
 		"	contraband, singleton, quantity, x, y, z,"
 		"	customInfo"
 		" ) "
-		"VALUES('%s', %lu, %lu, %lu, %lu,"
-		"	%lu, %lu, %lu, %f, %f, %f,"
+		"VALUES('%s', %u, %u, %u, %u,"
+		"	%u, %u, %u, %f, %f, %f,"
 		"	'%s' )",
 		nameEsc.c_str(), data.typeID, data.ownerID, data.locationID, data.flag,
 		data.contraband?1:0, data.singleton?1:0, data.quantity, data.position.x, data.position.y, data.position.z,
@@ -290,21 +290,21 @@ bool InventoryDB::SaveItem(uint32 itemID, const ItemData &data) {
 		"UPDATE entity"
 		" SET"
 		" itemName = '%s',"
-		" typeID = %lu,"
-		" ownerID = %lu,"
-		" locationID = %lu,"
-		" flag = %ld,"
-		" contraband = %lu,"
-		" singleton = %lu,"
-		" quantity = %lu,"
+		" typeID = %u,"
+		" ownerID = %u,"
+		" locationID = %u,"
+		" flag = %u,"
+		" contraband = %u,"
+		" singleton = %u,"
+		" quantity = %u,"
 		" x = %f, y = %f, z = %f,"
 		" customInfo = '%s'"
-		" WHERE itemID = %lu",
+		" WHERE itemID = %u",
 		nameEsc.c_str(),
 		data.typeID,
 		data.ownerID,
 		data.locationID,
-		data.flag,
+		uint32(data.flag),
 		uint32(data.contraband),
 		uint32(data.singleton),
 		data.quantity,
@@ -327,11 +327,11 @@ bool InventoryDB::DeleteItem(uint32 itemID) {
 	if(!m_db->RunQuery(err,
 		"DELETE"
 		" FROM entity"
-		" WHERE itemID=%lu",
+		" WHERE itemID=%u",
 		itemID
 	))
 	{
-		codelog(DATABASE__ERROR, "Failed to delete item %lu: %s", itemID, err.c_str());
+		codelog(DATABASE__ERROR, "Failed to delete item %u: %s", itemID, err.c_str());
 		return false;
 	}
 	return true;
@@ -349,10 +349,10 @@ bool InventoryDB::GetItemContents(uint32 itemID, std::vector<uint32> &items) {
 		"SELECT "
 		" itemID"
 		" FROM entity "
-		" WHERE locationID=%lu",
+		" WHERE locationID=%u",
 		itemID))
 	{
-		codelog(SERVICE__ERROR, "Error in query for item %lu: %s", itemID, res.error.c_str());
+		codelog(SERVICE__ERROR, "Error in query for item %u: %s", itemID, res.error.c_str());
 		return false;
 	}
 	
@@ -373,10 +373,10 @@ bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
 		" valueInt,"
 		" valueFloat"
 		" FROM dgmTypeAttributes"
-		" WHERE typeID=%lu",
+		" WHERE typeID=%u",
 		typeID))
 	{
-		_log(DATABASE__ERROR, "Failed to query type attributes for type %lu: %s.", typeID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query type attributes for type %u: %s.", typeID, res.error.c_str());
 		return false;
 	}
 
@@ -384,18 +384,18 @@ bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
 	EVEAttributeMgr::Attr attr;
 	while(res.GetRow(row)) {
 		if(row.IsNull(0)) {
-			_log(DATABASE__ERROR, "Attribute row for type %lu has attributeID NULL. Skipping.", typeID);
+			_log(DATABASE__ERROR, "Attribute row for type %u has attributeID NULL. Skipping.", typeID);
 			continue;
 		}
 		attr = EVEAttributeMgr::Attr(row.GetUInt(0));
 		if(row.IsNull(2)) {
 			if(row.IsNull(1))
-				_log(DATABASE__ERROR, "Attribute %lu for type %lu has both values NULL. Skipping.", attr, typeID);
+				_log(DATABASE__ERROR, "Attribute %u for type %u has both values NULL. Skipping.", attr, typeID);
 			else
 				into.SetInt(attr, row.GetInt(1));
 		} else {
 			if(!row.IsNull(1))
-				_log(DATABASE__ERROR, "Attribute %lu for type %lu has both values non-NULL. Using float.", attr, typeID);
+				_log(DATABASE__ERROR, "Attribute %u for type %u has both values non-NULL. Using float.", attr, typeID);
 			into.SetReal(attr, row.GetDouble(2));
 		}
 	}
@@ -411,10 +411,10 @@ bool InventoryDB::LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into) {
 		" valueInt,"
 		" valueFloat"
 		" FROM entity_attributes"
-		" WHERE itemID=%lu",
+		" WHERE itemID=%u",
 		itemID))
 	{
-		_log(DATABASE__ERROR, "Failed to query item attributes for item %lu: %s.", itemID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query item attributes for item %u: %s.", itemID, res.error.c_str());
 		return false;
 	}
 
@@ -422,18 +422,18 @@ bool InventoryDB::LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into) {
 	EVEAttributeMgr::Attr attr;
 	while(res.GetRow(row)) {
 		if(row.IsNull(0)) {
-			_log(DATABASE__ERROR, "Attribute row for item %lu has attributeID NULL. Skipping.", itemID);
+			_log(DATABASE__ERROR, "Attribute row for item %u has attributeID NULL. Skipping.", itemID);
 			continue;
 		}
 		attr = EVEAttributeMgr::Attr(row.GetUInt(0));
 		if(row.IsNull(2)) {
 			if(row.IsNull(1))
-				_log(DATABASE__ERROR, "Attribute %lu for item %lu has both values NULL. Skipping.", attr, itemID);
+				_log(DATABASE__ERROR, "Attribute %u for item %u has both values NULL. Skipping.", attr, itemID);
 			else
 				into.SetInt(attr, row.GetInt(1));
 		} else {
 			if(!row.IsNull(1))
-				_log(DATABASE__ERROR, "Attribute %lu for item %lu has both values non-NULL. Using float.", attr, itemID);
+				_log(DATABASE__ERROR, "Attribute %u for item %u has both values non-NULL. Using float.", attr, itemID);
 			into.SetReal(attr, row.GetDouble(2));
 		}
 	}
@@ -446,10 +446,10 @@ bool InventoryDB::UpdateAttribute_int(uint32 itemID, uint32 attributeID, int v) 
 		"REPLACE INTO entity_attributes"
 		"	(itemID, attributeID, valueInt, valueFloat)"
 		" VALUES"
-		"	(%lu, %lu, %d, NULL)",
+		"	(%u, %u, %d, NULL)",
 		itemID, attributeID, v)
 	) {
-		codelog(SERVICE__ERROR, "Failed to store attribute %d for item %lu: %s", attributeID, itemID, err.c_str());
+		codelog(SERVICE__ERROR, "Failed to store attribute %d for item %u: %s", attributeID, itemID, err.c_str());
 		return false;
 	}
 	return true;
@@ -461,10 +461,10 @@ bool InventoryDB::UpdateAttribute_double(uint32 itemID, uint32 attributeID, doub
 		"REPLACE INTO entity_attributes"
 		"	(itemID, attributeID, valueInt, valueFloat)"
 		" VALUES"
-		"	(%lu, %lu, NULL, %f)",
+		"	(%u, %u, NULL, %f)",
 		itemID, attributeID, v)
 	) {
-		codelog(SERVICE__ERROR, "Failed to store attribute %d for item %lu: %s", attributeID, itemID, err.c_str());
+		codelog(SERVICE__ERROR, "Failed to store attribute %d for item %u: %s", attributeID, itemID, err.c_str());
 		return false;
 	}
 	return true;
@@ -473,10 +473,10 @@ bool InventoryDB::EraseAttribute(uint32 itemID, uint32 attributeID) {
 	DBerror err;
 	if(!m_db->RunQuery(err,
 		"DELETE FROM entity_attributes"
-		" WHERE itemID=%lu AND attributeID=%lu",
+		" WHERE itemID=%u AND attributeID=%u",
 		itemID, attributeID)
 	) {
-		codelog(SERVICE__ERROR, "Failed to erase attribute %d for item %lu: %s", attributeID, itemID, err.c_str());
+		codelog(SERVICE__ERROR, "Failed to erase attribute %d for item %u: %s", attributeID, itemID, err.c_str());
 		return false;
 	}
 	return true;
@@ -487,10 +487,10 @@ bool InventoryDB::EraseAttributes(uint32 itemID) {
 	if(!m_db->RunQuery(err,
 		"DELETE"
 		" FROM entity_attributes"
-		" WHERE itemID=%lu",
+		" WHERE itemID=%u",
 		itemID))
 	{
-		_log(DATABASE__ERROR, "Failed to erase attributes for item %lu: %s", itemID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to erase attributes for item %u: %s", itemID, err.c_str());
 		return false;
 	}
 	return true;
@@ -506,7 +506,7 @@ bool InventoryDB::GetBlueprint(uint32 blueprintID, BlueprintData &into) {
 		" productivityLevel,"
 		" licensedProductionRunsRemaining"
 		" FROM invBlueprints"
-		" WHERE blueprintID=%lu",
+		" WHERE blueprintID=%u",
 		blueprintID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s.", res.error.c_str());
@@ -515,7 +515,7 @@ bool InventoryDB::GetBlueprint(uint32 blueprintID, BlueprintData &into) {
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Blueprint %lu not found.", blueprintID);
+		_log(DATABASE__ERROR, "Blueprint %u not found.", blueprintID);
 		return false;
 	}
 
@@ -535,10 +535,10 @@ bool InventoryDB::NewBlueprint(uint32 blueprintID, const BlueprintData &data) {
 		" INTO invBlueprints"
 		" (blueprintID, copy, materialLevel, productivityLevel, licensedProductionRunsRemaining)"
 		" VALUES"
-		" (%lu, %lu, %lu, %lu, %ld)",
+		" (%u, %u, %u, %u, %d)",
 		blueprintID, data.copy, data.materialLevel, data.productivityLevel, data.licensedProductionRunsRemaining))
 	{
-		_log(DATABASE__ERROR, "Unable to create new blueprint entry for blueprint %lu: %s.", blueprintID, err.c_str());
+		_log(DATABASE__ERROR, "Unable to create new blueprint entry for blueprint %u: %s.", blueprintID, err.c_str());
 		return false;
 	}
 
@@ -551,11 +551,11 @@ bool InventoryDB::SaveBlueprint(uint32 blueprintID, const BlueprintData &data) {
 	if(!m_db->RunQuery(err,
 		"UPDATE invBlueprints"
 		" SET"
-		" copy = %lu,"
-		" materialLevel = %lu,"
-		" productivityLevel = %lu,"
-		" licensedProductionRunsRemaining = %ld"
-		" WHERE blueprintID = %lu",
+		" copy = %u,"
+		" materialLevel = %u,"
+		" productivityLevel = %u,"
+		" licensedProductionRunsRemaining = %d"
+		" WHERE blueprintID = %u",
 		uint32(data.copy),
 		data.materialLevel,
 		data.productivityLevel,
@@ -574,10 +574,10 @@ bool InventoryDB::DeleteBlueprint(uint32 blueprintID) {
 	if(!m_db->RunQuery(err,
 		"DELETE"
 		" FROM invBlueprints"
-		" WHERE blueprintID=%lu",
+		" WHERE blueprintID=%u",
 		blueprintID))
 	{
-		codelog(DATABASE__ERROR, "Failed to delete blueprint %lu: %s.", blueprintID, err.c_str());
+		codelog(DATABASE__ERROR, "Failed to delete blueprint %u: %s.", blueprintID, err.c_str());
 		return false;
 	}
 	return true;

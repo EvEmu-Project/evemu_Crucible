@@ -91,13 +91,13 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 	}
 
 	if(new_charge->ownerID() != call.client->GetCharacterID()) {
-		codelog(SERVICE__ERROR, "Character %lu tried to load charge %lu of character %lu.", call.client->GetCharacterID(), new_charge->itemID(), new_charge->ownerID());
+		codelog(SERVICE__ERROR, "Character %u tried to load charge %u of character %u.", call.client->GetCharacterID(), new_charge->itemID(), new_charge->ownerID());
 		new_charge->Release();
 		return NULL;
 	}
 
 	if(new_charge->quantity() < args.quantity) {
-		codelog(SERVICE__ERROR, "%s: Item %lu: Requested quantity (%d) exceeds actual quantity (%d), using actual.", call.client->GetName(), args.itemID, args.quantity, new_charge->quantity());
+		codelog(SERVICE__ERROR, "%s: Item %u: Requested quantity (%d) exceeds actual quantity (%d), using actual.", call.client->GetName(), args.itemID, args.quantity, new_charge->quantity());
 	} else if(new_charge->quantity() > args.quantity) {
 		InventoryItem *new_charge_split = new_charge->Split(args.quantity);	// get new ref on a splitted item
 		new_charge->Release();	// release the old ref
@@ -219,13 +219,13 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 
 		InventoryItem *stationaryItem = m_manager->item_factory.GetItem(element.stationaryItemID, false);
 		if(stationaryItem == NULL) {
-			_log(SERVICE__ERROR, "Failed to load stationary item %lu. Skipping.", element.stationaryItemID);
+			_log(SERVICE__ERROR, "Failed to load stationary item %u. Skipping.", element.stationaryItemID);
 			continue;
 		}
 
 		InventoryItem *draggedItem = m_manager->item_factory.GetItem(element.draggedItemID, false);
 		if(draggedItem == NULL) {
-			_log(SERVICE__ERROR, "Failed to load dragged item %lu. Skipping.", element.draggedItemID);
+			_log(SERVICE__ERROR, "Failed to load dragged item %u. Skipping.", element.draggedItemID);
 			stationaryItem->Release();
 			continue;
 		}
@@ -269,7 +269,7 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 	for(; cur != end; cur++) {
 		InventoryItem *sourceItem = m_manager->item_factory.GetItem((*cur), true);
 		if(sourceItem == NULL) {
-			_log(SERVICE__ERROR, "Failed to load item %lu. Skipping.", *cur);
+			_log(SERVICE__ERROR, "Failed to load item %u. Skipping.", *cur);
 			continue;
 		}
 
@@ -312,11 +312,11 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 			//Log Error
 			if( items.size() > 1)
 			{
-				_log(ITEM__ERROR, "Cannot Perform Add. Items are too large (%f m3) to fit into destination %lu (%f m3 capacity remaining)", totalVolume, m_item->itemID(), remainingCapacity); 
+				_log(ITEM__ERROR, "Cannot Perform Add. Items are too large (%f m3) to fit into destination %u (%f m3 capacity remaining)", totalVolume, m_item->itemID(), remainingCapacity); 
 			}
 			else
 			{
-				_log(ITEM__ERROR, "Cannot Perform Add. Item %lu is too large (%f m3) to fit into destination %lu (%f m3 capacity remaining)", items[0], totalVolume, m_item->itemID(), remainingCapacity);
+				_log(ITEM__ERROR, "Cannot Perform Add. Item %u is too large (%f m3) to fit into destination %u (%f m3 capacity remaining)", items[0], totalVolume, m_item->itemID(), remainingCapacity);
 			}
 			std::map<std::string, PyRep *> args;
 			args["available"] = new PyRepReal(remainingCapacity);
@@ -355,7 +355,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 	for(; cur != end; cur++) {
 		InventoryItem *sourceItem = m_manager->item_factory.GetItem((*cur), true);
 		if(sourceItem == NULL) {
-			_log(SERVICE__ERROR, "Failed to load item %lu. Skipping.", *cur);
+			_log(SERVICE__ERROR, "Failed to load item %u. Skipping.", *cur);
 			continue;
 		}
 
@@ -370,7 +370,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 			//Move New item to its new location
 			if( newItem == NULL )
 			{
-				codelog(SERVICE__ERROR, "Error spawning an item of type %lu", sourceItem->typeID());
+				codelog(SERVICE__ERROR, "Error spawning an item of type %u", sourceItem->typeID());
 			}
 			else
 			{

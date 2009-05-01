@@ -66,16 +66,16 @@ uint32 FactionWarMgrDB::GetFactionMilitiaCorporation(const uint32 factionID) {
 	if(!m_db->RunQuery(res,
 		"SELECT militiaCorporationID"
 		" FROM chrFactions"
-		" WHERE factionID=%lu",
+		" WHERE factionID=%u",
 		factionID))
 	{
-		_log(DATABASE__ERROR, "Failed to query militia corporation for faction %lu: %s.", factionID);
+		_log(DATABASE__ERROR, "Failed to query militia corporation for faction %u: %s.", factionID);
 		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Faction %lu not found.", factionID);
+		_log(DATABASE__ERROR, "Faction %u not found.", factionID);
 		return NULL;
 	}
 

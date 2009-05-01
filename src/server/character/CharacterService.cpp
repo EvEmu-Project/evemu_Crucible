@@ -91,7 +91,7 @@ PyResult CharacterService::Handle_GetCharacterToSelect(PyCallArgs &call) {
 PyResult CharacterService::Handle_SelectCharacterID(PyCallArgs &call) {
 	CallSelectCharacterID args;
 	if(!args.Decode(&call.tuple)) {
-		codelog(CLIENT__ERROR, "Failed to parse args from account %lu", call.client->GetAccountID());
+		codelog(CLIENT__ERROR, "Failed to parse args from account %u", call.client->GetAccountID());
 		//TODO: throw exception
 		return NULL;
 	}
@@ -168,7 +168,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	}
 
 	_log(CLIENT__MESSAGE, "CreateCharacter2 called for '%s'", arg.name.c_str());
-	_log(CLIENT__MESSAGE, "  bloodlineID=%lu genderID=%lu ancestryID=%lu",
+	_log(CLIENT__MESSAGE, "  bloodlineID=%u genderID=%u ancestryID=%u",
 			arg.bloodlineID, arg.genderID, arg.ancestryID);
 
 	// we need to fill these to successfully create character item
@@ -202,7 +202,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	    || !m_db.GetAttributesFromBloodline(cdata)
 	    || !m_db.GetAttributesFromAncestry(cdata)
 	) {
-		codelog(CLIENT__ERROR, "Failed to load char create details. Bloodline %lu, ancestry %lu.",
+		codelog(CLIENT__ERROR, "Failed to load char create details. Bloodline %u, ancestry %u.",
 			cdata.bloodlineID, cdata.ancestryID);
 		return NULL;
 	}
@@ -235,7 +235,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	CharSkillMap startingSkills;
 	if( !m_db.GetSkillsByRace(cdata.raceID, startingSkills) )
 	{
-		codelog(CLIENT__ERROR, "Failed to load char create skills. Bloodline %lu, Ancestry %lu.",
+		codelog(CLIENT__ERROR, "Failed to load char create skills. Bloodline %u, Ancestry %u.",
 			cdata.bloodlineID, cdata.ancestryID);
 		return NULL;
 	}
@@ -258,11 +258,11 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 		ItemData skillItem( cur->first, cdata.charid, cdata.charid, flagSkill );
 		InventoryItem *i = m_manager->item_factory.SpawnItem( skillItem );
 		if(i == NULL) {
-			_log(CLIENT__ERROR, "Failed to add skill %lu to char %s (%lu) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
+			_log(CLIENT__ERROR, "Failed to add skill %u to char %s (%u) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
 			continue;
 		}
 
-		_log(CLIENT__MESSAGE, "Training skill %lu to level %d (%d points)", i->typeID(), i->skillLevel(), i->skillPoints());
+		_log(CLIENT__MESSAGE, "Training skill %u to level %d (%d points)", i->typeID(), i->skillLevel(), i->skillPoints());
 		i->Set_skillLevel(cur->second);
 		i->Set_skillPoints(GetSkillPointsForSkillLevel(i, cur->second));
 
@@ -338,12 +338,12 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 
 	//TODO: make sure this person actually owns this char...
 
-	_log(CLIENT__MESSAGE, "Timed delete of char %lu unimplemented. Deleting Immediately.", args.arg);
+	_log(CLIENT__MESSAGE, "Timed delete of char %u unimplemented. Deleting Immediately.", args.arg);
 
 	{ // character scope to make sure char_item is no longer accessed after deletion
 		InventoryItem *char_item = m_manager->item_factory.GetItem(args.arg, true);
 		if(char_item == NULL) {
-			codelog(CLIENT__ERROR, "Failed to load char item %lu.", args.arg);
+			codelog(CLIENT__ERROR, "Failed to load char item %u.", args.arg);
 			return NULL;
 		}
 		//does the recursive delete of all contained items
@@ -353,7 +353,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	//now, clean up all items which werent deleted
 	std::vector<uint32> items;
 	if(!m_db.GetCharItems(args.arg, items)) {
-		codelog(CLIENT__ERROR, "Unable to get items of char %lu.", args.arg);
+		codelog(CLIENT__ERROR, "Unable to get items of char %u.", args.arg);
 		return NULL;
 	}
 
@@ -363,7 +363,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	for(; cur != end; cur++) {
 		InventoryItem *i = m_manager->item_factory.GetItem(*cur, true);
 		if(i == NULL) {
-			codelog(CLIENT__ERROR, "Failed to load item %lu to delete. Skipping.", *cur);
+			codelog(CLIENT__ERROR, "Failed to load item %u to delete. Skipping.", *cur);
 			continue;
 		}
 
@@ -383,7 +383,7 @@ PyResult CharacterService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call)
 		return NULL;
 	}
 
-	_log(CLIENT__ERROR, "Cancel delete (of char %lu) unimplemented.", args.arg);
+	_log(CLIENT__ERROR, "Cancel delete (of char %u) unimplemented.", args.arg);
 
 	//returns nothing.
 	return NULL;

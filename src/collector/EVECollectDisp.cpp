@@ -322,7 +322,7 @@ void EVECollectDispatcher::Notify_OnLSC(const PyPacket *packet, EVENotificationS
 		return;
 	}
 
-	_log(COLLECT__NOTIFY_SUMMARY, "    LSC Method on channel %lu: %s", lsc.channelID, lsc.method.c_str());
+	_log(COLLECT__NOTIFY_SUMMARY, "    LSC Method on channel %u: %s", lsc.channelID, lsc.method.c_str());
 }
 
 

@@ -186,11 +186,11 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, uint8 **data, uint32 l
 	res = m_cachedObjects.find(str);
 	if(res != m_cachedObjects.end())
 	{
-		_log(SERVICE__CACHE, "Destroying old cached object with ID '%s' of length %lu with checksum 0x%lx", str.c_str(), res->second->cache->GetLength(), res->second->version);
+		_log(SERVICE__CACHE, "Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->GetLength(), res->second->version);
 		delete res->second;
 	}
 	
-	_log(SERVICE__CACHE, "Registering new cached object with ID '%s' of length %lu with checksum 0x%lx", str.c_str(), r->cache->GetLength(), r->version);
+	_log(SERVICE__CACHE, "Registering new cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), r->cache->GetLength(), r->version);
 	
 	m_cachedObjects[str] = r;
 }
@@ -547,8 +547,8 @@ void PyCachedObjectDecoder::Dump(FILE *into, const char *pfx, bool contents_too)
 	fprintf(into, "%s  ObjectID:\n", pfx);
 	objectID->Dump(into, s.c_str());
 	fprintf(into, "%s  Version Time: "I64u"\n", pfx, timestamp);
-	fprintf(into, "%s  Version: %lu\n", pfx, version);
-	fprintf(into, "%s  NodeID: %lu\n", pfx, nodeID);
+	fprintf(into, "%s  Version: %u\n", pfx, version);
+	fprintf(into, "%s  NodeID: %u\n", pfx, nodeID);
 	fprintf(into, "%s  Shared: %s\n", pfx, shared?"yes":"no");
 	fprintf(into, "%s  Compressed: %s\n", pfx, compressed?"yes":"no");
 	if(contents_too) {
@@ -564,8 +564,8 @@ void PyCachedObject::Dump(FILE *into, const char *pfx, bool contents_too) {
 	fprintf(into, "%s  ObjectID:\n", pfx);
 		objectID->Dump(into, s.c_str());
 	fprintf(into, "%s  Version Time: "I64u"\n", pfx, timestamp);
-	fprintf(into, "%s  Version: %lu\n", pfx, version);
-	fprintf(into, "%s  NodeID: %lu\n", pfx, nodeID);
+	fprintf(into, "%s  Version: %u\n", pfx, version);
+	fprintf(into, "%s  NodeID: %u\n", pfx, nodeID);
 	fprintf(into, "%s  Shared: %s\n", pfx, shared?"yes":"no");
 	fprintf(into, "%s  Compressed: %s\n", pfx, compressed?"yes":"no");
 	if(contents_too) {

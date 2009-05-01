@@ -92,7 +92,7 @@ void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, bool 
 
 void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::vector<PyRepTuple *> &events, bool self_only) const {
 	if(self_only) {
-		_log(DESTINY__TRACE, "[%lu] Sending destiny update to self.", GetStamp());
+		_log(DESTINY__TRACE, "[%u] Sending destiny update to self.", GetStamp());
 		std::vector<PyRepTuple *>::iterator cur, end;
 		
 		cur = updates.begin();
@@ -113,7 +113,7 @@ void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::
 		}
 		events.clear();
 	} else {
-		_log(DESTINY__TRACE, "[%lu] Broadcasting destiny update (%d, %d)", GetStamp(), updates.size(), events.size());
+		_log(DESTINY__TRACE, "[%u] Broadcasting destiny update (%d, %d)", GetStamp(), updates.size(), events.size());
 		//this should really be something like "bubblecast"
 		m_system->RangecastDestiny(m_position, DESTINY_UPDATE_RANGE, updates, events);
 	}
@@ -124,13 +124,13 @@ void DestinyManager::_UpdateDerrived() {
 	m_velocityAdjuster = exp(- (SPACE_FRICTION * TIC_DURATION_IN_SECONDS) / (m_mass * m_shipAgility));
 	m_accelerationFactor = (SPACE_FRICTION*m_maxVelocity) / (m_mass * m_shipAgility);
 	
-	_log(PHYSICS__TRACE, "Entity %lu has derrived: maxVelocity=%f, velocityAdjuster=%f, accelerationFactor=%f",
+	_log(PHYSICS__TRACE, "Entity %u has derrived: maxVelocity=%f, velocityAdjuster=%f, accelerationFactor=%f",
 		m_self->GetID(), m_maxVelocity, m_velocityAdjuster, m_accelerationFactor);
 }
 
 void DestinyManager::ProcessTic() {
 	
-	_log(PHYSICS__TRACEPOS, "[%d] Entity %lu starts at (%.3f, %.3f, %.3f) with velocity (%f, %f, %f)=%.1f in mode %s",
+	_log(PHYSICS__TRACEPOS, "[%d] Entity %u starts at (%.3f, %.3f, %.3f) with velocity (%f, %f, %f)=%.1f in mode %s",
 		GetStamp(),
 		m_self->GetID(),
 		m_position.x, m_position.y, m_position.z,
@@ -150,7 +150,7 @@ void DestinyManager::ProcessTic() {
 			_Follow();
 		} else {
 			//nobody to follow?
-			_log(PHYSICS__TRACE, "Entity %lu has nothing to follow. Stopping.",
+			_log(PHYSICS__TRACE, "Entity %u has nothing to follow. Stopping.",
 				m_self->GetID() );
 			Stop();
 		}
@@ -232,7 +232,7 @@ void DestinyManager::_Follow() {
 
 	GVector targetDirection = GVector(m_position, goal);
 	double distance = targetDirection.normalize();
-	_log(PHYSICS__TRACEPOS, "Entity %lu: Moving towards (%.1f, %.1f, %.1f) which is %f away.",
+	_log(PHYSICS__TRACEPOS, "Entity %u: Moving towards (%.1f, %.1f, %.1f) which is %f away.",
 		m_self->GetID(),
 		goal.x, goal.y, goal.z,
 		distance);
@@ -242,7 +242,7 @@ void DestinyManager::_Follow() {
 		//there has to be some band of distance that causes us not to move.
 		if((m_targetDistance-distance) < (FOLLOW_BAND_WIDTH+FOLLOW_BAND_WIDTH)) {
 			//close enough.
-			_log(PHYSICS__TRACEPOS, " Entity %lu is %f/%f away from followed entity. Close enough. Not moving.", m_self->GetID());
+			_log(PHYSICS__TRACEPOS, " Entity %u is %f/%f away from followed entity. Close enough. Not moving.", m_self->GetID());
 			m_activeSpeedFraction = 0.0f;
 			_UpdateDerrived();
 			return;
@@ -250,7 +250,7 @@ void DestinyManager::_Follow() {
 		//swap around the direction, see what that does...
 		targetDirection *= -1.0f;
 		
-		_log(PHYSICS__TRACEPOS, " Entity %lu is %f/%f away from followed entity. Should probably back off...", m_self->GetID());
+		_log(PHYSICS__TRACEPOS, " Entity %u is %f/%f away from followed entity. Should probably back off...", m_self->GetID());
 		return;
 	}
 	
@@ -302,7 +302,7 @@ void DestinyManager::_Move() {
 }
 
 void DestinyManager::_MoveAccel(const GVector &calc_acceleration) {
-	_log(PHYSICS__TRACEPOS, "Entity %lu: Goal Point (%.1f, %.1f, %.1f) with accel (%f, %f, %f)",
+	_log(PHYSICS__TRACEPOS, "Entity %u: Goal Point (%.1f, %.1f, %.1f) with accel (%f, %f, %f)",
 		m_self->GetID(),
 		m_targetPoint.x, m_targetPoint.y, m_targetPoint.z,
 		calc_acceleration.x, calc_acceleration.y, calc_acceleration.z);
@@ -387,7 +387,7 @@ void DestinyManager::_MoveAccel(const GVector &calc_acceleration) {
 
 void DestinyManager::_InitWarp() {
 	
-	_log(PHYSICS__TRACE, " Entity %lu starting warp to (%f, %f, %f) at distance %.2f",
+	_log(PHYSICS__TRACE, " Entity %u starting warp to (%f, %f, %f) at distance %.2f",
 		m_self->GetID(),
 		m_targetPoint.x, m_targetPoint.y, m_targetPoint.z, m_targetDistance);
 	
@@ -405,7 +405,7 @@ void DestinyManager::_InitWarp() {
 	double warp_distance = warp_vector.length();
 
 	m_targetPoint = stop_point;
-	_log(PHYSICS__TRACE, " Entity %lu has new warp target of (%f, %f, %f) which is at distance %f",
+	_log(PHYSICS__TRACE, " Entity %u has new warp target of (%f, %f, %f) which is at distance %f",
 		m_self->GetID(),
 		m_targetPoint.x, m_targetPoint.y, m_targetPoint.z,
 		warp_distance);
@@ -422,7 +422,7 @@ void DestinyManager::_InitWarp() {
 		warp_speed = 1.5*warp_distance;
 		_log(PHYSICS__TRACEPOS, "Adjusting warp speed to %f for short warp.", warp_speed);
 	} else {
-		_log(PHYSICS__TRACEPOS, "Warp speed in system %lu is %f", m_system->GetID(), warp_speed);
+		_log(PHYSICS__TRACEPOS, "Warp speed in system %u is %f", m_system->GetID(), warp_speed);
 	}
 	
 	const double log_warp_speed_over_three__ = log(warp_speed / 3.0f);
@@ -484,7 +484,7 @@ void DestinyManager::_Warp() {
 		
 		velocity_magnitude = warp_progress * 3.0;
 		
-		_log(PHYSICS__TRACEPOS, "Entity %lu: Warp Accelerating: velocity %f m/s with %f m left to go.", 
+		_log(PHYSICS__TRACEPOS, "Entity %u: Warp Accelerating: velocity %f m/s with %f m left to go.", 
 			m_self->GetID(),
 			velocity_magnitude, dist_remaining);
 		
@@ -498,7 +498,7 @@ void DestinyManager::_Warp() {
 
 		velocity_magnitude = m_warpState->speed;
 		
-		_log(PHYSICS__TRACEPOS, "Entity %lu: Warp Cruising: velocity %f m/s with %f m left to go.", 
+		_log(PHYSICS__TRACEPOS, "Entity %u: Warp Cruising: velocity %f m/s with %f m left to go.", 
 			m_self->GetID(),
 			velocity_magnitude, dist_remaining);
 	} else {
@@ -512,7 +512,7 @@ void DestinyManager::_Warp() {
 		if(velocity_magnitude < 0)
 			velocity_magnitude = -velocity_magnitude;
 		
-		_log(PHYSICS__TRACEPOS, "Entity %lu: Warp Slowing: velocity %f m/s with %f m left to go.", 
+		_log(PHYSICS__TRACEPOS, "Entity %u: Warp Slowing: velocity %f m/s with %f m left to go.", 
 			m_self->GetID(),
 			velocity_magnitude, dist_remaining);
 
@@ -529,7 +529,7 @@ void DestinyManager::_Warp() {
 	m_velocity = m_warpState->normvec_them_to_us * (-velocity_magnitude);
 	
 	if(stop) {
-		_log(PHYSICS__TRACEPOS, "Entity %lu: Warp completed. Exit velocity %f m/s with %f m left to go.", 
+		_log(PHYSICS__TRACEPOS, "Entity %u: Warp completed. Exit velocity %f m/s with %f m left to go.", 
 			m_self->GetID(),
 			velocity_magnitude, dist_remaining);
 		//they re-calculated the velocity, but it was exactly the same..
@@ -544,7 +544,7 @@ void DestinyManager::_Warp() {
 
 //this is still under construction. Its not working well right now.
 void DestinyManager::_Orbit() {
-#define PVN(v) _log(PHYSICS__TRACEPOS, "Entity %lu: " #v ": (%.15e, %.15e, %.15e)   len=%.15e", \
+#define PVN(v) _log(PHYSICS__TRACEPOS, "Entity %u: " #v ": (%.15e, %.15e, %.15e)   len=%.15e", \
 			m_self->GetID(), \
 			v.x, v.y, v.z, v.length() )
 		
@@ -671,7 +671,7 @@ void DestinyManager::EntityRemoved(SystemEntity *who) {
 			
 		case DSTBALL_FOLLOW:
 		case DSTBALL_ORBIT:
-			_log(DESTINY__DEBUG, "%lu: Our target entity has gone away. Stopping.", m_self->GetID());
+			_log(DESTINY__DEBUG, "%u: Our target entity has gone away. Stopping.", m_self->GetID());
 			Stop();
 			break;
 			
@@ -828,7 +828,7 @@ void DestinyManager::SetShipCapabilities(const InventoryItem *ship)
 	m_shipInertia = Inertia;
 //	m_maxShipAcceleration = maxShipAcceleration;
 	
-	_log(PHYSICS__TRACE, "Entity %lu is using ship attributes: Radius=%f, Mass=%f, maxVelocity=%f, agility=%f, inertia=%f",
+	_log(PHYSICS__TRACE, "Entity %u is using ship attributes: Radius=%f, Mass=%f, maxVelocity=%f, agility=%f, inertia=%f",
 		m_self->GetID(), m_radius, m_mass, m_maxShipVelocity, m_shipAgility, m_shipInertia);
 	
 	_UpdateDerrived();
@@ -837,7 +837,7 @@ void DestinyManager::SetShipCapabilities(const InventoryItem *ship)
 void DestinyManager::SetPosition(const GPoint &pt, bool update) {
 	//m_body->setPosition( pt );
 	m_position = pt;
-	_log(PHYSICS__TRACE, "Entity %lu set its position to (%.1f, %.1f, %.1f)",
+	_log(PHYSICS__TRACE, "Entity %u set its position to (%.1f, %.1f, %.1f)",
 		m_position.x, m_position.y, m_position.z );
 	
 	if(update) {

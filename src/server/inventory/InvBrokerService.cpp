@@ -104,7 +104,7 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
 	
 	InventoryItem *item = m_manager->item_factory.GetItem(args.arg1, true);
 	if(item == NULL) {
-		codelog(SERVICE__ERROR, "%s: Unable to load item %lu", call.client->GetName(), args.arg1);
+		codelog(SERVICE__ERROR, "%s: Unable to load item %u", call.client->GetName(), args.arg1);
 		return (NULL);
 	}
 	
@@ -151,11 +151,11 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 	
 	InventoryItem *item = m_manager->item_factory.GetItem(m_entityID, true);
 	if(item == NULL) {
-		codelog(SERVICE__ERROR, "%s: Unable to load item %lu", call.client->GetName(), m_entityID);
+		codelog(SERVICE__ERROR, "%s: Unable to load item %u", call.client->GetName(), m_entityID);
 		return (NULL);
 	}
 
-	_log(SERVICE__MESSAGE, "Binding inventory object for %s for container %lu with flag %lu", call.client->GetName(), m_entityID, flag);
+	_log(SERVICE__MESSAGE, "Binding inventory object for %s for container %u with flag %u", call.client->GetName(), m_entityID, flag);
 	
 	//we just bind up a new inventory object and give it back to them.
 	InventoryBound *ib = new InventoryBound(m_manager, item, flag);
@@ -173,12 +173,12 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
 	
 	InventoryItem *item = m_manager->item_factory.GetItem(args.itemID, false);
 	if(item == NULL) {
-		codelog(SERVICE__ERROR, "%s: Unable to load item %lu", call.client->GetName(), args.itemID);
+		codelog(SERVICE__ERROR, "%s: Unable to load item %u", call.client->GetName(), args.itemID);
 		return (NULL);
 	}
 	
 	if(item->ownerID() != call.client->GetCharacterID()) {
-		_log(SERVICE__ERROR, "Character %lu tried to rename item %lu of character %lu.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
+		_log(SERVICE__ERROR, "Character %u tried to rename item %u of character %u.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
 		item->Release();
 		return NULL;
 	}
@@ -205,12 +205,12 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
 	for(; cur != end; cur++) {
 		item = m_manager->item_factory.GetItem(*cur, false);
 		if(item == NULL) {
-			codelog(SERVICE__ERROR, "%s: Unable to load item %lu to delete it. Skipping.", call.client->GetName(), *cur);
+			codelog(SERVICE__ERROR, "%s: Unable to load item %u to delete it. Skipping.", call.client->GetName(), *cur);
 		} else if(call.client->GetCharacterID() != item->ownerID()) {
-			codelog(SERVICE__ERROR, "%s: Tried to trash item %lu which is not yours. Skipping.", call.client->GetName(), *cur);
+			codelog(SERVICE__ERROR, "%s: Tried to trash item %u which is not yours. Skipping.", call.client->GetName(), *cur);
 			item->Release();
 		} else if(item->locationID() != args.locationID) {
-			codelog(SERVICE__ERROR, "%s: Item %lu is not in location %lu. Skipping.", call.client->GetName(), *cur, args.locationID);
+			codelog(SERVICE__ERROR, "%s: Item %u is not in location %u. Skipping.", call.client->GetName(), *cur, args.locationID);
 			item->Release();
 		} else {
 			item->Delete();

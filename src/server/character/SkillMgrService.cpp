@@ -85,7 +85,7 @@ PyResult SkillMgrBound::Handle_CharStartTrainingSkill(PyCallArgs &call) {
 
 	InventoryItem *skill = m_manager->item_factory.GetItem(args.arg, false);
 	if(skill == NULL) {
-		codelog(CLIENT__ERROR, "%s: failed to load skill item %lu", call.client->GetName(), args.arg);
+		codelog(CLIENT__ERROR, "%s: failed to load skill item %u", call.client->GetName(), args.arg);
 		return NULL;
 	}
 	

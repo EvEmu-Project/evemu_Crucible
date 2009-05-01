@@ -41,7 +41,7 @@ PyRepObject *CharacterDB::GetCharacterList(uint32 accountID) {
 		" morph2s,morph2w,morph3e,morph3n,morph3s,morph3w,"
 		" morph4e,morph4n,morph4s,morph4w"
 		" FROM character_ "
-		" WHERE accountID=%lu", accountID))
+		" WHERE accountID=%u", accountID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -89,7 +89,7 @@ PyRepObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 		" petitionMessage,logonMinutes,tickerName"
 		" FROM character_ "
 		"	LEFT JOIN corporation ON character_.corporationID=corporation.corporationID"
-		" WHERE characterID=%lu", characterID))
+		" WHERE characterID=%u", characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -177,14 +177,14 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 	"	morph3e,morph3n,morph3s,morph3w,"
 	"	morph4e,morph4n,morph4s,morph4w"
 	" ) "
-	"VALUES(%lu,'%s',%d,'%s','%s',%lu,"
+	"VALUES(%u,'%s',%d,'%s','%s',%u,"
 	"	"I64u","I64u","
-	"	%.13f, %.13f, %.13f, '', %lu,"
-	"	%ld,"I64u","		//corp
-	"	%ld,%ld,%ld,%ld,"	//loc
-	"	%lu,%lu,%lu,%lu,%lu,%lu,%lu,"
-	"	%s,%s,%ld,%s,%ld,%ld,"
-	"	%ld,%s,%s,%ld,%ld,%ld,"
+	"	%.13f, %.13f, %.13f, '', %u,"
+	"	%u,"I64u","		//corp
+	"	%u,%u,%u,%u,"	//loc
+	"	%u,%u,%u,%u,%u,%u,%u,"
+	"	%s,%s,%u,%s,%u,%u,"
+	"	%u,%s,%s,%u,%u,%u,"
 	"	%.13f,%.13f,%.13f,"	//head
 	"	%.13f,%.13f,%.13f,"	//eye
 	"	%.13f,%.13f,%.13f,"	//cam
@@ -209,7 +209,7 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 		_VoN(app,morph3e), _VoN(app,morph3n), _VoN(app,morph3s), _VoN(app,morph3w),
 		_VoN(app,morph4e), _VoN(app,morph4n), _VoN(app,morph4s), _VoN(app,morph4w)
 	)) {
-		codelog(SERVICE__ERROR, "Failed to insert new char %lu: %s", char_item->itemID(), err.c_str());
+		codelog(SERVICE__ERROR, "Failed to insert new char %u: %s", char_item->itemID(), err.c_str());
 		char_item->Delete();
 		return NULL;
 	}
@@ -219,10 +219,10 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 		"INSERT INTO chrCorporationRoles"
 		"  (characterID, corprole, rolesAtAll, rolesAtBase, rolesAtHQ, rolesAtOther)"
 		" VALUES"
-		"  (%lu, " I64u ", " I64u ", " I64u ", " I64u ", " I64u ")",
+		"  (%u, " I64u ", " I64u ", " I64u ", " I64u ", " I64u ")",
 		char_item->itemID(), corpData.corprole, corpData.rolesAtAll, corpData.rolesAtBase, corpData.rolesAtHQ, corpData.rolesAtOther))
 	{
-		_log(DATABASE__ERROR, "Failed to insert corp member info for character %lu: %s.", char_item->itemID(), err.c_str());
+		_log(DATABASE__ERROR, "Failed to insert corp member info for character %u: %s.", char_item->itemID(), err.c_str());
 		//just let it go... its a lot easier this way
 	}
 
@@ -232,10 +232,10 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 		"INSERT INTO chrEmployment"
 		"  (characterID, corporationID, startDate, deleted)"
 		" VALUES"
-		"  (%lu, %lu, "I64u", 0)",
+		"  (%u, %u, "I64u", 0)",
 		char_item->itemID(), data.corporationID, Win32TimeNow()))
 	{
-		_log(DATABASE__ERROR, "Failed to insert employment info of character %lu: %s.", char_item->itemID(), err.c_str());
+		_log(DATABASE__ERROR, "Failed to insert employment info of character %u: %s.", char_item->itemID(), err.c_str());
 		//just let it go... its a lot easier this way
 	}
 
@@ -243,10 +243,10 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 	if(!m_db->RunQuery(err,
 		"UPDATE corporation"
 		"  SET memberCount = memberCount + 1"
-		" WHERE corporationID = %lu",
+		" WHERE corporationID = %u",
 		data.corporationID))
 	{
-		_log(DATABASE__ERROR, "Failed to raise member count of corporation %lu: %s.", char_item->itemID(), err.c_str());
+		_log(DATABASE__ERROR, "Failed to raise member count of corporation %u: %s.", char_item->itemID(), err.c_str());
 		//just let it go... its a lot easier this way
 	}
 
@@ -277,7 +277,7 @@ PyRepObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
         " FROM character_ "
         /*"		LEFT JOIN chrBloodlines "
         "		ON character_.bloodlineID=chrBloodlines.bloodlineID"*/
-		" WHERE characterID=%lu", characterID))
+		" WHERE characterID=%u", characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -304,7 +304,7 @@ PyRepObject *CharacterDB::GetCharPublicInfo3(uint32 characterID) {
 		" character_.description,"
 		" character_.corporationID"
 		" FROM character_"
-		" WHERE characterID=%lu", characterID))
+		" WHERE characterID=%u", characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -320,7 +320,7 @@ PyRepObject *CharacterDB::GetCharDesc(uint32 characterID) {
 		"SELECT "
 		" description "
 		" FROM character_ "
-		" WHERE characterID=%lu", characterID))
+		" WHERE characterID=%u", characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -345,7 +345,7 @@ bool CharacterDB::SetCharDesc(uint32 characterID, const char *str) {
 	if(!m_db->RunQuery(err,
 		"UPDATE character_"
 		" SET description ='%s'"
-		" WHERE characterID=%lu", stringEsc.c_str(),characterID))
+		" WHERE characterID=%u", stringEsc.c_str(),characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 		return false;
@@ -362,10 +362,10 @@ bool CharacterDB::GetCharItems(uint32 characterID, std::vector<uint32> &into) {
 		"SELECT"
 		"  itemID"
 		" FROM entity"
-		" WHERE ownerID = %lu",
+		" WHERE ownerID = %u",
 		characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to query items of char %lu: %s.", characterID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query items of char %u: %s.", characterID, res.error.c_str());
 		return false;
 	}
 
@@ -388,10 +388,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 		" WHERE"
 		"   eveMail.messageID = eveMailDetails.messageID"
 		"  AND"
-		"   (senderID = %lu OR channelID = %lu)",
+		"   (senderID = %u OR channelID = %u)",
 		characterID, characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete mail details of character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete mail details of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -399,10 +399,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	// eveMail
 	if(!m_db->RunQuery(err,
 		"DELETE FROM eveMail"
-		" WHERE (senderID = %lu OR channelID = %lu)",
+		" WHERE (senderID = %u OR channelID = %u)",
 		characterID, characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete mail of character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete mail of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -410,10 +410,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	// crpCharShares
 	if(!m_db->RunQuery(err,
 		"DELETE FROM crpCharShares"
-		" WHERE characterID = %lu",
+		" WHERE characterID = %u",
 		characterID))
 	{
-		codelog(SERVICE__ERROR, "Failed to delete shares of character %lu: %s.", characterID, err.c_str());
+		codelog(SERVICE__ERROR, "Failed to delete shares of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -421,10 +421,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	// bookmarks
 	if(!m_db->RunQuery(err,
 		"DELETE FROM bookmarks"
-		" WHERE ownerID = %lu",
+		" WHERE ownerID = %u",
 		characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete bookmarks of character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete bookmarks of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -432,10 +432,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	// market_journal
 	if(!m_db->RunQuery(err,
 		"DELETE FROM market_journal"
-		" WHERE characterID = %lu",
+		" WHERE characterID = %u",
 		characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete market journal of character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete market journal of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -446,7 +446,7 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 		" WHERE charID =% lu",
 		characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete market orders of character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete market orders of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -454,10 +454,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	// market_transactions
 	if(!m_db->RunQuery(err,
 		"DELETE FROM market_transactions"
-		" WHERE clientID = %lu",
+		" WHERE clientID = %u",
 		characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete market transactions of character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete market transactions of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -465,10 +465,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	// chrStandings
 	if(!m_db->RunQuery(err,
 		"DELETE FROM chrStandings"
-		" WHERE characterID = %lu",
+		" WHERE characterID = %u",
 		characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete standings of character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete standings of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -476,10 +476,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	// chrNPCStandings
 	if(!m_db->RunQuery(err,
 		"DELETE FROM chrNPCStandings"
-		" WHERE characterID = %lu",
+		" WHERE characterID = %u",
 		characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete NPC standings of character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete NPC standings of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -487,10 +487,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	// chrCorporationRoles
 	if(!m_db->RunQuery(err,
 		"DELETE FROM chrCorporationRoles"
-		" WHERE characterID = %lu",
+		" WHERE characterID = %u",
 		characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete corporation roles of character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete corporation roles of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -498,10 +498,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	// chrEmployment
 	if(!m_db->RunQuery(err,
 		"DELETE FROM chrEmployment"
-		" WHERE characterID = %lu",
+		" WHERE characterID = %u",
 		characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete employment of character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete employment of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
@@ -509,10 +509,10 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	// character_
 	if(!m_db->RunQuery(err,
 		"DELETE FROM character_"
-		" WHERE characterID = %lu",
+		" WHERE characterID = %u",
 		characterID))
 	{
-		_log(DATABASE__ERROR, "Failed to delete character %lu: %s.", characterID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete character %u: %s.", characterID, err.c_str());
 		return false;
 	}
 
@@ -532,7 +532,7 @@ PyRepObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
 		" morph2s,morph2w,morph3e,morph3n,morph3s,morph3w,"
 		" morph4e,morph4n,morph4s,morph4w"
 		" FROM character_ "
-		" WHERE characterID=%lu", charID))
+		" WHERE characterID=%u", charID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -551,16 +551,16 @@ bool CharacterDB::GetInfoByBloodline(CharacterData &cdata, uint32 &shipTypeID) {
 		"  chrBloodlines.shipTypeID"
 		" FROM chrBloodlines"
 		"  LEFT JOIN bloodlineTypes USING (bloodlineID)"
-		" WHERE bloodlineID = %lu",
+		" WHERE bloodlineID = %u",
 		cdata.bloodlineID))
 	{
-		_log(DATABASE__ERROR, "Failed to query bloodline %lu: %s.", cdata.bloodlineID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query bloodline %u: %s.", cdata.bloodlineID, res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No bloodline %lu found.", cdata.bloodlineID);
+		_log(DATABASE__ERROR, "No bloodline %u found.", cdata.bloodlineID);
 		return false;
 	}
 
@@ -579,7 +579,7 @@ bool CharacterDB::GetAttributesFromBloodline(CharacterData & cdata) {
 		" SELECT "
 		"  intelligence, charisma, perception, memory, willpower "
 		" FROM chrBloodlines "
-		" WHERE chrBloodlines.bloodlineID = %lu ", cdata.bloodlineID))
+		" WHERE chrBloodlines.bloodlineID = %u ", cdata.bloodlineID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return (false);
@@ -587,7 +587,7 @@ bool CharacterDB::GetAttributesFromBloodline(CharacterData & cdata) {
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Failed to find bloodline information for bloodline %lu", cdata.bloodlineID);
+		codelog(SERVICE__ERROR, "Failed to find bloodline information for bloodline %u", cdata.bloodlineID);
 		return false;
 	}
 
@@ -607,7 +607,7 @@ bool CharacterDB::GetAttributesFromAncestry(CharacterData & cdata) {
 		" SELECT "
 		"        intelligence, charisma, perception, memory, willpower "
 		" FROM chrAncestries "
-		" WHERE ancestryID = %lu ", cdata.ancestryID))
+		" WHERE ancestryID = %u ", cdata.ancestryID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return (false);
@@ -615,7 +615,7 @@ bool CharacterDB::GetAttributesFromAncestry(CharacterData & cdata) {
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Failed to find ancestry information for ancestry %lu", cdata.ancestryID);
+		codelog(SERVICE__ERROR, "Failed to find ancestry information for ancestry %u", cdata.ancestryID);
 		return false;
 	}
 	
@@ -646,7 +646,7 @@ bool CharacterDB::GetLocationCorporationByCareer(CharacterData &cdata) {
 	 "  LEFT JOIN corporation ON corporation.stationID=staStations.stationID"
 	 "  LEFT JOIN chrSchools ON corporation.corporationID=chrSchools.corporationID"
 	 "  LEFT JOIN chrCareers ON chrSchools.careerID=chrCareers.careerID"
-	 " WHERE chrCareers.careerID = %lu", cdata.careerID))
+	 " WHERE chrCareers.careerID = %u", cdata.careerID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return (false);
@@ -654,7 +654,7 @@ bool CharacterDB::GetLocationCorporationByCareer(CharacterData &cdata) {
 	
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Failed to find career %lu", cdata.careerID);
+		codelog(SERVICE__ERROR, "Failed to find career %u", cdata.careerID);
 		return false;
 	}
 	
@@ -677,7 +677,7 @@ bool CharacterDB::GetSkillsByRace(uint32 raceID, std::map<uint32, uint32> &into)
 		"SELECT "
 		"        skillTypeID, levels"
 		" FROM chrRaceSkills "
-		" WHERE raceID = %lu ", raceID))
+		" WHERE raceID = %u ", raceID))
 	{
 		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
@@ -704,7 +704,7 @@ bool CharacterDB::GetSkillsByCareer(uint32 careerID, std::map<uint32, uint32> &i
 		"SELECT "
 		"        skillTypeID, levels"
 		" FROM chrCareerSkills"
-		" WHERE careerID = %lu", careerID))
+		" WHERE careerID = %u", careerID))
 	{
 		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
@@ -731,7 +731,7 @@ bool CharacterDB::GetSkillsByCareerSpeciality(uint32 careerSpecialityID, std::ma
 		"SELECT "
 		"        skillTypeID, levels"
 		" FROM chrCareerSpecialitySkills"
-		" WHERE specialityID = %lu", careerSpecialityID))
+		" WHERE specialityID = %u", careerSpecialityID))
 	{
 		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
@@ -755,7 +755,7 @@ PyRepString *CharacterDB::GetNote(uint32 ownerID, uint32 itemID) {
 	DBQueryResult res;
 
 	if (!m_db->RunQuery(res,
-			"SELECT `note` FROM `chrNotes` WHERE ownerID = %lu AND itemID = %lu",
+			"SELECT `note` FROM `chrNotes` WHERE ownerID = %u AND itemID = %u",
 			ownerID, itemID)
 		)
 	{
@@ -776,7 +776,7 @@ bool CharacterDB::SetNote(uint32 ownerID, uint32 itemID, const char *str) {
 		// str is empty
 		if (!m_db->RunQuery(err,
 			"DELETE FROM `chrNotes` "
-			" WHERE itemID = %lu AND ownerID = %lu LIMIT 1",
+			" WHERE itemID = %u AND ownerID = %u LIMIT 1",
 			ownerID, itemID)
 			)
 		{
@@ -790,7 +790,7 @@ bool CharacterDB::SetNote(uint32 ownerID, uint32 itemID, const char *str) {
 
 		if (!m_db->RunQuery(err,
 			"REPLACE INTO `chrNotes` (itemID, ownerID, note)	"
-			"VALUES (%lu, %lu, '%s')",
+			"VALUES (%u, %u, '%s')",
 			ownerID, itemID, escaped.c_str())
 			)
 		{
@@ -813,7 +813,7 @@ uint32 CharacterDB::AddOwnerNote(uint32 charID, const std::string & label, const
 	m_db->DoEscapeString(contS, content);
 
 	if (!m_db->RunQueryLID(err, id, 
-		"INSERT INTO chrOwnerNote (ownerID, label, note) VALUES (%lu, '%s', '%s');",
+		"INSERT INTO chrOwnerNote (ownerID, label, note) VALUES (%u, '%s', '%s');",
 		charID, lblS.c_str(), contS.c_str()))
 	{
 		codelog(SERVICE__ERROR, "Error on query: %s", err.c_str());
@@ -830,7 +830,7 @@ bool CharacterDB::EditOwnerNote(uint32 charID, uint32 noteID, const std::string 
 	m_db->DoEscapeString(contS, content);
 
 	if (!m_db->RunQuery(err,
-		"UPDATE chrOwnerNote SET note = '%s' WHERE ownerID = %lu AND noteID = %lu;",
+		"UPDATE chrOwnerNote SET note = '%s' WHERE ownerID = %u AND noteID = %u;",
 		contS.c_str(), charID, noteID))
 	{
 		codelog(SERVICE__ERROR, "Error on query: %s", err.c_str());
@@ -843,7 +843,7 @@ bool CharacterDB::EditOwnerNote(uint32 charID, uint32 noteID, const std::string 
 PyRepObject *CharacterDB::GetOwnerNoteLabels(uint32 charID) {
 	DBQueryResult res;
 
-	if (!m_db->RunQuery(res, "SELECT noteID, label FROM chrOwnerNote WHERE ownerID = %lu", charID))
+	if (!m_db->RunQuery(res, "SELECT noteID, label FROM chrOwnerNote WHERE ownerID = %u", charID))
 	{
 		codelog(SERVICE__ERROR, "Error on query: %s", res.error.c_str());
 		return (NULL);
@@ -855,7 +855,7 @@ PyRepObject *CharacterDB::GetOwnerNoteLabels(uint32 charID) {
 PyRepObject *CharacterDB::GetOwnerNote(uint32 charID, uint32 noteID) {
 	DBQueryResult res;
 
-	if (!m_db->RunQuery(res, "SELECT note FROM chrOwnerNote WHERE ownerID = %lu AND noteID = %lu", charID, noteID))
+	if (!m_db->RunQuery(res, "SELECT note FROM chrOwnerNote WHERE ownerID = %u AND noteID = %u", charID, noteID))
 	{
 		codelog(SERVICE__ERROR, "Error on query: %s", res.error.c_str());
 		return (NULL);

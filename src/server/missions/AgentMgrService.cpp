@@ -120,7 +120,7 @@ PyBoundObject *AgentMgrService::_CreateBoundObject(Client *c, const PyRep *bind_
 
 	Agent *agent = _GetAgent(a->value);
 	if(agent == NULL) {
-		codelog(CLIENT__ERROR, "%s: Unable to obtain agent %lu", c->GetName(), a->value);
+		codelog(CLIENT__ERROR, "%s: Unable to obtain agent %u", c->GetName(), a->value);
 		return NULL;
 	}
 	

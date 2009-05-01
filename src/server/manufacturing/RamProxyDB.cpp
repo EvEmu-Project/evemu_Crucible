@@ -68,14 +68,14 @@ PyRep *RamProxyDB::GetJobs2(const uint32 ownerID, const bool completed, const ui
 		" LEFT JOIN invBlueprints AS blueprint ON installedItem.itemID = blueprint.blueprintID"
 		" LEFT JOIN invBlueprintTypes AS blueprintType ON installedItem.typeID = blueprintType.blueprintTypeID"
 		" LEFT JOIN ramAssemblyLineStations AS station ON assemblyLine.containerID = station.stationID"
-		" WHERE job.ownerID = %lu"
+		" WHERE job.ownerID = %u"
 		" AND job.completedStatusID %s 0"
 		" AND job.installTime >= " I64u
 		" AND job.endProductionTime <= " I64u
 		" GROUP BY job.jobID",
 		ownerID, (completed ? "!=" : "="), fromDate, toDate))
 	{
-		_log(DATABASE__ERROR, "Failed to query jobs for owner %lu: %s", ownerID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query jobs for owner %u: %s", ownerID, res.error.c_str());
 		return NULL;
 	}
 
@@ -96,10 +96,10 @@ PyRep *RamProxyDB::AssemblyLinesSelectPublic(const uint32 regionID) {
 		" FROM ramAssemblyLineStations AS station"
 		" LEFT JOIN crpNPCCorporations AS corp ON station.ownerID = corp.corporationID"
 		" WHERE station.ownerID = corp.corporationID"
-		" AND station.regionID = %lu",
+		" AND station.regionID = %u",
 		regionID))
 	{
-		_log(DATABASE__ERROR, "Failed to query public assembly lines for region %lu: %s.", regionID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query public assembly lines for region %u: %s.", regionID, res.error.c_str());
 		return NULL;
 	}
 
@@ -118,11 +118,11 @@ PyRep *RamProxyDB::AssemblyLinesSelectPersonal(const uint32 charID) {
 		" station.ownerID"
 		" FROM ramAssemblyLineStations AS station"
 		" LEFT JOIN ramAssemblyLines AS line ON station.stationID = line.containerID AND station.assemblyLineTypeID = line.assemblyLineTypeID AND station.ownerID = line.ownerID"
-		" WHERE station.ownerID = %lu"
+		" WHERE station.ownerID = %u"
 		" AND (line.restrictionMask & 12) = 0", // (restrictionMask & (ramRestrictByCorp | ramRestrictByAlliance)) = 0
 		charID))
 	{
-		_log(DATABASE__ERROR, "Failed to query personal assembly lines for char %lu: %s.", charID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query personal assembly lines for char %u: %s.", charID, res.error.c_str());
 		return NULL;
 	}
 
@@ -141,11 +141,11 @@ PyRep *RamProxyDB::AssemblyLinesSelectCorporation(const uint32 corporationID) {
 		" station.ownerID"
 		" FROM ramAssemblyLineStations AS station"
 		" LEFT JOIN ramAssemblyLines AS line ON station.stationID = line.containerID AND station.assemblyLineTypeID = line.assemblyLineTypeID AND station.ownerID = line.ownerID"
-		" WHERE station.ownerID = %lu"
+		" WHERE station.ownerID = %u"
 		" AND (line.restrictionMask & 4) = 4", // (restrictionMask & ramRestrictByCorp) = ramRestrictByCorp
 		corporationID))
 	{
-		_log(DATABASE__ERROR, "Failed to query corporation assembly lines for corp %lu: %s.", corporationID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query corporation assembly lines for corp %u: %s.", corporationID, res.error.c_str());
 		return NULL;
 	}
 
@@ -165,11 +165,11 @@ PyRep *RamProxyDB::AssemblyLinesSelectAlliance(const uint32 allianceID) {
 		" FROM ramAssemblyLineStations AS station"
 		" LEFT JOIN corporation AS crp ON station.ownerID = crp.corporationID"
 		" LEFT JOIN ramAssemblyLines AS line ON station.stationID = line.containerID AND station.assemblyLineTypeID = line.assemblyLineTypeID AND station.ownerID = line.ownerID"
-		" WHERE crp.allianceID = %lu"
+		" WHERE crp.allianceID = %u"
 		" AND (line.restrictionMask & 8) = 8", // (restrictionMask & ramRestrictByAlliance) = ramRestrictByAlliance
 		allianceID))
 	{
-		_log(DATABASE__ERROR, "Failed to query alliance assembly lines for alliance %lu: %s.", allianceID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query alliance assembly lines for alliance %u: %s.", allianceID, res.error.c_str());
 		return NULL;
 	}
 
@@ -195,10 +195,10 @@ PyRep *RamProxyDB::AssemblyLinesGet(const uint32 containerID) {
 		" maximumCharSecurity,"
 		" maximumCorpSecurity"
 		" FROM ramAssemblyLines"
-		" WHERE containerID = %lu",
+		" WHERE containerID = %u",
 		containerID))
 	{
-		_log(DATABASE__ERROR, "Failed to query assembly lines for container %lu: %s.", containerID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query assembly lines for container %u: %s.", containerID, res.error.c_str());
 		return NULL;
 	}
 
@@ -216,16 +216,16 @@ bool RamProxyDB::GetAssemblyLineProperties(const uint32 assemblyLineID, double &
 		" assemblyLine.costPerHour"
 		" FROM ramAssemblyLines AS assemblyLine"
 		" LEFT JOIN ramAssemblyLineTypes AS assemblyLineType ON assemblyLine.assemblyLineTypeID = assemblyLineType.assemblyLineTypeID"
-		" WHERE assemblyLine.assemblyLineID = %lu",
+		" WHERE assemblyLine.assemblyLineID = %u",
 		assemblyLineID))
 	{
-		_log(DATABASE__ERROR, "Failed to query properties for assembly line %lu: %s.", assemblyLineID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query properties for assembly line %u: %s.", assemblyLineID, res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No properties found for assembly line %lu.", assemblyLineID);
+		_log(DATABASE__ERROR, "No properties found for assembly line %u.", assemblyLineID);
 		return false;
 	}
 
@@ -248,16 +248,16 @@ bool RamProxyDB::GetAssemblyLineVerifyProperties(const uint32 assemblyLineID, ui
 		" restrictionMask,"
 		" activityID"
 		" FROM ramAssemblyLines"
-		" WHERE assemblyLineID = %lu",
+		" WHERE assemblyLineID = %u",
 		assemblyLineID))
 	{
-		_log(DATABASE__ERROR, "Failed to query verify properties for assembly line %lu: %s.", assemblyLineID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query verify properties for assembly line %u: %s.", assemblyLineID, res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No verify properties found for assembly line %lu.", assemblyLineID);
+		_log(DATABASE__ERROR, "No verify properties found for assembly line %u.", assemblyLineID);
 		return false;
 	}
 
@@ -279,7 +279,7 @@ bool RamProxyDB::InstallJob(const uint32 ownerID, const  uint32 installerID, con
 		" (ownerID, installerID, assemblyLineID, installedItemID, installTime, beginProductionTime, endProductionTime, description, runs, outputFlag,"
 		" completedStatusID, installedInSolarSystemID, licensedProductionRuns)"
 		" VALUES"
-		" (%lu, %lu, %lu, %lu, " I64u ", " I64u ", " I64u ", '%s', %lu, %d, 0, %lu, %li)",
+		" (%u, %u, %u, %u, " I64u ", " I64u ", " I64u ", '%s', %u, %d, 0, %u, %li)",
 		ownerID, installerID, assemblyLineID, installedItemID, Win32TimeNow(), beginProductionTime, endProductionTime, description,
 		runs, (int)outputFlag, installedInSolarSystem, licensedProductionRuns))
 	{
@@ -291,10 +291,10 @@ bool RamProxyDB::InstallJob(const uint32 ownerID, const  uint32 installerID, con
 	if(!m_db->RunQuery(err,
 		"UPDATE ramAssemblyLines"
 		" SET nextFreeTime = " I64u
-		" WHERE assemblyLineID = %lu",
+		" WHERE assemblyLineID = %u",
 		endProductionTime, assemblyLineID))
 	{
-		_log(DATABASE__ERROR, "Failed to update next free time for assembly line %lu: %s.", assemblyLineID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to update next free time for assembly line %u: %s.", assemblyLineID, err.c_str());
 		return false;
 	}
 
@@ -325,18 +325,18 @@ uint32 RamProxyDB::CountManufacturingJobs(const uint32 installerID) {
 		" COUNT(job.jobID)"
 		" FROM ramJobs AS job"
 		" LEFT JOIN ramAssemblyLines AS line ON job.assemblyLineID = line.assemblyLineID"
-		" WHERE job.installerID = %lu"
+		" WHERE job.installerID = %u"
 		" AND job.completedStatusID = 0"
 		" AND line.activityID = 1",
 		installerID))
 	{
-		_log(DATABASE__ERROR, "Failed to count manufacturing jobs for installer %lu.", installerID);
+		_log(DATABASE__ERROR, "Failed to count manufacturing jobs for installer %u.", installerID);
 		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No rows returned while counting manufacturing jobs for installer %lu.", installerID);
+		_log(DATABASE__ERROR, "No rows returned while counting manufacturing jobs for installer %u.", installerID);
 		return NULL;
 	}
 
@@ -350,18 +350,18 @@ uint32 RamProxyDB::CountResearchJobs(const uint32 installerID) {
 		" COUNT(job.jobID)"
 		" FROM ramJobs AS job"
 		" LEFT JOIN ramAssemblyLines AS line ON job.assemblyLineID = line.assemblyLineID"
-		" WHERE job.installerID = %lu"
+		" WHERE job.installerID = %u"
 		" AND job.completedStatusID = 0"
 		" AND line.activityID != 1",
 		installerID))
 	{
-		_log(DATABASE__ERROR, "Failed to count research jobs for installer %lu.", installerID);
+		_log(DATABASE__ERROR, "Failed to count research jobs for installer %u.", installerID);
 		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No rows returned while counting research jobs for installer %lu.", installerID);
+		_log(DATABASE__ERROR, "No rows returned while counting research jobs for installer %u.", installerID);
 		return NULL;
 	}
 
@@ -380,7 +380,7 @@ bool RamProxyDB::GetRequiredItems(const uint32 typeID, const EVERamActivity acti
 		" FROM typeActivityMaterials AS material"
 		" LEFT JOIN invTypes AS materialType ON material.requiredTypeID = materialType.typeID"
 		" LEFT JOIN invGroups AS materialGroup ON materialType.groupID = materialGroup.groupID"
-		" WHERE material.typeID = %lu"
+		" WHERE material.typeID = %u"
 		" AND material.activityID = %d"
 		//this is needed as db is quite crappy ...
 		" AND material.quantity > 0",
@@ -404,16 +404,16 @@ bool RamProxyDB::GetJobProperties(const uint32 jobID, uint32 &installedItemID, u
 		"SELECT job.installedItemID, job.ownerID, job.outputFlag, job.runs, job.licensedProductionRuns, assemblyLine.activityID"
 		" FROM ramJobs AS job"
 		" LEFT JOIN ramAssemblyLines AS assemblyLine ON job.assemblyLineID = assemblyLine.assemblyLineID"
-		" WHERE job.jobID = %lu",
+		" WHERE job.jobID = %u",
 		jobID))
 	{
-		_log(DATABASE__ERROR, "Failed to query properties of job %lu: %s.", jobID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query properties of job %u: %s.", jobID, res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No properties found for job %lu.", jobID);
+		_log(DATABASE__ERROR, "No properties found for job %u.", jobID);
 		return false;
 	}
 
@@ -434,16 +434,16 @@ bool RamProxyDB::GetJobVerifyProperties(const uint32 jobID, uint32 &ownerID, uin
 				"SELECT job.ownerID, job.endProductionTime, job.completedStatusID, line.restrictionMask"
 				" FROM ramJobs AS job"
 				" LEFT JOIN ramAssemblyLines AS line ON line.assemblyLineID = job.assemblyLineID"
-				" WHERE job.jobID = %lu",
+				" WHERE job.jobID = %u",
 				jobID))
 	{
-		_log(DATABASE__ERROR, "Unable to query completion properties for job %lu: %s", jobID, res.error.c_str());
+		_log(DATABASE__ERROR, "Unable to query completion properties for job %u: %s", jobID, res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No completion properties found for job %lu.", jobID);
+		_log(DATABASE__ERROR, "No completion properties found for job %u.", jobID);
 		return false;
 	}
 
@@ -460,11 +460,11 @@ bool RamProxyDB::CompleteJob(const uint32 jobID, const EVERamCompletedStatus com
 
 	if(!m_db->RunQuery(err,
 		"UPDATE ramJobs"
-		" SET completedStatusID = %lu"
-		" WHERE jobID = %lu",
+		" SET completedStatusID = %u"
+		" WHERE jobID = %u",
 		(uint32)completedStatus, jobID))
 	{
-		_log(DATABASE__ERROR, "Failed to complete job %lu (completed status = %lu): %s.", jobID, (uint32)completedStatus, err.c_str());
+		_log(DATABASE__ERROR, "Failed to complete job %u (completed status = %u): %s.", jobID, (uint32)completedStatus, err.c_str());
 		return false;
 	}
 
@@ -477,16 +477,16 @@ std::string RamProxyDB::GetStationName(const uint32 stationID) {
 	if(!m_db->RunQuery(res,
 		"SELECT stationName"
 		" FROM staStations"
-		" WHERE stationID = %lu",
+		" WHERE stationID = %u",
 		stationID))
 	{
-		_log(DATABASE__ERROR, "Failed to query station name of station %lu: %s.", stationID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query station name of station %u: %s.", stationID, res.error.c_str());
 		return("");
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Station %lu not found.", stationID);
+		_log(DATABASE__ERROR, "Station %u not found.", stationID);
 		return("");
 	}
 
@@ -499,10 +499,10 @@ uint32 RamProxyDB::GetTech2Blueprint(const uint32 blueprintTypeID) {
 	if(!m_db->RunQuery(res,
 				"SELECT blueprintTypeID"
 				" FROM invBlueprintTypes"
-				" WHERE parentBlueprintTypeID = %lu",
+				" WHERE parentBlueprintTypeID = %u",
 				blueprintTypeID))
 	{
-		_log(DATABASE__ERROR, "Unable to get T2 type for type ID %lu: %s", blueprintTypeID, res.error.c_str());
+		_log(DATABASE__ERROR, "Unable to get T2 type for type ID %u: %s", blueprintTypeID, res.error.c_str());
 		return NULL;
 	}
 
@@ -522,16 +522,16 @@ uint64 RamProxyDB::GetNextFreeTime(const uint32 assemblyLineID) {
 		"SELECT"
 		" nextFreeTime"
 		" FROM ramAssemblyLines"
-		" WHERE assemblyLineID = %lu",
+		" WHERE assemblyLineID = %u",
 		assemblyLineID))
 	{
-		_log(DATABASE__ERROR, "Failed to query next free time for assembly line %lu: %s.", assemblyLineID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query next free time for assembly line %u: %s.", assemblyLineID, res.error.c_str());
 		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Assembly line %lu not found.", assemblyLineID);
+		_log(DATABASE__ERROR, "Assembly line %u not found.", assemblyLineID);
 		return NULL;
 	} else
 		return(row.GetUInt64(0));
@@ -543,16 +543,16 @@ uint32 RamProxyDB::GetRegionOfContainer(const uint32 containerID) {
 	if(!m_db->RunQuery(res,
 				"SELECT regionID"
 				" FROM ramAssemblyLineStations"
-				" WHERE stationID = %lu",
+				" WHERE stationID = %u",
 				containerID))
 	{
-		_log(DATABASE__ERROR, "Unable to query region for container %lu: %s", containerID, res.error.c_str());
+		_log(DATABASE__ERROR, "Unable to query region for container %u: %s", containerID, res.error.c_str());
 		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No region found for container %lu.", containerID);
+		_log(DATABASE__ERROR, "No region found for container %u.", containerID);
 		return NULL;
 	}
 
@@ -568,11 +568,11 @@ bool RamProxyDB::_GetMultipliers(const uint32 assemblyLineID, uint32 groupID, do
 				"SELECT materialMultiplier, timeMultiplier"
 				" FROM ramAssemblyLineTypeDetailPerGroup"
 				" JOIN ramAssemblyLines USING (assemblyLineTypeID)"
-				" WHERE assemblyLineID = %lu"
-				" AND groupID = %lu",
+				" WHERE assemblyLineID = %u"
+				" AND groupID = %u",
 				assemblyLineID, groupID))
 	{
-		_log(DATABASE__ERROR, "Failed to check producability of group %lu by line %lu: %s", groupID, assemblyLineID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to check producability of group %u by line %u: %s", groupID, assemblyLineID, res.error.c_str());
 		return false;
 	}
 
@@ -589,11 +589,11 @@ bool RamProxyDB::_GetMultipliers(const uint32 assemblyLineID, uint32 groupID, do
 				" FROM ramAssemblyLineTypeDetailPerCategory"
 				" JOIN ramAssemblyLines USING (assemblyLineTypeID)"
 				" JOIN invGroups USING (categoryID)"
-				" WHERE assemblyLineID = %lu"
-				" AND groupID = %lu",
+				" WHERE assemblyLineID = %u"
+				" AND groupID = %u",
 				assemblyLineID, groupID))
 	{
-		_log(DATABASE__ERROR, "Failed to check producability of group %lu by line %lu: %s", groupID, assemblyLineID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to check producability of group %u by line %u: %s", groupID, assemblyLineID, res.error.c_str());
 		return false;
 	}
 

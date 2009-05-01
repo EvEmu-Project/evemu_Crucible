@@ -55,7 +55,7 @@ void NPCAIMgr::Process() {
 		if(target == NULL) {
 			//no valid target...
 			if(m_npc->targets.HasNoTargets()) {
-				_log(NPC__AI_TRACE, "[%lu] Stopped chasing, no targets remain.", m_npc->GetID());
+				_log(NPC__AI_TRACE, "[%u] Stopped chasing, no targets remain.", m_npc->GetID());
 				m_state = Idle;
 				return;
 			}
@@ -66,7 +66,7 @@ void NPCAIMgr::Process() {
 		if(m_npc->DistanceTo2(target) < m_entityAttackRange2) {
 			//we caught up... off to follow mode. Should orbit, but that
 			//isnt working yet.
-			_log(NPC__AI_TRACE, "[%lu] Was chasing %lu, but they are close enough now. Following.", m_npc->GetID(), target->GetID());
+			_log(NPC__AI_TRACE, "[%u] Was chasing %u, but they are close enough now. Following.", m_npc->GetID(), target->GetID());
 			_EnterFollowing(target);
 			return;
 		}
@@ -81,7 +81,7 @@ void NPCAIMgr::Process() {
 		if(target == NULL) {
 			//no valid target...
 			if(m_npc->targets.HasNoTargets()) {
-				_log(NPC__AI_TRACE, "[%lu] Stopped chasing, no targets remain.", m_npc->GetID());
+				_log(NPC__AI_TRACE, "[%u] Stopped chasing, no targets remain.", m_npc->GetID());
 				m_state = Idle;
 				return;
 			}
@@ -91,7 +91,7 @@ void NPCAIMgr::Process() {
 		
 		if(m_npc->DistanceTo2(target) > m_entityChaseMaxDistance2) {
 			//they are too far away now...
-			_log(NPC__AI_TRACE, "[%lu] Was chasing with %lu, but they are too far away now. Chasing.", m_npc->GetID(), target->GetID());
+			_log(NPC__AI_TRACE, "[%u] Was chasing with %u, but they are too far away now. Chasing.", m_npc->GetID(), target->GetID());
 			_EnterChasing(target);
 			return;
 		}
@@ -106,7 +106,7 @@ void NPCAIMgr::Process() {
 		if(target == NULL) {
 			//no valid target...
 			if(m_npc->targets.HasNoTargets()) {
-				_log(NPC__AI_TRACE, "[%lu] Stopped chasing, no targets remain.", m_npc->GetID());
+				_log(NPC__AI_TRACE, "[%u] Stopped chasing, no targets remain.", m_npc->GetID());
 				_EnterIdle();
 				return;
 			}
@@ -116,7 +116,7 @@ void NPCAIMgr::Process() {
 		
 		if(m_npc->DistanceTo2(target) > m_entityAttackRange2) {
 			//they are too far away now...
-			_log(NPC__AI_TRACE, "[%lu] Was engaged with %lu, but they are too far away now. Following.", m_npc->GetID(), target->GetID());
+			_log(NPC__AI_TRACE, "[%u] Was engaged with %u, but they are too far away now. Following.", m_npc->GetID(), target->GetID());
 			_EnterFollowing(target);
 			return;
 		}
@@ -162,7 +162,7 @@ void NPCAIMgr::Targeted(SystemEntity *by_who) {
 	
 	switch(m_state) {
 	case Idle: {
-		_log(NPC__AI_TRACE, "[%lu] Targeted by %lu in Idle. Attacking.", m_npc->GetID(), by_who->GetID());
+		_log(NPC__AI_TRACE, "[%u] Targeted by %u in Idle. Attacking.", m_npc->GetID(), by_who->GetID());
 		double dist = m_npc->DistanceTo2(by_who);
 		if(dist < m_entityAttackRange2) {
 			_EnterEngaged(by_who);
@@ -173,13 +173,13 @@ void NPCAIMgr::Targeted(SystemEntity *by_who) {
 		}
 	} break;
 	case Chasing:
-		_log(NPC__AI_TRACE, "[%lu] Targeted by %lu while chasing.", m_npc->GetID(), by_who->GetID());
+		_log(NPC__AI_TRACE, "[%u] Targeted by %u while chasing.", m_npc->GetID(), by_who->GetID());
 		break;
 	case Following:
-		_log(NPC__AI_TRACE, "[%lu] Targeted by %lu while following.", m_npc->GetID(), by_who->GetID());
+		_log(NPC__AI_TRACE, "[%u] Targeted by %u while following.", m_npc->GetID(), by_who->GetID());
 		break;
 	case Engaged:
-		_log(NPC__AI_TRACE, "[%lu] Targeted by %lu while chasing.", m_npc->GetID(), by_who->GetID());
+		_log(NPC__AI_TRACE, "[%u] Targeted by %u while chasing.", m_npc->GetID(), by_who->GetID());
 		break;
 	//no default on purpose
 	}
@@ -194,10 +194,10 @@ void NPCAIMgr::TargetLost(SystemEntity *by_who) {
 	case Following:
 	case Engaged:
 		if(m_npc->targets.HasNoTargets()) {
-			_log(NPC__AI_TRACE, "[%lu] Target of %lu lost. No targets remain.", m_npc->GetID(), by_who->GetID());
+			_log(NPC__AI_TRACE, "[%u] Target of %u lost. No targets remain.", m_npc->GetID(), by_who->GetID());
 			_EnterIdle();
 		} else {
-			_log(NPC__AI_TRACE, "[%lu] Target of %lu lost, but more targets remain.", m_npc->GetID(), by_who->GetID());
+			_log(NPC__AI_TRACE, "[%u] Target of %u lost, but more targets remain.", m_npc->GetID(), by_who->GetID());
 		}
 		break;
 	//no default on purpose
@@ -206,7 +206,7 @@ void NPCAIMgr::TargetLost(SystemEntity *by_who) {
 
 void NPCAIMgr::CheckAttacks(SystemEntity *target) {
 	if(m_mainAttackTimer.Check(false)) {
-		_log(NPC__AI_TRACE, "[%lu] Attack timer expired. Attacking %lu.", m_npc->GetID(), target->GetID());
+		_log(NPC__AI_TRACE, "[%u] Attack timer expired. Attacking %u.", m_npc->GetID(), target->GetID());
 		
 		InventoryItem *self = m_npc->Item();
 
@@ -225,7 +225,7 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
 
 		//check our attack range...
 		if(m_npc->DistanceTo2(target) > m_entityAttackRange2) {
-			_log(NPC__AI_TRACE, "[%lu] Target (%lu) is too far away (%.2f > %.2f)", m_npc->GetID(), target->GetID(), m_npc->DistanceTo2(target), m_entityAttackRange2);
+			_log(NPC__AI_TRACE, "[%u] Target (%u) is too far away (%.2f > %.2f)", m_npc->GetID(), target->GetID(), m_npc->DistanceTo2(target), m_entityAttackRange2);
 			_EnterFollowing(target);
 			return;
 		}

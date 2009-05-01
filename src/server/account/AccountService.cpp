@@ -162,7 +162,7 @@ PyResult AccountService::Handle_GiveCash(PyCallArgs &call) {
 		if (m_db.CheckIfCorporation(args.destination)) {
 			targetIsChar = false;
 		} else {
-			_log(CLIENT__ERROR, "%s: Failed to find character %lu", call.client->GetName(), args.destination);
+			_log(CLIENT__ERROR, "%s: Failed to find character %u", call.client->GetName(), args.destination);
 			call.client->SendErrorMsg("Unable to find the target");
 			return NULL;
 		}
@@ -181,7 +181,7 @@ PyResult AccountService::Handle_GiveCash(PyCallArgs &call) {
 	
 PyRepTuple * AccountService::GiveCashToCorp(Client * const client, uint32 corpID, double amount, const char *reason, JournalRefType refTypeID) {
 	if(!client->AddBalance(-amount)) {
-		_log(CLIENT__ERROR, "%s: Failed to remove %.2f ISK from %lu for donation to %lu", 
+		_log(CLIENT__ERROR, "%s: Failed to remove %.2f ISK from %u for donation to %u", 
 			client->GetName(),
 			amount,
 			client->GetCharacterID(),
@@ -190,7 +190,7 @@ PyRepTuple * AccountService::GiveCashToCorp(Client * const client, uint32 corpID
 		return NULL;
 	}
 	if(!m_db.AddBalanceToCorp(corpID, amount)) {
-		_log(CLIENT__ERROR, "%s: Failed to add %.2f ISK to %lu for donation from %lu", 
+		_log(CLIENT__ERROR, "%s: Failed to add %.2f ISK to %u for donation from %u", 
 			client->GetName(),
 			amount,
 			corpID,
@@ -261,7 +261,7 @@ PyRepTuple * AccountService::GiveCashToCorp(Client * const client, uint32 corpID
  
 PyRepTuple * AccountService::GiveCashToChar(Client * const client, Client * const other, double amount, const char *reason, JournalRefType refTypeID) {
 	if(!client->AddBalance(-amount)) {
-		_log(CLIENT__ERROR, "%s: Failed to remove %.2f ISK from %lu for donation to %lu", 
+		_log(CLIENT__ERROR, "%s: Failed to remove %.2f ISK from %u for donation to %u", 
 			client->GetName(),
 			amount,
 			client->GetCharacterID(),
@@ -270,7 +270,7 @@ PyRepTuple * AccountService::GiveCashToChar(Client * const client, Client * cons
 		return NULL;
 	}
 	if(!other->AddBalance(amount)) {
-		_log(CLIENT__ERROR, "%s: Failed to add %.2f ISK to %lu for donation from %lu", 
+		_log(CLIENT__ERROR, "%s: Failed to add %.2f ISK to %u for donation from %u", 
 			client->GetName(),
 			amount,
 			other->GetCharacterID(),
@@ -379,7 +379,7 @@ PyResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call) {
 	//NOTE: this will need work once we reorganize the entity list...
 	Client *other = m_manager->entity_list.FindCharacter(args.destination);
 	if(other == NULL) {
-		_log(CLIENT__ERROR, "%s: Failed to find character %lu", call.client->GetName(), args.destination);
+		_log(CLIENT__ERROR, "%s: Failed to find character %u", call.client->GetName(), args.destination);
 		call.client->SendErrorMsg("Unable to find the target");
 		return NULL;
 	}
@@ -392,7 +392,7 @@ PyRepTuple * AccountService::WithdrawCashToChar(Client * const client, Client * 
 	// remove money from the corp
 	uint32 corpID = client->GetCorporationID();
 	if (!m_db.AddBalanceToCorp(corpID, double(-amount))) {
-		_log(CLIENT__ERROR, "%s: Failed to remove %.2f ISK from %lu for withdrawal to %lu", 
+		_log(CLIENT__ERROR, "%s: Failed to remove %.2f ISK from %u for withdrawal to %u", 
 			client->GetName(),
 			amount,
 			corpID,
@@ -415,7 +415,7 @@ PyRepTuple * AccountService::WithdrawCashToChar(Client * const client, Client * 
 	m_manager->entity_list.Multicast("OnAccountChange", "*corpid&corpAccountKey", &answer, mct);
 
 	if(!other->AddBalance(amount)) {
-		_log(CLIENT__ERROR, "%s: Failed to add %.2f ISK to %lu for donation from %lu", 
+		_log(CLIENT__ERROR, "%s: Failed to add %.2f ISK to %u for donation from %u", 
 			client->GetName(),
 			amount,
 			corpID,
@@ -433,7 +433,7 @@ PyRepTuple * AccountService::WithdrawCashToChar(Client * const client, Client * 
 	//record the transactions in the wallet.
 	//first on the send side.
 	char argID[15];
-	snprintf(argID, 14, "%lu", client->GetCharacterID());
+	snprintf(argID, 14, "%u", client->GetCharacterID());
 	if(!m_db.GiveCash(
 		corpID,
 		refTypeID,

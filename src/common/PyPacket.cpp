@@ -107,7 +107,7 @@ void PyPacket::Dump(LogType ltype, PyVisitor *dumper)
 	source.Dump(ltype, "    ");
 	_log(ltype, "  Dest:");
 	dest.Dump(ltype, "    ");
-	_log(ltype, "  User ID: %lu", userid);
+	_log(ltype, "  User ID: %u", userid);
 	_log(ltype, "  Payload:");
 	payload->visit(dumper);
 	if(named_payload == NULL) {
@@ -844,7 +844,7 @@ void EVENotificationStream::Dump(LogType type, PyVisitor *dumper) {
 	if(remoteObject == 0) {
 		_log(type, "  Remote Object: %s", remoteObjectStr.c_str());
 	} else {
-		_log(type, "  Remote Object: %lu", remoteObject);
+		_log(type, "  Remote Object: %u", remoteObject);
 	}
 	_log(type, "  Arguments:");
 	args->visit(dumper);

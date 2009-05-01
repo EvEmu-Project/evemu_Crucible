@@ -99,7 +99,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 
 	InventoryItem *ship = m_manager->item_factory.GetItem(args.arg, true);
 	if(ship == NULL) {
-		_log(CLIENT__ERROR, "%s: Failed to get new ship %lu.", call.client->GetName(), args.arg);
+		_log(CLIENT__ERROR, "%s: Failed to get new ship %u.", call.client->GetName(), args.arg);
 	} else {
 		call.client->BoardShip(ship);
 		ship->Release();
@@ -121,7 +121,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 	
 	GPoint dockPosition;
 	if(!m_db->GetStationInfo(call.client->GetLocationID(), NULL, NULL, NULL, NULL, &dockPosition, NULL)) {
-		_log(SERVICE__ERROR, "%s: Failed to query location of station %lu for undock.", call.client->GetLocationID());
+		_log(SERVICE__ERROR, "%s: Failed to query location of station %u for undock.", call.client->GetLocationID());
 		//TODO: throw exception
 		return NULL;
 	}
@@ -139,7 +139,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 
 	//Update the custom info field.
 	char ci[256];
-	snprintf(ci, sizeof(ci), "Undocking:%lu", call.client->GetLocationID());
+	snprintf(ci, sizeof(ci), "Undocking:%u", call.client->GetLocationID());
 	call.client->Ship()->SetCustomInfo(ci);
 	
 	//do session change...
@@ -210,13 +210,13 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
 	for(; cur != end; cur++) {
 		InventoryItem *item = m_manager->item_factory.GetItem(*cur, false);
 		if(item == NULL) {
-			_log(SERVICE__ERROR, "%s: Unable to find item %lu to drop.", call.client->GetName(), *cur);
+			_log(SERVICE__ERROR, "%s: Unable to find item %u to drop.", call.client->GetName(), *cur);
 			continue;
 		}
 		
 		//verify that this item is in fact in the player's ship.
 		if(item->locationID() != call.client->GetShipID()) {
-			_log(SERVICE__ERROR, "%s: Item %lu is not in our ship (%lu), it is in %lu. Not dropping.", call.client->GetName(), *cur, call.client->GetShipID(), item->locationID());
+			_log(SERVICE__ERROR, "%s: Item %u is not in our ship (%u), it is in %u. Not dropping.", call.client->GetName(), *cur, call.client->GetShipID(), item->locationID());
 			continue;
 		}
 		//TODO: check ownership?
@@ -269,7 +269,7 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
 		SystemManager *sm = call.client->System();
 		SystemEntity *npc = sm->get(*cur);
 		if(npc == NULL) {
-			_log(SERVICE__ERROR, "%s: Unable to find drone %lu to scoop.", call.client->GetName(), *cur);
+			_log(SERVICE__ERROR, "%s: Unable to find drone %u to scoop.", call.client->GetName(), *cur);
 			continue;
 		}
 

@@ -141,7 +141,7 @@ PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len)
 			} else {
 				uint32 val = *((const uint32 *) (work_buffer+used_len));
 				
-				_log(NET__UNMARSHAL_TRACE, "Hack 0x23/Obj2 value[%d]: 0x%lx", index, val);
+				_log(NET__UNMARSHAL_TRACE, "Hack 0x23/Obj2 value[%d]: 0x%x", index, val);
 				
 				used_len += sizeof(uint32);
 				rlen -= sizeof(uint32);
@@ -270,7 +270,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		}
 		uint32 value = *((const uint32 *) packet);
 		
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyLong %lu", pfx, opcode, value);
+		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyLong %u", pfx, opcode, value);
 		
 		res = new PyRepInteger(value);
 		
@@ -553,11 +553,10 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		res = tuple;
 
 		char t[15];
-		
-		uint32 r;
-		for(r = 0; r < data_len; r++) {
+
+		for(uint32 r = 0; r < data_len; r++) {
 			std::string n(pfx);
-			snprintf(t, 14, "  [%2ld] ", r);
+			snprintf(t, 14, "  [%2u] ", r);
 			n += t;
 			uint32 field_len = UnmarshalData(state, packet, len, tuple->items[r], n.c_str());
 			if(tuple->items[r] == NULL) {
@@ -600,15 +599,14 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		}
 		
 		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyList(%d)", pfx, opcode, data_len);
-		
+
 		PyRepList *rep = new PyRepList();
 		res = rep;
-	
+
 		char t[15];
-		uint32 r;
-		for(r = 0; r < data_len; r++) {
+		for(uint32 r = 0; r < data_len; r++) {
 			std::string n(pfx);
-			snprintf(t, 14, "  [%2ld] ", r);
+			snprintf(t, 14, "  [%2u] ", r);
 			n += t;
 			PyRep *rep2;
 			uint32 field_len = UnmarshalData(state, packet, len, rep2, n.c_str());
@@ -675,19 +673,18 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 			//not sure how to get this number yet...
 			data_len = 0xa;
 		}*/
-		
-		
+
 		PyRepDict *rep = new PyRepDict();
 		res = rep;
-		
+
 		char t[17];
-		uint32 r;
-		for(r = 0; r < data_len; r++) {
+
+		for(uint32 r = 0; r < data_len; r++) {
 			PyRep *key;
 			PyRep *value;
 			
 			std::string m(pfx);
-			snprintf(t, 16, "  [%2ld] Value: ", r);
+			snprintf(t, 16, "  [%2u] Value: ", r);
 			m += t;
 			uint32 field_len = UnmarshalData(state, packet, len, value, m.c_str());
 			if(value == NULL) {
@@ -700,7 +697,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 			len_used += field_len;
 			
 			std::string n(pfx);
-			snprintf(t, 16, "  [%2ld] Key: ", r);
+			snprintf(t, 16, "  [%2u] Key: ", r);
 			n += t;
 			field_len = UnmarshalData(state, packet, len, key, n.c_str());
 			if(key == NULL) {
@@ -844,7 +841,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		len -= sizeof(uint32);
 		len_used += sizeof(uint32);
 		
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyChecksumedStream w/ sum %lu", pfx, opcode, lval);
+		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyChecksumedStream w/ sum %u", pfx, opcode, lval);
 		
 		std::string n(pfx);
 		n += "  ";
@@ -1103,7 +1100,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 			break;
 		}
 		
-		_log(NET__UNMARSHAL_BUFHEX, "%s  Packed Contents: len=%lu", pfx, data_len);
+		_log(NET__UNMARSHAL_BUFHEX, "%s  Packed Contents: len=%u", pfx, data_len);
 		phex(NET__UNMARSHAL_BUFHEX, packet, data_len);
 
 		//TODO: we can theoretically calculate the unpacked length
@@ -1117,7 +1114,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		len -= data_len;
 		len_used += data_len;
 		
-		_log(NET__UNMARSHAL_TRACE, "%s  Unpacked Contents: len=%lu", pfx, unpacked.size());
+		_log(NET__UNMARSHAL_TRACE, "%s  Unpacked Contents: len=%u", pfx, unpacked.size());
 		phex(NET__UNMARSHAL_TRACE, &unpacked[0], unpacked.size());
 		
 #ifdef PACKED_ROW_HEADER_HACK
@@ -1159,7 +1156,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 			break;
 		}
 		
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PySubStream of length %lu", pfx, opcode, data_length);
+		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PySubStream of length %u", pfx, opcode, data_length);
 
 		res = new PyRepSubStream(packet, data_length);
 		

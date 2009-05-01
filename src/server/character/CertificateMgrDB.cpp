@@ -31,7 +31,7 @@ CertificateMgrDB::CertificateMgrDB(DBcore *db)
 }
 
 PyRep *CertificateMgrDB::GetMyCertificates(uint32 characterID) {
-	_log(DATABASE__ERROR, "%lu: GetMyCertificates unimplemented.", characterID);
+	_log(DATABASE__ERROR, "%u: GetMyCertificates unimplemented.", characterID);
 
 	util_Rowset rs;
 

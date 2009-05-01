@@ -143,7 +143,7 @@ void EVEPresentation::_QueueRep(const PyRep *rep) {
 
 void EVEPresentation::_NetQueuePacket(EVENetPacket **p) {
 	if((*p)->length > EVESocketMaxNumberOfBytes) {
-		_log(NET__PRES_ERROR, "%s: tried to queue a packet which is too large! %lu exceeds the hard coded limit of %lu bytes!", GetConnectedAddress().c_str(), (*p)->length, EVESocketMaxNumberOfBytes);
+		_log(NET__PRES_ERROR, "%s: tried to queue a packet which is too large! %u exceeds the hard coded limit of %u bytes!", GetConnectedAddress().c_str(), (*p)->length, EVESocketMaxNumberOfBytes);
 		delete *p;
 		*p = NULL;
 		return;

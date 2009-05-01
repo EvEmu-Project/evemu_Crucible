@@ -75,7 +75,7 @@ PyResult FactionWarMgrService::Handle_GetCharacterRankOverview(PyCallArgs &call)
 		return NULL;
 	}
 
-	_log(SERVICE__WARNING, "%s::GetCharacterRankOverview(charid=%lu) unimplemented.", GetName(), arg.arg);
+	_log(SERVICE__WARNING, "%s::GetCharacterRankOverview(charid=%u) unimplemented.", GetName(), arg.arg);
 
 	util_Rowset rs;
 

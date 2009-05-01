@@ -193,7 +193,7 @@ PyRepBuffer::~PyRepBuffer() {
 }
 
 void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
-	fprintf(into, "%sData buffer of length %ld\n", pfx, m_length);
+	fprintf(into, "%sData buffer of length %u\n", pfx, m_length);
 
 	//kinda hackish:
 	if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
@@ -202,7 +202,7 @@ void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
 		if(buf != NULL) {
 			string p(pfx);
 			p += "  ";
-			fprintf(into, "%sData buffer contains gzipped data of length %lu\n", p.c_str(), len);
+			fprintf(into, "%sData buffer contains gzipped data of length %u\n", p.c_str(), len);
 			pfxPreviewHexDump(p.c_str(), into, buf, len);
 			SafeDeleteArray(buf);
 		}
@@ -219,7 +219,7 @@ void PyRepBuffer::Dump(LogType type, const char *pfx) const {
 		if(buf != NULL) {
 			string p(pfx);
 			p += "  ";
-			_log(type, "%sData buffer contains gzipped data of length %lu", p.c_str(), len);
+			_log(type, "%sData buffer contains gzipped data of length %u", p.c_str(), len);
 			pfxPreviewHexDump(p.c_str(), type, buf, len);
 			SafeDeleteArray(buf);
 		}
@@ -254,7 +254,7 @@ PyRepSubStream *PyRepBuffer::CreateSubStream() const {
 /************************************************************************/
 void PyRepString::Dump(FILE *into, const char *pfx) const {
 	if(ContainsNonPrintables(value.c_str(), (uint32)value.length())) {
-		fprintf(into, "%sString%s: '<binary, len=%d>'\n", pfx, is_type_1?" (Type1)":"", value.length());
+		fprintf(into, "%sString%s: '<binary, len=%lu>'\n", pfx, is_type_1?" (Type1)":"", value.length());
 	} else {
 		fprintf(into, "%sString%s: '%s'\n", pfx, is_type_1?" (Type1)":"", value.c_str());
 	}
@@ -262,7 +262,7 @@ void PyRepString::Dump(FILE *into, const char *pfx) const {
 
 void PyRepString::Dump(LogType type, const char *pfx) const {
 	if(ContainsNonPrintables(value.c_str(), (uint32)value.length())) {
-		_log(type, "%sString%s: '<binary, len=%d>'", pfx, is_type_1?" (Type1)":"", value.length());
+		_log(type, "%sString%s: '<binary, len=%lu>'", pfx, is_type_1?" (Type1)":"", value.length());
 	} else {
 		_log(type, "%sString%s: '%s'", pfx, is_type_1?" (Type1)":"", value.c_str());
 	}
@@ -288,13 +288,12 @@ void PyRepTuple::Dump(FILE *into, const char *pfx) const {
 	if(items.empty())
 		fprintf(into, "%sTuple: Empty\n", pfx);
 	else {
-		fprintf(into, "%sTuple: %d elements\n", pfx, items.size());
+		fprintf(into, "%sTuple: %lu elements\n", pfx, items.size());
 		std::vector<PyRep *>::const_iterator cur, _end;
 		cur = items.begin();
 		_end = items.end();
 		char t[15];
-		int r;
-		for(r = 0; cur != _end; cur++, r++) {
+		for(int r = 0; cur != _end; cur++, r++) {
 			std::string n(pfx);
 			snprintf(t, 14, "  [%2d] ", r);
 			n += t;
@@ -311,13 +310,12 @@ void PyRepTuple::Dump(LogType type, const char *pfx) const {
 	if(items.empty())
 		_log(type, "%sTuple: Empty", pfx);
 	else {
-		_log(type, "%sTuple: %d elements", pfx, items.size());
+		_log(type, "%sTuple: %lu elements", pfx, items.size());
 		std::vector<PyRep *>::const_iterator cur, _end;
 		cur = items.begin();
 		_end = items.end();
 		char t[15];
-		int r;
-		for(r = 0; cur != _end; cur++, r++) {
+		for(int r = 0; cur != _end; cur++, r++) {
 			std::string n(pfx);
 			snprintf(t, 14, "  [%2d] ", r);
 			n += t;
@@ -346,13 +344,12 @@ void PyRepList::Dump(FILE *into, const char *pfx) const {
 	if(items.empty())
 		fprintf(into, "%sList: Empty\n", pfx);
 	else {
-		fprintf(into, "%sList: %d elements\n", pfx, items.size());
+		fprintf(into, "%sList: %lu elements\n", pfx, items.size());
 		std::vector<PyRep *>::const_iterator cur, _end;
 		cur = items.begin();
 		_end = items.end();
 		char t[15];
-		int r;
-		for(r = 0; cur != _end; cur++, r++) {
+		for(int r = 0; cur != _end; cur++, r++) {
 			std::string n(pfx);
 			snprintf(t, 14, "  [%2d] ", r);
 			n += t;
@@ -373,13 +370,12 @@ void PyRepList::Dump(LogType type, const char *pfx) const {
 	if(items.empty())
 		_log(type, "%sList: Empty", pfx);
 	else {
-		_log(type, "%sList: %d elements", pfx, items.size());
+		_log(type, "%sList: %lu elements", pfx, items.size());
 		std::vector<PyRep *>::const_iterator cur, _end;
 		cur = items.begin();
 		_end = items.end();
 		char t[15];
-		int r;
-		for(r = 0; cur != _end; cur++, r++) {
+		for(int r = 0; cur != _end; cur++, r++) {
 			std::string n(pfx);
 			snprintf(t, 14, "  [%2d] ", r);
 			n += t;
@@ -434,9 +430,8 @@ void PyRepDict::Dump(FILE *into, const char *pfx) const {
 	cur = items.begin();
 	_end = items.end();
 	char t[17];
-	int r;
-	fprintf(into, "%sDictionary: %d entries\n", pfx, items.size());
-	for(r = 0; cur != _end; cur++, r++) {
+	fprintf(into, "%sDictionary: %lu entries\n", pfx, items.size());
+	for(int r = 0; cur != _end; cur++, r++) {
 		std::string n(pfx);
 		snprintf(t, 16, "  [%2d] Key: ", r);
 		n += t;
@@ -459,7 +454,7 @@ void PyRepDict::Dump(LogType type, const char *pfx) const {
 	_end = items.end();
 	char t[17];
 	int r;
-	_log(type, "%sDictionary: %d entries", pfx, items.size());
+	_log(type, "%sDictionary: %lu entries", pfx, items.size());
 	for(r = 0; cur != _end; cur++, r++) {
 		std::string n(pfx);
 		snprintf(t, 16, "  [%2d] Key: ", r);
@@ -559,15 +554,15 @@ void PyRepSubStream::Dump(FILE *into, const char *pfx) const {
 	if(decoded == NULL) {
 		//we have not decoded this substream, leave it as hex:
 		if(data == NULL) {
-			fprintf(into, "%sINVALID Substream: no data (length %ld)\n", pfx, length);
+			fprintf(into, "%sINVALID Substream: no data (length %u)\n", pfx, length);
 		} else {
-			fprintf(into, "%sSubstream: length %ld\n", pfx, length);
+			fprintf(into, "%sSubstream: length %u\n", pfx, length);
 			std::string m(pfx);
 			m += "  ";
 			pfxPreviewHexDump(m.c_str(), into, data, length);
 		}
 	} else {
-		fprintf(into, "%sSubstream: length %ld %s\n", pfx, length, (data==NULL)?"from rep":"from data");
+		fprintf(into, "%sSubstream: length %u %s\n", pfx, length, (data==NULL)?"from rep":"from data");
 		std::string m(pfx);
 		m += "    ";
 		decoded->Dump(into, m.c_str());
@@ -582,15 +577,15 @@ void PyRepSubStream::Dump(LogType type, const char *pfx) const {
 	if(decoded == NULL) {
 		//we have not decoded this substream, leave it as hex:
 		if(data == NULL) {
-			_log(type, "%sINVALID Substream: no data (length %d)", pfx, length);
+			_log(type, "%sINVALID Substream: no data (length %u)", pfx, length);
 		} else {
-			_log(type, "%sSubstream: length %d", pfx, length);
+			_log(type, "%sSubstream: length %u", pfx, length);
 			std::string m(pfx);
 			m += "  ";
 			pfxPreviewHexDump(m.c_str(), type, data, length);
 		}
 	} else {
-		_log(type, "%sSubstream: length %d %s", pfx, length, (data==NULL)?"from rep":"from data");
+		_log(type, "%sSubstream: length %u %s", pfx, length, (data==NULL)?"from rep":"from data");
 		std::string m(pfx);
 		m += "    ";
 		decoded->Dump(type, m.c_str());
@@ -619,7 +614,7 @@ PyRepChecksumedStream::~PyRepChecksumedStream() {
 }
 
 void PyRepChecksumedStream::Dump(FILE *into, const char *pfx) const {
-	fprintf(into, "%sStream With Checksum: 0x%08lx\n", pfx, checksum);
+	fprintf(into, "%sStream With Checksum: 0x%08x\n", pfx, checksum);
 	stream->Dump(into, pfx);
 }
 
@@ -816,7 +811,7 @@ PyRepPackedRow::~PyRepPackedRow()
 
 void PyRepPackedRow::Dump(FILE *into, const char *pfx) const
 {
-	fprintf(into, "%sPacked Row of length %ld (owned header? %s)\n", pfx, m_buffer.size(), ownsHeader?"yes":"no");
+	fprintf(into, "%sPacked Row of length %lu (owned header? %s)\n", pfx, m_buffer.size(), ownsHeader?"yes":"no");
 	if(!m_buffer.empty())
 	{
 		string p(pfx);
@@ -838,7 +833,7 @@ void PyRepPackedRow::Dump(FILE *into, const char *pfx) const
 }
 
 void PyRepPackedRow::Dump(LogType ltype, const char *pfx) const {
-	_log(ltype, "%sPacked Row of length %ld (owned header? %s)\n", pfx, m_buffer.size(), ownsHeader?"yes":"no");
+	_log(ltype, "%sPacked Row of length %lu (owned header? %s)\n", pfx, m_buffer.size(), ownsHeader?"yes":"no");
 	if(!m_buffer.empty()) {
 		string p(pfx);
 		p += "  ";

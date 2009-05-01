@@ -40,7 +40,7 @@ PyRepObject *CorporationDB::ListCorpStations(uint32 corp_id) {
 		"SELECT "
 		"	stationID, stationTypeID AS typeID"
 		" FROM staStations"
-		" WHERE corporationID=%lu",
+		" WHERE corporationID=%u",
 			corp_id
 	))
 	{
@@ -58,7 +58,7 @@ PyRepObject *CorporationDB::ListStationOffices(uint32 station_id) {
 		"SELECT "
 		"	corporationID, itemID, officeFolderID"
 		" FROM crpOffices"
-		" WHERE officeFolderID=%lu",
+		" WHERE officeFolderID=%u",
 //TODO: new a new DBSequence for this ID
 			station_id + 6000000
 	))
@@ -85,7 +85,7 @@ PyRepObject *CorporationDB::ListStationCorps(uint32 station_id) {
 		"	allianceID,deleted"
 		" FROM corporation"
 //no idea what the criteria should be here...
-		" WHERE stationID=%lu",
+		" WHERE stationID=%u",
 			station_id
 	))
 	{
@@ -105,7 +105,7 @@ PyRepObject *CorporationDB::ListStationOwners(uint32 station_id) {
 		" FROM corporation"
 //no idea what the criteria should be here...
 		"	LEFT JOIN eveNames ON (creatorID=itemID OR ceoID=itemID)"
-		"WHERE stationID=%lu",
+		"WHERE stationID=%u",
 			station_id
 	))
 	{
@@ -318,7 +318,7 @@ PyRepObject *CorporationDB::GetEmploymentRecord(uint32 charID) {
 	if (!m_db->RunQuery(res,
 		"SELECT startDate, corporationID, deleted "
 		"	FROM chrEmployment "
-		"	WHERE characterID = %lu "
+		"	WHERE characterID = %u "
 		"	ORDER BY startDate DESC", charID
 		))
 	{
@@ -351,7 +351,7 @@ static std::string _IoN(PyRep *r) {
 	if(!r->IsInteger())
 		return("NULL");
 	char buf[32];
-	snprintf(buf, 32, "%lu", uint32(((PyRepInteger*)r)->value));
+	snprintf(buf, 32, "%u", uint32(((PyRepInteger*)r)->value));
 	return(buf);
 }
 
@@ -378,12 +378,12 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID
 		" SELECT "
 		" 	    '%s', '%s', '%s', '%s', "
 		" 	    %lf, 0, 2, 0, 1, "
-		"       %lu, %lu, %lu, chrBloodlines.raceID, 0, 1000, 0, 10, "
+		"       %u, %u, %u, chrBloodlines.raceID, 0, 1000, 0, 10, "
 		"       chrBloodlines.raceID, 0, %s, %s, %s, %s, %s, %s, "
 		"       NULL "
 		"    FROM character_ "
 		"       LEFT JOIN chrBloodlines ON character_.bloodlineID = chrBloodlines.bloodlineID"
-		"    WHERE character_.characterID = %lu ",
+		"    WHERE character_.characterID = %u ",
 		cName.c_str(), cDesc.c_str(), cTick.c_str(), cURL.c_str(),
 		corpInfo.taxRate,
 		charID, charID, stationID,
@@ -405,7 +405,7 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID
 	// This is a temp hack to make my life easier
 	if (!m_db->RunQuery(err,
 		" REPLACE INTO eveStaticOwners (ownerID,ownerName,typeID) "
-		"	VALUES (%lu, '%s', 2)",
+		"	VALUES (%u, '%s', 2)",
 		corpID, cName.c_str()))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -419,7 +419,7 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID
 		"	memberless, password, mailingList, cspa, temporary, "
 		"	mode, subscribed, estimatedMemberCount"
 		" ) VALUES ("
-		"	%lu, %lu, '%s', '%s MOTD', '%s', "
+		"	%u, %u, '%s', '%s MOTD', '%s', "
 		"	1, NULL, 0, 127, 0, "
 		"	1, 1, 0"
 		" )",
@@ -450,15 +450,15 @@ bool CorporationDB::CreateCorporationChangePacket(Notify_OnCorporaionChanged & c
 		"	division1,division2,division3,division4,division5,division6,"
 		"	division7,deleted"
 		" FROM corporation "
-		" WHERE corporationID = %lu ", newCorpID
+		" WHERE corporationID = %u ", newCorpID
 		))
 	{
-		codelog(SERVICE__ERROR, "Error in retrieving new corporation's data (%lu)", newCorpID);
+		codelog(SERVICE__ERROR, "Error in retrieving new corporation's data (%u)", newCorpID);
 		return false;
 	}
 	
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Unable to find new corporation's data (%lu)", newCorpID);
+		codelog(SERVICE__ERROR, "Unable to find new corporation's data (%u)", newCorpID);
 		return false;
 	}
 
@@ -508,15 +508,15 @@ bool CorporationDB::CreateCorporationChangePacket(Notify_OnCorporaionChanged & c
 		"	division1,division2,division3,division4,division5,division6,"
 		"	division7,deleted"
 		" FROM corporation "
-		" WHERE corporationID = %lu ", oldCorpID
+		" WHERE corporationID = %u ", oldCorpID
 		))
 	{
-		codelog(SERVICE__ERROR, "Error in retrieving old corporation's data (%lu)", oldCorpID);
+		codelog(SERVICE__ERROR, "Error in retrieving old corporation's data (%u)", oldCorpID);
 		return false;
 	}
 	
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Unable to find old corporation's data (%lu)", oldCorpID);
+		codelog(SERVICE__ERROR, "Unable to find old corporation's data (%u)", oldCorpID);
 		return false;
 	}
 	
@@ -568,7 +568,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 	if (!m_db->RunQuery(err,
 		"UPDATE corporation "
 		"	SET corporation.memberCount = corporation.memberCount-1"
-		"	WHERE corporation.corporationID = %lu", 
+		"	WHERE corporation.corporationID = %u", 
 			oldCorpID
 		))
 	{
@@ -579,8 +579,8 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 	// Set new corp
 	if (!m_db->RunQuery(err,
 		"UPDATE character_ "
-		"	SET corporationID = %lu, corporationDateTime = "I64u" "
-		"	WHERE characterID = %lu",
+		"	SET corporationID = %u, corporationDateTime = "I64u" "
+		"	WHERE characterID = %u",
 			corpID, Win32TimeNow(), charID
 		))
 	{
@@ -593,7 +593,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 	if (!m_db->RunQuery(err,
 		"UPDATE corporation "
 		"	SET memberCount = memberCount+1"
-		"	WHERE corporationID = %lu", 
+		"	WHERE corporationID = %u", 
 			corpID
 		))
 	{
@@ -603,7 +603,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 
 	// Add new employment history record
 	if (!m_db->RunQuery(err,
-		"INSERT INTO chrEmployment VALUES (%lu, %lu, "I64u", 0)",
+		"INSERT INTO chrEmployment VALUES (%u, %u, "I64u", 0)",
 		charID, corpID, Win32TimeNow()
 		))
 	{
@@ -628,15 +628,15 @@ bool CorporationDB::CreateCorporationCreatePacket(Notify_OnCorporaionChanged & c
 		"	division1,division2,division3,division4,division5,division6,"
 		"	division7,deleted"
 		" FROM corporation "
-		" WHERE corporationID = %lu ", newCorpID
+		" WHERE corporationID = %u ", newCorpID
 		))
 	{
-		codelog(SERVICE__ERROR, "Error in retrieving new corporation's data (%lu)", newCorpID);
+		codelog(SERVICE__ERROR, "Error in retrieving new corporation's data (%u)", newCorpID);
 		return false;
 	}
 	
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Unable to find corporation's data (%lu)", newCorpID);
+		codelog(SERVICE__ERROR, "Unable to find corporation's data (%u)", newCorpID);
 		return false;
 	}
 
@@ -729,14 +729,14 @@ PyRepObject *CorporationDB::GetCorporation(uint32 corpID) {
 		"	division1,division2,division3,division4,division5,division6,"
 		"	division7,deleted"
 		" FROM corporation "
-		" WHERE corporationID = %lu", corpID))
+		" WHERE corporationID = %u", corpID))
 	{
-		codelog(SERVICE__ERROR, "Error in retrieving corporation's data (%lu)", corpID);
+		codelog(SERVICE__ERROR, "Error in retrieving corporation's data (%u)", corpID);
 		return NULL;
 	}
 
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Unable to find corporation's data (%lu)", corpID);
+		codelog(SERVICE__ERROR, "Unable to find corporation's data (%u)", corpID);
 		return NULL;
 	}
 
@@ -763,7 +763,7 @@ bool CorporationDB::StoreCharacterRoles(uint32 charID, const CorpMemberInfo &rol
 		" REPLACE INTO chrCorporationRoles "
 		" (characterID, corprole, rolesAtAll, rolesAtBase, rolesAtHQ, rolesAtOther) "
 		" VALUES "
-		" (%lu, " I64u ", " I64u ", " I64u ", " I64u ", " I64u ") ", 
+		" (%u, " I64u ", " I64u ", " I64u ", " I64u ", " I64u ") ", 
 		charID, roles.corprole, roles.rolesAtAll, roles.rolesAtBase, roles.rolesAtHQ, roles.rolesAtOther
 	)) {
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -779,7 +779,7 @@ PyRepObject *CorporationDB::GetStations(uint32 corpID) {
 		" SELECT "
 		" stationID, stationTypeID as typeID "
 		" FROM staStations "
-		" WHERE corporationID = %lu ", corpID
+		" WHERE corporationID = %u ", corpID
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -795,7 +795,7 @@ uint32 CorporationDB::GetOffices(uint32 corpID) {
 		" SELECT "
 		" COUNT(1) AS OfficeNumber "
 		" FROM crpOffices "
-		" WHERE corporationID = %lu ", corpID
+		" WHERE corporationID = %u ", corpID
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -804,7 +804,7 @@ uint32 CorporationDB::GetOffices(uint32 corpID) {
 
 	DBResultRow row;
 	if (!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Unable to find corporation's data (%lu)", corpID);
+		codelog(SERVICE__ERROR, "Unable to find corporation's data (%u)", corpID);
 		return 0;
 	}
 	return row.GetUInt(0);
@@ -816,8 +816,8 @@ PyRep *CorporationDB::Fetch(uint32 corpID, uint32 from, uint32 count) {
 	if (!m_db->RunQuery(res, 
 		" SELECT stationID, typeID, itemID, officeFolderID "
 		" FROM crpOffices "
-		" WHERE corporationID = %lu "
-		" LIMIT %lu, %lu ", corpID, from, count
+		" WHERE corporationID = %u "
+		" LIMIT %u, %u ", corpID, from, count
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -845,7 +845,7 @@ uint32 CorporationDB::GetQuoteForRentingAnOffice(uint32 stationID) {
 		" SELECT "
 		" officeRentalCost "
 		" FROM staStations "
-		" WHERE staStations.stationID = %lu ", stationID))
+		" WHERE staStations.stationID = %u ", stationID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		// Try to look more clever than we actually are...
@@ -853,7 +853,7 @@ uint32 CorporationDB::GetQuoteForRentingAnOffice(uint32 stationID) {
 	}
 
 	if (!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Unable to find station data, stationID: %lu", stationID);
+		codelog(SERVICE__ERROR, "Unable to find station data, stationID: %u", stationID);
 		// Try to look more clever than we actually are...
 		return 10000;
 	}
@@ -879,7 +879,7 @@ uint32 CorporationDB::ReserveOffice(const OfficeInfo & oInfo) {
 		// corporation owns the office, station locates the office
 		// x, y, z should be coords of the station?
 		// no extra info
-		" 'office', 27, %lu, %lu, 0, 0, 1, 1, 0, 0, 0, '' "
+		" 'office', 27, %u, %u, 0, 0, 1, 1, 0, 0, 0, '' "
 		" ); ", oInfo.corporationID, oInfo.stationID ))
 	{
 		codelog(SERVICE__ERROR, "Error in query at ReserveOffice: %s", err.c_str());
@@ -891,7 +891,7 @@ uint32 CorporationDB::ReserveOffice(const OfficeInfo & oInfo) {
 		" INSERT INTO crpOffices "
 		" (corporationID, stationID, itemID, typeID, officeFolderID) "
 		" VALUES "
-		" (%lu, %lu, %lu, %lu, %lu) ",
+		" (%u, %u, %u, %u, %u) ",
 		oInfo.corporationID, oInfo.stationID, officeID, oInfo.typeID, oInfo.officeFolderID))
 	{
 		codelog(SERVICE__ERROR, "Error in query at ReserveOffice: %s", err.c_str());
@@ -910,7 +910,7 @@ uint32 CorporationDB::GetStationOwner(uint32 stationID) {
 	if (!m_db->RunQuery(res,
 		" SELECT corporationID "
 		" FROM staStations "
-		" WHERE stationID = %lu ", stationID))
+		" WHERE stationID = %u ", stationID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return 0;
@@ -918,7 +918,7 @@ uint32 CorporationDB::GetStationOwner(uint32 stationID) {
 
 	DBResultRow row;
 	if (!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Missing stationID: %lu", stationID);
+		codelog(SERVICE__ERROR, "Missing stationID: %u", stationID);
 		return 0;
 	}
 	return row.GetUInt(0);
@@ -930,7 +930,7 @@ PyRep *CorporationDB::GetMyApplications(uint32 charID) {
 		" SELECT corporationID, characterID, applicationText, roles, grantableRoles, "
 		" status, applicationDateTime, deleted, lastCorpUpdaterID "
 		" FROM chrApplications "
-		" WHERE characterID = %lu ", charID))
+		" WHERE characterID = %u ", charID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -951,7 +951,7 @@ bool CorporationDB::InsertApplication(const ApplicationInfo & aInfo) {
 		" corporationID, characterID, applicationText, roles, grantableRoles, status, "
 		" applicationDateTime, deleted, lastCorpUpdaterID "
 		" ) VALUES ( "
-		" %lu, %lu, '%s', " I64u ", " I64u ", %lu, " I64u ", %lu, %lu "
+		" %u, %u, '%s', " I64u ", " I64u ", %u, " I64u ", %u, %u "
 		" ) ", aInfo.corpID, aInfo.charID, safeMessage.c_str(), aInfo.role,
 			   aInfo.grantRole, aInfo.status, aInfo.appTime, aInfo.deleted, aInfo.lastCID))
 	{
@@ -969,7 +969,7 @@ PyRep *CorporationDB::GetApplications(uint32 corpID) {
 		" corporationID, characterID, applicationText, roles, grantableRoles, status, "
 		" applicationDateTime, deleted, lastCorpUpdaterID "
 		" FROM chrApplications "
-		" WHERE corporationID = %lu ", corpID))
+		" WHERE corporationID = %u ", corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -985,7 +985,7 @@ uint32 CorporationDB::GetStationCorporationCEO(uint32 stationID) {
 		" FROM corporation "
 		" LEFT JOIN staStations "
 		" ON staStations.corporationID = corporation.corporationID "
-		" WHERE staStations.stationID = %lu ", stationID))
+		" WHERE staStations.stationID = %u ", stationID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return 0;
@@ -1003,7 +1003,7 @@ uint32 CorporationDB::GetCorporationCEO(uint32 corpID) {
 	if (!m_db->RunQuery(res,
 		" SELECT ceoID "
 		" FROM corporation "
-		" WHERE corporation.corporationID = %lu ", corpID))
+		" WHERE corporation.corporationID = %u ", corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return 0;
@@ -1022,7 +1022,7 @@ bool CorporationDB::GetCurrentApplicationInfo(uint32 charID, uint32 corpID, Appl
 		" SELECT "
 		" status, applicationText, applicationDateTime, roles, grantableRoles, lastCorpUpdaterID, deleted "
 		" FROM chrApplications "
-		" WHERE characterID = %lu AND corporationID = %lu ",
+		" WHERE characterID = %u AND corporationID = %u ",
 		charID, corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -1061,8 +1061,8 @@ bool CorporationDB::UpdateApplication(const ApplicationInfo & info) {
 	m_db->DoEscapeString(clear, info.appText);
 	if (!m_db->RunQuery(err,
 		" UPDATE chrApplications "
-		" SET status = %lu, lastCorpUpdaterID = %lu, applicationText = '%s' "
-		" WHERE corporationID = %lu AND characterID = %lu ", info.status, info.lastCID, clear.c_str(), info.corpID, info.charID))
+		" SET status = %u, lastCorpUpdaterID = %u, applicationText = '%s' "
+		" WHERE corporationID = %u AND characterID = %u ", info.status, info.lastCID, clear.c_str(), info.corpID, info.charID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 		return false;
@@ -1074,7 +1074,7 @@ bool CorporationDB::DeleteApplication(const ApplicationInfo & info) {
 	DBerror err;
 	if (!m_db->RunQuery(err,
 		" DELETE FROM chrApplications "
-		" WHERE corporationID = %lu AND characterID = %lu ", info.corpID, info.charID))
+		" WHERE corporationID = %u AND characterID = %u ", info.corpID, info.charID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 		return false;
@@ -1097,7 +1097,7 @@ bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, 
 		" FROM character_ "
 		" LEFT JOIN chrCorporationRoles "
 		"	ON chrCorporationRoles.characterID = character_.characterID "
-		" WHERE character_.characterID = %lu ", charID))
+		" WHERE character_.characterID = %u ", charID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
@@ -1150,7 +1150,7 @@ bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivision
 		" SELECT "
 		" division1, division2, division3, division4, division5, division6, division7 "
 		" FROM corporation "
-		" WHERE corporationID = %lu ", corpID))
+		" WHERE corporationID = %u ", corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
@@ -1158,7 +1158,7 @@ bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivision
 
 	DBResultRow row;
 	if (!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Corporation %lu doesn't exists.", corpID);
+		_log(DATABASE__ERROR, "Corporation %u doesn't exists.", corpID);
 		return false;
 	}
 
@@ -1180,7 +1180,7 @@ bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivision
 		if (i < N - 1) query += ", ";
 	}
 
-	query += " WHERE corporationID = %lu";
+	query += " WHERE corporationID = %u";
 
 	if ((N > 0) && (!m_db->RunQuery(res.error, query.c_str(), corpID))) {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -1196,7 +1196,7 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
 	if (!m_db->RunQuery(res, 
 		" SELECT description, url, taxRate "
 		" FROM corporation "
-		" WHERE corporationID = %lu ", corpID))
+		" WHERE corporationID = %u ", corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
@@ -1204,7 +1204,7 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
 
 	DBResultRow row;
 	if (!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Corporation %lu doesn't exists.", corpID);
+		_log(DATABASE__ERROR, "Corporation %u doesn't exists.", corpID);
 		return false;
 	}
 
@@ -1221,7 +1221,7 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
 		if (i < N - 1) query += ", ";
 	}
 
-	query += " WHERE corporationID = %lu";
+	query += " WHERE corporationID = %u";
 
 	// only update if there is anything to update
 	if ((N > 0) && (!m_db->RunQuery(res.error, query.c_str(), corpID))) {
@@ -1239,7 +1239,7 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyRep
 	if (!m_db->RunQuery(res, 
 		" SELECT shape1, shape2, shape3, color1, color2, color3, typeface "
 		" FROM corporation "
-		" WHERE corporationID = %lu ", corpID))
+		" WHERE corporationID = %u ", corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
@@ -1247,7 +1247,7 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyRep
 
 	DBResultRow row;
 	if (!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "Corporation %lu doesn't exists.", corpID);
+		_log(DATABASE__ERROR, "Corporation %u doesn't exists.", corpID);
 		return false;
 	}
 
@@ -1268,7 +1268,7 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyRep
 		if (i < N - 1) query += ", ";
 	}
 
-	query += " WHERE corporationID = %lu ";
+	query += " WHERE corporationID = %u ";
 	if ((N > 0) && (!m_db->RunQuery(res.error, query.c_str(), corpID))) {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;

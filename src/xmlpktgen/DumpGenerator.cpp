@@ -116,7 +116,7 @@ bool ClassDumpGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		"	%s_cur = %s.begin();\n"
 		"	%s_end = %s.end();\n"
 		"	for(; %s_cur != %s_end; %s_cur++) {\n"
-		"		_log(l_type, \"%%s   Key: %%lu\", pfx, %s_cur->first);\n"
+		"		_log(l_type, \"%%s   Key: %%u\", pfx, %s_cur->first);\n"
 		"		std::string n(pfx);\n"
 		"		n += \"        \";\n"
 		"		%s_cur->second->Dump(l_type, n.c_str());\n"
@@ -168,7 +168,7 @@ bool ClassDumpGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 		"	%s_end = %s.end();\n"
 		"	for(; %s_cur != %s_end; %s_cur++) {\n"
 		"		//total crap casting here since we do not know the correct printf format\n"
-		"		_log(l_type, \"%%s   Key: %%lu -> Value: %%lu\", pfx, uint32(%s_cur->first), uint32(%s_cur->second));\n"
+		"		_log(l_type, \"%%s   Key: %%u -> Value: %%u\", pfx, uint32(%s_cur->first), uint32(%s_cur->second));\n"
 		"	}\n"
 		"	\n", 
 		name, name, 
@@ -339,7 +339,7 @@ bool ClassDumpGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 		"	lend = %s_list.end();\n"
 		"	for(uint32 i = 0; lcur != lend; lcur++, i++) {\n"
 		"		char istr[16];\n"
-		"		snprintf(istr, sizeof(istr), \"  [%%02lu] \", i);\n"
+		"		snprintf(istr, sizeof(istr), \"  [%%02u] \", i);\n"
 		"		std::string n(pfx);\n"
 		"		n += istr;\n"
 		"		(*lcur)->Dump(l_type, n.c_str());\n"
@@ -356,12 +356,12 @@ bool ClassDumpGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 		"	for(uint32 i = 0; dcur != dend; dcur++) {\n"
 		"		char istr[16];\n"
 		"\n"
-		"		snprintf(istr, sizeof(istr), \"  [%%02lu] Key: \", i);\n"
+		"		snprintf(istr, sizeof(istr), \"  [%%02u] Key: \", i);\n"
 		"		std::string n(pfx);\n"
 		"		n += istr;\n"
 		"		dcur->first->Dump(l_type, n.c_str());\n"
 		"\n"
-		"		snprintf(istr, sizeof(istr), \"  [%%02lu] Value: \", i);\n"
+		"		snprintf(istr, sizeof(istr), \"  [%%02u] Value: \", i);\n"
 		"		n = pfx;\n"
 		"		n += istr;\n"
 		"		dcur->second->Dump(l_type, n.c_str());\n"
@@ -484,7 +484,7 @@ bool ClassDumpGenerator::Process_int(FILE *into, TiXmlElement *field) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
 		return false;
 	}
-	fprintf(into, "\t_log(l_type, \"%%s%s=%%lu\", pfx, %s);\n", name, name);
+	fprintf(into, "\t_log(l_type, \"%%s%s=%%u\", pfx, %s);\n", name, name);
 	return true;
 }
 

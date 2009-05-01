@@ -125,7 +125,7 @@ BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID,
 ) {
 	// check if we are really loading a blueprint
 	if(group.categoryID() != EVEDB::invCategories::Blueprint) {
-		_log(ITEM__ERROR, "Load of blueprint type %lu requested, but it's %s.", typeID, group.category().name().c_str());
+		_log(ITEM__ERROR, "Load of blueprint type %u requested, but it's %s.", typeID, group.category().name().c_str());
 		return NULL;
 	}
 
@@ -362,7 +362,7 @@ bool Blueprint::AlterMaterialLevel(int32 materialLevelChange) {
 	int32 new_material_level = m_materialLevel + materialLevelChange;
 
 	if(new_material_level < 0) {
-		_log(ITEM__ERROR, "%s (%lu): Tried to remove %lu material levels while having %lu levels.", m_itemName.c_str(), m_itemID, -materialLevelChange, m_materialLevel);
+		_log(ITEM__ERROR, "%s (%u): Tried to remove %u material levels while having %u levels.", m_itemName.c_str(), m_itemID, -materialLevelChange, m_materialLevel);
 		return false;
 	}
 
@@ -380,7 +380,7 @@ bool Blueprint::AlterProductivityLevel(int32 producitvityLevelChange) {
 	int32 new_productivity_level = m_productivityLevel + producitvityLevelChange;
 
 	if(new_productivity_level < 0) {
-		_log(ITEM__ERROR, "%s (%lu): Tried to remove %lu productivity levels while having %lu levels.", m_itemName.c_str(), m_itemID, -producitvityLevelChange, m_productivityLevel);
+		_log(ITEM__ERROR, "%s (%u): Tried to remove %u productivity levels while having %u levels.", m_itemName.c_str(), m_itemID, -producitvityLevelChange, m_productivityLevel);
 		return false;
 	}
 

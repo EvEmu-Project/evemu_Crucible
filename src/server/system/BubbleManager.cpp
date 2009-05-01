@@ -80,11 +80,11 @@ void BubbleManager::UpdateBubble(SystemEntity *ent, bool notify) {
 	SystemBubble *b = ent->Bubble();
 	if(b != NULL) {
 		if(b->InBubble(ent->GetPosition())) {
-			_log(DESTINY__BUBBLE_TRACE, "Entity %lu is still located in bubble %p", ent->GetID(), b);
+			_log(DESTINY__BUBBLE_TRACE, "Entity %u is still located in bubble %p", ent->GetID(), b);
 			//still in bubble...
 			return;
 		}
-		_log(DESTINY__BUBBLE_TRACE, "Entity %lu is no longer located in bubble %p", ent->GetID(), b);
+		_log(DESTINY__BUBBLE_TRACE, "Entity %u is no longer located in bubble %p", ent->GetID(), b);
 		b->Remove(ent, notify);
 	}
 	Add(ent, notify);
@@ -109,7 +109,7 @@ void BubbleManager::Remove(SystemEntity *ent, bool notify) {
 	SystemBubble *b = ent->Bubble();
 	if(b == NULL) {
 		//not in any bubble.
-		_log(DESTINY__BUBBLE_TRACE, "Entity %lu is not located in any bubble. Nothing to remove.", ent->GetID());
+		_log(DESTINY__BUBBLE_TRACE, "Entity %u is not located in any bubble. Nothing to remove.", ent->GetID());
 		return;
 	}
 	b->Remove(ent, notify);

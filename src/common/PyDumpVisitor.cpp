@@ -140,7 +140,7 @@ void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep) {
 		if(buf != NULL) {
 			std::string p(top());
 			p += "  ";
-			_print("  Data buffer contains gzipped data of length %lu", len);
+			_print("  Data buffer contains gzipped data of length %u", len);
 			_hexDump(buf, len);
 			delete[] buf;
 		}
@@ -160,7 +160,7 @@ void PyDumpVisitor::VisitNewObjectHeader(const PyRepNewObject *rep) {
 }
 
 void PyDumpVisitor::VisitNewObjectList(const PyRepNewObject *rep) {
-	_print("ListData: %lu entries", rep->list_data.size());
+	_print("ListData: %u entries", rep->list_data.size());
 	PyVisitor::VisitNewObjectList(rep);
 }
 
@@ -177,7 +177,7 @@ void PyDumpVisitor::VisitNewObjectListElement(const PyRepNewObject *rep, uint32 
 }
 
 void PyDumpVisitor::VisitNewObjectDict(const PyRepNewObject *rep) {
-	_print("DictData: %lu entries", rep->dict_data.size());
+	_print("DictData: %u entries", rep->dict_data.size());
 	PyVisitor::VisitNewObjectDict(rep);
 }
 
@@ -223,17 +223,17 @@ void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {
 		_print("     u0: 0x%x", *buf); buf += sizeof(uint8);
 		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
 		_print("     issued: " I64u , *((const uint64 *) buf) ); buf += sizeof(uint64);
-		_print("     orderID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
+		_print("     orderID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
 		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     u5: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     u7: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     stationID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     regionID: %lu", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
+		_print("     stationID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
+		_print("     regionID: %u", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
 		_print("     u10: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     solarSystemID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
+		_print("     solarSystemID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
 		_print("     u12: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     typeID: %lu", *((const uint16 *) buf) ); buf += sizeof(uint16);
+		_print("     typeID: %u", *((const uint16 *) buf) ); buf += sizeof(uint16);
 		_print("     jumps: %u (0x%x)", *((const uint16 *) buf), *((const uint16 *) buf) ); buf += sizeof(uint16);
 		_print("     duration?: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 	} break;
@@ -242,17 +242,17 @@ void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {
 		_print("  Len 0x2c decode:");
 		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
 		_print("     issued: " I64u , *((const uint64 *) buf) ); buf += sizeof(uint64);
-		_print("     orderID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
+		_print("     orderID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
 		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     u5: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     u7: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     stationID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     regionID: %lu", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
+		_print("     stationID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
+		_print("     regionID: %u", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
 		_print("     u10: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     solarSystemID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
+		_print("     solarSystemID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
 		_print("     u12: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     typeID: %lu", *((const uint16 *) buf) ); buf += sizeof(uint16);
+		_print("     typeID: %u", *((const uint16 *) buf) ); buf += sizeof(uint16);
 		_print("     jumps: %u (0x%x)", *((const uint16 *) buf), *((const uint16 *) buf) ); buf += sizeof(uint16);
 		_print("     duration?: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     u16: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
@@ -264,17 +264,17 @@ void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {
 		_print("     u0: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
 		_print("     issued: " I64u , *((const uint64 *) buf) ); buf += sizeof(uint64);
-		_print("     orderID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
+		_print("     orderID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
 		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     u5: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     u7: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     stationID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     regionID: %lu", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
+		_print("     stationID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
+		_print("     regionID: %u", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
 		_print("     u10: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     solarSystemID: %lu", *((const uint32 *) buf) ); buf += sizeof(uint32);
+		_print("     solarSystemID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
 		_print("     u12: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     typeID: %lu", *((const uint16 *) buf) ); buf += sizeof(uint16);
+		_print("     typeID: %u", *((const uint16 *) buf) ); buf += sizeof(uint16);
 		_print("     jumps: %u (0x%x)", *((const uint16 *) buf), *((const uint16 *) buf) ); buf += sizeof(uint16);
 		_print("     duration?: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
 		_print("     u16: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
@@ -346,7 +346,7 @@ void PyDumpVisitor::VisitDictElement(const PyRepDict *rep, uint32 index, const P
 	std::string n(top());
 	{
 		char t[20];
-		snprintf(t, sizeof(t), "  [%2ld] Key: ", index);
+		snprintf(t, sizeof(t), "  [%2u] Key: ", index);
 		n += t;
 	}
 	push(n.c_str());
@@ -356,7 +356,7 @@ void PyDumpVisitor::VisitDictElement(const PyRepDict *rep, uint32 index, const P
 	std::string m(top());
 	{
 		char t[20];
-		snprintf(t, sizeof(t), "  [%2ld] Value: ", index);
+		snprintf(t, sizeof(t), "  [%2u] Value: ", index);
 		m += t;
 	}
 	push(m.c_str());
@@ -388,7 +388,7 @@ void PyDumpVisitor::VisitListElement(const PyRepList *rep, uint32 index, const P
 	std::string n(top());
 	{
 		char t[15];
-		snprintf(t, 14, "  [%2ld] ", index);
+		snprintf(t, 14, "  [%2u] ", index);
 		n += t;
 	}
 	push(n.c_str());
@@ -409,7 +409,7 @@ void PyDumpVisitor::VisitTupleElement(const PyRepTuple *rep, uint32 index, const
 	std::string n(top());
 	{
 		char t[15];
-		snprintf(t, 14, "  [%2ld] ", index);
+		snprintf(t, 14, "  [%2u] ", index);
 		n += t;
 	}
 	push(n.c_str());

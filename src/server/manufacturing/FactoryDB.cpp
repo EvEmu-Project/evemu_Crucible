@@ -39,10 +39,10 @@ PyRep *FactoryDB::GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) 
 	if(!m_db->RunQuery(res,
 				"SELECT requiredTypeID, quantity, damagePerJob, activityID"
 				" FROM typeActivityMaterials"
-				" WHERE typeID = %lu",
+				" WHERE typeID = %u",
 				blueprintTypeID))
 	{
-		_log(DATABASE__ERROR, "Could not retrieve materials for type with activity %lu : %s", blueprintTypeID, res.error.c_str());
+		_log(DATABASE__ERROR, "Could not retrieve materials for type with activity %u : %s", blueprintTypeID, res.error.c_str());
 		return NULL;
 	}
 
@@ -55,12 +55,12 @@ PyRep *FactoryDB::GetMaterialCompositionOfItemType(const uint32 typeID) const {
 	if(!m_db->RunQuery(res,
 				"SELECT requiredTypeID AS typeID, quantity"
 				" FROM typeActivityMaterials"
-				" WHERE typeID = (SELECT blueprintTypeID FROM invBlueprintTypes WHERE productTypeID = %lu)"
+				" WHERE typeID = (SELECT blueprintTypeID FROM invBlueprintTypes WHERE productTypeID = %u)"
 				" AND activityID = 1"
 				" AND damagePerJob = 1",
 				typeID))
 	{
-		_log(DATABASE__ERROR, "Could not retrieve materials for type with activity %lu : %s", typeID, res.error.c_str());
+		_log(DATABASE__ERROR, "Could not retrieve materials for type with activity %u : %s", typeID, res.error.c_str());
 		return NULL;
 	}
 

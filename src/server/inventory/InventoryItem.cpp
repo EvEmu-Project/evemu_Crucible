@@ -128,7 +128,7 @@ InventoryItem::InventoryItem(
 	// assert for data consistency
 	assert(_data.typeID == _type.id());
 
-	_log(ITEM__TRACE, "Created object %p for item %s (%lu).", this, itemName().c_str(), itemID());
+	_log(ITEM__TRACE, "Created object %p for item %s (%u).", this, itemName().c_str(), itemID());
 }
 
 InventoryItem::~InventoryItem() {
@@ -312,7 +312,7 @@ bool InventoryItem::LoadContents(bool recursive) {
 	if(m_contentsLoaded)
 		return true;
 
-	_log(ITEM__TRACE, "Recursively loading contents of cached item %lu", m_itemID);
+	_log(ITEM__TRACE, "Recursively loading contents of cached item %u", m_itemID);
 
 	//load the list of items we need
 	std::vector<uint32> m_itemIDs;
@@ -326,7 +326,7 @@ bool InventoryItem::LoadContents(bool recursive) {
 	for(; cur != end; cur++) {
 		InventoryItem *i = m_factory.GetItem(*cur, recursive);
 		if(i == NULL) {
-			_log(ITEM__ERROR, "Failed to load item %lu contained in %lu. Skipping.", *cur, m_itemID);
+			_log(ITEM__ERROR, "Failed to load item %u contained in %u. Skipping.", *cur, m_itemID);
 			continue;
 		}
 
@@ -339,7 +339,7 @@ bool InventoryItem::LoadContents(bool recursive) {
 }
 
 void InventoryItem::Save(bool recursive, bool saveAttributes) const {
-	_log(ITEM__TRACE, "Saving item %lu.", m_itemID);
+	_log(ITEM__TRACE, "Saving item %u.", m_itemID);
 
 	m_factory.db().SaveItem(
 		itemID(),
@@ -405,7 +405,7 @@ void InventoryItem::Delete() {
 	
 	//and now we destroy ourself.
 	if(m_refCount != 1) {
-		_log(ITEM__ERROR, "Delete() called on item %lu (%p) which has %d references! Invalidating as best as possible..", m_itemID, this, m_refCount);
+		_log(ITEM__ERROR, "Delete() called on item %u (%p) which has %d references! Invalidating as best as possible..", m_itemID, this, m_refCount);
 		m_itemName = "BAD DELETED ITEM";
 		m_quantity = 0;
 		m_contentsLoaded = true;
@@ -490,7 +490,7 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 	//invItem:
 	result.invItem = GetEntityRow();
 	if(result.invItem == NULL) {
-		codelog(ITEM__ERROR, "%s (%lu): Unable to build item row for move", m_itemName.c_str(), m_itemID);
+		codelog(ITEM__ERROR, "%s (%u): Unable to build item row for move", m_itemName.c_str(), m_itemID);
 		return false;
 	}
 
@@ -539,7 +539,7 @@ PyRepObject *InventoryItem::ShipGetInfo() {
 	//TODO: verify that we are a ship?
 	
 	if(!LoadContents(true)) {
-		codelog(ITEM__ERROR, "%s (%lu): Failed to load contents for ShipGetInfo", m_itemName.c_str(), m_itemID);
+		codelog(ITEM__ERROR, "%s (%u): Failed to load contents for ShipGetInfo", m_itemName.c_str(), m_itemID);
 		return NULL;
 	}
 
@@ -566,7 +566,7 @@ PyRepObject *InventoryItem::ShipGetInfo() {
 	end = equipped.end();
 	for(; cur != end; cur++) {
 		if(!(*cur)->Populate(entry)) {
-			codelog(ITEM__ERROR, "%s (%lu): Failed to load item %ld for ShipGetInfo", m_itemName.c_str(), m_itemID, (*cur)->m_itemID);
+			codelog(ITEM__ERROR, "%s (%u): Failed to load item %u for ShipGetInfo", m_itemName.c_str(), m_itemID, (*cur)->m_itemID);
 		} else {
 			result.items[(*cur)->m_itemID] = entry.FastEncode();
 		}
@@ -579,7 +579,7 @@ PyRepObject *InventoryItem::CharGetInfo() {
 	//TODO: verify that we are a char?
 	
 	if(!LoadContents(true)) {
-		codelog(ITEM__ERROR, "%s (%lu): Failed to load contents for CharGetInfo", m_itemName.c_str(), m_itemID);
+		codelog(ITEM__ERROR, "%s (%u): Failed to load contents for CharGetInfo", m_itemName.c_str(), m_itemID);
 		return NULL;
 	}
 
@@ -602,7 +602,7 @@ PyRepObject *InventoryItem::CharGetInfo() {
 	end = skills.end();
 	for(; cur != end; cur++) {
 		if(!(*cur)->Populate(entry)) {
-			codelog(ITEM__ERROR, "%s (%lu): Failed to load skill item %ld for CharGetInfo", m_itemName.c_str(), m_itemID, (*cur)->m_itemID);
+			codelog(ITEM__ERROR, "%s (%u): Failed to load skill item %u for CharGetInfo", m_itemName.c_str(), m_itemID, (*cur)->m_itemID);
 		} else {
 			result.items[(*cur)->m_itemID] = entry.FastEncode();
 		}
@@ -701,9 +701,9 @@ void InventoryItem::AddContainedItem(InventoryItem *it) {
 	if(res == m_contents.end()) {
 		m_contents[it->itemID()] = it->Ref();
 
-		_log(ITEM__TRACE, "   Updated location %lu to contain item %lu", itemID(), it->itemID());
+		_log(ITEM__TRACE, "   Updated location %u to contain item %u", itemID(), it->itemID());
 	} else if(res->second != it) {
-		_log(ITEM__ERROR, "Both object %p and object %p represent item %lu!", res->second, it, it->itemID());
+		_log(ITEM__ERROR, "Both object %p and object %p represent item %u!", res->second, it, it->itemID());
 	} //else already here
 }
 
@@ -714,7 +714,7 @@ void InventoryItem::RemoveContainedItem(InventoryItem *it) {
 		old_inst->second->Release();
 		m_contents.erase(old_inst);
 
-		_log(ITEM__TRACE, "   Updated location %lu to no longer contain item %lu", itemID(), it->itemID());
+		_log(ITEM__TRACE, "   Updated location %u to no longer contain item %u", itemID(), it->itemID());
 	}
 }
 
@@ -789,7 +789,7 @@ bool InventoryItem::AlterQuantity(int32 qty_change, bool notify) {
 	int32 new_qty = m_quantity + qty_change;
 
 	if(new_qty < 0) {
-		codelog(ITEM__ERROR, "%s (%lu): Tried to remove %ld quantity from stack of %lu", m_itemName.c_str(), m_itemID, -qty_change, m_quantity);
+		codelog(ITEM__ERROR, "%s (%u): Tried to remove %d quantity from stack of %u", m_itemName.c_str(), m_itemID, -qty_change, m_quantity);
 		return false;
 	}
 
@@ -800,7 +800,7 @@ bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
 	//if an object has its singleton set then it shouldn't be able to add/remove qty
 	if(m_singleton) {
 		//Print error
-		codelog(ITEM__ERROR, "%s (%lu): Failed to set quantity %lu , the items singleton bit is set", m_itemName.c_str(), m_itemID, qty_new);
+		codelog(ITEM__ERROR, "%s (%u): Failed to set quantity %u , the items singleton bit is set", m_itemName.c_str(), m_itemID, qty_new);
 		//return false
 		return false;
 	}
@@ -826,11 +826,11 @@ bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
 
 InventoryItem *InventoryItem::Split(int32 qty_to_take, bool notify) {
 	if(qty_to_take <= 0) {
-		_log(ITEM__ERROR, "%s (%lu): Asked to split into a chunk of %ld", itemName().c_str(), itemID(), qty_to_take);
+		_log(ITEM__ERROR, "%s (%u): Asked to split into a chunk of %d", itemName().c_str(), itemID(), qty_to_take);
 		return NULL;
 	}
 	if(!AlterQuantity(-qty_to_take, notify)) {
-		_log(ITEM__ERROR, "%s (%lu): Failed to remove quantity %ld during split.", itemName().c_str(), itemID(), qty_to_take);
+		_log(ITEM__ERROR, "%s (%u): Failed to remove quantity %d during split.", itemName().c_str(), itemID(), qty_to_take);
 		return NULL;
 	}
 
@@ -851,32 +851,32 @@ InventoryItem *InventoryItem::Split(int32 qty_to_take, bool notify) {
 
 bool InventoryItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
 	if(to_merge == NULL) {
-		_log(ITEM__ERROR, "%s (%lu): Cannot merge with NULL item.", itemName().c_str(), itemID());
+		_log(ITEM__ERROR, "%s (%u): Cannot merge with NULL item.", itemName().c_str(), itemID());
 		return false;
 	}
 	if(typeID() != to_merge->typeID()) {
-		_log(ITEM__ERROR, "%s (%lu): Asked to merge with %s (%lu).", itemName().c_str(), itemID(), to_merge->itemName().c_str(), to_merge->itemID());
+		_log(ITEM__ERROR, "%s (%u): Asked to merge with %s (%u).", itemName().c_str(), itemID(), to_merge->itemName().c_str(), to_merge->itemID());
 		return false;
 	}
 	if(locationID() != to_merge->locationID() || flag() != to_merge->flag()) {
-		_log(ITEM__ERROR, "%s (%lu) in location %lu, flag %lu: Asked to merge with item %lu in location %lu, flag %lu.", itemName().c_str(), itemID(), locationID(), flag(), to_merge->itemID(), to_merge->locationID(), to_merge->flag());
+		_log(ITEM__ERROR, "%s (%u) in location %u, flag %u: Asked to merge with item %u in location %u, flag %u.", itemName().c_str(), itemID(), locationID(), flag(), to_merge->itemID(), to_merge->locationID(), to_merge->flag());
 		return false;
 	}
 	if(qty == 0)
 		qty = to_merge->quantity();
 	if(qty <= 0) {
-		_log(ITEM__ERROR, "%s (%lu): Asked to merge with %ld units of item %lu.", itemName().c_str(), itemID(), qty, to_merge->itemID());
+		_log(ITEM__ERROR, "%s (%u): Asked to merge with %d units of item %u.", itemName().c_str(), itemID(), qty, to_merge->itemID());
 		return false;
 	}
 	if(!AlterQuantity(qty, notify)) {
-		_log(ITEM__ERROR, "%s (%lu): Failed to add quantity %ld.", itemName().c_str(), itemID(), qty);
+		_log(ITEM__ERROR, "%s (%u): Failed to add quantity %d.", itemName().c_str(), itemID(), qty);
 		return false;
 	}
 
 	if(qty == to_merge->quantity()) {
 		to_merge->Delete();	//consumes ref
 	} else if(!to_merge->AlterQuantity(-qty, notify)) {
-		_log(ITEM__ERROR, "%s (%lu): Failed to remove quantity %ld.", to_merge->itemName().c_str(), to_merge->itemID(), qty);
+		_log(ITEM__ERROR, "%s (%u): Failed to remove quantity %d.", to_merge->itemName().c_str(), to_merge->itemID(), qty);
 		return false;
 	} else
 		to_merge->Release();	//consume ref
@@ -939,7 +939,7 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<uint32, PyRep *> &chang
 	NotifyOnItemChange change;
 	change.itemRow = GetEntityRow();
 	if(change.itemRow == NULL) {
-		codelog(ITEM__ERROR, "%s (%lu): Unable to build item row for move", m_itemName.c_str(), m_itemID);
+		codelog(ITEM__ERROR, "%s (%u): Unable to build item row for move", m_itemName.c_str(), m_itemID);
 		return;
 	}
 	change.changes = changes;
@@ -1023,12 +1023,12 @@ bool InventoryItem::Contains(InventoryItem *item, bool recursive) const {
 // exception.
 void InventoryItem::TrainSkill(InventoryItem *skill) {
 	if(m_flag != flagPilot) {
-		codelog(ITEM__ERROR, "%s (%lu): Tried to train skill %lu on non-pilot object.", m_itemName.c_str(), m_itemID, skill->itemID());
+		codelog(ITEM__ERROR, "%s (%u): Tried to train skill %u on non-pilot object.", m_itemName.c_str(), m_itemID, skill->itemID());
 		return;
 	}
 	
 	if(skill->flag() == flagSkillInTraining) {
-		_log(ITEM__TRACE, "%s (%lu): Requested to train skill %lu item %lu but it is already in training. Doing nothing.", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
+		_log(ITEM__TRACE, "%s (%u): Requested to train skill %u item %u but it is already in training. Doing nothing.", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
 		return;
 	}
 	
@@ -1058,18 +1058,18 @@ void InventoryItem::TrainSkill(InventoryItem *skill) {
 
 	if(skill->flag() != flagSkill) {
 		//this is a skill book being trained for the first time.
-		_log(ITEM__TRACE, "%s (%lu): Initial training of skill %lu item %lu", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
+		_log(ITEM__TRACE, "%s (%u): Initial training of skill %u item %u", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
 		skill->MoveInto(this, flagSkillInTraining);
 		//set the initial attributes.
 		skill->Set_skillLevel(0);
 		skill->Set_skillPoints(0);
 	} else if(!Contains(skill)) {
 		//this must be a skill in another container...
-		_log(ITEM__ERROR, "%s (%lu): Tried to train skill %lu item %lu which has the skill flag but is not contained within this item.", m_itemName.c_str(), m_itemID, skill->itemID());
+		_log(ITEM__ERROR, "%s (%u): Tried to train skill %u item %u which has the skill flag but is not contained within this item.", m_itemName.c_str(), m_itemID, skill->itemID());
 		return;
 	} else {
 		//skill is within this item, change its flag.
-		_log(ITEM__TRACE, "%s (%lu): Starting training of skill %lu item %lu", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
+		_log(ITEM__TRACE, "%s (%u): Starting training of skill %u item %u", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
 		skill->ChangeFlag(flagSkillInTraining, true);
 	}
 	

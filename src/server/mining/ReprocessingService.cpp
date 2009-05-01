@@ -86,7 +86,7 @@ PyBoundObject *ReprocessingService::_CreateBoundObject(Client *c, const PyRep *b
 
 	ReprocessingServiceBound *obj = new ReprocessingServiceBound(m_manager, &m_db, stationID->value);
 	if(!obj->Load()) {
-		_log(SERVICE__ERROR, "Failed to load static info for station %lu.", stationID->value);
+		_log(SERVICE__ERROR, "Failed to load static info for station %u.", stationID->value);
 		delete obj;
 		return NULL;
 	} else
@@ -231,7 +231,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 			continue;
 
 		if(item->ownerID() != call_args.ownerID) {
-			_log(SERVICE__ERROR, "Character %lu tried to reprocess item %lu of character %lu. Skipping.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
+			_log(SERVICE__ERROR, "Character %u tried to reprocess item %u of character %u. Skipping.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
 			continue;
 		}
 
@@ -326,7 +326,7 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 		return NULL;	// No action as GetQuote is also called for reprocessed items (probably for check)
 
 	if(item->ownerID() != c->GetCharacterID()) {
-		_log(SERVICE__ERROR, "Character %lu tried to reprocess item %lu of character %lu.", c->GetCharacterID(), item->itemID(), item->ownerID());
+		_log(SERVICE__ERROR, "Character %u tried to reprocess item %u of character %u.", c->GetCharacterID(), item->itemID(), item->ownerID());
 		item->Release();
 		return NULL;
 	}

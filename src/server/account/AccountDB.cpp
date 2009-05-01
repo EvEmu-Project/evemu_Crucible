@@ -75,9 +75,9 @@ PyRepObject *AccountDB::GetJournal(uint32 charID, uint32 refTypeID, uint32 accou
 		"	accountKey,amount,balance,reason"
 		" FROM market_journal"
 		" WHERE (transDate >= " I64u " AND transDate <= " I64u ") "
-		" 	AND accountKey = %lu "
-		" 	AND (0 = %lu OR refTypeID = %lu) "
-		" 	AND characterID=%lu" , dT, transDate, accountKey, refTypeID, refTypeID, charID
+		" 	AND accountKey = %u "
+		" 	AND (0 = %u OR refTypeID = %u) "
+		" 	AND characterID=%u" , dT, transDate, accountKey, refTypeID, refTypeID, charID
 	)) {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -117,8 +117,8 @@ bool ServiceDB::GiveCash(
 		"	ownerID2, argID1, accountID, accountKey, amount, balance, "
 		"	reason"
 		" ) VALUES ("
-		"	%lu, NULL, " I64u ", %lu, %lu, "
-		"	%lu, \"%s\", %lu, %lu, %.2f, %.2f, "
+		"	%u, NULL, " I64u ", %u, %u, "
+		"	%u, \"%s\", %u, %u, %.2f, %.2f, "
 		"	\"%s\" )",
 		characterID, Win32TimeNow(), refTypeID, ownerFromID, 
 		ownerToID, eArg1.c_str(), accountID, accountKey, amount, balance, 
@@ -138,14 +138,14 @@ bool AccountDB::CheckIfCorporation(uint32 corpID) {
 	if (!m_db->RunQuery(res,
 		" SELECT corporationID "
 		" FROM corporation "
-		" WHERE corporationID = %lu ", corpID))
+		" WHERE corporationID = %u ", corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
 	}
 
 	if (!res.GetRow(row)) {
-		_log(SERVICE__MESSAGE, "Failed to find corporation %lu", corpID);
+		_log(SERVICE__MESSAGE, "Failed to find corporation %u", corpID);
 		return false;
 	}
 	return true;
@@ -156,7 +156,7 @@ bool ServiceDB::AddBalanceToCorp(uint32 corpID, double amount) {
 	if (!m_db->RunQuery(err, 
 		" UPDATE corporation "
 		" SET balance = balance + (%lf) "
-		" WHERE corporationID = %lu ", amount, corpID))
+		" WHERE corporationID = %u ", amount, corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 		return false;
@@ -170,13 +170,13 @@ double ServiceDB::GetCorpBalance(uint32 corpID) {
 	if (!m_db->RunQuery(res,
 		" SELECT balance "
 		" FROM corporation "
-		" WHERE corporationID = %lu ", corpID))
+		" WHERE corporationID = %u ", corpID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return 0;
 	}
 	if (!res.GetRow(row)) {
-		_log(SERVICE__WARNING, "Corporation %lu missing from database.", corpID);
+		_log(SERVICE__WARNING, "Corporation %u missing from database.", corpID);
 		return 0;
 	}
 	return row.GetDouble(0);

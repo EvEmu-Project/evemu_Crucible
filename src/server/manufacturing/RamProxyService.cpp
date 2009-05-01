@@ -390,7 +390,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 			case ramActivityReverseEngineering:
 			case ramActivityInvention:
 			default: {
-				_log(SERVICE__ERROR, "Activity %lu is currently unsupported.", activity);
+				_log(SERVICE__ERROR, "Activity %u is currently unsupported.", activity);
 			} break;
 		}
 	}

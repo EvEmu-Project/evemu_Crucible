@@ -160,7 +160,7 @@ PyResult BeyonceBound::Handle_FollowBall(PyCallArgs &call) {
 	}
 	SystemEntity *entity = system->get(args.ballID);
 	if(entity == NULL) {
-		_log(CLIENT__ERROR, "%s: Unable to find entity %lu to Orbit.", call.client->GetName(), args.ballID);
+		_log(CLIENT__ERROR, "%s: Unable to find entity %u to Orbit.", call.client->GetName(), args.ballID);
 		return NULL;
 	}
 	
@@ -213,7 +213,7 @@ PyResult BeyonceBound::Handle_AlignTo(PyCallArgs &call) {
 
 	SystemEntity *entity = system->get(arg.entityID);
 	if(entity == NULL) {
-		_log(CLIENT__ERROR, "%s: Unable to find entity %lu to AlignTo.", call.client->GetName(), arg.entityID);
+		_log(CLIENT__ERROR, "%s: Unable to find entity %u to AlignTo.", call.client->GetName(), arg.entityID);
 		return NULL;
 	}
 
@@ -271,7 +271,7 @@ PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 	}
 	SystemEntity *entity = system->get(arg.entityID);
 	if(entity == NULL) {
-		_log(CLIENT__ERROR, "%s: Unable to find entity %lu to Orbit.", call.client->GetName(), arg.entityID);
+		_log(CLIENT__ERROR, "%s: Unable to find entity %u to Orbit.", call.client->GetName(), arg.entityID);
 		return NULL;
 	}
 
@@ -369,7 +369,7 @@ PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
 	}
 	SystemEntity *station = sm->get(arg.arg);
 	if(station == NULL) {
-		codelog(CLIENT__ERROR, "%s: Station %lu not found.", call.client->GetName(), arg.arg);
+		codelog(CLIENT__ERROR, "%s: Station %u not found.", call.client->GetName(), arg.arg);
 		return NULL;
 	}
 	

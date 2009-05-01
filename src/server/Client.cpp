@@ -69,7 +69,7 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
 			_log(CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString()); \
 		else { \
 			v = ((PyRepInteger *)itr->second)->value; \
-			_log(CLIENT__MESSAGE, "     %s: %lu", itr->first.c_str(), v); \
+			_log(CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), v); \
 		} \
 	}
 #define INT_DYN(v) \
@@ -79,7 +79,7 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
 			_log(CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString()); \
 		else { \
 			Set_##v(((PyRepInteger *)itr->second)->value); \
-			_log(CLIENT__MESSAGE, "     %s: %lu", itr->first.c_str(), Get_##v()); \
+			_log(CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), Get_##v()); \
 		} \
 	}
 #define REAL(v) \
@@ -450,7 +450,7 @@ void Client::SelfChatMessage(const char *fmt, ...) {
 	//just send it to the first channel we are in..
     /*LSCChannel *chan = *(m_channels.begin());
 	char self_id[24];	//such crap..
-	snprintf(self_id, sizeof(self_id), "%lu", GetCharacterID());
+	snprintf(self_id, sizeof(self_id), "%u", GetCharacterID());
 	if(chan->GetName() == self_id) {
 		if(m_channels.size() > 1) {
 			chan = *(++m_channels.begin());
@@ -639,8 +639,8 @@ bool Client::EnterSystem() {
 		//find our system manager and register ourself with it.
 		m_system = m_services.entity_list.FindOrBootSystem(GetSystemID());
 		if(m_system == NULL) {
-			_log(CLIENT__ERROR, "Failed to boot system %lu for char %s (%lu)", GetSystemID(), GetName(), GetCharacterID());
-			SendErrorMsg("Unable to boot system %lu", GetSystemID());
+			_log(CLIENT__ERROR, "Failed to boot system %u for char %s (%u)", GetSystemID(), GetName(), GetCharacterID());
+			SendErrorMsg("Unable to boot system %u", GetSystemID());
 			return false;
 		}
 		m_system->AddClient(this);
@@ -708,7 +708,7 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		Ship()->Move(location, flagShipOffline);
 		Ship()->Relocate(pt);
 	} else {
-		SendErrorMsg("Move requested to unsupported location %lu", location);
+		SendErrorMsg("Move requested to unsupported location %u", location);
 		return;
 	}
 
@@ -737,7 +737,7 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag) {
 	
 	InventoryItem *item = m_services.item_factory.GetItem(itemID, false);
 	if(item == NULL) {
-		codelog(SERVICE__ERROR, "%s: Unable to load item %lu", GetName(), itemID);
+		codelog(SERVICE__ERROR, "%s: Unable to load item %u", GetName(), itemID);
 		return;
 	}
 	
@@ -759,7 +759,7 @@ void Client::BoardShip(InventoryItem *new_ship) {
 	//TODO: make sure we are really allowed to board this thing...
 	
 	if(!new_ship->singleton()) {
-		_log(CLIENT__ERROR, "%s: tried to board ship %lu, which is not assembled.", GetName(), new_ship->itemID());
+		_log(CLIENT__ERROR, "%s: tried to board ship %u, which is not assembled.", GetName(), new_ship->itemID());
 		SendErrorMsg("You cannot board a ship which is not assembled!");
 		return;
 	}
@@ -822,19 +822,19 @@ void Client::_ProcessCallRequest(PyPacket *packet) {
 	if(packet->dest.service.empty()) {
 		//bound object
 		uint32 nodeID, bindID;
-		if(sscanf(call.remoteObjectStr.c_str(), "N=%lu:%lu", &nodeID, &bindID) != 2) {
+		if(sscanf(call.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
 			_log(CLIENT__ERROR, "Failed to parse bind string '%s'.", call.remoteObjectStr.c_str());
 			return;
 		}
 
 		if(nodeID != m_services.GetNodeID()) {
-			_log(CLIENT__ERROR, "Unknown nodeID %lu received (expected %lu).", nodeID, m_services.GetNodeID());
+			_log(CLIENT__ERROR, "Unknown nodeID %u received (expected %u).", nodeID, m_services.GetNodeID());
 			return;
 		}
 
 		dest = m_services.FindBoundObject(bindID);
 		if(dest == NULL) {
-			_log(CLIENT__ERROR, "Failed to find bound object %lu.", bindID);
+			_log(CLIENT__ERROR, "Failed to find bound object %u.", bindID);
 			return;
 		}
 	}
@@ -905,14 +905,14 @@ void Client::_ProcessNotification(PyPacket *packet) {
 			}
 
 			uint32 nodeID, bindID;
-			if(sscanf(element.boundID.c_str(), "N=%lu:%lu", &nodeID, &bindID) != 2) {
+			if(sscanf(element.boundID.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
 				_log(CLIENT__ERROR, "Notification '%s' from %s: Failed to parse bind string '%s'. Skipping.",
 					notify.method.c_str(), GetName(), element.boundID.c_str());
 				continue;
 			}
 
 			if(nodeID != m_services.GetNodeID()) {
-				_log(CLIENT__ERROR, "Notification '%s' from %s: Unknown nodeID %lu received (expected %lu). Skipping.",
+				_log(CLIENT__ERROR, "Notification '%s' from %s: Unknown nodeID %u received (expected %u). Skipping.",
 					notify.method.c_str(), GetName(), nodeID, m_services.GetNodeID());
 				continue;
 			}
@@ -1129,7 +1129,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 		toGate,
 		&solarSystemID, &constellationID, &regionID, &position
 	)) {
-		codelog(CLIENT__ERROR, "%s: Failed to query information for stargate %lu", GetName(), toGate);
+		codelog(CLIENT__ERROR, "%s: Failed to query information for stargate %u", GetName(), toGate);
 		return;
 	}
 	
@@ -1187,11 +1187,11 @@ bool Client::AddBalance(double amount) {
 
 bool Client::SelectCharacter(uint32 char_id) {
 	if(!m_services.serviceDB().LoadCharacter(char_id, m_chardata)) {
-		_log(CLIENT__ERROR, "Failed to load character data for char %lu.", char_id);
+		_log(CLIENT__ERROR, "Failed to load character data for char %u.", char_id);
 		return false;
 	}
 	if(!m_services.serviceDB().LoadCorporationMemberInfo(char_id, m_corpstate)) {
-		_log(CLIENT__ERROR, "Failed to load corp member info for char %lu.", char_id);
+		_log(CLIENT__ERROR, "Failed to load corp member info for char %u.", char_id);
 		return false;
 	}
 
@@ -1358,7 +1358,7 @@ DoDestinyUpdate ,*args= ([(31759,
 		return false;
 	}
 
-	_log(CLIENT__MESSAGE, "%s: Launching drone %lu", GetName(), drone->itemID());
+	_log(CLIENT__MESSAGE, "%s: Launching drone %u", GetName(), drone->itemID());
 	
 	//first, the item gets moved into space
 	//TODO: set customInfo to a tuple: (shipID, None)

@@ -100,12 +100,12 @@ PyResult MarketProxyService::Handle_GetStationAsks(PyCallArgs &call) {
 	
 	uint32 locid = call.client->GetLocationID();
 	if(!IsStation(locid)) {
-		_log(SERVICE__ERROR, "%s: Requested StationAsks when in non-station location %lu", call.client->GetName(), locid);
+		_log(SERVICE__ERROR, "%s: Requested StationAsks when in non-station location %u", call.client->GetName(), locid);
 		return NULL;
 	}
 	result = m_db.GetStationAsks(locid);
 	if(result == NULL) {
-		_log(SERVICE__ERROR, "%s: Failed to load StationAsks for location %lu", call.client->GetName(), locid);
+		_log(SERVICE__ERROR, "%s: Failed to load StationAsks for location %u", call.client->GetName(), locid);
 		return NULL;
 	}
 	
@@ -118,12 +118,12 @@ PyResult MarketProxyService::Handle_GetSystemAsks(PyCallArgs &call) {
 	
 	uint32 locid = call.client->GetSystemID();
 	if(!IsSolarSystem(locid)) {
-		codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %lu!", call.client->GetName(), locid);
+		codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %u!", call.client->GetName(), locid);
 		return NULL;
 	}
 	result = m_db.GetSystemAsks(locid);
 	if(result == NULL) {
-		_log(SERVICE__ERROR, "%s: Failed to load SystemAsks for location %lu", call.client->GetName(), locid);
+		_log(SERVICE__ERROR, "%s: Failed to load SystemAsks for location %u", call.client->GetName(), locid);
 		return NULL;
 	}
 	
@@ -136,19 +136,19 @@ PyResult MarketProxyService::Handle_GetRegionBest(PyCallArgs &call) {
 	
 	uint32 locid = call.client->GetSystemID();
 	if(!IsSolarSystem(locid)) {
-		codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %lu!", call.client->GetName(), locid);
+		codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %u!", call.client->GetName(), locid);
 		return NULL;
 	}
 	
 	uint32 regionID;
 	if(!m_db.GetSystemInfo(locid, NULL, &regionID, NULL, NULL)) {
-		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %lu!", call.client->GetName(), locid);
+		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %u!", call.client->GetName(), locid);
 		return NULL;
 	}
 	
 	result = m_db.GetRegionBest(regionID);
 	if(result == NULL) {
-		_log(SERVICE__ERROR, "%s: Failed to load GetRegionBest for region %lu", call.client->GetName(), regionID);
+		_log(SERVICE__ERROR, "%s: Failed to load GetRegionBest for region %u", call.client->GetName(), regionID);
 		return NULL;
 	}
 	
@@ -189,19 +189,19 @@ PyResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
 	
 	uint32 locid = call.client->GetSystemID();
 	if(!IsSolarSystem(locid)) {
-		codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %lu!", call.client->GetName(), locid);
+		codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %u!", call.client->GetName(), locid);
 		return NULL;
 	}
 	
 	uint32 regionID;
 	if(!m_db.GetSystemInfo(locid, NULL, &regionID, NULL, NULL)) {
-		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %lu!", call.client->GetName(), locid);
+		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %u!", call.client->GetName(), locid);
 		return NULL;
 	}
 	
 	result = m_db.GetOrders(regionID, args.arg);
 	if(result == NULL) {
-		_log(SERVICE__ERROR, "%s: Failed to load GetOrders for item %lu of region %lu", call.client->GetName(), args.arg, regionID);
+		_log(SERVICE__ERROR, "%s: Failed to load GetOrders for item %u of region %u", call.client->GetName(), args.arg, regionID);
 		return NULL;
 	}
 	
@@ -232,19 +232,19 @@ PyResult MarketProxyService::Handle_GetOldPriceHistory(PyCallArgs &call) {
 	
 	uint32 locid = call.client->GetSystemID();
 	if(!IsSolarSystem(locid)) {
-		codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %lu!", call.client->GetName(), locid);
+		codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %u!", call.client->GetName(), locid);
 		return NULL;
 	}
 	
 	uint32 regionID;
 	if(!m_db.GetSystemInfo(locid, NULL, &regionID, NULL, NULL)) {
-		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %lu!", call.client->GetName(), locid);
+		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %u!", call.client->GetName(), locid);
 		return NULL;
 	}
 	
 	result = m_db.GetOldPriceHistory(regionID, args.arg);
 	if(result == NULL) {
-		_log(SERVICE__ERROR, "%s: Failed to load Old Price History for item %lu of region %lu", call.client->GetName(), args.arg, regionID);
+		_log(SERVICE__ERROR, "%s: Failed to load Old Price History for item %u of region %u", call.client->GetName(), args.arg, regionID);
 		return NULL;
 	}
 	
@@ -262,19 +262,19 @@ PyResult MarketProxyService::Handle_GetNewPriceHistory(PyCallArgs &call) {
 	
 	uint32 locid = call.client->GetSystemID();
 	if(!IsSolarSystem(locid)) {
-		codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %lu!", call.client->GetName(), locid);
+		codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %u!", call.client->GetName(), locid);
 		return NULL;
 	}
 	
 	uint32 regionID;
 	if(!m_db.GetSystemInfo(locid, NULL, &regionID, NULL, NULL)) {
-		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %lu!", call.client->GetName(), locid);
+		codelog(SERVICE__ERROR, "%s: Failed to find parents of system %u!", call.client->GetName(), locid);
 		return NULL;
 	}
 	
 	result = m_db.GetNewPriceHistory(regionID, args.arg);
 	if(result == NULL) {
-		_log(SERVICE__ERROR, "%s: Failed to load New Price History for item %lu of region %lu", call.client->GetName(), args.arg, regionID);
+		_log(SERVICE__ERROR, "%s: Failed to load New Price History for item %u of region %u", call.client->GetName(), args.arg, regionID);
 		return NULL;
 	}
 	
@@ -301,7 +301,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 			args.quantity,
 			args.orderRange);
 		if(order_id != 0) {
-			_log(MARKET__TRACE, "%s: Found sell order %lu to satisfy (type %lu, station %lu, price %f, qty %lu, range %lu)", call.client->GetName(), order_id, args.stationID, args.typeID, args.price, args.quantity, args.orderRange);
+			_log(MARKET__TRACE, "%s: Found sell order %u to satisfy (type %u, station %u, price %f, qty %u, range %u)", call.client->GetName(), order_id, args.stationID, args.typeID, args.price, args.quantity, args.orderRange);
 			
 			_ExecuteSellOrder(order_id, args.stationID, args.quantity, call.client, args.useCorp);
 			return NULL;
@@ -407,7 +407,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 			args.quantity,
 			args.orderRange);
 		if(order_id != 0) {
-			_log(MARKET__TRACE, "%s: Found order %lu to satisfy (type %lu, station %lu, price %f, qty %lu, range %lu)", call.client->GetName(), order_id, args.stationID, args.typeID, args.price, args.quantity, args.orderRange);
+			_log(MARKET__TRACE, "%s: Found order %u to satisfy (type %u, station %u, price %f, qty %u, range %u)", call.client->GetName(), order_id, args.stationID, args.typeID, args.price, args.quantity, args.orderRange);
 			
 			_ExecuteBuyOrder(order_id, args.stationID, args.quantity, call.client, item, args.useCorp);
 			item->Release();
@@ -415,7 +415,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		}
 		
 		//else, unable to satisfy immediately...
-		_log(MARKET__TRACE, "%s: Unable to find an immediate order to satisfy (type %lu, station %lu, price %f, qty %lu, range %lu)", call.client->GetName(), args.stationID, args.typeID, args.price, args.quantity, args.orderRange);
+		_log(MARKET__TRACE, "%s: Unable to find an immediate order to satisfy (type %u, station %u, price %f, qty %u, range %u)", call.client->GetName(), args.stationID, args.typeID, args.price, args.quantity, args.orderRange);
 		
 		if(args.duration == 0) {
 			_log(MARKET__ERROR, "%s: Failed to satisfy order for %d of %d at %f ISK.", call.client->GetName(), args.typeID, args.quantity, args.price);
@@ -431,7 +431,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		} else {
 			//update the item.
 			if(!item->AlterQuantity(-int32(args.quantity), true)) {
-				codelog(MARKET__ERROR, "%s: Failed to consume %lu units from item %lu", call.client->GetName(), args.quantity, item->itemID());
+				codelog(MARKET__ERROR, "%s: Failed to consume %u units from item %u", call.client->GetName(), args.quantity, item->itemID());
 				item->Release();
 				return NULL;
 			} else
@@ -482,19 +482,19 @@ void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID,
 	double price = 0;
 
 	if(!m_db.GetOrderInfo(buy_order_id, orderOwnerID, typeID, qtyReq, price)) {
-		codelog(MARKET__ERROR, "%s: Failed to get info about buy order %lu.", seller->GetName(), buy_order_id);
+		codelog(MARKET__ERROR, "%s: Failed to get info about buy order %u.", seller->GetName(), buy_order_id);
 		return;
 	}
 
 	if(typeID != item->typeID()) {
 		//should never happen.
-		codelog(MARKET__ERROR, "%s: Type mismatch executing order %lu: order %lu item %lu", seller->GetName(), buy_order_id, typeID, item->typeID());
+		codelog(MARKET__ERROR, "%s: Type mismatch executing order %u: order %u item %u", seller->GetName(), buy_order_id, typeID, item->typeID());
 		seller->SendErrorMsg("Order type mismatch.");
 		return;
 	}
 
 	if(quantity > qtyReq) {
-		codelog(MARKET__ERROR, "%s: Tried to sell more (%lu) than %lu required (%lu). Selling only what required.", seller->GetName(), quantity, orderOwnerID, qtyReq);
+		codelog(MARKET__ERROR, "%s: Tried to sell more (%u) than %u required (%u). Selling only what required.", seller->GetName(), quantity, orderOwnerID, qtyReq);
 		quantity = qtyReq;
 	}
 	
@@ -516,7 +516,7 @@ void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID,
 		//need to split item up...
 		InventoryItem *new_item = item->Split(quantity, true);
 		if(new_item == NULL) {
-			codelog(MARKET__ERROR, "Failed to split item %lu.", item->itemID());
+			codelog(MARKET__ERROR, "Failed to split item %u.", item->itemID());
 			return;
 		}
 		//use the owner change packet to alert the buyer of the new item
@@ -539,15 +539,15 @@ void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID,
 
 	//change order AFTER notification has been sent out
 	if(quantity == qtyReq) {
-		_log(MARKET__TRACE, "%s: Completely satisfied order %lu, deleting.", seller->GetName(), buy_order_id);
+		_log(MARKET__TRACE, "%s: Completely satisfied order %u, deleting.", seller->GetName(), buy_order_id);
 		if(!m_db.DeleteOrder(buy_order_id)) {
-			codelog(MARKET__ERROR, "Failed to delete order %lu.", buy_order_id);
+			codelog(MARKET__ERROR, "Failed to delete order %u.", buy_order_id);
 			return;
 		}
 	} else {
-		_log(MARKET__TRACE, "%s: Partially satisfied order %lu, altering quantity to %lu.", seller->GetName(), buy_order_id, qtyReq - quantity);
+		_log(MARKET__TRACE, "%s: Partially satisfied order %u, altering quantity to %u.", seller->GetName(), buy_order_id, qtyReq - quantity);
 		if(!m_db.AlterOrderQuantity(buy_order_id, qtyReq - quantity)) {
-			codelog(MARKET__ERROR, "Failed to alter quantity of order %lu.", buy_order_id);
+			codelog(MARKET__ERROR, "Failed to alter quantity of order %u.", buy_order_id);
 			return;
 		}
 	}
@@ -571,12 +571,12 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 	double price = 0;
 
 	if(!m_db.GetOrderInfo(sell_order_id, orderOwnerID, typeID, qtyAvail, price)) {
-		codelog(MARKET__ERROR, "%s: Failed to get info about sell order %lu.", buyer->GetName(), sell_order_id);
+		codelog(MARKET__ERROR, "%s: Failed to get info about sell order %u.", buyer->GetName(), sell_order_id);
 		return;
 	}
 
 	if(quantity > qtyAvail) {
-		codelog(MARKET__ERROR, "%s: Tried to buy more (%lu) than available (%lu). Buying all available.", buyer->GetName(), quantity, qtyAvail);
+		codelog(MARKET__ERROR, "%s: Tried to buy more (%u) than available (%u). Buying all available.", buyer->GetName(), quantity, qtyAvail);
 		quantity = qtyAvail;
 	}
 
@@ -589,7 +589,7 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 
 	//take the money from the buyer before we spawn the item.
 	if(!buyer->AddBalance(-money)) {
-		codelog(MARKET__ERROR, "%s: Failed to take buyer %s (%lu)'s money (%.2f ISK) for order %lu", buyer->GetName(), buyer->GetName(), buyer->GetCharacterID(), money, sell_order_id);
+		codelog(MARKET__ERROR, "%s: Failed to take buyer %s (%u)'s money (%.2f ISK) for order %u", buyer->GetName(), buyer->GetName(), buyer->GetCharacterID(), money, sell_order_id);
 		buyer->SendErrorMsg("You cannot afford that.");
 		return;
 	}
@@ -614,13 +614,13 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 	if(seller != NULL) {
 		//the seller is logged in, send them a notification...
 		if(!seller->AddBalance(money))
-			codelog(MARKET__ERROR, "%s: Failed to give seller %s (%lu) %.2f ISK from order %lu", buyer->GetName(), seller->GetName(), orderOwnerID, money, sell_order_id);
+			codelog(MARKET__ERROR, "%s: Failed to give seller %s (%u) %.2f ISK from order %u", buyer->GetName(), seller->GetName(), orderOwnerID, money, sell_order_id);
 		//send them an update.
 		_SendOnOwnOrderChanged(seller, sell_order_id, "Change", false);	//made up action; we know it's not a corp
 	} else {
 		//seller is not online right now...
 		if(!m_db.AddCharacterBalance(orderOwnerID, money))
-		   codelog(MARKET__ERROR, "%s: Failed to give seller ID %lu %.2f ISK from order %lu", buyer->GetName(), orderOwnerID, money, sell_order_id);
+		   codelog(MARKET__ERROR, "%s: Failed to give seller ID %u %.2f ISK from order %u", buyer->GetName(), orderOwnerID, money, sell_order_id);
 	}
 
 	//they seem to send OnOwnOrderChanged with "Add" to the seller too...
@@ -630,15 +630,15 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 
 	//change order AFTER notification has been sent out
 	if(quantity == qtyAvail) {
-		_log(MARKET__TRACE, "%s: Completely satisfied order %lu, deleting.", buyer->GetName(), sell_order_id);
+		_log(MARKET__TRACE, "%s: Completely satisfied order %u, deleting.", buyer->GetName(), sell_order_id);
 		if(!m_db.DeleteOrder(sell_order_id)) {
-			codelog(MARKET__ERROR, "Failed to delete order %lu.", sell_order_id);
+			codelog(MARKET__ERROR, "Failed to delete order %u.", sell_order_id);
 			return;
 		}
 	} else {
-		_log(MARKET__TRACE, "%s: Partially satisfied order %lu, altering quantity to %lu.", buyer->GetName(), sell_order_id, qtyAvail - quantity);
+		_log(MARKET__TRACE, "%s: Partially satisfied order %u, altering quantity to %u.", buyer->GetName(), sell_order_id, qtyAvail - quantity);
 		if(!m_db.AlterOrderQuantity(sell_order_id, qtyAvail - quantity)) {
-			codelog(MARKET__ERROR, "Failed to alter quantity of order %lu.", sell_order_id);
+			codelog(MARKET__ERROR, "Failed to alter quantity of order %u.", sell_order_id);
 			return;
 		}
 	}

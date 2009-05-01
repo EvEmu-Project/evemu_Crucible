@@ -437,8 +437,7 @@ bool DBQueryResult::GetRow(DBResultRow &into) {
 const char *DBQueryResult::ColumnName(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		//_log(DATABASE__ERROR, "ColumnName: Column index %d exceeds number of columns (%s) in row", column, ColumnCount());
-		printf("ColumnName: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
+		_log(DATABASE__ERROR, "ColumnName: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
 		return("(ERROR)");		//nothing better to do...
 	}
 #endif
@@ -448,8 +447,7 @@ const char *DBQueryResult::ColumnName(uint32 column) const {
 DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		//_log(DATABASE__ERROR, "ColumnType: Column index %d exceeds number of columns (%s) in row", column, ColumnCount());
-		printf("ColumnType: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
+		_log(DATABASE__ERROR, "ColumnType: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
 		return(String);		//nothing better to do...
 	}
 #endif
@@ -672,7 +670,7 @@ void ListToINString(const std::vector<uint32> &ints, std::string &into, const ch
 			*ptr = ',';
 			ptr++;
 		}
-		ptr += snprintf(ptr, 15, "%lu", *cur);
+		ptr += snprintf(ptr, 15, "%u", *cur);
 	}
 
 	into = inbuffer;
@@ -697,7 +695,7 @@ bool DBSequence::Init(uint32 last_used_value) {
 	}
 	
 	if(!m_db->RunQuery(err, 
-		"REPLACE INTO %s (last_used) VALUES(%lu)",
+		"REPLACE INTO %s (last_used) VALUES(%u)",
 		m_table.c_str(), last_used_value
 	))
 	{

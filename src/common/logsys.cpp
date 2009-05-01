@@ -110,7 +110,7 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
 	message += buf;
 
 	message += '.';
-	snprintf(buf, sizeof(buf), "%04d", tv.tv_usec/100);
+	snprintf(buf, sizeof(buf), "%04lu", tv.tv_usec/100);
 	message += buf;	
 #endif /* !WIN32 */
 	message += " ";	// make a space between log time and message itself

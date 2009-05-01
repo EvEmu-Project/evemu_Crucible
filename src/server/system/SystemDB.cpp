@@ -40,7 +40,7 @@ bool SystemDB::LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &
 		" itemID,typeID,groupID,orbitID,"
 		" x,y,z,radius,security,itemName"
 		" FROM mapDenormalize"
-		" WHERE solarSystemID=%lu", systemID
+		" WHERE solarSystemID=%u", systemID
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -81,7 +81,7 @@ bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDy
 		"	    entity.typeID=invTypes.typeID"
 		"	AND invTypes.groupID=invGroups.groupID"
 		"	AND invGroups.categoryID NOT IN (%d,%d,%d,%d)"
-		"	AND locationID=%lu",
+		"	AND locationID=%u",
 		//excluded categories:
 			//celestials:
 			_System, Celestial, Station,
@@ -132,7 +132,7 @@ PyRepObject *SystemDB::ListJumps(uint32 stargateID) {
 		" solarSystemID AS locationID"
 		" FROM mapJumps "
 		"	LEFT JOIN mapDenormalize ON celestialID=itemID"
-		" WHERE stargateID=%lu", stargateID))
+		" WHERE stargateID=%u", stargateID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;

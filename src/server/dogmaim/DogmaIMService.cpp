@@ -119,7 +119,7 @@ PyResult DogmaIMBound::Handle_ShipGetInfo(PyCallArgs &call) {
 	
 	PyRepObject *result = call.client->Ship()->ShipGetInfo();
 	if(result == NULL) {
-		codelog(SERVICE__ERROR, "Unable to build ship info for ship %lu", call.client->Ship()->itemID());
+		codelog(SERVICE__ERROR, "Unable to build ship info for ship %u", call.client->Ship()->itemID());
 		return NULL;
 	}
 	
@@ -135,14 +135,14 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
 	
 	InventoryItem *item = m_manager->item_factory.GetItem(args.arg, false);
 	if(item == NULL) {
-		codelog(SERVICE__ERROR, "Unable to load item %lu", args.arg);
+		codelog(SERVICE__ERROR, "Unable to load item %u", args.arg);
 		return NULL;
 	}
 
 	PyRepObject *result = item->ItemGetInfo();
 	item->Release();
 	if(result == NULL) {
-		codelog(SERVICE__ERROR, "Unable to build item info for item %lu", args.arg);
+		codelog(SERVICE__ERROR, "Unable to build item info for item %u", args.arg);
 		return NULL;
 	}
 	
@@ -154,7 +154,7 @@ PyResult DogmaIMBound::Handle_CharGetInfo(PyCallArgs &call) {
 	
 	PyRepObject *result = call.client->Char()->CharGetInfo();
 	if(result == NULL) {
-		codelog(SERVICE__ERROR, "Unable to build char info for char %lu", call.client->Char()->itemID());
+		codelog(SERVICE__ERROR, "Unable to build char info for char %u", call.client->Char()->itemID());
 		return NULL;
 	}
 
@@ -235,7 +235,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {
 	}
 	SystemEntity *target = smgr->get(args.arg);
 	if(target == NULL) {
-		codelog(SERVICE__ERROR, "Unable to find entity %lu in system %lu from '%s'", args.arg, smgr->GetID(), call.client->GetName());
+		codelog(SERVICE__ERROR, "Unable to find entity %u in system %u from '%s'", args.arg, smgr->GetID(), call.client->GetName());
 		return NULL;
 	}
 
@@ -264,7 +264,7 @@ PyResult DogmaIMBound::Handle_RemoveTarget(PyCallArgs &call) {
 	}
 	SystemEntity *target = smgr->get(args.arg);
 	if(target == NULL) {
-		codelog(SERVICE__ERROR, "Unable to find entity %lu in system %lu from '%s'", args.arg, smgr->GetID(), call.client->GetName());
+		codelog(SERVICE__ERROR, "Unable to find entity %u in system %u from '%s'", args.arg, smgr->GetID(), call.client->GetName());
 		return NULL;
 	}
 	

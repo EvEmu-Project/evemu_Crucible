@@ -55,7 +55,7 @@ PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
 		//handle agents special right now...
 		PyRep *result = m_db.GetAgentPublicInfo(args.arg);
 		if(result == NULL) {
-			codelog(CLIENT__ERROR, "%s: Failed to find agent %lu", call.client->GetName(), args.arg);
+			codelog(CLIENT__ERROR, "%s: Failed to find agent %u", call.client->GetName(), args.arg);
 			return NULL;
 		}
 		return(result);
@@ -63,7 +63,7 @@ PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
 
 	PyRep *result = m_db.GetCharPublicInfo(args.arg);
 	if(result == NULL) {
-		codelog(CLIENT__ERROR, "%s: Failed to find char %lu", call.client->GetName(), args.arg);
+		codelog(CLIENT__ERROR, "%s: Failed to find char %u", call.client->GetName(), args.arg);
 		return NULL;
 	}
 	
@@ -80,7 +80,7 @@ PyResult CharMgrService::Handle_GetPublicInfo3(PyCallArgs &call) {
 	
 	PyRep *result = m_db.GetCharPublicInfo3(args.arg);
 	if(result == NULL) {
-		codelog(CLIENT__ERROR, "%s: Failed to find char %lu", call.client->GetName(), args.arg);
+		codelog(CLIENT__ERROR, "%s: Failed to find char %u", call.client->GetName(), args.arg);
 		return NULL;
 	}
 	

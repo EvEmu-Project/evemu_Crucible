@@ -50,7 +50,7 @@ Category::Category(
   m_description(_data.description),
   m_published(_data.published)
 {
-	_log(ITEM__TRACE, "Created object %p for category %s (%lu).", this, name().c_str(), (uint32)id());
+	_log(ITEM__TRACE, "Created object %p for category %s (%u).", this, name().c_str(), (uint32)id());
 }
 
 Category *Category::Load(ItemFactory &factory, EVEItemCategories category) {
@@ -136,7 +136,7 @@ Group::Group(
 	// assert for data consistency
 	assert(_data.category == _category.id());
 
-	_log(ITEM__TRACE, "Created object %p for group %s (%lu).", this, name().c_str(), id());
+	_log(ITEM__TRACE, "Created object %p for group %s (%u).", this, name().c_str(), id());
 }
 
 Group *Group::Load(ItemFactory &factory, uint32 groupID) {
@@ -238,7 +238,7 @@ Type::Type(
 	attributes.Set_capacity(_data.capacity);
 	attributes.Set_raceID(_data.race);
 
-	_log(ITEM__TRACE, "Created object %p for type %s (%lu).", this, name().c_str(), id());
+	_log(ITEM__TRACE, "Created object %p for type %s (%u).", this, name().c_str(), id());
 }
 
 Type *Type::Load(ItemFactory &factory, uint32 typeID) {

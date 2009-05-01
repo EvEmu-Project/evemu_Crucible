@@ -65,7 +65,7 @@ PyResult PyService::Handle_MachoResolveObject(PyCallArgs &call) {
 	}
 */
 	//returns nodeID
-	_log(CLIENT__MESSAGE, "%s Service: MachoResolveObject requested, returning %lu", GetName(), m_manager->GetNodeID());
+	_log(CLIENT__MESSAGE, "%s Service: MachoResolveObject requested, returning %u", GetName(), m_manager->GetNodeID());
 	return(new PyRepInteger(m_manager->GetNodeID()));
 }
 

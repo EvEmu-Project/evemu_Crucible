@@ -39,7 +39,7 @@ bool ReprocessingDB::IsRefinable(const uint32 typeID) {
 	if(!m_db->RunQuery(res,
 				"SELECT NULL"
 				" FROM typeActivityMaterials"
-				" WHERE typeID=%lu"
+				" WHERE typeID=%u"
 				" AND recycle = 0"
 				" LIMIT 1",
 				typeID))
@@ -59,9 +59,9 @@ bool ReprocessingDB::IsRecyclable(const uint32 typeID) {
 				"SELECT NULL FROM typeActivityMaterials"
 				" LEFT JOIN invBlueprintTypes ON typeID = blueprintTypeID"
 				" WHERE damagePerJob = 1 AND ("
-				"   (activityID = 6 AND typeID = %lu)"
+				"   (activityID = 6 AND typeID = %u)"
 				"   OR"
-				"	(activityID = 1 AND productTypeID = %lu)"
+				"	(activityID = 1 AND productTypeID = %u)"
 				") AND recycle = 1"
 				" LIMIT 1",
 				typeID, typeID))
@@ -80,17 +80,17 @@ bool ReprocessingDB::LoadStatic(const uint32 stationID, double &efficiency, doub
 	if(!m_db->RunQuery(res,
 				"SELECT reprocessingEfficiency, reprocessingStationsTake"
 				" FROM staStations"
-				" WHERE stationID=%lu",
+				" WHERE stationID=%u",
 				stationID))
 	{
-		_log(DATABASE__ERROR, "Failed to get reprocessing info for station %lu: '%s'.", stationID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to get reprocessing info for station %u: '%s'.", stationID, res.error.c_str());
 		return false;
 	}
 
 	DBResultRow row;
 	
 	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No data found for stationID %lu.", stationID);
+		_log(DATABASE__ERROR, "No data found for stationID %u.", stationID);
 		return false;
 	}
 
@@ -108,13 +108,13 @@ bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverabl
 				"SELECT requiredTypeID, MIN(quantity) FROM typeActivityMaterials"
 				" LEFT JOIN invBlueprintTypes ON typeID = blueprintTypeID"
 				" WHERE damagePerJob = 1 AND ("
-				"   (activityID = 6 AND typeID = %lu)"
+				"   (activityID = 6 AND typeID = %u)"
 				"   OR"
-				"	(activityID = 1 AND productTypeID = %lu))"
+				"	(activityID = 1 AND productTypeID = %u))"
 				" GROUP BY requiredTypeID",
 				typeID, typeID, typeID))
 	{
-		_log(DATABASE__ERROR, "Unable to get recoverables for type ID %lu: '%s'", typeID, res.error.c_str());
+		_log(DATABASE__ERROR, "Unable to get recoverables for type ID %u: '%s'", typeID, res.error.c_str());
 		return false;
 	}
 

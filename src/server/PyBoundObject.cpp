@@ -38,7 +38,7 @@ PyBoundObject::~PyBoundObject() {
 }
 
 PyResult PyBoundObject::Call(const std::string &method, PyCallArgs &args) {
-	_log(SERVICE__CALLS, "Bound object %lu:%lu: calling %s", nodeID(), bindID(), method.c_str());
+	_log(SERVICE__CALLS, "Bound object %u:%u: calling %s", nodeID(), bindID(), method.c_str());
 	args.Dump(SERVICE__CALL_TRACE);
 
 	return(PyCallable::Call(method, args));
@@ -47,7 +47,7 @@ PyResult PyBoundObject::Call(const std::string &method, PyCallArgs &args) {
 std::string PyBoundObject::GetBindStr() const {
 	//generate a nice bind string:
 	char bind_str[128];
-	snprintf(bind_str, sizeof(bind_str), "N=%lu:%lu", nodeID(), bindID());
+	snprintf(bind_str, sizeof(bind_str), "N=%u:%u", nodeID(), bindID());
 
 	return(std::string(bind_str));
 }

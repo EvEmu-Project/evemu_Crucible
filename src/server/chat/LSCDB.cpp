@@ -104,14 +104,14 @@ uint32 LSCDB::StoreMail(uint32 senderID, uint32 recipID, const char * subject, c
 		" INSERT INTO "
 		" eveMail "
 		" (channelID, senderID, subject, created) "
-		" VALUES (%lu, %lu, '%s', "I64u") ",
+		" VALUES (%u, %u, '%s', "I64u") ",
 		recipID, senderID, escaped.c_str(), sentTime ))
 	{
 		codelog(SERVICE__ERROR, "Error in query, message header couldn't be saved: %s", err.c_str());
 		return (0);
 	}
 
-	_log(SERVICE__MESSAGE, "New messageID: %lu", messageID);
+	_log(SERVICE__MESSAGE, "New messageID: %u", messageID);
 
 	// Escape message content
 	m_db->DoEscapeString(escaped, message);
@@ -119,15 +119,15 @@ uint32 LSCDB::StoreMail(uint32 senderID, uint32 recipID, const char * subject, c
 	// Store message content
 	if (!m_db->RunQuery(err,
 		" INSERT INTO eveMailDetails "
-		" (messageID, mimeTypeID, attachment) VALUES (%lu, 1, '%s') ",
+		" (messageID, mimeTypeID, attachment) VALUES (%u, 1, '%s') ",
 		messageID, escaped.c_str()
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query, message content couldn't be saved: %s", err.c_str());
 		// Delete message header
-		if (!m_db->RunQuery(err, "DELETE FROM `eveMail` WHERE `messageID` = %lu;", messageID))
+		if (!m_db->RunQuery(err, "DELETE FROM `eveMail` WHERE `messageID` = %u;", messageID))
 		{
-			codelog(SERVICE__ERROR, "Failed to remove invalid header data for messgae id %lu: %s", messageID, err.c_str());
+			codelog(SERVICE__ERROR, "Failed to remove invalid header data for messgae id %u: %s", messageID, err.c_str());
 		}
 		return (0);
 	}
@@ -142,7 +142,7 @@ PyRepObject *LSCDB::GetMailHeaders(uint32 recID) {
 	if(!m_db->RunQuery(res,
 		"SELECT channelID, messageID, senderID, subject, created, `read` "
 		" FROM eveMail "
-		" WHERE channelID=%lu", recID))
+		" WHERE channelID=%u", recID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -167,8 +167,8 @@ PyRep *LSCDB::GetMailDetails(uint32 messageID, uint32 readerID) {
 		"	ON eveMailDetails.messageID = eveMail.messageID "
 		" LEFT JOIN eveMailMimeType"
 		"	ON eveMailMimeType.mimeTypeID = eveMailDetails.mimeTypeID "
-		" WHERE eveMail.messageID=%lu"
-		"	AND channelID=%lu",
+		" WHERE eveMail.messageID=%u"
+		"	AND channelID=%u",
 			messageID, readerID
 		))
 	{
@@ -177,7 +177,7 @@ PyRep *LSCDB::GetMailDetails(uint32 messageID, uint32 readerID) {
 	}
 
 	if (!result.GetRow(row)) {
-		codelog(SERVICE__MESSAGE, "No message with messageID %lu", messageID);
+		codelog(SERVICE__MESSAGE, "No message with messageID %u", messageID);
 		return (NULL);
 	}
 
@@ -202,7 +202,7 @@ bool LSCDB::MarkMessageRead(uint32 messageID) {
 	if (!m_db->RunQuery(err,
 		" UPDATE eveMail "
 		" SET `read` = 1 "
-		" WHERE messageID=%lu", messageID
+		" WHERE messageID=%u", messageID
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -218,7 +218,7 @@ bool LSCDB::DeleteMessage(uint32 messageID, uint32 readerID) {
 
 	if (!m_db->RunQuery(err,
 		" DELETE FROM eveMail "
-		" WHERE messageID=%lu AND channelID=%lu", messageID, readerID
+		" WHERE messageID=%u AND channelID=%u", messageID, readerID
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -226,7 +226,7 @@ bool LSCDB::DeleteMessage(uint32 messageID, uint32 readerID) {
 	}
 	if (!m_db->RunQuery(err,
 		" DELETE FROM eveMailDetails "
-		" WHERE messageID=%lu", messageID
+		" WHERE messageID=%u", messageID
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -313,7 +313,7 @@ PyRepObject *LSCDB::LookupLocationsByGroup(const std::string & search, uint32 ty
 		" SELECT "
 		" itemID, itemName, typeID "
 		" FROM entity "
-		" WHERE itemName RLIKE '%s' AND typeID = %lu", secure.c_str(), typeID))
+		" WHERE itemName RLIKE '%s' AND typeID = %u", secure.c_str(), typeID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return 0;
@@ -337,7 +337,7 @@ void LSCDB::GetChannelNames(uint32 charID, std::vector<std::string> & names) {
 		"	LEFT JOIN entity ON character_.solarSystemID = entity.itemID "
 		"	LEFT JOIN mapConstellations ON character_.constellationID = mapConstellations.constellationID "
 		"	LEFT JOIN mapRegions ON character_.regionID = mapRegions.regionID "
-		" WHERE character_.characterID = %lu ", charID))
+		" WHERE character_.characterID = %u ", charID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return;
@@ -346,7 +346,7 @@ void LSCDB::GetChannelNames(uint32 charID, std::vector<std::string> & names) {
 	DBResultRow row;
 
 	if (!res.GetRow(row)) {
-		_log(SERVICE__ERROR, "CharID %lu isn't present in the database", charID);
+		_log(SERVICE__ERROR, "CharID %u isn't present in the database", charID);
 		return;
 	}
 
@@ -364,7 +364,7 @@ std::string LSCDB::GetChannelName(uint32 id, const char * table, const char * co
 		" SELECT "
 		"	%s "
 		" FROM %s "
-		" WHERE %s = %lu ", column, table, key, id))
+		" WHERE %s = %u ", column, table, key, id))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		char err[20];
@@ -375,7 +375,7 @@ std::string LSCDB::GetChannelName(uint32 id, const char * table, const char * co
 	DBResultRow row;
 
 	if (!res.GetRow(row)) {
-		_log(SERVICE__ERROR, "Couldn't find %s %lu in table %s", key, id, table);
+		_log(SERVICE__ERROR, "Couldn't find %s %u in table %s", key, id, table);
 		char err[20];
 		snprintf(err, 20, "Unknown %u", id);
 		return(err);

@@ -47,7 +47,7 @@ bool SpawnDB::LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup 
 		" spawnGroups.formation"
 		" FROM spawns "
 		"	LEFT JOIN spawnGroups ON spawnGroups.spawnGroupID=spawns.spawnGroupID"
-		" WHERE spawns.solarSystemID=%lu"
+		" WHERE spawns.solarSystemID=%u"
 		" GROUP BY spawnGroups.spawnGroupID",
 			solarSystemID))
 	{
@@ -113,7 +113,7 @@ bool SpawnDB::LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup 
 			row.GetUInt(5) );
 		cur = into.find(entry.spawnGroupID);
 		if(cur == into.end()) {
-			_log(SPAWN__ERROR, "Loading spawn group entry failed, unable to find group %lu for type %lu", entry.spawnGroupID, entry.npcTypeID);
+			_log(SPAWN__ERROR, "Loading spawn group entry failed, unable to find group %u for type %u", entry.spawnGroupID, entry.npcTypeID);
 			continue;
 		}
 		
@@ -141,7 +141,7 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 		" respawnTimeMin,"
 		" respawnTimeMax"
 		" FROM spawns "
-		" WHERE solarSystemID=%lu",
+		" WHERE solarSystemID=%u",
 			solarSystemID))
 	{
 		codelog(SPAWN__ERROR, "Error in query: %s", res.error.c_str());
@@ -157,7 +157,7 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 		uint32 groupID = row.GetUInt(1);
 		result = groups.find(groupID);
 		if(result == groups.end()) {
-			_log(SPAWN__ERROR, "Error loading spawn entry %lu: Unable to find spawn group %lu. Skipping.", row.GetUInt(0), row.GetUInt(1));
+			_log(SPAWN__ERROR, "Error loading spawn entry %u: Unable to find spawn group %u. Skipping.", row.GetUInt(0), row.GetUInt(1));
 			continue;
 		}
 		
@@ -170,7 +170,7 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 			//case SpawnEntry::boundsSquare:	boundsType = SpawnEntry::boundsSquare; break;
 			case SpawnEntry::boundsCube:		boundsType = SpawnEntry::boundsCube; break;
 			default:
-				_log(SPAWN__ERROR, "Error loading spawn entry %lu: Bounds type %lu is invalid. Skipping.", row.GetUInt(0), row.GetUInt(2));
+				_log(SPAWN__ERROR, "Error loading spawn entry %u: Bounds type %u is invalid. Skipping.", row.GetUInt(0), row.GetUInt(2));
 				continue;
 		}
 		
@@ -242,7 +242,7 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 		
 		cur = into.find(id);
 		if(cur == into.end()) {
-			_log(SPAWN__ERROR, "Loading spawn group entry failed, unable to find entry %lu for bound point %lu,%lu", id, id, index);
+			_log(SPAWN__ERROR, "Loading spawn group entry failed, unable to find entry %u for bound point %u,%u", id, id, index);
 			continue;
 		}
 
@@ -255,7 +255,7 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 	cur = into.begin();
 	while(cur != into.end()) {
 		if(!cur->second->CheckBounds()) {
-			_log(SPAWN__ERROR, "Spawn entry %lu removed due to invalid bounds.", cur->first);
+			_log(SPAWN__ERROR, "Spawn entry %u removed due to invalid bounds.", cur->first);
 			delete cur->second;
 			tmp = cur;
 			cur++;

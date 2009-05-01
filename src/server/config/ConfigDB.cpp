@@ -247,7 +247,7 @@ PyRepObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
 		"	0 as connector,"
 		"	x,y,z"
 		" FROM mapDenormalize"
-		" WHERE %s=%lu", key, entityID
+		" WHERE %s=%u", key, entityID
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -281,7 +281,7 @@ PyRepObject *ConfigDB::GetMap(uint32 solarSystemID) {
 		"	NULL AS zMax,"
 		"	NULL AS luminosity"
 		" FROM mapDenormalize"
-		" WHERE solarSystemID=%lu", solarSystemID
+		" WHERE solarSystemID=%u", solarSystemID
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -338,7 +338,7 @@ PyRep *ConfigDB::GetStationSolarSystemsByOwner(uint32 ownerID) {
 		" SELECT "
 		" corporationID, solarSystemID "
 		" FROM staStations "
-		" WHERE corporationID = %lu ", ownerID
+		" WHERE corporationID = %u ", ownerID
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -356,14 +356,14 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
 		" SELECT "
 		" groupID "
 		" FROM eveNames "
-		" WHERE itemID = %lu ", celestialID))
+		" WHERE itemID = %u ", celestialID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
 	}
 
 	if (!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Unable to find celestial object %lu", celestialID);
+		codelog(SERVICE__ERROR, "Unable to find celestial object %u", celestialID);
 		return NULL;
 	}
 
@@ -380,7 +380,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
 					"    CONCAT( FORMAT( CAST( age /60 /60 /24 /365 /1000000 AS UNSIGNED INTEGER ) *1000000, 0 ) , \" Years\" ) AS age, "
 					"    CONCAT( FORMAT( radius /1000, 0 ) , \" km\" ) AS radius "
 					" FROM mapCelestialStatistics "
-					" WHERE celestialID = %lu ";
+					" WHERE celestialID = %u ";
 			break;
 	case EVEDB::invGroups::Planet:
 			query = " SELECT "
@@ -395,7 +395,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
 					"    CONCAT( FORMAT( pressure / 100000, 0), \" kPa\") AS pressure, "
 					"    CONCAT( FORMAT( radius /1000, 0), \" km\") AS radius "
 					" FROM mapCelestialStatistics "
-					" WHERE celestialID = %lu ";
+					" WHERE celestialID = %u ";
 			break;
 	case EVEDB::invGroups::Moon:
 			query = " SELECT "
@@ -409,7 +409,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
 					"    CONCAT( FORMAT( pressure / 100000, 0), \" kPa\") AS pressure, "
 					"    CONCAT( FORMAT( radius /1000, 0), \" km\") AS radius "
 					" FROM mapCelestialStatistics "
-					" WHERE celestialID = %lu ";
+					" WHERE celestialID = %u ";
 			break;
 	case EVEDB::invGroups::Asteroid_Belt:
 			query = " SELECT "
@@ -419,11 +419,11 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
 					"    CONCAT( FORMAT( density, 1), \" g/cm^3\") AS density, "
 					"    CONCAT( FORMAT( orbitPeriod / 864000, 0), \" days\") AS \"Orbit Period\" "
 					" FROM mapCelestialStatistics "
-					" WHERE celestialID = %lu ";
+					" WHERE celestialID = %u ";
 			break;
 
 	default:
-			codelog(SERVICE__ERROR, "Invalid object groupID (%lu) for %lu", groupID, celestialID);
+			codelog(SERVICE__ERROR, "Invalid object groupID (%u) for %u", groupID, celestialID);
 			return (NULL);
 	}
 
@@ -438,7 +438,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
 
 PyRep *ConfigDB::GetTextsForGroup(const std::string & langID, uint32 textgroup) {
 	DBQueryResult res;
-	if (!m_db->RunQuery(res, "SELECT textLabel, `text` FROM intro WHERE langID = '%s' AND textgroup = %lu", langID.c_str(), textgroup))
+	if (!m_db->RunQuery(res, "SELECT textLabel, `text` FROM intro WHERE langID = '%s' AND textgroup = %u", langID.c_str(), textgroup))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;

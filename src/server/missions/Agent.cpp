@@ -79,7 +79,7 @@ void Agent::DoAction(
 	std::map<uint32, AgentActions *>::iterator res;
 	res = m_actions.find(actionID);
 	if(res == m_actions.end()) {
-		_log(AGENT__ERROR, "Agent %d: Unable to find action %lu for '%s'", m_agentID, actionID, c->GetName());
+		_log(AGENT__ERROR, "Agent %d: Unable to find action %u for '%s'", m_agentID, actionID, c->GetName());
 		say = "Invalid Action";
 		return;
 	}

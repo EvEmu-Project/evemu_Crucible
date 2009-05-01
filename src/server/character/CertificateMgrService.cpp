@@ -139,14 +139,14 @@ PyResult CertificateMgrService::Handle_BatchCertificateUpdate(PyCallArgs &call) 
 }
 
 bool CertificateMgrService::_GrantCertificate(uint32 characterID, uint32 certificateID) {
-	_log(SERVICE__MESSAGE, "%lu asked to grant certificate %lu.", characterID, certificateID);
+	_log(SERVICE__MESSAGE, "%u asked to grant certificate %u.", characterID, certificateID);
 	_log(SERVICE__ERROR, "Granting certificates not supported yet.");
 
 	return(false);
 }
 
 bool CertificateMgrService::_UpdateCertificate(uint32 characterID, uint32 certificateID, bool pub) {
-	_log(SERVICE__MESSAGE, "%lu asked to make his certificate %lu %s.", characterID, certificateID, (pub ? "public" : "private"));
+	_log(SERVICE__MESSAGE, "%u asked to make his certificate %u %s.", characterID, certificateID, (pub ? "public" : "private"));
 	_log(SERVICE__ERROR, "Updating certificates not supported yet.");
 
 	return(false);

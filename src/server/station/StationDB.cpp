@@ -59,7 +59,7 @@ PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 		" 0 AS sovereigntyLevel,"	// nr
 		" 0 AS constellationSovereignty"	// nr
 		" FROM mapSolarSystems"		
-		" WHERE solarSystemID=%lu", solarSystemID
+		" WHERE solarSystemID=%u", solarSystemID
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetSolarSystem query: %s", res.error.c_str());
@@ -89,7 +89,7 @@ PyRep *StationDB::DoGetStation(uint32 sid) {
 		" FROM staStations "
 		" LEFT JOIN staOperations ON staStations.operationID = staOperations.operationID "
 		" LEFT JOIN staOperationServices ON staStations.operationID = staOperationServices.operationID "
-		" WHERE staStations.stationID = %lu "
+		" WHERE staStations.stationID = %u "
 		" GROUP BY staStations.stationID ", sid
 	))
 	{
@@ -126,7 +126,7 @@ PyRep *StationDB::GetStationItemBits(uint32 sid) {
 		" FROM staStations "
 		" LEFT JOIN staStationTypes ON staStations.stationTypeID = staStationTypes.stationTypeID "
 		" LEFT JOIN staOperationServices ON staStations.operationID = staOperationServices.operationID "
-		" WHERE staStations.stationID = %lu "
+		" WHERE staStations.stationID = %u "
 		" GROUP BY staStations.stationID ", sid
 	))
 	{

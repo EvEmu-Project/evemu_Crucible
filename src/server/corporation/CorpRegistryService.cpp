@@ -275,7 +275,7 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
 
 	//loads up roles and alters session.
 	if(!JoinCorporation(call.client, corpID, roles)) {
-		codelog(CLIENT__ERROR, "Failed to force char '%s' to join new corporation %lu. This will be interesting.", call.client->GetName(), corpID);
+		codelog(CLIENT__ERROR, "Failed to force char '%s' to join new corporation %u. This will be interesting.", call.client->GetName(), corpID);
 		return (new PyRepInteger(0));
 	}
 	
@@ -291,7 +291,7 @@ bool CorpRegistryBound::JoinCorporation(Client *who, uint32 newCorpID, const Cor
 			who->GetCorporationID(),
 			roles)
 	) {
-		codelog(CLIENT__ERROR, "Failed to update database for corporation join of '%s' to corp %lu", who->GetName(), newCorpID);
+		codelog(CLIENT__ERROR, "Failed to update database for corporation join of '%s' to corp %u", who->GetName(), newCorpID);
 		who->SendErrorMsg("Unable to notify about corp creation. Try logging in again.");
 		return false;
 	}
@@ -331,7 +331,7 @@ PyResult CorpRegistryBound::Handle_GetStations(PyCallArgs &call) {
 
 PyResult CorpRegistryBound::Handle_GetOffices(PyCallArgs &call) {
 	
-	_log(CLIENT__MESSAGE, "CorpRegistryBound bind request for OfficeList of corp %lu", call.client->GetCorporationID());
+	_log(CLIENT__MESSAGE, "CorpRegistryBound bind request for OfficeList of corp %u", call.client->GetCorporationID());
 
 	// First create the boundable object
 
@@ -548,7 +548,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
 		OCAC.charID = args.charID;
 		OCAC.corpID = call.client->GetCorporationID();
 		if(!m_db->GetCurrentApplicationInfo(OCAC.charID, OCAC.corpID, oldInfo)) {
-			codelog(SERVICE__ERROR, "%s: Failed to query application for char %lu corp %lu", call.client->GetName(), OCAC.charID, OCAC.corpID);
+			codelog(SERVICE__ERROR, "%s: Failed to query application for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
 			return NULL;
 		}
 		newInfo = oldInfo;
@@ -586,7 +586,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
 		OCAC.charID = args.charID;
 		OCAC.corpID = call.client->GetCorporationID();
 		if(!m_db->GetCurrentApplicationInfo(OCAC.charID, OCAC.corpID, oldInfo)) {
-			codelog(SERVICE__ERROR, "%s: Failed to query application info for char %lu corp %lu", call.client->GetName(), OCAC.charID, OCAC.corpID);
+			codelog(SERVICE__ERROR, "%s: Failed to query application info for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
 			return NULL;
 		}
 		newInfo = oldInfo;
@@ -594,7 +594,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
 		newInfo.lastCID = call.client->GetCharacterID();
 		
 		if(!m_db->UpdateApplication(newInfo)) {
-			codelog(SERVICE__ERROR, "%s: Failed to update application for char %lu corp %lu", call.client->GetName(), OCAC.charID, OCAC.corpID);
+			codelog(SERVICE__ERROR, "%s: Failed to update application for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
 			return NULL;
 		}
 		
@@ -673,7 +673,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
 
 		//NOTE: this really should happen sooner, in case it fails.
 		if(!m_db->JoinCorporation(args.charID, ocmc.newCorpID, ocmc.oldCorpID, CorpMemberInfo())) {
-			codelog(SERVICE__ERROR, "%s: Failed to record corp join for char %lu corp %lu", call.client->GetName(), OCAC.charID, OCAC.corpID);
+			codelog(SERVICE__ERROR, "%s: Failed to record corp join for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
 			return NULL;
 		}
 		
@@ -705,14 +705,14 @@ PyResult CorpRegistryBound::Handle_DeleteApplication(PyCallArgs & call) {
 	OCAC.corpID = args.arg1;
 	OCAC.charID = args.arg2;
 	if(!m_db->GetCurrentApplicationInfo(OCAC.charID, OCAC.corpID, oldInfo)) {
-		codelog(SERVICE__ERROR, "%s: Failed to query application info for char %lu corp %lu", call.client->GetName(), OCAC.charID, OCAC.corpID);
+		codelog(SERVICE__ERROR, "%s: Failed to query application info for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
 		return(new PyRepInteger(0));
 	}
 
 	FillOCApplicationChange(OCAC, oldInfo, newInfo);
 	
 	if(!m_db->DeleteApplication(oldInfo)) {
-		codelog(SERVICE__ERROR, "%s: Failed to delete application info for char %lu corp %lu", call.client->GetName(), OCAC.charID, OCAC.corpID);
+		codelog(SERVICE__ERROR, "%s: Failed to delete application info for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
 		return(new PyRepInteger(0));
 	}
 
@@ -740,7 +740,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplication(PyCallArgs &call) {
 	OCAC.charID = call.client->GetCharacterID();
 	OCAC.corpID = args.corpID;
 	if(!m_db->GetCurrentApplicationInfo(OCAC.charID, OCAC.corpID, oldInfo)) {
-		codelog(SERVICE__ERROR, "%s: Failed to query application info for char %lu corp %lu", call.client->GetName(), OCAC.charID, OCAC.corpID);
+		codelog(SERVICE__ERROR, "%s: Failed to query application info for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
 		return(new PyRepInteger(0));
 	}
 	newInfo = oldInfo;
@@ -748,7 +748,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplication(PyCallArgs &call) {
 	newInfo.status = args.status;
 
 	if(!m_db->UpdateApplication(newInfo)) {
-		codelog(SERVICE__ERROR, "%s: Failed to update application info for char %lu corp %lu", call.client->GetName(), OCAC.charID, OCAC.corpID);
+		codelog(SERVICE__ERROR, "%s: Failed to update application info for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
 		return(new PyRepInteger(0));
 	}
 	
@@ -782,7 +782,7 @@ PyResult CorpRegistryBound::Handle_UpdateDivisionNames(PyCallArgs &call) {
 	notif.key = call.client->GetCorporationID();
 
 	if (!m_db->UpdateDivisionNames(notif.key, divs, (PyRepDict *)notif.data)) {
-		codelog(SERVICE__ERROR, "%s: Failed to update division names for corp %lu", call.client->GetName(), notif.key);
+		codelog(SERVICE__ERROR, "%s: Failed to update division names for corp %u", call.client->GetName(), notif.key);
 		return(new PyRepNone());
 	}
 
@@ -811,7 +811,7 @@ PyResult CorpRegistryBound::Handle_UpdateCorporation(PyCallArgs &call) {
 	notif.data = new PyRepDict();
 
 	if (!m_db->UpdateCorporation(notif.key, upd, (PyRepDict*)notif.data)) {
-		codelog(SERVICE__ERROR, "%s: Failed to update corporation data for corp %lu", call.client->GetName(), notif.key);
+		codelog(SERVICE__ERROR, "%s: Failed to update corporation data for corp %u", call.client->GetName(), notif.key);
 		return new PyRepNone();
 	}
 
@@ -853,7 +853,7 @@ PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
 	if(corp_orig < logo_change) {
 		_log(SERVICE__ERROR, "%s: Cannot afford corporation logo change costs!", call.client->GetName());
 		delete notif.data; notif.data = NULL;
-		call.client->SendErrorMsg("Your corporation doesn't have enough money (%lu ISK) to change it's logo!", logo_changeu);
+		call.client->SendErrorMsg("Your corporation doesn't have enough money (%u ISK) to change it's logo!", logo_changeu);
 		return(new PyRepNone());
 	}
 

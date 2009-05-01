@@ -90,7 +90,7 @@ SpawnManager::~SpawnManager() {
 void SpawnEntry::Process(SystemManager &mgr, PyServiceMgr &svc) {
 	if(m_timer.Check()) {
 		if(!m_spawnedIDs.empty()) {
-			_log(SPAWN__ERROR, "ERROR: spawn entry %lu's timer went off when we have active spawn IDs!", m_id);
+			_log(SPAWN__ERROR, "ERROR: spawn entry %u's timer went off when we have active spawn IDs!", m_id);
 			m_spawnedIDs.clear();
 		}
 		
@@ -100,7 +100,7 @@ void SpawnEntry::Process(SystemManager &mgr, PyServiceMgr &svc) {
 }
 
 void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
-	_log(SPAWN__POP, "Spawning spawn entry %lu with group %lu", m_id, m_group.id);
+	_log(SPAWN__POP, "Spawning spawn entry %u with group %u", m_id, m_group.id);
 	
 	//pick our spawn point...
 	GPoint spawn_point;
@@ -118,7 +118,7 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 	} break;
 	
 	default:
-		_log(SPAWN__ERROR, "Invalid bounds type %lu on spawn entry %lu when spawning...", m_boundsType, GetID());
+		_log(SPAWN__ERROR, "Invalid bounds type %u on spawn entry %u when spawning...", m_boundsType, GetID());
 		return;
 	}
 	_log(SPAWN__POP, "    selected point (%.1f, %.1f, %.1f)", spawn_point.x, spawn_point.y, spawn_point.z);
@@ -130,7 +130,7 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 	cur = m_group.entries.begin();
 	end = m_group.entries.end();
 	for(; cur != end; cur++) {
-		_log(SPAWN__POP, "    Evaluating spawn entry for NPC type %lu in group %lu", cur->npcTypeID, cur->spawnGroupID);
+		_log(SPAWN__POP, "    Evaluating spawn entry for NPC type %u in group %u", cur->npcTypeID, cur->spawnGroupID);
 		int r;
 		for(r = 0; r < cur->quantity; r++) {
 			if(cur->probability < 1.0f) {
@@ -153,11 +153,11 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 
 			InventoryItem *i = svc.item_factory.SpawnItem(idata);
 			if(i == NULL) {
-				_log(SPAWN__ERROR, "Failed to spawn item with type %lu for group %lu.", cur->npcTypeID, cur->spawnGroupID);
+				_log(SPAWN__ERROR, "Failed to spawn item with type %u for group %u.", cur->npcTypeID, cur->spawnGroupID);
 				continue;
 			}
 			
-			_log(SPAWN__POP, "        [%d] spawning NPC id %lu", r, i->itemID());
+			_log(SPAWN__POP, "        [%d] spawning NPC id %u", r, i->itemID());
 			
 			//create them all at the same point to start with...
 			//we will move them before they get added to the system
@@ -169,7 +169,7 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 	
 	if(spawned.empty()) {
 		int timer = MakeRandomInt(m_timerMin, m_timerMax);
-		_log(SPAWN__POP, "No NPCs produced by spawn entry %lu. Resetting spawn timer to %d s.", m_id, timer);
+		_log(SPAWN__POP, "No NPCs produced by spawn entry %u. Resetting spawn timer to %d s.", m_id, timer);
 		m_timer.Start(timer*1000);
 		return;
 	}
@@ -180,7 +180,7 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 	curn = spawned.begin();
 	endn = spawned.end();
 	for(; curn != endn; curn++) {
-		_log(SPAWN__POP, "Moving NPC %lu to (%.1f, %.1f, %.1f) due to formation.", (*curn)->GetID(), spawn_point.x, spawn_point.y, spawn_point.z);
+		_log(SPAWN__POP, "Moving NPC %u to (%.1f, %.1f, %.1f) due to formation.", (*curn)->GetID(), spawn_point.x, spawn_point.y, spawn_point.z);
 		(*curn)->ForcedSetPosition(spawn_point);
 		spawn_point.y += 1000.0f;
 	}
@@ -192,7 +192,7 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 	for(; curn != endn; curn++) {
 		//load up any NPC attributes...
 		if(!(*curn)->Load(svc.serviceDB())) {
-			_log(SPAWN__POP, "Failed to load NPC data for NPC %lu with type %lu, depoping.", (*curn)->GetID(), (*curn)->Item()->typeID());
+			_log(SPAWN__POP, "Failed to load NPC data for NPC %u with type %u, depoping.", (*curn)->GetID(), (*curn)->Item()->typeID());
 			delete *curn;
 			continue;
 		}
@@ -212,15 +212,15 @@ void SpawnEntry::SpawnDepoped(uint32 npcID) {
 	res = m_spawnedIDs.find(npcID);
 
 	if(res == m_spawnedIDs.end()) {
-		_log(SPAWN__ERROR, "SpawnDepopped() called for NPC %lu on spawn entry %lu, but that NPC is not in our spawned list.", npcID, m_id);
+		_log(SPAWN__ERROR, "SpawnDepopped() called for NPC %u on spawn entry %u, but that NPC is not in our spawned list.", npcID, m_id);
 	} else {
-		_log(SPAWN__DEPOP, "NPC %lu depopped for spawn entry %lu", npcID, m_id);
+		_log(SPAWN__DEPOP, "NPC %u depopped for spawn entry %u", npcID, m_id);
 		m_spawnedIDs.erase(res);
 	}
 	
 	if(m_spawnedIDs.empty()) {
 		int timer = MakeRandomInt(m_timerMin, m_timerMax);
-		_log(SPAWN__DEPOP, "Spawn entry %lu's entire spawn group has depopped, resetting timer to %d s.", m_id, timer);
+		_log(SPAWN__DEPOP, "Spawn entry %u's entire spawn group has depopped, resetting timer to %d s.", m_id, timer);
 		m_timer.Start(timer*1000);
 	}
 }
@@ -230,27 +230,27 @@ bool SpawnEntry::CheckBounds() const {
 	
 	case boundsPoint: {
 		if(bounds.size() != 1) {
-			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %lu with type %lu: %lu != 1", GetID(), m_boundsType, bounds.size());
+			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %u with type %u: %u != 1", GetID(), m_boundsType, bounds.size());
 			return false;
 		}
 	} break;
 	
 	case boundsLine: {
 		if(bounds.size() != 2) {
-			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %lu with type %lu: %lu != 2", GetID(), m_boundsType, bounds.size());
+			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %u with type %u: %u != 2", GetID(), m_boundsType, bounds.size());
 			return false;
 		}
 	} break;
 	
 	case boundsCube: {
 		if(bounds.size() != 2) {
-			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %lu with type %lu: %lu != 2", GetID(), m_boundsType, bounds.size());
+			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %u with type %u: %u != 2", GetID(), m_boundsType, bounds.size());
 			return false;
 		}
 	} break;
 	
 	default:
-		_log(SPAWN__ERROR, "Invalid bounds type %lu on spawn entry %lu", m_boundsType, GetID());
+		_log(SPAWN__ERROR, "Invalid bounds type %u on spawn entry %u", m_boundsType, GetID());
 		return false;
 	}
 	return true;
@@ -265,12 +265,12 @@ bool SpawnManager::Load() {
 	// mapping the entity table to the spawns table
 	// (Drones too?)
 	if(!m_db.LoadSpawnGroups(m_system.GetID(), m_groups)) {
-		_log(SPAWN__ERROR, "Failed to load spawn groups for system %lu!", m_system.GetID());
+		_log(SPAWN__ERROR, "Failed to load spawn groups for system %u!", m_system.GetID());
 		return false;
 	}
 	
 	if(!m_db.LoadSpawnEntries(m_system.GetID(), m_groups, m_spawns)) {
-		_log(SPAWN__ERROR, "Failed to load spawn entries for system %lu!", m_system.GetID());
+		_log(SPAWN__ERROR, "Failed to load spawn entries for system %u!", m_system.GetID());
 		return false;
 	}
 

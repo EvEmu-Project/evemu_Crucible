@@ -41,7 +41,7 @@ SimpleSystemEntity *SimpleSystemEntity::MakeEntity(SystemManager *system, const 
 	case EVEDB::invGroups::Station:		//Station
 		return(new SystemStationEntity(system, entity));
 	default:
-		_log(SERVICE__ERROR, "Unrecognized entity type '%lu' on '%s' (%lu), falling back to simple space item.", entity.typeID, entity.itemName.c_str(), entity.itemID);
+		_log(SERVICE__ERROR, "Unrecognized entity type '%u' on '%s' (%u), falling back to simple space item.", entity.typeID, entity.itemName.c_str(), entity.itemID);
 		break;
 	}
 	return(new SystemSimpleEntity(system, entity));

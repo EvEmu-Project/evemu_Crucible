@@ -54,7 +54,7 @@ void ModuleManager::UpdateModules() {
 	//from the client..
 	InventoryItem *ship = m_pilot->Ship();
 	
-	_log(SHIP__MODULE_TRACE, "%s: Refreshing modules for ship %s (%lu).", m_pilot->GetName(), ship->itemName().c_str(), ship->itemID());
+	_log(SHIP__MODULE_TRACE, "%s: Refreshing modules for ship %s (%u).", m_pilot->GetName(), ship->itemName().c_str(), ship->itemID());
 	
 	//TODO: iterate through all slots and fill in m_modules
 	//checking for inconsistencies as to not re-create 
@@ -121,9 +121,9 @@ void ModuleManager::UpdateModules() {
 		if(m_modules[slot] != NULL) {
 			if(m_modules[slot]->item() == module) {
 				if(m_modules[slot]->charge() == charge) {
-					_log(SHIP__MODULE_TRACE, "%s: Item %s (%lu) is still in slot %d.", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot);
+					_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is still in slot %d.", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot);
 				} else {
-					_log(SHIP__MODULE_TRACE, "%s: Item %s (%lu) is still in slot %d, but has a new charge item %s (%lu).", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, (charge==NULL)?"None":charge->itemName().c_str(), (charge==NULL)?0:charge->itemID());
+					_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is still in slot %d, but has a new charge item %s (%u).", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, (charge==NULL)?"None":charge->itemName().c_str(), (charge==NULL)?0:charge->itemID());
 					m_modules[slot]->ChangeCharge(charge);
 				}
 				//no change...
@@ -133,7 +133,7 @@ void ModuleManager::UpdateModules() {
 			delete m_modules[slot];
 			m_modules[slot] = NULL;
 		}
-		_log(SHIP__MODULE_TRACE, "%s: Item %s (%lu) is now in slot %d. Using charge %s (%lu)", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, (charge==NULL)?"None":charge->itemName().c_str(), (charge==NULL)?0:charge->itemID());
+		_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is now in slot %d. Using charge %s (%u)", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, (charge==NULL)?"None":charge->itemName().c_str(), (charge==NULL)?0:charge->itemID());
 		m_modules[slot] = ShipModule::CreateModule(m_pilot, module, charge);
 		m_moduleByID[module->itemID()] = slot;
 	}
@@ -143,13 +143,13 @@ int ModuleManager::Activate(uint32 itemID, const std::string &effectName, uint32
 	std::map<uint32, uint8>::const_iterator res;
 	res = m_moduleByID.find(itemID);
 	if(res == m_moduleByID.end()) {
-		_log(SHIP__ERROR, "%s: failed to activate module %lu. Not found.", m_pilot->GetName(), itemID);
+		_log(SHIP__ERROR, "%s: failed to activate module %u. Not found.", m_pilot->GetName(), itemID);
 		return(0);
 	}
 	ShipModule *mod = m_modules[res->second];
 	if(mod == NULL) {
 		//should never happen.
-		codelog(SHIP__ERROR, "%s: failed to activate module %lu. Internal data inconsistency.", m_pilot->GetName(), itemID);
+		codelog(SHIP__ERROR, "%s: failed to activate module %u. Internal data inconsistency.", m_pilot->GetName(), itemID);
 		return(0);
 	}
 	return(mod->Activate(effectName, target, repeat));
@@ -159,13 +159,13 @@ void ModuleManager::Deactivate(uint32 itemID, const std::string &effectName) {
 	std::map<uint32, uint8>::const_iterator res;
 	res = m_moduleByID.find(itemID);
 	if(res == m_moduleByID.end()) {
-		_log(SHIP__ERROR, "%s: failed to deactivate module %lu. Not found.", m_pilot->GetName(), itemID);
+		_log(SHIP__ERROR, "%s: failed to deactivate module %u. Not found.", m_pilot->GetName(), itemID);
 		return;
 	}
 	ShipModule *mod = m_modules[res->second];
 	if(mod == NULL) {
 		//should never happen.
-		codelog(SHIP__ERROR, "%s: failed to deactivate module %lu. Internal data inconsistency.", m_pilot->GetName(), itemID);
+		codelog(SHIP__ERROR, "%s: failed to deactivate module %u. Internal data inconsistency.", m_pilot->GetName(), itemID);
 		return;
 	}
 	mod->Deactivate(effectName);
@@ -244,7 +244,7 @@ void ShipModule::Process() {
 	
 	case PuttingOnline:
 		if(m_timer.Check(false)) {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Putting module online.", m_item->itemName().c_str(), m_item->itemID());
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Putting module online.", m_item->itemName().c_str(), m_item->itemID());
 			m_state = Online;
 			m_item->PutOnline();
 		}
@@ -264,36 +264,36 @@ void ShipModule::Process() {
 }
 
 int ShipModule::Activate(const std::string &effectName, uint32 target, uint32 repeat) {
-	_log(SHIP__MODULE_TRACE, "Module %s (%lu): Activation requested for effect '%s' in state %d.", m_item->itemName().c_str(), m_item->itemID(), effectName.c_str(), m_state);
+	_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation requested for effect '%s' in state %d.", m_item->itemName().c_str(), m_item->itemID(), effectName.c_str(), m_state);
 	if(effectName == "online") {
 		if(m_state == Offline) {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Activate requested for effect.", m_item->itemName().c_str(), m_item->itemID());
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activate requested for effect.", m_item->itemName().c_str(), m_item->itemID());
 			m_timer.Start(_ActivationInterval());
 			m_state = PuttingOnline;
 			return(1);
 		} else {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Activation requested in state %d, ignoring.", m_item->itemName().c_str(), m_item->itemID(), m_state);
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation requested in state %d, ignoring.", m_item->itemName().c_str(), m_item->itemID(), m_state);
 			return(0);
 		}
 	} else {
-		_log(SHIP__MODULE_TRACE, "Module %s (%lu): Activation requested in state %d with unknown effect '%s'", m_item->itemName().c_str(), m_item->itemID(), m_state, effectName.c_str());
+		_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation requested in state %d with unknown effect '%s'", m_item->itemName().c_str(), m_item->itemID(), m_state, effectName.c_str());
 		return(0);
 	}
 }
 
 void ShipModule::Deactivate(const std::string &effectName) {
-	_log(SHIP__MODULE_TRACE, "Module %s (%lu): Deactivate requested for effect '%s' in state %d.", m_item->itemName().c_str(), m_item->itemID(), effectName.c_str(), m_state);
+	_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivate requested for effect '%s' in state %d.", m_item->itemName().c_str(), m_item->itemID(), effectName.c_str(), m_state);
 	if(effectName == "online") {
 		if(m_state == Active) {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Deactivate requested for effect.", m_item->itemName().c_str(), m_item->itemID());
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivate requested for effect.", m_item->itemName().c_str(), m_item->itemID());
 			m_state = Deactivating;
 			//timer is already running.
 			m_item->PutOffline();
 		} else {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Deactivation requested in state %d, ignoring.", m_item->itemName().c_str(), m_item->itemID(), m_state);
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivation requested in state %d, ignoring.", m_item->itemName().c_str(), m_item->itemID(), m_state);
 		}
 	} else {
-		_log(SHIP__MODULE_TRACE, "Module %s (%lu): Deactivation requested in state %d with unknown effect '%s'", m_item->itemName().c_str(), m_item->itemID(), m_state, effectName.c_str());
+		_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivation requested in state %d with unknown effect '%s'", m_item->itemName().c_str(), m_item->itemID(), m_state, effectName.c_str());
 	}
 }
 
@@ -325,7 +325,7 @@ void ActivatableModule::Process() {
 		
 	case Active:
 		if(m_timer.Check()) {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Activation timer expired.", m_item->itemName().c_str(), m_item->itemID());
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation timer expired.", m_item->itemName().c_str(), m_item->itemID());
 			
 			DoEffect();
 			
@@ -333,7 +333,7 @@ void ActivatableModule::Process() {
 				m_repeatCount--;
 				//let the timer go again.
 			} else {
-				_log(SHIP__MODULE_TRACE, "Module %s (%lu): No more repeates requested. Deactivating.", m_item->itemName().c_str(), m_item->itemID());
+				_log(SHIP__MODULE_TRACE, "Module %s (%u): No more repeates requested. Deactivating.", m_item->itemName().c_str(), m_item->itemID());
 				m_state = Deactivating;
 			}
 		}
@@ -341,7 +341,7 @@ void ActivatableModule::Process() {
 		
 	case Deactivating:
 		if(m_timer.Check(false)) {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Deactivation complete, module online.", m_item->itemName().c_str(), m_item->itemID());
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivation complete, module online.", m_item->itemName().c_str(), m_item->itemID());
 			m_state = Online;
 			StopEffect();	//must send stop effect before clearing target info!
 			m_target = 0;
@@ -356,7 +356,7 @@ void ActivatableModule::Process() {
 int ActivatableModule::Activate(const std::string &effectName, uint32 target, uint32 repeat) {
 	if(effectName == m_effectName) {
 		if(m_state == Online) {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Activation requested with %s (tgt=%lu, r=%lu)", m_item->itemName().c_str(), m_item->itemID(), m_effectName, target, repeat);
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation requested with %s (tgt=%u, r=%u)", m_item->itemName().c_str(), m_item->itemID(), m_effectName, target, repeat);
 			m_timer.Start(_ActivationInterval());
 			if(repeat > 1) {
 				m_state = Active;
@@ -370,7 +370,7 @@ int ActivatableModule::Activate(const std::string &effectName, uint32 target, ui
 			DoEffect();
 			return(1);
 		} else {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Activation requested with %s in state %d. Ignoring..", m_item->itemName().c_str(), m_item->itemID(), m_effectName, m_state);
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation requested with %s in state %d. Ignoring..", m_item->itemName().c_str(), m_item->itemID(), m_effectName, m_state);
 			return(0);
 		}
 	} else {
@@ -381,11 +381,11 @@ int ActivatableModule::Activate(const std::string &effectName, uint32 target, ui
 void ActivatableModule::Deactivate(const std::string &effectName) {
 	if(effectName == m_effectName) {
 		if(m_state == Active) {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Deactivation requested with %s.", m_item->itemName().c_str(), m_item->itemID(), m_effectName);
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivation requested with %s.", m_item->itemName().c_str(), m_item->itemID(), m_effectName);
 			m_state = Deactivating;
 			//timer is already running.
 		} else {
-			_log(SHIP__MODULE_TRACE, "Module %s (%lu): Deactivation requested with %s in state %d, ignoring.", m_item->itemName().c_str(), m_item->itemID(), m_effectName, m_state);
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivation requested with %s in state %d, ignoring.", m_item->itemName().c_str(), m_item->itemID(), m_effectName, m_state);
 		}
 	} else {
 		ShipModule::Deactivate(effectName);
@@ -461,13 +461,13 @@ void HybridWeaponModule::StartEffect() {
 }
 
 void HybridWeaponModule::DoEffect() {
-	codelog(SHIP__MODULE_TRACE, "Module %s (%lu): Triggering.", m_item->itemName().c_str(), m_item->itemID());
+	codelog(SHIP__MODULE_TRACE, "Module %s (%u): Triggering.", m_item->itemName().c_str(), m_item->itemID());
 	
 	//lookup target by ID. Use the target manager to reduce the search set.
 	//this also ensures that they are in fact targeted.
 	SystemEntity *target = m_pilot->targets.GetTarget(m_target, true);
 	if(target == NULL) {
-		codelog(SHIP__MODULE_TRACE, "Module %s (%lu): Unable to find target %lu", m_item->itemName().c_str(), m_item->itemID(), m_target);
+		codelog(SHIP__MODULE_TRACE, "Module %s (%u): Unable to find target %u", m_item->itemName().c_str(), m_item->itemID(), m_target);
 		m_pilot->targets.Dump();
 		DeactivateModule(true);
 		return;
@@ -475,7 +475,7 @@ void HybridWeaponModule::DoEffect() {
 	//TODO: check range.
 	//TODO: check ammo/charge
 	if(m_charge == NULL) {
-		_log(SHIP__MODULE_TRACE, "Module %s (%lu): No ammo fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID(), m_target);
+		_log(SHIP__MODULE_TRACE, "Module %s (%u): No ammo fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID(), m_target);
 		DeactivateModule(true);
 		return;
 	}
@@ -509,20 +509,20 @@ void LaserWeaponModule::StartEffect() {
 }
 
 void LaserWeaponModule::DoEffect() {
-	codelog(SHIP__MODULE_TRACE, "Module %s (%lu type %lu): Triggering.", m_item->itemName().c_str(), m_item->itemID(), m_item->typeID());
+	codelog(SHIP__MODULE_TRACE, "Module %s (%u type %u): Triggering.", m_item->itemName().c_str(), m_item->itemID(), m_item->typeID());
 	
 	//lookup target by ID. Use the target manager to reduce the search set.
 	//this also ensures that they are in fact targeted.
 	SystemEntity *target = m_pilot->targets.GetTarget(m_target, true);
 	if(target == NULL) {
-		codelog(SHIP__MODULE_TRACE, "Module %s (%lu): Unable to find target %lu", m_item->itemName().c_str(), m_item->itemID(), m_target);
+		codelog(SHIP__MODULE_TRACE, "Module %s (%u): Unable to find target %u", m_item->itemName().c_str(), m_item->itemID(), m_target);
 		m_pilot->targets.Dump();
 		DeactivateModule(true);
 		return;
 	}
 	//TODO: check range.
 	if(m_charge == NULL) {
-		_log(SHIP__MODULE_TRACE, "Module %s (%lu): No crystal fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID(), m_target);
+		_log(SHIP__MODULE_TRACE, "Module %s (%u): No crystal fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID(), m_target);
 		DeactivateModule(true);
 		return;
 	}
@@ -558,26 +558,26 @@ void MiningLaserModule::StartEffect() {
 }
 
 void MiningLaserModule::DoEffect() {
-	codelog(SHIP__MODULE_TRACE, "Module %s (%lu type %lu): Triggering.", m_item->itemName().c_str(), m_item->itemID(), m_item->typeID());
+	codelog(SHIP__MODULE_TRACE, "Module %s (%u type %u): Triggering.", m_item->itemName().c_str(), m_item->itemID(), m_item->typeID());
 	
 	//lookup target by ID. Use the target manager to reduce the search set.
 	//this also ensures that they are in fact targeted.
 	SystemEntity *target = m_pilot->targets.GetTarget(m_target, true);
 	if(target == NULL) {
-		codelog(SHIP__MODULE_TRACE, "Module %s (%lu): Unable to find target %lu", m_item->itemName().c_str(), m_item->itemID(), m_target);
+		codelog(SHIP__MODULE_TRACE, "Module %s (%u): Unable to find target %u", m_item->itemName().c_str(), m_item->itemID(), m_target);
 		m_pilot->targets.Dump();
 		DeactivateModule(true);
 		return;
 	}
 	InventoryItem *target_item = target->Item();
 	if(target_item == NULL) {
-		codelog(SHIP__MODULE_TRACE, "Module %s (%lu): Use on non-asteroid. Target has no item.", m_item->itemName().c_str(), m_item->itemID(), (target_item==NULL)?0:target_item->itemID(), target_item);
+		codelog(SHIP__MODULE_TRACE, "Module %s (%u): Use on non-asteroid. Target has no item.", m_item->itemName().c_str(), m_item->itemID(), (target_item==NULL)?0:target_item->itemID(), target_item);
 		//send the client an error dialog?
 		DeactivateModule(true);
 		return;
 	}
 	if(target_item->categoryID() != EVEDB::invCategories::Asteroid) {
-		codelog(SHIP__MODULE_TRACE, "Module %s (%lu): Use on non-asteroid item %lu of type %lu", m_item->itemName().c_str(), m_item->itemID(), target_item->itemID(), target_item->typeID());
+		codelog(SHIP__MODULE_TRACE, "Module %s (%u): Use on non-asteroid item %u of type %u", m_item->itemName().c_str(), m_item->itemID(), target_item->itemID(), target_item->typeID());
 		//send the client an error dialog?
 		DeactivateModule(true);
 		return;
@@ -586,7 +586,7 @@ void MiningLaserModule::DoEffect() {
 	//m_item->maxRange()
 	if(m_charge == NULL) {
 		//some use crystals, some do not???
-		//_log(SHIP__MODULE_TRACE, "Module %s (%lu): No crystal fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID(), m_target);
+		//_log(SHIP__MODULE_TRACE, "Module %s (%u): No crystal fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID(), m_target);
 	}
 	
 	//TODO: check for crystal failure?

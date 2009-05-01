@@ -146,7 +146,7 @@ void ItemSystemEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target) {
 //default implementation bases everything directly on our item.
 //the notifications which this puts out probably needs some work.
 bool ItemSystemEntity::ApplyDamage(Damage &d) {
-	_log(ITEM__TRACE, "%lu: Applying %.1f total damage from %lu", GetID(), d.GetTotal(), d.source->GetID());
+	_log(ITEM__TRACE, "%u: Applying %.1f total damage from %u", GetID(), d.GetTotal(), d.source->GetID());
 	
 	double total_damage = 0;
 	bool killed = false;
@@ -180,7 +180,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 		m_self->Set_shieldCharge(new_charge);
 		
 		total_damage += total_shield_damage;
-		_log(ITEM__TRACE, "%lu: Applying entire %.1f damage to shields. New charge: %.1f", GetID(), total_shield_damage, new_charge);
+		_log(ITEM__TRACE, "%u: Applying entire %.1f damage to shields. New charge: %.1f", GetID(), total_shield_damage, new_charge);
 	} else {
 		//first determine how much we can actually apply to 
 		//the shield, the rest goes further down.
@@ -189,7 +189,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 		if(available_shield > 0) {
 			total_damage += available_shield;
 			
-			_log(ITEM__TRACE, "%lu: Shield depleated with %.1f damage. %.1f damage remains.", GetID(), available_shield, d.GetTotal());
+			_log(ITEM__TRACE, "%u: Shield depleated with %.1f damage. %.1f damage remains.", GetID(), available_shield, d.GetTotal());
 			
 			//set shield to 0, it is fully depleated.
 			m_self->Set_shieldCharge(0);
@@ -223,7 +223,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 			m_self->Set_armorDamage(new_damage);
 			
 			total_damage += total_armor_damage;
-			_log(ITEM__TRACE, "%lu: Applying entire %.1f damage to armor. New armor damage: %.1f", GetID(), total_armor_damage, new_damage);
+			_log(ITEM__TRACE, "%u: Applying entire %.1f damage to armor. New armor damage: %.1f", GetID(), total_armor_damage, new_damage);
 		} else {
 			//first determine how much we can actually apply to 
 			//the armor, the rest goes further down.
@@ -233,7 +233,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 			if(available_armor > 0) {
 				total_damage += available_armor;
 				
-				_log(ITEM__TRACE, "%lu: Armor depleated with %.1f damage. %.1f damage remains.", GetID(), available_armor, d.GetTotal());
+				_log(ITEM__TRACE, "%u: Armor depleated with %.1f damage. %.1f damage remains.", GetID(), available_armor, d.GetTotal());
 				
 				//all armor has been penetrated.
 				m_self->Set_armorDamage(m_self->armorHP());
@@ -266,10 +266,10 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 				//we can take all this damage with our hull...
 				double new_damage = m_self->damage() + total_hull_damage;
 				m_self->Set_damage(new_damage);
-				_log(ITEM__TRACE, "%lu: Applying entire %.1f damage to structure. New structure damage: %.1f", GetID(), total_hull_damage, new_damage);
+				_log(ITEM__TRACE, "%u: Applying entire %.1f damage to structure. New structure damage: %.1f", GetID(), total_hull_damage, new_damage);
 			} else {
 				//dead....
-				_log(ITEM__TRACE, "%lu: %.1f damage has depleated our structure. Time to explode.", GetID(), total_hull_damage);
+				_log(ITEM__TRACE, "%u: %.1f damage has depleated our structure. Time to explode.", GetID(), total_hull_damage);
 				killed = true;
 				m_self->Set_damage(m_self->hp());
 			}
@@ -465,7 +465,7 @@ void NPC::_AwardBounty(SystemEntity *who) {
 	//TODO: handle distribution to gangs.
 	
 	if(who->IsClient() == false) {
-		_log(NPC__TRACE, "Refusing to award bounty on %lu to non-client %lu", GetID(), who->GetID());
+		_log(NPC__TRACE, "Refusing to award bounty on %u to non-client %u", GetID(), who->GetID());
 		return;	//bounty doesn't make sense for anything other than clients.
 	}
 
@@ -487,7 +487,7 @@ void NPC::_AwardBounty(SystemEntity *who) {
 			killer->GetBalance(),
 			reason.c_str()
 	)) {
-		codelog(CLIENT__ERROR, "%s: Failed to record bountry of %f from death of %lu (type %lu)", killer->GetName(), bounty, GetID(), m_self->typeID());
+		codelog(CLIENT__ERROR, "%s: Failed to record bountry of %f from death of %u (type %u)", killer->GetName(), bounty, GetID(), m_self->typeID());
 		//well.. this isnt a huge deal, so we will get over it.
 	}
 	

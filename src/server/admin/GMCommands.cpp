@@ -32,7 +32,7 @@ PyResult Command_create(Client *who, CommandDB *db, PyServiceMgr *services, cons
 	uint32 qty = 1;
 	if(args.IsNumber(2))
 		qty = atoi(args.arg[2]);
-	_log(COMMAND__MESSAGE, "Create %s %lu times", args.arg[1], qty);
+	_log(COMMAND__MESSAGE, "Create %s %u times", args.arg[1], qty);
 
 	//create into their cargo hold unless they are docked in a station,
 	//then stick it in their hangar instead.
@@ -85,7 +85,7 @@ PyResult Command_search(Client *who, CommandDB *db, PyServiceMgr *services, cons
 	cur = matches.begin();
 	end = matches.end();
 	for(; cur != end; cur++) {
-		snprintf(buf, sizeof(buf), "%lu: ", cur->first);
+		snprintf(buf, sizeof(buf), "%u: ", cur->first);
 		result += buf;
 		result += cur->second;
 		result += "<br>";
@@ -169,7 +169,7 @@ PyResult Command_giveisk(Client *who, CommandDB *db, PyServiceMgr *services, con
 	} else {
 		tgt = services->entity_list.FindCharacter(entity);
 		if(tgt == NULL)
-			throw(PyException(MakeCustomError("Unable to find character %lu", entity)));
+			throw(PyException(MakeCustomError("Unable to find character %u", entity)));
 	}
 	
 	tgt->AddBalance(amount);
@@ -296,7 +296,7 @@ PyResult Command_getlog(Client *who, CommandDB *db, PyServiceMgr *services, cons
 		evemail += "<br>";
 	}
 
-	who->SelfEveMail("Server logs", "Server log of length %lu/%lu records (%lu bytes):<br><br>%s", memory_log.size(), memory_log_limit, evemail.size(), evemail.c_str());
+	who->SelfEveMail("Server logs", "Server log of length %u/%u records (%u bytes):<br><br>%s", memory_log.size(), memory_log_limit, evemail.size(), evemail.c_str());
 
 	return(new PyRepString("Log sent via evemail."));
 }

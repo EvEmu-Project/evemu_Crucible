@@ -66,7 +66,7 @@ void SystemEntity::MakeAddBall(DoDestiny_AddBall &addball, uint32 updateID) cons
 
 	_log(DESTINY__TRACE, "Add Ball:");
 	addball.Dump(DESTINY__TRACE, "    ");
-	_log(DESTINY__TRACE, "    Ball Binary: (%lu bytes)", addball.destiny_binary.length());
+	_log(DESTINY__TRACE, "    Ball Binary: (%u bytes)", addball.destiny_binary.length());
 	_hex(DESTINY__TRACE, addball.destiny_binary.c_str(), addball.destiny_binary.length());
 	_log(DESTINY__TRACE, "    Ball Decoded:");
 	Destiny::DumpUpdate(DESTINY__TRACE, (const uint8 *) addball.destiny_binary.c_str(), addball.destiny_binary.length());

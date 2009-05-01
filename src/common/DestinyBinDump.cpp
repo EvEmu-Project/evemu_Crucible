@@ -83,7 +83,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		data += sizeof(Destiny::MassSector);
 		len -= sizeof(Destiny::MassSector);
 		
-		_log(into, "   mass=%.2f, cloak=%d, u52=0x"I64x", corp=%lu, alliance=0x%lx",
+		_log(into, "   mass=%.2f, cloak=%d, u52=0x"I64x", corp=%u, alliance=0x%x",
 			masschunk->mass, masschunk->cloak, masschunk->unknown52, masschunk->corpID, masschunk->allianceID);
 	}
 	
@@ -111,7 +111,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::DSTBALL_FOLLOW_Struct *b = (const Destiny::DSTBALL_FOLLOW_Struct *) data;
 		data += sizeof(Destiny::DSTBALL_FOLLOW_Struct);
 		len -= sizeof(Destiny::DSTBALL_FOLLOW_Struct);
-		_log(into, "       formID=%d, followID=%lu, distance=%.1f", b->formationID,
+		_log(into, "       formID=%d, followID=%u, distance=%.1f", b->formationID,
 			b->followID, b->followRange);
 	} break;
 	case Destiny::DSTBALL_STOP: {
@@ -124,23 +124,23 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::DSTBALL_WARP_Struct *b = (const Destiny::DSTBALL_WARP_Struct *) data;
 		data += sizeof(Destiny::DSTBALL_WARP_Struct);
 		len -= sizeof(Destiny::DSTBALL_WARP_Struct);
-		_log(into, "       formID=%d, To=(%.3f, %.3f, %.3f) effectStamp=%lu", b->formationID,
+		_log(into, "       formID=%d, To=(%.3f, %.3f, %.3f) effectStamp=%u", b->formationID,
 			b->unknown_x, b->unknown_y, b->unknown_z, b->effectStamp);
-		_log(into, "       followRange=%.3f, followID=%lu, ownerID=%lu",
+		_log(into, "       followRange=%.3f, followID=%u, ownerID=%u",
 			b->followRange, b->followID, b->ownerID);
 	} break;
 	case Destiny::DSTBALL_ORBIT: {
 		const Destiny::DSTBALL_ORBIT_Struct *b = (const Destiny::DSTBALL_ORBIT_Struct *) data;
 		data += sizeof(Destiny::DSTBALL_ORBIT_Struct);
 		len -= sizeof(Destiny::DSTBALL_ORBIT_Struct);
-		_log(into, "       formID=%d, orbitID=%lu, distance=%.1f", b->formationID,
+		_log(into, "       formID=%d, orbitID=%u, distance=%.1f", b->formationID,
 			b->followID, b->followRange);
 	} break;
 	case Destiny::DSTBALL_MISSILE: {
 		const Destiny::DSTBALL_MISSILE_Struct *b = (const Destiny::DSTBALL_MISSILE_Struct *) data;
 		data += sizeof(Destiny::DSTBALL_MISSILE_Struct);
 		len -= sizeof(Destiny::DSTBALL_MISSILE_Struct);
-		_log(into, "       formID=%d, target=%lu, followRange?=%.1f, ownerID=%lu, effectStamp=%lu", b->formationID,
+		_log(into, "       formID=%d, target=%u, followRange?=%.1f, ownerID=%u, effectStamp=%u", b->formationID,
 			b->followID, b->followRange, b->ownerID, b->effectStamp);
 		_log(into, "       u=(%.3f, %.3f, %.3f)", 
 			b->x, b->y, b->z);
@@ -149,7 +149,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::DSTBALL_MUSHROOM_Struct *b = (const Destiny::DSTBALL_MUSHROOM_Struct *) data;
 		data += sizeof(Destiny::DSTBALL_MUSHROOM_Struct);
 		len -= sizeof(Destiny::DSTBALL_MUSHROOM_Struct);
-		_log(into, "       formID=%d, distance=%.3f, u125=%.3f, effectStamp=%lu, ownerID=%lu", b->formationID,
+		_log(into, "       formID=%d, distance=%.3f, u125=%.3f, effectStamp=%u, ownerID=%u", b->formationID,
 			b->followRange, b->unknown125, b->effectStamp, b->ownerID);
 	} break;
 	case Destiny::DSTBALL_BOID: {
@@ -160,7 +160,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::DSTBALL_TROLL_Struct *b = (const Destiny::DSTBALL_TROLL_Struct *) data;
 		data += sizeof(Destiny::DSTBALL_TROLL_Struct);
 		len -= sizeof(Destiny::DSTBALL_TROLL_Struct);
-		_log(into, "       formID=%d, effectStamp=%lu", b->formationID,
+		_log(into, "       formID=%d, effectStamp=%u", b->formationID,
 			b->effectStamp);
 	} break;
 	case Destiny::DSTBALL_MINIBALL: {
@@ -183,7 +183,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::DSTBALL_FORMATION_Struct *b = (const Destiny::DSTBALL_FORMATION_Struct *) data;
 		data += sizeof(Destiny::DSTBALL_FORMATION_Struct);
 		len -= sizeof(Destiny::DSTBALL_FORMATION_Struct);
-		_log(into, "       formID=%d, followID=%lu, followRange=%.3f, effectStamp=%lu", b->formationID,
+		_log(into, "       formID=%d, followID=%u, followRange=%.3f, effectStamp=%u", b->formationID,
 			b->followID, b->followRange, b->effectStamp);
 	} break;
 	default:
@@ -232,7 +232,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::AddBall_ship *ball = (const Destiny::AddBall_ship *) data;
 		_log(into, " Ship:  x=%.3f, y=%.3f, z=%.3f, radius=%.2f, mass=%.2f",
 			ball->x, ball->y, ball->z, ball->radius, ball->mass);
-		_log(into, "   type=%d, u51=%d, u52=0x"I64x", corp=%lu, u64=0x%lx",
+		_log(into, "   type=%d, u51=%d, u52=0x"I64x", corp=%u, u64=0x%x",
 			ball->sub_type, ball->unknown51, ball->unknown52, ball->corpID, ball->unknown64);
 
 		data += sizeof(*ball);
@@ -322,12 +322,12 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::AddBall_unmannedShip *ball = (const Destiny::AddBall_unmannedShip *) data;
 		_log(into, " UnmannedShip:  x=%.3f, y=%.3f, z=%.3f, vol=%.2f, mass=%.2f",
 			ball->x, ball->y, ball->z, ball->volume, ball->mass);
-		_log(into, "   u42=%d, u51=%d, u52=0x"I64x", corp=%lu, u64=0x%lx",
+		_log(into, "   u42=%d, u51=%d, u52=0x"I64x", corp=%u, u64=0x%x",
 			ball->unknown42, ball->unknown51, ball->unknown52, ball->corpID, ball->unknown64);
 
 		_log(into, "   u68=%.3f, u76=%.3f, u84=%.3f, u92=%.3f",
 			ball->unknown68, ball->unknown76, ball->unknown84, ball->unknown92);
-		_log(into, "   ps=%.3f, u108=%.3f, formID=%d, loc=%lu, u121=%.3f",
+		_log(into, "   ps=%.3f, u108=%.3f, formID=%d, loc=%u, u121=%.3f",
 			ball->propulsion_strength, ball->unknown108, ball->formationID, ball->locationID, ball->unknown121);
 		_log(into, "   Name: len=%d", ball->name_len);
 		_hex(into, ball->name, ball->name_len*sizeof(uint16));
@@ -338,7 +338,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::AddBall_shipext2 *ball = (const Destiny::AddBall_shipext2 *) data;
 		_log(into, " ShipExt2:  x=%.3f, y=%.3f, z=%.3f, vol=%.2f, mass=%.2f",
 			ball->x, ball->y, ball->z, ball->volume, ball->mass);
-		_log(into, "   u42=%d, u51=%d, u52=0x"I64x", corp=%lu, u64=0x%lx",
+		_log(into, "   u42=%d, u51=%d, u52=0x"I64x", corp=%u, u64=0x%x",
 			ball->unknown42, ball->unknown51, ball->unknown52, ball->corpID, ball->unknown64);
 
 		_log(into, "   u68=%.3f, u76=%.3f, u84=%.3f, u92=%.3f",
@@ -356,7 +356,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::AddBall_shipadd *ball = (const Destiny::AddBall_shipadd *) data;
 		_log(into, " ShipAdd:  x=%.3f, y=%.3f, z=%.3f, radius=%.2f, mass=%.2f",
 			ball->x, ball->y, ball->z, ball->radius, ball->mass);
-		_log(into, "   subtype=%d, u51=%d, u52=0x"I64x", corp=%lu, u64=0x%lx",
+		_log(into, "   subtype=%d, u51=%d, u52=0x"I64x", corp=%u, u64=0x%x",
 			ball->sub_type, ball->unknown51, ball->unknown52, ball->corpID, ball->unknown64);
 
 		_log(into, "   radius=%.3f, dX=%.3f, dY=%.3f, dZ=%.3f",
@@ -378,12 +378,12 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::AddBall_npc *ball = (const Destiny::AddBall_npc *) data;
 		_log(into, " NPC:  x=%.3f, y=%.3f, z=%.3f, radius=%.2f, mass=%.2f",
 			ball->x, ball->y, ball->z, ball->radius, ball->mass);
-		_log(into, "   u42=%d, u51=%d, u52=0x"I64x", corp=%lu, u64=0x%lx",
+		_log(into, "   u42=%d, u51=%d, u52=0x"I64x", corp=%u, u64=0x%x",
 			ball->unknown42, ball->unknown51, ball->unknown52, ball->corpID, ball->unknown64);
 
 		_log(into, "   u68=%.3f, u76=%.3f, u84=%.3f, u92=%.3f",
 			ball->unknown68, ball->unknown76, ball->unknown84, ball->unknown92);
-		_log(into, "   u100=%.3f, u108=%.3f, formID=%d, station=%lu, u121=%.3f",
+		_log(into, "   u100=%.3f, u108=%.3f, formID=%d, station=%u, u121=%.3f",
 			ball->unknown100, ball->unknown108, ball->formationID, ball->stationID, ball->unknown121);
 		if(ball->name_len > 0) {
 			_log(into, "   Name: len=%d", ball->name_len);
@@ -396,12 +396,12 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		const Destiny::AddBall_loot *ball = (const Destiny::AddBall_loot *) data;
 		_log(into, " Loot:  x=%.3f, y=%.3f, z=%.3f, vol=%.2f, mass=%.2f",
 			ball->x, ball->y, ball->z, ball->volume, ball->mass);
-		_log(into, "   u42=%d, u51=%d, u52=0x"I64x", corp=%lu, u64=0x%lx",
+		_log(into, "   u42=%d, u51=%d, u52=0x"I64x", corp=%u, u64=0x%x",
 			ball->unknown42, ball->unknown51, ball->unknown52, ball->corpID, ball->unknown64);
 
 		_log(into, "   u68=%.3f, u76=%.3f, u84=%.3f, u92=%.3f",
 			ball->unknown68, ball->unknown76, ball->unknown84, ball->unknown92);
-		_log(into, "   u100=%.3f, u108=%.3f, formID=%d, u117=%lu",
+		_log(into, "   u100=%.3f, u108=%.3f, formID=%d, u117=%u",
 			ball->unknown100, ball->unknown108, ball->formationID, ball->unknown117);
 		if(ball->name_len > 0) {
 			_log(into, "   Name: len=%d", ball->name_len);

@@ -82,7 +82,7 @@ GPoint hack_sentry_locs[num_hack_sentry_locs] = {
 bool SystemManager::_LoadSystemCelestials() {
 	std::vector<DBSystemEntity> entities;
 	if(!m_db.LoadSystemEntities(m_systemID, entities)) {
-		_log(SERVICE__ERROR, "Unable to load celestial entities during boot of system %lu.", m_systemID);
+		_log(SERVICE__ERROR, "Unable to load celestial entities during boot of system %u.", m_systemID);
 		return false;
     }
 
@@ -94,11 +94,11 @@ bool SystemManager::_LoadSystemCelestials() {
 	for(; cur != end; ++cur) {
 		SimpleSystemEntity *se = SimpleSystemEntity::MakeEntity(this, *cur);
 		if(se == NULL) {
-			codelog(SERVICE__ERROR, "Failed to create entity for item %lu (type %lu)", cur->itemID, cur->typeID);
+			codelog(SERVICE__ERROR, "Failed to create entity for item %u (type %u)", cur->itemID, cur->typeID);
 			continue;
 		}
 		if(!se->LoadExtras(&m_db)) {
-			_log(SERVICE__ERROR, "Failed to load additional data for entity %lu. Skipping.", se->GetID());
+			_log(SERVICE__ERROR, "Failed to load additional data for entity %u. Skipping.", se->GetID());
 			delete se;
 			continue;
 		}
@@ -120,18 +120,18 @@ public:
 				InventoryItem *i = factory.GetItem(entity.itemID, false);	//should not have any contents...
 				if(i == NULL) {
 					//this should not happen... we just got this list from the DB...
-					codelog(SERVICE__ERROR, "Unable to load item for entity %lu", entity.itemID);
+					codelog(SERVICE__ERROR, "Unable to load item for entity %u", entity.itemID);
 					return NULL;
 				}
 				return(new Asteroid(&system, i));	//takes a ref.
 			} break;
 			case invCategories::Ship: {
-				codelog(SERVICE__ERROR, "Ship item in space unhandled: item %lu of type %lu", entity.itemID, entity.typeID);
+				codelog(SERVICE__ERROR, "Ship item in space unhandled: item %u of type %u", entity.itemID, entity.typeID);
 				//TODO: figure out if it is occupied or not.. can we
 				//filter this in the DB instead?
 			} break;
 			default: {
-				codelog(SERVICE__ERROR, "Unhandled dynamic entity category %d for item %lu of type %lu", entity.categoryID, entity.itemID, entity.typeID);
+				codelog(SERVICE__ERROR, "Unhandled dynamic entity category %d for item %u of type %u", entity.categoryID, entity.itemID, entity.typeID);
 			} break;
 		}
 		return NULL;
@@ -141,7 +141,7 @@ public:
 bool SystemManager::_LoadSystemDynamics() {
 	std::vector<DBSystemDynamicEntity> entities;
 	if(!m_db.LoadSystemDynamicEntities(m_systemID, entities)) {
-		_log(SERVICE__ERROR, "Unable to load dynamic entities during boot of system %lu.", m_systemID);
+		_log(SERVICE__ERROR, "Unable to load dynamic entities during boot of system %u.", m_systemID);
 		return false;
     }
 
@@ -153,11 +153,11 @@ bool SystemManager::_LoadSystemDynamics() {
 	for(; cur != end; cur++) {
 		SystemEntity *se = DynamicEntityFactory::BuildEntity(*this, m_services.item_factory, *cur);
 		if(se == NULL) {
-			codelog(SERVICE__ERROR, "Failed to create entity for item %lu (type %lu)", cur->itemID, cur->typeID);
+			codelog(SERVICE__ERROR, "Failed to create entity for item %u (type %u)", cur->itemID, cur->typeID);
 			continue;
 		}
 		//TODO: use proper log type.
-		_log(SPAWN__MESSAGE, "Loaded dynamic entity %lu of type %lu for system %lu", cur->itemID, cur->typeID, m_systemID);
+		_log(SPAWN__MESSAGE, "Loaded dynamic entity %u of type %u for system %u", cur->itemID, cur->typeID, m_systemID);
 		m_entities[se->GetID()] = se;
 		bubbles.Add(se, false);
 		m_entityChanged = true;
@@ -180,12 +180,12 @@ bool SystemManager::BootSystem() {
 	 * make client angry ...
 	//the statics have been loaded, now load up the spawns...
 	if(!m_spawnManager->Load()) {
-		_log(SERVICE__ERROR, "Unable to load spawns during boot of system %lu.", m_systemID);
+		_log(SERVICE__ERROR, "Unable to load spawns during boot of system %u.", m_systemID);
 		return false;
 	}
 	//spawns are loaded, fire up the initial spawn.
 	if(!m_spawnManager->DoInitialSpawn()) {
-		_log(SERVICE__ERROR, "Unable to do initial spawns during boot of system %lu.", m_systemID);
+		_log(SERVICE__ERROR, "Unable to do initial spawns during boot of system %u.", m_systemID);
 		return false;
 	}
 	*/
@@ -246,7 +246,7 @@ void SystemManager::AddClient(Client *who) {
 	//if(who->IsInSpace()) {
 	//	bubbles.Add(who, false);
 	//}
-	_log(CLIENT__TRACE, "%s: Added to system manager for %lu", who->GetName(), m_systemID);
+	_log(CLIENT__TRACE, "%s: Added to system manager for %u", who->GetName(), m_systemID);
 }
 
 void SystemManager::RemoveClient(Client *who) {
@@ -254,7 +254,7 @@ void SystemManager::RemoveClient(Client *who) {
 	m_clientChanged = true;
 	
 	RemoveEntity(who);
-	_log(CLIENT__TRACE, "%s: Removed from system manager for %lu", who->GetName(), m_systemID);
+	_log(CLIENT__TRACE, "%s: Removed from system manager for %u", who->GetName(), m_systemID);
 }
 
 void SystemManager::AddNPC(NPC *who) {
@@ -279,7 +279,7 @@ void SystemManager::RemoveEntity(SystemEntity *who) {
 		m_entities.erase(itr);
 		m_entityChanged = true;
 	} else
-		_log(SERVICE__ERROR, "Entity %lu not found is system %lu to be deleted.", who->GetID(), GetID());
+		_log(SERVICE__ERROR, "Entity %u not found is system %u to be deleted.", who->GetID(), GetID());
 	bubbles.Remove(who, false);
 }
 
@@ -320,10 +320,10 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 		end = m_entities.end();
 		for(; cur != end; ++cur) {
 			if(!cur->second->IsVisibleSystemWide()) {
-//_log(COMMON__WARNING, "%lu is not visible!", cur->first);
+//_log(COMMON__WARNING, "%u is not visible!", cur->first);
 				continue;
 			}
-//_log(COMMON__WARNING, "%lu is system wide visible!", cur->first);
+//_log(COMMON__WARNING, "%u is system wide visible!", cur->first);
 			visible_entities.insert(cur->second);
 		}
 	}
@@ -337,7 +337,7 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 	end = visible_entities.end();
 	for(; cur != end; ++cur) {
 		SystemEntity *ent = *cur;
-//_log(COMMON__WARNING, "Encoding entity %lu", ent->GetID());
+//_log(COMMON__WARNING, "Encoding entity %u", ent->GetID());
 		//ss.damageState
 		ss.damageState[ ent->GetID() ] = ent->MakeDamageState();
 
@@ -360,14 +360,14 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 	//ss.droneState
 	ss.droneState = m_db.GetSolDroneState(m_systemID);
 	if(ss.droneState == NULL) {
-		_log(SERVICE__ERROR, "Unable to query dronestate entity for destiny update in system %lu!", m_systemID);
+		_log(SERVICE__ERROR, "Unable to query dronestate entity for destiny update in system %u!", m_systemID);
 		ss.droneState = new PyRepNone();
 	}
 
 	//ss.solItem
 	ss.solItem = m_db.GetSolRow(m_systemID);
 	if(ss.solItem == NULL) {
-		_log(CLIENT__ERROR, "Unable to query solarsystem entity for destiny update in system %lu!", m_systemID);
+		_log(CLIENT__ERROR, "Unable to query solarsystem entity for destiny update in system %u!", m_systemID);
 		ss.solItem = new PyRepNone();
 	}
 

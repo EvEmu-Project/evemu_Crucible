@@ -112,7 +112,7 @@ bool LSCChannel::JoinChannel(Client * c) {
 	return true;
 }
 void LSCChannel::LeaveChannel(uint32 charID, OnLSC_SenderInfo * si) {
-	_log(LSC__CHANNELS, "Channel %s: Leave from %lu", m_displayName.c_str(), charID);
+	_log(LSC__CHANNELS, "Channel %s: Leave from %u", m_displayName.c_str(), charID);
 
 	if (m_chars.find(charID) == m_chars.end())
 		return;

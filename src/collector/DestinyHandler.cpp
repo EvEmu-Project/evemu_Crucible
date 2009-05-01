@@ -138,7 +138,7 @@ void EVECollectDispatcher::Destiny_SetState(const PyPacket *packet, DoDestinyAct
 	const byte *data = upd.destiny_state->GetBuffer();
 	uint32 len = upd.destiny_state->GetLength();
 
-	_log(COLLECT__DESTINY_HEX, "SetState binary data: (ego=%lu)", upd.ego);
+	_log(COLLECT__DESTINY_HEX, "SetState binary data: (ego=%u)", upd.ego);
 	_hex(COLLECT__DESTINY_HEX, data, len);
 
 	Destiny::DumpUpdate(COLLECT__DESTINY, data, len);

@@ -71,7 +71,7 @@ void EntityList::Process()
 		active_client = *client_cur;
 		if(!active_client->ProcessNet())
 		{
-			_log(SERVER__CLIENTS, "Destroying client for account %lu", active_client->GetAccountID());
+			_log(SERVER__CLIENTS, "Destroying client for account %u", active_client->GetAccountID());
 			delete active_client;
 			active_client = NULL;
 			client_cur = m_clients.erase(client_cur);
@@ -86,7 +86,7 @@ void EntityList::Process()
 	bool destiny = DestinyManager::IsTicActive();
 	if(destiny)
 	{
-		_log(DESTINY__TRACE, "Triggering destiny tick for stamp %lu", DestinyManager::GetStamp());
+		_log(DESTINY__TRACE, "Triggering destiny tick for stamp %u", DestinyManager::GetStamp());
 	}
 		
 	//first process any systems, watching for deletion.
@@ -329,7 +329,7 @@ SystemManager *EntityList::FindOrBootSystem(uint32 systemID) {
 	if(res != m_systems.end())
 		return(res->second);
 
-	_log(SERVICE__MESSAGE, "Booting system %lu", systemID);
+	_log(SERVICE__MESSAGE, "Booting system %u", systemID);
 	
 	SystemManager *mgr = new SystemManager(systemID, m_db, *m_services);
 	if(!mgr->BootSystem()) {

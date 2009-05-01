@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
 	while(argc > 1) {
 		uint32 sys = strtoul(argv[1], NULL, 0);
 		if(sys > 0) {
-			_log(SERVER__INIT, "Command line tells us to boot system %lu", sys);
+			_log(SERVER__INIT, "Command line tells us to boot system %u", sys);
 			entity_list.FindOrBootSystem(sys);
 		}
 		argc--;

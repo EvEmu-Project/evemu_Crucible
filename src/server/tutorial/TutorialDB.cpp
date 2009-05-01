@@ -41,7 +41,7 @@ PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
 		"SELECT pageID, criteriaID"
 		" FROM tutorial_pages"
 		" JOIN tutorial_page_criteria USING (pageID)"
-		" WHERE tutorialID=%lu", tutorialID))
+		" WHERE tutorialID=%u", tutorialID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -56,7 +56,7 @@ PyRep *TutorialDB::GetPages(uint32 tutorialID) {
 	if(!m_db->RunQuery(res,
 		"SELECT pageID, pageNumber, pageName, text, imagePath, audioPath, 0 AS dataID" 
 		" FROM tutorial_pages"
-		" WHERE tutorialID=%lu"
+		" WHERE tutorialID=%u"
 		" ORDER BY pageNumber", tutorialID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
@@ -72,7 +72,7 @@ PyRep *TutorialDB::GetTutorial(uint32 tutorialID) {
 	if(!m_db->RunQuery(res, 
 		"SELECT tutorialID, tutorialName, nextTutorialID, 0 AS dataID" 
 		" FROM tutorials"
-		" WHERE tutorialID=%lu", tutorialID))
+		" WHERE tutorialID=%u", tutorialID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -87,7 +87,7 @@ PyRep *TutorialDB::GetTutorialCriterias(uint32 tutorialID) {
 	if(!m_db->RunQuery(res, 
 		"SELECT criteriaID" 
 		" FROM tutorials_criterias"
-		" WHERE tutorialID=%lu", tutorialID))
+		" WHERE tutorialID=%u", tutorialID))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
