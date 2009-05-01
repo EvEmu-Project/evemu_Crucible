@@ -25,7 +25,11 @@
 
 #include "EvemuPCH.h"
 
-CharacterDB::CharacterDB(DBcore *db) : ServiceDB(db) {}
+CharacterDB::CharacterDB(DBcore *db) : ServiceDB(db)
+{
+	load_name_validation_set();
+}
+
 CharacterDB::~CharacterDB() {}
 
 PyRepObject *CharacterDB::GetCharacterList(uint32 accountID) {
@@ -55,29 +59,17 @@ bool CharacterDB::ValidateCharName(const char *name)
 	if (name == NULL || *name == '\0')
 		return false;
 
-	if(m_db->IsSafeString(name) == false)
-	{
-		_log(SERVICE__ERROR, "Name '%s' contains invalid characters.", name);
-		return false;
-	}
+	/* hash the name */
+	uint32 hash = djb2_hash(name);
 
-	std::string safe_escaped_name;
-	m_db->DoEscapeString(safe_escaped_name, name);
-	
-	//TODO: should reserve the name, but I don't wanna insert a fake char in order to do it.
-	
-	DBQueryResult res;
-	if(!m_db->RunQuery(res, "SELECT characterID FROM character_ WHERE characterName='%s'", safe_escaped_name.c_str()))
-	{
-		codelog(SERVICE__ERROR, "Error in query for '%s': %s", name, res.error.c_str());
-		return false;
-	}
+	/* check if its in our std::set */
+	CharValidationSetItr itr = mNameValidation.find(hash);
 
-	DBResultRow row;
-	if(res.GetRow(row)) {
-	   _log(SERVICE__MESSAGE, "Name '%s' is already taken", name);
-	   return false;
-	}
+	/* if itr is not equal to the end of the set it means that the same hash has been found */
+	if (itr != mNameValidation.end())
+		return false;
+
+	/* if we got here the name is "new" */
 	return true;
 }
 
@@ -102,8 +94,8 @@ PyRepObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 
 /*
  * This macro checks given CharacterAppearance object (app) if given value (v) is NULL:
- *  if yes, macro evaulates to string "NULL"
- *  if no, macro evaulates to call to function _ToStr, which turns given value to string.
+ *  if yes, macro evaluates to string "NULL"
+ *  if no, macro evaluates to call to function _ToStr, which turns given value to string.
  *
  * This macro is needed when saving CharacterAppearance values into DB (NewCharacter, SaveCharacterAppearance).
  * Resulting value must be const char *.
@@ -215,6 +207,8 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 		char_item->Delete();
 		return NULL;
 	}
+
+	add_name_validation_set(data.name.c_str(),char_item->itemID());
 
 	// Then insert roles into table chrCorporationRoles
 	if(!m_db->RunQuery(err,
@@ -378,7 +372,7 @@ bool CharacterDB::GetCharItems(uint32 characterID, std::vector<uint32> &into) {
 	return true;
 }
 
-//Try to run through all of the tables which might have data relavent to
+//Try to run through all of the tables which might have data relevent to
 //this person in it, and run a delete against it.
 bool CharacterDB::DeleteCharacter(uint32 characterID) {
 	DBerror err;
@@ -507,6 +501,9 @@ bool CharacterDB::DeleteCharacter(uint32 characterID) {
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}
+
+	/* delete the entry from the name validation system */
+	del_name_validation_set(characterID);
 
 	// character_
 	if(!m_db->RunQuery(err,
@@ -866,10 +863,86 @@ PyRepObject *CharacterDB::GetOwnerNote(uint32 charID, uint32 noteID) {
 	return DBResultToRowset(res);
 }
 
+uint32 CharacterDB::djb2_hash( const char* str )
+{
+	uint32 hash = 5381;
+	int c;
 
+	while ((c = *str++))
+		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
+	return hash;
+}
 
+void CharacterDB::load_name_validation_set()
+{
+	DBQueryResult res;
+	if(!m_db->RunQuery(res, "SELECT characterID, characterName FROM character_"))
+	{
+		codelog(SERVICE__ERROR, "Error in query for %s", res.error.c_str());
+		return;
+	}
 
+	DBResultRow row;
+	while(res.GetRow(row) == true)
+	{
+		uint32 characterID = row.GetUInt(0);
+		const char* name = row.GetText(1);
+		printf("initializing name validation: %s\n", name);
+		uint32 hash = djb2_hash(name);
+		mNameValidation.insert(hash);
+		mIdNameContainer.insert(std::make_pair(characterID, name));
+	}
+}
 
+bool CharacterDB::add_name_validation_set( const char* name, uint32 characterID )
+{
+	if (name == NULL || *name == '\0')
+		return false;
 
+	uint32 hash = djb2_hash(name);
 
+	/* check if the name is already present ( this should not be possible but we all know how hackers are ) */
+	if (mNameValidation.find(hash) != mNameValidation.end())
+	{
+		printf("CharacterDB::add_name_validation_set: unable to add: %s as its a dupe", name);
+		return false;
+	}
+
+	mNameValidation.insert(hash);
+	mIdNameContainer.insert(std::make_pair(characterID, name));
+	return true;
+}
+
+bool CharacterDB::del_name_validation_set( uint32 characterID )
+{
+	CharIdNameMapItr helper_itr = mIdNameContainer.find(characterID);
+
+	/* if we are unable to find the entry... return.
+	 * @note we do risk keeping the name in the name validation. 
+	 * which I am willing to take.
+	 */
+	if (helper_itr == mIdNameContainer.end())
+		return false;
+
+	const char* name = helper_itr->second.c_str();
+	if (name == NULL || *name == '\0')
+		return false;
+
+	uint32 hash = djb2_hash(name);
+
+	CharValidationSetItr name_itr = mNameValidation.find(hash);
+	if (name_itr != mNameValidation.end())
+	{
+		// we found the name hash... deleting
+		mNameValidation.erase(name_itr);
+		mIdNameContainer.erase(helper_itr);
+		return true;
+	}
+	else
+	{
+		/* normally this should never happen... */
+		printf("CharacterDB::del_name_validation_set: unable to remove: %s as its not in the set", name);
+		return false;
+	}
+}

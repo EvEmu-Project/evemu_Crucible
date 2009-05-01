@@ -255,7 +255,6 @@ bool CachedObjectMgr::IsCacheUpToDate(const PyRep *objectID, uint32 version, uin
 	        && res->second->timestamp == timestamp);
 }
 
-
 typedef struct {
 	uint64 timestamp;
 	uint32 version;
@@ -360,8 +359,6 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
 	fclose(f);
 	return true;
 }
-
-
 
 /*
 void CachedObjectMgr::AddCacheHint(const char *oname, const char *key, PyRepDict *into) {
@@ -722,7 +719,7 @@ PyRepObject *PyCachedObject::Encode() {
 	arg_tuple->items[3] = new PyRepInteger(shared?1:0);
 
 	//compression or not, we want to encode this into bytes so it doesn't
-	//get cloned in obect form just to be encoded later
+	//get cloned in object form just to be encoded later
 /*	cache->EncodeData();
 	if(compressed) {
 		uint8 *buf = new uint8[cache->length];
@@ -740,7 +737,7 @@ PyRepObject *PyCachedObject::Encode() {
 		//or if we can change this encode method to consume the PyCachedObject (which will almost always be the case)
 		arg_tuple->items[4] = cache->Clone();
 	}*/
-	//TODO: we dont really need to clone this if we can figure out a way to say "this is read only"
+	//TODO: we don't really need to clone this if we can figure out a way to say "this is read only"
 	//or if we can change this encode method to consume the PyCachedObject (which will almost always be the case)
 	arg_tuple->items[4] = cache->Clone();
 	
@@ -836,20 +833,3 @@ bool PyCachedCall::Decode(PyRepSubStream **in_ss) {
 	delete ss;
 	return(result != NULL);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

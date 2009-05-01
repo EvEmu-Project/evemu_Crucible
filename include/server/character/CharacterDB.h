@@ -88,6 +88,30 @@ public:
 
 	uint32 AddOwnerNote(uint32 charID, const std::string &label, const std::string &content);
 	bool EditOwnerNote(uint32 charID, uint32 noteID, const std::string &label, const std::string &content);
+
+private:
+	/**
+	* djb2 algorithm taken from http://www.cse.yorku.ca/~oz/hash.html slightly modified
+	*
+	* @param[in] str string that needs to be hashed.
+	* @return djb2 hash of the string.
+	*/
+	uint32 djb2_hash(const char* str);
+
+	void load_name_validation_set();
+	bool add_name_validation_set(const char* name, uint32 characterID);
+	bool del_name_validation_set(uint32 characterID);
+
+private:
+	/* set only for validation */
+	typedef std::set<uint32>			CharValidationSet;
+	typedef CharValidationSet::iterator	CharValidationSetItr;
+	CharValidationSet mNameValidation;
+
+	/* helper object for deleting ( waisting mem here ) */
+	typedef std::map<uint32, std::string>	CharIdNameMap;
+	typedef CharIdNameMap::iterator			CharIdNameMapItr;
+	CharIdNameMap mIdNameContainer;
 };
 
 #endif
