@@ -280,13 +280,12 @@ int32 DBcore::DoEscapeString(char* tobuf, const char* frombuf, int32 fromlen) {
 	return mysql_real_escape_string(&mysql, tobuf, frombuf, fromlen);
 }
 
-void DBcore::DoEscapeString(std::string &to, const std::string &from) {
+void DBcore::DoEscapeString(std::string &to, const std::string &from)
+{
 	uint32 len = (uint32)from.length();
-	char *buf = new char[len*2 + 1];
-	len = mysql_real_escape_string(&mysql, buf, from.c_str(), len);
-	to.assign(buf, len);
-	delete [] buf;
-	buf = NULL;
+	to.resize(len*2 + 1);	// make enough room
+	uint32 esc_len = mysql_real_escape_string(&mysql, &to[0], from.c_str(), len);
+	to.resize(esc_len+1); // optional.
 }
 
 //look for things in the string which might cause SQL problems
