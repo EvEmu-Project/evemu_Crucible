@@ -205,7 +205,7 @@ bool PyPacket::Decode(PyRep *in_packet)
 		type = (MACHONETMSG_TYPE) typer->value;
 		break;
 	default:
-		codelog(NET__PACKET_ERROR, "failed: Unknown message type %lld", typer->value);
+		codelog(NET__PACKET_ERROR, "failed: Unknown message type "I64u, typer->value);
 		SafeDelete(packet);
 
 		return false;
@@ -323,13 +323,13 @@ PyAddress::PyAddress()
 void PyAddress::Dump(FILE *into, const char *pfx) const {
 	switch(type) {
 	case Any:
-		fprintf(into, "%sAny: service='%s' callID=%lld", pfx, service.c_str(), callID);
+		fprintf(into, "%sAny: service='%s' callID="I64u, pfx, service.c_str(), callID);
 		break;
 	case Node:
-		fprintf(into, "%sNode: node=0x%llx service='%s' callID=%lld", pfx, typeID, service.c_str(), callID);
+		fprintf(into, "%sNode: node=0x"I64x" service='%s' callID="I64u, pfx, typeID, service.c_str(), callID);
 		break;
 	case Client:
-		fprintf(into, "%sClient: node=0x%llx service='%s' callID=%lld", pfx, typeID, service.c_str(), callID);
+		fprintf(into, "%sClient: node=0x"I64x" service='%s' callID="I64u, pfx, typeID, service.c_str(), callID);
 		break;
 	case Broadcast:
 		fprintf(into, "%sBroadcast: broadcastID='%s' narrowcast=(not decoded yet) idtype='%s'", pfx, service.c_str(), bcast_idtype.c_str());
@@ -343,13 +343,13 @@ void PyAddress::Dump(FILE *into, const char *pfx) const {
 void PyAddress::Dump(LogType ltype, const char *pfx) const {
 	switch(type) {
 	case Any:
-		_log(ltype, "%sAny: service='%s' callID=%lld", pfx, service.c_str(), callID);
+		_log(ltype, "%sAny: service='%s' callID="I64u, pfx, service.c_str(), callID);
 		break;
 	case Node:
-		_log(ltype, "%sNode: node=0x%llx service='%s' callID=%lld", pfx, typeID, service.c_str(), callID);
+		_log(ltype, "%sNode: node=0x"I64x" service='%s' callID="I64u, pfx, typeID, service.c_str(), callID);
 		break;
 	case Client:
-		_log(ltype, "%sClient: node=0x%llx service='%s' callID=%lld", pfx, typeID, service.c_str(), callID);
+		_log(ltype, "%sClient: node=0x"I64x" service='%s' callID="I64u, pfx, typeID, service.c_str(), callID);
 		break;
 	case Broadcast:
 		_log(ltype, "%sBroadcast: broadcastID='%s' narrowcast=(not decoded yet) idtype='%s'", pfx, service.c_str(), bcast_idtype.c_str());

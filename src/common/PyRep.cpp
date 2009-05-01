@@ -122,11 +122,11 @@ const char *PyRep::TypeString() const
 /* PyRep Integer Class                                                  */
 /************************************************************************/
 void PyRepInteger::Dump(FILE *into, const char *pfx) const {
-	fprintf(into, "%sInteger field: %lld\n", pfx, value);
+	fprintf(into, "%sInteger field: "I64u"\n", pfx, value);
 }
 
 void PyRepInteger::Dump(LogType type, const char *pfx) const {
-	_log(type, "%sInteger field: %lld", pfx, value);
+	_log(type, "%sInteger field: "I64u, pfx, value);
 }
 
 /************************************************************************/

@@ -579,7 +579,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 	// Set new corp
 	if (!m_db->RunQuery(err,
 		"UPDATE character_ "
-		"	SET corporationID = %lu, corporationDateTime = %llu "
+		"	SET corporationID = %lu, corporationDateTime = "I64u" "
 		"	WHERE characterID = %lu",
 			corpID, Win32TimeNow(), charID
 		))
@@ -603,7 +603,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 
 	// Add new employment history record
 	if (!m_db->RunQuery(err,
-		"INSERT INTO chrEmployment VALUES (%lu, %lu, %llu, 0)",
+		"INSERT INTO chrEmployment VALUES (%lu, %lu, "I64u", 0)",
 		charID, corpID, Win32TimeNow()
 		))
 	{

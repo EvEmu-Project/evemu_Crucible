@@ -68,10 +68,17 @@
 #  define I64x "%I64x"
 #  define I64X "%I64X"
 #else
-#  define I64d "%lld"
-#  define I64u "%llu"
-#  define I64x "%llx"
-#  define I64X "%llX"
+#  ifdef X64
+#    define I64d "%ld"
+#    define I64u "%lu"
+#    define I64x "%lx"
+#    define I64X "%lX"
+#  else
+#    define I64d "%lld"
+#    define I64u "%llu"
+#    define I64x "%llx"
+#    define I64X "%llX"
+#  endif//X64
 #endif//WIN32
 
 

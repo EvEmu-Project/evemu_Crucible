@@ -45,7 +45,7 @@ void EVECollectDispatcher::Handle_CallReq(const PyPacket *packet, PyCallStream *
 	pendingCalls[packet->source.callID] = call->method;
 
 	
-	_log(COLLECT__CALL_SUMMARY, "Call ID %llu: %s          (svc %s)", packet->source.callID, call->method.c_str(), packet->dest.service.c_str());
+	_log(COLLECT__CALL_SUMMARY, "Call ID "I64u": %s          (svc %s)", packet->source.callID, call->method.c_str(), packet->dest.service.c_str());
 	packet->source.Dump(COLLECT__PACKET_SRC, "  Src:  ");
 	packet->dest.Dump(COLLECT__PACKET_DEST, "  Dest: ");
 	if(is_log_enabled(COLLECT__CALL_DUMP)) {
@@ -95,7 +95,7 @@ void EVECollectDispatcher::Handle_CallRsp(const PyPacket *packet, PyRepTuple **i
 			}
 		}
 		
-		_log(COLLECT__CALL_SUMMARY, "%sCall Response for ID %llu: %s           (svc %s)", pfx, packet->dest.callID, res->second.c_str(), packet->source.service.c_str());
+		_log(COLLECT__CALL_SUMMARY, "%sCall Response for ID "I64u": %s           (svc %s)", pfx, packet->dest.callID, res->second.c_str(), packet->source.service.c_str());
 
 		packet->source.Dump(COLLECT__PACKET_SRC, "  Src:  ");
 		packet->dest.Dump(COLLECT__PACKET_DEST, "  Dest: ");
@@ -140,7 +140,7 @@ void EVECollectDispatcher::Handle_CallRsp(const PyPacket *packet, PyRepTuple **i
 
 		pendingCalls.erase(res);
 	} else {
-		_log(COLLECT__CALL_SUMMARY, "Call Response for unknonw call ID %llu", packet->dest.callID);
+		_log(COLLECT__CALL_SUMMARY, "Call Response for unknonw call ID "I64u, packet->dest.callID);
 	}
 	delete result;
 }
@@ -237,7 +237,7 @@ void EVECollectDispatcher::Rsp_MachoBindObject(const PyPacket *packet, PyRepTupl
 	
 	RspMachoBindObject c;
 	if(c.Decode(res)) {
-		_log(COLLECT__CALL_SUMMARY, "Call Response for Bind Call ID %llu: %s", packet->dest.callID, method_name.c_str());
+		_log(COLLECT__CALL_SUMMARY, "Call Response for Bind Call ID "I64u": %s", packet->dest.callID, method_name.c_str());
 		
 		if(is_log_enabled(COLLECT__CALLRSP_SQL)) {	
 			//run through the result looking for SQL tables, and dump them.
@@ -262,7 +262,7 @@ void EVECollectDispatcher::Req_MachoBindObject(const PyPacket *packet, PyCallStr
 		if(!obj.call->CheckType(PyRep::None)) {
 			CallMachoBindObject_call c;
 			if(c.Decode(&obj.call)) {
-				_log(COLLECT__CALL_SUMMARY, "Nested Call ID %llu: %s", packet->source.callID, c.method_name.c_str());
+				_log(COLLECT__CALL_SUMMARY, "Nested Call ID "I64u": %s", packet->source.callID, c.method_name.c_str());
 
 				//register the bind
 				pendingBinds[packet->source.callID] = c.method_name;

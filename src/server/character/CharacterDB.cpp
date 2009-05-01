@@ -178,9 +178,9 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 	"	morph4e,morph4n,morph4s,morph4w"
 	" ) "
 	"VALUES(%lu,'%s',%d,'%s','%s',%lu,"
-	"	%llu,%llu,"
+	"	"I64u","I64u","
 	"	%.13f, %.13f, %.13f, '', %lu,"
-	"	%ld,%lld,"		//corp
+	"	%ld,"I64u","		//corp
 	"	%ld,%ld,%ld,%ld,"	//loc
 	"	%lu,%lu,%lu,%lu,%lu,%lu,%lu,"
 	"	%s,%s,%ld,%s,%ld,%ld,"
@@ -232,7 +232,7 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 		"INSERT INTO chrEmployment"
 		"  (characterID, corporationID, startDate, deleted)"
 		" VALUES"
-		"  (%lu, %lu, %llu, 0)",
+		"  (%lu, %lu, "I64u", 0)",
 		char_item->itemID(), data.corporationID, Win32TimeNow()))
 	{
 		_log(DATABASE__ERROR, "Failed to insert employment info of character %lu: %s.", char_item->itemID(), err.c_str());

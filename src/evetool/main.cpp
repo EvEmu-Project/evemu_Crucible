@@ -298,11 +298,11 @@ void ProcessInput(char *input) {
 void TimeToString(const char *time) {
 	uint64 t;
 	t = strtoull(time, NULL, 10);
-	printf("\n%llu is %s\n", t, Win32TimeToString(t).c_str());
+	printf("\n"I64u" is %s\n", t, Win32TimeToString(t).c_str());
 }
 
 void PrintTimeNow() {
-	printf("\nNow in Win32 time: %llu\n", Win32TimeNow());
+	printf("\nNow in Win32 time: "I64u"\n", Win32TimeNow());
 }
 
 void ListCache(const char *in_filter) {

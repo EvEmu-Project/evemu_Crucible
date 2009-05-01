@@ -115,7 +115,7 @@ void PyFileDump::_pfxHexDump(const uint8 *data, uint32 length) {
 
 
 void PyDumpVisitor::VisitInteger(const PyRepInteger *rep) {
-	_print("Integer field: %lld", rep->value);
+	_print("Integer field: "I64u, rep->value);
 }
 
 void PyDumpVisitor::VisitReal(const PyRepReal *rep) {

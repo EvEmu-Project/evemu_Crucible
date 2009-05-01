@@ -252,7 +252,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		}
 		uint64 data = *((const uint64 *) packet);
 		
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyLongLong %llu", pfx, opcode, data);
+		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyLongLong "I64u, pfx, opcode, data);
 		
 		res = new PyRepInteger(data);
 		

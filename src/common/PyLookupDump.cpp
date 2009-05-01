@@ -48,9 +48,9 @@ PyLookupDump::~PyLookupDump() {
 void PyLookupDump::VisitInteger(const PyRepInteger *rep) {
 	const char *look = m_resolver->LookupInt(rep->value);
 	if(look != NULL)
-		_print("Integer field: %lld (%s)", rep->value, look);
+		_print("Integer field: "I64u" (%s)", rep->value, look);
 	else
-		_print("Integer field: %lld", rep->value);
+		_print("Integer field: "I64u, rep->value);
 }
 
 void PyLookupDump::VisitString(const PyRepString *rep) {
