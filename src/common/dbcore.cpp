@@ -274,9 +274,8 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
 	return true;
 }
 
-int32 DBcore::DoEscapeString(char* tobuf, const char* frombuf, int32 fromlen) {
-//	No good reason to lock the DB, we only need it in the first place to check char encoding.
-//	LockMutex lock(&MDatabase);
+int32 DBcore::DoEscapeString(char* tobuf, const char* frombuf, int32 fromlen)
+{
 	return mysql_real_escape_string(&mysql, tobuf, frombuf, fromlen);
 }
 

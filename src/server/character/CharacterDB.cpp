@@ -60,11 +60,14 @@ bool CharacterDB::ValidateCharName(const char *name)
 		_log(SERVICE__ERROR, "Name '%s' contains invalid characters.", name);
 		return false;
 	}
+
+	std::string safe_escaped_name;
+	m_db->DoEscapeString(safe_escaped_name, name);
 	
 	//TODO: should reserve the name, but I don't wanna insert a fake char in order to do it.
 	
 	DBQueryResult res;
-	if(!m_db->RunQuery(res, "SELECT characterID FROM character_ WHERE characterName='%s'", name))
+	if(!m_db->RunQuery(res, "SELECT characterID FROM character_ WHERE characterName='%s'", safe_escaped_name.c_str()))
 	{
 		codelog(SERVICE__ERROR, "Error in query for '%s': %s", name, res.error.c_str());
 		return false;
@@ -73,9 +76,8 @@ bool CharacterDB::ValidateCharName(const char *name)
 	DBResultRow row;
 	if(res.GetRow(row)) {
 	   _log(SERVICE__MESSAGE, "Name '%s' is already taken", name);
-	   return false; 
+	   return false;
 	}
-
 	return true;
 }
 
