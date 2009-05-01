@@ -552,8 +552,7 @@ DBQueryResult::ColType DBResultRow::ColumnType(uint32 column) const {
 uint32 DBResultRow::GetColumnLength(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		//_log(DATABASE__ERROR, "GetColumnLength: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		printf("GetColumnLength: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
+		_log(DATABASE__ERROR, "GetColumnLength: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -566,8 +565,7 @@ uint32 DBResultRow::GetColumnLength(uint32 column) const {
 int32 DBResultRow::GetInt(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		//_log(DATABASE__ERROR, "GetInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		printf("GetInt: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
+		_log(DATABASE__ERROR, "GetInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -578,8 +576,7 @@ int32 DBResultRow::GetInt(uint32 column) const {
 uint32 DBResultRow::GetUInt(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		//_log(DATABASE__ERROR, "GetUInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		printf("GetUInt: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
+		_log(DATABASE__ERROR, "GetUInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -590,8 +587,7 @@ uint32 DBResultRow::GetUInt(uint32 column) const {
 int64 DBResultRow::GetInt64(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		//_log(DATABASE__ERROR, "GetInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		printf("GetInt: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
+		_log(DATABASE__ERROR, "GetInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -602,8 +598,7 @@ int64 DBResultRow::GetInt64(uint32 column) const {
 uint64 DBResultRow::GetUInt64(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		//_log(DATABASE__ERROR, "GetUInt: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		printf("GetUInt: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
+		_log(DATABASE__ERROR, "GetUInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -614,8 +609,7 @@ uint64 DBResultRow::GetUInt64(uint32 column) const {
 float DBResultRow::GetFloat(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		//_log(DATABASE__ERROR, "GetFloat: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		printf("GetFloat: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
+		_log(DATABASE__ERROR, "GetFloat: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -629,8 +623,7 @@ float DBResultRow::GetFloat(uint32 column) const {
 double DBResultRow::GetDouble(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		//_log(DATABASE__ERROR, "GetDouble: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		printf("GetDouble: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
+		_log(DATABASE__ERROR, "GetDouble: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
@@ -640,14 +633,12 @@ double DBResultRow::GetDouble(uint32 column) const {
 uint32 DBResultRow::GetBinary(uint32 column, uint8 *into, uint32 in_length) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		//_log(DATABASE__ERROR, "GetBinary: Column index %d exceeds number of columns (%d) in row", column, ColumnCount());
-		printf("GetBinary: Column index %d exceeds number of columns (%d) in row\n", column, ColumnCount());
+		_log(DATABASE__ERROR, "GetBinary: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
 		return 0;		//nothing better to do...
 	}
 #endif
 	if(in_length < m_lengths[column]) {
-		//_log(DATABASE__ERROR, "GetBinary: insufficient buffer space provided for column %d of length %d (%d provided)", column, m_lengths[column], in_length);
-		printf("GetBinary: insufficient buffer space provided for column %d of length %d (%d provided)\n", column, m_lengths[column], in_length);
+		_log(DATABASE__ERROR, "GetBinary: insufficient buffer space provided for column %u of length %u (%u provided)", column, m_lengths[column], in_length);
 		return 0;
 	}
 	memcpy(into, m_row[column], m_lengths[column]);
@@ -688,14 +679,14 @@ void ListToINString(const std::vector<uint32> &ints, std::string &into, const ch
 	{
 		char* enty_ptr = &into[format_index];
 		uint32 entry_number = ints[i];
-		int formated_len = snprintf(enty_ptr, FORMATTED_INT_STR_SIZE, "%lu,", entry_number);
+		int formated_len = snprintf(enty_ptr, FORMATTED_INT_STR_SIZE, "%u,", entry_number);
 		format_index+=formated_len;
 	}
 
 	/* handle the last one */
 	char* enty_ptr = &into[format_index];
 	uint32 entry_number = ints[ints.size()-1]; // vector list max is size - 1
-	int formated_len = snprintf(enty_ptr, FORMATTED_INT_STR_SIZE, "%lu", entry_number);
+	int formated_len = snprintf(enty_ptr, FORMATTED_INT_STR_SIZE, "%u", entry_number);
 	format_index+=formated_len;
 }
 
@@ -715,7 +706,7 @@ bool DBSequence::Init(uint32 last_used_value) {
 	}
 	
 	if(!m_db->RunQuery(err, 
-		"REPLACE INTO %s (last_used) VALUES(%lu)",
+		"REPLACE INTO %s (last_used) VALUES(%u)",
 		m_table.c_str(), last_used_value
 	))
 	{
