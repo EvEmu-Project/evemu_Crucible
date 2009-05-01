@@ -198,6 +198,14 @@ protected:
 	const std::string m_table;
 };
 
+/**
+ * function to convert a vector of numbers to a string containing string representatives of those
+ * numbers.
+ *
+ * @param[in] ints contains the numbers that need to converted.
+ * @param[in] if_emptry is the default value added if ints is empty.
+ * @param[out] into contains the string representatives of the numbers.
+ */
 void ListToINString(const std::vector<uint32> &ints, std::string &into, const char *if_empty);
 
 #endif

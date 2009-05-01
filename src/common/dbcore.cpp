@@ -437,7 +437,8 @@ bool DBQueryResult::GetRow(DBResultRow &into) {
 const char *DBQueryResult::ColumnName(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "ColumnName: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "ColumnName: Column index %d exceeds number of columns (%s) in row", column, ColumnCount());
+		printf("ColumnName: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
 		return("(ERROR)");		//nothing better to do...
 	}
 #endif
@@ -447,7 +448,8 @@ const char *DBQueryResult::ColumnName(uint32 column) const {
 DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
 	if(column >= ColumnCount()) {
-		_log(DATABASE__ERROR, "ColumnType: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+		//_log(DATABASE__ERROR, "ColumnType: Column index %d exceeds number of columns (%s) in row", column, ColumnCount());
+		printf("ColumnType: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
 		return(String);		//nothing better to do...
 	}
 #endif
@@ -653,31 +655,49 @@ uint32 DBResultRow::GetBinary(uint32 column, uint8 *into, uint32 in_length) cons
 }
 
 
-void ListToINString(const std::vector<uint32> &ints, std::string &into, const char *if_empty) {
-	if(ints.empty()) {
+void ListToINString(const std::vector<uint32> &ints, std::string &into, const char *if_empty)
+{
+	if(ints.empty() == true)
+	{
 		into = if_empty;
 		return;
 	}
-	
-	char *inbuffer = new char[ints.size()*13];
 
-	std::vector<uint32>::const_iterator cur, end;
-	char *ptr = inbuffer;
-	cur = ints.begin();
-	end = ints.end();
-	for(; cur != end; cur++) {
-		if(ptr != inbuffer) {
-			*ptr = ',';
-			ptr++;
-		}
-		ptr += snprintf(ptr, 15, "%u", *cur);
+/** Some small theory about numbers to strings
+ * on x86 the max size of a number converted to
+ * a string is:
+ * uint32 -1 results in
+ * "4294967295" which is 10 characters.
+ * on x64 the max size of a number converted to
+ * a string is:
+ * uint64 -1 results in
+ * "18446744073709551615" which is is 20 characters.
+ */
+#ifdef X64
+#  define FORMATTED_INT_STR_SIZE 20
+#else
+#  define FORMATTED_INT_STR_SIZE 10
+#endif//X64
+
+	into.clear();
+	into.resize(ints.size() * (FORMATTED_INT_STR_SIZE + 1));
+	size_t format_index = 0;
+	
+	/* handle everything except the last one */
+	for(int i = 0; i < (ints.size()-1); i++)
+	{
+		char* enty_ptr = &into[format_index];
+		uint32 entry_number = ints[i];
+		int formated_len = snprintf(enty_ptr, FORMATTED_INT_STR_SIZE, "%lu,", entry_number);
+		format_index+=formated_len;
 	}
 
-	into = inbuffer;
-	delete [] inbuffer;
-	inbuffer = NULL;
+	/* handle the last one */
+	char* enty_ptr = &into[format_index];
+	uint32 entry_number = ints[ints.size()-1]; // vector list max is size - 1
+	int formated_len = snprintf(enty_ptr, FORMATTED_INT_STR_SIZE, "%lu", entry_number);
+	format_index+=formated_len;
 }
-
 
 bool DBSequence::Init() {
 	return true;
@@ -695,7 +715,7 @@ bool DBSequence::Init(uint32 last_used_value) {
 	}
 	
 	if(!m_db->RunQuery(err, 
-		"REPLACE INTO %s (last_used) VALUES(%u)",
+		"REPLACE INTO %s (last_used) VALUES(%lu)",
 		m_table.c_str(), last_used_value
 	))
 	{
