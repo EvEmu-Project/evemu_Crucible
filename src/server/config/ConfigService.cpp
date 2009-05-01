@@ -210,7 +210,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 		arg = iii->value;
 	}
 	if(packet->items.size() == 0 || packet->items.size() > 6) {
-		_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: tuple0 is the wrong size: expected 1-6, but got %d", packet->items.size());
+		_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: tuple0 is the wrong size: expected 1-6, but got %lu", packet->items.size());
 		delete packet;
 		return false;
 	}

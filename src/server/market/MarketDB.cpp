@@ -757,7 +757,7 @@ bool MarketDB::DeleteOrder(uint32 orderID) {
 		" WHERE orderID = %u",
 		orderID))
 	{
-		_log(MARKET__ERROR, "Error in query: %s.", orderID);
+		_log(MARKET__ERROR, "Error in query: %s.", err.c_str());
 		return false;
 	}
 

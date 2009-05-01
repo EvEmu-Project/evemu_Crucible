@@ -46,10 +46,7 @@
  * 
  */
 
-#include <stdarg.h>
-#include "types.h"
-#include <list>
-#include <string>
+#include "common.h"
 
 
 #ifdef WIN32
@@ -149,7 +146,6 @@ extern void log_phex(LogType type, const void *data, unsigned long length, unsig
 			} while(false)
 	#endif //!NO_VARIADIC_MACROS
 #endif	//!DISABLE_LOGSYS
-
 
 /* these are macros which do not use ..., and work for anybody */
 	#define _hex( type, data, len) \

@@ -20,7 +20,7 @@ void Asteroid::Grow() {
 
 bool Asteroid::ApplyDamage(Damage &d) {
 	//ignore it.
-	_log(MINING__DEBUG, "Asteroid %u Ignoring %d damage from %u", m_self->itemID(), d.GetTotal(), d.source->GetName());
+	_log(MINING__DEBUG, "Asteroid %u: Ignoring %f damage from %s", m_self->itemID(), d.GetTotal(), d.source->GetName());
 	return(false);
 }
 

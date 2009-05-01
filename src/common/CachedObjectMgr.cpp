@@ -606,7 +606,7 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 	PyRepTuple *args = (PyRepTuple *) po->arguments;
 	
 	if(args->items.size() != 7) {
-		_log(CLIENT__ERROR, "Cache object's args tuple has %d elements instead of 7", args->items.size());
+		_log(CLIENT__ERROR, "Cache object's args tuple has %lu elements instead of 7", args->items.size());
 		delete ss;
 		return false;
 	}

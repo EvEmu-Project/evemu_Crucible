@@ -121,7 +121,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 	
 	GPoint dockPosition;
 	if(!m_db->GetStationInfo(call.client->GetLocationID(), NULL, NULL, NULL, NULL, &dockPosition, NULL)) {
-		_log(SERVICE__ERROR, "%s: Failed to query location of station %u for undock.", call.client->GetLocationID());
+		_log(SERVICE__ERROR, "%s: Failed to query location of station %u for undock.", call.client->GetName(), call.client->GetLocationID());
 		//TODO: throw exception
 		return NULL;
 	}

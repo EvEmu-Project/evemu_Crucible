@@ -651,7 +651,7 @@ void UnmarshalLogText(const Seperator &command) {
 		printf("Failed to decode string... trying with what we did get (%lu bytes).\n", result.size());
 	}
 
-	_log(NET__UNMARSHAL_TRACE, "Decoded %u bytes:", result.size());
+	_log(NET__UNMARSHAL_TRACE, "Decoded %lu bytes:", result.size());
 	_hex(NET__UNMARSHAL_BUFHEX, &result[0], uint32(result.size()));
 	
 	PyRep *r = InflateAndUnmarshal(&result[0], uint32(result.size()));
@@ -770,19 +770,19 @@ void TestZeroCompress() {
 		0x07, 0x01
 	};
 
-	_log(COMMON__MESSAGE, "Original: %d bytes", sizeof(input));
+	_log(COMMON__MESSAGE, "Original: %lu bytes", sizeof(input));
 	_hex(COMMON__MESSAGE, input, sizeof(input));
 
 	std::vector<uint8> unpacked;
 	UnpackZeroCompressed(input, sizeof(input), unpacked);
 
-	_log(COMMON__MESSAGE, "Unpacked: %d bytes", unpacked.size());
+	_log(COMMON__MESSAGE, "Unpacked: %lu bytes", unpacked.size());
 	_hex(COMMON__MESSAGE, &unpacked[0], unpacked.size());
 
 	std::vector<uint8> repacked;
 	PackZeroCompressed(&unpacked[0], unpacked.size(), repacked);
 	
-	_log(COMMON__MESSAGE, "Re-packed: %d bytes", repacked.size());
+	_log(COMMON__MESSAGE, "Re-packed: %lu bytes", repacked.size());
 	for(size_t r = 0; r < repacked.size(); r++) {
 		if(r % 16 == 0 && r != 0)
 			printf("\n");

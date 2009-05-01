@@ -1065,7 +1065,7 @@ void InventoryItem::TrainSkill(InventoryItem *skill) {
 		skill->Set_skillPoints(0);
 	} else if(!Contains(skill)) {
 		//this must be a skill in another container...
-		_log(ITEM__ERROR, "%s (%u): Tried to train skill %u item %u which has the skill flag but is not contained within this item.", m_itemName.c_str(), m_itemID, skill->itemID());
+		_log(ITEM__ERROR, "%s (%u): Tried to train skill item %u which has the skill flag but is not contained within this item.", m_itemName.c_str(), m_itemID, skill->itemID());
 		return;
 	} else {
 		//skill is within this item, change its flag.

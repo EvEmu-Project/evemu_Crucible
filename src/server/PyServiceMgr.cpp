@@ -152,7 +152,7 @@ void PyServiceMgr::ClearBoundObject(uint32 bindID) {
 	std::map<uint32, BoundObject>::iterator res;
 	res = m_boundObjects.find(bindID);
 	if(res == m_boundObjects.end()) {
-		_log(SERVICE__ERROR, "Unable to find bound object '%s' to release.", bindID);
+		_log(SERVICE__ERROR, "Unable to find bound object %u to release.", bindID);
 		return;
 	}
 	

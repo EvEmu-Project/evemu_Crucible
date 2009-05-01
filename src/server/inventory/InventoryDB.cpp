@@ -127,7 +127,7 @@ bool InventoryDB::GetType(uint32 typeID, TypeData &into) {
 		" WHERE typeID=%u",
 		typeID))
 	{
-		_log(DATABASE__ERROR, "Failed to query type %u: %s.", res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query type %u: %s.", typeID, res.error.c_str());
 		return false;
 	}
 

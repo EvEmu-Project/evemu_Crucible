@@ -77,16 +77,16 @@ PyBoundObject *ReprocessingService::_CreateBoundObject(Client *c, const PyRep *b
 		return NULL;
 	}
 
-	const PyRepInteger * stationID = (const PyRepInteger *) bind_args;
+	uint32 stationID = ((const PyRepInteger *)bind_args)->value;
 
-	if(!IsStation(stationID->value)) {
-		codelog(CLIENT__ERROR, "%s: Expected stationID, but hasn't.", c->GetName());
+	if(!IsStation(stationID)) {
+		codelog(CLIENT__ERROR, "%s: Expected stationID, but hasn't got any.", c->GetName());
 		return NULL;
 	}
 
-	ReprocessingServiceBound *obj = new ReprocessingServiceBound(m_manager, &m_db, stationID->value);
+	ReprocessingServiceBound *obj = new ReprocessingServiceBound(m_manager, &m_db, stationID);
 	if(!obj->Load()) {
-		_log(SERVICE__ERROR, "Failed to load static info for station %u.", stationID->value);
+		_log(SERVICE__ERROR, "Failed to load static info for station %u.", stationID);
 		delete obj;
 		return NULL;
 	} else

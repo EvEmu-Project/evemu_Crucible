@@ -239,7 +239,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
 		case CryptoRequestNotReceived: {
 			CryptoRequestPacket cr;
 			if(!cr.Decode(&r)) {
-				_log(NET__PRES_ERROR, "%S: Received invalid crypto request!", GetConnectedAddress().c_str());
+				_log(NET__PRES_ERROR, "%s: Received invalid crypto request!", GetConnectedAddress().c_str());
 				break;
 			}
 
@@ -275,7 +275,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
 				break;
 			}
 
-			_log(NET__PRES_DEBUG, "%s: Received Client Challenge.", GetConnectedAddress().c_str(), m_request->user_name.c_str());
+			_log(NET__PRES_DEBUG, "%s: Received Client Challenge.", GetConnectedAddress().c_str());
 
 			if(m_request->user_password->IsNone()) {
 				//this is little wrong because on live they send password version always, but only once,

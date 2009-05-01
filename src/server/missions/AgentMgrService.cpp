@@ -116,11 +116,11 @@ PyBoundObject *AgentMgrService::_CreateBoundObject(Client *c, const PyRep *bind_
 		return NULL;
 	}
 	
-	const PyRepInteger *a = (const PyRepInteger *) bind_args;
+	uint32 agentID = ((const PyRepInteger *)bind_args)->value;
 
-	Agent *agent = _GetAgent(a->value);
+	Agent *agent = _GetAgent(agentID);
 	if(agent == NULL) {
-		codelog(CLIENT__ERROR, "%s: Unable to obtain agent %u", c->GetName(), a->value);
+		codelog(CLIENT__ERROR, "%s: Unable to obtain agent %u", c->GetName(), agentID);
 		return NULL;
 	}
 	

@@ -113,7 +113,7 @@ void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::
 		}
 		events.clear();
 	} else {
-		_log(DESTINY__TRACE, "[%u] Broadcasting destiny update (%d, %d)", GetStamp(), updates.size(), events.size());
+		_log(DESTINY__TRACE, "[%u] Broadcasting destiny update (%lu, %lu)", GetStamp(), updates.size(), events.size());
 		//this should really be something like "bubblecast"
 		m_system->RangecastDestiny(m_position, DESTINY_UPDATE_RANGE, updates, events);
 	}
@@ -838,7 +838,7 @@ void DestinyManager::SetPosition(const GPoint &pt, bool update) {
 	//m_body->setPosition( pt );
 	m_position = pt;
 	_log(PHYSICS__TRACE, "Entity %u set its position to (%.1f, %.1f, %.1f)",
-		m_position.x, m_position.y, m_position.z );
+		m_self->GetID(), m_position.x, m_position.y, m_position.z );
 	
 	if(update) {
 		DoDestiny_SetBallPosition du;

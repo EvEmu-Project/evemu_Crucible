@@ -475,7 +475,7 @@ void HybridWeaponModule::DoEffect() {
 	//TODO: check range.
 	//TODO: check ammo/charge
 	if(m_charge == NULL) {
-		_log(SHIP__MODULE_TRACE, "Module %s (%u): No ammo fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID(), m_target);
+		_log(SHIP__MODULE_TRACE, "Module %s (%u): No ammo fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID());
 		DeactivateModule(true);
 		return;
 	}
@@ -522,7 +522,7 @@ void LaserWeaponModule::DoEffect() {
 	}
 	//TODO: check range.
 	if(m_charge == NULL) {
-		_log(SHIP__MODULE_TRACE, "Module %s (%u): No crystal fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID(), m_target);
+		_log(SHIP__MODULE_TRACE, "Module %s (%u): No crystal fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID());
 		DeactivateModule(true);
 		return;
 	}
@@ -571,7 +571,7 @@ void MiningLaserModule::DoEffect() {
 	}
 	InventoryItem *target_item = target->Item();
 	if(target_item == NULL) {
-		codelog(SHIP__MODULE_TRACE, "Module %s (%u): Use on non-asteroid. Target has no item.", m_item->itemName().c_str(), m_item->itemID(), (target_item==NULL)?0:target_item->itemID(), target_item);
+		codelog(SHIP__MODULE_TRACE, "Module %s (%u): Use on non-asteroid. Target has no item.", m_item->itemName().c_str(), m_item->itemID());
 		//send the client an error dialog?
 		DeactivateModule(true);
 		return;

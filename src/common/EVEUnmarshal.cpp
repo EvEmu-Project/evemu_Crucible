@@ -1114,7 +1114,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		len -= data_len;
 		len_used += data_len;
 		
-		_log(NET__UNMARSHAL_TRACE, "%s  Unpacked Contents: len=%u", pfx, unpacked.size());
+		_log(NET__UNMARSHAL_TRACE, "%s  Unpacked Contents: len=%lu", pfx, unpacked.size());
 		phex(NET__UNMARSHAL_TRACE, &unpacked[0], unpacked.size());
 		
 #ifdef PACKED_ROW_HEADER_HACK

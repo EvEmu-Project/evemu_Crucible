@@ -102,7 +102,7 @@ void ServiceDB::SetCharacterLocation(uint32 characterID, uint32 stationID,
 		stationID, systemID, constellationID, regionID,
 		characterID)
 	) {
-		codelog(SERVICE__ERROR, "Failed to set character location %li: %s", characterID, err.c_str());
+		codelog(SERVICE__ERROR, "Failed to set character location %u: %s", characterID, err.c_str());
 	}
 }
 

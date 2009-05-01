@@ -230,21 +230,21 @@ bool SpawnEntry::CheckBounds() const {
 	
 	case boundsPoint: {
 		if(bounds.size() != 1) {
-			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %u with type %u: %u != 1", GetID(), m_boundsType, bounds.size());
+			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %u with type %u: %lu != 1", GetID(), m_boundsType, bounds.size());
 			return false;
 		}
 	} break;
 	
 	case boundsLine: {
 		if(bounds.size() != 2) {
-			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %u with type %u: %u != 2", GetID(), m_boundsType, bounds.size());
+			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %u with type %u: %lu != 2", GetID(), m_boundsType, bounds.size());
 			return false;
 		}
 	} break;
 	
 	case boundsCube: {
 		if(bounds.size() != 2) {
-			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %u with type %u: %u != 2", GetID(), m_boundsType, bounds.size());
+			_log(SPAWN__ERROR, "Invalid number of bounds points specified in spawn entry %u with type %u: %lu != 2", GetID(), m_boundsType, bounds.size());
 			return false;
 		}
 	} break;

@@ -49,7 +49,7 @@ void UnpackZeroCompressed(const uint8 *in_buf, uint32 in_length, std::vector<uin
 	if(in_buf == NULL || in_length == 0)
 		return;
 	
-	_log(NET__ZEROINFL, "Zero-inflating buffer of length %d",
+	_log(NET__ZEROINFL, "Zero-inflating buffer of length %u",
 		in_length
 	);
 	
@@ -61,13 +61,13 @@ void UnpackZeroCompressed(const uint8 *in_buf, uint32 in_length, std::vector<uin
 
 		if(opcode.f_isZero) {
 			uint8 count = opcode.f_len+1;
-			_log(NET__ZEROINFL, "    Opcode 0x%x (first part) yields %d zero bytes at %d", opcode, count, buffer.size());
+			_log(NET__ZEROINFL, "    Opcode 0x%x (first part) yields %u zero bytes at %lu", opcode, count, buffer.size());
 			for(; count > 0; count--) {
 				buffer.push_back(0);
 			}
 		} else {
 			uint8 count = 8-opcode.f_len;
-			_log(NET__ZEROINFL, "    Opcode 0x%x (first part) yields %d data bytes at %d", opcode, count, buffer.size());
+			_log(NET__ZEROINFL, "    Opcode 0x%x (first part) yields %u data bytes at %lu", opcode, count, buffer.size());
 			//caution: if we are at the end of the buffer, its possible to be processing a '0' opcode, which should mean "8 bytes", but really means "end"
 			for(; count > 0 && in_buf < end; count--) {
 				buffer.push_back(*in_buf++);
@@ -76,13 +76,13 @@ void UnpackZeroCompressed(const uint8 *in_buf, uint32 in_length, std::vector<uin
 
 		if(opcode.s_isZero) {
 			uint8 count = opcode.s_len+1;
-			_log(NET__ZEROINFL, "    Opcode 0x%x (second part) yields %d zero bytes at %d", opcode, count, buffer.size());
+			_log(NET__ZEROINFL, "    Opcode 0x%x (second part) yields %u zero bytes at %lu", opcode, count, buffer.size());
 			for(; count > 0; count--) {
 				buffer.push_back(0);
 			}
 		} else {
 			uint8 count = 8-opcode.s_len;
-			_log(NET__ZEROINFL, "    Opcode 0x%x (second part) yields %d data bytes at %d", opcode, count, buffer.size());
+			_log(NET__ZEROINFL, "    Opcode 0x%x (second part) yields %u data bytes at %lu", opcode, count, buffer.size());
 			//caution: if we are at the end of the buffer, its possible to be processing a '0' opcode, which should mean "8 bytes", but really means "end"
 			for(; count > 0 && in_buf < end; count--) {
 				buffer.push_back(*in_buf++);
@@ -90,7 +90,7 @@ void UnpackZeroCompressed(const uint8 *in_buf, uint32 in_length, std::vector<uin
 		}
 	}
 
-	_log(NET__ZEROINFL, "  Zero-inflating buffer yields %d inflated bytes (ratio %.02f)",
+	_log(NET__ZEROINFL, "  Zero-inflating buffer yields %lu inflated bytes (ratio %.02f)",
 		buffer.size(), double(in_length) / double(buffer.size())
 	);
 }
@@ -100,7 +100,7 @@ void PackZeroCompressed(const uint8 *in_buf, uint32 in_length, std::vector<uint8
 	if(in_buf == NULL || in_length == 0)
 		return;
 
-	_log(NET__ZEROCOMP, "Zero-compressing buffer of length %d",
+	_log(NET__ZEROCOMP, "Zero-compressing buffer of length %u",
 		in_length
 	);
 
@@ -159,7 +159,7 @@ void PackZeroCompressed(const uint8 *in_buf, uint32 in_length, std::vector<uint8
 	}
 
 	_log(NET__ZEROCOMP,
-		"  Zero-compressing buffer resulted in %d bytes (ratio %.02f)",
+		"  Zero-compressing buffer resulted in %lu bytes (ratio %.02f)",
 		out_buf.size(), double(out_buf.size()) / double(in_length)
 	);
 }

@@ -269,7 +269,7 @@ void ItemAttributeMgr::Save() const {
 	if(m_db == NULL)
 		return;
 
-	_log(ITEM__TRACE, "Saving %u attributes of item %u.", m_ints.size()+m_reals.size(), m_item.itemID());
+	_log(ITEM__TRACE, "Saving %lu attributes of item %u.", m_ints.size()+m_reals.size(), m_item.itemID());
 	// integers first
 	{
 		std::map<Attr, int_t>::const_iterator cur, end;

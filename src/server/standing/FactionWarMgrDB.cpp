@@ -38,7 +38,7 @@ PyRep *FactionWarMgrDB::GetWarFactions() {
 		" FROM chrFactions"
 		" WHERE militiaCorporationID IS NOT NULL"))
 	{
-		_log(DATABASE__ERROR, "Failed to query war factions: %s.");
+		_log(DATABASE__ERROR, "Failed to query war factions: %s.", res.error.c_str());
 		return NULL;
 	}
 
@@ -69,7 +69,7 @@ uint32 FactionWarMgrDB::GetFactionMilitiaCorporation(const uint32 factionID) {
 		" WHERE factionID=%u",
 		factionID))
 	{
-		_log(DATABASE__ERROR, "Failed to query militia corporation for faction %u: %s.", factionID);
+		_log(DATABASE__ERROR, "Failed to query militia corporation for faction %u: %s.", factionID, res.error.c_str());
 		return NULL;
 	}
 
