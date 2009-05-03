@@ -42,6 +42,16 @@ ServiceDB::ServiceDB(ServiceDB *existing_db)
 
 ServiceDB::~ServiceDB() {}
 
+/**
+ * DoLogin()
+ *
+ * This method performs checks when an account is logging into the server.
+ * @param login
+ * @param pass
+ * @param out_acountID
+ * @param out_role
+ * @author 
+*/
 bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_accountID, uint64 &out_role) {
 	DBQueryResult res;
 
@@ -66,8 +76,33 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_account
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(SERVICE__ERROR, "Unknown account '%s'", login);
-		return false;
+		
+		// check if our config is set to auto create the account at login if the account
+		// doesn't exist.
+		if (!sConfig.server.autoAccount) {
+			_log(SERVICE__MESSAGE, "Unknown account '%s'.", login);
+			return false;
+		} else {
+			_log(SERVICE__MESSAGE, "Unknown account '%s'. Let's create a new one.", login);
+			if (!CreateNewAccount(login, pass, sConfig.server.autoAccountRole ? sConfig.server.autoAccountRole : 2)) {
+				_log(SERVICE__ERROR, "Couldn't create new account '%s'", login);
+				return false;
+			}
+		}
+
+		if(!m_db->RunQuery(res,
+			"SELECT accountID,role,password,PASSWORD('%s'),MD5('%s'), online"
+			" FROM account"
+			" WHERE accountName='%s'", pass, pass, login))
+		{
+			_log(SERVICE__ERROR, "Error in login query: %s", res.error.c_str());
+			return false;
+		}
+
+		if(!res.GetRow(row)) {
+			_log(SERVICE__MESSAGE, "Failed to create new account '%s'. This is permanent. I'm giving up.", login);
+			return false;
+		}
 	}
 
 	if (row.GetInt(5)) {
@@ -85,6 +120,30 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_account
 	out_accountID = row.GetUInt(0);
 	out_role = row.GetUInt(1);
 	
+	return true;
+}
+
+/**
+ * CreateNewAccount()
+ *
+ * This method is part of the "autoAccount" creation patch by firefoxpdm.  This
+ * will insert a new account row into the database if the account name doesn't
+ * exist at login.
+ *
+ * @param login
+ * @param pwd
+ * @param role
+ * @author firefoxpdm, xanarox
+*/
+bool ServiceDB::CreateNewAccount(const char * login, const char * pwd, uint64 role) {
+	DBerror err;
+	if (!m_db->RunQuery(err,
+		"INSERT INTO `account` (accountName,password,role) VALUES ('%s', MD5('%s'), %lu);",
+			login, pwd, role)
+	) {
+		codelog(SERVICE__ERROR, "Failed to create new account %s: %s", login, err.c_str());	
+		return false;
+	}
 	return true;
 }
 
