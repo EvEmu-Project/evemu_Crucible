@@ -7,6 +7,9 @@ a likely exception to this goal).
  <server>
   <!-- <port>26001</port> -->
   <!-- <startBalance>6666000000.0</startBalance> -->
+
+  <!-- <autoAccount>false</autoAccount> -->
+  <!-- <autoAccountRole>2</autoAccountRole> -->
  </server>
 
  <database>

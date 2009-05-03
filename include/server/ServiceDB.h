@@ -106,6 +106,9 @@ protected:
 	void ProcessRealChange(const char * key, double oldValue, double newValue, PyRepDict * notif, std::vector<std::string> & dbQ);
 	void ProcessIntChange(const char * key, uint32 oldValue, uint32 newValue, PyRepDict * notif, std::vector<std::string> & dbQ);
 
+private:
+	bool CreateNewAccount(const char * login, const char * pwd, uint64 role);
+	uint32 GetAccountAmount();
 };
 
 #endif

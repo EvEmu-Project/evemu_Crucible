@@ -38,7 +38,9 @@ EVEmuServerConfig::EVEmuServerConfig() {
 	//server
 	server.port = 26001;
 	server.startBalance = 6666000000.0f;
-	
+	server.autoAccount = false;
+	server.autoAccountRole = 2; // player
+
 	// database
 	database.host = "localhost";
 	database.port = 3306;
@@ -66,6 +68,15 @@ void EVEmuServerConfig::_ParseServer(TiXmlElement *ele) {
 	text = ParseTextBlock(ele, "startBalance", true);
 	if(text)
 		server.startBalance = atof(text);
+
+	text = ParseTextBlock(ele, "autoAccount", true);
+	if(text)
+		server.autoAccount = !strncmp(text, "true", 4);
+	
+	text = ParseTextBlock(ele, "autoAccountRole", true);
+	if(text)
+		server.autoAccountRole = atof(text);
+
 }
 
 void EVEmuServerConfig::_ParseDatabase(TiXmlElement *ele) {
@@ -117,6 +128,10 @@ std::string EVEmuServerConfig::GetByName(const std::string &var_name) const {
 		return(itoa(server.port));
 	if(var_name == "server.startBalance")
 		return(itoa(server.startBalance));
+	if(var_name == "server.autoAccount")
+		return(server.autoAccount ? "true" : "false");
+	if(var_name == "server.autoAccountRole")
+		return(itoa(server.autoAccountRole));
 
 	if(var_name == "database.host")
 		return(database.host);
@@ -144,6 +159,8 @@ std::string EVEmuServerConfig::GetByName(const std::string &var_name) const {
 void EVEmuServerConfig::Dump() const {
 	_log(COMMON__MESSAGE, "server.port = %u",         server.port);
 	_log(COMMON__MESSAGE, "server.startBalance = %f", server.startBalance);
+	_log(COMMON__MESSAGE, "server.autoAccount = %s",	  server.autoAccount ? "true" : "false");
+	_log(COMMON__MESSAGE, "server.autoAccountRole = %u", server.autoAccountRole);
 
 	_log(COMMON__MESSAGE, "database.host = %s",       database.host.c_str());
 	_log(COMMON__MESSAGE, "database.username = %s",   database.username.c_str());
