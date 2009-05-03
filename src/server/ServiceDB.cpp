@@ -66,31 +66,8 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_account
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		if (!sConfig.server.autoAccount) {
-			_log(SERVICE__MESSAGE, "Unknown account '%s'.", login);
-			return false;
-		} else {
-			_log(SERVICE__MESSAGE, "Unknown account '%s'. Let's create a new one.", login);
-			// TODO: change the FIRST role to something you wish to give your ordinary players
-			if (!CreateNewAccount(login, pass, sConfig.server.autoAccountRole ? sConfig.server.autoAccountRole : 2)) {
-				_log(SERVICE__ERROR, "Couldn't create new account '%s'", login);
-				return false;
-			}
-		}
-
-		if(!m_db->RunQuery(res,
-			"SELECT accountID,role,password,PASSWORD('%s'),MD5('%s'), online"
-			" FROM account"
-			" WHERE accountName='%s'", pass, pass, login))
-		{
-			_log(SERVICE__ERROR, "Error in login query: %s", res.error.c_str());
-			return false;
-		}
-
-		if(!res.GetRow(row)) {
-			_log(SERVICE__MESSAGE, "Failed to create new account '%s'. This is permanent. I'm giving up.", login);
-			return false;
-		}
+		_log(SERVICE__ERROR, "Unknown account '%s'", login);
+		return false;
 	}
 
 	if (row.GetInt(5)) {
@@ -109,32 +86,6 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_account
 	out_role = row.GetUInt(1);
 	
 	return true;
-}
-
-bool ServiceDB::CreateNewAccount(const char * login, const char * pwd, uint64 role) {
-	DBerror err;
-	if (!m_db->RunQuery(err,
-		"INSERT INTO `account` (accountName,password,role) VALUES ('%s', MD5('%s'), %lu);",
-			login, pwd, role)
-	) {
-		codelog(SERVICE__ERROR, "Failed to create new account %s: %s", login, err.c_str());	
-		return false;
-	}
-	return true;
-}
-uint32 ServiceDB::GetAccountAmount() {
-	DBQueryResult res;
-	if (!m_db->RunQuery(res, "SELECT COUNT(*) FROM `account`;")) {
-		// if we cannot determine the number of rows, we shouldn't assume there isn't any
-		codelog(SERVICE__ERROR, "Failed to get number of accounts: %s", res.error.c_str());	
-		return 111;
-	}
-	DBResultRow row;
-	if (!res.GetRow(row)) {
-		_log(SERVICE__ERROR, "Cannot determine number of accounts");
-		return 111;
-	}
-	return row.GetInt(0);
 }
 
 void ServiceDB::SetCharacterLocation(uint32 characterID, uint32 stationID, 

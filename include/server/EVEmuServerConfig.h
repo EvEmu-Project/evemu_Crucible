@@ -36,10 +36,8 @@ public:
 
 	// From <server/>
 	struct {
-		uint16	port;
-		double	startBalance;
-		bool	autoAccount;
-		uint32	autoAccountRole;
+		uint16      port;
+		double      startBalance;
 	} server;
 
 	// From <database/>
