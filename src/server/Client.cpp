@@ -150,10 +150,12 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
 	m_chardata.charid = 444666;
 	m_chardata.bloodlineID = 0;
 	m_chardata.gender = 1;
+
 	m_chardata.ancestryID = 2;
 	m_chardata.careerID = 3;
 	m_chardata.schoolID = 4;
 	m_chardata.careerSpecialityID = 5;
+
 	m_chardata.intelligence = 6;
 	m_chardata.charisma = 7;
 	m_chardata.perception = 8;

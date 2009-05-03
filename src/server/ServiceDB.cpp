@@ -92,13 +92,13 @@ void ServiceDB::SetCharacterLocation(uint32 characterID, uint32 stationID,
 	uint32 systemID, uint32 constellationID, uint32 regionID) {
 	DBerror err;
 	if(!m_db->RunQuery(err,
-	"UPDATE character_"
-	" SET"
-	"	stationID=%u,"
-	"	solarSystemID=%u,"
-	"	constellationID=%u,"
-	"	regionID=%u"
-	" WHERE characterID=%u",
+		"UPDATE character_"
+		" SET"
+		"	stationID=%u,"
+		"	solarSystemID=%u,"
+		"	constellationID=%u,"
+		"	regionID=%u"
+		" WHERE characterID=%u",
 		stationID, systemID, constellationID, regionID,
 		characterID)
 	) {
@@ -110,12 +110,12 @@ bool ServiceDB::ListEntitiesByCategory(uint32 ownerID, uint32 categoryID, std::v
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
-	"SELECT "
-	"	entity.itemID"
-	" FROM entity"
-	"	LEFT JOIN invTypes ON entity.typeID=invTypes.typeID"
-	"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
-	" WHERE invGroups.categoryID=%u AND entity.ownerID=%u", categoryID, ownerID))
+		"SELECT "
+		"	entity.itemID"
+		" FROM entity"
+		"	LEFT JOIN invTypes ON entity.typeID=invTypes.typeID"
+		"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
+		" WHERE invGroups.categoryID=%u AND entity.ownerID=%u", categoryID, ownerID))
 	{
 		_log(SERVICE__ERROR, "Error in ListEntitiesByCategory query: %s", res.error.c_str());
 		return false;
@@ -133,17 +133,17 @@ uint32 ServiceDB::GetCurrentShipID(uint32 characterID) {
 	
 	if(!m_db->RunQuery(res,
 		//not sure if this is gunna be valid all the time...
-	"SELECT"
-	"	locationID"
-	" FROM entity"
-	" WHERE itemID=%u", characterID
-	/*"SELECT "
-	"	itemID"
-	" FROM entity AS chare LEFT JOIN entity AS shipe"
-	"	LEFT JOIN invTypes ON shipe.typeID=invTypes.typeID"
-	"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
-	" WHERE invGroups.categoryID=6 AND 
-	" WHERE typeID=%u", typeID*/
+		"SELECT"
+		"	locationID"
+		" FROM entity"
+		" WHERE itemID=%u", characterID
+		/*"SELECT "
+		"	itemID"
+		" FROM entity AS chare LEFT JOIN entity AS shipe"
+		"	LEFT JOIN invTypes ON shipe.typeID=invTypes.typeID"
+		"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
+		" WHERE invGroups.categoryID=6 AND 
+		" WHERE typeID=%u", typeID*/
 	))
 	{
 		_log(SERVICE__ERROR, "Error in GetCurrentShipID query: %s", res.error.c_str());
@@ -197,14 +197,14 @@ PyRepObject *ServiceDB::GetSolRow(uint32 systemID) const {
 	
 	if(!m_db->RunQuery(res,
 		//not sure if this is gunna be valid all the time...
-	"SELECT "
-	"	itemID,entity.typeID,ownerID,locationID,flag,contraband,singleton,quantity,"
-	"	invGroups.groupID, invGroups.categoryID,"
-	"	customInfo"
-    " FROM entity "
-	"	LEFT JOIN invTypes ON entity.typeID=invTypes.typeID"
-	"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
-	" WHERE entity.itemID=%u",
+		"SELECT "
+		"	itemID,entity.typeID,ownerID,locationID,flag,contraband,singleton,quantity,"
+		"	invGroups.groupID, invGroups.categoryID,"
+		"	customInfo"
+		" FROM entity "
+		"	LEFT JOIN invTypes ON entity.typeID=invTypes.typeID"
+		"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
+		" WHERE entity.itemID=%u",
 		systemID
 	))
 	{
@@ -227,11 +227,11 @@ PyRepObject *ServiceDB::GetSolDroneState(uint32 systemID) const {
 	
 	if(!m_db->RunQuery(res,
 		//not sure if this is gunna be valid all the time...
-	"SELECT "
-	"	droneID, solarSystemID, ownerID, controllerID,"
-	"	activityState, typeID, controllerOwnerID"
-    " FROM droneState "
-	" WHERE solarSystemID=%u",
+		"SELECT "
+		"	droneID, solarSystemID, ownerID, controllerID,"
+		"	activityState, typeID, controllerOwnerID"
+		" FROM droneState "
+		" WHERE solarSystemID=%u",
 		systemID
 	))
 	{
@@ -488,17 +488,21 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	
 	//we really should derive the char's location from the entity table...
 	if(!m_db->RunQuery(res,
-	"SELECT "
-	"	character_.characterName,character_.title,character_.description,character_.typeID,"
-	"	character_.createDateTime,character_.startDateTime,"
-	"	character_.bounty,character_.balance,character_.securityRating,character_.logonMinutes,"
-	"	character_.corporationID,character_.corporationDateTime,corporation.allianceID,"
-	"	character_.stationID,character_.solarSystemID,character_.constellationID,character_.regionID,"
-	"	character_.bloodlineID,character_.gender,character_.raceID,character_.ancestryID,"
-	"	character_.careerID,character_.schoolID,character_.careerSpecialityID"
-	" FROM character_"
-	" LEFT JOIN corporation ON corporation.corporationID = character_.corporationID"
-	" WHERE characterID=%u", characterID))
+		"SELECT "
+		"	entity.itemName AS characterName,character_.title,character_.description,entity.typeID,"
+		"	character_.createDateTime,character_.startDateTime,"
+		"	character_.bounty,character_.balance,character_.securityRating,character_.logonMinutes,"
+		"	character_.corporationID,character_.corporationDateTime,corporation.allianceID,"
+		"	character_.stationID,character_.solarSystemID,character_.constellationID,character_.regionID,"
+		"	bloodlineTypes.bloodlineID,character_.gender,chrBloodlines.raceID,character_.ancestryID,"
+		"	character_.careerID,character_.schoolID,character_.careerSpecialityID"
+		" FROM character_"
+		" LEFT JOIN entity ON characterID = itemID"
+		" LEFT JOIN corporation USING (corporationID)"
+		" LEFT JOIN bloodlineTypes USING (typeID)"
+		" LEFT JOIN chrBloodlines USING (bloodlineID)"
+		" WHERE characterID=%u",
+		characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return false;
@@ -574,11 +578,11 @@ bool ServiceDB::LoadCorporationMemberInfo(uint32 charID, CorpMemberInfo &info) {
 
 	//this is really hacky and belongs somewhere else eventually:
 	if(!m_db->RunQuery(res,
-	"SELECT"
-	"	corporation.stationID"
-	" FROM corporation"
-	"	LEFT JOIN character_ ON corporation.corporationID=character_.corporationID"
-	" WHERE character_.characterID='%u'",
+		"SELECT"
+		"	corporation.stationID"
+		" FROM corporation"
+		"	LEFT JOIN character_ USING (corporationID)"
+		" WHERE character_.characterID=%u",
 		charID
 	))
 	{

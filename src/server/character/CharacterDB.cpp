@@ -36,8 +36,9 @@ PyRepObject *CharacterDB::GetCharacterList(uint32 accountID) {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
-		"SELECT characterID,characterName,0 as deletePrepareDateTime, gender,"
-		" accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,hairID,"
+		"SELECT"
+		" characterID,itemName AS characterName,0 as deletePrepareDateTime,"
+		" gender,accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,hairID,"
 		" lipstickID,makeupID,skinID,backgroundID,lightID,"
 		" headRotation1,headRotation2,headRotation3,eyeRotation1,"
 		" eyeRotation2,eyeRotation3,camPos1,camPos2,camPos3,"
@@ -45,6 +46,7 @@ PyRepObject *CharacterDB::GetCharacterList(uint32 accountID) {
 		" morph2s,morph2w,morph3e,morph3n,morph3s,morph3w,"
 		" morph4e,morph4n,morph4s,morph4w"
 		" FROM character_ "
+		"	LEFT JOIN entity ON characterID = itemID"
 		" WHERE accountID=%u", accountID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -78,11 +80,13 @@ PyRepObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 	
 	if(!m_db->RunQuery(res,
 		"SELECT "
-		" characterName AS shortName,bloodlineID,gender,bounty,character_.corporationID,allianceID,title,startDateTime,createDateTime,"
+		" itemName AS shortName,bloodlineID,gender,bounty,character_.corporationID,allianceID,title,startDateTime,createDateTime,"
 		" securityRating,character_.balance,character_.stationID,solarSystemID,constellationID,regionID,"
 		" petitionMessage,logonMinutes,tickerName"
 		" FROM character_ "
-		"	LEFT JOIN corporation ON character_.corporationID=corporation.corporationID"
+		"	LEFT JOIN entity ON characterID = itemID"
+		"	LEFT JOIN corporation USING (corporationID)"
+		"	LEFT JOIN bloodlineTypes USING (typeID)"
 		" WHERE characterID=%u", characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -145,8 +149,7 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 	char_item->Set_memory_persist(data.memory);
 	char_item->Set_willpower_persist(data.willpower);
 
-	std::string nameEsc, titleEsc, descEsc;
-	m_db->DoEscapeString(nameEsc, data.name);
+	std::string titleEsc, descEsc;
 	m_db->DoEscapeString(titleEsc, data.title);
 	m_db->DoEscapeString(descEsc, data.description);
 
@@ -155,12 +158,12 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 	// Table character_ goes first
 	if(!m_db->RunQuery(err,
 	"INSERT INTO character_ ("
-	"	characterID,characterName,accountID,title,description,typeID,"
+	"	characterID,accountID,title,description,"
 	"	createDateTime,startDateTime,"
 	"	bounty,balance,securityRating,petitionMessage,logonMinutes,"
 	"	corporationID,corporationDateTime,"
 	"	stationID,solarSystemID,constellationID,regionID,"
-	"	raceID,bloodlineID,ancestryID,careerID,schoolID,careerSpecialityID,gender,"
+	"	ancestryID,careerID,schoolID,careerSpecialityID,gender,"
 	"	accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,"
 	"	hairID,lipstickID,makeupID,skinID,backgroundID,lightID,"
 	"	headRotation1,headRotation2,headRotation3,"
@@ -171,12 +174,12 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 	"	morph3e,morph3n,morph3s,morph3w,"
 	"	morph4e,morph4n,morph4s,morph4w"
 	" ) "
-	"VALUES(%u,'%s',%d,'%s','%s',%u,"
+	"VALUES(%u,%d,'%s','%s',"
 	"	"I64u","I64u","
 	"	%.13f, %.13f, %.13f, '', %u,"
 	"	%u,"I64u","		//corp
 	"	%u,%u,%u,%u,"	//loc
-	"	%u,%u,%u,%u,%u,%u,%u,"
+	"	%u,%u,%u,%u,%u,"
 	"	%s,%s,%u,%s,%u,%u,"
 	"	%u,%s,%s,%u,%u,%u,"
 	"	%.13f,%.13f,%.13f,"	//head
@@ -187,12 +190,12 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 	"	%s,%s,%s,%s,"
 	"	%s,%s,%s,%s"
 	"	)",
-		char_item->itemID(), nameEsc.c_str(), accountID, titleEsc.c_str(), descEsc.c_str(), data.typeID,
+		char_item->itemID(), accountID, titleEsc.c_str(), descEsc.c_str(),
 		data.createDateTime, data.startDateTime,
 		data.bounty,data.balance,data.securityRating,data.logonMinutes,
 		data.corporationID, data.corporationDateTime,
 		data.stationID, data.solarSystemID, data.constellationID, data.regionID,
-		data.raceID, data.bloodlineID, data.ancestryID, data.careerID, data.schoolID, data.careerSpecialityID, data.gender,
+		data.ancestryID, data.careerID, data.schoolID, data.careerSpecialityID, data.gender,
 		_VoN(app,accessoryID),_VoN(app,beardID),app.costumeID,_VoN(app,decoID),app.eyebrowsID,app.eyesID,
 		app.hairID,_VoN(app,lipstickID),_VoN(app,makeupID),app.skinID,app.backgroundID,app.lightID,
 		app.headRotation1, app.headRotation2, app.headRotation3, 
@@ -254,16 +257,15 @@ PyRepObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
 
 	if(!m_db->RunQuery(res,
 		"SELECT "
-		" character_.typeID,"
+		" entity.typeID,"
 		" character_.corporationID,"
-        /*" chrBloodlines.raceID,"*/
-		" character_.raceID,"
-		" character_.bloodlineID,"
+        " chrBloodlines.raceID,"
+		" bloodlineTypes.bloodlineID,"
 		" character_.ancestryID,"
 		" character_.careerID,"
 		" character_.schoolID,"
 		" character_.careerSpecialityID,"
-		" character_.characterName,"
+		" entity.itemName AS characterName,"
 		" 0 as age,"	//hack
 		" character_.createDateTime,"
 		" character_.gender,"
@@ -271,8 +273,9 @@ PyRepObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
 		" character_.description,"
 		" character_.corporationDateTime"
         " FROM character_ "
-        /*"		LEFT JOIN chrBloodlines "
-        "		ON character_.bloodlineID=chrBloodlines.bloodlineID"*/
+		"	LEFT JOIN entity ON characterID = itemID"
+		"	LEFT JOIN bloodlineTypes USING (typeID)"
+		"	LEFT JOIN chrBloodlines USING (bloodlineID)"
 		" WHERE characterID=%u", characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -877,7 +880,12 @@ uint32 CharacterDB::djb2_hash( const char* str )
 void CharacterDB::load_name_validation_set()
 {
 	DBQueryResult res;
-	if(!m_db->RunQuery(res, "SELECT characterID, characterName FROM character_"))
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" characterID, itemName AS characterName"
+		" FROM character_"
+		"	JOIN entity ON characterID = itemID"
+		))
 	{
 		codelog(SERVICE__ERROR, "Error in query for %s", res.error.c_str());
 		return;
@@ -888,8 +896,10 @@ void CharacterDB::load_name_validation_set()
 	{
 		uint32 characterID = row.GetUInt(0);
 		const char* name = row.GetText(1);
+
 		printf("initializing name validation: %s\n", name);
 		uint32 hash = djb2_hash(name);
+
 		mNameValidation.insert(hash);
 		mIdNameContainer.insert(std::make_pair(characterID, name));
 	}

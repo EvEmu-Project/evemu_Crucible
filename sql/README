@@ -6,8 +6,8 @@ DATABASE INSTALLATION GUIDE:
  3. Create database into which you want to stick all the EVEmu DB stuff.
  4. Import the official dump (the one you downloaded and unpacked).
  5. Import ofic-update.sql.
- 6. Import evemu_static.sql.
- 7. Import evemu_dynamic.sql.
+ 6. Import evemu_static-dump.sql.
+ 7. Import evemu_dynamic-dump.sql.
  8. Import all the updates from subdirectory /updates.
  9. Import prime_db.sql.
 
@@ -34,12 +34,12 @@ invShipTypes                         not in dump
 mapCelestialDescriptions             not in dump
 mapLocationWormholeClasses           not in dump
 
-evemu_static.sql
-*****************
+evemu_static-dump.sql
+**********************
 This file contains static data required by EVEmu.
 
-evemu_dynamic.sql
-******************
+evemu_dynamic-dump.sql
+***********************
 This file contains dynamic database schema required by EVEmu.
 
 prime_db.sql

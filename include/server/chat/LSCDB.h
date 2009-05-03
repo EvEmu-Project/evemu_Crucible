@@ -60,7 +60,7 @@ public:
 	std::string GetConstellationName(uint32 id) { return GetChannelName(id, "mapConstellations", "constellationName", "constellationID"); }
 	std::string GetSolarSystemName(uint32 id) { return GetChannelName(id, "entity", "itemName", "itemID"); }
 	std::string GetCorporationName(uint32 id) { return GetChannelName(id, "corporation", "corporationName", "corporationID"); }
-	std::string GetChatacterName(uint32 id) { return GetChannelName(id, "character_", "characterName", "characterID"); }
+	std::string GetChatacterName(uint32 id) { return GetChannelName(id, "entity", "itemName", "itemID"); }
 
 protected:
 	std::string GetChannelName(uint32 id, const char * table, const char * column, const char * key);

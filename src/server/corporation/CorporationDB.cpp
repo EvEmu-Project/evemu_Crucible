@@ -381,9 +381,10 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID
 		"       %u, %u, %u, chrBloodlines.raceID, 0, 1000, 0, 10, "
 		"       chrBloodlines.raceID, 0, %s, %s, %s, %s, %s, %s, "
 		"       NULL "
-		"    FROM character_ "
-		"       LEFT JOIN chrBloodlines ON character_.bloodlineID = chrBloodlines.bloodlineID"
-		"    WHERE character_.characterID = %u ",
+		"    FROM entity "
+		"       LEFT JOIN bloodlineTypes USING (typeID) "
+		"       LEFT JOIN chrBloodlines USING (bloodlineID) "
+		"    WHERE entity.itemID = %u ",
 		cName.c_str(), cDesc.c_str(), cTick.c_str(), cURL.c_str(),
 		corpInfo.taxRate,
 		charID, charID, stationID,
@@ -1095,8 +1096,7 @@ bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, 
 		"	chrCorporationRoles.corprole, chrCorporationRoles.rolesAtAll, chrCorporationRoles.rolesAtBase, "
 		"	chrCorporationRoles.rolesAtHQ, chrCorporationRoles.rolesAtOther "
 		" FROM character_ "
-		" LEFT JOIN chrCorporationRoles "
-		"	ON chrCorporationRoles.characterID = character_.characterID "
+		" LEFT JOIN chrCorporationRoles USING (characterID) "
 		" WHERE character_.characterID = %u ", charID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());

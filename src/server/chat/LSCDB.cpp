@@ -43,8 +43,9 @@ PyRepObject *LSCDB::LookupChars(const char *match, bool exact) {
 	if (matchEsc == "__ALL__") {
 		if(!m_db->RunQuery(res,
 			"SELECT "
-			"	characterID, characterName, typeID"
+			"	characterID, itemName AS characterName, typeID"
 			" FROM character_"
+			"  LEFT JOIN entity ON characterID = itemID"
 			" WHERE characterID >= 140000000"))
 		{
 			_log(SERVICE__ERROR, "Error in LookupChars query: %s", res.error.c_str());
@@ -53,9 +54,10 @@ PyRepObject *LSCDB::LookupChars(const char *match, bool exact) {
 	} else {
 		if(!m_db->RunQuery(res,
 			"SELECT "
-			"	characterID, characterName, typeID"
+			"	characterID, itemName AS characterName, typeID"
 			" FROM character_"
-			" WHERE characterName %s '%s'", 
+			"  LEFT JOIN entity ON characterID = itemID"
+			" WHERE itemName %s '%s'", 
 			exact?"=":"RLIKE", matchEsc.c_str()
 		))
 		{
@@ -75,10 +77,11 @@ PyRepObject *LSCDB::LookupPlayerChars(const char *match, bool exact) {
 	m_db->DoEscapeString(matchEsc, match);
 	if(!m_db->RunQuery(res,
 		"SELECT"
-		" characterID, characterName, typeID"
+		" characterID, itemName AS characterName, typeID"
 		" FROM character_"
+		"  LEFT JOIN entity ON characterID = itemID"
 		" WHERE characterID >= 140000000"
-		" AND characterName %s '%s'",
+		"  AND itemName %s '%s'",
 		exact?"=":"RLIKE", matchEsc.c_str()))
 	{
 		_log(DATABASE__ERROR, "Failed to lookup player char '%s': %s.", matchEsc.c_str(), res.error.c_str());
@@ -327,14 +330,15 @@ void LSCDB::GetChannelNames(uint32 charID, std::vector<std::string> & names) {
 
 	if (!m_db->RunQuery(res, 
 		" SELECT "
-		"	character_.characterName, "
+		"	entity.itemName AS characterName, "
 		"	corporation.corporationName, "
-		"	entity.itemName as 'solarSystemName', "
+		"	mapSolarSystems.solarSystemName, "
 		"	mapConstellations.constellationName, "
 		"	mapRegions.regionName "
 		" FROM character_ "
+		"	LEFT JOIN entity ON character_.characterID = entity.itemID "
 		"	LEFT JOIN corporation ON character_.corporationID = corporation.corporationID "
-		"	LEFT JOIN entity ON character_.solarSystemID = entity.itemID "
+		"	LEFT JOIN mapSolarSystems ON character_.solarSystemID = mapSolarSystems.solarSystemID "
 		"	LEFT JOIN mapConstellations ON character_.constellationID = mapConstellations.constellationID "
 		"	LEFT JOIN mapRegions ON character_.regionID = mapRegions.regionID "
 		" WHERE character_.characterID = %u ", charID))

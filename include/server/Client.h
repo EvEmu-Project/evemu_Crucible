@@ -106,6 +106,8 @@ public:
 
 	uint32 typeID;
 	uint32 bloodlineID;
+	uint8 raceID;	//must correspond to our bloodlineID!
+
 	uint32 ancestryID;
 	uint32 careerID;
 	uint32 schoolID;
@@ -119,8 +121,6 @@ public:
 
 	uint64 startDateTime;
 	uint64 createDateTime;
-
-	uint8 raceID;	//must correspond to our bloodlineID!
 };
 
 class CharacterAppearance {

@@ -37,10 +37,20 @@ PyRepObject *MissionDB::GetAgents() {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
-		"SELECT agt.agentID,agt.agentTypeID,agt.divisionID,agt.level,agt.stationID,"
-		"	agt.quality,agt.corporationID,chr.bloodlineID,chr.gender"
+		"SELECT"
+		"	agt.agentID,"
+		"	agt.agentTypeID,"
+		"	agt.divisionID,"
+		"	agt.level,"
+		"	agt.stationID,"
+		"	agt.quality,"
+		"	agt.corporationID,"
+		"	bl.bloodlineID,"
+		"	chr.gender"
 		" FROM agtAgents AS agt"
 		" LEFT JOIN character_ AS chr ON chr.characterID=agt.agentID"
+		" LEFT JOIN entity AS ent ON ent.itemID=chr.characterID"
+		" LEFT JOIN bloodlineTypes AS bl USING (typeID)"
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
