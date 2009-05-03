@@ -123,25 +123,14 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_account
 	return true;
 }
 
-/**
- * CreateNewAccount()
- *
- * This method is part of the "autoAccount" creation patch by firefoxpdm.  This
- * will insert a new account row into the database if the account name doesn't
- * exist at login.
- *
- * @param login
- * @param pwd
- * @param role
- * @author firefoxpdm, xanarox
-*/
-bool ServiceDB::CreateNewAccount(const char * login, const char * pwd, uint64 role) {
+bool ServiceDB::CreateNewAccount( const char * accountName, const char * accountPass, uint64 role )
+{
 	DBerror err;
 	if (!m_db->RunQuery(err,
 		"INSERT INTO `account` (accountName,password,role) VALUES ('%s', MD5('%s'), %lu);",
-			login, pwd, role)
+			accountName, accountPass, role)
 	) {
-		codelog(SERVICE__ERROR, "Failed to create new account %s: %s", login, err.c_str());	
+		codelog(SERVICE__ERROR, "Failed to create new account %s: %s", accountName, err.c_str());	
 		return false;
 	}
 	return true;

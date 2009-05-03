@@ -39,8 +39,7 @@
  * different service objects. It should be inherited by each service DB
  * implementation.
  *
- *
-*/
+ */
 
 class DBcore;
 class DBResultRow;
@@ -107,7 +106,20 @@ protected:
 	void ProcessIntChange(const char * key, uint32 oldValue, uint32 newValue, PyRepDict * notif, std::vector<std::string> & dbQ);
 
 private:
-	bool CreateNewAccount(const char * login, const char * pwd, uint64 role); // autoAccount feature
+
+	/**
+	 * CreateNewAccount
+	 *
+	 * This method is part of the "autoAccount" creation patch by firefoxpdm. This
+	 * will insert a new account row into the database if the account name doesn't
+	 * exist at login.
+	 *
+	 * @param accountName is a const char string containing the name.
+	 * @param accountPass is a const char string containing the password.
+	 * @param role is the users role in the game.
+	 * @author firefoxpdm, xanarox
+	 */
+	bool CreateNewAccount(const char * accountName, const char * accountPass, uint64 role); // autoAccount feature
 };
 
 #endif

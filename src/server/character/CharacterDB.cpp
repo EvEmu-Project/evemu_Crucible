@@ -882,7 +882,7 @@ uint32 CharacterDB::djb2_hash( const char* str )
  * This method will load up all character names into a set for validating
  * against when a new account is created using the AutoAccount feature.
  *
- * @author firfoxpdm
+ * @author captnoord, firefoxpdm
 */
 void CharacterDB::load_name_validation_set()
 {
@@ -919,7 +919,7 @@ void CharacterDB::load_name_validation_set()
  * 
  * @param name
  * @param characterID
- * @author firefoxpdm
+ * @author captnoord, firefoxpdm
 */
 bool CharacterDB::add_name_validation_set( const char* name, uint32 characterID )
 {
@@ -947,7 +947,7 @@ bool CharacterDB::add_name_validation_set( const char* name, uint32 characterID 
  * on the passed characterID
  *
  * @param characterID
- * @author firefoxpdm
+ * @author captnoord, firefoxpdm
 */
 bool CharacterDB::del_name_validation_set( uint32 characterID )
 {
