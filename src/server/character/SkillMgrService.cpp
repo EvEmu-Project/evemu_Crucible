@@ -91,7 +91,7 @@ PyResult SkillMgrBound::Handle_CharStartTrainingSkill(PyCallArgs &call) {
 	
 	//TODO: check to see that we are allowed to train this skill (ownership and prerequisits)
 	call.client->Char()->TrainSkill(skill);
-	skill->Release();
+	skill->DecRef();
 	
 	return NULL;
 }
@@ -203,4 +203,3 @@ PyResult SkillMgrBound::Handle_GetRespecInfo(PyCallArgs &call) {
 
 	return result;
 }
-

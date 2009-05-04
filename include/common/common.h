@@ -89,6 +89,7 @@
   */
 #ifdef WIN32
 #  ifndef _CRTDBG_MAP_ALLOC
+#    define _CRTDBG_MAP_ALLOC
 #    include <stdlib.h>
 #    include <crtdbg.h>
 #    if (_MSC_VER < 1300)
@@ -173,7 +174,9 @@
 #  if _MSC_VER < 1500
 #    define vsnprintf _vsnprintf
 #  else
-#    define strdup _strdup
+#    ifndef strdup
+#      define strdup _strdup
+#    endif//strdup
 #  endif
 #  define strncasecmp _strnicmp
 #  define strcasecmp _stricmp

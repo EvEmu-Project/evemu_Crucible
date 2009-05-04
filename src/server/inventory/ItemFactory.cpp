@@ -40,7 +40,7 @@ ItemFactory::~ItemFactory() {
 		for(; cur != end; cur++) {
 			// save item
 			cur->second->Save(false);	// do not recurse
-			cur->second->Release();
+			cur->second->DecRef();
 		}
 	}
 	// types
@@ -146,7 +146,7 @@ InventoryItem *ItemFactory::GetItem(uint32 itemID, bool recurse) {
 			return NULL;
 	}
 	//we return new ref to the user.
-	return(res->second->Ref());
+	return(res->second->IncRef());
 }
 
 Blueprint *ItemFactory::GetBlueprint(uint32 blueprintID, bool recurse) {
@@ -163,7 +163,7 @@ Blueprint *ItemFactory::GetBlueprint(uint32 blueprintID, bool recurse) {
 		if(!res->second->LoadContents(true))
 			return NULL;
 	}
-	return(static_cast<Blueprint *>(res->second->Ref()));
+	return(static_cast<Blueprint *>(res->second->IncRef()));
 }
 
 InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
@@ -174,7 +174,7 @@ InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
 	// spawn successfull; store the ref
 	m_items[i->itemID()] = i;
 	// return additional ref
-	return i->Ref();
+	return i->IncRef();
 }
 
 Blueprint *ItemFactory::SpawnBlueprint(ItemData &data, BlueprintData &bpData) {
@@ -183,14 +183,14 @@ Blueprint *ItemFactory::SpawnBlueprint(ItemData &data, BlueprintData &bpData) {
 		return NULL;
 
 	m_items[bi->itemID()] = bi;
-	return bi->Ref();
+	return bi->IncRef();
 }
 
 InventoryItem *ItemFactory::_GetIfContentsLoaded(uint32 itemID) {
 	std::map<uint32, InventoryItem *>::const_iterator res = m_items.find(itemID);
 	if(res != m_items.end())
 		if(res->second->ContentsLoaded())
-			return res->second->Ref();
+			return res->second->IncRef();
 	return NULL;
 }
 	
@@ -201,7 +201,7 @@ void ItemFactory::_DeleteItem(uint32 itemID) {
 		return;
 	}
 
-	res->second->Release();
+	res->second->DecRef();
 	m_items.erase(res);
 }
 

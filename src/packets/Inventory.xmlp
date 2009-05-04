@@ -11,17 +11,23 @@
   </InlineTuple>
 </element>
 
-<element name="NotifyOnSkillStartTraining">
+<element name="OnSkillStartTraining">
   <InlineTuple>
     <int name="itemID" />
     <int64 name="endOfTraining" />
   </InlineTuple>
 </element>
 
-<element name="NotifyOnSkillTrainingStopped">
+<element name="OnSkillTrainingStopped">
   <InlineTuple>
     <int name="itemID" />
     <int64 name="endOfTraining" />
+  </InlineTuple>
+</element>
+
+<element name="OnSkillTrained">
+  <InlineTuple>
+    <int name="itemID" />
   </InlineTuple>
 </element>
 

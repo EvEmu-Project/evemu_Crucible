@@ -241,7 +241,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 			args["typename"] = new PyRepString(item->itemName().c_str());
 			args["portion"] = new PyRepInteger(item->type().portionSize());
 
-			item->Release();
+			item->DecRef();
 			throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
 		}
 
@@ -249,7 +249,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 		
 		std::vector<Recoverable> recoverables;
 		if(!m_db->GetRecoverables(item->typeID(), recoverables)) {
-			item->Release();
+			item->DecRef();
 			continue;
 		}
 
@@ -274,7 +274,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 				continue;
 
 			i->Move(call.client->GetStationID(), flagHangar);
-			i->Release();
+			i->DecRef();
 		}
 
 		uint32 qtyLeft = item->quantity() % item->type().portionSize();
@@ -282,7 +282,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 			item->Delete();
 		else {
 			item->SetQuantity(qtyLeft);
-			item->Release();
+			item->DecRef();
 		}
 	}
 
@@ -327,7 +327,7 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 
 	if(item->ownerID() != c->GetCharacterID()) {
 		_log(SERVICE__ERROR, "Character %u tried to reprocess item %u of character %u.", c->GetCharacterID(), item->itemID(), item->ownerID());
-		item->Release();
+		item->DecRef();
 		return NULL;
 	}
 
@@ -336,7 +336,7 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 		args["typename"] = new PyRepString(item->itemName().c_str());
 		args["portion"] = new PyRepInteger(item->type().portionSize());
 
-		item->Release();
+		item->DecRef();
 		throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
 	}
 
@@ -348,7 +348,7 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 	if(item->quantity() >= item->type().portionSize()) {
 		std::vector<Recoverable> recoverables;
 		if(!m_db->GetRecoverables(item->typeID(), recoverables)) {
-			item->Release();
+			item->DecRef();
 			return NULL;
 		}
 
@@ -371,7 +371,7 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 		}
 	}
 
-	item->Release();
+	item->DecRef();
 	return(res.Encode());
 }
 

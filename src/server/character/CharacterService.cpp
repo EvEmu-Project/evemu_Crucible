@@ -267,7 +267,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 		i->Set_skillPoints(GetSkillPointsForSkillLevel(i, cur->second));
 
 		//we don't actually need the item anymore...
-		i->Release();
+		i->DecRef();
 	}
 
 	//now set up some initial inventory:
@@ -279,7 +279,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	if(initInvItem == NULL)
 		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 	else
-		initInvItem->Release();
+		initInvItem->DecRef();
 
 	// add 1 unit of "Tritanium"
 	ItemData itemTritanium( 34, cdata.charid, cdata.stationID, flagHangar, 1 );
@@ -288,7 +288,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	if(initInvItem == NULL)
 		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
 	else
-		initInvItem->Release();
+		initInvItem->DecRef();
 
 	// give the player its ship.
 	std::string ship_name = cdata.name + "'s Ship";
@@ -304,12 +304,12 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	{
 		//welcome on board your starting ship
 		char_item->MoveInto(ship_item, flagPilot, false);
-		ship_item->Release();
+		ship_item->DecRef();
 	}
 
 	//recursively save everything we just did.
 	char_item->Save(true);
-	char_item->Release();
+	char_item->DecRef();
 
 	_log(CLIENT__MESSAGE, "Sending char create ID %d as reply", cdata.charid);
 

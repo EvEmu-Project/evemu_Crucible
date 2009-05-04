@@ -154,8 +154,8 @@ enum EVEContainerTypes {
 	containerBank 				= 10007,
 	containerRecycler			= 10008,
 	containerOffices			= 10009,
-	containerCharacter 			= 10011,
 	containerStationCharacters	= 10010,
+	containerCharacter 			= 10011,
 	containerCorpMarket			= 10012
 };
 
@@ -163,82 +163,128 @@ enum EVEContainerTypes {
 #include "tables/invCategories.h"
 typedef EVEDB::invCategories::invCategories EVEItemCategories;
 
-
-typedef enum EVEItemFlags {	//from eveFlags DB table
-	flagAutoFit = 0,
-	flagWallet = 1,
-	flagFactory = 2,
-	flagHangar = 4,
-	flagCargoHold = 5,
-	flagBriefcase = 6,
-	flagSkill = 7,
-	flagReward = 8,
-	flagConnected = 9,	//Character in station connected
-	flagDisconnected = 10,	//Character in station offline
+//from eveFlags DB table
+typedef enum EVEItemFlags
+{
+	flagAutoFit						= 0,
+	flagWallet						= 1,
+	flagFactory						= 2,
+	flagHangar						= 4,
+	flagCargoHold					= 5,
+	flagBriefcase					= 6,
+	flagSkill						= 7,
+	flagReward						= 8,
+	flagConnected					= 9,	//Character in station connected
+	flagDisconnected				= 10,	//Character in station offline
 	
 	//ship fittings:
-	flagLowSlot0 = 11,
-		flagLowSlot1 = 12,
-		flagLowSlot8 = 18,
-		flagMedSlot0 = 19,
-		flagMedSlot1 = 20,
-		flagMedSlot8 = 26,
-		flagHiSlot0 = 27,
-		flagHiSlot1 = 28,
-		flagHiSlot7 = 34,
-	flagFixedSlot = 35,	//also 
+	flagLowSlot0					= 11,	//Low power slot 1
+	flagLowSlot1					= 12,
+	flagLowSlot2					= 13,
+	flagLowSlot3					= 14,
+	flagLowSlot4					= 15,
+	flagLowSlot5					= 16,
+	flagLowSlot6					= 17,
+	flagLowSlot7					= 18,	//Low power slot 8
+
+	flagMedSlot0					= 19,	//Medium power slot 1
+	flagMedSlot1					= 20,
+	flagMedSlot2					= 21,
+	flagMedSlot3					= 22,
+	flagMedSlot4					= 23,
+	flagMedSlot5					= 24,
+	flagMedSlot6					= 25,
+	flagMedSlot7					= 26,	//Medium power slot 8
+
+	flagHiSlot0						= 27,	//High power slot 1
+	flagHiSlot1						= 28,
+	flagHiSlot2						= 28,
+	flagHiSlot3						= 28,
+	flagHiSlot4						= 28,
+	flagHiSlot5						= 28,
+	flagHiSlot6						= 28,
+	flagHiSlot7						= 34,	//High power slot 8
+	flagFixedSlot					= 35,
 
 	//factory stuff:
-	flagFactoryBlueprint = 36,
-	flagFactoryMinerals = 37,
-	flagFactoryOutput = 38,
-	flagFactoryActive = 39,
-	flagFactory_SlotFirst = 40,
-	flagFactory_SlotLast = 55,
+	flagFactoryBlueprint			= 36,
+	flagFactoryMinerals				= 37,
+	flagFactoryOutput				= 38,
+	flagFactoryActive				= 39,
+	flagFactory_SlotFirst			= 40,
+	flagFactory_SlotLast			= 55,
 
-	flagCapsule = 56,	//in space??
-	flagPilot = 57,
-	flagPassenger = 58,
-	flagBoardingGate = 59,
-	flagCrew = 60,
-	flagSkillInTraining = 61,
-	flagCorpMarket = 62,	// Corporation Market Deliveries / Returns
-	flagLocked = 63,		//Locked item, can not be moved unless unlocked
-	flagUnlocked = 64,
+	flagCapsule						= 56,	//Capsule item in space
+	flagPilot						= 57,
+	flagPassenger					= 58,
+	flagBoardingGate				= 59,
+	flagCrew						= 60,
+	flagSkillInTraining				= 61,
+	flagCorpMarket					= 62,	//Corporation Market Deliveries / Returns
+	flagLocked						= 63,	//Locked item, can not be moved unless unlocked
+	flagUnlocked					= 64,
 	
-	flagOfficeSlotFirst = 70,
-	flagOfficeSlotLast = 85,
+	flagOfficeSlotFirst				= 70,
+	flagOfficeSlotLast				= 85,
 
-	flagBonus = 86,		//Char bonus/penalty
-	flagDroneBay = 87,
-	flagBooster = 88,
-	flagImplant = 89,
-	flagShipHangar = 90,
-	flagShipOffline = 91,
+	flagBonus						= 86,	//Char bonus/penalty
+	flagDroneBay					= 87,
+	flagBooster						= 88,
+	flagImplant						= 89,
+	flagShipHangar					= 90,
+	flagShipOffline					= 91,
 
-	flagResearchFacilitySlot100First = 100,	//no idea what makes this different than the one below
-	flagResearchFacilitySlot100Last = 115,
+	flagRigSlot0					= 92,	//Rig power slot 1
+	flagRigSlot1					= 93,	//Rig power slot 2
+	flagRigSlot2					= 94,	//Rig power slot 3
+	flagRigSlot3					= 95,	//Rig power slot 4
+	flagRigSlot4					= 96,	//Rig power slot 5
+	flagRigSlot5					= 97,	//Rig power slot 6
+	flagRigSlot6					= 98,	//Rig power slot 7
+	flagRigSlot7					= 99,	//Rig power slot 8
 
-	flagCorpSecurityAccessGroup2 = 116,
-	flagCorpSecurityAccessGroup3 = 117,
-	flagCorpSecurityAccessGroup4 = 118,
-	flagCorpSecurityAccessGroup5 = 119,
-	flagCorpSecurityAccessGroup6 = 120,
-	flagCorpSecurityAccessGroup7 = 121,
+	flagFactoryOperationFirst		= 100,
+	flagFactoryOperationLast		= 115,
+
+	flagCorpSecurityAccessGroup2	= 116,
+	flagCorpSecurityAccessGroup3	= 117,
+	flagCorpSecurityAccessGroup4	= 118,
+	flagCorpSecurityAccessGroup5	= 119,
+	flagCorpSecurityAccessGroup6	= 120,
+	flagCorpSecurityAccessGroup7	= 121,
+
+	flagSecondaryStorage			= 122,	//Secondary Storage
+	flagCaptainsQuarters			= 123,	//Captains Quarters
+	flagWisPromenade				= 124,	//Wis Promenade
+
+	flagSubSystem0					= 125,	//Sub system slot 0
+	flagSubSystem1					= 126,	//Sub system slot 1
+	flagSubSystem2					= 127,	//Sub system slot 2
+	flagSubSystem3					= 128,	//Sub system slot 3
+	flagSubSystem4					= 129,	//Sub system slot 4
+	flagSubSystem5					= 130,	//Sub system slot 5
+	flagSubSystem6					= 131,	//Sub system slot 6
+	flagSubSystem7					= 132,	//Sub system slot 7
 	
-	flagFactorySlotFirst = 140,
-	flagFactorySlotLast = 195,
+	flagFactorySlotFirst			= 140,
+	flagFactorySlotLast				= 195,
 	
-	flagResearchFacilitySlotFirst = 200,
-	flagResearchFacilitySlotLast = 255
+	flagResearchFacilitySlotFirst	= 200,
+	flagResearchFacilitySlotLast	= 255
 } EVEItemFlags;
+
 //some alternative names for entries above.
 static const EVEItemFlags flagSlotFirst = flagLowSlot0;	//duplicate values
 static const EVEItemFlags flagSlotLast = flagFixedSlot;
 static const EVEItemFlags flagAnywhere = flagAutoFit;
 static const uint8 MAX_MODULE_COUNT = flagSlotLast - flagSlotFirst + 1;
 
-//TODO: improve/complete this:
+/* To complete the skill list this use this query:
+SELECT t.typeID, c.categoryID, g.groupName, t.typeName, t.description, t.basePrice
+FROM invTypes t, invGroups g, invCategories c
+WHERE g.groupID = t.groupID AND c.categoryID = g.categoryID AND c.categoryID = 16
+ORDER BY t.typeID, g.groupName, t.typeName
+*/
 typedef enum {
        skillGunnery = 3300,
        skillSmallHybridTurret = 3301,
@@ -258,8 +304,8 @@ typedef enum {
 } EVESkillID;
 
 //List of eve item types which have special purposes in the game. 
-//try to keep this list as short as possible, most things should be accomplishable
-//by looking at the atributes of an item, not its type.
+//try to keep this list as short as possible, most things should be accomplish able
+//by looking at the attributes of an item, not its type.
 typedef enum {
 	itemTypeCapsule = 670
 } EVEItemTypeID;
@@ -429,19 +475,19 @@ static const CorpRoleFlags corpRoleAll =
 
 //these come from dgmEffects.
 typedef enum {
-	effectTargetAttack = 10,	//effects.Laser
-	effectLoPower = 11,
-	effectHiPower = 12,
-	effectMedPower = 13,
-	effectOnline = 16,
-	effectProjectileFired = 34,
-	effectMiningLaser = 67,		//effects.Laser
-	effectSkillEffect = 132,
-	effectAnchorDrop = 649,
-	effectAnchorLift = 650,
-	effectOnlineForStructures = 901,
-	effectAnchorDropForStructures = 1022,
-	effectAnchorLiftForStructures = 1023
+	effectTargetAttack				= 10,	//effects.Laser
+	effectLoPower					= 11,
+	effectHiPower					= 12,
+	effectMedPower					= 13,
+	effectOnline					= 16,
+	effectProjectileFired			= 34,
+	effectMiningLaser				= 67,	//effects.Laser
+	effectSkillEffect				= 132,
+	effectAnchorDrop				= 649,
+	effectAnchorLift				= 650,
+	effectOnlineForStructures		= 901,
+	effectAnchorDropForStructures	= 1022,
+	effectAnchorLiftForStructures	= 1023
 } EVEEffectID;
 
 typedef enum JournalRefType {
@@ -534,22 +580,8 @@ typedef enum {
 	dgmEffOnline = 4,
 } EffectCategories;
 
-
-
-
-
-
-
-#pragma pack(1)
-
-struct PacketHeader {
-	uint32 length;
-	uint8 type;
-};
-
-#pragma pack()
 /*
- *0x10 = "DBTYPE_I1"
+0x10 = "DBTYPE_I1"
 0x11 = "DBTYPE_UI1"
 0x0B = "DBTYPE_BOOL"
 0x02 = "DBTYPE_I2"

@@ -198,7 +198,7 @@ public:
 	/*
 	 * Primary public interface:
 	 */
-	Blueprint *Ref() { return static_cast<Blueprint *>(InventoryItem::Ref()); }
+	Blueprint *IncRef() { return static_cast<Blueprint *>(InventoryItem::IncRef()); }
 
 	void Save(bool recursive=false, bool saveAttributes=true) const;
 	void Delete();

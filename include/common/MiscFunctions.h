@@ -53,8 +53,25 @@ void MakeUpperString(const char *source, char *target);
 void MakeLowerString(const char *source, char *target);
 
 
-int	MakeAnyLenString(char** ret, const char* format, ...);
-int	vaMakeAnyLenString(char** ret, const char* format, va_list args);
+#if WIN32
+
+/**
+ * @note copied from: http://linux.die.net/man/3/vasprintf
+ * The functions asprintf() and vasprintf() are analogues of sprintf() and
+ * vsprintf(), except that they allocate a string large enough to hold the
+ * output including the terminating null byte, and return a pointer to it
+ * via the first parameter. This pointer should be passed to free(3) to
+ * release the allocated storage when it is no longer needed.
+ *
+ * @return When successful, these functions return the number of bytes printed,
+ * just like sprintf(3). If memory allocation wasn't possible, or some other
+ * error occurs, these functions will return -1, and the contents of strp is undefined.
+ * @todo check http://www.koders.com/c/fidA509CB3A8622E36F7CE0851560975BE02C89E9C7.aspx
+ */
+int	asnprintf(char** strp, const char* fmt, ...);
+int	vasprintf(char** strp, const char* fmt, va_list ap);
+#endif
+
 int32	AppendAnyLenString(char** ret, int32* bufsize, int32* strlen, const char* format, ...);
 int32	hextoi(char* num);
 int64	hextoi64(char* num);

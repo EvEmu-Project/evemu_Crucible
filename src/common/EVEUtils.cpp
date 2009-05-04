@@ -118,12 +118,12 @@ PyRep *MakeCustomError(const char *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	char *str = NULL;
-	vaMakeAnyLenString(&str, fmt, va);
+	vasprintf(&str, fmt, va);
 	va_end(va);
 
 	std::map<std::string, PyRep *> args;
 	args["error"] = new PyRepString(str);
-	delete[] str;
+	free(str);
 
 	return(MakeUserError("CustomError", args));
 }

@@ -179,12 +179,12 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
 	
 	if(item->ownerID() != call.client->GetCharacterID()) {
 		_log(SERVICE__ERROR, "Character %u tried to rename item %u of character %u.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
-		item->Release();
+		item->DecRef();
 		return NULL;
 	}
 
 	item->Rename(args.itemName.c_str());
-	item->Release();
+	item->DecRef();
 	
 	//do we need to send some sort of update?
 	
@@ -208,10 +208,10 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
 			codelog(SERVICE__ERROR, "%s: Unable to load item %u to delete it. Skipping.", call.client->GetName(), *cur);
 		} else if(call.client->GetCharacterID() != item->ownerID()) {
 			codelog(SERVICE__ERROR, "%s: Tried to trash item %u which is not yours. Skipping.", call.client->GetName(), *cur);
-			item->Release();
+			item->DecRef();
 		} else if(item->locationID() != args.locationID) {
 			codelog(SERVICE__ERROR, "%s: Item %u is not in location %u. Skipping.", call.client->GetName(), *cur, args.locationID);
-			item->Release();
+			item->DecRef();
 		} else {
 			item->Delete();
 			// ref was consumed

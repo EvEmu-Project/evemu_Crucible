@@ -60,48 +60,29 @@ extern const uint32 SKILL_BASE_POINTS;
 class ItemData {
 public:
 	// Full + default constructor:
-	ItemData(
-		const char *_name = "",
-		uint32 _typeID = 0,
-		uint32 _ownerID = 0,
-		uint32 _locationID = 0,
-		EVEItemFlags _flag = flagAutoFit,
-		bool _contraband = false,
-		bool _singleton = false,
-		uint32 _quantity = 0,
-		const GPoint &_position = GPoint(0, 0, 0),
-		const char *_customInfo = "");
+	ItemData( const char *_name = "", uint32 _typeID = 0, uint32 _ownerID = 0, uint32 _locationID = 0,
+		EVEItemFlags _flag = flagAutoFit, bool _contraband = false, bool _singleton = false, uint32 _quantity = 0,
+		const GPoint &_position = GPoint(0, 0, 0), const char *_customInfo = "");
+
 	// Usual-item friendly constructor:
-	ItemData(
-		uint32 _typeID,
-		uint32 _ownerID,
-		uint32 _locationID,
-		EVEItemFlags _flag,
-		uint32 _quantity,
-		const char *_customInfo = "",
-		bool _contraband = false);
+	ItemData( uint32 _typeID, uint32 _ownerID, uint32 _locationID, EVEItemFlags _flag, uint32 _quantity,
+		const char *_customInfo = "", bool _contraband = false);
+
 	// Singleton friendly constructor:
-	ItemData(
-		uint32 _typeID,
-		uint32 _ownerID,
-		uint32 _locationID,
-		EVEItemFlags _flag,
-		const char *_name = "",
-		const GPoint &_position = GPoint(0, 0, 0),
-		const char *_customInfo = "",
-		bool _contraband = false);
+	ItemData( uint32 _typeID, uint32 _ownerID, uint32 _locationID, EVEItemFlags _flag, const char *_name = "",
+		const GPoint &_position = GPoint(0, 0, 0), const char *_customInfo = "", bool _contraband = false);
 
 	// Content:
-	std::string name;
-	uint32 typeID;
-	uint32 ownerID;
-	uint32 locationID;
-	EVEItemFlags flag;
-	bool contraband;
-	bool singleton;
-	uint32 quantity;
-	GPoint position;
-	std::string customInfo;
+	std::string		name;
+	uint32			typeID;
+	uint32			ownerID;
+	uint32			locationID;
+	EVEItemFlags	flag;
+	bool			contraband;
+	bool			singleton;
+	uint32			quantity;
+	GPoint			position;
+	std::string		customInfo;
 };
 
 /*
@@ -118,11 +99,11 @@ public:
 	/*
 	 * Primary public interface:
 	 */
-	InventoryItem *Ref();
-	void Release();
+	InventoryItem *IncRef();
+	void DecRef();
 
 	virtual void Save(bool recursive=false, bool saveAttributes=true) const;	//save the item to the DB.
-	virtual void Delete();	//remove the item from the DB, and Release() it. Consumes a ref!
+	virtual void Delete();	//remove the item from the DB, and DecRef() it. Consumes a ref!
 
 	bool ContentsLoaded() const { return(m_contentsLoaded); }
 	bool LoadContents(bool recursive=true);
@@ -277,7 +258,4 @@ protected:
 	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.
 };
 
-
-
 #endif
-

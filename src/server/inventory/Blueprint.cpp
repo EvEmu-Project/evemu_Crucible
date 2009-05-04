@@ -209,7 +209,7 @@ Blueprint *Blueprint::Load(ItemFactory &factory, uint32 blueprintID, bool recurs
 
 	// finish load
 	if(!bi->_Load(recurse)) {
-		bi->Release();	// should delete the item
+		bi->DecRef();	// should delete the item
 		return NULL;
 	}
 

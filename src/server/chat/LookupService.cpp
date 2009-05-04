@@ -81,7 +81,7 @@ m_db(db)
 	PyCallable_REG_CALL(LookupService, LookupFactions)
 	PyCallable_REG_CALL(LookupService, LookupCorporationTickers)
 	PyCallable_REG_CALL(LookupService, LookupStations)
-	PyCallable_REG_CALL(LookupService, LookupLocationsByGroup)
+	PyCallable_REG_CALL(LookupService, LookupKnownLocationsByGroup)
 	//PyCallable_REG_CALL(LookupService, )
 }
 
@@ -154,14 +154,14 @@ PyResult LookupService::Handle_LookupStations(PyCallArgs &call) {
 	return m_db.LookupStations(args.searchString);
 }
 // Asteroids, constellations and regions should be injected into the entity table...
-PyResult LookupService::Handle_LookupLocationsByGroup(PyCallArgs &call) {
+PyResult LookupService::Handle_LookupKnownLocationsByGroup(PyCallArgs &call) {
 	Call_LookupIntString args;
 	if (!args.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");
 		return false;
 	}
 	
-	return m_db.LookupLocationsByGroup(args.searchString, args.searchOption);
+	return m_db.LookupKnownLocationsByGroup(args.searchString, args.searchOption);
 }
 
 

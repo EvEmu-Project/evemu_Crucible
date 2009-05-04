@@ -41,7 +41,7 @@ Damage::Damage(
   em(_em),
   explosive(_explosive),
   source(_source),
-  weapon(_weapon->Ref()),
+  weapon(_weapon->IncRef()),
   charge(NULL),
   effect(_effect)
 {}
@@ -56,7 +56,7 @@ Damage::Damage(
   em(_weapon->emDamage()),
   explosive(_weapon->explosiveDamage()),
   source(_source),
-  weapon(_weapon->Ref()),
+  weapon(_weapon->IncRef()),
   charge(NULL),
   effect(_effect)
 {}
@@ -72,15 +72,15 @@ Damage::Damage(
   em(_charge->emDamage() * _weapon->damageMultiplier()),
   explosive(_charge->explosiveDamage() * _weapon->damageMultiplier()),
   source(_source),
-  weapon(_weapon->Ref()),
-  charge(_charge->Ref()),
+  weapon(_weapon->IncRef()),
+  charge(_charge->IncRef()),
   effect(_effect)
 {}
 
 Damage::~Damage() {
-	weapon->Release();
+	weapon->DecRef();
 	if(charge != NULL)
-		charge->Release();
+		charge->DecRef();
 }
 
 
@@ -401,7 +401,7 @@ void Client::Killed(Damage &fatal_blow) {
 			return;
 		}
 		
-		InventoryItem *dead_ship = Ship()->Ref();	//grab a ship ref to ensure that nobody else nukes it first.
+		InventoryItem *dead_ship = Ship()->IncRef();	//grab a ship ref to ensure that nobody else nukes it first.
 		
 		//ok, nothing can fail now, we need have our capsule, make the transition.
 		
@@ -413,7 +413,7 @@ void Client::Killed(Damage &fatal_blow) {
 		BoardShip(capsule);
 		
 		//and off we go into our new ship.
-		capsule->Release();	//we are done with our instance, others may have kept one for themself.
+		capsule->DecRef();	//we are done with our instance, others may have kept one for themself.
 		
 		//kill off the old ship.
 		//TODO: figure out anybody else which may be referencing this ship...

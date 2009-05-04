@@ -90,7 +90,7 @@ ItemSystemEntity::ItemSystemEntity(InventoryItem *self)
 
 ItemSystemEntity::~ItemSystemEntity() {
 	if(m_self != NULL)
-		m_self->Release();
+		m_self->DecRef();
 }
 
 void ItemSystemEntity::_SetSelf(InventoryItem *self) {
@@ -99,7 +99,7 @@ void ItemSystemEntity::_SetSelf(InventoryItem *self) {
 		return;
 	}
 	if(m_self != NULL) {
-		m_self->Release();
+		m_self->DecRef();
 	}
 	m_self = self;
 	

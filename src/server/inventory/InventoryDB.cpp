@@ -207,27 +207,16 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
-		"SELECT "
-		" itemName,"
-		" typeID,"
-		" ownerID,"
-		" locationID,"
-		" flag,"
-		" contraband,"
-		" singleton,"
-		" quantity,"
-		" x, y, z,"
-		" customInfo"
-		" FROM entity"
-		" WHERE itemID=%u",
-		itemID))
+		"SELECT itemName, typeID, ownerID, locationID, flag, contraband, singleton, quantity, x, y, z, customInfo"
+		" FROM entity WHERE itemID=%u", itemID))
 	{
 		codelog(SERVICE__ERROR, "Error in query for item %u: %s", itemID, res.error.c_str());
 		return NULL;
 	}
 	
 	DBResultRow row;
-	if(!res.GetRow(row)) {
+	if(!res.GetRow(row))
+	{
 		codelog(SERVICE__ERROR, "Unable to load item %u", itemID);
 		return false;
 	}
@@ -240,8 +229,16 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
 	into.contraband = row.GetInt(5) ? true : false;
 	into.singleton = row.GetInt(6) ? true : false;
 	into.quantity = row.GetUInt(7);
-	into.position = GPoint(row.GetDouble(8), row.GetDouble(9), row.GetDouble(10));
-	into.customInfo = row.IsNull(11) ? "" : row.GetText(11);
+
+	into.position.x = row.GetDouble(8);
+	into.position.y = row.GetDouble(9);
+	into.position.z = row.GetDouble(10);
+
+	const char * customData = row.GetText(11);
+	if (customData != NULL)
+		into.customInfo = customData;
+	else
+		into.customInfo = "";
 
 	return true;
 }

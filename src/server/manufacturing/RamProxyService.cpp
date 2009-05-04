@@ -118,7 +118,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	PathElement pathBomLocation;
 	if(!pathBomLocation.Decode(&args.bomPath.items[0])) {
 		_log(SERVICE__ERROR, "Failed to decode BOM location.");
-		installedItem->Release();
+		installedItem->DecRef();
 		return NULL;
 	}
 
@@ -126,33 +126,33 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 	try {
 		_VerifyInstallJob_Call(args, installedItem, pathBomLocation, call.client);
 	} catch(...) {
-		installedItem->Release();
+		installedItem->DecRef();
 		throw;
 	}
 
 	// this calculates some useful multipliers ... Rsp_InstallJob is used as container ...
 	Rsp_InstallJob rsp;
 	if(!_Calculate(args, installedItem, call.client, rsp)) {
-		installedItem->Release();
+		installedItem->DecRef();
 		return NULL;
 	}
 
 	// I understand sent maxJobStartTime as a limit, so this checks whether it's in limit
 	if(rsp.maxJobStartTime > ((PyRepInteger *)call.byname["maxJobStartTime"])->value) {
-		installedItem->Release();
+		installedItem->DecRef();
 		throw(PyException(MakeUserError("RamCannotGuaranteeStartTime")));
 	}
 
 	// query required items for activity
 	std::vector<RequiredItem> reqItems;
 	if(!m_db.GetRequiredItems(installedItem->typeID(), (EVERamActivity)args.activityID, reqItems)) {
-		installedItem->Release();
+		installedItem->DecRef();
 		return NULL;
 	}
 
 	// if 'quoteOnly' is 1 -> send quote, if 0 -> install job
 	if(((PyRepInteger *)call.byname["quoteOnly"])->value) {
-		installedItem->Release();	// not needed anymore
+		installedItem->DecRef();	// not needed anymore
 		_EncodeBillOfMaterials(reqItems, rsp.materialMultiplier, rsp.charMaterialMultiplier, args.runs, rsp.bom);
 		_EncodeMissingMaterials(reqItems, pathBomLocation, call.client, rsp.materialMultiplier, rsp.charMaterialMultiplier, args.runs, rsp.missingMaterials);
 		return(rsp.Encode());
@@ -161,7 +161,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 		try {
 			_VerifyInstallJob_Install(rsp, pathBomLocation, reqItems, args.runs, call.client);
 		} catch(...) {
-			installedItem->Release();
+			installedItem->DecRef();
 			throw;
 		}
 
@@ -170,7 +170,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 		// load location where are located all materials
 		InventoryItem *bomLocation = m_manager->item_factory.GetItem(pathBomLocation.locationID, true);
 		if(bomLocation == NULL) {
-			installedItem->Release();
+			installedItem->DecRef();
 			return NULL;
 		}
 
@@ -193,8 +193,8 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 			bomLocation->locationID(),
 			args.licensedProductionRuns
 		)) {
-			bomLocation->Release();
-			installedItem->Release();
+			bomLocation->DecRef();
+			installedItem->DecRef();
 			return NULL;
 		}
 
@@ -211,12 +211,12 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 		// pay for assembly lines, move the item away
 		call.client->AddBalance(-rsp.cost);
 		installedItem->ChangeFlag(flagFactoryBlueprint);
-		installedItem->Release();	//  not needed anymore
+		installedItem->DecRef();	//  not needed anymore
 
 		// query all items contained in "Bill of Materials" location
 		std::vector<InventoryItem *> items;
 		bomLocation->FindByFlag((EVEItemFlags)pathBomLocation.flag, items);
-		bomLocation->Release();		// not needed anymore
+		bomLocation->DecRef();		// not needed anymore
 
 		std::vector<RequiredItem>::iterator cur, end;
 		cur = reqItems.begin();
@@ -239,7 +239,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 			for(; curi != endi; curi++) {
 				if((*curi)->typeID() == cur->typeID && (*curi)->ownerID() == call.client->GetCharacterID()) {
 					if(qtyNeeded >= (*curi)->quantity()) {
-						InventoryItem *i = (*curi)->Ref();
+						InventoryItem *i = (*curi)->IncRef();
 						qtyNeeded -= i->quantity();
 						i->Delete();
 					} else {
@@ -279,7 +279,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 
 	std::vector<RequiredItem> reqItems;
 	if(!m_db.GetRequiredItems(installedItem->typeID(), activity, reqItems)) {
-		installedItem->Release();
+		installedItem->DecRef();
 		return NULL;
 	}
 
@@ -303,12 +303,12 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 
 			InventoryItem *item = m_manager->item_factory.SpawnItem(idata);
 			if(item == NULL) {
-				installedItem->Release();
+				installedItem->DecRef();
 				return NULL;
 			}
 
 			item->Move(args.containerID, outputFlag);
-			item->Release();
+			item->DecRef();
 		}
 	}
 
@@ -331,11 +331,11 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 
 				InventoryItem *item = m_manager->item_factory.SpawnItem(idata);
 				if(item == NULL) {
-					installedItem->Release();
+					installedItem->DecRef();
 					return NULL;
 				}
 				item->Move(args.containerID, outputFlag);
-				item->Release();
+				item->DecRef();
 			} break;
 			/*
 			 * Time productivity research
@@ -375,12 +375,12 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 
 				Blueprint *copy = m_manager->item_factory.SpawnBlueprint(idata, bdata);
 				if(copy == NULL) {
-					installedItem->Release();
+					installedItem->DecRef();
 					return NULL;
 				}
 
 				copy->Move(args.containerID, outputFlag);
-				copy->Release();
+				copy->DecRef();
 			} break;
 			/*
 			 * The rest is unsupported
@@ -395,7 +395,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 		}
 	}
 
-	installedItem->Release();
+	installedItem->DecRef();
 
 	// regardless on success of this, we will return NULL, so there's no condition here
 	m_db.CompleteJob(args.jobID, args.cancel ? ramCompletedStatusAbort : ramCompletedStatusDelivered);
@@ -714,7 +714,7 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
 	if(bomLocation == NULL)
 		throw(PyException(NULL));
 	bomLocation->FindByFlag((EVEItemFlags)pathBomLocation.flag, items);
-	bomLocation->Release();	// not needed anymore
+	bomLocation->DecRef();	// not needed anymore
 
 	std::vector<RequiredItem>::const_iterator cur, end;
 	cur = reqItems.begin();
@@ -942,7 +942,7 @@ void RamProxyService::_EncodeMissingMaterials(const std::vector<RequiredItem> &r
 	if(bomContainer == NULL)
 		return;
 	bomContainer->FindByFlag(EVEItemFlags(bomLocation.flag), items);
-	bomContainer->Release();
+	bomContainer->DecRef();
 
 	//now do the check
 	std::vector<RequiredItem>::const_iterator cur, end;

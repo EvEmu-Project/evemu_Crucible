@@ -28,6 +28,11 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <varargs.h>
+
 #ifndef WIN32
 #include <netdb.h>
 #include <netinet/in.h>
@@ -115,43 +120,31 @@ void MakeLowerString(const char *source, char *target) {
     *target = 0;
 }
 
-int MakeAnyLenString(char** ret, const char* format, ...) {
+#ifdef WIN32
+int	asnprintf(char** strp, const char* fmt, ...)
+{
 	va_list argptr;
 
-	va_start(argptr, format);
-	int res = vaMakeAnyLenString(ret, format, argptr);
+	va_start(argptr, fmt);
+	int res = vasprintf(strp, fmt, argptr);
 	va_end(argptr);
 
-	return(res);
+	return res;
 }
 
-int vaMakeAnyLenString(char** ret, const char* format, va_list argptr) {
-#ifdef WIN32
-	// First, we need to determine length of string.
-	// Since va_list is consumed during vsnprintf, we need to make a copy.
-	va_list argptr_cp;
-	va_copy(argptr_cp, argptr);
-	// Consume copy of argptr.
-	int size = vsnprintf(NULL, 0, format, argptr_cp);
-	// Destroy the copy.
-	va_end(argptr_cp);
+int	vasprintf(char** strp, const char* fmt, va_list ap)
+{
+	int size = vsnprintf(NULL, 0, fmt, ap);
 
-	// Length of string is stored in size.
-	// +1 because of terminating zero.
-	*ret = new char[size+1];
-	// Consume original argptr.
-	vsnprintf(*ret, size+1, format, argptr);
-	// Leave va_end up to our caller.
-	// Append terminating zero.
-	(*ret)[size] = '\0';
+	*strp = (char*)malloc(size+1);
+	if (*strp == NULL)
+		return -1;
 
-	// Return length of string.
+	size = vsnprintf(*strp, size+1, fmt, ap);
+	(*strp)[size] = '\0';
 	return size;
-#else
-	// Linux has this function already implemented.
-	return vasprintf(ret, format, argptr);
-#endif
 }
+#endif//WIN32
 
 int32 AppendAnyLenString(char** ret, int32* bufsize, int32* strlen, const char* format, ...) {
 	if (*bufsize == 0)
@@ -354,7 +347,7 @@ const char * itoa(int num, char* a,int b) {
 }
 #endif
 
-//I didnt even look to see if windows supports random();
+//I didn't even look to see if windows supports random();
 #ifdef WIN32
 	#define SeedRandom srand
 	#define GenerateRandom rand

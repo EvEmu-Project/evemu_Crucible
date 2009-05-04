@@ -56,7 +56,7 @@ PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
 
 	PyRep *res = b->GetBlueprintAttributes();
 
-	b->Release();
+	b->DecRef();
 
 	return(res);
 }

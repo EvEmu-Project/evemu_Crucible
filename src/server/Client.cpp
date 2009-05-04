@@ -185,7 +185,7 @@ Client::~Client() {
 		m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), false);
 
 		// release our char ref
-		m_char->Release();
+		m_char->DecRef();
 	}
 
 	if(GetAccountID() != 0) { // this is not very good ....
@@ -357,7 +357,7 @@ void Client::SendErrorMsg(const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	char *str = NULL;
-	vaMakeAnyLenString(&str, fmt, args);
+	vasprintf(&str, fmt, args);
 	
 	_log(CLIENT__ERROR, "Sending Error Message to %s:", GetName());
 	log_messageVA(CLIENT__ERROR, fmt, args);
@@ -372,7 +372,7 @@ void Client::SendErrorMsg(const char *fmt, ...) {
 	
 	SendNotification("OnRemoteMessage", "charid", &tmp);
 	
-	SafeDeleteArray(str);
+	free(str);
 }
 
 //this displays a modal info dialog on the client side.
@@ -380,7 +380,7 @@ void Client::SendInfoModalMsg(const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	char *str = NULL;
-	vaMakeAnyLenString(&str, fmt, args);
+	vasprintf(&str, fmt, args);
 	
 	_log(CLIENT__MESSAGE, "Info Modal to %s:", GetName());
 	log_messageVA(CLIENT__MESSAGE, fmt, args);
@@ -395,7 +395,7 @@ void Client::SendInfoModalMsg(const char *fmt, ...) {
 	
 	SendNotification("OnRemoteMessage", "charid", &tmp);
 	
-	delete[] str;
+	free(str);
 }
 
 //this displays a little notice (like combat messages)
@@ -403,7 +403,7 @@ void Client::SendNotifyMsg(const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	char *str = NULL;
-	vaMakeAnyLenString(&str, fmt, args);
+	vasprintf(&str, fmt, args);
 
 	_log(CLIENT__MESSAGE, "Notify to %s:", GetName());
 	log_messageVA(CLIENT__MESSAGE, fmt, args);
@@ -418,7 +418,7 @@ void Client::SendNotifyMsg(const char *fmt, ...) {
 	
 	SendNotification("OnRemoteMessage", "charid", &tmp);
 	
-	delete[] str;
+	free(str);
 }
 
 //there may be a less hackish way to do this.
@@ -426,12 +426,12 @@ void Client::SelfChatMessage(const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	char *str = NULL;
-	vaMakeAnyLenString(&str, fmt, args);
+	vasprintf(&str, fmt, args);
 	va_end(args);
 
 	if(m_channels.empty()) {
 		_log(CLIENT__ERROR, "%s: Tried to send self chat, but we are not joined to any channels: %s", GetName(), str);
-		delete[] str;
+		free(str);
 		return;
 	}
 
@@ -459,7 +459,7 @@ void Client::SelfChatMessage(const char *fmt, ...) {
 		}
     }*/
 	
-	delete[] str;
+	free(str);
 }
 
 void Client::ChannelJoined(LSCChannel *chan) {
@@ -754,7 +754,7 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag) {
 	}
 	
 	//release the item ref
-	item->Release();
+	item->DecRef();
 }
 
 void Client::BoardShip(InventoryItem *new_ship) {
@@ -769,7 +769,7 @@ void Client::BoardShip(InventoryItem *new_ship) {
 	if(m_system != NULL)
 		m_system->RemoveClient(this);
 
-	_SetSelf(new_ship->Ref());
+	_SetSelf(new_ship->IncRef());
 	m_char->MoveInto(new_ship, flagPilot, false);
 
 	session.Set_shipid(new_ship->itemID());
@@ -1208,7 +1208,7 @@ bool Client::SelectCharacter(uint32 char_id) {
 
 	m_char = character;	//ref is stored
 	BoardShip(ship);	//updates modules
-	ship->Release();
+	ship->DecRef();
 
 	if(!EnterSystem())
 		return false;

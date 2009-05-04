@@ -307,7 +307,7 @@ PyRepObject *LSCDB::LookupStations(const std::string & search) {
 
 	return DBResultToRowset(res);
 }
-PyRepObject *LSCDB::LookupLocationsByGroup(const std::string & search, uint32 typeID) {
+PyRepObject *LSCDB::LookupKnownLocationsByGroup(const std::string & search, uint32 typeID) {
 	DBQueryResult res;
 	std::string secure;
 	m_db->DoEscapeString(secure, search);

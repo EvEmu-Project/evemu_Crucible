@@ -36,7 +36,7 @@
 #include "MiscFunctions.h"
 #include "misc.h"
 
-#define COLUMN_BOUNDS_CHECKING
+//#define COLUMN_BOUNDS_CHECKING
 
 DBcore::DBcore(bool compress, bool ssl)
 : pCompress(compress),
@@ -50,10 +50,10 @@ DBcore::~DBcore() {
 	mysql_close(&mysql);
 }
 
-// Sends the MySQL server a keepalive
+// Sends the MySQL server a ping
 void DBcore::ping() {
 	if (!MDatabase.trylock()) {
-		// well, if's it's locked, someone's using it. If someone's using it, it doesnt need a keepalive
+		// well, if it's locked, someone's using it. If someone's using it, it doesn't need a ping
 		return;
 	}
 	mysql_ping(&mysql);
@@ -67,12 +67,11 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 	va_list args;
 	va_start(args, query_fmt);
 	char *query = NULL;
-	uint32 querylen = vaMakeAnyLenString(&query, query_fmt, args);
+	uint32 querylen = vasprintf(&query, query_fmt, args);
 	va_end(args);
 	
 	if(!DoQuery_locked(into.error, query, querylen)) {
-		delete [] query;
-		query = NULL;
+		free(query);
 		return false;
 	}
 
@@ -81,12 +80,10 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 		into.error.SetError(0xFFFF, "DBcore::RunQuery: No Result");
 		_log(DATABASE__QUERIES, "Query failed due to no result");
 		_log(DATABASE__ALL_ERRORS, "DB Query '%s' did not return a result, but the caller requested them.", query);
-		delete [] query;
-		query = NULL;
+		free(query);
 		return false;
 	}
-	delete [] query;
-	query = NULL;
+	free(query);
 
 	MYSQL_RES *result = mysql_store_result(&mysql);
 
@@ -148,16 +145,15 @@ bool DBcore::RunQuery(DBerror &err, const char *query_fmt, ...) {
 	va_list args;
 	va_start(args, query_fmt);
 	char *query = NULL;
-	uint32 querylen = vaMakeAnyLenString(&query, query_fmt, args);
+	uint32 querylen = vasprintf(&query, query_fmt, args);
 	va_end(args);
 
 	if(!DoQuery_locked(err, query, querylen)) {
-		delete [] query;
+		free(query);
 		return false;
 	}
 	
-	delete [] query;
-	query = NULL;
+	free(query);
 	return true;
 }
 
@@ -168,18 +164,17 @@ bool DBcore::RunQuery(DBerror &err, uint32 &affected_rows, const char *query_fmt
 	va_list args;
 	va_start(args, query_fmt);
 	char *query = NULL;
-	uint32 querylen = vaMakeAnyLenString(&query, query_fmt, args);
+	uint32 querylen = vasprintf(&query, query_fmt, args);
 	va_end(args);
 
 	if(!DoQuery_locked(err, query, querylen)) {
-		delete [] query;
-		query = NULL;
+		free(query);
 		return false;
 	}
-	delete [] query;
+	free(query);
 	
 	affected_rows = mysql_affected_rows(&mysql);
-	
+
 	return true;
 }
 
@@ -190,15 +185,14 @@ bool DBcore::RunQueryLID(DBerror &err, uint32 &last_insert_id, const char *query
 	va_list args;
 	va_start(args, query_fmt);
 	char *query = NULL;
-	uint32 querylen = vaMakeAnyLenString(&query, query_fmt, args);
+	uint32 querylen = vasprintf(&query, query_fmt, args);
 	va_end(args);
 	
 	if(!DoQuery_locked(err, query, querylen)) {
-		delete [] query;
+		free(query);
 		return false;
 	}
-	delete [] query;
-	query = NULL;
+	free(query);
 	
 	last_insert_id = mysql_insert_id(&mysql);
 	
@@ -642,7 +636,6 @@ uint32 DBResultRow::GetBinary(uint32 column, uint8 *into, uint32 in_length) cons
 	memcpy(into, m_row[column], m_lengths[column]);
 	return(m_lengths[column]);
 }
-
 
 void ListToINString(const std::vector<uint32> &ints, std::string &into, const char *if_empty)
 {

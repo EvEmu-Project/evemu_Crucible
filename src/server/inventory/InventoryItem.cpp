@@ -132,7 +132,8 @@ InventoryItem::InventoryItem(
 }
 
 InventoryItem::~InventoryItem() {
-	if(m_refCount > 0) {
+	if(m_refCount > 0)
+	{
 		_log(ITEM__ERROR, "Destructing an inventory item (%p) which has %d references!", this, m_refCount);
 	}
 
@@ -140,11 +141,11 @@ InventoryItem::~InventoryItem() {
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
-		cur->second->Release();
+		cur->second->DecRef();
 	}
 }
 
-void InventoryItem::Release() {
+void InventoryItem::DecRef() {
 	if(this == NULL) {
 		_log(ITEM__ERROR, "Trying to release a NULL inventory item!");
 		//TODO: log a stack.
@@ -155,12 +156,13 @@ void InventoryItem::Release() {
 		return;
 	}
 	m_refCount--;
-	if(m_refCount == 0) {
+	if(m_refCount <= 0) {
 		delete this;
 	}
 }
 
-InventoryItem *InventoryItem::Ref() {
+InventoryItem * InventoryItem::IncRef()
+{
 	if(this == NULL) {
 		_log(ITEM__ERROR, "Trying to make a ref of a NULL inventory item!");
 		//TODO: log a stack.
@@ -182,7 +184,7 @@ InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID, bool rec
 
 	// do the dynamic load
 	if(!i->_Load(recurse)) {
-		i->Release();	// should delete the item
+		i->DecRef();	// should delete the item
 		return NULL;
 	}
 
@@ -246,7 +248,7 @@ bool InventoryItem::_Load(bool recurse) {
 	InventoryItem *container = m_factory._GetIfContentsLoaded(locationID());
 	if(container != NULL) {
 		container->AddContainedItem(this);
-		container->Release();
+		container->DecRef();
 	}
 
 	// now load contained items
@@ -331,7 +333,7 @@ bool InventoryItem::LoadContents(bool recursive) {
 		}
 
 		AddContainedItem(i);
-		i->Release();
+		i->DecRef();
 	}
 
 	m_contentsLoaded = true;
@@ -385,7 +387,7 @@ void InventoryItem::Delete() {
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; ) {
-		InventoryItem *i = cur->second->Ref();
+		InventoryItem *i = cur->second->IncRef();
 		//iterator will become invalid after calling
 		//Delete(), so increment now.
 		cur++;
@@ -409,9 +411,9 @@ void InventoryItem::Delete() {
 		m_itemName = "BAD DELETED ITEM";
 		m_quantity = 0;
 		m_contentsLoaded = true;
-		//TODO: mark the item for death so that if it does get Release()'d, it will properly die.
+		//TODO: mark the item for death so that if it does get DecRef()'d, it will properly die.
 	}
-	Release();
+	DecRef();
 	//we should be deleted now.... so dont do anything!
 }
 
@@ -619,7 +621,7 @@ InventoryItem *InventoryItem::FindFirstByFlag(EVEItemFlags _flag, bool newref) {
 		InventoryItem *i = cur->second;
 
 		if(i->m_flag == _flag) {
-			return(newref ? i->Ref() : i);
+			return(newref ? i->IncRef() : i);
 		}
 	}
 
@@ -634,7 +636,7 @@ InventoryItem *InventoryItem::GetByID(uint32 id, bool newref) {
 		InventoryItem *i = cur->second;
 
 		if(i->m_itemID == id) {
-			return(newref ? i->Ref() : i);
+			return(newref ? i->IncRef() : i);
 		}
 	}
 
@@ -651,7 +653,7 @@ uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *
 		InventoryItem *i = cur->second;
 
 		if(i->m_flag == _flag) {
-			items.push_back(newref ? i->Ref() : i);
+			items.push_back(newref ? i->IncRef() : i);
 			count++;
 		}
 	}
@@ -669,7 +671,7 @@ uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_f
 		InventoryItem *i = cur->second;
 
 		if(i->m_flag >= low_flag && i->m_flag <= high_flag) {
-			items.push_back(newref ? i->Ref() : i);
+			items.push_back(newref ? i->IncRef() : i);
 			count++;
 		}
 	}
@@ -687,7 +689,7 @@ uint32 InventoryItem::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<In
 		InventoryItem *i = cur->second;
 
 		if(flags.find(i->flag()) != flags.end()) {
-			items.push_back(newref ? i->Ref() : i);
+			items.push_back(newref ? i->IncRef() : i);
 			count++;
 		}
 	}
@@ -699,7 +701,7 @@ void InventoryItem::AddContainedItem(InventoryItem *it) {
 	std::map<uint32, InventoryItem *>::iterator res;
 	res = m_contents.find(it->itemID());
 	if(res == m_contents.end()) {
-		m_contents[it->itemID()] = it->Ref();
+		m_contents[it->itemID()] = it->IncRef();
 
 		_log(ITEM__TRACE, "   Updated location %u to contain item %u", itemID(), it->itemID());
 	} else if(res->second != it) {
@@ -711,7 +713,7 @@ void InventoryItem::RemoveContainedItem(InventoryItem *it) {
 	std::map<uint32, InventoryItem *>::iterator old_inst;
 	old_inst = m_contents.find(it->itemID());
 	if(old_inst != m_contents.end()) {
-		old_inst->second->Release();
+		old_inst->second->DecRef();
 		m_contents.erase(old_inst);
 
 		_log(ITEM__TRACE, "   Updated location %u to no longer contain item %u", itemID(), it->itemID());
@@ -739,14 +741,14 @@ void InventoryItem::Move(uint32 location, EVEItemFlags new_flag, bool notify) {
 	InventoryItem *old_container = m_factory._GetIfContentsLoaded(old_location);
 	if(old_container != NULL) {
 		old_container->RemoveContainedItem(this);	//releases its ref
-		old_container->Release();
+		old_container->DecRef();
 	}
 	
 	//then make sure that my new container is updated, if its loaded.
 	InventoryItem *new_container = m_factory._GetIfContentsLoaded(location);
 	if(new_container != NULL) {
 		new_container->AddContainedItem(this);	//makes a new ref
-		new_container->Release();
+		new_container->DecRef();
 	}
 
 	m_locationID = location;
@@ -879,7 +881,7 @@ bool InventoryItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
 		_log(ITEM__ERROR, "%s (%u): Failed to remove quantity %d.", to_merge->itemName().c_str(), to_merge->itemID(), qty);
 		return false;
 	} else
-		to_merge->Release();	//consume ref
+		to_merge->DecRef();	//consume ref
 
 	return true;
 }
@@ -1048,7 +1050,7 @@ void InventoryItem::TrainSkill(InventoryItem *skill) {
 		i->ChangeFlag(flagSkill);
 		
 		if(c != NULL) {
-			NotifyOnSkillTrainingStopped osst;
+			OnSkillTrainingStopped osst;
 			osst.itemID = skill->itemID();
 			osst.endOfTraining = 0;
 			PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
@@ -1074,7 +1076,7 @@ void InventoryItem::TrainSkill(InventoryItem *skill) {
 	}
 	
 	if(c != NULL) {
-		NotifyOnSkillStartTraining osst;
+		OnSkillStartTraining osst;
 		osst.itemID = skill->itemID();
 		osst.endOfTraining = Win32TimeNow() + Win32Time_Month; //hack hack hack
 		
@@ -1111,7 +1113,7 @@ void InventoryItem::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner) {
 				types[i->typeID()] = i;
 			else
 				//dont forget to make ref (which is consumed)
-				res->second->Merge(i->Ref());
+				res->second->Merge(i->IncRef());
 		}
 	}
 }

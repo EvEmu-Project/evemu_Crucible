@@ -877,13 +877,6 @@ uint32 CharacterDB::djb2_hash( const char* str )
 	return hash;
 }
 
-/**
- * load_name_validation_set()
- * This method will load up all character names into a set for validating
- * against when a new account is created using the AutoAccount feature.
- *
- * @author captnoord, firefoxpdm
-*/
 void CharacterDB::load_name_validation_set()
 {
 	DBQueryResult res;
@@ -912,15 +905,6 @@ void CharacterDB::load_name_validation_set()
 	}
 }
 
-/**
- * add_name_validation_set()
- * This method will add a character name and ID to the name validation set
- * for use in checking character names at creation and login.
- * 
- * @param name
- * @param characterID
- * @author captnoord, firefoxpdm
-*/
 bool CharacterDB::add_name_validation_set( const char* name, uint32 characterID )
 {
 	if (name == NULL || *name == '\0')
@@ -940,15 +924,6 @@ bool CharacterDB::add_name_validation_set( const char* name, uint32 characterID 
 	return true;
 }
 
-/**
- * del_name_validation_set()
- *
- * This method will remove a entry from the name validation set based
- * on the passed characterID
- *
- * @param characterID
- * @author captnoord, firefoxpdm
-*/
 bool CharacterDB::del_name_validation_set( uint32 characterID )
 {
 	CharIdNameMapItr helper_itr = mIdNameContainer.find(characterID);

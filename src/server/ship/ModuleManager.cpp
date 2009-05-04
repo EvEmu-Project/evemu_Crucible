@@ -80,22 +80,22 @@ void ModuleManager::UpdateModules() {
 		InventoryItem *module = NULL;
 		InventoryItem *charge = NULL;
 		if(items.size() == 1) {
-			module = items[0]->Ref();
+			module = items[0]->IncRef();
 		} else if(items.size() == 2) {
 			//could be done better
 			bool valid = true;
 			if(items[0]->categoryID() == EVEDB::invCategories::Module) {
 				if(items[1]->categoryID() == EVEDB::invCategories::Charge) {
-					module = items[0]->Ref();
-					charge = items[1]->Ref();
+					module = items[0]->IncRef();
+					charge = items[1]->IncRef();
 				} else {
 					_log(SHIP__ERROR, "%s: Unexpected item category %d in slot %d (wanted charge)", m_pilot->GetName(), items[1]->categoryID(), flag);
 					valid = false;
 				}
 			} else if(items[0]->categoryID() == EVEDB::invCategories::Charge) {
 				if(items[1]->categoryID() == EVEDB::invCategories::Module) {
-					module = items[1]->Ref();
-					charge = items[0]->Ref();
+					module = items[1]->IncRef();
+					charge = items[0]->IncRef();
 				} else {
 					_log(SHIP__ERROR, "%s: Unexpected item category %d in slot %d (wanted module)", m_pilot->GetName(), items[1]->categoryID(), flag);
 					valid = false;
@@ -210,7 +210,7 @@ ShipModule *ShipModule::CreateModule(Client *owner, InventoryItem *self, Invento
 
 void ShipModule::ChangeCharge(InventoryItem *new_charge) {
 	if(m_charge != NULL) {
-		m_charge->Release();
+		m_charge->DecRef();
 	}
 	m_charge = new_charge;
 	//TODO: handle state transitons? can they swap charges while active???
@@ -230,9 +230,9 @@ ShipModule::ShipModule(Client *pilot, InventoryItem *self, InventoryItem *charge
 }
 
 ShipModule::~ShipModule() {
-	m_item->Release();
+	m_item->DecRef();
 	if(m_charge != NULL)
-		m_charge->Release();
+		m_charge->DecRef();
 }
 
 void ShipModule::Process() {

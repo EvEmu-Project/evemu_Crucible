@@ -140,7 +140,7 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
 	}
 
 	PyRepObject *result = item->ItemGetInfo();
-	item->Release();
+	item->DecRef();
 	if(result == NULL) {
 		codelog(SERVICE__ERROR, "Unable to build item info for item %u", args.arg);
 		return NULL;

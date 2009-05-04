@@ -47,7 +47,7 @@ public:
 	PyRepObject *LookupFactions(const std::string &);
 	PyRepObject *LookupCorporationTickers(const std::string &);
 	PyRepObject *LookupStations(const std::string &);
-	PyRepObject *LookupLocationsByGroup(const std::string &, uint32);
+	PyRepObject *LookupKnownLocationsByGroup(const std::string &, uint32);
 
 	uint32 StoreMail(uint32 senderID, uint32 recipID, const char * subject, const char * message, uint64 sentTime);
 	PyRepObject *GetMailHeaders(uint32 recID);

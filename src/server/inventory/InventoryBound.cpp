@@ -50,7 +50,7 @@ InventoryBound::InventoryBound(
 }
 
 InventoryBound::~InventoryBound() {
-	m_item->Release();
+	m_item->DecRef();
 }
 
 PyResult InventoryBound::Handle_List(PyCallArgs &call) {
@@ -92,7 +92,7 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 
 	if(new_charge->ownerID() != call.client->GetCharacterID()) {
 		codelog(SERVICE__ERROR, "Character %u tried to load charge %u of character %u.", call.client->GetCharacterID(), new_charge->itemID(), new_charge->ownerID());
-		new_charge->Release();
+		new_charge->DecRef();
 		return NULL;
 	}
 
@@ -100,7 +100,7 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 		codelog(SERVICE__ERROR, "%s: Item %u: Requested quantity (%d) exceeds actual quantity (%d), using actual.", call.client->GetName(), args.itemID, args.quantity, new_charge->quantity());
 	} else if(new_charge->quantity() > args.quantity) {
 		InventoryItem *new_charge_split = new_charge->Split(args.quantity);	// get new ref on a splitted item
-		new_charge->Release();	// release the old ref
+		new_charge->DecRef();	// release the old ref
 		new_charge = new_charge_split;	// copy the new ref
 		if(new_charge == NULL) {
 			codelog(SERVICE__ERROR, "%s: Unable to split charge %d into %d", call.client->GetName(), args.itemID, args.quantity);
@@ -226,15 +226,15 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 		InventoryItem *draggedItem = m_manager->item_factory.GetItem(element.draggedItemID, false);
 		if(draggedItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load dragged item %u. Skipping.", element.draggedItemID);
-			stationaryItem->Release();
+			stationaryItem->DecRef();
 			continue;
 		}
 
 		if(!stationaryItem->Merge(draggedItem, element.draggedQty))
 			// if Merge failed, draggedItem ref wasn't relased ...
-			draggedItem->Release();
+			draggedItem->DecRef();
 
-		stationaryItem->Release();
+		stationaryItem->DecRef();
 	}
 
 	elements.MMElements.items.clear();
@@ -292,13 +292,13 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 		{
 			//Can only put drones in drone bay
 			//Return ErrorResponse
-			sourceItem->Release();
+			sourceItem->DecRef();
 			throw(PyException(MakeUserError("ItemCannotBeInDroneBay")));
 		}
 
 
-		//Release the sourceItem 
-		sourceItem->Release();
+		//DecRef the sourceItem 
+		sourceItem->DecRef();
 	}	
 
 	//Check total volume used size
@@ -384,9 +384,9 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 				Call_SingleIntegerArg result;
 				result.arg = newItem->itemID();
 
-				//Release Items
-				sourceItem->Release();
-				newItem->Release();
+				//DecRef Items
+				sourceItem->DecRef();
+				newItem->DecRef();
 
 				//Return new item result
 				return( result.FastEncode() );
@@ -403,8 +403,8 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 
 		}
 
-		//Release the source Item PTR, we dont need it anymore
-		sourceItem->Release();
+		//DecRef the source Item PTR, we dont need it anymore
+		sourceItem->DecRef();
 
 
 	}

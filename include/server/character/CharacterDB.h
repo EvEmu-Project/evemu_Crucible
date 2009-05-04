@@ -91,15 +91,45 @@ public:
 
 private:
 	/**
-	* djb2 algorithm taken from http://www.cse.yorku.ca/~oz/hash.html slightly modified
-	*
-	* @param[in] str string that needs to be hashed.
-	* @return djb2 hash of the string.
-	*/
+	 * djb2 algorithm taken from http://www.cse.yorku.ca/~oz/hash.html slightly modified
+	 *
+	 * @param[in] str string that needs to be hashed.
+	 * @return djb2 hash of the string.
+	 */
 	uint32 djb2_hash(const char* str);
 
+	/**
+	 * load_name_validation_set
+	 * This method will load up all character names into a set for validating
+	 * character names.
+	 *
+	 * @author Captnoord, Firefoxpdm
+	 */
 	void load_name_validation_set();
+
+	/**
+	 * add_name_validation_set
+	 *
+	 * This method will add a character name and ID to the name validation set
+	 * for use in checking character names at creation and login.
+	 * 
+	 * @param[in] name
+	 * @param[in] characterID
+	 * @return true if adding is successful and false if it was not.
+	 * @author Captnoord, Firefoxpdm
+	 */
 	bool add_name_validation_set(const char* name, uint32 characterID);
+
+	/**
+	 * del_name_validation_set
+	 *
+	 * This method will remove a entry from the name validation set based
+	 * on the passed characterID
+	 *
+	 * @param[in] characterID
+	 * @return true if the deletion was successful and false if a error occurred.
+	 * @author Captnoord, Firefoxpdm
+	 */
 	bool del_name_validation_set(uint32 characterID);
 
 private:

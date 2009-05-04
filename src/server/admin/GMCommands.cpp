@@ -61,7 +61,7 @@ PyResult Command_create(Client *who, CommandDB *db, PyServiceMgr *services, cons
 	//Move to location
 	i->Move( locationID, flag, true );
 	//we dont need our reference anymore...
-	i->Release();
+	i->DecRef();
 
 	return(new PyRepString("Creation successfull."));
 }
@@ -327,7 +327,7 @@ PyResult Command_setbpattr(Client *who, CommandDB *db, PyServiceMgr *services, c
 	bp->SetProductivityLevel(atoi(args.arg[4]));
 	bp->SetLicensedProductionRunsRemaining(atoi(args.arg[5]));
 
-	bp->Release();
+	bp->DecRef();
 
 	return(new PyRepString("Properties modified."));
 }
@@ -360,7 +360,7 @@ PyResult Command_getattr(Client *who, CommandDB *db, PyServiceMgr *services, con
 		ItemAttributeMgr::Attr(atoi(args.arg[2]))
 	);
 
-	item->Release();
+	item->DecRef();
 	return(res);
 }
 
@@ -383,7 +383,7 @@ PyResult Command_setattr(Client *who, CommandDB *db, PyServiceMgr *services, con
 		atof(args.arg[3])
 	);
 
-	item->Release();
+	item->DecRef();
 	return(new PyRepString("Operation successfull."));
 }
 

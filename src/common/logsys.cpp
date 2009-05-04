@@ -121,10 +121,10 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
 	message += "] ";
 
 	char *msg = NULL;
-	vaMakeAnyLenString(&msg, fmt, args);
+	vasprintf(&msg, fmt, args);
 
 	message += msg;
-	SafeDeleteArray(msg);
+	free(msg);
 	
 	//print into the console
 	printf("%s\n", message.c_str());

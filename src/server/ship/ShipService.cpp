@@ -102,7 +102,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 		_log(CLIENT__ERROR, "%s: Failed to get new ship %u.", call.client->GetName(), args.arg);
 	} else {
 		call.client->BoardShip(ship);
-		ship->Release();
+		ship->DecRef();
 	}
 	
 	return NULL;
@@ -167,7 +167,7 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
 	InventoryItem* item;
 	item = m_manager->item_factory.GetItem( args.items.front(), false);
 	item->ChangeSingleton(true, true);
-	item->Release();
+	item->DecRef();
 	//TODO: something...
 	return NULL;
 }
@@ -243,7 +243,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
 			}
 
 		}
-		item->Release();
+		item->DecRef();
 	}
 	
 	return(successfully_dropped.Encode());
@@ -337,7 +337,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 	
 
 	//release our ref to cargoItem
-	cargoItem->Release();
+	cargoItem->DecRef();
 	//add cargo container to system
 	//cargoNpc->Destiny()->SendAddBall();
 	//TODO: Send notification SFX effects.jettison
