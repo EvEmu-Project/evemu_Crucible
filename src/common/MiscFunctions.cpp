@@ -33,7 +33,7 @@
 #include <stdarg.h>
 
 #ifndef WIN32
-#include <varargs.h>
+
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -43,6 +43,7 @@
 #include <iostream>
 #include <iomanip>
 #ifdef WIN32
+#include <varargs.h>
 	#include <io.h>
 #define vsnprintf _vsnprintf
 #endif
