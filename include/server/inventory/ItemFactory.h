@@ -35,6 +35,7 @@ class Category;
 class Group;
 class Type;
 class BlueprintType;
+class CharacterType;
 
 class InventoryItem;
 class Blueprint;
@@ -64,6 +65,21 @@ public:
 	const Type *GetType(uint32 typeID);
 
 	const BlueprintType *GetBlueprintType(uint32 blueprintTypeID);
+
+	/**
+	 * Loads character type, caches it and returns it.
+	 *
+	 * @param[in] characterTypeID Character type to be returned.
+	 * @return Pointer to character type data container; NULL if fails.
+	 */
+	const CharacterType *GetCharacterType(uint32 characterTypeID);
+	/**
+	 * Loads character type, caches it and returns it.
+	 *
+	 * @param[in] characterTypeID Character type to be returned.
+	 * @return Pointer to character type data container; NULL if fails.
+	 */
+	const CharacterType *GetCharacterTypeByBloodline(uint32 bloodlineID);
 
 	/*
 	 * Item stuff

@@ -203,6 +203,121 @@ bool InventoryDB::GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &in
 	return true;
 }
 
+bool InventoryDB::GetCharacterType(uint32 bloodlineID, CharacterTypeData &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		"  bloodlineName,"
+		"  raceID,"
+		"  description,"
+		"  maleDescription,"
+		"  femaleDescription,"
+		"  shipTypeID,"
+		"  corporationID,"
+		"  perception,"
+		"  willpower,"
+		"  charisma,"
+		"  memory,"
+		"  intelligence,"
+		"  shortDescription,"
+		"  shortMaleDescription,"
+		"  shortFemaleDescription"
+		" FROM chrBloodlines"
+		" WHERE bloodlineID = %u",
+		bloodlineID))
+	{
+		_log(DATABASE__ERROR, "Failed to query bloodline %u: %s.", bloodlineID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "No data found for bloodline %u.", bloodlineID);
+		return false;
+	}
+
+	into.bloodlineName = row.GetText(0);
+	into.race = static_cast<EVERace>(row.GetUInt(1));
+	into.description = row.GetText(2);
+	into.maleDescription = row.GetText(3);
+	into.femaleDescription = row.GetText(4);
+	into.shipTypeID = row.GetUInt(5);
+	into.corporationID = row.GetUInt(6);
+	into.perception = row.GetUInt(7);
+	into.willpower = row.GetUInt(8);
+	into.charisma = row.GetUInt(9);
+	into.memory = row.GetUInt(10);
+	into.intelligence = row.GetUInt(11);
+	into.shortDescription = row.GetText(12);
+	into.shortMaleDescription = row.GetText(13);
+	into.shortFemaleDescription = row.GetText(14);
+
+	return true;
+}
+
+bool InventoryDB::GetCharacterTypeByBloodline(uint32 bloodlineID, uint32 &characterTypeID) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		"  typeID"
+		" FROM bloodlineTypes"
+		" WHERE bloodlineID = %u",
+		bloodlineID))
+	{
+		_log(DATABASE__ERROR, "Failed to query bloodline %u: %s.", bloodlineID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "No data for bloodline %u.", bloodlineID);
+		return false;
+	}
+
+	characterTypeID = row.GetUInt(0);
+
+	return true;
+}
+
+bool InventoryDB::GetBloodlineByCharacterType(uint32 characterTypeID, uint32 &bloodlineID) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		"  bloodlineID"
+		" FROM bloodlineTypes"
+		" WHERE typeID = %u",
+		characterTypeID))
+	{
+		_log(DATABASE__ERROR, "Failed to query character type %u: %s.", characterTypeID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "No data for character type %u.", characterTypeID);
+		return false;
+	}
+
+	bloodlineID = row.GetUInt(0);
+
+	return true;
+}
+
+bool InventoryDB::GetCharacterType(uint32 characterTypeID, uint32 &bloodlineID, CharacterTypeData &into) {
+	if(!GetBloodlineByCharacterType(characterTypeID, bloodlineID))
+		return false;
+	return GetCharacterType(bloodlineID, into);
+}
+
+bool InventoryDB::GetCharacterTypeByBloodline(uint32 bloodlineID, uint32 &characterTypeID, CharacterTypeData &into) {
+	if(!GetCharacterTypeByBloodline(bloodlineID, characterTypeID))
+		return false;
+	return GetCharacterType(bloodlineID, into);
+}
+
 bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
 	DBQueryResult res;
 	

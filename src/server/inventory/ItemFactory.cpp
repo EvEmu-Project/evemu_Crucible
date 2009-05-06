@@ -78,7 +78,7 @@ const Category *ItemFactory::GetCategory(EVEItemCategories category) {
 
 		// insert it into our cache
 		res = m_categories.insert(
-			std::pair<EVEItemCategories, Category *>(category, cat)
+			std::make_pair(category, cat)
 		).first;
 	}
 	return(res->second);
@@ -93,7 +93,7 @@ const Group *ItemFactory::GetGroup(uint32 groupID) {
 
 		// insert it into cache
 		res = m_groups.insert(
-			std::pair<uint32, Group *>(groupID, group)
+			std::make_pair(groupID, group)
 		).first;
 	}
 	return(res->second);
@@ -108,7 +108,7 @@ const Type *ItemFactory::GetType(uint32 typeID) {
 
 		// insert into cache
 		res = m_types.insert(
-			std::pair<uint32, Type *>(typeID, type)
+			std::make_pair(typeID, type)
 		).first;
 	}
 	return(res->second);
@@ -122,10 +122,32 @@ const BlueprintType *ItemFactory::GetBlueprintType(uint32 blueprintTypeID) {
 			return NULL;
 
 		res = m_types.insert(
-			std::pair<uint32, Type *>(blueprintTypeID, bt)
+			std::make_pair(blueprintTypeID, bt)
 		).first;
 	}
 	return(static_cast<const BlueprintType *>(res->second));
+}
+
+const CharacterType *ItemFactory::GetCharacterType(uint32 characterTypeID) {
+	std::map<uint32, Type *>::iterator res = m_types.find(characterTypeID);
+	if(res == m_types.end()) {
+		CharacterType *ct = CharacterType::Load(*this, characterTypeID);
+		if(ct == NULL)
+			return NULL;
+
+		res = m_types.insert(
+			std::make_pair(characterTypeID, ct)
+		).first;
+	}
+	return(static_cast<const CharacterType *>(res->second));
+}
+
+const CharacterType *ItemFactory::GetCharacterTypeByBloodline(uint32 bloodlineID) {
+	// Unfortunately, we have it indexed by typeID, so we must get it ...
+	uint32 characterTypeID;
+	if(!db().GetCharacterTypeByBloodline(bloodlineID, characterTypeID))
+		return NULL;
+	return GetCharacterType(characterTypeID);
 }
 
 InventoryItem *ItemFactory::GetItem(uint32 itemID, bool recurse) {
@@ -138,7 +160,7 @@ InventoryItem *ItemFactory::GetItem(uint32 itemID, bool recurse) {
 
 		//we keep the original ref.
 		res = m_items.insert(
-			std::pair<uint32, InventoryItem *>(itemID, i)
+			std::make_pair(itemID, i)
 		).first;
 	} else if(recurse) {
 		// ensure its recursively loaded
@@ -157,7 +179,7 @@ Blueprint *ItemFactory::GetBlueprint(uint32 blueprintID, bool recurse) {
 			return NULL;
 
 		res = m_items.insert(
-			std::pair<uint32, InventoryItem *>(blueprintID, bi)
+			std::make_pair(blueprintID, bi)
 		).first;
 	} else if(recurse) {
 		if(!res->second->LoadContents(true))

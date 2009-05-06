@@ -191,21 +191,27 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	corpData.rolesAtHQ = 0;
 	corpData.rolesAtOther = 0;
 
-	// obtain some basic bloodline info
-	uint32 shipTypeID;
-	if(!m_db.GetInfoByBloodline(cdata, shipTypeID))
-		return NULL;		//error was already printed
+	// obtain character type
+	const CharacterType *char_type = m_manager->item_factory.GetCharacterTypeByBloodline(cdata.bloodlineID);
+	if(char_type == NULL)
+		return NULL;
 
 	// Setting character's starting position, and getting it's location...
 	// Also query attribute bonuses from ancestry
 	if(    !m_db.GetLocationCorporationByCareer(cdata)
-	    || !m_db.GetAttributesFromBloodline(cdata)
 	    || !m_db.GetAttributesFromAncestry(cdata)
 	) {
 		codelog(CLIENT__ERROR, "Failed to load char create details. Bloodline %u, ancestry %u.",
 			cdata.bloodlineID, cdata.ancestryID);
 		return NULL;
 	}
+
+	// add attribute bonuses from bloodline
+	cdata.intelligence += char_type->intelligence();
+	cdata.charisma += char_type->charisma();
+	cdata.perception += char_type->perception();
+	cdata.memory += char_type->memory();
+	cdata.willpower += char_type->willpower();
 	
 	//NOTE: these are currently hard coded to Todaki because other things are
 	//also hard coded to only work in Todaki. Once these various things get fixed,
@@ -293,7 +299,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	// give the player its ship.
 	std::string ship_name = cdata.name + "'s Ship";
 
-	ItemData shipItem( shipTypeID, cdata.charid, cdata.stationID, flagHangar, ship_name.c_str() );
+	ItemData shipItem( char_type->shipTypeID(), cdata.charid, cdata.stationID, flagHangar, ship_name.c_str() );
 	InventoryItem *ship_item = m_manager->item_factory.SpawnItem(shipItem);
 
 	if(ship_item == NULL)

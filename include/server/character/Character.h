@@ -26,6 +26,144 @@
 #ifndef __CHARACTER__H__INCL__
 #define __CHARACTER__H__INCL__
 
+#include "inventory/Type.h"
+
+/**
+ * Simple container for raw character type data.
+ */
+class CharacterTypeData {
+public:
+	CharacterTypeData(
+		const char *_bloodlineName = "",
+		EVERace _race = (EVERace)0,
+		const char *_desc = "",
+		const char *_maleDesc = "",
+		const char *_femaleDesc = "",
+		uint32 _shipTypeID = 0,
+		uint32 _corporationID = 0,
+		uint8 _perception = 0,
+		uint8 _willpower = 0,
+		uint8 _charisma = 0,
+		uint8 _memory = 0,
+		uint8 _intelligence = 0,
+		const char *_shortDesc = "",
+		const char *_shortMaleDesc = "",
+		const char *_shortFemaleDesc = ""
+	);
+
+	// Content:
+	std::string bloodlineName;
+	EVERace race;
+	std::string description;
+	std::string maleDescription;
+	std::string femaleDescription;
+	uint32 shipTypeID;
+	uint32 corporationID;
+
+	uint8 perception;
+	uint8 willpower;
+	uint8 charisma;
+	uint8 memory;
+	uint8 intelligence;
+
+	std::string shortDescription;
+	std::string shortMaleDescription;
+	std::string shortFemaleDescription;
+};
+
+/**
+ * Class which maintains character type data.
+ */
+class CharacterType
+: public Type
+{
+	friend class Type; // to let it construct us
+public:
+	/**
+	 * Loads and returns new CharacterType.
+	 *
+	 * @param[in] factory
+	 * @param[in] characterTypeID ID of character type to load.
+	 * @return Pointer to new object, NULL if failed.
+	 */
+	static CharacterType *Load(ItemFactory &factory, uint32 characterTypeID);
+
+	/*
+	 * Access functions:
+	 */
+	uint32 bloodlineID() const { return m_bloodlineID; }
+
+	const std::string &bloodlineName() const { return m_bloodlineName; }
+	const std::string &description() const { return m_description; }
+	const std::string &maleDescription() const { return m_maleDescription; }
+	const std::string &femaleDescription() const { return m_femaleDescription; }
+	const Type &shipType() const { return m_shipType; }
+	uint32 shipTypeID() const { return shipType().id(); }
+	uint32 corporationID() const { return m_corporationID; }
+
+	uint8 perception() const { return m_perception; }
+	uint8 willpower() const { return m_willpower; }
+	uint8 charisma() const { return m_charisma; }
+	uint8 memory() const { return m_memory; }
+	uint8 intelligence() const { return m_intelligence; }
+
+	const std::string &shortDescription() const { return m_shortDescription; }
+	const std::string &shortMaleDescription() const { return m_shortMaleDescription; }
+	const std::string &shortFemaleDescription() const { return m_shortFemaleDescription; }
+
+protected:
+	CharacterType(
+		uint32 _id,
+		uint8 _bloodlineID,
+		// Type stuff:
+		const Group &_group,
+		const TypeData &_data,
+		// CharacterType stuff:
+		const Type &_shipType,
+		const CharacterTypeData &_charData
+	);
+
+	/*
+	 * Member functions
+	 */
+	static CharacterType *_Load(ItemFactory &factory, uint32 typeID
+	);
+	static CharacterType *_Load(ItemFactory &factory, uint32 typeID,
+		// Type stuff:
+		const Group &group, const TypeData &data
+	);
+	static CharacterType *_Load(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
+		// Type stuff:
+		const Group &group, const TypeData &data,
+		// CharacterType stuff:
+		const Type &shipType, const CharacterTypeData &charData
+	);
+
+	virtual bool _Load(ItemFactory &factory) { return Type::_Load(factory); }
+
+	/*
+	 * Data members
+	 */
+	uint8 m_bloodlineID;
+
+	std::string m_bloodlineName;
+	std::string m_description;
+	std::string m_maleDescription;
+	std::string m_femaleDescription;
+	const Type &m_shipType;
+	uint32 m_corporationID;
+
+	uint8 m_perception;
+	uint8 m_willpower;
+	uint8 m_charisma;
+	uint8 m_memory;
+	uint8 m_intelligence;
+
+	std::string m_shortDescription;
+	std::string m_shortMaleDescription;
+	std::string m_shortFemaleDescription;
+};
+
 class CharacterData {
 public:
 	uint32 charid;

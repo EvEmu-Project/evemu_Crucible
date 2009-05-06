@@ -37,6 +37,7 @@ class CategoryData;
 class GroupData;
 class TypeData;
 class BlueprintTypeData;
+class CharacterTypeData;
 
 class ItemData;
 class BlueprintData;
@@ -71,6 +72,50 @@ public:
 	bool GetType(uint32 typeID, TypeData &into);
 
 	bool GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &into);
+
+	/**
+	 * Loads character type data.
+	 *
+	 * @param[in] bloodlineID Bloodline to be loaded.
+	 * @param[out] into Where loaded data should be stored.
+	 * @return True on success, false on failure.
+	 */
+	bool GetCharacterType(uint32 bloodlineID, CharacterTypeData &into);
+	/**
+	 * Obtains ID of character type based on bloodline.
+	 *
+	 * @param[in] bloodlineID ID of bloodline.
+	 * @param[out] characterTypeID Resulting ID of character type.
+	 * @return True on success, false on failure.
+	 */
+	bool GetCharacterTypeByBloodline(uint32 bloodlineID, uint32 &characterTypeID);
+	/**
+	 * Obtains ID of bloodline based on character type.
+	 *
+	 * @param[in] characterTypeID ID of character type.
+	 * @param[out] bloodlineID Resulting ID of bloodline.
+	 * @return True on success, false on failure.
+	 */
+	bool GetBloodlineByCharacterType(uint32 characterTypeID, uint32 &bloodlineID);
+
+	/**
+	 * Obtains bloodline and loads character type data.
+	 *
+	 * @param[in] characterTypeID ID of character type to be loaded.
+	 * @param[out] bloodlineID Resulting bloodline.
+	 * @param[out] into Where character type data should be stored.
+	 * @return True on success, false on failure.
+	 */
+	bool GetCharacterType(uint32 characterTypeID, uint32 &bloodlineID, CharacterTypeData &into);
+	/**
+	 * Obtains ID of character type and loads it.
+	 *
+	 * @param[in] bloodlineID ID of bloodline to be loaded.
+	 * @param[out] characterTypeID Resulting character type.
+	 * @param[out] into Where loaded character type data should be stored.
+	 * @return True on success, false on failure.
+	 */
+	bool GetCharacterTypeByBloodline(uint32 bloodlineID, uint32 &characterTypeID, CharacterTypeData &into);
 
 	/*
 	 * Item stuff

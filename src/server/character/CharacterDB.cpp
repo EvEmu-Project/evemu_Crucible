@@ -543,65 +543,6 @@ PyRepObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
 	return(DBResultToRowset(res));
 }
 
-bool CharacterDB::GetInfoByBloodline(CharacterData &cdata, uint32 &shipTypeID) {
-	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-		"SELECT"
-		"  bloodlineTypes.typeID,"
-		"  chrBloodlines.raceID,"
-		"  chrBloodlines.shipTypeID"
-		" FROM chrBloodlines"
-		"  LEFT JOIN bloodlineTypes USING (bloodlineID)"
-		" WHERE bloodlineID = %u",
-		cdata.bloodlineID))
-	{
-		_log(DATABASE__ERROR, "Failed to query bloodline %u: %s.", cdata.bloodlineID, res.error.c_str());
-		return false;
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No bloodline %u found.", cdata.bloodlineID);
-		return false;
-	}
-
-	cdata.typeID = row.GetUInt(0);
-	cdata.raceID = (EVERace)row.GetUInt(1);
-
-	shipTypeID = row.GetUInt(2);
-
-	return true;
-}
-
-bool CharacterDB::GetAttributesFromBloodline(CharacterData & cdata) {
-	DBQueryResult res;
-
-	if (!m_db->RunQuery(res,
-		" SELECT "
-		"  intelligence, charisma, perception, memory, willpower "
-		" FROM chrBloodlines "
-		" WHERE chrBloodlines.bloodlineID = %u ", cdata.bloodlineID))
-	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return (false);
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Failed to find bloodline information for bloodline %u", cdata.bloodlineID);
-		return false;
-	}
-
-	cdata.intelligence += row.GetUInt(0);
-	cdata.charisma += row.GetUInt(1);
-	cdata.perception += row.GetUInt(2);
-	cdata.memory += row.GetUInt(3);
-	cdata.willpower += row.GetUInt(4);
-	
-	return (true);
-}
-
 bool CharacterDB::GetAttributesFromAncestry(CharacterData & cdata) {
 	DBQueryResult res;
 

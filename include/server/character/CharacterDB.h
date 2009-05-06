@@ -55,10 +55,8 @@ public:
 
 	PyRepObject *GetCharacterAppearance(uint32 characterID);
 
-	bool GetInfoByBloodline(CharacterData &cdata, uint32 &shipTypeID);
 	bool GetLocationCorporationByCareer(CharacterData &cdata);
 
-	bool GetAttributesFromBloodline(CharacterData & cdata);
 	bool GetAttributesFromAncestry(CharacterData & cdata);
 
 	bool GetSkillsByRace(uint32 raceID, std::map<uint32, uint32> &into);

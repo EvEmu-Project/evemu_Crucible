@@ -268,24 +268,15 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID
 	if(g == NULL)
 		return NULL;
 
-	return(
-		Type::_Load(factory, typeID, *g, data)
-	);
-}
-
-Type *Type::_Load(ItemFactory &factory, uint32 typeID,
-	// Type stuff:
-	const Group &group, const TypeData &data
-) {
 	// See what to do next:
-	switch(group.categoryID()) {
+	switch(g->categoryID()) {
 		///////////////////////////////////////
 		// Blueprint:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Blueprint: {
 			// redirect further loading to BlueprintType
 			return(BlueprintType::_Load(
-				factory, typeID, group, data
+				factory, typeID, *g, data
 			));
 		}
 
@@ -293,12 +284,37 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID,
 		// Default:
 		///////////////////////////////////////
 		default: {
-			// create the object
-			return(new Type(
-				typeID, group, data
-			));
+			switch(g->id()) {
+				///////////////////////////////////////
+				// Character:
+				///////////////////////////////////////
+				case EVEDB::invGroups::Character: {
+					return(CharacterType::_Load(
+						factory, typeID, *g, data
+					));
+				}
+
+				///////////////////////////////////////
+				// Default:
+				///////////////////////////////////////
+				default: {
+					return(Type::_Load(
+						factory, typeID, *g, data
+					));
+				}
+			}
 		}
 	}
+}
+
+Type *Type::_Load(ItemFactory &factory, uint32 typeID,
+	// Type stuff:
+	const Group &group, const TypeData &data
+) {
+	// create the object
+	return(new Type(
+		typeID, group, data
+	));
 }
 
 bool Type::_Load(ItemFactory &factory) {

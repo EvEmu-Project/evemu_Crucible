@@ -20,11 +20,157 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Zhur, Bloody.Rabbit
 */
 
 #include "EvemuPCH.h"
 
+/*
+ * CharacterTypeData
+ */
+CharacterTypeData::CharacterTypeData(
+	const char *_bloodlineName,
+	EVERace _race,
+	const char *_desc,
+	const char *_maleDesc,
+	const char *_femaleDesc,
+	uint32 _shipTypeID,
+	uint32 _corporationID,
+	uint8 _perception,
+	uint8 _willpower,
+	uint8 _charisma,
+	uint8 _memory,
+	uint8 _intelligence,
+	const char *_shortDesc,
+	const char *_shortMaleDesc,
+	const char *_shortFemaleDesc)
+: bloodlineName(_bloodlineName),
+  race(_race),
+  description(_desc),
+  maleDescription(_maleDesc),
+  femaleDescription(_femaleDesc),
+  shipTypeID(_shipTypeID),
+  corporationID(_corporationID),
+  perception(_perception),
+  willpower(_willpower),
+  charisma(_charisma),
+  memory(_memory),
+  intelligence(_intelligence),
+  shortDescription(_shortDesc),
+  shortMaleDescription(_shortMaleDesc),
+  shortFemaleDescription(_shortFemaleDesc)
+{
+}
+
+/*
+ * CharacterType
+ */
+CharacterType::CharacterType(
+	uint32 _id,
+	uint8 _bloodlineID,
+	// Type stuff:
+	const Group &_group,
+	const TypeData &_data,
+	// CharacterType stuff:
+	const Type &_shipType,
+	const CharacterTypeData &_charData)
+: Type(_id, _group, _data),
+  m_bloodlineID(_bloodlineID),
+  m_bloodlineName(_charData.bloodlineName),
+  m_description(_charData.description),
+  m_maleDescription(_charData.maleDescription),
+  m_femaleDescription(_charData.femaleDescription),
+  m_shipType(_shipType),
+  m_corporationID(_charData.corporationID),
+  m_perception(_charData.perception),
+  m_willpower(_charData.willpower),
+  m_charisma(_charData.charisma),
+  m_memory(_charData.memory),
+  m_intelligence(_charData.intelligence),
+  m_shortDescription(_charData.shortDescription),
+  m_shortMaleDescription(_charData.shortMaleDescription),
+  m_shortFemaleDescription(_charData.shortFemaleDescription)
+{
+	// check for consistency
+	assert(_data.race == _charData.race);
+	assert(_charData.shipTypeID == _shipType.id());
+}
+
+CharacterType *CharacterType::Load(ItemFactory &factory, uint32 characterTypeID) {
+	// static _Load
+	CharacterType *ct = CharacterType::_Load(factory, characterTypeID);
+	if(ct == NULL)
+		return NULL;
+
+	// dynamic _Load
+	if(!ct->_Load(factory)) {
+		delete ct;
+		return NULL;
+	}
+
+	// successfully loaded, return
+	return ct;
+}
+
+CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID
+) {
+	// pull data
+	TypeData data;
+	if(!factory.db().GetType(typeID, data))
+		return NULL;
+
+	// get group
+	const Group *g = factory.GetGroup(data.groupID);
+	if(g == NULL)
+		return NULL;
+
+	// check we are really loading a character type
+	if(g->id() != EVEDB::invGroups::Character) {
+		_log(ITEM__ERROR, "Load of character type %lu requested, but it's %s.", typeID, g->name().c_str());
+		return NULL;
+	}
+
+	return(
+		CharacterType::_Load(factory, typeID, *g, data)
+	);
+}
+
+CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID,
+	// Type stuff:
+	const Group &group, const TypeData &data
+) {
+	// query character type data
+	uint32 bloodlineID;
+	CharacterTypeData charData;
+	if(!factory.db().GetCharacterType(typeID, bloodlineID, charData))
+		return NULL;
+
+	// load ship type
+	const Type *shipType = factory.GetType(charData.shipTypeID);
+	if(shipType == NULL)
+		return NULL;
+
+	return(
+		CharacterType::_Load(factory, typeID, bloodlineID, group, data, *shipType, charData)
+	);
+}
+
+CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
+	// Type stuff:
+	const Group &group, const TypeData &data,
+	// CharacterType stuff:
+	const Type &shipType, const CharacterTypeData &charData
+) {
+	// enough data for construction
+	return(new CharacterType(typeID, bloodlineID,
+		group, data,
+		shipType, charData
+	));
+}
+
+/*
+ * CharacterAppearance
+ */
 CharacterAppearance::CharacterAppearance() {
 	//NULL all dynamic fields
 #define NULL_FIELD(v) \
