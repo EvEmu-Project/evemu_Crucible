@@ -326,6 +326,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\server\character\Character.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\server\character\CharacterDB.cpp"
 					>
 				</File>
@@ -881,6 +885,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\character\CertificateMgrService.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\character\Character.h"
 					>
 				</File>
 				<File

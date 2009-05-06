@@ -62,6 +62,7 @@ detect clients moving into agro radius
 #include "../common/EVEPresentation.h"
 
 #include "ClientSession.h"
+#include "character/Character.h"
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
 
@@ -81,113 +82,6 @@ class PyPacket;
 class Client;
 class PyRep;
 
-class CharacterData {
-public:
-	uint32 charid;
-	
-	std::string name;
-	std::string title;
-	std::string description;
-	bool gender;
-
-	double bounty;
-	double balance;
-	double securityRating;
-	uint32 logonMinutes;
-
-	uint32 corporationID;
-	uint64 corporationDateTime;
-	uint32 allianceID;
-	
-	uint32 stationID;
-	uint32 solarSystemID;
-	uint32 constellationID;
-	uint32 regionID;
-
-	uint32 typeID;
-	uint32 bloodlineID;
-	uint8 raceID;	//must correspond to our bloodlineID!
-
-	uint32 ancestryID;
-	uint32 careerID;
-	uint32 schoolID;
-	uint32 careerSpecialityID;
-	
-	uint8 intelligence;
-	uint8 charisma;
-	uint8 perception;
-	uint8 memory;
-	uint8 willpower;
-
-	uint64 startDateTime;
-	uint64 createDateTime;
-};
-
-class CharacterAppearance {
-public:
-	CharacterAppearance();
-	CharacterAppearance(const CharacterAppearance &from);
-	~CharacterAppearance();
-
-#define INT(v) \
-	uint32 v;
-#define INT_DYN(v) \
-	bool IsNull_##v() const { \
-		return(v == NULL); \
-	} \
-	uint32 Get_##v() const { \
-		return(IsNull_##v() ? NULL : *v); \
-	} \
-	void Set_##v(uint32 val) { \
-		Clear_##v(); \
-		v = new uint32(val); \
-	} \
-	void Clear_##v() { \
-		if(!IsNull_##v()) \
-			delete v; \
-		v = NULL; \
-	}
-#define REAL(v) \
-	double v;
-#define REAL_DYN(v) \
-	bool IsNull_##v() const { \
-		return(v == NULL); \
-	} \
-	double Get_##v() const { \
-		return(IsNull_##v() ? NULL : *v); \
-	} \
-	void Set_##v(double val) { \
-		Clear_##v(); \
-		v = new double(val); \
-	} \
-	void Clear_##v() { \
-		if(!IsNull_##v()) \
-			delete v; \
-		v = NULL; \
-	}
-#include "character/CharacterAppearance_fields.h"
-
-	void Build(const std::map<std::string, PyRep *> &from);
-	void operator=(const CharacterAppearance &from);
-
-protected:
-#define INT_DYN(v) \
-	uint32 *v;
-#define REAL_DYN(v) \
-	double *v;
-#include "character/CharacterAppearance_fields.h"
-};
-
-class CorpMemberInfo {
-public:
-	CorpMemberInfo() : corpHQ(0), corprole(0), rolesAtAll(0), rolesAtBase(0), rolesAtHQ(0), rolesAtOther(0) {}
-	uint32 corpHQ;	//this really doesn't belong here...
-	uint64 corprole;
-	uint64 rolesAtAll;
-	uint64 rolesAtBase;
-	uint64 rolesAtHQ;
-	uint64 rolesAtOther;
-};
 // not needed now:
 /*
 class Functor {

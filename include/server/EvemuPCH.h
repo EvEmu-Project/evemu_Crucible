@@ -161,6 +161,7 @@
 // character stuff
 #include "../server/character/CertificateMgrDB.h"
 #include "../server/character/CertificateMgrService.h"
+#include "../server/character/Character.h"
 #include "../server/character/CharacterAppearance_fields.h"
 #include "../server/character/CharacterDB.h"
 #include "../server/character/CharacterService.h"

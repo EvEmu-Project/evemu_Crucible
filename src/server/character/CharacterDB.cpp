@@ -567,7 +567,7 @@ bool CharacterDB::GetInfoByBloodline(CharacterData &cdata, uint32 &shipTypeID) {
 	}
 
 	cdata.typeID = row.GetUInt(0);
-	cdata.raceID = row.GetUInt(1);
+	cdata.raceID = (EVERace)row.GetUInt(1);
 
 	shipTypeID = row.GetUInt(2);
 

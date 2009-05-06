@@ -74,6 +74,8 @@ libcharacter_a_SOURCES = \
 	character/CertificateMgrDB.h \
 	character/CertificateMgrService.cpp \
 	character/CertificateMgrService.h \
+	character/Character.cpp \
+	character/Character.h \
 	character/CharacterDB.cpp \
 	character/CharacterDB.h \
 	character/CharacterService.cpp \
