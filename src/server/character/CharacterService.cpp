@@ -171,13 +171,25 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	_log(CLIENT__MESSAGE, "  bloodlineID=%u genderID=%u ancestryID=%u",
 			arg.bloodlineID, arg.genderID, arg.ancestryID);
 
+	// obtain character type
+	const CharacterType *char_type = m_manager->item_factory.GetCharacterTypeByBloodline(arg.bloodlineID);
+	if(char_type == NULL)
+		return NULL;
+
 	// we need to fill these to successfully create character item
+	ItemData idata;
 	CharacterData cdata;
 	CharacterAppearance capp;
 	CorpMemberInfo corpData;
 
-	cdata.name = arg.name;
-	cdata.bloodlineID = arg.bloodlineID;
+	idata.typeID = char_type->id();
+	idata.name = arg.name;
+	idata.ownerID = 1; // EVE System
+	idata.quantity = 1;
+	idata.singleton = true;
+
+	cdata.accountID = call.client->GetAccountID();
+	cdata.bloodlineID = char_type->bloodlineID();
 	cdata.gender = arg.genderID;
 	cdata.ancestryID = arg.ancestryID;
 
@@ -191,32 +203,27 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	corpData.rolesAtHQ = 0;
 	corpData.rolesAtOther = 0;
 
-	// obtain character type
-	const CharacterType *char_type = m_manager->item_factory.GetCharacterTypeByBloodline(cdata.bloodlineID);
-	if(char_type == NULL)
-		return NULL;
+	// Variables for storing attribute bonuses
+	uint8 intelligence = char_type->intelligence();
+	uint8 charisma = char_type->charisma();
+	uint8 perception = char_type->perception();
+	uint8 memory = char_type->memory();
+	uint8 willpower = char_type->willpower();
 
 	// Setting character's starting position, and getting it's location...
 	// Also query attribute bonuses from ancestry
 	if(    !m_db.GetLocationCorporationByCareer(cdata)
-	    || !m_db.GetAttributesFromAncestry(cdata)
+		|| !m_db.GetAttributesFromAncestry(cdata.ancestryID, intelligence, charisma, perception, memory, willpower)
 	) {
 		codelog(CLIENT__ERROR, "Failed to load char create details. Bloodline %u, ancestry %u.",
 			cdata.bloodlineID, cdata.ancestryID);
 		return NULL;
 	}
 
-	// add attribute bonuses from bloodline
-	cdata.intelligence += char_type->intelligence();
-	cdata.charisma += char_type->charisma();
-	cdata.perception += char_type->perception();
-	cdata.memory += char_type->memory();
-	cdata.willpower += char_type->willpower();
-	
 	//NOTE: these are currently hard coded to Todaki because other things are
 	//also hard coded to only work in Todaki. Once these various things get fixed,
 	//just take this code out and the above calls should have cdata populated correctly.
-	cdata.stationID = 60004420;
+	cdata.stationID = idata.locationID = 60004420;
 	cdata.solarSystemID = 30001407;
 	cdata.constellationID = 20000206;
 	cdata.regionID = 10000016;
@@ -236,10 +243,10 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
 	typedef std::map<uint32, uint32>        CharSkillMap;
 	typedef CharSkillMap::iterator          CharSkillMapItr;
-	
+
 	//load skills
 	CharSkillMap startingSkills;
-	if( !m_db.GetSkillsByRace(cdata.raceID, startingSkills) )
+	if( !m_db.GetSkillsByRace(char_type->race(), startingSkills) )
 	{
 		codelog(CLIENT__ERROR, "Failed to load char create skills. Bloodline %u, Ancestry %u.",
 			cdata.bloodlineID, cdata.ancestryID);
@@ -247,13 +254,29 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	}
 
 	//now we have all the data we need, stick it in the DB
-	InventoryItem *char_item = m_db.CreateCharacter2(call.client->GetAccountID(), m_manager->item_factory, cdata, capp, corpData);
+	//create char item first
+	InventoryItem *char_item = m_manager->item_factory.SpawnItem(idata);
 	if(char_item == NULL) {
 		//a return to the client of 0 seems to be the only means of marking failure
-		codelog(CLIENT__ERROR, "Failed to create character '%s'", cdata.name.c_str());
+		codelog(CLIENT__ERROR, "Failed to create character '%s'", idata.name.c_str());
 		return NULL;
 	}
-	cdata.charid = char_item->itemID();
+
+	// now insert all character stuff
+	if(!m_db.CreateCharacter(char_item->itemID(), char_item->itemName().c_str(), cdata, capp, corpData)) {
+		_log(CLIENT__ERROR, "Failed to insert character's '%s' data into DB.", char_item->itemName().c_str());
+		// delete character item
+		char_item->Delete();
+		return NULL;
+	}
+
+	// add attribute bonuses
+	// (use Set_##_persist to properly persist attributes into DB)
+	char_item->Set_intelligence_persist(intelligence);
+	char_item->Set_charisma_persist(charisma);
+	char_item->Set_perception_persist(perception);
+	char_item->Set_memory_persist(memory);
+	char_item->Set_willpower_persist(willpower);
 
 	//spawn all the skills
 	CharSkillMapItr cur, end;
@@ -261,10 +284,10 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	end = startingSkills.end();
 	for(; cur != end; cur++) 
 	{
-		ItemData skillItem( cur->first, cdata.charid, cdata.charid, flagSkill );
+		ItemData skillItem( cur->first, char_item->itemID(), char_item->itemID(), flagSkill );
 		InventoryItem *i = m_manager->item_factory.SpawnItem( skillItem );
 		if(i == NULL) {
-			_log(CLIENT__ERROR, "Failed to add skill %u to char %s (%u) during char create.", cur->first, cdata.name.c_str(), cdata.charid);
+			_log(CLIENT__ERROR, "Failed to add skill %u to char %s (%u) during char create.", cur->first, char_item->itemName().c_str(), char_item->itemID());
 			continue;
 		}
 
@@ -280,31 +303,31 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	InventoryItem *initInvItem;
 
 	// add "Damage Control I"
-	ItemData itemDamageControl( 2046, cdata.charid, cdata.stationID, flagHangar, 1 );
+	ItemData itemDamageControl( 2046, char_item->itemID(), char_item->locationID(), flagHangar, 1 );
 	initInvItem = m_manager->item_factory.SpawnItem( itemDamageControl );
 	if(initInvItem == NULL)
-		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());
 	else
 		initInvItem->DecRef();
 
 	// add 1 unit of "Tritanium"
-	ItemData itemTritanium( 34, cdata.charid, cdata.stationID, flagHangar, 1 );
+	ItemData itemTritanium( 34, char_item->itemID(), char_item->locationID(), flagHangar, 1 );
 	initInvItem = m_manager->item_factory.SpawnItem( itemTritanium );
 
 	if(initInvItem == NULL)
-		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());
 	else
 		initInvItem->DecRef();
 
 	// give the player its ship.
-	std::string ship_name = cdata.name + "'s Ship";
+	std::string ship_name = char_item->itemName() + "'s Ship";
 
-	ItemData shipItem( char_type->shipTypeID(), cdata.charid, cdata.stationID, flagHangar, ship_name.c_str() );
+	ItemData shipItem( char_type->shipTypeID(), char_item->itemID(), char_item->locationID(), flagHangar, ship_name.c_str() );
 	InventoryItem *ship_item = m_manager->item_factory.SpawnItem(shipItem);
 
 	if(ship_item == NULL)
 	{
-		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", cdata.name.c_str());
+		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());
 	}
 	else
 	{
@@ -313,13 +336,15 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 		ship_item->DecRef();
 	}
 
+	uint32 characterID = char_item->itemID();
+
 	//recursively save everything we just did.
 	char_item->Save(true);
 	char_item->DecRef();
 
-	_log(CLIENT__MESSAGE, "Sending char create ID %d as reply", cdata.charid);
+	_log(CLIENT__MESSAGE, "Sending char create ID %u as reply", characterID);
 
-	return new PyRepInteger(cdata.charid);
+	return new PyRepInteger(characterID);
 }
 
 PyResult CharacterService::Handle_Ping(PyCallArgs &call)

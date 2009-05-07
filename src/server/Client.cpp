@@ -35,7 +35,7 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
   m_net(con, this),
   m_pingTimer(PING_INTERVAL_US),
   m_accountID(0),
-  m_role(1),
+  m_accountRole(1),
   m_gangRole(1),
   m_system(NULL),
 //  m_destinyTimer(1000, true),	//accurate timing is essential
@@ -51,8 +51,6 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
 	m_moveTimer.Disable();
 	m_pingTimer.Start();
 
-	m_chardata.name = "monkey";
-	m_chardata.charid = 444666;
 	m_chardata.bloodlineID = 0;
 	m_chardata.gender = 1;
 
@@ -60,12 +58,6 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
 	m_chardata.careerID = 3;
 	m_chardata.schoolID = 4;
 	m_chardata.careerSpecialityID = 5;
-
-	m_chardata.intelligence = 6;
-	m_chardata.charisma = 7;
-	m_chardata.perception = 8;
-	m_chardata.memory = 9;
-	m_chardata.willpower = 10;
 
 	//initialize connection
 	m_net.SendHandshake(m_services.entity_list.GetClientCount());
@@ -103,7 +95,7 @@ Client::~Client() {
 }
 
 void Client::QueuePacket(PyPacket *p) {
-	p->userid = m_accountID;
+	p->userid = GetAccountID();
 	m_net.QueuePacket(p);
 }
 
@@ -384,7 +376,7 @@ void Client::Login(CryptoChallengePacket *pack) {
 		return;
 	}
 	
-	if(!m_services.serviceDB().DoLogin(pack->user_name.c_str(), pass.password.c_str(), m_accountID, m_role)) {
+	if(!m_services.serviceDB().DoLogin(pack->user_name.c_str(), pass.password.c_str(), m_accountID, m_accountRole)) {
 		_log(CLIENT__MESSAGE, "%s: Login rejected by DB", pack->user_name.c_str());
 
 		util_NewObject1 no;
@@ -398,26 +390,26 @@ void Client::Login(CryptoChallengePacket *pack) {
 		throw(PyException(no.FastEncode()));
 	}
 
-	m_services.serviceDB().SetAccountOnlineStatus(m_accountID, true);
+	m_services.serviceDB().SetAccountOnlineStatus(GetAccountID(), true);
 
 	//send this before session change
 	CryptoHandshakeAck ack;
 	ack.connectionLogID = 1;	//TODO: what is this??
 	ack.jit = pack->user_languageid;
-	ack.userid = m_accountID;
+	ack.userid = GetAccountID();
 	ack.maxSessionTime = new PyRepNone;
 	ack.userType = 1;
-	ack.role = m_role;
+	ack.role = GetAccountRole();
 	ack.address = m_net.GetConnectedAddress();
 	ack.inDetention = new PyRepNone;
-	ack.user_clientid = m_accountID;
+	ack.user_clientid = GetAccountID();
 
 	m_net._QueueRep(ack.Encode());
 
 	session.Set_userType(1);	//user type 1 is normal user, type 23 is a trial account user.
-	session.Set_userid(m_accountID);
+	session.Set_userid(GetAccountID());
 	session.Set_address(m_net.GetConnectedAddress().c_str());
-	session.Set_role(m_role);
+	session.Set_role(GetAccountRole());
 	session.Set_languageID(pack->user_languageid.c_str());
 
 	_CheckSessionChange();
@@ -438,7 +430,7 @@ void Client::_SendPingRequest() {
 	ping_req->dest.typeID = GetAccountID();
 	ping_req->dest.callID = 0;
 	
-	ping_req->userid = m_accountID;
+	ping_req->userid = GetAccountID();
 	
 	ping_req->payload = new PyRepTuple(1);
 	ping_req->payload->items[0] = new PyRepList();	//times
@@ -495,7 +487,7 @@ void Client::SessionSync() {
 
 	//account
 	session.Set_userid(GetAccountID());
-	session.Set_role(GetRole());
+	session.Set_role(GetAccountRole());
 
 	//character
 	session.Set_charid(GetCharacterID());
@@ -845,7 +837,7 @@ void Client::_SendCallReturn(PyPacket *req, PyRep **return_value, const char *ch
 	p->dest.typeID = GetAccountID();
 	p->dest.callID = req->source.callID;
 
-	p->userid = m_accountID;
+	p->userid = GetAccountID();
 	
 	p->payload = new PyRepTuple(1);
 	p->payload->items[0] = new PyRepSubStream(*return_value);
@@ -871,7 +863,7 @@ void Client::_SendException(PyPacket *req, MACHONETERR_TYPE type, PyRep **payloa
 	p->dest.typeID = GetAccountID();
 	p->dest.callID = req->source.callID;
 
-	p->userid = m_accountID;
+	p->userid = GetAccountID();
 	
 	macho_MachoException e;
 	e.in_response_to = req->type;

@@ -49,7 +49,17 @@ public:
 	PyRepObject *GetOwnerNote(uint32 charID, uint32 noteID);
 
 	bool ValidateCharName(const char *name);
-	InventoryItem *CreateCharacter2(uint32 accountID, ItemFactory &fact, const CharacterData &data, const CharacterAppearance &app, const CorpMemberInfo &corpData);
+	/**
+	 * Inserts into DB some character-specific stuff.
+	 *
+	 * @param[in] characterID ID of character.
+	 * @param[in] characterName Name of character.
+	 * @param[in] data Character data.
+	 * @param[in] app Character appearance.
+	 * @param[in] corpData Character's corporation-membership data.
+	 * @return True if operation succeeded, false if failed.
+	 */
+	bool CreateCharacter(uint32 characterID, const char *characterName, const CharacterData &data, const CharacterAppearance &app, const CorpMemberInfo &corpData);
 	bool GetCharItems(uint32 characterID, std::vector<uint32> &into);
 	bool DeleteCharacter(uint32 characterID);
 
@@ -57,7 +67,18 @@ public:
 
 	bool GetLocationCorporationByCareer(CharacterData &cdata);
 
-	bool GetAttributesFromAncestry(CharacterData & cdata);
+	/**
+	 * Obtains attribute bonuses for given ancestry.
+	 *
+	 * @param[in] ancestryID ID of ancestry.
+	 * @param[out] intelligence Bonus to intelligence.
+	 * @param[out] charisma Bonus to charisma.
+	 * @param[out] perception Bonus to perception.
+	 * @param[out] memory Bonus to memory.
+	 * @param[out] willpower Bonus to willpower.
+	 * @return True if operation succeeded, false if failed.
+	 */
+	bool GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower);
 
 	bool GetSkillsByRace(uint32 raceID, std::map<uint32, uint32> &into);
 	bool GetSkillsByCareer(uint32 careerID, std::map<uint32, uint32> &into);

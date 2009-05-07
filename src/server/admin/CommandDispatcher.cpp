@@ -70,8 +70,8 @@ PyResult CommandDispatcher::Execute(Client *from, const char *msg) {
 	
 	CommandRecord *rec = res->second;
 
-	if((from->GetRole() & rec->required_role) != rec->required_role) {
-		_log(COMMAND__ERROR, "Access denied to %s for command '%s', had role 0x%x, need role 0x%x", from->GetName(), rec->command.c_str(), from->GetRole(), rec->required_role);
+	if((from->GetAccountRole() & rec->required_role) != rec->required_role) {
+		_log(COMMAND__ERROR, "Access denied to %s for command '%s', had role 0x%x, need role 0x%x", from->GetName(), rec->command.c_str(), from->GetAccountRole(), rec->required_role);
 		throw(PyException(MakeCustomError("Access denied to command '%s'", sep.arg[0])));
 	}
 

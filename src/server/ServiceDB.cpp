@@ -52,7 +52,7 @@ ServiceDB::~ServiceDB() {}
  * @param out_role
  * @author 
 */
-bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_accountID, uint64 &out_role) {
+bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_accountID, uint32 &out_role) {
 	DBQueryResult res;
 
 	if(pass[0] == '\0') {
@@ -537,18 +537,17 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	//we really should derive the char's location from the entity table...
 	if(!m_db->RunQuery(res,
 		"SELECT "
-		"	entity.itemName AS characterName,character_.title,character_.description,entity.typeID,"
+		"	character_.title,character_.description,"
 		"	character_.createDateTime,character_.startDateTime,"
 		"	character_.bounty,character_.balance,character_.securityRating,character_.logonMinutes,"
 		"	character_.corporationID,character_.corporationDateTime,corporation.allianceID,"
 		"	character_.stationID,character_.solarSystemID,character_.constellationID,character_.regionID,"
-		"	bloodlineTypes.bloodlineID,character_.gender,chrBloodlines.raceID,character_.ancestryID,"
+		"	bloodlineTypes.bloodlineID,character_.gender,character_.ancestryID,"
 		"	character_.careerID,character_.schoolID,character_.careerSpecialityID"
 		" FROM character_"
 		" LEFT JOIN entity ON characterID = itemID"
 		" LEFT JOIN corporation USING (corporationID)"
 		" LEFT JOIN bloodlineTypes USING (typeID)"
-		" LEFT JOIN chrBloodlines USING (bloodlineID)"
 		" WHERE characterID=%u",
 		characterID))
 	{
@@ -563,10 +562,8 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	}
 
 	uint32 i = 0;
-	into.name = row.GetText(i++);
 	into.title = row.GetText(i++);
 	into.description = row.GetText(i++);
-	into.typeID = row.GetUInt(i++);
 	into.createDateTime = row.GetUInt64(i++);
 	into.startDateTime = row.GetUInt64(i++);
 	into.bounty = row.GetDouble(i++);
@@ -582,13 +579,11 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	into.regionID = row.GetUInt(i++);
 	into.bloodlineID = row.GetUInt(i++);
 	into.gender = row.GetUInt(i++);
-	into.raceID = (EVERace)row.GetUInt(i++);
 	into.ancestryID = row.GetUInt(i++);
 	into.careerID = row.GetUInt(i++);
 	into.schoolID = row.GetUInt(i++);
 	into.careerSpecialityID = row.GetUInt(i++);
 	
-	into.charid = characterID;
 	return true;
 }
 

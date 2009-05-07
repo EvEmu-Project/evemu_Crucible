@@ -90,7 +90,7 @@ LSCChannel::~LSCChannel() {
 bool LSCChannel::JoinChannel(Client * c) {
 	_log(LSC__CHANNELS, "Channel %s: Join from %s", m_displayName.c_str(), c->GetName());
 
-	m_chars[c->GetCharacterID()] = new LSCChannelChar(this, c->GetCorporationID(), c->GetCharacterID(), c->GetAllianceID(), c->GetRole(), 0);
+	m_chars[c->GetCharacterID()] = new LSCChannelChar(this, c->GetCorporationID(), c->GetCharacterID(), c->GetAllianceID(), c->GetAccountRole(), 0);
 	m_memberless = false;
 	c->ChannelJoined(this);
 
@@ -224,7 +224,7 @@ OnLSC_SenderInfo *LSCChannel::_MakeSenderInfo(Client *c) {
 	sender->senderName = c->GetName();
 	sender->senderType = c->Char()->typeID();
 	sender->corpID = c->GetCorporationID();
-	sender->role = c->GetRole();
+	sender->role = c->GetAccountRole();
 	sender->corp_role = c->GetCorpRole();
 
 	return(sender);

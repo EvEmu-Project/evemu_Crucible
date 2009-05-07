@@ -124,31 +124,7 @@ static std::string _ToStr(double v) {
 	return(buf);
 }
 
-InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact, const CharacterData &data, const CharacterAppearance &app, const CorpMemberInfo &corpData) {
-	//do the insert into the entity table to get our char ID.
-	ItemData idata(
-		data.typeID,
-		1, //owner
-		data.stationID,
-		flagPilot,
-		data.name.c_str(),
-		GPoint(0, 0, 0)
-	);
-
-	InventoryItem *char_item = fact.SpawnItem(idata);
-	if(char_item == NULL) {
-		codelog(SERVICE__ERROR, "Failed to create character entity!");
-		return NULL;
-	}
-
-	//set some attributes to char_item
-	//use the Set_persist as they are not persistent by default
-	char_item->Set_intelligence_persist(data.intelligence);
-	char_item->Set_charisma_persist(data.charisma);
-	char_item->Set_perception_persist(data.perception);
-	char_item->Set_memory_persist(data.memory);
-	char_item->Set_willpower_persist(data.willpower);
-
+bool CharacterDB::CreateCharacter(uint32 characterID, const char *characterName, const CharacterData &data, const CharacterAppearance &app, const CorpMemberInfo &corpData) {
 	std::string titleEsc, descEsc;
 	m_db->DoEscapeString(titleEsc, data.title);
 	m_db->DoEscapeString(descEsc, data.description);
@@ -190,7 +166,7 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 	"	%s,%s,%s,%s,"
 	"	%s,%s,%s,%s"
 	"	)",
-		char_item->itemID(), accountID, titleEsc.c_str(), descEsc.c_str(),
+		characterID, data.accountID, titleEsc.c_str(), descEsc.c_str(),
 		data.createDateTime, data.startDateTime,
 		data.bounty,data.balance,data.securityRating,data.logonMinutes,
 		data.corporationID, data.corporationDateTime,
@@ -206,12 +182,11 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 		_VoN(app,morph3e), _VoN(app,morph3n), _VoN(app,morph3s), _VoN(app,morph3w),
 		_VoN(app,morph4e), _VoN(app,morph4n), _VoN(app,morph4s), _VoN(app,morph4w)
 	)) {
-		codelog(SERVICE__ERROR, "Failed to insert new char %u: %s", char_item->itemID(), err.c_str());
-		char_item->Delete();
-		return NULL;
+		codelog(SERVICE__ERROR, "Failed to insert new char %u: %s", characterID, err.c_str());
+		return false;
 	}
 
-	add_name_validation_set(data.name.c_str(),char_item->itemID());
+	add_name_validation_set(characterName, characterID);
 
 	// Then insert roles into table chrCorporationRoles
 	if(!m_db->RunQuery(err,
@@ -219,9 +194,9 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 		"  (characterID, corprole, rolesAtAll, rolesAtBase, rolesAtHQ, rolesAtOther)"
 		" VALUES"
 		"  (%u, " I64u ", " I64u ", " I64u ", " I64u ", " I64u ")",
-		char_item->itemID(), corpData.corprole, corpData.rolesAtAll, corpData.rolesAtBase, corpData.rolesAtHQ, corpData.rolesAtOther))
+		characterID, corpData.corprole, corpData.rolesAtAll, corpData.rolesAtBase, corpData.rolesAtHQ, corpData.rolesAtOther))
 	{
-		_log(DATABASE__ERROR, "Failed to insert corp member info for character %u: %s.", char_item->itemID(), err.c_str());
+		_log(DATABASE__ERROR, "Failed to insert corp member info for character %u: %s.", characterID, err.c_str());
 		//just let it go... its a lot easier this way
 	}
 
@@ -232,9 +207,9 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 		"  (characterID, corporationID, startDate, deleted)"
 		" VALUES"
 		"  (%u, %u, "I64u", 0)",
-		char_item->itemID(), data.corporationID, Win32TimeNow()))
+		characterID, data.corporationID, Win32TimeNow()))
 	{
-		_log(DATABASE__ERROR, "Failed to insert employment info of character %u: %s.", char_item->itemID(), err.c_str());
+		_log(DATABASE__ERROR, "Failed to insert employment info of character %u: %s.", characterID, err.c_str());
 		//just let it go... its a lot easier this way
 	}
 
@@ -245,11 +220,11 @@ InventoryItem *CharacterDB::CreateCharacter2(uint32 accountID, ItemFactory &fact
 		" WHERE corporationID = %u",
 		data.corporationID))
 	{
-		_log(DATABASE__ERROR, "Failed to raise member count of corporation %u: %s.", char_item->itemID(), err.c_str());
+		_log(DATABASE__ERROR, "Failed to raise member count of corporation %u: %s.", characterID, err.c_str());
 		//just let it go... its a lot easier this way
 	}
 
-	return(char_item);
+	return true;
 }
 
 PyRepObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
@@ -543,14 +518,14 @@ PyRepObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
 	return(DBResultToRowset(res));
 }
 
-bool CharacterDB::GetAttributesFromAncestry(CharacterData & cdata) {
+bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {
 	DBQueryResult res;
 
 	if (!m_db->RunQuery(res,
 		" SELECT "
 		"        intelligence, charisma, perception, memory, willpower "
 		" FROM chrAncestries "
-		" WHERE ancestryID = %u ", cdata.ancestryID))
+		" WHERE ancestryID = %u ", ancestryID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return (false);
@@ -558,15 +533,15 @@ bool CharacterDB::GetAttributesFromAncestry(CharacterData & cdata) {
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Failed to find ancestry information for ancestry %u", cdata.ancestryID);
+		codelog(SERVICE__ERROR, "Failed to find ancestry information for ancestry %u", ancestryID);
 		return false;
 	}
 	
-	cdata.intelligence += row.GetUInt(0);
-	cdata.charisma += row.GetUInt(1);
-	cdata.perception += row.GetUInt(2);
-	cdata.memory += row.GetUInt(3);
-	cdata.willpower += row.GetUInt(4);
+	intelligence += row.GetUInt(0);
+	charisma += row.GetUInt(1);
+	perception += row.GetUInt(2);
+	memory += row.GetUInt(3);
+	willpower += row.GetUInt(4);
 
 	return (true);
 }

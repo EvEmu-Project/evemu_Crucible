@@ -164,11 +164,13 @@ protected:
 	std::string m_shortFemaleDescription;
 };
 
+/**
+ * Container for raw character data.
+ */
 class CharacterData {
 public:
-	uint32 charid;
-	
-	std::string name;
+	uint32 accountID;
+
 	std::string title;
 	std::string description;
 	bool gender;
@@ -187,21 +189,13 @@ public:
 	uint32 constellationID;
 	uint32 regionID;
 
-	uint32 typeID;
 	uint32 bloodlineID;
-	EVERace raceID;	//must correspond to our bloodlineID!
 	uint32 ancestryID;
 
 	uint32 careerID;
 	uint32 schoolID;
 	uint32 careerSpecialityID;
 	
-	uint8 intelligence;
-	uint8 charisma;
-	uint8 perception;
-	uint8 memory;
-	uint8 willpower;
-
 	uint64 startDateTime;
 	uint64 createDateTime;
 };

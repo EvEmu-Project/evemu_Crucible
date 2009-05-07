@@ -62,6 +62,7 @@ detect clients moving into agro radius
 #include "../common/EVEPresentation.h"
 
 #include "ClientSession.h"
+#include "inventory/InventoryItem.h"
 #include "character/Character.h"
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
@@ -146,12 +147,12 @@ public:
 	virtual void    Process();
 
 	uint32 GetAccountID() const                     { return m_accountID; }
-	uint32 GetRole() const                          { return m_role; }
+	uint32 GetAccountRole() const                   { return m_accountRole; }
 
 	// character data
 	InventoryItem *Char() const                     { return m_char; }
 
-	uint32 GetCharacterID() const                   { return m_chardata.charid; }
+	uint32 GetCharacterID() const                   { return Char() == NULL ? 0 : Char()->itemID(); }
 	uint32 GetCorporationID() const                 { return m_chardata.corporationID; }
 	uint32 GetAllianceID() const                    { return m_chardata.allianceID; }
 	uint32 GetStationID() const                     { return m_chardata.stationID; }
@@ -217,7 +218,7 @@ public:
 	virtual Client *CastToClient() { return(this); }
 	virtual const Client *CastToClient() const { return(this); }
 
-	virtual const char *GetName() const { return(m_chardata.name.c_str()); }
+	virtual const char *GetName() const { return Char() == NULL ? "(null)" : Char()->itemName().c_str(); }
 	virtual PyRepDict *MakeSlimItem() const;
 	virtual void QueueDestinyUpdate(PyRepTuple **du);
 	virtual void QueueDestinyEvent(PyRepTuple **multiEvent);
@@ -269,7 +270,7 @@ protected:
 	Timer m_pingTimer;
 
 	uint32 m_accountID;
-	uint64 m_role;
+	uint32 m_accountRole;
 	uint32 m_gangRole;
 
 	SystemManager *m_system;	//we do not own this
