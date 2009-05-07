@@ -308,9 +308,26 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 		// Default:
 		///////////////////////////////////////
 		default: {
-			return(InventoryItem::_Spawn(
-				factory, data
-			));
+			switch(t->groupID()) {
+				///////////////////////////////////////
+				// Character:
+				///////////////////////////////////////
+				case EVEDB::invGroups::Character: {
+					// we're not gonna create character from default attributes ...
+					_log(ITEM__ERROR, "Refusing to create character '%s' from default attributes.", data.name.c_str());
+
+					return NULL;
+				};
+
+				///////////////////////////////////////
+				// Default:
+				///////////////////////////////////////
+				default: {
+					return(InventoryItem::_Spawn(
+						factory, data
+					));
+				};
+			}
 		};
 	}
 }

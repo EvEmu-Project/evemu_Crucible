@@ -752,9 +752,9 @@ bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
 	into.careerID = row.GetUInt(14);
 	into.schoolID = row.GetUInt(15);
 	into.careerSpecialityID = row.GetUInt(16);
-	into.startDateTime = row.GetUInt(17);
-	into.createDateTime = row.GetUInt(18);
-	into.corporationDateTime = row.GetUInt(19);
+	into.startDateTime = row.GetUInt64(17);
+	into.createDateTime = row.GetUInt64(18);
+	into.corporationDateTime = row.GetUInt64(19);
 
 	return true;
 }
@@ -943,6 +943,7 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
 		"  (characterID, accountID, title, description, bounty, balance, securityRating, petitionMessage,"
 		"   logonMinutes, corporationID, corporationDateTime, startDateTime, createDateTime,"
 		"   ancestryID, careerID, schoolID, careerSpecialityID, gender,"
+		"   stationID, solarSystemID, constellationID, regionID,"
 		// CharacterAppearance:
 		"   accessoryID, beardID, costumeID, decoID, eyebrowsID, eyesID, hairID, lipstickID, makeupID, skinID, backgroundID,"
 		"   lightID,"
@@ -958,20 +959,22 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
 		"  (%u, %u, '%s', '%s', %f, %f, %f, '%s',"
 		"   %u, %u, " I64u ", " I64u ", " I64u ","
 		"   %u, %u, %u, %u, %u,"
+		"   %u, %u, %u, %u,"
 		// CharacterAppearance:
 		"   %s, %s, %u, %s, %u, %u, %u, %s, %s, %u, %u,"
 		"   %u,"
 		"   %f, %f, %f,"
 		"   %f, %f, %f,"
 		"   %f, %f, %f,"
-		"   %f, %f, %f, %f,"
-		"   %f, %f, %f, %f,"
-		"   %f, %f, %f, %f,"
-		"   %f, %f, %f, %f)",
+		"   %s, %s, %s, %s,"
+		"   %s, %s, %s, %s,"
+		"   %s, %s, %s, %s,"
+		"   %s, %s, %s, %s)",
 		// CharacterData:
 		characterID, data.accountID, titleEsc.c_str(), descriptionEsc.c_str(), data.bounty, data.balance, data.securityRating, "No petition",
 		data.logonMinutes, data.corporationID, data.corporationDateTime, data.startDateTime, data.createDateTime,
 		data.ancestryID, data.careerID, data.schoolID, data.careerSpecialityID, data.gender,
+		data.stationID, data.solarSystemID, data.constellationID, data.regionID,
 		// CharacterAppearance:
 		_VoN(appData, accessoryID), _VoN(appData, beardID), appData.costumeID, _VoN(appData, decoID), appData.eyebrowsID, appData.eyesID, appData.hairID, _VoN(appData, lipstickID), _VoN(appData, makeupID), appData.skinID, appData.backgroundID,
 		appData.lightID,
@@ -981,8 +984,8 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
 		_VoN(appData, morph1n), _VoN(appData, morph1s), _VoN(appData, morph1w), _VoN(appData, morph1e),
 		_VoN(appData, morph2n), _VoN(appData, morph2s), _VoN(appData, morph2w), _VoN(appData, morph2e),
 		_VoN(appData, morph3n), _VoN(appData, morph3s), _VoN(appData, morph3w), _VoN(appData, morph3e),
-		_VoN(appData, morph4n), _VoN(appData, morph4s), _VoN(appData, morph4w), _VoN(appData, morph4e)))
-	{
+		_VoN(appData, morph4n), _VoN(appData, morph4s), _VoN(appData, morph4w), _VoN(appData, morph4e)
+	)) {
 		_log(DATABASE__ERROR, "Failed to insert character %u: %s.", characterID, err.c_str());
 		return false;
 	}

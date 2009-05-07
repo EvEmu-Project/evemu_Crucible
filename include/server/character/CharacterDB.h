@@ -50,18 +50,30 @@ public:
 
 	bool ValidateCharName(const char *name);
 	/**
-	 * Inserts into DB some character-specific stuff.
+	 * add_name_validation_set
 	 *
-	 * @param[in] characterID ID of character.
-	 * @param[in] characterName Name of character.
-	 * @param[in] data Character data.
-	 * @param[in] app Character appearance.
-	 * @param[in] corpData Character's corporation-membership data.
-	 * @return True if operation succeeded, false if failed.
+	 * This method will add a character name and ID to the name validation set
+	 * for use in checking character names at creation and login.
+	 * 
+	 * @param[in] name
+	 * @param[in] characterID
+	 * @return true if adding is successful and false if it was not.
+	 * @author Captnoord, Firefoxpdm
 	 */
-	bool CreateCharacter(uint32 characterID, const char *characterName, const CharacterData &data, const CharacterAppearance &app, const CorpMemberInfo &corpData);
+	bool add_name_validation_set(const char* name, uint32 characterID);
+	/**
+	 * del_name_validation_set
+	 *
+	 * This method will remove a entry from the name validation set based
+	 * on the passed characterID
+	 *
+	 * @param[in] characterID
+	 * @return true if the deletion was successful and false if a error occurred.
+	 * @author Captnoord, Firefoxpdm
+	 */
+	bool del_name_validation_set(uint32 characterID);
+
 	bool GetCharItems(uint32 characterID, std::vector<uint32> &into);
-	bool DeleteCharacter(uint32 characterID);
 
 	PyRepObject *GetCharacterAppearance(uint32 characterID);
 
@@ -125,31 +137,6 @@ private:
 	 * @author Captnoord, Firefoxpdm
 	 */
 	void load_name_validation_set();
-
-	/**
-	 * add_name_validation_set
-	 *
-	 * This method will add a character name and ID to the name validation set
-	 * for use in checking character names at creation and login.
-	 * 
-	 * @param[in] name
-	 * @param[in] characterID
-	 * @return true if adding is successful and false if it was not.
-	 * @author Captnoord, Firefoxpdm
-	 */
-	bool add_name_validation_set(const char* name, uint32 characterID);
-
-	/**
-	 * del_name_validation_set
-	 *
-	 * This method will remove a entry from the name validation set based
-	 * on the passed characterID
-	 *
-	 * @param[in] characterID
-	 * @return true if the deletion was successful and false if a error occurred.
-	 * @author Captnoord, Firefoxpdm
-	 */
-	bool del_name_validation_set(uint32 characterID);
 
 private:
 	/* set only for validation */

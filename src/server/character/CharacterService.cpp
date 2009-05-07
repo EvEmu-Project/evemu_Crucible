@@ -253,19 +253,11 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	}
 
 	//now we have all the data we need, stick it in the DB
-	//create char item first
-	InventoryItem *char_item = m_manager->item_factory.SpawnItem(idata);
+	//create char item
+	Character *char_item = m_manager->item_factory.SpawnCharacter(idata, cdata, capp, corpData);
 	if(char_item == NULL) {
 		//a return to the client of 0 seems to be the only means of marking failure
 		codelog(CLIENT__ERROR, "Failed to create character '%s'", idata.name.c_str());
-		return NULL;
-	}
-
-	// now insert all character stuff
-	if(!m_db.CreateCharacter(char_item->itemID(), char_item->itemName().c_str(), cdata, capp, corpData)) {
-		_log(CLIENT__ERROR, "Failed to insert character's '%s' data into DB.", char_item->itemName().c_str());
-		// delete character item
-		char_item->Delete();
 		return NULL;
 	}
 
@@ -276,6 +268,9 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	char_item->Set_perception_persist(perception);
 	char_item->Set_memory_persist(memory);
 	char_item->Set_willpower_persist(willpower);
+
+	// register name
+	m_db.add_name_validation_set(char_item->itemName().c_str(), char_item->itemID());
 
 	//spawn all the skills
 	CharSkillMapItr cur, end;
@@ -371,11 +366,13 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	_log(CLIENT__MESSAGE, "Timed delete of char %u unimplemented. Deleting Immediately.", args.arg);
 
 	{ // character scope to make sure char_item is no longer accessed after deletion
-		InventoryItem *char_item = m_manager->item_factory.GetItem(args.arg, true);
+		Character *char_item = m_manager->item_factory.GetCharacter(args.arg, true);
 		if(char_item == NULL) {
 			codelog(CLIENT__ERROR, "Failed to load char item %u.", args.arg);
 			return NULL;
 		}
+		//unregister name
+		m_db.del_name_validation_set(char_item->itemID());
 		//does the recursive delete of all contained items
 		char_item->Delete();
 	}
@@ -399,8 +396,6 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 
 		i->Delete();
 	}
-	//finally, delete all 'character_' related tables
-	m_db.DeleteCharacter(args.arg);
 
 	//we return deletePrepareDateTime, in eve time format.
 	return(new PyRepInteger(Win32TimeNow() + Win32Time_Second*5));

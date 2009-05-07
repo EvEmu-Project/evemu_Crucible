@@ -573,9 +573,14 @@ void Character::SetLocation(uint32 stationID, uint32 solarSystemID, uint32 const
 void Character::JoinCorporation(uint32 corporationID) {
 	m_corporationID = corporationID;
 
-	//TODO: recursively change corp on all our items.
-
 	//TODO: load new roles
+	m_corpRole = 0;
+	m_rolesAtAll = 0;
+	m_rolesAtBase = 0;
+	m_rolesAtHQ = 0;
+	m_rolesAtOther = 0;
+
+	//TODO: recursively change corp on all our items.
 
 	Save(false, false);
 }
