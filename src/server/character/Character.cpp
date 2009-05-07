@@ -126,7 +126,7 @@ CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID
 
 	// check we are really loading a character type
 	if(g->id() != EVEDB::invGroups::Character) {
-		_log(ITEM__ERROR, "Load of character type %lu requested, but it's %s.", typeID, g->name().c_str());
+		_log(ITEM__ERROR, "Load of character type %u requested, but it's %s.", typeID, g->name().c_str());
 		return NULL;
 	}
 
@@ -166,6 +166,55 @@ CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID, uint8 b
 		group, data,
 		shipType, charData
 	));
+}
+
+/*
+ * CharacterData
+ */
+CharacterData::CharacterData(
+	uint32 _accountID,
+	const char *_title,
+	const char *_desc,
+	bool _gender,
+	double _bounty,
+	double _balance,
+	double _securityRating,
+	uint32 _logonMinutes,
+	uint32 _corporationID,
+	uint32 _allianceID,
+	uint32 _stationID,
+	uint32 _solarSystemID,
+	uint32 _constellationID,
+	uint32 _regionID,
+	uint32 _ancestryID,
+	uint32 _careerID,
+	uint32 _schoolID,
+	uint32 _careerSpecialityID,
+	uint64 _startDateTime,
+	uint64 _createDateTime,
+	uint64 _corporationDateTime)
+: accountID(_accountID),
+  title(_title),
+  description(_desc),
+  gender(_gender),
+  bounty(_bounty),
+  balance(_balance),
+  securityRating(_securityRating),
+  logonMinutes(_logonMinutes),
+  corporationID(_corporationID),
+  allianceID(_allianceID),
+  stationID(_stationID),
+  solarSystemID(_solarSystemID),
+  constellationID(_constellationID),
+  regionID(_regionID),
+  ancestryID(_ancestryID),
+  careerID(_careerID),
+  schoolID(_schoolID),
+  careerSpecialityID(_careerSpecialityID),
+  startDateTime(_startDateTime),
+  createDateTime(_createDateTime),
+  corporationDateTime(_corporationDateTime)
+{
 }
 
 /*
@@ -266,4 +315,22 @@ void CharacterAppearance::operator=(const CharacterAppearance &from) {
 #undef COPY_DYN
 }
 
+/*
+ * CorpMemberInfo
+ */
+CorpMemberInfo::CorpMemberInfo(
+	uint32 _corpHQ,
+	uint64 _corprole,
+	uint64 _rolesAtAll,
+	uint64 _rolesAtBase,
+	uint64 _rolesAtHQ,
+	uint64 _rolesAtOther)
+: corpHQ(_corpHQ),
+  corprole(_corprole),
+  rolesAtAll(_rolesAtAll),
+  rolesAtBase(_rolesAtBase),
+  rolesAtHQ(_rolesAtHQ),
+  rolesAtOther(_rolesAtOther)
+{
+}
 

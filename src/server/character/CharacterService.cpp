@@ -189,7 +189,6 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	idata.singleton = true;
 
 	cdata.accountID = call.client->GetAccountID();
-	cdata.bloodlineID = char_type->bloodlineID();
 	cdata.gender = arg.genderID;
 	cdata.ancestryID = arg.ancestryID;
 
@@ -216,7 +215,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 		|| !m_db.GetAttributesFromAncestry(cdata.ancestryID, intelligence, charisma, perception, memory, willpower)
 	) {
 		codelog(CLIENT__ERROR, "Failed to load char create details. Bloodline %u, ancestry %u.",
-			cdata.bloodlineID, cdata.ancestryID);
+			char_type->bloodlineID(), cdata.ancestryID);
 		return NULL;
 	}
 
@@ -249,7 +248,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	if( !m_db.GetSkillsByRace(char_type->race(), startingSkills) )
 	{
 		codelog(CLIENT__ERROR, "Failed to load char create skills. Bloodline %u, Ancestry %u.",
-			cdata.bloodlineID, cdata.ancestryID);
+			char_type->bloodlineID(), cdata.ancestryID);
 		return NULL;
 	}
 

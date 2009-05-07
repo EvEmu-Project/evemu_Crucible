@@ -51,7 +51,6 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
 	m_moveTimer.Disable();
 	m_pingTimer.Start();
 
-	m_chardata.bloodlineID = 0;
 	m_chardata.gender = 1;
 
 	m_chardata.ancestryID = 2;

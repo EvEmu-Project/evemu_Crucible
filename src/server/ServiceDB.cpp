@@ -127,7 +127,7 @@ bool ServiceDB::CreateNewAccount( const char * accountName, const char * account
 {
 	DBerror err;
 	if (!m_db->RunQuery(err,
-		"INSERT INTO `account` (accountName,password,role) VALUES ('%s', MD5('%s'), %lu);",
+		"INSERT INTO `account` (accountName,password,role) VALUES ('%s', MD5('%s'), "I64u");",
 			accountName, accountPass, role)
 	) {
 		codelog(SERVICE__ERROR, "Failed to create new account %s: %s", accountName, err.c_str());	
@@ -542,12 +542,10 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 		"	character_.bounty,character_.balance,character_.securityRating,character_.logonMinutes,"
 		"	character_.corporationID,character_.corporationDateTime,corporation.allianceID,"
 		"	character_.stationID,character_.solarSystemID,character_.constellationID,character_.regionID,"
-		"	bloodlineTypes.bloodlineID,character_.gender,character_.ancestryID,"
+		"	character_.gender,character_.ancestryID,"
 		"	character_.careerID,character_.schoolID,character_.careerSpecialityID"
 		" FROM character_"
-		" LEFT JOIN entity ON characterID = itemID"
 		" LEFT JOIN corporation USING (corporationID)"
-		" LEFT JOIN bloodlineTypes USING (typeID)"
 		" WHERE characterID=%u",
 		characterID))
 	{
@@ -577,7 +575,6 @@ bool ServiceDB::LoadCharacter(uint32 characterID, CharacterData &into) {
 	into.solarSystemID = row.GetUInt(i++);
 	into.constellationID = row.GetUInt(i++);
 	into.regionID = row.GetUInt(i++);
-	into.bloodlineID = row.GetUInt(i++);
 	into.gender = row.GetUInt(i++);
 	into.ancestryID = row.GetUInt(i++);
 	into.careerID = row.GetUInt(i++);

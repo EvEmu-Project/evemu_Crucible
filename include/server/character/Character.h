@@ -169,6 +169,29 @@ protected:
  */
 class CharacterData {
 public:
+	CharacterData(
+		uint32 _accountID = 0,
+		const char *_title = "",
+		const char *_desc = "",
+		bool _gender = false,
+		double _bounty = 0.0,
+		double _balance = 0.0,
+		double _securityRating = 0.0,
+		uint32 _logonMinutes = 0,
+		uint32 _corporationID = 0,
+		uint32 _allianceID = 0,
+		uint32 _stationID = 0,
+		uint32 _solarSystemID = 0,
+		uint32 _constellationID = 0,
+		uint32 _regionID = 0,
+		uint32 _ancestryID = 0,
+		uint32 _careerID = 0,
+		uint32 _schoolID = 0,
+		uint32 _careerSpecialityID = 0,
+		uint64 _startDateTime = 0,
+		uint64 _createDateTime = 0,
+		uint64 _corporationDateTime = 0);
+
 	uint32 accountID;
 
 	std::string title;
@@ -181,25 +204,26 @@ public:
 	uint32 logonMinutes;
 
 	uint32 corporationID;
-	uint64 corporationDateTime;
 	uint32 allianceID;
-	
+
 	uint32 stationID;
 	uint32 solarSystemID;
 	uint32 constellationID;
 	uint32 regionID;
 
-	uint32 bloodlineID;
 	uint32 ancestryID;
-
 	uint32 careerID;
 	uint32 schoolID;
 	uint32 careerSpecialityID;
-	
+
 	uint64 startDateTime;
 	uint64 createDateTime;
+	uint64 corporationDateTime;
 };
 
+/**
+ * Container for character appearance stuff.
+ */
 class CharacterAppearance {
 public:
 	CharacterAppearance();
@@ -255,11 +279,22 @@ protected:
 #include "character/CharacterAppearance_fields.h"
 };
 
+/**
+ * Container for some corporation-membership related stuff.
+ */
 class CorpMemberInfo {
 public:
-	CorpMemberInfo() : corpHQ(0), corprole(0), rolesAtAll(0), rolesAtBase(0), rolesAtHQ(0), rolesAtOther(0) {}
+	CorpMemberInfo(
+		uint32 _corpHQ = 0,
+		uint64 _corprole = 0,
+		uint64 _rolesAtAll = 0,
+		uint64 _rolesAtBase = 0,
+		uint64 _rolesAtHQ = 0,
+		uint64 _rolesAtOther = 0
+	);
 
 	uint32 corpHQ;	//this really doesn't belong here...
+
 	uint64 corprole;
 	uint64 rolesAtAll;
 	uint64 rolesAtBase;
