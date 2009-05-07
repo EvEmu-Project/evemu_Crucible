@@ -188,6 +188,23 @@ Blueprint *ItemFactory::GetBlueprint(uint32 blueprintID, bool recurse) {
 	return(static_cast<Blueprint *>(res->second->IncRef()));
 }
 
+Character *ItemFactory::GetCharacter(uint32 characterID, bool recurse) {
+	std::map<uint32, InventoryItem *>::iterator res = m_items.find(characterID);
+	if(res == m_items.end()) {
+		Character *c = Character::Load(*this, characterID, recurse);
+		if(c == NULL)
+			return NULL;
+
+		res = m_items.insert(
+			std::pair<uint32, InventoryItem *>(characterID, c)
+		).first;
+	} else if(recurse) {
+		if(!res->second->LoadContents(true))
+			return NULL;
+	}
+	return(static_cast<Character *>(res->second->IncRef()));
+}
+
 InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
 	InventoryItem *i = InventoryItem::Spawn(*this, data);
 	if(i == NULL)
@@ -206,6 +223,15 @@ Blueprint *ItemFactory::SpawnBlueprint(ItemData &data, BlueprintData &bpData) {
 
 	m_items[bi->itemID()] = bi;
 	return bi->IncRef();
+}
+
+Character *ItemFactory::SpawnCharacter(ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData) {
+	Character *c = Character::Spawn(*this, data, charData, appData, corpData);
+	if(c == NULL)
+		return NULL;
+
+	m_items[c->itemID()] = c;
+	return c->IncRef();
 }
 
 InventoryItem *ItemFactory::_GetIfContentsLoaded(uint32 itemID) {

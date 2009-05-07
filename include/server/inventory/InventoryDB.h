@@ -34,7 +34,9 @@
 class EVEAttributeMgr;
 
 class CategoryData;
+
 class GroupData;
+
 class TypeData;
 class BlueprintTypeData;
 class CharacterTypeData;
@@ -42,6 +44,8 @@ class CharacterTypeData;
 class ItemData;
 class BlueprintData;
 class CharacterData;
+class CharacterAppearance;
+class CorpMemberInfo;
 
 class InventoryDB
 : public ServiceDB
@@ -150,6 +154,20 @@ public:
 	bool NewBlueprint(uint32 blueprintID, const BlueprintData &data);
 	bool SaveBlueprint(uint32 blueprintID, const BlueprintData &data);
 	bool DeleteBlueprint(uint32 blueprintID);
+
+	/*
+	 * Character stuff
+	 * (character_, chrCorporationRoles)
+	 */
+	bool GetCharacter(uint32 characterID, CharacterData &into);
+	bool GetCharacterAppearance(uint32 characterID, CharacterAppearance &into);
+	bool GetCorpMemberInfo(uint32 characterID, CorpMemberInfo &into);
+
+	bool NewCharacter(uint32 characterID, const CharacterData &data, const CharacterAppearance &appData, const CorpMemberInfo &corpData);
+	bool SaveCharacter(uint32 characterID, const CharacterData &data);
+	bool SaveCharacterAppearance(uint32 characterID, const CharacterAppearance &data);
+	bool SaveCorpMemberInfo(uint32 characterID, const CorpMemberInfo &data);
+	bool DeleteCharacter(uint32 characterID);
 };
 
 

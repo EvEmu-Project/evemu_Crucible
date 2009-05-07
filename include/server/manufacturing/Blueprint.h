@@ -26,8 +26,8 @@
 #ifndef __BLUEPRINT_ITEM__H__INCL__
 #define __BLUEPRINT_ITEM__H__INCL__
 
-#include "Type.h"
-#include "InventoryItem.h"
+#include "inventory/Type.h"
+#include "inventory/InventoryItem.h"
 
 /*
  * Simple container for raw blueprint type data.

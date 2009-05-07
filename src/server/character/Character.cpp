@@ -334,3 +334,358 @@ CorpMemberInfo::CorpMemberInfo(
 {
 }
 
+/*
+ * Character
+ */
+Character::Character(
+	ItemFactory &_factory,
+	uint32 _characterID,
+	// InventoryItem stuff:
+	const CharacterType &_charType,
+	const ItemData &_data,
+	// Character stuff:
+	const CharacterData &_charData,
+	const CorpMemberInfo &_corpData)
+: InventoryItem(_factory, _characterID, _charType, _data),
+  m_accountID(_charData.accountID),
+  m_title(_charData.title),
+  m_description(_charData.description),
+  m_gender(_charData.gender),
+  m_bounty(_charData.bounty),
+  m_balance(_charData.balance),
+  m_securityRating(_charData.securityRating),
+  m_logonMinutes(_charData.logonMinutes),
+  m_corporationID(_charData.corporationID),
+  m_corpHQ(_corpData.corpHQ),
+  m_allianceID(_charData.allianceID),
+  m_corpRole(_corpData.corprole),
+  m_rolesAtAll(_corpData.rolesAtAll),
+  m_rolesAtBase(_corpData.rolesAtBase),
+  m_rolesAtHQ(_corpData.rolesAtHQ),
+  m_rolesAtOther(_corpData.rolesAtOther),
+  m_stationID(_charData.stationID),
+  m_solarSystemID(_charData.solarSystemID),
+  m_constellationID(_charData.constellationID),
+  m_regionID(_charData.regionID),
+  m_ancestryID(_charData.ancestryID),
+  m_careerID(_charData.careerID),
+  m_schoolID(_charData.schoolID),
+  m_careerSpecialityID(_charData.careerSpecialityID),
+  m_startDateTime(_charData.startDateTime),
+  m_createDateTime(_charData.createDateTime),
+  m_corporationDateTime(_charData.corporationDateTime)
+{
+	// allow characters to be only singletons
+	assert(singleton() && quantity() == 1);
+}
+
+Character *Character::Load(ItemFactory &factory, uint32 characterID, bool recurse) {
+	Character *c = Character::_Load(factory, characterID);
+	if(c == NULL)
+		return NULL;
+
+	if(!c->_Load(recurse)) {
+		c->DecRef(); // should delete the item
+		return NULL;
+	}
+
+	return c;
+}
+
+Character *Character::_Load(ItemFactory &factory, uint32 characterID
+) {
+	ItemData data;
+	if(!factory.db().GetItem(characterID, data))
+		return NULL;
+
+	// get type
+	const CharacterType *ct = factory.GetCharacterType(data.typeID);
+	if(ct == NULL)
+		return NULL;
+
+	// since GetCharacterType hasn't returned NULL, it's sure we are loading a character
+
+	return(
+		Character::_Load(factory, characterID, *ct, data)
+	);
+}
+
+Character *Character::_Load(ItemFactory &factory, uint32 characterID,
+	// InventoryItem stuff:
+	const CharacterType &charType, const ItemData &data
+) {
+	CharacterData charData;
+	if(!factory.db().GetCharacter(characterID, charData))
+		return NULL;
+
+	CorpMemberInfo corpData;
+	if(!factory.db().GetCorpMemberInfo(characterID, corpData))
+		return NULL;
+
+	return(
+		Character::_Load(factory, characterID, charType, data, charData, corpData)
+	);
+}
+
+Character *Character::_Load(ItemFactory &factory, uint32 characterID,
+	// InventoryItem stuff:
+	const CharacterType &charType, const ItemData &data,
+	// Character stuff:
+	const CharacterData &charData, const CorpMemberInfo &corpData
+) {
+	// construct the item
+	return(new Character(
+		factory, characterID,
+		charType, data,
+		charData, corpData
+	));
+}
+
+Character *Character::Spawn(ItemFactory &factory,
+	// InventoryItem stuff:
+	ItemData &data,
+	// Character stuff:
+	CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
+) {
+	// make sure it's a character
+	const CharacterType *ct = factory.GetCharacterType(data.typeID);
+	if(ct == NULL)
+		return NULL;
+
+	// make sure it does not have empty name
+	if(data.name.empty()) {
+		_log(ITEM__ERROR, "Tried to create character with empty name.");
+		return NULL;
+	}
+
+	// make sure it's a singleton with qty 1
+	if(!data.singleton || data.quantity != 1) {
+		_log(ITEM__ERROR, "Tried to create non-singleton character %s.", data.name.c_str());
+		return NULL;
+	}
+
+	return(
+		Character::_Spawn(factory, data, charData, appData, corpData)
+	);
+}
+
+Character *Character::_Spawn(ItemFactory &factory,
+	// InventoryItem stuff:
+	ItemData &data,
+	// Character stuff:
+	CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
+) {
+	// first the item
+	uint32 characterID = factory.db().NewItem(data);
+	if(characterID == 0)
+		return NULL;
+
+	// then character
+	if(!factory.db().NewCharacter(characterID, charData, appData, corpData))
+		return NULL;
+
+	// it cannot contain anything yet, do not recurse
+	return(
+		Character::Load(factory, characterID, false)
+	);
+}
+
+void Character::Save(bool recursive, bool saveAttributes) const {
+	// character data
+	m_factory.db().SaveCharacter(
+		itemID(),
+		CharacterData(
+			accountID(),
+			title().c_str(),
+			description().c_str(),
+			gender(),
+			bounty(),
+			balance(),
+			securityRating(),
+			logonMinutes(),
+			corporationID(),
+			allianceID(),
+			stationID(),
+			solarSystemID(),
+			constellationID(),
+			regionID(),
+			ancestryID(),
+			careerID(),
+			schoolID(),
+			careerSpecialityID(),
+			startDateTime(),
+			createDateTime(),
+			corporationDateTime()
+		)
+	);
+
+	// corporation data
+	m_factory.db().SaveCorpMemberInfo(
+		itemID(),
+		CorpMemberInfo(
+			corporationHQ(),
+			corpRole(),
+			rolesAtAll(),
+			rolesAtBase(),
+			rolesAtHQ(),
+			rolesAtOther()
+		)
+	);
+
+	// our parent cares about the rest
+	return InventoryItem::Save(recursive, saveAttributes);
+}
+
+void Character::Delete() {
+	// delete character record
+	m_factory.db().DeleteCharacter(itemID());
+
+	// let the parent care about the rest
+	InventoryItem::Delete();
+}
+
+bool Character::AlterBalance(double balanceChange) {
+	if(balanceChange == 0)
+		return true;
+
+	double result = balance() + balanceChange;
+
+	//remember, this can take a negative amount...
+	if(result < 0)
+		return false;
+
+	m_balance = result;
+
+	Save(false, false);
+
+	return true;
+}
+
+void Character::SetLocation(uint32 stationID, uint32 solarSystemID, uint32 constellationID, uint32 regionID) {
+	m_stationID = stationID;
+	m_solarSystemID = solarSystemID;
+	m_constellationID = constellationID;
+	m_regionID = regionID;
+
+	Save(false, false);
+}
+
+void Character::JoinCorporation(uint32 corporationID) {
+	m_corporationID = corporationID;
+
+	//TODO: recursively change corp on all our items.
+
+	//TODO: load new roles
+
+	Save(false, false);
+}
+
+void Character::SetDescription(const char *newDescription) {
+	m_description = newDescription;
+
+	Save(false, false);
+}
+
+//I think I ultimately want this logic somewhere else...
+//this doesn't seem to be working either... for some reason, the client is
+//getting 0 for its skill points per minute field and throwing a division
+// exception.
+void Character::TrainSkill(InventoryItem *skill) {
+	if(m_flag != flagPilot) {
+		codelog(ITEM__ERROR, "%s (%u): Tried to train skill %u on non-pilot object.", m_itemName.c_str(), m_itemID, skill->itemID());
+		return;
+	}
+	
+	if(skill->flag() == flagSkillInTraining) {
+		_log(ITEM__TRACE, "%s (%u): Requested to train skill %u item %u but it is already in training. Doing nothing.", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
+		return;
+	}
+	
+	Client *c = m_factory.entity_list.FindCharacter(m_ownerID);
+	
+	//stop training our old skill...
+	//search for all, just in case we screwed up
+	std::vector<InventoryItem *> skills;
+	//find all the skills contained within ourself.
+	FindByFlag(flagSkillInTraining, skills, false);
+	//encode an entry for each one.
+	std::vector<InventoryItem *>::iterator cur, end;
+	cur = skills.begin();
+	end = skills.end();
+	for(; cur != end; cur++) {
+		InventoryItem *i = *cur;
+		i->ChangeFlag(flagSkill);
+		
+		if(c != NULL) {
+			OnSkillTrainingStopped osst;
+			osst.itemID = skill->itemID();
+			osst.endOfTraining = 0;
+			PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
+			c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
+		}
+	}
+
+	if(skill->flag() != flagSkill) {
+		//this is a skill book being trained for the first time.
+		_log(ITEM__TRACE, "%s (%u): Initial training of skill %u item %u", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
+		skill->MoveInto(this, flagSkillInTraining);
+		//set the initial attributes.
+		skill->Set_skillLevel(0);
+		skill->Set_skillPoints(0);
+	} else if(!Contains(skill)) {
+		//this must be a skill in another container...
+		_log(ITEM__ERROR, "%s (%u): Tried to train skill item %u which has the skill flag but is not contained within this item.", m_itemName.c_str(), m_itemID, skill->itemID());
+		return;
+	} else {
+		//skill is within this item, change its flag.
+		_log(ITEM__TRACE, "%s (%u): Starting training of skill %u item %u", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
+		skill->ChangeFlag(flagSkillInTraining, true);
+	}
+	
+	if(c != NULL) {
+		OnSkillStartTraining osst;
+		osst.itemID = skill->itemID();
+		osst.endOfTraining = Win32TimeNow() + Win32Time_Month; //hack hack hack
+		
+		PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
+		c->SendNotification("OnSkillStartTraining", "charid", &tmp);
+	}
+}
+
+PyRepObject *Character::CharGetInfo() {
+	//TODO: verify that we are a char?
+	
+	if(!LoadContents(true)) {
+		codelog(ITEM__ERROR, "%s (%u): Failed to load contents for CharGetInfo", m_itemName.c_str(), m_itemID);
+		return NULL;
+	}
+
+	Rsp_CommonGetInfo result;
+	Rsp_CommonGetInfo_Entry entry;
+
+	//first encode self.
+	if(!Populate(entry))
+		return NULL;	//print already done.
+	
+	result.items[m_itemID] = entry.FastEncode();
+
+	//now encode skills...
+	std::vector<InventoryItem *> skills;
+	//find all the skills contained within ourself.
+	FindByFlag(flagSkill, skills, false);
+	//encode an entry for each one.
+	std::vector<InventoryItem *>::iterator cur, end;
+	cur = skills.begin();
+	end = skills.end();
+	for(; cur != end; cur++) {
+		if(!(*cur)->Populate(entry)) {
+			codelog(ITEM__ERROR, "%s (%u): Failed to load skill item %u for CharGetInfo", m_itemName.c_str(), itemID(), (*cur)->itemID());
+		} else {
+			result.items[(*cur)->itemID()] = entry.FastEncode();
+		}
+	}
+	
+	return(result.FastEncode());
+}
+
+

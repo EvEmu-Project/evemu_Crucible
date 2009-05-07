@@ -203,27 +203,18 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 	if(type == NULL)
 		return NULL;
 
-	return(
-		InventoryItem::_Load(factory, itemID, *type, data)
-	);
-}
-
-InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
-	// InventoryItem stuff:
-	const Type &type, const ItemData &data
-) {
 	// See what to do next:
-	switch(type.categoryID()) {
+	switch(type->categoryID()) {
 		///////////////////////////////////////
 		// Blueprint:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Blueprint: {
 			// cast the type into what it really is ...
-			const BlueprintType &bpType = static_cast<const BlueprintType &>(type);
+			const BlueprintType *bpType = static_cast<const BlueprintType *>(type);
 
 			// create the blueprint
 			return(Blueprint::_Load(
-				factory, itemID, bpType, data
+				factory, itemID, *bpType, data
 			));
 		};
 
@@ -231,12 +222,42 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
 		// Default:
 		///////////////////////////////////////
 		default: {
-			// we are generic item; create one
-			return(new InventoryItem(
-				factory, itemID, type, data
-			));
+			switch(type->groupID()) {
+				///////////////////////////////////////
+				// Character:
+				///////////////////////////////////////
+				case EVEDB::invGroups::Character: {
+					// cast the type into what it really is ...
+					const CharacterType *charType = static_cast<const CharacterType *>(type);
+
+					// create character
+					return(Character::_Load(
+						factory, itemID, *charType, data
+					));
+				};
+
+				///////////////////////////////////////
+				// Default:
+				///////////////////////////////////////
+				default: {
+					// create item
+					return(InventoryItem::_Load(
+						factory, itemID, *type, data
+					));
+				};
+			}
 		};
 	}
+}
+
+InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
+	// InventoryItem stuff:
+	const Type &type, const ItemData &data
+) {
+	// we are generic item; create one
+	return(new InventoryItem(
+		factory, itemID, type, data
+	));
 }
 
 bool InventoryItem::_Load(bool recurse) {

@@ -32,13 +32,16 @@
 #include "InventoryDB.h"
 
 class Category;
+
 class Group;
+
 class Type;
 class BlueprintType;
 class CharacterType;
 
 class InventoryItem;
 class Blueprint;
+class Character;
 
 class ItemFactory {
 	friend class InventoryItem;	//only for access to _GetIfContentsLoaded and _DeleteItem
@@ -86,6 +89,14 @@ public:
 	 */
 	InventoryItem *GetItem(uint32 itemID, bool recurse=true);
 	Blueprint *GetBlueprint(uint32 blueprintID, bool recurse=true);
+	/**
+	 * Loads character.
+	 *
+	 * @param[in] character ID of character to load.
+	 * @param[in] recurse Whether load should be recursive (load all contained items as well).
+	 * @return Pointer to Character object; NULL if load failed.
+	 */
+	Character *GetCharacter(uint32 characterID, bool recurse=true);
 
 	//spawn a new item with the specified information, creating it in the DB as well.
 	InventoryItem *SpawnItem(
@@ -93,6 +104,20 @@ public:
 	Blueprint *SpawnBlueprint(
 		ItemData &data,
 		BlueprintData &bpData);
+	/**
+	 * Spawns new character, caches it and returns it.
+	 *
+	 * @param[in] data Item data (for entity table).
+	 * @param[in] charData Character data.
+	 * @param[in] appData Character's appearance.
+	 * @param[in] corpData Character's corporation-membership data.
+	 * @return Pointer to new Character object; NULL if spawn failed.
+	 */
+	Character *SpawnCharacter(
+		ItemData &data,
+		CharacterData &charData,
+		CharacterAppearance &appData,
+		CorpMemberInfo &corpData);
 
 protected:
 	InventoryDB m_db;

@@ -131,8 +131,6 @@ libdogmaim_a_SOURCES = \
 	dogmaim/DogmaIMService.h
 
 libinventory_a_SOURCES = \
-	inventory/Blueprint.h \
-	inventory/Blueprint.cpp \
 	inventory/EVEAttributes.h \
 	inventory/EVEAttributeMgr.cpp \
 	inventory/EVEAttributeMgr.h \
@@ -153,6 +151,8 @@ libinventory_a_SOURCES = \
 #	inventory/ItemDB.h 
 
 libmanufacturing_a_SOURCES = \
+	manufacturing/Blueprint.h \
+	manufacturing/Blueprint.cpp \
 	manufacturing/FactoryDB.cpp \
 	manufacturing/FactoryDB.h \
 	manufacturing/FactoryService.cpp \

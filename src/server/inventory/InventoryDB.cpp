@@ -695,6 +695,621 @@ bool InventoryDB::DeleteBlueprint(uint32 blueprintID) {
 	return true;
 }
 
+bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		"  chr.title,"
+		"  chr.description,"
+		"  chr.gender,"
+		"  chr.bounty,"
+		"  chr.balance,"
+		"  chr.securityRating,"
+		"  chr.logonMinutes,"
+		"  chr.corporationID,"
+		"  crp.allianceID,"
+		"  chr.stationID,"
+		"  chr.solarSystemID,"
+		"  chr.constellationID,"
+		"  chr.regionID,"
+		"  chr.ancestryID,"
+		"  chr.careerID,"
+		"  chr.schoolID,"
+		"  chr.careerSpecialityID,"
+		"  chr.startDateTime,"
+		"  chr.createDateTime,"
+		"  chr.corporationDateTime"
+		" FROM character_ AS chr"
+		" LEFT JOIN corporation AS crp USING (corporationID)"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query character %u: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "No data found for character %u.", characterID);
+		return false;
+	}
+
+	into.title = row.GetText(0);
+	into.description = row.GetText(1);
+	into.gender = row.GetUInt(2) ? true : false;
+	into.bounty = row.GetDouble(3);
+	into.balance = row.GetDouble(4);
+	into.securityRating = row.GetDouble(5);
+	into.logonMinutes = row.GetUInt(6);
+	into.corporationID = row.GetUInt(7);
+	into.allianceID = row.IsNull(8) ? 0 : row.GetUInt(8);
+	into.stationID = row.GetUInt(9);
+	into.solarSystemID = row.GetUInt(10);
+	into.constellationID = row.GetUInt(11);
+	into.regionID = row.GetUInt(12);
+	into.ancestryID = row.GetUInt(13);
+	into.careerID = row.GetUInt(14);
+	into.schoolID = row.GetUInt(15);
+	into.careerSpecialityID = row.GetUInt(16);
+	into.startDateTime = row.GetUInt(17);
+	into.createDateTime = row.GetUInt(18);
+	into.corporationDateTime = row.GetUInt(19);
+
+	return true;
+}
+
+bool InventoryDB::GetCharacterAppearance(uint32 characterID, CharacterAppearance &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		"  accessoryID,"
+		"  beardID,"
+		"  costumeID,"
+		"  decoID,"
+		"  eyebrowsID,"
+		"  eyesID,"
+		"  hairID,"
+		"  lipstickID,"
+		"  makeupID,"
+		"  skinID,"
+		"  backgroundID,"
+		"  lightID,"
+		"  headRotation1, headRotation2, headRotation3,"
+		"  eyeRotation1, eyeRotation2, eyeRotation3,"
+		"  camPos1, camPos2, camPos3,"
+		"  morph1n, morph1s, morph1w, morph1e,"
+		"  morph2n, morph2s, morph2w, morph2e,"
+		"  morph3n, morph3s, morph3w, morph3e,"
+		"  morph4n, morph4s, morph4w, morph4e"
+		" FROM character_"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query character's %u appearance: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "No appearance data found for character %u.", characterID);
+		return false;
+	}
+
+	row.IsNull(0) ? into.Clear_accessoryID() : into.Set_accessoryID(row.GetUInt(0));
+	row.IsNull(1) ? into.Clear_beardID() : into.Set_beardID(row.GetUInt(1));
+	into.costumeID = row.GetUInt(2);
+	row.IsNull(3) ? into.Clear_decoID():into.Set_decoID(row.GetUInt(3));
+	into.eyebrowsID = row.GetUInt(4);
+	into.eyesID = row.GetUInt(5);
+	into.hairID = row.GetUInt(6);
+	row.IsNull(7) ? into.Clear_lipstickID() : into.Set_lipstickID(row.GetUInt(7));
+	row.IsNull(8) ? into.Clear_makeupID() : into.Set_makeupID(row.GetUInt(8));
+	into.skinID = row.GetUInt(9);
+	into.backgroundID = row.GetUInt(10);
+	into.lightID = row.GetUInt(11);
+
+	// none of these may be NULL
+	into.headRotation1 = row.GetDouble(12);
+	into.headRotation2 = row.GetDouble(13);
+	into.headRotation3 = row.GetDouble(14);
+
+	into.eyeRotation1 = row.GetDouble(15);
+	into.eyeRotation2 = row.GetDouble(16);
+	into.eyeRotation3 = row.GetDouble(17);
+
+	into.camPos1 = row.GetDouble(18);
+	into.camPos2 = row.GetDouble(19);
+	into.camPos3 = row.GetDouble(20);
+
+	// all of these may be NULL
+	row.IsNull(21) ? into.Clear_morph1n() : into.Set_morph1n(row.GetDouble(21));
+	row.IsNull(22) ? into.Clear_morph1s() : into.Set_morph1s(row.GetDouble(22));
+	row.IsNull(23) ? into.Clear_morph1w() : into.Set_morph1w(row.GetDouble(23));
+	row.IsNull(24) ? into.Clear_morph1e() : into.Set_morph1e(row.GetDouble(24));
+
+	row.IsNull(25) ? into.Clear_morph2n() : into.Set_morph2n(row.GetDouble(25));
+	row.IsNull(26) ? into.Clear_morph2s() : into.Set_morph2s(row.GetDouble(26));
+	row.IsNull(27) ? into.Clear_morph2w() : into.Set_morph2w(row.GetDouble(27));
+	row.IsNull(28) ? into.Clear_morph2e() : into.Set_morph2e(row.GetDouble(28));
+
+	row.IsNull(29) ? into.Clear_morph3n() : into.Set_morph3n(row.GetDouble(29));
+	row.IsNull(30) ? into.Clear_morph3s() : into.Set_morph3s(row.GetDouble(30));
+	row.IsNull(31) ? into.Clear_morph3w() : into.Set_morph3w(row.GetDouble(31));
+	row.IsNull(32) ? into.Clear_morph3e() : into.Set_morph3e(row.GetDouble(32));
+
+	row.IsNull(33) ? into.Clear_morph4n() : into.Set_morph4n(row.GetDouble(33));
+	row.IsNull(34) ? into.Clear_morph4s() : into.Set_morph4s(row.GetDouble(34));
+	row.IsNull(35) ? into.Clear_morph4w() : into.Set_morph4w(row.GetDouble(35));
+	row.IsNull(36) ? into.Clear_morph4e() : into.Set_morph4e(row.GetDouble(36));
+
+	return true;
+}
+
+bool InventoryDB::GetCorpMemberInfo(uint32 characterID, CorpMemberInfo &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		"  corprole,"
+		"  rolesAtAll,"
+		"  rolesAtBase,"
+		"  rolesAtHQ,"
+		"  rolesAtOther"
+		" FROM chrCorporationRoles"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query corp member info of character %u: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "No corp member info found for character %u.", characterID);
+		return false;
+	}
+
+	into.corprole = row.GetUInt64(0);
+	into.rolesAtAll = row.GetUInt64(1);
+	into.rolesAtBase = row.GetUInt64(2);
+	into.rolesAtHQ = row.GetUInt64(3);
+	into.rolesAtOther = row.GetUInt64(4);
+
+	// this is hack and belongs somewhere else
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		"  corporation.stationID"
+		" FROM character_"
+		"  LEFT JOIN corporation USING (corporationID)"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query HQ of character's %u corporation: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "No HQ found for character's %u corporation.", characterID);
+		return false;
+	}
+
+	into.corpHQ = row.GetUInt(0);
+
+	return true;
+}
+/*
+ * This macro checks given CharacterAppearance object (app) if given value (v) is NULL:
+ *  if yes, macro evaulates to string "NULL"
+ *  if no, macro evaulates to call to function _ToStr, which turns given value to string.
+ *
+ * This macro is needed when saving CharacterAppearance values into DB (NewCharacter, SaveCharacterAppearance).
+ * Resulting value must be const char *.
+ */
+#define _VoN(app, v) \
+	((const char *)(app.IsNull_##v() ? "NULL" : _ToStr(app.Get_##v()).c_str()))
+
+/* a 32 bits unsigned integer can be max 0xFFFFFFFF.
+   this results in a text string: '4294967295' which
+   is 10 long. Including the '\0' at the end of the
+   string it is max 11.
+ */
+static std::string _ToStr(uint32 v) {
+	char buf[11];
+	snprintf(buf, 11, "%u", v);
+	return(buf);
+}
+
+static std::string _ToStr(double v) {
+	char buf[32];
+	snprintf(buf, 32, "%.13f", v);
+	return(buf);
+}
+
+bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, const CharacterAppearance &appData, const CorpMemberInfo &corpData) {
+	DBerror err;
+
+	std::string titleEsc;
+	m_db->DoEscapeString(titleEsc, data.title);
+
+	std::string descriptionEsc;
+	m_db->DoEscapeString(descriptionEsc, data.description);
+
+	// Table character_ goes first
+	if(!m_db->RunQuery(err,
+		"INSERT INTO character_"
+		// CharacterData:
+		"  (characterID, accountID, title, description, bounty, balance, securityRating, petitionMessage,"
+		"   logonMinutes, corporationID, corporationDateTime, startDateTime, createDateTime,"
+		"   ancestryID, careerID, schoolID, careerSpecialityID, gender,"
+		// CharacterAppearance:
+		"   accessoryID, beardID, costumeID, decoID, eyebrowsID, eyesID, hairID, lipstickID, makeupID, skinID, backgroundID,"
+		"   lightID,"
+		"   headRotation1, headRotation2, headRotation3,"
+		"   eyeRotation1, eyeRotation2, eyeRotation3,"
+		"   camPos1, camPos2, camPos3,"
+		"   morph1n, morph1s, morph1w, morph1e,"
+		"   morph2n, morph2s, morph2w, morph2e,"
+		"   morph3n, morph3s, morph3w, morph3e,"
+		"   morph4n, morph4s, morph4w, morph4e)"
+		" VALUES"
+		// CharacterData:
+		"  (%u, %u, '%s', '%s', %f, %f, %f, '%s',"
+		"   %u, %u, " I64u ", " I64u ", " I64u ","
+		"   %u, %u, %u, %u, %u,"
+		// CharacterAppearance:
+		"   %s, %s, %u, %s, %u, %u, %u, %s, %s, %u, %u,"
+		"   %u,"
+		"   %f, %f, %f,"
+		"   %f, %f, %f,"
+		"   %f, %f, %f,"
+		"   %f, %f, %f, %f,"
+		"   %f, %f, %f, %f,"
+		"   %f, %f, %f, %f,"
+		"   %f, %f, %f, %f)",
+		// CharacterData:
+		characterID, data.accountID, titleEsc.c_str(), descriptionEsc.c_str(), data.bounty, data.balance, data.securityRating, "No petition",
+		data.logonMinutes, data.corporationID, data.corporationDateTime, data.startDateTime, data.createDateTime,
+		data.ancestryID, data.careerID, data.schoolID, data.careerSpecialityID, data.gender,
+		// CharacterAppearance:
+		_VoN(appData, accessoryID), _VoN(appData, beardID), appData.costumeID, _VoN(appData, decoID), appData.eyebrowsID, appData.eyesID, appData.hairID, _VoN(appData, lipstickID), _VoN(appData, makeupID), appData.skinID, appData.backgroundID,
+		appData.lightID,
+		appData.headRotation1, appData.headRotation2, appData.headRotation3,
+		appData.eyeRotation1, appData.eyeRotation2, appData.eyeRotation3,
+		appData.camPos1, appData.camPos2, appData.camPos3,
+		_VoN(appData, morph1n), _VoN(appData, morph1s), _VoN(appData, morph1w), _VoN(appData, morph1e),
+		_VoN(appData, morph2n), _VoN(appData, morph2s), _VoN(appData, morph2w), _VoN(appData, morph2e),
+		_VoN(appData, morph3n), _VoN(appData, morph3s), _VoN(appData, morph3w), _VoN(appData, morph3e),
+		_VoN(appData, morph4n), _VoN(appData, morph4s), _VoN(appData, morph4w), _VoN(appData, morph4e)))
+	{
+		_log(DATABASE__ERROR, "Failed to insert character %u: %s.", characterID, err.c_str());
+		return false;
+	}
+
+	// Then insert roles into table chrCorporationRoles
+	if(!m_db->RunQuery(err,
+		"INSERT INTO chrCorporationRoles"
+		"  (characterID, corprole, rolesAtAll, rolesAtBase, rolesAtHQ, rolesAtOther)"
+		" VALUES"
+		"  (%u, " I64u ", " I64u ", " I64u ", " I64u ", " I64u ")",
+		characterID, corpData.corprole, corpData.rolesAtAll, corpData.rolesAtBase, corpData.rolesAtHQ, corpData.rolesAtOther))
+	{
+		_log(DATABASE__ERROR, "Failed to insert corp member info for character %u: %s.", characterID, err.c_str());
+		//just let it go... its a lot easier this way
+	}
+
+	// Hack in the first employment record
+	// TODO: Eventually, this should go under corp stuff...
+	if(!m_db->RunQuery(err, 
+		"INSERT INTO chrEmployment"
+		"  (characterID, corporationID, startDate, deleted)"
+		" VALUES"
+		"  (%u, %u, " I64u ", 0)",
+		characterID, data.corporationID, Win32TimeNow()))
+	{
+		_log(DATABASE__ERROR, "Failed to insert employment info of character %u: %s.", characterID, err.c_str());
+		//just let it go... its a lot easier this way
+	}
+
+	// And one more member to the corporation
+	if(!m_db->RunQuery(err,
+		"UPDATE corporation"
+		"  SET memberCount = memberCount + 1"
+		" WHERE corporationID = %u",
+		data.corporationID))
+	{
+		_log(DATABASE__ERROR, "Failed to raise member count of corporation %u: %s.", characterID, err.c_str());
+		//just let it go... its a lot easier this way
+	}
+
+	return true;
+}
+
+bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
+	DBerror err;
+
+	std::string titleEsc;
+	m_db->DoEscapeString(titleEsc, data.title);
+
+	std::string descriptionEsc;
+	m_db->DoEscapeString(descriptionEsc, data.description);
+
+	if(!m_db->RunQuery(err,
+		"UPDATE character_"
+		" SET"
+		"  title = '%s',"
+		"  description = '%s',"
+		"  gender = %u,"
+		"  bounty = %f,"
+		"  balance = %f,"
+		"  securityRating = %f,"
+		"  logonMinutes = %u,"
+		"  corporationID = %u,"
+		"  stationID = %u,"
+		"  solarSystemID = %u,"
+		"  constellationID = %u,"
+		"  regionID = %u,"
+		"  ancestryID = %u,"
+		"  careerID = %u,"
+		"  schoolID = %u,"
+		"  careerSpecialityID = %u,"
+		"  startDateTime = " I64u ","
+		"  createDateTime = " I64u ","
+		"  corporationDateTime = " I64u
+		" WHERE characterID = %u",
+		titleEsc.c_str(),
+		descriptionEsc.c_str(),
+		data.gender,
+		data.bounty,
+		data.balance,
+		data.securityRating,
+		data.logonMinutes,
+		data.corporationID,
+		data.stationID,
+		data.solarSystemID,
+		data.constellationID,
+		data.regionID,
+		data.ancestryID,
+		data.careerID,
+		data.schoolID,
+		data.careerSpecialityID,
+		data.startDateTime,
+		data.createDateTime,
+		data.corporationDateTime,
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to save character %u: %s.", characterID, err.c_str());
+		return false;
+	}
+
+	return true;
+}
+
+bool InventoryDB::SaveCharacterAppearance(uint32 characterID, const CharacterAppearance &data) {
+	DBerror err;
+
+	if(!m_db->RunQuery(err,
+		"UPDATE character_"
+		" SET"
+		"  accessoryID = %s,"
+		"  beardID = %s,"
+		"  costumeID = %u,"
+		"  decoID = %s,"
+		"  eyebrowsID = %u,"
+		"  eyesID = %u,"
+		"  hairID = %u,"
+		"  lipstickID = %s,"
+		"  makeupID = %s,"
+		"  skinID = %u,"
+		"  backgroundID = %u,"
+		"  lightID = %u,"
+		"  headRotation1 = %f, headRotation2 = %f, headRotation3 = %f,"
+		"  eyeRotation1 = %f, eyeRotation2 = %f, eyeRotation3 = %f,"
+		"  camPos1 = %f, camPos2 = %f, camPos3 = %f,"
+		"  morph1n = %f, morph1s = %f, morph1w = %f, morph1e = %f,"
+		"  morph2n = %f, morph2s = %f, morph2w = %f, morph2e = %f,"
+		"  morph3n = %f, morph3s = %f, morph3w = %f, morph3e = %f,"
+		"  morph4n = %f, morph4s = %f, morph4w = %f, morph4e = %f"
+		" WHERE characterID = %u",
+		_VoN(data, accessoryID),
+		_VoN(data, beardID),
+		data.costumeID,
+		_VoN(data, decoID),
+		data.eyebrowsID,
+		data.eyesID,
+		data.hairID,
+		_VoN(data, lipstickID),
+		_VoN(data, makeupID),
+		data.skinID,
+		data.backgroundID,
+		data.lightID,
+		data.headRotation1, data.headRotation2, data.headRotation3,
+		data.eyeRotation1, data.eyeRotation2, data.eyeRotation3,
+		data.camPos1, data.camPos2, data.camPos3,
+		_VoN(data, morph1n), _VoN(data, morph1s), _VoN(data, morph1w), _VoN(data, morph1e),
+		_VoN(data, morph2n), _VoN(data, morph2s), _VoN(data, morph2w), _VoN(data, morph2e),
+		_VoN(data, morph3n), _VoN(data, morph3s), _VoN(data, morph3w), _VoN(data, morph3e),
+		_VoN(data, morph4n), _VoN(data, morph4s), _VoN(data, morph4w), _VoN(data, morph4e),
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to save character's %u appearance: %s.", characterID, err.c_str());
+		return false;
+	}
+
+	return true;
+}
+
+bool InventoryDB::SaveCorpMemberInfo(uint32 characterID, const CorpMemberInfo &data) {
+	DBerror err;
+
+	if(!m_db->RunQuery(err,
+		"UPDATE chrCorporationRoles"
+		" SET"
+		"  corprole = " I64u ","
+		"  rolesAtAll = " I64u ","
+		"  rolesAtBase = " I64u ","
+		"  rolesAtHQ = " I64u ","
+		"  rolesAtOther = " I64u
+		" WHERE characterID = %u",
+		data.corprole,
+		data.rolesAtAll,
+		data.rolesAtBase,
+		data.rolesAtHQ,
+		data.rolesAtOther,
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to update corp member info of character %u: %s.", characterID, err.c_str());
+		return false;
+	}
+
+	return true;
+}
+
+// Undefine the macro used only in NewCharacter and SaveCharacterAppearance.
+#undef _VoN
+
+bool InventoryDB::DeleteCharacter(uint32 characterID) {
+	DBerror err;
+
+	// eveMailDetails
+	if(!m_db->RunQuery(err,
+		"DELETE FROM eveMailDetails"
+		"  USING eveMail, eveMailDetails"
+		" WHERE"
+		"   eveMail.messageID = eveMailDetails.messageID"
+		"  AND"
+		"   (senderID = %u OR channelID = %u)",
+		characterID, characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete mail details of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// eveMail
+	if(!m_db->RunQuery(err,
+		"DELETE FROM eveMail"
+		" WHERE (senderID = %u OR channelID = %u)",
+		characterID, characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete mail of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// crpCharShares
+	if(!m_db->RunQuery(err,
+		"DELETE FROM crpCharShares"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		codelog(SERVICE__ERROR, "Failed to delete shares of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// bookmarks
+	if(!m_db->RunQuery(err,
+		"DELETE FROM bookmarks"
+		" WHERE ownerID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete bookmarks of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// market_journal
+	if(!m_db->RunQuery(err,
+		"DELETE FROM market_journal"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete market journal of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// market_orders
+	if(!m_db->RunQuery(err,
+		"DELETE FROM market_orders"
+		" WHERE charID =% lu",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete market orders of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// market_transactions
+	if(!m_db->RunQuery(err,
+		"DELETE FROM market_transactions"
+		" WHERE clientID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete market transactions of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// chrStandings
+	if(!m_db->RunQuery(err,
+		"DELETE FROM chrStandings"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete standings of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// chrNPCStandings
+	if(!m_db->RunQuery(err,
+		"DELETE FROM chrNPCStandings"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete NPC standings of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// chrCorporationRoles
+	if(!m_db->RunQuery(err,
+		"DELETE FROM chrCorporationRoles"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete corporation roles of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// chrEmployment
+	if(!m_db->RunQuery(err,
+		"DELETE FROM chrEmployment"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete employment of character %u: %s.", characterID, err.c_str());
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error.");
+	}
+
+	// character_
+	if(!m_db->RunQuery(err,
+		"DELETE FROM character_"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete character %u: %s.", characterID, err.c_str());
+		return false;
+	}
+
+	return true;
+}
+
 
 
 

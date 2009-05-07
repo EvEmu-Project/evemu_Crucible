@@ -197,7 +197,6 @@
 
 // item stuff
 #include "../server/inventory/AttributeMgr.h"
-#include "../server/inventory/Blueprint.h"
 #include "../server/inventory/EVEAttributeMgr.h"
 #include "../server/inventory/InvBrokerService.h"
 #include "../server/inventory/InventoryDB.h"
@@ -207,6 +206,7 @@
 #include "../server/inventory/Type.h"
 
 // factory stuff
+#include "../server/manufacturing/Blueprint.h"
 #include "../server/manufacturing/FactoryDB.h"
 #include "../server/manufacturing/FactoryService.h"
 #include "../server/manufacturing/RamProxyDB.h"

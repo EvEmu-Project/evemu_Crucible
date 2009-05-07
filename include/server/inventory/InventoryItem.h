@@ -144,6 +144,8 @@ public:
 	/*
 	 * Primary public packet builders:
 	 */
+	bool Populate(Rsp_CommonGetInfo_Entry &into) const;
+
 	PyRepObject *GetEntityRow() const;
 	PyRepObject *GetInventoryRowset(EVEItemFlags flag, uint32 forOwner = 0) const;
 	PyRepObject *ItemGetInfo() const;
@@ -226,7 +228,6 @@ protected:
 	);
 
 	void SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const;
-	bool Populate(Rsp_CommonGetInfo_Entry &into) const;
 	void SetOnline(bool newval);
 
 	void AddContainedItem(InventoryItem *it);

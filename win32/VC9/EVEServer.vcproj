@@ -434,10 +434,6 @@
 				Name="inventory"
 				>
 				<File
-					RelativePath="..\..\src\server\inventory\Blueprint.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\src\server\inventory\EVEAttributeMgr.cpp"
 					>
 				</File>
@@ -473,6 +469,10 @@
 			<Filter
 				Name="manufacturing"
 				>
+				<File
+					RelativePath="..\..\src\server\manufacturing\Blueprint.cpp"
+					>
+				</File>
 				<File
 					RelativePath="..\..\src\server\manufacturing\FactoryDB.cpp"
 					>
@@ -1008,10 +1008,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\include\server\inventory\Blueprint.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\include\server\inventory\EVEAttributeMgr.h"
 					>
 				</File>
@@ -1063,6 +1059,10 @@
 			<Filter
 				Name="manufacturing"
 				>
+				<File
+					RelativePath="..\..\include\server\manufacturing\Blueprint.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\include\server\manufacturing\FactoryDB.h"
 					>

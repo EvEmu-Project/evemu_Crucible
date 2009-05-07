@@ -27,6 +27,7 @@
 #define __CHARACTER__H__INCL__
 
 #include "inventory/Type.h"
+#include "inventory/InventoryItem.h"
 
 /**
  * Simple container for raw character type data.
@@ -300,6 +301,178 @@ public:
 	uint64 rolesAtBase;
 	uint64 rolesAtHQ;
 	uint64 rolesAtOther;
+};
+
+/**
+ * Class representing character.
+ */
+class Character
+: public InventoryItem
+{
+	friend class InventoryItem;	// to let it construct us
+public:
+	/**
+	 * Loads character.
+	 *
+	 * @param[in] factory
+	 * @param[in] characterID ID of character to load.
+	 * @param[in] recurse Whether load should be recursive - load all contained items as well.
+	 * @return Pointer to new Character object; NULL if failed.
+	 */
+	static Character *Load(ItemFactory &factory, uint32 characterID, bool recurse=false);
+	/**
+	 * Spawns new character.
+	 *
+	 * @param[in] factory
+	 * @param[in] data ItemData (data for entity table) for new character.
+	 * @param[in] charData Character data for new character.
+	 * @param[in] appData Appearance data for new character.
+	 * @param[in] corpData Corporation membership data for new character.
+	 * @return Pointer to new Character object; NULL if failed.
+	 */
+	static Character *Spawn(ItemFactory &factory, ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData);
+
+	/*
+	 * Primary public interface:
+	 */
+	Character *IncRef() { return static_cast<Character *>(InventoryItem::IncRef()); }
+
+	void Save(bool recursive=false, bool saveAttributes=true) const;
+	void Delete();
+
+	bool AlterBalance(double balanceChange);
+	void SetLocation(uint32 stationID, uint32 solarSystemID, uint32 constellationID, uint32 regionID);
+	void JoinCorporation(uint32 corporationID);
+	void SetDescription(const char *newDescription);
+
+	void TrainSkill(InventoryItem *skill);
+
+	// NOTE: We do not handle Split/Merge logic since singleton-restricted construction does this for us.
+
+	/*
+	 * Primary public packet builders:
+	 */
+	PyRepObject *CharGetInfo();
+
+	/*
+	 * Public fields:
+	 */
+	const CharacterType &   type() const { return static_cast<const CharacterType &>(InventoryItem::type()); }
+	uint32                  bloodlineID() const { return type().bloodlineID(); }
+	EVERace                 race() const { return type().race(); }
+
+	// Account:
+	uint32                  accountID() const { return m_accountID; }
+
+	const std::string &     title() const { return m_title; }
+	const std::string &     description() const { return m_description; }
+	bool                    gender() const { return m_gender; }
+
+	double                  bounty() const { return m_bounty; }
+	double                  balance() const { return m_balance; }
+	double                  securityRating() const { return m_securityRating; }
+	uint32                  logonMinutes() const { return m_logonMinutes; }
+
+	// Corporation:
+	uint32                  corporationID() const { return m_corporationID; }
+	uint32                  corporationHQ() const { return m_corpHQ; }
+	uint32                  allianceID() const { return m_allianceID; }
+
+	// Corporation role:
+	uint64                  corpRole() const { return m_corpRole; }
+	uint64                  rolesAtAll() const { return m_rolesAtAll; }
+	uint64                  rolesAtBase() const { return m_rolesAtBase; }
+	uint64                  rolesAtHQ() const { return m_rolesAtHQ; }
+	uint64                  rolesAtOther() const { return m_rolesAtOther; }
+
+	// Current location:
+	uint32                  stationID() const { return m_stationID; }
+	uint32                  solarSystemID() const { return m_solarSystemID; }
+	uint32                  constellationID() const { return m_constellationID; }
+	uint32                  regionID() const { return m_regionID; }
+
+	// Ancestry, career:
+	uint32                  ancestryID() const { return m_ancestryID; }
+	uint32                  careerID() const { return m_careerID; }
+	uint32                  schoolID() const { return m_schoolID; }
+	uint32                  careerSpecialityID() const { return m_careerSpecialityID; }
+
+	// Some importand dates:
+	uint64                  startDateTime() const { return m_startDateTime; }
+	uint64                  createDateTime() const { return m_createDateTime; }
+	uint64                  corporationDateTime() const { return m_corporationDateTime; }
+
+protected:
+	Character(
+		ItemFactory &_factory,
+		uint32 _characterID,
+		// InventoryItem stuff:
+		const CharacterType &_charType,
+		const ItemData &_data,
+		// Character stuff:
+		const CharacterData &_charData,
+		const CorpMemberInfo &_corpData
+	);
+
+	static Character *_Load(ItemFactory &factory, uint32 characterID
+	);
+	static Character *_Load(ItemFactory &factory, uint32 characterID,
+		// InventoryItem stuff:
+		const CharacterType &charType, const ItemData &data
+	);
+	static Character *_Load(ItemFactory &factory, uint32 characterID,
+		// InventoryItem stuff:
+		const CharacterType &charType, const ItemData &data,
+		// Character stuff:
+		const CharacterData &charData, const CorpMemberInfo &corpData
+	);
+
+	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+
+	static Character *_Spawn(ItemFactory &factory,
+		// InventoryItem stuff:
+		ItemData &data,
+		// Character stuff:
+		CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
+	);
+
+	/*
+	 * Data members
+	 */
+	uint32 m_accountID;
+
+	std::string m_title;
+	std::string m_description;
+	bool m_gender;
+
+	double m_bounty;
+	double m_balance;
+	double m_securityRating;
+	uint32 m_logonMinutes;
+
+	uint32 m_corporationID;
+	uint32 m_corpHQ;
+	uint32 m_allianceID;
+
+	uint64 m_corpRole;
+	uint64 m_rolesAtAll;
+	uint64 m_rolesAtBase;
+	uint64 m_rolesAtHQ;
+	uint64 m_rolesAtOther;
+
+	uint32 m_stationID;
+	uint32 m_solarSystemID;
+	uint32 m_constellationID;
+	uint32 m_regionID;
+
+	uint32 m_ancestryID;
+	uint32 m_careerID;
+	uint32 m_schoolID;
+	uint32 m_careerSpecialityID;
+
+	uint64 m_startDateTime;
+	uint64 m_createDateTime;
+	uint64 m_corporationDateTime;
 };
 
 #endif /* !__CHARACTER__H__INCL__ */
