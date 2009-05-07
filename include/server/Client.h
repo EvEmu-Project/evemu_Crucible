@@ -150,15 +150,15 @@ public:
 	uint32 GetAccountRole() const                   { return m_accountRole; }
 
 	// character data
-	InventoryItem *Char() const                     { return m_char; }
+	Character *Char() const                         { return m_char; }
 
 	uint32 GetCharacterID() const                   { return Char() == NULL ? 0 : Char()->itemID(); }
-	uint32 GetCorporationID() const                 { return m_chardata.corporationID; }
-	uint32 GetAllianceID() const                    { return m_chardata.allianceID; }
-	uint32 GetStationID() const                     { return m_chardata.stationID; }
-	uint32 GetSystemID() const                      { return m_chardata.solarSystemID; }
-	uint32 GetConstellationID() const               { return m_chardata.constellationID; }
-	uint32 GetRegionID() const                      { return m_chardata.regionID; }
+	uint32 GetCorporationID() const                 { return Char() == NULL ? 0 : Char()->corporationID(); }
+	uint32 GetAllianceID() const                    { return Char() == NULL ? 0 : Char()->allianceID(); }
+	uint32 GetStationID() const                     { return Char() == NULL ? 0 : Char()->stationID(); }
+	uint32 GetSystemID() const                      { return Char() == NULL ? 0 : Char()->solarSystemID(); }
+	uint32 GetConstellationID() const               { return Char() == NULL ? 0 : Char()->constellationID(); }
+	uint32 GetRegionID() const                      { return Char() == NULL ? 0 : Char()->regionID(); }
 
 	uint32 GetLocationID() const
 	{
@@ -168,12 +168,12 @@ public:
 			return GetStationID();
 	}
 
-	uint32 GetCorpHQ() const                        { return m_corpstate.corpHQ; }
-	uint32 GetCorpRole() const                      { return m_corpstate.corprole; }
-	uint32 GetRolesAtAll() const                    { return m_corpstate.rolesAtAll; }
-	uint32 GetRolesAtBase() const                   { return m_corpstate.rolesAtBase; }
-	uint32 GetRolesAtHQ() const                     { return m_corpstate.rolesAtHQ; }
-	uint32 GetRolesAtOther() const                  { return m_corpstate.rolesAtOther; }
+	uint32 GetCorpHQ() const                        { return Char() == NULL ? 0 : Char()->corporationHQ(); }
+	uint32 GetCorpRole() const                      { return Char() == NULL ? 0 : Char()->corpRole(); }
+	uint32 GetRolesAtAll() const                    { return Char() == NULL ? 0 : Char()->rolesAtAll(); }
+	uint32 GetRolesAtBase() const                   { return Char() == NULL ? 0 : Char()->rolesAtBase(); }
+	uint32 GetRolesAtHQ() const                     { return Char() == NULL ? 0 : Char()->rolesAtHQ(); }
+	uint32 GetRolesAtOther() const                  { return Char() == NULL ? 0 : Char()->rolesAtOther(); }
 
 	uint32 GetShipID() const { return(GetID()); }
 	InventoryItem *Ship() const { return(Item()); }
@@ -183,9 +183,9 @@ public:
 	inline double y() const { return(GetPosition().y); }	//this is terribly inefficient.
 	inline double z() const { return(GetPosition().z); }	//this is terribly inefficient.
 
-	double GetBounty() const                       { return m_chardata.bounty; }
-	double GetSecurityRating() const               { return m_chardata.securityRating; }
-	double GetBalance() const                      { return m_chardata.balance; }
+	double GetBounty() const                       { return Char() == NULL ? 0.0 : Char()->bounty(); }
+	double GetSecurityRating() const               { return Char() == NULL ? 0.0 : Char()->securityRating(); }
+	double GetBalance() const                      { return Char() == NULL ? 0.0 : Char()->balance(); }
 	bool AddBalance(double amount);
 
 	PyServiceMgr &services() const { return(m_services); }
@@ -263,7 +263,7 @@ protected:
 	void _SendCallReturn(PyPacket *req, PyRep **return_value, const char *channel = NULL);
 	void _SendException(PyPacket *req, MACHONETERR_TYPE type, PyRep **payload);
 
-	InventoryItem *m_char;
+	Character *m_char;
 
 	PyServiceMgr &m_services;
 	EVEPresentation m_net;
@@ -274,9 +274,6 @@ protected:
 	uint32 m_gangRole;
 
 	SystemManager *m_system;	//we do not own this
-
-	CharacterData m_chardata;
-	CorpMemberInfo m_corpstate;
 
 	std::set<LSCChannel *> m_channels;	//we do not own these.
 	

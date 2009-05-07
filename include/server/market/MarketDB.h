@@ -66,6 +66,8 @@ public:
 	bool AlterOrderPrice(uint32 orderID, double new_price);
 	bool DeleteOrder(uint32 orderID);
 
+	bool AddCharacterBalance(uint32 char_id, double delta);
+
 	uint32 StoreBuyOrder(uint32 clientID, uint32 accountID, uint32 stationID, uint32 typeID, double price, uint32 quantity, uint8 orderRange, uint32 minVolume, uint8 duration, bool isCorp);
 	uint32 StoreSellOrder(uint32 clientID, uint32 accountID, uint32 stationID, uint32 typeID, double price, uint32 quantity, uint8 orderRange, uint32 minVolume, uint8 duration, bool isCorp);
 	bool RecordTransaction(uint32 typeID, uint32 quantity, double price, MktTransType ttype, uint32 charID, uint32 regionID, uint32 stationID);

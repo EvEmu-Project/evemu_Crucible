@@ -513,7 +513,16 @@ PyResult CharacterService::Handle_GetCharacterDescription(PyCallArgs &call) {
 		return NULL;
 	}
 
-	return(m_db.GetCharDesc(args.arg));
+	Character *c = m_manager->item_factory.GetCharacter(args.arg);
+	if(c == NULL) {
+		_log(CLIENT__ERROR, "Failed to load character %u.", args.arg);
+		return NULL;
+	}
+
+	PyRep *result = c->GetDescription();
+	c->DecRef();
+
+	return result;
 }
 
 //////////////////////////////////
@@ -524,7 +533,13 @@ PyResult CharacterService::Handle_SetCharacterDescription(PyCallArgs &call) {
 		return NULL;
 	}
 
-	m_db.SetCharDesc(call.client->GetCharacterID(), args.arg.c_str());
+	Character *c = call.client->Char();
+	if(c == NULL) {
+		_log(CLIENT__ERROR, "SetCharacterDescription called with no char!");
+		return NULL;
+	}
+
+	c->SetDescription(args.arg.c_str());
 
 	return NULL;
 }

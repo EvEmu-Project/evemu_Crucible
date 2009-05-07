@@ -353,6 +353,7 @@ public:
 	 * Primary public packet builders:
 	 */
 	PyRepObject *CharGetInfo();
+	PyRepObject *GetDescription() const;
 
 	/*
 	 * Public fields:

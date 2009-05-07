@@ -51,13 +51,6 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
 	m_moveTimer.Disable();
 	m_pingTimer.Start();
 
-	m_chardata.gender = 1;
-
-	m_chardata.ancestryID = 2;
-	m_chardata.careerID = 3;
-	m_chardata.schoolID = 4;
-	m_chardata.careerSpecialityID = 5;
-
 	//initialize connection
 	m_net.SendHandshake(m_services.entity_list.GetClientCount());
 }
@@ -578,48 +571,43 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 		OnCharNoLongerInStation();
 	}
 
+	uint32 stationID, solarSystemID, constellationID, regionID;
 	if(IsStation(location)) {
 		// Entering station
-		m_chardata.stationID = location;
+		stationID = location;
 		
 		m_services.serviceDB().GetStationInfo(
-			m_chardata.stationID,
-			&m_chardata.solarSystemID, &m_chardata.constellationID, &m_chardata.regionID,
+			stationID,
+			&solarSystemID, &constellationID, &regionID,
 			NULL, NULL, NULL
 		);
 
-		Ship()->Move(location, flagHangar);
+		Ship()->Move(stationID, flagHangar);
 	} else if(IsSolarSystem(location)) {
 		// Entering a solarsystem
 		// source is GetLocation()
 		// destinaion is location
 
-		m_chardata.stationID = 0;
-		m_chardata.solarSystemID = location;
+		stationID = 0;
+		solarSystemID = location;
 		
 		m_services.serviceDB().GetSystemInfo(
-			m_chardata.solarSystemID,
-			&m_chardata.constellationID, &m_chardata.regionID,
+			solarSystemID,
+			&constellationID, &regionID,
 			NULL, NULL
 		);
 
-		Ship()->Move(location, flagShipOffline);
+		Ship()->Move(solarSystemID, flagShipOffline);
 		Ship()->Relocate(pt);
 	} else {
 		SendErrorMsg("Move requested to unsupported location %u", location);
 		return;
 	}
 
-	if(!EnterSystem())
-		return;
-	
 	//move the character_ record... we really should derive the char's location from the entity table...
-	m_services.serviceDB().SetCharacterLocation(
-		GetCharacterID(),
-		m_chardata.stationID, m_chardata.solarSystemID, 
-		m_chardata.constellationID, m_chardata.regionID
-	);
+	Char()->SetLocation(stationID, solarSystemID, constellationID, regionID);
 
+	EnterSystem();
 	SessionSync();
 }
 
@@ -1055,27 +1043,15 @@ void Client::_ExecuteJump() {
 }
 
 bool Client::AddBalance(double amount) {
-	if(amount == 0)
-		return true;
-	
-	double result = m_chardata.balance + amount;
-	
-	//remember, this can take a negative amount...
-	if(result < 0) {
-		return false;
-	}
-	
-	m_chardata.balance = result;
-	
-	if(!m_services.serviceDB().SetCharacterBalance(GetCharacterID(), m_chardata.balance))
+	if(!Char()->AlterBalance(amount))
 		return false;
 	
 	//send notification of change
 	OnAccountChange ac;
 	ac.accountKey = "cash";
 	ac.ownerid = GetCharacterID();
-	ac.balance = m_chardata.balance;
-	PyRepTuple *answer = ac.Encode();
+	ac.balance = GetBalance();
+	PyRepTuple *answer = ac.FastEncode();
 	SendNotification("OnAccountChange", "cash", &answer, false);
 
 	return true;
@@ -1084,17 +1060,8 @@ bool Client::AddBalance(double amount) {
 
 
 bool Client::SelectCharacter(uint32 char_id) {
-	if(!m_services.serviceDB().LoadCharacter(char_id, m_chardata)) {
-		_log(CLIENT__ERROR, "Failed to load character data for char %u.", char_id);
-		return false;
-	}
-	if(!m_services.serviceDB().LoadCorporationMemberInfo(char_id, m_corpstate)) {
-		_log(CLIENT__ERROR, "Failed to load corp member info for char %u.", char_id);
-		return false;
-	}
-
 	//get char
-	InventoryItem *character = m_services.item_factory.GetItem(char_id, true);
+	Character *character = m_services.item_factory.GetCharacter(char_id, true);
 	if(character == NULL)
 		return false;
 
@@ -1352,21 +1319,10 @@ DoDestinyUpdate ,*args= ([(31759,
 
 //assumes that the backend DB stuff was already done.
 void Client::JoinCorporationUpdate(uint32 corp_id) {
-	m_chardata.corporationID = corp_id;
+	Char()->JoinCorporation(corp_id);
 	
-	//TODO: recursively change corp on all our items.
-	
-	m_services.serviceDB().LoadCorporationMemberInfo(GetCharacterID(), m_corpstate);
-	
-	session.Set_corpid(corp_id);
-	session.Set_corprole(m_corpstate.corprole);
-	session.Set_rolesAtAll(m_corpstate.rolesAtAll);
-	session.Set_rolesAtBase(m_corpstate.rolesAtBase);
-	session.Set_rolesAtHQ(m_corpstate.rolesAtHQ);
-	session.Set_rolesAtOther(m_corpstate.rolesAtOther);
-
 	//logs indicate that we need to push this update out asap.
-	_CheckSessionChange();
+	SessionSync();
 }
 
 /************************************************************************/

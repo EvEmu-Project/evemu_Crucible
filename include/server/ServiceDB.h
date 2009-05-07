@@ -68,10 +68,6 @@ public:
 	PyRepObject *GetInventory(uint32 entityID, EVEItemFlags flag);
 
 	void SetCharacterLocation(uint32 characterID, uint32 stationID, uint32 systemID, uint32 constellationID, uint32 regionID);
-	bool SetCharacterBalance(uint32 char_id, double newbalance);
-	bool AddCharacterBalance(uint32 char_id, double delta);
-	bool LoadCharacter(uint32 char_id, CharacterData &into);
-	bool LoadCorporationMemberInfo(uint32 charID, CorpMemberInfo &info);
 	
 	PyRepObject *GetSolRow(uint32 systemID) const;
 	PyRepObject *GetSolDroneState(uint32 systemID) const;

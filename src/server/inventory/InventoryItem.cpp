@@ -615,42 +615,6 @@ PyRepObject *InventoryItem::ShipGetInfo() {
 	return(result.FastEncode());
 }
 
-PyRepObject *InventoryItem::CharGetInfo() {
-	//TODO: verify that we are a char?
-	
-	if(!LoadContents(true)) {
-		codelog(ITEM__ERROR, "%s (%u): Failed to load contents for CharGetInfo", m_itemName.c_str(), m_itemID);
-		return NULL;
-	}
-
-	Rsp_CommonGetInfo result;
-	Rsp_CommonGetInfo_Entry entry;
-
-	//first encode self.
-	if(!Populate(entry))
-		return NULL;	//print already done.
-	
-	result.items[m_itemID] = entry.FastEncode();
-
-	//now encode skills...
-	std::vector<InventoryItem *> skills;
-	//find all the skills contained within ourself.
-	FindByFlag(flagSkill, skills, false);
-	//encode an entry for each one.
-	std::vector<InventoryItem *>::iterator cur, end;
-	cur = skills.begin();
-	end = skills.end();
-	for(; cur != end; cur++) {
-		if(!(*cur)->Populate(entry)) {
-			codelog(ITEM__ERROR, "%s (%u): Failed to load skill item %u for CharGetInfo", m_itemName.c_str(), m_itemID, (*cur)->m_itemID);
-		} else {
-			result.items[(*cur)->m_itemID] = entry.FastEncode();
-		}
-	}
-	
-	return(result.FastEncode());
-}
-
 InventoryItem *InventoryItem::FindFirstByFlag(EVEItemFlags _flag, bool newref) {
 	std::map<uint32, InventoryItem *>::iterator cur, end;
 	cur = m_contents.begin();
@@ -1055,72 +1019,6 @@ bool InventoryItem::Contains(InventoryItem *item, bool recursive) const {
 			return true;
 	}
 	return false;
-}
-
-//I think I ultimately want this logic somewhere else...
-//this doesn't seem to be working either... for some reason, the client is
-//getting 0 for its skill points per minute field and throwing a division
-// exception.
-void InventoryItem::TrainSkill(InventoryItem *skill) {
-	if(m_flag != flagPilot) {
-		codelog(ITEM__ERROR, "%s (%u): Tried to train skill %u on non-pilot object.", m_itemName.c_str(), m_itemID, skill->itemID());
-		return;
-	}
-	
-	if(skill->flag() == flagSkillInTraining) {
-		_log(ITEM__TRACE, "%s (%u): Requested to train skill %u item %u but it is already in training. Doing nothing.", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
-		return;
-	}
-	
-	Client *c = m_factory.entity_list.FindCharacter(m_ownerID);
-	
-	//stop training our old skill...
-	//search for all, just in case we screwed up
-	std::vector<InventoryItem *> skills;
-	//find all the skills contained within ourself.
-	FindByFlag(flagSkillInTraining, skills, false);
-	//encode an entry for each one.
-	std::vector<InventoryItem *>::iterator cur, end;
-	cur = skills.begin();
-	end = skills.end();
-	for(; cur != end; cur++) {
-		InventoryItem *i = *cur;
-		i->ChangeFlag(flagSkill);
-		
-		if(c != NULL) {
-			OnSkillTrainingStopped osst;
-			osst.itemID = skill->itemID();
-			osst.endOfTraining = 0;
-			PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
-			c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
-		}
-	}
-
-	if(skill->flag() != flagSkill) {
-		//this is a skill book being trained for the first time.
-		_log(ITEM__TRACE, "%s (%u): Initial training of skill %u item %u", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
-		skill->MoveInto(this, flagSkillInTraining);
-		//set the initial attributes.
-		skill->Set_skillLevel(0);
-		skill->Set_skillPoints(0);
-	} else if(!Contains(skill)) {
-		//this must be a skill in another container...
-		_log(ITEM__ERROR, "%s (%u): Tried to train skill item %u which has the skill flag but is not contained within this item.", m_itemName.c_str(), m_itemID, skill->itemID());
-		return;
-	} else {
-		//skill is within this item, change its flag.
-		_log(ITEM__TRACE, "%s (%u): Starting training of skill %u item %u", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
-		skill->ChangeFlag(flagSkillInTraining, true);
-	}
-	
-	if(c != NULL) {
-		OnSkillStartTraining osst;
-		osst.itemID = skill->itemID();
-		osst.endOfTraining = Win32TimeNow() + Win32Time_Month; //hack hack hack
-		
-		PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
-		c->SendNotification("OnSkillStartTraining", "charid", &tmp);
-	}
 }
 
 void InventoryItem::Relocate(const GPoint &pos) {

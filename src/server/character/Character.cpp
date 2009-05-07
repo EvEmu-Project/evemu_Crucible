@@ -693,4 +693,13 @@ PyRepObject *Character::CharGetInfo() {
 	return(result.FastEncode());
 }
 
+PyRepObject *Character::GetDescription() const {
+	util_Row row;
+
+	row.header.push_back("description");
+	row.line.add(new PyRepString(description()));
+
+	return row.FastEncode();
+}
+
 

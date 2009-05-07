@@ -184,47 +184,6 @@ PyRepObject *CharacterDB::GetCharPublicInfo3(uint32 characterID) {
 	return(DBResultToRowset(res));
 }
 
-PyRepObject *CharacterDB::GetCharDesc(uint32 characterID) {
-	DBQueryResult res;
-	
-	if(!m_db->RunQuery(res,
-		"SELECT "
-		" description "
-		" FROM character_ "
-		" WHERE characterID=%u", characterID))
-	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return NULL;
-	}
-
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		codelog(SERVICE__ERROR, "Error in query: no data for char %d", characterID);
-		return NULL;
-	}
-
-	return(DBRowToRow(row));
-	
-}
-
-bool CharacterDB::SetCharDesc(uint32 characterID, const char *str) {
-	DBerror err;
-
-	std::string stringEsc;
-	m_db->DoEscapeString(stringEsc, str);
-
-	if(!m_db->RunQuery(err,
-		"UPDATE character_"
-		" SET description ='%s'"
-		" WHERE characterID=%u", stringEsc.c_str(),characterID))
-	{
-		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
-		return false;
-	}
-
-	return (true);
-}
-
 //just return all itemIDs which has ownerID set to characterID
 bool CharacterDB::GetCharItems(uint32 characterID, std::vector<uint32> &into) {
 	DBQueryResult res;

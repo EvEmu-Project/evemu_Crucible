@@ -114,9 +114,6 @@ public:
 	 */
 	bool SetNote(uint32 ownerID, uint32 itemID, const char *str);
 	
-	PyRepObject *GetCharDesc(uint32 characterID);
-	bool SetCharDesc(uint32 characterID, const char *str);
-
 	uint32 AddOwnerNote(uint32 charID, const std::string &label, const std::string &content);
 	bool EditOwnerNote(uint32 charID, uint32 noteID, const std::string &label, const std::string &content);
 

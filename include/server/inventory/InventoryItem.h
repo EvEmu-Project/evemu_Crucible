@@ -139,7 +139,6 @@ public:
 
 	void PutOnline() { SetOnline(true); }
 	void PutOffline() { SetOnline(false); }
-	void TrainSkill(InventoryItem *skill);	//call on the character object.
 
 	/*
 	 * Primary public packet builders:
@@ -150,7 +149,6 @@ public:
 	PyRepObject *GetInventoryRowset(EVEItemFlags flag, uint32 forOwner = 0) const;
 	PyRepObject *ItemGetInfo() const;
 	PyRepObject *ShipGetInfo();
-	PyRepObject *CharGetInfo();
 
 	/*
 	 * Public Fields:

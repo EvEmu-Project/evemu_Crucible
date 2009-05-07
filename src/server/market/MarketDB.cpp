@@ -764,6 +764,20 @@ bool MarketDB::DeleteOrder(uint32 orderID) {
 	return true;
 }
 
+bool MarketDB::AddCharacterBalance(uint32 char_id, double delta)
+{
+	DBerror err;
+
+	if(!m_db->RunQuery(err,
+		"UPDATE character_ SET balance=balance+%.2f WHERE characterID=%u",delta,char_id))
+	{
+		_log(SERVICE__ERROR, "Error in query : %s", err.c_str());
+		return false;
+	}
+
+	return (true);
+}
+
 bool MarketDB::RecordTransaction(
 	uint32 typeID, 
 	uint32 quantity, 

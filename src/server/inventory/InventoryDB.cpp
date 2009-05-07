@@ -1110,10 +1110,10 @@ bool InventoryDB::SaveCharacterAppearance(uint32 characterID, const CharacterApp
 		"  headRotation1 = %f, headRotation2 = %f, headRotation3 = %f,"
 		"  eyeRotation1 = %f, eyeRotation2 = %f, eyeRotation3 = %f,"
 		"  camPos1 = %f, camPos2 = %f, camPos3 = %f,"
-		"  morph1n = %f, morph1s = %f, morph1w = %f, morph1e = %f,"
-		"  morph2n = %f, morph2s = %f, morph2w = %f, morph2e = %f,"
-		"  morph3n = %f, morph3s = %f, morph3w = %f, morph3e = %f,"
-		"  morph4n = %f, morph4s = %f, morph4w = %f, morph4e = %f"
+		"  morph1n = %s, morph1s = %s, morph1w = %s, morph1e = %s,"
+		"  morph2n = %s, morph2s = %s, morph2w = %s, morph2e = %s,"
+		"  morph3n = %s, morph3s = %s, morph3w = %s, morph3e = %s,"
+		"  morph4n = %s, morph4s = %s, morph4w = %s, morph4e = %s"
 		" WHERE characterID = %u",
 		_VoN(data, accessoryID),
 		_VoN(data, beardID),
