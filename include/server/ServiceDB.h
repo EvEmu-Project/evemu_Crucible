@@ -60,20 +60,23 @@ public:
 	ServiceDB(ServiceDB *db);	//alternate constructor which simply steals the dbcore from a different serviceDB object to prevent having to expose it.
 	virtual ~ServiceDB();
 
-	bool DoLogin(const char *login, const char *pass, uint32 &out_accountID, uint32 &out_role);
+	/**
+	 * DoLogin()
+	 *
+	 * This method performs checks when an account is logging into the server.
+	 *
+	 * @param[in] login
+	 * @param[in] pass
+	 * @param[out] acountID
+	 * @param[out] role
+	 * @author 
+	*/
+	bool DoLogin(const char *login, const char *pass, uint32 &accountID, uint32 &role);
 
 	//entity/item stuff:
-	bool ListEntitiesByCategory(uint32 ownerID, uint32 categoryID, std::vector<uint32> &into);
-	uint32 GetCurrentShipID(uint32 characterID);
-	PyRepObject *GetInventory(uint32 entityID, EVEItemFlags flag);
-
-	void SetCharacterLocation(uint32 characterID, uint32 stationID, uint32 systemID, uint32 constellationID, uint32 regionID);
-	
 	PyRepObject *GetSolRow(uint32 systemID) const;
 	PyRepObject *GetSolDroneState(uint32 systemID) const;
 
-	void MoveCharacter(uint32 charID);
-	
 	bool GetSystemInfo(uint32 systemID, uint32 *constellationID, uint32 *regionID, std::string *name, std::string *securityClass);	// mapSolarSystems
 	bool GetStaticItemInfo(uint32 itemID, uint32 *systemID, uint32 *constellationID, uint32 *regionID, GPoint *position);	// mapDenormalize
 	bool GetStationInfo(uint32 stationID, uint32 *systemID, uint32 *constellationID, uint32 *regionID, GPoint *position, GPoint *dockPosition, GVector *dockOrientation);	// staStations
@@ -84,10 +87,10 @@ public:
 	
 	//these really want to move back into AccountDB
 	bool GiveCash( uint32 characterID, JournalRefType refTypeID, uint32 ownerFromID, uint32 ownerToID, const char *argID1, uint32 accountID, EVEAccountKeys accountKey, double amount, double balance, const char *reason);
-	bool AddBalanceToCorp(uint32 corpID, double amount);
 	double GetCorpBalance(uint32 corpID);
+	bool AddBalanceToCorp(uint32 corpID, double amount);
 
-	//johnsus - serverStartType mod
+	//johnsus - serverOnline mod
 	void SetServerOnlineStatus(bool onoff_status);
 	//johnsus - characterOnline mod
 	void SetCharacterOnlineStatus(uint32 char_id, bool onoff_status);

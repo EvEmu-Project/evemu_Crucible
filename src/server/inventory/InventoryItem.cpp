@@ -445,7 +445,7 @@ void InventoryItem::Delete() {
 	
 	//and now we destroy ourself.
 	if(m_refCount != 1) {
-		_log(ITEM__ERROR, "Delete() called on item %u (%p) which has %d references! Invalidating as best as possible..", m_itemID, this, m_refCount);
+		_log(ITEM__ERROR, "Delete() called on item %u (%p) which has %u references! Invalidating as best as possible..", m_itemID, this, m_refCount);
 		m_itemName = "BAD DELETED ITEM";
 		m_quantity = 0;
 		m_contentsLoaded = true;

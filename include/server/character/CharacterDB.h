@@ -47,6 +47,7 @@ public:
 	//PyRepObject *GetAgentPublicInfo(uint32 agentID);
 	PyRepObject *GetOwnerNoteLabels(uint32 charID);
 	PyRepObject *GetOwnerNote(uint32 charID, uint32 noteID);
+	PyRepObject *GetCharacterAppearance(uint32 characterID);
 
 	bool ValidateCharName(const char *name);
 	/**
@@ -74,8 +75,6 @@ public:
 	bool del_name_validation_set(uint32 characterID);
 
 	bool GetCharItems(uint32 characterID, std::vector<uint32> &into);
-
-	PyRepObject *GetCharacterAppearance(uint32 characterID);
 
 	bool GetLocationCorporationByCareer(CharacterData &cdata);
 
@@ -135,7 +134,6 @@ private:
 	 */
 	void load_name_validation_set();
 
-private:
 	/* set only for validation */
 	typedef std::set<uint32>			CharValidationSet;
 	typedef CharValidationSet::iterator	CharValidationSetItr;

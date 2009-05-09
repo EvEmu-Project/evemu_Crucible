@@ -120,7 +120,15 @@ PyResult Standing2Service::Handle_GetSecurityRating(PyCallArgs &call) {
 		return NULL;
 	}
 
-	return(new PyRepReal(m_db.GetSecurityRating(arg.arg)));
+	Character *c = m_manager->item_factory.GetCharacter(arg.arg, false);
+	if(c == NULL) {
+		_log(SERVICE__ERROR, "Character %u not found.", arg.arg);
+		return NULL;
+	}
+	PyRep *res = new PyRepReal(c->securityRating());
+	c->DecRef();
+
+	return res;
 }
 
 PyResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) {

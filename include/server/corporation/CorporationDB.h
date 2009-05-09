@@ -43,15 +43,23 @@ public:
 	CorporationDB(DBcore *db);
 	virtual ~CorporationDB();
 
+	PyRepObject *GetCorporation(uint32 corpID);
+	PyRepObject *GetStations(uint32 corpID);
+	PyRepObject *GetEveOwners();
+
+	PyRep *GetMyApplications(uint32 charID);
+	PyRep *GetApplications(uint32 corpID);
+	PyRepObject *GetEmploymentRecord(uint32 charID);
+	PyRepObject *GetMedalsReceived(uint32 charID);
+
 	PyRepObject *ListCorpStations(uint32 corp_id);
 
 	PyRepObject *ListStationOffices(uint32 station_id);
 	PyRepObject *ListStationCorps(uint32 station_id);
 	PyRepObject *ListStationOwners(uint32 station_id);
-	PyRepObject *GetEmploymentRecord(uint32 charID);
-	PyRepObject *GetMedalsReceived(uint32 charID);
 	
 	PyRepDict *ListAllCorpInfo();
+	PyRepObject *ListNPCDivisions();
 	bool ListAllCorpFactions(std::map<uint32, uint32> &into);
 	bool ListAllFactionStationCounts(std::map<uint32, uint32> &into);
 	bool ListAllFactionSystemCounts(std::map<uint32, uint32> &into);
@@ -64,25 +72,19 @@ public:
 	bool JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorpID, const CorpMemberInfo &roles);
 	bool CreateCorporationChangePacket(Notify_OnCorporaionChanged & cc, uint32 oldCorpID, uint32 newCorpID);
 	bool CreateCorporationCreatePacket(Notify_OnCorporaionChanged & cc, uint32 oldCorpID, uint32 newCorpID);
-	PyRepObject *GetCorporation(uint32 corpID);
-	PyRepObject *GetEveOwners();
 	bool StoreCharacterRoles(uint32 charID, const CorpMemberInfo &info);
-	PyRepObject *GetStations(uint32 corpID);
 	uint32 GetOffices(uint32 corpID);
 	PyRep *Fetch(uint32 corpID, uint32 from, uint32 count);
 
-	PyRepObject *ListNPCDivisions();
 	uint32 GetQuoteForRentingAnOffice(uint32 corpID);
 	uint32 ReserveOffice(const OfficeInfo & oInfo);
 
 	uint32 GetStationOwner(uint32 stationID);
-	uint32 GetStationCorporationCEO(uint32);
-	uint32 GetCorporationCEO(uint32);
+	uint32 GetStationCorporationCEO(uint32 stationID);
+	uint32 GetCorporationCEO(uint32 corpID);
 
-	PyRep *GetMyApplications(uint32 charID);
-	bool InsertApplication(const ApplicationInfo & aInfo);
-	PyRep *GetApplications(uint32 corpID);
 	bool GetCurrentApplicationInfo(uint32 charID, uint32 corpID, ApplicationInfo &app);
+	bool InsertApplication(const ApplicationInfo & aInfo);
 	bool UpdateApplication(const ApplicationInfo &app);
 	bool DeleteApplication(const ApplicationInfo &app);
 	bool CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, uint32 newCorpID, uint32 charID);

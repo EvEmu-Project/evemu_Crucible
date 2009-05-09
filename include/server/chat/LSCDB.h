@@ -58,9 +58,9 @@ public:
 
 	std::string GetRegionName(uint32 id) { return GetChannelName(id, "mapRegions", "regionName", "regionID"); }
 	std::string GetConstellationName(uint32 id) { return GetChannelName(id, "mapConstellations", "constellationName", "constellationID"); }
-	std::string GetSolarSystemName(uint32 id) { return GetChannelName(id, "entity", "itemName", "itemID"); }
+	std::string GetSolarSystemName(uint32 id) { return GetChannelName(id, "mapSolarSystems", "solarSystemName", "solarSystemID"); }
 	std::string GetCorporationName(uint32 id) { return GetChannelName(id, "corporation", "corporationName", "corporationID"); }
-	std::string GetChatacterName(uint32 id) { return GetChannelName(id, "entity", "itemName", "itemID"); }
+	std::string GetCharacterName(uint32 id) { return GetChannelName(id, "entity", "itemName", "itemID"); }
 
 protected:
 	std::string GetChannelName(uint32 id, const char * table, const char * column, const char * key);

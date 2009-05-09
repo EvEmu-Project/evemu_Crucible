@@ -591,10 +591,6 @@ void Character::SetDescription(const char *newDescription) {
 	Save(false, false);
 }
 
-//I think I ultimately want this logic somewhere else...
-//this doesn't seem to be working either... for some reason, the client is
-//getting 0 for its skill points per minute field and throwing a division
-// exception.
 void Character::TrainSkill(InventoryItem *skill) {
 	if(m_flag != flagPilot) {
 		codelog(ITEM__ERROR, "%s (%u): Tried to train skill %u on non-pilot object.", m_itemName.c_str(), m_itemID, skill->itemID());

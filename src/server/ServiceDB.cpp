@@ -42,17 +42,7 @@ ServiceDB::ServiceDB(ServiceDB *existing_db)
 
 ServiceDB::~ServiceDB() {}
 
-/**
- * DoLogin()
- *
- * This method performs checks when an account is logging into the server.
- * @param login
- * @param pass
- * @param out_acountID
- * @param out_role
- * @author 
-*/
-bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_accountID, uint32 &out_role) {
+bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &accountID, uint32 &role) {
 	DBQueryResult res;
 
 	if(pass[0] == '\0') {
@@ -117,8 +107,8 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &out_account
 		return false;
 	}
 	
-	out_accountID = row.GetUInt(0);
-	out_role = row.GetUInt(1);
+	accountID = row.GetUInt(0);
+	role = row.GetUInt(1);
 	
 	return true;
 }
@@ -135,110 +125,6 @@ bool ServiceDB::CreateNewAccount( const char * accountName, const char * account
 	}
 	return true;
 }
-
-void ServiceDB::SetCharacterLocation(uint32 characterID, uint32 stationID, 
-	uint32 systemID, uint32 constellationID, uint32 regionID) {
-	DBerror err;
-	if(!m_db->RunQuery(err,
-		"UPDATE character_"
-		" SET"
-		"	stationID=%u,"
-		"	solarSystemID=%u,"
-		"	constellationID=%u,"
-		"	regionID=%u"
-		" WHERE characterID=%u",
-		stationID, systemID, constellationID, regionID,
-		characterID)
-	) {
-		codelog(SERVICE__ERROR, "Failed to set character location %u: %s", characterID, err.c_str());
-	}
-}
-
-bool ServiceDB::ListEntitiesByCategory(uint32 ownerID, uint32 categoryID, std::vector<uint32> &into) {
-	DBQueryResult res;
-	
-	if(!m_db->RunQuery(res,
-		"SELECT "
-		"	entity.itemID"
-		" FROM entity"
-		"	LEFT JOIN invTypes ON entity.typeID=invTypes.typeID"
-		"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
-		" WHERE invGroups.categoryID=%u AND entity.ownerID=%u", categoryID, ownerID))
-	{
-		_log(SERVICE__ERROR, "Error in ListEntitiesByCategory query: %s", res.error.c_str());
-		return false;
-	}
-	
-	DBResultRow row;
-	while(res.GetRow(row)) {
-		into.push_back(row.GetInt(0));
-	}
-	return true;
-}
-
-uint32 ServiceDB::GetCurrentShipID(uint32 characterID) {
-	DBQueryResult res;
-	
-	if(!m_db->RunQuery(res,
-		//not sure if this is gunna be valid all the time...
-		"SELECT"
-		"	locationID"
-		" FROM entity"
-		" WHERE itemID=%u", characterID
-		/*"SELECT "
-		"	itemID"
-		" FROM entity AS chare LEFT JOIN entity AS shipe"
-		"	LEFT JOIN invTypes ON shipe.typeID=invTypes.typeID"
-		"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
-		" WHERE invGroups.categoryID=6 AND 
-		" WHERE typeID=%u", typeID*/
-	))
-	{
-		_log(SERVICE__ERROR, "Error in GetCurrentShipID query: %s", res.error.c_str());
-		return(0);
-	}
-	
-	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(SERVICE__ERROR, "Error in GetCurrentShipID query: no ship for char id %d", characterID);
-		return(0);
-	}
-
-	return(row.GetUInt(0));
-}
-
-/*
-PyRepObject *ServiceDB::GetInventory(uint32 containerID, EVEItemFlags flag) {
-	DBQueryResult res;
-	
-	if(!m_db->RunQuery(res,
-		"SELECT "
-		" entity.itemID,"
-		" entity.typeID,"
-		" entity.ownerID,"
-		" entity.locationID,"
-		" entity.flag,"
-		" entity.contraband,"
-		" entity.singleton,"
-		" entity.quantity,"
-		" invTypes.groupID,"
-		" invGroups.categoryID,"
-		" entity.customInfo"
-		" FROM entity "
-		"	LEFT JOIN invTypes ON entity.typeID=invTypes.typeID"
-		"	LEFT JOIN invGroups ON invTypes.groupID=invGroups.groupID"
-		" WHERE entity.locationID=%u "
-		"	AND ( %u=0 OR entity.flag=%u)",	//crazy =0 logic is to make 0 match any flag without copying the entire query
-			containerID, flag, flag))
-	{
-		codelog(SERVICE__ERROR, "Error in query for %d,%d: %s", containerID, flag, res.error.c_str());
-		return NULL;
-	}
-	
-	return(DBResultToRowset(res));
-}
-*/
-
 
 PyRepObject *ServiceDB::GetSolRow(uint32 systemID) const {
 	DBQueryResult res;

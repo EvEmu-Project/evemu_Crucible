@@ -421,7 +421,7 @@ LSCChannel *LSCService::CreateChannel(uint32 channelID) {
 	else if ((channelID >= 1000000) && (channelID < 2000000)) { type = LSCChannel::corp; name = "System Channels\\Corp"; motd = m_db.GetCorporationName(channelID); }
 	// player-created corporations
 	else if ((channelID >= 2000000) && (channelID < 3000000)) { type = LSCChannel::corp; name = "System Channels\\Corp"; motd = m_db.GetCorporationName(channelID); }
-	else { type = LSCChannel::normal; name = m_db.GetChatacterName(channelID); motd = ""; } // this is either a char channel or something i have no idea about
+	else { type = LSCChannel::normal; name = m_db.GetCharacterName(channelID); motd = ""; } // this is either a char channel or something i have no idea about
 
 	return m_channels[channelID] = new LSCChannel(this, channelID, type, channelID, name.c_str(), motd.c_str(), NULL, true, NULL, false, true, false, cmode);
 }
@@ -436,7 +436,7 @@ LSCChannel *LSCService::CreateChannel(uint32 channelID, LSCChannel::Type type) {
 	// player-created corporations
 	else if ((channelID >= 2000000) && (channelID < 3000000)) { name = "System Channels\\Corp"; motd = m_db.GetCorporationName(channelID); }
 	// this is either a char channel or something i have no idea about
-	else { name = m_db.GetChatacterName(channelID); motd = ""; }
+	else { name = m_db.GetCharacterName(channelID); motd = ""; }
 	
 	return m_channels[channelID] = new LSCChannel(this, channelID, type, channelID, name.c_str(), motd.c_str(), NULL, true, NULL, false, true, false, cmode);
 }
