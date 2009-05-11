@@ -223,6 +223,8 @@ libship_a_SOURCES = \
 	ship/InsuranceService.h \
 	ship/ModuleManager.cpp \
 	ship/ModuleManager.h \
+	ship/Ship.cpp \
+	ship/Ship.h \
 	ship/ShipDB.cpp \
 	ship/ShipDB.h \
 	ship/ShipService.cpp \

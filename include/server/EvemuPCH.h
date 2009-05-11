@@ -258,6 +258,7 @@
 #include "../server/ship/BeyonceService.h"
 #include "../server/ship/DestinyManager.h"
 #include "../server/ship/InsuranceService.h"
+#include "../server/ship/Ship.h"
 #include "../server/ship/ShipDB.h"
 #include "../server/ship/ShipService.h"
 #include "../server/ship/TargetManager.h"

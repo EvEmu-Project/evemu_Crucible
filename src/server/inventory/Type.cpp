@@ -281,6 +281,16 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID
 		}
 
 		///////////////////////////////////////
+		// Ship:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Ship: {
+			// redirect further loading to ShipType
+			return(ShipType::_Load(
+				factory, typeID, *g, data
+			));
+		}
+
+		///////////////////////////////////////
 		// Default:
 		///////////////////////////////////////
 		default: {

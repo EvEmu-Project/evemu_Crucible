@@ -666,6 +666,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\server\ship\Ship.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\server\ship\ShipDB.cpp"
 					>
 				</File>
@@ -1161,6 +1165,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\ship\ModuleManager.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\ship\Ship.h"
 					>
 				</File>
 				<File

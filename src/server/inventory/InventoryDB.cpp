@@ -318,6 +318,33 @@ bool InventoryDB::GetCharacterTypeByBloodline(uint32 bloodlineID, uint32 &charac
 	return GetCharacterType(bloodlineID, into);
 }
 
+bool InventoryDB::GetShipType(uint32 shipTypeID, ShipTypeData &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" weaponTypeID, miningTypeID, skillTypeID"
+		" FROM invShipTypes"
+		" WHERE shipTypeID = %u",
+		shipTypeID))
+	{
+		_log(DATABASE__ERROR, "Failed to query ship type %u: %s.", shipTypeID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "Ship type %u not found.", shipTypeID);
+		return false;
+	}
+
+	into.weaponTypeID = row.IsNull(0) ? 0 : row.GetUInt(0);
+	into.miningTypeID = row.IsNull(1) ? 0 : row.GetUInt(1);
+	into.skillTypeID = row.IsNull(2) ? 0 : row.GetUInt(2);
+
+	return true;
+}
+
 bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
 	DBQueryResult res;
 	

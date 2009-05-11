@@ -40,6 +40,7 @@ class GroupData;
 class TypeData;
 class BlueprintTypeData;
 class CharacterTypeData;
+class ShipTypeData;
 
 class ItemData;
 class BlueprintData;
@@ -71,7 +72,7 @@ public:
 
 	/*
 	 * Type stuff
-	 * (invTypes, invBlueprintTypes, bloodlineTypes, chrBloodlines)
+	 * (invTypes, invBlueprintTypes, bloodlineTypes, chrBloodlines, invShipTypes) 
 	 */
 	bool GetType(uint32 typeID, TypeData &into);
 
@@ -120,6 +121,15 @@ public:
 	 * @return True on success, false on failure.
 	 */
 	bool GetCharacterTypeByBloodline(uint32 bloodlineID, uint32 &characterTypeID, CharacterTypeData &into);
+
+	/**
+	 * Loads ship type data into given container.
+	 *
+	 * @param[in] shipTypeID ID of ship type.
+	 * @param[in] into Container to load data into.
+	 * @return True on success, false on failure.
+	 */
+	bool GetShipType(uint32 shipTypeID, ShipTypeData &into);
 
 	/*
 	 * Item stuff

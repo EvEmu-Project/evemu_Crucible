@@ -150,6 +150,20 @@ const CharacterType *ItemFactory::GetCharacterTypeByBloodline(uint32 bloodlineID
 	return GetCharacterType(characterTypeID);
 }
 
+const ShipType *ItemFactory::GetShipType(uint32 shipTypeID) {
+	std::map<uint32, Type *>::iterator res = m_types.find(shipTypeID);
+	if(res == m_types.end()) {
+		ShipType *st = ShipType::Load(*this, shipTypeID);
+		if(st == NULL)
+			return NULL;
+
+		res = m_types.insert(
+			std::make_pair(shipTypeID, st)
+		).first;
+	}
+	return(static_cast<const ShipType *>(res->second));
+}
+
 InventoryItem *ItemFactory::GetItem(uint32 itemID, bool recurse) {
 	std::map<uint32, InventoryItem *>::iterator res = m_items.find(itemID);
 	if(res == m_items.end()) {
