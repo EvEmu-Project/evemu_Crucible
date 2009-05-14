@@ -72,7 +72,7 @@ public:
 
 	/*
 	 * Type stuff
-	 * (invTypes, invBlueprintTypes, bloodlineTypes, chrBloodlines, invShipTypes) 
+	 * (invTypes, invBlueprintTypes, bloodlineTypes, chrBloodlines, invShipTypes)
 	 */
 	bool GetType(uint32 typeID, TypeData &into);
 

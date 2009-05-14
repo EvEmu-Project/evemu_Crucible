@@ -99,10 +99,11 @@ const Group *ItemFactory::GetGroup(uint32 groupID) {
 	return(res->second);
 }
 
-const Type *ItemFactory::GetType(uint32 typeID) {
+template<class _Ty>
+const _Ty *ItemFactory::_GetType(uint32 typeID) {
 	std::map<uint32, Type *>::iterator res = m_types.find(typeID);
 	if(res == m_types.end()) {
-		Type *type = Type::Load(*this, typeID);
+		_Ty *type = _Ty::Load(*this, typeID);
 		if(type == NULL)
 			return NULL;
 
@@ -111,35 +112,19 @@ const Type *ItemFactory::GetType(uint32 typeID) {
 			std::make_pair(typeID, type)
 		).first;
 	}
-	return(res->second);
+	return static_cast<const _Ty *>(res->second);
+}
+
+const Type *ItemFactory::GetType(uint32 typeID) {
+	return _GetType<Type>(typeID);
 }
 
 const BlueprintType *ItemFactory::GetBlueprintType(uint32 blueprintTypeID) {
-	std::map<uint32, Type *>::iterator res = m_types.find(blueprintTypeID);
-	if(res == m_types.end()) {
-		BlueprintType *bt = BlueprintType::Load(*this, blueprintTypeID);
-		if(bt == NULL)
-			return NULL;
-
-		res = m_types.insert(
-			std::make_pair(blueprintTypeID, bt)
-		).first;
-	}
-	return(static_cast<const BlueprintType *>(res->second));
+	return _GetType<BlueprintType>(blueprintTypeID);
 }
 
 const CharacterType *ItemFactory::GetCharacterType(uint32 characterTypeID) {
-	std::map<uint32, Type *>::iterator res = m_types.find(characterTypeID);
-	if(res == m_types.end()) {
-		CharacterType *ct = CharacterType::Load(*this, characterTypeID);
-		if(ct == NULL)
-			return NULL;
-
-		res = m_types.insert(
-			std::make_pair(characterTypeID, ct)
-		).first;
-	}
-	return(static_cast<const CharacterType *>(res->second));
+	return _GetType<CharacterType>(characterTypeID);
 }
 
 const CharacterType *ItemFactory::GetCharacterTypeByBloodline(uint32 bloodlineID) {
@@ -151,30 +136,21 @@ const CharacterType *ItemFactory::GetCharacterTypeByBloodline(uint32 bloodlineID
 }
 
 const ShipType *ItemFactory::GetShipType(uint32 shipTypeID) {
-	std::map<uint32, Type *>::iterator res = m_types.find(shipTypeID);
-	if(res == m_types.end()) {
-		ShipType *st = ShipType::Load(*this, shipTypeID);
-		if(st == NULL)
-			return NULL;
-
-		res = m_types.insert(
-			std::make_pair(shipTypeID, st)
-		).first;
-	}
-	return(static_cast<const ShipType *>(res->second));
+	return _GetType<ShipType>(shipTypeID);
 }
 
-InventoryItem *ItemFactory::GetItem(uint32 itemID, bool recurse) {
+template<class _Ty>
+_Ty *ItemFactory::_GetItem(uint32 itemID, bool recurse) {
 	std::map<uint32, InventoryItem *>::iterator res = m_items.find(itemID);
 	if(res == m_items.end()) {
 		// load the item
-		InventoryItem *i = InventoryItem::Load(*this, itemID, recurse);
-		if(i == NULL)
+		_Ty *item = _Ty::Load(*this, itemID, recurse);
+		if(item == NULL)
 			return NULL;
 
 		//we keep the original ref.
 		res = m_items.insert(
-			std::make_pair(itemID, i)
+			std::make_pair(itemID, item)
 		).first;
 	} else if(recurse) {
 		// ensure its recursively loaded
@@ -182,41 +158,19 @@ InventoryItem *ItemFactory::GetItem(uint32 itemID, bool recurse) {
 			return NULL;
 	}
 	//we return new ref to the user.
-	return(res->second->IncRef());
+	return static_cast<_Ty *>(res->second->IncRef());
+}
+
+InventoryItem *ItemFactory::GetItem(uint32 itemID, bool recurse) {
+	return _GetItem<InventoryItem>(itemID, recurse);
 }
 
 Blueprint *ItemFactory::GetBlueprint(uint32 blueprintID, bool recurse) {
-	std::map<uint32, InventoryItem *>::iterator res = m_items.find(blueprintID);
-	if(res == m_items.end()) {
-		Blueprint *bi = Blueprint::Load(*this, blueprintID, recurse);
-		if(bi == NULL)
-			return NULL;
-
-		res = m_items.insert(
-			std::make_pair(blueprintID, bi)
-		).first;
-	} else if(recurse) {
-		if(!res->second->LoadContents(true))
-			return NULL;
-	}
-	return(static_cast<Blueprint *>(res->second->IncRef()));
+	return _GetItem<Blueprint>(blueprintID, recurse);
 }
 
 Character *ItemFactory::GetCharacter(uint32 characterID, bool recurse) {
-	std::map<uint32, InventoryItem *>::iterator res = m_items.find(characterID);
-	if(res == m_items.end()) {
-		Character *c = Character::Load(*this, characterID, recurse);
-		if(c == NULL)
-			return NULL;
-
-		res = m_items.insert(
-			std::pair<uint32, InventoryItem *>(characterID, c)
-		).first;
-	} else if(recurse) {
-		if(!res->second->LoadContents(true))
-			return NULL;
-	}
-	return(static_cast<Character *>(res->second->IncRef()));
+	return _GetItem<Character>(characterID, recurse);
 }
 
 InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
@@ -259,7 +213,7 @@ InventoryItem *ItemFactory::_GetIfContentsLoaded(uint32 itemID) {
 void ItemFactory::_DeleteItem(uint32 itemID) {
 	std::map<uint32, InventoryItem *>::iterator res = m_items.find(itemID);
 	if(res == m_items.end()) {
-		codelog(SERVICE__ERROR, "Item ID %d not found when requesting deletion!", itemID);
+		codelog(SERVICE__ERROR, "Item ID %u not found when requesting deletion!", itemID);
 		return;
 	}
 

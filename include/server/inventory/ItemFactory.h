@@ -97,7 +97,9 @@ public:
 	 * Item stuff
 	 */
 	InventoryItem *GetItem(uint32 itemID, bool recurse=true);
+
 	Blueprint *GetBlueprint(uint32 blueprintID, bool recurse=true);
+
 	/**
 	 * Loads character.
 	 *
@@ -141,9 +143,15 @@ protected:
 	std::map<uint32, Group *> m_groups;
 
 	// Types:
+	template<class _Ty>
+	const _Ty *_GetType(uint32 typeID);
+
 	std::map<uint32, Type *> m_types;
 
 	// Items:
+	template<class _Ty>
+	_Ty *_GetItem(uint32 itemID, bool recurse=true);
+
 	InventoryItem *_GetIfContentsLoaded(uint32 itemID); // specialized function to deal with item movement.
 	void _DeleteItem(uint32 itemID);
 
