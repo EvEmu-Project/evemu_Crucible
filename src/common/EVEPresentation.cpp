@@ -294,19 +294,21 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
 
 			//send our handshake
 			CryptoServerHandshake server_shake;
-			server_shake.serverChallenge = "hi";
+			server_shake.serverChallenge = "";
 			server_shake.func_marshaled_code = new PyRepBuffer(handshakeFunc, sizeof(handshakeFunc));
+			server_shake.cluster_usercount = m_userCount;
+			server_shake.proxy_nodeid = 0xFFAA;
+			server_shake.user_logonqueueposition = 1;
+			// binascii.crc_hqx of marshaled single-element tuple containing 64 zero-bytes string
+			server_shake.challenge_responsehash = "55087";
+
 			server_shake.macho_version = MachoNetVersion;
 			server_shake.boot_version = EVEVersionNumber;
 			server_shake.boot_build = EVEBuildVersion;
 			server_shake.boot_codename = EVEProjectCodename;
 			server_shake.boot_region = EVEProjectRegion;
-			server_shake.cluster_usercount = m_userCount;
-			server_shake.proxy_nodeid = 0xFFAA;
-			server_shake.user_logonqueueposition = 1;
-			server_shake.challenge_responsehash = "654"; // binascii.crc_hqx of 64 zero bytes in a string, in a single element tuple, marshaled
-			
-			r = server_shake.Encode();
+
+			r = server_shake.FastEncode();
 			_QueueRep(r);
 			delete r;
 

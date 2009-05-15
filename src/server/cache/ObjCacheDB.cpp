@@ -154,7 +154,7 @@ PyRep *ObjCacheDB::Generate_AllianceShortnames()
 PyRep *ObjCacheDB::Generate_invCategories()
 {
 	DBQueryResult res;
-	const char *q = "SELECT categoryID,categoryName,description,graphicID,0 AS dataID FROM invCategories";
+	const char *q = "SELECT categoryID,categoryName,description,graphicID,published,0 AS dataID FROM invCategories";
 	if(m_db->RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.categories': %s",res.error.c_str());
@@ -388,7 +388,7 @@ PyRep *ObjCacheDB::Generate_invShipTypes()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.shiptypes': %s", res.error.c_str());
 		return NULL;
 	}
-	return DBResultToTupleSet(res);
+	return DBResultToCRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_cacheLocations()
@@ -460,7 +460,7 @@ PyRep *ObjCacheDB::Generate_invMetaTypes()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.invmetatypes': %s", res.error.c_str());
 		return NULL;
 	}
-	return DBResultToTupleSet(res);
+	return DBResultToCRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_chrBloodlines()
