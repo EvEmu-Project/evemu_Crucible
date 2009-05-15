@@ -167,12 +167,10 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
 #define GetByType(x) \
 	*(x*)packet;\
-	packet+= sizeof(x);\
-	len -= sizeof(x);\
-	len_used += sizeof(x);
+	IncreaseIndex(sizeof(x));
 
 #define IncreaseIndex(count) \
-	packet+= count;\
+	packet += count;\
 	len -= count;\
 	len_used += count;
 
@@ -431,17 +429,14 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		
 		break; }
 	
-	case Op_PyByteString2: {	//SHORT_BINSTRING
+	case Op_PyShortString: {	//SHORT_BINSTRING
 		
 		if(len < 1) {
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for string length (missing length and data)\n");
 			break;
 		}
-		uint32 str_len = *packet;
-		packet++;
-		len--;
-		len_used++;
-				
+
+		uint8 str_len = Getuint8();	
 		if(len < str_len) {
 			_log(NET__UNMARSHAL_ERROR, "Ran out of data in string of length %d, %d bytes remain.\n", str_len, len);
 			break;
@@ -451,16 +446,14 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		res = r;
 
 		if(ContainsNonPrintables(r->value.c_str())) {
-			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString2(len=%d, <binary>)", pfx, opcode, str_len);
+			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString2(len=%u, <binary>)", pfx, opcode, str_len);
 			_log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
 			phex(NET__UNMARSHAL_BUFHEX, packet, str_len);
-		} else
-			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString2(len=%d, \"%s\")", pfx, opcode, str_len, r->value.c_str());
+		} else {
+			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString2(len=%u, \"%s\")", pfx, opcode, str_len, r->value.c_str());
+		}
 		
-		packet += str_len;
-		len -= str_len;
-		len_used += str_len;
-		
+		IncreaseIndex(str_len);
 		break; }
 	
 	case Op_PyStringTableItem: {	//an item from the string table
@@ -515,9 +508,25 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		IncreaseIndex(stringLength*2);
 		break; }
 	
-	case 0x13:
-		{ _log(NET__UNMARSHAL_ERROR, "Unhandled field type 0x%x\n", opcode);
-			phex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);
+	case Op_PyLongString: {
+		uint32 strLen = Getuint8();
+		if (strLen == 0xFF)
+		{
+			if (len < 4)
+			{
+				_log(NET__UNMARSHAL_ERROR, "Not enough data for long string argument\n");
+				break;
+			}
+			strLen = Getuint32();
+		}
+
+		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyString of len %u", pfx, opcode, strLen);
+		_log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
+		phex(NET__UNMARSHAL_BUFHEX, packet, strLen);
+
+		res = new PyRepString(packet, strLen, false);
+
+		IncreaseIndex(strLen);
 		break; }
 
 	/*                                                                              

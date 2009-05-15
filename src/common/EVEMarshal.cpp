@@ -248,24 +248,19 @@ public:
 					PutByte(sid);
 					return;
 				}
-				else if(len < 0xFF)
-				{
-					PutByte(Op_PyByteString2);
-					PutByte(len);
-					PutBytes(rep->value.c_str(), len);
-					return;
-				}
+				// NOTE: they seem to have stopped using Op_PyShortString
 				else
 				{
-					//well, this type does not seem to support a length
-					//extension, so I'm hacking it to a buffer for now. We should
-					//probably use a unicode string in the future
-					PutByte(Op_PyUnicodeString);
-					PutByte(0xFF);
-					PutUint32(len);
+					PutByte(Op_PyLongString);
+					if(len < 0xFF) {
+						PutByte(len);
+					} else {
+						PutByte(0xFF);
+						PutUint32(len);
+					}
 					PutBytes(rep->value.c_str(), len);
-					return;
 				}
+				// TODO: use Op_PyUnicodeString?
 			}
 		}
 	}

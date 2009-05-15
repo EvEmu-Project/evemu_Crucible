@@ -44,10 +44,10 @@ typedef enum
 	Op_PyBuffer				= 0x0D,
 	Op_PyEmptyString		= 0x0E,	//not 100% sure.
 	Op_PyCharString			= 0x0F,	//a single character string
-	Op_PyByteString2		= 0x10,	//not sure the difference between this and Op_PyByteString
+	Op_PyShortString		= 0x10,	//string limited to 255 chars
 	Op_PyStringTableItem	= 0x11,
 	Op_PyUnicodeByteString	= 0x12,
-	//Op_Pyunk1				= 0x13, // Doc: string ref
+	Op_PyLongString			= 0x13, //string with length extension support
 	Op_PyTuple				= 0x14,
 	Op_PyList				= 0x15,
 	Op_PyDict				= 0x16,

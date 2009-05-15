@@ -53,7 +53,7 @@ EVEPresentation::EVEPresentation(
 }
 
 EVEPresentation::~EVEPresentation() {
-	delete m_request;
+	SafeDelete(m_request);
 	//let the server thread know we are done with this connection
 	//net->Free();
 }
@@ -267,8 +267,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
 			
 		case CryptoRequestReceived_ChallengeWait: {
 			//just to be sure
-			if(m_request != NULL)
-				delete m_request;
+			SafeDelete(m_request);
 			m_request = new CryptoChallengePacket;
 			if(!m_request->Decode(&r)) {
 				_log(NET__PRES_ERROR, "%s: Received invalid crypto challenge!", GetConnectedAddress().c_str());
@@ -281,8 +280,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
 				//this is little wrong because on live they send password version always, but only once,
 				//but we send password version when we get request with hashed password ...
 				_log(NET__PRES_DEBUG, "%s: Got hashed password, requesting plain.", GetConnectedAddress().c_str());
-				delete m_request;
-				m_request = NULL;
+				SafeDelete(m_request);
 
 				//send passwordVersion required: 1=plain, 2=hashed
 				PyRep *r = new PyRepInteger(1);
@@ -325,8 +323,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
 			//this is a bit crappy ...
 			client->Login(m_request);
 
-			delete m_request;
-			m_request = NULL;
+			SafeDelete(m_request);
 
 			m_state = AcceptingPackets;
 
