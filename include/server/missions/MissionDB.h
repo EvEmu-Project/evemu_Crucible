@@ -40,7 +40,7 @@ public:
 	MissionDB(DBcore *db);
 	virtual ~MissionDB();
 
-	PyRepObject *GetAgents();
+	PyRepNewObject *GetAgents();
 	bool LoadAgentActions(uint32 agentID, std::map<uint32, AgentActions *> &into);
 	
 	//AgentLevel *LoadAgentLevel(uint8 level);

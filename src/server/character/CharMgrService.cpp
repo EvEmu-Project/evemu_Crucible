@@ -36,6 +36,7 @@ CharMgrService::CharMgrService(PyServiceMgr *mgr, DBcore *dbc)
 
 	PyCallable_REG_CALL(CharMgrService, GetPublicInfo)
 	PyCallable_REG_CALL(CharMgrService, GetPublicInfo3)
+	PyCallable_REG_CALL(CharMgrService, GetTopBounties)
 }
 
 CharMgrService::~CharMgrService() {
@@ -85,6 +86,12 @@ PyResult CharMgrService::Handle_GetPublicInfo3(PyCallArgs &call) {
 	}
 	
 	return(result);
+}
+
+PyResult CharMgrService::Handle_GetTopBounties(PyCallArgs &call) {
+	_log(SERVICE__ERROR, "%s::GetTopBounties unimplemented.", GetName());
+
+	return NULL;
 }
 
 
