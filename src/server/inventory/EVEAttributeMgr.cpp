@@ -118,6 +118,18 @@ bool TypeAttributeMgr::Load(InventoryDB &db) {
 /*
  * ItemAttributeMgr
  */
+ItemAttributeMgr::ItemAttributeMgr(
+	ItemFactory &factory,
+	const InventoryItem &item,
+	bool save,
+	bool notify)
+: m_factory(factory),
+  m_item(item)
+{
+	SetSave(save);
+	SetNotify(notify);
+}
+
 ItemAttributeMgr::real_t ItemAttributeMgr::GetReal(Attr attr) const {
 	real_t v;
 	if(!_Get(attr, v))
@@ -131,22 +143,23 @@ ItemAttributeMgr::real_t ItemAttributeMgr::GetReal(Attr attr) const {
 
 void ItemAttributeMgr::SetIntEx(Attr attr, const int_t &v, bool persist) {
 	PyRep *oldValue = NULL;
-	if(m_el != NULL && !IsRechargable(attr)) {
+	if(GetNotify() == true && !IsRechargable(attr)) {
 		// get old value
 		oldValue = PyGet(attr);
 	}
 	// set the attribute value
 	EVEAdvancedAttributeMgr::SetInt(attr, v);
 	// check if we shall save to DB
-	if(m_db != NULL && (persist || IsPersistent(attr))) {
+	if(GetSave() == true && (persist || IsPersistent(attr))) {
 		// save to DB
-		m_db->UpdateAttribute_int(m_item.itemID(), attr, v);
+		m_factory.db().UpdateAttribute_int(m_item.itemID(), attr, v);
 	}
-	if(m_el != NULL) {
+	if(GetNotify() == true) {
 		std::map<Attr, TauCap>::const_iterator i = m_tauCap.find(attr);
 		if(i != m_tauCap.end()) {
 			// build the special list for rechargables
 			PyRepList *l = new PyRepList;
+
 			l->addInt(v);
 			l->addInt(Win32TimeNow());
 			l->add(_PyGet(GetReal(i->second.tau) / 5.0));
@@ -167,18 +180,18 @@ void ItemAttributeMgr::SetRealEx(Attr attr, const real_t &v, bool persist) {
 	} else {
 		// store as real
 		PyRep *oldValue = NULL;
-		if(m_el != NULL && !IsRechargable(attr)) {
+		if(GetNotify() == true && !IsRechargable(attr)) {
 			// get old value
 			oldValue = PyGet(attr);
 		}
 		// set the attribute value
 		EVEAdvancedAttributeMgr::SetReal(attr, v);
 		// check if we shall save to DB
-		if(m_db != NULL && (persist || IsPersistent(attr))) {
+		if(GetSave() == true && (persist || IsPersistent(attr))) {
 			// save to DB
-			m_db->UpdateAttribute_double(m_item.itemID(), attr, v);
+			m_factory.db().UpdateAttribute_double(m_item.itemID(), attr, v);
 		}
-		if(m_el != NULL) {
+		if(GetNotify() == true) {
 			std::map<Attr, TauCap>::const_iterator i = m_tauCap.find(attr);
 			if(i != m_tauCap.end()) {
 				// build the special list for rechargables
@@ -198,16 +211,17 @@ void ItemAttributeMgr::SetRealEx(Attr attr, const real_t &v, bool persist) {
 
 void ItemAttributeMgr::Clear(Attr attr) {
 	PyRep *oldValue = NULL;
-	if(m_el != NULL && !IsRechargable(attr)) {
+	if(GetNotify() == true && !IsRechargable(attr)) {
 		// get old value
 		oldValue = PyGet(attr);
 	}
 	// clear the attribute
 	EVEAdvancedAttributeMgr::Clear(attr);
 	// delete the attribute from DB (no matter if it really is there)
-	if(m_db != NULL)
-		m_db->EraseAttribute(m_item.itemID(), attr);
-	if(m_el != NULL) {
+	if(GetSave() == true) {
+		m_factory.db().EraseAttribute(m_item.itemID(), attr);
+	}
+	if(GetNotify() == true) {
 		std::map<Attr, TauCap>::const_iterator i = m_tauCap.find(attr);
 		if(i != m_tauCap.end()) {
 			// build the special list for rechargables
@@ -225,50 +239,41 @@ void ItemAttributeMgr::Clear(Attr attr) {
 }
 
 void ItemAttributeMgr::DeleteEx(bool notify) {
-	const EntityList *el = m_el;
-	if(!notify)
-		// disable notifications
-		SetEntityList(NULL);
+	// save & set notify state
+	bool old_notify = GetNotify();
+	SetNotify(notify);
 
 	// delete the attributes
 	EVEAdvancedAttributeMgr::Delete();
 
-	// put back the entity list
-	SetEntityList(el);
+	// restore old notify state
+	SetNotify(old_notify);
 }
 
 bool ItemAttributeMgr::Load(bool notify) {
-	if(m_db == NULL)
-		return false;
+	// save & set notify state
+	bool old_notify = GetNotify();
+	SetNotify(notify);
 
-	const EntityList *el = m_el;
-	if(!notify)
-		// disable notifications
-		SetEntityList(NULL);
-
-	// disable saving
-	InventoryDB *db = m_db;
-	SetDB(NULL);
+	// save & set save state
+	bool old_save = GetSave();
+	SetSave(false);
 
 	// delete old contents
 	EVEAdvancedAttributeMgr::Delete();
 	// load the new contents
-	bool res = db->LoadItemAttributes(item().itemID(), *this);
+	bool res = m_factory.db().LoadItemAttributes(item().itemID(), *this);
 
-	// put back DB
-	SetDB(db);
+	// restore save state
+	SetSave(old_save);
 
-	// put back entity list
-	SetEntityList(el);
+	// restore notify state
+	SetNotify(old_notify);
 
-	// return
 	return(res);
 }
 
 void ItemAttributeMgr::Save() const {
-	if(m_db == NULL)
-		return;
-
 	_log(ITEM__TRACE, "Saving %lu attributes of item %u.", m_ints.size()+m_reals.size(), m_item.itemID());
 	// integers first
 	{
@@ -278,9 +283,9 @@ void ItemAttributeMgr::Save() const {
 		for(; cur != end; cur++) {
 			real_t v = GetReal(cur->first);
 			if(_IsInt(v))
-				m_db->UpdateAttribute_int(m_item.itemID(), cur->first, v);
+				m_factory.db().UpdateAttribute_int(m_item.itemID(), cur->first, v);
 			else
-				m_db->UpdateAttribute_double(m_item.itemID(), cur->first, v);
+				m_factory.db().UpdateAttribute_double(m_item.itemID(), cur->first, v);
 		}
 	}
 	// then reals
@@ -291,9 +296,9 @@ void ItemAttributeMgr::Save() const {
 		for(; cur != end; cur++) {
 			real_t v = GetReal(cur->first);
 			if(_IsInt(v))
-				m_db->UpdateAttribute_int(m_item.itemID(), cur->first, v);
+				m_factory.db().UpdateAttribute_int(m_item.itemID(), cur->first, v);
 			else
-				m_db->UpdateAttribute_double(m_item.itemID(), cur->first, v);
+				m_factory.db().UpdateAttribute_double(m_item.itemID(), cur->first, v);
 		}
 	}
 }
@@ -306,10 +311,10 @@ void ItemAttributeMgr::EncodeAttributes(std::map<uint32, PyRep *> &into) const {
 }
 
 void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *newValue) {
-	Client *c = NULL;
-	if(m_el != NULL)
-		c = m_el->FindCharacter(m_item.ownerID());
+	if(GetNotify() == false)
+		return;
 
+	Client *c = m_factory.entity_list.FindCharacter(m_item.ownerID());
 	if(c != NULL) {
 		Notify_OnModuleAttributeChange omac;
 		omac.ownerID = m_item.ownerID();
@@ -319,7 +324,7 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
 		omac.oldValue = oldValue;
 		omac.newValue = newValue;
 
-		PyRepTuple *tmp = omac.Encode();
+		PyRepTuple *tmp = omac.FastEncode();
 		c->QueueDestinyEvent(&tmp);
 	} else {
 		// delete the reps

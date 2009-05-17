@@ -178,7 +178,7 @@ PyRep *ObjCacheDB::Generate_invTypeReactions()
 PyRep *ObjCacheDB::Generate_dgmTypeAttribs()
 {
 	DBQueryResult res;
-	const char *q = "SELECT	dgmTypeAttributes.typeID,	dgmTypeAttributes.attributeID,	IF(valueInt IS NULL, valueFloat, valueInt) AS value FROM dgmTypeAttributes	NATURAL JOIN dgmAttributeTypes WHERE	published=1";
+	const char *q = "SELECT	dgmTypeAttributes.typeID,	dgmTypeAttributes.attributeID,	IF(valueInt IS NULL, valueFloat, valueInt) AS value FROM dgmTypeAttributes	LEFT JOIN dgmAttributeTypes USING (attributeID) WHERE	published=1";
 	if(m_db->RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.dgmtypeattribs': %s",res.error.c_str());

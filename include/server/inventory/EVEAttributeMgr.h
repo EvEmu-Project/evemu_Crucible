@@ -34,29 +34,39 @@
 
 class PyRep;
 class Type;
+class ItemFactory;
 class InventoryItem;
 class InventoryDB;
-class EntityList;
 
-/*
- * Base EVE attribute manager
+class ItemAttributeMgr;
+
+/**
+ * Base EVE AttributeManager, defines types to use.
  */
 class EVEAttributeMgr
 : virtual public AttributeMgr<int, double>
 {
 public:
-	/*
-	 * Returns attribute value as PyRep
+	/**
+	 * Returns attribute value as PyRep.
+	 *
+	 * @param[in] attr Attribute which value should be retrieved.
+	 * @return Pointer to new PyRep object; NULL if fails.
 	 */
 	PyRep *PyGet(Attr attr) const;
 
-	/*
-	 * Builds intdict from attributes
+	/**
+	 * Builds intdict from attributes.
+	 *
+	 * @param[in] into Intdict into which values are saved.
 	 */
 	virtual void EncodeAttributes(std::map<uint32, PyRep *> &into) const;
 
-	/*
-	 * Checks whether the attribute is persistent
+	/**
+	 * Checks whether the attribute is persistent.
+	 *
+	 * @param[in] attr Attribute to be checked.
+	 * @return True if attribute is persistent, false if not.
 	 */
 	static bool IsPersistent(Attr attr) {
 		_LoadPersistent();
@@ -64,9 +74,7 @@ public:
 	}
 
 protected:
-	/*
-	 * Turns given value into proper PyRep
-	 */
+	// Turns given value into proper PyRep
 	static PyRep *_PyGet(const real_t &v);
 
 	/*
@@ -78,11 +86,15 @@ protected:
 	static bool m_persistent[Invalid_Attr];
 };
 
+/**
+ * Base EVE AdvancedAttributeMgr, defines type to use.
+ */
 class EVEAdvancedAttributeMgr
 : public AdvancedAttributeMgr<int, double>,
   public EVEAttributeMgr
 {
 public:
+	// Uses PyGet instead of _PyGet to include income of attribute value.
 	void EncodeAttributes(std::map<uint32, PyRep *> &into) const;
 
 	/*
@@ -96,10 +108,8 @@ public:
 	void Clear(Attr attr) { AdvancedAttributeMgr::Clear(attr); }*/
 };
 
-class ItemAttributeMgr;
-
-/*
- * Attribute manager for type attributes
+/**
+ * Attribute manager for type attributes.
  */
 class TypeAttributeMgr
 : public EVEAttributeMgr
@@ -109,69 +119,116 @@ public:
 	TypeAttributeMgr(const Type &type)
 		: m_type(type) {}
 
+	/**
+	 * @return Type which this manager is bound to.
+	 */
 	const Type &type() const { return(m_type); }
 
-	/*
-	 * Attribute load from DB
+	/**
+	 * Loads attributes from DB.
+	 *
+	 * @param[in] db Database to use.
+	 * @return True if load was successfull, false if not.
 	 */
 	bool Load(InventoryDB &db);
 
 protected:
-
 	const Type &m_type;
 };
 
-/*
- * InventoryItem attribute manager
+/**
+ * Attribute manager for InventoryItem.
  */
 class ItemAttributeMgr
 : public EVEAdvancedAttributeMgr
 {
 public:
-	ItemAttributeMgr(const InventoryItem &item, InventoryDB *db = NULL, const EntityList *el = NULL)
-		: m_item(item) { SetDB(db); SetEntityList(el); }
+	/**
+	 * @param[in] factory ItemFactory to use.
+	 * @param[in] item Item which attributes are managed.
+	 * @param[in] save Should attribute changes be immediately saved into DB?
+	 * @param[in] notify Should attribute changes be sent to owner?
+	 */
+	ItemAttributeMgr(ItemFactory &factory, const InventoryItem &item, bool save=true, bool notify=true);
 
+	/**
+	 * @return InventoryItem which attributes are managed.
+	 */
 	const InventoryItem &item() const { return(m_item); }
-
-	/*
-	 * These may be used to enable/disable saving or notifications
+	/**
+	 * @return State of save order - whether all attribute changes should be immediately saved into DB.
 	 */
-	void SetDB(InventoryDB *db) { m_db = db; }
-	void SetEntityList(const EntityList *el) { m_el = el; }
-
-	/*
-	 * Falls to type attributes and then to default if not found
+	bool GetSave() const { return m_save; }
+	/**
+	 * @return State of notify order - whether all attribute changes should be sent to owner.
 	 */
+	bool GetNotify() const { return m_notify; }
+
+	// Falls to type attributes and then to default if not found
 	real_t GetReal(Attr attr) const;
 
-	/*
-	 * Common functions and their expanded versions
-	 */
+	// Redirection to SetIntEx
 	void SetInt(Attr attr, const int_t &v) { SetIntEx(attr, v); }
+	/**
+	 * Changes value of attribute.
+	 *
+	 * @param[in] attr Attribute which value is changed.
+	 * @param[in] v New value of attribute.
+	 * @param[in] persist Whether new attribute value should be immediately stored to DB.
+	 */
 	void SetIntEx(Attr attr, const int_t &v, bool persist=false);
 
+	// Redirection to SetRealEx
 	void SetReal(Attr attr, const real_t &v) { SetRealEx(attr, v); }
+	/**
+	 * Changes value of attribute.
+	 *
+	 * @param[in] attr Attribute which value is changed.
+	 * @param[in] v New value of attribute.
+	 * @param[in] persist Whether new attribute value should be immediately stored to DB.
+	 */
 	void SetRealEx(Attr attr, const real_t &v, bool persist=false);
 
+	// Clears attribute.
 	void Clear(Attr attr);
 
+	// Redirection to DeleteEx
 	void Delete() { DeleteEx(); }
+	/**
+	 * Deletes all attributes.
+	 *
+	 * @param[in] notify Whether owner should be notified about all changes.
+	 */
 	void DeleteEx(bool notify=false);
 
-	/*
-	 * Additional DB stuff
+	/**
+	 * Loads attribute values from DB.
+	 *
+	 * @param[in] Whether owner should be notified about new values.
 	 */
 	bool Load(bool notify=false);
+	/**
+	 * Saves all attributes to DB.
+	 */
 	void Save() const;
 
-	/*
-	 * Overload to include type attributes
+	/**
+	 * Changes save order - whether all attribute changes should be immediately saved into DB.
+	 *
+	 * @param[in] save New status of order.
 	 */
+	void SetSave(bool save) { m_save = save; }
+	/**
+	 * Changes notify order - whether all attribute changes should be sent to owner.
+	 *
+	 * @param[in] notify New status of order.
+	 */
+	void SetNotify(bool notify) { m_notify = notify; }
+
+	// Includes type attributes.
 	void EncodeAttributes(std::map<uint32, PyRep *> &into) const;
 
-	/*
-	 * Additional name access
-	 */
+	// Additional by-name access
 	#define ATTRI(ID, name, default_value, persistent) \
 		void Set_##name##_persist(const int_t &v) { \
 			SetIntEx(Attr_##name, v, true); \
@@ -183,15 +240,16 @@ public:
 	#include "EVEAttributes.h"
 
 protected:
+	// Creates & sends attribute change notification.
 	void _SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *newValue);
 
-	/*
-	 * Member variables
-	 */
+	// Member variables:
+	ItemFactory &m_factory;
+
 	const InventoryItem &m_item;
 
-	InventoryDB *m_db;
-	const EntityList *m_el;
+	bool m_save;
+	bool m_notify;
 };
 
 #endif /* __EVE_ATTRIBUTE_MGR__H__INCL__ */

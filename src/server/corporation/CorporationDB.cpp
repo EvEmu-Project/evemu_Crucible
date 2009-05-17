@@ -164,13 +164,10 @@ bool CorporationDB::ListAllFactionStationCounts(std::map<uint32, uint32> &into) 
 	
 	if(!m_db->RunQuery(res,
 		"SELECT "
-		"	factionID,count(DISTINCT staStations.stationID) "
-		" FROM"
-		"	crpNPCCorporations"
-		"	LEFT JOIN staStations"
-		"		ON crpNPCCorporations.corporationID=staStations.corporationID"
-		" GROUP BY"
-		"	factionID"
+		"	factionID, COUNT(DISTINCT staStations.stationID) "
+		" FROM crpNPCCorporations"
+		" LEFT JOIN staStations USING (corporationID)"
+		" GROUP BY factionID"
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -187,11 +184,9 @@ bool CorporationDB::ListAllFactionSystemCounts(std::map<uint32, uint32> &into) {
 	//this is not quite right, but its good enough.
 	if(!m_db->RunQuery(res,
 		"SELECT "
-		"	factionID,count(solarSystemID) "
-		" FROM"
-		"	mapSolarSystems"
-		" GROUP BY"
-		"	factionID"
+		"	factionID, COUNT(solarSystemID) "
+		" FROM mapSolarSystems"
+		" GROUP BY factionID"
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -209,12 +204,8 @@ bool CorporationDB::ListAllFactionRegions(std::map<uint32, PyRep *> &into) {
 	if(!m_db->RunQuery(res,
 		"SELECT "
 		"	factionID,regionID "
-		" FROM"
-		"	mapRegions"
-		" WHERE"
-		"	factionID IS NOT NULL"
-		" ORDER BY"
-		"	factionID"
+		" FROM mapRegions"
+		" WHERE factionID IS NOT NULL"
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -232,12 +223,8 @@ bool CorporationDB::ListAllFactionConstellations(std::map<uint32, PyRep *> &into
 	if(!m_db->RunQuery(res,
 		"SELECT "
 		"	factionID,constellationID "
-		" FROM"
-		"	mapConstellations"
-		" WHERE"
-		"	factionID IS NOT NULL"
-		" ORDER BY"
-		"	factionID"
+		" FROM mapConstellations"
+		" WHERE factionID IS NOT NULL"
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -255,12 +242,8 @@ bool CorporationDB::ListAllFactionSolarSystems(std::map<uint32, PyRep *> &into) 
 	if(!m_db->RunQuery(res,
 		"SELECT "
 		"	factionID,solarSystemID "
-		" FROM"
-		"	mapSolarSystems"
-		" WHERE"
-		"	factionID IS NOT NULL"
-		" ORDER BY"
-		"	factionID"
+		" FROM mapSolarSystems"
+		" WHERE factionID IS NOT NULL"
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -278,12 +261,8 @@ bool CorporationDB::ListAllFactionRaces(std::map<uint32, PyRep *> &into) {
 	if(!m_db->RunQuery(res,
 		"SELECT "
 		"	factionID,raceID "
-		" FROM"
-		"	factionRaces"
-		" WHERE"
-		"	factionID IS NOT NULL"
-		" ORDER BY"
-		"	factionID"
+		" FROM factionRaces"
+		" WHERE factionID IS NOT NULL"
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -312,7 +291,6 @@ PyRepObject *CorporationDB::ListNPCDivisions() {
 
 PyRepObject *CorporationDB::GetEmploymentRecord(uint32 charID) {
 	DBQueryResult res;
-	DBResultRow row;
 
 	//do we really need this order by??
 	if (!m_db->RunQuery(res,

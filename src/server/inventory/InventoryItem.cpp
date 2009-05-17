@@ -109,7 +109,7 @@ InventoryItem::InventoryItem(
 	uint32 _itemID,
 	const Type &_type,
 	const ItemData &_data)
-: attributes(*this, &_factory.db(), &_factory.entity_list),
+: attributes(_factory, *this, true, true),
   m_refCount(1),
   m_factory(_factory),
   m_itemID(_itemID),

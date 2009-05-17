@@ -91,7 +91,14 @@ PyResult CharMgrService::Handle_GetPublicInfo3(PyCallArgs &call) {
 PyResult CharMgrService::Handle_GetTopBounties(PyCallArgs &call) {
 	_log(SERVICE__ERROR, "%s::GetTopBounties unimplemented.", GetName());
 
-	return NULL;
+	util_Rowset rs;
+
+	rs.header.push_back("characterID");
+	rs.header.push_back("ownerName");
+	rs.header.push_back("bounty");
+	rs.header.push_back("online");
+
+	return rs.FastEncode();
 }
 
 
