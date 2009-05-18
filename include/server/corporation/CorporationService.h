@@ -45,6 +45,9 @@ protected:
 	PyCallable_DECL_CALL(GetNPCDivisions)
 	PyCallable_DECL_CALL(GetEmploymentRecord)
 	PyCallable_DECL_CALL(GetMedalsReceived)
+	PyCallable_DECL_CALL(GetAllCorpMedals)
+	PyCallable_DECL_CALL(GetRecruitmentAdTypes)
+	PyCallable_DECL_CALL(GetRecruitmentAdsByCriteria)
 };
 
 

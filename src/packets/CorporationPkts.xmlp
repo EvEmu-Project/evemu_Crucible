@@ -720,4 +720,16 @@
       <raw name="typeface" /> <!-- Prolly always none -->
     </InlineTuple>
   </element>
+  <element name="Call_GetRecruitmentAdsByCriteria">
+    <InlineTuple>
+      <int name="regionID" />
+      <int name="skillPoints" />
+      <int name="typeMask" />
+      <int name="raceMask" />
+      <!-- integer boolean -->
+      <int name="isInAlliance" />
+      <int name="minMembers" />
+      <int name="maxMembers" />
+    </InlineTuple>
+  </element>
 </Elements>

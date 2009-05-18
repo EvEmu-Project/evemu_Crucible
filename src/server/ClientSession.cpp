@@ -277,6 +277,19 @@ void ClientSession::Clear_charid()
 	m_dirty = true;
 }
 
+void ClientSession::Set_inDetention(uint32 v) {
+	if(m_current.inDetention == 0)
+		m_current.inDetention = new uint32;
+	*(m_current.inDetention) = v;
+	m_dirty = true;
+}
+
+void ClientSession::Clear_inDetention() {
+	delete m_current.inDetention;
+	m_current.inDetention = 0;
+	m_dirty = true;
+}
+
 void ClientSession::Set_corprole(uint64 v)
 {
 	if(m_current.corprole == 0)
@@ -360,17 +373,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	t = 0;
 	if(m_current.userType == 0)
 	{
-		if(m_last.userType == 0) { } 
-		else 
-		{ 
-			do 
-			{
-				if(log_type_info[ CLIENT__SESSION ].enabled) 
-				{
-					log_message(CLIENT__SESSION, "Session change: " "userType" " is now NULL" );
-				}
-			} while(false);
-			t = new PyRepTuple(2); t->items[0] = new PyRepInteger(*(m_last.userType)); t->items[1] = new PyRepNone(); delete m_last.userType; m_last.userType = 0; } } else { if(m_last.userType == 0) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "userType" " is no longer NULL." ); } } while(false); t = new PyRepTuple(2); t->items[0] = new PyRepNone(); t->items[1] = new PyRepInteger(*(m_current.userType)); m_last.userType = new uint32; } else if(*(m_last.userType) !=
+		if(m_last.userType == 0) { } else { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "userType" " is now NULL" ); } } while(false); t = new PyRepTuple(2); t->items[0] = new PyRepInteger(*(m_last.userType)); t->items[1] = new PyRepNone(); delete m_last.userType; m_last.userType = 0; } } else { if(m_last.userType == 0) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "userType" " is no longer NULL." ); } } while(false); t = new PyRepTuple(2); t->items[0] = new PyRepNone(); t->items[1] = new PyRepInteger(*(m_current.userType)); m_last.userType = new uint32; } else if(*(m_last.userType) !=
 	*(m_current.userType)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "userType" " changed in value." ); } } while(false); t = new PyRepTuple(2); t->items[0] = new PyRepInteger(*(m_last.userType)); t->items[1] = new PyRepInteger(*(m_current.userType)); } *(m_last.userType) =
 	*(m_current.userType); } if(t != 0) into.changes.add("userType", t);
 	t = 0;
@@ -464,6 +467,12 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.charid)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "charid" " changed in value." ); } } while(false); t = new PyRepTuple(2); t->items[0] = new PyRepInteger(*(m_last.charid)); t->items[1] = new PyRepInteger(*(m_current.charid)); } *(m_last.charid) =
 	*(m_current.charid); } if(t != 0) into.changes.add("charid", t);
 	t = 0;
+	if(m_current.inDetention == 0)
+	{
+		if(m_last.inDetention == 0) { } else { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "inDetention" " is now NULL" ); } } while(false); t = new PyRepTuple(2); t->items[0] = new PyRepInteger(*(m_last.inDetention)); t->items[1] = new PyRepNone(); delete m_last.inDetention; m_last.inDetention = 0; } } else { if(m_last.inDetention == 0) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "inDetention" " is no longer NULL." ); } } while(false); t = new PyRepTuple(2); t->items[0] = new PyRepNone(); t->items[1] = new PyRepInteger(*(m_current.inDetention)); m_last.inDetention = new uint32; } else if(*(m_last.inDetention) !=
+	*(m_current.inDetention)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "inDetention" " changed in value." ); } } while(false); t = new PyRepTuple(2); t->items[0] = new PyRepInteger(*(m_last.inDetention)); t->items[1] = new PyRepInteger(*(m_current.inDetention)); } *(m_last.inDetention) =
+	*(m_current.inDetention); } if(t != 0) into.changes.add("inDetention", t);
+	t = 0;
 	if(m_current.corprole == 0)
 	{
 		if(m_last.corprole == 0) { } else { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "corprole" " is now NULL" ); } } while(false); t = new PyRepTuple(2); t->items[0] = new PyRepInteger(*(m_last.corprole)); t->items[1] = new PyRepNone(); delete m_last.corprole; m_last.corprole = 0; } } else { if(m_last.corprole == 0) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "corprole" " is no longer NULL." ); } } while(false); t = new PyRepTuple(2); t->items[0] = new PyRepNone(); t->items[1] = new PyRepInteger(*(m_current.corprole)); m_last.corprole = new uint64; } else if(*(m_last.corprole) !=
@@ -519,6 +528,7 @@ void ClientSession::Dump(LogType type) const {
 	if(m_current.solarsystemid2 == 0) { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "solarsystemid2" ": NULL" ); } } while(false); } else { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "solarsystemid2" ": %u",*(m_current.solarsystemid2)); } } while(false); }
 	if(m_current.shipid == 0) { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "shipid" ": NULL" ); } } while(false); } else { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "shipid" ": %u",*(m_current.shipid)); } } while(false); }
 	if(m_current.charid == 0) { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "charid" ": NULL" ); } } while(false); } else { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "charid" ": %u",*(m_current.charid)); } } while(false); }
+	if(m_current.inDetention == 0) { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "inDetention" ": NULL" ); } } while(false); } else { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "inDetention" ": %u",*(m_current.inDetention)); } } while(false); }
 	if(m_current.corprole == 0) { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "corprole" ": NULL" ); } } while(false); } else { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "corprole" ": %I64u",*(m_current.corprole)); } } while(false); }
 	if(m_current.rolesAtAll == 0) { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "rolesAtAll" ": NULL" ); } } while(false); } else { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "rolesAtAll" ": %I64u",*(m_current.rolesAtAll)); } } while(false); }
 	if(m_current.rolesAtBase == 0) { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "rolesAtBase" ": NULL" ); } } while(false); } else { do { if(log_type_info[ type ].enabled) { log_message(type, "    " "rolesAtBase" ": %I64u",*(m_current.rolesAtBase)); } } while(false); }
@@ -549,6 +559,7 @@ ClientSession::SessionData::SessionData() {
 	rolesAtBase = NULL;
 	rolesAtHQ = NULL;
 	rolesAtOther = NULL;
+	inDetention = NULL;
 }
 
 ClientSession::SessionData::~SessionData()
@@ -574,4 +585,5 @@ ClientSession::SessionData::~SessionData()
 	delete rolesAtBase;
 	delete rolesAtHQ;
 	delete rolesAtOther;
+	delete inDetention;
 }

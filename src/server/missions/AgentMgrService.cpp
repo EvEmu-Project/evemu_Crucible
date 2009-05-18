@@ -81,6 +81,7 @@ AgentMgrService::AgentMgrService(PyServiceMgr *mgr, DBcore *db)
 
 	PyCallable_REG_CALL(AgentMgrService, GetAgents)
 	PyCallable_REG_CALL(AgentMgrService, GetMyJournalDetails)
+	PyCallable_REG_CALL(AgentMgrService, GetMyEpicJournalDetails)
 }
 
 AgentMgrService::~AgentMgrService() {
@@ -161,6 +162,14 @@ PyResult AgentMgrService::Handle_GetMyJournalDetails(PyCallArgs &call) {
 	result = t;
 	
 	return(result);
+}
+
+PyResult AgentMgrService::Handle_GetMyEpicJournalDetails(PyCallArgs &call) {
+	//no args
+
+	_log(SERVICE__ERROR, "%s::GetMyEpicJournalDetails unimplemented.", GetName());
+
+	return new PyRepList;
 }
 
 PyResult AgentMgrBound::Handle_GetInfoServiceDetails(PyCallArgs &call) {

@@ -39,6 +39,7 @@ protected:
 	Dispatcher *const m_dispatch;
 
 	PyCallable_DECL_CALL(GetLPForCharacterCorp)
+	PyCallable_DECL_CALL(GetLPsForCharacter)
 };
 
 #endif /* !__LP_SERVICE__H__INCL__ */

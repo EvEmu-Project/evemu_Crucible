@@ -70,6 +70,8 @@ public:
 	void Clear_shipid();
 	void Set_charid(uint32 v);
 	void Clear_charid();
+	void Set_inDetention(uint32 v);
+	void Clear_inDetention();
 	void Set_corprole(uint64 v);
 	void Clear_corprole();
 	void Set_rolesAtAll(uint64 v);
@@ -110,6 +112,8 @@ protected:
 		uint32 *solarsystemid2;
 		uint32 *shipid;
 		uint32 *charid;
+		uint32 *inDetention;
+
 		uint64 *corprole;
 		uint64 *rolesAtAll;
 		uint64 *rolesAtBase;

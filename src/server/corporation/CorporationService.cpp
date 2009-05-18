@@ -38,6 +38,9 @@ CorporationService::CorporationService(PyServiceMgr *mgr, DBcore *db)
 	PyCallable_REG_CALL(CorporationService, GetNPCDivisions)
 	PyCallable_REG_CALL(CorporationService, GetEmploymentRecord)
 	PyCallable_REG_CALL(CorporationService, GetMedalsReceived)
+	PyCallable_REG_CALL(CorporationService, GetAllCorpMedals)
+	PyCallable_REG_CALL(CorporationService, GetRecruitmentAdTypes)
+	PyCallable_REG_CALL(CorporationService, GetRecruitmentAdsByCriteria)
 }
 
 CorporationService::~CorporationService() {
@@ -146,6 +149,89 @@ PyResult CorporationService::Handle_GetMedalsReceived(PyCallArgs &call) {
 	t->items[1] = new PyRepList;
 
 	return t;
+}
+
+PyResult CorporationService::Handle_GetAllCorpMedals(PyCallArgs &call) {
+	//arg is corporationID
+	Call_SingleIntegerArg arg;
+	if(!arg.Decode(&call.tuple)) {
+		_log(SERVICE__ERROR, "Failed to decode args.");
+		return NULL;
+	}
+
+	_log(SERVICE__ERROR, "%s::GetAllCorpMedals(%lu) unimplemented.", GetName(), arg.arg);
+
+	util_Rowset rs;
+	PyRepList *res = new PyRepList;
+
+	rs.header.push_back("medalID");
+	rs.header.push_back("ownerID");
+	rs.header.push_back("title");
+	rs.header.push_back("description");
+	rs.header.push_back("creatorID");
+	rs.header.push_back("date");
+	rs.header.push_back("noRecepients");
+
+	res->add(rs.FastEncode());
+	rs.header.clear();
+
+	rs.header.push_back("medalID");
+	rs.header.push_back("part");
+	rs.header.push_back("layer");
+	rs.header.push_back("graphic");
+	rs.header.push_back("color");
+
+	res->add(rs.FastEncode());
+
+	return res;
+}
+
+PyResult CorporationService::Handle_GetRecruitmentAdTypes(PyCallArgs &call) {
+	//no args
+
+	_log(SERVICE__ERROR, "%s::GetRecruitmentAdTypes unimplemented.", GetName());
+
+	util_Rowset rs;
+
+	rs.header.push_back("groupID");
+	rs.header.push_back("groupName");
+	rs.header.push_back("typeID");
+	rs.header.push_back("typeMask");
+	rs.header.push_back("typeName");
+	rs.header.push_back("description");
+	rs.header.push_back("dataID");
+	rs.header.push_back("groupDataID");
+
+	return rs.FastEncode();
+}
+
+PyResult CorporationService::Handle_GetRecruitmentAdsByCriteria(PyCallArgs &call) {
+	Call_GetRecruitmentAdsByCriteria args;
+	if(!args.Decode(&call.tuple)) {
+		_log(SERVICE__ERROR, "Failed to decode args.");
+		return NULL;
+	}
+
+	//this is cached on live with check "5 minutes"
+
+	_log(SERVICE__ERROR, "%s::GetRecruitmentAdsByCriteria unimplemented.", GetName());
+
+	util_Rowset rs;
+
+	rs.header.push_back("adID");
+	rs.header.push_back("corporationID");
+	rs.header.push_back("allianceID");
+	rs.header.push_back("expiryDateTime");
+	rs.header.push_back("stationID");
+	rs.header.push_back("regionID");
+	rs.header.push_back("raceMask");
+	rs.header.push_back("typeMask");
+	rs.header.push_back("description");
+	rs.header.push_back("createDateTime");
+	rs.header.push_back("skillPoints");
+	rs.header.push_back("channelID");
+
+	return rs.FastEncode();
 }
 
 

@@ -396,13 +396,14 @@ void Client::Login(CryptoChallengePacket *pack) {
 	ack.inDetention = new PyRepNone;
 	ack.user_clientid = GetAccountID();
 
-	m_net._QueueRep(ack.Encode());
+	m_net._QueueRep(ack.FastEncode());
 
 	session.Set_userType(1);	//user type 1 is normal user, type 23 is a trial account user.
 	session.Set_userid(GetAccountID());
 	session.Set_address(m_net.GetConnectedAddress().c_str());
 	session.Set_role(GetAccountRole());
 	session.Set_languageID(pack->user_languageid.c_str());
+	session.Set_inDetention(0);
 
 	_CheckSessionChange();
 }
@@ -960,15 +961,13 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream *noti
 }
 
 PyRepDict *Client::MakeSlimItem() const {
-	PyRepDict *slim = new PyRepDict();
-	slim->add("itemID", new PyRepInteger(GetID()));
-	slim->add("typeID", new PyRepInteger(Ship()->typeID()));
-	slim->add("ownerID", new PyRepInteger(GetCharacterID()));
+	PyRepDict *slim = DynamicSystemEntity::MakeSlimItem();
+
 	slim->add("charID", new PyRepInteger(GetCharacterID()));
 	slim->add("corpID", new PyRepInteger(GetCorporationID()));
-	slim->add("bounty", new PyRepInteger(GetBounty()));
-	slim->add("securityStatus", new PyRepReal(GetSecurityRating()));
-	
+	slim->add("allianceID", new PyRepNone);
+	slim->add("warFactionID", new PyRepNone);
+
 	//encode the modules list, if we have any visible modules
 	std::vector<InventoryItem *> items;
 	Ship()->FindByFlagRange(flagHiSlot0, flagHiSlot7, items, false);
@@ -979,13 +978,19 @@ PyRepDict *Client::MakeSlimItem() const {
 		end = items.end();
 		for(; cur != end; cur++) {
 			InventoryItem *i = *cur;
+
 			PyRepTuple *t = new PyRepTuple(2);
 			t->items[0] = new PyRepInteger(i->itemID());
 			t->items[1] = new PyRepInteger(i->typeID());
+
 			l->add(t);
 		}
 		slim->add("modules", l);
 	}
+
+	slim->add("color", new PyRepReal(0.0));
+	slim->add("bounty", new PyRepInteger(GetBounty()));
+	slim->add("securityStatus", new PyRepReal(GetSecurityRating()));
 	
 	return(slim);
 }
