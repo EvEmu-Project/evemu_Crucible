@@ -135,14 +135,20 @@ DST_WARPEXIT = 11
 <element name="DoDestiny_SlimItem">
 	<object type="foo.SlimItem">
 	  <InlineDict>
-		<IDEntry key="bounty">
-		  <int name="bounty" />
+	    <IDEntry key="itemID">
+		  <int name="itemID" />
+	    </IDEntry>
+		<IDEntry key="typeID">
+		  <int name="typeID" />
 		</IDEntry>
-		<IDEntry key="ownerID">
-		  <int name="ownerID" />
+		<IDEntry key="allianceID">
+		  <int name="allianceID" default="0" />
 		</IDEntry>
-		<IDEntry key="charID">
-		  <int name="charID" />
+		<IDEntry key="color">
+			<int name="color" />
+		</IDEntry>		  
+		<IDEntry key="corpID">
+		  <int name="corpID" />
 		</IDEntry>
 		<IDEntry key="modules">
 		  <intlist name="modules" />
@@ -159,20 +165,20 @@ DST_WARPEXIT = 11
 		  </InlineList>
 -->
 		</IDEntry>
+		<IDEntry key="warFactionID">
+		  <real name="warFactionID" />
+		</IDEntry>
 		<IDEntry key="securityStatus">
 		  <real name="securityStatus" />
 		</IDEntry>
-		<IDEntry key="itemID">
-		  <int name="itemID" />
+		<IDEntry key="bounty">
+		  <real name="bounty" />
 		</IDEntry>
-		<IDEntry key="typeID">
-		  <int name="typeID" />
+		<IDEntry key="ownerID">
+		  <int name="ownerID" />
 		</IDEntry>
-		<IDEntry key="allianceID">
-		  <int name="allianceID" default="0" />
-		</IDEntry>
-		<IDEntry key="corpID">
-		  <int name="corpID" />
+		<IDEntry key="charID">
+		  <int name="charID" />
 		</IDEntry>
 	  </InlineDict>
 	</object>
