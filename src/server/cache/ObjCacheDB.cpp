@@ -184,7 +184,7 @@ PyRep *ObjCacheDB::Generate_dgmTypeAttribs()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.dgmtypeattribs': %s",res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return(DBResultToPackedRowList(res));
 }
 
 PyRep *ObjCacheDB::Generate_dgmTypeEffects()
