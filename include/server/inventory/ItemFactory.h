@@ -43,6 +43,7 @@ class ShipType;
 class InventoryItem;
 class Blueprint;
 class Character;
+class Ship;
 
 class ItemFactory {
 	friend class InventoryItem;	//only for access to _GetIfContentsLoaded and _DeleteItem
@@ -109,6 +110,15 @@ public:
 	 */
 	Character *GetCharacter(uint32 characterID, bool recurse=true);
 
+	/**
+	 * Loads ship.
+	 *
+	 * @param[in] shipID ID of ship to load.
+	 * @param[in] recurse Whether all items contained within the ship should be loaded too.
+	 * @return Pointer to Ship object; NULL if failed.
+	 */
+	Ship *GetShip(uint32 shipID, bool recurse=true);
+
 	//spawn a new item with the specified information, creating it in the DB as well.
 	InventoryItem *SpawnItem(
 		ItemData &data);
@@ -129,6 +139,14 @@ public:
 		CharacterData &charData,
 		CharacterAppearance &appData,
 		CorpMemberInfo &corpData);
+	/**
+	 * Spawns new ship.
+	 *
+	 * @param[in] data Item data for ship.
+	 * @return Pointer to Ship object; NULL if failed.
+	 */
+	Ship *SpawnShip(
+		ItemData &data);
 
 protected:
 	InventoryDB m_db;

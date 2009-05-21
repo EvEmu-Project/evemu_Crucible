@@ -173,6 +173,10 @@ Character *ItemFactory::GetCharacter(uint32 characterID, bool recurse) {
 	return _GetItem<Character>(characterID, recurse);
 }
 
+Ship *ItemFactory::GetShip(uint32 shipID, bool recurse) {
+	return _GetItem<Ship>(shipID, recurse);
+}
+
 InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
 	InventoryItem *i = InventoryItem::Spawn(*this, data);
 	if(i == NULL)
@@ -200,6 +204,15 @@ Character *ItemFactory::SpawnCharacter(ItemData &data, CharacterData &charData, 
 
 	m_items[c->itemID()] = c;
 	return c->IncRef();
+}
+
+Ship *ItemFactory::SpawnShip(ItemData &data) {
+	Ship *s = Ship::Spawn(*this, data);
+	if(s == NULL)
+		return NULL;
+
+	m_items[s->itemID()] = s;
+	return s->IncRef();
 }
 
 InventoryItem *ItemFactory::_GetIfContentsLoaded(uint32 itemID) {

@@ -27,6 +27,7 @@
 #define __SHIP__H__INCL__
 
 #include "inventory/Type.h"
+#include "inventory/InventoryItem.h"
 
 /**
  * Basic container for raw ship type data.
@@ -106,6 +107,69 @@ protected:
 	const Type *m_weaponType;
 	const Type *m_miningType;
 	const Type *m_skillType;
+};
+
+/**
+ * InventoryItem which represents ship.
+ */
+class Ship
+: public InventoryItem
+{
+	friend class InventoryItem;	// to let it construct us
+public:
+	/**
+	 * Loads ship from DB.
+	 *
+	 * @param[in] factory
+	 * @param[in] shipID ID of ship to load.
+	 * @param[in] recurse Whether all items contained within this item should be loaded.
+	 * @return Pointer to Ship object; NULL if failed.
+	 */
+	static Ship *Load(ItemFactory &factory, uint32 shipID, bool recurse=false) { return InventoryItem::_Load<Ship>(factory, shipID, recurse); }
+	/**
+	 * Spawns new ship.
+	 *
+	 * @param[in] factory
+	 * @param[in] data Item data for ship.
+	 * @return Pointer to new Ship object; NULL if failed.
+	 */
+	static Ship *Spawn(ItemFactory &factory, ItemData &data);
+
+	/*
+	 * Public fields:
+	 */
+	const ShipType &   type() const { return static_cast<const ShipType &>(InventoryItem::type()); }
+
+	/*
+	 * Primary public interface:
+	 */
+	Ship *IncRef() { return static_cast<Ship *>(InventoryItem::IncRef()); }
+
+protected:
+	Ship(
+		ItemFactory &_factory,
+		uint32 _shipID,
+		// InventoryItem stuff:
+		const ShipType &_shipType,
+		const ItemData &_data
+	);
+
+	/*
+	 * Member functions
+	 */
+	static Ship *_Load(ItemFactory &factory, uint32 shipID
+	);
+	static Ship *_Load(ItemFactory &factory, uint32 shipID,
+		// InventoryItem stuff:
+		const ShipType &shipType, const ItemData &data
+	);
+
+	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+
+	static Ship *_Spawn(ItemFactory &factory,
+		// InventoryItem stuff:
+		const ItemData &data
+	);
 };
 
 #endif /* !__SHIP__H__INCL__ */

@@ -204,6 +204,19 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 		};
 
 		///////////////////////////////////////
+		// Ship:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Ship: {
+			// cast the type into what it really is ...
+			const ShipType *shipType = static_cast<const ShipType *>(type);
+
+			// create the ship
+			return(Ship::_Load(
+				factory, itemID, *shipType, data
+			));
+		};
+
+		///////////////////////////////////////
 		// Default:
 		///////////////////////////////////////
 		default: {
@@ -287,7 +300,16 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 			return(Blueprint::Spawn(
 				factory, data, bdata
 			));
-		}
+		};
+
+		///////////////////////////////////////
+		// Ship:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Ship: {
+			return(Ship::Spawn(
+				factory, data
+			));
+		};
 
 		///////////////////////////////////////
 		// Default:

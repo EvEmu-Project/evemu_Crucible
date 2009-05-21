@@ -141,3 +141,80 @@ ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID,
 	));
 }
 
+/*
+ * Ship
+ */
+Ship::Ship(
+	ItemFactory &_factory,
+	uint32 _shipID,
+	// InventoryItem stuff:
+	const ShipType &_shipType,
+	const ItemData &_data)
+: InventoryItem(_factory, _shipID, _shipType, _data)
+{
+}
+
+Ship *Ship::_Load(ItemFactory &factory, uint32 shipID
+) {
+	ItemData data;
+	if(!factory.db().GetItem(shipID, data))
+		return NULL;
+
+	// get type
+	const ShipType *st = factory.GetShipType(data.typeID);
+	if(st == NULL)
+		return NULL;
+
+	// we successfully obtained ship type, so it's sure it's a ship
+
+	return(
+		Ship::_Load(factory, shipID, *st, data)
+	);
+}
+
+Ship *Ship::_Load(ItemFactory &factory, uint32 shipID,
+	// InventoryItem stuff:
+	const ShipType &shipType, const ItemData &data
+) {
+	// we don't need any additional stuff
+	return(new Ship(
+		factory, shipID,
+		shipType, data
+	));
+}
+
+Ship *Ship::Spawn(ItemFactory &factory,
+	// InventoryItem stuff:
+	ItemData &data
+) {
+	const ShipType *st = factory.GetShipType(data.typeID);
+	if(st == NULL)
+		return NULL;
+
+	// we got the ship type, so it's definitely a ship
+
+	// fix the name
+	if(data.name.empty())
+		data.name = st->name();
+
+	return(
+		Ship::_Spawn(factory, data)
+	);
+}
+
+Ship *Ship::_Spawn(ItemFactory &factory,
+	// InventoryItem stuff:
+	const ItemData &data
+) {
+	// store item data
+	uint32 shipID = factory.db().NewItem(data);
+	if(shipID == 0)
+		return NULL;
+
+	// nothing additional
+
+	// no recurse - ship cannot contain anything yet.
+	return(
+		Ship::Load(factory, shipID, false)
+	);
+}
