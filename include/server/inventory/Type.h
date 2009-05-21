@@ -254,10 +254,14 @@ public:
  */
 class Type {
 public:
-	/*
-	 * Factory method:
+	/**
+	 * Loads type from DB.
+	 *
+	 * @param[in] factory
+	 * @param[in] typeID ID of type to load.
+	 * @return Pointer to new Type object; NULL if failed.
 	 */
-	static Type *Load(ItemFactory &factory, uint32 typeID);
+	static Type *Load(ItemFactory &factory, uint32 typeID) { return Type::_Load<Type>(factory, typeID); }
 
 	/*
 	 * Attributes:
@@ -299,6 +303,25 @@ protected:
 	/*
 	 * Member functions
 	 */
+	// Template helper:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 typeID) {
+		// static load
+		_Ty *t = _Ty::_Load(factory, typeID);
+		if(t == NULL)
+			return NULL;
+
+		// dynamic load
+		if(!t->_Load(factory)) {
+			delete t;
+			return NULL;
+		}
+
+		// return
+		return t;
+	}
+
+	// Actual loading stuff:
 	static Type *_Load(ItemFactory &factory, uint32 typeID
 	);
 	static Type *_Load(ItemFactory &factory, uint32 typeID,

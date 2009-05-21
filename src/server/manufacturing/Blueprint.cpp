@@ -88,20 +88,6 @@ BlueprintType::BlueprintType(
 		assert(_bpData.parentBlueprintTypeID == _parentBlueprintType->id());
 }
 
-BlueprintType *BlueprintType::Load(ItemFactory &factory, uint32 typeID) {
-	BlueprintType *bt = BlueprintType::_Load(factory, typeID);
-	if(bt == NULL)
-		return NULL;
-
-	// finish load
-	if(!bt->_Load(factory)) {
-		delete bt;
-		return NULL;
-	}
-
-	return(bt);
-}
-
 BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID
 ) {
 	// pull data
@@ -200,21 +186,6 @@ Blueprint::Blueprint(
 {
 	// data consistency asserts
 	assert(_bpType.categoryID() == EVEDB::invCategories::Blueprint);
-}
-
-Blueprint *Blueprint::Load(ItemFactory &factory, uint32 blueprintID, bool recurse) {
-	Blueprint *bi = Blueprint::_Load(factory, blueprintID);
-	if(bi == NULL)
-		return NULL;
-
-	// finish load
-	if(!bi->_Load(recurse)) {
-		bi->DecRef();	// should delete the item
-		return NULL;
-	}
-
-	// return
-	return(bi);
 }
 
 Blueprint *Blueprint::_Load(ItemFactory &factory, uint32 blueprintID

@@ -87,7 +87,7 @@ public:
 	 * @param[in] characterTypeID ID of character type to load.
 	 * @return Pointer to new object, NULL if failed.
 	 */
-	static CharacterType *Load(ItemFactory &factory, uint32 characterTypeID);
+	static CharacterType *Load(ItemFactory &factory, uint32 characterTypeID) { return Type::_Load<CharacterType>(factory, characterTypeID); }
 
 	/*
 	 * Access functions:
@@ -319,7 +319,7 @@ public:
 	 * @param[in] recurse Whether load should be recursive - load all contained items as well.
 	 * @return Pointer to new Character object; NULL if failed.
 	 */
-	static Character *Load(ItemFactory &factory, uint32 characterID, bool recurse=false);
+	static Character *Load(ItemFactory &factory, uint32 characterID, bool recurse=false) { return InventoryItem::_Load<Character>(factory, characterID, recurse); }
 	/**
 	 * Spawns new character.
 	 *

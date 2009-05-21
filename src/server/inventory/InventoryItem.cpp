@@ -176,21 +176,6 @@ InventoryItem * InventoryItem::IncRef()
 	return(this);
 }
 
-InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID, bool recurse) {
-	// get the object
-	InventoryItem *i = InventoryItem::_Load(factory, itemID);
-	if(i == NULL)
-		return NULL;
-
-	// do the dynamic load
-	if(!i->_Load(recurse)) {
-		i->DecRef();	// should delete the item
-		return NULL;
-	}
-
-	return(i);
-}
-
 InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 ) {
 	// pull the item info

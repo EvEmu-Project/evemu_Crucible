@@ -241,21 +241,6 @@ Type::Type(
 	_log(ITEM__TRACE, "Created object %p for type %s (%u).", this, name().c_str(), id());
 }
 
-Type *Type::Load(ItemFactory &factory, uint32 typeID) {
-	Type *t = Type::_Load(factory, typeID);
-	if(t == NULL)
-		return NULL;
-
-	// finish load
-	if(!t->_Load(factory)) {
-		delete t;
-		return NULL;
-	}
-
-	// return
-	return(t);
-}
-
 Type *Type::_Load(ItemFactory &factory, uint32 typeID
 ) {
 	// pull data

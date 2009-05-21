@@ -96,22 +96,6 @@ CharacterType::CharacterType(
 	assert(_charData.shipTypeID == _shipType.id());
 }
 
-CharacterType *CharacterType::Load(ItemFactory &factory, uint32 characterTypeID) {
-	// static _Load
-	CharacterType *ct = CharacterType::_Load(factory, characterTypeID);
-	if(ct == NULL)
-		return NULL;
-
-	// dynamic _Load
-	if(!ct->_Load(factory)) {
-		delete ct;
-		return NULL;
-	}
-
-	// successfully loaded, return
-	return ct;
-}
-
 CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID
 ) {
 	// pull data
@@ -377,19 +361,6 @@ Character::Character(
 {
 	// allow characters to be only singletons
 	assert(singleton() && quantity() == 1);
-}
-
-Character *Character::Load(ItemFactory &factory, uint32 characterID, bool recurse) {
-	Character *c = Character::_Load(factory, characterID);
-	if(c == NULL)
-		return NULL;
-
-	if(!c->_Load(recurse)) {
-		c->DecRef(); // should delete the item
-		return NULL;
-	}
-
-	return c;
 }
 
 Character *Character::_Load(ItemFactory &factory, uint32 characterID

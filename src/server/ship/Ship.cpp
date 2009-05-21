@@ -65,22 +65,6 @@ ShipTypeData::ShipTypeData(
  		assert(_skillType->id() == stData.skillTypeID);
 }
 
-ShipType *ShipType::Load(ItemFactory &factory, uint32 shipTypeID) {
-	// static load first
-	ShipType *st = ShipType::_Load(factory, shipTypeID);
-	if(st == NULL)
-		return NULL;
-
-	// dynamic load
-	if(!st->_Load(factory)) {
-		delete st;
-		return NULL;
-	}
-
-	// return
-	return st;
-}
- 
 ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID
 ) {
 	// load type data

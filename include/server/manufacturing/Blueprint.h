@@ -74,10 +74,14 @@ class BlueprintType
 {
 	friend class Type;	// To let our parent redirect construction to our _Load().
 public:
-	/*
-	 * Factory method:
+	/**
+	 * Loads blueprint type from DB.
+	 *
+	 * @param[in] factory
+	 * @param[in] typeID ID of blueprint type to load.
+	 * @return Pointer to BlueprintType object; NULL if failed.
 	 */
-	static BlueprintType *Load(ItemFactory &factory, uint32 typeID);
+	static BlueprintType *Load(ItemFactory &factory, uint32 typeID) { return Type::_Load<BlueprintType>(factory, typeID); }
 
 	/*
 	 * Access functions:
@@ -176,10 +180,23 @@ class Blueprint
 {
 	friend class InventoryItem;	// to let it construct us
 public:
-	/*
-	 * Factory methods:
+	/**
+	 * Loads blueprint from DB.
+	 *
+	 * @param[in] factory
+	 * @param[in] blueprintID ID of blueprint to load.
+	 * @param[in] recurse Whether all items contained within this item should be loaded.
+	 * @return Pointer to new Blueprint object; NULL if failed.
 	 */
-	static Blueprint *Load(ItemFactory &factory, uint32 blueprintID, bool recurse=false);
+	static Blueprint *Load(ItemFactory &factory, uint32 blueprintID, bool recurse=false) { return InventoryItem::_Load<Blueprint>(factory, blueprintID, recurse); }
+	/**
+	 * Spawns new blueprint.
+	 *
+	 * @param[in] factory
+	 * @param[in] data Item data (for entity table).
+	 * @param[in] bpData Blueprint-specific data.
+	 * @return Pointer to new Blueprint object; NULL if failed.
+	 */
 	static Blueprint *Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData);
 
 	/*

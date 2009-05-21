@@ -90,10 +90,22 @@ public:
  */
 class InventoryItem {
 public:
-	/*
-	 * Factory methods:
+	/**
+	 * Loads item from DB.
+	 *
+	 * @param[in] factory
+	 * @param[in] itemID ID of item to load.
+	 * @param[in] recurse Whether all items contained within this item should be loaded too.
+	 * @return Pointer to InventoryItem object; NULL if failed.
 	 */
-	static InventoryItem *Load(ItemFactory &factory, uint32 itemID, bool recurse=false);
+	static InventoryItem *Load(ItemFactory &factory, uint32 itemID, bool recurse=false) { return InventoryItem::_Load<InventoryItem>(factory, itemID, recurse); }
+	/**
+	 * Spawns new item.
+	 *
+	 * @param[in] factory
+	 * @param[in] data Item data of item to spawn.
+	 * @return Pointer to InventoryItem object; NULL if failed.
+	 */
 	static InventoryItem *Spawn(ItemFactory &factory, ItemData &data);
 
 	/*
@@ -211,6 +223,24 @@ protected:
 	/*
 	 * Internal helper routines:
 	 */
+	// Template helper:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 itemID, bool recurse) {
+		// static load
+		_Ty *i = _Ty::_Load(factory, itemID);
+		if(i == NULL)
+			return NULL;
+
+		// dynamic load
+		if(!i->_Load(recurse)) {
+			i->DecRef();	// should delete the item
+			return NULL;
+		}
+
+		return i;
+	}
+
+	// Actual loading stuff:
 	static InventoryItem *_Load(ItemFactory &factory, uint32 itemID
 	);
 	static InventoryItem *_Load(ItemFactory &factory, uint32 itemID,

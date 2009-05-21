@@ -60,7 +60,7 @@ public:
 	 * @param[in] shipTypeID ID of ship type to load.
 	 * @return Pointer to new ShipType object; NULL if failed.
 	 */
-	static ShipType *Load(ItemFactory &factory, uint32 shipTypeID);
+	static ShipType *Load(ItemFactory &factory, uint32 shipTypeID) { return Type::_Load<ShipType>(factory, shipTypeID); }
 
 	/*
 	 * Access methods:
