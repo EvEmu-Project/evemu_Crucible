@@ -77,12 +77,20 @@ public:
 	virtual bool IsStaticEntity() const { return true; }	//will this entity's position never change?
 	virtual bool IsVisibleSystemWide() const { return false; }
 	
-	inline SystemBubble *Bubble() const { return(m_bubble); }	//may be NULL
+	SystemBubble *Bubble() const { return(m_bubble); }	//may be NULL
 	
 	//may consume the arguments, or not.
 	virtual void QueueDestinyUpdate(PyRepTuple **du) = 0;
 	virtual void QueueDestinyEvent(PyRepTuple **multiEvent) = 0;
 	
+	//get the item ID of this entity
+	virtual uint32 GetID() const = 0;
+	//get the position of this entity in space.
+	virtual const GPoint &GetPosition() const = 0;
+	//get other attributes of the entity:
+	virtual const char *GetName() const = 0;
+	virtual double GetRadius() const = 0;
+
 	//I am not sure if I want this here...
 	virtual InventoryItem *Item() const = 0;
 	
@@ -96,13 +104,6 @@ public:
 	virtual void MakeDamageState(DoDestinyDamageState &into) const = 0;
 	//return ownership of a new damage state tuple (calls MakeDamageState)
 	PyRepTuple *MakeDamageState() const;
-	//get the item ID of this entity
-	virtual uint32 GetID() const = 0;
-	//get the position of this entity in space.
-	virtual const GPoint &GetPosition() const = 0;
-	//get other attributes of the entity:
-	virtual const char *GetName() const = 0;
-	virtual double GetRadius() const = 0;
 	
 	//Im not happy with these being here..
 	virtual void TargetAdded(SystemEntity *who) = 0;
@@ -117,9 +118,6 @@ public:
 	virtual bool ApplyDamage(Damage &d) = 0;
 	//handles death.
 	virtual void Killed(Damage &fatal_blow);
-	
-	
-	virtual void MakeAddBall(DoDestiny_AddBall &into, uint32 updateID) const;
 
 	//helpers:
 	double DistanceTo2(const SystemEntity *other) const;

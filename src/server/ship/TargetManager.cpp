@@ -58,22 +58,23 @@ void TargetManager::Process() {
 		end = m_targets.end();
 		for(; cur != end; cur++) {
 			switch(cur->second->state) {
-			case TargetEntry::Locking:
-				//see if we are finished locking...
-				if(cur->second->timer.Check()) {
-					cur->second->timer.Disable();
-					//yay, they are locked..
-					cur->second->state = TargetEntry::Locked;
-					_log(TARGET__TRACE, "%u has finished locking %u", m_self->GetID(), cur->first->GetID());
-					m_self->TargetAdded(cur->first);
-					cur->first->targets.TargetedByLocked(m_self);
-				}
-				break;
-			case TargetEntry::Idle:
-			case TargetEntry::Locked:
-			case TargetEntry::PassiveLocking:
-				//nothing to do right now...
-				break;
+				case TargetEntry::Locking: {
+					//see if we are finished locking...
+					if(cur->second->timer.Check()) {
+						cur->second->timer.Disable();
+						//yay, they are locked..
+						cur->second->state = TargetEntry::Locked;
+						_log(TARGET__TRACE, "%u has finished locking %u", m_self->GetID(), cur->first->GetID());
+						m_self->TargetAdded(cur->first);
+						cur->first->targets.TargetedByLocked(m_self);
+					}
+				} break;
+
+				case TargetEntry::Idle:
+				case TargetEntry::Locked:
+				case TargetEntry::PassiveLocking: {
+					//nothing to do right now...
+				} break;
 			}
 		}
 	}
@@ -187,48 +188,48 @@ bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {
 void TargetManager::TargetEntry::Dump() const {
 	const char *sname = "Unknown State";
 	switch(state) {
-	case Idle:
-		sname = "Idle Entry";
-		break;
-	case PassiveLocking:
-		sname = "Passive Locking";
-		break;
-	case Locking:
-		sname = "Locking";
-		break;
-	case Locked:
-		sname = "Locked";
-		break;
-	//no default on purpose.
+		case Idle:
+			sname = "Idle Entry";
+			break;
+		case PassiveLocking:
+			sname = "Passive Locking";
+			break;
+		case Locking:
+			sname = "Locking";
+			break;
+		case Locked:
+			sname = "Locked";
+			break;
+		//no default on purpose.
 	}
 	_log(TARGET__TRACE, "	Targeted %s (%u): %s (%s %d ms)",
 		who->GetName(),
 		who->GetID(),
 		sname,
-		timer.Enabled()?"Running":"Disabled",
+		timer.Enabled() ? "Running" : "Disabled",
 		timer.GetRemainingTime()
-		);
+	);
 }
 
 void TargetManager::TargetedByEntry::Dump() const {
 	const char *sname = "Unknown State";
 	switch(state) {
-	case Idle:
-		sname = "Idle Entry";
-		break;
-	case Locking:
-		sname = "Locking";
-		break;
-	case Locked:
-		sname = "Locked";
-		break;
-	//no default on purpose.
+		case Idle:
+			sname = "Idle Entry";
+			break;
+		case Locking:
+			sname = "Locking";
+			break;
+		case Locked:
+			sname = "Locked";
+			break;
+		//no default on purpose.
 	}
 	_log(TARGET__TRACE, "	Targeted By %s (%u): %s",
 		who->GetName(),
 		who->GetID(),
 		sname
-		);
+	);
 }
 
 void TargetManager::Dump() const {
@@ -373,7 +374,7 @@ SystemEntity *TargetManager::GetFirstTarget(bool need_locked) {
 	return NULL;
 }
 
-PyRep *TargetManager::Encode_GetTargets() const {
+PyRepList *TargetManager::GetTargets() const {
 	PyRepList *result = new PyRepList();
 	
 	std::map<SystemEntity *, TargetEntry *>::const_iterator cur, end;
@@ -386,7 +387,7 @@ PyRep *TargetManager::Encode_GetTargets() const {
 	return(result);
 }
 
-PyRep *TargetManager::Encode_GetTargeters() const {
+PyRepList *TargetManager::GetTargeters() const {
 	PyRepList *result = new PyRepList();
 	
 	std::map<SystemEntity *, TargetedByEntry *>::const_iterator cur, end;

@@ -37,8 +37,8 @@ class PyRepTuple;
 class TargetManager {
 public:
 	TargetManager(SystemEntity *self);
-	
 	virtual ~TargetManager();
+
 	void DoDestruction();
 	
 	void Process();
@@ -57,10 +57,12 @@ public:
 	SystemEntity *GetTarget(uint32 targetID, bool need_locked=true) const;
 	void QueueTBDestinyEvent(PyRepTuple **up) const;	//queue a destiny event to all people targeting me.
 	void QueueTBDestinyUpdate(PyRepTuple **up) const;	//queue a destiny update to all people targeting me.
+
 	void Dump() const;
 	
-	PyRep *Encode_GetTargets() const;
-	PyRep *Encode_GetTargeters() const;
+	//Packet builders:
+	PyRepList *GetTargets() const;
+	PyRepList *GetTargeters() const;
 	
 protected:
 	void ClearFromTargets();
@@ -76,27 +78,25 @@ protected:
 	class TargetedByEntry {
 	public:
 		TargetedByEntry(SystemEntity *_who)
-		: state(Idle),
-		  who(_who)
-		{
-		}
+			: state(Idle), who(_who) {}
+
+		void Dump() const;
+
 		enum {
 			Idle,
 			Locking,
 			Locked
 		} state;
 		SystemEntity *const who;
-		void Dump() const;
 	};
 	
 	class TargetEntry {
 	public:
 		TargetEntry(SystemEntity *_who)
-		: state(Idle),
-		  who(_who),
-		  timer(0)
-		{
-		}
+			: state(Idle), who(_who), timer(0) {}
+
+		void Dump() const;
+
 		enum {
 			Idle,
 			PassiveLocking,
@@ -105,7 +105,6 @@ protected:
 		} state;
 		SystemEntity *const who;
 		Timer timer;
-		void Dump() const;
 	};
 	
 	bool m_destroyed;	//true if we have already taken care of destruction logic.

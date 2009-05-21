@@ -284,12 +284,27 @@ void SystemBubble::_BubblecastAddBall(SystemEntity *about_who) {
 		return;
 	}
 	
-	DoDestiny_AddBall addball;
-	about_who->MakeAddBall(addball, 
-		DestinyManager::GetStamp()
-		);
+	DoDestiny_AddBalls addballs;
+	std::vector<uint8> destiny_buffer;
+
+	//create AddBalls header
+	destiny_buffer.resize(sizeof(Destiny::AddBall_header));
+	Destiny::AddBall_header *head = (Destiny::AddBall_header *) &destiny_buffer[0];
+	head->more = 0;
+	head->sequence = DestinyManager::GetStamp();
+
+	//encode destiny binary
+	about_who->EncodeDestiny(destiny_buffer);
+	addballs.destiny_binary = new PyRepBuffer(&destiny_buffer[0], destiny_buffer.size());
+	destiny_buffer.clear();
+
+	//encode damage state
+	addballs.damages[about_who->GetID()] = about_who->MakeDamageState();
+	//encode SlimItem
+	addballs.slims.add(about_who->MakeSlimItem());
 	
-	PyRepTuple *tmp = addball.FastEncode();
+	//bubblecast the update
+	PyRepTuple *tmp = addballs.FastEncode();
 	BubblecastDestinyUpdate(&tmp, "AddBall");	//consumed
 }
 

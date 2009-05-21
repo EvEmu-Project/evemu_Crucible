@@ -173,20 +173,12 @@ PyResult DogmaIMBound::Handle_CheckSendLocationInfo(PyCallArgs &call) {
 
 PyResult DogmaIMBound::Handle_GetTargets(PyCallArgs &call) {
 	//no arguments
-	PyRep *result = NULL;
-	
-	result = call.client->targets.Encode_GetTargets();
-
-	return(result);
+	return call.client->targets.GetTargets();
 }
 
 PyResult DogmaIMBound::Handle_GetTargeters(PyCallArgs &call) {
 	//no arguments
-	PyRep *result = NULL;
-	
-	result = call.client->targets.Encode_GetTargeters();
-	
-	return(result);
+	return call.client->targets.GetTargeters();
 }
 
 PyResult DogmaIMBound::Handle_Activate(PyCallArgs &call) {

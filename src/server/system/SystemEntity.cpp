@@ -47,31 +47,6 @@ double SystemEntity::DistanceTo2(const SystemEntity *other) const {
 	return(delta.lengthSquared());
 }
 
-void SystemEntity::MakeAddBall(DoDestiny_AddBall &addball, uint32 updateID) const {
-	std::vector<uint8> ball_buffer(sizeof(Destiny::AddBall_header));
-	ball_buffer.reserve(512);
-	
-	Destiny::AddBall_header *head = (Destiny::AddBall_header *) &ball_buffer[0];
-	head->more = 1;
-	head->sequence = updateID;
-	
-	EncodeDestiny(ball_buffer);
-	
-	addball.destiny_binary.assign((const char *) &ball_buffer[0], ball_buffer.size());
-
-	addball.damages[ GetID() ] = MakeDamageState();
-	
-	PyRepDict *slim_dict = MakeSlimItem();
-	addball.slim = new PyRepObject("foo.SlimItem", slim_dict);
-
-	_log(DESTINY__TRACE, "Add Ball:");
-	addball.Dump(DESTINY__TRACE, "    ");
-	_log(DESTINY__TRACE, "    Ball Binary: (%lu bytes)", addball.destiny_binary.length());
-	_hex(DESTINY__TRACE, addball.destiny_binary.c_str(), addball.destiny_binary.length());
-	_log(DESTINY__TRACE, "    Ball Decoded:");
-	Destiny::DumpUpdate(DESTINY__TRACE, (const uint8 *) addball.destiny_binary.c_str(), addball.destiny_binary.length());
-}
-
 PyRepTuple *SystemEntity::MakeDamageState() const {
 	DoDestinyDamageState ddds;
 	MakeDamageState(ddds);

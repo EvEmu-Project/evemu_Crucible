@@ -184,29 +184,6 @@ DST_WARPEXIT = 11
 	</object>
 </element>
 
-<element name="DoDestiny_AddBall">
-	<InlineTuple>
-	  <!-- 0: funcName -->
-	  <string name="update_name" default="AddBalls" />
-	  <!-- 1: args -->
-	  <InlineTuple>
-		<!-- 0 -->
-		<InlineTuple>
-		  <!-- 0 -->
-		  <string name="destiny_binary" />
-		  <!-- 1: slims (hard coded to 1 right now) -->
-		  <InlineList>
-			<!-- 0 -->
-			<!-- <element name="slim" type="DoDestiny_SlimItem" />-->
-            <raw name="slim" />
-		  </InlineList>
-		  <!-- 2 -->
-		  <intdict name="damages" />
-		</InlineTuple>
-	  </InlineTuple>
-	</InlineTuple>
-</element>
-
 <element name="DoDestiny_AddBalls">
 	<InlineTuple>
 	  <!-- 0 -->
