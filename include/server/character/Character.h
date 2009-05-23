@@ -430,7 +430,7 @@ protected:
 
 	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
 
-	static Character *_Spawn(ItemFactory &factory,
+	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:
 		ItemData &data,
 		// Character stuff:

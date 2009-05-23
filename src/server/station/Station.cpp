@@ -84,12 +84,6 @@ StationType *StationType::_Load(ItemFactory &factory, uint32 stationTypeID
 	if(g == NULL)
 		return NULL;
 
-	// verify it's a station type
-	if(g->id() != EVEDB::invGroups::Station) {
-		_log(ITEM__ERROR, "Trying to load %s as Station.", g->name().c_str());
-		return NULL;
-	}
-
 	return(
 		StationType::_Load(factory, stationTypeID, *g, data)
 	);
@@ -99,6 +93,12 @@ StationType *StationType::_Load(ItemFactory &factory, uint32 stationTypeID,
 	// Type stuff:
 	const Group &group, const TypeData &data
 ) {
+	// verify it's a station type
+	if(group.id() != EVEDB::invGroups::Station) {
+		_log(ITEM__ERROR, "Trying to load %s as Station.", group.name().c_str());
+		return NULL;
+	}
+
 	// get station type data
 	StationTypeData stData;
 	if(!factory.db().GetStationType(stationTypeID, stData))
@@ -181,8 +181,6 @@ Station *Station::_Load(ItemFactory &factory, uint32 stationID
 	if(type == NULL)
 		return NULL;
 
-	// we successfully got StationType so it's sure we're loading a station
-
 	return(
 		Station::_Load(factory, stationID, *type, data)
 	);
@@ -192,6 +190,8 @@ Station *Station::_Load(ItemFactory &factory, uint32 stationID,
 	// InventoryItem stuff:
 	const StationType &type, const ItemData &data
 ) {
+	// we got StationType so it's sure we're loading a station
+
 	// load station data
 	StationData stData;
 	if(!factory.db().GetStation(stationID, stData))

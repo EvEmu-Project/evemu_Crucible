@@ -77,13 +77,6 @@ ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID
 	if(g == NULL)
 		return NULL;
 
-	// verify it's a ship
-	if(g->categoryID() != EVEDB::invCategories::Ship) {
-		_log(ITEM__ERROR, "Tried to load %u (%s) as a Ship.", shipTypeID, g->category().name().c_str());
-		return NULL;
-	}
-
-	// it is a ship, continue with load
 	return(
 		ShipType::_Load(factory, shipTypeID, *g, data)
 	);
@@ -93,6 +86,12 @@ ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID,
 	// Type stuff:
 	const Group &group, const TypeData &data
 ) {
+	// verify it's a ship
+	if(group.categoryID() != EVEDB::invCategories::Ship) {
+		_log(ITEM__ERROR, "Tried to load %u (%s) as a Ship.", shipTypeID, group.category().name().c_str());
+		return NULL;
+	}
+
 	// load additional ship type stuff
 	ShipTypeData stData;
 	if(!factory.db().GetShipType(shipTypeID, stData))
@@ -165,8 +164,6 @@ Ship *Ship::_Load(ItemFactory &factory, uint32 shipID
 	if(st == NULL)
 		return NULL;
 
-	// we successfully obtained ship type, so it's sure it's a ship
-
 	return(
 		Ship::_Load(factory, shipID, *st, data)
 	);
@@ -176,6 +173,8 @@ Ship *Ship::_Load(ItemFactory &factory, uint32 shipID,
 	// InventoryItem stuff:
 	const ShipType &shipType, const ItemData &data
 ) {
+	// we got shipType, so it's sure it's a ship
+
 	// we don't need any additional stuff
 	return(new Ship(
 		factory, shipID,
@@ -187,34 +186,28 @@ Ship *Ship::Spawn(ItemFactory &factory,
 	// InventoryItem stuff:
 	ItemData &data
 ) {
-	const ShipType *st = factory.GetShipType(data.typeID);
-	if(st == NULL)
-		return NULL;
-
-	// we got the ship type, so it's definitely a ship
-
-	// fix the name
-	if(data.name.empty())
-		data.name = st->name();
-
-	return(
-		Ship::_Spawn(factory, data)
-	);
+	uint32 shipID = Ship::_Spawn(factory, data);
+	if(shipID == 0)
+		return 0;
+	// item cannot contain anything yet - don't recurse
+	return Ship::Load(factory, shipID, false);
 }
 
-Ship *Ship::_Spawn(ItemFactory &factory,
+uint32 Ship::_Spawn(ItemFactory &factory,
 	// InventoryItem stuff:
-	const ItemData &data
+	ItemData &data
 ) {
+	// make sure it's a ship
+	const ShipType *st = factory.GetShipType(data.typeID);
+	if(st == NULL)
+		return 0;
+
 	// store item data
-	uint32 shipID = factory.db().NewItem(data);
+	uint32 shipID = InventoryItem::_Spawn(factory, data);
 	if(shipID == 0)
-		return NULL;
+		return 0;
 
 	// nothing additional
 
-	// no recurse - ship cannot contain anything yet.
-	return(
-		Ship::Load(factory, shipID, false)
-	);
+	return shipID;
 }

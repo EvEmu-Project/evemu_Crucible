@@ -235,39 +235,38 @@ Blueprint *Blueprint::_Load(ItemFactory &factory, uint32 blueprintID,
 }
 
 Blueprint *Blueprint::Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData) {
-	const BlueprintType *bt = factory.GetBlueprintType(data.typeID);
-	if(bt == NULL)
-		return NULL;
-
-	// fix the name
-	if(data.name.empty())
-		data.name = bt->name();
-
-	// since we successfully obtained the type, it's sure it's a blueprint
-
-	return(
-		Blueprint::_Spawn(factory, data, bpData)
-	);
-}
-
-Blueprint *Blueprint::_Spawn(ItemFactory &factory,
-	// InventoryItem stuff:
-	const ItemData &data,
-	// Blueprint stuff:
-	const BlueprintData &bpData
-) {
-	// insert new entry into DB
-	uint32 blueprintID = factory.db().NewItem(data);
+	uint32 blueprintID = Blueprint::_Spawn(factory, data, bpData);
 	if(blueprintID == 0)
 		return NULL;
+	// item cannot contain anything yet - don't recurse
+	return Blueprint::Load(factory, blueprintID, false);
+}
+
+uint32 Blueprint::_Spawn(ItemFactory &factory,
+	// InventoryItem stuff:
+	ItemData &data,
+	// Blueprint stuff:
+	BlueprintData &bpData
+) {
+	// make sure it's a blueprint type
+	const BlueprintType *bt = factory.GetBlueprintType(data.typeID);
+	if(bt == NULL)
+		return 0;
+
+	// get the blueprintID
+	uint32 blueprintID = InventoryItem::_Spawn(factory, data);
+	if(blueprintID == 0)
+		return 0;
 
 	// insert blueprint entry into DB
-	if(!factory.db().NewBlueprint(blueprintID, bpData))
-		return NULL;
+	if(!factory.db().NewBlueprint(blueprintID, bpData)) {
+		// delete item
+		factory.db().DeleteItem(blueprintID);
 
-	return(
-		Blueprint::Load(factory, blueprintID)
-	);
+		return 0;
+	}
+
+	return blueprintID;
 }
 
 void Blueprint::Save(bool recursive, bool saveAttributes) const {

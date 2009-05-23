@@ -110,12 +110,6 @@ SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID
 	if(type == NULL)
 		return NULL;
 
-	// check it's a solar system
-	if(type->groupID() != EVEDB::invGroups::Solar_System) {
-		_log(ITEM__ERROR, "Trying to load %s %u as Solar system.", type->group().name().c_str(), solarSystemID);
-		return NULL;
-	}
-
 	return(
 		SolarSystem::_Load(factory, solarSystemID, *type, data)
 	);
@@ -125,6 +119,12 @@ SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data
 ) {
+	// check it's a solar system
+	if(type.groupID() != EVEDB::invGroups::Solar_System) {
+		_log(ITEM__ERROR, "Trying to load %s %u as Solar system.", type.name().c_str(), solarSystemID);
+		return NULL;
+	}
+
 	// load solar system data
 	SolarSystemData ssData;
 	if(!factory.db().GetSolarSystem(solarSystemID, ssData))

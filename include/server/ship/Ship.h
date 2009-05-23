@@ -166,9 +166,9 @@ protected:
 
 	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
 
-	static Ship *_Spawn(ItemFactory &factory,
+	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:
-		const ItemData &data
+		ItemData &data
 	);
 };
 

@@ -250,9 +250,9 @@ protected:
 
 	virtual bool _Load(bool recurse=false);
 
-	static InventoryItem *_Spawn(ItemFactory &factory,
+	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:
-		const ItemData &data
+		ItemData &data
 	);
 
 	void SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const;

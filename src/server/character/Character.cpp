@@ -108,12 +108,6 @@ CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID
 	if(g == NULL)
 		return NULL;
 
-	// check we are really loading a character type
-	if(g->id() != EVEDB::invGroups::Character) {
-		_log(ITEM__ERROR, "Load of character type %u requested, but it's %s.", typeID, g->name().c_str());
-		return NULL;
-	}
-
 	return(
 		CharacterType::_Load(factory, typeID, *g, data)
 	);
@@ -123,6 +117,12 @@ CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID,
 	// Type stuff:
 	const Group &group, const TypeData &data
 ) {
+	// check we are really loading a character type
+	if(group.id() != EVEDB::invGroups::Character) {
+		_log(ITEM__ERROR, "Load of character type %u requested, but it's %s.", typeID, group.name().c_str());
+		return NULL;
+	}
+
 	// query character type data
 	uint32 bloodlineID;
 	CharacterTypeData charData;
@@ -374,8 +374,6 @@ Character *Character::_Load(ItemFactory &factory, uint32 characterID
 	if(ct == NULL)
 		return NULL;
 
-	// since GetCharacterType hasn't returned NULL, it's sure we are loading a character
-
 	return(
 		Character::_Load(factory, characterID, *ct, data)
 	);
@@ -385,6 +383,8 @@ Character *Character::_Load(ItemFactory &factory, uint32 characterID,
 	// InventoryItem stuff:
 	const CharacterType &charType, const ItemData &data
 ) {
+	// since we got charType, it's sure we are loading a character
+
 	CharacterData charData;
 	if(!factory.db().GetCharacter(characterID, charData))
 		return NULL;
@@ -418,47 +418,44 @@ Character *Character::Spawn(ItemFactory &factory,
 	// Character stuff:
 	CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
 ) {
-	// make sure it's a character
-	const CharacterType *ct = factory.GetCharacterType(data.typeID);
-	if(ct == NULL)
+	uint32 characterID = Character::_Spawn(factory, data, charData, appData, corpData);
+	if(characterID == 0)
 		return NULL;
-
-	// make sure it does not have empty name
-	if(data.name.empty()) {
-		_log(ITEM__ERROR, "Tried to create character with empty name.");
-		return NULL;
-	}
-
-	// make sure it's a singleton with qty 1
-	if(!data.singleton || data.quantity != 1) {
-		_log(ITEM__ERROR, "Tried to create non-singleton character %s.", data.name.c_str());
-		return NULL;
-	}
-
-	return(
-		Character::_Spawn(factory, data, charData, appData, corpData)
-	);
+	// item cannot contain anything yet - don't recurse
+	return Character::Load(factory, characterID, false);
 }
 
-Character *Character::_Spawn(ItemFactory &factory,
+uint32 Character::_Spawn(ItemFactory &factory,
 	// InventoryItem stuff:
 	ItemData &data,
 	// Character stuff:
 	CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
 ) {
+	// make sure it's a character
+	const CharacterType *ct = factory.GetCharacterType(data.typeID);
+	if(ct == NULL)
+		return 0;
+
+	// make sure it's a singleton with qty 1
+	if(!data.singleton || data.quantity != 1) {
+		_log(ITEM__ERROR, "Tried to create non-singleton character %s.", data.name.c_str());
+		return 0;
+	}
+
 	// first the item
-	uint32 characterID = factory.db().NewItem(data);
+	uint32 characterID = InventoryItem::_Spawn(factory, data);
 	if(characterID == 0)
-		return NULL;
+		return 0;
 
 	// then character
-	if(!factory.db().NewCharacter(characterID, charData, appData, corpData))
-		return NULL;
+	if(!factory.db().NewCharacter(characterID, charData, appData, corpData)) {
+		// delete the item
+		factory.db().DeleteItem(characterID);
 
-	// it cannot contain anything yet, do not recurse
-	return(
-		Character::Load(factory, characterID, false)
-	);
+		return 0;
+	}
+
+	return characterID;
 }
 
 void Character::Save(bool recursive, bool saveAttributes) const {

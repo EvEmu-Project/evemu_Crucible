@@ -188,18 +188,27 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 	if(type == NULL)
 		return NULL;
 
+	return(InventoryItem::_Load(
+		factory, itemID, *type, data
+	));
+}
+
+InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
+	// InventoryItem stuff:
+	const Type &type, const ItemData &data
+) {
 	// See what to do next:
-	switch(type->categoryID()) {
+	switch(type.categoryID()) {
 		///////////////////////////////////////
 		// Blueprint:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Blueprint: {
 			// cast the type into what it really is ...
-			const BlueprintType *bpType = static_cast<const BlueprintType *>(type);
+			const BlueprintType &bpType = static_cast<const BlueprintType &>(type);
 
 			// create the blueprint
 			return(Blueprint::_Load(
-				factory, itemID, *bpType, data
+				factory, itemID, bpType, data
 			));
 		};
 
@@ -208,11 +217,11 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 		///////////////////////////////////////
 		case EVEDB::invCategories::Ship: {
 			// cast the type into what it really is ...
-			const ShipType *shipType = static_cast<const ShipType *>(type);
+			const ShipType &shipType = static_cast<const ShipType &>(type);
 
 			// create the ship
 			return(Ship::_Load(
-				factory, itemID, *shipType, data
+				factory, itemID, shipType, data
 			));
 		};
 
@@ -220,17 +229,17 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 		// Default:
 		///////////////////////////////////////
 		default: {
-			switch(type->groupID()) {
+			switch(type.groupID()) {
 				///////////////////////////////////////
 				// Character:
 				///////////////////////////////////////
 				case EVEDB::invGroups::Character: {
 					// cast the type into what it really is ...
-					const CharacterType *charType = static_cast<const CharacterType *>(type);
+					const CharacterType &charType = static_cast<const CharacterType &>(type);
 
 					// create character
 					return(Character::_Load(
-						factory, itemID, *charType, data
+						factory, itemID, charType, data
 					));
 				};
 
@@ -240,7 +249,7 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 				case EVEDB::invGroups::Solar_System: {
 					// create solar system
 					return(SolarSystem::_Load(
-						factory, itemID, *type, data
+						factory, itemID, type, data
 					));
 				};
 
@@ -249,10 +258,10 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 				///////////////////////////////////////
 				case EVEDB::invGroups::Station: {
 					// cast the type into what it really is ...
-					const StationType *stationType = static_cast<const StationType *>(type);
+					const StationType &stationType = static_cast<const StationType &>(type);
 
 					return(Station::_Load(
-						factory, itemID, *stationType, data
+						factory, itemID, stationType, data
 					));
 				};
 
@@ -260,24 +269,14 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 				// Default:
 				///////////////////////////////////////
 				default: {
-					// create item
-					return(InventoryItem::_Load(
-						factory, itemID, *type, data
+					// we are generic item; create one
+					return(new InventoryItem(
+						factory, itemID, type, data
 					));
 				};
 			}
 		};
 	}
-}
-
-InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
-	// InventoryItem stuff:
-	const Type &type, const ItemData &data
-) {
-	// we are generic item; create one
-	return(new InventoryItem(
-		factory, itemID, type, data
-	));
 }
 
 bool InventoryItem::_Load(bool recurse) {
@@ -306,10 +305,6 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 	const Type *t = factory.GetType(data.typeID);
 	if(t == NULL)
 		return NULL;
-
-	// fix the name
-	if(data.name.empty())
-		data.name = t->name();
 
 	// See what to do next:
 	switch(t->categoryID()) {
@@ -370,29 +365,33 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 				// Default:
 				///////////////////////////////////////
 				default: {
-					return(InventoryItem::_Spawn(
-						factory, data
-					));
+					uint32 itemID = InventoryItem::_Spawn(factory, data);
+					if(itemID == 0)
+						return NULL;
+					// item cannot contain anything yet - don't recurse
+					return InventoryItem::Load(factory, itemID, false);
 				};
 			}
 		};
 	}
 }
 
-InventoryItem *InventoryItem::_Spawn(ItemFactory &factory,
+uint32 InventoryItem::_Spawn(ItemFactory &factory,
 	// InventoryItem stuff:
-	const ItemData &data
+	ItemData &data
 ) {
-	// insert new entry into DB
-	uint32 itemID = factory.db().NewItem(data);
-	if(itemID == 0)
-		return NULL;
+	// obtain type of new item
+	// this also checks that the type is valid
+	const Type *t = factory.GetType(data.typeID);
+	if(t == NULL)
+		return 0;
 
-	// load the item
-	// recurse is useless since item cannot contain anything yet
-	return(
-		InventoryItem::Load(factory, itemID, false)
-	);
+	// fix the name (if empty)
+	if(data.name.empty())
+		data.name = t->name();
+
+	// insert new entry into DB
+	return factory.db().NewItem(data);
 }
 
 bool InventoryItem::LoadContents(bool recursive) {

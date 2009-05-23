@@ -253,15 +253,24 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID
 	if(g == NULL)
 		return NULL;
 
+	return(Type::_Load(
+		factory, typeID, *g, data
+	));
+}
+
+Type *Type::_Load(ItemFactory &factory, uint32 typeID,
+	// Type stuff:
+	const Group &group, const TypeData &data
+) {
 	// See what to do next:
-	switch(g->categoryID()) {
+	switch(group.categoryID()) {
 		///////////////////////////////////////
 		// Blueprint:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Blueprint: {
 			// redirect further loading to BlueprintType
 			return(BlueprintType::_Load(
-				factory, typeID, *g, data
+				factory, typeID, group, data
 			));
 		}
 
@@ -271,7 +280,7 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID
 		case EVEDB::invCategories::Ship: {
 			// redirect further loading to ShipType
 			return(ShipType::_Load(
-				factory, typeID, *g, data
+				factory, typeID, group, data
 			));
 		}
 
@@ -279,13 +288,13 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID
 		// Default:
 		///////////////////////////////////////
 		default: {
-			switch(g->id()) {
+			switch(group.id()) {
 				///////////////////////////////////////
 				// Character:
 				///////////////////////////////////////
 				case EVEDB::invGroups::Character: {
 					return(CharacterType::_Load(
-						factory, typeID, *g, data
+						factory, typeID, group, data
 					));
 				}
 
@@ -294,7 +303,7 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID
 				///////////////////////////////////////
 				case EVEDB::invGroups::Station: {
 					return(StationType::_Load(
-						factory, typeID, *g, data
+						factory, typeID, group, data
 					));
 				}
 
@@ -302,23 +311,14 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID
 				// Default:
 				///////////////////////////////////////
 				default: {
-					return(Type::_Load(
-						factory, typeID, *g, data
+					// create the object
+					return(new Type(
+						typeID, group, data
 					));
 				}
 			}
 		}
 	}
-}
-
-Type *Type::_Load(ItemFactory &factory, uint32 typeID,
-	// Type stuff:
-	const Group &group, const TypeData &data
-) {
-	// create the object
-	return(new Type(
-		typeID, group, data
-	));
 }
 
 bool Type::_Load(ItemFactory &factory) {
