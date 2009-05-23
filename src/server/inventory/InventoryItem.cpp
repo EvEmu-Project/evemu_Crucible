@@ -235,6 +235,16 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 				};
 
 				///////////////////////////////////////
+				// Solar system:
+				///////////////////////////////////////
+				case EVEDB::invGroups::Solar_System: {
+					// create solar system
+					return(SolarSystem::_Load(
+						factory, itemID, *type, data
+					));
+				};
+
+				///////////////////////////////////////
 				// Default:
 				///////////////////////////////////////
 				default: {
@@ -322,6 +332,15 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 				case EVEDB::invGroups::Character: {
 					// we're not gonna create character from default attributes ...
 					_log(ITEM__ERROR, "Refusing to create character '%s' from default attributes.", data.name.c_str());
+
+					return NULL;
+				};
+
+				///////////////////////////////////////
+				// Solar system:
+				///////////////////////////////////////
+				case EVEDB::invGroups::Solar_System: {
+					_log(ITEM__ERROR, "Refusing to create solar system '%s'.", data.name.c_str());
 
 					return NULL;
 				};

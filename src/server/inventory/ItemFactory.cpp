@@ -177,6 +177,10 @@ Ship *ItemFactory::GetShip(uint32 shipID, bool recurse) {
 	return _GetItem<Ship>(shipID, recurse);
 }
 
+SolarSystem *ItemFactory::GetSolarSystem(uint32 solarSystemID, bool recurse) {
+	return _GetItem<SolarSystem>(solarSystemID, recurse);
+}
+
 InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
 	InventoryItem *i = InventoryItem::Spawn(*this, data);
 	if(i == NULL)

@@ -527,6 +527,7 @@ bool Character::AlterBalance(double balanceChange) {
 
 	m_balance = result;
 
+	//TODO: save some info to journal.
 	Save(false, false);
 
 	return true;

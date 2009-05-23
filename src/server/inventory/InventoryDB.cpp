@@ -347,40 +347,115 @@ bool InventoryDB::GetShipType(uint32 shipTypeID, ShipTypeData &into) {
 
 bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
 	DBQueryResult res;
-	
-	if(!m_db->RunQuery(res,
-		"SELECT itemName, typeID, ownerID, locationID, flag, contraband, singleton, quantity, x, y, z, customInfo"
-		" FROM entity WHERE itemID=%u", itemID))
-	{
-		codelog(SERVICE__ERROR, "Error in query for item %u: %s", itemID, res.error.c_str());
-		return NULL;
+
+	// For certain ranges of itemID-s we use specialized tables:
+	if(IsRegion(itemID)) {
+		//region
+		if(!m_db->RunQuery(res,
+			"SELECT"
+			" regionName, 3 AS typeID, factionID, 1 AS locationID, 0 AS flag, 0 AS contraband,"
+			" 1 AS singleton, 1 AS quantity, x, y, z, '' AS customInfo"
+			" FROM mapRegions"
+			" WHERE regionID=%u", itemID))
+		{
+			codelog(SERVICE__ERROR, "Error in query for region %u: %s", itemID, res.error.c_str());
+			return NULL;
+		}
+	} else if(IsConstellation(itemID)) {
+		//contellation
+		if(!m_db->RunQuery(res,
+			"SELECT"
+			" constellationName, 4 AS typeID, factionID, regionID, 0 AS flag, 0 AS contraband,"
+			" 1 AS singleton, 1 AS quantity, x, y, z, '' AS customInfo"
+			" FROM mapConstellations"
+			" WHERE constellationID=%u", itemID))
+		{
+			codelog(SERVICE__ERROR, "Error in query for contellation %u: %s", itemID, res.error.c_str());
+			return NULL;
+		}
+	} else if(IsSolarSystem(itemID)) {
+		//solar system
+		if(!m_db->RunQuery(res,
+			"SELECT"
+			" solarSystemName, 5 AS typeID, factionID, constellationID, 0 AS flag, 0 AS contraband,"
+			" 1 AS singleton, 1 AS quantity, x, y, z, '' AS customInfo"
+			" FROM mapSolarSystems"
+			" WHERE solarSystemID=%u", itemID))
+		{
+			codelog(SERVICE__ERROR, "Error in query for solar system %u: %s", itemID, res.error.c_str());
+			return NULL;
+		}
+	} else if(IsUniverseCelestial(itemID)) {
+		//use mapDenormalize
+		if(!m_db->RunQuery(res,
+			"SELECT"
+			" itemName, typeID, 1 AS ownerID, solarSystemID, 0 AS flag, 0 AS contraband,"
+			" 1 AS singleton, 1 AS quantity, x, y, z, '' AS customInfo"
+			" FROM mapDenormalize"
+			" WHERE itemID=%u", itemID))
+		{
+			codelog(SERVICE__ERROR, "Error in query for universe celestial %u: %s", itemID, res.error.c_str());
+			return NULL;
+		}
+	} else if(IsStargate(itemID)) {
+		//use mapDenormalize LEFT-JOIN-ing mapSolarSystems to get factionID
+		if(!m_db->RunQuery(res,
+			"SELECT"
+			" itemName, typeID, factionID, solarSystemID, 0 AS flag, 0 AS contraband,"
+			" 1 AS singleton, 1 AS quantity, mapDenormalize.x, mapDenormalize.y, mapDenormalize.z, '' AS customInfo"
+			" FROM mapDenormalize"
+			" LEFT JOIN mapSolarSystems USING (solarSystemID)"
+			" WHERE itemID=%u", itemID))
+		{
+			codelog(SERVICE__ERROR, "Error in query for stargate %u: %s", itemID, res.error.c_str());
+			return NULL;
+		}
+	} else if(IsStation(itemID)) {
+		//station
+		if(!m_db->RunQuery(res,
+			"SELECT"
+			" stationName, stationTypeID, corporationID, solarSystemID, 0 AS flag, 0 AS contraband,"
+			" 1 AS singleton, 1 AS quantity, x, y, z, '' AS customInfo"
+			" FROM staStations"
+			" WHERE stationID=%u", itemID))
+		{
+			codelog(SERVICE__ERROR, "Error in query for station %u: %s", itemID, res.error.c_str());
+			return NULL;
+		}
+	} else {
+		//fallback to entity
+		if(!m_db->RunQuery(res,
+			"SELECT"
+			" itemName, typeID, ownerID, locationID, flag, contraband,"
+			" singleton, quantity, x, y, z, customInfo"
+			" FROM entity WHERE itemID=%u", itemID))
+		{
+			codelog(SERVICE__ERROR, "Error in query for item %u: %s", itemID, res.error.c_str());
+			return NULL;
+		}
 	}
 	
 	DBResultRow row;
 	if(!res.GetRow(row))
 	{
-		codelog(SERVICE__ERROR, "Unable to load item %u", itemID);
+		codelog(SERVICE__ERROR, "Item %u not found.", itemID);
 		return false;
 	}
 
 	into.name = row.GetText(0);
 	into.typeID = row.GetUInt(1);
-	into.ownerID = row.GetUInt(2);
-	into.locationID = row.GetUInt(3);
-	into.flag = EVEItemFlags(row.GetUInt(4));
-	into.contraband = row.GetInt(5) ? true : false;
-	into.singleton = row.GetInt(6) ? true : false;
+	into.ownerID = (row.IsNull(2) ? 1 : row.GetUInt(2));
+	into.locationID = (row.IsNull(3) ? 1 : row.GetUInt(3));
+	into.flag = (EVEItemFlags)row.GetUInt(4);
+	into.contraband = (row.GetInt(5) ? true : false);
+	into.singleton = (row.GetInt(6) ? true : false);
 	into.quantity = row.GetUInt(7);
 
 	into.position.x = row.GetDouble(8);
 	into.position.y = row.GetDouble(9);
 	into.position.z = row.GetDouble(10);
 
-	const char * customData = row.GetText(11);
-	if (customData != NULL)
-		into.customInfo = customData;
-	else
-		into.customInfo = "";
+	into.customInfo = (row.IsNull(11) ? "" : row.GetText(11));
 
 	return true;
 }
@@ -389,10 +464,8 @@ uint32 InventoryDB::NewItem(const ItemData &data) {
 	DBerror err;
 	uint32 eid;
 
-	std::string nameEsc;
+	std::string nameEsc, customInfoEsc;
 	m_db->DoEscapeString(nameEsc, data.name);
-
-	std::string customInfoEsc;
 	m_db->DoEscapeString(customInfoEsc, data.customInfo);
 	
 	if(!m_db->RunQueryLID(err, eid,
@@ -417,12 +490,16 @@ uint32 InventoryDB::NewItem(const ItemData &data) {
 }
 
 bool InventoryDB::SaveItem(uint32 itemID, const ItemData &data) {
+	// First check whether they are trying to save proper item:
+	if(IsStaticMapItem(itemID)) {
+		_log(DATABASE__ERROR, "Refusing to modify static map object %u.", itemID);
+		return false;
+	}
+
 	DBerror err;
 
-	std::string nameEsc;
+	std::string nameEsc, customInfoEsc;
 	m_db->DoEscapeString(nameEsc, data.name);
-
-	std::string customInfoEsc;
 	m_db->DoEscapeString(customInfoEsc, data.customInfo);
 
 	if(!m_db->RunQuery(err,
@@ -459,6 +536,12 @@ bool InventoryDB::SaveItem(uint32 itemID, const ItemData &data) {
 }
 
 bool InventoryDB::DeleteItem(uint32 itemID) {
+	// First check whether they are trying to save proper item:
+	if(IsStaticMapItem(itemID)) {
+		_log(DATABASE__ERROR, "Refusing to delete static map object %u.", itemID);
+		return false;
+	}
+
 	DBerror err;
 
 	//NOTE: all child entities should be deleted by the caller first.
@@ -876,33 +959,42 @@ bool InventoryDB::GetCharacterAppearance(uint32 characterID, CharacterAppearance
 
 bool InventoryDB::GetCorpMemberInfo(uint32 characterID, CorpMemberInfo &into) {
 	DBQueryResult res;
-
-	if(!m_db->RunQuery(res,
-		"SELECT"
-		"  corprole,"
-		"  rolesAtAll,"
-		"  rolesAtBase,"
-		"  rolesAtHQ,"
-		"  rolesAtOther"
-		" FROM chrCorporationRoles"
-		" WHERE characterID = %u",
-		characterID))
-	{
-		_log(DATABASE__ERROR, "Failed to query corp member info of character %u: %s.", characterID, res.error.c_str());
-		return false;
-	}
-
 	DBResultRow row;
-	if(!res.GetRow(row)) {
-		_log(DATABASE__ERROR, "No corp member info found for character %u.", characterID);
-		return false;
-	}
 
-	into.corprole = row.GetUInt64(0);
-	into.rolesAtAll = row.GetUInt64(1);
-	into.rolesAtBase = row.GetUInt64(2);
-	into.rolesAtHQ = row.GetUInt64(3);
-	into.rolesAtOther = row.GetUInt64(4);
+	//temporary solution until we make corproles part of character_ table:
+	if(IsAgent(characterID)) {
+		into.corprole = 0;
+		into.rolesAtAll = 0;
+		into.rolesAtBase = 0;
+		into.rolesAtHQ = 0;
+		into.rolesAtOther = 0;
+	} else {
+		if(!m_db->RunQuery(res,
+			"SELECT"
+			"  corprole,"
+			"  rolesAtAll,"
+			"  rolesAtBase,"
+			"  rolesAtHQ,"
+			"  rolesAtOther"
+			" FROM chrCorporationRoles"
+			" WHERE characterID = %u",
+			characterID))
+		{
+			_log(DATABASE__ERROR, "Failed to query corp member info of character %u: %s.", characterID, res.error.c_str());
+			return false;
+		}
+
+		if(!res.GetRow(row)) {
+			_log(DATABASE__ERROR, "No corp member info found for character %u.", characterID);
+			return false;
+		}
+
+		into.corprole = row.GetUInt64(0);
+		into.rolesAtAll = row.GetUInt64(1);
+		into.rolesAtBase = row.GetUInt64(2);
+		into.rolesAtHQ = row.GetUInt64(3);
+		into.rolesAtOther = row.GetUInt64(4);
+	}
 
 	// this is hack and belongs somewhere else
 	if(!m_db->RunQuery(res,
@@ -922,7 +1014,7 @@ bool InventoryDB::GetCorpMemberInfo(uint32 characterID, CorpMemberInfo &into) {
 		return false;
 	}
 
-	into.corpHQ = row.GetUInt(0);
+	into.corpHQ = (row.IsNull(0) ? 0 : row.GetUInt(0));
 
 	return true;
 }
@@ -1336,6 +1428,50 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
 		_log(DATABASE__ERROR, "Failed to delete character %u: %s.", characterID, err.c_str());
 		return false;
 	}
+
+	return true;
+}
+
+bool InventoryDB::GetSolarSystem(uint32 solarSystemID, SolarSystemData &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" xMin, yMin, zMin,"
+		" xMax, yMax, zMax,"
+		" luminosity,"
+		" border, fringe, corridor, hub, international, regional, constellation,"
+		" security, factionID, radius, sunTypeID, securityClass"
+		" FROM mapSolarSystems"
+		" WHERE solarSystemID=%u", solarSystemID))
+	{
+		_log(DATABASE__ERROR, "Error in query for solar system %u: %s.", solarSystemID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "No data found for solar system %u.", solarSystemID);
+		return false;
+	}
+
+	into.minPosition = GPoint(row.GetDouble(0), row.GetDouble(1), row.GetDouble(2));
+	into.maxPosition = GPoint(row.GetDouble(3), row.GetDouble(4), row.GetDouble(5));
+	into.luminosity = row.GetDouble(6);
+
+	into.border = row.GetInt(7) ? true : false;
+	into.fringe = row.GetInt(8) ? true : false;
+	into.corridor = row.GetInt(9) ? true : false;
+	into.hub = row.GetInt(10) ? true : false;
+	into.international = row.GetInt(11) ? true : false;
+	into.regional = row.GetInt(12) ? true : false;
+	into.constellation = row.GetInt(13) ? true : false;
+
+	into.security = row.GetDouble(14);
+	into.factionID = (row.IsNull(15) ? 0 : row.GetUInt(15));
+	into.radius = row.GetDouble(16);
+	into.sunTypeID = row.GetUInt(17);
+	into.securityClass = row.GetText(18);
 
 	return true;
 }

@@ -626,6 +626,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\server\system\SolarSystem.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\server\system\SystemBubble.cpp"
 					>
 				</File>
@@ -1269,6 +1273,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\system\ScenarioService.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\system\SolarSystem.h"
 					>
 				</File>
 				<File

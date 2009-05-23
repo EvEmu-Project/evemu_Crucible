@@ -274,6 +274,10 @@ bool ItemAttributeMgr::Load(bool notify) {
 }
 
 void ItemAttributeMgr::Save() const {
+	if(m_ints.empty() && m_reals.empty())
+		// nothing to save ...
+		return;
+
 	_log(ITEM__TRACE, "Saving %lu attributes of item %u.", m_ints.size()+m_reals.size(), m_item.itemID());
 	// integers first
 	{

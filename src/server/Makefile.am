@@ -281,6 +281,8 @@ libsystem_a_SOURCES = \
 	system/KeeperService.h \
 	system/ScenarioService.cpp \
 	system/ScenarioService.h \
+	system/SolarSystem.cpp \
+	system/SolarSystem.h \
 	system/SystemBubble.cpp \
 	system/SystemBubble.h \
 	system/SystemDB.cpp \

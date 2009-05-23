@@ -247,6 +247,7 @@
 #include "../server/system/DungeonService.h"
 #include "../server/system/KeeperService.h"
 #include "../server/system/ScenarioService.h"
+#include "../server/system/SolarSystem.h"
 #include "../server/system/SystemBubble.h"
 #include "../server/system/SystemDB.h"
 #include "../server/system/SystemEntities.h"

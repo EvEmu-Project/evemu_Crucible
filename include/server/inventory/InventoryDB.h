@@ -47,6 +47,7 @@ class BlueprintData;
 class CharacterData;
 class CharacterAppearance;
 class CorpMemberInfo;
+class SolarSystemData;
 
 class InventoryDB
 : public ServiceDB
@@ -132,6 +133,19 @@ public:
 	bool GetShipType(uint32 shipTypeID, ShipTypeData &into);
 
 	/*
+	 * Type attribute stuff
+	 * (dgmTypeAttributes)
+	 */
+	/**
+	 * Loads type attributes into given attribute manager.
+	 *
+	 * @param[in] typeID ID of type which attributes should be loaded.
+	 * @param[in] into Attribute manager the attributes should be loaded into.
+	 * @return True if load was successfull, false if not.
+	 */
+	bool LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into);
+
+	/*
 	 * Item stuff
 	 * (entity)
 	 */
@@ -144,10 +158,16 @@ public:
 	bool GetItemContents(uint32 itemID, std::vector<uint32> &items);
 
 	/*
-	 * Attribute stuff
+	 * Item attribute stuff
 	 * (entity_attributes)
 	 */
-	bool LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into);
+	/**
+	 * Loads item attributes into given attribute manager.
+	 *
+	 * @param[in] itemID ID of item which attributes should be loaded.
+	 * @param[in] into Attribute manager the attributes should be loaded into.
+	 * @return True if load was successfull, false if not.
+	 */
 	bool LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into);
 
 	bool UpdateAttribute_int(uint32 itemID, uint32 attributeID, int v);
@@ -178,6 +198,19 @@ public:
 	bool SaveCharacterAppearance(uint32 characterID, const CharacterAppearance &data);
 	bool SaveCorpMemberInfo(uint32 characterID, const CorpMemberInfo &data);
 	bool DeleteCharacter(uint32 characterID);
+
+	/*
+	 * Solar system stuff
+	 * (mapSolarSystems)
+	 */
+	/**
+	 * Loads solar system data.
+	 *
+	 * @param[in] solarSystemID ID of solar system which data should be loaded.
+	 * @param[in] into Container into which the data should be loaded.
+	 * @return True if load succeeds, false if fails.
+	 */
+	bool GetSolarSystem(uint32 solarSystemID, SolarSystemData &into);
 };
 
 

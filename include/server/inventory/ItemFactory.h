@@ -44,6 +44,7 @@ class InventoryItem;
 class Blueprint;
 class Character;
 class Ship;
+class SolarSystem;
 
 class ItemFactory {
 	friend class InventoryItem;	//only for access to _GetIfContentsLoaded and _DeleteItem
@@ -118,6 +119,15 @@ public:
 	 * @return Pointer to Ship object; NULL if failed.
 	 */
 	Ship *GetShip(uint32 shipID, bool recurse=true);
+
+	/**
+	 * Loads solar system.
+	 *
+	 * @param[in] solarSystemID ID of solar system to load.
+	 * @param[in] recurse Whether all contained items should be loaded too.
+	 * @return Pointer to solar system object; NULL if failed.
+	 */
+	SolarSystem *GetSolarSystem(uint32 solarSystemID, bool recurse=true);
 
 	//spawn a new item with the specified information, creating it in the DB as well.
 	InventoryItem *SpawnItem(
