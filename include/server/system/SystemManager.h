@@ -78,7 +78,7 @@ public:
 	SystemDB *GetSystemDB() { return(&m_db); }
 	const char * GetSystemSecurity() { return m_systemSecurity.c_str(); }
 
-	inline ItemFactory &itemFactory() const;
+	ItemFactory &itemFactory() const;
 	
 protected:
 	bool _LoadSystemCelestials();
@@ -93,9 +93,7 @@ protected:
 	SpawnManager *m_spawnManager;	//we own this, never NULL, dynamic to keep the knowledge down.
 	
 	//overall system entity lists:
-	bool m_clientChanged;
 	bool m_entityChanged;
-	std::set<Client *> m_clients;	//we do not own these
 	std::map<uint32, SystemEntity *> m_entities;	//we own these, but they are also referenced in m_bubbles
 };
 

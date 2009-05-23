@@ -48,6 +48,7 @@ class NPC;
 
 
 class SystemEntity {
+	friend class SystemBubble;	//only to update m_bubble
 public:
 	typedef enum {
 		ecClient,
@@ -123,9 +124,6 @@ public:
 	double DistanceTo2(const SystemEntity *other) const;
 	
 protected:
-	
-private:
-	friend class SystemBubble;	//only to update m_bubble
 	SystemBubble *m_bubble;	//we do not own this, may be NULL. Only changed by SystemBubble
 };
 

@@ -34,7 +34,6 @@ SystemManager::SystemManager(uint32 systemID, DBcore &db, PyServiceMgr &svc)
   m_db(&db),
   m_services(svc),
   m_spawnManager(new SpawnManager(db, *this, m_services)),
-  m_clientChanged(false),
   m_entityChanged(false)
 {
 	m_db.GetSystemInfo(GetID(), NULL, NULL, &m_systemName, &m_systemSecurity);
@@ -43,21 +42,16 @@ SystemManager::SystemManager(uint32 systemID, DBcore &db, PyServiceMgr &svc)
 }
 
 SystemManager::~SystemManager() {
-	//all clients get removed first without delete. they are owned by the entity list.
-	std::set<Client *>::const_iterator curc, endc;
-	curc = m_clients.begin();
-	endc = m_clients.end();
-	for(; curc != endc; curc++) {
-		m_entities.erase((*curc)->GetID());
-	}
-
-	//now free any non-client entities
+	//we mustn't delete clients because they are owned by the entity list.
 	std::map<uint32, SystemEntity *>::iterator cur, end, tmp;
 	cur = m_entities.begin();
 	end = m_entities.end();
 	while(cur != end) {
-		tmp = cur++;
-		delete tmp->second;
+		SystemEntity *se = cur->second;
+		cur++;
+
+		if(!se->IsClient())
+			delete se;
 	}
 
 	//must be deleted AFTER all the NPCs which it spawn have been, since
@@ -197,14 +191,18 @@ bool SystemManager::BootSystem() {
 bool SystemManager::Process() {
 	m_entityChanged = false;
 	
-	std::map<uint32, SystemEntity *>::const_iterator cur;
+	std::map<uint32, SystemEntity *>::const_iterator cur, end;
 	cur = m_entities.begin();
-	while(cur != m_entities.end()) {
+	end = m_entities.end();
+	while(cur != end) {
 		cur->second->Process();
+
 		if(m_entityChanged) {
 			//somebody changed the entity list, need to start over or bail...
 			m_entityChanged = false;
+
 			cur = m_entities.begin();
+			end = m_entities.end();
 		} else {
 			cur++;
 		}
@@ -220,16 +218,20 @@ void SystemManager::ProcessDestiny() {
 	//this is here so it isnt called so frequently.
 	m_spawnManager->Process();
 
-
 	m_entityChanged = false;
-	std::map<uint32, SystemEntity *>::const_iterator cur;
+
+	std::map<uint32, SystemEntity *>::const_iterator cur, end;
 	cur = m_entities.begin();
-	while(cur != m_entities.end()) {
+	end = m_entities.end();
+	while(cur != end) {
 		cur->second->ProcessDestiny();
+
 		if(m_entityChanged) {
 			//somebody changed the entity list, need to start over or bail...
 			m_entityChanged = false;
+
 			cur = m_entities.begin();
+			end = m_entities.end();
 		} else {
 			cur++;
 		}
@@ -238,8 +240,6 @@ void SystemManager::ProcessDestiny() {
 
 
 void SystemManager::AddClient(Client *who) {
-	m_clients.insert(who);
-	m_clientChanged = true;
 	m_entities[who->GetID()] = who;
 	m_entityChanged = true;
 	//this is actually handled in SetPosition via UpdateBubble.
@@ -250,9 +250,6 @@ void SystemManager::AddClient(Client *who) {
 }
 
 void SystemManager::RemoveClient(Client *who) {
-	m_clients.erase(who);
-	m_clientChanged = true;
-	
 	RemoveEntity(who);
 	_log(CLIENT__TRACE, "%s: Removed from system manager for %u", who->GetName(), m_systemID);
 }
@@ -280,6 +277,7 @@ void SystemManager::RemoveEntity(SystemEntity *who) {
 		m_entityChanged = true;
 	} else
 		_log(SERVICE__ERROR, "Entity %u not found is system %u to be deleted.", who->GetID(), GetID());
+
 	bubbles.Remove(who, false);
 }
 
