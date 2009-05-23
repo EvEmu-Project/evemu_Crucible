@@ -259,6 +259,8 @@ libstanding_a_SOURCES = \
 libstation_a_SOURCES = \
 	station/JumpCloneService.cpp \
 	station/JumpCloneService.h \
+	station/Station.cpp \
+	station/Station.h \
 	station/StationDB.cpp \
 	station/StationDB.h \
 	station/StationService.cpp \

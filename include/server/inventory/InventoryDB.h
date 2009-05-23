@@ -41,6 +41,7 @@ class TypeData;
 class BlueprintTypeData;
 class CharacterTypeData;
 class ShipTypeData;
+class StationTypeData;
 
 class ItemData;
 class BlueprintData;
@@ -73,7 +74,7 @@ public:
 
 	/*
 	 * Type stuff
-	 * (invTypes, invBlueprintTypes, bloodlineTypes, chrBloodlines, invShipTypes)
+	 * (invTypes, invBlueprintTypes, bloodlineTypes, chrBloodlines, invShipTypes, staStationTypes)
 	 */
 	bool GetType(uint32 typeID, TypeData &into);
 
@@ -131,6 +132,15 @@ public:
 	 * @return True on success, false on failure.
 	 */
 	bool GetShipType(uint32 shipTypeID, ShipTypeData &into);
+
+	/**
+	 * Loads station type data into given container.
+	 *
+	 * @param[in] stationTypeID ID of station type to load.
+	 * @param[in] into Container to load data into.
+	 * @return True if load succeeded, false if not.
+	 */
+	bool GetStationType(uint32 stationTypeID, StationTypeData &into);
 
 	/*
 	 * Type attribute stuff

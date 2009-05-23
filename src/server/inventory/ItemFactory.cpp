@@ -139,6 +139,10 @@ const ShipType *ItemFactory::GetShipType(uint32 shipTypeID) {
 	return _GetType<ShipType>(shipTypeID);
 }
 
+const StationType *ItemFactory::GetStationType(uint32 stationTypeID) {
+	return _GetType<StationType>(stationTypeID);
+}
+
 template<class _Ty>
 _Ty *ItemFactory::_GetItem(uint32 itemID, bool recurse) {
 	std::map<uint32, InventoryItem *>::iterator res = m_items.find(itemID);

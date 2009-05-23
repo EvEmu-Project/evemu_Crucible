@@ -290,6 +290,15 @@ Type *Type::_Load(ItemFactory &factory, uint32 typeID
 				}
 
 				///////////////////////////////////////
+				// Station:
+				///////////////////////////////////////
+				case EVEDB::invGroups::Station: {
+					return(StationType::_Load(
+						factory, typeID, *g, data
+					));
+				}
+
+				///////////////////////////////////////
 				// Default:
 				///////////////////////////////////////
 				default: {

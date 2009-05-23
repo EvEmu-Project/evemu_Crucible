@@ -730,6 +730,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\server\station\Station.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\server\station\StationDB.cpp"
 					>
 				</File>
@@ -1229,6 +1233,10 @@
 				>
 				<File
 					RelativePath="..\..\include\server\station\JumpCloneService.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\station\Station.h"
 					>
 				</File>
 				<File

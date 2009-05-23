@@ -39,6 +39,7 @@ class Type;
 class BlueprintType;
 class CharacterType;
 class ShipType;
+class StationType;
 
 class InventoryItem;
 class Blueprint;
@@ -94,6 +95,14 @@ public:
 	 * @return Pointer to ship type data container; NULL if fails.
 	 */
 	const ShipType *GetShipType(uint32 shipTypeID);
+
+	/**
+	 * Loads station type, caches it and returns it.
+	 *
+	 * @param[in] stationTypeID ID of station type to load.
+	 * @return Pointer to StationType object; NULL if fails.
+	 */
+	const StationType *GetStationType(uint32 stationTypeID);
 
 	/*
 	 * Item stuff

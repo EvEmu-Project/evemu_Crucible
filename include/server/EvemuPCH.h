@@ -275,6 +275,7 @@
 
 
 #include "../server/station/JumpCloneService.h"
+#include "../server/station/Station.h"
 #include "../server/station/StationDB.h"
 #include "../server/station/StationService.h"
 #include "../server/station/StationSvcService.h"

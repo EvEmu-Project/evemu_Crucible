@@ -345,6 +345,43 @@ bool InventoryDB::GetShipType(uint32 shipTypeID, ShipTypeData &into) {
 	return true;
 }
 
+bool InventoryDB::GetStationType(uint32 stationTypeID, StationTypeData &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" dockingBayGraphicID, hangarGraphicID,"
+		" dockEntryX, dockEntryY, dockEntryZ,"
+		" dockOrientationX, dockOrientationY, dockOrientationZ,"
+		" operationID, officeSlots, reprocessingEfficiency, conquerable"
+		" FROM staStationTypes"
+		" WHERE stationTypeID = %u",
+		stationTypeID))
+	{
+		_log(DATABASE__ERROR, "Failed to query station type %u: %s.", stationTypeID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "Station type %u not found.", stationTypeID);
+		return false;
+	}
+
+	into.dockingBayGraphicID = (row.IsNull(0) ? 0 : row.GetUInt(0));
+	into.hangarGraphicID = (row.IsNull(1) ? 0 : row.GetUInt(1));
+
+	into.dockEntry = GPoint(row.GetDouble(2), row.GetDouble(3), row.GetDouble(4));
+	into.dockOrientation = GVector(row.GetDouble(5), row.GetDouble(6), row.GetDouble(7));
+
+	into.operationID = (row.IsNull(8) ? 0 : row.GetUInt(8));
+	into.officeSlots = (row.IsNull(9) ? 0 : row.GetUInt(9));
+	into.reprocessingEfficiency = (row.IsNull(10) ? 0.0 : row.GetDouble(10));
+	into.conquerable = (row.GetInt(11) ? true : false);
+
+	return true;
+}
+
 bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
 	DBQueryResult res;
 
