@@ -55,10 +55,6 @@ public:
 	//bubble stuff:
 	BubbleManager bubbles;
 	
-	void RangecastDestiny(const GPoint &pt, double range, std::vector<PyRepTuple *> &updates, std::vector<PyRepTuple *> &events) const;
-	void RangecastDestinyUpdate(const GPoint &pt, double range, PyRepTuple **payload) const;
-	void RangecastDestinyEvent(const GPoint &pt, double range, PyRepTuple **payload) const;
-	
 	uint32 GetID() const { return(m_systemID); }
 	const std::string &GetName() const { return(m_systemName); }
 	double GetWarpSpeed() const;

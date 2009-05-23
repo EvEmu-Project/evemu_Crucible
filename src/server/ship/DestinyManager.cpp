@@ -92,7 +92,7 @@ void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, bool 
 
 void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::vector<PyRepTuple *> &events, bool self_only) const {
 	if(self_only) {
-		_log(DESTINY__TRACE, "[%u] Sending destiny update to self.", GetStamp());
+		_log(DESTINY__TRACE, "[%u] Sending destiny update (%lu, %lu) to self (%u).", GetStamp(), updates.size(), events.size(), m_self->GetID());
 		std::vector<PyRepTuple *>::iterator cur, end;
 		
 		cur = updates.begin();
@@ -112,10 +112,12 @@ void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::
 			delete t;	//they are not required to consume it.
 		}
 		events.clear();
-	} else {
+	} else if(m_self->Bubble() != NULL) {
 		_log(DESTINY__TRACE, "[%u] Broadcasting destiny update (%lu, %lu)", GetStamp(), updates.size(), events.size());
-		//this should really be something like "bubblecast"
-		m_system->RangecastDestiny(m_position, DESTINY_UPDATE_RANGE, updates, events);
+
+		m_self->Bubble()->BubblecastDestiny(updates, events, "destiny");
+	} else {
+		_log(DESTINY__ERROR, "[%u] Cannot broadcast destiny update (%lu, %lu); entity (%u) is not in any bubble.", GetStamp(), updates.size(), events.size(), m_self->GetID());
 	}
 }
 
