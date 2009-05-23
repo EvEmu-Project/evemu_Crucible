@@ -1513,6 +1513,40 @@ bool InventoryDB::GetSolarSystem(uint32 solarSystemID, SolarSystemData &into) {
 	return true;
 }
 
+bool InventoryDB::GetStation(uint32 stationID, StationData &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" security, dockingCostPerVolume, maxShipVolumeDockable, officeRentalCost, operationID,"
+		" reprocessingEfficiency, reprocessingStationsTake, reprocessingHangarFlag"
+		" FROM staStations"
+		" WHERE stationID = %u",
+		stationID))
+	{
+		_log(DATABASE__ERROR, "Failed to query data for station %u: %s.", stationID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "Station %u not found.", stationID);
+		return false;
+	}
+
+	into.security = row.GetUInt(0);
+	into.dockingCostPerVolume = row.GetDouble(1);
+	into.maxShipVolumeDockable = row.GetDouble(2);
+	into.officeRentalCost = row.GetUInt(3);
+	into.operationID = row.GetUInt(4);
+
+	into.reprocessingEfficiency = row.GetDouble(5);
+	into.reprocessingStationsTake = row.GetDouble(6);
+	into.reprocessingHangarFlag = (EVEItemFlags)row.GetInt(7);
+
+	return true;
+}
+
 
 
 

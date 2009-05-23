@@ -49,6 +49,7 @@ class CharacterData;
 class CharacterAppearance;
 class CorpMemberInfo;
 class SolarSystemData;
+class StationData;
 
 class InventoryDB
 : public ServiceDB
@@ -221,6 +222,19 @@ public:
 	 * @return True if load succeeds, false if fails.
 	 */
 	bool GetSolarSystem(uint32 solarSystemID, SolarSystemData &into);
+
+	/*
+	 * Station stuff
+	 * (staStations)
+	 */
+	/**
+	 * Loads station data.
+	 *
+	 * @param[in] stationID ID of station which data should be loaded.
+	 * @param[in] into Container where data should be stored.
+	 * @return True if load succeeds, false if fails.
+	 */
+	bool GetStation(uint32 stationID, StationData &into);
 };
 
 

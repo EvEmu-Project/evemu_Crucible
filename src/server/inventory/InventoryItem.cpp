@@ -245,6 +245,18 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 				};
 
 				///////////////////////////////////////
+				// Station:
+				///////////////////////////////////////
+				case EVEDB::invGroups::Station: {
+					// cast the type into what it really is ...
+					const StationType *stationType = static_cast<const StationType *>(type);
+
+					return(Station::_Load(
+						factory, itemID, *stationType, data
+					));
+				};
+
+				///////////////////////////////////////
 				// Default:
 				///////////////////////////////////////
 				default: {
@@ -341,6 +353,15 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 				///////////////////////////////////////
 				case EVEDB::invGroups::Solar_System: {
 					_log(ITEM__ERROR, "Refusing to create solar system '%s'.", data.name.c_str());
+
+					return NULL;
+				};
+
+				///////////////////////////////////////
+				// Station:
+				///////////////////////////////////////
+				case EVEDB::invGroups::Station: {
+					_log(ITEM__ERROR, "Refusing to create station '%s'.", data.name.c_str());
 
 					return NULL;
 				};

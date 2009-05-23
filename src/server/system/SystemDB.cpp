@@ -68,7 +68,6 @@ bool SystemDB::LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &
 
 bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity> &into) {
 	DBQueryResult res;
-	using namespace EVEDB::invCategories;
 	
 	if(!m_db->RunQuery(res,
 		"SELECT"
@@ -84,9 +83,9 @@ bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDy
 		"	AND locationID=%u",
 		//excluded categories:
 			//celestials:
-			_System, Celestial, Station,
+			EVEDB::invCategories::_System, EVEDB::invCategories::Celestial, EVEDB::invCategories::Station,
 			//NPCs:
-			Entity,
+			EVEDB::invCategories::Entity,
 		systemID
 	))
 	{

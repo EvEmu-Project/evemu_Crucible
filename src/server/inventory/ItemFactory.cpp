@@ -185,6 +185,10 @@ SolarSystem *ItemFactory::GetSolarSystem(uint32 solarSystemID, bool recurse) {
 	return _GetItem<SolarSystem>(solarSystemID, recurse);
 }
 
+Station *ItemFactory::GetStation(uint32 stationID, bool recurse) {
+	return _GetItem<Station>(stationID, recurse);
+}
+
 InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
 	InventoryItem *i = InventoryItem::Spawn(*this, data);
 	if(i == NULL)

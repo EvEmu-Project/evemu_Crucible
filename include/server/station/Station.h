@@ -27,6 +27,7 @@
 #define __STATION__H__INCL__
 
 #include "inventory/Type.h"
+#include "inventory/InventoryItem.h"
 
 /**
  * Station type data container.
@@ -129,6 +130,108 @@ protected:
 	uint32 m_officeSlots;
 	double m_reprocessingEfficiency;
 	bool m_conquerable;
+};
+
+/**
+ * Data container for station.
+ */
+class StationData {
+public:
+	StationData(
+		uint32 _security = 0,
+		double _dockingCostPerVolume = 0.0,
+		double _maxShipVolumeDockable = 0.0,
+		uint32 _officeRentalCost = 0,
+		uint32 _operationID = 0,
+		double _reprocessingEfficiency = 0.0,
+		double _reprocessingStationsTake = 0.0,
+		EVEItemFlags _reprocessingHangarFlag = (EVEItemFlags)0
+	);
+
+	// Data members:
+	uint32 security;
+	double dockingCostPerVolume;
+	double maxShipVolumeDockable;
+	uint32 officeRentalCost;
+	uint32 operationID;
+
+	double reprocessingEfficiency;
+	double reprocessingStationsTake;
+	EVEItemFlags reprocessingHangarFlag;
+};
+
+/**
+ * InventoryItem which represents station.
+ */
+class Station
+: public InventoryItem
+{
+	friend class InventoryItem; // to let it construct us
+public:
+	/**
+	 * Loads station.
+	 *
+	 * @param[in] factory
+	 * @param[in] stationID ID of station to load.
+	 * @param[in] recurse Whether all contained item should be also loaded.
+	 * @return Pointer to new Station object; NULL if fails.
+	 */
+	static Station *Load(ItemFactory &factory, uint32 stationID, bool recurse=false) { return InventoryItem::_Load<Station>(factory, stationID, recurse); }
+
+	/*
+	 * Access methods:
+	 */
+	uint32          security() const { return m_security; }
+	double          dockingCostPerVolume() const { return m_dockingCostPerVolume; }
+	double          maxShipVolumeDockable() const { return m_maxShipVolumeDockable; }
+	uint32          officeRentalCost() const { return m_officeRentalCost; }
+	uint32          operationID() const { return m_operationID; }
+
+	double          reprocessingEfficiency() const { return m_reprocessingEfficiency; }
+	double          reprocessingStationsTake() const { return m_reprocessingStationsTake; }
+	EVEItemFlags    reprocessingHangarFlag() const { return m_reprocessingHangarFlag; }
+
+protected:
+	Station(
+		ItemFactory &_factory,
+		uint32 _stationID,
+		// InventoryItem stuff:
+		const StationType &_type,
+		const ItemData &_data,
+		// Station stuff:
+		const StationData &_stData
+	);
+
+	/*
+	 * Member functions:
+	 */
+	static Station *_Load(ItemFactory &factory, uint32 stationID
+	);
+	static Station *_Load(ItemFactory &factory, uint32 stationID,
+		// InventoryItem stuff:
+		const StationType &type, const ItemData &data
+	);
+	static Station *_Load(ItemFactory &factory, uint32 stationID,
+		// InventoryItem stuff:
+		const StationType &type, const ItemData &data,
+		// Station stuff:
+		const StationData &stData
+	);
+
+	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+
+	/*
+	 * Data members:
+	 */
+	uint32 m_security;
+	double m_dockingCostPerVolume;
+	double m_maxShipVolumeDockable;
+	uint32 m_officeRentalCost;
+	uint32 m_operationID;
+
+	double m_reprocessingEfficiency;
+	double m_reprocessingStationsTake;
+	EVEItemFlags m_reprocessingHangarFlag;
 };
 
 #endif /* !__STATION__H__INCL__ */

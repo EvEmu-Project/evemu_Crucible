@@ -123,4 +123,97 @@ StationType *StationType::_Load(ItemFactory &factory, uint32 stationTypeID,
 	));
 }
 
+/*
+ * StationData
+ */
+StationData::StationData(
+	uint32 _security,
+	double _dockingCostPerVolume,
+	double _maxShipVolumeDockable,
+	uint32 _officeRentalCost,
+	uint32 _operationID,
+	double _reprocessingEfficiency,
+	double _reprocessingStationsTake,
+	EVEItemFlags _reprocessingHangarFlag)
+: security(_security),
+  dockingCostPerVolume(_dockingCostPerVolume),
+  maxShipVolumeDockable(_maxShipVolumeDockable),
+  officeRentalCost(_officeRentalCost),
+  operationID(_operationID),
+  reprocessingEfficiency(_reprocessingEfficiency),
+  reprocessingStationsTake(_reprocessingStationsTake),
+  reprocessingHangarFlag(_reprocessingHangarFlag)
+{
+}
+
+/*
+ * Station
+ */
+Station::Station(
+	ItemFactory &_factory,
+	uint32 _stationID,
+	// InventoryItem stuff:
+	const StationType &_type,
+	const ItemData &_data,
+	// Station stuff:
+	const StationData &_stData)
+: InventoryItem(_factory, _stationID, _type, _data),
+  m_security(_stData.security),
+  m_dockingCostPerVolume(_stData.dockingCostPerVolume),
+  m_maxShipVolumeDockable(_stData.maxShipVolumeDockable),
+  m_officeRentalCost(_stData.officeRentalCost),
+  m_operationID(_stData.operationID),
+  m_reprocessingEfficiency(_stData.reprocessingEfficiency),
+  m_reprocessingStationsTake(_stData.reprocessingStationsTake),
+  m_reprocessingHangarFlag(_stData.reprocessingHangarFlag)
+{
+}
+
+Station *Station::_Load(ItemFactory &factory, uint32 stationID
+) {
+	// pull the item info
+	ItemData data;
+	if(!factory.db().GetItem(stationID, data))
+		return NULL;
+
+	// obtain type
+	const StationType *type = factory.GetStationType(data.typeID);
+	if(type == NULL)
+		return NULL;
+
+	// we successfully got StationType so it's sure we're loading a station
+
+	return(
+		Station::_Load(factory, stationID, *type, data)
+	);
+}
+
+Station *Station::_Load(ItemFactory &factory, uint32 stationID,
+	// InventoryItem stuff:
+	const StationType &type, const ItemData &data
+) {
+	// load station data
+	StationData stData;
+	if(!factory.db().GetStation(stationID, stData))
+		return NULL;
+
+	return(
+		Station::_Load(factory, stationID, type, data, stData)
+	);
+}
+
+Station *Station::_Load(ItemFactory &factory, uint32 stationID,
+	// InventoryItem stuff:
+	const StationType &type, const ItemData &data,
+	// Station stuff:
+	const StationData &stData
+) {
+	// ready to create
+	return(new Station(
+		factory, stationID,
+		type, data,
+		stData
+	));
+}
+
 
