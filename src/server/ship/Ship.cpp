@@ -65,20 +65,14 @@ ShipTypeData::ShipTypeData(
  		assert(_skillType->id() == stData.skillTypeID);
 }
 
+ShipType *ShipType::Load(ItemFactory &factory, uint32 shipTypeID) {
+	return Type::Load<ShipType>(factory, shipTypeID);
+}
+
 ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID
 ) {
-	// load type data
-	TypeData data;
-	if(!factory.db().GetType(shipTypeID, data))
-		return NULL;
-
-	// obtain group
-	const Group *g = factory.GetGroup(data.groupID);
-	if(g == NULL)
-		return NULL;
-
-	return(
-		ShipType::_Load(factory, shipTypeID, *g, data)
+	return Type::_Load<ShipType>(
+		factory, shipTypeID
 	);
 }
 
@@ -86,44 +80,8 @@ ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID,
 	// Type stuff:
 	const Group &group, const TypeData &data
 ) {
-	// verify it's a ship
-	if(group.categoryID() != EVEDB::invCategories::Ship) {
-		_log(ITEM__ERROR, "Tried to load %u (%s) as a Ship.", shipTypeID, group.category().name().c_str());
-		return NULL;
-	}
-
-	// load additional ship type stuff
-	ShipTypeData stData;
-	if(!factory.db().GetShipType(shipTypeID, stData))
-		return NULL;
-
-	// try to load weapon type
-	const Type *weaponType = NULL;
-	if(stData.weaponTypeID != 0) {
-		weaponType = factory.GetType(stData.weaponTypeID);
-		if(weaponType == NULL)
-			return NULL;
-	}
-
-	// try to load mining type
-	const Type *miningType = NULL;
-	if(stData.miningTypeID != 0) {
-		miningType = factory.GetType(stData.miningTypeID);
-		if(miningType == NULL)
-			return NULL;
-	}
-
-	// try to load skill type
-	const Type *skillType = NULL;
-	if(stData.skillTypeID != 0) {
-		skillType = factory.GetType(stData.skillTypeID);
-		if(skillType == NULL)
-			return NULL;
-	}
-
-	// continue with load
-	return(
-		ShipType::_Load(factory, shipTypeID, group, data, weaponType, miningType, skillType, stData)
+	return ShipType::_Load<ShipType>(
+		factory, shipTypeID, group, data
 	);
 }
 

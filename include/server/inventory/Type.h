@@ -261,7 +261,7 @@ public:
 	 * @param[in] typeID ID of type to load.
 	 * @return Pointer to new Type object; NULL if failed.
 	 */
-	static Type *Load(ItemFactory &factory, uint32 typeID) { return Type::_Load<Type>(factory, typeID); }
+	static Type *Load(ItemFactory &factory, uint32 typeID);
 
 	/*
 	 * Attributes:
@@ -305,7 +305,7 @@ protected:
 	 */
 	// Template helper:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 typeID) {
+	static _Ty *Load(ItemFactory &factory, uint32 typeID) {
 		// static load
 		_Ty *t = _Ty::_Load(factory, typeID);
 		if(t == NULL)
@@ -319,6 +319,25 @@ protected:
 
 		// return
 		return t;
+	}
+
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 typeID
+	) {
+		// pull data
+		TypeData data;
+		if(!factory.db().GetType(typeID, data))
+			return NULL;
+
+		// obtain group
+		const Group *g = factory.GetGroup(data.groupID);
+		if(g == NULL)
+			return NULL;
+
+		return(_Ty::_Load(
+			factory, typeID, *g, data
+		));
 	}
 
 	// Actual loading stuff:

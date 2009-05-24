@@ -61,7 +61,7 @@ public:
 	 * @param[in] shipTypeID ID of ship type to load.
 	 * @return Pointer to new ShipType object; NULL if failed.
 	 */
-	static ShipType *Load(ItemFactory &factory, uint32 shipTypeID) { return Type::_Load<ShipType>(factory, shipTypeID); }
+	static ShipType *Load(ItemFactory &factory, uint32 shipTypeID);
 
 	/*
 	 * Access methods:
@@ -86,6 +86,54 @@ protected:
 	/*
 	 * Member functions:
 	 */
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 shipTypeID,
+		// Type stuff:
+		const Group &group, const TypeData &data
+	) {
+		// verify it's a ship
+		if(group.categoryID() != EVEDB::invCategories::Ship) {
+			_log(ITEM__ERROR, "Tried to load %u (%s) as a Ship.", shipTypeID, group.category().name().c_str());
+			return NULL;
+		}
+
+		// load additional ship type stuff
+		ShipTypeData stData;
+		if(!factory.db().GetShipType(shipTypeID, stData))
+			return NULL;
+
+		// try to load weapon type
+		const Type *weaponType = NULL;
+		if(stData.weaponTypeID != 0) {
+			weaponType = factory.GetType(stData.weaponTypeID);
+			if(weaponType == NULL)
+				return NULL;
+		}
+
+		// try to load mining type
+		const Type *miningType = NULL;
+		if(stData.miningTypeID != 0) {
+			miningType = factory.GetType(stData.miningTypeID);
+			if(miningType == NULL)
+				return NULL;
+		}
+
+		// try to load skill type
+		const Type *skillType = NULL;
+		if(stData.skillTypeID != 0) {
+			skillType = factory.GetType(stData.skillTypeID);
+			if(skillType == NULL)
+				return NULL;
+		}
+
+		// continue with load
+		return(
+			_Ty::_Load(factory, shipTypeID, group, data, weaponType, miningType, skillType, stData)
+		);
+	}
+
+	// Actual loading stuff:
 	static ShipType *_Load(ItemFactory &factory, uint32 shipTypeID
 	);
 	static ShipType *_Load(ItemFactory &factory, uint32 shipTypeID,

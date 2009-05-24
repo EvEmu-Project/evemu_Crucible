@@ -241,21 +241,15 @@ Type::Type(
 	_log(ITEM__TRACE, "Created object %p for type %s (%u).", this, name().c_str(), id());
 }
 
+Type *Type::Load(ItemFactory &factory, uint32 typeID) {
+	return Type::Load<Type>(factory, typeID);
+}
+
 Type *Type::_Load(ItemFactory &factory, uint32 typeID
 ) {
-	// pull data
-	TypeData data;
-	if(!factory.db().GetType(typeID, data))
-		return NULL;
-
-	// obtain group
-	const Group *g = factory.GetGroup(data.groupID);
-	if(g == NULL)
-		return NULL;
-
-	return(Type::_Load(
-		factory, typeID, *g, data
-	));
+	return Type::_Load<Type>(
+		factory, typeID
+	);
 }
 
 Type *Type::_Load(ItemFactory &factory, uint32 typeID,

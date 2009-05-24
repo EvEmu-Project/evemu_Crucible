@@ -72,20 +72,14 @@ StationType::StationType(
 	assert(_data.groupID == EVEDB::invGroups::Station);
 }
 
+StationType *StationType::Load(ItemFactory &factory, uint32 stationTypeID) {
+	return Type::Load<StationType>(factory, stationTypeID);
+}
+
 StationType *StationType::_Load(ItemFactory &factory, uint32 stationTypeID
 ) {
-	// pull data
-	TypeData data;
-	if(!factory.db().GetType(stationTypeID, data))
-		return NULL;
-
-	// obtain group
-	const Group *g = factory.GetGroup(data.groupID);
-	if(g == NULL)
-		return NULL;
-
-	return(
-		StationType::_Load(factory, stationTypeID, *g, data)
+	return Type::_Load<StationType>(
+		factory, stationTypeID
 	);
 }
 
@@ -93,19 +87,8 @@ StationType *StationType::_Load(ItemFactory &factory, uint32 stationTypeID,
 	// Type stuff:
 	const Group &group, const TypeData &data
 ) {
-	// verify it's a station type
-	if(group.id() != EVEDB::invGroups::Station) {
-		_log(ITEM__ERROR, "Trying to load %s as Station.", group.name().c_str());
-		return NULL;
-	}
-
-	// get station type data
-	StationTypeData stData;
-	if(!factory.db().GetStationType(stationTypeID, stData))
-		return NULL;
-
-	return(
-		StationType::_Load(factory, stationTypeID, group, data, stData)
+	return StationType::_Load<StationType>(
+		factory, stationTypeID, group, data
 	);
 }
 

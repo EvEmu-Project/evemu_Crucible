@@ -73,7 +73,7 @@ public:
 	 * @param[in] stationTypeID ID of station type to load.
 	 * @return Pointer to new StationType object; NULL if failed.
 	 */
-	static StationType *Load(ItemFactory &factory, uint32 stationTypeID) { return Type::_Load<StationType>(factory, stationTypeID); }
+	static StationType *Load(ItemFactory &factory, uint32 stationTypeID);
 
 	/*
 	 * Access methods:
@@ -102,6 +102,29 @@ protected:
 	/*
 	 * Member functions:
 	 */
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 stationTypeID,
+		// Type stuff:
+		const Group &group, const TypeData &data
+	) {
+		// verify it's a station type
+		if(group.id() != EVEDB::invGroups::Station) {
+			_log(ITEM__ERROR, "Trying to load %s as Station.", group.name().c_str());
+			return NULL;
+		}
+
+		// get station type data
+		StationTypeData stData;
+		if(!factory.db().GetStationType(stationTypeID, stData))
+			return NULL;
+
+		return(
+			_Ty::_Load(factory, stationTypeID, group, data, stData)
+		);
+	}
+
+	// Actual loading stuff:
 	static StationType *_Load(ItemFactory &factory, uint32 stationTypeID
 	);
 	static StationType *_Load(ItemFactory &factory, uint32 stationTypeID,

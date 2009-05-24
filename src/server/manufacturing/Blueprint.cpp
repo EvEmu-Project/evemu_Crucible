@@ -88,20 +88,14 @@ BlueprintType::BlueprintType(
 		assert(_bpData.parentBlueprintTypeID == _parentBlueprintType->id());
 }
 
+BlueprintType *BlueprintType::Load(ItemFactory &factory, uint32 typeID) {
+	return Type::Load<BlueprintType>(factory, typeID);
+}
+
 BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID
 ) {
-	// pull data
-	TypeData data;
-	if(!factory.db().GetType(typeID, data))
-		return NULL;
-
-	// obtain group
-	const Group *g = factory.GetGroup(data.groupID);
-	if(g == NULL)
-		return NULL;
-
-	return(
-		BlueprintType::_Load(factory, typeID, *g, data)
+	return Type::_Load<BlueprintType>(
+		factory, typeID
 	);
 }
 
@@ -109,34 +103,8 @@ BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID,
 	// Type stuff:
 	const Group &group, const TypeData &data
 ) {
-	// check if we are really loading a blueprint
-	if(group.categoryID() != EVEDB::invCategories::Blueprint) {
-		_log(ITEM__ERROR, "Load of blueprint type %u requested, but it's %s.", typeID, group.category().name().c_str());
-		return NULL;
-	}
-
-	// pull additional blueprint data
-	BlueprintTypeData bpData;
-	if(!factory.db().GetBlueprintType(typeID, bpData))
-		return NULL;
-
-	// obtain parent blueprint type (might be NULL)
-	const BlueprintType *parentBlueprintType = NULL;
-	if(bpData.parentBlueprintTypeID != 0) {
-		// we have parent type, get it
-		parentBlueprintType = factory.GetBlueprintType(bpData.parentBlueprintTypeID);
-		if(parentBlueprintType == NULL)
-			return NULL;
-	}
-
-	// obtain product type
-	const Type *productType = factory.GetType(bpData.productTypeID);
-	if(productType == NULL)
-		return NULL;
-
-	// create blueprint type
-	return(
-		BlueprintType::_Load(factory, typeID, group, data, parentBlueprintType, *productType, bpData)
+	return BlueprintType::_Load<BlueprintType>(
+		factory, typeID, group, data
 	);
 }
 

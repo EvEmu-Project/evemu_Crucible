@@ -81,7 +81,7 @@ public:
 	 * @param[in] typeID ID of blueprint type to load.
 	 * @return Pointer to BlueprintType object; NULL if failed.
 	 */
-	static BlueprintType *Load(ItemFactory &factory, uint32 typeID) { return Type::_Load<BlueprintType>(factory, typeID); }
+	static BlueprintType *Load(ItemFactory &factory, uint32 typeID);
 
 	/*
 	 * Access functions:
@@ -119,6 +119,44 @@ protected:
 	/*
 	 * Member functions
 	 */
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 typeID,
+		// Type stuff:
+		const Group &group, const TypeData &data
+	) {
+		// check if we are really loading a blueprint
+		if(group.categoryID() != EVEDB::invCategories::Blueprint) {
+			_log(ITEM__ERROR, "Load of blueprint type %u requested, but it's %s.", typeID, group.category().name().c_str());
+			return NULL;
+		}
+
+		// pull additional blueprint data
+		BlueprintTypeData bpData;
+		if(!factory.db().GetBlueprintType(typeID, bpData))
+			return NULL;
+
+		// obtain parent blueprint type (might be NULL)
+		const BlueprintType *parentBlueprintType = NULL;
+		if(bpData.parentBlueprintTypeID != 0) {
+			// we have parent type, get it
+			parentBlueprintType = factory.GetBlueprintType(bpData.parentBlueprintTypeID);
+			if(parentBlueprintType == NULL)
+				return NULL;
+		}
+
+		// obtain product type
+		const Type *productType = factory.GetType(bpData.productTypeID);
+		if(productType == NULL)
+			return NULL;
+
+		// create blueprint type
+		return(
+			_Ty::_Load(factory, typeID, group, data, parentBlueprintType, *productType, bpData)
+		);
+	}
+
+	// Actual loading stuff:
 	static BlueprintType *_Load(ItemFactory &factory, uint32 typeID
 	);
 	static BlueprintType *_Load(ItemFactory &factory, uint32 typeID,

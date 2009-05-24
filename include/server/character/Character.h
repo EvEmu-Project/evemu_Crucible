@@ -87,7 +87,7 @@ public:
 	 * @param[in] characterTypeID ID of character type to load.
 	 * @return Pointer to new object, NULL if failed.
 	 */
-	static CharacterType *Load(ItemFactory &factory, uint32 characterTypeID) { return Type::_Load<CharacterType>(factory, characterTypeID); }
+	static CharacterType *Load(ItemFactory &factory, uint32 characterTypeID);
 
 	/*
 	 * Access functions:
@@ -127,6 +127,35 @@ protected:
 	/*
 	 * Member functions
 	 */
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 typeID,
+		// Type stuff:
+		const Group &group, const TypeData &data
+	) {
+		// check we are really loading a character type
+		if(group.id() != EVEDB::invGroups::Character) {
+			_log(ITEM__ERROR, "Load of character type %u requested, but it's %s.", typeID, group.name().c_str());
+			return NULL;
+		}
+
+		// query character type data
+		uint32 bloodlineID;
+		CharacterTypeData charData;
+		if(!factory.db().GetCharacterType(typeID, bloodlineID, charData))
+			return NULL;
+
+		// load ship type
+		const Type *shipType = factory.GetType(charData.shipTypeID);
+		if(shipType == NULL)
+			return NULL;
+
+		return(
+			_Ty::_Load(factory, typeID, bloodlineID, group, data, *shipType, charData)
+		);
+	}
+
+	// Actual loading stuff:
 	static CharacterType *_Load(ItemFactory &factory, uint32 typeID
 	);
 	static CharacterType *_Load(ItemFactory &factory, uint32 typeID,
