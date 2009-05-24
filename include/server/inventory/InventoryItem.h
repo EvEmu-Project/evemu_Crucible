@@ -98,7 +98,7 @@ public:
 	 * @param[in] recurse Whether all items contained within this item should be loaded too.
 	 * @return Pointer to InventoryItem object; NULL if failed.
 	 */
-	static InventoryItem *Load(ItemFactory &factory, uint32 itemID, bool recurse=false) { return InventoryItem::_Load<InventoryItem>(factory, itemID, recurse); }
+	static InventoryItem *Load(ItemFactory &factory, uint32 itemID, bool recurse=false);
 	/**
 	 * Spawns new item.
 	 *
@@ -225,7 +225,7 @@ protected:
 	 */
 	// Template helper:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 itemID, bool recurse) {
+	static _Ty *Load(ItemFactory &factory, uint32 itemID, bool recurse) {
 		// static load
 		_Ty *i = _Ty::_Load(factory, itemID);
 		if(i == NULL)
@@ -240,6 +240,25 @@ protected:
 		return i;
 	}
 
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 itemID
+	) {
+		// pull the item info
+		ItemData data;
+		if(!factory.db().GetItem(itemID, data))
+			return NULL;
+
+		// obtain type
+		const Type *type = factory.GetType(data.typeID);
+		if(type == NULL)
+			return NULL;
+
+		return(_Ty::_Load(
+			factory, itemID, *type, data
+		));
+	}
+
 	// Actual loading stuff:
 	static InventoryItem *_Load(ItemFactory &factory, uint32 itemID
 	);
@@ -247,7 +266,6 @@ protected:
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data
 	);
-
 	virtual bool _Load(bool recurse=false);
 
 	static uint32 _Spawn(ItemFactory &factory,

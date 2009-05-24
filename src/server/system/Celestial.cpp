@@ -59,42 +59,23 @@ CelestialObject::CelestialObject(
 {
 }
 
+CelestialObject *CelestialObject::Load(ItemFactory &factory, uint32 celestialID, bool recurse) {
+	return InventoryItem::Load<CelestialObject>(factory, celestialID, recurse);
+}
+
 CelestialObject *CelestialObject::_Load(ItemFactory &factory, uint32 celestialID
 ) {
-	// pull the item info
-	ItemData data;
-	if(!factory.db().GetItem(celestialID, data))
-		return NULL;
-
-	// obtain type
-	const Type *type = factory.GetType(data.typeID);
-	if(type == NULL)
-		return NULL;
-
-	return(CelestialObject::_Load(
-		factory, celestialID, *type, data
-	));
+	return InventoryItem::_Load<CelestialObject>(
+		factory, celestialID
+	);
 }
 
 CelestialObject *CelestialObject::_Load(ItemFactory &factory, uint32 celestialID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data
 ) {
-	// make sure it's celestial object or station
-	if(    type.categoryID() != EVEDB::invCategories::Celestial
-		&& type.groupID() != EVEDB::invGroups::Station
-	) {
-		_log(ITEM__ERROR, "Trying to load %s as Celestial.", type.category().name().c_str());
-		return NULL;
-	}
-
-	// load celestial data
-	CelestialObjectData cData;
-	if(!factory.db().GetCelestialObject(celestialID, cData))
-		return NULL;
-
-	return(
-		CelestialObject::_Load(factory, celestialID, type, data, cData)
+	return CelestialObject::_Load<CelestialObject>(
+		factory, celestialID, type, data
 	);
 }
 
@@ -140,6 +121,16 @@ CelestialObject *CelestialObject::_Load(ItemFactory &factory, uint32 celestialID
 			));
 		};
 	}
+}
+
+void CelestialObject::Save(bool recursive, bool saveAttributes) const {
+	// For now disable any saving of Celestial objects.
+}
+
+void CelestialObject::Delete() {
+	// We're definitely not going to remove Celetial object.
+	// Just consume ref as supposed to.
+	DecRef();
 }
 
 

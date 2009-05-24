@@ -111,19 +111,23 @@ Ship::Ship(
 {
 }
 
+Ship *Ship::Load(ItemFactory &factory, uint32 shipID, bool recurse) {
+	return InventoryItem::Load<Ship>(factory, shipID, recurse);
+}
+
 Ship *Ship::_Load(ItemFactory &factory, uint32 shipID
 ) {
-	ItemData data;
-	if(!factory.db().GetItem(shipID, data))
-		return NULL;
+	return InventoryItem::_Load<Ship>(
+		factory, shipID
+	);
+}
 
-	// get type
-	const ShipType *st = factory.GetShipType(data.typeID);
-	if(st == NULL)
-		return NULL;
-
-	return(
-		Ship::_Load(factory, shipID, *st, data)
+Ship *Ship::_Load(ItemFactory &factory, uint32 shipID,
+	// InventoryItem stuff:
+	const Type &type, const ItemData &data
+) {
+	return Ship::_Load<Ship>(
+		factory, shipID, type, data
 	);
 }
 
@@ -131,8 +135,6 @@ Ship *Ship::_Load(ItemFactory &factory, uint32 shipID,
 	// InventoryItem stuff:
 	const ShipType &shipType, const ItemData &data
 ) {
-	// we got shipType, so it's sure it's a ship
-
 	// we don't need any additional stuff
 	return(new Ship(
 		factory, shipID,

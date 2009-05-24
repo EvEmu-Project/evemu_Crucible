@@ -348,7 +348,7 @@ public:
 	 * @param[in] recurse Whether load should be recursive - load all contained items as well.
 	 * @return Pointer to new Character object; NULL if failed.
 	 */
-	static Character *Load(ItemFactory &factory, uint32 characterID, bool recurse=false) { return InventoryItem::_Load<Character>(factory, characterID, recurse); }
+	static Character *Load(ItemFactory &factory, uint32 characterID, bool recurse=false);
 	/**
 	 * Spawns new character.
 	 *
@@ -444,11 +444,42 @@ protected:
 		const CorpMemberInfo &_corpData
 	);
 
+	/*
+	 * Member functions:
+	 */
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 characterID,
+		// InventoryItem stuff:
+		const Type &type, const ItemData &data
+	) {
+		// check it's a character
+		if(type.groupID() != EVEDB::invGroups::Character) {
+			_log(ITEM__ERROR, "Trying to load %s as Character.", type.group().name().c_str());
+			return NULL;
+		}
+		// cast the type
+		const CharacterType &charType = static_cast<const CharacterType &>(type);
+
+		CharacterData charData;
+		if(!factory.db().GetCharacter(characterID, charData))
+			return NULL;
+
+		CorpMemberInfo corpData;
+		if(!factory.db().GetCorpMemberInfo(characterID, corpData))
+			return NULL;
+
+		return(
+			_Ty::_Load(factory, characterID, charType, data, charData, corpData)
+		);
+	}
+
+	// Actual loading stuff:
 	static Character *_Load(ItemFactory &factory, uint32 characterID
 	);
 	static Character *_Load(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
-		const CharacterType &charType, const ItemData &data
+		const Type &type, const ItemData &data
 	);
 	static Character *_Load(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
@@ -456,7 +487,6 @@ protected:
 		// Character stuff:
 		const CharacterData &charData, const CorpMemberInfo &corpData
 	);
-
 	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
 
 	static uint32 _Spawn(ItemFactory &factory,

@@ -63,12 +63,15 @@ public:
 	 * @param[in] recurse Whether all contained items should be also loaded.
 	 * @return Pointer to new CelestialObject; NULL if fails.
 	 */
-	static CelestialObject *Load(ItemFactory &factory, uint32 celestialID, bool recurse=false) { return InventoryItem::_Load<CelestialObject>(factory, celestialID, recurse); }
+	static CelestialObject *Load(ItemFactory &factory, uint32 celestialID, bool recurse=false);
 
 	/*
 	 * Primary public interface:
 	 */
 	CelestialObject *IncRef() { return static_cast<CelestialObject *>(InventoryItem::IncRef()); }
+
+	void Save(bool recursive=false, bool saveAttributes=true) const;
+	void Delete();
 
 	/*
 	 * Access methods:
@@ -92,6 +95,31 @@ protected:
 	/*
 	 * Member functions:
 	 */
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 celestialID,
+		// InventoryItem stuff:
+		const Type &type, const ItemData &data
+	) {
+		// make sure it's celestial object or station
+		if(    type.categoryID() != EVEDB::invCategories::Celestial
+			&& type.groupID() != EVEDB::invGroups::Station
+		) {
+			_log(ITEM__ERROR, "Trying to load %s as Celestial.", type.category().name().c_str());
+			return NULL;
+		}
+
+		// load celestial data
+		CelestialObjectData cData;
+		if(!factory.db().GetCelestialObject(celestialID, cData))
+			return NULL;
+
+		return(
+			_Ty::_Load(factory, celestialID, type, data, cData)
+		);
+	}
+
+	// Actual loading stuff:
 	static CelestialObject *_Load(ItemFactory &factory, uint32 celestialID
 	);
 	static CelestialObject *_Load(ItemFactory &factory, uint32 celestialID,
@@ -104,7 +132,6 @@ protected:
 		// CelestialObject stuff:
 		const CelestialObjectData &cData
 	);
-
 	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
 
 	/*

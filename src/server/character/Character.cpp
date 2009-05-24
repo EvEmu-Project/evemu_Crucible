@@ -340,38 +340,23 @@ Character::Character(
 	assert(singleton() && quantity() == 1);
 }
 
+Character *Character::Load(ItemFactory &factory, uint32 characterID, bool recurse) {
+	return InventoryItem::Load<Character>(factory, characterID, recurse);
+}
+
 Character *Character::_Load(ItemFactory &factory, uint32 characterID
 ) {
-	ItemData data;
-	if(!factory.db().GetItem(characterID, data))
-		return NULL;
-
-	// get type
-	const CharacterType *ct = factory.GetCharacterType(data.typeID);
-	if(ct == NULL)
-		return NULL;
-
-	return(
-		Character::_Load(factory, characterID, *ct, data)
+	return InventoryItem::_Load<Character>(
+		factory, characterID
 	);
 }
 
 Character *Character::_Load(ItemFactory &factory, uint32 characterID,
 	// InventoryItem stuff:
-	const CharacterType &charType, const ItemData &data
+	const Type &type, const ItemData &data
 ) {
-	// since we got charType, it's sure we are loading a character
-
-	CharacterData charData;
-	if(!factory.db().GetCharacter(characterID, charData))
-		return NULL;
-
-	CorpMemberInfo corpData;
-	if(!factory.db().GetCorpMemberInfo(characterID, corpData))
-		return NULL;
-
-	return(
-		Character::_Load(factory, characterID, charType, data, charData, corpData)
+	return Character::_Load<Character>(
+		factory, characterID, type, data
 	);
 }
 

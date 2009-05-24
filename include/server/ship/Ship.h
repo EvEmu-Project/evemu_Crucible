@@ -173,7 +173,7 @@ public:
 	 * @param[in] recurse Whether all items contained within this item should be loaded.
 	 * @return Pointer to Ship object; NULL if failed.
 	 */
-	static Ship *Load(ItemFactory &factory, uint32 shipID, bool recurse=false) { return InventoryItem::_Load<Ship>(factory, shipID, recurse); }
+	static Ship *Load(ItemFactory &factory, uint32 shipID, bool recurse=false);
 	/**
 	 * Spawns new ship.
 	 *
@@ -205,13 +205,38 @@ protected:
 	/*
 	 * Member functions
 	 */
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 shipID,
+		// InventoryItem stuff:
+		const Type &type, const ItemData &data
+	) {
+		// check it's a ship
+		if(type.groupID() != EVEDB::invCategories::Ship) {
+			_log(ITEM__ERROR, "Trying to load %s as Ship.", type.category().name().c_str());
+			return NULL;
+		}
+		// cast the type
+		const ShipType &shipType = static_cast<const ShipType &>(type);
+
+		// no additional stuff
+
+		return(
+			_Ty::_Load(factory, shipID, shipType, data)
+		);
+	}
+
+	// Actual loading stuff:
 	static Ship *_Load(ItemFactory &factory, uint32 shipID
+	);
+	static Ship *_Load(ItemFactory &factory, uint32 shipID,
+		// InventoryItem stuff:
+		const Type &type, const ItemData &data
 	);
 	static Ship *_Load(ItemFactory &factory, uint32 shipID,
 		// InventoryItem stuff:
 		const ShipType &shipType, const ItemData &data
 	);
-
 	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
 
 	static uint32 _Spawn(ItemFactory &factory,

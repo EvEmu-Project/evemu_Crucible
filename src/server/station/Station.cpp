@@ -154,54 +154,34 @@ Station::Station(
 {
 }
 
+Station *Station::Load(ItemFactory &factory, uint32 stationID, bool recurse) {
+	return InventoryItem::Load<Station>(factory, stationID, recurse);
+}
+
 Station *Station::_Load(ItemFactory &factory, uint32 stationID
 ) {
-	// pull the item info
-	ItemData data;
-	if(!factory.db().GetItem(stationID, data))
-		return NULL;
-
-	// obtain type
-	const StationType *type = factory.GetStationType(data.typeID);
-	if(type == NULL)
-		return NULL;
-
-	return(
-		Station::_Load(factory, stationID, *type, data)
+	return InventoryItem::_Load<Station>(
+		factory, stationID
 	);
 }
 
 Station *Station::_Load(ItemFactory &factory, uint32 stationID,
 	// InventoryItem stuff:
-	const StationType &type, const ItemData &data
+	const Type &type, const ItemData &data
 ) {
-	// we got StationType so it's sure we're loading a station
-
-	// load celestial data
-	CelestialObjectData cData;
-	if(!factory.db().GetCelestialObject(stationID, cData))
-		return NULL;
-
-	return(
-		Station::_Load(factory, stationID, type, data, cData)
+	return CelestialObject::_Load<Station>(
+		factory, stationID, type, data
 	);
 }
 
 Station *Station::_Load(ItemFactory &factory, uint32 stationID,
 	// InventoryItem stuff:
-	const StationType &type, const ItemData &data,
+	const Type &type, const ItemData &data,
 	// CelestialObject stuff:
 	const CelestialObjectData &cData
 ) {
-	// we got StationType so it's sure we're loading a station
-
-	// load station data
-	StationData stData;
-	if(!factory.db().GetStation(stationID, stData))
-		return NULL;
-
-	return(
-		Station::_Load(factory, stationID, type, data, cData, stData)
+	return Station::_Load<Station>(
+		factory, stationID, type, data, cData
 	);
 }
 

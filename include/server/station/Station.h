@@ -200,7 +200,7 @@ public:
 	 * @param[in] recurse Whether all contained item should be also loaded.
 	 * @return Pointer to new Station object; NULL if fails.
 	 */
-	static Station *Load(ItemFactory &factory, uint32 stationID, bool recurse=false) { return InventoryItem::_Load<Station>(factory, stationID, recurse); }
+	static Station *Load(ItemFactory &factory, uint32 stationID, bool recurse=false);
 
 	/*
 	 * Primary public interface:
@@ -236,15 +236,42 @@ protected:
 	/*
 	 * Member functions:
 	 */
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 stationID,
+		// InventoryItem stuff:
+		const Type &type, const ItemData &data,
+		// CelestialObject stuff:
+		const CelestialObjectData &cData
+	) {
+		// check it's a station
+		if(type.groupID() != EVEDB::invGroups::Station) {
+			_log(ITEM__ERROR, "Trying to load %s as Station.", type.group().name().c_str());
+			return NULL;
+		}
+		// cast the type
+		const StationType &stType = static_cast<const StationType &>(type);
+
+		// load station data
+		StationData stData;
+		if(!factory.db().GetStation(stationID, stData))
+			return NULL;
+
+		return(
+			_Ty::_Load(factory, stationID, stType, data, cData, stData)
+		);
+	}
+
+	// Actual loading stuff:
 	static Station *_Load(ItemFactory &factory, uint32 stationID
 	);
 	static Station *_Load(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
-		const StationType &type, const ItemData &data
+		const Type &type, const ItemData &data
 	);
 	static Station *_Load(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
-		const StationType &type, const ItemData &data,
+		const Type &type, const ItemData &data,
 		// CelestialObject stuff:
 		const CelestialObjectData &cData
 	);
@@ -256,7 +283,6 @@ protected:
 		// Station stuff:
 		const StationData &stData
 	);
-
 	virtual bool _Load(bool recurse=false) { return CelestialObject::_Load(recurse); }
 
 	/*

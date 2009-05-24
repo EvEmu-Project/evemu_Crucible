@@ -176,21 +176,15 @@ InventoryItem * InventoryItem::IncRef()
 	return(this);
 }
 
+InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID, bool recurse) {
+	return InventoryItem::Load<InventoryItem>(factory, itemID, recurse);
+}
+
 InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
 ) {
-	// pull the item info
-	ItemData data;
-	if(!factory.db().GetItem(itemID, data))
-		return NULL;
-
-	// obtain type
-	const Type *type = factory.GetType(data.typeID);
-	if(type == NULL)
-		return NULL;
-
-	return(InventoryItem::_Load(
-		factory, itemID, *type, data
-	));
+	return InventoryItem::_Load<InventoryItem>(
+		factory, itemID
+	);
 }
 
 InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,

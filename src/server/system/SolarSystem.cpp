@@ -100,20 +100,14 @@ SolarSystem::SolarSystem(
 SolarSystem::~SolarSystem() {
 }
 
+SolarSystem *SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID, bool recurse) {
+	return InventoryItem::Load<SolarSystem>(factory, solarSystemID, recurse);
+}
+
 SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID
 ) {
-	// load item data
-	ItemData data;
-	if(!factory.db().GetItem(solarSystemID, data))
-		return NULL;
-
-	// get type
-	const Type *type = factory.GetType(data.typeID);
-	if(type == NULL)
-		return NULL;
-
-	return(
-		SolarSystem::_Load(factory, solarSystemID, *type, data)
+	return InventoryItem::_Load<SolarSystem>(
+		factory, solarSystemID
 	);
 }
 
@@ -121,19 +115,8 @@ SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data
 ) {
-	// make sure it's celestial object
-	if(type.categoryID() != EVEDB::invCategories::Celestial) {
-		_log(ITEM__ERROR, "Trying to load %s as Celestial.", type.category().name().c_str());
-		return NULL;
-	}
-
-	// load celestial data
-	CelestialObjectData cData;
-	if(!factory.db().GetCelestialObject(solarSystemID, cData))
-		return NULL;
-
-	return(
-		SolarSystem::_Load(factory, solarSystemID, type, data, cData)
+	return CelestialObject::_Load<SolarSystem>(
+		factory, solarSystemID, type, data
 	);
 }
 
@@ -143,24 +126,8 @@ SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
 	// CelestialObject stuff:
 	const CelestialObjectData &cData
 ) {
-	// check it's a solar system
-	if(type.groupID() != EVEDB::invGroups::Solar_System) {
-		_log(ITEM__ERROR, "Trying to load %s %u as Solar system.", type.name().c_str(), solarSystemID);
-		return NULL;
-	}
-
-	// load solar system data
-	SolarSystemData ssData;
-	if(!factory.db().GetSolarSystem(solarSystemID, ssData))
-		return false;
-
-	// get sun type
-	const Type *sunType = factory.GetType(ssData.sunTypeID);
-	if(sunType == NULL)
-		return false;
-
-	return(
-		SolarSystem::_Load(factory, solarSystemID, type, data, cData, *sunType, ssData)
+	return SolarSystem::_Load<SolarSystem>(
+		factory, solarSystemID, type, data, cData
 	);
 }
 

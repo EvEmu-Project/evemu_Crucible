@@ -226,7 +226,7 @@ public:
 	 * @param[in] recurse Whether all items contained within this item should be loaded.
 	 * @return Pointer to new Blueprint object; NULL if failed.
 	 */
-	static Blueprint *Load(ItemFactory &factory, uint32 blueprintID, bool recurse=false) { return InventoryItem::_Load<Blueprint>(factory, blueprintID, recurse); }
+	static Blueprint *Load(ItemFactory &factory, uint32 blueprintID, bool recurse=false);
 	/**
 	 * Spawns new blueprint.
 	 *
@@ -310,11 +310,36 @@ protected:
 	/*
 	 * Member functions
 	 */
+	// Template loader:
+	template<class _Ty>
+	static _Ty *_Load(ItemFactory &factory, uint32 blueprintID,
+		// InventoryItem stuff:
+		const Type &type, const ItemData &data
+	) {
+		// check it's blueprint type
+		if(type.categoryID() != EVEDB::invCategories::Blueprint) {
+			_log(ITEM__ERROR, "Trying to load %s as Blueprint.", type.category().name().c_str());
+			return NULL;
+		}
+		// cast the type
+		const BlueprintType &bpType = static_cast<const BlueprintType &>(type);
+
+		// we are blueprint; pull additional blueprint info
+		BlueprintData bpData;
+		if(!factory.db().GetBlueprint(blueprintID, bpData))
+			return NULL;
+
+		return(
+			_Ty::_Load(factory, blueprintID, bpType, data, bpData)
+		);
+	}
+
+	// Actual loading stuff:
 	static Blueprint *_Load(ItemFactory &factory, uint32 blueprintID
 	);
 	static Blueprint *_Load(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:
-		const BlueprintType &bpType, const ItemData &data
+		const Type &type, const ItemData &data
 	);
 	static Blueprint *_Load(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:

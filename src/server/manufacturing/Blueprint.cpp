@@ -156,37 +156,23 @@ Blueprint::Blueprint(
 	assert(_bpType.categoryID() == EVEDB::invCategories::Blueprint);
 }
 
+Blueprint *Blueprint::Load(ItemFactory &factory, uint32 blueprintID, bool recurse) {
+	return InventoryItem::Load<Blueprint>(factory, blueprintID, recurse);
+}
+
 Blueprint *Blueprint::_Load(ItemFactory &factory, uint32 blueprintID
 ) {
-	// pull the item info
-	ItemData data;
-	if(!factory.db().GetItem(blueprintID, data))
-		return NULL;
-
-	// obtain type
-	const BlueprintType *bpType = factory.GetBlueprintType(data.typeID);
-	if(bpType == NULL)
-		return NULL;
-
-	return(
-		Blueprint::_Load(factory, blueprintID, *bpType, data)
+	return InventoryItem::_Load<Blueprint>(
+		factory, blueprintID
 	);
 }
 
 Blueprint *Blueprint::_Load(ItemFactory &factory, uint32 blueprintID,
 	// InventoryItem stuff:
-	const BlueprintType &bpType, const ItemData &data
+	const Type &type, const ItemData &data
 ) {
-	// Since we have successfully got the blueprint type it's really a blueprint,
-	// so there's no need to check it.
-
-	// we are blueprint; pull additional blueprint info
-	BlueprintData bpData;
-	if(!factory.db().GetBlueprint(blueprintID, bpData))
-		return NULL;
-
-	return(
-		Blueprint::_Load(factory, blueprintID, bpType, data, bpData)
+	return Blueprint::_Load<Blueprint>(
+		factory, blueprintID, type, data
 	);
 }
 
