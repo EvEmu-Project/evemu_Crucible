@@ -610,6 +610,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\server\system\Celestial.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\server\system\Damage.cpp"
 					>
 				</File>
@@ -1265,6 +1269,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\system\BubbleManager.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\system\Celestial.h"
 					>
 				</File>
 				<File

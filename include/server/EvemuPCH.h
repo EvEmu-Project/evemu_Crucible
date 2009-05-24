@@ -243,6 +243,7 @@
 #include "../server/system/BookmarkDB.h"
 #include "../server/system/BookmarkService.h"
 #include "../server/system/BubbleManager.h"
+#include "../server/system/Celestial.h"
 #include "../server/system/Damage.h"
 #include "../server/system/DungeonService.h"
 #include "../server/system/KeeperService.h"

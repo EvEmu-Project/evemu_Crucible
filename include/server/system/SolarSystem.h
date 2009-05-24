@@ -28,7 +28,7 @@
 
 #include "../common/gpoint.h"
 
-#include "inventory/InventoryItem.h"
+#include "Celestial.h"
 
 /**
  * Data container for solarsystem data.
@@ -75,12 +75,13 @@ public:
 };
 
 /**
- * InventoryItem which represents solar system.
+ * CelestialObject which represents solar system.
  */
 class SolarSystem
-: public InventoryItem
+: public CelestialObject
 {
 	friend class InventoryItem; // to let it construct us
+	friend class CelestialObject; // to let it construct us
 public:
 	/**
 	 * Loads solar system from DB.
@@ -95,7 +96,7 @@ public:
 	/*
 	 * Primary public interface:
 	 */
-	SolarSystem *IncRef() { return static_cast<SolarSystem *>(InventoryItem::IncRef()); }
+	SolarSystem *IncRef() { return static_cast<SolarSystem *>(CelestialObject::IncRef()); }
 
 	/*
 	 * Public Fields:
@@ -125,6 +126,8 @@ protected:
 		// InventoryItem stuff:
 		const Type &_type,
 		const ItemData &_data,
+		// CelestialObject stuff:
+		const CelestialObjectData &_cData,
 		// SolarSystem stuff:
 		const Type &_sunType,
 		const SolarSystemData &_ssData
@@ -143,6 +146,14 @@ protected:
 	static SolarSystem *_Load(ItemFactory &factory, uint32 solarSystemID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data,
+		// CelestialObject stuff:
+		const CelestialObjectData &cData
+	);
+	static SolarSystem *_Load(ItemFactory &factory, uint32 solarSystemID,
+		// InventoryItem stuff:
+		const Type &type, const ItemData &data,
+		// CelestialObject stuff:
+		const CelestialObjectData &cData,
 		// SolarSystem stuff:
 		const Type &sunType, const SolarSystemData &ssData
 	);

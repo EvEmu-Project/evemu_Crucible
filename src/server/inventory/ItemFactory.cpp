@@ -181,6 +181,10 @@ Ship *ItemFactory::GetShip(uint32 shipID, bool recurse) {
 	return _GetItem<Ship>(shipID, recurse);
 }
 
+CelestialObject *ItemFactory::GetCelestialObject(uint32 celestialID, bool recurse) {
+	return _GetItem<CelestialObject>(celestialID, recurse);
+}
+
 SolarSystem *ItemFactory::GetSolarSystem(uint32 solarSystemID, bool recurse) {
 	return _GetItem<SolarSystem>(solarSystemID, recurse);
 }

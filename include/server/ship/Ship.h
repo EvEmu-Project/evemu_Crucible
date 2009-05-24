@@ -136,14 +136,14 @@ public:
 	static Ship *Spawn(ItemFactory &factory, ItemData &data);
 
 	/*
-	 * Public fields:
-	 */
-	const ShipType &   type() const { return static_cast<const ShipType &>(InventoryItem::type()); }
-
-	/*
 	 * Primary public interface:
 	 */
 	Ship *IncRef() { return static_cast<Ship *>(InventoryItem::IncRef()); }
+
+	/*
+	 * Public fields:
+	 */
+	const ShipType &    type() const { return static_cast<const ShipType &>(InventoryItem::type()); }
 
 protected:
 	Ship(

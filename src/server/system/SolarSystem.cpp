@@ -71,10 +71,12 @@ SolarSystem::SolarSystem(
 	// InventoryItem stuff:
 	const Type &_type,
 	const ItemData &_data,
+	// CelestialObject stuff:
+	const CelestialObjectData &_cData,
 	// SolarSystem stuff:
 	const Type &_sunType,
 	const SolarSystemData &_ssData)
-: InventoryItem(_factory, _solarSystemID, _type, _data),
+: CelestialObject(_factory, _solarSystemID, _type, _data, _cData),
   m_minPosition(_ssData.minPosition),
   m_maxPosition(_ssData.maxPosition),
   m_luminosity(_ssData.luminosity),
@@ -119,6 +121,28 @@ SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data
 ) {
+	// make sure it's celestial object
+	if(type.categoryID() != EVEDB::invCategories::Celestial) {
+		_log(ITEM__ERROR, "Trying to load %s as Celestial.", type.category().name().c_str());
+		return NULL;
+	}
+
+	// load celestial data
+	CelestialObjectData cData;
+	if(!factory.db().GetCelestialObject(solarSystemID, cData))
+		return NULL;
+
+	return(
+		SolarSystem::_Load(factory, solarSystemID, type, data, cData)
+	);
+}
+
+SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
+	// InventoryItem stuff:
+	const Type &type, const ItemData &data,
+	// CelestialObject stuff:
+	const CelestialObjectData &cData
+) {
 	// check it's a solar system
 	if(type.groupID() != EVEDB::invGroups::Solar_System) {
 		_log(ITEM__ERROR, "Trying to load %s %u as Solar system.", type.name().c_str(), solarSystemID);
@@ -136,13 +160,15 @@ SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
 		return false;
 
 	return(
-		SolarSystem::_Load(factory, solarSystemID, type, data, *sunType, ssData)
+		SolarSystem::_Load(factory, solarSystemID, type, data, cData, *sunType, ssData)
 	);
 }
 
 SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data,
+	// CelestialObject stuff:
+	const CelestialObjectData &cData,
 	// SolarSystem stuff:
 	const Type &sunType, const SolarSystemData &ssData
 ) {
@@ -150,12 +176,13 @@ SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
 	return(new SolarSystem(
 		factory, solarSystemID,
 		type, data,
+		cData,
 		sunType, ssData
 	));
 }
 
 bool SolarSystem::_Load(bool recurse) {
-	return InventoryItem::_Load(recurse);
+	return CelestialObject::_Load(recurse);
 }
 
 

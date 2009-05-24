@@ -45,6 +45,7 @@ class InventoryItem;
 class Blueprint;
 class Character;
 class Ship;
+class CelestialObject;
 class SolarSystem;
 class Station;
 
@@ -129,6 +130,15 @@ public:
 	 * @return Pointer to Ship object; NULL if failed.
 	 */
 	Ship *GetShip(uint32 shipID, bool recurse=true);
+
+	/**
+	 * Loads celestial object.
+	 *
+	 * @param[in] celestialID ID of celestial object to load.
+	 * @param[in] recurse Whether all contained items should be loaded as well.
+	 * @return Pointer to CelestialObject; NULL if fails.
+	 */
+	CelestialObject *GetCelestialObject(uint32 celestialID, bool recurse=true);
 
 	/**
 	 * Loads solar system.

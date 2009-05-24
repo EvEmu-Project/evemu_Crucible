@@ -1469,6 +1469,35 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
 	return true;
 }
 
+bool InventoryDB::GetCelestialObject(uint32 celestialID, CelestialObjectData &into) {
+	DBQueryResult res;
+
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		" security, radius, celestialIndex, orbitIndex"
+		" FROM mapDenormalize"
+		" WHERE itemID = %u",
+		celestialID))
+	{
+		_log(DATABASE__ERROR, "Failed to query celestial object %u: %s.", celestialID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "Celestial object %u not found.", celestialID);
+
+		return false;
+	}
+
+	into.security = (row.IsNull(0) ? 0 : row.GetDouble(0));
+	into.radius = (row.IsNull(1) ? 0 : row.GetDouble(1));
+	into.celestialIndex = (row.IsNull(2) ? 0 : row.GetUInt(2));
+	into.orbitIndex = (row.IsNull(3) ? 0 : row.GetUInt(3));
+
+	return true;
+}
+
 bool InventoryDB::GetSolarSystem(uint32 solarSystemID, SolarSystemData &into) {
 	DBQueryResult res;
 

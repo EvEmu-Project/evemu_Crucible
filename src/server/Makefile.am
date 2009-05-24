@@ -275,6 +275,8 @@ libsystem_a_SOURCES = \
 	system/BookmarkService.h \
 	system/BubbleManager.cpp \
 	system/BubbleManager.h \
+	system/Celestial.cpp \
+	system/Celestial.h \
 	system/Damage.cpp \
 	system/Damage.h \
 	system/DungeonService.cpp \

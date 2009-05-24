@@ -213,6 +213,15 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
 		};
 
 		///////////////////////////////////////
+		// Celestial:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Celestial: {
+			return(CelestialObject::_Load(
+				factory, itemID, type, data
+			));
+		};
+
+		///////////////////////////////////////
 		// Ship:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Ship: {
@@ -244,24 +253,11 @@ InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
 				};
 
 				///////////////////////////////////////
-				// Solar system:
-				///////////////////////////////////////
-				case EVEDB::invGroups::Solar_System: {
-					// create solar system
-					return(SolarSystem::_Load(
-						factory, itemID, type, data
-					));
-				};
-
-				///////////////////////////////////////
 				// Station:
 				///////////////////////////////////////
 				case EVEDB::invGroups::Station: {
-					// cast the type into what it really is ...
-					const StationType &stationType = static_cast<const StationType &>(type);
-
-					return(Station::_Load(
-						factory, itemID, stationType, data
+					return(CelestialObject::_Load(
+						factory, itemID, type, data
 					));
 				};
 
@@ -320,6 +316,15 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 		};
 
 		///////////////////////////////////////
+		// Celestial:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Celestial: {
+			_log(ITEM__ERROR, "Refusing to spawn celestial object '%s'.", data.name.c_str());
+
+			return NULL;
+		};
+
+		///////////////////////////////////////
 		// Ship:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Ship: {
@@ -339,15 +344,6 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
 				case EVEDB::invGroups::Character: {
 					// we're not gonna create character from default attributes ...
 					_log(ITEM__ERROR, "Refusing to create character '%s' from default attributes.", data.name.c_str());
-
-					return NULL;
-				};
-
-				///////////////////////////////////////
-				// Solar system:
-				///////////////////////////////////////
-				case EVEDB::invGroups::Solar_System: {
-					_log(ITEM__ERROR, "Refusing to create solar system '%s'.", data.name.c_str());
 
 					return NULL;
 				};

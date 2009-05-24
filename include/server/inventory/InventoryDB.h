@@ -48,6 +48,7 @@ class BlueprintData;
 class CharacterData;
 class CharacterAppearance;
 class CorpMemberInfo;
+class CelestialObjectData;
 class SolarSystemData;
 class StationData;
 
@@ -209,6 +210,19 @@ public:
 	bool SaveCharacterAppearance(uint32 characterID, const CharacterAppearance &data);
 	bool SaveCorpMemberInfo(uint32 characterID, const CorpMemberInfo &data);
 	bool DeleteCharacter(uint32 characterID);
+
+	/*
+	 * Celestial object stuff
+	 * (mapDenormalize)
+	 */
+	/**
+	 * Loads celestial object data.
+	 *
+	 * @param[in] celestialID ID of celestial object to load.
+	 * @param[in] into Containter into which the data should be loaded.
+	 * @return True if succeeds, false if fails.
+	 */
+	bool GetCelestialObject(uint32 celestialID, CelestialObjectData &into);
 
 	/*
 	 * Solar system stuff

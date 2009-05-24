@@ -27,7 +27,7 @@
 #define __STATION__H__INCL__
 
 #include "inventory/Type.h"
-#include "inventory/InventoryItem.h"
+#include "system/Celestial.h"
 
 /**
  * Station type data container.
@@ -161,12 +161,13 @@ public:
 };
 
 /**
- * InventoryItem which represents station.
+ * CelestialObject which represents station.
  */
 class Station
-: public InventoryItem
+: public CelestialObject
 {
 	friend class InventoryItem; // to let it construct us
+	friend class CelestialObject; // to let it construct us
 public:
 	/**
 	 * Loads station.
@@ -177,6 +178,11 @@ public:
 	 * @return Pointer to new Station object; NULL if fails.
 	 */
 	static Station *Load(ItemFactory &factory, uint32 stationID, bool recurse=false) { return InventoryItem::_Load<Station>(factory, stationID, recurse); }
+
+	/*
+	 * Primary public interface:
+	 */
+	Station *IncRef() { return static_cast<Station *>(InventoryItem::IncRef()); }
 
 	/*
 	 * Access methods:
@@ -198,6 +204,8 @@ protected:
 		// InventoryItem stuff:
 		const StationType &_type,
 		const ItemData &_data,
+		// CelestialObject stuff:
+		const CelestialObjectData &_cData,
 		// Station stuff:
 		const StationData &_stData
 	);
@@ -214,11 +222,19 @@ protected:
 	static Station *_Load(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
 		const StationType &type, const ItemData &data,
+		// CelestialObject stuff:
+		const CelestialObjectData &cData
+	);
+	static Station *_Load(ItemFactory &factory, uint32 stationID,
+		// InventoryItem stuff:
+		const StationType &type, const ItemData &data,
+		// CelestialObject stuff:
+		const CelestialObjectData &cData,
 		// Station stuff:
 		const StationData &stData
 	);
 
-	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+	virtual bool _Load(bool recurse=false) { return CelestialObject::_Load(recurse); }
 
 	/*
 	 * Data members:

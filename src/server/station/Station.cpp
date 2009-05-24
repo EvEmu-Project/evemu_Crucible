@@ -155,9 +155,11 @@ Station::Station(
 	// InventoryItem stuff:
 	const StationType &_type,
 	const ItemData &_data,
+	// CelestialObject stuff:
+	const CelestialObjectData &_cData,
 	// Station stuff:
 	const StationData &_stData)
-: InventoryItem(_factory, _stationID, _type, _data),
+: CelestialObject(_factory, _stationID, _type, _data, _cData),
   m_security(_stData.security),
   m_dockingCostPerVolume(_stData.dockingCostPerVolume),
   m_maxShipVolumeDockable(_stData.maxShipVolumeDockable),
@@ -192,19 +194,39 @@ Station *Station::_Load(ItemFactory &factory, uint32 stationID,
 ) {
 	// we got StationType so it's sure we're loading a station
 
-	// load station data
-	StationData stData;
-	if(!factory.db().GetStation(stationID, stData))
+	// load celestial data
+	CelestialObjectData cData;
+	if(!factory.db().GetCelestialObject(stationID, cData))
 		return NULL;
 
 	return(
-		Station::_Load(factory, stationID, type, data, stData)
+		Station::_Load(factory, stationID, type, data, cData)
 	);
 }
 
 Station *Station::_Load(ItemFactory &factory, uint32 stationID,
 	// InventoryItem stuff:
 	const StationType &type, const ItemData &data,
+	// CelestialObject stuff:
+	const CelestialObjectData &cData
+) {
+	// we got StationType so it's sure we're loading a station
+
+	// load station data
+	StationData stData;
+	if(!factory.db().GetStation(stationID, stData))
+		return NULL;
+
+	return(
+		Station::_Load(factory, stationID, type, data, cData, stData)
+	);
+}
+
+Station *Station::_Load(ItemFactory &factory, uint32 stationID,
+	// InventoryItem stuff:
+	const StationType &type, const ItemData &data,
+	// CelestialObject stuff:
+	const CelestialObjectData &cData,
 	// Station stuff:
 	const StationData &stData
 ) {
@@ -212,6 +234,7 @@ Station *Station::_Load(ItemFactory &factory, uint32 stationID,
 	return(new Station(
 		factory, stationID,
 		type, data,
+		cData,
 		stData
 	));
 }
