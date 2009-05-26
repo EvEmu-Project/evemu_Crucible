@@ -212,7 +212,7 @@ protected:
 		const Type &type, const ItemData &data
 	) {
 		// check it's a ship
-		if(type.groupID() != EVEDB::invCategories::Ship) {
+		if(type.categoryID() != EVEDB::invCategories::Ship) {
 			_log(ITEM__ERROR, "Trying to load %s as Ship.", type.category().name().c_str());
 			return NULL;
 		}
