@@ -44,6 +44,8 @@ class ServiceDB;
 
 class ItemFactory;
 class Rsp_CommonGetInfo_Entry;
+class ItemRowset;
+class ItemRowset_Row;
 
 /*
  * NOTE:
@@ -157,8 +159,11 @@ public:
 	 */
 	bool Populate(Rsp_CommonGetInfo_Entry &into) const;
 
-	PyRepObject *GetEntityRow() const;
-	PyRepObject *GetInventoryRowset(EVEItemFlags flag, uint32 forOwner = 0) const;
+	PyRepObject *GetItemRow() const;
+	void GetItemRow(ItemRowset_Row &into) const;
+	PyRepObject *GetInventoryRowset(EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
+	void GetInventoryRowset(ItemRowset &into, EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
+
 	PyRepObject *ItemGetInfo() const;
 	PyRepObject *ShipGetInfo();
 

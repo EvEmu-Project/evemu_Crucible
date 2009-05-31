@@ -491,84 +491,54 @@ void InventoryItem::Delete() {
 	//we should be deleted now.... so dont do anything!
 }
 
-PyRepObject *InventoryItem::GetEntityRow() const {
-	EntityRowObject ero;
-	ero.itemID = m_itemID;
-	ero.typeID = typeID();
-	ero.ownerID = m_ownerID;
-	ero.locationID = m_locationID;
-	ero.flag = m_flag;
-	ero.contraband = m_contraband?1:0;
-	ero.singleton = m_singleton?1:0;
-	ero.quantity = m_quantity;
-	ero.groupID = groupID();
-	ero.categoryID = categoryID();
-	ero.customInfo = m_customInfo;
+PyRepObject *InventoryItem::GetItemRow() const {
+	ItemRow row;
+	GetItemRow(row.line);
+	return row.FastEncode();
+}
 
-	return(ero.FastEncode());
+void InventoryItem::GetItemRow(ItemRowset_Row &into) const {
+	into.itemID = itemID();
+	into.typeID = typeID();
+	into.ownerID = ownerID();
+	into.locationID = locationID();
+	into.flag = flag();
+	into.contraband = contraband()?1:0;
+	into.singleton = singleton()?1:0;
+	into.quantity = quantity();
+	into.groupID = groupID();
+	into.categoryID = categoryID();
+	into.customInfo = customInfo();
 }
 
 PyRepObject *InventoryItem::GetInventoryRowset(EVEItemFlags _flag, uint32 forOwner) const {
-	util_Rowset rowset;
-	
-	rowset.rowclass = "util.Row";
-	
-	rowset.header.push_back("itemID");
-	rowset.header.push_back("typeID");
-	rowset.header.push_back("ownerID");
-	rowset.header.push_back("locationID");
-	rowset.header.push_back("flag");
-	rowset.header.push_back("contraband");
-	rowset.header.push_back("singleton");
-	rowset.header.push_back("quantity");
-	rowset.header.push_back("groupID");
-	rowset.header.push_back("categoryID");
-	rowset.header.push_back("customInfo");
-	
+	ItemRowset rowset;
+	GetInventoryRowset(rowset);
+	return rowset.FastEncode();
+}
+
+void InventoryItem::GetInventoryRowset(ItemRowset &into, EVEItemFlags _flag, uint32 forOwner) const {
 	//there has to be a better way to build this...
-	InventoryItem *i;
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
-		i = cur->second;
+		InventoryItem *i = cur->second;
 
-		if(    (_flag == flagAnywhere || i->flag() == _flag)
-		    && (forOwner == 0 || i->ownerID() == forOwner)) 
-		{
-			PyRepList *item = new PyRepList();
-			item->addInt(i->itemID());
-			item->addInt(i->typeID());
-			item->addInt(i->ownerID());
-			item->addInt(i->locationID());
-			item->addInt(i->flag());
-			item->addInt(i->contraband());
-			item->addInt(i->singleton());
-			item->addInt(i->quantity());
-			item->addInt(i->groupID());
-			item->addInt(i->categoryID());
-			if(i->customInfo().empty())
-				item->add(new PyRepNone);
-			else
-				item->addStr(i->customInfo().c_str());
-
-			rowset.lines.add(item);
+		if(    (i->flag() == _flag       || _flag == flagAnywhere)
+		    && (i->ownerID() == forOwner || forOwner == 0)
+		) {
+			into.lines.add(i->GetItemRow());
 		}
 	}
-	
-	return(rowset.FastEncode());
 }
 
 bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 	//itemID:
-	result.itemID = m_itemID;
+	result.itemID = itemID();
 
 	//invItem:
-	result.invItem = GetEntityRow();
-	if(result.invItem == NULL) {
-		codelog(ITEM__ERROR, "%s (%u): Unable to build item row for move", m_itemName.c_str(), m_itemID);
-		return false;
-	}
+	GetItemRow(result.invItem.line);
 
 	//hacky, but it doesn't really hurt anything.
 	if(isOnline() != 0) {
@@ -974,14 +944,10 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<uint32, PyRep *> &chang
 	Client *c = m_factory.entity_list.FindCharacter(toID);
 	if(c == NULL)
 		return;	//not found or not online...
-	
-	
+
 	NotifyOnItemChange change;
-	change.itemRow = GetEntityRow();
-	if(change.itemRow == NULL) {
-		codelog(ITEM__ERROR, "%s (%u): Unable to build item row for move", m_itemName.c_str(), m_itemID);
-		return;
-	}
+	GetItemRow(change.itemRow.line);
+
 	change.changes = changes;
 	changes.clear();	//consume them.
 

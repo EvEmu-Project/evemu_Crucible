@@ -2,15 +2,6 @@
 
 <Elements>
 
-<element name="NotifyOnItemChange">
-  <InlineTuple>
-    <!-- 0: this is a util.Row -->
-    <raw name="itemRow" />
-    <!-- 1: map from row index (ix* constants) to the old value for the item.  -->
-    <intdict name="changes" />
-  </InlineTuple>
-</element>
-
 <element name="OnSkillStartTraining">
   <InlineTuple>
     <int name="itemID" />
@@ -157,11 +148,78 @@
   </InlineList>
 </element>
 
+<element name="ItemRowset_Row">
+  <InlineList>
+    <int name="itemID" />
+    <int name="typeID" />
+    <int name="ownerID" />
+    <int name="locationID" />
+    <int name="flag" />
+    <int name="contraband" />
+    <int name="singleton" />
+    <int name="quantity" />
+    <int name="groupID" />
+    <int name="categoryID" />
+    <string name="customInfo" none_marker="" />
+  </InlineList>
+</element>
+
+<element name="ItemRow">
+  <object type="util.Row">
+	<InlineDict>
+	  <IDEntry key="header">
+		<InlineList name="header">
+		  <string name="head_itemID" default="itemID" />
+		  <string name="head_typeID" default="typeID" />
+		  <string name="head_ownerID" default="ownerID" />
+		  <string name="head_locationID" default="locationID" />
+		  <string name="head_flag" default="flag" />
+		  <string name="head_contraband" default="contraband" />
+		  <string name="head_singleton" default="singleton" />
+		  <string name="head_quantity" default="quantity" />
+		  <string name="head_groupID" default="groupID" />
+		  <string name="head_categoryID" default="categoryID" />
+		  <string name="head_customInfo" default="customInfo" />
+		</InlineList>
+	  </IDEntry>
+	  <IDEntry key="line">
+      <element name="line" type="ItemRowset_Row" />
+	  </IDEntry>
+	</InlineDict>
+  </object>
+</element>
+
+<element name="ItemRowset">
+  <object type="util.Rowset">
+	<InlineDict>
+	  <IDEntry key="header">
+		<InlineList name="header">
+		  <string name="head_itemID" default="itemID" />
+		  <string name="head_typeID" default="typeID" />
+		  <string name="head_ownerID" default="ownerID" />
+		  <string name="head_locationID" default="locationID" />
+		  <string name="head_flag" default="flag" />
+		  <string name="head_contraband" default="contraband" />
+		  <string name="head_singleton" default="singleton" />
+		  <string name="head_quantity" default="quantity" />
+		  <string name="head_groupID" default="groupID" />
+		  <string name="head_categoryID" default="categoryID" />
+		  <string name="head_customInfo" default="customInfo" />
+		</InlineList>
+	  </IDEntry>
+	  <IDEntry key="lines">
+      <!-- List of ItemRowset_Row-s -->
+      <list name="lines" />
+	  </IDEntry>
+	</InlineDict>
+  </object>
+</element>
+
 <element name="Rsp_CommonGetInfo_Entry">
     <InlineList name="line">
       <int name="itemID" />
-      <!-- this is an EntityRowObject -->
-      <raw name="invItem" />
+      <!-- this is an ItemRow -->
+      <element name="invItem" type="ItemRow" />
       <!-- this maps effectType to EntityEffectState -->
       <intdict name="activeEffects" />
       <!-- maps attribute ID to it's value, which may be int or real -->
@@ -216,41 +274,13 @@
   </object>
 </element>
 
-<element name="EntityRowObject">
-  <object type="util.Row">
-	<InlineDict>
-	  <IDEntry key="header">
-		<InlineList name="header">
-		  <string name="head_itemID" default="itemID" />
-		  <string name="head_typeID" default="typeID" />
-		  <string name="head_ownerID" default="ownerID" />
-		  <string name="head_locationID" default="locationID" />
-		  <string name="head_flag" default="flag" />
-		  <string name="head_contraband" default="contraband" />
-		  <string name="head_singleton" default="singleton" />
-		  <string name="head_quantity" default="quantity" />
-		  <string name="head_groupID" default="groupID" />
-		  <string name="head_categoryID" default="categoryID" />
-		  <string name="head_customInfo" default="customInfo" />
-		</InlineList>
-	  </IDEntry>
-	  <IDEntry key="line">
-		<InlineList name="line">
-		  <int name="itemID" />
-		  <int name="typeID" />
-		  <int name="ownerID" />
-		  <int name="locationID" />
-		  <int name="flag" />
-		  <int name="contraband" />
-		  <int name="singleton" />
-		  <int name="quantity" />
-		  <int name="groupID" />
-		  <int name="categoryID" />
-		  <string name="customInfo" none_marker="" />
-		</InlineList>
-	  </IDEntry>
-	</InlineDict>
-  </object>
+<element name="NotifyOnItemChange">
+  <InlineTuple>
+    <!-- 0: this is an ItemRow -->
+    <element name="itemRow" type="ItemRow" />
+    <!-- 1: map from row index (ix* constants) to the old value for the item.  -->
+    <intdict name="changes" />
+  </InlineTuple>
 </element>
 
 <element name="Call_GetOptionsForItemTypes">

@@ -127,13 +127,7 @@ PyResult InventoryBound::Handle_ListStations(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
-	PyRep *result = NULL;
-
-	result = m_item->GetEntityRow();
-	if(result == NULL)
-		result = new PyRepNone();
-
-	return(result);
+	return m_item->GetItemRow();
 }
 
 PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
