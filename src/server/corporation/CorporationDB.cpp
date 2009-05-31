@@ -557,10 +557,13 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 	
 	// Set new corp
 	if (!m_db->RunQuery(err,
-		"UPDATE character_ "
-		"	SET corporationID = %u, corporationDateTime = "I64u" "
+		"UPDATE character_ SET "
+		"	corporationID = %u, corporationDateTime = "I64u", "
+		"   corpRole = "I64u", rolesAtAll = "I64u", rolesAtBase = "I64u", rolesAtHQ = "I64u", rolesAtOther = "I64u" "
 		"	WHERE characterID = %u",
-			corpID, Win32TimeNow(), charID
+			corpID, Win32TimeNow(),
+			roles.corpRole, roles.rolesAtAll, roles.rolesAtBase, roles.rolesAtHQ, roles.rolesAtOther,
+			charID
 		))
 	{
 		codelog(SERVICE__ERROR, "Error in char update query: %s", err.c_str());
@@ -590,7 +593,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 		//dont stop now, we are already moved... else we need to undo everything we just did.
 	}
 
-	return (StoreCharacterRoles(charID, roles));
+	return true;
 }
 
 bool CorporationDB::CreateCorporationCreatePacket(Notify_OnCorporaionChanged & cc, uint32 oldCorpID, uint32 newCorpID) {
@@ -734,21 +737,6 @@ PyRepObject *CorporationDB::GetEveOwners() {
 	}
 
 	return DBResultToRowset(res);
-}
-
-bool CorporationDB::StoreCharacterRoles(uint32 charID, const CorpMemberInfo &roles) {
-	DBerror err;
-	if (!m_db->RunQuery(err, 
-		" REPLACE INTO chrCorporationRoles "
-		" (characterID, corprole, rolesAtAll, rolesAtBase, rolesAtHQ, rolesAtOther) "
-		" VALUES "
-		" (%u, " I64u ", " I64u ", " I64u ", " I64u ", " I64u ") ", 
-		charID, roles.corprole, roles.rolesAtAll, roles.rolesAtBase, roles.rolesAtHQ, roles.rolesAtOther
-	)) {
-		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
-		return false;
-	}
-	return true;
 }
 
 PyRepObject *CorporationDB::GetStations(uint32 corpID) {
@@ -1070,11 +1058,10 @@ bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, 
 	DBResultRow row;
 	if (!m_db->RunQuery(res,
 		" SELECT "
-		"	character_.title, character_.corporationDateTime, character_.corporationID, "
-		"	chrCorporationRoles.corprole, chrCorporationRoles.rolesAtAll, chrCorporationRoles.rolesAtBase, "
-		"	chrCorporationRoles.rolesAtHQ, chrCorporationRoles.rolesAtOther "
+		"	title, corporationDateTime, corporationID, "
+		"	corpRole, rolesAtAll, rolesAtBase, "
+		"	rolesAtHQ, rolesAtOther "
 		" FROM character_ "
-		" LEFT JOIN chrCorporationRoles USING (characterID) "
 		" WHERE character_.characterID = %u ", charID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());

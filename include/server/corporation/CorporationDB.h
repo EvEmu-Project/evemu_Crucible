@@ -72,7 +72,6 @@ public:
 	bool JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorpID, const CorpMemberInfo &roles);
 	bool CreateCorporationChangePacket(Notify_OnCorporaionChanged & cc, uint32 oldCorpID, uint32 newCorpID);
 	bool CreateCorporationCreatePacket(Notify_OnCorporaionChanged & cc, uint32 oldCorpID, uint32 newCorpID);
-	bool StoreCharacterRoles(uint32 charID, const CorpMemberInfo &info);
 	uint32 GetOffices(uint32 corpID);
 	PyRep *Fetch(uint32 corpID, uint32 from, uint32 count);
 

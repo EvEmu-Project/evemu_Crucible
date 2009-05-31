@@ -196,7 +196,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	cdata.careerID = 11;
 	cdata.careerSpecialityID = 11;
 
-	corpData.corprole = 0;
+	corpData.corpRole = 0;
 	corpData.rolesAtAll = 0;
 	corpData.rolesAtBase = 0;
 	corpData.rolesAtHQ = 0;

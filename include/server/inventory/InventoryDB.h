@@ -199,7 +199,7 @@ public:
 
 	/*
 	 * Character stuff
-	 * (character_, chrCorporationRoles)
+	 * (character_)
 	 */
 	bool GetCharacter(uint32 characterID, CharacterData &into);
 	bool GetCharacterAppearance(uint32 characterID, CharacterAppearance &into);

@@ -18,7 +18,6 @@ TRUNCATE TABLE channelChars;
 TRUNCATE TABLE channelMods;
 TRUNCATE TABLE character_;
 TRUNCATE TABLE chrApplications;
-TRUNCATE TABLE chrCorporationRoles;
 TRUNCATE TABLE chrEmployment;
 TRUNCATE TABLE chrMissionState;
 TRUNCATE TABLE chrNotes;
@@ -54,7 +53,8 @@ TRUNCATE TABLE srvStatus;
 INSERT INTO character_
  SELECT
   characterID,accountID,title,description,bounty,balance,securityRating,petitionMessage,logonMinutes,
-  corporationID,corporationDateTime,startDateTime,createDateTime,
+  corporationID,0 AS corpRole,0 AS rolesAtAll,0 AS rolesAtBase,0 AS rolesAtHQ,0 AS rolesAtOther,
+  corporationDateTime,startDateTime,createDateTime,
   ancestryID,careerID,schoolID,careerSpecialityID,gender,
   accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,hairID,lipstickID,makeupID,skinID,backgroundID,lightID,
   headRotation1,headRotation2,headRotation3,

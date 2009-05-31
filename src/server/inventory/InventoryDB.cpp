@@ -998,40 +998,31 @@ bool InventoryDB::GetCorpMemberInfo(uint32 characterID, CorpMemberInfo &into) {
 	DBQueryResult res;
 	DBResultRow row;
 
-	//temporary solution until we make corproles part of character_ table:
-	if(IsAgent(characterID)) {
-		into.corprole = 0;
-		into.rolesAtAll = 0;
-		into.rolesAtBase = 0;
-		into.rolesAtHQ = 0;
-		into.rolesAtOther = 0;
-	} else {
-		if(!m_db->RunQuery(res,
-			"SELECT"
-			"  corprole,"
-			"  rolesAtAll,"
-			"  rolesAtBase,"
-			"  rolesAtHQ,"
-			"  rolesAtOther"
-			" FROM chrCorporationRoles"
-			" WHERE characterID = %u",
-			characterID))
-		{
-			_log(DATABASE__ERROR, "Failed to query corp member info of character %u: %s.", characterID, res.error.c_str());
-			return false;
-		}
-
-		if(!res.GetRow(row)) {
-			_log(DATABASE__ERROR, "No corp member info found for character %u.", characterID);
-			return false;
-		}
-
-		into.corprole = row.GetUInt64(0);
-		into.rolesAtAll = row.GetUInt64(1);
-		into.rolesAtBase = row.GetUInt64(2);
-		into.rolesAtHQ = row.GetUInt64(3);
-		into.rolesAtOther = row.GetUInt64(4);
+	if(!m_db->RunQuery(res,
+		"SELECT"
+		"  corpRole,"
+		"  rolesAtAll,"
+		"  rolesAtBase,"
+		"  rolesAtHQ,"
+		"  rolesAtOther"
+		" FROM character_"
+		" WHERE characterID = %u",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query corp member info of character %u: %s.", characterID, res.error.c_str());
+		return false;
 	}
+
+	if(!res.GetRow(row)) {
+		_log(DATABASE__ERROR, "No corp member info found for character %u.", characterID);
+		return false;
+	}
+
+	into.corpRole = row.GetUInt64(0);
+	into.rolesAtAll = row.GetUInt64(1);
+	into.rolesAtBase = row.GetUInt64(2);
+	into.rolesAtHQ = row.GetUInt64(3);
+	into.rolesAtOther = row.GetUInt64(4);
 
 	// this is hack and belongs somewhere else
 	if(!m_db->RunQuery(res,
@@ -1086,10 +1077,8 @@ static std::string _ToStr(double v) {
 bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, const CharacterAppearance &appData, const CorpMemberInfo &corpData) {
 	DBerror err;
 
-	std::string titleEsc;
+	std::string titleEsc, descriptionEsc;
 	m_db->DoEscapeString(titleEsc, data.title);
-
-	std::string descriptionEsc;
 	m_db->DoEscapeString(descriptionEsc, data.description);
 
 	// Table character_ goes first
@@ -1097,7 +1086,8 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
 		"INSERT INTO character_"
 		// CharacterData:
 		"  (characterID, accountID, title, description, bounty, balance, securityRating, petitionMessage,"
-		"   logonMinutes, corporationID, corporationDateTime, startDateTime, createDateTime,"
+		"   logonMinutes, corporationID, corpRole, rolesAtAll, rolesAtBase, rolesAtHQ, rolesAtOther,"
+		"   corporationDateTime, startDateTime, createDateTime,"
 		"   ancestryID, careerID, schoolID, careerSpecialityID, gender,"
 		"   stationID, solarSystemID, constellationID, regionID,"
 		// CharacterAppearance:
@@ -1113,7 +1103,8 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
 		" VALUES"
 		// CharacterData:
 		"  (%u, %u, '%s', '%s', %f, %f, %f, '%s',"
-		"   %u, %u, " I64u ", " I64u ", " I64u ","
+		"   %u, %u, "I64u ", "I64u ", "I64u ", "I64u ", "I64u ", "
+		"   "I64u ", " I64u ", " I64u ","
 		"   %u, %u, %u, %u, %u,"
 		"   %u, %u, %u, %u,"
 		// CharacterAppearance:
@@ -1128,7 +1119,8 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
 		"   %s, %s, %s, %s)",
 		// CharacterData:
 		characterID, data.accountID, titleEsc.c_str(), descriptionEsc.c_str(), data.bounty, data.balance, data.securityRating, "No petition",
-		data.logonMinutes, data.corporationID, data.corporationDateTime, data.startDateTime, data.createDateTime,
+		data.logonMinutes, data.corporationID, corpData.corpRole, corpData.rolesAtAll, corpData.rolesAtBase, corpData.rolesAtHQ, corpData.rolesAtOther,
+		data.corporationDateTime, data.startDateTime, data.createDateTime,
 		data.ancestryID, data.careerID, data.schoolID, data.careerSpecialityID, data.gender,
 		data.stationID, data.solarSystemID, data.constellationID, data.regionID,
 		// CharacterAppearance:
@@ -1144,18 +1136,6 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
 	)) {
 		_log(DATABASE__ERROR, "Failed to insert character %u: %s.", characterID, err.c_str());
 		return false;
-	}
-
-	// Then insert roles into table chrCorporationRoles
-	if(!m_db->RunQuery(err,
-		"INSERT INTO chrCorporationRoles"
-		"  (characterID, corprole, rolesAtAll, rolesAtBase, rolesAtHQ, rolesAtOther)"
-		" VALUES"
-		"  (%u, " I64u ", " I64u ", " I64u ", " I64u ", " I64u ")",
-		characterID, corpData.corprole, corpData.rolesAtAll, corpData.rolesAtBase, corpData.rolesAtHQ, corpData.rolesAtOther))
-	{
-		_log(DATABASE__ERROR, "Failed to insert corp member info for character %u: %s.", characterID, err.c_str());
-		//just let it go... its a lot easier this way
 	}
 
 	// Hack in the first employment record
@@ -1303,15 +1283,15 @@ bool InventoryDB::SaveCorpMemberInfo(uint32 characterID, const CorpMemberInfo &d
 	DBerror err;
 
 	if(!m_db->RunQuery(err,
-		"UPDATE chrCorporationRoles"
+		"UPDATE character_"
 		" SET"
-		"  corprole = " I64u ","
+		"  corpRole = " I64u ","
 		"  rolesAtAll = " I64u ","
 		"  rolesAtBase = " I64u ","
 		"  rolesAtHQ = " I64u ","
 		"  rolesAtOther = " I64u
 		" WHERE characterID = %u",
-		data.corprole,
+		data.corpRole,
 		data.rolesAtAll,
 		data.rolesAtBase,
 		data.rolesAtHQ,
@@ -1430,17 +1410,6 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
 		characterID))
 	{
 		_log(DATABASE__ERROR, "Failed to delete NPC standings of character %u: %s.", characterID, err.c_str());
-		// ignore the error
-		_log(DATABASE__MESSAGE, "Ignoring error.");
-	}
-
-	// chrCorporationRoles
-	if(!m_db->RunQuery(err,
-		"DELETE FROM chrCorporationRoles"
-		" WHERE characterID = %u",
-		characterID))
-	{
-		_log(DATABASE__ERROR, "Failed to delete corporation roles of character %u: %s.", characterID, err.c_str());
 		// ignore the error
 		_log(DATABASE__MESSAGE, "Ignoring error.");
 	}

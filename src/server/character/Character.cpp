@@ -281,13 +281,13 @@ void CharacterAppearance::operator=(const CharacterAppearance &from) {
  */
 CorpMemberInfo::CorpMemberInfo(
 	uint32 _corpHQ,
-	uint64 _corprole,
+	uint64 _corpRole,
 	uint64 _rolesAtAll,
 	uint64 _rolesAtBase,
 	uint64 _rolesAtHQ,
 	uint64 _rolesAtOther)
 : corpHQ(_corpHQ),
-  corprole(_corprole),
+  corpRole(_corpRole),
   rolesAtAll(_rolesAtAll),
   rolesAtBase(_rolesAtBase),
   rolesAtHQ(_rolesAtHQ),
@@ -319,7 +319,7 @@ Character::Character(
   m_corporationID(_charData.corporationID),
   m_corpHQ(_corpData.corpHQ),
   m_allianceID(_charData.allianceID),
-  m_corpRole(_corpData.corprole),
+  m_corpRole(_corpData.corpRole),
   m_rolesAtAll(_corpData.rolesAtAll),
   m_rolesAtBase(_corpData.rolesAtBase),
   m_rolesAtHQ(_corpData.rolesAtHQ),

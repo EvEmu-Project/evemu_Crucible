@@ -267,7 +267,7 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
 
 	// Set char's roles in corp
 	CorpMemberInfo roles;
-	roles.corprole = corpRoleAll;
+	roles.corpRole = corpRoleAll;
 	roles.rolesAtAll = corpRoleAll;
 	roles.rolesAtBase = corpRoleAll;
 	roles.rolesAtHQ = corpRoleAll;

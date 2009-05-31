@@ -316,7 +316,7 @@ class CorpMemberInfo {
 public:
 	CorpMemberInfo(
 		uint32 _corpHQ = 0,
-		uint64 _corprole = 0,
+		uint64 _corpRole = 0,
 		uint64 _rolesAtAll = 0,
 		uint64 _rolesAtBase = 0,
 		uint64 _rolesAtHQ = 0,
@@ -325,7 +325,7 @@ public:
 
 	uint32 corpHQ;	//this really doesn't belong here...
 
-	uint64 corprole;
+	uint64 corpRole;
 	uint64 rolesAtAll;
 	uint64 rolesAtBase;
 	uint64 rolesAtHQ;
