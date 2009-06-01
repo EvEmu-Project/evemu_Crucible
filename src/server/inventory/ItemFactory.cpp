@@ -251,7 +251,18 @@ void ItemFactory::_DeleteItem(uint32 itemID) {
 }
 
 
-
+InventoryItem *ItemFactory::GetInvforType(uint32 typeID, uint32 CharID, uint8 flag, bool recurse) {
+		std::map<uint32, InventoryItem *>::const_iterator cur, end;
+		cur = m_items.begin();
+		end = m_items.end();
+		for(; cur != end; cur++){
+			InventoryItem *i = cur->second;
+			if(i->typeID() == typeID && i->ownerID() == CharID && i->flag() == flag){
+				return i;
+			}
+		}
+		return NULL;
+}
 
 
 

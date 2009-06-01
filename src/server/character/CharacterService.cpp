@@ -43,7 +43,7 @@ CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc)
 	PyCallable_REG_CALL(CharacterService, GetAppearanceInfo)
 	PyCallable_REG_CALL(CharacterService, ValidateName)
 	PyCallable_REG_CALL(CharacterService, ValidateNameEx)
-	PyCallable_REG_CALL(CharacterService, CreateCharacter2) // replica of CreateCharacter for now.
+	PyCallable_REG_CALL(CharacterService, CreateCharacter2)
 	PyCallable_REG_CALL(CharacterService, Ping)
 	PyCallable_REG_CALL(CharacterService, PrepareCharacterForDelete)
 	PyCallable_REG_CALL(CharacterService, CancelCharacterDeletePrepare)

@@ -108,7 +108,7 @@ PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRe
 	no.args->items[0] = pyType;
 	no.args->items[1] = pyArgs;
 
-	no.keywords.add("msgkey", pyType->Clone());
+	no.keywords.add("msg", pyType->Clone());
 	no.keywords.add("dict", pyArgs->Clone());
 
 	return(no.FastEncode());

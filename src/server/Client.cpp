@@ -37,6 +37,7 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
   m_accountID(0),
   m_accountRole(1),
   m_gangRole(1),
+  m_statusTrain(false),
   m_system(NULL),
 //  m_destinyTimer(1000, true),	//accurate timing is essential
 //  m_lastDestinyTime(Timer::GetTimeSeconds()),
@@ -183,6 +184,11 @@ bool Client::ProcessNet() {
 	if(m_pingTimer.Check()) {
 		//_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
 		_SendPingRequest();
+	}
+	if(m_statusTrain){
+		if(Win32TimeNow()>=m_TimeEndTrain){
+			m_char->CharEndTrainSkill();
+		}
 	}
 	
 	PyPacket *p;
@@ -1435,3 +1441,23 @@ FunctorTimerQueue::Entry::~Entry() {
 	delete func;
 }
 */
+
+uint32 Client::GetCharAttrib(uint32 atrib) {
+	switch (atrib) {
+		case 164:	return(m_char->charisma());			break;
+		case 165:	return(m_char->intelligence());		break;
+		case 166:	return(m_char->memory());			break;
+		case 167:	return(m_char->perception());		break;
+		case 168:	return(m_char->willpower());		break;
+		default:	return(NULL);						break;
+	}}
+
+void Client::SetTrainStatus(bool status, uint64 TimeEndTrain){
+	if(status){
+		m_statusTrain = true;
+		m_TimeEndTrain = TimeEndTrain;
+	}else{
+		m_statusTrain = false;
+		m_TimeEndTrain = 0;
+	}
+}

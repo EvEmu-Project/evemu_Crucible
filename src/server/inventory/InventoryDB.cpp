@@ -1546,8 +1546,58 @@ bool InventoryDB::GetStation(uint32 stationID, StationData &into) {
 }
 
 
+bool InventoryDB::RemoveSkillsFromSkillQueue(uint32 itemID, uint32 typeID) {
+	DBerror err; // fix this to take type id too so we can remove just one.
 
+	// TODO: fix this to use typeID as well when deleting.
 
+	if(!m_db->RunQuery(err, "DELETE FROM chrSkillQueue WHERE itemID = %u", itemID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete skill queue rows for character %u: %s.", itemID, err.c_str());
+		return false;
+	}
+	return true;
+}
+
+bool InventoryDB::GetSkillsFromSkillQueue(uint32 itemID, PyRepList *list) {
+	DBQueryResult res;
+		
+	if(!m_db->RunQuery(res,
+		"SELECT typeID, level FROM chrSkillQueue"
+		" WHERE itemID = %u"
+		" ORDER BY id ASC",
+		itemID))
+	{
+		_log(DATABASE__ERROR, "Failed to query skills for character %u: %s.", itemID, res.error.c_str());
+		return false;
+	}
+
+	PyRepTuple *t;
+	DBResultRow row;
+	while(res.GetRow(row)) {
+		t = new PyRepTuple(2);
+		t->items[0] = new PyRepInteger(row.GetUInt(0)); // typeID
+		t->items[1] = new PyRepInteger(row.GetUInt(1)); // level (to be trained)
+		list->add(t);
+	}
+	return true;
+}
+
+bool InventoryDB::AddSkillToSkillQueue(uint32 itemID, uint32 typeID, uint8 level) {
+	DBerror err;
+
+	if(!m_db->RunQuery(err,
+		"INSERT INTO chrSkillQueue"
+		" (itemID, typeID, level)"
+		" VALUES"
+		" (%u, %u, %u)",
+		itemID, typeID, level))
+	{
+		_log(DATABASE__ERROR, "Failed to add skill %u into skill queue for character %u: %s.", typeID, itemID, err.c_str());
+		return false;
+	}
+	return true;
+}
 
 
 

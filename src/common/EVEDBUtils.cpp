@@ -705,7 +705,7 @@ PyRepTuple *DBResultToPackedRowListTuple(
 	while(result.GetRow(row))
 		//this is piece of crap due to header cloning
 		res.rows.add(PackRow(row, columns, true, res.header.Encode()));
-
+		
 	return(res.FastEncode());
 }
 

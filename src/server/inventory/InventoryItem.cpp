@@ -1079,3 +1079,28 @@ double InventoryItem::GetRemainingCapacity(EVEItemFlags locationFlag) const {
 	return(remainingCargoSpace);
 }
 
+bool InventoryItem::SkillPrereqsComplete(InventoryItem *item){
+	InventoryItem *requiredSkill;
+	if(item->requiredSkill1() != NULL){
+		requiredSkill = m_factory.GetInvforType(item->requiredSkill1(), flagSkill, m_ownerID, false);
+		if(item->requiredSkill1Level() <= requiredSkill->skillLevel()){
+			if(item->requiredSkill2() != NULL){
+				requiredSkill = m_factory.GetInvforType(item->requiredSkill2(), flagSkill, m_ownerID, false);
+				if(item->requiredSkill2Level() <= requiredSkill->skillLevel()){
+					if(item->requiredSkill3() != NULL){
+						requiredSkill = m_factory.GetInvforType(item->requiredSkill3(), flagSkill, m_ownerID, false); 
+						if(item->requiredSkill3Level() <= requiredSkill->skillLevel()){
+						}else{
+							return false;
+						}
+					}
+				}else{
+					return false;
+				}
+			}
+		}else{
+			return false;
+		}
+	}
+return true;
+}

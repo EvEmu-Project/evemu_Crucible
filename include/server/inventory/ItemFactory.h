@@ -112,6 +112,7 @@ public:
 	InventoryItem *GetItem(uint32 itemID, bool recurse=true);
 
 	Blueprint *GetBlueprint(uint32 blueprintID, bool recurse=true);
+	InventoryItem *GetInvforType(uint32 typeID, uint32 CharID, uint8 flag, bool recurse);
 
 	/**
 	 * Loads character.

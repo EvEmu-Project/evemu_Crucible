@@ -53,7 +53,9 @@ public:
 
 	virtual void Release();
 
-	PyCallable_DECL_CALL(CharStartTrainingSkill)
+	PyCallable_DECL_CALL(InjectSkillIntoBrain)
+	PyCallable_DECL_CALL(CharStartTrainingSkillByTypeID)
+	PyCallable_DECL_CALL(CharStopTrainingSkill)
 	PyCallable_DECL_CALL(GetEndOfTraining)
 	PyCallable_DECL_CALL(GetSkillHistory)
 	PyCallable_DECL_CALL(CharAddImplant)

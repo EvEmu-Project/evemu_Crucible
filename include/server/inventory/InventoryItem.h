@@ -150,6 +150,7 @@ public:
 
 	double GetRemainingCapacity( EVEItemFlags flag) const;
 	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = 0);
+	bool SkillPrereqsComplete(InventoryItem *skill);
 
 	void PutOnline() { SetOnline(true); }
 	void PutOffline() { SetOnline(false); }
@@ -181,6 +182,7 @@ public:
 	uint32                  quantity() const { return(m_quantity); }
 	const GPoint &          position() const { return(m_position); }
 	const std::string &     customInfo() const { return(m_customInfo); }
+
 
 	// helper type methods
 	uint32                  typeID() const { return(type().id()); }

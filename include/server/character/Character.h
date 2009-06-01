@@ -374,7 +374,58 @@ public:
 	void JoinCorporation(uint32 corporationID);
 	void SetDescription(const char *newDescription);
 
+	/* SkillAlreadyInjected(InventoryItem *skill)
+	 * 
+	 * Perform a check to see if the passed skill is
+	 * already injected into the character.
+	 * @author xanarox
+	 * @param InventoryItem
+	*/
+	bool SkillAlreadyInjected(InventoryItem *skill);
+
+	/* InjectSkillIntoBrain(InventoryItem *skill)
+	 * 
+	 * Perform injection of passed skill into the character.
+	 * @author xanarox
+	 * @param InventoryItem
+	*/
+	bool InjectSkillIntoBrain(InventoryItem *skill);
+
+	/* RemoveSkillsFromSkillQueue()
+	 * 
+	 * This will remove all skills from the characters skill queue.
+	 * @author xanarox
+	*/
+	bool RemoveSkillsFromSkillQueue(uint32 itemID, uint32 typeID);
+
+	/* GetSkillsFromSkillQueue()
+	 * 
+	 * This will get the skills from the skill queue for a character.
+	 * @author xanarox
+	 * @param InventoryItem
+	*/
+	PyRepList *GetSkillsFromSkillQueue(uint32 itemID);
+
+	/* AddSkillToSkillQueue()
+	 * 
+	 * This will add a skill into the skill queue.
+	 * @author xanarox
+	 * @param InventoryItem
+	*/
+	bool AddSkillToSkillQueue(uint32 itemID, uint32 typeID, uint8 level);
+
+
 	void TrainSkill(InventoryItem *skill);
+	double GetSPM(Client *c, uint32 PrimeryAttr, uint32 SeconderyAttr);
+	uint32 GetSPForLevel(InventoryItem *skill, uint8 Level);
+	void StopTrainingSkill();
+	bool CharStopTrainingSkill(Client *c, InventoryItem *skill);
+	void EndSkillTrain();
+	InventoryItem *GetSkillInTraining();
+	void CharEndTrainSkill();
+
+
+
 
 	// NOTE: We do not handle Split/Merge logic since singleton-restricted construction does this for us.
 

@@ -249,6 +249,32 @@ public:
 	 * @return True if load succeeds, false if fails.
 	 */
 	bool GetStation(uint32 stationID, StationData &into);
+
+
+	/**
+	 * Removes rows from chrSkillQueue for a character.
+	 *
+	 * @param[in] itemID ID of character
+	*/
+	bool RemoveSkillsFromSkillQueue(uint32 itemID, uint32 typeID);
+
+	/**
+	 * returns rows of skills from chrSkillQueue for a character.
+	 *
+	 * @param[in] itemID ID of character
+ 	 * @param[in] typeID ID the skill type
+ 	 * @param[in] level level of skill to be trained
+	*/
+	bool GetSkillsFromSkillQueue(uint32 itemID, PyRepList *list);
+
+	/**
+	 * Adds a row into chrSkillQueue for a character.
+	 *
+	 * @param[in] itemID ID of character
+ 	 * @param[in] typeID ID the skill type
+ 	 * @param[in] level level of skill to be trained
+	*/
+	bool AddSkillToSkillQueue(uint32 itemID, uint32 typeID, uint8 level);
 };
 
 
