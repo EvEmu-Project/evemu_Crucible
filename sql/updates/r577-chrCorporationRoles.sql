@@ -10,4 +10,4 @@ ALTER TABLE character_
  ADD COLUMN rolesAtOther BIGINT(20) UNSIGNED NOT NULL DEFAULT '0' AFTER rolesAtHQ
 ;
 
-DROP TABLE chrCorporationRoles;
+DROP TABLE IF EXISTS chrCorporationRoles;
