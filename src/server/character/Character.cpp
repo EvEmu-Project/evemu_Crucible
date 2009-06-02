@@ -760,7 +760,6 @@ uint32 Character::GetSPForLevel(InventoryItem *skill, uint8 Level){
 InventoryItem *Character::GetSkillInTraining(){
 	// Find a better way to get this, since only 1 skill can be trained.  seems wastefull
 	// but keeping FindByFlag generic so it can find multiples is needed.
-
 	std::vector<InventoryItem *> skills;
 	FindByFlag(flagSkillInTraining, skills, false);
 	std::vector<InventoryItem *>::iterator cur, end;
@@ -774,19 +773,20 @@ InventoryItem *Character::GetSkillInTraining(){
 }
 
 void Character::CharEndTrainSkill(){
+	/* problem us using skill->skillLevel() on linux for some reason. fix in phase 2*/
 	Client *c = m_factory.entity_list.FindCharacter(m_itemID);
 	InventoryItem *skill = GetSkillInTraining();
 	skill->Set_skillPoints(GetSPForLevel(skill, skill->skillLevel()+1));
 	skill->Set_skillLevel(skill->skillLevel()+1);
 	skill->ChangeFlag(flagSkill, true);
-		if(c != NULL) {
-			OnSkillTrainingStopped osst;
-			osst.itemID = skill->itemID();
-			osst.endOfTraining = 0; //hack hack hack
-			PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
-			c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
-			c->SendNotifyMsg("Training of the skill has been completed.", skill->itemName());
-			c->SetTrainStatus(false, 0);
-
-				}
+	if(c != NULL) {
+		OnSkillTrainingStopped osst;
+		osst.itemID = skill->itemID();
+		osst.endOfTraining = 0; //hack hack hack
+		PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
+		c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
+		c->SendNotifyMsg("Training of the skill has been completed.", skill->itemName());
+		c->SetTrainStatus(false, 0);
+	}
+	
 }

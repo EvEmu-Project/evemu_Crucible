@@ -138,26 +138,25 @@ PyResult SkillMgrBound::Handle_RemoveImplantFromCharacter(PyCallArgs &call) {
 }
 
 PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
-	// returns list of skills currently in training
+	// returns list of skills currently in the skill queue.
 	PyRepList *result = new PyRepList;
 	result = call.client->Char()->GetSkillsFromSkillQueue(call.client->Char()->itemID());
-	return result;
+	return(result);
 }
 
  PyResult SkillMgrBound::Handle_SaveSkillQueue(PyCallArgs &call) {
 	Call_SaveSkillQueue args;
-	PyRep *result = NULL;
-
+	
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName());
-		return(result);
+		return NULL;
 	}
 	
 	// delete all skill queue rows for this character since we are about
 	// to store new skill queue entries.
 	if(!call.client->Char()->RemoveSkillsFromSkillQueue(call.client->Char()->itemID(), 0)) {
 		codelog(CLIENT__TRACE, "%s: Failed to remove skills from skill queue for character %u.", call.client->GetName(), call.client->Char()->itemID());
-		return(result);
+		return NULL;
 	}
 
 	uint32 typeID = 0;
@@ -188,13 +187,15 @@ PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
 		}
 
 		// grab the itemID of the first skill in the skill queue
+		/* this was for training, but will not be available untill Phase 2
 		if(itemID == 0) {
 			InventoryItem *skill = m_manager->item_factory.GetInvforType(typeID, call.client->Char()->itemID(), flagSkill, false);
 			if(skill != NULL) {
 				itemID = skill->itemID();
+				skill->DecRef();
 			}
-			skill->DecRef();
 		}
+		*/
 
 		if(!call.client->Char()->AddSkillToSkillQueue(call.client->Char()->itemID(), typeID, level)) {
 			codelog(CLIENT__TRACE, "%s: Failed to add itemID: %u skillID:%u level: %u to the skill queue.", call.client->GetName(), call.client->Char()->itemID(), typeID , level );
@@ -203,18 +204,19 @@ PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
 	
 	// TODO: Start training the first skill in the skillqueue.
 	// find a much better way to do this.
+	/*
 	if(typeID != 0) { // crappy check to see if the loop looped, fix this later.
 		InventoryItem *skill = m_manager->item_factory.GetInvforType(typeID, call.client->Char()->itemID(), flagSkill, false);
 		skill->ChangeFlag(flagSkillInTraining, true);
 	}
+	*/
 
-	args.arg.items.clear();
+	PyRep *result = NULL;
 	return(result);
  }
 
 PyResult SkillMgrBound::Handle_GetRespecInfo(PyCallArgs &call) {
 	// takes no arguments
-
 	_log(SERVICE__MESSAGE, "%s: GetRespecInfo unimplemented.", GetBindStr().c_str());
 
 	// return dict
@@ -222,18 +224,24 @@ PyResult SkillMgrBound::Handle_GetRespecInfo(PyCallArgs &call) {
 	result->add("freeRespecs", new PyRepInteger(0));
 	result->add("nextRespecTime", new PyRepInteger(Win32TimeNow() + Win32Time_Year));
 
-	return result;
+	return(result);
 }
 
 PyResult SkillMgrBound::Handle_CharStartTrainingSkillByTypeID(PyCallArgs &call) {
 	Call_SingleIntegerArg args;
-	PyRep *result = NULL;
-
+	
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName());
-		return(result);
+		return NULL;
 	}
 
+	PyRep *result = NULL;
+	codelog(SERVICE__ERROR, "Unimplemented.  Will be available in Phase 2 of the skill patch.");
+	return(result);
+
+	/** NOTICE: just returning for now till Phase 2 is complete. please do not delete this yet, it will all be fixed.**/
+
+	/*
 	InventoryItem *skillInTraining = m_manager->item_factory.GetInvforType(args.arg, call.client->Char()->itemID(), flagSkillInTraining, false);
 	if(skillInTraining == NULL) {
 		codelog(CLIENT__TRACE, "%s: Unable to get skill in training.  Continue and start training of passed skill.", call.client->GetName(), args.arg );
@@ -241,38 +249,42 @@ PyResult SkillMgrBound::Handle_CharStartTrainingSkillByTypeID(PyCallArgs &call) 
 		if(skillInTraining->typeID() == args.arg) {
 			// TODO: Send notification that they are already training the passed skill.
 			codelog(CLIENT__TRACE, "%s: Character already training skill %u.", call.client->GetName(), skillInTraining->itemID());
-			return(result);
+			return NULL;
 		}
 		
 		// stop training the current skill in training.
 		// cheap hack to get the skill to stop training and it kinda works, but I will 
 		// add a correct way later using TrainSkill.
-		skillInTraining->ChangeFlag(flagSkill, true);
+		//skillInTraining->ChangeFlag(flagSkill, true);
 		skillInTraining->DecRef();
+		codelog(CLIENT__TRACE, "%s: Unable to get skill to start training.", call.client->GetName());
 	}
 
-	// start training passed skill if skill level is < 5.
-	InventoryItem *skill = m_manager->item_factory.GetInvforType(args.arg, call.client->Char()->itemID(), flagSkill, false);
-	if(skill == NULL) {
+	// start training skill if skill level is < 5.
+	InventoryItem *skillToTrain = m_manager->item_factory.GetInvforType(args.arg, call.client->Char()->itemID(), flagSkill, false);
+	if(skillToTrain == NULL) {
 		codelog(CLIENT__TRACE, "%s: Unable to get skill to start training.", call.client->GetName());
-		return(result);
+		return NULL;
 	}
 	
 	// cheap hack to get the skill in training and it kinda works, but I will 
 	// add a correct way later using TrainSkill.
-	skill->ChangeFlag(flagSkillInTraining, true);
-	skill->DecRef();
+	//skill->ChangeFlag(flagSkillInTraining, true);
+	//skill->DecRef();
+	
+
+	PyRep *result = NULL;
 	return(result);
+	*/
 }
 
 
 PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call) {
 	Call_InjectSkillIntoBrain args;
-	PyRep *result = NULL;
 
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName());
-		return(result);
+		return NULL;
 	}
 	
 	std::vector<PyRep *>::iterator cur, end;
@@ -281,7 +293,7 @@ PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call) {
 	for (; cur != end; cur++) {
 		InventoryItem *skill = m_manager->item_factory.GetItem((*cur)->AsInteger().value , false);
 		if(skill == NULL) {
-			codelog(ITEM__ERROR, "%s: failed to load skill item %u", call.client->GetName(), (*cur)->AsInteger().value );
+			codelog(ITEM__ERROR, "%s: failed to load skill item %u for injection.", call.client->GetName(), (*cur)->AsInteger().value );
 			continue;
 		}
 		
@@ -291,11 +303,13 @@ PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call) {
 			continue;
 		}
 
+		/* problems using the inventory attributes call in linux, so comment this out for now
 		if(!skill->SkillPrereqsComplete(skill)) {
 			//TODO: build and send UserError for incomplete prerequisites.
 			codelog(ITEM__ERROR, "%s: Cannot inject skill %u, prerequisites have not been met.", call.client->GetName(), (*cur)->AsInteger().value );
 			continue;
 		}
+		*/
 
 		if(!call.client->Char()->InjectSkillIntoBrain(skill)) {
 			//TODO: build and send UserError about injection failure.
@@ -305,6 +319,6 @@ PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call) {
 	}
 
 	// TODO: send notification that the skill(s) injection was successful.
-	args.arg.items.clear();
+	PyRep *result = NULL;
 	return(result);
 }

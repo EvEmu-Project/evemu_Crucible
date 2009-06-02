@@ -408,7 +408,8 @@ public:
 
 	/* AddSkillToSkillQueue()
 	 * 
-	 * This will add a skill into the skill queue.
+	 * This will add a skill into the skill queue.  this is not to be used
+	 * directly.
 	 * @author xanarox
 	 * @param InventoryItem
 	*/
