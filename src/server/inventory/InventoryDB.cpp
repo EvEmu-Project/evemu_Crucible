@@ -1545,90 +1545,77 @@ bool InventoryDB::GetStation(uint32 stationID, StationData &into) {
 	return true;
 }
 
-
-bool InventoryDB::RemoveSkillsFromSkillQueue(uint32 itemID, uint32 typeID) {
-	DBerror err; // fix this to take type id too so we can remove just one.
-
-	// TODO: fix this to use typeID as well when deleting.
-
-	if(!m_db->RunQuery(err, "DELETE FROM chrSkillQueue WHERE itemID = %u", itemID))
-	{
-		_log(DATABASE__ERROR, "Failed to delete skill queue rows for character %u: %s.", itemID, err.c_str());
-		return false;
-	}
-	return true;
-}
-
-bool InventoryDB::GetSkillsFromSkillQueue(uint32 itemID, PyRepList *list) {
+bool InventoryDB::LoadSkillQueue(uint32 characterID, SkillQueue &into) {
 	DBQueryResult res;
-		
-	if(!m_db->RunQuery(res,
-		"SELECT typeID, level FROM chrSkillQueue"
+
+	if( !m_db->RunQuery( res,
+		"SELECT"
+		" typeID, level"
+		" FROM chrSkillQueue"
 		" WHERE itemID = %u"
 		" ORDER BY id ASC",
-		itemID))
+		characterID ) )
 	{
-		_log(DATABASE__ERROR, "Failed to query skills for character %u: %s.", itemID, res.error.c_str());
+		_log(DATABASE__ERROR, "Failed to query skill queue of character %u: %s.", characterID, res.error.c_str());
 		return false;
 	}
 
-	PyRepTuple *t;
 	DBResultRow row;
-	while(res.GetRow(row)) {
-		t = new PyRepTuple(2);
-		t->items[0] = new PyRepInteger(row.GetUInt(0)); // typeID
-		t->items[1] = new PyRepInteger(row.GetUInt(1)); // level (to be trained)
-		list->add(t);
+	while( res.GetRow( row ) )
+	{
+		QueuedSkill qs;
+		qs.typeID = row.GetUInt( 0 );
+		qs.level = row.GetUInt( 1 );
+
+		into.push_back( qs );
 	}
+
 	return true;
 }
 
-bool InventoryDB::AddSkillToSkillQueue(uint32 itemID, uint32 typeID, uint8 level) {
+bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
 	DBerror err;
 
-	if(!m_db->RunQuery(err,
-		"INSERT INTO chrSkillQueue"
-		" (itemID, typeID, level)"
-		" VALUES"
-		" (%u, %u, %u)",
-		itemID, typeID, level))
+	if( !m_db->RunQuery( err,
+		"DELETE"
+		" FROM chrSkillQueue"
+		" WHERE itemID = %u",
+		characterID ) )
 	{
-		_log(DATABASE__ERROR, "Failed to add skill %u into skill queue for character %u: %s.", typeID, itemID, err.c_str());
+		_log(DATABASE__ERROR, "Failed to delete skill queue of character %u: %s.", characterID, err.c_str());
 		return false;
 	}
+
+	if( queue.empty() )
+		// nothing else to do
+		return true;
+
+	// now build insert query:
+	std::string query;
+
+	for(size_t i = 0; i < queue.size(); i++)
+	{
+		const QueuedSkill &qs = queue[i];
+
+		char buf[64];
+		snprintf(buf, 64, "(%u, %u, %u, %u)", i, characterID, qs.typeID, qs.level);
+
+		if( i != 0 )
+			query += ',';
+		query += buf;
+	}
+
+	if( !m_db->RunQuery( err,
+		"INSERT"
+		" INTO chrSkillQueue (id, itemID, typeID, level)"
+		" VALUES %s",
+		query.c_str() ) )
+	{
+		_log(DATABASE__ERROR, "Failed to insert skill queue of character %u: %s.", characterID, err.c_str());
+		return false;
+	}
+
 	return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

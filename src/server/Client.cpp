@@ -185,11 +185,6 @@ bool Client::ProcessNet() {
 		//_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
 		_SendPingRequest();
 	}
-	if(m_statusTrain){
-		if(Win32TimeNow()>=m_TimeEndTrain){
-			m_char->CharEndTrainSkill();
-		}
-	}
 	
 	PyPacket *p;
 	while((p = m_net.PopPacket())) {
@@ -240,6 +235,12 @@ void Client::Process() {
 			_ExecuteJump();
 			break;
 		}
+	}
+
+	if( m_statusTrain )
+	{
+		if( Win32TimeNow() >= m_timeEndTrain )
+			Char()->UpdateSkillQueue();
 	}
 
 	modules.Process();
@@ -1087,12 +1088,20 @@ bool Client::SelectCharacter(uint32 char_id) {
 	if(!EnterSystem())
 		return false;
 
+	// update skill queue
+	Char()->UpdateSkillQueue();
+
 	SessionSync();
 
 	//johnsus - characterOnline mod
 	m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), true);
 
 	return true;
+}
+
+void Client::SetTrainStatus(bool status, uint64 timeEndTrain){
+	m_statusTrain = status;
+	m_timeEndTrain = (status ? timeEndTrain : 0);
 }
 
 double Client::GetPropulsionStrength() const {
@@ -1442,22 +1451,3 @@ FunctorTimerQueue::Entry::~Entry() {
 }
 */
 
-uint32 Client::GetCharAttrib(uint32 atrib) {
-	switch (atrib) {
-		case 164:	return(m_char->charisma());			break;
-		case 165:	return(m_char->intelligence());		break;
-		case 166:	return(m_char->memory());			break;
-		case 167:	return(m_char->perception());		break;
-		case 168:	return(m_char->willpower());		break;
-		default:	return(NULL);						break;
-	}}
-
-void Client::SetTrainStatus(bool status, uint64 TimeEndTrain){
-	if(status){
-		m_statusTrain = true;
-		m_TimeEndTrain = TimeEndTrain;
-	}else{
-		m_statusTrain = false;
-		m_TimeEndTrain = 0;
-	}
-}

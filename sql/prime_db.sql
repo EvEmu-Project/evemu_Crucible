@@ -24,6 +24,7 @@ TRUNCATE TABLE chrNotes;
 TRUNCATE TABLE chrNPCStandings;
 TRUNCATE TABLE chrOffers;
 TRUNCATE TABLE chrOwnerNote;
+TRUNCATE TABLE chrSkillQueue;
 TRUNCATE TABLE chrStandings;
 TRUNCATE TABLE corporation;
 TRUNCATE TABLE courierMissions;

@@ -618,32 +618,6 @@ CallGetGuests
   </InlineTuple>
 </element>
   
-  
-  
-<element name="Call_GetSkillQueue">
-  <InlineTuple>
-    <list name="arg" />
-  </InlineTuple>
-</element>
-  
-<element name="Call_SaveSkillQueue">
-  <InlineTuple>
-    <list name="arg" />
-  </InlineTuple>
-</element>
-
-<element name="Call_InjectSkillIntoBrain">
-  <InlineTuple>
-    <list name="arg" />
-  </InlineTuple>
-</element>
-  
-<element name="Call_CharStartTrainingSkillByTypeID">
-  <InlineTuple>
-    <int name="typeID" />
-  </InlineTuple>
-</element>
-  
 </Elements>
 
 

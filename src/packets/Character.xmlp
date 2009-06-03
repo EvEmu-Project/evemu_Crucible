@@ -186,6 +186,25 @@
   </InlineTuple>
 </element>
 
+<element name="SkillQueue_Element">
+  <InlineTuple>
+    <int name="typeID" />
+    <int name="level" />
+  </InlineTuple>
+</element>
+
+<element name="Call_SaveSkillQueue">
+  <InlineTuple>
+    <!-- 0: List of SkillQueue_Element -->
+    <list name="queue" />
+  </InlineTuple>
+</element>
+
+<element name="Call_InjectSkillIntoBrain">
+  <InlineTuple>
+    <intlist name="skills" />
+  </InlineTuple>
+</element>
   
 </Elements>
 

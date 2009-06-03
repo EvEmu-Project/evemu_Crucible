@@ -420,6 +420,13 @@ uint32 Character::_Spawn(ItemFactory &factory,
 	return characterID;
 }
 
+bool Character::_Load(bool recurse)
+{
+	if( !m_factory.db().LoadSkillQueue( itemID(), m_skillQueue ) )
+		return false;
+	return InventoryItem::_Load(recurse);
+}
+
 void Character::Save(bool recursive, bool saveAttributes) const {
 	// character data
 	m_factory.db().SaveCharacter(
@@ -460,6 +467,12 @@ void Character::Save(bool recursive, bool saveAttributes) const {
 			rolesAtHQ(),
 			rolesAtOther()
 		)
+	);
+
+	// skill queue
+	m_factory.db().SaveSkillQueue(
+		itemID(),
+		m_skillQueue
 	);
 
 	// our parent cares about the rest
@@ -522,78 +535,6 @@ void Character::SetDescription(const char *newDescription) {
 	Save(false, false);
 }
 
-bool Character::RemoveSkillsFromSkillQueue(uint32 itemID, uint32 typeID) {
-	// remove the character skills from the skill queue.
-	return m_factory.db().RemoveSkillsFromSkillQueue(itemID, typeID);
-}
-
-PyRepList *Character::GetSkillsFromSkillQueue(uint32 itemID) {
-	PyRepList *result = new PyRepList;
-	m_factory.db().GetSkillsFromSkillQueue(itemID, result);
-	return(result);
-}
-
-bool Character::AddSkillToSkillQueue(uint32 itemID, uint32 typeID, uint8 level) {
-	// add the skill to the db.
-	return m_factory.db().AddSkillToSkillQueue(itemID, typeID, level);
-}
-
-void Character::TrainSkill(InventoryItem *skill) { // rename is StartSkillTraining
-	if(m_flag != flagPilot) {
-		codelog(ITEM__ERROR, "%s (%u): Tried to train skill %u on non-pilot object.", m_itemName.c_str(), m_itemID, skill->itemID());
-		return;
-	}
-	
-	if(skill->flag() == flagSkillInTraining) {
-		_log(ITEM__TRACE, "%s (%u): Requested to train skill %u item %u but it is already in training. Doing nothing.", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
-		return;
-	}
-
-	// TODO: based on config options later, check to see if another character, owned by this characters account,
-	// is training a skill.  If so, return. (flagID=61).
-
-	if(!skill->SkillPrereqsComplete(skill)){
-		// TODO: need to send back a response to the client.  need packet specs.
-		_log(ITEM__TRACE, "%s (%u): Requested to train skill %u item %u but prereq not complete.", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
-		return;
-	}
-
-
-	// checks done, let's do what official does when you train a skill that may
-	// or may not be in the skillqueue (does it remove everything but the
-	// skill wanting to be trained?)
-
-	Client *c = m_factory.entity_list.FindCharacter(m_itemID);
-	if(c == NULL){return;}
- 	
-	//stop training our old skill...
-	InventoryItem *TrainingSkill = GetSkillInTraining();
-	if(TrainingSkill != NULL){
-		CharStopTrainingSkill(c, TrainingSkill);
- 	}
-
-	if(!Contains(skill)) {
- 		//this must be a skill in another container...
- 		_log(ITEM__ERROR, "%s (%u): Tried to train skill item %u which has the skill flag but is not contained within this item.", m_itemName.c_str(), m_itemID, skill->itemID());
- 		return;
- 	} else {
- 		//skill is within this item, change its flag.
- 		_log(ITEM__TRACE, "%s (%u): Starting training of skill %u item %u", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
- 	}
-		double SPM = (GetSPM(c, skill->primaryAttribute(),skill->secondaryAttribute()));
-		uint64 TimeTraining = Win32TimeNow() + ((GetSPForLevel(skill, skill->skillLevel()+1) - skill->skillPoints())/SPM)* Win32Time_Minute;
-	if(c != NULL) {
-		OnSkillStartTraining osst;
-		osst.itemID = skill->itemID();
-		osst.endOfTraining = TimeTraining; //hack hack hack
-		PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
- 		skill->ChangeFlag(flagSkillInTraining, true);
-		skill->Set_expiryTime(TimeTraining);
-		c->SetTrainStatus(true, TimeTraining);
-		c->SendNotification("OnSkillStartTraining", "charid", &tmp);
-	}
-}
-
 PyRepObject *Character::CharGetInfo() {
 	//TODO: verify that we are a char?
 	
@@ -641,152 +582,253 @@ PyRepObject *Character::GetDescription() const {
 	return row.FastEncode();
 }
 
-bool Character::SkillAlreadyInjected(InventoryItem *skill) {
-	/* Check to see if the passed skill is already injected into
-	   the character. */
-	std::vector<InventoryItem *> skills;
-	FindByFlag(flagSkill, skills, false);
-	FindByFlag(flagSkillInTraining, skills, false);
-
-	std::vector<InventoryItem *>::iterator cur, end;
-	cur = skills.begin();
-	end = skills.end();
-	for(; cur != end; cur++) {						// could check by flag here instead of location and owner.
-		if((skill->typeID() == (*cur)->typeID()) && (skill->ownerID() == (*cur)->locationID())) {
-			skills.clear();
-			return true;
-		}
+uint32 Character::GetCharAttribute(EVEAttributeMgr::Attr attr) const {
+	switch(attr) {
+		case EVEAttributeMgr::Attr_charisma:        return attributes.charisma();
+		case EVEAttributeMgr::Attr_intelligence:    return attributes.intelligence();
+		case EVEAttributeMgr::Attr_memory:          return attributes.memory();
+		case EVEAttributeMgr::Attr_perception:      return attributes.perception();
+		case EVEAttributeMgr::Attr_willpower:       return attributes.willpower();
+		default:                                    return 0;
 	}
-	skills.clear();
-	return false;
+}
+
+PyRepList *Character::GetSkillQueue() {
+	// return skills from skill queue
+	PyRepList *list = new PyRepList;
+
+	SkillQueue::iterator cur, end;
+	cur = m_skillQueue.begin();
+	end = m_skillQueue.end();
+	for(; cur != end; cur++)
+	{
+		SkillQueue_Element el;
+
+		el.typeID = cur->typeID;
+		el.level = cur->level;
+
+		list->add( el.FastEncode() );
+	}
+
+	return list;
+}
+
+double Character::GetSPPerMin(EVEAttributeMgr::Attr primaryAttr, EVEAttributeMgr::Attr secondaryAttr) {
+	double primaryVal = GetCharAttribute(primaryAttr);
+	double secondaryVal = GetCharAttribute(secondaryAttr);
+
+	//3374 - Skill Learning
+	InventoryItem *skillLearning = GetByTypeFlag(3374, flagSkill);
+	if( skillLearning == NULL )
+		skillLearning = GetByTypeFlag(3374, flagSkillInTraining);
+
+	uint8 LearningLv = 0;
+	if(skillLearning != NULL)
+		LearningLv = skillLearning->skillLevel();
+
+	return (primaryVal + secondaryVal / 2.0) * (1.0 + 0.02 * LearningLv) * 2.0;
+}
+
+uint64 Character::GetEndOfTraining() {
+	// ensure skill queue is up-to-date
+	UpdateSkillQueue();
+
+	if( m_skillQueue.empty() )
+		return 0;
+	else
+	{
+		InventoryItem *skill = FindFirstByFlag(flagSkillInTraining);
+		if( skill == NULL )
+			// should not happen
+			return 0;
+
+		return skill->expiryTime();
+	}
 }
 
 bool Character::InjectSkillIntoBrain(InventoryItem *skill) {
-	if(skill->flag() != flagSkill) {
-		
-		// are we injecting from a stack of skills?
-		if(skill->quantity() > 1) {
-			// drop the quantity of the stack and create a new skill to inject.
-			uint32 qty;
-			qty = skill->quantity();
-			skill->SetQuantity( --qty, true);
+	InventoryItem *oldSkill = GetByTypeFlag( skill->typeID(), flagSkill );
+	if( oldSkill == NULL )
+		oldSkill = GetByTypeFlag( skill->typeID(), flagSkillInTraining );
 
-			ItemData idata(
-				skill->typeID(),
-				m_itemID,
-				0, // do not assign to character yet.
-				flagSkill,
-				1
-			);
-			InventoryItem *i = m_factory.SpawnItem(idata);
-			if(i == NULL) {
-				codelog(ITEM__ERROR, "%s (%u): Unable to spawn new item from stack to inject into character.", m_itemName.c_str(), skill->itemID());
-				return false;
-			}
-			i->ChangeSingleton(true, false);
- 			i->Set_skillLevel(0);
- 			i->Set_skillPoints(0);
-			i->MoveInto(this, flagSkill);
-			i->ChangeFlag(flagSkill, true);
-			i->DecRef(); // no longer needed.
-			return true;
-		}else{
-			// inject this skill into the character
-			skill->ChangeSingleton(true,false);
- 			skill->Set_skillLevel(0);
- 			skill->Set_skillPoints(0);
-			skill->MoveInto(this, flagSkill);
-			skill->ChangeFlag(flagSkill, true);	
-			return true;
+	if( oldSkill != NULL
+		|| skill->flag() == flagSkill
+		|| skill->flag() == flagSkillInTraining )
+	{
+		//TODO: build and send UserError for CharacterAlreadyKnowsSkill.
+		return false;
+	}
+
+	// TODO: based on config options later, check to see if another character, owned by this characters account,
+	// is training a skill.  If so, return. (flagID=61).
+
+	if(!skill->SkillPrereqsComplete(*this)){
+		// TODO: need to send back a response to the client.  need packet specs.
+		_log(ITEM__TRACE, "%s (%u): Requested to train skill %u item %u but prereq not complete.", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
+		return false;
+	}
+
+	// are we injecting from a stack of skills?
+	if(skill->quantity() > 1)
+	{
+		// split the stack to obtain single item
+		InventoryItem *single_skill = skill->Split(1);
+		if(single_skill == NULL)
+		{
+			_log(ITEM__ERROR, "%s (%u): Unable to split stack of %s (%u).", itemName().c_str(), itemID(), skill->itemName().c_str(), skill->itemID());
+			return false;
 		}
+
+		// use single_skill ...
+		single_skill->ChangeSingleton(true, false);
+		single_skill->MoveInto(this, flagSkill);
+
+		single_skill->Set_skillLevel(0);
+		single_skill->Set_skillPoints(0);
+		single_skill->Clear_expiryTime();
+
+		// we have to decrement the ref
+		single_skill->DecRef();
 	}
-	return false;
- }
+	else
+	{
+		// use original skill
+		skill->ChangeSingleton(true, false);
+		skill->MoveInto(this, flagSkill);
 
-void Character::StopTrainingSkill() {
-	if(m_flag != flagPilot) {return;}
-	Client *c = m_factory.entity_list.FindCharacter(m_itemID);
-	std::vector<InventoryItem *> skills;
-	FindByFlag(flagSkillInTraining, skills, false);
-	std::vector<InventoryItem *>::iterator cur, end;
-	cur = skills.begin();
-	end = skills.end();
-	for(; cur != end; cur++) {
-		InventoryItem *skill = *cur;
-		CharStopTrainingSkill(c, skill);
-	}}
+		skill->Set_skillLevel(0);
+		skill->Set_skillPoints(0);
+		skill->Clear_expiryTime();
 
-bool Character::CharStopTrainingSkill(Client *c, InventoryItem *skill) { 
-	double currentPoints;
-	uint64 TimeEndTrain = skill->expiryTime();
-	if(TimeEndTrain != 0){
-		double secs = TimeEndTrain - Win32TimeNow(); 
-		double SPM = (GetSPM(c, skill->primaryAttribute(), skill->secondaryAttribute()));//*(1+(1E-24*skill->skillLevel()));
-		currentPoints =  GetSPForLevel(skill, skill->skillLevel()+1) - ((secs/Win32Time_Minute)*SPM);
-	}else{
-		currentPoints = skill->skillPoints();
+		// no decrement, the ref isn't ours
 	}
 
-	skill->Set_skillPoints(currentPoints);
-	skill->ChangeFlag(flagSkill, true);
-	if(c != NULL) {
-		OnSkillTrainingStopped osst;
-		osst.itemID = skill->itemID();
-		osst.endOfTraining = 0;
-		PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
-		c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
-		c->SetTrainStatus(false, 0);
-		return true;
- 	}
-	return false;
+	return true;
 }
 
-double Character::GetSPM(Client *c, uint32 PrimeryAttr, uint32 SeconderyAttr){
-	double LearningLv = 0;
-	//3374 - Skill Learning
-	InventoryItem *skill2 = m_factory.GetInvforType(3374, flagSkill, c->Char()->itemID(), false);
-	if(skill2 != NULL){
-		LearningLv = skill2->skillLevel();
-	}
-	double Primery = (c->GetCharAttrib(PrimeryAttr)/**(1+(0.02 * LearningLv))*/)*2;
-	double Secondery = (c->GetCharAttrib(SeconderyAttr)/**(1+(0.02 * LearningLv))*/)*2;
-	return(Primery+(Secondery/2));
+void Character::AddToSkillQueue(uint32 typeID, uint8 level) {
+	QueuedSkill qs;
+	qs.typeID = typeID;
+	qs.level = level;
+
+	m_skillQueue.push_back( qs );
 }
 
-uint32 Character::GetSPForLevel(InventoryItem *skill, uint8 Level){
-	return(250 * skill->skillTimeConstant() * pow(32, (Level-1) / 2.0));
+void Character::ClearSkillQueue() {
+	m_skillQueue.clear();
 }
 
-InventoryItem *Character::GetSkillInTraining(){
-	// Find a better way to get this, since only 1 skill can be trained.  seems wastefull
-	// but keeping FindByFlag generic so it can find multiples is needed.
-	std::vector<InventoryItem *> skills;
-	FindByFlag(flagSkillInTraining, skills, false);
-	std::vector<InventoryItem *>::iterator cur, end;
-	cur = skills.begin();
-	end = skills.end();
-	for(; cur != end; cur++) {
-		InventoryItem *skill = *cur;
-		return(skill);
-	}
-	return NULL;
-}
+void Character::UpdateSkillQueue() {
+	Client *c = m_factory.entity_list.FindCharacter( itemID() );
 
-void Character::CharEndTrainSkill(){
-	/* problem us using skill->skillLevel() on linux for some reason. fix in phase 2*/
-	Client *c = m_factory.entity_list.FindCharacter(m_itemID);
-	InventoryItem *skill = GetSkillInTraining();
-	skill->Set_skillPoints(GetSPForLevel(skill, skill->skillLevel()+1));
-	skill->Set_skillLevel(skill->skillLevel()+1);
-	skill->ChangeFlag(flagSkill, true);
-	if(c != NULL) {
-		OnSkillTrainingStopped osst;
-		osst.itemID = skill->itemID();
-		osst.endOfTraining = 0; //hack hack hack
-		PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
-		c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
-		c->SendNotifyMsg("Training of the skill has been completed.", skill->itemName());
-		c->SetTrainStatus(false, 0);
+	InventoryItem *currentTraining = FindFirstByFlag( flagSkillInTraining );
+	if( currentTraining != NULL )
+	{
+		// something is in training, see what to do
+		if( m_skillQueue.empty()
+			|| currentTraining->typeID() != m_skillQueue.front().typeID )
+		{
+			// either queue is empty or skill with different typeID is in training ...
+			// stop training:
+			double currentSkillpoints;
+
+			uint64 timeEndTrain = currentTraining->expiryTime();
+			if(timeEndTrain != 0)
+			{
+				double SPPerMinute = GetSPPerMin( (EVEAttributeMgr::Attr)currentTraining->primaryAttribute(),
+												  (EVEAttributeMgr::Attr)currentTraining->secondaryAttribute() );
+				double minRemaining = (timeEndTrain - Win32TimeNow()) / Win32Time_Minute; 
+
+				currentSkillpoints = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 ) - (minRemaining * SPPerMinute);
+			}
+			else
+			{
+				currentSkillpoints = currentTraining->skillPoints();
+			}
+
+			currentTraining->Set_skillPoints( currentSkillpoints );
+			currentTraining->Clear_expiryTime();
+
+			currentTraining->ChangeFlag(flagSkill, true);
+
+			if(c != NULL) {
+				OnSkillTrainingStopped osst;
+				osst.itemID = currentTraining->itemID();
+				osst.endOfTraining = 0;
+
+				PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
+				c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
+
+				c->SetTrainStatus(false, 0);
+			}
+
+			// nothing currently in training
+			currentTraining = NULL;
+		}
+		// great, proper skill is in training, check whether it's finished
+		else if( currentTraining->expiryTime() <= Win32TimeNow() )
+		{
+			// training has been finished:
+			currentTraining->Set_skillLevel( currentTraining->skillLevel() + 1 );
+			currentTraining->Set_skillPoints( currentTraining->GetSPForLevel( currentTraining->skillLevel() ) );
+			currentTraining->Clear_expiryTime();
+
+			currentTraining->ChangeFlag(flagSkill, true);
+
+			if( c != NULL )
+			{
+				OnSkillTrainingStopped osst;
+				osst.itemID = currentTraining->itemID();
+				osst.endOfTraining = 0; //hack hack hack
+
+				PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
+				c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
+
+				c->SendNotifyMsg("Training of the skill has been completed.", currentTraining->itemName());
+
+				c->SetTrainStatus(false, 0);
+			}
+
+			// erase first element in skill queue
+			m_skillQueue.erase( m_skillQueue.begin() );
+
+			// nothing currently in training
+			currentTraining = NULL;
+		}
+		// else proper skill is in training ...
 	}
-	
+
+	if( !m_skillQueue.empty()
+		&& currentTraining == NULL )
+	{
+		// something should be trained, get desired skill
+		InventoryItem *skill = GetByTypeFlag(m_skillQueue.front().typeID, flagSkill);
+		if( skill == NULL )
+			// invalid skillID?
+			return;
+
+		_log(ITEM__TRACE, "%s (%u): Starting training of skill %u item %u", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
+
+		double SPPerMinute = GetSPPerMin( (EVEAttributeMgr::Attr)skill->primaryAttribute(),
+										  (EVEAttributeMgr::Attr)skill->secondaryAttribute() );
+		double SPToNextLevel = skill->GetSPForLevel( skill->skillLevel() + 1 ) - skill->skillPoints();
+
+		uint64 timeTraining = Win32TimeNow() + Win32Time_Minute * SPToNextLevel / SPPerMinute;
+
+		skill->ChangeFlag(flagSkillInTraining);
+		skill->Set_expiryTime(timeTraining);
+
+		if(c != NULL) {
+			OnSkillStartTraining osst;
+			osst.itemID = skill->itemID();
+			osst.endOfTraining = timeTraining; //hack hack hack
+
+			PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
+			c->SendNotification("OnSkillStartTraining", "charid", &tmp);
+
+			c->SetTrainStatus(true, timeTraining);
+		}
+
+		currentTraining = skill;
+	}
 }

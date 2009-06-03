@@ -142,6 +142,7 @@ public:
 	//do we want to impose recursive const?
 	bool Contains(InventoryItem *item, bool recursive=false) const;
 	InventoryItem *GetByID(uint32 id, bool newref = false);
+	InventoryItem *GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref=false);
 
 	InventoryItem *FindFirstByFlag(EVEItemFlags flag, bool newref = false);
 	uint32 FindByFlag(EVEItemFlags flag, std::vector<InventoryItem *> &items, bool newref = false);
@@ -150,7 +151,22 @@ public:
 
 	double GetRemainingCapacity( EVEItemFlags flag) const;
 	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = 0);
-	bool SkillPrereqsComplete(InventoryItem *skill);
+
+	// These should be on some Skill class!
+	/**
+	 * Calculates required amount of skillpoints for level.
+	 *
+	 * @param[in] Level Level to calculate SP for.
+	 * @return Amount of SP required.
+	 */
+	uint32 GetSPForLevel(uint8 Level);
+	/**
+	 * Checks whether requirements of skill has been fulfilled.
+	 *
+	 * @param[in] ch Character which is checked.
+	 * @return True if requirements are OK, false if not.
+	 */
+	bool SkillPrereqsComplete(Character &ch);
 
 	void PutOnline() { SetOnline(true); }
 	void PutOffline() { SetOnline(false); }

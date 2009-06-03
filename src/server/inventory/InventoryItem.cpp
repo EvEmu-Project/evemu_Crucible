@@ -643,7 +643,24 @@ InventoryItem *InventoryItem::GetByID(uint32 id, bool newref) {
 	for(; cur != end; cur++) {
 		InventoryItem *i = cur->second;
 
-		if(i->m_itemID == id) {
+		if(i->itemID() == id) {
+			return(newref ? i->IncRef() : i);
+		}
+	}
+
+	return NULL;
+}
+
+InventoryItem *InventoryItem::GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref) {
+	std::map<uint32, InventoryItem *>::iterator cur, end;
+	cur = m_contents.begin();
+	end = m_contents.end();
+	for(; cur != end; cur++) {
+		InventoryItem *i = cur->second;
+
+		if( i->typeID() == typeID
+			&& i->flag() == flag )
+		{
 			return(newref ? i->IncRef() : i);
 		}
 	}
@@ -1079,28 +1096,51 @@ double InventoryItem::GetRemainingCapacity(EVEItemFlags locationFlag) const {
 	return(remainingCargoSpace);
 }
 
-bool InventoryItem::SkillPrereqsComplete(InventoryItem *item){
-	InventoryItem *requiredSkill;
-	if(item->requiredSkill1() != NULL){
-		requiredSkill = m_factory.GetInvforType(item->requiredSkill1(), flagSkill, m_ownerID, false);
-		if(item->requiredSkill1Level() <= requiredSkill->skillLevel()){
-			if(item->requiredSkill2() != NULL){
-				requiredSkill = m_factory.GetInvforType(item->requiredSkill2(), flagSkill, m_ownerID, false);
-				if(item->requiredSkill2Level() <= requiredSkill->skillLevel()){
-					if(item->requiredSkill3() != NULL){
-						requiredSkill = m_factory.GetInvforType(item->requiredSkill3(), flagSkill, m_ownerID, false); 
-						if(item->requiredSkill3Level() <= requiredSkill->skillLevel()){
-						}else{
-							return false;
-						}
-					}
-				}else{
-					return false;
-				}
-			}
-		}else{
-			return false;
-		}
-	}
-return true;
+uint32 InventoryItem::GetSPForLevel(uint8 Level)
+{
+	return(SKILL_BASE_POINTS * skillTimeConstant() * pow(32, (Level-1) / 2.0));
 }
+
+bool InventoryItem::SkillPrereqsComplete(Character &ch)
+{
+	InventoryItem *requiredSkill;
+
+	if( requiredSkill1() != 0 )
+	{
+		requiredSkill = ch.GetByTypeFlag( requiredSkill1(), flagSkill );
+		if( requiredSkill == NULL )
+			requiredSkill = ch.GetByTypeFlag( requiredSkill1(), flagSkillInTraining );
+		if( requiredSkill == NULL )
+			return false;
+
+		if( requiredSkill1Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+
+	if( requiredSkill2() != 0 )
+	{
+		requiredSkill = ch.GetByTypeFlag( requiredSkill2(), flagSkill );
+		if( requiredSkill == NULL )
+			requiredSkill = ch.GetByTypeFlag( requiredSkill2(), flagSkillInTraining );
+		if( requiredSkill == NULL )
+			return false;
+
+		if( requiredSkill2Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+
+	if( requiredSkill3() != 0 )
+	{
+		requiredSkill = ch.GetByTypeFlag( requiredSkill3(), flagSkill );
+		if( requiredSkill == NULL )
+			requiredSkill = ch.GetByTypeFlag( requiredSkill3(), flagSkillInTraining );
+		if( requiredSkill == NULL )
+			return false;
+
+		if( requiredSkill3Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+
+	return true;
+}
+

@@ -199,6 +199,7 @@ public:
 	bool SelectCharacter(uint32 char_id);
 	void JoinCorporationUpdate(uint32 corp_id);
 	void SavePosition();
+	void SetTrainStatus(bool status, uint64 timeEndTrain);
 	
 	double GetPropulsionStrength() const;
 	
@@ -228,9 +229,6 @@ public:
 	virtual void TargetedAdd(SystemEntity *who);
 	virtual void TargetedLost(SystemEntity *who);
 	virtual void TargetsCleared();
-	uint32 GetCharAttrib(uint32 atrib);
-	void SetTrainStatus(bool status, uint64 TimeEndTrain);
-
 
 	virtual void ApplyDamageModifiers(Damage &d, SystemEntity *target);
 	virtual bool ApplyDamage(Damage &d);
@@ -289,11 +287,12 @@ protected:
 	_MoveState m_moveState;
 	Timer m_moveTimer;
 	uint32 m_moveSystemID;
-	uint64 m_TimeEndTrain;
-	bool m_statusTrain;
 	GPoint m_movePoint;
 	void _ExecuteJump();
-	
+
+	uint64 m_timeEndTrain;
+	bool m_statusTrain;
+
 private:
 	//queues for destiny updates:
 	std::vector<PyRep *> m_destinyEventQueue;	//we own these. These are events as used in OnMultiEvent

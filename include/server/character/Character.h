@@ -340,6 +340,9 @@ class Character
 {
 	friend class InventoryItem;	// to let it construct us
 public:
+	typedef InventoryDB::QueuedSkill QueuedSkill;
+	typedef InventoryDB::SkillQueue SkillQueue;
+
 	/**
 	 * Loads character.
 	 *
@@ -369,19 +372,36 @@ public:
 	void Save(bool recursive=false, bool saveAttributes=true) const;
 	void Delete();
 
+	/**
+	 * Returns character attribute (Intellect, Perception, Memory, Charisma, Willpower).
+	 *
+	 * @param[in] attr ID identifying attribute to be retrieved.
+	 * @return Value of attribute.
+	 */
+	uint32 GetCharAttribute(EVEAttributeMgr::Attr attr) const;
+	/* GetSkillsFromSkillQueue()
+	 * 
+	 * This will get the skills from the skill queue for a character.
+	 * @author xanarox
+	*/
+	PyRepList *GetSkillQueue();
+	/**
+	 * Calculates Skillpoints per minute rate.
+	 *
+	 * @param[in] primaryAttr Primary attribute of skill which this rate is calculated for.
+	 * @param[in] secondaryAttr Secondary attribute of skill which this rate is calculated for.
+	 * @return Skillpoints per minute rate.
+	 */
+	double GetSPPerMin(EVEAttributeMgr::Attr primaryAttr, EVEAttributeMgr::Attr secondaryAttr);
+	/**
+	 * @return Timestamp at which current skill training finishes.
+	 */
+	uint64 GetEndOfTraining();
+
 	bool AlterBalance(double balanceChange);
 	void SetLocation(uint32 stationID, uint32 solarSystemID, uint32 constellationID, uint32 regionID);
 	void JoinCorporation(uint32 corporationID);
 	void SetDescription(const char *newDescription);
-
-	/* SkillAlreadyInjected(InventoryItem *skill)
-	 * 
-	 * Perform a check to see if the passed skill is
-	 * already injected into the character.
-	 * @author xanarox
-	 * @param InventoryItem
-	*/
-	bool SkillAlreadyInjected(InventoryItem *skill);
 
 	/* InjectSkillIntoBrain(InventoryItem *skill)
 	 * 
@@ -391,42 +411,21 @@ public:
 	*/
 	bool InjectSkillIntoBrain(InventoryItem *skill);
 
-	/* RemoveSkillsFromSkillQueue()
-	 * 
-	 * This will remove all skills from the characters skill queue.
-	 * @author xanarox
-	*/
-	bool RemoveSkillsFromSkillQueue(uint32 itemID, uint32 typeID);
-
-	/* GetSkillsFromSkillQueue()
-	 * 
-	 * This will get the skills from the skill queue for a character.
-	 * @author xanarox
-	 * @param InventoryItem
-	*/
-	PyRepList *GetSkillsFromSkillQueue(uint32 itemID);
-
 	/* AddSkillToSkillQueue()
 	 * 
-	 * This will add a skill into the skill queue.  this is not to be used
-	 * directly.
+	 * This will add a skill into the skill queue.
 	 * @author xanarox
-	 * @param InventoryItem
 	*/
-	bool AddSkillToSkillQueue(uint32 itemID, uint32 typeID, uint8 level);
+	void AddToSkillQueue(uint32 typeID, uint8 level);
+	/**
+	 * Clears skill queue.
+	 */
+	void ClearSkillQueue();
 
-
-	void TrainSkill(InventoryItem *skill);
-	double GetSPM(Client *c, uint32 PrimeryAttr, uint32 SeconderyAttr);
-	uint32 GetSPForLevel(InventoryItem *skill, uint8 Level);
-	void StopTrainingSkill();
-	bool CharStopTrainingSkill(Client *c, InventoryItem *skill);
-	void EndSkillTrain();
-	InventoryItem *GetSkillInTraining();
-	void CharEndTrainSkill();
-
-
-
+	/**
+	 * Updates skill queue.
+	 */
+	void UpdateSkillQueue();
 
 	// NOTE: We do not handle Split/Merge logic since singleton-restricted construction does this for us.
 
@@ -539,7 +538,7 @@ protected:
 		// Character stuff:
 		const CharacterData &charData, const CorpMemberInfo &corpData
 	);
-	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+	virtual bool _Load(bool recurse=false);
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:
@@ -585,6 +584,9 @@ protected:
 	uint64 m_startDateTime;
 	uint64 m_createDateTime;
 	uint64 m_corporationDateTime;
+
+	// Skill queue:
+	SkillQueue m_skillQueue;
 };
 
 #endif /* !__CHARACTER__H__INCL__ */

@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS `chrSkillQueue`;
+
 CREATE TABLE `chrSkillQueue` (
 	`id` int(10) unsigned NOT NULL auto_increment,
 	`itemID` int(10) unsigned NOT NULL,
