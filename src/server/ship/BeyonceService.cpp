@@ -124,7 +124,7 @@ PyResult BeyonceService::Handle_GetFormations(PyCallArgs &call) {
 PyResult BeyonceService::Handle_(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	return(result);
+	return result;
 }
 */
 

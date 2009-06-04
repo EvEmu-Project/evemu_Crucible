@@ -201,7 +201,7 @@ PyResult SkillMgrBound::Handle_GetRespecInfo(PyCallArgs &call) {
 	result->add("freeRespecs", new PyRepInteger(0));
 	result->add("nextRespecTime", new PyRepInteger(Win32TimeNow() + Win32Time_Year));
 
-	return(result);
+	return result;
 }
 
 PyResult SkillMgrBound::Handle_CharStartTrainingSkillByTypeID(PyCallArgs &call) {

@@ -104,7 +104,7 @@ PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call) {
 	result = new PyRepNone;
 #endif /* !SHOW_LOGIN_MESSAGE */
 
-	return(result);
+	return result;
 }
 
 

@@ -109,7 +109,7 @@ PyResult MarketProxyService::Handle_GetStationAsks(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	return(result);
+	return result;
 }
 
 
@@ -127,7 +127,7 @@ PyResult MarketProxyService::Handle_GetSystemAsks(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	return(result);
+	return result;
 }
 
 
@@ -152,7 +152,7 @@ PyResult MarketProxyService::Handle_GetRegionBest(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	return(result);
+	return result;
 }
 
 PyResult MarketProxyService::Handle_GetMarketGroups(PyCallArgs &call) {
@@ -175,7 +175,7 @@ PyResult MarketProxyService::Handle_GetMarketGroups(PyCallArgs &call) {
 	//cached object cached method call result.
 	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
-	return(result);
+	return result;
 }
 
 PyResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
@@ -205,7 +205,7 @@ PyResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	return(result);
+	return result;
 }
 
 PyResult MarketProxyService::Handle_GetCharOrders(PyCallArgs &call) {
@@ -218,7 +218,7 @@ PyResult MarketProxyService::Handle_GetCharOrders(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	return(result);
+	return result;
 }
 
 PyResult MarketProxyService::Handle_GetOldPriceHistory(PyCallArgs &call) {
@@ -248,7 +248,7 @@ PyResult MarketProxyService::Handle_GetOldPriceHistory(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	return(result);
+	return result;
 }
 
 PyResult MarketProxyService::Handle_GetNewPriceHistory(PyCallArgs &call) {
@@ -278,7 +278,7 @@ PyResult MarketProxyService::Handle_GetNewPriceHistory(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	return(result);
+	return result;
 }
 
 PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {

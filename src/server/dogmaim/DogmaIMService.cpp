@@ -111,7 +111,7 @@ PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {
 
 	_log(CLIENT__MESSAGE, "Sending attributes type reply");
 
-	return(result);
+	return result;
 }
 
 PyResult DogmaIMBound::Handle_ShipGetInfo(PyCallArgs &call) {
@@ -123,7 +123,7 @@ PyResult DogmaIMBound::Handle_ShipGetInfo(PyCallArgs &call) {
 		return NULL;
 	}
 	
-    return(result);
+    return result;
 }
 
 PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
@@ -146,7 +146,7 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
 		return NULL;
 	}
 	
-    return(result);
+    return result;
 }
 
 PyResult DogmaIMBound::Handle_CharGetInfo(PyCallArgs &call) {
@@ -158,7 +158,7 @@ PyResult DogmaIMBound::Handle_CharGetInfo(PyCallArgs &call) {
 		return NULL;
 	}
 
-	return(result);
+	return result;
 }
 
 PyResult DogmaIMBound::Handle_CheckSendLocationInfo(PyCallArgs &call) {
@@ -168,7 +168,7 @@ PyResult DogmaIMBound::Handle_CheckSendLocationInfo(PyCallArgs &call) {
 	result = new PyRepNone();
 	_log(SERVICE__ERROR, "Unhandled DogmaIMBound::CheckSendLocationInfo");
 
-	return(result);
+	return result;
 }
 
 PyResult DogmaIMBound::Handle_GetTargets(PyCallArgs &call) {

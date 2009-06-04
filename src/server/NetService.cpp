@@ -150,7 +150,7 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 	result->items[0] = serverinfo;
 	result->items[1] = initvals;
 
-	return(result);
+	return result;
 }
 
 PyResult NetService::Handle_GetTime(PyCallArgs &call) {

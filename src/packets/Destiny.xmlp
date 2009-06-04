@@ -177,6 +177,9 @@ DST_WARPEXIT = 11
 		<IDEntry key="ownerID">
 		  <int name="ownerID" />
 		</IDEntry>
+		<IDEntry key="groupID">
+		  <int name="groupID" />
+		</IDEntry>
 		<IDEntry key="charID">
 		  <int name="charID" />
 		</IDEntry>

@@ -52,7 +52,7 @@ PyRepObject *BookmarkDB::GetBookmarks(uint32 ownerID) {
 		return(NULL);
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 

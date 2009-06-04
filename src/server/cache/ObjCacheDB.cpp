@@ -196,7 +196,7 @@ PyRep *ObjCacheDB::Generate_dgmTypeEffects()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.dgmtypeeffects': %s",res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_dgmEffects()
@@ -304,7 +304,7 @@ PyRep *ObjCacheDB::Generate_ramTypeMaterials()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.ramtypematerials': %s",res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_ramTypeRequirements()
@@ -316,7 +316,7 @@ PyRep *ObjCacheDB::Generate_ramTypeRequirements()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.ramtyperequirements': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_mapCelestialDescriptions()
@@ -472,7 +472,7 @@ PyRep *ObjCacheDB::Generate_chrBloodlines()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.Bloodlines': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_eveUnits()
@@ -484,7 +484,7 @@ PyRep *ObjCacheDB::Generate_eveUnits()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.Units': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_eveBulkDataUnits()
@@ -520,7 +520,7 @@ PyRep *ObjCacheDB::Generate_eveStaticOwners()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.StaticOwners': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_chrRaces()
@@ -532,7 +532,7 @@ PyRep *ObjCacheDB::Generate_chrRaces()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.Races': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_chrAttributes()
@@ -544,7 +544,7 @@ PyRep *ObjCacheDB::Generate_chrAttributes()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.Attributes': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_invFlags()
@@ -556,7 +556,7 @@ PyRep *ObjCacheDB::Generate_invFlags()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.Flags': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_eveStaticLocations()
@@ -568,7 +568,7 @@ PyRep *ObjCacheDB::Generate_eveStaticLocations()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.StaticLocations': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_invContrabandTypes()
@@ -580,7 +580,7 @@ PyRep *ObjCacheDB::Generate_invContrabandTypes()
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.InvContrabandTypes': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_c_chrBloodlines()
@@ -652,7 +652,7 @@ PyRep *ObjCacheDB::Generate_bl_accessories()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_accessories': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_lights()
@@ -664,7 +664,7 @@ PyRep *ObjCacheDB::Generate_bl_lights()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_lights': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_skins()
@@ -676,7 +676,7 @@ PyRep *ObjCacheDB::Generate_bl_skins()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_skins': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_beards()
@@ -688,7 +688,7 @@ PyRep *ObjCacheDB::Generate_bl_beards()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_beards': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_eyes()
@@ -700,7 +700,7 @@ PyRep *ObjCacheDB::Generate_bl_eyes()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_eyes': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_lipsticks()
@@ -712,7 +712,7 @@ PyRep *ObjCacheDB::Generate_bl_lipsticks()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_lipsticks': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_makeups()
@@ -724,7 +724,7 @@ PyRep *ObjCacheDB::Generate_bl_makeups()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_makeups': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_hairs()
@@ -736,7 +736,7 @@ PyRep *ObjCacheDB::Generate_bl_hairs()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_hairs': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_backgrounds()
@@ -748,7 +748,7 @@ PyRep *ObjCacheDB::Generate_bl_backgrounds()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_backgrounds': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_decos()
@@ -760,7 +760,7 @@ PyRep *ObjCacheDB::Generate_bl_decos()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_decos': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_eyebrows()
@@ -772,7 +772,7 @@ PyRep *ObjCacheDB::Generate_bl_eyebrows()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_eyebrows': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_bl_costumes()
@@ -784,7 +784,7 @@ PyRep *ObjCacheDB::Generate_bl_costumes()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_costumes': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_nec_raceskills()
@@ -796,7 +796,7 @@ PyRep *ObjCacheDB::Generate_nec_raceskills()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.raceskills': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_nec_careerskills()
@@ -808,7 +808,7 @@ PyRep *ObjCacheDB::Generate_nec_careerskills()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.careerskills': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_nec_specialityskills()
@@ -820,7 +820,7 @@ PyRep *ObjCacheDB::Generate_nec_specialityskills()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.specialityskills': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_nec_careers()
@@ -832,7 +832,7 @@ PyRep *ObjCacheDB::Generate_nec_careers()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.careers': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_nec_specialities()
@@ -844,7 +844,7 @@ PyRep *ObjCacheDB::Generate_nec_specialities()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.specialities': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_eyebrows()
@@ -856,7 +856,7 @@ PyRep *ObjCacheDB::Generate_a_eyebrows()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.eyebrows': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_eyes()
@@ -868,7 +868,7 @@ PyRep *ObjCacheDB::Generate_a_eyes()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.eyes': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_decos()
@@ -880,7 +880,7 @@ PyRep *ObjCacheDB::Generate_a_decos()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.decos': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_hairs()
@@ -892,7 +892,7 @@ PyRep *ObjCacheDB::Generate_a_hairs()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.hairs': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_backgrounds()
@@ -904,7 +904,7 @@ PyRep *ObjCacheDB::Generate_a_backgrounds()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.backgrounds': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_accessories()
@@ -916,7 +916,7 @@ PyRep *ObjCacheDB::Generate_a_accessories()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.accessories': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_lights()
@@ -928,7 +928,7 @@ PyRep *ObjCacheDB::Generate_a_lights()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.lights': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_costumes()
@@ -940,7 +940,7 @@ PyRep *ObjCacheDB::Generate_a_costumes()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.costumes': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_makeups()
@@ -952,7 +952,7 @@ PyRep *ObjCacheDB::Generate_a_makeups()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.makeups': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_beards()
@@ -964,7 +964,7 @@ PyRep *ObjCacheDB::Generate_a_beards()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.beards': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_skins()
@@ -976,7 +976,7 @@ PyRep *ObjCacheDB::Generate_a_skins()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.skins': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_a_lipsticks()
@@ -988,7 +988,7 @@ PyRep *ObjCacheDB::Generate_a_lipsticks()
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.lipsticks': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_dgmAttributesByName()

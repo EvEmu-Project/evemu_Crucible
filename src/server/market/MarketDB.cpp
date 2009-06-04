@@ -191,7 +191,7 @@ PyRep *MarketDB::GetCharOrders(uint32 characterID) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *MarketDB::GetOrderRow(uint32 orderID) {
@@ -386,7 +386,7 @@ PyRepObject *MarketDB::GetRefTypes() {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 //helper routine for GetMarketGroups

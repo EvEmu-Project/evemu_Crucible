@@ -75,7 +75,7 @@ PyRep *CertificateMgrDB::GetAllShipCertificateRecommendations() {
 		return(NULL);
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *CertificateMgrDB::GetCertificateClasses() {

@@ -67,7 +67,7 @@ PyResult BillMgrService::Handle_GetBillTypes(PyCallArgs &call) {
 	//cached object cached method call result.
 	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
-	return(result);
+	return result;
 }
 
 PyResult BillMgrService::Handle_GetCorporationBills(PyCallArgs &call) {

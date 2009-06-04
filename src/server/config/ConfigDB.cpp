@@ -254,7 +254,7 @@ PyRepObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *ConfigDB::GetMap(uint32 solarSystemID) {
@@ -288,7 +288,7 @@ PyRepObject *ConfigDB::GetMap(uint32 solarSystemID) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *ConfigDB::ListLanguages() {
@@ -305,7 +305,7 @@ PyRepObject *ConfigDB::ListLanguages() {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 

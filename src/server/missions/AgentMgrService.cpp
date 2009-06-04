@@ -149,7 +149,7 @@ PyResult AgentMgrService::Handle_GetAgents(PyCallArgs &call) {
 	//cached object cached method call result.
 	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
-	return(result);
+	return result;
 }
 
 PyResult AgentMgrService::Handle_GetMyJournalDetails(PyCallArgs &call) {
@@ -161,7 +161,7 @@ PyResult AgentMgrService::Handle_GetMyJournalDetails(PyCallArgs &call) {
 	t->items[2] = new PyRepList();
 	result = t;
 	
-	return(result);
+	return result;
 }
 
 PyResult AgentMgrService::Handle_GetMyEpicJournalDetails(PyCallArgs &call) {
@@ -229,7 +229,7 @@ PyResult AgentMgrBound::Handle_GetMyJournalDetails(PyCallArgs &call) {
 	t->items[2] = new PyRepList();
 	result = t;
 	
-	return(result);
+	return result;
 }
 
 

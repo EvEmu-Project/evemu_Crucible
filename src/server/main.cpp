@@ -174,32 +174,19 @@ int main(int argc, char *argv[]) {
 	services.RegisterService(new NetService(&services));
 	
 	_log(SERVER__INIT, "Priming cached objects");
-//#ifndef WIN32
-//#warning CACHABLES DISABLED!
 	services.cache_service->PrimeCache();
-//#endif
 
 	services.serviceDB().SetServerOnlineStatus(true);
 
 	_log(SERVER__INIT, "Init done.");
 
-	while(argc > 1) {
-		uint32 sys = strtoul(argv[1], NULL, 0);
-		if(sys > 0) {
-			_log(SERVER__INIT, "Command line tells us to boot system %u", sys);
-			entity_list.FindOrBootSystem(sys);
-		}
-		argc--;
-		argv++;
-	}
-	
 	/*
 	 * THE MAIN LOOP
 	 *
 	 * Everything except IO should happen in this loop, in this thread context.
 	 *
 	 */
-	if(!InitSignalHandlers())	//do not set these up until the main loop is about to start, else we cannot abort init.
+	if(InitSignalHandlers() == false)
 		return 1;
 
 	uint32 start;
@@ -241,6 +228,8 @@ int main(int argc, char *argv[]) {
 	tcps.Close();
 
 	services.serviceDB().SetServerOnlineStatus(false);
+
+	//_CrtDumpMemoryLeaks();
 
 	return 0;
 }

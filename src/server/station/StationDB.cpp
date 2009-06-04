@@ -147,7 +147,7 @@ PyRep *StationDB::GetStationItemBits(uint32 sid) {
 	result->items[3] = new PyRepInteger(row.GetUInt(4));
 	result->items[4] = new PyRepInteger(row.GetUInt(1));
 
-	return(result);
+	return result;
 }
 
 

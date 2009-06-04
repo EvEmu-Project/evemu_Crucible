@@ -119,7 +119,7 @@ PyRepObject *SystemDB::ListFactions() {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *SystemDB::ListJumps(uint32 stargateID) {
@@ -137,7 +137,7 @@ PyRepObject *SystemDB::ListJumps(uint32 stargateID) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 

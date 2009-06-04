@@ -89,7 +89,7 @@ PyResult ScenarioService::Handle_ResetD(PyCallArgs &call) {
 
 	codelog(SERVICE__ERROR, "Unhandled ResetD");
 
-	return(result);
+	return result;
 }
 
 

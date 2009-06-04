@@ -24,9 +24,7 @@
 */
 #include "EvemuPCH.h"
 
-
-ModuleManager::ModuleManager(Client *pilot)
-: m_pilot(pilot)
+ModuleManager::ModuleManager(Client *pilot) : m_pilot(pilot)
 {
 	//DO NOT access m_pilot here!
 	memset(m_modules, 0, sizeof(m_modules));
@@ -79,38 +77,57 @@ void ModuleManager::UpdateModules() {
 		//ok, we have the list of crap in this slot, figure out what is the actual module.
 		InventoryItem *module = NULL;
 		InventoryItem *charge = NULL;
-		if(items.size() == 1) {
+
+		if(items.size() == 1)
+		{
 			module = items[0]->IncRef();
-		} else if(items.size() == 2) {
+		}
+		else if(items.size() == 2)
+		{
 			//could be done better
 			bool valid = true;
-			if(items[0]->categoryID() == EVEDB::invCategories::Module) {
-				if(items[1]->categoryID() == EVEDB::invCategories::Charge) {
+			if(items[0]->categoryID() == EVEDB::invCategories::Module)
+			{
+				if(items[1]->categoryID() == EVEDB::invCategories::Charge)
+				{
 					module = items[0]->IncRef();
 					charge = items[1]->IncRef();
-				} else {
+				}
+				else
+				{
 					_log(SHIP__ERROR, "%s: Unexpected item category %d in slot %d (wanted charge)", m_pilot->GetName(), items[1]->categoryID(), flag);
 					valid = false;
 				}
-			} else if(items[0]->categoryID() == EVEDB::invCategories::Charge) {
-				if(items[1]->categoryID() == EVEDB::invCategories::Module) {
+			}
+			else if(items[0]->categoryID() == EVEDB::invCategories::Charge)
+			{
+				if(items[1]->categoryID() == EVEDB::invCategories::Module)
+				{
 					module = items[1]->IncRef();
 					charge = items[0]->IncRef();
-				} else {
+				}
+				else
+				{
 					_log(SHIP__ERROR, "%s: Unexpected item category %d in slot %d (wanted module)", m_pilot->GetName(), items[1]->categoryID(), flag);
 					valid = false;
 				}
-			} else {
+			}
+			else
+			{
 				_log(SHIP__ERROR, "%s: Unexpected item category %d in slot %d (wanted module or charge)", m_pilot->GetName(), items[0]->categoryID(), flag);
 				valid = false;
 			}
-			if(!valid) {
+
+			if(!valid)
+			{
 				delete m_modules[slot];
 				m_modules[slot] = NULL;
 				continue;
 			}
-		} else {
-			//no idea why this would happen.. but it may be possible..
+		}
+		else
+		{
+			//no idea why this would happen.. but its maybe possible..
 			_log(SHIP__ERROR, "%s: More than two items in a module slot (%d). We do not understand this yet!", m_pilot->GetName(), flag);
 			//ignore for now...
 			delete m_modules[slot];
@@ -118,11 +135,16 @@ void ModuleManager::UpdateModules() {
 			continue;
 		}
 		
-		if(m_modules[slot] != NULL) {
-			if(m_modules[slot]->item() == module) {
-				if(m_modules[slot]->charge() == charge) {
+		if(m_modules[slot] != NULL)
+		{
+			if(m_modules[slot]->item() == module)
+			{
+				if(m_modules[slot]->charge() == charge)
+				{
 					_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is still in slot %d.", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot);
-				} else {
+				}
+				else
+				{
 					_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is still in slot %d, but has a new charge item %s (%u).", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, (charge==NULL)?"None":charge->itemName().c_str(), (charge==NULL)?0:charge->itemID());
 					m_modules[slot]->ChangeCharge(charge);
 				}

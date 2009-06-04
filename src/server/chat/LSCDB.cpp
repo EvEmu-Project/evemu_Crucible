@@ -67,7 +67,7 @@ PyRepObject *LSCDB::LookupChars(const char *match, bool exact) {
 	}
 	
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *LSCDB::LookupPlayerChars(const char *match, bool exact) {
@@ -88,7 +88,7 @@ PyRepObject *LSCDB::LookupPlayerChars(const char *match, bool exact) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 //temporarily relocated into ServiceDB until some things get cleaned up...
@@ -151,7 +151,7 @@ PyRepObject *LSCDB::GetMailHeaders(uint32 recID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *LSCDB::GetMailDetails(uint32 messageID, uint32 readerID) {

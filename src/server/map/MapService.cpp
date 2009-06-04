@@ -88,7 +88,7 @@ PyResult MapService::Handle_GetStationExtraInfo(PyCallArgs &call) {
 	//cached object cached method call result.
 	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
-	return(result);
+	return result;
 }
 
 
@@ -110,7 +110,7 @@ PyResult MapService::Handle_GetSolarSystemPseudoSecurities(PyCallArgs &call) {
 	//cached object cached method call result.
 	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
-	return(result);
+	return result;
 }
 
 /* not handled */
@@ -119,5 +119,5 @@ PyResult MapService::Handle_GetStuckSystems(PyCallArgs &call) {
 
 	result = new PyRepDict();
 	
-	return(result);
+	return result;
 }

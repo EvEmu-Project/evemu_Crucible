@@ -148,7 +148,7 @@ PyResult ReprocessingServiceBound::Handle_GetOptionsForItemTypes(PyCallArgs &cal
 	}
 
 	result = rsp.Encode();
-	return(result);
+	return result;
 }
 
 PyResult ReprocessingServiceBound::Handle_GetReprocessingInfo(PyCallArgs &call) {
@@ -163,7 +163,7 @@ PyResult ReprocessingServiceBound::Handle_GetReprocessingInfo(PyCallArgs &call) 
 
 	result = rsp.Encode();
 
-	return(result);
+	return result;
 }
 
 PyResult ReprocessingServiceBound::Handle_GetQuote(PyCallArgs &call) {

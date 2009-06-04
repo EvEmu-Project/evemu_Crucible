@@ -240,7 +240,7 @@ PyRepObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
 	PyRepObject *result = co.Encode();
 	co.cache = NULL;	//avoid a copy
 
-	return(result);
+	return result;
 }
 
 bool CachedObjectMgr::IsCacheUpToDate(const PyRep *objectID, uint32 version, uint64 timestamp) {

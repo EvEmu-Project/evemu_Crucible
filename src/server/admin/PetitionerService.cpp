@@ -93,7 +93,7 @@ PyResult PetitionerService::Handle_GetCategories(PyCallArgs &call) {
 	result->add("Test Cat2");
 	_log(SERVICE__ERROR, "Unhandled %s::GetCategories", GetName());
 
-	return(result);
+	return result;
 }
 
 
@@ -105,7 +105,7 @@ PyResult PetitionerService::Handle_GetUnreadMessages(PyCallArgs &call) {
 	
 	_log(SERVICE__ERROR, "Unhandled %s::GetUnreadMessages", GetName());
 
-	return(result);
+	return result;
 }
 
 

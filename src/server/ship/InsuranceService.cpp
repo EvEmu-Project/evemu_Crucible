@@ -100,7 +100,7 @@ PyResult InsuranceService::Handle_GetContractForShip(PyCallArgs &call) {
 
 	_log(CLIENT__MESSAGE, "GetContractForShip not implemented!");
 	
-	return(result);
+	return result;
 }
 
 

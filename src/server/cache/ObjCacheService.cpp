@@ -231,7 +231,7 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
 	
 	PyRepObject *result = m_cache.GetCachedObject(args.objectID);
 	
-	return(result);
+	return result;
 }
 
 void ObjCacheService::PrimeCache() {

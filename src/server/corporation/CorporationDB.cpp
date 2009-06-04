@@ -48,7 +48,7 @@ PyRepObject *CorporationDB::ListCorpStations(uint32 corp_id) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *CorporationDB::ListStationOffices(uint32 station_id) {
@@ -67,7 +67,7 @@ PyRepObject *CorporationDB::ListStationOffices(uint32 station_id) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *CorporationDB::ListStationCorps(uint32 station_id) {
@@ -93,7 +93,7 @@ PyRepObject *CorporationDB::ListStationCorps(uint32 station_id) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *CorporationDB::ListStationOwners(uint32 station_id) {
@@ -113,7 +113,7 @@ PyRepObject *CorporationDB::ListStationOwners(uint32 station_id) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepDict *CorporationDB::ListAllCorpInfo() {
@@ -286,7 +286,7 @@ PyRepObject *CorporationDB::ListNPCDivisions() {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *CorporationDB::GetEmploymentRecord(uint32 charID) {

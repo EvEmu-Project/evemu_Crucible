@@ -46,7 +46,7 @@ PyRep *FactoryDB::GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) 
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *FactoryDB::GetMaterialCompositionOfItemType(const uint32 typeID) const {
@@ -64,6 +64,6 @@ PyRep *FactoryDB::GetMaterialCompositionOfItemType(const uint32 typeID) const {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 

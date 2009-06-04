@@ -384,7 +384,7 @@ PyRepList *TargetManager::GetTargets() const {
 		result->addInt(cur->first->GetID());
 	}
 
-	return(result);
+	return result;
 }
 
 PyRepList *TargetManager::GetTargeters() const {
@@ -397,7 +397,7 @@ PyRepList *TargetManager::GetTargeters() const {
 		result->addInt(cur->first->GetID());
 	}
 
-	return(result);
+	return result;
 }
 
 

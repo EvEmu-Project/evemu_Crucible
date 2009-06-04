@@ -129,7 +129,7 @@ PyResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call) {
 	chardata->items.push_back(new PyRepString("Carbircelle Hatiniestan"));
 	chardata->items.push_back(new PyRepInteger(1378));
 
-	return(result);
+	return result;
 }
 
 
@@ -203,7 +203,7 @@ PyResult CorpStationMgrIMBound::Handle_DoStandingCheckForStationService(PyCallAr
 	//seems to return None, or throw an exception
 	PyRep *result = new PyRepNone();
 
-	return(result);
+	return result;
 }
 
 PyResult CorpStationMgrIMBound::Handle_GetPotentialHomeStations(PyCallArgs &call) {
@@ -213,7 +213,7 @@ PyResult CorpStationMgrIMBound::Handle_GetPotentialHomeStations(PyCallArgs &call
 	_log(CLIENT__ERROR, "Hacking GetPotentialHomeStations");
 	result = m_db->ListCorpStations(call.client->GetCorporationID());
 
-	return(result);
+	return result;
 }
 
 PyResult CorpStationMgrIMBound::Handle_SetHomeStation(PyCallArgs &call) {

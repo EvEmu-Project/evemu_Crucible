@@ -59,7 +59,7 @@ PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
 			codelog(CLIENT__ERROR, "%s: Failed to find agent %u", call.client->GetName(), args.arg);
 			return NULL;
 		}
-		return(result);
+		return result;
 	}*/
 
 	PyRep *result = m_db.GetCharPublicInfo(args.arg);
@@ -68,7 +68,7 @@ PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	return(result);
+	return result;
 }
 
 PyResult CharMgrService::Handle_GetPublicInfo3(PyCallArgs &call) {
@@ -85,7 +85,7 @@ PyResult CharMgrService::Handle_GetPublicInfo3(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	return(result);
+	return result;
 }
 
 PyResult CharMgrService::Handle_GetTopBounties(PyCallArgs &call) {

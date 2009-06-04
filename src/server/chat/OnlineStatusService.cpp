@@ -69,5 +69,5 @@ PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
 	PyRepList *charlist = new PyRepList();
 	args->add("lines", charlist);
 
-	return(result);
+	return result;
 }

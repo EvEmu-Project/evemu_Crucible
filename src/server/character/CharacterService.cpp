@@ -85,7 +85,7 @@ PyResult CharacterService::Handle_GetCharacterToSelect(PyCallArgs &call) {
 		return NULL;
 	}
 
-	return(result);
+	return result;
 }
 
 PyResult CharacterService::Handle_SelectCharacterID(PyCallArgs &call) {
@@ -115,7 +115,7 @@ PyResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
 		result);
 	_log(CLIENT__MESSAGE, "Sending char creation info reply");
 
-	return(result);
+	return result;
 }
 
 PyResult CharacterService::Handle_GetCharNewExtraCreationInfo(PyCallArgs &call) {
@@ -126,7 +126,7 @@ PyResult CharacterService::Handle_GetCharNewExtraCreationInfo(PyCallArgs &call) 
 		result);
 	_log(CLIENT__MESSAGE, "Sending char new extra creation info reply");
 
-	return(result);
+	return result;
 }
 
 PyResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
@@ -139,7 +139,7 @@ PyResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
 
 	_log(CLIENT__MESSAGE, "Sending appearance info reply");
 
-	return(result);
+	return result;
 }
 
 PyResult CharacterService::Handle_ValidateName(PyCallArgs &call) {
@@ -463,7 +463,7 @@ PyResult CharacterService::Handle_GetHomeStation(PyCallArgs &call) {
 
 	result = new PyRepInteger(call.client->GetStationID());
 
-	return(result);
+	return result;
 }
 
 PyResult CharacterService::Handle_GetCloneTypeID(PyCallArgs &call) {
@@ -474,7 +474,7 @@ PyResult CharacterService::Handle_GetCloneTypeID(PyCallArgs &call) {
 	//currently hardcoded Clone Grade Alpha
 	result = new PyRepInteger(164);
 
-	return(result);
+	return result;
 }
 
 PyResult CharacterService::Handle_GetRecentShipKillsAndLosses(PyCallArgs &call) {

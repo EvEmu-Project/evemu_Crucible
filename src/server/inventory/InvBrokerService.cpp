@@ -112,7 +112,7 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
 	InventoryBound *ib = new InventoryBound(m_manager, item, flagAutoFit);
 	PyRep *result = m_manager->BindObject(call.client, ib);
 
-	return(result);
+	return result;
 }
 
 //this is a view into an inventory item using a specific flag.
@@ -161,7 +161,7 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 	InventoryBound *ib = new InventoryBound(m_manager, item, flag);
 	PyRep *result = m_manager->BindObject(call.client, ib);
 	
-	return(result);
+	return result;
 }
 
 PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {

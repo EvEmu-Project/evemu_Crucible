@@ -220,7 +220,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 	PyRep *result = m_db.GetMapObjects(arg,
 		wantRegions, wantConstellations, wantSystems, wantStations);
 	
-	return(result);
+	return result;
 }
 
 PyResult ConfigService::Handle_GetMultiInvTypesEx(PyCallArgs &call) {

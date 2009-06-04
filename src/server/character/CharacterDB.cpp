@@ -53,7 +53,7 @@ PyRepObject *CharacterDB::GetCharacterList(uint32 accountID) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 bool CharacterDB::ValidateCharName(const char *name)
@@ -93,7 +93,7 @@ PyRepObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
@@ -153,7 +153,7 @@ PyRepObject *CharacterDB::GetCharPublicInfo3(uint32 characterID) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 //just return all itemIDs which has ownerID set to characterID
@@ -197,7 +197,7 @@ PyRepObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {

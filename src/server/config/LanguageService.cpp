@@ -92,7 +92,7 @@ PyResult LanguageService::Handle_GetLanguages(PyCallArgs &call) {
 
 	result = m_db.ListLanguages();
 	
-	return(result);
+	return result;
 }
 PyResult LanguageService::Handle_GetTextsForGroup(PyCallArgs &call) {
 	Call_GetTextsForGroup args;

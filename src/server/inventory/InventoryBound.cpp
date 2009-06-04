@@ -67,7 +67,7 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
 	if(result == NULL)
 		result = new PyRepNone();
 
-	return(result);
+	return result;
 }
 
 PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {

@@ -107,7 +107,7 @@ PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
 PyResult JumpCloneService::Handle_(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	return(result);
+	return result;
 }*/
 
 

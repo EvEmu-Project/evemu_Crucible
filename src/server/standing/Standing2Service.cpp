@@ -60,7 +60,7 @@ PyResult Standing2Service::Handle_GetMyKillRights(PyCallArgs &call) {
 	tu->items[1] = u2;
 	result = tu;
 	
-	return(result);
+	return result;
 }
 
 PyResult Standing2Service::Handle_GetMyStandings(PyCallArgs &call) {
@@ -87,7 +87,7 @@ PyResult Standing2Service::Handle_GetMyStandings(PyCallArgs &call) {
 	tu->items[5] = npccorpstandings;
 	result = tu;
 	
-	return(result);
+	return result;
 }
 
 
@@ -109,7 +109,7 @@ PyResult Standing2Service::Handle_GetNPCNPCStandings(PyCallArgs &call) {
 	//cached object cached method call result.
 	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
-	return(result);
+	return result;
 }
 
 PyResult Standing2Service::Handle_GetSecurityRating(PyCallArgs &call) {

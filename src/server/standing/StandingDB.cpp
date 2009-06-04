@@ -47,7 +47,7 @@ PyRepObject *StandingDB::GetNPCStandings() {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 
@@ -65,7 +65,7 @@ PyRepObject *StandingDB::GetCharStandings(uint32 characterID) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 
@@ -88,7 +88,7 @@ PyRepObject *StandingDB::GetCharPrimeStandings(uint32 characterID) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 
@@ -106,7 +106,7 @@ PyRepObject *StandingDB::GetCharNPCStandings(uint32 characterID) {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *StandingDB::GetStandingTransactions(uint32 characterID) {

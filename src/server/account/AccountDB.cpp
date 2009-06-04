@@ -42,7 +42,7 @@ PyRepObject *AccountDB::GetRefTypes() {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *AccountDB::GetKeyMap() {
@@ -57,7 +57,7 @@ PyRepObject *AccountDB::GetKeyMap() {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *AccountDB::GetJournal(uint32 charID, uint32 refTypeID, uint32 accountKey, uint64 transDate) {
@@ -83,7 +83,7 @@ PyRepObject *AccountDB::GetJournal(uint32 charID, uint32 refTypeID, uint32 accou
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 //////////////////////////////////

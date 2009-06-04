@@ -79,7 +79,7 @@ PyRep *RamProxyDB::GetJobs2(const uint32 ownerID, const bool completed, const ui
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *RamProxyDB::AssemblyLinesSelectPublic(const uint32 regionID) {
@@ -103,7 +103,7 @@ PyRep *RamProxyDB::AssemblyLinesSelectPublic(const uint32 regionID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 PyRep *RamProxyDB::AssemblyLinesSelectPersonal(const uint32 charID) {
 	DBQueryResult res;
@@ -126,7 +126,7 @@ PyRep *RamProxyDB::AssemblyLinesSelectPersonal(const uint32 charID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 PyRep *RamProxyDB::AssemblyLinesSelectCorporation(const uint32 corporationID) {
 	DBQueryResult res;
@@ -149,7 +149,7 @@ PyRep *RamProxyDB::AssemblyLinesSelectCorporation(const uint32 corporationID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 PyRep *RamProxyDB::AssemblyLinesSelectAlliance(const uint32 allianceID) {
 	DBQueryResult res;
@@ -173,7 +173,7 @@ PyRep *RamProxyDB::AssemblyLinesSelectAlliance(const uint32 allianceID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 PyRep *RamProxyDB::AssemblyLinesGet(const uint32 containerID) {
 	DBQueryResult res;
@@ -202,7 +202,7 @@ PyRep *RamProxyDB::AssemblyLinesGet(const uint32 containerID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 bool RamProxyDB::GetAssemblyLineProperties(const uint32 assemblyLineID, double &baseMaterialMultiplier, double &baseTimeMultiplier, double &costInstall, double &costPerHour) {

@@ -47,7 +47,7 @@ PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *TutorialDB::GetPages(uint32 tutorialID) {
@@ -63,7 +63,7 @@ PyRep *TutorialDB::GetPages(uint32 tutorialID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *TutorialDB::GetTutorial(uint32 tutorialID) {
@@ -78,7 +78,7 @@ PyRep *TutorialDB::GetTutorial(uint32 tutorialID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *TutorialDB::GetTutorialCriterias(uint32 tutorialID) {
@@ -93,7 +93,7 @@ PyRep *TutorialDB::GetTutorialCriterias(uint32 tutorialID) {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *TutorialDB::GetAllTutorials() {
@@ -121,7 +121,7 @@ PyRep *TutorialDB::GetAllCriterias() {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRep *TutorialDB::GetCategories() {
@@ -136,6 +136,6 @@ PyRep *TutorialDB::GetCategories() {
 		return NULL;
 	}
 
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 

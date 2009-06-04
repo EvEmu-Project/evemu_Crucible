@@ -92,7 +92,7 @@ PyResult KeeperService::Handle_GetLevelEditor(PyCallArgs &call) {
 	KeeperBound *ib = new KeeperBound(m_manager, &m_db);
 	result = m_manager->BindObject(call.client, ib);
 
-	return(result);
+	return result;
 }
 
 

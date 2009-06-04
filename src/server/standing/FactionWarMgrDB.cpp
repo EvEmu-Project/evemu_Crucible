@@ -57,7 +57,7 @@ PyRep *FactionWarMgrDB::GetFacWarSystems() {
 	dict->add("factionID", new PyRepInteger(500002));
 	result->add(new PyRepInteger(30002097), dict);
 
-	return(result);
+	return result;
 }
 
 uint32 FactionWarMgrDB::GetFactionMilitiaCorporation(const uint32 factionID) {

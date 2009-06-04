@@ -69,12 +69,12 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	
 	if(!corporate_wallet) { //personal wallet
 		PyRep *result = new PyRepReal(call.client->GetBalance());
-		return(result);
+		return result;
 	} else {	//corporate wallet
 		PyRep *result = new PyRepReal(
 			m_db.GetCorpBalance(call.client->GetCorporationID())
 			);
-		return(result);
+		return result;
 	}
 	return NULL;
 }
@@ -104,7 +104,7 @@ PyResult AccountService::Handle_GetRefTypes(PyCallArgs &call) {
 	//cached object cached method call result.
 	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
-	return(result);
+	return result;
 }
 
 PyResult AccountService::Handle_GetKeyMap(PyCallArgs &call) {
@@ -127,7 +127,7 @@ PyResult AccountService::Handle_GetKeyMap(PyCallArgs &call) {
 	//cached object cached method call result.
 	result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 	
-	return(result);
+	return result;
 }
 
 //give cash takes (ownerID, retval['qty'], retval['reason'][:40])

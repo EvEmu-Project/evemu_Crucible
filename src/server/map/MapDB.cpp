@@ -42,7 +42,7 @@ PyRepObject *MapDB::GetPseudoSecurities() {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *MapDB::GetStationExtraInfo() {
@@ -58,7 +58,7 @@ PyRepObject *MapDB::GetStationExtraInfo() {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *MapDB::GetStationOpServices() {
@@ -74,7 +74,7 @@ PyRepObject *MapDB::GetStationOpServices() {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 PyRepObject *MapDB::GetStationServiceInfo() {
@@ -90,7 +90,7 @@ PyRepObject *MapDB::GetStationServiceInfo() {
 		return NULL;
 	}
 	
-	return(DBResultToRowset(res));
+	return DBResultToRowset(res);
 }
 
 
