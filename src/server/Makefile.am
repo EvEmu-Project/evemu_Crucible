@@ -82,6 +82,8 @@ libcharacter_a_SOURCES = \
 	character/CharacterService.h \
 	character/CharMgrService.cpp \
 	character/CharMgrService.h \
+	character/Skill.cpp \
+	character/Skill.h \
 	character/SkillMgrService.cpp \
 	character/SkillMgrService.h
 

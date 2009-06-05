@@ -342,6 +342,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\server\character\Skill.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\server\character\SkillMgrService.cpp"
 					>
 				</File>
@@ -921,6 +925,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\character\CharMgrService.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\character\Skill.h"
 					>
 				</File>
 				<File

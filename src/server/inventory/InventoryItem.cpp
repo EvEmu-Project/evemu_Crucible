@@ -212,6 +212,13 @@ InventoryItem *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 		case EVEDB::invCategories::Ship: {
 			return Ship::_LoadItem( factory, itemID, type, data );
 		}
+
+		///////////////////////////////////////
+		// Skill:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Skill: {
+			return Skill::_LoadItem( factory, itemID, type, data );
+		}
 	}
 
 	// Category didn't do it, try Group:
@@ -257,80 +264,76 @@ bool InventoryItem::_Load(bool recurse) {
 	return true;
 }
 
-InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data) {
+InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
+{
 	// obtain type of new item
-	const Type *t = factory.GetType(data.typeID);
-	if(t == NULL)
+	const Type *t = factory.GetType( data.typeID );
+	if( t == NULL )
 		return NULL;
 
 	// See what to do next:
-	switch(t->categoryID()) {
+	switch( t->categoryID() ) {
 		///////////////////////////////////////
 		// Blueprint:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Blueprint: {
 			BlueprintData bdata; // use default blueprint attributes
 
-			return(Blueprint::Spawn(
-				factory, data, bdata
-			));
-		};
+			return Blueprint::Spawn( factory, data, bdata );
+		}
 
 		///////////////////////////////////////
 		// Celestial:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Celestial: {
-			_log(ITEM__ERROR, "Refusing to spawn celestial object '%s'.", data.name.c_str());
+			_log( ITEM__ERROR, "Refusing to spawn celestial object '%s'.", data.name.c_str() );
 
 			return NULL;
-		};
+		}
 
 		///////////////////////////////////////
 		// Ship:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Ship: {
-			return(Ship::Spawn(
-				factory, data
-			));
-		};
+			return Ship::Spawn( factory, data );
+		}
 
 		///////////////////////////////////////
-		// Default:
+		// Skill:
 		///////////////////////////////////////
-		default: {
-			switch(t->groupID()) {
-				///////////////////////////////////////
-				// Character:
-				///////////////////////////////////////
-				case EVEDB::invGroups::Character: {
-					// we're not gonna create character from default attributes ...
-					_log(ITEM__ERROR, "Refusing to create character '%s' from default attributes.", data.name.c_str());
-
-					return NULL;
-				};
-
-				///////////////////////////////////////
-				// Station:
-				///////////////////////////////////////
-				case EVEDB::invGroups::Station: {
-					_log(ITEM__ERROR, "Refusing to create station '%s'.", data.name.c_str());
-
-					return NULL;
-				};
-
-				///////////////////////////////////////
-				// Default:
-				///////////////////////////////////////
-				default: {
-					uint32 itemID = InventoryItem::_Spawn(factory, data);
-					if(itemID == 0)
-						return NULL;
-					// item cannot contain anything yet - don't recurse
-					return InventoryItem::Load(factory, itemID, false);
-				};
-			}
-		};
+		case EVEDB::invCategories::Skill: {
+			return Skill::Spawn( factory, data );
+		}
 	}
+
+	switch( t->groupID() ) {
+		///////////////////////////////////////
+		// Character:
+		///////////////////////////////////////
+		case EVEDB::invGroups::Character: {
+			// we're not gonna create character from default attributes ...
+			_log( ITEM__ERROR, "Refusing to create character '%s' from default attributes.", data.name.c_str() );
+
+			return NULL;
+		}
+
+		///////////////////////////////////////
+		// Station:
+		///////////////////////////////////////
+		case EVEDB::invGroups::Station: {
+			_log( ITEM__ERROR, "Refusing to create station '%s'.", data.name.c_str() );
+
+			return NULL;
+		}
+	}
+
+	// Spawn generic item:
+	uint32 itemID = InventoryItem::_Spawn(factory, data);
+	if(itemID == 0)
+		return NULL;
+
+	// item cannot contain anything yet - don't recurse
+	return InventoryItem::Load(factory, itemID, false);
 }
 
 uint32 InventoryItem::_Spawn(ItemFactory &factory,
@@ -1063,51 +1066,4 @@ double InventoryItem::GetRemainingCapacity(EVEItemFlags locationFlag) const {
 	return(remainingCargoSpace);
 }
 
-uint32 InventoryItem::GetSPForLevel(uint8 Level)
-{
-	return(SKILL_BASE_POINTS * skillTimeConstant() * pow(32, (Level-1) / 2.0));
-}
-
-bool InventoryItem::SkillPrereqsComplete(Character &ch)
-{
-	InventoryItem *requiredSkill;
-
-	if( requiredSkill1() != 0 )
-	{
-		requiredSkill = ch.GetByTypeFlag( requiredSkill1(), flagSkill );
-		if( requiredSkill == NULL )
-			requiredSkill = ch.GetByTypeFlag( requiredSkill1(), flagSkillInTraining );
-		if( requiredSkill == NULL )
-			return false;
-
-		if( requiredSkill1Level() > requiredSkill->skillLevel() )
-			return false;
-	}
-
-	if( requiredSkill2() != 0 )
-	{
-		requiredSkill = ch.GetByTypeFlag( requiredSkill2(), flagSkill );
-		if( requiredSkill == NULL )
-			requiredSkill = ch.GetByTypeFlag( requiredSkill2(), flagSkillInTraining );
-		if( requiredSkill == NULL )
-			return false;
-
-		if( requiredSkill2Level() > requiredSkill->skillLevel() )
-			return false;
-	}
-
-	if( requiredSkill3() != 0 )
-	{
-		requiredSkill = ch.GetByTypeFlag( requiredSkill3(), flagSkill );
-		if( requiredSkill == NULL )
-			requiredSkill = ch.GetByTypeFlag( requiredSkill3(), flagSkillInTraining );
-		if( requiredSkill == NULL )
-			return false;
-
-		if( requiredSkill3Level() > requiredSkill->skillLevel() )
-			return false;
-	}
-
-	return true;
-}
 

@@ -48,6 +48,7 @@ class Ship;
 class CelestialObject;
 class SolarSystem;
 class Station;
+class Skill;
 
 class ItemFactory {
 	friend class InventoryItem;	//only for access to _GetIfContentsLoaded and _DeleteItem
@@ -158,12 +159,18 @@ public:
 	 */
 	Station *GetStation(uint32 stationID, bool recurse=true);
 
+	/**
+	 * Loads skill.
+	 *
+	 * @param[in] skillID ID of skill to load.
+	 * @param[in] recurse Whether all contained items should be also loaded.
+	 * @return Pointer to Skill object; NULL if fails.
+	 */
+	Skill *GetSkill(uint32 skillID, bool recurse=true);
+
 	//spawn a new item with the specified information, creating it in the DB as well.
-	InventoryItem *SpawnItem(
-		ItemData &data);
-	Blueprint *SpawnBlueprint(
-		ItemData &data,
-		BlueprintData &bpData);
+	InventoryItem *SpawnItem(ItemData &data);
+	Blueprint *SpawnBlueprint(ItemData &data, BlueprintData &bpData);
 	/**
 	 * Spawns new character, caches it and returns it.
 	 *
@@ -173,19 +180,21 @@ public:
 	 * @param[in] corpData Character's corporation-membership data.
 	 * @return Pointer to new Character object; NULL if spawn failed.
 	 */
-	Character *SpawnCharacter(
-		ItemData &data,
-		CharacterData &charData,
-		CharacterAppearance &appData,
-		CorpMemberInfo &corpData);
+	Character *SpawnCharacter(ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData);
 	/**
 	 * Spawns new ship.
 	 *
 	 * @param[in] data Item data for ship.
 	 * @return Pointer to Ship object; NULL if failed.
 	 */
-	Ship *SpawnShip(
-		ItemData &data);
+	Ship *SpawnShip(ItemData &data);
+	/**
+	 * Spawns new skill.
+	 *
+	 * @param[in] data Item data for skill.
+	 * @return Pointer to new Skill object; NULL if fails.
+	 */
+	Skill *SpawnSkill(ItemData &data);
 
 protected:
 	InventoryDB m_db;

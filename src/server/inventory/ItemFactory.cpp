@@ -193,6 +193,11 @@ Station *ItemFactory::GetStation(uint32 stationID, bool recurse) {
 	return _GetItem<Station>(stationID, recurse);
 }
 
+Skill *ItemFactory::GetSkill(uint32 skillID, bool recurse)
+{
+	return _GetItem<Skill>( skillID, recurse );
+}
+
 InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
 	InventoryItem *i = InventoryItem::Spawn(*this, data);
 	if(i == NULL)
@@ -228,6 +233,16 @@ Ship *ItemFactory::SpawnShip(ItemData &data) {
 		return NULL;
 
 	m_items[s->itemID()] = s;
+	return s->IncRef();
+}
+
+Skill *ItemFactory::SpawnSkill(ItemData &data)
+{
+	Skill *s = Skill::Spawn( *this, data );
+	if( s == NULL )
+		return NULL;
+
+	m_items[ s->itemID() ] = s;
 	return s->IncRef();
 }
 

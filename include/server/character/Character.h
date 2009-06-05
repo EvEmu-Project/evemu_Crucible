@@ -28,6 +28,7 @@
 
 #include "inventory/Type.h"
 #include "inventory/InventoryItem.h"
+#include "character/Skill.h"
 
 /**
  * Simple container for raw character type data.
@@ -370,56 +371,63 @@ public:
 	void Save(bool recursive=false, bool saveAttributes=true) const;
 	void Delete();
 
-	/**
-	 * Returns character attribute (Intellect, Perception, Memory, Charisma, Willpower).
-	 *
-	 * @param[in] attr ID identifying attribute to be retrieved.
-	 * @return Value of attribute.
-	 */
-	uint32 GetCharAttribute(EVEAttributeMgr::Attr attr) const;
-	/* GetSkillsFromSkillQueue()
-	 * 
-	 * This will get the skills from the skill queue for a character.
-	 * @author xanarox
-	*/
-	PyRepList *GetSkillQueue();
-	/**
-	 * Calculates Skillpoints per minute rate.
-	 *
-	 * @param[in] primaryAttr Primary attribute of skill which this rate is calculated for.
-	 * @param[in] secondaryAttr Secondary attribute of skill which this rate is calculated for.
-	 * @return Skillpoints per minute rate.
-	 */
-	double GetSPPerMin(EVEAttributeMgr::Attr primaryAttr, EVEAttributeMgr::Attr secondaryAttr);
-	/**
-	 * @return Timestamp at which current skill training finishes.
-	 */
-	uint64 GetEndOfTraining();
-
 	bool AlterBalance(double balanceChange);
 	void SetLocation(uint32 stationID, uint32 solarSystemID, uint32 constellationID, uint32 regionID);
 	void JoinCorporation(uint32 corporationID);
 	void SetDescription(const char *newDescription);
+
+	/**
+	 * Checks whether character has the skill.
+	 *
+	 * @param[in] skillTypeID ID of skill type to be checked.
+	 * @return True if character has the skill, false if doesn't.
+	 */
+	bool HasSkill(uint32 skillTypeID);
+	/**
+	 * Returns skill.
+	 *
+	 * @param[in] skillTypeID ID of skill type to be returned.
+	 * @param[in] newref Whether new reference should be returned.
+	 * @return Pointer to Skill object; NULL if skill was not found.
+	 */
+	Skill *GetSkill(uint32 skillTypeID, bool newref=false);
+	/**
+	 * Returns skill currently in training.
+	 *
+	 * @param[in] newref Whether new reference should be returned.
+	 * @return Pointer to Skill object; NULL if skill was not found.
+	 */
+	Skill *GetSkillInTraining(bool newref=false);
+
+	/**
+	 * Calculates Skillpoints per minute rate.
+	 *
+	 * @param[in] skill Skill for which the rate is calculated.
+	 * @return Skillpoints per minute rate.
+	 */
+	double GetSPPerMin(Skill &skill);
+	/**
+	 * @return Timestamp at which current skill training finishes.
+	 */
+	uint64 GetEndOfTraining();
 
 	/* InjectSkillIntoBrain(InventoryItem *skill)
 	 * 
 	 * Perform injection of passed skill into the character.
 	 * @author xanarox
 	 * @param InventoryItem
-	*/
-	bool InjectSkillIntoBrain(InventoryItem *skill);
-
+	 */
+	bool InjectSkillIntoBrain(Skill &skill);
 	/* AddSkillToSkillQueue()
 	 * 
 	 * This will add a skill into the skill queue.
 	 * @author xanarox
-	*/
+	 */
 	void AddToSkillQueue(uint32 typeID, uint8 level);
 	/**
 	 * Clears skill queue.
 	 */
 	void ClearSkillQueue();
-
 	/**
 	 * Updates skill queue.
 	 */
@@ -432,6 +440,12 @@ public:
 	 */
 	PyRepObject *CharGetInfo();
 	PyRepObject *GetDescription() const;
+	/* GetSkillQueue()
+	 * 
+	 * This will get the skills from the skill queue for a character.
+	 * @author xanarox
+	*/
+	PyRepList *GetSkillQueue();
 
 	/*
 	 * Public fields:

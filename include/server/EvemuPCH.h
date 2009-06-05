@@ -166,6 +166,7 @@
 #include "../server/character/CharacterDB.h"
 #include "../server/character/CharacterService.h"
 #include "../server/character/CharMgrService.h"
+#include "../server/character/Skill.h"
 #include "../server/character/SkillMgrService.h"
 
 

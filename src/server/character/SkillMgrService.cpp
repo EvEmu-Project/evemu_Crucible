@@ -217,10 +217,11 @@ PyResult SkillMgrBound::Handle_CharStartTrainingSkillByTypeID(PyCallArgs &call) 
 	return NULL;
 }
 
-PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call) {
+PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call)
+{
 	Call_InjectSkillIntoBrain args;
-	if(!args.Decode(&call.tuple)) {
-		codelog(CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName());
+	if( !args.Decode( &call.tuple ) ) {
+		codelog( CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName() );
 		return NULL;
 	}
 
@@ -229,14 +230,17 @@ PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call) {
 	std::vector<uint32>::iterator cur, end;
 	cur = args.skills.begin();
 	end = args.skills.end();
-	for (; cur != end; cur++) {
-		InventoryItem *skill = m_manager->item_factory.GetItem( *cur , false);
-		if(skill == NULL) {
-			codelog(ITEM__ERROR, "%s: failed to load skill item %u for injection.", call.client->GetName(), *cur );
+	for(; cur != end; cur++)
+	{
+		Skill *skill = m_manager->item_factory.GetSkill( *cur , false );
+		if( skill == NULL )
+		{
+			codelog( ITEM__ERROR, "%s: failed to load skill item %u for injection.", call.client->GetName(), *cur );
 			continue;
 		}
 		
-		if(!ch->InjectSkillIntoBrain(skill)) {
+		if( !ch->InjectSkillIntoBrain( *skill ) )
+		{
 			//TODO: build and send UserError about injection failure.
 			codelog(ITEM__ERROR, "%s: Injection of skill %u failed", call.client->GetName(), skill->itemID() );
 		}
