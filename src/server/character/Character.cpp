@@ -531,18 +531,14 @@ Skill *Character::GetSkill(uint32 skillTypeID, bool newref)
 {
 	InventoryItem *skill = GetByTypeFlag( skillTypeID, flagSkill, newref);
 	if( skill == NULL )
-		return GetSkillInTraining( newref );
-	else
-		return static_cast<Skill *>( skill );
+		skill = GetByTypeFlag( skillTypeID, flagSkillInTraining, newref );
+
+	return static_cast<Skill *>( skill );
 }
 
 Skill *Character::GetSkillInTraining(bool newref)
 {
-	InventoryItem *skill = FindFirstByFlag( flagSkillInTraining, newref );
-	if( skill == NULL )
-		return NULL;
-	else
-		return static_cast<Skill *>( skill );
+	return static_cast<Skill *>( FindFirstByFlag( flagSkillInTraining, newref ) );
 }
 
 double Character::GetSPPerMin(Skill &skill)
