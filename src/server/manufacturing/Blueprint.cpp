@@ -88,36 +88,30 @@ BlueprintType::BlueprintType(
 		assert(_bpData.parentBlueprintTypeID == _parentBlueprintType->id());
 }
 
-BlueprintType *BlueprintType::Load(ItemFactory &factory, uint32 typeID) {
-	return Type::Load<BlueprintType>(factory, typeID);
+BlueprintType *BlueprintType::Load(ItemFactory &factory, uint32 typeID)
+{
+	return Type::Load<BlueprintType>( factory, typeID );
 }
 
-BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID
-) {
-	return Type::_Load<BlueprintType>(
-		factory, typeID
-	);
+BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID)
+{
+	return Type::_Load<BlueprintType>( factory, typeID );
 }
 
-BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID,
+BlueprintType *BlueprintType::_LoadType(ItemFactory &factory, uint32 typeID,
 	// Type stuff:
-	const Group &group, const TypeData &data
-) {
-	return BlueprintType::_Load<BlueprintType>(
-		factory, typeID, group, data
-	);
+	const Group &group, const TypeData &data)
+{
+	return BlueprintType::_LoadType<BlueprintType>( factory, typeID, group, data );
 }
 
-BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID,
+BlueprintType *BlueprintType::_LoadBlueprintType(ItemFactory &factory, uint32 typeID,
 	// Type stuff:
 	const Group &group, const TypeData &data,
 	// BlueprintType stuff:
-	const BlueprintType *parentBlueprintType, const Type &productType, const BlueprintTypeData &bpData
-) {
-	return(new BlueprintType(typeID,
-		group, data,
-		parentBlueprintType, productType, bpData
-	));
+	const BlueprintType *parentBlueprintType, const Type &productType, const BlueprintTypeData &bpData)
+{
+	return new BlueprintType(typeID, group, data, parentBlueprintType, productType, bpData );
 }
 
 /*
@@ -156,36 +150,31 @@ Blueprint::Blueprint(
 	assert(_bpType.categoryID() == EVEDB::invCategories::Blueprint);
 }
 
-Blueprint *Blueprint::Load(ItemFactory &factory, uint32 blueprintID, bool recurse) {
-	return InventoryItem::Load<Blueprint>(factory, blueprintID, recurse);
+Blueprint *Blueprint::Load(ItemFactory &factory, uint32 blueprintID, bool recurse)
+{
+	return InventoryItem::Load<Blueprint>( factory, blueprintID, recurse );
 }
 
-Blueprint *Blueprint::_Load(ItemFactory &factory, uint32 blueprintID
-) {
-	return InventoryItem::_Load<Blueprint>(
-		factory, blueprintID
-	);
+Blueprint *Blueprint::_Load(ItemFactory &factory, uint32 blueprintID)
+{
+	return InventoryItem::_Load<Blueprint>( factory, blueprintID );
 }
 
-Blueprint *Blueprint::_Load(ItemFactory &factory, uint32 blueprintID,
+Blueprint *Blueprint::_LoadItem(ItemFactory &factory, uint32 blueprintID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data
-) {
-	return Blueprint::_Load<Blueprint>(
-		factory, blueprintID, type, data
-	);
+	const Type &type, const ItemData &data)
+{
+	return Blueprint::_LoadItem<Blueprint>( factory, blueprintID, type, data );
 }
 
-Blueprint *Blueprint::_Load(ItemFactory &factory, uint32 blueprintID,
+Blueprint *Blueprint::_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
 	// InventoryItem stuff:
 	const BlueprintType &bpType, const ItemData &data,
 	// Blueprint stuff:
-	const BlueprintData &bpData
-) {
+	const BlueprintData &bpData)
+{
 	// we have enough data, construct the item
-	return(new Blueprint(
-		factory, blueprintID, bpType, data, bpData
-	));
+	return new Blueprint( factory, blueprintID, bpType, data, bpData );
 }
 
 Blueprint *Blueprint::Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData) {

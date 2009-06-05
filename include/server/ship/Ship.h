@@ -88,59 +88,57 @@ protected:
 	 */
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 shipTypeID,
+	static _Ty *_LoadType(ItemFactory &factory, uint32 shipTypeID,
 		// Type stuff:
-		const Group &group, const TypeData &data
-	) {
+		const Group &group, const TypeData &data)
+	{
 		// verify it's a ship
-		if(group.categoryID() != EVEDB::invCategories::Ship) {
-			_log(ITEM__ERROR, "Tried to load %u (%s) as a Ship.", shipTypeID, group.category().name().c_str());
+		if( group.categoryID() != EVEDB::invCategories::Ship ) {
+			_log( ITEM__ERROR, "Tried to load %u (%s) as a Ship.", shipTypeID, group.category().name().c_str() );
 			return NULL;
 		}
 
 		// load additional ship type stuff
 		ShipTypeData stData;
-		if(!factory.db().GetShipType(shipTypeID, stData))
+		if( !factory.db().GetShipType(shipTypeID, stData) )
 			return NULL;
 
 		// try to load weapon type
 		const Type *weaponType = NULL;
-		if(stData.weaponTypeID != 0) {
-			weaponType = factory.GetType(stData.weaponTypeID);
-			if(weaponType == NULL)
+		if( stData.weaponTypeID != 0 ) {
+			weaponType = factory.GetType( stData.weaponTypeID );
+			if( weaponType == NULL )
 				return NULL;
 		}
 
 		// try to load mining type
 		const Type *miningType = NULL;
-		if(stData.miningTypeID != 0) {
-			miningType = factory.GetType(stData.miningTypeID);
-			if(miningType == NULL)
+		if( stData.miningTypeID != 0 ) {
+			miningType = factory.GetType( stData.miningTypeID );
+			if( miningType == NULL )
 				return NULL;
 		}
 
 		// try to load skill type
 		const Type *skillType = NULL;
-		if(stData.skillTypeID != 0) {
-			skillType = factory.GetType(stData.skillTypeID);
-			if(skillType == NULL)
+		if( stData.skillTypeID != 0 ) {
+			skillType = factory.GetType( stData.skillTypeID );
+			if( skillType == NULL )
 				return NULL;
 		}
 
 		// continue with load
-		return(
-			_Ty::_Load(factory, shipTypeID, group, data, weaponType, miningType, skillType, stData)
-		);
+		return _Ty::_LoadShipType( factory, shipTypeID, group, data, weaponType, miningType, skillType, stData );
 	}
 
 	// Actual loading stuff:
 	static ShipType *_Load(ItemFactory &factory, uint32 shipTypeID
 	);
-	static ShipType *_Load(ItemFactory &factory, uint32 shipTypeID,
+	static ShipType *_LoadType(ItemFactory &factory, uint32 shipTypeID,
 		// Type stuff:
 		const Group &group, const TypeData &data
 	);
-	static ShipType *_Load(ItemFactory &factory, uint32 shipTypeID,
+	static ShipType *_LoadShipType(ItemFactory &factory, uint32 shipTypeID,
 		// Type stuff:
 		const Group &group, const TypeData &data,
 		// ShipType stuff:
@@ -207,37 +205,37 @@ protected:
 	 */
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 shipID,
+	static _Ty *_LoadItem(ItemFactory &factory, uint32 shipID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data
-	) {
+		const Type &type, const ItemData &data)
+	{
 		// check it's a ship
-		if(type.categoryID() != EVEDB::invCategories::Ship) {
-			_log(ITEM__ERROR, "Trying to load %s as Ship.", type.category().name().c_str());
+		if( type.categoryID() != EVEDB::invCategories::Ship )
+		{
+			_log( ITEM__ERROR, "Trying to load %s as Ship.", type.category().name().c_str() );
 			return NULL;
 		}
 		// cast the type
-		const ShipType &shipType = static_cast<const ShipType &>(type);
+		const ShipType &shipType = static_cast<const ShipType &>( type );
 
 		// no additional stuff
 
-		return(
-			_Ty::_Load(factory, shipID, shipType, data)
-		);
+		return _Ty::_LoadShip( factory, shipID, shipType, data );
 	}
 
 	// Actual loading stuff:
 	static Ship *_Load(ItemFactory &factory, uint32 shipID
 	);
-	static Ship *_Load(ItemFactory &factory, uint32 shipID,
+	static Ship *_LoadItem(ItemFactory &factory, uint32 shipID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data
 	);
-	static Ship *_Load(ItemFactory &factory, uint32 shipID,
+	static Ship *_LoadShip(ItemFactory &factory, uint32 shipID,
 		// InventoryItem stuff:
 		const ShipType &shipType, const ItemData &data
 	);
-	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+
+	bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:

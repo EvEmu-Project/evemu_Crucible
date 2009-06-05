@@ -65,37 +65,31 @@ ShipTypeData::ShipTypeData(
  		assert(_skillType->id() == stData.skillTypeID);
 }
 
-ShipType *ShipType::Load(ItemFactory &factory, uint32 shipTypeID) {
-	return Type::Load<ShipType>(factory, shipTypeID);
+ShipType *ShipType::Load(ItemFactory &factory, uint32 shipTypeID)
+{
+	return Type::Load<ShipType>( factory, shipTypeID );
 }
 
-ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID
-) {
-	return Type::_Load<ShipType>(
-		factory, shipTypeID
-	);
+ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID)
+{
+	return Type::_Load<ShipType>( factory, shipTypeID );
 }
 
-ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID,
+ShipType *ShipType::_LoadType(ItemFactory &factory, uint32 shipTypeID,
 	// Type stuff:
-	const Group &group, const TypeData &data
-) {
-	return ShipType::_Load<ShipType>(
-		factory, shipTypeID, group, data
-	);
+	const Group &group, const TypeData &data)
+{
+	return ShipType::_LoadType<ShipType>( factory, shipTypeID, group, data );
 }
 
-ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID,
+ShipType *ShipType::_LoadShipType(ItemFactory &factory, uint32 shipTypeID,
 	// Type stuff:
 	const Group &group, const TypeData &data,
 	// ShipType stuff:
-	const Type *weaponType, const Type *miningType, const Type *skillType, const ShipTypeData &stData
-) {
+	const Type *weaponType, const Type *miningType, const Type *skillType, const ShipTypeData &stData)
+{
 	// we have all the data, let's create new object
-	return(new ShipType(shipTypeID,
-		group, data,
-		weaponType, miningType, skillType, stData
-	));
+	return new ShipType(shipTypeID, group, data, weaponType, miningType, skillType, stData );
 }
 
 /*
@@ -111,35 +105,29 @@ Ship::Ship(
 {
 }
 
-Ship *Ship::Load(ItemFactory &factory, uint32 shipID, bool recurse) {
-	return InventoryItem::Load<Ship>(factory, shipID, recurse);
+Ship *Ship::Load(ItemFactory &factory, uint32 shipID, bool recurse)
+{
+	return InventoryItem::Load<Ship>( factory, shipID, recurse );
 }
 
-Ship *Ship::_Load(ItemFactory &factory, uint32 shipID
-) {
-	return InventoryItem::_Load<Ship>(
-		factory, shipID
-	);
+Ship *Ship::_Load(ItemFactory &factory, uint32 shipID)
+{
+	return InventoryItem::_Load<Ship>( factory, shipID );
 }
 
-Ship *Ship::_Load(ItemFactory &factory, uint32 shipID,
+Ship *Ship::_LoadItem(ItemFactory &factory, uint32 shipID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data
-) {
-	return Ship::_Load<Ship>(
-		factory, shipID, type, data
-	);
+	const Type &type, const ItemData &data)
+{
+	return Ship::_LoadItem<Ship>( factory, shipID, type, data );
 }
 
-Ship *Ship::_Load(ItemFactory &factory, uint32 shipID,
+Ship *Ship::_LoadShip(ItemFactory &factory, uint32 shipID,
 	// InventoryItem stuff:
-	const ShipType &shipType, const ItemData &data
-) {
+	const ShipType &shipType, const ItemData &data)
+{
 	// we don't need any additional stuff
-	return(new Ship(
-		factory, shipID,
-		shipType, data
-	));
+	return new Ship( factory, shipID, shipType, data );
 }
 
 Ship *Ship::Spawn(ItemFactory &factory,

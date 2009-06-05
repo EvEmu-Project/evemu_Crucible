@@ -241,78 +241,56 @@ Type::Type(
 	_log(ITEM__TRACE, "Created object %p for type %s (%u).", this, name().c_str(), id());
 }
 
-Type *Type::Load(ItemFactory &factory, uint32 typeID) {
-	return Type::Load<Type>(factory, typeID);
+Type *Type::Load(ItemFactory &factory, uint32 typeID)
+{
+	return Type::Load<Type>( factory, typeID );
 }
 
-Type *Type::_Load(ItemFactory &factory, uint32 typeID
-) {
-	return Type::_Load<Type>(
-		factory, typeID
-	);
+Type *Type::_Load(ItemFactory &factory, uint32 typeID)
+{
+	return Type::_Load<Type>( factory, typeID );
 }
 
-Type *Type::_Load(ItemFactory &factory, uint32 typeID,
+Type *Type::_LoadType(ItemFactory &factory, uint32 typeID,
 	// Type stuff:
-	const Group &group, const TypeData &data
-) {
+	const Group &group, const TypeData &data)
+{
 	// See what to do next:
-	switch(group.categoryID()) {
+	switch( group.categoryID() ) {
 		///////////////////////////////////////
 		// Blueprint:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Blueprint: {
-			// redirect further loading to BlueprintType
-			return(BlueprintType::_Load(
-				factory, typeID, group, data
-			));
+			return BlueprintType::_LoadType( factory, typeID, group, data );
 		}
 
 		///////////////////////////////////////
 		// Ship:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Ship: {
-			// redirect further loading to ShipType
-			return(ShipType::_Load(
-				factory, typeID, group, data
-			));
-		}
-
-		///////////////////////////////////////
-		// Default:
-		///////////////////////////////////////
-		default: {
-			switch(group.id()) {
-				///////////////////////////////////////
-				// Character:
-				///////////////////////////////////////
-				case EVEDB::invGroups::Character: {
-					return(CharacterType::_Load(
-						factory, typeID, group, data
-					));
-				}
-
-				///////////////////////////////////////
-				// Station:
-				///////////////////////////////////////
-				case EVEDB::invGroups::Station: {
-					return(StationType::_Load(
-						factory, typeID, group, data
-					));
-				}
-
-				///////////////////////////////////////
-				// Default:
-				///////////////////////////////////////
-				default: {
-					// create the object
-					return(new Type(
-						typeID, group, data
-					));
-				}
-			}
+			return ShipType::_LoadType( factory, typeID, group, data );
 		}
 	}
+
+	// Category didn't do it, try Group:
+	switch( group.id() ) {
+		///////////////////////////////////////
+		// Character:
+		///////////////////////////////////////
+		case EVEDB::invGroups::Character: {
+			return CharacterType::_LoadType( factory, typeID, group, data );
+		}
+
+		///////////////////////////////////////
+		// Station:
+		///////////////////////////////////////
+		case EVEDB::invGroups::Station: {
+			return StationType::_LoadType( factory, typeID, group, data );
+		}
+	}
+
+	// Generic one, create it:
+	return new Type( typeID, group, data );
 }
 
 bool Type::_Load(ItemFactory &factory) {

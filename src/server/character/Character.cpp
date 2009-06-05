@@ -96,37 +96,31 @@ CharacterType::CharacterType(
 	assert(_charData.shipTypeID == _shipType.id());
 }
 
-CharacterType *CharacterType::Load(ItemFactory &factory, uint32 characterTypeID) {
-	return Type::Load<CharacterType>(factory, characterTypeID);
+CharacterType *CharacterType::Load(ItemFactory &factory, uint32 characterTypeID)
+{
+	return Type::Load<CharacterType>( factory, characterTypeID );
 }
 
-CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID
-) {
-	return Type::_Load<CharacterType>(
-		factory, typeID
-	);
+CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID)
+{
+	return Type::_Load<CharacterType>( factory, typeID );
 }
 
-CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID,
+CharacterType *CharacterType::_LoadType(ItemFactory &factory, uint32 typeID,
 	// Type stuff:
-	const Group &group, const TypeData &data
-) {
-	return CharacterType::_Load<CharacterType>(
-		factory, typeID, group, data
-	);
+	const Group &group, const TypeData &data)
+{
+	return CharacterType::_LoadType<CharacterType>( factory, typeID, group, data );
 }
 
-CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
+CharacterType *CharacterType::_LoadCharacterType(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
 	// Type stuff:
 	const Group &group, const TypeData &data,
 	// CharacterType stuff:
-	const Type &shipType, const CharacterTypeData &charData
-) {
+	const Type &shipType, const CharacterTypeData &charData)
+{
 	// enough data for construction
-	return(new CharacterType(typeID, bloodlineID,
-		group, data,
-		shipType, charData
-	));
+	return new CharacterType( typeID, bloodlineID, group, data, shipType, charData );
 }
 
 /*
@@ -340,38 +334,31 @@ Character::Character(
 	assert(singleton() && quantity() == 1);
 }
 
-Character *Character::Load(ItemFactory &factory, uint32 characterID, bool recurse) {
-	return InventoryItem::Load<Character>(factory, characterID, recurse);
+Character *Character::Load(ItemFactory &factory, uint32 characterID, bool recurse)
+{
+	return InventoryItem::Load<Character>( factory, characterID, recurse );
 }
 
-Character *Character::_Load(ItemFactory &factory, uint32 characterID
-) {
-	return InventoryItem::_Load<Character>(
-		factory, characterID
-	);
+Character *Character::_Load(ItemFactory &factory, uint32 characterID)
+{
+	return InventoryItem::_Load<Character>( factory, characterID );
 }
 
-Character *Character::_Load(ItemFactory &factory, uint32 characterID,
+Character *Character::_LoadItem(ItemFactory &factory, uint32 characterID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data
-) {
-	return Character::_Load<Character>(
-		factory, characterID, type, data
-	);
+	const Type &type, const ItemData &data)
+{
+	return Character::_LoadItem<Character>( factory, characterID, type, data );
 }
 
-Character *Character::_Load(ItemFactory &factory, uint32 characterID,
+Character *Character::_LoadCharacter(ItemFactory &factory, uint32 characterID,
 	// InventoryItem stuff:
 	const CharacterType &charType, const ItemData &data,
 	// Character stuff:
-	const CharacterData &charData, const CorpMemberInfo &corpData
-) {
+	const CharacterData &charData, const CorpMemberInfo &corpData)
+{
 	// construct the item
-	return(new Character(
-		factory, characterID,
-		charType, data,
-		charData, corpData
-	));
+	return new Character( factory, characterID, charType, data, charData, corpData );
 }
 
 Character *Character::Spawn(ItemFactory &factory,
@@ -740,23 +727,17 @@ void Character::UpdateSkillQueue() {
 		{
 			// either queue is empty or skill with different typeID is in training ...
 			// stop training:
-			double currentSkillpoints;
-
 			uint64 timeEndTrain = currentTraining->expiryTime();
 			if(timeEndTrain != 0)
 			{
+				double nextLevelSP = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 );
 				double SPPerMinute = GetSPPerMin( (EVEAttributeMgr::Attr)currentTraining->primaryAttribute(),
 												  (EVEAttributeMgr::Attr)currentTraining->secondaryAttribute() );
 				double minRemaining = (timeEndTrain - Win32TimeNow()) / Win32Time_Minute; 
 
-				currentSkillpoints = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 ) - (minRemaining * SPPerMinute);
-			}
-			else
-			{
-				currentSkillpoints = currentTraining->skillPoints();
+				currentTraining->Set_skillPoints( nextLevelSP - (minRemaining * SPPerMinute) );
 			}
 
-			currentTraining->Set_skillPoints( currentSkillpoints );
 			currentTraining->Clear_expiryTime();
 
 			currentTraining->ChangeFlag(flagSkill, true);

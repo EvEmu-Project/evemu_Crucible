@@ -305,14 +305,16 @@ protected:
 	 */
 	// Template helper:
 	template<class _Ty>
-	static _Ty *Load(ItemFactory &factory, uint32 typeID) {
+	static _Ty *Load(ItemFactory &factory, uint32 typeID)
+	{
 		// static load
-		_Ty *t = _Ty::_Load(factory, typeID);
-		if(t == NULL)
+		_Ty *t = _Ty::_Load( factory, typeID );
+		if( t == NULL )
 			return NULL;
 
 		// dynamic load
-		if(!t->_Load(factory)) {
+		if( !t->_Load(factory) )
+		{
 			delete t;
 			return NULL;
 		}
@@ -323,27 +325,25 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 typeID
-	) {
+	static _Ty *_Load(ItemFactory &factory, uint32 typeID)
+	{
 		// pull data
 		TypeData data;
-		if(!factory.db().GetType(typeID, data))
+		if( !factory.db().GetType( typeID, data ) )
 			return NULL;
 
 		// obtain group
-		const Group *g = factory.GetGroup(data.groupID);
-		if(g == NULL)
+		const Group *g = factory.GetGroup( data.groupID );
+		if( g == NULL )
 			return NULL;
 
-		return(_Ty::_Load(
-			factory, typeID, *g, data
-		));
+		return _Ty::_LoadType( factory, typeID, *g, data );
 	}
 
 	// Actual loading stuff:
 	static Type *_Load(ItemFactory &factory, uint32 typeID
 	);
-	static Type *_Load(ItemFactory &factory, uint32 typeID,
+	static Type *_LoadType(ItemFactory &factory, uint32 typeID,
 		// Type stuff:
 		const Group &group, const TypeData &data
 	);

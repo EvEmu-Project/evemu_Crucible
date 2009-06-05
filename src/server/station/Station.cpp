@@ -72,38 +72,31 @@ StationType::StationType(
 	assert(_data.groupID == EVEDB::invGroups::Station);
 }
 
-StationType *StationType::Load(ItemFactory &factory, uint32 stationTypeID) {
-	return Type::Load<StationType>(factory, stationTypeID);
+StationType *StationType::Load(ItemFactory &factory, uint32 stationTypeID)
+{
+	return Type::Load<StationType>( factory, stationTypeID );
 }
 
-StationType *StationType::_Load(ItemFactory &factory, uint32 stationTypeID
-) {
-	return Type::_Load<StationType>(
-		factory, stationTypeID
-	);
+StationType *StationType::_Load(ItemFactory &factory, uint32 stationTypeID)
+{
+	return Type::_Load<StationType>( factory, stationTypeID );
 }
 
-StationType *StationType::_Load(ItemFactory &factory, uint32 stationTypeID,
+StationType *StationType::_LoadType(ItemFactory &factory, uint32 stationTypeID,
 	// Type stuff:
-	const Group &group, const TypeData &data
-) {
-	return StationType::_Load<StationType>(
-		factory, stationTypeID, group, data
-	);
+	const Group &group, const TypeData &data)
+{
+	return StationType::_LoadType<StationType>( factory, stationTypeID, group, data );
 }
 
-StationType *StationType::_Load(ItemFactory &factory, uint32 stationTypeID,
+StationType *StationType::_LoadStationType(ItemFactory &factory, uint32 stationTypeID,
 	// Type stuff:
 	const Group &group, const TypeData &data,
 	// StationType stuff:
-	const StationTypeData &stData
-) {
+	const StationTypeData &stData)
+{
 	// ready to create
-	return(new StationType(
-		stationTypeID,
-		group, data,
-		stData
-	));
+	return new StationType( stationTypeID, group, data, stData );
 }
 
 /*
@@ -154,52 +147,42 @@ Station::Station(
 {
 }
 
-Station *Station::Load(ItemFactory &factory, uint32 stationID, bool recurse) {
-	return InventoryItem::Load<Station>(factory, stationID, recurse);
+Station *Station::Load(ItemFactory &factory, uint32 stationID, bool recurse)
+{
+	return InventoryItem::Load<Station>( factory, stationID, recurse );
 }
 
-Station *Station::_Load(ItemFactory &factory, uint32 stationID
-) {
-	return InventoryItem::_Load<Station>(
-		factory, stationID
-	);
+Station *Station::_Load(ItemFactory &factory, uint32 stationID)
+{
+	return InventoryItem::_Load<Station>( factory, stationID );
 }
 
-Station *Station::_Load(ItemFactory &factory, uint32 stationID,
+Station *Station::_LoadItem(ItemFactory &factory, uint32 stationID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data
-) {
-	return CelestialObject::_Load<Station>(
-		factory, stationID, type, data
-	);
+	const Type &type, const ItemData &data)
+{
+	return CelestialObject::_LoadItem<Station>( factory, stationID, type, data );
 }
 
-Station *Station::_Load(ItemFactory &factory, uint32 stationID,
+Station *Station::_LoadCelestialObject(ItemFactory &factory, uint32 stationID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data,
 	// CelestialObject stuff:
-	const CelestialObjectData &cData
-) {
-	return Station::_Load<Station>(
-		factory, stationID, type, data, cData
-	);
+	const CelestialObjectData &cData)
+{
+	return Station::_LoadCelestialObject<Station>( factory, stationID, type, data, cData );
 }
 
-Station *Station::_Load(ItemFactory &factory, uint32 stationID,
+Station *Station::_LoadStation(ItemFactory &factory, uint32 stationID,
 	// InventoryItem stuff:
 	const StationType &type, const ItemData &data,
 	// CelestialObject stuff:
 	const CelestialObjectData &cData,
 	// Station stuff:
-	const StationData &stData
-) {
+	const StationData &stData)
+{
 	// ready to create
-	return(new Station(
-		factory, stationID,
-		type, data,
-		cData,
-		stData
-	));
+	return new Station( factory, stationID, type, data, cData, stData );
 }
 
 

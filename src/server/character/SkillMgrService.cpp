@@ -187,8 +187,10 @@ PyResult SkillMgrBound::Handle_AddToEndOfSkillQueue(PyCallArgs &call) {
 	}
 
 	Character *ch = call.client->Char();
+
 	ch->AddToSkillQueue(args.arg1, args.arg2);
 	ch->UpdateSkillQueue();
+
 	return NULL;
 }
 

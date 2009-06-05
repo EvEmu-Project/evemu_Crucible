@@ -139,47 +139,46 @@ protected:
 	 */
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 solarSystemID,
+	static _Ty *_LoadCelestialObject(ItemFactory &factory, uint32 solarSystemID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data,
 		// CelestialObject stuff:
-		const CelestialObjectData &cData
-	) {
+		const CelestialObjectData &cData)
+	{
 		// check it's a solar system
-		if(type.groupID() != EVEDB::invGroups::Solar_System) {
-			_log(ITEM__ERROR, "Trying to load %s %u as Solar system.", type.name().c_str(), solarSystemID);
+		if( type.groupID() != EVEDB::invGroups::Solar_System )
+		{
+			_log( ITEM__ERROR, "Trying to load %s %u as Solar system.", type.name().c_str(), solarSystemID );
 			return NULL;
 		}
 
 		// load solar system data
 		SolarSystemData ssData;
-		if(!factory.db().GetSolarSystem(solarSystemID, ssData))
+		if( !factory.db().GetSolarSystem( solarSystemID, ssData ) )
 			return false;
 
 		// get sun type
-		const Type *sunType = factory.GetType(ssData.sunTypeID);
-		if(sunType == NULL)
+		const Type *sunType = factory.GetType( ssData.sunTypeID );
+		if( sunType == NULL )
 			return false;
 
-		return(
-			_Ty::_Load(factory, solarSystemID, type, data, cData, *sunType, ssData)
-		);
+		return _Ty::_LoadSolarSystem( factory, solarSystemID, type, data, cData, *sunType, ssData );
 	}
 
 	// Actual loading stuff:
 	static SolarSystem *_Load(ItemFactory &factory, uint32 solarSystemID
 	);
-	static SolarSystem *_Load(ItemFactory &factory, uint32 solarSystemID,
+	static SolarSystem *_LoadItem(ItemFactory &factory, uint32 solarSystemID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data
 	);
-	static SolarSystem *_Load(ItemFactory &factory, uint32 solarSystemID,
+	static SolarSystem *_LoadCelestialObject(ItemFactory &factory, uint32 solarSystemID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data,
 		// CelestialObject stuff:
 		const CelestialObjectData &cData
 	);
-	static SolarSystem *_Load(ItemFactory &factory, uint32 solarSystemID,
+	static SolarSystem *_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data,
 		// CelestialObject stuff:
@@ -187,7 +186,8 @@ protected:
 		// SolarSystem stuff:
 		const Type &sunType, const SolarSystemData &ssData
 	);
-	virtual bool _Load(bool recurse=false);
+
+	bool _Load(bool recurse=false);
 
 	/*
 	 * Data members:

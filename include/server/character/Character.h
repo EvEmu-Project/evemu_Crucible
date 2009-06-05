@@ -129,40 +129,38 @@ protected:
 	 */
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 typeID,
+	static _Ty *_LoadType(ItemFactory &factory, uint32 typeID,
 		// Type stuff:
-		const Group &group, const TypeData &data
-	) {
+		const Group &group, const TypeData &data)
+	{
 		// check we are really loading a character type
-		if(group.id() != EVEDB::invGroups::Character) {
-			_log(ITEM__ERROR, "Load of character type %u requested, but it's %s.", typeID, group.name().c_str());
+		if( group.id() != EVEDB::invGroups::Character ) {
+			_log( ITEM__ERROR, "Load of character type %u requested, but it's %s.", typeID, group.name().c_str() );
 			return NULL;
 		}
 
 		// query character type data
 		uint32 bloodlineID;
 		CharacterTypeData charData;
-		if(!factory.db().GetCharacterType(typeID, bloodlineID, charData))
+		if( !factory.db().GetCharacterType(typeID, bloodlineID, charData) )
 			return NULL;
 
 		// load ship type
-		const Type *shipType = factory.GetType(charData.shipTypeID);
-		if(shipType == NULL)
+		const Type *shipType = factory.GetType( charData.shipTypeID );
+		if( shipType == NULL )
 			return NULL;
 
-		return(
-			_Ty::_Load(factory, typeID, bloodlineID, group, data, *shipType, charData)
-		);
+		return _Ty::_LoadCharacterType( factory, typeID, bloodlineID, group, data, *shipType, charData );
 	}
 
 	// Actual loading stuff:
 	static CharacterType *_Load(ItemFactory &factory, uint32 typeID
 	);
-	static CharacterType *_Load(ItemFactory &factory, uint32 typeID,
+	static CharacterType *_LoadType(ItemFactory &factory, uint32 typeID,
 		// Type stuff:
 		const Group &group, const TypeData &data
 	);
-	static CharacterType *_Load(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
+	static CharacterType *_LoadCharacterType(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
 		// Type stuff:
 		const Group &group, const TypeData &data,
 		// CharacterType stuff:
@@ -500,45 +498,45 @@ protected:
 	 */
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 characterID,
+	static _Ty *_LoadItem(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data
-	) {
+		const Type &type, const ItemData &data)
+	{
 		// check it's a character
-		if(type.groupID() != EVEDB::invGroups::Character) {
-			_log(ITEM__ERROR, "Trying to load %s as Character.", type.group().name().c_str());
+		if( type.groupID() != EVEDB::invGroups::Character )
+		{
+			_log( ITEM__ERROR, "Trying to load %s as Character.", type.group().name().c_str() );
 			return NULL;
 		}
 		// cast the type
-		const CharacterType &charType = static_cast<const CharacterType &>(type);
+		const CharacterType &charType = static_cast<const CharacterType &>( type );
 
 		CharacterData charData;
-		if(!factory.db().GetCharacter(characterID, charData))
+		if( !factory.db().GetCharacter( characterID, charData ) )
 			return NULL;
 
 		CorpMemberInfo corpData;
-		if(!factory.db().GetCorpMemberInfo(characterID, corpData))
+		if( !factory.db().GetCorpMemberInfo( characterID, corpData ) )
 			return NULL;
 
-		return(
-			_Ty::_Load(factory, characterID, charType, data, charData, corpData)
-		);
+		return _Ty::_LoadCharacter( factory, characterID, charType, data, charData, corpData );
 	}
 
 	// Actual loading stuff:
 	static Character *_Load(ItemFactory &factory, uint32 characterID
 	);
-	static Character *_Load(ItemFactory &factory, uint32 characterID,
+	static Character *_LoadItem(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data
 	);
-	static Character *_Load(ItemFactory &factory, uint32 characterID,
+	static Character *_LoadCharacter(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
 		const CharacterType &charType, const ItemData &data,
 		// Character stuff:
 		const CharacterData &charData, const CorpMemberInfo &corpData
 	);
-	virtual bool _Load(bool recurse=false);
+
+	bool _Load(bool recurse=false);
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:

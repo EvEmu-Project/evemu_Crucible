@@ -100,52 +100,42 @@ SolarSystem::SolarSystem(
 SolarSystem::~SolarSystem() {
 }
 
-SolarSystem *SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID, bool recurse) {
-	return InventoryItem::Load<SolarSystem>(factory, solarSystemID, recurse);
+SolarSystem *SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID, bool recurse)
+{
+	return InventoryItem::Load<SolarSystem>( factory, solarSystemID, recurse );
 }
 
-SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID
-) {
-	return InventoryItem::_Load<SolarSystem>(
-		factory, solarSystemID
-	);
+SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID)
+{
+	return InventoryItem::_Load<SolarSystem>( factory, solarSystemID );
 }
 
-SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
+SolarSystem *SolarSystem::_LoadItem(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data
-) {
-	return CelestialObject::_Load<SolarSystem>(
-		factory, solarSystemID, type, data
-	);
+	const Type &type, const ItemData &data)
+{
+	return CelestialObject::_LoadItem<SolarSystem>( factory, solarSystemID, type, data );
 }
 
-SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
+SolarSystem *SolarSystem::_LoadCelestialObject(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data,
 	// CelestialObject stuff:
-	const CelestialObjectData &cData
-) {
-	return SolarSystem::_Load<SolarSystem>(
-		factory, solarSystemID, type, data, cData
-	);
+	const CelestialObjectData &cData)
+{
+	return SolarSystem::_LoadCelestialObject<SolarSystem>( factory, solarSystemID, type, data, cData );
 }
 
-SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID,
+SolarSystem *SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data,
 	// CelestialObject stuff:
 	const CelestialObjectData &cData,
 	// SolarSystem stuff:
-	const Type &sunType, const SolarSystemData &ssData
-) {
+	const Type &sunType, const SolarSystemData &ssData)
+{
 	// we have it all
-	return(new SolarSystem(
-		factory, solarSystemID,
-		type, data,
-		cData,
-		sunType, ssData
-	));
+	return new SolarSystem( factory, solarSystemID, type, data, cData, sunType, ssData );
 }
 
 bool SolarSystem::_Load(bool recurse) {

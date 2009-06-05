@@ -59,68 +59,48 @@ CelestialObject::CelestialObject(
 {
 }
 
-CelestialObject *CelestialObject::Load(ItemFactory &factory, uint32 celestialID, bool recurse) {
-	return InventoryItem::Load<CelestialObject>(factory, celestialID, recurse);
+CelestialObject *CelestialObject::Load(ItemFactory &factory, uint32 celestialID, bool recurse)
+{
+	return InventoryItem::Load<CelestialObject>( factory, celestialID, recurse );
 }
 
-CelestialObject *CelestialObject::_Load(ItemFactory &factory, uint32 celestialID
-) {
-	return InventoryItem::_Load<CelestialObject>(
-		factory, celestialID
-	);
+CelestialObject *CelestialObject::_Load(ItemFactory &factory, uint32 celestialID)
+{
+	return InventoryItem::_Load<CelestialObject>( factory, celestialID );
 }
 
-CelestialObject *CelestialObject::_Load(ItemFactory &factory, uint32 celestialID,
+CelestialObject *CelestialObject::_LoadItem(ItemFactory &factory, uint32 celestialID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data
-) {
-	return CelestialObject::_Load<CelestialObject>(
-		factory, celestialID, type, data
-	);
+	const Type &type, const ItemData &data)
+{
+	return CelestialObject::_LoadItem<CelestialObject>( factory, celestialID, type, data );
 }
 
-CelestialObject *CelestialObject::_Load(ItemFactory &factory, uint32 celestialID,
+CelestialObject *CelestialObject::_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data,
 	// CelestialObject stuff:
-	const CelestialObjectData &cData
-) {
+	const CelestialObjectData &cData)
+{
 	// Our category is celestial; what to do next:
-	switch(type.groupID()) {
+	switch( type.groupID() ) {
 		///////////////////////////////////////
 		// Solar system:
 		///////////////////////////////////////
 		case EVEDB::invGroups::Solar_System: {
-			// create solar system
-			return(SolarSystem::_Load(
-				factory, celestialID, type, data
-			));
-		};
+			return SolarSystem::_LoadCelestialObject( factory, celestialID, type, data, cData );
+		}
 
 		///////////////////////////////////////
 		// Station:
 		///////////////////////////////////////
 		case EVEDB::invGroups::Station: {
-			// cast the type into what it really is ...
-			const StationType &stationType = static_cast<const StationType &>(type);
-
-			return(Station::_Load(
-				factory, celestialID, stationType, data
-			));
-		};
-
-		///////////////////////////////////////
-		// Default:
-		///////////////////////////////////////
-		default: {
-			// let's create a generic one
-			return(new CelestialObject(
-				factory, celestialID,
-				type, data,
-				cData
-			));
-		};
+			return Station::_LoadCelestialObject( factory, celestialID, type, data, cData );
+		}
 	}
+
+	// Create a generic one:
+	return new CelestialObject( factory, celestialID, type, data, cData );
 }
 
 void CelestialObject::Save(bool recursive, bool saveAttributes) const {

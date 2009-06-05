@@ -104,40 +104,37 @@ protected:
 	 */
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 stationTypeID,
+	static _Ty *_LoadType(ItemFactory &factory, uint32 stationTypeID,
 		// Type stuff:
-		const Group &group, const TypeData &data
-	) {
+		const Group &group, const TypeData &data)
+	{
 		// verify it's a station type
-		if(group.id() != EVEDB::invGroups::Station) {
-			_log(ITEM__ERROR, "Trying to load %s as Station.", group.name().c_str());
+		if( group.id() != EVEDB::invGroups::Station ) {
+			_log( ITEM__ERROR, "Trying to load %s as Station.", group.name().c_str() );
 			return NULL;
 		}
 
 		// get station type data
 		StationTypeData stData;
-		if(!factory.db().GetStationType(stationTypeID, stData))
+		if( !factory.db().GetStationType(stationTypeID, stData) )
 			return NULL;
 
-		return(
-			_Ty::_Load(factory, stationTypeID, group, data, stData)
-		);
+		return _Ty::_LoadStationType( factory, stationTypeID, group, data, stData );
 	}
 
 	// Actual loading stuff:
 	static StationType *_Load(ItemFactory &factory, uint32 stationTypeID
 	);
-	static StationType *_Load(ItemFactory &factory, uint32 stationTypeID,
+	static StationType *_LoadType(ItemFactory &factory, uint32 stationTypeID,
 		// Type stuff:
 		const Group &group, const TypeData &data
 	);
-	static StationType *_Load(ItemFactory &factory, uint32 stationTypeID,
+	static StationType *_LoadStationType(ItemFactory &factory, uint32 stationTypeID,
 		// Type stuff:
 		const Group &group, const TypeData &data,
 		// StationType stuff:
 		const StationTypeData &stData
 	);
-
 	virtual bool _Load(ItemFactory &factory) { return Type::_Load(factory); }
 
 	/*
@@ -238,44 +235,43 @@ protected:
 	 */
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 stationID,
+	static _Ty *_LoadCelestialObject(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data,
 		// CelestialObject stuff:
-		const CelestialObjectData &cData
-	) {
+		const CelestialObjectData &cData)
+	{
 		// check it's a station
-		if(type.groupID() != EVEDB::invGroups::Station) {
-			_log(ITEM__ERROR, "Trying to load %s as Station.", type.group().name().c_str());
+		if( type.groupID() != EVEDB::invGroups::Station )
+		{
+			_log( ITEM__ERROR, "Trying to load %s as Station.", type.group().name().c_str() );
 			return NULL;
 		}
 		// cast the type
-		const StationType &stType = static_cast<const StationType &>(type);
+		const StationType &stType = static_cast<const StationType &>( type );
 
 		// load station data
 		StationData stData;
-		if(!factory.db().GetStation(stationID, stData))
+		if( !factory.db().GetStation( stationID, stData ) )
 			return NULL;
 
-		return(
-			_Ty::_Load(factory, stationID, stType, data, cData, stData)
-		);
+		return _Ty::_LoadStation( factory, stationID, stType, data, cData, stData );
 	}
 
 	// Actual loading stuff:
 	static Station *_Load(ItemFactory &factory, uint32 stationID
 	);
-	static Station *_Load(ItemFactory &factory, uint32 stationID,
+	static Station *_LoadItem(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data
 	);
-	static Station *_Load(ItemFactory &factory, uint32 stationID,
+	static Station *_LoadCelestialObject(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data,
 		// CelestialObject stuff:
 		const CelestialObjectData &cData
 	);
-	static Station *_Load(ItemFactory &factory, uint32 stationID,
+	static Station *_LoadStation(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
 		const StationType &type, const ItemData &data,
 		// CelestialObject stuff:
@@ -283,7 +279,8 @@ protected:
 		// Station stuff:
 		const StationData &stData
 	);
-	virtual bool _Load(bool recurse=false) { return CelestialObject::_Load(recurse); }
+
+	bool _Load(bool recurse=false) { return CelestialObject::_Load(recurse); }
 
 	/*
 	 * Data members:

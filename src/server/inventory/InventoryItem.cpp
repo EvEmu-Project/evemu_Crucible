@@ -176,97 +176,64 @@ InventoryItem * InventoryItem::IncRef()
 	return(this);
 }
 
-InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID, bool recurse) {
-	return InventoryItem::Load<InventoryItem>(factory, itemID, recurse);
+InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID, bool recurse)
+{
+	return InventoryItem::Load<InventoryItem>( factory, itemID, recurse );
 }
 
-InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID
-) {
-	return InventoryItem::_Load<InventoryItem>(
-		factory, itemID
-	);
+InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID)
+{
+	return InventoryItem::_Load<InventoryItem>( factory, itemID );
 }
 
-InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID,
+InventoryItem *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data
-) {
+	const Type &type, const ItemData &data)
+{
 	// See what to do next:
-	switch(type.categoryID()) {
+	switch( type.categoryID() ) {
 		///////////////////////////////////////
 		// Blueprint:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Blueprint: {
-			// cast the type into what it really is ...
-			const BlueprintType &bpType = static_cast<const BlueprintType &>(type);
-
-			// create the blueprint
-			return(Blueprint::_Load(
-				factory, itemID, bpType, data
-			));
-		};
+			return Blueprint::_LoadItem( factory, itemID, type, data );
+		}
 
 		///////////////////////////////////////
 		// Celestial:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Celestial: {
-			return(CelestialObject::_Load(
-				factory, itemID, type, data
-			));
-		};
+			return CelestialObject::_LoadItem( factory, itemID, type, data );
+		}
 
 		///////////////////////////////////////
 		// Ship:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Ship: {
-			// cast the type into what it really is ...
-			const ShipType &shipType = static_cast<const ShipType &>(type);
-
-			// create the ship
-			return(Ship::_Load(
-				factory, itemID, shipType, data
-			));
-		};
-
-		///////////////////////////////////////
-		// Default:
-		///////////////////////////////////////
-		default: {
-			switch(type.groupID()) {
-				///////////////////////////////////////
-				// Character:
-				///////////////////////////////////////
-				case EVEDB::invGroups::Character: {
-					// cast the type into what it really is ...
-					const CharacterType &charType = static_cast<const CharacterType &>(type);
-
-					// create character
-					return(Character::_Load(
-						factory, itemID, charType, data
-					));
-				};
-
-				///////////////////////////////////////
-				// Station:
-				///////////////////////////////////////
-				case EVEDB::invGroups::Station: {
-					return(CelestialObject::_Load(
-						factory, itemID, type, data
-					));
-				};
-
-				///////////////////////////////////////
-				// Default:
-				///////////////////////////////////////
-				default: {
-					// we are generic item; create one
-					return(new InventoryItem(
-						factory, itemID, type, data
-					));
-				};
-			}
-		};
+			return Ship::_LoadItem( factory, itemID, type, data );
+		}
 	}
+
+	// Category didn't do it, try Group:
+	switch( type.groupID() ) {
+		///////////////////////////////////////
+		// Character:
+		///////////////////////////////////////
+		case EVEDB::invGroups::Character: {
+			// create character
+			return Character::_LoadItem( factory, itemID, type, data );
+		}
+
+		///////////////////////////////////////
+		// Station:
+		///////////////////////////////////////
+		case EVEDB::invGroups::Station: {
+			return Station::_LoadItem( factory, itemID, type, data );
+		}
+	}
+
+	// Generic item, create one:
+	return new InventoryItem( factory, itemID, type, data );
 }
 
 bool InventoryItem::_Load(bool recurse) {

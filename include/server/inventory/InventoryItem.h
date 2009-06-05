@@ -248,14 +248,16 @@ protected:
 	 */
 	// Template helper:
 	template<class _Ty>
-	static _Ty *Load(ItemFactory &factory, uint32 itemID, bool recurse) {
+	static _Ty *Load(ItemFactory &factory, uint32 itemID, bool recurse)
+	{
 		// static load
-		_Ty *i = _Ty::_Load(factory, itemID);
-		if(i == NULL)
+		_Ty *i = _Ty::_Load( factory, itemID );
+		if( i == NULL )
 			return NULL;
 
 		// dynamic load
-		if(!i->_Load(recurse)) {
+		if( !i->_Load( recurse ) )
+		{
 			i->DecRef();	// should delete the item
 			return NULL;
 		}
@@ -265,30 +267,29 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 itemID
-	) {
+	static _Ty *_Load(ItemFactory &factory, uint32 itemID)
+	{
 		// pull the item info
 		ItemData data;
-		if(!factory.db().GetItem(itemID, data))
+		if( !factory.db().GetItem( itemID, data ) )
 			return NULL;
 
 		// obtain type
-		const Type *type = factory.GetType(data.typeID);
-		if(type == NULL)
+		const Type *type = factory.GetType( data.typeID );
+		if( type == NULL )
 			return NULL;
 
-		return(_Ty::_Load(
-			factory, itemID, *type, data
-		));
+		return _Ty::_LoadItem( factory, itemID, *type, data );
 	}
 
 	// Actual loading stuff:
 	static InventoryItem *_Load(ItemFactory &factory, uint32 itemID
 	);
-	static InventoryItem *_Load(ItemFactory &factory, uint32 itemID,
+	static InventoryItem *_LoadItem(ItemFactory &factory, uint32 itemID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data
 	);
+
 	virtual bool _Load(bool recurse=false);
 
 	static uint32 _Spawn(ItemFactory &factory,

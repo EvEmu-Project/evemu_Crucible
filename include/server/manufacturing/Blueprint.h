@@ -121,49 +121,48 @@ protected:
 	 */
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 typeID,
+	static _Ty *_LoadType(ItemFactory &factory, uint32 typeID,
 		// Type stuff:
-		const Group &group, const TypeData &data
-	) {
+		const Group &group, const TypeData &data)
+	{
 		// check if we are really loading a blueprint
-		if(group.categoryID() != EVEDB::invCategories::Blueprint) {
-			_log(ITEM__ERROR, "Load of blueprint type %u requested, but it's %s.", typeID, group.category().name().c_str());
+		if( group.categoryID() != EVEDB::invCategories::Blueprint ) {
+			_log( ITEM__ERROR, "Load of blueprint type %u requested, but it's %s.", typeID, group.category().name().c_str() );
 			return NULL;
 		}
 
 		// pull additional blueprint data
 		BlueprintTypeData bpData;
-		if(!factory.db().GetBlueprintType(typeID, bpData))
+		if( !factory.db().GetBlueprintType( typeID, bpData ) )
 			return NULL;
 
 		// obtain parent blueprint type (might be NULL)
 		const BlueprintType *parentBlueprintType = NULL;
-		if(bpData.parentBlueprintTypeID != 0) {
+		if( bpData.parentBlueprintTypeID != 0 )
+		{
 			// we have parent type, get it
-			parentBlueprintType = factory.GetBlueprintType(bpData.parentBlueprintTypeID);
-			if(parentBlueprintType == NULL)
+			parentBlueprintType = factory.GetBlueprintType( bpData.parentBlueprintTypeID );
+			if( parentBlueprintType == NULL )
 				return NULL;
 		}
 
 		// obtain product type
-		const Type *productType = factory.GetType(bpData.productTypeID);
-		if(productType == NULL)
+		const Type *productType = factory.GetType( bpData.productTypeID );
+		if( productType == NULL )
 			return NULL;
 
 		// create blueprint type
-		return(
-			_Ty::_Load(factory, typeID, group, data, parentBlueprintType, *productType, bpData)
-		);
+		return _Ty::_LoadBlueprintType( factory, typeID, group, data, parentBlueprintType, *productType, bpData );
 	}
 
 	// Actual loading stuff:
 	static BlueprintType *_Load(ItemFactory &factory, uint32 typeID
 	);
-	static BlueprintType *_Load(ItemFactory &factory, uint32 typeID,
+	static BlueprintType *_LoadType(ItemFactory &factory, uint32 typeID,
 		// Type stuff:
 		const Group &group, const TypeData &data
 	);
-	static BlueprintType *_Load(ItemFactory &factory, uint32 typeID,
+	static BlueprintType *_LoadBlueprintType(ItemFactory &factory, uint32 typeID,
 		// Type stuff:
 		const Group &group, const TypeData &data,
 		// BlueprintType stuff:
@@ -312,42 +311,42 @@ protected:
 	 */
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 blueprintID,
+	static _Ty *_LoadItem(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data
-	) {
+		const Type &type, const ItemData &data)
+	{
 		// check it's blueprint type
-		if(type.categoryID() != EVEDB::invCategories::Blueprint) {
-			_log(ITEM__ERROR, "Trying to load %s as Blueprint.", type.category().name().c_str());
+		if( type.categoryID() != EVEDB::invCategories::Blueprint )
+		{
+			_log( ITEM__ERROR, "Trying to load %s as Blueprint.", type.category().name().c_str() );
 			return NULL;
 		}
 		// cast the type
-		const BlueprintType &bpType = static_cast<const BlueprintType &>(type);
+		const BlueprintType &bpType = static_cast<const BlueprintType &>( type );
 
 		// we are blueprint; pull additional blueprint info
 		BlueprintData bpData;
-		if(!factory.db().GetBlueprint(blueprintID, bpData))
+		if( !factory.db().GetBlueprint( blueprintID, bpData ) )
 			return NULL;
 
-		return(
-			_Ty::_Load(factory, blueprintID, bpType, data, bpData)
-		);
+		return _Ty::_LoadBlueprint( factory, blueprintID, bpType, data, bpData );
 	}
 
 	// Actual loading stuff:
 	static Blueprint *_Load(ItemFactory &factory, uint32 blueprintID
 	);
-	static Blueprint *_Load(ItemFactory &factory, uint32 blueprintID,
+	static Blueprint *_LoadItem(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data
 	);
-	static Blueprint *_Load(ItemFactory &factory, uint32 blueprintID,
+	static Blueprint *_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:
 		const BlueprintType &bpType, const ItemData &data,
 		// Blueprint stuff:
 		const BlueprintData &bpData
 	);
-	virtual bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+
+	bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:
