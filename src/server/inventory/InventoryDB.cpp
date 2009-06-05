@@ -1552,8 +1552,8 @@ bool InventoryDB::LoadSkillQueue(uint32 characterID, SkillQueue &into) {
 		"SELECT"
 		" typeID, level"
 		" FROM chrSkillQueue"
-		" WHERE itemID = %u"
-		" ORDER BY id ASC",
+		" WHERE characterID = %u"
+		" ORDER BY orderIndex ASC",
 		characterID ) )
 	{
 		_log(DATABASE__ERROR, "Failed to query skill queue of character %u: %s.", characterID, res.error.c_str());
@@ -1579,7 +1579,7 @@ bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
 	if( !m_db->RunQuery( err,
 		"DELETE"
 		" FROM chrSkillQueue"
-		" WHERE itemID = %u",
+		" WHERE characterID = %u",
 		characterID ) )
 	{
 		_log(DATABASE__ERROR, "Failed to delete skill queue of character %u: %s.", characterID, err.c_str());
@@ -1598,7 +1598,7 @@ bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
 		const QueuedSkill &qs = queue[i];
 
 		char buf[64];
-		snprintf(buf, 64, "(%u, %u, %u, %u)", i, characterID, qs.typeID, qs.level);
+		snprintf(buf, 64, "(%u, %u, %u, %u)", characterID, i, qs.typeID, qs.level);
 
 		if( i != 0 )
 			query += ',';
@@ -1607,7 +1607,7 @@ bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
 
 	if( !m_db->RunQuery( err,
 		"INSERT"
-		" INTO chrSkillQueue (id, itemID, typeID, level)"
+		" INTO chrSkillQueue (characterID, orderIndex, typeID, level)"
 		" VALUES %s",
 		query.c_str() ) )
 	{
