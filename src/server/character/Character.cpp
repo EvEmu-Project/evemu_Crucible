@@ -647,6 +647,7 @@ uint64 Character::GetEndOfTraining() {
 }
 
 bool Character::InjectSkillIntoBrain(InventoryItem *skill) {
+	Client *c = m_factory.entity_list.FindCharacter( itemID() );
 	InventoryItem *oldSkill = GetByTypeFlag( skill->typeID(), flagSkill );
 	if( oldSkill == NULL )
 		oldSkill = GetByTypeFlag( skill->typeID(), flagSkillInTraining );
@@ -655,16 +656,22 @@ bool Character::InjectSkillIntoBrain(InventoryItem *skill) {
 		|| skill->flag() == flagSkill
 		|| skill->flag() == flagSkillInTraining )
 	{
-		//TODO: build and send UserError for CharacterAlreadyKnowsSkill.
+		//TODO: build and send proper UserError for CharacterAlreadyKnowsSkill.
+		if(c != NULL) {
+			c->SendNotifyMsg("You already know this skill.");
+		}
 		return false;
 	}
 
 	// TODO: based on config options later, check to see if another character, owned by this characters account,
 	// is training a skill.  If so, return. (flagID=61).
-
 	if(!skill->SkillPrereqsComplete(*this)){
 		// TODO: need to send back a response to the client.  need packet specs.
 		_log(ITEM__TRACE, "%s (%u): Requested to train skill %u item %u but prereq not complete.", m_itemName.c_str(), m_itemID, skill->typeID(), skill->itemID());
+		
+		if(c != NULL) {
+			c->SendNotifyMsg("Injection failed!  Skill prerequisites incomplete.");
+		}		
 		return false;
 	}
 
@@ -703,6 +710,9 @@ bool Character::InjectSkillIntoBrain(InventoryItem *skill) {
 		// no decrement, the ref isn't ours
 	}
 
+	if(c != NULL) {
+		c->SendNotifyMsg("Injection of skill complete.");
+	}
 	return true;
 }
 
