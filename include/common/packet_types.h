@@ -279,6 +279,11 @@ static const EVEItemFlags flagSlotLast = flagFixedSlot;
 static const EVEItemFlags flagAnywhere = flagAutoFit;
 static const uint8 MAX_MODULE_COUNT = flagSlotLast - flagSlotFirst + 1;
 
+#define FlagToSlot(flag) \
+	(flag - flagSlotFirst)
+#define SlotToFlag(slot) \
+	((EVEItemFlags)(flagSlotFirst + slot))
+
 /* To complete the skill list this use this query:
 SELECT t.typeID, c.categoryID, g.groupName, t.typeName, t.description, t.basePrice
 FROM invTypes t, invGroups g, invCategories c

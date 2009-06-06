@@ -43,7 +43,22 @@ class Skill
 {
 	friend class InventoryItem;
 public:
+	/**
+	 * Loads skill.
+	 *
+	 * @param[in] factory
+	 * @param[in] skillID ID of skill to load.
+	 * @param[in] recurse Whether all contained items should be loaded.
+	 * @return Pointer to new Skill object; NULL if fails.
+	 */
 	static Skill *Load(ItemFactory &factory, uint32 skillID, bool recurse=false);
+	/**
+	 * Spawns new skill.
+	 *
+	 * @param[in] factory
+	 * @param[in] data Item data of new skill.
+	 * @return Pointer to new Skill object; NULL if fails.
+	 */
 	static Skill *Spawn(ItemFactory &factory, ItemData &data);
 
 	/*

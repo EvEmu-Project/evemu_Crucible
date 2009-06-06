@@ -166,9 +166,6 @@ public:
 protected:
 	Client *const m_pilot;
 	
-	static uint8 FlagToSlot(EVEItemFlags flag);
-	static EVEItemFlags SlotToFlag(uint8 slot);
-	
 	std::map<uint32, uint8> m_moduleByID;	//maps itemID to m_modules index
 	ShipModule *m_modules[MAX_MODULE_COUNT];
 };

@@ -198,12 +198,11 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
 		return(new PyRepList());
 	}
 
-	InventoryItem *item;
 	std::vector<uint32>::const_iterator cur, end;
 	cur = args.items.begin();
 	end = args.items.end();
 	for(; cur != end; cur++) {
-		item = m_manager->item_factory.GetItem(*cur, false);
+		InventoryItem *item = m_manager->item_factory.GetItem(*cur, false);
 		if(item == NULL) {
 			codelog(SERVICE__ERROR, "%s: Unable to load item %u to delete it. Skipping.", call.client->GetName(), *cur);
 		} else if(call.client->GetCharacterID() != item->ownerID()) {

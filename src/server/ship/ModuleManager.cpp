@@ -207,14 +207,6 @@ void ModuleManager::ReplaceCharges(EVEItemFlags flag, InventoryItem *new_charge)
 	m_modules[slot]->ChangeCharge(new_charge);
 }
 
-uint8 ModuleManager::FlagToSlot(EVEItemFlags flag) {
-	return(flag - flagSlotFirst);
-}
-
-EVEItemFlags ModuleManager::SlotToFlag(uint8 slot) {
-	return((EVEItemFlags)(slot+flagSlotFirst));
-}
-
 ShipModule *ShipModule::CreateModule(Client *owner, InventoryItem *self, InventoryItem *charge_) {
 	switch(self->groupID()) {
 	//TODO: make an enum for this crap, or pull it from the DB.

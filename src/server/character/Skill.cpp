@@ -94,13 +94,11 @@ uint32 Skill::GetSPForLevel(uint8 level)
 
 bool Skill::SkillPrereqsComplete(Character &ch)
 {
-	InventoryItem *requiredSkill;
+	Skill *requiredSkill;
 
 	if( requiredSkill1() != 0 )
 	{
-		requiredSkill = ch.GetByTypeFlag( requiredSkill1(), flagSkill );
-		if( requiredSkill == NULL )
-			requiredSkill = ch.GetByTypeFlag( requiredSkill1(), flagSkillInTraining );
+		requiredSkill = ch.GetSkill( requiredSkill1() );
 		if( requiredSkill == NULL )
 			return false;
 
@@ -110,9 +108,7 @@ bool Skill::SkillPrereqsComplete(Character &ch)
 
 	if( requiredSkill2() != 0 )
 	{
-		requiredSkill = ch.GetByTypeFlag( requiredSkill2(), flagSkill );
-		if( requiredSkill == NULL )
-			requiredSkill = ch.GetByTypeFlag( requiredSkill2(), flagSkillInTraining );
+		requiredSkill = ch.GetSkill( requiredSkill2() );
 		if( requiredSkill == NULL )
 			return false;
 
@@ -122,9 +118,7 @@ bool Skill::SkillPrereqsComplete(Character &ch)
 
 	if( requiredSkill3() != 0 )
 	{
-		requiredSkill = ch.GetByTypeFlag( requiredSkill3(), flagSkill );
-		if( requiredSkill == NULL )
-			requiredSkill = ch.GetByTypeFlag( requiredSkill3(), flagSkillInTraining );
+		requiredSkill = ch.GetSkill( requiredSkill3() );
 		if( requiredSkill == NULL )
 			return false;
 
