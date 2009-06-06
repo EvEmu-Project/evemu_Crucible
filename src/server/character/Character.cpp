@@ -718,7 +718,7 @@ void Character::UpdateSkillQueue()
 				PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
 				c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
 
-				c->SendNotifyMsg("Training of the skill has been completed.", currentTraining->itemName());
+				c->SendNotifyMsg("Training of skill has been completed.");
 
 				c->SetTrainStatus(false, 0);
 			}
