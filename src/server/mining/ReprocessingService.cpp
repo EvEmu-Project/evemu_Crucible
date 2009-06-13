@@ -296,7 +296,7 @@ double ReprocessingServiceBound::_CalcReprocessingEfficiency(const Client *c, co
 
 	std::vector<InventoryItem *> skills;
 
-	c->Char()->FindByFlagSet(flags, skills);
+	c->GetChar()->FindByFlagSet(flags, skills);
 
 	// formula is: reprocessingEfficiency + 0.375*(1 + 0.02*RefiningSkill)*(1 + 0.04*RefineryEfficiencySkill)*(1 + 0.05*OreProcessingSkill)
 	// commented out until we have skills working different way ...

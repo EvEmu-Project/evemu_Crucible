@@ -370,7 +370,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		if(
 		   (item->locationID() != args.stationID)	//item in station hanger
 		   && !(
-				call.client->Ship()->Contains(item)	//item is in our ship
+				call.client->GetShip()->Contains(item)	//item is in our ship
 				&& call.client->GetStationID() == args.stationID	//and our ship is in the station
 				)
 		) {

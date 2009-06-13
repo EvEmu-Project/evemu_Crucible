@@ -240,7 +240,7 @@ void Client::Process() {
 	if( m_statusTrain )
 	{
 		if( Win32TimeNow() >= m_timeEndTrain )
-			Char()->UpdateSkillQueue();
+			GetChar()->UpdateSkillQueue();
 	}
 
 	modules.Process();
@@ -558,9 +558,9 @@ bool Client::EnterSystem() {
 		//we are in a system, so we need a destiny manager
 		m_destiny = new DestinyManager(this, m_system);
 		//ship should never be NULL.
-		m_destiny->SetShipCapabilities(Ship());
+		m_destiny->SetShipCapabilities(GetShip());
 		//set position.
-		m_destiny->SetPosition(Ship()->position(), false);
+		m_destiny->SetPosition(GetShip()->position(), false);
 		//for now, we always enter a system stopped.
 		m_destiny->Halt(false);
 	}
@@ -590,7 +590,7 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 			NULL, NULL, NULL
 		);
 
-		Ship()->Move(stationID, flagHangar);
+		GetShip()->Move(stationID, flagHangar);
 	} else if(IsSolarSystem(location)) {
 		// Entering a solarsystem
 		// source is GetLocation()
@@ -605,15 +605,15 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
 			NULL, NULL
 		);
 
-		Ship()->Move(solarSystemID, flagShipOffline);
-		Ship()->Relocate(pt);
+		GetShip()->Move(solarSystemID, flagShipOffline);
+		GetShip()->Relocate(pt);
 	} else {
 		SendErrorMsg("Move requested to unsupported location %u", location);
 		return;
 	}
 
 	//move the character_ record... we really should derive the char's location from the entity table...
-	Char()->SetLocation(stationID, solarSystemID, constellationID, regionID);
+	GetChar()->SetLocation(stationID, solarSystemID, constellationID, regionID);
 
 	EnterSystem();
 	SessionSync();
@@ -624,7 +624,7 @@ void Client::MoveToPosition(const GPoint &pt) {
 		return;
 	m_destiny->Halt(true);
 	m_destiny->SetPosition(pt, true);
-	Ship()->Relocate(pt);
+	GetShip()->Relocate(pt);
 }
 
 void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag) {
@@ -649,7 +649,7 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag) {
 	item->DecRef();
 }
 
-void Client::BoardShip(InventoryItem *new_ship) {
+void Client::BoardShip(Ship *new_ship) {
 	//TODO: make sure we are really allowed to board this thing...
 	
 	if(!new_ship->singleton()) {
@@ -662,7 +662,7 @@ void Client::BoardShip(InventoryItem *new_ship) {
 		m_system->RemoveClient(this);
 
 	_SetSelf(new_ship->IncRef());
-	m_char->MoveInto(new_ship, flagPilot, false);
+	m_char->MoveInto( new_ship, flagPilot, false );
 
 	session.Set_shipid(new_ship->itemID());
 
@@ -672,7 +672,7 @@ void Client::BoardShip(InventoryItem *new_ship) {
 		m_system->AddClient(this);
 
 	if(m_destiny != NULL)
-		m_destiny->SetShipCapabilities(Ship());
+		m_destiny->SetShipCapabilities(GetShip());
 }
 
 void Client::_ProcessCallRequest(PyPacket *packet) {
@@ -977,7 +977,7 @@ PyRepDict *Client::MakeSlimItem() const {
 
 	//encode the modules list, if we have any visible modules
 	std::vector<InventoryItem *> items;
-	Ship()->FindByFlagRange(flagHiSlot0, flagHiSlot7, items, false);
+	GetShip()->FindByFlagRange(flagHiSlot0, flagHiSlot7, items, false);
 	if(!items.empty()) {
 		PyRepList *l = new PyRepList();
 		std::vector<InventoryItem *>::iterator cur, end;
@@ -1055,7 +1055,7 @@ void Client::_ExecuteJump() {
 }
 
 bool Client::AddBalance(double amount) {
-	if(!Char()->AlterBalance(amount))
+	if(!GetChar()->AlterBalance(amount))
 		return false;
 	
 	//send notification of change
@@ -1077,7 +1077,7 @@ bool Client::SelectCharacter(uint32 char_id) {
 	if(character == NULL)
 		return false;
 
-	InventoryItem *ship = m_services.item_factory.GetItem(character->locationID(), true);
+	Ship *ship = m_services.item_factory.GetShip(character->locationID(), true);
 	if(ship == NULL)
 		return false;
 
@@ -1089,7 +1089,7 @@ bool Client::SelectCharacter(uint32 char_id) {
 		return false;
 
 	// update skill queue
-	Char()->UpdateSkillQueue();
+	GetChar()->UpdateSkillQueue();
 
 	SessionSync();
 
@@ -1105,19 +1105,19 @@ void Client::SetTrainStatus(bool status, uint64 timeEndTrain){
 }
 
 double Client::GetPropulsionStrength() const {
-	if(Ship() == NULL)
+	if(GetShip() == NULL)
 		return(3.0f);
 	//just making shit up, I think skills modify this, as newbies
 	//tend to end up with 3.038 instead of the base 3.0 on their ship..
 	double res;
-	res =  Ship()->propulsionFusionStrength();
-	res += Ship()->propulsionIonStrength();
-	res += Ship()->propulsionMagpulseStrength();
-	res += Ship()->propulsionPlasmaStrength();
-	res += Ship()->propulsionFusionStrengthBonus();
-	res += Ship()->propulsionIonStrengthBonus();
-	res += Ship()->propulsionMagpulseStrengthBonus();
-	res += Ship()->propulsionPlasmaStrengthBonus();
+	res =  GetShip()->propulsionFusionStrength();
+	res += GetShip()->propulsionIonStrength();
+	res += GetShip()->propulsionMagpulseStrength();
+	res += GetShip()->propulsionPlasmaStrength();
+	res += GetShip()->propulsionFusionStrengthBonus();
+	res += GetShip()->propulsionIonStrengthBonus();
+	res += GetShip()->propulsionMagpulseStrengthBonus();
+	res += GetShip()->propulsionPlasmaStrengthBonus();
 	res += 0.038f;
 	return(res);
 }
@@ -1193,11 +1193,11 @@ void Client::TargetsCleared() {
 }
 
 void Client::SavePosition() {
-	if(Ship() == NULL || m_destiny == NULL) {
+	if(GetShip() == NULL || m_destiny == NULL) {
 		_log(CLIENT__TRACE, "%s: Unable to save position. We are probably not in space.", GetName());
 		return;
 	}
-	Ship()->Relocate( m_destiny->GetPosition() );
+	GetShip()->Relocate( m_destiny->GetPosition() );
 }
 
 bool Client::LaunchDrone(InventoryItem *drone) {
@@ -1282,7 +1282,7 @@ DoDestinyUpdate ,*args= ([(31759,
 		du.controllerID = GetShipID();
 		du.activityState = 0;
 		du.droneTypeID = drone->typeID();
-		du.controllerOwnerID = Ship()->ownerID();
+		du.controllerOwnerID = GetShip()->ownerID();
 		act.update = du.FastEncode();
 		actions->add( act.FastEncode() );
     }*/
@@ -1339,7 +1339,7 @@ DoDestinyUpdate ,*args= ([(31759,
 
 //assumes that the backend DB stuff was already done.
 void Client::JoinCorporationUpdate(uint32 corp_id) {
-	Char()->JoinCorporation(corp_id);
+	GetChar()->JoinCorporation(corp_id);
 	
 	//logs indicate that we need to push this update out asap.
 	SessionSync();

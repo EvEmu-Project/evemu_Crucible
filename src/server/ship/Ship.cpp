@@ -159,3 +159,44 @@ uint32 Ship::_Spawn(ItemFactory &factory,
 
 	return shipID;
 }
+
+PyRepObject *Ship::ShipGetInfo()
+{
+	if( !LoadContents( true ) )
+	{
+		codelog( ITEM__ERROR, "%s (%u): Failed to load contents for ShipGetInfo", itemName().c_str(), itemID() );
+		return NULL;
+	}
+
+	Rsp_CommonGetInfo result;
+	Rsp_CommonGetInfo_Entry entry;
+
+	//first populate the ship.
+	if( !Populate( entry ) )
+		return NULL;	//print already done.
+	
+//hacking:
+	//maximumRangeCap
+		entry.attributes[ 797 ] = new PyRepReal( 250000.000000 );
+	
+	result.items[ itemID() ] = entry.FastEncode();
+
+	//now encode contents...
+	std::vector<InventoryItem *> equipped;
+	//find all the equipped items
+	FindByFlagRange( flagLowSlot0, flagFixedSlot, equipped, false );
+	//encode an entry for each one.
+	std::vector<InventoryItem *>::iterator cur, end;
+	cur = equipped.begin();
+	end = equipped.end();
+	for(; cur != end; cur++)
+	{
+		if( !(*cur)->Populate( entry ) )
+			codelog( ITEM__ERROR, "%s (%u): Failed to load item %u for ShipGetInfo", itemName().c_str(), itemID(), (*cur)->itemID() );
+		else
+			result.items[ (*cur)->itemID() ] = entry.FastEncode();
+	}
+	
+	return result.FastEncode();
+}
+

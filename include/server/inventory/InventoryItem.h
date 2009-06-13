@@ -166,7 +166,6 @@ public:
 	void GetInventoryRowset(ItemRowset &into, EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
 
 	PyRepObject *ItemGetInfo() const;
-	PyRepObject *ShipGetInfo();
 
 	/*
 	 * Public Fields:

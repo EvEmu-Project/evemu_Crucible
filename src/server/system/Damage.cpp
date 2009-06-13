@@ -373,7 +373,7 @@ void DynamicSystemEntity::Killed(Damage &fatal_blow) {
 void Client::Killed(Damage &fatal_blow) {
 	DynamicSystemEntity::Killed(fatal_blow);
 
-	if(Ship()->typeID() == itemTypeCapsule) {
+	if(GetShip()->typeID() == itemTypeCapsule) {
 		//we have been pod killed... off we go.
 
 		//TODO: destroy all implants
@@ -394,19 +394,19 @@ void Client::Killed(Damage &fatal_blow) {
 			capsule_name.c_str()
 		);
 
-		InventoryItem *capsule = m_services.item_factory.SpawnItem(idata);
+		Ship *capsule = m_services.item_factory.SpawnShip(idata);
 		if(capsule == NULL) {
 			codelog(CLIENT__ERROR, "Failed to create capsule for character '%s'", GetName());
 			//what to do?
 			return;
 		}
 		
-		InventoryItem *dead_ship = Ship()->IncRef();	//grab a ship ref to ensure that nobody else nukes it first.
+		Ship *dead_ship = GetShip()->IncRef();	//grab a ship ref to ensure that nobody else nukes it first.
 		
 		//ok, nothing can fail now, we need have our capsule, make the transition.
 		
 		//put the capsule where the ship was
-		capsule->Relocate(Ship()->position());
+		capsule->Relocate(dead_ship->position());
 		
 		//this updates m_self and manages destiny updates as needed.
 		//This sends the RemoveBall for the old ship.

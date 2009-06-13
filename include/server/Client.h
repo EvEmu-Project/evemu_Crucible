@@ -62,8 +62,11 @@ detect clients moving into agro radius
 #include "../common/EVEPresentation.h"
 
 #include "ClientSession.h"
+
 #include "inventory/InventoryItem.h"
 #include "character/Character.h"
+#include "ship/Ship.h"
+
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
 
@@ -150,15 +153,15 @@ public:
 	uint32 GetAccountRole() const                   { return m_accountRole; }
 
 	// character data
-	Character *Char() const                         { return m_char; }
+	Character *GetChar() const                      { return m_char; }
 
-	uint32 GetCharacterID() const                   { return Char() == NULL ? 0 : Char()->itemID(); }
-	uint32 GetCorporationID() const                 { return Char() == NULL ? 0 : Char()->corporationID(); }
-	uint32 GetAllianceID() const                    { return Char() == NULL ? 0 : Char()->allianceID(); }
-	uint32 GetStationID() const                     { return Char() == NULL ? 0 : Char()->stationID(); }
-	uint32 GetSystemID() const                      { return Char() == NULL ? 0 : Char()->solarSystemID(); }
-	uint32 GetConstellationID() const               { return Char() == NULL ? 0 : Char()->constellationID(); }
-	uint32 GetRegionID() const                      { return Char() == NULL ? 0 : Char()->regionID(); }
+	uint32 GetCharacterID() const                   { return GetChar() == NULL ? 0 : GetChar()->itemID(); }
+	uint32 GetCorporationID() const                 { return GetChar() == NULL ? 0 : GetChar()->corporationID(); }
+	uint32 GetAllianceID() const                    { return GetChar() == NULL ? 0 : GetChar()->allianceID(); }
+	uint32 GetStationID() const                     { return GetChar() == NULL ? 0 : GetChar()->stationID(); }
+	uint32 GetSystemID() const                      { return GetChar() == NULL ? 0 : GetChar()->solarSystemID(); }
+	uint32 GetConstellationID() const               { return GetChar() == NULL ? 0 : GetChar()->constellationID(); }
+	uint32 GetRegionID() const                      { return GetChar() == NULL ? 0 : GetChar()->regionID(); }
 
 	uint32 GetLocationID() const
 	{
@@ -168,30 +171,31 @@ public:
 			return GetStationID();
 	}
 
-	uint32 GetCorpHQ() const                        { return Char() == NULL ? 0 : Char()->corporationHQ(); }
-	uint32 GetCorpRole() const                      { return Char() == NULL ? 0 : Char()->corpRole(); }
-	uint32 GetRolesAtAll() const                    { return Char() == NULL ? 0 : Char()->rolesAtAll(); }
-	uint32 GetRolesAtBase() const                   { return Char() == NULL ? 0 : Char()->rolesAtBase(); }
-	uint32 GetRolesAtHQ() const                     { return Char() == NULL ? 0 : Char()->rolesAtHQ(); }
-	uint32 GetRolesAtOther() const                  { return Char() == NULL ? 0 : Char()->rolesAtOther(); }
+	uint32 GetCorpHQ() const                        { return GetChar() == NULL ? 0 : GetChar()->corporationHQ(); }
+	uint32 GetCorpRole() const                      { return GetChar() == NULL ? 0 : GetChar()->corpRole(); }
+	uint32 GetRolesAtAll() const                    { return GetChar() == NULL ? 0 : GetChar()->rolesAtAll(); }
+	uint32 GetRolesAtBase() const                   { return GetChar() == NULL ? 0 : GetChar()->rolesAtBase(); }
+	uint32 GetRolesAtHQ() const                     { return GetChar() == NULL ? 0 : GetChar()->rolesAtHQ(); }
+	uint32 GetRolesAtOther() const                  { return GetChar() == NULL ? 0 : GetChar()->rolesAtOther(); }
 
-	uint32 GetShipID() const { return(GetID()); }
-	InventoryItem *Ship() const { return(Item()); }
+	uint32 GetShipID() const { return GetID(); }
+	// this is kinda hacky:
+	Ship *GetShip() const { return static_cast<Ship *>( Item() ); }
 
 	bool IsInSpace() const { return(GetStationID() == 0); }
 	inline double x() const { return(GetPosition().x); }	//this is terribly inefficient.
 	inline double y() const { return(GetPosition().y); }	//this is terribly inefficient.
 	inline double z() const { return(GetPosition().z); }	//this is terribly inefficient.
 
-	double GetBounty() const                       { return Char() == NULL ? 0.0 : Char()->bounty(); }
-	double GetSecurityRating() const               { return Char() == NULL ? 0.0 : Char()->securityRating(); }
-	double GetBalance() const                      { return Char() == NULL ? 0.0 : Char()->balance(); }
+	double GetBounty() const                       { return GetChar() == NULL ? 0.0 : GetChar()->bounty(); }
+	double GetSecurityRating() const               { return GetChar() == NULL ? 0.0 : GetChar()->securityRating(); }
+	double GetBalance() const                      { return GetChar() == NULL ? 0.0 : GetChar()->balance(); }
 	bool AddBalance(double amount);
 
 	PyServiceMgr &services() const { return(m_services); }
 
 	void Login(CryptoChallengePacket *pack);
-	void BoardShip(InventoryItem *new_ship);
+	void BoardShip(Ship *new_ship);
 	void MoveToLocation(uint32 location, const GPoint &pt);
 	void MoveToPosition(const GPoint &pt);
 	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
@@ -219,7 +223,7 @@ public:
 	virtual Client *CastToClient() { return(this); }
 	virtual const Client *CastToClient() const { return(this); }
 
-	virtual const char *GetName() const { return Char() == NULL ? "(null)" : Char()->itemName().c_str(); }
+	virtual const char *GetName() const { return GetChar() == NULL ? "(null)" : GetChar()->itemName().c_str(); }
 	virtual PyRepDict *MakeSlimItem() const;
 	virtual void QueueDestinyUpdate(PyRepTuple **du);
 	virtual void QueueDestinyEvent(PyRepTuple **multiEvent);

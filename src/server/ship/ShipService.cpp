@@ -97,7 +97,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 		codelog(CLIENT__ERROR, "%s: Boarding a ship in space is not yet implemented!!!!", call.client->GetName());
 	}
 
-	InventoryItem *ship = m_manager->item_factory.GetItem(args.arg, true);
+	Ship *ship = m_manager->item_factory.GetShip(args.arg, true);
 	if(ship == NULL) {
 		_log(CLIENT__ERROR, "%s: Failed to get new ship %u.", call.client->GetName(), args.arg);
 	} else {
@@ -140,13 +140,13 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 	//Update the custom info field.
 	char ci[256];
 	snprintf(ci, sizeof(ci), "Undocking:%u", call.client->GetLocationID());
-	call.client->Ship()->SetCustomInfo(ci);
+	call.client->GetShip()->SetCustomInfo(ci);
 	
 	//do session change...
 	call.client->MoveToLocation(call.client->GetSystemID(), dockPosition);
 
 	//revert custom info, for testing.
-	call.client->Ship()->SetCustomInfo(NULL);
+	call.client->GetShip()->SetCustomInfo(NULL);
 
 	call.client->OnCharNoLongerInStation();
 	//should get a stationSvc.GetSolarSystem(solarsystemID)

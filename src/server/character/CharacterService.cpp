@@ -317,7 +317,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	std::string ship_name = char_item->itemName() + "'s Ship";
 
 	ItemData shipItem( char_type->shipTypeID(), char_item->itemID(), char_item->locationID(), flagHangar, ship_name.c_str() );
-	InventoryItem *ship_item = m_manager->item_factory.SpawnItem(shipItem);
+	Ship *ship_item = m_manager->item_factory.SpawnShip( shipItem );
 
 	if(ship_item == NULL)
 	{
@@ -326,7 +326,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	else
 	{
 		//welcome on board your starting ship
-		char_item->MoveInto(ship_item, flagPilot, false);
+		char_item->MoveInto( ship_item, flagPilot, false );
 		ship_item->DecRef();
 	}
 
@@ -533,7 +533,7 @@ PyResult CharacterService::Handle_SetCharacterDescription(PyCallArgs &call) {
 		return NULL;
 	}
 
-	Character *c = call.client->Char();
+	Character *c = call.client->GetChar();
 	if(c == NULL) {
 		_log(CLIENT__ERROR, "SetCharacterDescription called with no char!");
 		return NULL;

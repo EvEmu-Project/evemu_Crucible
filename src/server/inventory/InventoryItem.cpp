@@ -551,45 +551,6 @@ PyRepObject *InventoryItem::ItemGetInfo() const {
 	return(result.FastEncode());
 }
 
-PyRepObject *InventoryItem::ShipGetInfo() {
-	//TODO: verify that we are a ship?
-	
-	if(!LoadContents(true)) {
-		codelog(ITEM__ERROR, "%s (%u): Failed to load contents for ShipGetInfo", m_itemName.c_str(), m_itemID);
-		return NULL;
-	}
-
-	Rsp_CommonGetInfo result;
-	Rsp_CommonGetInfo_Entry entry;
-
-	//first populate the ship.
-	if(!Populate(entry))
-		return NULL;	//print already done.
-	
-//hacking:
-	//maximumRangeCap
-		entry.attributes[797] = new PyRepReal(250000.000000);
-	
-	result.items[m_itemID] = entry.FastEncode();
-
-	//now encode contents...
-	std::vector<InventoryItem *> equipped;
-	//find all the equipped items
-	FindByFlagRange(flagLowSlot0, flagFixedSlot, equipped, false);
-	//encode an entry for each one.
-	std::vector<InventoryItem *>::iterator cur, end;
-	cur = equipped.begin();
-	end = equipped.end();
-	for(; cur != end; cur++) {
-		if(!(*cur)->Populate(entry)) {
-			codelog(ITEM__ERROR, "%s (%u): Failed to load item %u for ShipGetInfo", m_itemName.c_str(), m_itemID, (*cur)->m_itemID);
-		} else {
-			result.items[(*cur)->m_itemID] = entry.FastEncode();
-		}
-	}
-	
-	return(result.FastEncode());
-}
 
 InventoryItem *InventoryItem::FindFirstByFlag(EVEItemFlags _flag, bool newref) {
 	std::map<uint32, InventoryItem *>::iterator cur, end;

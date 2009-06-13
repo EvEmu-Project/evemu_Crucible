@@ -50,7 +50,7 @@ void ModuleManager::Process() {
 void ModuleManager::UpdateModules() {
 	//I am not sure if I like this model of pulling the ship directly
 	//from the client..
-	InventoryItem *ship = m_pilot->Ship();
+	Ship *ship = m_pilot->GetShip();
 	
 	_log(SHIP__MODULE_TRACE, "%s: Refreshing modules for ship %s (%u).", m_pilot->GetName(), ship->itemName().c_str(), ship->itemID());
 	
@@ -441,7 +441,7 @@ void ActivatableModule::_SendGodmaShipEffect(EVEEffectID effect, bool active) {
 
 void ActivatableModule::_SendWeaponEffect(const char *effect, SystemEntity *target) {
 	DoDestiny_OnSpecialFX13 sfx;
-	sfx.entityID = m_pilot->Ship()->itemID();
+	sfx.entityID = m_pilot->GetShipID();
 	sfx.moduleID = m_item->itemID();
 	sfx.moduleTypeID = m_item->typeID();
 	sfx.targetID = target->GetID();

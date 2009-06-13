@@ -502,18 +502,18 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 
 	if(args.activityID == ramActivityManufacturing) {
 		uint32 jobCount = m_db.CountManufacturingJobs(c->GetCharacterID());
-		if(c->Char()->manufactureSlotLimit() <= jobCount) {
+		if(c->GetChar()->manufactureSlotLimit() <= jobCount) {
 			std::map<std::string, PyRep *> exceptArgs;
 			exceptArgs["current"] = new PyRepInteger(jobCount);
-			exceptArgs["max"] = new PyRepInteger(c->Char()->manufactureSlotLimit());
+			exceptArgs["max"] = new PyRepInteger(c->GetChar()->manufactureSlotLimit());
 			throw(PyException(MakeUserError("MaxFactorySlotUsageReached", exceptArgs)));
 		}
 	} else {
 		uint32 jobCount = m_db.CountResearchJobs(c->GetCharacterID());
-		if(c->Char()->maxLaborotorySlots() <= jobCount) {
+		if(c->GetChar()->maxLaborotorySlots() <= jobCount) {
 			std::map<std::string, PyRep *> exceptArgs;
 			exceptArgs["current"] = new PyRepInteger(jobCount);
-			exceptArgs["max"] = new PyRepInteger(c->Char()->maxLaborotorySlots());
+			exceptArgs["max"] = new PyRepInteger(c->GetChar()->maxLaborotorySlots());
 			throw(PyException(MakeUserError("MaxResearchFacilitySlotUsageReached", exceptArgs)));
 		}
 	}
@@ -652,7 +652,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 			}
 		}
 	} else if(args.installationContainerID == c->GetShipID()) {
-		if(c->Char()->flag() != flagPilot)
+		if(c->GetChar()->flag() != flagPilot)
 			throw(PyException(MakeUserError("RamAccessDeniedNotPilot")));
 
 		if(installedItem->locationID() != args.installationContainerID)
@@ -707,7 +707,7 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
 	std::set<EVEItemFlags> flags;
 	flags.insert(flagSkill);
 	flags.insert(flagSkillInTraining);
-	c->Char()->FindByFlagSet(flags, skills);
+	c->GetChar()->FindByFlagSet(flags, skills);
 
 	// ... and items
 	InventoryItem *bomLocation = m_manager->item_factory.GetItem(pathBomLocation.locationID, true);
@@ -768,7 +768,7 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
 
 void RamProxyService::_VerifyCompleteJob(const Call_CompleteJob &args, Client *const c) {
 	if(args.containerID == c->GetShipID())
-		if(c->GetLocationID() != args.containerID || c->Char()->flag() != flagPilot)
+		if(c->GetLocationID() != args.containerID || c->GetChar()->flag() != flagPilot)
 			throw(PyException(MakeUserError("RamCompletionMustBeInShip")));
 
 	uint32 ownerID;
@@ -813,14 +813,14 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 			into.materialMultiplier *= bp->materialMultiplier();
 			into.timeMultiplier *= bp->timeMultiplier();
 
-			into.charMaterialMultiplier = c->Char()->manufactureCostMultiplier();
-			into.charTimeMultiplier = c->Char()->manufactureTimeMultiplier();
+			into.charMaterialMultiplier = c->GetChar()->manufactureCostMultiplier();
+			into.charTimeMultiplier = c->GetChar()->manufactureTimeMultiplier();
 
 			switch(productType->race()) {
-				case raceCaldari:       into.charTimeMultiplier *= double(c->Char()->caldariTechTimePercent()) / 100.0; break;
-				case raceMinmatar:      into.charTimeMultiplier *= double(c->Char()->minmatarTechTimePercent()) / 100.0; break;
-				case raceAmarr:         into.charTimeMultiplier *= double(c->Char()->amarrTechTimePercent()) / 100.0; break;
-				case raceGallente:      into.charTimeMultiplier *= double(c->Char()->gallenteTechTimePercent()) / 100.0; break;
+				case raceCaldari:       into.charTimeMultiplier *= double(c->GetChar()->caldariTechTimePercent()) / 100.0; break;
+				case raceMinmatar:      into.charTimeMultiplier *= double(c->GetChar()->minmatarTechTimePercent()) / 100.0; break;
+				case raceAmarr:         into.charTimeMultiplier *= double(c->GetChar()->amarrTechTimePercent()) / 100.0; break;
+				case raceGallente:      into.charTimeMultiplier *= double(c->GetChar()->gallenteTechTimePercent()) / 100.0; break;
 				case raceJove:          break;
 				case racePirate:        break;
 			}
@@ -835,8 +835,8 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 			productType = &installedItem->type();
 
 			into.productionTime = bp->type().researchProductivityTime();
-			into.charMaterialMultiplier = double(c->Char()->researchCostPercent()) / 100.0;
-			into.charTimeMultiplier = c->Char()->manufacturingTimeResearchSpeed();
+			into.charMaterialMultiplier = double(c->GetChar()->researchCostPercent()) / 100.0;
+			into.charTimeMultiplier = c->GetChar()->manufacturingTimeResearchSpeed();
 			break;
 		}
 		/*
@@ -848,8 +848,8 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 			productType = &installedItem->type();
 
 			into.productionTime = bp->type().researchMaterialTime();
-			into.charMaterialMultiplier = double(c->Char()->researchCostPercent()) / 100.0;
-			into.charTimeMultiplier = c->Char()->mineralNeedResearchSpeed();
+			into.charMaterialMultiplier = double(c->GetChar()->researchCostPercent()) / 100.0;
+			into.charTimeMultiplier = c->GetChar()->mineralNeedResearchSpeed();
 			break;
 		}
 		/*
@@ -863,8 +863,8 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 			// no ceil() here on purpose
 			into.productionTime = (bp->type().researchCopyTime() / bp->type().maxProductionLimit()) * args.licensedProductionRuns;
 
-			into.charMaterialMultiplier = double(c->Char()->researchCostPercent()) / 100.0;
-			into.charTimeMultiplier = c->Char()->copySpeedPercent();
+			into.charMaterialMultiplier = double(c->GetChar()->researchCostPercent()) / 100.0;
+			into.charTimeMultiplier = c->GetChar()->copySpeedPercent();
 			break;
 		}
 		default: {
@@ -934,8 +934,8 @@ void RamProxyService::_EncodeMissingMaterials(const std::vector<RequiredItem> &r
 	std::vector<InventoryItem *> skills, items;
 
 	//get the skills
-	c->Char()->FindByFlag(flagSkill, skills);
-	c->Char()->FindByFlag(flagSkillInTraining, skills);
+	c->GetChar()->FindByFlag(flagSkill, skills);
+	c->GetChar()->FindByFlag(flagSkillInTraining, skills);
 
 	//get the items
 	InventoryItem *bomContainer = m_manager->item_factory.GetItem(bomLocation.locationID, true);

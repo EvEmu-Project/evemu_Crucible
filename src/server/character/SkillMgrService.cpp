@@ -81,7 +81,7 @@ void SkillMgrBound::Release()
 
 
 PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
-	Character *ch = call.client->Char();
+	Character *ch = call.client->GetChar();
 
 	// clear & update ...
 	ch->ClearSkillQueue();
@@ -91,7 +91,7 @@ PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
  }
 
 PyResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
-	Character *ch = call.client->Char();
+	Character *ch = call.client->GetChar();
 
 	return new PyRepInteger( ch->GetEndOfTraining() );
 }
@@ -140,7 +140,7 @@ PyResult SkillMgrBound::Handle_RemoveImplantFromCharacter(PyCallArgs &call) {
 
 PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
 	// returns list of skills currently in the skill queue.
-	Character *ch = call.client->Char();
+	Character *ch = call.client->GetChar();
 
 	return ch->GetSkillQueue();
 }
@@ -152,7 +152,7 @@ PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
 		return NULL;
 	}
 
-	Character *ch = call.client->Char();
+	Character *ch = call.client->GetChar();
 
 	ch->ClearSkillQueue();
 
@@ -186,7 +186,7 @@ PyResult SkillMgrBound::Handle_AddToEndOfSkillQueue(PyCallArgs &call) {
 		return NULL;
 	}
 
-	Character *ch = call.client->Char();
+	Character *ch = call.client->GetChar();
 
 	ch->AddToSkillQueue(args.arg1, args.arg2);
 	ch->UpdateSkillQueue();
@@ -225,7 +225,7 @@ PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call)
 		return NULL;
 	}
 
-	Character *ch = call.client->Char();
+	Character *ch = call.client->GetChar();
 	
 	std::vector<uint32>::iterator cur, end;
 	cur = args.skills.begin();
