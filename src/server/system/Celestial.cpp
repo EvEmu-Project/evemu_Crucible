@@ -103,10 +103,6 @@ CelestialObject *CelestialObject::_LoadCelestialObject(ItemFactory &factory, uin
 	return new CelestialObject( factory, celestialID, type, data, cData );
 }
 
-void CelestialObject::Save(bool recursive, bool saveAttributes) const {
-	// For now disable any saving of Celestial objects.
-}
-
 void CelestialObject::Delete() {
 	// We're definitely not going to remove Celetial object.
 	// Just consume ref as supposed to.

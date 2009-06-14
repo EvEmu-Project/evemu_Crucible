@@ -384,40 +384,6 @@ bool InventoryItem::LoadContents(bool recursive) {
 	return true;
 }
 
-void InventoryItem::Save(bool recursive, bool saveAttributes) const {
-	_log(ITEM__TRACE, "Saving item %u.", m_itemID);
-
-	m_factory.db().SaveItem(
-		itemID(),
-		ItemData(
-			itemName().c_str(),
-			typeID(),
-			ownerID(),
-			locationID(),
-			flag(),
-			contraband(),
-			singleton(),
-			quantity(),
-			position(),
-			customInfo().c_str()
-		)
-	);
-
-	if(saveAttributes)
-		attributes.Save();
-	
-	if(recursive) {
-		std::map<uint32, InventoryItem *>::const_iterator cur, end;
-		cur = m_contents.begin();
-		end = m_contents.end();
-		for(; cur != end; cur++) {
-			InventoryItem *i = cur->second;
-
-			i->Save(true);
-		}
-	}
-}
-
 void InventoryItem::Delete() {
 	//first, get out of client's sight.
 	//this also removes us from our container.
@@ -461,9 +427,10 @@ void InventoryItem::Delete() {
 	//we should be deleted now.... so dont do anything!
 }
 
-PyRepObject *InventoryItem::GetItemRow() const {
+PyRepObject *InventoryItem::GetItemRow() const
+{
 	ItemRow row;
-	GetItemRow(row.line);
+	GetItemRow( row.line );
 	return row.FastEncode();
 }
 
@@ -679,18 +646,18 @@ void InventoryItem::RemoveContainedItem(InventoryItem *it) {
 void InventoryItem::Rename(const char *to) {
 	m_itemName = to;
 	// TODO: send some kind of update?
-	Save(false, false);
+	SaveItem();
 }
 
 void InventoryItem::MoveInto(InventoryItem *new_home, EVEItemFlags _flag, bool notify) {
-	Move(new_home->m_itemID, _flag, notify);
+	Move(new_home->itemID(), _flag, notify);
 }
 
-void InventoryItem::Move(uint32 location, EVEItemFlags new_flag, bool notify) {
-	uint32 old_location = m_locationID;
-	EVEItemFlags old_flag = m_flag;
+void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify) {
+	uint32 old_location = locationID();
+	EVEItemFlags old_flag = flag();
 	
-	if(location == old_location && new_flag == old_flag)
+	if( new_location == old_location && new_flag == old_flag )
 		return;	//nothing to do...
 	
 	//first, take myself out of my old container, if its loaded.
@@ -700,43 +667,29 @@ void InventoryItem::Move(uint32 location, EVEItemFlags new_flag, bool notify) {
 		old_container->DecRef();
 	}
 	
+	m_locationID = new_location;
+	m_flag = new_flag;
+
 	//then make sure that my new container is updated, if its loaded.
-	InventoryItem *new_container = m_factory._GetIfContentsLoaded(location);
+	InventoryItem *new_container = m_factory._GetIfContentsLoaded(new_location);
 	if(new_container != NULL) {
 		new_container->AddContainedItem(this);	//makes a new ref
 		new_container->DecRef();
 	}
 
-	m_locationID = location;
-	m_flag = new_flag;
-
-	Save(false, false);
+	SaveItem();
 
 	//notify about the changes.
-	if(notify) {
+	if( notify )
+	{
 		std::map<uint32, PyRep *> changes;
-		changes[ixLocationID] = new PyRepInteger(old_location);
-		if(new_flag != old_flag)
+
+		if( new_location != old_location )
+			changes[ixLocationID] = new PyRepInteger(old_location);
+		if( new_flag != old_flag )
 			changes[ixFlag] = new PyRepInteger(old_flag);
-		SendItemChange(m_ownerID, changes);	//changes is consumed
-	}
-}
 
-void InventoryItem::ChangeFlag(EVEItemFlags new_flag, bool notify) {
-	EVEItemFlags old_flag = m_flag;
-
-	if(new_flag == old_flag)
-		return;	//nothing to do...
-
-	m_flag = new_flag;
-
-	Save(false, false);
-
-	//notify about the changes.
-	if(notify) {
-		std::map<uint32, PyRep *> changes;
-		changes[ixFlag] = new PyRepInteger(old_flag);
-		SendItemChange(m_ownerID, changes);	//changes is consumed
+		SendItemChange( ownerID(), changes );	//changes is consumed
 	}
 }
 
@@ -764,11 +717,10 @@ bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
 	}
 
 	uint32 old_qty = m_quantity;
-	uint32 new_qty = qty_new;
 	
-	m_quantity = new_qty;
+	m_quantity = qty_new;
 
-	Save(false, false);
+	SaveItem();
 
 	//notify about the changes.
 	if(notify) {
@@ -850,7 +802,7 @@ bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify) {
 
 	m_singleton = new_singleton;
 
-	Save(false, false);
+	SaveItem();
 
 	//notify about the changes.
 	if(notify) {
@@ -870,7 +822,7 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
 	
 	m_ownerID = new_owner;
 
-	Save(false, false);
+	SaveItem();
 	
 	//notify about the changes.
 	if(notify) {
@@ -884,6 +836,27 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
 		changes[ixOwnerID] = new PyRepInteger(old_owner);
 		SendItemChange(old_owner, changes);	//changes is consumed
 	}
+}
+
+void InventoryItem::SaveItem() const
+{
+	_log( ITEM__TRACE, "Saving item %u.", itemID() );
+
+	m_factory.db().SaveItem(
+		itemID(),
+		ItemData(
+			itemName().c_str(),
+			typeID(),
+			ownerID(),
+			locationID(),
+			flag(),
+			contraband(),
+			singleton(),
+			quantity(),
+			position(),
+			customInfo().c_str()
+		)
+	);
 }
 
 //contents of changes are consumed and cleared
@@ -951,7 +924,7 @@ void InventoryItem::SetCustomInfo(const char *ci) {
 		m_customInfo = "";
 	else
 		m_customInfo = ci;
-	Save(false, false);
+	SaveItem();
 }
 
 bool InventoryItem::Contains(InventoryItem *item, bool recursive) const {
@@ -977,7 +950,7 @@ void InventoryItem::Relocate(const GPoint &pos) {
 
 	m_position = pos;
 
-	Save(false, false);
+	SaveItem();
 }
 
 void InventoryItem::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner) {

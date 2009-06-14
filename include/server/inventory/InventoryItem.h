@@ -90,7 +90,8 @@ public:
 /*
  * Class which maintains generic item.
  */
-class InventoryItem {
+class InventoryItem
+{
 public:
 	/**
 	 * Loads item from DB.
@@ -116,7 +117,6 @@ public:
 	InventoryItem *IncRef();
 	void DecRef();
 
-	virtual void Save(bool recursive=false, bool saveAttributes=true) const;	//save the item to the DB.
 	virtual void Delete();	//remove the item from the DB, and DecRef() it. Consumes a ref!
 
 	bool ContentsLoaded() const { return(m_contentsLoaded); }
@@ -126,7 +126,6 @@ public:
 	void ChangeOwner(uint32 new_owner, bool notify=true);
 	void Move(uint32 location, EVEItemFlags flag=flagAutoFit, bool notify=true);
 	void MoveInto(InventoryItem *new_home, EVEItemFlags flag=flagAutoFit, bool notify=true);
-	void ChangeFlag(EVEItemFlags flag, bool notify=true);
 	bool ChangeSingleton(bool singleton, bool notify=true);
 	bool AlterQuantity(int32 qty_change, bool notify=true);
 	bool SetQuantity(uint32 qty_new, bool notify=true);
@@ -279,6 +278,8 @@ protected:
 		// InventoryItem stuff:
 		ItemData &data
 	);
+
+	void SaveItem() const;	//save the item to the DB.
 
 	void SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const;
 	void SetOnline(bool newval);

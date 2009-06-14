@@ -332,9 +332,7 @@ protected:
 			return ret
 		*/
 
-		typename std::map<Attr, TauCap>::const_iterator i;
-
-		i = m_tauCap.find(attr);
+		typename std::map<Attr, TauCap>::const_iterator i = m_tauCap.find(attr);
 		if(i != m_tauCap.end()) {
 			real_t cap = GetReal(i->second.cap);
 			if(cap == 0) {
@@ -347,7 +345,7 @@ protected:
 			int64 time = int64(_GetLastChange(attr) - Win32TimeNow()) / 10000/* = dgmTauConstant */; 
 			real_t e = exp(time / tau);
 
-			v = (pow(1.0 + ((sq - 1.0) * e), 2.0) * cap);
+			v = pow(1.0 + (sq - 1.0) * e, 2.0) * cap;
 		}
 	}
 

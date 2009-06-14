@@ -254,7 +254,6 @@ public:
 	 */
 	Blueprint *IncRef() { return static_cast<Blueprint *>(InventoryItem::IncRef()); }
 
-	void Save(bool recursive=false, bool saveAttributes=true) const;
 	void Delete();
 
 	// Copy:
@@ -355,6 +354,7 @@ protected:
 		BlueprintData &bpData
 	);
 
+	void SaveBlueprint() const;
 
 	/*
 	 * Member variables

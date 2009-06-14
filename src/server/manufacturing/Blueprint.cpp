@@ -212,22 +212,6 @@ uint32 Blueprint::_Spawn(ItemFactory &factory,
 	return blueprintID;
 }
 
-void Blueprint::Save(bool recursive, bool saveAttributes) const {
-	// save our parent
-	InventoryItem::Save(recursive, saveAttributes);
-
-	// save ourselves
-	m_factory.db().SaveBlueprint(
-		itemID(),
-		BlueprintData(
-			copy(),
-			materialLevel(),
-			productivityLevel(),
-			licensedProductionRunsRemaining()
-		)
-	);
-}
-
 void Blueprint::Delete() {
 	// delete our blueprint record
 	m_factory.db().DeleteBlueprint(m_itemID);
@@ -262,13 +246,13 @@ bool Blueprint::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
 void Blueprint::SetCopy(bool copy) {
 	m_copy = copy;
 
-	Save(false, false);
+	SaveBlueprint();
 }
 
 void Blueprint::SetMaterialLevel(uint32 materialLevel) {
 	m_materialLevel = materialLevel;
 
-	Save(false, false);
+	SaveBlueprint();
 }
 
 bool Blueprint::AlterMaterialLevel(int32 materialLevelChange) {
@@ -286,7 +270,7 @@ bool Blueprint::AlterMaterialLevel(int32 materialLevelChange) {
 void Blueprint::SetProductivityLevel(uint32 productivityLevel) {
 	m_productivityLevel = productivityLevel;
 
-	Save(false, false);
+	SaveBlueprint();
 }
 
 bool Blueprint::AlterProductivityLevel(int32 producitvityLevelChange) {
@@ -304,7 +288,7 @@ bool Blueprint::AlterProductivityLevel(int32 producitvityLevelChange) {
 void Blueprint::SetLicensedProductionRunsRemaining(int32 licensedProductionRunsRemaining) {
 	m_licensedProductionRunsRemaining = licensedProductionRunsRemaining;
 
-	Save(false, false);
+	SaveBlueprint();
 }
 
 void Blueprint::AlterLicensedProductionRunsRemaining(int32 licensedProductionRunsRemainingChange) {
@@ -333,6 +317,21 @@ PyRepDict *Blueprint::GetBlueprintAttributes() const {
 	rsp.researchCopyTime = type().researchCopyTime();
 
 	return(rsp.FastEncode());
+}
+
+void Blueprint::SaveBlueprint() const
+{
+	_log( ITEM__TRACE, "Saving blueprint %u.", itemID() );
+
+	m_factory.db().SaveBlueprint(
+		itemID(),
+		BlueprintData(
+			copy(),
+			materialLevel(),
+			productivityLevel(),
+			licensedProductionRunsRemaining()
+		)
+	);
 }
 
 

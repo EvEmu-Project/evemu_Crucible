@@ -38,8 +38,8 @@ ItemFactory::~ItemFactory() {
 		cur = m_items.begin();
 		end = m_items.end();
 		for(; cur != end; cur++) {
-			// save item
-			cur->second->Save(false);	// do not recurse
+			// save attributes of item (because of rechargable attributes)
+			cur->second->attributes.Save();
 			cur->second->DecRef();
 		}
 	}

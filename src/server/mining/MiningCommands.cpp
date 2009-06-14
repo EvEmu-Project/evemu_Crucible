@@ -121,7 +121,6 @@ void GetAsteroid(Client *who, uint32 typeID, double radius, const Ga::GaVec3 & p
 		throw(PyException(MakeCustomError("Unable to spawn item of type %u.", typeID)));
 
 	i->Set_radius(radius);
-	i->Save();
 
 	SystemManager *sys = who->System();
 	Asteroid *new_roid = new Asteroid(sys, i);	//takes a ref.

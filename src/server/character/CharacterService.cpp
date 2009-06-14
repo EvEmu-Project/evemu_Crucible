@@ -332,8 +332,6 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
 	uint32 characterID = char_item->itemID();
 
-	//recursively save everything we just did.
-	char_item->Save(true);
 	char_item->DecRef();
 
 	_log(CLIENT__MESSAGE, "Sending char create ID %u as reply", characterID);

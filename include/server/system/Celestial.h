@@ -70,7 +70,6 @@ public:
 	 */
 	CelestialObject *IncRef() { return static_cast<CelestialObject *>(InventoryItem::IncRef()); }
 
-	void Save(bool recursive=false, bool saveAttributes=true) const;
 	void Delete();
 
 	/*

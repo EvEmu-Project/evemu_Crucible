@@ -368,7 +368,6 @@ public:
 	 */
 	Character *IncRef() { return static_cast<Character *>(InventoryItem::IncRef()); }
 
-	void Save(bool recursive=false, bool saveAttributes=true) const;
 	void Delete();
 
 	bool AlterBalance(double balanceChange);
@@ -558,6 +557,9 @@ protected:
 		// Character stuff:
 		CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
 	);
+
+	void SaveCharacter() const;
+	void SaveSkillQueue() const;
 
 	/*
 	 * Data members

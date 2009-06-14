@@ -414,58 +414,6 @@ bool Character::_Load(bool recurse)
 	return InventoryItem::_Load(recurse);
 }
 
-void Character::Save(bool recursive, bool saveAttributes) const {
-	// character data
-	m_factory.db().SaveCharacter(
-		itemID(),
-		CharacterData(
-			accountID(),
-			title().c_str(),
-			description().c_str(),
-			gender(),
-			bounty(),
-			balance(),
-			securityRating(),
-			logonMinutes(),
-			corporationID(),
-			allianceID(),
-			stationID(),
-			solarSystemID(),
-			constellationID(),
-			regionID(),
-			ancestryID(),
-			careerID(),
-			schoolID(),
-			careerSpecialityID(),
-			startDateTime(),
-			createDateTime(),
-			corporationDateTime()
-		)
-	);
-
-	// corporation data
-	m_factory.db().SaveCorpMemberInfo(
-		itemID(),
-		CorpMemberInfo(
-			corporationHQ(),
-			corpRole(),
-			rolesAtAll(),
-			rolesAtBase(),
-			rolesAtHQ(),
-			rolesAtOther()
-		)
-	);
-
-	// skill queue
-	m_factory.db().SaveSkillQueue(
-		itemID(),
-		m_skillQueue
-	);
-
-	// our parent cares about the rest
-	return InventoryItem::Save(recursive, saveAttributes);
-}
-
 void Character::Delete() {
 	// delete character record
 	m_factory.db().DeleteCharacter(itemID());
@@ -487,7 +435,7 @@ bool Character::AlterBalance(double balanceChange) {
 	m_balance = result;
 
 	//TODO: save some info to journal.
-	Save(false, false);
+	SaveCharacter();
 
 	return true;
 }
@@ -498,7 +446,7 @@ void Character::SetLocation(uint32 stationID, uint32 solarSystemID, uint32 const
 	m_constellationID = constellationID;
 	m_regionID = regionID;
 
-	Save(false, false);
+	SaveCharacter();
 }
 
 void Character::JoinCorporation(uint32 corporationID) {
@@ -513,13 +461,13 @@ void Character::JoinCorporation(uint32 corporationID) {
 
 	//TODO: recursively change corp on all our items.
 
-	Save(false, false);
+	SaveCharacter();
 }
 
 void Character::SetDescription(const char *newDescription) {
 	m_description = newDescription;
 
-	Save(false, false);
+	SaveCharacter();
 }
 
 bool Character::HasSkill(uint32 skillTypeID)
@@ -681,7 +629,7 @@ void Character::UpdateSkillQueue()
 
 			currentTraining->Clear_expiryTime();
 
-			currentTraining->ChangeFlag(flagSkill, true);
+			currentTraining->MoveInto( this, flagSkill, true );
 
 			if(c != NULL) {
 				OnSkillTrainingStopped osst;
@@ -707,7 +655,7 @@ void Character::UpdateSkillQueue()
 			currentTraining->Set_skillPoints( currentTraining->GetSPForLevel( currentTraining->skillLevel() ) );
 			currentTraining->Clear_expiryTime();
 
-			currentTraining->ChangeFlag( flagSkill, true );
+			currentTraining->MoveInto( this, flagSkill, true );
 
 			if( c != NULL )
 			{
@@ -748,7 +696,7 @@ void Character::UpdateSkillQueue()
 
 		uint64 timeTraining = Win32TimeNow() + Win32Time_Minute * SPToNextLevel / SPPerMinute;
 
-		skill->ChangeFlag( flagSkillInTraining );
+		skill->MoveInto( this, flagSkillInTraining );
 		skill->Set_expiryTime( timeTraining );
 
 		if(c != NULL) {
@@ -764,6 +712,8 @@ void Character::UpdateSkillQueue()
 
 		currentTraining = skill;
 	}
+
+	SaveSkillQueue();
 }
 
 PyRepObject *Character::CharGetInfo() {
@@ -832,4 +782,62 @@ PyRepList *Character::GetSkillQueue() {
 
 	return list;
 }
+
+void Character::SaveCharacter() const
+{
+	_log( ITEM__TRACE, "Saving character %u.", itemID() );
+
+	// character data
+	m_factory.db().SaveCharacter(
+		itemID(),
+		CharacterData(
+			accountID(),
+			title().c_str(),
+			description().c_str(),
+			gender(),
+			bounty(),
+			balance(),
+			securityRating(),
+			logonMinutes(),
+			corporationID(),
+			allianceID(),
+			stationID(),
+			solarSystemID(),
+			constellationID(),
+			regionID(),
+			ancestryID(),
+			careerID(),
+			schoolID(),
+			careerSpecialityID(),
+			startDateTime(),
+			createDateTime(),
+			corporationDateTime()
+		)
+	);
+
+	// corporation data
+	m_factory.db().SaveCorpMemberInfo(
+		itemID(),
+		CorpMemberInfo(
+			corporationHQ(),
+			corpRole(),
+			rolesAtAll(),
+			rolesAtBase(),
+			rolesAtHQ(),
+			rolesAtOther()
+		)
+	);
+}
+
+void Character::SaveSkillQueue() const {
+	_log( ITEM__TRACE, "Saving skill queue of character %u.", itemID() );
+
+	// skill queue
+	m_factory.db().SaveSkillQueue(
+		itemID(),
+		m_skillQueue
+	);
+}
+
+
 

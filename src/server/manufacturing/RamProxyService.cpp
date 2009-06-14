@@ -210,7 +210,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 
 		// pay for assembly lines, move the item away
 		call.client->AddBalance(-rsp.cost);
-		installedItem->ChangeFlag(flagFactoryBlueprint);
+		installedItem->Move( installedItem->locationID(), flagFactoryBlueprint );
 		installedItem->DecRef();	//  not needed anymore
 
 		// query all items contained in "Bill of Materials" location
@@ -275,7 +275,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 	InventoryItem *installedItem = m_manager->item_factory.GetItem(installedItemID, false);
 	if(installedItem == NULL)
 		return NULL;
-	installedItem->ChangeFlag(outputFlag);
+	installedItem->Move( installedItem->locationID(), outputFlag );
 
 	std::vector<RequiredItem> reqItems;
 	if(!m_db.GetRequiredItems(installedItem->typeID(), activity, reqItems)) {
