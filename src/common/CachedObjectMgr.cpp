@@ -534,7 +534,7 @@ PyCachedObject *PyCachedObject::Clone() const {
 	res->cache = (PyRepBuffer *) cache->Clone();
 	res->compressed = compressed;
 	res->objectID = objectID->Clone();
-	return(res);
+	return res;
 }
 
 void PyCachedObjectDecoder::Dump(FILE *into, const char *pfx, bool contents_too) {
@@ -783,7 +783,7 @@ PyCachedCall::~PyCachedCall() {
 PyCachedCall *PyCachedCall::Clone() const {
 	PyCachedCall *res = new PyCachedCall();
 	res->result = result->Clone();
-	return(res);
+	return res;
 }
 
 void PyCachedCall::Dump(FILE *into, const char *pfx, bool contents_too) {

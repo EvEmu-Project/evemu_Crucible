@@ -58,7 +58,7 @@ PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
 
 	b->DecRef();
 
-	return(res);
+	return res;
 }
 
 PyResult FactoryService::Handle_GetMaterialsForTypeWithActivity(PyCallArgs &call) {

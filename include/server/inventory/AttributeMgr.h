@@ -59,20 +59,21 @@ public:
 
 	/*
 	 * Checks if value stored is integer or not
+     * @note totally useless function because a attribute doesn't have a single type.
 	 */
-	bool IsInt(Attr attr) const {
+	bool IsInt(Attr attr) const
+    {
 		real_t v = GetReal(attr);
-		return(_IsInt(v));
+		return _IsInt(v);
 	}
 
 	/*
 	 * Get attribute value as integer
 	 * just round the real
 	 */
-	virtual int_t GetInt(Attr attr) const {
-		return(
-			int_t(GetReal(attr))
-		);
+	virtual int_t GetInt(Attr attr) const 
+    {
+		return (int_t)GetReal(attr);
 	}
 	/*
 	 * Get attribute value as real
@@ -88,7 +89,8 @@ public:
 	 * Set attribute value to integer
 	 */
 	virtual void SetInt(Attr attr, const int_t &v) {
-		// delete the real value (no matter if there really is any)
+		
+        // delete the real value (no matter if there really is any)
 		m_reals.erase(attr);
 		// set the value
 		m_ints[attr] = v;
@@ -97,14 +99,17 @@ public:
 	 * Set attribute value to real
 	 */
 	virtual void SetReal(Attr attr, const real_t &v) {
-		// check if we can save memory by saving it as integer instead
-		if(_IsInt(v)) {
-			// good, we can store it as integer
+
+        /* check if we need to store it as a integer or as a float */
+		if(_IsInt(v) == true)
+        {
 			SetInt(attr, v);
-		} else {
+		}
+        else
+        {
 			// delete the integer value (no matter if there really is any)
 			m_ints.erase(attr);
-			// set the value
+			
 			m_reals[attr] = v;
 		}
 	}
@@ -280,11 +285,10 @@ public:
 	/*
 	 * Common functions overloads
 	 */
-	real_t GetReal(Attr attr) const {
+	real_t GetReal(Attr attr) const
+    {
 		real_t v = _Base::GetReal(attr);
-
 		_CalcTauCap(attr, v);
-
 		return(v);
 	}
 

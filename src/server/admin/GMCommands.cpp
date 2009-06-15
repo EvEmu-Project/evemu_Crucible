@@ -361,7 +361,7 @@ PyResult Command_getattr(Client *who, CommandDB *db, PyServiceMgr *services, con
 	);
 
 	item->DecRef();
-	return(res);
+	return res;
 }
 
 PyResult Command_setattr(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {

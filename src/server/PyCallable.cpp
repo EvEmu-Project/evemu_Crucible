@@ -42,7 +42,7 @@ PyResult PyCallable::Call(const std::string &method, PyCallArgs &args) {
 		_log(SERVICE__CALL_TRACE, "Call %s returned:", method.c_str());
 		res.ssResult->Dump(SERVICE__CALL_TRACE, "      ");
 
-		return(res);
+		return res;
 	} catch(PyException &e) {
 		_log(SERVICE__CALL_TRACE, "Call %s threw exception:", method.c_str());
 		e.ssException->Dump(SERVICE__CALL_TRACE, "      ");
@@ -106,68 +106,12 @@ void PyCallArgs::Dump(LogType type) const {
 	}
 }
 
-PyResult::PyResult()
-: ssResult(NULL)
-{
-	//_log(SERVER__INIT, "Constructing Regular NULL");
-}
+/* default PyResult */
+PyResult::PyResult()                : ssResult(NULL) {}
+PyResult::PyResult(PyRep *result)   : ssResult((result==NULL) ? new PyRepNone() : result ) {}
+PyResult::~PyResult() {}
 
-PyResult::PyResult(PyRep *result)
-: ssResult(
-	  (result==NULL)
-	  ? new PyRepNone()
-	  : result
-	  )
-{
-	//_log(SERVER__INIT, "Constructing Regular %p", &(*ssResult));
-}
-
-PyResult::~PyResult() {
-	//_log(SERVER__INIT, "Destroying Regular %p", &(*ssResult));
-}
-
-PyException::PyException()
-: ssException(NULL)
-{
-	_log(SERVER__INIT, "Constructing Exception NULL");
-}
-
-PyException::PyException(PyRep *except)
-: ssException(
-		(except==NULL)
-		? new PyRepNone
-		: except
-		)
-{
-	_log(SERVER__INIT, "Constructing Exception %p", &(*ssException));
-}
-
-PyException::~PyException() {
-	_log(SERVER__INIT, "Destroying Exception %p", &(*ssException));
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* default PyException */
+PyException::PyException() : ssException(NULL) {}
+PyException::PyException(PyRep *except) : ssException((except==NULL) ? new PyRepNone : except) {}
+PyException::~PyException() {}

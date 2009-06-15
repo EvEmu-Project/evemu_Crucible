@@ -233,7 +233,7 @@ Blueprint *Blueprint::SplitBlueprint(int32 qty_to_take, bool notify) {
 	res->SetProductivityLevel(m_productivityLevel);
 	res->SetLicensedProductionRunsRemaining(m_licensedProductionRunsRemaining);
 
-	return(res);
+	return res;
 }
 
 bool Blueprint::Merge(InventoryItem *to_merge, int32 qty, bool notify) {

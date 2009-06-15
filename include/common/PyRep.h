@@ -138,7 +138,7 @@ protected:
 
 class PyRepInteger : public PyRep {
 public:
-	PyRepInteger(const uint64 &i) : PyRep(PyRep::PyTypeInteger), value(i) {}
+	PyRepInteger(const int64 &i) : PyRep(PyRep::PyTypeInteger), value(i) {}
 	virtual ~PyRepInteger() {}
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
@@ -146,7 +146,7 @@ public:
 	void visit(PyVisitor *v) const;
 	
 	PyRepInteger *TypedClone() const;
-	uint64 value;
+	int64 value;
 };
 
 class PyRepReal : public PyRep {

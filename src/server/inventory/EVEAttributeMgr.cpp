@@ -32,7 +32,7 @@ bool EVEAttributeMgr::m_persistentLoaded = false;
 bool EVEAttributeMgr::m_persistent[EVEAttributeMgr::Invalid_Attr];
 
 PyRep *EVEAttributeMgr::PyGet(Attr attr) const {
-	return(_PyGet(GetReal(attr)));
+	return _PyGet(GetReal(attr));
 }
 
 void EVEAttributeMgr::EncodeAttributes(std::map<uint32, PyRep *> &into) const {
@@ -60,11 +60,16 @@ void EVEAttributeMgr::EncodeAttributes(std::map<uint32, PyRep *> &into) const {
 	}
 }
 
-PyRep *EVEAttributeMgr::_PyGet(const real_t &v) {
-	if(_IsInt(v))
-		return(new PyRepInteger(v));
+PyRep *EVEAttributeMgr::_PyGet(const real_t &v)
+{
+	if(_IsInt(v) == true)
+    {
+		return new PyRepInteger(v);
+    }
 	else
-		return(new PyRepReal(v));
+    {
+		return new PyRepReal(v);
+    }
 }
 
 void EVEAttributeMgr::_LoadPersistent() {
@@ -112,23 +117,14 @@ void EVEAdvancedAttributeMgr::EncodeAttributes(std::map<uint32, PyRep *> &into) 
  */
 bool TypeAttributeMgr::Load(InventoryDB &db) {
 	// load new contents from DB
-	return(db.LoadTypeAttributes(type().id(), *this));
+	return db.LoadTypeAttributes(type().id(), *this);
 }
 
 /*
  * ItemAttributeMgr
  */
-ItemAttributeMgr::ItemAttributeMgr(
-	ItemFactory &factory,
-	const InventoryItem &item,
-	bool save,
-	bool notify)
-: m_factory(factory),
-  m_item(item)
-{
-	SetSave(save);
-	SetNotify(notify);
-}
+ItemAttributeMgr::ItemAttributeMgr( ItemFactory &factory, const InventoryItem &item, bool save, bool notify) :
+    m_factory(factory), m_item(item), m_save(save), m_notify(notify) {}
 
 ItemAttributeMgr::real_t ItemAttributeMgr::GetReal(Attr attr) const {
 	real_t v;
@@ -138,7 +134,7 @@ ItemAttributeMgr::real_t ItemAttributeMgr::GetReal(Attr attr) const {
 
 	_CalcTauCap(attr, v);
 
-	return(v);
+	return v;
 }
 
 void ItemAttributeMgr::SetIntEx(Attr attr, const int_t &v, bool persist) {
@@ -251,7 +247,8 @@ void ItemAttributeMgr::DeleteEx(bool notify) {
 }
 
 bool ItemAttributeMgr::Load(bool notify) {
-	// save & set notify state
+	
+    // save & set notify state
 	bool old_notify = GetNotify();
 	SetNotify(notify);
 
@@ -270,15 +267,17 @@ bool ItemAttributeMgr::Load(bool notify) {
 	// restore notify state
 	SetNotify(old_notify);
 
-	return(res);
+	return res;
 }
 
 void ItemAttributeMgr::Save() const {
-	if(m_ints.empty() && m_reals.empty())
-		// nothing to save ...
+
+    /* check if we have something to save, if not return*/
+    if(m_ints.empty() == true && m_reals.empty() == true)
 		return;
 
-	_log(ITEM__TRACE, "Saving %lu attributes of item %u.", m_ints.size()+m_reals.size(), m_item.itemID());
+    /* disabled because its useless logging */
+	//_log(ITEM__TRACE, "Saving %lu attributes of item %u.", m_ints.size()+m_reals.size(), m_item.itemID());
 	// integers first
 	{
 		std::map<Attr, int_t>::const_iterator cur, end;

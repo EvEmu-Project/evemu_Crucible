@@ -119,7 +119,7 @@ PyResult CertificateMgrService::Handle_BatchCertificateGrant(PyCallArgs &call) {
 			res->addInt(*cur);
 	}
 
-	return(res);
+	return res;
 }
 
 PyResult CertificateMgrService::Handle_BatchCertificateUpdate(PyCallArgs &call) {

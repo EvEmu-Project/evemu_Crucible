@@ -23,16 +23,12 @@
 	Author:		Zhur
 */
 
-
 #include "EvemuPCH.h"
-
 
 PyCallable_Make_InnerDispatcher(StationService)
 
 StationService::StationService(PyServiceMgr *mgr, DBcore *db)
-: PyService(mgr, "station"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+: PyService(mgr, "station"), m_dispatch(new Dispatcher(this)), m_db(db)
 {
 	_SetCallDispatcher(m_dispatch);
 
@@ -44,11 +40,9 @@ StationService::~StationService() {
 	delete m_dispatch;
 }
 
-
 PyResult StationService::Handle_GetStationItemBits(PyCallArgs &call) {
 	return m_db.GetStationItemBits(call.client->GetStationID());
 }
-
 
 PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
 	PyRepList *res = new PyRepList();
@@ -60,32 +54,5 @@ PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
 	t->items[3] = new PyRepInteger(0);	//unknown, might be factionID
 	res->add(t);
 
-	return(res);
+	return res;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

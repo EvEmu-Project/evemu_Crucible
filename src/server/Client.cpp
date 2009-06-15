@@ -1119,7 +1119,7 @@ double Client::GetPropulsionStrength() const {
 	res += GetShip()->propulsionMagpulseStrengthBonus();
 	res += GetShip()->propulsionPlasmaStrengthBonus();
 	res += 0.038f;
-	return(res);
+	return res;
 }
 
 void Client::TargetAdded(SystemEntity *who) {

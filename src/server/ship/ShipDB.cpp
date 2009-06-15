@@ -70,6 +70,6 @@ PyRepTuple *ShipDB::GetFormations() {
 
 	res->items[1] = f.FastEncode();
 
-	return(res);
+	return res;
 }
 

@@ -95,7 +95,7 @@ PyPacket *PyPacket::Clone() const
 	{
 		res->named_payload = (PyRepDict *) named_payload->Clone();
 	}
-	return(res);
+	return res;
 }
 
 void PyPacket::Dump(LogType ltype, PyVisitor *dumper)
@@ -641,7 +641,7 @@ PyCallStream *PyCallStream::Clone() const {
 	} else {
 		res->arg_dict = arg_dict->TypedClone();
 	}
-	return(res);
+	return res;
 }
 
 void PyCallStream::Dump(LogType type, PyVisitor *dumper) {
@@ -836,7 +836,7 @@ EVENotificationStream::~EVENotificationStream() {
 EVENotificationStream *EVENotificationStream::Clone() const {
 	EVENotificationStream *res = new EVENotificationStream();
 	res->args = (PyRepTuple *) args->Clone();
-	return(res);
+	return res;
 }
 
 void EVENotificationStream::Dump(LogType type, PyVisitor *dumper) {

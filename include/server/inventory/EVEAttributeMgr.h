@@ -43,8 +43,7 @@ class ItemAttributeMgr;
 /**
  * Base EVE AttributeManager, defines types to use.
  */
-class EVEAttributeMgr
-: virtual public AttributeMgr<int, double>
+class EVEAttributeMgr : virtual public AttributeMgr<int, double>
 {
 public:
 	/**
@@ -56,9 +55,9 @@ public:
 	PyRep *PyGet(Attr attr) const;
 
 	/**
-	 * Builds intdict from attributes.
+	 * Builds Int dictionary from attributes.
 	 *
-	 * @param[in] into Intdict into which values are saved.
+	 * @param[in] into Int dictionary into which values are saved.
 	 */
 	virtual void EncodeAttributes(std::map<uint32, PyRep *> &into) const;
 
@@ -70,7 +69,7 @@ public:
 	 */
 	static bool IsPersistent(Attr attr) {
 		_LoadPersistent();
-		return(m_persistent[attr]);
+		return m_persistent[attr];
 	}
 
 protected:
@@ -89,16 +88,14 @@ protected:
 /**
  * Base EVE AdvancedAttributeMgr, defines type to use.
  */
-class EVEAdvancedAttributeMgr
-: public AdvancedAttributeMgr<int, double>,
-  public EVEAttributeMgr
+class EVEAdvancedAttributeMgr : public AdvancedAttributeMgr<int, double>, public EVEAttributeMgr
 {
 public:
 	// Uses PyGet instead of _PyGet to include income of attribute value.
 	void EncodeAttributes(std::map<uint32, PyRep *> &into) const;
 
 	/*
-	 * These kill warnings about inheritation dominance
+	 * These kill warnings about inheritance's dominance
 	 */
 	/*real_t GetReal(Attr attr) const { return(AdvancedAttributeMgr::GetReal(attr)); }
 
@@ -111,13 +108,11 @@ public:
 /**
  * Attribute manager for type attributes.
  */
-class TypeAttributeMgr
-: public EVEAttributeMgr
+class TypeAttributeMgr : public EVEAttributeMgr
 {
 	friend class ItemAttributeMgr;	// for access to _Get
 public:
-	TypeAttributeMgr(const Type &type)
-		: m_type(type) {}
+	TypeAttributeMgr(const Type &type) : m_type(type) {}
 
 	/**
 	 * @return Type which this manager is bound to.
@@ -128,7 +123,7 @@ public:
 	 * Loads attributes from DB.
 	 *
 	 * @param[in] db Database to use.
-	 * @return True if load was successfull, false if not.
+	 * @return True if load was successful, false if not.
 	 */
 	bool Load(InventoryDB &db);
 
@@ -139,8 +134,7 @@ protected:
 /**
  * Attribute manager for InventoryItem.
  */
-class ItemAttributeMgr
-: public EVEAdvancedAttributeMgr
+class ItemAttributeMgr : public EVEAdvancedAttributeMgr
 {
 public:
 	/**

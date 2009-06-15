@@ -124,7 +124,7 @@ PyRepObject *DBResultToRowset(DBQueryResult &result) {
 		}
 	}
 
-	return(res);
+	return res;
 }
 
 
@@ -156,7 +156,7 @@ PyRepTuple *DBResultToTupleSet(DBQueryResult &result) {
 		}
 	}
 
-	return(res);
+	return res;
 }
 
 PyRepObject *DBResultToIndexRowset(DBQueryResult &result, const char *key) {
@@ -212,7 +212,7 @@ PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
 		items->add(key, line);
 	}
 
-	return(res);
+	return res;
 }
 
 
@@ -236,7 +236,7 @@ PyRepObject *DBRowToKeyVal(DBResultRow &row) {
 			);
 	}
 
-	return(res);
+	return res;
 }
 
 PyRepObject *DBRowToRow(DBResultRow &row, const char *type) {
@@ -263,7 +263,7 @@ PyRepObject *DBRowToRow(DBResultRow &row, const char *type) {
 		rowlist->add(DBColumnToPyRep(row, r));
 	}
 
-	return(res);
+	return res;
 }
 
 PyRepTuple *DBResultToRowList(DBQueryResult &result, const char *type) {
@@ -291,7 +291,7 @@ PyRepTuple *DBResultToRowList(DBQueryResult &result, const char *type) {
 		reslist->items.push_back(o);
 	}
 
-	return(res);
+	return res;
 }
 
 PyRepDict *DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const char *type) {
@@ -310,7 +310,7 @@ PyRepDict *DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const c
 		] = r;
 	}
 
-	return(res);
+	return res;
 }
 
 PyRepDict *DBResultToIntIntDict(DBQueryResult &result) {
@@ -335,7 +335,7 @@ PyRepDict *DBResultToIntIntDict(DBQueryResult &result) {
 		] = new PyRepInteger(v);
 	}
 
-	return(res);
+	return res;
 }
 
 void DBResultToIntIntDict(DBQueryResult &result, std::map<uint32, uint32> &into) {
@@ -668,7 +668,7 @@ PyRepPackedRow *PackRow(const DBResultRow &row, const DBPackedColumnList &column
 	for(; cur != end; cur++)
 		EncodePackedField(row, *cur, *res);
 
-	return(res);
+	return res;
 }
 
 PyRepList *DBResultToPackedRowList(
@@ -688,7 +688,7 @@ PyRepList *DBResultToPackedRowList(
 		//this is piece of crap due to header cloning
 		res->add(PackRow(row, columns, true, desc.Encode()));
 
-	return(res);
+	return res;
 }
 
 PyRepTuple *DBResultToPackedRowListTuple(
