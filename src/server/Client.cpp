@@ -37,13 +37,13 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
   m_accountID(0),
   m_accountRole(1),
   m_gangRole(1),
-  m_statusTrain(false),
   m_system(NULL),
 //  m_destinyTimer(1000, true),	//accurate timing is essential
 //  m_lastDestinyTime(Timer::GetTimeSeconds()),
   m_moveState(msIdle),
   m_moveTimer(500),
   m_movePoint(0, 0, 0),
+  m_timeEndTrain(0),
   m_nextNotifySequence(1)
 //  m_nextDestinyUpdate(46751)
 {
@@ -237,9 +237,9 @@ void Client::Process() {
 		}
 	}
 
-	if( m_statusTrain )
+	if( m_timeEndTrain != 0 )
 	{
-		if( Win32TimeNow() >= m_timeEndTrain )
+		if( m_timeEndTrain <= Win32TimeNow() )
 			GetChar()->UpdateSkillQueue();
 	}
 
@@ -1099,9 +1099,13 @@ bool Client::SelectCharacter(uint32 char_id) {
 	return true;
 }
 
-void Client::SetTrainStatus(bool status, uint64 timeEndTrain){
-	m_statusTrain = status;
-	m_timeEndTrain = (status ? timeEndTrain : 0);
+void Client::UpdateSkillTraining()
+{
+	Character *ch = GetChar();
+	if( ch == NULL )
+		m_timeEndTrain = 0;
+	else
+		m_timeEndTrain = ch->GetEndOfTraining();
 }
 
 double Client::GetPropulsionStrength() const {

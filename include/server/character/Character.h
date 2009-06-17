@@ -381,7 +381,7 @@ public:
 	 * @param[in] skillTypeID ID of skill type to be checked.
 	 * @return True if character has the skill, false if doesn't.
 	 */
-	bool HasSkill(uint32 skillTypeID);
+	bool HasSkill(uint32 skillTypeID) const;
 	/**
 	 * Returns skill.
 	 *
@@ -389,14 +389,14 @@ public:
 	 * @param[in] newref Whether new reference should be returned.
 	 * @return Pointer to Skill object; NULL if skill was not found.
 	 */
-	Skill *GetSkill(uint32 skillTypeID, bool newref=false);
+	Skill *GetSkill(uint32 skillTypeID, bool newref=false) const;
 	/**
 	 * Returns skill currently in training.
 	 *
 	 * @param[in] newref Whether new reference should be returned.
 	 * @return Pointer to Skill object; NULL if skill was not found.
 	 */
-	Skill *GetSkillInTraining(bool newref=false);
+	Skill *GetSkillInTraining(bool newref=false) const;
 
 	/**
 	 * Calculates Skillpoints per minute rate.
@@ -404,11 +404,11 @@ public:
 	 * @param[in] skill Skill for which the rate is calculated.
 	 * @return Skillpoints per minute rate.
 	 */
-	double GetSPPerMin(Skill &skill);
+	double GetSPPerMin(Skill &skill) const;
 	/**
 	 * @return Timestamp at which current skill training finishes.
 	 */
-	uint64 GetEndOfTraining();
+	uint64 GetEndOfTraining() const;
 
 	/* InjectSkillIntoBrain(InventoryItem *skill)
 	 * 

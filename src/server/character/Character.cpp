@@ -470,12 +470,12 @@ void Character::SetDescription(const char *newDescription) {
 	SaveCharacter();
 }
 
-bool Character::HasSkill(uint32 skillTypeID)
+bool Character::HasSkill(uint32 skillTypeID) const
 {
 	return(GetSkill(skillTypeID) != NULL);
 }
 
-Skill *Character::GetSkill(uint32 skillTypeID, bool newref)
+Skill *Character::GetSkill(uint32 skillTypeID, bool newref) const
 {
 	InventoryItem *skill = GetByTypeFlag( skillTypeID, flagSkill, newref);
 	if( skill == NULL )
@@ -484,12 +484,12 @@ Skill *Character::GetSkill(uint32 skillTypeID, bool newref)
 	return static_cast<Skill *>( skill );
 }
 
-Skill *Character::GetSkillInTraining(bool newref)
+Skill *Character::GetSkillInTraining(bool newref) const
 {
 	return static_cast<Skill *>( FindFirstByFlag( flagSkillInTraining, newref ) );
 }
 
-double Character::GetSPPerMin(Skill &skill)
+double Character::GetSPPerMin(Skill &skill) const
 {
 	double primaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill.primaryAttribute() );
 	double secondaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill.secondaryAttribute() );
@@ -506,21 +506,13 @@ double Character::GetSPPerMin(Skill &skill)
 	     *  2.0; /* this is hacky and should be applied only if total SP < 1.6M */
 }
 
-uint64 Character::GetEndOfTraining() {
-	// ensure skill queue is up-to-date
-	UpdateSkillQueue();
-
-	if( m_skillQueue.empty() )
+uint64 Character::GetEndOfTraining() const
+{
+	Skill *skill = GetSkillInTraining();
+	if( skill == NULL )
 		return 0;
-	else
-	{
-		Skill *skill = GetSkillInTraining();
-		if( skill == NULL )
-			// should not happen
-			return 0;
 
-		return skill->expiryTime();
-	}
+	return skill->expiryTime();
 }
 
 bool Character::InjectSkillIntoBrain(Skill &skill)
@@ -639,7 +631,7 @@ void Character::UpdateSkillQueue()
 				PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
 				c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
 
-				c->SetTrainStatus(false, 0);
+				c->UpdateSkillTraining();
 			}
 
 			// nothing currently in training
@@ -668,7 +660,7 @@ void Character::UpdateSkillQueue()
 
 				c->SendNotifyMsg("Training of skill has been completed.");
 
-				c->SetTrainStatus(false, 0);
+				c->UpdateSkillTraining();
 			}
 
 			// erase first element in skill queue
@@ -707,7 +699,7 @@ void Character::UpdateSkillQueue()
 			PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
 			c->SendNotification("OnSkillStartTraining", "charid", &tmp);
 
-			c->SetTrainStatus(true, timeTraining);
+			c->UpdateSkillTraining();
 		}
 
 		currentTraining = skill;

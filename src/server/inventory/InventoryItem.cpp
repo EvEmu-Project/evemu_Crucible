@@ -519,8 +519,8 @@ PyRepObject *InventoryItem::ItemGetInfo() const {
 }
 
 
-InventoryItem *InventoryItem::FindFirstByFlag(EVEItemFlags _flag, bool newref) {
-	std::map<uint32, InventoryItem *>::iterator cur, end;
+InventoryItem *InventoryItem::FindFirstByFlag(EVEItemFlags _flag, bool newref) const {
+	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
@@ -534,8 +534,8 @@ InventoryItem *InventoryItem::FindFirstByFlag(EVEItemFlags _flag, bool newref) {
 	return NULL;
 }
 
-InventoryItem *InventoryItem::GetByID(uint32 id, bool newref) {
-	std::map<uint32, InventoryItem *>::iterator cur, end;
+InventoryItem *InventoryItem::GetByID(uint32 id, bool newref) const {
+	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
@@ -549,8 +549,8 @@ InventoryItem *InventoryItem::GetByID(uint32 id, bool newref) {
 	return NULL;
 }
 
-InventoryItem *InventoryItem::GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref) {
-	std::map<uint32, InventoryItem *>::iterator cur, end;
+InventoryItem *InventoryItem::GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref) const {
+	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
@@ -566,7 +566,7 @@ InventoryItem *InventoryItem::GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bo
 	return NULL;
 }
 
-uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *> &items, bool newref) {
+uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *> &items, bool newref) const {
 	uint32 count = 0;
 
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
@@ -584,7 +584,7 @@ uint32 InventoryItem::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *
 	return(count);
 }
 
-uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref) {
+uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref) const {
 	uint32 count = 0;
 
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
@@ -602,7 +602,7 @@ uint32 InventoryItem::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_f
 	return(count);
 }
 
-uint32 InventoryItem::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref) {
+uint32 InventoryItem::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref) const {
 	uint32 count = 0;
 
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;

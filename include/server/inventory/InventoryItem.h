@@ -140,13 +140,13 @@ public:
 
 	//do we want to impose recursive const?
 	bool Contains(InventoryItem *item, bool recursive=false) const;
-	InventoryItem *GetByID(uint32 id, bool newref = false);
-	InventoryItem *GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref=false);
+	InventoryItem *GetByID(uint32 id, bool newref = false) const;
+	InventoryItem *GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref=false) const;
 
-	InventoryItem *FindFirstByFlag(EVEItemFlags flag, bool newref = false);
-	uint32 FindByFlag(EVEItemFlags flag, std::vector<InventoryItem *> &items, bool newref = false);
-	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref = false);
-	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref = false);
+	InventoryItem *FindFirstByFlag(EVEItemFlags flag, bool newref = false) const;
+	uint32 FindByFlag(EVEItemFlags flag, std::vector<InventoryItem *> &items, bool newref = false) const;
+	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref = false) const;
+	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref = false) const;
 
 	double GetRemainingCapacity( EVEItemFlags flag) const;
 	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = 0);

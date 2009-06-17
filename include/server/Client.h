@@ -203,7 +203,7 @@ public:
 	bool SelectCharacter(uint32 char_id);
 	void JoinCorporationUpdate(uint32 corp_id);
 	void SavePosition();
-	void SetTrainStatus(bool status, uint64 timeEndTrain);
+	void UpdateSkillTraining();
 	
 	double GetPropulsionStrength() const;
 	
@@ -295,7 +295,6 @@ protected:
 	void _ExecuteJump();
 
 	uint64 m_timeEndTrain;
-	bool m_statusTrain;
 
 private:
 	//queues for destiny updates:

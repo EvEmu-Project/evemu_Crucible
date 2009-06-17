@@ -847,6 +847,7 @@ bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
 
 	if(!m_db->RunQuery(res,
 		"SELECT"
+		"  chr.accountID,"
 		"  chr.title,"
 		"  chr.description,"
 		"  chr.gender,"
@@ -882,26 +883,27 @@ bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
 		return false;
 	}
 
-	into.title = row.GetText(0);
-	into.description = row.GetText(1);
-	into.gender = row.GetUInt(2) ? true : false;
-	into.bounty = row.GetDouble(3);
-	into.balance = row.GetDouble(4);
-	into.securityRating = row.GetDouble(5);
-	into.logonMinutes = row.GetUInt(6);
-	into.corporationID = row.GetUInt(7);
-	into.allianceID = row.IsNull(8) ? 0 : row.GetUInt(8);
-	into.stationID = row.GetUInt(9);
-	into.solarSystemID = row.GetUInt(10);
-	into.constellationID = row.GetUInt(11);
-	into.regionID = row.GetUInt(12);
-	into.ancestryID = row.GetUInt(13);
-	into.careerID = row.GetUInt(14);
-	into.schoolID = row.GetUInt(15);
-	into.careerSpecialityID = row.GetUInt(16);
-	into.startDateTime = row.GetUInt64(17);
-	into.createDateTime = row.GetUInt64(18);
-	into.corporationDateTime = row.GetUInt64(19);
+	into.accountID = row.IsNull( 0 ) ? 0 : row.GetUInt( 0 );
+	into.title = row.GetText( 1 );
+	into.description = row.GetText( 2 );
+	into.gender = row.GetUInt( 3 ) ? true : false;
+	into.bounty = row.GetDouble( 4 );
+	into.balance = row.GetDouble( 5 );
+	into.securityRating = row.GetDouble( 6 );
+	into.logonMinutes = row.GetUInt( 7 );
+	into.corporationID = row.GetUInt( 8 );
+	into.allianceID = row.IsNull( 9 ) ? 0 : row.GetUInt( 9 );
+	into.stationID = row.GetUInt( 10 );
+	into.solarSystemID = row.GetUInt( 11 );
+	into.constellationID = row.GetUInt( 12 );
+	into.regionID = row.GetUInt( 13 );
+	into.ancestryID = row.GetUInt( 14 );
+	into.careerID = row.GetUInt( 15 );
+	into.schoolID = row.GetUInt( 16 );
+	into.careerSpecialityID = row.GetUInt( 17 );
+	into.startDateTime = row.GetUInt64( 18 );
+	into.createDateTime = row.GetUInt64( 19 );
+	into.corporationDateTime = row.GetUInt64( 20 );
 
 	return true;
 }
@@ -1177,6 +1179,7 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
 	if(!m_db->RunQuery(err,
 		"UPDATE character_"
 		" SET"
+		"  accountID = %u,"
 		"  title = '%s',"
 		"  description = '%s',"
 		"  gender = %u,"
@@ -1197,6 +1200,7 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
 		"  createDateTime = " I64u ","
 		"  corporationDateTime = " I64u
 		" WHERE characterID = %u",
+		data.accountID,
 		titleEsc.c_str(),
 		descriptionEsc.c_str(),
 		data.gender,
