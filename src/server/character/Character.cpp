@@ -711,7 +711,7 @@ void Character::UpdateSkillQueue()
 PyRepObject *Character::CharGetInfo() {
 	//TODO: verify that we are a char?
 	
-	if(!LoadContents(true)) {
+	if(!LoadContents(m_factory, true)) {
 		codelog(ITEM__ERROR, "%s (%u): Failed to load contents for CharGetInfo", m_itemName.c_str(), m_itemID);
 		return NULL;
 	}

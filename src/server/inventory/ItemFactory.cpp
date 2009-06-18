@@ -158,7 +158,7 @@ _Ty *ItemFactory::_GetItem(uint32 itemID, bool recurse) {
 		).first;
 	} else if(recurse) {
 		// ensure its recursively loaded
-		if(!res->second->LoadContents(true))
+		if(!res->second->LoadContents(*this, true))
 			return NULL;
 	}
 	//we return new ref to the user.

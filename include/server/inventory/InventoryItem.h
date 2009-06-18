@@ -34,6 +34,7 @@
 #include "../common/gpoint.h"
 //#include "InventoryDB.h"
 #include "EVEAttributeMgr.h"
+#include "ItemContainer.h"
 #include "Type.h"
 
 class PyRep;
@@ -44,7 +45,6 @@ class ServiceDB;
 
 class ItemFactory;
 class Rsp_CommonGetInfo_Entry;
-class ItemRowset;
 class ItemRowset_Row;
 
 /*
@@ -91,6 +91,7 @@ public:
  * Class which maintains generic item.
  */
 class InventoryItem
+: public ItemContainer
 {
 public:
 	/**
@@ -119,9 +120,6 @@ public:
 
 	virtual void Delete();	//remove the item from the DB, and DecRef() it. Consumes a ref!
 
-	bool ContentsLoaded() const { return(m_contentsLoaded); }
-	bool LoadContents(bool recursive=true);
-
 	void Rename(const char *to);
 	void ChangeOwner(uint32 new_owner, bool notify=true);
 	void Move(uint32 location, EVEItemFlags flag=flagAutoFit, bool notify=true);
@@ -138,18 +136,7 @@ public:
 	virtual InventoryItem *Split(int32 qty_to_take, bool notify=true);
 	virtual bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
 
-	//do we want to impose recursive const?
-	bool Contains(InventoryItem *item, bool recursive=false) const;
-	InventoryItem *GetByID(uint32 id, bool newref = false) const;
-	InventoryItem *GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref=false) const;
-
-	InventoryItem *FindFirstByFlag(EVEItemFlags flag, bool newref = false) const;
-	uint32 FindByFlag(EVEItemFlags flag, std::vector<InventoryItem *> &items, bool newref = false) const;
-	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref = false) const;
-	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref = false) const;
-
-	double GetRemainingCapacity( EVEItemFlags flag) const;
-	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = 0);
+	double GetCapacity(EVEItemFlags flag) const;
 
 	void PutOnline() { SetOnline(true); }
 	void PutOffline() { SetOnline(false); }
@@ -161,8 +148,6 @@ public:
 
 	PyRepObject *GetItemRow() const;
 	void GetItemRow(ItemRowset_Row &into) const;
-	PyRepObject *GetInventoryRowset(EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
-	void GetInventoryRowset(ItemRowset &into, EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
 
 	PyRepObject *ItemGetInfo() const;
 
@@ -279,13 +264,12 @@ protected:
 		ItemData &data
 	);
 
+	uint32 containerID() const { return itemID(); }
+
 	void SaveItem() const;	//save the item to the DB.
 
 	void SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const;
 	void SetOnline(bool newval);
-
-	void AddContainedItem(InventoryItem *it);
-	void RemoveContainedItem(InventoryItem *it);
 
 	/*
 	 * Member variables
@@ -308,9 +292,6 @@ protected:
 	uint32          m_quantity;
 	GPoint          m_position;
 	std::string     m_customInfo;
-
-	bool m_contentsLoaded;
-	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.
 };
 
 #endif

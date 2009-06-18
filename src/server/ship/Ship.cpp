@@ -162,7 +162,7 @@ uint32 Ship::_Spawn(ItemFactory &factory,
 
 PyRepObject *Ship::ShipGetInfo()
 {
-	if( !LoadContents( true ) )
+	if( !LoadContents( m_factory, true ) )
 	{
 		codelog( ITEM__ERROR, "%s (%u): Failed to load contents for ShipGetInfo", itemName().c_str(), itemID() );
 		return NULL;

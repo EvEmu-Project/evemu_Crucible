@@ -142,6 +142,8 @@ libinventory_a_SOURCES = \
 	inventory/InventoryDB.h \
 	inventory/InventoryItem.cpp \
 	inventory/InventoryItem.h \
+	inventory/ItemContainer.cpp \
+	inventory/ItemContainer.h \
 	inventory/ItemFactory.cpp \
 	inventory/ItemFactory.h \
 	inventory/InventoryBound.cpp \
