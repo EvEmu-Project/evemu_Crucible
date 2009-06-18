@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
 	uint32 server_main_loop_delay = 10; // delay 10 ms.
 
 	EVETCPConnection *tcpc;
-	while(RunLoops)
+	while(RunLoops == true)
 	{
 		Timer::SetCurrentTime();
 		start = GetTickCount();
