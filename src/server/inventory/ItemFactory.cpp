@@ -246,14 +246,32 @@ Skill *ItemFactory::SpawnSkill(ItemData &data)
 	return s->IncRef();
 }
 
-InventoryItem *ItemFactory::_GetIfContentsLoaded(uint32 itemID) {
-	std::map<uint32, InventoryItem *>::const_iterator res = m_items.find(itemID);
-	if(res != m_items.end())
-		if(res->second->ContentsLoaded())
-			return res->second->IncRef();
-	return NULL;
+ItemContainer *ItemFactory::GetItemContainer(uint32 containerID, bool recurse, bool load)
+{
+	InventoryItem *item = NULL;
+
+	if( load )
+	{
+		item = GetItem( containerID, recurse );
+		if( item != NULL )
+			// containers are not referenced
+			item->DecRef();
+	}
+	else
+	{
+		std::map<uint32, InventoryItem *>::iterator res = m_items.find( containerID );
+		if( res != m_items.end() )
+		{
+			item = res->second;
+
+			if( recurse && !item->ContentsLoaded() )
+				item->LoadContents( *this, true );
+		}
+	}
+
+	return item;
 }
-	
+
 void ItemFactory::_DeleteItem(uint32 itemID) {
 	std::map<uint32, InventoryItem *>::iterator res = m_items.find(itemID);
 	if(res == m_items.end()) {

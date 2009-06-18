@@ -241,11 +241,9 @@ bool InventoryItem::_Load(bool recurse) {
 		return false;
 
 	// update container
-	InventoryItem *container = m_factory._GetIfContentsLoaded(locationID());
-	if(container != NULL) {
-		container->AddContainedItem(this);
-		container->DecRef();
-	}
+	ItemContainer *container = m_factory.GetItemContainer( locationID(), false, false );
+	if(container != NULL)
+		container->AddContainedItem( *this );
 
 	// now load contained items
 	if(recurse) {
@@ -352,23 +350,8 @@ void InventoryItem::Delete() {
 	Move(6);
 	ChangeOwner(2);
 
-	//we need to delete anything that we contain. This will be recursive.
-	LoadContents(m_factory, true);
-
-	std::map<uint32, InventoryItem *>::iterator cur, end;
-	cur = m_contents.begin();
-	end = m_contents.end();
-	for(; cur != end; ) {
-		InventoryItem *i = cur->second->IncRef();
-		//iterator will become invalid after calling
-		//Delete(), so increment now.
-		cur++;
-
-		i->Delete();
-	}
-	//Delete() releases our ref on these.
-	//so it should be empty anyway.
-	m_contents.clear();
+	//we need to delete anything that we contain.
+	DeleteContents( m_factory );
 
 	//now we need to tell the factory to get rid of us from its cache.
 	m_factory._DeleteItem(m_itemID);
@@ -382,7 +365,6 @@ void InventoryItem::Delete() {
 		_log(ITEM__ERROR, "Delete() called on item %u (%p) which has %u references! Invalidating as best as possible..", m_itemID, this, m_refCount);
 		m_itemName = "BAD DELETED ITEM";
 		m_quantity = 0;
-		m_contentsLoaded = true;
 		//TODO: mark the item for death so that if it does get DecRef()'d, it will properly die.
 	}
 	DecRef();
@@ -465,8 +447,8 @@ void InventoryItem::Rename(const char *to) {
 	SaveItem();
 }
 
-void InventoryItem::MoveInto(InventoryItem *new_home, EVEItemFlags _flag, bool notify) {
-	Move(new_home->itemID(), _flag, notify);
+void InventoryItem::MoveInto(ItemContainer &new_home, EVEItemFlags _flag, bool notify) {
+	Move( new_home.containerID(), _flag, notify );
 }
 
 void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify) {
@@ -477,21 +459,17 @@ void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify
 		return;	//nothing to do...
 	
 	//first, take myself out of my old container, if its loaded.
-	InventoryItem *old_container = m_factory._GetIfContentsLoaded(old_location);
-	if(old_container != NULL) {
-		old_container->RemoveContainedItem(this);	//releases its ref
-		old_container->DecRef();
-	}
+	ItemContainer *old_container = m_factory.GetItemContainer( old_location, false, false );
+	if(old_container != NULL)
+		old_container->RemoveContainedItem( itemID() );	//releases its ref
 	
 	m_locationID = new_location;
 	m_flag = new_flag;
 
 	//then make sure that my new container is updated, if its loaded.
-	InventoryItem *new_container = m_factory._GetIfContentsLoaded(new_location);
-	if(new_container != NULL) {
-		new_container->AddContainedItem(this);	//makes a new ref
-		new_container->DecRef();
-	}
+	ItemContainer *new_container = m_factory.GetItemContainer( new_location, false, false );
+	if(new_container != NULL)
+		new_container->AddContainedItem( *this );	//makes a new ref
 
 	SaveItem();
 

@@ -326,7 +326,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	else
 	{
 		//welcome on board your starting ship
-		char_item->MoveInto( ship_item, flagPilot, false );
+		char_item->MoveInto( *ship_item, flagPilot, false );
 		ship_item->DecRef();
 	}
 

@@ -123,7 +123,7 @@ public:
 	void Rename(const char *to);
 	void ChangeOwner(uint32 new_owner, bool notify=true);
 	void Move(uint32 location, EVEItemFlags flag=flagAutoFit, bool notify=true);
-	void MoveInto(InventoryItem *new_home, EVEItemFlags flag=flagAutoFit, bool notify=true);
+	void MoveInto(ItemContainer &new_home, EVEItemFlags flag=flagAutoFit, bool notify=true);
 	bool ChangeSingleton(bool singleton, bool notify=true);
 	bool AlterQuantity(int32 qty_change, bool notify=true);
 	bool SetQuantity(uint32 qty_new, bool notify=true);
@@ -265,6 +265,7 @@ protected:
 	);
 
 	uint32 containerID() const { return itemID(); }
+	void GetItem(ItemRowset_Row &into) const { GetItemRow( into ); }
 
 	void SaveItem() const;	//save the item to the DB.
 

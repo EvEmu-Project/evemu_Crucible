@@ -30,12 +30,12 @@ PyCallable_Make_InnerDispatcher(InventoryBound)
 
 InventoryBound::InventoryBound(
 	PyServiceMgr *mgr,
-	InventoryItem *item,
+	ItemContainer &container,
 	EVEItemFlags flag)
 : PyBoundObject(mgr),
   m_dispatch(new Dispatcher(this)),
-  m_item(item),
-  m_flag(flag)
+  mContainer(container),
+  mFlag(flag)
 {
 	_SetCallDispatcher(m_dispatch);
 
@@ -49,8 +49,8 @@ InventoryBound::InventoryBound(
 	PyCallable_REG_CALL(InventoryBound, StackAll)
 }
 
-InventoryBound::~InventoryBound() {
-	m_item->DecRef();
+InventoryBound::~InventoryBound()
+{
 }
 
 PyResult InventoryBound::Handle_List(PyCallArgs &call) {
@@ -58,16 +58,7 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
 
 	//TODO: check to make sure we are allowed to list this container
 
-	//this is such crap, need better logic.
-	/*uint32 list_flag = flagCargoHold;
-	if(m_entityID == call.client->GetLocationID())
-		list_flag = flagInventory;*/
-
-	result = m_item->GetInventoryRowset(m_flag, call.client->GetCharacterID());
-	if(result == NULL)
-		result = new PyRepNone();
-
-	return result;
+	return mContainer.List( mFlag, call.client->GetCharacterID() );
 }
 
 PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
@@ -84,7 +75,7 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 	}
 
 	// returns new ref
-	InventoryItem *new_charge = m_item->GetByID(args.itemID, true);
+	InventoryItem *new_charge = mContainer.GetByID(args.itemID, true);
 	if(new_charge == NULL) {
 		codelog(SERVICE__ERROR, "%s: Unable to find charge %d", call.client->GetName(), args.itemID);
 		return NULL;
@@ -127,7 +118,7 @@ PyResult InventoryBound::Handle_ListStations(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
-	return m_item->GetItemRow();
+	return mContainer.GetItem();
 }
 
 PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
@@ -249,7 +240,7 @@ PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
 	}
 
 	//Stack Items contained in this inventory
-	m_item->StackContainedItems(stackFlag, call.client->GetCharacterID());
+	mContainer.StackAll(stackFlag, call.client->GetCharacterID());
 
 	return NULL;
 }
@@ -268,7 +259,7 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 		}
 
 		//If hold already contains this item then we can ignore remaining space
-		if ((!m_item->Contains(sourceItem)) || (m_item->flag() != flag))
+		if ( !mContainer.Contains(sourceItem) || sourceItem->flag() != flag )
 		{
 			//Add volume to totalVolume
 			if( items.size() > 1)
@@ -298,20 +289,17 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 	//Check total volume used size
 	if( flag != flagHangar)
 	{
-		double remainingCapacity = m_item->GetRemainingCapacity(flag);
+		double remainingCapacity = mContainer.GetRemainingCapacity(flag);
 
 		if( totalVolume > remainingCapacity )
 		{
 			//The moving item is too big to fit into dest space
 			//Log Error
 			if( items.size() > 1)
-			{
-				_log(ITEM__ERROR, "Cannot Perform Add. Items are too large (%f m3) to fit into destination %u (%f m3 capacity remaining)", totalVolume, m_item->itemID(), remainingCapacity); 
-			}
+				_log(ITEM__ERROR, "Cannot Perform Add. Items are too large (%f m3) to fit into destination %u (%f m3 capacity remaining)", totalVolume, mContainer.containerID(), remainingCapacity); 
 			else
-			{
-				_log(ITEM__ERROR, "Cannot Perform Add. Item %u is too large (%f m3) to fit into destination %u (%f m3 capacity remaining)", items[0], totalVolume, m_item->itemID(), remainingCapacity);
-			}
+				_log(ITEM__ERROR, "Cannot Perform Add. Item %u is too large (%f m3) to fit into destination %u (%f m3 capacity remaining)", items[0], totalVolume, mContainer.containerID(), remainingCapacity);
+
 			std::map<std::string, PyRep *> args;
 			args["available"] = new PyRepReal(remainingCapacity);
 			args["volume"] = new PyRepReal(totalVolume);
@@ -368,7 +356,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 			}
 			else
 			{
-				c->MoveItem(newItem->itemID(), m_item->itemID(), flag);	// properly refresh modules
+				c->MoveItem(newItem->itemID(), mContainer.containerID(), flag);	// properly refresh modules
 				if(fLoadoutRequest == true)
 				{
 					newItem->ChangeSingleton( true );
@@ -389,7 +377,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 		else
 		{
 			//Its a move request
-			c->MoveItem(sourceItem->itemID(), m_item->itemID(), flag);	// properly refresh modules
+			c->MoveItem(sourceItem->itemID(), mContainer.containerID(), flag);	// properly refresh modules
 			if(fLoadoutRequest == true)
 			{
 				sourceItem->ChangeSingleton( true );

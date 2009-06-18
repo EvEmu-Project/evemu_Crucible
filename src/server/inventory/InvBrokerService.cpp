@@ -102,14 +102,14 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
 	}
     //bool passive = (args.arg2 != 0);	//no idea what this is for.
 	
-	InventoryItem *item = m_manager->item_factory.GetItem(args.arg1, true);
-	if(item == NULL) {
-		codelog(SERVICE__ERROR, "%s: Unable to load item %u", call.client->GetName(), args.arg1);
+	ItemContainer *container = m_manager->item_factory.GetItemContainer( args.arg1 );
+	if(container == NULL) {
+		codelog(SERVICE__ERROR, "%s: Unable to load container %u", call.client->GetName(), args.arg1);
 		return (NULL);
 	}
 	
 	//we just bind up a new inventory object and give it back to them.
-	InventoryBound *ib = new InventoryBound(m_manager, item, flagAutoFit);
+	InventoryBound *ib = new InventoryBound(m_manager, *container, flagAutoFit);
 	PyRep *result = m_manager->BindObject(call.client, ib);
 
 	return result;
@@ -149,8 +149,8 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 			return NULL;
 	}
 	
-	InventoryItem *item = m_manager->item_factory.GetItem(m_entityID, true);
-	if(item == NULL) {
+	ItemContainer *container = m_manager->item_factory.GetItemContainer( m_entityID );
+	if(container == NULL) {
 		codelog(SERVICE__ERROR, "%s: Unable to load item %u", call.client->GetName(), m_entityID);
 		return (NULL);
 	}
@@ -158,7 +158,7 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
 	_log(SERVICE__MESSAGE, "Binding inventory object for %s for container %u with flag %u", call.client->GetName(), m_entityID, flag);
 	
 	//we just bind up a new inventory object and give it back to them.
-	InventoryBound *ib = new InventoryBound(m_manager, item, flag);
+	InventoryBound *ib = new InventoryBound(m_manager, *container, flag);
 	PyRep *result = m_manager->BindObject(call.client, ib);
 	
 	return result;

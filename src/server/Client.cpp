@@ -662,7 +662,7 @@ void Client::BoardShip(Ship *new_ship) {
 		m_system->RemoveClient(this);
 
 	_SetSelf(new_ship->IncRef());
-	m_char->MoveInto( new_ship, flagPilot, false );
+	m_char->MoveInto( *new_ship, flagPilot, false );
 
 	session.Set_shipid(new_ship->itemID());
 

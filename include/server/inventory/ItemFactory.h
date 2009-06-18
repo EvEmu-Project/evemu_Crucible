@@ -50,8 +50,10 @@ class SolarSystem;
 class Station;
 class Skill;
 
+class ItemContainer;
+
 class ItemFactory {
-	friend class InventoryItem;	//only for access to _GetIfContentsLoaded and _DeleteItem
+	friend class InventoryItem;	//only for access to _DeleteItem
 public:
 	ItemFactory(DBcore &db, EntityList &el);
 	~ItemFactory();
@@ -196,6 +198,11 @@ public:
 	 */
 	Skill *SpawnSkill(ItemData &data);
 
+	/*
+	 * Container stuff
+	 */
+	ItemContainer *GetItemContainer(uint32 containerID, bool recurse=true, bool load=true);
+
 protected:
 	InventoryDB m_db;
 
@@ -218,7 +225,6 @@ protected:
 	template<class _Ty>
 	_Ty *_GetItem(uint32 itemID, bool recurse=true);
 
-	InventoryItem *_GetIfContentsLoaded(uint32 itemID); // specialized function to deal with item movement.
 	void _DeleteItem(uint32 itemID);
 
 	std::map<uint32, InventoryItem *> m_items;	//we own a ref to these.

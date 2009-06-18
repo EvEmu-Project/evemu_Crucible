@@ -26,11 +26,14 @@
 #ifndef __ITEM_CONTAINER__H__INCL__
 #define __ITEM_CONTAINER__H__INCL__
 
+class InventoryItem;
 class ItemFactory;
 class ItemRowset;
+class ItemRowset_Row;
 
 class ItemContainer
 {
+	friend class InventoryItem;
 public:
 	ItemContainer();
 	virtual ~ItemContainer();
@@ -39,6 +42,7 @@ public:
 
 	bool ContentsLoaded() const { return m_contentsLoaded; }
 	bool LoadContents(ItemFactory &factory, bool recursive = true);
+	void DeleteContents(ItemFactory &factory);
 
 	//do we want to impose recursive const?
 	bool Contains(InventoryItem *item, bool recursive = false) const;
@@ -54,14 +58,16 @@ public:
 	virtual double GetCapacity(EVEItemFlags flag) const = 0;
 	double GetRemainingCapacity( EVEItemFlags flag) const { return GetCapacity( flag ) - GetStoredVolume( flag ); }
 
-	void StackContainedItems( EVEItemFlags flag, uint32 forOwner = 0);
+	void StackAll(EVEItemFlags flag, uint32 forOwner = 0);
 
-	PyRepObject *GetInventoryRowset(EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
-	void GetInventoryRowset(ItemRowset &into, EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
+	PyRepObject *GetItem() const;
+	virtual void GetItem(ItemRowset_Row &into) const = 0;
+	PyRepObject *List(EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
+	void List(ItemRowset &into, EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
 
 protected:
-	void AddContainedItem(InventoryItem *it);
-	void RemoveContainedItem(InventoryItem *it);
+	void AddContainedItem(InventoryItem &item);
+	void RemoveContainedItem(uint32 itemID);
 
 	bool m_contentsLoaded;
 	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.

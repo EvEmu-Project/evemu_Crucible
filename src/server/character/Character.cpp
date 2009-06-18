@@ -553,7 +553,7 @@ bool Character::InjectSkillIntoBrain(Skill &skill)
 
 		// use single_skill ...
 		single_skill->ChangeSingleton( true, false );
-		single_skill->MoveInto( this, flagSkill );
+		single_skill->MoveInto( *this, flagSkill );
 
 		single_skill->Set_skillLevel( 0 );
 		single_skill->Set_skillPoints( 0 );
@@ -566,7 +566,7 @@ bool Character::InjectSkillIntoBrain(Skill &skill)
 	{
 		// use original skill
 		skill.ChangeSingleton( true, false );
-		skill.MoveInto( this, flagSkill );
+		skill.MoveInto( *this, flagSkill );
 
 		skill.Set_skillLevel( 0 );
 		skill.Set_skillPoints( 0 );
@@ -621,7 +621,7 @@ void Character::UpdateSkillQueue()
 
 			currentTraining->Clear_expiryTime();
 
-			currentTraining->MoveInto( this, flagSkill, true );
+			currentTraining->MoveInto( *this, flagSkill, true );
 
 			if(c != NULL) {
 				OnSkillTrainingStopped osst;
@@ -647,7 +647,7 @@ void Character::UpdateSkillQueue()
 			currentTraining->Set_skillPoints( currentTraining->GetSPForLevel( currentTraining->skillLevel() ) );
 			currentTraining->Clear_expiryTime();
 
-			currentTraining->MoveInto( this, flagSkill, true );
+			currentTraining->MoveInto( *this, flagSkill, true );
 
 			if( c != NULL )
 			{
@@ -688,7 +688,7 @@ void Character::UpdateSkillQueue()
 
 		uint64 timeTraining = Win32TimeNow() + Win32Time_Minute * SPToNextLevel / SPPerMinute;
 
-		skill->MoveInto( this, flagSkillInTraining );
+		skill->MoveInto( *this, flagSkillInTraining );
 		skill->Set_expiryTime( timeTraining );
 
 		if(c != NULL) {

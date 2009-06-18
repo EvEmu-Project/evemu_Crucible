@@ -67,7 +67,7 @@ bool ItemContainer::LoadContents(ItemFactory &factory, bool recursive)
 			continue;
 		}
 
-		AddContainedItem( i );
+		AddContainedItem( *i );
 		i->DecRef();
 	}
 
@@ -75,14 +75,41 @@ bool ItemContainer::LoadContents(ItemFactory &factory, bool recursive)
 	return true;
 }
 
-PyRepObject *ItemContainer::GetInventoryRowset(EVEItemFlags _flag, uint32 forOwner) const
+void ItemContainer::DeleteContents(ItemFactory &factory)
+{
+	LoadContents( factory );
+
+	std::map<uint32, InventoryItem *>::iterator cur, end;
+	cur = m_contents.begin();
+	end = m_contents.end();
+	for(; cur != end; ) {
+		InventoryItem *i = cur->second->IncRef();
+		//iterator will become invalid after calling
+		//Delete(), so increment now.
+		cur++;
+
+		i->Delete();
+	}
+	//Delete() releases our ref on these.
+	//so it should be empty anyway.
+	m_contents.clear();
+}
+
+PyRepObject *ItemContainer::GetItem() const
+{
+	ItemRow row;
+	GetItem( row.line );
+	return row.FastEncode();
+}
+
+PyRepObject *ItemContainer::List(EVEItemFlags _flag, uint32 forOwner) const
 {
 	ItemRowset rowset;
-	GetInventoryRowset( rowset );
+	List( rowset );
 	return rowset.FastEncode();
 }
 
-void ItemContainer::GetInventoryRowset(ItemRowset &into, EVEItemFlags _flag, uint32 forOwner) const
+void ItemContainer::List(ItemRowset &into, EVEItemFlags _flag, uint32 forOwner) const
 {
 	//there has to be a better way to build this...
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
@@ -214,30 +241,30 @@ uint32 ItemContainer::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<In
 	return count;
 }
 
-void ItemContainer::AddContainedItem(InventoryItem *it)
+void ItemContainer::AddContainedItem(InventoryItem &item)
 {
-	std::map<uint32, InventoryItem *>::iterator res = m_contents.find( it->itemID() );
+	std::map<uint32, InventoryItem *>::iterator res = m_contents.find( item.itemID() );
 	if( res == m_contents.end() )
 	{
-		m_contents[ it->itemID() ] = it->IncRef();
+		m_contents[ item.itemID() ] = item.IncRef();
 
-		_log( ITEM__TRACE, "   Updated location %u to contain item %u", containerID(), it->itemID() );
+		_log( ITEM__TRACE, "   Updated location %u to contain item %u with flag %d.", containerID(), item.itemID(), (int)item.flag() );
 	}
-	else if( res->second != it )
+	else if( res->second != &item )
 	{
-		_log( ITEM__ERROR, "Both object %p and object %p represent item %u!", res->second, it, it->itemID() );
+		_log( ITEM__ERROR, "Both object %p and object %p represent item %u!", res->second, &item, item.itemID() );
 	} //else already here
 }
 
-void ItemContainer::RemoveContainedItem(InventoryItem *it)
+void ItemContainer::RemoveContainedItem(uint32 itemID)
 {
-	std::map<uint32, InventoryItem *>::iterator old_inst = m_contents.find( it->itemID() );
+	std::map<uint32, InventoryItem *>::iterator old_inst = m_contents.find( itemID );
 	if( old_inst != m_contents.end() )
 	{
 		old_inst->second->DecRef();
 		m_contents.erase( old_inst );
 
-		_log( ITEM__TRACE, "   Updated location %u to no longer contain item %u", containerID(), it->itemID() );
+		_log( ITEM__TRACE, "   Updated location %u to no longer contain item %u.", containerID(), itemID );
 	}
 }
 
@@ -263,7 +290,7 @@ bool ItemContainer::Contains(InventoryItem *item, bool recursive) const
 	return false;
 }
 
-void ItemContainer::StackContainedItems(EVEItemFlags locFlag, uint32 forOwner)
+void ItemContainer::StackAll(EVEItemFlags locFlag, uint32 forOwner)
 {
 	std::map<uint32, InventoryItem *> types;
 
