@@ -299,8 +299,8 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 		return NULL;
 	}
 
-	if(!IsSolarSystem(call.client->GetLocationID())) {
-		_log(SERVICE__ERROR, "%s: Trying to jettision items when not in space!", call.client->GetName());
+	if( !call.client->IsInSpace() ) {
+		_log(SERVICE__ERROR, "%s: Trying to jettison items when not in space!", call.client->GetName());
 		return NULL;
 	}
 	

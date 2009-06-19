@@ -191,7 +191,7 @@ bool Station::_Load()
 	if( !LoadContents( m_factory ) )
 		return false;
 
-	CelestialObject::_Load();
+	return CelestialObject::_Load();
 }
 
 
