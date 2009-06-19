@@ -105,9 +105,9 @@ Ship::Ship(
 {
 }
 
-Ship *Ship::Load(ItemFactory &factory, uint32 shipID, bool recurse)
+Ship *Ship::Load(ItemFactory &factory, uint32 shipID)
 {
-	return InventoryItem::Load<Ship>( factory, shipID, recurse );
+	return InventoryItem::Load<Ship>( factory, shipID );
 }
 
 Ship *Ship::_Load(ItemFactory &factory, uint32 shipID)
@@ -134,11 +134,10 @@ Ship *Ship::Spawn(ItemFactory &factory,
 	// InventoryItem stuff:
 	ItemData &data
 ) {
-	uint32 shipID = Ship::_Spawn(factory, data);
-	if(shipID == 0)
+	uint32 shipID = Ship::_Spawn( factory, data );
+	if( shipID == 0 )
 		return 0;
-	// item cannot contain anything yet - don't recurse
-	return Ship::Load(factory, shipID, false);
+	return Ship::Load( factory, shipID );
 }
 
 uint32 Ship::_Spawn(ItemFactory &factory,
@@ -160,9 +159,36 @@ uint32 Ship::_Spawn(ItemFactory &factory,
 	return shipID;
 }
 
+bool Ship::_Load()
+{
+	// load contents
+	if( !LoadContents( m_factory ) )
+		return false;
+
+	return InventoryItem::_Load();
+}
+
+void Ship::Delete()
+{
+	// delete contents first
+	DeleteContents( m_factory );
+
+	InventoryItem::Delete();
+}
+
+double Ship::GetCapacity(EVEItemFlags flag) const
+{
+	switch( flag ) {
+		case flagCargoHold: return capacity();
+		case flagDroneBay:	return droneCapacity();
+		default:			return 0.0;
+	}
+	
+}
+
 PyRepObject *Ship::ShipGetInfo()
 {
-	if( !LoadContents( m_factory, true ) )
+	if( !LoadContents( m_factory ) )
 	{
 		codelog( ITEM__ERROR, "%s (%u): Failed to load contents for ShipGetInfo", itemName().c_str(), itemID() );
 		return NULL;

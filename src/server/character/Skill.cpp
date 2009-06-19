@@ -38,9 +38,9 @@ Skill::Skill(
 {
 }
 
-Skill *Skill::Load(ItemFactory &factory, uint32 skillID, bool recurse)
+Skill *Skill::Load(ItemFactory &factory, uint32 skillID)
 {
-	return InventoryItem::Load<Skill>( factory, skillID, recurse );
+	return InventoryItem::Load<Skill>( factory, skillID );
 }
 
 Skill *Skill::_Load(ItemFactory &factory, uint32 skillID)
@@ -67,7 +67,7 @@ Skill *Skill::Spawn(ItemFactory &factory, ItemData &data)
 	uint32 skillID = _Spawn( factory, data );
 	if( skillID == 0 )
 		return NULL;
-	return factory.GetSkill( skillID, false );
+	return Skill::Load( factory, skillID );
 }
 
 uint32 Skill::_Spawn(ItemFactory &factory, ItemData &data)

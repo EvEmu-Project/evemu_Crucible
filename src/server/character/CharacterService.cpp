@@ -364,7 +364,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	_log(CLIENT__MESSAGE, "Timed delete of char %u unimplemented. Deleting Immediately.", args.arg);
 
 	{ // character scope to make sure char_item is no longer accessed after deletion
-		Character *char_item = m_manager->item_factory.GetCharacter(args.arg, true);
+		Character *char_item = m_manager->item_factory.GetCharacter( args.arg );
 		if(char_item == NULL) {
 			codelog(CLIENT__ERROR, "Failed to load char item %u.", args.arg);
 			return NULL;
@@ -386,7 +386,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *i = m_manager->item_factory.GetItem(*cur, true);
+		InventoryItem *i = m_manager->item_factory.GetItem( *cur );
 		if(i == NULL) {
 			codelog(CLIENT__ERROR, "Failed to load item %u to delete. Skipping.", *cur);
 			continue;

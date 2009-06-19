@@ -97,7 +97,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 		codelog(CLIENT__ERROR, "%s: Boarding a ship in space is not yet implemented!!!!", call.client->GetName());
 	}
 
-	Ship *ship = m_manager->item_factory.GetShip(args.arg, true);
+	Ship *ship = m_manager->item_factory.GetShip( args.arg );
 	if(ship == NULL) {
 		_log(CLIENT__ERROR, "%s: Failed to get new ship %u.", call.client->GetName(), args.arg);
 	} else {
@@ -165,7 +165,7 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
 
 	//Start sloppy implementation
 	InventoryItem* item;
-	item = m_manager->item_factory.GetItem( args.items.front(), false);
+	item = m_manager->item_factory.GetItem( args.items.front() );
 	item->ChangeSingleton(true, true);
 	item->DecRef();
 	//TODO: something...
@@ -208,7 +208,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
 	}
 
 	for(; cur != end; cur++) {
-		InventoryItem *item = m_manager->item_factory.GetItem(*cur, false);
+		InventoryItem *item = m_manager->item_factory.GetItem( *cur );
 		if(item == NULL) {
 			_log(SERVICE__ERROR, "%s: Unable to find item %u to drop.", call.client->GetName(), *cur);
 			continue;

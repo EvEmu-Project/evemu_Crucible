@@ -202,13 +202,13 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 			continue;
 		}
 
-		InventoryItem *stationaryItem = m_manager->item_factory.GetItem(element.stationaryItemID, false);
+		InventoryItem *stationaryItem = m_manager->item_factory.GetItem( element.stationaryItemID );
 		if(stationaryItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load stationary item %u. Skipping.", element.stationaryItemID);
 			continue;
 		}
 
-		InventoryItem *draggedItem = m_manager->item_factory.GetItem(element.draggedItemID, false);
+		InventoryItem *draggedItem = m_manager->item_factory.GetItem( element.draggedItemID );
 		if(draggedItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load dragged item %u. Skipping.", element.draggedItemID);
 			stationaryItem->DecRef();
@@ -252,14 +252,14 @@ void InventoryBound::_ValidateAdd( Client *c, const std::vector<uint32> &items, 
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *sourceItem = m_manager->item_factory.GetItem((*cur), true);
+		InventoryItem *sourceItem = m_manager->item_factory.GetItem( *cur );
 		if(sourceItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load item %u. Skipping.", *cur);
 			continue;
 		}
 
 		//If hold already contains this item then we can ignore remaining space
-		if ( !mContainer.Contains(sourceItem) || sourceItem->flag() != flag )
+		if ( !mContainer.Contains( sourceItem->itemID() ) || sourceItem->flag() != flag )
 		{
 			//Add volume to totalVolume
 			if( items.size() > 1)
@@ -335,7 +335,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *sourceItem = m_manager->item_factory.GetItem((*cur), true);
+		InventoryItem *sourceItem = m_manager->item_factory.GetItem( *cur );
 		if(sourceItem == NULL) {
 			_log(SERVICE__ERROR, "Failed to load item %u. Skipping.", *cur);
 			continue;

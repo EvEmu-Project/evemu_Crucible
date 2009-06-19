@@ -159,7 +159,8 @@ protected:
  * InventoryItem which represents ship.
  */
 class Ship
-: public InventoryItem
+: public InventoryItem,
+  public ItemContainer
 {
 	friend class InventoryItem;	// to let it construct us
 public:
@@ -168,10 +169,9 @@ public:
 	 *
 	 * @param[in] factory
 	 * @param[in] shipID ID of ship to load.
-	 * @param[in] recurse Whether all items contained within this item should be loaded.
 	 * @return Pointer to Ship object; NULL if failed.
 	 */
-	static Ship *Load(ItemFactory &factory, uint32 shipID, bool recurse=false);
+	static Ship *Load(ItemFactory &factory, uint32 shipID);
 	/**
 	 * Spawns new ship.
 	 *
@@ -184,7 +184,11 @@ public:
 	/*
 	 * Primary public interface:
 	 */
-	Ship *IncRef() { return static_cast<Ship *>(InventoryItem::IncRef()); }
+	Ship *IncRef() { return static_cast<Ship *>( InventoryItem::IncRef() ); }
+
+	void Delete();
+
+	double GetCapacity(EVEItemFlags flag) const;
 
 	/*
 	 * Public fields:
@@ -240,12 +244,15 @@ protected:
 		const ShipType &shipType, const ItemData &data
 	);
 
-	bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+	bool _Load();
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:
 		ItemData &data
 	);
+
+	uint32 containerID() const { return itemID(); }
+	void GetItem(ItemRowset_Row &into) const { return GetItemRow( into ); }
 };
 
 #endif /* !__SHIP__H__INCL__ */

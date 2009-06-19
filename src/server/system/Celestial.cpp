@@ -59,9 +59,9 @@ CelestialObject::CelestialObject(
 {
 }
 
-CelestialObject *CelestialObject::Load(ItemFactory &factory, uint32 celestialID, bool recurse)
+CelestialObject *CelestialObject::Load(ItemFactory &factory, uint32 celestialID)
 {
-	return InventoryItem::Load<CelestialObject>( factory, celestialID, recurse );
+	return InventoryItem::Load<CelestialObject>( factory, celestialID );
 }
 
 CelestialObject *CelestialObject::_Load(ItemFactory &factory, uint32 celestialID)

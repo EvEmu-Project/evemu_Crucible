@@ -147,9 +147,9 @@ Station::Station(
 {
 }
 
-Station *Station::Load(ItemFactory &factory, uint32 stationID, bool recurse)
+Station *Station::Load(ItemFactory &factory, uint32 stationID)
 {
-	return InventoryItem::Load<Station>( factory, stationID, recurse );
+	return InventoryItem::Load<Station>( factory, stationID );
 }
 
 Station *Station::_Load(ItemFactory &factory, uint32 stationID)
@@ -183,6 +183,15 @@ Station *Station::_LoadStation(ItemFactory &factory, uint32 stationID,
 {
 	// ready to create
 	return new Station( factory, stationID, type, data, cData, stData );
+}
+
+bool Station::_Load()
+{
+	// load contents
+	if( !LoadContents( m_factory ) )
+		return false;
+
+	CelestialObject::_Load();
 }
 
 

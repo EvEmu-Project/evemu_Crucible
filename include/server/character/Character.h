@@ -335,7 +335,8 @@ public:
  * Class representing character.
  */
 class Character
-: public InventoryItem
+: public InventoryItem,
+  public ItemContainer
 {
 	friend class InventoryItem;	// to let it construct us
 public:
@@ -347,10 +348,9 @@ public:
 	 *
 	 * @param[in] factory
 	 * @param[in] characterID ID of character to load.
-	 * @param[in] recurse Whether load should be recursive - load all contained items as well.
 	 * @return Pointer to new Character object; NULL if failed.
 	 */
-	static Character *Load(ItemFactory &factory, uint32 characterID, bool recurse=false);
+	static Character *Load(ItemFactory &factory, uint32 characterID);
 	/**
 	 * Spawns new character.
 	 *
@@ -366,7 +366,7 @@ public:
 	/*
 	 * Primary public interface:
 	 */
-	Character *IncRef() { return static_cast<Character *>(InventoryItem::IncRef()); }
+	Character *IncRef() { return static_cast<Character *>( InventoryItem::IncRef() ); }
 
 	void Delete();
 
@@ -374,6 +374,8 @@ public:
 	void SetLocation(uint32 stationID, uint32 solarSystemID, uint32 constellationID, uint32 regionID);
 	void JoinCorporation(uint32 corporationID);
 	void SetDescription(const char *newDescription);
+
+	double GetCapacity(EVEItemFlags flag) const { return DBL_MAX; }
 
 	/**
 	 * Checks whether character has the skill.
@@ -549,7 +551,7 @@ protected:
 		const CharacterData &charData, const CorpMemberInfo &corpData
 	);
 
-	bool _Load(bool recurse=false);
+	bool _Load();
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:
@@ -557,6 +559,9 @@ protected:
 		// Character stuff:
 		CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
 	);
+
+	uint32 containerID() const { return itemID(); }
+	void GetItem(ItemRowset_Row &into) const { return GetItemRow( into ); }
 
 	void SaveCharacter() const;
 	void SaveSkillQueue() const;

@@ -168,9 +168,9 @@ InventoryItem * InventoryItem::IncRef()
 	return(this);
 }
 
-InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID, bool recurse)
+InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID)
 {
-	return InventoryItem::Load<InventoryItem>( factory, itemID, recurse );
+	return InventoryItem::Load<InventoryItem>( factory, itemID );
 }
 
 InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID)
@@ -235,21 +235,16 @@ InventoryItem *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 	return new InventoryItem( factory, itemID, type, data );
 }
 
-bool InventoryItem::_Load(bool recurse) {
+bool InventoryItem::_Load()
+{
 	// load attributes
 	if(!attributes.Load())
 		return false;
 
 	// update container
-	ItemContainer *container = m_factory.GetItemContainer( locationID(), false, false );
+	ItemContainer *container = m_factory.GetItemContainer( locationID(), false );
 	if(container != NULL)
 		container->AddContainedItem( *this );
-
-	// now load contained items
-	if(recurse) {
-		if(!LoadContents(m_factory, recurse))
-			return false;
-	}
 
 	return true;
 }
@@ -318,12 +313,10 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 	}
 
 	// Spawn generic item:
-	uint32 itemID = InventoryItem::_Spawn(factory, data);
-	if(itemID == 0)
+	uint32 itemID = InventoryItem::_Spawn( factory, data );
+	if( itemID == 0 )
 		return NULL;
-
-	// item cannot contain anything yet - don't recurse
-	return InventoryItem::Load(factory, itemID, false);
+	return InventoryItem::Load( factory, itemID );
 }
 
 uint32 InventoryItem::_Spawn(ItemFactory &factory,
@@ -349,9 +342,6 @@ void InventoryItem::Delete() {
 	//this also removes us from our container.
 	Move(6);
 	ChangeOwner(2);
-
-	//we need to delete anything that we contain.
-	DeleteContents( m_factory );
 
 	//now we need to tell the factory to get rid of us from its cache.
 	m_factory._DeleteItem(m_itemID);
@@ -459,7 +449,7 @@ void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify
 		return;	//nothing to do...
 	
 	//first, take myself out of my old container, if its loaded.
-	ItemContainer *old_container = m_factory.GetItemContainer( old_location, false, false );
+	ItemContainer *old_container = m_factory.GetItemContainer( old_location, false );
 	if(old_container != NULL)
 		old_container->RemoveContainedItem( itemID() );	//releases its ref
 	
@@ -467,7 +457,7 @@ void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify
 	m_flag = new_flag;
 
 	//then make sure that my new container is updated, if its loaded.
-	ItemContainer *new_container = m_factory.GetItemContainer( new_location, false, false );
+	ItemContainer *new_container = m_factory.GetItemContainer( new_location, false );
 	if(new_container != NULL)
 		new_container->AddContainedItem( *this );	//makes a new ref
 
@@ -586,16 +576,6 @@ bool InventoryItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
 		to_merge->DecRef();	//consume ref
 
 	return true;
-}
-
-double InventoryItem::GetCapacity(EVEItemFlags flag) const
-{
-	switch( flag ) {
-		case flagCargoHold: return capacity();
-		case flagDroneBay:	return droneCapacity();
-		default:			return 0.0;
-	}
-	
 }
 
 bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify) {

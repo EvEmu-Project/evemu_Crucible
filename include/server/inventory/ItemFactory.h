@@ -112,63 +112,57 @@ public:
 	/*
 	 * Item stuff
 	 */
-	InventoryItem *GetItem(uint32 itemID, bool recurse=true);
+	InventoryItem *GetItem(uint32 itemID);
 
-	Blueprint *GetBlueprint(uint32 blueprintID, bool recurse=true);
+	Blueprint *GetBlueprint(uint32 blueprintID);
 
 	/**
 	 * Loads character.
 	 *
 	 * @param[in] character ID of character to load.
-	 * @param[in] recurse Whether load should be recursive (load all contained items as well).
 	 * @return Pointer to Character object; NULL if load failed.
 	 */
-	Character *GetCharacter(uint32 characterID, bool recurse=true);
+	Character *GetCharacter(uint32 characterID);
 
 	/**
 	 * Loads ship.
 	 *
 	 * @param[in] shipID ID of ship to load.
-	 * @param[in] recurse Whether all items contained within the ship should be loaded too.
 	 * @return Pointer to Ship object; NULL if failed.
 	 */
-	Ship *GetShip(uint32 shipID, bool recurse=true);
+	Ship *GetShip(uint32 shipID);
 
 	/**
 	 * Loads celestial object.
 	 *
 	 * @param[in] celestialID ID of celestial object to load.
-	 * @param[in] recurse Whether all contained items should be loaded as well.
 	 * @return Pointer to CelestialObject; NULL if fails.
 	 */
-	CelestialObject *GetCelestialObject(uint32 celestialID, bool recurse=true);
+	CelestialObject *GetCelestialObject(uint32 celestialID);
 
 	/**
 	 * Loads solar system.
 	 *
 	 * @param[in] solarSystemID ID of solar system to load.
-	 * @param[in] recurse Whether all contained items should be loaded too.
 	 * @return Pointer to solar system object; NULL if failed.
 	 */
-	SolarSystem *GetSolarSystem(uint32 solarSystemID, bool recurse=true);
+	SolarSystem *GetSolarSystem(uint32 solarSystemID);
 
 	/**
 	 * Loads station.
 	 *
 	 * @param[in] stationID ID of station to load.
-	 * @param[in] recurse Whether all contained items should be also loaded.
 	 * @return Pointer to Station object; NULL if fails.
 	 */
-	Station *GetStation(uint32 stationID, bool recurse=true);
+	Station *GetStation(uint32 stationID);
 
 	/**
 	 * Loads skill.
 	 *
 	 * @param[in] skillID ID of skill to load.
-	 * @param[in] recurse Whether all contained items should be also loaded.
 	 * @return Pointer to Skill object; NULL if fails.
 	 */
-	Skill *GetSkill(uint32 skillID, bool recurse=true);
+	Skill *GetSkill(uint32 skillID);
 
 	//spawn a new item with the specified information, creating it in the DB as well.
 	InventoryItem *SpawnItem(ItemData &data);
@@ -201,7 +195,7 @@ public:
 	/*
 	 * Container stuff
 	 */
-	ItemContainer *GetItemContainer(uint32 containerID, bool recurse=true, bool load=true);
+	ItemContainer *GetItemContainer(uint32 containerID, bool load=true);
 
 protected:
 	InventoryDB m_db;
@@ -223,7 +217,7 @@ protected:
 
 	// Items:
 	template<class _Ty>
-	_Ty *_GetItem(uint32 itemID, bool recurse=true);
+	_Ty *_GetItem(uint32 itemID);
 
 	void _DeleteItem(uint32 itemID);
 

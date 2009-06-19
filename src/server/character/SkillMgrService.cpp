@@ -232,7 +232,7 @@ PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call)
 	end = args.skills.end();
 	for(; cur != end; cur++)
 	{
-		Skill *skill = m_manager->item_factory.GetSkill( *cur , false );
+		Skill *skill = m_manager->item_factory.GetSkill( *cur );
 		if( skill == NULL )
 		{
 			codelog( ITEM__ERROR, "%s: failed to load skill item %u for injection.", call.client->GetName(), *cur );

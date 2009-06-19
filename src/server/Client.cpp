@@ -629,7 +629,7 @@ void Client::MoveToPosition(const GPoint &pt) {
 
 void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag) {
 	
-	InventoryItem *item = m_services.item_factory.GetItem(itemID, false);
+	InventoryItem *item = m_services.item_factory.GetItem( itemID );
 	if(item == NULL) {
 		codelog(SERVICE__ERROR, "%s: Unable to load item %u", GetName(), itemID);
 		return;
@@ -1073,11 +1073,11 @@ bool Client::AddBalance(double amount) {
 
 bool Client::SelectCharacter(uint32 char_id) {
 	//get char
-	Character *character = m_services.item_factory.GetCharacter(char_id, true);
+	Character *character = m_services.item_factory.GetCharacter( char_id );
 	if(character == NULL)
 		return false;
 
-	Ship *ship = m_services.item_factory.GetShip(character->locationID(), true);
+	Ship *ship = m_services.item_factory.GetShip( character->locationID() );
 	if(ship == NULL)
 		return false;
 

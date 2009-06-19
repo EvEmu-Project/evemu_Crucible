@@ -60,15 +60,14 @@ public:
 	 *
 	 * @param[in] factory
 	 * @param[in] celestialID ID of celestial object to load.
-	 * @param[in] recurse Whether all contained items should be also loaded.
 	 * @return Pointer to new CelestialObject; NULL if fails.
 	 */
-	static CelestialObject *Load(ItemFactory &factory, uint32 celestialID, bool recurse=false);
+	static CelestialObject *Load(ItemFactory &factory, uint32 celestialID);
 
 	/*
 	 * Primary public interface:
 	 */
-	CelestialObject *IncRef() { return static_cast<CelestialObject *>(InventoryItem::IncRef()); }
+	CelestialObject *IncRef() { return static_cast<CelestialObject *>( InventoryItem::IncRef() ); }
 
 	void Delete();
 
@@ -130,7 +129,7 @@ protected:
 		const CelestialObjectData &cData
 	);
 
-	bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+	bool _Load() { return InventoryItem::_Load(); }
 
 	/*
 	 * Data members:

@@ -171,7 +171,7 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	InventoryItem *item = m_manager->item_factory.GetItem(args.itemID, false);
+	InventoryItem *item = m_manager->item_factory.GetItem( args.itemID );
 	if(item == NULL) {
 		codelog(SERVICE__ERROR, "%s: Unable to load item %u", call.client->GetName(), args.itemID);
 		return (NULL);
@@ -202,7 +202,7 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
 	cur = args.items.begin();
 	end = args.items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *item = m_manager->item_factory.GetItem(*cur, false);
+		InventoryItem *item = m_manager->item_factory.GetItem( *cur );
 		if(item == NULL) {
 			codelog(SERVICE__ERROR, "%s: Unable to load item %u to delete it. Skipping.", call.client->GetName(), *cur);
 		} else if(call.client->GetCharacterID() != item->ownerID()) {

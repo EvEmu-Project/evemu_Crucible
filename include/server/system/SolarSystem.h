@@ -88,15 +88,14 @@ public:
 	 *
 	 * @param[in] factory
 	 * @param[in] solarSystemID ID of solar system to load.
-	 * @param[in] recurse Whether all items contained within should be loaded too.
 	 * @return Pointer to new solar system object; NULL if failed.
 	 */
-	static SolarSystem *Load(ItemFactory &factory, uint32 solarSystemID, bool recurse=false);
+	static SolarSystem *Load(ItemFactory &factory, uint32 solarSystemID);
 
 	/*
 	 * Primary public interface:
 	 */
-	SolarSystem *IncRef() { return static_cast<SolarSystem *>(CelestialObject::IncRef()); }
+	SolarSystem *IncRef() { return static_cast<SolarSystem *>( CelestialObject::IncRef() ); }
 
 	/*
 	 * Public Fields:
@@ -187,7 +186,7 @@ protected:
 		const Type &sunType, const SolarSystemData &ssData
 	);
 
-	bool _Load(bool recurse=false);
+	bool _Load();
 
 	/*
 	 * Data members:

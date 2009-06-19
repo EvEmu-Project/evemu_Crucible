@@ -120,7 +120,7 @@ PyResult Standing2Service::Handle_GetSecurityRating(PyCallArgs &call) {
 		return NULL;
 	}
 
-	Character *c = m_manager->item_factory.GetCharacter(arg.arg, false);
+	Character *c = m_manager->item_factory.GetCharacter( arg.arg );
 	if(c == NULL) {
 		_log(SERVICE__ERROR, "Character %u not found.", arg.arg);
 		return NULL;

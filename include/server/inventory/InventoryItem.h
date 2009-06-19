@@ -91,7 +91,6 @@ public:
  * Class which maintains generic item.
  */
 class InventoryItem
-: public ItemContainer
 {
 public:
 	/**
@@ -99,10 +98,9 @@ public:
 	 *
 	 * @param[in] factory
 	 * @param[in] itemID ID of item to load.
-	 * @param[in] recurse Whether all items contained within this item should be loaded too.
 	 * @return Pointer to InventoryItem object; NULL if failed.
 	 */
-	static InventoryItem *Load(ItemFactory &factory, uint32 itemID, bool recurse=false);
+	static InventoryItem *Load(ItemFactory &factory, uint32 itemID);
 	/**
 	 * Spawns new item.
 	 *
@@ -135,8 +133,6 @@ public:
 	 */
 	virtual InventoryItem *Split(int32 qty_to_take, bool notify=true);
 	virtual bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
-
-	double GetCapacity(EVEItemFlags flag) const;
 
 	void PutOnline() { SetOnline(true); }
 	void PutOffline() { SetOnline(false); }
@@ -215,7 +211,7 @@ protected:
 	 */
 	// Template helper:
 	template<class _Ty>
-	static _Ty *Load(ItemFactory &factory, uint32 itemID, bool recurse)
+	static _Ty *Load(ItemFactory &factory, uint32 itemID)
 	{
 		// static load
 		_Ty *i = _Ty::_Load( factory, itemID );
@@ -223,7 +219,7 @@ protected:
 			return NULL;
 
 		// dynamic load
-		if( !i->_Load( recurse ) )
+		if( !i->_Load() )
 		{
 			i->DecRef();	// should delete the item
 			return NULL;
@@ -257,15 +253,12 @@ protected:
 		const Type &type, const ItemData &data
 	);
 
-	virtual bool _Load(bool recurse=false);
+	virtual bool _Load();
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:
 		ItemData &data
 	);
-
-	uint32 containerID() const { return itemID(); }
-	void GetItem(ItemRowset_Row &into) const { GetItemRow( into ); }
 
 	void SaveItem() const;	//save the item to the DB.
 

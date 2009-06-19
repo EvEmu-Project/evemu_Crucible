@@ -50,7 +50,7 @@ PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
 		return NULL;
 	}
 
-	Blueprint *b = m_manager->item_factory.GetBlueprint(arg.arg, false);
+	Blueprint *b = m_manager->item_factory.GetBlueprint( arg.arg );
 	if(b == NULL)
 		return NULL;
 

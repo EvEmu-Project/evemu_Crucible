@@ -52,6 +52,8 @@ private:
 	void _EncodeBillOfMaterials(const std::vector<RequiredItem> &reqItems, double materialMultiplier, double charMaterialMultiplier, uint32 runs, BillOfMaterials &into);
 	void _EncodeMissingMaterials(const std::vector<RequiredItem> &reqItems, const PathElement &bomLocation, Client *const c, double materialMultiplier, double charMaterialMultiplier, uint32 runs, std::map<uint32, PyRep *> &into);
 
+	void _GetBOMItems(const PathElement &bomLocation, std::vector<InventoryItem *> &into, bool newref = false);
+
 	PyCallable_DECL_CALL(GetJobs2)
 	PyCallable_DECL_CALL(AssemblyLinesSelect)
 	PyCallable_DECL_CALL(AssemblyLinesGet)

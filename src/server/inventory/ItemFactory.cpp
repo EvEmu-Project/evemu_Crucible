@@ -144,58 +144,63 @@ const StationType *ItemFactory::GetStationType(uint32 stationTypeID) {
 }
 
 template<class _Ty>
-_Ty *ItemFactory::_GetItem(uint32 itemID, bool recurse) {
-	std::map<uint32, InventoryItem *>::iterator res = m_items.find(itemID);
-	if(res == m_items.end()) {
+_Ty *ItemFactory::_GetItem(uint32 itemID)
+{
+	std::map<uint32, InventoryItem *>::iterator res = m_items.find( itemID );
+	if( res == m_items.end() )
+	{
 		// load the item
-		_Ty *item = _Ty::Load(*this, itemID, recurse);
-		if(item == NULL)
+		_Ty *item = _Ty::Load( *this, itemID );
+		if( item == NULL )
 			return NULL;
 
 		//we keep the original ref.
 		res = m_items.insert(
-			std::make_pair(itemID, item)
+			std::make_pair( itemID, item )
 		).first;
-	} else if(recurse) {
-		// ensure its recursively loaded
-		if(!res->second->LoadContents(*this, true))
-			return NULL;
 	}
 	//we return new ref to the user.
-	return static_cast<_Ty *>(res->second->IncRef());
+	return static_cast<_Ty *>( res->second->IncRef() );
 }
 
-InventoryItem *ItemFactory::GetItem(uint32 itemID, bool recurse) {
-	return _GetItem<InventoryItem>(itemID, recurse);
-}
-
-Blueprint *ItemFactory::GetBlueprint(uint32 blueprintID, bool recurse) {
-	return _GetItem<Blueprint>(blueprintID, recurse);
-}
-
-Character *ItemFactory::GetCharacter(uint32 characterID, bool recurse) {
-	return _GetItem<Character>(characterID, recurse);
-}
-
-Ship *ItemFactory::GetShip(uint32 shipID, bool recurse) {
-	return _GetItem<Ship>(shipID, recurse);
-}
-
-CelestialObject *ItemFactory::GetCelestialObject(uint32 celestialID, bool recurse) {
-	return _GetItem<CelestialObject>(celestialID, recurse);
-}
-
-SolarSystem *ItemFactory::GetSolarSystem(uint32 solarSystemID, bool recurse) {
-	return _GetItem<SolarSystem>(solarSystemID, recurse);
-}
-
-Station *ItemFactory::GetStation(uint32 stationID, bool recurse) {
-	return _GetItem<Station>(stationID, recurse);
-}
-
-Skill *ItemFactory::GetSkill(uint32 skillID, bool recurse)
+InventoryItem *ItemFactory::GetItem(uint32 itemID)
 {
-	return _GetItem<Skill>( skillID, recurse );
+	return _GetItem<InventoryItem>( itemID );
+}
+
+Blueprint *ItemFactory::GetBlueprint(uint32 blueprintID)
+{
+	return _GetItem<Blueprint>( blueprintID );
+}
+
+Character *ItemFactory::GetCharacter(uint32 characterID)
+{
+	return _GetItem<Character>( characterID );
+}
+
+Ship *ItemFactory::GetShip(uint32 shipID)
+{
+	return _GetItem<Ship>( shipID );
+}
+
+CelestialObject *ItemFactory::GetCelestialObject(uint32 celestialID)
+{
+	return _GetItem<CelestialObject>( celestialID );
+}
+
+SolarSystem *ItemFactory::GetSolarSystem(uint32 solarSystemID)
+{
+	return _GetItem<SolarSystem>( solarSystemID );
+}
+
+Station *ItemFactory::GetStation(uint32 stationID)
+{
+	return _GetItem<Station>( stationID );
+}
+
+Skill *ItemFactory::GetSkill(uint32 skillID)
+{
+	return _GetItem<Skill>( skillID );
 }
 
 InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
@@ -246,13 +251,13 @@ Skill *ItemFactory::SpawnSkill(ItemData &data)
 	return s->IncRef();
 }
 
-ItemContainer *ItemFactory::GetItemContainer(uint32 containerID, bool recurse, bool load)
+ItemContainer *ItemFactory::GetItemContainer(uint32 containerID, bool load)
 {
 	InventoryItem *item = NULL;
 
 	if( load )
 	{
-		item = GetItem( containerID, recurse );
+		item = GetItem( containerID );
 		if( item != NULL )
 			// containers are not referenced
 			item->DecRef();
@@ -261,15 +266,24 @@ ItemContainer *ItemFactory::GetItemContainer(uint32 containerID, bool recurse, b
 	{
 		std::map<uint32, InventoryItem *>::iterator res = m_items.find( containerID );
 		if( res != m_items.end() )
-		{
 			item = res->second;
-
-			if( recurse && !item->ContentsLoaded() )
-				item->LoadContents( *this, true );
-		}
 	}
 
-	return item;
+	if( item == NULL )
+		return NULL;
+
+	switch( item->categoryID() )
+	{
+		case EVEDB::invCategories::Ship:    return static_cast<Ship *>( item );
+	}
+
+	switch( item->groupID() )
+	{
+		case EVEDB::invGroups::Station:     return static_cast<Station *>( item );
+		case EVEDB::invGroups::Character:   return static_cast<Character *>( item );
+	}
+
+	return NULL;
 }
 
 void ItemFactory::_DeleteItem(uint32 itemID) {

@@ -222,10 +222,9 @@ public:
 	 *
 	 * @param[in] factory
 	 * @param[in] blueprintID ID of blueprint to load.
-	 * @param[in] recurse Whether all items contained within this item should be loaded.
 	 * @return Pointer to new Blueprint object; NULL if failed.
 	 */
-	static Blueprint *Load(ItemFactory &factory, uint32 blueprintID, bool recurse=false);
+	static Blueprint *Load(ItemFactory &factory, uint32 blueprintID);
 	/**
 	 * Spawns new blueprint.
 	 *
@@ -345,7 +344,7 @@ protected:
 		const BlueprintData &bpData
 	);
 
-	bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+	bool _Load() { return InventoryItem::_Load(); }
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:

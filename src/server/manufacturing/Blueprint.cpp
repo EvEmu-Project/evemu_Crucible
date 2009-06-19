@@ -150,9 +150,9 @@ Blueprint::Blueprint(
 	assert(_bpType.categoryID() == EVEDB::invCategories::Blueprint);
 }
 
-Blueprint *Blueprint::Load(ItemFactory &factory, uint32 blueprintID, bool recurse)
+Blueprint *Blueprint::Load(ItemFactory &factory, uint32 blueprintID)
 {
-	return InventoryItem::Load<Blueprint>( factory, blueprintID, recurse );
+	return InventoryItem::Load<Blueprint>( factory, blueprintID );
 }
 
 Blueprint *Blueprint::_Load(ItemFactory &factory, uint32 blueprintID)
@@ -181,8 +181,7 @@ Blueprint *Blueprint::Spawn(ItemFactory &factory, ItemData &data, BlueprintData 
 	uint32 blueprintID = Blueprint::_Spawn(factory, data, bpData);
 	if(blueprintID == 0)
 		return NULL;
-	// item cannot contain anything yet - don't recurse
-	return Blueprint::Load(factory, blueprintID, false);
+	return Blueprint::Load(factory, blueprintID);
 }
 
 uint32 Blueprint::_Spawn(ItemFactory &factory,

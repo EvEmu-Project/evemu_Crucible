@@ -184,7 +184,8 @@ public:
  * CelestialObject which represents station.
  */
 class Station
-: public CelestialObject
+: public CelestialObject,
+  public ItemContainer
 {
 	friend class InventoryItem; // to let it construct us
 	friend class CelestialObject; // to let it construct us
@@ -194,15 +195,16 @@ public:
 	 *
 	 * @param[in] factory
 	 * @param[in] stationID ID of station to load.
-	 * @param[in] recurse Whether all contained item should be also loaded.
 	 * @return Pointer to new Station object; NULL if fails.
 	 */
-	static Station *Load(ItemFactory &factory, uint32 stationID, bool recurse=false);
+	static Station *Load(ItemFactory &factory, uint32 stationID);
 
 	/*
 	 * Primary public interface:
 	 */
 	Station *IncRef() { return static_cast<Station *>(InventoryItem::IncRef()); }
+
+	double GetCapacity(EVEItemFlags flag) const { return DBL_MAX; }
 
 	/*
 	 * Access methods:
@@ -280,7 +282,10 @@ protected:
 		const StationData &stData
 	);
 
-	bool _Load(bool recurse=false) { return CelestialObject::_Load(recurse); }
+	bool _Load();
+
+	uint32 containerID() const { return itemID(); }
+	void GetItem(ItemRowset_Row &into) const { return GetItemRow( into ); }
 
 	/*
 	 * Data members:

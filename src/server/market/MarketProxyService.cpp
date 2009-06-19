@@ -351,7 +351,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		//sell order
 		
 		//verify that they actually have the item in the quantity specified...
-		InventoryItem *item = m_manager->item_factory.GetItem(args.itemID, true);
+		InventoryItem *item = m_manager->item_factory.GetItem( args.itemID );
 		if(item == NULL) {
 			codelog(MARKET__ERROR, "%s: Failed to find item %d for sell order.", call.client->GetName(), args.itemID);
 			call.client->SendErrorMsg("Unable to find items %d to sell!", args.itemID);
@@ -370,7 +370,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		if(
 		   (item->locationID() != args.stationID)	//item in station hanger
 		   && !(
-				call.client->GetShip()->Contains(item)	//item is in our ship
+				call.client->GetShip()->Contains( item->itemID() )	//item is in our ship
 				&& call.client->GetStationID() == args.stationID	//and our ship is in the station
 				)
 		) {

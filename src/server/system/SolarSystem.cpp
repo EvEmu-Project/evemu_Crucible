@@ -100,9 +100,9 @@ SolarSystem::SolarSystem(
 SolarSystem::~SolarSystem() {
 }
 
-SolarSystem *SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID, bool recurse)
+SolarSystem *SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID)
 {
-	return InventoryItem::Load<SolarSystem>( factory, solarSystemID, recurse );
+	return InventoryItem::Load<SolarSystem>( factory, solarSystemID );
 }
 
 SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID)
@@ -138,8 +138,9 @@ SolarSystem *SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSys
 	return new SolarSystem( factory, solarSystemID, type, data, cData, sunType, ssData );
 }
 
-bool SolarSystem::_Load(bool recurse) {
-	return CelestialObject::_Load(recurse);
+bool SolarSystem::_Load()
+{
+	return CelestialObject::_Load();
 }
 
 

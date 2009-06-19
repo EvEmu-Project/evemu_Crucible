@@ -318,7 +318,7 @@ PyResult Command_setbpattr(Client *who, CommandDB *db, PyServiceMgr *services, c
 	if(!args.IsNumber(5))
 		throw(PyException(MakeCustomError("Argument 5 must be remaining licensed production runs. (got %s)", args.arg[5])));
 
-	Blueprint *bp = services->item_factory.GetBlueprint(atoi(args.arg[1]), false);
+	Blueprint *bp = services->item_factory.GetBlueprint( atoi( args.arg[ 1 ] ) );
 	if(bp == NULL)
 		throw(PyException(MakeCustomError("Failed to load blueprint %s.", args.arg[1])));
 
@@ -352,7 +352,7 @@ PyResult Command_getattr(Client *who, CommandDB *db, PyServiceMgr *services, con
 	if(!args.IsNumber(2))
 		throw(PyException(MakeCustomError("2nd argument must be attributeID (got %s).", args.arg[2])));
 
-	InventoryItem *item = services->item_factory.GetItem(atoi(args.arg[1]), false);
+	InventoryItem *item = services->item_factory.GetItem( atoi( args.arg[ 1 ] ) );
 	if(item == NULL)
 		throw(PyException(MakeCustomError("Failed to load item %s.", args.arg[1])));
 
@@ -374,7 +374,7 @@ PyResult Command_setattr(Client *who, CommandDB *db, PyServiceMgr *services, con
 	if(!args.IsNumber(3))
 		throw(PyException(MakeCustomError("3rd argument must be value (got %s).", args.arg[3])));
 
-	InventoryItem *item = services->item_factory.GetItem(atoi(args.arg[1]), false);
+	InventoryItem *item = services->item_factory.GetItem( atoi( args.arg[ 1 ] ) );
 	if(item == NULL)
 		throw(PyException(MakeCustomError("Failed to load item %s.", args.arg[1])));
 

@@ -334,9 +334,9 @@ Character::Character(
 	assert(singleton() && quantity() == 1);
 }
 
-Character *Character::Load(ItemFactory &factory, uint32 characterID, bool recurse)
+Character *Character::Load(ItemFactory &factory, uint32 characterID)
 {
-	return InventoryItem::Load<Character>( factory, characterID, recurse );
+	return InventoryItem::Load<Character>( factory, characterID );
 }
 
 Character *Character::_Load(ItemFactory &factory, uint32 characterID)
@@ -367,11 +367,10 @@ Character *Character::Spawn(ItemFactory &factory,
 	// Character stuff:
 	CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
 ) {
-	uint32 characterID = Character::_Spawn(factory, data, charData, appData, corpData);
-	if(characterID == 0)
+	uint32 characterID = Character::_Spawn( factory, data, charData, appData, corpData );
+	if( characterID == 0 )
 		return NULL;
-	// item cannot contain anything yet - don't recurse
-	return Character::Load(factory, characterID, false);
+	return Character::Load( factory, characterID );
 }
 
 uint32 Character::_Spawn(ItemFactory &factory,
@@ -407,14 +406,21 @@ uint32 Character::_Spawn(ItemFactory &factory,
 	return characterID;
 }
 
-bool Character::_Load(bool recurse)
+bool Character::_Load()
 {
+	if( !LoadContents( m_factory ) )
+		return false;
+
 	if( !m_factory.db().LoadSkillQueue( itemID(), m_skillQueue ) )
 		return false;
-	return InventoryItem::_Load(recurse);
+
+	return InventoryItem::_Load();
 }
 
 void Character::Delete() {
+	// delete contents
+	DeleteContents( m_factory );
+
 	// delete character record
 	m_factory.db().DeleteCharacter(itemID());
 
@@ -711,7 +717,7 @@ void Character::UpdateSkillQueue()
 PyRepObject *Character::CharGetInfo() {
 	//TODO: verify that we are a char?
 	
-	if(!LoadContents(m_factory, true)) {
+	if( !LoadContents( m_factory ) ) {
 		codelog(ITEM__ERROR, "%s (%u): Failed to load contents for CharGetInfo", m_itemName.c_str(), m_itemID);
 		return NULL;
 	}

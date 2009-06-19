@@ -41,11 +41,11 @@ public:
 	virtual uint32 containerID() const = 0;
 
 	bool ContentsLoaded() const { return m_contentsLoaded; }
-	bool LoadContents(ItemFactory &factory, bool recursive = true);
+	bool LoadContents(ItemFactory &factory);
 	void DeleteContents(ItemFactory &factory);
 
 	//do we want to impose recursive const?
-	bool Contains(InventoryItem *item, bool recursive = false) const;
+	bool Contains(uint32 itemID) const { return m_contents.find( itemID ) != m_contents.end(); }
 	InventoryItem *GetByID(uint32 id, bool newref = false) const;
 	InventoryItem *GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref = false) const;
 
@@ -56,7 +56,7 @@ public:
 
 	double GetStoredVolume(EVEItemFlags flag) const;
 	virtual double GetCapacity(EVEItemFlags flag) const = 0;
-	double GetRemainingCapacity( EVEItemFlags flag) const { return GetCapacity( flag ) - GetStoredVolume( flag ); }
+	double GetRemainingCapacity(EVEItemFlags flag) const { return GetCapacity( flag ) - GetStoredVolume( flag ); }
 
 	void StackAll(EVEItemFlags flag, uint32 forOwner = 0);
 

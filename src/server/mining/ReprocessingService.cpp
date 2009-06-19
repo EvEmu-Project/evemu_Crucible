@@ -226,7 +226,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 	cur = call_args.items.begin();
 	end = call_args.items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *item = m_manager->item_factory.GetItem(*cur, true);
+		InventoryItem *item = m_manager->item_factory.GetItem( *cur );
 		if(item == NULL)
 			continue;
 
@@ -321,7 +321,7 @@ double ReprocessingServiceBound::_CalcReprocessingEfficiency(const Client *c, co
 }
 
 PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const {
-	InventoryItem *item = m_manager->item_factory.GetItem(itemID, true);
+	InventoryItem *item = m_manager->item_factory.GetItem( itemID );
 	if(item == NULL)
 		return NULL;	// No action as GetQuote is also called for reprocessed items (probably for check)
 

@@ -48,10 +48,9 @@ public:
 	 *
 	 * @param[in] factory
 	 * @param[in] skillID ID of skill to load.
-	 * @param[in] recurse Whether all contained items should be loaded.
 	 * @return Pointer to new Skill object; NULL if fails.
 	 */
-	static Skill *Load(ItemFactory &factory, uint32 skillID, bool recurse=false);
+	static Skill *Load(ItemFactory &factory, uint32 skillID);
 	/**
 	 * Spawns new skill.
 	 *
@@ -122,7 +121,7 @@ protected:
 		const Type &type, const ItemData &data
 	);
 
-	bool _Load(bool recurse=false) { return InventoryItem::_Load(recurse); }
+	bool _Load() { return InventoryItem::_Load(); }
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:

@@ -42,7 +42,7 @@ ItemContainer::~ItemContainer()
 		cur->second->DecRef();
 }
 
-bool ItemContainer::LoadContents(ItemFactory &factory, bool recursive)
+bool ItemContainer::LoadContents(ItemFactory &factory)
 {
 	if( ContentsLoaded() )
 		return true;
@@ -60,7 +60,7 @@ bool ItemContainer::LoadContents(ItemFactory &factory, bool recursive)
 	end = items.end();
 	for(; cur != end; cur++)
 	{
-		InventoryItem *i = factory.GetItem( *cur, recursive );
+		InventoryItem *i = factory.GetItem( *cur );
 		if( i == NULL )
 		{
 			_log( ITEM__ERROR, "Failed to load item %u contained in %u. Skipping.", *cur, containerID() );
@@ -266,28 +266,6 @@ void ItemContainer::RemoveContainedItem(uint32 itemID)
 
 		_log( ITEM__TRACE, "   Updated location %u to no longer contain item %u.", containerID(), itemID );
 	}
-}
-
-bool ItemContainer::Contains(InventoryItem *item, bool recursive) const
-{
-	if( m_contents.find( item->itemID() ) != m_contents.end() )
-		return true;
-
-	if( recursive )
-	{
-		std::map<uint32, InventoryItem *>::const_iterator cur, end;
-		cur = m_contents.begin();
-		end = m_contents.end();
-		for(; cur != end; cur++)
-		{
-			InventoryItem *i = cur->second;
-
-			if( i->Contains( item, true ) )
-				return true;
-		}
-	}
-
-	return false;
 }
 
 void ItemContainer::StackAll(EVEItemFlags locFlag, uint32 forOwner)
