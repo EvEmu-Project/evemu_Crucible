@@ -55,7 +55,6 @@ protected:
 	EVEItemFlags mFlag;
 
 	PyRep *_ExecAdd(Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag);
-	void _ValidateAdd( Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag);
 };
 
 #endif//_INVENTORY_BOUND_H

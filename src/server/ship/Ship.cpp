@@ -186,6 +186,18 @@ double Ship::GetCapacity(EVEItemFlags flag) const
 	
 }
 
+void Ship::ValidateAdd(EVEItemFlags flag, InventoryItem &item) const
+{
+	ItemContainerEx::ValidateAdd( flag, item );
+
+	if( flag == flagDroneBay )
+	{
+		if( item.categoryID() != EVEDB::invCategories::Drone )
+			//Can only put drones in drone bay
+			throw PyException( MakeUserError( "ItemCannotBeInDroneBay" ) );
+	}
+}
+
 PyRepObject *Ship::ShipGetInfo()
 {
 	if( !LoadContents( m_factory ) )

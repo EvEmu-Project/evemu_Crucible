@@ -40,11 +40,13 @@ public:
 
 	virtual uint32 containerID() const = 0;
 
+	/*
+	 * Contents management:
+	 */
 	bool ContentsLoaded() const { return m_contentsLoaded; }
 	bool LoadContents(ItemFactory &factory);
 	void DeleteContents(ItemFactory &factory);
 
-	//do we want to impose recursive const?
 	bool Contains(uint32 itemID) const { return m_contents.find( itemID ) != m_contents.end(); }
 	InventoryItem *GetByID(uint32 id, bool newref = false) const;
 	InventoryItem *GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref = false) const;
@@ -55,11 +57,13 @@ public:
 	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref = false) const;
 
 	double GetStoredVolume(EVEItemFlags flag) const;
-	virtual double GetCapacity(EVEItemFlags flag) const = 0;
-	double GetRemainingCapacity(EVEItemFlags flag) const { return GetCapacity( flag ) - GetStoredVolume( flag ); }
 
+	virtual void ValidateAdd(EVEItemFlags flag, InventoryItem &item) const {}
 	void StackAll(EVEItemFlags flag, uint32 forOwner = 0);
 
+	/*
+	 * Primary packet builders:
+	 */
 	PyRepObject *GetItem() const;
 	virtual void GetItem(ItemRowset_Row &into) const = 0;
 	PyRepObject *List(EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
@@ -71,6 +75,16 @@ protected:
 
 	bool m_contentsLoaded;
 	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.
+};
+
+class ItemContainerEx
+: public ItemContainer
+{
+public:
+	virtual double GetCapacity(EVEItemFlags flag) const = 0;
+	double GetRemainingCapacity(EVEItemFlags flag) const { return GetCapacity( flag ) - GetStoredVolume( flag ); }
+
+	void ValidateAdd(EVEItemFlags flag, InventoryItem &item) const;
 };
 
 #endif /* !__ITEM_CONTAINER__H__INCL__ */

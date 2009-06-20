@@ -311,4 +311,22 @@ double ItemContainer::GetStoredVolume(EVEItemFlags locationFlag) const
 	return totalVolume;
 }
 
+/*
+ * ItemContainerEx
+ */
+void ItemContainerEx::ValidateAdd(EVEItemFlags flag, InventoryItem &item) const
+{
+	double volume = item.quantity() * item.volume();
+	double capacity = GetRemainingCapacity( flag );
+	if( volume > capacity )
+	{
+		std::map<std::string, PyRep *> args;
+
+		args["available"] = new PyRepReal( capacity );
+		args["volume"] = new PyRepReal( volume );
+
+		throw PyException( MakeUserError( "NotEnoughCargoSpace", args ) );
+	}
+}
+
 

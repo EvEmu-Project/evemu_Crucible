@@ -204,8 +204,6 @@ public:
 	 */
 	Station *IncRef() { return static_cast<Station *>(InventoryItem::IncRef()); }
 
-	double GetCapacity(EVEItemFlags flag) const { return DBL_MAX; }
-
 	/*
 	 * Access methods:
 	 */

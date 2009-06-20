@@ -160,7 +160,7 @@ protected:
  */
 class Ship
 : public InventoryItem,
-  public ItemContainer
+  public ItemContainerEx
 {
 	friend class InventoryItem;	// to let it construct us
 public:
@@ -189,6 +189,7 @@ public:
 	void Delete();
 
 	double GetCapacity(EVEItemFlags flag) const;
+	void ValidateAdd(EVEItemFlags flag, InventoryItem &item) const;
 
 	/*
 	 * Public fields:

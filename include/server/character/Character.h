@@ -375,8 +375,6 @@ public:
 	void JoinCorporation(uint32 corporationID);
 	void SetDescription(const char *newDescription);
 
-	double GetCapacity(EVEItemFlags flag) const { return DBL_MAX; }
-
 	/**
 	 * Checks whether character has the skill.
 	 *
