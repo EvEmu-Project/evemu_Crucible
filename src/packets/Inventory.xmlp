@@ -4,6 +4,7 @@
 
 <element name="OnSkillStartTraining">
   <InlineTuple>
+    <string name="name" default="OnSkillStartTraining" />
     <int name="itemID" />
     <int64 name="endOfTraining" />
   </InlineTuple>
@@ -11,6 +12,7 @@
 
 <element name="OnSkillTrainingStopped">
   <InlineTuple>
+    <string name="name" default="OnSkillTrainingStopped" />
     <int name="itemID" />
     <int64 name="endOfTraining" />
   </InlineTuple>
@@ -18,6 +20,7 @@
 
 <element name="OnSkillTrained">
   <InlineTuple>
+    <string name="name" default="OnSkillTrained" />
     <int name="itemID" />
   </InlineTuple>
 </element>

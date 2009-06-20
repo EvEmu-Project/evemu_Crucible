@@ -607,7 +607,6 @@ void Character::UpdateSkillQueue()
 	Skill *currentTraining = GetSkillInTraining();
 	if( currentTraining != NULL )
 	{
-		// something is in training, see what to do
 		if( m_skillQueue.empty()
 			|| currentTraining->typeID() != m_skillQueue.front().typeID )
 		{
@@ -620,7 +619,7 @@ void Character::UpdateSkillQueue()
 			{
 				double nextLevelSP = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 );
 				double SPPerMinute = GetSPPerMin( *currentTraining );
-				double minRemaining = (timeEndTrain - Win32TimeNow()) / Win32Time_Minute; 
+				double minRemaining = (double)(timeEndTrain - Win32TimeNow()) / (double)Win32Time_Minute; 
 
 				currentTraining->Set_skillPoints( nextLevelSP - (minRemaining * SPPerMinute) );
 			}
@@ -634,8 +633,9 @@ void Character::UpdateSkillQueue()
 				osst.itemID = currentTraining->itemID();
 				osst.endOfTraining = 0;
 
-				PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
-				c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
+				PyRepTuple *tmp = osst.FastEncode();
+				c->QueueDestinyEvent( &tmp );
+				SafeDelete( tmp );
 
 				c->UpdateSkillTraining();
 			}
@@ -643,28 +643,67 @@ void Character::UpdateSkillQueue()
 			// nothing currently in training
 			currentTraining = NULL;
 		}
-		// great, proper skill is in training, check whether it's finished
-		else if( currentTraining->expiryTime() <= Win32TimeNow() )
+	}
+
+	uint64 nextStartTime = Win32TimeNow();
+	while( !m_skillQueue.empty() )
+	{
+		if( currentTraining == NULL )
+		{
+			// something should be trained, get desired skill
+			uint32 skillTypeID = m_skillQueue.front().typeID;
+
+			currentTraining = GetSkill( skillTypeID );
+			if( currentTraining == NULL )
+			{
+				_log( ITEM__ERROR, "%s (%u): Skill %u to train was not found.", itemName().c_str(), itemID(), skillTypeID );
+				break;
+			}
+
+			_log( ITEM__TRACE, "%s (%u): Starting training of skill %s (%u).", m_itemName.c_str(), m_itemID, currentTraining->itemName().c_str(), currentTraining->itemID() );
+
+			double SPPerMinute = GetSPPerMin( *currentTraining );
+			double SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 ) - currentTraining->skillPoints();
+
+			uint64 timeTraining = nextStartTime + Win32Time_Minute * SPToNextLevel / SPPerMinute;
+
+			currentTraining->MoveInto( *this, flagSkillInTraining );
+			currentTraining->Set_expiryTime( timeTraining );
+
+			if(c != NULL) {
+				OnSkillStartTraining osst;
+				osst.itemID = currentTraining->itemID();
+				osst.endOfTraining = timeTraining;
+
+				PyRepTuple *tmp = osst.FastEncode();
+				c->QueueDestinyEvent( &tmp );
+				SafeDelete( tmp );
+
+				c->UpdateSkillTraining();
+			}
+		}
+
+		if( currentTraining->expiryTime() <= Win32TimeNow() )
 		{
 			// training has been finished:
 			_log( ITEM__ERROR, "%s (%u): Finishing training of skill %s (%u).", itemName().c_str(), itemID(), currentTraining->itemName().c_str(), currentTraining->itemID() );
 
 			currentTraining->Set_skillLevel( currentTraining->skillLevel() + 1 );
 			currentTraining->Set_skillPoints( currentTraining->GetSPForLevel( currentTraining->skillLevel() ) );
+
+			nextStartTime = currentTraining->expiryTime();
 			currentTraining->Clear_expiryTime();
 
 			currentTraining->MoveInto( *this, flagSkill, true );
 
 			if( c != NULL )
 			{
-				OnSkillTrainingStopped osst;
-				osst.itemID = currentTraining->itemID();
-				osst.endOfTraining = 0; //hack hack hack
+				OnSkillTrained ost;
+				ost.itemID = currentTraining->itemID();
 
-				PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
-				c->SendNotification("OnSkillTrainingStopped", "charid", &tmp);
-
-				c->SendNotifyMsg("Training of skill has been completed.");
+				PyRepTuple *tmp = ost.FastEncode();
+				c->QueueDestinyEvent( &tmp );
+				SafeDelete( tmp );
 
 				c->UpdateSkillTraining();
 			}
@@ -675,40 +714,9 @@ void Character::UpdateSkillQueue()
 			// nothing currently in training
 			currentTraining = NULL;
 		}
-		// else proper skill is in training ...
-	}
-
-	if( !m_skillQueue.empty()
-		&& currentTraining == NULL )
-	{
-		// something should be trained, get desired skill
-		Skill *skill = GetSkill( m_skillQueue.front().typeID );
-		if( skill == NULL )
-			// invalid skillID?
-			return;
-
-		_log( ITEM__TRACE, "%s (%u): Starting training of skill %s (%u).", m_itemName.c_str(), m_itemID, skill->itemName().c_str(), skill->itemID() );
-
-		double SPPerMinute = GetSPPerMin( *skill );
-		double SPToNextLevel = skill->GetSPForLevel( skill->skillLevel() + 1 ) - skill->skillPoints();
-
-		uint64 timeTraining = Win32TimeNow() + Win32Time_Minute * SPToNextLevel / SPPerMinute;
-
-		skill->MoveInto( *this, flagSkillInTraining );
-		skill->Set_expiryTime( timeTraining );
-
-		if(c != NULL) {
-			OnSkillStartTraining osst;
-			osst.itemID = skill->itemID();
-			osst.endOfTraining = timeTraining; //hack hack hack
-
-			PyRepTuple *tmp = osst.FastEncode();	//this is consumed below
-			c->SendNotification("OnSkillStartTraining", "charid", &tmp);
-
-			c->UpdateSkillTraining();
-		}
-
-		currentTraining = skill;
+		// else the skill is in training ...
+		else
+			break;
 	}
 
 	SaveSkillQueue();
