@@ -1,0 +1,21 @@
+Files in this directory contain following updates for official EVE database dump:
+
+Table name                           Note
+---------------------------------------------------------------
+chrCareerSpecialities                incomplete, missing column `departmentID`
+crpNPCCorporations                   incomplete, missing columns `mainActivityID`, `secondaryActivityID`
+crpNPCCorporationTrades              used to be in dump, removed
+crpNPCTickerNames                    not in dump
+crtRelationships                     incomplete, missing column `childTypeID`, missing data for skills
+crtRecommendations                   not in dump
+dgmAttributeTypes                    incomplete, missing columns `attributeCategory`, `attributeIdx`, `maxAttributeID`, `chargeRechargeTimeID`
+eveConstants                         not in dump
+eveMessages                          not in dump
+eveRoles                             not in dump
+invBlueprintTypes                    incomplete, missing column `chanceOfReverseEngineering`
+invShipTypes                         not in dump
+mapCelestialDescriptions             not in dump
+mapLocationWormholeClasses           not in dump
+
+Scripts 'merge-sql.bat' (for Windows) and 'merge-sql.sh' (for Linux) merge all SQL updates into one file called 'ofic-update.sql', which is easier to import.
+
