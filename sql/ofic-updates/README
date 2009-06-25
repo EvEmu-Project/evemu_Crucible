@@ -2,7 +2,6 @@ Files in this directory contain following updates for official EVE database dump
 
 Table name                           Note
 ---------------------------------------------------------------
-chrCareerSpecialities                incomplete, missing column `departmentID`
 crpNPCCorporations                   incomplete, missing columns `mainActivityID`, `secondaryActivityID`
 crpNPCCorporationTrades              used to be in dump, removed
 crpNPCTickerNames                    not in dump
