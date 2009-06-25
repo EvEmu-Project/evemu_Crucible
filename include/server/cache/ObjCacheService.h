@@ -53,7 +53,6 @@ public:
 	typedef enum {
 		hLoginCachables,
 		hCharCreateCachables,
-		hCharNewExtraCreateCachables,
 		hAppearanceCachables
 	} hintSet;
 	void InsertCacheHints(hintSet hset, PyRepDict *into);
@@ -77,8 +76,6 @@ protected:
 	static const uint32 LoginCachableObjectCount;
 	static const char *const CharCreateCachableObjects[];
 	static const uint32 CharCreateCachableObjectCount;
-	static const char *const CharNewExtraCreateCachableObjects[];
-	static const uint32 CharNewExtraCreateCachableObjectCount;
 	static const char *const AppearanceCachableObjects[];
 	static const uint32 AppearanceCachableObjectCount;
 	

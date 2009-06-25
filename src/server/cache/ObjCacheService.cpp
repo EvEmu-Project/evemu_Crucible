@@ -88,15 +88,6 @@ const char *const ObjCacheService::CharCreateCachableObjects[] = {
 };
 const uint32 ObjCacheService::CharCreateCachableObjectCount = sizeof(ObjCacheService::CharCreateCachableObjects) / sizeof(const char *);
 
-const char *const ObjCacheService::CharNewExtraCreateCachableObjects[] = {
-	"charNewExtraCreationInfo.raceskills",
-	"charNewExtraCreationInfo.careerskills",
-	"charNewExtraCreationInfo.specialityskills",
-	"charNewExtraCreationInfo.careers",
-	"charNewExtraCreationInfo.specialities"
-};
-const uint32 ObjCacheService::CharNewExtraCreateCachableObjectCount = sizeof(ObjCacheService::CharNewExtraCreateCachableObjects) / sizeof(const char *);
-
 const char *const ObjCacheService::AppearanceCachableObjects[] = {
 	"charCreationInfo.eyebrows",
 	"charCreationInfo.eyes",
@@ -183,12 +174,6 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, DBcore *dbc, const char *cac
 	m_cacheKeys["charCreationInfo.bl_decos"] = "decos";
 	m_cacheKeys["charCreationInfo.bl_eyebrows"] = "eyebrows";
 	m_cacheKeys["charCreationInfo.bl_costumes"] = "costumes";
-
-	m_cacheKeys["charNewExtraCreationInfo.raceskills"] = "raceskills";
-	m_cacheKeys["charNewExtraCreationInfo.careerskills"] = "careerskills";
-	m_cacheKeys["charNewExtraCreationInfo.specialityskills"] = "specialityskills";
-	m_cacheKeys["charNewExtraCreationInfo.careers"] = "careers";
-	m_cacheKeys["charNewExtraCreationInfo.specialities"] = "specialities";
 
 	m_cacheKeys["charCreationInfo.eyebrows"] = "eyebrows";
 	m_cacheKeys["charCreationInfo.eyes"] = "eyes";
@@ -327,10 +312,6 @@ void ObjCacheService::InsertCacheHints(hintSet hset, PyRepDict *into) {
 	case hCharCreateCachables:
 		objects = CharCreateCachableObjects;
 		object_count = CharCreateCachableObjectCount;
-		break;
-	case hCharNewExtraCreateCachables:
-		objects = CharNewExtraCreateCachableObjects;
-		object_count = CharNewExtraCreateCachableObjectCount;
 		break;
 	case hAppearanceCachables:
 		objects = AppearanceCachableObjects;

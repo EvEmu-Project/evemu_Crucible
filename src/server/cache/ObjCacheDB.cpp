@@ -87,12 +87,6 @@ ObjCacheDB::ObjCacheDB(DBcore *db) : ServiceDB(db)
 	m_generators["charCreationInfo.bl_eyebrows"] = &ObjCacheDB::Generate_bl_eyebrows;
 	m_generators["charCreationInfo.bl_costumes"] = &ObjCacheDB::Generate_bl_costumes;
 
-	m_generators["charNewExtraCreationInfo.raceskills"] = &ObjCacheDB::Generate_nec_raceskills;
-	m_generators["charNewExtraCreationInfo.careerskills"] = &ObjCacheDB::Generate_nec_careerskills;
-	m_generators["charNewExtraCreationInfo.specialityskills"] = &ObjCacheDB::Generate_nec_specialityskills;
-	m_generators["charNewExtraCreationInfo.careers"] = &ObjCacheDB::Generate_nec_careers;
-	m_generators["charNewExtraCreationInfo.specialities"] = &ObjCacheDB::Generate_nec_specialities;
-
 	m_generators["charCreationInfo.eyebrows"] = &ObjCacheDB::Generate_a_eyebrows;
 	m_generators["charCreationInfo.eyes"] = &ObjCacheDB::Generate_a_eyes;
 	m_generators["charCreationInfo.decos"] = &ObjCacheDB::Generate_a_decos;
@@ -782,66 +776,6 @@ PyRep *ObjCacheDB::Generate_bl_costumes()
 	if(m_db->RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_costumes': %s", res.error.c_str());
-		return NULL;
-	}
-	return DBResultToRowset(res);
-}
-
-PyRep *ObjCacheDB::Generate_nec_raceskills()
-{
-	DBQueryResult res;
-	const char *q = "SELECT raceID, skillTypeID, levels FROM chrRaceSkills";
-	if(m_db->RunQuery(res, q)==false)
-	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.raceskills': %s", res.error.c_str());
-		return NULL;
-	}
-	return DBResultToRowset(res);
-}
-
-PyRep *ObjCacheDB::Generate_nec_careerskills()
-{
-	DBQueryResult res;
-	const char *q = "SELECT careerID, skillTypeID, levels FROM chrCareerSkills";
-	if(m_db->RunQuery(res, q)==false)
-	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.careerskills': %s", res.error.c_str());
-		return NULL;
-	}
-	return DBResultToRowset(res);
-}
-
-PyRep *ObjCacheDB::Generate_nec_specialityskills()
-{
-	DBQueryResult res;
-	const char *q = "SELECT specialityID, skillTypeID, levels FROM chrCareerSpecialitySkills";
-	if(m_db->RunQuery(res, q)==false)
-	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.specialityskills': %s", res.error.c_str());
-		return NULL;
-	}
-	return DBResultToRowset(res);
-}
-
-PyRep *ObjCacheDB::Generate_nec_careers()
-{
-	DBQueryResult res;
-	const char *q = "SELECT raceID, careerID, careerName, description, shortDescription, graphicID, schoolID, 0 AS dataID FROM chrCareers";
-	if(m_db->RunQuery(res, q)==false)
-	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.careers': %s", res.error.c_str());
-		return NULL;
-	}
-	return DBResultToRowset(res);
-}
-
-PyRep *ObjCacheDB::Generate_nec_specialities()
-{
-	DBQueryResult res;
-	const char *q = "SELECT specialityID, careerID, specialityName, description, shortDescription, graphicID, departmentID, 0 AS dataID FROM chrCareerSpecialities";
-	if(m_db->RunQuery(res, q)==false)
-	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.specialities': %s", res.error.c_str());
 		return NULL;
 	}
 	return DBResultToRowset(res);

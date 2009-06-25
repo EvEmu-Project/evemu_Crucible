@@ -111,12 +111,6 @@ protected:
 	PyRep *Generate_bl_eyebrows();
 	PyRep *Generate_bl_costumes();
 
-	PyRep *Generate_nec_raceskills();
-	PyRep *Generate_nec_careerskills();
-	PyRep *Generate_nec_specialityskills();
-	PyRep *Generate_nec_careers();
-	PyRep *Generate_nec_specialities();
-
 	PyRep *Generate_a_eyebrows();
 	PyRep *Generate_a_eyes();
 	PyRep *Generate_a_decos();

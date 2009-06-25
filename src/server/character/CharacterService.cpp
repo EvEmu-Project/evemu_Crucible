@@ -119,14 +119,9 @@ PyResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
 }
 
 PyResult CharacterService::Handle_GetCharNewExtraCreationInfo(PyCallArgs &call) {
-	PyRepDict *result = new PyRepDict();
+	_log(CLIENT__MESSAGE, "Sending empty char new extra creation info reply");
 
-	m_manager->cache_service->InsertCacheHints(
-		ObjCacheService::hCharNewExtraCreateCachables,
-		result);
-	_log(CLIENT__MESSAGE, "Sending char new extra creation info reply");
-
-	return result;
+	return new PyRepDict();
 }
 
 PyResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
