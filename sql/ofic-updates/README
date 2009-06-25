@@ -8,6 +8,7 @@ crpNPCTickerNames                    not in dump
 crtRelationships                     incomplete, missing column `childTypeID`, missing data for skills
 crtRecommendations                   not in dump
 dgmAttributeTypes                    incomplete, missing columns `attributeCategory`, `attributeIdx`, `maxAttributeID`, `chargeRechargeTimeID`
+dgmTypeAttributes                    incomplete, missing data for entities and wormholes
 eveConstants                         not in dump
 eveMessages                          not in dump
 eveRoles                             not in dump
