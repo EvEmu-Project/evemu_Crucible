@@ -509,6 +509,8 @@ protected:
 	/*
 	 * Member functions:
 	 */
+	using InventoryItem::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 characterID,
@@ -532,17 +534,12 @@ protected:
 		if( !factory.db().GetCorpMemberInfo( characterID, corpData ) )
 			return NULL;
 
-		return _Ty::_LoadCharacter( factory, characterID, charType, data, charData, corpData );
+		return _Ty::template _LoadCharacter<_Ty>( factory, characterID, charType, data, charData, corpData );
 	}
 
 	// Actual loading stuff:
-	static Character *_Load(ItemFactory &factory, uint32 characterID
-	);
-	static Character *_LoadItem(ItemFactory &factory, uint32 characterID,
-		// InventoryItem stuff:
-		const Type &type, const ItemData &data
-	);
-	static Character *_LoadCharacter(ItemFactory &factory, uint32 characterID,
+	template<class _Ty>
+	static _Ty *_LoadCharacter(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
 		const CharacterType &charType, const ItemData &data,
 		// Character stuff:

@@ -213,6 +213,8 @@ protected:
 	/*
 	 * Member functions
 	 */
+	using InventoryItem::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 shipID,
@@ -230,17 +232,12 @@ protected:
 
 		// no additional stuff
 
-		return _Ty::_LoadShip( factory, shipID, shipType, data );
+		return _Ty::template _LoadShip<_Ty>( factory, shipID, shipType, data );
 	}
 
 	// Actual loading stuff:
-	static Ship *_Load(ItemFactory &factory, uint32 shipID
-	);
-	static Ship *_LoadItem(ItemFactory &factory, uint32 shipID,
-		// InventoryItem stuff:
-		const Type &type, const ItemData &data
-	);
-	static Ship *_LoadShip(ItemFactory &factory, uint32 shipID,
+	template<class _Ty>
+	static _Ty *_LoadShip(ItemFactory &factory, uint32 shipID,
 		// InventoryItem stuff:
 		const ShipType &shipType, const ItemData &data
 	);

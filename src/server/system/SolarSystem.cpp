@@ -105,28 +105,8 @@ SolarSystem *SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID)
 	return InventoryItem::Load<SolarSystem>( factory, solarSystemID );
 }
 
-SolarSystem *SolarSystem::_Load(ItemFactory &factory, uint32 solarSystemID)
-{
-	return InventoryItem::_Load<SolarSystem>( factory, solarSystemID );
-}
-
-SolarSystem *SolarSystem::_LoadItem(ItemFactory &factory, uint32 solarSystemID,
-	// InventoryItem stuff:
-	const Type &type, const ItemData &data)
-{
-	return CelestialObject::_LoadItem<SolarSystem>( factory, solarSystemID, type, data );
-}
-
-SolarSystem *SolarSystem::_LoadCelestialObject(ItemFactory &factory, uint32 solarSystemID,
-	// InventoryItem stuff:
-	const Type &type, const ItemData &data,
-	// CelestialObject stuff:
-	const CelestialObjectData &cData)
-{
-	return SolarSystem::_LoadCelestialObject<SolarSystem>( factory, solarSystemID, type, data, cData );
-}
-
-SolarSystem *SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
+template<class _Ty>
+_Ty *SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data,
 	// CelestialObject stuff:

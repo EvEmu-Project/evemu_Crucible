@@ -93,6 +93,8 @@ protected:
 	/*
 	 * Member functions:
 	 */
+	using InventoryItem::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 celestialID,
@@ -112,24 +114,17 @@ protected:
 		if( !factory.db().GetCelestialObject( celestialID, cData ) )
 			return NULL;
 
-		return _Ty::_LoadCelestialObject( factory, celestialID, type, data, cData );
+		return _Ty::template _LoadCelestialObject<_Ty>( factory, celestialID, type, data, cData );
 	}
 
 	// Actual loading stuff:
-	static CelestialObject *_Load(ItemFactory &factory, uint32 celestialID
-	);
-	static CelestialObject *_LoadItem(ItemFactory &factory, uint32 celestialID,
-		// InventoryItem stuff:
-		const Type &type, const ItemData &data
-	);
-	static CelestialObject *_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
+	template<class _Ty>
+	static _Ty *_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data,
 		// CelestialObject stuff:
 		const CelestialObjectData &cData
 	);
-
-	bool _Load() { return InventoryItem::_Load(); }
 
 	/*
 	 * Data members:

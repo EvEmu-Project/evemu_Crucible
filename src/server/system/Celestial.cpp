@@ -64,19 +64,8 @@ CelestialObject *CelestialObject::Load(ItemFactory &factory, uint32 celestialID)
 	return InventoryItem::Load<CelestialObject>( factory, celestialID );
 }
 
-CelestialObject *CelestialObject::_Load(ItemFactory &factory, uint32 celestialID)
-{
-	return InventoryItem::_Load<CelestialObject>( factory, celestialID );
-}
-
-CelestialObject *CelestialObject::_LoadItem(ItemFactory &factory, uint32 celestialID,
-	// InventoryItem stuff:
-	const Type &type, const ItemData &data)
-{
-	return CelestialObject::_LoadItem<CelestialObject>( factory, celestialID, type, data );
-}
-
-CelestialObject *CelestialObject::_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
+template<class _Ty>
+_Ty *CelestialObject::_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data,
 	// CelestialObject stuff:
@@ -88,14 +77,14 @@ CelestialObject *CelestialObject::_LoadCelestialObject(ItemFactory &factory, uin
 		// Solar system:
 		///////////////////////////////////////
 		case EVEDB::invGroups::Solar_System: {
-			return SolarSystem::_LoadCelestialObject( factory, celestialID, type, data, cData );
+			return SolarSystem::_LoadCelestialObject<SolarSystem>( factory, celestialID, type, data, cData );
 		}
 
 		///////////////////////////////////////
 		// Station:
 		///////////////////////////////////////
 		case EVEDB::invGroups::Station: {
-			return Station::_LoadCelestialObject( factory, celestialID, type, data, cData );
+			return Station::_LoadCelestialObject<Station>( factory, celestialID, type, data, cData );
 		}
 	}
 

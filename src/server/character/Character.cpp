@@ -339,19 +339,8 @@ Character *Character::Load(ItemFactory &factory, uint32 characterID)
 	return InventoryItem::Load<Character>( factory, characterID );
 }
 
-Character *Character::_Load(ItemFactory &factory, uint32 characterID)
-{
-	return InventoryItem::_Load<Character>( factory, characterID );
-}
-
-Character *Character::_LoadItem(ItemFactory &factory, uint32 characterID,
-	// InventoryItem stuff:
-	const Type &type, const ItemData &data)
-{
-	return Character::_LoadItem<Character>( factory, characterID, type, data );
-}
-
-Character *Character::_LoadCharacter(ItemFactory &factory, uint32 characterID,
+template<class _Ty>
+_Ty *Character::_LoadCharacter(ItemFactory &factory, uint32 characterID,
 	// InventoryItem stuff:
 	const CharacterType &charType, const ItemData &data,
 	// Character stuff:

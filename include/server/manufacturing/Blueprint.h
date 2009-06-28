@@ -307,6 +307,8 @@ protected:
 	/*
 	 * Member functions
 	 */
+	using InventoryItem::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 blueprintID,
@@ -327,24 +329,17 @@ protected:
 		if( !factory.db().GetBlueprint( blueprintID, bpData ) )
 			return NULL;
 
-		return _Ty::_LoadBlueprint( factory, blueprintID, bpType, data, bpData );
+		return _Ty::template _LoadBlueprint<_Ty>( factory, blueprintID, bpType, data, bpData );
 	}
 
 	// Actual loading stuff:
-	static Blueprint *_Load(ItemFactory &factory, uint32 blueprintID
-	);
-	static Blueprint *_LoadItem(ItemFactory &factory, uint32 blueprintID,
-		// InventoryItem stuff:
-		const Type &type, const ItemData &data
-	);
-	static Blueprint *_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
+	template<class _Ty>
+	static _Ty *_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:
 		const BlueprintType &bpType, const ItemData &data,
 		// Blueprint stuff:
 		const BlueprintData &bpData
 	);
-
-	bool _Load() { return InventoryItem::_Load(); }
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:

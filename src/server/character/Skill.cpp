@@ -43,19 +43,8 @@ Skill *Skill::Load(ItemFactory &factory, uint32 skillID)
 	return InventoryItem::Load<Skill>( factory, skillID );
 }
 
-Skill *Skill::_Load(ItemFactory &factory, uint32 skillID)
-{
-	return InventoryItem::_Load<Skill>( factory, skillID );
-}
-
-Skill *Skill::_LoadItem(ItemFactory &factory, uint32 skillID,
-	// InventoryItem stuff:
-	const Type &type, const ItemData &data)
-{
-	return Skill::_LoadItem<Skill>( factory, skillID, type, data );
-}
-
-Skill *Skill::_LoadSkill(ItemFactory &factory, uint32 skillID,
+template<class _Ty>
+_Ty *Skill::_LoadSkill(ItemFactory &factory, uint32 skillID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data)
 {

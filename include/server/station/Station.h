@@ -233,6 +233,8 @@ protected:
 	/*
 	 * Member functions:
 	 */
+	using CelestialObject::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadCelestialObject(ItemFactory &factory, uint32 stationID,
@@ -255,23 +257,12 @@ protected:
 		if( !factory.db().GetStation( stationID, stData ) )
 			return NULL;
 
-		return _Ty::_LoadStation( factory, stationID, stType, data, cData, stData );
+		return _Ty::template _LoadStation<_Ty>( factory, stationID, stType, data, cData, stData );
 	}
 
 	// Actual loading stuff:
-	static Station *_Load(ItemFactory &factory, uint32 stationID
-	);
-	static Station *_LoadItem(ItemFactory &factory, uint32 stationID,
-		// InventoryItem stuff:
-		const Type &type, const ItemData &data
-	);
-	static Station *_LoadCelestialObject(ItemFactory &factory, uint32 stationID,
-		// InventoryItem stuff:
-		const Type &type, const ItemData &data,
-		// CelestialObject stuff:
-		const CelestialObjectData &cData
-	);
-	static Station *_LoadStation(ItemFactory &factory, uint32 stationID,
+	template<class _Ty>
+	static _Ty *_LoadStation(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
 		const StationType &type, const ItemData &data,
 		// CelestialObject stuff:

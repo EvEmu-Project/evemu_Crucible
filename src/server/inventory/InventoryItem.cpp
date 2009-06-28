@@ -173,12 +173,8 @@ InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID)
 	return InventoryItem::Load<InventoryItem>( factory, itemID );
 }
 
-InventoryItem *InventoryItem::_Load(ItemFactory &factory, uint32 itemID)
-{
-	return InventoryItem::_Load<InventoryItem>( factory, itemID );
-}
-
-InventoryItem *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
+template<class _Ty>
+_Ty *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 	// InventoryItem stuff:
 	const Type &type, const ItemData &data)
 {
@@ -188,28 +184,28 @@ InventoryItem *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 		// Blueprint:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Blueprint: {
-			return Blueprint::_LoadItem( factory, itemID, type, data );
+			return Blueprint::_LoadItem<Blueprint>( factory, itemID, type, data );
 		}
 
 		///////////////////////////////////////
 		// Celestial:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Celestial: {
-			return CelestialObject::_LoadItem( factory, itemID, type, data );
+			return CelestialObject::_LoadItem<CelestialObject>( factory, itemID, type, data );
 		}
 
 		///////////////////////////////////////
 		// Ship:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Ship: {
-			return Ship::_LoadItem( factory, itemID, type, data );
+			return Ship::_LoadItem<Ship>( factory, itemID, type, data );
 		}
 
 		///////////////////////////////////////
 		// Skill:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Skill: {
-			return Skill::_LoadItem( factory, itemID, type, data );
+			return Skill::_LoadItem<Skill>( factory, itemID, type, data );
 		}
 	}
 
@@ -220,14 +216,14 @@ InventoryItem *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 		///////////////////////////////////////
 		case EVEDB::invGroups::Character: {
 			// create character
-			return Character::_LoadItem( factory, itemID, type, data );
+			return Character::_LoadItem<Character>( factory, itemID, type, data );
 		}
 
 		///////////////////////////////////////
 		// Station:
 		///////////////////////////////////////
 		case EVEDB::invGroups::Station: {
-			return Station::_LoadItem( factory, itemID, type, data );
+			return Station::_LoadItem<Station>( factory, itemID, type, data );
 		}
 	}
 

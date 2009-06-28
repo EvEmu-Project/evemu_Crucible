@@ -110,19 +110,8 @@ Ship *Ship::Load(ItemFactory &factory, uint32 shipID)
 	return InventoryItem::Load<Ship>( factory, shipID );
 }
 
-Ship *Ship::_Load(ItemFactory &factory, uint32 shipID)
-{
-	return InventoryItem::_Load<Ship>( factory, shipID );
-}
-
-Ship *Ship::_LoadItem(ItemFactory &factory, uint32 shipID,
-	// InventoryItem stuff:
-	const Type &type, const ItemData &data)
-{
-	return Ship::_LoadItem<Ship>( factory, shipID, type, data );
-}
-
-Ship *Ship::_LoadShip(ItemFactory &factory, uint32 shipID,
+template<class _Ty>
+_Ty *Ship::_LoadShip(ItemFactory &factory, uint32 shipID,
 	// InventoryItem stuff:
 	const ShipType &shipType, const ItemData &data)
 {

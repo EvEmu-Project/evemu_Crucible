@@ -155,19 +155,8 @@ Blueprint *Blueprint::Load(ItemFactory &factory, uint32 blueprintID)
 	return InventoryItem::Load<Blueprint>( factory, blueprintID );
 }
 
-Blueprint *Blueprint::_Load(ItemFactory &factory, uint32 blueprintID)
-{
-	return InventoryItem::_Load<Blueprint>( factory, blueprintID );
-}
-
-Blueprint *Blueprint::_LoadItem(ItemFactory &factory, uint32 blueprintID,
-	// InventoryItem stuff:
-	const Type &type, const ItemData &data)
-{
-	return Blueprint::_LoadItem<Blueprint>( factory, blueprintID, type, data );
-}
-
-Blueprint *Blueprint::_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
+template<class _Ty>
+_Ty *Blueprint::_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
 	// InventoryItem stuff:
 	const BlueprintType &bpType, const ItemData &data,
 	// Blueprint stuff:

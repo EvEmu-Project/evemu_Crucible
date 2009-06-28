@@ -214,7 +214,7 @@ protected:
 	static _Ty *Load(ItemFactory &factory, uint32 itemID)
 	{
 		// static load
-		_Ty *i = _Ty::_Load( factory, itemID );
+		_Ty *i = _Ty::template _Load<_Ty>( factory, itemID );
 		if( i == NULL )
 			return NULL;
 
@@ -242,13 +242,12 @@ protected:
 		if( type == NULL )
 			return NULL;
 
-		return _Ty::_LoadItem( factory, itemID, *type, data );
+		return _Ty::template _LoadItem<_Ty>( factory, itemID, *type, data );
 	}
 
 	// Actual loading stuff:
-	static InventoryItem *_Load(ItemFactory &factory, uint32 itemID
-	);
-	static InventoryItem *_LoadItem(ItemFactory &factory, uint32 itemID,
+	template<class _Ty>
+	static _Ty *_LoadItem(ItemFactory &factory, uint32 itemID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data
 	);

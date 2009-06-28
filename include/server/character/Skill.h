@@ -91,6 +91,8 @@ protected:
 	/*
 	 * Member functions
 	 */
+	using InventoryItem::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 skillID,
@@ -106,22 +108,15 @@ protected:
 
 		// no additional stuff
 
-		return _Ty::_LoadSkill( factory, skillID, type, data );
+		return _Ty::template _LoadSkill<_Ty>( factory, skillID, type, data );
 	}
 
 	// Actual loading stuff:
-	static Skill *_Load(ItemFactory &factory, uint32 skillID
-	);
-	static Skill *_LoadItem(ItemFactory &factory, uint32 skillID,
+	template<class _Ty>
+	static _Ty *_LoadSkill(ItemFactory &factory, uint32 skillID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data
 	);
-	static Skill *_LoadSkill(ItemFactory &factory, uint32 skillID,
-		// InventoryItem stuff:
-		const Type &type, const ItemData &data
-	);
-
-	bool _Load() { return InventoryItem::_Load(); }
 
 	static uint32 _Spawn(ItemFactory &factory,
 		// InventoryItem stuff:

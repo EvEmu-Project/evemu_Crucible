@@ -136,6 +136,8 @@ protected:
 	/*
 	 * Member functions:
 	 */
+	using CelestialObject::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadCelestialObject(ItemFactory &factory, uint32 solarSystemID,
@@ -161,23 +163,12 @@ protected:
 		if( sunType == NULL )
 			return false;
 
-		return _Ty::_LoadSolarSystem( factory, solarSystemID, type, data, cData, *sunType, ssData );
+		return _Ty::template _LoadSolarSystem<_Ty>( factory, solarSystemID, type, data, cData, *sunType, ssData );
 	}
 
 	// Actual loading stuff:
-	static SolarSystem *_Load(ItemFactory &factory, uint32 solarSystemID
-	);
-	static SolarSystem *_LoadItem(ItemFactory &factory, uint32 solarSystemID,
-		// InventoryItem stuff:
-		const Type &type, const ItemData &data
-	);
-	static SolarSystem *_LoadCelestialObject(ItemFactory &factory, uint32 solarSystemID,
-		// InventoryItem stuff:
-		const Type &type, const ItemData &data,
-		// CelestialObject stuff:
-		const CelestialObjectData &cData
-	);
-	static SolarSystem *_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
+	template<class _Ty>
+	static _Ty *_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
 		// InventoryItem stuff:
 		const Type &type, const ItemData &data,
 		// CelestialObject stuff:
