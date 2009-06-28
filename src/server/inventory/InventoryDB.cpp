@@ -1599,10 +1599,10 @@ bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
 
 	for(size_t i = 0; i < queue.size(); i++)
 	{
-		const QueuedSkill &qs = queue[i];
+		const QueuedSkill &qs = queue[ i ];
 
-		char buf[64];
-		snprintf(buf, 64, "(%u, %u, %u, %u)", characterID, i, qs.typeID, qs.level);
+		char buf[ 64 ];
+		snprintf( buf, 64, "(%u, %lu, %u, %u)", characterID, i, qs.typeID, qs.level );
 
 		if( i != 0 )
 			query += ',';

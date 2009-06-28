@@ -52,8 +52,8 @@ CelestialObject::CelestialObject(
 	// CelestialObject stuff:
 	const CelestialObjectData &_cData)
 : InventoryItem(_factory, _celestialID, _type, _data),
-  m_security(_cData.security),
   m_radius(_cData.radius),
+  m_security(_cData.security),
   m_celestialIndex(_cData.celestialIndex),
   m_orbitIndex(_cData.orbitIndex)
 {
