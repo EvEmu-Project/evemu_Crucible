@@ -93,19 +93,8 @@ BlueprintType *BlueprintType::Load(ItemFactory &factory, uint32 typeID)
 	return Type::Load<BlueprintType>( factory, typeID );
 }
 
-BlueprintType *BlueprintType::_Load(ItemFactory &factory, uint32 typeID)
-{
-	return Type::_Load<BlueprintType>( factory, typeID );
-}
-
-BlueprintType *BlueprintType::_LoadType(ItemFactory &factory, uint32 typeID,
-	// Type stuff:
-	const Group &group, const TypeData &data)
-{
-	return BlueprintType::_LoadType<BlueprintType>( factory, typeID, group, data );
-}
-
-BlueprintType *BlueprintType::_LoadBlueprintType(ItemFactory &factory, uint32 typeID,
+template<class _Ty>
+_Ty *BlueprintType::_LoadBlueprintType(ItemFactory &factory, uint32 typeID,
 	// Type stuff:
 	const Group &group, const TypeData &data,
 	// BlueprintType stuff:

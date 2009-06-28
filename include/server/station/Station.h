@@ -102,6 +102,8 @@ protected:
 	/*
 	 * Member functions:
 	 */
+	using Type::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadType(ItemFactory &factory, uint32 stationTypeID,
@@ -119,23 +121,17 @@ protected:
 		if( !factory.db().GetStationType(stationTypeID, stData) )
 			return NULL;
 
-		return _Ty::_LoadStationType( factory, stationTypeID, group, data, stData );
+		return _Ty::template _LoadStationType<_Ty>( factory, stationTypeID, group, data, stData );
 	}
 
 	// Actual loading stuff:
-	static StationType *_Load(ItemFactory &factory, uint32 stationTypeID
-	);
-	static StationType *_LoadType(ItemFactory &factory, uint32 stationTypeID,
-		// Type stuff:
-		const Group &group, const TypeData &data
-	);
-	static StationType *_LoadStationType(ItemFactory &factory, uint32 stationTypeID,
+	template<class _Ty>
+	static _Ty *_LoadStationType(ItemFactory &factory, uint32 stationTypeID,
 		// Type stuff:
 		const Group &group, const TypeData &data,
 		// StationType stuff:
 		const StationTypeData &stData
 	);
-	virtual bool _Load(ItemFactory &factory) { return Type::_Load(factory); }
 
 	/*
 	 * Data members:

@@ -86,6 +86,8 @@ protected:
 	/*
 	 * Member functions:
 	 */
+	using Type::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadType(ItemFactory &factory, uint32 shipTypeID,
@@ -128,24 +130,17 @@ protected:
 		}
 
 		// continue with load
-		return _Ty::_LoadShipType( factory, shipTypeID, group, data, weaponType, miningType, skillType, stData );
+		return _Ty::template _LoadShipType<_Ty>( factory, shipTypeID, group, data, weaponType, miningType, skillType, stData );
 	}
 
 	// Actual loading stuff:
-	static ShipType *_Load(ItemFactory &factory, uint32 shipTypeID
-	);
-	static ShipType *_LoadType(ItemFactory &factory, uint32 shipTypeID,
-		// Type stuff:
-		const Group &group, const TypeData &data
-	);
-	static ShipType *_LoadShipType(ItemFactory &factory, uint32 shipTypeID,
+	template<class _Ty>
+	static _Ty *_LoadShipType(ItemFactory &factory, uint32 shipTypeID,
 		// Type stuff:
 		const Group &group, const TypeData &data,
 		// ShipType stuff:
 		const Type *weaponType, const Type *miningType, const Type *skillType, const ShipTypeData &stData
 	);
-
-	virtual bool _Load(ItemFactory &factory) { return Type::_Load(factory); }
 
 	/*
 	 * Data content:

@@ -246,12 +246,8 @@ Type *Type::Load(ItemFactory &factory, uint32 typeID)
 	return Type::Load<Type>( factory, typeID );
 }
 
-Type *Type::_Load(ItemFactory &factory, uint32 typeID)
-{
-	return Type::_Load<Type>( factory, typeID );
-}
-
-Type *Type::_LoadType(ItemFactory &factory, uint32 typeID,
+template<class _Ty>
+_Ty *Type::_LoadType(ItemFactory &factory, uint32 typeID,
 	// Type stuff:
 	const Group &group, const TypeData &data)
 {
@@ -261,14 +257,14 @@ Type *Type::_LoadType(ItemFactory &factory, uint32 typeID,
 		// Blueprint:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Blueprint: {
-			return BlueprintType::_LoadType( factory, typeID, group, data );
+			return BlueprintType::_LoadType<BlueprintType>( factory, typeID, group, data );
 		}
 
 		///////////////////////////////////////
 		// Ship:
 		///////////////////////////////////////
 		case EVEDB::invCategories::Ship: {
-			return ShipType::_LoadType( factory, typeID, group, data );
+			return ShipType::_LoadType<ShipType>( factory, typeID, group, data );
 		}
 	}
 
@@ -278,14 +274,14 @@ Type *Type::_LoadType(ItemFactory &factory, uint32 typeID,
 		// Character:
 		///////////////////////////////////////
 		case EVEDB::invGroups::Character: {
-			return CharacterType::_LoadType( factory, typeID, group, data );
+			return CharacterType::_LoadType<CharacterType>( factory, typeID, group, data );
 		}
 
 		///////////////////////////////////////
 		// Station:
 		///////////////////////////////////////
 		case EVEDB::invGroups::Station: {
-			return StationType::_LoadType( factory, typeID, group, data );
+			return StationType::_LoadType<StationType>( factory, typeID, group, data );
 		}
 	}
 
@@ -295,7 +291,7 @@ Type *Type::_LoadType(ItemFactory &factory, uint32 typeID,
 
 bool Type::_Load(ItemFactory &factory) {
 	// load type attributes
-	return(attributes.Load(factory.db()));
+	return attributes.Load( factory.db() );
 }
 
 

@@ -77,19 +77,8 @@ StationType *StationType::Load(ItemFactory &factory, uint32 stationTypeID)
 	return Type::Load<StationType>( factory, stationTypeID );
 }
 
-StationType *StationType::_Load(ItemFactory &factory, uint32 stationTypeID)
-{
-	return Type::_Load<StationType>( factory, stationTypeID );
-}
-
-StationType *StationType::_LoadType(ItemFactory &factory, uint32 stationTypeID,
-	// Type stuff:
-	const Group &group, const TypeData &data)
-{
-	return StationType::_LoadType<StationType>( factory, stationTypeID, group, data );
-}
-
-StationType *StationType::_LoadStationType(ItemFactory &factory, uint32 stationTypeID,
+template<class _Ty>
+_Ty *StationType::_LoadStationType(ItemFactory &factory, uint32 stationTypeID,
 	// Type stuff:
 	const Group &group, const TypeData &data,
 	// StationType stuff:

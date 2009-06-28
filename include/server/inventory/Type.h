@@ -308,7 +308,7 @@ protected:
 	static _Ty *Load(ItemFactory &factory, uint32 typeID)
 	{
 		// static load
-		_Ty *t = _Ty::_Load( factory, typeID );
+		_Ty *t = _Ty::template _Load<_Ty>( factory, typeID );
 		if( t == NULL )
 			return NULL;
 
@@ -337,13 +337,12 @@ protected:
 		if( g == NULL )
 			return NULL;
 
-		return _Ty::_LoadType( factory, typeID, *g, data );
+		return _Ty::template _LoadType<_Ty>( factory, typeID, *g, data );
 	}
 
 	// Actual loading stuff:
-	static Type *_Load(ItemFactory &factory, uint32 typeID
-	);
-	static Type *_LoadType(ItemFactory &factory, uint32 typeID,
+	template<class _Ty>
+	static _Ty *_LoadType(ItemFactory &factory, uint32 typeID,
 		// Type stuff:
 		const Group &group, const TypeData &data
 	);

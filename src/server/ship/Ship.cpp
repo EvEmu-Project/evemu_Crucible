@@ -70,19 +70,8 @@ ShipType *ShipType::Load(ItemFactory &factory, uint32 shipTypeID)
 	return Type::Load<ShipType>( factory, shipTypeID );
 }
 
-ShipType *ShipType::_Load(ItemFactory &factory, uint32 shipTypeID)
-{
-	return Type::_Load<ShipType>( factory, shipTypeID );
-}
-
-ShipType *ShipType::_LoadType(ItemFactory &factory, uint32 shipTypeID,
-	// Type stuff:
-	const Group &group, const TypeData &data)
-{
-	return ShipType::_LoadType<ShipType>( factory, shipTypeID, group, data );
-}
-
-ShipType *ShipType::_LoadShipType(ItemFactory &factory, uint32 shipTypeID,
+template<class _Ty>
+_Ty *ShipType::_LoadShipType(ItemFactory &factory, uint32 shipTypeID,
 	// Type stuff:
 	const Group &group, const TypeData &data,
 	// ShipType stuff:
@@ -125,7 +114,7 @@ Ship *Ship::Spawn(ItemFactory &factory,
 ) {
 	uint32 shipID = Ship::_Spawn( factory, data );
 	if( shipID == 0 )
-		return 0;
+		return NULL;
 	return Ship::Load( factory, shipID );
 }
 

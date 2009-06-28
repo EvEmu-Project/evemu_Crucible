@@ -128,6 +128,8 @@ protected:
 	/*
 	 * Member functions
 	 */
+	using Type::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadType(ItemFactory &factory, uint32 typeID,
@@ -151,24 +153,17 @@ protected:
 		if( shipType == NULL )
 			return NULL;
 
-		return _Ty::_LoadCharacterType( factory, typeID, bloodlineID, group, data, *shipType, charData );
+		return _Ty::template _LoadCharacterType<_Ty>( factory, typeID, bloodlineID, group, data, *shipType, charData );
 	}
 
 	// Actual loading stuff:
-	static CharacterType *_Load(ItemFactory &factory, uint32 typeID
-	);
-	static CharacterType *_LoadType(ItemFactory &factory, uint32 typeID,
-		// Type stuff:
-		const Group &group, const TypeData &data
-	);
-	static CharacterType *_LoadCharacterType(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
+	template<class _Ty>
+	static _Ty *_LoadCharacterType(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
 		// Type stuff:
 		const Group &group, const TypeData &data,
 		// CharacterType stuff:
 		const Type &shipType, const CharacterTypeData &charData
 	);
-
-	virtual bool _Load(ItemFactory &factory) { return Type::_Load(factory); }
 
 	/*
 	 * Data members

@@ -101,19 +101,8 @@ CharacterType *CharacterType::Load(ItemFactory &factory, uint32 characterTypeID)
 	return Type::Load<CharacterType>( factory, characterTypeID );
 }
 
-CharacterType *CharacterType::_Load(ItemFactory &factory, uint32 typeID)
-{
-	return Type::_Load<CharacterType>( factory, typeID );
-}
-
-CharacterType *CharacterType::_LoadType(ItemFactory &factory, uint32 typeID,
-	// Type stuff:
-	const Group &group, const TypeData &data)
-{
-	return CharacterType::_LoadType<CharacterType>( factory, typeID, group, data );
-}
-
-CharacterType *CharacterType::_LoadCharacterType(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
+template<class _Ty>
+_Ty *CharacterType::_LoadCharacterType(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
 	// Type stuff:
 	const Group &group, const TypeData &data,
 	// CharacterType stuff:

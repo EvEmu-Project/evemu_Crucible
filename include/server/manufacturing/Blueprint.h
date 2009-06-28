@@ -119,6 +119,8 @@ protected:
 	/*
 	 * Member functions
 	 */
+	using Type::_Load;
+
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadType(ItemFactory &factory, uint32 typeID,
@@ -152,24 +154,17 @@ protected:
 			return NULL;
 
 		// create blueprint type
-		return _Ty::_LoadBlueprintType( factory, typeID, group, data, parentBlueprintType, *productType, bpData );
+		return _Ty::template _LoadBlueprintType<_Ty>( factory, typeID, group, data, parentBlueprintType, *productType, bpData );
 	}
 
 	// Actual loading stuff:
-	static BlueprintType *_Load(ItemFactory &factory, uint32 typeID
-	);
-	static BlueprintType *_LoadType(ItemFactory &factory, uint32 typeID,
-		// Type stuff:
-		const Group &group, const TypeData &data
-	);
-	static BlueprintType *_LoadBlueprintType(ItemFactory &factory, uint32 typeID,
+	template<class _Ty>
+	static _Ty *_LoadBlueprintType(ItemFactory &factory, uint32 typeID,
 		// Type stuff:
 		const Group &group, const TypeData &data,
 		// BlueprintType stuff:
 		const BlueprintType *parentBlueprintType, const Type &productType, const BlueprintTypeData &bpData
 	);
-
-	virtual bool _Load(ItemFactory &factory) { return Type::_Load(factory); }
 
 	/*
 	 * Data members
