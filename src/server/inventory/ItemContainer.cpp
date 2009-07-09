@@ -95,21 +95,18 @@ void ItemContainer::DeleteContents(ItemFactory &factory)
 	m_contents.clear();
 }
 
-PyRepObject *ItemContainer::GetItem() const
+PyRepNewObject *ItemContainer::List(EVEItemFlags _flag, uint32 forOwner) const
 {
-	ItemRow row;
-	GetItem( row.line );
-	return row.FastEncode();
-}
+	dbutil_CRowset rowset;
 
-PyRepObject *ItemContainer::List(EVEItemFlags _flag, uint32 forOwner) const
-{
-	ItemRowset rowset;
-	List( rowset );
+	ItemRow_Columns cols;
+	rowset.header.columns = cols.FastEncode();
+
+	List( rowset, _flag, forOwner );
 	return rowset.FastEncode();
 }
 
-void ItemContainer::List(ItemRowset &into, EVEItemFlags _flag, uint32 forOwner) const
+void ItemContainer::List(dbutil_CRowset &into, EVEItemFlags _flag, uint32 forOwner) const
 {
 	//there has to be a better way to build this...
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
@@ -121,7 +118,7 @@ void ItemContainer::List(ItemRowset &into, EVEItemFlags _flag, uint32 forOwner) 
 		if(    (i->flag() == _flag       || _flag == flagAnywhere)
 		    && (i->ownerID() == forOwner || forOwner == 0) )
 		{
-			into.lines.add( i->GetItemRow() );
+			into.root_list.push_back( i->GetItemRow() );
 		}
 	}
 }

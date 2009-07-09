@@ -357,25 +357,41 @@ void InventoryItem::Delete() {
 	//we should be deleted now.... so dont do anything!
 }
 
-PyRepObject *InventoryItem::GetItemRow() const
+PyRepPackedRow *InventoryItem::GetItemRow() const
 {
-	ItemRow row;
-	GetItemRow( row.line );
-	return row.FastEncode();
+	blue_DBRowDescriptor desc;
+
+	ItemRow_Columns cols;
+	desc.columns = cols.FastEncode();
+
+	PyRepPackedRow *row = new PyRepPackedRow( desc.FastEncode(), true );
+	GetItemRow( *row );
+	return row;
 }
 
-void InventoryItem::GetItemRow(ItemRowset_Row &into) const {
-	into.itemID = itemID();
-	into.typeID = typeID();
-	into.ownerID = ownerID();
-	into.locationID = locationID();
-	into.flag = flag();
-	into.contraband = contraband()?1:0;
-	into.singleton = singleton()?1:0;
-	into.quantity = quantity();
-	into.groupID = groupID();
-	into.categoryID = categoryID();
-	into.customInfo = customInfo();
+void InventoryItem::GetItemRow(PyRepPackedRow &into) const
+{
+	// Content must be stacked by size:
+	// 4-byte values:
+	into.PushUInt32( itemID() );
+	into.PushUInt32( ownerID() );
+	into.PushUInt32( locationID() );
+	into.PushUInt32( quantity() );
+
+	// 2-byte values:
+	into.PushUInt16( typeID() );
+	into.PushUInt16( groupID() );
+
+	// 1-byte values:
+	into.PushUInt8( flag() );
+	into.PushUInt8( categoryID() );
+
+	// Bool values
+	into.PushUInt8( (contraband() << 0)
+	                | (singleton() << 1) );
+
+	// Additional PyReps:
+	into.PushPyRep( new PyRepString( customInfo() ) );
 }
 
 bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
@@ -383,7 +399,7 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
 	result.itemID = itemID();
 
 	//invItem:
-	GetItemRow(result.invItem.line);
+	result.invItem = GetItemRow();
 
 	//hacky, but it doesn't really hurt anything.
 	if(isOnline() != 0) {
@@ -647,7 +663,7 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<uint32, PyRep *> &chang
 		return;	//not found or not online...
 
 	NotifyOnItemChange change;
-	GetItemRow(change.itemRow.line);
+	change.itemRow = GetItemRow();
 
 	change.changes = changes;
 	changes.clear();	//consume them.

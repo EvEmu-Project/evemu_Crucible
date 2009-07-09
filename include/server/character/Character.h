@@ -551,7 +551,7 @@ protected:
 	);
 
 	uint32 containerID() const { return itemID(); }
-	void GetItem(ItemRowset_Row &into) const { return GetItemRow( into ); }
+	PyRep *GetItem() const { return GetItemRow(); }
 
 	void SaveCharacter() const;
 	void SaveSkillQueue() const;

@@ -270,7 +270,7 @@ protected:
 	bool _Load();
 
 	uint32 containerID() const { return itemID(); }
-	void GetItem(ItemRowset_Row &into) const { return GetItemRow( into ); }
+	PyRep *GetItem() const { return GetItemRow(); }
 
 	/*
 	 * Data members:
