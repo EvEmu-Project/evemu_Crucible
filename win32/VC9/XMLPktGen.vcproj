@@ -228,43 +228,43 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\src\xmlpktgen\CloneGenerator.h"
+				RelativePath="..\..\include\xmlpktgen\CloneGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\xmlpktgen\ConstructGenerator.h"
+				RelativePath="..\..\include\xmlpktgen\ConstructGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\xmlpktgen\DecodeGenerator.h"
+				RelativePath="..\..\include\xmlpktgen\DecodeGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\xmlpktgen\DestructGenerator.h"
+				RelativePath="..\..\include\xmlpktgen\DestructGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\xmlpktgen\DumpGenerator.h"
+				RelativePath="..\..\include\xmlpktgen\DumpGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\xmlpktgen\EncodeGenerator.h"
+				RelativePath="..\..\include\xmlpktgen\EncodeGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\xmlpktgen\Generator.h"
+				RelativePath="..\..\include\xmlpktgen\Generator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\xmlpktgen\HeaderGenerator.h"
+				RelativePath="..\..\include\xmlpktgen\HeaderGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\xmlpktgen\ImplGenerator.h"
+				RelativePath="..\..\include\xmlpktgen\ImplGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\xmlpktgen\XMLPacketGen.h"
+				RelativePath="..\..\include\xmlpktgen\XMLPacketGen.h"
 				>
 			</File>
 		</Filter>
@@ -275,15 +275,15 @@
 				Name="Header Files"
 				>
 				<File
-					RelativePath="..\..\src\common\logsys.h"
+					RelativePath="..\..\include\common\logsys.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\logtypes.h"
+					RelativePath="..\..\include\common\logtypes.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\misc.h"
+					RelativePath="..\..\include\common\misc.h"
 					>
 				</File>
 				<File

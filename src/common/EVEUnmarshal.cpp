@@ -883,10 +883,10 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 			phex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);
 		break; }
 	
-	case Op_NewObject1:
-	case Op_NewObject2:
+	case Op_ObjectEx1:
+	case Op_ObjectEx2:
 		{
-		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_NewObject", pfx, opcode);
+		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_ObjectEx", pfx, opcode);
 
 		PyRep *header;
 
@@ -899,7 +899,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		len -= clen;
 		len_used += clen;
 
-		PyRepNewObject *obj = new PyRepNewObject(opcode == Op_NewObject2, header);
+		PyRepObjectEx *obj = new PyRepObjectEx(opcode == Op_ObjectEx2, header);
 
 		n = pfx;
 		n += "  ListData: ";

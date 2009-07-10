@@ -272,7 +272,7 @@ bool ClassHeaderGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return true;
 }
 
-bool ClassHeaderGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+bool ClassHeaderGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
@@ -291,13 +291,13 @@ bool ClassHeaderGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 		return false;
 	}
 
-	fprintf(into, "\t/* NewObject %s's header: */\n", name);
+	fprintf(into, "\t/* ObjectEx %s's header: */\n", name);
 	if(!ProcessFields(into, field, 1))
 		return false;
 
-	fprintf(into, "\t/* NewObject %s's contents: */\n", name);
-	fprintf(into, "\tPyRepNewObject::list_type\t%s;\n", lname);
-	fprintf(into, "\tPyRepNewObject::dict_type\t%s;\n", dname);
+	fprintf(into, "\t/* ObjectEx %s's contents: */\n", name);
+	fprintf(into, "\tPyRepObjectEx::list_type\t%s;\n", lname);
+	fprintf(into, "\tPyRepObjectEx::dict_type\t%s;\n", dname);
 
 	return true;
 }

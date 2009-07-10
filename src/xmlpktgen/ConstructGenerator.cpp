@@ -123,7 +123,7 @@ bool ClassConstructGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return true;
 }
 
-bool ClassConstructGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+bool ClassConstructGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 	if(!ProcessFields(into, field, 1))
 		return false;
 	return true;

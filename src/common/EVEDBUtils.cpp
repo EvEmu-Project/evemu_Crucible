@@ -709,7 +709,7 @@ PyRepTuple *DBResultToPackedRowListTuple(
 	return(res.FastEncode());
 }
 
-PyRepNewObject *DBResultToCRowset(
+PyRepObjectEx *DBResultToCRowset(
 	DBQueryResult &result
 ) {
 	DBPackedColumnList columns(result);

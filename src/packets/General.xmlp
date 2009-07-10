@@ -50,20 +50,20 @@
   </object>
 </element>
 
-<!-- generic skeleton of non-type1 NewObject -->
-<element name="util_NewObject1">
-  <newobject name="root">
+<!-- generic skeleton of non-type1 ObjectEx -->
+<element name="util_ObjectEx1">
+  <object_ex name="root">
 	<InlineTuple>
 	  <string name="type" type1="true" />
 	  <tuple name="args" />
 	  <!-- optional -->
 	  <dict name="keywords" />
 	</InlineTuple>
-  </newobject>
+  </object_ex>
 </element>
 
 <element name="util_PasswordString">
-  <newobject name="root" type1="true">
+  <object_ex name="root" type1="true">
 	<InlineTuple>
 	  <InlineTuple>
 		<string name="type" default="util.PasswordString" type1="true" />
@@ -72,18 +72,18 @@
 	  <InlineDict>
 	  </InlineDict>
 	</InlineTuple>
-  </newobject>	   
+  </object_ex>	   
 </element>
 
 <element name="blue_DBRowDescriptor">
-  <newobject name="root">
+  <object_ex name="root">
 	<InlineTuple>
 	  <string name="type" default="blue.DBRowDescriptor" type1="true" />
 	  <InlineTuple>
 		<tuple name="columns" />
 	  </InlineTuple>
 	</InlineTuple>
-  </newobject>
+  </object_ex>
 </element>
 
 <element name="dbutil_RowListTuple">
@@ -94,7 +94,7 @@
 </element>
 
 <element name="dbutil_RowList">
-  <newobject name="root" type1="true">
+  <object_ex name="root" type1="true">
 	<InlineTuple>
 	  <InlineTuple>
 		<string name="type" default="dbutil.RowList" type1="true" />
@@ -105,11 +105,11 @@
 		</IDEntry>
 	  </InlineDict>
 	</InlineTuple>
-  </newobject>
+  </object_ex>
 </element>
 
 <element name="dbutil_CRowset">
-  <newobject name="root" type1="true">
+  <object_ex name="root" type1="true">
 	<InlineTuple>
 	  <InlineTuple>
 		<string name="type" default="dbutil.CRowset"  type1="true" />
@@ -123,7 +123,7 @@
 		</IDEntry>
 	  </InlineDict>
 	</InlineTuple>
-  </newobject>
+  </object_ex>
 </element>
 
 <!-- this object is not really an object type on live, just convenience here -->

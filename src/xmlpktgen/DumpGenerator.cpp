@@ -317,7 +317,7 @@ bool ClassDumpGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return true;
 }
 
-bool ClassDumpGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+bool ClassDumpGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
@@ -325,7 +325,7 @@ bool ClassDumpGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 	}
 
 	fprintf(into,
-		"	_log(l_type, \"%%sNewObject:\", pfx);\n"
+		"	_log(l_type, \"%%sObjectEx:\", pfx);\n"
 		"	_log(l_type, \"%%sHeader:\", pfx);\n"
 	);
 
@@ -334,7 +334,7 @@ bool ClassDumpGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 
 	fprintf(into,
 		"	_log(l_type, \"%%sList data:\", pfx);\n"
-		"	PyRepNewObject::const_list_iterator lcur, lend;\n"
+		"	PyRepObjectEx::const_list_iterator lcur, lend;\n"
 		"	lcur = %s_list.begin();\n"
 		"	lend = %s_list.end();\n"
 		"	for(uint32 i = 0; lcur != lend; lcur++, i++) {\n"
@@ -350,7 +350,7 @@ bool ClassDumpGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 
 	fprintf(into,
 		"	_log(l_type, \"%%sDict data:\", pfx);\n"
-		"	PyRepNewObject::const_dict_iterator dcur, dend;\n"
+		"	PyRepObjectEx::const_dict_iterator dcur, dend;\n"
 		"	dcur = %s_dict.begin();\n"
 		"	dend = %s_dict.end();\n"
 		"	for(uint32 i = 0; dcur != dend; dcur++) {\n"

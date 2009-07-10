@@ -869,7 +869,7 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return true;
 }
 
-bool ClassDecodeGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+bool ClassDecodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
@@ -886,12 +886,12 @@ bool ClassDecodeGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
 	const char *v = top();
 
 	fprintf(into,
-		"	if(!%s->IsNewObject()) {\n"
+		"	if(!%s->IsObjectEx()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepNewObject *%s = (PyRepNewObject *) %s;\n"
+		"	PyRepObjectEx *%s = (PyRepObjectEx *) %s;\n"
 		"	if(%s%s->is_type_1) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: expected %s to %s of type 1, but it %s\");\n"
 		"		delete packet;\n"

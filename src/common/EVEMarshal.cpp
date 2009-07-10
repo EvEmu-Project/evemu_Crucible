@@ -279,29 +279,29 @@ public:
 
 	/** Adds a New object to the stream
 	  */
-	virtual void VisitNewObject(const PyRepNewObject *rep)
+	virtual void VisitObjectEx(const PyRepObjectEx *rep)
 	{
 		if (rep->is_type_1 == true)
-			PutByte(Op_NewObject2);
+			PutByte(Op_ObjectEx2);
 		else
-			PutByte(Op_NewObject1);
+			PutByte(Op_ObjectEx1);
 
-		PyVisitor::VisitNewObject(rep);
+		PyVisitor::VisitObjectEx(rep);
 	}
 
 	/** Adds a new object list
 	  */
-	virtual void VisitNewObjectList(const PyRepNewObject *rep)
+	virtual void VisitObjectExList(const PyRepObjectEx *rep)
 	{
-		PyVisitor::VisitNewObjectList(rep);
+		PyVisitor::VisitObjectExList(rep);
 		PutByte(Op_PackedTerminator);
 	}
 
 	/** Adds a new object dict
 	  */
-	virtual void VisitNewObjectDict(const PyRepNewObject *rep)
+	virtual void VisitObjectExDict(const PyRepObjectEx *rep)
 	{
-		PyVisitor::VisitNewObjectDict(rep);
+		PyVisitor::VisitObjectExDict(rep);
 		PutByte(Op_PackedTerminator);
 	}
 	

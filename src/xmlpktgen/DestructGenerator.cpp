@@ -160,7 +160,7 @@ bool ClassDestructGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return true;
 }
 
-bool ClassDestructGenerator::Process_newobject(FILE *into, TiXmlElement *field) {
+bool ClassDestructGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 	const char *name = field->Attribute("name");
 	if(name == NULL) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
@@ -171,7 +171,7 @@ bool ClassDestructGenerator::Process_newobject(FILE *into, TiXmlElement *field) 
 		return false;
 
 	fprintf(into,
-		"	PyRepNewObject::list_iterator lcur, lend;\n"
+		"	PyRepObjectEx::list_iterator lcur, lend;\n"
 		"	lcur = %s_list.begin();\n"
 		"	lend = %s_list.end();\n"
 		"	for(; lcur != lend; lcur++)\n"
@@ -181,7 +181,7 @@ bool ClassDestructGenerator::Process_newobject(FILE *into, TiXmlElement *field) 
 	);
 
 	fprintf(into,
-		"	PyRepNewObject::dict_iterator dcur, dend;\n"
+		"	PyRepObjectEx::dict_iterator dcur, dend;\n"
 		"	dcur = %s_dict.begin();\n"
 		"	dend = %s_dict.end();\n"
 		"	for(; dcur != dend; dcur++) {\n"

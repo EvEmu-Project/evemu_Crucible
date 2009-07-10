@@ -95,7 +95,7 @@ void ItemContainer::DeleteContents(ItemFactory &factory)
 	m_contents.clear();
 }
 
-PyRepNewObject *ItemContainer::List(EVEItemFlags _flag, uint32 forOwner) const
+PyRepObjectEx *ItemContainer::List(EVEItemFlags _flag, uint32 forOwner) const
 {
 	dbutil_CRowset rowset;
 

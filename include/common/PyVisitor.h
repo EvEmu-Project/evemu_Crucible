@@ -43,7 +43,7 @@ class PyRepChecksumedStream;
 class PyRepDict;
 class PyRepList;
 class PyRepTuple;
-class PyRepNewObject;
+class PyRepObjectEx;
 class PyRepPackedRow;
 
 class PyVisitor {
@@ -60,12 +60,12 @@ public:
 	
 	virtual void VisitPackedRow(const PyRepPackedRow *rep);
 
-	virtual void VisitNewObject(const PyRepNewObject *rep);
-	virtual void VisitNewObjectHeader(const PyRepNewObject *rep);
-	virtual void VisitNewObjectList(const PyRepNewObject *rep);
-	virtual void VisitNewObjectListElement(const PyRepNewObject *rep, uint32 index, const PyRep *ele);
-	virtual void VisitNewObjectDict(const PyRepNewObject *rep);
-	virtual void VisitNewObjectDictElement(const PyRepNewObject *rep, uint32 index, const PyRep *key, const PyRep *value);
+	virtual void VisitObjectEx(const PyRepObjectEx *rep);
+	virtual void VisitObjectExHeader(const PyRepObjectEx *rep);
+	virtual void VisitObjectExList(const PyRepObjectEx *rep);
+	virtual void VisitObjectExListElement(const PyRepObjectEx *rep, uint32 index, const PyRep *ele);
+	virtual void VisitObjectExDict(const PyRepObjectEx *rep);
+	virtual void VisitObjectExDictElement(const PyRepObjectEx *rep, uint32 index, const PyRep *key, const PyRep *value);
 	
 	virtual void VisitSubStruct(const PyRepSubStruct *rep);
 	virtual void VisitSubStream(const PyRepSubStream *rep);

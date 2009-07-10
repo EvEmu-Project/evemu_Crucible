@@ -101,7 +101,7 @@ PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRe
 		pyArgs = d;
 	}
 
-	util_NewObject1 no;
+	util_ObjectEx1 no;
 	no.type = "ccp_exceptions.UserError";
 
 	no.args = new PyRepTuple(2);

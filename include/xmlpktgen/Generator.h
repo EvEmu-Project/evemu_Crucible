@@ -93,7 +93,7 @@ protected:
 	ProcFDecl(elementptr); \
 	ProcFDecl(none); \
 	ProcFDecl(object); \
-	ProcFDecl(newobject); \
+	ProcFDecl(object_ex); \
 	ProcFDecl(buffer); \
 	ProcFDecl(raw); \
 	ProcFDecl(dict); \
@@ -121,7 +121,7 @@ protected:
 	ProcFMap(c, elementptr, PyRep); \
 	ProcFMap(c, none, PyRep); \
 	ProcFMap(c, object, PyRepObject); \
-	ProcFMap(c, newobject, PyRepNewObject); \
+	ProcFMap(c, object_ex, PyRepObjectEx); \
 	ProcFMap(c, buffer, PyRepBuffer); \
 	ProcFMap(c, raw, PyRep); \
 	ProcFMap(c, list, PyRepList); \

@@ -51,7 +51,7 @@ const char *PyRepTypeString[] = {
 	"SubStream",		//10
 	"ChecksumedStream",	//11
 	"Object",			//12
-	"NewObject",		//13
+	"ObjectEx",			//13
 	"PackedRow",		//14
 	"UNKNOWN TYPE",		//15
 };
@@ -881,7 +881,7 @@ void PyRepPackedRow::Push(const void *data, uint32 len) {
 
 
 
-PyRepNewObject::~PyRepNewObject() {
+PyRepObjectEx::~PyRepObjectEx() {
 	{
 		const_list_iterator cur, end;
 		cur = list_data.begin();
@@ -902,8 +902,8 @@ PyRepNewObject::~PyRepNewObject() {
 	}
 }
 
-void PyRepNewObject::Dump(FILE *into, const char *pfx) const {
-	fprintf(into, "%sNewObject%s\n", pfx, (is_type_1 ? " (Type1)" : ""));
+void PyRepObjectEx::Dump(FILE *into, const char *pfx) const {
+	fprintf(into, "%sObjectEx%s\n", pfx, (is_type_1 ? " (Type1)" : ""));
 	fprintf(into, "%sHeader:\n", pfx);
 	if(header == NULL)
 		fprintf(into, "%s  None\n", pfx);
@@ -952,11 +952,11 @@ void PyRepNewObject::Dump(FILE *into, const char *pfx) const {
 	}
 }
 
-void PyRepNewObject::Dump(LogType ltype, const char *pfx) const {
+void PyRepObjectEx::Dump(LogType ltype, const char *pfx) const {
 	if(!is_log_enabled(ltype))
 		return;
 
-	_log(ltype, "%sNewObject%s\n", pfx, (is_type_1 ? " (Type1)" : ""));
+	_log(ltype, "%sObjectEx%s\n", pfx, (is_type_1 ? " (Type1)" : ""));
 	_log(ltype, "%sHeader:\n", pfx);
 	if(header == NULL)
 		_log(ltype, "%s  None\n", pfx);
@@ -1005,17 +1005,17 @@ void PyRepNewObject::Dump(LogType ltype, const char *pfx) const {
 	}
 }
 
-void PyRepNewObject::visit(PyVisitor *v) const {
-	v->VisitNewObject(this);
+void PyRepObjectEx::visit(PyVisitor *v) const {
+	v->VisitObjectEx(this);
 }
 
-PyRepNewObject *PyRepNewObject::TypedClone() const {
-	PyRepNewObject *clone = new PyRepNewObject(is_type_1);
+PyRepObjectEx *PyRepObjectEx::TypedClone() const {
+	PyRepObjectEx *clone = new PyRepObjectEx(is_type_1);
 	clone->CloneFrom(this);
 	return(clone);
 }
 
-void PyRepNewObject::CloneFrom(const PyRepNewObject *from) {
+void PyRepObjectEx::CloneFrom(const PyRepObjectEx *from) {
 	if(from->header != NULL)
 		header = from->header->Clone();
 	else

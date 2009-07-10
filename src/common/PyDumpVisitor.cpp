@@ -149,22 +149,22 @@ void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep) {
 	}
 }
 
-void PyDumpVisitor::VisitNewObject(const PyRepNewObject *rep) {
-	_print("%sNewObject:", top());
-	PyVisitor::VisitNewObject(rep);
+void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep) {
+	_print("%sObjectEx:", top());
+	PyVisitor::VisitObjectEx(rep);
 }
 
-void PyDumpVisitor::VisitNewObjectHeader(const PyRepNewObject *rep) {
+void PyDumpVisitor::VisitObjectExHeader(const PyRepObjectEx *rep) {
 	_print("%sHeader:", top());
-	PyVisitor::VisitNewObjectHeader(rep);
+	PyVisitor::VisitObjectExHeader(rep);
 }
 
-void PyDumpVisitor::VisitNewObjectList(const PyRepNewObject *rep) {
+void PyDumpVisitor::VisitObjectExList(const PyRepObjectEx *rep) {
 	_print("ListData: %u entries", rep->list_data.size());
-	PyVisitor::VisitNewObjectList(rep);
+	PyVisitor::VisitObjectExList(rep);
 }
 
-void PyDumpVisitor::VisitNewObjectListElement(const PyRepNewObject *rep, uint32 index, const PyRep *ele) {
+void PyDumpVisitor::VisitObjectExListElement(const PyRepObjectEx *rep, uint32 index, const PyRep *ele) {
 	std::string n(top());
 	{
 		char t[16];
@@ -172,16 +172,16 @@ void PyDumpVisitor::VisitNewObjectListElement(const PyRepNewObject *rep, uint32 
 		n += t;
 	}
 	push(n.c_str());
-	PyVisitor::VisitNewObjectListElement(rep, index, ele);
+	PyVisitor::VisitObjectExListElement(rep, index, ele);
 	pop();
 }
 
-void PyDumpVisitor::VisitNewObjectDict(const PyRepNewObject *rep) {
+void PyDumpVisitor::VisitObjectExDict(const PyRepObjectEx *rep) {
 	_print("DictData: %u entries", rep->dict_data.size());
-	PyVisitor::VisitNewObjectDict(rep);
+	PyVisitor::VisitObjectExDict(rep);
 }
 
-void PyDumpVisitor::VisitNewObjectDictElement(const PyRepNewObject *rep, uint32 index, const PyRep *key, const PyRep *value) {
+void PyDumpVisitor::VisitObjectExDictElement(const PyRepObjectEx *rep, uint32 index, const PyRep *key, const PyRep *value) {
 	std::string n(top());
 	{
 		char t[16];

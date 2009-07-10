@@ -33,7 +33,7 @@ MissionDB::MissionDB(DBcore *db)
 MissionDB::~MissionDB() {
 }
 
-PyRepNewObject *MissionDB::GetAgents() {
+PyRepObjectEx *MissionDB::GetAgents() {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,

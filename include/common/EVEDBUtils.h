@@ -43,7 +43,7 @@ class PyRepObject;
 class PyRepTuple;
 class PyRepList;
 class PyRepDict;
-class PyRepNewObject;
+class PyRepObjectEx;
 class PyRepPackedRow;
 
 /*typedef enum {
@@ -120,7 +120,7 @@ bool IsPyRepType(DBTYPE t);
 
 PyRepList *DBResultToPackedRowList(DBQueryResult &result);
 PyRepTuple *DBResultToPackedRowListTuple(DBQueryResult &result);
-PyRepNewObject *DBResultToCRowset(DBQueryResult &result);
+PyRepObjectEx *DBResultToCRowset(DBQueryResult &result);
 
 //single rows:
 PyRepObject *DBRowToKeyVal(DBResultRow &row);

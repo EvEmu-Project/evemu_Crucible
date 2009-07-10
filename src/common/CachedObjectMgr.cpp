@@ -56,7 +56,7 @@ public:
 	virtual void VisitInteger(const PyRepInteger *rep) { good = false; }
 	virtual void VisitNone(const PyRepNone *rep) { good = false; }
 	virtual void VisitObject(const PyRepObject *rep) { good = false; }
-	virtual void VisitNewObject(const PyRepNewObject *rep) { good = false; }
+	virtual void VisitObjectEx(const PyRepObjectEx *rep) { good = false; }
 	virtual void VisitPackedRow(const PyRepPackedRow *rep) { good = false; }
 	virtual void VisitReal(const PyRepReal *rep) { good = false; }
 	virtual void VisitString(const PyRepString *rep) {

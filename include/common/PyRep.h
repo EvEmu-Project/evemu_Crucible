@@ -47,7 +47,7 @@ class PyRepSubStruct;
 class PyRepSubStream;
 class PyRepChecksumedStream;
 class PyRepObject;
-class PyRepNewObject;
+class PyRepObjectEx;
 class PyRepPackedRow;
 
 /** Lookup table for PyRep type object type names.
@@ -74,7 +74,7 @@ public:
 		PyTypeSubStream			= 10,
 		PyTypeChecksumedStream	= 11,
 		PyTypeObject			= 12,
-		PyTypeNewObject			= 13,
+		PyTypeObjectEx			= 13,
 		PyTypePackedRow			= 14,
 		PyTypeError				= 15,
 		PyTypeMax				= 15,
@@ -98,7 +98,7 @@ public:
 	bool IsSubStream() const {return m_type == PyTypeSubStream;}
 	bool IsChecksumedStream() const {return m_type == PyTypeChecksumedStream;}
 	bool IsObject() const {return m_type == PyTypeObject;}
-	bool IsNewObject() const {return m_type == PyTypeNewObject;}
+	bool IsObjectEx() const {return m_type == PyTypeObjectEx;}
 	bool IsPackedRow() const {return m_type == PyTypePackedRow;}
 
 
@@ -116,7 +116,7 @@ public:
 	PyRepSubStream& AsSubStream() {return *((PyRepSubStream*)this);}
 	PyRepChecksumedStream& AsChecksumedStream() {return *((PyRepChecksumedStream*)this);}
 	PyRepObject& AsObject() {return *((PyRepObject*)this);}
-	PyRepNewObject& AsNewObject() {return *((PyRepNewObject*)this);}
+	PyRepObjectEx& AsObjectEx() {return *((PyRepObjectEx*)this);}
 	PyRepPackedRow& AsPackedRow() {return *((PyRepPackedRow*)this);}
 
 	const char *TypeString() const;
@@ -423,7 +423,7 @@ public:
 
 
 //opcodes 0x22 and 0x23 (merged for simplicity)
-class PyRepNewObject : public PyRep {
+class PyRepObjectEx : public PyRep {
 public:
 	//for list data (before first PackedTerminator)
 	typedef std::vector<PyRep *> list_type;
@@ -435,15 +435,15 @@ public:
 	typedef std::map<PyRep *, PyRep *>::iterator dict_iterator;
 	typedef std::map<PyRep *, PyRep *>::const_iterator const_dict_iterator;
 
-	PyRepNewObject(bool _is_type_1, PyRep *_header = NULL) : PyRep(PyRep::PyTypeNewObject), header(_header), is_type_1(_is_type_1) {}
-	virtual ~PyRepNewObject();
+	PyRepObjectEx(bool _is_type_1, PyRep *_header = NULL) : PyRep(PyRep::PyTypeObjectEx), header(_header), is_type_1(_is_type_1) {}
+	virtual ~PyRepObjectEx();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
 	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 
-	PyRepNewObject *TypedClone() const;
-	void CloneFrom(const PyRepNewObject *from);
+	PyRepObjectEx *TypedClone() const;
+	void CloneFrom(const PyRepObjectEx *from);
 
 	PyRep *header;
 	const bool is_type_1;	// true if opcode is 0x26 instead of 0x25

@@ -378,7 +378,7 @@ void Client::Login(CryptoChallengePacket *pack) {
 	if(!m_services.serviceDB().DoLogin(pack->user_name.c_str(), pass.password.c_str(), m_accountID, m_accountRole)) {
 		_log(CLIENT__MESSAGE, "%s: Login rejected by DB", pack->user_name.c_str());
 
-		util_NewObject1 no;
+		util_ObjectEx1 no;
 		no.type = "exceptions.GPSTransportClosed";
 
 		no.args = new PyRepTuple(1);

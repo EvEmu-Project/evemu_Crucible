@@ -40,37 +40,37 @@ void PyVisitor::VisitObject(const PyRepObject *rep) {
 
 void PyVisitor::VisitPackedRow(const PyRepPackedRow *rep) { }
 
-void PyVisitor::VisitNewObject(const PyRepNewObject *rep) {
-	VisitNewObjectHeader(rep);
-	VisitNewObjectList(rep);
-	VisitNewObjectDict(rep);
+void PyVisitor::VisitObjectEx(const PyRepObjectEx *rep) {
+	VisitObjectExHeader(rep);
+	VisitObjectExList(rep);
+	VisitObjectExDict(rep);
 }
 
-void PyVisitor::VisitNewObjectHeader(const PyRepNewObject *rep) {
+void PyVisitor::VisitObjectExHeader(const PyRepObjectEx *rep) {
 	rep->header->visit(this);
 }
 
-void PyVisitor::VisitNewObjectList(const PyRepNewObject *rep) {
-	PyRepNewObject::const_list_iterator cur, end;
+void PyVisitor::VisitObjectExList(const PyRepObjectEx *rep) {
+	PyRepObjectEx::const_list_iterator cur, end;
 	cur = rep->list_data.begin();
 	end = rep->list_data.end();
 	for(int i = 0; cur != end; cur++, i++)
-		VisitNewObjectListElement(rep, i, *cur);
+		VisitObjectExListElement(rep, i, *cur);
 }
 
-void PyVisitor::VisitNewObjectListElement(const PyRepNewObject *rep, uint32 index, const PyRep *ele) {
+void PyVisitor::VisitObjectExListElement(const PyRepObjectEx *rep, uint32 index, const PyRep *ele) {
 	ele->visit(this);
 }
 
-void PyVisitor::VisitNewObjectDict(const PyRepNewObject *rep) {
-	PyRepNewObject::const_dict_iterator cur, end;
+void PyVisitor::VisitObjectExDict(const PyRepObjectEx *rep) {
+	PyRepObjectEx::const_dict_iterator cur, end;
 	cur = rep->dict_data.begin();
 	end = rep->dict_data.end();
 	for(int i = 0; cur != end; cur++, i++)
-		VisitNewObjectDictElement(rep, i, cur->first, cur->second);
+		VisitObjectExDictElement(rep, i, cur->first, cur->second);
 }
 
-void PyVisitor::VisitNewObjectDictElement(const PyRepNewObject *rep, uint32 index, const PyRep *key, const PyRep *value) {
+void PyVisitor::VisitObjectExDictElement(const PyRepObjectEx *rep, uint32 index, const PyRep *key, const PyRep *value) {
 	key->visit(this);
 	value->visit(this);
 }
