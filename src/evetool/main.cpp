@@ -669,7 +669,8 @@ void UnmarshalLogText(const Seperator &command) {
 void TestMarshal() {
 	dbutil_CRowset rs;
 	{
-		rs.header.columns = new PyRepTuple(6);
+		blue_DBRowDescriptor desc;
+		desc.columns = new PyRepTuple(6);
 
 		PyRepTuple *pair_tuple;
 		int r = 0;
@@ -677,48 +678,52 @@ void TestMarshal() {
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("historyDate");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_FILETIME);
-		rs.header.columns->items[r++] = pair_tuple;
+		desc.columns->items[r++] = pair_tuple;
 		
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("lowPrice");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
-		rs.header.columns->items[r++] = pair_tuple;
+		desc.columns->items[r++] = pair_tuple;
 		
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("highPrice");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
-		rs.header.columns->items[r++] = pair_tuple;
+		desc.columns->items[r++] = pair_tuple;
 		
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("avgPrice");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
-		rs.header.columns->items[r++] = pair_tuple;
+		desc.columns->items[r++] = pair_tuple;
 
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("volume");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_I8);
-		rs.header.columns->items[r++] = pair_tuple;
+		desc.columns->items[r++] = pair_tuple;
 		
 		pair_tuple = new PyRepTuple(2);
 		pair_tuple->items[0] = new PyRepString("orders");
 		pair_tuple->items[1] = new PyRepInteger(DBTYPE_I4);
-		rs.header.columns->items[r++] = pair_tuple;
+		desc.columns->items[r++] = pair_tuple;
+
+		rs.header = desc.FastEncode();
 	}
 	
-	PyRepPackedRow *row;
 	{
-		static uint8 data[] = {
-			0x00, 0x40, 0x7b, 0x30, 0xb2, 0x6c, 0xc6, 0x01, 0x68, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x38, 0x4a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x47, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x01, 0xee, 0x95, 0x31, 0x00, 0x00, 0x00, 0x00, 0x2f, 0x0f, 0x00, 0x00
-		};
-		row = new PyRepPackedRow(rs.header.Encode(), true, data, sizeof(data));
-		rs.root_list.push_back(row);
+		PyRepPackedRow *row = new PyRepPackedRow( *rs.header->Clone(), true );
+
+		row->SetField( "historyDate", new PyRepInteger( Win32TimeNow() ) );
+		row->SetField( "lowPrice", new PyRepInteger( 18000 ) );
+		row->SetField( "highPrice", new PyRepInteger( 19000 ) );
+		row->SetField( "avgPrice", new PyRepInteger( 18400 ) );
+		row->SetField( "volume", new PyRepInteger( 5463586 ) );
+		row->SetField( "orders", new PyRepInteger( 254 ) );
+
+		rs.root_list.push_back( row );
 	}
 
 	uint32 mlen = 0;
 	_log(COMMON__MESSAGE, "Marshaling...");
-	uint8 *marshaled = Marshal(rs.Encode(), mlen, true);
+	uint8 *marshaled = Marshal(rs.FastEncode(), mlen, true);
 	
 	_log(COMMON__MESSAGE, "Unmarshaling...");
 	PyRep *rep = InflateAndUnmarshal(marshaled, mlen);

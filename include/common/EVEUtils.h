@@ -56,9 +56,17 @@ static const uint64 Win32Time_Year = Win32Time_Month*12;	//according to the eve 
 
 //these may be later converted to classes, but now it's easier this way
 //makes ccp_exceptions.UserError exception
-PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args = std::map<std::string, PyRep *>());
+extern PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args = std::map<std::string, PyRep *>());
 //makes UserError with type "CustomError"
-PyRep *MakeCustomError(const char *fmt, ...);
+extern PyRep *MakeCustomError(const char *fmt, ...);
+
+/**
+ * This routine returns length of field of given type.
+ *
+ * @param[in] t Type of fields.
+ * @return Length of field (in bits).
+ */
+extern uint8 GetTypeSize(DBTYPE t);
 
 #endif
 

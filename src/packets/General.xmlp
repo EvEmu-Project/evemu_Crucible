@@ -50,8 +50,8 @@
   </object>
 </element>
 
-<!-- generic skeleton of non-type1 ObjectEx -->
-<element name="util_ObjectEx1">
+<!-- generic basic ObjectEx -->
+<element name="util_ObjectEx">
   <object_ex name="root">
 	<InlineTuple>
 	  <string name="type" type1="true" />
@@ -88,7 +88,7 @@
 
 <element name="dbutil_RowListTuple">
   <InlineTuple>
-	<element name="header" type="blue_DBRowDescriptor" />
+	<raw name="header" />
 	<list name="rows" />
   </InlineTuple>
 </element>
@@ -101,7 +101,7 @@
 	  </InlineTuple>
 	  <InlineDict>
 		<IDEntry key="header">
-      <element name="header" type="blue_DBRowDescriptor" />
+      <raw name="header" />
 		</IDEntry>
 	  </InlineDict>
 	</InlineTuple>
@@ -116,7 +116,7 @@
 	  </InlineTuple>
 	  <InlineDict>
 		<IDEntry key="header">
-		  <element name="header" type="blue_DBRowDescriptor" />
+		  <raw name="header" />
 		</IDEntry>
 		<IDEntry key="columns">
 		  <strlist name="columns" />

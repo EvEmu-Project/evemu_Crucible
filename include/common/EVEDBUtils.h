@@ -26,17 +26,15 @@
 #ifndef __EVEDBUTILS_H_INCL__
 #define __EVEDBUTILS_H_INCL__
 
-#include "common.h"
-#include "packet_types.h"
-
 #include <map>
 #include <string>
 #include <vector>
 
-class blue_DBRowDescriptor;
+#include "common.h"
+#include "packet_types.h"
+#include "dbcore.h"
 
-class DBQueryResult;
-class DBResultRow;
+class blue_DBRowDescriptor;
 
 class PyRep;
 class PyRepObject;
@@ -54,7 +52,7 @@ class PyRepPackedRow;
 } StringContentsType;
 StringContentsType ClassifyStringContents(const char *str);*/
 
-PyRep *DBColumnToPyRep(DBResultRow &row, uint32 column_index);
+PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index);
 
 PyRepObject *DBResultToRowset(DBQueryResult &result);
 PyRepObject *DBResultToIndexRowset(DBQueryResult &result, const char *key);
@@ -66,57 +64,28 @@ PyRepDict *DBResultToIntIntDict(DBQueryResult &result);
 void DBResultToIntIntDict(DBQueryResult &result, std::map<uint32, uint32> &into);
 void DBResultToIntIntlistDict(DBQueryResult &result, std::map<uint32, PyRep *> &into);
 
-//new packed stuff:
-class DBPackedColumnList {
-public:
-	enum Order {
-		orderByIndex,
-		orderByType
-	};
-	struct ColumnInfo {
-		uint32 index;
-		std::string name;
-		DBTYPE type;
-	};
-	typedef std::vector<ColumnInfo>::iterator iterator;
-	typedef std::vector<ColumnInfo>::const_iterator const_iterator;
+/**
+ * This routine returns DBTYPE based on DBQueryResult::ColType.
+ *
+ * @param[in] colType DBQueryResult::ColType.
+ * @return DBTYPE.
+ */
+DBTYPE GetPackedColumnType(DBQueryResult::ColType colType);
 
-	//default ordering is by index
-	DBPackedColumnList(const DBQueryResult &res);
-	DBPackedColumnList(const DBResultRow &row);
-	DBPackedColumnList(const blue_DBRowDescriptor &desc);
-
-	void Encode(blue_DBRowDescriptor &into) const;
-	PyRep *Encode() const;
-
-	Order order() const { return(m_order); }
-	void OrderBy(Order o);
-
-	iterator begin() { return(m_columnList.begin()); }
-	const_iterator begin() const { return(m_columnList.begin()); }
-	iterator end() { return(m_columnList.end()); }
-	const_iterator end() const { return(m_columnList.end()); }
-
-	ColumnInfo &at(size_t index) { return(m_columnList.at(index)); }
-	const ColumnInfo &at(size_t index) const { return(m_columnList.at(index)); }
-	ColumnInfo &operator[](size_t index) { return(m_columnList[index]); }
-	const ColumnInfo &operator[](size_t index) const { return(m_columnList[index]); }
-
-	size_t Count() const { return(m_columnList.size()); }
-	size_t CountBufferTypes() const;
-	size_t CountPyRepTypes() const;
-
-protected:
-	std::vector<ColumnInfo> m_columnList;
-	Order m_order;
-};
-
-//this routine is used to order the fields in a packed row.
-uint8 GetTypeSize(DBTYPE t);
-//returns true if given DBTYPE goes encoded to buffer
-bool IsBufferType(DBTYPE t);
-//returns true if given DBTYPE goes encoded as PyRep following buffer
-bool IsPyRepType(DBTYPE t);
+/**
+ * This routine builds blue_DBRowDescriptor from DBQueryResult.
+ *
+ * @param[in] res DBQueryResult to build from.
+ * @return blue_DBRowDescriptor.
+ */
+PyRepObjectEx *DBResultToRowDescriptor(const DBQueryResult &res);
+/**
+ * This routine builds blue_DBRowDescriptor from DBResultRow.
+ *
+ * @param[in] row DBResultRow to build from.
+ * @return blue_DBRowDescriptor.
+ */
+PyRepObjectEx *DBRowToRowDescriptor(const DBResultRow &row);
 
 PyRepList *DBResultToPackedRowList(DBQueryResult &result);
 PyRepTuple *DBResultToPackedRowListTuple(DBQueryResult &result);

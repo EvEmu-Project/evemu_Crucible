@@ -99,8 +99,12 @@ PyRepObjectEx *ItemContainer::List(EVEItemFlags _flag, uint32 forOwner) const
 {
 	dbutil_CRowset rowset;
 
+	blue_DBRowDescriptor desc;
+
 	ItemRow_Columns cols;
-	rowset.header.columns = cols.FastEncode();
+	desc.columns = cols.FastEncode();
+
+	rowset.header = desc.FastEncode();
 
 	List( rowset, _flag, forOwner );
 	return rowset.FastEncode();

@@ -101,7 +101,7 @@ PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRe
 		pyArgs = d;
 	}
 
-	util_ObjectEx1 no;
+	util_ObjectEx no;
 	no.type = "ccp_exceptions.UserError";
 
 	no.args = new PyRepTuple(2);
@@ -127,3 +127,34 @@ PyRep *MakeCustomError(const char *fmt, ...) {
 
 	return(MakeUserError("CustomError", args));
 }
+
+uint8 GetTypeSize(DBTYPE t)
+{
+	switch(t) {
+		case DBTYPE_I8:
+		case DBTYPE_UI8:
+		case DBTYPE_R8:
+		case DBTYPE_CY:
+		case DBTYPE_FILETIME:
+			return 64;
+		case DBTYPE_I4:
+		case DBTYPE_UI4:
+		case DBTYPE_R4:
+			return 32;
+		case DBTYPE_I2:
+		case DBTYPE_UI2:
+			return 16;
+		case DBTYPE_I1:
+		case DBTYPE_UI1:
+			return 8;
+		case DBTYPE_BOOL:
+			return 1;
+		case DBTYPE_BYTES:
+		case DBTYPE_STR:
+		case DBTYPE_WSTR:
+			return 0;
+	}
+	return 0;
+}
+
+

@@ -364,34 +364,24 @@ PyRepPackedRow *InventoryItem::GetItemRow() const
 	ItemRow_Columns cols;
 	desc.columns = cols.FastEncode();
 
-	PyRepPackedRow *row = new PyRepPackedRow( desc.FastEncode(), true );
+	PyRepPackedRow *row = new PyRepPackedRow( *desc.FastEncode(), true );
 	GetItemRow( *row );
 	return row;
 }
 
 void InventoryItem::GetItemRow(PyRepPackedRow &into) const
 {
-	// Content must be stacked by size:
-	// 4-byte values:
-	into.PushUInt32( itemID() );
-	into.PushUInt32( ownerID() );
-	into.PushUInt32( locationID() );
-	into.PushUInt32( quantity() );
-
-	// 2-byte values:
-	into.PushUInt16( typeID() );
-	into.PushUInt16( groupID() );
-
-	// 1-byte values:
-	into.PushUInt8( flag() );
-	into.PushUInt8( categoryID() );
-
-	// Bool values
-	into.PushUInt8( (contraband() << 0)
-	                | (singleton() << 1) );
-
-	// Additional PyReps:
-	into.PushPyRep( new PyRepString( customInfo() ) );
+	into.SetField( "itemID",        new PyRepInteger( itemID() ) );
+	into.SetField( "typeID",        new PyRepInteger( typeID() ) );
+	into.SetField( "locationID",    new PyRepInteger( locationID() ) );
+	into.SetField( "ownerID",       new PyRepInteger( ownerID() ) );
+	into.SetField( "flag",          new PyRepInteger( flag() ) );
+	into.SetField( "contraband",    new PyRepBoolean( contraband() ) );
+	into.SetField( "singleton",     new PyRepBoolean( singleton() ) );
+	into.SetField( "quantity",      new PyRepInteger( quantity() ) );
+	into.SetField( "groupID",       new PyRepInteger( groupID() ) );
+	into.SetField( "categoryID",    new PyRepInteger( categoryID() ) );
+	into.SetField( "customInfo",    new PyRepString( customInfo() ) );
 }
 
 bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {

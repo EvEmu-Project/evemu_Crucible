@@ -23,13 +23,15 @@
 	Author:		Zhur
 */
 
+#include <float.h>
+
 #include "common.h"
 #include "PyRep.h"
 #include "PyVisitor.h"
 #include "packet_functions.h"
 #include "misc.h"
-#include "EVEUnmarshal.h"
 #include "EVEMarshal.h"
+#include "EVEUnmarshal.h"
 #include "EVEMarshalOpcodes.h"
 
 /************************************************************************/
@@ -771,6 +773,10 @@ void PyRepObject::visit(PyVisitor *v) const {
 	v->VisitObject(this);
 }
 
+void PyRepPackedRow::visit(PyVisitor *v) const {
+	v->VisitPackedRow(this);
+}
+
 void PyRepSubStruct::visit(PyVisitor *v) const {
 	v->VisitSubStruct(this);
 }
@@ -787,97 +793,235 @@ void PyRepChecksumedStream::visit(PyVisitor *v) const {
 
 
 
-PyRepPackedRow::PyRepPackedRow(const PyRep *header, bool own_header, const uint8 *data, const uint32 len)
-: PyRep(PyRep::PyTypePackedRow),
-  ownsHeader(own_header),
-  header(header)
+PyRepPackedRow::PyRepPackedRow(const PyRep &header, bool header_owner)
+: PyRep( PyRep::PyTypePackedRow ),
+  mHeader( header ),
+  mHeaderOwner( header_owner ),
+  mColumnInfo( NULL )
 {
-	if(data != NULL)
-		Push(data, len);
+	assert( GetHeader().IsObjectEx() );
+	PyRep *r = GetHeader().AsObjectEx().header;
+
+	assert( r != NULL && r->IsTuple() );
+	PyRepTuple *t = &r->AsTuple();
+
+	assert( t->items.size() == 2 );
+
+	r = t->items[ 0 ];
+	assert( r->IsString() );
+	assert( r->AsString().value == "blue.DBRowDescriptor" );
+
+	r = t->items[ 1 ];
+	assert( r->IsTuple() );
+	t = &r->AsTuple();
+
+	assert( t->items.size() == 1 );
+	r = t->items[ 0 ];
+
+	assert( r->IsTuple() );
+	t = &r->AsTuple();
+
+	mColumnInfo = t;
+
+	mFields.resize( mColumnInfo->items.size() );
 }
 
 PyRepPackedRow::~PyRepPackedRow()
 {
-	if(ownsHeader == true && header != NULL)
-		delete header;
+	if( IsHeaderOwner() )
+		delete &mHeader;
 
-	rep_list::iterator rcur, rend;
-	rcur = begin();
-	rend = end();
-	for(; rcur != rend; rcur++)
-		delete *rcur;
+	std::vector<PyRep *>::iterator cur, end;
+	cur = mFields.begin();
+	end = mFields.end();
+	for(; cur != end; cur++)
+		SafeDelete( *cur );
 }
 
 
 void PyRepPackedRow::Dump(FILE *into, const char *pfx) const
 {
-	fprintf(into, "%sPacked Row of length %lu (owned header? %s)\n", pfx, m_buffer.size(), ownsHeader?"yes":"no");
-	if(!m_buffer.empty())
+	fprintf( into, "%sPacked Row\n", pfx );
+	fprintf( into, "%s column_count=%u header_owner=%s\n", pfx, ColumnCount(), IsHeaderOwner() ? "yes" : "no" );
+
+	std::vector<PyRep *>::const_iterator cur, end;
+	cur = mFields.begin();
+	end = mFields.end();
+	char buf[32];
+	for(uint32 i = 0; cur != end; cur++, i++)
 	{
-		string p(pfx);
-		p += "  ";
-		pfxPreviewHexDump(p.c_str(), into, &m_buffer[0], (uint32)m_buffer.size());
-	}
+		PyRep *v = *cur;
 
-	if(!m_reps.empty()) {
-		std::string n(pfx);
-		n += "  Reps: ";
-		rep_list::const_iterator rcur, rend;
-		rcur = begin();
-		rend = end();
-		for(; rcur != rend; rcur++)
-		{
-			(*rcur)->Dump(into, n.c_str());
-		}
+		std::string n( pfx );
+		snprintf( buf, 32, "  [%u] %s: ", i, GetColumnName( i ).c_str() );
+		n += buf;
+
+		if( v == NULL )
+			fprintf( into, "%sNULL\n", n.c_str() );
+		else
+			v->Dump( into, n.c_str() );
 	}
 }
 
-void PyRepPackedRow::Dump(LogType ltype, const char *pfx) const {
-	_log(ltype, "%sPacked Row of length %lu (owned header? %s)\n", pfx, m_buffer.size(), ownsHeader?"yes":"no");
-	if(!m_buffer.empty()) {
-		string p(pfx);
-		p += "  ";
-		pfxPreviewHexDump(p.c_str(), ltype, &m_buffer[0], (uint32)m_buffer.size());
-	}
-	if(!m_reps.empty()) {
-		std::string n(pfx);
-		n += "  Reps: ";
-		rep_list::const_iterator rcur, rend;
-		rcur = begin();
-		rend = end();
-		for(; rcur != rend; rcur++)
-			(*rcur)->Dump(ltype, n.c_str());
+void PyRepPackedRow::Dump(LogType ltype, const char *pfx) const
+{
+	_log( ltype, "%sPacked Row", pfx );
+	_log( ltype, "%s column_count=%u header_owner=%s", pfx, ColumnCount(), IsHeaderOwner() ? "yes" : "no" );
+
+	std::vector<PyRep *>::const_iterator cur, end;
+	cur = mFields.begin();
+	end = mFields.end();
+	char buf[32];
+	for(uint32 i = 0; cur != end; cur++, i++)
+	{
+		PyRep *v = *cur;
+
+		std::string n( pfx );
+		snprintf( buf, 32, "  [%u] %s: ", i, GetColumnName( i ).c_str() );
+		n += buf;
+
+		if( v == NULL )
+			_log( ltype, "%sNULL", n.c_str() );
+		else
+			v->Dump( ltype, n.c_str() );
 	}
 }
 
-PyRepPackedRow *PyRepPackedRow::TypedClone() const {
-	PyRepPackedRow *res = new PyRepPackedRow(
-		ownsHeader ? header->Clone() : header,
-		ownsHeader);
-	res->CloneFrom(this);
+PyRepPackedRow *PyRepPackedRow::TypedClone() const
+{
+	PyRepPackedRow *res = new PyRepPackedRow( IsHeaderOwner() ? *GetHeader().Clone() : GetHeader(),
+	                                          IsHeaderOwner() );
+	res->CloneFrom( this );
 	return res;
 }
 
-void PyRepPackedRow::CloneFrom(const PyRepPackedRow *from) {
-	Push(from->buffer(), from->bufferSize());
+void PyRepPackedRow::CloneFrom(const PyRepPackedRow *from)
+{
+	// clone fields
+	uint32 cc = ColumnCount();
+	for(uint32 i = 0; i < cc; i++)
+	{
+		PyRep *v = from->GetField( i );
+		if( v != NULL )
+			v = v->Clone();
 
-	rep_list::const_iterator rcur, rend;
-	rcur = from->begin();
-	rend = from->end();
-	for(; rcur != rend; rcur++)
-		PushPyRep((*rcur)->Clone());
+		SetField( i, v );
+	}
 }
 
-void PyRepPackedRow::visit(PyVisitor *v) const {
-	v->VisitPackedRow(this);
+const std::string &PyRepPackedRow::GetColumnName(uint32 index) const
+{
+	assert( mColumnInfo->items.size() > index );
+	PyRep *r = mColumnInfo->items[ index ];
+
+	assert( r->IsTuple() );
+	PyRepTuple &t = r->AsTuple();
+
+	assert( t.items.size() == 2 );
+	r = t.items[ 0 ];
+
+	assert( r->IsString() );
+	return r->AsString().value;
 }
 
-//this could be done a lot better... will not work on big endian systems.
-void PyRepPackedRow::Push(const void *data, uint32 len) {
-	for(const uint8 *_data = (const uint8 *)data; len > 0; _data++, len--)
-		m_buffer.push_back(*_data);
+uint32 PyRepPackedRow::GetColumnIndex(const char *name) const
+{
+	uint32 cc = ColumnCount();
+	for(uint32 i = 0; i < cc; i++)
+	{
+		const std::string &colName = GetColumnName( i );
+
+		if( colName == name )
+			return i;
+	}
+
+	return cc;
 }
 
+DBTYPE PyRepPackedRow::GetColumnType(uint32 index) const
+{
+	assert( mColumnInfo->items.size() > index );
+	PyRep *r = mColumnInfo->items[ index ];
+
+	assert( r->IsTuple() );
+	PyRepTuple *t = &r->AsTuple();
+
+	assert( t->items.size() == 2 );
+	r = t->items[ 1 ];
+
+	assert( r->IsInteger() );
+	return static_cast<DBTYPE>( r->AsInteger().value );
+}
+
+bool PyRepPackedRow::SetField(uint32 index, PyRep *value)
+{
+	if( index >= ColumnCount() )
+		return false;
+
+	// verify type
+	if( !_Verify( GetColumnType( index ), *value ) )
+	{
+		SafeDelete( value );
+		return false;
+	}
+
+	PyRep *&v = mFields.at( index );
+	SafeDelete( v );
+	v = value;
+
+	return true;
+}
+
+bool PyRepPackedRow::SetField(const char *colName, PyRep *value)
+{
+	uint32 index = GetColumnIndex( colName );
+	if( index >= ColumnCount() )
+		return false;
+	return SetField( index, value );
+}
+
+bool PyRepPackedRow::_Verify(DBTYPE type, const PyRep &rep)
+{
+	switch( type )
+	{
+		case DBTYPE_UI8:
+		case DBTYPE_CY:
+		case DBTYPE_FILETIME:
+			return rep.IsInteger() && rep.AsInteger().value >= 0;
+		case DBTYPE_UI4:
+			return rep.IsInteger() && rep.AsInteger().value >= 0 && rep.AsInteger().value <= 0xFFFFFFFF;
+		case DBTYPE_UI2:
+			return rep.IsInteger() && rep.AsInteger().value >= 0 && rep.AsInteger().value <= 0xFFFF;
+		case DBTYPE_UI1:
+			return rep.IsInteger() && rep.AsInteger().value >= 0 && rep.AsInteger().value <= 0xFF;
+
+		case DBTYPE_I8:
+			return rep.IsInteger();
+		case DBTYPE_I4:
+			return rep.IsInteger() && rep.AsInteger().value >= -0x7FFFFFFF && rep.AsInteger().value <= 0x7FFFFFFF;
+		case DBTYPE_I2:
+			return rep.IsInteger() && rep.AsInteger().value >= -0x7FFF && rep.AsInteger().value <= 0x7FFF;
+		case DBTYPE_I1:
+			return rep.IsInteger() && rep.AsInteger().value >= -0x7F && rep.AsInteger().value <= 0x7F;
+
+		case DBTYPE_R8:
+			return rep.IsReal();
+		case DBTYPE_R4:
+			return rep.IsReal() && rep.AsReal().value >= FLT_MIN && rep.AsReal().value <= FLT_MAX;
+
+		case DBTYPE_BOOL:
+			return rep.IsBool();
+
+		case DBTYPE_BYTES:
+			return rep.IsBuffer();
+
+		case DBTYPE_STR:
+		case DBTYPE_WSTR:
+			return rep.IsString();
+	}
+
+	return false;
+}
 
 
 

@@ -23,18 +23,21 @@
 	Authors:	BloodyRabbit, Captnoord, Zhur
 */
 
-#include "common.h"
-#include "PyRep.h"
-#include "packet_dump.h"
-#include "packet_functions.h"
-#include "EVEMarshalOpcodes.h"
-#include "EVEZeroCompress.h"
-#include "PyVisitor.h"
-#include "logsys.h"
 #include <stdio.h>
 #include <string>
 #include <zlib.h>
 #include <assert.h>
+
+#include "common.h"
+#include "packet_dump.h"
+#include "packet_functions.h"
+#include "logsys.h"
+
+#include "PyRep.h"
+#include "PyVisitor.h"
+#include "EVEMarshalOpcodes.h"
+#include "EVEUtils.h"
+#include "EVEZeroCompress.h"
 
 static const uint32 EVEDeflationBytesLimit = 10000;	//every packet larger than this is deflated
 
@@ -162,38 +165,128 @@ public:
 	  */
 	virtual void VisitPackedRow(const PyRepPackedRow *rep)
 	{
-		PutByte(Op_PyPackedRow);
+		PutByte( Op_PyPackedRow );
 		
-		rep->header->visit(this);
-		
+		rep->GetHeader().visit( this );
+
+		std::vector<uint8> unpacked;
+		unpacked.reserve( 64 );
+
+		// Create size map, sorted from the greatest to the smallest value:
+		std::multimap<uint8, uint32, std::greater<uint8>> sizeMap;
+		uint32 cc = rep->ColumnCount();
+		for(uint32 i = 0; i < cc; i++)
+			sizeMap.insert( std::make_pair( GetTypeSize( rep->GetColumnType( i ) ), i ) );
+
+		std::multimap<uint8, uint32, std::greater<uint8>>::iterator cur, end;
+		cur = sizeMap.begin();
+		end = sizeMap.lower_bound( 1 );
+		for(; cur != end; cur++)
+		{
+			PyRep *r = rep->GetField( cur->second );
+			uint8 len = (cur->first >> 3);
+
+			size_t off = unpacked.size();
+			unpacked.resize( off + len );
+
+			if( r != NULL )
+			{
+				switch( rep->GetColumnType( cur->second ) )
+				{
+					case DBTYPE_I8:
+					case DBTYPE_UI8:
+					case DBTYPE_I4:
+					case DBTYPE_UI4:
+					case DBTYPE_I2:
+					case DBTYPE_UI2:
+					case DBTYPE_I1:
+					case DBTYPE_UI1:
+					case DBTYPE_CY:
+					case DBTYPE_FILETIME:
+					{
+						if( r->IsInteger() )
+							memcpy( &unpacked[ off ], &r->AsInteger().value, len );
+						else
+							r = NULL;
+					} break;
+
+					case DBTYPE_R8:
+					{
+						if( r->IsReal() )
+							memcpy( &unpacked[ off ], &r->AsReal().value, len );
+						else
+							r = NULL;
+					} break;
+
+					case DBTYPE_R4:
+					{
+						if( r->IsReal() )
+						{
+							// cast down to float first
+							float f = r->AsReal().value;
+
+							memcpy( &unpacked[ off ], &f, len );
+						}
+						else
+							r = NULL;
+					} break;
+
+					default:
+					{
+						r = NULL;
+					} break;
+				}
+			}
+
+			if( r == NULL )
+				memset( &unpacked[ off ], 0, len );
+		}
+
+		cur = sizeMap.lower_bound( 1 );
+		end = sizeMap.lower_bound( 0 );
+		for(uint8 off = 0; cur != end; cur++)
+		{
+			if( off > 7 )
+				off = 0;
+			if( off == 0 )
+				unpacked.push_back( 0 );
+
+			PyRep *r = rep->GetField( cur->second );
+
+			if( r != NULL )
+				if( r-> IsBool() )
+					unpacked.back() |= (r->AsBool().value << off);
+
+			off++;
+		}
+
 		//pack the bytes with the zero compression algorithm.
 		std::vector<uint8> packed;
-		PackZeroCompressed(rep->buffer(), rep->bufferSize(), packed);
-		
-		uint32 len = (uint32)packed.size();
+		PackZeroCompressed( &unpacked[ 0 ], unpacked.size(), packed );
+
+		uint32 len = packed.size();
 		if(len >= 0xFF)
 		{
 			PutByte(0xFF);
 			PutUint32(len);
 		}
 		else
-		{
 			PutByte(len);
-		}
 
-		if(!packed.empty())
-		{
+		if( !packed.empty() )
 			//out goes the data...
-			PutBytes(&packed[0], len);
-		}
+			PutBytes( &packed[0], len );
 
-		//PyReps follow packed data
-		PyRepPackedRow::rep_list::const_iterator cur, end;
-		cur = rep->begin();
-		end = rep->end();
+		// Append fields that are not packed:
+		cur = sizeMap.lower_bound( 0 );
+		end = sizeMap.end();
 		for(; cur != end; cur++)
 		{
-			(*cur)->visit(this);
+			PyRep *r = rep->GetField( cur->second );
+			if( r == NULL )
+				r = new PyRepNone;
+
+			r->visit( this );
 		}
 	}
 	
@@ -380,7 +473,7 @@ public:
 		assert(false && "MarshalStream on the server size should never send checksummed objects");
 		PutByte(Op_PyChecksumedStream);
 		uint32 sum = 0;
-		PutUint32(&sum);
+		PutUint32(sum);
 		PyVisitor::VisitChecksumedStream(rep);
 	}
 	
@@ -453,7 +546,7 @@ public:
 		{
 			PutByte(Op_PyTuple);
 			PutByte(0xFF);
-			PutUint32(&size);
+			PutUint32(size);
 			PyVisitor::VisitTuple(rep);
 			return;
 		}
@@ -531,25 +624,14 @@ public:
 	}
 	ASCENT_INLINE void PutBytes(const void *v, uint32 len)
 	{
-		CheckSize(len);
-        memcpy(&mBuffer[mWriteIndex], v, len);
-        mWriteIndex+=len;
+		CheckSize( len );
+        memcpy( &mBuffer[mWriteIndex], v, len );
+        mWriteIndex += len;
 	}
 
+	/** adds a double do the data stream
+	*/
 	ASCENT_INLINE void PutDouble(const double& value)
-	{
-		CheckSize(8);
-		mBuffer[mWriteIndex] = (((uint8*)&value)[0]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[1]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[2]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[3]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[4]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[5]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[6]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[7]); mWriteIndex++;
-	}
-
-	ASCENT_INLINE void PutUint64(const uint64& value)
 	{
 		CheckSize(8);
 		mBuffer[mWriteIndex] = (((uint8*)&value)[0]); mWriteIndex++;
@@ -564,7 +646,7 @@ public:
 
 	/**	adds a uint64 do the data stream
 	*/
-	ASCENT_INLINE void PutUint64(uint64& value)
+	ASCENT_INLINE void PutUint64(const uint64& value)
 	{
 		CheckSize(8);
 		mBuffer[mWriteIndex] = (((uint8*)&value)[0]); mWriteIndex++;
@@ -579,7 +661,7 @@ public:
 
 	/**	adds a uint32 do the data stream
 	*/
-	ASCENT_INLINE void PutUint32(uint32 value)
+	ASCENT_INLINE void PutUint32(const uint32 value)
 	{
 		CheckSize(4);
 		mBuffer[mWriteIndex] = (((uint8*)&value)[0]); mWriteIndex++;
@@ -590,7 +672,7 @@ public:
 
 	/**	adds a uint16 do the data stream
 	  */
-	ASCENT_INLINE void PutUint16(uint16 value)
+	ASCENT_INLINE void PutUint16(const uint16 value)
 	{
 		CheckSize(2);
 		mBuffer[mWriteIndex] = (((uint8*)&value)[0]); mWriteIndex++;

@@ -23,17 +23,21 @@
 	Author:		BloodyRabbit, Captnoord, Zhur
 */
 
+#include <stdio.h>
+#include <string>
+
 #include "common.h"
-#include "PyRep.h"
 #include "logsys.h"
 #include "../common/packet_dump.h"
 #include "../common/packet_functions.h"
 #include "../common/misc.h"
-#include "EVEMarshalOpcodes.h"
-#include "EVEZeroCompress.h"
+
+#include "PyRep.h"
 #include "MarshalReferenceMap.h"
-#include <stdio.h>
-#include <string>
+
+#include "EVEMarshalOpcodes.h"
+#include "EVEUtils.h"
+#include "EVEZeroCompress.h"
 
 using std::string;
 
@@ -78,7 +82,7 @@ PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len)
 			{
 				_log(NET__PRES_ERROR, "Failed to inflate special packet!");
 				_log(NET__PRES_DEBUG, "Raw Hex Dump:");
-				_hex(NET__PRES_DEBUG, inflated_buffer, body_len);
+				_hex(NET__PRES_DEBUG, orig_body, orig_body_len);
 				return NULL;
 			//} else {
 			//	_log(NET__UNMARSHAL_ERROR, "Special Inflated packet of len %d to length %d\n", orig_body_len, body_len);
@@ -92,7 +96,7 @@ PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len)
 			{
 				_log(NET__PRES_ERROR, "Failed to inflate packet!");
 				_log(NET__PRES_DEBUG, "Raw Hex Dump:");
-				_hex(NET__PRES_DEBUG, inflated_buffer, body_len);
+				_hex(NET__PRES_DEBUG, orig_body, orig_body_len);
 				return NULL;
 			//} else {
 			//	body = buf;
@@ -1035,61 +1039,21 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
          */
 		_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyPackedRow", pfx, opcode);
 			
-#ifdef PACKED_ROW_HEADER_HACK
-		/*
-         * These first two bytes are really an entire object
-         * in the form of an 0x1B (Op_PySavedStreamElement)
-         * and its associated index. This index points back to
-         * the blue.DBRowDescriptor for this DBRow...
-         *
-        */
-		if(len < 1) {
-			_log(NET__UNMARSHAL_ERROR, "Not enough data for packed u1\n");
-			break;
-		}
-		uint8 u1 = *packet;
-		packet++;
-		len--;
-		len_used++;
-		if(u1 != Op_PySavedStreamElement) {
-			_log(NET__UNMARSHAL_ERROR, "Unexpected u1 opcode (0x%x) in Op_PyPacked. This should have been a saved stream element", u1);
-			break;
-		}
-		
-		if(len < 1) {
-			_log(NET__UNMARSHAL_ERROR, "Not enough data for packed type");
-			break;
-		}
-		uint8 header_element = *packet;
-		packet++;
-		len--;
-		len_used++;
-
-        /* end "this should be a recursive unmarshal" hack */
-#else
-        /* screw efficiency for now, just unmarshal the damned thing. */
-		
 		std::string n(pfx);
 		n += "  Header ";
 		PyRep *header_element;
 		uint32 header_len = UnmarshalData(state, packet, len, header_element, n.c_str());
-		if(header_element == NULL) {
+		if(header_element == NULL)
 			break;
-		}
-		packet += header_len;
-		len -= header_len;
-		len_used += header_len;
-#endif
-		PyRepPackedRow *row = new PyRepPackedRow(header_element, true);
+		IncreaseIndex( header_len );
+
+		PyRepPackedRow *row = new PyRepPackedRow(*header_element, true);
 
 		if(len < 1) {
 			_log(NET__UNMARSHAL_ERROR, "Not enough data for packed length (missing length and data)\n");
 			break;
 		}
-		uint32 data_len = *packet;
-		packet++;
-		len--;
-		len_used++;
+		uint32 data_len = Getuint8();
 
 		//assumed, not actually observed:
 		if(data_len == 0xFF) {
@@ -1098,10 +1062,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 				_log(NET__UNMARSHAL_ERROR, "Not enough data for packed length 4-byte element");
 				break;
 			}
-			data_len = *((const uint32 *) packet);
-			packet += sizeof(uint32);
-			len -= sizeof(uint32);
-			len_used += sizeof(uint32);
+			data_len = Getuint32();
 		}
 		
 		if(len < data_len) {
@@ -1112,26 +1073,86 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		_log(NET__UNMARSHAL_BUFHEX, "%s  Packed Contents: len=%u", pfx, data_len);
 		phex(NET__UNMARSHAL_BUFHEX, packet, data_len);
 
-		//TODO: we can theoretically calculate the unpacked length
-        //based on the dbrowdescriptor for this packed data... and
-        //we need this information to determine how many zeros to fill
-        //the end of the buffer with, but im leaving that to somebody
-        //else at a higher layer which understands the dbrowdesc.
+		if( data_len > len )
+		{
+			_log( NET__UNMARSHAL_ERROR, "Not enough data to unmarshal packed row; need %u, got %u.", data_len, len );
+			break;
+		}
+
 		std::vector<uint8> unpacked;
-		UnpackZeroCompressed(packet, data_len, unpacked);
-		packet += data_len;
-		len -= data_len;
-		len_used += data_len;
-		
-		_log(NET__UNMARSHAL_TRACE, "%s  Unpacked Contents: len=%lu", pfx, unpacked.size());
-		phex(NET__UNMARSHAL_TRACE, &unpacked[0], unpacked.size());
-		
-#ifdef PACKED_ROW_HEADER_HACK
-		//do something...
-#else
-		row->Push(&unpacked[0], (uint32)unpacked.size());
-#endif
-		//TODO: unmarshal following PyReps as well
+		UnpackZeroCompressed( packet, data_len, unpacked );
+		IncreaseIndex( data_len );
+
+		// Create size map, sorted from the greatest to the smallest value
+		std::multimap<uint8, uint32, std::greater<uint8>> sizeMap;
+		uint32 cc = row->ColumnCount();
+		for(uint32 i = 0; i < cc; i++)
+			sizeMap.insert( std::make_pair( GetTypeSize( row->GetColumnType( i ) ), i ) );
+
+		// current offset in unpacked:
+		uint8 off = 0;
+
+		std::multimap<uint8, uint32, std::greater<uint8>>::iterator cur, end;
+		cur = sizeMap.begin();
+		end = sizeMap.lower_bound( 1 );
+		for(; cur != end; cur++)
+		{
+			uint64 v = (1LL << cur->first) - 1;
+			v &= *reinterpret_cast<uint64 *>( &unpacked[ off ] );
+
+			off += (cur->first >> 3);
+
+			switch( row->GetColumnType( cur->second ) )
+			{
+				case DBTYPE_I8:
+				case DBTYPE_UI8:
+				case DBTYPE_I4:
+				case DBTYPE_UI4:
+				case DBTYPE_I2:
+				case DBTYPE_UI2:
+				case DBTYPE_I1:
+				case DBTYPE_UI1:
+				case DBTYPE_CY:
+				case DBTYPE_FILETIME:
+					row->SetField( cur->second, new PyRepInteger( *reinterpret_cast<int64 *>( &v ) ) );
+					break;
+
+				case DBTYPE_R8:
+					row->SetField( cur->second, new PyRepReal( *reinterpret_cast<double *>( &v ) ) );
+					break;
+
+				case DBTYPE_R4:
+					row->SetField( cur->second, new PyRepReal( *reinterpret_cast<float *>( &v ) ) );
+					break;
+			}
+		}
+
+		cur = sizeMap.lower_bound( 1 );
+		end = sizeMap.lower_bound( 0 );
+		for(uint8 bit_off = 0; cur != end; cur++)
+		{
+			row->SetField( cur->second, new PyRepBoolean( ( unpacked[ off ] >> bit_off) & 0x1 ) );
+
+			if( ++bit_off > 7 )
+			{
+				off++;
+				bit_off = 0;
+			}
+		}
+
+		cur = sizeMap.lower_bound( 0 );
+		end = sizeMap.end();
+		for(; cur != end; cur++)
+		{
+			PyRep *el;
+			uint32 el_len = UnmarshalData( state, packet, len, el, n.c_str() );
+			if( el == NULL )
+				break;
+			IncreaseIndex( el_len );
+
+			row->SetField( cur->second, el );
+		}
+
 		res = row;
 		break; }
 	
@@ -1404,7 +1425,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		len_used += data_length;
 
 		if(data_length <= sizeof(uint64)) {
-			uint64 intval = (1LL << (8 * data_length)) - 1;
+			uint64 intval = (1LL << (data_length << 3)) - 1;
 			intval &= *((const uint64 *) packet);
 
 			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyVarInteger(len=%d) = " I64u, pfx, opcode, data_length, intval);

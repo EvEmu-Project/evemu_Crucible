@@ -204,85 +204,26 @@ void PyDumpVisitor::VisitObjectExDictElement(const PyRepObjectEx *rep, uint32 in
 }
 
 void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {
-	_print("Packed data of length %d", rep->bufferSize());
-	
-	std::string m(top());
-	m += "  Header: ";
-	push(m.c_str());
-	rep->header->visit(this);
+	const char *pfx = top();
+
+	uint32 cc = rep->ColumnCount();
+	_print( "%sPacked Row\n", pfx );
+	_print( "%s  column_count=%u header_owner=%s\n", pfx, cc, rep->IsHeaderOwner() ? "yes" : "no" );
+
+	char buf[32];
+	for(uint32 i = 0; i < cc; i++)
+	{
+		PyRep *field = rep->GetField( i );
+
+		std::string n( pfx );
+		snprintf( buf, 32, "  [%u] %s: ", i, rep->GetColumnName( i ).c_str() );
+		n += buf;
+
+		push( n.c_str() );
+		field->visit( this );
+	}
+
 	pop();
-
-	if(rep->bufferSize() > 0) {
-		_hexDump(rep->buffer(), rep->bufferSize());
-	}
-
-	switch(rep->bufferSize()) {
-	case 0x2b: {
-		const uint8 *buf = rep->buffer();
-		_print("  Len 0x2b decode:");
-		_print("     u0: 0x%x", *buf); buf += sizeof(uint8);
-		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
-		_print("     issued: " I64u , *((const uint64 *) buf) ); buf += sizeof(uint64);
-		_print("     orderID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     u5: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     u7: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     stationID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     regionID: %u", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
-		_print("     u10: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     solarSystemID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     u12: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     typeID: %u", *((const uint16 *) buf) ); buf += sizeof(uint16);
-		_print("     jumps: %u (0x%x)", *((const uint16 *) buf), *((const uint16 *) buf) ); buf += sizeof(uint16);
-		_print("     duration?: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-	} break;
-	case 0x2c: {
-		const uint8 *buf = rep->buffer();
-		_print("  Len 0x2c decode:");
-		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
-		_print("     issued: " I64u , *((const uint64 *) buf) ); buf += sizeof(uint64);
-		_print("     orderID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     u5: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     u7: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     stationID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     regionID: %u", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
-		_print("     u10: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     solarSystemID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     u12: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     typeID: %u", *((const uint16 *) buf) ); buf += sizeof(uint16);
-		_print("     jumps: %u (0x%x)", *((const uint16 *) buf), *((const uint16 *) buf) ); buf += sizeof(uint16);
-		_print("     duration?: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     u16: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     u17: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-	} break;
-	case 0x2d: {
-		const uint8 *buf = rep->buffer();
-		_print("  Len 0x2d decode:");
-		_print("     u0: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     volRemaining: %.3f", *((const double *) buf) ); buf += sizeof(double);
-		_print("     issued: " I64u , *((const uint64 *) buf) ); buf += sizeof(uint64);
-		_print("     orderID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     u5: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     ???: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     u7: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     stationID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     regionID: %u", (*((const uint32 *) buf))&0xFFFFFF ); buf += sizeof(uint32)-sizeof(uint8);
-		_print("     u10: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     solarSystemID: %u", *((const uint32 *) buf) ); buf += sizeof(uint32);
-		_print("     u12: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     typeID: %u", *((const uint16 *) buf) ); buf += sizeof(uint16);
-		_print("     jumps: %u (0x%x)", *((const uint16 *) buf), *((const uint16 *) buf) ); buf += sizeof(uint16);
-		_print("     duration?: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     u16: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-		_print("     u17: %d", *((const uint8 *) buf) ); buf += sizeof(uint8);
-	} break;
-	default:
-		_print("  Unknown packed type");
-	}
 }
 
 void PyDumpVisitor::VisitString(const PyRepString *rep) {
