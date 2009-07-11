@@ -115,7 +115,7 @@ public:
 	double              security() const { return m_security; }
 	uint32              factionID() const { return m_factionID; }
 	double              radius() const { return m_radius; }
-	const Type &        sunType() const { return m_sunType; }
+	const ItemType &    sunType() const { return m_sunType; }
 	const std::string & securityClass() const { return m_securityClass; }
 
 protected:
@@ -123,12 +123,12 @@ protected:
 		ItemFactory &_factory,
 		uint32 _solarSystemID,
 		// InventoryItem stuff:
-		const Type &_type,
+		const ItemType &_type,
 		const ItemData &_data,
 		// CelestialObject stuff:
 		const CelestialObjectData &_cData,
 		// SolarSystem stuff:
-		const Type &_sunType,
+		const ItemType &_sunType,
 		const SolarSystemData &_ssData
 	);
 	~SolarSystem();
@@ -142,7 +142,7 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadCelestialObject(ItemFactory &factory, uint32 solarSystemID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data,
+		const ItemType &type, const ItemData &data,
 		// CelestialObject stuff:
 		const CelestialObjectData &cData)
 	{
@@ -159,7 +159,7 @@ protected:
 			return false;
 
 		// get sun type
-		const Type *sunType = factory.GetType( ssData.sunTypeID );
+		const ItemType *sunType = factory.GetType( ssData.sunTypeID );
 		if( sunType == NULL )
 			return false;
 
@@ -170,11 +170,11 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data,
+		const ItemType &type, const ItemData &data,
 		// CelestialObject stuff:
 		const CelestialObjectData &cData,
 		// SolarSystem stuff:
-		const Type &sunType, const SolarSystemData &ssData
+		const ItemType &sunType, const SolarSystemData &ssData
 	);
 
 	bool _Load();
@@ -198,7 +198,7 @@ protected:
 	double m_security;
 	uint32 m_factionID;
 	double m_radius;
-	const Type &m_sunType;
+	const ItemType &m_sunType;
 	std::string m_securityClass;
 };
 

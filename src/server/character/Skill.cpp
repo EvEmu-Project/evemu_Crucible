@@ -32,7 +32,7 @@ Skill::Skill(
 	ItemFactory &_factory,
 	uint32 _skillID,
 	// InventoryItem stuff:
-	const Type &_type,
+	const ItemType &_type,
 	const ItemData &_data )
 : InventoryItem(_factory, _skillID, _type, _data)
 {
@@ -46,7 +46,7 @@ Skill *Skill::Load(ItemFactory &factory, uint32 skillID)
 template<class _Ty>
 _Ty *Skill::_LoadSkill(ItemFactory &factory, uint32 skillID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data)
+	const ItemType &type, const ItemData &data)
 {
 	return new Skill( factory, skillID, type, data );
 }
@@ -62,7 +62,7 @@ Skill *Skill::Spawn(ItemFactory &factory, ItemData &data)
 uint32 Skill::_Spawn(ItemFactory &factory, ItemData &data)
 {
 	// check it's a skill
-	const Type *type = factory.GetType( data.typeID );
+	const ItemType *type = factory.GetType( data.typeID );
 	if( type == NULL )
 		return 0;
 

@@ -33,7 +33,7 @@
 #include "AttributeMgr.h"
 
 class PyRep;
-class Type;
+class ItemType;
 class ItemFactory;
 class InventoryItem;
 class InventoryDB;
@@ -112,12 +112,12 @@ class TypeAttributeMgr : public EVEAttributeMgr
 {
 	friend class ItemAttributeMgr;	// for access to _Get
 public:
-	TypeAttributeMgr(const Type &type) : m_type(type) {}
+	TypeAttributeMgr(const ItemType &type) : m_type(type) {}
 
 	/**
-	 * @return Type which this manager is bound to.
+	 * @return ItemType which this manager is bound to.
 	 */
-	const Type &type() const { return(m_type); }
+	const ItemType &type() const { return(m_type); }
 
 	/**
 	 * Loads attributes from DB.
@@ -128,7 +128,7 @@ public:
 	bool Load(InventoryDB &db);
 
 protected:
-	const Type &m_type;
+	const ItemType &m_type;
 };
 
 /**

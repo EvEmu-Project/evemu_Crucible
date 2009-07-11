@@ -32,10 +32,10 @@
 
 #include "../common/packet_types.h"
 #include "../common/gpoint.h"
-//#include "InventoryDB.h"
-#include "EVEAttributeMgr.h"
-#include "ItemContainer.h"
-#include "Type.h"
+
+#include "inventory/EVEAttributeMgr.h"
+#include "inventory/ItemContainer.h"
+#include "inventory/ItemType.h"
 
 class PyRep;
 class PyRepDict;
@@ -152,7 +152,7 @@ public:
 	 */
 	uint32                  itemID() const { return(m_itemID); }
 	const std::string &     itemName() const { return(m_itemName); }
-	const Type &            type() const { return(m_type); }
+	const ItemType &        type() const { return(m_type); }
 	uint32                  ownerID() const { return(m_ownerID); }
 	uint32                  locationID() const { return(m_locationID); }
 	EVEItemFlags            flag() const { return(m_flag); }
@@ -165,9 +165,9 @@ public:
 
 	// helper type methods
 	uint32                  typeID() const { return(type().id()); }
-	const Group &           group() const { return(type().group()); }
+	const ItemGroup &       group() const { return(type().group()); }
 	uint32                  groupID() const { return(type().groupID()); }
-	const Category &        category() const { return(type().category()); }
+	const ItemCategory &    category() const { return(type().category()); }
 	EVEItemCategories       categoryID() const { return(type().categoryID()); }
 
 	/*
@@ -202,7 +202,7 @@ protected:
 		ItemFactory &_factory,
 		uint32 _itemID,
 		// InventoryItem stuff:
-		const Type &_type,
+		const ItemType &_type,
 		const ItemData &_data);
 	virtual ~InventoryItem();
 
@@ -238,7 +238,7 @@ protected:
 			return NULL;
 
 		// obtain type
-		const Type *type = factory.GetType( data.typeID );
+		const ItemType *type = factory.GetType( data.typeID );
 		if( type == NULL )
 			return NULL;
 
@@ -249,7 +249,7 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 itemID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data
+		const ItemType &type, const ItemData &data
 	);
 
 	virtual bool _Load();
@@ -274,17 +274,17 @@ protected:
 	ItemFactory &   m_factory;
 
 	// our item data:
-	const uint32    m_itemID;
-	std::string     m_itemName;
-	const Type &    m_type;
-	uint32          m_ownerID;
-	uint32          m_locationID; //where is this item located
-	EVEItemFlags    m_flag;
-	bool            m_contraband;
-	bool            m_singleton;
-	uint32          m_quantity;
-	GPoint          m_position;
-	std::string     m_customInfo;
+	const uint32        m_itemID;
+	std::string         m_itemName;
+	const ItemType &    m_type;
+	uint32			    m_ownerID;
+	uint32              m_locationID; //where is this item located
+	EVEItemFlags        m_flag;
+	bool                m_contraband;
+	bool                m_singleton;
+	uint32              m_quantity;
+	GPoint              m_position;
+	std::string         m_customInfo;
 };
 
 #endif

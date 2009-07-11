@@ -470,7 +470,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\server\inventory\Type.cpp"
+					RelativePath="..\..\src\server\inventory\ItemType.cpp"
 					>
 				</File>
 			</Filter>
@@ -1072,7 +1072,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\include\server\inventory\Type.h"
+					RelativePath="..\..\include\server\inventory\ItemType.h"
 					>
 				</File>
 			</Filter>

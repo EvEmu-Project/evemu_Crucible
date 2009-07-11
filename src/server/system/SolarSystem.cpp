@@ -69,12 +69,12 @@ SolarSystem::SolarSystem(
 	ItemFactory &_factory,
 	uint32 _solarSystemID,
 	// InventoryItem stuff:
-	const Type &_type,
+	const ItemType &_type,
 	const ItemData &_data,
 	// CelestialObject stuff:
 	const CelestialObjectData &_cData,
 	// SolarSystem stuff:
-	const Type &_sunType,
+	const ItemType &_sunType,
 	const SolarSystemData &_ssData)
 : CelestialObject(_factory, _solarSystemID, _type, _data, _cData),
   m_minPosition(_ssData.minPosition),
@@ -108,11 +108,11 @@ SolarSystem *SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID)
 template<class _Ty>
 _Ty *SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data,
+	const ItemType &type, const ItemData &data,
 	// CelestialObject stuff:
 	const CelestialObjectData &cData,
 	// SolarSystem stuff:
-	const Type &sunType, const SolarSystemData &ssData)
+	const ItemType &sunType, const SolarSystemData &ssData)
 {
 	// we have it all
 	return new SolarSystem( factory, solarSystemID, type, data, cData, sunType, ssData );

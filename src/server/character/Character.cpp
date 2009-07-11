@@ -68,13 +68,13 @@ CharacterTypeData::CharacterTypeData(
 CharacterType::CharacterType(
 	uint32 _id,
 	uint8 _bloodlineID,
-	// Type stuff:
-	const Group &_group,
+	// ItemType stuff:
+	const ItemGroup &_group,
 	const TypeData &_data,
 	// CharacterType stuff:
-	const Type &_shipType,
+	const ItemType &_shipType,
 	const CharacterTypeData &_charData)
-: Type(_id, _group, _data),
+: ItemType(_id, _group, _data),
   m_bloodlineID(_bloodlineID),
   m_bloodlineName(_charData.bloodlineName),
   m_description(_charData.description),
@@ -98,15 +98,15 @@ CharacterType::CharacterType(
 
 CharacterType *CharacterType::Load(ItemFactory &factory, uint32 characterTypeID)
 {
-	return Type::Load<CharacterType>( factory, characterTypeID );
+	return ItemType::Load<CharacterType>( factory, characterTypeID );
 }
 
 template<class _Ty>
 _Ty *CharacterType::_LoadCharacterType(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
-	// Type stuff:
-	const Group &group, const TypeData &data,
+	// ItemType stuff:
+	const ItemGroup &group, const TypeData &data,
 	// CharacterType stuff:
-	const Type &shipType, const CharacterTypeData &charData)
+	const ItemType &shipType, const CharacterTypeData &charData)
 {
 	// enough data for construction
 	return new CharacterType( typeID, bloodlineID, group, data, shipType, charData );

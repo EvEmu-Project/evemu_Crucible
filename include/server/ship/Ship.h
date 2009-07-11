@@ -26,7 +26,7 @@
 #ifndef __SHIP__H__INCL__
 #define __SHIP__H__INCL__
 
-#include "inventory/Type.h"
+#include "inventory/ItemType.h"
 #include "inventory/InventoryItem.h"
 
 /**
@@ -50,9 +50,9 @@ public:
  * Class managing ship type data.
  */
 class ShipType
-: public Type
+: public ItemType
 {
-	friend class Type; // to let them construct us
+	friend class ItemType; // to let them construct us
 public:
 	/**
 	 * Loads ship type.
@@ -66,33 +66,33 @@ public:
 	/*
 	 * Access methods:
 	 */
-	const Type *weaponType() const { return m_weaponType; }
-	const Type *miningType() const { return m_miningType; }
-	const Type *skillType() const { return m_skillType; }
+	const ItemType *weaponType() const { return m_weaponType; }
+	const ItemType *miningType() const { return m_miningType; }
+	const ItemType *skillType() const { return m_skillType; }
 
 protected:
 	ShipType(
 		uint32 _id,
-		// Type stuff:
-		const Group &_group,
+		// ItemType stuff:
+		const ItemGroup &_group,
 		const TypeData &_data,
 		// ShipType stuff:
-		const Type *_weaponType,
-		const Type *_miningType,
-		const Type *_skillType,
+		const ItemType *_weaponType,
+		const ItemType *_miningType,
+		const ItemType *_skillType,
 		const ShipTypeData &stData
 	);
 
 	/*
 	 * Member functions:
 	 */
-	using Type::_Load;
+	using ItemType::_Load;
 
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadType(ItemFactory &factory, uint32 shipTypeID,
-		// Type stuff:
-		const Group &group, const TypeData &data)
+		// ItemType stuff:
+		const ItemGroup &group, const TypeData &data)
 	{
 		// verify it's a ship
 		if( group.categoryID() != EVEDB::invCategories::Ship ) {
@@ -106,7 +106,7 @@ protected:
 			return NULL;
 
 		// try to load weapon type
-		const Type *weaponType = NULL;
+		const ItemType *weaponType = NULL;
 		if( stData.weaponTypeID != 0 ) {
 			weaponType = factory.GetType( stData.weaponTypeID );
 			if( weaponType == NULL )
@@ -114,7 +114,7 @@ protected:
 		}
 
 		// try to load mining type
-		const Type *miningType = NULL;
+		const ItemType *miningType = NULL;
 		if( stData.miningTypeID != 0 ) {
 			miningType = factory.GetType( stData.miningTypeID );
 			if( miningType == NULL )
@@ -122,7 +122,7 @@ protected:
 		}
 
 		// try to load skill type
-		const Type *skillType = NULL;
+		const ItemType *skillType = NULL;
 		if( stData.skillTypeID != 0 ) {
 			skillType = factory.GetType( stData.skillTypeID );
 			if( skillType == NULL )
@@ -136,18 +136,18 @@ protected:
 	// Actual loading stuff:
 	template<class _Ty>
 	static _Ty *_LoadShipType(ItemFactory &factory, uint32 shipTypeID,
-		// Type stuff:
-		const Group &group, const TypeData &data,
+		// ItemType stuff:
+		const ItemGroup &group, const TypeData &data,
 		// ShipType stuff:
-		const Type *weaponType, const Type *miningType, const Type *skillType, const ShipTypeData &stData
+		const ItemType *weaponType, const ItemType *miningType, const ItemType *skillType, const ShipTypeData &stData
 	);
 
 	/*
 	 * Data content:
 	 */
-	const Type *m_weaponType;
-	const Type *m_miningType;
-	const Type *m_skillType;
+	const ItemType *m_weaponType;
+	const ItemType *m_miningType;
+	const ItemType *m_skillType;
 };
 
 /**
@@ -214,7 +214,7 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 shipID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data)
+		const ItemType &type, const ItemData &data)
 	{
 		// check it's a ship
 		if( type.categoryID() != EVEDB::invCategories::Ship )

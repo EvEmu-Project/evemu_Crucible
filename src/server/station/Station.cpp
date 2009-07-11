@@ -53,12 +53,12 @@ StationTypeData::StationTypeData(
  */
 StationType::StationType(
 	uint32 _id,
-	// Type stuff:
-	const Group &_group,
+	// ItemType stuff:
+	const ItemGroup &_group,
 	const TypeData &_data,
 	// StationType stuff:
 	const StationTypeData &_stData)
-: Type(_id, _group, _data),
+: ItemType(_id, _group, _data),
   m_dockingBayGraphicID(_stData.dockingBayGraphicID),
   m_hangarGraphicID(_stData.hangarGraphicID),
   m_dockEntry(_stData.dockEntry),
@@ -74,13 +74,13 @@ StationType::StationType(
 
 StationType *StationType::Load(ItemFactory &factory, uint32 stationTypeID)
 {
-	return Type::Load<StationType>( factory, stationTypeID );
+	return ItemType::Load<StationType>( factory, stationTypeID );
 }
 
 template<class _Ty>
 _Ty *StationType::_LoadStationType(ItemFactory &factory, uint32 stationTypeID,
-	// Type stuff:
-	const Group &group, const TypeData &data,
+	// ItemType stuff:
+	const ItemGroup &group, const TypeData &data,
 	// StationType stuff:
 	const StationTypeData &stData)
 {

@@ -26,7 +26,7 @@
 #ifndef __CHARACTER__H__INCL__
 #define __CHARACTER__H__INCL__
 
-#include "inventory/Type.h"
+#include "inventory/ItemType.h"
 #include "inventory/InventoryItem.h"
 #include "character/Skill.h"
 
@@ -77,9 +77,9 @@ public:
  * Class which maintains character type data.
  */
 class CharacterType
-: public Type
+: public ItemType
 {
-	friend class Type; // to let it construct us
+	friend class ItemType; // to let it construct us
 public:
 	/**
 	 * Loads and returns new CharacterType.
@@ -99,7 +99,7 @@ public:
 	const std::string &description() const { return m_description; }
 	const std::string &maleDescription() const { return m_maleDescription; }
 	const std::string &femaleDescription() const { return m_femaleDescription; }
-	const Type &shipType() const { return m_shipType; }
+	const ItemType &shipType() const { return m_shipType; }
 	uint32 shipTypeID() const { return shipType().id(); }
 	uint32 corporationID() const { return m_corporationID; }
 
@@ -117,24 +117,24 @@ protected:
 	CharacterType(
 		uint32 _id,
 		uint8 _bloodlineID,
-		// Type stuff:
-		const Group &_group,
+		// ItemType stuff:
+		const ItemGroup &_group,
 		const TypeData &_data,
 		// CharacterType stuff:
-		const Type &_shipType,
+		const ItemType &_shipType,
 		const CharacterTypeData &_charData
 	);
 
 	/*
 	 * Member functions
 	 */
-	using Type::_Load;
+	using ItemType::_Load;
 
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadType(ItemFactory &factory, uint32 typeID,
-		// Type stuff:
-		const Group &group, const TypeData &data)
+		// ItemType stuff:
+		const ItemGroup &group, const TypeData &data)
 	{
 		// check we are really loading a character type
 		if( group.id() != EVEDB::invGroups::Character ) {
@@ -149,7 +149,7 @@ protected:
 			return NULL;
 
 		// load ship type
-		const Type *shipType = factory.GetType( charData.shipTypeID );
+		const ItemType *shipType = factory.GetType( charData.shipTypeID );
 		if( shipType == NULL )
 			return NULL;
 
@@ -159,10 +159,10 @@ protected:
 	// Actual loading stuff:
 	template<class _Ty>
 	static _Ty *_LoadCharacterType(ItemFactory &factory, uint32 typeID, uint8 bloodlineID,
-		// Type stuff:
-		const Group &group, const TypeData &data,
+		// ItemType stuff:
+		const ItemGroup &group, const TypeData &data,
 		// CharacterType stuff:
-		const Type &shipType, const CharacterTypeData &charData
+		const ItemType &shipType, const CharacterTypeData &charData
 	);
 
 	/*
@@ -174,7 +174,7 @@ protected:
 	std::string m_description;
 	std::string m_maleDescription;
 	std::string m_femaleDescription;
-	const Type &m_shipType;
+	const ItemType &m_shipType;
 	uint32 m_corporationID;
 
 	uint8 m_perception;
@@ -510,7 +510,7 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data)
+		const ItemType &type, const ItemData &data)
 	{
 		// check it's a character
 		if( type.groupID() != EVEDB::invGroups::Character )

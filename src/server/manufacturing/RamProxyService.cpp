@@ -408,7 +408,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, const 
 	// ACTIVITY CHECK
 	// ***************
 
-	const Type *productType;
+	const ItemType *productType;
 	switch(args.activityID) {
 		/*
 		 * Manufacturing
@@ -784,7 +784,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, const InventoryIte
 	if(!m_db.GetAssemblyLineProperties(args.installationAssemblyLineID, into.materialMultiplier, into.timeMultiplier, into.installCost, into.usageCost))
 		return false;
 
-	const Type *productType;
+	const ItemType *productType;
 	// perform some activity-specific actions
 	switch(args.activityID) {
 		/*

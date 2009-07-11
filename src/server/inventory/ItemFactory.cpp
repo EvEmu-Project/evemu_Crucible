@@ -45,7 +45,7 @@ ItemFactory::~ItemFactory() {
 	}
 	// types
 	{
-		std::map<uint32, Type *>::const_iterator cur, end;
+		std::map<uint32, ItemType *>::const_iterator cur, end;
 		cur = m_types.begin();
 		end = m_types.end();
 		for(; cur != end; cur++)
@@ -53,7 +53,7 @@ ItemFactory::~ItemFactory() {
 	}
 	// groups
 	{
-		std::map<uint32, Group *>::const_iterator cur, end;
+		std::map<uint32, ItemGroup *>::const_iterator cur, end;
 		cur = m_groups.begin();
 		end = m_groups.end();
 		for(; cur != end; cur++)
@@ -61,7 +61,7 @@ ItemFactory::~ItemFactory() {
 	}
 	// categories
 	{
-		std::map<EVEItemCategories, Category *>::const_iterator cur, end;
+		std::map<EVEItemCategories, ItemCategory *>::const_iterator cur, end;
 		cur = m_categories.begin();
 		end = m_categories.end();
 		for(; cur != end; cur++)
@@ -69,10 +69,10 @@ ItemFactory::~ItemFactory() {
 	}
 }
 
-const Category *ItemFactory::GetCategory(EVEItemCategories category) {
-	std::map<EVEItemCategories, Category *>::iterator res = m_categories.find(category);
+const ItemCategory *ItemFactory::GetCategory(EVEItemCategories category) {
+	std::map<EVEItemCategories, ItemCategory *>::iterator res = m_categories.find(category);
 	if(res == m_categories.end()) {
-		Category *cat = Category::Load(*this, category);
+		ItemCategory *cat = ItemCategory::Load(*this, category);
 		if(cat == NULL)
 			return NULL;
 
@@ -84,10 +84,10 @@ const Category *ItemFactory::GetCategory(EVEItemCategories category) {
 	return(res->second);
 }
 
-const Group *ItemFactory::GetGroup(uint32 groupID) {
-	std::map<uint32, Group *>::iterator res = m_groups.find(groupID);
+const ItemGroup *ItemFactory::GetGroup(uint32 groupID) {
+	std::map<uint32, ItemGroup *>::iterator res = m_groups.find(groupID);
 	if(res == m_groups.end()) {
-		Group *group = Group::Load(*this, groupID);
+		ItemGroup *group = ItemGroup::Load(*this, groupID);
 		if(group == NULL)
 			return NULL;
 
@@ -101,7 +101,7 @@ const Group *ItemFactory::GetGroup(uint32 groupID) {
 
 template<class _Ty>
 const _Ty *ItemFactory::_GetType(uint32 typeID) {
-	std::map<uint32, Type *>::iterator res = m_types.find(typeID);
+	std::map<uint32, ItemType *>::iterator res = m_types.find(typeID);
 	if(res == m_types.end()) {
 		_Ty *type = _Ty::Load(*this, typeID);
 		if(type == NULL)
@@ -115,8 +115,8 @@ const _Ty *ItemFactory::_GetType(uint32 typeID) {
 	return static_cast<const _Ty *>(res->second);
 }
 
-const Type *ItemFactory::GetType(uint32 typeID) {
-	return _GetType<Type>(typeID);
+const ItemType *ItemFactory::GetType(uint32 typeID) {
+	return _GetType<ItemType>(typeID);
 }
 
 const BlueprintType *ItemFactory::GetBlueprintType(uint32 blueprintTypeID) {

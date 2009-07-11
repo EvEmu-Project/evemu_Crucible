@@ -31,11 +31,11 @@
 #include "../common/gpoint.h"
 #include "InventoryDB.h"
 
-class Category;
+class ItemCategory;
 
-class Group;
+class ItemGroup;
 
-class Type;
+class ItemType;
 class BlueprintType;
 class CharacterType;
 class ShipType;
@@ -64,17 +64,17 @@ public:
 	/*
 	 * Category stuff
 	 */
-	const Category *GetCategory(EVEItemCategories category);
+	const ItemCategory *GetCategory(EVEItemCategories category);
 
 	/*
 	 * Group stuff
 	 */
-	const Group *GetGroup(uint32 groupID);
+	const ItemGroup *GetGroup(uint32 groupID);
 
 	/*
 	 * Type stuff
 	 */
-	const Type *GetType(uint32 typeID);
+	const ItemType *GetType(uint32 typeID);
 
 	const BlueprintType *GetBlueprintType(uint32 blueprintTypeID);
 
@@ -204,16 +204,16 @@ protected:
 	 * Member functions and variables:
 	 */
 	// Categories:
-	std::map<EVEItemCategories, Category *> m_categories;
+	std::map<EVEItemCategories, ItemCategory *> m_categories;
 
 	// Groups:
-	std::map<uint32, Group *> m_groups;
+	std::map<uint32, ItemGroup *> m_groups;
 
 	// Types:
 	template<class _Ty>
 	const _Ty *_GetType(uint32 typeID);
 
-	std::map<uint32, Type *> m_types;
+	std::map<uint32, ItemType *> m_types;
 
 	// Items:
 	template<class _Ty>

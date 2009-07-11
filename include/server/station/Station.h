@@ -26,7 +26,7 @@
 #ifndef __STATION__H__INCL__
 #define __STATION__H__INCL__
 
-#include "inventory/Type.h"
+#include "inventory/ItemType.h"
 #include "system/Celestial.h"
 
 /**
@@ -62,9 +62,9 @@ public:
  * Type of station.
  */
 class StationType
-: public Type
+: public ItemType
 {
-	friend class Type; // to let it construct us
+	friend class ItemType; // to let it construct us
 public:
 	/**
 	 * Loads station type.
@@ -92,8 +92,8 @@ public:
 protected:
 	StationType(
 		uint32 _id,
-		// Type stuff:
-		const Group &_group,
+		// ItemType stuff:
+		const ItemGroup &_group,
 		const TypeData &_data,
 		// StationType stuff:
 		const StationTypeData &_stData
@@ -102,13 +102,13 @@ protected:
 	/*
 	 * Member functions:
 	 */
-	using Type::_Load;
+	using ItemType::_Load;
 
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadType(ItemFactory &factory, uint32 stationTypeID,
-		// Type stuff:
-		const Group &group, const TypeData &data)
+		// ItemType stuff:
+		const ItemGroup &group, const TypeData &data)
 	{
 		// verify it's a station type
 		if( group.id() != EVEDB::invGroups::Station ) {
@@ -127,8 +127,8 @@ protected:
 	// Actual loading stuff:
 	template<class _Ty>
 	static _Ty *_LoadStationType(ItemFactory &factory, uint32 stationTypeID,
-		// Type stuff:
-		const Group &group, const TypeData &data,
+		// ItemType stuff:
+		const ItemGroup &group, const TypeData &data,
 		// StationType stuff:
 		const StationTypeData &stData
 	);
@@ -235,7 +235,7 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadCelestialObject(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data,
+		const ItemType &type, const ItemData &data,
 		// CelestialObject stuff:
 		const CelestialObjectData &cData)
 	{

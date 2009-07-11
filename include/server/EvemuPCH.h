@@ -205,7 +205,7 @@
 #include "../server/inventory/ItemContainer.h"
 #include "../server/inventory/ItemDB.h"
 #include "../server/inventory/ItemFactory.h"
-#include "../server/inventory/Type.h"
+#include "../server/inventory/ItemType.h"
 
 // factory stuff
 #include "../server/manufacturing/Blueprint.h"

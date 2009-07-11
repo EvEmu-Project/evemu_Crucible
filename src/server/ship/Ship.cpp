@@ -43,15 +43,15 @@ ShipTypeData::ShipTypeData(
  */
  ShipType::ShipType(
 	uint32 _id,
-	// Type stuff:
-	const Group &_group,
+	// ItemType stuff:
+	const ItemGroup &_group,
 	const TypeData &_data,
 	// ShipType stuff:
-	const Type *_weaponType,
-	const Type *_miningType,
-	const Type *_skillType,
+	const ItemType *_weaponType,
+	const ItemType *_miningType,
+	const ItemType *_skillType,
 	const ShipTypeData &stData)
-: Type(_id, _group, _data),
+: ItemType(_id, _group, _data),
   m_weaponType(_weaponType),
   m_miningType(_miningType),
   m_skillType(_skillType)
@@ -67,15 +67,15 @@ ShipTypeData::ShipTypeData(
 
 ShipType *ShipType::Load(ItemFactory &factory, uint32 shipTypeID)
 {
-	return Type::Load<ShipType>( factory, shipTypeID );
+	return ItemType::Load<ShipType>( factory, shipTypeID );
 }
 
 template<class _Ty>
 _Ty *ShipType::_LoadShipType(ItemFactory &factory, uint32 shipTypeID,
-	// Type stuff:
-	const Group &group, const TypeData &data,
+	// ItemType stuff:
+	const ItemGroup &group, const TypeData &data,
 	// ShipType stuff:
-	const Type *weaponType, const Type *miningType, const Type *skillType, const ShipTypeData &stData)
+	const ItemType *weaponType, const ItemType *miningType, const ItemType *skillType, const ShipTypeData &stData)
 {
 	// we have all the data, let's create new object
 	return new ShipType(shipTypeID, group, data, weaponType, miningType, skillType, stData );

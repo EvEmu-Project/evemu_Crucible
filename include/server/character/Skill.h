@@ -85,7 +85,7 @@ protected:
 		ItemFactory &_factory,
 		uint32 _skillID,
 		// InventoryItem stuff:
-		const Type &_type,
+		const ItemType &_type,
 		const ItemData &_data );
 
 	/*
@@ -97,7 +97,7 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 skillID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data)
+		const ItemType &type, const ItemData &data)
 	{
 		// check it's a skill
 		if( type.categoryID() != EVEDB::invCategories::Skill )
@@ -115,7 +115,7 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadSkill(ItemFactory &factory, uint32 skillID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data
+		const ItemType &type, const ItemData &data
 	);
 
 	static uint32 _Spawn(ItemFactory &factory,

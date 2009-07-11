@@ -63,12 +63,12 @@ BlueprintTypeData::BlueprintTypeData(
  */
 BlueprintType::BlueprintType(
 	uint32 _id,
-	const Group &_group,
+	const ItemGroup &_group,
 	const TypeData &_data,
 	const BlueprintType *_parentBlueprintType,
-	const Type &_productType,
+	const ItemType &_productType,
 	const BlueprintTypeData &_bpData)
-: Type(_id, _group, _data),
+: ItemType(_id, _group, _data),
   m_parentBlueprintType(_parentBlueprintType),
   m_productType(_productType),
   m_productionTime(_bpData.productionTime),
@@ -90,15 +90,15 @@ BlueprintType::BlueprintType(
 
 BlueprintType *BlueprintType::Load(ItemFactory &factory, uint32 typeID)
 {
-	return Type::Load<BlueprintType>( factory, typeID );
+	return ItemType::Load<BlueprintType>( factory, typeID );
 }
 
 template<class _Ty>
 _Ty *BlueprintType::_LoadBlueprintType(ItemFactory &factory, uint32 typeID,
-	// Type stuff:
-	const Group &group, const TypeData &data,
+	// ItemType stuff:
+	const ItemGroup &group, const TypeData &data,
 	// BlueprintType stuff:
-	const BlueprintType *parentBlueprintType, const Type &productType, const BlueprintTypeData &bpData)
+	const BlueprintType *parentBlueprintType, const ItemType &productType, const BlueprintTypeData &bpData)
 {
 	return new BlueprintType(typeID, group, data, parentBlueprintType, productType, bpData );
 }

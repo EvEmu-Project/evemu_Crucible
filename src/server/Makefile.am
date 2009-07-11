@@ -146,10 +146,10 @@ libinventory_a_SOURCES = \
 	inventory/ItemContainer.h \
 	inventory/ItemFactory.cpp \
 	inventory/ItemFactory.h \
+	inventory/ItemType.cpp \
+	inventory/ItemType.h \
 	inventory/InventoryBound.cpp \
-	inventory/InventoryBound.h \
-	inventory/Type.cpp \
-	inventory/Type.h
+	inventory/InventoryBound.h
 # Seems not to be included
 #	inventory/ItemDB.cpp 
 #	inventory/ItemDB.h 

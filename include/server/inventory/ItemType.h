@@ -35,7 +35,7 @@
 
 /*
  * LOADING INVOKATION EXPLANATION:
- * Category, Group, Type and InventoryItem classes and their children have special loading. Every such type has following methods:
+ * ItemCategory, ItemGroup, ItemType and InventoryItem classes and their children have special loading. Every such type has following methods:
  *
  *  static Load(ItemFactory &factory, <identifier>):
  *    Merges static and virtual loading trees.
@@ -70,12 +70,12 @@ public:
 /*
  * Class which maintains category data.
  */
-class Category {
+class ItemCategory {
 public:
 	/*
 	 * Factory method:
 	 */
-	static Category *Load(ItemFactory &factory, EVEItemCategories category);
+	static ItemCategory *Load(ItemFactory &factory, EVEItemCategories category);
 
 	/*
 	 * Access methods
@@ -87,19 +87,19 @@ public:
 	bool published() const { return(m_published); }
 
 protected:
-	Category(
+	ItemCategory(
 		EVEItemCategories _id,
-		// Category stuff:
+		// ItemCategory stuff:
 		const CategoryData &_data
 	);
 
 	/*
 	 * Member functions
 	 */
-	static Category *_Load(ItemFactory &factory, EVEItemCategories category
+	static ItemCategory *_Load(ItemFactory &factory, EVEItemCategories category
 	);
-	static Category *_Load(ItemFactory &factory, EVEItemCategories category,
-		// Category stuff:
+	static ItemCategory *_Load(ItemFactory &factory, EVEItemCategories category,
+		// ItemCategory stuff:
 		const CategoryData &data
 	);
 
@@ -149,19 +149,19 @@ public:
 /*
  * Class which maintains group data.
  */
-class Group {
+class ItemGroup {
 public:
 	/*
 	 * Factory method:
 	 */
-	static Group *Load(ItemFactory &factory, uint32 groupID);
+	static ItemGroup *Load(ItemFactory &factory, uint32 groupID);
 
 	/*
 	 * Access methods:
 	 */
 	uint32 id() const { return(m_id); }
 
-	const Category &category() const { return(*m_category); }
+	const ItemCategory &category() const { return(*m_category); }
 	EVEItemCategories categoryID() const { return(category().id()); }
 
 	const std::string &name() const { return(m_name); }
@@ -175,21 +175,21 @@ public:
 	bool published() const { return(m_published); }
 
 protected:
-	Group(
+	ItemGroup(
 		uint32 _id,
-		// Group stuff:
-		const Category &_category,
+		// ItemGroup stuff:
+		const ItemCategory &_category,
 		const GroupData &_data
 	);
 
 	/*
 	 * Member functions
 	 */
-	static Group *_Load(ItemFactory &factory, uint32 groupID
+	static ItemGroup *_Load(ItemFactory &factory, uint32 groupID
 	);
-	static Group *_Load(ItemFactory &factory, uint32 groupID,
-		// Group stuff:
-		const Category &category, const GroupData &data
+	static ItemGroup *_Load(ItemFactory &factory, uint32 groupID,
+		// ItemGroup stuff:
+		const ItemCategory &category, const GroupData &data
 	);
 
 	/*
@@ -197,7 +197,7 @@ protected:
 	 */
 	const uint32 m_id;
 
-	const Category *m_category;
+	const ItemCategory *m_category;
 
 	std::string m_name;
 	std::string m_description;
@@ -252,16 +252,16 @@ public:
 /*
  * Class which maintains type data.
  */
-class Type {
+class ItemType {
 public:
 	/**
 	 * Loads type from DB.
 	 *
 	 * @param[in] factory
 	 * @param[in] typeID ID of type to load.
-	 * @return Pointer to new Type object; NULL if failed.
+	 * @return Pointer to new ItemType object; NULL if failed.
 	 */
-	static Type *Load(ItemFactory &factory, uint32 typeID);
+	static ItemType *Load(ItemFactory &factory, uint32 typeID);
 
 	/*
 	 * Attributes:
@@ -273,10 +273,10 @@ public:
 	 */
 	uint32 id() const { return(m_id); }
 
-	const Group &group() const { return(*m_group); }
+	const ItemGroup &group() const { return(*m_group); }
 	uint32 groupID() const { return(group().id()); }
 
-	const Category &category() const { return(group().category()); }
+	const ItemCategory &category() const { return(group().category()); }
 	EVEItemCategories categoryID() const { return(group().categoryID()); }
 
 	const std::string &name() const { return(m_name); }
@@ -294,9 +294,9 @@ public:
 	EVERace race() const { return(static_cast<EVERace>(attributes.raceID())); }
 
 protected:
-	Type(
+	ItemType(
 		uint32 _id,
-		const Group &_group,
+		const ItemGroup &_group,
 		const TypeData &_data
 	);
 
@@ -333,7 +333,7 @@ protected:
 			return NULL;
 
 		// obtain group
-		const Group *g = factory.GetGroup( data.groupID );
+		const ItemGroup *g = factory.GetGroup( data.groupID );
 		if( g == NULL )
 			return NULL;
 
@@ -343,8 +343,8 @@ protected:
 	// Actual loading stuff:
 	template<class _Ty>
 	static _Ty *_LoadType(ItemFactory &factory, uint32 typeID,
-		// Type stuff:
-		const Group &group, const TypeData &data
+		// ItemType stuff:
+		const ItemGroup &group, const TypeData &data
 	);
 
 	virtual bool _Load(ItemFactory &factory);
@@ -354,7 +354,7 @@ protected:
 	 */
 	const uint32 m_id;
 
-	const Group *m_group;
+	const ItemGroup *m_group;
 
 	std::string m_name;
 	std::string m_description;

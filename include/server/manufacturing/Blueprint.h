@@ -26,7 +26,7 @@
 #ifndef __BLUEPRINT_ITEM__H__INCL__
 #define __BLUEPRINT_ITEM__H__INCL__
 
-#include "inventory/Type.h"
+#include "inventory/ItemType.h"
 #include "inventory/InventoryItem.h"
 
 /*
@@ -70,9 +70,9 @@ public:
  * Class which contains blueprint type data.
  */
 class BlueprintType
-: public Type
+: public ItemType
 {
-	friend class Type;	// To let our parent redirect construction to our _Load().
+	friend class ItemType;	// To let our parent redirect construction to our _Load().
 public:
 	/**
 	 * Loads blueprint type from DB.
@@ -89,7 +89,7 @@ public:
 	const BlueprintType *parentBlueprintType() const { return(m_parentBlueprintType); }
 	uint32 parentBlueprintTypeID() const { return(parentBlueprintType() == NULL ? 0 : parentBlueprintType()->id()); }
 
-	const Type &productType() const { return(m_productType); }
+	const ItemType &productType() const { return(m_productType); }
 	uint32 productTypeID() const { return(productType().id()); }
 
 	uint32 productionTime() const { return(m_productionTime); }
@@ -107,25 +107,25 @@ public:
 protected:
 	BlueprintType(
 		uint32 _id,
-		// Type stuff:
-		const Group &_group,
+		// ItemType stuff:
+		const ItemGroup &_group,
 		const TypeData &_data,
 		// BlueprintType stuff:
 		const BlueprintType *_parentBlueprintType,
-		const Type &_productType,
+		const ItemType &_productType,
 		const BlueprintTypeData &_bpData
 	);
 
 	/*
 	 * Member functions
 	 */
-	using Type::_Load;
+	using ItemType::_Load;
 
 	// Template loader:
 	template<class _Ty>
 	static _Ty *_LoadType(ItemFactory &factory, uint32 typeID,
-		// Type stuff:
-		const Group &group, const TypeData &data)
+		// ItemType stuff:
+		const ItemGroup &group, const TypeData &data)
 	{
 		// check if we are really loading a blueprint
 		if( group.categoryID() != EVEDB::invCategories::Blueprint ) {
@@ -149,7 +149,7 @@ protected:
 		}
 
 		// obtain product type
-		const Type *productType = factory.GetType( bpData.productTypeID );
+		const ItemType *productType = factory.GetType( bpData.productTypeID );
 		if( productType == NULL )
 			return NULL;
 
@@ -160,17 +160,17 @@ protected:
 	// Actual loading stuff:
 	template<class _Ty>
 	static _Ty *_LoadBlueprintType(ItemFactory &factory, uint32 typeID,
-		// Type stuff:
-		const Group &group, const TypeData &data,
+		// ItemType stuff:
+		const ItemGroup &group, const TypeData &data,
 		// BlueprintType stuff:
-		const BlueprintType *parentBlueprintType, const Type &productType, const BlueprintTypeData &bpData
+		const BlueprintType *parentBlueprintType, const ItemType &productType, const BlueprintTypeData &bpData
 	);
 
 	/*
 	 * Data members
 	 */
 	const BlueprintType *m_parentBlueprintType;
-	const Type &m_productType;
+	const ItemType &m_productType;
 
 	uint32 m_productionTime;
 	uint32 m_techLevel;
@@ -236,7 +236,7 @@ public:
 	const BlueprintType &   type() const { return(static_cast<const BlueprintType &>(InventoryItem::type())); }
 	const BlueprintType *   parentBlueprintType() const { return(type().parentBlueprintType()); }
 	uint32                  parentBlueprintTypeID() const { return(type().parentBlueprintTypeID()); }
-	const Type &            productType() const { return(type().productType()); }
+	const ItemType &            productType() const { return(type().productType()); }
 	uint32                  productTypeID() const { return(type().productTypeID()); }
 	bool                    copy() const { return(m_copy); }
 	uint32                  materialLevel() const { return(m_materialLevel); }
@@ -308,7 +308,7 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data)
+		const ItemType &type, const ItemData &data)
 	{
 		// check it's blueprint type
 		if( type.categoryID() != EVEDB::invCategories::Blueprint )

@@ -84,7 +84,7 @@ protected:
 		ItemFactory &_factory,
 		uint32 _celestialID,
 		// InventoryItem stuff:
-		const Type &_type,
+		const ItemType &_type,
 		const ItemData &_data,
 		// CelestialObject stuff:
 		const CelestialObjectData &_cData
@@ -99,7 +99,7 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadItem(ItemFactory &factory, uint32 celestialID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data)
+		const ItemType &type, const ItemData &data)
 	{
 		// make sure it's celestial object or station
 		if( type.categoryID() != EVEDB::invCategories::Celestial
@@ -121,7 +121,7 @@ protected:
 	template<class _Ty>
 	static _Ty *_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
 		// InventoryItem stuff:
-		const Type &type, const ItemData &data,
+		const ItemType &type, const ItemData &data,
 		// CelestialObject stuff:
 		const CelestialObjectData &cData
 	);

@@ -107,7 +107,7 @@ ItemData::ItemData(
 InventoryItem::InventoryItem(
 	ItemFactory &_factory,
 	uint32 _itemID,
-	const Type &_type,
+	const ItemType &_type,
 	const ItemData &_data)
 : attributes(_factory, *this, true, true),
   m_refCount(1),
@@ -176,7 +176,7 @@ InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID)
 template<class _Ty>
 _Ty *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data)
+	const ItemType &type, const ItemData &data)
 {
 	// See what to do next:
 	switch( type.categoryID() ) {
@@ -209,7 +209,7 @@ _Ty *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 		}
 	}
 
-	// Category didn't do it, try Group:
+	// ItemCategory didn't do it, try ItemGroup:
 	switch( type.groupID() ) {
 		///////////////////////////////////////
 		// Character:
@@ -248,7 +248,7 @@ bool InventoryItem::_Load()
 InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 {
 	// obtain type of new item
-	const Type *t = factory.GetType( data.typeID );
+	const ItemType *t = factory.GetType( data.typeID );
 	if( t == NULL )
 		return NULL;
 
@@ -321,7 +321,7 @@ uint32 InventoryItem::_Spawn(ItemFactory &factory,
 ) {
 	// obtain type of new item
 	// this also checks that the type is valid
-	const Type *t = factory.GetType(data.typeID);
+	const ItemType *t = factory.GetType(data.typeID);
 	if(t == NULL)
 		return 0;
 

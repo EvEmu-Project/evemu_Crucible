@@ -47,7 +47,7 @@ CelestialObject::CelestialObject(
 	ItemFactory &_factory,
 	uint32 _celestialID,
 	// InventoryItem stuff:
-	const Type &_type,
+	const ItemType &_type,
 	const ItemData &_data,
 	// CelestialObject stuff:
 	const CelestialObjectData &_cData)
@@ -67,7 +67,7 @@ CelestialObject *CelestialObject::Load(ItemFactory &factory, uint32 celestialID)
 template<class _Ty>
 _Ty *CelestialObject::_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
 	// InventoryItem stuff:
-	const Type &type, const ItemData &data,
+	const ItemType &type, const ItemData &data,
 	// CelestialObject stuff:
 	const CelestialObjectData &cData)
 {
