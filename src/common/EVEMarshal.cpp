@@ -380,7 +380,7 @@ public:
 		assert(false && "MarshalStream on the server size should never send checksummed objects");
 		PutByte(Op_PyChecksumedStream);
 		uint32 sum = 0;
-		PutBytes(&sum, sizeof(sum));
+		PutUint32(&sum);
 		PyVisitor::VisitChecksumedStream(rep);
 	}
 	
@@ -453,7 +453,7 @@ public:
 		{
 			PutByte(Op_PyTuple);
 			PutByte(0xFF);
-			PutBytes(&size, sizeof(size));
+			PutUint32(&size);
 			PyVisitor::VisitTuple(rep);
 			return;
 		}
@@ -513,15 +513,12 @@ private:
 	// not very efficient but it will do for now
 	ASCENT_INLINE void CheckSize(uint32 size)
 	{
-		uint32 rSize = mAllocatedMem - mWriteIndex;
-		if (rSize < size)
-		{
-			//printf("VisitBuff: 0x%p is incr size from: %u to %u | check size was: %u\n", this, mAllocatedMem, mAllocatedMem + 0x10000, size);
-			
-			// realloc on itself is quite slow..... but it will do for now..
-			mBuffer = (uint8*)realloc(mBuffer, mAllocatedMem + 0x10000);
-			mAllocatedMem += 0x10000;
-		}
+        uint32 neededMem = mWriteIndex + size;
+        if (neededMem > mAllocatedMem)
+        {
+            mBuffer = (uint8*)realloc(mBuffer, neededMem + 0x1000);
+            mAllocatedMem = neededMem + 0x1000;
+        }
 	}
 	
 public:
@@ -535,14 +532,8 @@ public:
 	ASCENT_INLINE void PutBytes(const void *v, uint32 len)
 	{
 		CheckSize(len);
-		const uint8 *b = (const uint8 *) v;
-		while(len > 0)
-		{
-			mBuffer[mWriteIndex] = *b;
-			mWriteIndex++;
-			b++;
-			len--;
-		}
+        memcpy(&mBuffer[mWriteIndex], v, len);
+        mWriteIndex+=len;
 	}
 
 	ASCENT_INLINE void PutDouble(const double& value)
