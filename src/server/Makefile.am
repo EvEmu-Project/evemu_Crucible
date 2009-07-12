@@ -138,12 +138,12 @@ libinventory_a_SOURCES = \
 	inventory/EVEAttributeMgr.h \
 	inventory/InvBrokerService.cpp \
 	inventory/InvBrokerService.h \
+	inventory/Inventory.cpp \
+	inventory/Inventory.h \
 	inventory/InventoryDB.cpp \
 	inventory/InventoryDB.h \
 	inventory/InventoryItem.cpp \
 	inventory/InventoryItem.h \
-	inventory/ItemContainer.cpp \
-	inventory/ItemContainer.h \
 	inventory/ItemFactory.cpp \
 	inventory/ItemFactory.h \
 	inventory/ItemType.cpp \

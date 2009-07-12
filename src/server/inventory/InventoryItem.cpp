@@ -237,10 +237,10 @@ bool InventoryItem::_Load()
 	if(!attributes.Load())
 		return false;
 
-	// update container
-	ItemContainer *container = m_factory.GetItemContainer( locationID(), false );
-	if(container != NULL)
-		container->AddContainedItem( *this );
+	// update inventory
+	Inventory *inventory = m_factory.GetInventory( locationID(), false );
+	if(inventory != NULL)
+		inventory->AddItem( *this );
 
 	return true;
 }
@@ -335,7 +335,7 @@ uint32 InventoryItem::_Spawn(ItemFactory &factory,
 
 void InventoryItem::Delete() {
 	//first, get out of client's sight.
-	//this also removes us from our container.
+	//this also removes us from our inventory.
 	Move(6);
 	ChangeOwner(2);
 
@@ -439,8 +439,8 @@ void InventoryItem::Rename(const char *to) {
 	SaveItem();
 }
 
-void InventoryItem::MoveInto(ItemContainer &new_home, EVEItemFlags _flag, bool notify) {
-	Move( new_home.containerID(), _flag, notify );
+void InventoryItem::MoveInto(Inventory &new_home, EVEItemFlags _flag, bool notify) {
+	Move( new_home.inventoryID(), _flag, notify );
 }
 
 void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify) {
@@ -450,18 +450,18 @@ void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify
 	if( new_location == old_location && new_flag == old_flag )
 		return;	//nothing to do...
 	
-	//first, take myself out of my old container, if its loaded.
-	ItemContainer *old_container = m_factory.GetItemContainer( old_location, false );
-	if(old_container != NULL)
-		old_container->RemoveContainedItem( itemID() );	//releases its ref
+	//first, take myself out of my old inventory, if its loaded.
+	Inventory *old_inventory = m_factory.GetInventory( old_location, false );
+	if(old_inventory != NULL)
+		old_inventory->RemoveItem( itemID() );	//releases its ref
 	
 	m_locationID = new_location;
 	m_flag = new_flag;
 
-	//then make sure that my new container is updated, if its loaded.
-	ItemContainer *new_container = m_factory.GetItemContainer( new_location, false );
-	if(new_container != NULL)
-		new_container->AddContainedItem( *this );	//makes a new ref
+	//then make sure that my new inventory is updated, if its loaded.
+	Inventory *new_inventory = m_factory.GetInventory( new_location, false );
+	if(new_inventory != NULL)
+		new_inventory->AddItem( *this );	//makes a new ref
 
 	SaveItem();
 

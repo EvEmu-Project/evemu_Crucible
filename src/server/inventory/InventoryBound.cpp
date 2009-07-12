@@ -30,11 +30,11 @@ PyCallable_Make_InnerDispatcher(InventoryBound)
 
 InventoryBound::InventoryBound(
 	PyServiceMgr *mgr,
-	ItemContainer &container,
+	Inventory &inventory,
 	EVEItemFlags flag)
 : PyBoundObject(mgr),
   m_dispatch(new Dispatcher(this)),
-  mContainer(container),
+  mInventory(inventory),
   mFlag(flag)
 {
 	_SetCallDispatcher(m_dispatch);
@@ -56,9 +56,9 @@ InventoryBound::~InventoryBound()
 PyResult InventoryBound::Handle_List(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	//TODO: check to make sure we are allowed to list this container
+	//TODO: check to make sure we are allowed to list this inventory
 
-	return mContainer.List( mFlag, call.client->GetCharacterID() );
+	return mInventory.List( mFlag, call.client->GetCharacterID() );
 }
 
 PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
@@ -75,7 +75,7 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 	}
 
 	// returns new ref
-	InventoryItem *new_charge = mContainer.GetByID(args.itemID, true);
+	InventoryItem *new_charge = mInventory.GetByID(args.itemID, true);
 	if(new_charge == NULL) {
 		codelog(SERVICE__ERROR, "%s: Unable to find charge %d", call.client->GetName(), args.itemID);
 		return NULL;
@@ -118,7 +118,7 @@ PyResult InventoryBound::Handle_ListStations(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
-	return mContainer.GetItem();
+	return mInventory.GetItem();
 }
 
 PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
@@ -239,7 +239,7 @@ PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
 	}
 
 	//Stack Items contained in this inventory
-	mContainer.StackAll(stackFlag, call.client->GetCharacterID());
+	mInventory.StackAll(stackFlag, call.client->GetCharacterID());
 
 	return NULL;
 }
@@ -277,7 +277,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 			{
 				try
 				{
-					mContainer.ValidateAdd( flag, *newItem );
+					mInventory.ValidateAddItem( flag, *newItem );
 				}
 				catch(...)
 				{
@@ -287,7 +287,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 				}
 
 				//Move New item to its new location
-				c->MoveItem(newItem->itemID(), mContainer.containerID(), flag);	// properly refresh modules
+				c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag);	// properly refresh modules
 				if(fLoadoutRequest == true)
 					newItem->ChangeSingleton( true );
 
@@ -308,7 +308,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 			//Its a move request
 			try
 			{
-				mContainer.ValidateAdd( flag, *sourceItem );
+				mInventory.ValidateAddItem( flag, *sourceItem );
 			}
 			catch(...)
 			{
@@ -316,7 +316,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 				throw;
 			}
 
-			c->MoveItem(sourceItem->itemID(), mContainer.containerID(), flag);	// properly refresh modules
+			c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);	// properly refresh modules
 			if(fLoadoutRequest == true)
 				sourceItem->ChangeSingleton( true );
 		}

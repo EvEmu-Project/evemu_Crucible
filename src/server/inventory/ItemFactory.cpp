@@ -251,20 +251,20 @@ Skill *ItemFactory::SpawnSkill(ItemData &data)
 	return s->IncRef();
 }
 
-ItemContainer *ItemFactory::GetItemContainer(uint32 containerID, bool load)
+Inventory *ItemFactory::GetInventory(uint32 inventoryID, bool load)
 {
 	InventoryItem *item = NULL;
 
 	if( load )
 	{
-		item = GetItem( containerID );
+		item = GetItem( inventoryID );
 		if( item != NULL )
-			// containers are not referenced
+			// inventories are not referenced
 			item->DecRef();
 	}
 	else
 	{
-		std::map<uint32, InventoryItem *>::iterator res = m_items.find( containerID );
+		std::map<uint32, InventoryItem *>::iterator res = m_items.find( inventoryID );
 		if( res != m_items.end() )
 			item = res->second;
 	}

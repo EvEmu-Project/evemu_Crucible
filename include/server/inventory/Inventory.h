@@ -23,21 +23,21 @@
 	Author:		Bloody.Rabbit
 */
 
-#ifndef __ITEM_CONTAINER__H__INCL__
-#define __ITEM_CONTAINER__H__INCL__
+#ifndef __INVENTORY__H__INCL__
+#define __INVENTORY__H__INCL__
 
 class InventoryItem;
 class ItemFactory;
 class dbutil_CRowset;
 
-class ItemContainer
+class Inventory
 {
 	friend class InventoryItem;
 public:
-	ItemContainer();
-	virtual ~ItemContainer();
+	Inventory();
+	virtual ~Inventory();
 
-	virtual uint32 containerID() const = 0;
+	virtual uint32 inventoryID() const = 0;
 
 	/*
 	 * Contents management:
@@ -57,7 +57,7 @@ public:
 
 	double GetStoredVolume(EVEItemFlags flag) const;
 
-	virtual void ValidateAdd(EVEItemFlags flag, InventoryItem &item) const {}
+	virtual void ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const {}
 	void StackAll(EVEItemFlags flag, uint32 forOwner = 0);
 
 	/*
@@ -69,22 +69,22 @@ public:
 	void List(dbutil_CRowset &into, EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
 
 protected:
-	void AddContainedItem(InventoryItem &item);
-	void RemoveContainedItem(uint32 itemID);
+	void AddItem(InventoryItem &item);
+	void RemoveItem(uint32 itemID);
 
 	bool m_contentsLoaded;
 	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.
 };
 
-class ItemContainerEx
-: public ItemContainer
+class InventoryEx
+: public Inventory
 {
 public:
 	virtual double GetCapacity(EVEItemFlags flag) const = 0;
 	double GetRemainingCapacity(EVEItemFlags flag) const { return GetCapacity( flag ) - GetStoredVolume( flag ); }
 
-	void ValidateAdd(EVEItemFlags flag, InventoryItem &item) const;
+	void ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const;
 };
 
-#endif /* !__ITEM_CONTAINER__H__INCL__ */
+#endif /* !__INVENTORY__H__INCL__ */
 

@@ -155,7 +155,7 @@ protected:
  */
 class Ship
 : public InventoryItem,
-  public ItemContainerEx
+  public InventoryEx
 {
 	friend class InventoryItem;	// to let it construct us
 public:
@@ -184,7 +184,7 @@ public:
 	void Delete();
 
 	double GetCapacity(EVEItemFlags flag) const;
-	void ValidateAdd(EVEItemFlags flag, InventoryItem &item) const;
+	void ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const;
 
 	/*
 	 * Public fields:
@@ -244,7 +244,7 @@ protected:
 		ItemData &data
 	);
 
-	uint32 containerID() const { return itemID(); }
+	uint32 inventoryID() const { return itemID(); }
 	PyRep *GetItem() const { return GetItemRow(); }
 };
 

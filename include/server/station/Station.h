@@ -181,7 +181,7 @@ public:
  */
 class Station
 : public CelestialObject,
-  public ItemContainer
+  public Inventory
 {
 	friend class InventoryItem; // to let it construct us
 	friend class CelestialObject; // to let it construct us
@@ -269,7 +269,7 @@ protected:
 
 	bool _Load();
 
-	uint32 containerID() const { return itemID(); }
+	uint32 inventoryID() const { return itemID(); }
 	PyRep *GetItem() const { return GetItemRow(); }
 
 	/*

@@ -446,6 +446,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\server\inventory\Inventory.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\server\inventory\InventoryBound.cpp"
 					>
 				</File>
@@ -455,10 +459,6 @@
 				</File>
 				<File
 					RelativePath="..\..\src\server\inventory\InventoryItem.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\server\inventory\ItemContainer.cpp"
 					>
 				</File>
 				<File
@@ -1048,6 +1048,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\server\inventory\Inventory.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\server\inventory\InventoryBound.h"
 					>
 				</File>
@@ -1057,10 +1061,6 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\inventory\InventoryItem.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\server\inventory\ItemContainer.h"
 					>
 				</File>
 				<File

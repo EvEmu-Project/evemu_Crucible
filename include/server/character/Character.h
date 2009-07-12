@@ -331,7 +331,7 @@ public:
  */
 class Character
 : public InventoryItem,
-  public ItemContainer
+  public Inventory
 {
 	friend class InventoryItem;	// to let it construct us
 public:
@@ -550,7 +550,7 @@ protected:
 		CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
 	);
 
-	uint32 containerID() const { return itemID(); }
+	uint32 inventoryID() const { return itemID(); }
 	PyRep *GetItem() const { return GetItemRow(); }
 
 	void SaveCharacter() const;

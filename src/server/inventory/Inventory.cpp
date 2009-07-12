@@ -26,14 +26,14 @@
 #include "EvemuPCH.h"
 
 /*
- * ItemContainer
+ * Inventory
  */
-ItemContainer::ItemContainer()
+Inventory::Inventory()
 : m_contentsLoaded(false)
 {
 }
 
-ItemContainer::~ItemContainer()
+Inventory::~Inventory()
 {
 	std::map<uint32, InventoryItem *>::iterator cur, end;
 	cur = m_contents.begin();
@@ -42,16 +42,16 @@ ItemContainer::~ItemContainer()
 		cur->second->DecRef();
 }
 
-bool ItemContainer::LoadContents(ItemFactory &factory)
+bool Inventory::LoadContents(ItemFactory &factory)
 {
 	if( ContentsLoaded() )
 		return true;
 
-	_log( ITEM__TRACE, "Recursively loading contents of container %u", containerID() );
+	_log( ITEM__TRACE, "Recursively loading contents of inventory %u", inventoryID() );
 
 	//load the list of items we need
 	std::vector<uint32> items;
-	if( !factory.db().GetItemContents( containerID(), items ) )
+	if( !factory.db().GetItemContents( inventoryID(), items ) )
 		return false;
 	
 	//Now get each one from the factory (possibly recursing)
@@ -63,11 +63,11 @@ bool ItemContainer::LoadContents(ItemFactory &factory)
 		InventoryItem *i = factory.GetItem( *cur );
 		if( i == NULL )
 		{
-			_log( ITEM__ERROR, "Failed to load item %u contained in %u. Skipping.", *cur, containerID() );
+			_log( ITEM__ERROR, "Failed to load item %u contained in %u. Skipping.", *cur, inventoryID() );
 			continue;
 		}
 
-		AddContainedItem( *i );
+		AddItem( *i );
 		i->DecRef();
 	}
 
@@ -75,7 +75,7 @@ bool ItemContainer::LoadContents(ItemFactory &factory)
 	return true;
 }
 
-void ItemContainer::DeleteContents(ItemFactory &factory)
+void Inventory::DeleteContents(ItemFactory &factory)
 {
 	LoadContents( factory );
 
@@ -95,7 +95,7 @@ void ItemContainer::DeleteContents(ItemFactory &factory)
 	m_contents.clear();
 }
 
-PyRepObjectEx *ItemContainer::List(EVEItemFlags _flag, uint32 forOwner) const
+PyRepObjectEx *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
 {
 	dbutil_CRowset rowset;
 
@@ -110,7 +110,7 @@ PyRepObjectEx *ItemContainer::List(EVEItemFlags _flag, uint32 forOwner) const
 	return rowset.FastEncode();
 }
 
-void ItemContainer::List(dbutil_CRowset &into, EVEItemFlags _flag, uint32 forOwner) const
+void Inventory::List(dbutil_CRowset &into, EVEItemFlags _flag, uint32 forOwner) const
 {
 	//there has to be a better way to build this...
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
@@ -127,7 +127,7 @@ void ItemContainer::List(dbutil_CRowset &into, EVEItemFlags _flag, uint32 forOwn
 	}
 }
 
-InventoryItem *ItemContainer::FindFirstByFlag(EVEItemFlags _flag, bool newref) const
+InventoryItem *Inventory::FindFirstByFlag(EVEItemFlags _flag, bool newref) const
 {
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
@@ -143,7 +143,7 @@ InventoryItem *ItemContainer::FindFirstByFlag(EVEItemFlags _flag, bool newref) c
 	return NULL;
 }
 
-InventoryItem *ItemContainer::GetByID(uint32 id, bool newref) const
+InventoryItem *Inventory::GetByID(uint32 id, bool newref) const
 {
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
@@ -159,7 +159,7 @@ InventoryItem *ItemContainer::GetByID(uint32 id, bool newref) const
 	return NULL;
 }
 
-InventoryItem *ItemContainer::GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref) const
+InventoryItem *Inventory::GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref) const
 {
 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
 	cur = m_contents.begin();
@@ -178,7 +178,7 @@ InventoryItem *ItemContainer::GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bo
 	return NULL;
 }
 
-uint32 ItemContainer::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *> &items, bool newref) const
+uint32 Inventory::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *> &items, bool newref) const
 {
 	uint32 count = 0;
 
@@ -199,7 +199,7 @@ uint32 ItemContainer::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *
 	return count;
 }
 
-uint32 ItemContainer::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref) const
+uint32 Inventory::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref) const
 {
 	uint32 count = 0;
 
@@ -221,7 +221,7 @@ uint32 ItemContainer::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_f
 	return count;
 }
 
-uint32 ItemContainer::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref) const
+uint32 Inventory::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref) const
 {
 	uint32 count = 0;
 
@@ -242,14 +242,14 @@ uint32 ItemContainer::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<In
 	return count;
 }
 
-void ItemContainer::AddContainedItem(InventoryItem &item)
+void Inventory::AddItem(InventoryItem &item)
 {
 	std::map<uint32, InventoryItem *>::iterator res = m_contents.find( item.itemID() );
 	if( res == m_contents.end() )
 	{
 		m_contents[ item.itemID() ] = item.IncRef();
 
-		_log( ITEM__TRACE, "   Updated location %u to contain item %u with flag %d.", containerID(), item.itemID(), (int)item.flag() );
+		_log( ITEM__TRACE, "   Updated location %u to contain item %u with flag %d.", inventoryID(), item.itemID(), (int)item.flag() );
 	}
 	else if( res->second != &item )
 	{
@@ -257,7 +257,7 @@ void ItemContainer::AddContainedItem(InventoryItem &item)
 	} //else already here
 }
 
-void ItemContainer::RemoveContainedItem(uint32 itemID)
+void Inventory::RemoveItem(uint32 itemID)
 {
 	std::map<uint32, InventoryItem *>::iterator old_inst = m_contents.find( itemID );
 	if( old_inst != m_contents.end() )
@@ -265,11 +265,11 @@ void ItemContainer::RemoveContainedItem(uint32 itemID)
 		old_inst->second->DecRef();
 		m_contents.erase( old_inst );
 
-		_log( ITEM__TRACE, "   Updated location %u to no longer contain item %u.", containerID(), itemID );
+		_log( ITEM__TRACE, "   Updated location %u to no longer contain item %u.", inventoryID(), itemID );
 	}
 }
 
-void ItemContainer::StackAll(EVEItemFlags locFlag, uint32 forOwner)
+void Inventory::StackAll(EVEItemFlags locFlag, uint32 forOwner)
 {
 	std::map<uint32, InventoryItem *> types;
 
@@ -295,7 +295,7 @@ void ItemContainer::StackAll(EVEItemFlags locFlag, uint32 forOwner)
 	}
 }
 
-double ItemContainer::GetStoredVolume(EVEItemFlags locationFlag) const
+double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
 {
 	double totalVolume = 0.0;
 	//TODO: And implement Sizes for packaged ships
@@ -313,9 +313,9 @@ double ItemContainer::GetStoredVolume(EVEItemFlags locationFlag) const
 }
 
 /*
- * ItemContainerEx
+ * InventoryEx
  */
-void ItemContainerEx::ValidateAdd(EVEItemFlags flag, InventoryItem &item) const
+void InventoryEx::ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const
 {
 	double volume = item.quantity() * item.volume();
 	double capacity = GetRemainingCapacity( flag );

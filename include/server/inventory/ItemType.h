@@ -23,8 +23,8 @@
 	Author:		Bloody.Rabbit
 */
 
-#ifndef __TYPE__H__INCL__
-#define __TYPE__H__INCL__
+#ifndef __ITEM_TYPE__H__INCL__
+#define __ITEM_TYPE__H__INCL__
 
 #include <string>
 
@@ -365,7 +365,7 @@ protected:
 	double m_chanceOfDuplicating;
 };
 
-#endif /* __TYPE__H__INCL__ */
+#endif /* __ITEM_TYPE__H__INCL__ */
 
 
 

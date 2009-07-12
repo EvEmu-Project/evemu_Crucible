@@ -202,7 +202,7 @@
 #include "../server/inventory/InvBrokerService.h"
 #include "../server/inventory/InventoryDB.h"
 #include "../server/inventory/InventoryItem.h"
-#include "../server/inventory/ItemContainer.h"
+#include "../server/inventory/Inventory.h"
 #include "../server/inventory/ItemDB.h"
 #include "../server/inventory/ItemFactory.h"
 #include "../server/inventory/ItemType.h"

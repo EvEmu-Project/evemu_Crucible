@@ -34,7 +34,7 @@
 #include "../common/gpoint.h"
 
 #include "inventory/EVEAttributeMgr.h"
-#include "inventory/ItemContainer.h"
+#include "inventory/Inventory.h"
 #include "inventory/ItemType.h"
 
 class PyRep;
@@ -121,7 +121,7 @@ public:
 	void Rename(const char *to);
 	void ChangeOwner(uint32 new_owner, bool notify=true);
 	void Move(uint32 location, EVEItemFlags flag=flagAutoFit, bool notify=true);
-	void MoveInto(ItemContainer &new_home, EVEItemFlags flag=flagAutoFit, bool notify=true);
+	void MoveInto(Inventory &new_home, EVEItemFlags flag=flagAutoFit, bool notify=true);
 	bool ChangeSingleton(bool singleton, bool notify=true);
 	bool AlterQuantity(int32 qty_change, bool notify=true);
 	bool SetQuantity(uint32 qty_new, bool notify=true);

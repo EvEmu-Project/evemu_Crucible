@@ -956,8 +956,8 @@ void RamProxyService::_EncodeMissingMaterials(const std::vector<RequiredItem> &r
 
 void RamProxyService::_GetBOMItems(const PathElement &bomLocation, std::vector<InventoryItem*> &into, bool newref)
 {
-	ItemContainer *container = m_manager->item_factory.GetItemContainer( bomLocation.locationID );
-	if( container != NULL )
-		container->FindByFlag( (EVEItemFlags)bomLocation.flag, into, newref );
+	Inventory *inventory = m_manager->item_factory.GetInventory( bomLocation.locationID );
+	if( inventory != NULL )
+		inventory->FindByFlag( (EVEItemFlags)bomLocation.flag, into, newref );
 }
 

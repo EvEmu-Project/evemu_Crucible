@@ -50,7 +50,7 @@ class SolarSystem;
 class Station;
 class Skill;
 
-class ItemContainer;
+class Inventory;
 
 class ItemFactory {
 	friend class InventoryItem;	//only for access to _DeleteItem
@@ -193,9 +193,9 @@ public:
 	Skill *SpawnSkill(ItemData &data);
 
 	/*
-	 * Container stuff
+	 * Inventory stuff
 	 */
-	ItemContainer *GetItemContainer(uint32 containerID, bool load=true);
+	Inventory *GetInventory(uint32 inventoryID, bool load=true);
 
 protected:
 	InventoryDB m_db;

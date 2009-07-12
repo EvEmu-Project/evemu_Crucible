@@ -164,9 +164,9 @@ double Ship::GetCapacity(EVEItemFlags flag) const
 	
 }
 
-void Ship::ValidateAdd(EVEItemFlags flag, InventoryItem &item) const
+void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const
 {
-	ItemContainerEx::ValidateAdd( flag, item );
+	InventoryEx::ValidateAddItem( flag, item );
 
 	if( flag == flagDroneBay )
 	{
