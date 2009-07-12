@@ -53,7 +53,7 @@
 	</InlineTuple>
 </element>
 
-<element name="Inventory_CallAdd">
+<element name="Call_Add_3">
   <InlineTuple>
       <int name="itemID" />
       <int name="quantity" />
@@ -61,14 +61,14 @@
   </InlineTuple>
 </element>
 
-<element name="Inventory_CallAddCargoContainer">
+<element name="Call_Add_2">
   <InlineTuple>
-    <int name="itemID"/>
-    <int name="quantity"/>
+      <int name="itemID" />
+      <int name="quantity" none_marker="1" />
   </InlineTuple>
 </element>
 
-<element name="Inventory_CallMultiAdd">
+<element name="Call_MultiAdd_3">
   <InlineTuple>
       <intlist name="itemIDs" />
       <int name="quantity" none_marker="1" /> <!-- almost always 1 on a multiadd -->

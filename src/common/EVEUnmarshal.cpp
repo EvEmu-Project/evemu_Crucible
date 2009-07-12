@@ -1087,7 +1087,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
 		uint32 cc = row->ColumnCount();
 		for(uint32 i = 0; i < cc; i++)
-			sizeMap.insert( std::make_pair( GetTypeSize( row->GetColumnType( i ) ), i ) );
+			sizeMap.insert( std::make_pair( DBTYPE_SizeOf( row->GetColumnType( i ) ), i ) );
 
 		// current offset in unpacked:
 		uint8 off = 0;
@@ -1097,32 +1097,40 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		end = sizeMap.lower_bound( 1 );
 		for(; cur != end; cur++)
 		{
-			uint64 v = (1LL << cur->first) - 1;
-			v &= *reinterpret_cast<uint64 *>( &unpacked[ off ] );
+			union
+			{
+				uint64 i;
+				double r8;
+				float r4;
+			} v;
+			uint8 len = (cur->first >> 3);
 
-			off += (cur->first >> 3);
+			memcpy( &v, &unpacked[ off ], len );
+			off += len;
+
+			v.i &= (1LL << cur->first) - 1;
 
 			switch( row->GetColumnType( cur->second ) )
 			{
 				case DBTYPE_I8:
 				case DBTYPE_UI8:
+				case DBTYPE_CY:
+				case DBTYPE_FILETIME:
 				case DBTYPE_I4:
 				case DBTYPE_UI4:
 				case DBTYPE_I2:
 				case DBTYPE_UI2:
 				case DBTYPE_I1:
 				case DBTYPE_UI1:
-				case DBTYPE_CY:
-				case DBTYPE_FILETIME:
-					row->SetField( cur->second, new PyRepInteger( *reinterpret_cast<int64 *>( &v ) ) );
+					row->SetField( cur->second, new PyRepInteger( v.i ) );
 					break;
 
 				case DBTYPE_R8:
-					row->SetField( cur->second, new PyRepReal( *reinterpret_cast<double *>( &v ) ) );
+					row->SetField( cur->second, new PyRepReal( v.r8 ) );
 					break;
 
 				case DBTYPE_R4:
-					row->SetField( cur->second, new PyRepReal( *reinterpret_cast<float *>( &v ) ) );
+					row->SetField( cur->second, new PyRepReal( v.r4 ) );
 					break;
 			}
 		}
@@ -1131,13 +1139,15 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		end = sizeMap.lower_bound( 0 );
 		for(uint8 bit_off = 0; cur != end; cur++)
 		{
-			row->SetField( cur->second, new PyRepBoolean( ( unpacked[ off ] >> bit_off) & 0x1 ) );
-
-			if( ++bit_off > 7 )
+			if( bit_off > 7 )
 			{
 				off++;
 				bit_off = 0;
 			}
+
+			row->SetField( cur->second, new PyRepBoolean( ( unpacked[ off ] >> bit_off) & 0x1 ) );
+
+			bit_off++;
 		}
 
 		cur = sizeMap.lower_bound( 0 );

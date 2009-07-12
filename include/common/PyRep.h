@@ -499,8 +499,6 @@ public:
 	bool SetField(const char *colName, PyRep *value);
 
 protected:
-	static bool _Verify(DBTYPE type, const PyRep &rep);
-
 	const PyRep &mHeader;
 	const bool mHeaderOwner;
 

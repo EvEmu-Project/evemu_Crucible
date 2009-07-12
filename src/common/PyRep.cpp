@@ -23,13 +23,12 @@
 	Author:		Zhur
 */
 
-#include <float.h>
-
 #include "common.h"
+#include "misc.h"
+#include "packet_functions.h"
 #include "PyRep.h"
 #include "PyVisitor.h"
-#include "packet_functions.h"
-#include "misc.h"
+#include "EVEUtils.h"
 #include "EVEMarshal.h"
 #include "EVEUnmarshal.h"
 #include "EVEMarshalOpcodes.h"
@@ -958,11 +957,14 @@ bool PyRepPackedRow::SetField(uint32 index, PyRep *value)
 	if( index >= ColumnCount() )
 		return false;
 
-	// verify type
-	if( !_Verify( GetColumnType( index ), *value ) )
+	if( value != NULL )
 	{
-		SafeDelete( value );
-		return false;
+		// verify type
+		if( !DBTYPE_IsCompatible( GetColumnType( index ), *value ) )
+		{
+			SafeDelete( value );
+			return false;
+		}
 	}
 
 	PyRep *&v = mFields.at( index );
@@ -978,49 +980,6 @@ bool PyRepPackedRow::SetField(const char *colName, PyRep *value)
 	if( index >= ColumnCount() )
 		return false;
 	return SetField( index, value );
-}
-
-bool PyRepPackedRow::_Verify(DBTYPE type, const PyRep &rep)
-{
-	switch( type )
-	{
-		case DBTYPE_UI8:
-		case DBTYPE_CY:
-		case DBTYPE_FILETIME:
-			return rep.IsInteger() && rep.AsInteger().value >= 0;
-		case DBTYPE_UI4:
-			return rep.IsInteger() && rep.AsInteger().value >= 0 && rep.AsInteger().value <= 0xFFFFFFFF;
-		case DBTYPE_UI2:
-			return rep.IsInteger() && rep.AsInteger().value >= 0 && rep.AsInteger().value <= 0xFFFF;
-		case DBTYPE_UI1:
-			return rep.IsInteger() && rep.AsInteger().value >= 0 && rep.AsInteger().value <= 0xFF;
-
-		case DBTYPE_I8:
-			return rep.IsInteger();
-		case DBTYPE_I4:
-			return rep.IsInteger() && rep.AsInteger().value >= -0x7FFFFFFF && rep.AsInteger().value <= 0x7FFFFFFF;
-		case DBTYPE_I2:
-			return rep.IsInteger() && rep.AsInteger().value >= -0x7FFF && rep.AsInteger().value <= 0x7FFF;
-		case DBTYPE_I1:
-			return rep.IsInteger() && rep.AsInteger().value >= -0x7F && rep.AsInteger().value <= 0x7F;
-
-		case DBTYPE_R8:
-			return rep.IsReal();
-		case DBTYPE_R4:
-			return rep.IsReal() && rep.AsReal().value >= FLT_MIN && rep.AsReal().value <= FLT_MAX;
-
-		case DBTYPE_BOOL:
-			return rep.IsBool();
-
-		case DBTYPE_BYTES:
-			return rep.IsBuffer();
-
-		case DBTYPE_STR:
-		case DBTYPE_WSTR:
-			return rep.IsString();
-	}
-
-	return false;
 }
 
 

@@ -61,12 +61,20 @@ extern PyRep *MakeUserError(const char *exceptionType, const std::map<std::strin
 extern PyRep *MakeCustomError(const char *fmt, ...);
 
 /**
- * This routine returns length of field of given type.
+ * Returns length of field of given type.
  *
- * @param[in] t Type of fields.
+ * @param[in] type Type of fields.
  * @return Length of field (in bits).
  */
-extern uint8 GetTypeSize(DBTYPE t);
+extern uint8 DBTYPE_SizeOf(DBTYPE type);
+/**
+ * Checks compatibility between DBTYPE and PyRep.
+ *
+ * @param[in] txpe DBTYPE to check.
+ * @param[in] rep PyRep to check.
+ * @return True if arguments are compatible, false if not.
+ */
+extern bool DBTYPE_IsCompatible(DBTYPE type, const PyRep &rep);
 
 #endif
 

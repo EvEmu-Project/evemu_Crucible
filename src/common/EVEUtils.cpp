@@ -23,6 +23,8 @@
 	Author:		Zhur
 */
 
+#include <float.h>
+
 #include "common.h"
 #include "EVEUtils.h"
 #include "MiscFunctions.h"
@@ -128,9 +130,10 @@ PyRep *MakeCustomError(const char *fmt, ...) {
 	return(MakeUserError("CustomError", args));
 }
 
-uint8 GetTypeSize(DBTYPE t)
+uint8 DBTYPE_SizeOf(DBTYPE type)
 {
-	switch(t) {
+	switch( type )
+	{
 		case DBTYPE_I8:
 		case DBTYPE_UI8:
 		case DBTYPE_R8:
@@ -155,6 +158,65 @@ uint8 GetTypeSize(DBTYPE t)
 			return 0;
 	}
 	return 0;
+}
+
+bool DBTYPE_IsCompatible(DBTYPE type, const PyRep &rep)
+{
+// Helper macro, checks type and range
+#define CheckTypeRange( type, lower_bound, upper_bound ) \
+	( rep.Is##type() && rep.As##type().value >= lower_bound && rep.As##type().value <= upper_bound )
+
+	switch( type )
+	{
+		case DBTYPE_UI8:
+		case DBTYPE_CY:
+		case DBTYPE_FILETIME:
+			return CheckTypeRange( Integer, 0LL, 0xFFFFFFFFFFFFFFFFLL )
+			       || CheckTypeRange( Real, 0LL, 0xFFFFFFFFFFFFFFFFLL );
+		case DBTYPE_UI4:
+			return CheckTypeRange( Integer, 0L, 0xFFFFFFFFL )
+			       || CheckTypeRange( Real, 0L, 0xFFFFFFFFL );
+		case DBTYPE_UI2:
+			return CheckTypeRange( Integer, 0, 0xFFFF )
+			       || CheckTypeRange( Real, 0, 0xFFFF );
+		case DBTYPE_UI1:
+			return CheckTypeRange( Integer, 0, 0xFF )
+			       || CheckTypeRange( Real, 0, 0xFF );
+
+		case DBTYPE_I8:
+			return CheckTypeRange( Integer, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL )
+			       || CheckTypeRange( Real, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL );
+		case DBTYPE_I4:
+			return CheckTypeRange( Integer, -0x7FFFFFFFL, 0x7FFFFFFFL )
+			       || CheckTypeRange( Real, -0x7FFFFFFFL, 0x7FFFFFFFL );
+		case DBTYPE_I2:
+			return CheckTypeRange( Integer, -0x7FFF, 0x7FFF )
+			       || CheckTypeRange( Real, -0x7FFF, 0x7FFF );
+		case DBTYPE_I1:
+			return CheckTypeRange( Integer, -0x7F, 0x7F )
+			       || CheckTypeRange( Real, -0x7F, 0x7F );
+
+		case DBTYPE_R8:
+			return CheckTypeRange( Integer, DBL_MIN, DBL_MAX )
+			       || CheckTypeRange( Real, DBL_MIN, DBL_MAX );
+		case DBTYPE_R4:
+			return CheckTypeRange( Integer, FLT_MIN, FLT_MAX )
+			       || CheckTypeRange( Real, FLT_MIN, FLT_MAX );
+
+		case DBTYPE_BOOL:
+			return rep.IsBool();
+
+		case DBTYPE_BYTES:
+			return rep.IsBuffer();
+
+		case DBTYPE_STR:
+		case DBTYPE_WSTR:
+			return rep.IsString();
+	}
+
+	return rep.IsNone();
+
+#undef CheckTypeRange
 }
 
 

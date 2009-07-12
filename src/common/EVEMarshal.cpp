@@ -176,70 +176,66 @@ public:
 		std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
 		uint32 cc = rep->ColumnCount();
 		for(uint32 i = 0; i < cc; i++)
-			sizeMap.insert( std::make_pair( GetTypeSize( rep->GetColumnType( i ) ), i ) );
+			sizeMap.insert( std::make_pair( DBTYPE_SizeOf( rep->GetColumnType( i ) ), i ) );
 
 		std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
 		cur = sizeMap.begin();
 		end = sizeMap.lower_bound( 1 );
 		for(; cur != end; cur++)
 		{
-			PyRep *r = rep->GetField( cur->second );
 			uint8 len = (cur->first >> 3);
 
 			size_t off = unpacked.size();
 			unpacked.resize( off + len );
 
+			union
+			{
+				uint64 i;
+				double r8;
+				float r4;
+			} v;
+			v.i = 0;
+
+			PyRep *r = rep->GetField( cur->second );
 			if( r != NULL )
 			{
 				switch( rep->GetColumnType( cur->second ) )
 				{
 					case DBTYPE_I8:
 					case DBTYPE_UI8:
+					case DBTYPE_CY:
+					case DBTYPE_FILETIME:
 					case DBTYPE_I4:
 					case DBTYPE_UI4:
 					case DBTYPE_I2:
 					case DBTYPE_UI2:
 					case DBTYPE_I1:
 					case DBTYPE_UI1:
-					case DBTYPE_CY:
-					case DBTYPE_FILETIME:
-					{
 						if( r->IsInteger() )
-							memcpy( &unpacked[ off ], &r->AsInteger().value, len );
-						else
-							r = NULL;
-					} break;
+							v.i = r->AsInteger().value;
+						else if( r->IsReal() )
+							v.i = r->AsReal().value;
+						break;
 
 					case DBTYPE_R8:
-					{
 						if( r->IsReal() )
-							memcpy( &unpacked[ off ], &r->AsReal().value, len );
-						else
-							r = NULL;
-					} break;
+							v.r8 = r->AsReal().value;
+						else if( r->IsInteger() )
+							v.r8 = r->AsInteger().value;
+						break;
 
 					case DBTYPE_R4:
-					{
 						if( r->IsReal() )
-						{
-							// cast down to float first
-							float f = r->AsReal().value;
-
-							memcpy( &unpacked[ off ], &f, len );
-						}
-						else
-							r = NULL;
-					} break;
-
-					default:
-					{
-						r = NULL;
-					} break;
+							v.r4 = r->AsReal().value;
+						else if( r->IsInteger() )
+							v.r4 = r->AsInteger().value;
+						break;
 				}
 			}
 
-			if( r == NULL )
-				memset( &unpacked[ off ], 0, len );
+			v.i &= (1LL << cur->first) - 1;
+
+			memcpy( &unpacked[ off ], &v, len );
 		}
 
 		cur = sizeMap.lower_bound( 1 );
@@ -441,14 +437,7 @@ public:
 				PutByte(length);
 			}
 
-			CheckSize(v.size());
-			
-			// Fast but many coders consider hacky methode
-			memcpy(&mBuffer[mWriteIndex], v.data(), v.size());
-			mWriteIndex+=v.size();
-
-			// slow but considered to be safer ( why in the hack would this be safer?:S )
-			//PutBytes(v.data(), v.size());
+			PutBytes(v.data(), v.size());
 		}
 		else
 		{
@@ -622,6 +611,7 @@ public:
 		mBuffer[mWriteIndex] = b;
 		mWriteIndex++;
 	}
+
 	ASCENT_INLINE void PutBytes(const void *v, uint32 len)
 	{
 		CheckSize( len );
@@ -681,7 +671,7 @@ public:
 
 	/**	adds a uint8 do the data stream
 	  */
-	ASCENT_INLINE void PutUint8(uint8 value)
+	ASCENT_INLINE void PutUint8(const uint8 value)
 	{
 		CheckSize(1);
 		mBuffer[mWriteIndex] = value; mWriteIndex++;

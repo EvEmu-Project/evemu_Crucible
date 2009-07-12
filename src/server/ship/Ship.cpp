@@ -157,8 +157,10 @@ void Ship::Delete()
 double Ship::GetCapacity(EVEItemFlags flag) const
 {
 	switch( flag ) {
-		case flagCargoHold: return capacity();
-		case flagDroneBay:	return droneCapacity();
+		case flagCargoHold:     return capacity();
+		case flagDroneBay:      return droneCapacity();
+		case flagShipHangar:    return shipMaintenanceBayCapacity();
+		case flagHangar:        return corporateHangarCapacity();
 		default:			return 0.0;
 	}
 	
@@ -166,14 +168,32 @@ double Ship::GetCapacity(EVEItemFlags flag) const
 
 void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const
 {
-	InventoryEx::ValidateAddItem( flag, item );
-
 	if( flag == flagDroneBay )
 	{
 		if( item.categoryID() != EVEDB::invCategories::Drone )
 			//Can only put drones in drone bay
 			throw PyException( MakeUserError( "ItemCannotBeInDroneBay" ) );
+		InventoryEx::ValidateAddItem( flag, item );
 	}
+	else if( flag == flagShipHangar )
+	{
+		if( !hasShipMaintenanceBay() )
+			// We have no ship maintenance bay
+			throw PyException( MakeCustomError( "%s has no ship maintenance bay.", itemName().c_str() ) );
+		if( item.categoryID() != EVEDB::invCategories::Ship )
+			// Only ships may be put here
+			throw PyException( MakeCustomError( "Only ships may be placed into ship maintenance bay." ) );
+		InventoryEx::ValidateAddItem( flag, item );
+	}
+	else if( flag == flagHangar )
+	{
+		if( !hasCorporateHangars() )
+			// We have no corporate hangars
+			throw PyException( MakeCustomError( "%s has no corporate hangars.", itemName().c_str() ) );
+		InventoryEx::ValidateAddItem( flag, item );
+	}
+	else if( flag == flagCargoHold )
+		InventoryEx::ValidateAddItem( flag, item );
 }
 
 PyRepObject *Ship::ShipGetInfo()

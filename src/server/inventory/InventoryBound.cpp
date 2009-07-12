@@ -122,8 +122,9 @@ PyResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
-	if(call.tuple->items.size() == 3) {
-		Inventory_CallAdd args;
+	if( call.tuple->items.size() == 3 )
+	{
+		Call_Add_3 args;
 		if(!args.Decode(&call.tuple)) {
 			codelog(SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName());
 			return NULL;
@@ -132,9 +133,11 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 		std::vector<uint32> items;
 		items.push_back(args.itemID);
 
-		return(_ExecAdd(call.client, items, args.quantity, (EVEItemFlags)args.flag));
-	} else if(call.tuple->items.size() == 2) {
-		Inventory_CallAddCargoContainer args;
+		return _ExecAdd( call.client, items, args.quantity, (EVEItemFlags)args.flag );
+	}
+	else if( call.tuple->items.size() == 2 )
+	{
+		Call_Add_2 args;
 		//chances are its trying to transfer into a cargo container
 		if(!args.Decode(&call.tuple)) {
 			codelog(SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName());
@@ -144,24 +147,34 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 		std::vector<uint32> items;
 		items.push_back(args.itemID);
 
-		return(_ExecAdd(call.client, items, args.quantity, mFlag));
-	} else {
-		codelog(SERVICE__ERROR, "[Add] Unknown number of args in tuple");
+		return _ExecAdd( call.client, items, args.quantity, mFlag );
+	}
+	else if( call.tuple->items.size() == 1 )
+	{
+		Call_SingleIntegerArg arg;
+		if( !arg.Decode( &call.tuple ) )
+		{
+			codelog( SERVICE__ERROR, "Failed to decode arguments from '%s'.", call.client->GetName() );
+			return NULL;
+		}
+
+		std::vector<uint32> items;
+		items.push_back( arg.arg );
+
+		// no quantity given, assume 1
+		return _ExecAdd( call.client, items, 1, mFlag );
+	}
+	else
+	{
+		codelog( SERVICE__ERROR, "[Add] Unknown number of elements in a tuple: %lu.", call.tuple->items.size() );
 		return NULL;
 	}
 }
 
 PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
-	if(call.tuple->items.size() == 1) {
-		Call_SingleIntList args;
-		if(!args.Decode(&call.tuple)) {
-			codelog(SERVICE__ERROR, "Unable to decode arguments");
-			return NULL;
-		}
-
-		return(_ExecAdd(call.client, args.ints, 1, mFlag));
-	} else {
-		Inventory_CallMultiAdd args;
+	if( call.tuple->items.size() == 3 )
+	{
+		Call_MultiAdd_3 args;
 		if(!args.Decode(&call.tuple)) {
 			codelog(SERVICE__ERROR, "Unable to decode arguments");
 			return NULL;
@@ -171,10 +184,24 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
 		//their intention to move all... we turn this into a 0 for simplicity.
 
 		//TODO: should verify args.flag before casting!
-		return(_ExecAdd(call.client, args.itemIDs, args.quantity, (EVEItemFlags)args.flag));
+		return _ExecAdd( call.client, args.itemIDs, args.quantity, (EVEItemFlags)args.flag );
 	}
+	else if( call.tuple->items.size() == 1 )
+	{
+		Call_SingleIntList args;
+		if(!args.Decode(&call.tuple)) {
+			codelog(SERVICE__ERROR, "Unable to decode arguments");
+			return NULL;
+		}
 
-	return NULL;
+		// no quantity given, assume 1
+		return _ExecAdd( call.client, args.ints, 1, mFlag );
+	}
+	else
+	{
+		codelog( SERVICE__ERROR, "[MultiAdd] Unknown number of elements in a tuple: %lu.", call.tuple->items.size() );
+		return NULL;
+	}
 }
 
 PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
