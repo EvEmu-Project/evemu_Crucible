@@ -1084,7 +1084,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		IncreaseIndex( data_len );
 
 		// Create size map, sorted from the greatest to the smallest value
-		std::multimap<uint8, uint32, std::greater<uint8>> sizeMap;
+		std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
 		uint32 cc = row->ColumnCount();
 		for(uint32 i = 0; i < cc; i++)
 			sizeMap.insert( std::make_pair( GetTypeSize( row->GetColumnType( i ) ), i ) );
@@ -1092,7 +1092,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 		// current offset in unpacked:
 		uint8 off = 0;
 
-		std::multimap<uint8, uint32, std::greater<uint8>>::iterator cur, end;
+		std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
 		cur = sizeMap.begin();
 		end = sizeMap.lower_bound( 1 );
 		for(; cur != end; cur++)

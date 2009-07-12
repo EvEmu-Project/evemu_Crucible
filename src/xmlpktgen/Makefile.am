@@ -6,15 +6,13 @@ INCLUDES += -I$(srcdir)/../../dep/tinyxml/
 bin_PROGRAMS = xmlpktgen
 
 xmlpktgen_SOURCES = \
-	../common/PyRep.cpp \
 	../common/logsys.cpp \
+	../common/logsys.h \
+	../common/logtypes.h \
 	../common/misc.cpp \
+	../common/misc.h \
 	../common/MiscFunctions.cpp \
-	../common/EVEUnmarshal.cpp \
-	../common/EVEMarshal.cpp \
-	../common/packet_functions.cpp \
-	../common/EVEZeroCompress.cpp \
-	../common/PyVisitor.cpp \
+	../common/MiscFunctions.h \
 	CloneGenerator.cpp \
 	CloneGenerator.h \
 	ConstructGenerator.cpp \

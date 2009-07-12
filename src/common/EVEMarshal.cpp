@@ -173,12 +173,12 @@ public:
 		unpacked.reserve( 64 );
 
 		// Create size map, sorted from the greatest to the smallest value:
-		std::multimap<uint8, uint32, std::greater<uint8>> sizeMap;
+		std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
 		uint32 cc = rep->ColumnCount();
 		for(uint32 i = 0; i < cc; i++)
 			sizeMap.insert( std::make_pair( GetTypeSize( rep->GetColumnType( i ) ), i ) );
 
-		std::multimap<uint8, uint32, std::greater<uint8>>::iterator cur, end;
+		std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
 		cur = sizeMap.begin();
 		end = sizeMap.lower_bound( 1 );
 		for(; cur != end; cur++)
