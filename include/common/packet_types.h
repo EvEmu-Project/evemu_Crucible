@@ -276,6 +276,7 @@ typedef enum EVEItemFlags
 //some alternative names for entries above.
 static const EVEItemFlags flagSlotFirst = flagLowSlot0;	//duplicate values
 static const EVEItemFlags flagSlotLast = flagFixedSlot;
+
 static const EVEItemFlags flagAnywhere = flagAutoFit;
 static const uint8 MAX_MODULE_COUNT = flagSlotLast - flagSlotFirst + 1;
 

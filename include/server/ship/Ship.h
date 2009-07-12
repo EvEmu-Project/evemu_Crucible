@@ -246,6 +246,8 @@ protected:
 
 	uint32 inventoryID() const { return itemID(); }
 	PyRep *GetItem() const { return GetItemRow(); }
+
+	void AddItem(InventoryItem &item);
 };
 
 #endif /* !__SHIP__H__INCL__ */

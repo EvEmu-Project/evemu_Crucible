@@ -553,6 +553,8 @@ protected:
 	uint32 inventoryID() const { return itemID(); }
 	PyRep *GetItem() const { return GetItemRow(); }
 
+	void AddItem(InventoryItem &item);
+
 	void SaveCharacter() const;
 	void SaveSkillQueue() const;
 

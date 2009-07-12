@@ -536,12 +536,7 @@ bool Character::InjectSkillIntoBrain(Skill &skill)
 		}
 
 		// use single_skill ...
-		single_skill->ChangeSingleton( true, false );
 		single_skill->MoveInto( *this, flagSkill );
-
-		single_skill->Set_skillLevel( 0 );
-		single_skill->Set_skillPoints( 0 );
-		single_skill->Clear_expiryTime();
 
 		// we have to decrement the ref
 		single_skill->DecRef();
@@ -549,12 +544,7 @@ bool Character::InjectSkillIntoBrain(Skill &skill)
 	else
 	{
 		// use original skill
-		skill.ChangeSingleton( true, false );
 		skill.MoveInto( *this, flagSkill );
-
-		skill.Set_skillLevel( 0 );
-		skill.Set_skillPoints( 0 );
-		skill.Clear_expiryTime();
 
 		// no decrement, the ref isn't ours
 	}
@@ -765,6 +755,37 @@ PyRepList *Character::GetSkillQueue() {
 	}
 
 	return list;
+}
+
+void Character::AddItem(InventoryItem &item)
+{
+	Inventory::AddItem( item );
+
+	if( item.flag() == flagSkill
+	    || item.flag() == flagSkillInTraining )
+	{
+		// Skill has been added ...
+		if( item.categoryID() != EVEDB::invCategories::Skill )
+			_log( ITEM__WARNING, "%s (%u): %s has been added with flag %d.", itemName().c_str(), itemID(), item.category().name().c_str(), (int)item.flag() );
+		else
+		{
+			Skill &skill = static_cast<Skill &>( item );
+
+			if( !skill.singleton() )
+			{
+				_log( ITEM__TRACE, "%s (%u): Injecting %s.", itemName().c_str(), itemID(), item.itemName().c_str() );
+				
+				// Make it singleton and set initial skill values.
+				skill.ChangeSingleton( true );
+
+				skill.Set_skillLevel( 0 );
+				skill.Set_skillPoints( 0 );
+
+				if( skill.flag() != flagSkillInTraining )
+					skill.Clear_expiryTime();
+			}
+		}
+	}
 }
 
 void Character::SaveCharacter() const

@@ -236,3 +236,17 @@ PyRepObject *Ship::ShipGetInfo()
 	return result.FastEncode();
 }
 
+void Ship::AddItem(InventoryItem &item)
+{
+	InventoryEx::AddItem( item );
+
+	if( item.flag() >= flagSlotFirst
+		&& item.flag() <= flagSlotLast )
+	{
+		// make singleton
+		item.ChangeSingleton( true );
+	}
+}
+
+
+

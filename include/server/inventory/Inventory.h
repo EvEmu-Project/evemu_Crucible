@@ -69,8 +69,8 @@ public:
 	void List(dbutil_CRowset &into, EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
 
 protected:
-	void AddItem(InventoryItem &item);
-	void RemoveItem(uint32 itemID);
+	virtual void AddItem(InventoryItem &item);
+	virtual void RemoveItem(uint32 itemID);
 
 	bool m_contentsLoaded;
 	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.

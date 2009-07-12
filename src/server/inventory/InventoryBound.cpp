@@ -272,12 +272,6 @@ PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
 }
 
 PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uint32 quantity, EVEItemFlags flag) {
-	bool fLoadoutRequest = false;
-	//Is this a loadout request
-	if( flag >= flagSlotFirst && flag <= flagSlotLast)
-		//Validate a loadout request
-		fLoadoutRequest = true;
-
 	//If were here, we can try move all the items (validated)
 	std::vector<uint32>::const_iterator cur, end;
 	cur = items.begin();
@@ -315,8 +309,6 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 
 				//Move New item to its new location
 				c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag);	// properly refresh modules
-				if(fLoadoutRequest == true)
-					newItem->ChangeSingleton( true );
 
 				//Create new item id return result
 				Call_SingleIntegerArg result;
@@ -344,8 +336,6 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 			}
 
 			c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);	// properly refresh modules
-			if(fLoadoutRequest == true)
-				sourceItem->ChangeSingleton( true );
 		}
 
 		//DecRef the source Item PTR, we dont need it anymore
