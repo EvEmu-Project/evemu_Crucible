@@ -34,13 +34,12 @@ ItemFactory::ItemFactory(DBcore &db, EntityList &el)
 ItemFactory::~ItemFactory() {
 	// items
 	{
-		std::map<uint32, InventoryItem *>::const_iterator cur, end;
+		std::map<uint32, InventoryItemRef>::const_iterator cur, end;
 		cur = m_items.begin();
 		end = m_items.end();
 		for(; cur != end; cur++) {
 			// save attributes of item (because of rechargable attributes)
 			cur->second->attributes.Save();
-			cur->second->DecRef();
 		}
 	}
 	// types
@@ -144,157 +143,147 @@ const StationType *ItemFactory::GetStationType(uint32 stationTypeID) {
 }
 
 template<class _Ty>
-_Ty *ItemFactory::_GetItem(uint32 itemID)
+ItemRef<_Ty> ItemFactory::_GetItem(uint32 itemID)
 {
-	std::map<uint32, InventoryItem *>::iterator res = m_items.find( itemID );
+	std::map<uint32, InventoryItemRef>::iterator res = m_items.find( itemID );
 	if( res == m_items.end() )
 	{
 		// load the item
-		_Ty *item = _Ty::Load( *this, itemID );
-		if( item == NULL )
-			return NULL;
+		ItemRef<_Ty> item = _Ty::Load( *this, itemID );
+		if( !item )
+			return ItemRef<_Ty>();
 
 		//we keep the original ref.
-		res = m_items.insert(
-			std::make_pair( itemID, item )
-		).first;
+		res = m_items.insert( std::make_pair( itemID, item ) ).first;
 	}
-	//we return new ref to the user.
-	return static_cast<_Ty *>( res->second->IncRef() );
+	// return to the user.
+	return ItemRef<_Ty>::StaticCast( res->second );
 }
 
-InventoryItem *ItemFactory::GetItem(uint32 itemID)
+InventoryItemRef ItemFactory::GetItem(uint32 itemID)
 {
 	return _GetItem<InventoryItem>( itemID );
 }
 
-Blueprint *ItemFactory::GetBlueprint(uint32 blueprintID)
+BlueprintRef ItemFactory::GetBlueprint(uint32 blueprintID)
 {
 	return _GetItem<Blueprint>( blueprintID );
 }
 
-Character *ItemFactory::GetCharacter(uint32 characterID)
+CharacterRef ItemFactory::GetCharacter(uint32 characterID)
 {
 	return _GetItem<Character>( characterID );
 }
 
-Ship *ItemFactory::GetShip(uint32 shipID)
+ShipRef ItemFactory::GetShip(uint32 shipID)
 {
 	return _GetItem<Ship>( shipID );
 }
 
-CelestialObject *ItemFactory::GetCelestialObject(uint32 celestialID)
+CelestialObjectRef ItemFactory::GetCelestialObject(uint32 celestialID)
 {
 	return _GetItem<CelestialObject>( celestialID );
 }
 
-SolarSystem *ItemFactory::GetSolarSystem(uint32 solarSystemID)
+SolarSystemRef ItemFactory::GetSolarSystem(uint32 solarSystemID)
 {
 	return _GetItem<SolarSystem>( solarSystemID );
 }
 
-Station *ItemFactory::GetStation(uint32 stationID)
+StationRef ItemFactory::GetStation(uint32 stationID)
 {
 	return _GetItem<Station>( stationID );
 }
 
-Skill *ItemFactory::GetSkill(uint32 skillID)
+SkillRef ItemFactory::GetSkill(uint32 skillID)
 {
 	return _GetItem<Skill>( skillID );
 }
 
-InventoryItem *ItemFactory::SpawnItem(ItemData &data) {
-	InventoryItem *i = InventoryItem::Spawn(*this, data);
-	if(i == NULL)
-		return NULL;
+InventoryItemRef ItemFactory::SpawnItem(ItemData &data) {
+	InventoryItemRef i = InventoryItem::Spawn(*this, data);
+	if( !i )
+		return InventoryItemRef();
 
 	// spawn successfull; store the ref
-	m_items[i->itemID()] = i;
-	// return additional ref
-	return i->IncRef();
+	m_items.insert( std::make_pair( i->itemID(), i ) );
+	// return
+	return i;
 }
 
-Blueprint *ItemFactory::SpawnBlueprint(ItemData &data, BlueprintData &bpData) {
-	Blueprint *bi = Blueprint::Spawn(*this, data, bpData);
-	if(bi == NULL)
-		return NULL;
+BlueprintRef ItemFactory::SpawnBlueprint(ItemData &data, BlueprintData &bpData) {
+	BlueprintRef bi = Blueprint::Spawn(*this, data, bpData);
+	if( !bi )
+		return BlueprintRef();
 
-	m_items[bi->itemID()] = bi;
-	return bi->IncRef();
+	m_items.insert( std::make_pair( bi->itemID(), bi ) );
+	return bi;
 }
 
-Character *ItemFactory::SpawnCharacter(ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData) {
-	Character *c = Character::Spawn(*this, data, charData, appData, corpData);
-	if(c == NULL)
-		return NULL;
+CharacterRef ItemFactory::SpawnCharacter(ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData) {
+	CharacterRef c = Character::Spawn(*this, data, charData, appData, corpData);
+	if( !c )
+		return CharacterRef();
 
-	m_items[c->itemID()] = c;
-	return c->IncRef();
+	m_items.insert( std::make_pair( c->itemID(), c ) );
+	return c;
 }
 
-Ship *ItemFactory::SpawnShip(ItemData &data) {
-	Ship *s = Ship::Spawn(*this, data);
-	if(s == NULL)
-		return NULL;
+ShipRef ItemFactory::SpawnShip(ItemData &data) {
+	ShipRef s = Ship::Spawn(*this, data);
+	if( !s )
+		return ShipRef();
 
-	m_items[s->itemID()] = s;
-	return s->IncRef();
+	m_items.insert( std::make_pair( s->itemID(), s ) );
+	return s;
 }
 
-Skill *ItemFactory::SpawnSkill(ItemData &data)
+SkillRef ItemFactory::SpawnSkill(ItemData &data)
 {
-	Skill *s = Skill::Spawn( *this, data );
-	if( s == NULL )
-		return NULL;
+	SkillRef s = Skill::Spawn( *this, data );
+	if( !s )
+		return SkillRef();
 
-	m_items[ s->itemID() ] = s;
-	return s->IncRef();
+	m_items.insert( std::make_pair( s->itemID(), s ) );
+	return s;
 }
 
 Inventory *ItemFactory::GetInventory(uint32 inventoryID, bool load)
 {
-	InventoryItem *item = NULL;
+	InventoryItemRef item;
 
 	if( load )
-	{
 		item = GetItem( inventoryID );
-		if( item != NULL )
-			// inventories are not referenced
-			item->DecRef();
-	}
 	else
 	{
-		std::map<uint32, InventoryItem *>::iterator res = m_items.find( inventoryID );
+		std::map<uint32, InventoryItemRef>::iterator res = m_items.find( inventoryID );
 		if( res != m_items.end() )
 			item = res->second;
 	}
 
-	if( item == NULL )
+	if( !item )
 		return NULL;
 
 	switch( item->categoryID() )
 	{
-		case EVEDB::invCategories::Ship:    return static_cast<Ship *>( item );
+		case EVEDB::invCategories::Ship:    return ShipRef::StaticCast( item ).get();
 	}
 
 	switch( item->groupID() )
 	{
-		case EVEDB::invGroups::Station:     return static_cast<Station *>( item );
-		case EVEDB::invGroups::Character:   return static_cast<Character *>( item );
+		case EVEDB::invGroups::Station:     return StationRef::StaticCast( item ).get();
+		case EVEDB::invGroups::Character:   return CharacterRef::StaticCast( item ).get();
 	}
 
 	return NULL;
 }
 
 void ItemFactory::_DeleteItem(uint32 itemID) {
-	std::map<uint32, InventoryItem *>::iterator res = m_items.find(itemID);
+	std::map<uint32, InventoryItemRef>::iterator res = m_items.find(itemID);
 	if(res == m_items.end()) {
 		codelog(SERVICE__ERROR, "Item ID %u not found when requesting deletion!", itemID);
-		return;
-	}
-
-	res->second->DecRef();
-	m_items.erase(res);
+	} else
+		m_items.erase(res);
 }
 
 

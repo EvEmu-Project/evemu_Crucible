@@ -76,14 +76,6 @@ protected:
 	 * @return PyResult containing the server's response.
 	 */
 	PyCallable_DECL_CALL(LogStartOfCharacterCreation)
-
-	/**
-	 * \brief Calculates skill points for current level.
-	 *
-	 * @author Johnsus
-	 * @date 5/11/2008
-	 */
-	uint32 GetSkillPointsForSkillLevel(InventoryItem *i, uint8 level);
 };
 
 #endif // __CHARACTERSERVICE_H_INCL__

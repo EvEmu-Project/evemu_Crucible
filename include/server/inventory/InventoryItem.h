@@ -25,16 +25,11 @@
 #ifndef EVE_INVENTORY_ITEM_H
 #define EVE_INVENTORY_ITEM_H
 
-#include <map>
-#include <string>
-#include <vector>
-#include <set>
-
 #include "../common/packet_types.h"
 #include "../common/gpoint.h"
 
 #include "inventory/EVEAttributeMgr.h"
-#include "inventory/Inventory.h"
+#include "inventory/ItemFactory.h"
 #include "inventory/ItemType.h"
 
 class PyRep;
@@ -43,7 +38,7 @@ class PyRepObject;
 
 class ServiceDB;
 
-class ItemFactory;
+class ItemContainer;
 class Rsp_CommonGetInfo_Entry;
 class ItemRowset_Row;
 
@@ -87,11 +82,13 @@ public:
 	std::string		customInfo;
 };
 
-/*
+/**
  * Class which maintains generic item.
  */
 class InventoryItem
 {
+	template<class _Ty>
+	friend class ItemRef; // to let it call IncRef() and DecRef().
 public:
 	/**
 	 * Loads item from DB.
@@ -100,7 +97,7 @@ public:
 	 * @param[in] itemID ID of item to load.
 	 * @return Pointer to InventoryItem object; NULL if failed.
 	 */
-	static InventoryItem *Load(ItemFactory &factory, uint32 itemID);
+	static InventoryItemRef Load(ItemFactory &factory, uint32 itemID);
 	/**
 	 * Spawns new item.
 	 *
@@ -108,16 +105,11 @@ public:
 	 * @param[in] data Item data of item to spawn.
 	 * @return Pointer to InventoryItem object; NULL if failed.
 	 */
-	static InventoryItem *Spawn(ItemFactory &factory, ItemData &data);
+	static InventoryItemRef Spawn(ItemFactory &factory, ItemData &data);
 
 	/*
 	 * Primary public interface:
 	 */
-	InventoryItem *IncRef();
-	void DecRef();
-
-	virtual void Delete();	//remove the item from the DB, and DecRef() it. Consumes a ref!
-
 	void Rename(const char *to);
 	void ChangeOwner(uint32 new_owner, bool notify=true);
 	void Move(uint32 location, EVEItemFlags flag=flagAutoFit, bool notify=true);
@@ -131,8 +123,9 @@ public:
 	/*
 	 * Helper routines:
 	 */
-	virtual InventoryItem *Split(int32 qty_to_take, bool notify=true);
-	virtual bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
+	virtual void Delete();	//remove the item from the DB.
+	virtual InventoryItemRef Split(int32 qty_to_take, bool notify=true);
+	virtual bool Merge(InventoryItemRef to_merge, int32 qty=0, bool notify=true);
 
 	void PutOnline() { SetOnline(true); }
 	void PutOffline() { SetOnline(false); }
@@ -211,43 +204,40 @@ protected:
 	 */
 	// Template helper:
 	template<class _Ty>
-	static _Ty *Load(ItemFactory &factory, uint32 itemID)
+	static ItemRef<_Ty> Load(ItemFactory &factory, uint32 itemID)
 	{
 		// static load
-		_Ty *i = _Ty::template _Load<_Ty>( factory, itemID );
-		if( i == NULL )
-			return NULL;
+		ItemRef<_Ty> i = _Ty::template _Load<_Ty>( factory, itemID );
+		if( !i )
+			return ItemRef<_Ty>();
 
 		// dynamic load
 		if( !i->_Load() )
-		{
-			i->DecRef();	// should delete the item
-			return NULL;
-		}
+			return ItemRef<_Ty>();
 
 		return i;
 	}
 
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_Load(ItemFactory &factory, uint32 itemID)
+	static ItemRef<_Ty> _Load(ItemFactory &factory, uint32 itemID)
 	{
 		// pull the item info
 		ItemData data;
 		if( !factory.db().GetItem( itemID, data ) )
-			return NULL;
+			return ItemRef<_Ty>();
 
 		// obtain type
 		const ItemType *type = factory.GetType( data.typeID );
 		if( type == NULL )
-			return NULL;
+			return ItemRef<_Ty>();
 
 		return _Ty::template _LoadItem<_Ty>( factory, itemID, *type, data );
 	}
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static _Ty *_LoadItem(ItemFactory &factory, uint32 itemID,
+	static ItemRef<_Ty> _LoadItem(ItemFactory &factory, uint32 itemID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data
 	);
@@ -258,6 +248,9 @@ protected:
 		// InventoryItem stuff:
 		ItemData &data
 	);
+
+	void IncRef();
+	void DecRef();
 
 	void SaveItem() const;	//save the item to the DB.
 

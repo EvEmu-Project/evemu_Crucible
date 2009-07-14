@@ -1072,6 +1072,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\server\inventory\ItemRef.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\server\inventory\ItemType.h"
 					>
 				</File>

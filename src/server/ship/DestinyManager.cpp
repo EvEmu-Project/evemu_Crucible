@@ -801,7 +801,7 @@ void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {
 	}
 }
 
-void DestinyManager::SetShipCapabilities(const InventoryItem *ship)
+void DestinyManager::SetShipCapabilities(InventoryItemRef ship)
 {
 	double mass = ship->mass();
 	double radius = ship->radius();

@@ -93,7 +93,7 @@ public:
 	virtual double GetRadius() const = 0;
 
 	//I am not sure if I want this here...
-	virtual InventoryItem *Item() const = 0;
+	virtual InventoryItemRef Item() const = 0;
 	
 	virtual SystemManager *System() const = 0;	//may yeild NULL
 	
@@ -129,12 +129,12 @@ protected:
 
 class ItemSystemEntity : public SystemEntity {
 public:
-	ItemSystemEntity(InventoryItem *self=NULL);
+	ItemSystemEntity(InventoryItemRef self = InventoryItemRef());
 	virtual ~ItemSystemEntity();
 	
 	//Default implementations fall to m_self.
 	virtual uint32 GetID() const;
-	virtual InventoryItem *Item() const { return(m_self); }
+	virtual InventoryItemRef Item() const { return(m_self); }
 	virtual const char *GetName() const;
 	virtual const GPoint &GetPosition() const;
 	virtual double GetRadius() const;
@@ -147,10 +147,10 @@ public:
 	virtual bool ApplyDamage(Damage &d);
 	
 protected:
-	InventoryItem *m_self;	// we have a ref of this
+	InventoryItemRef m_self;
 	
 	void _SendDamageStateChanged() const;
-	void _SetSelf(InventoryItem *);
+	void _SetSelf(InventoryItemRef self);
 };
 
 
@@ -158,7 +158,7 @@ class DestinyManager;
 
 class DynamicSystemEntity : public ItemSystemEntity {
 public:
-	DynamicSystemEntity(DestinyManager *mgr=NULL /*ownership taken*/, InventoryItem *self=NULL /* takes ref */);
+	DynamicSystemEntity(DestinyManager *mgr=NULL /*ownership taken*/, InventoryItemRef self = InventoryItemRef());
 	virtual ~DynamicSystemEntity();
 
 	//partial implementation of SystemEntity interface:

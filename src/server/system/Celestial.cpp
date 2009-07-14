@@ -59,13 +59,13 @@ CelestialObject::CelestialObject(
 {
 }
 
-CelestialObject *CelestialObject::Load(ItemFactory &factory, uint32 celestialID)
+CelestialObjectRef CelestialObject::Load(ItemFactory &factory, uint32 celestialID)
 {
 	return InventoryItem::Load<CelestialObject>( factory, celestialID );
 }
 
 template<class _Ty>
-_Ty *CelestialObject::_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
+ItemRef<_Ty> CelestialObject::_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
 	// InventoryItem stuff:
 	const ItemType &type, const ItemData &data,
 	// CelestialObject stuff:
@@ -89,13 +89,11 @@ _Ty *CelestialObject::_LoadCelestialObject(ItemFactory &factory, uint32 celestia
 	}
 
 	// Create a generic one:
-	return new CelestialObject( factory, celestialID, type, data, cData );
+	return CelestialObjectRef( new CelestialObject( factory, celestialID, type, data, cData ) );
 }
 
 void CelestialObject::Delete() {
 	// We're definitely not going to remove Celetial object.
-	// Just consume ref as supposed to.
-	DecRef();
 }
 
 

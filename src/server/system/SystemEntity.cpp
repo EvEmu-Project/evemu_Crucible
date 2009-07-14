@@ -53,29 +53,25 @@ PyRepTuple *SystemEntity::MakeDamageState() const {
 	return(ddds.FastEncode());
 }
 
-ItemSystemEntity::ItemSystemEntity(InventoryItem *self)
+ItemSystemEntity::ItemSystemEntity(InventoryItemRef self)
 : SystemEntity(),
-  m_self(NULL)
+  m_self()
 {
-	if(self != NULL) {
-		_SetSelf(self);
-	}
+	if( self )
+		_SetSelf( self );
 	//setup some default attributes which normally do not initilize.
 }
 
-ItemSystemEntity::~ItemSystemEntity() {
-	if(m_self != NULL)
-		m_self->DecRef();
+ItemSystemEntity::~ItemSystemEntity()
+{
 }
 
-void ItemSystemEntity::_SetSelf(InventoryItem *self) {
-	if(self == NULL) {
+void ItemSystemEntity::_SetSelf(InventoryItemRef self) {
+	if( !self ) {
 		codelog(ITEM__ERROR, "Tried to set self to NULL!");
 		return;
 	}
-	if(m_self != NULL) {
-		m_self->DecRef();
-	}
+
 	m_self = self;
 	
 	//I am not sure where the right place to do this is, but until
@@ -83,9 +79,8 @@ void ItemSystemEntity::_SetSelf(InventoryItem *self) {
 	//going to do it here. Could be exploited. oh well.
 	// TODO: use the ship aggregate value.
 	int sc = m_self->shieldCapacity();
-	if(sc > 0) {	//avoid polluting the attribute list with worthless entries.
-		m_self->Set_shieldCharge(m_self->shieldCapacity());
-	}
+	if( sc > 0 )	//avoid polluting the attribute list with worthless entries.
+		m_self->Set_shieldCharge( sc );
 }
 
 const char *ItemSystemEntity::GetName() const {
@@ -121,7 +116,7 @@ uint32 ItemSystemEntity::GetID() const {
 	return(Item()->itemID());
 }
 
-DynamicSystemEntity::DynamicSystemEntity(DestinyManager *dm, InventoryItem *self)
+DynamicSystemEntity::DynamicSystemEntity(DestinyManager *dm, InventoryItemRef self)
 : ItemSystemEntity(self),
   m_destiny(dm)
 {

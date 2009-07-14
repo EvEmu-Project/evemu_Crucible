@@ -27,6 +27,7 @@
 #define __SHIP__H__INCL__
 
 #include "inventory/ItemType.h"
+#include "inventory/Inventory.h"
 #include "inventory/InventoryItem.h"
 
 /**
@@ -166,7 +167,7 @@ public:
 	 * @param[in] shipID ID of ship to load.
 	 * @return Pointer to Ship object; NULL if failed.
 	 */
-	static Ship *Load(ItemFactory &factory, uint32 shipID);
+	static ShipRef Load(ItemFactory &factory, uint32 shipID);
 	/**
 	 * Spawns new ship.
 	 *
@@ -174,17 +175,15 @@ public:
 	 * @param[in] data Item data for ship.
 	 * @return Pointer to new Ship object; NULL if failed.
 	 */
-	static Ship *Spawn(ItemFactory &factory, ItemData &data);
+	static ShipRef Spawn(ItemFactory &factory, ItemData &data);
 
 	/*
 	 * Primary public interface:
 	 */
-	Ship *IncRef() { return static_cast<Ship *>( InventoryItem::IncRef() ); }
-
 	void Delete();
 
 	double GetCapacity(EVEItemFlags flag) const;
-	void ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const;
+	void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const;
 
 	/*
 	 * Public fields:
@@ -212,7 +211,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_LoadItem(ItemFactory &factory, uint32 shipID,
+	static ItemRef<_Ty> _LoadItem(ItemFactory &factory, uint32 shipID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data)
 	{
@@ -220,7 +219,7 @@ protected:
 		if( type.categoryID() != EVEDB::invCategories::Ship )
 		{
 			_log( ITEM__ERROR, "Trying to load %s as Ship.", type.category().name().c_str() );
-			return NULL;
+			return ItemRef<_Ty>();
 		}
 		// cast the type
 		const ShipType &shipType = static_cast<const ShipType &>( type );
@@ -232,7 +231,7 @@ protected:
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static _Ty *_LoadShip(ItemFactory &factory, uint32 shipID,
+	static ItemRef<_Ty> _LoadShip(ItemFactory &factory, uint32 shipID,
 		// InventoryItem stuff:
 		const ShipType &shipType, const ItemData &data
 	);
@@ -247,7 +246,7 @@ protected:
 	uint32 inventoryID() const { return itemID(); }
 	PyRep *GetItem() const { return GetItemRow(); }
 
-	void AddItem(InventoryItem &item);
+	void AddItem(InventoryItemRef item);
 };
 
 #endif /* !__SHIP__H__INCL__ */

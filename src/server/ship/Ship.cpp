@@ -94,27 +94,27 @@ Ship::Ship(
 {
 }
 
-Ship *Ship::Load(ItemFactory &factory, uint32 shipID)
+ShipRef Ship::Load(ItemFactory &factory, uint32 shipID)
 {
 	return InventoryItem::Load<Ship>( factory, shipID );
 }
 
 template<class _Ty>
-_Ty *Ship::_LoadShip(ItemFactory &factory, uint32 shipID,
+ItemRef<_Ty> Ship::_LoadShip(ItemFactory &factory, uint32 shipID,
 	// InventoryItem stuff:
 	const ShipType &shipType, const ItemData &data)
 {
 	// we don't need any additional stuff
-	return new Ship( factory, shipID, shipType, data );
+	return ShipRef( new Ship( factory, shipID, shipType, data ) );
 }
 
-Ship *Ship::Spawn(ItemFactory &factory,
+ShipRef Ship::Spawn(ItemFactory &factory,
 	// InventoryItem stuff:
 	ItemData &data
 ) {
 	uint32 shipID = Ship::_Spawn( factory, data );
 	if( shipID == 0 )
-		return NULL;
+		return ShipRef();
 	return Ship::Load( factory, shipID );
 }
 
@@ -166,11 +166,11 @@ double Ship::GetCapacity(EVEItemFlags flag) const
 	
 }
 
-void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const
+void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const
 {
 	if( flag == flagDroneBay )
 	{
-		if( item.categoryID() != EVEDB::invCategories::Drone )
+		if( item->categoryID() != EVEDB::invCategories::Drone )
 			//Can only put drones in drone bay
 			throw PyException( MakeUserError( "ItemCannotBeInDroneBay" ) );
 		InventoryEx::ValidateAddItem( flag, item );
@@ -180,7 +180,7 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const
 		if( !hasShipMaintenanceBay() )
 			// We have no ship maintenance bay
 			throw PyException( MakeCustomError( "%s has no ship maintenance bay.", itemName().c_str() ) );
-		if( item.categoryID() != EVEDB::invCategories::Ship )
+		if( item->categoryID() != EVEDB::invCategories::Ship )
 			// Only ships may be put here
 			throw PyException( MakeCustomError( "Only ships may be placed into ship maintenance bay." ) );
 		InventoryEx::ValidateAddItem( flag, item );
@@ -218,11 +218,11 @@ PyRepObject *Ship::ShipGetInfo()
 	result.items[ itemID() ] = entry.FastEncode();
 
 	//now encode contents...
-	std::vector<InventoryItem *> equipped;
+	std::vector<InventoryItemRef> equipped;
 	//find all the equipped items
-	FindByFlagRange( flagLowSlot0, flagFixedSlot, equipped, false );
+	FindByFlagRange( flagLowSlot0, flagFixedSlot, equipped );
 	//encode an entry for each one.
-	std::vector<InventoryItem *>::iterator cur, end;
+	std::vector<InventoryItemRef>::iterator cur, end;
 	cur = equipped.begin();
 	end = equipped.end();
 	for(; cur != end; cur++)
@@ -236,15 +236,15 @@ PyRepObject *Ship::ShipGetInfo()
 	return result.FastEncode();
 }
 
-void Ship::AddItem(InventoryItem &item)
+void Ship::AddItem(InventoryItemRef item)
 {
 	InventoryEx::AddItem( item );
 
-	if( item.flag() >= flagSlotFirst
-		&& item.flag() <= flagSlotLast )
+	if( item->flag() >= flagSlotFirst
+		&& item->flag() <= flagSlotLast )
 	{
 		// make singleton
-		item.ChangeSingleton( true );
+		item->ChangeSingleton( true );
 	}
 }
 

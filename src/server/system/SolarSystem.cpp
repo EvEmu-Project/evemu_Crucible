@@ -100,13 +100,13 @@ SolarSystem::SolarSystem(
 SolarSystem::~SolarSystem() {
 }
 
-SolarSystem *SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID)
+SolarSystemRef SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID)
 {
 	return InventoryItem::Load<SolarSystem>( factory, solarSystemID );
 }
 
 template<class _Ty>
-_Ty *SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
+ItemRef<_Ty> SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
 	const ItemType &type, const ItemData &data,
 	// CelestialObject stuff:
@@ -115,7 +115,7 @@ _Ty *SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
 	const ItemType &sunType, const SolarSystemData &ssData)
 {
 	// we have it all
-	return new SolarSystem( factory, solarSystemID, type, data, cData, sunType, ssData );
+	return SolarSystemRef( new SolarSystem( factory, solarSystemID, type, data, cData, sunType, ssData ) );
 }
 
 bool SolarSystem::_Load()

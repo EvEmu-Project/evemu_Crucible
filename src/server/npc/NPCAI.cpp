@@ -208,7 +208,7 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
 	if(m_mainAttackTimer.Check(false)) {
 		_log(NPC__AI_TRACE, "[%u] Attack timer expired. Attacking %u.", m_npc->GetID(), target->GetID());
 		
-		InventoryItem *self = m_npc->Item();
+		InventoryItemRef self = m_npc->Item();
 
 		//reset the attack timer.
 		//NOTE: there is probably a more intelligent way to make this descision.
@@ -237,7 +237,7 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
 		_SendWeaponEffect("effects.Laser", target);
 		
 		Damage d(
-			self, m_npc,
+			m_npc, (InventoryItemRef)self,
 			effectTargetAttack);	//should get this from somewhere.
 		m_npc->ApplyDamageModifiers(d, m_npc);
 		

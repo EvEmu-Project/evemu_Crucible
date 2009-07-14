@@ -279,7 +279,7 @@ void SystemAsteroidBeltEntity::Process() {
 //TODO: split this into its own file.
 #include "inventory/InventoryItem.h"
 
-SystemDungeonEntranceEntity::SystemDungeonEntranceEntity(SystemManager *system, InventoryItem *self)
+SystemDungeonEntranceEntity::SystemDungeonEntranceEntity(SystemManager *system, InventoryItemRef self)
 : ItemSystemEntity(self),
   m_system(system)
 {

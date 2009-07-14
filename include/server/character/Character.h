@@ -27,7 +27,10 @@
 #define __CHARACTER__H__INCL__
 
 #include "inventory/ItemType.h"
+#include "inventory/Inventory.h"
 #include "inventory/InventoryItem.h"
+#include "inventory/InventoryDB.h"
+
 #include "character/Skill.h"
 
 /**
@@ -345,7 +348,7 @@ public:
 	 * @param[in] characterID ID of character to load.
 	 * @return Pointer to new Character object; NULL if failed.
 	 */
-	static Character *Load(ItemFactory &factory, uint32 characterID);
+	static CharacterRef Load(ItemFactory &factory, uint32 characterID);
 	/**
 	 * Spawns new character.
 	 *
@@ -356,19 +359,17 @@ public:
 	 * @param[in] corpData Corporation membership data for new character.
 	 * @return Pointer to new Character object; NULL if failed.
 	 */
-	static Character *Spawn(ItemFactory &factory, ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData);
+	static CharacterRef Spawn(ItemFactory &factory, ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData);
 
 	/*
 	 * Primary public interface:
 	 */
-	Character *IncRef() { return static_cast<Character *>( InventoryItem::IncRef() ); }
-
-	void Delete();
-
 	bool AlterBalance(double balanceChange);
 	void SetLocation(uint32 stationID, uint32 solarSystemID, uint32 constellationID, uint32 regionID);
 	void JoinCorporation(uint32 corporationID);
 	void SetDescription(const char *newDescription);
+
+	void Delete();
 
 	/**
 	 * Checks whether character has the skill.
@@ -384,14 +385,14 @@ public:
 	 * @param[in] newref Whether new reference should be returned.
 	 * @return Pointer to Skill object; NULL if skill was not found.
 	 */
-	Skill *GetSkill(uint32 skillTypeID, bool newref=false) const;
+	SkillRef GetSkill(uint32 skillTypeID) const;
 	/**
 	 * Returns skill currently in training.
 	 *
 	 * @param[in] newref Whether new reference should be returned.
 	 * @return Pointer to Skill object; NULL if skill was not found.
 	 */
-	Skill *GetSkillInTraining(bool newref=false) const;
+	SkillRef GetSkillInTraining() const;
 
 	/**
 	 * Calculates Skillpoints per minute rate.
@@ -411,7 +412,7 @@ public:
 	 * @author xanarox
 	 * @param InventoryItem
 	 */
-	bool InjectSkillIntoBrain(Skill &skill);
+	bool InjectSkillIntoBrain(SkillRef skill);
 	/* AddSkillToSkillQueue()
 	 * 
 	 * This will add a skill into the skill queue.
@@ -508,7 +509,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_LoadItem(ItemFactory &factory, uint32 characterID,
+	static ItemRef<_Ty> _LoadItem(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data)
 	{
@@ -516,25 +517,25 @@ protected:
 		if( type.groupID() != EVEDB::invGroups::Character )
 		{
 			_log( ITEM__ERROR, "Trying to load %s as Character.", type.group().name().c_str() );
-			return NULL;
+			return ItemRef<_Ty>();
 		}
 		// cast the type
 		const CharacterType &charType = static_cast<const CharacterType &>( type );
 
 		CharacterData charData;
 		if( !factory.db().GetCharacter( characterID, charData ) )
-			return NULL;
+			return ItemRef<_Ty>();
 
 		CorpMemberInfo corpData;
 		if( !factory.db().GetCorpMemberInfo( characterID, corpData ) )
-			return NULL;
+			return ItemRef<_Ty>();
 
 		return _Ty::template _LoadCharacter<_Ty>( factory, characterID, charType, data, charData, corpData );
 	}
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static _Ty *_LoadCharacter(ItemFactory &factory, uint32 characterID,
+	static ItemRef<_Ty> _LoadCharacter(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
 		const CharacterType &charType, const ItemData &data,
 		// Character stuff:
@@ -553,7 +554,7 @@ protected:
 	uint32 inventoryID() const { return itemID(); }
 	PyRep *GetItem() const { return GetItemRow(); }
 
-	void AddItem(InventoryItem &item);
+	void AddItem(InventoryItemRef item);
 
 	void SaveCharacter() const;
 	void SaveSkillQueue() const;

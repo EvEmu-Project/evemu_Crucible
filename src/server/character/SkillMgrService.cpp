@@ -81,7 +81,7 @@ void SkillMgrBound::Release()
 
 
 PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
-	Character *ch = call.client->GetChar();
+	CharacterRef ch = call.client->GetChar();
 
 	// clear & update ...
 	ch->ClearSkillQueue();
@@ -91,7 +91,7 @@ PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
  }
 
 PyResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
-	Character *ch = call.client->GetChar();
+	CharacterRef ch = call.client->GetChar();
 
 	return new PyRepInteger( ch->GetEndOfTraining() );
 }
@@ -140,7 +140,7 @@ PyResult SkillMgrBound::Handle_RemoveImplantFromCharacter(PyCallArgs &call) {
 
 PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
 	// returns list of skills currently in the skill queue.
-	Character *ch = call.client->GetChar();
+	CharacterRef ch = call.client->GetChar();
 
 	return ch->GetSkillQueue();
 }
@@ -152,7 +152,7 @@ PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
 		return NULL;
 	}
 
-	Character *ch = call.client->GetChar();
+	CharacterRef ch = call.client->GetChar();
 
 	ch->ClearSkillQueue();
 
@@ -186,7 +186,7 @@ PyResult SkillMgrBound::Handle_AddToEndOfSkillQueue(PyCallArgs &call) {
 		return NULL;
 	}
 
-	Character *ch = call.client->GetChar();
+	CharacterRef ch = call.client->GetChar();
 
 	ch->AddToSkillQueue(args.arg1, args.arg2);
 	ch->UpdateSkillQueue();
@@ -225,27 +225,25 @@ PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call)
 		return NULL;
 	}
 
-	Character *ch = call.client->GetChar();
+	CharacterRef ch = call.client->GetChar();
 	
 	std::vector<uint32>::iterator cur, end;
 	cur = args.skills.begin();
 	end = args.skills.end();
 	for(; cur != end; cur++)
 	{
-		Skill *skill = m_manager->item_factory.GetSkill( *cur );
-		if( skill == NULL )
+		SkillRef skill = m_manager->item_factory.GetSkill( *cur );
+		if( !skill )
 		{
 			codelog( ITEM__ERROR, "%s: failed to load skill item %u for injection.", call.client->GetName(), *cur );
 			continue;
 		}
 		
-		if( !ch->InjectSkillIntoBrain( *skill ) )
+		if( !ch->InjectSkillIntoBrain( (SkillRef)skill ) )
 		{
 			//TODO: build and send UserError about injection failure.
 			codelog(ITEM__ERROR, "%s: Injection of skill %u failed", call.client->GetName(), skill->itemID() );
 		}
-
-		skill->DecRef();
 	}
 
 	// TODO: send notification that the skill(s) injection was successful.

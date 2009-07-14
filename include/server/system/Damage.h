@@ -32,70 +32,60 @@ class SystemEntity;
 
 class Damage {
 public:
-	Damage(double _kinetic,
-		double _thermal,
-		double _em,
-		double _explosive,
-		SystemEntity *_source,
-		InventoryItem *_weapon,
-		EVEEffectID _effect);
-	Damage(InventoryItem *_weapon,	//damage derrived directly from weapon.
-		SystemEntity *_source,
-		EVEEffectID _effect
-		);
-	Damage(InventoryItem *_weapon,	//damage derrived directly from weapon+charge
-		InventoryItem *_charge,
-		SystemEntity *_source,
-		EVEEffectID _effect
-		);
+	Damage( SystemEntity *_source,
+	        InventoryItemRef _weapon,
+	        double _kinetic,
+	        double _thermal,
+	        double _em,
+	        double _explosive,
+	        EVEEffectID _effect );
+	Damage( SystemEntity *_source,
+	        InventoryItemRef _weapon,	//damage derrived directly from weapon.
+	        EVEEffectID _effect );
+	Damage( SystemEntity *_source,
+	        InventoryItemRef _weapon,	//damage derrived directly from weapon+charge
+	        InventoryItemRef _charge,
+	        EVEEffectID _effect );
 	  
 	~Damage();
-	double GetTotal() const { return(kinetic+thermal+em+explosive); }
-	Damage MultiplyDup(double _kinetic_multiplier,
-					 double _thermal_multiplier,
-					 double _em_multiplier,
-					 double _explosive_multiplier) const;
-	void ReduceTo(double total_amount);
-	Damage &operator *=(double factor);
-	
+	double GetTotal() const { return ( kinetic + thermal + em + explosive ); }
+	Damage MultiplyDup( double _kinetic_multiplier,
+	                    double _thermal_multiplier,
+	                    double _em_multiplier,
+	                    double _explosive_multiplier ) const
+	{
+		return Damage( source, weapon,
+		               kinetic * _kinetic_multiplier,
+		               thermal * _thermal_multiplier,
+		               em * _em_multiplier,
+		               explosive * _explosive_multiplier,
+		               effect );
+	}
+
+	void ReduceTo(double total_amount)
+	{
+		*this *= ( total_amount / GetTotal() );
+	}
+	Damage &operator *=(double factor)
+	{
+		kinetic *= factor;
+		thermal *= factor;
+		em *= factor;
+		explosive *= factor;
+
+		return *this;
+	}
+
 	double kinetic;
 	double thermal;
 	double em;
 	double explosive;
+
 	SystemEntity *const  source;	//we do not own this.
-	InventoryItem *const weapon;	//we own a ref to this.
-	InventoryItem *const charge;	//we own a ref to this. May be null.
+	InventoryItemRef weapon;	//we own a ref to this.
+	InventoryItemRef charge;	//we own a ref to this. May be null.
 	const EVEEffectID    effect;
 };
-
-
-inline Damage Damage::MultiplyDup(
-						 double _kinetic,
-				 double _thermal,
-				 double _em,
-						 double _explosive) const {
-	return( Damage(
-			 kinetic * _kinetic,
-			 thermal * _thermal,
-			 em * _em,
-			 explosive * _explosive,
-				  source, weapon, effect ) );
-}
-
-
-inline void Damage::ReduceTo(double total_amount) {
-	double t = GetTotal();
-	double factor = total_amount / t;
-	*this *= factor;
-}
-
-inline Damage &Damage::operator *=(double factor) {
-	kinetic *= factor;
-	thermal *= factor;
-	em *= factor;
-	explosive *= factor;
-	return(*this);
-}
 
 
 

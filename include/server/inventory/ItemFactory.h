@@ -29,7 +29,9 @@
 
 #include "../common/packet_types.h"
 #include "../common/gpoint.h"
-#include "InventoryDB.h"
+
+#include "inventory/InventoryDB.h"
+#include "inventory/ItemRef.h"
 
 class ItemCategory;
 
@@ -40,15 +42,6 @@ class BlueprintType;
 class CharacterType;
 class ShipType;
 class StationType;
-
-class InventoryItem;
-class Blueprint;
-class Character;
-class Ship;
-class CelestialObject;
-class SolarSystem;
-class Station;
-class Skill;
 
 class Inventory;
 
@@ -112,9 +105,9 @@ public:
 	/*
 	 * Item stuff
 	 */
-	InventoryItem *GetItem(uint32 itemID);
+	InventoryItemRef GetItem(uint32 itemID);
 
-	Blueprint *GetBlueprint(uint32 blueprintID);
+	BlueprintRef GetBlueprint(uint32 blueprintID);
 
 	/**
 	 * Loads character.
@@ -122,7 +115,7 @@ public:
 	 * @param[in] character ID of character to load.
 	 * @return Pointer to Character object; NULL if load failed.
 	 */
-	Character *GetCharacter(uint32 characterID);
+	CharacterRef GetCharacter(uint32 characterID);
 
 	/**
 	 * Loads ship.
@@ -130,7 +123,7 @@ public:
 	 * @param[in] shipID ID of ship to load.
 	 * @return Pointer to Ship object; NULL if failed.
 	 */
-	Ship *GetShip(uint32 shipID);
+	ShipRef GetShip(uint32 shipID);
 
 	/**
 	 * Loads celestial object.
@@ -138,7 +131,7 @@ public:
 	 * @param[in] celestialID ID of celestial object to load.
 	 * @return Pointer to CelestialObject; NULL if fails.
 	 */
-	CelestialObject *GetCelestialObject(uint32 celestialID);
+	CelestialObjectRef GetCelestialObject(uint32 celestialID);
 
 	/**
 	 * Loads solar system.
@@ -146,7 +139,7 @@ public:
 	 * @param[in] solarSystemID ID of solar system to load.
 	 * @return Pointer to solar system object; NULL if failed.
 	 */
-	SolarSystem *GetSolarSystem(uint32 solarSystemID);
+	SolarSystemRef GetSolarSystem(uint32 solarSystemID);
 
 	/**
 	 * Loads station.
@@ -154,7 +147,7 @@ public:
 	 * @param[in] stationID ID of station to load.
 	 * @return Pointer to Station object; NULL if fails.
 	 */
-	Station *GetStation(uint32 stationID);
+	StationRef GetStation(uint32 stationID);
 
 	/**
 	 * Loads skill.
@@ -162,11 +155,11 @@ public:
 	 * @param[in] skillID ID of skill to load.
 	 * @return Pointer to Skill object; NULL if fails.
 	 */
-	Skill *GetSkill(uint32 skillID);
+	SkillRef GetSkill(uint32 skillID);
 
 	//spawn a new item with the specified information, creating it in the DB as well.
-	InventoryItem *SpawnItem(ItemData &data);
-	Blueprint *SpawnBlueprint(ItemData &data, BlueprintData &bpData);
+	InventoryItemRef SpawnItem(ItemData &data);
+	BlueprintRef SpawnBlueprint(ItemData &data, BlueprintData &bpData);
 	/**
 	 * Spawns new character, caches it and returns it.
 	 *
@@ -176,21 +169,21 @@ public:
 	 * @param[in] corpData Character's corporation-membership data.
 	 * @return Pointer to new Character object; NULL if spawn failed.
 	 */
-	Character *SpawnCharacter(ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData);
+	CharacterRef SpawnCharacter(ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData);
 	/**
 	 * Spawns new ship.
 	 *
 	 * @param[in] data Item data for ship.
 	 * @return Pointer to Ship object; NULL if failed.
 	 */
-	Ship *SpawnShip(ItemData &data);
+	ShipRef SpawnShip(ItemData &data);
 	/**
 	 * Spawns new skill.
 	 *
 	 * @param[in] data Item data for skill.
 	 * @return Pointer to new Skill object; NULL if fails.
 	 */
-	Skill *SpawnSkill(ItemData &data);
+	SkillRef SpawnSkill(ItemData &data);
 
 	/*
 	 * Inventory stuff
@@ -217,11 +210,11 @@ protected:
 
 	// Items:
 	template<class _Ty>
-	_Ty *_GetItem(uint32 itemID);
+	ItemRef<_Ty> _GetItem(uint32 itemID);
 
 	void _DeleteItem(uint32 itemID);
 
-	std::map<uint32, InventoryItem *> m_items;	//we own a ref to these.
+	std::map<uint32, InventoryItemRef> m_items;
 };
 
 

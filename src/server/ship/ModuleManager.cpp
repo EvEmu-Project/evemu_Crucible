@@ -24,7 +24,8 @@
 */
 #include "EvemuPCH.h"
 
-ModuleManager::ModuleManager(Client *pilot) : m_pilot(pilot)
+ModuleManager::ModuleManager(Client *pilot)
+: m_pilot(pilot)
 {
 	//DO NOT access m_pilot here!
 	memset(m_modules, 0, sizeof(m_modules));
@@ -50,7 +51,7 @@ void ModuleManager::Process() {
 void ModuleManager::UpdateModules() {
 	//I am not sure if I like this model of pulling the ship directly
 	//from the client..
-	Ship *ship = m_pilot->GetShip();
+	ShipRef ship = m_pilot->GetShip();
 	
 	_log(SHIP__MODULE_TRACE, "%s: Refreshing modules for ship %s (%u).", m_pilot->GetName(), ship->itemName().c_str(), ship->itemID());
 	
@@ -67,21 +68,18 @@ void ModuleManager::UpdateModules() {
 		// charges in the module slot of the main ship, instead of storing the
 		// charges inside the module itself. This makes our life much more
 		// difficult because we need to figure out what is what.
-		std::vector<InventoryItem *> items;
-		if(ship->FindByFlag(flag, items, false) == 0) {
-			delete m_modules[slot];
-			m_modules[slot] = NULL;
+		std::vector<InventoryItemRef> items;
+		if(ship->FindByFlag(flag, items) == 0) {
+			SafeDelete( m_modules[slot] );
 			continue;	//nothing in that slot..
 		}
 
 		//ok, we have the list of crap in this slot, figure out what is the actual module.
-		InventoryItem *module = NULL;
-		InventoryItem *charge = NULL;
+		InventoryItemRef module;
+		InventoryItemRef charge;
 
 		if(items.size() == 1)
-		{
-			module = items[0]->IncRef();
-		}
+			module = items[0];
 		else if(items.size() == 2)
 		{
 			//could be done better
@@ -90,8 +88,8 @@ void ModuleManager::UpdateModules() {
 			{
 				if(items[1]->categoryID() == EVEDB::invCategories::Charge)
 				{
-					module = items[0]->IncRef();
-					charge = items[1]->IncRef();
+					module = items[0];
+					charge = items[1];
 				}
 				else
 				{
@@ -103,8 +101,8 @@ void ModuleManager::UpdateModules() {
 			{
 				if(items[1]->categoryID() == EVEDB::invCategories::Module)
 				{
-					module = items[1]->IncRef();
-					charge = items[0]->IncRef();
+					module = items[1];
+					charge = items[0];
 				}
 				else
 				{
@@ -120,8 +118,7 @@ void ModuleManager::UpdateModules() {
 
 			if(!valid)
 			{
-				delete m_modules[slot];
-				m_modules[slot] = NULL;
+				SafeDelete( m_modules[slot] );
 				continue;
 			}
 		}
@@ -130,32 +127,31 @@ void ModuleManager::UpdateModules() {
 			//no idea why this would happen.. but its maybe possible..
 			_log(SHIP__ERROR, "%s: More than two items in a module slot (%d). We do not understand this yet!", m_pilot->GetName(), flag);
 			//ignore for now...
-			delete m_modules[slot];
-			m_modules[slot] = NULL;
+			SafeDelete( m_modules[slot] );
 			continue;
 		}
 		
-		if(m_modules[slot] != NULL)
+		if( m_modules[slot] != NULL )
 		{
-			if(m_modules[slot]->item() == module)
+			if( m_modules[slot]->item() == module )
 			{
-				if(m_modules[slot]->charge() == charge)
+				if( m_modules[slot]->charge() == charge )
 				{
 					_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is still in slot %d.", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot);
 				}
 				else
 				{
-					_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is still in slot %d, but has a new charge item %s (%u).", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, (charge==NULL)?"None":charge->itemName().c_str(), (charge==NULL)?0:charge->itemID());
+					_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is still in slot %d, but has a new charge %s (%u).", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, ( !charge ? "None" : charge->itemName().c_str() ), ( !charge ? 0 : charge->itemID() ));
 					m_modules[slot]->ChangeCharge(charge);
 				}
 				//no change...
 				m_moduleByID[module->itemID()] = slot;
 				continue;
 			}
-			delete m_modules[slot];
-			m_modules[slot] = NULL;
+
+			SafeDelete( m_modules[slot] );
 		}
-		_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is now in slot %d. Using charge %s (%u)", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, (charge==NULL)?"None":charge->itemName().c_str(), (charge==NULL)?0:charge->itemID());
+		_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is now in slot %d. Using charge %s (%u)", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, ( !charge ? "None" : charge->itemName().c_str() ), ( !charge ? 0 : charge->itemID() ));
 		m_modules[slot] = ShipModule::CreateModule(m_pilot, module, charge);
 		m_moduleByID[module->itemID()] = slot;
 	}
@@ -193,10 +189,10 @@ void ModuleManager::Deactivate(uint32 itemID, const std::string &effectName) {
 	mod->Deactivate(effectName);
 }
 
-void ModuleManager::ReplaceCharges(EVEItemFlags flag, InventoryItem *new_charge) {
+void ModuleManager::ReplaceCharges(EVEItemFlags flag, InventoryItemRef new_charge) {
 	uint8 slot = FlagToSlot(flag);
-	InventoryItem *charge = m_modules[slot]->charge();
-	if(charge != NULL) {
+	InventoryItemRef charge = m_modules[slot]->charge();
+	if( charge ) {
 		//put the previous charge into the cargo hold.
 		charge->Move(m_pilot->GetShipID(), flagCargoHold);
 	}
@@ -207,7 +203,7 @@ void ModuleManager::ReplaceCharges(EVEItemFlags flag, InventoryItem *new_charge)
 	m_modules[slot]->ChangeCharge(new_charge);
 }
 
-ShipModule *ShipModule::CreateModule(Client *owner, InventoryItem *self, InventoryItem *charge_) {
+ShipModule *ShipModule::CreateModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_) {
 	switch(self->groupID()) {
 	//TODO: make an enum for this crap, or pull it from the DB.
 	case 74:	//Hybrid Weapon
@@ -222,15 +218,12 @@ ShipModule *ShipModule::CreateModule(Client *owner, InventoryItem *self, Invento
 	}
 }
 
-void ShipModule::ChangeCharge(InventoryItem *new_charge) {
-	if(m_charge != NULL) {
-		m_charge->DecRef();
-	}
+void ShipModule::ChangeCharge(InventoryItemRef new_charge) {
 	m_charge = new_charge;
 	//TODO: handle state transitons? can they swap charges while active???
 }
 
-ShipModule::ShipModule(Client *pilot, InventoryItem *self, InventoryItem *charge_)
+ShipModule::ShipModule(Client *pilot, InventoryItemRef self, InventoryItemRef charge_)
 : m_state(Offline),
   m_pilot(pilot),
   m_item(self),
@@ -238,15 +231,13 @@ ShipModule::ShipModule(Client *pilot, InventoryItem *self, InventoryItem *charge
   m_timer(0)
 {
 	m_timer.Disable();
-	if(m_item->isOnline()) {
+
+	if( m_item->isOnline() )
 		m_state = Online;
-	}
 }
 
-ShipModule::~ShipModule() {
-	m_item->DecRef();
-	if(m_charge != NULL)
-		m_charge->DecRef();
+ShipModule::~ShipModule()
+{
 }
 
 void ShipModule::Process() {
@@ -320,7 +311,7 @@ uint32 ShipModule::_ActivationInterval() const {
 
 
 
-ActivatableModule::ActivatableModule(const char *effectName, Client *pilot, InventoryItem *self, InventoryItem *charge_)
+ActivatableModule::ActivatableModule(const char *effectName, Client *pilot, InventoryItemRef self, InventoryItemRef charge_)
 : ShipModule(pilot, self, charge_),
   m_repeatCount(0),
   m_target(0),
@@ -502,9 +493,11 @@ void HybridWeaponModule::DoEffect() {
 	_SendWeaponEffect("effects.ProjectileFired", target);
 	
 	Damage d(
-		m_item, m_charge,
 		m_pilot, 
-		effectProjectileFired);
+		item(), charge(),
+		effectProjectileFired
+	);
+
 	m_pilot->ApplyDamageModifiers(d, target);
 	target->ApplyDamage(d);
 	
@@ -551,9 +544,11 @@ void LaserWeaponModule::DoEffect() {
 	_SendWeaponEffect("effects.Laser", target);
 	
 	Damage d(
-		m_item, m_charge,
 		m_pilot, 
-		effectTargetAttack);
+		m_item, m_charge,
+		effectTargetAttack
+	);
+
 	m_pilot->ApplyDamageModifiers(d, target);
 	target->ApplyDamage(d);
 }
@@ -583,8 +578,8 @@ void MiningLaserModule::DoEffect() {
 		DeactivateModule(true);
 		return;
 	}
-	InventoryItem *target_item = target->Item();
-	if(target_item == NULL) {
+	InventoryItemRef target_item = target->Item();
+	if( !target_item ) {
 		codelog(SHIP__MODULE_TRACE, "Module %s (%u): Use on non-asteroid. Target has no item.", m_item->itemName().c_str(), m_item->itemID());
 		//send the client an error dialog?
 		DeactivateModule(true);
@@ -598,7 +593,7 @@ void MiningLaserModule::DoEffect() {
 	}
 	//TODO: check range.
 	//m_item->maxRange()
-	if(m_charge == NULL) {
+	if( !m_charge ) {
 		//some use crystals, some do not???
 		//_log(SHIP__MODULE_TRACE, "Module %s (%u): No crystal fitted. Unable to activate.", m_item->itemName().c_str(), m_item->itemID(), m_target);
 	}

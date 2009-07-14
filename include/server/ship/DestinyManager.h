@@ -66,7 +66,7 @@ public:
 	void EntityRemoved(SystemEntity *who);
 	
 	//Configuration:
-	void SetShipCapabilities(const InventoryItem *ship);
+	void SetShipCapabilities(InventoryItemRef ship);
 	void SetPosition(const GPoint &pt, bool update=true);
 	
 	//Global Actions:

@@ -110,7 +110,7 @@ InventoryItem::InventoryItem(
 	const ItemType &_type,
 	const ItemData &_data)
 : attributes(_factory, *this, true, true),
-  m_refCount(1),
+  m_refCount(0),
   m_factory(_factory),
   m_itemID(_itemID),
   m_itemName(_data.name),
@@ -130,51 +130,36 @@ InventoryItem::InventoryItem(
 	_log(ITEM__TRACE, "Created object %p for item %s (%u).", this, itemName().c_str(), itemID());
 }
 
-InventoryItem::~InventoryItem() {
+InventoryItem::~InventoryItem()
+{
 	if(m_refCount > 0)
-	{
-		_log(ITEM__ERROR, "Destructing an inventory item (%p) which has %d references!", this, m_refCount);
-	}
+		_log(ITEM__ERROR, "Destructing an inventory item (%p) which has %u references!", this, m_refCount);
+}
+
+void InventoryItem::IncRef()
+{
+	m_refCount++;
 }
 
 void InventoryItem::DecRef() {
-	if(this == NULL) {
-		_log(ITEM__ERROR, "Trying to release a NULL inventory item!");
-		//TODO: log a stack.
-		return;
-	}
-	if(m_refCount < 1) {
+	if(m_refCount < 1)
 		_log(ITEM__ERROR, "Releasing an inventory item (%p) which has no references!", this);
-		return;
-	}
-	m_refCount--;
-	if(m_refCount <= 0) {
-		delete this;
+	else
+	{
+		m_refCount--;
+
+		if(m_refCount <= 0)
+			delete this;
 	}
 }
 
-InventoryItem * InventoryItem::IncRef()
-{
-	if(this == NULL) {
-		_log(ITEM__ERROR, "Trying to make a ref of a NULL inventory item!");
-		//TODO: log a stack.
-		return NULL;
-	}
-	if(m_refCount < 1) {
-		_log(ITEM__ERROR, "Attempting to make a ref of inventory item (%p) which has no references at all!", this);
-		return NULL;	//NULL is easier to debug than a bad pointer
-	}
-	m_refCount++;
-	return(this);
-}
-
-InventoryItem *InventoryItem::Load(ItemFactory &factory, uint32 itemID)
+InventoryItemRef InventoryItem::Load(ItemFactory &factory, uint32 itemID)
 {
 	return InventoryItem::Load<InventoryItem>( factory, itemID );
 }
 
 template<class _Ty>
-_Ty *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
+ItemRef<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 	// InventoryItem stuff:
 	const ItemType &type, const ItemData &data)
 {
@@ -228,7 +213,7 @@ _Ty *InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 	}
 
 	// Generic item, create one:
-	return new InventoryItem( factory, itemID, type, data );
+	return InventoryItemRef( new InventoryItem( factory, itemID, type, data ) );
 }
 
 bool InventoryItem::_Load()
@@ -239,18 +224,18 @@ bool InventoryItem::_Load()
 
 	// update inventory
 	Inventory *inventory = m_factory.GetInventory( locationID(), false );
-	if(inventory != NULL)
-		inventory->AddItem( *this );
+	if( inventory != NULL )
+		inventory->AddItem( InventoryItemRef( this ) );
 
 	return true;
 }
 
-InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
+InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 {
 	// obtain type of new item
 	const ItemType *t = factory.GetType( data.typeID );
 	if( t == NULL )
-		return NULL;
+		return InventoryItemRef();
 
 	// See what to do next:
 	switch( t->categoryID() ) {
@@ -269,7 +254,7 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 		case EVEDB::invCategories::Celestial: {
 			_log( ITEM__ERROR, "Refusing to spawn celestial object '%s'.", data.name.c_str() );
 
-			return NULL;
+			return InventoryItemRef();
 		}
 
 		///////////////////////////////////////
@@ -295,7 +280,7 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 			// we're not gonna create character from default attributes ...
 			_log( ITEM__ERROR, "Refusing to create character '%s' from default attributes.", data.name.c_str() );
 
-			return NULL;
+			return InventoryItemRef();
 		}
 
 		///////////////////////////////////////
@@ -304,14 +289,14 @@ InventoryItem *InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 		case EVEDB::invGroups::Station: {
 			_log( ITEM__ERROR, "Refusing to create station '%s'.", data.name.c_str() );
 
-			return NULL;
+			return InventoryItemRef();
 		}
 	}
 
 	// Spawn generic item:
 	uint32 itemID = InventoryItem::_Spawn( factory, data );
 	if( itemID == 0 )
-		return NULL;
+		return InventoryItemRef();
 	return InventoryItem::Load( factory, itemID );
 }
 
@@ -336,25 +321,15 @@ uint32 InventoryItem::_Spawn(ItemFactory &factory,
 void InventoryItem::Delete() {
 	//first, get out of client's sight.
 	//this also removes us from our inventory.
-	Move(6);
-	ChangeOwner(2);
+	Move( 6 );
+	ChangeOwner( 2 );
 
-	//now we need to tell the factory to get rid of us from its cache.
-	m_factory._DeleteItem(m_itemID);
-	
-	//now we take ourself out of the DB
+	//take ourself out of the DB
 	attributes.Delete();
-	m_factory.db().DeleteItem(m_itemID);
-	
-	//and now we destroy ourself.
-	if(m_refCount != 1) {
-		_log(ITEM__ERROR, "Delete() called on item %u (%p) which has %u references! Invalidating as best as possible..", m_itemID, this, m_refCount);
-		m_itemName = "BAD DELETED ITEM";
-		m_quantity = 0;
-		//TODO: mark the item for death so that if it does get DecRef()'d, it will properly die.
-	}
-	DecRef();
-	//we should be deleted now.... so dont do anything!
+	m_factory.db().DeleteItem( itemID() );
+
+	//delete ourselves from factory cache
+	m_factory._DeleteItem( itemID() );
 }
 
 PyRepPackedRow *InventoryItem::GetItemRow() const
@@ -460,8 +435,8 @@ void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify
 
 	//then make sure that my new inventory is updated, if its loaded.
 	Inventory *new_inventory = m_factory.GetInventory( new_location, false );
-	if(new_inventory != NULL)
-		new_inventory->AddItem( *this );	//makes a new ref
+	if( new_inventory != NULL )
+		new_inventory->AddItem( InventoryItemRef( this ) );	//makes a new ref
 
 	SaveItem();
 
@@ -520,14 +495,14 @@ bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
 	return true;
 }
 
-InventoryItem *InventoryItem::Split(int32 qty_to_take, bool notify) {
+InventoryItemRef InventoryItem::Split(int32 qty_to_take, bool notify) {
 	if(qty_to_take <= 0) {
 		_log(ITEM__ERROR, "%s (%u): Asked to split into a chunk of %d", itemName().c_str(), itemID(), qty_to_take);
-		return NULL;
+		return InventoryItemRef();
 	}
 	if(!AlterQuantity(-qty_to_take, notify)) {
 		_log(ITEM__ERROR, "%s (%u): Failed to remove quantity %d during split.", itemName().c_str(), itemID(), qty_to_take);
-		return NULL;
+		return InventoryItemRef();
 	}
 
 	ItemData idata(
@@ -538,18 +513,14 @@ InventoryItem *InventoryItem::Split(int32 qty_to_take, bool notify) {
 		qty_to_take
 	);
 
-	InventoryItem *res = m_factory.SpawnItem(idata);
+	InventoryItemRef res = m_factory.SpawnItem(idata);
 	if(notify)
-		res->Move(locationID(), flag());
+		res->Move( locationID(), flag() );
 
 	return( res );
 }
 
-bool InventoryItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
-	if(to_merge == NULL) {
-		_log(ITEM__ERROR, "%s (%u): Cannot merge with NULL item.", itemName().c_str(), itemID());
-		return false;
-	}
+bool InventoryItem::Merge(InventoryItemRef to_merge, int32 qty, bool notify) {
 	if(typeID() != to_merge->typeID()) {
 		_log(ITEM__ERROR, "%s (%u): Asked to merge with %s (%u).", itemName().c_str(), itemID(), to_merge->itemName().c_str(), to_merge->itemID());
 		return false;
@@ -570,12 +541,11 @@ bool InventoryItem::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
 	}
 
 	if(qty == to_merge->quantity()) {
-		to_merge->Delete();	//consumes ref
+		to_merge->Delete();
 	} else if(!to_merge->AlterQuantity(-qty, notify)) {
 		_log(ITEM__ERROR, "%s (%u): Failed to remove quantity %d.", to_merge->itemName().c_str(), to_merge->itemID(), qty);
 		return false;
-	} else
-		to_merge->DecRef();	//consume ref
+	}
 
 	return true;
 }

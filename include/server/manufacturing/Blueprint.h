@@ -219,7 +219,7 @@ public:
 	 * @param[in] blueprintID ID of blueprint to load.
 	 * @return Pointer to new Blueprint object; NULL if failed.
 	 */
-	static Blueprint *Load(ItemFactory &factory, uint32 blueprintID);
+	static BlueprintRef Load(ItemFactory &factory, uint32 blueprintID);
 	/**
 	 * Spawns new blueprint.
 	 *
@@ -228,7 +228,7 @@ public:
 	 * @param[in] bpData Blueprint-specific data.
 	 * @return Pointer to new Blueprint object; NULL if failed.
 	 */
-	static Blueprint *Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData);
+	static BlueprintRef Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData);
 
 	/*
 	 * Public fields:
@@ -246,8 +246,6 @@ public:
 	/*
 	 * Primary public interface:
 	 */
-	Blueprint *IncRef() { return static_cast<Blueprint *>(InventoryItem::IncRef()); }
-
 	void Delete();
 
 	// Copy:
@@ -269,11 +267,11 @@ public:
 	 * Helper routines:
 	 */
 	// overload to split the blueprints properly
-	InventoryItem *Split(int32 qty_to_take, bool notify=true) { return(SplitBlueprint(qty_to_take, notify)); }
-	Blueprint *SplitBlueprint(int32 qty_to_take, bool notify=true);
+	InventoryItemRef Split(int32 qty_to_take, bool notify=true) { return SplitBlueprint( qty_to_take, notify ); }
+	BlueprintRef SplitBlueprint(int32 qty_to_take, bool notify=true);
 
 	// overload to do proper merge
-	bool Merge(InventoryItem *to_merge, int32 qty=0, bool notify=true);	//consumes ref!
+	bool Merge(InventoryItemRef to_merge, int32 qty=0, bool notify=true);	//consumes ref!
 
 	// some blueprint-related stuff
 	bool infinite() const                   { return(licensedProductionRunsRemaining() < 0); }
@@ -306,7 +304,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_LoadItem(ItemFactory &factory, uint32 blueprintID,
+	static ItemRef<_Ty> _LoadItem(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data)
 	{
@@ -314,7 +312,7 @@ protected:
 		if( type.categoryID() != EVEDB::invCategories::Blueprint )
 		{
 			_log( ITEM__ERROR, "Trying to load %s as Blueprint.", type.category().name().c_str() );
-			return NULL;
+			return ItemRef<_Ty>();
 		}
 		// cast the type
 		const BlueprintType &bpType = static_cast<const BlueprintType &>( type );
@@ -322,14 +320,14 @@ protected:
 		// we are blueprint; pull additional blueprint info
 		BlueprintData bpData;
 		if( !factory.db().GetBlueprint( blueprintID, bpData ) )
-			return NULL;
+			return ItemRef<_Ty>();
 
 		return _Ty::template _LoadBlueprint<_Ty>( factory, blueprintID, bpType, data, bpData );
 	}
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static _Ty *_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
+	static ItemRef<_Ty> _LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:
 		const BlueprintType &bpType, const ItemData &data,
 		// Blueprint stuff:

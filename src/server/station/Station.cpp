@@ -136,13 +136,13 @@ Station::Station(
 {
 }
 
-Station *Station::Load(ItemFactory &factory, uint32 stationID)
+StationRef Station::Load(ItemFactory &factory, uint32 stationID)
 {
 	return InventoryItem::Load<Station>( factory, stationID );
 }
 
 template<class _Ty>
-_Ty *Station::_LoadStation(ItemFactory &factory, uint32 stationID,
+ItemRef<_Ty> Station::_LoadStation(ItemFactory &factory, uint32 stationID,
 	// InventoryItem stuff:
 	const StationType &type, const ItemData &data,
 	// CelestialObject stuff:
@@ -151,7 +151,7 @@ _Ty *Station::_LoadStation(ItemFactory &factory, uint32 stationID,
 	const StationData &stData)
 {
 	// ready to create
-	return new Station( factory, stationID, type, data, cData, stData );
+	return StationRef( new Station( factory, stationID, type, data, cData, stData ) );
 }
 
 bool Station::_Load()

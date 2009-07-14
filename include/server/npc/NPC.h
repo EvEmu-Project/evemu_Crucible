@@ -45,7 +45,7 @@ public:
 	NPC(
 		SystemManager *system,
 		PyServiceMgr &services,
-		InventoryItem *self,
+		InventoryItemRef self,
 		uint32 corporationID,
 		uint32 allianceID,
 		const GPoint &position,

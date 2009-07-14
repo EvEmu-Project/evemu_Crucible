@@ -151,8 +151,8 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 				flagAutoFit
 			);
 
-			InventoryItem *i = svc.item_factory.SpawnItem(idata);
-			if(i == NULL) {
+			InventoryItemRef i = svc.item_factory.SpawnItem(idata);
+			if( !i ) {
 				_log(SPAWN__ERROR, "Failed to spawn item with type %u for group %u.", cur->npcTypeID, cur->spawnGroupID);
 				continue;
 			}

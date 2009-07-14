@@ -41,7 +41,7 @@ public:
 	virtual bool IsCelestial() const { return true; }
 	
 	//I really dislike having this here...
-	virtual InventoryItem *Item() const { return NULL; }
+	virtual InventoryItemRef Item() const { return InventoryItemRef(); }
 	
 	virtual void TargetAdded(SystemEntity *who) {}
 	virtual void TargetLost(SystemEntity *who) {}
@@ -125,7 +125,7 @@ public:
 
 class SystemDungeonEntranceEntity : public ItemSystemEntity {
 public:
-	SystemDungeonEntranceEntity(SystemManager *system, InventoryItem *self);
+	SystemDungeonEntranceEntity(SystemManager *system, InventoryItemRef self);
 	virtual ~SystemDungeonEntranceEntity() { targets.DoDestruction(); }
 	
 	virtual SystemManager *System() const { return(m_system); }

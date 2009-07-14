@@ -249,8 +249,8 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
 	//now we have all the data we need, stick it in the DB
 	//create char item
-	Character *char_item = m_manager->item_factory.SpawnCharacter(idata, cdata, capp, corpData);
-	if(char_item == NULL) {
+	CharacterRef char_item = m_manager->item_factory.SpawnCharacter(idata, cdata, capp, corpData);
+	if( !char_item ) {
 		//a return to the client of 0 seems to be the only means of marking failure
 		codelog(CLIENT__ERROR, "Failed to create character '%s'", idata.name.c_str());
 		return NULL;
@@ -274,64 +274,49 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 	for(; cur != end; cur++) 
 	{
 		ItemData skillItem( cur->first, char_item->itemID(), char_item->itemID(), flagSkill );
-		InventoryItem *i = m_manager->item_factory.SpawnItem( skillItem );
-		if(i == NULL) {
+		SkillRef i = m_manager->item_factory.SpawnSkill( skillItem );
+		if( !i ) {
 			_log(CLIENT__ERROR, "Failed to add skill %u to char %s (%u) during char create.", cur->first, char_item->itemName().c_str(), char_item->itemID());
 			continue;
 		}
 
 		_log(CLIENT__MESSAGE, "Training skill %u to level %d (%d points)", i->typeID(), i->skillLevel(), i->skillPoints());
-		i->Set_skillLevel(cur->second);
-		i->Set_skillPoints(GetSkillPointsForSkillLevel(i, cur->second));
-
-		//we don't actually need the item anymore...
-		i->DecRef();
+		i->Set_skillLevel( cur->second );
+		i->Set_skillPoints( i->GetSPForLevel( cur->second ) );
 	}
 
 	//now set up some initial inventory:
-	InventoryItem *initInvItem;
+	InventoryItemRef initInvItem;
 
 	// add "Damage Control I"
 	ItemData itemDamageControl( 2046, char_item->itemID(), char_item->locationID(), flagHangar, 1 );
 	initInvItem = m_manager->item_factory.SpawnItem( itemDamageControl );
-	if(initInvItem == NULL)
+
+	if( !initInvItem )
 		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());
-	else
-		initInvItem->DecRef();
 
 	// add 1 unit of "Tritanium"
 	ItemData itemTritanium( 34, char_item->itemID(), char_item->locationID(), flagHangar, 1 );
 	initInvItem = m_manager->item_factory.SpawnItem( itemTritanium );
 
-	if(initInvItem == NULL)
+	if( !initInvItem )
 		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());
-	else
-		initInvItem->DecRef();
 
 	// give the player its ship.
 	std::string ship_name = char_item->itemName() + "'s Ship";
 
 	ItemData shipItem( char_type->shipTypeID(), char_item->itemID(), char_item->locationID(), flagHangar, ship_name.c_str() );
-	Ship *ship_item = m_manager->item_factory.SpawnShip( shipItem );
+	ShipRef ship_item = m_manager->item_factory.SpawnShip( shipItem );
 
-	if(ship_item == NULL)
-	{
+	if( !ship_item )
 		codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());
-	}
 	else
-	{
 		//welcome on board your starting ship
 		char_item->MoveInto( *ship_item, flagPilot, false );
-		ship_item->DecRef();
-	}
 
-	uint32 characterID = char_item->itemID();
+	_log( CLIENT__MESSAGE, "Sending char create ID %u as reply", char_item->itemID() );
 
-	char_item->DecRef();
-
-	_log(CLIENT__MESSAGE, "Sending char create ID %u as reply", characterID);
-
-	return new PyRepInteger(characterID);
+	return new PyRepInteger( char_item->itemID() );
 }
 
 PyResult CharacterService::Handle_Ping(PyCallArgs &call)
@@ -358,14 +343,14 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 
 	_log(CLIENT__MESSAGE, "Timed delete of char %u unimplemented. Deleting Immediately.", args.arg);
 
-	{ // character scope to make sure char_item is no longer accessed after deletion
-		Character *char_item = m_manager->item_factory.GetCharacter( args.arg );
-		if(char_item == NULL) {
+	{ // character scope to make sure char_item is deleted immediately
+		CharacterRef char_item = m_manager->item_factory.GetCharacter( args.arg );
+		if( !char_item ) {
 			codelog(CLIENT__ERROR, "Failed to load char item %u.", args.arg);
 			return NULL;
 		}
 		//unregister name
-		m_db.del_name_validation_set(char_item->itemID());
+		m_db.del_name_validation_set( char_item->itemID() );
 		//does the recursive delete of all contained items
 		char_item->Delete();
 	}
@@ -381,8 +366,8 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *i = m_manager->item_factory.GetItem( *cur );
-		if(i == NULL) {
+		InventoryItemRef i = m_manager->item_factory.GetItem( *cur );
+		if( !i ) {
 			codelog(CLIENT__ERROR, "Failed to load item %u to delete. Skipping.", *cur);
 			continue;
 		}
@@ -506,16 +491,13 @@ PyResult CharacterService::Handle_GetCharacterDescription(PyCallArgs &call) {
 		return NULL;
 	}
 
-	Character *c = m_manager->item_factory.GetCharacter(args.arg);
-	if(c == NULL) {
+	CharacterRef c = m_manager->item_factory.GetCharacter(args.arg);
+	if( !c ) {
 		_log(CLIENT__ERROR, "Failed to load character %u.", args.arg);
 		return NULL;
 	}
 
-	PyRep *result = c->GetDescription();
-	c->DecRef();
-
-	return result;
+	return c->GetDescription();
 }
 
 //////////////////////////////////
@@ -526,13 +508,13 @@ PyResult CharacterService::Handle_SetCharacterDescription(PyCallArgs &call) {
 		return NULL;
 	}
 
-	Character *c = call.client->GetChar();
-	if(c == NULL) {
+	CharacterRef c = call.client->GetChar();
+	if( !c ) {
 		_log(CLIENT__ERROR, "SetCharacterDescription called with no char!");
 		return NULL;
 	}
 
-	c->SetDescription(args.arg.c_str());
+	c->SetDescription( args.arg.c_str() );
 
 	return NULL;
 }
@@ -597,18 +579,6 @@ PyResult CharacterService::Handle_SetNote(PyCallArgs &call) {
 		codelog(CLIENT__ERROR, "Error while storing the note on the database.");
 
 	return NULL;
-}
-
-uint32 CharacterService::GetSkillPointsForSkillLevel(InventoryItem *i, uint8 level)
-{
-	if (i == NULL)
-		return 0;
-
-	float fLevel = level;
-	fLevel = (fLevel - 1.0) * 0.5;
-
-	uint32 calcSkillPoints = SKILL_BASE_POINTS * i->skillTimeConstant() * pow(32, fLevel);
-	return calcSkillPoints;
 }
 
 PyResult CharacterService::Handle_LogStartOfCharacterCreation(PyCallArgs &call)

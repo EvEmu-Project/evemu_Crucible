@@ -50,15 +50,11 @@ PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
 		return NULL;
 	}
 
-	Blueprint *b = m_manager->item_factory.GetBlueprint( arg.arg );
-	if(b == NULL)
+	BlueprintRef b = m_manager->item_factory.GetBlueprint( arg.arg );
+	if( !b )
 		return NULL;
 
-	PyRep *res = b->GetBlueprintAttributes();
-
-	b->DecRef();
-
-	return res;
+	return b->GetBlueprintAttributes();
 }
 
 PyResult FactoryService::Handle_GetMaterialsForTypeWithActivity(PyCallArgs &call) {

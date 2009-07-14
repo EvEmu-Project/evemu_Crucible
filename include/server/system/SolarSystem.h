@@ -90,12 +90,7 @@ public:
 	 * @param[in] solarSystemID ID of solar system to load.
 	 * @return Pointer to new solar system object; NULL if failed.
 	 */
-	static SolarSystem *Load(ItemFactory &factory, uint32 solarSystemID);
-
-	/*
-	 * Primary public interface:
-	 */
-	SolarSystem *IncRef() { return static_cast<SolarSystem *>( CelestialObject::IncRef() ); }
+	static SolarSystemRef Load(ItemFactory &factory, uint32 solarSystemID);
 
 	/*
 	 * Public Fields:
@@ -140,7 +135,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_LoadCelestialObject(ItemFactory &factory, uint32 solarSystemID,
+	static ItemRef<_Ty> _LoadCelestialObject(ItemFactory &factory, uint32 solarSystemID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data,
 		// CelestialObject stuff:
@@ -150,25 +145,25 @@ protected:
 		if( type.groupID() != EVEDB::invGroups::Solar_System )
 		{
 			_log( ITEM__ERROR, "Trying to load %s %u as Solar system.", type.name().c_str(), solarSystemID );
-			return NULL;
+			return ItemRef<_Ty>();
 		}
 
 		// load solar system data
 		SolarSystemData ssData;
 		if( !factory.db().GetSolarSystem( solarSystemID, ssData ) )
-			return false;
+			return ItemRef<_Ty>();
 
 		// get sun type
 		const ItemType *sunType = factory.GetType( ssData.sunTypeID );
 		if( sunType == NULL )
-			return false;
+			return ItemRef<_Ty>();
 
 		return _Ty::template _LoadSolarSystem<_Ty>( factory, solarSystemID, type, data, cData, *sunType, ssData );
 	}
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static _Ty *_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
+	static ItemRef<_Ty> _LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data,
 		// CelestialObject stuff:

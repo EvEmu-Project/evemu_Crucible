@@ -53,7 +53,7 @@ case "$ARCH" in
 	x86_64*)
 		dnl yay 21st century hardware
 		AC_MSG_RESULT(x64 feel teh power)
-    AC_DEFINE(X64)
+		AC_DEFINE(X64)
 		AC_SUBST(ARCH,x64)
 	;;
 	*)
@@ -67,6 +67,7 @@ esac
 AC_C_BIGENDIAN([AC_DEFINE(USING_BIG_ENDIAN)],[AC_DEFINE(USING_LITTLE_ENDIAN)],[])
 
 # Custom part
+# Collector
 AC_ARG_ENABLE(collector, AC_HELP_STRING([--enable-collector],[enable the eve collector]),
 [case "${enableval}" in
   yes) collector=true ;;
@@ -75,7 +76,7 @@ AC_ARG_ENABLE(collector, AC_HELP_STRING([--enable-collector],[enable the eve col
 esac],[anvil=false])
 AM_CONDITIONAL(COLLECTOR, test x$collector = xtrue)
 
-# Evetool
+# EVETool
 AC_ARG_ENABLE(evetool, AC_HELP_STRING([--enable-evetool],[enable the eve tool]),
 [case "${enableval}" in
   yes) evetool=true ;;

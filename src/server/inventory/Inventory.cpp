@@ -35,11 +35,6 @@ Inventory::Inventory()
 
 Inventory::~Inventory()
 {
-	std::map<uint32, InventoryItem *>::iterator cur, end;
-	cur = m_contents.begin();
-	end = m_contents.end();
-	for(; cur != end; cur++)
-		cur->second->DecRef();
 }
 
 bool Inventory::LoadContents(ItemFactory &factory)
@@ -60,15 +55,14 @@ bool Inventory::LoadContents(ItemFactory &factory)
 	end = items.end();
 	for(; cur != end; cur++)
 	{
-		InventoryItem *i = factory.GetItem( *cur );
-		if( i == NULL )
+		InventoryItemRef i = factory.GetItem( *cur );
+		if( !i )
 		{
 			_log( ITEM__ERROR, "Failed to load item %u contained in %u. Skipping.", *cur, inventoryID() );
 			continue;
 		}
 
-		AddItem( *i );
-		i->DecRef();
+		AddItem( i );
 	}
 
 	m_contentsLoaded = true;
@@ -79,19 +73,20 @@ void Inventory::DeleteContents(ItemFactory &factory)
 {
 	LoadContents( factory );
 
-	std::map<uint32, InventoryItem *>::iterator cur, end;
+	std::map<uint32, InventoryItemRef>::iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
-	for(; cur != end; ) {
-		InventoryItem *i = cur->second->IncRef();
-		//iterator will become invalid after calling
-		//Delete(), so increment now.
+	for(; cur != end; )
+	{
+		// Our "cur" iterator becomes invalid once RemoveItem
+		// for its item is called, so we need to increment it
+		// before calling Delete().
+		InventoryItemRef i = cur->second;
 		cur++;
 
 		i->Delete();
 	}
-	//Delete() releases our ref on these.
-	//so it should be empty anyway.
+
 	m_contents.clear();
 }
 
@@ -113,11 +108,11 @@ PyRepObjectEx *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
 void Inventory::List(dbutil_CRowset &into, EVEItemFlags _flag, uint32 forOwner) const
 {
 	//there has to be a better way to build this...
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
+	std::map<uint32, InventoryItemRef>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++) {
-		InventoryItem *i = cur->second;
+		InventoryItemRef i = cur->second;
 
 		if(    (i->flag() == _flag       || _flag == flagAnywhere)
 		    && (i->ownerID() == forOwner || forOwner == 0) )
@@ -127,71 +122,58 @@ void Inventory::List(dbutil_CRowset &into, EVEItemFlags _flag, uint32 forOwner) 
 	}
 }
 
-InventoryItem *Inventory::FindFirstByFlag(EVEItemFlags _flag, bool newref) const
+InventoryItemRef Inventory::FindFirstByFlag(EVEItemFlags _flag) const
 {
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
+	std::map<uint32, InventoryItemRef>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++)
 	{
-		InventoryItem *i = cur->second;
-
-		if( i->flag() == _flag )
-			return newref ? i->IncRef() : i;
+		if( cur->second->flag() == _flag )
+			return cur->second;
 	}
 
-	return NULL;
+	return InventoryItemRef();
 }
 
-InventoryItem *Inventory::GetByID(uint32 id, bool newref) const
+InventoryItemRef Inventory::GetByID(uint32 id) const
 {
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
+	std::map<uint32, InventoryItemRef>::const_iterator res = m_contents.find( id );
+	if( res != m_contents.end() )
+		return res->second;
+	else
+		return InventoryItemRef();
+}
+
+InventoryItemRef Inventory::GetByTypeFlag(uint32 typeID, EVEItemFlags flag) const
+{
+	std::map<uint32, InventoryItemRef>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++)
 	{
-		InventoryItem *i = cur->second;
-
-		if( i->itemID() == id )
-			return newref ? i->IncRef() : i;
-	}
-
-	return NULL;
-}
-
-InventoryItem *Inventory::GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref) const
-{
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
-	cur = m_contents.begin();
-	end = m_contents.end();
-	for(; cur != end; cur++)
-	{
-		InventoryItem *i = cur->second;
-
-		if( i->typeID() == typeID
-			&& i->flag() == flag )
+		if( cur->second->typeID() == typeID
+			&& cur->second->flag() == flag )
 		{
-			return newref ? i->IncRef() : i;
+			return cur->second;
 		}
 	}
 
-	return NULL;
+	return InventoryItemRef();
 }
 
-uint32 Inventory::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *> &items, bool newref) const
+uint32 Inventory::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItemRef> &items) const
 {
 	uint32 count = 0;
 
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
+	std::map<uint32, InventoryItemRef>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++)
 	{
-		InventoryItem *i = cur->second;
-
-		if( i->flag() == _flag )
+		if( cur->second->flag() == _flag )
 		{
-			items.push_back( newref ? i->IncRef() : i );
+			items.push_back( cur->second );
 			count++;
 		}
 	}
@@ -199,21 +181,19 @@ uint32 Inventory::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItem *> &i
 	return count;
 }
 
-uint32 Inventory::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref) const
+uint32 Inventory::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItemRef> &items) const
 {
 	uint32 count = 0;
 
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
+	std::map<uint32, InventoryItemRef>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++)
 	{
-		InventoryItem *i = cur->second;
-
-		if( i->flag() >= low_flag
-			&& i->flag() <= high_flag )
+		if( cur->second->flag() >= low_flag
+			&& cur->second->flag() <= high_flag )
 		{
-			items.push_back( newref ? i->IncRef() : i );
+			items.push_back( cur->second );
 			count++;
 		}
 	}
@@ -221,20 +201,18 @@ uint32 Inventory::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag,
 	return count;
 }
 
-uint32 Inventory::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref) const
+uint32 Inventory::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItemRef> &items) const
 {
 	uint32 count = 0;
 
-	std::map<uint32, InventoryItem *>::const_iterator cur, end;
+	std::map<uint32, InventoryItemRef>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++)
 	{
-		InventoryItem *i = cur->second;
-
-		if( flags.find( i->flag() ) != flags.end() )
+		if( flags.find( cur->second->flag() ) != flags.end() )
 		{
-			items.push_back( newref ? i->IncRef() : i );
+			items.push_back( cur->second );
 			count++;
 		}
 	}
@@ -242,28 +220,24 @@ uint32 Inventory::FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<Invent
 	return count;
 }
 
-void Inventory::AddItem(InventoryItem &item)
+void Inventory::AddItem(InventoryItemRef item)
 {
-	std::map<uint32, InventoryItem *>::iterator res = m_contents.find( item.itemID() );
+	std::map<uint32, InventoryItemRef>::iterator res = m_contents.find( item->itemID() );
 	if( res == m_contents.end() )
 	{
-		m_contents[ item.itemID() ] = item.IncRef();
+		m_contents.insert( std::make_pair( item->itemID(), item ) );
 
-		_log( ITEM__TRACE, "   Updated location %u to contain item %u with flag %d.", inventoryID(), item.itemID(), (int)item.flag() );
+		_log( ITEM__TRACE, "   Updated location %u to contain item %u with flag %d.", inventoryID(), item->itemID(), (int)item->flag() );
 	}
-	else if( res->second != &item )
-	{
-		_log( ITEM__ERROR, "Both object %p and object %p represent item %u!", res->second, &item, item.itemID() );
-	} //else already here
+	//else already here
 }
 
 void Inventory::RemoveItem(uint32 itemID)
 {
-	std::map<uint32, InventoryItem *>::iterator old_inst = m_contents.find( itemID );
-	if( old_inst != m_contents.end() )
+	std::map<uint32, InventoryItemRef>::iterator res = m_contents.find( itemID );
+	if( res != m_contents.end() )
 	{
-		old_inst->second->DecRef();
-		m_contents.erase( old_inst );
+		m_contents.erase( res );
 
 		_log( ITEM__TRACE, "   Updated location %u to no longer contain item %u.", inventoryID(), itemID );
 	}
@@ -271,26 +245,24 @@ void Inventory::RemoveItem(uint32 itemID)
 
 void Inventory::StackAll(EVEItemFlags locFlag, uint32 forOwner)
 {
-	std::map<uint32, InventoryItem *> types;
+	std::map<uint32, InventoryItemRef> types;
 
-	std::map<uint32, InventoryItem *>::iterator cur, end;
+	std::map<uint32, InventoryItemRef>::iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; )
 	{
-		InventoryItem *i = cur->second;
-		cur++;
+		InventoryItemRef i = cur->second;
 
 		if( !i->singleton()
 		    && (forOwner == 0
 			   || forOwner == i->ownerID() ) )
 		{
-			std::map<uint32, InventoryItem *>::iterator res = types.find( i->typeID() );
+			std::map<uint32, InventoryItemRef>::iterator res = types.find( i->typeID() );
 			if( res == types.end() )
-				types[ i->typeID() ] = i;
+				types.insert( std::make_pair( i->typeID(), i ) );
 			else
-				//dont forget to make ref (which is consumed)
-				res->second->Merge( i->IncRef() );
+				res->second->Merge( i );
 		}
 	}
 }
@@ -300,7 +272,7 @@ double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
 	double totalVolume = 0.0;
 	//TODO: And implement Sizes for packaged ships
 
- 	std::map<uint32, InventoryItem *>::const_iterator cur, end;
+	std::map<uint32, InventoryItemRef>::const_iterator cur, end;
 	cur = m_contents.begin();
 	end = m_contents.end();
 	for(; cur != end; cur++)
@@ -315,9 +287,9 @@ double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
 /*
  * InventoryEx
  */
-void InventoryEx::ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const
+void InventoryEx::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const
 {
-	double volume = item.quantity() * item.volume();
+	double volume = item->quantity() * item->volume();
 	double capacity = GetRemainingCapacity( flag );
 	if( volume > capacity )
 	{

@@ -351,8 +351,8 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		//sell order
 		
 		//verify that they actually have the item in the quantity specified...
-		InventoryItem *item = m_manager->item_factory.GetItem( args.itemID );
-		if(item == NULL) {
+		InventoryItemRef item = m_manager->item_factory.GetItem( args.itemID );
+		if( !item ) {
 			codelog(MARKET__ERROR, "%s: Failed to find item %d for sell order.", call.client->GetName(), args.itemID);
 			call.client->SendErrorMsg("Unable to find items %d to sell!", args.itemID);
 			return NULL;
@@ -362,7 +362,6 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		if(item->ownerID() != call.client->GetCharacterID()) {
 			codelog(MARKET__ERROR, "%s: Char %d Tried to sell item %d with owner %d.", call.client->GetName(), call.client->GetCharacterID(), item->itemID(), item->ownerID());
 			call.client->SendErrorMsg("You cannot sell items you do not own.");
-			item->DecRef();
 			return NULL;
 		}
 		
@@ -376,7 +375,6 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		) {
 			codelog(MARKET__ERROR, "%s: Tried to sell item %d which is in location %d through station %d while in station %d", call.client->GetName(), item->itemID(), item->locationID(), args.stationID, call.client->GetStationID());
 			call.client->SendErrorMsg("You cannot sell that item in that station.");
-			item->DecRef();
 			return NULL;
 		}
 
@@ -384,14 +382,12 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		   || item->quantity() < args.quantity ) {
 			codelog(MARKET__ERROR, "%s: Tried to sell %d of item %d which has qty %d singleton %d", call.client->GetName(), args.quantity, item->itemID(), item->quantity(), item->singleton());
 			call.client->SendErrorMsg("You cannot sell more than you have.");
-			item->DecRef();
 			return NULL;
 		}
 
 		if(item->typeID() != args.typeID) {
 			codelog(MARKET__ERROR, "%s: Tried to sell item %d of type %d using type ID %d", call.client->GetName(), item->itemID(), item->typeID(), args.typeID);
 			call.client->SendErrorMsg("Invalid sell order item type.");
-			item->DecRef();
 			return NULL;
 		}
 
@@ -409,8 +405,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		if(order_id != 0) {
 			_log(MARKET__TRACE, "%s: Found order %u to satisfy (type %u, station %u, price %f, qty %u, range %u)", call.client->GetName(), order_id, args.stationID, args.typeID, args.price, args.quantity, args.orderRange);
 			
-			_ExecuteBuyOrder(order_id, args.stationID, args.quantity, call.client, item, args.useCorp);
-			item->DecRef();
+			_ExecuteBuyOrder(order_id, args.stationID, args.quantity, call.client, (InventoryItemRef)item, args.useCorp);
 			return NULL;
 		}
 		
@@ -419,7 +414,6 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 		
 		if(args.duration == 0) {
 			_log(MARKET__ERROR, "%s: Failed to satisfy order for %d of %d at %f ISK.", call.client->GetName(), args.typeID, args.quantity, args.price);
-			item->DecRef();
 			return NULL;
 		}
 
@@ -432,10 +426,8 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
 			//update the item.
 			if(!item->AlterQuantity(-int32(args.quantity), true)) {
 				codelog(MARKET__ERROR, "%s: Failed to consume %u units from item %u", call.client->GetName(), args.quantity, item->itemID());
-				item->DecRef();
 				return NULL;
-			} else
-				item->DecRef();
+			}
 		}
 		
 		//store the order in the DB.
@@ -475,7 +467,7 @@ void MarketProxyService::_SendOnOwnOrderChanged(Client *who, uint32 orderID, con
 
 //NOTE: there are a lot of race conditions to deal with here if we ever
 //allow multiple market services to run at the same time.
-void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID, uint32 quantity, Client *seller, InventoryItem *item, bool isCorp) {
+void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID, uint32 quantity, Client *seller, InventoryItemRef item, bool isCorp) {
 	uint32 orderOwnerID = 0;
 	uint32 typeID = 0;
 	uint32 qtyReq = 0;
@@ -514,14 +506,13 @@ void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID,
 		item->ChangeOwner(orderOwnerID, true);
 	} else {
 		//need to split item up...
-		InventoryItem *new_item = item->Split(quantity, true);
-		if(new_item == NULL) {
+		InventoryItemRef new_item = item->Split(quantity, true);
+		if( !new_item ) {
 			codelog(MARKET__ERROR, "Failed to split item %u.", item->itemID());
 			return;
 		}
 		//use the owner change packet to alert the buyer of the new item
 		new_item->ChangeOwner(orderOwnerID, true);
-		new_item->DecRef();
 	}
 
 	//the buyer has already paid out the money before the buy order
@@ -603,10 +594,9 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
 		quantity
 	);
 
-	InventoryItem *new_item = m_manager->item_factory.SpawnItem(idata);
+	InventoryItemRef new_item = m_manager->item_factory.SpawnItem(idata);
 	//use the owner change packet to alert the buyer of the new item
 	new_item->ChangeOwner(buyer->GetCharacterID(), true);
-	new_item->DecRef();
 
 	//give the money to the seller...
 	//TODO: take off market overhead fees...

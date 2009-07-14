@@ -171,20 +171,18 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	InventoryItem *item = m_manager->item_factory.GetItem( args.itemID );
-	if(item == NULL) {
+	InventoryItemRef item = m_manager->item_factory.GetItem( args.itemID );
+	if( !item ) {
 		codelog(SERVICE__ERROR, "%s: Unable to load item %u", call.client->GetName(), args.itemID);
 		return (NULL);
 	}
 	
 	if(item->ownerID() != call.client->GetCharacterID()) {
 		_log(SERVICE__ERROR, "Character %u tried to rename item %u of character %u.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
-		item->DecRef();
 		return NULL;
 	}
 
 	item->Rename(args.itemName.c_str());
-	item->DecRef();
 	
 	//do we need to send some sort of update?
 	
@@ -202,19 +200,15 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
 	cur = args.items.begin();
 	end = args.items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *item = m_manager->item_factory.GetItem( *cur );
-		if(item == NULL) {
+		InventoryItemRef item = m_manager->item_factory.GetItem( *cur );
+		if( !item )
 			codelog(SERVICE__ERROR, "%s: Unable to load item %u to delete it. Skipping.", call.client->GetName(), *cur);
-		} else if(call.client->GetCharacterID() != item->ownerID()) {
+		else if( call.client->GetCharacterID() != item->ownerID() )
 			codelog(SERVICE__ERROR, "%s: Tried to trash item %u which is not yours. Skipping.", call.client->GetName(), *cur);
-			item->DecRef();
-		} else if(item->locationID() != args.locationID) {
+		else if( item->locationID() != args.locationID )
 			codelog(SERVICE__ERROR, "%s: Item %u is not in location %u. Skipping.", call.client->GetName(), *cur, args.locationID);
-			item->DecRef();
-		} else {
+		else
 			item->Delete();
-			// ref was consumed
-		}
 	}
 	return(new PyRepList());
 }

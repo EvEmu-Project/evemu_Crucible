@@ -30,8 +30,8 @@
 
 #include "../common/packet_types.h"
 
-#include "EVEAttributeMgr.h"
-#include "ItemFactory.h"
+#include "inventory/EVEAttributeMgr.h"
+#include "inventory/ItemFactory.h"
 
 /*
  * LOADING INVOKATION EXPLANATION:

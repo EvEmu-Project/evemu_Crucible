@@ -28,6 +28,8 @@
 
 #include "inventory/InventoryItem.h"
 
+class Character;
+
 /**
  * \class Skill
  *
@@ -50,7 +52,7 @@ public:
 	 * @param[in] skillID ID of skill to load.
 	 * @return Pointer to new Skill object; NULL if fails.
 	 */
-	static Skill *Load(ItemFactory &factory, uint32 skillID);
+	static SkillRef Load(ItemFactory &factory, uint32 skillID);
 	/**
 	 * Spawns new skill.
 	 *
@@ -58,12 +60,7 @@ public:
 	 * @param[in] data Item data of new skill.
 	 * @return Pointer to new Skill object; NULL if fails.
 	 */
-	static Skill *Spawn(ItemFactory &factory, ItemData &data);
-
-	/*
-	 * Primary public interface:
-	 */
-	Skill *IncRef() { return static_cast<Skill *>( InventoryItem::IncRef() ); }
+	static SkillRef Spawn(ItemFactory &factory, ItemData &data);
 
 	/**
 	 * Calculates required amount of skillpoints for level.
@@ -95,7 +92,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_LoadItem(ItemFactory &factory, uint32 skillID,
+	static ItemRef<_Ty> _LoadItem(ItemFactory &factory, uint32 skillID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data)
 	{
@@ -103,7 +100,7 @@ protected:
 		if( type.categoryID() != EVEDB::invCategories::Skill )
 		{
 			_log( ITEM__ERROR, "Trying to load %s as Skill.", type.category().name().c_str() );
-			return NULL;
+			return ItemRef<_Ty>();
 		}
 
 		// no additional stuff
@@ -113,7 +110,7 @@ protected:
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static _Ty *_LoadSkill(ItemFactory &factory, uint32 skillID,
+	static ItemRef<_Ty> _LoadSkill(ItemFactory &factory, uint32 skillID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data
 	);

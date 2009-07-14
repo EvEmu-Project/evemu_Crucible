@@ -111,8 +111,8 @@ public:
 		switch(entity.categoryID) {
 			case invCategories::Asteroid: {
 				//first load up the item.
-				InventoryItem *i = factory.GetItem( entity.itemID );	//should not have any contents...
-				if(i == NULL) {
+				InventoryItemRef i = factory.GetItem( entity.itemID );	//should not have any contents...
+				if( !i ) {
 					//this should not happen... we just got this list from the DB...
 					codelog(SERVICE__ERROR, "Unable to load item for entity %u", entity.itemID);
 					return NULL;

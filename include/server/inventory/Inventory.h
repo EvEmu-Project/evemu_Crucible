@@ -26,8 +26,8 @@
 #ifndef __INVENTORY__H__INCL__
 #define __INVENTORY__H__INCL__
 
-class InventoryItem;
-class ItemFactory;
+#include "InventoryItem.h"
+
 class dbutil_CRowset;
 
 class Inventory
@@ -47,17 +47,17 @@ public:
 	void DeleteContents(ItemFactory &factory);
 
 	bool Contains(uint32 itemID) const { return m_contents.find( itemID ) != m_contents.end(); }
-	InventoryItem *GetByID(uint32 id, bool newref = false) const;
-	InventoryItem *GetByTypeFlag(uint32 typeID, EVEItemFlags flag, bool newref = false) const;
+	InventoryItemRef GetByID(uint32 id) const;
+	InventoryItemRef GetByTypeFlag(uint32 typeID, EVEItemFlags flag) const;
 
-	InventoryItem *FindFirstByFlag(EVEItemFlags flag, bool newref = false) const;
-	uint32 FindByFlag(EVEItemFlags flag, std::vector<InventoryItem *> &items, bool newref = false) const;
-	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItem *> &items, bool newref = false) const;
-	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItem *> &items, bool newref = false) const;
+	InventoryItemRef FindFirstByFlag(EVEItemFlags flag) const;
+	uint32 FindByFlag(EVEItemFlags flag, std::vector<InventoryItemRef> &items) const;
+	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItemRef> &items) const;
+	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItemRef> &items) const;
 
 	double GetStoredVolume(EVEItemFlags flag) const;
 
-	virtual void ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const {}
+	virtual void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const {}
 	void StackAll(EVEItemFlags flag, uint32 forOwner = 0);
 
 	/*
@@ -69,11 +69,11 @@ public:
 	void List(dbutil_CRowset &into, EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
 
 protected:
-	virtual void AddItem(InventoryItem &item);
+	virtual void AddItem(InventoryItemRef item);
 	virtual void RemoveItem(uint32 itemID);
 
 	bool m_contentsLoaded;
-	std::map<uint32, InventoryItem *> m_contents;	//maps item ID to its instance. we own a ref to all of these.
+	std::map<uint32, InventoryItemRef> m_contents;	//maps item ID to its instance. we own a ref to all of these.
 };
 
 class InventoryEx
@@ -83,7 +83,7 @@ public:
 	virtual double GetCapacity(EVEItemFlags flag) const = 0;
 	double GetRemainingCapacity(EVEItemFlags flag) const { return GetCapacity( flag ) - GetStoredVolume( flag ); }
 
-	void ValidateAddItem(EVEItemFlags flag, InventoryItem &item) const;
+	void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const;
 };
 
 #endif /* !__INVENTORY__H__INCL__ */

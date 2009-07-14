@@ -30,7 +30,6 @@ static const uint32 PING_INTERVAL_US = 60000;
 Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
 : DynamicSystemEntity(NULL),
   modules(this),
-  m_char(NULL),
   m_services(services),
   m_net(con, this),
   m_pingTimer(PING_INTERVAL_US),
@@ -57,7 +56,7 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
 }
 
 Client::~Client() {
-	if(m_char != NULL) {
+	if( GetChar() ) {
 		// we have valid character
 
 		// LSC logout
@@ -73,9 +72,6 @@ Client::~Client() {
  		//johnsus - characterOnline mod
 		// switch character online flag to 0
 		m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), false);
-
-		// release our char ref
-		m_char->DecRef();
 	}
 
 	if(GetAccountID() != 0) { // this is not very good ....
@@ -558,7 +554,7 @@ bool Client::EnterSystem() {
 		//we are in a system, so we need a destiny manager
 		m_destiny = new DestinyManager(this, m_system);
 		//ship should never be NULL.
-		m_destiny->SetShipCapabilities(GetShip());
+		m_destiny->SetShipCapabilities( GetShip() );
 		//set position.
 		m_destiny->SetPosition(GetShip()->position(), false);
 		//for now, we always enter a system stopped.
@@ -627,10 +623,10 @@ void Client::MoveToPosition(const GPoint &pt) {
 	GetShip()->Relocate(pt);
 }
 
-void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag) {
-	
-	InventoryItem *item = m_services.item_factory.GetItem( itemID );
-	if(item == NULL) {
+void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
+{
+	InventoryItemRef item = m_services.item_factory.GetItem( itemID );
+	if( !item ) {
 		codelog(SERVICE__ERROR, "%s: Unable to load item %u", GetName(), itemID);
 		return;
 	}
@@ -644,12 +640,9 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag) {
 		//it was equipped, or is now. so modules need to know.
 		modules.UpdateModules();
 	}
-	
-	//release the item ref
-	item->DecRef();
 }
 
-void Client::BoardShip(Ship *new_ship) {
+void Client::BoardShip(ShipRef new_ship) {
 	//TODO: make sure we are really allowed to board this thing...
 	
 	if(!new_ship->singleton()) {
@@ -661,7 +654,7 @@ void Client::BoardShip(Ship *new_ship) {
 	if(m_system != NULL)
 		m_system->RemoveClient(this);
 
-	_SetSelf(new_ship->IncRef());
+	_SetSelf( new_ship );
 	m_char->MoveInto( *new_ship, flagPilot, false );
 
 	session.Set_shipid(new_ship->itemID());
@@ -672,7 +665,7 @@ void Client::BoardShip(Ship *new_ship) {
 		m_system->AddClient(this);
 
 	if(m_destiny != NULL)
-		m_destiny->SetShipCapabilities(GetShip());
+		m_destiny->SetShipCapabilities( GetShip() );
 }
 
 void Client::_ProcessCallRequest(PyPacket *packet) {
@@ -976,22 +969,24 @@ PyRepDict *Client::MakeSlimItem() const {
 	slim->add("warFactionID", new PyRepNone);
 
 	//encode the modules list, if we have any visible modules
-	std::vector<InventoryItem *> items;
-	GetShip()->FindByFlagRange(flagHiSlot0, flagHiSlot7, items, false);
-	if(!items.empty()) {
+	std::vector<InventoryItemRef> items;
+	GetShip()->FindByFlagRange( flagHiSlot0, flagHiSlot7, items );
+	if( !items.empty() )
+	{
 		PyRepList *l = new PyRepList();
-		std::vector<InventoryItem *>::iterator cur, end;
+
+		std::vector<InventoryItemRef>::iterator cur, end;
 		cur = items.begin();
 		end = items.end();
 		for(; cur != end; cur++) {
-			InventoryItem *i = *cur;
+			PyRepTuple *t = new PyRepTuple( 2 );
 
-			PyRepTuple *t = new PyRepTuple(2);
-			t->items[0] = new PyRepInteger(i->itemID());
-			t->items[1] = new PyRepInteger(i->typeID());
+			t->items[0] = new PyRepInteger( (*cur)->itemID() );
+			t->items[1] = new PyRepInteger( (*cur)->typeID() );
 
 			l->add(t);
 		}
+
 		slim->add("modules", l);
 	}
 
@@ -1073,17 +1068,14 @@ bool Client::AddBalance(double amount) {
 
 bool Client::SelectCharacter(uint32 char_id) {
 	//get char
-	Character *character = m_services.item_factory.GetCharacter( char_id );
-	if(character == NULL)
+	m_char = m_services.item_factory.GetCharacter( char_id );
+	if( !GetChar() )
 		return false;
 
-	Ship *ship = m_services.item_factory.GetShip( character->locationID() );
-	if(ship == NULL)
+	ShipRef ship = m_services.item_factory.GetShip( GetChar()->locationID() );
+	if( !ship )
 		return false;
-
-	m_char = character;	//ref is stored
-	BoardShip(ship);	//updates modules
-	ship->DecRef();
+	BoardShip( ship );	//updates modules
 
 	if(!EnterSystem())
 		return false;
@@ -1101,11 +1093,10 @@ bool Client::SelectCharacter(uint32 char_id) {
 
 void Client::UpdateSkillTraining()
 {
-	Character *ch = GetChar();
-	if( ch == NULL )
-		m_timeEndTrain = 0;
+	if( GetChar() )
+		m_timeEndTrain = GetChar()->GetEndOfTraining();
 	else
-		m_timeEndTrain = ch->GetEndOfTraining();
+		m_timeEndTrain = 0;
 }
 
 double Client::GetPropulsionStrength() const {
@@ -1204,7 +1195,7 @@ void Client::SavePosition() {
 	GetShip()->Relocate( m_destiny->GetPosition() );
 }
 
-bool Client::LaunchDrone(InventoryItem *drone) {
+bool Client::LaunchDrone(InventoryItemRef drone) {
 #if 0
 drop 166328265
 

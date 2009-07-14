@@ -29,26 +29,27 @@
 
 
 Damage::Damage(
+	SystemEntity *_source,
+	InventoryItemRef _weapon,
 	double _kinetic,
 	double _thermal,
 	double _em,
 	double _explosive,
-	SystemEntity *_source,
-	InventoryItem *_weapon,
 	EVEEffectID _effect)
 : kinetic(_kinetic),
   thermal(_thermal),
   em(_em),
   explosive(_explosive),
   source(_source),
-  weapon(_weapon->IncRef()),
-  charge(NULL),
+  weapon(_weapon),
+  charge(),
   effect(_effect)
-{}
+{
+}
 
 Damage::Damage(
-	InventoryItem *_weapon,
 	SystemEntity *_source,
+	InventoryItemRef _weapon,
 	EVEEffectID _effect
 	)
 : kinetic(_weapon->kineticDamage()),
@@ -56,15 +57,15 @@ Damage::Damage(
   em(_weapon->emDamage()),
   explosive(_weapon->explosiveDamage()),
   source(_source),
-  weapon(_weapon->IncRef()),
-  charge(NULL),
+  weapon(_weapon),
+  charge(),
   effect(_effect)
 {}
 
 Damage::Damage(
-	InventoryItem *_weapon,
-	InventoryItem *_charge,
 	SystemEntity *_source,
+	InventoryItemRef _weapon,
+	InventoryItemRef _charge,
 	EVEEffectID _effect
 	)
 : kinetic(_charge->kineticDamage() * _weapon->damageMultiplier()),
@@ -72,15 +73,13 @@ Damage::Damage(
   em(_charge->emDamage() * _weapon->damageMultiplier()),
   explosive(_charge->explosiveDamage() * _weapon->damageMultiplier()),
   source(_source),
-  weapon(_weapon->IncRef()),
-  charge(_charge->IncRef()),
+  weapon(_weapon),
+  charge(_charge),
   effect(_effect)
 {}
 
-Damage::~Damage() {
-	weapon->DecRef();
-	if(charge != NULL)
-		charge->DecRef();
+Damage::~Damage()
+{
 }
 
 
@@ -394,14 +393,14 @@ void Client::Killed(Damage &fatal_blow) {
 			capsule_name.c_str()
 		);
 
-		Ship *capsule = m_services.item_factory.SpawnShip(idata);
-		if(capsule == NULL) {
+		ShipRef capsule = m_services.item_factory.SpawnShip(idata);
+		if( !capsule ) {
 			codelog(CLIENT__ERROR, "Failed to create capsule for character '%s'", GetName());
 			//what to do?
 			return;
 		}
 		
-		Ship *dead_ship = GetShip()->IncRef();	//grab a ship ref to ensure that nobody else nukes it first.
+		ShipRef dead_ship = GetShip();	//grab a ship ref to ensure that nobody else nukes it first.
 		
 		//ok, nothing can fail now, we need have our capsule, make the transition.
 		
@@ -410,10 +409,7 @@ void Client::Killed(Damage &fatal_blow) {
 		
 		//this updates m_self and manages destiny updates as needed.
 		//This sends the RemoveBall for the old ship.
-		BoardShip(capsule);
-		
-		//and off we go into our new ship.
-		capsule->DecRef();	//we are done with our instance, others may have kept one for themself.
+		BoardShip((ShipRef)capsule);
 		
 		//kill off the old ship.
 		//TODO: figure out anybody else which may be referencing this ship...

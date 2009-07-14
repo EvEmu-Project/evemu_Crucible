@@ -193,12 +193,7 @@ public:
 	 * @param[in] stationID ID of station to load.
 	 * @return Pointer to new Station object; NULL if fails.
 	 */
-	static Station *Load(ItemFactory &factory, uint32 stationID);
-
-	/*
-	 * Primary public interface:
-	 */
-	Station *IncRef() { return static_cast<Station *>(InventoryItem::IncRef()); }
+	static StationRef Load(ItemFactory &factory, uint32 stationID);
 
 	/*
 	 * Access methods:
@@ -233,7 +228,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static _Ty *_LoadCelestialObject(ItemFactory &factory, uint32 stationID,
+	static ItemRef<_Ty> _LoadCelestialObject(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data,
 		// CelestialObject stuff:
@@ -243,7 +238,7 @@ protected:
 		if( type.groupID() != EVEDB::invGroups::Station )
 		{
 			_log( ITEM__ERROR, "Trying to load %s as Station.", type.group().name().c_str() );
-			return NULL;
+			return ItemRef<_Ty>();
 		}
 		// cast the type
 		const StationType &stType = static_cast<const StationType &>( type );
@@ -251,14 +246,14 @@ protected:
 		// load station data
 		StationData stData;
 		if( !factory.db().GetStation( stationID, stData ) )
-			return NULL;
+			return ItemRef<_Ty>();
 
 		return _Ty::template _LoadStation<_Ty>( factory, stationID, stType, data, cData, stData );
 	}
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static _Ty *_LoadStation(ItemFactory &factory, uint32 stationID,
+	static ItemRef<_Ty> _LoadStation(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
 		const StationType &type, const ItemData &data,
 		// CelestialObject stuff:

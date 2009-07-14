@@ -153,15 +153,15 @@ public:
 	uint32 GetAccountRole() const                   { return m_accountRole; }
 
 	// character data
-	Character *GetChar() const                      { return m_char; }
+	CharacterRef GetChar() const                    { return m_char; }
 
-	uint32 GetCharacterID() const                   { return GetChar() == NULL ? 0 : GetChar()->itemID(); }
-	uint32 GetCorporationID() const                 { return GetChar() == NULL ? 0 : GetChar()->corporationID(); }
-	uint32 GetAllianceID() const                    { return GetChar() == NULL ? 0 : GetChar()->allianceID(); }
-	uint32 GetStationID() const                     { return GetChar() == NULL ? 0 : GetChar()->stationID(); }
-	uint32 GetSystemID() const                      { return GetChar() == NULL ? 0 : GetChar()->solarSystemID(); }
-	uint32 GetConstellationID() const               { return GetChar() == NULL ? 0 : GetChar()->constellationID(); }
-	uint32 GetRegionID() const                      { return GetChar() == NULL ? 0 : GetChar()->regionID(); }
+	uint32 GetCharacterID() const                   { return GetChar() ? GetChar()->itemID() : 0; }
+	uint32 GetCorporationID() const                 { return GetChar() ? GetChar()->corporationID() : 0; }
+	uint32 GetAllianceID() const                    { return GetChar() ? GetChar()->allianceID() : 0; }
+	uint32 GetStationID() const                     { return GetChar() ? GetChar()->stationID() : 0; }
+	uint32 GetSystemID() const                      { return GetChar() ? GetChar()->solarSystemID() : 0; }
+	uint32 GetConstellationID() const               { return GetChar() ? GetChar()->constellationID() : 0; }
+	uint32 GetRegionID() const                      { return GetChar() ? GetChar()->regionID() : 0; }
 
 	uint32 GetLocationID() const
 	{
@@ -171,31 +171,30 @@ public:
 			return GetStationID();
 	}
 
-	uint32 GetCorpHQ() const                        { return GetChar() == NULL ? 0 : GetChar()->corporationHQ(); }
-	uint32 GetCorpRole() const                      { return GetChar() == NULL ? 0 : GetChar()->corpRole(); }
-	uint32 GetRolesAtAll() const                    { return GetChar() == NULL ? 0 : GetChar()->rolesAtAll(); }
-	uint32 GetRolesAtBase() const                   { return GetChar() == NULL ? 0 : GetChar()->rolesAtBase(); }
-	uint32 GetRolesAtHQ() const                     { return GetChar() == NULL ? 0 : GetChar()->rolesAtHQ(); }
-	uint32 GetRolesAtOther() const                  { return GetChar() == NULL ? 0 : GetChar()->rolesAtOther(); }
+	uint32 GetCorpHQ() const                        { return GetChar() ? GetChar()->corporationHQ() : 0; }
+	uint32 GetCorpRole() const                      { return GetChar() ? GetChar()->corpRole() : 0; }
+	uint32 GetRolesAtAll() const                    { return GetChar() ? GetChar()->rolesAtAll() : 0; }
+	uint32 GetRolesAtBase() const                   { return GetChar() ? GetChar()->rolesAtBase() : 0; }
+	uint32 GetRolesAtHQ() const                     { return GetChar() ? GetChar()->rolesAtHQ() : 0; }
+	uint32 GetRolesAtOther() const                  { return GetChar() ? GetChar()->rolesAtOther() : 0; }
 
 	uint32 GetShipID() const { return GetID(); }
-	// this is kinda hacky:
-	Ship *GetShip() const { return static_cast<Ship *>( Item() ); }
+	ShipRef GetShip() const { return ShipRef::StaticCast( Item() ); }
 
 	bool IsInSpace() const { return(GetStationID() == 0); }
 	inline double x() const { return(GetPosition().x); }	//this is terribly inefficient.
 	inline double y() const { return(GetPosition().y); }	//this is terribly inefficient.
 	inline double z() const { return(GetPosition().z); }	//this is terribly inefficient.
 
-	double GetBounty() const                       { return GetChar() == NULL ? 0.0 : GetChar()->bounty(); }
-	double GetSecurityRating() const               { return GetChar() == NULL ? 0.0 : GetChar()->securityRating(); }
-	double GetBalance() const                      { return GetChar() == NULL ? 0.0 : GetChar()->balance(); }
+	double GetBounty() const                       { return GetChar() ? GetChar()->bounty() : 0.0; }
+	double GetSecurityRating() const               { return GetChar() ? GetChar()->securityRating() : 0.0; }
+	double GetBalance() const                      { return GetChar() ? GetChar()->balance() : 0.0; }
 	bool AddBalance(double amount);
 
 	PyServiceMgr &services() const { return(m_services); }
 
 	void Login(CryptoChallengePacket *pack);
-	void BoardShip(Ship *new_ship);
+	void BoardShip(ShipRef new_ship);
 	void MoveToLocation(uint32 location, const GPoint &pt);
 	void MoveToPosition(const GPoint &pt);
 	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
@@ -207,7 +206,7 @@ public:
 	
 	double GetPropulsionStrength() const;
 	
-	bool LaunchDrone(InventoryItem *drone);
+	bool LaunchDrone(InventoryItemRef drone);
 	
 	void SendNotification(const PyAddress &dest, EVENotificationStream *noti, bool seq=true);
 	void SendNotification(const char *notifyType, const char *idType, PyRepTuple **payload, bool seq=true);
@@ -223,7 +222,7 @@ public:
 	virtual Client *CastToClient() { return(this); }
 	virtual const Client *CastToClient() const { return(this); }
 
-	virtual const char *GetName() const { return GetChar() == NULL ? "(null)" : GetChar()->itemName().c_str(); }
+	virtual const char *GetName() const { return GetChar() ? GetChar()->itemName().c_str() : "(null)"; }
 	virtual PyRepDict *MakeSlimItem() const;
 	virtual void QueueDestinyUpdate(PyRepTuple **du);
 	virtual void QueueDestinyEvent(PyRepTuple **multiEvent);
@@ -268,7 +267,7 @@ protected:
 	void _SendCallReturn(PyPacket *req, PyRep **return_value, const char *channel = NULL);
 	void _SendException(PyPacket *req, MACHONETERR_TYPE type, PyRep **payload);
 
-	Character *m_char;
+	CharacterRef m_char;
 
 	PyServiceMgr &m_services;
 	EVEPresentation m_net;

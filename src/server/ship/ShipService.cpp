@@ -97,13 +97,11 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 		codelog(CLIENT__ERROR, "%s: Boarding a ship in space is not yet implemented!!!!", call.client->GetName());
 	}
 
-	Ship *ship = m_manager->item_factory.GetShip( args.arg );
-	if(ship == NULL) {
+	ShipRef ship = m_manager->item_factory.GetShip( args.arg );
+	if( !ship )
 		_log(CLIENT__ERROR, "%s: Failed to get new ship %u.", call.client->GetName(), args.arg);
-	} else {
-		call.client->BoardShip(ship);
-		ship->DecRef();
-	}
+	else
+		call.client->BoardShip( ship );
 	
 	return NULL;
 }
@@ -164,11 +162,16 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
 	}
 
 	//Start sloppy implementation
-	InventoryItem* item;
-	item = m_manager->item_factory.GetItem( args.items.front() );
+	InventoryItemRef item = m_manager->item_factory.GetItem( args.items.front() );
+	if( !item )
+	{
+		_log( ITEM__ERROR, "Failed to load ship %u to assemble.", args.items.front() );
+		return NULL;
+	}
+
 	item->ChangeSingleton(true, true);
-	item->DecRef();
 	//TODO: something...
+
 	return NULL;
 }
 
@@ -208,8 +211,8 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
 	}
 
 	for(; cur != end; cur++) {
-		InventoryItem *item = m_manager->item_factory.GetItem( *cur );
-		if(item == NULL) {
+		InventoryItemRef item = m_manager->item_factory.GetItem( *cur );
+		if( !item ) {
 			_log(SERVICE__ERROR, "%s: Unable to find item %u to drop.", call.client->GetName(), *cur);
 			continue;
 		}
@@ -222,7 +225,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
 		//TODO: check ownership?
 		
 		if(item->flag() == flagDroneBay && item->categoryID() == EVEDB::invCategories::Drone) {
-			if(call.client->LaunchDrone(item))
+			if( call.client->LaunchDrone( item ) )
 				successfully_dropped.ints.push_back(item->itemID());
 		} else {
 			//TODO: drop the crap into a can in space.
@@ -243,7 +246,6 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
 			}
 
 		}
-		item->DecRef();
 	}
 	
 	return(successfully_dropped.Encode());
@@ -279,7 +281,7 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
 		//TODO: check drone bay capacity.
 		//TODO: check skills?
 		
-		InventoryItem *item = npc->Item();
+		InventoryItemRef item = npc->Item();
 		item->Move(call.client->GetShipID(), flagDroneBay);
 		
 		//I am not happy with this memory management model...
@@ -313,8 +315,8 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 		flagAutoFit
 	);
 
-	InventoryItem *cargoItem = m_manager->item_factory.SpawnItem(idata);
-	if(cargoItem == NULL) {
+	InventoryItemRef cargoItem = m_manager->item_factory.SpawnItem(idata);
+	if( !cargoItem ) {
 		call.client->SendErrorMsg("Unable to spawn a container for jettison.");
 		return NULL;
 	}
@@ -336,8 +338,6 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 	//TODO: properly add the item to the system manager and send the AddBall
 	
 
-	//release our ref to cargoItem
-	cargoItem->DecRef();
 	//add cargo container to system
 	//cargoNpc->Destiny()->SendAddBall();
 	//TODO: Send notification SFX effects.jettison

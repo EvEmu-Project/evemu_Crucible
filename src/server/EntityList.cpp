@@ -139,10 +139,10 @@ Client *EntityList::FindCharacter(const char *name) const {
 	cur = m_clients.begin();
 	end = m_clients.end();
 	for(; cur != end; cur++) {
-		Character *c = (*cur)->GetChar();
+		CharacterRef c = (*cur)->GetChar();
 
-		if(c != NULL) {
-			if(c->itemName() == name)
+		if( !c ) {
+			if( c->itemName() == name )
 				return *cur;
 		}
 	}

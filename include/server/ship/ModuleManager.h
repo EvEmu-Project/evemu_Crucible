@@ -38,20 +38,20 @@ class Client;
 class ShipModule {
 public:
 	//factory method:
-	static ShipModule *CreateModule(Client *owner, InventoryItem *self, InventoryItem *charge);
+	static ShipModule *CreateModule(Client *owner, InventoryItemRef self, InventoryItemRef charge);
 	
 protected:
-	ShipModule(Client *owner, InventoryItem *self, InventoryItem *charge);
+	ShipModule(Client *owner, InventoryItemRef self, InventoryItemRef charge);
 public:
 	virtual ~ShipModule();
 	
-	InventoryItem *item() const { return(m_item); }
-	InventoryItem *charge() const { return(m_charge); }
+	InventoryItemRef item() const { return(m_item); }
+	InventoryItemRef charge() const { return(m_charge); }
 	virtual void Process();
 	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
 	virtual void Deactivate(const std::string &effectName);
 	
-	void ChangeCharge(InventoryItem *new_charge);
+	void ChangeCharge(InventoryItemRef new_charge);
 
 protected:
 	virtual uint32 _ActivationInterval() const;	//some items use speed (default), others use duration.. freakin strange..
@@ -66,21 +66,23 @@ protected:
 	State m_state;
 	
 	Client *const m_pilot;
-	InventoryItem *const m_item;	//we own a ref to this.
-	InventoryItem *m_charge;	//we own a ref to this. may be NULL.
+
+	InventoryItemRef m_item;
+	InventoryItemRef m_charge;
+
 	Timer m_timer;
 };
 
 class PassiveModule : public ShipModule {
 public:
-	PassiveModule(Client *owner, InventoryItem *self, InventoryItem *charge_)
+	PassiveModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
 		: ShipModule(owner, self, charge_) {}
 	virtual ~PassiveModule() {}
 };
 
 class ActivatableModule : public ShipModule {
 public:
-	ActivatableModule(const char *effectName, Client *owner, InventoryItem *self, InventoryItem *charge_);
+	ActivatableModule(const char *effectName, Client *owner, InventoryItemRef self, InventoryItemRef charge_);
 	virtual ~ActivatableModule() {}
 
 	//ShipModule interface:
@@ -111,7 +113,7 @@ private:
 
 class HybridWeaponModule : public ActivatableModule {
 public:
-	HybridWeaponModule(Client *owner, InventoryItem *self, InventoryItem *charge_)
+	HybridWeaponModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
 		: ActivatableModule("projectileFired", owner, self, charge_) {}
 	virtual ~HybridWeaponModule() {}
 protected:
@@ -122,7 +124,7 @@ protected:
 
 class LaserWeaponModule : public ActivatableModule {
 public:
-	LaserWeaponModule(Client *owner, InventoryItem *self, InventoryItem *charge_)
+	LaserWeaponModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
 		: ActivatableModule("targetAttack", owner, self, charge_) {}
 	virtual ~LaserWeaponModule() {}
 protected:
@@ -133,7 +135,7 @@ protected:
 
 class MiningLaserModule : public ActivatableModule {
 public:
-	MiningLaserModule(Client *owner, InventoryItem *self, InventoryItem *charge_)
+	MiningLaserModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
 		: ActivatableModule("miningLaser", owner, self, charge_) {}
 	virtual ~MiningLaserModule() {}
 protected:
@@ -145,7 +147,7 @@ protected:
 
 class GenericShipModule : public PassiveModule {
 public:
-	GenericShipModule(Client *owner, InventoryItem *self, InventoryItem *charge_)
+	GenericShipModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
 		: PassiveModule(owner, self, charge_) {}
 	virtual ~GenericShipModule() {}
 };
@@ -160,7 +162,7 @@ public:
 	
 	int Activate(uint32 itemID, const std::string &effectName, uint32 target, uint32 repeat);
 	void Deactivate(uint32 itemID, const std::string &effectName);
-	void ReplaceCharges(EVEItemFlags flag, InventoryItem *charge);
+	void ReplaceCharges(EVEItemFlags flag, InventoryItemRef charge);
 	
 	
 protected:

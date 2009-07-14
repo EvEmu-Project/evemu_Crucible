@@ -5,7 +5,7 @@ using namespace Destiny;
 
 Asteroid::Asteroid(
 	SystemManager *system,
-	InventoryItem *self
+	InventoryItemRef self
 )
 : ItemSystemEntity(self),
   m_system(system)

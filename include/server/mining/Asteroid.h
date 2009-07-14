@@ -82,7 +82,7 @@ protected:
 
 class Asteroid : public ItemSystemEntity {
 public:
-	Asteroid(SystemManager *system, InventoryItem *self/*takes a ref*/);
+	Asteroid(SystemManager *system, InventoryItemRef self);
 	virtual ~Asteroid();
 
 	//SystemEntity interface:

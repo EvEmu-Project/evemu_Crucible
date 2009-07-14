@@ -53,7 +53,7 @@ protected:
 	double m_staEfficiency;
 	double m_tax;
 	
-	double _CalcReprocessingEfficiency(const Client *client, const InventoryItem *item = NULL) const;
+	double _CalcReprocessingEfficiency(const Client *client, InventoryItemRef item = InventoryItemRef()) const;
 	PyRep *_GetQuote(uint32 itemID, const Client *c) const;
 };
 
@@ -226,8 +226,8 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 	cur = call_args.items.begin();
 	end = call_args.items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *item = m_manager->item_factory.GetItem( *cur );
-		if(item == NULL)
+		InventoryItemRef item = m_manager->item_factory.GetItem( *cur );
+		if( !item )
 			continue;
 
 		if(item->ownerID() != call_args.ownerID) {
@@ -241,17 +241,14 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 			args["typename"] = new PyRepString(item->itemName().c_str());
 			args["portion"] = new PyRepInteger(item->type().portionSize());
 
-			item->DecRef();
 			throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
 		}
 
-		double efficiency = _CalcReprocessingEfficiency(call.client, item);
+		double efficiency = _CalcReprocessingEfficiency( call.client, item );
 		
 		std::vector<Recoverable> recoverables;
-		if(!m_db->GetRecoverables(item->typeID(), recoverables)) {
-			item->DecRef();
+		if( !m_db->GetRecoverables( item->typeID(), recoverables ) )
 			continue;
-		}
 
 		std::vector<Recoverable>::iterator cur_rec, end_rec;
 		cur_rec = recoverables.begin();
@@ -269,32 +266,29 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
 				quantity
 			);
 
-			InventoryItem *i = m_manager->item_factory.SpawnItem(idata);
-			if(i == NULL)
+			InventoryItemRef i = m_manager->item_factory.SpawnItem( idata );
+			if( !i )
 				continue;
 
 			i->Move(call.client->GetStationID(), flagHangar);
-			i->DecRef();
 		}
 
 		uint32 qtyLeft = item->quantity() % item->type().portionSize();
 		if(qtyLeft == 0)
 			item->Delete();
-		else {
+		else
 			item->SetQuantity(qtyLeft);
-			item->DecRef();
-		}
 	}
 
 	return NULL;
 }
 
-double ReprocessingServiceBound::_CalcReprocessingEfficiency(const Client *c, const InventoryItem *item) const {
+double ReprocessingServiceBound::_CalcReprocessingEfficiency(const Client *c, InventoryItemRef item) const {
 	std::set<EVEItemFlags> flags;
 	flags.insert(flagSkill);
 	flags.insert(flagSkillInTraining);
 
-	std::vector<InventoryItem *> skills;
+	std::vector<InventoryItemRef> skills;
 
 	c->GetChar()->FindByFlagSet(flags, skills);
 
@@ -321,13 +315,12 @@ double ReprocessingServiceBound::_CalcReprocessingEfficiency(const Client *c, co
 }
 
 PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const {
-	InventoryItem *item = m_manager->item_factory.GetItem( itemID );
-	if(item == NULL)
+	InventoryItemRef item = m_manager->item_factory.GetItem( itemID );
+	if( !item )
 		return NULL;	// No action as GetQuote is also called for reprocessed items (probably for check)
 
 	if(item->ownerID() != c->GetCharacterID()) {
 		_log(SERVICE__ERROR, "Character %u tried to reprocess item %u of character %u.", c->GetCharacterID(), item->itemID(), item->ownerID());
-		item->DecRef();
 		return NULL;
 	}
 
@@ -336,7 +329,6 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 		args["typename"] = new PyRepString(item->itemName().c_str());
 		args["portion"] = new PyRepInteger(item->type().portionSize());
 
-		item->DecRef();
 		throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
 	}
 
@@ -347,10 +339,8 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 
 	if(item->quantity() >= item->type().portionSize()) {
 		std::vector<Recoverable> recoverables;
-		if(!m_db->GetRecoverables(item->typeID(), recoverables)) {
-			item->DecRef();
+		if( !m_db->GetRecoverables( item->typeID(), recoverables ) )
 			return NULL;
-		}
 
 		double efficiency = _CalcReprocessingEfficiency(c, item);
 
@@ -371,7 +361,6 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 		}
 	}
 
-	item->DecRef();
-	return(res.Encode());
+	return res.Encode();
 }
 

@@ -323,23 +323,23 @@ Character::Character(
 	assert(singleton() && quantity() == 1);
 }
 
-Character *Character::Load(ItemFactory &factory, uint32 characterID)
+CharacterRef Character::Load(ItemFactory &factory, uint32 characterID)
 {
 	return InventoryItem::Load<Character>( factory, characterID );
 }
 
 template<class _Ty>
-_Ty *Character::_LoadCharacter(ItemFactory &factory, uint32 characterID,
+ItemRef<_Ty> Character::_LoadCharacter(ItemFactory &factory, uint32 characterID,
 	// InventoryItem stuff:
 	const CharacterType &charType, const ItemData &data,
 	// Character stuff:
 	const CharacterData &charData, const CorpMemberInfo &corpData)
 {
 	// construct the item
-	return new Character( factory, characterID, charType, data, charData, corpData );
+	return CharacterRef( new Character( factory, characterID, charType, data, charData, corpData ) );
 }
 
-Character *Character::Spawn(ItemFactory &factory,
+CharacterRef Character::Spawn(ItemFactory &factory,
 	// InventoryItem stuff:
 	ItemData &data,
 	// Character stuff:
@@ -347,7 +347,7 @@ Character *Character::Spawn(ItemFactory &factory,
 ) {
 	uint32 characterID = Character::_Spawn( factory, data, charData, appData, corpData );
 	if( characterID == 0 )
-		return NULL;
+		return CharacterRef();
 	return Character::Load( factory, characterID );
 }
 
@@ -459,18 +459,18 @@ bool Character::HasSkill(uint32 skillTypeID) const
 	return(GetSkill(skillTypeID) != NULL);
 }
 
-Skill *Character::GetSkill(uint32 skillTypeID, bool newref) const
+SkillRef Character::GetSkill(uint32 skillTypeID) const
 {
-	InventoryItem *skill = GetByTypeFlag( skillTypeID, flagSkill, newref);
-	if( skill == NULL )
-		skill = GetByTypeFlag( skillTypeID, flagSkillInTraining, newref );
+	InventoryItemRef skill = GetByTypeFlag( skillTypeID, flagSkill );
+	if( !skill )
+		skill = GetByTypeFlag( skillTypeID, flagSkillInTraining );
 
-	return static_cast<Skill *>( skill );
+	return SkillRef::StaticCast( skill );
 }
 
-Skill *Character::GetSkillInTraining(bool newref) const
+SkillRef Character::GetSkillInTraining() const
 {
-	return static_cast<Skill *>( FindFirstByFlag( flagSkillInTraining, newref ) );
+	return SkillRef::StaticCast( FindFirstByFlag( flagSkillInTraining ) );
 }
 
 double Character::GetSPPerMin(Skill &skill) const
@@ -481,8 +481,8 @@ double Character::GetSPPerMin(Skill &skill) const
 	uint8 skillLearningLevel = 0;
 
 	//3374 - Skill Learning
-	Skill *skillLearning = GetSkill( 3374 );
-	if( skillLearning != NULL )
+	SkillRef skillLearning = GetSkill( 3374 );
+	if( skillLearning )
 		skillLearningLevel = skillLearning->skillLevel();
 
 	return (primaryVal + secondaryVal / 2.0)
@@ -492,19 +492,19 @@ double Character::GetSPPerMin(Skill &skill) const
 
 uint64 Character::GetEndOfTraining() const
 {
-	Skill *skill = GetSkillInTraining();
-	if( skill == NULL )
+	SkillRef skill = GetSkillInTraining();
+	if( !skill )
 		return 0;
 
 	return skill->expiryTime();
 }
 
-bool Character::InjectSkillIntoBrain(Skill &skill)
+bool Character::InjectSkillIntoBrain(SkillRef skill)
 {
 	Client *c = m_factory.entity_list.FindCharacter( itemID() );
 
-	Skill *oldSkill = GetSkill( skill.typeID() );
-	if( oldSkill != NULL )
+	SkillRef oldSkill = GetSkill( skill->typeID() );
+	if( oldSkill )
 	{
 		//TODO: build and send proper UserError for CharacterAlreadyKnowsSkill.
 		if( c != NULL )
@@ -514,10 +514,10 @@ bool Character::InjectSkillIntoBrain(Skill &skill)
 
 	// TODO: based on config options later, check to see if another character, owned by this characters account,
 	// is training a skill.  If so, return. (flagID=61).
-	if( !skill.SkillPrereqsComplete( *this ) )
+	if( !skill->SkillPrereqsComplete( *this ) )
 	{
 		// TODO: need to send back a response to the client.  need packet specs.
-		_log( ITEM__TRACE, "%s (%u): Requested to train skill %u item %u but prereq not complete.", itemName().c_str(), itemID(), skill.typeID(), skill.itemID() );
+		_log( ITEM__TRACE, "%s (%u): Requested to train skill %u item %u but prereq not complete.", itemName().c_str(), itemID(), skill->typeID(), skill->itemID() );
 
 		if( c != NULL )
 			c->SendNotifyMsg( "Injection failed!  Skill prerequisites incomplete." );
@@ -525,31 +525,24 @@ bool Character::InjectSkillIntoBrain(Skill &skill)
 	}
 
 	// are we injecting from a stack of skills?
-	if( skill.quantity() > 1 )
+	if( skill->quantity() > 1 )
 	{
 		// split the stack to obtain single item
-		InventoryItem *single_skill = skill.Split( 1 );
-		if( single_skill == NULL )
+		InventoryItemRef single_skill = skill->Split( 1 );
+		if( !single_skill )
 		{
-			_log( ITEM__ERROR, "%s (%u): Unable to split stack of %s (%u).", itemName().c_str(), itemID(), skill.itemName().c_str(), skill.itemID() );
+			_log( ITEM__ERROR, "%s (%u): Unable to split stack of %s (%u).", itemName().c_str(), itemID(), skill->itemName().c_str(), skill->itemID() );
 			return false;
 		}
 
 		// use single_skill ...
 		single_skill->MoveInto( *this, flagSkill );
-
-		// we have to decrement the ref
-		single_skill->DecRef();
 	}
 	else
-	{
 		// use original skill
-		skill.MoveInto( *this, flagSkill );
+		skill->MoveInto( *this, flagSkill );
 
-		// no decrement, the ref isn't ours
-	}
-
-	if(c != NULL)
+	if( c != NULL )
 		c->SendNotifyMsg( "Injection of skill complete." );
 	return true;
 }
@@ -572,8 +565,8 @@ void Character::UpdateSkillQueue()
 {
 	Client *c = m_factory.entity_list.FindCharacter( itemID() );
 
-	Skill *currentTraining = GetSkillInTraining();
-	if( currentTraining != NULL )
+	SkillRef currentTraining = GetSkillInTraining();
+	if( currentTraining )
 	{
 		if( m_skillQueue.empty()
 			|| currentTraining->typeID() != m_skillQueue.front().typeID )
@@ -609,20 +602,20 @@ void Character::UpdateSkillQueue()
 			}
 
 			// nothing currently in training
-			currentTraining = NULL;
+			currentTraining = SkillRef();
 		}
 	}
 
 	uint64 nextStartTime = Win32TimeNow();
 	while( !m_skillQueue.empty() )
 	{
-		if( currentTraining == NULL )
+		if( !currentTraining )
 		{
 			// something should be trained, get desired skill
 			uint32 skillTypeID = m_skillQueue.front().typeID;
 
 			currentTraining = GetSkill( skillTypeID );
-			if( currentTraining == NULL )
+			if( !currentTraining )
 			{
 				_log( ITEM__ERROR, "%s (%u): Skill %u to train was not found.", itemName().c_str(), itemID(), skillTypeID );
 				break;
@@ -680,7 +673,7 @@ void Character::UpdateSkillQueue()
 			m_skillQueue.erase( m_skillQueue.begin() );
 
 			// nothing currently in training
-			currentTraining = NULL;
+			currentTraining = SkillRef();
 		}
 		// else the skill is in training ...
 		else
@@ -708,13 +701,13 @@ PyRepObject *Character::CharGetInfo() {
 	result.items[m_itemID] = entry.FastEncode();
 
 	//now encode skills...
-	std::vector<InventoryItem *> skills;
+	std::vector<InventoryItemRef> skills;
 	//find all the skills contained within ourself.
-	FindByFlag(flagSkill, skills, false);
-	FindByFlag(flagSkillInTraining, skills, false);
+	FindByFlag( flagSkill, skills );
+	FindByFlag( flagSkillInTraining, skills );
 
 	//encode an entry for each one.
-	std::vector<InventoryItem *>::iterator cur, end;
+	std::vector<InventoryItemRef>::iterator cur, end;
 	cur = skills.begin();
 	end = skills.end();
 	for(; cur != end; cur++) {
@@ -757,32 +750,32 @@ PyRepList *Character::GetSkillQueue() {
 	return list;
 }
 
-void Character::AddItem(InventoryItem &item)
+void Character::AddItem(InventoryItemRef item)
 {
 	Inventory::AddItem( item );
 
-	if( item.flag() == flagSkill
-	    || item.flag() == flagSkillInTraining )
+	if( item->flag() == flagSkill
+	    || item->flag() == flagSkillInTraining )
 	{
 		// Skill has been added ...
-		if( item.categoryID() != EVEDB::invCategories::Skill )
-			_log( ITEM__WARNING, "%s (%u): %s has been added with flag %d.", itemName().c_str(), itemID(), item.category().name().c_str(), (int)item.flag() );
+		if( item->categoryID() != EVEDB::invCategories::Skill )
+			_log( ITEM__WARNING, "%s (%u): %s has been added with flag %d.", itemName().c_str(), itemID(), item->category().name().c_str(), (int)item->flag() );
 		else
 		{
-			Skill &skill = static_cast<Skill &>( item );
+			SkillRef skill = SkillRef::StaticCast( item );
 
-			if( !skill.singleton() )
+			if( !skill->singleton() )
 			{
-				_log( ITEM__TRACE, "%s (%u): Injecting %s.", itemName().c_str(), itemID(), item.itemName().c_str() );
-				
+				_log( ITEM__TRACE, "%s (%u): Injecting %s.", itemName().c_str(), itemID(), item->itemName().c_str() );
+
 				// Make it singleton and set initial skill values.
-				skill.ChangeSingleton( true );
+				skill->ChangeSingleton( true );
 
-				skill.Set_skillLevel( 0 );
-				skill.Set_skillPoints( 0 );
+				skill->Set_skillLevel( 0 );
+				skill->Set_skillPoints( 0 );
 
-				if( skill.flag() != flagSkillInTraining )
-					skill.Clear_expiryTime();
+				if( skill->flag() != flagSkillInTraining )
+					skill->Clear_expiryTime();
 			}
 		}
 	}

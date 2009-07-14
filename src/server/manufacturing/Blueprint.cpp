@@ -139,26 +139,26 @@ Blueprint::Blueprint(
 	assert(_bpType.categoryID() == EVEDB::invCategories::Blueprint);
 }
 
-Blueprint *Blueprint::Load(ItemFactory &factory, uint32 blueprintID)
+BlueprintRef Blueprint::Load(ItemFactory &factory, uint32 blueprintID)
 {
 	return InventoryItem::Load<Blueprint>( factory, blueprintID );
 }
 
 template<class _Ty>
-_Ty *Blueprint::_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
+ItemRef<_Ty> Blueprint::_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
 	// InventoryItem stuff:
 	const BlueprintType &bpType, const ItemData &data,
 	// Blueprint stuff:
 	const BlueprintData &bpData)
 {
 	// we have enough data, construct the item
-	return new Blueprint( factory, blueprintID, bpType, data, bpData );
+	return BlueprintRef( new Blueprint( factory, blueprintID, bpType, data, bpData ) );
 }
 
-Blueprint *Blueprint::Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData) {
+BlueprintRef Blueprint::Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData) {
 	uint32 blueprintID = Blueprint::_Spawn(factory, data, bpData);
 	if(blueprintID == 0)
-		return NULL;
+		return BlueprintRef();
 	return Blueprint::Load(factory, blueprintID);
 }
 
@@ -196,13 +196,11 @@ void Blueprint::Delete() {
 	InventoryItem::Delete();
 }
 
-Blueprint *Blueprint::SplitBlueprint(int32 qty_to_take, bool notify) {
+BlueprintRef Blueprint::SplitBlueprint(int32 qty_to_take, bool notify) {
 	// split item
-	Blueprint *res = static_cast<Blueprint *>(
-		InventoryItem::Split(qty_to_take, notify)
-	);
-	if(res == NULL)
-		return NULL;
+	BlueprintRef res = BlueprintRef::StaticCast( InventoryItem::Split( qty_to_take, notify ) );
+	if( !res )
+		return BlueprintRef();
 
 	// copy our attributes
 	res->SetCopy(m_copy);
@@ -213,8 +211,8 @@ Blueprint *Blueprint::SplitBlueprint(int32 qty_to_take, bool notify) {
 	return res;
 }
 
-bool Blueprint::Merge(InventoryItem *to_merge, int32 qty, bool notify) {
-	if(!InventoryItem::Merge(to_merge, qty, notify))
+bool Blueprint::Merge(InventoryItemRef to_merge, int32 qty, bool notify) {
+	if( !InventoryItem::Merge( to_merge, qty, notify ) )
 		return false;
 	// do something special? merge material level etc.?
 	return true;

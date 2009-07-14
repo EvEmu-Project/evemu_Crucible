@@ -54,10 +54,7 @@ InventoryBound::~InventoryBound()
 }
 
 PyResult InventoryBound::Handle_List(PyCallArgs &call) {
-	PyRep *result = NULL;
-
 	//TODO: check to make sure we are allowed to list this inventory
-
 	return mInventory.List( mFlag, call.client->GetCharacterID() );
 }
 
@@ -75,32 +72,29 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 	}
 
 	// returns new ref
-	InventoryItem *new_charge = mInventory.GetByID(args.itemID, true);
-	if(new_charge == NULL) {
+	InventoryItemRef new_charge = mInventory.GetByID( args.itemID );
+	if( !new_charge ) {
 		codelog(SERVICE__ERROR, "%s: Unable to find charge %d", call.client->GetName(), args.itemID);
 		return NULL;
 	}
 
 	if(new_charge->ownerID() != call.client->GetCharacterID()) {
 		codelog(SERVICE__ERROR, "Character %u tried to load charge %u of character %u.", call.client->GetCharacterID(), new_charge->itemID(), new_charge->ownerID());
-		new_charge->DecRef();
 		return NULL;
 	}
 
 	if(new_charge->quantity() < args.quantity) {
 		codelog(SERVICE__ERROR, "%s: Item %u: Requested quantity (%d) exceeds actual quantity (%d), using actual.", call.client->GetName(), args.itemID, args.quantity, new_charge->quantity());
 	} else if(new_charge->quantity() > args.quantity) {
-		InventoryItem *new_charge_split = new_charge->Split(args.quantity);	// get new ref on a splitted item
-		new_charge->DecRef();	// release the old ref
-		new_charge = new_charge_split;	// copy the new ref
-		if(new_charge == NULL) {
+		new_charge = new_charge->Split(args.quantity);	// split item
+		if( !new_charge ) {
 			codelog(SERVICE__ERROR, "%s: Unable to split charge %d into %d", call.client->GetName(), args.itemID, args.quantity);
 			return NULL;
 		}
 	}
 
 	// new ref is consumed, we don't release it
-	call.client->modules.ReplaceCharges((EVEItemFlags) args.flag, new_charge);
+	call.client->modules.ReplaceCharges( (EVEItemFlags) args.flag, (InventoryItemRef)new_charge );
 
 	return(new PyRepInteger(1));
 }
@@ -228,24 +222,19 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
 			continue;
 		}
 
-		InventoryItem *stationaryItem = m_manager->item_factory.GetItem( element.stationaryItemID );
-		if(stationaryItem == NULL) {
+		InventoryItemRef stationaryItem = m_manager->item_factory.GetItem( element.stationaryItemID );
+		if( !stationaryItem ) {
 			_log(SERVICE__ERROR, "Failed to load stationary item %u. Skipping.", element.stationaryItemID);
 			continue;
 		}
 
-		InventoryItem *draggedItem = m_manager->item_factory.GetItem( element.draggedItemID );
-		if(draggedItem == NULL) {
+		InventoryItemRef draggedItem = m_manager->item_factory.GetItem( element.draggedItemID );
+		if( !draggedItem ) {
 			_log(SERVICE__ERROR, "Failed to load dragged item %u. Skipping.", element.draggedItemID);
-			stationaryItem->DecRef();
 			continue;
 		}
 
-		if(!stationaryItem->Merge(draggedItem, element.draggedQty))
-			// if Merge failed, draggedItem ref wasn't relased ...
-			draggedItem->DecRef();
-
-		stationaryItem->DecRef();
+		stationaryItem->Merge( (InventoryItemRef)draggedItem, element.draggedQty );
 	}
 
 	elements.MMElements.items.clear();
@@ -277,8 +266,8 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 	cur = items.begin();
 	end = items.end();
 	for(; cur != end; cur++) {
-		InventoryItem *sourceItem = m_manager->item_factory.GetItem( *cur );
-		if(sourceItem == NULL) {
+		InventoryItemRef sourceItem = m_manager->item_factory.GetItem( *cur );
+		if( !sourceItem ) {
 			_log(SERVICE__ERROR, "Failed to load item %u. Skipping.", *cur);
 			continue;
 		}
@@ -291,21 +280,12 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 		split also multiple items cannot be split so the size() should be 1*/
 		if( quantity != sourceItem->quantity() && items.size() == 1 )
 		{
-			InventoryItem *newItem = sourceItem->Split(quantity);
-			if( newItem == NULL )
+			InventoryItemRef newItem = sourceItem->Split(quantity);
+			if( !newItem )
 				codelog(SERVICE__ERROR, "Error splitting item %u. Skipping.", sourceItem->itemID() );
 			else
 			{
-				try
-				{
-					mInventory.ValidateAddItem( flag, *newItem );
-				}
-				catch(...)
-				{
-					sourceItem->DecRef();
-					newItem->DecRef();
-					throw;
-				}
+				mInventory.ValidateAddItem( flag, newItem );
 
 				//Move New item to its new location
 				c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag);	// properly refresh modules
@@ -314,10 +294,6 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 				Call_SingleIntegerArg result;
 				result.arg = newItem->itemID();
 
-				//DecRef Items
-				sourceItem->DecRef();
-				newItem->DecRef();
-
 				//Return new item result
 				return result.FastEncode();
 			}
@@ -325,21 +301,10 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<uint32> &items, uin
 		else
 		{
 			//Its a move request
-			try
-			{
-				mInventory.ValidateAddItem( flag, *sourceItem );
-			}
-			catch(...)
-			{
-				sourceItem->DecRef();
-				throw;
-			}
+			mInventory.ValidateAddItem( flag, sourceItem );
 
 			c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);	// properly refresh modules
 		}
-
-		//DecRef the source Item PTR, we dont need it anymore
-		sourceItem->DecRef();
 	}
 
 	//Return Null if no item was created

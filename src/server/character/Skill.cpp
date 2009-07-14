@@ -38,24 +38,24 @@ Skill::Skill(
 {
 }
 
-Skill *Skill::Load(ItemFactory &factory, uint32 skillID)
+SkillRef Skill::Load(ItemFactory &factory, uint32 skillID)
 {
 	return InventoryItem::Load<Skill>( factory, skillID );
 }
 
 template<class _Ty>
-_Ty *Skill::_LoadSkill(ItemFactory &factory, uint32 skillID,
+ItemRef<_Ty> Skill::_LoadSkill(ItemFactory &factory, uint32 skillID,
 	// InventoryItem stuff:
 	const ItemType &type, const ItemData &data)
 {
-	return new Skill( factory, skillID, type, data );
+	return SkillRef( new Skill( factory, skillID, type, data ) );
 }
 
-Skill *Skill::Spawn(ItemFactory &factory, ItemData &data)
+SkillRef Skill::Spawn(ItemFactory &factory, ItemData &data)
 {
 	uint32 skillID = _Spawn( factory, data );
 	if( skillID == 0 )
-		return NULL;
+		return SkillRef();
 	return Skill::Load( factory, skillID );
 }
 
@@ -83,12 +83,12 @@ uint32 Skill::GetSPForLevel(uint8 level)
 
 bool Skill::SkillPrereqsComplete(Character &ch)
 {
-	Skill *requiredSkill;
+	SkillRef requiredSkill;
 
 	if( requiredSkill1() != 0 )
 	{
 		requiredSkill = ch.GetSkill( requiredSkill1() );
-		if( requiredSkill == NULL )
+		if( !requiredSkill )
 			return false;
 
 		if( requiredSkill1Level() > requiredSkill->skillLevel() )
@@ -98,7 +98,7 @@ bool Skill::SkillPrereqsComplete(Character &ch)
 	if( requiredSkill2() != 0 )
 	{
 		requiredSkill = ch.GetSkill( requiredSkill2() );
-		if( requiredSkill == NULL )
+		if( !requiredSkill )
 			return false;
 
 		if( requiredSkill2Level() > requiredSkill->skillLevel() )
@@ -108,7 +108,7 @@ bool Skill::SkillPrereqsComplete(Character &ch)
 	if( requiredSkill3() != 0 )
 	{
 		requiredSkill = ch.GetSkill( requiredSkill3() );
-		if( requiredSkill == NULL )
+		if( !requiredSkill )
 			return false;
 
 		if( requiredSkill3Level() > requiredSkill->skillLevel() )

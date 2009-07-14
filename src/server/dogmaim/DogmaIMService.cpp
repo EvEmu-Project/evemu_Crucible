@@ -133,20 +133,13 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	InventoryItem *item = m_manager->item_factory.GetItem( args.arg );
-	if(item == NULL) {
+	InventoryItemRef item = m_manager->item_factory.GetItem( args.arg );
+	if( !item ) {
 		codelog(SERVICE__ERROR, "Unable to load item %u", args.arg);
 		return NULL;
 	}
 
-	PyRepObject *result = item->ItemGetInfo();
-	item->DecRef();
-	if(result == NULL) {
-		codelog(SERVICE__ERROR, "Unable to build item info for item %u", args.arg);
-		return NULL;
-	}
-	
-    return result;
+    return item->ItemGetInfo();
 }
 
 PyResult DogmaIMBound::Handle_CharGetInfo(PyCallArgs &call) {

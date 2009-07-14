@@ -116,8 +116,8 @@ void GetAsteroid(Client *who, uint32 typeID, double radius, const Ga::GaVec3 & p
 		position
 	);
 
-	InventoryItem *i = who->services().item_factory.SpawnItem(idata);
-	if(i == NULL)
+	InventoryItemRef i = who->services().item_factory.SpawnItem(idata);
+	if( !i )
 		throw(PyException(MakeCustomError("Unable to spawn item of type %u.", typeID)));
 
 	i->Set_radius(radius);
