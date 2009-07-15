@@ -317,7 +317,7 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
 	if(GetNotify() == false)
 		return;
 
-	Client *c = m_factory.entity_list.FindCharacter(m_item.ownerID());
+	Client *c = m_factory.entity_list.FindCharacter( item().ownerID() );
 	if(c != NULL) {
 		Notify_OnModuleAttributeChange omac;
 		omac.ownerID = m_item.ownerID();
@@ -331,8 +331,8 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
 		c->QueueDestinyEvent(&tmp);
 	} else {
 		// delete the reps
-		delete oldValue;
-		delete newValue;
+		SafeDelete( oldValue );
+		SafeDelete( newValue );
 	}
 }
 

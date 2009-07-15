@@ -167,7 +167,9 @@ public:
 	bool SaveItem(uint32 itemID, const ItemData &data);
 	bool DeleteItem(uint32 itemID);
 
-	bool GetItemContents(uint32 itemID, std::vector<uint32> &items);
+	bool GetItemContents(uint32 itemID, std::vector<uint32> &into);
+	bool GetItemContents(uint32 itemID, EVEItemFlags flag, std::vector<uint32> &into);
+	bool GetItemContents(uint32 itemID, EVEItemFlags flag, uint32 ownerID, std::vector<uint32> &into);
 
 	/*
 	 * Item attribute stuff

@@ -161,7 +161,7 @@ double Ship::GetCapacity(EVEItemFlags flag) const
 		case flagDroneBay:      return droneCapacity();
 		case flagShipHangar:    return shipMaintenanceBayCapacity();
 		case flagHangar:        return corporateHangarCapacity();
-		default:			return 0.0;
+		default:                return 0.0;
 	}
 	
 }

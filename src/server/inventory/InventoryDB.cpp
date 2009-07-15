@@ -596,29 +596,76 @@ bool InventoryDB::DeleteItem(uint32 itemID) {
 	return true;
 }
 
-bool InventoryDB::GetItemContents(uint32 itemID, std::vector<uint32> &items) {
-	//this could be optimized to load the full row of each
-	//item which is to be loaded (and used to be), but it made
-	//for some overly complex knowledge in the DB side which
-	// really did not belong here, so weo go to the simpler
-	// solution until it becomes a problem.
+//this could be optimized to load the full row of each
+//item which is to be loaded (and used to be), but it made
+//for some overly complex knowledge in the DB side which
+// really did not belong here, so weo go to the simpler
+// solution until it becomes a problem.
+bool InventoryDB::GetItemContents(uint32 itemID, std::vector<uint32> &into)
+{
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if( !m_db->RunQuery( res,
 		"SELECT "
 		" itemID"
 		" FROM entity "
 		" WHERE locationID=%u",
-		itemID))
+		itemID ) )
 	{
 		codelog(SERVICE__ERROR, "Error in query for item %u: %s", itemID, res.error.c_str());
 		return false;
 	}
 	
 	DBResultRow row;
-	while(res.GetRow(row)) {
-		items.push_back(row.GetUInt(0));
+	while( res.GetRow( row ) )
+		into.push_back( row.GetUInt( 0 ) );
+
+	return true;
+}
+
+bool InventoryDB::GetItemContents(uint32 itemID, EVEItemFlags flag, std::vector<uint32> &into)
+{
+	DBQueryResult res;
+	
+	if( !m_db->RunQuery( res,
+		"SELECT "
+		" itemID"
+		" FROM entity "
+		" WHERE locationID=%u"
+		"  AND flag=%d",
+		itemID, (int)flag ) )
+	{
+		codelog(SERVICE__ERROR, "Error in query for item %u: %s", itemID, res.error.c_str());
+		return false;
 	}
+	
+	DBResultRow row;
+	while( res.GetRow( row ) )
+		into.push_back( row.GetUInt( 0 ) );
+
+	return true;
+}
+
+bool InventoryDB::GetItemContents(uint32 itemID, EVEItemFlags flag, uint32 ownerID, std::vector<uint32> &into)
+{
+	DBQueryResult res;
+	
+	if( !m_db->RunQuery( res,
+		"SELECT "
+		" itemID"
+		" FROM entity "
+		" WHERE locationID=%u"
+		"  AND flag=%d"
+		"  AND ownerID=%u",
+		itemID, (int)flag, ownerID ) )
+	{
+		codelog(SERVICE__ERROR, "Error in query for item %u: %s", itemID, res.error.c_str());
+		return false;
+	}
+	
+	DBResultRow row;
+	while( res.GetRow( row ) )
+		into.push_back( row.GetUInt( 0 ) );
 
 	return true;
 }

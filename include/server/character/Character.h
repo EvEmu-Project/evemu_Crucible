@@ -400,7 +400,7 @@ public:
 	 * @param[in] skill Skill for which the rate is calculated.
 	 * @return Skillpoints per minute rate.
 	 */
-	double GetSPPerMin(Skill &skill) const;
+	double GetSPPerMin(SkillRef skill) const;
 	/**
 	 * @return Timestamp at which current skill training finishes.
 	 */

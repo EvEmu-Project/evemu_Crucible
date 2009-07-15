@@ -473,10 +473,10 @@ SkillRef Character::GetSkillInTraining() const
 	return SkillRef::StaticCast( FindFirstByFlag( flagSkillInTraining ) );
 }
 
-double Character::GetSPPerMin(Skill &skill) const
+double Character::GetSPPerMin(SkillRef skill) const
 {
-	double primaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill.primaryAttribute() );
-	double secondaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill.secondaryAttribute() );
+	double primaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill->primaryAttribute() );
+	double secondaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill->secondaryAttribute() );
 
 	uint8 skillLearningLevel = 0;
 
@@ -579,7 +579,7 @@ void Character::UpdateSkillQueue()
 			if(timeEndTrain != 0)
 			{
 				double nextLevelSP = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 );
-				double SPPerMinute = GetSPPerMin( *currentTraining );
+				double SPPerMinute = GetSPPerMin( currentTraining );
 				double minRemaining = (double)(timeEndTrain - Win32TimeNow()) / (double)Win32Time_Minute; 
 
 				currentTraining->Set_skillPoints( nextLevelSP - (minRemaining * SPPerMinute) );
@@ -623,7 +623,7 @@ void Character::UpdateSkillQueue()
 
 			_log( ITEM__TRACE, "%s (%u): Starting training of skill %s (%u).", m_itemName.c_str(), m_itemID, currentTraining->itemName().c_str(), currentTraining->itemID() );
 
-			double SPPerMinute = GetSPPerMin( *currentTraining );
+			double SPPerMinute = GetSPPerMin( currentTraining );
 			double SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 ) - currentTraining->skillPoints();
 
 			uint64 timeTraining = nextStartTime + Win32Time_Minute * SPToNextLevel / SPPerMinute;

@@ -261,29 +261,16 @@ Inventory *ItemFactory::GetInventory(uint32 inventoryID, bool load)
 			item = res->second;
 	}
 
-	if( !item )
-		return NULL;
-
-	switch( item->categoryID() )
-	{
-		case EVEDB::invCategories::Ship:    return ShipRef::StaticCast( item ).get();
-	}
-
-	switch( item->groupID() )
-	{
-		case EVEDB::invGroups::Station:     return StationRef::StaticCast( item ).get();
-		case EVEDB::invGroups::Character:   return CharacterRef::StaticCast( item ).get();
-	}
-
-	return NULL;
+	return Inventory::Cast( item );
 }
 
-void ItemFactory::_DeleteItem(uint32 itemID) {
-	std::map<uint32, InventoryItemRef>::iterator res = m_items.find(itemID);
-	if(res == m_items.end()) {
-		codelog(SERVICE__ERROR, "Item ID %u not found when requesting deletion!", itemID);
-	} else
-		m_items.erase(res);
+void ItemFactory::_DeleteItem(uint32 itemID)
+{
+	std::map<uint32, InventoryItemRef>::iterator res = m_items.find( itemID );
+	if( res == m_items.end() )
+		codelog( SERVICE__ERROR, "Item ID %u not found when requesting deletion!", itemID );
+	else
+		m_items.erase( res );
 }
 
 

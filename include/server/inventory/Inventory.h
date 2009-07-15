@@ -34,6 +34,13 @@ class Inventory
 {
 	friend class InventoryItem;
 public:
+	/**
+	 * Casts given InventoryItemRef to Inventory.
+	 *
+	 * @return Pointer to Inventory; NULL if given item isn't a valid inventory.
+	 */
+	static Inventory *Cast(InventoryItemRef item);
+
 	Inventory();
 	virtual ~Inventory();
 
@@ -42,11 +49,11 @@ public:
 	/*
 	 * Contents management:
 	 */
-	bool ContentsLoaded() const { return m_contentsLoaded; }
+	bool ContentsLoaded() const { return mContentsLoaded; }
 	bool LoadContents(ItemFactory &factory);
 	void DeleteContents(ItemFactory &factory);
 
-	bool Contains(uint32 itemID) const { return m_contents.find( itemID ) != m_contents.end(); }
+	bool Contains(uint32 itemID) const { return mContents.find( itemID ) != mContents.end(); }
 	InventoryItemRef GetByID(uint32 id) const;
 	InventoryItemRef GetByTypeFlag(uint32 typeID, EVEItemFlags flag) const;
 
@@ -65,15 +72,17 @@ public:
 	 */
 	virtual PyRep *GetItem() const = 0;
 
-	PyRepObjectEx *List(EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
-	void List(dbutil_CRowset &into, EVEItemFlags flag = flagAnywhere, uint32 forOwner = 0) const;
+	PyRepObjectEx *List(EVEItemFlags flag, uint32 forOwner = 0) const;
+	void List(dbutil_CRowset &into, EVEItemFlags flag, uint32 forOwner = 0) const;
 
 protected:
 	virtual void AddItem(InventoryItemRef item);
 	virtual void RemoveItem(uint32 itemID);
 
-	bool m_contentsLoaded;
-	std::map<uint32, InventoryItemRef> m_contents;	//maps item ID to its instance. we own a ref to all of these.
+	virtual bool GetItems(ItemFactory &factory, std::vector<uint32> &into) const { return factory.db().GetItemContents( inventoryID(), into ); }
+
+	bool mContentsLoaded;
+	std::map<uint32, InventoryItemRef> mContents;	//maps item ID to its instance. we own a ref to all of these.
 };
 
 class InventoryEx
