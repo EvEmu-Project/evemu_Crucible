@@ -27,13 +27,16 @@
 #define __ITEM_REF__H__INCL__
 
 class InventoryItem;
+
 class Blueprint;
-class Character;
 class Ship;
 class CelestialObject;
+class Skill;
+class Owner;
+
+class Character;
 class SolarSystem;
 class Station;
-class Skill;
 
 /**
  * Smart pointer to maintain InventoryItem's references.
@@ -164,13 +167,16 @@ protected:
  * Typedefs for all item classes we have:
  */
 typedef ItemRef<InventoryItem>      InventoryItemRef;
+
 typedef ItemRef<Blueprint>          BlueprintRef;
-typedef ItemRef<Character>          CharacterRef;
 typedef ItemRef<Ship>               ShipRef;
 typedef ItemRef<CelestialObject>    CelestialObjectRef;
+typedef ItemRef<Skill>              SkillRef;
+typedef ItemRef<Owner>              OwnerRef;
+
+typedef ItemRef<Character>          CharacterRef;
 typedef ItemRef<SolarSystem>        SolarSystemRef;
 typedef ItemRef<Station>            StationRef;
-typedef ItemRef<Skill>              SkillRef;
 
 #endif /* !__ITEM_REF__H__INCL__ */
 

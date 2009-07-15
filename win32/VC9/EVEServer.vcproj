@@ -473,6 +473,10 @@
 					RelativePath="..\..\src\server\inventory\ItemType.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\server\inventory\Owner.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="manufacturing"
@@ -1077,6 +1081,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\server\inventory\ItemType.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\server\inventory\Owner.h"
 					>
 				</File>
 			</Filter>

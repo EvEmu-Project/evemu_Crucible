@@ -157,6 +157,14 @@ public:
 	 */
 	SkillRef GetSkill(uint32 skillID);
 
+	/**
+	 * Loads owner.
+	 *
+	 * @param[in] ownerID ID of owner to load.
+	 * @return Ref to Owner object.
+	 */
+	OwnerRef GetOwner(uint32 ownerID);
+
 	//spawn a new item with the specified information, creating it in the DB as well.
 	InventoryItemRef SpawnItem(ItemData &data);
 	BlueprintRef SpawnBlueprint(ItemData &data, BlueprintData &bpData);
@@ -184,6 +192,13 @@ public:
 	 * @return Pointer to new Skill object; NULL if fails.
 	 */
 	SkillRef SpawnSkill(ItemData &data);
+	/**
+	 * Spawns new owner.
+	 *
+	 * @param[in] data Item data for owner.
+	 * @return Ref to new Owner object.
+	 */
+	OwnerRef SpawnOwner(ItemData &data);
 
 	/*
 	 * Inventory stuff

@@ -290,7 +290,7 @@ Character::Character(
 	// Character stuff:
 	const CharacterData &_charData,
 	const CorpMemberInfo &_corpData)
-: InventoryItem(_factory, _characterID, _charType, _data),
+: Owner(_factory, _characterID, _charType, _data),
   m_accountID(_charData.accountID),
   m_title(_charData.title),
   m_description(_charData.description),
@@ -369,7 +369,7 @@ uint32 Character::_Spawn(ItemFactory &factory,
 	}
 
 	// first the item
-	uint32 characterID = InventoryItem::_Spawn(factory, data);
+	uint32 characterID = Owner::_Spawn(factory, data);
 	if(characterID == 0)
 		return 0;
 
@@ -392,7 +392,7 @@ bool Character::_Load()
 	if( !m_factory.db().LoadSkillQueue( itemID(), m_skillQueue ) )
 		return false;
 
-	return InventoryItem::_Load();
+	return Owner::_Load();
 }
 
 void Character::Delete() {
@@ -403,7 +403,7 @@ void Character::Delete() {
 	m_factory.db().DeleteCharacter(itemID());
 
 	// let the parent care about the rest
-	InventoryItem::Delete();
+	Owner::Delete();
 }
 
 bool Character::AlterBalance(double balanceChange) {

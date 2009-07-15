@@ -27,8 +27,8 @@
 #define __CHARACTER__H__INCL__
 
 #include "inventory/ItemType.h"
+#include "inventory/Owner.h"
 #include "inventory/Inventory.h"
-#include "inventory/InventoryItem.h"
 #include "inventory/InventoryDB.h"
 
 #include "character/Skill.h"
@@ -333,10 +333,11 @@ public:
  * Class representing character.
  */
 class Character
-: public InventoryItem,
+: public Owner,
   public Inventory
 {
 	friend class InventoryItem;	// to let it construct us
+	friend class Owner;	// to let it construct us
 public:
 	typedef InventoryDB::QueuedSkill QueuedSkill;
 	typedef InventoryDB::SkillQueue SkillQueue;
@@ -509,7 +510,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadItem(ItemFactory &factory, uint32 characterID,
+	static ItemRef<_Ty> _LoadOwner(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data)
 	{

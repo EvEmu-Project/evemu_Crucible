@@ -192,18 +192,17 @@ ItemRef<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 		case EVEDB::invCategories::Skill: {
 			return Skill::_LoadItem<Skill>( factory, itemID, type, data );
 		}
+
+		///////////////////////////////////////
+		// Owner:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Owner: {
+			return Owner::_LoadItem<Owner>( factory, itemID, type, data );
+		}
 	}
 
 	// ItemCategory didn't do it, try ItemGroup:
 	switch( type.groupID() ) {
-		///////////////////////////////////////
-		// Character:
-		///////////////////////////////////////
-		case EVEDB::invGroups::Character: {
-			// create character
-			return Character::_LoadItem<Character>( factory, itemID, type, data );
-		}
-
 		///////////////////////////////////////
 		// Station:
 		///////////////////////////////////////
@@ -270,19 +269,17 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 		case EVEDB::invCategories::Skill: {
 			return Skill::Spawn( factory, data );
 		}
+
+		///////////////////////////////////////
+		// Owner:
+		///////////////////////////////////////
+		case EVEDB::invCategories::Owner:
+		{
+			return Owner::Spawn( factory, data );
+		}
 	}
 
 	switch( t->groupID() ) {
-		///////////////////////////////////////
-		// Character:
-		///////////////////////////////////////
-		case EVEDB::invGroups::Character: {
-			// we're not gonna create character from default attributes ...
-			_log( ITEM__ERROR, "Refusing to create character '%s' from default attributes.", data.name.c_str() );
-
-			return InventoryItemRef();
-		}
-
 		///////////////////////////////////////
 		// Station:
 		///////////////////////////////////////

@@ -150,7 +150,9 @@ libinventory_a_SOURCES = \
 	inventory/ItemFactory.h \
 	inventory/ItemRef.h \
 	inventory/ItemType.cpp \
-	inventory/ItemType.h
+	inventory/ItemType.h \
+	inventory/Owner.cpp \
+	inventory/Owner.h
 # Seems not to be included
 #	inventory/ItemDB.cpp 
 #	inventory/ItemDB.h 

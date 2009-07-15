@@ -200,6 +200,11 @@ SkillRef ItemFactory::GetSkill(uint32 skillID)
 	return _GetItem<Skill>( skillID );
 }
 
+OwnerRef ItemFactory::GetOwner(uint32 ownerID)
+{
+	return _GetItem<Owner>( ownerID );
+}
+
 InventoryItemRef ItemFactory::SpawnItem(ItemData &data) {
 	InventoryItemRef i = InventoryItem::Spawn(*this, data);
 	if( !i )
@@ -246,6 +251,16 @@ SkillRef ItemFactory::SpawnSkill(ItemData &data)
 
 	m_items.insert( std::make_pair( s->itemID(), s ) );
 	return s;
+}
+
+OwnerRef ItemFactory::SpawnOwner(ItemData &data)
+{
+	OwnerRef o = Owner::Spawn( *this, data );
+	if( !o )
+		return OwnerRef();
+
+	m_items.insert( std::make_pair( o->itemID(), o ) );
+	return o;
 }
 
 Inventory *ItemFactory::GetInventory(uint32 inventoryID, bool load)

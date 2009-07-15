@@ -207,6 +207,7 @@
 #include "../server/inventory/ItemFactory.h"
 #include "../server/inventory/ItemRef.h"
 #include "../server/inventory/ItemType.h"
+#include "../server/inventory/Owner.h"
 
 // factory stuff
 #include "../server/manufacturing/Blueprint.h"
