@@ -197,11 +197,11 @@ bool DBTYPE_IsCompatible(DBTYPE type, const PyRep &rep)
 			       || CheckTypeRange( Real, -0x7F, 0x7F );
 
 		case DBTYPE_R8:
-			return CheckTypeRange( Integer, DBL_MIN, DBL_MAX )
-			       || CheckTypeRange( Real, DBL_MIN, DBL_MAX );
+			return CheckTypeRange( Integer, -DBL_MAX, DBL_MAX )
+			       || CheckTypeRange( Real, -DBL_MAX, DBL_MAX );
 		case DBTYPE_R4:
-			return CheckTypeRange( Integer, FLT_MIN, FLT_MAX )
-			       || CheckTypeRange( Real, FLT_MIN, FLT_MAX );
+			return CheckTypeRange( Integer, -FLT_MAX, FLT_MAX )
+			       || CheckTypeRange( Real, -FLT_MAX, FLT_MAX );
 
 		case DBTYPE_BOOL:
 			return rep.IsBool();
