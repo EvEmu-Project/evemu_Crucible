@@ -233,8 +233,6 @@ public:
 				}
 			}
 
-			v.i &= (1LL << cur->first) - 1;
-
 			memcpy( &unpacked[ off ], &v, len );
 		}
 

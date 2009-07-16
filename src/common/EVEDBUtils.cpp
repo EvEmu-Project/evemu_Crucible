@@ -442,7 +442,6 @@ PyRepObjectEx *DBRowToRowDescriptor(const DBResultRow &row)
 	return desc.FastEncode();
 }
 
-//creates packed row, order is determined by DBPackedColumnList
 PyRepPackedRow *CreatePackedRow(const DBResultRow &row, const PyRep &header, bool headerOwner)
 {
 	PyRepPackedRow *res = new PyRepPackedRow( header, headerOwner );

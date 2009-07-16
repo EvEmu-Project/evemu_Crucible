@@ -1103,12 +1103,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 				double r8;
 				float r4;
 			} v;
-			uint8 len = (cur->first >> 3);
+			v.i = 0;
 
+			uint8 len = (cur->first >> 3);
 			memcpy( &v, &unpacked[ off ], len );
 			off += len;
-
-			v.i &= (1LL << cur->first) - 1;
 
 			switch( row->GetColumnType( cur->second ) )
 			{
@@ -1410,33 +1409,25 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
          * what gets marshales as what...
          */
 
-		uint32 data_length = *packet;
-		packet++;
-		len--;
-		len_used++;
-			
+		uint32 data_length = Getuint8();
 		//special extended length (I assume this wont happen for integers..., at least I hope not..)
 		if(data_length == 0xFF) {
 			if(len < sizeof(uint32)) {
 				_log(NET__UNMARSHAL_ERROR, "Not enough data for an 0x2F\n");
 				break;
 			}
-			
-			data_length = *((const uint32 *) packet);
-			packet += sizeof(uint32);
-			len -= sizeof(uint32);
-			len_used += sizeof(uint32);
+
+			data_length = Getuint32();
 		}
-		
+
 		if(len < data_length) {
 			_log(NET__UNMARSHAL_ERROR, "Ran out of data in 0x2F of length %d, %d bytes remain.\n", data_length, len);
 			break;
 		}
-		len_used += data_length;
 
 		if(data_length <= sizeof(uint64)) {
-			uint64 intval = (1LL << (data_length << 3)) - 1;
-			intval &= *((const uint64 *) packet);
+			uint64 intval = 0;
+			memcpy( &intval, packet, data_length );
 
 			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyVarInteger(len=%d) = " I64u, pfx, opcode, data_length, intval);
 			res = new PyRepInteger(intval);
@@ -1448,12 +1439,14 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 			_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyVarInteger(len=%d)", pfx, opcode, data_length);
 			_log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
 			_hex(NET__UNMARSHAL_BUFHEX, packet, data_length);
-			
+
 			res = r;
 		}
-		
+
+		IncreaseIndex( data_length );
+
 		break; }
-	
+
 	default:
 		{ _log(NET__UNMARSHAL_ERROR, "Unhandled (default) field type 0x%x\n", opcode);
 			phex(NET__UNMARSHAL_ERROR, packet-1, len>32?32:len);
