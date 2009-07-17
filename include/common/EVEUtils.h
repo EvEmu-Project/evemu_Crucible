@@ -67,6 +67,15 @@ extern PyRep *MakeCustomError(const char *fmt, ...);
  * @return Length of field (in bits).
  */
 extern uint8 DBTYPE_SizeOf(DBTYPE type);
+
+/**
+ * Returns length of field of given type.
+ *
+ * @param[in] type Type of fields.
+ * @return Length of field (in bytes).
+ */
+extern uint8 DBTYPE_GetSize(DBTYPE type);
+
 /**
  * Checks compatibility between DBTYPE and PyRep.
  *

@@ -74,12 +74,20 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index) {
 	case DBQueryResult::Int16:
 	case DBQueryResult::Int32:
 	case DBQueryResult::Int64:
-		//quick check to handle sign, im not sure it does any good at this point.
+		//quick check to handle sign, i'm not sure it does any good at this point.
 		if(row.IsSigned(column_index))
 			return(new PyRepInteger(row.GetInt64(column_index)));
 		return(new PyRepInteger(row.GetUInt64(column_index)));
 	case DBQueryResult::Binary:
 		return(new PyRepBuffer((const uint8 *) row.GetText(column_index), row.GetColumnLength(column_index)));
+    case DBQueryResult::Bool:
+        {
+            int field_data = row.GetInt(column_index);
+            // safe thingy to make sure we don't fuck things up in the db
+            assert(field_data == 0 || field_data == 1);
+            return new PyRepBoolean( field_data != 0 );
+        }
+        
 	case DBQueryResult::DateTime:
 	case DBQueryResult::String:
 	default:
@@ -398,6 +406,7 @@ DBTYPE GetPackedColumnType(DBQueryResult::ColType colType)
 		case DBQueryResult::DateTime:	return DBTYPE_FILETIME;
 		case DBQueryResult::String:		return DBTYPE_STR;
 		case DBQueryResult::Binary:		return DBTYPE_BYTES;
+        case DBQueryResult::Bool:		return DBTYPE_BOOL;
 		default:						return DBTYPE_STR; //default to string
 	}
 }

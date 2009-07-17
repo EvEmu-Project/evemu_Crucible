@@ -63,7 +63,7 @@ public:
 	 * @param location is the index number of the referenced object.
 	 * @return A referenced PyRep base Object.
 	 */
-	ASCENT_INLINE PyRep* GetStoredObject(uint32 location)
+	EVEMU_INLINE PyRep* GetStoredObject(uint32 location)
 	{
 		if (location == 0 || location > storedObjectCount )
 			return NULL;
@@ -74,7 +74,7 @@ public:
 	 * Stores a referenced Object.
 	 * @param object is the object that is marked as a object that has many references.
 	 */
-	ASCENT_INLINE void StoreReferencedObject(PyRep * object)
+	EVEMU_INLINE void StoreReferencedObject(PyRep * object)
 	{
 		assert(storeObjectIndex < expectedObjectsCount); // crash when we are storing more objects than we expect
 		mReferenceObjects[storeObjectIndex] = object;
@@ -87,7 +87,7 @@ public:
 	 * Get the current stored objects.
 	 * @return A unsigned integer that represents the amount of referenced Objects stored.
 	 */
-	ASCENT_INLINE uint32 GetStoredCount()
+	EVEMU_INLINE uint32 GetStoredCount()
 	{
 		return storedObjectCount;
 	}
@@ -96,7 +96,7 @@ public:
 	 * Get the expected referenced object count.
 	 * @return A unsigned integer that represents the expected object count.
 	 */
-	ASCENT_INLINE uint32 GetMaxStoredCount()
+	EVEMU_INLINE uint32 GetMaxStoredCount()
 	{
 		return expectedObjectsCount;
 	}

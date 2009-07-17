@@ -55,14 +55,14 @@
   */
 #if WIN32
 #  ifdef _DEBUG
-#    define ASCENT_INLINE
+#    define EVEMU_INLINE
 #    define ASCENT_FORCEINLINE __forceinline
 #  else
-#    define ASCENT_INLINE inline
+#    define EVEMU_INLINE inline
 #    define ASCENT_FORCEINLINE __forceinline
 #  endif//_DEBUG
 #else
-#  define ASCENT_INLINE inline
+#  define EVEMU_INLINE inline
 #  define ASCENT_FORCEINLINE inline
 #endif//WIN32
 

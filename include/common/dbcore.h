@@ -75,7 +75,8 @@ public:
 		Real,
 		DateTime,
 		String,
-		Binary
+		Binary,
+        Bool
 	} ColType;
 	
 	uint32 ColumnCount() const { return(m_col_count); }

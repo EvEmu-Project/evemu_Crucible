@@ -44,14 +44,13 @@ static const uint32 EVEDeflationBytesLimit = 10000;	//every packet larger than t
 class MarshalVisitor : public PyVisitor
 {
 public:
-	MarshalVisitor() : mWriteIndex(0)
+	MarshalVisitor() : mWriteIndex(0), mAllocatedMem( 0x1000 )
 	{
-		mBuffer = (uint8*)malloc(0x100000);
-		mAllocatedMem = 0x100000;
+		mBuffer = (uint8*)malloc( mAllocatedMem );
 	}
 	virtual ~MarshalVisitor()
 	{
-		free(mBuffer);
+		free( mBuffer );
 	}
 	
 	/** adds a integer to the data stream
@@ -66,20 +65,17 @@ public:
 			PutByte(Op_PyMinusOne);
 			return;
 		}
-
-		if (val == 0)
+        else if (val == 0)
 		{
 			PutByte(Op_PyZeroInteger);
 			return;
 		}
-
-		if (val == 1)
+        else if (val == 1)
 		{
 			PutByte(Op_PyOneInteger);
 			return;
 		}
-
-		if ( val + 0x80u > 0xFF )
+        else if ( val + 0x80u > 0xFF )
 		{
 			if ( val + 0x8000u > 0xFFFF )
 			{
@@ -93,7 +89,7 @@ public:
 					PutByte(Op_PyLong);
 					PutUint32(val);
 					return;
-				}				
+				}
 			}
 			else
 			{
@@ -106,10 +102,10 @@ public:
 		{
 			PutByte(Op_PyByte);
 			PutByte(val);
-			return;			
+			return;
 		}
 	}
-	
+
 	/** Adds a boolean to the stream
 	  */
 	virtual void VisitBoolean(const PyRepBoolean *rep)
@@ -127,7 +123,6 @@ public:
 		if(rep->value == 0.0)
 		{
 			PutByte(Op_PyZeroReal);
-			return;
 		}
 		else
 		{
@@ -149,15 +144,7 @@ public:
 	{
 		PutByte(Op_PyBuffer);
 		uint32 len = rep->GetLength();
-		if(len >= 0xFF)
-		{
-			PutByte(0xFF);
-			PutUint32(len);
-		}
-		else
-		{
-			PutByte(len);
-		}
+        PutSizeEx(len);
 		PutBytes(rep->GetBuffer(), len);
 	}
 	
@@ -169,24 +156,43 @@ public:
 		
 		rep->GetHeader().visit( this );
 
-		std::vector<uint8> unpacked;
-		unpacked.reserve( 64 );
-
 		// Create size map, sorted from the greatest to the smallest value:
-		std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
-		uint32 cc = rep->ColumnCount();
-		for(uint32 i = 0; i < cc; i++)
-			sizeMap.insert( std::make_pair( DBTYPE_SizeOf( rep->GetColumnType( i ) ), i ) );
 
-		std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
+        typedef std::multimap< uint8, uint32, std::greater< uint8 > >   SizeMap;
+        typedef SizeMap::iterator                                       SizeMapItr;
+
+		SizeMap sizeMap;
+		uint32 cc = rep->ColumnCount();
+		
+        // the estimated size of the row.
+        uint32 row_size = 0;
+        // the amount of booleans in the row
+        uint8 bool_count = 0;
+        for(uint32 i = 0; i < cc; i++)
+        {
+            DBTYPE field_type = rep->GetColumnType( i );
+            uint8 field_size = DBTYPE_SizeOf( field_type );
+			sizeMap.insert( std::make_pair( field_size, i ) );
+            row_size+= (field_size >> 3);
+            if ( field_type == DBTYPE_BOOL)
+                bool_count++;
+        }
+
+        // static allocate the required amount of memory for the PackedRow binary blob
+        uint8* unpacked_buffer = (uint8*)malloc( row_size + (bool_count / 8) + 1);
+
+        // writing index
+        uint32 unpacked_index = 0;
+
+		SizeMapItr cur, end;
 		cur = sizeMap.begin();
-		end = sizeMap.lower_bound( 1 );
+        end  = sizeMap.end();
+
+        uint32 bool_counter = 0;
+
 		for(; cur != end; cur++)
 		{
-			uint8 len = (cur->first >> 3);
-
-			size_t off = unpacked.size();
-			unpacked.resize( off + len );
+			uint8 len = cur->first;
 
 			union
 			{
@@ -205,67 +211,99 @@ public:
 					case DBTYPE_UI8:
 					case DBTYPE_CY:
 					case DBTYPE_FILETIME:
-					case DBTYPE_I4:
+
+                        if( r->IsInteger() )
+                            v.i = r->AsInteger().value;
+                        else if( r->IsReal() )
+                            v.i = r->AsReal().value;
+
+                        (*((uint64*)&unpacked_buffer[unpacked_index])) = (*(uint64*)&v);
+                        unpacked_index+=8;
+                        continue;
+
+                    case DBTYPE_I4:
 					case DBTYPE_UI4:
+                        if( r->IsInteger() )
+                            v.i = r->AsInteger().value;
+                        else if( r->IsReal() )
+                            v.i = r->AsReal().value;
+
+                        (*((uint32*)&unpacked_buffer[unpacked_index])) = (*(uint32*)&v);
+                        unpacked_index+=4;
+                        continue;
+
 					case DBTYPE_I2:
 					case DBTYPE_UI2:
+                        if( r->IsInteger() )
+                            v.i = r->AsInteger().value;
+                        else if( r->IsReal() )
+                            v.i = r->AsReal().value;
+
+                        (*((uint16*)&unpacked_buffer[unpacked_index])) = (*(uint16*)&v);
+                        unpacked_index+=2;
+                        continue;
+
 					case DBTYPE_I1:
 					case DBTYPE_UI1:
-						if( r->IsInteger() )
-							v.i = r->AsInteger().value;
-						else if( r->IsReal() )
-							v.i = r->AsReal().value;
-						break;
+                        if( r->IsInteger() )
+                            v.i = r->AsInteger().value;
+                        else if( r->IsReal() )
+                            v.i = r->AsReal().value;
+
+                        (*((uint8*)&unpacked_buffer[unpacked_index])) = (*(uint8*)&v);
+                        unpacked_index+=1;
+                        continue;
+						
 
 					case DBTYPE_R8:
 						if( r->IsReal() )
 							v.r8 = r->AsReal().value;
 						else if( r->IsInteger() )
 							v.r8 = r->AsInteger().value;
-						break;
+
+                        (*((double*)&unpacked_buffer[unpacked_index])) = (*(double*)&v);
+                        unpacked_index+=8;
+						continue;
 
 					case DBTYPE_R4:
 						if( r->IsReal() )
 							v.r4 = r->AsReal().value;
 						else if( r->IsInteger() )
 							v.r4 = r->AsInteger().value;
-						break;
+                        (*((float*)&unpacked_buffer[unpacked_index])) = (*(float*)&v);
+                        unpacked_index+=4;
+						continue;
+                    case DBTYPE_BOOL:
+                        // when we passed 8 bits for booleans.
+                        // we increase the write index by 1
+                        // and set the counter to 0
+                        if( bool_counter > 7 )
+                        {
+                            unpacked_index++;
+                            bool_counter = 0;
+                        }
+
+                        if( r-> IsBool() == true )
+                        {
+                            unpacked_buffer[unpacked_index] |= (r->AsBool().value << bool_counter);
+                        }
+                        bool_counter++;
+                        continue;
+                    }
 				}
 			}
 
-			memcpy( &unpacked[ off ], &v, len );
-		}
-
-		cur = sizeMap.lower_bound( 1 );
-		end = sizeMap.lower_bound( 0 );
-		for(uint8 off = 0; cur != end; cur++)
-		{
-			if( off > 7 )
-				off = 0;
-			if( off == 0 )
-				unpacked.push_back( 0 );
-
-			PyRep *r = rep->GetField( cur->second );
-
-			if( r != NULL )
-				if( r-> IsBool() )
-					unpacked.back() |= (r->AsBool().value << off);
-
-			off++;
-		}
+        if (bool_counter < 8)
+            unpacked_index++;
 
 		//pack the bytes with the zero compression algorithm.
 		std::vector<uint8> packed;
-		PackZeroCompressed( &unpacked[ 0 ], unpacked.size(), packed );
+		PackZeroCompressed( unpacked_buffer, row_size, packed );
+
+        free( unpacked_buffer );
 
 		uint32 len = packed.size();
-		if(len >= 0xFF)
-		{
-			PutByte(0xFF);
-			PutUint32(len);
-		}
-		else
-			PutByte(len);
+        PutSizeEx(len);
 
 		if( !packed.empty() )
 			//out goes the data...
@@ -425,31 +463,15 @@ public:
 			rep->decoded->visit(&v);
 			
 			uint32 length = v.size();
-			if(length >= 0xFF)
-			{
-				PutByte(0xFF);
-				PutUint32(length);
-			}
-			else
-			{
-				PutByte(length);
-			}
-
-			PutBytes(v.data(), v.size());
+            // put in the size
+            PutSizeEx(length);
+			// put in the data
+            PutBytes(v.data(), v.size());
 		}
 		else
 		{
 			//else, we have the marshaled data already, use it.
-			if(rep->length >= 0xFF)
-			{
-				PutByte(0xFF);
-				PutUint32(rep->length);
-			}
-			else
-			{
-				PutByte(rep->length);
-			}
-			
+            PutSizeEx(rep->length);
 			PutBytes(rep->data, rep->length);
 		}
 	}
@@ -469,22 +491,13 @@ public:
 	virtual void VisitDict(const PyRepDict *rep)
 	{
 		uint32 size = (uint32)rep->items.size();
-		if(size >= 0xFF)
-		{
-			PutByte(Op_PyDict);
-			PutByte(0xFF);
-			PutUint32(size);
-		}
-		else
-		{
-			PutByte(Op_PyDict);
-			PutByte(size);
-		}
+        PutByte(Op_PyDict);
+        PutSizeEx(size);
 		PyVisitor::VisitDict(rep);
 	}
 
 	/** Add dict elements to the stream
-	  */
+	 */
 	virtual void VisitDictElement(const PyRepDict *rep, uint32 index, const PyRep *key, const PyRep *value)
 	{
 		//we have to reverse the order of key/value to be value/key, so do not call base class.
@@ -493,22 +506,14 @@ public:
 	}
 	
 	/** Add a list object to the stream
-	  */
+	 */
 	virtual void VisitList(const PyRepList *rep)
 	{
-		uint32 size = (uint32)rep->items.size();
-		if(size >= 0xFF)
+		uint32 size = rep->size();
+        if(size > 1)
 		{
 			PutByte(Op_PyList);
-			PutByte(0xFF);
-			PutUint32(size);
-			PyVisitor::VisitList(rep);
-			return;
-		}
-		else if(size > 1)
-		{
-			PutByte(Op_PyList);
-			PutByte(size);
+			PutSizeEx(size);
 			PyVisitor::VisitList(rep);
 			return;
 		}
@@ -525,35 +530,27 @@ public:
 	}
 	
 	/** Add tuple to the stream
-	  */
-	virtual void VisitTuple(const PyRepTuple *rep)
+	 */
+	virtual void VisitTuple(const PyRepTuple *tuple)
 	{
-		uint32 size = (uint32)rep->items.size();
-		if(size >= 0xFF)
+		uint32 size = tuple->size();
+		if(size > 2)
 		{
 			PutByte(Op_PyTuple);
-			PutByte(0xFF);
-			PutUint32(size);
-			PyVisitor::VisitTuple(rep);
-			return;
-		}
-		else if(size > 2)
-		{
-			PutByte(Op_PyTuple);
-			PutByte(size);
-			PyVisitor::VisitTuple(rep);
+			PutSizeEx(size);
+			PyVisitor::VisitTuple(tuple);
 			return;
 		}
 		else if(size == 2)
 		{
 			PutByte(Op_PyTwoTuple);
-			PyVisitor::VisitTuple(rep);
+			PyVisitor::VisitTuple(tuple);
 			return;
 		}
 		else if(size == 1)
 		{
 			PutByte(Op_PyOneTuple);
-			PyVisitor::VisitTuple(rep);
+			PyVisitor::VisitTuple(tuple);
 			return;
 		}
 		else if(size == 0)
@@ -565,9 +562,9 @@ public:
 
 private:
 	// utility to handle Op_PyVarInteger (a bit hacky......)
-	ASCENT_INLINE void _PyRepInteger_AsByteArray(const PyRepInteger* v)
+	EVEMU_INLINE void _PyRepInteger_AsByteArray(const PyRepInteger* v)
 	{
-		CheckSize(8);
+		reserve(8);
 		uint8 integerSize = 0;
 #define DoIntegerSizeCheck(x) if (((uint8*)&v->value)[x] != 0) integerSize = x + 1;
 		DoIntegerSizeCheck(4);
@@ -591,7 +588,7 @@ private:
 	}
 
 	// not very efficient but it will do for now
-	ASCENT_INLINE void CheckSize(uint32 size)
+	EVEMU_INLINE void reserve(uint32 size)
 	{
         uint32 neededMem = mWriteIndex + size;
         if (neededMem > mAllocatedMem)
@@ -603,75 +600,78 @@ private:
 	
 public:
 
-	ASCENT_INLINE void PutByte(uint8 b)
+	EVEMU_INLINE void PutByte(uint8 b)
 	{
-		CheckSize(1);
+		reserve(1);
 		mBuffer[mWriteIndex] = b;
 		mWriteIndex++;
 	}
 
-	ASCENT_INLINE void PutBytes(const void *v, uint32 len)
+    EVEMU_INLINE void PutSizeEx(uint32 size)
+    {
+        if (size < 0xFF)
+        {
+            reserve(1);
+            mBuffer[mWriteIndex] = (uint8)size;
+            mWriteIndex++;
+        }
+        else
+        {
+            reserve(5);
+            mBuffer[mWriteIndex++] = 0xFF;
+            (*((uint32*)&mBuffer[mWriteIndex])) = size;
+            mWriteIndex+=4;
+        }
+    }
+
+	EVEMU_INLINE void PutBytes(const void *v, uint32 len)
 	{
-		CheckSize( len );
+		reserve( len );
         memcpy( &mBuffer[mWriteIndex], v, len );
         mWriteIndex += len;
 	}
 
 	/** adds a double do the data stream
 	*/
-	ASCENT_INLINE void PutDouble(const double& value)
+	EVEMU_INLINE void PutDouble(const double& value)
 	{
-		CheckSize(8);
-		mBuffer[mWriteIndex] = (((uint8*)&value)[0]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[1]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[2]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[3]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[4]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[5]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[6]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[7]); mWriteIndex++;
+		reserve(8);
+        (*((double*)&mBuffer[mWriteIndex])) = value;
+        mWriteIndex+=8;
 	}
 
 	/**	adds a uint64 do the data stream
 	*/
-	ASCENT_INLINE void PutUint64(const uint64& value)
+	EVEMU_INLINE void PutUint64(const uint64& value)
 	{
-		CheckSize(8);
-		mBuffer[mWriteIndex] = (((uint8*)&value)[0]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[1]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[2]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[3]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[4]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[5]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[6]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[7]); mWriteIndex++;
+		reserve(8);
+        (*((uint64*)&mBuffer[mWriteIndex])) = value;
+        mWriteIndex+=8;
 	}
 
 	/**	adds a uint32 do the data stream
 	*/
-	ASCENT_INLINE void PutUint32(const uint32 value)
+	EVEMU_INLINE void PutUint32(const uint32 value)
 	{
-		CheckSize(4);
-		mBuffer[mWriteIndex] = (((uint8*)&value)[0]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[1]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[2]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[3]); mWriteIndex++;
+		reserve(4);
+        (*((uint32*)&mBuffer[mWriteIndex])) = value;
+        mWriteIndex+=4;
 	}
 
 	/**	adds a uint16 do the data stream
 	  */
-	ASCENT_INLINE void PutUint16(const uint16 value)
+	EVEMU_INLINE void PutUint16(const uint16 value)
 	{
-		CheckSize(2);
-		mBuffer[mWriteIndex] = (((uint8*)&value)[0]); mWriteIndex++;
-		mBuffer[mWriteIndex] = (((uint8*)&value)[1]); mWriteIndex++;
+		reserve(2);
+        (*((uint16*)&mBuffer[mWriteIndex])) = value;
+        mWriteIndex+=2;
 	}
 
 	/**	adds a uint8 do the data stream
 	  */
-	ASCENT_INLINE void PutUint8(const uint8 value)
+	EVEMU_INLINE void PutUint8(uint8 value)
 	{
-		CheckSize(1);
+		reserve(1);
 		mBuffer[mWriteIndex] = value; mWriteIndex++;
 	}
 
@@ -718,7 +718,7 @@ uint8 *Marshal(const PyRep *rep, uint32& len, bool inlineSubStream)
 	len = v.size();
 
 	uint8 *packetBuff = NULL;
-
+    
 	// check if we need to compress the data
 	if (len > EVEDeflationBytesLimit)
 	{
@@ -732,6 +732,9 @@ uint8 *Marshal(const PyRep *rep, uint32& len, bool inlineSubStream)
 	uint8 *b = new uint8[len];
 
 	memcpy(b, packetBuff, len);
+    
+    if (len > EVEDeflationBytesLimit)
+        free( packetBuff );
 
 	return b;
 }

@@ -445,42 +445,47 @@ DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
 		return(String);		//nothing better to do...
 	}
 #endif
+
 	switch(m_fields[column]->type) {
 	case FIELD_TYPE_TINY:
-		return(Int8);
+        if (m_fields[column]->length == 1)
+            return Bool;
+		return Int8;
 	case FIELD_TYPE_SHORT:
-		return(Int16);
+		return Int16;
 	case FIELD_TYPE_INT24:	//3-byte medium int
 	case FIELD_TYPE_LONG:
-		return(Int32);
+		return Int32;
 	case FIELD_TYPE_LONGLONG:
-		return(Int64);
+		return Int64;
 	case FIELD_TYPE_FLOAT:
 	case FIELD_TYPE_DOUBLE:
 	case FIELD_TYPE_DECIMAL:	//fixed-point number
-		return(Real);
+		return Real;
 	case FIELD_TYPE_TIMESTAMP:
 	case FIELD_TYPE_DATE:
 	case FIELD_TYPE_TIME:
 	case FIELD_TYPE_DATETIME:
 	case FIELD_TYPE_YEAR:
 	case FIELD_TYPE_NEWDATE:
-		return(DateTime);
+		return DateTime;
 	case FIELD_TYPE_TINY_BLOB:
 	case FIELD_TYPE_MEDIUM_BLOB:
 	case FIELD_TYPE_LONG_BLOB:
 	case FIELD_TYPE_BLOB:
-		return(Binary);
+		return Binary;
 	case FIELD_TYPE_NULL:
 	case FIELD_TYPE_SET:		//unhandled
 	case FIELD_TYPE_GEOMETRY:	//unhandled
 	case FIELD_TYPE_VAR_STRING:
 	case FIELD_TYPE_STRING:
 	case FIELD_TYPE_ENUM:
-		return(String);
+		return String;
+    case FIELD_TYPE_BIT:
+        return Bool;
 	}
 	//..? safest answer:
-	return(String);
+	return String;
 }
 
 void DBQueryResult::SetResult(MYSQL_RES **res, uint32 colcount) {

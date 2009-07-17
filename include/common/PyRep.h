@@ -158,7 +158,7 @@ public:
 	virtual ~PyRepInteger() {}
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	PyRepInteger *TypedClone() const;
@@ -171,7 +171,7 @@ public:
 	virtual ~PyRepReal() {}
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	PyRepReal *TypedClone() const;
@@ -185,7 +185,7 @@ public:
 	virtual ~PyRepBoolean() {}
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	PyRepBoolean *TypedClone() const;
@@ -199,7 +199,7 @@ public:
 	virtual ~PyRepNone() {}
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	PyRepNone *TypedClone() const;
@@ -217,7 +217,7 @@ public:
 	virtual ~PyRepBuffer();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return TypedClone(); }
+	EVEMU_INLINE PyRep *Clone() const { return TypedClone(); }
 	void visit(PyVisitor *v) const;
 	
 	PyRepBuffer *TypedClone() const;
@@ -268,7 +268,7 @@ public:
 	virtual ~PyRepString() {}
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 
 	PyRepString *TypedClone() const;
@@ -312,7 +312,7 @@ public:
 	virtual ~PyRepTuple();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 
 	void CloneFrom(const PyRepTuple *from);
@@ -326,6 +326,7 @@ public:
 	inline const_iterator end() const { return(items.end()); }
 	bool empty() const { return(items.empty()); }
 	void clear();
+    uint32 size() const;
 
 	/* polymorphic overload to make the PyRepTuple do nice lookups. */
 	
@@ -368,7 +369,7 @@ public:
 	virtual ~PyRepList();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	void CloneFrom(const PyRepList *from);
@@ -388,6 +389,7 @@ public:
 	const_iterator end() const { return(items.end()); }
 	bool empty() const { return(items.empty()); }
 	void clear();
+    uint32 size() const;
 };
 
 class PyRepDict : public PyRep {
@@ -400,7 +402,7 @@ public:
 	virtual ~PyRepDict();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	void CloneFrom(const PyRepDict *from);
@@ -428,7 +430,7 @@ public:
 	virtual ~PyRepObject();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	PyRepObject *TypedClone() const;
@@ -455,7 +457,7 @@ public:
 	virtual ~PyRepObjectEx();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 
 	PyRepObjectEx *TypedClone() const;
@@ -476,7 +478,7 @@ public:
 	virtual ~PyRepPackedRow();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	PyRepPackedRow *TypedClone() const;
@@ -514,7 +516,7 @@ public:
 	virtual ~PyRepSubStruct();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	PyRepSubStruct *TypedClone() const;
@@ -531,7 +533,7 @@ public:
 	virtual ~PyRepSubStream();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	PyRepSubStream *TypedClone() const;
@@ -557,7 +559,7 @@ public:
 	virtual ~PyRepChecksumedStream();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const { return(TypedClone()); }
+	EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
 	void visit(PyVisitor *v) const;
 	
 	PyRepChecksumedStream *TypedClone() const;
@@ -577,7 +579,7 @@ public:
 	virtual ~PyRepReference();
 	void Dump(FILE *into, const char *pfx) const;
 	void Dump(LogType type, const char *pfx) const;
-	ASCENT_INLINE PyRep *Clone() const;
+	EVEMU_INLINE PyRep *Clone() const;
 	void visit(PyVisitor *v) const;
 
 	PyRep *const to;

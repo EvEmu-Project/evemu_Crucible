@@ -325,13 +325,19 @@ void PyRepTuple::Dump(LogType type, const char *pfx) const {
 	}
 }
 
-PyRepList::~PyRepList() {
-	clear();
+uint32 PyRepTuple::size() const
+{
+    return (uint32)items.size();
 }
 
 /************************************************************************/
 /* PyRep List Class                                                     */
 /************************************************************************/
+PyRepList::~PyRepList()
+{
+    clear();
+}
+
 void PyRepList::clear() {
 	std::vector<PyRep *>::iterator cur, _end;
 	cur = items.begin();
@@ -339,6 +345,11 @@ void PyRepList::clear() {
 	for(; cur != _end; cur++)
 		delete *cur;
 	items.clear();
+}
+
+uint32 PyRepList::size() const
+{
+    return (uint32)items.size();
 }
 
 void PyRepList::Dump(FILE *into, const char *pfx) const {
