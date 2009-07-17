@@ -178,8 +178,13 @@ public:
                 bool_count++;
         }
 
+        uint32 size_bool = bool_count / 8;
+        uint32 size_bool_mod = bool_count % 8;
+        if (size_bool_mod != 0)
+            size_bool++;
+
         // static allocate the required amount of memory for the PackedRow binary blob
-        uint8* unpacked_buffer = (uint8*)malloc( row_size + (bool_count / 8) + 1);
+        uint8* unpacked_buffer = (uint8*)malloc( row_size + size_bool );
 
         // writing index
         uint32 unpacked_index = 0;
