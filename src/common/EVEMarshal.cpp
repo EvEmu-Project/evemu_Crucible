@@ -65,17 +65,17 @@ public:
 			PutByte(Op_PyMinusOne);
 			return;
 		}
-        else if (val == 0)
+        if (val == 0)
 		{
 			PutByte(Op_PyZeroInteger);
 			return;
 		}
-        else if (val == 1)
+        if (val == 1)
 		{
 			PutByte(Op_PyOneInteger);
 			return;
 		}
-        else if ( val + 0x80u > 0xFF )
+        if ( val + 0x80u > 0xFF )
 		{
 			if ( val + 0x8000u > 0xFFFF )
 			{
@@ -152,179 +152,123 @@ public:
 	  */
 	virtual void VisitPackedRow(const PyRepPackedRow *rep)
 	{
-		PutByte( Op_PyPackedRow );
-		
-		rep->GetHeader().visit( this );
+        PutByte( Op_PyPackedRow );
 
-		// Create size map, sorted from the greatest to the smallest value:
+        rep->GetHeader().visit( this );
 
-        typedef std::multimap< uint8, uint32, std::greater< uint8 > >   SizeMap;
-        typedef SizeMap::iterator                                       SizeMapItr;
+        std::vector<uint8> unpacked;
+        unpacked.reserve( 64 );
 
-		SizeMap sizeMap;
-		uint32 cc = rep->ColumnCount();
-		
-        // the estimated size of the row.
-        uint32 row_size = 0;
-        // the amount of booleans in the row
-        uint8 bool_count = 0;
+        // Create size map, sorted from the greatest to the smallest value:
+        std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
+        uint32 cc = rep->ColumnCount();
         for(uint32 i = 0; i < cc; i++)
+            sizeMap.insert( std::make_pair( DBTYPE_SizeOf( rep->GetColumnType( i ) ), i ) );
+
+        std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
+        cur = sizeMap.begin();
+        end = sizeMap.lower_bound( 1 );
+        for(; cur != end; cur++)
         {
-            DBTYPE field_type = rep->GetColumnType( i );
-            uint8 field_size = DBTYPE_SizeOf( field_type );
-			sizeMap.insert( std::make_pair( field_size, i ) );
-            row_size+= (field_size >> 3);
-            if ( field_type == DBTYPE_BOOL)
-                bool_count++;
+            uint8 len = (cur->first >> 3);
+
+            size_t off = unpacked.size();
+            unpacked.resize( off + len );
+
+            union
+            {
+                uint64 i;
+                double r8;
+                float r4;
+            } v;
+            v.i = 0;
+
+            PyRep *r = rep->GetField( cur->second );
+            if( r != NULL )
+            {
+                switch( rep->GetColumnType( cur->second ) )
+                {
+                case DBTYPE_I8:
+                case DBTYPE_UI8:
+                case DBTYPE_CY:
+                case DBTYPE_FILETIME:
+                case DBTYPE_I4:
+                case DBTYPE_UI4:
+                case DBTYPE_I2:
+                case DBTYPE_UI2:
+                case DBTYPE_I1:
+                case DBTYPE_UI1:
+                    if( r->IsInteger() )
+                        v.i = r->AsInteger().value;
+                    else if( r->IsReal() )
+                        v.i = r->AsReal().value;
+                    break;
+
+                case DBTYPE_R8:
+                    if( r->IsReal() )
+                        v.r8 = r->AsReal().value;
+                    else if( r->IsInteger() )
+                        v.r8 = r->AsInteger().value;
+                    break;
+
+                case DBTYPE_R4:
+                    if( r->IsReal() )
+                        v.r4 = r->AsReal().value;
+                    else if( r->IsInteger() )
+                        v.r4 = r->AsInteger().value;
+                    break;
+                }
+            }
+
+            memcpy( &unpacked[ off ], &v, len );
         }
 
-        uint32 size_bool = bool_count / 8;
-        uint32 size_bool_mod = bool_count % 8;
-        if (size_bool_mod != 0)
-            size_bool++;
+        cur = sizeMap.lower_bound( 1 );
+        end = sizeMap.lower_bound( 0 );
+        for(uint8 off = 0; cur != end; cur++)
+        {
+            if( off > 7 )
+                off = 0;
+            if( off == 0 )
+                unpacked.push_back( 0 );
 
-        // static allocate the required amount of memory for the PackedRow binary blob
-        uint8* unpacked_buffer = (uint8*)malloc( row_size + size_bool );
+            PyRep *r = rep->GetField( cur->second );
 
-        // writing index
-        uint32 unpacked_index = 0;
+            if( r != NULL )
+                if( r-> IsBool() )
+                    unpacked.back() |= (r->AsBool().value << off);
 
-		SizeMapItr cur, end;
-		cur = sizeMap.begin();
-        end  = sizeMap.end();
+            off++;
+        }
 
-        uint32 bool_counter = 0;
+        //pack the bytes with the zero compression algorithm.
+        std::vector<uint8> packed;
+        PackZeroCompressed( &unpacked[ 0 ], unpacked.size(), packed );
 
-		for(; cur != end; cur++)
-		{
-			uint8 len = cur->first;
+        uint32 len = packed.size();
+        if(len >= 0xFF)
+        {
+            PutByte(0xFF);
+            PutUint32(len);
+        }
+        else
+            PutByte(len);
 
-			union
-			{
-				uint64 i;
-				double r8;
-				float r4;
-			} v;
-			v.i = 0;
+        if( !packed.empty() )
+            //out goes the data...
+            PutBytes( &packed[0], len );
 
-			PyRep *r = rep->GetField( cur->second );
-			if( r != NULL )
-			{
-				switch( rep->GetColumnType( cur->second ) )
-				{
-					case DBTYPE_I8:
-					case DBTYPE_UI8:
-					case DBTYPE_CY:
-					case DBTYPE_FILETIME:
+        // Append fields that are not packed:
+        cur = sizeMap.lower_bound( 0 );
+        end = sizeMap.end();
+        for(; cur != end; cur++)
+        {
+            PyRep *r = rep->GetField( cur->second );
+            if( r == NULL )
+                r = new PyRepNone;
 
-                        if( r->IsInteger() )
-                            v.i = r->AsInteger().value;
-                        else if( r->IsReal() )
-                            v.i = r->AsReal().value;
-
-                        (*((uint64*)&unpacked_buffer[unpacked_index])) = (*(uint64*)&v);
-                        unpacked_index+=8;
-                        continue;
-
-                    case DBTYPE_I4:
-					case DBTYPE_UI4:
-                        if( r->IsInteger() )
-                            v.i = r->AsInteger().value;
-                        else if( r->IsReal() )
-                            v.i = r->AsReal().value;
-
-                        (*((uint32*)&unpacked_buffer[unpacked_index])) = (*(uint32*)&v);
-                        unpacked_index+=4;
-                        continue;
-
-					case DBTYPE_I2:
-					case DBTYPE_UI2:
-                        if( r->IsInteger() )
-                            v.i = r->AsInteger().value;
-                        else if( r->IsReal() )
-                            v.i = r->AsReal().value;
-
-                        (*((uint16*)&unpacked_buffer[unpacked_index])) = (*(uint16*)&v);
-                        unpacked_index+=2;
-                        continue;
-
-					case DBTYPE_I1:
-					case DBTYPE_UI1:
-                        if( r->IsInteger() )
-                            v.i = r->AsInteger().value;
-                        else if( r->IsReal() )
-                            v.i = r->AsReal().value;
-
-                        (*((uint8*)&unpacked_buffer[unpacked_index])) = (*(uint8*)&v);
-                        unpacked_index+=1;
-                        continue;
-						
-
-					case DBTYPE_R8:
-						if( r->IsReal() )
-							v.r8 = r->AsReal().value;
-						else if( r->IsInteger() )
-							v.r8 = r->AsInteger().value;
-
-                        (*((double*)&unpacked_buffer[unpacked_index])) = (*(double*)&v);
-                        unpacked_index+=8;
-						continue;
-
-					case DBTYPE_R4:
-						if( r->IsReal() )
-							v.r4 = r->AsReal().value;
-						else if( r->IsInteger() )
-							v.r4 = r->AsInteger().value;
-                        (*((float*)&unpacked_buffer[unpacked_index])) = (*(float*)&v);
-                        unpacked_index+=4;
-						continue;
-                    case DBTYPE_BOOL:
-                        // when we passed 8 bits for booleans.
-                        // we increase the write index by 1
-                        // and set the counter to 0
-                        if( bool_counter > 7 )
-                        {
-                            unpacked_index++;
-                            bool_counter = 0;
-                        }
-
-                        if( r-> IsBool() == true )
-                        {
-                            unpacked_buffer[unpacked_index] |= (r->AsBool().value << bool_counter);
-                        }
-                        bool_counter++;
-                        continue;
-                    }
-				}
-			}
-
-        if (bool_counter > 0 && bool_counter < 8)
-            unpacked_index++;
-
-		//pack the bytes with the zero compression algorithm.
-		std::vector<uint8> packed;
-		PackZeroCompressed( unpacked_buffer, row_size, packed );
-
-        free( unpacked_buffer );
-
-		uint32 len = packed.size();
-        PutSizeEx(len);
-
-		if( !packed.empty() )
-			//out goes the data...
-			PutBytes( &packed[0], len );
-
-		// Append fields that are not packed:
-		cur = sizeMap.lower_bound( 0 );
-		end = sizeMap.end();
-		for(; cur != end; cur++)
-		{
-			PyRep *r = rep->GetField( cur->second );
-			if( r == NULL )
-				r = new PyRepNone;
-
-			r->visit( this );
-		}
+            r->visit( this );
+        }
 	}
 	
 	/** add a string object to the data stream

@@ -448,8 +448,9 @@ DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
 
 	switch(m_fields[column]->type) {
 	case FIELD_TYPE_TINY:
-        if (m_fields[column]->length == 1)
-            return Bool;
+        // Disabled because it causes wrong marshal behavior.
+        //if (m_fields[column]->length == 1)
+        //    return Bool;
 		return Int8;
 	case FIELD_TYPE_SHORT:
 		return Int16;
