@@ -298,7 +298,7 @@ public:
 				}
 			}
 
-        if (bool_counter < 8)
+        if (bool_counter > 0 && bool_counter < 8)
             unpacked_index++;
 
 		//pack the bytes with the zero compression algorithm.
@@ -335,23 +335,9 @@ public:
 		if(rep->is_type_1)
 		{
 			PutByte(Op_PyByteString);
-			if(len < 0xFF)
-			{
-				PutByte(len);
-				PutBytes(rep->value.c_str(), len);
-				return;
-			}
-			else
-			{
-				/* large string support
-				 * old comment: almost certain this isn't supported.
-				 * Note: when I check the asm i'm almost certain its supported.				
-				 */
-				PutByte(0xFF);
-				PutUint32(len);
-				PutBytes(rep->value.c_str(), len);
-				return;
-			}
+            PutSizeEx(len);
+            PutBytes(rep->value.c_str(), len);
+            return;
 		}
 		else
 		{
@@ -382,12 +368,7 @@ public:
 				else
 				{
 					PutByte(Op_PyLongString);
-					if(len < 0xFF) {
-						PutByte(len);
-					} else {
-						PutByte(0xFF);
-						PutUint32(len);
-					}
+                    PutSizeEx(len);
 					PutBytes(rep->value.c_str(), len);
 				}
 				// TODO: use Op_PyUnicodeString?
