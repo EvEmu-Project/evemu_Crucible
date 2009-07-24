@@ -348,28 +348,29 @@ bool MarketDB::BuildOldPriceHistory() {
 
 	return true;
 }
-PyRepObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable) {
+PyRepObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable)
+{
 	DBQueryResult res;
-	std::string table, field;
-	if (payable) {
-		table = "billsPayable";
-		field = "debtorID";
-	} else {
-		table = "billsReceivable";
-		field = "creditorID";
-	}
-	if (!m_db->RunQuery(res,
-		" SELECT "
-		" billID, billTypeID, debtorID, creditorID, amount, dueDateTime, interest, externalID, paid externalID2 "
-		" FROM %s "
-		" WHERE %s = %u ",
-		table.c_str(), field.c_str(), corpID))
-	{
-		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return NULL;
-	}
+    bool success = false;
+    
+    if ( payable == true )
+    {
+        success = m_db->RunQuery(res, "SELECT billID, billTypeID, debtorID, creditorID, amount, dueDateTime, interest,"
+            "externalID, paid externalID2 FROM billspayable WHERE debtorID = %u", corpID);
+    }
+    else
+    {
+        success = m_db->RunQuery(res, "SELECT billID, billTypeID, debtorID, creditorID, amount, dueDateTime, interest,"
+            "externalID, paid externalID2 FROM billsreceivable WHERE creditorID = %u", corpID);
+    }
 
-	return DBResultToRowset(res);
+    if ( success == false )
+    {
+        codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
+        return NULL;
+    }
+
+    return DBResultToRowset(res);
 }
 
 PyRepObject *MarketDB::GetRefTypes() {
