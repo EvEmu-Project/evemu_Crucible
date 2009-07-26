@@ -1,34 +1,39 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2008 The EVEmu Team
+    For the latest information visit http://evemu.mmoforge.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:     Zhur
 */
+#include <assert.h>
 
-#include "PyDumpVisitor.h"
+#include "PyVisitor.h"
 #include "PyRep.h"
+#include "PyDumpVisitor.h"
 #include "misc.h"
 #include "packet_functions.h"
 
-PyDumpVisitor::PyDumpVisitor(bool full_lists) : PyVisitor(), m_full_lists(full_lists) { push("");}
+//! the identation amount
+uint32 idenAmt = 4;
+
+PyDumpVisitor::PyDumpVisitor(bool full_lists) : PyVisitorLvl(), m_full_lists(full_lists) {}
 PyDumpVisitor::~PyDumpVisitor() {}
 
 PyLogsysDump::PyLogsysDump(LogType type, bool full_hex, bool full_lists)
@@ -47,24 +52,256 @@ PyLogsysDump::PyLogsysDump(LogType type, LogType hex_type, bool full_hex, bool f
 {
 }
 
-void PyLogsysDump::_print(const char *str, ...) {
-	if(!is_log_enabled(m_type))
-		return;	//calling log_message directly forces us to mask it
-	va_list l;
-	va_start(l, str);
-	size_t len = strlen(top())+strlen(str)+2;
-	char *buf = new char[len];
-	snprintf(buf, len, "%s%s", top(), str);
-	log_messageVA(m_type, buf, l);
-	delete[] buf;
-	va_end(l);
+// --- Visitors implementation ---
+
+void PyDumpVisitor::VisitInteger(const PyRepInteger *rep, int64 lvl ) {
+    _print(std::string(std::string(lvl, ' ')+std::string("Integer field: %ll")).c_str(), rep->value);
 }
 
-void PyLogsysDump::_hexDump(const uint8 *bytes, uint32 len) {
-	if(m_full_hex)
-		_hex(m_hex_type, bytes, len);
-	else
-		phex(m_hex_type, bytes, len);
+void PyDumpVisitor::VisitReal(const PyRepReal *rep, int64 lvl ) {
+    _print(std::string(std::string(lvl, ' ')+std::string("Real Field: %f")).c_str(), rep->value);
+}
+
+void PyDumpVisitor::VisitBoolean(const PyRepBoolean *rep, int64 lvl ) {
+    _print(std::string(std::string(lvl, ' ')+std::string("Boolean field: %s")).c_str(), rep->value?"true":"false");
+    _print("Boolean field: %s", rep->value?"true":"false");
+}
+
+void PyDumpVisitor::VisitNone(const PyRepNone *rep, int64 lvl ) {
+    _print("(None)");
+}
+
+void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep, int64 lvl ) {
+
+    std::string curIden(lvl, ' ');
+
+    _print(std::string(curIden+std::string("Data buffer of length %d")), rep->GetLength());
+
+    //kinda hackish:
+    if(rep->GetLength() > 2 && *(rep->GetBuffer()) == GZipStreamHeaderByte) {
+        uint32 len = rep->GetLength();
+        uint8 *buf = InflatePacket(rep->GetBuffer(), &len, true);
+        if(buf != NULL) {
+            _print(std::string(curIden+std::string("  Data buffer contains gzipped data of length %u")).c_str(), len);
+
+            _hexDump(buf, len, curIden.c_str());
+
+            delete[] buf;
+        }
+    } else if(rep->GetLength() > 0) {
+        _hexDump(rep->GetBuffer(), rep->GetLength(), curIden.c_str());
+    }
+}
+
+
+void PyDumpVisitor::VisitString(const PyRepString *rep, int64 lvl ) {
+    if(ContainsNonPrintables(rep->value.c_str(), rep->value.length())) {
+        _print(std::string(std::string(lvl, ' ')+std::string("String%s: '<binary, len=%d>'")), rep->is_type_1?" (Type1)":"", rep->value.length());
+    } else {
+        _print(std::string(std::string(lvl, ' ')+std::string("String%s: '%s'")), rep->is_type_1?" (Type1)":"", rep->value.c_str());
+    }
+}
+
+void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep, int64 lvl ) {
+
+    std::string curIden(lvl, ' ');
+
+    _print(std::string(curIden+std::string("ObjectEx:")));
+    _print(std::string(curIden+std::string("Header:")));
+
+    rep->header->visit(this, lvl + idenAmt );
+
+    {
+        _print(std::string(curIden+std::string("ListData: %u entries")) , rep->list_data.size());
+        PyRepObjectEx::const_list_iterator cur, end;
+        cur = rep->list_data.begin();
+        end = rep->list_data.end();
+        for(uint32 i = 0; cur != end; ++cur, ++i)
+        {
+            _print(std::string(curIden+std::string("  [%2d] ")) , i);
+            (*cur)->visit(this, lvl + idenAmt );
+        }
+    }
+
+    {
+        _print(std::string(curIden+std::string("DictData: %u entries")) , rep->dict_data.size());
+        PyRepObjectEx::const_dict_iterator cur, end;
+        cur = rep->dict_data.begin();
+        end = rep->dict_data.end();
+        for(uint32 i = 0; cur != end; ++cur, ++i)
+        {
+            _print(std::string(curIden+std::string("  [%2d] Key: ")) , i);
+            cur->first->visit(this, lvl + idenAmt );
+
+            _print(std::string(curIden+std::string("  [%2d] Value: ")) , i);
+            cur->second->visit(this, lvl + idenAmt );
+        }
+    }
+}
+
+void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep, int64 lvl ) {
+
+    std::string curIden(lvl, ' ');
+
+    uint32 cc = rep->ColumnCount();
+
+    _print(std::string(curIden+std::string("Packed Row\n")));
+    _print(std::string(curIden+std::string("%s  column_count=%u header_owner=%s\n")), cc, rep->IsHeaderOwner() ? "yes" : "no" );
+
+    for(uint32 i = 0; i < cc; i++)
+    {
+        PyRep *field = rep->GetField( i );
+
+        _print(std::string(curIden+std::string("  [%u] %s: ")),  i, rep->GetColumnName( i ).c_str() );
+
+        field->visit( this, lvl + idenAmt );
+    }
+}
+
+void PyDumpVisitor::VisitObject(const PyRepObject *rep, int64 lvl ) {
+    std::string curIden(lvl, ' ');
+    _print(std::string(curIden+std::string("Object:")));
+    _print(std::string(curIden+std::string("  Type: %s")), rep->type.c_str());
+    _print(std::string(curIden+std::string("  Args: ")));
+
+    rep->arguments->visit(this, lvl + idenAmt );
+}
+
+void PyDumpVisitor::VisitSubStruct(const PyRepSubStruct *rep, int64 lvl ) {
+    _print(std::string(std::string(lvl, ' ')+std::string("SubStruct: ")));
+
+    rep->sub->visit(this, lvl + idenAmt );
+}
+
+void PyDumpVisitor::VisitSubStream(const PyRepSubStream *rep, int64 lvl ) {
+   std::string curIden(lvl, ' ');
+
+    if(rep->decoded == NULL) {
+        //we have not decoded this substream, leave it as hex:
+        if(rep->data == NULL) {
+            _print(std::string(curIden+std::string("INVALID Substream: no data (length %d)")), rep->length);
+        } else {
+            _print(std::string(curIden+std::string("Substream: length %d")), rep->length);
+
+            _hexDump(rep->data, rep->length, curIden.c_str());
+        }
+    } else {
+        _print(std::string(curIden+std::string("Substream: length %d %s")), (rep->data==NULL)?"from rep":"from data");
+
+        rep->decoded->visit(this, lvl + idenAmt );
+    }
+}
+
+void PyDumpVisitor::VisitChecksumedStream(const PyRepChecksumedStream *rep, int64 lvl ) {
+
+}
+
+void PyDumpVisitor::VisitDict(const PyRepDict *rep, int64 lvl ) {
+    std::string curIden(lvl, ' ');
+    _print(std::string(curIden+std::string("Dictionary: %d entries")), rep->items.size());
+
+    PyRepDict::const_iterator cur, end;
+    cur = rep->begin();
+    end = rep->end();
+    for(uint32 i = 0; cur != end; ++cur, ++i) {
+
+        _print(std::string(curIden+std::string("  [%2u] Key: ")), i);
+        cur->first->visit(this, lvl + idenAmt );
+        _print(std::string(curIden+std::string("  [%2u] Value: ")), i);
+        cur->second->visit(this, lvl + idenAmt );
+    }
+}
+
+void PyDumpVisitor::VisitList(const PyRepList *rep, int64 lvl ) {
+    std::string curIden(lvl, ' ');
+    if(rep->items.empty()) {
+        _print(std::string(curIden+std::string("List: Empty")));
+    } else {
+        _print(std::string(curIden+std::string("List: %d elements")), rep->items.size());
+
+        PyRepList::const_iterator cur, end;
+        cur = rep->begin();
+        end = rep->end();
+        for(uint32 i = 0; cur != end; ++cur, ++i) {
+
+            if(!m_full_lists && i > 200) {
+                _print(std::string(curIden+std::string("   ... truncated ...")));
+                break;
+            }
+
+            _print(std::string(curIden+std::string("  [%2u] ")), i);
+            (*cur)->visit(this, lvl + idenAmt );
+        }
+    }
+}
+
+void PyDumpVisitor::VisitTuple(const PyRepTuple *rep, int64 lvl ) {
+    std::string curIden(lvl, ' ');
+    if(rep->items.empty())
+        _print(std::string(curIden+std::string("Tuple: Empty")));
+    else {
+        _print(std::string(curIden+std::string("Tuple: %d elements")), rep->items.size());
+
+        //! visit tuple elements.
+        PyRepTuple::const_iterator cur, end;
+        cur = rep->begin();
+        end = rep->end();
+        for(uint32 i = 0; cur != end; ++cur, ++i) {
+
+            _print(std::string(curIden+std::string("  [%2u] ")), i);
+            (*cur)->visit(this, lvl + idenAmt);
+        }
+    }
+}
+
+void PyLogsysDump::VisitDict(const PyRepDict *rep, int64 lvl ) {
+        PyDumpVisitor::VisitDict(rep, lvl);
+}
+
+void PyLogsysDump::VisitList(const PyRepList *rep, int64 lvl ) {
+        PyDumpVisitor::VisitList(rep, lvl);
+}
+
+void PyLogsysDump::VisitTuple(const PyRepTuple *rep, int64 lvl ) {
+        PyDumpVisitor::VisitTuple(rep, lvl);
+}
+
+void PyLogsysDump::VisitSubStream(const PyRepSubStream *rep, int64 lvl ) {
+        PyDumpVisitor::VisitSubStream(rep, lvl);
+}
+
+
+void PyLogsysDump::_print(const char *str, ...) {
+    va_list l;
+    va_start(l, str);
+    size_t len = strlen(str)+1;
+    char *buf = new char[len];
+    snprintf(buf, len, "%s", str);
+    log_messageVA(m_type, buf, l);
+    delete[] buf;
+    va_end(l);
+}
+
+void PyLogsysDump::_print(const std::string &str, ...) {
+    va_list l;
+    va_start(l, str);
+    size_t len = str.size()+1;
+    char *buf = new char[len];
+    snprintf(buf, len, "%s", str.c_str());
+    log_messageVA(m_type, buf, l);
+    delete[] buf;
+    va_end(l);
+}
+
+void PyLogsysDump::_hexDump(const uint8 *bytes, uint32 len, const char * ident) {
+    if(m_full_hex)
+    {
+        _hex(m_hex_type, bytes, len);
+    }
+    else
+    {
+        phex(m_hex_type, bytes, len);
+    }
 }
 
 
@@ -76,329 +313,40 @@ PyFileDump::PyFileDump(FILE *into, bool full_hex)
 }
 
 void PyFileDump::_print(const char *str, ...) {
-	va_list l;
-	va_start(l, str);
-	size_t len = strlen(top())+strlen(str)+2;
-	char *buf = new char[len];
-	snprintf(buf, len, "%s%s\n", top(), str);
-	vfprintf(m_into, buf, l);
-	delete[] buf;
-	va_end(l);
+    va_list l;
+    va_start(l, str);
+    size_t len = strlen(str)+1;
+    char *buf = new char[len];
+    snprintf(buf, len, "%s", str);
+    assert(vfprintf(m_into, buf, l < 0));
+    delete[] buf;
+    va_end(l);
 }
 
-void PyFileDump::_hexDump(const uint8 *bytes, uint32 len) {
-	if(!m_full_hex && len > 1024) {
-		char buffer[80];
-		_pfxHexDump(bytes, 1024-32);
-		fprintf(m_into, "%s ... truncated ...\n", top());
-		build_hex_line((const char *)bytes, len, len-16, buffer, 4);
-		fprintf(m_into, "%s%s\n", top(), buffer);
-	} else {
-		_pfxHexDump(bytes, len);
-	}
+void PyFileDump::_print(const std::string &str, ...) {
+    va_list l;
+    va_start(l, str);
+    assert(vfprintf(m_into, str.c_str(), l) < 0);
+    va_end(l);
 }
 
-void PyFileDump::_pfxHexDump(const uint8 *data, uint32 length) {
-	char buffer[80];
-	uint32 offset;
-	for(offset=0;offset<length;offset+=16) {
-		build_hex_line((const char *)data,length,offset,buffer,4);
-		fprintf(m_into, "%s%s\n", top(), buffer);
-	}
+void PyFileDump::_hexDump(const uint8 *bytes, uint32 len, const char * ident) {
+    if(!m_full_hex && len > 1024) {
+        char buffer[80];
+        _pfxHexDump(bytes, 1024-32, ident);
+        fprintf(m_into, "%s ... truncated ...\n", ident);
+        build_hex_line((const char *)bytes, len, len-16, buffer, 4);
+        fprintf(m_into, "%s%s\n", ident, buffer);
+    } else {
+        _pfxHexDump(bytes, len, ident);
+    }
 }
 
-
-
-
-
-
-
-
-void PyDumpVisitor::VisitInteger(const PyRepInteger *rep) {
-	_print("Integer field: "I64u, rep->value);
+void PyFileDump::_pfxHexDump(const uint8 *data, uint32 length, const char * ident) {
+    char buffer[80];
+    uint32 offset;
+    for(offset=0;offset<length;offset+=16) {
+        build_hex_line((const char *)data,length,offset,buffer,4);
+        fprintf(m_into, "%s%s\n", ident, buffer);
+    }
 }
-
-void PyDumpVisitor::VisitReal(const PyRepReal *rep) {
-	_print("Real Field: %f", rep->value);
-}
-
-void PyDumpVisitor::VisitBoolean(const PyRepBoolean *rep) {
-	_print("Boolean field: %s", rep->value?"true":"false");
-}
-
-void PyDumpVisitor::VisitNone(const PyRepNone *rep) {
-	_print("(None)");
-}
-
-void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep) {
-	_print("Data buffer of length %d", rep->GetLength());
-
-	//kinda hackish:
-	if(rep->GetLength() > 2 && *(rep->GetBuffer()) == GZipStreamHeaderByte) {
-		uint32 len = rep->GetLength();
-		uint8 *buf = InflatePacket(rep->GetBuffer(), &len, true);
-		if(buf != NULL) {
-			std::string p(top());
-			p += "  ";
-			_print("  Data buffer contains gzipped data of length %u", len);
-			_hexDump(buf, len);
-			delete[] buf;
-		}
-	} else if(rep->GetLength() > 0) {
-		_hexDump(rep->GetBuffer(), rep->GetLength());
-	}
-}
-
-void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep) {
-	_print("%sObjectEx:", top());
-	PyVisitor::VisitObjectEx(rep);
-}
-
-void PyDumpVisitor::VisitObjectExHeader(const PyRepObjectEx *rep) {
-	_print("%sHeader:", top());
-	PyVisitor::VisitObjectExHeader(rep);
-}
-
-void PyDumpVisitor::VisitObjectExList(const PyRepObjectEx *rep) {
-	_print("ListData: %u entries", rep->list_data.size());
-	PyVisitor::VisitObjectExList(rep);
-}
-
-void PyDumpVisitor::VisitObjectExListElement(const PyRepObjectEx *rep, uint32 index, const PyRep *ele) {
-	std::string n(top());
-	{
-		char t[16];
-		snprintf(t, 16, "  [%2d] ", index);
-		n += t;
-	}
-	push(n.c_str());
-	PyVisitor::VisitObjectExListElement(rep, index, ele);
-	pop();
-}
-
-void PyDumpVisitor::VisitObjectExDict(const PyRepObjectEx *rep) {
-	_print("DictData: %u entries", rep->dict_data.size());
-	PyVisitor::VisitObjectExDict(rep);
-}
-
-void PyDumpVisitor::VisitObjectExDictElement(const PyRepObjectEx *rep, uint32 index, const PyRep *key, const PyRep *value) {
-	std::string n(top());
-	{
-		char t[16];
-		snprintf(t, 16, "  [%2d] Key: ", index);
-		n += t;
-	}
-	push(n.c_str());
-	key->visit(this);
-	pop();
-
-	n = top();
-	{
-		char t[16];
-		snprintf(t, 16, "  [%2d] Value: ", index);
-		n += t;
-	}
-	push(n.c_str());
-	value->visit(this);
-	pop();
-}
-
-void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep) {
-	const char *pfx = top();
-
-	uint32 cc = rep->ColumnCount();
-	_print( "%sPacked Row\n", pfx );
-	_print( "%s  column_count=%u header_owner=%s\n", pfx, cc, rep->IsHeaderOwner() ? "yes" : "no" );
-
-	char buf[32];
-	for(uint32 i = 0; i < cc; i++)
-	{
-		PyRep *field = rep->GetField( i );
-
-		std::string n( pfx );
-		snprintf( buf, 32, "  [%u] %s: ", i, rep->GetColumnName( i ).c_str() );
-		n += buf;
-
-		push( n.c_str() );
-		field->visit( this );
-	}
-
-	pop();
-}
-
-void PyDumpVisitor::VisitString(const PyRepString *rep) {
-	if(ContainsNonPrintables(rep->value.c_str(), rep->value.length())) {
-		_print("String%s: '<binary, len=%d>'", rep->is_type_1?" (Type1)":"", rep->value.length());
-	} else {
-		_print("String%s: '%s'", rep->is_type_1?" (Type1)":"", rep->value.c_str());
-	}
-}
-
-	
-void PyDumpVisitor::VisitObject(const PyRepObject *rep) {
-	_print("Object:");
-	_print("  Type: %s", rep->type.c_str());
-	
-	std::string m(top());
-	m += "  Args: ";
-	push(m.c_str());
-	rep->arguments->visit(this);
-	pop();
-}
-	
-void PyDumpVisitor::VisitSubStruct(const PyRepSubStruct *rep) {
-	_print("SubStruct: ");
-	std::string indent(top());
-	indent += "    ";
-	push(indent.c_str());
-	rep->sub->visit(this);
-	pop();
-}
-
-void PyDumpVisitor::VisitSubStream(const PyRepSubStream *rep) {
-	if(rep->decoded == NULL) {
-		//we have not decoded this substream, leave it as hex:
-		if(rep->data == NULL) {
-			_print("INVALID Substream: no data (length %d)", rep->length);
-		} else {
-			_print("Substream: length %d", rep->length);
-			std::string m(top());
-			m += "  ";
-			push(m.c_str());
-			_hexDump(rep->data, rep->length);
-			pop();
-		}
-	} else {
-		_print("Substream: length %d %s", rep->length, (rep->data==NULL)?"from rep":"from data");
-		std::string m(top());
-		m += "  ";
-		push(m.c_str());
-		rep->decoded->visit(this);
-		pop();
-	}
-}
-
-void PyDumpVisitor::VisitDict(const PyRepDict *rep) {
-	_print("Dictionary: %d entries", rep->items.size());
-	PyVisitor::VisitDict(rep);
-}
-
-void PyDumpVisitor::VisitDictElement(const PyRepDict *rep, uint32 index, const PyRep *key, const PyRep *value) {
-	std::string n(top());
-	{
-		char t[20];
-		snprintf(t, sizeof(t), "  [%2u] Key: ", index);
-		n += t;
-	}
-	push(n.c_str());
-	key->visit(this);
-	pop();
-	
-	std::string m(top());
-	{
-		char t[20];
-		snprintf(t, sizeof(t), "  [%2u] Value: ", index);
-		m += t;
-	}
-	push(m.c_str());
-	value->visit(this);
-	pop();
-}
-
-void PyDumpVisitor::VisitList(const PyRepList *rep) {
-	if(rep->items.empty()) {
-		_print("List: Empty");
-	} else {
-		_print("List: %d elements", rep->items.size());
-		
-		PyRepList::const_iterator cur, end;
-		cur = rep->begin();
-		end = rep->end();
-		int r;
-		for(r = 0; cur != end; cur++, r++) {
-			if(!m_full_lists && r > 200) {
-				_print("   ... truncated ...");
-				break;
-			}
-			VisitListElement(rep, r, *cur);
-		}
-	}
-}
-
-void PyDumpVisitor::VisitListElement(const PyRepList *rep, uint32 index, const PyRep *ele) {
-	std::string n(top());
-	{
-		char t[15];
-		snprintf(t, 14, "  [%2u] ", index);
-		n += t;
-	}
-	push(n.c_str());
-	PyVisitor::VisitListElement(rep, index, ele);
-	pop();
-}
-
-void PyDumpVisitor::VisitTuple(const PyRepTuple *rep) {
-	if(rep->items.empty())
-		_print("Tuple: Empty");
-	else {
-		_print("Tuple: %d elements", rep->items.size());
-		PyVisitor::VisitTuple(rep);
-	}
-}
-
-void PyDumpVisitor::VisitTupleElement(const PyRepTuple *rep, uint32 index, const PyRep *ele) {
-	std::string n(top());
-	{
-		char t[15];
-		snprintf(t, 14, "  [%2u] ", index);
-		n += t;
-	}
-	push(n.c_str());
-	PyVisitor::VisitTupleElement(rep, index, ele);
-	pop();
-}
-
-
-void PyLogsysDump::VisitDict(const PyRepDict *rep) {
-	//pre-mask potentially big operations
-	if(is_log_enabled(m_type))
-		PyDumpVisitor::VisitDict(rep);
-}
-
-void PyLogsysDump::VisitList(const PyRepList *rep) {
-	//pre-mask potentially big operations
-	if(is_log_enabled(m_type))
-		PyDumpVisitor::VisitList(rep);
-}
-
-void PyLogsysDump::VisitTuple(const PyRepTuple *rep) {
-	//pre-mask potentially big operations
-	if(is_log_enabled(m_type))
-		PyDumpVisitor::VisitTuple(rep);
-}
-
-void PyLogsysDump::VisitSubStream(const PyRepSubStream *rep) {
-	//pre-mask potentially big operations
-	if(is_log_enabled(m_type))
-		PyDumpVisitor::VisitSubStream(rep);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

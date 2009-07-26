@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2008 The EVEmu Team
+    For the latest information visit http://evemu.mmoforge.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:     Zhur
 */
 
 #include "common.h"
@@ -34,7 +34,7 @@
 #include "HeaderGenerator.h"
 #include "ImplGenerator.h"
 
-static const char *GenFileComment = 
+static const char *GenFileComment =
 "/*  EVEmu: EVE Online Server Emulator\n"
 "  \n"
 "  **************************************************************\n"
@@ -62,25 +62,25 @@ static const char *GenFileComment =
 ;
 
 static std::string FNameToDef(const char *buf) {
-	char *obuf = new char[strlen(buf)+10];
-	char *ptr = obuf;
-	const char *bptr = buf;
-	*ptr = '_'; ++ptr;
-	*ptr = '_'; ++ptr;
-	while(*bptr != '\0') {
-		if(*bptr == '/' || *bptr == ':' || *bptr == '\\' || *bptr == '.' || *bptr == '-')
-			*ptr = '_';
-		else
-			*ptr = *bptr;
-		++ptr;
-		++bptr;
-	}
-	*ptr = '_'; ++ptr;
-	*ptr = '_'; ++ptr;
-	*ptr = '\0';
-	std::string b(obuf);
-	delete[] obuf;
-	return(b);
+    char *obuf = new char[strlen(buf)+10];
+    char *ptr = obuf;
+    const char *bptr = buf;
+    *ptr = '_'; ++ptr;
+    *ptr = '_'; ++ptr;
+    while(*bptr != '\0') {
+        if(*bptr == '/' || *bptr == ':' || *bptr == '\\' || *bptr == '.' || *bptr == '-')
+            *ptr = '_';
+        else
+            *ptr = *bptr;
+        ++ptr;
+        ++bptr;
+    }
+    *ptr = '_'; ++ptr;
+    *ptr = '_'; ++ptr;
+    *ptr = '\0';
+    std::string b(obuf);
+    delete[] obuf;
+    return(b);
 }
 
 XMLPacketGen::XMLPacketGen() {
@@ -90,95 +90,95 @@ XMLPacketGen::~XMLPacketGen() {
 }
 
 bool XMLPacketGen::GenPackets(
-	const char *xml_file, 
-	const char *out_h, 
-	const char *out_cpp)
+    const char *xml_file,
+    const char *out_h,
+    const char *out_cpp)
 {
-	TiXmlDocument doc( xml_file );
-	if(!doc.LoadFile()) {
-		_log(COMMON__ERROR, "Failed to parse XML file '%s' line %d: %s", xml_file, doc.ErrorRow(), doc.ErrorDesc());
-		return false;
-	}
-	
-	TiXmlElement *root = doc.RootElement ();
-	if(root == NULL) {
-		_log(COMMON__ERROR, "Unable to find root 'Elements' in %s", xml_file);
-		return false;
-	}
+    TiXmlDocument doc( xml_file );
+    if(!doc.LoadFile()) {
+        _log(COMMON__ERROR, "Failed to parse XML file '%s' line %d: %s", xml_file, doc.ErrorRow(), doc.ErrorDesc());
+        return false;
+    }
 
-	FILE *h = fopen(out_h, "w");
-	if(h == NULL) {
-		_log(COMMON__ERROR, "Unable to open output file %s: %s", out_h, strerror(errno));
-		return false;
-	}
-	FILE *cpp = fopen(out_cpp, "w");
-	if(cpp == NULL) {
-		_log(COMMON__ERROR, "Unable to open output file %s: %s", out_cpp, strerror(errno));
-		fclose(h);
-		return false;
-	}
+    TiXmlElement *root = doc.RootElement ();
+    if(root == NULL) {
+        _log(COMMON__ERROR, "Unable to find root 'Elements' in %s", xml_file);
+        return false;
+    }
 
-	std::string def = FNameToDef(out_h);
+    FILE *h = fopen(out_h, "w");
+    if(h == NULL) {
+        _log(COMMON__ERROR, "Unable to open output file %s: %s", out_h, strerror(errno));
+        return false;
+    }
+    FILE *cpp = fopen(out_cpp, "w");
+    if(cpp == NULL) {
+        _log(COMMON__ERROR, "Unable to open output file %s: %s", out_cpp, strerror(errno));
+        fclose(h);
+        return false;
+    }
 
-	
-	/*
+    std::string def = FNameToDef(out_h);
+
+
+    /*
      * Generate .h file:
      *
      *
     */
-	//header:
-	fprintf(h, 
-		"%s\n"
-		"#ifndef %s\n"
-		"#define %s\n"
-		"\n"
-		"#include <string>\n"
-		"#include <vector>\n"
-		"#include <map>\n"
-		"#include \"common.h\"\n"
-		"#include \"logsys.h\"\n"
-		"#include \"PyRep.h\"\n"
-		"\n"
-		"\n"
-		"",
-		GenFileComment, def.c_str(), def.c_str()
-	);
-	//body:
-	ClassHeaderGenerator h_gen;
-	h_gen.Generate(h, root);
-	//footer:
-	fprintf(h,
-		"\n\n"
-		"#endif\n\n\n"
-	);
-	
-	/*
+    //header:
+    fprintf(h,
+        "%s\n"
+        "#ifndef %s\n"
+        "#define %s\n"
+        "\n"
+        "#include <string>\n"
+        "#include <vector>\n"
+        "#include <map>\n"
+        "#include \"common.h\"\n"
+        "#include \"logsys.h\"\n"
+        "#include \"PyVisitor.h\"\n"
+        "#include \"PyRep.h\"\n"
+        "\n"
+        "\n"
+        "",
+        GenFileComment, def.c_str(), def.c_str()
+    );
+    //body:
+    ClassHeaderGenerator h_gen;
+    h_gen.Generate(h, root);
+    //footer:
+    fprintf(h,
+        "\n\n"
+        "#endif\n\n\n"
+    );
+
+    /*
      * Generate .cpp file:
      *
      *
     */
-	//header:
-	fprintf(cpp, 
-		"%s\n"
-		"\n"
-		"#include <string>\n"
-		"#include \"%s\"\n"
-		"#include \"PyRep.h\"\n"
-		"\n"
-		"\n"
-		"\n",
-		GenFileComment, out_h
-	);
-	//body:
-	ClassImplementationGenerator cpp_gen;
-	cpp_gen.Generate(cpp, root);
-	//footer:
-	fprintf(cpp,
-		"\n\n"
-	);
-	
-	
-	return true;
+    //header:
+    fprintf(cpp,
+        "%s\n"
+        "\n"
+        "#include <string>\n"
+        "#include \"%s\"\n"
+        "\n"
+        "\n"
+        "\n",
+        GenFileComment, out_h
+    );
+    //body:
+    ClassImplementationGenerator cpp_gen;
+    cpp_gen.Generate(cpp, root);
+    //footer:
+    fprintf(cpp,
+        "\n\n"
+    );
+
+
+    return true;
 }
 
 

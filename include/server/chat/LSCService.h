@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2008 The EVEmu Team
+    For the latest information visit http://evemu.mmoforge.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:     Zhur
 */
 
 
@@ -33,7 +33,7 @@
 
 #include <map>
 
-/*                                                                              
+/*
  *
  * LSC stands for Large Scale Chat
  *
@@ -64,54 +64,54 @@ class CommandDispatcher;
 
 class LSCService : public PyService {
 public:
-	LSCService(PyServiceMgr *mgr, DBcore *db, CommandDispatcher *cd);
-	virtual ~LSCService();
+    LSCService(PyServiceMgr *mgr, DBcore *db, CommandDispatcher *cd);
+    virtual ~LSCService();
 
-	PyResult ExecuteCommand(Client *from, const char *msg);
-	void CreateSystemChannel(uint32 systemID);
-	void CharacterLogout(uint32 charID, OnLSC_SenderInfo * si);
+    PyResult ExecuteCommand(Client *from, const char *msg);
+    void CreateSystemChannel(uint32 systemID);
+    void CharacterLogout(uint32 charID, OnLSC_SenderInfo * si);
 
-	void SendMail(uint32 sender, uint32 recipient, const std::string &subject, const std::string &content) {
-		std::vector<uint32> recs(1, recipient);
-		SendMail(sender, recs, subject, content);
-	}
-	void SendMail(uint32 sender, const std::vector<uint32> &recipients, const std::string &subject, const std::string &content);
+    void SendMail(uint32 sender, uint32 recipient, const std::string &subject, const std::string &content) {
+        std::vector<int32> recs(1, recipient);
+        SendMail(sender, recs, subject, content);
+    }
+    void SendMail(uint32 sender, const std::vector<int32> &recipients, const std::string &subject, const std::string &content);
 
 protected:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
+    class Dispatcher;
+    Dispatcher *const m_dispatch;
 
-	CommandDispatcher *const m_commandDispatch;
+    CommandDispatcher *const m_commandDispatch;
 
-	LSCDB m_db;
+    LSCDB m_db;
 
-	std::map<uint32, LSCChannel *> m_channels;	//we own these pointers
-	
-	//make sure you add things to the constructor too
-	PyCallable_DECL_CALL(GetChannels)
-	PyCallable_DECL_CALL(GetRookieHelpChannel)
-	PyCallable_DECL_CALL(JoinChannels)
-	PyCallable_DECL_CALL(LeaveChannels)
-	PyCallable_DECL_CALL(LeaveChannel)
-	PyCallable_DECL_CALL(CreateChannel)
-	PyCallable_DECL_CALL(DestroyChannel)
-	PyCallable_DECL_CALL(SendMessage)
+    std::map<uint32, LSCChannel *> m_channels;  //we own these pointers
 
-	PyCallable_DECL_CALL(GetMyMessages)
-	PyCallable_DECL_CALL(GetMessageDetails)
-	PyCallable_DECL_CALL(Page)
-	PyCallable_DECL_CALL(MarkMessagesRead)
-	PyCallable_DECL_CALL(DeleteMessages)
+    //make sure you add things to the constructor too
+    PyCallable_DECL_CALL(GetChannels)
+    PyCallable_DECL_CALL(GetRookieHelpChannel)
+    PyCallable_DECL_CALL(JoinChannels)
+    PyCallable_DECL_CALL(LeaveChannels)
+    PyCallable_DECL_CALL(LeaveChannel)
+    PyCallable_DECL_CALL(CreateChannel)
+    PyCallable_DECL_CALL(DestroyChannel)
+    PyCallable_DECL_CALL(SendMessage)
+
+    PyCallable_DECL_CALL(GetMyMessages)
+    PyCallable_DECL_CALL(GetMessageDetails)
+    PyCallable_DECL_CALL(Page)
+    PyCallable_DECL_CALL(MarkMessagesRead)
+    PyCallable_DECL_CALL(DeleteMessages)
 
 private:
-	uint32 nextFreeChannelID;
+    uint32 nextFreeChannelID;
 
-	LSCChannel *CreateChannel(uint32 channelID, const char * name, const char * motd, LSCChannel::Type type, bool maillist = false);
-	LSCChannel *CreateChannel(uint32 channelID, const char * name, LSCChannel::Type type, bool maillist = false);
-	LSCChannel *CreateChannel(uint32 channelID, LSCChannel::Type type);
-	LSCChannel *CreateChannel(uint32 channelID);
-	LSCChannel *CreateChannel(const char * name, bool maillist = false);
-	void InitiateStaticChannels();
+    LSCChannel *CreateChannel(uint32 channelID, const char * name, const char * motd, LSCChannel::Type type, bool maillist = false);
+    LSCChannel *CreateChannel(uint32 channelID, const char * name, LSCChannel::Type type, bool maillist = false);
+    LSCChannel *CreateChannel(uint32 channelID, LSCChannel::Type type);
+    LSCChannel *CreateChannel(uint32 channelID);
+    LSCChannel *CreateChannel(const char * name, bool maillist = false);
+    void InitiateStaticChannels();
 };
 
 

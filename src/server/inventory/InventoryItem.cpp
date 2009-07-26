@@ -1,32 +1,32 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2008 The EVEmu Team
+    For the latest information visit http://evemu.mmoforge.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:     Zhur
 */
 
 #include "EvemuPCH.h"
 
 #ifndef INT_MAX
-#	define INT_MAX 0x7FFFFFFF
+#   define INT_MAX 0x7FFFFFFF
 #endif
 
 const uint32 SKILL_BASE_POINTS = 250;
@@ -35,16 +35,16 @@ const uint32 SKILL_BASE_POINTS = 250;
  * ItemData
  */
 ItemData::ItemData(
-	const char *_name,
-	uint32 _typeID,
-	uint32 _ownerID,
-	uint32 _locationID,
-	EVEItemFlags _flag,
-	bool _contraband,
-	bool _singleton,
-	uint32 _quantity,
-	const GPoint &_position,
-	const char *_customInfo)
+    const char *_name,
+    uint32 _typeID,
+    uint32 _ownerID,
+    uint32 _locationID,
+    EVEItemFlags _flag,
+    bool _contraband,
+    bool _singleton,
+    uint32 _quantity,
+    const GPoint &_position,
+    const char *_customInfo)
 : name(_name),
   typeID(_typeID),
   ownerID(_ownerID),
@@ -59,13 +59,13 @@ ItemData::ItemData(
 }
 
 ItemData::ItemData(
-	uint32 _typeID,
-	uint32 _ownerID,
-	uint32 _locationID,
-	EVEItemFlags _flag,
-	uint32 _quantity,
-	const char *_customInfo,
-	bool _contraband)
+    uint32 _typeID,
+    uint32 _ownerID,
+    uint32 _locationID,
+    EVEItemFlags _flag,
+    uint32 _quantity,
+    const char *_customInfo,
+    bool _contraband)
 : name(""),
   typeID(_typeID),
   ownerID(_ownerID),
@@ -80,14 +80,14 @@ ItemData::ItemData(
 }
 
 ItemData::ItemData(
-	uint32 _typeID,
-	uint32 _ownerID,
-	uint32 _locationID,
-	EVEItemFlags _flag,
-	const char *_name,
-	const GPoint &_position,
-	const char *_customInfo,
-	bool _contraband)
+    uint32 _typeID,
+    uint32 _ownerID,
+    uint32 _locationID,
+    EVEItemFlags _flag,
+    const char *_name,
+    const GPoint &_position,
+    const char *_customInfo,
+    bool _contraband)
 : name(_name),
   typeID(_typeID),
   ownerID(_ownerID),
@@ -105,10 +105,10 @@ ItemData::ItemData(
  * InventoryItem
  */
 InventoryItem::InventoryItem(
-	ItemFactory &_factory,
-	uint32 _itemID,
-	const ItemType &_type,
-	const ItemData &_data)
+    ItemFactory &_factory,
+    uint32 _itemID,
+    const ItemType &_type,
+    const ItemData &_data)
 : attributes(_factory, *this, true, true),
   m_refCount(0),
   m_factory(_factory),
@@ -124,569 +124,606 @@ InventoryItem::InventoryItem(
   m_position(_data.position),
   m_customInfo(_data.customInfo)
 {
-	// assert for data consistency
-	assert(_data.typeID == _type.id());
+    // assert for data consistency
+    assert(_data.typeID == _type.id());
 
-	_log(ITEM__TRACE, "Created object %p for item %s (%u).", this, itemName().c_str(), itemID());
+    _log(ITEM__TRACE, "Created object %p for item %s (%u).", this, itemName().c_str(), itemID());
 }
 
 InventoryItem::~InventoryItem()
 {
-	if(m_refCount > 0)
-		_log(ITEM__ERROR, "Destructing an inventory item (%p) which has %u references!", this, m_refCount);
+    if(m_refCount > 0)
+        _log(ITEM__ERROR, "Destructing an inventory item (%p) which has %u references!", this, m_refCount);
 }
 
 void InventoryItem::IncRef()
 {
-	m_refCount++;
+    m_refCount++;
 }
 
 void InventoryItem::DecRef() {
-	if(m_refCount < 1)
-		_log(ITEM__ERROR, "Releasing an inventory item (%p) which has no references!", this);
-	else
-	{
-		m_refCount--;
+    if(m_refCount < 1) {
+        _log(ITEM__ERROR, "Releasing an inventory item (%p) which has no references!", this);
+    }
+    else
+    {
+        m_refCount--;
 
-		if(m_refCount <= 0)
-			delete this;
-	}
+        if(m_refCount <= 0)
+            delete this;
+    }
 }
 
 InventoryItemRef InventoryItem::Load(ItemFactory &factory, uint32 itemID)
 {
-	return InventoryItem::Load<InventoryItem>( factory, itemID );
+    return InventoryItem::Load<InventoryItem>( factory, itemID );
 }
 
 template<class _Ty>
 ItemRef<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
-	// InventoryItem stuff:
-	const ItemType &type, const ItemData &data)
+    // InventoryItem stuff:
+    const ItemType &type, const ItemData &data)
 {
-	// See what to do next:
-	switch( type.categoryID() ) {
-		///////////////////////////////////////
-		// Blueprint:
-		///////////////////////////////////////
-		case EVEDB::invCategories::Blueprint: {
-			return Blueprint::_LoadItem<Blueprint>( factory, itemID, type, data );
-		}
+    // See what to do next:
+    switch( type.categoryID() ) {
+        //! TODO not handled.
+        case EVEDB::invCategories::_System:
+        case EVEDB::invCategories::Station:
+        case EVEDB::invCategories::Material:
+        case EVEDB::invCategories::Accessories:
+        case EVEDB::invCategories::Module:
+        case EVEDB::invCategories::Charge:
+        case EVEDB::invCategories::Trading:
+        case EVEDB::invCategories::Entity:
+        case EVEDB::invCategories::Bonus:
+        case EVEDB::invCategories::Commodity:
+        case EVEDB::invCategories::Drone:
+        case EVEDB::invCategories::Implant:
+        case EVEDB::invCategories::Deployable:
+        case EVEDB::invCategories::Structure:
+        case EVEDB::invCategories::Reaction:
+        case EVEDB::invCategories::Asteroid:
+             break;
+        ///////////////////////////////////////
+        // Blueprint:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Blueprint: {
+            return Blueprint::_LoadItem<Blueprint>( factory, itemID, type, data );
+        }
 
-		///////////////////////////////////////
-		// Celestial:
-		///////////////////////////////////////
-		case EVEDB::invCategories::Celestial: {
-			return CelestialObject::_LoadItem<CelestialObject>( factory, itemID, type, data );
-		}
+        ///////////////////////////////////////
+        // Celestial:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Celestial: {
+            return CelestialObject::_LoadItem<CelestialObject>( factory, itemID, type, data );
+        }
 
-		///////////////////////////////////////
-		// Ship:
-		///////////////////////////////////////
-		case EVEDB::invCategories::Ship: {
-			return Ship::_LoadItem<Ship>( factory, itemID, type, data );
-		}
+        ///////////////////////////////////////
+        // Ship:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Ship: {
+            return Ship::_LoadItem<Ship>( factory, itemID, type, data );
+        }
 
-		///////////////////////////////////////
-		// Skill:
-		///////////////////////////////////////
-		case EVEDB::invCategories::Skill: {
-			return Skill::_LoadItem<Skill>( factory, itemID, type, data );
-		}
+        ///////////////////////////////////////
+        // Skill:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Skill: {
+            return Skill::_LoadItem<Skill>( factory, itemID, type, data );
+        }
 
-		///////////////////////////////////////
-		// Owner:
-		///////////////////////////////////////
-		case EVEDB::invCategories::Owner: {
-			return Owner::_LoadItem<Owner>( factory, itemID, type, data );
-		}
-	}
+        ///////////////////////////////////////
+        // Owner:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Owner: {
+            return Owner::_LoadItem<Owner>( factory, itemID, type, data );
+        }
+    }
 
-	// ItemCategory didn't do it, try ItemGroup:
-	switch( type.groupID() ) {
-		///////////////////////////////////////
-		// Station:
-		///////////////////////////////////////
-		case EVEDB::invGroups::Station: {
-			return Station::_LoadItem<Station>( factory, itemID, type, data );
-		}
-	}
+    // ItemCategory didn't do it, try ItemGroup:
+    switch( type.groupID() ) {
+        ///////////////////////////////////////
+        // Station:
+        ///////////////////////////////////////
+        case EVEDB::invGroups::Station: {
+            return Station::_LoadItem<Station>( factory, itemID, type, data );
+        }
+    }
 
-	// Generic item, create one:
-	return InventoryItemRef( new InventoryItem( factory, itemID, type, data ) );
+    // Generic item, create one:
+    return InventoryItemRef( new InventoryItem( factory, itemID, type, data ) );
 }
 
 bool InventoryItem::_Load()
 {
-	// load attributes
-	if(!attributes.Load())
-		return false;
+    // load attributes
+    if(!attributes.Load())
+        return false;
 
-	// update inventory
-	Inventory *inventory = m_factory.GetInventory( locationID(), false );
-	if( inventory != NULL )
-		inventory->AddItem( InventoryItemRef( this ) );
+    // update inventory
+    Inventory *inventory = m_factory.GetInventory( locationID(), false );
+    if( inventory != NULL )
+        inventory->AddItem( InventoryItemRef( this ) );
 
-	return true;
+    return true;
 }
 
 InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 {
-	// obtain type of new item
-	const ItemType *t = factory.GetType( data.typeID );
-	if( t == NULL )
-		return InventoryItemRef();
+    // obtain type of new item
+    const ItemType *t = factory.GetType( data.typeID );
+    if( t == NULL )
+        return InventoryItemRef();
 
-	// See what to do next:
-	switch( t->categoryID() ) {
-		///////////////////////////////////////
-		// Blueprint:
-		///////////////////////////////////////
-		case EVEDB::invCategories::Blueprint: {
-			BlueprintData bdata; // use default blueprint attributes
+    // See what to do next:
+    switch( t->categoryID() ) {
+        //! TODO not handled.
+        case EVEDB::invCategories::_System:
+        case EVEDB::invCategories::Station:
+        case EVEDB::invCategories::Material:
+        case EVEDB::invCategories::Accessories:
+        case EVEDB::invCategories::Module:
+        case EVEDB::invCategories::Charge:
+        case EVEDB::invCategories::Trading:
+        case EVEDB::invCategories::Entity:
+        case EVEDB::invCategories::Bonus:
+        case EVEDB::invCategories::Commodity:
+        case EVEDB::invCategories::Drone:
+        case EVEDB::invCategories::Implant:
+        case EVEDB::invCategories::Deployable:
+        case EVEDB::invCategories::Structure:
+        case EVEDB::invCategories::Reaction:
+        case EVEDB::invCategories::Asteroid:
+             break;
+        ///////////////////////////////////////
+        // Blueprint:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Blueprint: {
+            BlueprintData bdata; // use default blueprint attributes
 
-			return Blueprint::Spawn( factory, data, bdata );
-		}
+            return Blueprint::Spawn( factory, data, bdata );
+        }
 
-		///////////////////////////////////////
-		// Celestial:
-		///////////////////////////////////////
-		case EVEDB::invCategories::Celestial: {
-			_log( ITEM__ERROR, "Refusing to spawn celestial object '%s'.", data.name.c_str() );
+        ///////////////////////////////////////
+        // Celestial:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Celestial: {
+            _log( ITEM__ERROR, "Refusing to spawn celestial object '%s'.", data.name.c_str() );
 
-			return InventoryItemRef();
-		}
+            return InventoryItemRef();
+        }
 
-		///////////////////////////////////////
-		// Ship:
-		///////////////////////////////////////
-		case EVEDB::invCategories::Ship: {
-			return Ship::Spawn( factory, data );
-		}
+        ///////////////////////////////////////
+        // Ship:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Ship: {
+            return Ship::Spawn( factory, data );
+        }
 
-		///////////////////////////////////////
-		// Skill:
-		///////////////////////////////////////
-		case EVEDB::invCategories::Skill: {
-			return Skill::Spawn( factory, data );
-		}
+        ///////////////////////////////////////
+        // Skill:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Skill: {
+            return Skill::Spawn( factory, data );
+        }
 
-		///////////////////////////////////////
-		// Owner:
-		///////////////////////////////////////
-		case EVEDB::invCategories::Owner:
-		{
-			return Owner::Spawn( factory, data );
-		}
-	}
+        ///////////////////////////////////////
+        // Owner:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Owner:
+        {
+            return Owner::Spawn( factory, data );
+        }
+    }
 
-	switch( t->groupID() ) {
-		///////////////////////////////////////
-		// Station:
-		///////////////////////////////////////
-		case EVEDB::invGroups::Station: {
-			_log( ITEM__ERROR, "Refusing to create station '%s'.", data.name.c_str() );
+    switch( t->groupID() ) {
+        ///////////////////////////////////////
+        // Station:
+        ///////////////////////////////////////
+        case EVEDB::invGroups::Station: {
+            _log( ITEM__ERROR, "Refusing to create station '%s'.", data.name.c_str() );
 
-			return InventoryItemRef();
-		}
-	}
+            return InventoryItemRef();
+        }
+    }
 
-	// Spawn generic item:
-	uint32 itemID = InventoryItem::_Spawn( factory, data );
-	if( itemID == 0 )
-		return InventoryItemRef();
-	return InventoryItem::Load( factory, itemID );
+    // Spawn generic item:
+    uint32 itemID = InventoryItem::_Spawn( factory, data );
+    if( itemID == 0 )
+        return InventoryItemRef();
+    return InventoryItem::Load( factory, itemID );
 }
 
 uint32 InventoryItem::_Spawn(ItemFactory &factory,
-	// InventoryItem stuff:
-	ItemData &data
+    // InventoryItem stuff:
+    ItemData &data
 ) {
-	// obtain type of new item
-	// this also checks that the type is valid
-	const ItemType *t = factory.GetType(data.typeID);
-	if(t == NULL)
-		return 0;
+    // obtain type of new item
+    // this also checks that the type is valid
+    const ItemType *t = factory.GetType(data.typeID);
+    if(t == NULL)
+        return 0;
 
-	// fix the name (if empty)
-	if(data.name.empty())
-		data.name = t->name();
+    // fix the name (if empty)
+    if(data.name.empty())
+        data.name = t->name();
 
-	// insert new entry into DB
-	return factory.db().NewItem(data);
+    // insert new entry into DB
+    return factory.db().NewItem(data);
 }
 
 void InventoryItem::Delete() {
-	//first, get out of client's sight.
-	//this also removes us from our inventory.
-	Move( 6 );
-	ChangeOwner( 2 );
+    //first, get out of client's sight.
+    //this also removes us from our inventory.
+    Move( 6 );
+    ChangeOwner( 2 );
 
-	//take ourself out of the DB
-	attributes.Delete();
-	m_factory.db().DeleteItem( itemID() );
+    //take ourself out of the DB
+    attributes.Delete();
+    m_factory.db().DeleteItem( itemID() );
 
-	//delete ourselves from factory cache
-	m_factory._DeleteItem( itemID() );
+    //delete ourselves from factory cache
+    m_factory._DeleteItem( itemID() );
 }
 
 PyRepPackedRow *InventoryItem::GetItemRow() const
 {
-	blue_DBRowDescriptor desc;
+    blue_DBRowDescriptor desc;
 
-	ItemRow_Columns cols;
-	desc.columns = cols.FastEncode();
+    ItemRow_Columns cols;
+    desc.columns = cols.FastEncode();
 
-	PyRepPackedRow *row = new PyRepPackedRow( *desc.FastEncode(), true );
-	GetItemRow( *row );
-	return row;
+    PyRepPackedRow *row = new PyRepPackedRow( *desc.FastEncode(), true );
+    GetItemRow( *row );
+    return row;
 }
 
 void InventoryItem::GetItemRow(PyRepPackedRow &into) const
 {
-	into.SetField( "itemID",        new PyRepInteger( itemID() ) );
-	into.SetField( "typeID",        new PyRepInteger( typeID() ) );
-	into.SetField( "locationID",    new PyRepInteger( locationID() ) );
-	into.SetField( "ownerID",       new PyRepInteger( ownerID() ) );
-	into.SetField( "flag",          new PyRepInteger( flag() ) );
-	into.SetField( "contraband",    new PyRepBoolean( contraband() ) );
-	into.SetField( "singleton",     new PyRepBoolean( singleton() ) );
-	into.SetField( "quantity",      new PyRepInteger( quantity() ) );
-	into.SetField( "groupID",       new PyRepInteger( groupID() ) );
-	into.SetField( "categoryID",    new PyRepInteger( categoryID() ) );
-	into.SetField( "customInfo",    new PyRepString( customInfo() ) );
+    into.SetField( "itemID",        new PyRepInteger( itemID() ) );
+    into.SetField( "typeID",        new PyRepInteger( typeID() ) );
+    into.SetField( "locationID",    new PyRepInteger( locationID() ) );
+    into.SetField( "ownerID",       new PyRepInteger( ownerID() ) );
+    into.SetField( "flag",          new PyRepInteger( flag() ) );
+    into.SetField( "contraband",    new PyRepBoolean( contraband() ) );
+    into.SetField( "singleton",     new PyRepBoolean( singleton() ) );
+    into.SetField( "quantity",      new PyRepInteger( quantity() ) );
+    into.SetField( "groupID",       new PyRepInteger( groupID() ) );
+    into.SetField( "categoryID",    new PyRepInteger( categoryID() ) );
+    into.SetField( "customInfo",    new PyRepString( customInfo() ) );
 }
 
 bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
-	//itemID:
-	result.itemID = itemID();
+    //itemID:
+    result.itemID = itemID();
 
-	//invItem:
-	result.invItem = GetItemRow();
+    //invItem:
+    result.invItem = GetItemRow();
 
-	//hacky, but it doesn't really hurt anything.
-	if(isOnline() != 0) {
-		//there is an effect that goes along with this. We should
-		//probably be properly tracking the effect due to some
-		// timer things, but for now, were hacking it.
-		EntityEffectState es;
-		es.env_itemID = m_itemID;
-		es.env_charID = m_ownerID;	//may not be quite right...
-		es.env_shipID = m_locationID;
-		es.env_target = m_locationID;	//this is what they do.
-		es.env_other = new PyRepNone;
-		es.env_effectID = effectOnline;
-		es.startTime = Win32TimeNow() - Win32Time_Hour;	//act like it happened an hour ago
-		es.duration = INT_MAX;
-		es.repeat = 0;
-		es.randomSeed = new PyRepNone;
+    //hacky, but it doesn't really hurt anything.
+    if(isOnline() != 0) {
+        //there is an effect that goes along with this. We should
+        //probably be properly tracking the effect due to some
+        // timer things, but for now, were hacking it.
+        EntityEffectState es;
+        es.env_itemID = m_itemID;
+        es.env_charID = m_ownerID;  //may not be quite right...
+        es.env_shipID = m_locationID;
+        es.env_target = m_locationID;   //this is what they do.
+        es.env_other = new PyRepNone;
+        es.env_effectID = effectOnline;
+        es.startTime = Win32TimeNow() - Win32Time_Hour; //act like it happened an hour ago
+        es.duration = INT_MAX;
+        es.repeat = 0;
+        es.randomSeed = new PyRepNone;
 
-		result.activeEffects[es.env_effectID] = es.FastEncode();
-	}
-	
-	//activeEffects:
-	//result.entry.activeEffects[id] = List[11];
-	
-	//attributes:
-	attributes.EncodeAttributes(result.attributes);
+        result.activeEffects[es.env_effectID] = es.FastEncode();
+    }
 
-	//no idea what time this is supposed to be
-	result.time = Win32TimeNow();
+    //activeEffects:
+    //result.entry.activeEffects[id] = List[11];
 
-	return true;
+    //attributes:
+    attributes.EncodeAttributes(result.attributes);
+
+    //no idea what time this is supposed to be
+    result.time = Win32TimeNow();
+
+    return true;
 }
 
 PyRepObject *InventoryItem::ItemGetInfo() const {
-	Rsp_ItemGetInfo result;
+    Rsp_ItemGetInfo result;
 
-	if(!Populate(result.entry))
-		return NULL;	//print already done.
-	
-	return(result.FastEncode());
+    if(!Populate(result.entry))
+        return NULL;    //print already done.
+
+    return(result.FastEncode());
 }
 
 
 void InventoryItem::Rename(const char *to) {
-	m_itemName = to;
-	// TODO: send some kind of update?
-	SaveItem();
+    m_itemName = to;
+    // TODO: send some kind of update?
+    SaveItem();
 }
 
 void InventoryItem::MoveInto(Inventory &new_home, EVEItemFlags _flag, bool notify) {
-	Move( new_home.inventoryID(), _flag, notify );
+    Move( new_home.inventoryID(), _flag, notify );
 }
 
 void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify) {
-	uint32 old_location = locationID();
-	EVEItemFlags old_flag = flag();
-	
-	if( new_location == old_location && new_flag == old_flag )
-		return;	//nothing to do...
-	
-	//first, take myself out of my old inventory, if its loaded.
-	Inventory *old_inventory = m_factory.GetInventory( old_location, false );
-	if(old_inventory != NULL)
-		old_inventory->RemoveItem( itemID() );	//releases its ref
-	
-	m_locationID = new_location;
-	m_flag = new_flag;
+    uint32 old_location = locationID();
+    EVEItemFlags old_flag = flag();
 
-	//then make sure that my new inventory is updated, if its loaded.
-	Inventory *new_inventory = m_factory.GetInventory( new_location, false );
-	if( new_inventory != NULL )
-		new_inventory->AddItem( InventoryItemRef( this ) );	//makes a new ref
+    if( new_location == old_location && new_flag == old_flag )
+        return; //nothing to do...
 
-	SaveItem();
+    //first, take myself out of my old inventory, if its loaded.
+    Inventory *old_inventory = m_factory.GetInventory( old_location, false );
+    if(old_inventory != NULL)
+        old_inventory->RemoveItem( itemID() );  //releases its ref
 
-	//notify about the changes.
-	if( notify )
-	{
-		std::map<uint32, PyRep *> changes;
+    m_locationID = new_location;
+    m_flag = new_flag;
 
-		if( new_location != old_location )
-			changes[ixLocationID] = new PyRepInteger(old_location);
-		if( new_flag != old_flag )
-			changes[ixFlag] = new PyRepInteger(old_flag);
+    //then make sure that my new inventory is updated, if its loaded.
+    Inventory *new_inventory = m_factory.GetInventory( new_location, false );
+    if( new_inventory != NULL )
+        new_inventory->AddItem( InventoryItemRef( this ) ); //makes a new ref
 
-		SendItemChange( ownerID(), changes );	//changes is consumed
-	}
+    SaveItem();
+
+    //notify about the changes.
+    if( notify )
+    {
+        std::map<int32, PyRep *> changes;
+
+        if( new_location != old_location )
+            changes[ixLocationID] = new PyRepInteger(old_location);
+        if( new_flag != old_flag )
+            changes[ixFlag] = new PyRepInteger(old_flag);
+
+        SendItemChange( ownerID(), changes );   //changes is consumed
+    }
 }
 
 bool InventoryItem::AlterQuantity(int32 qty_change, bool notify) {
-	if(qty_change == 0)
-		return true;
+    if(qty_change == 0)
+        return true;
 
-	int32 new_qty = m_quantity + qty_change;
+    int32 new_qty = m_quantity + qty_change;
 
-	if(new_qty < 0) {
-		codelog(ITEM__ERROR, "%s (%u): Tried to remove %d quantity from stack of %u", m_itemName.c_str(), m_itemID, -qty_change, m_quantity);
-		return false;
-	}
+    if(new_qty < 0) {
+        codelog(ITEM__ERROR, "%s (%u): Tried to remove %d quantity from stack of %u", m_itemName.c_str(), m_itemID, -qty_change, m_quantity);
+        return false;
+    }
 
-	return(SetQuantity(new_qty, notify));
+    return(SetQuantity(new_qty, notify));
 }
 
 bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
-	//if an object has its singleton set then it shouldn't be able to add/remove qty
-	if(m_singleton) {
-		//Print error
-		codelog(ITEM__ERROR, "%s (%u): Failed to set quantity %u , the items singleton bit is set", m_itemName.c_str(), m_itemID, qty_new);
-		//return false
-		return false;
-	}
+    //if an object has its singleton set then it shouldn't be able to add/remove qty
+    if(m_singleton) {
+        //Print error
+        codelog(ITEM__ERROR, "%s (%u): Failed to set quantity %u , the items singleton bit is set", m_itemName.c_str(), m_itemID, qty_new);
+        //return false
+        return false;
+    }
 
-	uint32 old_qty = m_quantity;
-	
-	m_quantity = qty_new;
+    uint32 old_qty = m_quantity;
 
-	SaveItem();
+    m_quantity = qty_new;
 
-	//notify about the changes.
-	if(notify) {
-		std::map<uint32, PyRep *> changes;
+    SaveItem();
 
-		//send the notify to the new owner.
-		changes[ixQuantity] = new PyRepInteger(old_qty);
-		SendItemChange(m_ownerID, changes);	//changes is consumed
-	}
-	
-	return true;
+    //notify about the changes.
+    if(notify) {
+        std::map<int32, PyRep *> changes;
+
+        //send the notify to the new owner.
+        changes[ixQuantity] = new PyRepInteger(old_qty);
+        SendItemChange(m_ownerID, changes); //changes is consumed
+    }
+
+    return true;
 }
 
 InventoryItemRef InventoryItem::Split(int32 qty_to_take, bool notify) {
-	if(qty_to_take <= 0) {
-		_log(ITEM__ERROR, "%s (%u): Asked to split into a chunk of %d", itemName().c_str(), itemID(), qty_to_take);
-		return InventoryItemRef();
-	}
-	if(!AlterQuantity(-qty_to_take, notify)) {
-		_log(ITEM__ERROR, "%s (%u): Failed to remove quantity %d during split.", itemName().c_str(), itemID(), qty_to_take);
-		return InventoryItemRef();
-	}
+    if(qty_to_take <= 0) {
+        _log(ITEM__ERROR, "%s (%u): Asked to split into a chunk of %d", itemName().c_str(), itemID(), qty_to_take);
+        return InventoryItemRef();
+    }
+    if(!AlterQuantity(-qty_to_take, notify)) {
+        _log(ITEM__ERROR, "%s (%u): Failed to remove quantity %d during split.", itemName().c_str(), itemID(), qty_to_take);
+        return InventoryItemRef();
+    }
 
-	ItemData idata(
-		typeID(),
-		ownerID(),
-		(notify ? 1 : locationID()), //temp location to cause the spawn via update
-		flag(),
-		qty_to_take
-	);
+    ItemData idata(
+        typeID(),
+        ownerID(),
+        (notify ? 1 : locationID()), //temp location to cause the spawn via update
+        flag(),
+        qty_to_take
+    );
 
-	InventoryItemRef res = m_factory.SpawnItem(idata);
-	if(notify)
-		res->Move( locationID(), flag() );
+    InventoryItemRef res = m_factory.SpawnItem(idata);
+    if(notify)
+        res->Move( locationID(), flag() );
 
-	return( res );
+    return( res );
 }
 
-bool InventoryItem::Merge(InventoryItemRef to_merge, int32 qty, bool notify) {
-	if(typeID() != to_merge->typeID()) {
-		_log(ITEM__ERROR, "%s (%u): Asked to merge with %s (%u).", itemName().c_str(), itemID(), to_merge->itemName().c_str(), to_merge->itemID());
-		return false;
-	}
-	if(locationID() != to_merge->locationID() || flag() != to_merge->flag()) {
-		_log(ITEM__ERROR, "%s (%u) in location %u, flag %u: Asked to merge with item %u in location %u, flag %u.", itemName().c_str(), itemID(), locationID(), flag(), to_merge->itemID(), to_merge->locationID(), to_merge->flag());
-		return false;
-	}
-	if(qty == 0)
-		qty = to_merge->quantity();
-	if(qty <= 0) {
-		_log(ITEM__ERROR, "%s (%u): Asked to merge with %d units of item %u.", itemName().c_str(), itemID(), qty, to_merge->itemID());
-		return false;
-	}
-	if(!AlterQuantity(qty, notify)) {
-		_log(ITEM__ERROR, "%s (%u): Failed to add quantity %d.", itemName().c_str(), itemID(), qty);
-		return false;
-	}
+bool InventoryItem::Merge(InventoryItemRef to_merge, uint32 qty, bool notify) {
+    if(typeID() != to_merge->typeID()) {
+        _log(ITEM__ERROR, "%s (%u): Asked to merge with %s (%u).", itemName().c_str(), itemID(), to_merge->itemName().c_str(), to_merge->itemID());
+        return false;
+    }
+    if(locationID() != to_merge->locationID() || flag() != to_merge->flag()) {
+        _log(ITEM__ERROR, "%s (%u) in location %u, flag %u: Asked to merge with item %u in location %u, flag %u.", itemName().c_str(), itemID(), locationID(), flag(), to_merge->itemID(), to_merge->locationID(), to_merge->flag());
+        return false;
+    }
+    if(qty == 0)
+        qty = to_merge->quantity();
+    if(qty <= 0) {
+        _log(ITEM__ERROR, "%s (%u): Asked to merge with %d units of item %u.", itemName().c_str(), itemID(), qty, to_merge->itemID());
+        return false;
+    }
+    if(!AlterQuantity(qty, notify)) {
+        _log(ITEM__ERROR, "%s (%u): Failed to add quantity %d.", itemName().c_str(), itemID(), qty);
+        return false;
+    }
 
-	if(qty == to_merge->quantity()) {
-		to_merge->Delete();
-	} else if(!to_merge->AlterQuantity(-qty, notify)) {
-		_log(ITEM__ERROR, "%s (%u): Failed to remove quantity %d.", to_merge->itemName().c_str(), to_merge->itemID(), qty);
-		return false;
-	}
+    if(qty == to_merge->quantity()) {
+        to_merge->Delete();
+    } else if(!to_merge->AlterQuantity(-qty, notify)) {
+        _log(ITEM__ERROR, "%s (%u): Failed to remove quantity %d.", to_merge->itemName().c_str(), to_merge->itemID(), qty);
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify) {
-	bool old_singleton = m_singleton;
-	
-	if(new_singleton == old_singleton)
-		return true;	//nothing to do...
+    bool old_singleton = m_singleton;
 
-	m_singleton = new_singleton;
+    if(new_singleton == old_singleton)
+        return true;    //nothing to do...
 
-	SaveItem();
+    m_singleton = new_singleton;
 
-	//notify about the changes.
-	if(notify) {
-		std::map<uint32, PyRep *> changes;
-		changes[ixSingleton] = new PyRepInteger(old_singleton);
-		SendItemChange(m_ownerID, changes);	//changes is consumed
-	}
+    SaveItem();
 
-	return true;
+    //notify about the changes.
+    if(notify) {
+        std::map<int32, PyRep *> changes;
+        changes[ixSingleton] = new PyRepInteger(old_singleton);
+        SendItemChange(m_ownerID, changes); //changes is consumed
+    }
+
+    return true;
 }
 
 void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
-	uint32 old_owner = m_ownerID;
-	
-	if(new_owner == old_owner)
-		return;	//nothing to do...
-	
-	m_ownerID = new_owner;
+    uint32 old_owner = m_ownerID;
 
-	SaveItem();
-	
-	//notify about the changes.
-	if(notify) {
-		std::map<uint32, PyRep *> changes;
+    if(new_owner == old_owner)
+        return; //nothing to do...
 
-		//send the notify to the new owner.
-		changes[ixOwnerID] = new PyRepInteger(old_owner);
-		SendItemChange(new_owner, changes);	//changes is consumed
+    m_ownerID = new_owner;
 
-		//also send the notify to the old owner.
-		changes[ixOwnerID] = new PyRepInteger(old_owner);
-		SendItemChange(old_owner, changes);	//changes is consumed
-	}
+    SaveItem();
+
+    //notify about the changes.
+    if(notify) {
+        std::map<int32, PyRep *> changes;
+
+        //send the notify to the new owner.
+        changes[ixOwnerID] = new PyRepInteger(old_owner);
+        SendItemChange(new_owner, changes); //changes is consumed
+
+        //also send the notify to the old owner.
+        changes[ixOwnerID] = new PyRepInteger(old_owner);
+        SendItemChange(old_owner, changes); //changes is consumed
+    }
 }
 
 void InventoryItem::SaveItem() const
 {
-	_log( ITEM__TRACE, "Saving item %u.", itemID() );
+    _log( ITEM__TRACE, "Saving item %u.", itemID() );
 
-	m_factory.db().SaveItem(
-		itemID(),
-		ItemData(
-			itemName().c_str(),
-			typeID(),
-			ownerID(),
-			locationID(),
-			flag(),
-			contraband(),
-			singleton(),
-			quantity(),
-			position(),
-			customInfo().c_str()
-		)
-	);
+    m_factory.db().SaveItem(
+        itemID(),
+        ItemData(
+            itemName().c_str(),
+            typeID(),
+            ownerID(),
+            locationID(),
+            flag(),
+            contraband(),
+            singleton(),
+            quantity(),
+            position(),
+            customInfo().c_str()
+        )
+    );
 }
 
 //contents of changes are consumed and cleared
-void InventoryItem::SendItemChange(uint32 toID, std::map<uint32, PyRep *> &changes) const {
-	//TODO: figure out the appropriate list of interested people...
-	Client *c = m_factory.entity_list.FindCharacter(toID);
-	if(c == NULL)
-		return;	//not found or not online...
+void InventoryItem::SendItemChange(uint32 toID, std::map<int32, PyRep *> &changes) const {
+    //TODO: figure out the appropriate list of interested people...
+    Client *c = m_factory.entity_list.FindCharacter(toID);
+    if(c == NULL)
+        return; //not found or not online...
 
-	NotifyOnItemChange change;
-	change.itemRow = GetItemRow();
+    NotifyOnItemChange change;
+    change.itemRow = GetItemRow();
 
-	change.changes = changes;
-	changes.clear();	//consume them.
+    change.changes = changes;
+    changes.clear();    //consume them.
 
-	PyRepTuple *tmp = change.Encode();	//this is consumed below
-	c->SendNotification("OnItemChange", "charid", &tmp, false);	//unsequenced.
+    PyRepTuple *tmp = change.Encode();  //this is consumed below
+    c->SendNotification("OnItemChange", "charid", &tmp, false); //unsequenced.
 }
 
 void InventoryItem::SetOnline(bool newval) {
-	//bool old = isOnline();
-	Set_isOnline(newval);
-	
-	Client *c = m_factory.entity_list.FindCharacter(m_ownerID);
-	if(c == NULL)
-		return;	//not found or not online...
-	
-	Notify_OnModuleAttributeChange omac;
-	omac.ownerID = m_ownerID;
-	omac.itemKey = m_itemID;
-	omac.attributeID = ItemAttributeMgr::Attr_isOnline;
-	omac.time = Win32TimeNow();
-	omac.newValue = new PyRepInteger(newval?1:0);
-	omac.oldValue = new PyRepInteger(newval?0:1);	//hack... should use old, but its not cooperating today.
-	
-	Notify_OnGodmaShipEffect ogf;
-	ogf.itemID = m_itemID;
-	ogf.effectID = effectOnline;
-	ogf.when = Win32TimeNow();
-	ogf.start = newval?1:0;
-	ogf.active = newval?1:0;
-	ogf.env_itemID = ogf.itemID;
-	ogf.env_charID = m_ownerID;	//??
-	ogf.env_shipID = m_locationID;
-	ogf.env_target = m_locationID;
-	ogf.env_effectID = ogf.effectID;
-	ogf.startTime = ogf.when;
-	ogf.duration = INT_MAX;	//I think this should be infinity (0x07 may be infinity?)
-	ogf.repeat = 0;
-	ogf.randomSeed = new PyRepNone();
-	ogf.error = new PyRepNone();
-	
-	Notify_OnMultiEvent multi;
-	multi.events.add(omac.FastEncode());
-	multi.events.add(ogf.FastEncode());
-	
-	PyRepTuple *tmp = multi.FastEncode();	//this is consumed below
-	c->SendNotification("OnMultiEvent", "clientID", &tmp);
-	
-	
+    //bool old = isOnline();
+    Set_isOnline(newval);
+
+    Client *c = m_factory.entity_list.FindCharacter(m_ownerID);
+    if(c == NULL)
+        return; //not found or not online...
+
+    Notify_OnModuleAttributeChange omac;
+    omac.ownerID = m_ownerID;
+    omac.itemKey = m_itemID;
+    omac.attributeID = ItemAttributeMgr::Attr_isOnline;
+    omac.time = Win32TimeNow();
+    omac.newValue = new PyRepInteger(newval?1:0);
+    omac.oldValue = new PyRepInteger(newval?0:1);   //hack... should use old, but its not cooperating today.
+
+    Notify_OnGodmaShipEffect ogf;
+    ogf.itemID = m_itemID;
+    ogf.effectID = effectOnline;
+    ogf.when = Win32TimeNow();
+    ogf.start = newval?1:0;
+    ogf.active = newval?1:0;
+    ogf.env_itemID = ogf.itemID;
+    ogf.env_charID = m_ownerID; //??
+    ogf.env_shipID = m_locationID;
+    ogf.env_target = m_locationID;
+    ogf.env_effectID = ogf.effectID;
+    ogf.startTime = ogf.when;
+    ogf.duration = INT_MAX; //I think this should be infinity (0x07 may be infinity?)
+    ogf.repeat = 0;
+    ogf.randomSeed = new PyRepNone();
+    ogf.error = new PyRepNone();
+
+    Notify_OnMultiEvent multi;
+    multi.events.add(omac.FastEncode());
+    multi.events.add(ogf.FastEncode());
+
+    PyRepTuple *tmp = multi.FastEncode();   //this is consumed below
+    c->SendNotification("OnMultiEvent", "clientID", &tmp);
+
+
 }
 
 void InventoryItem::SetCustomInfo(const char *ci) {
-	if(ci == NULL)
-		m_customInfo = "";
-	else
-		m_customInfo = ci;
-	SaveItem();
+    if(ci == NULL)
+        m_customInfo = "";
+    else
+        m_customInfo = ci;
+    SaveItem();
 }
 
 void InventoryItem::Relocate(const GPoint &pos) {
-	if(m_position == pos)
-		return;
+    if(m_position == pos)
+        return;
 
-	m_position = pos;
+    m_position = pos;
 
-	SaveItem();
+    SaveItem();
 }
 
 
