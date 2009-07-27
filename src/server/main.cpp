@@ -43,9 +43,8 @@ int main(int argc, char *argv[]) {
     _log(SERVER__INIT, " Supported Client: %s, Version %.2f, Build %d, MachoNet %d",
         EVEProjectVersion, EVEVersionNumber, EVEBuildVersion, MachoNetVersion);
 
-    // TODO: i dont believe you.
     //it is important to do this before doing much of anything, in case they use it.
-    //Timer::SetCurrentTime();
+    Timer::SetCurrentTime();
 
     // Load server configuration
     _log(SERVER__INIT, "Loading server configuration...");
@@ -54,10 +53,11 @@ int main(int argc, char *argv[]) {
         return(1);
     }
 
-    /*if(!load_log_settings(sConfig.files.logSettings.c_str()))
+    if(!load_log_settings(sConfig.files.logSettings.c_str())) {
         _log(SERVER__INIT, "Warning: Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str());
-    else
+    } else {
         _log(SERVER__INIT, "Log settings loaded from %s", sConfig.files.logSettings.c_str());
+    }
 
     //open up the log file if specified.
     if(!sConfig.files.log.empty()) {
@@ -66,13 +66,12 @@ int main(int argc, char *argv[]) {
         } else {
             _log(SERVER__INIT_ERR, "Unable to open log file '%s', only logging to the screen now.", sConfig.files.log.c_str());
         }
-    }*/
+    }
 
-    // TODO: TESTING:
-    /*if(!PyRepString::LoadStringFile(sConfig.files.strings.c_str())) {
+    if(!PyRepString::LoadStringFile(sConfig.files.strings.c_str())) {
         _log(SERVER__INIT_ERR, "Unable to open %s, i need it to decode string table elements!", sConfig.files.strings.c_str());
         return(1);
-    }*/
+    }
 
     //connect to the database...
     DBcore db;

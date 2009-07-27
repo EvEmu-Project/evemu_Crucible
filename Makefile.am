@@ -3,3 +3,4 @@ AUTOMAKE_OPTIONS = foreign
 EXTRA_DIST = configure
 
 SUBDIRS = dep src/xmlpktgen src/packets src/common src/server
+
