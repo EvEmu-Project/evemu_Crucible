@@ -318,7 +318,7 @@ void PyFileDump::_print(const char *str, ...) {
     size_t len = strlen(str)+1;
     char *buf = new char[len];
     snprintf(buf, len, "%s", str);
-    assert(vfprintf(m_into, buf, l < 0));
+    assert(vfprintf(m_into, buf, l) >= 0);
     delete[] buf;
     va_end(l);
 }
@@ -326,7 +326,7 @@ void PyFileDump::_print(const char *str, ...) {
 void PyFileDump::_print(const std::string &str, ...) {
     va_list l;
     va_start(l, str);
-    assert(vfprintf(m_into, str.c_str(), l) < 0);
+    assert(vfprintf(m_into, str.c_str(), l) >= 0);
     va_end(l);
 }
 

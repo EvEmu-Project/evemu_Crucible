@@ -116,7 +116,7 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
     message += "] ";
 
     char *msg = NULL;
-    assert(vasprintf(&msg, fmt, args) < 0);
+    assert(vasprintf(&msg, fmt, args) >= 0);
 
     message += msg;
     free(msg);

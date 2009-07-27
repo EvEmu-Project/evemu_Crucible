@@ -297,7 +297,11 @@ void ProcessInput(char *input) {
 
 void TimeToString(const char *time) {
 	uint64 t;
-	t = strtoull(time, NULL, 10);
+#ifndef WIN32   // Make GCC happy.
+    sscanf( time, I64u, (unsigned long long int*)&t );
+#else
+    sscanf( time, I64u, &t );
+#endif
 	printf("\n"I64u" is %s\n", t, Win32TimeToString(t).c_str());
 }
 
@@ -782,7 +786,7 @@ void TestZeroCompress() {
 	UnpackZeroCompressed(input, sizeof(input), unpacked);
 
 	_log(COMMON__MESSAGE, "Unpacked: %lu bytes", unpacked.size());
-	_hex(COMMON__MESSAGE, &unpacked[0], unpacked.size());
+	_hex(COMMON__MESSAGE, &unpacked[0], (uint32)unpacked.size());
 
 	std::vector<uint8> repacked;
 	PackZeroCompressed(&unpacked[0], unpacked.size(), repacked);

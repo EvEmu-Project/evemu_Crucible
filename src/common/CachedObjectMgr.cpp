@@ -32,8 +32,8 @@
 #include "packet_functions.h"
 #include "EVEUtils.h"
 #include "EVEMarshalOpcodes.h"
-#include "PyRep.h"
 #include "PyVisitor.h"
+#include "PyRep.h"
 #include "PyDumpVisitor.h"
 
 #include "CachedObjectMgr.h"

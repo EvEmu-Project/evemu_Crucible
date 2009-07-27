@@ -135,14 +135,17 @@ int	asnprintf(char** strp, const char* fmt, ...)
 
 int	vasprintf(char** strp, const char* fmt, va_list ap)
 {
+    va_list ap_temp;
+    va_copy(ap_temp, ap);
 	int size = vsnprintf(NULL, 0, fmt, ap);
+    char* buff = (char*)malloc(size+1);
 
-	*strp = (char*)malloc(size+1);
-	if (*strp == NULL)
+	if (buff == NULL)
 		return -1;
 
-	size = vsnprintf(*strp, size+1, fmt, ap);
-	(*strp)[size] = '\0';
+	size = vsnprintf(buff, size+1, fmt, ap_temp);
+    buff[size] = '\0';
+	(*strp) = buff;
 	return size;
 }
 #endif//WIN32

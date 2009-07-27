@@ -32,7 +32,7 @@
 #include "logsys.h"
 #include "packet_types.h"
 
-class PyVisitor;
+class PyVisitorLvl;
 class PyVisitorLvl;
 class EVEStringTable;
 
@@ -567,7 +567,7 @@ public:
     bool IsHeaderOwner() const { return mHeaderOwner; }
 
     // Column info:
-    uint32 ColumnCount() const { return mFields.size(); }
+    uint32 ColumnCount() const { return (uint32)mFields.size(); }
     const std::string &GetColumnName(uint32 index) const;
     uint32 GetColumnIndex(const char *name) const;
     DBTYPE GetColumnType(uint32 index) const;

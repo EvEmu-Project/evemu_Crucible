@@ -593,8 +593,13 @@ int64 DBResultRow::GetInt64(uint32 column) const {
         return 0;       //nothing better to do...
     }
 #endif
-    //use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
-    return(strtoll(m_row[column], NULL, 0));
+    int64 value;
+#ifndef WIN32   // Make GCC happy.
+    sscanf( m_row[column], I64d, (long long int*)&value );
+#else
+    sscanf( m_row[column], I64d, &value );
+#endif
+    return value;
 }
 
 uint64 DBResultRow::GetUInt64(uint32 column) const {
@@ -604,8 +609,14 @@ uint64 DBResultRow::GetUInt64(uint32 column) const {
         return 0;       //nothing better to do...
     }
 #endif
-    //use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
-    return(strtoull(m_row[column], NULL, 0));
+
+    uint64 value;
+#ifndef WIN32   // Make GCC happy.
+    sscanf( m_row[column], I64u, (unsigned long long int*)&value );
+#else
+    sscanf( m_row[column], I64u, &value );
+#endif
+    return value;
 }
 
 float DBResultRow::GetFloat(uint32 column) const {

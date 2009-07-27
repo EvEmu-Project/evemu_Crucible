@@ -154,6 +154,8 @@ extern void log_toggle(LogType t);
 extern bool log_open_logfile(const char *file);
 extern bool log_close_logfile(const char *fname);
 
+bool load_log_settings(const char *filename);
+
 #define is_log_enabled( type ) \
     log_type_info[ type ].enabled
 

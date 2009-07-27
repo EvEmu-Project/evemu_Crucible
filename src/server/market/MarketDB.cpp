@@ -860,26 +860,3 @@ uint32 MarketDB::_StoreOrder(
 
 	return(orderID);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
