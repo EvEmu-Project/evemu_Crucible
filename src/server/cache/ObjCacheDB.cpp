@@ -934,5 +934,5 @@ PyRep *ObjCacheDB::Generate_dgmAttributesByName()
 		_log(SERVICE__ERROR, "Error in query for cached object 'dogmaIM.attributesByName': %s", res.error.c_str());
 		return NULL;
 	}
-	return(DBResultToIndexRowset(res, "attributeName"));
+	return DBResultToIndexRowset(res, "attributeName");
 }

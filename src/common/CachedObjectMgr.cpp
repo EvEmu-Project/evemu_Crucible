@@ -744,8 +744,7 @@ PyRepObject *PyCachedObjectDecoder::EncodeHint() {
 }
 
 
-PyCachedCall::PyCachedCall()
-: result(NULL)
+PyCachedCall::PyCachedCall() : result(NULL)
 {
 }
 

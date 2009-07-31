@@ -168,29 +168,28 @@ void PyRepNone::Dump(LogType type, const char *pfx) const {
 /* PyRep Buffer Class                                                   */
 /************************************************************************/
 PyRepBuffer::PyRepBuffer(const uint8 *buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
-  m_value(new uint8[length]),
-  m_length(length)
+  m_value(NULL), m_length(length)
 {
+    m_value = (uint8*)malloc(length);
+    assert(m_value);
     memcpy(m_value, buffer, length);
 }
 
-PyRepBuffer::PyRepBuffer(uint32 length)
-: PyRep(PyRep::PyTypeBuffer),
-  m_value(new uint8[length]),
-  m_length(length)
+PyRepBuffer::PyRepBuffer(uint32 length) : PyRep(PyRep::PyTypeBuffer),
+  m_value(NULL), m_length(length)
 {
+    m_value = (uint8*)malloc(length);
+    assert(m_value);
 }
 
-PyRepBuffer::PyRepBuffer(uint8 **buffer, uint32 length)
-: PyRep(PyRep::PyTypeBuffer),
-  m_value(*buffer),
-  m_length(length)
+PyRepBuffer::PyRepBuffer(uint8 **buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
+  m_value(*buffer), m_length(length)
 {
     *buffer = NULL;
 }
 
 PyRepBuffer::~PyRepBuffer() {
-    SafeDeleteArray(m_value);
+    free(m_value);
 }
 
 void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
@@ -733,7 +732,7 @@ PyRepPackedRow::PyRepPackedRow(const PyRep &header, bool header_owner)
     assert( r != NULL && r->IsTuple() );
     PyRepTuple *t = &r->AsTuple();
 
-    assert( t->items.size() == 2 );
+    assert( t->size() == 2 );
 
     r = t->items[ 0 ];
     assert( r->IsString() );
@@ -751,7 +750,7 @@ PyRepPackedRow::PyRepPackedRow(const PyRep &header, bool header_owner)
 
     mColumnInfo = t;
 
-    mFields.resize( mColumnInfo->items.size() );
+    mFields.resize( mColumnInfo->size() );
 }
 
 PyRepPackedRow::~PyRepPackedRow()
