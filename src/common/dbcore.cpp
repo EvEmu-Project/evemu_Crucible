@@ -35,6 +35,7 @@
 #include "logsys.h"
 #include "MiscFunctions.h"
 #include "misc.h"
+#include "LogNew.h"
 
 //#define COLUMN_BOUNDS_CHECKING
 
@@ -340,12 +341,12 @@ bool DBcore::Open_locked(int32* errnum, char* errbuf) {
     if (pHost.empty())
         return false;
 
-    _log(DATABASE__MESSAGE, "Connecting to DB %s on MySQL server %s:%d as user %s", pDatabase.c_str(), pHost.c_str(), pPort, pUser.c_str());
+    sLog.Log("dbcore", "Connecting to\n\tDB:\t%s\n\tserver:\t%s:%d\n\tuser:\t%s", pDatabase.c_str(), pHost.c_str(), pPort, pUser.c_str());
 
     /*
     Quagmire - added CLIENT_FOUND_ROWS flag to the connect
-    otherwise DB update calls would say 0 rows affected when the value already equalled
-    what the function was tring to set it to, therefore the function would think it failed
+    otherwise DB update calls would say 0 rows affected when the value already equaled
+    what the function was trying to set it to, therefore the function would think it failed
     */
     int32 flags = CLIENT_FOUND_ROWS;
     if (pCompress)

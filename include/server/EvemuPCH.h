@@ -33,6 +33,9 @@
 //#define IMPLEMENT_SIGEXCEPT
 //#include "../common/sigexcept/sigexcept.h"
 
+// the new logging system
+#include "../common/LogNew.h"
+
 #include "../common/dbcore.h"
 #include "../common/logsys.h"
 

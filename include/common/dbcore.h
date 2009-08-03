@@ -87,6 +87,7 @@ public:
 
     void Reset();
     bool GetRow(DBResultRow &into);
+    size_t GetRowCount() {return m_res->row_count;}
 
 protected:
     //for DBcore:

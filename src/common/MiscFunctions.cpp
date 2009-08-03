@@ -137,7 +137,8 @@ int	vasprintf(char** strp, const char* fmt, va_list ap)
 {
     va_list ap_temp;
     va_copy(ap_temp, ap);
-	int size = vsnprintf(NULL, 0, fmt, ap);
+	//int size = vsnprintf(NULL, 0, fmt, ap);
+    int size = 0x4000;
     char* buff = (char*)malloc(size+1);
 
 	if (buff == NULL)

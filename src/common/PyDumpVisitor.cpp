@@ -94,11 +94,28 @@ void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep, int64 lvl ) {
 }
 
 
-void PyDumpVisitor::VisitString(const PyRepString *rep, int64 lvl ) {
-    if(ContainsNonPrintables(rep->value.c_str(), rep->value.length())) {
-        _print(std::string(std::string(lvl, ' ')+std::string("String%s: '<binary, len=%d>'")), rep->is_type_1?" (Type1)":"", rep->value.length());
-    } else {
-        _print(std::string(std::string(lvl, ' ')+std::string("String%s: '%s'")), rep->is_type_1?" (Type1)":"", rep->value.c_str());
+void PyDumpVisitor::VisitString( const PyRepString *rep, int64 lvl )
+{
+    // string size must be at least this..
+    std::string print_string;
+    print_string.reserve(rep->size() + lvl + 30);
+    print_string.append(lvl, ' ');
+
+    if(ContainsNonPrintables(rep->value.c_str(), rep->value.length()))
+    {
+        print_string.append("String%s: '<binary, len=%d>'");
+        if ( rep->is_type_1 == true )
+            _print(print_string, " (Type1)", rep->size());
+        else
+            _print(print_string, "", rep->size());
+    }
+    else
+    {
+        print_string.append("String%s: '%s'");
+        if ( rep->is_type_1 == true )
+            _print(print_string, " (Type1)", rep->size());
+        else
+            _print(print_string, "", rep->content());
     }
 }
 

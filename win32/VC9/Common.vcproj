@@ -534,6 +534,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Logging"
+			>
+			<File
+				RelativePath="..\..\src\common\LogNew.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\LogNew.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

@@ -79,7 +79,7 @@ public:
 		DBResultRow row;
 		for(unsigned int i = 0; res.GetRow(row); i++)
 		{
-			mStorageContainer[row.GetUInt(0)] = DBRowToRow(row);
+            mStorageContainer.insert(std::make_pair(row.GetUInt(0), DBRowToRow(row)));
 
 			if ((i % 200) == 0)
 				printf(".");

@@ -28,14 +28,8 @@
 
 PyCallable_Make_InnerDispatcher(InventoryBound)
 
-InventoryBound::InventoryBound(
-    PyServiceMgr *mgr,
-    Inventory &inventory,
-    EVEItemFlags flag)
-: PyBoundObject(mgr),
-  m_dispatch(new Dispatcher(this)),
-  mInventory(inventory),
-  mFlag(flag)
+InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItemFlags flag) :
+    PyBoundObject(mgr), m_dispatch(new Dispatcher(this)), mInventory(inventory), mFlag(flag)
 {
     _SetCallDispatcher(m_dispatch);
 
@@ -49,9 +43,7 @@ InventoryBound::InventoryBound(
     PyCallable_REG_CALL(InventoryBound, StackAll)
 }
 
-InventoryBound::~InventoryBound()
-{
-}
+InventoryBound::~InventoryBound() {}
 
 PyResult InventoryBound::Handle_List(PyCallArgs &call) {
     //TODO: check to make sure we are allowed to list this inventory
@@ -155,8 +147,8 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
         std::vector<int32> items;
         items.push_back( arg.arg );
 
-        // no quantity given, assume 1
-        return _ExecAdd( call.client, items, 1, mFlag );
+        // no quantity given, pass 0 quantity so it assumes all.
+        return _ExecAdd( call.client, items, 0, mFlag );
     }
     else
     {
@@ -272,7 +264,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
             continue;
         }
 
-        //NOTE: a multiadd can come in with quantity 0 to indicate "all"
+        //NOTE: a multi add can come in with quantity 0 to indicate "all"
         if( quantity == 0 )
             quantity = sourceItem->quantity();
 

@@ -136,32 +136,31 @@ PyRepObject *DBResultToRowset(DBQueryResult &result) {
     return res;
 }
 
-
-
 PyRepTuple *DBResultToTupleSet(DBQueryResult &result) {
     uint32 cc = result.ColumnCount();
     if(cc == 0)
-        return(new PyRepTuple(0));
+        return new PyRepTuple(0);
+    
     uint32 r;
 
     PyRepTuple *res = new PyRepTuple(2);
-    PyRepList *cols = new PyRepList();
+    PyRepList *cols = new PyRepList(cc);
     PyRepList *reslist = new PyRepList();
     res->items[0] = cols;
     res->items[1] = reslist;
 
     //list off the column names:
     for(r = 0; r < cc; r++) {
-        cols->add(result.ColumnName(r));
+        cols->setStr(r, result.ColumnName(r));
     }
 
     //add a line entry for each result row:
     DBResultRow row;
     while(result.GetRow(row)) {
-        PyRepList *linedata = new PyRepList();
+        PyRepList *linedata = new PyRepList(cc);
         reslist->items.push_back(linedata);
         for(r = 0; r < cc; r++) {
-            linedata->add(DBColumnToPyRep(row, r));
+            linedata->set(r, DBColumnToPyRep(row, r));
         }
     }
 
@@ -379,7 +378,10 @@ void DBResultToUIntUIntDict(DBQueryResult &result, std::map<uint32, uint32> &int
     }
 }
 
-void DBResultToIntIntlistDict(DBQueryResult &result, std::map<int32, PyRep *> &into) {
+/**
+ * this function isn't used.
+ */
+void DBResultToIntIntlistDict( DBQueryResult &result, std::map<int32, PyRep *> &into ) {
     /* this builds a map from the int in result[0], to a list of each result[1]
      * which is has the same result[0]. This function assumes the result is
      * ORDER BY result[0]
@@ -389,11 +391,12 @@ void DBResultToIntIntlistDict(DBQueryResult &result, std::map<int32, PyRep *> &i
     PyRepList *l = NULL;
 
     DBResultRow row;
-    while(result.GetRow(row)) {
+    while(result.GetRow(row))
+    {
         uint32 k = row.GetUInt(0);
         if(k != last_key || l == NULL) {
             if(l != NULL) {
-                //watch for overwrite, no garuntee we are dealing with a key.
+                //watch for overwrite, no guarantee we are dealing with a key.
                 std::map<int32, PyRep *>::iterator res;
                 res = into.find(k);
                 if(res != into.end()) {
@@ -411,7 +414,7 @@ void DBResultToIntIntlistDict(DBQueryResult &result, std::map<int32, PyRep *> &i
     }
 }
 
-DBTYPE GetPackedColumnType(DBQueryResult::ColType colType)
+DBTYPE GetPackedColumnType( DBQueryResult::ColType colType )
 {
     switch( colType )
     {
@@ -428,7 +431,7 @@ DBTYPE GetPackedColumnType(DBQueryResult::ColType colType)
     }
 }
 
-PyRepObjectEx *DBResultToRowDescriptor(const DBQueryResult &res)
+PyRepObjectEx *DBResultToRowDescriptor( const DBQueryResult &res )
 {
     uint32 cc = res.ColumnCount();
 
@@ -448,14 +451,14 @@ PyRepObjectEx *DBResultToRowDescriptor(const DBQueryResult &res)
     return desc.FastEncode();
 }
 
-PyRepObjectEx *DBRowToRowDescriptor(const DBResultRow &row)
+PyRepObjectEx *DBRowToRowDescriptor( const DBResultRow &row )
 {
     uint32 cc = row.ColumnCount();
 
     blue_DBRowDescriptor desc;
     desc.columns = new PyRepTuple( cc );
 
-    for(uint32 i = 0; i < cc; i++)
+    for( uint32 i = 0; i < cc; i++ )
     {
         PyRepTuple *t = new PyRepTuple( 2 );
 
@@ -468,7 +471,7 @@ PyRepObjectEx *DBRowToRowDescriptor(const DBResultRow &row)
     return desc.FastEncode();
 }
 
-PyRepPackedRow *CreatePackedRow(const DBResultRow &row, const PyRep &header, bool headerOwner)
+PyRepPackedRow *CreatePackedRow( const DBResultRow &row, const PyRep &header, bool headerOwner )
 {
     PyRepPackedRow *res = new PyRepPackedRow( header, headerOwner );
 
@@ -479,25 +482,22 @@ PyRepPackedRow *CreatePackedRow(const DBResultRow &row, const PyRep &header, boo
     return res;
 }
 
-PyRepList *DBResultToPackedRowList(
-    DBQueryResult &result
-) {
+PyRepList *DBResultToPackedRowList( DBQueryResult &result ) {
     PyRep *header = DBResultToRowDescriptor( result );
 
-    PyRepList *res = new PyRepList;
+    PyRepList *res = new PyRepList(result.GetRowCount());
 
     DBResultRow row;
+    uint32 i = 0;
     while(result.GetRow(row))
         //this is piece of crap due to header cloning
-        res->add( CreatePackedRow( row, *header->Clone(), true ) );
+        res->set(i++, CreatePackedRow( row, *header->Clone(), true ) );
 
     SafeDelete( header );
     return res;
 }
 
-PyRepTuple *DBResultToPackedRowListTuple(
-    DBQueryResult &result
-) {
+PyRepTuple *DBResultToPackedRowListTuple( DBQueryResult &result ) {
     dbutil_RowListTuple res;
     res.header = DBResultToRowDescriptor( result );
 
@@ -509,35 +509,29 @@ PyRepTuple *DBResultToPackedRowListTuple(
     return res.FastEncode();
 }
 
-PyRepObjectEx *DBResultToCRowset(
-    DBQueryResult &result
-) {
+PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
     dbutil_CRowset res;
     res.header = DBResultToRowDescriptor( result );
 
     uint32 cc = result.ColumnCount();
+    res.columns.resize(cc);
     for(uint32 i = 0; i < cc; i++)
-        res.columns.push_back( result.ColumnName( i ) );
+    {
+        res.columns[i] = result.ColumnName( i );
+    }
 
     DBResultRow row;
+    res.root_list.resize(result.GetRowCount());
+    uint32 i = 0;
     while(result.GetRow(row))
         //this is piece of crap due to header cloning
-        res.root_list.push_back( CreatePackedRow( row, *res.header->Clone(), true ) );
+        res.root_list[i++] = CreatePackedRow( row, *res.header->Clone(), true );
 
     return res.FastEncode();
 }
 
-PyRepPackedRow *DBRowToPackedRow(
-    DBResultRow &row
-) {
+PyRepPackedRow *DBRowToPackedRow( DBResultRow &row ) {
     PyRep *header = DBRowToRowDescriptor( row );
 
     return CreatePackedRow( row, *header, true );
 }
-
-
-
-
-
-
-

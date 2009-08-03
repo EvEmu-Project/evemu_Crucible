@@ -28,16 +28,8 @@
 /*
  * ShipTypeData
  */
-ShipTypeData::ShipTypeData(
-    uint32 _weaponTypeID,
-    uint32 _miningTypeID,
-    uint32 _skillTypeID)
-: weaponTypeID(_weaponTypeID),
-  miningTypeID(_miningTypeID),
-  skillTypeID(_skillTypeID)
-{
-}
-
+ShipTypeData::ShipTypeData( uint32 weaponTypeID, uint32 miningTypeID, uint32 skillTypeID) : mWeaponTypeID(weaponTypeID),
+    mMiningTypeID(miningTypeID), mSkillTypeID(skillTypeID) {}
 /*
  * ShipType
  */
@@ -58,11 +50,11 @@ ShipTypeData::ShipTypeData(
  {
     // data consistency checks:
     if(_weaponType != NULL)
-        assert(_weaponType->id() == stData.weaponTypeID);
+        assert(_weaponType->id() == stData.mWeaponTypeID);
     if(_miningType != NULL)
-        assert(_miningType->id() == stData.miningTypeID);
+        assert(_miningType->id() == stData.mMiningTypeID);
     if(_skillType != NULL)
-        assert(_skillType->id() == stData.skillTypeID);
+        assert(_skillType->id() == stData.mSkillTypeID);
 }
 
 ShipType *ShipType::Load(ItemFactory &factory, uint32 shipTypeID)
@@ -90,9 +82,7 @@ Ship::Ship(
     // InventoryItem stuff:
     const ShipType &_shipType,
     const ItemData &_data)
-: InventoryItem(_factory, _shipID, _shipType, _data)
-{
-}
+: InventoryItem(_factory, _shipID, _shipType, _data) {}
 
 ShipRef Ship::Load(ItemFactory &factory, uint32 shipID)
 {
@@ -163,7 +153,6 @@ double Ship::GetCapacity(EVEItemFlags flag) const
         case flagHangar:        return corporateHangarCapacity();
         default:                return 0.0;
     }
-
 }
 
 void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const
@@ -211,9 +200,9 @@ PyRepObject *Ship::ShipGetInfo()
     if( !Populate( entry ) )
         return NULL;    //print already done.
 
-//hacking:
+    //hacking:
     //maximumRangeCap
-        entry.attributes[ 797 ] = new PyRepReal( 250000.000000 );
+    entry.attributes[ 797 ] = new PyRepReal( 250000.000000 );
 
     result.items[ itemID() ] = entry.FastEncode();
 
@@ -242,13 +231,11 @@ void Ship::AddItem(InventoryItemRef item)
 {
     InventoryEx::AddItem( item );
 
-    if( item->flag() >= flagSlotFirst
-        && item->flag() <= flagSlotLast )
+    if( item->flag() >= flagSlotFirst && 
+        item->flag() <= flagSlotLast && 
+        item->categoryID() != EVEDB::invCategories::Charge)
     {
         // make singleton
         item->ChangeSingleton( true );
     }
 }
-
-
-

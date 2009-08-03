@@ -42,9 +42,9 @@ public:
 	);
 
 	// Content:
-	uint32 weaponTypeID;
-	uint32 miningTypeID;
-	uint32 skillTypeID;
+	uint32 mWeaponTypeID;
+	uint32 mMiningTypeID;
+	uint32 mSkillTypeID;
 };
 
 /**
@@ -108,24 +108,24 @@ protected:
 
 		// try to load weapon type
 		const ItemType *weaponType = NULL;
-		if( stData.weaponTypeID != 0 ) {
-			weaponType = factory.GetType( stData.weaponTypeID );
+		if( stData.mWeaponTypeID != 0 ) {
+			weaponType = factory.GetType( stData.mWeaponTypeID );
 			if( weaponType == NULL )
 				return NULL;
 		}
 
 		// try to load mining type
 		const ItemType *miningType = NULL;
-		if( stData.miningTypeID != 0 ) {
-			miningType = factory.GetType( stData.miningTypeID );
+		if( stData.mMiningTypeID != 0 ) {
+			miningType = factory.GetType( stData.mMiningTypeID );
 			if( miningType == NULL )
 				return NULL;
 		}
 
 		// try to load skill type
 		const ItemType *skillType = NULL;
-		if( stData.skillTypeID != 0 ) {
-			skillType = factory.GetType( stData.skillTypeID );
+		if( stData.mSkillTypeID != 0 ) {
+			skillType = factory.GetType( stData.mSkillTypeID );
 			if( skillType == NULL )
 				return NULL;
 		}

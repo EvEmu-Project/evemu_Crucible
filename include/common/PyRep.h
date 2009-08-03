@@ -315,7 +315,7 @@ public:
      *
      * @return the length of the string as size_t
      */
-    size_t size() { return value.size(); }
+    const size_t size() const { return value.size(); }
 
     /**
     * @brief Get the PyString content
@@ -324,7 +324,7 @@ public:
     *
     * @return the pointer to the char* array.
     */
-    const char* content() { return value.c_str(); }
+    const char* content() const { return value.c_str(); }
 
     //string table stuff:
     static bool LoadStringFile(const char *file);
@@ -403,6 +403,7 @@ public:
     typedef std::vector<PyRep *>::const_iterator const_iterator;
 
     PyRepList() : PyRep(PyRep::PyTypeList) {}
+    PyRepList(int count) : PyRep(PyRep::PyTypeList) { items.resize(count);}
     virtual ~PyRepList();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
@@ -435,6 +436,19 @@ public:
 
     EVEMU_INLINE void add(PyRep *i) {
         items.push_back(i);
+    }
+
+    EVEMU_INLINE void setStr(const int index, const char *str) {
+        assert(index <= items.size());
+
+        assert(items[index] == NULL);
+        items[index] = new PyRepString(str);
+    }
+
+    EVEMU_INLINE void set(const int index, PyRep *i) {
+        assert(index <= items.size());
+        assert(items[index] == NULL);
+        items[index] = i;
     }
 
     storage_type items;

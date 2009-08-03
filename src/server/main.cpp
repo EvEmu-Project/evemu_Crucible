@@ -35,42 +35,70 @@ static bool InitSignalHandlers();
 // global database hook.
 DBcore * general_database;
 
+// global log hook.
+NewLog *pLog;
+
 static volatile bool RunLoops = true;
 
 int main(int argc, char *argv[]) {
 
-    printf("EVEmu %s\n", EVEMU_REVISION);
-    _log(SERVER__INIT, " Supported Client: %s, Version %.2f, Build %d, MachoNet %d",
+    printf("Copyright (C) 2006-2009 Evemu Team. http://evemu.mmoforge.org/\n");
+    printf("This program is free software; you can redistribute it and/or modify it under\n");
+    printf("the terms of the GNU Lesser General Public License as published by the Free \n");
+    printf("Software Foundation; either version 2 of the License, or (at your option) any\n");
+    printf("later version.\n");
+    printf("\n");
+    printf("This program is distributed in the hope that it will be useful, but WITHOUT\n");
+    printf("ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n");
+    printf("FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more\n");
+    printf("details.\n");
+    printf("\n");
+
+    pLog = new NewLog();
+
+    sLog.Log("main", "EVEmu %s", EVEMU_REVISION );
+    sLog.Log("server init", "\n\tSupported Client: %s\n\tVersion %.2f\n\tBuild %d\n\tMachoNet %d",
         EVEProjectVersion, EVEVersionNumber, EVEBuildVersion, MachoNetVersion);
 
     //it is important to do this before doing much of anything, in case they use it.
     Timer::SetCurrentTime();
 
     // Load server configuration
-    _log(SERVER__INIT, "Loading server configuration...");
-    if (!sConfig.ParseFile("evemuserver.xml", "eve")) {
-        _log(SERVER__INIT_ERR, "Loading server configuration failed.");
-        return(1);
+    sLog.Log("server init", "Loading server configuration...");
+    
+    if (!sConfig.ParseFile("evemuserver.xml", "eve"))
+    {
+        sLog.Error( "server init", "Loading server configuration failed.");
+        return 1;
     }
 
-    if(!load_log_settings(sConfig.files.logSettings.c_str())) {
-        _log(SERVER__INIT, "Warning: Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str());
-    } else {
-        _log(SERVER__INIT, "Log settings loaded from %s", sConfig.files.logSettings.c_str());
+    // Load server log settings ( will be removed )
+    if(!load_log_settings(sConfig.files.logSettings.c_str()))
+    {
+        sLog.Warning("server init", "Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str());
+    }
+    else
+    {
+        sLog.Success("server init", "Log settings loaded from %s", sConfig.files.logSettings.c_str());
     }
 
-    //open up the log file if specified.
-    if(!sConfig.files.log.empty()) {
-        if(log_open_logfile(sConfig.files.log.c_str())) {
-            _log(SERVER__INIT, "Opened log file %s", sConfig.files.log.c_str());
-        } else {
-            _log(SERVER__INIT_ERR, "Unable to open log file '%s', only logging to the screen now.", sConfig.files.log.c_str());
+    // open up the log file if specified ( will be removed )
+    if(!sConfig.files.log.empty())
+    {
+        if(log_open_logfile(sConfig.files.log.c_str()))
+        {
+            sLog.Success("server init", "Opened log file %s", sConfig.files.log.c_str());
+        }
+        else
+        {
+            sLog.Warning("server init", "Unable to open log file '%s', only logging to the screen now.", sConfig.files.log.c_str());
         }
     }
 
-    if(!PyRepString::LoadStringFile(sConfig.files.strings.c_str())) {
-        _log(SERVER__INIT_ERR, "Unable to open %s, i need it to decode string table elements!", sConfig.files.strings.c_str());
-        return(1);
+    if(!PyRepString::LoadStringFile(sConfig.files.strings.c_str()))
+    {
+        sLog.Error("server init", "PyStringTable | Unable to open %s!", sConfig.files.strings.c_str());
+        return 1;
     }
 
     //connect to the database...
@@ -83,9 +111,10 @@ int main(int argc, char *argv[]) {
             sConfig.database.password.c_str(),
             sConfig.database.db.c_str(),
             sConfig.database.port)
-        ) {
-            _log(SERVER__INIT_ERR, "Unable to connect to the database: %s", err.c_str());
-            return(1);
+        )
+        {
+            sLog.Error("server init", "Unable to connect to the database: %s", err.c_str());
+            return 1;
         }
     }
 
@@ -95,11 +124,13 @@ int main(int argc, char *argv[]) {
     EVETCPServer tcps;
 
     char errbuf[TCPConnection_ErrorBufferSize];
-    if (tcps.Open(sConfig.server.port, errbuf)) {
-        printf("TCP listener started on port %d.\n", sConfig.server.port);
-    } else {
-        printf("Failed to start TCP listener on port %d:\n", sConfig.server.port);
-        printf("        %s\n",errbuf);
+    if (tcps.Open(sConfig.server.port, errbuf))
+    {
+        sLog.Success("server init", "TCP listener started on port %d.", sConfig.server.port);
+    }
+    else
+    {
+        sLog.Error("server init", "Failed to start TCP listener on port %d:\n\t%s", sConfig.server.port, errbuf);
         return 1;
     }
 
@@ -117,7 +148,7 @@ int main(int argc, char *argv[]) {
      * Service creation and registration.
      *
      */
-    printf("Creating services.\n");
+    sLog.Log("server init", "Creating services.");
 
     services.RegisterService(new ClientStatsMgr(&services));
     services.RegisterService(new AgentMgrService(&services, &db));
@@ -169,12 +200,12 @@ int main(int argc, char *argv[]) {
     services.RegisterService(new PosMgrService(&services, &db));
     services.RegisterService(new NetService(&services));
 
-    printf("Priming cached objects\n");
+    sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();
 
     services.serviceDB().SetServerOnlineStatus(true);
 
-    printf("Init done.\n");
+    sLog.Log("server init", "Init done.");
 
     /*
      * THE MAIN LOOP
@@ -201,7 +232,7 @@ int main(int argc, char *argv[]) {
         while ((tcpc = tcps.NewQueuePop()))
         {
             std::string connectionAddress = tcpc->GetAddress();
-            printf("New TCP connection from %s\n", connectionAddress.c_str());
+            //printf("New TCP connection from %s\n", connectionAddress.c_str());
             Client *c = new Client(services, tcpc);
 
             entity_list.Add(&c);
@@ -217,14 +248,23 @@ int main(int argc, char *argv[]) {
         // do the stuff for thread sleeping
         if( server_main_loop_delay > etime )
             Sleep( server_main_loop_delay - etime );
+
+        /* slow crap as hell */
+        pLog->SetTime(time(NULL));
     }
 
-    printf("main loop stopped\n");
-    printf("TCP listener stopped.\n");
+    sLog.Log("server shutdown", "Main loop stopped" );
+    sLog.Log("server shutdown", "TCP listener stopped." );
+
     tcps.Close();
 
     services.serviceDB().SetServerOnlineStatus(false);
 
+    /* after this point the system will crash if there are threads using this.. */
+    delete pLog;
+
+    // win crap.
+    //_CrtDumpMemoryLeaks();
     return 0;
 }
 
@@ -235,6 +275,7 @@ static bool InitSignalHandlers()
     signal( SIGABRT, CatchSignal );
 #ifdef _WIN32
     signal( SIGBREAK, CatchSignal );
+    signal( SIGABRT_COMPAT, CatchSignal );
 #else
     signal( SIGHUP, CatchSignal );
 #endif
@@ -242,6 +283,6 @@ static bool InitSignalHandlers()
 }
 
 static void CatchSignal(int sig_num) {
-    printf("Caught signal: %d\n", sig_num);
+    sLog.Log("Signal system", "Caught signal: %d\n", sig_num);
     RunLoops = false;
 }

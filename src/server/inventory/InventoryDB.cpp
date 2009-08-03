@@ -338,9 +338,9 @@ bool InventoryDB::GetShipType(uint32 shipTypeID, ShipTypeData &into) {
         return false;
     }
 
-    into.weaponTypeID = row.IsNull(0) ? 0 : row.GetUInt(0);
-    into.miningTypeID = row.IsNull(1) ? 0 : row.GetUInt(1);
-    into.skillTypeID = row.IsNull(2) ? 0 : row.GetUInt(2);
+    into.mWeaponTypeID = row.IsNull(0) ? 0 : row.GetUInt(0);
+    into.mMiningTypeID = row.IsNull(1) ? 0 : row.GetUInt(1);
+    into.mSkillTypeID = row.IsNull(2) ? 0 : row.GetUInt(2);
 
     return true;
 }

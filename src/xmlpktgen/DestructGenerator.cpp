@@ -23,8 +23,7 @@ void ClassDestructGenerator::Process_root(FILE *into, TiXmlElement *element) {
     if(!ProcessFields(into, element))
         return;
 
-    fprintf(into,
-        "}\n");
+    fprintf(into, "}\n");
 }
 
 bool ClassDestructGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) {
