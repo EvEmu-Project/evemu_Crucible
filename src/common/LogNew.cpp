@@ -30,7 +30,8 @@ NewLog::NewLog()
     stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 #endif//WIN32
     
-    UNIXTIME = time(NULL);// waisting cpu cycles... lolz..
+    /* set initial log system time */
+    UNIXTIME = time( NULL );
 
     char * log_filename = (char*)malloc(0x100);
     tm t;
@@ -42,7 +43,7 @@ NewLog::NewLog()
     {
         /* this is because we haven't done shit so we can't do shit..*/
         SetColor( TRED );
-        Time( stdout );
+        LogTime( stdout );
         printf( "E logging: unable to open: %s | creation of logging system is unsuccessful", log_filename );
         free( log_filename );
         return;
@@ -102,7 +103,7 @@ void NewLog::Warning( const char * source, const char * str, ... )
     LOCK_LOG;
     va_list ap;
     va_start(ap, format);
-    Time( stdout );
+    LogTime( stdout );
     SetColor(TYELLOW);
     fputs("W ", stdout);
     if(*source)
@@ -125,7 +126,7 @@ void NewLog::Success(const char * source, const char * format, ...)
 {
     va_list ap;
     va_start(ap, format);
-    Time( stdout ); Time( m_logfile );    
+    LogTime( stdout ); LogTime( m_logfile );    
     SetColor( TGREEN );
     fputs("S ", stdout); fputs("S ", m_logfile);
     if(*source)
@@ -146,7 +147,7 @@ void NewLog::Error( const char * source, const char * format, ... )
 {
     va_list ap;
     va_start(ap, format);
-    Time( stdout ); Time( m_logfile );
+    LogTime( stdout ); LogTime( m_logfile );
     SetColor( TRED );
     fputs("E ", stdout); fputs("E ", m_logfile);
     if( source && *source )
@@ -174,10 +175,10 @@ NewLog::~NewLog()
     if ( m_logfile != NULL)
         fclose( m_logfile );
 }
-void NewLog::Time( FILE* fp )
+void NewLog::LogTime( FILE* fp )
 {
     tm t;
-    localtime_r(&t, &UNIXTIME);
+    localtime_r( &t, &UNIXTIME );
     fprintf( fp, "%02u:%02u:%02u ", t.tm_hour, t.tm_min, t.tm_sec );
 }
 
@@ -186,7 +187,7 @@ void NewLog::log( const char * str, ... )
     va_list ap;
     va_start( ap, str );
     /* write time */
-    Time( m_logfile );
+    LogTime( m_logfile );
     
     /* write source, which is internal logger */
     fputs( "I Logger:", m_logfile );
@@ -202,7 +203,7 @@ void NewLog::Log( const char * source, const char * str, ... )
 {
     va_list ap;
     va_start(ap, str);
-    Time( stdout ); Time( m_logfile );
+    LogTime( stdout ); LogTime( m_logfile );
     SetColor( TNORMAL );
     fputs("L ", stdout); fputs("L ", m_logfile);
     if( source && *source )
@@ -237,7 +238,7 @@ void NewLog::Debug(const char * source, const char * format, ...)
     LOCK_LOG;
     va_list ap;
     va_start(ap, format);
-    Time();
+    LogTime();
     SetColor(TBLUE);
     fputs("D ", stdout);
     if(*source)

@@ -47,10 +47,35 @@ public:
      * @param[in] str is the message itself.
      */
     void Log( const char * source, const char * str, ... );
-    void Error( const char * source, const char * err, ... );
-    void Warning( const char * source, const char * str, ... );
-    void Success( const char * source, const char * format, ... );
 
+    /**
+     * @brief Logs error message to console and file.
+     *
+     * @param[in] source is the source from where the message is printed.
+     * @param[in] str is the error message itself.
+     */
+    void Error( const char * source, const char * err, ... );
+
+    /**
+     * @brief Logs a warning message to file.
+     *
+     * @param[in] source is the source from where the message is printed.
+     * @param[in] str is the message itself.
+     */
+    void Warning( const char * source, const char * str, ... );
+
+    /**
+     * @brief Logs a success message to file.
+     *
+     * @param[in] source is the source from where the message is printed.
+     * @param[in] str is the message itself.
+     */
+    void Success( const char * source, const char * format, ... );
+    /**
+     * @brief Sets the log system time every main loop.
+     *
+     * @param[in] time is the timestamp.
+     */
     void SetTime( time_t time );
 private:
 #ifdef WIN32
@@ -59,7 +84,7 @@ private:
     FILE *  m_logfile;
     time_t  UNIXTIME;// crap there should be 1 generic easy to understand time manager.
 
-    void Time( FILE* fp );
+    void LogTime( FILE* fp );
     void SetColor( unsigned int color );
 
     /* internal system logger... */

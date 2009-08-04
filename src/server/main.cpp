@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
     printf("details.\n");
     printf("\n");
 
+    /* logging system */
     pLog = new NewLog();
 
     sLog.Log("main", "EVEmu %s", EVEMU_REVISION );
@@ -213,6 +214,8 @@ int main(int argc, char *argv[]) {
      * Everything except IO should happen in this loop, in this thread context.
      *
      */
+
+    /* program events system */
     if(InitSignalHandlers() == false)
         return 1;
 
@@ -273,7 +276,7 @@ static bool InitSignalHandlers()
     signal( SIGINT, CatchSignal );
     signal( SIGTERM, CatchSignal );
     signal( SIGABRT, CatchSignal );
-#ifdef _WIN32
+#ifdef WIN32
     signal( SIGBREAK, CatchSignal );
     signal( SIGABRT_COMPAT, CatchSignal );
 #else
