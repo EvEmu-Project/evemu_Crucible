@@ -499,6 +499,7 @@ public:
     const_iterator end() const { return(items.end()); }
     bool empty() const { return(items.empty()); }
     void clear();
+    uint32 size() const {return items.size();}
 };
 
 class PyRepObject : public PyRep {

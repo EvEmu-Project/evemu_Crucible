@@ -2,16 +2,7 @@
 #define EVEMU_REVISION_H
 
 #ifndef EVEMU_REVISION
-	#define EVEMU_REVISION "$Rev: 253 $"
+	#define EVEMU_REVISION "$Rev: 647 $"
 #endif
 
 #endif
-
-
-
-
-
-
-
-
-

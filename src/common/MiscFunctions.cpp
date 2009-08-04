@@ -22,7 +22,7 @@
 	------------------------------------------------------------------------------------
 	Author:		Zhur
 */
-
+#include <assert.h>
 #include "../common/common.h"
 #include "MiscFunctions.h"
 #include <string.h>
@@ -135,16 +135,20 @@ int	asnprintf(char** strp, const char* fmt, ...)
 
 int	vasprintf(char** strp, const char* fmt, va_list ap)
 {
-    va_list ap_temp;
-    va_copy(ap_temp, ap);
+    //va_list ap_temp;
+    //va_copy(ap_temp, ap);
 	//int size = vsnprintf(NULL, 0, fmt, ap);
     int size = 0x4000;
     char* buff = (char*)malloc(size+1);
 
 	if (buff == NULL)
+    {
+        assert(false);
 		return -1;
+    }
 
-	size = vsnprintf(buff, size+1, fmt, ap_temp);
+	size = vsnprintf(buff, size, fmt, ap);
+
     buff[size] = '\0';
 	(*strp) = buff;
 	return size;

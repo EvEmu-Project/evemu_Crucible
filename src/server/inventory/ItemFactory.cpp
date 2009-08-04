@@ -25,9 +25,7 @@
 
 #include "EvemuPCH.h"
 
-ItemFactory::ItemFactory(DBcore &db, EntityList &el)
-: entity_list(el),
-  m_db(&db)
+ItemFactory::ItemFactory(DBcore &db, EntityList &el) : entity_list(el), m_db(&db)
 {
 }
 
@@ -210,7 +208,7 @@ InventoryItemRef ItemFactory::SpawnItem(ItemData &data) {
     if( !i )
         return InventoryItemRef();
 
-    // spawn successfull; store the ref
+    // spawn successful; store the ref
     m_items.insert( std::make_pair( i->itemID(), i ) );
     // return
     return i;
@@ -282,11 +280,14 @@ Inventory *ItemFactory::GetInventory(uint32 inventoryID, bool load)
 void ItemFactory::_DeleteItem(uint32 itemID)
 {
     std::map<uint32, InventoryItemRef>::iterator res = m_items.find( itemID );
-    if( res == m_items.end() ){
-        codelog( SERVICE__ERROR, "Item ID %u not found when requesting deletion!", itemID );
+    if( res == m_items.end() )
+    {
+        sLog.Error("Item Factory", "Item ID %u not found when requesting deletion!", itemID );
     }
     else
+    {
         m_items.erase( res );
+    }
 }
 
 

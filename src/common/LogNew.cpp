@@ -227,33 +227,25 @@ void NewLog::Log( const char * source, const char * str, ... )
     LOCK_LOG;
     putchar('\n');
     UNLOCK_LOG;
-}
+}*/
 
 void NewLog::Debug(const char * source, const char * format, ...)
 {
-#ifdef ENABLE_CONSOLE_LOG
-    if(log_level < 3)
-        return;
-
-    LOCK_LOG;
     va_list ap;
     va_start(ap, format);
-    LogTime();
-    SetColor(TBLUE);
-    fputs("D ", stdout);
-    if(*source)
+    LogTime( stdout ); LogTime( m_logfile );
+    SetColor( TBLUE );
+    fputs("D ", stdout); fputs("D ", m_logfile);
+    if( source && *source )
     {
-        SetColor(TWHITE);
-        fputs(source, stdout);
-        putchar(':');
-        putchar(' ');
-        SetColor(TBLUE);
+        SetColor( TWHITE );
+        fputs( source, stdout ); fputs( source, m_logfile );
+        fputs( ": ", stdout ); fputs( ": ", m_logfile );
+        SetColor( TBLUE );
     }
 
-    vfprintf( stdout, format, ap );
-    putchar('\n');
+    vfprintf( stdout, format, ap ); vfprintf( m_logfile, format, ap );
+    fputc( '\n', stdout ); fputc( '\n', m_logfile );
     va_end(ap);
     SetColor(TNORMAL);
-    UNLOCK_LOG;
-#endif//ENABLE_CONSOLE_LOG
-}*/
+}

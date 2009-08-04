@@ -14,8 +14,7 @@ ClientStatsMgr::ClientStatsMgr(PyServiceMgr *mgr) : PyService(mgr, "clientStatsM
   */
 PyResult ClientStatsMgr::Handle_SubmitStats(PyCallArgs &call)
 {
+    sLog.Debug("ClientStatsMgr", "called SubmitStats stub");
 	//call.Dump(CLIENT__ERROR);
 	return new PyRepNone;
 }
-
-

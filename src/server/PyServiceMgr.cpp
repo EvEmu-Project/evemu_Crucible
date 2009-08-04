@@ -27,18 +27,8 @@
 
 #include "EvemuPCH.h"
 
-PyServiceMgr::PyServiceMgr(
-	uint32 nodeID, 
-	DBcore &db, 
-	EntityList &elist, 
-	ItemFactory &ifactory)
-: item_factory(ifactory),
-  entity_list(elist),
-  lsc_service(NULL),
-  cache_service(NULL),
-  m_nextBindID(100),
-  m_nodeID(nodeID),
-  m_svcDB(&db)
+PyServiceMgr::PyServiceMgr( uint32 nodeID, DBcore &db, EntityList &elist, ItemFactory &ifactory ) : item_factory(ifactory), 
+    entity_list(elist), lsc_service(NULL), cache_service(NULL), m_nextBindID(100), m_nodeID(nodeID), m_svcDB(&db)
 {
 	entity_list.UseServices(this);
 }
@@ -83,9 +73,10 @@ PyService *PyServiceMgr::LookupService(const std::string &name) {
 }
 
 PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict **dict) {
-	if(cb == NULL) {
-		_log(SERVICE__ERROR, "Tried to bind a NULL object!");
-		return(new PyRepSubStruct(new PyRepNone()));
+	if(cb == NULL)
+    {
+        sLog.Error("Service Mgr", "Tried to bind a NULL object!");
+		return new PyRepSubStruct(new PyRepNone());
 	}
 
 	cb->_SetNodeBindID(GetNodeID(), _GetBindID());	//tell the object what its bind ID is.
@@ -96,7 +87,7 @@ PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict
 
 	m_boundObjects[cb->bindID()] = obj;
 
-	//_log(SERVICE__MESSAGE, "Binding %s to service %s", bind_str, cb->GetName());
+    //sLog.Debug("Service Mgr", "Binding %s to service %s", bind_str, cb->GetName());
 
 	std::string bind_str = cb->GetBindStr();
 	//not sure what this really is...
@@ -119,21 +110,25 @@ PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict
 		objt->items[2] = new PyRepInteger(expiration);	//expiration?
 	}
 
-	return(new PyRepSubStruct(new PyRepSubStream(objt)));
+	return new PyRepSubStruct(new PyRepSubStream(objt));
 }
 
 void PyServiceMgr::ClearBoundObjects(Client *who) {
-	std::map<uint32, BoundObject>::iterator cur, end;
+	ObjectsBoundMapItr cur, end;
 	cur = m_boundObjects.begin();
 	end = m_boundObjects.end();
-	while(cur != end) {
-		if(cur->second.client == who) {
-			//_log(SERVICE__MESSAGE, "Clearing bound object %s", cur->first.c_str());
+
+    while(cur != end) {
+		if(cur->second.client == who)
+        {
+            //sLog.Debug("Service Mgr", "Clearing bound object %s", cur->first.c_str());
 			cur->second.destination->Release();
 
-			std::map<uint32, BoundObject>::iterator tmp = cur++;
+			ObjectsBoundMapItr tmp = cur++;
 			m_boundObjects.erase(tmp);
-		} else {
+		}
+        else
+        {
 			cur++;
 		}
 	}
@@ -145,19 +140,21 @@ PyBoundObject *PyServiceMgr::FindBoundObject(uint32 bindID) {
 	if(res == m_boundObjects.end())
 		return NULL;
 	else
-		return(res->second.destination);
+		return res->second.destination;
 }
 
-void PyServiceMgr::ClearBoundObject(uint32 bindID) {
+void PyServiceMgr::ClearBoundObject(uint32 bindID)
+{
 	std::map<uint32, BoundObject>::iterator res;
 	res = m_boundObjects.find(bindID);
 	if(res == m_boundObjects.end()) {
-		_log(SERVICE__ERROR, "Unable to find bound object %u to release.", bindID);
+        sLog.Error("Service Mgr", "Unable to find bound object %u to release.", bindID);
 		return;
 	}
 	
 	PyBoundObject *bo = res->second.destination;
-	//_log(SERVICE__MESSAGE, "Clearing bound object %s (released)", res->first.c_str());
+	
+    //sLog.Debug("Service Mgr", "Clearing bound object %s (released)", res->first.c_str());
 
 	m_boundObjects.erase(res);
 	bo->Release();

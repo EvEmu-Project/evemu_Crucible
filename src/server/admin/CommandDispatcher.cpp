@@ -25,11 +25,7 @@
 
 #include "EvemuPCH.h"
 
-CommandDispatcher::CommandDispatcher(PyServiceMgr &services, DBcore &db)
-: m_services(services),
-  m_db(&db)
-{
-}
+CommandDispatcher::CommandDispatcher(PyServiceMgr &services, DBcore &db) : m_services(services), m_db(&db) {}
 
 CommandDispatcher::~CommandDispatcher() {
 	std::map<std::string, CommandRecord *>::iterator cur, end;
@@ -41,7 +37,7 @@ CommandDispatcher::~CommandDispatcher() {
 }
 
 PyResult CommandDispatcher::Execute(Client *from, const char *msg) {
-	//might want to check for # or / at the begining of this crap.
+	//might want to check for # or / at the beginning of this crap.
 	Seperator sep(msg+1);
 
 	if(sep.argnum == 0) {
@@ -64,18 +60,18 @@ PyResult CommandDispatcher::Execute(Client *from, const char *msg) {
 	std::map<std::string, CommandRecord *>::const_iterator res;
 	res = m_commands.find(sep.arg[0]);
 	if(res == m_commands.end()) {
-		_log(COMMAND__ERROR, "Unable to find command '%s' for %s", sep.arg[0], from->GetName());
+        sLog.Error("CMD Dispatcher", "Unable to find command '%s' for %s", sep.arg[0], from->GetName());
 		throw(PyException(MakeCustomError("Unknown command '%s'", sep.arg[0])));
 	}
 	
 	CommandRecord *rec = res->second;
 
 	if((from->GetAccountRole() & rec->required_role) != rec->required_role) {
-		_log(COMMAND__ERROR, "Access denied to %s for command '%s', had role 0x%x, need role 0x%x", from->GetName(), rec->command.c_str(), from->GetAccountRole(), rec->required_role);
+        sLog.Error("CMD Dispatcher", "Access denied to %s for command '%s', had role 0x%x, need role 0x%x", from->GetName(), rec->command.c_str(), from->GetAccountRole(), rec->required_role);
 		throw(PyException(MakeCustomError("Access denied to command '%s'", sep.arg[0])));
 	}
 
-	return(rec->function(from, &m_db, &m_services, sep));
+	return rec->function(from, &m_db, &m_services, sep);
 }
 
 void CommandDispatcher::AddCommand(const char *cmd, const char *desc, uint32 required_role, CommandFunc function) {
@@ -85,30 +81,6 @@ void CommandDispatcher::AddCommand(const char *cmd, const char *desc, uint32 req
 	if(res != m_commands.end())
 		delete res->second;	//watch for command overwrite
 	
-	CommandRecord *rec = new CommandRecord;
-	rec->command = cmd;
-	rec->description = desc;
-	rec->required_role = required_role;
-	rec->function = function;
-
+	CommandRecord *rec = new CommandRecord(cmd, desc, required_role, function);
 	m_commands[cmd] = rec;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

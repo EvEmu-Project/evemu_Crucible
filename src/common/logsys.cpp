@@ -95,17 +95,17 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
     time_t t;
     time(&t);
     char buf[32];
-    strftime(buf, sizeof(buf), "%X", localtime(&t));
+    strftime(buf, 32, "%X", localtime(&t));
     message += buf;
 #else /* !WIN32 */
     timeval tv;
     gettimeofday(&tv, NULL);
     char buf[32];
-    strftime(buf, sizeof(buf), "%T", localtime(&tv.tv_sec));
+    strftime(buf, 32, "%T", localtime(&tv.tv_sec));
     message += buf;
 
     message += '.';
-    snprintf(buf, sizeof(buf), "%04lu", tv.tv_usec/100);
+    snprintf(buf, 32, "%04lu", tv.tv_usec/100);
     message += buf;
 #endif /* !WIN32 */
     message += " "; // make a space between log time and message itself
@@ -116,7 +116,8 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
     message += "] ";
 
     char *msg = NULL;
-    assert(vasprintf(&msg, fmt, args) >= 0);
+    //assert(vasprintf(&msg, fmt, args) >= 0);
+    vasprintf(&msg, fmt, args);
 
     message += msg;
     free(msg);

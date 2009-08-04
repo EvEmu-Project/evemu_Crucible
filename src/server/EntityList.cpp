@@ -26,29 +26,27 @@
 #include "EvemuPCH.h"
 
 
-EntityList::EntityList(DBcore &db)
-: m_services(NULL),
-  m_db(db)
-{
-}
+EntityList::EntityList(DBcore &db) : m_services(NULL), m_db(db) {}
 
 EntityList::~EntityList() {
 	{
-	client_list::iterator cur, end;
-	cur = m_clients.begin();
-	end = m_clients.end();
-	for(; cur != end; cur++) {
-		delete *cur;
-	}
+	    client_list::iterator cur, end;
+	    cur = m_clients.begin();
+	    end = m_clients.end();
+	    for(; cur != end; cur++)
+        {
+		    delete *cur;
+	    }
 	}
 
 	{
-	system_list::iterator cur, end;
-	cur = m_systems.begin();
-	end = m_systems.end();
-	for(; cur != end; cur++) {
-		delete cur->second;
-	}
+	    system_list::iterator cur, end;
+	    cur = m_systems.begin();
+	    end = m_systems.end();
+	    for(; cur != end; cur++)
+        {
+		    delete cur->second;
+	    }
 	}
 }
 
@@ -65,16 +63,18 @@ void EntityList::Process()
 	Client *active_client = NULL;
 	client_list::iterator client_cur = m_clients.begin();
 	client_list::iterator client_end = m_clients.end();
+    client_list::iterator client_tmp;
 
 	while(client_cur != client_end)
 	{
 		active_client = *client_cur;
 		if(!active_client->ProcessNet())
 		{
-			_log(SERVER__CLIENTS, "Destroying client for account %u", active_client->GetAccountID());
-			delete active_client;
-			active_client = NULL;
-			client_cur = m_clients.erase(client_cur);
+            sLog.Log("Entity List", "Destroying client for account %u", active_client->GetAccountID());
+            SafeDelete(active_client);
+
+            client_tmp = client_cur++;
+			m_clients.erase( client_tmp );
 		}
 		else
 		{
@@ -84,10 +84,12 @@ void EntityList::Process()
 	
 	SystemManager *active_system = NULL;
 	bool destiny = DestinyManager::IsTicActive();
-	if(destiny)
-	{
-		_log(DESTINY__TRACE, "Triggering destiny tick for stamp %u", DestinyManager::GetStamp());
-	}
+
+    /* capt: I wonder what this stuff should do... its spamming the console... */
+	//if( destiny == true )
+	//{
+        //sLog.Log("Entity List | Destiny Trace", "Triggering destiny tick for stamp %u", DestinyManager::GetStamp());
+	//}
 		
 	//first process any systems, watching for deletion.
 	system_list::iterator cur, end, tmp;
@@ -102,16 +104,19 @@ void EntityList::Process()
 			active_system->ProcessDestiny();
 		}
 		
-		if(!active_system->Process()) {
-			_log(SERVER__CLIENTS, "Destroying system\n");
+		if(!active_system->Process())
+        {
+            sLog.Log("Entity List", "Destroying system");
 			tmp = cur++;
 			delete cur->second;
 			m_systems.erase(tmp);
-		} else {
+		}
+        else
+        {
 			cur++;
 		}
 	}
-	if(destiny)
+	if( destiny = true )
 	{
 		DestinyManager::TicCompleted();
 	}
@@ -329,7 +334,7 @@ SystemManager *EntityList::FindOrBootSystem(uint32 systemID) {
 	if(res != m_systems.end())
 		return(res->second);
 
-	_log(SERVICE__MESSAGE, "Booting system %u", systemID);
+    sLog.Log("Entity List", "Booting system %u", systemID);
 	
 	SystemManager *mgr = new SystemManager(systemID, m_db, *m_services);
 	if(!mgr->BootSystem()) {
@@ -338,5 +343,5 @@ SystemManager *EntityList::FindOrBootSystem(uint32 systemID) {
 	}
 	
 	m_systems[systemID] = mgr;
-	return(mgr);
+	return mgr;
 }

@@ -47,26 +47,30 @@ BaseTCPServer::BaseTCPServer(int16 in_port) {
 	sock = 0;
 	pRunLoop = true;
 #ifdef WIN32
-	_beginthread(BaseTCPServer::TCPServerLoop, 0, this);
+	_beginthread( BaseTCPServer::TCPServerLoop, 0, this );
 #else
 	pthread_t thread;
 	pthread_create(&thread, NULL, &BaseTCPServer::TCPServerLoop, this);
 #endif
 }
 
-BaseTCPServer::~BaseTCPServer() {
+BaseTCPServer::~BaseTCPServer()
+{
 	StopLoopAndWait();
 }
 
 void BaseTCPServer::StopLoopAndWait() {
 	MRunLoop.lock();
-	if(pRunLoop) {
+	if(pRunLoop)
+    {
 		pRunLoop = false;
 		MRunLoop.unlock();
 		//wait for loop to stop.
 		MLoopRunning.lock();
 		MLoopRunning.unlock();
-	} else {
+	}
+    else
+    {
 		MRunLoop.unlock();
 	}
 }
@@ -79,19 +83,20 @@ bool BaseTCPServer::RunLoop() {
 	return ret;
 }
 
-ThreadReturnType BaseTCPServer::TCPServerLoop(void* tmp) {
+ThreadReturnType BaseTCPServer::TCPServerLoop( void* tmp )
+{
 #ifdef WIN32
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
 #endif
-	if (tmp == 0) {
+	if ( tmp == NULL ) {
 //		ThrowError("BaseTCPServerLoop(): tmp = 0!");
 		THREAD_RETURN(NULL);
 	}
 	BaseTCPServer* tcps = (BaseTCPServer*) tmp;
 	
 #ifndef WIN32
-	_log(COMMON__THREADS, "Starting TCPServerLoop with thread ID %d", pthread_self());
-#endif
+    sLog.Log("Threading", "Starting TCPServerLoop with thread ID %d", pthread_self());
+#endif//WIN32
 
 	uint32 start;
 	uint32 etime;
@@ -112,13 +117,14 @@ ThreadReturnType BaseTCPServer::TCPServerLoop(void* tmp) {
 	tcps->MLoopRunning.unlock();
 	
 #ifndef WIN32
-	_log(COMMON__THREADS, "Ending TCPServerLoop with thread ID %d", pthread_self());
-#endif
+    sLog.Log("Threading", "Ending TCPServerLoop with thread ID %d", pthread_self());
+#endif//WIN32
 	
 	THREAD_RETURN(NULL);
 }
 
-void BaseTCPServer::Process() {
+void BaseTCPServer::Process()
+{
 	ListenNewConnections();
 }
 

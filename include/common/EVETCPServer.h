@@ -34,7 +34,7 @@ class ServerPacket;
 
 class EVETCPServer : public TCPServer<EVETCPConnection> {
 public:
-	EVETCPServer(int16 iPort = 0);
+	EVETCPServer( int16 iPort = 0 );
 	virtual ~EVETCPServer();
 	
 protected:

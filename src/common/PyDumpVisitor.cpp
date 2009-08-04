@@ -105,17 +105,17 @@ void PyDumpVisitor::VisitString( const PyRepString *rep, int64 lvl )
     {
         print_string.append("String%s: '<binary, len=%d>'");
         if ( rep->is_type_1 == true )
-            _print(print_string, " (Type1)", rep->size());
+            _print(print_string.c_str(), " (Type1)", rep->size());
         else
-            _print(print_string, "", rep->size());
+            _print(print_string.c_str(), "", rep->size());
     }
     else
     {
         print_string.append("String%s: '%s'");
         if ( rep->is_type_1 == true )
-            _print(print_string, " (Type1)", rep->size());
+            _print(print_string.c_str(), " (Type1)", rep->content());
         else
-            _print(print_string, "", rep->content());
+            _print(print_string.c_str(), "", rep->content());
     }
 }
 
@@ -129,7 +129,7 @@ void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep, int64 lvl ) {
     rep->header->visit(this, lvl + idenAmt );
 
     {
-        _print(std::string(curIden+std::string("ListData: %u entries")) , rep->list_data.size());
+        _print(std::string(curIden+std::string("ListData: %u entries")) , (uint32)rep->list_data.size());
         PyRepObjectEx::const_list_iterator cur, end;
         cur = rep->list_data.begin();
         end = rep->list_data.end();
@@ -141,7 +141,7 @@ void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep, int64 lvl ) {
     }
 
     {
-        _print(std::string(curIden+std::string("DictData: %u entries")) , rep->dict_data.size());
+        _print(std::string(curIden+std::string("DictData: %u entries")) , (uint32)rep->dict_data.size());
         PyRepObjectEx::const_dict_iterator cur, end;
         cur = rep->dict_data.begin();
         end = rep->dict_data.end();
@@ -203,7 +203,7 @@ void PyDumpVisitor::VisitSubStream(const PyRepSubStream *rep, int64 lvl ) {
             _hexDump(rep->data, rep->length, curIden.c_str());
         }
     } else {
-        _print(std::string(curIden+std::string("Substream: length %d %s")), (rep->data==NULL)?"from rep":"from data");
+        _print(std::string(curIden+std::string("Substream: length %d %s")), rep->length, (rep->data==NULL) ? "from rep":"from data");
 
         rep->decoded->visit(this, lvl + idenAmt );
     }
@@ -215,7 +215,7 @@ void PyDumpVisitor::VisitChecksumedStream(const PyRepChecksumedStream *rep, int6
 
 void PyDumpVisitor::VisitDict(const PyRepDict *rep, int64 lvl ) {
     std::string curIden(lvl, ' ');
-    _print(std::string(curIden+std::string("Dictionary: %d entries")), rep->items.size());
+    _print(std::string(curIden+std::string("Dictionary: %d entries")), rep->size());
 
     PyRepDict::const_iterator cur, end;
     cur = rep->begin();
@@ -234,7 +234,7 @@ void PyDumpVisitor::VisitList(const PyRepList *rep, int64 lvl ) {
     if(rep->items.empty()) {
         _print(std::string(curIden+std::string("List: Empty")));
     } else {
-        _print(std::string(curIden+std::string("List: %d elements")), rep->items.size());
+        _print(std::string(curIden+std::string("List: %d elements")), rep->size());
 
         PyRepList::const_iterator cur, end;
         cur = rep->begin();
@@ -257,7 +257,7 @@ void PyDumpVisitor::VisitTuple(const PyRepTuple *rep, int64 lvl ) {
     if(rep->items.empty())
         _print(std::string(curIden+std::string("Tuple: Empty")));
     else {
-        _print(std::string(curIden+std::string("Tuple: %d elements")), rep->items.size());
+        _print(std::string(curIden+std::string("Tuple: %d elements")), rep->size());
 
         //! visit tuple elements.
         PyRepTuple::const_iterator cur, end;
@@ -300,8 +300,9 @@ void PyLogsysDump::_print(const char *str, ...) {
 }
 
 void PyLogsysDump::_print(const std::string &str, ...) {
+    const char* tStr = str.c_str();
     va_list l;
-    va_start(l, str);
+    va_start(l, tStr);
     size_t len = str.size()+1;
     char *buf = new char[len];
     snprintf(buf, len, "%s", str.c_str());

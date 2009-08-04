@@ -79,8 +79,7 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
     uint32 col_count = mysql_field_count(&mysql);
     if(col_count == 0) {
         into.error.SetError(0xFFFF, "DBcore::RunQuery: No Result");
-        _log(DATABASE__QUERIES, "Query failed due to no result");
-        _log(DATABASE__ALL_ERRORS, "DB Query '%s' did not return a result, but the caller requested them.", query);
+        sLog.Error("DBCore Query", "Query: %s failed because did not return a result", query);
         free(query);
         return false;
     }
@@ -200,11 +199,10 @@ bool DBcore::RunQueryLID(DBerror &err, uint32 &last_insert_id, const char *query
     return true;
 }
 
-bool DBcore::DoQuery_locked(DBerror &err, const char *query, int32 querylen, bool retry) {
+bool DBcore::DoQuery_locked(DBerror &err, const char *query, int32 querylen, bool retry)
+{
     if (pStatus != Connected)
         Open_locked();
-
-    _log(DATABASE__QUERIES, "Executing query: %s", query);
 
     if (mysql_real_query(&mysql, query, querylen)) {
         int num = mysql_errno(&mysql);
@@ -212,14 +210,15 @@ bool DBcore::DoQuery_locked(DBerror &err, const char *query, int32 querylen, boo
         if (num == CR_SERVER_GONE_ERROR)
             pStatus = Error;
 
-        if (retry && (num == CR_SERVER_LOST || num == CR_SERVER_GONE_ERROR)) {
-            _log(DATABASE__ERROR, "Database Error: Lost connection, attempting to recover....");
-            return(DoQuery_locked(err, query, querylen, false));
+        if (retry && (num == CR_SERVER_LOST || num == CR_SERVER_GONE_ERROR))
+        {
+            sLog.Error("DBCore", "Lost connection, attempting to recover....");
+            return DoQuery_locked(err, query, querylen, false);
         }
 
         pStatus = Error;
         err.SetError(num, mysql_error(&mysql));
-        _log(DATABASE__ALL_ERRORS, "DB Query Error #%d in '%s': %s", err.GetErrno(), query, err.c_str());
+        sLog.Error("DBCore Query", "#%d in '%s': %s", err.GetErrno(), query, err.c_str());
         return false;
     }
 
@@ -235,11 +234,10 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
         errbuf[0] = 0;
     LockMutex lock(&MDatabase);
 
-    _log(DATABASE__QUERIES, "Running query: %s", query);
-
     DBerror err;
-    if(!DoQuery_locked(err, query, querylen, retry)) {
-        _log(DATABASE__QUERIES, "Query failed");
+    if(!DoQuery_locked(err, query, querylen, retry))
+    {
+        sLog.Error("DBCore Query", "Query: %s failed", query);
         if(errnum != NULL)
             *errnum = err.GetErrno();
         if(errbuf != NULL)
@@ -256,8 +254,7 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
                 *errnum = UINT_MAX;
             if (errbuf)
                 strcpy(errbuf, "DBcore::RunQuery: No Result");
-            _log(DATABASE__QUERIES, "Query failed due to no result");
-            _log(DATABASE__ALL_ERRORS, "DB Query '%s' did not return a result, but the caller requested them.", query);
+            sLog.Error("DBCore Query", "Query: %s failed because it should return a result", query);
             return false;
         }
     }
@@ -265,7 +262,6 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
         *affected_rows = mysql_affected_rows(&mysql);
     if (last_insert_id)
         *last_insert_id = mysql_insert_id(&mysql);
-    _log(DATABASE__QUERIES, "Query successful");
     return true;
 }
 
@@ -372,10 +368,10 @@ bool DBcore::Open_locked(int32* errnum, char* errbuf) {
             *errnum = mysql_errno(&mysql);
         if(errbuf)
             snprintf(errbuf, MYSQL_ERRMSG_SIZE, "#%i: %s", mysql_errno(&mysql), mysql_error(&mysql));
-        return(false);
+        return false;
     }
 
-    return(true);
+    return true;
 }
 
 
@@ -430,9 +426,8 @@ bool DBQueryResult::GetRow(DBResultRow &into) {
 const char *DBQueryResult::ColumnName(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
-        //_log(DATABASE__ERROR, "ColumnName: Column index %d exceeds number of columns (%s) in row", column, ColumnCount());
-        printf("ColumnName: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
-        return("(ERROR)");      //nothing better to do...
+        sLog.Error("DBCore Query Result", "ColumnName: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
+        return "(ERROR)";      //nothing better to do...
     }
 #endif
     return(m_fields[column]->name);
@@ -441,9 +436,8 @@ const char *DBQueryResult::ColumnName(uint32 column) const {
 DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
-        //_log(DATABASE__ERROR, "ColumnType: Column index %d exceeds number of columns (%s) in row", column, ColumnCount());
-        printf("ColumnType: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
-        return(String);     //nothing better to do...
+        sLog.Error("DBCore Query Result", "ColumnType: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
+        return String;     //nothing better to do...
     }
 #endif
 
@@ -451,7 +445,7 @@ DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
     //! TODO: not handled.
     case MYSQL_TYPE_VARCHAR:
     case MYSQL_TYPE_NEWDECIMAL:
-        break;
+        return String;
     case FIELD_TYPE_TINY:
         // Disabled because it causes wrong marshal behavior.
         //if (m_fields[column]->length == 1)
@@ -490,7 +484,8 @@ DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
     case FIELD_TYPE_BIT:
         return Bool;
     }
-    //..? safest answer:
+
+    sLog.Error("DBCore Query Result", "unable to find proper column type conversion: 0x%X", m_fields[column]->type);
     return String;
 }
 
@@ -555,11 +550,11 @@ DBQueryResult::ColType DBResultRow::ColumnType(uint32 column) const {
 uint32 DBResultRow::GetColumnLength(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
-        _log(DATABASE__ERROR, "GetColumnLength: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+        sLog.Error("DBCore Result Row", "GetColumnLength: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
         return 0;       //nothing better to do...
     }
 #endif
-    return(m_lengths[column]);
+    return m_lengths[column];
 }
 
 
@@ -568,7 +563,7 @@ uint32 DBResultRow::GetColumnLength(uint32 column) const {
 int32 DBResultRow::GetInt(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
-        _log(DATABASE__ERROR, "GetInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+        sLog.Error("DBCore Result Row", "GetInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
         return 0;       //nothing better to do...
     }
 #endif
@@ -579,7 +574,7 @@ int32 DBResultRow::GetInt(uint32 column) const {
 uint32 DBResultRow::GetUInt(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
-        _log(DATABASE__ERROR, "GetUInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+        sLog.Error("DBCore Result Row", "GetUInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
         return 0;       //nothing better to do...
     }
 #endif
@@ -590,7 +585,7 @@ uint32 DBResultRow::GetUInt(uint32 column) const {
 int64 DBResultRow::GetInt64(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
-        _log(DATABASE__ERROR, "GetInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+        sLog.Error("DBCore Result Row", "GetInt64: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
         return 0;       //nothing better to do...
     }
 #endif
@@ -606,7 +601,7 @@ int64 DBResultRow::GetInt64(uint32 column) const {
 uint64 DBResultRow::GetUInt64(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
-        _log(DATABASE__ERROR, "GetUInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+        sLog.Error("DBCore Result Row", "GetUInt64: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
         return 0;       //nothing better to do...
     }
 #endif
@@ -623,40 +618,41 @@ uint64 DBResultRow::GetUInt64(uint32 column) const {
 float DBResultRow::GetFloat(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
-        _log(DATABASE__ERROR, "GetFloat: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+        sLog.Error("DBCore Result Row", "GetFloat: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
         return 0;       //nothing better to do...
     }
 #endif
 #ifdef WIN32
-    return((float)atof(m_row[column]));
+    return (float)atof(m_row[column]);
 #else
-    return(strtof(m_row[column], NULL));
+    return strtof(m_row[column], NULL);
 #endif
 }
 
 double DBResultRow::GetDouble(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
-        _log(DATABASE__ERROR, "GetDouble: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+        sLog.Error("DBCore Result Row", "GetDouble: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
         return 0;       //nothing better to do...
     }
 #endif
-    return(strtod(m_row[column], NULL));
+    return strtod(m_row[column], NULL);
 }
 
 uint32 DBResultRow::GetBinary(uint32 column, uint8 *into, uint32 in_length) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
-        _log(DATABASE__ERROR, "GetBinary: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+        sLog.Error("DBCore Result Row", "GetBinary: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
         return 0;       //nothing better to do...
     }
 #endif
-    if(in_length < m_lengths[column]) {
-        _log(DATABASE__ERROR, "GetBinary: insufficient buffer space provided for column %u of length %u (%u provided)", column, m_lengths[column], in_length);
+    if(in_length < m_lengths[column])
+    {
+        sLog.Error("DBCore Result Row", "GetBinary: insufficient buffer space provided for column %u of length %u (%u provided)", column, m_lengths[column], in_length);
         return 0;
     }
     memcpy(into, m_row[column], m_lengths[column]);
-    return(m_lengths[column]);
+    return m_lengths[column];
 }
 
 void ListToINString(const std::vector<int32> &ints, std::string &into, const char *if_empty)
@@ -714,7 +710,7 @@ bool DBSequence::Init(uint32 last_used_value) {
         m_table.c_str()
     ))
     {
-        _log(DATABASE__ERROR, "Failed to create table for sequence '%s': %s", m_table.c_str(), err.c_str());
+        sLog.Error("DBCore sequence", "Failed to create table for sequence '%s': %s", m_table.c_str(), err.c_str());
         return false;
     }
 
@@ -723,7 +719,7 @@ bool DBSequence::Init(uint32 last_used_value) {
         m_table.c_str(), last_used_value
     ))
     {
-        _log(DATABASE__ERROR, "Failed to prime value for sequence '%s': %s", m_table.c_str(), err.c_str());
+        sLog.Error("DBCore sequence", "Failed to prime value for sequence '%s': %s", m_table.c_str(), err.c_str());
         return false;
     }
     return true;
@@ -735,16 +731,18 @@ bool DBSequence::Init(const char *last_used_query, uint32 default_if_empty) {
         last_used_query
     ))
     {
-        _log(DATABASE__ERROR, "Failed to query prime value for sequence '%s': %s", m_table.c_str(), res.error.c_str());
+        sLog.Error("DBCore sequence", "Failed to query prime value for sequence '%s': %s", m_table.c_str(), res.error.c_str());
         return false;
     }
     DBResultRow row;
-    if(!res.GetRow(row)) {
+    if(!res.GetRow(row))
+    {
+        /* Capt: strange... look at this.. */
         //_log(DATABASE__ERROR, "Failed to query prime value for sequence '%s': Query '%s' returned no results.", m_table.c_str(), last_used_query);
         //return false;
-        return(Init( default_if_empty ));
+        return Init( default_if_empty );
     }
-    return(Init( row.GetUInt(0) ));
+    return Init( row.GetUInt(0) );
 }
 
 uint32 DBSequence::NextValue() {
@@ -755,8 +753,8 @@ uint32 DBSequence::NextValue() {
         m_table.c_str()
     ))
     {
-        _log(DATABASE__ERROR, "Failed to query value for sequence '%s': %s", m_table.c_str(), err.c_str());
+        sLog.Error("DBCore sequence", "Failed to query value for sequence '%s': %s", m_table.c_str(), err.c_str());
         return 0;
     }
-    return(last_insert_id);
+    return last_insert_id;
 }

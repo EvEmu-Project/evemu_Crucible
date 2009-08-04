@@ -225,7 +225,6 @@ void ObjCacheService::PrimeCache() {
 	end = m_cacheKeys.end();
 	printf("Loading cache");
 	for(; cur != end; cur++) {
-		_log(SERVICE__CACHE, "Priming cache object '%s'", cur->first.c_str());
 		PyRepString str(cur->first);
 		_LoadCachableObject(&str);
 		

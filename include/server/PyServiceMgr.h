@@ -92,7 +92,10 @@ protected:
 		Client *client;	//we do not own this.
 		PyBoundObject *destination;	//we own this. PyServiceMgr deletes it
 	};
-	std::map<uint32, BoundObject> m_boundObjects;
+
+    typedef std::map<uint32, BoundObject>   ObjectsBoundMap;
+    typedef ObjectsBoundMap::iterator       ObjectsBoundMapItr;
+	ObjectsBoundMap m_boundObjects;
 
 	uint32 m_nodeID;
 	ServiceDB m_svcDB;	//this is crap, get rid of this

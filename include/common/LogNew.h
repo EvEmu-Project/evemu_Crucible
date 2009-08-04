@@ -71,6 +71,8 @@ public:
      * @param[in] str is the message itself.
      */
     void Success( const char * source, const char * format, ... );
+    void Debug(const char * source, const char * format, ...);
+
     /**
      * @brief Sets the log system time every main loop.
      *

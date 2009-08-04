@@ -134,10 +134,10 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
 
     _UpdateCache(objectID, &buf, len);
 
-    if(is_log_enabled(SERVICE__CACHE_DUMP)) {
-        PyLogsysDump dumper(SERVICE__CACHE_DUMP, SERVICE__CACHE_DUMP, false, true);
-        cached_data->visit(&dumper, 0);
-    }
+    //if(is_log_enabled(SERVICE__CACHE_DUMP)) {
+      //  PyLogsysDump dumper(SERVICE__CACHE_DUMP, SERVICE__CACHE_DUMP, false, true);
+        //cached_data->visit(&dumper, 0);
+    //}
     delete cached_data;
 }
 
