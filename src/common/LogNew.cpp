@@ -33,9 +33,9 @@ NewLog::NewLog()
     UNIXTIME = time(NULL);// waisting cpu cycles... lolz..
 
     char * log_filename = (char*)malloc(0x100);
-    tm * t = NULL;
-    localtime_r(t, &UNIXTIME);
-    sprintf(log_filename, "log_%02u;%02u;%04u;%02u;%02u.txt", t->tm_mday, t->tm_mon + 1, t->tm_year + 1900, t->tm_hour, t->tm_min);
+    tm t;
+    localtime_r(&t, &UNIXTIME);
+    sprintf(log_filename, "log_%02u;%02u;%04u;%02u;%02u.txt", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min);
 
     m_logfile = fopen(log_filename, "w");
     if ( m_logfile == NULL )
@@ -176,9 +176,9 @@ NewLog::~NewLog()
 }
 void NewLog::Time( FILE* fp )
 {
-    tm * t = NULL;
-    localtime_r(t, &UNIXTIME);
-    fprintf( fp, "%02u:%02u:%02u ", t->tm_hour, t->tm_min, t->tm_sec );
+    tm t;
+    localtime_r(&t, &UNIXTIME);
+    fprintf( fp, "%02u:%02u:%02u ", t.tm_hour, t.tm_min, t.tm_sec );
 }
 
 void NewLog::log( const char * str, ... )
