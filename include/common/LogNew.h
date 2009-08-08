@@ -7,6 +7,14 @@
 
 #include "Common.h"
 
+// thread safe cross platform localtime stuff.
+// needs to be moved to common.
+#ifdef WIN32
+#  define localtime_r localtime_s
+#else
+//#  define localtime_r localtime_r
+#endif//WIN32
+
 // console output colors
 #ifdef WIN32
 #  define TRED	FOREGROUND_RED | FOREGROUND_INTENSITY

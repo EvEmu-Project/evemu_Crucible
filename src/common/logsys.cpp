@@ -32,6 +32,7 @@
 #include <string.h>
 #include <time.h>
 #include <assert.h>
+#include "LogNew.h"
 
 #ifdef WIN32
 #include <time.h>
@@ -40,9 +41,6 @@
 #endif /* WIN32 */
 
 FILE *logsys_log_file = NULL;
-
-std::list<std::string> memory_log;
-const uint32 memory_log_limit = 1000;
 
 #define LOG_CATEGORY(category) #category ,
 const char *log_category_names[NUMBER_OF_LOG_CATEGORIES] = {
@@ -83,61 +81,61 @@ void log_phex(LogType type, const void *data, unsigned long length, unsigned cha
 void log_message(LogType type, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    log_messageVA(type, fmt, args);
+    log_messageVA(type, 0, fmt, args);
     va_end(args);
 }
 
 void log_messageVA(LogType type, const char *fmt, va_list args) {
-    std::string message("");
 
-#ifndef NO_LOG_TIME
-#ifdef WIN32
-    time_t t;
-    time(&t);
-    char buf[32];
-    strftime(buf, 32, "%X", localtime(&t));
-    message += buf;
-#else /* !WIN32 */
-    timeval tv;
-    gettimeofday(&tv, NULL);
-    char buf[32];
-    strftime(buf, 32, "%T", localtime(&tv.tv_sec));
-    message += buf;
+    log_messageVA(type, 0, fmt, args);
+}
 
-    message += '.';
-    snprintf(buf, 32, "%04lu", tv.tv_usec/100);
-    message += buf;
-#endif /* !WIN32 */
-    message += " "; // make a space between log time and message itself
-#endif /* !NO_LOG_TIME */
+extern void log_messageVA( LogType type, uint32 iden, const char *fmt, va_list args )
+{
+    /* allocate enough room for a large message */
+    size_t log_msg_size = 0x1000;
+    size_t log_msg_index = 0;
+    char* log_msg = (char*)malloc(log_msg_size);
 
-    message += "[";
-    message += log_type_info[type].display_name;
-    message += "] ";
+    /* handle the time part.. cross platform */
+    tm t;
+    time_t tTime;
+    time(&tTime);
+    localtime_r( &t, &tTime);
+    int va_size = snprintf(&log_msg[log_msg_index], log_msg_size, "%02u:%02u:%02u [%s] ", t.tm_hour, t.tm_min, t.tm_sec, log_type_info[type].display_name );
 
-    char *msg = NULL;
-    //assert(vasprintf(&msg, fmt, args) >= 0);
-    vasprintf(&msg, fmt, args);
+    /* store the resulting size */
+    log_msg_size-=va_size;
+    log_msg_index+=va_size;
 
-    message += msg;
-    free(msg);
+    /* add the required spaces */
+    for (uint32 i = 0; i < iden; i++)
+    {
+        log_msg[log_msg_index++] = ' ';
+    }
 
-    //print into the console
-    printf("%s\n", message.c_str());
+    /* make sure the resulting size is corrected */
+    log_msg_size-=iden;
+
+    /* put in the rest of the va stuff */
+    va_size = vsnprintf(&log_msg[log_msg_index], log_msg_size, fmt, args);
+    log_msg_index+=va_size;
+
+    /* make sure that there is a new line at the end */
+    log_msg[log_msg_index++] = '\n';
+    log_msg[log_msg_index++] = '\0';
+
+    fputs(log_msg, stdout);
 
     //print into the logfile (if any)
     if(logsys_log_file != NULL) {
-        fprintf(logsys_log_file, "%s\n", message.c_str());
+        //fprintf(logsys_log_file, "%s\n", message.c_str());
+        fputs(log_msg, logsys_log_file);
         //keep the logfile updated
         fflush(logsys_log_file);
     }
 
-    //print into the memory log
-    memory_log.push_back(message);
-    if(memory_log.size() > memory_log_limit)
-        //limit reached, pop the oldest record
-        memory_log.pop_front();
-
+    free(log_msg);
 }
 
 void log_enable(LogType t) {
@@ -231,4 +229,3 @@ bool load_log_settings(const char *filename) {
     fclose(f);
     return true;
 }
-

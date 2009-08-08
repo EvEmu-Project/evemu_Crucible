@@ -91,7 +91,7 @@ PyResult PetitionerService::Handle_GetCategories(PyCallArgs &call) {
 	PyRepList *result = new PyRepList();
 	result->add("Test Cat");
 	result->add("Test Cat2");
-	_log(SERVICE__ERROR, "Unhandled %s::GetCategories", GetName());
+    sLog.Debug("Petitioner Service", "called GetCategories stub");
 
 	return result;
 }
@@ -103,30 +103,7 @@ PyResult PetitionerService::Handle_GetUnreadMessages(PyCallArgs &call) {
 	//unknown...
 	PyRepList *result = new PyRepList();
 	
-	_log(SERVICE__ERROR, "Unhandled %s::GetUnreadMessages", GetName());
+    sLog.Debug("Petitioner Service", "called GetUnreadMessages stub");
 
 	return result;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

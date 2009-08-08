@@ -59,20 +59,7 @@ const char *MACHONETMSG_TYPE_str[_MACHONETMSG_TYPE_next]
     "PING_RSP"
 };
 
-//#undef codelog
-//#define codelog //
-//#undef _log
-//#define _log //
-
-PyPacket::PyPacket()
-: type_string("none"),
-  type(__Fake_Invalid_Type),
-  userid(0),
-  payload(NULL),
-  named_payload(NULL)
-{
-}
-
+PyPacket::PyPacket() : type_string("none"), type(__Fake_Invalid_Type), userid(0), payload(NULL), named_payload(NULL) {}
 PyPacket::~PyPacket()
 {
     SafeDelete(payload);
@@ -309,17 +296,7 @@ PyRep *PyPacket::Encode() {
     return(new PyRepObject(type_string, arg_tuple));
 }
 
-
-
-
-
-PyAddress::PyAddress()
-: type(Invalid),
-  typeID(0),
-  callID(0),
-  service("")
-{
-}
+PyAddress::PyAddress() : type(Invalid), typeID(0), callID(0), service("") {}
 
 void PyAddress::Dump(FILE *into, const char *pfx) const {
     switch(type) {

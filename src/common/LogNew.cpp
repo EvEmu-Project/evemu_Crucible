@@ -17,12 +17,6 @@ const char* colorstrings[TBLUE+1] = {
 };
 #endif//WIN32
 
-#ifdef WIN32
-#  define localtime_r localtime_s
-#else
-//#  define localtime_r localtime_r
-#endif//WIN32
-
 NewLog::NewLog()
 {
 #ifdef WIN32
@@ -231,6 +225,7 @@ void NewLog::Log( const char * source, const char * str, ... )
 
 void NewLog::Debug(const char * source, const char * format, ...)
 {
+#if DEBUG
     va_list ap;
     va_start(ap, format);
     LogTime( stdout ); LogTime( m_logfile );
@@ -248,4 +243,5 @@ void NewLog::Debug(const char * source, const char * format, ...)
     fputc( '\n', stdout ); fputc( '\n', m_logfile );
     va_end(ap);
     SetColor(TNORMAL);
+#endif//DEBUG
 }

@@ -37,6 +37,7 @@
 #include "PyDumpVisitor.h"
 
 #include "CachedObjectMgr.h"
+#include "LogNew.h"
 
 #include "../packets/ObjectCaching.h"
 
@@ -77,8 +78,9 @@ PyRepObject *CachedObjectMgr::CacheRecord::EncodeHint() const {
 std::string CachedObjectMgr::OIDToString(const PyRep *objectID) {
     StringCollapseVisitor v;
     objectID->visit(&v);
-    if(!v.good) {
-        //codelog(SERVICE__ERROR, "Failed to convert cache hind object ID into collapsed string:");
+    if(!v.good)
+    {
+        sLog.Error("Cached Obj Mgr", "Failed to convert cache hind object ID into collapsed string:");
         objectID->Dump(SERVICE__ERROR, "    ");
         return("");
     }

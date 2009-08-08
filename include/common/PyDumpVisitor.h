@@ -39,6 +39,7 @@ public:
 protected:
     virtual void _print(const char *str, ...) = 0;
     virtual void _print(const std::string &str, ...) = 0;
+    virtual void _print(uint32 iden, const char *str, ...) = 0;
     virtual void _hexDump(const uint8 *bytes, uint32 len, const char * ident) = 0;
 
     const bool m_full_lists;
@@ -83,6 +84,7 @@ protected:
     const bool m_full_hex;
     void _print(const char *str, ...);
     void _print(const std::string &str, ...);
+    void _print(uint32 iden, const char *str, ...);
     void _hexDump(const uint8 *bytes, uint32 len, const char * ident);
 };
 

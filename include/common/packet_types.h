@@ -96,23 +96,23 @@ PRE_INFLIGHT = 16
 */
 
 typedef enum {
-	AUTHENTICATION_REQ				= 0,
-	AUTHENTICATION_RSP				= 1,
-	IDENTIFICATION_REQ				= 2,
-	IDENTIFICATION_RSP				= 3,
-	__Fake_Invalid_Type				= 4,
-	CALL_REQ						= 6,
-	CALL_RSP						= 7,
-	TRANSPORTCLOSED					= 8,
-	RESOLVE_REQ						= 10,
-	RESOLVE_RSP						= 11,
-	NOTIFICATION					= 12,
-	ERRORRESPONSE					= 15,
-	SESSIONCHANGENOTIFICATION		= 16,
-	SESSIONINITIALSTATENOTIFICATION	= 18,
-	PING_REQ						= 20,
-	PING_RSP						= 21,
-	_MACHONETMSG_TYPE_next
+    AUTHENTICATION_REQ				= 0,
+    AUTHENTICATION_RSP				= 1,
+    IDENTIFICATION_REQ				= 2,
+    IDENTIFICATION_RSP				= 3,
+    __Fake_Invalid_Type				= 4,
+    CALL_REQ						= 6,
+    CALL_RSP						= 7,
+    TRANSPORTCLOSED					= 8,
+    RESOLVE_REQ						= 10,
+    RESOLVE_RSP						= 11,
+    NOTIFICATION					= 12,
+    ERRORRESPONSE					= 15,
+    SESSIONCHANGENOTIFICATION		= 16,
+    SESSIONINITIALSTATENOTIFICATION	= 18,
+    PING_REQ						= 20,
+    PING_RSP						= 21,
+    _MACHONETMSG_TYPE_next
 } MACHONETMSG_TYPE;
 
 typedef enum {
@@ -198,11 +198,11 @@ typedef enum EVEItemFlags
 
 	flagHiSlot0						= 27,	//High power slot 1
 	flagHiSlot1						= 28,
-	flagHiSlot2						= 28,
-	flagHiSlot3						= 28,
-	flagHiSlot4						= 28,
-	flagHiSlot5						= 28,
-	flagHiSlot6						= 28,
+	flagHiSlot2						= 29,
+	flagHiSlot3						= 30,
+	flagHiSlot4						= 31,
+	flagHiSlot5						= 32,
+	flagHiSlot6						= 33,
 	flagHiSlot7						= 34,	//High power slot 8
 	flagFixedSlot					= 35,
 
@@ -388,6 +388,10 @@ enum {
 	ROLE_TRANSAM = (ROLE_TRANSLATION | ROLE_TRANSLATIONADMIN),// | ROLE_TRANSLATIONEDITOR)
 	//ROLE_TRANSLATIONEDITOR = 4294967296UL
 	//ROLE_SPAWN = 8589934592L
+    /*
+    3 + 8 + 16 + 32 + 512 + 1024 + 2048 + 4096 + 8192 + 16384 + 32768 + 65536 + 262144 + 2097152 + 4194304 + 8388608 + 536870912 + 1073741824 + 2147483648
+    */
+
 };
 
 enum {

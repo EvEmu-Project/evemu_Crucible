@@ -204,7 +204,7 @@ void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
             p += "  ";
             fprintf(into, "%sData buffer contains gzipped data of length %u\n", p.c_str(), len);
             pfxPreviewHexDump(p.c_str(), into, buf, len);
-            SafeDeleteArray(buf);
+            free(buf);
         }
     }
 }
@@ -221,7 +221,7 @@ void PyRepBuffer::Dump(LogType type, const char *pfx) const {
             p += "  ";
             _log(type, "%sData buffer contains gzipped data of length %u", p.c_str(), len);
             pfxPreviewHexDump(p.c_str(), type, buf, len);
-            SafeDeleteArray(buf);
+            free(buf);
         }
     }
 }
@@ -242,7 +242,7 @@ PyRepSubStream *PyRepBuffer::CreateSubStream() const {
             res = new PyRepSubStream(buf, len);
         }
 
-        SafeDeleteArray(buf);
+        free(buf);
         return res;
     }
     //else, we don't think this is a substream, so don't become one.

@@ -132,7 +132,7 @@ PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len)
     if(rep == NULL) {
         _log(NET__PRES_ERROR, "Failed to unmarshal data!");
         if(post_inflate_body != orig_body)
-            delete[] post_inflate_body;
+            free(inflated_buffer);
         return NULL;
     }
 
@@ -160,9 +160,9 @@ PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len)
     }
 
     if (inflated == true)
-        SafeDeleteArray(inflated_buffer);
+        free(inflated_buffer);
 
-    return(rep);
+    return rep;
 }
 
 static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, uint32 len, PyRep *&res, const char *pfx) {

@@ -277,28 +277,6 @@ PyResult Command_syncloc(Client *who, CommandDB *db, PyServiceMgr *services, con
 	return(new PyRepString("Position synchronized."));
 }
 
-PyResult Command_clearlog(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
-	memory_log.clear();
-
-	return(new PyRepString("Memory log cleared."));
-}
-
-PyResult Command_getlog(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
-	std::string evemail;
-
-	std::list<std::string>::const_iterator cur, end;
-	cur = memory_log.begin();
-	end = memory_log.end();
-	for(; cur != end; cur++) {
-		evemail += *cur;
-		evemail += "<br>";
-	}
-
-	who->SelfEveMail("Server logs", "Server log of length %u/%u records (%u bytes):<br><br>%s", memory_log.size(), memory_log_limit, evemail.size(), evemail.c_str());
-
-	return(new PyRepString("Log sent via evemail."));
-}
-
 // new command to modify blueprint's attributes, we have to give it blueprint's itemID ... isn't much comfortable, but I don't know about better solution
 PyResult Command_setbpattr(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
 	if(!args.IsNumber(1))

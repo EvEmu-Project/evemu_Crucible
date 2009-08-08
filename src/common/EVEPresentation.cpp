@@ -32,6 +32,7 @@
 #include "EVEMarshal.h"
 #include "EVEUnmarshal.h"
 #include "EVEVersion.h"
+#include "LogNew.h"
 
 #include "../packets/Crypto.h"
 #include "../server/Client.h"
@@ -127,7 +128,7 @@ void EVEPresentation::FastQueuePacket(PyPacket **p) {
 
 void EVEPresentation::_QueueRep(const PyRep *rep) {
     if(is_log_enabled(NET__PRES_REP_OUT)) {
-        _log(NET__PRES_REP_OUT, "%s: Outbound Rep:", GetConnectedAddress().c_str());
+        sLog.Log("Eve Presentation", "%s: Outbound Rep:", GetConnectedAddress().c_str());
         PyLogsysDump dv(NET__PRES_REP_OUT);
         rep->visit(&dv, 0);
     }
@@ -135,7 +136,7 @@ void EVEPresentation::_QueueRep(const PyRep *rep) {
     EVENetPacket *packet = new EVENetPacket;
     packet->data = Marshal(rep, packet->length);
     if(packet->data == NULL) {
-        _log(NET__PRES_ERROR, "%s: Error marshaling packet!", GetConnectedAddress().c_str());
+        sLog.Error("Eve Presentation", "%s: Error marshaling packet!", GetConnectedAddress().c_str());
         return;
     }
 

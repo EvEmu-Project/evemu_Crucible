@@ -27,8 +27,7 @@
 
 PyCallable_Make_InnerDispatcher(UserService)
 
-UserService::UserService(PyServiceMgr *mgr)
-: PyService(mgr, "userSvc"),
+UserService::UserService(PyServiceMgr *mgr) : PyService(mgr, "userSvc"),
   m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
@@ -41,7 +40,7 @@ UserService::~UserService() {
 }
 
 PyResult UserService::Handle_GetRedeemTokens(PyCallArgs &call) {
-	_log(SERVICE__ERROR, "Unhandled call to %s::GetRedeemTokens.", GetName());
+    sLog.Debug("UserService", "Unhandled call to %s::GetRedeemTokens.", GetName());
 
 	// takes no args
 

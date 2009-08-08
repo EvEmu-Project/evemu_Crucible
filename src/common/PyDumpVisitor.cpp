@@ -55,40 +55,41 @@ PyLogsysDump::PyLogsysDump(LogType type, LogType hex_type, bool full_hex, bool f
 // --- Visitors implementation ---
 
 void PyDumpVisitor::VisitInteger(const PyRepInteger *rep, int64 lvl ) {
-    _print(std::string(std::string(lvl, ' ')+std::string("Integer field: %ll")).c_str(), rep->value);
+    _print(lvl, "Integer field: %ll", rep->value);
 }
 
 void PyDumpVisitor::VisitReal(const PyRepReal *rep, int64 lvl ) {
-    _print(std::string(std::string(lvl, ' ')+std::string("Real Field: %f")).c_str(), rep->value);
+    _print(lvl, "Real field: %f", rep->value);
 }
 
 void PyDumpVisitor::VisitBoolean(const PyRepBoolean *rep, int64 lvl ) {
-    _print(std::string(std::string(lvl, ' ')+std::string("Boolean field: %s")).c_str(), rep->value?"true":"false");
-    _print("Boolean field: %s", rep->value?"true":"false");
+    _print(lvl, "Boolean field: %s", rep->value ? "true" : "false");
 }
 
 void PyDumpVisitor::VisitNone(const PyRepNone *rep, int64 lvl ) {
-    _print("(None)");
+    _print(lvl, "(None)");
 }
 
 void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep, int64 lvl ) {
 
-    std::string curIden(lvl, ' ');
+    std::string curIden(lvl, ' '); // please clean this one...
 
-    _print(std::string(curIden+std::string("Data buffer of length %d")), rep->GetLength());
+    _print(lvl, "Data buffer of length %d", rep->GetLength());
 
     //kinda hackish:
     if(rep->GetLength() > 2 && *(rep->GetBuffer()) == GZipStreamHeaderByte) {
         uint32 len = rep->GetLength();
         uint8 *buf = InflatePacket(rep->GetBuffer(), &len, true);
         if(buf != NULL) {
-            _print(std::string(curIden+std::string("  Data buffer contains gzipped data of length %u")).c_str(), len);
+            _print(lvl, "  Data buffer contains gzipped data of length %u", len);
 
             _hexDump(buf, len, curIden.c_str());
 
-            delete[] buf;
+            free(buf);
         }
-    } else if(rep->GetLength() > 0) {
+    }
+    else if(rep->GetLength() > 0)
+    {
         _hexDump(rep->GetBuffer(), rep->GetLength(), curIden.c_str());
     }
 }
@@ -96,26 +97,20 @@ void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep, int64 lvl ) {
 
 void PyDumpVisitor::VisitString( const PyRepString *rep, int64 lvl )
 {
-    // string size must be at least this..
-    std::string print_string;
-    print_string.reserve(rep->size() + lvl + 30);
-    print_string.append(lvl, ' ');
-
     if(ContainsNonPrintables(rep->value.c_str(), rep->value.length()))
     {
-        print_string.append("String%s: '<binary, len=%d>'");
         if ( rep->is_type_1 == true )
-            _print(print_string.c_str(), " (Type1)", rep->size());
+            _print(lvl, "String%s: '<binary, len=%d>'", " (Type1)", rep->size());
         else
-            _print(print_string.c_str(), "", rep->size());
+            _print(lvl, "String%s: '<binary, len=%d>'", "", rep->size());
     }
     else
     {
-        print_string.append("String%s: '%s'");
+        //print_string.append("String%s: '%s'");
         if ( rep->is_type_1 == true )
-            _print(print_string.c_str(), " (Type1)", rep->content());
+            _print(lvl, "String%s: '%s'", " (Type1)", rep->content());
         else
-            _print(print_string.c_str(), "", rep->content());
+            _print(lvl, "String%s: '%s'", "", rep->content());
     }
 }
 
@@ -196,15 +191,13 @@ void PyDumpVisitor::VisitSubStream(const PyRepSubStream *rep, int64 lvl ) {
     if(rep->decoded == NULL) {
         //we have not decoded this substream, leave it as hex:
         if(rep->data == NULL) {
-            _print(std::string(curIden+std::string("INVALID Substream: no data (length %d)")), rep->length);
+            _print(lvl, "INVALID Substream: no data (length %u)", rep->length);
         } else {
-            _print(std::string(curIden+std::string("Substream: length %d")), rep->length);
-
+            _print(lvl, "Substream: length %u", rep->length);
             _hexDump(rep->data, rep->length, curIden.c_str());
         }
     } else {
-        _print(std::string(curIden+std::string("Substream: length %d %s")), rep->length, (rep->data==NULL) ? "from rep":"from data");
-
+        _print(lvl, "Substream: length %u %s", rep->length, (rep->data==NULL) ? "from rep":"from data");
         rep->decoded->visit(this, lvl + idenAmt );
     }
 }
@@ -215,7 +208,7 @@ void PyDumpVisitor::VisitChecksumedStream(const PyRepChecksumedStream *rep, int6
 
 void PyDumpVisitor::VisitDict(const PyRepDict *rep, int64 lvl ) {
     std::string curIden(lvl, ' ');
-    _print(std::string(curIden+std::string("Dictionary: %d entries")), rep->size());
+    _print(std::string(curIden+std::string("Dictionary: %u entries")), rep->size());
 
     PyRepDict::const_iterator cur, end;
     cur = rep->begin();
@@ -234,7 +227,7 @@ void PyDumpVisitor::VisitList(const PyRepList *rep, int64 lvl ) {
     if(rep->items.empty()) {
         _print(std::string(curIden+std::string("List: Empty")));
     } else {
-        _print(std::string(curIden+std::string("List: %d elements")), rep->size());
+        _print(std::string(curIden+std::string("List: %u elements")), rep->size());
 
         PyRepList::const_iterator cur, end;
         cur = rep->begin();
@@ -257,7 +250,7 @@ void PyDumpVisitor::VisitTuple(const PyRepTuple *rep, int64 lvl ) {
     if(rep->items.empty())
         _print(std::string(curIden+std::string("Tuple: Empty")));
     else {
-        _print(std::string(curIden+std::string("Tuple: %d elements")), rep->size());
+        _print(std::string(curIden+std::string("Tuple: %u elements")), rep->size());
 
         //! visit tuple elements.
         PyRepTuple::const_iterator cur, end;
@@ -265,7 +258,7 @@ void PyDumpVisitor::VisitTuple(const PyRepTuple *rep, int64 lvl ) {
         end = rep->end();
         for(uint32 i = 0; cur != end; ++cur, ++i) {
 
-            _print(std::string(curIden+std::string("  [%2u] ")), i);
+            _print(std::string(curIden+std::string("  [%2u] ")).c_str(), i);
             (*cur)->visit(this, lvl + idenAmt);
         }
     }
@@ -317,6 +310,19 @@ void PyLogsysDump::_print(const std::string &str, ...)
     va_end(l);
 }
 
+void PyLogsysDump::_print( uint32 iden, const char *str, ... )
+{
+    if( !is_log_enabled( m_type ) )
+        return;
+    va_list l;
+    va_start(l, str);
+    size_t len = strlen(str)+1;
+    char *buf = new char[len];
+    snprintf(buf, len, "%s", str);
+    log_messageVA(m_type, iden, buf, l);
+    delete[] buf;
+    va_end(l);
+}
 void PyLogsysDump::_hexDump(const uint8 *bytes, uint32 len, const char * ident) {
     if(m_full_hex)
     {
@@ -348,8 +354,9 @@ void PyFileDump::_print(const char *str, ...) {
 }
 
 void PyFileDump::_print(const std::string &str, ...) {
+    const char* tStr = str.c_str();
     va_list l;
-    va_start(l, str);
+    va_start(l, tStr);
     assert(vfprintf(m_into, str.c_str(), l) >= 0);
     va_end(l);
 }

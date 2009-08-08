@@ -93,11 +93,9 @@ typedef struct {
 //expose a read-only pointer
 extern const LogTypeStatus *log_type_info;
 
-extern std::list<std::string> memory_log;
-extern const uint32 memory_log_limit;
-
 extern void log_message(LogType type, const char *fmt, ...);
 extern void log_messageVA(LogType type, const char *fmt, va_list args);
+extern void log_messageVA(LogType type, uint32 iden, const char *fmt, va_list args);
 extern void log_hex(LogType type, const void *data, unsigned long length, unsigned char padding=4);
 extern void log_phex(LogType type, const void *data, unsigned long length, unsigned char padding=4);
 
