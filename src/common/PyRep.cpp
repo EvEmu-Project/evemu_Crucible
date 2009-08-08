@@ -912,6 +912,7 @@ bool PyRepPackedRow::SetField(const char *colName, PyRep *value)
 }
 
 PyRepObjectEx::~PyRepObjectEx() {
+    SafeDelete(header);
     {
         const_list_iterator cur, end;
         cur = list_data.begin();
