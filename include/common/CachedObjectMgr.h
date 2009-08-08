@@ -214,8 +214,22 @@ public:
     EVEMU_INLINE void VisitChecksumedStream(const PyRepChecksumedStream *rep) { good = false; }
 
     EVEMU_INLINE void VisitDict(const PyRepDict *rep) { good = false; }
-    EVEMU_INLINE void VisitList(const PyRepList *rep) {}
-    EVEMU_INLINE void VisitTuple(const PyRepTuple *rep) {}
+    EVEMU_INLINE void VisitList(const PyRepList *rep)
+	{
+		PyRepList::const_iterator cur, end;
+		cur = rep->items.begin();
+		end = rep->items.end();
+		for(; cur != end; cur++)
+			(*cur)->visit( this );
+	}
+    EVEMU_INLINE void VisitTuple(const PyRepTuple *rep)
+	{
+		PyRepTuple::const_iterator cur, end;
+		cur = rep->items.begin();
+		end = rep->items.end();
+		for(; cur != end; cur++)
+			(*cur)->visit( this );
+	}
 
     std::string result;
     bool good;

@@ -288,7 +288,10 @@ void PyLogsysDump::VisitSubStream(const PyRepSubStream *rep, int64 lvl ) {
 }
 
 
-void PyLogsysDump::_print(const char *str, ...) {
+void PyLogsysDump::_print(const char *str, ...)
+{
+    if( !is_log_enabled( m_type ) )
+        return;
     va_list l;
     va_start(l, str);
     size_t len = strlen(str)+1;
@@ -299,7 +302,10 @@ void PyLogsysDump::_print(const char *str, ...) {
     va_end(l);
 }
 
-void PyLogsysDump::_print(const std::string &str, ...) {
+void PyLogsysDump::_print(const std::string &str, ...)
+{
+    if( !is_log_enabled( m_type ) )
+        return;
     const char* tStr = str.c_str();
     va_list l;
     va_start(l, tStr);

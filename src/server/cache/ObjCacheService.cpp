@@ -357,14 +357,14 @@ PyRepObject *ObjCacheService::MakeObjectCachedMethodCallResult(const PyRep *obje
 	objectCaching_CachedMethodCallResult_object c;
 	c.versionCheck = versionCheck;
 	c.object = m_cache.MakeCacheHint(objectID);
-	return(c.Encode());
+	return c.FastEncode();
 }
 
 ObjectCachedMethodID::ObjectCachedMethodID(const char *service, const char *method) {
 	SimpleMethodCallID c;
 	c.service = service;
 	c.method = method;
-	objectID = c.Encode();
+	objectID = c.FastEncode();
 }
 
 ObjectCachedMethodID::~ObjectCachedMethodID() {
