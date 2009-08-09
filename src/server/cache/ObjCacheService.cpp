@@ -223,14 +223,11 @@ void ObjCacheService::PrimeCache() {
 	std::map<std::string, std::string>::const_iterator cur, end;
 	cur = m_cacheKeys.begin();
 	end = m_cacheKeys.end();
-	printf("Loading cache");
 	for(; cur != end; cur++) {
 		PyRepString str(cur->first);
 		_LoadCachableObject(&str);
-		
 		putchar('.'); // print a dot so we have a indication of loading. I know this sucks.
 	}
-	printf("\nLoading done\n");
 }
 
 bool ObjCacheService::LoadCachedFile(const char *filename, const char *oname, PyRepSubStream *into) {

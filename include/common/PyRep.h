@@ -504,7 +504,7 @@ public:
 
 class PyRepObject : public PyRep {
 public:
-    PyRepObject(const std::string &t = "", PyRep *a = NULL) : PyRep(PyRep::PyTypeObject), type(t), arguments(a) {}
+    PyRepObject(const std::string &_type = "", PyRep *_args = NULL) : PyRep(PyRep::PyTypeObject), type(_type), arguments(_args) {}
     virtual ~PyRepObject();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
@@ -521,7 +521,6 @@ public:
     std::string type;
     PyRep *arguments;   //should be a tuple or a dict
 };
-
 
 //opcodes 0x22 and 0x23 (merged for simplicity)
 class PyRepObjectEx : public PyRep {

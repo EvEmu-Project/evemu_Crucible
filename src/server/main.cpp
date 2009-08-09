@@ -203,6 +203,8 @@ int main(int argc, char *argv[]) {
 
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();
+    sLog.Log("server init", "finished priming");
+
 
     services.serviceDB().SetServerOnlineStatus(true);
 

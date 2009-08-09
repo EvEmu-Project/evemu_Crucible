@@ -17,20 +17,20 @@
 
 // console output colors
 #ifdef WIN32
-#  define TRED	FOREGROUND_RED | FOREGROUND_INTENSITY
-#  define TGREEN	FOREGROUND_GREEN | FOREGROUND_INTENSITY
+#  define TRED FOREGROUND_RED | FOREGROUND_INTENSITY
+#  define TGREEN FOREGROUND_GREEN | FOREGROUND_INTENSITY
 #  define TYELLOW FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY
 #  define TNORMAL FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE
-#  define TWHITE	TNORMAL | FOREGROUND_INTENSITY
-#  define TBLUE	FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY
+#  define TWHITE TNORMAL | FOREGROUND_INTENSITY
+#  define TBLUE FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY
 #else
-#  define TRED	1
-#  define TGREEN	2
+#  define TRED 1
+#  define TGREEN 2
 #  define TYELLOW 3
 #  define TNORMAL 4
-#  define TWHITE	5
-#  define TBLUE	6
-#endif
+#  define TWHITE 5
+#  define TBLUE 6
+#endif//WIN32
 
 /**
  * \class NewLog
@@ -79,6 +79,15 @@ public:
      * @param[in] str is the message itself.
      */
     void Success( const char * source, const char * format, ... );
+
+    /**
+     * @brief Logs a debug message to file and console.
+     *
+     * Logs a debug message to file and console and will be optimized out on a release build.
+     *
+     * @param[in] source is the source from where the message is printed.
+     * @param[in] str is the message itself.
+     */
     void Debug(const char * source, const char * format, ...);
 
     /**
@@ -90,11 +99,18 @@ public:
 private:
 #ifdef WIN32
     HANDLE stdout_handle, stderr_handle;
-#endif
+#endif//WIN32
     FILE *  m_logfile;
     time_t  UNIXTIME;// crap there should be 1 generic easy to understand time manager.
 
+    /* internal time logger
+     * writes the time to a FILE handle.
+     */
     void LogTime( FILE* fp );
+
+    /* internal Console color setter.
+     * sets the color of the text that is about to get printed.
+     */
     void SetColor( unsigned int color );
 
     /* internal system logger... */

@@ -39,21 +39,22 @@
 
 //#define COLUMN_BOUNDS_CHECKING
 
-DBcore::DBcore(bool compress, bool ssl)
-: pCompress(compress),
-  pSSL(ssl)
+DBcore::DBcore(bool compress, bool ssl) : pCompress(compress), pSSL(ssl)
 {
     mysql_init(&mysql);
     pStatus = Closed;
 }
 
-DBcore::~DBcore() {
+DBcore::~DBcore()
+{
     mysql_close(&mysql);
 }
 
 // Sends the MySQL server a ping
-void DBcore::ping() {
-    if (!MDatabase.trylock()) {
+void DBcore::ping()
+{
+    if (!MDatabase.trylock())
+    {
         // well, if it's locked, someone's using it. If someone's using it, it doesn't need a ping
         return;
     }
@@ -65,14 +66,19 @@ void DBcore::ping() {
 bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
     LockMutex lock(&MDatabase);
 
-    va_list args;
-    va_start(args, query_fmt);
-    char *query = NULL;
-    uint32 querylen = vasprintf(&query, query_fmt, args);
-    va_end(args);
+    //va_list args;
+    //va_start(args, query_fmt);
+    //char *query = NULL;
+    //uint32 querylen = vasprintf(&query, query_fmt, args);
+    //va_end(args);
+
+    char query[16384];
+    va_list vlist;
+    va_start(vlist, query_fmt);
+    uint32 querylen = vsnprintf(query, 16384, query_fmt, vlist);
+    va_end(vlist);
 
     if(!DoQuery_locked(into.error, query, querylen)) {
-        free(query);
         return false;
     }
 
@@ -80,57 +86,10 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
     if(col_count == 0) {
         into.error.SetError(0xFFFF, "DBcore::RunQuery: No Result");
         sLog.Error("DBCore Query", "Query: %s failed because did not return a result", query);
-        free(query);
         return false;
     }
-    free(query);
 
     MYSQL_RES *result = mysql_store_result(&mysql);
-
-    /*
-     * Debug logging
-    */
-    /*if(is_log_enabled(DATABASE__RESULTS)) {
-        MYSQL_ROW row;
-        _log(DATABASE__RESULTS, "Query Results:");
-        std::string c;
-
-        uint32 r;
-        MYSQL_FIELD *fields = mysql_fetch_fields(result);
-        c = "| ";
-        for(r = 0; r < col_count; r++) {
-            c += fields[r].name;
-            c += " | ";
-        }
-        _log(DATABASE__RESULTS, "%s", c.c_str());
-
-
-        while((row = mysql_fetch_row(result))) {
-            c = "| ";
-            for(r = 0; r < col_count; r++) {
-                if(row[r] == NULL) {
-                    c += "NULL";
-                } else {
-                    switch(fields[r].type) {
-                    case FIELD_TYPE_TINY_BLOB:
-                    case FIELD_TYPE_MEDIUM_BLOB:
-                    case FIELD_TYPE_LONG_BLOB:
-                    case FIELD_TYPE_BLOB:
-                        c += "(BINARY)";
-                        break;
-                    default:
-                        c += row[r];
-                        break;
-                    }
-                }
-                c += " | ";
-            }
-            _log(DATABASE__RESULTS, "%s", c.c_str());
-        }*/
-
-        //reset the result.
-        //mysql_data_seek(result, 0);
-    //}
 
     //give them the result set.
     into.SetResult(&result, col_count);
@@ -430,7 +389,7 @@ const char *DBQueryResult::ColumnName(uint32 column) const {
         return "(ERROR)";      //nothing better to do...
     }
 #endif
-    return(m_fields[column]->name);
+    return m_fields[column]->name;
 }
 
 DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
@@ -503,7 +462,7 @@ void DBQueryResult::SetResult(MYSQL_RES **res, uint32 colcount) {
     }
 
     m_fields = new MYSQL_FIELD*[m_col_count];
-
+    
     // we are
     for (uint32 i = 0; i < colcount; i++)
     {
@@ -537,8 +496,8 @@ uint32 DBResultRow::ColumnCount() const {
 
 const char *DBResultRow::ColumnName(uint32 column) const {
     if(m_result == NULL)
-        return("NULL RESULT");
-    return(m_result->ColumnName(column));
+        return "NULL RESULT";
+    return m_result->ColumnName(column);
 }
 
 DBQueryResult::ColType DBResultRow::ColumnType(uint32 column) const {

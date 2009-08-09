@@ -216,16 +216,9 @@ void NewLog::Log( const char * source, const char * str, ... )
     fflush( m_logfile );
 }
 
-/*void NewLog::Line()
-{
-    LOCK_LOG;
-    putchar('\n');
-    UNLOCK_LOG;
-}*/
-
 void NewLog::Debug(const char * source, const char * format, ...)
 {
-#if DEBUG
+#ifdef DEBUG
     va_list ap;
     va_start(ap, format);
     LogTime( stdout ); LogTime( m_logfile );

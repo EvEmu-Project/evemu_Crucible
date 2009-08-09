@@ -56,31 +56,38 @@
     return(StringContentsString);
 }*/
 
-PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index) {
-    if(row.IsNull(column_index)) {
-        return(new PyRepNone());
+PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
+{
+    /* check for valid colm */
+    if(row.IsNull(column_index))
+    {
+        return new PyRepNone();
     }
 
-    switch(row.ColumnType(column_index)) {
+    switch(row.ColumnType(column_index))
+    {
+        /* hack to handle mixed type fields.
+         * we take the overhead for granted
+         */
     case DBQueryResult::Real:
-        //quick hack to help out some queries which have mixed mode fields...
-        //its a bit of overhead, but it makes things happier. I suspect that we will
-        //need to make this more robust some day to avoid unexpected consequences with
-        //queries which for some reason rely on whole numbers being reals instead of
-        //integers in the client.
+        /* check if there is a dot in the field like "100.54" */
         if(strchr(row.GetText(column_index), '.') != NULL)
-            return(new PyRepReal(row.GetDouble(column_index)));
-        //else, FALLTHROUGH
+        {
+            return new PyRepReal(row.GetDouble(column_index));
+        }
+
+        /* fall trough */
     case DBQueryResult::Int8:
     case DBQueryResult::Int16:
     case DBQueryResult::Int32:
     case DBQueryResult::Int64:
-        //quick check to handle sign, i'm not sure it does any good at this point.
-        if(row.IsSigned(column_index))
-            return(new PyRepInteger(row.GetInt64(column_index)));
-        return(new PyRepInteger(row.GetUInt64(column_index)));
+        // capt: only signed ints are used...
+        // quick check to handle sign, I'm not sure it does any good at this point.
+        // if(row.IsSigned(column_index))
+            return new PyRepInteger(row.GetInt64(column_index));
+        // return(new PyRepInteger(row.GetUInt64(column_index)));
     case DBQueryResult::Binary:
-        return(new PyRepBuffer((const uint8 *) row.GetText(column_index), row.GetColumnLength(column_index)));
+        return new PyRepBuffer((const uint8 *) row.GetText(column_index), row.GetColumnLength(column_index));
     case DBQueryResult::Bool:
         {
             int field_data = row.GetInt(column_index);
@@ -92,10 +99,10 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index) {
     case DBQueryResult::DateTime:
     case DBQueryResult::String:
     default:
-        return(new PyRepString(row.GetText(column_index)));
+        return new PyRepString(row.GetText(column_index));
     }
     //unreachable:
-    return(new PyRepNone());
+    return new PyRepNone();
 }
 
 PyRepObject *DBResultToRowset(DBQueryResult &result) {
@@ -223,10 +230,6 @@ PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
     return res;
 }
 
-
-
-
-
 PyRepObject *DBRowToKeyVal(DBResultRow &row) {
 
     PyRepObject *res = new PyRepObject();
@@ -248,27 +251,27 @@ PyRepObject *DBRowToKeyVal(DBResultRow &row) {
 }
 
 PyRepObject *DBRowToRow(DBResultRow &row, const char *type) {
-    PyRepObject *res = new PyRepObject();
-    res->type = type;
+
     PyRepDict *args = new PyRepDict();
-    res->arguments = args;
+    PyRepObject *res = new PyRepObject(type, args);
 
     //list off the column names:
-    PyRepList *header = new PyRepList();
-    args->add("header", header);
     uint32 cc = row.ColumnCount();
-    uint32 r;
-    for(r = 0; r < cc; r++) {
-        header->add(row.ColumnName(r));
+    PyRepList *header = new PyRepList(cc);
+    args->add("header", header);
+
+    for(uint32 r = 0; r < cc; r++)
+    {
+        header->setStr(r, row.ColumnName(r));
     }
 
     //lines:
-    PyRepList *rowlist = new PyRepList();
+    PyRepList *rowlist = new PyRepList(cc);
     args->add("line", rowlist);
 
     //add a line entry for the row:
-    for(r = 0; r < cc; r++) {
-        rowlist->add(DBColumnToPyRep(row, r));
+    for(uint32 r = 0; r < cc; r++) {
+        rowlist->set(r, DBColumnToPyRep(row, r));
     }
 
     return res;

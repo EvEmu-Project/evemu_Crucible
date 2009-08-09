@@ -39,18 +39,13 @@ class PyRep;
 class storage
 {
 public:
-	storage()
-	: mLoaded(false)
-	{
-	}
+	storage() : mLoaded(false) {}
 
 	bool load()
 	{
-		if (mLoaded)
-		{
-			// already loaded
+        /* check if its already loaded */
+		if (mLoaded == true)
 			return true;
-		}
 
 		DBQueryResult res;
 		if(!GetDatabase.RunQuery(res,	"SELECT "
@@ -62,20 +57,21 @@ public:
 			" constellationID,"					// int
 			" factionID,"						// int
 			" sunTypeID,"						// int
-			" regionID,"
+			" regionID,"                        // int
 
-			//haxor: I think this is dynamic data.... meaning it should be stored somewhere else in the db...
+			//Hack: I think this is dynamic data.... meaning it should be stored somewhere else in the db...
 			" NULL AS allianceID,"				// int
 			" 0 AS sovereigntyLevel,"			// int
 			" 0 AS constellationSovereignty"	// int
 			" FROM mapSolarSystems"))
 		{
-			_log(SERVICE__ERROR, "Error in storage GetSolarSystem query: %s", res.error.c_str());
+            sLog.Error("Station DB", "Error in storage GetSolarSystem query: %s", res.error.c_str());
 			return false;
 		}
 
 		/* I am aware of the fact that the next piece of code is spamming the console */
-		printf("Loading Solar systems:.");
+        sLog.Log("Station DB", "Loading Solar systems:");
+
 		DBResultRow row;
 		for(unsigned int i = 0; res.GetRow(row); i++)
 		{
@@ -83,8 +79,9 @@ public:
 
 			if ((i % 200) == 0)
 				printf(".");
-		}
-		printf("\nStoring solar system data Done\n");
+		}        
+        printf("\n");
+        sLog.Log("Station DB", "Storing solar system data Done");
 		mLoaded = true;
 
 		return true;
