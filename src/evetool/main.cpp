@@ -29,6 +29,7 @@
 #include "../common/common.h"
 
 #include "../common/logsys.h"
+#include "../common/LogNew.h"
 #include "../common/EVEMarshal.h"
 #include "../common/EVEUnmarshal.h"
 #include "../common/EVEZeroCompress.h"
@@ -60,7 +61,8 @@
 #include <readline/history.h>
 #endif
 
-
+// global log hook.
+NewLog *pLog;
 
 void CatchSignal(int sig_num);
 
@@ -76,6 +78,9 @@ void LoadScript(const char *filename);
 
 
 int main(int argc, char *argv[]) {
+    /* logging system */
+    pLog = new NewLog();
+
 	if (signal(SIGINT, CatchSignal) == SIG_ERR)	{
 		_log(CCLIENT__INIT_ERR, "Could not set signal handler");
 		return 1;

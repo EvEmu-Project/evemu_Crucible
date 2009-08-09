@@ -20,10 +20,6 @@ COMMAND( location, ROLE_ADMIN,
          "- Gives you back your current location in space." )
 COMMAND( syncloc, ROLE_ADMIN,
          "- Synchonizes your location in client with location on server." )
-COMMAND( clearlog, ROLE_ADMIN,
-         "- Clears server log." )
-COMMAND( getlog, ROLE_ADMIN,
-         "- Sends server log." )
 COMMAND( setbpattr, ROLE_ADMIN,
          "(itemID) (copy) (materialLevel) (productivityLevel) (licensedProductionRunsRemaining) - Change blueprint's attributes." )
 COMMAND( state, ROLE_ADMIN,
