@@ -197,8 +197,9 @@ ObjCacheService::~ObjCacheService() {
 
 PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
 	CallGetCachableObject args;
-	if(!args.Decode(&call.tuple)) {
-		codelog(SERVICE__ERROR, "%s: Unable to decode arguments", call.client->GetName());
+	if(!args.Decode(&call.tuple))
+    {
+        sLog.Error("Obj Cache Srv", "%s: Unable to decode arguments", call.client->GetName());
 		return NULL;
 	}
 	
@@ -219,8 +220,9 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
 	return result;
 }
 
-void ObjCacheService::PrimeCache() {
-	std::map<std::string, std::string>::const_iterator cur, end;
+void ObjCacheService::PrimeCache()
+{
+	CacheKeysMapConstItr cur, end;
 	cur = m_cacheKeys.begin();
 	end = m_cacheKeys.end();
 	for(; cur != end; cur++) {
@@ -228,6 +230,7 @@ void ObjCacheService::PrimeCache() {
 		_LoadCachableObject(&str);
 		putchar('.'); // print a dot so we have a indication of loading. I know this sucks.
 	}
+    printf("\n");
 }
 
 bool ObjCacheService::LoadCachedFile(const char *filename, const char *oname, PyRepSubStream *into) {
@@ -361,7 +364,8 @@ PyRepObject *ObjCacheService::MakeObjectCachedMethodCallResult(const PyRep *obje
 	return c.FastEncode();
 }
 
-ObjectCachedMethodID::ObjectCachedMethodID(const char *service, const char *method) {
+ObjectCachedMethodID::ObjectCachedMethodID(const char *service, const char *method)
+{
 	SimpleMethodCallID c;
 	c.service = service;
 	c.method = method;

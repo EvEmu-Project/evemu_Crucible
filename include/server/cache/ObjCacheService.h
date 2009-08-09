@@ -88,7 +88,12 @@ protected:
 	CachedObjectMgr m_cache;
 
 	bool _LoadCachableObject(const PyRep *objectID);
-	std::map<std::string, std::string> m_cacheKeys;
+
+    typedef std::map<std::string, std::string>  CacheKeysMap;
+    typedef CacheKeysMap::iterator              CacheKeysMapItr;
+    typedef CacheKeysMap::const_iterator        CacheKeysMapConstItr;
+
+	CacheKeysMap m_cacheKeys;
 
 	PyCallable_DECL_CALL(GetCachableObject)
 };
