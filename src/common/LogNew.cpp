@@ -29,7 +29,7 @@ NewLog::NewLog()
 
     char * log_filename = (char*)malloc(0x100);
     tm t;
-    localtime_r(&t, &UNIXTIME);
+    localtime_r( &UNIXTIME, &t );
     sprintf(log_filename, "log_%02u;%02u;%04u;%02u;%02u.txt", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min);
 
     m_logfile = fopen(log_filename, "w");
@@ -172,7 +172,7 @@ NewLog::~NewLog()
 void NewLog::LogTime( FILE* fp )
 {
     tm t;
-    localtime_r( &t, &UNIXTIME );
+    localtime_r( &UNIXTIME, &t );
     fprintf( fp, "%02u:%02u:%02u ", t.tm_hour, t.tm_min, t.tm_sec );
 }
 

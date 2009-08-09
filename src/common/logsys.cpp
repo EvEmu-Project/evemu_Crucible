@@ -101,7 +101,7 @@ extern void log_messageVA( LogType type, uint32 iden, const char *fmt, va_list a
     tm t;
     time_t tTime;
     time(&tTime);
-    localtime_r( &t, &tTime);
+    localtime_r( &tTime, &t );
     int va_size = snprintf(&log_msg[log_msg_index], log_msg_size, "%02u:%02u:%02u [%s] ", t.tm_hour, t.tm_min, t.tm_sec, log_type_info[type].display_name );
 
     /* store the resulting size */
