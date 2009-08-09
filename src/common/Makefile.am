@@ -6,6 +6,8 @@ noinst_LIBRARIES = \
 	libcommon.a
 
 libcommon_a_SOURCES = \
+  LogNew.cpp \
+  LogNew.h \
 	logsys.cpp \
 	PyRep.cpp \
 	logtypes.h \

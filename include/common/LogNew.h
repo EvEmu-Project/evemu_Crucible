@@ -5,7 +5,7 @@
  * - set log file path and handle creation of "log" directory.
  */
 
-#include "Common.h"
+#include "common.h"
 
 // thread safe cross platform localtime stuff.
 // needs to be moved to common.
