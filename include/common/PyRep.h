@@ -32,8 +32,8 @@
 #include "logsys.h"
 #include "packet_types.h"
 
-class PyVisitorLvl;
-class PyVisitorLvl;
+#include "PyVisitor.h"
+
 class EVEStringTable;
 
 class PyRepInteger;

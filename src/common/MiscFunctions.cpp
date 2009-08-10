@@ -231,7 +231,7 @@ int64 hextoi64(char* num) {
 	return ret;
 }
 
-bool atobool(char* iBool) {
+bool atobool(const char* iBool) {
 	if (!strcasecmp(iBool, "true"))
 		return true;
 	if (!strcasecmp(iBool, "false"))

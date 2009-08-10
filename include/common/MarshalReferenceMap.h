@@ -52,10 +52,21 @@ public:
 	 * Constructor that sets the expected object count of referenced objects.
 	 * @param objectCount is the number of expected referenced objects within the marshal stream, its also known in the client as as MapCount.
 	 */
-	UnmarshalReferenceMap(const uint32 objectCount) : expectedObjectsCount(objectCount), storedObjectCount(0), storeObjectIndex(0)
+	UnmarshalReferenceMap(const uint32 objectCount) : mStoredObjectCount( objectCount )
 	{
-		assert(expectedObjectsCount < 0x100); // kinda normal..... 256 referenced objects otherwise crash
-		mReferenceObjects = new PyRep*[expectedObjectsCount];
+		assert( mStoredObjectCount < 0x100 ); // kinda normal..... 256 referenced objects otherwise crash
+
+		mReferenceObjects = new PyRep*[ mStoredObjectCount ];
+		memset( mReferenceObjects, 0, mStoredObjectCount * sizeof( PyRep* ) );
+		mOrder.resize( objectCount );
+	}
+
+	/**
+	 * Destructor deletes the dynamic array.
+	 */
+	~UnmarshalReferenceMap()
+	{
+		SafeDeleteArray( mReferenceObjects );
 	}
 
 	/**
@@ -65,22 +76,51 @@ public:
 	 */
 	EVEMU_INLINE PyRep* GetStoredObject(uint32 location)
 	{
-		if (location == 0 || location > storedObjectCount )
+		if( ( location - 1 ) < mStoredObjectCount )
+			return mReferenceObjects[ location - 1 ];
+		else
 			return NULL;
-		return mReferenceObjects[location-1];
+	}
+
+	/**
+	 * Reserves space for object.
+	 * @return Number to be passed to StoreReferencedObject
+	 */
+	EVEMU_INLINE uint32 ReserveObjectSpace()
+	{
+		if( mOrder.empty() )
+		{
+			printf( "Trying to store too many objects.\n" );
+			abort(); // crash when we are storing more objects than we expect
+		}
+		uint32 index = mOrder.front();
+		mOrder.erase( mOrder.begin() ); // pop front
+		return index;
 	}
 
 	/**
 	 * Stores a referenced Object.
+	 * @param index is number obtained by previous call to ReserveObjectSpace.
 	 * @param object is the object that is marked as a object that has many references.
 	 */
-	EVEMU_INLINE void StoreReferencedObject(PyRep * object)
+	EVEMU_INLINE void StoreReferencedObject(uint32 index, PyRep * object)
 	{
-		assert(storeObjectIndex < expectedObjectsCount); // crash when we are storing more objects than we expect
-		mReferenceObjects[storeObjectIndex] = object;
-		storeObjectIndex++;
+		if( ( index - 1 ) < mStoredObjectCount )
+			mReferenceObjects[ index - 1 ] = object;
+	}
 
-		storedObjectCount = storeObjectIndex;
+	/**
+	 * Sets order index.
+	 * @param storeIndex is index in order of storing objects.
+	 * @param getIndex is index in order of getting objects.
+	 */
+	EVEMU_INLINE void SetOrderIndex(uint32 storeIndex, uint32 getIndex)
+	{
+		if(    mOrder.size() == mStoredObjectCount // allow order setup only until first object is stored
+		    && ( storeIndex - 1 ) < mStoredObjectCount && ( getIndex - 1 ) < mStoredObjectCount )
+		{
+			mOrder[ storeIndex - 1 ] = getIndex;
+		}
 	}
 
 	/**
@@ -89,40 +129,25 @@ public:
 	 */
 	EVEMU_INLINE uint32 GetStoredCount()
 	{
-		return storedObjectCount;
-	}
-
-	/**
-	 * Get the expected referenced object count.
-	 * @return A unsigned integer that represents the expected object count.
-	 */
-	EVEMU_INLINE uint32 GetMaxStoredCount()
-	{
-		return expectedObjectsCount;
+		return mStoredObjectCount;
 	}
 
 protected:
-	/**
-	 * max amount of objects that are referenced objects in this stream
-	 * this value is supplied by the client (regarding the 'unmarshal' process).
-	 */
-	const uint32 expectedObjectsCount;
-
 	/** 
 	 * keeps track of the amount of objects that are actually stored
 	 */
-	uint32 storedObjectCount;
-
-	/**
-	 * keeps track of the store index
-	 */
-	uint32 storeObjectIndex;
+	const uint32 mStoredObjectCount;
 
 	/**
 	 * pointer container to keep track of the pointers...
 	 * and of course: "we do not own the pointers in this list"
 	 */
 	PyRep** mReferenceObjects;
+
+	/**
+	 * this vector keeps track of ordering
+	 */
+	std::vector<uint32> mOrder;
 };
 
 #endif//UNMARSHAL_REFERENCE_MAP_H

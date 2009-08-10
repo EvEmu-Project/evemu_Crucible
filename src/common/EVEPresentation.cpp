@@ -298,6 +298,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
             CryptoServerHandshake server_shake;
             server_shake.serverChallenge = "";
             server_shake.func_marshaled_code = new PyRepBuffer(handshakeFunc, sizeof(handshakeFunc));
+			server_shake.verification = new PyRepBoolean( false );
             server_shake.cluster_usercount = m_userCount;
             server_shake.proxy_nodeid = 0xFFAA;
             server_shake.user_logonqueueposition = 1;
@@ -336,7 +337,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
         case AcceptingPackets: {
             //take the PyRep and turn it into a PyPacket
             PyPacket *p = new PyPacket;
-            if(!p->Decode(r)) { //r is consumed here
+            if(!p->Decode(&r)) { //r is consumed here
                 _log(NET__PRES_ERROR, "%s: Failed to decode packet rep", GetConnectedAddress().c_str());
                 break;
             }

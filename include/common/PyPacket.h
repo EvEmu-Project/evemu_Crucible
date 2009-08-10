@@ -94,7 +94,7 @@ public:
     ~PyPacket();
 
     void Dump(LogType type, PyVisitorLvl *dumper);
-    bool Decode(PyRep *&packet);    //consumes packet
+    bool Decode(PyRep **packet);    //consumes packet
     PyRep *Encode();
     PyPacket *Clone() const;
 

@@ -389,7 +389,6 @@ void Client::Login(CryptoChallengePacket *pack) {
 
     //send this before session change
     CryptoHandshakeAck ack;
-    ack.connectionLogID = 1;    //TODO: what is this??
     ack.jit = pack->user_languageid;
     ack.userid = GetAccountID();
     ack.maxSessionTime = new PyRepNone;

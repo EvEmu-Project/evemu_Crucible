@@ -162,7 +162,10 @@ void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep, int64 lvl )
 
 		_print( lvl, "  [%u] %s: ", i, rep->GetColumnName( i ).c_str() );
 
-        field->visit( this, lvl + idenAmt );
+		if( field == NULL )
+			_print( lvl + idenAmt, "NULL" );
+		else
+			field->visit( this, lvl + idenAmt );
     }
 }
 

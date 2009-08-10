@@ -106,10 +106,10 @@
 	<string name="serverChallenge" />
 	<!-- 1: func -->
 	<InlineTuple>
-		<!-- 0: marshaled code -->
-		<buffer name="func_marshaled_code" />
-		<!-- 1: verification, must be false! -->
-		<bool name="verification" default="false" />
+    <!-- 0: marshaled code -->
+    <raw name="func_marshaled_code" />
+		<!-- 1: verification -->
+		<raw name="verification" />
 	</InlineTuple>
 	<!-- 2: context -->
 	<strdict name="context" />
@@ -164,16 +164,13 @@
 		</IDEntry>
 		<IDEntry key="session_init">
 			<InlineDict name="session_init">
-				<IDEntry key="connectionLogID">
-					<int name="connectionLogID" />
-				</IDEntry>
 				<IDEntry key="jit">
 					<string name="jit" />
 				</IDEntry>
 				<IDEntry key="userid">
 					<int name="userid" />
 				</IDEntry>
-				<IDEntry key="maxsessiontime">
+				<IDEntry key="maxSessionTime">
 					<!-- Seen 'None' -->
 					<raw name="maxSessionTime" />
 				</IDEntry>

@@ -106,10 +106,10 @@ void PyPacket::Dump(LogType ltype, PyVisitorLvl *dumper)
     }
 }
 
-bool PyPacket::Decode(PyRep *&in_packet)
+bool PyPacket::Decode(PyRep **in_packet)
 {
-    PyRep *packet = in_packet;  //consume
-    in_packet = NULL;
+    PyRep *packet = *in_packet;  //consume
+    *in_packet = NULL;
 
     SafeDelete(payload);
     SafeDelete(named_payload);

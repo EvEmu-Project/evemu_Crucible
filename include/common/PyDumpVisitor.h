@@ -26,9 +26,11 @@
 #ifndef __PYDUMPVISITOR_H_INCL__
 #define __PYDUMPVISITOR_H_INCL__
 
-#include "logsys.h"
 #include <stdio.h>
 #include <string>
+
+#include "logsys.h"
+#include "PyVisitor.h"
 
 class PyDumpVisitor
 : public PyVisitorLvl {

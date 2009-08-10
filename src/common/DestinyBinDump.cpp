@@ -214,8 +214,8 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 	data += sizeof(Destiny::NameStruct);
 	len -= sizeof(Destiny::NameStruct);
 	if(name->name_len > 0) {
-		_log(into, "   Name: len=%d", name->name_len);
-		_hex(into, name->name, name->name_len*sizeof(uint16));
+		_log(into, "   Name: len=%u", name->name_len);
+		_log(into, "     %.*ls", name->name_len, name->name);
 		
 		data += name->name_len*sizeof(uint16);
 		len  -= name->name_len*sizeof(uint16);

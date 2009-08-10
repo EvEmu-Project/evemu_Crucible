@@ -125,7 +125,12 @@ PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len)
     work_buffer += 4;
     body_len -= 4;
 
-    UnmarshalReferenceMap state(save_count);
+    UnmarshalReferenceMap state( save_count );
+
+	body_len -= save_count * sizeof( uint32 );
+	uint32 *order_start = (uint32 *)&work_buffer[ body_len ];
+	for( uint32 i = 0; i < state.GetStoredCount(); i++ )
+		state.SetOrderIndex( i + 1, order_start[ i ] );
 
     PyRep *rep;
     uint32 used_len = UnmarshalData(&state, work_buffer, body_len, rep, "    ");
@@ -134,24 +139,6 @@ PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len)
         if(post_inflate_body != orig_body)
             free(inflated_buffer);
         return NULL;
-    }
-
-    //total shit:
-    if(state.GetStoredCount() > 0) {
-        uint32 index = 0;
-        uint32 rlen = body_len-used_len;
-        for(index = 0; index < state.GetStoredCount(); index++) {
-            if(rlen < sizeof(uint32)) {
-                _log(NET__UNMARSHAL_TRACE, "Insufficient length for hack 0x2d trailer %d/%d", index+1, state.GetStoredCount());
-            } else {
-                uint32 val = *((const uint32 *) (work_buffer+used_len));
-
-                _log(NET__UNMARSHAL_TRACE, "Hack 0x23/Obj2 value[%d]: 0x%x", index, val);
-
-                used_len += sizeof(uint32);
-                rlen -= sizeof(uint32);
-            }
-        }
     }
 
     if(used_len != body_len) {
@@ -171,12 +158,12 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 /************************************************************************/
 
 #define GetByType(x) \
-    *(x*)packet;\
-    IncreaseIndex(sizeof(x));
+    *(x *)packet; \
+    IncreaseIndex( sizeof( x ) );
 
 #define IncreaseIndex(count) \
-    packet += count;\
-    len -= count;\
+    packet += count; \
+    len -= count; \
     len_used += count;
 
 #define Getuint8() GetByType(uint8)
@@ -199,8 +186,10 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
     uint8 raw_opcode = Getuint8();
 
+	uint32 index = 0;
     if(raw_opcode & PyRepSaveMask) {
         _log(NET__UNMARSHAL_TRACE, "Raw opcode 0x%x has PyRepSaveMask set", raw_opcode);
+		index = state->ReserveObjectSpace();
     }
     if(raw_opcode & PyRepUnknownMask) {
         _log(NET__UNMARSHAL_TRACE, "Raw opcode 0x%x has PyRepUnknownMask set", raw_opcode);
@@ -793,9 +782,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         uint32 value_len = UnmarshalData(state, packet, len, ss, n.c_str());
         if(ss == NULL)
             break;
-        packet += value_len;
-        len -= value_len;
-        len_used += value_len;
+		IncreaseIndex( value_len );
 
         res = new PyRepSubStruct(ss);
 
@@ -810,38 +797,30 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         {
             if(len < 1)
             {
-                _log(NET__UNMARSHAL_ERROR, "Not enough data for saved reference index\n");
+                _log(NET__UNMARSHAL_ERROR, "Not enough data for saved reference index.");
                 break;
             }
             uint32 reference_index = Getuint8();
-            if (reference_index == 0xFF)
-            {
-                // TODO: add size check..
+            if( reference_index == 0xFF )
+			{
+				if( len < sizeof( uint32 ) )
+				{
+					_log( NET__UNMARSHAL_ERROR, "Not enough data for extended saved reference index." );
+					break;
+				}
                 reference_index = Getuint32();
-            }
-
-            // referenced objects start with 1
-            if (reference_index == 0)
-            {
-                _log(NET__UNMARSHAL_ERROR, "Save index 0 is invalid");
-                break;
-            }
-
-            if(reference_index > state->GetMaxStoredCount())
-            {
-                _log(NET__UNMARSHAL_ERROR, "Save index %d is higher than the save count %d for this stream\n", reference_index, state->GetMaxStoredCount());
-                break;
-            }
-
-            if(reference_index > state->GetStoredCount())
-            {
-                _log(NET__UNMARSHAL_ERROR, "Save index %d is higher than the number of saved elements %d for this stream so far\n", reference_index, state->GetStoredCount());
-                break;
-            }
+			}
 
             //_log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PySavedStreamElement with index 0x%x", pfx, opcode, reference_index);
 
-            res = state->GetStoredObject(reference_index)->Clone();
+			PyRep *o = state->GetStoredObject( reference_index );
+			if( o == NULL )
+			{
+				_log( NET__UNMARSHAL_ERROR, "Failed to obtain stored object for index %u.", reference_index );
+				break;
+			}
+
+            res = o->Clone();
         } break;
 
     case Op_PyChecksumedStream: {
@@ -900,9 +879,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         uint32 clen = UnmarshalData(state, packet, len, header, n.c_str());
         if(header == NULL)
             break;
-        packet += clen;
-        len -= clen;
-        len_used += clen;
+		IncreaseIndex( clen );
 
         PyRepObjectEx *obj = new PyRepObjectEx(opcode == Op_ObjectEx2, header);
 
@@ -914,15 +891,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             clen = UnmarshalData(state, packet, len, el, n.c_str());
             if(el == NULL)
                 break;
-            packet += clen;
-            len -= clen;
-            len_used += clen;
+			IncreaseIndex( clen );
 
             obj->list_data.push_back(el);
         }
-        packet++;
-        len--;
-        len_used++;
+		IncreaseIndex( 1 );
 
         n = pfx;
         n += "  DictData: ";
@@ -933,22 +906,16 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             clen = UnmarshalData(state, packet, len, key, n.c_str());
             if(key == NULL)
                 break;
-            packet += clen;
-            len -= clen;
-            len_used += clen;
+			IncreaseIndex( clen );
 
             clen = UnmarshalData(state, packet, len, value, n.c_str());
             if(value == NULL)
                 break;
-            packet += clen;
-            len -= clen;
-            len_used += clen;
+			IncreaseIndex( clen );
 
             obj->dict_data[key] = value;
         }
-        packet++;
-        len--;
-        len_used++;
+		IncreaseIndex( 1 );
 
         res = obj;
         break;
@@ -1087,8 +1054,18 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         // Create size map, sorted from the greatest to the smallest value
         std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
         uint32 cc = row->ColumnCount();
+		uint32 sum = 0;
         for(uint32 i = 0; i < cc; i++)
-            sizeMap.insert( std::make_pair( DBTYPE_SizeOf( row->GetColumnType( i ) ), i ) );
+		{
+			uint8 size = DBTYPE_SizeOf( row->GetColumnType( i ) );
+
+            sizeMap.insert( std::make_pair( size, i ) );
+			sum += size;
+		}
+
+		// make sure there is enough data in buffer
+		sum = ( ( sum + 7 ) >> 3 );
+		unpacked.resize( sum, 0 );
 
         // current offset in unpacked:
         uint8 off = 0;
@@ -1459,10 +1436,10 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             phex(NET__UNMARSHAL_ERROR, packet-1, len>32?32:len);
         } break;
         }   //end switch
-    if(raw_opcode & PyRepSaveMask) {
+    if( index != 0 ) {
         //save off this pointer. We do not need to clone it since this function is the only
         //thing with a pointer to it, and we know it will remain valid until we are done.
-        state->StoreReferencedObject(res);
+        state->StoreReferencedObject( index, res );
     }
 
     return(len_used);
