@@ -24,7 +24,7 @@
 */
 
 #include "TCPServer.h"
-#include "logsys.h"
+#include "LogNew.h"
 
 #ifdef WIN32
 	#include <process.h>
@@ -89,7 +89,7 @@ ThreadReturnType BaseTCPServer::TCPServerLoop( void* tmp )
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
 #endif
 	if ( tmp == NULL ) {
-//		ThrowError("BaseTCPServerLoop(): tmp = 0!");
+        sLog.Error("Base TCP", "tmp == NULL");
 		THREAD_RETURN(NULL);
 	}
 	BaseTCPServer* tcps = (BaseTCPServer*) tmp;

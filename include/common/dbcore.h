@@ -213,4 +213,4 @@ extern void ListToINString(const std::vector<int32> &ints, std::string &into, co
 #endif
 
 extern DBcore * general_database;
-#define GetDatabase (*general_database)
+#define sDatabase (*general_database)

@@ -25,20 +25,15 @@
 
 #include "EvemuPCH.h"
 
-AccountDB::AccountDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-AccountDB::~AccountDB() {
-}
+AccountDB::AccountDB(DBcore *db) : ServiceDB(db) {}
+AccountDB::~AccountDB() {}
 
 PyRepObject *AccountDB::GetRefTypes() {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res, "SELECT refTypeID,refTypeText,description FROM market_refTypes"
-	)) {
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+	if(!sDatabase.RunQuery(res, "SELECT refTypeID,refTypeText,description FROM market_refTypes"))
+    {
+        sLog.Error("Account DB", "Error in query: %s", res.error.c_str());
 		return NULL;
 	}
 	
@@ -48,12 +43,9 @@ PyRepObject *AccountDB::GetRefTypes() {
 PyRepObject *AccountDB::GetKeyMap() {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
-		"SELECT "
-		"	accountKey,accountType,accountName,description"
-		" FROM market_keyMap"
-	)) {
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+	if(!sDatabase.RunQuery(res, "SELECT accountKey,accountType,accountName,description FROM market_keyMap"))
+    {
+        sLog.Error("Account DB", "Error in query: %s", res.error.c_str());
 		return NULL;
 	}
 	
@@ -69,16 +61,14 @@ PyRepObject *AccountDB::GetJournal(uint32 charID, uint32 refTypeID, uint32 accou
 	dT = transDate - Win32Time_Day;
 	// 1 sec = 10.000.000 wow...
 	
-	if(!m_db->RunQuery(res,
-		"SELECT"
-		" refID,transDate,refTypeID,ownerID1,ownerID2,argID1,"
-		"	accountKey,amount,balance,reason"
-		" FROM market_journal"
-		" WHERE (transDate >= " I64u " AND transDate <= " I64u ") "
-		" 	AND accountKey = %u "
-		" 	AND (0 = %u OR refTypeID = %u) "
-		" 	AND characterID=%u" , dT, transDate, accountKey, refTypeID, refTypeID, charID
-	)) {
+	if(!sDatabase.RunQuery(res,
+		"SELECT refID,transDate,refTypeID,ownerID1,ownerID2,argID1, accountKey,amount,balance,reason "
+		"FROM market_journal "
+		"WHERE (transDate >= " I64u " AND transDate <= " I64u ") "
+		"AND accountKey = %u "
+		"AND (0 = %u OR refTypeID = %u) "
+		"AND characterID=%u" , dT, transDate, accountKey, refTypeID, refTypeID, charID))
+    {
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
 	}
@@ -90,17 +80,8 @@ PyRepObject *AccountDB::GetJournal(uint32 charID, uint32 refTypeID, uint32 accou
 // temporarily moved into ServiceDB because other services needed access to
 // it, eventually something better will need to be done (as the account system
 // grows up)
-bool ServiceDB::GiveCash(
-	uint32 characterID,
-	JournalRefType refTypeID,
-	uint32 ownerFromID,
-	uint32 ownerToID,
-	const char *argID1,
-	uint32 accountID,
-	EVEAccountKeys accountKey,
-	double amount,
-	double balance,
-	const char *reason)
+bool ServiceDB::GiveCash( uint32 characterID, JournalRefType refTypeID, uint32 ownerFromID, uint32 ownerToID, const char *argID1,
+	uint32 accountID, EVEAccountKeys accountKey, double amount, double balance, const char *reason )
 {
 //the only unknown it is argID1 , what is it ?
 	DBQueryResult res;
@@ -129,7 +110,7 @@ bool ServiceDB::GiveCash(
 		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 bool AccountDB::CheckIfCorporation(uint32 corpID) {
@@ -167,17 +148,15 @@ bool ServiceDB::AddBalanceToCorp(uint32 corpID, double amount) {
 double ServiceDB::GetCorpBalance(uint32 corpID) {
 	DBQueryResult res;
 	DBResultRow row;
-	if (!m_db->RunQuery(res,
-		" SELECT balance "
-		" FROM corporation "
-		" WHERE corporationID = %u ", corpID))
+	if (!m_db->RunQuery(res, "SELECT balance FROM corporation WHERE corporationID = %u ", corpID))
 	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return 0;
+        sLog.Error("Service DB", "Error in query: %s", res.error.c_str());
+		return 0.0;
 	}
-	if (!res.GetRow(row)) {
-		_log(SERVICE__WARNING, "Corporation %u missing from database.", corpID);
-		return 0;
+	if (!res.GetRow(row))
+    {
+        sLog.Error("Service DB", "Corporation %u missing from database.", corpID);
+		return 0.0;
 	}
 	return row.GetDouble(0);
 }

@@ -48,7 +48,7 @@ public:
 			return true;
 
 		DBQueryResult res;
-		if(!GetDatabase.RunQuery(res,	"SELECT "
+		if(!sDatabase.RunQuery(res,	"SELECT "
 			" solarSystemID,"					// int
 			" solarSystemName,"					// string
 			" x, y, z,"							// double
