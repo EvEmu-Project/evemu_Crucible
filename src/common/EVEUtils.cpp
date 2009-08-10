@@ -128,14 +128,14 @@ PyRep *MakeCustomError(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
     char *str = NULL;
-    assert(vasprintf(&str, fmt, va) < 0);
+    assert(vasprintf(&str, fmt, va) > 0);
     va_end(va);
 
     std::map<std::string, PyRep *> args;
     args["error"] = new PyRepString(str);
     free(str);
 
-    return(MakeUserError("CustomError", args));
+    return MakeUserError("CustomError", args);
 }
 
 uint8 DBTYPE_SizeOf(DBTYPE type)
