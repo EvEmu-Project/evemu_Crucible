@@ -55,7 +55,7 @@ PyLogsysDump::PyLogsysDump(LogType type, LogType hex_type, bool full_hex, bool f
 // --- Visitors implementation ---
 
 void PyDumpVisitor::VisitInteger(const PyRepInteger *rep, int64 lvl ) {
-    _print(lvl, "Integer field: %ll", rep->value);
+    _print(lvl, "Integer field: "I64d, rep->value);
 }
 
 void PyDumpVisitor::VisitReal(const PyRepReal *rep, int64 lvl ) {
@@ -114,87 +114,81 @@ void PyDumpVisitor::VisitString( const PyRepString *rep, int64 lvl )
     }
 }
 
-void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep, int64 lvl ) {
-
-    std::string curIden(lvl, ' ');
-
-    _print(std::string(curIden+std::string("ObjectEx:")));
-    _print(std::string(curIden+std::string("Header:")));
+void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep, int64 lvl )
+{
+	_print( lvl, "ObjectEx:" );
+    _print( lvl, "Header:" );
 
     rep->header->visit(this, lvl + idenAmt );
 
     {
-        _print(std::string(curIden+std::string("ListData: %u entries")) , (uint32)rep->list_data.size());
+		_print( lvl, "ListData: %u entries", (uint32)rep->list_data.size() );
         PyRepObjectEx::const_list_iterator cur, end;
         cur = rep->list_data.begin();
         end = rep->list_data.end();
         for(uint32 i = 0; cur != end; ++cur, ++i)
         {
-            _print(std::string(curIden+std::string("  [%2d] ")) , i);
+			_print( lvl, "  [%2d] ", i );
             (*cur)->visit(this, lvl + idenAmt );
         }
     }
 
     {
-        _print(std::string(curIden+std::string("DictData: %u entries")) , (uint32)rep->dict_data.size());
+		_print( lvl, "DictData: %u entries", (uint32)rep->dict_data.size() );
         PyRepObjectEx::const_dict_iterator cur, end;
         cur = rep->dict_data.begin();
         end = rep->dict_data.end();
         for(uint32 i = 0; cur != end; ++cur, ++i)
         {
-            _print(std::string(curIden+std::string("  [%2d] Key: ")) , i);
+			_print( lvl, "  [%2d] Key: ", i );
             cur->first->visit(this, lvl + idenAmt );
 
-            _print(std::string(curIden+std::string("  [%2d] Value: ")) , i);
+			_print( lvl, "  [%2d] Value: ", i );
             cur->second->visit(this, lvl + idenAmt );
         }
     }
 }
 
-void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep, int64 lvl ) {
-
-    std::string curIden(lvl, ' ');
-
+void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep, int64 lvl )
+{
     uint32 cc = rep->ColumnCount();
 
-    _print(std::string(curIden+std::string("Packed Row\n")));
-    _print(std::string(curIden+std::string("%s  column_count=%u header_owner=%s\n")), cc, rep->IsHeaderOwner() ? "yes" : "no" );
+	_print( lvl, "Packed Row" );
+	_print( lvl, "  column_count=%u header_owner=%s", cc, rep->IsHeaderOwner() ? "yes" : "no" ); 
 
     for(uint32 i = 0; i < cc; i++)
     {
         PyRep *field = rep->GetField( i );
 
-        _print(std::string(curIden+std::string("  [%u] %s: ")),  i, rep->GetColumnName( i ).c_str() );
+		_print( lvl, "  [%u] %s: ", i, rep->GetColumnName( i ).c_str() );
 
         field->visit( this, lvl + idenAmt );
     }
 }
 
-void PyDumpVisitor::VisitObject(const PyRepObject *rep, int64 lvl ) {
-    std::string curIden(lvl, ' ');
-    _print(std::string(curIden+std::string("Object:")));
-    _print(std::string(curIden+std::string("  Type: %s")), rep->type.c_str());
-    _print(std::string(curIden+std::string("  Args: ")));
+void PyDumpVisitor::VisitObject(const PyRepObject *rep, int64 lvl )
+{
+	_print( lvl, "Object:" );
+	_print( lvl, "  Type: %s", rep->type.c_str() );
+	_print( lvl, "  Args: " );
 
     rep->arguments->visit(this, lvl + idenAmt );
 }
 
 void PyDumpVisitor::VisitSubStruct(const PyRepSubStruct *rep, int64 lvl ) {
-    _print(std::string(std::string(lvl, ' ')+std::string("SubStruct: ")));
+	_print( lvl, "SubStruct: " );
 
     rep->sub->visit(this, lvl + idenAmt );
 }
 
 void PyDumpVisitor::VisitSubStream(const PyRepSubStream *rep, int64 lvl ) {
-   std::string curIden(lvl, ' ');
-
     if(rep->decoded == NULL) {
         //we have not decoded this substream, leave it as hex:
         if(rep->data == NULL) {
             _print(lvl, "INVALID Substream: no data (length %u)", rep->length);
         } else {
             _print(lvl, "Substream: length %u", rep->length);
-            _hexDump(rep->data, rep->length, curIden.c_str());
+			_hexDump( rep->data, rep->length, std::string( lvl, ' ' ).c_str() );
         }
     } else {
         _print(lvl, "Substream: length %u %s", rep->length, (rep->data==NULL) ? "from rep":"from data");
@@ -207,27 +201,26 @@ void PyDumpVisitor::VisitChecksumedStream(const PyRepChecksumedStream *rep, int6
 }
 
 void PyDumpVisitor::VisitDict(const PyRepDict *rep, int64 lvl ) {
-    std::string curIden(lvl, ' ');
-    _print(std::string(curIden+std::string("Dictionary: %u entries")), rep->size());
+	_print( lvl, "Dictionary: %u entries", rep->size() );
 
     PyRepDict::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     for(uint32 i = 0; cur != end; ++cur, ++i) {
 
-        _print(std::string(curIden+std::string("  [%2u] Key: ")), i);
+		_print( lvl, "  [%2u] Key: ", i );
         cur->first->visit(this, lvl + idenAmt );
-        _print(std::string(curIden+std::string("  [%2u] Value: ")), i);
+		_print( lvl, "  [%2u] Value: ", i );
         cur->second->visit(this, lvl + idenAmt );
     }
 }
 
-void PyDumpVisitor::VisitList(const PyRepList *rep, int64 lvl ) {
-    std::string curIden(lvl, ' ');
-    if(rep->items.empty()) {
-        _print(std::string(curIden+std::string("List: Empty")));
-    } else {
-        _print(std::string(curIden+std::string("List: %u elements")), rep->size());
+void PyDumpVisitor::VisitList(const PyRepList *rep, int64 lvl )
+{
+    if(rep->items.empty())
+		_print( lvl, "List: Empty" );
+    else {
+		_print( lvl, "List: %u elements", rep->size() );
 
         PyRepList::const_iterator cur, end;
         cur = rep->begin();
@@ -235,22 +228,22 @@ void PyDumpVisitor::VisitList(const PyRepList *rep, int64 lvl ) {
         for(uint32 i = 0; cur != end; ++cur, ++i) {
 
             if(!m_full_lists && i > 200) {
-                _print(std::string(curIden+std::string("   ... truncated ...")));
+				_print( lvl, "   ... truncated ..." );
                 break;
             }
 
-            _print(std::string(curIden+std::string("  [%2u] ")), i);
+			_print( lvl, "  [%2u] ", i );
             (*cur)->visit(this, lvl + idenAmt );
         }
     }
 }
 
-void PyDumpVisitor::VisitTuple(const PyRepTuple *rep, int64 lvl ) {
-    std::string curIden(lvl, ' ');
+void PyDumpVisitor::VisitTuple(const PyRepTuple *rep, int64 lvl )
+{
     if(rep->items.empty())
-        _print(std::string(curIden+std::string("Tuple: Empty")));
+		_print( lvl, "Tuple: Empty" );
     else {
-        _print(std::string(curIden+std::string("Tuple: %u elements")), rep->size());
+		_print( lvl, "Tuple: %u elements", rep->size() );
 
         //! visit tuple elements.
         PyRepTuple::const_iterator cur, end;
@@ -258,7 +251,7 @@ void PyDumpVisitor::VisitTuple(const PyRepTuple *rep, int64 lvl ) {
         end = rep->end();
         for(uint32 i = 0; cur != end; ++cur, ++i) {
 
-            _print(std::string(curIden+std::string("  [%2u] ")).c_str(), i);
+			_print( lvl, "  [%2u] ", i ); 
             (*cur)->visit(this, lvl + idenAmt);
         }
     }
@@ -290,21 +283,6 @@ void PyLogsysDump::_print(const char *str, ...)
     size_t len = strlen(str)+1;
     char *buf = new char[len];
     snprintf(buf, len, "%s", str);
-    log_messageVA(m_type, buf, l);
-    delete[] buf;
-    va_end(l);
-}
-
-void PyLogsysDump::_print(const std::string &str, ...)
-{
-    if( !is_log_enabled( m_type ) )
-        return;
-    const char* tStr = str.c_str();
-    va_list l;
-    va_start(l, tStr);
-    size_t len = str.size()+1;
-    char *buf = new char[len];
-    snprintf(buf, len, "%s", str.c_str());
     log_messageVA(m_type, buf, l);
     delete[] buf;
     va_end(l);
@@ -350,14 +328,6 @@ void PyFileDump::_print(const char *str, ...) {
     snprintf(buf, len, "%s", str);
     assert(vfprintf(m_into, buf, l) >= 0);
     delete[] buf;
-    va_end(l);
-}
-
-void PyFileDump::_print(const std::string &str, ...) {
-    const char* tStr = str.c_str();
-    va_list l;
-    va_start(l, tStr);
-    assert(vfprintf(m_into, str.c_str(), l) >= 0);
     va_end(l);
 }
 
