@@ -529,7 +529,7 @@ void Client::SelfEveMail(const char *subject, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char *str = NULL;
-    assert( vasprintf(&str, fmt, args) < 0 );
+    assert( vasprintf(&str, fmt, args) > 0 );
     va_end(args);
 
     m_services.lsc_service->SendMail(GetCharacterID(), GetCharacterID(), subject, str);

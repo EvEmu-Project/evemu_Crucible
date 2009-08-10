@@ -249,7 +249,7 @@ void Client::SendErrorMsg(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char *str = NULL;
-    assert(vasprintf(&str, fmt, args) < 0);
+    assert(vasprintf(&str, fmt, args) > 0);
 
     _log(CLIENT__ERROR, "Sending Error Message to %s:", GetName());
     log_messageVA(CLIENT__ERROR, fmt, args);
@@ -272,7 +272,7 @@ void Client::SendInfoModalMsg(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char *str = NULL;
-    assert(vasprintf(&str, fmt, args) < 0 );
+    assert(vasprintf(&str, fmt, args) > 0 );
 
     _log(CLIENT__MESSAGE, "Info Modal to %s:", GetName());
     log_messageVA(CLIENT__MESSAGE, fmt, args);
@@ -295,7 +295,7 @@ void Client::SendNotifyMsg(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char *str = NULL;
-    assert(vasprintf(&str, fmt, args) < 0);
+    assert(vasprintf(&str, fmt, args) > 0);
 
     _log(CLIENT__MESSAGE, "Notify to %s:", GetName());
     log_messageVA(CLIENT__MESSAGE, fmt, args);
@@ -318,7 +318,7 @@ void Client::SelfChatMessage(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char *str = NULL;
-    assert( vasprintf(&str, fmt, args) < 0 );
+    assert( vasprintf(&str, fmt, args) > 0 );
     va_end(args);
 
     if(m_channels.empty()) {
