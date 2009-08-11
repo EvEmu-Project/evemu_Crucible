@@ -1,4 +1,3 @@
-INCLUDES += -I$(srcdir)/../3rdparty/
 
 bin_PROGRAMS = collector 
 
@@ -13,9 +12,9 @@ collector_SOURCES = \
 	method_types.h
 
 collector_LDADD = \
+	$(srcdir)/../common/libcommon.a \
+	$(srcdir)/../packets/libpackets.a \
 	-lpcap \
-	-lcommon \
-	-lpackets \
 	-lnids \
 	-ldl \
 	-lz \
@@ -25,7 +24,5 @@ collector_LDADD = \
 collector_LDFLAGS = \
 	-pipe \
 	-rdynamic \
-	-L$(srcdir)/../common/ \
-	-L$(srcdir)/../packets/ \
 	@AM_LDFLAGS@
 

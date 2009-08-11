@@ -1,14 +1,16 @@
+
 noinst_LIBRARIES = \
-  libtinyxml.a
+	libtinyxml.a
 
 libtinyxml_a_SOURCES = \
-  tinystr.cpp \
-  tinystr.h \
-  tinyxml.cpp \
-  tinyxmlerror.cpp \
-  tinyxml.h \
-  tinyxmlparser.cpp
+	tinystr.cpp \
+	tinystr.h \
+	tinyxml.cpp \
+	tinyxmlerror.cpp \
+	tinyxml.h \
+	tinyxmlparser.cpp
 
 libtinyxml_a_CXXFLAGS = \
-  -DTIXML_USE_STL
+	-DTIXML_USE_STL
+
 

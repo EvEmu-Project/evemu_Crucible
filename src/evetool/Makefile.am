@@ -9,16 +9,11 @@ evetool_SOURCES = \
 	TriFile.h
 
 evetool_LDADD = \
-	-lcommon \
-	-lpackets \
-	-lutil \
+	$(srcdir)/../common/libcommon.a \
+	$(srcdir)/../packets/libpackets.a \
 	-lz \
 	-lpthread \
 	-lreadline
-
-evetool_LDFLAGS = \
-	-L$(srcdir)/../common/ \
-	-L$(srcdir)/../packets/
 
 stuff_extract_SOURCES = \
 	stuff_extract.cpp

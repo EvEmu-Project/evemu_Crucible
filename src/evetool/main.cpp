@@ -97,9 +97,13 @@ int main(int argc, char *argv[]) {
 	#endif
 
 	if(!load_log_settings("log.ini"))
+	{
 		_log(CCLIENT__INIT, "Warning: Unable to read %s", "log.ini");
+	}
 	else
+	{
 		_log(CCLIENT__INIT, "Log settings loaded from %s", "log.ini");
+	}
 
 	if(!PyRepString::LoadStringFile("../data/strings.txt")) {
 		_log(CCLIENT__INIT_ERR, "Unable to open ../data/strings.txt, i need it to decode string table elements!");

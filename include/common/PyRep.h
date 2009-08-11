@@ -438,14 +438,14 @@ public:
         items.push_back(i);
     }
 
-    EVEMU_INLINE void setStr(const int index, const char *str) {
+    EVEMU_INLINE void setStr(const uint32 index, const char *str) {
         assert(index <= items.size());
 
         assert(items[index] == NULL);
         items[index] = new PyRepString(str);
     }
 
-    EVEMU_INLINE void set(const int index, PyRep *i) {
+    EVEMU_INLINE void set(const uint32 index, PyRep *i) {
         assert(index <= items.size());
         assert(items[index] == NULL);
         items[index] = i;

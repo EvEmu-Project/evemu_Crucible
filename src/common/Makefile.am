@@ -1,13 +1,12 @@
-INCLUDES += -I$(srcdir)/../3rdparty/ 
-INCLUDES += -I$(srcdir)/../../include/server/
 INCLUDES += -I$(srcdir)/../../include/common/
+INCLUDES += -I$(srcdir)/../../include/server/
 
 noinst_LIBRARIES = \
 	libcommon.a
 
 libcommon_a_SOURCES = \
-  LogNew.cpp \
-  LogNew.h \
+	LogNew.cpp \
+	LogNew.h \
 	logsys.cpp \
 	PyRep.cpp \
 	logtypes.h \

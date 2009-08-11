@@ -1,7 +1,6 @@
-INCLUDES += -I$(srcdir)/../3rdparty/
+INCLUDES += -I$(srcdir)/../../dep/tinyxml/
 INCLUDES += -I$(srcdir)/../../include/common/
 INCLUDES += -I$(srcdir)/../../include/xmlpktgen/
-INCLUDES += -I$(srcdir)/../../dep/tinyxml/
 
 bin_PROGRAMS = xmlpktgen
 
@@ -35,19 +34,10 @@ xmlpktgen_SOURCES = \
 	XMLPacketGen.cpp \
 	XMLPacketGen.h
 
-#-lcommon
-
 xmlpktgen_LDADD = \
-	-lz \
-	-ldl \
-	-lpthread \
-	-lpcap \
-	-ltinyxml
+	$(srcdir)/../../dep/tinyxml/libtinyxml.a
 
 xmlpktgen_LDFLAGS = \
-	-L$(srcdir)/../common/ \
-	-L$(srcdir)/../../dep/tinyxml \
 	-rdynamic \
-	@MYSQL_LDFLAGS@ \
 	@AM_LDFLAGS@
 

@@ -116,7 +116,7 @@ void EntityList::Process()
 			cur++;
 		}
 	}
-	if( destiny = true )
+	if( destiny == true )
 	{
 		DestinyManager::TicCompleted();
 	}

@@ -1,6 +1,11 @@
-INCLUDES += -I$(srcdir)/../3rdparty/
 INCLUDES += -I$(srcdir)/../../include/common/
 INCLUDES += -I$(srcdir)/../../include/server/
+
+AM_CXXFLAGS += \
+	-pipe \
+	-fno-inline \
+	-Wall \
+	-ansi
 
 noinst_LIBRARIES = \
 	libaccount.a \
@@ -216,7 +221,6 @@ libnpc_a_SOURCES = \
 	npc/NPC.h \
 	npc/NPCAI.cpp \
 	npc/NPCAI.h
-
 # Broken? missing libs/cppstates
 #	npc/NPCAI_State.cpp 
 #	npc/NPCAI_State.h
@@ -321,6 +325,7 @@ server_SOURCES = \
 	ClientSession.h \
 	EntityList.cpp \
 	EntityList.h \
+	EvemuPCH.h \
 	EVEmuServerConfig.cpp \
 	EVEmuServerConfig.h \
 	main.cpp \
@@ -337,44 +342,34 @@ server_SOURCES = \
 	ServiceDB.h
 
 server_LDADD = \
-  -laccount \
-  -ladmin \
-  -lcache \
-  -lcharacter \
-  -lchat \
-  -lcorporation \
-  -lconfig \
-  -ldogmaim \
-  -linventory \
-  -lmanufacturing \
-  -lmap \
-  -lmarket \
-  -lmining \
-  -lmissions \
-  -lstanding \
-  -lnpc \
-  -lspawn \
-  -lship \
-  -lstation \
-  -lsystem \
-	-ltutorial \
-	-lposmgr \
-	-lcommon \
-	-ltinyxml \
-	-lpackets \
+	libaccount.a \
+	libadmin.a \
+	libcache.a \
+	libcharacter.a \
+	libchat.a \
+	libcorporation.a \
+	libconfig.a \
+	libdogmaim.a \
+	libinventory.a \
+	libmanufacturing.a \
+	libmap.a \
+	libmarket.a \
+	libmining.a \
+	libmissions.a \
+	libstanding.a \
+	libnpc.a \
+	libspawn.a \
+	libship.a \
+	libstation.a \
+	libsystem.a \
+	libtutorial.a \
+	libposmgr.a \
+	$(srcdir)/../common/libcommon.a \
+	$(srcdir)/../packets/libpackets.a \
+	$(srcdir)/../../dep/tinyxml/libtinyxml.a \
 	-lz \
-	-lpthread \
-	-ldl 
+	-lpthread
 
 server_LDFLAGS = \
-	-L$(srcdir)/../../dep/tinyxml \
-	-L$(srcdir)/../server/ \
-	-L$(srcdir)/../common/ \
-	-L$(srcdir)/../packets/ \
 	@MYSQL_LDFLAGS@
 
-AM_CXXFLAGS+= \
-	-pipe \
-	-fno-inline \
-	-Wall \
-	-ansi
