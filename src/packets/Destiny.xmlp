@@ -674,10 +674,6 @@ DST_WARPEXIT = 11
             <IDEntry key="stamp">
               <int name="stamp" />
             </IDEntry>
-            <IDEntry key="gangCorps">
-              <!-- List of tuples, 3 elements: (gangID? int 7072859, int 692524420, None)-->
-              <list name="gangCorps" />
-            </IDEntry>
             <IDEntry key="state">
               <!-- this is the big nasty state buffer -->
               <buffer name="destiny_state" />
@@ -708,10 +704,6 @@ DST_WARPEXIT = 11
             <IDEntry key="effectStates">
               <!-- not really an intlist, only seen it smpty right now -->
               <list name="effectStates" />
-            </IDEntry>
-            <IDEntry key="charGangs">
-              <!-- not really an intlist, each element should be a tuple: (694930434, 7088433) -->
-              <list name="charGangs" />
             </IDEntry>
 			<IDEntry key="allianceBridges">
 			  <list name="allianceBridges" />

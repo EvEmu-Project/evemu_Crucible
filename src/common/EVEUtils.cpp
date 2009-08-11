@@ -84,14 +84,15 @@ uint64 Win32TimeNow() {
 }
 
 
-size_t strcpy_fake_unicode(wchar_t *into, const char *from) {
-    size_t r;
-    for(r = 0; *from != '\0'; r++) {
-        *into = *from;
-        into++;
-        from++;
-    }
-    return(r*2);
+size_t strcpy_fake_unicode(uint16 *into, const char *from) {
+    size_t i = 0;
+    do
+    {
+        into[i] = from[i];
+        if( from[i] == '\0' )
+            break;
+    } while( ++i ); // always true
+    return ( i << 1 ); // multiply by 2
 }
 
 PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args) {

@@ -554,7 +554,7 @@ struct MiniBallList {
 
 struct NameStruct {
 	uint8  name_len;		//in 16 bit increments
-	wchar_t name[0]; 		//utf16
+	uint16 name[0]; 		//utf16
 };
 
 struct DSTBALL_GOTO_Struct {
