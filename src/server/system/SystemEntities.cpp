@@ -41,17 +41,14 @@ SimpleSystemEntity *SimpleSystemEntity::MakeEntity(SystemManager *system, const 
 	case EVEDB::invGroups::Station:		//Station
 		return(new SystemStationEntity(system, entity));
 	default:
-		_log(SERVICE__ERROR, "Unrecognized entity type '%u' on '%s' (%u), falling back to simple space item.", entity.typeID, entity.itemName.c_str(), entity.itemID);
+        sLog.Error("Simple sys Entity", "Unrecognized entity type '%u' on '%s' (%u), falling back to simple space item.", entity.typeID, entity.itemName.c_str(), entity.itemID);
 		break;
 	}
-	return(new SystemSimpleEntity(system, entity));
+	return new SystemSimpleEntity(system, entity);
 }
 
 SimpleSystemEntity::SimpleSystemEntity(SystemManager *system, const DBSystemEntity &entity)
-: InanimateSystemEntity(system),
-  data(entity)
-{
-}
+: InanimateSystemEntity(system), data(entity) {}
 
 bool SimpleSystemEntity::LoadExtras(SystemDB *db) {
 	return true;
@@ -62,7 +59,7 @@ PyRepDict *SimpleSystemEntity::MakeSlimItem() const {
 	slim->add("typeID", new PyRepInteger(data.typeID));
 	slim->add("ownerID", new PyRepInteger(1));
 	slim->add("itemID", new PyRepInteger(data.itemID));
-	return(slim);
+	return slim;
 }
 
 void SimpleSystemEntity::MakeDamageState(DoDestinyDamageState &into) const {
@@ -83,12 +80,7 @@ void InanimateSystemEntity::QueueDestinyEvent(PyRepTuple **multiEvent) {
 	//this gives them the opportunity to reduce a copy if they are smart.
 }
 
-
-
-
-SystemPlanetEntity::SystemPlanetEntity(SystemManager *system, const DBSystemEntity &entity)
-: SimpleSystemEntity(system, entity) {
-}
+SystemPlanetEntity::SystemPlanetEntity(SystemManager *system, const DBSystemEntity &entity) : SimpleSystemEntity(system, entity) {}
 
 void SystemPlanetEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	#pragma pack(1)
@@ -98,10 +90,9 @@ void SystemPlanetEntity::EncodeDestiny(std::vector<uint8> &into) const {
 		NameStruct name;
 	};
 	#pragma pack()
+
 	int start = into.size();
-	into.resize(start 
-		+ sizeof(AddBall_Planet)
-		+ data.itemName.length()*sizeof(uint16) );
+	into.resize(start + sizeof(AddBall_Planet) + data.itemName.length()*sizeof(uint16) );
 	uint8 *ptr = &into[start];
 	AddBall_Planet *item = (AddBall_Planet *) ptr;
 	ptr += sizeof(AddBall_Planet);
@@ -117,6 +108,7 @@ void SystemPlanetEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	
 	item->name.name_len = data.itemName.length();
 	strcpy_fake_unicode(item->name.name, data.itemName.c_str());
+    mbstowcs(item->name.name, data.itemName.c_str(), )
 }
 
 

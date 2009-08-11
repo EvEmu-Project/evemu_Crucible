@@ -29,8 +29,7 @@
 
 class PyRepObject;
 
-class AccountDB
-: public ServiceDB {
+class AccountDB : public ServiceDB {
 public:
 	AccountDB(DBcore *db);
 	virtual ~AccountDB();
@@ -40,16 +39,6 @@ public:
 	PyRepObject *GetJournal(uint32 charID, uint32 refTypeID, uint32 accountKey, uint64 transDate);//mandela
 
 	bool CheckIfCorporation(uint32 corpID);
-
-	
-	
 protected:
 };
-
-
-
-
-
 #endif
-
-

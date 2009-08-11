@@ -43,16 +43,13 @@ Vector acceleration = vector_to_goal * accel;
 
 */
 
-
-
-
 #ifndef __DESTINY_STRUCTS_H__
 #define __DESTINY_STRUCTS_H__
 
 #ifdef WIN32
 	//VC++ whines a lot about the [0] structure sizes done in here...
-	#pragma warning(disable:4200)
-#endif
+	//#pragma warning(disable:4200)
+#endif//WIN32
 
 namespace Destiny {
 
@@ -70,38 +67,43 @@ struct AddBall_itemHeader {
 };
 
 enum { //destiny mode!
-	AddBallType_shipext2 = 0,
-	AddBallType_unmannedShip = 1,	//name wrong.
-	AddBallType_ship = 2,		//this can be NPCs too... seems to be 'idle ship'
-	AddBallType_shipadd = 3,
-	AddBallType_npc = 4,	// really seems to be 'orbiting ship'
-	AddBallType_loot = 8,
-	AddBallType_spaceItem = 11,
-	AddBallType_collideable = 64
-	
+	AddBallType_shipext2        = 0,
+	AddBallType_unmannedShip    = 1,	//name wrong.
+	AddBallType_ship            = 2,	//this can be NPCs too... seems to be 'idle ship'
+	AddBallType_shipadd         = 3,
+	AddBallType_npc             = 4,	// really seems to be 'orbiting ship'
+    AddBallType_unk1            = 5,
+    AddBallType_unk2            = 6,
+    AddBallType_unk3            = 7,
+	AddBallType_loot            = 8,
+    AddBallType_unk4            = 9,
+    AddBallType_unk5            = 10,
+	AddBallType_spaceItem       = 11,
+	AddBallType_collideable     = 64
 };
-#endif
-
-
-
+#endif//OLD_STRUCTS
 
 typedef enum {
-	DSTBALL_GOTO = 0, // Also used for AlignTo
-	DSTBALL_FOLLOW = 1,
-	DSTBALL_STOP = 2,
-	DSTBALL_WARP = 3,
-	DSTBALL_ORBIT = 4,
-	DSTBALL_MISSILE = 5,
-	DSTBALL_MUSHROOM = 6,	//Expanding gravity wall
-	DSTBALL_BOID = 7,		//Swarm like behavior
-	DSTBALL_TROLL = 8,		//used for ejected cans. Free ball that will become fixed after a while.
-	DSTBALL_MINIBALL = 9,
-	DSTBALL_FIELD = 10,		//Force field ball
-	DSTBALL_RIGID = 11, 	//A ball that will never move, stations, etc..
-	DSTBALL_FORMATION = 12
+	DSTBALL_GOTO        = 0, // Also used for AlignTo
+	DSTBALL_FOLLOW      = 1,
+	DSTBALL_STOP        = 2,
+	DSTBALL_WARP        = 3,
+	DSTBALL_ORBIT       = 4,
+	DSTBALL_MISSILE     = 5,
+	DSTBALL_MUSHROOM    = 6,	//Expanding gravity wall
+	DSTBALL_BOID        = 7,		//Swarm like behavior
+	DSTBALL_TROLL       = 8,		//used for ejected cans. Free ball that will become fixed after a while.
+	DSTBALL_MINIBALL    = 9,
+	DSTBALL_FIELD       = 10,		//Force field ball
+	DSTBALL_RIGID       = 11, 	//A ball that will never move, stations, etc..
+	DSTBALL_FORMATION   = 12
 } BallMode;
+
 static const uint8 MAX_DSTBALL = DSTBALL_FORMATION;
 
+/* capt: disabled for now
+ * why: I dono
+ */
 #if 0
 
 struct MiniballSet {
@@ -229,10 +231,7 @@ struct AddBall {
 /*118*/uint16 name[0]; 		//utf16
 };
 
-
-
-#endif
-
+#endif//disabled
 
 #ifdef OLD_STRUCTS
 
@@ -347,7 +346,7 @@ struct AddBall_ship64_collideable {
 /*069*/uint8  name_len;		//in 16 bit increments
 /*070*/uint16 name[0]; 		//utf16
 };
-#endif
+#endif//WIN32
 
 struct AddBall_unmannedShip {	//name wrong.
 /*000*/AddBall_itemHeader head;
@@ -481,14 +480,7 @@ struct AddBall_loot {
 /*122*/uint16 name[0]; 		//utf16
 };
 
-#endif
-
-
-
-
-
-
-
+#endif//OLD_STRUCTS
 
 //I am thinking this might be a bitfield of flags..
 //enum {
@@ -565,11 +557,6 @@ struct NameStruct {
 	wchar_t name[0]; 		//utf16
 };
 
-
-
-
-
-
 struct DSTBALL_GOTO_Struct {
 /*116*/	uint8  formationID;
 /*117*/double x;		//object+0xD0 (as a set of 3)
@@ -645,7 +632,6 @@ struct DSTBALL_FORMATION_Struct {
 /*129*/	uint32 effectStamp;	//is a destiny sequence number (forward?)
 };
 
-
 union SpecificSectors {
 	struct DSTBALL_GOTO_Struct GOTO;
 	struct DSTBALL_FOLLOW_Struct FOLLOW;
@@ -674,7 +660,3 @@ struct TotalStruct {
 } //end Destiny
 
 #endif
-
-
-
-

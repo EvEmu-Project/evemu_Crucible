@@ -46,9 +46,9 @@ protected:
 	PyCallable_DECL_CALL(GetCashBalance)
 	PyCallable_DECL_CALL(GetRefTypes)
 	PyCallable_DECL_CALL(GetKeyMap)
-	PyCallable_DECL_CALL(GiveCash)//mandela
+	PyCallable_DECL_CALL(GiveCash)
 	PyCallable_DECL_CALL(GiveCashFromCorpAccount)
-	PyCallable_DECL_CALL(GetJournal)//mandela
+	PyCallable_DECL_CALL(GetJournal)
 
 	PyRepTuple * GiveCashToChar(Client * const client, Client * const other, double amount, const char *reason, JournalRefType refTypeID);
 	PyRepTuple * GiveCashToCorp(Client * const client, uint32 corpID, double amount, const char *reason, JournalRefType refTypeID);
