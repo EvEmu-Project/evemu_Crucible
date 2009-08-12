@@ -108,14 +108,7 @@ void SystemPlanetEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	
 	item->name.name_len = data.itemName.length();
 	strcpy_fake_unicode(item->name.name, data.itemName.c_str());
-    mbstowcs(item->name.name, data.itemName.c_str(), )
 }
-
-
-
-
-
-
 
 SystemStationEntity::SystemStationEntity(SystemManager *system, const DBSystemEntity &entity)
 : SimpleSystemEntity(system, entity) {
