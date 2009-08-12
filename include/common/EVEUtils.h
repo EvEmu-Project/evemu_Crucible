@@ -47,7 +47,6 @@ extern uint64 UnixTimeToWin32Time( time_t sec, uint32 nsec );
 extern uint64 Win32TimeNow();
 extern void Win32TimeToUnixTime( uint64 win32t, time_t &unix_time, uint32 &nsec );
 extern std::string Win32TimeToString(uint64 win32t);
-extern size_t strcpy_fake_unicode(uint16 *into, const char *from);
 
 extern const uint64 Win32Time_Second;
 extern const uint64 Win32Time_Minute;
@@ -82,7 +81,7 @@ extern uint8 DBTYPE_GetSize(DBTYPE type);
 /**
  * Checks compatibility between DBTYPE and PyRep.
  *
- * @param[in] txpe DBTYPE to check.
+ * @param[in] type DBTYPE to check.
  * @param[in] rep PyRep to check.
  * @return True if arguments are compatible, false if not.
  */

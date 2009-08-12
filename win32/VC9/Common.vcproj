@@ -505,6 +505,14 @@
 				RelativePath="..\..\include\common\MarshalReferenceMap.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\src\common\PyStringTable.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\PyStringTable.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="tinyxml"
@@ -543,6 +551,18 @@
 			</File>
 			<File
 				RelativePath="..\..\include\common\LogNew.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Utils"
+			>
+			<File
+				RelativePath="..\..\src\common\utils_string.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\utils_string.h"
 				>
 			</File>
 		</Filter>

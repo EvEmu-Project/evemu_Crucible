@@ -266,7 +266,6 @@ public:
      * @brief Get the PyBuffer content
      *
      *
-     *
      * @return the pointer to the PyBuffer content
      */
     uint8* content() const {return m_value;}
@@ -281,18 +280,11 @@ protected:
 class PyRepString : public PyRep
 {
 public:
-    PyRepString(const char *str = "", bool type_1=false) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1)
-    {
+    PyRepString(const char *str = "", bool type_1=false);
+    PyRepString(const std::string &str, bool type_1=false); //to deal with non-string buffers poorly placed in strings (CCP)
+    PyRepString(const uint8 *data, uint32 len, bool type_1=false);
 
-    }
-
-    PyRepString(const std::string &str, bool type_1=false) : PyRep(PyRep::PyTypeString), is_type_1(type_1)
-    {
-        value.assign(str.c_str(), str.length());
-    } //to deal with non-string buffers poorly placed in strings (CCP)
-
-    PyRepString(const uint8 *data, uint32 len, bool type_1=false) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1) {}
-    virtual ~PyRepString() {}
+    virtual ~PyRepString();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -309,7 +301,7 @@ public:
     bool is_type_1; //true if this is an Op_PyByteString instead of the default Op_PyByteString2
 
     /**
-     * @brief get the length of the PyString
+     * @brief Get the length of the PyString
      *
      *
      *
@@ -318,20 +310,30 @@ public:
     const size_t size() const { return value.size(); }
 
     /**
-    * @brief Get the PyString content
-    *
-    *
-    *
-    * @return the pointer to the char* array.
-    */
+     * @brief Get the PyString content
+     *
+     *
+     *
+     * @return the pointer to the char* array.
+     */
     const char* content() const { return value.c_str(); }
 
-    //string table stuff:
-    static bool LoadStringFile(const char *file);
-    static EVEStringTable *GetStringTable();    //always returns a valid pointer
+    /**
+     * @brief Set the PyString content.
+     *
+     *
+     *
+     * @param[in] str is the char array that will replace the current string.
+     * @param[in] len is the length of the char array.
+     */
+    void set( const char* str, size_t len );
 
-protected:
-    static EVEStringTable *s_stringTable;
+    //string table stuff:
+    //static bool LoadStringFile(const char *file);
+  //  static EVEStringTable *GetStringTable();    //always returns a valid pointer
+
+//protected:
+    //static EVEStringTable *s_stringTable;
 };
 
 class PyRepTuple : public PyRep {
@@ -489,7 +491,7 @@ public:
     void add(PyRep *key, PyRep *value);
     void add(const char *key, const char *value);
 
-    //BE CAREFUL, this map does NOT facilitate overwritting an existing
+    //BE CAREFUL, this map does NOT facilitate overwriting an existing
     //key, because there is no key comparison done (ptr compare only)!
     storage_type items;
 

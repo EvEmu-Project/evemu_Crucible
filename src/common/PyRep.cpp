@@ -1068,7 +1068,7 @@ void PyRepObjectEx::CloneFrom(const PyRepObjectEx *from) {
 /************************************************************************/
 /* string table code                                                    */
 /************************************************************************/
-EVEStringTable *PyRepString::s_stringTable = NULL;
+/*EVEStringTable *PyRepString::s_stringTable = NULL;
 bool PyRepString::LoadStringFile(const char *file)
 {
     if(s_stringTable != NULL)
@@ -1084,6 +1084,39 @@ EVEStringTable *PyRepString::GetStringTable()
         s_stringTable = new EVEStringTable(); //make an empty one.
 
     return s_stringTable;
+}*/
+
+/************************************************************************/
+/* PyRepString                                                          */
+/************************************************************************/
+PyRepString::PyRepString( const char *str, bool type_1 ) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1) {}
+
+PyRepString::PyRepString( const std::string &str, bool type_1 ) : PyRep(PyRep::PyTypeString), is_type_1(type_1)
+{
+    value.assign(str.c_str(), str.length());
+}
+
+PyRepString::PyRepString( const uint8 *data, uint32 len, bool type_1 ) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1) {}
+
+PyRepString::~PyRepString() {}
+
+void PyRepString::set( const char* str, size_t len )
+{
+     value.assign(str, len);
+     return;
+
+    /* don't allow invalid strings to be set */
+    if (str == NULL && len != 0)
+        return;
+
+    value.resize(len);
+
+    /* if we set a empty string */
+    if (str == NULL || len == 0)
+        return;
+
+    memcpy(&value[0], str, len);
+    //value[len] = '\0';
 }
 
 EVEStringTable::EVEStringTable() : m_size(0) { }

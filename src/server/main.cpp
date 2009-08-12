@@ -26,6 +26,7 @@
 #include "EvemuPCH.h"
 #include "EVEVersion.h"
 #include "../server/account/ClientStatMgrService.h"
+#include "PyStringTable.h"
 
 #include <signal.h>
 
@@ -39,6 +40,8 @@ DBcore * general_database;
 NewLog *pLog;
 
 static volatile bool RunLoops = true;
+
+PyMarshalStringTable PyStringTable;
 
 int main(int argc, char *argv[]) {
 
@@ -96,11 +99,11 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if(!PyRepString::LoadStringFile(sConfig.files.strings.c_str()))
-    {
-        sLog.Error("server init", "PyStringTable | Unable to open %s!", sConfig.files.strings.c_str());
-        return 1;
-    }
+    //if(!PyRepString::LoadStringFile(sConfig.files.strings.c_str()))
+    //{
+      //  sLog.Error("server init", "PyStringTable | Unable to open %s!", sConfig.files.strings.c_str());
+        //return 1;
+    //}
 
     //connect to the database...
     DBcore db;

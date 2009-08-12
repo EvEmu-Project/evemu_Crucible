@@ -28,6 +28,7 @@
 
 #include "common.h"
 #include "logsys.h"
+#include "LogNew.h"
 #include "../common/packet_dump.h"
 #include "../common/packet_functions.h"
 #include "../common/misc.h"
@@ -39,6 +40,7 @@
 #include "EVEMarshalOpcodes.h"
 #include "EVEUtils.h"
 #include "EVEZeroCompress.h"
+#include "PyStringTable.h"
 
 using std::string;
 
@@ -397,9 +399,6 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         break; }
 
     case Op_PyEmptyString: {
-        //.text:1005D1EF loc_1005D1EF
-        //
-        //not 100% sure about this one.
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyEmptyString", pfx, opcode);
         res = new PyRepString("");
         break; }
@@ -457,21 +456,22 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         }
         uint8 value = *packet;
 
-        const char *v = PyRepString::GetStringTable()->LookupIndex(value);
-        if(v == NULL) {
-            _log(NET__UNMARSHAL_ERROR, "String Table Item %d is out of range!\n", value);
+        PyRepString * sharedString = NULL;
+        if( sPyStringTable.LookupPyString(value, sharedString) == false)
+        {
+            assert(false);
+            sLog.Error("unmarshal", "String Table Item %d is out of range!\n", value);
+
             char ebuf[64];
             snprintf(ebuf, 64, "Invalid String Table Item %d", value);
             res = new PyRepString(ebuf);
-        } else {
-            res = new PyRepString(v);
-            _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyStringTableItem(%d) = %s", pfx, opcode, value, v);
+        }
+        else
+        {
+            res = new PyRepString(sharedString->value, sharedString->is_type_1);
         }
 
-        packet++;
-        len--;
-        len_used++;
-
+        IncreaseIndex(1);
         break; }
 
     case Op_PyUnicodeByteString: {

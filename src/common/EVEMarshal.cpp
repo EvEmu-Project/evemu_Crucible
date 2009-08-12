@@ -38,6 +38,7 @@
 #include "EVEUtils.h"
 #include "EVEZeroCompress.h"
 #include "EVEMarshal.h"
+#include "PyStringTable.h"
 
 const uint32 EVEDeflationBytesLimit = 10000;    //every packet larger than this is deflated
 
@@ -321,11 +322,9 @@ void MarshalVisitor::VisitString(const PyRepString *rep)
         else
         {
             //string is long enough for a string table entry, check it.
-            uint8 sid = PyRepString::GetStringTable()->LookupString(rep->value);
-            if(sid != EVEStringTable::None)
+            size_t sid = sPyStringTable.LookupIndex(rep->value.c_str());
+            if(sid != -1)
             {
-                //_log(NET__MARSHAL_TRACE, "Replaced string '%s' with string table index %d", rep->value.c_str(), sid);
-                //we have a string table entry, send that out:
                 PutByte(Op_PyStringTableItem);
                 PutByte(sid);
             }

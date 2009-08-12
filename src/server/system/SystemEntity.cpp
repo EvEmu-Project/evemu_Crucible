@@ -24,13 +24,9 @@
 */
 
 #include "EvemuPCH.h"
-
-
+#include "utils_string.h"
 
 using namespace Destiny;
-
-
-
 
 SystemEntity::SystemEntity()
 : targets(this),
@@ -59,7 +55,7 @@ ItemSystemEntity::ItemSystemEntity(InventoryItemRef self)
 {
 	if( self )
 		_SetSelf( self );
-	//setup some default attributes which normally do not initilize.
+	//setup some default attributes which normally do not initialize.
 }
 
 ItemSystemEntity::~ItemSystemEntity()
@@ -125,7 +121,7 @@ DynamicSystemEntity::DynamicSystemEntity(DestinyManager *dm, InventoryItemRef se
 DynamicSystemEntity::~DynamicSystemEntity() {
 	if(m_destiny != NULL) {
 		//Do not do anything with the destiny manager, as it's m_self
-		//is now partially destroyed, which will majorly upset things.
+		//is now partially destroyed, which will majority upset things.
 		delete m_destiny;
 	}
 }
@@ -218,7 +214,7 @@ void DynamicSystemEntity::EncodeDestiny(std::vector<uint8> &into) const {
 		item->main.ownerID = 0x1e;	//no idea.
 		
 		item->name.name_len = slen;	// in number of unicode chars
-		strcpy_fake_unicode(item->name.name, GetName());
+		py_mbstowcs(item->name.name, GetName());
 	} else*/ {
 		#pragma pack(1)
 		struct AddBall_Stop {
@@ -261,15 +257,15 @@ void DynamicSystemEntity::EncodeDestiny(std::vector<uint8> &into) const {
 		item->main.formationID = 0xFF;
 		
 		item->name.name_len = slen;	// in number of unicode chars
-		strcpy_fake_unicode(item->name.name, GetName());
+		py_mbstowcs(item->name.name, GetName(), slen);
 	}
 }
 
 void ItemSystemEntity::MakeDamageState(DoDestinyDamageState &into) const {
 	into.shield = m_self->shieldCharge() / m_self->shieldCapacity();
-	into.tau = 100000;	//no freakin clue.
+	into.tau = 100000;	//no freaking clue.
 	into.timestamp = Win32TimeNow();
-//	armor damage isnt working...
+//	armor damage isn't working...
 	into.armor = 1.0 - (m_self->armorDamage() / m_self->armorHP());
 	into.structure = 1.0 - (m_self->damage() / m_self->hp());
 }

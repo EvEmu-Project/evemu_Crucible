@@ -30,7 +30,6 @@
 #  include <stdint.h>
 #endif//WIN32
 
-
 /** Use correct types for x64 platforms, too
   */
 #ifdef WIN32

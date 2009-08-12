@@ -97,9 +97,7 @@
 
 #include "../common/DestinyBinDump.h"
 #include "../common/DestinyStructs.h"
-
-//#include "../common/misc.h"
-
+#include "../common/PyStringTable.h"
 
 #include "../server/ClientSession.h"
 

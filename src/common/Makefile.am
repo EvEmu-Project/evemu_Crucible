@@ -5,6 +5,10 @@ noinst_LIBRARIES = \
 	libcommon.a
 
 libcommon_a_SOURCES = \
+  utils_string.cpp \
+  utils_string.h \
+  PyStringTable.cpp \
+  PyStringTable.h \
 	LogNew.cpp \
 	LogNew.h \
 	logsys.cpp \

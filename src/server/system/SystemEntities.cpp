@@ -24,6 +24,7 @@
 */
 
 #include "EvemuPCH.h"
+#include "utils_string.h"
 
 using namespace Destiny;
 
@@ -107,7 +108,8 @@ void SystemPlanetEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	item->main.formationID = 0xFF;
 	
 	item->name.name_len = data.itemName.length();
-	strcpy_fake_unicode(item->name.name, data.itemName.c_str());
+
+	py_mbstowcs(item->name.name, data.itemName.c_str(), data.itemName.length());
 }
 
 SystemStationEntity::SystemStationEntity(SystemManager *system, const DBSystemEntity &entity)
@@ -154,7 +156,7 @@ void SystemStationEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	item = (AddBall_Station *) (((uint8 *) item)+(miniball_count-1)*sizeof(MiniBall));
 	
 	item->name.name_len = data.itemName.length();
-	strcpy_fake_unicode(item->name.name, data.itemName.c_str());
+	py_mbstowcs(item->name.name, data.itemName.c_str(), data.itemName.length());
 }
 
 PyRepDict *SystemStationEntity::MakeSlimItem() const {
@@ -240,7 +242,7 @@ void SystemAsteroidBeltEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	item->main.formationID = 0xFF;
 	
 	item->name.name_len = data.itemName.length();
-	strcpy_fake_unicode(item->name.name, data.itemName.c_str());
+	py_mbstowcs(item->name.name, data.itemName.c_str(), data.itemName.length());
 }
 
 bool SystemAsteroidBeltEntity::LoadExtras(SystemDB *db) {
@@ -352,7 +354,7 @@ void SystemDungeonEntranceEntity::EncodeDestiny(std::vector<uint8> &into) const 
 	item = (AddBall_Dungeon *) (((uint8 *) item)+(miniball_count-1)*sizeof(MiniBall));
 
 	item->name.name_len = itemName.length();
-	strcpy_fake_unicode(item->name.name, itemName.c_str());
+	py_mbstowcs(item->name.name, itemName.c_str(), itemName.length());
 }
 
 
