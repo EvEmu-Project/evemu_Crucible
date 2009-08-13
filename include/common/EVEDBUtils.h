@@ -74,17 +74,17 @@ void DBResultToIntIntlistDict(DBQueryResult &result, std::map<int32, PyRep *> &i
 DBTYPE GetPackedColumnType(DBQueryResult::ColType colType);
 
 /**
- * This routine builds blue_DBRowDescriptor from DBQueryResult.
+ * This routine builds a DBRow.Descriptor from a DBQueryResult.
  *
- * @param[in] res DBQueryResult to build from.
- * @return blue_DBRowDescriptor.
+ * @param[in] res Query Result to build the DBROW.Descriptor from.
+ * @return blue_DBRowDescriptor object.
  */
 PyRepObjectEx *DBResultToRowDescriptor(const DBQueryResult &res);
 /**
- * This routine builds blue_DBRowDescriptor from DBResultRow.
+ * This routine builds DBRow.Descriptor from a DBResultRow.
  *
  * @param[in] row DBResultRow to build from.
- * @return blue_DBRowDescriptor.
+ * @return blue_DBRowDescriptor object.
  */
 PyRepObjectEx *DBRowToRowDescriptor(const DBResultRow &row);
 

@@ -105,22 +105,23 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
     return new PyRepNone();
 }
 
-PyRepObject *DBResultToRowset(DBQueryResult &result) {
-    uint32 cc = result.ColumnCount();
-    if(cc == 0)
-        return(new PyRepObject("util.Rowset", new PyRepDict()));
+PyRepObject *DBResultToRowset(DBQueryResult &result)
+{
     uint32 r;
+    uint32 cc = result.ColumnCount();
 
-    PyRepObject *res = new PyRepObject();
-    res->type = "util.Rowset";
     PyRepDict *args = new PyRepDict();
-    res->arguments = args;
+    PyRepObject *res = new PyRepObject("util.Rowset", args);
+
+    /* check if we have a empty query result and return a empty RowSet */
+    if( cc == 0 )
+        return res;
 
     //list off the column names:
-    PyRepList *header = new PyRepList();
+    PyRepList *header = new PyRepList( cc );
     args->add("header", header);
     for(r = 0; r < cc; r++) {
-        header->add(result.ColumnName(r));
+        header->setStr( r, result.ColumnName(r));
     }
 
     //RowClass:
@@ -133,10 +134,10 @@ PyRepObject *DBResultToRowset(DBQueryResult &result) {
     //add a line entry for each result row:
     DBResultRow row;
     while(result.GetRow(row)) {
-        PyRepList *linedata = new PyRepList();
-        rowlist->items.push_back(linedata);
+        PyRepList *linedata = new PyRepList( cc );
+        rowlist->add(linedata);
         for(r = 0; r < cc; r++) {
-            linedata->add(DBColumnToPyRep(row, r));
+            linedata->set( r, DBColumnToPyRep(row, r) );
         }
     }
 
@@ -195,11 +196,9 @@ PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
         return(new PyRepObject("util.IndexRowset", new PyRepDict()));
 
     //start building the IndexRowset
-    PyRepObject *res = new PyRepObject();
-    res->type = "util.IndexRowset";
     PyRepDict *args = new PyRepDict();
-    res->arguments = args;
-
+    PyRepObject *res = new PyRepObject("util.IndexRowset", args);
+    
     //list off the column names:
     PyRepList *header = new PyRepList();
     args->add("header", header);
@@ -232,11 +231,9 @@ PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
 
 PyRepObject *DBRowToKeyVal(DBResultRow &row) {
 
-    PyRepObject *res = new PyRepObject();
-    res->type = "util.KeyVal";
     PyRepDict *args = new PyRepDict();
-    res->arguments = args;
-
+    PyRepObject *res = new PyRepObject("util.KeyVal", args);
+    
     uint32 cc = row.ColumnCount();
     uint32 r;
     for(r = 0; r < cc; r++) {
@@ -438,43 +435,75 @@ PyRepObjectEx *DBResultToRowDescriptor( const DBQueryResult &res )
 {
     uint32 cc = res.ColumnCount();
 
-    blue_DBRowDescriptor desc;
-    desc.columns = new PyRepTuple( cc );
+    /* First we create the payload */
+    PyRepTuple * RowPayload = new PyRepTuple( cc );
 
     for(uint32 i = 0; i < cc; i++)
     {
-        PyRepTuple *t = new PyRepTuple( 2 );
+        PyRepTuple *RowField = new PyRepTuple( 2 );
 
-        t->items[0] = new PyRepString( res.ColumnName( i ) );
-        t->items[1] = new PyRepInteger( GetPackedColumnType( res.ColumnType( i ) ) );
+        RowField->SetItem( 0, new PyRepString( res.ColumnName( i ) ));
+        RowField->SetItem( 1, new PyRepInteger( GetPackedColumnType( res.ColumnType( i ) ) ));
 
-        desc.columns->items[i] = t;
+        RowPayload->SetItem( i , RowField );
     }
 
-    return desc.FastEncode();
+    /* store the payload in its tuple container */
+    PyRepTuple * PayloadContainer = new PyRepTuple(1);
+    PayloadContainer->SetItem( 0, RowPayload );
+
+    /* we create the class instance */
+    PyRepString * ClassTypeName = new PyRepString("blue.DBRowDescriptor", true);
+    
+    PyRepTuple * ClassHeader = new PyRepTuple(2);
+
+    ClassHeader->SetItem( 0, ClassTypeName );
+    ClassHeader->SetItem( 1, PayloadContainer );
+
+    /* now everything is almost ready */
+
+    /* we don't have root list or root dict stuff here */
+    PyRepObjectEx *main_obj = new PyRepObjectEx( false, ClassHeader );
+    return main_obj;
 }
 
 PyRepObjectEx *DBRowToRowDescriptor( const DBResultRow &row )
 {
     uint32 cc = row.ColumnCount();
 
-    blue_DBRowDescriptor desc;
-    desc.columns = new PyRepTuple( cc );
+    /* First we create the payload */
+    PyRepTuple * RowPayload = new PyRepTuple( cc );
 
-    for( uint32 i = 0; i < cc; i++ )
+    for(uint32 i = 0; i < cc; i++)
     {
-        PyRepTuple *t = new PyRepTuple( 2 );
+        PyRepTuple *RowField = new PyRepTuple( 2 );
 
-        t->items[0] = new PyRepString( row.ColumnName( i ) );
-        t->items[1] = new PyRepInteger( GetPackedColumnType( row.ColumnType( i ) ) );
+        RowField->SetItem( 0, new PyRepString( row.ColumnName( i ) ));
+        RowField->SetItem( 1, new PyRepInteger( GetPackedColumnType( row.ColumnType( i ) ) ));
 
-        desc.columns->items[i] = t;
+        RowPayload->SetItem( i , RowField );
     }
 
-    return desc.FastEncode();
+    /* store the payload in its tuple container */
+    PyRepTuple * PayloadContainer = new PyRepTuple(1);
+    PayloadContainer->SetItem( 0, RowPayload );
+
+    /* we create the class instance */
+    PyRepString * ClassTypeName = new PyRepString("blue.DBRowDescriptor", true);
+    
+    PyRepTuple * ClassHeader = new PyRepTuple(2);
+
+    ClassHeader->SetItem( 0, ClassTypeName );
+    ClassHeader->SetItem( 1, PayloadContainer );
+
+    /* now everything is almost ready */
+
+    /* we don't have root list or root dict stuff here */
+    PyRepObjectEx *main_obj = new PyRepObjectEx( false, ClassHeader );
+    return main_obj;
 }
 
-PyRepPackedRow *CreatePackedRow( const DBResultRow &row, const PyRep &header, bool headerOwner )
+PyRepPackedRow *CreatePackedRow( const DBResultRow &row, PyRep &header, bool headerOwner )
 {
     PyRepPackedRow *res = new PyRepPackedRow( header, headerOwner );
 
@@ -526,9 +555,14 @@ PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
     DBResultRow row;
     res.root_list.resize(result.GetRowCount());
     uint32 i = 0;
+    //res.header->IncRef();
     while(result.GetRow(row))
+    {
         //this is piece of crap due to header cloning
+
+        //res.header->IncRef();
         res.root_list[i++] = CreatePackedRow( row, *res.header->Clone(), true );
+    }
 
     return res.FastEncode();
 }

@@ -108,7 +108,7 @@ static void pfxPreviewHexDump(const char *pfx, LogType type, const uint8 *data, 
 /* PyRep base Class                                                     */
 /************************************************************************/
 
-PyRep::PyRep(Type t) : m_type(t) {}
+PyRep::PyRep(Type t) : m_type(t), mRefcnt(1) {}
 PyRep::~PyRep() {}
 
 const char *PyRep::TypeString() const
@@ -653,6 +653,12 @@ void PyRepTuple::CloneFrom(const PyRepTuple *from) {
     }
 }
 
+void PyRepTuple::SetItem( uint32 index, PyRep* object )
+{
+    assert(index < items.size());
+    items[index] = object;
+}
+
 PyRepList *PyRepList::TypedClone() const {
     PyRepList *r = new PyRepList();
     r->CloneFrom(this);
@@ -720,7 +726,7 @@ PyRepChecksumedStream *PyRepChecksumedStream::TypedClone() const {
 }
 
 
-PyRepPackedRow::PyRepPackedRow(const PyRep &header, bool header_owner)
+PyRepPackedRow::PyRepPackedRow(PyRep &header, bool header_owner)
 : PyRep( PyRep::PyTypePackedRow ),
   mHeader( header ),
   mHeaderOwner( header_owner ),
@@ -756,7 +762,8 @@ PyRepPackedRow::PyRepPackedRow(const PyRep &header, bool header_owner)
 PyRepPackedRow::~PyRepPackedRow()
 {
     if( IsHeaderOwner() )
-        delete &mHeader;
+        //delete &mHeader;
+        (&mHeader)->DecRef();
 
     std::vector<PyRep *>::iterator cur, end;
     cur = mFields.begin();

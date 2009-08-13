@@ -99,12 +99,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    //if(!PyRepString::LoadStringFile(sConfig.files.strings.c_str()))
-    //{
-      //  sLog.Error("server init", "PyStringTable | Unable to open %s!", sConfig.files.strings.c_str());
-        //return 1;
-    //}
-
     //connect to the database...
     DBcore db;
     {

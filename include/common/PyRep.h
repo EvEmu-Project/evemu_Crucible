@@ -147,8 +147,25 @@ public:
     //using this method is discouraged, it generally means your doing something wrong... CheckType() should cover almost all needs
     Type youreallyshouldentbeusingthis_GetType() const { return m_type; }
 
+    void IncRef()
+    {
+        mRefcnt++;
+        //printf("PyRep:0x%p | ref:%u inc\n", this, mRefcnt);
+    }
+
+    void DecRef()
+    {
+        mRefcnt--;
+        //printf("PyRep:0x%p | ref:%u dec\n", this, mRefcnt);
+        if (mRefcnt <= 0)
+        {
+            //printf("PyRep:0x%p | deleted\n", this);
+            delete this;
+        }
+    }
 protected:
     const Type m_type;
+    size_t mRefcnt;
 };
 
 //storing all integers (and booleans) as uint64s is a lot of craziness right now
@@ -367,6 +384,8 @@ public:
     void clear();
     uint32 size() const;
 
+    void SetItem( uint32 index, PyRep* object );
+
     /* polymorphic overload to make the PyRepTuple do nice lookups. */
 
     /**
@@ -563,7 +582,7 @@ public:
 class PyRepPackedRow : public PyRep {
 public:
     // We silently assume here that header is blue.DBRowDescriptor.
-    PyRepPackedRow(const PyRep &header, bool header_owner);
+    PyRepPackedRow(PyRep &header, bool header_owner);
     virtual ~PyRepPackedRow();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
@@ -579,7 +598,7 @@ public:
     void CloneFrom(const PyRepPackedRow *from);
 
     // Header:
-    const PyRep &GetHeader() const { return mHeader; }
+    PyRep &GetHeader() const { return mHeader; }
     bool IsHeaderOwner() const { return mHeaderOwner; }
 
     // Column info:
@@ -595,7 +614,7 @@ public:
     bool SetField(const char *colName, PyRep *value);
 
 protected:
-    const PyRep &mHeader;
+    PyRep &mHeader;
     const bool mHeaderOwner;
 
     const PyRepTuple *mColumnInfo;
