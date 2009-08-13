@@ -139,6 +139,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="zlib.lib wsock32.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\dep\mysql\lib\opt;..\..\dep\zlib\lib;..\..\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
