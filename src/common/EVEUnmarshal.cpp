@@ -1150,10 +1150,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
         }
 
-        uint32 data_length = *packet;
-        packet++;
-        len--;
-        len_used++;
+        uint32 data_length = Getuint8();
 
         //special extended length substream
         if(data_length == 0xFF) {
@@ -1162,10 +1159,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
                 break;
             }
 
-            data_length = *((const uint32 *) packet);
-            packet += sizeof(uint32);
-            len -= sizeof(uint32);
-            len_used += sizeof(uint32);
+            data_length = Getuint32();
         }
 
         if(*packet != SubStreamHeaderByte) {

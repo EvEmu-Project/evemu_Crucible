@@ -134,41 +134,34 @@ uint8 *InflatePacket(const uint8 *data, uint32 *length, bool quiet)
 
     int zlibUncompressResult = uncompress(outBuffer, &outBufferLen, source, sourcelen);
 
-    if (zlibUncompressResult == Z_BUF_ERROR)
+    if( zlibUncompressResult == Z_BUF_ERROR )
     {
-        int loop_limiter = 0;
-        while(zlibUncompressResult == Z_BUF_ERROR)
+        for( int loop_limiter = 0; zlibUncompressResult == Z_BUF_ERROR; loop_limiter++ )
         {
             /* because this code is a possible fuck up, we limit the mount of tries */
-            if (loop_limiter++ > 100)
+            if( loop_limiter > 100 )
             {
                 zlibUncompressResult = Z_MEM_ERROR;
                 _log(COMMON__ERROR, "uncompress increase buffer overflow safe mechanism");
                 break;
             }
 
-            bufferMultiplier*=2;
+            bufferMultiplier *= 2;
             outBufferLen = sourcelen * bufferMultiplier;
             allocatedBufferLen = outBufferLen;
 
             outBuffer = (Bytef*)realloc(outBuffer, outBufferLen); // resize the output buffer
             zlibUncompressResult = uncompress(outBuffer, &outBufferLen, source, sourcelen); // and try it again
         }
-
-        if (zlibUncompressResult != Z_OK)
-        {
-            _log(COMMON__ERROR, "uncompress went wrong ***PANIC***");
-
-            free( outBuffer );
-            return false;
-        }
     }
-    else if (zlibUncompressResult != Z_OK)
+
+    if( zlibUncompressResult != Z_OK )
     {
         _log(COMMON__ERROR, "uncompress went wrong ***PANIC***");
         free( outBuffer );
         return false;
     }
 
+    *length = outBufferLen;
     return outBuffer;
 }

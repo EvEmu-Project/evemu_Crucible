@@ -54,8 +54,6 @@ public:
 	 */
 	UnmarshalReferenceMap(const uint32 objectCount, const uint32 *orderList) : mStoredObjectCount( objectCount ), mOrderList( orderList ), mNextOrderIndex( 0 )
 	{
-		assert( mStoredObjectCount < 0x100 ); // kinda normal..... 256 referenced objects otherwise crash
-
 		mReferenceObjects = new PyRep*[ mStoredObjectCount ];
 		memset( mReferenceObjects, 0, mStoredObjectCount * sizeof( PyRep* ) );
 	}
