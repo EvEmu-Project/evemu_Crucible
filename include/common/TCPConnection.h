@@ -97,15 +97,14 @@ public:
 	 */
 	std::string		GetAddress()
 	{
-		char address[22];
-
 		/* "The Matrix is a system, 'Neo'. That system is our enemy. But when you're inside, you look around, what do you see?"
 		* @note Aim I'm sorry :'( but I don't think this is cross platform compatible.
 		*/
 		uint8 *addr = (uint8*)&rIP;
 		uint16 port = *(uint16*)&rPort;
 
-		int len = snprintf(address, 21, "%u.%u.%u.%u:%d", addr[0], addr[1],addr[2],addr[3], port);
+		char address[22];
+		int len = snprintf(address, 22, "%u.%u.%u.%u:%d", addr[0], addr[1],addr[2],addr[3], port);
 
 		/* snprintf will return < 0 when a error occurs so return NULL */
 		if (len < 0)

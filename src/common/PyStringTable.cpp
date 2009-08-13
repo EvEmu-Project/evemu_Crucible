@@ -26,11 +26,8 @@
 #include "common.h"
 #include "PyStringTable.h"
 
-/* the current string count of the string table */
-size_t StringTableSize = 194;
-
 /* we made up this list so we have efficient string communication with the client */
-const char *StringTableData[] =
+const char *StringTable[StringTableSize] =
 {
     "*corpid",
     "*locationid",
@@ -231,59 +228,55 @@ const char *StringTableData[] =
 
 PyMarshalStringTable::PyMarshalStringTable()
 {
-    for (size_t i = 0; i < StringTableSize; i++)
+    for( size_t i = 0; i < StringTableSize; i++ )
     {
-        uint32 hashValue = hash(StringTableData[i]);
-        mStringTable[hashValue] = static_cast<uint8>(i);
-        mPyStringTable[i].set(StringTableData[i], strlen(StringTableData[i]));
+        uint32 hashValue = hash( StringTable[i] );
+        mStringTable[hashValue] = static_cast<uint8>( i );
+        mPyStringTable[i].set( StringTable[i], strlen( StringTable[i] ) );
     }
 }
 
 PyMarshalStringTable::~PyMarshalStringTable() {}
 
 /* lookup a index using a string */
-size_t PyMarshalStringTable::LookupIndex(std::string &str)
+size_t PyMarshalStringTable::LookupIndex(const std::string &str)
 {
-    uint32 hashValue = hash(str);
-    std::tr1::unordered_map<uint32, uint8>::const_iterator Itr = mStringTable.find(hashValue);
-    if (Itr != mStringTable.end())
-    {
-        return Itr->second + 1;
-    }
-    return -1;
+	return LookupIndex( str.c_str() );
 }
 
 /* lookup a index using a string */
 size_t PyMarshalStringTable::LookupIndex(const char* str)
 {
-    // I am lazy... so I do it this way
-    std::string _str(str);
-    return LookupIndex(_str);
+    uint32 hashValue = hash( str );
+    std::tr1::unordered_map<uint32, uint8>::const_iterator Itr = mStringTable.find( hashValue );
+    if( Itr != mStringTable.end() )
+    {
+        return Itr->second + 1;
+    }
+    return STRING_TABLE_ERROR;
 }
 
 bool PyMarshalStringTable::LookupString(uint8 index, std::string &str)
 {
-    if (index > StringTableSize)
+    if( --index >= StringTableSize )
     {
-        str = "";
+        str.clear();
         return false;
     }
 
-    str = StringTableData[index-1];
+    str = StringTable[index];
     return true;
 }
 
-bool PyMarshalStringTable::LookupPyString( uint8 index, PyRepString *&str )
+bool PyMarshalStringTable::LookupPyString(uint8 index, const PyRepString *&str)
 {
-    if (index > StringTableSize)
+    if( --index >= StringTableSize )
     {
         /* crash HARD */
         assert(false);
         return false;
     }
 
-    assert(index > 0);
-    str = &mPyStringTable[index-1];
-
+    str = &mPyStringTable[index];
     return true;
 }

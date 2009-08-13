@@ -122,17 +122,11 @@ PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len)
     work_buffer++;
     body_len--;
 
-    uint8 save_count = *work_buffer;
-    //no idea what the other three bytes are, this might be a uint32, but that would be stupid
-    work_buffer += 4;
-    body_len -= 4;
+    uint32 save_count = *(uint32 *)work_buffer;
+    work_buffer += sizeof( uint32 );
+    body_len -= sizeof( uint32 ) + save_count * sizeof( uint32 );
 
-    UnmarshalReferenceMap state( save_count );
-
-	body_len -= save_count * sizeof( uint32 );
-	uint32 *order_start = (uint32 *)&work_buffer[ body_len ];
-	for( uint32 i = 0; i < state.GetStoredCount(); i++ )
-		state.SetOrderIndex( i + 1, order_start[ i ] );
+    UnmarshalReferenceMap state( save_count, (uint32 *)&work_buffer[ body_len ] );
 
     PyRep *rep;
     uint32 used_len = UnmarshalData(&state, work_buffer, body_len, rep, "    ");
@@ -456,7 +450,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         }
         uint8 value = *packet;
 
-        PyRepString * sharedString = NULL;
+        const PyRepString * sharedString = NULL;
         if( sPyStringTable.LookupPyString(value, sharedString) == false)
         {
             assert(false);

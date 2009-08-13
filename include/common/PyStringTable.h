@@ -26,13 +26,15 @@
 #ifndef PY_STRING_TABLE_H
 #define PY_STRING_TABLE_H
 
-/* the current string count of the string table */
-extern size_t StringTableSize;
+#include "PyRep.h"
+
+#define STRING_TABLE_ERROR -1
 
 /* we made up this list so we have efficient string communication with the client */
-extern const char *StringTableData[];
+extern const char *StringTable[];
 
-#include "PyRep.h"
+/* the current string count of the string table */
+const size_t StringTableSize = 195;
 
 /**
  * \class PyMarshalStringTable
@@ -62,7 +64,7 @@ public:
      * @param[in] string that needs a lookup for a index nr.
      * @return the index number of the string that was given, returns -1 if string is not found.
      */
-    size_t LookupIndex(std::string &str);
+    size_t LookupIndex(const std::string &str);
 
     /**
     * @brief lookup a index nr using a string
@@ -94,9 +96,7 @@ public:
      * @param[out] str is the PyString that we have looked up if successful.
      * @return true if the index is valid and false if its beyond the range.
      */
-    bool LookupPyString(uint8 index, PyRepString *&str);
-
-#define STRING_TABLE_ERROR -1
+    bool LookupPyString(uint8 index, const PyRepString *&str);
 
 private:
     /**
@@ -107,10 +107,8 @@ private:
      * @param[in] oStr string that needs to be hashed.
      * @return djb2 has of the string.
      */
-    uint32 hash(const std::string& oStr)
+    uint32 hash(const char *str)
     {
-        const char * str = oStr.c_str();
-
         uint32 hash = 5381;
         int c;
 
@@ -120,13 +118,12 @@ private:
         return hash;
     }
 
-private:
     typedef std::tr1::unordered_map<uint32, uint8>  StringTableMap;
     typedef StringTableMap::iterator                StringTableMapItr;
     typedef StringTableMap::const_iterator          StringTableMapConstItr;
 
     StringTableMap  mStringTable;
-    PyRepString    mPyStringTable[195];
+    PyRepString     mPyStringTable[StringTableSize];
 };
 
 extern PyMarshalStringTable PyStringTable;

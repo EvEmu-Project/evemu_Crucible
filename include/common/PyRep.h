@@ -34,8 +34,6 @@
 
 #include "PyVisitor.h"
 
-class EVEStringTable;
-
 class PyRepInteger;
 class PyRepReal;
 class PyRepBoolean;
@@ -712,35 +710,5 @@ public:
 
     PyRep *const to;
 };*/
-
-//this probably belongs in its own file
-class EVEStringTable
-{
-public:
-    EVEStringTable();
-    ~EVEStringTable();
-
-    static const uint8 None = 0;    //returned for no match
-
-    bool LoadFile(const char *file);
-
-    uint8 LookupString(const std::string &str) const;
-    const char *LookupIndex(uint8 index) const;
-
-protected:
-    //there are better implementations of this, but this works:
-    typedef std::vector<char*>                          LookupVector;
-    typedef LookupVector::iterator                      LookupVectorItr;
-    typedef LookupVector::const_iterator                LookupVectorConstItr;
-
-    typedef std::tr1::unordered_map<std::string, uint8> LookupMap;
-    typedef LookupMap::iterator                         LookupMapItr;
-    typedef LookupMap::const_iterator                   LookupMapConstItr;
-
-
-    LookupVector    m_forwardLookup;
-    LookupMap       m_reverseLookup;
-    uint32          m_size;
-};
 
 #endif//EVE_PY_REP_H

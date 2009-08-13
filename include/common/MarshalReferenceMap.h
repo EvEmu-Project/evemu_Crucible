@@ -52,13 +52,12 @@ public:
 	 * Constructor that sets the expected object count of referenced objects.
 	 * @param objectCount is the number of expected referenced objects within the marshal stream, its also known in the client as as MapCount.
 	 */
-	UnmarshalReferenceMap(const uint32 objectCount) : mStoredObjectCount( objectCount )
+	UnmarshalReferenceMap(const uint32 objectCount, const uint32 *orderList) : mStoredObjectCount( objectCount ), mOrderList( orderList ), mNextOrderIndex( 0 )
 	{
 		assert( mStoredObjectCount < 0x100 ); // kinda normal..... 256 referenced objects otherwise crash
 
 		mReferenceObjects = new PyRep*[ mStoredObjectCount ];
 		memset( mReferenceObjects, 0, mStoredObjectCount * sizeof( PyRep* ) );
-		mOrder.resize( objectCount );
 	}
 
 	/**
@@ -76,8 +75,8 @@ public:
 	 */
 	EVEMU_INLINE PyRep* GetStoredObject(uint32 location)
 	{
-		if( ( location - 1 ) < mStoredObjectCount )
-			return mReferenceObjects[ location - 1 ];
+		if( --location < mStoredObjectCount )
+			return mReferenceObjects[ location ];
 		else
 			return NULL;
 	}
@@ -88,14 +87,12 @@ public:
 	 */
 	EVEMU_INLINE uint32 ReserveObjectSpace()
 	{
-		if( mOrder.empty() )
+		if( mNextOrderIndex >= mStoredObjectCount )
 		{
 			printf( "Trying to store too many objects.\n" );
 			abort(); // crash when we are storing more objects than we expect
 		}
-		uint32 index = mOrder.front();
-		mOrder.erase( mOrder.begin() ); // pop front
-		return index;
+		return mOrderList[ mNextOrderIndex++ ];
 	}
 
 	/**
@@ -105,22 +102,8 @@ public:
 	 */
 	EVEMU_INLINE void StoreReferencedObject(uint32 index, PyRep * object)
 	{
-		if( ( index - 1 ) < mStoredObjectCount )
-			mReferenceObjects[ index - 1 ] = object;
-	}
-
-	/**
-	 * Sets order index.
-	 * @param storeIndex is index in order of storing objects.
-	 * @param getIndex is index in order of getting objects.
-	 */
-	EVEMU_INLINE void SetOrderIndex(uint32 storeIndex, uint32 getIndex)
-	{
-		if(    mOrder.size() == mStoredObjectCount // allow order setup only until first object is stored
-		    && ( storeIndex - 1 ) < mStoredObjectCount && ( getIndex - 1 ) < mStoredObjectCount )
-		{
-			mOrder[ storeIndex - 1 ] = getIndex;
-		}
+		if( --index < mStoredObjectCount )
+			mReferenceObjects[ index ] = object;
 	}
 
 	/**
@@ -139,15 +122,20 @@ protected:
 	const uint32 mStoredObjectCount;
 
 	/**
+	 * list of order indexes
+	 */
+	const uint32 *mOrderList;
+
+	/**
+	 * index poiting to free index in mOrderList
+	 */
+	uint32 mNextOrderIndex;
+
+	/**
 	 * pointer container to keep track of the pointers...
 	 * and of course: "we do not own the pointers in this list"
 	 */
 	PyRep** mReferenceObjects;
-
-	/**
-	 * this vector keeps track of ordering
-	 */
-	std::vector<uint32> mOrder;
 };
 
 #endif//UNMARSHAL_REFERENCE_MAP_H
