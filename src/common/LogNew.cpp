@@ -178,6 +178,7 @@ NewLog::~NewLog()
 void NewLog::LogTime( FILE* fp )
 {
     tm t;
+    UNIXTIME = time(NULL); /* this will be replaced my a timing thread somehow */
     localtime_r( &UNIXTIME, &t );
     fprintf( fp, "%02u:%02u:%02u ", t.tm_hour, t.tm_min, t.tm_sec );
 }
