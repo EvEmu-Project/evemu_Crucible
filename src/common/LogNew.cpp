@@ -116,11 +116,13 @@ void NewLog::Warning( const char * source, const char * str, ... )
     UNLOCK_LOG;
 #endif//ENABLE_CONSOLE_LOG
 }
+
 void NewLog::Success(const char * source, const char * format, ...)
 {
-    va_list ap;
+    va_list ap, ap2;
     va_start(ap, format);
-    LogTime( stdout ); LogTime( m_logfile );    
+    va_copy(ap2, ap); /* this is a design flaw ( UNIX related ) */
+    LogTime( stdout ); LogTime( m_logfile );
     SetColor( TGREEN );
     fputs("S ", stdout); fputs("S ", m_logfile);
     if(*source)
@@ -131,16 +133,19 @@ void NewLog::Success(const char * source, const char * format, ...)
         SetColor( TGREEN );
     }
 
-    vfprintf( stdout, format, ap ); vfprintf( m_logfile, format, ap );
+    vfprintf( stdout, format, ap ); vfprintf( m_logfile, format, ap2 );
     fputc( '\n', stdout ); fputc( '\n', m_logfile );
     va_end(ap);
+    va_end(ap2);
+
     SetColor(TNORMAL);
 }
 
 void NewLog::Error( const char * source, const char * format, ... )
 {
-    va_list ap;
+    va_list ap, ap2;
     va_start(ap, format);
+    va_copy(ap2, ap); /* this is a design flaw ( UNIX related ) */
     LogTime( stdout ); LogTime( m_logfile );
     SetColor( TRED );
     fputs("E ", stdout); fputs("E ", m_logfile);
@@ -152,9 +157,10 @@ void NewLog::Error( const char * source, const char * format, ... )
         SetColor( TRED );
     }
 
-    vfprintf( stdout, format, ap ); vfprintf( m_logfile, format, ap );
+    vfprintf( stdout, format, ap ); vfprintf( m_logfile, format, ap2 );
     fputc( '\n', stdout ); fputc( '\n', m_logfile );
     va_end(ap);
+    va_end(ap2);
     SetColor(TNORMAL);
 }
 
@@ -195,8 +201,9 @@ void NewLog::log( const char * str, ... )
 
 void NewLog::Log( const char * source, const char * str, ... )
 {
-    va_list ap;
+    va_list ap, ap2;
     va_start(ap, str);
+    va_copy(ap2, ap); /* this is a design flaw ( UNIX related ) */
     LogTime( stdout ); LogTime( m_logfile );
     SetColor( TNORMAL );
     fputs("L ", stdout); fputs("L ", m_logfile);
@@ -208,9 +215,10 @@ void NewLog::Log( const char * source, const char * str, ... )
         SetColor( TNORMAL );
     }
 
-    vfprintf( stdout, str, ap ); vfprintf( m_logfile, str, ap );
+    vfprintf( stdout, str, ap ); vfprintf( m_logfile, str, ap2 );
     fputc( '\n', stdout ); fputc( '\n', m_logfile );
     va_end(ap);
+    va_end(ap2);
     SetColor(TNORMAL);
 
     fflush( m_logfile );
@@ -219,8 +227,9 @@ void NewLog::Log( const char * source, const char * str, ... )
 void NewLog::Debug(const char * source, const char * format, ...)
 {
 #ifdef DEBUG
-    va_list ap;
+    va_list ap, ap2;
     va_start(ap, format);
+    va_copy(ap2, ap); /* this is a design flaw ( UNIX related ) */
     LogTime( stdout ); LogTime( m_logfile );
     SetColor( TBLUE );
     fputs("D ", stdout); fputs("D ", m_logfile);
@@ -232,9 +241,10 @@ void NewLog::Debug(const char * source, const char * format, ...)
         SetColor( TBLUE );
     }
 
-    vfprintf( stdout, format, ap ); vfprintf( m_logfile, format, ap );
+    vfprintf( stdout, format, ap ); vfprintf( m_logfile, format, ap2 );
     fputc( '\n', stdout ); fputc( '\n', m_logfile );
     va_end(ap);
+    va_end(ap2);
     SetColor(TNORMAL);
 #endif//DEBUG
 }

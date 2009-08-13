@@ -159,7 +159,6 @@ bool log_open_logfile(const char *fname) {
     return true;
 }
 
-
 bool load_log_settings(const char *filename) {
     //this is a terrible algorithm, but im lazy today
     FILE *f = fopen(filename, "r");
