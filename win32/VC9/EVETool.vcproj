@@ -64,6 +64,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="zlib.lib wsock32.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\..\dep\mysql\lib\debug;..\..\dep\zlib\lib;..\..\lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				RandomizedBaseAddress="1"

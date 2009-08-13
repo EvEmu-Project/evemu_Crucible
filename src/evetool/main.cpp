@@ -47,6 +47,7 @@
 #include "../common/RowsetToSQL.h"
 #include "../common/packet_types.h"
 #include "../common/DestinyBinDump.h"
+#include "../common/PyStringTable.h"
 #include "../packets/General.h"
 #include "TriFile.h"
 #include <queue>
@@ -71,6 +72,7 @@ static volatile bool RunLoops = true;
 static Mutex MInputQueue;
 static std::queue<char *> InputQueue;	//consumer must free() these strings.
 
+PyMarshalStringTable PyStringTable;
 
 static ThreadReturnType UserInputThread(void *data);
 void ProcessInput(char *input);
