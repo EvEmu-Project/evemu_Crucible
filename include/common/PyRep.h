@@ -506,7 +506,7 @@ public:
 
     void add(const char *key, PyRep *value);
     void add(PyRep *key, PyRep *value);
-    void add(const char *key, const char *value);
+    void addStr(const char *key, const char *value);
 
     //BE CAREFUL, this map does NOT facilitate overwriting an existing
     //key, because there is no key comparison done (ptr compare only)!

@@ -192,12 +192,13 @@ PyRepObject *DBResultToIndexRowset(DBQueryResult &result, const char *key) {
 
 PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
     uint32 cc = result.ColumnCount();
-    if(cc == 0 || cc < key_index)
-        return(new PyRepObject("util.IndexRowset", new PyRepDict()));
 
     //start building the IndexRowset
     PyRepDict *args = new PyRepDict();
     PyRepObject *res = new PyRepObject("util.IndexRowset", args);
+
+    if(cc == 0 || cc < key_index)
+        return res;
     
     //list off the column names:
     PyRepList *header = new PyRepList();

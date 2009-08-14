@@ -380,7 +380,7 @@ void Client::Login(CryptoChallengePacket *pack) {
         no.args = new PyRepTuple(1);
         no.args->items[0] = new PyRepString("LoginAuthFailed");
 
-        no.keywords.add("msgkey", "LoginAuthFailed");
+        no.keywords.addStr("msgkey", "LoginAuthFailed");
 
         throw(PyException(no.FastEncode()));
     }

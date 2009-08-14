@@ -468,7 +468,7 @@ void PyRepDict::add(const char *key, PyRep *value) {
     items[new PyRepString(key)] = value;
 }
 
-void PyRepDict::add(const char *key, const char *value) {
+void PyRepDict::addStr(const char *key, const char *value) {
     if(key == NULL || value == NULL)
         return;
     items[new PyRepString(key)] = new PyRepString(value);
