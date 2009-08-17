@@ -548,68 +548,72 @@ PyRepTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
     return root;
 }
 
-#if 0
-PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
-    dbutil_CRowset res;
-    res.header = DBResultToRowDescriptor( result );
+/* Class structure
+* PyClass
+*   PyTuple:2
+*     itr[0]:PyTuple:1
+*       itr[0]:PyClass
+*         PyString:"dbutil.CRowset"
+*     itr[1]:PyDict:1
+*       dict["header"]=PyClass
+*         PyTuple:2
+*           itr[0]:PyClass
+*             PyString:"blue.DBRowDescriptor"
+*           itr[1]:PyTuple:1
+*             itr[0]:PyTuple:N<Amount of cols>
+*               itr[0]:PyTuple:2
+*                 itr[0]:PyString<FieldName>
+*                 itr[1]:PyInt<FieldType> DBTYPE
+*               itr[N]:PyTuple:2
+*                 itr[0]:PyString<FieldName>
+*                 itr[1]:PyInt<FieldType> DBTYPE
+*            PyDict:0
+*            PyList:0
+* PyDict:0
+* PyList:N<Amount of rows>
+*   itr[N]:PyPackedRow
+*/
 
-    uint32 cc = result.ColumnCount();
-    res.columns.resize(cc);
-    for(uint32 i = 0; i < cc; i++)
-    {
-        res.columns[i] = result.ColumnName( i );
-    }
+/* this is a very monstrous implementation of a Python Class/Function call
+ */
+PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
+
+    uint32 cc = result.GetRowCount();
+
+    /* create CRowSet class header */
+    PyRepTuple * ClassHeader = new PyRepTuple(2);
+
+    PyRepString * ClassTypeName = new PyRepString("dbutil.CRowset", true);  // 0
+    PyRepObjectEx * RowDescriptor = DBResultToRowDescriptor( result );      // 1
+
+    /* object containers */
+    PyRepDict * headerDict = new PyRepDict(); headerDict->add( "header", RowDescriptor );
+    PyRepTuple * headerTuple = new PyRepTuple(1); headerTuple->SetItem( 0, ClassTypeName );
+
+    ClassHeader->SetItem( 0, headerTuple );
+    ClassHeader->SetItem( 1, headerDict );
+
+    PyRepObjectEx *root = new PyRepObjectEx( true, ClassHeader );
+    
+    root->list_data.resize( cc );
 
     DBResultRow row;
-    res.root_list.resize(result.GetRowCount());
     uint32 i = 0;
     //res.header->IncRef();
     while(result.GetRow(row))
     {
         //this is piece of crap due to header cloning
-
         //res.header->IncRef();
-        res.root_list[i++] = CreatePackedRow( row, *res.header->Clone(), true );
+        root->list_data[i++] = CreatePackedRow( row, *RowDescriptor->Clone(), true );
     }
 
-    return res.FastEncode();
-}
-
-#else
-
-PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
-    dbutil_CRowset res;
-    res.header = DBResultToRowDescriptor( result );
-
-    uint32 cc = result.ColumnCount();
-    res.columns.resize(cc);
-    for(uint32 i = 0; i < cc; i++)
-    {
-        res.columns[i] = result.ColumnName( i );
-    }
-
-    DBResultRow row;
-    res.root_list.resize(result.GetRowCount());
-    uint32 i = 0;
-    //res.header->IncRef();
-    while(result.GetRow(row))
-    {
-        //this is piece of crap due to header cloning
-
-        //res.header->IncRef();
-        res.root_list[i++] = CreatePackedRow( row, *res.header->Clone(), true );
-    }
-
-    return res.FastEncode();
-
-    //"dbutil.CRowset"
-
-    PyRepString * ClassType = new PyRepString("dbutil.CRowset", true);
+    return root;
 }
 
 #endif
 
-PyRepPackedRow *DBRowToPackedRow( DBResultRow &row ) {
+PyRepPackedRow *DBRowToPackedRow( DBResultRow &row )
+{
     PyRep *header = DBRowToRowDescriptor( row );
 
     return CreatePackedRow( row, *header, true );
