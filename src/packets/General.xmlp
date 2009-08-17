@@ -86,13 +86,6 @@
   </object_ex>
 </element>
 
-<element name="dbutil_RowListTuple">
-  <InlineTuple>
-	<raw name="header" />
-	<list name="rows" />
-  </InlineTuple>
-</element>
-
 <element name="dbutil_RowList">
   <object_ex name="root" type1="true">
 	<InlineTuple>

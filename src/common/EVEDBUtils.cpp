@@ -26,6 +26,7 @@
 #include "EVEDBUtils.h"
 #include "PyVisitor.h"
 #include "PyRep.h"
+#include "LogNew.h"
 
 #include "../packets/General.h"
 
@@ -178,13 +179,15 @@ PyRepTuple *DBResultToTupleSet(DBQueryResult &result) {
 PyRepObject *DBResultToIndexRowset(DBQueryResult &result, const char *key) {
     uint32 cc = result.ColumnCount();
     uint32 key_index;
+
     for(key_index = 0; key_index < cc; key_index++)
         if(strcmp(key, result.ColumnName(key_index)) == 0)
             break;
 
-    if(key_index == cc) {
-        _log(DATABASE__ERROR, "Failed to find key column '%s' in result for IndexRowset", key);
-        return(NULL);
+    if(key_index == cc)
+    {
+        sLog.Error("EVEDBUtils", "DBResultToIndexRowset | Failed to find key column '%s' in result for IndexRowset", key);
+        return NULL;
     }
 
     return DBResultToIndexRowset(result, key_index);
@@ -201,15 +204,15 @@ PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
         return res;
     
     //list off the column names:
-    PyRepList *header = new PyRepList();
+    PyRepList *header = new PyRepList(cc);
     args->add("header", header);
     for(uint32 i = 0; i < cc; i++)
-        header->add(result.ColumnName(i));
+        header->setStr(i, result.ColumnName(i));
 
     //RowClass:
     args->add("RowClass", new PyRepString("util.Row", true));
     //idName:
-    args->add("idName", new PyRepString(result.ColumnName(key_index)));
+    args->addStr("idName", result.ColumnName(key_index));
 
     //items:
     PyRepDict *items = new PyRepDict();
@@ -220,9 +223,9 @@ PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
     while(result.GetRow(row)) {
         PyRep *key = DBColumnToPyRep(row, key_index);
 
-        PyRepList *line = new PyRepList();
+        PyRepList *line = new PyRepList(cc);
         for(uint32 i = 0; i < cc; i++)
-            line->add(DBColumnToPyRep(row, i));
+            line->set(i, DBColumnToPyRep(row, i));
 
         items->add(key, line);
     }
@@ -236,19 +239,16 @@ PyRepObject *DBRowToKeyVal(DBResultRow &row) {
     PyRepObject *res = new PyRepObject("util.KeyVal", args);
     
     uint32 cc = row.ColumnCount();
-    uint32 r;
-    for(r = 0; r < cc; r++) {
-        args->add(
-            new PyRepString(row.ColumnName(r)),
-            // =>
-            DBColumnToPyRep(row, r)
-            );
+    for( uint32 r = 0; r < cc; r++ )
+    {
+        args->add( row.ColumnName(r), DBColumnToPyRep(row, r));
     }
 
     return res;
 }
 
-PyRepObject *DBRowToRow(DBResultRow &row, const char *type) {
+PyRepObject *DBRowToRow(DBResultRow &row, const char *type)
+{
 
     PyRepDict *args = new PyRepDict();
     PyRepObject *res = new PyRepObject(type, args);
@@ -268,7 +268,8 @@ PyRepObject *DBRowToRow(DBResultRow &row, const char *type) {
     args->add("line", rowlist);
 
     //add a line entry for the row:
-    for(uint32 r = 0; r < cc; r++) {
+    for(uint32 r = 0; r < cc; r++)
+    {
         rowlist->set(r, DBColumnToPyRep(row, r));
     }
 
@@ -282,20 +283,20 @@ PyRepTuple *DBResultToRowList(DBQueryResult &result, const char *type) {
     uint32 r;
 
     PyRepTuple *res = new PyRepTuple(2);
-    PyRepList *cols = new PyRepList();
+    PyRepList *cols = new PyRepList(cc);
     PyRepList *reslist = new PyRepList();
-    res->items[0] = cols;
-    res->items[1] = reslist;
+    res->SetItem( 0, cols );
+    res->SetItem( 1, reslist );
 
     //list off the column names:
     for(r = 0; r < cc; r++) {
-        cols->add(result.ColumnName(r));
+        cols->setStr(r, result.ColumnName(r));
     }
 
     //add a line entry for each result row:
     DBResultRow row;
     while(result.GetRow(row)) {
-        //this could be more effecient by not building the column list each time, but cloning it instead.
+        //this could be more efficient by not building the column list each time, but cloning it instead.
         PyRepObject *o = DBRowToRow(row, type);
         reslist->items.push_back(o);
     }
@@ -309,14 +310,12 @@ PyRepDict *DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const c
     //add a line entry for each result row:
     DBResultRow row;
     while(result.GetRow(row)) {
-        //this could be more effecient by not building the column list each time, but cloning it instead.
+        //this could be more efficient by not building the column list each time, but cloning it instead.
         PyRepObject *r = DBRowToRow(row, type);
         int32 k = row.GetInt(key_index);
         if(k == 0)
             continue;   //likely a non-integer key
-        res->items[
-            new PyRepInteger(k)
-        ] = r;
+        res->add(new PyRepInteger(k), r);
     }
 
     return res;
@@ -339,9 +338,7 @@ PyRepDict *DBResultToIntIntDict(DBQueryResult &result) {
         else
             v = row.GetInt(1);
 
-        res->items[
-            new PyRepInteger(k)
-        ] = new PyRepInteger(v);
+        res->add( new PyRepInteger(k), new PyRepInteger(v) );
     }
 
     return res;
@@ -530,18 +527,28 @@ PyRepList *DBResultToPackedRowList( DBQueryResult &result ) {
     return res;
 }
 
-PyRepTuple *DBResultToPackedRowListTuple( DBQueryResult &result ) {
-    dbutil_RowListTuple res;
-    res.header = DBResultToRowDescriptor( result );
+/* function not used */
+PyRepTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
+{
+    size_t row_count = result.GetRowCount();
+    PyRepList * list = new PyRepList( row_count );
+    PyRepTuple * root = new PyRepTuple(2);
+    PyRep * header = DBResultToRowDescriptor( result );
+    root->SetItem( 0, header );
+    root->SetItem( 1, list );
 
     DBResultRow row;
-    while(result.GetRow(row))
-        //this is piece of crap due to header cloning
-        res.rows.add( CreatePackedRow( row, *res.header->Clone(), true ) );
+    for (size_t i = 0; i < row_count; i++)
+    {
+        if (!result.GetRow(row))
+            break;
+        list->set( i, CreatePackedRow( row, *header->Clone(), true ) );
+    }
 
-    return res.FastEncode();
+    return root;
 }
 
+#if 0
 PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
     dbutil_CRowset res;
     res.header = DBResultToRowDescriptor( result );
@@ -567,6 +574,40 @@ PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
 
     return res.FastEncode();
 }
+
+#else
+
+PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
+    dbutil_CRowset res;
+    res.header = DBResultToRowDescriptor( result );
+
+    uint32 cc = result.ColumnCount();
+    res.columns.resize(cc);
+    for(uint32 i = 0; i < cc; i++)
+    {
+        res.columns[i] = result.ColumnName( i );
+    }
+
+    DBResultRow row;
+    res.root_list.resize(result.GetRowCount());
+    uint32 i = 0;
+    //res.header->IncRef();
+    while(result.GetRow(row))
+    {
+        //this is piece of crap due to header cloning
+
+        //res.header->IncRef();
+        res.root_list[i++] = CreatePackedRow( row, *res.header->Clone(), true );
+    }
+
+    return res.FastEncode();
+
+    //"dbutil.CRowset"
+
+    PyRepString * ClassType = new PyRepString("dbutil.CRowset", true);
+}
+
+#endif
 
 PyRepPackedRow *DBRowToPackedRow( DBResultRow &row ) {
     PyRep *header = DBRowToRowDescriptor( row );
