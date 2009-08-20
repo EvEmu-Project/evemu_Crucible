@@ -549,30 +549,30 @@ PyRepTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
 }
 
 /* Class structure
-* PyClass
-*   PyTuple:2
-*     itr[0]:PyTuple:1
-*       itr[0]:PyClass
-*         PyString:"dbutil.CRowset"
-*     itr[1]:PyDict:1
-*       dict["header"]=PyClass
-*         PyTuple:2
-*           itr[0]:PyClass
-*             PyString:"blue.DBRowDescriptor"
-*           itr[1]:PyTuple:1
-*             itr[0]:PyTuple:N<Amount of cols>
-*               itr[0]:PyTuple:2
-*                 itr[0]:PyString<FieldName>
-*                 itr[1]:PyInt<FieldType> DBTYPE
-*               itr[N]:PyTuple:2
-*                 itr[0]:PyString<FieldName>
-*                 itr[1]:PyInt<FieldType> DBTYPE
-*            PyDict:0
-*            PyList:0
-* PyDict:0
-* PyList:N<Amount of rows>
-*   itr[N]:PyPackedRow
-*/
+ * PyClass
+ *   PyTuple:2
+ *     itr[0]:PyTuple:1
+ *       itr[0]:PyClass
+ *         PyString:"dbutil.CRowset"
+ *     itr[1]:PyDict:1
+ *       dict["header"]=PyClass
+ *         PyTuple:2
+ *           itr[0]:PyClass
+ *             PyString:"blue.DBRowDescriptor"
+ *           itr[1]:PyTuple:1
+ *             itr[0]:PyTuple:N<Amount of cols>
+ *               itr[0]:PyTuple:2
+ *                 itr[0]:PyString<FieldName>
+ *                 itr[1]:PyInt<FieldType> DBTYPE
+ *               itr[N]:PyTuple:2
+ *                 itr[0]:PyString<FieldName>
+ *                 itr[1]:PyInt<FieldType> DBTYPE
+ *            PyDict:0
+ *            PyList:0
+ * PyDict:0
+ * PyList:N<Amount of rows>
+ *   itr[N]:PyPackedRow
+ */
 
 /* this is a very monstrous implementation of a Python Class/Function call
  */
@@ -609,8 +609,6 @@ PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
 
     return root;
 }
-
-#endif
 
 PyRepPackedRow *DBRowToPackedRow( DBResultRow &row )
 {
