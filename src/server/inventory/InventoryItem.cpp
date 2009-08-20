@@ -110,7 +110,6 @@ InventoryItem::InventoryItem(
     const ItemType &_type,
     const ItemData &_data)
 : attributes(_factory, *this, true, true),
-  m_refCount(0),
   m_factory(_factory),
   m_itemID(_itemID),
   m_itemName(_data.name),
@@ -132,26 +131,6 @@ InventoryItem::InventoryItem(
 
 InventoryItem::~InventoryItem()
 {
-    if(m_refCount > 0)
-        _log(ITEM__ERROR, "Destructing an inventory item (%p) which has %u references!", this, m_refCount);
-}
-
-void InventoryItem::IncRef()
-{
-    m_refCount++;
-}
-
-void InventoryItem::DecRef() {
-    if(m_refCount < 1) {
-        _log(ITEM__ERROR, "Releasing an inventory item (%p) which has no references!", this);
-    }
-    else
-    {
-        m_refCount--;
-
-        if(m_refCount <= 0)
-            delete this;
-    }
 }
 
 InventoryItemRef InventoryItem::Load(ItemFactory &factory, uint32 itemID)

@@ -86,9 +86,8 @@ public:
  * Class which maintains generic item.
  */
 class InventoryItem
+: public RefObject
 {
-    template<class _Ty>
-    friend class RefPtr; // to let it call IncRef() and DecRef().
 public:
     /**
      * Loads item from DB.
@@ -249,9 +248,6 @@ protected:
         ItemData &data
     );
 
-    void IncRef();
-    void DecRef();
-
     void SaveItem() const;  //save the item to the DB.
 
     void SendItemChange(uint32 toID, std::map<int32, PyRep *> &changes) const;
@@ -260,11 +256,8 @@ protected:
     /*
      * Member variables
      */
-    // our reference count:
-    uint16          m_refCount;
-
     // our factory
-    ItemFactory &   m_factory;
+    ItemFactory &       m_factory;
 
     // our item data:
     const uint32        m_itemID;

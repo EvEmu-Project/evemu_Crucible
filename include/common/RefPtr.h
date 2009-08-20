@@ -30,7 +30,7 @@
  * \brief Reference counting based smart pointer.
  *
  * This smart pointer cares about acquiring/releasing reference
- * of the stored object. Manual be to as performant as possible.
+ * of the stored object. Manual to be as performant as possible.
  *
  * \author Bloody.Rabbit
  */
@@ -61,6 +61,19 @@ public:
 			mPtr->IncRef();
 	}
 	/**
+	 * Casting copy constructor.
+	 *
+	 * @param[in] oth Object to copy the reference from.
+	 */
+	template<class _Ty2>
+	RefPtr(const RefPtr<_Ty2> &oth)
+	: mPtr( oth.get() )
+	{
+		if( *this )
+			mPtr->IncRef();
+	}
+
+	/**
 	 * Destructor, releases reference.
 	 */
 	~RefPtr()
@@ -86,20 +99,6 @@ public:
 
 		return *this;
 	}
-
-	/**
-	 * Casting copy constructor.
-	 *
-	 * @param[in] oth Object to copy the reference from.
-	 */
-	template<class _Ty2>
-	RefPtr(const RefPtr<_Ty2> &oth)
-	: mPtr( oth.get() )
-	{
-		if( *this )
-			mPtr->IncRef();
-	}
-
 	/**
 	 * Casting copy operator.
 	 *
@@ -154,6 +153,61 @@ public:
 
 protected:
 	_Ty *mPtr;
+};
+
+/**
+ * \brief Class RefPtr can cooperate with.
+ *
+ * This class has all stuff needed to cooperate with
+ * RefPtr. If you want some of your classes to be
+ * reference-counted, derive them from this class.
+ *
+ * \author Bloody.Rabbit
+ */
+class RefObject
+{
+	template<class _Ty>
+	friend class RefPtr;
+public:
+	/**
+	 * \brief Initializes reference count.
+	 *
+	 * Initializes reference count to zero value. Please
+	 * note that immediately after construction the object
+	 * has to be given to RefPtr class (or IncRef must called
+	 * manually).
+	 */
+	RefObject()
+	: mRefCount( 0 )
+	{
+	}
+
+	/**
+	 * \brief Destructor; must be virtual.
+	 *
+	 * Must be virtual if proper destructor should be
+	 * invoked upon destruction.
+	 */
+	virtual ~RefObject()
+	{
+		assert( mRefCount == 0 );
+	}
+
+protected:
+	void IncRef() const
+	{
+		mRefCount++;
+	}
+	void DecRef() const
+	{
+		assert( mRefCount > 0 );
+		mRefCount--;
+
+		if( mRefCount == 0 )
+			delete this;
+	}
+
+	mutable size_t mRefCount;
 };
 
 #endif /* !__REF_PTR_H__INCL__ */

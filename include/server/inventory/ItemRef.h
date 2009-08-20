@@ -43,17 +43,26 @@ class Station;
 /*
  * Typedefs for all item classes we have:
  */
-typedef RefPtr<InventoryItem>      InventoryItemRef;
+typedef RefPtr<InventoryItem>            InventoryItemRef;
+typedef RefPtr<const InventoryItem>      InventoryItemConstRef;
 
-typedef RefPtr<Blueprint>          BlueprintRef;
-typedef RefPtr<Ship>               ShipRef;
-typedef RefPtr<CelestialObject>    CelestialObjectRef;
-typedef RefPtr<Skill>              SkillRef;
-typedef RefPtr<Owner>              OwnerRef;
+typedef RefPtr<Blueprint>                BlueprintRef;
+typedef RefPtr<const Blueprint>          BlueprintConstRef;
+typedef RefPtr<Ship>                     ShipRef;
+typedef RefPtr<const Ship>               ShipConstRef;
+typedef RefPtr<CelestialObject>          CelestialObjectRef;
+typedef RefPtr<const CelestialObject>    CelestialObjectConstRef;
+typedef RefPtr<Skill>                    SkillRef;
+typedef RefPtr<const Skill>              SkillConstRef;
+typedef RefPtr<Owner>                    OwnerRef;
+typedef RefPtr<const Owner>              OwnerConstRef;
 
-typedef RefPtr<Character>          CharacterRef;
-typedef RefPtr<SolarSystem>        SolarSystemRef;
-typedef RefPtr<Station>            StationRef;
+typedef RefPtr<Character>                CharacterRef;
+typedef RefPtr<const Character>          CharacterConstRef;
+typedef RefPtr<SolarSystem>              SolarSystemRef;
+typedef RefPtr<const SolarSystem>        SolarSystemConstRef;
+typedef RefPtr<Station>                  StationRef;
+typedef RefPtr<const Station>            StationConstRef;
 
 #endif /* !__ITEM_REF__H__INCL__ */
 
