@@ -145,7 +145,7 @@ BlueprintRef Blueprint::Load(ItemFactory &factory, uint32 blueprintID)
 }
 
 template<class _Ty>
-ItemRef<_Ty> Blueprint::_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
+RefPtr<_Ty> Blueprint::_LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
 	// InventoryItem stuff:
 	const BlueprintType &bpType, const ItemData &data,
 	// Blueprint stuff:

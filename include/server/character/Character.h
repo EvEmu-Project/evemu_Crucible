@@ -510,7 +510,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadOwner(ItemFactory &factory, uint32 characterID,
+	static RefPtr<_Ty> _LoadOwner(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data)
 	{
@@ -518,25 +518,25 @@ protected:
 		if( type.groupID() != EVEDB::invGroups::Character )
 		{
 			_log( ITEM__ERROR, "Trying to load %s as Character.", type.group().name().c_str() );
-			return ItemRef<_Ty>();
+			return RefPtr<_Ty>();
 		}
 		// cast the type
 		const CharacterType &charType = static_cast<const CharacterType &>( type );
 
 		CharacterData charData;
 		if( !factory.db().GetCharacter( characterID, charData ) )
-			return ItemRef<_Ty>();
+			return RefPtr<_Ty>();
 
 		CorpMemberInfo corpData;
 		if( !factory.db().GetCorpMemberInfo( characterID, corpData ) )
-			return ItemRef<_Ty>();
+			return RefPtr<_Ty>();
 
 		return _Ty::template _LoadCharacter<_Ty>( factory, characterID, charType, data, charData, corpData );
 	}
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadCharacter(ItemFactory &factory, uint32 characterID,
+	static RefPtr<_Ty> _LoadCharacter(ItemFactory &factory, uint32 characterID,
 		// InventoryItem stuff:
 		const CharacterType &charType, const ItemData &data,
 		// Character stuff:

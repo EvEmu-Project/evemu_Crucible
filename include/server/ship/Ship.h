@@ -211,7 +211,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadItem(ItemFactory &factory, uint32 shipID,
+	static RefPtr<_Ty> _LoadItem(ItemFactory &factory, uint32 shipID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data)
 	{
@@ -219,7 +219,7 @@ protected:
 		if( type.categoryID() != EVEDB::invCategories::Ship )
 		{
 			_log( ITEM__ERROR, "Trying to load %s as Ship.", type.category().name().c_str() );
-			return ItemRef<_Ty>();
+			return RefPtr<_Ty>();
 		}
 		// cast the type
 		const ShipType &shipType = static_cast<const ShipType &>( type );
@@ -231,7 +231,7 @@ protected:
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadShip(ItemFactory &factory, uint32 shipID,
+	static RefPtr<_Ty> _LoadShip(ItemFactory &factory, uint32 shipID,
 		// InventoryItem stuff:
 		const ShipType &shipType, const ItemData &data
 	);

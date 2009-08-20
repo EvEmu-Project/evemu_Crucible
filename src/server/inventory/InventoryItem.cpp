@@ -160,7 +160,7 @@ InventoryItemRef InventoryItem::Load(ItemFactory &factory, uint32 itemID)
 }
 
 template<class _Ty>
-ItemRef<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
+RefPtr<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
     // InventoryItem stuff:
     const ItemType &type, const ItemData &data)
 {

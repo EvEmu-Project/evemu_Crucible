@@ -106,7 +106,7 @@ SolarSystemRef SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID)
 }
 
 template<class _Ty>
-ItemRef<_Ty> SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
+RefPtr<_Ty> SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
 	// InventoryItem stuff:
 	const ItemType &type, const ItemData &data,
 	// CelestialObject stuff:

@@ -228,7 +228,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadCelestialObject(ItemFactory &factory, uint32 stationID,
+	static RefPtr<_Ty> _LoadCelestialObject(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data,
 		// CelestialObject stuff:
@@ -238,7 +238,7 @@ protected:
 		if( type.groupID() != EVEDB::invGroups::Station )
 		{
 			_log( ITEM__ERROR, "Trying to load %s as Station.", type.group().name().c_str() );
-			return ItemRef<_Ty>();
+			return RefPtr<_Ty>();
 		}
 		// cast the type
 		const StationType &stType = static_cast<const StationType &>( type );
@@ -246,14 +246,14 @@ protected:
 		// load station data
 		StationData stData;
 		if( !factory.db().GetStation( stationID, stData ) )
-			return ItemRef<_Ty>();
+			return RefPtr<_Ty>();
 
 		return _Ty::template _LoadStation<_Ty>( factory, stationID, stType, data, cData, stData );
 	}
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadStation(ItemFactory &factory, uint32 stationID,
+	static RefPtr<_Ty> _LoadStation(ItemFactory &factory, uint32 stationID,
 		// InventoryItem stuff:
 		const StationType &type, const ItemData &data,
 		// CelestialObject stuff:

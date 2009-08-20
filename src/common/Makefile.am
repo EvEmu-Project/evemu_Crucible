@@ -5,10 +5,6 @@ noinst_LIBRARIES = \
 	libcommon.a
 
 libcommon_a_SOURCES = \
-  utils_string.cpp \
-  utils_string.h \
-  PyStringTable.cpp \
-  PyStringTable.h \
 	LogNew.cpp \
 	LogNew.h \
 	logsys.cpp \
@@ -80,6 +76,8 @@ libcommon_a_SOURCES = \
 	PyPacket.h \
 	PyRep.cpp \
 	PyRep.h \
+	PyStringTable.cpp \
+	PyStringTable.h \
 	PyVisitor.cpp \
 	PyVisitor.h \
 	PyXMLGenerator.cpp \
@@ -88,6 +86,7 @@ libcommon_a_SOURCES = \
 	RowsetReader.cpp \
 	RowsetReader.h \
 	RowsetToSQL.h \
+	RefPtr.h \
 	seperator.h \
 	StreamPacketizer.cpp \
 	StreamPacketizer.h \
@@ -100,6 +99,8 @@ libcommon_a_SOURCES = \
 	timer.h \
 	unix.cpp \
 	unix.h \
+	utils_string.cpp \
+	utils_string.h \
 	XMLParser.cpp \
 	XMLParser.h
 

@@ -92,7 +92,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadItem(ItemFactory &factory, uint32 skillID,
+	static RefPtr<_Ty> _LoadItem(ItemFactory &factory, uint32 skillID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data)
 	{
@@ -100,7 +100,7 @@ protected:
 		if( type.categoryID() != EVEDB::invCategories::Skill )
 		{
 			_log( ITEM__ERROR, "Trying to load %s as Skill.", type.category().name().c_str() );
-			return ItemRef<_Ty>();
+			return RefPtr<_Ty>();
 		}
 
 		// no additional stuff
@@ -110,7 +110,7 @@ protected:
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadSkill(ItemFactory &factory, uint32 skillID,
+	static RefPtr<_Ty> _LoadSkill(ItemFactory &factory, uint32 skillID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data
 	);

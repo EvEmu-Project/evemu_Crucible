@@ -329,7 +329,7 @@ CharacterRef Character::Load(ItemFactory &factory, uint32 characterID)
 }
 
 template<class _Ty>
-ItemRef<_Ty> Character::_LoadCharacter(ItemFactory &factory, uint32 characterID,
+RefPtr<_Ty> Character::_LoadCharacter(ItemFactory &factory, uint32 characterID,
     // InventoryItem stuff:
     const CharacterType &charType, const ItemData &data,
     // Character stuff:

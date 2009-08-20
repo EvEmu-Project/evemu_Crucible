@@ -141,21 +141,21 @@ const StationType *ItemFactory::GetStationType(uint32 stationTypeID) {
 }
 
 template<class _Ty>
-ItemRef<_Ty> ItemFactory::_GetItem(uint32 itemID)
+RefPtr<_Ty> ItemFactory::_GetItem(uint32 itemID)
 {
     std::map<uint32, InventoryItemRef>::iterator res = m_items.find( itemID );
     if( res == m_items.end() )
     {
         // load the item
-        ItemRef<_Ty> item = _Ty::Load( *this, itemID );
+        RefPtr<_Ty> item = _Ty::Load( *this, itemID );
         if( !item )
-            return ItemRef<_Ty>();
+            return RefPtr<_Ty>();
 
         //we keep the original ref.
         res = m_items.insert( std::make_pair( itemID, item ) ).first;
     }
     // return to the user.
-    return ItemRef<_Ty>::StaticCast( res->second );
+    return RefPtr<_Ty>::StaticCast( res->second );
 }
 
 InventoryItemRef ItemFactory::GetItem(uint32 itemID)

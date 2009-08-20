@@ -90,7 +90,7 @@ ShipRef Ship::Load(ItemFactory &factory, uint32 shipID)
 }
 
 template<class _Ty>
-ItemRef<_Ty> Ship::_LoadShip(ItemFactory &factory, uint32 shipID,
+RefPtr<_Ty> Ship::_LoadShip(ItemFactory &factory, uint32 shipID,
     // InventoryItem stuff:
     const ShipType &shipType, const ItemData &data)
 {

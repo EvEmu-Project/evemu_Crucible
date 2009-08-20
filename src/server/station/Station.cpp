@@ -142,7 +142,7 @@ StationRef Station::Load(ItemFactory &factory, uint32 stationID)
 }
 
 template<class _Ty>
-ItemRef<_Ty> Station::_LoadStation(ItemFactory &factory, uint32 stationID,
+RefPtr<_Ty> Station::_LoadStation(ItemFactory &factory, uint32 stationID,
 	// InventoryItem stuff:
 	const StationType &type, const ItemData &data,
 	// CelestialObject stuff:

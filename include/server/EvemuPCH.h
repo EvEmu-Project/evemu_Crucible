@@ -94,6 +94,7 @@
 #include "../common/misc.h"
 #include "../common/MiscFunctions.h"
 #include "../common/Mutex.h"
+#include "../common/RefPtr.h"
 
 #include "../common/DestinyBinDump.h"
 #include "../common/DestinyStructs.h"

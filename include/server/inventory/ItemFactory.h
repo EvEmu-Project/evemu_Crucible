@@ -225,7 +225,7 @@ protected:
 
 	// Items:
 	template<class _Ty>
-	ItemRef<_Ty> _GetItem(uint32 itemID);
+	RefPtr<_Ty> _GetItem(uint32 itemID);
 
 	void _DeleteItem(uint32 itemID);
 

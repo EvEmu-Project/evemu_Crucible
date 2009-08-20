@@ -65,7 +65,7 @@ CelestialObjectRef CelestialObject::Load(ItemFactory &factory, uint32 celestialI
 }
 
 template<class _Ty>
-ItemRef<_Ty> CelestialObject::_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
+RefPtr<_Ty> CelestialObject::_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
 	// InventoryItem stuff:
 	const ItemType &type, const ItemData &data,
 	// CelestialObject stuff:

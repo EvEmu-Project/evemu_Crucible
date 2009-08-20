@@ -44,7 +44,7 @@ SkillRef Skill::Load(ItemFactory &factory, uint32 skillID)
 }
 
 template<class _Ty>
-ItemRef<_Ty> Skill::_LoadSkill(ItemFactory &factory, uint32 skillID,
+RefPtr<_Ty> Skill::_LoadSkill(ItemFactory &factory, uint32 skillID,
 	// InventoryItem stuff:
 	const ItemType &type, const ItemData &data)
 {

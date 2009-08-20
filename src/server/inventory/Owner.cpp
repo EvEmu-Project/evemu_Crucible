@@ -41,7 +41,7 @@ OwnerRef Owner::Load(ItemFactory &factory, uint32 ownerID)
 }
 
 template<class _Ty>
-ItemRef<_Ty> Owner::_LoadOwner(ItemFactory &factory, uint32 ownerID,
+RefPtr<_Ty> Owner::_LoadOwner(ItemFactory &factory, uint32 ownerID,
 	// InventoryItem stuff:
 	const ItemType &type, const ItemData &data )
 {

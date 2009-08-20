@@ -26,6 +26,8 @@
 #ifndef __ITEM_REF__H__INCL__
 #define __ITEM_REF__H__INCL__
 
+#include "RefPtr.h"
+
 class InventoryItem;
 
 class Blueprint;
@@ -38,145 +40,20 @@ class Character;
 class SolarSystem;
 class Station;
 
-/**
- * Smart pointer to maintain InventoryItem's references.
- */
-template<class _Ty>
-class ItemRef
-{
-public:
-	/**
-	 * Primary constructor.
-	 *
-	 * @param[in] p Pointer to object to be referenced.
-	 */
-	explicit ItemRef(_Ty *p = NULL)
-	: mPtr( p )
-	{
-		if( *this )
-			mPtr->IncRef();
-	}
-	/**
-	 * Copy constructor.
-	 *
-	 * @param[in] oth Object to copy the reference from.
-	 */
-	ItemRef(const ItemRef &oth)
-	: mPtr( oth.mPtr )
-	{
-		if( *this )
-			mPtr->IncRef();
-	}
-	/**
-	 * Destructor, releases reference.
-	 */
-	~ItemRef()
-	{
-		if( *this )
-			mPtr->DecRef();
-	}
-
-	/**
-	 * Copy operator.
-	 *
-	 * @param[in] oth Object to copy the reference from.
-	 */
-	ItemRef &operator=(const ItemRef &oth)
-	{
-		if( *this )
-			mPtr->DecRef();
-
-		mPtr = oth.mPtr;
-
-		if( *this )
-			mPtr->IncRef();
-
-		return *this;
-	}
-
-	/**
-	 * Casting copy constructor.
-	 *
-	 * @param[in] oth Object to copy the reference from.
-	 */
-	template<class _Ty2>
-	ItemRef(const ItemRef<_Ty2> &oth)
-	: mPtr( oth.get() )
-	{
-		if( *this )
-			mPtr->IncRef();
-	}
-
-	/**
-	 * Casting copy operator.
-	 *
-	 * @param[in] oth Object to copy the reference from.
-	 */
-	template<class _Ty2>
-	ItemRef &operator=(const ItemRef<_Ty2> &oth)
-	{
-		if( *this )
-			mPtr->DecRef();
-
-		mPtr = oth.get();
-
-		if( *this )
-			mPtr->IncRef();
-
-		return *this;
-	}
-
-	/**
-	 * @return Stored reference.
-	 */
-	_Ty *get() const { return mPtr; }
-
-	/**
-	 * @return True if stores a reference, false otherwise.
-	 */
-	operator bool() const { return ( get() != NULL ); }
-
-	_Ty &operator*() const { return *get(); }
-	_Ty *operator->() const { return get(); }
-
-	/**
-	 * Compares two references.
-	 *
-	 * @return True if both references are of same object, false if not.
-	 */
-	template<class _Ty2>
-	bool operator==(const ItemRef<_Ty2> &oth) const
-	{
-		return ( get() == oth.get() );
-	}
-
-	/**
-	 * Acts as static_cast.
-	 */
-	template<class _Ty2>
-	static ItemRef StaticCast(const ItemRef<_Ty2> &oth)
-	{
-		return ItemRef( static_cast<_Ty *>( oth.get() ) );
-	}
-
-protected:
-	_Ty *mPtr;
-};
-
 /*
  * Typedefs for all item classes we have:
  */
-typedef ItemRef<InventoryItem>      InventoryItemRef;
+typedef RefPtr<InventoryItem>      InventoryItemRef;
 
-typedef ItemRef<Blueprint>          BlueprintRef;
-typedef ItemRef<Ship>               ShipRef;
-typedef ItemRef<CelestialObject>    CelestialObjectRef;
-typedef ItemRef<Skill>              SkillRef;
-typedef ItemRef<Owner>              OwnerRef;
+typedef RefPtr<Blueprint>          BlueprintRef;
+typedef RefPtr<Ship>               ShipRef;
+typedef RefPtr<CelestialObject>    CelestialObjectRef;
+typedef RefPtr<Skill>              SkillRef;
+typedef RefPtr<Owner>              OwnerRef;
 
-typedef ItemRef<Character>          CharacterRef;
-typedef ItemRef<SolarSystem>        SolarSystemRef;
-typedef ItemRef<Station>            StationRef;
+typedef RefPtr<Character>          CharacterRef;
+typedef RefPtr<SolarSystem>        SolarSystemRef;
+typedef RefPtr<Station>            StationRef;
 
 #endif /* !__ITEM_REF__H__INCL__ */
 

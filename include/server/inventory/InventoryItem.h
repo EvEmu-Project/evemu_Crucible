@@ -88,7 +88,7 @@ public:
 class InventoryItem
 {
     template<class _Ty>
-    friend class ItemRef; // to let it call IncRef() and DecRef().
+    friend class RefPtr; // to let it call IncRef() and DecRef().
 public:
     /**
      * Loads item from DB.
@@ -204,40 +204,40 @@ protected:
      */
     // Template helper:
     template<class _Ty>
-    static ItemRef<_Ty> Load(ItemFactory &factory, uint32 itemID)
+    static RefPtr<_Ty> Load(ItemFactory &factory, uint32 itemID)
     {
         // static load
-        ItemRef<_Ty> i = _Ty::template _Load<_Ty>( factory, itemID );
+        RefPtr<_Ty> i = _Ty::template _Load<_Ty>( factory, itemID );
         if( !i )
-            return ItemRef<_Ty>();
+            return RefPtr<_Ty>();
 
         // dynamic load
         if( !i->_Load() )
-            return ItemRef<_Ty>();
+            return RefPtr<_Ty>();
 
         return i;
     }
 
     // Template loader:
     template<class _Ty>
-    static ItemRef<_Ty> _Load(ItemFactory &factory, uint32 itemID)
+    static RefPtr<_Ty> _Load(ItemFactory &factory, uint32 itemID)
     {
         // pull the item info
         ItemData data;
         if( !factory.db().GetItem( itemID, data ) )
-            return ItemRef<_Ty>();
+            return RefPtr<_Ty>();
 
         // obtain type
         const ItemType *type = factory.GetType( data.typeID );
         if( type == NULL )
-            return ItemRef<_Ty>();
+            return RefPtr<_Ty>();
 
         return _Ty::template _LoadItem<_Ty>( factory, itemID, *type, data );
     }
 
     // Actual loading stuff:
     template<class _Ty>
-    static ItemRef<_Ty> _LoadItem(ItemFactory &factory, uint32 itemID,
+    static RefPtr<_Ty> _LoadItem(ItemFactory &factory, uint32 itemID,
         // InventoryItem stuff:
         const ItemType &type, const ItemData &data
     );

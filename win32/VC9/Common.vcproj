@@ -498,6 +498,10 @@
 			Name="Utils"
 			>
 			<File
+				RelativePath="..\..\include\common\RefPtr.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\common\utils_string.cpp"
 				>
 			</File>

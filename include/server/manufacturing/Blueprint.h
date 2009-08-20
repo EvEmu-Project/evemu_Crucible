@@ -304,7 +304,7 @@ protected:
 
 	// Template loader:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadItem(ItemFactory &factory, uint32 blueprintID,
+	static RefPtr<_Ty> _LoadItem(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:
 		const ItemType &type, const ItemData &data)
 	{
@@ -312,7 +312,7 @@ protected:
 		if( type.categoryID() != EVEDB::invCategories::Blueprint )
 		{
 			_log( ITEM__ERROR, "Trying to load %s as Blueprint.", type.category().name().c_str() );
-			return ItemRef<_Ty>();
+			return RefPtr<_Ty>();
 		}
 		// cast the type
 		const BlueprintType &bpType = static_cast<const BlueprintType &>( type );
@@ -320,14 +320,14 @@ protected:
 		// we are blueprint; pull additional blueprint info
 		BlueprintData bpData;
 		if( !factory.db().GetBlueprint( blueprintID, bpData ) )
-			return ItemRef<_Ty>();
+			return RefPtr<_Ty>();
 
 		return _Ty::template _LoadBlueprint<_Ty>( factory, blueprintID, bpType, data, bpData );
 	}
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static ItemRef<_Ty> _LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
+	static RefPtr<_Ty> _LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
 		// InventoryItem stuff:
 		const BlueprintType &bpType, const ItemData &data,
 		// Blueprint stuff:
