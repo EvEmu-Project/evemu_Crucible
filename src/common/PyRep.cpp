@@ -530,7 +530,7 @@ PyRepSubStream::PyRepSubStream(const uint8 *buffer, uint32 len)
   data(NULL),
   decoded(NULL)
 {
-    data = malloc(len);
+    data = (uint8*)malloc(len);
     assert(data != NULL);
     memcpy(data, buffer, length);
 }
