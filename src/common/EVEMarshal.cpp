@@ -84,7 +84,7 @@ uint8 *Marshal(const PyRep *rep, uint32& len, bool inlineSubStream)
     memcpy(b, packetBuff, len);
 
     if (len > EVEDeflationBytesLimit)
-        free( packetBuff );
+        SafeFree( packetBuff );
 
     return b;
 }

@@ -54,6 +54,12 @@ class PyRepPackedRow;
   */
 extern const char *PyRepTypeString[];
 
+/* debug macro's to ease the increase and decrease of references of a object
+ * using this also increases the possibility of debugging it.
+ */
+#define PyDecRef( x )if(x!=NULL)x->DecRef()
+#define PyIncRef( x )if(x!=NULL)x->IncRef()
+
 /** PyRep base Python wire object
   */
 class PyRep {
@@ -554,7 +560,7 @@ public:
     typedef std::map<PyRep *, PyRep *>::iterator dict_iterator;
     typedef std::map<PyRep *, PyRep *>::const_iterator const_dict_iterator;
 
-    PyRepObjectEx(bool _is_type_1, PyRep *_header = NULL) : PyRep(PyRep::PyTypeObjectEx), header(_header), is_type_1(_is_type_1) {}
+    PyRepObjectEx(bool _is_type_1, PyRep *_header = NULL);
     virtual ~PyRepObjectEx();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;

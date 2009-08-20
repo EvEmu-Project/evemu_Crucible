@@ -189,7 +189,7 @@ PyRepBuffer::PyRepBuffer(uint8 **buffer, uint32 length) : PyRep(PyRep::PyTypeBuf
 }
 
 PyRepBuffer::~PyRepBuffer() {
-    free(m_value);
+    SafeFree(m_value);
 }
 
 void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
@@ -204,7 +204,7 @@ void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
             p += "  ";
             fprintf(into, "%sData buffer contains gzipped data of length %u\n", p.c_str(), len);
             pfxPreviewHexDump(p.c_str(), into, buf, len);
-            free(buf);
+            SafeFree(buf);
         }
     }
 }
@@ -221,7 +221,7 @@ void PyRepBuffer::Dump(LogType type, const char *pfx) const {
             p += "  ";
             _log(type, "%sData buffer contains gzipped data of length %u", p.c_str(), len);
             pfxPreviewHexDump(p.c_str(), type, buf, len);
-            free(buf);
+            SafeFree(buf);
         }
     }
 }
@@ -242,7 +242,7 @@ PyRepSubStream *PyRepBuffer::CreateSubStream() const {
             res = new PyRepSubStream(buf, len);
         }
 
-        free(buf);
+        SafeFree(buf);
         return res;
     }
     //else, we don't think this is a substream, so don't become one.
@@ -280,7 +280,7 @@ void PyRepTuple::clear() {
     cur = begin();
     _end = end();
     for(; cur != _end; cur++)
-        delete *cur;
+        PyDecRef( *cur );
     items.clear();
 }
 
@@ -343,7 +343,7 @@ void PyRepList::clear() {
     cur = items.begin();
     _end = items.end();
     for(; cur != _end; cur++)
-        delete *cur;
+        PyDecRef( *cur );
     items.clear();
 }
 
@@ -408,8 +408,8 @@ void PyRepDict::clear() {
     cur = items.begin();
     _end = items.end();
     for(; cur != _end; cur++) {
-        delete cur->first;
-        delete cur->second;
+        PyDecRef( cur->first );
+        PyDecRef( cur->second );
     }
 }
 
@@ -478,7 +478,7 @@ void PyRepDict::addStr(const char *key, const char *value) {
 /* PyRep Object Class                                                   */
 /************************************************************************/
 PyRepObject::~PyRepObject() {
-    SafeDelete(arguments);
+    PyDecRef( arguments );
 }
 
 void PyRepObject::Dump(FILE *into, const char *pfx) const {
@@ -504,7 +504,7 @@ void PyRepObject::Dump(LogType ltype, const char *pfx) const {
 /************************************************************************/
 PyRepSubStruct::~PyRepSubStruct()
 {
-    SafeDelete(sub);
+    PyDecRef( sub );
 }
 
 void PyRepSubStruct::Dump(FILE *into, const char *pfx) const {
@@ -527,15 +527,17 @@ void PyRepSubStruct::Dump(LogType type, const char *pfx) const {
 PyRepSubStream::PyRepSubStream(const uint8 *buffer, uint32 len)
 : PyRep(PyRep::PyTypeSubStream),
   length(len),
-  data(new uint8[len]),
+  data(NULL),
   decoded(NULL)
 {
+    data = malloc(len);
+    assert(data != NULL);
     memcpy(data, buffer, length);
 }
 
 PyRepSubStream::~PyRepSubStream() {
-    SafeDeleteArray(data);
-    SafeDelete(decoded);
+    SafeFree( data );
+    PyDecRef( decoded );
 }
 
 void PyRepSubStream::Dump(FILE *into, const char *pfx) const {
@@ -598,7 +600,7 @@ void PyRepSubStream::DecodeData() const {
 /* PyRep ChecksumedStream Class                                         */
 /************************************************************************/
 PyRepChecksumedStream::~PyRepChecksumedStream() {
-    SafeDelete(stream);
+    PyDecRef(stream);
 }
 
 void PyRepChecksumedStream::Dump(FILE *into, const char *pfx) const {
@@ -762,14 +764,13 @@ PyRepPackedRow::PyRepPackedRow(PyRep &header, bool header_owner)
 PyRepPackedRow::~PyRepPackedRow()
 {
     if( IsHeaderOwner() )
-        //delete &mHeader;
-        (&mHeader)->DecRef();
+        PyDecRef(&mHeader);
 
     std::vector<PyRep *>::iterator cur, end;
     cur = mFields.begin();
     end = mFields.end();
     for(; cur != end; cur++)
-        SafeDelete( *cur );
+        PyDecRef( *cur );
 }
 
 
@@ -898,13 +899,13 @@ bool PyRepPackedRow::SetField(uint32 index, PyRep *value)
         // verify type
         if( !DBTYPE_IsCompatible( GetColumnType( index ), *value ) )
         {
-            SafeDelete( value );
+            PyDecRef( value );
             return false;
         }
     }
 
     PyRep *&v = mFields.at( index );
-    SafeDelete( v );
+    PyDecRef( v );
     v = value;
 
     return true;
@@ -918,14 +919,20 @@ bool PyRepPackedRow::SetField(const char *colName, PyRep *value)
     return SetField( index, value );
 }
 
-PyRepObjectEx::~PyRepObjectEx() {
+/************************************************************************/
+/* PyRepObjectEx                                                        */
+/************************************************************************/
+PyRepObjectEx::PyRepObjectEx( bool _is_type_1, PyRep *_header /*= NULL*/ ) : PyRep(PyRep::PyTypeObjectEx), header(_header), is_type_1(_is_type_1) {}
+
+PyRepObjectEx::~PyRepObjectEx()
+{
     SafeDelete(header);
     {
         const_list_iterator cur, end;
         cur = list_data.begin();
         end = list_data.end();
         for(; cur != end; cur++)
-            delete *cur;
+            PyDecRef( *cur );
         list_data.clear();
     }
     {
@@ -933,8 +940,8 @@ PyRepObjectEx::~PyRepObjectEx() {
         cur = dict_data.begin();
         end = dict_data.end();
         for(; cur != end; cur++) {
-            delete cur->first;
-            delete cur->second;
+            PyDecRef( cur->first );
+            PyDecRef( cur->second );
         }
         dict_data.clear();
     }
@@ -1071,6 +1078,8 @@ void PyRepObjectEx::CloneFrom(const PyRepObjectEx *from) {
         }
     }
 }
+
+
 
 /************************************************************************/
 /* string table code                                                    */

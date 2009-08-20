@@ -98,19 +98,23 @@ typedef void* ThreadReturnType;
 //#define ASCENT_ENABLE_ULTRA_SAFE_DELETE       // check object and array for NULL pointer then delete and NULL after
 
 #ifndef ASCENT_ENABLE_SAFE_DELETE
-#  define SafeDelete(p) { delete p; }
-#  define SafeDeleteArray(p) { delete [] p; }
+#  define SafeDelete(p){delete p;}
+#  define SafeDeleteArray(p){delete [] p;}
+#  define SafeFree(p){free(p);}
 #else
 #  ifndef ASCENT_ENABLE_EXTRA_SAFE_DELETE
-#    define SafeDelete(p) { delete p; p = NULL; }
-#    define SafeDeleteArray(p) { delete [] p; p = NULL; }
+#    define SafeDelete(p) { delete p; p=NULL; }
+#    define SafeDeleteArray(p) { delete [] p; p=NULL; }
+#    define SafeFree(p) { free(p); p=NULL; }
 #  else
 #    ifndef ASCENT_ENABLE_ULTRA_SAFE_DELETE
 #      define SafeDelete(p) { delete p; p = NULL; }
 #      define SafeDeleteArray(p) { if (p != NULL) { delete [] p; p = NULL; } }
+#      define SafeFree(p) { if (p != NULL) { free(p); p = NULL; } }
 #    else
 #      define SafeDelete(p) { if (p != NULL) { delete p; p = NULL; } }
-#      define SafeDeleteArray(p) { if (p != NULL) { delete [] p; p = NULL; } }window
+#      define SafeDeleteArray(p) { if (p != NULL) { delete [] p; p = NULL; } }
+#      define SafeFree(p) { if (p != NULL) { free(p); p = NULL; } }
 #    endif//ASCENT_ENABLE_ULTRA_SAFE_DELETE
 #  endif//ASCENT_ENABLE_EXTRA_SAFE_DELETE
 #endif//ASCENT_ENABLE_SAFE_DELETE

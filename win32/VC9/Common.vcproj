@@ -256,38 +256,6 @@
 				>
 			</File>
 			<Filter
-				Name="Python"
-				>
-				<File
-					RelativePath="..\..\src\common\PyDumpVisitor.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\common\PyLookupDump.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\include\PyObjectBase.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\common\PyPacket.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\common\PyRep.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\common\PyVisitor.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\common\PyXMLGenerator.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="Log"
 				>
 				<File
@@ -438,34 +406,6 @@
 				>
 			</File>
 			<Filter
-				Name="Python"
-				>
-				<File
-					RelativePath="..\..\include\common\PyDumpVisitor.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\common\PyLookupDump.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\common\PyPacket.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\common\PyRep.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\common\PyVisitor.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\common\PyXMLGenerator.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="Log"
 				>
 				<File
@@ -565,6 +505,66 @@
 				RelativePath="..\..\include\common\utils_string.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="Python"
+			>
+			<File
+				RelativePath="..\..\src\common\PyDumpVisitor.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\PyDumpVisitor.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\PyLookupDump.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\PyLookupDump.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\PyPacket.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\PyPacket.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\PyRep.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\PyRep.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\PyVisitor.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\PyVisitor.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\PyXMLGenerator.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\PyXMLGenerator.h"
+				>
+			</File>
+			<Filter
+				Name="Classes"
+				>
+				<File
+					RelativePath="..\..\include\common\CRowSet.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>
