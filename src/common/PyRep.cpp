@@ -926,7 +926,7 @@ PyRepObjectEx::PyRepObjectEx( bool _is_type_1, PyRep *_header /*= NULL*/ ) : PyR
 
 PyRepObjectEx::~PyRepObjectEx()
 {
-    SafeDelete(header);
+    PyDecRef( header );
     {
         const_list_iterator cur, end;
         cur = list_data.begin();

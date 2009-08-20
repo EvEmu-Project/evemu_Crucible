@@ -57,8 +57,8 @@ extern const char *PyRepTypeString[];
 /* debug macro's to ease the increase and decrease of references of a object
  * using this also increases the possibility of debugging it.
  */
-#define PyDecRef( x )if(x!=NULL)x->DecRef()
-#define PyIncRef( x )if(x!=NULL)x->IncRef()
+#define PyDecRef( x )if((x)!=NULL)(x)->DecRef()
+#define PyIncRef( x )if((x)!=NULL)(x)->IncRef()
 
 /** PyRep base Python wire object
   */
