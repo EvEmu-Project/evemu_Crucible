@@ -242,7 +242,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyLongLong "I64u, pfx, opcode, data);
 
-        res = new PyInt(data);
+        res = new PyLong(data);
 
         packet += sizeof(uint64);
         len -= sizeof(uint64);

@@ -47,6 +47,7 @@ protected:
 
     //! primitive data visitors
     void VisitInteger(const PyInt *rep, int64 lvl );
+    void VisitLong(const PyLong *rep, int64 lvl );
     void VisitReal(const PyFloat *rep, int64 lvl );
     void VisitBoolean(const PyBool *rep, int64 lvl );
     void VisitNone(const PyNone *rep, int64 lvl );

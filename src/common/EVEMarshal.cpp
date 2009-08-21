@@ -111,17 +111,9 @@ void MarshalVisitor::VisitInteger(const PyInt *rep)
     {
         if ( val + 0x8000u > 0xFFFF )
         {
-            if (val + 0x800000u > 0xFFFFFFFF)
-            {
-                _PyInt_AsByteArray(rep);
-                return;
-            }
-            else
-            {
-                PutByte(Op_PyLong);
-                PutUint32(val);
-                return;
-            }
+            PutByte(Op_PyLong);
+            PutUint32(val);
+            return;
         }
         else
         {
@@ -537,7 +529,8 @@ void MarshalVisitor::VisitTuple(const PyTuple *tuple)
 
 //! private members
 
-void MarshalVisitor::_PyInt_AsByteArray(const PyInt* v) {
+void MarshalVisitor::_PyInt_AsByteArray( const PyLong* v )
+{
     reserve(8);
     uint8 integerSize = 0;
 #define DoIntegerSizeCheck(x) if (((uint8*)&v->value)[x] != 0) integerSize = x + 1;
@@ -557,4 +550,18 @@ void MarshalVisitor::_PyInt_AsByteArray(const PyInt* v) {
         PutByte(Op_PyLongLong);                     // 1
         PutUint64(v->value);                        // 8
     }
+}
+
+void MarshalVisitor::VisitLong( const PyLong *rep )
+{
+//Op_PyLongLong
+    //if (val + 0x800000u > 0xFFFFFFFF)
+    {
+        _PyInt_AsByteArray(rep);
+      //  return;
+    }
+    //else
+    //{
+
+    //}
 }

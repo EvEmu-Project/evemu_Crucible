@@ -55,6 +55,10 @@ PyLogsysDump::PyLogsysDump(LogType type, LogType hex_type, bool full_hex, bool f
 // --- Visitors implementation ---
 
 void PyDumpVisitor::VisitInteger(const PyInt *rep, int64 lvl ) {
+    _print(lvl, "Integer field: %d", rep->value);
+}
+
+void PyDumpVisitor::VisitLong(const PyLong *rep, int64 lvl ) {
     _print(lvl, "Integer field: "I64d, rep->value);
 }
 

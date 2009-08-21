@@ -48,6 +48,7 @@ public:
      *         research shows that Op_PyByte can be negative
      */
     void VisitInteger(const PyInt *rep);
+    void VisitLong(const PyLong *rep);
     //! Adds a boolean to the stream
     void VisitBoolean(const PyBool *rep);
     //! Adds a double to the stream
@@ -85,7 +86,7 @@ public:
 
 private:
     // utility to handle Op_PyVarInteger (a bit hacky......)
-    void _PyInt_AsByteArray(const PyInt* v);
+    void _PyInt_AsByteArray(const PyLong* v);
 
     // not very efficient but it will do for now
     EVEMU_INLINE void reserve(uint32 size) {

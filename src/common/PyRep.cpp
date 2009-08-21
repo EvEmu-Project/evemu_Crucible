@@ -146,6 +146,10 @@ EVEMU_INLINE PyRep * PyLong::Clone() const
     return TypedClone();
 }
 
+PyLong *PyLong::TypedClone() const {
+    return(new PyLong(value));
+}
+
 EVEMU_INLINE void PyLong::visit( PyVisitor *v ) const
 {
     v->VisitLong(this);

@@ -194,6 +194,7 @@ public:
         : good(true) {}
 
     EVEMU_INLINE void VisitInteger(const PyInt *rep) { good = false; }
+    EVEMU_INLINE void VisitLong(const PyLong *rep) { good = false; }
     EVEMU_INLINE void VisitReal(const PyFloat *rep) { good = false; }
     EVEMU_INLINE void VisitBoolean(const PyBool *rep) { good = false; }
     EVEMU_INLINE void VisitNone(const PyNone *rep) { good = false; }
