@@ -456,8 +456,12 @@ public:
     void CloneFrom(const PyList *from);
     PyList *TypedClone() const;
 
-    EVEMU_INLINE void addInt(uint64 intval) {
+    EVEMU_INLINE void addInt(int32 intval) {
         items.push_back(new PyInt(intval));
+    }
+
+    EVEMU_INLINE void addLong(int64 intval) {
+        items.push_back(new PyLong(intval));
     }
 
     EVEMU_INLINE void addReal(double realval) {
