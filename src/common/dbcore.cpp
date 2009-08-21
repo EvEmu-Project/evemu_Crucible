@@ -351,13 +351,6 @@ DBQueryResult::DBQueryResult()
 
 DBQueryResult::~DBQueryResult() {
 
-    // check if the field double pointer has a real pointer
-    // also check if the first entry has data........
-    //if (m_fields != NULL && m_fields[0] != NULL)
-    //{
-      //  delete [] m_fields;
-       // m_fields = NULL;
-    //}
     SafeDelete(m_fields);
 
     if(m_res != NULL)
