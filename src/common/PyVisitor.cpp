@@ -29,6 +29,7 @@
 
 //! primitive data visitors
 void SubStreamDecoder::VisitInteger(const PyInt *rep) {}
+void SubStreamDecoder::VisitLong(const PyLong *rep) {}
 void SubStreamDecoder::VisitReal(const PyFloat *rep) {}
 void SubStreamDecoder::VisitBoolean(const PyBool *rep) {}
 void SubStreamDecoder::VisitNone(const PyNone *rep) {}

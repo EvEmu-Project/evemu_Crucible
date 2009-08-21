@@ -31,6 +31,7 @@
 
 class PyRep;
 class PyInt;
+class PyLong;
 class PyFloat;
 class PyBool;
 class PyNone;
@@ -52,6 +53,7 @@ public:
 
     //! primitive data visitors
     virtual void VisitInteger(const PyInt *rep, int64 lvl ) = 0;
+    virtual void VisitLong(const PyLong *rep, int64 lvl ) = 0;
     virtual void VisitReal(const PyFloat *rep, int64 lvl ) = 0;
     virtual void VisitBoolean(const PyBool *rep, int64 lvl ) = 0;
     virtual void VisitNone(const PyNone *rep, int64 lvl ) = 0;
@@ -78,6 +80,7 @@ public:
 
     //! primitive data visitors
     virtual void VisitInteger(const PyInt *rep) = 0;
+    virtual void VisitLong(const PyLong *rep) = 0;
     virtual void VisitReal(const PyFloat *rep) = 0;
     virtual void VisitBoolean(const PyBool *rep) = 0;
     virtual void VisitNone(const PyNone *rep) = 0;
@@ -105,6 +108,7 @@ public:
 
     //! primitive data visitors
     void VisitInteger(const PyInt *rep);
+    void VisitLong(const PyLong *rep);
     void VisitReal(const PyFloat *rep);
     void VisitBoolean(const PyBool *rep);
     void VisitNone(const PyNone *rep);
@@ -127,8 +131,4 @@ public:
     void VisitTuple(const PyTuple *rep);
 };
 
-
 #endif
-
-
-

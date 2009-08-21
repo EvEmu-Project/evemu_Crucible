@@ -57,9 +57,6 @@ const char *PyRepTypeString[] = {
     "UNKNOWN TYPE",     //15
 };
 
-//#undef _log
-//#define _log //
-
 static void pfxHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length) {
     char buffer[80];
     uint32 offset;
@@ -131,9 +128,37 @@ void PyInt::Dump(LogType type, const char *pfx) const {
 }
 
 /************************************************************************/
+/* PyRep Long Class                                                     */
+/************************************************************************/
+void PyLong::Dump(FILE *into, const char *pfx) const {
+    fprintf(into, "%sInteger field: "I64u"\n", pfx, value);
+}
+
+void PyLong::Dump(LogType type, const char *pfx) const {
+    _log(type, "%sInteger field: "I64u, pfx, value);
+}
+
+PyLong::PyLong( const int64 i ) : PyRep(PyRep::PyTypeInt), value(i) {}
+PyLong::~PyLong() {}
+
+EVEMU_INLINE PyRep * PyLong::Clone() const
+{
+    return TypedClone();
+}
+
+EVEMU_INLINE void PyLong::visit( PyVisitor *v ) const
+{
+    v->VisitLong(this);
+}
+
+EVEMU_INLINE void PyLong::visit( PyVisitorLvl *v, int64 lvl ) const
+{
+    v->VisitLong(this, lvl);
+}
+
+/************************************************************************/
 /* PyRep Real/float/double Class                                        */
 /************************************************************************/
-
 void PyFloat::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sReal Field: %f\n", pfx, value);
 }
@@ -617,6 +642,24 @@ PyInt *PyInt::TypedClone() const {
     return(new PyInt(value));
 }
 
+PyInt::PyInt( const int32 i ) : PyRep(PyRep::PyTypeInt), value(i) {}
+PyInt::~PyInt() {}
+
+EVEMU_INLINE PyRep * PyInt::Clone() const
+{
+    return(TypedClone());
+}
+
+EVEMU_INLINE void PyInt::visit( PyVisitor *v ) const
+{
+    v->VisitInteger(this);
+}
+
+EVEMU_INLINE void PyInt::visit( PyVisitorLvl *v, int64 lvl ) const
+{
+    v->VisitInteger(this, lvl);
+}
+
 PyFloat *PyFloat::TypedClone() const {
     return(new PyFloat(value));
 }
@@ -886,7 +929,7 @@ DBTYPE PyPackedRow::GetColumnType(uint32 index) const
     r = t->items[ 1 ];
 
     assert( r->IsInt() );
-    return static_cast<DBTYPE>( r->AsInt().value );
+    return static_cast<DBTYPE>( r->AsInt().GetValue() );
 }
 
 bool PyPackedRow::SetField(uint32 index, PyRep *value)

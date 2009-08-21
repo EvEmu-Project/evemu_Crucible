@@ -68,22 +68,23 @@ public:
     */
     typedef enum _Type {
         PyTypeInt               = 0,
-        PyTypeFloat             = 1,
-        PyTypeBool              = 2,
-        PyTypeBuffer            = 3,
-        PyTypeString            = 4,
-        PyTypeTuple             = 5,
-        PyTypeList              = 6,
-        PyTypeDict              = 7,
-        PyTypeNone              = 8,
-        PyTypeSubStruct         = 9,
-        PyTypeSubStream         = 10,
-        PyTypeChecksumedStream  = 11,
-        PyTypeObject            = 12,
-        PyTypeObjectEx          = 13,
-        PyTypePackedRow         = 14,
-        PyTypeError             = 15,
-        PyTypeMax               = 15,
+        PyTypeLong              = 1,
+        PyTypeFloat             = 2,
+        PyTypeBool              = 3,
+        PyTypeBuffer            = 4,
+        PyTypeString            = 5,
+        PyTypeTuple             = 6,
+        PyTypeList              = 7,
+        PyTypeDict              = 8,
+        PyTypeNone              = 9,
+        PyTypeSubStruct         = 10,
+        PyTypeSubStream         = 11,
+        PyTypeChecksumedStream  = 12,
+        PyTypeObject            = 13,
+        PyTypeObjectEx          = 14,
+        PyTypePackedRow         = 15,
+        PyTypeError             = 16,
+        PyTypeMax               = 16,
     } Type;
 
     PyRep(Type t);
@@ -174,22 +175,34 @@ protected:
 
 //storing all integers (and booleans) as int64s is a lot of craziness right now
 //but its better than a ton of virtual functions to achieve the same thing.
-
 class PyInt : public PyRep {
 public:
-    PyInt(const int64 &i) : PyRep(PyRep::PyTypeInt), value(i) {}
-    virtual ~PyInt() {}
+    PyInt(const int32 i);
+    virtual ~PyInt();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitInteger(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitInteger(this, lvl);
-    }
-
+    EVEMU_INLINE PyRep *Clone() const;
+    EVEMU_INLINE void visit(PyVisitor *v) const;
+    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const;
     PyInt *TypedClone() const;
+    int32 GetValue(){return value;}
+//private:
+    int32 value;
+};
+
+class PyLong : public PyRep
+{
+public:
+    PyLong(const int64 i);
+    virtual ~PyLong();
+    void Dump(FILE *into, const char *pfx) const;
+    void Dump(LogType type, const char *pfx) const;
+    EVEMU_INLINE PyRep *Clone() const;
+    EVEMU_INLINE void visit(PyVisitor *v) const;
+    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const;
+    PyLong *TypedClone() const;
+    int64 GetValue(){return value;}
+//private:
     int64 value;
 };
 
