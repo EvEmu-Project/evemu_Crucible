@@ -43,7 +43,7 @@ double SystemEntity::DistanceTo2(const SystemEntity *other) const {
 	return(delta.lengthSquared());
 }
 
-PyRepTuple *SystemEntity::MakeDamageState() const {
+PyTuple *SystemEntity::MakeDamageState() const {
 	DoDestinyDamageState ddds;
 	MakeDamageState(ddds);
 	return(ddds.FastEncode());
@@ -98,11 +98,11 @@ const GPoint &ItemSystemEntity::GetPosition() const {
 	return(m_self->position());
 }
 
-PyRepDict *ItemSystemEntity::MakeSlimItem() const {
-	PyRepDict *slim = new PyRepDict();
-	slim->add("itemID", new PyRepInteger(Item()->itemID()));
-	slim->add("typeID", new PyRepInteger(Item()->typeID()));
-	slim->add("ownerID", new PyRepInteger(Item()->ownerID()));
+PyDict *ItemSystemEntity::MakeSlimItem() const {
+	PyDict *slim = new PyDict();
+	slim->add("itemID", new PyInt(Item()->itemID()));
+	slim->add("typeID", new PyInt(Item()->typeID()));
+	slim->add("ownerID", new PyInt(Item()->ownerID()));
 	return(slim);
 }
 

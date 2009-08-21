@@ -50,23 +50,23 @@ PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
 
 	PyRep *result = NULL;
 
-	PyRepObject *rowset = new PyRepObject();
+	PyObject *rowset = new PyObject();
 	result = rowset;
 	rowset->type = "util.Rowset";
-	PyRepDict *args = new PyRepDict();
+	PyDict *args = new PyDict();
 	rowset->arguments = args;
 
 	//RowClass:
-	args->add("RowClass", new PyRepString("util.Row", true));
+	args->add("RowClass", new PyString("util.Row", true));
 
 	//header:
-	PyRepList *header = new PyRepList();
+	PyList *header = new PyList();
 	args->add("header", header);
 	header->add("characterID");
 	header->add("online");
 
 	//lines:
-	PyRepList *charlist = new PyRepList();
+	PyList *charlist = new PyList();
 	args->add("lines", charlist);
 
 	return result;

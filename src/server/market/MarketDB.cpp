@@ -150,7 +150,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 		return NULL;
 	}
 
-	PyRepTuple *tup = new PyRepTuple(2);
+	PyTuple *tup = new PyTuple(2);
 	//this is wrong.
 	tup->items[0] = DBResultToCRowset(res);
 	
@@ -348,7 +348,7 @@ bool MarketDB::BuildOldPriceHistory() {
 
 	return true;
 }
-PyRepObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable)
+PyObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable)
 {
 	DBQueryResult res;
     bool success = false;
@@ -373,7 +373,7 @@ PyRepObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable)
     return DBResultToRowset(res);
 }
 
-PyRepObject *MarketDB::GetRefTypes() {
+PyObject *MarketDB::GetRefTypes() {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -431,7 +431,7 @@ static void _PropigateItems(std::map< int, std::set<uint32> > &types, std::map<i
 }
 
 //this is a crap load of work... there HAS to be a better way to do this..
-PyRepObject *MarketDB::GetMarketGroups() {
+PyObject *MarketDB::GetMarketGroups() {
 	DBQueryResult res;
 
 	//returns cached object marketProxy.GetMarketGroups
@@ -492,10 +492,10 @@ PyRepObject *MarketDB::GetMarketGroups() {
 	}
 
 	//doing this the long (non XML) way to avoid the extra copies due to the huge volume of data here.
-	PyRepDict *args = new PyRepDict();
+	PyDict *args = new PyDict();
 
-	PyRepDict *parentSets = new PyRepDict();
-	PyRepList *header = new PyRepList();
+	PyDict *parentSets = new PyDict();
+	PyList *header = new PyList();
 	
 	header->add("marketGroupID");
 	header->add("parentGroupID");
@@ -507,13 +507,13 @@ PyRepObject *MarketDB::GetMarketGroups() {
 	header->add("dataID");
 	
 	args->add("header", header);
-	args->add("idName", new PyRepString("parentGroupID"));
-	args->add("RowClass", new PyRepString("util.Row", true));
-	args->add("idName2", new PyRepNone());
+	args->add("idName", new PyString("parentGroupID"));
+	args->add("RowClass", new PyString("util.Row", true));
+	args->add("idName2", new PyNone());
 	args->add("items", parentSets);
 
-	std::map<int, PyRepList *> parentLists;	//maps marketGroupID -> list of children MarketGroup_Entry-s
-	std::map<int, PyRepList *>::iterator cur, end;
+	std::map<int, PyList *> parentLists;	//maps marketGroupID -> list of children MarketGroup_Entry-s
+	std::map<int, PyList *>::iterator cur, end;
 	
 	//now fill in items.
 	// we have to satisfy this structure... which uses parentGroupID as the
@@ -522,9 +522,9 @@ PyRepObject *MarketDB::GetMarketGroups() {
 	//marketGroupID, parentGroupID, marketGroupName, description, graphicID, hasTypes, types
 	std::map< int, std::set<uint32> >::const_iterator tt;
 	MarketGroup_Entry entry;
-	PyRepNone none_gid;
-	PyRepInteger int_gid(0);
-	PyRepInteger int_pgid(0);
+	PyNone none_gid;
+	PyInt int_gid(0);
+	PyInt int_pgid(0);
 	while(res.GetRow(row)) {
 		entry.marketGroupID = row.GetUInt(0);
 
@@ -538,12 +538,12 @@ PyRepObject *MarketDB::GetMarketGroups() {
 			entry.parentGroupID = &int_pgid;
 		}
 		//find the list for this parent ID
-		PyRepList *parentList;
+		PyList *parentList;
 		cur = parentLists.find(parentID);
 		if(cur != parentLists.end()) {
 			parentList = cur->second;
 		} else {
-			parentList = parentLists[parentID] = new PyRepList();
+			parentList = parentLists[parentID] = new PyList();
 		}
 		
 		entry.marketGroupName = row.GetText(2);
@@ -575,11 +575,11 @@ PyRepObject *MarketDB::GetMarketGroups() {
 	for(; cur != end; cur++)
 		//takes ownership of the list.
 		if(cur->first == -1)
-			parentSets->add(new PyRepNone, cur->second);
+			parentSets->add(new PyNone, cur->second);
 		else
-			parentSets->add(new PyRepInteger(cur->first), cur->second);
+			parentSets->add(new PyInt(cur->first), cur->second);
 
-	return(new PyRepObject("util.FilterRowset", args));
+	return(new PyObject("util.FilterRowset", args));
 }
 
 uint32 MarketDB::StoreBuyOrder(

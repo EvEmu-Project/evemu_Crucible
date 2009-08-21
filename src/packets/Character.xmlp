@@ -182,7 +182,7 @@
 
 <element name="Call_BatchCertificateUpdate">
   <InlineTuple>
-    <primdict name="update" key="uint32" pykey="Integer" value="uint32" pyvalue="Integer" />
+    <primdict name="update" key="uint32" pykey="Int" value="uint32" pyvalue="Int" />
   </InlineTuple>
 </element>
 

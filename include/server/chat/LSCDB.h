@@ -41,16 +41,16 @@ public:
 	LSCDB(DBcore *db);
 	virtual ~LSCDB();
 	
-	PyRepObject *LookupChars(const char *match, bool exact);
-	PyRepObject *LookupPlayerChars(const char *match, bool exact);
-	PyRepObject *LookupCorporations(const std::string &);
-	PyRepObject *LookupFactions(const std::string &);
-	PyRepObject *LookupCorporationTickers(const std::string &);
-	PyRepObject *LookupStations(const std::string &);
-	PyRepObject *LookupKnownLocationsByGroup(const std::string &, uint32);
+	PyObject *LookupChars(const char *match, bool exact);
+	PyObject *LookupPlayerChars(const char *match, bool exact);
+	PyObject *LookupCorporations(const std::string &);
+	PyObject *LookupFactions(const std::string &);
+	PyObject *LookupCorporationTickers(const std::string &);
+	PyObject *LookupStations(const std::string &);
+	PyObject *LookupKnownLocationsByGroup(const std::string &, uint32);
 
 	uint32 StoreMail(uint32 senderID, uint32 recipID, const char * subject, const char * message, uint64 sentTime);
-	PyRepObject *GetMailHeaders(uint32 recID);
+	PyObject *GetMailHeaders(uint32 recID);
 	PyRep *GetMailDetails(uint32 messageID, uint32 readerID);
 	bool MarkMessageRead(uint32 messageID);
 	bool DeleteMessage(uint32 messageID, uint32 readerID);

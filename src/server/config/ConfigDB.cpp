@@ -204,7 +204,7 @@ PyRep *ConfigDB::GetMultiGraphicsEx(const std::vector<int32> &entityIDs) {
     return(DBResultToRowList(res));
 }
 
-PyRepObject *ConfigDB::GetUnits() {
+PyObject *ConfigDB::GetUnits() {
 
     DBQueryResult res;
 
@@ -220,7 +220,7 @@ PyRepObject *ConfigDB::GetUnits() {
     return(DBResultToIndexRowset(res, "unitID"));
 }
 
-PyRepObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
+PyObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
     bool wantConstellations, bool wantSystems, bool wantStations)
 {
     const char *key = "solarSystemID";
@@ -257,7 +257,7 @@ PyRepObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
     return DBResultToRowset(res);
 }
 
-PyRepObject *ConfigDB::GetMap(uint32 solarSystemID) {
+PyObject *ConfigDB::GetMap(uint32 solarSystemID) {
     DBQueryResult res;
 
 #ifndef WIN32
@@ -291,7 +291,7 @@ PyRepObject *ConfigDB::GetMap(uint32 solarSystemID) {
     return DBResultToRowset(res);
 }
 
-PyRepObject *ConfigDB::ListLanguages() {
+PyObject *ConfigDB::ListLanguages() {
     DBQueryResult res;
 
     //how in the world do they get a list in the freakin rowset for destinations???

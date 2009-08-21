@@ -30,7 +30,7 @@ BookmarkDB::BookmarkDB(DBcore *db)
 {
 }
 
-PyRepObject *BookmarkDB::GetBookmarks(uint32 ownerID) {
+PyObject *BookmarkDB::GetBookmarks(uint32 ownerID) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,

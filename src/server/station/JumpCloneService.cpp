@@ -85,7 +85,7 @@ PyResult JumpCloneBound::Handle_InstallCloneInStation(PyCallArgs &call) {
 
 	_log(CLIENT__ERROR, "Unhandled InstallCloneInStation");
 	
-	return(new PyRepNone());
+	return(new PyNone());
 }
 
 PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
@@ -95,12 +95,12 @@ PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
 
 	_log(CLIENT__ERROR, "Unimplemented GetCloneState");
 
-	PyRepDict *d = new PyRepDict;
-	d->add("clones", new PyRepNone);
-	d->add("implants", new PyRepNone);
-	d->add("timeLastJump", new PyRepNone);
+	PyDict *d = new PyDict;
+	d->add("clones", new PyNone);
+	d->add("implants", new PyNone);
+	d->add("timeLastJump", new PyNone);
 
-	return(new PyRepObject("util.KeyVal", d));
+	return(new PyObject("util.KeyVal", d));
 }
 
 /*

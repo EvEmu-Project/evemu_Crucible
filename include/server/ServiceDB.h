@@ -46,8 +46,8 @@ class DBResultRow;
 class GPoint;
 class ItemFactory;
 
-class PyRepObject;
-class PyRepDict;
+class PyObject;
+class PyDict;
 class EntityList;
 class Client;
 class CharacterData;
@@ -74,8 +74,8 @@ public:
 	bool DoLogin(const char *login, const char *pass, uint32 &accountID, uint32 &role);
 
 	//entity/item stuff:
-	PyRepObject *GetSolRow(uint32 systemID) const;
-	PyRepObject *GetSolDroneState(uint32 systemID) const;
+	PyObject *GetSolRow(uint32 systemID) const;
+	PyObject *GetSolDroneState(uint32 systemID) const;
 
 	bool GetSystemInfo(uint32 systemID, uint32 *constellationID, uint32 *regionID, std::string *name, std::string *securityClass);	// mapSolarSystems
 	bool GetStaticItemInfo(uint32 itemID, uint32 *systemID, uint32 *constellationID, uint32 *regionID, GPoint *position);	// mapDenormalize
@@ -100,9 +100,9 @@ public:
 protected:
 	DBcore *const m_db;	//we do not own this pointer
 	
-	void ProcessStringChange(const char * key, const std::string & oldValue, const std::string & newValue, PyRepDict * notif, std::vector<std::string> & dbQ);
-	void ProcessRealChange(const char * key, double oldValue, double newValue, PyRepDict * notif, std::vector<std::string> & dbQ);
-	void ProcessIntChange(const char * key, uint32 oldValue, uint32 newValue, PyRepDict * notif, std::vector<std::string> & dbQ);
+	void ProcessStringChange(const char * key, const std::string & oldValue, const std::string & newValue, PyDict * notif, std::vector<std::string> & dbQ);
+	void ProcessRealChange(const char * key, double oldValue, double newValue, PyDict * notif, std::vector<std::string> & dbQ);
+	void ProcessIntChange(const char * key, uint32 oldValue, uint32 newValue, PyDict * notif, std::vector<std::string> & dbQ);
 
 private:
 

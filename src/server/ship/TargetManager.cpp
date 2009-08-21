@@ -271,14 +271,14 @@ SystemEntity *TargetManager::GetTarget(uint32 targetID, bool need_locked) const 
 	return NULL;	//not found.
 }
 
-void TargetManager::QueueTBDestinyEvent(PyRepTuple **up_in) const {
-	PyRepTuple *up = *up_in;
+void TargetManager::QueueTBDestinyEvent(PyTuple **up_in) const {
+	PyTuple *up = *up_in;
 	*up_in = NULL;	//could optimize out one of the Clones in here...
 	
 	std::map<SystemEntity *, TargetedByEntry *>::const_iterator cur, end;
 	cur = m_targetedBy.begin();
 	end = m_targetedBy.end();
-	PyRepTuple *up_dup = NULL;
+	PyTuple *up_dup = NULL;
 	for(; cur != end; ++cur) {
 		if(up_dup == NULL)
 			up_dup = up->TypedClone();
@@ -290,14 +290,14 @@ void TargetManager::QueueTBDestinyEvent(PyRepTuple **up_in) const {
 	delete up;
 }
 
-void TargetManager::QueueTBDestinyUpdate(PyRepTuple **up_in) const {
-	PyRepTuple *up = *up_in;
+void TargetManager::QueueTBDestinyUpdate(PyTuple **up_in) const {
+	PyTuple *up = *up_in;
 	*up_in = NULL;	//could optimize out one of the Clones in here...
 	
 	std::map<SystemEntity *, TargetedByEntry *>::const_iterator cur, end;
 	cur = m_targetedBy.begin();
 	end = m_targetedBy.end();
-	PyRepTuple *up_dup = NULL;
+	PyTuple *up_dup = NULL;
 	for(; cur != end; ++cur) {
 		if(up_dup == NULL)
 			up_dup = up->TypedClone();
@@ -374,8 +374,8 @@ SystemEntity *TargetManager::GetFirstTarget(bool need_locked) {
 	return NULL;
 }
 
-PyRepList *TargetManager::GetTargets() const {
-	PyRepList *result = new PyRepList();
+PyList *TargetManager::GetTargets() const {
+	PyList *result = new PyList();
 	
 	std::map<SystemEntity *, TargetEntry *>::const_iterator cur, end;
 	cur = m_targets.begin();
@@ -387,8 +387,8 @@ PyRepList *TargetManager::GetTargets() const {
 	return result;
 }
 
-PyRepList *TargetManager::GetTargeters() const {
-	PyRepList *result = new PyRepList();
+PyList *TargetManager::GetTargeters() const {
+	PyList *result = new PyList();
 	
 	std::map<SystemEntity *, TargetedByEntry *>::const_iterator cur, end;
 	cur = m_targetedBy.begin();

@@ -71,7 +71,7 @@ bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepTuple *%s = (PyRepTuple *) %s;\n"
+		"	PyTuple *%s = (PyTuple *) %s;\n"
 		"	if(%s->items.size() != %d) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong size: expected %d, but got %%lu\", %s->items.size());\n"
 		"		delete packet;\n"
@@ -122,7 +122,7 @@ bool ClassDecodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepList *%s = (PyRepList *) %s;\n"
+		"	PyList *%s = (PyList *) %s;\n"
 		"	if(%s->items.size() != %d) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong size: expected %d, but got %%lu\", %s->items.size());\n"
 		"		delete packet;\n"
@@ -206,9 +206,9 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 	} else {
 		//setup the loop...
 		fprintf(into, 
-			"	PyRepDict *%s = (PyRepDict *) %s;\n"
+			"	PyDict *%s = (PyDict *) %s;\n"
 			"	\n"
-			"	PyRepDict::iterator %s_cur, %s_end;\n"
+			"	PyDict::iterator %s_cur, %s_end;\n"
 			"	%s_cur = %s->items.begin();\n"
 			"	%s_end = %s->items.end();\n"
 			"	for(; %s_cur != %s_end; %s_cur++) {\n"
@@ -218,7 +218,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 			"			delete packet;\n"
 			"			return false;\n"
 			"		}\n"
-			"		PyRepString *key_string__ = (PyRepString *) key__;\n"
+			"		PyString *key_string__ = (PyString *) key__;\n"
 			"		\n",
 			iname, v, iname, iname, iname, iname, iname, iname, iname, iname, iname, iname, m_name, iname
 		);
@@ -343,7 +343,7 @@ bool ClassDecodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *fie
 		"		return false;\n"
 		"	}"
 		"	\n"
-		"	PyRepSubStream *%s = (PyRepSubStream *) %s;\n"
+		"	PySubStream *%s = (PySubStream *) %s;\n"
 		"	//make sure its decoded\n"
 		"	%s->DecodeData();\n"
 		"	if(%s->decoded == NULL) {\n"
@@ -380,7 +380,7 @@ bool ClassDecodeGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *fie
 		"		return false;\n"
 		"	}"
 		"	\n"
-		"	PyRepSubStruct *%s = (PyRepSubStruct *) %s;\n"
+		"	PySubStruct *%s = (PySubStruct *) %s;\n"
 		"	\n",
 		v, 
 			m_name, iname, v, 
@@ -416,8 +416,8 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
-		"	PyRepDict *%s = (PyRepDict *) %s;\n"
-		"	PyRepDict::iterator %s_cur, %s_end;\n"
+		"	PyDict *%s = (PyDict *) %s;\n"
+		"	PyDict::iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s->items.begin();\n"
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
@@ -427,7 +427,7 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		"			delete packet;\n"
 		"			return false;\n"
 		"		}\n"
-		"		PyRepString *k = (PyRepString *) %s_cur->first;\n"
+		"		PyString *k = (PyString *) %s_cur->first;\n"
 		"		%s[k->value] = %s_cur->second->Clone();\n"
 		"	}\n"
 		"	\n",
@@ -469,18 +469,18 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
-		"	PyRepDict *%s = (PyRepDict *) %s;\n"
-		"	PyRepDict::iterator %s_cur, %s_end;\n"
+		"	PyDict *%s = (PyDict *) %s;\n"
+		"	PyDict::iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s->items.begin();\n"
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
 		"	for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-		"		if(!%s_cur->first->IsInteger()) {\n"
+		"		if(!%s_cur->first->IsInt()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Key %%d in dict %s is not an integer: %%s\", %s_index, %s_cur->first->TypeString());\n"
 		"			delete packet;\n"
 		"			return false;\n"
 		"		}\n"
-		"		PyRepInteger *k = (PyRepInteger *) %s_cur->first;\n"
+		"		PyInt *k = (PyInt *) %s_cur->first;\n"
 		"		if(k->value > 0xFFFFFFFFLL) {\n"
 		"			_log(NET__PACKET_WARNING, \"Decode %s: truncating 64 bit into into 32 bit int in key of entry %%d in field %s\", %s_index);\n"
 		"		}\n"
@@ -546,8 +546,8 @@ bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
-		"	PyRepDict *%s = (PyRepDict *) %s;\n"
-		"	PyRepDict::iterator %s_cur, %s_end;\n"
+		"	PyDict *%s = (PyDict *) %s;\n"
+		"	PyDict::iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s->items.begin();\n"
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
@@ -562,8 +562,8 @@ bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 		"			delete packet;\n"
 		"			return false;\n"
 		"		}\n"
-		"		PyRep%s *k = (PyRep%s *) %s_cur->first;\n"
-		"		PyRep%s *v = (PyRep%s *) %s_cur->second;\n"
+		"		Py%s *k = (Py%s *) %s_cur->first;\n"
+		"		Py%s *v = (Py%s *) %s_cur->second;\n"
 		"		%s[k->value] = v->value;\n"
 		"	}\n"
 		"	\n",
@@ -610,8 +610,8 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
-		"	PyRepList *%s = (PyRepList *) %s;\n"
-		"	PyRepList::iterator %s_cur, %s_end;\n"
+		"	PyList *%s = (PyList *) %s;\n"
+		"	PyList::iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s->items.begin();\n"
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
@@ -621,7 +621,7 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 		"			delete packet;\n"
 		"			return false;\n"
 		"		}\n"
-		"		PyRepString *t = (PyRepString *) (*%s_cur);\n"
+		"		PyString *t = (PyString *) (*%s_cur);\n"
 		"		%s.push_back(t->value);\n"
 		"	}\n"
 		"\n",
@@ -657,18 +657,18 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
-		"	PyRepList *%s = (PyRepList *) %s;\n"
-		"	PyRepList::iterator %s_cur, %s_end;\n"
+		"	PyList *%s = (PyList *) %s;\n"
+		"	PyList::iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s->items.begin();\n"
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
 		"	for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-		"		if(!(*%s_cur)->IsInteger()) {\n"
+		"		if(!(*%s_cur)->IsInt()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not an integer: %%s\", %s_index, (*%s_cur)->TypeString());\n"
 		"			delete packet;\n"
 		"			return false;\n"
 		"		}\n"
-		"		PyRepInteger *t = (PyRepInteger *) (*%s_cur);\n"
+		"		PyInt *t = (PyInt *) (*%s_cur);\n"
 		"		if(t->value > 0xFFFFFFFFLL) {\n"
 		"			_log(NET__PACKET_WARNING, \"Decode %s: truncating 64 bit into into 32 bit int for item %%d in field %s\", %s_index);\n"
 		"		}\n"
@@ -709,18 +709,18 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	%s.clear();\n"
-		"	PyRepList *%s = (PyRepList *) %s;\n"
-		"	PyRepList::iterator %s_cur, %s_end;\n"
+		"	PyList *%s = (PyList *) %s;\n"
+		"	PyList::iterator %s_cur, %s_end;\n"
 		"	%s_cur = %s->items.begin();\n"
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
 		"	for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-		"		if(!(*%s_cur)->IsInteger()) {\n"
+		"		if(!(*%s_cur)->IsInt()) {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not an integer: %%s\", %s_index, (*%s_cur)->TypeString());\n"
 		"			delete packet;\n"
 		"			return false;\n"
 		"		}\n"
-		"		PyRepInteger *t = (PyRepInteger *) (*%s_cur);\n"
+		"		PyInt *t = (PyInt *) (*%s_cur);\n"
 		"		%s.push_back(t->value);\n"
 		"	}\n"
 		"\n",
@@ -848,7 +848,7 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepObject *%s = (PyRepObject *) %s;\n"
+		"	PyObject *%s = (PyObject *) %s;\n"
 		"	\n"
 		"	if(%s->type != \"%s\") {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong object type. Expected '%s', got '%%s'\", %s->type.c_str());\n"
@@ -891,7 +891,7 @@ bool ClassDecodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepObjectEx *%s = (PyRepObjectEx *) %s;\n"
+		"	PyObjectEx *%s = (PyObjectEx *) %s;\n"
 		"	if(%s%s->is_type_1) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: expected %s to %s of type 1, but it %s\");\n"
 		"		delete packet;\n"
@@ -936,12 +936,12 @@ bool ClassDecodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 	const char *v = top();
 	fprintf(into, 
 		"	if(%s->IsBuffer()) {\n"
-		"		%s = (PyRepBuffer *) %s;\n"
+		"		%s = (PyBuffer *) %s;\n"
 		"		%s = NULL;\n"
 		"	} else if(%s->IsString()) {\n"
-		"		PyRepString *__sss = (PyRepString *) %s;\n"
+		"		PyString *__sss = (PyString *) %s;\n"
 		"		%s = NULL;\n"
-		"		%s = new PyRepBuffer((const uint8 *) __sss->value.c_str(), __sss->value.length());\n"
+		"		%s = new PyBuffer((const uint8 *) __sss->value.c_str(), __sss->value.length());\n"
 		"		delete __sss;\n"
 		"	} else {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a buffer: %%s\", %s->TypeString());\n"
@@ -1015,7 +1015,7 @@ bool ClassDecodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepList *list_%s = (PyRepList *) %s;"
+		"	PyList *list_%s = (PyList *) %s;"
 		"	%s.items = list_%s->items;\n"
 		"	list_%s->items.clear();\n"
 		"	\n",
@@ -1063,7 +1063,7 @@ bool ClassDecodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	%s = (PyRepTuple *) %s;\n"
+		"	%s = (PyTuple *) %s;\n"
 		"	%s = NULL;\n"
 		"	\n",
 		v, m_name, name, v, name, v, v
@@ -1107,7 +1107,7 @@ bool ClassDecodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepDict *list_%s = (PyRepDict *) %s;"
+		"	PyDict *list_%s = (PyDict *) %s;"
 		"	%s.items = list_%s->items;\n"
 		"	list_%s->items.clear();\n"
 		"	\n",
@@ -1158,7 +1158,7 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 			"		delete packet;\n"
 			"		return false;\n"
 			"	}\n"
-			"	PyRepBoolean *%s = (PyRepBoolean *) %s;\n"
+			"	PyBool *%s = (PyBool *) %s;\n"
 			"	%s = %s->value;\n"
 			"",
 			v, m_name, name, v, iname, v, name, iname
@@ -1166,10 +1166,10 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 	} else {
 			fprintf(into, 
 			"	if(%s->IsBool()) {\n"
-			"		PyRepBoolean *%s = (PyRepBoolean *) %s;\n"
+			"		PyBool *%s = (PyBool *) %s;\n"
 			"		%s = %s->value;\n"
-			"	} else if(%s->IsInteger()) {\n"
-			"		PyRepInteger *%s = (PyRepInteger *) %s;\n"
+			"	} else if(%s->IsInt()) {\n"
+			"		PyInt *%s = (PyInt *) %s;\n"
 			"		%s = (%s->value != 0);\n"
 			"	} else {\n"
 			"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a boolean (or int): %%s\", %s->TypeString());\n"
@@ -1222,12 +1222,12 @@ bool ClassDecodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
 	snprintf(iname, sizeof(iname), "int_%d", num);
 	
 	fprintf(into, 
-		"	if(!%s->IsInteger()) {\n"
+		"	if(!%s->IsInt()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not an int: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepInteger *%s = (PyRepInteger *) %s;\n"
+		"	PyInt *%s = (PyInt *) %s;\n"
 		"	if(%s->value > 0xFFFFFFFF) {\n"
 		"		_log(NET__PACKET_WARNING, \"Decode %s: truncating 64 bit into into 32 bit int for field %s\");\n"
 		"	}\n"
@@ -1271,12 +1271,12 @@ bool ClassDecodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 	snprintf(iname, sizeof(iname), "int64_%d", num);
 	
 	fprintf(into, 
-		"	if(!%s->IsInteger()) {\n"
+		"	if(!%s->IsInt()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not an int: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepInteger *%s = (PyRepInteger *) %s;\n"
+		"	PyInt *%s = (PyInt *) %s;\n"
 		"	%s = %s->value;\n"
 		"",
 		v, m_name, name, v, iname, v, name, iname
@@ -1324,7 +1324,7 @@ bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepString *%s = (PyRepString *) %s;\n"
+		"	PyString *%s = (PyString *) %s;\n"
 		"	%s = %s->value;\n"
 		"",
 		v,
@@ -1379,12 +1379,12 @@ bool ClassDecodeGenerator::Process_real(FILE *into, TiXmlElement *field) {
 	snprintf(iname, sizeof(iname), "real_%d", num);
 	
 	fprintf(into, 
-		"	if(!%s->IsReal()) {\n"
+		"	if(!%s->IsFloat()) {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a real: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyRepReal *%s = (PyRepReal *) %s;\n"
+		"	PyFloat *%s = (PyFloat *) %s;\n"
 		"	%s = %s->value;\n"
 		"",
 		v, m_name, name, v, iname, v, name, iname

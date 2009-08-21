@@ -28,7 +28,7 @@
 
 class PyPacket;
 class PyRep;
-class PyRepTuple;
+class PyTuple;
 class AuthenticationReq;
 class AuthenticationRsp;
 class PyCallStream;
@@ -48,7 +48,7 @@ protected:
 	virtual void Handle_AuthenticationReq(const PyPacket *packet, AuthenticationReq **call);
 	virtual void Handle_AuthenticationRsp(const PyPacket *packet, AuthenticationRsp **rsp);
 	virtual void Handle_CallReq(const PyPacket *packet, PyCallStream **call);
-	virtual void Handle_CallRsp(const PyPacket *packet, PyRepTuple **res);
+	virtual void Handle_CallRsp(const PyPacket *packet, PyTuple **res);
 	virtual void Handle_Notify(const PyPacket *packet, EVENotificationStream **notify);
 	virtual void Handle_SessionChange(const PyPacket *packet, SessionChangeNotification **notify);
 	virtual void Handle_ErrorResponse(const PyPacket *packet, ErrorResponseBody **body);

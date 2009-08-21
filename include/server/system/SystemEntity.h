@@ -30,9 +30,9 @@
 #include <vector>
 
 
-class PyRepDict;
-class PyRepList;
-class PyRepTuple;
+class PyDict;
+class PyList;
+class PyTuple;
 class DoDestiny_AddBall;
 class DoDestinyDamageState;
 class DBSystemEntity;
@@ -81,8 +81,8 @@ public:
 	SystemBubble *Bubble() const { return(m_bubble); }	//may be NULL
 	
 	//may consume the arguments, or not.
-	virtual void QueueDestinyUpdate(PyRepTuple **du) = 0;
-	virtual void QueueDestinyEvent(PyRepTuple **multiEvent) = 0;
+	virtual void QueueDestinyUpdate(PyTuple **du) = 0;
+	virtual void QueueDestinyEvent(PyTuple **multiEvent) = 0;
 	
 	//get the item ID of this entity
 	virtual uint32 GetID() const = 0;
@@ -100,11 +100,11 @@ public:
 	//expand the vector as needed, and encode the destiny update into it.
 	virtual void EncodeDestiny(std::vector<uint8> &into) const = 0;
 	//return ownership of a new foo.SlimItem dict
-	virtual PyRepDict *MakeSlimItem() const = 0;
+	virtual PyDict *MakeSlimItem() const = 0;
 	//fill in the supplied damage state object.
 	virtual void MakeDamageState(DoDestinyDamageState &into) const = 0;
 	//return ownership of a new damage state tuple (calls MakeDamageState)
-	PyRepTuple *MakeDamageState() const;
+	PyTuple *MakeDamageState() const;
 	
 	//Im not happy with these being here..
 	virtual void TargetAdded(SystemEntity *who) = 0;
@@ -138,7 +138,7 @@ public:
 	virtual const char *GetName() const;
 	virtual const GPoint &GetPosition() const;
 	virtual double GetRadius() const;
-	virtual PyRepDict *MakeSlimItem() const;
+	virtual PyDict *MakeSlimItem() const;
 	virtual void MakeDamageState(DoDestinyDamageState &into) const;
 	
 	//process outgoing damage, applying any bonuses...

@@ -105,7 +105,7 @@ PyResult StationSvcService::Handle_GetStation(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if (!arg.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-		return (new PyRepInteger(0));
+		return (new PyInt(0));
 	}
 
 	return m_db.DoGetStation(arg.arg);

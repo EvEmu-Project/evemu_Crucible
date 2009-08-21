@@ -62,7 +62,7 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
     /* check for valid colm */
     if(row.IsNull(column_index))
     {
-        return new PyRepNone();
+        return new PyNone();
     }
 
     switch(row.ColumnType(column_index))
@@ -74,7 +74,7 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
         /* check if there is a dot in the field like "100.54" */
         if(strchr(row.GetText(column_index), '.') != NULL)
         {
-            return new PyRepReal(row.GetDouble(column_index));
+            return new PyFloat(row.GetDouble(column_index));
         }
 
         /* fall trough */
@@ -85,57 +85,57 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
         // capt: only signed ints are used...
         // quick check to handle sign, I'm not sure it does any good at this point.
         // if(row.IsSigned(column_index))
-            return new PyRepInteger(row.GetInt64(column_index));
-        // return(new PyRepInteger(row.GetUInt64(column_index)));
+            return new PyInt(row.GetInt64(column_index));
+        // return(new PyInt(row.GetUInt64(column_index)));
     case DBQueryResult::Binary:
-        return new PyRepBuffer((const uint8 *) row.GetText(column_index), row.GetColumnLength(column_index));
+        return new PyBuffer((const uint8 *) row.GetText(column_index), row.GetColumnLength(column_index));
     case DBQueryResult::Bool:
         {
             int field_data = row.GetInt(column_index);
             // safe thingy to make sure we don't fuck things up in the db
             assert(field_data == 0 || field_data == 1);
-            return new PyRepBoolean( field_data != 0 );
+            return new PyBool( field_data != 0 );
         }
 
     case DBQueryResult::DateTime:
     case DBQueryResult::String:
     default:
-        return new PyRepString(row.GetText(column_index));
+        return new PyString(row.GetText(column_index));
     }
     //unreachable:
-    return new PyRepNone();
+    return new PyNone();
 }
 
-PyRepObject *DBResultToRowset(DBQueryResult &result)
+PyObject *DBResultToRowset(DBQueryResult &result)
 {
     uint32 r;
     uint32 cc = result.ColumnCount();
 
-    PyRepDict *args = new PyRepDict();
-    PyRepObject *res = new PyRepObject("util.Rowset", args);
+    PyDict *args = new PyDict();
+    PyObject *res = new PyObject("util.Rowset", args);
 
     /* check if we have a empty query result and return a empty RowSet */
     if( cc == 0 )
         return res;
 
     //list off the column names:
-    PyRepList *header = new PyRepList( cc );
+    PyList *header = new PyList( cc );
     args->add("header", header);
     for(r = 0; r < cc; r++) {
         header->setStr( r, result.ColumnName(r));
     }
 
     //RowClass:
-    args->add("RowClass", new PyRepString("util.Row", true));
+    args->add("RowClass", new PyString("util.Row", true));
 
     //lines:
-    PyRepList *rowlist = new PyRepList();
+    PyList *rowlist = new PyList();
     args->add("lines", rowlist);
 
     //add a line entry for each result row:
     DBResultRow row;
     while(result.GetRow(row)) {
-        PyRepList *linedata = new PyRepList( cc );
+        PyList *linedata = new PyList( cc );
         rowlist->add(linedata);
         for(r = 0; r < cc; r++) {
             linedata->set( r, DBColumnToPyRep(row, r) );
@@ -145,16 +145,16 @@ PyRepObject *DBResultToRowset(DBQueryResult &result)
     return res;
 }
 
-PyRepTuple *DBResultToTupleSet(DBQueryResult &result) {
+PyTuple *DBResultToTupleSet(DBQueryResult &result) {
     uint32 cc = result.ColumnCount();
     if(cc == 0)
-        return new PyRepTuple(0);
+        return new PyTuple(0);
     
     uint32 r;
 
-    PyRepTuple *res = new PyRepTuple(2);
-    PyRepList *cols = new PyRepList(cc);
-    PyRepList *reslist = new PyRepList();
+    PyTuple *res = new PyTuple(2);
+    PyList *cols = new PyList(cc);
+    PyList *reslist = new PyList();
     res->items[0] = cols;
     res->items[1] = reslist;
 
@@ -166,7 +166,7 @@ PyRepTuple *DBResultToTupleSet(DBQueryResult &result) {
     //add a line entry for each result row:
     DBResultRow row;
     while(result.GetRow(row)) {
-        PyRepList *linedata = new PyRepList(cc);
+        PyList *linedata = new PyList(cc);
         reslist->items.push_back(linedata);
         for(r = 0; r < cc; r++) {
             linedata->set(r, DBColumnToPyRep(row, r));
@@ -176,7 +176,7 @@ PyRepTuple *DBResultToTupleSet(DBQueryResult &result) {
     return res;
 }
 
-PyRepObject *DBResultToIndexRowset(DBQueryResult &result, const char *key) {
+PyObject *DBResultToIndexRowset(DBQueryResult &result, const char *key) {
     uint32 cc = result.ColumnCount();
     uint32 key_index;
 
@@ -193,29 +193,29 @@ PyRepObject *DBResultToIndexRowset(DBQueryResult &result, const char *key) {
     return DBResultToIndexRowset(result, key_index);
 }
 
-PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
+PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
     uint32 cc = result.ColumnCount();
 
     //start building the IndexRowset
-    PyRepDict *args = new PyRepDict();
-    PyRepObject *res = new PyRepObject("util.IndexRowset", args);
+    PyDict *args = new PyDict();
+    PyObject *res = new PyObject("util.IndexRowset", args);
 
     if(cc == 0 || cc < key_index)
         return res;
     
     //list off the column names:
-    PyRepList *header = new PyRepList(cc);
+    PyList *header = new PyList(cc);
     args->add("header", header);
     for(uint32 i = 0; i < cc; i++)
         header->setStr(i, result.ColumnName(i));
 
     //RowClass:
-    args->add("RowClass", new PyRepString("util.Row", true));
+    args->add("RowClass", new PyString("util.Row", true));
     //idName:
     args->addStr("idName", result.ColumnName(key_index));
 
     //items:
-    PyRepDict *items = new PyRepDict();
+    PyDict *items = new PyDict();
     args->add("items", items);
 
     //add a line entry for each result row:
@@ -223,7 +223,7 @@ PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
     while(result.GetRow(row)) {
         PyRep *key = DBColumnToPyRep(row, key_index);
 
-        PyRepList *line = new PyRepList(cc);
+        PyList *line = new PyList(cc);
         for(uint32 i = 0; i < cc; i++)
             line->set(i, DBColumnToPyRep(row, i));
 
@@ -233,10 +233,10 @@ PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
     return res;
 }
 
-PyRepObject *DBRowToKeyVal(DBResultRow &row) {
+PyObject *DBRowToKeyVal(DBResultRow &row) {
 
-    PyRepDict *args = new PyRepDict();
-    PyRepObject *res = new PyRepObject("util.KeyVal", args);
+    PyDict *args = new PyDict();
+    PyObject *res = new PyObject("util.KeyVal", args);
     
     uint32 cc = row.ColumnCount();
     for( uint32 r = 0; r < cc; r++ )
@@ -247,15 +247,15 @@ PyRepObject *DBRowToKeyVal(DBResultRow &row) {
     return res;
 }
 
-PyRepObject *DBRowToRow(DBResultRow &row, const char *type)
+PyObject *DBRowToRow(DBResultRow &row, const char *type)
 {
 
-    PyRepDict *args = new PyRepDict();
-    PyRepObject *res = new PyRepObject(type, args);
+    PyDict *args = new PyDict();
+    PyObject *res = new PyObject(type, args);
 
     //list off the column names:
     uint32 cc = row.ColumnCount();
-    PyRepList *header = new PyRepList(cc);
+    PyList *header = new PyList(cc);
     args->add("header", header);
 
     for(uint32 r = 0; r < cc; r++)
@@ -264,7 +264,7 @@ PyRepObject *DBRowToRow(DBResultRow &row, const char *type)
     }
 
     //lines:
-    PyRepList *rowlist = new PyRepList(cc);
+    PyList *rowlist = new PyList(cc);
     args->add("line", rowlist);
 
     //add a line entry for the row:
@@ -276,15 +276,15 @@ PyRepObject *DBRowToRow(DBResultRow &row, const char *type)
     return res;
 }
 
-PyRepTuple *DBResultToRowList(DBQueryResult &result, const char *type) {
+PyTuple *DBResultToRowList(DBQueryResult &result, const char *type) {
     uint32 cc = result.ColumnCount();
     if(cc == 0)
-        return(new PyRepTuple(0));
+        return(new PyTuple(0));
     uint32 r;
 
-    PyRepTuple *res = new PyRepTuple(2);
-    PyRepList *cols = new PyRepList(cc);
-    PyRepList *reslist = new PyRepList();
+    PyTuple *res = new PyTuple(2);
+    PyList *cols = new PyList(cc);
+    PyList *reslist = new PyList();
     res->SetItem( 0, cols );
     res->SetItem( 1, reslist );
 
@@ -297,32 +297,32 @@ PyRepTuple *DBResultToRowList(DBQueryResult &result, const char *type) {
     DBResultRow row;
     while(result.GetRow(row)) {
         //this could be more efficient by not building the column list each time, but cloning it instead.
-        PyRepObject *o = DBRowToRow(row, type);
+        PyObject *o = DBRowToRow(row, type);
         reslist->items.push_back(o);
     }
 
     return res;
 }
 
-PyRepDict *DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const char *type) {
-    PyRepDict *res = new PyRepDict();
+PyDict *DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const char *type) {
+    PyDict *res = new PyDict();
 
     //add a line entry for each result row:
     DBResultRow row;
     while(result.GetRow(row)) {
         //this could be more efficient by not building the column list each time, but cloning it instead.
-        PyRepObject *r = DBRowToRow(row, type);
+        PyObject *r = DBRowToRow(row, type);
         int32 k = row.GetInt(key_index);
         if(k == 0)
             continue;   //likely a non-integer key
-        res->add(new PyRepInteger(k), r);
+        res->add(new PyInt(k), r);
     }
 
     return res;
 }
 
-PyRepDict *DBResultToIntIntDict(DBQueryResult &result) {
-    PyRepDict *res = new PyRepDict();
+PyDict *DBResultToIntIntDict(DBQueryResult &result) {
+    PyDict *res = new PyDict();
 
     //add a line entry for each result row:
     DBResultRow row;
@@ -338,7 +338,7 @@ PyRepDict *DBResultToIntIntDict(DBQueryResult &result) {
         else
             v = row.GetInt(1);
 
-        res->add( new PyRepInteger(k), new PyRepInteger(v) );
+        res->add( new PyInt(k), new PyInt(v) );
     }
 
     return res;
@@ -386,7 +386,7 @@ void DBResultToIntIntlistDict( DBQueryResult &result, std::map<int32, PyRep *> &
      */
     uint32 last_key = 0xFFFFFFFF;
 
-    PyRepList *l = NULL;
+    PyList *l = NULL;
 
     DBResultRow row;
     while(result.GetRow(row))
@@ -404,11 +404,11 @@ void DBResultToIntIntlistDict( DBQueryResult &result, std::map<int32, PyRep *> &
 
                 into[k] = l;
             }
-            l = new PyRepList();
+            l = new PyList();
             last_key = k;
         }
         uint32 v = row.GetInt(1);
-        l->add(new PyRepInteger(v));
+        l->add(new PyInt(v));
     }
 }
 
@@ -429,31 +429,31 @@ DBTYPE GetPackedColumnType( DBQueryResult::ColType colType )
     }
 }
 
-PyRepObjectEx *DBResultToRowDescriptor( const DBQueryResult &res )
+PyObjectEx *DBResultToRowDescriptor( const DBQueryResult &res )
 {
     uint32 cc = res.ColumnCount();
 
     /* First we create the payload */
-    PyRepTuple * RowPayload = new PyRepTuple( cc );
+    PyTuple * RowPayload = new PyTuple( cc );
 
     for(uint32 i = 0; i < cc; i++)
     {
-        PyRepTuple *RowField = new PyRepTuple( 2 );
+        PyTuple *RowField = new PyTuple( 2 );
 
-        RowField->SetItem( 0, new PyRepString( res.ColumnName( i ) ));
-        RowField->SetItem( 1, new PyRepInteger( GetPackedColumnType( res.ColumnType( i ) ) ));
+        RowField->SetItem( 0, new PyString( res.ColumnName( i ) ));
+        RowField->SetItem( 1, new PyInt( GetPackedColumnType( res.ColumnType( i ) ) ));
 
         RowPayload->SetItem( i , RowField );
     }
 
     /* store the payload in its tuple container */
-    PyRepTuple * PayloadContainer = new PyRepTuple(1);
+    PyTuple * PayloadContainer = new PyTuple(1);
     PayloadContainer->SetItem( 0, RowPayload );
 
     /* we create the class instance */
-    PyRepString * ClassTypeName = new PyRepString("blue.DBRowDescriptor", true);
+    PyString * ClassTypeName = new PyString("blue.DBRowDescriptor", true);
     
-    PyRepTuple * ClassHeader = new PyRepTuple(2);
+    PyTuple * ClassHeader = new PyTuple(2);
 
     ClassHeader->SetItem( 0, ClassTypeName );
     ClassHeader->SetItem( 1, PayloadContainer );
@@ -461,35 +461,35 @@ PyRepObjectEx *DBResultToRowDescriptor( const DBQueryResult &res )
     /* now everything is almost ready */
 
     /* we don't have root list or root dict stuff here */
-    PyRepObjectEx *main_obj = new PyRepObjectEx( false, ClassHeader );
+    PyObjectEx *main_obj = new PyObjectEx( false, ClassHeader );
     return main_obj;
 }
 
-PyRepObjectEx *DBRowToRowDescriptor( const DBResultRow &row )
+PyObjectEx *DBRowToRowDescriptor( const DBResultRow &row )
 {
     uint32 cc = row.ColumnCount();
 
     /* First we create the payload */
-    PyRepTuple * RowPayload = new PyRepTuple( cc );
+    PyTuple * RowPayload = new PyTuple( cc );
 
     for(uint32 i = 0; i < cc; i++)
     {
-        PyRepTuple *RowField = new PyRepTuple( 2 );
+        PyTuple *RowField = new PyTuple( 2 );
 
-        RowField->SetItem( 0, new PyRepString( row.ColumnName( i ) ));
-        RowField->SetItem( 1, new PyRepInteger( GetPackedColumnType( row.ColumnType( i ) ) ));
+        RowField->SetItem( 0, new PyString( row.ColumnName( i ) ));
+        RowField->SetItem( 1, new PyInt( GetPackedColumnType( row.ColumnType( i ) ) ));
 
         RowPayload->SetItem( i , RowField );
     }
 
     /* store the payload in its tuple container */
-    PyRepTuple * PayloadContainer = new PyRepTuple(1);
+    PyTuple * PayloadContainer = new PyTuple(1);
     PayloadContainer->SetItem( 0, RowPayload );
 
     /* we create the class instance */
-    PyRepString * ClassTypeName = new PyRepString("blue.DBRowDescriptor", true);
+    PyString * ClassTypeName = new PyString("blue.DBRowDescriptor", true);
     
-    PyRepTuple * ClassHeader = new PyRepTuple(2);
+    PyTuple * ClassHeader = new PyTuple(2);
 
     ClassHeader->SetItem( 0, ClassTypeName );
     ClassHeader->SetItem( 1, PayloadContainer );
@@ -497,13 +497,13 @@ PyRepObjectEx *DBRowToRowDescriptor( const DBResultRow &row )
     /* now everything is almost ready */
 
     /* we don't have root list or root dict stuff here */
-    PyRepObjectEx *main_obj = new PyRepObjectEx( false, ClassHeader );
+    PyObjectEx *main_obj = new PyObjectEx( false, ClassHeader );
     return main_obj;
 }
 
-PyRepPackedRow *CreatePackedRow( const DBResultRow &row, PyRep &header, bool headerOwner )
+PyPackedRow *CreatePackedRow( const DBResultRow &row, PyRep &header, bool headerOwner )
 {
-    PyRepPackedRow *res = new PyRepPackedRow( header, headerOwner );
+    PyPackedRow *res = new PyPackedRow( header, headerOwner );
 
     uint32 cc = row.ColumnCount();
     for(uint32 i = 0; i < cc; i++)
@@ -512,10 +512,10 @@ PyRepPackedRow *CreatePackedRow( const DBResultRow &row, PyRep &header, bool hea
     return res;
 }
 
-PyRepList *DBResultToPackedRowList( DBQueryResult &result ) {
+PyList *DBResultToPackedRowList( DBQueryResult &result ) {
     PyRep *header = DBResultToRowDescriptor( result );
 
-    PyRepList *res = new PyRepList(result.GetRowCount());
+    PyList *res = new PyList(result.GetRowCount());
 
     DBResultRow row;
     uint32 i = 0;
@@ -528,11 +528,11 @@ PyRepList *DBResultToPackedRowList( DBQueryResult &result ) {
 }
 
 /* function not used */
-PyRepTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
+PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
 {
     size_t row_count = result.GetRowCount();
-    PyRepList * list = new PyRepList( row_count );
-    PyRepTuple * root = new PyRepTuple(2);
+    PyList * list = new PyList( row_count );
+    PyTuple * root = new PyTuple(2);
     PyRep * header = DBResultToRowDescriptor( result );
     root->SetItem( 0, header );
     root->SetItem( 1, list );
@@ -576,24 +576,24 @@ PyRepTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
 
 /* this is a very monstrous implementation of a Python Class/Function call
  */
-PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
+PyObjectEx *DBResultToCRowset( DBQueryResult &result ) {
 
     uint32 cc = result.GetRowCount();
 
     /* create CRowSet class header */
-    PyRepTuple * ClassHeader = new PyRepTuple(2);
+    PyTuple * ClassHeader = new PyTuple(2);
 
-    PyRepString * ClassTypeName = new PyRepString("dbutil.CRowset", true);  // 0
-    PyRepObjectEx * RowDescriptor = DBResultToRowDescriptor( result );      // 1
+    PyString * ClassTypeName = new PyString("dbutil.CRowset", true);  // 0
+    PyObjectEx * RowDescriptor = DBResultToRowDescriptor( result );      // 1
 
     /* object containers */
-    PyRepDict * headerDict = new PyRepDict(); headerDict->add( "header", RowDescriptor );
-    PyRepTuple * headerTuple = new PyRepTuple(1); headerTuple->SetItem( 0, ClassTypeName );
+    PyDict * headerDict = new PyDict(); headerDict->add( "header", RowDescriptor );
+    PyTuple * headerTuple = new PyTuple(1); headerTuple->SetItem( 0, ClassTypeName );
 
     ClassHeader->SetItem( 0, headerTuple );
     ClassHeader->SetItem( 1, headerDict );
 
-    PyRepObjectEx *root = new PyRepObjectEx( true, ClassHeader );
+    PyObjectEx *root = new PyObjectEx( true, ClassHeader );
     
     root->list_data.resize( cc );
 
@@ -610,7 +610,7 @@ PyRepObjectEx *DBResultToCRowset( DBQueryResult &result ) {
     return root;
 }
 
-PyRepPackedRow *DBRowToPackedRow( DBResultRow &row )
+PyPackedRow *DBRowToPackedRow( DBResultRow &row )
 {
     PyRep *header = DBRowToRowDescriptor( row );
 

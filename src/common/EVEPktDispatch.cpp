@@ -181,7 +181,7 @@ void EVEPacketDispatcher::Handle_CallReq(const PyPacket *packet, PyCallStream **
     _log(NET__DISPATCH_ERROR, "Unhandled Call Request");
 }
 
-void EVEPacketDispatcher::Handle_CallRsp(const PyPacket *packet, PyRepTuple **res) {
+void EVEPacketDispatcher::Handle_CallRsp(const PyPacket *packet, PyTuple **res) {
     _log(NET__DISPATCH_ERROR, "Unhandled Call Response");
 }
 

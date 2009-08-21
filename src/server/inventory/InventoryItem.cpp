@@ -345,31 +345,31 @@ void InventoryItem::Delete() {
     m_factory._DeleteItem( itemID() );
 }
 
-PyRepPackedRow *InventoryItem::GetItemRow() const
+PyPackedRow *InventoryItem::GetItemRow() const
 {
     blue_DBRowDescriptor desc;
 
     ItemRow_Columns cols;
     desc.columns = cols.FastEncode();
 
-    PyRepPackedRow *row = new PyRepPackedRow( *desc.FastEncode(), true );
+    PyPackedRow *row = new PyPackedRow( *desc.FastEncode(), true );
     GetItemRow( *row );
     return row;
 }
 
-void InventoryItem::GetItemRow(PyRepPackedRow &into) const
+void InventoryItem::GetItemRow(PyPackedRow &into) const
 {
-    into.SetField( "itemID",        new PyRepInteger( itemID() ) );
-    into.SetField( "typeID",        new PyRepInteger( typeID() ) );
-    into.SetField( "locationID",    new PyRepInteger( locationID() ) );
-    into.SetField( "ownerID",       new PyRepInteger( ownerID() ) );
-    into.SetField( "flag",          new PyRepInteger( flag() ) );
-    into.SetField( "contraband",    new PyRepBoolean( contraband() ) );
-    into.SetField( "singleton",     new PyRepBoolean( singleton() ) );
-    into.SetField( "quantity",      new PyRepInteger( quantity() ) );
-    into.SetField( "groupID",       new PyRepInteger( groupID() ) );
-    into.SetField( "categoryID",    new PyRepInteger( categoryID() ) );
-    into.SetField( "customInfo",    new PyRepString( customInfo() ) );
+    into.SetField( "itemID",        new PyInt( itemID() ) );
+    into.SetField( "typeID",        new PyInt( typeID() ) );
+    into.SetField( "locationID",    new PyInt( locationID() ) );
+    into.SetField( "ownerID",       new PyInt( ownerID() ) );
+    into.SetField( "flag",          new PyInt( flag() ) );
+    into.SetField( "contraband",    new PyBool( contraband() ) );
+    into.SetField( "singleton",     new PyBool( singleton() ) );
+    into.SetField( "quantity",      new PyInt( quantity() ) );
+    into.SetField( "groupID",       new PyInt( groupID() ) );
+    into.SetField( "categoryID",    new PyInt( categoryID() ) );
+    into.SetField( "customInfo",    new PyString( customInfo() ) );
 }
 
 bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
@@ -389,12 +389,12 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
         es.env_charID = m_ownerID;  //may not be quite right...
         es.env_shipID = m_locationID;
         es.env_target = m_locationID;   //this is what they do.
-        es.env_other = new PyRepNone;
+        es.env_other = new PyNone;
         es.env_effectID = effectOnline;
         es.startTime = Win32TimeNow() - Win32Time_Hour; //act like it happened an hour ago
         es.duration = INT_MAX;
         es.repeat = 0;
-        es.randomSeed = new PyRepNone;
+        es.randomSeed = new PyNone;
 
         result.activeEffects[es.env_effectID] = es.FastEncode();
     }
@@ -411,7 +411,7 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
     return true;
 }
 
-PyRepObject *InventoryItem::ItemGetInfo() const {
+PyObject *InventoryItem::ItemGetInfo() const {
     Rsp_ItemGetInfo result;
 
     if(!Populate(result.entry))
@@ -459,9 +459,9 @@ void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify
         std::map<int32, PyRep *> changes;
 
         if( new_location != old_location )
-            changes[ixLocationID] = new PyRepInteger(old_location);
+            changes[ixLocationID] = new PyInt(old_location);
         if( new_flag != old_flag )
-            changes[ixFlag] = new PyRepInteger(old_flag);
+            changes[ixFlag] = new PyInt(old_flag);
 
         SendItemChange( ownerID(), changes );   //changes is consumed
     }
@@ -501,7 +501,7 @@ bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
         std::map<int32, PyRep *> changes;
 
         //send the notify to the new owner.
-        changes[ixQuantity] = new PyRepInteger(old_qty);
+        changes[ixQuantity] = new PyInt(old_qty);
         SendItemChange(m_ownerID, changes); //changes is consumed
     }
 
@@ -576,7 +576,7 @@ bool InventoryItem::ChangeSingleton(bool new_singleton, bool notify) {
     //notify about the changes.
     if(notify) {
         std::map<int32, PyRep *> changes;
-        changes[ixSingleton] = new PyRepInteger(old_singleton);
+        changes[ixSingleton] = new PyInt(old_singleton);
         SendItemChange(m_ownerID, changes); //changes is consumed
     }
 
@@ -598,11 +598,11 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
         std::map<int32, PyRep *> changes;
 
         //send the notify to the new owner.
-        changes[ixOwnerID] = new PyRepInteger(old_owner);
+        changes[ixOwnerID] = new PyInt(old_owner);
         SendItemChange(new_owner, changes); //changes is consumed
 
         //also send the notify to the old owner.
-        changes[ixOwnerID] = new PyRepInteger(old_owner);
+        changes[ixOwnerID] = new PyInt(old_owner);
         SendItemChange(old_owner, changes); //changes is consumed
     }
 }
@@ -641,7 +641,7 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<int32, PyRep *> &change
     change.changes = changes;
     changes.clear();    //consume them.
 
-    PyRepTuple *tmp = change.Encode();  //this is consumed below
+    PyTuple *tmp = change.Encode();  //this is consumed below
     c->SendNotification("OnItemChange", "charid", &tmp, false); //unsequenced.
 }
 
@@ -658,8 +658,8 @@ void InventoryItem::SetOnline(bool newval) {
     omac.itemKey = m_itemID;
     omac.attributeID = ItemAttributeMgr::Attr_isOnline;
     omac.time = Win32TimeNow();
-    omac.newValue = new PyRepInteger(newval?1:0);
-    omac.oldValue = new PyRepInteger(newval?0:1);   //hack... should use old, but its not cooperating today.
+    omac.newValue = new PyInt(newval?1:0);
+    omac.oldValue = new PyInt(newval?0:1);   //hack... should use old, but its not cooperating today.
 
     Notify_OnGodmaShipEffect ogf;
     ogf.itemID = m_itemID;
@@ -675,14 +675,14 @@ void InventoryItem::SetOnline(bool newval) {
     ogf.startTime = ogf.when;
     ogf.duration = INT_MAX; //I think this should be infinity (0x07 may be infinity?)
     ogf.repeat = 0;
-    ogf.randomSeed = new PyRepNone();
-    ogf.error = new PyRepNone();
+    ogf.randomSeed = new PyNone();
+    ogf.error = new PyNone();
 
     Notify_OnMultiEvent multi;
     multi.events.add(omac.FastEncode());
     multi.events.add(ogf.FastEncode());
 
-    PyRepTuple *tmp = multi.FastEncode();   //this is consumed below
+    PyTuple *tmp = multi.FastEncode();   //this is consumed below
     c->SendNotification("OnMultiEvent", "clientID", &tmp);
 
 

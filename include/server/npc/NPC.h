@@ -72,8 +72,8 @@ public:
 	virtual void TargetedAdd(SystemEntity *who);
 	virtual void TargetedLost(SystemEntity *who) {}
 	virtual void TargetsCleared() {}
-	virtual void QueueDestinyUpdate(PyRepTuple **du) {/* not required to consume */}
-	virtual void QueueDestinyEvent(PyRepTuple **multiEvent) {/* not required to consume */}
+	virtual void QueueDestinyUpdate(PyTuple **du) {/* not required to consume */}
+	virtual void QueueDestinyEvent(PyTuple **multiEvent) {/* not required to consume */}
 	virtual uint32 GetCorporationID() const { return(m_corporationID); }
 	virtual uint32 GetAllianceID() const { /* hack for now */ return(m_allianceID); }
 	virtual void Killed(Damage &fatal_blow);

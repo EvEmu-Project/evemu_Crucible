@@ -84,12 +84,12 @@ uint64 Win32TimeNow() {
 }
 
 PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args) {
-    PyRep *pyType = new PyRepString(exceptionType);
+    PyRep *pyType = new PyString(exceptionType);
     PyRep *pyArgs;
     if(args.empty())
-        pyArgs = new PyRepNone;
+        pyArgs = new PyNone;
     else {
-        PyRepDict *d = new PyRepDict;
+        PyDict *d = new PyDict;
 
         std::map<std::string, PyRep *>::const_iterator cur, end;
         cur = args.begin();
@@ -103,7 +103,7 @@ PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRe
     util_ObjectEx no;
     no.type = "ccp_exceptions.UserError";
 
-    no.args = new PyRepTuple(2);
+    no.args = new PyTuple(2);
     no.args->items[0] = pyType;
     no.args->items[1] = pyArgs;
 
@@ -121,7 +121,7 @@ PyRep *MakeCustomError(const char *fmt, ...) {
     va_end(va);
 
     std::map<std::string, PyRep *> args;
-    args["error"] = new PyRepString(str);
+    args["error"] = new PyString(str);
     free(str);
 
     return MakeUserError("CustomError", args);
@@ -200,37 +200,37 @@ bool DBTYPE_IsCompatible(DBTYPE type, const PyRep &rep)
         case DBTYPE_UI8:
         case DBTYPE_CY:
         case DBTYPE_FILETIME:
-            return CheckTypeRangeUnsigned( Integer, 0LL, 0xFFFFFFFFFFFFFFFFLL )
-                   || CheckTypeRangeUnsigned( Real, 0LL, 0xFFFFFFFFFFFFFFFFLL );
+            return CheckTypeRangeUnsigned( Int, 0LL, 0xFFFFFFFFFFFFFFFFLL )
+                   || CheckTypeRangeUnsigned( Float, 0LL, 0xFFFFFFFFFFFFFFFFLL );
         case DBTYPE_UI4:
-            return CheckTypeRangeUnsigned( Integer, 0L, 0xFFFFFFFFL )
-                   || CheckTypeRangeUnsigned( Real, 0L, 0xFFFFFFFFL );
+            return CheckTypeRangeUnsigned( Int, 0L, 0xFFFFFFFFL )
+                   || CheckTypeRangeUnsigned( Float, 0L, 0xFFFFFFFFL );
         case DBTYPE_UI2:
-            return CheckTypeRangeUnsigned( Integer, 0, 0xFFFF )
-                   || CheckTypeRangeUnsigned( Real, 0, 0xFFFF );
+            return CheckTypeRangeUnsigned( Int, 0, 0xFFFF )
+                   || CheckTypeRangeUnsigned( Float, 0, 0xFFFF );
         case DBTYPE_UI1:
-            return CheckTypeRangeUnsigned( Integer, 0, 0xFF )
-                   || CheckTypeRangeUnsigned( Real, 0, 0xFF );
+            return CheckTypeRangeUnsigned( Int, 0, 0xFF )
+                   || CheckTypeRangeUnsigned( Float, 0, 0xFF );
 
         case DBTYPE_I8:
-            return CheckTypeRange( Integer, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL )
-                   || CheckTypeRange( Real, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL );
+            return CheckTypeRange( Int, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL )
+                   || CheckTypeRange( Float, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL );
         case DBTYPE_I4:
-            return CheckTypeRange( Integer, -0x7FFFFFFFL, 0x7FFFFFFFL )
-                   || CheckTypeRange( Real, -0x7FFFFFFFL, 0x7FFFFFFFL );
+            return CheckTypeRange( Int, -0x7FFFFFFFL, 0x7FFFFFFFL )
+                   || CheckTypeRange( Float, -0x7FFFFFFFL, 0x7FFFFFFFL );
         case DBTYPE_I2:
-            return CheckTypeRange( Integer, -0x7FFF, 0x7FFF )
-                   || CheckTypeRange( Real, -0x7FFF, 0x7FFF );
+            return CheckTypeRange( Int, -0x7FFF, 0x7FFF )
+                   || CheckTypeRange( Float, -0x7FFF, 0x7FFF );
         case DBTYPE_I1:
-            return CheckTypeRange( Integer, -0x7F, 0x7F )
-                   || CheckTypeRange( Real, -0x7F, 0x7F );
+            return CheckTypeRange( Int, -0x7F, 0x7F )
+                   || CheckTypeRange( Float, -0x7F, 0x7F );
 
         case DBTYPE_R8:
-            return CheckTypeRange( Integer, -DBL_MAX, DBL_MAX )
-                   || CheckTypeRange( Real, -DBL_MAX, DBL_MAX );
+            return CheckTypeRange( Int, -DBL_MAX, DBL_MAX )
+                   || CheckTypeRange( Float, -DBL_MAX, DBL_MAX );
         case DBTYPE_R4:
-            return CheckTypeRange( Integer, -FLT_MAX, FLT_MAX )
-                   || CheckTypeRange( Real, -FLT_MAX, FLT_MAX );
+            return CheckTypeRange( Int, -FLT_MAX, FLT_MAX )
+                   || CheckTypeRange( Float, -FLT_MAX, FLT_MAX );
 
         case DBTYPE_BOOL:
             return rep.IsBool();

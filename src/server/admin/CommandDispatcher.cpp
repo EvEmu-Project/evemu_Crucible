@@ -42,7 +42,7 @@ PyResult CommandDispatcher::Execute(Client *from, const char *msg) {
 
 	if(sep.argnum == 0) {
 		//empty command, return list of commands
-		PyRepString *reason = new PyRepString("Commands: ");
+		PyString *reason = new PyString("Commands: ");
 
 		std::map<std::string, CommandRecord *>::const_iterator cur, end;
 		cur = m_commands.begin();

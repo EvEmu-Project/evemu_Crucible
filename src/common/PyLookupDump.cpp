@@ -47,7 +47,7 @@ PyLookupDump::PyLookupDump(PyLookupResolver *res, LogType type, LogType hex_type
 PyLookupDump::~PyLookupDump() {
 }
 
-void PyLookupDump::VisitInteger(const PyRepInteger *rep) {
+void PyLookupDump::VisitInteger(const PyInt *rep) {
     const char *look = m_resolver->LookupInt(rep->value);
     if(look != NULL)
         _print("Integer field: "I64u" (%s)", rep->value, look);
@@ -55,7 +55,7 @@ void PyLookupDump::VisitInteger(const PyRepInteger *rep) {
         _print("Integer field: "I64u, rep->value);
 }
 
-void PyLookupDump::VisitString(const PyRepString *rep) {
+void PyLookupDump::VisitString(const PyString *rep) {
     if(ContainsNonPrintables(rep->value.c_str())) {
         _print("String%s: '<binary, len=%d>'", rep->is_type_1?" (Type1)":"", rep->value.length());
     } else {

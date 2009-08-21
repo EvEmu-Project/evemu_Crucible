@@ -28,7 +28,7 @@
 AccountDB::AccountDB(DBcore *db) : ServiceDB(db) {}
 AccountDB::~AccountDB() {}
 
-PyRepObject *AccountDB::GetRefTypes() {
+PyObject *AccountDB::GetRefTypes() {
 	DBQueryResult res;
 	
 	if(!sDatabase.RunQuery(res, "SELECT refTypeID,refTypeText,description FROM market_refTypes"))
@@ -40,7 +40,7 @@ PyRepObject *AccountDB::GetRefTypes() {
 	return DBResultToRowset(res);
 }
 
-PyRepObject *AccountDB::GetKeyMap() {
+PyObject *AccountDB::GetKeyMap() {
 	DBQueryResult res;
 	
 	if(!sDatabase.RunQuery(res, "SELECT accountKey,accountType,accountName,description FROM market_keyMap"))
@@ -52,7 +52,7 @@ PyRepObject *AccountDB::GetKeyMap() {
 	return DBResultToRowset(res);
 }
 
-PyRepObject *AccountDB::GetJournal(uint32 charID, uint32 refTypeID, uint32 accountKey, uint64 transDate) {
+PyObject *AccountDB::GetJournal(uint32 charID, uint32 refTypeID, uint32 accountKey, uint64 transDate) {
 //'refID', 'transDate', 'refTypeID','ownerID1', 'ownerID2', 'argID1', 'accountID', 'amount', 'balance', 'reason'
 
 	DBQueryResult res;

@@ -88,11 +88,11 @@ CorpStationMgrService::~CorpStationMgrService() {
 
 
 PyBoundObject *CorpStationMgrService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
-	if(!bind_args->IsInteger()) {
+	if(!bind_args->IsInt()) {
 		codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bind_args->TypeString());
 		return NULL;
 	}
-	const PyRepInteger *i = (const PyRepInteger *) bind_args;
+	const PyInt *i = (const PyInt *) bind_args;
 
 	return(new CorpStationMgrIMBound(m_manager, &m_db, i->value));
 }
@@ -102,32 +102,32 @@ PyResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call) {
 	PyRep *result = NULL;
 	
 	//start building the Rowset
-	PyRepObject *rowset = new PyRepObject();
+	PyObject *rowset = new PyObject();
 	result = rowset;
 	rowset->type = "util.Rowset";
-	PyRepDict *args = new PyRepDict();
+	PyDict *args = new PyDict();
 	rowset->arguments = args;
 	
 	//header:
-	PyRepList *header = new PyRepList();
+	PyList *header = new PyList();
 	args->add("header", header);
 	header->add("ownerID");
 	header->add("ownerName");
 	header->add("typeID");
 
 	//RowClass:
-	args->add("RowClass", new PyRepString("util.Row", true));
+	args->add("RowClass", new PyString("util.Row", true));
 
 	//lines:
-	PyRepList *charlist = new PyRepList();
+	PyList *charlist = new PyList();
 	args->add("lines", charlist);
 
-	PyRepList *chardata = new PyRepList();
+	PyList *chardata = new PyList();
 	charlist->items.push_back(chardata);
 	
-	chardata->items.push_back(new PyRepInteger(3004349));
-	chardata->items.push_back(new PyRepString("Carbircelle Hatiniestan"));
-	chardata->items.push_back(new PyRepInteger(1378));
+	chardata->items.push_back(new PyInt(3004349));
+	chardata->items.push_back(new PyString("Carbircelle Hatiniestan"));
+	chardata->items.push_back(new PyInt(1378));
 
 	return result;
 }
@@ -145,7 +145,7 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call)
      *  )
      */
 
-	PyRepList *l = new PyRepList();
+	PyList *l = new PyList();
 
 	PyRep *tmp;
 
@@ -177,11 +177,11 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call)
 
 	std::string abs_fname = "../data/cache/fgAAAAAsLBAOY29ycFN0YXRpb25NZ3IERJiTAxAXR2V0Q29ycG9yYXRlU3RhdGlvbkluZm8.cache";
 	
-	PyRepSubStream *ss = new PyRepSubStream();
+	PySubStream *ss = new PySubStream();
 
 	if(!m_manager->GetCache()->LoadCachedFile(abs_fname.c_str(), "GetCorporateStationInfo", ss)) {
 		_log(CLIENT__ERROR, "GetCorporateStationInfo Failed to load cache file '%s'", abs_fname.c_str());
-		ss->decoded = new PyRepNone();
+		ss->decoded = new PyNone();
 	} else {
 		//hack:
 		ss->length -= 82;
@@ -201,7 +201,7 @@ PyResult CorpStationMgrIMBound::Handle_DoStandingCheckForStationService(PyCallAr
 	
 	// takes an int (seen 512 and 1024 and 2048)
 	//seems to return None, or throw an exception
-	PyRep *result = new PyRepNone();
+	PyRep *result = new PyNone();
 
 	return result;
 }
@@ -223,7 +223,7 @@ PyResult CorpStationMgrIMBound::Handle_SetHomeStation(PyCallArgs &call) {
 	
 	_log(CLIENT__ERROR, "SetHomeStation is not implemented");
 
-	return(new PyRepNone());
+	return(new PyNone());
 }
 
 PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
@@ -233,7 +233,7 @@ PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
 	
 	_log(CLIENT__ERROR, "SetCloneTypeID is not implemented");
 
-	return(new PyRepNone());
+	return(new PyNone());
 }
 
 PyResult CorpStationMgrIMBound::Handle_GetQuoteForRentingAnOffice(PyCallArgs &call) {
@@ -242,7 +242,7 @@ PyResult CorpStationMgrIMBound::Handle_GetQuoteForRentingAnOffice(PyCallArgs &ca
 
 	// Unless I produce an invalid ISK value (probably a NAN), this won't fail,
 	// the dialog box will be displayed... have to make sure this doesn't fail
-	return (new PyRepInteger(m_db->GetQuoteForRentingAnOffice(stationID)));
+	return (new PyInt(m_db->GetQuoteForRentingAnOffice(stationID)));
 }
 PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	// 1 param, corp rent price	//TODO: check against what we think it should cost.
@@ -258,7 +258,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	double corpBalance = m_db->GetCorpBalance(call.client->GetCorporationID());
 	if (corpBalance < arg.arg) {
 		_log(SERVICE__ERROR, "%s: Corp doesn't have enough money to rent an office.", call.client->GetName());
-		return (new PyRepInteger(0));
+		return (new PyInt(0));
 	}
 
 
@@ -270,7 +270,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
 	if (!oInfo.officeID) {
 		codelog(SERVICE__ERROR, "%s: Error at renting a new office", call.client->GetName());
-		return new PyRepInteger(0);
+		return new PyInt(0);
 	}
 	// Now we have the new office, let's update the officelist... if we have to...
 
@@ -288,7 +288,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 		change.newTypeID = oInfo.typeID;
 		N_pau.changes = change.Encode();
 		
-		PyRepTuple * res1 = N_pau.FastEncode(); // This is good enough as there are no old values atm
+		PyTuple * res1 = N_pau.FastEncode(); // This is good enough as there are no old values atm
 		// Who has to know about this public object's update?
 
 		// This has to be sent to everyone in the station
@@ -311,7 +311,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	ac.accountKey = "cash";
 	ac.ownerid = oInfo.corporationID; //call.client->GetCharacterID();
 	ac.balance = corpBalance;
-	PyRepTuple *res2 = ac.Encode();
+	PyTuple *res2 = ac.Encode();
 	m_manager->entity_list.Multicast("OnAccountChange", "*corpid&corpAccountKey", &res2, mct);
 
 	// This was the second notification
@@ -323,7 +323,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	N_oic.itemID = oInfo.officeID;
 	N_oic.ownerID = ac.ownerid;
 
-	PyRepTuple * res3 = N_oic.FastEncode();
+	PyTuple * res3 = N_oic.FastEncode();
 	// This is a possible broadcast-candidate
 	m_manager->entity_list.Multicast("OnItemChange", "*stationid&corpid", &res3, NOTIF_DEST__LOCATION, location, false);
 
@@ -337,7 +337,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	N_oorc.officeID = oInfo.officeID;
 	N_oorc.officeFolderID = oInfo.officeFolderID;
 
-	PyRepTuple * res4 = N_oorc.Encode(); // No need for fastencode, no null values
+	PyTuple * res4 = N_oorc.Encode(); // No need for fastencode, no null values
 	// This is definately a broadcast-candidate
 	m_manager->entity_list.Multicast("OnOfficeRentalChanged", "stationid", &res4, NOTIF_DEST__LOCATION, location);
 
@@ -348,7 +348,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	// maybe for blinking purpose?
 
 	Notify_OnBillReceived N_obr;
-	PyRepTuple * res5 = N_obr.Encode();
+	PyTuple * res5 = N_obr.Encode();
 	call.client->SendNotification("OnBillReceived", "*corpid&corprole", &res5, false);
 	// Why do we create a bill, when the office is already paid? Maybe that's why it's empty...
 
@@ -371,7 +371,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
 	// One last thing: create that damn bill somewhere soon... an example would be nice...
 
-	return (new PyRepInteger(oInfo.officeID));
+	return (new PyInt(oInfo.officeID));
 }
 
 	/*

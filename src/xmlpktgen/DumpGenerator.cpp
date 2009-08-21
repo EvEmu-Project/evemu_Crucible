@@ -334,7 +334,7 @@ bool ClassDumpGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 
     fprintf(into,
         "   _log(l_type, \"%%sList data:\", pfx);\n"
-        "   PyRepObjectEx::const_list_iterator lcur, lend;\n"
+        "   PyObjectEx::const_list_iterator lcur, lend;\n"
         "   lcur = %s_list.begin();\n"
         "   lend = %s_list.end();\n"
         "   for(uint32 i = 0; lcur != lend; lcur++, i++) {\n"
@@ -350,7 +350,7 @@ bool ClassDumpGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 
     fprintf(into,
         "   _log(l_type, \"%%sDict data:\", pfx);\n"
-        "   PyRepObjectEx::const_dict_iterator dcur, dend;\n"
+        "   PyObjectEx::const_dict_iterator dcur, dend;\n"
         "   dcur = %s_dict.begin();\n"
         "   dend = %s_dict.end();\n"
         "   for(uint32 i = 0; dcur != dend; dcur++) {\n"

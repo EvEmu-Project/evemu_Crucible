@@ -34,7 +34,7 @@ StandingDB::~StandingDB() {
 }
 
 
-PyRepObject *StandingDB::GetNPCStandings() {
+PyObject *StandingDB::GetNPCStandings() {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -51,7 +51,7 @@ PyRepObject *StandingDB::GetNPCStandings() {
 }
 
 
-PyRepObject *StandingDB::GetCharStandings(uint32 characterID) {
+PyObject *StandingDB::GetCharStandings(uint32 characterID) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -69,7 +69,7 @@ PyRepObject *StandingDB::GetCharStandings(uint32 characterID) {
 }
 
 
-PyRepObject *StandingDB::GetCharPrimeStandings(uint32 characterID) {
+PyObject *StandingDB::GetCharPrimeStandings(uint32 characterID) {
 	DBQueryResult res;
 
 #ifndef WIN32
@@ -92,7 +92,7 @@ PyRepObject *StandingDB::GetCharPrimeStandings(uint32 characterID) {
 }
 
 
-PyRepObject *StandingDB::GetCharNPCStandings(uint32 characterID) {
+PyObject *StandingDB::GetCharNPCStandings(uint32 characterID) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -109,7 +109,7 @@ PyRepObject *StandingDB::GetCharNPCStandings(uint32 characterID) {
 	return DBResultToRowset(res);
 }
 
-PyRepObject *StandingDB::GetStandingTransactions(uint32 characterID) {
+PyObject *StandingDB::GetStandingTransactions(uint32 characterID) {
 	/*DBQueryResult res;
 
 	if (!m_db->RunQuery(res,

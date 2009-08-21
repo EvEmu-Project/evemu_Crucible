@@ -130,7 +130,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
         return NULL;
 
     // I understand sent maxJobStartTime as a limit, so this checks whether it's in limit
-    if(rsp.maxJobStartTime > call.byname["maxJobStartTime"]->AsInteger().value)
+    if(rsp.maxJobStartTime > call.byname["maxJobStartTime"]->AsInt().value)
         throw(PyException(MakeUserError("RamCannotGuaranteeStartTime")));
 
     // query required items for activity
@@ -139,7 +139,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
         return NULL;
 
     // if 'quoteOnly' is 1 -> send quote, if 0 -> install job
-    if(call.byname["quoteOnly"]->AsInteger().value)
+    if(call.byname["quoteOnly"]->AsInt().value)
     {
         _EncodeBillOfMaterials(reqItems, rsp.materialMultiplier, rsp.charMaterialMultiplier, args.runs, rsp.bom);
         _EncodeMissingMaterials(reqItems, pathBomLocation, call.client, rsp.materialMultiplier, rsp.charMaterialMultiplier, args.runs, rsp.missingMaterials);
@@ -464,16 +464,16 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, Invent
         uint32 jobCount = m_db.CountManufacturingJobs(c->GetCharacterID());
         if((uint32)c->GetChar()->manufactureSlotLimit() <= jobCount) {
             std::map<std::string, PyRep *> exceptArgs;
-            exceptArgs["current"] = new PyRepInteger(jobCount);
-            exceptArgs["max"] = new PyRepInteger(c->GetChar()->manufactureSlotLimit());
+            exceptArgs["current"] = new PyInt(jobCount);
+            exceptArgs["max"] = new PyInt(c->GetChar()->manufactureSlotLimit());
             throw(PyException(MakeUserError("MaxFactorySlotUsageReached", exceptArgs)));
         }
     } else {
         uint32 jobCount = m_db.CountResearchJobs(c->GetCharacterID());
         if((uint32)c->GetChar()->maxLaborotorySlots() <= jobCount) {
             std::map<std::string, PyRep *> exceptArgs;
-            exceptArgs["current"] = new PyRepInteger(jobCount);
-            exceptArgs["max"] = new PyRepInteger(c->GetChar()->maxLaborotorySlots());
+            exceptArgs["current"] = new PyInt(jobCount);
+            exceptArgs["max"] = new PyInt(c->GetChar()->maxLaborotorySlots());
             throw(PyException(MakeUserError("MaxResearchFacilitySlotUsageReached", exceptArgs)));
         }
     }
@@ -579,7 +579,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, Invent
         if(installedItem->locationID() != (uint32)args.installationContainerID) {
             if((uint32)args.installationContainerID == c->GetLocationID()) {
                 std::map<std::string, PyRep *> exceptArgs;
-                exceptArgs["location"] = new PyRepString(m_db.GetStationName(args.installationContainerID));
+                exceptArgs["location"] = new PyString(m_db.GetStationName(args.installationContainerID));
 
                 if(args.isCorpJob)
                     throw(PyException(MakeUserError("RamCorpInstalledItemWrongLocation", exceptArgs)));
@@ -592,7 +592,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, Invent
                 if(installedItem->flag() < flagCorpSecurityAccessGroup2 || installedItem->flag() > flagCorpSecurityAccessGroup7) {
                     if((uint32)args.installationContainerID == c->GetLocationID()) {
                         std::map<std::string, PyRep *> exceptArgs;
-                        exceptArgs["location"] = new PyRepString(m_db.GetStationName(args.installationContainerID));
+                        exceptArgs["location"] = new PyString(m_db.GetStationName(args.installationContainerID));
 
                         throw(PyException(MakeUserError("RamCorpInstalledItemWrongLocation", exceptArgs)));
                     } else
@@ -602,7 +602,7 @@ void RamProxyService::_VerifyInstallJob_Call(const Call_InstallJob &args, Invent
                 if(installedItem->flag() != flagHangar) {
                     if((uint32)args.installationInvLocationID == c->GetLocationID()) {
                         std::map<std::string, PyRep *> exceptArgs;
-                        exceptArgs["location"] = new PyRepString(m_db.GetStationName(args.installationContainerID));
+                        exceptArgs["location"] = new PyString(m_db.GetStationName(args.installationContainerID));
 
                         throw(PyException(MakeUserError("RamInstalledItemWrongLocation", exceptArgs)));
                     } else {
@@ -643,8 +643,8 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
     // ************
     if(rsp.cost > c->GetBalance()) {
         std::map<std::string, PyRep *> args;
-        args["amount"] = new PyRepReal(rsp.cost);
-        args["balance"] = new PyRepReal(c->GetBalance());
+        args["amount"] = new PyFloat(rsp.cost);
+        args["balance"] = new PyFloat(c->GetBalance());
 
         throw(PyException(MakeUserError("NotEnoughMoney", args)));
     }
@@ -653,8 +653,8 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
     // **********************
     if((uint32)rsp.productionTime > ramProductionTimeLimit) {
         std::map<std::string, PyRep *> args;
-        args["productionTime"] = new PyRepInteger(rsp.productionTime);
-        args["limit"] = new PyRepInteger(ramProductionTimeLimit);
+        args["productionTime"] = new PyInt(rsp.productionTime);
+        args["limit"] = new PyInt(ramProductionTimeLimit);
 
         throw(PyException(MakeUserError("RamProductionTimeExceedsLimits")));
     }
@@ -681,10 +681,10 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
             /* Commented out until we get skills working some different way ...
             if(GetSkillLevel(skills, cur->typeID) < cur->quantity) {
                 std::map<std::string, PyRep *> args;
-                args["item"] = new PyRepString(
+                args["item"] = new PyString(
                     m_manager->item_factory.type(cur->typeID)->name().c_str()
                 );
-                args["skillLevel"] = new PyRepInteger(cur->quantity);
+                args["skillLevel"] = new PyInt(cur->quantity);
 
                 throw(PyException(MakeUserError("RamNeedSkillForJob", args)));
             }*/
@@ -712,7 +712,7 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
 
             if(qtyNeeded > 0) {
                 std::map<std::string, PyRep *> args;
-                args["item"] = new PyRepString(
+                args["item"] = new PyString(
                     m_manager->item_factory.GetType(cur->typeID)->name().c_str()
                 );
 
@@ -855,7 +855,7 @@ void RamProxyService::_EncodeBillOfMaterials(const std::vector<RequiredItem> &re
     for(; cur != end; cur++) {
         // if it's skill, insert it into special dict for skills
         if(cur->isSkill) {
-            into.skills[cur->typeID] = new PyRepInteger(cur->quantity);
+            into.skills[cur->typeID] = new PyInt(cur->quantity);
             continue;
         }
 
@@ -921,7 +921,7 @@ void RamProxyService::_EncodeMissingMaterials(const std::vector<RequiredItem> &r
         }
 
         if(qtyReq > 0)
-            into[cur->typeID] = new PyRepInteger(qtyReq);
+            into[cur->typeID] = new PyInt(qtyReq);
     }
 }
 

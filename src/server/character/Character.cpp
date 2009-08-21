@@ -202,40 +202,40 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
 #define INT(v) \
     itr = from.find(#v); \
     if(itr != from.end()) { \
-        if(!itr->second->IsInteger()) { \
+        if(!itr->second->IsInt()) { \
             _log(CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString()); \
         } else { \
-            v = ((PyRepInteger *)itr->second)->value; \
+            v = ((PyInt *)itr->second)->value; \
             _log(CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), v); \
         } \
     }
 #define INT_DYN(v) \
     itr = from.find(#v); \
     if(itr != from.end()) { \
-        if(!itr->second->IsInteger()) { \
+        if(!itr->second->IsInt()) { \
             _log(CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString()); \
         } else { \
-            Set_##v(((PyRepInteger *)itr->second)->value); \
+            Set_##v(((PyInt *)itr->second)->value); \
             _log(CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), Get_##v()); \
         } \
     }
 #define REAL(v) \
     itr = from.find(#v); \
     if(itr != from.end()) { \
-        if(!itr->second->IsReal()) { \
+        if(!itr->second->IsFloat()) { \
             _log(CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString()); \
         } else { \
-            v = ((PyRepReal *)itr->second)->value; \
+            v = ((PyFloat *)itr->second)->value; \
             _log(CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), v); \
         } \
     }
 #define REAL_DYN(v) \
     itr = from.find(#v); \
     if(itr != from.end()) { \
-        if(!itr->second->IsReal()) {\
+        if(!itr->second->IsFloat()) {\
             _log(CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString()); \
         } else { \
-            Set_##v(((PyRepReal *)itr->second)->value); \
+            Set_##v(((PyFloat *)itr->second)->value); \
             _log(CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), Get_##v()); \
         } \
     }
@@ -594,7 +594,7 @@ void Character::UpdateSkillQueue()
                 osst.itemID = currentTraining->itemID();
                 osst.endOfTraining = 0;
 
-                PyRepTuple *tmp = osst.FastEncode();
+                PyTuple *tmp = osst.FastEncode();
                 c->QueueDestinyEvent( &tmp );
                 SafeDelete( tmp );
 
@@ -636,7 +636,7 @@ void Character::UpdateSkillQueue()
                 osst.itemID = currentTraining->itemID();
                 osst.endOfTraining = timeTraining;
 
-                PyRepTuple *tmp = osst.FastEncode();
+                PyTuple *tmp = osst.FastEncode();
                 c->QueueDestinyEvent( &tmp );
                 SafeDelete( tmp );
 
@@ -662,7 +662,7 @@ void Character::UpdateSkillQueue()
                 OnSkillTrained ost;
                 ost.itemID = currentTraining->itemID();
 
-                PyRepTuple *tmp = ost.FastEncode();
+                PyTuple *tmp = ost.FastEncode();
                 c->QueueDestinyEvent( &tmp );
                 SafeDelete( tmp );
 
@@ -683,7 +683,7 @@ void Character::UpdateSkillQueue()
     SaveSkillQueue();
 }
 
-PyRepObject *Character::CharGetInfo() {
+PyObject *Character::CharGetInfo() {
     //TODO: verify that we are a char?
 
     if( !LoadContents( m_factory ) ) {
@@ -721,18 +721,18 @@ PyRepObject *Character::CharGetInfo() {
     return(result.FastEncode());
 }
 
-PyRepObject *Character::GetDescription() const {
+PyObject *Character::GetDescription() const {
     util_Row row;
 
     row.header.push_back("description");
-    row.line.add(new PyRepString(description()));
+    row.line.add(new PyString(description()));
 
     return row.FastEncode();
 }
 
-PyRepList *Character::GetSkillQueue() {
+PyList *Character::GetSkillQueue() {
     // return skills from skill queue
-    PyRepList *list = new PyRepList;
+    PyList *list = new PyList;
 
     SkillQueue::iterator cur, end;
     cur = m_skillQueue.begin();

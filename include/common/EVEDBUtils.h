@@ -37,12 +37,12 @@
 class blue_DBRowDescriptor;
 
 class PyRep;
-class PyRepObject;
-class PyRepTuple;
-class PyRepList;
-class PyRepDict;
-class PyRepObjectEx;
-class PyRepPackedRow;
+class PyObject;
+class PyTuple;
+class PyList;
+class PyDict;
+class PyObjectEx;
+class PyPackedRow;
 
 /*typedef enum {
     StringContentsInteger,
@@ -54,13 +54,13 @@ StringContentsType ClassifyStringContents(const char *str);*/
 
 PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index);
 
-PyRepObject *DBResultToRowset(DBQueryResult &result);
-PyRepObject *DBResultToIndexRowset(DBQueryResult &result, const char *key);
-PyRepObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index);
-PyRepTuple *DBResultToTupleSet(DBQueryResult &result);
-PyRepTuple *DBResultToRowList(DBQueryResult &result, const char *type = "util.Row");
-PyRepDict *DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const char *type = "util.Row");
-PyRepDict *DBResultToIntIntDict(DBQueryResult &result);
+PyObject *DBResultToRowset(DBQueryResult &result);
+PyObject *DBResultToIndexRowset(DBQueryResult &result, const char *key);
+PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index);
+PyTuple *DBResultToTupleSet(DBQueryResult &result);
+PyTuple *DBResultToRowList(DBQueryResult &result, const char *type = "util.Row");
+PyDict *DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const char *type = "util.Row");
+PyDict *DBResultToIntIntDict(DBQueryResult &result);
 void DBResultToIntIntDict(DBQueryResult &result, std::map<int32, int32> &into);
 void DBResultToUIntUIntDict(DBQueryResult &result, std::map<uint32, uint32> &into);
 void DBResultToIntIntlistDict(DBQueryResult &result, std::map<int32, PyRep *> &into);
@@ -79,23 +79,23 @@ DBTYPE GetPackedColumnType(DBQueryResult::ColType colType);
  * @param[in] res Query Result to build the DBROW.Descriptor from.
  * @return blue_DBRowDescriptor object.
  */
-PyRepObjectEx *DBResultToRowDescriptor(const DBQueryResult &res);
+PyObjectEx *DBResultToRowDescriptor(const DBQueryResult &res);
 /**
  * This routine builds DBRow.Descriptor from a DBResultRow.
  *
  * @param[in] row DBResultRow to build from.
  * @return blue_DBRowDescriptor object.
  */
-PyRepObjectEx *DBRowToRowDescriptor(const DBResultRow &row);
+PyObjectEx *DBRowToRowDescriptor(const DBResultRow &row);
 
-PyRepList *DBResultToPackedRowList(DBQueryResult &result);
-PyRepTuple *DBResultToPackedRowListTuple(DBQueryResult &result);
-PyRepObjectEx *DBResultToCRowset(DBQueryResult &result);
+PyList *DBResultToPackedRowList(DBQueryResult &result);
+PyTuple *DBResultToPackedRowListTuple(DBQueryResult &result);
+PyObjectEx *DBResultToCRowset(DBQueryResult &result);
 
 //single rows:
-PyRepObject *DBRowToKeyVal(DBResultRow &row);
-PyRepObject *DBRowToRow(DBResultRow &row, const char *type = "util.Row");
-PyRepPackedRow *DBRowToPackedRow(DBResultRow &row);
+PyObject *DBRowToKeyVal(DBResultRow &row);
+PyObject *DBRowToRow(DBResultRow &row, const char *type = "util.Row");
+PyPackedRow *DBRowToPackedRow(DBResultRow &row);
 
 
 #endif

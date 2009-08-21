@@ -54,7 +54,7 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call) {
 	//returns:
 	//(bookmarkID, itemID, typeID, x, y, z, locationID,) 
 	
-	return(new PyRepNone);
+	return(new PyNone);
 }
 
 

@@ -88,7 +88,7 @@ PyBoundObject *PetitionerService::_CreateBoundObject(Client *c, PyRep *bind_args
 PyResult PetitionerService::Handle_GetCategories(PyCallArgs &call) {
 	//takes no arguments
 	
-	PyRepList *result = new PyRepList();
+	PyList *result = new PyList();
 	result->add("Test Cat");
 	result->add("Test Cat2");
     sLog.Debug("Petitioner Service", "called GetCategories stub");
@@ -101,7 +101,7 @@ PyResult PetitionerService::Handle_GetUnreadMessages(PyCallArgs &call) {
 	//takes no arguments
 
 	//unknown...
-	PyRepList *result = new PyRepList();
+	PyList *result = new PyList();
 	
     sLog.Debug("Petitioner Service", "called GetUnreadMessages stub");
 

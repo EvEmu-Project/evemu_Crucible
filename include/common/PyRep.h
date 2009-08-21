@@ -34,21 +34,21 @@
 
 #include "PyVisitor.h"
 
-class PyRepInteger;
-class PyRepReal;
-class PyRepBoolean;
-class PyRepBuffer;
-class PyRepString;
-class PyRepTuple;
-class PyRepList;
-class PyRepDict;
-class PyRepNone;
-class PyRepSubStruct;
-class PyRepSubStream;
-class PyRepChecksumedStream;
-class PyRepObject;
-class PyRepObjectEx;
-class PyRepPackedRow;
+class PyInt;
+class PyFloat;
+class PyBool;
+class PyBuffer;
+class PyString;
+class PyTuple;
+class PyList;
+class PyDict;
+class PyNone;
+class PySubStruct;
+class PySubStream;
+class PyChecksumedStream;
+class PyObject;
+class PyObjectEx;
+class PyPackedRow;
 
 /** Lookup table for PyRep type object type names.
   */
@@ -67,9 +67,9 @@ public:
     /** PyRep Python wire object types
     */
     typedef enum _Type {
-        PyTypeInteger           = 0,
-        PyTypeReal              = 1,
-        PyTypeBoolean           = 2,
+        PyTypeInt               = 0,
+        PyTypeFloat             = 1,
+        PyTypeBool              = 2,
         PyTypeBuffer            = 3,
         PyTypeString            = 4,
         PyTypeTuple             = 5,
@@ -91,9 +91,9 @@ public:
 
     /** Type check functions
       */
-    bool IsInteger() const          { return m_type == PyTypeInteger; }
-    bool IsReal() const             { return m_type == PyTypeReal; }
-    bool IsBool() const             { return m_type == PyTypeBoolean; }
+    bool IsInt() const              { return m_type == PyTypeInt; }
+    bool IsFloat() const            { return m_type == PyTypeFloat; }
+    bool IsBool() const             { return m_type == PyTypeBool; }
     bool IsBuffer() const           { return m_type == PyTypeBuffer; }
     bool IsString() const           { return m_type == PyTypeString; }
     bool IsTuple() const            { return m_type == PyTypeTuple; }
@@ -109,36 +109,36 @@ public:
 
 
     // tools for easy access... less typecasting, TODO assrt when wrong "as" is done
-    PyRepInteger& AsInteger()                               { return *(PyRepInteger *)this; }
-    const PyRepInteger& AsInteger() const                   { return *(const PyRepInteger *)this; }
-    PyRepReal& AsReal()                                     { return *(PyRepReal *)this; }
-    const PyRepReal& AsReal() const                         { return *(const PyRepReal *)this; }
-    PyRepBoolean& AsBool()                                  { return *(PyRepBoolean *)this; }
-    const PyRepBoolean& AsBool() const                      { return *(const PyRepBoolean *)this; }
-    PyRepBuffer& AsBuffer()                                 { return *(PyRepBuffer *)this; }
-    const PyRepBuffer& AsBuffer() const                     { return *(const PyRepBuffer *)this; }
-    PyRepString& AsString()                                 { return *(PyRepString *)this; }
-    const PyRepString& AsString() const                     { return *(const PyRepString *)this; }
-    PyRepTuple& AsTuple()                                   { return *(PyRepTuple *)this; }
-    const PyRepTuple& AsTuple() const                       { return *(const PyRepTuple *)this; }
-    PyRepList& AsList()                                     { return *(PyRepList *)this; }
-    const PyRepList& AsList() const                         { return *(const PyRepList *)this; }
-    PyRepDict& AsDict()                                     { return *(PyRepDict *)this; }
-    const PyRepDict& AsDict() const                         { return *(const PyRepDict *)this; }
-    PyRepNone& AsNone()                                     { return *(PyRepNone *)this; }
-    const PyRepNone& AsNone() const                         { return *(const PyRepNone *)this; }
-    PyRepSubStruct& AsSubStruct()                           { return *(PyRepSubStruct *)this; }
-    const PyRepSubStruct& AsSubStruct() const               { return *(const PyRepSubStruct *)this; }
-    PyRepSubStream& AsSubStream()                           { return *(PyRepSubStream *)this; }
-    const PyRepSubStream& AsSubStream() const               { return *(const PyRepSubStream *)this; }
-    PyRepChecksumedStream& AsChecksumedStream()             { return *(PyRepChecksumedStream *)this; }
-    const PyRepChecksumedStream& AsChecksumedStream() const { return *(const PyRepChecksumedStream *)this; }
-    PyRepObject& AsObject()                                 { return *(PyRepObject *)this; }
-    const PyRepObject& AsObject() const                     { return *(const PyRepObject *)this; }
-    PyRepObjectEx& AsObjectEx()                             { return *(PyRepObjectEx *)this; }
-    const PyRepObjectEx& AsObjectEx() const                 { return *(const PyRepObjectEx *)this; }
-    PyRepPackedRow& AsPackedRow()                           { return *(PyRepPackedRow *)this; }
-    const PyRepPackedRow& AsPackedRow() const               { return *(const PyRepPackedRow *)this; }
+    PyInt& AsInt()                                       { return *(PyInt *)this; }
+    const PyInt& AsInt() const                           { return *(const PyInt *)this; }
+    PyFloat& AsFloat()                                   { return *(PyFloat *)this; }
+    const PyFloat& AsFloat() const                       { return *(const PyFloat *)this; }
+    PyBool& AsBool()                                     { return *(PyBool *)this; }
+    const PyBool& AsBool() const                         { return *(const PyBool *)this; }
+    PyBuffer& AsBuffer()                                 { return *(PyBuffer *)this; }
+    const PyBuffer& AsBuffer() const                     { return *(const PyBuffer *)this; }
+    PyString& AsString()                                 { return *(PyString *)this; }
+    const PyString& AsString() const                     { return *(const PyString *)this; }
+    PyTuple& AsTuple()                                   { return *(PyTuple *)this; }
+    const PyTuple& AsTuple() const                       { return *(const PyTuple *)this; }
+    PyList& AsList()                                     { return *(PyList *)this; }
+    const PyList& AsList() const                         { return *(const PyList *)this; }
+    PyDict& AsDict()                                     { return *(PyDict *)this; }
+    const PyDict& AsDict() const                         { return *(const PyDict *)this; }
+    PyNone& AsNone()                                     { return *(PyNone *)this; }
+    const PyNone& AsNone() const                         { return *(const PyNone *)this; }
+    PySubStruct& AsSubStruct()                           { return *(PySubStruct *)this; }
+    const PySubStruct& AsSubStruct() const               { return *(const PySubStruct *)this; }
+    PySubStream& AsSubStream()                           { return *(PySubStream *)this; }
+    const PySubStream& AsSubStream() const               { return *(const PySubStream *)this; }
+    PyChecksumedStream& AsChecksumedStream()             { return *(PyChecksumedStream *)this; }
+    const PyChecksumedStream& AsChecksumedStream() const { return *(const PyChecksumedStream *)this; }
+    PyObject& AsObject()                                 { return *(PyObject *)this; }
+    const PyObject& AsObject() const                     { return *(const PyObject *)this; }
+    PyObjectEx& AsObjectEx()                             { return *(PyObjectEx *)this; }
+    const PyObjectEx& AsObjectEx() const                 { return *(const PyObjectEx *)this; }
+    PyPackedRow& AsPackedRow()                           { return *(PyPackedRow *)this; }
+    const PyPackedRow& AsPackedRow() const               { return *(const PyPackedRow *)this; }
 
     const char *TypeString() const;
 
@@ -172,13 +172,13 @@ protected:
     size_t mRefcnt;
 };
 
-//storing all integers (and booleans) as uint64s is a lot of craziness right now
+//storing all integers (and booleans) as int64s is a lot of craziness right now
 //but its better than a ton of virtual functions to achieve the same thing.
 
-class PyRepInteger : public PyRep {
+class PyInt : public PyRep {
 public:
-    PyRepInteger(const int64 &i) : PyRep(PyRep::PyTypeInteger), value(i) {}
-    virtual ~PyRepInteger() {}
+    PyInt(const int64 &i) : PyRep(PyRep::PyTypeInt), value(i) {}
+    virtual ~PyInt() {}
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -189,14 +189,14 @@ public:
         v->VisitInteger(this, lvl);
     }
 
-    PyRepInteger *TypedClone() const;
+    PyInt *TypedClone() const;
     int64 value;
 };
 
-class PyRepReal : public PyRep {
+class PyFloat : public PyRep {
 public:
-    PyRepReal(const double &i) : PyRep(PyRep::PyTypeReal), value(i) {}
-    virtual ~PyRepReal() {}
+    PyFloat(const double &i) : PyRep(PyRep::PyTypeFloat), value(i) {}
+    virtual ~PyFloat() {}
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -207,15 +207,15 @@ public:
         v->VisitReal(this, lvl);
     }
 
-    PyRepReal *TypedClone() const;
+    PyFloat *TypedClone() const;
 
     double value;
 };
 
-class PyRepBoolean : public PyRep {
+class PyBool : public PyRep {
 public:
-    PyRepBoolean(bool i) : PyRep(PyRep::PyTypeBoolean), value(i) {}
-    virtual ~PyRepBoolean() {}
+    PyBool(bool i) : PyRep(PyRep::PyTypeBool), value(i) {}
+    virtual ~PyBool() {}
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -226,15 +226,15 @@ public:
         v->VisitBoolean(this, lvl);
     }
 
-    PyRepBoolean *TypedClone() const;
+    PyBool *TypedClone() const;
 
     bool value;
 };
 
-class PyRepNone : public PyRep {
+class PyNone : public PyRep {
 public:
-    PyRepNone() : PyRep(PyRep::PyTypeNone) {}
-    virtual ~PyRepNone() {}
+    PyNone() : PyRep(PyRep::PyTypeNone) {}
+    virtual ~PyNone() {}
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -245,19 +245,19 @@ public:
         v->VisitNone(this, lvl);
     }
 
-    PyRepNone *TypedClone() const;
+    PyNone *TypedClone() const;
 };
 
-class PyRepBuffer : public PyRep
+class PyBuffer : public PyRep
 {
 public:
-    PyRepBuffer(const uint8 *buffer, uint32 length);
-    PyRepBuffer(uint8 **buffer, uint32 length);
-    PyRepBuffer(uint32 length);
+    PyBuffer(const uint8 *buffer, uint32 length);
+    PyBuffer(uint8 **buffer, uint32 length);
+    PyBuffer(uint32 length);
 
-    PyRepBuffer(std::string &buffer);
+    PyBuffer(std::string &buffer);
 
-    virtual ~PyRepBuffer();
+    virtual ~PyBuffer();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return TypedClone(); }
@@ -268,7 +268,7 @@ public:
         v->VisitBuffer(this, lvl);
     }
 
-    PyRepBuffer *TypedClone() const;
+    PyBuffer *TypedClone() const;
 
     //treat it as a buffer:
     uint8 *GetBuffer() const { return m_value; }
@@ -291,21 +291,21 @@ public:
      */
     uint8* content() const {return m_value;}
 
-    PyRepSubStream *CreateSubStream() const;
+    PySubStream *CreateSubStream() const;
 
 protected:
     uint8 *m_value;
     const uint32 m_length;
 };
 
-class PyRepString : public PyRep
+class PyString : public PyRep
 {
 public:
-    PyRepString(const char *str = "", bool type_1=false);
-    PyRepString(const std::string &str, bool type_1=false); //to deal with non-string buffers poorly placed in strings (CCP)
-    PyRepString(const uint8 *data, uint32 len, bool type_1=false);
+    PyString(const char *str = "", bool type_1=false);
+    PyString(const std::string &str, bool type_1=false); //to deal with non-string buffers poorly placed in strings (CCP)
+    PyString(const uint8 *data, uint32 len, bool type_1=false);
 
-    virtual ~PyRepString();
+    virtual ~PyString();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -316,7 +316,7 @@ public:
         v->VisitString(this, lvl);
     }
 
-    PyRepString *TypedClone() const;
+    PyString *TypedClone() const;
 
     std::string value;
     bool is_type_1; //true if this is an Op_PyByteString instead of the default Op_PyByteString2
@@ -357,14 +357,14 @@ public:
     //static EVEStringTable *s_stringTable;
 };
 
-class PyRepTuple : public PyRep {
+class PyTuple : public PyRep {
 public:
     typedef std::vector<PyRep *>            storage_type;
     typedef storage_type::iterator          iterator;
     typedef storage_type::const_iterator    const_iterator;
 
-    PyRepTuple(uint32 item_count) : PyRep(PyRep::PyTypeTuple), items(item_count, NULL) {}
-    virtual ~PyRepTuple();
+    PyTuple(uint32 item_count) : PyRep(PyRep::PyTypeTuple), items(item_count, NULL) {}
+    virtual ~PyTuple();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -375,8 +375,8 @@ public:
         v->VisitTuple(this, lvl);
     }
 
-    void CloneFrom(const PyRepTuple *from);
-    PyRepTuple *TypedClone() const;
+    void CloneFrom(const PyTuple *from);
+    PyTuple *TypedClone() const;
 
     storage_type items;
 
@@ -390,7 +390,7 @@ public:
 
     void SetItem( uint32 index, PyRep* object );
 
-    /* polymorphic overload to make the PyRepTuple do nice lookups. */
+    /* polymorphic overload to make the PyTuple do nice lookups. */
 
     /**
      * @brief overloading the [] operator for reference lookup.
@@ -421,15 +421,15 @@ public:
     }
 };
 
-class PyRepList : public PyRep {
+class PyList : public PyRep {
 public:
     typedef std::vector<PyRep *> storage_type;
     typedef std::vector<PyRep *>::iterator iterator;
     typedef std::vector<PyRep *>::const_iterator const_iterator;
 
-    PyRepList() : PyRep(PyRep::PyTypeList) {}
-    PyRepList(int count) : PyRep(PyRep::PyTypeList) { items.resize(count);}
-    virtual ~PyRepList();
+    PyList() : PyRep(PyRep::PyTypeList) {}
+    PyList(int count) : PyRep(PyRep::PyTypeList) { items.resize(count);}
+    virtual ~PyList();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -440,23 +440,23 @@ public:
         v->VisitList(this, lvl);
     }
 
-    void CloneFrom(const PyRepList *from);
-    PyRepList *TypedClone() const;
+    void CloneFrom(const PyList *from);
+    PyList *TypedClone() const;
 
     EVEMU_INLINE void addInt(uint64 intval) {
-        items.push_back(new PyRepInteger(intval));
+        items.push_back(new PyInt(intval));
     }
 
     EVEMU_INLINE void addReal(double realval) {
-        items.push_back(new PyRepReal(realval));
+        items.push_back(new PyFloat(realval));
     }
 
     EVEMU_INLINE void addStr(const char *str) {
-        items.push_back(new PyRepString(str));
+        items.push_back(new PyString(str));
     }
 
     EVEMU_INLINE void add(const char *str) {
-        items.push_back(new PyRepString(str));
+        items.push_back(new PyString(str));
     }
 
     EVEMU_INLINE void add(PyRep *i) {
@@ -467,7 +467,7 @@ public:
         assert(index <= items.size());
 
         assert(items[index] == NULL);
-        items[index] = new PyRepString(str);
+        items[index] = new PyString(str);
     }
 
     EVEMU_INLINE void set(const uint32 index, PyRep *i) {
@@ -489,14 +489,14 @@ public:
     }
 };
 
-class PyRepDict : public PyRep {
+class PyDict : public PyRep {
 public:
     typedef std::map<PyRep *, PyRep *> storage_type;
     typedef std::map<PyRep *, PyRep *>::iterator iterator;
     typedef std::map<PyRep *, PyRep *>::const_iterator const_iterator;
 
-    PyRepDict() : PyRep(PyRep::PyTypeDict) {}
-    virtual ~PyRepDict();
+    PyDict() : PyRep(PyRep::PyTypeDict) {}
+    virtual ~PyDict();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -507,8 +507,8 @@ public:
         v->VisitDict(this, lvl);
     }
 
-    void CloneFrom(const PyRepDict *from);
-    PyRepDict *TypedClone() const;
+    void CloneFrom(const PyDict *from);
+    PyDict *TypedClone() const;
 
     void add(const char *key, PyRep *value);
     void add(PyRep *key, PyRep *value);
@@ -527,10 +527,10 @@ public:
     uint32 size() const {return items.size();}
 };
 
-class PyRepObject : public PyRep {
+class PyObject : public PyRep {
 public:
-    PyRepObject(const std::string &_type = "", PyRep *_args = NULL) : PyRep(PyRep::PyTypeObject), type(_type), arguments(_args) {}
-    virtual ~PyRepObject();
+    PyObject(const std::string &_type = "", PyRep *_args = NULL) : PyRep(PyRep::PyTypeObject), type(_type), arguments(_args) {}
+    virtual ~PyObject();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -541,14 +541,14 @@ public:
         v->VisitObject(this, lvl);
     }
 
-    PyRepObject *TypedClone() const;
+    PyObject *TypedClone() const;
 
     std::string type;
     PyRep *arguments;   //should be a tuple or a dict
 };
 
 //opcodes 0x22 and 0x23 (merged for simplicity)
-class PyRepObjectEx : public PyRep {
+class PyObjectEx : public PyRep {
 public:
     //for list data (before first PackedTerminator)
     typedef std::vector<PyRep *> list_type;
@@ -560,8 +560,8 @@ public:
     typedef std::map<PyRep *, PyRep *>::iterator dict_iterator;
     typedef std::map<PyRep *, PyRep *>::const_iterator const_dict_iterator;
 
-    PyRepObjectEx(bool _is_type_1, PyRep *_header = NULL);
-    virtual ~PyRepObjectEx();
+    PyObjectEx(bool _is_type_1, PyRep *_header = NULL);
+    virtual ~PyObjectEx();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -572,8 +572,8 @@ public:
         v->VisitObjectEx(this, lvl);
     }
 
-    PyRepObjectEx *TypedClone() const;
-    void CloneFrom(const PyRepObjectEx *from);
+    PyObjectEx *TypedClone() const;
+    void CloneFrom(const PyObjectEx *from);
 
     PyRep *header;
     const bool is_type_1;   // true if opcode is 0x26 instead of 0x25
@@ -583,11 +583,11 @@ public:
 
 };
 
-class PyRepPackedRow : public PyRep {
+class PyPackedRow : public PyRep {
 public:
     // We silently assume here that header is blue.DBRowDescriptor.
-    PyRepPackedRow(PyRep &header, bool header_owner);
-    virtual ~PyRepPackedRow();
+    PyPackedRow(PyRep &header, bool header_owner);
+    virtual ~PyPackedRow();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -598,8 +598,8 @@ public:
         v->VisitPackedRow(this, lvl);
     }
 
-    PyRepPackedRow *TypedClone() const;
-    void CloneFrom(const PyRepPackedRow *from);
+    PyPackedRow *TypedClone() const;
+    void CloneFrom(const PyPackedRow *from);
 
     // Header:
     PyRep &GetHeader() const { return mHeader; }
@@ -621,16 +621,16 @@ protected:
     PyRep &mHeader;
     const bool mHeaderOwner;
 
-    const PyRepTuple *mColumnInfo;
+    const PyTuple *mColumnInfo;
 
     std::vector<PyRep *> mFields;
 };
 
-class PyRepSubStruct : public PyRep {
+class PySubStruct : public PyRep {
 public:
-    PyRepSubStruct() : PyRep(PyRep::PyTypeSubStruct), sub(NULL) {}
-    PyRepSubStruct(PyRep *t) : PyRep(PyRep::PyTypeSubStruct), sub(t) {}
-    virtual ~PyRepSubStruct();
+    PySubStruct() : PyRep(PyRep::PyTypeSubStruct), sub(NULL) {}
+    PySubStruct(PyRep *t) : PyRep(PyRep::PyTypeSubStruct), sub(t) {}
+    virtual ~PySubStruct();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -641,18 +641,18 @@ public:
         v->VisitSubStruct(this, lvl);
     }
 
-    PyRepSubStruct *TypedClone() const;
+    PySubStruct *TypedClone() const;
 
     PyRep *sub;
 };
 
-class PyRepSubStream : public PyRep {
+class PySubStream : public PyRep {
 public:
-    PyRepSubStream() : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(NULL) {}
-    PyRepSubStream(PyRep *t) : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(t) {}
-    PyRepSubStream(const uint8 *buffer, uint32 len);
+    PySubStream() : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(NULL) {}
+    PySubStream(PyRep *t) : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(t) {}
+    PySubStream(const uint8 *buffer, uint32 len);
 
-    virtual ~PyRepSubStream();
+    virtual ~PySubStream();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -663,7 +663,7 @@ public:
         v->VisitSubStream(this, lvl);
     }
 
-    PyRepSubStream *TypedClone() const;
+    PySubStream *TypedClone() const;
 
     //call to ensure that `data` represents `decoded` IF DATA IS NULL
     void EncodeData();
@@ -679,11 +679,11 @@ public:
     mutable PyRep *decoded;
 };
 
-class PyRepChecksumedStream : public PyRep {
+class PyChecksumedStream : public PyRep {
 public:
-    PyRepChecksumedStream() : PyRep(PyRep::PyTypeChecksumedStream), checksum(0), stream(NULL) {}
-    PyRepChecksumedStream(uint32 sum, PyRep *t) : PyRep(PyRep::PyTypeChecksumedStream), checksum(sum), stream(t) {}
-    virtual ~PyRepChecksumedStream();
+    PyChecksumedStream() : PyRep(PyRep::PyTypeChecksumedStream), checksum(0), stream(NULL) {}
+    PyChecksumedStream(uint32 sum, PyRep *t) : PyRep(PyRep::PyTypeChecksumedStream), checksum(sum), stream(t) {}
+    virtual ~PyChecksumedStream();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -694,7 +694,7 @@ public:
         v->VisitChecksumedStream(this, lvl);
     }
 
-    PyRepChecksumedStream *TypedClone() const;
+    PyChecksumedStream *TypedClone() const;
 
     uint32 checksum;
     PyRep *stream;

@@ -60,7 +60,7 @@ PyResult MapService::Handle_GetStationExtraInfo(PyCallArgs &call) {
 	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		//this method is not in cache yet, load up the contents and cache it.
 		
-		PyRepTuple *resultt = new PyRepTuple(3);
+		PyTuple *resultt = new PyTuple(3);
 		
 		resultt->items[0] = m_db.GetStationExtraInfo();
 		if(resultt->items[0] == NULL) {
@@ -102,7 +102,7 @@ PyResult MapService::Handle_GetSolarSystemPseudoSecurities(PyCallArgs &call) {
 		//this method is not in cache yet, load up the contents and cache it.
 		result = m_db.GetPseudoSecurities();
 		if(result == NULL)
-			result = new PyRepNone();
+			result = new PyNone();
 		m_manager->cache_service->GiveCache(method_id, &result);
 	}
 	
@@ -117,7 +117,7 @@ PyResult MapService::Handle_GetSolarSystemPseudoSecurities(PyCallArgs &call) {
 PyResult MapService::Handle_GetStuckSystems(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	result = new PyRepDict();
+	result = new PyDict();
 	
 	return result;
 }

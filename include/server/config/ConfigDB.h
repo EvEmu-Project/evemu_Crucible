@@ -44,10 +44,10 @@ public:
     PyRep *GetMultiCorpTickerNamesEx(const std::vector<int32> &entityIDs);
     PyRep *GetMultiGraphicsEx(const std::vector<int32> &entityIDs);
     PyRep *GetMultiInvTypesEx(const std::vector<int32> &typeIDs);
-    PyRepObject *GetUnits();
-    PyRepObject *GetMapObjects(uint32 entityID, bool wantRegions, bool wantConstellations, bool wantSystems, bool wantStations);
-    PyRepObject *GetMap(uint32 solarSystemID);
-    PyRepObject *ListLanguages();
+    PyObject *GetUnits();
+    PyObject *GetMapObjects(uint32 entityID, bool wantRegions, bool wantConstellations, bool wantSystems, bool wantStations);
+    PyObject *GetMap(uint32 solarSystemID);
+    PyObject *ListLanguages();
     PyRep *GetStationSolarSystemsByOwner(uint32 ownerID);
     PyRep *GetCelestialStatistic(uint32 celestialID);
     PyRep *GetTextsForGroup(const std::string & langID, uint32 textgroup);

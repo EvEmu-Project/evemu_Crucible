@@ -61,7 +61,7 @@ PyResult Command_create(Client *who, CommandDB *db, PyServiceMgr *services, cons
 	//Move to location
 	i->Move( locationID, flag, true );
 
-	return(new PyRepString("Creation successfull."));
+	return(new PyString("Creation successfull."));
 }
 
 PyResult Command_search(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -94,9 +94,9 @@ PyResult Command_search(Client *who, CommandDB *db, PyServiceMgr *services, cons
 		std::string subject("Search results for ");
 		subject += args.argplus[1];
 		who->SelfEveMail(subject.c_str(), result.c_str());
-		return(new PyRepString("Results sent via evemail."));
+		return(new PyString("Results sent via evemail."));
 	} else
-		return(new PyRepString(result));
+		return(new PyString(result));
 }
 
 PyResult Command_translocate(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -120,7 +120,7 @@ PyResult Command_translocate(Client *who, CommandDB *db, PyServiceMgr *services,
 	}
 
 	who->MoveToLocation(loc, p);
-	return(new PyRepString("Translocation successfull."));
+	return(new PyString("Translocation successfull."));
 }
 
 
@@ -148,7 +148,7 @@ PyResult Command_tr(Client *who, CommandDB *db, PyServiceMgr *services, const Se
 	}
 
 	who->MoveToLocation(loc, p);
-	return(new PyRepString("Translocation successfull."));
+	return(new PyString("Translocation successfull."));
 }
 
 PyResult Command_giveisk(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -171,7 +171,7 @@ PyResult Command_giveisk(Client *who, CommandDB *db, PyServiceMgr *services, con
 	}
 	
 	tgt->AddBalance(amount);
-	return(new PyRepString("Operation successfull."));
+	return(new PyString("Operation successfull."));
 }
 
 PyResult Command_pop(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -184,12 +184,12 @@ PyResult Command_pop(Client *who, CommandDB *db, PyServiceMgr *services, const S
 	
 	Notify_OnRemoteMessage n;
 	n.msgType = args.arg[1];
-	n.args[ args.arg[2] ] = new PyRepString(args.argplus[3]);
-	PyRepTuple *tmp = n.FastEncode();
+	n.args[ args.arg[2] ] = new PyString(args.argplus[3]);
+	PyTuple *tmp = n.FastEncode();
 	
 	who->SendNotification("OnRemoteMessage", "charid", &tmp);
 
-	return(new PyRepString("Message sent."));
+	return(new PyString("Message sent."));
 }
 
 PyResult Command_goto(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -204,7 +204,7 @@ PyResult Command_goto(Client *who, CommandDB *db, PyServiceMgr *services, const 
 	
 	who->MoveToPosition(p);
 
-	return(new PyRepString("Goto successfull."));
+	return(new PyString("Goto successfull."));
 }
 
 PyResult Command_spawn(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -236,7 +236,7 @@ PyResult Command_spawn(Client *who, CommandDB *db, PyServiceMgr *services, const
 	NPC *it = new NPC(sys, *services, i, who->GetCorporationID(), who->GetAllianceID(), loc);
 	sys->AddNPC(it);
 
-	return(new PyRepString("Spawn successfull."));
+	return(new PyString("Spawn successfull."));
 }
 
 PyResult Command_location(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -261,7 +261,7 @@ PyResult Command_location(Client *who, CommandDB *db, PyServiceMgr *services, co
 		vel.length()
 	);
 
-	return(new PyRepString(reply));
+	return(new PyString(reply));
 }
 
 PyResult Command_syncloc(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -274,7 +274,7 @@ PyResult Command_syncloc(Client *who, CommandDB *db, PyServiceMgr *services, con
 	DestinyManager *dm = who->Destiny();
 	dm->SetPosition(dm->GetPosition(), true);
 
-	return(new PyRepString("Position synchronized."));
+	return(new PyString("Position synchronized."));
 }
 
 // new command to modify blueprint's attributes, we have to give it blueprint's itemID ... isn't much comfortable, but I don't know about better solution
@@ -303,7 +303,7 @@ PyResult Command_setbpattr(Client *who, CommandDB *db, PyServiceMgr *services, c
 	bp->SetProductivityLevel(atoi(args.arg[4]));
 	bp->SetLicensedProductionRunsRemaining(atoi(args.arg[5]));
 
-	return(new PyRepString("Properties modified."));
+	return(new PyString("Properties modified."));
 }
 
 PyResult Command_state(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -316,7 +316,7 @@ PyResult Command_state(Client *who, CommandDB *db, PyServiceMgr *services, const
 
 	destiny->SendSetState(who->Bubble());
 
-	return(new PyRepString("Update sent."));
+	return(new PyString("Update sent."));
 }
 
 PyResult Command_getattr(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -356,7 +356,7 @@ PyResult Command_setattr(Client *who, CommandDB *db, PyServiceMgr *services, con
 		atof(args.arg[3])
 	);
 
-	return(new PyRepString("Operation successfull."));
+	return(new PyString("Operation successfull."));
 }
 
 

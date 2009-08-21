@@ -28,8 +28,8 @@
 
 #include "../ServiceDB.h"
 
-class PyRepObject;
-class PyRepString;
+class PyObject;
+class PyString;
 class CharacterAppearance;
 class ItemFactory;
 class InventoryItem;
@@ -40,14 +40,14 @@ public:
 	CharacterDB(DBcore *db);
 	virtual ~CharacterDB();
 
-	PyRepObject *GetCharacterList(uint32 accountID);
-	PyRepObject *GetCharSelectInfo(uint32 characterID);
-	PyRepObject *GetCharPublicInfo(uint32 characterID);
-	PyRepObject *GetCharPublicInfo3(uint32 characterID);
-	//PyRepObject *GetAgentPublicInfo(uint32 agentID);
-	PyRepObject *GetOwnerNoteLabels(uint32 charID);
-	PyRepObject *GetOwnerNote(uint32 charID, uint32 noteID);
-	PyRepObject *GetCharacterAppearance(uint32 characterID);
+	PyObject *GetCharacterList(uint32 accountID);
+	PyObject *GetCharSelectInfo(uint32 characterID);
+	PyObject *GetCharPublicInfo(uint32 characterID);
+	PyObject *GetCharPublicInfo3(uint32 characterID);
+	//PyObject *GetAgentPublicInfo(uint32 agentID);
+	PyObject *GetOwnerNoteLabels(uint32 charID);
+	PyObject *GetOwnerNote(uint32 charID, uint32 noteID);
+	PyObject *GetCharacterAppearance(uint32 characterID);
 
 	bool ValidateCharName(const char *name);
 	/**
@@ -96,11 +96,11 @@ public:
 	bool GetSkillsByCareerSpeciality(uint32 careerSpecialityID, std::map<uint32, uint32> &into);
 
 	/**
-	 * Retrieves the character note from the database as a PyRepString pointer.
+	 * Retrieves the character note from the database as a PyString pointer.
 	 *
 	 * @author LSMoura
 	 */
-	PyRepString *GetNote(uint32 ownerID, uint32 itemID);
+	PyString *GetNote(uint32 ownerID, uint32 itemID);
 
 	/**
 	 * Stores the character note on the database, given the ownerID and itemID and the string itself.

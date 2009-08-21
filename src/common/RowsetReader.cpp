@@ -70,7 +70,7 @@ PyRep *BaseRowsetReader::base_iterator::_find(uint32 index) const {
     if(row == NULL || !row->IsList())
         return NULL;
 
-    PyRepList *rowl = (PyRepList *) row;
+    PyList *rowl = (PyList *) row;
     if(rowl->items.size() <= index)
         return NULL;
 
@@ -93,37 +93,37 @@ const char *BaseRowsetReader::base_iterator::GetString(uint32 index) const {
     PyRep *row = m_baseReader->_getRow(m_index);
     if(row == NULL || !row->IsList())
         return("NON-LIST ROW");
-    PyRepList *rowl = (PyRepList *) row;
+    PyList *rowl = (PyList *) row;
     if(rowl->items.size() <= index)
         return("INVALID INDEX");
     PyRep *ele = rowl->items[index];
     if(!ele->IsString())
         return("NON-STRING ELEMENT");
-    PyRepString *str = (PyRepString *) ele;
+    PyString *str = (PyString *) ele;
     return(str->value.c_str());
 }
 
 uint32 BaseRowsetReader::base_iterator::GetInt(uint32 index) const {
     PyRep *ele = _find(index);
-    if(ele == NULL || !ele->IsInteger())
+    if(ele == NULL || !ele->IsInt())
         return(0x7F000000LL);
-    PyRepInteger *e = (PyRepInteger *) ele;
+    PyInt *e = (PyInt *) ele;
     return(e->value);
 }
 
 uint64 BaseRowsetReader::base_iterator::GetInt64(uint32 index) const {
     PyRep *ele = _find(index);
-    if(ele == NULL || !ele->IsInteger())
+    if(ele == NULL || !ele->IsInt())
         return(0x7F0000007F000000LL);
-    PyRepInteger *e = (PyRepInteger *) ele;
+    PyInt *e = (PyInt *) ele;
     return(e->value);
 }
 
 double BaseRowsetReader::base_iterator::GetReal(uint32 index) const {
     PyRep *ele = _find(index);
-    if(ele == NULL || !ele->IsReal())
+    if(ele == NULL || !ele->IsFloat())
         return(-9999999.0);
-    PyRepReal *e = (PyRepReal *) ele;
+    PyFloat *e = (PyFloat *) ele;
     return(e->value);
 }
 
@@ -160,20 +160,20 @@ std::string BaseRowsetReader::base_iterator::GetAsString(uint32 index) const {
     PyRep *row = m_baseReader->_getRow(m_index);
     if(row == NULL || !row->IsList())
         return("NON-LIST ROW");
-    PyRepList *rowl = (PyRepList *) row;
+    PyList *rowl = (PyList *) row;
     if(rowl->items.size() <= index)
         return("INVALID INDEX");
     PyRep *ele = rowl->items[index];
     if(ele->IsString()) {
-        PyRepString *str = (PyRepString *) ele;
+        PyString *str = (PyString *) ele;
         return(str->value.c_str());
-    } else if(ele->IsInteger()) {
-        PyRepInteger *i = (PyRepInteger *) ele;
+    } else if(ele->IsInt()) {
+        PyInt *i = (PyInt *) ele;
         char buf[64];
         snprintf(buf, sizeof(buf), I64u, i->value);
         return(std::string(buf));
-    } else if(ele->IsReal()) {
-        PyRepReal *i = (PyRepReal *) ele;
+    } else if(ele->IsFloat()) {
+        PyFloat *i = (PyFloat *) ele;
         char buf[64];
         snprintf(buf, sizeof(buf), "%f", i->value);
         return(std::string(buf));
@@ -243,7 +243,7 @@ bool RowsetReader::iterator::operator!=(const iterator &other) {
 }
 
 PyRep *RowsetReader::_getRow(uint32 index) const {
-    const PyRepList *l = &m_set->lines;
+    const PyList *l = &m_set->lines;
     if(l->items.size() <= index)    //InvalidRow will be caught here!
         return NULL;
     return(l->items[index]);
@@ -321,7 +321,7 @@ bool TuplesetReader::iterator::operator!=(const iterator &other) {
 }
 
 PyRep *TuplesetReader::_getRow(uint32 index) const {
-    const PyRepList *l = &m_set->lines;
+    const PyList *l = &m_set->lines;
     if(l->items.size() <= index)    //InvalidRow will be caught here!
         return NULL;
     return(l->items[index]);
@@ -343,7 +343,7 @@ SetSQLDumper::SetSQLDumper(FILE *f, const char *tablename)
 {
 }
 
-void SetSQLDumper::VisitObject(const PyRepObject *rep) {
+void SetSQLDumper::VisitObject(const PyObject *rep) {
     if(rep->type != "util.Rowset") {
         //traverse the object as usual.
         rep->arguments->visit(this);
@@ -352,7 +352,7 @@ void SetSQLDumper::VisitObject(const PyRepObject *rep) {
 
     //we found a friend, decode it
     //this is annoying to have to clone it, but we cannot modify our pointer, and Decode wants to consume it.
-    PyRepObject *dup = (PyRepObject *) rep->Clone();
+    PyObject *dup = (PyObject *) rep->Clone();
 
     util_Rowset rowset;
     if(!rowset.Decode(&dup)) {
@@ -369,7 +369,7 @@ void SetSQLDumper::VisitObject(const PyRepObject *rep) {
     }
 }
 
-void SetSQLDumper::VisitTuple(const PyRepTuple *rep) {
+void SetSQLDumper::VisitTuple(const PyTuple *rep) {
 
     //first we want to check to see if this could possibly even be a tupleset.
 
@@ -378,7 +378,7 @@ void SetSQLDumper::VisitTuple(const PyRepTuple *rep) {
        ||   !rep->items[1]->IsList() ) {
 
         //! visit tuple elements.
-        PyRepTuple::const_iterator cur, end;
+        PyTuple::const_iterator cur, end;
         cur = rep->begin();
         end = rep->end();
         for(; cur != end; ++cur) {
@@ -387,17 +387,17 @@ void SetSQLDumper::VisitTuple(const PyRepTuple *rep) {
         return;
     }
 
-    const PyRepList *possible_header = (const PyRepList *) rep->items[0];
-    const PyRepList *possible_items = (const PyRepList *) rep->items[1];
+    const PyList *possible_header = (const PyList *) rep->items[0];
+    const PyList *possible_items = (const PyList *) rep->items[1];
 
     //check each element of the lists to make sure they line up.
-    PyRepList::const_iterator cur, end;
+    PyList::const_iterator cur, end;
     cur = possible_header->begin();
     end = possible_header->end();
     for(; cur != end; ++cur) {
         if(! (*cur)->IsString()) {
             //nope...
-            PyRepTuple::const_iterator curT, endT;
+            PyTuple::const_iterator curT, endT;
             curT = rep->begin();
             endT = rep->end();
             for(; curT != endT; ++curT) {
@@ -411,7 +411,7 @@ void SetSQLDumper::VisitTuple(const PyRepTuple *rep) {
     for(; cur != end; cur++) {
         if(! (*cur)->IsList()) {
             //nope...
-            PyRepTuple::const_iterator curT, endT;
+            PyTuple::const_iterator curT, endT;
             curT = rep->begin();
             endT = rep->end();
             for(; curT != endT; ++curT) {
@@ -426,7 +426,7 @@ void SetSQLDumper::VisitTuple(const PyRepTuple *rep) {
     //ok, it looks like a tupleset... nothing we can do now but interpret it as one...
 
     //this is annoying to have to clone it, but we cannot modify our pointer, and Decode wants to consume it.
-    PyRepTuple *dup = (PyRepTuple *) rep->Clone();
+    PyTuple *dup = (PyTuple *) rep->Clone();
 
     util_Tupleset rowset;
     if(!rowset.Decode(&dup)) {

@@ -49,8 +49,8 @@ public:
 	virtual void TargetedLost(SystemEntity *who) {}
 	virtual void TargetsCleared() {}
 	virtual void ProcessDestiny() {}
-	virtual void QueueDestinyUpdate(PyRepTuple **du);
-	virtual void QueueDestinyEvent(PyRepTuple **multiEvent);
+	virtual void QueueDestinyUpdate(PyTuple **du);
+	virtual void QueueDestinyEvent(PyTuple **multiEvent);
 	//virtual const GPoint &GetPosition() const;
 	virtual void ApplyDamageModifiers(Damage &d, SystemEntity *target) {}
 	virtual bool ApplyDamage(Damage &d) { return(false); }
@@ -74,7 +74,7 @@ public:
 	virtual bool LoadExtras(SystemDB *db);
 
 	//some of these are generic enough..
-	virtual PyRepDict *MakeSlimItem() const;
+	virtual PyDict *MakeSlimItem() const;
 	virtual void MakeDamageState(DoDestinyDamageState &into) const;
 	
 	const DBSystemEntity data;
@@ -98,7 +98,7 @@ public:
 	virtual ~SystemStationEntity() { targets.DoDestruction(); }
 	
 	virtual void EncodeDestiny(std::vector<uint8> &into) const;
-	virtual PyRepDict *MakeSlimItem() const;
+	virtual PyDict *MakeSlimItem() const;
 };
 
 //for now...
@@ -108,7 +108,7 @@ public:
 	virtual ~SystemStargateEntity();
 	
 	virtual bool LoadExtras(SystemDB *db);
-	virtual PyRepDict *MakeSlimItem() const;
+	virtual PyDict *MakeSlimItem() const;
 	
 protected:
 	PyRep *m_jumps;
@@ -131,7 +131,7 @@ public:
 	virtual SystemManager *System() const { return(m_system); }
 	virtual bool IsVisibleSystemWide() const { return true; }
 
-	virtual PyRepDict *MakeSlimItem() const;
+	virtual PyDict *MakeSlimItem() const;
 	virtual void EncodeDestiny(std::vector<uint8> &into) const;
 protected:
 	SystemManager *const m_system;	//we do not own this

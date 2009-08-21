@@ -284,7 +284,7 @@ public:
 	/*
 	 * Primary public packet builders:
 	 */
-	PyRepDict *GetBlueprintAttributes() const;
+	PyDict *GetBlueprintAttributes() const;
 
 protected:
 	Blueprint(

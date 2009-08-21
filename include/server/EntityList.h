@@ -43,7 +43,7 @@ class PyAddress;
 class EVENotificationStream;
 class SystemManager;
 class DBcore;
-class PyRepTuple;
+class PyTuple;
 class PyServiceMgr;
 
 typedef enum {
@@ -80,13 +80,13 @@ public:
 
 	SystemManager *FindOrBootSystem(uint32 systemID);
 
-	void Broadcast(const char *notifyType, const char *idType, PyRepTuple **payload) const;
+	void Broadcast(const char *notifyType, const char *idType, PyTuple **payload) const;
 	void Broadcast(const PyAddress &dest, EVENotificationStream *noti) const;
-	void Multicast(const char *notifyType, const char *idType, PyRepTuple **payload, NotificationDestination target, uint32 target_id, bool seq=true);
-	void Multicast(const char *notifyType, const char *idType, PyRepTuple **payload, const MulticastTarget &mcset, bool seq=true);
+	void Multicast(const char *notifyType, const char *idType, PyTuple **payload, NotificationDestination target, uint32 target_id, bool seq=true);
+	void Multicast(const char *notifyType, const char *idType, PyTuple **payload, const MulticastTarget &mcset, bool seq=true);
 	void Multicast(const character_set &cset, const PyAddress &dest, EVENotificationStream *noti) const;
-	void Multicast(const character_set &cset, const char *notifyType, const char *idType, PyRepTuple **payload, bool seq=true) const;
-	void Unicast(uint32 charID, const char *notifyType, const char *idType, PyRepTuple **payload, bool seq=true);
+	void Multicast(const character_set &cset, const char *notifyType, const char *idType, PyTuple **payload, bool seq=true) const;
+	void Unicast(uint32 charID, const char *notifyType, const char *idType, PyTuple **payload, bool seq=true);
 	void GetClients(const character_set &cset, std::vector<Client *> &result) const;
 	
 protected:

@@ -340,15 +340,15 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 		ss.damageState[ ent->GetID() ] = ent->MakeDamageState();
 
 		//ss.slims
-		PyRepDict *slim_dict = ent->MakeSlimItem();
-		ss.slims.add(new PyRepObject("foo.SlimItem", slim_dict));
+		PyDict *slim_dict = ent->MakeSlimItem();
+		ss.slims.add(new PyObject("foo.SlimItem", slim_dict));
 
 		//append the destiny binary data...
 		ent->EncodeDestiny(setstate_buffer);
 	}
 
 	//ss.destiny_state
-	ss.destiny_state = new PyRepBuffer(&setstate_buffer[0], setstate_buffer.size());
+	ss.destiny_state = new PyBuffer(&setstate_buffer[0], setstate_buffer.size());
 	setstate_buffer.clear();
 	
 	//ss.gangCorps
@@ -359,14 +359,14 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 	ss.droneState = m_db.GetSolDroneState(m_systemID);
 	if(ss.droneState == NULL) {
 		_log(SERVICE__ERROR, "Unable to query dronestate entity for destiny update in system %u!", m_systemID);
-		ss.droneState = new PyRepNone();
+		ss.droneState = new PyNone();
 	}
 
 	//ss.solItem
 	ss.solItem = m_db.GetSolRow(m_systemID);
 	if(ss.solItem == NULL) {
 		_log(CLIENT__ERROR, "Unable to query solarsystem entity for destiny update in system %u!", m_systemID);
-		ss.solItem = new PyRepNone();
+		ss.solItem = new PyNone();
 	}
 
 	

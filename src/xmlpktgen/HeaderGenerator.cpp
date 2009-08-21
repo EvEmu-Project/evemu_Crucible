@@ -296,8 +296,8 @@ bool ClassHeaderGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
         return false;
 
     fprintf(into, "\t/* ObjectEx %s's contents: */\n", name);
-    fprintf(into, "\tPyRepObjectEx::list_type\t%s;\n", lname);
-    fprintf(into, "\tPyRepObjectEx::dict_type\t%s;\n", dname);
+    fprintf(into, "\tPyObjectEx::list_type\t%s;\n", lname);
+    fprintf(into, "\tPyObjectEx::dict_type\t%s;\n", dname);
 
     return true;
 }
@@ -313,7 +313,7 @@ bool ClassHeaderGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
         return false;
     }
     m_namesUsed.insert(name);
-    fprintf(into, "\tPyRepBuffer\t*%s;\n", name);
+    fprintf(into, "\tPyBuffer\t*%s;\n", name);
     return true;
 }
 
@@ -343,7 +343,7 @@ bool ClassHeaderGenerator::Process_list(FILE *into, TiXmlElement *field) {
         return false;
     }
     m_namesUsed.insert(name);
-    fprintf(into, "\tPyRepList\t%s;\n", name);
+    fprintf(into, "\tPyList\t%s;\n", name);
     return true;
 }
 
@@ -358,7 +358,7 @@ bool ClassHeaderGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         return false;
     }
     m_namesUsed.insert(name);
-    fprintf(into, "\tPyRepTuple\t*%s;   //due to (somewhat false) sizing constructor, must be dynamic memory.\n", name);
+    fprintf(into, "\tPyTuple\t*%s;   //due to (somewhat false) sizing constructor, must be dynamic memory.\n", name);
     return true;
 }
 
@@ -373,7 +373,7 @@ bool ClassHeaderGenerator::Process_dict(FILE *into, TiXmlElement *field) {
         return false;
     }
     m_namesUsed.insert(name);
-    fprintf(into, "\tPyRepDict\t%s;\n", name);
+    fprintf(into, "\tPyDict\t%s;\n", name);
     return true;
 }
 

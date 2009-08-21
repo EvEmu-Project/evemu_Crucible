@@ -32,7 +32,7 @@
 
 class SystemEntity;
 class PyRep;
-class PyRepTuple;
+class PyTuple;
 
 class TargetManager {
 public:
@@ -55,14 +55,14 @@ public:
 	bool IsTargetedBySomething() const { return(!m_targetedBy.empty()); }
 	
 	SystemEntity *GetTarget(uint32 targetID, bool need_locked=true) const;
-	void QueueTBDestinyEvent(PyRepTuple **up) const;	//queue a destiny event to all people targeting me.
-	void QueueTBDestinyUpdate(PyRepTuple **up) const;	//queue a destiny update to all people targeting me.
+	void QueueTBDestinyEvent(PyTuple **up) const;	//queue a destiny event to all people targeting me.
+	void QueueTBDestinyUpdate(PyTuple **up) const;	//queue a destiny update to all people targeting me.
 
 	void Dump() const;
 	
 	//Packet builders:
-	PyRepList *GetTargets() const;
-	PyRepList *GetTargeters() const;
+	PyList *GetTargets() const;
+	PyList *GetTargeters() const;
 	
 protected:
 	void ClearFromTargets();

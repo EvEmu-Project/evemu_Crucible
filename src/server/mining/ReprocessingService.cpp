@@ -72,12 +72,12 @@ ReprocessingService::~ReprocessingService() {
 }
 
 PyBoundObject *ReprocessingService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
-    if(!bind_args->IsInteger()) {
+    if(!bind_args->IsInt()) {
         codelog(CLIENT__ERROR, "%s: Non-integer bind argument '%s'", c->GetName(), bind_args->TypeString());
         return NULL;
     }
 
-    uint32 stationID = ((const PyRepInteger *)bind_args)->value;
+    uint32 stationID = ((const PyInt *)bind_args)->value;
 
     if(!IsStation(stationID)) {
         codelog(CLIENT__ERROR, "%s: Expected stationID, but hasn't got any.", c->GetName());
@@ -238,8 +238,8 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
         // this should never happen, but for sure ...
         if(item->type().portionSize() > item->quantity()) {
             std::map<std::string, PyRep *> args;
-            args["typename"] = new PyRepString(item->itemName().c_str());
-            args["portion"] = new PyRepInteger(item->type().portionSize());
+            args["typename"] = new PyString(item->itemName().c_str());
+            args["portion"] = new PyInt(item->type().portionSize());
 
             throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
         }
@@ -326,8 +326,8 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 
     if(item->quantity() < item->type().portionSize()) {
         std::map<std::string, PyRep *> args;
-        args["typename"] = new PyRepString(item->itemName().c_str());
-        args["portion"] = new PyRepInteger(item->type().portionSize());
+        args["typename"] = new PyString(item->itemName().c_str());
+        args["portion"] = new PyInt(item->type().portionSize());
 
         throw(PyException(MakeUserError("QuantityLessThanMinimumPortion", args)));
     }

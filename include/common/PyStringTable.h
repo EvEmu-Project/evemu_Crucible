@@ -96,7 +96,7 @@ public:
      * @param[out] str is the PyString that we have looked up if successful.
      * @return true if the index is valid and false if its beyond the range.
      */
-    bool LookupPyString(uint8 index, const PyRepString *&str);
+    bool LookupPyString(uint8 index, const PyString *&str);
 
 private:
     /**
@@ -123,7 +123,7 @@ private:
     typedef StringTableMap::const_iterator          StringTableMapConstItr;
 
     StringTableMap  mStringTable;
-    PyRepString     mPyStringTable[StringTableSize];
+    PyString     mPyStringTable[StringTableSize];
 };
 
 extern PyMarshalStringTable PyStringTable;

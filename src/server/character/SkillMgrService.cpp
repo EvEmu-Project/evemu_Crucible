@@ -93,7 +93,7 @@ PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
 PyResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
     CharacterRef ch = call.client->GetChar();
 
-    return new PyRepInteger( ch->GetEndOfTraining() );
+    return new PyInt( ch->GetEndOfTraining() );
 }
 
 PyResult SkillMgrBound::Handle_GetSkillHistory(PyCallArgs &call) {
@@ -199,9 +199,9 @@ PyResult SkillMgrBound::Handle_GetRespecInfo(PyCallArgs &call) {
     _log(SERVICE__MESSAGE, "%s: GetRespecInfo unimplemented.", GetBindStr().c_str());
 
     // return dict
-    PyRepDict *result = new PyRepDict;
-    result->add("freeRespecs", new PyRepInteger(0));
-    result->add("nextRespecTime", new PyRepInteger(Win32TimeNow() + Win32Time_Year));
+    PyDict *result = new PyDict;
+    result->add("freeRespecs", new PyInt(0));
+    result->add("nextRespecTime", new PyInt(Win32TimeNow() + Win32Time_Year));
 
     return result;
 }

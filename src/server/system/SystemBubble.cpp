@@ -34,24 +34,24 @@ SystemBubble::SystemBubble(const GPoint &center, double radius)
 }
 
 //send a set of destiny events and updates to everybody in the bubble.
-void SystemBubble::BubblecastDestiny(std::vector<PyRepTuple *> &updates, std::vector<PyRepTuple *> &events, const char *desc) const {
+void SystemBubble::BubblecastDestiny(std::vector<PyTuple *> &updates, std::vector<PyTuple *> &events, const char *desc) const {
 	//this could be done more efficiently....
 	{
-		std::vector<PyRepTuple *>::iterator cur, end;
+		std::vector<PyTuple *>::iterator cur, end;
 		cur = updates.begin();
 		end = updates.end();
 		for(; cur != end; cur++) {
-			PyRepTuple *up = *cur;
+			PyTuple *up = *cur;
 			BubblecastDestinyUpdate(&up, desc);	//update is consumed.
 		}
 		updates.clear();
 	}
 	{
-		std::vector<PyRepTuple *>::iterator cur, end;
+		std::vector<PyTuple *>::iterator cur, end;
 		cur = events.begin();
 		end = events.end();
 		for(; cur != end; cur++) {
-			PyRepTuple *up = *cur;
+			PyTuple *up = *cur;
 			BubblecastDestinyUpdate(&up, desc);	//update is consumed.
 		}
 		events.clear();
@@ -60,14 +60,14 @@ void SystemBubble::BubblecastDestiny(std::vector<PyRepTuple *> &updates, std::ve
 
 //send a destiny update to everybody in the bubble.
 //assume that static entities are also not interested in destiny updates.
-void SystemBubble::BubblecastDestinyUpdate(PyRepTuple **payload, const char *desc) const {
-	PyRepTuple *up = *payload;
+void SystemBubble::BubblecastDestinyUpdate(PyTuple **payload, const char *desc) const {
+	PyTuple *up = *payload;
 	*payload = NULL;	//could optimize out one of the Clones in here...
 	
 	std::set<SystemEntity *>::const_iterator cur, end, tmp;
 	cur = m_dynamicEntities.begin();
 	end = m_dynamicEntities.end();
-	PyRepTuple *up_dup = NULL;
+	PyTuple *up_dup = NULL;
 	for(; cur != end; ++cur) {
 		if(up_dup == NULL)
 			up_dup = up->TypedClone();
@@ -82,14 +82,14 @@ void SystemBubble::BubblecastDestinyUpdate(PyRepTuple **payload, const char *des
 
 //send a destiny event to everybody in the bubble.
 //assume that static entities are also not interested in destiny updates.
-void SystemBubble::BubblecastDestinyEvent(PyRepTuple **payload, const char *desc) const {
-	PyRepTuple *up = *payload;
+void SystemBubble::BubblecastDestinyEvent(PyTuple **payload, const char *desc) const {
+	PyTuple *up = *payload;
 	*payload = NULL;	//could optimize out one of the Clones in here...
 	
 	std::set<SystemEntity *>::const_iterator cur, end, tmp;
 	cur = m_dynamicEntities.begin();
 	end = m_dynamicEntities.end();
-	PyRepTuple *up_dup = NULL;
+	PyTuple *up_dup = NULL;
 	for(; cur != end; ++cur) {
 		if(up_dup == NULL)
 			up_dup = up->TypedClone();
@@ -197,8 +197,8 @@ void SystemBubble::AppendBalls(DoDestiny_SetState &ss, std::vector<uint8> &setst
 		ss.damageState[ cur->second->GetID() ] = cur->second->MakeDamageState();
 		
 		//ss.slims
-		PyRepDict *slim_dict = cur->second->MakeSlimItem();
-		ss.slims.add(new PyRepObject("foo.SlimItem", slim_dict));
+		PyDict *slim_dict = cur->second->MakeSlimItem();
+		ss.slims.add(new PyObject("foo.SlimItem", slim_dict));
 
 		//append the destiny binary data...
 		cur->second->EncodeDestiny(setstate_buffer);
@@ -230,13 +230,13 @@ void SystemBubble::_SendAddBalls(SystemEntity *to_who) {
 		//damageState
 		addballs.damages[ cur->second->GetID() ] = cur->second->MakeDamageState();
 		//slim item
-		PyRepDict *slim_dict = cur->second->MakeSlimItem();
-		addballs.slims.add(new PyRepObject("foo.SlimItem", slim_dict));
+		PyDict *slim_dict = cur->second->MakeSlimItem();
+		addballs.slims.add(new PyObject("foo.SlimItem", slim_dict));
 		//append the destiny binary data...
 		cur->second->EncodeDestiny(destiny_buffer);
 	}
 	
-	addballs.destiny_binary = new PyRepBuffer(&destiny_buffer[0], destiny_buffer.size());
+	addballs.destiny_binary = new PyBuffer(&destiny_buffer[0], destiny_buffer.size());
 	destiny_buffer.clear();
 
 	_log(DESTINY__TRACE, "Add Balls:");
@@ -246,7 +246,7 @@ void SystemBubble::_SendAddBalls(SystemEntity *to_who) {
 	_log(DESTINY__TRACE, "    Ball Decoded:");
 	Destiny::DumpUpdate(DESTINY__TRACE, addballs.destiny_binary->GetBuffer(), addballs.destiny_binary->GetLength());
 
-	PyRepTuple *tmp = addballs.FastEncode();
+	PyTuple *tmp = addballs.FastEncode();
 	to_who->QueueDestinyUpdate(&tmp);	//may consume, but may not.
 	delete tmp;	//may not have been consumed.
 }
@@ -271,7 +271,7 @@ void SystemBubble::_SendRemoveBalls(SystemEntity *to_who) {
 	_log(DESTINY__TRACE, "Remove Balls:");
 	remove_balls.Dump(DESTINY__TRACE, "    ");
 	
-	PyRepTuple *tmp = remove_balls.FastEncode();
+	PyTuple *tmp = remove_balls.FastEncode();
 	to_who->QueueDestinyUpdate(&tmp);	//may consume, but may not.
 	delete tmp;	//may not have been consumed.
 }
@@ -293,16 +293,16 @@ void SystemBubble::_BubblecastAddBall(SystemEntity *about_who) {
 
 	//encode destiny binary
 	about_who->EncodeDestiny(destiny_buffer);
-	addballs.destiny_binary = new PyRepBuffer(&destiny_buffer[0], destiny_buffer.size());
+	addballs.destiny_binary = new PyBuffer(&destiny_buffer[0], destiny_buffer.size());
 	destiny_buffer.clear();
 
 	//encode damage state
 	addballs.damages[about_who->GetID()] = about_who->MakeDamageState();
 	//encode SlimItem
-	addballs.slims.add(new PyRepObject("foo.SlimItem", about_who->MakeSlimItem()));
+	addballs.slims.add(new PyObject("foo.SlimItem", about_who->MakeSlimItem()));
 	
 	//bubblecast the update
-	PyRepTuple *tmp = addballs.FastEncode();
+	PyTuple *tmp = addballs.FastEncode();
 	BubblecastDestinyUpdate(&tmp, "AddBall");	//consumed
 }
 
@@ -320,7 +320,7 @@ void SystemBubble::_BubblecastRemoveBall(SystemEntity *about_who) {
 	_log(DESTINY__TRACE, "Remove Ball:");
 	removeball.Dump(DESTINY__TRACE, "    ");
 	
-	PyRepTuple *tmp = removeball.FastEncode();
+	PyTuple *tmp = removeball.FastEncode();
 	BubblecastDestinyUpdate(&tmp, "RemoveBall");	//consumed
 }
 

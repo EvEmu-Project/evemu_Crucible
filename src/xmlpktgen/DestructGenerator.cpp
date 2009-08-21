@@ -170,7 +170,7 @@ bool ClassDestructGenerator::Process_object_ex(FILE *into, TiXmlElement *field) 
         return false;
 
     fprintf(into,
-        "   PyRepObjectEx::list_iterator lcur, lend;\n"
+        "   PyObjectEx::list_iterator lcur, lend;\n"
         "   lcur = %s_list.begin();\n"
         "   lend = %s_list.end();\n"
         "   for(; lcur != lend; lcur++)\n"
@@ -180,7 +180,7 @@ bool ClassDestructGenerator::Process_object_ex(FILE *into, TiXmlElement *field) 
     );
 
     fprintf(into,
-        "   PyRepObjectEx::dict_iterator dcur, dend;\n"
+        "   PyObjectEx::dict_iterator dcur, dend;\n"
         "   dcur = %s_dict.begin();\n"
         "   dend = %s_dict.end();\n"
         "   for(; dcur != dend; dcur++) {\n"

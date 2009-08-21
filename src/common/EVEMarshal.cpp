@@ -89,7 +89,7 @@ uint8 *Marshal(const PyRep *rep, uint32& len, bool inlineSubStream)
     return b;
 }
 
-void MarshalVisitor::VisitInteger(const PyRepInteger *rep)
+void MarshalVisitor::VisitInteger(const PyInt *rep)
 {
     const uint64 & val = rep->value;
     if (val == (uint64)-1)
@@ -113,7 +113,7 @@ void MarshalVisitor::VisitInteger(const PyRepInteger *rep)
         {
             if (val + 0x800000u > 0xFFFFFFFF)
             {
-                _PyRepInteger_AsByteArray(rep);
+                _PyInt_AsByteArray(rep);
                 return;
             }
             else
@@ -138,7 +138,7 @@ void MarshalVisitor::VisitInteger(const PyRepInteger *rep)
     }
 }
 
-void MarshalVisitor::VisitBoolean(const PyRepBoolean *rep)
+void MarshalVisitor::VisitBoolean(const PyBool *rep)
 {
     if(rep->value == true)
         PutByte(Op_PyTrue);
@@ -146,7 +146,7 @@ void MarshalVisitor::VisitBoolean(const PyRepBoolean *rep)
         PutByte(Op_PyFalse);
 }
 
-void MarshalVisitor::VisitReal(const PyRepReal *rep)
+void MarshalVisitor::VisitReal(const PyFloat *rep)
 {
     if(rep->value == 0.0)
     {
@@ -159,12 +159,12 @@ void MarshalVisitor::VisitReal(const PyRepReal *rep)
     }
 }
 
-void MarshalVisitor::VisitNone(const PyRepNone *rep)
+void MarshalVisitor::VisitNone(const PyNone *rep)
 {
     PutByte(Op_PyNone);
 }
 
-void MarshalVisitor::VisitBuffer(const PyRepBuffer *rep)
+void MarshalVisitor::VisitBuffer(const PyBuffer *rep)
 {
     PutByte(Op_PyBuffer);
     uint32 len = rep->GetLength();
@@ -172,7 +172,7 @@ void MarshalVisitor::VisitBuffer(const PyRepBuffer *rep)
     PutBytes(rep->GetBuffer(), len);
 }
 
-void MarshalVisitor::VisitPackedRow(const PyRepPackedRow *rep)
+void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
 {
     PutByte( Op_PyPackedRow );
 
@@ -220,24 +220,24 @@ void MarshalVisitor::VisitPackedRow(const PyRepPackedRow *rep)
                 case DBTYPE_UI2:
                 case DBTYPE_I1:
                 case DBTYPE_UI1:
-                    if( r->IsInteger() )
-                        v.i = r->AsInteger().value;
-                    else if( r->IsReal() )
-                        v.i = r->AsReal().value;
+                    if( r->IsInt() )
+                        v.i = r->AsInt().value;
+                    else if( r->IsFloat() )
+                        v.i = r->AsFloat().value;
                     break;
 
                 case DBTYPE_R8:
-                    if( r->IsReal() )
-                        v.r8 = r->AsReal().value;
-                    else if( r->IsInteger() )
-                        v.r8 = r->AsInteger().value;
+                    if( r->IsFloat() )
+                        v.r8 = r->AsFloat().value;
+                    else if( r->IsInt() )
+                        v.r8 = r->AsInt().value;
                     break;
 
                 case DBTYPE_R4:
-                    if( r->IsReal() )
-                        v.r4 = r->AsReal().value;
-                    else if( r->IsInteger() )
-                        v.r4 = r->AsInteger().value;
+                    if( r->IsFloat() )
+                        v.r4 = r->AsFloat().value;
+                    else if( r->IsInt() )
+                        v.r4 = r->AsInt().value;
                     break;
                 case DBTYPE_BOOL:
                 case DBTYPE_BYTES:
@@ -293,13 +293,13 @@ void MarshalVisitor::VisitPackedRow(const PyRepPackedRow *rep)
     {
         PyRep *r = rep->GetField( cur->second );
         if( r == NULL )
-            r = new PyRepNone;
+            r = new PyNone;
 
         r->visit( this );
     }
 }
 
-void MarshalVisitor::VisitString(const PyRepString *rep)
+void MarshalVisitor::VisitString(const PyString *rep)
 {
     uint32 len = (uint32)rep->value.length();
     if(rep->is_type_1)
@@ -340,17 +340,17 @@ void MarshalVisitor::VisitString(const PyRepString *rep)
     }
 }
 
-void MarshalVisitor::VisitObject(const PyRepObject *rep)
+void MarshalVisitor::VisitObject(const PyObject *rep)
 {
     PutByte(Op_PyObject);
     //throw out the type string
-    PyRepString s(rep->type);
+    PyString s(rep->type);
     s.visit(this);
     //this will visit arguments
     rep->arguments->visit(this);
 }
 
-void MarshalVisitor::VisitObjectEx(const PyRepObjectEx *rep)
+void MarshalVisitor::VisitObjectEx(const PyObjectEx *rep)
 {
     if (rep->is_type_1 == true)
         PutByte(Op_ObjectEx2);
@@ -362,7 +362,7 @@ void MarshalVisitor::VisitObjectEx(const PyRepObjectEx *rep)
 
     //! visit the rep list elements
     {
-        PyRepObjectEx::const_list_iterator cur, end;
+        PyObjectEx::const_list_iterator cur, end;
         cur = rep->list_data.begin();
         end = rep->list_data.end();
         for(; cur != end; ++cur)
@@ -372,7 +372,7 @@ void MarshalVisitor::VisitObjectEx(const PyRepObjectEx *rep)
 
     //! visit the rep Dict elements
     {
-        PyRepObjectEx::const_dict_iterator cur, end;
+        PyObjectEx::const_dict_iterator cur, end;
         cur = rep->dict_data.begin();
         end = rep->dict_data.end();
         for(; cur != end; ++cur)
@@ -384,13 +384,13 @@ void MarshalVisitor::VisitObjectEx(const PyRepObjectEx *rep)
     PutByte(Op_PackedTerminator);
 }
 
-void MarshalVisitor::VisitSubStruct(const PyRepSubStruct *rep)
+void MarshalVisitor::VisitSubStruct(const PySubStruct *rep)
 {
     PutByte(Op_PySubStruct);
     rep->sub->visit(this);
 }
 
-void MarshalVisitor::VisitSubStream(const PyRepSubStream *rep)
+void MarshalVisitor::VisitSubStream(const PySubStream *rep)
 {
     PutByte(Op_PySubStream);
     if(rep->length == 0 || rep->data == NULL)
@@ -428,7 +428,7 @@ void MarshalVisitor::VisitSubStream(const PyRepSubStream *rep)
 
 //! TODO: check the implementation of this...
 // we should never visit a checksummed stream... NEVER...
-void MarshalVisitor::VisitChecksumedStream(const PyRepChecksumedStream *rep)
+void MarshalVisitor::VisitChecksumedStream(const PyChecksumedStream *rep)
 {
     assert(false && "MarshalStream on the server size should never send checksummed objects");
     PutByte(Op_PyChecksumedStream);
@@ -439,13 +439,13 @@ void MarshalVisitor::VisitChecksumedStream(const PyRepChecksumedStream *rep)
 
 /** Add dict content to the stream
   */
-void MarshalVisitor::VisitDict(const PyRepDict *rep)
+void MarshalVisitor::VisitDict(const PyDict *rep)
 {
     uint32 size = (uint32)rep->items.size();
     PutByte(Op_PyDict);
     PutSizeEx(size);
 
-    PyRepDict::const_iterator cur, end;
+    PyDict::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     for(; cur != end; ++cur) {
@@ -457,7 +457,7 @@ void MarshalVisitor::VisitDict(const PyRepDict *rep)
 
 /** Add a list object to the stream
  */
-void MarshalVisitor::VisitList(const PyRepList *rep)
+void MarshalVisitor::VisitList(const PyList *rep)
 {
     uint32 size = rep->size();
 
@@ -469,7 +469,7 @@ void MarshalVisitor::VisitList(const PyRepList *rep)
     {
         PutByte(Op_PyOneList);
 
-        PyRepList::const_iterator cur, end;
+        PyList::const_iterator cur, end;
         cur = rep->begin();
         end = rep->end();
         for(; cur != end; ++cur) {
@@ -481,7 +481,7 @@ void MarshalVisitor::VisitList(const PyRepList *rep)
         PutByte(Op_PyList);
         PutSizeEx(size);
 
-        PyRepList::const_iterator cur, end;
+        PyList::const_iterator cur, end;
         cur = rep->begin();
         end = rep->end();
         for(; cur != end; ++cur) {
@@ -492,7 +492,7 @@ void MarshalVisitor::VisitList(const PyRepList *rep)
 
 /** Add tuple to the stream
  */
-void MarshalVisitor::VisitTuple(const PyRepTuple *tuple)
+void MarshalVisitor::VisitTuple(const PyTuple *tuple)
 {
     uint32 size = tuple->size();
     if(size == 0)
@@ -503,7 +503,7 @@ void MarshalVisitor::VisitTuple(const PyRepTuple *tuple)
     {
         PutByte(Op_PyOneTuple);
 
-        PyRepTuple::const_iterator cur, end;
+        PyTuple::const_iterator cur, end;
         cur = tuple->begin();
         end = tuple->end();
         for(; cur != end; ++cur) {
@@ -514,7 +514,7 @@ void MarshalVisitor::VisitTuple(const PyRepTuple *tuple)
     {
         PutByte(Op_PyTwoTuple);
 
-        PyRepTuple::const_iterator cur, end;
+        PyTuple::const_iterator cur, end;
         cur = tuple->begin();
         end = tuple->end();
         for(; cur != end; ++cur) {
@@ -526,7 +526,7 @@ void MarshalVisitor::VisitTuple(const PyRepTuple *tuple)
         PutByte(Op_PyTuple);
         PutSizeEx(size);
 
-        PyRepTuple::const_iterator cur, end;
+        PyTuple::const_iterator cur, end;
         cur = tuple->begin();
         end = tuple->end();
         for(; cur != end; ++cur) {
@@ -537,7 +537,7 @@ void MarshalVisitor::VisitTuple(const PyRepTuple *tuple)
 
 //! private members
 
-void MarshalVisitor::_PyRepInteger_AsByteArray(const PyRepInteger* v) {
+void MarshalVisitor::_PyInt_AsByteArray(const PyInt* v) {
     reserve(8);
     uint8 integerSize = 0;
 #define DoIntegerSizeCheck(x) if (((uint8*)&v->value)[x] != 0) integerSize = x + 1;

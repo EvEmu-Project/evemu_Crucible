@@ -33,9 +33,9 @@
 
 
 class PyRep;
-class PyRepDict;
-class PyRepTuple;
-class PyRepList;
+class PyDict;
+class PyTuple;
+class PyList;
 class Client;
 class NPC;
 class InventoryItem;

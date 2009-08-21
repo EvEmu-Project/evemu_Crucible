@@ -126,7 +126,7 @@ bool ServiceDB::CreateNewAccount( const char * accountName, const char * account
 	return true;
 }
 
-PyRepObject *ServiceDB::GetSolRow(uint32 systemID) const {
+PyObject *ServiceDB::GetSolRow(uint32 systemID) const {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
@@ -156,7 +156,7 @@ PyRepObject *ServiceDB::GetSolRow(uint32 systemID) const {
 }
 
 //this function is temporary, I dont plan to keep this crap in the DB.
-PyRepObject *ServiceDB::GetSolDroneState(uint32 systemID) const {
+PyObject *ServiceDB::GetSolDroneState(uint32 systemID) const {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
@@ -388,7 +388,7 @@ bool ServiceDB::GetConstant(const char *name, uint32 &into) {
 	return true;
 }
 
-void ServiceDB::ProcessStringChange(const char * key, const std::string & oldValue, const std::string & newValue, PyRepDict * notif, std::vector<std::string> & dbQ) {
+void ServiceDB::ProcessStringChange(const char * key, const std::string & oldValue, const std::string & newValue, PyDict * notif, std::vector<std::string> & dbQ) {
 	if (oldValue != newValue) {
 		std::string newEscValue;
 		std::string qValue(key);
@@ -396,9 +396,9 @@ void ServiceDB::ProcessStringChange(const char * key, const std::string & oldVal
 		m_db->DoEscapeString(newEscValue, newValue);
 		
 		// add to notification
-		PyRepTuple * val = new PyRepTuple(2);
-		val->items[0] = new PyRepString(oldValue);
-		val->items[1] = new PyRepString(newValue);
+		PyTuple * val = new PyTuple(2);
+		val->items[0] = new PyString(oldValue);
+		val->items[1] = new PyString(newValue);
 		notif->add(key, val);
 
 		qValue += " = '" + newEscValue + "'";
@@ -406,14 +406,14 @@ void ServiceDB::ProcessStringChange(const char * key, const std::string & oldVal
 	}
 }
 
-void ServiceDB::ProcessRealChange(const char * key, double oldValue, double newValue, PyRepDict * notif, std::vector<std::string> & dbQ) {
+void ServiceDB::ProcessRealChange(const char * key, double oldValue, double newValue, PyDict * notif, std::vector<std::string> & dbQ) {
 	if (oldValue != newValue) {
 		// add to notification
 		std::string qValue(key);
 
-		PyRepTuple * val = new PyRepTuple(2);
-		val->items[0] = new PyRepReal(oldValue);
-		val->items[1] = new PyRepReal(newValue);
+		PyTuple * val = new PyTuple(2);
+		val->items[0] = new PyFloat(oldValue);
+		val->items[1] = new PyFloat(newValue);
 		notif->add(key, val);
 
 		char cc[10];
@@ -424,14 +424,14 @@ void ServiceDB::ProcessRealChange(const char * key, double oldValue, double newV
 	}
 }
 
-void ServiceDB::ProcessIntChange(const char * key, uint32 oldValue, uint32 newValue, PyRepDict * notif, std::vector<std::string> & dbQ) {
+void ServiceDB::ProcessIntChange(const char * key, uint32 oldValue, uint32 newValue, PyDict * notif, std::vector<std::string> & dbQ) {
 	if (oldValue != newValue) {
 		// add to notification
-		PyRepTuple * val = new PyRepTuple(2);
+		PyTuple * val = new PyTuple(2);
 		std::string qValue(key);
 
-		val->items[0] = new PyRepInteger(oldValue);
-		val->items[1] = new PyRepInteger(newValue);
+		val->items[0] = new PyInt(oldValue);
+		val->items[1] = new PyInt(newValue);
 		notif->add(key, val);
 
 		char cc[10];

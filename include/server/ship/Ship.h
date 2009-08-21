@@ -193,7 +193,7 @@ public:
 	/*
 	 * Primary public packet builders:
 	 */
-	PyRepObject *ShipGetInfo();
+	PyObject *ShipGetInfo();
 
 protected:
 	Ship(

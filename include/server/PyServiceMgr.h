@@ -43,7 +43,7 @@ class PyPacket;
 class ServiceDB;
 class Client;
 class PyRep;
-class PyRepSubStruct;
+class PySubStruct;
 class EntityList;
 class ObjCacheService;
 class DBcore;
@@ -64,7 +64,7 @@ public:
 	uint32 GetNodeID() const { return(m_nodeID); }
 	
 	//object binding, not fully understood yet.
-	PyRepSubStruct *BindObject(Client *who, PyBoundObject *obj, PyRepDict **dict = NULL);
+	PySubStruct *BindObject(Client *who, PyBoundObject *obj, PyDict **dict = NULL);
 	PyBoundObject *FindBoundObject(uint32 bindID);
 	void ClearBoundObject(uint32 bindID);
 	void ClearBoundObjects(Client *who);

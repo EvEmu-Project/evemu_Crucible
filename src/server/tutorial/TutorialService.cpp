@@ -97,7 +97,7 @@ PyResult TutorialService::Handle_GetCategories(PyCallArgs &call) {
 
 PyResult TutorialService::Handle_GetContextHelp(PyCallArgs &call) {
 	//unimplemented
-	return(new PyRepList());
+	return(new PyList());
 }
 
 PyResult TutorialService::Handle_GetCharacterTutorialState(PyCallArgs &call) {

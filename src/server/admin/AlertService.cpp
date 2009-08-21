@@ -53,16 +53,16 @@ AlertService::~AlertService()
   */
 PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
 
-	PyRepTuple *result = new PyRepTuple(2);
+	PyTuple *result = new PyTuple(2);
 
 	// what we are sending back is just a static errorID and the command not to do anything with it.
 #ifdef DEV_DEBUG_TREAT
-	result->items[0] = new PyRepNone();			//errorID
+	result->items[0] = new PyNone();			//errorID
 #else
-	result->items[0] = new PyRepInteger(34135);	//errorID
+	result->items[0] = new PyInt(34135);	//errorID
 #endif//DEV_DEBUG_TREAT
 	
-	result->items[1] = new PyRepInteger(0);		//loggingMode, 0=local, 1=DB (Capt: This isn't correct at all as it seems..)
+	result->items[1] = new PyInt(0);		//loggingMode, 0=local, 1=DB (Capt: This isn't correct at all as it seems..)
 
 	return (PyRep*)result;
 }
@@ -77,7 +77,7 @@ PyResult AlertService::Handle_BeanDelivery(PyCallArgs &call) {
 	/* Unhandled for now as we have no interest in receiving batched python stack traces
 	 * nor official style debugging... Just gimme the info dude (see Handle_SendClientStackTraceAlert).
 	 */
-	result = new PyRepNone();
+	result = new PyNone();
 	
 	return result;
 }
@@ -92,12 +92,12 @@ PyResult AlertService::Handle_BeanDelivery(PyCallArgs &call) {
  * @note I'm sending PyNone back, this is just a wild guess. I don't know its actually required.
  * function is part of a system that allows us to ask the client to send the trace directly,
  * and skip the BeanDelivery system.
- * @return guess it should have PyRepNone back.
+ * @return guess it should have PyNone back.
  */
 PyResult AlertService::Handle_SendClientStackTraceAlert(PyCallArgs &call) {
 
 #ifdef DEV_DEBUG_TREAT
 	traceLogger->logTrace(*call.tuple);
 #endif//DEV_DEBUG_TREAT
-	return new PyRepNone();
+	return new PyNone();
 }

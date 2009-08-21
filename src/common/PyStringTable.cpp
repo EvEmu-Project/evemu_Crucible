@@ -268,7 +268,7 @@ bool PyMarshalStringTable::LookupString(uint8 index, std::string &str)
     return true;
 }
 
-bool PyMarshalStringTable::LookupPyString(uint8 index, const PyRepString *&str)
+bool PyMarshalStringTable::LookupPyString(uint8 index, const PyString *&str)
 {
     if( --index >= StringTableSize )
     {

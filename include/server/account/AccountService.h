@@ -50,9 +50,9 @@ protected:
 	PyCallable_DECL_CALL(GiveCashFromCorpAccount)
 	PyCallable_DECL_CALL(GetJournal)
 
-	PyRepTuple * GiveCashToChar(Client * const client, Client * const other, double amount, const char *reason, JournalRefType refTypeID);
-	PyRepTuple * GiveCashToCorp(Client * const client, uint32 corpID, double amount, const char *reason, JournalRefType refTypeID);
-	PyRepTuple * WithdrawCashToChar(Client * const client, Client * const other, double amount, const char *reason, JournalRefType refTypeID);
+	PyTuple * GiveCashToChar(Client * const client, Client * const other, double amount, const char *reason, JournalRefType refTypeID);
+	PyTuple * GiveCashToCorp(Client * const client, uint32 corpID, double amount, const char *reason, JournalRefType refTypeID);
+	PyTuple * WithdrawCashToChar(Client * const client, Client * const other, double amount, const char *reason, JournalRefType refTypeID);
 };
 
 #endif

@@ -83,7 +83,7 @@ SlashService::~SlashService() {
 
 
 /*
-PyBoundObject *SlashService::_CreateBoundObject(Client *c, PyRepTuple *bind_args) {
+PyBoundObject *SlashService::_CreateBoundObject(Client *c, PyTuple *bind_args) {
 	_log(CLIENT__MESSAGE, "SlashService bind request for:");
 	bind_args->Dump(CLIENT__MESSAGE, "    ");
 

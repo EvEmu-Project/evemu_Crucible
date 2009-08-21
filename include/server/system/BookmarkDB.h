@@ -34,7 +34,7 @@ class BookmarkDB
 public:
 	BookmarkDB(DBcore *db);
 
-	PyRepObject *GetBookmarks(uint32 ownerID);
+	PyObject *GetBookmarks(uint32 ownerID);
 };
 
 #endif /* !__BOOKMARK_DB__H__INCL__ */

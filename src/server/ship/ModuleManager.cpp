@@ -409,23 +409,23 @@ void ActivatableModule::_SendGodmaShipEffect(EVEEffectID effect, bool active) {
 	gse.env_shipID = m_item->locationID();
 	gse.env_target = m_target;
 	if(active) {
-		PyRepTuple *env_other = new PyRepTuple(3);
+		PyTuple *env_other = new PyTuple(3);
 		gse.env_other = env_other;
-		env_other->items[0] = new PyRepInteger(m_item->locationID());	//ship ID.
-		env_other->items[1] = new PyRepInteger(29);	//no idea
-		env_other->items[2] = new PyRepInteger(215);	//no idea
+		env_other->items[0] = new PyInt(m_item->locationID());	//ship ID.
+		env_other->items[1] = new PyInt(29);	//no idea
+		env_other->items[2] = new PyInt(215);	//no idea
 	} else {
-		gse.env_other = new PyRepNone();
+		gse.env_other = new PyNone();
 	}
 	gse.env_effectID = gse.effectID;
 	gse.startTime = gse.when;
 	gse.duration = _ActivationInterval();
 	gse.repeat = m_repeatCount;
-	gse.randomSeed = new PyRepNone();
-	gse.error = new PyRepNone();
+	gse.randomSeed = new PyNone();
+	gse.error = new PyNone();
 
 	//should this only go to ourself?
-	PyRepTuple *up = gse.FastEncode();
+	PyTuple *up = gse.FastEncode();
 	m_pilot->QueueDestinyEvent(&up);
 	delete up;
 }
@@ -446,7 +446,7 @@ void ActivatableModule::_SendWeaponEffect(const char *effect, SystemEntity *targ
 	sfx.repeat = 1;
 	sfx.startTime = Win32TimeNow();
 	
-	PyRepTuple *up = sfx.FastEncode();
+	PyTuple *up = sfx.FastEncode();
 	m_pilot->Destiny()->SendSingleDestinyUpdate(&up);	//consumed
 	delete up;
 }

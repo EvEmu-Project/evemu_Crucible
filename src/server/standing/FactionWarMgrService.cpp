@@ -93,7 +93,7 @@ PyResult FactionWarMgrService::Handle_GetFactionMilitiaCorporation(PyCallArgs &c
 		_log(SERVICE__ERROR, "Failed to decode args.");
 		return NULL;
 	}
-	return(new PyRepInteger(m_db.GetFactionMilitiaCorporation(arg.arg)));
+	return(new PyInt(m_db.GetFactionMilitiaCorporation(arg.arg)));
 }
 
 

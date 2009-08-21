@@ -105,7 +105,7 @@ bool LSCChannel::JoinChannel(Client * c) {
 		cur = m_chars.begin(); end = m_chars.end();
 		for(;cur!=end;cur++)
 			mct.characters.insert((*cur).first);
-		PyRepTuple * answer = join.Encode();
+		PyTuple * answer = join.Encode();
 		m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 	//}
 
@@ -129,7 +129,7 @@ void LSCChannel::LeaveChannel(uint32 charID, OnLSC_SenderInfo * si) {
 	cur = m_chars.begin(); end = m_chars.end();
 	for(;cur!=end;cur++)
 		mct.characters.insert((*cur).first);
-	PyRepTuple * answer = leave.Encode();
+	PyTuple * answer = leave.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
 void LSCChannel::LeaveChannel(Client *c, bool self) {
@@ -150,7 +150,7 @@ void LSCChannel::LeaveChannel(Client *c, bool self) {
 	cur = m_chars.begin(); end = m_chars.end();
 	for(;cur!=end;cur++)
 		mct.characters.insert((*cur).first);
-	PyRepTuple * answer = leave.Encode();
+	PyTuple * answer = leave.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 
 	m_chars.erase(charID);
@@ -169,7 +169,7 @@ void LSCChannel::Evacuate(Client * c) {
 		mct.characters.insert(cur->first);
 	}
 	
-	PyRepTuple *answer = dc.Encode();
+	PyTuple *answer = dc.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
 void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
@@ -198,7 +198,7 @@ void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
 	sm.message = message;
 	sm.member_count = m_chars.size();
 
-	PyRepTuple *answer = sm.Encode();
+	PyTuple *answer = sm.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
 
@@ -264,7 +264,7 @@ PyRep *LSCChannel::EncodeChannel(uint32 charID) {
 }
 PyRep *LSCChannel::EncodeID() {
 	if (m_type == normal)
-		return (new PyRepInteger(m_channelID));
+		return (new PyInt(m_channelID));
 
 	LSCChannelMultiDesc desc;
 	desc.number = m_channelID;
@@ -284,7 +284,7 @@ PyRep *LSCChannel::EncodeChannelSmall(uint32 charID) {
 	info.memberless = m_memberless;
 	info.motd = m_motd;
 	info.ownerID = m_ownerID;
-	info.password = m_password.empty() ? (PyRep*)new PyRepNone() : (PyRep*)new PyRepString(m_password);
+	info.password = m_password.empty() ? (PyRep*)new PyNone() : (PyRep*)new PyString(m_password);
 	info.subscribed = !(m_chars.find(charID) == m_chars.end());
 	info.temporary = m_temporary;
 	

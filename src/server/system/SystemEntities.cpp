@@ -55,11 +55,11 @@ bool SimpleSystemEntity::LoadExtras(SystemDB *db) {
 	return true;
 }
 
-PyRepDict *SimpleSystemEntity::MakeSlimItem() const {
-	PyRepDict *slim = new PyRepDict();
-	slim->add("typeID", new PyRepInteger(data.typeID));
-	slim->add("ownerID", new PyRepInteger(1));
-	slim->add("itemID", new PyRepInteger(data.itemID));
+PyDict *SimpleSystemEntity::MakeSlimItem() const {
+	PyDict *slim = new PyDict();
+	slim->add("typeID", new PyInt(data.typeID));
+	slim->add("ownerID", new PyInt(1));
+	slim->add("itemID", new PyInt(data.itemID));
 	return slim;
 }
 
@@ -71,12 +71,12 @@ void SimpleSystemEntity::MakeDamageState(DoDestinyDamageState &into) const {
 	into.timestamp = Win32TimeNow();
 }
 
-void InanimateSystemEntity::QueueDestinyUpdate(PyRepTuple **du) {
+void InanimateSystemEntity::QueueDestinyUpdate(PyTuple **du) {
 	//do nothing, the caller will handle it properly.
 	//this gives them the opportunity to reduce a copy if they are smart.
 }
 
-void InanimateSystemEntity::QueueDestinyEvent(PyRepTuple **multiEvent) {
+void InanimateSystemEntity::QueueDestinyEvent(PyTuple **multiEvent) {
 	//do nothing, the caller will handle it properly.
 	//this gives them the opportunity to reduce a copy if they are smart.
 }
@@ -159,12 +159,12 @@ void SystemStationEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	py_mbstowcs(item->name.name, data.itemName.c_str(), data.itemName.length());
 }
 
-PyRepDict *SystemStationEntity::MakeSlimItem() const {
-	PyRepDict *slim = new PyRepDict();
-	slim->add("typeID", new PyRepInteger(data.typeID));
+PyDict *SystemStationEntity::MakeSlimItem() const {
+	PyDict *slim = new PyDict();
+	slim->add("typeID", new PyInt(data.typeID));
 	//HACKED:::
-	slim->add("ownerID", new PyRepInteger(1000044));
-	slim->add("itemID", new PyRepInteger(data.itemID));
+	slim->add("ownerID", new PyInt(1000044));
+	slim->add("itemID", new PyInt(data.itemID));
 	return(slim);
 }
 
@@ -191,8 +191,8 @@ bool SystemStargateEntity::LoadExtras(SystemDB *db) {
 	return true;
 }
 
-PyRepDict *SystemStargateEntity::MakeSlimItem() const {
-	PyRepDict *slim = SystemStationEntity::MakeSlimItem();
+PyDict *SystemStargateEntity::MakeSlimItem() const {
+	PyDict *slim = SystemStationEntity::MakeSlimItem();
 	if(m_jumps != NULL)
 		slim->add("jumps", m_jumps->Clone());
 	return(slim);
@@ -274,32 +274,32 @@ SystemDungeonEntranceEntity::SystemDungeonEntranceEntity(SystemManager *system, 
 }
 
 //this is a big hack just to document the kind of stuff a dungeon conveys.
-PyRepDict *SystemDungeonEntranceEntity::MakeSlimItem() const {
+PyDict *SystemDungeonEntranceEntity::MakeSlimItem() const {
 	
-	PyRepDict *slim = ItemSystemEntity::MakeSlimItem();
+	PyDict *slim = ItemSystemEntity::MakeSlimItem();
 	if(slim == NULL)
 		return NULL;
 	
-	//slim->add("itemID", new PyRepInteger(2100000396));
-	//slim->add("typeID", new PyRepInteger(12273));
-	//slim->add("ownerID", new PyRepInteger(500021));
+	//slim->add("itemID", new PyInt(2100000396));
+	//slim->add("typeID", new PyInt(12273));
+	//slim->add("ownerID", new PyInt(500021));
 	
-	slim->add("dunSkillLevel", new PyRepInteger(0));
-	slim->add("dunSkillTypeID", new PyRepNone);
-	slim->add("dunObjectID", new PyRepInteger(160449));
-	slim->add("dunWipeNPC", new PyRepInteger(1));
-	slim->add("dunToGateID", new PyRepInteger(160484));
-	slim->add("dunCloaked", new PyRepInteger(0));
-	slim->add("dunScenarioID", new PyRepInteger(23));
-	slim->add("dunSpawnID", new PyRepInteger(4));
-	slim->add("dunAmount", new PyRepReal(0.0));
-	slim->add("dunShipClasses", new PyRepList(/*237, 31*/));
-	slim->add("dunDirection", new PyRepList(/*235, 0, 1*/));
-	slim->add("dunKeyLock", new PyRepInteger(0));
-	//slim->add("dunKeyQuantity", new PyRepInteger(1));
-	//slim->add("dunKeyTypeID", new PyRepInteger(21839));
-	//slim->add("dunOpenUntil", new PyRepInteger(Win32TimeNow()+Win32Time_Hour));
-	slim->add("dunMusicUrl", new PyRepString("res:/Sound/Music/Ambient031combat.ogg"));
+	slim->add("dunSkillLevel", new PyInt(0));
+	slim->add("dunSkillTypeID", new PyNone);
+	slim->add("dunObjectID", new PyInt(160449));
+	slim->add("dunWipeNPC", new PyInt(1));
+	slim->add("dunToGateID", new PyInt(160484));
+	slim->add("dunCloaked", new PyInt(0));
+	slim->add("dunScenarioID", new PyInt(23));
+	slim->add("dunSpawnID", new PyInt(4));
+	slim->add("dunAmount", new PyFloat(0.0));
+	slim->add("dunShipClasses", new PyList(/*237, 31*/));
+	slim->add("dunDirection", new PyList(/*235, 0, 1*/));
+	slim->add("dunKeyLock", new PyInt(0));
+	//slim->add("dunKeyQuantity", new PyInt(1));
+	//slim->add("dunKeyTypeID", new PyInt(21839));
+	//slim->add("dunOpenUntil", new PyInt(Win32TimeNow()+Win32Time_Hour));
+	slim->add("dunMusicUrl", new PyString("res:/Sound/Music/Ambient031combat.ogg"));
 	
 	return(slim);
 }

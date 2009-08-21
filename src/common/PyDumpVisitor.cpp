@@ -54,23 +54,23 @@ PyLogsysDump::PyLogsysDump(LogType type, LogType hex_type, bool full_hex, bool f
 
 // --- Visitors implementation ---
 
-void PyDumpVisitor::VisitInteger(const PyRepInteger *rep, int64 lvl ) {
+void PyDumpVisitor::VisitInteger(const PyInt *rep, int64 lvl ) {
     _print(lvl, "Integer field: "I64d, rep->value);
 }
 
-void PyDumpVisitor::VisitReal(const PyRepReal *rep, int64 lvl ) {
+void PyDumpVisitor::VisitReal(const PyFloat *rep, int64 lvl ) {
     _print(lvl, "Real field: %f", rep->value);
 }
 
-void PyDumpVisitor::VisitBoolean(const PyRepBoolean *rep, int64 lvl ) {
+void PyDumpVisitor::VisitBoolean(const PyBool *rep, int64 lvl ) {
     _print(lvl, "Boolean field: %s", rep->value ? "true" : "false");
 }
 
-void PyDumpVisitor::VisitNone(const PyRepNone *rep, int64 lvl ) {
+void PyDumpVisitor::VisitNone(const PyNone *rep, int64 lvl ) {
     _print(lvl, "(None)");
 }
 
-void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep, int64 lvl ) {
+void PyDumpVisitor::VisitBuffer(const PyBuffer *rep, int64 lvl ) {
 
     std::string curIden(lvl, ' '); // please clean this one...
 
@@ -95,7 +95,7 @@ void PyDumpVisitor::VisitBuffer(const PyRepBuffer *rep, int64 lvl ) {
 }
 
 
-void PyDumpVisitor::VisitString( const PyRepString *rep, int64 lvl )
+void PyDumpVisitor::VisitString( const PyString *rep, int64 lvl )
 {
     if(ContainsNonPrintables(rep->value.c_str(), rep->value.length()))
     {
@@ -114,7 +114,7 @@ void PyDumpVisitor::VisitString( const PyRepString *rep, int64 lvl )
     }
 }
 
-void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep, int64 lvl )
+void PyDumpVisitor::VisitObjectEx(const PyObjectEx *rep, int64 lvl )
 {
 	_print( lvl, "ObjectEx:" );
     _print( lvl, "Header:" );
@@ -123,7 +123,7 @@ void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep, int64 lvl )
 
     {
 		_print( lvl, "ListData: %u entries", (uint32)rep->list_data.size() );
-        PyRepObjectEx::const_list_iterator cur, end;
+        PyObjectEx::const_list_iterator cur, end;
         cur = rep->list_data.begin();
         end = rep->list_data.end();
         for(uint32 i = 0; cur != end; ++cur, ++i)
@@ -135,7 +135,7 @@ void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep, int64 lvl )
 
     {
 		_print( lvl, "DictData: %u entries", (uint32)rep->dict_data.size() );
-        PyRepObjectEx::const_dict_iterator cur, end;
+        PyObjectEx::const_dict_iterator cur, end;
         cur = rep->dict_data.begin();
         end = rep->dict_data.end();
         for(uint32 i = 0; cur != end; ++cur, ++i)
@@ -149,7 +149,7 @@ void PyDumpVisitor::VisitObjectEx(const PyRepObjectEx *rep, int64 lvl )
     }
 }
 
-void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep, int64 lvl )
+void PyDumpVisitor::VisitPackedRow(const PyPackedRow *rep, int64 lvl )
 {
     uint32 cc = rep->ColumnCount();
 
@@ -169,7 +169,7 @@ void PyDumpVisitor::VisitPackedRow(const PyRepPackedRow *rep, int64 lvl )
     }
 }
 
-void PyDumpVisitor::VisitObject(const PyRepObject *rep, int64 lvl )
+void PyDumpVisitor::VisitObject(const PyObject *rep, int64 lvl )
 {
 	_print( lvl, "Object:" );
 	_print( lvl, "  Type: %s", rep->type.c_str() );
@@ -178,13 +178,13 @@ void PyDumpVisitor::VisitObject(const PyRepObject *rep, int64 lvl )
     rep->arguments->visit(this, lvl + idenAmt );
 }
 
-void PyDumpVisitor::VisitSubStruct(const PyRepSubStruct *rep, int64 lvl ) {
+void PyDumpVisitor::VisitSubStruct(const PySubStruct *rep, int64 lvl ) {
 	_print( lvl, "SubStruct: " );
 
     rep->sub->visit(this, lvl + idenAmt );
 }
 
-void PyDumpVisitor::VisitSubStream(const PyRepSubStream *rep, int64 lvl ) {
+void PyDumpVisitor::VisitSubStream(const PySubStream *rep, int64 lvl ) {
     if(rep->decoded == NULL) {
         //we have not decoded this substream, leave it as hex:
         if(rep->data == NULL) {
@@ -199,14 +199,14 @@ void PyDumpVisitor::VisitSubStream(const PyRepSubStream *rep, int64 lvl ) {
     }
 }
 
-void PyDumpVisitor::VisitChecksumedStream(const PyRepChecksumedStream *rep, int64 lvl ) {
+void PyDumpVisitor::VisitChecksumedStream(const PyChecksumedStream *rep, int64 lvl ) {
 
 }
 
-void PyDumpVisitor::VisitDict(const PyRepDict *rep, int64 lvl ) {
+void PyDumpVisitor::VisitDict(const PyDict *rep, int64 lvl ) {
 	_print( lvl, "Dictionary: %u entries", rep->size() );
 
-    PyRepDict::const_iterator cur, end;
+    PyDict::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     for(uint32 i = 0; cur != end; ++cur, ++i) {
@@ -218,14 +218,14 @@ void PyDumpVisitor::VisitDict(const PyRepDict *rep, int64 lvl ) {
     }
 }
 
-void PyDumpVisitor::VisitList(const PyRepList *rep, int64 lvl )
+void PyDumpVisitor::VisitList(const PyList *rep, int64 lvl )
 {
     if(rep->items.empty())
 		_print( lvl, "List: Empty" );
     else {
 		_print( lvl, "List: %u elements", rep->size() );
 
-        PyRepList::const_iterator cur, end;
+        PyList::const_iterator cur, end;
         cur = rep->begin();
         end = rep->end();
         for(uint32 i = 0; cur != end; ++cur, ++i) {
@@ -241,7 +241,7 @@ void PyDumpVisitor::VisitList(const PyRepList *rep, int64 lvl )
     }
 }
 
-void PyDumpVisitor::VisitTuple(const PyRepTuple *rep, int64 lvl )
+void PyDumpVisitor::VisitTuple(const PyTuple *rep, int64 lvl )
 {
     if(rep->items.empty())
 		_print( lvl, "Tuple: Empty" );
@@ -249,7 +249,7 @@ void PyDumpVisitor::VisitTuple(const PyRepTuple *rep, int64 lvl )
 		_print( lvl, "Tuple: %u elements", rep->size() );
 
         //! visit tuple elements.
-        PyRepTuple::const_iterator cur, end;
+        PyTuple::const_iterator cur, end;
         cur = rep->begin();
         end = rep->end();
         for(uint32 i = 0; cur != end; ++cur, ++i) {
@@ -260,19 +260,19 @@ void PyDumpVisitor::VisitTuple(const PyRepTuple *rep, int64 lvl )
     }
 }
 
-void PyLogsysDump::VisitDict(const PyRepDict *rep, int64 lvl ) {
+void PyLogsysDump::VisitDict(const PyDict *rep, int64 lvl ) {
         PyDumpVisitor::VisitDict(rep, lvl);
 }
 
-void PyLogsysDump::VisitList(const PyRepList *rep, int64 lvl ) {
+void PyLogsysDump::VisitList(const PyList *rep, int64 lvl ) {
         PyDumpVisitor::VisitList(rep, lvl);
 }
 
-void PyLogsysDump::VisitTuple(const PyRepTuple *rep, int64 lvl ) {
+void PyLogsysDump::VisitTuple(const PyTuple *rep, int64 lvl ) {
         PyDumpVisitor::VisitTuple(rep, lvl);
 }
 
-void PyLogsysDump::VisitSubStream(const PyRepSubStream *rep, int64 lvl ) {
+void PyLogsysDump::VisitSubStream(const PySubStream *rep, int64 lvl ) {
         PyDumpVisitor::VisitSubStream(rep, lvl);
 }
 

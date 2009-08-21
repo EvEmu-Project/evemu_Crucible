@@ -53,9 +53,9 @@ Standing2Service::~Standing2Service() {
 PyResult Standing2Service::Handle_GetMyKillRights(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	PyRepTuple *tu = new PyRepTuple(2);
-	PyRepDict *u1 = new PyRepDict();
-	PyRepDict *u2 = new PyRepDict();
+	PyTuple *tu = new PyTuple(2);
+	PyDict *u1 = new PyDict();
+	PyDict *u2 = new PyDict();
 	tu->items[0] = u1;
 	tu->items[1] = u2;
 	result = tu;
@@ -74,11 +74,11 @@ PyResult Standing2Service::Handle_GetMyStandings(PyCallArgs &call) {
 	charprime = m_db.GetCharPrimeStandings(call.client->GetCharacterID());
 	npccharstandings = m_db.GetCharNPCStandings(call.client->GetCharacterID());
 	
-	PyRepDict *corpstandings = new PyRepDict();
-	PyRepDict *corpprime = new PyRepDict();
-	PyRepDict *npccorpstandings = new PyRepDict();
+	PyDict *corpstandings = new PyDict();
+	PyDict *corpprime = new PyDict();
+	PyDict *npccorpstandings = new PyDict();
 	
-	PyRepTuple *tu = new PyRepTuple(6);
+	PyTuple *tu = new PyTuple(6);
 	tu->items[0] = charstandings;
 	tu->items[1] = charprime;
 	tu->items[2] = npccharstandings;
@@ -101,7 +101,7 @@ PyResult Standing2Service::Handle_GetNPCNPCStandings(PyCallArgs &call) {
 		//this method is not in cache yet, load up the contents and cache it.
 		result = m_db.GetNPCStandings();
 		if(result == NULL)
-			result = new PyRepNone();
+			result = new PyNone();
 		m_manager->cache_service->GiveCache(method_id, &result);
 	}
 	
@@ -126,7 +126,7 @@ PyResult Standing2Service::Handle_GetSecurityRating(PyCallArgs &call) {
 		return NULL;
 	}
 
-	return new PyRepReal( c->securityRating() );
+	return new PyFloat( c->securityRating() );
 }
 
 PyResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) {
@@ -136,7 +136,7 @@ PyResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) {
 		return NULL;
 	}
 
-	PyRepObject * result = m_db.GetStandingTransactions(args.toID);
+	PyObject * result = m_db.GetStandingTransactions(args.toID);
 
 	return (result);
 }
@@ -145,7 +145,7 @@ PyResult Standing2Service::Handle_GetCharStandings(PyCallArgs &call) {
 	ObjectCachedMethodID method_id(GetName(), "GetCharStandings");
 
 	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
-		PyRepTuple *t = new PyRepTuple(3);
+		PyTuple *t = new PyTuple(3);
 
 		t->items[0] = m_db.GetCharStandings(call.client->GetCharacterID());
 		t->items[1] = m_db.GetCharPrimeStandings(call.client->GetCharacterID());

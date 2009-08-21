@@ -35,7 +35,7 @@ LSCDB::LSCDB(DBcore *db)
 LSCDB::~LSCDB() {
 }
 
-PyRepObject *LSCDB::LookupChars(const char *match, bool exact) {
+PyObject *LSCDB::LookupChars(const char *match, bool exact) {
 	DBQueryResult res;
 	
 	std::string matchEsc;
@@ -70,7 +70,7 @@ PyRepObject *LSCDB::LookupChars(const char *match, bool exact) {
 	return DBResultToRowset(res);
 }
 
-PyRepObject *LSCDB::LookupPlayerChars(const char *match, bool exact) {
+PyObject *LSCDB::LookupPlayerChars(const char *match, bool exact) {
 	DBQueryResult res;
 
 	std::string matchEsc;
@@ -139,7 +139,7 @@ uint32 LSCDB::StoreMail(uint32 senderID, uint32 recipID, const char * subject, c
 	return (messageID);
 }
 
-PyRepObject *LSCDB::GetMailHeaders(uint32 recID) {
+PyObject *LSCDB::GetMailHeaders(uint32 recID) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -239,7 +239,7 @@ bool LSCDB::DeleteMessage(uint32 messageID, uint32 readerID) {
 	return ret;
 
 }
-PyRepObject *LSCDB::LookupCorporations(const std::string & search) {
+PyObject *LSCDB::LookupCorporations(const std::string & search) {
 	DBQueryResult res;
 	std::string secure;
 	m_db->DoEscapeString(secure, search);
@@ -256,7 +256,7 @@ PyRepObject *LSCDB::LookupCorporations(const std::string & search) {
 
 	return DBResultToRowset(res);
 }
-PyRepObject *LSCDB::LookupFactions(const std::string & search) {
+PyObject *LSCDB::LookupFactions(const std::string & search) {
 	DBQueryResult res;
 	std::string secure;
 	m_db->DoEscapeString(secure, search);
@@ -273,7 +273,7 @@ PyRepObject *LSCDB::LookupFactions(const std::string & search) {
 
 	return DBResultToRowset(res);
 }
-PyRepObject *LSCDB::LookupCorporationTickers(const std::string & search) {
+PyObject *LSCDB::LookupCorporationTickers(const std::string & search) {
 	DBQueryResult res;
 	std::string secure;
 	m_db->DoEscapeString(secure, search);
@@ -290,7 +290,7 @@ PyRepObject *LSCDB::LookupCorporationTickers(const std::string & search) {
 
 	return DBResultToRowset(res);
 }
-PyRepObject *LSCDB::LookupStations(const std::string & search) {
+PyObject *LSCDB::LookupStations(const std::string & search) {
 	DBQueryResult res;
 	std::string secure;
 	m_db->DoEscapeString(secure, search);
@@ -307,7 +307,7 @@ PyRepObject *LSCDB::LookupStations(const std::string & search) {
 
 	return DBResultToRowset(res);
 }
-PyRepObject *LSCDB::LookupKnownLocationsByGroup(const std::string & search, uint32 typeID) {
+PyObject *LSCDB::LookupKnownLocationsByGroup(const std::string & search, uint32 typeID) {
 	DBQueryResult res;
 	std::string secure;
 	m_db->DoEscapeString(secure, search);

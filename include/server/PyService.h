@@ -34,9 +34,9 @@
 
 class PyPacket;
 class PyRep;
-class PyRepSubStream;
-class PyRepTuple;
-class PyRepObject;
+class PySubStream;
+class PyTuple;
+class PyObject;
 class Client;
 class PyCallStream;
 class PyBoundObject;
@@ -82,7 +82,7 @@ protected:
 		_checkCount
 	} CacheCheckTime;
 	static const char *const s_checkTimeStrings[_checkCount];
-	PyRepObject *_BuildCachedReturn(PyRepSubStream **result, const char *sessionInfo, CacheCheckTime check);
+	PyObject *_BuildCachedReturn(PySubStream **result, const char *sessionInfo, CacheCheckTime check);
 	
 	//you MUST overload this factory method if you offer any bound services:
 	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);

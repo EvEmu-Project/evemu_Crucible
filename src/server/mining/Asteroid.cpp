@@ -55,11 +55,11 @@ void Asteroid::EncodeDestiny(std::vector<uint8> &into) const {
 	//strcpy_fake_unicode(item->name.name, data.itemName.c_str());
 }
 
-/*PyRepDict *Asteroid::MakeSlimItem() const {
-	PyRepDict *slim = new PyRepDict();
-	slim->add("typeID", new PyRepInteger(m_typeID));
-	slim->add("ownerID", new PyRepInteger(500021));	//no idea.
-	slim->add("itemID", new PyRepInteger(m_itemID));
+/*PyDict *Asteroid::MakeSlimItem() const {
+	PyDict *slim = new PyDict();
+	slim->add("typeID", new PyInt(m_typeID));
+	slim->add("ownerID", new PyInt(500021));	//no idea.
+	slim->add("itemID", new PyInt(m_itemID));
 	return(slim);
 }*/
 

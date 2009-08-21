@@ -215,7 +215,7 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
 		return(PyException(except.FastEncode()));
 	}*/
 	
-	PyRepObject *result = m_cache.GetCachedObject(args.objectID);
+	PyObject *result = m_cache.GetCachedObject(args.objectID);
 	
 	return result;
 }
@@ -226,14 +226,14 @@ void ObjCacheService::PrimeCache()
 	cur = m_cacheKeys.begin();
 	end = m_cacheKeys.end();
 	for(; cur != end; cur++) {
-		PyRepString str(cur->first);
+		PyString str(cur->first);
 		_LoadCachableObject(&str);
 		putchar('.'); // print a dot so we have a indication of loading. I know this sucks.
 	}
     printf("\n");
 }
 
-bool ObjCacheService::LoadCachedFile(const char *filename, const char *oname, PyRepSubStream *into) {
+bool ObjCacheService::LoadCachedFile(const char *filename, const char *oname, PySubStream *into) {
 	//temp hack...
 	return(m_cache.LoadCachedFile(filename, oname, into));
 }
@@ -252,7 +252,7 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 		}
 	}
 	
-	PyRepSubStream *ss;
+	PySubStream *ss;
 	
 	//first try to generate it from the database...
 	//we go to the DB with a string, not a rep
@@ -263,7 +263,7 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 	} else {
 		//failed to query from the database... fall back to old
 		//hackish file loading.
-		ss = new PyRepSubStream();
+		ss = new PySubStream();
 		if(!m_cache.LoadCachedObject(objectID_string.c_str(), ss)) {
 			_log(SERVICE__ERROR, "Failed to create or load cache file for '%s'", objectID_string.c_str());
 			return false;
@@ -290,12 +290,12 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 }
 
 PyRep *ObjCacheService::GetCacheHint(const char *objectID) {
-	PyRepString str(objectID);
+	PyString str(objectID);
 	
 	if(!_LoadCachableObject(&str))
 		return NULL;	//print done already
 
-	PyRepObject *cache_hint = m_cache.MakeCacheHint(&str);
+	PyObject *cache_hint = m_cache.MakeCacheHint(&str);
 	if(cache_hint == NULL) {
 		_log(SERVICE__ERROR, "Unable to build cache hint for object ID '%s' (h), skipping.", objectID);
 		return NULL;
@@ -304,7 +304,7 @@ PyRep *ObjCacheService::GetCacheHint(const char *objectID) {
 	return(cache_hint);
 }
 
-void ObjCacheService::InsertCacheHints(hintSet hset, PyRepDict *into) {
+void ObjCacheService::InsertCacheHints(hintSet hset, PyDict *into) {
 	const char *const *objects = NULL;
 	uint32 object_count = 0;
 	switch(hset) {
@@ -355,7 +355,7 @@ void ObjCacheService::GiveCache(const PyRep *objectID, PyRep **contents) {
 	m_cache.UpdateCache(objectID, contents);
 }
 
-PyRepObject *ObjCacheService::MakeObjectCachedMethodCallResult(const PyRep *objectID, const char *versionCheck) {
+PyObject *ObjCacheService::MakeObjectCachedMethodCallResult(const PyRep *objectID, const char *versionCheck) {
 	if(!IsCacheLoaded(objectID))
 		return NULL;
 	objectCaching_CachedMethodCallResult_object c;

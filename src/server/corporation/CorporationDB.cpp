@@ -33,7 +33,7 @@ CorporationDB::CorporationDB(DBcore *db)
 CorporationDB::~CorporationDB() {
 }
 
-PyRepObject *CorporationDB::ListCorpStations(uint32 corp_id) {
+PyObject *CorporationDB::ListCorpStations(uint32 corp_id) {
     DBQueryResult res;
 
     if(!m_db->RunQuery(res,
@@ -51,7 +51,7 @@ PyRepObject *CorporationDB::ListCorpStations(uint32 corp_id) {
     return DBResultToRowset(res);
 }
 
-PyRepObject *CorporationDB::ListStationOffices(uint32 station_id) {
+PyObject *CorporationDB::ListStationOffices(uint32 station_id) {
     DBQueryResult res;
 
     if(!m_db->RunQuery(res,
@@ -70,7 +70,7 @@ PyRepObject *CorporationDB::ListStationOffices(uint32 station_id) {
     return DBResultToRowset(res);
 }
 
-PyRepObject *CorporationDB::ListStationCorps(uint32 station_id) {
+PyObject *CorporationDB::ListStationCorps(uint32 station_id) {
 
     DBQueryResult res;
 
@@ -96,7 +96,7 @@ PyRepObject *CorporationDB::ListStationCorps(uint32 station_id) {
     return DBResultToRowset(res);
 }
 
-PyRepObject *CorporationDB::ListStationOwners(uint32 station_id) {
+PyObject *CorporationDB::ListStationOwners(uint32 station_id) {
     DBQueryResult res;
 
     if(!m_db->RunQuery(res,
@@ -116,7 +116,7 @@ PyRepObject *CorporationDB::ListStationOwners(uint32 station_id) {
     return DBResultToRowset(res);
 }
 
-PyRepDict *CorporationDB::ListAllCorpInfo() {
+PyDict *CorporationDB::ListAllCorpInfo() {
     DBQueryResult res;
 
     if(!m_db->RunQuery(res,
@@ -273,7 +273,7 @@ bool CorporationDB::ListAllFactionRaces(std::map<int32, PyRep *> &into) {
     return true;
 }
 
-PyRepObject *CorporationDB::ListNPCDivisions() {
+PyObject *CorporationDB::ListNPCDivisions() {
     DBQueryResult res;
 
     if(!m_db->RunQuery(res,
@@ -289,7 +289,7 @@ PyRepObject *CorporationDB::ListNPCDivisions() {
     return DBResultToRowset(res);
 }
 
-PyRepObject *CorporationDB::GetEmploymentRecord(uint32 charID) {
+PyObject *CorporationDB::GetEmploymentRecord(uint32 charID) {
     DBQueryResult res;
 
     //do we really need this order by??
@@ -307,7 +307,7 @@ PyRepObject *CorporationDB::GetEmploymentRecord(uint32 charID) {
     return (DBResultToRowset(res));
 }
 
-PyRepObject *CorporationDB::GetMedalsReceived(uint32 charID) {
+PyObject *CorporationDB::GetMedalsReceived(uint32 charID) {
     _log(DATABASE__ERROR, "GetMedalsReceived unimplemented.");
 
     util_Rowset rs;
@@ -326,10 +326,10 @@ PyRepObject *CorporationDB::GetMedalsReceived(uint32 charID) {
 }
 
 static std::string _IoN(PyRep *r) {
-    if(!r->IsInteger())
+    if(!r->IsInt())
         return("NULL");
     char buf[32];
-    snprintf(buf, 32, "%u", uint32(((PyRepInteger*)r)->value));
+    snprintf(buf, 32, "%u", uint32(((PyInt*)r)->value));
     return(buf);
 }
 
@@ -413,7 +413,7 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID
     return true;
 }
 
-#define _NI(a, b) if (row.IsNull(b)) { cc.a = new PyRepNone(); } else { cc.a = new PyRepInteger(row.GetUInt(b)); }
+#define _NI(a, b) if (row.IsNull(b)) { cc.a = new PyNone(); } else { cc.a = new PyInt(row.GetUInt(b)); }
 
 bool CorporationDB::CreateCorporationChangePacket(Notify_OnCorporaionChanged & cc, uint32 oldCorpID, uint32 newCorpID) {
     DBQueryResult res;
@@ -499,26 +499,26 @@ bool CorporationDB::CreateCorporationChangePacket(Notify_OnCorporaionChanged & c
         return false;
     }
 
-    cc.corporationIDOld = new PyRepInteger(row.GetUInt(0));
-    cc.corporationNameOld = new PyRepString(row.GetText(1));
-    cc.descriptionOld = new PyRepString(row.GetText(2));
-    cc.tickerNameOld = new PyRepString(row.GetText(3));
-    cc.urlOld = new PyRepString(row.GetText(4));
-    cc.taxRateOld = new PyRepReal(row.GetDouble(5));
-    cc.minimumJoinStandingOld = new PyRepReal(row.GetDouble(6));
-    cc.corporationTypeOld = new PyRepInteger(row.GetUInt(7));
-    cc.hasPlayerPersonnelManagerOld = new PyRepInteger(row.GetUInt(8));
-    cc.sendCharTerminationMessageOld = new PyRepInteger(row.GetUInt(9));
-    cc.creatorIDOld = new PyRepInteger(row.GetUInt(10));
-    cc.ceoIDOld = new PyRepInteger(row.GetUInt(11));
-    cc.stationIDOld = new PyRepInteger(row.GetUInt(12));
+    cc.corporationIDOld = new PyInt(row.GetUInt(0));
+    cc.corporationNameOld = new PyString(row.GetText(1));
+    cc.descriptionOld = new PyString(row.GetText(2));
+    cc.tickerNameOld = new PyString(row.GetText(3));
+    cc.urlOld = new PyString(row.GetText(4));
+    cc.taxRateOld = new PyFloat(row.GetDouble(5));
+    cc.minimumJoinStandingOld = new PyFloat(row.GetDouble(6));
+    cc.corporationTypeOld = new PyInt(row.GetUInt(7));
+    cc.hasPlayerPersonnelManagerOld = new PyInt(row.GetUInt(8));
+    cc.sendCharTerminationMessageOld = new PyInt(row.GetUInt(9));
+    cc.creatorIDOld = new PyInt(row.GetUInt(10));
+    cc.ceoIDOld = new PyInt(row.GetUInt(11));
+    cc.stationIDOld = new PyInt(row.GetUInt(12));
     _NI(raceIDOld, 13);
     _NI(allianceIDOld, 14);
-    cc.sharesOld = new PyRepInteger(row.GetUInt64(15));
-    cc.memberCountOld = new PyRepInteger(row.GetUInt(16));
-    cc.memberLimitOld = new PyRepInteger(row.GetUInt(17));
-    cc.allowedMemberRaceIDsOld = new PyRepInteger(row.GetUInt(18));
-    cc.graphicIDOld = new PyRepInteger(row.GetUInt(19));
+    cc.sharesOld = new PyInt(row.GetUInt64(15));
+    cc.memberCountOld = new PyInt(row.GetUInt(16));
+    cc.memberLimitOld = new PyInt(row.GetUInt(17));
+    cc.allowedMemberRaceIDsOld = new PyInt(row.GetUInt(18));
+    cc.graphicIDOld = new PyInt(row.GetUInt(19));
     _NI(shape1Old, 20);
     _NI(shape2Old, 21);
     _NI(shape3Old, 22);
@@ -533,7 +533,7 @@ bool CorporationDB::CreateCorporationChangePacket(Notify_OnCorporaionChanged & c
     _NI(division5Old, 31);
     _NI(division6Old, 32);
     _NI(division7Old, 33);
-    cc.deletedOld = new PyRepInteger(row.GetUInt(34));
+    cc.deletedOld = new PyInt(row.GetUInt(34));
 
     return true;
 }
@@ -622,41 +622,41 @@ bool CorporationDB::CreateCorporationCreatePacket(Notify_OnCorporaionChanged & c
         return false;
     }
 
-    cc.allianceIDOld = new PyRepNone();
-    cc.allowedMemberRaceIDsOld = new PyRepNone();
-    cc.ceoIDOld = new PyRepNone();
-    cc.color1Old = new PyRepNone();
-    cc.color2Old = new PyRepNone();
-    cc.color3Old = new PyRepNone();
-    cc.corporationIDOld = new PyRepNone();
-    cc.corporationNameOld = new PyRepNone();
-    cc.corporationTypeOld = new PyRepNone();
-    cc.creatorIDOld = new PyRepNone();
-    cc.deletedOld = new PyRepNone();
-    cc.descriptionOld = new PyRepNone();
-    cc.division1Old = new PyRepNone();
-    cc.division2Old = new PyRepNone();
-    cc.division3Old = new PyRepNone();
-    cc.division4Old = new PyRepNone();
-    cc.division5Old = new PyRepNone();
-    cc.division6Old = new PyRepNone();
-    cc.division7Old = new PyRepNone();
-    cc.graphicIDOld = new PyRepNone();
-    cc.hasPlayerPersonnelManagerOld = new PyRepNone();
-    cc.memberCountOld = new PyRepNone();
-    cc.memberLimitOld = new PyRepNone();
-    cc.minimumJoinStandingOld = new PyRepNone();
-    cc.raceIDOld = new PyRepNone();
-    cc.sendCharTerminationMessageOld = new PyRepNone();
-    cc.shape1Old = new PyRepNone();
-    cc.shape2Old = new PyRepNone();
-    cc.shape3Old = new PyRepNone();
-    cc.sharesOld = new PyRepNone();
-    cc.stationIDOld = new PyRepNone();
-    cc.taxRateOld = new PyRepNone();
-    cc.tickerNameOld = new PyRepNone();
-    cc.typefaceOld = new PyRepNone();
-    cc.urlOld = new PyRepNone();
+    cc.allianceIDOld = new PyNone();
+    cc.allowedMemberRaceIDsOld = new PyNone();
+    cc.ceoIDOld = new PyNone();
+    cc.color1Old = new PyNone();
+    cc.color2Old = new PyNone();
+    cc.color3Old = new PyNone();
+    cc.corporationIDOld = new PyNone();
+    cc.corporationNameOld = new PyNone();
+    cc.corporationTypeOld = new PyNone();
+    cc.creatorIDOld = new PyNone();
+    cc.deletedOld = new PyNone();
+    cc.descriptionOld = new PyNone();
+    cc.division1Old = new PyNone();
+    cc.division2Old = new PyNone();
+    cc.division3Old = new PyNone();
+    cc.division4Old = new PyNone();
+    cc.division5Old = new PyNone();
+    cc.division6Old = new PyNone();
+    cc.division7Old = new PyNone();
+    cc.graphicIDOld = new PyNone();
+    cc.hasPlayerPersonnelManagerOld = new PyNone();
+    cc.memberCountOld = new PyNone();
+    cc.memberLimitOld = new PyNone();
+    cc.minimumJoinStandingOld = new PyNone();
+    cc.raceIDOld = new PyNone();
+    cc.sendCharTerminationMessageOld = new PyNone();
+    cc.shape1Old = new PyNone();
+    cc.shape2Old = new PyNone();
+    cc.shape3Old = new PyNone();
+    cc.sharesOld = new PyNone();
+    cc.stationIDOld = new PyNone();
+    cc.taxRateOld = new PyNone();
+    cc.tickerNameOld = new PyNone();
+    cc.typefaceOld = new PyNone();
+    cc.urlOld = new PyNone();
 
     cc.corporationIDNew = row.GetUInt(0);
     cc.corporationNameNew = row.GetText(1);
@@ -697,7 +697,7 @@ bool CorporationDB::CreateCorporationCreatePacket(Notify_OnCorporaionChanged & c
     return true;
 }
 
-PyRepObject *CorporationDB::GetCorporation(uint32 corpID) {
+PyObject *CorporationDB::GetCorporation(uint32 corpID) {
     DBQueryResult res;
     DBResultRow row;
 
@@ -726,7 +726,7 @@ PyRepObject *CorporationDB::GetCorporation(uint32 corpID) {
     //return DBResultToRowset(res);
 }
 
-PyRepObject *CorporationDB::GetEveOwners() {
+PyObject *CorporationDB::GetEveOwners() {
     DBQueryResult res;
 
     if (!m_db->RunQuery(res,
@@ -739,7 +739,7 @@ PyRepObject *CorporationDB::GetEveOwners() {
     return DBResultToRowset(res);
 }
 
-PyRepObject *CorporationDB::GetStations(uint32 corpID) {
+PyObject *CorporationDB::GetStations(uint32 corpID) {
     DBQueryResult res;
 
     if (!m_db->RunQuery(res,
@@ -796,11 +796,11 @@ PyRep *CorporationDB::Fetch(uint32 corpID, uint32 from, uint32 count) {
     // Have to send back a list that contains a tuple that contains an int and a list...
     // params probably needs the following stuff: stationID, typeID, officeID, officeFolderID
     Reply_FetchOffice reply;
-    reply.params.add(new PyRepInteger(rr.GetInt(0)));
-    reply.params.add(new PyRepInteger(rr.GetInt(1)));
+    reply.params.add(new PyInt(rr.GetInt(0)));
+    reply.params.add(new PyInt(rr.GetInt(1)));
     reply.officeID = rr.GetInt(2);
-    reply.params.add(new PyRepInteger(reply.officeID));
-    reply.params.add(new PyRepInteger(rr.GetInt(3)));
+    reply.params.add(new PyInt(reply.officeID));
+    reply.params.add(new PyInt(rr.GetInt(3)));
 
     return reply.Encode();
 }
@@ -1074,9 +1074,9 @@ bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, 
     }
 
     // this could be stored in the db
-#define PRN new PyRepNone()
-#define PRI(i) new PyRepInteger(i)
-#define PRS(s) new PyRepString(s)
+#define PRN new PyNone()
+#define PRI(i) new PyInt(i)
+#define PRS(s) new PyString(s)
 #define PRNI(i) (row.IsNull(i) ? PRI(0) : PRI(row.GetUInt64(i)))
 #define F(name, o, n) \
     attrib.name##Old = o; \
@@ -1108,7 +1108,7 @@ bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, 
 
     return true;
 }
-bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivisionNames & divs, PyRepDict * notif) {
+bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivisionNames & divs, PyDict * notif) {
     DBQueryResult res;
 
     if (!m_db->RunQuery(res,
@@ -1155,7 +1155,7 @@ bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivision
     return true;
 }
 
-bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporation & upd, PyRepDict * notif) {
+bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporation & upd, PyDict * notif) {
     DBQueryResult res;
 
     if (!m_db->RunQuery(res,
@@ -1198,7 +1198,7 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
 
 }
 #define NI(i) row.IsNull(i) ? 0 : row.GetInt(i)
-bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyRepDict * notif) {
+bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDict * notif) {
     DBQueryResult res;
 
     if (!m_db->RunQuery(res,

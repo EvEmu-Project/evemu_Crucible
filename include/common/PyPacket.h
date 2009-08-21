@@ -33,8 +33,8 @@
 #include "logsys.h"
 
 class PyRep;
-class PyRepTuple;
-class PyRepDict;
+class PyTuple;
+class PyDict;
 class PyVisitorLvl;
 
 class PyAddress {
@@ -106,8 +106,8 @@ public:
     PyAddress   source;
     PyAddress   dest;
     uint32      userid;
-    PyRepTuple  *payload;
-    PyRepDict   *named_payload; //oob data mostly
+    PyTuple  *payload;
+    PyDict   *named_payload; //oob data mostly
 
 #if 0
     //options:
@@ -136,16 +136,16 @@ public:
     ~PyCallStream();
 
     void Dump(LogType type, PyVisitorLvl *dumper);
-    bool Decode(const std::string &type, PyRepTuple *&payload); //consumes substream
-    PyRepTuple *Encode();
+    bool Decode(const std::string &type, PyTuple *&payload); //consumes substream
+    PyTuple *Encode();
     PyCallStream *Clone() const;
 
     uint32 remoteObject;        //seen 1, hack: 0 means it was a string
     std::string remoteObjectStr;
 
     std::string method;
-    PyRepTuple *arg_tuple;
-    PyRepDict  *arg_dict;   //named parameters
+    PyTuple *arg_tuple;
+    PyDict  *arg_dict;   //named parameters
 
 #if 0
     //options:
@@ -171,8 +171,8 @@ public:
     ~EVENotificationStream();
 
     void Dump(LogType type, PyVisitorLvl *dumper);
-    bool Decode(const std::string &pkt_type, const std::string &notify_type, PyRepTuple *&payload); //consumes substream
-    PyRepTuple *Encode();
+    bool Decode(const std::string &pkt_type, const std::string &notify_type, PyTuple *&payload); //consumes substream
+    PyTuple *Encode();
     EVENotificationStream *Clone() const;
 
     std::string notifyType; //not encoded by Encode() since it is in the address part, mainly here for convenience.
@@ -180,7 +180,7 @@ public:
     uint32 remoteObject;        //seen 1, hack: 0 means it was a string
     std::string remoteObjectStr;
 
-    PyRepTuple *args;
+    PyTuple *args;
 };
 
 

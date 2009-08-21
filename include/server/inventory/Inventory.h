@@ -72,7 +72,7 @@ public:
 	 */
 	virtual PyRep *GetItem() const = 0;
 
-	PyRepObjectEx *List(EVEItemFlags flag, uint32 forOwner = 0) const;
+	PyObjectEx *List(EVEItemFlags flag, uint32 forOwner = 0) const;
 	void List(dbutil_CRowset &into, EVEItemFlags flag, uint32 forOwner = 0) const;
 
 protected:

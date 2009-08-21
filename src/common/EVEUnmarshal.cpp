@@ -200,7 +200,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         case Op_PyNone:
         {
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyNone", pfx, opcode);
-            res = new PyRepNone();
+            res = new PyNone();
         }break;
 
     case Op_PyByteString:
@@ -216,7 +216,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
         }
 
-        PyRepString *r = new PyRepString(packet, str_len, true);
+        PyString *r = new PyString(packet, str_len, true);
 
         if(ContainsNonPrintables(r->value.c_str())) {
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString(len=%d, <binary>)", pfx, opcode, str_len);
@@ -242,7 +242,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyLongLong "I64u, pfx, opcode, data);
 
-        res = new PyRepInteger(data);
+        res = new PyInt(data);
 
         packet += sizeof(uint64);
         len -= sizeof(uint64);
@@ -260,7 +260,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyLong %u", pfx, opcode, value);
 
-        res = new PyRepInteger(value);
+        res = new PyInt(value);
 
         packet += sizeof(value);
         len -= sizeof(value);
@@ -278,7 +278,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyShort %d", pfx, opcode, value);
 
-        res = new PyRepInteger(value);
+        res = new PyInt(value);
 
         packet += sizeof(value);
         len -= sizeof(value);
@@ -295,7 +295,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByte %u", pfx, opcode, value);
 
-        res = new PyRepInteger(value);
+        res = new PyInt(value);
 
         packet++;
         len--;
@@ -313,17 +313,17 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             //TODO: I think this can be used for floats and ints... further, I think
             //we need a better internal representation of this...
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyMinusOne", pfx, opcode);
-            res = new PyRepInteger(INT_MAX);
+            res = new PyInt(INT_MAX);
         break; }
 
     case Op_PyZeroInteger: {
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyZeroInteger", pfx, opcode);
-        res = new PyRepInteger(0);
+        res = new PyInt(0);
         break; }
 
     case Op_PyOneInteger: {
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyOneInteger", pfx, opcode);
-        res = new PyRepInteger(1);
+        res = new PyInt(1);
         break; }
 
     case Op_PyReal: {
@@ -336,7 +336,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyReal %.13f", pfx, opcode, value);
 
-        res = new PyRepReal(value);
+        res = new PyFloat(value);
 
         packet += sizeof(value);
         len -= sizeof(value);
@@ -347,7 +347,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
     case Op_PyZeroReal:
         {
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyZeroReal", pfx, opcode);
-            res = new PyRepReal(0.0);
+            res = new PyFloat(0.0);
         break; }
 
     //0xC?
@@ -384,7 +384,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
         phex(NET__UNMARSHAL_BUFHEX, packet, data_length);
 
-        res = new PyRepBuffer(packet, data_length);
+        res = new PyBuffer(packet, data_length);
 
         packet += data_length;
         len -= data_length;
@@ -394,7 +394,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
     case Op_PyEmptyString: {
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyEmptyString", pfx, opcode);
-        res = new PyRepString("");
+        res = new PyString("");
         break; }
 
     case Op_PyCharString: {
@@ -408,7 +408,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyCharString %c", pfx, opcode, value[0]);
 
-        res = new PyRepString(value);
+        res = new PyString(value);
 
         packet++;
         len--;
@@ -429,7 +429,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
         }
 
-        PyRepString *r = new PyRepString(packet, str_len, false);
+        PyString *r = new PyString(packet, str_len, false);
         res = r;
 
         if(ContainsNonPrintables(r->value.c_str())) {
@@ -450,7 +450,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         }
         uint8 value = *packet;
 
-        const PyRepString * sharedString = NULL;
+        const PyString * sharedString = NULL;
         if( sPyStringTable.LookupPyString(value, sharedString) == false)
         {
             assert(false);
@@ -458,11 +458,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
             char ebuf[64];
             snprintf(ebuf, 64, "Invalid String Table Item %d", value);
-            res = new PyRepString(ebuf);
+            res = new PyString(ebuf);
         }
         else
         {
-            res = new PyRepString(sharedString->value, sharedString->is_type_1);
+            res = new PyString(sharedString->value, sharedString->is_type_1);
         }
 
         IncreaseIndex(1);
@@ -491,7 +491,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
         phex(NET__UNMARSHAL_BUFHEX, packet, stringLength * 2);
 
-        res = new PyRepString(packet, stringLength * 2, false);
+        res = new PyString(packet, stringLength * 2, false);
 
         IncreaseIndex(stringLength*2);
         break; }
@@ -512,7 +512,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
         phex(NET__UNMARSHAL_BUFHEX, packet, strLen);
 
-        res = new PyRepString(packet, strLen, false);
+        res = new PyString(packet, strLen, false);
 
         IncreaseIndex(strLen);
         break; }
@@ -546,7 +546,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyTuple(%d)", pfx, opcode, data_len);
 
-        PyRepTuple *tuple = new PyRepTuple(data_len);
+        PyTuple *tuple = new PyTuple(data_len);
         res = tuple;
 
         char t[15];
@@ -597,7 +597,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyList(%d)", pfx, opcode, data_len);
 
-        PyRepList *rep = new PyRepList();
+        PyList *rep = new PyList();
         res = rep;
 
         char t[15];
@@ -671,7 +671,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             data_len = 0xa;
         }*/
 
-        PyRepDict *rep = new PyRepDict();
+        PyDict *rep = new PyDict();
         res = rep;
 
         char t[17];
@@ -736,7 +736,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         if(!type->IsString()) {
             typestr = "NON-STRING-TYPE";
         } else {
-            PyRepString *s = (PyRepString *) type;
+            PyString *s = (PyString *) type;
             typestr = s->value;
         }
         delete type;
@@ -755,7 +755,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         len -= value_len;
         len_used += value_len;
 
-        res = new PyRepObject(typestr, arguments);
+        res = new PyObject(typestr, arguments);
         break; }
 
     case 0x18:
@@ -778,7 +778,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
 		IncreaseIndex( value_len );
 
-        res = new PyRepSubStruct(ss);
+        res = new PySubStruct(ss);
 
         break; }
 
@@ -842,18 +842,18 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         len -= sslen;
         len_used += sslen;
 
-        res = new PyRepChecksumedStream(lval, stream);
+        res = new PyChecksumedStream(lval, stream);
 
         break; }
 
     case Op_PyTrue: {   //_Py_TrueStruct (which is Py_True)
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyTrue", pfx, opcode);
-        res = new PyRepBoolean(true);
+        res = new PyBool(true);
         break; }
 
     case Op_PyFalse: {  //_Py_ZeroStruct (which is Py_False)
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyFalse", pfx, opcode);
-        res = new PyRepBoolean(false);
+        res = new PyBool(false);
         break; }
 
     case 0x21:
@@ -875,7 +875,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
 		IncreaseIndex( clen );
 
-        PyRepObjectEx *obj = new PyRepObjectEx(opcode == Op_ObjectEx2, header);
+        PyObjectEx *obj = new PyObjectEx(opcode == Op_ObjectEx2, header);
 
         n = pfx;
         n += "  ListData: ";
@@ -917,7 +917,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
     case Op_PyEmptyTuple: {
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyEmptyTuple", pfx, opcode);
-        res = new PyRepTuple(0);
+        res = new PyTuple(0);
         break; }
 
     case Op_PyOneTuple: {
@@ -935,7 +935,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         len -= key_len;
         len_used += key_len;
 
-        PyRepTuple *tuple = new PyRepTuple(1);
+        PyTuple *tuple = new PyTuple(1);
         tuple->items[0] = i;
         res = tuple;
 
@@ -943,7 +943,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
     case Op_PyEmptyList: {
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyEmptyList", pfx, opcode);
-        res = new PyRepList();
+        res = new PyList();
         break; }
 
     //single element list.
@@ -961,7 +961,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         len -= key_len;
         len_used += key_len;
 
-        PyRepList *l = new PyRepList();
+        PyList *l = new PyList();
         l->items.push_back(i);
         res = l;
 
@@ -970,7 +970,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
     //empty unicode string.
     case Op_PyEmptyUnicodeString: { //'('
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyEmptyUnicodeString", pfx, opcode);
-        res = new PyRepString("");
+        res = new PyString("");
         break; }
 
     //single wchar_t unicode string
@@ -983,7 +983,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyUnicodeCharString 0x%x", pfx, opcode, lval);
 
-        res = new PyRepString((const uint8 *) &lval, sizeof(uint16), false);
+        res = new PyString((const uint8 *) &lval, sizeof(uint16), false);
 
         packet += sizeof(uint16);
         len -= sizeof(uint16);
@@ -1009,7 +1009,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
         IncreaseIndex( header_len );
 
-        PyRepPackedRow *row = new PyRepPackedRow(*header_element, true);
+        PyPackedRow *row = new PyPackedRow(*header_element, true);
 
         if(len < 1) {
             _log(NET__UNMARSHAL_ERROR, "Not enough data for packed length (missing length and data)\n");
@@ -1093,15 +1093,15 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
                 case DBTYPE_UI2:
                 case DBTYPE_I1:
                 case DBTYPE_UI1:
-                    row->SetField( cur->second, new PyRepInteger( v.i ) );
+                    row->SetField( cur->second, new PyInt( v.i ) );
                     break;
 
                 case DBTYPE_R8:
-                    row->SetField( cur->second, new PyRepReal( v.r8 ) );
+                    row->SetField( cur->second, new PyFloat( v.r8 ) );
                     break;
 
                 case DBTYPE_R4:
-                    row->SetField( cur->second, new PyRepReal( v.r4 ) );
+                    row->SetField( cur->second, new PyFloat( v.r4 ) );
                     break;
                 case DBTYPE_BOOL:
                 case DBTYPE_BYTES:
@@ -1122,7 +1122,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
                 bit_off = 0;
             }
 
-            row->SetField( cur->second, new PyRepBoolean( ( unpacked[ off ] >> bit_off) & 0x1 ) );
+            row->SetField( cur->second, new PyBool( ( unpacked[ off ] >> bit_off) & 0x1 ) );
 
             bit_off++;
         }
@@ -1169,7 +1169,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PySubStream of length %u", pfx, opcode, data_length);
 
-        res = new PyRepSubStream(packet, data_length);
+        res = new PySubStream(packet, data_length);
 
         packet += data_length;
         len -= data_length;
@@ -1204,7 +1204,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         len -= val_len;
         len_used += val_len;
 
-        PyRepTuple *tuple = new PyRepTuple(2);
+        PyTuple *tuple = new PyTuple(2);
         tuple->items[0] = i;
         tuple->items[1] = j;
         res = tuple;
@@ -1243,7 +1243,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         //hacking... should be its own type, but the only other acceptable thing
         // is an OP_Packed, so this works fine.
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PackedTerminator", pfx,opcode);
-        res = new PyRepNone();
+        res = new PyNone();
 
 
 /* total crap... */
@@ -1325,7 +1325,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         len_used += gg_len;
 
 
-        res = new PyRepNone();
+        res = new PyNone();
         */
 //          _log(NET__UNMARSHAL_ERROR, "Unhandled field type 0x%x (maybe code related)", opcode);
 //          _hex(NET__UNMARSHAL_ERROR, packet, len>32?32:len);
@@ -1357,7 +1357,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         }
         len_used += data_length;
 
-        PyRepString *r = new PyRepString(packet, data_length, false);
+        PyString *r = new PyString(packet, data_length, false);
 
         if(ContainsNonPrintables(r->value.c_str())) {
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyUnicodeString(len=%d, <binary>)", pfx, opcode, data_length);
@@ -1402,11 +1402,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             memcpy( &intval, packet, data_length );
 
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyVarInteger(len=%d) = " I64u, pfx, opcode, data_length, intval);
-            res = new PyRepInteger(intval);
+            res = new PyInt(intval);
         } else {
             //uint64 is not big enough
             //just pass it up to the application layer as a buffer...
-            PyRepBuffer *r = new PyRepBuffer(packet, data_length);
+            PyBuffer *r = new PyBuffer(packet, data_length);
 
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyVarInteger(len=%d)", pfx, opcode, data_length);
             _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);

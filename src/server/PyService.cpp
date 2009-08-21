@@ -66,7 +66,7 @@ PyResult PyService::Handle_MachoResolveObject(PyCallArgs &call) {
 */
 	//returns nodeID
 	_log(CLIENT__MESSAGE, "%s Service: MachoResolveObject requested, returning %u", GetName(), m_manager->GetNodeID());
-	return(new PyRepInteger(m_manager->GetNodeID()));
+	return(new PyInt(m_manager->GetNodeID()));
 }
 
 
@@ -88,13 +88,13 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 		return NULL;
 	}
 
-	PyRepTuple *robjs = new PyRepTuple(2);
+	PyTuple *robjs = new PyTuple(2);
 	//now we register 
 	robjs->items[0] = m_manager->BindObject(call.client, our_obj);
 
 	if(args.call->IsNone()) {
 		//no call was specified...
-		robjs->items[1] = new PyRepNone();
+		robjs->items[1] = new PyNone();
 	} else {
 		CallMachoBindObject_call boundcall;
 		if(!boundcall.Decode(&args.call)) {
@@ -105,7 +105,7 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 		_log(SERVICE__MESSAGE, "%s Service: MachoBindObject also contains call to %s", GetName(), boundcall.method_name.c_str());
 
 		//grr.. ownership transfer.
-		PyRepDict *tmp_dict = new PyRepDict();
+		PyDict *tmp_dict = new PyDict();
 		tmp_dict->items = boundcall.dict_arguments.items;
 		boundcall.dict_arguments.items.clear();
 		
@@ -156,10 +156,10 @@ const char *const PyService::s_checkTimeStrings[_checkCount] = {
 };
 
 /* this is untested... */
-PyRepObject *PyService::_BuildCachedReturn(PyRepSubStream **in_result, const char *sessionInfo, CacheCheckTime check) {
+PyObject *PyService::_BuildCachedReturn(PySubStream **in_result, const char *sessionInfo, CacheCheckTime check) {
 	objectCaching_CachedMethodCallResult cached;
 	
-	PyRepSubStream *result = *in_result;
+	PySubStream *result = *in_result;
 	*in_result = NULL;		//consume it.
 	
 	//we need to checksum the marshaled data...

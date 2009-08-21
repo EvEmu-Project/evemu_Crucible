@@ -185,7 +185,7 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const
         InventoryEx::ValidateAddItem( flag, item );
 }
 
-PyRepObject *Ship::ShipGetInfo()
+PyObject *Ship::ShipGetInfo()
 {
     if( !LoadContents( m_factory ) )
     {
@@ -202,7 +202,7 @@ PyRepObject *Ship::ShipGetInfo()
 
     //hacking:
     //maximumRangeCap
-    entry.attributes[ 797 ] = new PyRepReal( 250000.000000 );
+    entry.attributes[ 797 ] = new PyFloat( 250000.000000 );
 
     result.items[ itemID() ] = entry.FastEncode();
 

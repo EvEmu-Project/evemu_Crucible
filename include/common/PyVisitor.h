@@ -30,46 +30,46 @@
 #include "./types.h"
 
 class PyRep;
-class PyRepInteger;
-class PyRepReal;
-class PyRepBoolean;
-class PyRepNone;
-class PyRepBuffer;
-class PyRepString;
-class PyRepObject;
-class PyRepObjectEx;
-class PyRepSubStruct;
-class PyRepSubStream;
-class PyRepChecksumedStream;
-class PyRepDict;
-class PyRepList;
-class PyRepTuple;
-class PyRepPackedRow;
+class PyInt;
+class PyFloat;
+class PyBool;
+class PyNone;
+class PyBuffer;
+class PyString;
+class PyObject;
+class PyObjectEx;
+class PySubStruct;
+class PySubStream;
+class PyChecksumedStream;
+class PyDict;
+class PyList;
+class PyTuple;
+class PyPackedRow;
 
 class PyVisitorLvl {
 public:
     virtual ~PyVisitorLvl() {}
 
     //! primitive data visitors
-    virtual void VisitInteger(const PyRepInteger *rep, int64 lvl ) = 0;
-    virtual void VisitReal(const PyRepReal *rep, int64 lvl ) = 0;
-    virtual void VisitBoolean(const PyRepBoolean *rep, int64 lvl ) = 0;
-    virtual void VisitNone(const PyRepNone *rep, int64 lvl ) = 0;
-    virtual void VisitBuffer(const PyRepBuffer *rep, int64 lvl ) = 0;
-    virtual void VisitString(const PyRepString *rep, int64 lvl ) = 0;
+    virtual void VisitInteger(const PyInt *rep, int64 lvl ) = 0;
+    virtual void VisitReal(const PyFloat *rep, int64 lvl ) = 0;
+    virtual void VisitBoolean(const PyBool *rep, int64 lvl ) = 0;
+    virtual void VisitNone(const PyNone *rep, int64 lvl ) = 0;
+    virtual void VisitBuffer(const PyBuffer *rep, int64 lvl ) = 0;
+    virtual void VisitString(const PyString *rep, int64 lvl ) = 0;
     //! PackedRow type visitor
-    virtual void VisitPackedRow(const PyRepPackedRow *rep, int64 lvl ) = 0;
+    virtual void VisitPackedRow(const PyPackedRow *rep, int64 lvl ) = 0;
     //! Object type visitor
-    virtual void VisitObject(const PyRepObject *rep, int64 lvl ) = 0;
-    virtual void VisitObjectEx(const PyRepObjectEx *rep, int64 lvl ) = 0;
+    virtual void VisitObject(const PyObject *rep, int64 lvl ) = 0;
+    virtual void VisitObjectEx(const PyObjectEx *rep, int64 lvl ) = 0;
     //! Structureated types Visitor
-    virtual void VisitSubStruct(const PyRepSubStruct *rep, int64 lvl ) = 0;
-    virtual void VisitSubStream(const PyRepSubStream *rep, int64 lvl ) = 0;
-    virtual void VisitChecksumedStream(const PyRepChecksumedStream *rep, int64 lvl ) = 0;
+    virtual void VisitSubStruct(const PySubStruct *rep, int64 lvl ) = 0;
+    virtual void VisitSubStream(const PySubStream *rep, int64 lvl ) = 0;
+    virtual void VisitChecksumedStream(const PyChecksumedStream *rep, int64 lvl ) = 0;
     //! the data types Visitor
-    virtual void VisitDict(const PyRepDict *rep, int64 lvl ) = 0;
-    virtual void VisitList(const PyRepList *rep, int64 lvl ) = 0;
-    virtual void VisitTuple(const PyRepTuple *rep, int64 lvl ) = 0;
+    virtual void VisitDict(const PyDict *rep, int64 lvl ) = 0;
+    virtual void VisitList(const PyList *rep, int64 lvl ) = 0;
+    virtual void VisitTuple(const PyTuple *rep, int64 lvl ) = 0;
 };
 
 class PyVisitor {
@@ -77,25 +77,25 @@ public:
     virtual ~PyVisitor() {}
 
     //! primitive data visitors
-    virtual void VisitInteger(const PyRepInteger *rep) = 0;
-    virtual void VisitReal(const PyRepReal *rep) = 0;
-    virtual void VisitBoolean(const PyRepBoolean *rep) = 0;
-    virtual void VisitNone(const PyRepNone *rep) = 0;
-    virtual void VisitBuffer(const PyRepBuffer *rep) = 0;
-    virtual void VisitString(const PyRepString *rep) = 0;
+    virtual void VisitInteger(const PyInt *rep) = 0;
+    virtual void VisitReal(const PyFloat *rep) = 0;
+    virtual void VisitBoolean(const PyBool *rep) = 0;
+    virtual void VisitNone(const PyNone *rep) = 0;
+    virtual void VisitBuffer(const PyBuffer *rep) = 0;
+    virtual void VisitString(const PyString *rep) = 0;
     //! PackedRow type visitor
-    virtual void VisitPackedRow(const PyRepPackedRow *rep) = 0;
+    virtual void VisitPackedRow(const PyPackedRow *rep) = 0;
     //! Object type visitor
-    virtual void VisitObject(const PyRepObject *rep) = 0;
-    virtual void VisitObjectEx(const PyRepObjectEx *rep) = 0;
+    virtual void VisitObject(const PyObject *rep) = 0;
+    virtual void VisitObjectEx(const PyObjectEx *rep) = 0;
     //! Structureated types Visitor
-    virtual void VisitSubStruct(const PyRepSubStruct *rep) = 0;
-    virtual void VisitSubStream(const PyRepSubStream *rep) = 0;
-    virtual void VisitChecksumedStream(const PyRepChecksumedStream *rep) = 0;
+    virtual void VisitSubStruct(const PySubStruct *rep) = 0;
+    virtual void VisitSubStream(const PySubStream *rep) = 0;
+    virtual void VisitChecksumedStream(const PyChecksumedStream *rep) = 0;
     //! the data types Visitor
-    virtual void VisitDict(const PyRepDict *rep) = 0;
-    virtual void VisitList(const PyRepList *rep) = 0;
-    virtual void VisitTuple(const PyRepTuple *rep) = 0;
+    virtual void VisitDict(const PyDict *rep) = 0;
+    virtual void VisitList(const PyList *rep) = 0;
+    virtual void VisitTuple(const PyTuple *rep) = 0;
 };
 
 
@@ -104,27 +104,27 @@ public:
     virtual ~SubStreamDecoder() {}
 
     //! primitive data visitors
-    void VisitInteger(const PyRepInteger *rep);
-    void VisitReal(const PyRepReal *rep);
-    void VisitBoolean(const PyRepBoolean *rep);
-    void VisitNone(const PyRepNone *rep);
-    void VisitBuffer(const PyRepBuffer *rep);
-    void VisitString(const PyRepString *rep);
+    void VisitInteger(const PyInt *rep);
+    void VisitReal(const PyFloat *rep);
+    void VisitBoolean(const PyBool *rep);
+    void VisitNone(const PyNone *rep);
+    void VisitBuffer(const PyBuffer *rep);
+    void VisitString(const PyString *rep);
     //! PackedRow type visitor
-    void VisitPackedRow(const PyRepPackedRow *rep);
+    void VisitPackedRow(const PyPackedRow *rep);
     //! Object type visitor
-    void VisitObject(const PyRepObject *rep);
-    void VisitObjectEx(const PyRepObjectEx *rep);
-    void VisitSubStruct(const PyRepSubStruct *rep);
+    void VisitObject(const PyObject *rep);
+    void VisitObjectEx(const PyObjectEx *rep);
+    void VisitSubStruct(const PySubStruct *rep);
 
     //! the visitor needed for decoding the substream.
-    void VisitSubStream(const PyRepSubStream *rep);
+    void VisitSubStream(const PySubStream *rep);
 
-    void VisitChecksumedStream(const PyRepChecksumedStream *rep);
+    void VisitChecksumedStream(const PyChecksumedStream *rep);
     //! the data types Visitor
-    void VisitDict(const PyRepDict *rep);
-    void VisitList(const PyRepList *rep);
-    void VisitTuple(const PyRepTuple *rep);
+    void VisitDict(const PyDict *rep);
+    void VisitList(const PyList *rep);
+    void VisitTuple(const PyTuple *rep);
 };
 
 

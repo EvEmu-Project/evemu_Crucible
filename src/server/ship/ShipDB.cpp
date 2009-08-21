@@ -33,16 +33,16 @@ ShipDB::ShipDB(DBcore *db)
 ShipDB::~ShipDB() {
 }
 
-PyRepTuple *ShipDB::GetFormations() {
+PyTuple *ShipDB::GetFormations() {
 	//vicious crap... but this is gunna be a bit of work to load from the DB (nested tuples)
-	PyRepTuple *res = new PyRepTuple(2);
+	PyTuple *res = new PyTuple(2);
 
 	cache_Formation f;
 	Call_PointArg pos;
 
 	//Diamond formation
 	f.name = "Diamond";
-	f.positions = new PyRepTuple(4);
+	f.positions = new PyTuple(4);
 
 	pos.x = 100;	pos.y = 0;		pos.z = 0;
 	f.positions->items[0] = pos.FastEncode();
@@ -57,7 +57,7 @@ PyRepTuple *ShipDB::GetFormations() {
 
 	//Arrow formation
 	f.name = "Arrow";
-	f.positions = new PyRepTuple(4);
+	f.positions = new PyTuple(4);
 
 	pos.x = 100;	pos.y = 0;		pos.z = -50;
 	f.positions->items[0] = pos.FastEncode();

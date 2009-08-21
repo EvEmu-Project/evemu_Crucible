@@ -434,14 +434,14 @@ public:
 	/*
 	 * Primary public packet builders:
 	 */
-	PyRepObject *CharGetInfo();
-	PyRepObject *GetDescription() const;
+	PyObject *CharGetInfo();
+	PyObject *GetDescription() const;
 	/* GetSkillQueue()
 	 * 
 	 * This will get the skills from the skill queue for a character.
 	 * @author xanarox
 	*/
-	PyRepList *GetSkillQueue();
+	PyList *GetSkillQueue();
 
 	/*
 	 * Public fields:

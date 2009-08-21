@@ -58,7 +58,7 @@ PyResult BillMgrService::Handle_GetBillTypes(PyCallArgs &call) {
 		result = m_db.GetRefTypes();
 		if(result == NULL) {
 			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			result = new PyRepNone();
+			result = new PyNone();
 		}
 		m_manager->cache_service->GiveCache(method_id, &result);
 	}

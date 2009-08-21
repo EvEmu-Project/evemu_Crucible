@@ -56,11 +56,11 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	//we can get an integer or a boolean right now...
 	bool corporate_wallet = false;
 	
-	if(args.arg->IsInteger()) {
-		PyRepInteger *i = (PyRepInteger *) args.arg;
+	if(args.arg->IsInt()) {
+		PyInt *i = (PyInt *) args.arg;
 		corporate_wallet = (i->value != 0);
 	} else if(args.arg->IsBool()) {
-		PyRepBoolean *i = (PyRepBoolean *) args.arg;
+		PyBool *i = (PyBool *) args.arg;
 		corporate_wallet = i->value;
 	} else {
 		codelog(CLIENT__ERROR, "Invalid arguments");
@@ -68,10 +68,10 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	}
 	
 	if(!corporate_wallet) { //personal wallet
-		PyRep *result = new PyRepReal(call.client->GetBalance());
+		PyRep *result = new PyFloat(call.client->GetBalance());
 		return result;
 	} else {	//corporate wallet
-		PyRep *result = new PyRepReal(
+		PyRep *result = new PyFloat(
 			m_db.GetCorpBalance(call.client->GetCorporationID())
 			);
 		return result;
@@ -95,7 +95,7 @@ PyResult AccountService::Handle_GetRefTypes(PyCallArgs &call) {
 		result = m_db.GetRefTypes();
 		if(result == NULL) {
 			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			result = new PyRepNone();
+			result = new PyNone();
 		}
 		m_manager->cache_service->GiveCache(method_id, &result);
 	}
@@ -118,7 +118,7 @@ PyResult AccountService::Handle_GetKeyMap(PyCallArgs &call) {
 		result = m_db.GetKeyMap();
 		if(result == NULL) {
 			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			result = new PyRepNone();
+			result = new PyNone();
 		}
 		m_manager->cache_service->GiveCache(method_id, &result);
 	}
@@ -179,7 +179,7 @@ PyResult AccountService::Handle_GiveCash(PyCallArgs &call) {
 	}
 }
 	
-PyRepTuple * AccountService::GiveCashToCorp(Client * const client, uint32 corpID, double amount, const char *reason, JournalRefType refTypeID) {
+PyTuple * AccountService::GiveCashToCorp(Client * const client, uint32 corpID, double amount, const char *reason, JournalRefType refTypeID) {
 	if(!client->AddBalance(-amount)) {
 		_log(CLIENT__ERROR, "%s: Failed to remove %.2f ISK from %u for donation to %u", 
 			client->GetName(),
@@ -210,7 +210,7 @@ PyRepTuple * AccountService::GiveCashToCorp(Client * const client, uint32 corpID
 	oac.accountKey = "cash";
 	oac.balance = cnb;
 	oac.ownerid = corpID;
-	PyRepTuple * answer = oac.Encode();
+	PyTuple * answer = oac.Encode();
 
 	MulticastTarget mct;
 	mct.corporations.insert(corpID);
@@ -252,14 +252,14 @@ PyRepTuple * AccountService::GiveCashToCorp(Client * const client, uint32 corpID
 	}
 	
 	//send back the new balance
-	PyRepTuple *ans= new PyRepTuple(2);
-	ans->items[0]=new PyRepReal(cnb);//new balance
-	ans->items[1]=new PyRepReal(cnb);//new balance, not an error need to send it 2 times
+	PyTuple *ans= new PyTuple(2);
+	ans->items[0]=new PyFloat(cnb);//new balance
+	ans->items[1]=new PyFloat(cnb);//new balance, not an error need to send it 2 times
 	
 	return ans;
 }
  
-PyRepTuple * AccountService::GiveCashToChar(Client * const client, Client * const other, double amount, const char *reason, JournalRefType refTypeID) {
+PyTuple * AccountService::GiveCashToChar(Client * const client, Client * const other, double amount, const char *reason, JournalRefType refTypeID) {
 	if(!client->AddBalance(-amount)) {
 		_log(CLIENT__ERROR, "%s: Failed to remove %.2f ISK from %u for donation to %u", 
 			client->GetName(),
@@ -322,9 +322,9 @@ PyRepTuple * AccountService::GiveCashToChar(Client * const client, Client * cons
 
 	
 	//send back the new balance
-	PyRepTuple *ans= new PyRepTuple(2);
-	ans->items[0]=new PyRepReal(client->GetBalance());//new balance
-	ans->items[1]=new PyRepReal(client->GetBalance());//new balance, not an error need to send it 2 times
+	PyTuple *ans= new PyTuple(2);
+	ans->items[0]=new PyFloat(client->GetBalance());//new balance
+	ans->items[1]=new PyFloat(client->GetBalance());//new balance, not an error need to send it 2 times
 	
 	return ans;
 }
@@ -338,9 +338,9 @@ PyResult AccountService::Handle_GetJournal(PyCallArgs &call) {
 
 	bool ca = false;
 	if (args.corpAccount->IsBool()) {
-		ca = ((PyRepBoolean *)args.corpAccount)->value;
-	} else if (args.corpAccount->IsInteger()) {
-		ca = (((PyRepInteger *)args.corpAccount)->value != 0);
+		ca = ((PyBool *)args.corpAccount)->value;
+	} else if (args.corpAccount->IsInt()) {
+		ca = (((PyInt *)args.corpAccount)->value != 0);
 	} else {
 		// problem
 		_log(SERVICE__WARNING, "%s: Unsupported value for corpAccount", GetName());
@@ -388,7 +388,7 @@ PyResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call) {
 	return WithdrawCashToChar(call.client, other, args.amount, args.reason.c_str(), RefType_corpAccountWithdrawal);
 }
 
-PyRepTuple * AccountService::WithdrawCashToChar(Client * const client, Client * const other, double amount, const char *reason, JournalRefType refTypeID) {
+PyTuple * AccountService::WithdrawCashToChar(Client * const client, Client * const other, double amount, const char *reason, JournalRefType refTypeID) {
 	// remove money from the corp
 	uint32 corpID = client->GetCorporationID();
 	if (!m_db.AddBalanceToCorp(corpID, double(-amount))) {
@@ -408,7 +408,7 @@ PyRepTuple * AccountService::WithdrawCashToChar(Client * const client, Client * 
 	oac.accountKey = "cash";
 	oac.balance = ncb;
 	oac.ownerid = corpID;
-	PyRepTuple * answer = oac.Encode();
+	PyTuple * answer = oac.Encode();
 
 	MulticastTarget mct;
 	mct.corporations.insert(corpID);
@@ -471,12 +471,12 @@ PyRepTuple * AccountService::WithdrawCashToChar(Client * const client, Client * 
 
 	
 	//send back the new balance
-	PyRepTuple *ans= new PyRepTuple(2);
+	PyTuple *ans= new PyTuple(2);
 
 	// maybe this needs it this way, just like the other ones...
 	// i'm not sure, but it works for sure
-	ans->items[0]=new PyRepReal(ncb);
-	ans->items[1]=new PyRepReal(ncb);
+	ans->items[0]=new PyFloat(ncb);
+	ans->items[1]=new PyFloat(ncb);
 	
 	return ans;
 }

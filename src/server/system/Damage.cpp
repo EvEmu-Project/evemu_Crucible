@@ -280,7 +280,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 	if(total_damage <= 0.0)
 		return(killed);
 	
-	PyRepTuple *up;
+	PyTuple *up;
 
 	//Notifications to ourself:
 	Notify_OnEffectHit noeh;
@@ -351,7 +351,7 @@ void ItemSystemEntity::_SendDamageStateChanged() const {
 	ddsc.entityID = GetID();
 	ddsc.state = state.FastEncode();
 	
-	PyRepTuple *up;
+	PyTuple *up;
 	up = ddsc.FastEncode();
 	targets.QueueTBDestinyUpdate(&up);
 }

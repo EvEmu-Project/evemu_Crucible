@@ -74,14 +74,14 @@ PyPacket *PyPacket::Clone() const
     res->source = source;
     res->dest = dest;
     res->userid = userid;
-    res->payload = (PyRepTuple *) payload->Clone();
+    res->payload = (PyTuple *) payload->Clone();
     if(named_payload == NULL)
     {
         res->named_payload = NULL;
     }
     else
     {
-        res->named_payload = (PyRepDict *) named_payload->Clone();
+        res->named_payload = (PyDict *) named_payload->Clone();
     }
     return res;
 }
@@ -116,7 +116,7 @@ bool PyPacket::Decode(PyRep **in_packet)
 
     if(packet->IsChecksumedStream())
     {
-        PyRepChecksumedStream *cs = (PyRepChecksumedStream *) packet;
+        PyChecksumedStream *cs = (PyChecksumedStream *) packet;
         //TODO: check cs->checksum
         packet = cs->stream;
         cs->stream = NULL;
@@ -126,7 +126,7 @@ bool PyPacket::Decode(PyRep **in_packet)
     //Dragon nuance... it gets wrapped again
     if(packet->IsSubStream())
     {
-        PyRepSubStream *cs = (PyRepSubStream *) packet;
+        PySubStream *cs = (PySubStream *) packet;
         cs->DecodeData();
         if(cs->decoded == NULL)
         {
@@ -146,7 +146,7 @@ bool PyPacket::Decode(PyRep **in_packet)
         return false;
     }
 
-    PyRepObject *packeto = (PyRepObject *) packet;
+    PyObject *packeto = (PyObject *) packet;
     type_string = packeto->type;
 
     if(!packeto->arguments->IsTuple())
@@ -156,7 +156,7 @@ bool PyPacket::Decode(PyRep **in_packet)
         return false;
     }
 
-    PyRepTuple *tuple = (PyRepTuple *) packeto->arguments;
+    PyTuple *tuple = (PyTuple *) packeto->arguments;
 
     if(tuple->items.size() != 6)
     {
@@ -166,14 +166,14 @@ bool PyPacket::Decode(PyRep **in_packet)
         return false;
     }
 
-    if(!tuple->items[0]->IsInteger())
+    if(!tuple->items[0]->IsInt())
     {
         codelog(NET__PACKET_ERROR, "failed: First main tuple element is not an integer");
         SafeDelete(packet);
 
         return false;
     }
-    PyRepInteger *typer = (PyRepInteger *) tuple->items[0];
+    PyInt *typer = (PyInt *) tuple->items[0];
     switch(typer->value) {
     case AUTHENTICATION_REQ:
     case AUTHENTICATION_RSP:
@@ -217,9 +217,9 @@ bool PyPacket::Decode(PyRep **in_packet)
         return false;
     }
 
-    if(tuple->items[3]->IsInteger())
+    if(tuple->items[3]->IsInt())
     {
-        PyRepInteger *i = (PyRepInteger *) tuple->items[3];
+        PyInt *i = (PyInt *) tuple->items[3];
         userid = i->value;
     } else if(tuple->items[3]->IsNone()) {
         userid = 0;
@@ -235,7 +235,7 @@ bool PyPacket::Decode(PyRep **in_packet)
         SafeDelete(packet);
         return false;
     }
-    payload = (PyRepTuple *) tuple->items[4];
+    payload = (PyTuple *) tuple->items[4];
     tuple->items[4] = NULL; //we keep this one
 
 
@@ -246,7 +246,7 @@ bool PyPacket::Decode(PyRep **in_packet)
     }
     else if(tuple->items[5]->IsDict())
     {
-        named_payload = (PyRepDict *) tuple->items[5];
+        named_payload = (PyDict *) tuple->items[5];
         tuple->items[5] = NULL; //we keep this too.
     }
     else
@@ -264,10 +264,10 @@ bool PyPacket::Decode(PyRep **in_packet)
 
 
 PyRep *PyPacket::Encode() {
-    PyRepTuple *arg_tuple = new PyRepTuple(6);
+    PyTuple *arg_tuple = new PyTuple(6);
 
     //command
-    arg_tuple->items[0] = new PyRepInteger(type);
+    arg_tuple->items[0] = new PyInt(type);
 
     //source
     arg_tuple->items[1] = source.Encode();
@@ -277,9 +277,9 @@ PyRep *PyPacket::Encode() {
 
     //unknown3
     if(userid == 0)
-        arg_tuple->items[3] = new PyRepNone();
+        arg_tuple->items[3] = new PyNone();
     else
-        arg_tuple->items[3] = new PyRepInteger(userid);
+        arg_tuple->items[3] = new PyInt(userid);
 
     //payload
     //TODO: we don't really need to clone this if we can figure out a way to say "this is read only"
@@ -288,12 +288,12 @@ PyRep *PyPacket::Encode() {
 
     //named arguments
     if(named_payload == NULL) {
-        arg_tuple->items[5] = new PyRepNone();
+        arg_tuple->items[5] = new PyNone();
     } else {
         arg_tuple->items[5] = named_payload->Clone();
     }
 
-    return(new PyRepObject(type_string, arg_tuple));
+    return(new PyObject(type_string, arg_tuple));
 }
 
 PyAddress::PyAddress() : type(Invalid), typeID(0), callID(0), service("") {}
@@ -356,7 +356,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
         return false;
     }
 
-    PyRepObject *obj = (PyRepObject *) base;
+    PyObject *obj = (PyObject *) base;
     //do we care about the object type? should be "macho.MachoAddress"
 
     if(!obj->arguments->IsTuple()) {
@@ -365,7 +365,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
         return false;
     }
 
-    PyRepTuple *args = (PyRepTuple *) obj->arguments;
+    PyTuple *args = (PyTuple *) obj->arguments;
     if(args->items.size() < 3) {
         codelog(NET__PACKET_ERROR, "Not enough elements in address tuple: %lu", args->items.size());
         args->Dump(NET__PACKET_ERROR, "  ");
@@ -380,7 +380,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
         SafeDelete(base);
         return false;
     }
-    PyRepString *types = (PyRepString *) args->items[0];
+    PyString *types = (PyString *) args->items[0];
     if(types->value.empty()) {
         codelog(NET__PACKET_ERROR, "Empty string for address type element (0)");
         SafeDelete(base);
@@ -454,15 +454,15 @@ bool PyAddress::Decode(PyRep *&in_object) {
             return false;
         }
 
-        PyRepString *bid = (PyRepString *) args->items[1];
-        PyRepString *idt = (PyRepString *) args->items[3];
+        PyString *bid = (PyString *) args->items[1];
+        PyString *idt = (PyString *) args->items[3];
 
         service = bid->value;
         bcast_idtype = idt->value;
 
         //items[2] is either a list or a tuple.
         /*
-        //PyRepList *nclist = (PyRepList *) args->items[2];
+        //PyList *nclist = (PyList *) args->items[2];
         if(!nclist->items.empty()) {
             printf("Not decoding narrowcast list:");
             nclist->Dump(NET__PACKET_ERROR, "     ");
@@ -481,72 +481,72 @@ bool PyAddress::Decode(PyRep *&in_object) {
 }
 
 PyRep *PyAddress::Encode() {
-    PyRepObject *r = new PyRepObject();
+    PyObject *r = new PyObject();
     r->type = "macho.MachoAddress";
 
-    PyRepTuple *t;
+    PyTuple *t;
     switch(type) {
     case Any:
-        t = new PyRepTuple(3);
-        t->items[0] = new PyRepString("A");
+        t = new PyTuple(3);
+        t->items[0] = new PyString("A");
 
         if(service == "")
-            t->items[1] = new PyRepNone();
+            t->items[1] = new PyNone();
         else
-            t->items[1] = new PyRepString(service.c_str());
+            t->items[1] = new PyString(service.c_str());
 
         if(typeID == 0)
-            t->items[2] = new PyRepNone();
+            t->items[2] = new PyNone();
         else
-            t->items[2] = new PyRepInteger(typeID);
+            t->items[2] = new PyInt(typeID);
 
         r->arguments = t;
         break;
     case Node:
-        t = new PyRepTuple(4);
-        t->items[0] = new PyRepString("N");
-        t->items[1] = new PyRepInteger(typeID);
+        t = new PyTuple(4);
+        t->items[0] = new PyString("N");
+        t->items[1] = new PyInt(typeID);
 
         if(service == "")
-            t->items[2] = new PyRepNone();
+            t->items[2] = new PyNone();
         else
-            t->items[2] = new PyRepString(service.c_str());
+            t->items[2] = new PyString(service.c_str());
 
         if(callID == 0)
-            t->items[3] = new PyRepNone();
+            t->items[3] = new PyNone();
         else
-            t->items[3] = new PyRepInteger(callID);
+            t->items[3] = new PyInt(callID);
 
         r->arguments = t;
         break;
     case Client:
-        t = new PyRepTuple(4);
-        t->items[0] = new PyRepString("C");
-        t->items[1] = new PyRepInteger(typeID);
-        t->items[2] = new PyRepInteger(callID);
+        t = new PyTuple(4);
+        t->items[0] = new PyString("C");
+        t->items[1] = new PyInt(typeID);
+        t->items[2] = new PyInt(callID);
         if(service == "")
-            t->items[3] = new PyRepNone();
+            t->items[3] = new PyNone();
         else
-            t->items[3] = new PyRepString(service.c_str());
+            t->items[3] = new PyString(service.c_str());
         r->arguments = t;
         break;
     case Broadcast:
-        t = new PyRepTuple(4);
-        t->items[0] = new PyRepString("B");
+        t = new PyTuple(4);
+        t->items[0] = new PyString("B");
         //broadcastID
         if(service == "")
-            t->items[1] = new PyRepNone();
+            t->items[1] = new PyNone();
         else
-            t->items[1] = new PyRepString(service.c_str());
+            t->items[1] = new PyString(service.c_str());
         //narrowcast
-        t->items[2] = new PyRepList();
+        t->items[2] = new PyList();
         //typeID
-        t->items[3] = new PyRepString(bcast_idtype.c_str());
+        t->items[3] = new PyString(bcast_idtype.c_str());
         r->arguments = t;
         break;
     case Invalid:
         //this still needs to be something which will not crash us.
-        r->arguments = new PyRepNone();
+        r->arguments = new PyNone();
         break;
     }
     return(r);
@@ -554,7 +554,7 @@ PyRep *PyAddress::Encode() {
 
 bool PyAddress::_DecodeService(PyRep *rep) {
     if(rep->IsString()) {
-        PyRepString *s = (PyRepString *) rep;
+        PyString *s = (PyString *) rep;
         service = s->value;
     } else if(rep->IsNone()) {
         service = "";
@@ -567,8 +567,8 @@ bool PyAddress::_DecodeService(PyRep *rep) {
 }
 
 bool PyAddress::_DecodeCallID(PyRep *rep) {
-    if(rep->IsInteger()) {
-        callID = ((PyRepInteger *) rep)->value;
+    if(rep->IsInt()) {
+        callID = ((PyInt *) rep)->value;
     } else if(rep->IsNone()) {
         callID = 0;
     } else {
@@ -580,8 +580,8 @@ bool PyAddress::_DecodeCallID(PyRep *rep) {
 }
 
 bool PyAddress::_DecodeTypeID(PyRep *rep) {
-    if(rep->IsInteger()) {
-        typeID = ((PyRepInteger *) rep)->value;
+    if(rep->IsInt()) {
+        typeID = ((PyInt *) rep)->value;
     } else if(rep->IsNone()) {
         typeID = 0;
     } else {
@@ -637,8 +637,8 @@ void PyCallStream::Dump(LogType type, PyVisitorLvl *dumper) {
     }
 }
 
-bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
-    PyRepTuple *payload = in_payload;   //consume
+bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
+    PyTuple *payload = in_payload;   //consume
     in_payload = NULL;
 
     SafeDelete(arg_tuple);
@@ -663,7 +663,7 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
         SafeDelete(payload);
         return false;
     }
-    PyRepTuple *payload2 = (PyRepTuple *) payload->items[0];
+    PyTuple *payload2 = (PyTuple *) payload->items[0];
     if(payload2->items.size() != 2) {
         codelog(NET__PACKET_ERROR, "invalid tuple2 length %lu", payload2->items.size());
         SafeDelete(payload);
@@ -677,7 +677,7 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
         SafeDelete(payload);
         return false;
     }
-    PyRepSubStream *ss = (PyRepSubStream *) payload2->items[1];
+    PySubStream *ss = (PySubStream *) payload2->items[1];
 
     ss->DecodeData();
     if(ss->decoded == NULL) {
@@ -692,7 +692,7 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
         return false;
     }
 
-    PyRepTuple *maint = (PyRepTuple *) ss->decoded;
+    PyTuple *maint = (PyTuple *) ss->decoded;
     if(maint->items.size() != 4) {
         codelog(NET__PACKET_ERROR, "packet body has %lu elements, expected %d", maint->items.size(), 4);
         SafeDelete(payload);
@@ -700,12 +700,12 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
     }
 
     //parse first tuple element, unknown
-    if(maint->items[0]->IsInteger()) {
-        PyRepInteger *tuple0 = (PyRepInteger *) maint->items[0];
+    if(maint->items[0]->IsInt()) {
+        PyInt *tuple0 = (PyInt *) maint->items[0];
         remoteObject = tuple0->value;
         remoteObjectStr = "";
     } else if(maint->items[0]->IsString()) {
-        PyRepString *tuple0 = (PyRepString *) maint->items[0];
+        PyString *tuple0 = (PyString *) maint->items[0];
         remoteObject = 0;
         remoteObjectStr = tuple0->value;
     } else {
@@ -718,7 +718,7 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
 
     //parse tuple[1]: method name
     if(maint->items[1]->IsString()) {
-        PyRepString *i = (PyRepString *) maint->items[1];
+        PyString *i = (PyString *) maint->items[1];
         method = i->value;
     } else {
         codelog(NET__PACKET_ERROR, "tuple[1] has non-string type");
@@ -738,14 +738,14 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
         SafeDelete(payload);
         return false;
     }
-    arg_tuple = (PyRepTuple *) maint->items[2];
+    arg_tuple = (PyTuple *) maint->items[2];
     maint->items[2] = NULL; //we keep this one
 
     //options dict
     if(maint->items[3]->IsNone()) {
         arg_dict = NULL;
     } else if(maint->items[3]->IsDict()) {
-        arg_dict = (PyRepDict *) maint->items[3];
+        arg_dict = (PyDict *) maint->items[3];
         maint->items[3] = NULL; //we keep this too.
     } else {
         codelog(NET__PACKET_ERROR, "tuple[3] has non-dict type");
@@ -760,17 +760,17 @@ bool PyCallStream::Decode(const std::string &type, PyRepTuple *&in_payload) {
     return true;
 }
 
-PyRepTuple *PyCallStream::Encode() {
-    PyRepTuple *res_tuple = new PyRepTuple(4);
+PyTuple *PyCallStream::Encode() {
+    PyTuple *res_tuple = new PyTuple(4);
 
     //remoteObject
     if(remoteObject == 0)
-        res_tuple->items[0] = new PyRepString(remoteObjectStr.c_str());
+        res_tuple->items[0] = new PyString(remoteObjectStr.c_str());
     else
-        res_tuple->items[0] = new PyRepInteger(remoteObject);
+        res_tuple->items[0] = new PyInt(remoteObject);
 
     //method name
-    res_tuple->items[1] = new PyRepString(method.c_str());
+    res_tuple->items[1] = new PyString(method.c_str());
 
     //args
     //TODO: we dont really need to clone this if we can figure out a way to say "this is read only"
@@ -779,19 +779,19 @@ PyRepTuple *PyCallStream::Encode() {
 
     //options
     if(arg_dict == NULL) {
-        res_tuple->items[3] = new PyRepNone();
+        res_tuple->items[3] = new PyNone();
     } else {
         res_tuple->items[3] = arg_dict->TypedClone();
     }
 
     //now that we have the main arg tuple, build the unknown stuff around it...
-    PyRepTuple *it2 = new PyRepTuple(2);
-    it2->items[0] = new PyRepInteger(remoteObject==0?1:0); /* some sort of flag, "process here or call UP"....*/
-    it2->items[1] = new PyRepSubStream(res_tuple);
+    PyTuple *it2 = new PyTuple(2);
+    it2->items[0] = new PyInt(remoteObject==0?1:0); /* some sort of flag, "process here or call UP"....*/
+    it2->items[1] = new PySubStream(res_tuple);
 
-    PyRepTuple *it1 = new PyRepTuple(2);
+    PyTuple *it1 = new PyTuple(2);
     it1->items[0] = it2;
-    it1->items[1] = new PyRepNone();    //this is the "channel" dict if populated.
+    it1->items[1] = new PyNone();    //this is the "channel" dict if populated.
 
     return(it1);
 }
@@ -811,7 +811,7 @@ EVENotificationStream::~EVENotificationStream() {
 
 EVENotificationStream *EVENotificationStream::Clone() const {
     EVENotificationStream *res = new EVENotificationStream();
-    res->args = (PyRepTuple *) args->Clone();
+    res->args = (PyTuple *) args->Clone();
     return res;
 }
 
@@ -826,8 +826,8 @@ void EVENotificationStream::Dump(LogType type, PyVisitorLvl *dumper) {
     args->visit(dumper, 0);
 }
 
-bool EVENotificationStream::Decode(const std::string &pkt_type, const std::string &notify_type, PyRepTuple *&in_payload) {
-    PyRepTuple *payload = in_payload;   //consume
+bool EVENotificationStream::Decode(const std::string &pkt_type, const std::string &notify_type, PyTuple *&in_payload) {
+    PyTuple *payload = in_payload;   //consume
     in_payload = NULL;
 
     SafeDelete(args);
@@ -850,7 +850,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
         SafeDelete(payload);
         return false;
     }
-    PyRepTuple *payload2 = (PyRepTuple *) payload->items[0];
+    PyTuple *payload2 = (PyTuple *) payload->items[0];
     if(payload2->items.size() != 2) {
         codelog(NET__PACKET_ERROR, "invalid tuple2 length %lu", payload2->items.size());
         SafeDelete(payload);
@@ -864,7 +864,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
         SafeDelete(payload);
         return false;
     }
-    PyRepSubStream *ss = (PyRepSubStream *) payload2->items[1];
+    PySubStream *ss = (PySubStream *) payload2->items[1];
 
     ss->DecodeData();
     if(ss->decoded == NULL) {
@@ -879,7 +879,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
         return false;
     }
 
-    PyRepTuple *robjt = (PyRepTuple *) ss->decoded;
+    PyTuple *robjt = (PyTuple *) ss->decoded;
     if(robjt->items.size() != 2) {
         codelog(NET__PACKET_ERROR, "packet body has %lu elements, expected %d", robjt->items.size(), 2);
         SafeDelete(payload);
@@ -887,12 +887,12 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     }
 
     //parse first tuple element, remote object
-    if(robjt->items[0]->IsInteger()) {
-        PyRepInteger *tuple0 = (PyRepInteger *) robjt->items[0];
+    if(robjt->items[0]->IsInt()) {
+        PyInt *tuple0 = (PyInt *) robjt->items[0];
         remoteObject = tuple0->value;
         remoteObjectStr = "";
     } else if(robjt->items[0]->IsString()) {
-        PyRepString *tuple0 = (PyRepString *) robjt->items[0];
+        PyString *tuple0 = (PyString *) robjt->items[0];
         remoteObject = 0;
         remoteObjectStr = tuple0->value;
     } else {
@@ -915,7 +915,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 
 
 
-    PyRepTuple *subt = (PyRepTuple *) robjt->items[1];
+    PyTuple *subt = (PyTuple *) robjt->items[1];
     if(subt->items.size() != 2) {
         codelog(NET__PACKET_ERROR, "packet body has %lu elements, expected %d", subt->items.size(), 2);
         SafeDelete(payload);
@@ -923,8 +923,8 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     }
 
     //parse first tuple element, remote object
-    if(subt->items[0]->IsInteger()) {
-        //PyRepInteger *tuple0 = (PyRepInteger *) maint->items[0];
+    if(subt->items[0]->IsInt()) {
+        //PyInt *tuple0 = (PyInt *) maint->items[0];
         //no idea what this is.
     } else {
         codelog(NET__PACKET_ERROR, "sub tuple[0] has invalid type %s", subt->items[0]->TypeString());
@@ -946,7 +946,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
         return false;
     }
 
-    args = (PyRepTuple *) subt->items[1];
+    args = (PyTuple *) subt->items[1];
     subt->items[1] = NULL;
 
     notifyType = notify_type;
@@ -955,35 +955,35 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     return true;
 }
 
-PyRepTuple *EVENotificationStream::Encode() {
+PyTuple *EVENotificationStream::Encode() {
 
-    PyRepTuple *t4 = new PyRepTuple(2);
-    t4->items[0] = new PyRepInteger(1);
+    PyTuple *t4 = new PyTuple(2);
+    t4->items[0] = new PyInt(1);
     //see notes in other objects about what we could do to avoid this clone.
     t4->items[1] = args->Clone();
 
-    PyRepTuple *t3 = new PyRepTuple(2);
-    t3->items[0] = new PyRepInteger(0);
+    PyTuple *t3 = new PyTuple(2);
+    t3->items[0] = new PyInt(0);
     t3->items[1] = t4;
 
-    PyRepTuple *t2 = new PyRepTuple(2);
-    t2->items[0] = new PyRepInteger(0);
-    t2->items[1] = new PyRepSubStream(t3);
+    PyTuple *t2 = new PyTuple(2);
+    t2->items[0] = new PyInt(0);
+    t2->items[1] = new PySubStream(t3);
 
-    PyRepTuple *t1 = new PyRepTuple(2);
+    PyTuple *t1 = new PyTuple(2);
     t1->items[0] = t2;
-    t1->items[1] = new PyRepNone();
+    t1->items[1] = new PyNone();
 
     return(t1);
 /*
     //remoteObject
     if(remoteObject == 0)
-        arg_tuple->items[0] = new PyRepString(remoteObjectStr.c_str());
+        arg_tuple->items[0] = new PyString(remoteObjectStr.c_str());
     else
-        arg_tuple->items[0] = new PyRepInteger(remoteObject);
+        arg_tuple->items[0] = new PyInt(remoteObject);
 
     //method name
-    arg_tuple->items[1] = new PyRepString(method.c_str());
+    arg_tuple->items[1] = new PyString(method.c_str());
 
     //args
     //TODO: we dont really need to clone this if we can figure out a way to say "this is read only"
@@ -992,12 +992,12 @@ PyRepTuple *EVENotificationStream::Encode() {
 
     //options
     if(included_options == 0) {
-        arg_tuple->items[3] = new PyRepNone();
+        arg_tuple->items[3] = new PyNone();
     } else {
-        PyRepDict *d = new PyRepDict();
+        PyDict *d = new PyDict();
         arg_tuple->items[3] = d;
         if(included_options & oMachoVersion) {
-            d->items[ new PyRepString("machoVersion") ] = new PyRepInteger( macho_version );
+            d->items[ new PyString("machoVersion") ] = new PyInt( macho_version );
         }
     }
     return(arg_tuple);

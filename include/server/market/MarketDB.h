@@ -54,9 +54,9 @@ public:
 	PyRep *GetOldPriceHistory(uint32 regionID, uint32 typeID);
 	PyRep *GetNewPriceHistory(uint32 regionID, uint32 typeID);
 
-	PyRepObject *GetMarketGroups();
-	PyRepObject *GetRefTypes();
-	PyRepObject *GetCorporationBills(uint32 corpID, bool payable);
+	PyObject *GetMarketGroups();
+	PyObject *GetRefTypes();
+	PyObject *GetCorporationBills(uint32 corpID, bool payable);
 	
 	uint32 FindBuyOrder(uint32 stationID, uint32 typeID, double price, uint32 quantity, uint32 orderRange);
 	uint32 FindSellOrder(uint32 stationID, uint32 typeID, double price, uint32 quantity, uint32 orderRange);

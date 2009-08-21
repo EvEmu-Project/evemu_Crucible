@@ -182,7 +182,7 @@ Client *EntityList::FindAccount(uint32 account_id) const {
 	return NULL;
 }
 
-void EntityList::Broadcast(const char *notifyType, const char *idType, PyRepTuple **payload) const {
+void EntityList::Broadcast(const char *notifyType, const char *idType, PyTuple **payload) const {
 	//build a little notification out of it.
 	EVENotificationStream notify;
 	notify.remoteObject = 1;
@@ -222,11 +222,11 @@ void EntityList::Multicast(const character_set &cset, const PyAddress &dest, EVE
 
 //in theory this could be written in therms of the more generic
 //MulticastTarget function, but this is much more efficient.
-void EntityList::Multicast(const char *notifyType, const char *idType, PyRepTuple **payload, NotificationDestination target, uint32 target_id, bool seq) {
+void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple **payload, NotificationDestination target, uint32 target_id, bool seq) {
 	std::list<Client *>::const_iterator cur, end;
 	cur = m_clients.begin();
 	end = m_clients.end();
-	PyRepTuple * temp;
+	PyTuple * temp;
 	for(; cur != end; cur++) {
 		switch (target) {
 		case NOTIF_DEST__LOCATION:
@@ -238,18 +238,18 @@ void EntityList::Multicast(const char *notifyType, const char *idType, PyRepTupl
 				continue;
 			break;
 		}
-		temp = (PyRepTuple*)(*payload)->Clone();
+		temp = (PyTuple*)(*payload)->Clone();
 		(*cur)->SendNotification(notifyType, idType, &temp, seq);
 	}
 	delete (*payload);
 	*payload = NULL;
 }
 
-void EntityList::Multicast(const char *notifyType, const char *idType, PyRepTuple **payload, const MulticastTarget &mcset, bool seq) {
+void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple **payload, const MulticastTarget &mcset, bool seq) {
 	std::list<Client *>::const_iterator cur, end;
 	cur = m_clients.begin();
 	end = m_clients.end();
-	PyRepTuple * temp;
+	PyTuple * temp;
 	
 	//cache all these locally to avoid calling empty all the time.
 	const bool chars_empty = mcset.characters.empty();
@@ -273,14 +273,14 @@ void EntityList::Multicast(const char *notifyType, const char *idType, PyRepTupl
 			//not found in any of the above sets.
 			continue;
 		}
-		temp = (PyRepTuple*)(*payload)->Clone();
+		temp = (PyTuple*)(*payload)->Clone();
 		(*cur)->SendNotification(notifyType, idType, &temp, seq);
 	}
 	delete (*payload);
 	*payload = NULL;
 }
 
-void EntityList::Multicast(const character_set &cset, const char *notifyType, const char *idType, PyRepTuple **in_payload, bool seq) const {
+void EntityList::Multicast(const character_set &cset, const char *notifyType, const char *idType, PyTuple **in_payload, bool seq) const {
 	std::vector<Client *> result;
 	GetClients(cset, result);
 
@@ -289,7 +289,7 @@ void EntityList::Multicast(const character_set &cset, const char *notifyType, co
 	std::vector<Client *>::iterator cur, end;
 	cur = result.begin();
 	end = result.end();
-	PyRepTuple *payload;
+	PyTuple *payload;
 	for(; cur != end; cur++, num_remaining--) {
 		//keep a counter to eliminate an extra copy of in_payload
 		if(num_remaining < 2) {
@@ -299,14 +299,14 @@ void EntityList::Multicast(const character_set &cset, const char *notifyType, co
 			if(*in_payload == NULL)
 				payload = NULL;
 			else
-				payload = (PyRepTuple *) (*in_payload)->Clone();
+				payload = (PyTuple *) (*in_payload)->Clone();
 		}
 		
 		(*cur)->SendNotification(notifyType, idType, &payload, seq);
 	}
 }
 
-void EntityList::Unicast(uint32 charID, const char *notifyType, const char *idType, PyRepTuple **payload, bool seq) {
+void EntityList::Unicast(uint32 charID, const char *notifyType, const char *idType, PyTuple **payload, bool seq) {
 	//this could be implemented more efficiently, but I dont feel like it right now.
 	character_set cset;
 	cset.insert(charID);

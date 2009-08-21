@@ -94,11 +94,11 @@ PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 	
 	std::string abs_fname = "../data/cache/fgAAAAAsEA5jb3Jwb3JhdGlvblN2YxAOR2V0RmFjdGlvbkluZm8.cache";
 	
-	PyRepSubStream *ss = new PyRepSubStream();
+	PySubStream *ss = new PySubStream();
 
 	if(!call.client->services().GetCache()->LoadCachedFile(abs_fname.c_str(), "GetFactionInfo", ss)) {
 		_log(CLIENT__ERROR, "GetFactionInfo Failed to load cache file '%s'", abs_fname.c_str());
-		ss->decoded = new PyRepNone();
+		ss->decoded = new PyNone();
 		return(ss);
 	}
 
@@ -144,9 +144,9 @@ PyResult CorporationService::Handle_GetMedalsReceived(PyCallArgs &call) {
 		return (NULL);
 	}
 
-	PyRepTuple *t = new PyRepTuple(2);
+	PyTuple *t = new PyTuple(2);
 	t->items[0] = m_db.GetMedalsReceived(arg.arg);
-	t->items[1] = new PyRepList;
+	t->items[1] = new PyList;
 
 	return t;
 }
@@ -162,7 +162,7 @@ PyResult CorporationService::Handle_GetAllCorpMedals(PyCallArgs &call) {
 	_log(SERVICE__ERROR, "%s::GetAllCorpMedals(%lu) unimplemented.", GetName(), arg.arg);
 
 	util_Rowset rs;
-	PyRepList *res = new PyRepList;
+	PyList *res = new PyList;
 
 	rs.header.push_back("medalID");
 	rs.header.push_back("ownerID");

@@ -40,7 +40,7 @@ LPService::LPService(PyServiceMgr *mgr)
 PyResult LPService::Handle_GetLPForCharacterCorp(PyCallArgs &call) {
 	_log(SERVICE__ERROR, "%s::GetLPForCharacterCorp not implemented yet.", GetName());
 
-	return(new PyRepInteger(0));
+	return(new PyInt(0));
 }
 
 PyResult LPService::Handle_GetLPsForCharacter(PyCallArgs &call) {
@@ -48,7 +48,7 @@ PyResult LPService::Handle_GetLPsForCharacter(PyCallArgs &call) {
 
 	_log(SERVICE__ERROR, "%s::GetLPsForCharacter unimplemented.", GetName());
 
-	return new PyRepList;
+	return new PyList;
 }
 
 

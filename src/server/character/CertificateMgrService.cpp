@@ -54,7 +54,7 @@ PyResult CertificateMgrService::Handle_GetCertificateCategories(PyCallArgs &call
         PyRep *res = m_db.GetCertificateCategories();
         if(res == NULL) {
             codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-            res = new PyRepNone();
+            res = new PyNone();
         }
         m_manager->cache_service->GiveCache(method_id, &res);
     }
@@ -69,7 +69,7 @@ PyResult CertificateMgrService::Handle_GetAllShipCertificateRecommendations(PyCa
         PyRep *res = m_db.GetAllShipCertificateRecommendations();
         if(res == NULL) {
             codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-            res = new PyRepNone();
+            res = new PyNone();
         }
         m_manager->cache_service->GiveCache(method_id, &res);
     }
@@ -84,7 +84,7 @@ PyResult CertificateMgrService::Handle_GetCertificateClasses(PyCallArgs &call) {
         PyRep *res = m_db.GetCertificateClasses();
         if(res == NULL) {
             codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-            res = new PyRepNone();
+            res = new PyNone();
         }
         m_manager->cache_service->GiveCache(method_id, &res);
     }
@@ -99,7 +99,7 @@ PyResult CertificateMgrService::Handle_GrantCertificate(PyCallArgs &call) {
         return(NULL);
     }
 
-    return(_GrantCertificate(call.client->GetCharacterID(), arg.arg) ? new PyRepInteger(arg.arg) : NULL);
+    return(_GrantCertificate(call.client->GetCharacterID(), arg.arg) ? new PyInt(arg.arg) : NULL);
 }
 
 PyResult CertificateMgrService::Handle_BatchCertificateGrant(PyCallArgs &call) {
@@ -109,7 +109,7 @@ PyResult CertificateMgrService::Handle_BatchCertificateGrant(PyCallArgs &call) {
         return(NULL);
     }
 
-    PyRepList *res = new PyRepList;
+    PyList *res = new PyList;
 
     std::vector<int32>::iterator cur, end;
     cur = arg.ints.begin();

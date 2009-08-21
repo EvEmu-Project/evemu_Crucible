@@ -72,16 +72,16 @@ detect clients moving into agro radius
 
 class CryptoChallengePacket;
 class EVENotificationStream;
-class PyRepSubStream;
+class PySubStream;
 class InventoryItem;
 class SystemManager;
 class PyServiceMgr;
 class PyCallStream;
-class PyRepTuple;
+class PyTuple;
 class LSCChannel;
 class PyAddress;
-class PyRepList;
-class PyRepDict;
+class PyList;
+class PyDict;
 class PyPacket;
 class Client;
 class PyRep;
@@ -209,7 +209,7 @@ public:
 	bool LaunchDrone(InventoryItemRef drone);
 	
 	void SendNotification(const PyAddress &dest, EVENotificationStream *noti, bool seq=true);
-	void SendNotification(const char *notifyType, const char *idType, PyRepTuple **payload, bool seq=true);
+	void SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq=true);
 	void SessionSync();
 
 	//destiny stuff...
@@ -223,9 +223,9 @@ public:
 	virtual const Client *CastToClient() const { return(this); }
 
 	virtual const char *GetName() const { return GetChar() ? GetChar()->itemName().c_str() : "(null)"; }
-	virtual PyRepDict *MakeSlimItem() const;
-	virtual void QueueDestinyUpdate(PyRepTuple **du);
-	virtual void QueueDestinyEvent(PyRepTuple **multiEvent);
+	virtual PyDict *MakeSlimItem() const;
+	virtual void QueueDestinyUpdate(PyTuple **du);
+	virtual void QueueDestinyEvent(PyTuple **multiEvent);
 
 	virtual void TargetAdded(SystemEntity *who);
 	virtual void TargetLost(SystemEntity *who);

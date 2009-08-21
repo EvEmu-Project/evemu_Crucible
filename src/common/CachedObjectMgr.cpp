@@ -61,7 +61,7 @@ CachedObjectMgr::CacheRecord::~CacheRecord() {
     delete objectID;
 }
 
-PyRepObject *CachedObjectMgr::CacheRecord::EncodeHint() const {
+PyObject *CachedObjectMgr::CacheRecord::EncodeHint() const {
     objectCaching_CachedObject_spec spec;
 
     spec.objectID = objectID->Clone();
@@ -89,7 +89,7 @@ std::string CachedObjectMgr::OIDToString(const PyRep *objectID) {
 
 bool CachedObjectMgr::HaveCached(const std::string &objectID) const {
     //this is very sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyRepString str(objectID);
+    PyString str(objectID);
     return(HaveCached(&str));
 }
 
@@ -111,19 +111,19 @@ void CachedObjectMgr::InvalidateCache(const PyRep *objectID) {
 
 //#define RAW_CACHE_CONTENTS
 
-void CachedObjectMgr::UpdateCacheFromSS(const std::string &objectID, PyRepSubStream **in_cached_data) {
+void CachedObjectMgr::UpdateCacheFromSS(const std::string &objectID, PySubStream **in_cached_data) {
     PyCachedObjectDecoder cache;
     if(!cache.Decode(in_cached_data)) {
         _log(SERVICE__ERROR, "Failed to decode cache stream");
         return;
     }
 
-    PyRepString str(objectID);
+    PyString str(objectID);
     _UpdateCache(&str, &cache.cache->data, cache.cache->length);
 }
 
 void CachedObjectMgr::UpdateCache(const std::string &objectID, PyRep **in_cached_data) {
-    PyRepString str(objectID);
+    PyString str(objectID);
     UpdateCache(&str, in_cached_data);
 }
 
@@ -150,7 +150,7 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, uint8 **data, uint32 l
     r->timestamp = Win32TimeNow();
     r->objectID = objectID->Clone();
 
-    r->cache = new PyRepBuffer(data, length);
+    r->cache = new PyBuffer(data, length);
 
     r->version = CRC32::Generate(r->cache->GetBuffer(), r->cache->GetLength());
 
@@ -170,13 +170,13 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, uint8 **data, uint32 l
     m_cachedObjects[str] = r;
 }
 
-PyRepObject *CachedObjectMgr::MakeCacheHint(const std::string &objectID) {
+PyObject *CachedObjectMgr::MakeCacheHint(const std::string &objectID) {
     //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyRepString str(objectID);
+    PyString str(objectID);
     return(MakeCacheHint(&str));
 }
 
-PyRepObject *CachedObjectMgr::MakeCacheHint(const PyRep *objectID) {
+PyObject *CachedObjectMgr::MakeCacheHint(const PyRep *objectID) {
     const std::string str = OIDToString(objectID);
 
     std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);
@@ -185,13 +185,13 @@ PyRepObject *CachedObjectMgr::MakeCacheHint(const PyRep *objectID) {
     return(res->second->EncodeHint());
 }
 
-PyRepObject *CachedObjectMgr::GetCachedObject(const std::string &objectID) {
+PyObject *CachedObjectMgr::GetCachedObject(const std::string &objectID) {
     //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyRepString str(objectID);
+    PyString str(objectID);
     return(GetCachedObject(&str));
 }
 
-PyRepObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
+PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
     const std::string str = OIDToString(objectID);
 
     std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);
@@ -212,7 +212,7 @@ PyRepObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
 
     _log(SERVICE__CACHE, "Returning cached object '%s' with checksum 0x%x", str.c_str(), co.version);
 
-    PyRepObject *result = co.Encode();
+    PyObject *result = co.Encode();
     co.cache = NULL;    //avoid a copy
 
     return result;
@@ -242,7 +242,7 @@ static const uint32 CacheFileMagic = 0xFF886622;
 
 bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const std::string &objectID) {
     //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyRepString str(objectID);
+    PyString str(objectID);
     return(LoadCachedFromFile(cacheDir, &str));
 }
 
@@ -272,7 +272,7 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
 
     CacheRecord *cache = new CacheRecord();
     cache->objectID = objectID->Clone();
-    cache->cache = new PyRepBuffer(header.length);
+    cache->cache = new PyBuffer(header.length);
     cache->timestamp = header.timestamp;
     cache->version = header.version;
 
@@ -297,7 +297,7 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
 
 bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const std::string &objectID) const {
     //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyRepString str(objectID);
+    PyString str(objectID);
     return(SaveCachedToFile(cacheDir, &str));
 }
 
@@ -336,7 +336,7 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
 }
 
 /*
-void CachedObjectMgr::AddCacheHint(const char *oname, const char *key, PyRepDict *into) {
+void CachedObjectMgr::AddCacheHint(const char *oname, const char *key, PyDict *into) {
     PyRep *t = _MakeCacheHint(oname);
     if(t == NULL)
         return;
@@ -344,12 +344,12 @@ void CachedObjectMgr::AddCacheHint(const char *oname, const char *key, PyRepDict
 }
 */
 
-bool CachedObjectMgr::LoadCachedObject(const char *obj_name, PyRepSubStream *into) {
-    PyRepString oname_str(obj_name);
+bool CachedObjectMgr::LoadCachedObject(const char *obj_name, PySubStream *into) {
+    PyString oname_str(obj_name);
     return(LoadCachedObject(&oname_str, obj_name, into));
 }
 
-bool CachedObjectMgr::LoadCachedObject(PyRep *key, const char *oname, PyRepSubStream *into) {
+bool CachedObjectMgr::LoadCachedObject(PyRep *key, const char *oname, PySubStream *into) {
     std::string fname;
     GetCacheFileName(key, fname);
 
@@ -361,13 +361,13 @@ bool CachedObjectMgr::LoadCachedObject(PyRep *key, const char *oname, PyRepSubSt
 
 
 /*bool CachedObjectMgr::AddCachedFileContents(const char *filename, const char
-    *oname, PyRepSubStream *into) { PyRepSubStream *cache;
+    *oname, PySubStream *into) { PySubStream *cache;
     if(!LoadCachedFile(filename, oname, cache))
         return false;
 
 }*/
 
-bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, PyRepSubStream *into) {
+bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, PySubStream *into) {
     uint32 file_length = GetFileLength(abs_fname);
     if(file_length == 0) {
         _log(CLIENT__ERROR, "Unable to stat cache file '%s' for oname '%s'", abs_fname, oname);
@@ -392,12 +392,12 @@ bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, P
 }
 
 PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(const char *obj_name) {
-    PyRepString s(obj_name);
+    PyString s(obj_name);
     return(LoadCachedObject(&s, obj_name));
 }
 
 PyCachedObjectDecoder *CachedObjectMgr::LoadCachedFile(const char *filename, const char *oname) {
-    PyRepSubStream *into = new PyRepSubStream();
+    PySubStream *into = new PySubStream();
     if(!LoadCachedFile(filename, oname, into)) {
         delete into;
         return NULL;
@@ -413,7 +413,7 @@ PyCachedObjectDecoder *CachedObjectMgr::LoadCachedFile(const char *filename, con
 }
 
 PyCachedCall *CachedObjectMgr::LoadCachedCall(const char *filename, const char *oname) {
-    PyRepSubStream *into = new PyRepSubStream();
+    PySubStream *into = new PySubStream();
     if(!LoadCachedFile(filename, oname, into)) {
         delete into;
         return NULL;
@@ -506,7 +506,7 @@ PyCachedObject *PyCachedObject::Clone() const {
     res->version  = version;
     res->nodeID  = nodeID;
     res->shared = shared;
-    res->cache = (PyRepBuffer *) cache->Clone();
+    res->cache = (PyBuffer *) cache->Clone();
     res->compressed = compressed;
     res->objectID = objectID->Clone();
     return res;
@@ -546,8 +546,8 @@ void PyCachedObject::Dump(FILE *into, const char *pfx, bool contents_too) {
     }
 }
 
-bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
-    PyRepSubStream *ss = *in_ss;    //consume
+bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
+    PySubStream *ss = *in_ss;    //consume
     *in_ss = NULL;
 
     delete cache;
@@ -567,7 +567,7 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
         delete ss;
         return false;
     }
-    PyRepObject *po = (PyRepObject *) ss->decoded;
+    PyObject *po = (PyObject *) ss->decoded;
     //TODO: could check type string, dont care... (should be objectCaching.CachedObject)
 
     if(!po->arguments->IsTuple()) {
@@ -575,7 +575,7 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
         delete ss;
         return false;
     }
-    PyRepTuple *args = (PyRepTuple *) po->arguments;
+    PyTuple *args = (PyTuple *) po->arguments;
 
     if(args->items.size() != 7) {
         _log(CLIENT__ERROR, "Cache object's args tuple has %lu elements instead of 7", args->items.size());
@@ -589,44 +589,44 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
         return false;
     }
     //ignore unknown [1]
-    /*if(!args->items[1]->IsInteger()) {
+    /*if(!args->items[1]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's arg %d is not a None: %s", 1, args->items[1]->TypeString());
         delete ss;
         return false;
     }*/
-    if(!args->items[2]->IsInteger()) {
+    if(!args->items[2]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's arg %d is not an Integer: %s", 2, args->items[2]->TypeString());
         delete ss;
         return false;
     }
-    if(!args->items[3]->IsInteger()) {
+    if(!args->items[3]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's arg %d is not an Integer: %s", 3, args->items[3]->TypeString());
         delete ss;
         return false;
     }
-    if(!args->items[5]->IsInteger()) {
+    if(!args->items[5]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's arg %d is not a : %s", 5, args->items[5]->TypeString());
         delete ss;
         return false;
     }
 
-    PyRepTuple *objVt = (PyRepTuple *) args->items[0];
-    if(!objVt->items[0]->IsInteger()) {
+    PyTuple *objVt = (PyTuple *) args->items[0];
+    if(!objVt->items[0]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 0, objVt->items[0]->TypeString());
         delete ss;
         return false;
     }
-    if(!objVt->items[1]->IsInteger()) {
+    if(!objVt->items[1]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 1, objVt->items[1]->TypeString());
         delete ss;
         return false;
     }
 
-    PyRepInteger *nodeidr = (PyRepInteger *) args->items[2];
-    PyRepInteger *sharedr = (PyRepInteger *) args->items[3];
-    PyRepInteger *compressedr = (PyRepInteger *) args->items[5];
-    PyRepInteger *timer = (PyRepInteger *) objVt->items[0];
-    PyRepInteger *versionr = (PyRepInteger *) objVt->items[1];
+    PyInt *nodeidr = (PyInt *) args->items[2];
+    PyInt *sharedr = (PyInt *) args->items[3];
+    PyInt *compressedr = (PyInt *) args->items[5];
+    PyInt *timer = (PyInt *) objVt->items[0];
+    PyInt *versionr = (PyInt *) objVt->items[1];
 
     timestamp = timer->value;
     version = (uint32)versionr->value;              //TODO loose the typecasts
@@ -638,12 +638,12 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
 
     //content (do this as the last thing, since its the heavy lifting):
     if(args->items[4]->IsSubStream()) {
-        cache = (PyRepSubStream *) args->items[4];
+        cache = (PySubStream *) args->items[4];
         //take it
         args->items[4] = NULL;
     } else if(args->items[4]->IsBuffer()) {
         //this is a data buffer, likely compressed.
-        PyRepBuffer *buf = (PyRepBuffer *) args->items[4];
+        PyBuffer *buf = (PyBuffer *) args->items[4];
         cache = buf->CreateSubStream();
         if(cache == NULL) {
             _log(CLIENT__ERROR, "Cache object's content buffer is not a substream!");
@@ -652,9 +652,9 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
         }
     } else if(args->items[4]->IsString()) {
         //this is a data buffer, likely compressed, not sure why it comes through as a string...
-        PyRepString *buf = (PyRepString *) args->items[4];
+        PyString *buf = (PyString *) args->items[4];
         //hack for now:
-        PyRepBuffer tmpbuf((const uint8 *) buf->value.c_str(), buf->value.length());
+        PyBuffer tmpbuf((const uint8 *) buf->value.c_str(), buf->value.length());
         cache = tmpbuf.CreateSubStream();
         if(cache == NULL) {
             _log(CLIENT__ERROR, "Cache object's content buffer is not a substream!");
@@ -673,25 +673,25 @@ bool PyCachedObjectDecoder::Decode(PyRepSubStream **in_ss) {
     return true;
 }
 
-PyRepObject *PyCachedObject::Encode() {
-    PyRepObject *obj = new PyRepObject();
+PyObject *PyCachedObject::Encode() {
+    PyObject *obj = new PyObject();
 
     obj->type = "objectCaching.CachedObject";
-    PyRepTuple *arg_tuple = new PyRepTuple(7);
+    PyTuple *arg_tuple = new PyTuple(7);
     obj->arguments = arg_tuple;
 
-    PyRepTuple *versiont = new PyRepTuple(2);
-    versiont->items[0] = new PyRepInteger(timestamp);
-    versiont->items[1] = new PyRepInteger(version);
+    PyTuple *versiont = new PyTuple(2);
+    versiont->items[0] = new PyInt(timestamp);
+    versiont->items[1] = new PyInt(version);
 
 
     arg_tuple->items[0] = versiont;
 
-    arg_tuple->items[1] = new PyRepNone();
+    arg_tuple->items[1] = new PyNone();
 
-    arg_tuple->items[2] = new PyRepInteger(nodeID);
+    arg_tuple->items[2] = new PyInt(nodeID);
 
-    arg_tuple->items[3] = new PyRepInteger(shared?1:0);
+    arg_tuple->items[3] = new PyInt(shared?1:0);
 
     //compression or not, we want to encode this into bytes so it doesn't
     //get cloned in object form just to be encoded later
@@ -706,7 +706,7 @@ PyRepObject *PyCachedObject::Encode() {
             compressed = false;
         }
         //buf is consumed:
-        arg_tuple->items[4] = new PyRepBuffer(&buf, deflen);
+        arg_tuple->items[4] = new PyBuffer(&buf, deflen);
     } else {
         //TODO: we dont really need to clone this if we can figure out a way to say "this is read only"
         //or if we can change this encode method to consume the PyCachedObject (which will almost always be the case)
@@ -716,7 +716,7 @@ PyRepObject *PyCachedObject::Encode() {
     //or if we can change this encode method to consume the PyCachedObject (which will almost always be the case)
     arg_tuple->items[4] = cache->Clone();
 
-    arg_tuple->items[5] = new PyRepInteger(compressed?1:0);
+    arg_tuple->items[5] = new PyInt(compressed?1:0);
 
     //same cloning stattement as above.
     arg_tuple->items[6] = objectID->Clone();
@@ -724,21 +724,21 @@ PyRepObject *PyCachedObject::Encode() {
     return(obj);
 }
 
-PyRepObject *PyCachedObjectDecoder::EncodeHint() {
-    PyRepObject *obj = new PyRepObject();
+PyObject *PyCachedObjectDecoder::EncodeHint() {
+    PyObject *obj = new PyObject();
 
     obj->type = "util.CachedObject";
-    PyRepTuple *arg_tuple = new PyRepTuple(3);
+    PyTuple *arg_tuple = new PyTuple(3);
     obj->arguments = arg_tuple;
 
-    PyRepTuple *versiont = new PyRepTuple(2);
-    versiont->items[0] = new PyRepInteger(timestamp);
-    versiont->items[1] = new PyRepInteger(version);
+    PyTuple *versiont = new PyTuple(2);
+    versiont->items[0] = new PyInt(timestamp);
+    versiont->items[1] = new PyInt(version);
 
 
     arg_tuple->items[0] = objectID->Clone();
 
-    arg_tuple->items[1] = new PyRepInteger(nodeID);
+    arg_tuple->items[1] = new PyInt(nodeID);
 
     arg_tuple->items[2] = versiont;
 
@@ -770,8 +770,8 @@ void PyCachedCall::Dump(FILE *into, const char *pfx, bool contents_too) {
     }
 }
 
-bool PyCachedCall::Decode(PyRepSubStream **in_ss) {
-    PyRepSubStream *ss = *in_ss;    //consume
+bool PyCachedCall::Decode(PySubStream **in_ss) {
+    PySubStream *ss = *in_ss;    //consume
     *in_ss = NULL;
 
     delete result;
@@ -789,15 +789,15 @@ bool PyCachedCall::Decode(PyRepSubStream **in_ss) {
         delete ss;
         return false;
     }
-    PyRepDict *po = (PyRepDict *) ss->decoded;
+    PyDict *po = (PyDict *) ss->decoded;
 
-    PyRepDict::iterator cur, end;
+    PyDict::iterator cur, end;
     cur = po->begin();
     end = po->end();
     for(; cur != end; cur++) {
         if(!cur->first->IsString())
             continue;
-        PyRepString *key = (PyRepString *) cur->first;
+        PyString *key = (PyString *) cur->first;
         if(key->value == "lret") {
             result = cur->second;
             cur->second = NULL;

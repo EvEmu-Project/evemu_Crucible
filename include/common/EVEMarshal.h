@@ -47,45 +47,45 @@ public:
      *  Note:  assuming the value is unsigned
      *         research shows that Op_PyByte can be negative
      */
-    void VisitInteger(const PyRepInteger *rep);
+    void VisitInteger(const PyInt *rep);
     //! Adds a boolean to the stream
-    void VisitBoolean(const PyRepBoolean *rep);
+    void VisitBoolean(const PyBool *rep);
     //! Adds a double to the stream
-    void VisitReal(const PyRepReal *rep);
+    void VisitReal(const PyFloat *rep);
     //! Adds a None object to the stream
-    void VisitNone(const PyRepNone *rep);
+    void VisitNone(const PyNone *rep);
     //! Adds a buffer to the stream
-    void VisitBuffer(const PyRepBuffer *rep);
+    void VisitBuffer(const PyBuffer *rep);
     //! Adds a packed row to the stream
-    void VisitPackedRow(const PyRepPackedRow *rep);
+    void VisitPackedRow(const PyPackedRow *rep);
     //! add a string object to the data stream
-    void VisitString(const PyRepString *rep);
+    void VisitString(const PyString *rep);
     //! Adds a New object to the stream
-    void VisitObject(const PyRepObject *rep);
-    void VisitObjectEx(const PyRepObjectEx *rep);
-    void VisitObjectExHeader(const PyRepObjectEx *rep);
-    void VisitObjectExList(const PyRepObjectEx *rep);
-    void VisitObjectExListElement(const PyRepObjectEx *rep, uint32 index, const PyRep *ele);
-    void VisitObjectExDict(const PyRepObjectEx *rep);
-    void VisitObjectExDictElement(const PyRepObjectEx *rep, uint32 index, const PyRep *key, const PyRep *value);
+    void VisitObject(const PyObject *rep);
+    void VisitObjectEx(const PyObjectEx *rep);
+    void VisitObjectExHeader(const PyObjectEx *rep);
+    void VisitObjectExList(const PyObjectEx *rep);
+    void VisitObjectExListElement(const PyObjectEx *rep, uint32 index, const PyRep *ele);
+    void VisitObjectExDict(const PyObjectEx *rep);
+    void VisitObjectExDictElement(const PyObjectEx *rep, uint32 index, const PyRep *key, const PyRep *value);
     //! Adds a sub structure to the stream
-    void VisitSubStruct(const PyRepSubStruct *rep);
+    void VisitSubStruct(const PySubStruct *rep);
     //! Adds a sub stream to the stream
-    void VisitSubStream(const PyRepSubStream *rep);
-    void VisitChecksumedStream(const PyRepChecksumedStream *rep);
+    void VisitSubStream(const PySubStream *rep);
+    void VisitChecksumedStream(const PyChecksumedStream *rep);
 
-    void VisitDict(const PyRepDict *rep);
-    void VisitDictElement(const PyRepDict *rep, uint32 index, const PyRep *key, const PyRep *value);
+    void VisitDict(const PyDict *rep);
+    void VisitDictElement(const PyDict *rep, uint32 index, const PyRep *key, const PyRep *value);
 
-    void VisitList(const PyRepList *rep);
-    void VisitListElement(const PyRepList *rep, uint32 index, const PyRep *ele);
+    void VisitList(const PyList *rep);
+    void VisitListElement(const PyList *rep, uint32 index, const PyRep *ele);
 
-    void VisitTuple(const PyRepTuple *rep);
-    void VisitTupleElement(const PyRepTuple *rep, uint32 index, const PyRep *ele);
+    void VisitTuple(const PyTuple *rep);
+    void VisitTupleElement(const PyTuple *rep, uint32 index, const PyRep *ele);
 
 private:
     // utility to handle Op_PyVarInteger (a bit hacky......)
-    void _PyRepInteger_AsByteArray(const PyRepInteger* v);
+    void _PyInt_AsByteArray(const PyInt* v);
 
     // not very efficient but it will do for now
     EVEMU_INLINE void reserve(uint32 size) {

@@ -31,7 +31,7 @@
 #include <vector>
 
 class SystemEntity;
-class PyRepTuple;
+class PyTuple;
 class DoDestiny_SetState;
 
 class SystemBubble {
@@ -41,9 +41,9 @@ public:
 	const GPoint m_center;
 	const double m_radius;
 	
-	void BubblecastDestiny(std::vector<PyRepTuple *> &updates, std::vector<PyRepTuple *> &events, const char *desc) const;
-	void BubblecastDestinyUpdate(PyRepTuple **payload, const char *desc) const;
-	void BubblecastDestinyEvent(PyRepTuple **payload, const char *desc) const;
+	void BubblecastDestiny(std::vector<PyTuple *> &updates, std::vector<PyTuple *> &events, const char *desc) const;
+	void BubblecastDestinyUpdate(PyTuple **payload, const char *desc) const;
+	void BubblecastDestinyEvent(PyTuple **payload, const char *desc) const;
 	
 	bool ProcessWander(std::vector<SystemEntity *> &wanderers);
 	

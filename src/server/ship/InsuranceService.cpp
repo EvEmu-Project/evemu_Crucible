@@ -96,7 +96,7 @@ PyBoundObject *InsuranceService::_CreateBoundObject(Client *c, PyRep *bind_args)
 PyResult InsuranceService::Handle_GetContractForShip(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	result = new PyRepNone();
+	result = new PyNone();
 
 	_log(CLIENT__MESSAGE, "GetContractForShip not implemented!");
 	

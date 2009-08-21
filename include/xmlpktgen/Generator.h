@@ -106,32 +106,32 @@ protected:
     ProcFDecl(string)
 
 #define AllProcFMaps(c) \
-    ProcFMap(c, InlineTuple, PyRepTuple); \
-    ProcFMap(c, InlineDict, PyRepDict); \
-    ProcFMap(c, InlineList, PyRepList); \
-    ProcFMap(c, InlineSubStream, PyRepSubStream); \
-    ProcFMap(c, InlineSubStruct, PyRepSubStruct); \
-    ProcFMap(c, strdict, PyRepDict); \
-    ProcFMap(c, intdict, PyRepDict); \
-    ProcFMap(c, primdict, PyRepDict); \
-    ProcFMap(c, strlist, PyRepList); \
-    ProcFMap(c, intlist, PyRepList); \
-    ProcFMap(c, int64list, PyRepList); \
+    ProcFMap(c, InlineTuple, PyTuple); \
+    ProcFMap(c, InlineDict, PyDict); \
+    ProcFMap(c, InlineList, PyList); \
+    ProcFMap(c, InlineSubStream, PySubStream); \
+    ProcFMap(c, InlineSubStruct, PySubStruct); \
+    ProcFMap(c, strdict, PyDict); \
+    ProcFMap(c, intdict, PyDict); \
+    ProcFMap(c, primdict, PyDict); \
+    ProcFMap(c, strlist, PyList); \
+    ProcFMap(c, intlist, PyList); \
+    ProcFMap(c, int64list, PyList); \
     ProcFMap(c, element, PyRep); \
     ProcFMap(c, elementptr, PyRep); \
     ProcFMap(c, none, PyRep); \
-    ProcFMap(c, object, PyRepObject); \
-    ProcFMap(c, object_ex, PyRepObjectEx); \
-    ProcFMap(c, buffer, PyRepBuffer); \
+    ProcFMap(c, object, PyObject); \
+    ProcFMap(c, object_ex, PyObjectEx); \
+    ProcFMap(c, buffer, PyBuffer); \
     ProcFMap(c, raw, PyRep); \
-    ProcFMap(c, list, PyRepList); \
-    ProcFMap(c, tuple, PyRepTuple); \
-    ProcFMap(c, dict, PyRepDict); \
-    ProcFMap(c, int, PyRepInteger); \
-    ProcFMap(c, bool, PyRepBoolean); \
-    ProcFMap(c, int64, PyRepInteger); \
-    ProcFMap(c, real, PyRepReal); \
-    ProcFMap(c, string, PyRepString)
+    ProcFMap(c, list, PyList); \
+    ProcFMap(c, tuple, PyTuple); \
+    ProcFMap(c, dict, PyDict); \
+    ProcFMap(c, int, PyInt); \
+    ProcFMap(c, bool, PyBool); \
+    ProcFMap(c, int64, PyInt); \
+    ProcFMap(c, real, PyFloat); \
+    ProcFMap(c, string, PyString)
 
 
 

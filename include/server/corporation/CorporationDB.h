@@ -43,23 +43,23 @@ public:
     CorporationDB(DBcore *db);
     virtual ~CorporationDB();
 
-    PyRepObject *GetCorporation(uint32 corpID);
-    PyRepObject *GetStations(uint32 corpID);
-    PyRepObject *GetEveOwners();
+    PyObject *GetCorporation(uint32 corpID);
+    PyObject *GetStations(uint32 corpID);
+    PyObject *GetEveOwners();
 
     PyRep *GetMyApplications(uint32 charID);
     PyRep *GetApplications(uint32 corpID);
-    PyRepObject *GetEmploymentRecord(uint32 charID);
-    PyRepObject *GetMedalsReceived(uint32 charID);
+    PyObject *GetEmploymentRecord(uint32 charID);
+    PyObject *GetMedalsReceived(uint32 charID);
 
-    PyRepObject *ListCorpStations(uint32 corp_id);
+    PyObject *ListCorpStations(uint32 corp_id);
 
-    PyRepObject *ListStationOffices(uint32 station_id);
-    PyRepObject *ListStationCorps(uint32 station_id);
-    PyRepObject *ListStationOwners(uint32 station_id);
+    PyObject *ListStationOffices(uint32 station_id);
+    PyObject *ListStationCorps(uint32 station_id);
+    PyObject *ListStationOwners(uint32 station_id);
 
-    PyRepDict *ListAllCorpInfo();
-    PyRepObject *ListNPCDivisions();
+    PyDict *ListAllCorpInfo();
+    PyObject *ListNPCDivisions();
     bool ListAllCorpFactions(std::map<uint32, uint32> &into);
     bool ListAllFactionStationCounts(std::map<uint32, uint32> &into);
     bool ListAllFactionSystemCounts(std::map<uint32, uint32> &into);
@@ -88,9 +88,9 @@ public:
     bool DeleteApplication(const ApplicationInfo &app);
     bool CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, uint32 newCorpID, uint32 charID);
 
-    bool UpdateDivisionNames(uint32 corpID, const Call_UpdateDivisionNames & divs, PyRepDict * notif);
-    bool UpdateCorporation(uint32 corpID, const Call_UpdateCorporation & upd, PyRepDict * notif);
-    bool UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyRepDict * notif);
+    bool UpdateDivisionNames(uint32 corpID, const Call_UpdateDivisionNames & divs, PyDict * notif);
+    bool UpdateCorporation(uint32 corpID, const Call_UpdateCorporation & upd, PyDict * notif);
+    bool UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDict * notif);
 
 protected:
 };

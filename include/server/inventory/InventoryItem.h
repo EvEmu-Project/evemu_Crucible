@@ -33,8 +33,8 @@
 #include "inventory/ItemType.h"
 
 class PyRep;
-class PyRepDict;
-class PyRepObject;
+class PyDict;
+class PyObject;
 
 class ServiceDB;
 
@@ -134,10 +134,10 @@ public:
      */
     bool Populate(Rsp_CommonGetInfo_Entry &into) const;
 
-    PyRepPackedRow *GetItemRow() const;
-    void GetItemRow(PyRepPackedRow &into) const;
+    PyPackedRow *GetItemRow() const;
+    void GetItemRow(PyPackedRow &into) const;
 
-    PyRepObject *ItemGetInfo() const;
+    PyObject *ItemGetInfo() const;
 
     /*
      * Public Fields:

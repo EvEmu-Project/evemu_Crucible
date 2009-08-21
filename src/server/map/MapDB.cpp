@@ -33,7 +33,7 @@ MapDB::MapDB(DBcore *db)
 MapDB::~MapDB() {
 }
 
-PyRepObject *MapDB::GetPseudoSecurities() {
+PyObject *MapDB::GetPseudoSecurities() {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res, "SELECT solarSystemID, security FROM mapSolarSystems"))
@@ -45,7 +45,7 @@ PyRepObject *MapDB::GetPseudoSecurities() {
 	return DBResultToRowset(res);
 }
 
-PyRepObject *MapDB::GetStationExtraInfo() {
+PyObject *MapDB::GetStationExtraInfo() {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
@@ -61,7 +61,7 @@ PyRepObject *MapDB::GetStationExtraInfo() {
 	return DBResultToRowset(res);
 }
 
-PyRepObject *MapDB::GetStationOpServices() {
+PyObject *MapDB::GetStationOpServices() {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
@@ -77,7 +77,7 @@ PyRepObject *MapDB::GetStationOpServices() {
 	return DBResultToRowset(res);
 }
 
-PyRepObject *MapDB::GetStationServiceInfo() {
+PyObject *MapDB::GetStationServiceInfo() {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,

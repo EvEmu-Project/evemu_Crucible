@@ -52,15 +52,15 @@ PyResult PyCallable::Call(const std::string &method, PyCallArgs &args) {
 }
 
 
-PyCallArgs::PyCallArgs(Client *c, PyRepTuple **tup, PyRepDict **dict)
+PyCallArgs::PyCallArgs(Client *c, PyTuple **tup, PyDict **dict)
 : client(c),
   tuple(*tup)
 {
 	*tup = NULL;
 	
-	PyRepDict *d = *dict;
+	PyDict *d = *dict;
 	*dict = NULL;
-	PyRepDict::iterator cur, end;
+	PyDict::iterator cur, end;
 	cur = d->begin();
 	end = d->end();
 	for(; cur != end; cur++) {
@@ -69,7 +69,7 @@ PyCallArgs::PyCallArgs(Client *c, PyRepTuple **tup, PyRepDict **dict)
 			cur->first->Dump(SERVICE__ERROR, "    ");
 			continue;
 		}
-		PyRepString *s = (PyRepString *) cur->first;
+		PyString *s = (PyString *) cur->first;
 		
 		byname[s->value] = cur->second;
 		cur->second = NULL;
@@ -108,10 +108,10 @@ void PyCallArgs::Dump(LogType type) const {
 
 /* default PyResult */
 PyResult::PyResult()                : ssResult(NULL) {}
-PyResult::PyResult(PyRep *result)   : ssResult((result==NULL) ? new PyRepNone() : result ) {}
+PyResult::PyResult(PyRep *result)   : ssResult((result==NULL) ? new PyNone() : result ) {}
 PyResult::~PyResult() {}
 
 /* default PyException */
 PyException::PyException() : ssException(NULL) {}
-PyException::PyException(PyRep *except) : ssException((except==NULL) ? new PyRepNone : except) {}
+PyException::PyException(PyRep *except) : ssException((except==NULL) ? new PyNone : except) {}
 PyException::~PyException() {}

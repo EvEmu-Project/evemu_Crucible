@@ -72,11 +72,11 @@ PyService *PyServiceMgr::LookupService(const std::string &name) {
 	return NULL;
 }
 
-PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict **dict) {
+PySubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyDict **dict) {
 	if(cb == NULL)
     {
         sLog.Error("Service Mgr", "Tried to bind a NULL object!");
-		return new PyRepSubStruct(new PyRepNone());
+		return new PySubStruct(new PyNone());
 	}
 
 	cb->_SetNodeBindID(GetNodeID(), _GetBindID());	//tell the object what its bind ID is.
@@ -93,24 +93,24 @@ PyRepSubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyRepDict
 	//not sure what this really is...
 	uint64 expiration = Win32TimeNow() + Win32Time_Hour;
 
-	PyRepTuple *objt;
+	PyTuple *objt;
 	if(dict == NULL || *dict == NULL)
 	{
-		objt = new PyRepTuple(2);
+		objt = new PyTuple(2);
 
-		objt->items[0] = new PyRepString(bind_str);
-		objt->items[1] = new PyRepInteger(expiration);	//expiration?
+		objt->items[0] = new PyString(bind_str);
+		objt->items[1] = new PyInt(expiration);	//expiration?
 	}
 	else
 	{
-		objt = new PyRepTuple(3);
+		objt = new PyTuple(3);
 
-		objt->items[0] = new PyRepString(bind_str);
+		objt->items[0] = new PyString(bind_str);
 		objt->items[1] = *dict; *dict = NULL;			//consumed
-		objt->items[2] = new PyRepInteger(expiration);	//expiration?
+		objt->items[2] = new PyInt(expiration);	//expiration?
 	}
 
-	return new PyRepSubStruct(new PyRepSubStream(objt));
+	return new PySubStruct(new PySubStream(objt));
 }
 
 void PyServiceMgr::ClearBoundObjects(Client *who) {

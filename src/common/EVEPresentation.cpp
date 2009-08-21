@@ -195,7 +195,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
                 _log(NET__PRES_ERROR, "%s: Invalid packet during waiting for command (tuple expected).", GetConnectedAddress().c_str());
                 break;
             }
-            PyRepTuple *t = (PyRepTuple *)r;
+            PyTuple *t = (PyTuple *)r;
             //decode
             if(t->items.size() == 2) {
                 //QC = Queue Check
@@ -210,7 +210,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
                 }
                 _log(NET__PRES_DEBUG, "%s: Got Queue Check command.", GetConnectedAddress().c_str());
                 //they return position in queue
-                PyRep *tmp = new PyRepInteger(1);
+                PyRep *tmp = new PyInt(1);
                 _QueueRep(tmp);
                 delete tmp;
 
@@ -250,7 +250,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
                 m_state = CryptoRequestReceived_ChallengeWait;
 
                 //send out accept response
-                PyRep *tmp = new PyRepString("OK CC");
+                PyRep *tmp = new PyString("OK CC");
                 _QueueRep(tmp);
                 delete tmp;
             } else {
@@ -285,7 +285,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
                 SafeDelete(m_request);
 
                 //send passwordVersion required: 1=plain, 2=hashed
-                PyRep *r = new PyRepInteger(1);
+                PyRep *r = new PyInt(1);
                 _QueueRep(r);
                 delete r;
 
@@ -297,8 +297,8 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
             //send our handshake
             CryptoServerHandshake server_shake;
             server_shake.serverChallenge = "";
-            server_shake.func_marshaled_code = new PyRepBuffer(handshakeFunc, sizeof(handshakeFunc));
-			server_shake.verification = new PyRepBoolean( false );
+            server_shake.func_marshaled_code = new PyBuffer(handshakeFunc, sizeof(handshakeFunc));
+			server_shake.verification = new PyBool( false );
             server_shake.cluster_usercount = m_userCount;
             server_shake.proxy_nodeid = 0xFFAA;
             server_shake.user_logonqueueposition = 1;

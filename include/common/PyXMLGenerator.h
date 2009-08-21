@@ -48,25 +48,25 @@ protected:
     inline void push(const char *v) { m_indentStack.push(v); }
 
     //! primitive data visitors
-    void VisitInteger(const PyRepInteger *rep);
-    void VisitReal(const PyRepReal *rep);
-    void VisitBoolean(const PyRepBoolean *rep);
-    void VisitNone(const PyRepNone *rep);
-    void VisitBuffer(const PyRepBuffer *rep);
-    void VisitString(const PyRepString *rep);
+    void VisitInteger(const PyInt *rep);
+    void VisitReal(const PyFloat *rep);
+    void VisitBoolean(const PyBool *rep);
+    void VisitNone(const PyNone *rep);
+    void VisitBuffer(const PyBuffer *rep);
+    void VisitString(const PyString *rep);
     //! PackedRow type visitor
-    void VisitPackedRow(const PyRepPackedRow *rep);
+    void VisitPackedRow(const PyPackedRow *rep);
     //! Object type visitor
-    void VisitObject(const PyRepObject *rep);
-    void VisitObjectEx(const PyRepObjectEx *rep);
+    void VisitObject(const PyObject *rep);
+    void VisitObjectEx(const PyObjectEx *rep);
 
-    void VisitSubStruct(const PyRepSubStruct *rep);
-    void VisitSubStream(const PyRepSubStream *rep);
-    void VisitChecksumedStream(const PyRepChecksumedStream *rep);
+    void VisitSubStruct(const PySubStruct *rep);
+    void VisitSubStream(const PySubStream *rep);
+    void VisitChecksumedStream(const PyChecksumedStream *rep);
 
-    void VisitDict(const PyRepDict *rep);
-    void VisitList(const PyRepList *rep);
-    void VisitTuple(const PyRepTuple *rep);
+    void VisitDict(const PyDict *rep);
+    void VisitList(const PyList *rep);
+    void VisitTuple(const PyTuple *rep);
 
 };
 

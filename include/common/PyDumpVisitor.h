@@ -46,25 +46,25 @@ protected:
     const bool m_full_lists;
 
     //! primitive data visitors
-    void VisitInteger(const PyRepInteger *rep, int64 lvl );
-    void VisitReal(const PyRepReal *rep, int64 lvl );
-    void VisitBoolean(const PyRepBoolean *rep, int64 lvl );
-    void VisitNone(const PyRepNone *rep, int64 lvl );
-    void VisitBuffer(const PyRepBuffer *rep, int64 lvl );
-    void VisitString(const PyRepString *rep, int64 lvl );
+    void VisitInteger(const PyInt *rep, int64 lvl );
+    void VisitReal(const PyFloat *rep, int64 lvl );
+    void VisitBoolean(const PyBool *rep, int64 lvl );
+    void VisitNone(const PyNone *rep, int64 lvl );
+    void VisitBuffer(const PyBuffer *rep, int64 lvl );
+    void VisitString(const PyString *rep, int64 lvl );
     //! PackedRow type visitor
-    void VisitPackedRow(const PyRepPackedRow *rep, int64 lvl );
+    void VisitPackedRow(const PyPackedRow *rep, int64 lvl );
     //! Object type visitor
-    void VisitObject(const PyRepObject *rep, int64 lvl );
-    void VisitObjectEx(const PyRepObjectEx *rep, int64 lvl );
+    void VisitObject(const PyObject *rep, int64 lvl );
+    void VisitObjectEx(const PyObjectEx *rep, int64 lvl );
     //! Structureated types Visitor
-    void VisitSubStruct(const PyRepSubStruct *rep, int64 lvl );
-        virtual void VisitSubStream(const PyRepSubStream *rep, int64 lvl );
-    void VisitChecksumedStream(const PyRepChecksumedStream *rep, int64 lvl );
+    void VisitSubStruct(const PySubStruct *rep, int64 lvl );
+        virtual void VisitSubStream(const PySubStream *rep, int64 lvl );
+    void VisitChecksumedStream(const PyChecksumedStream *rep, int64 lvl );
     //! the data types Visitor
-        virtual void VisitDict(const PyRepDict *rep, int64 lvl );
-        virtual void VisitList(const PyRepList *rep, int64 lvl );
-        virtual void VisitTuple(const PyRepTuple *rep, int64 lvl );
+        virtual void VisitDict(const PyDict *rep, int64 lvl );
+        virtual void VisitList(const PyList *rep, int64 lvl );
+        virtual void VisitTuple(const PyTuple *rep, int64 lvl );
 };
 
 class PyLogsysDump : public PyDumpVisitor {
@@ -75,10 +75,10 @@ public:
 
 protected:
     //overloaded for speed enhancements when disabled
-    void VisitDict(const PyRepDict *rep, int64 lvl );
-    void VisitList(const PyRepList *rep, int64 lvl );
-    void VisitTuple(const PyRepTuple *rep, int64 lvl );
-    void VisitSubStream(const PyRepSubStream *rep, int64 lvl );
+    void VisitDict(const PyDict *rep, int64 lvl );
+    void VisitList(const PyList *rep, int64 lvl );
+    void VisitTuple(const PyTuple *rep, int64 lvl );
+    void VisitSubStream(const PySubStream *rep, int64 lvl );
 
     const LogType m_type;
     const LogType m_hex_type;

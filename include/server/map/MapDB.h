@@ -33,10 +33,10 @@ public:
 	MapDB(DBcore *db);
 	virtual ~MapDB();
 	
-	PyRepObject *GetPseudoSecurities();
-	PyRepObject *GetStationExtraInfo();
-	PyRepObject *GetStationOpServices();
-	PyRepObject *GetStationServiceInfo();
+	PyObject *GetPseudoSecurities();
+	PyObject *GetStationExtraInfo();
+	PyObject *GetStationOpServices();
+	PyObject *GetStationServiceInfo();
 	
 protected:
 };

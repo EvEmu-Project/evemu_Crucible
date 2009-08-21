@@ -107,7 +107,7 @@ bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDy
 }
 
 
-PyRepObject *SystemDB::ListFactions() {
+PyObject *SystemDB::ListFactions() {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
@@ -122,7 +122,7 @@ PyRepObject *SystemDB::ListFactions() {
 	return DBResultToRowset(res);
 }
 
-PyRepObject *SystemDB::ListJumps(uint32 stargateID) {
+PyObject *SystemDB::ListJumps(uint32 stargateID) {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,

@@ -105,7 +105,7 @@ PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {
 	PyRep *hint = m_manager->cache_service->GetCacheHint("dogmaIM.attributesByName");
 	if(hint == NULL) {
 		_log(CLIENT__ERROR, "Unable to load cache hint for dogmaIM.attributesByName");
-		return(new PyRepNone());
+		return(new PyNone());
 	}
 	result = hint;
 
@@ -117,7 +117,7 @@ PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {
 PyResult DogmaIMBound::Handle_ShipGetInfo(PyCallArgs &call) {
 	//takes no arguments
 	
-	PyRepObject *result = call.client->GetShip()->ShipGetInfo();
+	PyObject *result = call.client->GetShip()->ShipGetInfo();
 	if(result == NULL) {
 		codelog(SERVICE__ERROR, "Unable to build ship info for ship %u", call.client->GetShipID());
 		return NULL;
@@ -145,7 +145,7 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
 PyResult DogmaIMBound::Handle_CharGetInfo(PyCallArgs &call) {
 	//no arguments
 	
-	PyRepObject *result = call.client->GetChar()->CharGetInfo();
+	PyObject *result = call.client->GetChar()->CharGetInfo();
 	if(result == NULL) {
 		codelog(SERVICE__ERROR, "Unable to build char info for char %u", call.client->GetCharacterID());
 		return NULL;
@@ -158,7 +158,7 @@ PyResult DogmaIMBound::Handle_CheckSendLocationInfo(PyCallArgs &call) {
 	//no arguments
 	PyRep *result = NULL;
 
-	result = new PyRepNone();
+	result = new PyNone();
 	_log(SERVICE__ERROR, "Unhandled DogmaIMBound::CheckSendLocationInfo");
 
 	return result;
@@ -187,7 +187,7 @@ PyResult DogmaIMBound::Handle_Activate(PyCallArgs &call) {
 	
 	int res = call.client->modules.Activate(args.itemID, args.effectName, args.target, args.repeat);
 	
-	return(new PyRepInteger(res));
+	return(new PyInt(res));
 }
 
 PyResult DogmaIMBound::Handle_Deactivate(PyCallArgs &call) {
@@ -269,5 +269,5 @@ PyResult DogmaIMBound::Handle_ClearTargets(PyCallArgs &call) {
 PyResult DogmaIMBound::Handle_GetWeaponBankInfoForShip(PyCallArgs &call) {
 	_log(SERVICE__ERROR, "GetWeaponBankInfoForShip unimplemented.");
 
-	return(new PyRepDict);
+	return(new PyDict);
 }

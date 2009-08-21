@@ -122,49 +122,49 @@ void HandlePingRequest(Client* client, PyPacket * packet)
         To really simulate/emulate that we need the various packet handlers which in fact we don't have ( :P ).
         So the next piece of code "fake's" it, with a slight delay on the received packet time.
     */
-    PyRepList* pingList = (PyRepList*)ret->payload->items[0];
+    PyList* pingList = (PyList*)ret->payload->items[0];
     if (pingList->IsList())
     {
-        PyRepTuple * pingTuple = new PyRepTuple(3);
+        PyTuple * pingTuple = new PyTuple(3);
 
-        pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);        // this should be the time the packet was received (we cheat here a bit)
-        pingTuple->items[1] = new PyRepInteger(Win32TimeNow());             // this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
-        pingTuple->items[2] = new PyRepString("proxy::handle_message");
-
-        pingList->add(pingTuple);
-
-        pingTuple = new PyRepTuple(3);
-        pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);
-        pingTuple->items[1] = new PyRepInteger(Win32TimeNow());
-        pingTuple->items[2] = new PyRepString("proxy::writing");
+        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);        // this should be the time the packet was received (we cheat here a bit)
+        pingTuple->items[1] = new PyInt(Win32TimeNow());             // this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
+        pingTuple->items[2] = new PyString("proxy::handle_message");
 
         pingList->add(pingTuple);
 
-        pingTuple = new PyRepTuple(3);
-        pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);
-        pingTuple->items[1] = new PyRepInteger(Win32TimeNow());
-        pingTuple->items[2] = new PyRepString("server::handle_message");
+        pingTuple = new PyTuple(3);
+        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);
+        pingTuple->items[1] = new PyInt(Win32TimeNow());
+        pingTuple->items[2] = new PyString("proxy::writing");
 
         pingList->add(pingTuple);
 
-        pingTuple = new PyRepTuple(3);
-        pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);
-        pingTuple->items[1] = new PyRepInteger(Win32TimeNow());
-        pingTuple->items[2] = new PyRepString("server::turnaround");
+        pingTuple = new PyTuple(3);
+        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);
+        pingTuple->items[1] = new PyInt(Win32TimeNow());
+        pingTuple->items[2] = new PyString("server::handle_message");
 
         pingList->add(pingTuple);
 
-        pingTuple = new PyRepTuple(3);
-        pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);
-        pingTuple->items[1] = new PyRepInteger(Win32TimeNow());
-        pingTuple->items[2] = new PyRepString("proxy::handle_message");
+        pingTuple = new PyTuple(3);
+        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);
+        pingTuple->items[1] = new PyInt(Win32TimeNow());
+        pingTuple->items[2] = new PyString("server::turnaround");
 
         pingList->add(pingTuple);
 
-        pingTuple = new PyRepTuple(3);
-        pingTuple->items[0] = new PyRepInteger(Win32TimeNow() - 20);
-        pingTuple->items[1] = new PyRepInteger(Win32TimeNow());
-        pingTuple->items[2] = new PyRepString("proxy::writing");
+        pingTuple = new PyTuple(3);
+        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);
+        pingTuple->items[1] = new PyInt(Win32TimeNow());
+        pingTuple->items[2] = new PyString("proxy::handle_message");
+
+        pingList->add(pingTuple);
+
+        pingTuple = new PyTuple(3);
+        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);
+        pingTuple->items[1] = new PyInt(Win32TimeNow());
+        pingTuple->items[2] = new PyString("proxy::writing");
 
         pingList->add(pingTuple);
     }
@@ -259,8 +259,8 @@ void Client::SendErrorMsg(const char *fmt, ...) {
     //else maybe a "ChatTxt"??
     Notify_OnRemoteMessage n;
     n.msgType = "CustomError";
-    n.args[ "error" ] = new PyRepString(str);
-    PyRepTuple *tmp = n.FastEncode();
+    n.args[ "error" ] = new PyString(str);
+    PyTuple *tmp = n.FastEncode();
 
     SendNotification("OnRemoteMessage", "charid", &tmp);
 
@@ -282,8 +282,8 @@ void Client::SendInfoModalMsg(const char *fmt, ...) {
     //else maybe a "ChatTxt"??
     Notify_OnRemoteMessage n;
     n.msgType = "ServerMessage";
-    n.args[ "msg" ] = new PyRepString(str);
-    PyRepTuple *tmp = n.FastEncode();
+    n.args[ "msg" ] = new PyString(str);
+    PyTuple *tmp = n.FastEncode();
 
     SendNotification("OnRemoteMessage", "charid", &tmp);
 
@@ -305,8 +305,8 @@ void Client::SendNotifyMsg(const char *fmt, ...) {
     //else maybe a "ChatTxt"??
     Notify_OnRemoteMessage n;
     n.msgType = "CustomNotify";
-    n.args[ "notify" ] = new PyRepString(str);
-    PyRepTuple *tmp = n.FastEncode();
+    n.args[ "notify" ] = new PyString(str);
+    PyTuple *tmp = n.FastEncode();
 
     SendNotification("OnRemoteMessage", "charid", &tmp);
 
@@ -377,8 +377,8 @@ void Client::Login(CryptoChallengePacket *pack) {
         util_ObjectEx no;
         no.type = "exceptions.GPSTransportClosed";
 
-        no.args = new PyRepTuple(1);
-        no.args->items[0] = new PyRepString("LoginAuthFailed");
+        no.args = new PyTuple(1);
+        no.args->items[0] = new PyString("LoginAuthFailed");
 
         no.keywords.addStr("msgkey", "LoginAuthFailed");
 
@@ -391,11 +391,11 @@ void Client::Login(CryptoChallengePacket *pack) {
     CryptoHandshakeAck ack;
     ack.jit = pack->user_languageid;
     ack.userid = GetAccountID();
-    ack.maxSessionTime = new PyRepNone;
+    ack.maxSessionTime = new PyNone;
     ack.userType = 1;
     ack.role = GetAccountRole();
     ack.address = m_net.GetConnectedAddress();
-    ack.inDetention = new PyRepNone;
+    ack.inDetention = new PyNone;
     ack.user_clientid = GetAccountID();
 
     m_net._QueueRep(ack.FastEncode());
@@ -427,9 +427,9 @@ void Client::_SendPingRequest() {
 
     ping_req->userid = GetAccountID();
 
-    ping_req->payload = new PyRepTuple(1);
-    ping_req->payload->items[0] = new PyRepList();  //times
-    ping_req->named_payload = new PyRepDict();
+    ping_req->payload = new PyTuple(1);
+    ping_req->payload->items[0] = new PyList();  //times
+    ping_req->named_payload = new PyDict();
 
     FastQueuePacket(&ping_req);
 }
@@ -467,8 +467,8 @@ void Client::_CheckSessionChange() {
 
     p->payload = scn.Encode();
 
-    p->named_payload = new PyRepDict();
-    p->named_payload->add("channel", new PyRepString("sessionchange"));
+    p->named_payload = new PyDict();
+    p->named_payload->add("channel", new PyString("sessionchange"));
 
     FastQueuePacket(&p);
 }
@@ -679,7 +679,7 @@ void Client::_ProcessCallRequest(PyPacket *packet) {
 #ifndef WIN32
 #   warning TODO: throw proper exception to client (exceptions.ServiceNotFound).
 #endif
-            PyRep *except = new PyRepNone();
+            PyRep *except = new PyNone();
             _SendException(packet, WRAPPEDEXCEPTION, &except);
             return;
         }
@@ -692,7 +692,7 @@ void Client::_ProcessCallRequest(PyPacket *packet) {
 #ifndef WIN32
 #warning TODO: throw proper exception to client.
 #endif
-        PyRep *except = new PyRepNone();
+        PyRep *except = new PyNone();
         _SendException(packet, WRAPPEDEXCEPTION, &except);
         return;
     }
@@ -777,7 +777,7 @@ void Client::_ProcessNotification(PyPacket *packet) {
     if(notify.method == "ClientHasReleasedTheseObjects") {
         PyRep *n;
         ServerNotification_ReleaseObj element;
-        PyRepList::iterator cur, end;
+        PyList::iterator cur, end;
         cur = notify.elements.begin();
         end = notify.elements.end();
         for(; cur != end; cur++) {
@@ -826,13 +826,13 @@ void Client::_SendCallReturn(PyPacket *req, PyRep **return_value, const char *ch
 
     p->userid = GetAccountID();
 
-    p->payload = new PyRepTuple(1);
-    p->payload->items[0] = new PyRepSubStream(*return_value);
+    p->payload = new PyTuple(1);
+    p->payload->items[0] = new PySubStream(*return_value);
     *return_value = NULL;   //consumed
 
     if(channel != NULL) {
-        p->named_payload = new PyRepDict();
-        p->named_payload->add("channel", new PyRepString(channel));
+        p->named_payload = new PyDict();
+        p->named_payload->add("channel", new PyString(channel));
     }
 
     FastQueuePacket(&p);
@@ -864,7 +864,7 @@ void Client::_SendException(PyPacket *req, MACHONETERR_TYPE type, PyRep **payloa
 
 //these are specialized Queue functions when our caller can
 //easily provide us with our own copy of the data.
-void Client::QueueDestinyUpdate(PyRepTuple **du) {
+void Client::QueueDestinyUpdate(PyTuple **du) {
     DoDestinyAction act;
     act.update_id = DestinyManager::GetStamp();
     act.update = *du;
@@ -873,7 +873,7 @@ void Client::QueueDestinyUpdate(PyRepTuple **du) {
     m_destinyUpdateQueue.push_back( act.FastEncode() );
 }
 
-void Client::QueueDestinyEvent(PyRepTuple **multiEvent) {
+void Client::QueueDestinyEvent(PyTuple **multiEvent) {
     m_destinyEventQueue.push_back(*multiEvent);
     *multiEvent = NULL;
 }
@@ -895,7 +895,7 @@ void Client::_SendQueuedUpdates() {
         dum.waitForBubble = false;
 
         //now send it
-        PyRepTuple *t = dum.FastEncode();
+        PyTuple *t = dum.FastEncode();
         t->Dump(DESTINY__UPDATES, "");
         SendNotification("DoDestinyUpdate", "clientID", &t);
     } else if(!m_destinyEventQueue.empty()) {
@@ -906,13 +906,13 @@ void Client::_SendQueuedUpdates() {
         m_destinyEventQueue.clear();
 
         //send it
-        PyRepTuple *t = nom.FastEncode();   //this is consumed below
+        PyTuple *t = nom.FastEncode();   //this is consumed below
         t->Dump(DESTINY__UPDATES, "");
         SendNotification("OnMultiEvent", "charid", &t);
     } //else nothing to do ...
 }
 
-void Client::SendNotification(const char *notifyType, const char *idType, PyRepTuple **payload, bool seq) {
+void Client::SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq) {
 
     //build a little notification out of it.
     EVENotificationStream notify;
@@ -946,8 +946,8 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream *noti
     p->payload = noti->Encode();
 
     if(seq) {
-        p->named_payload = new PyRepDict();
-        p->named_payload->add("sn", new PyRepInteger(m_nextNotifySequence++));
+        p->named_payload = new PyDict();
+        p->named_payload->add("sn", new PyInt(m_nextNotifySequence++));
     }
 
     _log(CLIENT__NOTIFY_DUMP, "Sending notify of type %s with ID type %s", dest.service.c_str(), dest.bcast_idtype.c_str());
@@ -959,29 +959,29 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream *noti
     FastQueuePacket(&p);
 }
 
-PyRepDict *Client::MakeSlimItem() const {
-    PyRepDict *slim = DynamicSystemEntity::MakeSlimItem();
+PyDict *Client::MakeSlimItem() const {
+    PyDict *slim = DynamicSystemEntity::MakeSlimItem();
 
-    slim->add("charID", new PyRepInteger(GetCharacterID()));
-    slim->add("corpID", new PyRepInteger(GetCorporationID()));
-    slim->add("allianceID", new PyRepNone);
-    slim->add("warFactionID", new PyRepNone);
+    slim->add("charID", new PyInt(GetCharacterID()));
+    slim->add("corpID", new PyInt(GetCorporationID()));
+    slim->add("allianceID", new PyNone);
+    slim->add("warFactionID", new PyNone);
 
     //encode the modules list, if we have any visible modules
     std::vector<InventoryItemRef> items;
     GetShip()->FindByFlagRange( flagHiSlot0, flagHiSlot7, items );
     if( !items.empty() )
     {
-        PyRepList *l = new PyRepList();
+        PyList *l = new PyList();
 
         std::vector<InventoryItemRef>::iterator cur, end;
         cur = items.begin();
         end = items.end();
         for(; cur != end; cur++) {
-            PyRepTuple *t = new PyRepTuple( 2 );
+            PyTuple *t = new PyTuple( 2 );
 
-            t->items[0] = new PyRepInteger( (*cur)->itemID() );
-            t->items[1] = new PyRepInteger( (*cur)->typeID() );
+            t->items[0] = new PyInt( (*cur)->itemID() );
+            t->items[1] = new PyInt( (*cur)->typeID() );
 
             l->add(t);
         }
@@ -989,9 +989,9 @@ PyRepDict *Client::MakeSlimItem() const {
         slim->add("modules", l);
     }
 
-    slim->add("color", new PyRepReal(0.0));
-    slim->add("bounty", new PyRepInteger(GetBounty()));
-    slim->add("securityStatus", new PyRepReal(GetSecurityRating()));
+    slim->add("color", new PyFloat(0.0));
+    slim->add("bounty", new PyInt(GetBounty()));
+    slim->add("securityStatus", new PyFloat(GetSecurityRating()));
 
     return(slim);
 }
@@ -1057,7 +1057,7 @@ bool Client::AddBalance(double amount) {
     ac.accountKey = "cash";
     ac.ownerid = GetCharacterID();
     ac.balance = GetBalance();
-    PyRepTuple *answer = ac.FastEncode();
+    PyTuple *answer = ac.FastEncode();
     SendNotification("OnAccountChange", "cash", &answer, false);
 
     return true;
@@ -1117,7 +1117,7 @@ double Client::GetPropulsionStrength() const {
 }
 
 void Client::TargetAdded(SystemEntity *who) {
-    PyRepTuple *up = NULL;
+    PyTuple *up = NULL;
 
     DoDestiny_OnDamageStateChange odsc;
     odsc.entityID = who->GetID();
@@ -1143,7 +1143,7 @@ void Client::TargetLost(SystemEntity *who) {
     Notify_OnMultiEvent multi;
     multi.events.add(te.FastEncode());
 
-    PyRepTuple *tmp = multi.FastEncode();   //this is consumed below
+    PyTuple *tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
@@ -1156,7 +1156,7 @@ void Client::TargetedAdd(SystemEntity *who) {
     Notify_OnMultiEvent multi;
     multi.events.add(te.FastEncode());
 
-    PyRepTuple *tmp = multi.FastEncode();   //this is consumed below
+    PyTuple *tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
@@ -1169,7 +1169,7 @@ void Client::TargetedLost(SystemEntity *who) {
     Notify_OnMultiEvent multi;
     multi.events.add(te.FastEncode());
 
-    PyRepTuple *tmp = multi.FastEncode();   //this is consumed below
+    PyTuple *tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
@@ -1182,7 +1182,7 @@ void Client::TargetsCleared() {
     Notify_OnMultiEvent multi;
     multi.events.add(te.FastEncode());
 
-    PyRepTuple *tmp = multi.FastEncode();   //this is consumed below
+    PyTuple *tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
@@ -1264,7 +1264,7 @@ DoDestinyUpdate ,*args= ([(31759,
 
     //drone_npc->Destiny()->SendAddBall();
 
-    /*PyRepList *actions = new PyRepList();
+    /*PyList *actions = new PyList();
     DoDestinyAction act;
     act.update_id = NextDestinyUpdateID();  //update ID?
     */
@@ -1349,7 +1349,7 @@ void Client::OnCharNoLongerInStation()
     packet.charID = GetCharacterID();
     packet.corpID = GetCorporationID();
     packet.allianceID = GetAllianceID();
-    PyRepTuple *tmp = packet.Encode();
+    PyTuple *tmp = packet.Encode();
 
     // this entire line should be something like this Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
     services().entity_list.Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
@@ -1362,7 +1362,7 @@ void Client::OnCharNowInStation()
     n.charID = GetCharacterID();
     n.corpID = GetCorporationID();
     n.allianceID = GetAllianceID();
-    PyRepTuple *tmp = n.Encode();
+    PyTuple *tmp = n.Encode();
     services().entity_list.Broadcast("OnCharNowInStation", "stationid", &tmp);
 }
 

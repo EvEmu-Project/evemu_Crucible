@@ -35,11 +35,11 @@ public:
 	StandingDB(DBcore *db);
 	virtual ~StandingDB();
 
-	PyRepObject *GetNPCStandings();
-	PyRepObject *GetCharStandings(uint32 characterID);
-	PyRepObject *GetCharPrimeStandings(uint32 characterID);
-	PyRepObject *GetCharNPCStandings(uint32 characterID);
-	PyRepObject *GetStandingTransactions(uint32 characterID);
+	PyObject *GetNPCStandings();
+	PyObject *GetCharStandings(uint32 characterID);
+	PyObject *GetCharPrimeStandings(uint32 characterID);
+	PyObject *GetCharNPCStandings(uint32 characterID);
+	PyObject *GetStandingTransactions(uint32 characterID);
 
 protected:
 };

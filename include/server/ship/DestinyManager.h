@@ -34,8 +34,8 @@ class SystemEntity;
 class SystemManager;
 class InventoryItem;
 class PyRep;
-class PyRepList;
-class PyRepTuple;
+class PyList;
+class PyTuple;
 class SystemBubble;
 
 extern const double SPACE_FRICTION;
@@ -55,9 +55,9 @@ public:
 
 	void Process();
 
-	void SendSingleDestinyUpdate(PyRepTuple **up, bool self_only=false) const;
-	void SendDestinyUpdate(std::vector<PyRepTuple *> &updates, bool self_only) const;
-	void SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::vector<PyRepTuple *> &events, bool self_only) const;
+	void SendSingleDestinyUpdate(PyTuple **up, bool self_only=false) const;
+	void SendDestinyUpdate(std::vector<PyTuple *> &updates, bool self_only) const;
+	void SendDestinyUpdate(std::vector<PyTuple *> &updates, std::vector<PyTuple *> &events, bool self_only) const;
 	
 	const GPoint &GetPosition() const { return(m_position); }
 	const GVector &GetVelocity() const { return(m_velocity); }

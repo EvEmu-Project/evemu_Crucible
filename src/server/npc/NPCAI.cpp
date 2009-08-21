@@ -263,7 +263,7 @@ void NPCAIMgr::_SendWeaponEffect(const char *effect, SystemEntity *target) {
 	sfx.repeat = 1;
 	sfx.startTime = Win32TimeNow();
 	
-	PyRepTuple *up = sfx.FastEncode();
+	PyTuple *up = sfx.FastEncode();
 	m_npc->Destiny()->SendSingleDestinyUpdate(&up);	//consumed
 	delete up;
 }

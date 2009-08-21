@@ -45,13 +45,13 @@ PyResult StationService::Handle_GetStationItemBits(PyCallArgs &call) {
 }
 
 PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
-	PyRepList *res = new PyRepList();
+	PyList *res = new PyList();
 
-	PyRepTuple *t = new PyRepTuple(4);
-	t->items[0] = new PyRepInteger(call.client->GetCharacterID());
-	t->items[1] = new PyRepInteger(call.client->GetCorporationID());
-	t->items[2] = new PyRepInteger(call.client->GetAllianceID());
-	t->items[3] = new PyRepInteger(0);	//unknown, might be factionID
+	PyTuple *t = new PyTuple(4);
+	t->items[0] = new PyInt(call.client->GetCharacterID());
+	t->items[1] = new PyInt(call.client->GetCorporationID());
+	t->items[2] = new PyInt(call.client->GetAllianceID());
+	t->items[3] = new PyInt(0);	//unknown, might be factionID
 	res->add(t);
 
 	return res;

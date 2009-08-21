@@ -68,40 +68,40 @@ AuthService::~AuthService() {
 
 
 PyResult AuthService::Handle_Ping(PyCallArgs &call) {
-	return(new PyRepInteger(Win32TimeNow()));
+	return(new PyInt(Win32TimeNow()));
 }
 
 
 PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call) {
 	PyRep *result = NULL;
 /*
-	PyRepObject *o = new PyRepObject();
+	PyObject *o = new PyObject();
 	result = o;
 		o->type = "util.KeyVal";
-		PyRepDict *obj_args = new PyRepDict();
+		PyDict *obj_args = new PyDict();
 		o->arguments = obj_args;
-			obj_args->items[ new PyRepString("message") ] 
-				= new PyRepString("BrowseIGB");
-			PyRepDict *args = new PyRepDict();
-			obj_args->items[ new PyRepString("args") ] = args;
-				args->items[ new PyRepString("showStatusBar") ] = new PyRepInteger(0);
-				args->items[ new PyRepString("center") ] = new PyRepInteger(1);
-				args->items[ new PyRepString("showAddressBar") ] = new PyRepInteger(0);
-				args->items[ new PyRepString("url") ] = new PyRepString(
+			obj_args->items[ new PyString("message") ] 
+				= new PyString("BrowseIGB");
+			PyDict *args = new PyDict();
+			obj_args->items[ new PyString("args") ] = args;
+				args->items[ new PyString("showStatusBar") ] = new PyInt(0);
+				args->items[ new PyString("center") ] = new PyInt(1);
+				args->items[ new PyString("showAddressBar") ] = new PyInt(0);
+				args->items[ new PyString("url") ] = new PyString(
 					"http://www.eve-online.com/igb/login/?username=aaa&total"
 					"Trial=1858&trialMax=3000&createDate=2006.07.04&daysLeft=8&"
 					"trialLen=14&login=yes&totalPlayers=18034&");
-				args->items[ new PyRepString("showOptions") ] = new PyRepInteger(0);
-				args->items[ new PyRepString("showButtons") ] = new PyRepInteger(0);
-				args->items[ new PyRepString("showModal") ] = new PyRepInteger(1);
+				args->items[ new PyString("showOptions") ] = new PyInt(0);
+				args->items[ new PyString("showButtons") ] = new PyInt(0);
+				args->items[ new PyString("showModal") ] = new PyInt(1);
 */
 
 #ifdef SHOW_LOGIN_MESSAGE
-	PyRepDict *args = new PyRepDict;
+	PyDict *args = new PyDict;
 	args->add("message", loginMessage);
-	result = new PyRepObject("util.KeyVal", args);
+	result = new PyObject("util.KeyVal", args);
 #else /* !SHOW_LOGIN_MESSAGE */
-	result = new PyRepNone;
+	result = new PyNone;
 #endif /* !SHOW_LOGIN_MESSAGE */
 
 	return result;

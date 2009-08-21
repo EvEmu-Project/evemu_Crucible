@@ -88,7 +88,7 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
     // new ref is consumed, we don't release it
     call.client->modules.ReplaceCharges( (EVEItemFlags) args.flag, (InventoryItemRef)new_charge );
 
-    return(new PyRepInteger(1));
+    return(new PyInt(1));
 }
 
 

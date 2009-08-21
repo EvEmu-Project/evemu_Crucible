@@ -253,7 +253,7 @@ bool ClassCloneGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
         return false;
 
     fprintf(into,
-        "   PyRepObjectEx::const_list_iterator lcur, lend;\n"
+        "   PyObjectEx::const_list_iterator lcur, lend;\n"
         "   lcur = from->%s_list.begin();\n"
         "   lend = from->%s_list.end();\n"
         "   for(; lcur != lend; lcur++)\n"
@@ -264,7 +264,7 @@ bool ClassCloneGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
     );
 
     fprintf(into,
-        "   PyRepObjectEx::const_dict_iterator dcur, dend;\n"
+        "   PyObjectEx::const_dict_iterator dcur, dend;\n"
         "   dcur = from->%s_dict.begin();\n"
         "   dend = from->%s_dict.end();\n"
         "   for(; dcur != dend; dcur++)\n"

@@ -79,7 +79,7 @@ LanguageService::~LanguageService() {
 
 
 /*
-PyBoundObject *LanguageService::_CreateBoundObject(Client *c, PyRepTuple *bind_args) {
+PyBoundObject *LanguageService::_CreateBoundObject(Client *c, PyTuple *bind_args) {
 	_log(CLIENT__MESSAGE, "LanguageService bind request for:");
 	bind_args->Dump(CLIENT__MESSAGE, "    ");
 

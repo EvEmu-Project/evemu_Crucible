@@ -76,29 +76,29 @@ void DestinyManager::Process() {
 	ProcessTic();
 }
 
-void DestinyManager::SendSingleDestinyUpdate(PyRepTuple **up, bool self_only) const {
-	std::vector<PyRepTuple *> updates(1, *up);
+void DestinyManager::SendSingleDestinyUpdate(PyTuple **up, bool self_only) const {
+	std::vector<PyTuple *> updates(1, *up);
 	*up = NULL;
-	std::vector<PyRepTuple *> events;
+	std::vector<PyTuple *> events;
 	//consumes updates and events
 	SendDestinyUpdate(updates, events, self_only);
 }
 
-void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, bool self_only) const {
-	std::vector<PyRepTuple *> events;
+void DestinyManager::SendDestinyUpdate(std::vector<PyTuple *> &updates, bool self_only) const {
+	std::vector<PyTuple *> events;
 	//consumes updates and events
 	SendDestinyUpdate(updates, events, self_only);
 }
 
-void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::vector<PyRepTuple *> &events, bool self_only) const {
+void DestinyManager::SendDestinyUpdate(std::vector<PyTuple *> &updates, std::vector<PyTuple *> &events, bool self_only) const {
 	if(self_only) {
 		_log(DESTINY__TRACE, "[%u] Sending destiny update (%lu, %lu) to self (%u).", GetStamp(), updates.size(), events.size(), m_self->GetID());
-		std::vector<PyRepTuple *>::iterator cur, end;
+		std::vector<PyTuple *>::iterator cur, end;
 		
 		cur = updates.begin();
 		end = updates.end();
 		for(; cur != end; cur++) {
-			PyRepTuple *t = *cur;
+			PyTuple *t = *cur;
 			m_self->QueueDestinyUpdate(&t);
 			delete t;	//they are not required to consume it.
 		}
@@ -107,7 +107,7 @@ void DestinyManager::SendDestinyUpdate(std::vector<PyRepTuple *> &updates, std::
 		cur = events.begin();
 		end = events.end();
 		for(; cur != end; cur++) {
-			PyRepTuple *t = *cur;
+			PyTuple *t = *cur;
 			m_self->QueueDestinyEvent(&t);
 			delete t;	//they are not required to consume it.
 		}
@@ -708,7 +708,7 @@ void DestinyManager::Stop(bool update) {
 		DoDestiny_Stop du;
 		du.entityID = m_self->GetID();
 		
-		PyRepTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.FastEncode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -725,7 +725,7 @@ void DestinyManager::Halt(bool update) {
 	m_system->bubbles.UpdateBubble(m_self);
 	
 	if(update) {
-		std::vector<PyRepTuple *> updates;
+		std::vector<PyTuple *> updates;
 		
 		{
 		DoDestiny_SetSpeedFraction du;
@@ -769,7 +769,7 @@ void DestinyManager::Follow(SystemEntity *who, double distance, bool update) {
 		du.ballID = who->GetID();
 		du.unknown = uint32(distance);
 		
-		PyRepTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.FastEncode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -796,7 +796,7 @@ void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {
 		du.orbitEntityID = who->GetID();
 		du.distance = uint32(distance);
 		
-		PyRepTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.FastEncode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -849,7 +849,7 @@ void DestinyManager::SetPosition(const GPoint &pt, bool update) {
 		du.y = pt.y;
 		du.z = pt.z;
 		
-		PyRepTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.FastEncode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 	m_system->bubbles.UpdateBubble(m_self, update);
@@ -865,7 +865,7 @@ void DestinyManager::SetSpeedFraction(double fraction, bool update) {
 		du.entityID = m_self->GetID();
 		du.fraction = fraction;
 		
-		PyRepTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.FastEncode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -896,7 +896,7 @@ void DestinyManager::AlignTo(const GPoint &direction, bool update) {
 		du.y = direction.y;
 		du.z = direction.z;
 		
-		PyRepTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.FastEncode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -921,7 +921,7 @@ void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
 		du.y = direction.y;
 		du.z = direction.z;
 		
-		PyRepTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.FastEncode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -940,7 +940,7 @@ void DestinyManager::WarpTo(const GPoint &where, double distance, bool update) {
 	m_targetDistance = distance;
 	
 	if(update) {
-		std::vector<PyRepTuple *> updates;
+		std::vector<PyTuple *> updates;
 		
 		{
 		DoDestiny_WarpTo du;
@@ -1002,7 +1002,7 @@ bool DestinyManager::_Turn() {
 }
 
 void DestinyManager::SendJumpOut(uint32 stargateID) const {
-	std::vector<PyRepTuple *> updates;
+	std::vector<PyTuple *> updates;
 	
 	{
 	DoDestiny_Stop du;
@@ -1027,7 +1027,7 @@ void DestinyManager::SendJumpOut(uint32 stargateID) const {
 
 
 void DestinyManager::SendTerminalExplosion() const {
-	std::vector<PyRepTuple *> updates;
+	std::vector<PyTuple *> updates;
 	
 	{
 		//send a warping special effects update...
@@ -1044,7 +1044,7 @@ void DestinyManager::SendJumpIn() const {
 	//hacked for simplicity... I dont like jumping in until we have
 	//jumping in general much better quantified.
 	
-	std::vector<PyRepTuple *> updates;
+	std::vector<PyTuple *> updates;
 	
 	DoDestiny_OnSpecialFX10 effect;
 	effect.effect_type = "effects.JumpDriveIn";
@@ -1078,7 +1078,7 @@ void DestinyManager::SendGateActivity() const {
 	du.start = 1;
 	du.active = 0;
 	
-	PyRepTuple *tmp = du.FastEncode();
+	PyTuple *tmp = du.FastEncode();
 	SendSingleDestinyUpdate(&tmp);	//consumed
 }
 
@@ -1089,7 +1089,7 @@ void DestinyManager::SendSetState(const SystemBubble *b) const {
 	ss.ego = m_self->GetID();
 	m_system->MakeSetState(b, ss);
 
-	PyRepTuple *tmp = ss.FastEncode();
+	PyTuple *tmp = ss.FastEncode();
 	SendSingleDestinyUpdate(&tmp, true);	//consumed
 }
 

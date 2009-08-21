@@ -54,8 +54,8 @@ public:
 	virtual ~PyLookupDump();
 
 protected:
-	virtual void VisitInteger(const PyRepInteger *rep);
-	virtual void VisitString(const PyRepString *rep);
+	virtual void VisitInteger(const PyInt *rep);
+	virtual void VisitString(const PyString *rep);
 	
 	PyLookupResolver *const m_resolver;	//we do not own this.
 };

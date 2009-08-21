@@ -32,7 +32,7 @@ CharacterDB::CharacterDB(DBcore *db) : ServiceDB(db)
 
 CharacterDB::~CharacterDB() {}
 
-PyRepObject *CharacterDB::GetCharacterList(uint32 accountID) {
+PyObject *CharacterDB::GetCharacterList(uint32 accountID) {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
@@ -75,7 +75,7 @@ bool CharacterDB::ValidateCharName(const char *name)
 	return true;
 }
 
-PyRepObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
+PyObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
@@ -96,7 +96,7 @@ PyRepObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 	return DBResultToRowset(res);
 }
 
-PyRepObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
+PyObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
 	DBQueryResult res;
 
 	if(!m_db->RunQuery(res,
@@ -135,7 +135,7 @@ PyRepObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
 	
 }
 
-PyRepObject *CharacterDB::GetCharPublicInfo3(uint32 characterID) {
+PyObject *CharacterDB::GetCharPublicInfo3(uint32 characterID) {
 
 	DBQueryResult res;
 	
@@ -178,7 +178,7 @@ bool CharacterDB::GetCharItems(uint32 characterID, std::vector<uint32> &into) {
 	return true;
 }
 
-PyRepObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
+PyObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
 	DBQueryResult res;
 	
 	if(!m_db->RunQuery(res,
@@ -351,7 +351,7 @@ bool CharacterDB::GetSkillsByCareerSpeciality(uint32 careerSpecialityID, std::ma
 	return true;
 }
 
-PyRepString *CharacterDB::GetNote(uint32 ownerID, uint32 itemID) {
+PyString *CharacterDB::GetNote(uint32 ownerID, uint32 itemID) {
 	DBQueryResult res;
 
 	if (!m_db->RunQuery(res,
@@ -366,7 +366,7 @@ PyRepString *CharacterDB::GetNote(uint32 ownerID, uint32 itemID) {
 	if(!res.GetRow(row))
 		return NULL;
 
-	return(new PyRepString(row.GetText(0)));
+	return(new PyString(row.GetText(0)));
 }
 
 bool CharacterDB::SetNote(uint32 ownerID, uint32 itemID, const char *str) {
@@ -440,7 +440,7 @@ bool CharacterDB::EditOwnerNote(uint32 charID, uint32 noteID, const std::string 
 	return true;
 }
 
-PyRepObject *CharacterDB::GetOwnerNoteLabels(uint32 charID) {
+PyObject *CharacterDB::GetOwnerNoteLabels(uint32 charID) {
 	DBQueryResult res;
 
 	if (!m_db->RunQuery(res, "SELECT noteID, label FROM chrOwnerNote WHERE ownerID = %u", charID))
@@ -452,7 +452,7 @@ PyRepObject *CharacterDB::GetOwnerNoteLabels(uint32 charID) {
 	return DBResultToRowset(res);
 }
 
-PyRepObject *CharacterDB::GetOwnerNote(uint32 charID, uint32 noteID) {
+PyObject *CharacterDB::GetOwnerNote(uint32 charID, uint32 noteID) {
 	DBQueryResult res;
 
 	if (!m_db->RunQuery(res, "SELECT note FROM chrOwnerNote WHERE ownerID = %u AND noteID = %u", charID, noteID))

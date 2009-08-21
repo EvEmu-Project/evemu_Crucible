@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
 }
 
 void TestCache() {
-	PyRepString *s = new PyRepString("charCreationInfo.departments");
+	PyString *s = new PyString("charCreationInfo.departments");
 
 	uint32 len = 0;
 	uint8 *data = Marshal(s, len, false);
@@ -474,7 +474,7 @@ void CatCacheCall(const char *file) {
 	int32 len = fread(b, 1, file_length+10, f);
 	fclose(f);
 
-	PyRepSubStream *into = new PyRepSubStream();
+	PySubStream *into = new PySubStream();
 	into->data = b;
 	into->length = len;
 
@@ -679,53 +679,53 @@ void TestMarshal() {
 	dbutil_CRowset rs;
 	{
 		blue_DBRowDescriptor desc;
-		desc.columns = new PyRepTuple(6);
+		desc.columns = new PyTuple(6);
 
-		PyRepTuple *pair_tuple;
+		PyTuple *pair_tuple;
 		int r = 0;
 		
-		pair_tuple = new PyRepTuple(2);
-		pair_tuple->items[0] = new PyRepString("historyDate");
-		pair_tuple->items[1] = new PyRepInteger(DBTYPE_FILETIME);
+		pair_tuple = new PyTuple(2);
+		pair_tuple->items[0] = new PyString("historyDate");
+		pair_tuple->items[1] = new PyInt(DBTYPE_FILETIME);
 		desc.columns->items[r++] = pair_tuple;
 		
-		pair_tuple = new PyRepTuple(2);
-		pair_tuple->items[0] = new PyRepString("lowPrice");
-		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
+		pair_tuple = new PyTuple(2);
+		pair_tuple->items[0] = new PyString("lowPrice");
+		pair_tuple->items[1] = new PyInt(DBTYPE_CY);
 		desc.columns->items[r++] = pair_tuple;
 		
-		pair_tuple = new PyRepTuple(2);
-		pair_tuple->items[0] = new PyRepString("highPrice");
-		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
+		pair_tuple = new PyTuple(2);
+		pair_tuple->items[0] = new PyString("highPrice");
+		pair_tuple->items[1] = new PyInt(DBTYPE_CY);
 		desc.columns->items[r++] = pair_tuple;
 		
-		pair_tuple = new PyRepTuple(2);
-		pair_tuple->items[0] = new PyRepString("avgPrice");
-		pair_tuple->items[1] = new PyRepInteger(DBTYPE_CY);
+		pair_tuple = new PyTuple(2);
+		pair_tuple->items[0] = new PyString("avgPrice");
+		pair_tuple->items[1] = new PyInt(DBTYPE_CY);
 		desc.columns->items[r++] = pair_tuple;
 
-		pair_tuple = new PyRepTuple(2);
-		pair_tuple->items[0] = new PyRepString("volume");
-		pair_tuple->items[1] = new PyRepInteger(DBTYPE_I8);
+		pair_tuple = new PyTuple(2);
+		pair_tuple->items[0] = new PyString("volume");
+		pair_tuple->items[1] = new PyInt(DBTYPE_I8);
 		desc.columns->items[r++] = pair_tuple;
 		
-		pair_tuple = new PyRepTuple(2);
-		pair_tuple->items[0] = new PyRepString("orders");
-		pair_tuple->items[1] = new PyRepInteger(DBTYPE_I4);
+		pair_tuple = new PyTuple(2);
+		pair_tuple->items[0] = new PyString("orders");
+		pair_tuple->items[1] = new PyInt(DBTYPE_I4);
 		desc.columns->items[r++] = pair_tuple;
 
 		rs.header = desc.FastEncode();
 	}
 	
 	{
-		PyRepPackedRow *row = new PyRepPackedRow( *rs.header->Clone(), true );
+		PyPackedRow *row = new PyPackedRow( *rs.header->Clone(), true );
 
-		row->SetField( "historyDate", new PyRepInteger( Win32TimeNow() ) );
-		row->SetField( "lowPrice", new PyRepInteger( 18000 ) );
-		row->SetField( "highPrice", new PyRepInteger( 19000 ) );
-		row->SetField( "avgPrice", new PyRepInteger( 18400 ) );
-		row->SetField( "volume", new PyRepInteger( 5463586 ) );
-		row->SetField( "orders", new PyRepInteger( 254 ) );
+		row->SetField( "historyDate", new PyInt( Win32TimeNow() ) );
+		row->SetField( "lowPrice", new PyInt( 18000 ) );
+		row->SetField( "highPrice", new PyInt( 19000 ) );
+		row->SetField( "avgPrice", new PyInt( 18400 ) );
+		row->SetField( "volume", new PyInt( 5463586 ) );
+		row->SetField( "orders", new PyInt( 254 ) );
 
 		rs.root_list.push_back( row );
 	}

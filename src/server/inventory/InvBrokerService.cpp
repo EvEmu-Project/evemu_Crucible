@@ -193,7 +193,7 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
     Call_TrashItems args;
     if(!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "Unable to decode arguments");
-        return(new PyRepList());
+        return(new PyList());
     }
 
     std::vector<int32>::const_iterator cur, end;
@@ -213,5 +213,5 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
         else
             item->Delete();
     }
-    return(new PyRepList());
+    return(new PyList());
 }

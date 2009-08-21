@@ -179,7 +179,7 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
 PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
     if(!IsSolarSystem(call.client->GetLocationID())) {
         _log(SERVICE__ERROR, "%s: Trying to drop items when not in space!", call.client->GetName());
-        return(new PyRepList());
+        return(new PyList());
     }
 
     Call_SingleIntList args;
@@ -188,7 +188,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
     std::vector<int32>::const_iterator cur, end;
     uint32 contID = 0;
 
-    PyRepTuple * t = call.tuple;
+    PyTuple * t = call.tuple;
     bool d2 = t->items.size() == 2;
 
     if (d2) {

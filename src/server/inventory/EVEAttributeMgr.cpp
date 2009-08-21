@@ -64,11 +64,11 @@ PyRep *EVEAttributeMgr::_PyGet(const real_t &v)
 {
     if(_IsInt(v) == true)
     {
-        return new PyRepInteger(v);
+        return new PyInt(v);
     }
     else
     {
-        return new PyRepReal(v);
+        return new PyFloat(v);
     }
 }
 
@@ -154,7 +154,7 @@ void ItemAttributeMgr::SetIntEx(Attr attr, const int_t &v, bool persist) {
         std::map<Attr, TauCap>::const_iterator i = m_tauCap.find(attr);
         if(i != m_tauCap.end()) {
             // build the special list for rechargables
-            PyRepList *l = new PyRepList;
+            PyList *l = new PyList;
 
             l->addInt(v);
             l->addInt(Win32TimeNow());
@@ -164,7 +164,7 @@ void ItemAttributeMgr::SetIntEx(Attr attr, const int_t &v, bool persist) {
             oldValue = l;
         }
         // send change
-        _SendAttributeChange(attr, oldValue, new PyRepReal(v));
+        _SendAttributeChange(attr, oldValue, new PyFloat(v));
     }
 }
 
@@ -191,7 +191,7 @@ void ItemAttributeMgr::SetRealEx(Attr attr, const real_t &v, bool persist) {
             std::map<Attr, TauCap>::const_iterator i = m_tauCap.find(attr);
             if(i != m_tauCap.end()) {
                 // build the special list for rechargables
-                PyRepList *l = new PyRepList;
+                PyList *l = new PyList;
                 l->addReal(v);
                 l->addInt(Win32TimeNow());
                 l->add(_PyGet(GetReal(i->second.tau) / 5.0));
@@ -200,7 +200,7 @@ void ItemAttributeMgr::SetRealEx(Attr attr, const real_t &v, bool persist) {
                 oldValue = l;
             }
             // send change
-            _SendAttributeChange(attr, oldValue, new PyRepReal(v));
+            _SendAttributeChange(attr, oldValue, new PyFloat(v));
         }
     }
 }
@@ -221,7 +221,7 @@ void ItemAttributeMgr::Clear(Attr attr) {
         std::map<Attr, TauCap>::const_iterator i = m_tauCap.find(attr);
         if(i != m_tauCap.end()) {
             // build the special list for rechargables
-            PyRepList *l = new PyRepList;
+            PyList *l = new PyList;
             l->add(PyGet(attr));
             l->addInt(Win32TimeNow());
             l->add(_PyGet(GetReal(i->second.tau) / 5.0));
@@ -230,7 +230,7 @@ void ItemAttributeMgr::Clear(Attr attr) {
             oldValue = l;
         }
         // send change
-        _SendAttributeChange(attr, oldValue, new PyRepReal(GetReal(attr)));
+        _SendAttributeChange(attr, oldValue, new PyFloat(GetReal(attr)));
     }
 }
 
@@ -327,7 +327,7 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
         omac.oldValue = oldValue;
         omac.newValue = newValue;
 
-        PyRepTuple *tmp = omac.FastEncode();
+        PyTuple *tmp = omac.FastEncode();
         c->QueueDestinyEvent(&tmp);
     } else {
         // delete the reps

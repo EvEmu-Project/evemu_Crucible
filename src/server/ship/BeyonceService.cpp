@@ -108,7 +108,7 @@ PyResult BeyonceService::Handle_GetFormations(PyCallArgs &call) {
 		PyRep *res = m_db.GetFormations();
 		if(res == NULL) {
 			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			res = new PyRepNone();
+			res = new PyNone();
 		}
 
 		m_manager->cache_service->GiveCache(method_id, &res);
@@ -138,10 +138,10 @@ PyResult BeyonceBound::Handle_FollowBall(PyCallArgs &call) {
 	}
 
 	double distance;
-	if(args.distance->IsInteger()) {
-		distance = args.distance->AsInteger().value;
-	} else if(args.distance->IsReal()) {
-		distance = args.distance->AsReal().value;
+	if(args.distance->IsInt()) {
+		distance = args.distance->AsInt().value;
+	} else if(args.distance->IsFloat()) {
+		distance = args.distance->AsFloat().value;
 	} else {
 		codelog(CLIENT__ERROR, "%s: Invalid type %s for distance argument received.", call.client->GetName(), args.distance->TypeString());
 		return NULL;
@@ -249,10 +249,10 @@ PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 	}
 
 	double distance;
-	if(arg.distance->IsInteger()) {
-		distance = arg.distance->AsInteger().value;
-	} else if(arg.distance->IsReal()) {
-		distance = arg.distance->AsReal().value;
+	if(arg.distance->IsInt()) {
+		distance = arg.distance->AsInt().value;
+	} else if(arg.distance->IsFloat()) {
+		distance = arg.distance->AsFloat().value;
 	} else {
 		codelog(CLIENT__ERROR, "%s: Invalid type %s for distance argument received.", call.client->GetName(), arg.distance->TypeString());
 		return NULL;
@@ -292,14 +292,14 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 	if(res == call.byname.end()) {
 		codelog(CLIENT__ERROR, "%s: range not found, using 15 km.", call.client->GetName());
 		distance = 15000.0;
-	} else if(!res->second->IsInteger() && !res->second->IsReal()) {
+	} else if(!res->second->IsInt() && !res->second->IsFloat()) {
 		codelog(CLIENT__ERROR, "%s: range of invalid type %s, expected Integer or Real; using 15 km.", call.client->GetName(), res->second->TypeString());
 		distance = 15000.0;
 	} else {
 		distance =
-			res->second->IsInteger()
-			? res->second->AsInteger().value
-			: res->second->AsReal().value;
+			res->second->IsInt()
+			? res->second->AsInt().value
+			: res->second->AsFloat().value;
 	}
 
 	//we need to delay the destiny updates until after we return

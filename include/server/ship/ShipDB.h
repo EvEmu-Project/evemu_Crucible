@@ -36,7 +36,7 @@ public:
 	ShipDB(DBcore *db);
 	virtual ~ShipDB();
 
-	PyRepTuple *GetFormations();
+	PyTuple *GetFormations();
 };
 
 

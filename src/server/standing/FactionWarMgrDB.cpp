@@ -49,13 +49,13 @@ PyRep *FactionWarMgrDB::GetFacWarSystems() {
 	_log(DATABASE__MESSAGE, "GetFacWarSystems unimplemented.");
 
 	//fill some crap
-	PyRepDict *result = new PyRepDict;
-	PyRepDict *dict;
+	PyDict *result = new PyDict;
+	PyDict *dict;
 
-	dict = new PyRepDict;
-	dict->add("occupierID", new PyRepInteger(500002));
-	dict->add("factionID", new PyRepInteger(500002));
-	result->add(new PyRepInteger(30002097), dict);
+	dict = new PyDict;
+	dict->add("occupierID", new PyInt(500002));
+	dict->add("factionID", new PyInt(500002));
+	result->add(new PyInt(30002097), dict);
 
 	return result;
 }

@@ -140,12 +140,12 @@ PyRep *StationDB::GetStationItemBits(uint32 sid) {
 		return NULL;
 	}
 
-	PyRepTuple * result = new PyRepTuple(5);
-	result->items[0] = new PyRepInteger(row.GetUInt(3));
-	result->items[1] = new PyRepInteger(row.GetUInt(2));
-	result->items[2] = new PyRepInteger(row.GetUInt(0));
-	result->items[3] = new PyRepInteger(row.GetUInt(4));
-	result->items[4] = new PyRepInteger(row.GetUInt(1));
+	PyTuple * result = new PyTuple(5);
+	result->items[0] = new PyInt(row.GetUInt(3));
+	result->items[1] = new PyInt(row.GetUInt(2));
+	result->items[2] = new PyInt(row.GetUInt(0));
+	result->items[3] = new PyInt(row.GetUInt(4));
+	result->items[4] = new PyInt(row.GetUInt(1));
 
 	return result;
 }

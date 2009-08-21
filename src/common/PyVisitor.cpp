@@ -28,24 +28,24 @@
 #include "PyRep.h"
 
 //! primitive data visitors
-void SubStreamDecoder::VisitInteger(const PyRepInteger *rep) {}
-void SubStreamDecoder::VisitReal(const PyRepReal *rep) {}
-void SubStreamDecoder::VisitBoolean(const PyRepBoolean *rep) {}
-void SubStreamDecoder::VisitNone(const PyRepNone *rep) {}
-void SubStreamDecoder::VisitBuffer(const PyRepBuffer *rep) {}
-void SubStreamDecoder:: VisitString(const PyRepString *rep) {}
+void SubStreamDecoder::VisitInteger(const PyInt *rep) {}
+void SubStreamDecoder::VisitReal(const PyFloat *rep) {}
+void SubStreamDecoder::VisitBoolean(const PyBool *rep) {}
+void SubStreamDecoder::VisitNone(const PyNone *rep) {}
+void SubStreamDecoder::VisitBuffer(const PyBuffer *rep) {}
+void SubStreamDecoder:: VisitString(const PyString *rep) {}
 //! PackedRow type visitor
-void SubStreamDecoder::VisitPackedRow(const PyRepPackedRow *rep) {}
+void SubStreamDecoder::VisitPackedRow(const PyPackedRow *rep) {}
 //! Object type visitor
-void SubStreamDecoder::VisitObject(const PyRepObject *rep) {
+void SubStreamDecoder::VisitObject(const PyObject *rep) {
     rep->arguments->visit(this);
 }
 
-void SubStreamDecoder::VisitObjectEx(const PyRepObjectEx *rep) {
+void SubStreamDecoder::VisitObjectEx(const PyObjectEx *rep) {
     rep->header->visit(this);
 
     {
-        PyRepObjectEx::const_list_iterator cur, end;
+        PyObjectEx::const_list_iterator cur, end;
         cur = rep->list_data.begin();
         end = rep->list_data.end();
         for(; cur != end; ++cur)
@@ -53,7 +53,7 @@ void SubStreamDecoder::VisitObjectEx(const PyRepObjectEx *rep) {
     }
 
     {
-        PyRepObjectEx::const_dict_iterator cur, end;
+        PyObjectEx::const_dict_iterator cur, end;
         cur = rep->dict_data.begin();
         end = rep->dict_data.end();
         for(; cur != end; ++cur)
@@ -64,7 +64,7 @@ void SubStreamDecoder::VisitObjectEx(const PyRepObjectEx *rep) {
     }
 }
 
-void SubStreamDecoder::VisitSubStruct(const PyRepSubStruct *rep) {
+void SubStreamDecoder::VisitSubStruct(const PySubStruct *rep) {
     rep->sub->visit(this);
 }
 
@@ -72,18 +72,18 @@ void SubStreamDecoder::VisitSubStruct(const PyRepSubStruct *rep) {
 //! the visitor needed for decoding the substream.
 //! @note whe only need to decode, and then visit the data types inside
 //! the substream, searching for nested substreams that needs decoding...
-void SubStreamDecoder::VisitSubStream(const PyRepSubStream *rep) {
+void SubStreamDecoder::VisitSubStream(const PySubStream *rep) {
     rep->DecodeData();
     if(rep->decoded != NULL)
        rep->decoded->visit(this);
 }
 
 
-void SubStreamDecoder::VisitChecksumedStream(const PyRepChecksumedStream *rep) {}
+void SubStreamDecoder::VisitChecksumedStream(const PyChecksumedStream *rep) {}
 
-void SubStreamDecoder::VisitDict(const PyRepDict *rep) {
+void SubStreamDecoder::VisitDict(const PyDict *rep) {
 
-    PyRepDict::const_iterator cur, end;
+    PyDict::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     for(; cur != end; ++cur) {
@@ -92,9 +92,9 @@ void SubStreamDecoder::VisitDict(const PyRepDict *rep) {
     }
 }
 
-void SubStreamDecoder::VisitList(const PyRepList *rep) {
+void SubStreamDecoder::VisitList(const PyList *rep) {
 
-    PyRepList::const_iterator cur, end;
+    PyList::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     for(; cur != end; ++cur) {
@@ -102,9 +102,9 @@ void SubStreamDecoder::VisitList(const PyRepList *rep) {
     }
 }
 
-void SubStreamDecoder::VisitTuple(const PyRepTuple *rep) {
+void SubStreamDecoder::VisitTuple(const PyTuple *rep) {
 
-    PyRepTuple::const_iterator cur, end;
+    PyTuple::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     for(; cur != end; ++cur) {
@@ -114,63 +114,63 @@ void SubStreamDecoder::VisitTuple(const PyRepTuple *rep) {
 // TODO: remove this after testing.
 
 /*
-void PyVisitor::VisitObject(const PyRepObject *rep) {
+void PyVisitor::VisitObject(const PyObject *rep) {
     rep->arguments->visit(this);
 }
 
-void PyVisitor::VisitPackedRow(const PyRepPackedRow *rep) { }
+void PyVisitor::VisitPackedRow(const PyPackedRow *rep) { }
 
-void PyVisitor::VisitObjectEx(const PyRepObjectEx *rep) {
+void PyVisitor::VisitObjectEx(const PyObjectEx *rep) {
     VisitObjectExHeader(rep);
     VisitObjectExList(rep);
     VisitObjectExDict(rep);
 }
 
-void PyVisitor::VisitObjectExHeader(const PyRepObjectEx *rep) {
+void PyVisitor::VisitObjectExHeader(const PyObjectEx *rep) {
     rep->header->visit(this);
 }
 
-void PyVisitor::VisitObjectExList(const PyRepObjectEx *rep) {
-    PyRepObjectEx::const_list_iterator cur, end;
+void PyVisitor::VisitObjectExList(const PyObjectEx *rep) {
+    PyObjectEx::const_list_iterator cur, end;
     cur = rep->list_data.begin();
     end = rep->list_data.end();
     for(int i = 0; cur != end; cur++, i++)
         VisitObjectExListElement(rep, i, *cur);
 }
 
-void PyVisitor::VisitObjectExListElement(const PyRepObjectEx *rep, uint32 index, const PyRep *ele) {
+void PyVisitor::VisitObjectExListElement(const PyObjectEx *rep, uint32 index, const PyRep *ele) {
     ele->visit(this);
 }
 
-void PyVisitor::VisitObjectExDict(const PyRepObjectEx *rep) {
-    PyRepObjectEx::const_dict_iterator cur, end;
+void PyVisitor::VisitObjectExDict(const PyObjectEx *rep) {
+    PyObjectEx::const_dict_iterator cur, end;
     cur = rep->dict_data.begin();
     end = rep->dict_data.end();
     for(int i = 0; cur != end; cur++, i++)
         VisitObjectExDictElement(rep, i, cur->first, cur->second);
 }
 
-void PyVisitor::VisitObjectExDictElement(const PyRepObjectEx *rep, uint32 index, const PyRep *key, const PyRep *value) {
+void PyVisitor::VisitObjectExDictElement(const PyObjectEx *rep, uint32 index, const PyRep *key, const PyRep *value) {
     key->visit(this);
     value->visit(this);
 }
 
-void PyVisitor::VisitSubStruct(const PyRepSubStruct *rep) {
+void PyVisitor::VisitSubStruct(const PySubStruct *rep) {
     rep->sub->visit(this);
 }
 
-void PyVisitor::VisitSubStream(const PyRepSubStream *rep) {
+void PyVisitor::VisitSubStream(const PySubStream *rep) {
     if(rep->decoded != NULL)
         rep->decoded->visit(this);
 }
 
-void PyVisitor::VisitChecksumedStream(const PyRepChecksumedStream *rep) {
+void PyVisitor::VisitChecksumedStream(const PyChecksumedStream *rep) {
     rep->stream->visit(this);
 }
 
-void PyVisitor::VisitDict(const PyRepDict *rep) {
+void PyVisitor::VisitDict(const PyDict *rep) {
 
-    PyRepDict::const_iterator cur, end;
+    PyDict::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     uint32 r;
@@ -180,14 +180,14 @@ void PyVisitor::VisitDict(const PyRepDict *rep) {
 }
 
 
-void PyVisitor::VisitDictElement(const PyRepDict *rep, uint32 index, const PyRep *key, const PyRep *value) {
+void PyVisitor::VisitDictElement(const PyDict *rep, uint32 index, const PyRep *key, const PyRep *value) {
     key->visit(this);
     value->visit(this);
 }
 
 
-void PyVisitor::VisitList(const PyRepList *rep) {
-    PyRepList::const_iterator cur, end;
+void PyVisitor::VisitList(const PyList *rep) {
+    PyList::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     uint32 r;
@@ -196,12 +196,12 @@ void PyVisitor::VisitList(const PyRepList *rep) {
     }
 }
 
-void PyVisitor::VisitListElement(const PyRepList *rep, uint32 index, const PyRep *ele) {
+void PyVisitor::VisitListElement(const PyList *rep, uint32 index, const PyRep *ele) {
     ele->visit(this);
 }
 
-void PyVisitor::VisitTuple(const PyRepTuple *rep) {
-    PyRepTuple::const_iterator cur, end;
+void PyVisitor::VisitTuple(const PyTuple *rep) {
+    PyTuple::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     uint32 r;
@@ -210,6 +210,6 @@ void PyVisitor::VisitTuple(const PyRepTuple *rep) {
     }
 }
 
-void PyVisitor::VisitTupleElement(const PyRepTuple *rep, uint32 index, const PyRep *ele) {
+void PyVisitor::VisitTupleElement(const PyTuple *rep, uint32 index, const PyRep *ele) {
     ele->visit(this);
 }*/

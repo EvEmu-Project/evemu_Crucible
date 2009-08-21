@@ -39,43 +39,43 @@ PyXMLGenerator::PyXMLGenerator(FILE *into)
 PyXMLGenerator::~PyXMLGenerator() {
 }
 
-void PyXMLGenerator::VisitInteger(const PyRepInteger *rep) {
+void PyXMLGenerator::VisitInteger(const PyInt *rep) {
     fprintf(m_into, "%s<%s name=\"integer%d\" />\n", top(),
         (rep->value > 0xFFFFFFFFLL)?"int64":"int",
         m_item++
         );
 }
 
-void PyXMLGenerator::VisitReal(const PyRepReal *rep) {
+void PyXMLGenerator::VisitReal(const PyFloat *rep) {
     fprintf(m_into, "%s<real name=\"real%d\" />\n", top(),
         m_item++
         );
 }
 
-void PyXMLGenerator::VisitBoolean(const PyRepBoolean *rep) {
+void PyXMLGenerator::VisitBoolean(const PyBool *rep) {
     fprintf(m_into, "%s<bool name=\"bool%d\" />\n", top(),
         m_item++
         );
 }
 
-void PyXMLGenerator::VisitNone(const PyRepNone *rep) {
+void PyXMLGenerator::VisitNone(const PyNone *rep) {
     fprintf(m_into, "%s<none />\n", top());
 }
 
-void PyXMLGenerator::VisitBuffer(const PyRepBuffer *rep) {
+void PyXMLGenerator::VisitBuffer(const PyBuffer *rep) {
     fprintf(m_into, "%s<buffer name=\"buffer%d\" />\n", top(),
         m_item++
         );
 }
 
-void PyXMLGenerator::VisitString(const PyRepString *rep) {
+void PyXMLGenerator::VisitString(const PyString *rep) {
     fprintf(m_into, "%s<string name=\"string%d\" />\n", top(),
         m_item++
         );
 }
 
 
-void PyXMLGenerator::VisitObject(const PyRepObject *rep) {
+void PyXMLGenerator::VisitObject(const PyObject *rep) {
     //do not visit the type:
 
     fprintf(m_into, "%s<object type=\"%s\">\n", top(),
@@ -93,7 +93,7 @@ void PyXMLGenerator::VisitObject(const PyRepObject *rep) {
 
 }
 
-void PyXMLGenerator::VisitSubStruct(const PyRepSubStruct *rep) {
+void PyXMLGenerator::VisitSubStruct(const PySubStruct *rep) {
     fprintf(m_into, "%s<InlineSubStruct>\n", top()
         );
 
@@ -107,7 +107,7 @@ void PyXMLGenerator::VisitSubStruct(const PyRepSubStruct *rep) {
         );
 }
 
-void PyXMLGenerator::VisitSubStream(const PyRepSubStream *rep) {
+void PyXMLGenerator::VisitSubStream(const PySubStream *rep) {
     fprintf(m_into, "%s<InlineSubStream>\n", top()  );
 
     rep->DecodeData();
@@ -124,7 +124,7 @@ void PyXMLGenerator::VisitSubStream(const PyRepSubStream *rep) {
     fprintf(m_into, "%s</InlineSubStream>\n", top() );
 }
 
-void PyXMLGenerator::VisitDict(const PyRepDict *rep) {
+void PyXMLGenerator::VisitDict(const PyDict *rep) {
 
     enum {
         DictInline,
@@ -144,7 +144,7 @@ void PyXMLGenerator::VisitDict(const PyRepDict *rep) {
     vtype = ValueUnknown;
 
     //this is kinda a hack, but we want to try and classify the contents of this dict:
-    PyRepDict::const_iterator cur, end;
+    PyDict::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     for(; cur != end; ++cur)
@@ -157,7 +157,7 @@ void PyXMLGenerator::VisitDict(const PyRepDict *rep) {
             } else if(ktype == DictInline) {
                 ktype = DictStringKey;
             }
-        } else if(cur->first->IsInteger()) {
+        } else if(cur->first->IsInt()) {
             if(ktype == DictStringKey) {
                 //we have varying key types, raw dict it is.
                 ktype = DictRaw;
@@ -176,12 +176,12 @@ void PyXMLGenerator::VisitDict(const PyRepDict *rep) {
                 vtype = ValueMixed;
             } else if(vtype == ValueUnknown)
                 vtype = ValueString;
-        } else if(cur->second->IsInteger()) {
+        } else if(cur->second->IsInt()) {
             if(vtype == ValueString || vtype == ValueReal) {
                 vtype = ValueMixed;
             } else if(vtype == ValueUnknown)
                 vtype = ValueInt;
-        } else if(cur->second->IsReal()) {
+        } else if(cur->second->IsFloat()) {
             if(vtype == ValueString || vtype == ValueInt) {
                 vtype = ValueMixed;
             } else if(vtype == ValueUnknown)
@@ -232,7 +232,7 @@ void PyXMLGenerator::VisitDict(const PyRepDict *rep) {
             fprintf(m_into, "%s<!-- non-string dict key of type %s -->\n", top(), cur->first->TypeString());
             return;
         }
-        PyRepString *str = (PyRepString *) cur->first;
+        PyString *str = (PyString *) cur->first;
 
         fprintf(m_into, "%s<IDEntry key=\"%s\">\n", top(), str->value.c_str());
 
@@ -250,7 +250,7 @@ void PyXMLGenerator::VisitDict(const PyRepDict *rep) {
     fprintf(m_into, "%s</InlineDict>\n", top() );
 }
 
-void PyXMLGenerator::VisitList(const PyRepList *rep) {
+void PyXMLGenerator::VisitList(const PyList *rep) {
 
     //for now presume we cant do anything useful with lists that contain
     //more than a few things...
@@ -263,7 +263,7 @@ void PyXMLGenerator::VisitList(const PyRepList *rep) {
         push(indent.c_str());
 
         //! visit the list elements.
-        PyRepList::const_iterator cur, end;
+        PyList::const_iterator cur, end;
         cur = rep->begin();
         end = rep->end();
         for(uint32 i = 0; cur != end; ++cur, ++i) {
@@ -287,7 +287,7 @@ void PyXMLGenerator::VisitList(const PyRepList *rep) {
         eletype = TypeUnknown;
 
         //scan the list to see if we can classify the contents.
-        PyRepList::const_iterator cur, end;
+        PyList::const_iterator cur, end;
         cur = rep->begin();
         end = rep->end();
         for(; cur != end; cur++) {
@@ -297,13 +297,13 @@ void PyXMLGenerator::VisitList(const PyRepList *rep) {
                     break;
                 } else if(eletype == TypeUnknown)
                     eletype = TypeString;
-            } else if((*cur)->IsInteger()) {
+            } else if((*cur)->IsInt()) {
                 if(eletype == TypeString || eletype == TypeReal) {
                     eletype = TypeMixed;
                     break;
                 } else if(eletype == TypeUnknown)
                     eletype = TypeInteger;
-            } else if((*cur)->IsReal()) {
+            } else if((*cur)->IsFloat()) {
                 if(eletype == TypeString || eletype == TypeInteger) {
                     eletype = TypeMixed;
                     break;
@@ -332,7 +332,7 @@ void PyXMLGenerator::VisitList(const PyRepList *rep) {
     }
 }
 
-void PyXMLGenerator::VisitTuple(const PyRepTuple *rep) {
+void PyXMLGenerator::VisitTuple(const PyTuple *rep) {
 
     fprintf(m_into, "%s<InlineTuple>\n", top()
         );
@@ -342,7 +342,7 @@ void PyXMLGenerator::VisitTuple(const PyRepTuple *rep) {
     push(indent.c_str());
 
     //! visits the tuple elements.
-    PyRepTuple::const_iterator cur, end;
+    PyTuple::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
     for(uint32 i = 0; cur != end; ++cur, ++i) {

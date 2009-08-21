@@ -50,7 +50,7 @@ PyResult Command_roid(Client *who, CommandDB *db, PyServiceMgr *services, const 
 	
 	GetAsteroid(who, atoi(args.arg[1]), radius, position);
 
-	return(new PyRepString("Spawn successsfull."));
+	return(new PyString("Spawn successsfull."));
 }
 
 PyResult Command_spawnbelt(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -90,7 +90,7 @@ PyResult Command_spawnbelt(Client *who, CommandDB *db, PyServiceMgr *services, c
 		GetAsteroid(who, GetRoidType(randf(), roidDist), (randf() + 0.5) * roidradius, r + mposition);
 	}
 
-	return(new PyRepString("Spawn successsfull."));
+	return(new PyString("Spawn successsfull."));
 }
 
 uint32 GetRoidType(double p, const std::map<double, uint32> & roids) {

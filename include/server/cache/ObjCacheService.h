@@ -32,7 +32,7 @@
 #include "ObjCacheDB.h"
 #include "../common/CachedObjectMgr.h"
 
-class PyRepDict;
+class PyDict;
 
 //little helper class for repeated code and memory management
 class ObjectCachedMethodID {
@@ -55,19 +55,19 @@ public:
 		hCharCreateCachables,
 		hAppearanceCachables
 	} hintSet;
-	void InsertCacheHints(hintSet hset, PyRepDict *into);
+	void InsertCacheHints(hintSet hset, PyDict *into);
 	PyRep *GetCacheHint(const char *objectID);
 
-	bool LoadCachedFile(const char *filename, const char *oname, PyRepSubStream *into);
+	bool LoadCachedFile(const char *filename, const char *oname, PySubStream *into);
 
 	//handlers for simple cached method calls.
 	bool IsCacheLoaded(const PyRep *objectID) const;
 	void InvalidateCache(const PyRep *objectID);
 	void GiveCache(const PyRep *objectID, PyRep **contents);
-	PyRepObject *MakeObjectCachedMethodCallResult(const PyRep *objectID, const char *versionCheck="run");
+	PyObject *MakeObjectCachedMethodCallResult(const PyRep *objectID, const char *versionCheck="run");
 	inline bool IsCacheLoaded(const ObjectCachedMethodID &m) const { return(IsCacheLoaded(m.objectID)); }
 	inline void GiveCache(const ObjectCachedMethodID &m, PyRep **contents) { GiveCache(m.objectID, contents); }
-	inline PyRepObject *MakeObjectCachedMethodCallResult(const ObjectCachedMethodID &m, const char *versionCheck="run") { return(MakeObjectCachedMethodCallResult(m.objectID, versionCheck)); }
+	inline PyObject *MakeObjectCachedMethodCallResult(const ObjectCachedMethodID &m, const char *versionCheck="run") { return(MakeObjectCachedMethodCallResult(m.objectID, versionCheck)); }
 	inline void InvalidateCache(const ObjectCachedMethodID &m) { InvalidateCache(m.objectID); }
 	
 protected:

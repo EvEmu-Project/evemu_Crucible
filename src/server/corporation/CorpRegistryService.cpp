@@ -160,7 +160,7 @@ PyResult CorpRegistryBound::Handle_GetInfoWindowDataForChar(PyCallArgs &call) {
 
     _log(CLIENT__MESSAGE, "GetInfoWindowDataForChar not implemented!");
 
-    return(new PyRepNone());
+    return(new PyNone());
 }
 
 PyResult CorpRegistryBound::Handle_GetLockedItemLocations(PyCallArgs &call) {
@@ -170,7 +170,7 @@ PyResult CorpRegistryBound::Handle_GetLockedItemLocations(PyCallArgs &call) {
 
     //this returns an empty list for me on live.
 
-    return(new PyRepList());
+    return(new PyList());
 }
 
 PyResult CorpRegistryBound::Handle_GetCorporation(PyCallArgs &call) {
@@ -192,20 +192,20 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
 
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
 
     //first make sure the char can even afford it.
     uint32 corp_costu;
     if(!m_db->GetConstant("corporationStartupCost", corp_costu)) {
         codelog(SERVICE__ERROR, "%s: Failed to determine corporation costs.", call.client->GetName());
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
     int32 corp_cost = corp_costu;
 
     if(call.client->GetBalance() < double(corp_cost)) {
         _log(SERVICE__ERROR, "%s: Cannot afford corporation startup costs!", call.client->GetName());
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
 
 
@@ -214,10 +214,10 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
     uint32 corpID;
     if (!m_db->AddCorporation(args, call.client->GetCharacterID(), call.client->GetStationID(), corpID)) {
         codelog(SERVICE__ERROR, "New corporation creation failed...");
-        return (new PyRepInteger(0));
+        return (new PyInt(0));
     }
     //adding a corporation might affect eveStaticOwners, so we gotta invalidate the cache...
-    PyRepString cache_name("config.StaticOwners");
+    PyString cache_name("config.StaticOwners");
     m_manager->cache_service->InvalidateCache(&cache_name);
 
 
@@ -258,10 +258,10 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
         codelog(SERVICE__ERROR, "Failed to create OnCorpChanged notification stream.");
         // This is a big problem, because this way we won't be able to see the difference...
         call.client->SendErrorMsg("Unable to notify about corp creation. Try logging in again.");
-        return (new PyRepInteger(0));
+        return (new PyInt(0));
     }
-    PyRepTuple* a1 = cc.Encode();
-    PyRepTuple* a2 = cc.Encode();
+    PyTuple* a1 = cc.Encode();
+    PyTuple* a2 = cc.Encode();
     m_manager->entity_list.Multicast("OnCorporationChanged", "clientID", &a1, NOTIF_DEST__LOCATION, location);
     m_manager->entity_list.Multicast("OnCorporationChanged", "stationid", &a2, NOTIF_DEST__LOCATION, location);
 
@@ -276,10 +276,10 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
     //loads up roles and alters session.
     if(!JoinCorporation(call.client, corpID, roles)) {
         codelog(CLIENT__ERROR, "Failed to force char '%s' to join new corporation %u. This will be interesting.", call.client->GetName(), corpID);
-        return (new PyRepInteger(0));
+        return (new PyInt(0));
     }
 
-    return (new PyRepInteger(corpID));
+    return (new PyInt(corpID));
 }
 
 bool CorpRegistryBound::JoinCorporation(Client *who, uint32 newCorpID, const CorpMemberInfo &roles) {
@@ -307,7 +307,7 @@ PyResult CorpRegistryBound::Handle_GetSuggestedTickerNames(PyCallArgs &call) {
         return NULL;
     }
 
-    PyRepList * result = new PyRepList;
+    PyList * result = new PyList;
     Item_GetSuggestedTickerNames sTN;
     sTN.tN = "";
     uint32 cnLen = arg.arg.length();
@@ -345,14 +345,14 @@ PyResult CorpRegistryBound::Handle_GetOffices(PyCallArgs &call) {
     CorpOfficeSparseRowset ret;
 
     //now we register
-    PyRepDict *dict = new PyRepDict();
+    PyDict *dict = new PyDict();
 
     // First time we only need the number of rows, not the data itself
     // Data will be fetched from the SparseRowset
     uint32 officeN = m_db->GetOffices(call.client->GetCorporationID());
 
     // No idea what this is
-    dict->add("realRowCount", new PyRepInteger(officeN));
+    dict->add("realRowCount", new PyInt(officeN));
     // But this one holds the real row number
     ret.officeNumber = officeN;
 
@@ -360,7 +360,7 @@ PyResult CorpRegistryBound::Handle_GetOffices(PyCallArgs &call) {
 
     //call.client->temp_hack_officeLists[call.client->GetCorporationID()] = bindID; //m_manager->FindBoundObject(bObj);
 
-    PyRepObject * res = ret.Encode();
+    PyObject * res = ret.Encode();
     return res;
 }
 
@@ -410,7 +410,7 @@ PyResult CorpRegistryBound::Handle_InsertApplication(PyCallArgs &call) {
     OCAC.corpID = res.corpID;
     OCAC.charID = aInfo.charID;
 
-    PyRepTuple* notif = OCAC.Encode();
+    PyTuple* notif = OCAC.Encode();
     // Who needs to know this?
     // Everyone who's in that corporation, right?
 
@@ -440,55 +440,55 @@ PyResult CorpRegistryBound::Handle_InsertApplication(PyCallArgs &call) {
 
 void CorpRegistryBound::FillOCApplicationChange(Notify_OnCorporationApplicationChanged & OCAC, const ApplicationInfo & Old, const ApplicationInfo & New) {
     if (Old.valid) {
-        OCAC.applicationDateTimeOld = new PyRepInteger(Old.appTime);
-        OCAC.applicationTextOld = new PyRepString(Old.appText);
-        OCAC.characterIDOld = new PyRepInteger(Old.charID);
-        OCAC.corporationIDOld = new PyRepInteger(Old.corpID);
-        OCAC.deletedOld = new PyRepInteger(Old.deleted);
-        OCAC.grantableRolesOld = new PyRepInteger(Old.grantRole);
+        OCAC.applicationDateTimeOld = new PyInt(Old.appTime);
+        OCAC.applicationTextOld = new PyString(Old.appText);
+        OCAC.characterIDOld = new PyInt(Old.charID);
+        OCAC.corporationIDOld = new PyInt(Old.corpID);
+        OCAC.deletedOld = new PyInt(Old.deleted);
+        OCAC.grantableRolesOld = new PyInt(Old.grantRole);
         if (Old.lastCID) {
-            OCAC.lastCorpUpdaterIDOld = new PyRepInteger(Old.lastCID);
+            OCAC.lastCorpUpdaterIDOld = new PyInt(Old.lastCID);
         } else {
-            OCAC.lastCorpUpdaterIDOld = new PyRepNone();
+            OCAC.lastCorpUpdaterIDOld = new PyNone();
         }
-        OCAC.rolesOld = new PyRepInteger(Old.role);
-        OCAC.statusOld = new PyRepInteger(Old.status);
+        OCAC.rolesOld = new PyInt(Old.role);
+        OCAC.statusOld = new PyInt(Old.status);
     } else {
-        OCAC.applicationDateTimeOld = new PyRepNone();
-        OCAC.applicationTextOld = new PyRepNone();
-        OCAC.characterIDOld = new PyRepNone();
-        OCAC.corporationIDOld = new PyRepNone();
-        OCAC.deletedOld = new PyRepNone();
-        OCAC.grantableRolesOld = new PyRepNone();
-        OCAC.lastCorpUpdaterIDOld = new PyRepNone();
-        OCAC.rolesOld = new PyRepNone();
-        OCAC.statusOld = new PyRepNone();
+        OCAC.applicationDateTimeOld = new PyNone();
+        OCAC.applicationTextOld = new PyNone();
+        OCAC.characterIDOld = new PyNone();
+        OCAC.corporationIDOld = new PyNone();
+        OCAC.deletedOld = new PyNone();
+        OCAC.grantableRolesOld = new PyNone();
+        OCAC.lastCorpUpdaterIDOld = new PyNone();
+        OCAC.rolesOld = new PyNone();
+        OCAC.statusOld = new PyNone();
     }
 
     if (New.valid) {
-        OCAC.applicationDateTimeNew = new PyRepInteger(New.appTime);
-        OCAC.applicationTextNew = new PyRepString(New.appText);
-        OCAC.characterIDNew = new PyRepInteger(New.charID);
-        OCAC.corporationIDNew = new PyRepInteger(New.corpID);
-        OCAC.deletedNew = new PyRepInteger(New.deleted);
-        OCAC.grantableRolesNew = new PyRepInteger(New.grantRole);
+        OCAC.applicationDateTimeNew = new PyInt(New.appTime);
+        OCAC.applicationTextNew = new PyString(New.appText);
+        OCAC.characterIDNew = new PyInt(New.charID);
+        OCAC.corporationIDNew = new PyInt(New.corpID);
+        OCAC.deletedNew = new PyInt(New.deleted);
+        OCAC.grantableRolesNew = new PyInt(New.grantRole);
         if (New.lastCID) {
-            OCAC.lastCorpUpdaterIDNew = new PyRepInteger(New.lastCID);
+            OCAC.lastCorpUpdaterIDNew = new PyInt(New.lastCID);
         } else {
-            OCAC.lastCorpUpdaterIDNew = new PyRepNone();
+            OCAC.lastCorpUpdaterIDNew = new PyNone();
         }
-        OCAC.rolesNew = new PyRepInteger(New.role);
-        OCAC.statusNew = new PyRepInteger(New.status);
+        OCAC.rolesNew = new PyInt(New.role);
+        OCAC.statusNew = new PyInt(New.status);
     } else {
-        OCAC.applicationDateTimeNew = new PyRepNone();
-        OCAC.applicationTextNew = new PyRepNone();
-        OCAC.characterIDNew = new PyRepNone();
-        OCAC.corporationIDNew = new PyRepNone();
-        OCAC.deletedNew = new PyRepNone();
-        OCAC.grantableRolesNew = new PyRepNone();
-        OCAC.lastCorpUpdaterIDNew = new PyRepNone();
-        OCAC.rolesNew = new PyRepNone();
-        OCAC.statusNew = new PyRepNone();
+        OCAC.applicationDateTimeNew = new PyNone();
+        OCAC.applicationTextNew = new PyNone();
+        OCAC.characterIDNew = new PyNone();
+        OCAC.corporationIDNew = new PyNone();
+        OCAC.deletedNew = new PyNone();
+        OCAC.grantableRolesNew = new PyNone();
+        OCAC.lastCorpUpdaterIDNew = new PyNone();
+        OCAC.rolesNew = new PyNone();
+        OCAC.statusNew = new PyNone();
     }
 }
 
@@ -536,7 +536,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
     // OnCorporationApplicationChanged event, probably be good to make it two (or more) times, independently, depending on update type
 
     Notify_OnCorporationApplicationChanged OCAC;
-    PyRepTuple * answer;
+    PyTuple * answer;
 
 
     switch (args.newStatus) {
@@ -637,10 +637,10 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
         Notify_OnCorpMemberChange ocmc;
 
         ocmc.charID = args.charID;
-        ocmc.newCorpID = ((PyRepInteger *)change.corporationIDNew)->value;
-        ocmc.oldCorpID = ((PyRepInteger *)change.corporationIDOld)->value;
-        ocmc.newDate = ((PyRepInteger *)OCAC.applicationDateTimeNew)->value;
-        ocmc.oldDate = ((PyRepInteger *)OCAC.applicationDateTimeOld)->value;
+        ocmc.newCorpID = ((PyInt *)change.corporationIDNew)->value;
+        ocmc.oldCorpID = ((PyInt *)change.corporationIDOld)->value;
+        ocmc.newDate = ((PyInt *)OCAC.applicationDateTimeNew)->value;
+        ocmc.oldDate = ((PyInt *)OCAC.applicationDateTimeOld)->value;
 
 
         // both corporations' members will be notified about the change
@@ -685,7 +685,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
         break;
         }
     }
-    return new PyRepInteger(1);
+    return new PyInt(1);
 }
 
 PyResult CorpRegistryBound::Handle_DeleteApplication(PyCallArgs & call) {
@@ -695,7 +695,7 @@ PyResult CorpRegistryBound::Handle_DeleteApplication(PyCallArgs & call) {
     Call_TwoIntegerArgs args;
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
 
     Notify_OnCorporationApplicationChanged OCAC;
@@ -706,17 +706,17 @@ PyResult CorpRegistryBound::Handle_DeleteApplication(PyCallArgs & call) {
     OCAC.charID = args.arg2;
     if(!m_db->GetCurrentApplicationInfo(OCAC.charID, OCAC.corpID, oldInfo)) {
         codelog(SERVICE__ERROR, "%s: Failed to query application info for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
 
     FillOCApplicationChange(OCAC, oldInfo, newInfo);
 
     if(!m_db->DeleteApplication(oldInfo)) {
         codelog(SERVICE__ERROR, "%s: Failed to delete application info for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
 
-    PyRepTuple * answer = OCAC.Encode();
+    PyTuple * answer = OCAC.Encode();
     MulticastTarget mct;
     mct.characters.insert(OCAC.charID);
     mct.corporations.insert(OCAC.corpID);
@@ -724,7 +724,7 @@ PyResult CorpRegistryBound::Handle_DeleteApplication(PyCallArgs & call) {
         "OnCorporationApplicationChanged",
         "*corpid&corprole", &answer, mct);
 
-    return new PyRepInteger(1);
+    return new PyInt(1);
 }
 
 PyResult CorpRegistryBound::Handle_UpdateApplication(PyCallArgs &call) {
@@ -741,7 +741,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplication(PyCallArgs &call) {
     OCAC.corpID = args.corpID;
     if(!m_db->GetCurrentApplicationInfo(OCAC.charID, OCAC.corpID, oldInfo)) {
         codelog(SERVICE__ERROR, "%s: Failed to query application info for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
     newInfo = oldInfo;
     newInfo.appText = args.message;
@@ -749,12 +749,12 @@ PyResult CorpRegistryBound::Handle_UpdateApplication(PyCallArgs &call) {
 
     if(!m_db->UpdateApplication(newInfo)) {
         codelog(SERVICE__ERROR, "%s: Failed to update application info for char %u corp %u", call.client->GetName(), OCAC.charID, OCAC.corpID);
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
 
     FillOCApplicationChange(OCAC, oldInfo, newInfo);
 
-    PyRepTuple* notif = OCAC.Encode();
+    PyTuple* notif = OCAC.Encode();
     m_manager->entity_list.Unicast(OCAC.charID,
         "OnCorporationApplicationChanged",
         "clientID", &notif);
@@ -778,24 +778,24 @@ PyResult CorpRegistryBound::Handle_UpdateDivisionNames(PyCallArgs &call) {
     }
 
     Notify_IntRaw notif;
-    notif.data = new PyRepDict();
+    notif.data = new PyDict();
     notif.key = call.client->GetCorporationID();
 
-    if (!m_db->UpdateDivisionNames(notif.key, divs, (PyRepDict *)notif.data)) {
+    if (!m_db->UpdateDivisionNames(notif.key, divs, (PyDict *)notif.data)) {
         codelog(SERVICE__ERROR, "%s: Failed to update division names for corp %u", call.client->GetName(), notif.key);
-        return(new PyRepNone());
+        return(new PyNone());
     }
 
     MulticastTarget mct;
     mct.corporations.insert(notif.key);
-    PyRepTuple * answer = notif.Encode();
+    PyTuple * answer = notif.Encode();
     m_manager->entity_list.Multicast("OnCorporationChanged", "corpid", &answer, mct);
     answer = notif.Encode();
     m_manager->entity_list.Multicast("OnCorporationChanged", "clientID", &answer, mct);
     answer = notif.Encode();
     m_manager->entity_list.Multicast("OnCorporationChanged", "clientID", &answer, mct);
 
-    return(new PyRepNone());
+    return(new PyNone());
 }
 
 PyResult CorpRegistryBound::Handle_UpdateCorporation(PyCallArgs &call) {
@@ -808,22 +808,22 @@ PyResult CorpRegistryBound::Handle_UpdateCorporation(PyCallArgs &call) {
 
     Notify_IntRaw notif;
     notif.key = call.client->GetCorporationID();
-    notif.data = new PyRepDict();
+    notif.data = new PyDict();
 
-    if (!m_db->UpdateCorporation(notif.key, upd, (PyRepDict*)notif.data)) {
+    if (!m_db->UpdateCorporation(notif.key, upd, (PyDict*)notif.data)) {
         codelog(SERVICE__ERROR, "%s: Failed to update corporation data for corp %u", call.client->GetName(), notif.key);
-        return new PyRepNone();
+        return new PyNone();
     }
 
     // Only send notification if it is needed...
-    if (((PyRepDict*)notif.data)->items.size()) {
+    if (((PyDict*)notif.data)->items.size()) {
         MulticastTarget mct;
         mct.corporations.insert(notif.key);
-        PyRepTuple * answer = notif.Encode();
+        PyTuple * answer = notif.Encode();
         m_manager->entity_list.Multicast("OnCorporationChanged", "corpid", &answer, mct);
     }
 
-    return new PyRepNone();
+    return new PyNone();
 }
 
 PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
@@ -839,7 +839,7 @@ PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
     double logo_change;
     if(!m_db->GetConstant("corpLogoChangeCost", logo_changeu)) {
         codelog(SERVICE__ERROR, "%s: Failed to determine logo change costs.", call.client->GetName());
-        return(new PyRepNone());
+        return(new PyNone());
     }
     logo_change = logo_changeu;
 
@@ -847,21 +847,21 @@ PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
     // It's here, to avoid callign GetCorporationID all the time
     Notify_IntRaw notif;
     notif.key = call.client->GetCorporationID();
-    notif.data = new PyRepDict();
+    notif.data = new PyDict();
 
     double corp_orig = m_db->GetCorpBalance(notif.key);
     if(corp_orig < logo_change) {
         _log(SERVICE__ERROR, "%s: Cannot afford corporation logo change costs!", call.client->GetName());
         delete notif.data; notif.data = NULL;
         call.client->SendErrorMsg("Your corporation doesn't have enough money (%u ISK) to change it's logo!", logo_changeu);
-        return(new PyRepNone());
+        return(new PyNone());
     }
 
     // Try to do the update. If it fails, we won't take the money.
-    if (!m_db->UpdateLogo(notif.key, upd, (PyRepDict*)notif.data)) {
+    if (!m_db->UpdateLogo(notif.key, upd, (PyDict*)notif.data)) {
         codelog(SERVICE__ERROR, "Corporation logo change failed...");
         delete notif.data; notif.data = NULL;
-        return(new PyRepNone());
+        return(new PyNone());
     }
 
     //take the money out of their wallet (sends wallet blink event)
@@ -869,7 +869,7 @@ PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
     if(!m_db->AddBalanceToCorp(notif.key, -logo_change)) {
         codelog(SERVICE__ERROR, "%s: Failed to take money for corp logo change!", call.client->GetName());
         delete notif.data; notif.data = NULL;
-        return(new PyRepNone());
+        return(new PyNone());
     }
 
     double corp_new = m_db->GetCorpBalance(notif.key);
@@ -897,7 +897,7 @@ PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
     oac.accountKey = "cash";
     oac.balance = corp_new;
     oac.ownerid = notif.key;
-    PyRepTuple * answer = oac.Encode();
+    PyTuple * answer = oac.Encode();
 
     MulticastTarget mct;
     mct.corporations.insert(notif.key);

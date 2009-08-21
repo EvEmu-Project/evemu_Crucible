@@ -134,7 +134,7 @@ PyResult LSCService::Handle_GetChannels(PyCallArgs &call) {
 }
 
 PyResult LSCService::Handle_GetRookieHelpChannel(PyCallArgs &call) {
-    return(new PyRepInteger(1));
+    return(new PyInt(1));
 }
 
 PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
@@ -147,24 +147,24 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
         return NULL;
     }
 
-    PyRepList::const_iterator cur = args.channels.begin(), end = args.channels.end();
-    PyRepTuple * prt;
+    PyList::const_iterator cur = args.channels.begin(), end = args.channels.end();
+    PyTuple * prt;
 
     for (;cur!=end;cur++) {
-        if ((*cur)->IsInteger()) {
-            toJoin.insert(((PyRepInteger *)(*cur))->value);
+        if ((*cur)->IsInt()) {
+            toJoin.insert(((PyInt *)(*cur))->value);
         } else if ((*cur)->IsTuple()) {
-            prt = (PyRepTuple*)*cur;
+            prt = (PyTuple*)*cur;
             if (prt->items.size() != 1 || !prt->items[0]->IsTuple()) {
                 codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                 continue;
             }
-            prt = (PyRepTuple*)prt->items[0];
-            if (prt->items.size() != 2 || /* !prt->items[0]->IsString() || unnessecary */ !prt->items[1]->IsInteger()) {
+            prt = (PyTuple*)prt->items[0];
+            if (prt->items.size() != 2 || /* !prt->items[0]->IsString() || unnessecary */ !prt->items[1]->IsInt()) {
                 codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                 continue;
             }
-            toJoin.insert(((PyRepInteger*)prt->items[1])->value);
+            toJoin.insert(((PyInt*)prt->items[1])->value);
         } else {
             codelog(SERVICE__ERROR, "%s: Bad argument ", call.client->GetName());
             return NULL;
@@ -178,7 +178,7 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
     // and now ensure the working of the system
     toJoin.insert(charID);
 
-    PyRepList *ml = new PyRepList();
+    PyList *ml = new PyList();
     ChannelJoinReply * rep;
 
     LSCChannel * channel;
@@ -224,34 +224,34 @@ PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
     std::set<uint32> toLeave;
 
     {
-        PyRepList::iterator cur, end;
+        PyList::iterator cur, end;
         cur = args.channels.begin();
         end = args.channels.end();
 
-        PyRepTuple * prt;
+        PyTuple * prt;
 
         for(;cur!=end;cur++) {
-            if ((*cur)->IsInteger()) {
-                toLeave.insert(((PyRepInteger*)(*cur))->value);
+            if ((*cur)->IsInt()) {
+                toLeave.insert(((PyInt*)(*cur))->value);
             } else if ((*cur)->IsTuple()) {
-                prt = (PyRepTuple*)(*cur);
-                if (prt->items[0]->IsInteger()) {
-                    toLeave.insert(((PyRepInteger*)prt->items[0])->value);
+                prt = (PyTuple*)(*cur);
+                if (prt->items[0]->IsInt()) {
+                    toLeave.insert(((PyInt*)prt->items[0])->value);
                     continue;
                 }
                 if (!prt->items[0]->IsTuple()) {
                     codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                     continue;
                 }
-                prt = (PyRepTuple*)prt->items[0];
+                prt = (PyTuple*)prt->items[0];
                 if (prt->items[0]->IsTuple()) {
-                    prt = (PyRepTuple*)prt->items[0];
+                    prt = (PyTuple*)prt->items[0];
                 }
-                if (prt->items.size() != 2 || !prt->items[1]->IsInteger()) {
+                if (prt->items.size() != 2 || !prt->items[1]->IsInt()) {
                     codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                     continue;
                 }
-                toLeave.insert(((PyRepInteger*)prt->items[1])->value);
+                toLeave.insert(((PyInt*)prt->items[1])->value);
                 } else {
                     codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                     continue;
@@ -268,7 +268,7 @@ PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
         }
     }
 
-    return (new PyRepNone());
+    return (new PyNone());
 }
 void LSCService::CharacterLogout(uint32 charID, OnLSC_SenderInfo * si) {
     std::map<uint32, LSCChannel*>::iterator cur = m_channels.begin(), end = m_channels.end();
@@ -286,25 +286,25 @@ PyResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
     }
 
     uint32 toLeave;
-    PyRepTuple * prt;
+    PyTuple * prt;
 
-    if (arg.channel->IsInteger()) {
-        toLeave = ((PyRepInteger*)(arg.channel))->value;
+    if (arg.channel->IsInt()) {
+        toLeave = ((PyInt*)(arg.channel))->value;
     } else if (arg.channel->IsTuple()) {
-        prt = (PyRepTuple*)(arg.channel);
-        if (prt->items[0]->IsInteger()) {
-            toLeave = ((PyRepInteger*)prt->items[0])->value;
+        prt = (PyTuple*)(arg.channel);
+        if (prt->items[0]->IsInt()) {
+            toLeave = ((PyInt*)prt->items[0])->value;
     } else {
             if (!prt->items[0]->IsTuple()) {
                 codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                 return NULL;
             }
-            prt = (PyRepTuple*)prt->items[0];
-            if (prt->items.size() != 2 || !prt->items[1]->IsInteger()) {
+            prt = (PyTuple*)prt->items[0];
+            if (prt->items.size() != 2 || !prt->items[1]->IsInt()) {
                 codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                 return NULL;
             }
-            toLeave = ((PyRepInteger*)prt->items[1])->value;
+            toLeave = ((PyInt*)prt->items[1])->value;
         }
     } else {
         codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
@@ -344,54 +344,54 @@ PyResult LSCService::Handle_DestroyChannel(PyCallArgs &call) {
     }
 
     if (m_channels.find(arg.arg) == m_channels.end()) {
-        return new PyRepNone();
+        return new PyNone();
     }
 
     m_channels[arg.arg]->Evacuate(call.client);
     delete m_channels[arg.arg];
     m_channels.erase(arg.arg);
 
-    return new PyRepNone();
+    return new PyNone();
 }
 PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
     uint32 channelID;
-    PyRepTuple * arg = call.tuple;
+    PyTuple * arg = call.tuple;
 
     if (arg->items.size() != 2 || !arg->items[0]->IsTuple() || !arg->items[1]->IsString()) {
         codelog(SERVICE__ERROR, "%s: Bad arguments (T0)", call.client->GetName());
-        return new PyRepInteger(0);
+        return new PyInt(0);
     }
 
-    const char * message = ((PyRepString*)arg->items[1])->value.c_str();
-    arg = (PyRepTuple *)arg->items[0];
+    const char * message = ((PyString*)arg->items[1])->value.c_str();
+    arg = (PyTuple *)arg->items[0];
 
-    if (arg->IsInteger()) {
-        channelID = ((PyRepInteger*)arg)->value;
+    if (arg->IsInt()) {
+        channelID = ((PyInt*)arg)->value;
     } else if (arg->IsTuple()) {
         if (arg->items.size() != 1 || !arg->items[0]->IsTuple()) {
             codelog(SERVICE__ERROR, "%s: Bad arguments (T1)", call.client->GetName());
-            return new PyRepInteger(0);
+            return new PyInt(0);
         }
-        arg = (PyRepTuple *)arg->items[0];
-        if (arg->items.size() != 2 || !arg->items[1]->IsInteger()) {
+        arg = (PyTuple *)arg->items[0];
+        if (arg->items.size() != 2 || !arg->items[1]->IsInt()) {
             codelog(SERVICE__ERROR, "%s: Bad arguments (T2)", call.client->GetName());
-            return new PyRepInteger(0);
+            return new PyInt(0);
         }
-        channelID = ((PyRepInteger*)arg->items[1])->value;
+        channelID = ((PyInt*)arg->items[1])->value;
     } else {
         codelog(SERVICE__ERROR, "%s: Bad arguments (T3)", call.client->GetName());
-        return new PyRepInteger(0);
+        return new PyInt(0);
     }
 
     if (m_channels.find(channelID) == m_channels.end()) {
         codelog(SERVICE__ERROR, "%s: Couldn't find channel %u", call.client->GetName(), channelID);
-        return new PyRepInteger(0);
+        return new PyInt(0);
     }
     LSCChannel * channel = m_channels[channelID];
 
     channel->SendMessage(call.client, message);
 
-    return new PyRepInteger(1);
+    return new PyInt(1);
 }
 
 
@@ -518,7 +518,7 @@ void LSCService::SendMail(uint32 sender, const std::vector<int32> &recipients, c
     }
 
     //now, send a notification to each successful recipient
-    PyRepTuple *answer = notify.Encode();
+    PyTuple *answer = notify.Encode();
     m_manager->entity_list.Multicast(successful_recipients, "OnMessage", "*multicastID", &answer, false);
 }
 

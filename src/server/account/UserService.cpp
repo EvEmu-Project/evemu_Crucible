@@ -44,7 +44,7 @@ PyResult UserService::Handle_GetRedeemTokens(PyCallArgs &call) {
 
 	// takes no args
 
-	return(new PyRepList);
+	return(new PyList);
 }
 
 

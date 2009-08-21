@@ -4,7 +4,7 @@
 <element name="GetFactionInfoRsp">
  <InlineTuple>
 	<!-- 0: factionIDbyNPCCorpID: dict: corpID -> factionID    -->
-    <primdict name="factionIDbyNPCCorpID" key="uint32"  pykey="Integer" value="uint32" pyvalue="Integer" />
+    <primdict name="factionIDbyNPCCorpID" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
 	<!-- 1: factionRegions: dict: factionID -> intlist -->
     <intdict name="factionRegions" />
 	<!-- 2: factionConstellations: dict: factionID -> intlist -->
@@ -14,9 +14,9 @@
 	<!-- 4: factionRaces: dict: factionID -> intlist -->
     <intdict name="factionRaces" />
 	<!-- 5: factionStationCount: dict: factionID -> count -->
-    <primdict name="factionStationCount" key="uint32"  pykey="Integer" value="uint32" pyvalue="Integer" />
+    <primdict name="factionStationCount" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
 	<!-- 6: factionSolarSystemCount: dict: factionID -> count -->
-    <primdict name="factionSolarSystemCount" key="uint32"  pykey="Integer" value="uint32" pyvalue="Integer" />
+    <primdict name="factionSolarSystemCount" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
 	<!-- 7: npcCorpInfo: dict: corpID -> util.Row -->
     <!--
         corporationName,

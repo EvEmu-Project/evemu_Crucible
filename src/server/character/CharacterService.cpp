@@ -107,7 +107,7 @@ PyResult CharacterService::Handle_GetOwnerNoteLabels(PyCallArgs &call) {
 }
 
 PyResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
-    PyRepDict *result = new PyRepDict();
+    PyDict *result = new PyDict();
 
     //send all the cache hints needed for char creation.
     m_manager->cache_service->InsertCacheHints(
@@ -121,11 +121,11 @@ PyResult CharacterService::Handle_GetCharCreationInfo(PyCallArgs &call) {
 PyResult CharacterService::Handle_GetCharNewExtraCreationInfo(PyCallArgs &call) {
     _log(CLIENT__MESSAGE, "Sending empty char new extra creation info reply");
 
-    return new PyRepDict();
+    return new PyDict();
 }
 
 PyResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
-    PyRepDict *result = new PyRepDict();
+    PyDict *result = new PyDict();
 
     //send all the cache hints needed for char creation.
     m_manager->cache_service->InsertCacheHints(
@@ -147,7 +147,7 @@ PyResult CharacterService::Handle_ValidateName(PyCallArgs &call) {
     // perform checks on the "name" that is passed.  we may want to impliment something
     // to limit the kind of names allowed.
 
-    return(new PyRepBoolean(m_db.ValidateCharName(arg.arg.c_str())));
+    return(new PyBool(m_db.ValidateCharName(arg.arg.c_str())));
 }
 
 PyResult CharacterService::Handle_ValidateNameEx(PyCallArgs &call) {
@@ -317,12 +317,12 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
     _log( CLIENT__MESSAGE, "Sending char create ID %u as reply", char_item->itemID() );
 
-    return new PyRepInteger( char_item->itemID() );
+    return new PyInt( char_item->itemID() );
 }
 
 PyResult CharacterService::Handle_Ping(PyCallArgs &call)
 {
-    return(new PyRepInteger(call.client->GetAccountID()));
+    return(new PyInt(call.client->GetAccountID()));
 }
 
 PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
@@ -377,7 +377,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
     }
 
     //we return deletePrepareDateTime, in eve time format.
-    return(new PyRepInteger(Win32TimeNow() + Win32Time_Second*5));
+    return(new PyInt(Win32TimeNow() + Win32Time_Second*5));
 }
 
 PyResult CharacterService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call) {
@@ -397,38 +397,38 @@ PyResult CharacterService::Handle_AddOwnerNote(PyCallArgs &call) {
     Call_AddOwnerNote args;
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
 
     uint32 noteID = m_db.AddOwnerNote(call.client->GetCharacterID(), args.label, args.content);
     if (noteID == 0) {
         codelog(SERVICE__ERROR, "%s: Failed to set Owner note.", call.client->GetName());
-        return (new PyRepNone());
+        return (new PyNone());
     }
 
-    return(new PyRepInteger(noteID));
+    return(new PyInt(noteID));
 }
 
 PyResult CharacterService::Handle_EditOwnerNote(PyCallArgs &call) {
     Call_EditOwnerNote args;
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
 
     if (!m_db.EditOwnerNote(call.client->GetCharacterID(), args.noteID, args.label, args.content)) {
         codelog(SERVICE__ERROR, "%s: Failed to set Owner note.", call.client->GetName());
-        return (new PyRepNone());
+        return (new PyNone());
     }
 
-    return(new PyRepInteger(args.noteID));
+    return(new PyInt(args.noteID));
 }
 
 PyResult CharacterService::Handle_GetOwnerNote(PyCallArgs &call) {
     Call_SingleIntegerArg arg;
     if (!arg.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
-        return(new PyRepInteger(0));
+        return(new PyInt(0));
     }
     return m_db.GetOwnerNote(call.client->GetCharacterID(), arg.arg);
 }
@@ -440,7 +440,7 @@ PyResult CharacterService::Handle_GetHomeStation(PyCallArgs &call) {
 
     _log(CLIENT__ERROR, "GetHomeStation() is not really implemented.");
 
-    result = new PyRepInteger(call.client->GetStationID());
+    result = new PyInt(call.client->GetStationID());
 
     return result;
 }
@@ -451,7 +451,7 @@ PyResult CharacterService::Handle_GetCloneTypeID(PyCallArgs &call) {
     _log(CLIENT__ERROR, "GetCloneTypeID() is not really implemented.");
 
     //currently hardcoded Clone Grade Alpha
-    result = new PyRepInteger(164);
+    result = new PyInt(164);
 
     return result;
 }
@@ -527,7 +527,7 @@ PyResult CharacterService::Handle_GetCharacterAppearanceList(PyCallArgs &call) {
         return NULL;
     }
 
-    PyRepList *l = new PyRepList();
+    PyList *l = new PyList();
 
     std::vector<int32>::iterator cur, end;
     cur = args.ints.begin();
@@ -535,7 +535,7 @@ PyResult CharacterService::Handle_GetCharacterAppearanceList(PyCallArgs &call) {
     for(; cur != end; cur++) {
         PyRep *r = m_db.GetCharacterAppearance(*cur);
         if(r == NULL)
-            r = new PyRepNone();
+            r = new PyNone();
 
         l->add(r);
     }
@@ -547,7 +547,7 @@ PyResult CharacterService::Handle_GetCharacterAppearanceList(PyCallArgs &call) {
 *
 * Checks the database for a given character note and returns it.
 *
-* @return PyRepSubStream pointer with the string with the note or with PyRepNone if no note is stored.
+* @return PySubStream pointer with the string with the note or with PyNone if no note is stored.
 *
 *  **LSMoura
 */
@@ -565,7 +565,7 @@ PyResult CharacterService::Handle_GetNote(PyCallArgs &call) {
 *
 *  Stores the given character note in the database.
 *
-* @return PyRepSubStream pointer with a PyRepNone() value.
+* @return PySubStream pointer with a PyNone() value.
 *
 *  **LSMoura
 */

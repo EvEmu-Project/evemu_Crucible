@@ -272,7 +272,7 @@ void Blueprint::AlterLicensedProductionRunsRemaining(int32 licensedProductionRun
 	SetLicensedProductionRunsRemaining(new_licensed_production_runs_remaining);
 }
 
-PyRepDict *Blueprint::GetBlueprintAttributes() const {
+PyDict *Blueprint::GetBlueprintAttributes() const {
 	Rsp_GetBlueprintAttributes rsp;
 
 	// fill in our attribute info

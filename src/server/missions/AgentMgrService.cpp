@@ -112,12 +112,12 @@ PyBoundObject *AgentMgrService::_CreateBoundObject(Client *c, const PyRep *bind_
 	_log(CLIENT__MESSAGE, "%s bind request for:", GetName());
 	bind_args->Dump(CLIENT__MESSAGE, "    ");
 
-	if(!bind_args->IsInteger()) {
+	if(!bind_args->IsInt()) {
 		codelog(CLIENT__ERROR, "%s: Non-integer bind argument '%s'", c->GetName(), bind_args->TypeString());
 		return NULL;
 	}
 	
-	uint32 agentID = ((const PyRepInteger *)bind_args)->value;
+	uint32 agentID = ((const PyInt *)bind_args)->value;
 
 	Agent *agent = _GetAgent(agentID);
 	if(agent == NULL) {
@@ -140,7 +140,7 @@ PyResult AgentMgrService::Handle_GetAgents(PyCallArgs &call) {
 		result = m_db.GetAgents();
 		if(result == NULL) {
 			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-			result = new PyRepNone();
+			result = new PyNone();
 		}
 		m_manager->cache_service->GiveCache(method_id, &result);
 	}
@@ -155,10 +155,10 @@ PyResult AgentMgrService::Handle_GetAgents(PyCallArgs &call) {
 PyResult AgentMgrService::Handle_GetMyJournalDetails(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	PyRepTuple *t = new PyRepTuple(3);
-	t->items[0] = new PyRepList();
-	t->items[1] = new PyRepList();
-	t->items[2] = new PyRepList();
+	PyTuple *t = new PyTuple(3);
+	t->items[0] = new PyList();
+	t->items[1] = new PyList();
+	t->items[2] = new PyList();
 	result = t;
 	
 	return result;
@@ -169,7 +169,7 @@ PyResult AgentMgrService::Handle_GetMyEpicJournalDetails(PyCallArgs &call) {
 
 	_log(SERVICE__ERROR, "%s::GetMyEpicJournalDetails unimplemented.", GetName());
 
-	return new PyRepList;
+	return new PyList;
 }
 
 PyResult AgentMgrBound::Handle_GetInfoServiceDetails(PyCallArgs &call) {
@@ -177,7 +177,7 @@ PyResult AgentMgrBound::Handle_GetInfoServiceDetails(PyCallArgs &call) {
 	
 	codelog(SERVICE__ERROR, "GetInfoServiceDetails unimplemented.");
 	
-	return(new PyRepNone());
+	return(new PyNone());
 }
 
 PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
@@ -189,8 +189,8 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
 	}
 	
 	uint32 actionID = 0;
-	if(args.arg->IsInteger()) {
-		PyRepInteger *i = (PyRepInteger *) args.arg;
+	if(args.arg->IsInt()) {
+		PyInt *i = (PyInt *) args.arg;
 		actionID = i->value;
 	}
 	
@@ -220,13 +220,13 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
 PyResult AgentMgrBound::Handle_GetMyJournalDetails(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	PyRepTuple *t = new PyRepTuple(3);
+	PyTuple *t = new PyTuple(3);
 	//missions:
-	t->items[0] = new PyRepList();
+	t->items[0] = new PyList();
 	//offers:
-	t->items[1] = new PyRepList();
+	t->items[1] = new PyList();
 	//research:
-	t->items[2] = new PyRepList();
+	t->items[2] = new PyList();
 	result = t;
 	
 	return result;

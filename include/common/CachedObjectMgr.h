@@ -36,12 +36,12 @@
 #include <map>
 
 class PyRep;
-class PyRepSubStream;
-class PyRepDict;
+class PySubStream;
+class PyDict;
 class PyCachedObject;
 class PyCachedCall;
-class PyRepObject;
-class PyRepBuffer;
+class PyObject;
+class PyBuffer;
 class PyCachedObjectDecoder;
 
 class CachedObjectMgr {
@@ -59,22 +59,22 @@ public:
     void InvalidateCache(const PyRep *objectID);
 
     //bool IsObjectFresh(const std::string &objectID, uint32 version, uint64 timestamp);
-    void UpdateCacheFromSS(const std::string &objectID, PyRepSubStream **in_cached_data);
+    void UpdateCacheFromSS(const std::string &objectID, PySubStream **in_cached_data);
     void UpdateCache(const std::string &objectID, PyRep **in_cached_data);
     void UpdateCache(const PyRep *objectID, PyRep **in_cached_data);
 
-    PyRepObject *MakeCacheHint(const PyRep *objectID);
-    PyRepObject *MakeCacheHint(const std::string &objectID);
+    PyObject *MakeCacheHint(const PyRep *objectID);
+    PyObject *MakeCacheHint(const std::string &objectID);
 
-    PyRepObject *GetCachedObject(const PyRep *objectID);
-    PyRepObject *GetCachedObject(const std::string &objectID);
+    PyObject *GetCachedObject(const PyRep *objectID);
+    PyObject *GetCachedObject(const std::string &objectID);
 
 //OLD CCP FILE BASED ACCESS:
     //PyRep *_MakeCacheHint(const char *oname);
-    //void AddCacheHint(const char *oname, const char *key, PyRepDict *into);
+    //void AddCacheHint(const char *oname, const char *key, PyDict *into);
 
-    bool LoadCachedObject(const char *obj_name, PyRepSubStream *into);
-    bool LoadCachedFile(const char *filename, const char *oname, PyRepSubStream *into);
+    bool LoadCachedObject(const char *obj_name, PySubStream *into);
+    bool LoadCachedFile(const char *filename, const char *oname, PySubStream *into);
     PyCachedObjectDecoder *LoadCachedFile(const char *filename, const char *oname);
     PyCachedCall *LoadCachedCall(const char *filename, const char *oname);   //returns ownership
 
@@ -85,11 +85,11 @@ public:
     bool SaveCachedToFile(const std::string &cacheDir, const PyRep *objectID) const;
 
 protected:
-    bool LoadCachedObject(PyRep *key, const char *oname, PyRepSubStream *into);
+    bool LoadCachedObject(PyRep *key, const char *oname, PySubStream *into);
     PyCachedObjectDecoder *LoadCachedObject(const char *obj_name);  //returns ownership
     PyCachedObjectDecoder *LoadCachedObject(PyRep *key, const char *oname); //returns ownership
 
-    //static bool AddCachedFileContents(const char *filename, const char *oname, PyRepSubStream *into);
+    //static bool AddCachedFileContents(const char *filename, const char *oname, PySubStream *into);
 
     void GetCacheFileName(PyRep *key, std::string &into);
 
@@ -99,12 +99,12 @@ protected:
     public:
         ~CacheRecord();
 
-        PyRepObject *EncodeHint() const;
+        PyObject *EncodeHint() const;
 
         PyRep *objectID;    //we own this
         uint64 timestamp;
         uint32 version;
-        PyRepBuffer *cache; //we own this.
+        PyBuffer *cache; //we own this.
     };
     std::map<std::string, CacheRecord *> m_cachedObjects;   //we own these pointers
 };
@@ -117,8 +117,8 @@ public:
     ~PyCachedObject();
 
     void Dump(FILE *into, const char *pfx, bool contents_too = false);
-//  bool Decode(PyRepSubStream **ss);   //consumes substream
-    PyRepObject *Encode();
+//  bool Decode(PySubStream **ss);   //consumes substream
+    PyObject *Encode();
     PyCachedObject *Clone() const;
 
     //object version tuple:
@@ -142,8 +142,8 @@ public:
     ~PyCachedObjectDecoder();
 
     void Dump(FILE *into, const char *pfx, bool contents_too = false);
-    bool Decode(PyRepSubStream **ss);   //consumes substream
-    PyRepObject *EncodeHint();
+    bool Decode(PySubStream **ss);   //consumes substream
+    PyObject *EncodeHint();
 
     //object version tuple:
     /*0*/   uint64 timestamp;
@@ -153,7 +153,7 @@ public:
     /*2*/uint32 nodeID;
     /*3*/bool shared;       //not sure
 
-    /*4*/PyRepSubStream *cache;
+    /*4*/PySubStream *cache;
 
     /*5*/bool compressed;   //guess
     /*6*/PyRep *objectID;   //generally a string or tuple.
@@ -166,7 +166,7 @@ public:
     ~PyCachedCall();
 
     void Dump(FILE *into, const char *pfx, bool contents_too = false);
-    bool Decode(PyRepSubStream **ss);   //consumes substream
+    bool Decode(PySubStream **ss);   //consumes substream
     //PyRep *Encode();
     //PyRep *EncodeHint();
     PyCachedCall *Clone() const;
@@ -193,38 +193,38 @@ public:
     StringCollapseVisitor()
         : good(true) {}
 
-    EVEMU_INLINE void VisitInteger(const PyRepInteger *rep) { good = false; }
-    EVEMU_INLINE void VisitReal(const PyRepReal *rep) { good = false; }
-    EVEMU_INLINE void VisitBoolean(const PyRepBoolean *rep) { good = false; }
-    EVEMU_INLINE void VisitNone(const PyRepNone *rep) { good = false; }
-    EVEMU_INLINE void VisitBuffer(const PyRepBuffer *rep) { good = false; }
-    EVEMU_INLINE void VisitString(const PyRepString *rep) {
+    EVEMU_INLINE void VisitInteger(const PyInt *rep) { good = false; }
+    EVEMU_INLINE void VisitReal(const PyFloat *rep) { good = false; }
+    EVEMU_INLINE void VisitBoolean(const PyBool *rep) { good = false; }
+    EVEMU_INLINE void VisitNone(const PyNone *rep) { good = false; }
+    EVEMU_INLINE void VisitBuffer(const PyBuffer *rep) { good = false; }
+    EVEMU_INLINE void VisitString(const PyString *rep) {
         if(!result.empty())
             result += ".";
         result += rep->value;
     }
     //! PackedRow type visitor
-    EVEMU_INLINE void VisitPackedRow(const PyRepPackedRow *rep) { good = false; }
+    EVEMU_INLINE void VisitPackedRow(const PyPackedRow *rep) { good = false; }
     //! Object type visitor
-    EVEMU_INLINE void VisitObject(const PyRepObject *rep) { good = false; }
-    EVEMU_INLINE void VisitObjectEx(const PyRepObjectEx *rep) { good = false; }
+    EVEMU_INLINE void VisitObject(const PyObject *rep) { good = false; }
+    EVEMU_INLINE void VisitObjectEx(const PyObjectEx *rep) { good = false; }
 
-    EVEMU_INLINE void VisitSubStruct(const PyRepSubStruct *rep) { good = false; }
-    EVEMU_INLINE void VisitSubStream(const PyRepSubStream *rep) { good = false; }
-    EVEMU_INLINE void VisitChecksumedStream(const PyRepChecksumedStream *rep) { good = false; }
+    EVEMU_INLINE void VisitSubStruct(const PySubStruct *rep) { good = false; }
+    EVEMU_INLINE void VisitSubStream(const PySubStream *rep) { good = false; }
+    EVEMU_INLINE void VisitChecksumedStream(const PyChecksumedStream *rep) { good = false; }
 
-    EVEMU_INLINE void VisitDict(const PyRepDict *rep) { good = false; }
-    EVEMU_INLINE void VisitList(const PyRepList *rep)
+    EVEMU_INLINE void VisitDict(const PyDict *rep) { good = false; }
+    EVEMU_INLINE void VisitList(const PyList *rep)
 	{
-		PyRepList::const_iterator cur, end;
+		PyList::const_iterator cur, end;
 		cur = rep->items.begin();
 		end = rep->items.end();
 		for(; cur != end; cur++)
 			(*cur)->visit( this );
 	}
-    EVEMU_INLINE void VisitTuple(const PyRepTuple *rep)
+    EVEMU_INLINE void VisitTuple(const PyTuple *rep)
 	{
-		PyRepTuple::const_iterator cur, end;
+		PyTuple::const_iterator cur, end;
 		cur = rep->items.begin();
 		end = rep->items.end();
 		for(; cur != end; cur++)

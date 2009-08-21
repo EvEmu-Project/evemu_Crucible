@@ -65,9 +65,9 @@ public:
 	
 	virtual void Process();
 	
-	virtual PyRepDict *MakeSlimItem() const;
+	virtual PyDict *MakeSlimItem() const;
 	//return ownership of a new damage state tuple.
-	virtual PyRepList *MakeDamageState() const;
+	virtual PyList *MakeDamageState() const;
 	virtual void MakeAddBall(DoDestiny_AddBall &into, uint32 updateID) const;
 	
 	//overload the parts of SystemEntity which we care about
@@ -86,8 +86,8 @@ public:
 	virtual ~Asteroid();
 
 	//SystemEntity interface:
-	virtual void QueueDestinyUpdate(PyRepTuple **du) {}
-	virtual void QueueDestinyEvent(PyRepTuple **multiEvent) {}
+	virtual void QueueDestinyUpdate(PyTuple **du) {}
+	virtual void QueueDestinyEvent(PyTuple **multiEvent) {}
 	virtual void TargetAdded(SystemEntity *who) {}
 	virtual void TargetLost(SystemEntity *who) {}
 	virtual void TargetedAdd(SystemEntity *who) {}
@@ -106,7 +106,7 @@ public:
 	void Grow();
 	
 	virtual void EncodeDestiny(std::vector<uint8> &into) const;
-	//virtual PyRepDict *MakeSlimItem() const;
+	//virtual PyDict *MakeSlimItem() const;
 	
 protected:
 	//InventoryItem *const m_self;

@@ -131,7 +131,7 @@ void Inventory::DeleteContents(ItemFactory &factory)
     mContents.clear();
 }
 
-PyRepObjectEx *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
+PyObjectEx *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
 {
     dbutil_CRowset rowset;
 
@@ -340,8 +340,8 @@ void InventoryEx::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) cons
     {
         std::map<std::string, PyRep *> args;
 
-        args["available"] = new PyRepReal( capacity );
-        args["volume"] = new PyRepReal( volume );
+        args["available"] = new PyFloat( capacity );
+        args["volume"] = new PyFloat( volume );
 
         throw PyException( MakeUserError( "NotEnoughCargoSpace", args ) );
     }

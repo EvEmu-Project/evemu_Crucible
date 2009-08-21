@@ -89,7 +89,7 @@ public:
 
 	// returned pointer doesn't have to be const, but I don't think
 	// we would like anyone to change static db data, so ...
-	const PyRepObject* find(uint32 id) const
+	const PyObject* find(uint32 id) const
 	{
 		DataContainerConstItr Itr = mStorageContainer.find(id);
 		if (Itr != mStorageContainer.end())
@@ -109,7 +109,7 @@ public:
 	}
 
 protected:
-	typedef std::tr1::unordered_map<uint32, PyRepObject*>	DataContainer;
+	typedef std::tr1::unordered_map<uint32, PyObject*>	DataContainer;
 	typedef DataContainer::iterator							DataContainerItr;
 	typedef DataContainer::const_iterator					DataContainerConstItr;
 

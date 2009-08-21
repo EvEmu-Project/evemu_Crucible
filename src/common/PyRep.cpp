@@ -122,11 +122,11 @@ const char *PyRep::TypeString() const
 /************************************************************************/
 /* PyRep Integer Class                                                  */
 /************************************************************************/
-void PyRepInteger::Dump(FILE *into, const char *pfx) const {
+void PyInt::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sInteger field: "I64u"\n", pfx, value);
 }
 
-void PyRepInteger::Dump(LogType type, const char *pfx) const {
+void PyInt::Dump(LogType type, const char *pfx) const {
     _log(type, "%sInteger field: "I64u, pfx, value);
 }
 
@@ -134,40 +134,40 @@ void PyRepInteger::Dump(LogType type, const char *pfx) const {
 /* PyRep Real/float/double Class                                        */
 /************************************************************************/
 
-void PyRepReal::Dump(FILE *into, const char *pfx) const {
+void PyFloat::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sReal Field: %f\n", pfx, value);
 }
 
-void PyRepReal::Dump(LogType type, const char *pfx) const {
+void PyFloat::Dump(LogType type, const char *pfx) const {
     _log(type, "%sReal Field: %f", pfx, value);
 }
 
 /************************************************************************/
 /* PyRep Boolean Class                                                  */
 /************************************************************************/
-void PyRepBoolean::Dump(FILE *into, const char *pfx) const {
+void PyBool::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sBoolean field: %s\n", pfx, value?"true":"false");
 }
 
-void PyRepBoolean::Dump(LogType type, const char *pfx) const {
+void PyBool::Dump(LogType type, const char *pfx) const {
     _log(type, "%sBoolean field: %s", pfx, value?"true":"false");
 }
 
 /************************************************************************/
 /* PyRep None Class                                                     */
 /************************************************************************/
-void PyRepNone::Dump(FILE *into, const char *pfx) const {
+void PyNone::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%s(None)\n", pfx);
 }
 
-void PyRepNone::Dump(LogType type, const char *pfx) const {
+void PyNone::Dump(LogType type, const char *pfx) const {
     _log(type, "%s(None)", pfx);
 }
 
 /************************************************************************/
 /* PyRep Buffer Class                                                   */
 /************************************************************************/
-PyRepBuffer::PyRepBuffer(const uint8 *buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
+PyBuffer::PyBuffer(const uint8 *buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
   m_value(NULL), m_length(length)
 {
     m_value = (uint8*)malloc(length);
@@ -175,24 +175,24 @@ PyRepBuffer::PyRepBuffer(const uint8 *buffer, uint32 length) : PyRep(PyRep::PyTy
     memcpy(m_value, buffer, length);
 }
 
-PyRepBuffer::PyRepBuffer(uint32 length) : PyRep(PyRep::PyTypeBuffer),
+PyBuffer::PyBuffer(uint32 length) : PyRep(PyRep::PyTypeBuffer),
   m_value(NULL), m_length(length)
 {
     m_value = (uint8*)malloc(length);
     assert(m_value);
 }
 
-PyRepBuffer::PyRepBuffer(uint8 **buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
+PyBuffer::PyBuffer(uint8 **buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
   m_value(*buffer), m_length(length)
 {
     *buffer = NULL;
 }
 
-PyRepBuffer::~PyRepBuffer() {
+PyBuffer::~PyBuffer() {
     SafeFree(m_value);
 }
 
-void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
+void PyBuffer::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sData buffer of length %u\n", pfx, m_length);
 
     //kinda hackish:
@@ -209,7 +209,7 @@ void PyRepBuffer::Dump(FILE *into, const char *pfx) const {
     }
 }
 
-void PyRepBuffer::Dump(LogType type, const char *pfx) const {
+void PyBuffer::Dump(LogType type, const char *pfx) const {
     _log(type, "%sData buffer of length %d", pfx, m_length);
 
     //kinda hackish:
@@ -226,20 +226,20 @@ void PyRepBuffer::Dump(LogType type, const char *pfx) const {
     }
 }
 
-PyRepSubStream *PyRepBuffer::CreateSubStream() const {
+PySubStream *PyBuffer::CreateSubStream() const {
     if(*m_value == SubStreamHeaderByte) {
-        return(new PyRepSubStream(m_value, m_length));
+        return(new PySubStream(m_value, m_length));
     } else if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
         uint32 len = GetLength();
         uint8 *buf = InflatePacket(GetBuffer(), &len, true);
 
-        PyRepSubStream *res = NULL;
+        PySubStream *res = NULL;
         if(buf == NULL) {
             //unable to unzip, this does not appear to be a stream, so refuse to turn into one.
         } else if(*buf != SubStreamHeaderByte) {
             //wrong header byte, this does not appear to be a stream, so refuse to turn into one.
         } else {
-            res = new PyRepSubStream(buf, len);
+            res = new PySubStream(buf, len);
         }
 
         SafeFree(buf);
@@ -252,7 +252,7 @@ PyRepSubStream *PyRepBuffer::CreateSubStream() const {
 /************************************************************************/
 /* PyRep String Class                                                   */
 /************************************************************************/
-void PyRepString::Dump(FILE *into, const char *pfx) const {
+void PyString::Dump(FILE *into, const char *pfx) const {
     if(ContainsNonPrintables(value.c_str(), (uint32)value.length())) {
         fprintf(into, "%sString%s: '<binary, len=%lu>'\n", pfx, is_type_1?" (Type1)":"", value.length());
     } else {
@@ -260,7 +260,7 @@ void PyRepString::Dump(FILE *into, const char *pfx) const {
     }
 }
 
-void PyRepString::Dump(LogType type, const char *pfx) const {
+void PyString::Dump(LogType type, const char *pfx) const {
     if(ContainsNonPrintables(value.c_str(), (uint32)value.length())) {
         _log(type, "%sString%s: '<binary, len=%lu>'", pfx, is_type_1?" (Type1)":"", value.length());
     } else {
@@ -271,11 +271,11 @@ void PyRepString::Dump(LogType type, const char *pfx) const {
 /************************************************************************/
 /* PyRep Tuple Class                                                    */
 /************************************************************************/
-PyRepTuple::~PyRepTuple() {
+PyTuple::~PyTuple() {
     clear();
 }
 
-void PyRepTuple::clear() {
+void PyTuple::clear() {
     storage_type::iterator cur, _end;
     cur = begin();
     _end = end();
@@ -284,7 +284,7 @@ void PyRepTuple::clear() {
     items.clear();
 }
 
-void PyRepTuple::Dump(FILE *into, const char *pfx) const {
+void PyTuple::Dump(FILE *into, const char *pfx) const {
     if(items.empty())
         fprintf(into, "%sTuple: Empty\n", pfx);
     else {
@@ -302,7 +302,7 @@ void PyRepTuple::Dump(FILE *into, const char *pfx) const {
     }
 }
 
-void PyRepTuple::Dump(LogType type, const char *pfx) const {
+void PyTuple::Dump(LogType type, const char *pfx) const {
     //extra check to avoid potentially a lot of work if we are disabled
     if(!is_log_enabled(type))
         return;
@@ -325,7 +325,7 @@ void PyRepTuple::Dump(LogType type, const char *pfx) const {
     }
 }
 
-uint32 PyRepTuple::size() const
+uint32 PyTuple::size() const
 {
     return (uint32)items.size();
 }
@@ -333,12 +333,12 @@ uint32 PyRepTuple::size() const
 /************************************************************************/
 /* PyRep List Class                                                     */
 /************************************************************************/
-PyRepList::~PyRepList()
+PyList::~PyList()
 {
     clear();
 }
 
-void PyRepList::clear() {
+void PyList::clear() {
     std::vector<PyRep *>::iterator cur, _end;
     cur = items.begin();
     _end = items.end();
@@ -347,7 +347,7 @@ void PyRepList::clear() {
     items.clear();
 }
 
-void PyRepList::Dump(FILE *into, const char *pfx) const {
+void PyList::Dump(FILE *into, const char *pfx) const {
     if(items.empty())
         fprintf(into, "%sList: Empty\n", pfx);
     else {
@@ -369,7 +369,7 @@ void PyRepList::Dump(FILE *into, const char *pfx) const {
     }
 }
 
-void PyRepList::Dump(LogType type, const char *pfx) const {
+void PyList::Dump(LogType type, const char *pfx) const {
     //extra check to avoid potentially a lot of work if we are disabled
     if(!is_log_enabled(type))
         return;
@@ -399,11 +399,11 @@ void PyRepList::Dump(LogType type, const char *pfx) const {
 /************************************************************************/
 /* PyRep Dict Class                                                     */
 /************************************************************************/
-PyRepDict::~PyRepDict() {
+PyDict::~PyDict() {
     clear();
 }
 
-void PyRepDict::clear() {
+void PyDict::clear() {
     iterator cur, _end;
     cur = items.begin();
     _end = items.end();
@@ -413,7 +413,7 @@ void PyRepDict::clear() {
     }
 }
 
-void PyRepDict::Dump(FILE *into, const char *pfx) const {
+void PyDict::Dump(FILE *into, const char *pfx) const {
     const_iterator cur, _end;
     cur = items.begin();
     _end = items.end();
@@ -432,7 +432,7 @@ void PyRepDict::Dump(FILE *into, const char *pfx) const {
     }
 }
 
-void PyRepDict::Dump(LogType type, const char *pfx) const {
+void PyDict::Dump(LogType type, const char *pfx) const {
     //extra check to avoid potentially a lot of work if we are disabled
     if(!is_log_enabled(type))
         return;
@@ -456,32 +456,32 @@ void PyRepDict::Dump(LogType type, const char *pfx) const {
     }
 }
 
-void PyRepDict::add(PyRep *key, PyRep *value) {
+void PyDict::add(PyRep *key, PyRep *value) {
     if(key == NULL || value == NULL)
         return;
     items[key] = value;
 }
 
-void PyRepDict::add(const char *key, PyRep *value) {
+void PyDict::add(const char *key, PyRep *value) {
     if(key == NULL || value == NULL)
         return;
-    items[new PyRepString(key)] = value;
+    items[new PyString(key)] = value;
 }
 
-void PyRepDict::addStr(const char *key, const char *value) {
+void PyDict::addStr(const char *key, const char *value) {
     if(key == NULL || value == NULL)
         return;
-    items[new PyRepString(key)] = new PyRepString(value);
+    items[new PyString(key)] = new PyString(value);
 }
 
 /************************************************************************/
 /* PyRep Object Class                                                   */
 /************************************************************************/
-PyRepObject::~PyRepObject() {
+PyObject::~PyObject() {
     PyDecRef( arguments );
 }
 
-void PyRepObject::Dump(FILE *into, const char *pfx) const {
+void PyObject::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sObject:\n", pfx);
     fprintf(into, "%s  Type: %s\n", pfx, type.c_str());
 
@@ -490,7 +490,7 @@ void PyRepObject::Dump(FILE *into, const char *pfx) const {
     arguments->Dump(into, m.c_str());
 }
 
-void PyRepObject::Dump(LogType ltype, const char *pfx) const {
+void PyObject::Dump(LogType ltype, const char *pfx) const {
     _log(ltype, "%sObject:", pfx);
     _log(ltype, "%s  Type: %s", pfx, type.c_str());
 
@@ -502,19 +502,19 @@ void PyRepObject::Dump(LogType ltype, const char *pfx) const {
 /************************************************************************/
 /* PyRep SubStruct Class                                                */
 /************************************************************************/
-PyRepSubStruct::~PyRepSubStruct()
+PySubStruct::~PySubStruct()
 {
     PyDecRef( sub );
 }
 
-void PyRepSubStruct::Dump(FILE *into, const char *pfx) const {
+void PySubStruct::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sSubstruct:\n", pfx);
     std::string m(pfx);
     m += "    ";
     sub->Dump(into, m.c_str());
 }
 
-void PyRepSubStruct::Dump(LogType type, const char *pfx) const {
+void PySubStruct::Dump(LogType type, const char *pfx) const {
     _log(type, "%sSubstruct:", pfx);
     std::string m(pfx);
     m += "    ";
@@ -524,7 +524,7 @@ void PyRepSubStruct::Dump(LogType type, const char *pfx) const {
 /************************************************************************/
 /* PyRep SubStream Class                                                */
 /************************************************************************/
-PyRepSubStream::PyRepSubStream(const uint8 *buffer, uint32 len)
+PySubStream::PySubStream(const uint8 *buffer, uint32 len)
 : PyRep(PyRep::PyTypeSubStream),
   length(len),
   data(NULL),
@@ -535,12 +535,12 @@ PyRepSubStream::PyRepSubStream(const uint8 *buffer, uint32 len)
     memcpy(data, buffer, length);
 }
 
-PyRepSubStream::~PyRepSubStream() {
+PySubStream::~PySubStream() {
     SafeFree( data );
     PyDecRef( decoded );
 }
 
-void PyRepSubStream::Dump(FILE *into, const char *pfx) const {
+void PySubStream::Dump(FILE *into, const char *pfx) const {
     if(decoded == NULL) {
         //we have not decoded this substream, leave it as hex:
         if(data == NULL) {
@@ -559,7 +559,7 @@ void PyRepSubStream::Dump(FILE *into, const char *pfx) const {
     }
 }
 
-void PyRepSubStream::Dump(LogType type, const char *pfx) const {
+void PySubStream::Dump(LogType type, const char *pfx) const {
     //extra check to avoid potentially a lot of work if we are disabled
     if(!is_log_enabled(type))
         return;
@@ -582,7 +582,7 @@ void PyRepSubStream::Dump(LogType type, const char *pfx) const {
     }
 }
 
-void PyRepSubStream::EncodeData() {
+void PySubStream::EncodeData() {
     if(data != NULL)
         return;
     if(decoded == NULL)
@@ -590,7 +590,7 @@ void PyRepSubStream::EncodeData() {
     data = Marshal(this, length);
 }
 
-void PyRepSubStream::DecodeData() const {
+void PySubStream::DecodeData() const {
     if(decoded != NULL)
         return;
     decoded = InflateAndUnmarshal(data, length);
@@ -599,51 +599,51 @@ void PyRepSubStream::DecodeData() const {
 /************************************************************************/
 /* PyRep ChecksumedStream Class                                         */
 /************************************************************************/
-PyRepChecksumedStream::~PyRepChecksumedStream() {
+PyChecksumedStream::~PyChecksumedStream() {
     PyDecRef(stream);
 }
 
-void PyRepChecksumedStream::Dump(FILE *into, const char *pfx) const {
+void PyChecksumedStream::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sStream With Checksum: 0x%08x\n", pfx, checksum);
     stream->Dump(into, pfx);
 }
 
-void PyRepChecksumedStream::Dump(LogType type, const char *pfx) const {
+void PyChecksumedStream::Dump(LogType type, const char *pfx) const {
     _log(type, "%sStream With Checksum: 0x%08x", pfx, checksum);
     stream->Dump(type, pfx);
 }
 
-PyRepInteger *PyRepInteger::TypedClone() const {
-    return(new PyRepInteger(value));
+PyInt *PyInt::TypedClone() const {
+    return(new PyInt(value));
 }
 
-PyRepReal *PyRepReal::TypedClone() const {
-    return(new PyRepReal(value));
+PyFloat *PyFloat::TypedClone() const {
+    return(new PyFloat(value));
 }
 
-PyRepBoolean *PyRepBoolean::TypedClone() const {
-    return(new PyRepBoolean(value));
+PyBool *PyBool::TypedClone() const {
+    return(new PyBool(value));
 }
 
-PyRepNone *PyRepNone::TypedClone() const {
-    return(new PyRepNone());
+PyNone *PyNone::TypedClone() const {
+    return(new PyNone());
 }
 
-PyRepBuffer *PyRepBuffer::TypedClone() const {
-    return(new PyRepBuffer(m_value, m_length));
+PyBuffer *PyBuffer::TypedClone() const {
+    return(new PyBuffer(m_value, m_length));
 }
 
-PyRepString *PyRepString::TypedClone() const {
-    return(new PyRepString(value, is_type_1));
+PyString *PyString::TypedClone() const {
+    return(new PyString(value, is_type_1));
 }
 
-PyRepTuple *PyRepTuple::TypedClone() const {
-    PyRepTuple *r = new PyRepTuple(0);
+PyTuple *PyTuple::TypedClone() const {
+    PyTuple *r = new PyTuple(0);
     r->CloneFrom(this);
     return(r);
 }
 
-void PyRepTuple::CloneFrom(const PyRepTuple *from) {
+void PyTuple::CloneFrom(const PyTuple *from) {
     clear();
     items.reserve(items.size());
 
@@ -655,20 +655,20 @@ void PyRepTuple::CloneFrom(const PyRepTuple *from) {
     }
 }
 
-void PyRepTuple::SetItem( uint32 index, PyRep* object )
+void PyTuple::SetItem( uint32 index, PyRep* object )
 {
     assert(index < items.size());
     items[index] = object;
 }
 
-PyRepList *PyRepList::TypedClone() const {
-    PyRepList *r = new PyRepList();
+PyList *PyList::TypedClone() const {
+    PyList *r = new PyList();
     r->CloneFrom(this);
     return(r);
 }
 
-void PyRepList::CloneFrom(const PyRepList *from) {
-    PyRepList::const_iterator cur, _end;
+void PyList::CloneFrom(const PyList *from) {
+    PyList::const_iterator cur, _end;
     cur = items.begin();
     _end = items.end();
     for(; cur != _end; cur++) {
@@ -685,14 +685,14 @@ void PyRepList::CloneFrom(const PyRepList *from) {
     }
 }
 
-PyRepDict *PyRepDict::TypedClone() const {
-    PyRepDict *r = new PyRepDict();
+PyDict *PyDict::TypedClone() const {
+    PyDict *r = new PyDict();
     r->CloneFrom(this);
     return(r);
 }
 
-void PyRepDict::CloneFrom(const PyRepDict *from) {
-    PyRepDict::const_iterator cur, _end;
+void PyDict::CloneFrom(const PyDict *from) {
+    PyDict::const_iterator cur, _end;
     cur = items.begin();
     _end = items.end();
     for(; cur != _end; cur++) {
@@ -709,26 +709,26 @@ void PyRepDict::CloneFrom(const PyRepDict *from) {
     }
 }
 
-PyRepObject *PyRepObject::TypedClone() const {
-    return(new PyRepObject( type, arguments->Clone() ));
+PyObject *PyObject::TypedClone() const {
+    return(new PyObject( type, arguments->Clone() ));
 }
 
-PyRepSubStruct *PyRepSubStruct::TypedClone() const {
-    return(new PyRepSubStruct( sub->Clone() ));
+PySubStruct *PySubStruct::TypedClone() const {
+    return(new PySubStruct( sub->Clone() ));
 }
 
-PyRepSubStream *PyRepSubStream::TypedClone() const {
+PySubStream *PySubStream::TypedClone() const {
     if(data == NULL)
-        return(new PyRepSubStream( decoded->Clone() ));
-    return(new PyRepSubStream( data, length ));
+        return(new PySubStream( decoded->Clone() ));
+    return(new PySubStream( data, length ));
 }
 
-PyRepChecksumedStream *PyRepChecksumedStream::TypedClone() const {
-    return(new PyRepChecksumedStream( checksum, stream->Clone() ));
+PyChecksumedStream *PyChecksumedStream::TypedClone() const {
+    return(new PyChecksumedStream( checksum, stream->Clone() ));
 }
 
 
-PyRepPackedRow::PyRepPackedRow(PyRep &header, bool header_owner)
+PyPackedRow::PyPackedRow(PyRep &header, bool header_owner)
 : PyRep( PyRep::PyTypePackedRow ),
   mHeader( header ),
   mHeaderOwner( header_owner ),
@@ -738,7 +738,7 @@ PyRepPackedRow::PyRepPackedRow(PyRep &header, bool header_owner)
     PyRep *r = GetHeader().AsObjectEx().header;
 
     assert( r != NULL && r->IsTuple() );
-    PyRepTuple *t = &r->AsTuple();
+    PyTuple *t = &r->AsTuple();
 
     assert( t->size() == 2 );
 
@@ -761,7 +761,7 @@ PyRepPackedRow::PyRepPackedRow(PyRep &header, bool header_owner)
     mFields.resize( mColumnInfo->size() );
 }
 
-PyRepPackedRow::~PyRepPackedRow()
+PyPackedRow::~PyPackedRow()
 {
     if( IsHeaderOwner() )
         PyDecRef(&mHeader);
@@ -774,7 +774,7 @@ PyRepPackedRow::~PyRepPackedRow()
 }
 
 
-void PyRepPackedRow::Dump(FILE *into, const char *pfx) const
+void PyPackedRow::Dump(FILE *into, const char *pfx) const
 {
     fprintf( into, "%sPacked Row\n", pfx );
     fprintf( into, "%s column_count=%u header_owner=%s\n", pfx, ColumnCount(), IsHeaderOwner() ? "yes" : "no" );
@@ -798,7 +798,7 @@ void PyRepPackedRow::Dump(FILE *into, const char *pfx) const
     }
 }
 
-void PyRepPackedRow::Dump(LogType ltype, const char *pfx) const
+void PyPackedRow::Dump(LogType ltype, const char *pfx) const
 {
     _log( ltype, "%sPacked Row", pfx );
     _log( ltype, "%s column_count=%u header_owner=%s", pfx, ColumnCount(), IsHeaderOwner() ? "yes" : "no" );
@@ -823,15 +823,15 @@ void PyRepPackedRow::Dump(LogType ltype, const char *pfx) const
     }
 }
 
-PyRepPackedRow *PyRepPackedRow::TypedClone() const
+PyPackedRow *PyPackedRow::TypedClone() const
 {
-    PyRepPackedRow *res = new PyRepPackedRow( IsHeaderOwner() ? *GetHeader().Clone() : GetHeader(),
+    PyPackedRow *res = new PyPackedRow( IsHeaderOwner() ? *GetHeader().Clone() : GetHeader(),
                                               IsHeaderOwner() );
     res->CloneFrom( this );
     return res;
 }
 
-void PyRepPackedRow::CloneFrom(const PyRepPackedRow *from)
+void PyPackedRow::CloneFrom(const PyPackedRow *from)
 {
     // clone fields
     uint32 cc = ColumnCount();
@@ -845,13 +845,13 @@ void PyRepPackedRow::CloneFrom(const PyRepPackedRow *from)
     }
 }
 
-const std::string &PyRepPackedRow::GetColumnName(uint32 index) const
+const std::string &PyPackedRow::GetColumnName(uint32 index) const
 {
     assert( mColumnInfo->items.size() > index );
     PyRep *r = mColumnInfo->items[ index ];
 
     assert( r->IsTuple() );
-    PyRepTuple &t = r->AsTuple();
+    PyTuple &t = r->AsTuple();
 
     assert( t.items.size() == 2 );
     r = t.items[ 0 ];
@@ -860,7 +860,7 @@ const std::string &PyRepPackedRow::GetColumnName(uint32 index) const
     return r->AsString().value;
 }
 
-uint32 PyRepPackedRow::GetColumnIndex(const char *name) const
+uint32 PyPackedRow::GetColumnIndex(const char *name) const
 {
     uint32 cc = ColumnCount();
     for(uint32 i = 0; i < cc; i++)
@@ -874,22 +874,22 @@ uint32 PyRepPackedRow::GetColumnIndex(const char *name) const
     return cc;
 }
 
-DBTYPE PyRepPackedRow::GetColumnType(uint32 index) const
+DBTYPE PyPackedRow::GetColumnType(uint32 index) const
 {
     assert( mColumnInfo->items.size() > index );
     PyRep *r = mColumnInfo->items[ index ];
 
     assert( r->IsTuple() );
-    PyRepTuple *t = &r->AsTuple();
+    PyTuple *t = &r->AsTuple();
 
     assert( t->items.size() == 2 );
     r = t->items[ 1 ];
 
-    assert( r->IsInteger() );
-    return static_cast<DBTYPE>( r->AsInteger().value );
+    assert( r->IsInt() );
+    return static_cast<DBTYPE>( r->AsInt().value );
 }
 
-bool PyRepPackedRow::SetField(uint32 index, PyRep *value)
+bool PyPackedRow::SetField(uint32 index, PyRep *value)
 {
     if( index >= ColumnCount() )
         return false;
@@ -911,7 +911,7 @@ bool PyRepPackedRow::SetField(uint32 index, PyRep *value)
     return true;
 }
 
-bool PyRepPackedRow::SetField(const char *colName, PyRep *value)
+bool PyPackedRow::SetField(const char *colName, PyRep *value)
 {
     uint32 index = GetColumnIndex( colName );
     if( index >= ColumnCount() )
@@ -920,11 +920,11 @@ bool PyRepPackedRow::SetField(const char *colName, PyRep *value)
 }
 
 /************************************************************************/
-/* PyRepObjectEx                                                        */
+/* PyObjectEx                                                        */
 /************************************************************************/
-PyRepObjectEx::PyRepObjectEx( bool _is_type_1, PyRep *_header /*= NULL*/ ) : PyRep(PyRep::PyTypeObjectEx), header(_header), is_type_1(_is_type_1) {}
+PyObjectEx::PyObjectEx( bool _is_type_1, PyRep *_header /*= NULL*/ ) : PyRep(PyRep::PyTypeObjectEx), header(_header), is_type_1(_is_type_1) {}
 
-PyRepObjectEx::~PyRepObjectEx()
+PyObjectEx::~PyObjectEx()
 {
     PyDecRef( header );
     {
@@ -947,7 +947,7 @@ PyRepObjectEx::~PyRepObjectEx()
     }
 }
 
-void PyRepObjectEx::Dump(FILE *into, const char *pfx) const {
+void PyObjectEx::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sObjectEx%s\n", pfx, (is_type_1 ? " (Type1)" : ""));
     fprintf(into, "%sHeader:\n", pfx);
     if(header == NULL)
@@ -997,7 +997,7 @@ void PyRepObjectEx::Dump(FILE *into, const char *pfx) const {
     }
 }
 
-void PyRepObjectEx::Dump(LogType ltype, const char *pfx) const {
+void PyObjectEx::Dump(LogType ltype, const char *pfx) const {
     if(!is_log_enabled(ltype))
         return;
 
@@ -1051,13 +1051,13 @@ void PyRepObjectEx::Dump(LogType ltype, const char *pfx) const {
     }
 }
 
-PyRepObjectEx *PyRepObjectEx::TypedClone() const {
-    PyRepObjectEx *clone = new PyRepObjectEx(is_type_1);
+PyObjectEx *PyObjectEx::TypedClone() const {
+    PyObjectEx *clone = new PyObjectEx(is_type_1);
     clone->CloneFrom(this);
     return(clone);
 }
 
-void PyRepObjectEx::CloneFrom(const PyRepObjectEx *from) {
+void PyObjectEx::CloneFrom(const PyObjectEx *from) {
     if(from->header != NULL)
         header = from->header->Clone();
     else
@@ -1084,8 +1084,8 @@ void PyRepObjectEx::CloneFrom(const PyRepObjectEx *from) {
 /************************************************************************/
 /* string table code                                                    */
 /************************************************************************/
-/*EVEStringTable *PyRepString::s_stringTable = NULL;
-bool PyRepString::LoadStringFile(const char *file)
+/*EVEStringTable *PyString::s_stringTable = NULL;
+bool PyString::LoadStringFile(const char *file)
 {
     if(s_stringTable != NULL)
         SafeDelete(s_stringTable);
@@ -1094,7 +1094,7 @@ bool PyRepString::LoadStringFile(const char *file)
     return s_stringTable->LoadFile(file);
 }
 
-EVEStringTable *PyRepString::GetStringTable()
+EVEStringTable *PyString::GetStringTable()
 {
     if(s_stringTable == NULL)
         s_stringTable = new EVEStringTable(); //make an empty one.
@@ -1103,20 +1103,20 @@ EVEStringTable *PyRepString::GetStringTable()
 }*/
 
 /************************************************************************/
-/* PyRepString                                                          */
+/* PyString                                                          */
 /************************************************************************/
-PyRepString::PyRepString( const char *str, bool type_1 ) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1) {}
+PyString::PyString( const char *str, bool type_1 ) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1) {}
 
-PyRepString::PyRepString( const std::string &str, bool type_1 ) : PyRep(PyRep::PyTypeString), is_type_1(type_1)
+PyString::PyString( const std::string &str, bool type_1 ) : PyRep(PyRep::PyTypeString), is_type_1(type_1)
 {
     value.assign(str.c_str(), str.length());
 }
 
-PyRepString::PyRepString( const uint8 *data, uint32 len, bool type_1 ) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1) {}
+PyString::PyString( const uint8 *data, uint32 len, bool type_1 ) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1) {}
 
-PyRepString::~PyRepString() {}
+PyString::~PyString() {}
 
-void PyRepString::set( const char* str, size_t len )
+void PyString::set( const char* str, size_t len )
 {
      value.assign(str, len);
      return;
