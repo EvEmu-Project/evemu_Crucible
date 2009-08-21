@@ -83,11 +83,7 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
     case DBQueryResult::Int32:
         return new PyInt(row.GetInt(column_index));
     case DBQueryResult::Int64:
-        // capt: only signed ints are used...
-        // quick check to handle sign, I'm not sure it does any good at this point.
-        // if(row.IsSigned(column_index))
             return new PyLong(row.GetInt64(column_index));
-        // return(new PyInt(row.GetUInt64(column_index)));
     case DBQueryResult::Binary:
         return new PyBuffer((const uint8 *) row.GetText(column_index), row.GetColumnLength(column_index));
     case DBQueryResult::Bool:

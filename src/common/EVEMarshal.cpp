@@ -91,8 +91,8 @@ uint8 *Marshal(const PyRep *rep, uint32& len, bool inlineSubStream)
 
 void MarshalVisitor::VisitInteger(const PyInt *rep)
 {
-    const uint64 & val = rep->value;
-    if (val == (uint64)-1)
+    const int32 & val = rep->value;
+    if (val == -1)
     {
         PutByte(Op_PyMinusOne);
         return;
@@ -112,20 +112,20 @@ void MarshalVisitor::VisitInteger(const PyInt *rep)
         if ( val + 0x8000u > 0xFFFF )
         {
             PutByte(Op_PyLong);
-            PutUint32(val);
+            PutInt32(val);
             return;
         }
         else
         {
             PutByte(Op_PySignedShort);
-            PutUint16(val);
+            PutInt16(val);
             return;
         }
     }
     else
     {
         PutByte(Op_PyByte);
-        PutByte(val);
+        PutInt8(val);
         return;
     }
 }
@@ -548,12 +548,31 @@ void MarshalVisitor::_PyInt_AsByteArray( const PyLong* v )
     else
     {
         PutByte(Op_PyLongLong);                     // 1
-        PutUint64(v->value);                        // 8
+        PutInt64(v->value);                        // 8
     }
 }
 
 void MarshalVisitor::VisitLong( const PyLong *rep )
 {
+    PyLong * henk = (PyLong*)rep;
+    
+    int64 val = henk->GetValue();
+    if (val == -1)
+    {
+        PutByte(Op_PyMinusOne);
+        return;
+    }
+    if (val == 0)
+    {
+        PutByte(Op_PyZeroInteger);
+        return;
+    }
+    if (val == 1)
+    {
+        PutByte(Op_PyOneInteger);
+        return;
+    }
+    printf("marshalling long: "I64d"\n", henk->GetValue());
 //Op_PyLongLong
     //if (val + 0x800000u > 0xFFFFFFFF)
     {

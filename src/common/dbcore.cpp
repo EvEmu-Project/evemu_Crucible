@@ -66,12 +66,6 @@ void DBcore::ping()
 bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
     LockMutex lock(&MDatabase);
 
-    //va_list args;
-    //va_start(args, query_fmt);
-    //char *query = NULL;
-    //uint32 querylen = vasprintf(&query, query_fmt, args);
-    //va_end(args);
-
     char query[16384];
     va_list vlist;
     va_start(vlist, query_fmt);
@@ -359,11 +353,12 @@ DBQueryResult::~DBQueryResult() {
 
     // check if the field double pointer has a real pointer
     // also check if the first entry has data........
-    if (m_fields != NULL && m_fields[0] != NULL)
-    {
-        delete [] m_fields;
-        m_fields = NULL;
-    }
+    //if (m_fields != NULL && m_fields[0] != NULL)
+    //{
+      //  delete [] m_fields;
+       // m_fields = NULL;
+    //}
+    SafeDelete(m_fields);
 
     if(m_res != NULL)
         mysql_free_result(m_res);

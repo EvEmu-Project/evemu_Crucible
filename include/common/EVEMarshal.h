@@ -129,7 +129,7 @@ public:
     }
 
     /** adds a double do the data stream
-    */
+     */
     EVEMU_INLINE void PutDouble(const double& value) {
         reserve(8);
         (*((double*)&mBuffer[mWriteIndex])) = value;
@@ -137,18 +137,34 @@ public:
     }
 
     /** adds a uint64 do the data stream
-    */
+     */
     EVEMU_INLINE void PutUint64(const uint64& value) {
         reserve(8);
         (*((uint64*)&mBuffer[mWriteIndex])) = value;
         mWriteIndex+=8;
     }
 
+    /** adds a uint64 do the data stream
+     */
+    EVEMU_INLINE void PutInt64(const int64& value) {
+        reserve(8);
+        (*((int64*)&mBuffer[mWriteIndex])) = value;
+        mWriteIndex+=8;
+    }
+
     /** adds a uint32 do the data stream
-    */
+     */
     EVEMU_INLINE void PutUint32(const uint32 value) {
         reserve(4);
         (*((uint32*)&mBuffer[mWriteIndex])) = value;
+        mWriteIndex+=4;
+    }
+
+    /** adds a uint32 do the data stream
+    */
+    EVEMU_INLINE void PutInt32(const int32 value) {
+        reserve(4);
+        (*((int32*)&mBuffer[mWriteIndex])) = value;
         mWriteIndex+=4;
     }
 
@@ -160,11 +176,24 @@ public:
         mWriteIndex+=2;
     }
 
+    EVEMU_INLINE void PutInt16(const int16 value) {
+        reserve(2);
+        (*((int16*)&mBuffer[mWriteIndex])) = value;
+        mWriteIndex+=2;
+    }
+
     /** adds a uint8 do the data stream
       */
     EVEMU_INLINE void PutUint8(uint8 value) {
         reserve(1);
         mBuffer[mWriteIndex] = value; mWriteIndex++;
+    }
+
+    /** adds a uint8 do the data stream
+    */
+    EVEMU_INLINE void PutInt8(int8 value) {
+        reserve(1);
+        (*((int16*)&mBuffer[mWriteIndex])) = value; mWriteIndex++;
     }
 
     EVEMU_INLINE uint32 size() {
