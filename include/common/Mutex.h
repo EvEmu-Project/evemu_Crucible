@@ -36,7 +36,6 @@ public:
 	void lock();
 	void unlock();
 	bool trylock();
-protected:
 private:
 #ifdef WIN32
 	CRITICAL_SECTION CSMutex;
@@ -57,7 +56,7 @@ private:
 };
 
 // Somewhat untested...
-// Multi-read, single write mutex -Quagmire
+// Multi-read, single write Mutex
 class MRMutex {
 public:
 	MRMutex();
@@ -81,4 +80,3 @@ private:
 };
 
 #endif
-

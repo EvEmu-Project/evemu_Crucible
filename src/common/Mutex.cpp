@@ -94,7 +94,7 @@ Mutex::~Mutex() {
 #ifdef WIN32
 	DeleteCriticalSection(&CSMutex);
 #else
-//	pthread_mutex_destroy(&CSMutex);
+	pthread_mutex_destroy(&CSMutex);
 #endif
 }
 
