@@ -1076,6 +1076,7 @@ bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, 
     // this could be stored in the db
 #define PRN new PyNone()
 #define PRI(i) new PyInt(i)
+#define PRL(i) new PyLong(i)
 #define PRS(s) new PyString(s)
 #define PRNI(i) (row.IsNull(i) ? PRI(0) : PRI(row.GetUInt64(i)))
 #define F(name, o, n) \
@@ -1096,7 +1097,7 @@ bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, 
     F(grantableRolesAtHQ,       PRNI(6),                PRI(0));
     F(grantableRolesAtOther,    PRNI(7),                PRI(0));
     F(squadronID,               PRN,                    PRN);
-    F(startDateTime,            PRI(row.GetUInt64(1)),  PRI(Win32TimeNow()));
+    F(startDateTime,            PRL(row.GetUInt64(1)),  PRL(Win32TimeNow()));
     // another one i have no idea
     F(titleMask,                PRN,                    PRI(0));
     F(baseID,                   PRS(row.GetText(0)),    PRS(""));

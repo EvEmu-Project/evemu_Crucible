@@ -68,7 +68,7 @@ AuthService::~AuthService() {
 
 
 PyResult AuthService::Handle_Ping(PyCallArgs &call) {
-	return(new PyInt(Win32TimeNow()));
+	return(new PyLong(Win32TimeNow()));
 }
 
 

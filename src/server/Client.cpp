@@ -127,43 +127,43 @@ void HandlePingRequest(Client* client, PyPacket * packet)
     {
         PyTuple * pingTuple = new PyTuple(3);
 
-        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);        // this should be the time the packet was received (we cheat here a bit)
-        pingTuple->items[1] = new PyInt(Win32TimeNow());             // this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
+        pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);        // this should be the time the packet was received (we cheat here a bit)
+        pingTuple->items[1] = new PyLong(Win32TimeNow());             // this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
         pingTuple->items[2] = new PyString("proxy::handle_message");
 
         pingList->add(pingTuple);
 
         pingTuple = new PyTuple(3);
-        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);
-        pingTuple->items[1] = new PyInt(Win32TimeNow());
+        pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
+        pingTuple->items[1] = new PyLong(Win32TimeNow());
         pingTuple->items[2] = new PyString("proxy::writing");
 
         pingList->add(pingTuple);
 
         pingTuple = new PyTuple(3);
-        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);
-        pingTuple->items[1] = new PyInt(Win32TimeNow());
+        pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
+        pingTuple->items[1] = new PyLong(Win32TimeNow());
         pingTuple->items[2] = new PyString("server::handle_message");
 
         pingList->add(pingTuple);
 
         pingTuple = new PyTuple(3);
-        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);
-        pingTuple->items[1] = new PyInt(Win32TimeNow());
+        pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
+        pingTuple->items[1] = new PyLong(Win32TimeNow());
         pingTuple->items[2] = new PyString("server::turnaround");
 
         pingList->add(pingTuple);
 
         pingTuple = new PyTuple(3);
-        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);
-        pingTuple->items[1] = new PyInt(Win32TimeNow());
+        pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
+        pingTuple->items[1] = new PyLong(Win32TimeNow());
         pingTuple->items[2] = new PyString("proxy::handle_message");
 
         pingList->add(pingTuple);
 
         pingTuple = new PyTuple(3);
-        pingTuple->items[0] = new PyInt(Win32TimeNow() - 20);
-        pingTuple->items[1] = new PyInt(Win32TimeNow());
+        pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
+        pingTuple->items[1] = new PyLong(Win32TimeNow());
         pingTuple->items[2] = new PyString("proxy::writing");
 
         pingList->add(pingTuple);

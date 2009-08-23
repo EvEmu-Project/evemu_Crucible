@@ -99,7 +99,7 @@ PySubStruct *PyServiceMgr::BindObject(Client *c, PyBoundObject *cb, PyDict **dic
 		objt = new PyTuple(2);
 
 		objt->items[0] = new PyString(bind_str);
-		objt->items[1] = new PyInt(expiration);	//expiration?
+		objt->items[1] = new PyLong(expiration);	//expiration?
 	}
 	else
 	{

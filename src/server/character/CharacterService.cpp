@@ -377,7 +377,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
     }
 
     //we return deletePrepareDateTime, in eve time format.
-    return(new PyInt(Win32TimeNow() + Win32Time_Second*5));
+    return(new PyLong(Win32TimeNow() + Win32Time_Second*5));
 }
 
 PyResult CharacterService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call) {

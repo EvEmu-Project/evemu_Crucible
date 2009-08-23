@@ -157,7 +157,7 @@ void ItemAttributeMgr::SetIntEx(Attr attr, const int_t &v, bool persist) {
             PyList *l = new PyList;
 
             l->addInt(v);
-            l->addInt(Win32TimeNow());
+            l->addLong(Win32TimeNow());
             l->add(_PyGet(GetReal(i->second.tau) / 5.0));
             l->add(PyGet(i->second.cap));
 
@@ -193,7 +193,7 @@ void ItemAttributeMgr::SetRealEx(Attr attr, const real_t &v, bool persist) {
                 // build the special list for rechargables
                 PyList *l = new PyList;
                 l->addReal(v);
-                l->addInt(Win32TimeNow());
+                l->addLong(Win32TimeNow());
                 l->add(_PyGet(GetReal(i->second.tau) / 5.0));
                 l->add(PyGet(i->second.cap));
 

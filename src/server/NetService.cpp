@@ -154,7 +154,7 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 }
 
 PyResult NetService::Handle_GetTime(PyCallArgs &call) {
-	return(new PyInt(Win32TimeNow()));
+	return(new PyLong(Win32TimeNow()));
 }
 
 
