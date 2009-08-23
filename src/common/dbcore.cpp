@@ -436,26 +436,26 @@ DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
     return String;
 }
 
-void DBQueryResult::SetResult(MYSQL_RES **res, uint32 colcount) {
-    if(m_res != NULL)
-        mysql_free_result(m_res);
+void DBQueryResult::SetResult(MYSQL_RES **res, uint32 colcount)
+{
+    if( m_res != NULL )
+	{
+        mysql_free_result( m_res );
+		SafeDelete( m_fields );
+	}
+
     m_res = *res;
     *res = NULL;
     m_col_count = colcount;
 
-    if (m_res == NULL)
-    {
-        m_fields = NULL;
-        return;
-    }
-
-    m_fields = new MYSQL_FIELD*[m_col_count];
-    
-    // we are
-    for (uint32 i = 0; i < colcount; i++)
-    {
-        m_fields[i] = mysql_fetch_field(m_res);
-    }
+    if( m_res != NULL )
+	{
+		m_fields = new MYSQL_FIELD*[m_col_count];
+	    
+		// we are
+		for( uint32 i = 0; i < m_col_count; i++ )
+			m_fields[i] = mysql_fetch_field( m_res );
+	}
 }
 
 void DBQueryResult::Reset() {

@@ -194,10 +194,10 @@ void EntityList::Broadcast(const char *notifyType, const char *idType, PyTuple *
 	dest.type = PyAddress::Broadcast;
 	dest.service = notifyType;
 	dest.bcast_idtype = idType;
-	Broadcast(dest, &notify);
+	Broadcast(dest, notify);
 }
 
-void EntityList::Broadcast(const PyAddress &dest, EVENotificationStream *noti) const {
+void EntityList::Broadcast(const PyAddress &dest, EVENotificationStream &noti) const {
 	client_list::const_iterator cur, end;
 	cur = m_clients.begin();
 	end = m_clients.end();
@@ -206,7 +206,7 @@ void EntityList::Broadcast(const PyAddress &dest, EVENotificationStream *noti) c
 	}
 }
 
-void EntityList::Multicast(const character_set &cset, const PyAddress &dest, EVENotificationStream *noti) const {
+void EntityList::Multicast(const character_set &cset, const PyAddress &dest, EVENotificationStream &noti) const {
 	//this could likely be done better
 
 	std::vector<Client *> result;
@@ -245,39 +245,47 @@ void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple *
 	*payload = NULL;
 }
 
-void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple **payload, const MulticastTarget &mcset, bool seq) {
-	std::list<Client *>::const_iterator cur, end;
-	cur = m_clients.begin();
-	end = m_clients.end();
-	PyTuple * temp;
-	
+void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple **payload, const MulticastTarget &mcset, bool seq)
+{
 	//cache all these locally to avoid calling empty all the time.
 	const bool chars_empty = mcset.characters.empty();
 	const bool locs_empty = mcset.locations.empty();
 	const bool corps_empty = mcset.corporations.empty();
-	if(chars_empty && locs_empty && corps_empty) {
-		return;
-	}
-	
-	for(; cur != end; cur++) {
-		if(	  !chars_empty
-		   && mcset.characters.find((*cur)->GetCharacterID()) != mcset.characters.end()) {
-			//found, carry on...
-		} else if(   !locs_empty
-				  && mcset.locations.find((*cur)->GetLocationID()) != mcset.locations.end()) {
-			//found, carry on...
-		} else if(   !corps_empty
-				  && mcset.corporations.find((*cur)->GetCorporationID()) != mcset.corporations.end()) {
-			//found, carry on...
-		} else {
-			//not found in any of the above sets.
-			continue;
+
+	if( !chars_empty || !locs_empty || !corps_empty )
+	{
+		std::list<Client *>::const_iterator cur, end;
+		cur = m_clients.begin();
+		end = m_clients.end();
+		for(; cur != end; cur++)
+		{
+			if(	  !chars_empty
+			     && mcset.characters.find((*cur)->GetCharacterID()) != mcset.characters.end() )
+			{
+				//found, carry on...
+			}
+			else if(   !locs_empty
+					  && mcset.locations.find((*cur)->GetLocationID()) != mcset.locations.end() )
+			{
+				//found, carry on...
+			}
+			else if(   !corps_empty
+					  && mcset.corporations.find((*cur)->GetCorporationID()) != mcset.corporations.end() )
+			{
+				//found, carry on...
+			}
+			else
+			{
+				//not found in any of the above sets.
+				continue;
+			}
+
+			PyTuple *temp = (*payload)->TypedClone();
+			(*cur)->SendNotification( notifyType, idType, &temp, seq );
 		}
-		temp = (PyTuple*)(*payload)->Clone();
-		(*cur)->SendNotification(notifyType, idType, &temp, seq);
 	}
-	delete (*payload);
-	*payload = NULL;
+
+	SafeDelete( *payload );
 }
 
 void EntityList::Multicast(const character_set &cset, const char *notifyType, const char *idType, PyTuple **in_payload, bool seq) const {

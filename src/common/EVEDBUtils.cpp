@@ -386,26 +386,22 @@ void DBResultToIntIntlistDict( DBQueryResult &result, std::map<int32, PyRep *> &
     PyList *l = NULL;
 
     DBResultRow row;
-    while(result.GetRow(row))
+    while( result.GetRow( row ) )
     {
         uint32 k = row.GetUInt(0);
-        if(k != last_key || l == NULL) {
-            if(l != NULL) {
-                //watch for overwrite, no guarantee we are dealing with a key.
-                std::map<int32, PyRep *>::iterator res;
-                res = into.find(k);
-                if(res != into.end()) {
-                    //log an error or warning?
-                    delete res->second;
-                }
+        if( k != last_key )
+		{
+			//watch for overwrite, no guarantee we are dealing with a key.
+			std::map<int32, PyRep *>::iterator res = into.find(k);
+			if( res != into.end() )
+				//log an error or warning?
+				SafeDelete( res->second );
 
-                into[k] = l;
-            }
-            l = new PyList();
-            last_key = k;
-        }
-        uint32 v = row.GetInt(1);
-        l->add(new PyInt(v));
+			into[k] = l = new PyList();
+			last_key = k;
+		}
+
+        l->add( new PyInt( row.GetInt( 1 ) ) );
     }
 }
 

@@ -26,7 +26,7 @@
 #include "EvemuPCH.h"
 
 
-PyRep *LSCChannelChar::Encode() {
+PyRep *LSCChannelChar::Encode() const {
 	ChannelJoinChannelCharsLine line;
 
 	line.allianceID = m_allianceID;
@@ -90,9 +90,14 @@ LSCChannel::~LSCChannel() {
 bool LSCChannel::JoinChannel(Client * c) {
 	_log(LSC__CHANNELS, "Channel %s: Join from %s", m_displayName.c_str(), c->GetName());
 
-	m_chars[c->GetCharacterID()] = new LSCChannelChar(this, c->GetCorporationID(), c->GetCharacterID(), c->GetAllianceID(), c->GetAccountRole(), 0);
+	m_chars.insert(
+		std::make_pair(
+			c->GetCharacterID(),
+			LSCChannelChar( this, c->GetCorporationID(), c->GetCharacterID(), c->GetAllianceID(), c->GetAccountRole(), 0 )
+		)
+	);
 	m_memberless = false;
-	c->ChannelJoined(this);
+	c->ChannelJoined( this );
 
 	//if ((m_type != LSCChannel::normal) && (m_channelID > 2)) {
 		OnLSC_JoinChannel join;
@@ -101,12 +106,15 @@ bool LSCChannel::JoinChannel(Client * c) {
 		join.channelID = EncodeID();
 
 		MulticastTarget mct;
-		std::map<uint32, LSCChannelChar *>::iterator cur, end;
-		cur = m_chars.begin(); end = m_chars.end();
-		for(;cur!=end;cur++)
-			mct.characters.insert((*cur).first);
-		PyTuple * answer = join.Encode();
-		m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
+
+		std::map<uint32, LSCChannelChar>::iterator cur, end;
+		cur = m_chars.begin();
+		end = m_chars.end();
+		for( ; cur != end; cur++ )
+			mct.characters.insert( cur->first );
+
+		PyTuple *answer = join.FastEncode();
+		m_service->entityList().Multicast( "OnLSC", GetTypeString(), &answer, mct );
 	//}
 
 	return true;
@@ -125,11 +133,14 @@ void LSCChannel::LeaveChannel(uint32 charID, OnLSC_SenderInfo * si) {
 	leave.channelID = EncodeID();
 
 	MulticastTarget mct;
-	std::map<uint32, LSCChannelChar *>::iterator cur, end;
-	cur = m_chars.begin(); end = m_chars.end();
-	for(;cur!=end;cur++)
-		mct.characters.insert((*cur).first);
-	PyTuple * answer = leave.Encode();
+
+	std::map<uint32, LSCChannelChar>::iterator cur, end;
+	cur = m_chars.begin();
+	end = m_chars.end();
+	for(; cur != end; cur++)
+		mct.characters.insert( cur->first );
+
+	PyTuple *answer = leave.FastEncode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
 void LSCChannel::LeaveChannel(Client *c, bool self) {
@@ -146,11 +157,14 @@ void LSCChannel::LeaveChannel(Client *c, bool self) {
 	leave.channelID = EncodeID();
 
 	MulticastTarget mct;
-	std::map<uint32, LSCChannelChar *>::iterator cur, end;
-	cur = m_chars.begin(); end = m_chars.end();
-	for(;cur!=end;cur++)
-		mct.characters.insert((*cur).first);
-	PyTuple * answer = leave.Encode();
+
+	std::map<uint32, LSCChannelChar>::iterator cur, end;
+	cur = m_chars.begin();
+	end = m_chars.end();
+	for(; cur != end; cur++)
+		mct.characters.insert( cur->first );
+
+	PyTuple *answer = leave.FastEncode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 
 	m_chars.erase(charID);
@@ -164,12 +178,14 @@ void LSCChannel::Evacuate(Client * c) {
 	dc.sender = _MakeSenderInfo(c);
 
 	MulticastTarget mct;
-	std::map<uint32, LSCChannelChar *>::iterator cur = m_chars.begin(), end = m_chars.end();
-	for (;cur!=end;cur++) {
+
+	std::map<uint32, LSCChannelChar>::iterator cur, end;
+	cur = m_chars.begin();
+	end = m_chars.end();
+	for(; cur != end; cur++)
 		mct.characters.insert(cur->first);
-	}
 	
-	PyTuple *answer = dc.Encode();
+	PyTuple *answer = dc.FastEncode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
 void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
@@ -186,10 +202,12 @@ void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
 			mct.characters.insert(c->GetCharacterID());
 			sm.sender = _FakeSenderInfo();
 		} else {
-			std::map<uint32, LSCChannelChar *>::iterator cur = m_chars.begin(), end = m_chars.end();
-			for (;cur!=end;cur++) {
-				mct.characters.insert(cur->first);
-			}
+			std::map<uint32, LSCChannelChar>::iterator cur, end;
+			cur = m_chars.begin();
+			end = m_chars.end();
+			for(; cur != end; cur++)
+				mct.characters.insert( cur->first );
+
 			sm.sender = _MakeSenderInfo(c);
 	}
 	}
@@ -304,14 +322,17 @@ PyRep *LSCChannel::EncodeChannelMods() {
 PyRep *LSCChannel::EncodeChannelChars() {
 	ChannelJoinChannelChars info;
 
-	std::map<uint32, LSCChannelChar *>::iterator cur, end;
-	cur = m_chars.begin(); end = m_chars.end();
-
-	for (;cur!=end;cur++) {
-		info.lines.add(m_chars[(*cur).first]->Encode());
+	std::map<uint32, LSCChannelChar>::iterator cur, end;
+	cur = m_chars.begin();
+	end = m_chars.end();
+	for(; cur != end; cur++)
+	{
+		std::map<uint32, LSCChannelChar>::const_iterator res = m_chars.find( cur->first );
+		if( res != m_chars.end() )
+			info.lines.add( res->second.Encode() );
 	}
 
-	return info.Encode();
+	return info.FastEncode();
 }
 PyRep *LSCChannel::EncodeEmptyChannelChars() {
 	ChannelJoinChannelChars info;

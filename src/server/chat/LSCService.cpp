@@ -139,74 +139,82 @@ PyResult LSCService::Handle_GetRookieHelpChannel(PyCallArgs &call) {
 
 PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
     CallJoinChannels args;
-
-    std::set<uint32> toJoin;
-
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
         return NULL;
     }
 
-    PyList::const_iterator cur = args.channels.begin(), end = args.channels.end();
-    PyTuple * prt;
+    std::set<uint32> toJoin;
 
-    for (;cur!=end;cur++) {
-        if ((*cur)->IsInt()) {
-            toJoin.insert(((PyInt *)(*cur))->value);
-        } else if ((*cur)->IsTuple()) {
-            prt = (PyTuple*)*cur;
-            if (prt->items.size() != 1 || !prt->items[0]->IsTuple()) {
+    PyList::const_iterator cur, end;
+	cur = args.channels.begin();
+	end = args.channels.end();
+
+    for( ; cur != end; cur++ )
+	{
+        if( (*cur)->IsInt() )
+		{
+            toJoin.insert( (*cur)->AsInt().value );
+        }
+		else if( (*cur)->IsTuple() )
+		{
+            PyTuple *prt = &(*cur)->AsTuple();
+
+            if( prt->items.size() != 1 || !prt->items[0]->IsTuple() )
+			{
                 codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                 continue;
             }
-            prt = (PyTuple*)prt->items[0];
-            if (prt->items.size() != 2 || /* !prt->items[0]->IsString() || unnessecary */ !prt->items[1]->IsInt()) {
+            prt = &prt->items[0]->AsTuple();
+
+            if( prt->items.size() != 2 || /* !prt->items[0]->IsString() || unnessecary */ !prt->items[1]->IsInt() )
+			{
                 codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                 continue;
             }
-            toJoin.insert(((PyInt*)prt->items[1])->value);
-        } else {
+            toJoin.insert( prt->items[1]->AsInt().value );
+        }
+		else
+		{
             codelog(SERVICE__ERROR, "%s: Bad argument ", call.client->GetName());
             return NULL;
         }
     }
 
-
-    uint32 channelID;
     uint32 charID = call.client->GetCharacterID();
-
     // and now ensure the working of the system
-    toJoin.insert(charID);
+    toJoin.insert( charID );
 
     PyList *ml = new PyList();
-    ChannelJoinReply * rep;
-
-    LSCChannel * channel;
 
     std::set<uint32>::iterator curs, ends;
     curs = toJoin.begin();
     ends = toJoin.end();
+    for( ; curs != ends; curs++ )
+	{
+		LSCChannel *channel;
 
-    for (;curs!=ends;curs++) {
-        channelID = *curs;
-        if (m_channels.find(channelID) == m_channels.end())
-            channel = CreateChannel(channelID);
+        uint32 channelID = *curs;
+        if( m_channels.find( channelID ) == m_channels.end() )
+            channel = CreateChannel( channelID );
         else
-            channel = m_channels[channelID];
+            channel = m_channels[ channelID ];
 
-        if (!channel->IsJoined(charID)) {
-            rep = new ChannelJoinReply();
+        if( !channel->IsJoined( charID ) )
+		{
+            ChannelJoinReply chjr;
 
-            rep->ChannelID = channel->EncodeID();
-            rep->ChannelInfo = channel->EncodeChannelSmall(charID);
+            chjr.ChannelID = channel->EncodeID();
+            chjr.ChannelInfo = channel->EncodeChannelSmall( charID );
             // this one'll create an empty query result
             // noone implemented channel mods.
-            rep->ChannelMods = channel->EncodeChannelMods();
+            chjr.ChannelMods = channel->EncodeChannelMods();
             //rep->ChannelChars = channel->EncodeChannelChars();
-            rep->ChannelChars = channel->EncodeEmptyChannelChars();
+            chjr.ChannelChars = channel->EncodeEmptyChannelChars();
 
-            channel->JoinChannel(call.client);
-            ml->add(rep->Encode());
+            channel->JoinChannel( call.client );
+
+            ml->add( chjr.FastEncode() );
         }
     }
 

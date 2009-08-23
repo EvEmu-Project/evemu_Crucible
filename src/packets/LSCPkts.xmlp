@@ -204,6 +204,8 @@
   <InlineTuple>
     <!-- 0 -->
     <list name="channels" />
+    <!-- 1 -->
+    <int name="unknown" />
   </InlineTuple>            
 </element>  
 

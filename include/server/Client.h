@@ -208,7 +208,7 @@ public:
 	
 	bool LaunchDrone(InventoryItemRef drone);
 	
-	void SendNotification(const PyAddress &dest, EVENotificationStream *noti, bool seq=true);
+	void SendNotification(const PyAddress &dest, EVENotificationStream &noti, bool seq=true);
 	void SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq=true);
 	void SessionSync();
 

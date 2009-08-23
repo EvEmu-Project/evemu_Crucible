@@ -43,7 +43,10 @@ InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItem
     PyCallable_REG_CALL(InventoryBound, StackAll)
 }
 
-InventoryBound::~InventoryBound() {}
+InventoryBound::~InventoryBound()
+{
+	delete m_dispatch;
+}
 
 PyResult InventoryBound::Handle_List(PyCallArgs &call) {
     //TODO: check to make sure we are allowed to list this inventory

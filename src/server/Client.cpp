@@ -398,7 +398,9 @@ void Client::Login(CryptoChallengePacket *pack) {
     ack.inDetention = new PyNone;
     ack.user_clientid = GetAccountID();
 
-    m_net._QueueRep(ack.FastEncode());
+	PyRep *r = ack.FastEncode();
+    m_net._QueueRep( r );
+	SafeDelete( r );
 
     session.Set_userType(1);    //user type 1 is normal user, type 23 is a trial account user.
     session.Set_userid(GetAccountID());
@@ -925,11 +927,11 @@ void Client::SendNotification(const char *notifyType, const char *idType, PyTupl
     dest.type = PyAddress::Broadcast;
     dest.service = notifyType;
     dest.bcast_idtype = idType;
-    SendNotification(dest, &notify, seq);
+    SendNotification(dest, notify, seq);
 }
 
 
-void Client::SendNotification(const PyAddress &dest, EVENotificationStream *noti, bool seq) {
+void Client::SendNotification(const PyAddress &dest, EVENotificationStream &noti, bool seq) {
 
     //build the packet:
     PyPacket *p = new PyPacket();
@@ -943,7 +945,7 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream *noti
 
     p->userid = GetAccountID();
 
-    p->payload = noti->Encode();
+    p->payload = noti.Encode();
 
     if(seq) {
         p->named_payload = new PyDict();

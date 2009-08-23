@@ -36,7 +36,7 @@ class LSCChannel;
 
 class LSCChannelChar {
 public:
-	LSCChannelChar(LSCChannel * chan, uint32 corpID, uint32 charID, uint32 allianceID, uint32 role, uint32 extra) :
+	LSCChannelChar(LSCChannel *chan, uint32 corpID, uint32 charID, uint32 allianceID, uint32 role, uint32 extra) :
 	  m_parent(chan),
 	  m_corpID(corpID),
 	  m_charID(charID),
@@ -45,7 +45,7 @@ public:
 	  m_extra(extra) { }
 
 	virtual ~LSCChannelChar() { }
-	PyRep *Encode();
+	PyRep *Encode() const;
 
 protected:
 	LSCChannel *m_parent;
@@ -149,7 +149,7 @@ protected:
 	uint32 m_mode;
 
 	std::vector<LSCChannelMod> m_mods;
-	std::map<uint32, LSCChannelChar *> m_chars;	// we own these pointers
+	std::map<uint32, LSCChannelChar> m_chars;
 
 
 	OnLSC_SenderInfo *_FakeSenderInfo();

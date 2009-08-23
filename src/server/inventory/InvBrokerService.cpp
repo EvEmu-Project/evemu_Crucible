@@ -47,7 +47,11 @@ public:
         PyCallable_REG_CALL(InvBrokerBound, SetLabel)
         PyCallable_REG_CALL(InvBrokerBound, TrashItems)
     }
-    virtual ~InvBrokerBound() {}
+    virtual ~InvBrokerBound()
+	{
+		delete m_dispatch;
+	}
+
     virtual void Release() {
         //I hate this statement
         delete this;
