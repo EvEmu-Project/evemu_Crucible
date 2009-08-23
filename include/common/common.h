@@ -30,7 +30,7 @@
   */
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #  ifndef WIN32
-#  define WIN32
+#    define WIN32
 #  endif//WIN32
 #endif
 
@@ -44,6 +44,9 @@
 #    define _CRT_SECURE_NO_WARNINGS 1
 #    define _CRT_SECURE_NO_DEPRECATE 1
 #    define _CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES 1
+#    if _DEBUG
+#      define _CRTDBG_MAP_ALLOC 1
+#    endif// _DEBUG
 #  else
 #  endif//_MSC_VER
 #endif//WIN32
@@ -85,21 +88,43 @@
 #include <errno.h>
 
 
+/** STL includes
+  */
+#include <algorithm>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <queue>
+#include <list>
+#include <map>
+#include <set>
+
+
+/** TR1 STL includes
+  * Note: my fellow developers please read 'http://en.wikipedia.org/wiki/Technical_Report_1'. I know its a wiki page
+  *       but it gives you the general idea.
+  */
+#ifdef WIN32
+#  include <tuple>
+#  include <unordered_map>
+#  include <unordered_set>
+#else
+#  include <tr1/tuple>
+#  include <tr1/unordered_map>
+#  include <tr1/unordered_set>
+#endif//WIN32
+
+using namespace std;
+
 /** Visual Studio memory leak detection
   */
 #ifdef WIN32
-#  ifndef _CRTDBG_MAP_ALLOC
-#    define _CRTDBG_MAP_ALLOC
-#    include <stdlib.h>
+#  ifdef _DEBUG
 #    include <crtdbg.h>
-#    if (_MSC_VER < 1300)
-#      include <new>
-#      include <memory>
-#      define _CRTDBG_MAP_ALLOC
-#      define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#      define malloc(s) _malloc_dbg(s, _NORMAL_BLOCK, __FILE__, __LINE__)
-#    endif//_MSC_VER
-#  endif//_CRTDBG_MAP_ALLOC
+#    include <new>
+#    include <memory>
+#    define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#  endif//_DEBUG
 #endif//WIN32
 
 
@@ -202,34 +227,6 @@
 #  endif//__CYGWIN__
 #endif//WIN32
 
-
-/** STL includes
-  */
-#include <algorithm>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <queue>
-#include <list>
-#include <map>
-#include <set>
-
-
-/** TR1 STL includes
-  * Note: my fellow developers please read 'http://en.wikipedia.org/wiki/Technical_Report_1'. I know its a wiki page
-  *       but it gives you the general idea.
-  */
-#ifdef WIN32
-#  include <tuple>
-#  include <unordered_map>
-#  include <unordered_set>
-#else
-#  include <tr1/tuple>
-#  include <tr1/unordered_map>
-#  include <tr1/unordered_set>
-#endif//WIN32
-
-using namespace std;
 
 #include "./types.h"
 

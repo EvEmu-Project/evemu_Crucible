@@ -5,11 +5,7 @@
 class ClientStatsMgr : public PyService {
 public:
 	ClientStatsMgr(PyServiceMgr *mgr);
-
-	virtual ~ClientStatsMgr()
-	{
-
-	}
+	~ClientStatsMgr();
 
 protected:
 	class Dispatcher;

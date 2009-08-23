@@ -43,6 +43,11 @@ CertificateMgrService::CertificateMgrService(PyServiceMgr *mgr, DBcore *db)
     PyCallable_REG_CALL(CertificateMgrService, BatchCertificateUpdate)
 }
 
+CertificateMgrService::~CertificateMgrService()
+{
+	delete m_dispatch;
+}
+
 PyResult CertificateMgrService::Handle_GetMyCertificates(PyCallArgs &call) {
     return(m_db.GetMyCertificates(call.client->GetCharacterID()));
 }

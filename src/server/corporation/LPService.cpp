@@ -37,6 +37,11 @@ LPService::LPService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(LPService, GetLPsForCharacter)
 }
 
+LPService::~LPService()
+{
+	delete m_dispatch;
+}
+
 PyResult LPService::Handle_GetLPForCharacterCorp(PyCallArgs &call) {
 	_log(SERVICE__ERROR, "%s::GetLPForCharacterCorp not implemented yet.", GetName());
 

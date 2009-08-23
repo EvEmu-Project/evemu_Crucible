@@ -31,6 +31,7 @@
 class WarRegistryService : public PyService {
 public:
 	WarRegistryService(PyServiceMgr *mgr);
+	~WarRegistryService();
 
 	PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
 

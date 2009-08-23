@@ -32,6 +32,7 @@
 class FactionWarMgrService : public PyService {
 public:
 	FactionWarMgrService(PyServiceMgr *mgr, DBcore *db);
+	~FactionWarMgrService();
 
 	PyCallable_DECL_CALL(GetWarFactions)
 	PyCallable_DECL_CALL(GetFacWarSystems)

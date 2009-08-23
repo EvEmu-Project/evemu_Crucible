@@ -31,6 +31,7 @@
 class VoiceMgrService : public PyService {
 public:
 	VoiceMgrService(PyServiceMgr *mgr);
+	~VoiceMgrService();
 
 	PyCallable_DECL_CALL(VoiceEnabled)
 

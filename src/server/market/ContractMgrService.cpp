@@ -39,6 +39,11 @@ ContractMgrService::ContractMgrService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(ContractMgrService, NumRequiringAttention);
 }
 
+ContractMgrService::~ContractMgrService()
+{
+	delete m_dispatch;
+}
+
 PyResult ContractMgrService::Handle_NumRequiringAttention(PyCallArgs &call) {
 	_log(SERVICE__WARNING, "%s: NumReqiringAttention unimplemented.", GetName());
 

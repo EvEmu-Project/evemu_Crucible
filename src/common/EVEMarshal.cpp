@@ -47,46 +47,40 @@ const uint32 EVEDeflationBytesLimit = 10000;    //every packet larger than this 
  */
 uint8 *Marshal(const PyRep *rep, uint32& len, bool inlineSubStream)
 {
-    if (rep==NULL)
+    if( rep == NULL )
         return NULL;
 
     MarshalVisitor v;
 
-    if(inlineSubStream == true)
+    if( inlineSubStream == true )
     {
-        v.PutByte(SubStreamHeaderByte);
+        v.PutByte( SubStreamHeaderByte );
 
         /* Mapcount
          * the amount of referenced objects within a marshal stream.
          * Note: Atm not supported.
          */
-        v.PutUint32(0); // Mapcount
+        v.PutUint32( 0 ); // Mapcount
     }
 
-    rep->visit(&v);
+    rep->visit( &v );
 
     len = v.size();
 
     uint8 *packetBuff = NULL;
 
     // check if we need to compress the data
-    if (len > EVEDeflationBytesLimit)
+    if( len > EVEDeflationBytesLimit )
     {
-        packetBuff = DeflatePacket(v.data(), &len);
+        packetBuff = DeflatePacket( v.data(), &len );
     }
     else
     {
-        packetBuff = v.data();
-    }
+        packetBuff = new uint8[len];
+        memcpy( v.data(), packetBuff, len );
+	}
 
-    uint8 *b = new uint8[len];
-
-    memcpy(b, packetBuff, len);
-
-    if (len > EVEDeflationBytesLimit)
-        SafeFree( packetBuff );
-
-    return b;
+    return packetBuff;
 }
 
 void MarshalVisitor::VisitInteger(const PyInt *rep)

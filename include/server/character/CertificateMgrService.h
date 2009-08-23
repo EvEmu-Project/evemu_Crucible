@@ -35,6 +35,7 @@ class CertificateMgrService
 {
 public:
 	CertificateMgrService(PyServiceMgr *mgr, DBcore *db);
+	~CertificateMgrService();
 
 protected:
 	class Dispatcher;

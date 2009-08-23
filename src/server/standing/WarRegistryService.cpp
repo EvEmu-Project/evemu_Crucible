@@ -40,8 +40,11 @@ public:
 
 		PyCallable_REG_CALL(WarRegistryBound, GetWars);
 	}
+	~WarRegistryBound()
+	{
+		delete m_dispatch;
+	}
 
-	~WarRegistryBound(){delete m_dispatch;}
 	void Release() {
 		//I hate this statement
 		delete this;
@@ -60,6 +63,11 @@ WarRegistryService::WarRegistryService(PyServiceMgr *mgr)
   m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
+}
+
+WarRegistryService::~WarRegistryService()
+{
+	delete m_dispatch;
 }
 
 PyBoundObject *WarRegistryService::_CreateBoundObject(Client *c, const PyRep *bind_args) {

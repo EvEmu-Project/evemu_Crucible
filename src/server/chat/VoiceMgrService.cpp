@@ -36,6 +36,11 @@ VoiceMgrService::VoiceMgrService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(VoiceMgrService, VoiceEnabled);
 }
 
+VoiceMgrService::~VoiceMgrService()
+{
+	delete m_dispatch;
+}
+
 PyResult VoiceMgrService::Handle_VoiceEnabled(PyCallArgs &call) {
 	//maybe in future, but not now ...
 	return(new PyInt(0));

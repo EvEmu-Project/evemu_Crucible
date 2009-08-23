@@ -10,6 +10,11 @@ ClientStatsMgr::ClientStatsMgr(PyServiceMgr *mgr) : PyService(mgr, "clientStatsM
 	PyCallable_REG_CALL(ClientStatsMgr, SubmitStats);
 }
 
+ClientStatsMgr::~ClientStatsMgr()
+{
+	delete m_dispatch;
+}
+
 /** client submitting stats.... unknown content
   */
 PyResult ClientStatsMgr::Handle_SubmitStats(PyCallArgs &call)

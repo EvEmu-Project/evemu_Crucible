@@ -40,6 +40,11 @@ FactionWarMgrService::FactionWarMgrService(PyServiceMgr *mgr, DBcore *db)
 	PyCallable_REG_CALL(FactionWarMgrService, GetFactionMilitiaCorporation)
 }
 
+FactionWarMgrService::~FactionWarMgrService()
+{
+	delete m_dispatch;
+}
+
 PyResult FactionWarMgrService::Handle_GetWarFactions(PyCallArgs &call) {
 	ObjectCachedMethodID method_id(GetName(), "GetWarFactions");
 

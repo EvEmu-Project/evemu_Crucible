@@ -31,6 +31,7 @@
 class ContractMgrService : public PyService {
 public:
 	ContractMgrService(PyServiceMgr *mgr);
+	~ContractMgrService();
 
 	PyCallable_DECL_CALL(NumRequiringAttention)
 

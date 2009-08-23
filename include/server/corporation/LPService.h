@@ -33,6 +33,7 @@ class LPService
 {
 public:
 	LPService(PyServiceMgr *mgr);
+	~LPService();
 
 protected:
 	class Dispatcher;
