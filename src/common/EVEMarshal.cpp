@@ -77,7 +77,7 @@ uint8 *Marshal(const PyRep *rep, uint32& len, bool inlineSubStream)
     else
     {
         packetBuff = new uint8[len];
-        memcpy( v.data(), packetBuff, len );
+        memcpy( packetBuff, v.data(), len );
 	}
 
     return packetBuff;
