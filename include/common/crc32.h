@@ -25,7 +25,8 @@
 
 #ifndef CRC32_H
 #define CRC32_H
-#include "types.h"
+
+#include "common.h"
 
 class CRC32 {
 public:

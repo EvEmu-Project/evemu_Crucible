@@ -170,7 +170,7 @@ std::string BaseRowsetReader::base_iterator::GetAsString(uint32 index) const {
     } else if(ele->IsInt()) {
         PyInt *i = (PyInt *) ele;
         char buf[64];
-        snprintf(buf, sizeof(buf), I64u, i->value);
+        snprintf(buf, sizeof(buf), "%d", i->value);
         return(std::string(buf));
     } else if(ele->IsFloat()) {
         PyFloat *i = (PyFloat *) ele;

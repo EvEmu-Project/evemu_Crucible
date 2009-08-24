@@ -82,18 +82,16 @@ static const char *const ReaderColumnContentTypeStrings[11] = {
 //look through the rows in a reader and try to classify the storage type of each column
 template <class Reader>
 void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &reader) {
-    int col;
-    int cc = reader.ColumnCount();
+    uint32 cc = reader.ColumnCount();
 
     into.clear();
     into.resize(cc, ReaderColumnUnknown);
 
-    typedef typename Reader::iterator T_iterator;
-    T_iterator cur, end;
+    typename Reader::iterator cur, end;
     cur = reader.begin();
     end = reader.end();
     for(; cur != end; ++cur) {
-        for(col = 0; col < cc; col++) {
+        for(uint32 col = 0; col < cc; col++) {
             switch(into[col]) {
             case ReaderColumnInteger:
                 switch(cur.GetType(col)) {

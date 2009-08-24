@@ -246,7 +246,7 @@ bool ClassDumpGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
         "   %s_end = %s.end();\n"
         "   int %s_index;\n"
         "   for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-        "       _log(l_type, \"%%s   [%%02d] \" I64u, pfx, %s_index, *%s_cur);\n"
+        "       _log(l_type, \"%%s   [%%02d] \" I64d, pfx, %s_index, *%s_cur);\n"
         "   }\n"
         "   \n",
         name, name, name,
@@ -494,7 +494,7 @@ bool ClassDumpGenerator::Process_int64(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t_log(l_type, \"%%s%s=\" I64u, pfx, %s);\n", name, name);
+    fprintf(into, "\t_log(l_type, \"%%s%s=\" I64d, pfx, %s);\n", name, name);
     return true;
 }
 

@@ -681,8 +681,8 @@ PyObject *PyCachedObject::Encode() {
     obj->arguments = arg_tuple;
 
     PyTuple *versiont = new PyTuple(2);
-    versiont->items[0] = new PyInt(timestamp);
-    versiont->items[1] = new PyInt(version);
+    versiont->items[0] = new PyLong(timestamp);
+    versiont->items[1] = new PyLong(version);
 
 
     arg_tuple->items[0] = versiont;
@@ -732,7 +732,7 @@ PyObject *PyCachedObjectDecoder::EncodeHint() {
     obj->arguments = arg_tuple;
 
     PyTuple *versiont = new PyTuple(2);
-    versiont->items[0] = new PyInt(timestamp);
+    versiont->items[0] = new PyLong(timestamp);
     versiont->items[1] = new PyInt(version);
 
 

@@ -93,6 +93,7 @@ public:
     /** Type check functions
       */
     bool IsInt() const              { return m_type == PyTypeInt; }
+	bool IsLong() const             { return m_type == PyTypeLong; }
     bool IsFloat() const            { return m_type == PyTypeFloat; }
     bool IsBool() const             { return m_type == PyTypeBool; }
     bool IsBuffer() const           { return m_type == PyTypeBuffer; }
@@ -112,6 +113,8 @@ public:
     // tools for easy access... less typecasting, TODO assrt when wrong "as" is done
     PyInt& AsInt()                                       { return *(PyInt *)this; }
     const PyInt& AsInt() const                           { return *(const PyInt *)this; }
+	PyLong& AsLong()                                     { return *(PyLong *)this; }
+	const PyLong& AsLong() const                         { return *(const PyLong *)this; }
     PyFloat& AsFloat()                                   { return *(PyFloat *)this; }
     const PyFloat& AsFloat() const                       { return *(const PyFloat *)this; }
     PyBool& AsBool()                                     { return *(PyBool *)this; }
@@ -541,7 +544,7 @@ public:
     const_iterator end() const { return(items.end()); }
     bool empty() const { return(items.empty()); }
     void clear();
-    uint32 size() const {return items.size();}
+    uint32 size() const {return (uint32)items.size();}
 };
 
 class PyObject : public PyRep {

@@ -498,14 +498,14 @@ PyRep *PyAddress::Encode() {
         if(typeID == 0)
             t->items[2] = new PyNone();
         else
-            t->items[2] = new PyInt(typeID);
+            t->items[2] = new PyLong(typeID);
 
         r->arguments = t;
         break;
     case Node:
         t = new PyTuple(4);
         t->items[0] = new PyString("N");
-        t->items[1] = new PyInt(typeID);
+        t->items[1] = new PyLong(typeID);
 
         if(service == "")
             t->items[2] = new PyNone();
@@ -515,15 +515,15 @@ PyRep *PyAddress::Encode() {
         if(callID == 0)
             t->items[3] = new PyNone();
         else
-            t->items[3] = new PyInt(callID);
+            t->items[3] = new PyLong(callID);
 
         r->arguments = t;
         break;
     case Client:
         t = new PyTuple(4);
         t->items[0] = new PyString("C");
-        t->items[1] = new PyInt(typeID);
-        t->items[2] = new PyInt(callID);
+        t->items[1] = new PyLong(typeID);
+        t->items[2] = new PyLong(callID);
         if(service == "")
             t->items[3] = new PyNone();
         else

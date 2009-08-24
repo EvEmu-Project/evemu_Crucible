@@ -501,7 +501,7 @@ bool ClassEncodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
         "   %s_end = %s.end();\n"
         "   for(; %s_cur != %s_end; %s_cur++) {\n"
         "       %s->items.push_back(\n"
-        "           new PyInt(*%s_cur)\n"
+        "           new PyLong(*%s_cur)\n"
         "       );\n"
         "   }\n"
         "   %s = %s;\n"
@@ -932,13 +932,13 @@ bool ClassEncodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
         fprintf(into, " if(%s == %s) {\n"
                       "     %s = new PyNone();\n"
                       " } else {\n"
-                      "     %s = new PyInt(%s);\n"
+                      "     %s = new PyLong(%s);\n"
                       " }\n",
             name, none_marker,
                 top(),
                 top(), name);
     } else {
-        fprintf(into, "\t%s = new PyInt(%s);\n", top(), name);
+        fprintf(into, "\t%s = new PyLong(%s);\n", top(), name);
     }
     pop();
     return true;

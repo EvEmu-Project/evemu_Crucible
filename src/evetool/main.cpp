@@ -720,7 +720,7 @@ void TestMarshal() {
 	{
 		PyPackedRow *row = new PyPackedRow( *rs.header->Clone(), true );
 
-		row->SetField( "historyDate", new PyInt( Win32TimeNow() ) );
+		row->SetField( "historyDate", new PyLong( Win32TimeNow() ) );
 		row->SetField( "lowPrice", new PyInt( 18000 ) );
 		row->SetField( "highPrice", new PyInt( 19000 ) );
 		row->SetField( "avgPrice", new PyInt( 18400 ) );

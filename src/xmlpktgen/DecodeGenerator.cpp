@@ -481,9 +481,6 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		"			return false;\n"
 		"		}\n"
 		"		PyInt *k = (PyInt *) %s_cur->first;\n"
-		"		if(k->value > 0xFFFFFFFFLL) {\n"
-		"			_log(NET__PACKET_WARNING, \"Decode %s: truncating 64 bit into into 32 bit int in key of entry %%d in field %s\", %s_index);\n"
-		"		}\n"
 		"		%s[k->value] = %s_cur->second->Clone();\n"
 		"	}\n"
 		"	\n",
@@ -496,13 +493,12 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		name, iname,
 		name,
 		name, name, name, name, name,
-			name, 
-				m_name, name, name, name, 
 			name,
-				m_name, name, name, 
+				m_name, name, name, name,
+			name,
 			name, name
 	);
-	
+
 	pop();
 	return true;
 }
@@ -669,9 +665,6 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 		"			return false;\n"
 		"		}\n"
 		"		PyInt *t = (PyInt *) (*%s_cur);\n"
-		"		if(t->value > 0xFFFFFFFFLL) {\n"
-		"			_log(NET__PACKET_WARNING, \"Decode %s: truncating 64 bit into into 32 bit int for item %%d in field %s\", %s_index);\n"
-		"		}\n"
 		"		%s.push_back(t->value);\n"
 		"	}\n"
 		"\n",
@@ -679,11 +672,10 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 		iname, v,
 		name, name, name, iname, name, iname,
 		name, name, name, name, name, name,
-		name, m_name, name, name, name, name, 
-		m_name, name, name,
+		name, m_name, name, name, name, name,
 		name
 	);
-	
+
 	pop();
 	return true;
 }
@@ -715,12 +707,12 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
 		"	for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-		"		if(!(*%s_cur)->IsInt()) {\n"
-		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not an integer: %%s\", %s_index, (*%s_cur)->TypeString());\n"
+		"		if(!(*%s_cur)->IsLong()) {\n"
+		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not a long integer: %%s\", %s_index, (*%s_cur)->TypeString());\n"
 		"			delete packet;\n"
 		"			return false;\n"
 		"		}\n"
-		"		PyInt *t = (PyInt *) (*%s_cur);\n"
+		"		PyLong *t = (PyLong *) (*%s_cur);\n"
 		"		%s.push_back(t->value);\n"
 		"	}\n"
 		"\n",
@@ -1228,12 +1220,9 @@ bool ClassDecodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	PyInt *%s = (PyInt *) %s;\n"
-		"	if(%s->value > 0xFFFFFFFF) {\n"
-		"		_log(NET__PACKET_WARNING, \"Decode %s: truncating 64 bit into into 32 bit int for field %s\");\n"
-		"	}\n"
 		"	%s = %s->value;\n"
 		"",
-		v, m_name, name, v, iname, v, iname, m_name, name, 
+		v, m_name, name, v, iname, v,
 		name, iname
 		);
 
@@ -1271,12 +1260,12 @@ bool ClassDecodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 	snprintf(iname, sizeof(iname), "int64_%d", num);
 	
 	fprintf(into, 
-		"	if(!%s->IsInt()) {\n"
-		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not an int: %%s\", %s->TypeString());\n"
+		"	if(!%s->IsLong()) {\n"
+		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a long int: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n"
-		"	PyInt *%s = (PyInt *) %s;\n"
+		"	PyLong *%s = (PyLong *) %s;\n"
 		"	%s = %s->value;\n"
 		"",
 		v, m_name, name, v, iname, v, name, iname

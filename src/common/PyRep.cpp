@@ -40,21 +40,22 @@
 */
 const char *PyRepTypeString[] = {
     "Integer",          //0
-    "Real",             //1
-    "Boolean",          //2
-    "Buffer",           //3
-    "String",           //4
-    "Tuple",            //5
-    "List",             //6
-    "Dict",             //7
-    "None",             //8
-    "SubStruct",        //9
-    "SubStream",        //10
-    "ChecksumedStream", //11
-    "Object",           //12
-    "ObjectEx",         //13
-    "PackedRow",        //14
-    "UNKNOWN TYPE",     //15
+    "Long",             //1
+    "Real",             //2
+    "Boolean",          //3
+    "Buffer",           //4
+    "String",           //5
+    "Tuple",            //6
+    "List",             //7
+    "Dict",             //8
+    "None",             //9
+    "SubStruct",        //10
+    "SubStream",        //11
+    "ChecksumedStream", //12
+    "Object",           //13
+    "ObjectEx",         //14
+    "PackedRow",        //15
+    "UNKNOWN TYPE",     //16
 };
 
 static void pfxHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length) {
@@ -120,22 +121,22 @@ const char *PyRep::TypeString() const
 /* PyRep Integer Class                                                  */
 /************************************************************************/
 void PyInt::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sInteger field: "I64u"\n", pfx, value);
+    fprintf(into, "%sInteger field: %d\n", pfx, value);
 }
 
 void PyInt::Dump(LogType type, const char *pfx) const {
-    _log(type, "%sInteger field: "I64u, pfx, value);
+    _log(type, "%sInteger field: %d", pfx, value);
 }
 
 /************************************************************************/
 /* PyRep Long Class                                                     */
 /************************************************************************/
 void PyLong::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sInteger field: "I64u"\n", pfx, value);
+    fprintf(into, "%sInteger field: "I64d"\n", pfx, value);
 }
 
 void PyLong::Dump(LogType type, const char *pfx) const {
-    _log(type, "%sInteger field: "I64u, pfx, value);
+    _log(type, "%sInteger field: "I64d, pfx, value);
 }
 
 PyLong::PyLong( const int64 i ) : PyRep(PyRep::PyTypeInt), value(i) {}
