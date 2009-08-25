@@ -193,7 +193,7 @@ public:
     */
     EVEMU_INLINE void PutInt8(int8 value) {
         reserve(1);
-        (*((int16*)&mBuffer[mWriteIndex])) = value; mWriteIndex++;
+        (*((int8*)&mBuffer[mWriteIndex])) = value; mWriteIndex++;
     }
 
     EVEMU_INLINE uint32 size() {

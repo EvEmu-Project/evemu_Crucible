@@ -707,20 +707,35 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 		"	%s_end = %s->items.end();\n"
 		"	int %s_index;\n"
 		"	for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-		"		if(!(*%s_cur)->IsLong()) {\n"
+		"		if( (*%s_cur)->IsLong() ) {\n"
+		"			PyLong *t = (PyLong *) (*%s_cur);\n"
+		"			%s.push_back(t->value);\n"
+		"		} else if( (*%s_cur)->IsInt() ) {\n"
+		"			PyInt *t = (PyInt *) (*%s_cur);\n"
+		"			%s.push_back(t->value);\n"
+		"		} else {\n"
 		"			_log(NET__PACKET_ERROR, \"Decode %s failed: Element %%d in list %s is not a long integer: %%s\", %s_index, (*%s_cur)->TypeString());\n"
 		"			delete packet;\n"
 		"			return false;\n"
 		"		}\n"
-		"		PyLong *t = (PyLong *) (*%s_cur);\n"
-		"		%s.push_back(t->value);\n"
 		"	}\n"
 		"\n",
-		v, m_name, name, v, name,
+		v,
+			m_name, name, v,
+		name,
 		iname, v,
-		name, name, name, iname, name, iname,
-		name, name, name, name, name, name,
-		name, m_name, name, name, name, name, name
+		name, name,
+		name, iname,
+		name, iname,
+		name,
+		name, name, name, name, name,
+		name,
+			name,
+			name,
+		name,
+			name,
+			name,
+			m_name, name, name, name
 	);
 	
 	pop();
@@ -1260,15 +1275,24 @@ bool ClassDecodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 	snprintf(iname, sizeof(iname), "int64_%d", num);
 	
 	fprintf(into, 
-		"	if(!%s->IsLong()) {\n"
+		"	if( %s->IsLong() ) {\n"
+		"		PyLong *%s = (PyLong *) %s;\n"
+		"		%s = %s->value;\n"
+		"	} else if( %s->IsInt() ) {\n"
+		"		PyInt *%s = (PyInt *) %s;\n"
+		"		%s = %s->value;\n"
+		"	} else {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a long int: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
 		"		return false;\n"
-		"	}\n"
-		"	PyLong *%s = (PyLong *) %s;\n"
-		"	%s = %s->value;\n"
-		"",
-		v, m_name, name, v, iname, v, name, iname
+		"	}\n",
+		v,
+			iname, v,
+			name, iname,
+		v,
+			iname, v,
+			name, iname,
+			m_name, name, v
 		);
 
 	if(is_optional) {

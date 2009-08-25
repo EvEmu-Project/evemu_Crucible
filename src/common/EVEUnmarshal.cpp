@@ -225,11 +225,9 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         } else
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString(len=%d, \"%s\")", pfx, opcode, str_len, r->value.c_str());
 
-        res = r;
+		IncreaseIndex( str_len );
 
-        len_used += str_len;
-        packet += str_len;
-        len -= str_len;
+        res = r;
 
         break; }
 
@@ -238,15 +236,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             _log(NET__UNMARSHAL_ERROR, "Not enough data for long long argument\n");
             break;
         }
-        uint64 data = *((const uint64 *) packet);
+		uint64 data = Getuint64();
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyLongLong "I64u, pfx, opcode, data);
 
         res = new PyLong(data);
-
-        packet += sizeof(uint64);
-        len -= sizeof(uint64);
-        len_used += sizeof(uint64);
 
         break; }
 
@@ -256,15 +250,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             _log(NET__UNMARSHAL_ERROR, "Not enough data for long arg\n");
             break;
         }
-        uint32 value = *((const uint32 *) packet);
+		uint32 value = Getuint32();
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyLong %u", pfx, opcode, value);
 
         res = new PyInt(value);
-
-        packet += sizeof(value);
-        len -= sizeof(value);
-        len_used += sizeof(value);
 
         break; }
 
@@ -275,14 +265,13 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
         }
         int16 value = *((const int16 *) packet);
+        packet += sizeof(value);
+        len -= sizeof(value);
+        len_used += sizeof(value);
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyShort %d", pfx, opcode, value);
 
         res = new PyInt(value);
-
-        packet += sizeof(value);
-        len -= sizeof(value);
-        len_used += sizeof(value);
 
         break; }
 
@@ -291,15 +280,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             _log(NET__UNMARSHAL_ERROR, "Not enough data for byte integer arg\n");
             break;
         }
-        uint8 value = *packet;
+		uint8 value = Getuint8();
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByte %u", pfx, opcode, value);
 
         res = new PyInt(value);
-
-        packet++;
-        len--;
-        len_used++;
 
         break; }
 
@@ -327,20 +312,15 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         break; }
 
     case Op_PyReal: {
-
         if(len < sizeof(double)) {
             _log(NET__UNMARSHAL_ERROR, "Not enough data for double arg\n");
             break;
         }
-        double value = *((const double *) packet);
+		double value = GetDouble();
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyReal %.13f", pfx, opcode, value);
 
         res = new PyFloat(value);
-
-        packet += sizeof(value);
-        len -= sizeof(value);
-        len_used += sizeof(value);
 
         break; }
 
@@ -358,10 +338,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             _log(NET__UNMARSHAL_ERROR, "Not enough data for data buffer's length byte\n");
             break;
         }
-        uint32 data_length = *packet;
-        packet++;
-        len--;
-        len_used++;
+		uint32 data_length = Getuint8();
 
         if(data_length == 0xFF) {
             //extended length data buffer
@@ -369,10 +346,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
                 _log(NET__UNMARSHAL_ERROR, "Not enough data for data buffer length 4-byte element\n");
                 break;
             }
-            data_length = *((const uint32 *) packet);
-            packet += sizeof(uint32);
-            len -= sizeof(uint32);
-            len_used += sizeof(uint32);
+			data_length = Getuint32();
         }
 
         if(len < data_length) {
@@ -386,9 +360,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         res = new PyBuffer(packet, data_length);
 
-        packet += data_length;
-        len -= data_length;
-        len_used += data_length;
+        IncreaseIndex( data_length );
 
         break; }
 
@@ -1397,13 +1369,24 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
         }
 
-        if(data_length <= sizeof(uint64)) {
-            uint64 intval = 0;
+		if( data_length <= sizeof( int32 ) )
+		{
+            int32 intval = 0;
             memcpy( &intval, packet, data_length );
 
-            _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyVarInteger(len=%d) = " I64u, pfx, opcode, data_length, intval);
+            _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyVarInteger(len=%d) = %d", pfx, opcode, data_length, intval);
             res = new PyInt(intval);
-        } else {
+		}
+		else if( data_length <= sizeof( int64 ) )
+		{
+            int64 intval = 0;
+            memcpy( &intval, packet, data_length );
+
+            _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyVarInteger(len=%d) = "I64d, pfx, opcode, data_length, intval);
+            res = new PyLong(intval);
+        }
+		else
+		{
             //uint64 is not big enough
             //just pass it up to the application layer as a buffer...
             PyBuffer *r = new PyBuffer(packet, data_length);
