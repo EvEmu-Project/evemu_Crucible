@@ -218,7 +218,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         PyString *r = new PyString(packet, str_len, true);
 
-        if(ContainsNonPrintables(r->value.c_str())) {
+        if(ContainsNonPrintables( r->value.c_str(), r->value.length() )) {
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString(len=%d, <binary>)", pfx, opcode, str_len);
             _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
             phex(NET__UNMARSHAL_BUFHEX, packet, str_len);
@@ -404,7 +404,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         PyString *r = new PyString(packet, str_len, false);
         res = r;
 
-        if(ContainsNonPrintables(r->value.c_str())) {
+        if(ContainsNonPrintables( r->value.c_str(), r->value.length() )) {
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString2(len=%u, <binary>)", pfx, opcode, str_len);
             _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
             phex(NET__UNMARSHAL_BUFHEX, packet, str_len);
@@ -1331,7 +1331,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         PyString *r = new PyString(packet, data_length, false);
 
-        if(ContainsNonPrintables(r->value.c_str())) {
+        if(ContainsNonPrintables( r->value.c_str(), r->value.length() )) {
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyUnicodeString(len=%d, <binary>)", pfx, opcode, data_length);
             _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
             phex(NET__UNMARSHAL_BUFHEX, packet, data_length);

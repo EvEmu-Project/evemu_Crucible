@@ -155,24 +155,10 @@ uint32 GetFileLength(const char *file) {
 #endif
 }
 
-bool ContainsNonPrintables(const char *c) {
-    for(; *c != '\0'; c++) {
-        if(*c < ' ' && *c != '\r' && *c != '\n') {
-            return true;
-        } else if(*c > '~') {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool ContainsNonPrintables(const char *c, uint32 length) {
     for(; length > 0; c++, length--) {
-        if(*c < ' ' && *c != '\r' && *c != '\n') {
-            return true;
-        } else if(*c > '~') {
-            return true;
-        }
+		if( !isprint( *c ) )
+			return true;
     }
     return false;
 }

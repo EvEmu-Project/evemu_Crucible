@@ -97,12 +97,12 @@ public:
     /*
      * These kill warnings about inheritance's dominance
      */
-    real_t GetReal(Attr attr) const { return AdvancedAttributeMgr::GetReal(attr); }
+    real_t GetReal(Attr attr) const { return AdvancedAttributeMgr<int_t, real_t>::GetReal(attr); }
 
-    void SetReal(Attr attr, const real_t &v) { AdvancedAttributeMgr::SetReal(attr, v); }
-    void SetInt(Attr attr, const int_t &v) { AdvancedAttributeMgr::SetInt(attr, v); }
+    void SetReal(Attr attr, const real_t &v) { AdvancedAttributeMgr<int_t, real_t>::SetReal(attr, v); }
+    void SetInt(Attr attr, const int_t &v) { AdvancedAttributeMgr<int_t, real_t>::SetInt(attr, v); }
 
-    void Clear(Attr attr) { AdvancedAttributeMgr::Clear(attr); }
+    void Clear(Attr attr) { AdvancedAttributeMgr<int_t, real_t>::Clear(attr); }
 };
 
 /**
