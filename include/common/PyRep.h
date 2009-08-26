@@ -50,6 +50,8 @@ class PyObject;
 class PyObjectEx;
 class PyPackedRow;
 
+class blue_DBRowDescriptor;
+
 /** Lookup table for PyRep type object type names.
   */
 extern const char *PyRepTypeString[];
@@ -110,39 +112,39 @@ public:
     bool IsPackedRow() const        { return m_type == PyTypePackedRow; }
 
 
-    // tools for easy access... less typecasting, TODO assrt when wrong "as" is done
-    PyInt& AsInt()                                       { return *(PyInt *)this; }
-    const PyInt& AsInt() const                           { return *(const PyInt *)this; }
-	PyLong& AsLong()                                     { return *(PyLong *)this; }
-	const PyLong& AsLong() const                         { return *(const PyLong *)this; }
-    PyFloat& AsFloat()                                   { return *(PyFloat *)this; }
-    const PyFloat& AsFloat() const                       { return *(const PyFloat *)this; }
-    PyBool& AsBool()                                     { return *(PyBool *)this; }
-    const PyBool& AsBool() const                         { return *(const PyBool *)this; }
-    PyBuffer& AsBuffer()                                 { return *(PyBuffer *)this; }
-    const PyBuffer& AsBuffer() const                     { return *(const PyBuffer *)this; }
-    PyString& AsString()                                 { return *(PyString *)this; }
-    const PyString& AsString() const                     { return *(const PyString *)this; }
-    PyTuple& AsTuple()                                   { return *(PyTuple *)this; }
-    const PyTuple& AsTuple() const                       { return *(const PyTuple *)this; }
-    PyList& AsList()                                     { return *(PyList *)this; }
-    const PyList& AsList() const                         { return *(const PyList *)this; }
-    PyDict& AsDict()                                     { return *(PyDict *)this; }
-    const PyDict& AsDict() const                         { return *(const PyDict *)this; }
-    PyNone& AsNone()                                     { return *(PyNone *)this; }
-    const PyNone& AsNone() const                         { return *(const PyNone *)this; }
-    PySubStruct& AsSubStruct()                           { return *(PySubStruct *)this; }
-    const PySubStruct& AsSubStruct() const               { return *(const PySubStruct *)this; }
-    PySubStream& AsSubStream()                           { return *(PySubStream *)this; }
-    const PySubStream& AsSubStream() const               { return *(const PySubStream *)this; }
-    PyChecksumedStream& AsChecksumedStream()             { return *(PyChecksumedStream *)this; }
-    const PyChecksumedStream& AsChecksumedStream() const { return *(const PyChecksumedStream *)this; }
-    PyObject& AsObject()                                 { return *(PyObject *)this; }
-    const PyObject& AsObject() const                     { return *(const PyObject *)this; }
-    PyObjectEx& AsObjectEx()                             { return *(PyObjectEx *)this; }
-    const PyObjectEx& AsObjectEx() const                 { return *(const PyObjectEx *)this; }
-    PyPackedRow& AsPackedRow()                           { return *(PyPackedRow *)this; }
-    const PyPackedRow& AsPackedRow() const               { return *(const PyPackedRow *)this; }
+    // tools for easy access, less typecasting...
+    PyInt& AsInt()                                       { assert( IsInt() ); return *(PyInt *)this; }
+    const PyInt& AsInt() const                           { assert( IsInt() ); return *(const PyInt *)this; }
+	PyLong& AsLong()                                     { assert( IsLong() ); return *(PyLong *)this; }
+	const PyLong& AsLong() const                         { assert( IsLong() ); return *(const PyLong *)this; }
+    PyFloat& AsFloat()                                   { assert( IsFloat() ); return *(PyFloat *)this; }
+    const PyFloat& AsFloat() const                       { assert( IsFloat() ); return *(const PyFloat *)this; }
+    PyBool& AsBool()                                     { assert( IsBool() ); return *(PyBool *)this; }
+    const PyBool& AsBool() const                         { assert( IsBool() ); return *(const PyBool *)this; }
+    PyBuffer& AsBuffer()                                 { assert( IsBuffer() ); return *(PyBuffer *)this; }
+    const PyBuffer& AsBuffer() const                     { assert( IsBuffer() ); return *(const PyBuffer *)this; }
+    PyString& AsString()                                 { assert( IsString() ); return *(PyString *)this; }
+    const PyString& AsString() const                     { assert( IsString() ); return *(const PyString *)this; }
+    PyTuple& AsTuple()                                   { assert( IsTuple() ); return *(PyTuple *)this; }
+    const PyTuple& AsTuple() const                       { assert( IsTuple() ); return *(const PyTuple *)this; }
+    PyList& AsList()                                     { assert( IsList() ); return *(PyList *)this; }
+    const PyList& AsList() const                         { assert( IsList() ); return *(const PyList *)this; }
+    PyDict& AsDict()                                     { assert( IsDict() ); return *(PyDict *)this; }
+    const PyDict& AsDict() const                         { assert( IsDict() ); return *(const PyDict *)this; }
+    PyNone& AsNone()                                     { assert( IsNone() ); return *(PyNone *)this; }
+    const PyNone& AsNone() const                         { assert( IsNone() ); return *(const PyNone *)this; }
+    PySubStruct& AsSubStruct()                           { assert( IsSubStruct() ); return *(PySubStruct *)this; }
+    const PySubStruct& AsSubStruct() const               { assert( IsSubStruct() ); return *(const PySubStruct *)this; }
+    PySubStream& AsSubStream()                           { assert( IsSubStream() ); return *(PySubStream *)this; }
+    const PySubStream& AsSubStream() const               { assert( IsSubStream() ); return *(const PySubStream *)this; }
+    PyChecksumedStream& AsChecksumedStream()             { assert( IsChecksumedStream() ); return *(PyChecksumedStream *)this; }
+    const PyChecksumedStream& AsChecksumedStream() const { assert( IsChecksumedStream() ); return *(const PyChecksumedStream *)this; }
+    PyObject& AsObject()                                 { assert( IsObject() ); return *(PyObject *)this; }
+    const PyObject& AsObject() const                     { assert( IsObject() ); return *(const PyObject *)this; }
+    PyObjectEx& AsObjectEx()                             { assert( IsObjectEx() ); return *(PyObjectEx *)this; }
+    const PyObjectEx& AsObjectEx() const                 { assert( IsObjectEx() ); return *(const PyObjectEx *)this; }
+    PyPackedRow& AsPackedRow()                           { assert( IsPackedRow() ); return *(PyPackedRow *)this; }
+    const PyPackedRow& AsPackedRow() const               { assert( IsPackedRow() ); return *(const PyPackedRow *)this; }
 
     const char *TypeString() const;
 
@@ -605,8 +607,7 @@ public:
 
 class PyPackedRow : public PyRep {
 public:
-    // We silently assume here that header is blue.DBRowDescriptor.
-    PyPackedRow(PyRep &header, bool header_owner);
+    PyPackedRow(blue_DBRowDescriptor &header, bool header_owner);
     virtual ~PyPackedRow();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
@@ -622,14 +623,8 @@ public:
     void CloneFrom(const PyPackedRow *from);
 
     // Header:
-    PyRep &GetHeader() const { return mHeader; }
+    blue_DBRowDescriptor &GetHeader() const { return mHeader; }
     bool IsHeaderOwner() const { return mHeaderOwner; }
-
-    // Column info:
-    uint32 ColumnCount() const { return (uint32)mFields.size(); }
-    const std::string &GetColumnName(uint32 index) const;
-    uint32 GetColumnIndex(const char *name) const;
-    DBTYPE GetColumnType(uint32 index) const;
 
     // Fields:
     PyRep *GetField(uint32 index) const { return mFields.at( index ); }
@@ -638,10 +633,8 @@ public:
     bool SetField(const char *colName, PyRep *value);
 
 protected:
-    PyRep &mHeader;
+    blue_DBRowDescriptor &mHeader;
     const bool mHeaderOwner;
-
-    const PyTuple *mColumnInfo;
 
     std::vector<PyRep *> mFields;
 };

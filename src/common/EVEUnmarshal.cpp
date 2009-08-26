@@ -36,6 +36,7 @@
 #include "PyVisitor.h"
 #include "PyRep.h"
 #include "MarshalReferenceMap.h"
+#include "DBRowDescriptor.h"
 
 #include "EVEMarshalOpcodes.h"
 #include "EVEUtils.h"
@@ -981,7 +982,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
         IncreaseIndex( header_len );
 
-        PyPackedRow *row = new PyPackedRow(*header_element, true);
+		// This is only an assumption, though PyPackedRow does not
+		// support anything else ....
+		blue_DBRowDescriptor &header = *(blue_DBRowDescriptor *)header_element;
+
+        PyPackedRow *row = new PyPackedRow( header, true );
 
         if(len < 1) {
             _log(NET__UNMARSHAL_ERROR, "Not enough data for packed length (missing length and data)\n");
@@ -1019,11 +1024,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         // Create size map, sorted from the greatest to the smallest value
         std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
-        uint32 cc = row->ColumnCount();
+        uint32 cc = header.ColumnCount();
 		uint32 sum = 0;
         for(uint32 i = 0; i < cc; i++)
 		{
-			uint8 size = DBTYPE_SizeOf( row->GetColumnType( i ) );
+			uint8 size = DBTYPE_SizeOf( header.GetColumnType( i ) );
 
             sizeMap.insert( std::make_pair( size, i ) );
 			sum += size;
@@ -1043,29 +1048,34 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         {
             union
             {
-                uint64 i;
+                int64 i8;
+				int32 i4;
+
                 double r8;
                 float r4;
             } v;
-            v.i = 0;
+            v.i8 = 0;
 
             uint8 len = (cur->first >> 3);
             memcpy( &v, &unpacked[ off ], len );
             off += len;
 
-            switch( row->GetColumnType( cur->second ) )
+            switch( header.GetColumnType( cur->second ) )
             {
                 case DBTYPE_I8:
                 case DBTYPE_UI8:
                 case DBTYPE_CY:
                 case DBTYPE_FILETIME:
+					row->SetField( cur->second, new PyLong( v.i8 ) );
+					break;
+
                 case DBTYPE_I4:
                 case DBTYPE_UI4:
                 case DBTYPE_I2:
                 case DBTYPE_UI2:
                 case DBTYPE_I1:
                 case DBTYPE_UI1:
-                    row->SetField( cur->second, new PyInt( v.i ) );
+                    row->SetField( cur->second, new PyInt( v.i4 ) );
                     break;
 
                 case DBTYPE_R8:

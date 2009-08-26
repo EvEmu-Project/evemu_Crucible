@@ -47,6 +47,7 @@
 #include "../common/RowsetToSQL.h"
 #include "../common/packet_types.h"
 #include "../common/DestinyBinDump.h"
+#include "../common/DBRowDescriptor.h"
 #include "../common/PyStringTable.h"
 #include "../packets/General.h"
 #include "TriFile.h"
@@ -676,49 +677,20 @@ void UnmarshalLogText(const Seperator &command) {
 }
 
 void TestMarshal() {
-	dbutil_CRowset rs;
-	{
-		blue_DBRowDescriptor desc;
-		desc.columns = new PyTuple(6);
-
-		PyTuple *pair_tuple;
-		int r = 0;
-		
-		pair_tuple = new PyTuple(2);
-		pair_tuple->items[0] = new PyString("historyDate");
-		pair_tuple->items[1] = new PyInt(DBTYPE_FILETIME);
-		desc.columns->items[r++] = pair_tuple;
-		
-		pair_tuple = new PyTuple(2);
-		pair_tuple->items[0] = new PyString("lowPrice");
-		pair_tuple->items[1] = new PyInt(DBTYPE_CY);
-		desc.columns->items[r++] = pair_tuple;
-		
-		pair_tuple = new PyTuple(2);
-		pair_tuple->items[0] = new PyString("highPrice");
-		pair_tuple->items[1] = new PyInt(DBTYPE_CY);
-		desc.columns->items[r++] = pair_tuple;
-		
-		pair_tuple = new PyTuple(2);
-		pair_tuple->items[0] = new PyString("avgPrice");
-		pair_tuple->items[1] = new PyInt(DBTYPE_CY);
-		desc.columns->items[r++] = pair_tuple;
-
-		pair_tuple = new PyTuple(2);
-		pair_tuple->items[0] = new PyString("volume");
-		pair_tuple->items[1] = new PyInt(DBTYPE_I8);
-		desc.columns->items[r++] = pair_tuple;
-		
-		pair_tuple = new PyTuple(2);
-		pair_tuple->items[0] = new PyString("orders");
-		pair_tuple->items[1] = new PyInt(DBTYPE_I4);
-		desc.columns->items[r++] = pair_tuple;
-
-		rs.header = desc.FastEncode();
-	}
+	blue_DBRowDescriptor *header = new blue_DBRowDescriptor;
+	// Fill header:
+	header->AddColumn( "historyDate", DBTYPE_FILETIME );
+	header->AddColumn( "lowPrice", DBTYPE_CY );
+	header->AddColumn( "highPrice", DBTYPE_CY );
+	header->AddColumn( "avgPrice", DBTYPE_CY );
+	header->AddColumn( "volume", DBTYPE_I8 );
+	header->AddColumn( "orders", DBTYPE_I4 );
 	
+	dbutil_CRowset rs;
+	rs.header = header;
+
 	{
-		PyPackedRow *row = new PyPackedRow( *rs.header->Clone(), true );
+		PyPackedRow *row = new PyPackedRow( *header->TypedClone(), true );
 
 		row->SetField( "historyDate", new PyLong( Win32TimeNow() ) );
 		row->SetField( "lowPrice", new PyInt( 18000 ) );

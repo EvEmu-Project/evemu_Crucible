@@ -29,6 +29,7 @@
 #include "PyDumpVisitor.h"
 #include "misc.h"
 #include "packet_functions.h"
+#include "DBRowDescriptor.h"
 
 //! the identation amount
 uint32 idenAmt = 4;
@@ -155,7 +156,7 @@ void PyDumpVisitor::VisitObjectEx(const PyObjectEx *rep, int64 lvl )
 
 void PyDumpVisitor::VisitPackedRow(const PyPackedRow *rep, int64 lvl )
 {
-    uint32 cc = rep->ColumnCount();
+    uint32 cc = rep->GetHeader().ColumnCount();
 
 	_print( lvl, "Packed Row" );
 	_print( lvl, "  column_count=%u header_owner=%s", cc, rep->IsHeaderOwner() ? "yes" : "no" ); 
@@ -164,7 +165,7 @@ void PyDumpVisitor::VisitPackedRow(const PyPackedRow *rep, int64 lvl )
     {
         PyRep *field = rep->GetField( i );
 
-		_print( lvl, "  [%u] %s: ", i, rep->GetColumnName( i ).c_str() );
+		_print( lvl, "  [%u] %s: ", i, rep->GetHeader().GetColumnName( i ).c_str() );
 
 		if( field == NULL )
 			_print( lvl + idenAmt, "NULL" );

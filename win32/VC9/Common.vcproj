@@ -568,6 +568,14 @@
 					RelativePath="..\..\include\common\CRowSet.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\common\DBRowDescriptor.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\common\DBRowDescriptor.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 	</Files>

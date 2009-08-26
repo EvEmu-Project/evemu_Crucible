@@ -27,6 +27,7 @@
 #include "PyVisitor.h"
 #include "PyRep.h"
 #include "LogNew.h"
+#include "DBRowDescriptor.h"
 
 #include "../packets/General.h"
 
@@ -422,79 +423,7 @@ DBTYPE GetPackedColumnType( DBQueryResult::ColType colType )
     }
 }
 
-PyObjectEx *DBResultToRowDescriptor( const DBQueryResult &res )
-{
-    uint32 cc = res.ColumnCount();
-
-    /* First we create the payload */
-    PyTuple * RowPayload = new PyTuple( cc );
-
-    for(uint32 i = 0; i < cc; i++)
-    {
-        PyTuple *RowField = new PyTuple( 2 );
-
-        RowField->SetItem( 0, new PyString( res.ColumnName( i ) ));
-        RowField->SetItem( 1, new PyInt( GetPackedColumnType( res.ColumnType( i ) ) ));
-
-        RowPayload->SetItem( i , RowField );
-    }
-
-    /* store the payload in its tuple container */
-    PyTuple * PayloadContainer = new PyTuple(1);
-    PayloadContainer->SetItem( 0, RowPayload );
-
-    /* we create the class instance */
-    PyString * ClassTypeName = new PyString("blue.DBRowDescriptor", true);
-    
-    PyTuple * ClassHeader = new PyTuple(2);
-
-    ClassHeader->SetItem( 0, ClassTypeName );
-    ClassHeader->SetItem( 1, PayloadContainer );
-
-    /* now everything is almost ready */
-
-    /* we don't have root list or root dict stuff here */
-    PyObjectEx *main_obj = new PyObjectEx( false, ClassHeader );
-    return main_obj;
-}
-
-PyObjectEx *DBRowToRowDescriptor( const DBResultRow &row )
-{
-    uint32 cc = row.ColumnCount();
-
-    /* First we create the payload */
-    PyTuple * RowPayload = new PyTuple( cc );
-
-    for(uint32 i = 0; i < cc; i++)
-    {
-        PyTuple *RowField = new PyTuple( 2 );
-
-        RowField->SetItem( 0, new PyString( row.ColumnName( i ) ));
-        RowField->SetItem( 1, new PyInt( GetPackedColumnType( row.ColumnType( i ) ) ));
-
-        RowPayload->SetItem( i , RowField );
-    }
-
-    /* store the payload in its tuple container */
-    PyTuple * PayloadContainer = new PyTuple(1);
-    PayloadContainer->SetItem( 0, RowPayload );
-
-    /* we create the class instance */
-    PyString * ClassTypeName = new PyString("blue.DBRowDescriptor", true);
-    
-    PyTuple * ClassHeader = new PyTuple(2);
-
-    ClassHeader->SetItem( 0, ClassTypeName );
-    ClassHeader->SetItem( 1, PayloadContainer );
-
-    /* now everything is almost ready */
-
-    /* we don't have root list or root dict stuff here */
-    PyObjectEx *main_obj = new PyObjectEx( false, ClassHeader );
-    return main_obj;
-}
-
-PyPackedRow *CreatePackedRow( const DBResultRow &row, PyRep &header, bool headerOwner )
+PyPackedRow *CreatePackedRow( const DBResultRow &row, blue_DBRowDescriptor &header, bool headerOwner )
 {
     PyPackedRow *res = new PyPackedRow( header, headerOwner );
 
@@ -505,16 +434,17 @@ PyPackedRow *CreatePackedRow( const DBResultRow &row, PyRep &header, bool header
     return res;
 }
 
-PyList *DBResultToPackedRowList( DBQueryResult &result ) {
-    PyRep *header = DBResultToRowDescriptor( result );
+PyList *DBResultToPackedRowList( DBQueryResult &result )
+{
+	blue_DBRowDescriptor *header = new blue_DBRowDescriptor( result );
 
-    PyList *res = new PyList(result.GetRowCount());
+    PyList *res = new PyList( result.GetRowCount() );
 
     DBResultRow row;
     uint32 i = 0;
     while(result.GetRow(row))
         //this is piece of crap due to header cloning
-        res->set(i++, CreatePackedRow( row, *header->Clone(), true ) );
+        res->set(i++, CreatePackedRow( row, *header->TypedClone(), true ) );
 
     SafeDelete( header );
     return res;
@@ -523,20 +453,19 @@ PyList *DBResultToPackedRowList( DBQueryResult &result ) {
 /* function not used */
 PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
 {
+    blue_DBRowDescriptor * header = new blue_DBRowDescriptor( result );
+
     size_t row_count = result.GetRowCount();
     PyList * list = new PyList( row_count );
+
+	DBResultRow row;
+	uint32 i;
+    while( result.GetRow(row) )
+        list->set( i++, CreatePackedRow( row, *header->TypedClone(), true ) );
+
     PyTuple * root = new PyTuple(2);
-    PyRep * header = DBResultToRowDescriptor( result );
     root->SetItem( 0, header );
     root->SetItem( 1, list );
-
-    DBResultRow row;
-    for (size_t i = 0; i < row_count; i++)
-    {
-        if (!result.GetRow(row))
-            break;
-        list->set( i, CreatePackedRow( row, *header->Clone(), true ) );
-    }
 
     return root;
 }
@@ -577,7 +506,7 @@ PyObjectEx *DBResultToCRowset( DBQueryResult &result ) {
     PyTuple * ClassHeader = new PyTuple(2);
 
     PyString * ClassTypeName = new PyString("dbutil.CRowset", true);  // 0
-    PyObjectEx * RowDescriptor = DBResultToRowDescriptor( result );      // 1
+    blue_DBRowDescriptor * RowDescriptor = new blue_DBRowDescriptor( result );      // 1
 
     /* object containers */
     PyDict * headerDict = new PyDict(); headerDict->add( "header", RowDescriptor );
@@ -597,7 +526,7 @@ PyObjectEx *DBResultToCRowset( DBQueryResult &result ) {
     {
         //this is piece of crap due to header cloning
         //res.header->IncRef();
-        root->list_data[i++] = CreatePackedRow( row, *RowDescriptor->Clone(), true );
+        root->list_data[i++] = CreatePackedRow( row, *RowDescriptor->TypedClone(), true );
     }
 
     return root;
@@ -605,7 +534,7 @@ PyObjectEx *DBResultToCRowset( DBQueryResult &result ) {
 
 PyPackedRow *DBRowToPackedRow( DBResultRow &row )
 {
-    PyRep *header = DBRowToRowDescriptor( row );
+    blue_DBRowDescriptor *header = new blue_DBRowDescriptor( row );
 
     return CreatePackedRow( row, *header, true );
 }

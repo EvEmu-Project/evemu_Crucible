@@ -347,12 +347,20 @@ void InventoryItem::Delete() {
 
 PyPackedRow *InventoryItem::GetItemRow() const
 {
-    blue_DBRowDescriptor desc;
+	blue_DBRowDescriptor *header = new blue_DBRowDescriptor;
+	header->AddColumn( "itemID",     DBTYPE_I4 );
+	header->AddColumn( "typeID",     DBTYPE_I2 );
+	header->AddColumn( "ownerID",    DBTYPE_I4 );
+	header->AddColumn( "locationID", DBTYPE_I4 );
+	header->AddColumn( "flag",       DBTYPE_UI1 );
+	header->AddColumn( "contraband", DBTYPE_BOOL );
+	header->AddColumn( "singleton",  DBTYPE_BOOL );
+	header->AddColumn( "quantity",   DBTYPE_I4 );
+	header->AddColumn( "groupID",    DBTYPE_I2 );
+	header->AddColumn( "categoryID", DBTYPE_UI1 );
+	header->AddColumn( "customInfo", DBTYPE_STR );
 
-    ItemRow_Columns cols;
-    desc.columns = cols.FastEncode();
-
-    PyPackedRow *row = new PyPackedRow( *desc.FastEncode(), true );
+	PyPackedRow *row = new PyPackedRow( *header, true );
     GetItemRow( *row );
     return row;
 }

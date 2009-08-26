@@ -22,6 +22,8 @@ libcommon_a_SOURCES = \
 	crc32.h \
 	dbcore.cpp \
 	dbcore.h \
+	DBRowDescriptor.cpp \
+	DBRowDescriptor.h \
 	CachedObjectMgr.cpp \
 	CachedObjectMgr.h \
 	DestinyBinDump.cpp \

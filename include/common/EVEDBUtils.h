@@ -34,8 +34,6 @@
 #include "packet_types.h"
 #include "dbcore.h"
 
-class blue_DBRowDescriptor;
-
 class PyRep;
 class PyObject;
 class PyTuple;
@@ -72,21 +70,6 @@ void DBResultToIntIntlistDict(DBQueryResult &result, std::map<int32, PyRep *> &i
  * @return DBTYPE.
  */
 DBTYPE GetPackedColumnType(DBQueryResult::ColType colType);
-
-/**
- * This routine builds a DBRow.Descriptor from a DBQueryResult.
- *
- * @param[in] res Query Result to build the DBROW.Descriptor from.
- * @return blue_DBRowDescriptor object.
- */
-PyObjectEx *DBResultToRowDescriptor(const DBQueryResult &res);
-/**
- * This routine builds DBRow.Descriptor from a DBResultRow.
- *
- * @param[in] row DBResultRow to build from.
- * @return blue_DBRowDescriptor object.
- */
-PyObjectEx *DBRowToRowDescriptor(const DBResultRow &row);
 
 PyList *DBResultToPackedRowList(DBQueryResult &result);
 PyTuple *DBResultToPackedRowListTuple(DBQueryResult &result);

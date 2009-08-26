@@ -39,6 +39,7 @@
 #include "EVEZeroCompress.h"
 #include "EVEMarshal.h"
 #include "PyStringTable.h"
+#include "DBRowDescriptor.h"
 
 const uint32 EVEDeflationBytesLimit = 10000;    //every packet larger than this is deflated
 
@@ -160,18 +161,20 @@ void MarshalVisitor::VisitBuffer(const PyBuffer *rep)
 
 void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
 {
+	blue_DBRowDescriptor &header = rep->GetHeader();
+
     PutByte( Op_PyPackedRow );
 
-    rep->GetHeader().visit( this );
+    header.visit( this );
 
     std::vector<uint8> unpacked;
     unpacked.reserve( 64 );
 
     // Create size map, sorted from the greatest to the smallest value:
     std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
-    uint32 cc = rep->ColumnCount();
+    uint32 cc = header.ColumnCount();
     for(uint32 i = 0; i < cc; i++)
-        sizeMap.insert( std::make_pair( DBTYPE_SizeOf( rep->GetColumnType( i ) ), i ) );
+        sizeMap.insert( std::make_pair( DBTYPE_SizeOf( header.GetColumnType( i ) ), i ) );
 
     std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
     cur = sizeMap.begin();
@@ -185,7 +188,7 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
 
         union
         {
-            uint64 i;
+            int64 i;
             double r8;
             float r4;
         } v;
@@ -194,7 +197,7 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
         PyRep *r = rep->GetField( cur->second );
         if( r != NULL )
         {
-            switch( rep->GetColumnType( cur->second ) )
+            switch( header.GetColumnType( cur->second ) )
             {
                 case DBTYPE_I8:
                 case DBTYPE_UI8:
@@ -206,24 +209,20 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
                 case DBTYPE_UI2:
                 case DBTYPE_I1:
                 case DBTYPE_UI1:
-                    if( r->IsInt() )
+                    if( r->IsLong() )
+						v.i = r->AsLong().value;
+					else if( r->IsInt() )
                         v.i = r->AsInt().value;
-                    else if( r->IsFloat() )
-                        v.i = r->AsFloat().value;
                     break;
 
                 case DBTYPE_R8:
                     if( r->IsFloat() )
                         v.r8 = r->AsFloat().value;
-                    else if( r->IsInt() )
-                        v.r8 = r->AsInt().value;
                     break;
 
                 case DBTYPE_R4:
                     if( r->IsFloat() )
                         v.r4 = r->AsFloat().value;
-                    else if( r->IsInt() )
-                        v.r4 = r->AsInt().value;
                     break;
                 case DBTYPE_BOOL:
                 case DBTYPE_BYTES:

@@ -151,67 +151,6 @@
   </InlineList>
 </element>
 
-<!-- This object is intended to be column-description part of blue_DBRowDescriptor. -->
-<element name="ItemRow_Columns">
-  <InlineTuple>
-    <!-- 0: itemID -->
-    <InlineTuple>
-      <string name="name_itemID" default="itemID" />
-      <int name="type_itemID" default="3" />
-    </InlineTuple>
-    <!-- 1: typeID -->
-    <InlineTuple>
-      <string name="name_typeID" default="typeID" />
-      <int name="type_typeID" default="2" />
-    </InlineTuple>
-    <!-- 2: ownerID -->
-    <InlineTuple>
-      <string name="name_ownerID" default="ownerID" />
-      <int name="type_ownerID" default="3" />
-    </InlineTuple>
-    <!-- 3: locationID -->
-    <InlineTuple>
-      <string name="name_locationID" default="locationID" />
-      <int name="type_locationID" default="3" />
-    </InlineTuple>
-    <!-- 4: flag -->
-    <InlineTuple>
-      <string name="name_flag" default="flag" />
-      <int name="type_flag" default="17" />
-    </InlineTuple>
-    <!-- 5: contraband -->
-    <InlineTuple>
-      <string name="name_contraband" default="contraband" />
-      <int name="type_contraband" default="11" />
-    </InlineTuple>
-    <!-- 6: singleton -->
-    <InlineTuple>
-      <string name="name_singleton" default="singleton" />
-      <int name="type_singleton" default="11" />
-    </InlineTuple>
-    <!-- 7: quantity -->
-    <InlineTuple>
-      <string name="name_quantity" default="quantity" />
-      <int name="type_quantity" default="3" />
-    </InlineTuple>
-    <!-- 8: groupID -->
-    <InlineTuple>
-      <string name="name_groupID" default="groupID" />
-      <int name="type_groupID" default="2" />
-    </InlineTuple>
-    <!-- 9: categoryID -->
-    <InlineTuple>
-      <string name="name_categoryID" default="categoryID" />
-      <int name="type_categoryID" default="17" />
-    </InlineTuple>
-    <!-- 10: customInfo -->
-    <InlineTuple>
-      <string name="name_customInfo" default="customInfo" />
-      <int name="type_customInfo" default="129" />
-    </InlineTuple>
-  </InlineTuple>
-</element>
-
 <element name="Rsp_CommonGetInfo_Entry">
     <InlineList name="line">
       <int name="itemID" />

@@ -133,14 +133,21 @@ void Inventory::DeleteContents(ItemFactory &factory)
 
 PyObjectEx *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
 {
+	blue_DBRowDescriptor *header = new blue_DBRowDescriptor;
+	header->AddColumn( "itemID",     DBTYPE_I4 );
+	header->AddColumn( "typeID",     DBTYPE_I2 );
+	header->AddColumn( "ownerID",    DBTYPE_I4 );
+	header->AddColumn( "locationID", DBTYPE_I4 );
+	header->AddColumn( "flag",       DBTYPE_UI1 );
+	header->AddColumn( "contraband", DBTYPE_BOOL );
+	header->AddColumn( "singleton",  DBTYPE_BOOL );
+	header->AddColumn( "quantity",   DBTYPE_I4 );
+	header->AddColumn( "groupID",    DBTYPE_I2 );
+	header->AddColumn( "categoryID", DBTYPE_UI1 );
+	header->AddColumn( "customInfo", DBTYPE_STR );
+
     dbutil_CRowset rowset;
-
-    blue_DBRowDescriptor desc;
-
-    ItemRow_Columns cols;
-    desc.columns = cols.FastEncode();
-
-    rowset.header = desc.FastEncode();
+    rowset.header = header;
 
     List( rowset, _flag, forOwner );
     return rowset.FastEncode();

@@ -32,6 +32,7 @@
 #include "EVEMarshal.h"
 #include "EVEUnmarshal.h"
 #include "EVEMarshalOpcodes.h"
+#include "DBRowDescriptor.h"
 
 /************************************************************************/
 /* PyRep utilities                                                      */
@@ -139,7 +140,7 @@ void PyLong::Dump(LogType type, const char *pfx) const {
     _log(type, "%sInteger field: "I64d, pfx, value);
 }
 
-PyLong::PyLong( const int64 i ) : PyRep(PyRep::PyTypeInt), value(i) {}
+PyLong::PyLong( const int64 i ) : PyRep(PyRep::PyTypeLong), value(i) {}
 PyLong::~PyLong() {}
 
 EVEMU_INLINE PyRep * PyLong::Clone() const
@@ -776,43 +777,18 @@ PyChecksumedStream *PyChecksumedStream::TypedClone() const {
 }
 
 
-PyPackedRow::PyPackedRow(PyRep &header, bool header_owner)
+PyPackedRow::PyPackedRow(blue_DBRowDescriptor &header, bool header_owner)
 : PyRep( PyRep::PyTypePackedRow ),
   mHeader( header ),
-  mHeaderOwner( header_owner ),
-  mColumnInfo( NULL )
+  mHeaderOwner( header_owner )
 {
-    assert( GetHeader().IsObjectEx() );
-    PyRep *r = GetHeader().AsObjectEx().header;
-
-    assert( r != NULL && r->IsTuple() );
-    PyTuple *t = &r->AsTuple();
-
-    assert( t->size() == 2 );
-
-    r = t->items[ 0 ];
-    assert( r->IsString() );
-    assert( r->AsString().value == "blue.DBRowDescriptor" );
-
-    r = t->items[ 1 ];
-    assert( r->IsTuple() );
-    t = &r->AsTuple();
-
-    assert( t->items.size() == 1 );
-    r = t->items[ 0 ];
-
-    assert( r->IsTuple() );
-    t = &r->AsTuple();
-
-    mColumnInfo = t;
-
-    mFields.resize( mColumnInfo->size() );
+    mFields.resize( header.ColumnCount() );
 }
 
 PyPackedRow::~PyPackedRow()
 {
     if( IsHeaderOwner() )
-        PyDecRef(&mHeader);
+        PyDecRef( &mHeader );
 
     std::vector<PyRep *>::iterator cur, end;
     cur = mFields.begin();
@@ -825,7 +801,7 @@ PyPackedRow::~PyPackedRow()
 void PyPackedRow::Dump(FILE *into, const char *pfx) const
 {
     fprintf( into, "%sPacked Row\n", pfx );
-    fprintf( into, "%s column_count=%u header_owner=%s\n", pfx, ColumnCount(), IsHeaderOwner() ? "yes" : "no" );
+    fprintf( into, "%s column_count=%lu header_owner=%s\n", pfx, mFields.size(), IsHeaderOwner() ? "yes" : "no" );
 
     std::vector<PyRep *>::const_iterator cur, end;
     cur = mFields.begin();
@@ -836,7 +812,7 @@ void PyPackedRow::Dump(FILE *into, const char *pfx) const
         PyRep *v = *cur;
 
         std::string n( pfx );
-        snprintf( buf, 32, "  [%u] %s: ", i, GetColumnName( i ).c_str() );
+        snprintf( buf, 32, "  [%u] %s: ", i, GetHeader().GetColumnName( i ).c_str() );
         n += buf;
 
         if( v == NULL )
@@ -849,7 +825,7 @@ void PyPackedRow::Dump(FILE *into, const char *pfx) const
 void PyPackedRow::Dump(LogType ltype, const char *pfx) const
 {
     _log( ltype, "%sPacked Row", pfx );
-    _log( ltype, "%s column_count=%u header_owner=%s", pfx, ColumnCount(), IsHeaderOwner() ? "yes" : "no" );
+    _log( ltype, "%s column_count=%lu header_owner=%s", pfx, mFields.size(), IsHeaderOwner() ? "yes" : "no" );
 
     std::vector<PyRep *>::const_iterator cur, end;
     cur = mFields.begin();
@@ -860,7 +836,7 @@ void PyPackedRow::Dump(LogType ltype, const char *pfx) const
         PyRep *v = *cur;
 
         std::string n( pfx );
-        snprintf( buf, 32, "  [%u] %s: ", i, GetColumnName( i ).c_str() );
+        snprintf( buf, 32, "  [%u] %s: ", i, GetHeader().GetColumnName( i ).c_str() );
         n += buf;
 
         if( v == NULL ) {
@@ -873,7 +849,7 @@ void PyPackedRow::Dump(LogType ltype, const char *pfx) const
 
 PyPackedRow *PyPackedRow::TypedClone() const
 {
-    PyPackedRow *res = new PyPackedRow( IsHeaderOwner() ? *GetHeader().Clone() : GetHeader(),
+    PyPackedRow *res = new PyPackedRow( IsHeaderOwner() ? *GetHeader().TypedClone() : GetHeader(),
                                               IsHeaderOwner() );
     res->CloneFrom( this );
     return res;
@@ -882,7 +858,7 @@ PyPackedRow *PyPackedRow::TypedClone() const
 void PyPackedRow::CloneFrom(const PyPackedRow *from)
 {
     // clone fields
-    uint32 cc = ColumnCount();
+    uint32 cc = mFields.size();
     for(uint32 i = 0; i < cc; i++)
     {
         PyRep *v = from->GetField( i );
@@ -893,59 +869,15 @@ void PyPackedRow::CloneFrom(const PyPackedRow *from)
     }
 }
 
-const std::string &PyPackedRow::GetColumnName(uint32 index) const
-{
-    assert( mColumnInfo->items.size() > index );
-    PyRep *r = mColumnInfo->items[ index ];
-
-    assert( r->IsTuple() );
-    PyTuple &t = r->AsTuple();
-
-    assert( t.items.size() == 2 );
-    r = t.items[ 0 ];
-
-    assert( r->IsString() );
-    return r->AsString().value;
-}
-
-uint32 PyPackedRow::GetColumnIndex(const char *name) const
-{
-    uint32 cc = ColumnCount();
-    for(uint32 i = 0; i < cc; i++)
-    {
-        const std::string &colName = GetColumnName( i );
-
-        if( colName == name )
-            return i;
-    }
-
-    return cc;
-}
-
-DBTYPE PyPackedRow::GetColumnType(uint32 index) const
-{
-    assert( mColumnInfo->items.size() > index );
-    PyRep *r = mColumnInfo->items[ index ];
-
-    assert( r->IsTuple() );
-    PyTuple *t = &r->AsTuple();
-
-    assert( t->items.size() == 2 );
-    r = t->items[ 1 ];
-
-    assert( r->IsInt() );
-    return static_cast<DBTYPE>( r->AsInt().GetValue() );
-}
-
 bool PyPackedRow::SetField(uint32 index, PyRep *value)
 {
-    if( index >= ColumnCount() )
+    if( index >= mFields.size() )
         return false;
 
     if( value != NULL )
     {
         // verify type
-        if( !DBTYPE_IsCompatible( GetColumnType( index ), *value ) )
+        if( !DBTYPE_IsCompatible( GetHeader().GetColumnType( index ), *value ) )
         {
             PyDecRef( value );
             return false;
@@ -961,8 +893,8 @@ bool PyPackedRow::SetField(uint32 index, PyRep *value)
 
 bool PyPackedRow::SetField(const char *colName, PyRep *value)
 {
-    uint32 index = GetColumnIndex( colName );
-    if( index >= ColumnCount() )
+    uint32 index = GetHeader().FindColumn( colName );
+    if( index >= mFields.size() )
         return false;
     return SetField( index, value );
 }

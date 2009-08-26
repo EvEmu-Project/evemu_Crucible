@@ -74,6 +74,7 @@
 #include "../common/DestinyBinDump.h"
 #include "../common/DestinyStructs.h"
 #include "../common/DirWalker.h"
+#include "../common/DBRowDescriptor.h"
 #include "../common/EVEDBUtils.h"
 #include "../common/EVEMarshal.h"
 #include "../common/EVEMarshalOpcodes.h"

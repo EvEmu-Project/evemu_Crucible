@@ -75,17 +75,6 @@
   </object_ex>	   
 </element>
 
-<element name="blue_DBRowDescriptor">
-  <object_ex name="root">
-	<InlineTuple>
-	  <string name="type" default="blue.DBRowDescriptor" type1="true" />
-	  <InlineTuple>
-		<tuple name="columns" />
-	  </InlineTuple>
-	</InlineTuple>
-  </object_ex>
-</element>
-
 <element name="dbutil_RowList">
   <object_ex name="root" type1="true">
 	<InlineTuple>

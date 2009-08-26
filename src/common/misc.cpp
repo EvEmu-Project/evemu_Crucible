@@ -157,7 +157,7 @@ uint32 GetFileLength(const char *file) {
 
 bool ContainsNonPrintables(const char *c, uint32 length) {
     for(; length > 0; c++, length--) {
-		if( !isprint( *c ) )
+		if( !isgraph( *c ) && !isspace( *c ) )
 			return true;
     }
     return false;

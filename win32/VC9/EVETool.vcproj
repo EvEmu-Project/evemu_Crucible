@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="zlib.lib wsock32.lib"
+				AdditionalDependencies="zlib.lib wsock32.lib mysqlclient.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\dep\mysql\lib\debug;..\..\dep\zlib\lib;..\..\lib"
 				GenerateDebugInformation="true"
@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="zlib.lib wsock32.lib"
+				AdditionalDependencies="zlib.lib wsock32.lib mysqlclient.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\dep\mysql\lib\opt;..\..\dep\zlib\lib;..\..\lib"
 				GenerateDebugInformation="true"
