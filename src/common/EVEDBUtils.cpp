@@ -28,6 +28,7 @@
 #include "PyRep.h"
 #include "LogNew.h"
 #include "DBRowDescriptor.h"
+#include "CRowSet.h"
 
 #include "../packets/General.h"
 
@@ -423,14 +424,17 @@ DBTYPE GetPackedColumnType( DBQueryResult::ColType colType )
     }
 }
 
+void FillPackedRow( const DBResultRow &row, PyPackedRow &into )
+{
+    uint32 cc = row.ColumnCount();
+    for(uint32 i = 0; i < cc; i++)
+        into.SetField( i, DBColumnToPyRep( row, i ) );
+}
+
 PyPackedRow *CreatePackedRow( const DBResultRow &row, blue_DBRowDescriptor &header, bool headerOwner )
 {
     PyPackedRow *res = new PyPackedRow( header, headerOwner );
-
-    uint32 cc = row.ColumnCount();
-    for(uint32 i = 0; i < cc; i++)
-        res->SetField( i, DBColumnToPyRep( row, i ) );
-
+	FillPackedRow( row, *res );
     return res;
 }
 
@@ -441,10 +445,9 @@ PyList *DBResultToPackedRowList( DBQueryResult &result )
     PyList *res = new PyList( result.GetRowCount() );
 
     DBResultRow row;
-    uint32 i = 0;
-    while(result.GetRow(row))
+    for( uint32 i = 0; result.GetRow( row ); i++ )
         //this is piece of crap due to header cloning
-        res->set(i++, CreatePackedRow( row, *header->TypedClone(), true ) );
+        res->set( i, CreatePackedRow( row, *header->TypedClone(), true ) );
 
     SafeDelete( header );
     return res;
@@ -459,7 +462,7 @@ PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
     PyList * list = new PyList( row_count );
 
 	DBResultRow row;
-	uint32 i;
+	uint32 i = 0;
     while( result.GetRow(row) )
         list->set( i++, CreatePackedRow( row, *header->TypedClone(), true ) );
 
@@ -498,38 +501,19 @@ PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
 
 /* this is a very monstrous implementation of a Python Class/Function call
  */
-PyObjectEx *DBResultToCRowset( DBQueryResult &result ) {
+PyObjectEx *DBResultToCRowset( DBQueryResult &result )
+{
+    blue_DBRowDescriptor *header = new blue_DBRowDescriptor( result );
+	CRowSet *rowset = new CRowSet( &header );
 
-    uint32 cc = result.GetRowCount();
+	DBResultRow row;
+	while( result.GetRow( row ) )
+	{
+		PyPackedRow &into = rowset->NewRow();
+		FillPackedRow( row, into );
+	}
 
-    /* create CRowSet class header */
-    PyTuple * ClassHeader = new PyTuple(2);
-
-    PyString * ClassTypeName = new PyString("dbutil.CRowset", true);  // 0
-    blue_DBRowDescriptor * RowDescriptor = new blue_DBRowDescriptor( result );      // 1
-
-    /* object containers */
-    PyDict * headerDict = new PyDict(); headerDict->add( "header", RowDescriptor );
-    PyTuple * headerTuple = new PyTuple(1); headerTuple->SetItem( 0, ClassTypeName );
-
-    ClassHeader->SetItem( 0, headerTuple );
-    ClassHeader->SetItem( 1, headerDict );
-
-    PyObjectEx *root = new PyObjectEx( true, ClassHeader );
-    
-    root->list_data.resize( cc );
-
-    DBResultRow row;
-    uint32 i = 0;
-    //res.header->IncRef();
-    while(result.GetRow(row))
-    {
-        //this is piece of crap due to header cloning
-        //res.header->IncRef();
-        root->list_data[i++] = CreatePackedRow( row, *RowDescriptor->TypedClone(), true );
-    }
-
-    return root;
+	return rowset;
 }
 
 PyPackedRow *DBRowToPackedRow( DBResultRow &row )

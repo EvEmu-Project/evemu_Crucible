@@ -20,6 +20,8 @@ libcommon_a_SOURCES = \
 	counted_ptr.h \
 	crc32.cpp \
 	crc32.h \
+	CRowSet.cpp \
+	CRowSet.h \
 	dbcore.cpp \
 	dbcore.h \
 	DBRowDescriptor.cpp \

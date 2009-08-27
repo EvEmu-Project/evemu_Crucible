@@ -28,7 +28,7 @@
 
 #include "InventoryItem.h"
 
-class dbutil_CRowset;
+class CRowSet;
 
 class Inventory
 {
@@ -72,8 +72,8 @@ public:
 	 */
 	virtual PyRep *GetItem() const = 0;
 
-	PyObjectEx *List(EVEItemFlags flag, uint32 forOwner = 0) const;
-	void List(dbutil_CRowset &into, EVEItemFlags flag, uint32 forOwner = 0) const;
+	CRowSet *List(EVEItemFlags flag, uint32 forOwner = 0) const;
+	void List(CRowSet &into, EVEItemFlags flag, uint32 forOwner = 0) const;
 
 protected:
 	virtual void AddItem(InventoryItemRef item);

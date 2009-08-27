@@ -48,6 +48,7 @@
 #include "../common/packet_types.h"
 #include "../common/DestinyBinDump.h"
 #include "../common/DBRowDescriptor.h"
+#include "../common/CRowSet.h"
 #include "../common/PyStringTable.h"
 #include "../packets/General.h"
 #include "TriFile.h"
@@ -686,31 +687,28 @@ void TestMarshal() {
 	header->AddColumn( "volume", DBTYPE_I8 );
 	header->AddColumn( "orders", DBTYPE_I4 );
 	
-	dbutil_CRowset rs;
-	rs.header = header;
+	CRowSet rs( &header );
 
-	{
-		PyPackedRow *row = new PyPackedRow( *header->TypedClone(), true );
-
-		row->SetField( "historyDate", new PyLong( Win32TimeNow() ) );
-		row->SetField( "lowPrice", new PyInt( 18000 ) );
-		row->SetField( "highPrice", new PyInt( 19000 ) );
-		row->SetField( "avgPrice", new PyInt( 18400 ) );
-		row->SetField( "volume", new PyInt( 5463586 ) );
-		row->SetField( "orders", new PyInt( 254 ) );
-
-		rs.root_list.push_back( row );
-	}
+	PyPackedRow &row = rs.NewRow();
+	row.SetField( "historyDate", new PyLong( Win32TimeNow() ) );
+	row.SetField( "lowPrice", new PyInt( 18000 ) );
+	row.SetField( "highPrice", new PyInt( 19000 ) );
+	row.SetField( "avgPrice", new PyInt( 18400 ) );
+	row.SetField( "volume", new PyInt( 5463586 ) );
+	row.SetField( "orders", new PyInt( 254 ) );
 
 	uint32 mlen = 0;
 	_log(COMMON__MESSAGE, "Marshaling...");
-	uint8 *marshaled = Marshal(rs.FastEncode(), mlen, true);
+	uint8 *marshaled = Marshal( &rs, mlen, true );
 	
 	_log(COMMON__MESSAGE, "Unmarshaling...");
 	PyRep *rep = InflateAndUnmarshal(marshaled, mlen);
 	if(rep != NULL) {
 		rep->Dump(stdout, " Final: ");
 	}
+
+	SafeDeleteArray( marshaled );
+	SafeDelete( rep );
 }
 
 void LoadScript(const char *filename) {

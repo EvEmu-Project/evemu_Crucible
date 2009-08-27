@@ -565,6 +565,10 @@
 				Name="Classes"
 				>
 				<File
+					RelativePath="..\..\src\common\CRowSet.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\common\CRowSet.h"
 					>
 				</File>

@@ -131,7 +131,7 @@ void Inventory::DeleteContents(ItemFactory &factory)
     mContents.clear();
 }
 
-PyObjectEx *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
+CRowSet *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
 {
 	blue_DBRowDescriptor *header = new blue_DBRowDescriptor;
 	header->AddColumn( "itemID",     DBTYPE_I4 );
@@ -146,14 +146,12 @@ PyObjectEx *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
 	header->AddColumn( "categoryID", DBTYPE_UI1 );
 	header->AddColumn( "customInfo", DBTYPE_STR );
 
-    dbutil_CRowset rowset;
-    rowset.header = header;
-
-    List( rowset, _flag, forOwner );
-    return rowset.FastEncode();
+    CRowSet *rowset = new CRowSet( &header );
+    List( *rowset, _flag, forOwner );
+    return rowset;
 }
 
-void Inventory::List(dbutil_CRowset &into, EVEItemFlags _flag, uint32 forOwner) const
+void Inventory::List(CRowSet &into, EVEItemFlags _flag, uint32 forOwner) const
 {
     //there has to be a better way to build this...
     std::map<uint32, InventoryItemRef>::const_iterator cur, end;
@@ -165,7 +163,8 @@ void Inventory::List(dbutil_CRowset &into, EVEItemFlags _flag, uint32 forOwner) 
         if(    (i->flag() == _flag       || _flag == flagAnywhere)
             && (i->ownerID() == forOwner || forOwner == 0) )
         {
-            into.root_list.push_back( i->GetItemRow() );
+			PyPackedRow &row = into.NewRow();
+			i->GetItemRow( row );
         }
     }
 }
