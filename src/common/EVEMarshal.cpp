@@ -161,7 +161,7 @@ void MarshalVisitor::VisitBuffer(const PyBuffer *rep)
 
 void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
 {
-	blue_DBRowDescriptor &header = rep->GetHeader();
+	DBRowDescriptor &header = rep->GetHeader();
 
     PutByte( Op_PyPackedRow );
 
@@ -337,7 +337,7 @@ void MarshalVisitor::VisitObject(const PyObject *rep)
 
 void MarshalVisitor::VisitObjectEx(const PyObjectEx *rep)
 {
-    if (rep->is_type_1 == true)
+    if (rep->is_type_2 == true)
         PutByte(Op_ObjectEx2);
     else
         PutByte(Op_ObjectEx1);

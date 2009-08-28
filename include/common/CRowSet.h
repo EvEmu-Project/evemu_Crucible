@@ -31,8 +31,8 @@
 /**
  * \brief Python object "dbutil.CRowset".
  *
- * This object contains blue_DBRowDescriptor
- * header and bunch of PyPackedRows.
+ * This object contains DBRowDescriptor header
+ * and bunch of PyPackedRows.
  *
  * @note At the moment it's designed that once
  * it's created, its header cannot be changed.
@@ -42,13 +42,13 @@
  * \author Bloody.Rabbit
  */
 class CRowSet
-: public PyObjectEx
+: public PyObjectEx_Type2
 {
 public:
 	/**
-	 * @param[in] rowDesc blue_DBRowDescriptor header to be used.
+	 * @param[in] rowDesc DBRowDescriptor header to be used.
 	 */
-	CRowSet(blue_DBRowDescriptor **rowDesc);
+	CRowSet(DBRowDescriptor **rowDesc);
 
 	/**
 	 * @return Row count.
@@ -66,13 +66,14 @@ public:
 	 */
 	PyPackedRow &NewRow();
 
+	CRowSet *TypedClone() const { return static_cast<CRowSet *>( PyObjectEx::TypedClone() ); }
+
 protected:
-	PyDict &_GetKeywords() const;
-	PyRep *_FindKeyword(const char *keyword) const;
-	blue_DBRowDescriptor &_GetRowDesc() const;
+	DBRowDescriptor &_GetRowDesc() const;
 	PyList &_GetColumnList() const;
 
-	static PyTuple *_CreateHeader(blue_DBRowDescriptor *rowDesc);
+	static PyTuple *_CreateArgs();
+	static PyDict *_CreateKeywords(DBRowDescriptor *rowDesc);
 };
 
 #endif /* !__CROWSET_H__INCL__ */

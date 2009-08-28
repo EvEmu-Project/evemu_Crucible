@@ -431,7 +431,7 @@ void FillPackedRow( const DBResultRow &row, PyPackedRow &into )
         into.SetField( i, DBColumnToPyRep( row, i ) );
 }
 
-PyPackedRow *CreatePackedRow( const DBResultRow &row, blue_DBRowDescriptor &header, bool headerOwner )
+PyPackedRow *CreatePackedRow( const DBResultRow &row, DBRowDescriptor &header, bool headerOwner )
 {
     PyPackedRow *res = new PyPackedRow( header, headerOwner );
 	FillPackedRow( row, *res );
@@ -440,7 +440,7 @@ PyPackedRow *CreatePackedRow( const DBResultRow &row, blue_DBRowDescriptor &head
 
 PyList *DBResultToPackedRowList( DBQueryResult &result )
 {
-	blue_DBRowDescriptor *header = new blue_DBRowDescriptor( result );
+	DBRowDescriptor *header = new DBRowDescriptor( result );
 
     PyList *res = new PyList( result.GetRowCount() );
 
@@ -456,7 +456,7 @@ PyList *DBResultToPackedRowList( DBQueryResult &result )
 /* function not used */
 PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
 {
-    blue_DBRowDescriptor * header = new blue_DBRowDescriptor( result );
+    DBRowDescriptor * header = new DBRowDescriptor( result );
 
     size_t row_count = result.GetRowCount();
     PyList * list = new PyList( row_count );
@@ -503,7 +503,7 @@ PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
  */
 PyObjectEx *DBResultToCRowset( DBQueryResult &result )
 {
-    blue_DBRowDescriptor *header = new blue_DBRowDescriptor( result );
+    DBRowDescriptor *header = new DBRowDescriptor( result );
 	CRowSet *rowset = new CRowSet( &header );
 
 	DBResultRow row;
@@ -518,7 +518,7 @@ PyObjectEx *DBResultToCRowset( DBQueryResult &result )
 
 PyPackedRow *DBRowToPackedRow( DBResultRow &row )
 {
-    blue_DBRowDescriptor *header = new blue_DBRowDescriptor( row );
+    DBRowDescriptor *header = new DBRowDescriptor( row );
 
     return CreatePackedRow( row, *header, true );
 }

@@ -2,6 +2,7 @@
 #include "common.h"
 #include "EncodeGenerator.h"
 #include "../common/logsys.h"
+#include "MiscFunctions.h"
 
 ClassEncodeGenerator::ClassEncodeGenerator()
 : m_fast(false)
@@ -604,11 +605,10 @@ bool ClassEncodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    bool type1 = false;
-    const char *type = field->Attribute("type1");
+    bool type2 = false;
+    const char *type = field->Attribute("type2");
     if(type != NULL)
-        if(strcmp(type, "true") == 0)
-            type1 = true;
+		type2 = atobool( type );
 
     // generate header name
     char hname[16];
@@ -634,7 +634,7 @@ bool ClassEncodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
         "       %s, %s\n"
         "   );\n",
         iname,
-            (type1 ? "true" : "false"), hname
+            (type2 ? "true" : "false"), hname
     );
 
     if(m_fast) {

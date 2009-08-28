@@ -26,13 +26,13 @@
 #include "DBRowDescriptor.h"
 #include "EVEDBUtils.h"
 
-blue_DBRowDescriptor::blue_DBRowDescriptor()
-: PyObjectEx( false, _CreateEmptyHeader() )
+DBRowDescriptor::DBRowDescriptor()
+: PyObjectEx_Type1( "blue.DBRowDescriptor", _CreateArgs(), NULL )
 {
 }
 
-blue_DBRowDescriptor::blue_DBRowDescriptor(const DBQueryResult &res)
-: PyObjectEx( false, _CreateEmptyHeader() )
+DBRowDescriptor::DBRowDescriptor(const DBQueryResult &res)
+: PyObjectEx_Type1( "blue.DBRowDescriptor", _CreateArgs(), NULL )
 {
 	uint32 cc = res.ColumnCount();
 
@@ -40,8 +40,8 @@ blue_DBRowDescriptor::blue_DBRowDescriptor(const DBQueryResult &res)
 		AddColumn( res.ColumnName( i ), GetPackedColumnType( res.ColumnType( i ) ) );
 }
 
-blue_DBRowDescriptor::blue_DBRowDescriptor(const DBResultRow &row)
-: PyObjectEx( false, _CreateEmptyHeader() )
+DBRowDescriptor::DBRowDescriptor(const DBResultRow &row)
+: PyObjectEx_Type1( "blue.DBRowDescriptor", _CreateArgs(), NULL )
 {
 	uint32 cc = row.ColumnCount();
 
@@ -49,26 +49,22 @@ blue_DBRowDescriptor::blue_DBRowDescriptor(const DBResultRow &row)
 		AddColumn( row.ColumnName( i ), GetPackedColumnType( row.ColumnType( i ) ) );
 }
 
-uint32 blue_DBRowDescriptor::ColumnCount() const
+uint32 DBRowDescriptor::ColumnCount() const
 {
 	return _GetColumnList().size();
 }
 
-const std::string &blue_DBRowDescriptor::GetColumnName(uint32 index) const
+std::string &DBRowDescriptor::GetColumnName(uint32 index) const
 {
-	PyTuple &col = _GetColumn( index );
-
-	return col.items.at( 0 )->AsString().value;
+	return _GetColumn( index ).items.at( 0 )->AsString().value;
 }
 
-DBTYPE blue_DBRowDescriptor::GetColumnType(uint32 index) const
+DBTYPE &DBRowDescriptor::GetColumnType(uint32 index) const
 {
-	PyTuple &col = _GetColumn( index );
-
-	return static_cast<DBTYPE>( col.items.at( 1 )->AsInt().GetValue() );
+	return ( DBTYPE & )_GetColumn( index ).items.at( 1 )->AsInt().value;
 }
 
-uint32 blue_DBRowDescriptor::FindColumn(const char *name) const
+uint32 DBRowDescriptor::FindColumn(const char *name) const
 {
 	uint32 cc = ColumnCount();
 
@@ -79,7 +75,7 @@ uint32 blue_DBRowDescriptor::FindColumn(const char *name) const
 	return cc;
 }
 
-void blue_DBRowDescriptor::AddColumn(const char *name, DBTYPE type)
+void DBRowDescriptor::AddColumn(const char *name, DBTYPE type)
 {
 	PyTuple *col = new PyTuple( 2 );
 
@@ -89,41 +85,25 @@ void blue_DBRowDescriptor::AddColumn(const char *name, DBTYPE type)
 	_GetColumnList().items.push_back( col );
 }
 
-blue_DBRowDescriptor *blue_DBRowDescriptor::TypedClone() const
+PyTuple &DBRowDescriptor::_GetColumnList() const
 {
-	return static_cast<blue_DBRowDescriptor *>( PyObjectEx::TypedClone() );
-}
-
-PyTuple &blue_DBRowDescriptor::_GetColumnList() const
-{
-	assert( header );
-
 	// using at() guarantees bound check
-	PyTuple *t = &header->AsTuple().items.at( 1 )->AsTuple();
-	return t->items.at( 0 )->AsTuple();
+	return GetArgs().items.at( 0 )->AsTuple();
 }
 
-PyTuple &blue_DBRowDescriptor::_GetColumn(size_t index) const
+PyTuple &DBRowDescriptor::_GetColumn(size_t index) const
 {
-	PyTuple &cl = _GetColumnList();
-	assert( index < cl.size() );
-
-	return cl.items.at( index )->AsTuple();
+	return _GetColumnList().items.at( index )->AsTuple();
 }
 
-PyTuple *blue_DBRowDescriptor::_CreateEmptyHeader()
+PyTuple *DBRowDescriptor::_CreateArgs()
 {
 	PyTuple *columnList = new PyTuple( 0 );
 
-	PyTuple *columnListWrapper = new PyTuple( 1 );
-	columnListWrapper->SetItem( 0, columnList );
+	PyTuple *args = new PyTuple( 1 );
+	args->SetItem( 0, columnList );
 
-	PyTuple *head = new PyTuple( 2 );
-
-	head->SetItem( 0, new PyString( "blue.DBRowDescriptor", true ) );
-	head->SetItem( 1, columnListWrapper );
-
-	return head;
+	return args;
 }
 
 

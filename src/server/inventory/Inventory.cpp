@@ -133,7 +133,7 @@ void Inventory::DeleteContents(ItemFactory &factory)
 
 CRowSet *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
 {
-	blue_DBRowDescriptor *header = new blue_DBRowDescriptor;
+	DBRowDescriptor *header = new DBRowDescriptor;
 	header->AddColumn( "itemID",     DBTYPE_I4 );
 	header->AddColumn( "typeID",     DBTYPE_I2 );
 	header->AddColumn( "ownerID",    DBTYPE_I4 );

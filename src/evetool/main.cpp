@@ -678,7 +678,7 @@ void UnmarshalLogText(const Seperator &command) {
 }
 
 void TestMarshal() {
-	blue_DBRowDescriptor *header = new blue_DBRowDescriptor;
+	DBRowDescriptor *header = new DBRowDescriptor;
 	// Fill header:
 	header->AddColumn( "historyDate", DBTYPE_FILETIME );
 	header->AddColumn( "lowPrice", DBTYPE_CY );

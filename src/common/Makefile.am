@@ -54,6 +54,8 @@ libcommon_a_SOURCES = \
 	EVEVersion.h \
 	EVEZeroCompress.cpp \
 	EVEZeroCompress.h \
+	Exceptions.cpp \
+	Exceptions.h \
 	GaMath.cpp \
 	GaMath.h \
 	GaPreReqs.h \

@@ -30,9 +30,10 @@
 #include <vector>
 #include <map>
 
-#include "PyVisitor.h"
+#include "packet_types.h"
 #include "PyRep.h"
 
+class UserError;
 
 /*
  *
@@ -52,15 +53,15 @@ extern const uint64 Win32Time_Second;
 extern const uint64 Win32Time_Minute;
 extern const uint64 Win32Time_Hour;
 extern const uint64 Win32Time_Day;
-extern const uint64 Win32Time_Month; //according to the eve client
-extern const uint64 Win32Time_Year; //according to the eve client
+extern const uint64 Win32Time_Month;
+extern const uint64 Win32Time_Year;
 
 
-//these may be later converted to classes, but now it's easier this way
 //makes ccp_exceptions.UserError exception
-extern PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args = std::map<std::string, PyRep *>());
+//this function is deprecated; use directly UserError class instead.
+extern UserError *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args = std::map<std::string, PyRep *>());
 //makes UserError with type "CustomError"
-extern PyRep *MakeCustomError(const char *fmt, ...);
+extern UserError *MakeCustomError(const char *fmt, ...);
 
 /**
  * Returns length of field of given type.

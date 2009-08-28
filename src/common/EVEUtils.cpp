@@ -28,6 +28,7 @@
 
 #include "common.h"
 #include "EVEUtils.h"
+#include "Exceptions.h"
 #include "MiscFunctions.h"
 
 #include "../packets/General.h"
@@ -83,48 +84,31 @@ uint64 Win32TimeNow() {
 #endif
 }
 
-PyRep *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args) {
-    PyRep *pyType = new PyString(exceptionType);
-    PyRep *pyArgs;
-    if(args.empty())
-        pyArgs = new PyNone;
-    else {
-        PyDict *d = new PyDict;
+UserError *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args)
+{
+	UserError *err = new UserError( exceptionType );
 
-        std::map<std::string, PyRep *>::const_iterator cur, end;
-        cur = args.begin();
-        end = args.end();
-        for(; cur != end; cur++)
-            d->add(cur->first.c_str(), cur->second);
+	std::map<std::string, PyRep *>::const_iterator cur, end;
+	cur = args.begin();
+	end = args.end();
+	for(; cur != end; cur++)
+		err->AddKeyword( cur->first.c_str(), cur->second );
 
-        pyArgs = d;
-    }
-
-    util_ObjectEx no;
-    no.type = "ccp_exceptions.UserError";
-
-    no.args = new PyTuple(2);
-    no.args->items[0] = pyType;
-    no.args->items[1] = pyArgs;
-
-    no.keywords.add("msg", pyType->Clone());
-    no.keywords.add("dict", pyArgs->Clone());
-
-    return(no.FastEncode());
+	return err;
 }
 
-PyRep *MakeCustomError(const char *fmt, ...) {
+UserError *MakeCustomError(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
     char *str = NULL;
     assert(vasprintf(&str, fmt, va) > 0);
     va_end(va);
 
-    std::map<std::string, PyRep *> args;
-    args["error"] = new PyString(str);
-    free(str);
+	UserError *err = new UserError( "CustomError" );
+	err->AddKeyword( "error", new PyString( str ) );
+    SafeFree(str);
 
-    return MakeUserError("CustomError", args);
+    return err;
 }
 
 uint8 DBTYPE_SizeOf(DBTYPE type)

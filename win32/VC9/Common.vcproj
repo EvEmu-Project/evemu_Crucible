@@ -580,6 +580,14 @@
 					RelativePath="..\..\include\common\DBRowDescriptor.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\common\Exceptions.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\common\Exceptions.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 	</Files>

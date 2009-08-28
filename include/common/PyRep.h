@@ -50,7 +50,7 @@ class PyObject;
 class PyObjectEx;
 class PyPackedRow;
 
-class blue_DBRowDescriptor;
+class DBRowDescriptor;
 
 /** Lookup table for PyRep type object type names.
   */
@@ -606,7 +606,7 @@ public:
     typedef std::map<PyRep *, PyRep *>::iterator dict_iterator;
     typedef std::map<PyRep *, PyRep *>::const_iterator const_dict_iterator;
 
-    PyObjectEx(bool _is_type_1, PyRep *_header = NULL);
+    PyObjectEx(bool _is_type_2, PyRep *_header = NULL);
     virtual ~PyObjectEx();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
@@ -623,15 +623,54 @@ public:
     int32 hash();
 
     PyRep *header;
-    const bool is_type_1;   // true if opcode is 0x26 instead of 0x25
+    const bool is_type_2;   // true if opcode is 0x26 instead of 0x25
 
     list_type list_data;
     dict_type dict_data;
 };
 
+/**
+ * \brief Wrapper class for PyObjectEx of type 1.
+ *
+ * \author Bloody.Rabbit
+ */
+class PyObjectEx_Type1
+: public PyObjectEx
+{
+public:
+	PyObjectEx_Type1(const char *type, PyTuple *args, PyDict *keywords);
+
+	std::string &GetType() const;
+	PyTuple &GetArgs() const;
+	PyDict &GetKeywords() const;
+	PyRep *FindKeyword(const char *keyword) const;
+
+protected:
+	static PyTuple *_CreateHeader(const char *type, PyTuple *args, PyDict *keywords);
+};
+
+/**
+ * \brief Wrapper class for PyObjectEx of type 2.
+ *
+ * \author Bloody.Rabbit
+ */
+class PyObjectEx_Type2
+: public PyObjectEx
+{
+public:
+	PyObjectEx_Type2(PyTuple *args, PyDict *keywords);
+
+	PyTuple &GetArgs() const;
+	PyDict &GetKeywords() const;
+	PyRep *FindKeyword(const char *keyword) const;
+
+protected:
+	static PyTuple *_CreateHeader(PyTuple *args, PyDict *keywords);
+};
+
 class PyPackedRow : public PyRep {
 public:
-    PyPackedRow(blue_DBRowDescriptor &header, bool header_owner);
+    PyPackedRow(DBRowDescriptor &header, bool header_owner);
     virtual ~PyPackedRow();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
@@ -647,7 +686,7 @@ public:
     void CloneFrom(const PyPackedRow *from);
 
     // Header:
-    blue_DBRowDescriptor &GetHeader() const { return mHeader; }
+    DBRowDescriptor &GetHeader() const { return mHeader; }
     bool IsHeaderOwner() const { return mHeaderOwner; }
 
     // Fields:
@@ -658,7 +697,7 @@ public:
     int32 hash();
 
 protected:
-    blue_DBRowDescriptor &mHeader;
+    DBRowDescriptor &mHeader;
     const bool mHeaderOwner;
 
     std::vector<PyRep *> mFields;

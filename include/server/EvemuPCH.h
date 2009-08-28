@@ -87,6 +87,7 @@
 #include "../common/EVEUnmarshal.h"
 #include "../common/EVEUtils.h"
 #include "../common/EVEZeroCompress.h"
+#include "../common/Exceptions.h"
 #include "../common/GaPreReqs.h"
 #include "../common/GaMath.h"
 #include "../common/GaTypes.h"

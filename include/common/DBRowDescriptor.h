@@ -39,19 +39,19 @@
  *
  * \author Bloody.Rabbit
  */
-class blue_DBRowDescriptor
-: public PyObjectEx
+class DBRowDescriptor
+: public PyObjectEx_Type1
 {
 public:
-	blue_DBRowDescriptor();
+	DBRowDescriptor();
 	/**
 	 * @param[in] result Query result to build column list from.
 	 */
-	blue_DBRowDescriptor(const DBQueryResult &res);
+	DBRowDescriptor(const DBQueryResult &res);
 	/**
 	 * @param[in] result Row to build column list from.
 	 */
-	blue_DBRowDescriptor(const DBResultRow &row);
+	DBRowDescriptor(const DBResultRow &row);
 
 	/**
 	 * @return Column count.
@@ -61,12 +61,12 @@ public:
 	 * @param[in] index Index of column name of which should be returned.
 	 * @return Name of column.
 	 */
-    const std::string &GetColumnName(uint32 index) const;
+    std::string &GetColumnName(uint32 index) const;
 	/**
 	 * @param[in] index Index of column type of which should be returned.
 	 * @return Type of column.
 	 */
-    DBTYPE GetColumnType(uint32 index) const;
+    DBTYPE &GetColumnType(uint32 index) const;
 	/**
 	 * @param[in] name Name of column index of which should be returned.
 	 * @return Index of column; column count if not found.
@@ -82,14 +82,14 @@ public:
 	void AddColumn(const char *name, DBTYPE type);
 
 	// Some utilities:
-	blue_DBRowDescriptor *TypedClone() const;
+	DBRowDescriptor *TypedClone() const { return static_cast<DBRowDescriptor *>( PyObjectEx::TypedClone() ); }
 
 protected:
 	// Helper functions:
 	PyTuple &_GetColumnList() const;
 	PyTuple &_GetColumn(size_t index) const;
 
-	static PyTuple *_CreateEmptyHeader();
+	static PyTuple *_CreateArgs();
 };
 
 #endif /* !__DB_ROW_DESCRIPTOR_H__INCL__ */

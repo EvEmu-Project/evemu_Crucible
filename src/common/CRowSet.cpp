@@ -26,8 +26,8 @@
 #include "CRowSet.h"
 #include "DBRowDescriptor.h"
 
-CRowSet::CRowSet(blue_DBRowDescriptor **rowDesc)
-: PyObjectEx( true, _CreateHeader( *rowDesc ) )
+CRowSet::CRowSet(DBRowDescriptor **rowDesc)
+: PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
 {
 	*rowDesc = NULL;
 }
@@ -49,51 +49,33 @@ PyPackedRow &CRowSet::NewRow()
 	return *row;
 }
 
-PyDict &CRowSet::_GetKeywords() const
+DBRowDescriptor &CRowSet::_GetRowDesc() const
 {
-	assert( header );
-
-	return header->AsTuple().items.at( 1 )->AsDict();
-}
-
-PyRep *CRowSet::_FindKeyword(const char *keyword) const
-{
-	PyDict &kw = _GetKeywords();
-
-	PyDict::const_iterator cur, end;
-	cur = kw.begin();
-	end = kw.end();
-	for(; cur != end; cur++)
-	{
-		if( cur->first->AsString().value == keyword )
-			return cur->second;
-	}
-
-	return NULL;
-}
-
-blue_DBRowDescriptor &CRowSet::_GetRowDesc() const
-{
-	PyRep *r = _FindKeyword( "header" );
+	PyRep *r = FindKeyword( "header" );
 	assert( r );
 
-	return ( blue_DBRowDescriptor & )r->AsObjectEx();
+	return ( DBRowDescriptor & )r->AsObjectEx();
 }
 
 PyList &CRowSet::_GetColumnList() const
 {
-	PyRep *r = _FindKeyword( "columns" );
+	PyRep *r = FindKeyword( "columns" );
 	assert( r );
 
 	return r->AsList();
 }
 
-PyTuple *CRowSet::_CreateHeader(blue_DBRowDescriptor *rowDesc)
+PyTuple *CRowSet::_CreateArgs()
+{
+	PyTuple *args = new PyTuple( 1 );
+	args->SetItem( 0, new PyString( "dbutil.CRowset", true ) );
+
+	return args;
+}
+
+PyDict *CRowSet::_CreateKeywords(DBRowDescriptor *rowDesc)
 {
 	assert( rowDesc );
-
-	PyTuple *type = new PyTuple( 1 );
-	type->SetItem( 0, new PyString( "dbutil.CRowset", true ) );
 
 	PyDict *keywords = new PyDict;
 	keywords->add( "header", rowDesc );
@@ -104,11 +86,7 @@ PyTuple *CRowSet::_CreateHeader(blue_DBRowDescriptor *rowDesc)
 		columns->set( i,  new PyString( rowDesc->GetColumnName( i ) ) );
 	keywords->add( "columns", columns );
 
-	PyTuple *head = new PyTuple( 2 );
-	head->SetItem( 0, type );
-	head->SetItem( 1, keywords );
-
-	return head;
+	return keywords;
 }
 
 

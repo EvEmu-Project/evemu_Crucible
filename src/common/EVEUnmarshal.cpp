@@ -984,7 +984,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
 		// This is only an assumption, though PyPackedRow does not
 		// support anything else ....
-		blue_DBRowDescriptor &header = *(blue_DBRowDescriptor *)header_element;
+		DBRowDescriptor &header = *(DBRowDescriptor *)header_element;
 
         PyPackedRow *row = new PyPackedRow( header, true );
 

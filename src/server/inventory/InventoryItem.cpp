@@ -347,7 +347,7 @@ void InventoryItem::Delete() {
 
 PyPackedRow *InventoryItem::GetItemRow() const
 {
-	blue_DBRowDescriptor *header = new blue_DBRowDescriptor;
+	DBRowDescriptor *header = new DBRowDescriptor;
 	header->AddColumn( "itemID",     DBTYPE_I4 );
 	header->AddColumn( "typeID",     DBTYPE_I2 );
 	header->AddColumn( "ownerID",    DBTYPE_I4 );

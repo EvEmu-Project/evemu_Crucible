@@ -2,6 +2,7 @@
 #include "common.h"
 #include "DecodeGenerator.h"
 #include "../common/logsys.h"
+#include "MiscFunctions.h"
 
 #ifndef WIN32
 #warning Decoder is not properly freeing old items in the case of object re-use
@@ -882,11 +883,10 @@ bool ClassDecodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
 		return false;
 	}
-	bool type1 = false;
-	const char *type = field->Attribute("type1");
+	bool type2 = false;
+	const char *type = field->Attribute("type2");
 	if(type != NULL)
-		if(strcmp(type, "true") == 0)
-			type1 = true;
+		type2 = atobool( type );
 
 	char iname[16];
 	snprintf(iname, sizeof(iname), "nobj_%d", m_itemNumber++);
@@ -899,16 +899,16 @@ bool ClassDecodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	PyObjectEx *%s = (PyObjectEx *) %s;\n"
-		"	if(%s%s->is_type_1) {\n"
-		"		_log(NET__PACKET_ERROR, \"Decode %s failed: expected %s to %s of type 1, but it %s\");\n"
+		"	if(%s%s->is_type_2) {\n"
+		"		_log(NET__PACKET_ERROR, \"Decode %s failed: expected %s %s of type 2, but it %s\");\n"
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n",
 		v,
 			m_name, iname, v,
 		iname, v,
-		(type1 ? "!" : ""), iname,
-			m_name, iname, (type1 ? "be" : "not be"), (type1 ? "is not" : "is")
+		(type2 ? "!" : ""), iname,
+			m_name, iname, (type2 ? "to be" : "not to be"), (type2 ? "is not" : "is")
 	);
 
 	char hname[32];

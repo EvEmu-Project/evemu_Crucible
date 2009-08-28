@@ -982,8 +982,7 @@ int32 PyChecksumedStream::hash()
     return -1;
 }
 
-
-PyPackedRow::PyPackedRow(blue_DBRowDescriptor &header, bool header_owner)
+PyPackedRow::PyPackedRow(DBRowDescriptor &header, bool header_owner)
 : PyRep( PyRep::PyTypePackedRow ),
   mHeader( header ),
   mHeaderOwner( header_owner )
@@ -1115,7 +1114,7 @@ int32 PyPackedRow::hash()
 /************************************************************************/
 /* PyObjectEx                                                        */
 /************************************************************************/
-PyObjectEx::PyObjectEx( bool _is_type_1, PyRep *_header /*= NULL*/ ) : PyRep(PyRep::PyTypeObjectEx), header(_header), is_type_1(_is_type_1) {}
+PyObjectEx::PyObjectEx( bool _is_type_2, PyRep *_header /*= NULL*/ ) : PyRep(PyRep::PyTypeObjectEx), header(_header), is_type_2(_is_type_2) {}
 
 PyObjectEx::~PyObjectEx()
 {
@@ -1141,7 +1140,7 @@ PyObjectEx::~PyObjectEx()
 }
 
 void PyObjectEx::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sObjectEx%s\n", pfx, (is_type_1 ? " (Type1)" : ""));
+    fprintf(into, "%sObjectEx%s\n", pfx, (is_type_2 ? " (Type2)" : ""));
     fprintf(into, "%sHeader:\n", pfx);
     if(header == NULL)
         fprintf(into, "%s  None\n", pfx);
@@ -1194,7 +1193,7 @@ void PyObjectEx::Dump(LogType ltype, const char *pfx) const {
     if(!is_log_enabled(ltype))
         return;
 
-    {_log(ltype, "%sObjectEx%s\n", pfx, (is_type_1 ? " (Type1)" : ""));}
+    {_log(ltype, "%sObjectEx%s\n", pfx, (is_type_2 ? " (Type2)" : ""));}
     {_log(ltype, "%sHeader:\n", pfx);}
 
     if(header == NULL)
@@ -1245,7 +1244,7 @@ void PyObjectEx::Dump(LogType ltype, const char *pfx) const {
 }
 
 PyObjectEx *PyObjectEx::TypedClone() const {
-    PyObjectEx *clone = new PyObjectEx(is_type_1);
+    PyObjectEx *clone = new PyObjectEx(is_type_2);
     clone->CloneFrom(this);
     return(clone);
 }
@@ -1276,6 +1275,114 @@ int32 PyObjectEx::hash()
 {
     sLog.Error("PyObjectEx", "unhashable type: 'PyObjectEx'");
     return -1;
+}
+
+PyObjectEx_Type1::PyObjectEx_Type1(const char *type, PyTuple *args, PyDict *keywords)
+: PyObjectEx( false, _CreateHeader( type, args, keywords ) )
+{
+}
+
+std::string &PyObjectEx_Type1::GetType() const
+{
+	assert( header );
+	return header->AsTuple().items.at( 0 )->AsString().value;
+}
+
+PyTuple &PyObjectEx_Type1::GetArgs() const
+{
+	assert( header );
+	return header->AsTuple().items.at( 1 )->AsTuple();
+}
+
+PyDict &PyObjectEx_Type1::GetKeywords() const
+{
+	// This one is slightly more complicated since
+	// keywords are optional.
+	assert( header );
+	PyTuple &t = header->AsTuple();
+
+	if( t.size() < 3 )
+		t.items.push_back( new PyDict );
+
+	return t.items.at( 2 )->AsDict();
+}
+
+PyRep *PyObjectEx_Type1::FindKeyword(const char *keyword) const
+{
+	PyDict &kw = GetKeywords();
+
+	PyDict::const_iterator cur, end;
+	cur = kw.begin();
+	end = kw.end();
+	for(; cur != end; cur++)
+	{
+		if( cur->first->IsString() )
+			if( cur->first->AsString().value == keyword )
+				return cur->second;
+	}
+
+	return NULL;
+}
+
+PyTuple *PyObjectEx_Type1::_CreateHeader(const char *type, PyTuple *args, PyDict *keywords)
+{
+	if( args == NULL )
+		args = new PyTuple( 0 );
+
+	PyTuple *head = new PyTuple( keywords == NULL ? 2 : 3 );
+	head->SetItem( 0, new PyString( type, true ) );
+	head->SetItem( 1, args );
+	if( head->size() > 2 )
+		head->SetItem( 2, keywords );
+
+	return head;
+}
+
+PyObjectEx_Type2::PyObjectEx_Type2(PyTuple *args, PyDict *keywords)
+: PyObjectEx( true, _CreateHeader( args, keywords ) )
+{
+}
+
+PyTuple &PyObjectEx_Type2::GetArgs() const
+{
+	assert( header );
+	return header->AsTuple().items.at( 0 )->AsTuple();
+}
+
+PyDict &PyObjectEx_Type2::GetKeywords() const
+{
+	assert( header );
+	return header->AsTuple().items.at( 1 )->AsDict();
+}
+
+PyRep *PyObjectEx_Type2::FindKeyword(const char *keyword) const
+{
+	PyDict &kw = GetKeywords();
+
+	PyDict::const_iterator cur, end;
+	cur = kw.begin();
+	end = kw.end();
+	for(; cur != end; cur++)
+	{
+		if( cur->first->IsString() )
+			if( cur->first->AsString().value == keyword )
+				return cur->second;
+	}
+
+	return NULL;
+}
+
+PyTuple *PyObjectEx_Type2::_CreateHeader(PyTuple *args, PyDict *keywords)
+{
+	assert( args );
+	if( keywords == NULL )
+		keywords = new PyDict;
+
+	PyTuple *head = new PyTuple( 2 );
+	head->SetItem( 0, args );
+	head->SetItem( 1, keywords );
+
+	return head;
 }
 
 /************************************************************************/
