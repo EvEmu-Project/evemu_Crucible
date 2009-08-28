@@ -102,7 +102,7 @@ void PyDumpVisitor::VisitBuffer(const PyBuffer *rep, int64 lvl ) {
 
 void PyDumpVisitor::VisitString( const PyString *rep, int64 lvl )
 {
-    if(ContainsNonPrintables(rep->value.c_str(), rep->value.length()))
+    if(ContainsNonPrintables( rep ))
     {
         if ( rep->is_type_1 == true )
             _print(lvl, "String%s: '<binary, len=%d>'", " (Type1)", rep->size());

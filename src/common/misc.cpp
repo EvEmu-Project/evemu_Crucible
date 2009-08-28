@@ -38,6 +38,7 @@
 #include <time.h>
 #include "misc.h"
 #include "types.h"
+#include "PyRep.h"
 
 using namespace std;
 
@@ -161,6 +162,16 @@ bool ContainsNonPrintables(const char *c, uint32 length) {
 			return true;
     }
     return false;
+}
+
+bool ContainsNonPrintables( const PyString* str )
+{
+    return ContainsNonPrintables( str->content(), str->size());
+}
+
+bool ContainsNonPrintables( const std::string& str )
+{
+    return ContainsNonPrintables( str.c_str(), str.size());
 }
 
 void EscapeStringSequence(std::string &subject,  const std::string &find, const std::string &replace) {

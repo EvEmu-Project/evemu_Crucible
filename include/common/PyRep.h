@@ -154,6 +154,15 @@ public:
     virtual void visit(PyVisitor *v) const = 0;
     virtual void visit(PyVisitorLvl *v, int64 lvl) const = 0;
 
+    /**
+     * @brief virtual function to generate a hash value of a object.
+     * 
+     * virtual function to generate a hash value of a object to facilitate the various maps and checks.
+     *
+     * @return returns a uint32 containing a hash function that represents the object.
+     */
+    virtual int32 hash() = 0;
+
     //using this method is discouraged, it generally means your doing something wrong... CheckType() should cover almost all needs
     Type youreallyshouldentbeusingthis_GetType() const { return m_type; }
 
@@ -191,6 +200,7 @@ public:
     EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const;
     PyInt *TypedClone() const;
     int32 GetValue(){return value;}
+    int32 hash();
 //private:
     int32 value;
 };
@@ -207,6 +217,7 @@ public:
     EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const;
     PyLong *TypedClone() const;
     int64 GetValue(){return value;}
+    int32 hash();
 //private:
     int64 value;
 };
@@ -226,6 +237,7 @@ public:
     }
 
     PyFloat *TypedClone() const;
+    int32 hash();
 
     double value;
 };
@@ -245,6 +257,7 @@ public:
     }
 
     PyBool *TypedClone() const;
+    int32 hash();
 
     bool value;
 };
@@ -264,6 +277,7 @@ public:
     }
 
     PyNone *TypedClone() const;
+    int32 hash();
 };
 
 class PyBuffer : public PyRep
@@ -310,8 +324,10 @@ public:
     uint8* content() const {return m_value;}
 
     PySubStream *CreateSubStream() const;
+    int32 hash();
 
 protected:
+    int32 m_hash_cache;
     uint8 *m_value;
     const uint32 m_length;
 };
@@ -335,7 +351,9 @@ public:
     }
 
     PyString *TypedClone() const;
+    int32 hash();
 
+    int32 m_hash_cache;
     std::string value;
     bool is_type_1; //true if this is an Op_PyByteString instead of the default Op_PyByteString2
 
@@ -396,6 +414,7 @@ public:
     void CloneFrom(const PyTuple *from);
     PyTuple *TypedClone() const;
 
+    int32 hash();
     storage_type items;
 
     inline iterator begin() { return(items.begin()); }
@@ -498,6 +517,8 @@ public:
         items[index] = i;
     }
 
+    int32 hash();
+
     storage_type items;
 
     iterator begin() { return(items.begin()); }
@@ -536,6 +557,8 @@ public:
     void add(PyRep *key, PyRep *value);
     void addStr(const char *key, const char *value);
 
+    int32 hash();
+
     //BE CAREFUL, this map does NOT facilitate overwriting an existing
     //key, because there is no key comparison done (ptr compare only)!
     storage_type items;
@@ -564,6 +587,7 @@ public:
     }
 
     PyObject *TypedClone() const;
+    int32 hash();
 
     std::string type;
     PyRep *arguments;   //should be a tuple or a dict
@@ -596,13 +620,13 @@ public:
 
     PyObjectEx *TypedClone() const;
     void CloneFrom(const PyObjectEx *from);
+    int32 hash();
 
     PyRep *header;
     const bool is_type_1;   // true if opcode is 0x26 instead of 0x25
 
     list_type list_data;
     dict_type dict_data;
-
 };
 
 class PyPackedRow : public PyRep {
@@ -631,6 +655,7 @@ public:
 
     bool SetField(uint32 index, PyRep *value);
     bool SetField(const char *colName, PyRep *value);
+    int32 hash();
 
 protected:
     blue_DBRowDescriptor &mHeader;
@@ -655,6 +680,7 @@ public:
     }
 
     PySubStruct *TypedClone() const;
+    int32 hash();
 
     PyRep *sub;
 };
@@ -684,6 +710,8 @@ public:
     //call to ensure that `decoded` represents `data`
     void DecodeData() const;
 
+    int32 hash();
+
     uint32 length;
     uint8 *data;
 
@@ -708,6 +736,8 @@ public:
     }
 
     PyChecksumedStream *TypedClone() const;
+
+    int32 hash();
 
     uint32 checksum;
     PyRep *stream;

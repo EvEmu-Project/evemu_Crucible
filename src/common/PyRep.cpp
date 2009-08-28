@@ -33,6 +33,9 @@
 #include "EVEUnmarshal.h"
 #include "EVEMarshalOpcodes.h"
 #include "DBRowDescriptor.h"
+#include "LogNew.h"
+#include <float.h>
+
 
 /************************************************************************/
 /* PyRep utilities                                                      */
@@ -129,6 +132,38 @@ void PyInt::Dump(LogType type, const char *pfx) const {
     _log(type, "%sInteger field: %d", pfx, value);
 }
 
+PyInt *PyInt::TypedClone() const {
+    return(new PyInt(value));
+}
+
+PyInt::PyInt( const int32 i ) : PyRep(PyRep::PyTypeInt), value(i) {}
+PyInt::~PyInt() {}
+
+EVEMU_INLINE PyRep * PyInt::Clone() const
+{
+    return(TypedClone());
+}
+
+EVEMU_INLINE void PyInt::visit( PyVisitor *v ) const
+{
+    v->VisitInteger(this);
+}
+
+EVEMU_INLINE void PyInt::visit( PyVisitorLvl *v, int64 lvl ) const
+{
+    v->VisitInteger(this, lvl);
+}
+
+int32 PyInt::hash()
+{
+    /* XXX If this is changed, you also need to change the way
+    Python's long, float and complex types are hashed. */
+    int32 x = value;
+    if (x == -1)
+        x = -2;
+    return x;
+}
+
 /************************************************************************/
 /* PyRep Long Class                                                     */
 /************************************************************************/
@@ -162,6 +197,47 @@ EVEMU_INLINE void PyLong::visit( PyVisitorLvl *v, int64 lvl ) const
     v->VisitLong(this, lvl);
 }
 
+#define PyLong_SHIFT    15
+#define PyLong_BASE     (1 << PyLong_SHIFT)
+#define PyLong_MASK     ((int)(PyLong_BASE - 1))
+
+int32 PyLong::hash()
+{
+    long x;
+    size_t i;
+    int sign;
+
+    /* This is designed so that Python ints and longs with the
+    same value hash to the same value, otherwise comparisons
+    of mapping keys will turn out weird */
+    i = 8;
+    sign = 1;
+    x = 0;
+    if (i < 0) {
+        sign = -1;
+        i = -(i);
+    }
+#define LONG_BIT_PyLong_SHIFT	(8*sizeof(long) - PyLong_SHIFT)
+    /* The following loop produces a C long x such that (unsigned long)x
+    is congruent to the absolute value of v modulo ULONG_MAX.  The
+    resulting x is nonzero if and only if v is. */
+    while (--i >= 0) {
+        /* Force a native long #-bits (32 or 64) circular shift */
+        x = ((x << PyLong_SHIFT) & ~PyLong_MASK) | ((x >> LONG_BIT_PyLong_SHIFT) & PyLong_MASK);
+        x += ((uint8*)&value)[i];// v->ob_digit[i];
+        /* If the addition above overflowed (thinking of x as
+        unsigned), we compensate by incrementing.  This preserves
+        the value modulo ULONG_MAX. */
+        if ((unsigned long)x < ((uint8*)&value)[i])//v->ob_digit[i])
+            x++;
+    }
+#undef LONG_BIT_PyLong_SHIFT
+    x = x * sign;
+    if (x == -1)
+        x = -2;
+    return x;
+}
+
 /************************************************************************/
 /* PyRep Real/float/double Class                                        */
 /************************************************************************/
@@ -171,6 +247,71 @@ void PyFloat::Dump(FILE *into, const char *pfx) const {
 
 void PyFloat::Dump(LogType type, const char *pfx) const {
     _log(type, "%sReal Field: %f", pfx, value);
+}
+
+PyFloat *PyFloat::TypedClone() const {
+    return(new PyFloat(value));
+}
+
+#define LONG_MAX      2147483647L   /* maximum (signed) long value */
+#define Py_IS_INFINITY(X) (!_finite(X) && !_isnan(X))
+
+int32 PyFloat::hash()
+{
+    double v = value;
+    double intpart, fractpart;
+    int expo;
+    long hipart;
+    long x;		/* the final hash value */
+    /* This is designed so that Python numbers of different types
+    * that compare equal hash to the same value; otherwise comparisons
+    * of mapping keys will turn out weird.
+    */
+
+    fractpart = modf(v, &intpart);
+    if (fractpart == 0.0) {
+        /* This must return the same hash as an equal int or long. */
+        if (intpart > LONG_MAX || -intpart > LONG_MAX) {
+            /* Convert to long and use its hash. */
+            PyRep *plong;	/* converted to Python long */
+            if (Py_IS_INFINITY(intpart))
+                /* can't convert to long int -- arbitrary */
+                v = v < 0 ? -271828.0 : 314159.0;
+            //plong = PyLong_FromDouble(v);
+
+            plong = new PyLong( (int64)v ); // this is a hack
+            if (plong == NULL)
+                return -1;
+            x = plong->hash();
+            PyDecRef( plong );
+            return x;
+        }
+        /* Fits in a C long == a Python int, so is its own hash. */
+        x = (long)intpart;
+        if (x == -1)
+            x = -2;
+        return x;
+    }
+    /* The fractional part is non-zero, so we don't have to worry about
+    * making this match the hash of some other type.
+    * Use frexp to get at the bits in the double.
+    * Since the VAX D double format has 56 mantissa bits, which is the
+    * most of any double format in use, each of these parts may have as
+    * many as (but no more than) 56 significant bits.
+    * So, assuming sizeof(long) >= 4, each part can be broken into two
+    * longs; frexp and multiplication are used to do that.
+    * Also, since the Cray double format has 15 exponent bits, which is
+    * the most of any double format in use, shifting the exponent field
+    * left by 15 won't overflow a long (again assuming sizeof(long) >= 4).
+    */
+    v = frexp(v, &expo);
+    v *= 2147483648.0;	/* 2**31 */
+    hipart = (long)v;	/* take the top 32 bits */
+    v = (v - (double)hipart) * 2147483648.0; /* get the next 32 bits */
+    x = hipart + (long)v + (expo << 15);
+    if (x == -1)
+        x = -2;
+    return x;
 }
 
 /************************************************************************/
@@ -184,6 +325,16 @@ void PyBool::Dump(LogType type, const char *pfx) const {
     _log(type, "%sBoolean field: %s", pfx, value?"true":"false");
 }
 
+PyBool *PyBool::TypedClone() const {
+    return(new PyBool(value));
+}
+
+int32 PyBool::hash()
+{
+    sLog.Error("PyBool", "unhashable type: 'PyBool'");
+    return 0;
+}
+
 /************************************************************************/
 /* PyRep None Class                                                     */
 /************************************************************************/
@@ -193,6 +344,17 @@ void PyNone::Dump(FILE *into, const char *pfx) const {
 
 void PyNone::Dump(LogType type, const char *pfx) const {
     _log(type, "%s(None)", pfx);
+}
+
+PyNone *PyNone::TypedClone() const {
+    return(new PyNone());
+}
+
+int32 PyNone::hash()
+{
+    /* damn hack... bleh.. but its done like this... in python and PyNone is a static singleton....*/
+    int32 * hash = (int32 *)this;
+    return *((int32*)&hash);
 }
 
 /************************************************************************/
@@ -280,23 +442,48 @@ PySubStream *PyBuffer::CreateSubStream() const {
     return NULL;
 }
 
-/************************************************************************/
-/* PyRep String Class                                                   */
-/************************************************************************/
-void PyString::Dump(FILE *into, const char *pfx) const {
-    if(ContainsNonPrintables(value.c_str(), (uint32)value.length())) {
-        fprintf(into, "%sString%s: '<binary, len=%lu>'\n", pfx, is_type_1?" (Type1)":"", value.length());
-    } else {
-        fprintf(into, "%sString%s: '%s'\n", pfx, is_type_1?" (Type1)":"", value.c_str());
-    }
+PyBuffer *PyBuffer::TypedClone() const {
+    return(new PyBuffer(m_value, m_length));
 }
 
-void PyString::Dump(LogType type, const char *pfx) const {
-    if(ContainsNonPrintables(value.c_str(), (uint32)value.length())) {
-        _log(type, "%sString%s: '<binary, len=%lu>'", pfx, is_type_1?" (Type1)":"", value.length());
-    } else {
-        _log(type, "%sString%s: '%s'", pfx, is_type_1?" (Type1)":"", value.c_str());
-    }
+int32 PyBuffer::hash()
+{
+    void *ptr;
+    size_t size;
+    register size_t len;
+    register unsigned char *p;
+    register long x;
+
+    if ( m_hash_cache != -1 )
+        return m_hash_cache;
+
+    /* XXX potential bugs here, a readonly buffer does not imply that the
+    * underlying memory is immutable.  b_readonly is a necessary but not
+    * sufficient condition for a buffer to be hashable.  Perhaps it would
+    * be better to only allow hashing if the underlying object is known to
+    * be immutable (e.g. PyString_Check() is true).  Another idea would
+    * be to call tp_hash on the underlying object and see if it raises
+    * an error. */
+    //if ( !self->b_readonly )
+    //{
+    //   PyErr_SetString(PyExc_TypeError,
+    //      "writable buffers are not hashable");
+    // return -1;
+    //}
+
+    //if (!get_buf(self, &ptr, &size, ANY_BUFFER))
+    //    return -1;
+    ptr = m_value;
+    p = (unsigned char *) ptr;
+    len = m_length;
+    x = *p << 7;
+    while (--len >= 0)
+        x = (1000003*x) ^ *p++;
+    x ^= m_length;
+    if (x == -1)
+        x = -2;
+    m_hash_cache = x;
+    return x;
 }
 
 /************************************************************************/
@@ -644,44 +831,6 @@ void PyChecksumedStream::Dump(LogType type, const char *pfx) const {
     stream->Dump(type, pfx);
 }
 
-PyInt *PyInt::TypedClone() const {
-    return(new PyInt(value));
-}
-
-PyInt::PyInt( const int32 i ) : PyRep(PyRep::PyTypeInt), value(i) {}
-PyInt::~PyInt() {}
-
-EVEMU_INLINE PyRep * PyInt::Clone() const
-{
-    return(TypedClone());
-}
-
-EVEMU_INLINE void PyInt::visit( PyVisitor *v ) const
-{
-    v->VisitInteger(this);
-}
-
-EVEMU_INLINE void PyInt::visit( PyVisitorLvl *v, int64 lvl ) const
-{
-    v->VisitInteger(this, lvl);
-}
-
-PyFloat *PyFloat::TypedClone() const {
-    return(new PyFloat(value));
-}
-
-PyBool *PyBool::TypedClone() const {
-    return(new PyBool(value));
-}
-
-PyNone *PyNone::TypedClone() const {
-    return(new PyNone());
-}
-
-PyBuffer *PyBuffer::TypedClone() const {
-    return(new PyBuffer(m_value, m_length));
-}
-
 PyString *PyString::TypedClone() const {
     return(new PyString(value, is_type_1));
 }
@@ -710,6 +859,30 @@ void PyTuple::SetItem( uint32 index, PyRep* object )
     items[index] = object;
 }
 
+int32 PyTuple::hash()
+{
+    register long x, y;
+    register size_t len = items.size();
+    //register PyObject **p;
+    //iterator itr = items.begin();
+    register long index = 0;
+    long mult = 1000003L;
+    x = 0x345678L;
+    //p = v->ob_item;
+    while (--len >= 0) {
+        y = items[index++]->hash();
+        if (y == -1)
+            return -1;
+        x = (x ^ y) * mult;
+        /* the cast might truncate len; that doesn't change hash stability */
+        mult += (long)(82520L + len + len);
+    }
+    x += 97531L;
+    if (x == -1)
+        x = -2;
+    return x;
+}
+
 PyList *PyList::TypedClone() const {
     PyList *r = new PyList();
     r->CloneFrom(this);
@@ -732,6 +905,12 @@ void PyList::CloneFrom(const PyList *from) {
     for(; cur != _end; cur++) {
         items.push_back((*cur)->Clone());
     }
+}
+
+int32 PyList::hash()
+{
+    sLog.Error("PyList", "unhashable type: 'PyList'");
+    return -1;
 }
 
 PyDict *PyDict::TypedClone() const {
@@ -758,12 +937,31 @@ void PyDict::CloneFrom(const PyDict *from) {
     }
 }
 
+int32 PyDict::hash()
+{
+    sLog.Error("PyDict", "unhashable type: 'PyDict'");
+    return -1;
+}
+
 PyObject *PyObject::TypedClone() const {
     return(new PyObject( type, arguments->Clone() ));
 }
 
+int32 PyObject::hash()
+{
+    sLog.Error("PyObject", "hash not implemented");
+    assert(false);
+    return -1;
+}
+
 PySubStruct *PySubStruct::TypedClone() const {
     return(new PySubStruct( sub->Clone() ));
+}
+
+int32 PySubStruct::hash()
+{
+    sLog.Error("PySubStruct", "unhashable type: 'PySubStruct'");
+    return -1;
 }
 
 PySubStream *PySubStream::TypedClone() const {
@@ -772,8 +970,20 @@ PySubStream *PySubStream::TypedClone() const {
     return(new PySubStream( data, length ));
 }
 
+int32 PySubStream::hash()
+{
+    sLog.Error("PySubStream", "unhashable type: 'PySubStream'");
+    return -1;
+}
+
 PyChecksumedStream *PyChecksumedStream::TypedClone() const {
     return(new PyChecksumedStream( checksum, stream->Clone() ));
+}
+
+int32 PyChecksumedStream::hash()
+{
+    sLog.Error("PyChecksumedStream", "unhashable type: 'PyChecksumedStream'");
+    return -1;
 }
 
 
@@ -897,6 +1107,13 @@ bool PyPackedRow::SetField(const char *colName, PyRep *value)
     if( index >= mFields.size() )
         return false;
     return SetField( index, value );
+}
+
+int32 PyPackedRow::hash()
+{
+    sLog.Error("PyPackedRow", "unhashable type: 'PyPackedRow'");
+    assert(false);
+    return -1;
 }
 
 /************************************************************************/
@@ -1059,59 +1276,64 @@ void PyObjectEx::CloneFrom(const PyObjectEx *from) {
     }
 }
 
-
-
-/************************************************************************/
-/* string table code                                                    */
-/************************************************************************/
-/*EVEStringTable *PyString::s_stringTable = NULL;
-bool PyString::LoadStringFile(const char *file)
+int32 PyObjectEx::hash()
 {
-    if(s_stringTable != NULL)
-        SafeDelete(s_stringTable);
-
-    s_stringTable = new EVEStringTable;
-    return s_stringTable->LoadFile(file);
+    sLog.Error("PyObjectEx", "unhashable type: 'PyObjectEx'");
+    assert(false);
+    return -1;
 }
-
-EVEStringTable *PyString::GetStringTable()
-{
-    if(s_stringTable == NULL)
-        s_stringTable = new EVEStringTable(); //make an empty one.
-
-    return s_stringTable;
-}*/
 
 /************************************************************************/
 /* PyString                                                          */
 /************************************************************************/
-PyString::PyString( const char *str, bool type_1 ) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1) {}
+PyString::PyString( const char *str, bool type_1 ) : PyRep(PyRep::PyTypeString), value(str), is_type_1(type_1), m_hash_cache(-1) {}
 
-PyString::PyString( const std::string &str, bool type_1 ) : PyRep(PyRep::PyTypeString), is_type_1(type_1)
+PyString::PyString( const std::string &str, bool type_1 ) : PyRep(PyRep::PyTypeString), is_type_1(type_1), m_hash_cache(-1)
 {
     value.assign(str.c_str(), str.length());
 }
 
-PyString::PyString( const uint8 *data, uint32 len, bool type_1 ) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1) {}
+PyString::PyString( const uint8 *data, uint32 len, bool type_1 ) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1), m_hash_cache(-1) {}
 
 PyString::~PyString() {}
 
 void PyString::set( const char* str, size_t len )
 {
      value.assign(str, len);
-     return;
-
-    /* don't allow invalid strings to be set */
-    if (str == NULL && len != 0)
-        return;
-
-    value.resize(len);
-
-    /* if we set a empty string */
-    if (str == NULL || len == 0)
-        return;
-
-    memcpy(&value[0], str, len);
-    //value[len] = '\0';
 }
 
+int32 PyString::hash()
+{
+    register size_t len;
+    register unsigned char *p;
+    register int32 x;
+
+    if (m_hash_cache != -1)
+        return m_hash_cache;
+    len = value.size();
+    p = (unsigned char *) value.c_str();
+    x = *p << 7;
+    while (--len >= 0)
+        x = (1000003*x) ^ *p++;
+    x ^= value.size();
+    if (x == -1)
+        x = -2;
+    m_hash_cache = x;
+    return x;
+}
+
+void PyString::Dump(FILE *into, const char *pfx) const {
+    if(ContainsNonPrintables( value ) ) {
+        fprintf(into, "%sString%s: '<binary, len=%lu>'\n", pfx, is_type_1?" (Type1)":"", value.length());
+    } else {
+        fprintf(into, "%sString%s: '%s'\n", pfx, is_type_1?" (Type1)":"", value.c_str());
+    }
+}
+
+void PyString::Dump(LogType type, const char *pfx) const {
+    if(ContainsNonPrintables( value ) ) {
+        _log(type, "%sString%s: '<binary, len=%lu>'", pfx, is_type_1?" (Type1)":"", value.length());
+    } else {
+        _log(type, "%sString%s: '%s'", pfx, is_type_1?" (Type1)":"", value.c_str());
+    }
+}
