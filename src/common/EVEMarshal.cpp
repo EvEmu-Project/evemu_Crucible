@@ -540,7 +540,7 @@ void MarshalVisitor::_PyInt_AsByteArray( const PyLong* v )
     }
     else
     {
-        PutByte(Op_PyLongLong);                     // 1
+        PutByte(Op_PyLongLong);                    // 1
         PutInt64(v->value);                        // 8
     }
 }
@@ -548,7 +548,6 @@ void MarshalVisitor::_PyInt_AsByteArray( const PyLong* v )
 void MarshalVisitor::VisitLong( const PyLong *rep )
 {
     PyLong * henk = (PyLong*)rep;
-    
     int64 val = henk->GetValue();
     if (val == -1)
     {
@@ -565,15 +564,33 @@ void MarshalVisitor::VisitLong( const PyLong *rep )
         PutByte(Op_PyOneInteger);
         return;
     }
-    printf("marshalling long: "I64d"\n", henk->GetValue());
-//Op_PyLongLong
-    //if (val + 0x800000u > 0xFFFFFFFF)
+    if ( val + 0x80u > 0xFF )
     {
-        _PyInt_AsByteArray(rep);
-      //  return;
+        if ( val + 0x8000u > 0xFFFF )
+        {
+            if (val + 0x800000u > 0xFFFFFFFF)
+            {
+                _PyInt_AsByteArray(rep);
+              return;
+            }
+            else
+            {
+                PutByte(Op_PyLong);
+                PutInt32(val);
+                return;
+            }            
+        }
+        else
+        {
+            PutByte(Op_PySignedShort);
+            PutInt16(val);
+            return;
+        }
     }
-    //else
-    //{
-
-    //}
+    else
+    {
+        PutByte(Op_PyByte);
+        PutInt8(val);
+        return;
+    }
 }

@@ -133,7 +133,7 @@ void PyInt::Dump(LogType type, const char *pfx) const {
 }
 
 PyInt *PyInt::TypedClone() const {
-    return(new PyInt(value));
+    return new PyInt(value);
 }
 
 PyInt::PyInt( const int32 i ) : PyRep(PyRep::PyTypeInt), value(i) {}
@@ -250,7 +250,7 @@ void PyFloat::Dump(LogType type, const char *pfx) const {
 }
 
 PyFloat *PyFloat::TypedClone() const {
-    return(new PyFloat(value));
+    return new PyFloat(value);
 }
 
 #define LONG_MAX      2147483647L   /* maximum (signed) long value */
@@ -326,7 +326,7 @@ void PyBool::Dump(LogType type, const char *pfx) const {
 }
 
 PyBool *PyBool::TypedClone() const {
-    return(new PyBool(value));
+    return new PyBool(value);
 }
 
 int32 PyBool::hash()
@@ -347,7 +347,7 @@ void PyNone::Dump(LogType type, const char *pfx) const {
 }
 
 PyNone *PyNone::TypedClone() const {
-    return(new PyNone());
+    return new PyNone();
 }
 
 int32 PyNone::hash()
@@ -361,7 +361,7 @@ int32 PyNone::hash()
 /* PyRep Buffer Class                                                   */
 /************************************************************************/
 PyBuffer::PyBuffer(const uint8 *buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
-  m_value(NULL), m_length(length)
+  m_value(NULL), m_length(length), m_hash_cache(-1)
 {
     m_value = (uint8*)malloc(length);
     assert(m_value);
@@ -369,14 +369,14 @@ PyBuffer::PyBuffer(const uint8 *buffer, uint32 length) : PyRep(PyRep::PyTypeBuff
 }
 
 PyBuffer::PyBuffer(uint32 length) : PyRep(PyRep::PyTypeBuffer),
-  m_value(NULL), m_length(length)
+  m_value(NULL), m_length(length), m_hash_cache(-1)
 {
     m_value = (uint8*)malloc(length);
     assert(m_value);
 }
 
 PyBuffer::PyBuffer(uint8 **buffer, uint32 length) : PyRep(PyRep::PyTypeBuffer),
-  m_value(*buffer), m_length(length)
+  m_value(*buffer), m_length(length), m_hash_cache(-1)
 {
     *buffer = NULL;
 }
@@ -443,7 +443,7 @@ PySubStream *PyBuffer::CreateSubStream() const {
 }
 
 PyBuffer *PyBuffer::TypedClone() const {
-    return(new PyBuffer(m_value, m_length));
+    return new PyBuffer(m_value, m_length);
 }
 
 int32 PyBuffer::hash()
@@ -458,12 +458,12 @@ int32 PyBuffer::hash()
         return m_hash_cache;
 
     /* XXX potential bugs here, a readonly buffer does not imply that the
-    * underlying memory is immutable.  b_readonly is a necessary but not
-    * sufficient condition for a buffer to be hashable.  Perhaps it would
-    * be better to only allow hashing if the underlying object is known to
-    * be immutable (e.g. PyString_Check() is true).  Another idea would
-    * be to call tp_hash on the underlying object and see if it raises
-    * an error. */
+     * underlying memory is immutable.  b_readonly is a necessary but not
+     * sufficient condition for a buffer to be hashable.  Perhaps it would
+     * be better to only allow hashing if the underlying object is known to
+     * be immutable (e.g. PyString_Check() is true).  Another idea would
+     * be to call tp_hash on the underlying object and see if it raises
+     * an error. */
     //if ( !self->b_readonly )
     //{
     //   PyErr_SetString(PyExc_TypeError,
@@ -863,12 +863,9 @@ int32 PyTuple::hash()
 {
     register long x, y;
     register size_t len = items.size();
-    //register PyObject **p;
-    //iterator itr = items.begin();
     register long index = 0;
     long mult = 1000003L;
     x = 0x345678L;
-    //p = v->ob_item;
     while (--len >= 0) {
         y = items[index++]->hash();
         if (y == -1)
@@ -886,7 +883,7 @@ int32 PyTuple::hash()
 PyList *PyList::TypedClone() const {
     PyList *r = new PyList();
     r->CloneFrom(this);
-    return(r);
+    return r;
 }
 
 void PyList::CloneFrom(const PyList *from) {
@@ -916,7 +913,7 @@ int32 PyList::hash()
 PyDict *PyDict::TypedClone() const {
     PyDict *r = new PyDict();
     r->CloneFrom(this);
-    return(r);
+    return r;
 }
 
 void PyDict::CloneFrom(const PyDict *from) {
@@ -944,18 +941,17 @@ int32 PyDict::hash()
 }
 
 PyObject *PyObject::TypedClone() const {
-    return(new PyObject( type, arguments->Clone() ));
+    return new PyObject( type, arguments->Clone() );
 }
 
 int32 PyObject::hash()
 {
     sLog.Error("PyObject", "hash not implemented");
-    assert(false);
     return -1;
 }
 
 PySubStruct *PySubStruct::TypedClone() const {
-    return(new PySubStruct( sub->Clone() ));
+    return new PySubStruct( sub->Clone() );
 }
 
 int32 PySubStruct::hash()
@@ -977,7 +973,7 @@ int32 PySubStream::hash()
 }
 
 PyChecksumedStream *PyChecksumedStream::TypedClone() const {
-    return(new PyChecksumedStream( checksum, stream->Clone() ));
+    return new PyChecksumedStream( checksum, stream->Clone() );
 }
 
 int32 PyChecksumedStream::hash()
@@ -1279,7 +1275,6 @@ void PyObjectEx::CloneFrom(const PyObjectEx *from) {
 int32 PyObjectEx::hash()
 {
     sLog.Error("PyObjectEx", "unhashable type: 'PyObjectEx'");
-    assert(false);
     return -1;
 }
 
