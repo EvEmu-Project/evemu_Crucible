@@ -156,24 +156,6 @@ uint32 GetFileLength(const char *file) {
 #endif
 }
 
-bool ContainsNonPrintables(const char *c, uint32 length) {
-    for(; length > 0; c++, length--) {
-		if( !isgraph( *c ) && !isspace( *c ) )
-			return true;
-    }
-    return false;
-}
-
-bool ContainsNonPrintables( const PyString* str )
-{
-    return ContainsNonPrintables( str->content(), str->size());
-}
-
-bool ContainsNonPrintables( const std::string& str )
-{
-    return ContainsNonPrintables( str.c_str(), str.size());
-}
-
 void EscapeStringSequence(std::string &subject,  const std::string &find, const std::string &replace) {
     std::string::size_type pos = 0;
     while((pos = subject.find(find, pos)) != std::string::npos) {

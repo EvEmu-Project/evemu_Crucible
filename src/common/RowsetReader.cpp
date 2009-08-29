@@ -132,9 +132,9 @@ bool BaseRowsetReader::base_iterator::IsNone(uint32 index) const {
     return(ele != NULL && ele->IsNone());
 }
 
-PyRep::Type BaseRowsetReader::base_iterator::GetType(uint32 index) const {
+PyRep::PyType BaseRowsetReader::base_iterator::GetType(uint32 index) const {
     PyRep *ele = _find(index);
-    return(ele->youreallyshouldentbeusingthis_GetType());
+    return(ele->GetType());
 }
 
 /*void RowsetReader::Dump(LogType type) {

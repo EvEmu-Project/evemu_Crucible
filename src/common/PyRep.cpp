@@ -34,14 +34,14 @@
 #include "EVEMarshalOpcodes.h"
 #include "DBRowDescriptor.h"
 #include "LogNew.h"
+#include "utils_hex.h"
 #include <float.h>
-
 
 /************************************************************************/
 /* PyRep utilities                                                      */
 /************************************************************************/
 /** Lookup table for PyRep type object type names.
-*/
+  */
 const char *PyRepTypeString[] = {
     "Integer",          //0
     "Long",             //1
@@ -62,55 +62,11 @@ const char *PyRepTypeString[] = {
     "UNKNOWN TYPE",     //16
 };
 
-static void pfxHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length) {
-    char buffer[80];
-    uint32 offset;
-    for(offset=0;offset<length;offset+=16) {
-        build_hex_line((const char *)data,length,offset,buffer,4);
-        fprintf(into, "%s%s\n", pfx, buffer);
-    }
-}
-
-static void pfxPreviewHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length) {
-    char buffer[80];
-
-    if(length > 1024) {
-        pfxHexDump(pfx, into, data, 1024-32);
-        fprintf(into, "%s ... truncated ...\n", pfx);
-        build_hex_line((const char *)data,length,length-16,buffer,4);
-        fprintf(into, "%s%s\n", pfx, buffer);
-    } else {
-        pfxHexDump(pfx, into, data, length);
-    }
-}
-
-static void pfxHexDump(const char *pfx, LogType type, const uint8 *data, uint32 length) {
-    char buffer[80];
-    uint32 offset;
-    for(offset=0;offset<length;offset+=16) {
-        build_hex_line((const char *)data,length,offset,buffer,4);
-        _log(type, "%s%s\n", pfx, buffer);
-    }
-}
-
-static void pfxPreviewHexDump(const char *pfx, LogType type, const uint8 *data, uint32 length) {
-    char buffer[80];
-
-    if(length > 1024) {
-        pfxHexDump(pfx, type, data, 1024-32);
-        _log(type, "%s ... truncated ...", pfx);
-        build_hex_line((const char *)data,length,length-16,buffer,4);
-        _log(type, "%s%s", pfx, buffer);
-    } else {
-        pfxHexDump(pfx, type, data, length);
-    }
-}
-
 /************************************************************************/
 /* PyRep base Class                                                     */
 /************************************************************************/
 
-PyRep::PyRep(Type t) : m_type(t), mRefcnt(1) {}
+PyRep::PyRep(PyType t) : m_type(t), mRefcnt(1) {}
 PyRep::~PyRep() {}
 
 const char *PyRep::TypeString() const
@@ -674,24 +630,6 @@ void PyDict::Dump(LogType type, const char *pfx) const {
     }
 }
 
-void PyDict::add(PyRep *key, PyRep *value) {
-    if(key == NULL || value == NULL)
-        return;
-    items[key] = value;
-}
-
-void PyDict::add(const char *key, PyRep *value) {
-    if(key == NULL || value == NULL)
-        return;
-    items[new PyString(key)] = value;
-}
-
-void PyDict::addStr(const char *key, const char *value) {
-    if(key == NULL || value == NULL)
-        return;
-    items[new PyString(key)] = new PyString(value);
-}
-
 /************************************************************************/
 /* PyRep Object Class                                                   */
 /************************************************************************/
@@ -701,7 +639,7 @@ PyObject::~PyObject() {
 
 void PyObject::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sObject:\n", pfx);
-    fprintf(into, "%s  Type: %s\n", pfx, type.c_str());
+    fprintf(into, "%s  PyType: %s\n", pfx, type.c_str());
 
     std::string m(pfx);
     m += "  Args: ";
@@ -710,7 +648,7 @@ void PyObject::Dump(FILE *into, const char *pfx) const {
 
 void PyObject::Dump(LogType ltype, const char *pfx) const {
     _log(ltype, "%sObject:", pfx);
-    _log(ltype, "%s  Type: %s", pfx, type.c_str());
+    _log(ltype, "%s  PyType: %s", pfx, type.c_str());
 
     std::string m(pfx);
     m += "  Args: ";
@@ -940,6 +878,56 @@ int32 PyDict::hash()
     return -1;
 }
 
+bool PyDict::SetItem( PyRep * key, PyRep * value )
+{
+    /* make sure we have valid arguments */
+    if ( key == NULL || value == NULL )
+        return false;
+
+    /* note: add check if the key object is hashable
+     * if not ( it will return -1 then ) return false;
+     */
+
+    /* check if we need to replace a dictionary entry */
+    iterator itr = items.find( key );
+    if ( itr != items.end() )
+    {
+        PyDecRef( itr->second );
+        items.erase( itr ); // this is the fast solution not the best.
+    }
+
+    /* note: needs to be enabled when object reference is working.
+     */
+    //PyIncRef( key );
+    //PyIncRef( value );
+
+    items.insert( std::make_pair( key, value );
+    return true;
+}
+
+bool PyDict::SetItemString( const char *key, PyObject *item )
+{
+    return SetItem( new PyString( key ), item );
+}
+
+void PyDict::add(PyRep *key, PyRep *value) {
+    if(key == NULL || value == NULL)
+        return;
+    items[key] = value;
+}
+
+void PyDict::add(const char *key, PyRep *value) {
+    if(key == NULL || value == NULL)
+        return;
+    items[new PyString(key)] = value;
+}
+
+void PyDict::addStr(const char *key, const char *value) {
+    if(key == NULL || value == NULL)
+        return;
+    items[new PyString(key)] = new PyString(value);
+}
+
 PyObject *PyObject::TypedClone() const {
     return new PyObject( type, arguments->Clone() );
 }
@@ -999,9 +987,8 @@ PyPackedRow::~PyPackedRow()
     cur = mFields.begin();
     end = mFields.end();
     for(; cur != end; cur++)
-        PyDecRef( *cur );
+        PyXDecRef( *cur );
 }
-
 
 void PyPackedRow::Dump(FILE *into, const char *pfx) const
 {

@@ -35,4 +35,8 @@
   */
 extern size_t py_mbstowcs( uint16 * wcstr, const char * mbstr, size_t max );
 
+bool ContainsNonPrintables( const char *c, uint32 length );
+bool ContainsNonPrintables( const PyString* str );
+bool ContainsNonPrintables( const std::string& str );
+
 #endif // UTILS_STRING_H

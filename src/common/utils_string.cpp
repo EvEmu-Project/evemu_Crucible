@@ -37,3 +37,24 @@ size_t py_mbstowcs( uint16 * wcstr, const char * mbstr, size_t max )
     }
     return i;
 }
+
+/************************************************************************/
+/* ContainsNonPrintables                                                */
+/************************************************************************/
+bool ContainsNonPrintables( const char *c, uint32 length ) {
+    for(; length > 0; c++, length--) {
+        if( !isgraph( *c ) && !isspace( *c ) )
+            return true;
+    }
+    return false;
+}
+
+bool ContainsNonPrintables( const PyString* str )
+{
+    return ContainsNonPrintables( str->content(), str->size());
+}
+
+bool ContainsNonPrintables( const std::string& str )
+{
+    return ContainsNonPrintables( str.c_str(), str.size());
+}

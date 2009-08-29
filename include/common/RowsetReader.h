@@ -70,7 +70,7 @@ protected:
         std::string GetAsString(const char *fieldname) const;
         std::string GetAsString(uint32 index) const;
 
-        PyRep::Type GetType(uint32 index) const;
+        PyRep::PyType GetType(uint32 index) const;
 
         const base_iterator &operator++();
     protected:

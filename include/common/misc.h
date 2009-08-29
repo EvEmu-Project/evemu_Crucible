@@ -42,10 +42,6 @@ class PyString;
 string generate_key(int length);
 void build_hex_line(const char *buffer, unsigned long length, unsigned long offset, char *out_buffer, unsigned char padding=4);
 
-bool ContainsNonPrintables( const PyString* str );
-bool ContainsNonPrintables( const std::string& str );
-bool ContainsNonPrintables(const char *str, uint32 length);
-
 void EscapeStringSequence(std::string &subject,  const std::string &find, const std::string &replace);
 uint32 CalcCRC16(uint8 *bin_data, int len, uint32 initial_crc);
 

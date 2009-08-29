@@ -502,6 +502,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\common\utils_hex.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\common\utils_string.cpp"
 				>
 			</File>

@@ -31,8 +31,14 @@
 #include "common.h"
 #include "logsys.h"
 #include "packet_types.h"
-
 #include "PyVisitor.h"
+
+/* note: this will decrease memory use with 50% but increase load time with 50%
+ * enabling this would have to wait until references work properly. Or when
+ * you operate the server using the cache store system this can also be enabled.
+ * note: this will have influence on the overall server performance.
+ */
+//#pragma pack(push,1)
 
 class PyInt;
 class PyFloat;
@@ -56,18 +62,23 @@ class DBRowDescriptor;
   */
 extern const char *PyRepTypeString[];
 
-/* debug macro's to ease the increase and decrease of references of a object
+/**
+ * debug macro's to ease the increase and decrease of references of a object
  * using this also increases the possibility of debugging it.
  */
-#define PyDecRef( x )if((x)!=NULL)(x)->DecRef()
-#define PyIncRef( x )if((x)!=NULL)(x)->IncRef()
+#define PyIncRef(op)(op)->IncRef()
+#define PyDecRef(op)(op)->DecRef()
+
+/* Macros to use in case the object pointer may be NULL */
+#define PyXIncRef(op) if ((op) == NULL) ; else PyIncRef(op)
+#define PyXDecRef(op) if ((op) == NULL) ; else PyDecRef(op)
 
 /** PyRep base Python wire object
-  */
+ */
 class PyRep {
 public:
     /** PyRep Python wire object types
-    */
+     */
     typedef enum _Type {
         PyTypeInt               = 0,
         PyTypeLong              = 1,
@@ -87,12 +98,12 @@ public:
         PyTypePackedRow         = 15,
         PyTypeError             = 16,
         PyTypeMax               = 16,
-    } Type;
+    } PyType;
 
-    PyRep(Type t);
+    PyRep(PyType t);
     virtual ~PyRep();
 
-    /** Type check functions
+    /** PyType check functions
       */
     bool IsInt() const              { return m_type == PyTypeInt; }
 	bool IsLong() const             { return m_type == PyTypeLong; }
@@ -164,7 +175,7 @@ public:
     virtual int32 hash() = 0;
 
     //using this method is discouraged, it generally means your doing something wrong... CheckType() should cover almost all needs
-    Type youreallyshouldentbeusingthis_GetType() const { return m_type; }
+    PyType GetType() const { return m_type; }
 
     void IncRef()
     {
@@ -183,12 +194,10 @@ public:
         }
     }
 protected:
-    const Type m_type;
+    const PyType m_type;
     size_t mRefcnt;
 };
 
-//storing all integers (and booleans) as int64s is a lot of craziness right now
-//but its better than a ton of virtual functions to achieve the same thing.
 class PyInt : public PyRep {
 public:
     PyInt(const int32 i);
@@ -239,7 +248,7 @@ public:
     PyFloat *TypedClone() const;
     int32 hash();
     double GetValue() {return value;}
-
+//private:
     double value;
 };
 
@@ -259,7 +268,7 @@ public:
 
     PyBool *TypedClone() const;
     int32 hash();
-
+//private:
     bool value;
 };
 
@@ -361,16 +370,12 @@ public:
     /**
      * @brief Get the length of the PyString
      *
-     *
-     *
      * @return the length of the string as size_t
      */
     const size_t size() const { return value.size(); }
 
     /**
      * @brief Get the PyString content
-     *
-     *
      *
      * @return the pointer to the char* array.
      */
@@ -379,19 +384,10 @@ public:
     /**
      * @brief Set the PyString content.
      *
-     *
-     *
      * @param[in] str is the char array that will replace the current string.
      * @param[in] len is the length of the char array.
      */
     void set( const char* str, size_t len );
-
-    //string table stuff:
-    //static bool LoadStringFile(const char *file);
-  //  static EVEStringTable *GetStringTable();    //always returns a valid pointer
-
-//protected:
-    //static EVEStringTable *s_stringTable;
 };
 
 class PyTuple : public PyRep {
@@ -534,10 +530,22 @@ public:
 };
 
 class PyDict : public PyRep {
+private:
+    class _py_dict_hash
+        : public unary_function<PyRep*, size_t>
+    {	// hash functor
+    public:
+        size_t operator()(const PyRep* _Keyval) const
+        {
+            PyRep* Keyval = (PyRep*)_Keyval;
+            return (size_t) Keyval->hash();
+        }
+    };
 public:
-    typedef std::map<PyRep *, PyRep *> storage_type;
-    typedef std::map<PyRep *, PyRep *>::iterator iterator;
-    typedef std::map<PyRep *, PyRep *>::const_iterator const_iterator;
+
+    typedef std::tr1::unordered_map<PyRep*, PyRep*, _py_dict_hash>  storage_type;
+    typedef storage_type::iterator                                  iterator;
+    typedef storage_type::const_iterator                            const_iterator;
 
     PyDict() : PyRep(PyRep::PyTypeDict) {}
     virtual ~PyDict();
@@ -553,6 +561,30 @@ public:
 
     void CloneFrom(const PyDict *from);
     PyDict *TypedClone() const;
+
+    /**
+     * \brief SetItem adds or sets a database entry.
+     *
+     * PyDict::SetItem handles the adding and setting of object in
+     * mapped and non mapped python dictionary's.
+     *
+     * @param[in] key contains the key object which the value needs to be filed under.
+     * @param[in] value is the object that needs to be filed under key.
+     * @return returns true when successful and false if not.
+     */
+    bool SetItem( PyRep * key, PyRep * value );
+
+    /**
+     * \brief SetItemString adds or sets a database entry.
+     *
+     * PyDict::SetItemString handles the adding and setting of object in
+     * mapped and non mapped python dictionary's.
+     *
+     * @param[in] key contains the key string which the value needs to be filed under.
+     * @param[in] value is the object that needs to be filed under key.
+     * @return returns true when successful and false if not.
+     */
+    bool SetItemString( const char *key, PyObject *item );
 
     void add(const char *key, PyRep *value);
     void add(PyRep *key, PyRep *value);
@@ -787,21 +819,9 @@ public:
     PyRep *stream;
 };
 
-//this object is rather hackish, and is used to allow the
-//application layer to communicate with the presentation layer
-//about the usage of PyRepSaveMask/Op_PySavedStreamElement
-//and is mainly used to support the layer-violating blue.DBRowDescriptor
-//construct
-/*class PyRepReference : public PyRep {
-public:
-    PyRepReference(PyRep *to);
-    virtual ~PyRepReference();
-    void Dump(FILE *into, const char *pfx) const;
-    void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const;
-    void visit(PyVisitor *v) const;
-
-    PyRep *const to;
-};*/
+/* note: this will decrease mem use with 50% but increase load time with 50%
+ * enabling this would have to wait until references work properly.
+ */
+//#pragma pack(pop)
 
 #endif//EVE_PY_REP_H
