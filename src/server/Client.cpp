@@ -365,13 +365,8 @@ void Client::ChannelLeft(LSCChannel *chan) {
 void Client::Login(CryptoChallengePacket *pack) {
     _log(CLIENT__MESSAGE, "Login with %s", pack->user_name.c_str());
 
-    util_PasswordString pass;
-    if(!pass.Decode(&pack->user_password)) {
-        _log(CLIENT__ERROR, "Failed to decode password.");
-        return;
-    }
-
-    if(!m_services.serviceDB().DoLogin(pack->user_name.c_str(), pass.password.c_str(), m_accountID, m_accountRole)) {
+    PasswordString &pass = (PasswordString &)pack->user_password->AsObjectEx();
+    if(!m_services.serviceDB().DoLogin(pack->user_name.c_str(), pass.GetPassword().c_str(), m_accountID, m_accountRole)) {
         _log(CLIENT__MESSAGE, "%s: Login rejected by DB", pack->user_name.c_str());
 
 		throw PyException( new GPSTransportClosed( "LoginAuthFailed" ) );

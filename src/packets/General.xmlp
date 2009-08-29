@@ -50,19 +50,6 @@
   </object>
 </element>
 
-<element name="util_PasswordString">
-  <object_ex name="root" type2="true">
-	<InlineTuple>
-	  <InlineTuple>
-		<string name="type" default="util.PasswordString" type1="true" />
-		<string name="password" />
-	  </InlineTuple>
-	  <InlineDict>
-	  </InlineDict>
-	</InlineTuple>
-  </object_ex>	   
-</element>
-
 <!-- this object is not really an object type on live, just convenience here -->
 <element name="util_Tupleset">
   <InlineTuple>

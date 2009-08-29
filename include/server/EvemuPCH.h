@@ -97,6 +97,7 @@
 #include "../common/misc.h"
 #include "../common/MiscFunctions.h"
 #include "../common/Mutex.h"
+#include "../common/PasswordString.h"
 #include "../common/RefPtr.h"
 
 #include "../common/DestinyBinDump.h"

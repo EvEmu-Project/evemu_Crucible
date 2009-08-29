@@ -421,7 +421,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             _log(NET__UNMARSHAL_ERROR, "Not enough data for String Table Item argument\n");
             break;
         }
-        uint8 value = *packet;
+        uint8 value = Getuint8();
 
         const PyString * sharedString = NULL;
         if( sPyStringTable.LookupPyString(value, sharedString) == false)
@@ -438,7 +438,6 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             res = new PyString(sharedString->value, sharedString->is_type_1);
         }
 
-        IncreaseIndex(1);
         break; }
 
     case Op_PyUnicodeByteString: {

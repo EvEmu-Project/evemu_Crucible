@@ -172,13 +172,10 @@ public:
 	/**
 	 * \brief Initializes reference count.
 	 *
-	 * Initializes reference count to zero value. Please
-	 * note that immediately after construction the object
-	 * has to be given to RefPtr class (or IncRef must called
-	 * manually).
+	 * @param[in] initRefCount Initial reference count.
 	 */
-	RefObject()
-	: mRefCount( 0 )
+	RefObject(size_t initRefCount)
+	: mRefCount( initRefCount )
 	{
 	}
 

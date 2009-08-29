@@ -104,7 +104,7 @@ public:
 		DataContainerItr Itr = mStorageContainer.begin();
 		for (; Itr != mStorageContainer.end(); Itr++)
 		{
-			delete Itr->second;
+			PyDecRef( Itr->second );
 		}
 	}
 

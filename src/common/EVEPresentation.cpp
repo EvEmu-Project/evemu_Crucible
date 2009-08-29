@@ -360,10 +360,9 @@ void EVEPresentation::_SendHandshake() {
     _log(NET__PRES_REP_OUT, "%s: Sending Low Level Version Exchange:", GetConnectedAddress().c_str());
     version.Dump(NET__PRES_REP_OUT, "    ");
 
-    PyRep *r = version.Encode();
-
-    _QueueRep(r);
-    delete r;
+    PyRep *r = version.FastEncode();
+    _QueueRep( r );
+    PyDecRef( r );
 }
 
 std::string EVEPresentation::GetConnectedAddress() const {

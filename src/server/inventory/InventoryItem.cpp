@@ -109,7 +109,8 @@ InventoryItem::InventoryItem(
     uint32 _itemID,
     const ItemType &_type,
     const ItemData &_data)
-: attributes(_factory, *this, true, true),
+: RefObject( 0 ),
+  attributes(_factory, *this, true, true),
   m_factory(_factory),
   m_itemID(_itemID),
   m_itemName(_data.name),

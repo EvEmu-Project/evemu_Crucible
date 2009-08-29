@@ -588,6 +588,14 @@
 					RelativePath="..\..\include\common\Exceptions.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\common\PasswordString.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\common\PasswordString.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 	</Files>

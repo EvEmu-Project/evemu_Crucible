@@ -56,9 +56,10 @@ CachedObjectMgr::~CachedObjectMgr()
     }
 }
 
-CachedObjectMgr::CacheRecord::~CacheRecord() {
-    delete cache;
-    delete objectID;
+CachedObjectMgr::CacheRecord::~CacheRecord()
+{
+	PyDecRef( objectID );
+	PyDecRef( cache );
 }
 
 PyObject *CachedObjectMgr::CacheRecord::EncodeHint() const {

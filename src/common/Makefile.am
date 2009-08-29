@@ -74,6 +74,8 @@ libcommon_a_SOURCES = \
 	packet_functions.cpp \
 	packet_functions.h \
 	packet_types.h \
+	PasswordString.cpp \
+	PasswordString.h \
 	PyDumpVisitor.cpp \
 	PyDumpVisitor.h \
 	PyLookupDump.cpp \
