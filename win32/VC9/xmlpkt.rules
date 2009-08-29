@@ -7,9 +7,9 @@
 		<CustomBuildRule
 			Name="XMLPkt"
 			DisplayName="XML Packet Generator"
-			CommandLine="$(SolutionDir)$(ConfigurationName)/xmlpktgen/XMLPktGen.exe [inputs]"
+			CommandLine="&quot;$(SolutionDir)$(ConfigurationName)/xmlpktgen/XMLPktGen.exe&quot; [inputs]"
 			Outputs="$(InputName).h"
-			AdditionalDependencies="$(SolutionDir)$(ConfigurationName)/xmlpktgen/XMLPktGen.exe"
+			AdditionalDependencies="&quot;$(SolutionDir)$(ConfigurationName)/xmlpktgen/XMLPktGen.exe&quot;"
 			FileExtensions="*.xmlp"
 			ExecutionDescription="Generating packet processors from XML: $(InputName)"
 			ShowOnlyRuleProperties="false"
