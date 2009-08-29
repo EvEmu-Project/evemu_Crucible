@@ -71,7 +71,7 @@ public:
 	 * @param[in] index Index of column type of which should be returned.
 	 * @return Type of column.
 	 */
-    DBTYPE &GetColumnType(uint32 index) const;
+    DBTYPE GetColumnType(uint32 index) const;
 	/**
 	 * @param[in] name Name of column index of which should be returned.
 	 * @return Index of column; column count if not found.

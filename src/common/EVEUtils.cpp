@@ -162,7 +162,7 @@ uint8 DBTYPE_GetSize( DBTYPE type )
     case DBTYPE_UI1:
         return 1;
     case DBTYPE_BOOL:
-        return 0; // compensated outside of this function
+        return 1; // compensated outside of this function
     case DBTYPE_BYTES:
     case DBTYPE_STR:
     case DBTYPE_WSTR:
@@ -240,4 +240,5 @@ bool DBTYPE_IsCompatible(DBTYPE type, const PyRep &rep)
     return rep.IsNone();
 
 #undef CheckTypeRange
+#undef CheckTypeRangeUnsigned
 }
