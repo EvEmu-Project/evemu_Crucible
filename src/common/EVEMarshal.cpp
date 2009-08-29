@@ -167,14 +167,23 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
 
     header.visit( this );
 
-    std::vector<uint8> unpacked;
-    unpacked.reserve( 64 );
-
     // Create size map, sorted from the greatest to the smallest value:
     std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
     uint32 cc = header.ColumnCount();
+
+    size_t unpackedBlobSize = 0;
     for(uint32 i = 0; i < cc; i++)
-        sizeMap.insert( std::make_pair( DBTYPE_SizeOf( header.GetColumnType( i ) ), i ) );
+    {
+        uint8 fieldSize = DBTYPE_SizeOf( header.GetColumnType( i ) );
+
+        sizeMap.insert( std::make_pair( fieldSize, i ) );
+        unpackedBlobSize += (fieldSize >> 3);
+    }
+
+    std::vector<uint8> unpacked;
+    unpacked.resize( unpackedBlobSize );
+
+    size_t writeIndex = 0;
 
     std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
     cur = sizeMap.begin();
@@ -183,57 +192,93 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
     {
         uint8 len = (cur->first >> 3);
 
-        size_t off = unpacked.size();
-        unpacked.resize( off + len );
+/* util macro's for faster buffer setting
+ * TODO this needs to be reworked into a more generic sollution.
+ */
+#define setchunk(type, x) do{(*((type*)&unpacked[ writeIndex ])) = x; writeIndex+=sizeof(type);}while(0)
+#define setu8(x) setchunk(uint8, x)
+#define seti8(x) setchunk(int8, x)
+#define setu16(x) setchunk(uint16, x)
+#define seti16(x) setchunk(int16, x)
+#define setu32(x) setchunk(uint32, x)
+#define seti32(x) setchunk(int32, x)
+#define setu64(x) setchunk(uint64, x)
+#define seti64(x) setchunk(int64, x)
+#define setfloat(x) setchunk(float, x)
+#define setdouble(x) setchunk(double, x)
 
-        union
-        {
-            int64 i;
-            double r8;
-            float r4;
-        } v;
-        v.i = 0;
-
+        /* note the assert are disabled because of performance flows */
         PyRep *r = rep->GetField( cur->second );
         if( r != NULL )
         {
             switch( header.GetColumnType( cur->second ) )
             {
-                case DBTYPE_I8:
-                case DBTYPE_UI8:
-                case DBTYPE_CY:
-                case DBTYPE_FILETIME:
-                case DBTYPE_I4:
-                case DBTYPE_UI4:
-                case DBTYPE_I2:
-                case DBTYPE_UI2:
-                case DBTYPE_I1:
-                case DBTYPE_UI1:
-                    if( r->IsLong() )
-						v.i = r->AsLong().value;
-					else if( r->IsInt() )
-                        v.i = r->AsInt().value;
-                    break;
-
-                case DBTYPE_R8:
-                    if( r->IsFloat() )
-                        v.r8 = r->AsFloat().value;
-                    break;
-
-                case DBTYPE_R4:
-                    if( r->IsFloat() )
-                        v.r4 = r->AsFloat().value;
-                    break;
-                case DBTYPE_BOOL:
-                case DBTYPE_BYTES:
-                case DBTYPE_STR:
-                case DBTYPE_WSTR:
-                    //! TODO: handle this DB types.
-                    break;
+            case DBTYPE_I8:
+                //assert( r->IsLong() );
+                seti64( ((PyLong*)r)->GetValue());
+                break;
+            case DBTYPE_UI8:
+                //assert( r->IsLong() );
+                setu64( ((PyLong*)r)->GetValue());
+                break;
+            case DBTYPE_CY:
+            case DBTYPE_FILETIME:
+                //assert( r->IsLong() );
+                seti64( ((PyLong*)r)->GetValue());
+                break;
+            case DBTYPE_I4:
+                //assert( r->IsInt() );
+                seti32( ((PyInt*)r)->GetValue());
+                break;
+            case DBTYPE_UI4:
+                //assert( r->IsInt() );
+                setu32( ((PyInt*)r)->GetValue());
+                break;
+            case DBTYPE_I2:
+                //assert( r->IsInt() );
+                seti16( ((PyInt*)r)->GetValue());
+                break;
+            case DBTYPE_UI2:
+                //assert( r->IsInt() );
+                setu16( ((PyInt*)r)->GetValue());
+                break;
+            case DBTYPE_I1:
+                //assert( r->IsInt() );
+                seti8( ((PyInt*)r)->GetValue());
+                break;
+            case DBTYPE_UI1:
+                //assert( r->IsInt() );
+                setu8( ((PyInt*)r)->GetValue());
+                break;
+            case DBTYPE_R8:
+                //assert( r->IsFloat() );
+                setdouble( ((PyFloat*)r)->GetValue());
+                break;
+            case DBTYPE_R4:
+                //assert( r->IsFloat() );
+                setfloat( ((float)((PyFloat*)r)->GetValue()) );
+                break;
+            case DBTYPE_BOOL:
+                /* in correct implemented so we make sure we crash here */
+                assert(false);
+                break;
+            case DBTYPE_BYTES:
+            case DBTYPE_STR:
+            case DBTYPE_WSTR:
+                break;
             }
         }
-
-        memcpy( &unpacked[ off ], &v, len );
+#undef setchunk
+#undef setu8
+#undef seti8
+#undef setu16
+#undef seti16
+#undef setu32
+#undef seti32
+#undef setu64
+#undef seti64
+#undef setfloat
+#undef setdouble
     }
 
     cur = sizeMap.lower_bound( 1 );

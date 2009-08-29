@@ -69,17 +69,8 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
 
     switch(row.ColumnType(column_index))
     {
-        /* hack to handle mixed type fields.
-         * we take the overhead for granted
-         */
     case DBQueryResult::Real:
-        /* check if there is a dot in the field like "100.54" */
-        if(strchr(row.GetText(column_index), '.') != NULL)
-        {
-            return new PyFloat(row.GetDouble(column_index));
-        }
-
-        /* fall trough */
+        return new PyFloat(row.GetDouble(column_index));
     case DBQueryResult::Int8:
     case DBQueryResult::Int16:
     case DBQueryResult::Int32:

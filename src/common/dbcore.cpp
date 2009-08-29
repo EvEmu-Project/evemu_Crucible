@@ -407,8 +407,12 @@ DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
         return Int64;
     case FIELD_TYPE_FLOAT:
     case FIELD_TYPE_DOUBLE:
+        return Real;
+
+        /* capt: this one is very strange */
     case FIELD_TYPE_DECIMAL:    //fixed-point number
         return Real;
+
     case FIELD_TYPE_TIMESTAMP:
     case FIELD_TYPE_DATE:
     case FIELD_TYPE_TIME:

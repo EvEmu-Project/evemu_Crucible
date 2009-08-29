@@ -1084,14 +1084,19 @@ bool PyPackedRow::SetField(uint32 index, PyRep *value)
         // verify type
         if( !DBTYPE_IsCompatible( GetHeader().GetColumnType( index ), *value ) )
         {
+            //sLog.Error("PyPackedRow", "uncompatible DBTYPE");
             PyDecRef( value );
             return false;
         }
     }
 
-    PyRep *&v = mFields.at( index );
-    PyDecRef( v );
-    v = value;
+    /* check if a object is already prescient and replace it if necessary */
+    PyRep *& tObject = mFields.at( index );
+
+    if ( tObject != NULL)
+        PyDecRef( tObject );
+
+    tObject = value;
 
     return true;
 }
@@ -1392,7 +1397,7 @@ PyString::PyString( const char *str, bool type_1 ) : PyRep(PyRep::PyTypeString),
 
 PyString::PyString( const std::string &str, bool type_1 ) : PyRep(PyRep::PyTypeString), is_type_1(type_1), m_hash_cache(-1)
 {
-    value.assign(str.c_str(), str.length());
+    value.assign( str.c_str(), str.length() );
 }
 
 PyString::PyString( const uint8 *data, uint32 len, bool type_1 ) : PyRep(PyRep::PyTypeString), value((const char *) data, len), is_type_1(type_1), m_hash_cache(-1) {}
@@ -1401,7 +1406,7 @@ PyString::~PyString() {}
 
 void PyString::set( const char* str, size_t len )
 {
-     value.assign(str, len);
+    value.assign( str, len );
 }
 
 int32 PyString::hash()
@@ -1412,12 +1417,12 @@ int32 PyString::hash()
 
     if (m_hash_cache != -1)
         return m_hash_cache;
-    len = value.size();
+    len = value.length();
     p = (unsigned char *) value.c_str();
     x = *p << 7;
-    while (--len >= 0)
+    while (--len > 0)
         x = (1000003*x) ^ *p++;
-    x ^= value.size();
+    x ^= value.length();
     if (x == -1)
         x = -2;
     m_hash_cache = x;

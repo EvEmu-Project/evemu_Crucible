@@ -59,7 +59,17 @@ std::string &DBRowDescriptor::GetColumnName(uint32 index) const
 	return _GetColumn( index ).items.at( 0 )->AsString().value;
 }
 
-DBTYPE &DBRowDescriptor::GetColumnType(uint32 index) const
+void DBRowDescriptor::GetColumnName( uint32 index, PyString *& str ) const
+{
+    PyTuple &col = _GetColumn( index );
+
+    /* TODO: when using ref counters for everything we copy a ref here...
+     * so then we should increase it. Not now yet....
+     */
+    str = &col.items.at( 0 )->AsString();
+}
+
+DBTYPE DBRowDescriptor::GetColumnType(uint32 index) const
 {
 	return ( DBTYPE & )_GetColumn( index ).items.at( 1 )->AsInt().value;
 }
@@ -67,11 +77,19 @@ DBTYPE &DBRowDescriptor::GetColumnType(uint32 index) const
 uint32 DBRowDescriptor::FindColumn(const char *name) const
 {
 	uint32 cc = ColumnCount();
-
+    PyString * tempColm = NULL;
+    PyString * stringName = new PyString( name );
+    
 	for( uint32 i = 0; i < cc; i++ )
-		if( GetColumnName( i ) == name )
+    {
+        GetColumnName( i, tempColm );
+		if( stringName->hash() == tempColm->hash() )
+        {
+            PyDecRef( stringName );
 			return i;
-
+        }
+    }
+    PyDecRef( stringName );
 	return cc;
 }
 

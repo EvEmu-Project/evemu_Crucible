@@ -238,6 +238,7 @@ public:
 
     PyFloat *TypedClone() const;
     int32 hash();
+    double GetValue() {return value;}
 
     double value;
 };
