@@ -605,84 +605,61 @@ bool ClassEncodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    bool type2 = false;
-    const char *type = field->Attribute("type2");
-    if(type != NULL)
-		type2 = atobool( type );
+	bool optional = false;
+	const char *optional_str = field->Attribute( "optional" );
+	if( optional_str != NULL )
+		optional = atobool( optional_str );
 
-    // generate header name
-    char hname[16];
-    snprintf(hname, sizeof(hname), "header%d", m_itemNumber++);
+	const char *v = top();
+	if( optional )
+	{
+		fprintf( into,
+			"    if( %s == NULL )\n"
+			"        %s = new PyNone;\n"
+			"    else\n"
+			"    {\n",
+			name,
+				v
+		);
+	}
+	else
+	{
+		fprintf(into,
+			"    if( %s == NULL )\n"
+			"    {\n"
+			"        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
+			"        %s = new PyNone();\n"
+			"    }\n"
+			"    else\n"
+			"    {\n",
+			name,
+				m_name, name,
+				v
+		);
+	}
 
-    fprintf(into,
-        "   PyRep *%s;\n",
-        hname
-    );
+	if( m_fast )
+	{
+		fprintf( into,
+			"        %s = %s;\n"
+			"        %s = NULL;\n",
+			v, name,
+			name
+		);
+	}
+	else
+	{
+		fprintf( into,
+			"        %s = %s->TypedClone();\n",
+			v, name
+		);
+	}
 
-    // encode header
-    push(hname);
-    if(!ProcessFields(into, field, 1))
-        return false;
+	fprintf( into,
+		"    }\n"
+	);
 
-    // generate our temp name
-    char iname[16];
-    snprintf(iname, sizeof(iname), "nobj_%d", m_itemNumber++);
-
-    // create object
-    fprintf(into,
-        "   PyObjectEx *%s = new PyObjectEx(\n"
-        "       %s, %s\n"
-        "   );\n",
-        iname,
-            (type2 ? "true" : "false"), hname
-    );
-
-    if(m_fast) {
-        fprintf(into,
-            "   %s->list_data = %s_list;    // steal the items\n"
-            "   %s_list.clear();\n",
-            iname, name,
-            name
-        );
-    } else {
-        fprintf(into,
-            "   PyObjectEx::list_iterator lcur, lend;\n"
-            "   lcur = %s_list.begin();\n"
-            "   lend = %s_list.end();\n"
-            "   for(; lcur != lend; lcur++)\n"
-            "       %s->list_data.push_back((*lcur)->Clone());\n",
-            name,
-            name,
-                iname
-        );
-    }
-
-    if(m_fast) {
-        fprintf(into,
-            "   %s->dict_data = %s_dict;    // steal the items\n"
-            "   %s_dict.clear();\n",
-            iname, name,
-            name
-        );
-    } else {
-        fprintf(into,
-            "   PyObjectEx::dict_iterator dcur, dend;\n"
-            "   dcur = %s_dict.begin();\n"
-            "   dend = %s_dict.end();\n"
-            "   for(; dcur != dend; dcur++)\n"
-            "       %s->dict_data[dcur->first->Clone()] = dcur->second->Clone();\n",
-            name,
-            name,
-                iname
-        );
-    }
-
-    fprintf(into,
-        "   %s = %s;\n",
-        top(), iname
-    );
-
-    pop();
+	pop();
     return true;
 }
 

@@ -124,8 +124,14 @@ bool ClassConstructGenerator::Process_object(FILE *into, TiXmlElement *field) {
 }
 
 bool ClassConstructGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
-	if(!ProcessFields(into, field, 1))
+	const char *name = field->Attribute( "name" );
+	if( name == NULL )
+	{
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute.", field->Row() );
 		return false;
+	}
+
+	fprintf( into, "\t%s = NULL;\n", name );
 	return true;
 }
 

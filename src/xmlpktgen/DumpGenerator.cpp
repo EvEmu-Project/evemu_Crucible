@@ -317,58 +317,37 @@ bool ClassDumpGenerator::Process_object(FILE *into, TiXmlElement *field) {
     return true;
 }
 
-bool ClassDumpGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
-    const char *name = field->Attribute("name");
-    if(name == NULL) {
-        _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+bool ClassDumpGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
+{
+    const char *name = field->Attribute( "name" );
+    if( name == NULL )
+	{
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
+	const char *type = field->Attribute( "type" );
+	if( type == NULL )
+	{
+		_log( COMMON__ERROR, "field at line %d is missing the type attribute.", field->Row() );
+		return false;
+	}
 
-    fprintf(into,
-        "   _log(l_type, \"%%sObjectEx:\", pfx);\n"
-        "   _log(l_type, \"%%sHeader:\", pfx);\n"
-    );
-
-    if(!ProcessFields(into, field, 1))
-        return false;
-
-    fprintf(into,
-        "   _log(l_type, \"%%sList data:\", pfx);\n"
-        "   PyObjectEx::const_list_iterator lcur, lend;\n"
-        "   lcur = %s_list.begin();\n"
-        "   lend = %s_list.end();\n"
-        "   for(uint32 i = 0; lcur != lend; lcur++, i++) {\n"
-        "       char istr[16];\n"
-        "       snprintf(istr, sizeof(istr), \"  [%%02u] \", i);\n"
-        "       std::string n(pfx);\n"
-        "       n += istr;\n"
-        "       (*lcur)->Dump(l_type, n.c_str());\n"
-        "   }\n",
-        name,
-        name
-    );
-
-    fprintf(into,
-        "   _log(l_type, \"%%sDict data:\", pfx);\n"
-        "   PyObjectEx::const_dict_iterator dcur, dend;\n"
-        "   dcur = %s_dict.begin();\n"
-        "   dend = %s_dict.end();\n"
-        "   for(uint32 i = 0; dcur != dend; dcur++) {\n"
-        "       char istr[16];\n"
-        "\n"
-        "       snprintf(istr, sizeof(istr), \"  [%%02u] Key: \", i);\n"
-        "       std::string n(pfx);\n"
-        "       n += istr;\n"
-        "       dcur->first->Dump(l_type, n.c_str());\n"
-        "\n"
-        "       snprintf(istr, sizeof(istr), \"  [%%02u] Value: \", i);\n"
-        "       n = pfx;\n"
-        "       n += istr;\n"
-        "       dcur->second->Dump(l_type, n.c_str());\n"
-        "   }\n",
-        name,
-        name
-    );
+	fprintf( into,
+		"	_log( l_type, \"%%s%s (%s):\", pfx );\n"
+		"	if( %s == NULL )\n"
+		"		_log( l_type, \"%%s	NULL\", pfx );\n"
+		"	else\n"
+		"	{\n"
+		"		std::string %s_n( pfx );\n"
+		"		%s_n += \"	\";\n"
+		"		%s->Dump( l_type, %s_n.c_str() );\n"
+		"	}\n",
+		name, type,
+		name,
+			name,
+			name,
+			name, name
+	);
 
     return true;
 }

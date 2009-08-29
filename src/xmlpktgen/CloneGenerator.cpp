@@ -242,37 +242,24 @@ bool ClassCloneGenerator::Process_object(FILE *into, TiXmlElement *field) {
     return true;
 }
 
-bool ClassCloneGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
-    const char *name = field->Attribute("name");
-    if(name == NULL) {
-        _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+bool ClassCloneGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
+{
+    const char *name = field->Attribute( "name" );
+    if( name == NULL )
+	{
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
-    if(!ProcessFields(into, field, 1))
-        return false;
-
-    fprintf(into,
-        "   PyObjectEx::const_list_iterator lcur, lend;\n"
-        "   lcur = from->%s_list.begin();\n"
-        "   lend = from->%s_list.end();\n"
-        "   for(; lcur != lend; lcur++)\n"
-        "       %s_list.push_back((*lcur)->Clone());\n",
-        name,
-        name,
-            name
-    );
-
-    fprintf(into,
-        "   PyObjectEx::const_dict_iterator dcur, dend;\n"
-        "   dcur = from->%s_dict.begin();\n"
-        "   dend = from->%s_dict.end();\n"
-        "   for(; dcur != dend; dcur++)\n"
-        "       %s_dict[dcur->first->Clone()] = dcur->second->Clone();\n",
-        name,
-        name,
-            name
-    );
+	fprintf( into,
+		"	if( from->%s == NULL )\n"
+		"		%s = NULL;\n"
+		"	else\n"
+		"		%s = from->%s->TypedClone();\n",
+		name,
+			name,
+			name, name
+	);
 
     return true;
 }

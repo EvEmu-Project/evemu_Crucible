@@ -645,6 +645,8 @@ public:
 	PyDict &GetKeywords() const;
 	PyRep *FindKeyword(const char *keyword) const;
 
+	PyObjectEx_Type1 *TypedClone() const { return static_cast<PyObjectEx_Type1 *>( PyObjectEx::TypedClone() ); }
+
 protected:
 	static PyTuple *_CreateHeader(const char *type, PyTuple *args, PyDict *keywords);
 };
@@ -663,6 +665,8 @@ public:
 	PyTuple &GetArgs() const;
 	PyDict &GetKeywords() const;
 	PyRep *FindKeyword(const char *keyword) const;
+
+	PyObjectEx_Type2 *TypedClone() const { return static_cast<PyObjectEx_Type2 *>( PyObjectEx::TypedClone() ); }
 
 protected:
 	static PyTuple *_CreateHeader(PyTuple *args, PyDict *keywords);

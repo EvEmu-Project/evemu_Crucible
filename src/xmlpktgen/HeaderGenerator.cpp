@@ -272,33 +272,29 @@ bool ClassHeaderGenerator::Process_object(FILE *into, TiXmlElement *field) {
     return true;
 }
 
-bool ClassHeaderGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
-    const char *name = field->Attribute("name");
-    if(name == NULL) {
-        _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+bool ClassHeaderGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
+{
+    const char *name = field->Attribute( "name" );
+    if( name == NULL )
+	{
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
-    char lname[16];
-    snprintf(lname, sizeof(lname), "%s_list", name);
-    if(m_namesUsed.find(lname) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), lname);
+    if( m_namesUsed.find( name ) != m_namesUsed.end() )
+	{
+        _log( COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name );
         return false;
     }
-    char dname[16];
-    snprintf(dname, sizeof(dname), "%s_dict", name);
-    if(m_namesUsed.find(dname) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), dname);
-        return false;
-    }
+	m_namesUsed.insert( name );
 
-    fprintf(into, "\t/* ObjectEx %s's header: */\n", name);
-    if(!ProcessFields(into, field, 1))
-        return false;
+	const char *type = field->Attribute( "type" );
+	if( type == NULL )
+	{
+		_log( COMMON__ERROR, "field at line %d is missing the type attribute.", field->Row() );
+		return false;
+	}
 
-    fprintf(into, "\t/* ObjectEx %s's contents: */\n", name);
-    fprintf(into, "\tPyObjectEx::list_type\t%s;\n", lname);
-    fprintf(into, "\tPyObjectEx::dict_type\t%s;\n", dname);
-
+	fprintf( into, "\t%s\t*%s;\n", type, name );
     return true;
 }
 

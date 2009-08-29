@@ -2,6 +2,8 @@
 
 <Elements>
 
+<include file="PasswordString.h" />
+
 <!-- this is not being used at the moment, more hrer for completeness -->
 <element name="VersionExchange">
  <InlineTuple>
@@ -85,7 +87,7 @@
 		<string name="user_name" />
 	  </IDEntry>
 	  <IDEntry key="user_password">
-		<raw name="user_password" />
+		<object_ex name="user_password" type="PasswordString" optional="true" />
 	  </IDEntry>
 	  <IDEntry key="user_password_hash">
 		<string name="user_password_hash" none_marker="" />

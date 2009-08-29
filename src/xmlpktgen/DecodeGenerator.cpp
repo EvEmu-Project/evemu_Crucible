@@ -877,56 +877,59 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	return true;
 }
 
-bool ClassDecodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+bool ClassDecodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
+{
+	const char *name = field->Attribute( "name" );
+	if( name == NULL )
+	{
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
 		return false;
 	}
-	bool type2 = false;
-	const char *type = field->Attribute("type2");
-	if(type != NULL)
-		type2 = atobool( type );
+	const char *type = field->Attribute("type");
+	if( type == NULL )
+	{
+		_log( COMMON__ERROR, "field at line %d is missing the type attribute.", field->Row() );
+		return false;
+	}
+	bool optional = false;
+	const char *optional_str = field->Attribute( "optional" );
+	if( optional_str != NULL )
+		optional = atobool( optional_str );
 
-	char iname[16];
-	snprintf(iname, sizeof(iname), "nobj_%d", m_itemNumber++);
 	const char *v = top();
+	if( optional )
+	{
+		fprintf( into,
+			"    if(%s->IsNone())\n"
+			"    {\n"
+			"        PyDecRef( %s );\n"
+			"        %s = NULL;\n"
+			"    }\n"
+			"    else\n",
+			v,
+				name,
+				name
+		);
+	}
 
-	fprintf(into,
-		"	if(!%s->IsObjectEx()) {\n"
+	fprintf( into,
+		"    if(%s->IsObjectEx())\n"
+		"    {\n"
+		"        PyDecRef( %s );\n"
+		"        %s = (%s *)&%s->AsObjectEx();\n"
+		"        %s = NULL;\n"
+		"    }\n"
+		"    else\n"
+		"    {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong type: %%s\", %s->TypeString());\n"
-		"		delete packet;\n"
-		"		return false;\n"
-		"	}\n"
-		"	PyObjectEx *%s = (PyObjectEx *) %s;\n"
-		"	if(%s%s->is_type_2) {\n"
-		"		_log(NET__PACKET_ERROR, \"Decode %s failed: expected %s %s of type 2, but it %s\");\n"
 		"		delete packet;\n"
 		"		return false;\n"
 		"	}\n",
 		v,
-			m_name, iname, v,
-		iname, v,
-		(type2 ? "!" : ""), iname,
-			m_name, iname, (type2 ? "to be" : "not to be"), (type2 ? "is not" : "is")
-	);
-
-	char hname[32];
-	snprintf(hname, sizeof(hname), "%s->header", iname);
-	// decode the header
-	push(hname);
-	if(!ProcessFields(into, field, 1))
-		return false;
-
-	fprintf(into,
-		"	%s_list = %s->list_data;\n"
-		"	%s->list_data.clear();\n"
-		"	%s_dict = %s->dict_data;\n"
-		"	%s->dict_data.clear();\n",
-		name, iname,
-		iname,
-		name, iname,
-		iname
+			name,
+			name, type, v,
+			v,
+			m_name, name, v
 	);
 
 	pop();

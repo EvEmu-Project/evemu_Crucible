@@ -50,6 +50,8 @@ public:
 	 */
 	std::string &GetPassword() const;
 
+	PasswordString *TypedClone() const { return static_cast<PasswordString *>( PyObjectEx::TypedClone() ); }
+
 protected:
 	static PyTuple *_CreateArgs(const char *password);
 };

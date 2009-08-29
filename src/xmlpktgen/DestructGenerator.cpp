@@ -159,38 +159,16 @@ bool ClassDestructGenerator::Process_object(FILE *into, TiXmlElement *field) {
     return true;
 }
 
-bool ClassDestructGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
-    const char *name = field->Attribute("name");
-    if(name == NULL) {
-        _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+bool ClassDestructGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
+{
+    const char *name = field->Attribute( "name" );
+    if( name == NULL )
+	{
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
-    if(!ProcessFields(into, field, 1))
-        return false;
-
-    fprintf(into,
-        "   PyObjectEx::list_iterator lcur, lend;\n"
-        "   lcur = %s_list.begin();\n"
-        "   lend = %s_list.end();\n"
-        "   for(; lcur != lend; lcur++)\n"
-        "       delete *lcur;\n",
-        name,
-        name
-    );
-
-    fprintf(into,
-        "   PyObjectEx::dict_iterator dcur, dend;\n"
-        "   dcur = %s_dict.begin();\n"
-        "   dend = %s_dict.end();\n"
-        "   for(; dcur != dend; dcur++) {\n"
-        "       delete dcur->first;\n"
-        "       delete dcur->second;\n"
-        "   }\n",
-        name,
-        name
-    );
-
+	fprintf( into, "\tPyDecRef( %s );\n", name );
     return true;
 }
 

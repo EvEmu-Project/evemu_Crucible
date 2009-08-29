@@ -50,6 +50,8 @@ public:
 	 */
 	void AddKeyword(const char *name, PyRep *value);
 
+	GPSTransportClosed *TypedClone() const { return static_cast<GPSTransportClosed *>( PyObjectEx::TypedClone() ); }
+
 protected:
 	PyDict &_GetReasonArgs() const;
 
@@ -78,6 +80,8 @@ public:
 	 * @param[in] value Value to be associated with the keyword.
 	 */
 	void AddKeyword(const char *name, PyRep *value);
+
+	UserError *TypedClone() const { return static_cast<UserError *>( PyObjectEx::TypedClone() ); }
 
 protected:
 	PyDict &_GetTupleKeywords() const;

@@ -278,7 +278,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
 
             _log(NET__PRES_DEBUG, "%s: Received Client Challenge.", GetConnectedAddress().c_str());
 
-            if(m_request->user_password->IsNone()) {
+            if( m_request->user_password == NULL ) {
                 //this is little wrong because on live they send password version always, but only once,
                 //but we send password version when we get request with hashed password ...
                 _log(NET__PRES_DEBUG, "%s: Got hashed password, requesting plain.", GetConnectedAddress().c_str());
