@@ -23,14 +23,11 @@
 	Author:		Zhur
 */
 
-
 #ifndef __PYSERVICECD_H_INCL__
 #define __PYSERVICECD_H_INCL__
 
-
 #include "PyCallable.h"
 #include "../common/logsys.h"
-
 
 /*                                                                              
  * This whole concept exists to allow the generic PyService to make a
@@ -65,9 +62,7 @@ public:
 		}
 		
 		CallProc p = res->second;
-		return( 
-			(m_parent->*p)(call)
-		);
+		return (m_parent->*p)(call);
 	}
 	
 protected:   //_MAY_ consume args
@@ -93,12 +88,5 @@ protected:   //_MAY_ consume args
 		Dispatcher(objname *c) \
 		: PyCallableDispatcher<objname>(c) {} \
 	};
-  
-
-
-
-
 
 #endif // __PYSERVICECD_H_INCL__
-
-

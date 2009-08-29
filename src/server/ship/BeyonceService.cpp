@@ -119,7 +119,6 @@ PyResult BeyonceService::Handle_GetFormations(PyCallArgs &call) {
 	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
 }
 
-
 /*
 PyResult BeyonceService::Handle_(PyCallArgs &call) {
 	PyRep *result = NULL;
@@ -127,8 +126,6 @@ PyResult BeyonceService::Handle_(PyCallArgs &call) {
 	return result;
 }
 */
-
-
 
 PyResult BeyonceBound::Handle_FollowBall(PyCallArgs &call) {
 	Call_FollowBall args;
