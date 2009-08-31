@@ -62,11 +62,6 @@ public:
 	 * @return Name of column.
 	 */
     PyString &GetColumnName(uint32 index) const;
-    /**
-     * @param[in] index Index of column name of which should be returned.
-     * @param[out] str PyString pointer that gets set with the column name.
-     */
-    void GetColumnName(uint32 index, PyString *& str) const;
 	/**
 	 * @param[in] index Index of column type of which should be returned.
 	 * @return Type of column.

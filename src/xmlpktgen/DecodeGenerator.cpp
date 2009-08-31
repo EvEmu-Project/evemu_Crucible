@@ -55,9 +55,8 @@ bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 	TiXmlNode *i = NULL;
 	int count = 0;
 	while( (i = field->IterateChildren( i )) ) {
-		if(i->Type() != TiXmlNode::ELEMENT)
-			continue;	//skip crap we dont care about
-		count++;
+		if(i->Type() == TiXmlNode::ELEMENT)
+			count++;
 	}
 
 	const char *v = top();
@@ -1045,21 +1044,22 @@ bool ClassDecodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 		return false;
 	}
 	
-	const char *v = top();
-	
-	//this should be done better:
-	const char *optional = field->Attribute("optional");
 	bool is_optional = false;
-	if(optional != NULL && std::string("true") == optional)
-		is_optional = true;
+	const char *optional = field->Attribute("optional");
+	if(optional != NULL)
+		is_optional = atobool( optional );
+
+	const char *v = top();
 	if(is_optional) {
 		fprintf(into, 
 			"	if(%s->IsNone()) {\n"
-			"		%s.clear();\n"
+			"		PySafeDecRef( %s );\n"
+			"		%s = NULL;\n"
 			"	} else {\n",
 			v,
-				name);
-		is_optional = true;
+				name,
+				name
+		);
 	}
 	
 	fprintf(into, 
@@ -1071,7 +1071,10 @@ bool ClassDecodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 		"	%s = (PyTuple *) %s;\n"
 		"	%s = NULL;\n"
 		"	\n",
-		v, m_name, name, v, name, v, v
+		v,
+			m_name, name, v,
+		name, v,
+		v
 		);
 	
 	if(is_optional) {

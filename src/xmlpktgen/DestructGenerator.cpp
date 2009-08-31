@@ -202,7 +202,7 @@ bool ClassDestructGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\tdelete %s;\n", name);
+    fprintf(into, "\tPySafeDecRef( %s );\n", name);
     return true;
 }
 

@@ -387,7 +387,7 @@ public:
      *
      * @return the length of the string as size_t
      */
-    const size_t size() const { return m_value.size(); }
+    size_t size() const { return m_value.size(); }
 
 	/**
 	 * @brief Checks if string is empty or not.
@@ -404,12 +404,12 @@ public:
 	bool isType1() const { return m_is_type_1; }
 
 	/**
-	 * @brief Overload of operator== for easier comparisons.
+	 * @brief Overload of operator== for easier and more performant (hash) comparisons.
 	 *
 	 * @param[in] oth The other string for comparison.
 	 * @return True if strings are equal, false otherwise.
 	 */
-	bool operator==(const PyString &oth) const { return ( m_value == oth.m_value ); }
+	bool operator==(const PyString &oth) const { return ( hash() == oth.hash() ); }
 
 	/**
 	 * @brief Assigment operator.
@@ -421,7 +421,7 @@ public:
 	 * @param[in] oth String content of which should be assigned.
 	 * @return Itself.
 	 */
-	PyString &operator=(const PyString &oth);
+	PyString& operator=(const PyString &oth);
 
     int32 hash() const;
 

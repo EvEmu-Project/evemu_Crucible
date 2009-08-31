@@ -82,14 +82,14 @@ bool ClassEncodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
     TiXmlNode *i = NULL;
     int count = 0;
     while( (i = field->IterateChildren( i )) ) {
-        if(i->Type() != TiXmlNode::ELEMENT)
-            continue;   //skip crap we dont care about
-        count++;
+        if(i->Type() == TiXmlNode::ELEMENT)
+            count++;
     }
 
     int num = m_itemNumber++;
     char iname[16];
     snprintf(iname, sizeof(iname), "tuple%d", num);
+
     //now we can generate the tuple decl
     fprintf(into, "\tPyTuple *%s = new PyTuple(%d);\n", iname, count);
 
@@ -766,6 +766,11 @@ bool ClassEncodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         return false;
     }
 
+    bool is_optional = false;
+    const char *optional = field->Attribute("optional");
+    if(optional != NULL)
+        is_optional = atobool( optional );
+
     fprintf(into,
         "   if(%s == NULL) {\n"
         "       _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty tuple.\");\n"
@@ -776,10 +781,6 @@ bool ClassEncodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
             name
         );
 
-    const char *optional = field->Attribute("optional");
-    bool is_optional = false;
-    if(optional != NULL && std::string("true") == optional)
-        is_optional = true;
     if(is_optional) {
         fprintf(into, " if(%s->empty()) {\n"
                       "     %s = new PyNone();\n"

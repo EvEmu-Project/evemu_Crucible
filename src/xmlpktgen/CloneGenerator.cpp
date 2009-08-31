@@ -322,8 +322,9 @@ bool ClassCloneGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
+
     fprintf(into,
-        "   delete %s;\n"
+		"   PySafeDecRef( %s );\n"
         "   if(from->%s == NULL) {\n"
             //TODO: log an error
         "       %s = NULL;\n"
@@ -333,7 +334,10 @@ bool ClassCloneGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         name,
         name,
             name,
-            name, name);
+
+            name, name
+	);
+
     return true;
 }
 

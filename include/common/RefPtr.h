@@ -34,7 +34,7 @@
  *
  * \author Bloody.Rabbit
  */
-template<class _Ty>
+template<typename X>
 class RefPtr
 {
 public:
@@ -43,34 +43,34 @@ public:
 	 *
 	 * @param[in] p Pointer to object to be referenced.
 	 */
-	explicit RefPtr(_Ty *p = NULL)
+	explicit RefPtr(X* p = NULL)
 	: mPtr( p )
 	{
 		if( *this )
-			mPtr->IncRef();
+			(*this)->IncRef();
 	}
 	/**
 	 * Copy constructor.
 	 *
 	 * @param[in] oth Object to copy the reference from.
 	 */
-	RefPtr(const RefPtr &oth)
-	: mPtr( oth.mPtr )
+	RefPtr(const RefPtr& oth)
+	: mPtr( oth.get() )
 	{
 		if( *this )
-			mPtr->IncRef();
+			(*this)->IncRef();
 	}
 	/**
 	 * Casting copy constructor.
 	 *
 	 * @param[in] oth Object to copy the reference from.
 	 */
-	template<class _Ty2>
-	RefPtr(const RefPtr<_Ty2> &oth)
+	template<typename Y>
+	RefPtr(const RefPtr<Y>& oth)
 	: mPtr( oth.get() )
 	{
 		if( *this )
-			mPtr->IncRef();
+			(*this)->IncRef();
 	}
 
 	/**
@@ -79,7 +79,7 @@ public:
 	~RefPtr()
 	{
 		if( *this )
-			mPtr->DecRef();
+			(*this)->DecRef();
 	}
 
 	/**
@@ -87,15 +87,15 @@ public:
 	 *
 	 * @param[in] oth Object to copy the reference from.
 	 */
-	RefPtr &operator=(const RefPtr &oth)
+	RefPtr& operator=(const RefPtr& oth)
 	{
 		if( *this )
-			mPtr->DecRef();
+			(*this)->DecRef();
 
-		mPtr = oth.mPtr;
+		mPtr = oth.get();
 
 		if( *this )
-			mPtr->IncRef();
+			(*this)->IncRef();
 
 		return *this;
 	}
@@ -104,16 +104,16 @@ public:
 	 *
 	 * @param[in] oth Object to copy the reference from.
 	 */
-	template<class _Ty2>
-	RefPtr &operator=(const RefPtr<_Ty2> &oth)
+	template<typename Y>
+	RefPtr& operator=(const RefPtr<Y>& oth)
 	{
 		if( *this )
-			mPtr->DecRef();
+			(*this)->DecRef();
 
 		mPtr = oth.get();
 
 		if( *this )
-			mPtr->IncRef();
+			(*this)->IncRef();
 
 		return *this;
 	}
@@ -121,23 +121,23 @@ public:
 	/**
 	 * @return Stored reference.
 	 */
-	_Ty *get() const { return mPtr; }
+	X* get() const { return mPtr; }
 
 	/**
 	 * @return True if stores a reference, false otherwise.
 	 */
-	operator bool() const { return ( get() != NULL ); }
+	operator bool() const { return !( get() == NULL ); }
 
-	_Ty &operator*() const { return *get(); }
-	_Ty *operator->() const { return get(); }
+	X& operator*() const { assert( *this ); return *get(); }
+	X* operator->() const { assert( *this ); return get(); }
 
 	/**
 	 * Compares two references.
 	 *
 	 * @return True if both references are of same object, false if not.
 	 */
-	template<class _Ty2>
-	bool operator==(const RefPtr<_Ty2> &oth) const
+	template<typename Y>
+	bool operator==(const RefPtr<Y>& oth) const
 	{
 		return ( get() == oth.get() );
 	}
@@ -145,14 +145,14 @@ public:
 	/**
 	 * Acts as static_cast.
 	 */
-	template<class _Ty2>
-	static RefPtr StaticCast(const RefPtr<_Ty2> &oth)
+	template<typename Y>
+	static RefPtr StaticCast(const RefPtr<Y>& oth)
 	{
-		return RefPtr( static_cast<_Ty *>( oth.get() ) );
+		return RefPtr( static_cast<X*>( oth.get() ) );
 	}
 
 protected:
-	_Ty *mPtr;
+	X* mPtr;
 };
 
 /**
@@ -166,7 +166,7 @@ protected:
  */
 class RefObject
 {
-	template<class _Ty>
+	template<typename X>
 	friend class RefPtr;
 public:
 	/**

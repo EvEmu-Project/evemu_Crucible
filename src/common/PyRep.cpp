@@ -356,7 +356,7 @@ int32 PyNone::hash() const
 /* PyRep Buffer Class                                                   */
 /************************************************************************/
 PyBuffer::PyBuffer( const uint8 *buffer, size_t length ) : PyRep( PyRep::PyTypeBuffer ),
-  m_value( (uint8*)malloc( length ) ), m_length( length ), m_hash_cache( -1 )
+  m_value( new uint8[ length ] ), m_length( length ), m_hash_cache( -1 )
 {
     assert( m_value );
 
@@ -370,13 +370,13 @@ PyBuffer::PyBuffer( uint8 **buffer, size_t length ) : PyRep( PyRep::PyTypeBuffer
 }
 
 PyBuffer::PyBuffer( size_t length ) : PyRep( PyRep::PyTypeBuffer ),
-  m_value( (uint8*)malloc( length ) ), m_length( length ), m_hash_cache( -1 )
+  m_value( new uint8[ length ] ), m_length( length ), m_hash_cache( -1 )
 {
     assert( m_value );
 }
 
 PyBuffer::PyBuffer( const PyString &str ) : PyRep( PyRep::PyTypeBuffer ),
-  m_value( (uint8*)malloc( str.size() ) ), m_length( str.size() ), m_hash_cache( -1 )
+  m_value( new uint8[ str.size() ] ), m_length( str.size() ), m_hash_cache( -1 )
 {
     assert( m_value );
 
@@ -384,7 +384,7 @@ PyBuffer::PyBuffer( const PyString &str ) : PyRep( PyRep::PyTypeBuffer ),
 }
 
 PyBuffer::PyBuffer( const PyBuffer &buffer ) : PyRep( PyRep::PyTypeBuffer ),
-m_value( (uint8*)malloc( buffer.size() ) ), m_length( buffer.size() ), m_hash_cache( buffer.m_hash_cache )
+m_value( new uint8[ buffer.size() ] ), m_length( buffer.size() ), m_hash_cache( buffer.m_hash_cache )
 {
     assert( m_value );
 
@@ -393,7 +393,7 @@ m_value( (uint8*)malloc( buffer.size() ) ), m_length( buffer.size() ), m_hash_ca
 
 PyBuffer::~PyBuffer()
 {
-    free( m_value );
+    delete m_value;
 }
 
 void PyBuffer::Dump(FILE *into, const char *pfx) const {
