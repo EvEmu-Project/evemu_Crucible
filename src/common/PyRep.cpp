@@ -35,6 +35,7 @@
 #include "DBRowDescriptor.h"
 #include "LogNew.h"
 #include "utils_hex.h"
+#include "utils_string.h"
 #include <float.h>
 
 /************************************************************************/
@@ -693,7 +694,7 @@ PySubStream::PySubStream(const uint8 *buffer, uint32 len)
 
 PySubStream::~PySubStream() {
     SafeFree( data );
-    PyDecRef( decoded );
+    PySafeDecRef( decoded );
 }
 
 void PySubStream::Dump(FILE *into, const char *pfx) const {
@@ -901,7 +902,7 @@ bool PyDict::SetItem( PyRep * key, PyRep * value )
     //PyIncRef( key );
     //PyIncRef( value );
 
-    items.insert( std::make_pair( key, value );
+    items.insert( std::make_pair( key, value ) );
     return true;
 }
 
@@ -987,7 +988,7 @@ PyPackedRow::~PyPackedRow()
     cur = mFields.begin();
     end = mFields.end();
     for(; cur != end; cur++)
-        PyXDecRef( *cur );
+        PySafeDecRef( *cur );
 }
 
 void PyPackedRow::Dump(FILE *into, const char *pfx) const

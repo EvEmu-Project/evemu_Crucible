@@ -168,7 +168,7 @@ bool ClassDestructGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
         return false;
     }
 
-	fprintf( into, "\tPyDecRef( %s );\n", name );
+	fprintf( into, "\tPySafeDecRef( %s );\n", name );
     return true;
 }
 

@@ -902,7 +902,7 @@ bool ClassDecodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
 		fprintf( into,
 			"    if(%s->IsNone())\n"
 			"    {\n"
-			"        PyDecRef( %s );\n"
+			"        PySafeDecRef( %s );\n"
 			"        %s = NULL;\n"
 			"    }\n"
 			"    else\n",
@@ -915,7 +915,7 @@ bool ClassDecodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
 	fprintf( into,
 		"    if(%s->IsObjectEx())\n"
 		"    {\n"
-		"        PyDecRef( %s );\n"
+		"        PySafeDecRef( %s );\n"
 		"        %s = (%s *)&%s->AsObjectEx();\n"
 		"        %s = NULL;\n"
 		"    }\n"

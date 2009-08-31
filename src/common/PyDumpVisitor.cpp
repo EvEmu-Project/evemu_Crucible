@@ -29,6 +29,7 @@
 #include "PyDumpVisitor.h"
 #include "misc.h"
 #include "packet_functions.h"
+#include "utils_string.h"
 #include "DBRowDescriptor.h"
 
 //! the identation amount

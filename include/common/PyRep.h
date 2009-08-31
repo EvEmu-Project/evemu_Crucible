@@ -66,12 +66,12 @@ extern const char *PyRepTypeString[];
  * debug macro's to ease the increase and decrease of references of a object
  * using this also increases the possibility of debugging it.
  */
-#define PyIncRef(op)(op)->IncRef()
-#define PyDecRef(op)(op)->DecRef()
+#define PyIncRef(op) (op)->IncRef()
+#define PyDecRef(op) (op)->DecRef()
 
 /* Macros to use in case the object pointer may be NULL */
-#define PyXIncRef(op) if ((op) == NULL) ; else PyIncRef(op)
-#define PyXDecRef(op) if ((op) == NULL) ; else PyDecRef(op)
+#define PySafeIncRef(op) if( (op) == NULL ) ; else PyIncRef( op )
+#define PySafeDecRef(op) if( (op) == NULL ) ; else PyDecRef( op )
 
 /** PyRep base Python wire object
  */
@@ -79,7 +79,7 @@ class PyRep {
 public:
     /** PyRep Python wire object types
      */
-    typedef enum _Type {
+    enum PyType {
         PyTypeInt               = 0,
         PyTypeLong              = 1,
         PyTypeFloat             = 2,
@@ -98,7 +98,7 @@ public:
         PyTypePackedRow         = 15,
         PyTypeError             = 16,
         PyTypeMax               = 16,
-    } PyType;
+    };
 
     PyRep(PyType t);
     virtual ~PyRep();

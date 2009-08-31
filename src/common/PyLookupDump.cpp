@@ -28,6 +28,7 @@
 #include "PyLookupDump.h"
 
 #include "misc.h"
+#include "utils_string.h"
 #include "EVEUtils.h"
 
 static const uint32 MIN_RESOLVABLE_INT = 100;

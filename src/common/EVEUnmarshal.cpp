@@ -32,6 +32,7 @@
 #include "../common/packet_dump.h"
 #include "../common/packet_functions.h"
 #include "../common/misc.h"
+#include "utils_string.h"
 
 #include "PyVisitor.h"
 #include "PyRep.h"

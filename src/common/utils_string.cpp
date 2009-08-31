@@ -24,6 +24,8 @@
 */
 
 #include "common.h"
+
+#include "PyRep.h"
 #include "utils_string.h"
 
 size_t py_mbstowcs( uint16 * wcstr, const char * mbstr, size_t max )
