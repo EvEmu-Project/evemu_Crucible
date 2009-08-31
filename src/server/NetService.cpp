@@ -141,7 +141,7 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 		//register it
 		m_manager->cache_service->GiveCache(&str, (PyRep **)&dict);
 	}
-	serverinfo = m_manager->cache_service->GetCacheHint(str.value.c_str());
+	serverinfo = m_manager->cache_service->GetCacheHint(str.content());
 
 	PyDict *initvals = new PyDict();
     //send all the cache hints needed for server info.

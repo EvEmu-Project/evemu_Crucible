@@ -54,9 +54,9 @@ uint32 DBRowDescriptor::ColumnCount() const
 	return _GetColumnList().size();
 }
 
-std::string &DBRowDescriptor::GetColumnName(uint32 index) const
+PyString &DBRowDescriptor::GetColumnName(uint32 index) const
 {
-	return _GetColumn( index ).items.at( 0 )->AsString().value;
+	return _GetColumn( index ).items.at( 0 )->AsString();
 }
 
 void DBRowDescriptor::GetColumnName( uint32 index, PyString *& str ) const

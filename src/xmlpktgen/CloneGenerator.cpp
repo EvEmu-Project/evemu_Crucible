@@ -276,7 +276,7 @@ bool ClassCloneGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
             //TODO: log an error
         "       %s = NULL;\n"
         "   } else {\n"
-        "       %s = from->%s->TypedClone();\n"
+		"       %s = new PyBuffer( *from->%s );\n"
         "   }\n",
         name,
         name,

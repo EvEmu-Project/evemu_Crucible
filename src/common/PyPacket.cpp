@@ -381,12 +381,12 @@ bool PyAddress::Decode(PyRep *&in_object) {
         return false;
     }
     PyString *types = (PyString *) args->items[0];
-    if(types->value.empty()) {
+    if(types->empty()) {
         codelog(NET__PACKET_ERROR, "Empty string for address type element (0)");
         SafeDelete(base);
         return false;
     }
-    switch(types->value[0]) {
+    switch( (*types)[0] ) {
     case Any: {
         if(args->items.size() != 3) {
             codelog(NET__PACKET_ERROR, "Invalid number of elements in Any address tuple: %lu", args->items.size());
@@ -457,8 +457,8 @@ bool PyAddress::Decode(PyRep *&in_object) {
         PyString *bid = (PyString *) args->items[1];
         PyString *idt = (PyString *) args->items[3];
 
-        service = bid->value;
-        bcast_idtype = idt->value;
+        service = bid->content();
+        bcast_idtype = idt->content();
 
         //items[2] is either a list or a tuple.
         /*
@@ -471,7 +471,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
         break;
     }
     default:
-        codelog(NET__PACKET_ERROR, "Unknown address type: %c", types->value[0]);
+        codelog(NET__PACKET_ERROR, "Unknown address type: %c", (*types)[0] );
         SafeDelete(base);
         return false;
     }
@@ -555,7 +555,7 @@ PyRep *PyAddress::Encode() {
 bool PyAddress::_DecodeService(PyRep *rep) {
     if(rep->IsString()) {
         PyString *s = (PyString *) rep;
-        service = s->value;
+        service = s->content();
     } else if(rep->IsNone()) {
         service = "";
     } else {
@@ -707,7 +707,7 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
     } else if(maint->items[0]->IsString()) {
         PyString *tuple0 = (PyString *) maint->items[0];
         remoteObject = 0;
-        remoteObjectStr = tuple0->value;
+        remoteObjectStr = tuple0->content();
     } else {
         codelog(NET__PACKET_ERROR, "tuple[0] has invalid type %s", maint->items[0]->TypeString());
         codelog(NET__PACKET_ERROR, " in:");
@@ -719,7 +719,7 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
     //parse tuple[1]: method name
     if(maint->items[1]->IsString()) {
         PyString *i = (PyString *) maint->items[1];
-        method = i->value;
+        method = i->content();
     } else {
         codelog(NET__PACKET_ERROR, "tuple[1] has non-string type");
         maint->items[1]->Dump(NET__PACKET_ERROR, " --> ");
@@ -894,7 +894,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     } else if(robjt->items[0]->IsString()) {
         PyString *tuple0 = (PyString *) robjt->items[0];
         remoteObject = 0;
-        remoteObjectStr = tuple0->value;
+        remoteObjectStr = tuple0->content();
     } else {
         codelog(NET__PACKET_ERROR, "main tuple[0] has invalid type %s", robjt->items[0]->TypeString());
         _log(NET__PACKET_ERROR, " in:");

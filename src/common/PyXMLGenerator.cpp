@@ -234,7 +234,7 @@ void PyXMLGenerator::VisitDict(const PyDict *rep) {
         }
         PyString *str = (PyString *) cur->first;
 
-        fprintf(m_into, "%s<IDEntry key=\"%s\">\n", top(), str->value.c_str());
+        fprintf(m_into, "%s<IDEntry key=\"%s\">\n", top(), str->content());
 
         std::string indent(top());
         indent += indent_amount;

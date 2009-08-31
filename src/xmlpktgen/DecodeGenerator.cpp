@@ -257,7 +257,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 	
 			//conditional prefix...
 			fprintf(into, 
-				"		if(key_string__->value == \"%s\") {\n"
+				"		if(*key_string__ == \"%s\") {\n"
 				"			%s_%s = true;\n",
 				key, iname, vname );
 			
@@ -277,7 +277,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 		if(field->Attribute("soft") == NULL || field->Attribute("soft") != std::string("true")) {
 			fprintf(into, 
 				"		{\n"
-				"			_log(NET__PACKET_ERROR, \"Decode %s failed: Unknown key string '%%s' in %s\", key_string__->value.c_str());\n"
+				"			_log(NET__PACKET_ERROR, \"Decode %s failed: Unknown key string '%%s' in %s\", key_string__->content());\n"
 				"			delete packet;\n"
 				"			return false;\n"
 				"		}\n"
@@ -429,7 +429,7 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		"			return false;\n"
 		"		}\n"
 		"		PyString *k = (PyString *) %s_cur->first;\n"
-		"		%s[k->value] = %s_cur->second->Clone();\n"
+		"		%s[k->content()] = %s_cur->second->Clone();\n"
 		"	}\n"
 		"	\n",
 		v,
@@ -619,7 +619,7 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 		"			return false;\n"
 		"		}\n"
 		"		PyString *t = (PyString *) (*%s_cur);\n"
-		"		%s.push_back(t->value);\n"
+		"		%s.push_back(t->content());\n"
 		"	}\n"
 		"\n",
 		v, m_name, name, v, name,
@@ -949,10 +949,7 @@ bool ClassDecodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 		"		%s = (PyBuffer *) %s;\n"
 		"		%s = NULL;\n"
 		"	} else if(%s->IsString()) {\n"
-		"		PyString *__sss = (PyString *) %s;\n"
-		"		%s = NULL;\n"
-		"		%s = new PyBuffer((const uint8 *) __sss->value.c_str(), __sss->value.length());\n"
-		"		delete __sss;\n"
+		"		%s = new PyBuffer( %s->AsString() );\n"
 		"	} else {\n"
 		"		_log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a buffer: %%s\", %s->TypeString());\n"
 		"		delete packet;\n"
@@ -963,9 +960,7 @@ bool ClassDecodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 				name, v, 
 				v,
 			v,
-				v, 
-				v,
-				name,
+				name, v,
 		
 				m_name, name, v
 		);
@@ -1341,7 +1336,7 @@ bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	PyString *%s = (PyString *) %s;\n"
-		"	%s = %s->value;\n"
+		"	%s = %s->content();\n"
 		"",
 		v,
 			m_name, name, v,
@@ -1352,11 +1347,11 @@ bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 		//do a check on the type... however thus far we do not care either 
 		// way, so dont fail the whole packet just for this
 		fprintf(into, 
-			"	if(%s->is_type_1 != %s) {\n"
-			"		_log(NET__PACKET_ERROR, \"Decode %s: String type mismatch on %s: expected %%d got %%d. Continuing anyhow.\", %s, %s->is_type_1);\n"
+			"	if(%s->isType1() != %s) {\n"
+			"		_log(NET__PACKET_ERROR, \"Decode %s: String type mismatch on %s: expected %%d got %%d. Continuing anyhow.\", %s, %s->isType1());\n"
 			"	}\n"
 			"",
-			iname, type1,
+			iname, atobool( type1 ) ? "true" : "false",
 				m_name, name, type1, iname
 			);
 	}

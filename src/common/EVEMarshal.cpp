@@ -154,9 +154,9 @@ void MarshalVisitor::VisitNone(const PyNone *rep)
 void MarshalVisitor::VisitBuffer(const PyBuffer *rep)
 {
     PutByte(Op_PyBuffer);
-    uint32 len = rep->GetLength();
+    uint32 len = rep->size();
     PutSizeEx(len);
-    PutBytes(rep->GetBuffer(), len);
+    PutBytes(rep->content(), len);
 }
 
 void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
@@ -331,12 +331,12 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
 
 void MarshalVisitor::VisitString(const PyString *rep)
 {
-    uint32 len = (uint32)rep->value.length();
-    if(rep->is_type_1)
+    uint32 len = (uint32)rep->size();
+    if(rep->isType1())
     {
         PutByte(Op_PyByteString);
         PutSizeEx(len);
-        PutBytes(rep->value.c_str(), len);
+        PutBytes(rep->content(), len);
     }
     else
     {
@@ -347,12 +347,12 @@ void MarshalVisitor::VisitString(const PyString *rep)
         else if(len == 1)
         {
             PutByte(Op_PyCharString);
-            PutByte(rep->value.c_str()[0]);
+            PutByte((*rep)[0]);
         }
         else
         {
             //string is long enough for a string table entry, check it.
-            size_t sid = sPyStringTable.LookupIndex(rep->value.c_str());
+            size_t sid = sPyStringTable.LookupIndex(rep->content());
             if(sid != -1)
             {
                 PutByte(Op_PyStringTableItem);
@@ -363,7 +363,7 @@ void MarshalVisitor::VisitString(const PyString *rep)
             {
                 PutByte(Op_PyLongString);
                 PutSizeEx(len);
-                PutBytes(rep->value.c_str(), len);
+                PutBytes(rep->content(), len);
             }
             // TODO: use Op_PyUnicodeString?
         }

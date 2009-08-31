@@ -373,10 +373,10 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 	_log(DESTINY__TRACE, "Set State:");
 	ss.Dump(DESTINY__TRACE, "    ");
 	_log(DESTINY__TRACE, "    Buffer:");
-	_hex(DESTINY__TRACE, ss.destiny_state->GetBuffer(), ss.destiny_state->GetLength());
+	_hex(DESTINY__TRACE, ss.destiny_state->content(), ss.destiny_state->size());
 	
 	_log(DESTINY__TRACE, "    Decoded:");
-	Destiny::DumpUpdate(DESTINY__TRACE, ss.destiny_state->GetBuffer(), ss.destiny_state->GetLength());
+	Destiny::DumpUpdate(DESTINY__TRACE, ss.destiny_state->content(), ss.destiny_state->size());
 }
 
 ItemFactory &SystemManager::itemFactory() const {

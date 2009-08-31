@@ -38,7 +38,6 @@
 #include <time.h>
 #include "misc.h"
 #include "types.h"
-#include "PyRep.h"
 
 using namespace std;
 

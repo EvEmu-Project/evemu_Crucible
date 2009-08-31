@@ -71,7 +71,7 @@ PyCallArgs::PyCallArgs(Client *c, PyTuple **tup, PyDict **dict)
 		}
 		PyString *s = (PyString *) cur->first;
 		
-		byname[s->value] = cur->second;
+		byname[s->content()] = cur->second;
 		cur->second = NULL;
 	}
 	//do not do anything with d except delete it, it has NULL pointers in it.

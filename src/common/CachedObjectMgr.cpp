@@ -153,7 +153,7 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, uint8 **data, uint32 l
 
     r->cache = new PyBuffer(data, length);
 
-    r->version = CRC32::Generate(r->cache->GetBuffer(), r->cache->GetLength());
+    r->version = CRC32::Generate(r->cache->content(), r->cache->size());
 
     const std::string str = OIDToString(objectID);
 
@@ -162,11 +162,11 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, uint8 **data, uint32 l
     res = m_cachedObjects.find(str);
     if(res != m_cachedObjects.end())
     {
-        _log(SERVICE__CACHE, "Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->GetLength(), res->second->version);
+        _log(SERVICE__CACHE, "Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->size(), res->second->version);
         delete res->second;
     }
 
-    _log(SERVICE__CACHE, "Registering new cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), r->cache->GetLength(), r->version);
+    _log(SERVICE__CACHE, "Registering new cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), r->cache->size(), r->version);
 
     m_cachedObjects[str] = r;
 }
@@ -206,7 +206,7 @@ PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
     co.shared = true;
     co.objectID = res->second->objectID->Clone();
     co.cache = res->second->cache;
-    if(res->second->cache->GetLength() == 0 || res->second->cache->GetBuffer()[0] == SubStreamHeaderByte)
+    if(res->second->cache->size() == 0 || ( *res->second->cache )[0] == SubStreamHeaderByte)
         co.compressed = false;
     else
         co.compressed = true;
@@ -277,7 +277,7 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
     cache->timestamp = header.timestamp;
     cache->version = header.version;
 
-    if(fread(cache->cache->GetBuffer(), sizeof(uint8), header.length, f) != header.length) {
+    if(fread(cache->cache->content(), sizeof(uint8), header.length, f) != header.length) {
         delete cache;
         fclose(f);
         return false;
@@ -323,12 +323,12 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
     header.timestamp = res->second->timestamp;
     header.version = res->second->version;
     header.magic = CacheFileMagic;
-    header.length = res->second->cache->GetLength();
+    header.length = res->second->cache->size();
     if(fwrite(&header, sizeof(header), 1, f) != 1) {
         fclose(f);
         return false;
     }
-    if(fwrite(res->second->cache->GetBuffer(), sizeof(uint8), header.length, f) != header.length) {
+    if(fwrite(res->second->cache->content(), sizeof(uint8), header.length, f) != header.length) {
         fclose(f);
         return false;
     }
@@ -653,9 +653,8 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
         }
     } else if(args->items[4]->IsString()) {
         //this is a data buffer, likely compressed, not sure why it comes through as a string...
-        PyString *buf = (PyString *) args->items[4];
         //hack for now:
-        PyBuffer tmpbuf((const uint8 *) buf->value.c_str(), buf->value.length());
+        PyBuffer tmpbuf( args->items[4]->AsString() );
         cache = tmpbuf.CreateSubStream();
         if(cache == NULL) {
             _log(CLIENT__ERROR, "Cache object's content buffer is not a substream!");
@@ -799,7 +798,7 @@ bool PyCachedCall::Decode(PySubStream **in_ss) {
         if(!cur->first->IsString())
             continue;
         PyString *key = (PyString *) cur->first;
-        if(key->value == "lret") {
+        if(*key == "lret") {
             result = cur->second;
             cur->second = NULL;
         }

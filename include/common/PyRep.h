@@ -75,7 +75,8 @@ extern const char *PyRepTypeString[];
 
 /** PyRep base Python wire object
  */
-class PyRep {
+class PyRep
+{
 public:
     /** PyRep Python wire object types
      */
@@ -172,7 +173,7 @@ public:
      *
      * @return returns a uint32 containing a hash function that represents the object.
      */
-    virtual int32 hash() = 0;
+    virtual int32 hash() const;
 
     //using this method is discouraged, it generally means your doing something wrong... CheckType() should cover almost all needs
     PyType GetType() const { return m_type; }
@@ -198,18 +199,22 @@ protected:
     size_t mRefcnt;
 };
 
-class PyInt : public PyRep {
+class PyInt : public PyRep
+{
 public:
     PyInt(const int32 i);
+	PyInt(const PyInt &oth);
     virtual ~PyInt();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const;
-    EVEMU_INLINE void visit(PyVisitor *v) const;
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const;
-    PyInt *TypedClone() const;
-    int32 GetValue(){return value;}
-    int32 hash();
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
+
+    int32 GetValue() const { return value; }
+    int32 hash() const;
+
 //private:
     int32 value;
 };
@@ -218,176 +223,213 @@ class PyLong : public PyRep
 {
 public:
     PyLong(const int64 i);
+	PyLong(const PyLong &oth);
     virtual ~PyLong();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const;
-    EVEMU_INLINE void visit(PyVisitor *v) const;
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const;
-    PyLong *TypedClone() const;
-    int64 GetValue(){return value;}
-    int32 hash();
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
+
+    int64 GetValue() { return value; }
+    int32 hash() const;
+
 //private:
     int64 value;
 };
 
-class PyFloat : public PyRep {
+class PyFloat : public PyRep
+{
 public:
-    PyFloat(const double &i) : PyRep(PyRep::PyTypeFloat), value(i) {}
-    virtual ~PyFloat() {}
+    PyFloat(const double &i);
+	PyFloat(const PyFloat &oth);
+    virtual ~PyFloat();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitReal(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitReal(this, lvl);
-    }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    PyFloat *TypedClone() const;
-    int32 hash();
-    double GetValue() {return value;}
+    double GetValue() { return value; }
+    int32 hash() const;
+
 //private:
     double value;
 };
 
-class PyBool : public PyRep {
+class PyBool : public PyRep
+{
 public:
-    PyBool(bool i) : PyRep(PyRep::PyTypeBool), value(i) {}
-    virtual ~PyBool() {}
+    PyBool(bool i);
+	PyBool(const PyBool &oth);
+    virtual ~PyBool();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitBoolean(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitBoolean(this, lvl);
-    }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    PyBool *TypedClone() const;
-    int32 hash();
 //private:
     bool value;
 };
 
-class PyNone : public PyRep {
+class PyNone : public PyRep
+{
 public:
-    PyNone() : PyRep(PyRep::PyTypeNone) {}
-    virtual ~PyNone() {}
+    PyNone();
+    virtual ~PyNone();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitNone(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitNone(this, lvl);
-    }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    PyNone *TypedClone() const;
-    int32 hash();
+    int32 hash() const;
 };
 
 class PyBuffer : public PyRep
 {
 public:
-    PyBuffer(const uint8 *buffer, uint32 length);
-    PyBuffer(uint8 **buffer, uint32 length);
-    PyBuffer(uint32 length);
-
-    PyBuffer(std::string &buffer);
-
+    PyBuffer(const uint8 *buffer, size_t length);
+    PyBuffer(uint8 **buffer, size_t length);
+    PyBuffer(size_t length);
+    PyBuffer(const PyString &str);
+	PyBuffer(const PyBuffer &oth);
     virtual ~PyBuffer();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return TypedClone(); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitBuffer(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitBuffer(this, lvl);
-    }
-
-    PyBuffer *TypedClone() const;
-
-    //treat it as a buffer:
-    uint8 *GetBuffer() const { return m_value; }
-    uint32 GetLength() const { return m_length; }
-
-    /**
-     * @brief Get the PyBuffer size.
-     *
-     *
-     *
-     * @return return the size of the buffer.
-     */
-    size_t size() const {return (size_t)m_length;}
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
     /**
      * @brief Get the PyBuffer content
      *
-     *
      * @return the pointer to the PyBuffer content
      */
-    uint8* content() const {return m_value;}
+    uint8* content() { return m_value; }
+    /**
+     * @brief Get the const PyBuffer content
+     *
+     * @return the pointer to the const PyBuffer content
+     */
+    const uint8* content() const { return m_value; }
+
+	/**
+	 * @brief Overload of operator[] for indexed access.
+	 *
+	 * @param[in] index Index of byte.
+	 * @return Byte in PyBuffer content with specified index.
+	 */
+	uint8& operator[](size_t index) { assert( index < size() ); return content()[ index ]; }
+	/**
+	 * @brief Overload of operator[] for const indexed access.
+	 *
+	 * @param[in] index Index of byte.
+	 * @return Const byte in PyBuffer content with specified index.
+	 */
+	const uint8& operator[](size_t index) const { assert( index < size() ); return content()[ index ]; }
+
+    /**
+     * @brief Get the PyBuffer size.
+     *
+     * @return return the size of the buffer.
+     */
+    size_t size() const { return m_length; }
 
     PySubStream *CreateSubStream() const;
-    int32 hash();
+    int32 hash() const;
 
 protected:
-    int32 m_hash_cache;
-    uint8 *m_value;
-    const uint32 m_length;
+    uint8 *const m_value;
+    const size_t m_length;
+
+	mutable int32 m_hash_cache;
 };
 
 class PyString : public PyRep
 {
 public:
     PyString(const char *str = "", bool type_1=false);
-    PyString(const std::string &str, bool type_1=false); //to deal with non-string buffers poorly placed in strings (CCP)
-    PyString(const uint8 *data, uint32 len, bool type_1=false);
-
+    PyString(const std::string &str, bool type_1=false);
+	PyString(const PyBuffer &buf, bool type_1=false); //to deal with non-string buffers poorly placed in strings (CCP)
+	PyString(const PyString &oth);
     virtual ~PyString();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitString(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitString(this, lvl);
-    }
-
-    PyString *TypedClone() const;
-    int32 hash();
-
-    int32 m_hash_cache;
-    std::string value;
-    bool is_type_1; //true if this is an Op_PyByteString instead of the default Op_PyByteString2
-
-    /**
-     * @brief Get the length of the PyString
-     *
-     * @return the length of the string as size_t
-     */
-    const size_t size() const { return value.size(); }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
     /**
      * @brief Get the PyString content
      *
      * @return the pointer to the char* array.
      */
-    const char* content() const { return value.c_str(); }
+    const char* content() const { return m_value.c_str(); }
+
+	/**
+	 * @brief Overload of operator[] to allow indexed access.
+	 *
+	 * @param[in] index Index of character to return.
+	 * @return Const character with given index.
+	 */
+	const char& operator[](size_t index) const { return m_value[ index ]; }
 
     /**
-     * @brief Set the PyString content.
+     * @brief Get the length of the PyString
      *
-     * @param[in] str is the char array that will replace the current string.
-     * @param[in] len is the length of the char array.
+     * @return the length of the string as size_t
      */
-    void set( const char* str, size_t len );
+    const size_t size() const { return m_value.size(); }
+
+	/**
+	 * @brief Checks if string is empty or not.
+	 *
+	 * @return True if string is empty, false if not.
+	 */
+	bool empty() const { return m_value.empty(); }
+
+	/**
+	 * @brief Checks if string is of type 1.
+	 *
+	 * @return True if string is of type 1, false if not.
+	 */
+	bool isType1() const { return m_is_type_1; }
+
+	/**
+	 * @brief Overload of operator== for easier comparisons.
+	 *
+	 * @param[in] oth The other string for comparison.
+	 * @return True if strings are equal, false otherwise.
+	 */
+	bool operator==(const PyString &oth) const { return ( m_value == oth.m_value ); }
+
+	/**
+	 * @brief Assigment operator.
+	 *
+	 * This needs to be defined by hand because of const m_is_type_1.
+	 * Once is this member removed, this function may also be
+	 * removed, passing its job to compiler-generated one.
+	 *
+	 * @param[in] oth String content of which should be assigned.
+	 * @return Itself.
+	 */
+	PyString &operator=(const PyString &oth);
+
+    int32 hash() const;
+
+protected:
+    std::string m_value;
+    const bool m_is_type_1; //true if this is an Op_PyByteString instead of the default Op_PyByteString2
+
+    mutable int32 m_hash_cache;
 };
 
 class PyTuple : public PyRep {
@@ -398,6 +440,7 @@ public:
 
     PyTuple(uint32 item_count) : PyRep(PyRep::PyTypeTuple), items(item_count, NULL) {}
     virtual ~PyTuple();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -411,7 +454,7 @@ public:
     void CloneFrom(const PyTuple *from);
     PyTuple *TypedClone() const;
 
-    int32 hash();
+    int32 hash() const;
     storage_type items;
 
     inline iterator begin() { return(items.begin()); }
@@ -464,6 +507,7 @@ public:
     PyList() : PyRep(PyRep::PyTypeList) {}
     PyList(int count) : PyRep(PyRep::PyTypeList) { items.resize(count);}
     virtual ~PyList();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -514,8 +558,6 @@ public:
         items[index] = i;
     }
 
-    int32 hash();
-
     storage_type items;
 
     iterator begin() { return(items.begin()); }
@@ -537,12 +579,11 @@ private:
     public:
         size_t operator()(const PyRep* _Keyval) const
         {
-            PyRep* Keyval = (PyRep*)_Keyval;
-            return (size_t) Keyval->hash();
+            return (size_t)_Keyval->hash();
         }
     };
-public:
 
+public:
     typedef std::tr1::unordered_map<PyRep*, PyRep*, _py_dict_hash>  storage_type;
     typedef storage_type::iterator                                  iterator;
     typedef storage_type::const_iterator                            const_iterator;
@@ -590,8 +631,6 @@ public:
     void add(PyRep *key, PyRep *value);
     void addStr(const char *key, const char *value);
 
-    int32 hash();
-
     //BE CAREFUL, this map does NOT facilitate overwriting an existing
     //key, because there is no key comparison done (ptr compare only)!
     storage_type items;
@@ -620,7 +659,6 @@ public:
     }
 
     PyObject *TypedClone() const;
-    int32 hash();
 
     std::string type;
     PyRep *arguments;   //should be a tuple or a dict
@@ -653,7 +691,6 @@ public:
 
     PyObjectEx *TypedClone() const;
     void CloneFrom(const PyObjectEx *from);
-    int32 hash();
 
     PyRep *header;
     const bool is_type_2;   // true if opcode is 0x26 instead of 0x25
@@ -673,7 +710,7 @@ class PyObjectEx_Type1
 public:
 	PyObjectEx_Type1(const char *type, PyTuple *args, PyDict *keywords);
 
-	std::string &GetType() const;
+	PyString &GetType() const;
 	PyTuple &GetArgs() const;
 	PyDict &GetKeywords() const;
 	PyRep *FindKeyword(const char *keyword) const;
@@ -731,7 +768,8 @@ public:
 
     bool SetField(uint32 index, PyRep *value);
     bool SetField(const char *colName, PyRep *value);
-    int32 hash();
+
+    int32 hash() const;
 
 protected:
     DBRowDescriptor &mHeader;
@@ -742,8 +780,7 @@ protected:
 
 class PySubStruct : public PyRep {
 public:
-    PySubStruct() : PyRep(PyRep::PyTypeSubStruct), sub(NULL) {}
-    PySubStruct(PyRep *t) : PyRep(PyRep::PyTypeSubStruct), sub(t) {}
+    PySubStruct(PyRep *t = NULL) : PyRep(PyRep::PyTypeSubStruct), sub(t) {}
     virtual ~PySubStruct();
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
@@ -756,7 +793,6 @@ public:
     }
 
     PySubStruct *TypedClone() const;
-    int32 hash();
 
     PyRep *sub;
 };
@@ -786,8 +822,6 @@ public:
     //call to ensure that `decoded` represents `data`
     void DecodeData() const;
 
-    int32 hash();
-
     uint32 length;
     uint8 *data;
 
@@ -812,8 +846,6 @@ public:
     }
 
     PyChecksumedStream *TypedClone() const;
-
-    int32 hash();
 
     uint32 checksum;
     PyRep *stream;

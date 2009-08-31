@@ -370,7 +370,7 @@ PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
         return new PyInt(0);
     }
 
-    const char * message = ((PyString*)arg->items[1])->value.c_str();
+    const char * message = arg->items[1]->AsString().content();
     arg = (PyTuple *)arg->items[0];
 
     if (arg->IsInt()) {

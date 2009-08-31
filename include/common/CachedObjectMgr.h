@@ -202,7 +202,7 @@ public:
     EVEMU_INLINE void VisitString(const PyString *rep) {
         if(!result.empty())
             result += ".";
-        result += rep->value;
+        result += rep->content();
     }
     //! PackedRow type visitor
     EVEMU_INLINE void VisitPackedRow(const PyPackedRow *rep) { good = false; }

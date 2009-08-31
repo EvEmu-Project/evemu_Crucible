@@ -232,7 +232,7 @@ PyMarshalStringTable::PyMarshalStringTable()
     {
         uint32 hashValue = hash( StringTable[i] );
         mStringTable[hashValue] = static_cast<uint8>( i );
-        mPyStringTable[i].set( StringTable[i], strlen( StringTable[i] ) );
+        mPyStringTable[i] = StringTable[i];
     }
 }
 

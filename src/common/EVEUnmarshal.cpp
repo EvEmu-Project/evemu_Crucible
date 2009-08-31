@@ -218,14 +218,14 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
         }
 
-        PyString *r = new PyString(packet, str_len, true);
+		PyString *r = new PyString( std::string( (const char *)packet, str_len ), true);
 
         if(ContainsNonPrintables( r )) {
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString(len=%d, <binary>)", pfx, opcode, str_len);
             _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
             phex(NET__UNMARSHAL_BUFHEX, packet, str_len);
         } else
-            _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString(len=%d, \"%s\")", pfx, opcode, str_len, r->value.c_str());
+            _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString(len=%d, \"%s\")", pfx, opcode, str_len, r->content());
 
 		IncreaseIndex( str_len );
 
@@ -403,7 +403,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
         }
 
-        PyString *r = new PyString(packet, str_len, false);
+		PyString *r = new PyString( std::string( (const char *)packet, str_len ), false);
         res = r;
 
         if(ContainsNonPrintables( r )) {
@@ -411,7 +411,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
             phex(NET__UNMARSHAL_BUFHEX, packet, str_len);
         } else {
-            _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString2(len=%u, \"%s\")", pfx, opcode, str_len, r->value.c_str());
+            _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyByteString2(len=%u, \"%s\")", pfx, opcode, str_len, r->content());
         }
 
         IncreaseIndex(str_len);
@@ -436,7 +436,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         }
         else
         {
-            res = new PyString(sharedString->value, sharedString->is_type_1);
+            res = new PyString( *sharedString );
         }
 
         break; }
@@ -464,7 +464,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
         phex(NET__UNMARSHAL_BUFHEX, packet, stringLength * 2);
 
-        res = new PyString(packet, stringLength * 2, false);
+		res = new PyString( std::string( (const char *)packet, stringLength * 2 ), false);
 
         IncreaseIndex(stringLength*2);
         break; }
@@ -485,7 +485,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
         phex(NET__UNMARSHAL_BUFHEX, packet, strLen);
 
-        res = new PyString(packet, strLen, false);
+		res = new PyString( std::string( (const char *)packet, strLen ), false);
 
         IncreaseIndex(strLen);
         break; }
@@ -706,11 +706,10 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         len_used += type_len;
 
         std::string typestr;
-        if(!type->IsString()) {
-            typestr = "NON-STRING-TYPE";
+        if(type->IsString()) {
+            typestr = type->AsString().content();
         } else {
-            PyString *s = (PyString *) type;
-            typestr = s->value;
+            typestr = "NON-STRING-TYPE";
         }
         delete type;
 
@@ -952,15 +951,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             _log(NET__UNMARSHAL_ERROR, "Not enough data for unicode char arg\n");
             break;
         }
-        uint16 lval = *((const uint16 *) packet);
+		uint16 lval = Getuint16();
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyUnicodeCharString 0x%x", pfx, opcode, lval);
 
-        res = new PyString((const uint8 *) &lval, sizeof(uint16), false);
-
-        packet += sizeof(uint16);
-        len -= sizeof(uint16);
-        len_used += sizeof(uint16);
+		res = new PyString( std::string( (const char *)&lval, sizeof(uint16) ), false);
 
         break; }
 
@@ -1339,14 +1334,14 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         }
         len_used += data_length;
 
-        PyString *r = new PyString(packet, data_length, false);
+		PyString *r = new PyString( std::string( (const char *)packet, data_length ), false);
 
         if(ContainsNonPrintables( r )) {
             _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyUnicodeString(len=%d, <binary>)", pfx, opcode, data_length);
             _log(NET__UNMARSHAL_BUFHEX, "%s  Buffer Contents:", pfx);
             phex(NET__UNMARSHAL_BUFHEX, packet, data_length);
         } else
-            _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyUnicodeString(len=%d, \"%s\")", pfx, opcode, data_length, r->value.c_str());
+            _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyUnicodeString(len=%d, \"%s\")", pfx, opcode, data_length, r->content());
 
 
         res = r;

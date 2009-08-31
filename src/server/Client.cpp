@@ -365,7 +365,7 @@ void Client::ChannelLeft(LSCChannel *chan) {
 void Client::Login(CryptoChallengePacket *pack) {
     _log(CLIENT__MESSAGE, "Login with %s", pack->user_name.c_str());
 
-	if(!m_services.serviceDB().DoLogin(pack->user_name.c_str(), pack->user_password->GetPassword().c_str(), m_accountID, m_accountRole)) {
+	if(!m_services.serviceDB().DoLogin(pack->user_name.c_str(), pack->user_password->GetPassword().content(), m_accountID, m_accountRole)) {
         _log(CLIENT__MESSAGE, "%s: Login rejected by DB", pack->user_name.c_str());
 
 		throw PyException( new GPSTransportClosed( "LoginAuthFailed" ) );

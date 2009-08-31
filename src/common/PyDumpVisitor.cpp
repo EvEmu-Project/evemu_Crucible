@@ -80,12 +80,12 @@ void PyDumpVisitor::VisitBuffer(const PyBuffer *rep, int64 lvl ) {
 
     std::string curIden(lvl, ' '); // please clean this one...
 
-    _print(lvl, "Data buffer of length %d", rep->GetLength());
+    _print(lvl, "Data buffer of length %d", rep->size());
 
     //kinda hackish:
-    if(rep->GetLength() > 2 && *(rep->GetBuffer()) == GZipStreamHeaderByte) {
-        uint32 len = rep->GetLength();
-        uint8 *buf = InflatePacket(rep->GetBuffer(), &len, true);
+    if(rep->size() > 2 && *(rep->content()) == GZipStreamHeaderByte) {
+        uint32 len = rep->size();
+        uint8 *buf = InflatePacket(rep->content(), &len, true);
         if(buf != NULL) {
             _print(lvl, "  Data buffer contains gzipped data of length %u", len);
 
@@ -94,9 +94,9 @@ void PyDumpVisitor::VisitBuffer(const PyBuffer *rep, int64 lvl ) {
             free(buf);
         }
     }
-    else if(rep->GetLength() > 0)
+    else if(rep->size() > 0)
     {
-        _hexDump(rep->GetBuffer(), rep->GetLength(), curIden.c_str());
+        _hexDump(rep->content(), rep->size(), curIden.c_str());
     }
 }
 
@@ -105,7 +105,7 @@ void PyDumpVisitor::VisitString( const PyString *rep, int64 lvl )
 {
     if(ContainsNonPrintables( rep ))
     {
-        if ( rep->is_type_1 == true )
+        if ( rep->isType1() == true )
             _print(lvl, "String%s: '<binary, len=%d>'", " (Type1)", rep->size());
         else
             _print(lvl, "String%s: '<binary, len=%d>'", "", rep->size());
@@ -113,7 +113,7 @@ void PyDumpVisitor::VisitString( const PyString *rep, int64 lvl )
     else
     {
         //print_string.append("String%s: '%s'");
-        if ( rep->is_type_1 == true )
+        if ( rep->isType1() == true )
             _print(lvl, "String%s: '%s'", " (Type1)", rep->content());
         else
             _print(lvl, "String%s: '%s'", "", rep->content());
@@ -166,7 +166,7 @@ void PyDumpVisitor::VisitPackedRow(const PyPackedRow *rep, int64 lvl )
     {
         PyRep *field = rep->GetField( i );
 
-		_print( lvl, "  [%u] %s: ", i, rep->GetHeader().GetColumnName( i ).c_str() );
+		_print( lvl, "  [%u] %s: ", i, rep->GetHeader().GetColumnName( i ).content() );
 
 		if( field == NULL )
 			_print( lvl + idenAmt, "NULL" );

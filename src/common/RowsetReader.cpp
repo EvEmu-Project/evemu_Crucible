@@ -100,7 +100,7 @@ const char *BaseRowsetReader::base_iterator::GetString(uint32 index) const {
     if(!ele->IsString())
         return("NON-STRING ELEMENT");
     PyString *str = (PyString *) ele;
-    return(str->value.c_str());
+    return str->content();
 }
 
 uint32 BaseRowsetReader::base_iterator::GetInt(uint32 index) const {
@@ -166,7 +166,7 @@ std::string BaseRowsetReader::base_iterator::GetAsString(uint32 index) const {
     PyRep *ele = rowl->items[index];
     if(ele->IsString()) {
         PyString *str = (PyString *) ele;
-        return(str->value.c_str());
+        return str->content();
     } else if(ele->IsInt()) {
         PyInt *i = (PyInt *) ele;
         char buf[64];

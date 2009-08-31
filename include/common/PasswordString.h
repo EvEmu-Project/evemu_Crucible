@@ -48,7 +48,7 @@ public:
 	/**
 	 * @return Password stored within this object.
 	 */
-	std::string &GetPassword() const;
+	PyString &GetPassword() const;
 
 	PasswordString *TypedClone() const { return static_cast<PasswordString *>( PyObjectEx::TypedClone() ); }
 

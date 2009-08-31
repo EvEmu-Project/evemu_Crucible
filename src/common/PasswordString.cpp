@@ -30,9 +30,9 @@ PasswordString::PasswordString(const char *password)
 {
 }
 
-std::string &PasswordString::GetPassword() const
+PyString &PasswordString::GetPassword() const
 {
-	return GetArgs().items.at( 1 )->AsString().value;
+	return GetArgs().items.at( 1 )->AsString();
 }
 
 PyTuple *PasswordString::_CreateArgs(const char *password)
