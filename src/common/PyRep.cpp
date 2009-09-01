@@ -906,7 +906,7 @@ void PyDict::clear()
 	items.clear();
 }
 
-void PyDict::set( PyRep* key, PyRep* value )
+void PyDict::SetItem( PyRep* key, PyRep* value )
 {
     /* make sure we have valid arguments */
 	assert( key );
@@ -946,9 +946,9 @@ PyDict& PyDict::operator=(const PyDict& oth)
     for(; cur != end; cur++)
 	{
 		if( cur->second == NULL )
-			set( cur->first->Clone(), NULL );
+			SetItem( cur->first->Clone(), NULL );
 		else
-			set( cur->first->Clone(), cur->second->Clone() );
+			SetItem( cur->first->Clone(), cur->second->Clone() );
 	}
 
 	return *this;
@@ -1454,10 +1454,10 @@ PyTuple *PyObjectEx_Type1::_CreateHeader(const char *type, PyTuple *args, PyDict
 		args = new PyTuple( 0 );
 
 	PyTuple *head = new PyTuple( keywords == NULL ? 2 : 3 );
-	head->set( 0, new PyString( type, true ) );
-	head->set( 1, args );
+	head->SetItem( 0, new PyString( type, true ) );
+	head->SetItem( 1, args );
 	if( head->size() > 2 )
-		head->set( 2, keywords );
+		head->SetItem( 2, keywords );
 
 	return head;
 }
@@ -1503,8 +1503,8 @@ PyTuple *PyObjectEx_Type2::_CreateHeader(PyTuple *args, PyDict *keywords)
 		keywords = new PyDict;
 
 	PyTuple *head = new PyTuple( 2 );
-	head->set( 0, args );
-	head->set( 1, keywords );
+	head->SetItem( 0, args );
+	head->SetItem( 1, keywords );
 
 	return head;
 }

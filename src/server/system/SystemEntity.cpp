@@ -100,9 +100,9 @@ const GPoint &ItemSystemEntity::GetPosition() const {
 
 PyDict *ItemSystemEntity::MakeSlimItem() const {
 	PyDict *slim = new PyDict();
-	slim->setStr("itemID", new PyInt(Item()->itemID()));
-	slim->setStr("typeID", new PyInt(Item()->typeID()));
-	slim->setStr("ownerID", new PyInt(Item()->ownerID()));
+	slim->SetItemString("itemID", new PyInt(Item()->itemID()));
+	slim->SetItemString("typeID", new PyInt(Item()->typeID()));
+	slim->SetItemString("ownerID", new PyInt(Item()->ownerID()));
 	return(slim);
 }
 

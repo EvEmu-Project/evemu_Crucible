@@ -68,7 +68,7 @@ PyList &CRowSet::_GetColumnList() const
 PyTuple *CRowSet::_CreateArgs()
 {
 	PyTuple *args = new PyTuple( 1 );
-	args->set( 0, new PyString( "dbutil.CRowset", true ) );
+	args->SetItem( 0, new PyString( "dbutil.CRowset", true ) );
 
 	return args;
 }
@@ -78,13 +78,13 @@ PyDict *CRowSet::_CreateKeywords(DBRowDescriptor *rowDesc)
 	assert( rowDesc );
 
 	PyDict *keywords = new PyDict;
-	keywords->setStr( "header", rowDesc );
+	keywords->SetItemString( "header", rowDesc );
 
 	uint32 cc = rowDesc->ColumnCount();
 	PyList *columns = new PyList( cc );
 	for( uint32 i = 0; i < cc; i++ )
-		columns->set( i,  new PyString( rowDesc->GetColumnName( i ) ) );
-	keywords->setStr( "columns", columns );
+		columns->SetItem( i,  new PyString( rowDesc->GetColumnName( i ) ) );
+	keywords->SetItemString( "columns", columns );
 
 	return keywords;
 }

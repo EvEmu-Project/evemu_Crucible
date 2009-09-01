@@ -57,17 +57,17 @@ PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
 	rowset->arguments = args;
 
 	//RowClass:
-	args->setStr("RowClass", new PyString("util.Row", true));
+	args->SetItemString("RowClass", new PyString("util.Row", true));
 
 	//header:
 	PyList *header = new PyList();
-	args->setStr("header", header);
+	args->SetItemString("header", header);
 	header->addStr("characterID");
 	header->addStr("online");
 
 	//lines:
 	PyList *charlist = new PyList();
-	args->setStr("lines", charlist);
+	args->SetItemString("lines", charlist);
 
 	return result;
 }

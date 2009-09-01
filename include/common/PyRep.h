@@ -500,7 +500,7 @@ public:
     bool empty() const { return items.empty(); }
     void clear();
 
-    void set( size_t index, PyRep* object )
+    void SetItem( size_t index, PyRep* object )
 	{
 		PyRep*& rep = items.at( index );
 
@@ -566,7 +566,7 @@ public:
     void addReal(double realval) { add( new PyFloat( realval ) ); }
     void addStr(const char* str) { add( new PyString( str ) ); }
 
-    void set(size_t index, PyRep* i)
+    void SetItem(size_t index, PyRep* i)
 	{
 		PyRep*& rep = items.at( index );
 
@@ -574,7 +574,7 @@ public:
 		rep = i;
     }
 
-    void setStr(size_t index, const char* str) { set( index, new PyString( str ) ); }
+    void SetItemString(size_t index, const char* str) { SetItem( index, new PyString( str ) ); }
 
 	/**
 	 * @brief Overload of operator[] for easier access.
@@ -639,15 +639,15 @@ public:
     void clear();
 
     /**
-     * \brief adds or sets a database entry.
+     * \brief SetItem adds or sets a database entry.
      *
-     * PyDict::set handles the adding and setting of object in
+     * PyDict::SetItem handles the adding and setting of object in
      * mapped and non mapped python dictionary's.
      *
      * @param[in] key contains the key object which the value needs to be filed under.
      * @param[in] value is the object that needs to be filed under key.
      */
-    void set( PyRep* key, PyRep* value );
+    void SetItem( PyRep* key, PyRep* value );
 
     /**
      * \brief SetItemString adds or sets a database entry.
@@ -658,7 +658,7 @@ public:
      * @param[in] key contains the key string which the value needs to be filed under.
      * @param[in] value is the object that needs to be filed under key.
      */
-	void setStr( const char* key, PyRep* value ) { set( new PyString( key ), value ); }
+	void SetItemString( const char* key, PyRep* value ) { SetItem( new PyString( key ), value ); }
 
 	/**
 	 * @brief Overload of assigment operator to handle object ownership.
@@ -675,6 +675,7 @@ class PyObject : public PyRep {
 public:
     PyObject(const std::string &_type = "", PyRep *_args = NULL) : PyRep(PyRep::PyTypeObject), type(_type), arguments(_args) {}
     virtual ~PyObject();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -706,6 +707,7 @@ public:
 
     PyObjectEx(bool _is_type_2, PyRep *_header = NULL);
     virtual ~PyObjectEx();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -773,6 +775,7 @@ class PyPackedRow : public PyRep {
 public:
     PyPackedRow(DBRowDescriptor &header, bool header_owner);
     virtual ~PyPackedRow();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -809,6 +812,7 @@ class PySubStruct : public PyRep {
 public:
     PySubStruct(PyRep *t = NULL) : PyRep(PyRep::PyTypeSubStruct), sub(t) {}
     virtual ~PySubStruct();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -829,8 +833,8 @@ public:
     PySubStream() : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(NULL) {}
     PySubStream(PyRep *t) : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(t) {}
     PySubStream(const uint8 *buffer, uint32 len);
-
     virtual ~PySubStream();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
@@ -862,6 +866,7 @@ public:
     PyChecksumedStream() : PyRep(PyRep::PyTypeChecksumedStream), checksum(0), stream(NULL) {}
     PyChecksumedStream(uint32 sum, PyRep *t) : PyRep(PyRep::PyTypeChecksumedStream), checksum(sum), stream(t) {}
     virtual ~PyChecksumedStream();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
     EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }

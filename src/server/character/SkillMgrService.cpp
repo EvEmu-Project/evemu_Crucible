@@ -200,8 +200,8 @@ PyResult SkillMgrBound::Handle_GetRespecInfo(PyCallArgs &call) {
 
     // return dict
     PyDict *result = new PyDict;
-    result->setStr("freeRespecs", new PyInt(0));
-    result->setStr("nextRespecTime", new PyLong(Win32TimeNow() + Win32Time_Year));
+    result->SetItemString("freeRespecs", new PyInt(0));
+    result->SetItemString("nextRespecTime", new PyLong(Win32TimeNow() + Win32Time_Year));
 
     return result;
 }

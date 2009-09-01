@@ -34,7 +34,7 @@ GPSTransportClosed::GPSTransportClosed(const char *reason)
 
 void GPSTransportClosed::AddKeyword(const char *name, PyRep *value)
 {
-	_GetReasonArgs().setStr( name, value );
+	_GetReasonArgs().SetItemString( name, value );
 }
 
 PyDict &GPSTransportClosed::_GetReasonArgs() const
@@ -48,7 +48,7 @@ PyDict &GPSTransportClosed::_GetReasonArgs() const
 PyTuple *GPSTransportClosed::_CreateArgs(const char *reason)
 {
 	PyTuple *args = new PyTuple( 1 );
-	args->set( 0, new PyString( reason ) );
+	args->SetItem( 0, new PyString( reason ) );
 
 	return args;
 }
@@ -56,17 +56,17 @@ PyTuple *GPSTransportClosed::_CreateArgs(const char *reason)
 PyDict *GPSTransportClosed::_CreateKeywords(const char *reason)
 {
 	PyDict *keywords = new PyDict;
-	//keywords->setStr( "origin", new PyString( "proxy" ) );
-	keywords->setStr( "reasonArgs", new PyDict );
-	keywords->setStr( "clock", new PyLong( Win32TimeNow() ) );
-	//keywords->setStr( "loggedOnUserCount", );
-	keywords->setStr( "region", new PyString( EVEProjectRegion ) );
-	keywords->setStr( "reason", new PyString( reason ) );
-	keywords->setStr( "version", new PyFloat( EVEVersionNumber ) );
-	keywords->setStr( "build", new PyInt( EVEBuildVersion ) );
-	//keywords->setStr( "reasonCode", );
-	keywords->setStr( "codename", new PyString( EVEProjectCodename ) );
-	keywords->setStr( "machoVersion", new PyInt( MachoNetVersion ) );
+	//keywords->SetItemString( "origin", new PyString( "proxy" ) );
+	keywords->SetItemString( "reasonArgs", new PyDict );
+	keywords->SetItemString( "clock", new PyLong( Win32TimeNow() ) );
+	//keywords->SetItemString( "loggedOnUserCount", );
+	keywords->SetItemString( "region", new PyString( EVEProjectRegion ) );
+	keywords->SetItemString( "reason", new PyString( reason ) );
+	keywords->SetItemString( "version", new PyFloat( EVEVersionNumber ) );
+	keywords->SetItemString( "build", new PyInt( EVEBuildVersion ) );
+	//keywords->SetItemString( "reasonCode", );
+	keywords->SetItemString( "codename", new PyString( EVEProjectCodename ) );
+	keywords->SetItemString( "machoVersion", new PyInt( MachoNetVersion ) );
 
 	return keywords;
 }
@@ -78,8 +78,8 @@ UserError::UserError(const char *msg)
 
 void UserError::AddKeyword(const char *name, PyRep *value)
 {
-	_GetTupleKeywords().setStr( name, value );
-	_GetDictKeywords().setStr( name, value );
+	_GetTupleKeywords().SetItemString( name, value );
+	_GetDictKeywords().SetItemString( name, value );
 }
 
 PyDict &UserError::_GetTupleKeywords() const
@@ -98,8 +98,8 @@ PyDict &UserError::_GetDictKeywords() const
 PyTuple *UserError::_CreateArgs(const char *msg)
 {
 	PyTuple *args = new PyTuple( 2 );
-	args->set( 0, new PyString( msg ) );
-	args->set( 1, new PyDict );
+	args->SetItem( 0, new PyString( msg ) );
+	args->SetItem( 1, new PyDict );
 
 	return args;
 }
@@ -107,8 +107,8 @@ PyTuple *UserError::_CreateArgs(const char *msg)
 PyDict *UserError::_CreateKeywords(const char *msg)
 {
 	PyDict *keywords = new PyDict;
-	keywords->setStr( "msg", new PyString( msg ) );
-	keywords->setStr( "dict", new PyDict );
+	keywords->SetItemString( "msg", new PyString( msg ) );
+	keywords->SetItemString( "dict", new PyDict );
 
 	return keywords;
 }

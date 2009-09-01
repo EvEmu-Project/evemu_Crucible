@@ -456,7 +456,7 @@ void Client::_CheckSessionChange() {
     p->payload = scn.Encode();
 
     p->named_payload = new PyDict();
-    p->named_payload->setStr("channel", new PyString("sessionchange"));
+    p->named_payload->SetItemString("channel", new PyString("sessionchange"));
 
     FastQueuePacket(&p);
 }
@@ -819,7 +819,7 @@ void Client::_SendCallReturn(PyPacket *req, PyRep **return_value, const char *ch
 
     if(channel != NULL) {
         p->named_payload = new PyDict();
-        p->named_payload->setStr("channel", new PyString(channel));
+        p->named_payload->SetItemString("channel", new PyString(channel));
     }
 
     FastQueuePacket(&p);
@@ -934,7 +934,7 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream &noti
 
     if(seq) {
         p->named_payload = new PyDict();
-        p->named_payload->setStr("sn", new PyInt(m_nextNotifySequence++));
+        p->named_payload->SetItemString("sn", new PyInt(m_nextNotifySequence++));
     }
 
     _log(CLIENT__NOTIFY_DUMP, "Sending notify of type %s with ID type %s", dest.service.c_str(), dest.bcast_idtype.c_str());
@@ -949,10 +949,10 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream &noti
 PyDict *Client::MakeSlimItem() const {
     PyDict *slim = DynamicSystemEntity::MakeSlimItem();
 
-    slim->setStr("charID", new PyInt(GetCharacterID()));
-    slim->setStr("corpID", new PyInt(GetCorporationID()));
-    slim->setStr("allianceID", new PyNone);
-    slim->setStr("warFactionID", new PyNone);
+    slim->SetItemString("charID", new PyInt(GetCharacterID()));
+    slim->SetItemString("corpID", new PyInt(GetCorporationID()));
+    slim->SetItemString("allianceID", new PyNone);
+    slim->SetItemString("warFactionID", new PyNone);
 
     //encode the modules list, if we have any visible modules
     std::vector<InventoryItemRef> items;
@@ -973,12 +973,12 @@ PyDict *Client::MakeSlimItem() const {
             l->add(t);
         }
 
-        slim->setStr("modules", l);
+        slim->SetItemString("modules", l);
     }
 
-    slim->setStr("color", new PyFloat(0.0));
-    slim->setStr("bounty", new PyInt(GetBounty()));
-    slim->setStr("securityStatus", new PyFloat(GetSecurityRating()));
+    slim->SetItemString("color", new PyFloat(0.0));
+    slim->SetItemString("bounty", new PyInt(GetBounty()));
+    slim->SetItemString("securityStatus", new PyFloat(GetSecurityRating()));
 
     return(slim);
 }

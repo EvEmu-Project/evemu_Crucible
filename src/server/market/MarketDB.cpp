@@ -506,11 +506,11 @@ PyObject *MarketDB::GetMarketGroups() {
 	header->addStr("types");	//this column really contains an entire list.
 	header->addStr("dataID");
 	
-	args->setStr("header", header);
-	args->setStr("idName", new PyString("parentGroupID"));
-	args->setStr("RowClass", new PyString("util.Row", true));
-	args->setStr("idName2", new PyNone());
-	args->setStr("items", parentSets);
+	args->SetItemString("header", header);
+	args->SetItemString("idName", new PyString("parentGroupID"));
+	args->SetItemString("RowClass", new PyString("util.Row", true));
+	args->SetItemString("idName2", new PyNone());
+	args->SetItemString("items", parentSets);
 
 	std::map<int, PyList *> parentLists;	//maps marketGroupID -> list of children MarketGroup_Entry-s
 	std::map<int, PyList *>::iterator cur, end;
@@ -575,9 +575,9 @@ PyObject *MarketDB::GetMarketGroups() {
 	for(; cur != end; cur++)
 		//takes ownership of the list.
 		if(cur->first == -1)
-			parentSets->set(new PyNone, cur->second);
+			parentSets->SetItem(new PyNone, cur->second);
 		else
-			parentSets->set(new PyInt(cur->first), cur->second);
+			parentSets->SetItem(new PyInt(cur->first), cur->second);
 
 	return(new PyObject("util.FilterRowset", args));
 }

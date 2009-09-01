@@ -53,9 +53,9 @@ PyRep *FactionWarMgrDB::GetFacWarSystems() {
 	PyDict *dict;
 
 	dict = new PyDict;
-	dict->setStr("occupierID", new PyInt(500002));
-	dict->setStr("factionID", new PyInt(500002));
-	result->set(new PyInt(30002097), dict);
+	dict->SetItemString("occupierID", new PyInt(500002));
+	dict->SetItemString("factionID", new PyInt(500002));
+	result->SetItem(new PyInt(30002097), dict);
 
 	return result;
 }

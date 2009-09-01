@@ -110,17 +110,17 @@ PyResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call) {
 	
 	//header:
 	PyList *header = new PyList();
-	args->setStr("header", header);
+	args->SetItemString("header", header);
 	header->addStr("ownerID");
 	header->addStr("ownerName");
 	header->addStr("typeID");
 
 	//RowClass:
-	args->setStr("RowClass", new PyString("util.Row", true));
+	args->SetItemString("RowClass", new PyString("util.Row", true));
 
 	//lines:
 	PyList *charlist = new PyList();
-	args->setStr("lines", charlist);
+	args->SetItemString("lines", charlist);
 
 	PyList *chardata = new PyList();
 	charlist->items.push_back(chardata);

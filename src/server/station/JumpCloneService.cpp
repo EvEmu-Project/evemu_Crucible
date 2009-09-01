@@ -96,9 +96,9 @@ PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
 	_log(CLIENT__ERROR, "Unimplemented GetCloneState");
 
 	PyDict *d = new PyDict;
-	d->setStr("clones", new PyNone);
-	d->setStr("implants", new PyNone);
-	d->setStr("timeLastJump", new PyNone);
+	d->SetItemString("clones", new PyNone);
+	d->SetItemString("implants", new PyNone);
+	d->SetItemString("timeLastJump", new PyNone);
 
 	return(new PyObject("util.KeyVal", d));
 }
