@@ -175,7 +175,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 		v, m_name, iname, v
 	);
 
-	bool nonempty = false;
+	bool empty = true;
 	//now generate the "found" flags for each expected element.
 	while( (i = field->IterateChildren( i )) ) {
 		if(i->Type() != TiXmlNode::ELEMENT)
@@ -198,10 +198,10 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 		}
 		fprintf(into,
 			"\tbool %s_%s = false;\n", iname, vname);
-		nonempty = true;
+		empty = false;
 	}
 
-	if(!nonempty) {
+	if(empty) {
 		fprintf(into, "	//%s is empty from our perspective, not enforcing though.\n", iname);
 	} else {
 		//setup the loop...

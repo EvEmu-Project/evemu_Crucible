@@ -232,7 +232,7 @@ PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
     std::set<uint32> toLeave;
 
     {
-        PyList::iterator cur, end;
+        PyList::const_iterator cur, end;
         cur = args.channels.begin();
         end = args.channels.end();
 

@@ -352,7 +352,7 @@ PyResult CorpRegistryBound::Handle_GetOffices(PyCallArgs &call) {
     uint32 officeN = m_db->GetOffices(call.client->GetCorporationID());
 
     // No idea what this is
-    dict->add("realRowCount", new PyInt(officeN));
+    dict->setStr("realRowCount", new PyInt(officeN));
     // But this one holds the real row number
     ret.officeNumber = officeN;
 

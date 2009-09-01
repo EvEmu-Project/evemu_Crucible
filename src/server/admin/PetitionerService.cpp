@@ -62,7 +62,7 @@ protected:
 
 PetitionerService::PetitionerService(PyServiceMgr *mgr)
 : PyService(mgr, "petitioner"),
-m_dispatch(new Dispatcher(this))
+  m_dispatch(new Dispatcher(this))
 //m_db(db)
 {
 	_SetCallDispatcher(m_dispatch);
@@ -89,8 +89,8 @@ PyResult PetitionerService::Handle_GetCategories(PyCallArgs &call) {
 	//takes no arguments
 	
 	PyList *result = new PyList();
-	result->add("Test Cat");
-	result->add("Test Cat2");
+	result->addStr("Test Cat");
+	result->addStr("Test Cat2");
     sLog.Debug("Petitioner Service", "called GetCategories stub");
 
 	return result;

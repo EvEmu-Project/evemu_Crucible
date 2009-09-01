@@ -70,7 +70,7 @@ void SystemBubble::BubblecastDestinyUpdate(PyTuple **payload, const char *desc) 
 	PyTuple *up_dup = NULL;
 	for(; cur != end; ++cur) {
 		if(up_dup == NULL)
-			up_dup = up->TypedClone();
+			up_dup = new PyTuple( *up );
 		_log(DESTINY__BUBBLE_TRACE, "Bubblecast %s update to %s (%u)", desc, (*cur)->GetName(), (*cur)->GetID());
 		(*cur)->QueueDestinyUpdate(&up_dup);
 		//they may not have consumed it (NPCs for example), so dont re-dup it in that case.
@@ -92,7 +92,7 @@ void SystemBubble::BubblecastDestinyEvent(PyTuple **payload, const char *desc) c
 	PyTuple *up_dup = NULL;
 	for(; cur != end; ++cur) {
 		if(up_dup == NULL)
-			up_dup = up->TypedClone();
+			up_dup = new PyTuple( *up );
 		_log(DESTINY__BUBBLE_TRACE, "Bubblecast %s event to %s (%u)", desc, (*cur)->GetName(), (*cur)->GetID());
 		(*cur)->QueueDestinyEvent(&up_dup);
 		//they may not have consumed it (NPCs for example), so dont re-dup it in that case.

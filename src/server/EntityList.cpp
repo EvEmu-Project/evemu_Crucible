@@ -245,8 +245,12 @@ void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple *
 	*payload = NULL;
 }
 
-void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple **payload, const MulticastTarget &mcset, bool seq)
+void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple **in_payload, const MulticastTarget &mcset, bool seq)
 {
+	// consume payload
+	PyTuple *payload = *in_payload;
+	*in_payload = NULL;
+
 	//cache all these locally to avoid calling empty all the time.
 	const bool chars_empty = mcset.characters.empty();
 	const bool locs_empty = mcset.locations.empty();
@@ -280,12 +284,12 @@ void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple *
 				continue;
 			}
 
-			PyTuple *temp = (*payload)->TypedClone();
+			PyTuple *temp = new PyTuple( *payload );
 			(*cur)->SendNotification( notifyType, idType, &temp, seq );
 		}
 	}
 
-	SafeDelete( *payload );
+	SafeDelete( payload );
 }
 
 void EntityList::Multicast(const character_set &cset, const char *notifyType, const char *idType, PyTuple **in_payload, bool seq) const {

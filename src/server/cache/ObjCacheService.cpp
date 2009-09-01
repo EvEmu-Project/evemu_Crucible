@@ -338,7 +338,7 @@ void ObjCacheService::InsertCacheHints(hintSet hset, PyDict *into) {
 		if(cache_hint == NULL)
 			continue;	//print already done.
 
-		into->add(res->second.c_str(), cache_hint);
+		into->setStr(res->second.c_str(), cache_hint);
 	}
 }
 

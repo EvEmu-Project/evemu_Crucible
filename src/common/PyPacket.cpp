@@ -611,11 +611,11 @@ PyCallStream *PyCallStream::Clone() const {
     res->remoteObject = remoteObject;
     res->remoteObjectStr = remoteObjectStr;
     res->method = method;
-    res->arg_tuple = arg_tuple->TypedClone();
+    res->arg_tuple = new PyTuple( *arg_tuple );
     if(arg_dict == NULL) {
         res->arg_dict = NULL;
     } else {
-        res->arg_dict = arg_dict->TypedClone();
+        res->arg_dict = new PyDict( *arg_dict );
     }
     return res;
 }
@@ -775,13 +775,13 @@ PyTuple *PyCallStream::Encode() {
     //args
     //TODO: we dont really need to clone this if we can figure out a way to say "this is read only"
     //or if we can change this encode method to consume the PyCallStream (which will almost always be the case)
-    res_tuple->items[2] = arg_tuple->TypedClone();
+    res_tuple->items[2] = new PyTuple( *arg_tuple );
 
     //options
     if(arg_dict == NULL) {
         res_tuple->items[3] = new PyNone();
     } else {
-        res_tuple->items[3] = arg_dict->TypedClone();
+        res_tuple->items[3] = new PyDict( *arg_dict );
     }
 
     //now that we have the main arg tuple, build the unknown stuff around it...

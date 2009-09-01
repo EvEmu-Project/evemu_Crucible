@@ -199,6 +199,12 @@ protected:
     size_t mRefcnt;
 };
 
+/**
+ * @brief Python integer.
+ *
+ * Class representing 32-bit integer.
+ * Longer integers may be stored in PyLong.
+ */
 class PyInt : public PyRep
 {
 public:
@@ -219,6 +225,11 @@ public:
     int32 value;
 };
 
+/**
+ * @brief Python long integer.
+ *
+ * Class representing 64-bit integer.
+ */
 class PyLong : public PyRep
 {
 public:
@@ -239,6 +250,11 @@ public:
     int64 value;
 };
 
+/**
+ * @brief Python floating point number.
+ *
+ * Class representing floating point number.
+ */
 class PyFloat : public PyRep
 {
 public:
@@ -259,6 +275,11 @@ public:
     double value;
 };
 
+/**
+ * @brief Python boolean.
+ *
+ * Class represeting boolean.
+ */
 class PyBool : public PyRep
 {
 public:
@@ -276,6 +297,11 @@ public:
     bool value;
 };
 
+/**
+ * @brief Python's "none".
+ *
+ * Class which represents Python's "nothing".
+ */
 class PyNone : public PyRep
 {
 public:
@@ -291,6 +317,14 @@ public:
     int32 hash() const;
 };
 
+/**
+ * @brief Python buffer.
+ *
+ * Usual binary buffer. Conversion to PyString & vice versa is
+ * implemented.
+ * This buffer also has immutable size; once allocated, it cannot
+ * be changed.
+ */
 class PyBuffer : public PyRep
 {
 public:
@@ -352,6 +386,11 @@ protected:
 	mutable int32 m_hash_cache;
 };
 
+/**
+ * @brief Python string.
+ *
+ * Usual string. Unlike Python's string, our one is mutable.
+ */
 class PyString : public PyRep
 {
 public:
@@ -432,188 +471,183 @@ protected:
     mutable int32 m_hash_cache;
 };
 
-class PyTuple : public PyRep {
+/**
+ * @brief Python tuple.
+ *
+ * Tuple. Unlike Python's, this one is mutable.
+ */
+class PyTuple : public PyRep
+{
 public:
     typedef std::vector<PyRep *>            storage_type;
     typedef storage_type::iterator          iterator;
     typedef storage_type::const_iterator    const_iterator;
 
-    PyTuple(uint32 item_count) : PyRep(PyRep::PyTypeTuple), items(item_count, NULL) {}
+    PyTuple(size_t item_count);
+	PyTuple(const PyTuple& oth);
     virtual ~PyTuple();
 
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitTuple(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitTuple(this, lvl);
-    }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    void CloneFrom(const PyTuple *from);
-    PyTuple *TypedClone() const;
+    const_iterator begin() const { return items.begin(); }
+    const_iterator end() const { return items.end(); }
 
-    int32 hash() const;
-    storage_type items;
-
-    inline iterator begin() { return(items.begin()); }
-    inline iterator end() { return(items.end()); }
-    inline const_iterator begin() const { return(items.begin()); }
-    inline const_iterator end() const { return(items.end()); }
-    bool empty() const { return(items.empty()); }
+	size_t size() const { return items.size(); }
+    bool empty() const { return items.empty(); }
     void clear();
-    uint32 size() const;
 
-    void SetItem( uint32 index, PyRep* object );
+    void set( size_t index, PyRep* object )
+	{
+		PyRep*& rep = items.at( index );
 
-    /* polymorphic overload to make the PyTuple do nice lookups. */
+		PySafeDecRef( rep );
+		rep = object;
+	}
 
     /**
      * @brief overloading the [] operator for reference lookup.
      *
-     *
-     *
-     * @param[in] pos the position of the required object.
-     * @return The reference to the indexed object.
+     * @param[in] index the position of the required object.
+     * @return The pointer to the indexed object.
      */
-    inline PyRep& operator[](const size_t pos) const {
-        /* we should crash here if we are trying to lookup a object that isn't in our range */
-        assert(pos < items.size());
-        return *items[pos];
-    }
+    PyRep* operator[]( size_t index ) const { return items.at( index ); }
 
-    /**
-     * @brief overloading the [] operator for pointer lookup.
-     *
-     *
-     *
-     * @param[in] pos the position of the required object.
-     * @return The reference to the indexed object.
-     */
-    inline PyRep* operator[](const size_t pos) {
-        /* we should crash here if we are trying to lookup a object that isn't in our range */
-        assert(pos < items.size());
-        return items[pos];
-    }
+	/**
+	 * @brief Overload of assigment operator to handle object ownership.
+	 *
+	 * @param[in] oth Tuple the content of which is to be copied.
+	 * @return Itself.
+	 */
+	PyTuple& operator=(const PyTuple& oth);
+
+    int32 hash() const;
+
+	// This needs to be public for now.
+    storage_type items;
 };
 
-class PyList : public PyRep {
+/**
+ * @brief Python list.
+ *
+ * Python's list, compeletely mutable.
+ */
+class PyList : public PyRep
+{
 public:
     typedef std::vector<PyRep *> storage_type;
     typedef std::vector<PyRep *>::iterator iterator;
     typedef std::vector<PyRep *>::const_iterator const_iterator;
 
-    PyList() : PyRep(PyRep::PyTypeList) {}
-    PyList(int count) : PyRep(PyRep::PyTypeList) { items.resize(count);}
+    PyList(size_t item_count = 0);
+	PyList(const PyList& oth);
     virtual ~PyList();
 
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitList(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitList(this, lvl);
-    }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    void CloneFrom(const PyList *from);
-    PyList *TypedClone() const;
+    const_iterator begin() const { return items.begin(); }
+    const_iterator end() const { return items.end(); }
 
-    EVEMU_INLINE void addInt(int32 intval) {
-        items.push_back(new PyInt(intval));
-    }
-
-    EVEMU_INLINE void addLong(int64 intval) {
-        items.push_back(new PyLong(intval));
-    }
-
-    EVEMU_INLINE void addReal(double realval) {
-        items.push_back(new PyFloat(realval));
-    }
-
-    EVEMU_INLINE void addStr(const char *str) {
-        items.push_back(new PyString(str));
-    }
-
-    EVEMU_INLINE void add(const char *str) {
-        items.push_back(new PyString(str));
-    }
-
-    EVEMU_INLINE void add(PyRep *i) {
-        items.push_back(i);
-    }
-
-    EVEMU_INLINE void setStr(const uint32 index, const char *str) {
-        assert(index <= items.size());
-
-        assert(items[index] == NULL);
-        items[index] = new PyString(str);
-    }
-
-    EVEMU_INLINE void set(const uint32 index, PyRep *i) {
-        assert(index <= items.size());
-        assert(items[index] == NULL);
-        items[index] = i;
-    }
-
-    storage_type items;
-
-    iterator begin() { return(items.begin()); }
-    iterator end() { return(items.end()); }
-    const_iterator begin() const { return(items.begin()); }
-    const_iterator end() const { return(items.end()); }
-    bool empty() const { return(items.empty()); }
+    size_t size() const { return items.size(); }
+    bool empty() const { return items.empty(); }
     void clear();
-    EVEMU_INLINE uint32 size() const {
-        return (uint32)items.size();
+
+    void add(PyRep* i) { items.push_back( i ); }
+
+    void addInt(int32 intval) { add( new PyInt( intval ) ); }
+    void addLong(int64 intval) { add( new PyLong( intval ) ); }
+    void addReal(double realval) { add( new PyFloat( realval ) ); }
+    void addStr(const char* str) { add( new PyString( str ) ); }
+
+    void set(size_t index, PyRep* i)
+	{
+		PyRep*& rep = items.at( index );
+
+		PySafeDecRef( rep );
+		rep = i;
     }
+
+    void setStr(size_t index, const char* str) { set( index, new PyString( str ) ); }
+
+	/**
+	 * @brief Overload of operator[] for easier access.
+	 *
+	 * @param[in] index Index of required object.
+	 * @return Pointer to object.
+	 */
+	PyRep* operator[]( size_t index ) const { return items.at( index ); }
+
+	/**
+	 * @brief Overload of assigment operator to handle object ownership.
+	 *
+	 * @param[in] oth List the content of which is to be copied.
+	 * @return Itself.
+	 */
+	PyList& operator=(const PyList& oth);
+
+	// This needs to be public:
+    storage_type items;
 };
 
-class PyDict : public PyRep {
-private:
-    class _py_dict_hash
-        : public unary_function<PyRep*, size_t>
+/**
+ * @brief Python's dictionary.
+ *
+ * Dictionary; completely mutable associative container.
+ */
+class PyDict : public PyRep
+{
+protected:
+    class _hasher
+    : public unary_function<PyRep*, size_t>
     {	// hash functor
     public:
         size_t operator()(const PyRep* _Keyval) const
         {
+			assert( _Keyval );
+
             return (size_t)_Keyval->hash();
         }
     };
 
 public:
-    typedef std::tr1::unordered_map<PyRep*, PyRep*, _py_dict_hash>  storage_type;
+    typedef std::tr1::unordered_map<PyRep*, PyRep*, _hasher>        storage_type;
     typedef storage_type::iterator                                  iterator;
     typedef storage_type::const_iterator                            const_iterator;
 
-    PyDict() : PyRep(PyRep::PyTypeDict) {}
+    PyDict();
+	PyDict(const PyDict& oth);
     virtual ~PyDict();
+
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitDict(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitDict(this, lvl);
-    }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    void CloneFrom(const PyDict *from);
-    PyDict *TypedClone() const;
+    const_iterator begin() const { return items.begin(); }
+    const_iterator end() const { return items.end(); }
+
+    size_t size() const { return items.size(); }
+    bool empty() const { return items.empty(); }
+    void clear();
 
     /**
-     * \brief SetItem adds or sets a database entry.
+     * \brief adds or sets a database entry.
      *
-     * PyDict::SetItem handles the adding and setting of object in
+     * PyDict::set handles the adding and setting of object in
      * mapped and non mapped python dictionary's.
      *
      * @param[in] key contains the key object which the value needs to be filed under.
      * @param[in] value is the object that needs to be filed under key.
-     * @return returns true when successful and false if not.
      */
-    bool SetItem( PyRep * key, PyRep * value );
+    void set( PyRep* key, PyRep* value );
 
     /**
      * \brief SetItemString adds or sets a database entry.
@@ -623,25 +657,18 @@ public:
      *
      * @param[in] key contains the key string which the value needs to be filed under.
      * @param[in] value is the object that needs to be filed under key.
-     * @return returns true when successful and false if not.
      */
-    bool SetItemString( const char *key, PyObject *item );
+	void setStr( const char* key, PyRep* value ) { set( new PyString( key ), value ); }
 
-    void add(const char *key, PyRep *value);
-    void add(PyRep *key, PyRep *value);
-    void addStr(const char *key, const char *value);
+	/**
+	 * @brief Overload of assigment operator to handle object ownership.
+	 *
+	 * @param[in] oth PyDict the content of which is to be copied.
+	 * @return Itself.
+	 */
+	PyDict& operator=(const PyDict& oth);
 
-    //BE CAREFUL, this map does NOT facilitate overwriting an existing
-    //key, because there is no key comparison done (ptr compare only)!
     storage_type items;
-
-    iterator begin() { return(items.begin()); }
-    iterator end() { return(items.end()); }
-    const_iterator begin() const { return(items.begin()); }
-    const_iterator end() const { return(items.end()); }
-    bool empty() const { return(items.empty()); }
-    void clear();
-    uint32 size() const {return (uint32)items.size();}
 };
 
 class PyObject : public PyRep {

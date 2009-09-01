@@ -86,8 +86,8 @@ void DBRowDescriptor::AddColumn(const char *name, DBTYPE type)
 {
 	PyTuple *col = new PyTuple( 2 );
 
-	col->SetItem( 0, new PyString( name ) );
-	col->SetItem( 1, new PyInt( type ) );
+	col->set( 0, new PyString( name ) );
+	col->set( 1, new PyInt( type ) );
 
 	_GetColumnList().items.push_back( col );
 }
@@ -108,7 +108,7 @@ PyTuple *DBRowDescriptor::_CreateArgs()
 	PyTuple *columnList = new PyTuple( 0 );
 
 	PyTuple *args = new PyTuple( 1 );
-	args->SetItem( 0, columnList );
+	args->set( 0, columnList );
 
 	return args;
 }

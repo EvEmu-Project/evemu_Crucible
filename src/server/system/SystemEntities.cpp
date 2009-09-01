@@ -57,9 +57,9 @@ bool SimpleSystemEntity::LoadExtras(SystemDB *db) {
 
 PyDict *SimpleSystemEntity::MakeSlimItem() const {
 	PyDict *slim = new PyDict();
-	slim->add("typeID", new PyInt(data.typeID));
-	slim->add("ownerID", new PyInt(1));
-	slim->add("itemID", new PyInt(data.itemID));
+	slim->setStr("typeID", new PyInt(data.typeID));
+	slim->setStr("ownerID", new PyInt(1));
+	slim->setStr("itemID", new PyInt(data.itemID));
 	return slim;
 }
 
@@ -161,10 +161,10 @@ void SystemStationEntity::EncodeDestiny(std::vector<uint8> &into) const {
 
 PyDict *SystemStationEntity::MakeSlimItem() const {
 	PyDict *slim = new PyDict();
-	slim->add("typeID", new PyInt(data.typeID));
+	slim->setStr("typeID", new PyInt(data.typeID));
 	//HACKED:::
-	slim->add("ownerID", new PyInt(1000044));
-	slim->add("itemID", new PyInt(data.itemID));
+	slim->setStr("ownerID", new PyInt(1000044));
+	slim->setStr("itemID", new PyInt(data.itemID));
 	return(slim);
 }
 
@@ -194,7 +194,7 @@ bool SystemStargateEntity::LoadExtras(SystemDB *db) {
 PyDict *SystemStargateEntity::MakeSlimItem() const {
 	PyDict *slim = SystemStationEntity::MakeSlimItem();
 	if(m_jumps != NULL)
-		slim->add("jumps", m_jumps->Clone());
+		slim->setStr("jumps", m_jumps->Clone());
 	return(slim);
 }
 
@@ -280,26 +280,26 @@ PyDict *SystemDungeonEntranceEntity::MakeSlimItem() const {
 	if(slim == NULL)
 		return NULL;
 	
-	//slim->add("itemID", new PyInt(2100000396));
-	//slim->add("typeID", new PyInt(12273));
-	//slim->add("ownerID", new PyInt(500021));
+	//slim->setStr("itemID", new PyInt(2100000396));
+	//slim->setStr("typeID", new PyInt(12273));
+	//slim->setStr("ownerID", new PyInt(500021));
 	
-	slim->add("dunSkillLevel", new PyInt(0));
-	slim->add("dunSkillTypeID", new PyNone);
-	slim->add("dunObjectID", new PyInt(160449));
-	slim->add("dunWipeNPC", new PyInt(1));
-	slim->add("dunToGateID", new PyInt(160484));
-	slim->add("dunCloaked", new PyInt(0));
-	slim->add("dunScenarioID", new PyInt(23));
-	slim->add("dunSpawnID", new PyInt(4));
-	slim->add("dunAmount", new PyFloat(0.0));
-	slim->add("dunShipClasses", new PyList(/*237, 31*/));
-	slim->add("dunDirection", new PyList(/*235, 0, 1*/));
-	slim->add("dunKeyLock", new PyInt(0));
-	//slim->add("dunKeyQuantity", new PyInt(1));
-	//slim->add("dunKeyTypeID", new PyInt(21839));
-	//slim->add("dunOpenUntil", new PyInt(Win32TimeNow()+Win32Time_Hour));
-	slim->add("dunMusicUrl", new PyString("res:/Sound/Music/Ambient031combat.ogg"));
+	slim->setStr("dunSkillLevel", new PyInt(0));
+	slim->setStr("dunSkillTypeID", new PyNone);
+	slim->setStr("dunObjectID", new PyInt(160449));
+	slim->setStr("dunWipeNPC", new PyInt(1));
+	slim->setStr("dunToGateID", new PyInt(160484));
+	slim->setStr("dunCloaked", new PyInt(0));
+	slim->setStr("dunScenarioID", new PyInt(23));
+	slim->setStr("dunSpawnID", new PyInt(4));
+	slim->setStr("dunAmount", new PyFloat(0.0));
+	slim->setStr("dunShipClasses", new PyList(/*237, 31*/));
+	slim->setStr("dunDirection", new PyList(/*235, 0, 1*/));
+	slim->setStr("dunKeyLock", new PyInt(0));
+	//slim->setStr("dunKeyQuantity", new PyInt(1));
+	//slim->setStr("dunKeyTypeID", new PyInt(21839));
+	//slim->setStr("dunOpenUntil", new PyInt(Win32TimeNow()+Win32Time_Hour));
+	slim->setStr("dunMusicUrl", new PyString("res:/Sound/Music/Ambient031combat.ogg"));
 	
 	return(slim);
 }

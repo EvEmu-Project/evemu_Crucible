@@ -399,7 +399,7 @@ void ServiceDB::ProcessStringChange(const char * key, const std::string & oldVal
 		PyTuple * val = new PyTuple(2);
 		val->items[0] = new PyString(oldValue);
 		val->items[1] = new PyString(newValue);
-		notif->add(key, val);
+		notif->setStr(key, val);
 
 		qValue += " = '" + newEscValue + "'";
 		dbQ.push_back(qValue);
@@ -414,7 +414,7 @@ void ServiceDB::ProcessRealChange(const char * key, double oldValue, double newV
 		PyTuple * val = new PyTuple(2);
 		val->items[0] = new PyFloat(oldValue);
 		val->items[1] = new PyFloat(newValue);
-		notif->add(key, val);
+		notif->setStr(key, val);
 
 		char cc[10];
 		snprintf(cc, 9, "'%5.3lf'", newValue);
@@ -432,7 +432,7 @@ void ServiceDB::ProcessIntChange(const char * key, uint32 oldValue, uint32 newVa
 
 		val->items[0] = new PyInt(oldValue);
 		val->items[1] = new PyInt(newValue);
-		notif->add(key, val);
+		notif->setStr(key, val);
 
 		char cc[10];
 		snprintf(cc, 9, "%u", newValue);

@@ -582,17 +582,16 @@ int32 PyString::hash() const
 /************************************************************************/
 /* PyRep Tuple Class                                                    */
 /************************************************************************/
-PyTuple::~PyTuple() {
-    clear();
+PyTuple::PyTuple( size_t item_count ) : PyRep( PyRep::PyTypeTuple ), items( item_count, NULL ) {}
+PyTuple::PyTuple( const PyTuple& oth ) : PyRep( PyRep::PyTypeTuple ), items()
+{
+	// Use assigment operator
+	*this = oth;
 }
 
-void PyTuple::clear() {
-    storage_type::iterator cur, _end;
-    cur = begin();
-    _end = end();
-    for(; cur != _end; cur++)
-        PySafeDecRef( *cur );
-    items.clear();
+PyTuple::~PyTuple()
+{
+    clear();
 }
 
 void PyTuple::Dump(FILE *into, const char *pfx) const {
@@ -636,26 +635,89 @@ void PyTuple::Dump(LogType type, const char *pfx) const {
     }
 }
 
-uint32 PyTuple::size() const
+PyRep *PyTuple::Clone() const
 {
-    return (uint32)items.size();
+	return new PyTuple( *this );
+}
+
+void PyTuple::visit( PyVisitor *v ) const
+{
+	v->VisitTuple( this );
+}
+
+void PyTuple::visit( PyVisitorLvl *v, int64 lvl ) const
+{
+	v->VisitTuple( this, lvl );
+}
+
+void PyTuple::clear()
+{
+    iterator cur, end;
+    cur = items.begin();
+    end = items.end();
+    for(; cur != end; cur++)
+        PySafeDecRef( *cur );
+
+    items.clear();
+}
+
+PyTuple& PyTuple::operator=(const PyTuple& oth)
+{
+	clear();
+	items.resize( oth.size() );
+
+    iterator cur, end;
+    cur = items.begin();
+    end = items.end();
+
+	const_iterator cur_oth, end_oth;
+    cur_oth = oth.begin();
+    end_oth = oth.end();
+    for(; cur != end && cur_oth != end_oth; cur++, cur_oth++)
+	{
+		if( *cur_oth == NULL )
+			*cur = NULL;
+		else
+			*cur = (*cur_oth)->Clone();
+	}
+
+	return *this;
+}
+
+int32 PyTuple::hash() const
+{
+    register long x, y;
+    register size_t len = items.size();
+    register long index = 0;
+    long mult = 1000003L;
+    x = 0x345678L;
+    while (--len >= 0) {
+        y = items[index++]->hash();
+        if (y == -1)
+            return -1;
+        x = (x ^ y) * mult;
+        /* the cast might truncate len; that doesn't change hash stability */
+        mult += (long)(82520L + len + len);
+    }
+    x += 97531L;
+    if (x == -1)
+        x = -2;
+    return x;
 }
 
 /************************************************************************/
 /* PyRep List Class                                                     */
 /************************************************************************/
+PyList::PyList( size_t item_count ) : PyRep( PyRep::PyTypeList ), items( item_count, NULL ) {}
+PyList::PyList( const PyList& oth ) : PyRep( PyRep::PyTypeList ), items()
+{
+	// Use assigment operator
+	*this = oth;
+}
+
 PyList::~PyList()
 {
     clear();
-}
-
-void PyList::clear() {
-    std::vector<PyRep *>::iterator cur, _end;
-    cur = items.begin();
-    _end = items.end();
-    for(; cur != _end; cur++)
-        PySafeDecRef( *cur );
-    items.clear();
 }
 
 void PyList::Dump(FILE *into, const char *pfx) const {
@@ -707,21 +769,69 @@ void PyList::Dump(LogType type, const char *pfx) const {
     }
 }
 
+PyRep *PyList::Clone() const
+{
+	return new PyList( *this );
+}
+
+void PyList::visit( PyVisitor *v ) const
+{
+	v->VisitList( this );
+}
+
+void PyList::visit( PyVisitorLvl *v, int64 lvl ) const
+{
+	v->VisitList( this, lvl );
+}
+
+void PyList::clear()
+{
+    iterator cur, end;
+    cur = items.begin();
+    end = items.end();
+    for(; cur != end; cur++)
+        PySafeDecRef( *cur );
+
+    items.clear();
+}
+
+PyList& PyList::operator=(const PyList &oth)
+{
+	clear();
+	items.resize( oth.size() );
+
+	iterator cur, end;
+	cur = items.begin();
+	end = items.end();
+
+	const_iterator cur_oth, end_oth;
+	cur_oth = oth.begin();
+	end_oth = oth.end();
+
+	for(; cur != end && cur_oth != end_oth; cur++, cur_oth++)
+	{
+		if( *cur_oth == NULL )
+			*cur = NULL;
+		else
+			*cur = (*cur_oth)->Clone();
+	}
+
+	return *this;
+}
+
 /************************************************************************/
 /* PyRep Dict Class                                                     */
 /************************************************************************/
-PyDict::~PyDict() {
-    clear();
+PyDict::PyDict() : PyRep( PyRep::PyTypeDict ), items() {}
+PyDict::PyDict( const PyDict& oth ) : PyRep( PyRep::PyTypeDict ), items()
+{
+	// Use assigment operator
+	*this = oth;
 }
 
-void PyDict::clear() {
-    iterator cur, _end;
-    cur = items.begin();
-    _end = items.end();
-    for(; cur != _end; cur++) {
-        PySafeDecRef( cur->first );
-        PySafeDecRef( cur->second );
-    }
+PyDict::~PyDict()
+{
+    clear();
 }
 
 void PyDict::Dump(FILE *into, const char *pfx) const {
@@ -765,6 +875,83 @@ void PyDict::Dump(LogType type, const char *pfx) const {
         m += t;
         cur->second->Dump(type, m.c_str());
     }
+}
+
+PyRep* PyDict::Clone() const
+{
+	return new PyDict( *this );
+}
+
+void PyDict::visit( PyVisitor *v ) const
+{
+	v->VisitDict( this );
+}
+
+void PyDict::visit( PyVisitorLvl *v, int64 lvl ) const
+{
+	v->VisitDict( this, lvl );
+}
+
+void PyDict::clear()
+{
+    iterator cur, end;
+    cur = items.begin();
+    end = items.end();
+    for(; cur != end; cur++)
+	{
+        PyDecRef( cur->first );
+        PySafeDecRef( cur->second );
+    }
+
+	items.clear();
+}
+
+void PyDict::set( PyRep* key, PyRep* value )
+{
+    /* make sure we have valid arguments */
+	assert( key );
+
+    /* note: add check if the key object is hashable
+     * if not ( it will return -1 then ) return false;
+     */
+
+    /* note: needs to be enabled when object reference is working.
+     */
+    //PyIncRef( key );
+    //PyIncRef( value );
+
+    /* check if we need to replace a dictionary entry */
+    iterator itr = items.find( key );
+    if( itr != items.end() )
+    {
+		// We don't need it anymore, we're using itr->first.
+		PyDecRef( key );
+
+		// Replace itr->second with value.
+        PySafeDecRef( itr->second );
+        itr->second = value;
+    }
+	else
+		// Keep both key & value
+        items.insert( std::make_pair( key, value ) );
+}
+
+PyDict& PyDict::operator=(const PyDict& oth)
+{
+	clear();
+
+	const_iterator cur, end;
+    cur = oth.begin();
+    end = oth.end();
+    for(; cur != end; cur++)
+	{
+		if( cur->second == NULL )
+			set( cur->first->Clone(), NULL );
+		else
+			set( cur->first->Clone(), cur->second->Clone() );
+	}
+
+	return *this;
 }
 
 /************************************************************************/
@@ -904,149 +1091,6 @@ void PyChecksumedStream::Dump(FILE *into, const char *pfx) const {
 void PyChecksumedStream::Dump(LogType type, const char *pfx) const {
     _log(type, "%sStream With Checksum: 0x%08x", pfx, checksum);
     stream->Dump(type, pfx);
-}
-
-PyTuple *PyTuple::TypedClone() const {
-    PyTuple *r = new PyTuple(0);
-    r->CloneFrom(this);
-    return(r);
-}
-
-void PyTuple::CloneFrom(const PyTuple *from) {
-    clear();
-    items.reserve(items.size());
-
-    std::vector<PyRep *>::const_iterator cur, _end;
-    cur = from->items.begin();
-    _end = from->items.end();
-    for(; cur != _end; cur++) {
-        items.push_back((*cur)->Clone());
-    }
-}
-
-void PyTuple::SetItem( uint32 index, PyRep* object )
-{
-    assert(index < items.size());
-    items[index] = object;
-}
-
-int32 PyTuple::hash() const
-{
-    register long x, y;
-    register size_t len = items.size();
-    register long index = 0;
-    long mult = 1000003L;
-    x = 0x345678L;
-    while (--len >= 0) {
-        y = items[index++]->hash();
-        if (y == -1)
-            return -1;
-        x = (x ^ y) * mult;
-        /* the cast might truncate len; that doesn't change hash stability */
-        mult += (long)(82520L + len + len);
-    }
-    x += 97531L;
-    if (x == -1)
-        x = -2;
-    return x;
-}
-
-PyList *PyList::TypedClone() const {
-    PyList *r = new PyList();
-    r->CloneFrom(this);
-    return r;
-}
-
-void PyList::CloneFrom(const PyList *from) {
-    PyList::const_iterator cur, _end;
-    cur = items.begin();
-    _end = items.end();
-    for(; cur != _end; cur++) {
-        delete *cur;
-    }
-
-    items.clear();
-    items.reserve(items.size());
-
-    cur = from->items.begin();
-    _end = from->items.end();
-    for(; cur != _end; cur++) {
-        items.push_back((*cur)->Clone());
-    }
-}
-
-PyDict *PyDict::TypedClone() const {
-    PyDict *r = new PyDict();
-    r->CloneFrom(this);
-    return r;
-}
-
-void PyDict::CloneFrom(const PyDict *from) {
-    PyDict::const_iterator cur, _end;
-    cur = items.begin();
-    _end = items.end();
-    for(; cur != _end; cur++) {
-        delete cur->first;
-        delete cur->second;
-    }
-
-    items.clear();
-
-    cur = from->items.begin();
-    _end = from->items.end();
-    for(; cur != _end; cur++) {
-        items[ cur->first->Clone() ] = cur->second->Clone();
-    }
-}
-
-bool PyDict::SetItem( PyRep * key, PyRep * value )
-{
-    /* make sure we have valid arguments */
-    if ( key == NULL || value == NULL )
-        return false;
-
-    /* note: add check if the key object is hashable
-     * if not ( it will return -1 then ) return false;
-     */
-
-    /* check if we need to replace a dictionary entry */
-    iterator itr = items.find( key );
-    if ( itr != items.end() )
-    {
-        PyDecRef( itr->second );
-        items.erase( itr ); // this is the fast solution not the best.
-    }
-
-    /* note: needs to be enabled when object reference is working.
-     */
-    //PyIncRef( key );
-    //PyIncRef( value );
-
-    items.insert( std::make_pair( key, value ) );
-    return true;
-}
-
-bool PyDict::SetItemString( const char *key, PyObject *item )
-{
-    return SetItem( new PyString( key ), item );
-}
-
-void PyDict::add(PyRep *key, PyRep *value) {
-    if(key == NULL || value == NULL)
-        return;
-    items[key] = value;
-}
-
-void PyDict::add(const char *key, PyRep *value) {
-    if(key == NULL || value == NULL)
-        return;
-    items[new PyString(key)] = value;
-}
-
-void PyDict::addStr(const char *key, const char *value) {
-    if(key == NULL || value == NULL)
-        return;
-    items[new PyString(key)] = new PyString(value);
 }
 
 PyObject *PyObject::TypedClone() const {
@@ -1410,10 +1454,10 @@ PyTuple *PyObjectEx_Type1::_CreateHeader(const char *type, PyTuple *args, PyDict
 		args = new PyTuple( 0 );
 
 	PyTuple *head = new PyTuple( keywords == NULL ? 2 : 3 );
-	head->SetItem( 0, new PyString( type, true ) );
-	head->SetItem( 1, args );
+	head->set( 0, new PyString( type, true ) );
+	head->set( 1, args );
 	if( head->size() > 2 )
-		head->SetItem( 2, keywords );
+		head->set( 2, keywords );
 
 	return head;
 }
@@ -1459,8 +1503,8 @@ PyTuple *PyObjectEx_Type2::_CreateHeader(PyTuple *args, PyDict *keywords)
 		keywords = new PyDict;
 
 	PyTuple *head = new PyTuple( 2 );
-	head->SetItem( 0, args );
-	head->SetItem( 1, keywords );
+	head->set( 0, args );
+	head->set( 1, keywords );
 
 	return head;
 }

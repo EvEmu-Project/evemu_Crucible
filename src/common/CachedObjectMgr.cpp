@@ -791,17 +791,15 @@ bool PyCachedCall::Decode(PySubStream **in_ss) {
     }
     PyDict *po = (PyDict *) ss->decoded;
 
-    PyDict::iterator cur, end;
+    PyDict::const_iterator cur, end;
     cur = po->begin();
     end = po->end();
     for(; cur != end; cur++) {
         if(!cur->first->IsString())
             continue;
         PyString *key = (PyString *) cur->first;
-        if(*key == "lret") {
-            result = cur->second;
-            cur->second = NULL;
-        }
+        if(*key == "lret")
+            result = cur->second->Clone();
     }
 
     delete ss;

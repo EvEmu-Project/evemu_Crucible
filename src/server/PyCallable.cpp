@@ -60,7 +60,8 @@ PyCallArgs::PyCallArgs(Client *c, PyTuple **tup, PyDict **dict)
 	
 	PyDict *d = *dict;
 	*dict = NULL;
-	PyDict::iterator cur, end;
+
+	PyDict::const_iterator cur, end;
 	cur = d->begin();
 	end = d->end();
 	for(; cur != end; cur++) {
@@ -69,13 +70,10 @@ PyCallArgs::PyCallArgs(Client *c, PyTuple **tup, PyDict **dict)
 			cur->first->Dump(SERVICE__ERROR, "    ");
 			continue;
 		}
-		PyString *s = (PyString *) cur->first;
-		
-		byname[s->content()] = cur->second;
-		cur->second = NULL;
+		byname[ cur->first->AsString().content() ] = cur->second->Clone();
 	}
-	//do not do anything with d except delete it, it has NULL pointers in it.
-	delete d;
+
+	PyDecRef( d );
 }
 
 PyCallArgs::~PyCallArgs() {

@@ -48,8 +48,8 @@ PyResult ContractMgrService::Handle_NumRequiringAttention(PyCallArgs &call) {
 	_log(SERVICE__WARNING, "%s: NumReqiringAttention unimplemented.", GetName());
 
 	PyDict *args = new PyDict;
-	args->add("n", new PyInt(0));
-	args->add("ncorp", new PyInt(0));
+	args->setStr("n", new PyInt(0));
+	args->setStr("ncorp", new PyInt(0));
 
 	return(new PyObject("util.KeyVal", args));
 }

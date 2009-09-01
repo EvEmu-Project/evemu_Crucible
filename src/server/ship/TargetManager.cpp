@@ -281,7 +281,7 @@ void TargetManager::QueueTBDestinyEvent(PyTuple **up_in) const {
 	PyTuple *up_dup = NULL;
 	for(; cur != end; ++cur) {
 		if(up_dup == NULL)
-			up_dup = up->TypedClone();
+			up_dup = new PyTuple( *up );
 		cur->first->QueueDestinyEvent(&up_dup);
 		//they may not have consumed it (NPCs for example), so dont re-dup it in that case.
 	}
@@ -300,7 +300,7 @@ void TargetManager::QueueTBDestinyUpdate(PyTuple **up_in) const {
 	PyTuple *up_dup = NULL;
 	for(; cur != end; ++cur) {
 		if(up_dup == NULL)
-			up_dup = up->TypedClone();
+			up_dup = new PyTuple( *up );
 		cur->first->QueueDestinyUpdate(&up_dup);
 		//they may not have consumed it (NPCs for example), so dont re-dup it in that case.
 	}

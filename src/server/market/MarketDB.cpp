@@ -497,20 +497,20 @@ PyObject *MarketDB::GetMarketGroups() {
 	PyDict *parentSets = new PyDict();
 	PyList *header = new PyList();
 	
-	header->add("marketGroupID");
-	header->add("parentGroupID");
-	header->add("marketGroupName");
-	header->add("description");
-	header->add("graphicID");
-	header->add("hasTypes");
-	header->add("types");	//this column really contains an entire list.
-	header->add("dataID");
+	header->addStr("marketGroupID");
+	header->addStr("parentGroupID");
+	header->addStr("marketGroupName");
+	header->addStr("description");
+	header->addStr("graphicID");
+	header->addStr("hasTypes");
+	header->addStr("types");	//this column really contains an entire list.
+	header->addStr("dataID");
 	
-	args->add("header", header);
-	args->add("idName", new PyString("parentGroupID"));
-	args->add("RowClass", new PyString("util.Row", true));
-	args->add("idName2", new PyNone());
-	args->add("items", parentSets);
+	args->setStr("header", header);
+	args->setStr("idName", new PyString("parentGroupID"));
+	args->setStr("RowClass", new PyString("util.Row", true));
+	args->setStr("idName2", new PyNone());
+	args->setStr("items", parentSets);
 
 	std::map<int, PyList *> parentLists;	//maps marketGroupID -> list of children MarketGroup_Entry-s
 	std::map<int, PyList *>::iterator cur, end;
@@ -575,9 +575,9 @@ PyObject *MarketDB::GetMarketGroups() {
 	for(; cur != end; cur++)
 		//takes ownership of the list.
 		if(cur->first == -1)
-			parentSets->add(new PyNone, cur->second);
+			parentSets->set(new PyNone, cur->second);
 		else
-			parentSets->add(new PyInt(cur->first), cur->second);
+			parentSets->set(new PyInt(cur->first), cur->second);
 
 	return(new PyObject("util.FilterRowset", args));
 }

@@ -312,7 +312,7 @@ bool ClassCloneGenerator::Process_list(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t%s.CloneFrom(&from->%s);\n", name, name);
+    fprintf(into, "\t%s = from->%s;\n", name, name);
     return true;
 }
 
@@ -329,7 +329,7 @@ bool ClassCloneGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
             //TODO: log an error
         "       %s = NULL;\n"
         "   } else {\n"
-        "       %s = from->%s->TypedClone();\n"
+        "       %s = new PyTuple( *from->%s );\n"
         "   }\n",
         name,
         name,
@@ -347,7 +347,7 @@ bool ClassCloneGenerator::Process_dict(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t%s.CloneFrom(&from->%s);\n", name, name);
+    fprintf(into, "\t%s = from->%s;\n", name, name);
     return true;
 }
 

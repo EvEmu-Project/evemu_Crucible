@@ -34,7 +34,7 @@ GPSTransportClosed::GPSTransportClosed(const char *reason)
 
 void GPSTransportClosed::AddKeyword(const char *name, PyRep *value)
 {
-	_GetReasonArgs().add( name, value );
+	_GetReasonArgs().setStr( name, value );
 }
 
 PyDict &GPSTransportClosed::_GetReasonArgs() const
@@ -48,7 +48,7 @@ PyDict &GPSTransportClosed::_GetReasonArgs() const
 PyTuple *GPSTransportClosed::_CreateArgs(const char *reason)
 {
 	PyTuple *args = new PyTuple( 1 );
-	args->SetItem( 0, new PyString( reason ) );
+	args->set( 0, new PyString( reason ) );
 
 	return args;
 }
@@ -56,17 +56,17 @@ PyTuple *GPSTransportClosed::_CreateArgs(const char *reason)
 PyDict *GPSTransportClosed::_CreateKeywords(const char *reason)
 {
 	PyDict *keywords = new PyDict;
-	//keywords->add( "origin", new PyString( "proxy" ) );
-	keywords->add( "reasonArgs", new PyDict );
-	keywords->add( "clock", new PyLong( Win32TimeNow() ) );
-	//keywords->add( "loggedOnUserCount", );
-	keywords->add( "region", new PyString( EVEProjectRegion ) );
-	keywords->add( "reason", new PyString( reason ) );
-	keywords->add( "version", new PyFloat( EVEVersionNumber ) );
-	keywords->add( "build", new PyInt( EVEBuildVersion ) );
-	//keywords->add( "reasonCode", );
-	keywords->add( "codename", new PyString( EVEProjectCodename ) );
-	keywords->add( "machoVersion", new PyInt( MachoNetVersion ) );
+	//keywords->setStr( "origin", new PyString( "proxy" ) );
+	keywords->setStr( "reasonArgs", new PyDict );
+	keywords->setStr( "clock", new PyLong( Win32TimeNow() ) );
+	//keywords->setStr( "loggedOnUserCount", );
+	keywords->setStr( "region", new PyString( EVEProjectRegion ) );
+	keywords->setStr( "reason", new PyString( reason ) );
+	keywords->setStr( "version", new PyFloat( EVEVersionNumber ) );
+	keywords->setStr( "build", new PyInt( EVEBuildVersion ) );
+	//keywords->setStr( "reasonCode", );
+	keywords->setStr( "codename", new PyString( EVEProjectCodename ) );
+	keywords->setStr( "machoVersion", new PyInt( MachoNetVersion ) );
 
 	return keywords;
 }
@@ -78,8 +78,8 @@ UserError::UserError(const char *msg)
 
 void UserError::AddKeyword(const char *name, PyRep *value)
 {
-	_GetTupleKeywords().add( name, value );
-	_GetDictKeywords().add( name, value );
+	_GetTupleKeywords().setStr( name, value );
+	_GetDictKeywords().setStr( name, value );
 }
 
 PyDict &UserError::_GetTupleKeywords() const
@@ -98,8 +98,8 @@ PyDict &UserError::_GetDictKeywords() const
 PyTuple *UserError::_CreateArgs(const char *msg)
 {
 	PyTuple *args = new PyTuple( 2 );
-	args->SetItem( 0, new PyString( msg ) );
-	args->SetItem( 1, new PyDict );
+	args->set( 0, new PyString( msg ) );
+	args->set( 1, new PyDict );
 
 	return args;
 }
@@ -107,8 +107,8 @@ PyTuple *UserError::_CreateArgs(const char *msg)
 PyDict *UserError::_CreateKeywords(const char *msg)
 {
 	PyDict *keywords = new PyDict;
-	keywords->add( "msg", new PyString( msg ) );
-	keywords->add( "dict", new PyDict );
+	keywords->setStr( "msg", new PyString( msg ) );
+	keywords->setStr( "dict", new PyDict );
 
 	return keywords;
 }
