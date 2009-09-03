@@ -81,9 +81,6 @@ public:
 	 */
 	void AddColumn(const char *name, DBTYPE type);
 
-	// Some utilities:
-	DBRowDescriptor *TypedClone() const { return static_cast<DBRowDescriptor *>( PyObjectEx::TypedClone() ); }
-
 protected:
 	// Helper functions:
 	PyTuple &_GetColumnList() const;

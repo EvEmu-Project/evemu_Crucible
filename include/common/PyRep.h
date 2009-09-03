@@ -538,9 +538,9 @@ public:
 class PyList : public PyRep
 {
 public:
-    typedef std::vector<PyRep *> storage_type;
-    typedef std::vector<PyRep *>::iterator iterator;
-    typedef std::vector<PyRep *>::const_iterator const_iterator;
+    typedef std::vector<PyRep *>            storage_type;
+    typedef storage_type::iterator          iterator;
+    typedef storage_type::const_iterator    const_iterator;
 
     PyList(size_t item_count = 0);
 	PyList(const PyList& oth);
@@ -671,58 +671,75 @@ public:
     storage_type items;
 };
 
-class PyObject : public PyRep {
+/**
+ * @brief Python object.
+ *
+ * Consists of typename (string) and arguments,
+ * which is usually PyTuple or PyDict.
+ */
+class PyObject : public PyRep
+{
 public:
-    PyObject(const std::string &_type = "", PyRep *_args = NULL) : PyRep(PyRep::PyTypeObject), type(_type), arguments(_args) {}
+    PyObject(const char* _type = "", PyRep* _args = NULL);
+	PyObject(const PyObject& oth);
     virtual ~PyObject();
 
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitObject(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitObject(this, lvl);
-    }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    PyObject *TypedClone() const;
+	/**
+	 * @brief Assigment operator, handles arguments ownership.
+	 *
+	 * @param[in] oth PyObject the content of which should be copied.
+	 * @return Itself.
+	 */
+	PyObject& operator=(const PyObject& oth);
 
     std::string type;
-    PyRep *arguments;   //should be a tuple or a dict
+    PyRep* arguments;
 };
 
-//opcodes 0x22 and 0x23 (merged for simplicity)
-class PyObjectEx : public PyRep {
+/**
+ * @brief Python extended object.
+ *
+ * This represents some kind of extended Python object.
+ * Used for opcodes 0x22 (Type1) and 0x23 (Type2),
+ * since the only difference is in header.
+ */
+class PyObjectEx : public PyRep
+{
 public:
-    //for list data (before first PackedTerminator)
-    typedef std::vector<PyRep *> list_type;
-    typedef std::vector<PyRep *>::iterator list_iterator;
-    typedef std::vector<PyRep *>::const_iterator const_list_iterator;
+    typedef PyList                          list_type;
+    typedef list_type::iterator             list_iterator;
+    typedef list_type::const_iterator       const_list_iterator;
 
-    //for dict data (after first PackedTerminator)
-    typedef std::map<PyRep *, PyRep *> dict_type;
-    typedef std::map<PyRep *, PyRep *>::iterator dict_iterator;
-    typedef std::map<PyRep *, PyRep *>::const_iterator const_dict_iterator;
+    typedef PyDict                          dict_type;
+    typedef dict_type::iterator             dict_iterator;
+    typedef dict_type::const_iterator       const_dict_iterator;
 
-    PyObjectEx(bool _is_type_2, PyRep *_header = NULL);
+    PyObjectEx(bool _is_type_2, PyRep* _header = NULL);
+	PyObjectEx(const PyObjectEx& oth);
     virtual ~PyObjectEx();
 
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitObjectEx(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitObjectEx(this, lvl);
-    }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    PyObjectEx *TypedClone() const;
-    void CloneFrom(const PyObjectEx *from);
+	/**
+	 * @brief Assigment operator to handle ownership things.
+	 *
+	 * @param[in] oth PyObjectEx the content of which should be copied.
+	 * @return Itself.
+	 */
+	PyObjectEx& operator=(const PyObjectEx& oth);
 
-    PyRep *header;
-    const bool is_type_2;   // true if opcode is 0x26 instead of 0x25
+    PyRep* header;
+    const bool is_type_2;
 
     list_type list_data;
     dict_type dict_data;
@@ -744,8 +761,6 @@ public:
 	PyDict &GetKeywords() const;
 	PyRep *FindKeyword(const char *keyword) const;
 
-	PyObjectEx_Type1 *TypedClone() const { return static_cast<PyObjectEx_Type1 *>( PyObjectEx::TypedClone() ); }
-
 protected:
 	static PyTuple *_CreateHeader(const char *type, PyTuple *args, PyDict *keywords);
 };
@@ -764,8 +779,6 @@ public:
 	PyTuple &GetArgs() const;
 	PyDict &GetKeywords() const;
 	PyRep *FindKeyword(const char *keyword) const;
-
-	PyObjectEx_Type2 *TypedClone() const { return static_cast<PyObjectEx_Type2 *>( PyObjectEx::TypedClone() ); }
 
 protected:
 	static PyTuple *_CreateHeader(PyTuple *args, PyDict *keywords);

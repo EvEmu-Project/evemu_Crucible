@@ -250,15 +250,24 @@ bool ClassCloneGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
         _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
+	const char* type = field->Attribute( "type" );
+	if( type == NULL )
+	{
+        _log( COMMON__ERROR, "field at line %d is missing the type attribute.", field->Row() );
+        return false;
+	}
 
 	fprintf( into,
+		"	PySafeDecRef( %s );\n"
 		"	if( from->%s == NULL )\n"
 		"		%s = NULL;\n"
 		"	else\n"
-		"		%s = from->%s->TypedClone();\n",
+		"		%s = new %s( *from->%s );\n",
+		name,
 		name,
 			name,
-			name, name
+
+			name, type, name
 	);
 
     return true;

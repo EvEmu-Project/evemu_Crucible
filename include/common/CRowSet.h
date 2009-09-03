@@ -66,8 +66,6 @@ public:
 	 */
 	PyPackedRow &NewRow();
 
-	CRowSet *TypedClone() const { return static_cast<CRowSet *>( PyObjectEx::TypedClone() ); }
-
 protected:
 	DBRowDescriptor &_GetRowDesc() const;
 	PyList &_GetColumnList() const;

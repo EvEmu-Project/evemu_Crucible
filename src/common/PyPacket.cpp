@@ -293,7 +293,7 @@ PyRep *PyPacket::Encode() {
         arg_tuple->items[5] = named_payload->Clone();
     }
 
-    return(new PyObject(type_string, arg_tuple));
+    return(new PyObject(type_string.c_str(), arg_tuple));
 }
 
 PyAddress::PyAddress() : type(Invalid), typeID(0), callID(0), service("") {}

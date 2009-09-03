@@ -438,7 +438,7 @@ PyList *DBResultToPackedRowList( DBQueryResult &result )
     DBResultRow row;
     for( uint32 i = 0; result.GetRow( row ); i++ )
         //this is piece of crap due to header cloning
-        res->SetItem( i, CreatePackedRow( row, *header->TypedClone(), true ) );
+        res->SetItem( i, CreatePackedRow( row, *new DBRowDescriptor( *header ), true ) );
 
     SafeDelete( header );
     return res;
@@ -455,7 +455,7 @@ PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
 	DBResultRow row;
 	uint32 i = 0;
     while( result.GetRow(row) )
-        list->SetItem( i++, CreatePackedRow( row, *header->TypedClone(), true ) );
+        list->SetItem( i++, CreatePackedRow( row, *new DBRowDescriptor( *header ), true ) );
 
     PyTuple * root = new PyTuple(2);
     root->SetItem( 0, header );

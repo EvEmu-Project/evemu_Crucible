@@ -957,7 +957,16 @@ PyDict& PyDict::operator=(const PyDict& oth)
 /************************************************************************/
 /* PyRep Object Class                                                   */
 /************************************************************************/
-PyObject::~PyObject() {
+PyObject::PyObject( const char* _type, PyRep* _args ) : PyRep( PyRep::PyTypeObject ), type( _type ), arguments( _args ) {}
+PyObject::PyObject( const PyObject& oth ) : PyRep( PyRep::PyTypeObject ),
+  type(), arguments( NULL )
+{
+	// Use assigment operator
+	*this = oth;
+}
+
+PyObject::~PyObject()
+{
     PySafeDecRef( arguments );
 }
 
@@ -977,6 +986,291 @@ void PyObject::Dump(LogType ltype, const char *pfx) const {
     std::string m(pfx);
     m += "  Args: ";
     arguments->Dump(ltype, m.c_str());
+}
+
+PyRep* PyObject::Clone() const
+{
+	return new PyObject( *this );
+}
+
+void PyObject::visit( PyVisitor* v ) const
+{
+	v->VisitObject( this );
+}
+
+void PyObject::visit( PyVisitorLvl* v, int64 lvl ) const
+{
+	v->VisitObject( this, lvl );
+}
+
+PyObject& PyObject::operator=(const PyObject &oth)
+{
+	type = oth.type;
+
+	PySafeDecRef( arguments );
+	if( oth.arguments == NULL )
+		arguments = NULL;
+	else
+		arguments = oth.arguments->Clone();
+
+	return *this;
+}
+
+/************************************************************************/
+/* PyObjectEx                                                           */
+/************************************************************************/
+PyObjectEx::PyObjectEx( bool _is_type_2, PyRep* _header ) : PyRep( PyRep::PyTypeObjectEx ), header( _header ), is_type_2( _is_type_2 ) {}
+PyObjectEx::PyObjectEx( const PyObjectEx& oth ) : PyRep( PyRep::PyTypeObjectEx ),
+  header( NULL ), is_type_2( oth.is_type_2 )
+{
+	// Use assigment operator
+	*this = oth;
+}
+
+PyObjectEx::~PyObjectEx()
+{
+    PySafeDecRef( header );
+}
+
+void PyObjectEx::Dump(FILE *into, const char *pfx) const {
+    fprintf(into, "%sObjectEx%s\n", pfx, (is_type_2 ? " (Type2)" : ""));
+    fprintf(into, "%sHeader:\n", pfx);
+    if(header == NULL)
+        fprintf(into, "%s  None\n", pfx);
+    else {
+        std::string p(pfx);
+        p += "  ";
+
+        header->Dump(into, p.c_str());
+    }
+
+    fprintf(into, "%sList data:\n", pfx);
+    if(list_data.empty())
+        fprintf(into, "%s  Empty\n", pfx);
+    else {
+        const_list_iterator cur, end;
+        cur = list_data.begin();
+        end = list_data.end();
+        char t[16];
+        for(int i = 0; cur != end; cur++, i++) {
+            std::string n(pfx);
+            snprintf(t, 16, "  [%2d] ", i);
+            n += t;
+            (*cur)->Dump(into, n.c_str());
+        }
+    }
+
+    fprintf(into, "%sDict data:\n", pfx);
+    if(dict_data.empty())
+        fprintf(into, "%s  Empty\n", pfx);
+    else {
+        const_dict_iterator cur, end;
+        cur = dict_data.begin();
+        end = dict_data.end();
+        char t[16];
+        for(int i = 0; cur != end; cur++, i++) {
+            std::string k(pfx);
+            snprintf(t, 16, "  [%2d] Key: ", i);
+            k += t;
+            cur->first->Dump(into, k.c_str());
+
+            std::string v(pfx);
+            snprintf(t, 16, "  [%2d] Value: ", i);
+            v += t;
+            cur->second->Dump(into, v.c_str());
+        }
+    }
+}
+
+void PyObjectEx::Dump(LogType ltype, const char *pfx) const {
+    if(!is_log_enabled(ltype))
+        return;
+
+    {_log(ltype, "%sObjectEx%s\n", pfx, (is_type_2 ? " (Type2)" : ""));}
+    {_log(ltype, "%sHeader:\n", pfx);}
+
+    if(header == NULL)
+        {_log(ltype, "%s  None\n", pfx);}
+    else {
+        std::string p(pfx);
+        p += "  ";
+
+        header->Dump(ltype, p.c_str());
+    }
+
+    {_log(ltype, "%sList data:", pfx);}
+    if(list_data.empty())
+        {_log(ltype, "%s  Empty", pfx);}
+    else {
+        const_list_iterator cur, end;
+        cur = list_data.begin();
+        end = list_data.end();
+        char t[16];
+        for(int i = 0; cur != end; cur++, i++) {
+            std::string n(pfx);
+            snprintf(t, 16, "  [%2d] ", i);
+            n += t;
+            (*cur)->Dump(ltype, n.c_str());
+        }
+    }
+
+    {_log(ltype, "%sDict data:", pfx);}
+    if(dict_data.empty())
+        {_log(ltype, "%s  Empty", pfx);}
+    else {
+        const_dict_iterator cur, end;
+        cur = dict_data.begin();
+        end = dict_data.end();
+        char t[16];
+        for(int i = 0; cur != end; cur++, i++) {
+            std::string k(pfx);
+            snprintf(t, 16, "  [%2d] Key: ", i);
+            k += t;
+            cur->first->Dump(ltype, k.c_str());
+
+            std::string v(pfx);
+            snprintf(t, 16, "  [%2d] Value: ", i);
+            v += t;
+            cur->second->Dump(ltype, v.c_str());
+        }
+    }
+}
+
+PyRep* PyObjectEx::Clone() const
+{
+	return new PyObjectEx( *this );
+}
+
+void PyObjectEx::visit( PyVisitor* v ) const
+{
+	v->VisitObjectEx( this );
+}
+
+void PyObjectEx::visit( PyVisitorLvl* v, int64 lvl ) const
+{
+	v->VisitObjectEx( this, lvl );
+}
+
+PyObjectEx& PyObjectEx::operator=(const PyObjectEx& oth)
+{
+	PySafeDecRef( header );
+    if( oth.header != NULL )
+        header = oth.header->Clone();
+    else
+        header = NULL;
+
+	list_data = oth.list_data;
+	dict_data = oth.dict_data;
+
+	return *this;
+}
+
+PyObjectEx_Type1::PyObjectEx_Type1(const char *type, PyTuple *args, PyDict *keywords)
+: PyObjectEx( false, _CreateHeader( type, args, keywords ) )
+{
+}
+
+PyString &PyObjectEx_Type1::GetType() const
+{
+	assert( header );
+	return header->AsTuple().items.at( 0 )->AsString();
+}
+
+PyTuple &PyObjectEx_Type1::GetArgs() const
+{
+	assert( header );
+	return header->AsTuple().items.at( 1 )->AsTuple();
+}
+
+PyDict &PyObjectEx_Type1::GetKeywords() const
+{
+	// This one is slightly more complicated since
+	// keywords are optional.
+	assert( header );
+	PyTuple &t = header->AsTuple();
+
+	if( t.size() < 3 )
+		t.items.push_back( new PyDict );
+
+	return t.items.at( 2 )->AsDict();
+}
+
+PyRep *PyObjectEx_Type1::FindKeyword(const char *keyword) const
+{
+	PyDict &kw = GetKeywords();
+
+	PyDict::const_iterator cur, end;
+	cur = kw.begin();
+	end = kw.end();
+	for(; cur != end; cur++)
+	{
+		if( cur->first->IsString() )
+			if( cur->first->AsString() == keyword )
+				return cur->second;
+	}
+
+	return NULL;
+}
+
+PyTuple *PyObjectEx_Type1::_CreateHeader(const char *type, PyTuple *args, PyDict *keywords)
+{
+	if( args == NULL )
+		args = new PyTuple( 0 );
+
+	PyTuple *head = new PyTuple( keywords == NULL ? 2 : 3 );
+	head->SetItem( 0, new PyString( type, true ) );
+	head->SetItem( 1, args );
+	if( head->size() > 2 )
+		head->SetItem( 2, keywords );
+
+	return head;
+}
+
+PyObjectEx_Type2::PyObjectEx_Type2(PyTuple *args, PyDict *keywords)
+: PyObjectEx( true, _CreateHeader( args, keywords ) )
+{
+}
+
+PyTuple &PyObjectEx_Type2::GetArgs() const
+{
+	assert( header );
+	return header->AsTuple().items.at( 0 )->AsTuple();
+}
+
+PyDict &PyObjectEx_Type2::GetKeywords() const
+{
+	assert( header );
+	return header->AsTuple().items.at( 1 )->AsDict();
+}
+
+PyRep *PyObjectEx_Type2::FindKeyword(const char *keyword) const
+{
+	PyDict &kw = GetKeywords();
+
+	PyDict::const_iterator cur, end;
+	cur = kw.begin();
+	end = kw.end();
+	for(; cur != end; cur++)
+	{
+		if( cur->first->IsString() )
+			if( cur->first->AsString() == keyword )
+				return cur->second;
+	}
+
+	return NULL;
+}
+
+PyTuple *PyObjectEx_Type2::_CreateHeader(PyTuple *args, PyDict *keywords)
+{
+	assert( args );
+	if( keywords == NULL )
+		keywords = new PyDict;
+
+	PyTuple *head = new PyTuple( 2 );
+	head->SetItem( 0, args );
+	head->SetItem( 1, keywords );
+
+	return head;
 }
 
 /************************************************************************/
@@ -1093,10 +1387,6 @@ void PyChecksumedStream::Dump(LogType type, const char *pfx) const {
     stream->Dump(type, pfx);
 }
 
-PyObject *PyObject::TypedClone() const {
-    return new PyObject( type, arguments->Clone() );
-}
-
 PySubStruct *PySubStruct::TypedClone() const {
     return new PySubStruct( sub->Clone() );
 }
@@ -1182,7 +1472,7 @@ void PyPackedRow::Dump(LogType ltype, const char *pfx) const
 
 PyPackedRow *PyPackedRow::TypedClone() const
 {
-    PyPackedRow *res = new PyPackedRow( IsHeaderOwner() ? *GetHeader().TypedClone() : GetHeader(),
+    PyPackedRow *res = new PyPackedRow( IsHeaderOwner() ? *new DBRowDescriptor( GetHeader() ) : GetHeader(),
                                               IsHeaderOwner() );
     res->CloneFrom( this );
     return res;
@@ -1239,273 +1529,5 @@ int32 PyPackedRow::hash() const
 {
     assert(false);
 	return PyRep::hash();
-}
-
-/************************************************************************/
-/* PyObjectEx                                                        */
-/************************************************************************/
-PyObjectEx::PyObjectEx( bool _is_type_2, PyRep *_header /*= NULL*/ ) : PyRep(PyRep::PyTypeObjectEx), header(_header), is_type_2(_is_type_2) {}
-
-PyObjectEx::~PyObjectEx()
-{
-    PySafeDecRef( header );
-    {
-        const_list_iterator cur, end;
-        cur = list_data.begin();
-        end = list_data.end();
-        for(; cur != end; cur++)
-            PyDecRef( *cur );
-        list_data.clear();
-    }
-    {
-        const_dict_iterator cur, end;
-        cur = dict_data.begin();
-        end = dict_data.end();
-        for(; cur != end; cur++) {
-            PyDecRef( cur->first );
-            PyDecRef( cur->second );
-        }
-        dict_data.clear();
-    }
-}
-
-void PyObjectEx::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sObjectEx%s\n", pfx, (is_type_2 ? " (Type2)" : ""));
-    fprintf(into, "%sHeader:\n", pfx);
-    if(header == NULL)
-        fprintf(into, "%s  None\n", pfx);
-    else {
-        std::string p(pfx);
-        p += "  ";
-
-        header->Dump(into, p.c_str());
-    }
-
-    fprintf(into, "%sList data:\n", pfx);
-    if(list_data.empty())
-        fprintf(into, "%s  Empty\n", pfx);
-    else {
-        const_list_iterator cur, end;
-        cur = list_data.begin();
-        end = list_data.end();
-        char t[16];
-        for(int i = 0; cur != end; cur++, i++) {
-            std::string n(pfx);
-            snprintf(t, 16, "  [%2d] ", i);
-            n += t;
-            (*cur)->Dump(into, n.c_str());
-        }
-    }
-
-    fprintf(into, "%sDict data:\n", pfx);
-    if(dict_data.empty())
-        fprintf(into, "%s  Empty\n", pfx);
-    else {
-        const_dict_iterator cur, end;
-        cur = dict_data.begin();
-        end = dict_data.end();
-        char t[16];
-        for(int i = 0; cur != end; cur++, i++) {
-            std::string k(pfx);
-            snprintf(t, 16, "  [%2d] Key: ", i);
-            k += t;
-            cur->first->Dump(into, k.c_str());
-
-            std::string v(pfx);
-            snprintf(t, 16, "  [%2d] Value: ", i);
-            v += t;
-            cur->second->Dump(into, v.c_str());
-        }
-    }
-}
-
-void PyObjectEx::Dump(LogType ltype, const char *pfx) const {
-    if(!is_log_enabled(ltype))
-        return;
-
-    {_log(ltype, "%sObjectEx%s\n", pfx, (is_type_2 ? " (Type2)" : ""));}
-    {_log(ltype, "%sHeader:\n", pfx);}
-
-    if(header == NULL)
-        {_log(ltype, "%s  None\n", pfx);}
-    else {
-        std::string p(pfx);
-        p += "  ";
-
-        header->Dump(ltype, p.c_str());
-    }
-
-    {_log(ltype, "%sList data:", pfx);}
-    if(list_data.empty())
-        {_log(ltype, "%s  Empty", pfx);}
-    else {
-        const_list_iterator cur, end;
-        cur = list_data.begin();
-        end = list_data.end();
-        char t[16];
-        for(int i = 0; cur != end; cur++, i++) {
-            std::string n(pfx);
-            snprintf(t, 16, "  [%2d] ", i);
-            n += t;
-            (*cur)->Dump(ltype, n.c_str());
-        }
-    }
-
-    {_log(ltype, "%sDict data:", pfx);}
-    if(dict_data.empty())
-        {_log(ltype, "%s  Empty", pfx);}
-    else {
-        const_dict_iterator cur, end;
-        cur = dict_data.begin();
-        end = dict_data.end();
-        char t[16];
-        for(int i = 0; cur != end; cur++, i++) {
-            std::string k(pfx);
-            snprintf(t, 16, "  [%2d] Key: ", i);
-            k += t;
-            cur->first->Dump(ltype, k.c_str());
-
-            std::string v(pfx);
-            snprintf(t, 16, "  [%2d] Value: ", i);
-            v += t;
-            cur->second->Dump(ltype, v.c_str());
-        }
-    }
-}
-
-PyObjectEx *PyObjectEx::TypedClone() const {
-    PyObjectEx *clone = new PyObjectEx(is_type_2);
-    clone->CloneFrom(this);
-    return(clone);
-}
-
-void PyObjectEx::CloneFrom(const PyObjectEx *from) {
-    if(from->header != NULL)
-        header = from->header->Clone();
-    else
-        header = NULL;
-    {
-        const_list_iterator cur, end;
-        cur = from->list_data.begin();
-        end = from->list_data.end();
-        for(; cur != end; cur++)
-            list_data.push_back((*cur)->Clone());
-    }
-    {
-        const_dict_iterator cur, end;
-        cur = from->dict_data.begin();
-        end = from->dict_data.end();
-        for(; cur != end; cur++) {
-            dict_data[cur->first->Clone()] = cur->second->Clone();
-        }
-    }
-}
-
-PyObjectEx_Type1::PyObjectEx_Type1(const char *type, PyTuple *args, PyDict *keywords)
-: PyObjectEx( false, _CreateHeader( type, args, keywords ) )
-{
-}
-
-PyString &PyObjectEx_Type1::GetType() const
-{
-	assert( header );
-	return header->AsTuple().items.at( 0 )->AsString();
-}
-
-PyTuple &PyObjectEx_Type1::GetArgs() const
-{
-	assert( header );
-	return header->AsTuple().items.at( 1 )->AsTuple();
-}
-
-PyDict &PyObjectEx_Type1::GetKeywords() const
-{
-	// This one is slightly more complicated since
-	// keywords are optional.
-	assert( header );
-	PyTuple &t = header->AsTuple();
-
-	if( t.size() < 3 )
-		t.items.push_back( new PyDict );
-
-	return t.items.at( 2 )->AsDict();
-}
-
-PyRep *PyObjectEx_Type1::FindKeyword(const char *keyword) const
-{
-	PyDict &kw = GetKeywords();
-
-	PyDict::const_iterator cur, end;
-	cur = kw.begin();
-	end = kw.end();
-	for(; cur != end; cur++)
-	{
-		if( cur->first->IsString() )
-			if( cur->first->AsString() == keyword )
-				return cur->second;
-	}
-
-	return NULL;
-}
-
-PyTuple *PyObjectEx_Type1::_CreateHeader(const char *type, PyTuple *args, PyDict *keywords)
-{
-	if( args == NULL )
-		args = new PyTuple( 0 );
-
-	PyTuple *head = new PyTuple( keywords == NULL ? 2 : 3 );
-	head->SetItem( 0, new PyString( type, true ) );
-	head->SetItem( 1, args );
-	if( head->size() > 2 )
-		head->SetItem( 2, keywords );
-
-	return head;
-}
-
-PyObjectEx_Type2::PyObjectEx_Type2(PyTuple *args, PyDict *keywords)
-: PyObjectEx( true, _CreateHeader( args, keywords ) )
-{
-}
-
-PyTuple &PyObjectEx_Type2::GetArgs() const
-{
-	assert( header );
-	return header->AsTuple().items.at( 0 )->AsTuple();
-}
-
-PyDict &PyObjectEx_Type2::GetKeywords() const
-{
-	assert( header );
-	return header->AsTuple().items.at( 1 )->AsDict();
-}
-
-PyRep *PyObjectEx_Type2::FindKeyword(const char *keyword) const
-{
-	PyDict &kw = GetKeywords();
-
-	PyDict::const_iterator cur, end;
-	cur = kw.begin();
-	end = kw.end();
-	for(; cur != end; cur++)
-	{
-		if( cur->first->IsString() )
-			if( cur->first->AsString() == keyword )
-				return cur->second;
-	}
-
-	return NULL;
-}
-
-PyTuple *PyObjectEx_Type2::_CreateHeader(PyTuple *args, PyDict *keywords)
-{
-	assert( args );
-	if( keywords == NULL )
-		keywords = new PyDict;
-
-	PyTuple *head = new PyTuple( 2 );
-	head->SetItem( 0, args );
-	head->SetItem( 1, keywords );
-
-	return head;
 }
 

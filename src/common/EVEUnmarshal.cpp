@@ -701,9 +701,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         uint32 type_len = UnmarshalData(state, packet, len, type, n.c_str());
         if(type == NULL)
             break;
-        packet += type_len;
-        len -= type_len;
-        len_used += type_len;
+		IncreaseIndex( type_len );
 
         std::string typestr;
         if(type->IsString()) {
@@ -711,7 +709,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         } else {
             typestr = "NON-STRING-TYPE";
         }
-        delete type;
+		PyDecRef( type );
 
         if(len == 0) {
             _log(NET__UNMARSHAL_ERROR, "Ran out of length in dict entry for key!\n");
@@ -723,11 +721,9 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         uint32 value_len = UnmarshalData(state, packet, len, arguments, n.c_str());
         if(arguments == NULL)
             break;
-        packet += value_len;
-        len -= value_len;
-        len_used += value_len;
+		IncreaseIndex( value_len );
 
-        res = new PyObject(typestr, arguments);
+        res = new PyObject( typestr.c_str(), arguments );
         break; }
 
     case 0x18:
@@ -847,19 +843,19 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             break;
 		IncreaseIndex( clen );
 
-        PyObjectEx *obj = new PyObjectEx(opcode == Op_ObjectEx2, header);
+        PyObjectEx *obj = new PyObjectEx( ( opcode == Op_ObjectEx2 ), header );
 
         n = pfx;
         n += "  ListData: ";
-        while(*packet != Op_PackedTerminator) {
+        while( *packet != Op_PackedTerminator )
+		{
             PyRep *el;
-
             clen = UnmarshalData(state, packet, len, el, n.c_str());
             if(el == NULL)
                 break;
 			IncreaseIndex( clen );
 
-            obj->list_data.push_back(el);
+            obj->list_data.add( el );
         }
 		IncreaseIndex( 1 );
 
@@ -879,7 +875,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
                 break;
 			IncreaseIndex( clen );
 
-            obj->dict_data[key] = value;
+			obj->dict_data.SetItem( key, value );
         }
 		IncreaseIndex( 1 );
 

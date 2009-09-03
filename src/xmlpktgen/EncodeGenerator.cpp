@@ -605,6 +605,12 @@ bool ClassEncodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
+	const char* type = field->Attribute( "type" );
+    if(type == NULL) {
+        _log(COMMON__ERROR, "field at line %d is missing the type attribute.", field->Row());
+        return false;
+    }
+
 	bool optional = false;
 	const char *optional_str = field->Attribute( "optional" );
 	if( optional_str != NULL )
@@ -616,8 +622,7 @@ bool ClassEncodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 		fprintf( into,
 			"    if( %s == NULL )\n"
 			"        %s = new PyNone;\n"
-			"    else\n"
-			"    {\n",
+			"    else\n",
 			name,
 				v
 		);
@@ -630,8 +635,7 @@ bool ClassEncodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 			"        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
 			"        %s = new PyNone();\n"
 			"    }\n"
-			"    else\n"
-			"    {\n",
+			"    else\n",
 			name,
 				m_name, name,
 				v
@@ -641,8 +645,10 @@ bool ClassEncodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 	if( m_fast )
 	{
 		fprintf( into,
+			"    {\n"
 			"        %s = %s;\n"
-			"        %s = NULL;\n",
+			"        %s = NULL;\n"
+			"    }\n",
 			v, name,
 			name
 		);
@@ -650,14 +656,10 @@ bool ClassEncodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 	else
 	{
 		fprintf( into,
-			"        %s = %s->TypedClone();\n",
-			v, name
+			"        %s = new %s( *%s );\n",
+			v, type, name
 		);
 	}
-
-	fprintf( into,
-		"    }\n"
-	);
 
 	pop();
     return true;
