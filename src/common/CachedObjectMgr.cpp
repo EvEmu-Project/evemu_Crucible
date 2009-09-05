@@ -120,7 +120,7 @@ void CachedObjectMgr::UpdateCacheFromSS(const std::string &objectID, PySubStream
     }
 
     PyString str(objectID);
-    _UpdateCache(&str, &cache.cache->data, cache.cache->length);
+    _UpdateCache(&str, &cache.cache->data);
 }
 
 void CachedObjectMgr::UpdateCache(const std::string &objectID, PyRep **in_cached_data) {
@@ -132,26 +132,29 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
     PyRep *cached_data = *in_cached_data;
     *in_cached_data = NULL;
 
-    uint32 len;
-    uint8 *buf = Marshal(cached_data, len);
-
     //if(is_log_enabled(SERVICE__CACHE_DUMP)) {
       //  PyLogsysDump dumper(SERVICE__CACHE_DUMP, SERVICE__CACHE_DUMP, false, true);
         //cached_data->visit(&dumper, 0);
     //}
-	SafeDelete( cached_data );
 
-    _UpdateCache(objectID, &buf, len);
+    uint32 len;
+    uint8* data = Marshal(cached_data, len);
+	PyDecRef( cached_data );
+
+	PyBuffer* buf = new PyBuffer( &data, len );
+    _UpdateCache(objectID, &buf);
 }
 
-void CachedObjectMgr::_UpdateCache(const PyRep *objectID, uint8 **data, uint32 length) {
+void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer) {
 
     //this is the hard one..
     CacheRecord *r = new CacheRecord;
     r->timestamp = Win32TimeNow();
     r->objectID = objectID->Clone();
 
-    r->cache = new PyBuffer(data, length);
+	// retake ownership
+    r->cache = *buffer;
+	*buffer = NULL;
 
     r->version = CRC32::Generate(r->cache->content(), r->cache->size());
 
@@ -382,12 +385,14 @@ bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, P
         return false;
     }
 
-    into->data = new uint8[file_length];
-    into->length = fread(into->data, 1, file_length, f);
+	uint8* data = new uint8[file_length];
+	uint32 len = fread(into->data, 1, file_length, f);
+
+	into->data = new PyBuffer( &data, len );
 
     fclose(f);
 
-    _log(CLIENT__MESSAGE, "Loaded cache file for '%s': length %d/%d", oname, into->length, file_length);
+    _log(CLIENT__MESSAGE, "Loaded cache file for '%s': length %d/%d", oname, len, file_length);
 
     return true;
 }
@@ -644,8 +649,7 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
         args->items[4] = NULL;
     } else if(args->items[4]->IsBuffer()) {
         //this is a data buffer, likely compressed.
-        PyBuffer *buf = (PyBuffer *) args->items[4];
-        cache = buf->CreateSubStream();
+		cache = new PySubStream( args->items[4]->AsBuffer() );
         if(cache == NULL) {
             _log(CLIENT__ERROR, "Cache object's content buffer is not a substream!");
             delete ss;
@@ -654,8 +658,7 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
     } else if(args->items[4]->IsString()) {
         //this is a data buffer, likely compressed, not sure why it comes through as a string...
         //hack for now:
-        PyBuffer tmpbuf( args->items[4]->AsString() );
-        cache = tmpbuf.CreateSubStream();
+		cache = new PySubStream( PyBuffer( args->items[4]->AsString() ) );
         if(cache == NULL) {
             _log(CLIENT__ERROR, "Cache object's content buffer is not a substream!");
             delete ss;

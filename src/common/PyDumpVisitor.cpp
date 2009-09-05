@@ -157,21 +157,22 @@ void PyDumpVisitor::VisitObjectEx(const PyObjectEx *rep, int64 lvl )
 
 void PyDumpVisitor::VisitPackedRow(const PyPackedRow *rep, int64 lvl )
 {
-    uint32 cc = rep->GetHeader().ColumnCount();
+    uint32 cc = rep->header().ColumnCount();
 
 	_print( lvl, "Packed Row" );
-	_print( lvl, "  column_count=%u header_owner=%s", cc, rep->IsHeaderOwner() ? "yes" : "no" ); 
+	_print( lvl, "  column_count=%u header_owner=%s", cc, rep->isHeaderOwner() ? "yes" : "no" ); 
 
-    for(uint32 i = 0; i < cc; i++)
+	PyPackedRow::const_iterator cur, end;
+	cur = rep->begin();
+	end = rep->end();
+    for( uint32 i = 0; cur != end; cur++, i++ )
     {
-        PyRep *field = rep->GetField( i );
+		_print( lvl, "  [%u] %s: ", i, rep->header().GetColumnName( i ).content() );
 
-		_print( lvl, "  [%u] %s: ", i, rep->GetHeader().GetColumnName( i ).content() );
-
-		if( field == NULL )
+		if( (*cur) == NULL )
 			_print( lvl + idenAmt, "NULL" );
 		else
-			field->visit( this, lvl + idenAmt );
+			(*cur)->visit( this, lvl + idenAmt );
     }
 }
 
@@ -194,14 +195,16 @@ void PyDumpVisitor::VisitSubStream(const PySubStream *rep, int64 lvl ) {
     if(rep->decoded == NULL) {
         //we have not decoded this substream, leave it as hex:
         if(rep->data == NULL) {
-            _print(lvl, "INVALID Substream: no data (length %u)", rep->length);
+            _print(lvl, "INVALID Substream: no data\n");
         } else {
-            _print(lvl, "Substream: length %u", rep->length);
-			_hexDump( rep->data, rep->length, std::string( lvl, ' ' ).c_str() );
+            _print(lvl, "Substream:\n");
+
+			rep->data->visit( this, lvl + idenAmt );
         }
     } else {
-        _print(lvl, "Substream: length %u %s", rep->length, (rep->data==NULL) ? "from rep":"from data");
-        rep->decoded->visit(this, lvl + idenAmt );
+        _print(lvl, "Substream: %s\n", ( rep->data == NULL ) ? "from rep" : "from data");
+
+		rep->decoded->visit( this, lvl + idenAmt );
     }
 }
 

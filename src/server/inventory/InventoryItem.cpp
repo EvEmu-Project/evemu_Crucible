@@ -361,7 +361,7 @@ PyPackedRow *InventoryItem::GetItemRow() const
 	header->AddColumn( "categoryID", DBTYPE_UI1 );
 	header->AddColumn( "customInfo", DBTYPE_STR );
 
-	PyPackedRow *row = new PyPackedRow( *header, true );
+	PyPackedRow *row = new PyPackedRow( header, true );
     GetItemRow( *row );
     return row;
 }

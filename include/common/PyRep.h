@@ -376,7 +376,6 @@ public:
      */
     size_t size() const { return m_length; }
 
-    PySubStream *CreateSubStream() const;
     int32 hash() const;
 
 protected:
@@ -746,9 +745,9 @@ public:
 };
 
 /**
- * \brief Wrapper class for PyObjectEx of type 1.
+ * @brief Wrapper class for PyObjectEx of type 1.
  *
- * \author Bloody.Rabbit
+ * @author Bloody.Rabbit
  */
 class PyObjectEx_Type1
 : public PyObjectEx
@@ -766,9 +765,9 @@ protected:
 };
 
 /**
- * \brief Wrapper class for PyObjectEx of type 2.
+ * @brief Wrapper class for PyObjectEx of type 2.
  *
- * \author Bloody.Rabbit
+ * @author Bloody.Rabbit
  */
 class PyObjectEx_Type2
 : public PyObjectEx
@@ -784,81 +783,96 @@ protected:
 	static PyTuple *_CreateHeader(PyTuple *args, PyDict *keywords);
 };
 
-class PyPackedRow : public PyRep {
+/**
+ * @brief Packed row.
+ *
+ * Special row which packs all its values
+ * with zero-compression algorithm.
+ */
+class PyPackedRow : public PyRep
+{
 public:
-    PyPackedRow(DBRowDescriptor &header, bool header_owner);
+	typedef PyList                          storage_type;
+	typedef storage_type::iterator          iterator;
+	typedef storage_type::const_iterator    const_iterator;
+
+    PyPackedRow(DBRowDescriptor* header, bool header_owner);
+	PyPackedRow(const PyPackedRow& oth);
     virtual ~PyPackedRow();
 
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitPackedRow(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitPackedRow(this, lvl);
-    }
-
-    PyPackedRow *TypedClone() const;
-    void CloneFrom(const PyPackedRow *from);
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
     // Header:
-    DBRowDescriptor &GetHeader() const { return mHeader; }
-    bool IsHeaderOwner() const { return mHeaderOwner; }
+    DBRowDescriptor& header() const { return *mHeader; }
+    bool isHeaderOwner() const { return mHeaderOwner; }
 
     // Fields:
-    PyRep *GetField(uint32 index) const { return mFields.at( index ); }
+	const_iterator begin() const { return mFields.begin(); }
+	const_iterator end() const { return mFields.end(); }
 
-    bool SetField(uint32 index, PyRep *value);
-    bool SetField(const char *colName, PyRep *value);
+	void clear() { mFields.clear(); }
+
+    bool SetField(uint32 index, PyRep* value);
+    bool SetField(const char* colName, PyRep* value);
+
+	/**
+	 * @brief Overload of operator[] for easier access.
+	 *
+	 * @param[in] index Index of required object.
+	 * @return Pointer to object.
+	 */
+	PyRep* operator[]( size_t index ) const { return mFields[ index ]; }
+
+	/**
+	 * @brief Assigment operator to handle ownership things.
+	 *
+	 * @param[in] oth PyPackedRow the content of which should be copied.
+	 * @return Itself.
+	 */
+	PyPackedRow& operator=(const PyPackedRow& oth);
 
     int32 hash() const;
 
 protected:
-    DBRowDescriptor &mHeader;
+    DBRowDescriptor* const mHeader;
     const bool mHeaderOwner;
 
-    std::vector<PyRep *> mFields;
+    storage_type mFields;
 };
 
-class PySubStruct : public PyRep {
+class PySubStruct : public PyRep
+{
 public:
-    PySubStruct(PyRep *t = NULL) : PyRep(PyRep::PyTypeSubStruct), sub(t) {}
+    PySubStruct( PyRep *t );
+	PySubStruct( const PySubStruct& oth );
     virtual ~PySubStruct();
 
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitSubStruct(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitSubStruct(this, lvl);
-    }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    PySubStruct *TypedClone() const;
-
-    PyRep *sub;
+    PyRep *const sub;
 };
 
-class PySubStream : public PyRep {
+class PySubStream : public PyRep
+{
 public:
-    PySubStream() : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(NULL) {}
-    PySubStream(PyRep *t) : PyRep(PyRep::PyTypeSubStream), length(0), data(NULL), decoded(t) {}
-    PySubStream(const uint8 *buffer, uint32 len);
+    PySubStream(PyRep *t = NULL);
+    PySubStream(const PyBuffer& buffer);
+	PySubStream(const PySubStream& oth);
     virtual ~PySubStream();
 
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitSubStream(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitSubStream(this, lvl);
-    }
-
-    PySubStream *TypedClone() const;
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
     //call to ensure that `data` represents `decoded` IF DATA IS NULL
     void EncodeData();
@@ -866,34 +880,36 @@ public:
     //call to ensure that `decoded` represents `data`
     void DecodeData() const;
 
-    uint32 length;
-    uint8 *data;
+	/**
+	 * @brief Assigment operator to handle ownership things.
+	 *
+	 * @param[in] oth PySubStream the content of which should be copied.
+	 * @return Itself.
+	 */
+	PySubStream& operator=(const PySubStream& oth);
+
+    PyBuffer *data;
 
     //set this and make data NULL to make somebody else marshal it
     //if both are non-NULL, they are considered to be equivalent
-    mutable PyRep *decoded;
+    mutable PyRep* decoded;
 };
 
-class PyChecksumedStream : public PyRep {
+class PyChecksumedStream : public PyRep
+{
 public:
-    PyChecksumedStream() : PyRep(PyRep::PyTypeChecksumedStream), checksum(0), stream(NULL) {}
-    PyChecksumedStream(uint32 sum, PyRep *t) : PyRep(PyRep::PyTypeChecksumedStream), checksum(sum), stream(t) {}
+    PyChecksumedStream(PyRep* t, uint32 sum);
+	PyChecksumedStream(const PyChecksumedStream& oth);
     virtual ~PyChecksumedStream();
 
     void Dump(FILE *into, const char *pfx) const;
     void Dump(LogType type, const char *pfx) const;
-    EVEMU_INLINE PyRep *Clone() const { return(TypedClone()); }
-    EVEMU_INLINE void visit(PyVisitor *v) const {
-        v->VisitChecksumedStream(this);
-    }
-    EVEMU_INLINE void visit(PyVisitorLvl *v, int64 lvl) const {
-        v->VisitChecksumedStream(this, lvl);
-    }
+    PyRep *Clone() const;
+    void visit(PyVisitor *v) const;
+    void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    PyChecksumedStream *TypedClone() const;
-
-    uint32 checksum;
-    PyRep *stream;
+    PyRep *const stream;
+    const uint32 checksum;
 };
 
 /* note: this will decrease mem use with 50% but increase load time with 50%

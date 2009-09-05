@@ -117,10 +117,12 @@ bool PyPacket::Decode(PyRep **in_packet)
     if(packet->IsChecksumedStream())
     {
         PyChecksumedStream *cs = (PyChecksumedStream *) packet;
+
         //TODO: check cs->checksum
+		PyIncRef( cs->stream );
         packet = cs->stream;
-        cs->stream = NULL;
-        SafeDelete(cs);
+
+        PyDecRef( cs );
     }
 
     //Dragon nuance... it gets wrapped again

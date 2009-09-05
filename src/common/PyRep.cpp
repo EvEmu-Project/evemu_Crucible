@@ -445,29 +445,6 @@ void PyBuffer::visit( PyVisitorLvl *v, int64 lvl ) const
 	v->VisitBuffer( this, lvl );
 }
 
-PySubStream *PyBuffer::CreateSubStream() const {
-    if(*m_value == SubStreamHeaderByte) {
-        return(new PySubStream(m_value, m_length));
-    } else if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
-        uint32 len = size();
-        uint8 *buf = InflatePacket(content(), &len, true);
-
-        PySubStream *res = NULL;
-        if(buf == NULL) {
-            //unable to unzip, this does not appear to be a stream, so refuse to turn into one.
-        } else if(*buf != SubStreamHeaderByte) {
-            //wrong header byte, this does not appear to be a stream, so refuse to turn into one.
-        } else {
-            res = new PySubStream(buf, len);
-        }
-
-        SafeFree(buf);
-        return res;
-    }
-    //else, we don't think this is a substream, so don't become one.
-    return NULL;
-}
-
 int32 PyBuffer::hash() const
 {
     if( m_hash_cache != -1 )
@@ -1274,11 +1251,128 @@ PyTuple *PyObjectEx_Type2::_CreateHeader(PyTuple *args, PyDict *keywords)
 }
 
 /************************************************************************/
+/* PyPackedRow                                                          */
+/************************************************************************/
+PyPackedRow::PyPackedRow( DBRowDescriptor* header, bool header_owner ) : PyRep( PyRep::PyTypePackedRow ), mHeader( header ), mHeaderOwner( header_owner ), mFields( header->ColumnCount() ) {}
+PyPackedRow::PyPackedRow( const PyPackedRow &oth ) : PyRep( PyRep::PyTypePackedRow ),
+ mHeader( oth.isHeaderOwner() ? new DBRowDescriptor( oth.header() ) : &oth.header() ), mHeaderOwner( oth.isHeaderOwner() )
+{
+	// Use assigment operator
+	*this = oth;
+}
+
+PyPackedRow::~PyPackedRow()
+{
+    if( isHeaderOwner() )
+        PyDecRef( mHeader );
+}
+
+void PyPackedRow::Dump(FILE *into, const char *pfx) const
+{
+    fprintf( into, "%sPacked Row\n", pfx );
+    fprintf( into, "%s column_count=%lu header_owner=%s\n", pfx, mFields.size(), isHeaderOwner() ? "yes" : "no" );
+
+    const_iterator cur, end;
+    cur = this->begin();
+    end = this->end();
+    char buf[32];
+    for(uint32 i = 0; cur != end; cur++, i++)
+    {
+        std::string n( pfx );
+        snprintf( buf, 32, "  [%u] %s: ", i, header().GetColumnName( i ).content() );
+        n += buf;
+
+        if( (*cur) == NULL )
+            fprintf( into, "%sNULL\n", n.c_str() );
+        else
+            (*cur)->Dump( into, n.c_str() );
+    }
+}
+
+void PyPackedRow::Dump(LogType ltype, const char *pfx) const
+{
+    _log( ltype, "%sPacked Row", pfx );
+    _log( ltype, "%s column_count=%lu header_owner=%s", pfx, mFields.size(), isHeaderOwner() ? "yes" : "no" );
+
+    const_iterator cur, end;
+    cur = this->begin();
+    end = this->end();
+    char buf[32];
+    for(uint32 i = 0; cur != end; cur++, i++)
+    {
+        std::string n( pfx );
+        snprintf( buf, 32, "  [%u] %s: ", i, header().GetColumnName( i ).content() );
+        n += buf;
+
+        if( (*cur) == NULL ) {
+            _log( ltype, "%sNULL", n.c_str() );
+        }
+        else
+            (*cur)->Dump( ltype, n.c_str() );
+    }
+}
+
+PyRep* PyPackedRow::Clone() const
+{
+	return new PyPackedRow( *this );
+}
+
+void PyPackedRow::visit( PyVisitor* v ) const
+{
+	v->VisitPackedRow( this );
+}
+
+void PyPackedRow::visit( PyVisitorLvl* v, int64 lvl ) const
+{
+	v->VisitPackedRow( this, lvl );
+}
+
+bool PyPackedRow::SetField(uint32 index, PyRep* value)
+{
+    if( index >= mFields.size() )
+        return false;
+
+    if( value != NULL )
+    {
+        // verify type
+        if( !DBTYPE_IsCompatible( header().GetColumnType( index ), *value ) )
+        {
+            //sLog.Error("PyPackedRow", "uncompatible DBTYPE");
+            PyDecRef( value );
+            return false;
+        }
+    }
+
+	mFields.SetItem( index, value );
+    return true;
+}
+
+bool PyPackedRow::SetField(const char* colName, PyRep* value)
+{
+    return SetField( header().FindColumn( colName ), value );
+}
+
+PyPackedRow& PyPackedRow::operator=(const PyPackedRow& oth)
+{
+	mFields = oth.mFields;
+
+	return *this;
+}
+
+int32 PyPackedRow::hash() const
+{
+    assert(false);
+	return PyRep::hash();
+}
+
+/************************************************************************/
 /* PyRep SubStruct Class                                                */
 /************************************************************************/
+PySubStruct::PySubStruct( PyRep* t ) : PyRep( PyRep::PyTypeSubStruct ), sub( t ) {}
+PySubStruct::PySubStruct( const PySubStruct& oth ) : PyRep( PyRep::PyTypeSubStruct ), sub( oth.sub->Clone() ) {}
 PySubStruct::~PySubStruct()
 {
-    PySafeDecRef( sub );
+    PyDecRef( sub );
 }
 
 void PySubStruct::Dump(FILE *into, const char *pfx) const {
@@ -1295,22 +1389,36 @@ void PySubStruct::Dump(LogType type, const char *pfx) const {
     sub->Dump(type, m.c_str());
 }
 
+PyRep* PySubStruct::Clone() const
+{
+	return new PySubStruct( *this );
+}
+
+void PySubStruct::visit( PyVisitor* v ) const
+{
+	v->VisitSubStruct( this );
+}
+
+void PySubStruct::visit( PyVisitorLvl* v, int64 lvl ) const
+{
+	v->VisitSubStruct( this, lvl );
+}
+
 /************************************************************************/
 /* PyRep SubStream Class                                                */
 /************************************************************************/
-PySubStream::PySubStream(const uint8 *buffer, uint32 len)
-: PyRep(PyRep::PyTypeSubStream),
-  length(len),
-  data(NULL),
-  decoded(NULL)
+PySubStream::PySubStream( PyRep* t ) : PyRep( PyRep::PyTypeSubStream ), data( NULL ), decoded( t ) {}
+PySubStream::PySubStream( const PyBuffer& buffer ): PyRep(PyRep::PyTypeSubStream), data( new PyBuffer( buffer ) ), decoded( NULL ) {}
+PySubStream::PySubStream( const PySubStream& oth ) : PyRep(PyRep::PyTypeSubStream),
+ data( NULL ), decoded( NULL )
 {
-    data = (uint8*)malloc(len);
-    assert(data != NULL);
-    memcpy(data, buffer, length);
+	// Use assigment operator
+	*this = oth;
 }
 
-PySubStream::~PySubStream() {
-    SafeFree( data );
+PySubStream::~PySubStream()
+{
+	PySafeDecRef( data );
     PySafeDecRef( decoded );
 }
 
@@ -1318,15 +1426,17 @@ void PySubStream::Dump(FILE *into, const char *pfx) const {
     if(decoded == NULL) {
         //we have not decoded this substream, leave it as hex:
         if(data == NULL) {
-            fprintf(into, "%sINVALID Substream: no data (length %u)\n", pfx, length);
+            fprintf(into, "%sINVALID Substream: no data\n", pfx);
         } else {
-            fprintf(into, "%sSubstream: length %u\n", pfx, length);
+            fprintf(into, "%sSubstream:\n", pfx);
+
             std::string m(pfx);
             m += "  ";
-            pfxPreviewHexDump(m.c_str(), into, data, length);
+			data->Dump( into, m.c_str() );
         }
     } else {
-        fprintf(into, "%sSubstream: length %u %s\n", pfx, length, (data==NULL)?"from rep":"from data");
+        fprintf(into, "%sSubstream: %s\n", pfx, ( data == NULL ) ? "from rep" : "from data");
+
         std::string m(pfx);
         m += "    ";
         decoded->Dump(into, m.c_str());
@@ -1341,40 +1451,85 @@ void PySubStream::Dump(LogType type, const char *pfx) const {
     if(decoded == NULL) {
         //we have not decoded this substream, leave it as hex:
         if(data == NULL) {
-            _log(type, "%sINVALID Substream: no data (length %u)", pfx, length);
+            _log(type, "%sINVALID Substream: no data\n", pfx);
         } else {
-            _log(type, "%sSubstream: length %u", pfx, length);
+            _log(type, "%sSubstream:\n", pfx);
+
             std::string m(pfx);
             m += "  ";
-            pfxPreviewHexDump(m.c_str(), type, data, length);
+			data->Dump( type, m.c_str() );
         }
     } else {
-        _log(type, "%sSubstream: length %u %s", pfx, length, (data==NULL)?"from rep":"from data");
+        _log(type, "%sSubstream: %s\n", pfx, ( data == NULL ) ? "from rep" : "from data");
+
         std::string m(pfx);
         m += "    ";
         decoded->Dump(type, m.c_str());
     }
 }
 
-void PySubStream::EncodeData() {
-    if(data != NULL)
-        return;
-    if(decoded == NULL)
-        return;
-    data = Marshal(this, length);
+PyRep* PySubStream::Clone() const
+{
+	return new PySubStream( *this );
 }
 
-void PySubStream::DecodeData() const {
-    if(decoded != NULL)
+void PySubStream::visit( PyVisitor* v ) const
+{
+	v->VisitSubStream( this );
+}
+
+void PySubStream::visit( PyVisitorLvl* v, int64 lvl ) const
+{
+	v->VisitSubStream( this, lvl );
+}
+
+void PySubStream::EncodeData()
+{
+    if(decoded == NULL)
         return;
-    decoded = InflateAndUnmarshal(data, length);
+
+	PySafeDecRef( data );
+
+	uint32 len;
+    uint8* buf = Marshal( this, len, false );
+
+	// Move ownership of buffer to PyBuffer
+	data = new PyBuffer( &buf, len );
+}
+
+void PySubStream::DecodeData() const
+{
+    if(data == NULL)
+        return;
+
+    decoded = InflateAndUnmarshal( data->content(), data->size() );
+}
+
+PySubStream& PySubStream::operator=(const PySubStream &oth)
+{
+	PySafeDecRef( data );
+	if( oth.data == NULL )
+		data = NULL;
+	else
+		data = new PyBuffer( *oth.data );
+
+	PySafeDecRef( decoded );
+	if( oth.decoded == NULL )
+		decoded = NULL;
+	else
+		decoded = oth.decoded->Clone();
+
+	return *this;
 }
 
 /************************************************************************/
 /* PyRep ChecksumedStream Class                                         */
 /************************************************************************/
-PyChecksumedStream::~PyChecksumedStream() {
-    PySafeDecRef(stream);
+PyChecksumedStream::PyChecksumedStream( PyRep* t, uint32 sum ) : PyRep( PyRep::PyTypeChecksumedStream ), stream( t ), checksum( sum ) {}
+PyChecksumedStream::PyChecksumedStream( const PyChecksumedStream& oth ) : PyRep( PyRep::PyTypeChecksumedStream ), checksum( oth.checksum ), stream( oth.stream->Clone() ) {}
+PyChecksumedStream::~PyChecksumedStream()
+{
+    PyDecRef( stream );
 }
 
 void PyChecksumedStream::Dump(FILE *into, const char *pfx) const {
@@ -1387,147 +1542,19 @@ void PyChecksumedStream::Dump(LogType type, const char *pfx) const {
     stream->Dump(type, pfx);
 }
 
-PySubStruct *PySubStruct::TypedClone() const {
-    return new PySubStruct( sub->Clone() );
-}
-
-PySubStream *PySubStream::TypedClone() const {
-    if(data == NULL)
-        return(new PySubStream( decoded->Clone() ));
-    return(new PySubStream( data, length ));
-}
-
-PyChecksumedStream *PyChecksumedStream::TypedClone() const {
-    return new PyChecksumedStream( checksum, stream->Clone() );
-}
-
-PyPackedRow::PyPackedRow(DBRowDescriptor &header, bool header_owner)
-: PyRep( PyRep::PyTypePackedRow ),
-  mHeader( header ),
-  mHeaderOwner( header_owner )
+PyRep* PyChecksumedStream::Clone() const
 {
-    mFields.resize( header.ColumnCount() );
+	return new PyChecksumedStream( *this );
 }
 
-PyPackedRow::~PyPackedRow()
+void PyChecksumedStream::visit( PyVisitor* v ) const
 {
-    if( IsHeaderOwner() )
-        PyDecRef( &mHeader );
-
-    std::vector<PyRep *>::iterator cur, end;
-    cur = mFields.begin();
-    end = mFields.end();
-    for(; cur != end; cur++)
-        PySafeDecRef( *cur );
+	v->VisitChecksumedStream( this );
 }
 
-void PyPackedRow::Dump(FILE *into, const char *pfx) const
+void PyChecksumedStream::visit( PyVisitorLvl* v, int64 lvl ) const
 {
-    fprintf( into, "%sPacked Row\n", pfx );
-    fprintf( into, "%s column_count=%lu header_owner=%s\n", pfx, mFields.size(), IsHeaderOwner() ? "yes" : "no" );
-
-    std::vector<PyRep *>::const_iterator cur, end;
-    cur = mFields.begin();
-    end = mFields.end();
-    char buf[32];
-    for(uint32 i = 0; cur != end; cur++, i++)
-    {
-        PyRep *v = *cur;
-
-        std::string n( pfx );
-        snprintf( buf, 32, "  [%u] %s: ", i, GetHeader().GetColumnName( i ).content() );
-        n += buf;
-
-        if( v == NULL )
-            fprintf( into, "%sNULL\n", n.c_str() );
-        else
-            v->Dump( into, n.c_str() );
-    }
+	v->VisitChecksumedStream( this, lvl );
 }
 
-void PyPackedRow::Dump(LogType ltype, const char *pfx) const
-{
-    _log( ltype, "%sPacked Row", pfx );
-    _log( ltype, "%s column_count=%lu header_owner=%s", pfx, mFields.size(), IsHeaderOwner() ? "yes" : "no" );
-
-    std::vector<PyRep *>::const_iterator cur, end;
-    cur = mFields.begin();
-    end = mFields.end();
-    char buf[32];
-    for(uint32 i = 0; cur != end; cur++, i++)
-    {
-        PyRep *v = *cur;
-
-        std::string n( pfx );
-        snprintf( buf, 32, "  [%u] %s: ", i, GetHeader().GetColumnName( i ).content() );
-        n += buf;
-
-        if( v == NULL ) {
-            _log( ltype, "%sNULL", n.c_str() );
-        }
-        else
-            v->Dump( ltype, n.c_str() );
-    }
-}
-
-PyPackedRow *PyPackedRow::TypedClone() const
-{
-    PyPackedRow *res = new PyPackedRow( IsHeaderOwner() ? *new DBRowDescriptor( GetHeader() ) : GetHeader(),
-                                              IsHeaderOwner() );
-    res->CloneFrom( this );
-    return res;
-}
-
-void PyPackedRow::CloneFrom(const PyPackedRow *from)
-{
-    // clone fields
-    uint32 cc = mFields.size();
-    for(uint32 i = 0; i < cc; i++)
-    {
-        PyRep *v = from->GetField( i );
-        if( v != NULL )
-            v = v->Clone();
-
-        SetField( i, v );
-    }
-}
-
-bool PyPackedRow::SetField(uint32 index, PyRep *value)
-{
-    if( index >= mFields.size() )
-        return false;
-
-    if( value != NULL )
-    {
-        // verify type
-        if( !DBTYPE_IsCompatible( GetHeader().GetColumnType( index ), *value ) )
-        {
-            //sLog.Error("PyPackedRow", "uncompatible DBTYPE");
-            PyDecRef( value );
-            return false;
-        }
-    }
-
-    /* check if a object is already prescient and replace it if necessary */
-    PyRep *& tObject = mFields.at( index );
-
-	PySafeDecRef( tObject );
-    tObject = value;
-
-    return true;
-}
-
-bool PyPackedRow::SetField(const char *colName, PyRep *value)
-{
-    uint32 index = GetHeader().FindColumn( colName );
-    if( index >= mFields.size() )
-        return false;
-    return SetField( index, value );
-}
-
-int32 PyPackedRow::hash() const
-{
-    assert(false);
-	return PyRep::hash();
-}
 

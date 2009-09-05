@@ -422,7 +422,7 @@ void FillPackedRow( const DBResultRow &row, PyPackedRow &into )
         into.SetField( i, DBColumnToPyRep( row, i ) );
 }
 
-PyPackedRow *CreatePackedRow( const DBResultRow &row, DBRowDescriptor &header, bool headerOwner )
+PyPackedRow *CreatePackedRow( const DBResultRow &row, DBRowDescriptor* header, bool headerOwner )
 {
     PyPackedRow *res = new PyPackedRow( header, headerOwner );
 	FillPackedRow( row, *res );
@@ -438,7 +438,7 @@ PyList *DBResultToPackedRowList( DBQueryResult &result )
     DBResultRow row;
     for( uint32 i = 0; result.GetRow( row ); i++ )
         //this is piece of crap due to header cloning
-        res->SetItem( i, CreatePackedRow( row, *new DBRowDescriptor( *header ), true ) );
+        res->SetItem( i, CreatePackedRow( row, new DBRowDescriptor( *header ), true ) );
 
     SafeDelete( header );
     return res;
@@ -455,7 +455,7 @@ PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
 	DBResultRow row;
 	uint32 i = 0;
     while( result.GetRow(row) )
-        list->SetItem( i++, CreatePackedRow( row, *new DBRowDescriptor( *header ), true ) );
+        list->SetItem( i++, CreatePackedRow( row, new DBRowDescriptor( *header ), true ) );
 
     PyTuple * root = new PyTuple(2);
     root->SetItem( 0, header );
@@ -509,7 +509,5 @@ PyObjectEx *DBResultToCRowset( DBQueryResult &result )
 
 PyPackedRow *DBRowToPackedRow( DBResultRow &row )
 {
-    DBRowDescriptor *header = new DBRowDescriptor( row );
-
-    return CreatePackedRow( row, *header, true );
+    return CreatePackedRow( row, new DBRowDescriptor( row ), true );
 }

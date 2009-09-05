@@ -339,6 +339,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
             PyPacket *p = new PyPacket;
             if(!p->Decode(&r)) { //r is consumed here
                 _log(NET__PRES_ERROR, "%s: Failed to decode packet rep", GetConnectedAddress().c_str());
+				SafeDelete( p );
                 break;
             }
             return(p);

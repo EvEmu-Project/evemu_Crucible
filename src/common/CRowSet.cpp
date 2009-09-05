@@ -44,7 +44,7 @@ PyPackedRow &CRowSet::GetRow(uint32 index) const
 
 PyPackedRow &CRowSet::NewRow()
 {
-	PyPackedRow *row = new PyPackedRow( *new DBRowDescriptor( _GetRowDesc() ), true );
+	PyPackedRow *row = new PyPackedRow( new DBRowDescriptor( _GetRowDesc() ), true );
 	list_data.add( row );
 	return *row;
 }

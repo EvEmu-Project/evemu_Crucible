@@ -161,7 +161,7 @@ void MarshalVisitor::VisitBuffer(const PyBuffer *rep)
 
 void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
 {
-	DBRowDescriptor &header = rep->GetHeader();
+	DBRowDescriptor &header = rep->header();
 
     PutByte( Op_PyPackedRow );
 
@@ -208,7 +208,7 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
 #define setdouble(x) setchunk(double, x)
 
         /* note the assert are disabled because of performance flows */
-        PyRep *r = rep->GetField( cur->second );
+        PyRep *r = (*rep)[ cur->second ];
         if( r != NULL )
         {
             switch( header.GetColumnType( cur->second ) )
@@ -290,7 +290,7 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
         if( off == 0 )
             unpacked.push_back( 0 );
 
-        PyRep *r = rep->GetField( cur->second );
+		PyRep *r = (*rep)[ cur->second ];
 
         if( r != NULL )
             if( r-> IsBool() )
@@ -321,7 +321,7 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
     end = sizeMap.end();
     for(; cur != end; cur++)
     {
-        PyRep *r = rep->GetField( cur->second );
+		PyRep *r = (*rep)[ cur->second ];
         if( r == NULL )
             r = new PyNone;
 
@@ -423,7 +423,7 @@ void MarshalVisitor::VisitSubStruct(const PySubStruct *rep)
 void MarshalVisitor::VisitSubStream(const PySubStream *rep)
 {
     PutByte(Op_PySubStream);
-    if(rep->length == 0 || rep->data == NULL)
+    if(rep->data == NULL)
     {
         if(rep->decoded == NULL)
         {
@@ -451,8 +451,8 @@ void MarshalVisitor::VisitSubStream(const PySubStream *rep)
     else
     {
         //else, we have the marshaled data already, use it.
-        PutSizeEx(rep->length);
-        PutBytes(rep->data, rep->length);
+        PutSizeEx(rep->data->size());
+        PutBytes(rep->data->content(), rep->data->size());
     }
 }
 

@@ -93,7 +93,7 @@ protected:
 
     void GetCacheFileName(PyRep *key, std::string &into);
 
-    void _UpdateCache(const PyRep *objectID, uint8 **data, uint32 length);
+    void _UpdateCache(const PyRep *objectID, PyBuffer **buffer);
 
     class CacheRecord {
     public:

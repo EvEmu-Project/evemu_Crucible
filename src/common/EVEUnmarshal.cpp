@@ -790,13 +790,9 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             _log(NET__UNMARSHAL_ERROR, "Not enough data for checksum argument\n");
             break;
         }
-        uint32 lval = *((const uint32 *) packet);
+		uint32 sum = Getuint32();
 
-        packet += sizeof(uint32);
-        len -= sizeof(uint32);
-        len_used += sizeof(uint32);
-
-        _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyChecksumedStream w/ sum %u", pfx, opcode, lval);
+        _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PyChecksumedStream w/ sum %u", pfx, opcode, sum);
 
         std::string n(pfx);
         n += "  ";
@@ -805,12 +801,9 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         uint32 sslen = UnmarshalData(state, packet, len, stream, n.c_str());
         if(stream == NULL)
             break;
+		IncreaseIndex( sslen );
 
-        packet += sslen;
-        len -= sslen;
-        len_used += sslen;
-
-        res = new PyChecksumedStream(lval, stream);
+        res = new PyChecksumedStream(stream, sum);
 
         break; }
 
@@ -975,9 +968,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
 		// This is only an assumption, though PyPackedRow does not
 		// support anything else ....
-		DBRowDescriptor &header = *(DBRowDescriptor *)header_element;
-
-        PyPackedRow *row = new PyPackedRow( header, true );
+        PyPackedRow *row = new PyPackedRow( (DBRowDescriptor *)header_element, true );
 
         if(len < 1) {
             _log(NET__UNMARSHAL_ERROR, "Not enough data for packed length (missing length and data)\n");
@@ -1015,11 +1006,11 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         // Create size map, sorted from the greatest to the smallest value
         std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
-        uint32 cc = header.ColumnCount();
+        uint32 cc = row->header().ColumnCount();
 		uint32 sum = 0;
         for(uint32 i = 0; i < cc; i++)
 		{
-			uint8 size = DBTYPE_SizeOf( header.GetColumnType( i ) );
+			uint8 size = DBTYPE_SizeOf( row->header().GetColumnType( i ) );
 
             sizeMap.insert( std::make_pair( size, i ) );
 			sum += size;
@@ -1051,7 +1042,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
             memcpy( &v, &unpacked[ off ], len );
             off += len;
 
-            switch( header.GetColumnType( cur->second ) )
+            switch( row->header().GetColumnType( cur->second ) )
             {
                 case DBTYPE_I8:
                 case DBTYPE_UI8:
@@ -1142,11 +1133,9 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
         _log(NET__UNMARSHAL_TRACE, "%s(0x%x)Op_PySubStream of length %u", pfx, opcode, data_length);
 
-        res = new PySubStream(packet, data_length);
+        res = new PySubStream( PyBuffer( packet, data_length ) );
 
-        packet += data_length;
-        len -= data_length;
-        len_used += data_length;
+		IncreaseIndex( data_length );
 
         break; }
 
