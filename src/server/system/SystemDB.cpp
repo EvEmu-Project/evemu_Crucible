@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 SystemDB::SystemDB(DBcore *db) : ServiceDB(db)
 {

@@ -23,8 +23,8 @@
     Author:     Zhur
 */
 
-#ifndef __EVEPCH_H
-#define __EVEPCH_H
+#ifndef __EVEMU_SERVER_PCH_H__INCL__
+#define __EVEMU_SERVER_PCH_H__INCL__
 
 // common files first
 #include "../common/common.h"
@@ -287,4 +287,4 @@
 #include "../server/Client.h"
 #include "../server/PyServiceCD.h"
 
-#endif//__EVEPCH_H
+#endif//__EVEMU_SERVER_PCH_H__INCL__

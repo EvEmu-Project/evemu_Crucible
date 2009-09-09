@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 #include "utils_string.h"
 
 using namespace Destiny;

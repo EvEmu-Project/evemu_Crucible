@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 /* Things todo or missing
 	[missing]

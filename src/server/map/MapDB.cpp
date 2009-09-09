@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 MapDB::MapDB(DBcore *db)
 : ServiceDB(db)

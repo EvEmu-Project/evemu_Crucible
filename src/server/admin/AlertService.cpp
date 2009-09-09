@@ -23,7 +23,7 @@
 	Author:		Zhur, Captnoord
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 PyCallable_Make_InnerDispatcher(AlertService)
 

@@ -27,7 +27,7 @@
 //note, using /slashes from LSC requires ROLE_SLASH
 
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 
 PyCallable_Make_InnerDispatcher(SlashService)

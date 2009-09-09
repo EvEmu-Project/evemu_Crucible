@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 
 PyService::PyService(PyServiceMgr *mgr, const char *serviceName)

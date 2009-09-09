@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 double randf() {
 	return rand() / (RAND_MAX + 1.);

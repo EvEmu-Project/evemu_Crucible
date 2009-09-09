@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 #ifdef SHOW_LOGIN_MESSAGE
 //some adverts - may be customized

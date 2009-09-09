@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 ConfigDB::ConfigDB(DBcore *db)
 : ServiceDB(db)

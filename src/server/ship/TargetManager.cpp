@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 TargetManager::TargetManager(SystemEntity *self)
 : m_destroyed(false),

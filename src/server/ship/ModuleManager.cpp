@@ -22,7 +22,7 @@
 	------------------------------------------------------------------------------------
 	Author:		Zhur
 */
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 ModuleManager::ModuleManager(Client *pilot)
 : m_pilot(pilot)

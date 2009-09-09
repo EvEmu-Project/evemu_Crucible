@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 SpawnDB::SpawnDB(DBcore *db)
 : ServiceDB(db)

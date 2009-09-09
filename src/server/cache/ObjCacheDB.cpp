@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 ObjCacheDB::ObjCacheDB(DBcore *db) : ServiceDB(db)
 {

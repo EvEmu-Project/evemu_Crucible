@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 TutorialDB::TutorialDB(DBcore *db) 
 : ServiceDB(db)

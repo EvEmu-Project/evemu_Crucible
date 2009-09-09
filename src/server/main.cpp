@@ -23,7 +23,7 @@
     Author:     Zhur, mmcs
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 #include "EVEVersion.h"
 #include "../server/account/ClientStatMgrService.h"
 #include "PyStringTable.h"

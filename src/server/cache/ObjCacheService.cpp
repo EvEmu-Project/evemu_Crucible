@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 const char *const ObjCacheService::LoginCachableObjects[] = {
 	"config.BulkData.ramactivities",

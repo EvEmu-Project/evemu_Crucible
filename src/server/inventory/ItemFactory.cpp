@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 ItemFactory::ItemFactory(DBcore &db, EntityList &el) : entity_list(el), m_db(&db)
 {

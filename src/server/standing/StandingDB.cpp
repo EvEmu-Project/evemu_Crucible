@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 StandingDB::StandingDB(DBcore *db)
 : ServiceDB(db)

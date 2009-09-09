@@ -25,7 +25,7 @@
 
 
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 PosMgrDB::PosMgrDB(DBcore *db)
 : ServiceDB(db)

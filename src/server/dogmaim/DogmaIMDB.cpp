@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 DogmaIMDB::DogmaIMDB(DBcore *db) : ServiceDB(db) {}
 DogmaIMDB::~DogmaIMDB() {}

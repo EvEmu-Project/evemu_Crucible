@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 InventoryDB::InventoryDB(DBcore *db)
 : ServiceDB(db)

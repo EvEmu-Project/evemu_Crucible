@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 SystemBubble::SystemBubble(const GPoint &center, double radius)
 : m_center(center),

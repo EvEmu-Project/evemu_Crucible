@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 CertificateMgrDB::CertificateMgrDB(DBcore *db)
 : ServiceDB(db)

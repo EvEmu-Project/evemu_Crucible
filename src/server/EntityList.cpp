@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 
 EntityList::EntityList(DBcore &db) : m_services(NULL), m_db(db) {}

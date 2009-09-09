@@ -48,7 +48,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="EvemuPCH.h"
+				PrecompiledHeaderThrough="EVEmuServerPCH.h"
 				WarningLevel="1"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
@@ -126,7 +126,7 @@
 				ExceptionHandling="2"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="EvemuPCH.h"
+				PrecompiledHeaderThrough="EVEmuServerPCH.h"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
@@ -797,7 +797,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\server\EvemuPCH.h"
+				RelativePath="..\..\include\server\EVEmuServerPCH.h"
 				>
 			</File>
 			<File

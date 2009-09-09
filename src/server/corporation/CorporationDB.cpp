@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 CorporationDB::CorporationDB(DBcore *db)
 : ServiceDB(db)

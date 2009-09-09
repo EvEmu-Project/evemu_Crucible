@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 NPCAIMgr::NPCAIMgr(NPC *who)
 : m_state(Idle),

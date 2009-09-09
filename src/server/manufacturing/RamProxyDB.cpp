@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 RamProxyDB::RamProxyDB(DBcore *db)
 : ServiceDB(db)

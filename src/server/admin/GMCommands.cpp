@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 PyResult Command_create(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
 	if(!args.IsNumber(1)) {

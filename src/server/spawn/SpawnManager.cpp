@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 SpawnGroup::Entry::Entry(
 	uint32 _spawnGroupID,

@@ -25,7 +25,7 @@
 
 
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 PyCallable_Make_InnerDispatcher(NetService)
 

@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 AsteroidBeltManager::AsteroidBeltManager(MiningDB *db, uint32 belt_id)
 : m_beltID(belt_id),

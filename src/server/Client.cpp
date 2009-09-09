@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 #include <assert.h>
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 static const uint32 PING_INTERVAL_US = 60000;
 

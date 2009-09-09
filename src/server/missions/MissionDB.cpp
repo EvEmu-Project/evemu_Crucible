@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 MissionDB::MissionDB(DBcore *db)
 : ServiceDB(db)

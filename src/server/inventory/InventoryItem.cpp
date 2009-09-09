@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 #ifndef INT_MAX
 #   define INT_MAX 0x7FFFFFFF

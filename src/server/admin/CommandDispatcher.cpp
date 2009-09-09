@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 CommandDispatcher::CommandDispatcher(PyServiceMgr &services, DBcore &db) : m_services(services), m_db(&db) {}
 

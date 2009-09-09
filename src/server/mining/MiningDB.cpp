@@ -25,7 +25,7 @@
 
 
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 MiningDB::MiningDB(ServiceDB *db)
 : ServiceDB(db)

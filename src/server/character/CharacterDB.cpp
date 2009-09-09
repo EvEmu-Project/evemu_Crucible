@@ -23,7 +23,7 @@
 	Author:		Zhur
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 CharacterDB::CharacterDB(DBcore *db) : ServiceDB(db)
 {

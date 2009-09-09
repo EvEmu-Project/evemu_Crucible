@@ -23,7 +23,7 @@
     Author:     Zhur, Bloody.Rabbit
 */
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 /*
  * CharacterTypeData

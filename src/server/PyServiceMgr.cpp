@@ -25,7 +25,7 @@
 
 
 
-#include "EvemuPCH.h"
+#include "EVEmuServerPCH.h"
 
 PyServiceMgr::PyServiceMgr( uint32 nodeID, DBcore &db, EntityList &elist, ItemFactory &ifactory ) : item_factory(ifactory), 
     entity_list(elist), lsc_service(NULL), cache_service(NULL), m_nextBindID(100), m_nodeID(nodeID), m_svcDB(&db)
