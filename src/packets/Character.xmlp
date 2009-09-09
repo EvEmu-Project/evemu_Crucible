@@ -4,41 +4,41 @@
 
 <include file="General.h" />
 	
-<element name="RspGetCharactersToSelect">
+<elementdef name="RspGetCharactersToSelect">
   <InlineTuple>
     <!-- 0 -->
     <InlineSubStream>
 		<element type="util_Rowset" name="chars" />
     </InlineSubStream>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CallGetCharacterToSelect">            
+<elementdef name="CallGetCharacterToSelect">            
   <InlineTuple>
     <!-- 0 -->
     <int name="charID" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="RspGetCharacterToSelect">
+<elementdef name="RspGetCharacterToSelect">
   <InlineTuple>
     <!-- 0 -->
     <InlineSubStream>
 	  <element type="util_Rowset" name="character" />
     </InlineSubStream>
   </InlineTuple>     
-</element>
+</elementdef>
 
-<element name="RspGetCharCreationInfo">
+<elementdef name="RspGetCharCreationInfo">
   <InlineTuple>           
     <!-- 0 -->
     <InlineSubStream>
 	  <strdict name="caches" type="element" element="objectCaching_CachedObject_spec" />
 	</InlineSubStream>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CallSelectCharacterID">               
+<elementdef name="CallSelectCharacterID">               
   <InlineTuple>
     <!-- 0 -->
     <int name="charID" />
@@ -48,29 +48,29 @@
 	<!-- 2 -->
 	<raw name="unknown" />
   </InlineTuple>
-</element>
+</elementdef>
 
 
 
 
 
-<element name="CallValidateName">
+<elementdef name="CallValidateName">
   <InlineTuple>
     <!-- 0 -->
     <string name="name" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="RspValidateName">
+<elementdef name="RspValidateName">
   <InlineTuple>
     <!-- 0 -->
     <InlineSubStream>
       <bool name="result" />
     </InlineSubStream>       
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CallCreateCharacter">
+<elementdef name="CallCreateCharacter">
   <InlineTuple>
     <!-- 0 -->
     <string name="name" />
@@ -101,9 +101,9 @@
     <!-- 13 -->
     <strdict name="appearance" />
   </InlineTuple>                
-</element>
+</elementdef>
 
-<element name="CallCreateCharacter2">
+<elementdef name="CallCreateCharacter2">
   <InlineTuple>
     <!-- 0 -->
     <string name="name" />
@@ -116,19 +116,19 @@
     <!-- 4: appearence -->
     <strdict name="appearance" />
   </InlineTuple>
-</element>
+</elementdef>
   
   
-<element name="RspCreateCharacter">
+<elementdef name="RspCreateCharacter">
   <InlineTuple>                 
     <!-- 0 -->  
     <InlineSubStream>
       <int name="charID" />
     </InlineSubStream>      
   </InlineTuple>                   
-</element>
+</elementdef>
 
-<element name="NotifyOnCharNowInStation">
+<elementdef name="NotifyOnCharNowInStation">
   <InlineTuple>
 	  <InlineTuple>
 		  <!-- 0 -->
@@ -141,9 +141,9 @@
 		  <int name="unknown" default="0" none_marker="0" />
 	  </InlineTuple>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="NotifyOnCharNoLongerInStation">
+<elementdef name="NotifyOnCharNoLongerInStation">
   <InlineTuple>
     <InlineTuple>
       <!-- 0 -->
@@ -156,55 +156,55 @@
       <int name="unknown" default="0" none_marker="0" />
     </InlineTuple>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_SetNote">
+<elementdef name="Call_SetNote">
 	<InlineTuple>
 		<int name="itemID" />
 		<string name="note" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_AddOwnerNote">
+<elementdef name="Call_AddOwnerNote">
   <InlineTuple>
     <string name="label" />
     <string name="content" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_EditOwnerNote">
+<elementdef name="Call_EditOwnerNote">
   <InlineTuple>
     <int name="noteID" />
     <string name="label" />
     <string name="content" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_BatchCertificateUpdate">
+<elementdef name="Call_BatchCertificateUpdate">
   <InlineTuple>
     <primdict name="update" key="uint32" pykey="Int" value="uint32" pyvalue="Int" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="SkillQueue_Element">
+<elementdef name="SkillQueue_Element">
   <InlineTuple>
     <int name="typeID" />
     <int name="level" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_SaveSkillQueue">
+<elementdef name="Call_SaveSkillQueue">
   <InlineTuple>
     <!-- 0: List of SkillQueue_Element -->
     <list name="queue" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_InjectSkillIntoBrain">
+<elementdef name="Call_InjectSkillIntoBrain">
   <InlineTuple>
     <intlist name="skills" />
   </InlineTuple>
-</element>
+</elementdef>
   
 </Elements>
 

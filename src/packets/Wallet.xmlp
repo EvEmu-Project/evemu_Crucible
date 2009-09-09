@@ -2,21 +2,21 @@
 
 <Elements>
 
-<element name="OnAccountChange">
+<elementdef name="OnAccountChange">
   <InlineTuple>
     <string name="accountKey" />
     <int name="ownerid" />
     <real name="balance" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_GiveCash">
+<elementdef name="Call_GiveCash">
   <InlineTuple>
     <int  name="destination" />
     <real name="amount" />
     <string name="reason" />
   </InlineTuple>
-</element>
+</elementdef>
 
 </Elements>
 

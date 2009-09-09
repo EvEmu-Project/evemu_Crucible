@@ -4,14 +4,14 @@
 
 
 <!-- this object is not really an object type on live, just convenience here -->
-<element name="DoAction_Dialogue_Item">
+<elementdef name="DoAction_Dialogue_Item">
   <InlineTuple>
     <int name="actionID" />
     <string name="actionText" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoAction_Result">
+<elementdef name="DoAction_Result">
   <InlineTuple>
    <InlineTuple>
     <!-- this is the main text -->
@@ -25,9 +25,9 @@
 	  </IDEntry>
    </InlineDict>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="JournalDetails_Mission_Item">
+<elementdef name="JournalDetails_Mission_Item">
   <InlineTuple>
     <!-- states: 0,1: not accepted, >1: accepted -->
     <int name="missionState" />
@@ -39,9 +39,9 @@
     <int64 name="expirationTime" />
     <list name="bookmarks" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="JournalDetails_Offer_Item">
+<elementdef name="JournalDetails_Offer_Item">
   <InlineTuple>
     <int name="agentID" />
     <string name="offerName" />
@@ -49,9 +49,9 @@
     <int name="loyaltyPoints" /> <!-- this might need to be a string --> 
     <int64 name="expirationTime" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="JournalDetails_Research_Item">
+<elementdef name="JournalDetails_Research_Item">
   <InlineTuple>
     <int name="agentID" />
     <!-- field -->
@@ -61,9 +61,9 @@
     <!-- current points -->
     <real name="points" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="GetMyJournalDetails_Result">
+<elementdef name="GetMyJournalDetails_Result">
   <InlineTuple>
     <!-- this is a list of JournalDetails_Mission_Item -->
 	<list name="missions" />
@@ -72,16 +72,16 @@
     <!-- this is a list of JournalDetails_Research_Item -->
 	<list name="research" />
   </InlineTuple>
-</element>
+</elementdef>
 
 <!-- may be preceeded by an
 OnRemoteMessage: ('AgtMissionOfferWarning', {} ) -->
-<element name="OnAgentMissionChange_Args">
+<elementdef name="OnAgentMissionChange_Args">
   <InlineTuple>
     <string name="action" />    <!-- seen 'offered' -->
     <int name="missionID" />
   </InlineTuple>
-</element>
+</elementdef>
 
 
 </Elements>

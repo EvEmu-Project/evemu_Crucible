@@ -1,6 +1,6 @@
 <Elements>
 
-  <element name="Call_GetStandingTransactions">
+  <elementdef name="Call_GetStandingTransactions">
     <InlineTuple>
       <int name="fromID" />
       <int name="toID" />
@@ -12,6 +12,6 @@
       <!-- 5: eventDateTime -->
       <none name="none3" />
     </InlineTuple>
-  </element>
+  </elementdef>
 
 </Elements>

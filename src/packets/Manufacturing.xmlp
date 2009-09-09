@@ -1,30 +1,30 @@
 <Elements>
 
 
-<element name="Call_GetJobs2">
+<elementdef name="Call_GetJobs2">
 	<InlineTuple>
 		<int name="ownerID" />
 		<bool name="completed" />
 		<int64 name="fromDate" none_marker="0" />
 		<int64 name="toDate" none_marker="-1" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_AssemblyLinesSelect">
+<elementdef name="Call_AssemblyLinesSelect">
 	<InlineTuple>
 		<string name="filter" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="PathElement">
+<elementdef name="PathElement">
 	<InlineList>
 		<int name="locationID" />
 		<int name="ownerID" />
 		<int name="flag" />
 	</InlineList>
-</element>
+</elementdef>
 
-<element name="Call_InstallJob">
+<elementdef name="Call_InstallJob">
 	<InlineTuple>
 		<InlineList>
 			<!-- installationLocationData -->
@@ -73,9 +73,9 @@
 		<bool name="isCorpJob" />
 		<string name="description" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="MaterialList">
+<elementdef name="MaterialList">
 	<object type="util.Rowset">
 		<InlineDict>
 			<IDEntry key="header">
@@ -95,9 +95,9 @@
 			</IDEntry>
 		</InlineDict>
 	</object>
-</element>
+</elementdef>
 
-<element name="MaterialList_Line">
+<elementdef name="MaterialList_Line">
 	<InlineList>
 		<int name="requiredTypeID" />
 		<int name="quantity" />
@@ -105,10 +105,10 @@
 		<int name="isSkillCheck" />
 		<bool name="requiresHP" />
 	</InlineList>
-</element>
+</elementdef>
 
 
-<element name="BillOfMaterials">
+<elementdef name="BillOfMaterials">
 	<object type="util.Row">
 		<InlineDict>
 			<IDEntry key="header">
@@ -129,9 +129,9 @@
 			</IDEntry>
 		</InlineDict>
 	</object>
-</element>
+</elementdef>
 
-<element name="Rsp_InstallJob">
+<elementdef name="Rsp_InstallJob">
 	<object type="util.KeyVal">
 		<InlineDict>
 			<IDEntry key="quote">
@@ -177,9 +177,9 @@
 			</IDEntry>
 		</InlineDict>
 	</object>
-</element>
+</elementdef>
 
-<element name="Call_CompleteJob">
+<elementdef name="Call_CompleteJob">
 	<InlineTuple>
 		<InlineList>
 			<!-- installationLocationData -->
@@ -197,7 +197,7 @@
 		<int name="jobID" />
 		<bool name="cancel" />
 	</InlineTuple>
-</element>
+</elementdef>
 
 
 </Elements>

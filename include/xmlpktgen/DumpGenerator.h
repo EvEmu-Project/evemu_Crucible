@@ -30,17 +30,14 @@
 
 
 class ClassDumpGenerator
-: public TmplGenerator<ClassDumpGenerator> {
+: public Generator<ClassDumpGenerator>
+{
 public:
 	ClassDumpGenerator();
-	virtual ~ClassDumpGenerator() {}
-	
-	void Process_root(FILE *into, TiXmlElement *element);
 	
 protected:
-	
-	AllProcFDecls();
-	ProcFDecl(IDEntry);
+	AllGenProcDecls;
+	GenProcDecl(IDEntry);
 };
 
 

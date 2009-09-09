@@ -31,17 +31,14 @@
 
 
 class ClassCloneGenerator
-: public TmplGenerator<ClassCloneGenerator> {
+: public Generator<ClassCloneGenerator>
+{
 public:
 	ClassCloneGenerator();
-	virtual ~ClassCloneGenerator() {}
-	
-	void Process_root(FILE *into, TiXmlElement *element);
-	
+
 protected:
-	
-	AllProcFDecls();
-	ProcFDecl(IDEntry);
+	AllGenProcDecls;
+	GenProcDecl(IDEntry);
 };
 
 

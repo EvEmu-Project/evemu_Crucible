@@ -32,74 +32,77 @@
 
 
 
-ClassDumpGenerator::ClassDumpGenerator() {
-    AllProcFMaps(ClassDumpGenerator);
-    ProcFMap(ClassDumpGenerator, IDEntry, NULL);
+ClassDumpGenerator::ClassDumpGenerator()
+{
+    AllGenProcRegs(ClassDumpGenerator);
+    GenProcReg(ClassDumpGenerator, IDEntry, NULL);
 }
 
-void ClassDumpGenerator::Process_root(FILE *into, TiXmlElement *element) {
+bool ClassDumpGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
+{
     const char *name = element->Attribute("name");
     if(name == NULL) {
         _log(COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row());
-        return;
+        return false;
     }
 
     fprintf(into,
-        "\n"
-        "void %s::Dump(LogType l_type, const char *pfx) const {\n"
+        "void %s::Dump(LogType l_type, const char *pfx) const\n"
+		"{\n"
         "   _log(l_type, \"%%s%s\", pfx);\n",
-        name, name);
+        name, name
+	);
 
-    if(!ProcessFields(into, element))
-        return;
+    if(!Recurse(into, element))
+        return false;
 
-    fprintf(into, "}\n");
+    fprintf(into,
+		"}\n"
+		"\n"
+	);
+
+	return true;
 }
 
-bool ClassDumpGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) {
+bool ClassDumpGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field)
+{
     //do we want to display the tuple in the dump?
-    if(!ProcessFields(into, field))
-        return false;
-    return true;
+    return Recurse(into, field);
 }
 
-bool ClassDumpGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
+bool ClassDumpGenerator::Process_InlineList(FILE *into, TiXmlElement *field)
+{
     //do we want to display the list in the dump?
-    if(!ProcessFields(into, field))
-        return false;
-    return true;
+    return Recurse(into, field);
 }
 
-bool ClassDumpGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
+bool ClassDumpGenerator::Process_InlineDict(FILE *into, TiXmlElement *field)
+{
     //do we want to display the dict in the dump?
-    if(!ProcessFields(into, field))
-        return false;
-    return true;
+    return Recurse(into, field);
 }
 
-bool ClassDumpGenerator::Process_IDEntry(FILE *into, TiXmlElement *field) {
+bool ClassDumpGenerator::Process_IDEntry(FILE *into, TiXmlElement *field)
+{
     //we dont really even care about this...
     const char *key = field->Attribute("key");
     if(key == NULL) {
         _log(COMMON__ERROR, "<IDEntry> at line %d is missing the key attribute, skipping.", field->Row());
         return false;
     }
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+
+	return Recurse(into, field, 1);
 }
 
-bool ClassDumpGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field) {
+bool ClassDumpGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field)
+{
     //do we want to display the substream in the dump?
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+    return Recurse(into, field, 1);
 }
 
-bool ClassDumpGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+bool ClassDumpGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field, 1);
 }
 
 bool ClassDumpGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
@@ -334,12 +337,13 @@ bool ClassDumpGenerator::Process_object(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the type attribute, skipping.", field->Row());
         return false;
     }
+
     fprintf(into,
         "   _log(l_type, \"%%sObject of type %s:\", pfx);\n",
-        type);
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+        type
+	);
+
+	return Recurse(into, field, 1);
 }
 
 bool ClassDumpGenerator::Process_object_ex(FILE *into, TiXmlElement *field)

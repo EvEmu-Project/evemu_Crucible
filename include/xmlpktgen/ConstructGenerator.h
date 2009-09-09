@@ -30,17 +30,14 @@
 #include "Generator.h"
 
 class ClassConstructGenerator
-: public TmplGenerator<ClassConstructGenerator> {
+: public Generator<ClassConstructGenerator>
+{
 public:
 	ClassConstructGenerator();
-	virtual ~ClassConstructGenerator() {}
-	
-	void Process_root(FILE *into, TiXmlElement *element);
-	
+
 protected:
-	
-	AllProcFDecls();
-	ProcFDecl(IDEntry);
+	AllGenProcDecls;
+	GenProcDecl(IDEntry);
 };
 
 

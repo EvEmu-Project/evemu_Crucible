@@ -78,10 +78,13 @@ int main(int argc, char *argv[]) {
 #endif
 	
 	XMLPacketGen gen;
-	if(!gen.GenPackets(xml.c_str(), h.c_str(), cpp.c_str()))
-		return(1);
+	if( !gen.LoadFile( xml.c_str() ) )
+		return 1;
+
+	if( !gen.GenPackets( h.c_str(), cpp.c_str() ) )
+		return 1;
 	
-	return(0);
+	return 0;
 }
 
 

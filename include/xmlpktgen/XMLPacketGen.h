@@ -28,12 +28,115 @@
 
 #include <tinyxml.h>
 
-class XMLPacketGen {
+#include "HeaderGenerator.h"
+#include "ConstructGenerator.h"
+#include "DestructGenerator.h"
+#include "DumpGenerator.h"
+#include "EncodeGenerator.h"
+#include "DecodeGenerator.h"
+#include "CloneGenerator.h"
+
+class XMLPacketGen
+{
 public:
 	XMLPacketGen();
 	virtual ~XMLPacketGen();
 
-	bool GenPackets(const char *xml_file, const char *out_h, const char *out_cpp);
+	bool LoadFile(const char* xml_file);
+
+	bool GenPackets(const char* header, const char* source);
+
+protected:
+	/**
+	 * Special header wrapper generator, assures there's nothing
+	 * but include and elementdef at top-level.
+	 */
+	class HeaderGenerator
+	: public Generator<HeaderGenerator>
+	{
+	public:
+		HeaderGenerator()
+		{
+			GenProcReg( HeaderGenerator, Elements, NULL );
+			GenProcReg( HeaderGenerator, include, NULL );
+			GenProcReg( HeaderGenerator, elementdef, NULL );
+		}
+
+	protected:
+		GenProcDecl( Elements )
+		{
+			return Recurse( into, field );
+		}
+		GenProcDecl( include )
+		{
+			const char *file = field->Attribute("file");
+			if(file == NULL)
+			{
+				_log(COMMON__ERROR, "field at line %d is missing the file attribute, skipping.", field->Row());
+				return false;
+			}
+
+			fprintf(into, "#include \"%s\"\n", file);
+			return true;
+		}
+		GenProcDecl( elementdef )
+		{
+			return mHeader.Generate( into, field );
+		}
+
+		ClassHeaderGenerator mHeader;
+	};
+
+	/**
+	 * Special source wrapper generator, duplicates each field
+	 * to all of source generators.
+	 */
+	class SourceGenerator
+	: public Generator<SourceGenerator>
+	{
+	public:
+		SourceGenerator()
+		{
+			GenProcReg( SourceGenerator, Elements, NULL );
+			GenProcReg( SourceGenerator, include, NULL );
+			GenProcReg( SourceGenerator, elementdef, NULL );
+		}
+
+	protected:
+		GenProcDecl( Elements )
+		{
+			return Recurse( into, field );
+		}
+		GenProcDecl( include )
+		{
+			//ignore
+			return true;
+		}
+		GenProcDecl( elementdef )
+		{
+			return (    mConstruct.Generate( into, field )
+					 && mDestruct.Generate( into, field )
+					 && mDump.Generate( into, field )
+					 && mEncode.Generate( into, field )
+					 && mDecode.Generate( into, field )
+					 && mClone.Generate( into, field )     );
+		}
+
+		ClassConstructGenerator	mConstruct;
+		ClassDestructGenerator	mDestruct;
+		ClassDumpGenerator		mDump;
+		ClassEncodeGenerator	mEncode;
+		ClassDecodeGenerator	mDecode;
+		ClassCloneGenerator		mClone;
+	};
+
+	TiXmlDocument mDoc;
+
+	static const char* const s_mGenFileComment;
+	static HeaderGenerator   s_mHeaderGenerator;
+    static SourceGenerator   s_mSourceGenerator;
+
+	static std::string FNameToDef(const char* buf);
 };
 
 #endif//__XMLPACKETGEN_H_INCL__

@@ -31,10 +31,8 @@
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
-#include "HeaderGenerator.h"
-#include "ImplGenerator.h"
 
-static const char *GenFileComment =
+const char* const XMLPacketGen::s_mGenFileComment =
 "/*  EVEmu: EVE Online Server Emulator\n"
 "  \n"
 "  **************************************************************\n"
@@ -61,7 +59,11 @@ static const char *GenFileComment =
 "*/\n"
 ;
 
-static std::string FNameToDef(const char *buf) {
+XMLPacketGen::HeaderGenerator XMLPacketGen::s_mHeaderGenerator;
+XMLPacketGen::SourceGenerator XMLPacketGen::s_mSourceGenerator;
+
+std::string XMLPacketGen::FNameToDef( const char* buf )
+{
     char *obuf = new char[strlen(buf)+10];
     char *ptr = obuf;
     const char *bptr = buf;
@@ -83,49 +85,50 @@ static std::string FNameToDef(const char *buf) {
     return(b);
 }
 
-XMLPacketGen::XMLPacketGen() {
-}
+XMLPacketGen::XMLPacketGen() {}
+XMLPacketGen::~XMLPacketGen() {}
 
-XMLPacketGen::~XMLPacketGen() {
-}
-
-bool XMLPacketGen::GenPackets(
-    const char *xml_file,
-    const char *out_h,
-    const char *out_cpp)
+bool XMLPacketGen::LoadFile( const char* xml_file )
 {
-    TiXmlDocument doc( xml_file );
-    if(!doc.LoadFile()) {
-        _log(COMMON__ERROR, "Failed to parse XML file '%s' line %d: %s", xml_file, doc.ErrorRow(), doc.ErrorDesc());
+	if( !mDoc.LoadFile( xml_file ) )
+	{
+        _log(COMMON__ERROR, "Failed to parse XML file '%s' line %d: %s", xml_file, mDoc.ErrorRow(), mDoc.ErrorDesc());
         return false;
     }
 
-    TiXmlElement *root = doc.RootElement ();
-    if(root == NULL) {
-        _log(COMMON__ERROR, "Unable to find root 'Elements' in %s", xml_file);
+	return true;
+}
+
+bool XMLPacketGen::GenPackets( const char* header, const char* source )
+{
+    TiXmlElement *root = mDoc.RootElement();
+    if( root == NULL )
+	{
+		_log(COMMON__ERROR, "Unable to find root 'Elements' in %s", mDoc.Value() );
         return false;
     }
 
-    FILE *h = fopen(out_h, "w");
-    if(h == NULL) {
-        _log(COMMON__ERROR, "Unable to open output file %s: %s", out_h, strerror(errno));
+    FILE *h = fopen( header, "w" );
+    if( h == NULL )
+	{
+        _log(COMMON__ERROR, "Unable to open output file %s: %s", header, strerror(errno));
         return false;
     }
-    FILE *cpp = fopen(out_cpp, "w");
-    if(cpp == NULL) {
-        _log(COMMON__ERROR, "Unable to open output file %s: %s", out_cpp, strerror(errno));
+
+    FILE *src = fopen( source, "w" );
+    if( src == NULL )
+	{
+        _log(COMMON__ERROR, "Unable to open output file %s: %s", source, strerror(errno));
         fclose(h);
         return false;
     }
 
-    std::string def = FNameToDef(out_h);
-
-
     /*
      * Generate .h file:
      *
-     *
-    */
+     */
+    std::string def = FNameToDef( header );
+
     //header:
     fprintf(h,
         "%s\n"
@@ -140,26 +143,26 @@ bool XMLPacketGen::GenPackets(
         "#include \"PyVisitor.h\"\n"
         "#include \"PyRep.h\"\n"
         "\n"
-        "\n"
-        "",
-        GenFileComment, def.c_str(), def.c_str()
+        "\n",
+        s_mGenFileComment, def.c_str(), def.c_str()
     );
     //body:
-    ClassHeaderGenerator h_gen;
-    h_gen.Generate(h, root);
+    s_mHeaderGenerator.Generate( h, root );
     //footer:
     fprintf(h,
-        "\n\n"
-        "#endif\n\n\n"
+        "\n"
+		"\n"
+        "#endif\n"
+		"\n"
+		"\n"
     );
 
     /*
      * Generate .cpp file:
      *
-     *
-    */
+     */
     //header:
-    fprintf(cpp,
+    fprintf(src,
         "%s\n"
         "\n"
         "#include <string>\n"
@@ -167,16 +170,15 @@ bool XMLPacketGen::GenPackets(
         "\n"
         "\n"
         "\n",
-        GenFileComment, out_h
+        s_mGenFileComment, header
     );
     //body:
-    ClassImplementationGenerator cpp_gen;
-    cpp_gen.Generate(cpp, root);
+    s_mSourceGenerator.Generate( src, root );
     //footer:
-    fprintf(cpp,
-        "\n\n"
+    fprintf(src,
+        "\n"
+		"\n"
     );
-
 
     return true;
 }

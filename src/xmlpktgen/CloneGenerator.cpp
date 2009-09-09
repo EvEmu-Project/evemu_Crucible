@@ -28,56 +28,58 @@
 #include "CloneGenerator.h"
 #include "../common/logsys.h"
 
-ClassCloneGenerator::ClassCloneGenerator() {
-    AllProcFMaps(ClassCloneGenerator);
-    ProcFMap(ClassCloneGenerator, IDEntry, "NULL");
+ClassCloneGenerator::ClassCloneGenerator()
+{
+    AllGenProcRegs(ClassCloneGenerator);
+    GenProcReg(ClassCloneGenerator, IDEntry, NULL);
 }
 
-void ClassCloneGenerator::Process_root(FILE *into, TiXmlElement *element) {
+bool ClassCloneGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
+{
     const char *name = element->Attribute("name");
     if(name == NULL) {
         _log(COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row());
-        return;
+        return false;
     }
 
     fprintf(into,
-        "\n"
-        "%s *%s::Clone() const {\n"
+        "%s *%s::Clone() const\n"
+		"{\n"
         "   %s *res = new %s;\n"
         "   res->CloneFrom(this);\n"
         "   return res;\n"
         "}\n"
         "\n"
-        "void %s::CloneFrom(const %s *from) {\n",
+        "void %s::CloneFrom(const %s *from)\n"
+		"{\n",
         name, name,
             name, name,
         name, name);
 
-    if(!ProcessFields(into, element))
-        return;
+    if(!Recurse(into, element))
+        return false;
 
     fprintf(into,
-        "   \n"
         "}\n"
-        "\n");
+        "\n"
+	);
+
+	return true;
 }
 
-bool ClassCloneGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field))
-        return false;
-    return true;
+bool ClassCloneGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field);
 }
 
-bool ClassCloneGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field))
-        return false;
-    return true;
+bool ClassCloneGenerator::Process_InlineList(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field);
 }
 
-bool ClassCloneGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field))
-        return false;
-    return true;
+bool ClassCloneGenerator::Process_InlineDict(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field);
 }
 
 bool ClassCloneGenerator::Process_IDEntry(FILE *into, TiXmlElement *field) {
@@ -87,21 +89,18 @@ bool ClassCloneGenerator::Process_IDEntry(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "<IDEntry> at line %d is missing the key attribute, skipping.", field->Row());
         return false;
     }
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+
+    return Recurse(into, field, 1);
 }
 
-bool ClassCloneGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+bool ClassCloneGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field, 1);
 }
 
-bool ClassCloneGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+bool ClassCloneGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field, 1);
 }
 
 bool ClassCloneGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
@@ -261,10 +260,10 @@ bool ClassCloneGenerator::Process_object(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "object at line %d is missing the type attribute, skipping.", field->Row());
         return false;
     }
+
     fprintf(into, "\t/* object of type %s */\n", type);
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+
+    return Recurse(into, field, 1);
 }
 
 bool ClassCloneGenerator::Process_object_ex(FILE *into, TiXmlElement *field)

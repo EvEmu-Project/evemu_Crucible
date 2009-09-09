@@ -30,24 +30,23 @@
 #include <stack>
 
 class ClassEncodeGenerator
-: public TmplGenerator<ClassEncodeGenerator> {
+: public Generator<ClassEncodeGenerator>
+{
 public:
 	ClassEncodeGenerator();
-	virtual ~ClassEncodeGenerator() {}
-	
-	void Process_root(FILE *into, TiXmlElement *element);
 	
 protected:
-	bool m_fast;
-	int m_itemNumber;
-	std::stack<std::string> m_variableQueue;
-	const char *m_name;
+	bool mFast;
+	uint32 mItemNumber;
+	std::stack<std::string> mVariableStack;
+	const char* mName;
 	
-	inline const char *top() const { return(m_variableQueue.top().c_str()); }
-	inline void pop() { m_variableQueue.pop(); }
-	inline void push(const char *v) { m_variableQueue.push(v); }
+	const char* top() const { return mVariableStack.top().c_str(); }
+	void pop() { mVariableStack.pop(); }
+	void push(const char *v) { mVariableStack.push( v ); }
+	void clear() { while( !mVariableStack.empty() ) pop(); }
 	
-	AllProcFDecls();
+	AllGenProcDecls;
 };
 
 

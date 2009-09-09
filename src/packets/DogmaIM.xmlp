@@ -2,7 +2,7 @@
 
 <Elements>
 
-<element name="Call_Dogma_Activate">
+<elementdef name="Call_Dogma_Activate">
   <InlineTuple>
     <int name="itemID" />
     <string name="effectName" />
@@ -10,27 +10,27 @@
     <int name="target" none_marker="0" default="0"/>
     <int name="repeat" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_Dogma_Deactivate">
+<elementdef name="Call_Dogma_Deactivate">
   <InlineTuple>
     <int name="itemID" />
     <string name="effectName" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Rsp_Dogma_AddTarget">
+<elementdef name="Rsp_Dogma_AddTarget">
   <InlineTuple>
     <bool name="success" />
     <intlist name="targets" />
   </InlineTuple>
-</element>
+</elementdef>
 
 
 
 
 
-<element name="Notify_OnGodmaShipEffect">
+<elementdef name="Notify_OnGodmaShipEffect">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnGodmaShipEffect" />
@@ -56,9 +56,9 @@
     <raw name="error" />
     <!-- <raw name="stall" /> -->
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Notify_OnModuleAttributeChange">
+<elementdef name="Notify_OnModuleAttributeChange">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnModuleAttributeChange" />
@@ -70,9 +70,9 @@
     <raw name="oldValue" />
     <!-- <raw name="scatterAttr" /> -->
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Notify_OnEffectHit">
+<elementdef name="Notify_OnEffectHit">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnEffectHit" />
@@ -85,10 +85,10 @@
     <!-- the damage which was done -->
     <real name="damage" />
   </InlineTuple>
-</element>
+</elementdef>
 
 <!-- this notify represents damage done to us by something else -->
-<element name="Notify_OnDamageMessage_Self">
+<elementdef name="Notify_OnDamageMessage_Self">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnDamageMessage" />
@@ -107,10 +107,10 @@
       </IDEntry>
     </InlineDict>
   </InlineTuple>
-</element>
+</elementdef>
 
 <!-- this notify represents damage done to us by something else -->
-<element name="Notify_OnDamageMessage_Other">
+<elementdef name="Notify_OnDamageMessage_Other">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnDamageMessage" />
@@ -136,18 +136,18 @@
       </IDEntry>
     </InlineDict>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Notify_OnDamageMessages">
+<elementdef name="Notify_OnDamageMessages">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnDamageMessages" />
     <!-- this is a list of Notify_OnDamageMessage_* -->
     <list name="messages" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Notify_OnEffectMessage">
+<elementdef name="Notify_OnEffectMessage">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnEffectMessage" />
@@ -155,10 +155,10 @@
     <string name="messageID" />
     <dict name="arguments" />
   </InlineTuple>
-</element>
+</elementdef>
 
 
-<element name="Notify_OnTarget">
+<elementdef name="Notify_OnTarget">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnTarget" />
@@ -175,38 +175,38 @@
     <!-- only seen on `target lost` events, but doesn't seem to do anything -->
     <string name="reason" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Notify_OnTargets">
+<elementdef name="Notify_OnTargets">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnTargets" />
     <!-- this is a list of Notify_OnTarget messages -->
     <list name="messages" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Notify_OnGodmaFlushLocation">
+<elementdef name="Notify_OnGodmaFlushLocation">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnGodmaFlushLocation" />
     <!-- not sure yet -->
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Notify_OnGodmaFlushLocationProfile">
+<elementdef name="Notify_OnGodmaFlushLocationProfile">
   <InlineTuple>
     <!-- setup to go into an OnMultiEvent (notify_type) -->
     <string name="notify_type" default="OnGodmaFlushLocationProfile" />
     <!-- not sure yet -->
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Notify_OnMultiEvent">
+<elementdef name="Notify_OnMultiEvent">
   <InlineTuple>
     <list name="events" />
   </InlineTuple>
-</element>
+</elementdef>
 
 
 </Elements>

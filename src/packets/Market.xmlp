@@ -3,7 +3,7 @@
 <Elements>
 
 <!-- this really doesn't belong here -->
-<element name="MarketGroup_Entry">
+<elementdef name="MarketGroup_Entry">
   <InlineList>
     <int name="marketGroupID" />
     <raw name="parentGroupID" />    <!-- may be None -->
@@ -14,11 +14,11 @@
     <intlist name="types" />
 	<int name="dataID" default="0" />
   </InlineList>
-</element>
+</elementdef>
 
 
 
-<element name="GetPriceHistory_Header">
+<elementdef name="GetPriceHistory_Header">
     <object type="blue.DBRowDescriptor">
       <InlineTuple>
         <InlineTuple>
@@ -47,9 +47,9 @@
         </InlineTuple>
       </InlineTuple>
     </object>
-</element>
+</elementdef>
 
-<element name="GetPriceHistory_Entry">
+<elementdef name="GetPriceHistory_Entry">
   <object type="blue.DBRow">
     <InlineTuple>
       <element type="GetPriceHistory_Header" name="header" />
@@ -63,16 +63,16 @@
       </InlineTuple>
     </InlineTuple>
   </object>
-</element>
+</elementdef>
 
-<element name="Rsp_GetPriceHistory">
+<elementdef name="Rsp_GetPriceHistory">
   <InlineTuple>
     <element type="GetPriceHistory_Header" name="header" />
     <list name="rows" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_PlaceCharOrder">
+<elementdef name="Call_PlaceCharOrder">
   <InlineTuple>
     <int name="stationID" />
     <int name="typeID" />
@@ -86,16 +86,16 @@
     <bool name="useCorp" soft="true" />
     <bool name="located" none_marker="false" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Notify_OnOwnOrderChanged">
+<elementdef name="Notify_OnOwnOrderChanged">
   <InlineTuple>
     <raw name="order" />
     <!-- Reason: Add or Expiry (probably a "Change" or something too) -->
     <string name="reason" />
 	<bool name="isCorp" />
   </InlineTuple>
-</element>
+</elementdef>
 
 
 

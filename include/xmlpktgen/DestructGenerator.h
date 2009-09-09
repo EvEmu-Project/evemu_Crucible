@@ -30,17 +30,14 @@
 
 
 class ClassDestructGenerator
-: public TmplGenerator<ClassDestructGenerator> {
+: public Generator<ClassDestructGenerator>
+{
 public:
 	ClassDestructGenerator();
-	virtual ~ClassDestructGenerator() {}
-	
-	void Process_root(FILE *into, TiXmlElement *element);
 	
 protected:
-	
-	AllProcFDecls();
-	ProcFDecl(IDEntry);
+	AllGenProcDecls;
+	GenProcDecl(IDEntry);
 };
 
 

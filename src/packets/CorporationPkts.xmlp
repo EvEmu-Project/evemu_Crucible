@@ -1,7 +1,7 @@
 <Elements>
 
 <!-- this is not being used at the moment, more hrer for completeness -->
-<element name="GetFactionInfoRsp">
+<elementdef name="GetFactionInfoRsp">
  <InlineTuple>
 	<!-- 0: factionIDbyNPCCorpID: dict: corpID -> factionID    -->
     <primdict name="factionIDbyNPCCorpID" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
@@ -29,10 +29,10 @@
     -->
     <raw name="npcCorpInfo" />
  </InlineTuple>
-</element>
+</elementdef>
 
 
-  <element name="Call_AddCorporation">
+  <elementdef name="Call_AddCorporation">
     <InlineTuple>
       <string name="corpName" />
       <string name="corpTicker" />
@@ -47,9 +47,9 @@
       <raw name="color3" />
       <raw name="unknown" />
     </InlineTuple>
-  </element>
+  </elementdef>
 
-  <element name="Item_GetSuggestedTickerNames">
+  <elementdef name="Item_GetSuggestedTickerNames">
     <object type="util.KeyVal">
       <InlineDict>
         <IDEntry key="tickerName">
@@ -57,9 +57,9 @@
         </IDEntry>
       </InlineDict>
     </object>
-  </element>
+  </elementdef>
 
-  <element name="Notify_OnCorporaionChanged">
+  <elementdef name="Notify_OnCorporaionChanged">
     <InlineTuple>
       <int name="corpID" />
       <InlineDict>
@@ -275,9 +275,9 @@
         </IDEntry>
       </InlineDict>
     </InlineTuple>
-  </element>
+  </elementdef>
 
-  <element name="Notify_OCCSessionChangeNotification">
+  <elementdef name="Notify_OCCSessionChangeNotification">
     <InlineDict>
       <IDEntry key="corprole">
         <InlineTuple name="it1">
@@ -322,9 +322,9 @@
         </InlineTuple>
       </IDEntry>
     </InlineDict>
-  </element>
+  </elementdef>
 
-  <element name="CorpOfficeSparseRowset">
+  <elementdef name="CorpOfficeSparseRowset">
     <object type="util.SparseRowset">
       <InlineTuple>
         <!-- This is probably a header. No indication of it though -->
@@ -342,9 +342,9 @@
         <int name="officeNumber" default="0" />
       </InlineTuple>
     </object>
-  </element>
+  </elementdef>
 
-  <element name="Notify_OnObjectPublicAttributesUpdated">
+  <elementdef name="Notify_OnObjectPublicAttributesUpdated">
     <InlineTuple>
       <string name="bindID" />
       <InlineDict>
@@ -373,8 +373,8 @@
         </IDEntry>
       </InlineDict>
     </InlineTuple>
-  </element>
-  <element name="OfficeAttributeUpdate">
+  </elementdef>
+  <elementdef name="OfficeAttributeUpdate">
     <InlineDict name="unused4">
       <IDEntry key="typeID">
         <InlineTuple name="unused5">
@@ -401,9 +401,9 @@
         </InlineTuple>
       </IDEntry>
     </InlineDict>
-  </element>           
+  </elementdef>           
 
-  <element name="Notify_OnItemChange">
+  <elementdef name="Notify_OnItemChange">
     <InlineTuple>
       <object type="util.Row">
         <InlineDict>
@@ -446,39 +446,39 @@
         </IDEntry>
       </InlineDict>
     </InlineTuple>
-  </element>
+  </elementdef>
 
-  <element name="Notify_OnOfficeRentalChanged">
+  <elementdef name="Notify_OnOfficeRentalChanged">
     <InlineTuple>
       <int name="ownerID" />
       <int name="officeID" />
       <int name="officeFolderID" />
     </InlineTuple>
-  </element>
+  </elementdef>
 
-  <element name="Notify_OnBillReceived">
+  <elementdef name="Notify_OnBillReceived">
     <InlineTuple>
       <!-- Empty tuple, very funny :S. Then what is it good for? -->
     </InlineTuple>
-  </element>
+  </elementdef>
 
-  <element name="Reply_FetchOffice">
+  <elementdef name="Reply_FetchOffice">
     <InlineList>
       <InlineTuple>
         <int name="officeID" />
         <list name="params" />
       </InlineTuple>
     </InlineList>
-  </element>
+  </elementdef>
 
-  <element name="Call_InsertApplication">
+  <elementdef name="Call_InsertApplication">
     <InlineTuple>
       <int name="corpID" />
       <string name="message" />
     </InlineTuple>
-  </element>
+  </elementdef>
 
-  <element name="Notify_OnCorporationApplicationChanged">
+  <elementdef name="Notify_OnCorporationApplicationChanged">
     <InlineTuple name="uu1">
       <int name="charID" />
       <int name="corpID" />
@@ -539,17 +539,17 @@
         </IDEntry>
       </InlineDict>
     </InlineTuple>
-  </element>
+  </elementdef>
   
-  <element name="Call_UpdateApplicationOffer">
+  <elementdef name="Call_UpdateApplicationOffer">
     <InlineTuple>
       <int name="charID" />
       <string name="appText" />
       <int name="newStatus" />
       <none />
     </InlineTuple>
-  </element>
-  <element name="MemberAttributeUpdate">
+  </elementdef>
+  <elementdef name="MemberAttributeUpdate">
     <InlineDict name="uu1">
       <IDEntry key="grantableRolesAtOther">
         <InlineTuple name="uu1">
@@ -656,8 +656,8 @@
       </IDEntry>
 -->
     </InlineDict>
-  </element>
-  <element name="Notify_OnCorpMemberChange">
+  </elementdef>
+  <elementdef name="Notify_OnCorpMemberChange">
     <InlineTuple>
       <int name="charID" />
       <InlineDict name="id">
@@ -675,23 +675,23 @@
         </IDEntry>
       </InlineDict>
     </InlineTuple>
-  </element>
-  <element name="Notify_IntRaw">
+  </elementdef>
+  <elementdef name="Notify_IntRaw">
     <InlineTuple>
       <int name="key" />
       <raw name="data" />
     </InlineTuple>
-  </element>
+  </elementdef>
 
-  <element name="Call_UpdateApplication">
+  <elementdef name="Call_UpdateApplication">
     <InlineTuple>
       <int name="corpID" />
       <string name="message" />
       <int name="status" /> <!-- ? -->
       <raw name="date" />
     </InlineTuple>
-  </element>
-  <element name="Call_UpdateDivisionNames">
+  </elementdef>
+  <elementdef name="Call_UpdateDivisionNames">
     <InlineTuple>
       <string name="div1" />
       <string name="div2" />
@@ -701,15 +701,15 @@
       <string name="div6" />
       <string name="div7" />
     </InlineTuple>
-  </element>
-  <element name="Call_UpdateCorporation">
+  </elementdef>
+  <elementdef name="Call_UpdateCorporation">
     <InlineTuple>
       <string name="description" />
       <string name="address" />
       <real name="tax" />
     </InlineTuple>
-  </element>
-  <element name="Call_UpdateLogo">
+  </elementdef>
+  <elementdef name="Call_UpdateLogo">
     <InlineTuple>
       <int name="shape1" none_marker="0" />
       <int name="shape2" none_marker="0" />
@@ -719,8 +719,8 @@
       <int name="color3" none_marker="0" />
       <raw name="typeface" /> <!-- Prolly always none -->
     </InlineTuple>
-  </element>
-  <element name="Call_GetRecruitmentAdsByCriteria">
+  </elementdef>
+  <elementdef name="Call_GetRecruitmentAdsByCriteria">
     <InlineTuple>
       <int name="regionID" />
       <int name="skillPoints" />
@@ -731,5 +731,5 @@
       <int name="minMembers" />
       <int name="maxMembers" />
     </InlineTuple>
-  </element>
+  </elementdef>
 </Elements>

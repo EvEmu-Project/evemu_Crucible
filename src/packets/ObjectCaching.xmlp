@@ -2,7 +2,7 @@
 
 <Elements>
 
-<element name="objectCaching_CachedObject_data">
+<elementdef name="objectCaching_CachedObject_data">
   <object type="objectCaching.CachedObject">
 	<InlineTuple>
 	  <!-- 0 -->
@@ -28,9 +28,9 @@
 	  <raw name="objectID" />
 	</InlineTuple>
   </object>
-</element>
+</elementdef>
 
-<element name="objectCaching_CachedObject_spec">
+<elementdef name="objectCaching_CachedObject_spec">
   <object type="util.CachedObject">
 	<InlineTuple>
 	  <!-- 0 -->
@@ -46,11 +46,11 @@
 	  </InlineTuple>
 	</InlineTuple>
   </object>
-</element>
+</elementdef>
 
 
 
-<element name="objectCaching_CachedMethodCallResult">
+<elementdef name="objectCaching_CachedMethodCallResult">
   <object type="objectCaching.CachedMethodCallResult">
 	<InlineTuple>
 	  <!-- 0: details -->
@@ -87,10 +87,10 @@
 	  </InlineList>                
 	</InlineTuple>                 
   </object>
-</element>
+</elementdef>
 
 
-<element name="objectCaching_CachedMethodCallResult_object">
+<elementdef name="objectCaching_CachedMethodCallResult_object">
   <object type="objectCaching.CachedMethodCallResult">
 	<InlineTuple>
 	  <!-- 0: details -->
@@ -108,10 +108,10 @@
       <none />
 	</InlineTuple>
   </object>
-</element>
+</elementdef>
 
 <!-- A representation of a simple cached method call objectID, with no arguments -->
-<element name="SimpleMethodCallID">
+<elementdef name="SimpleMethodCallID">
   <InlineTuple>
     <!-- 0 -->
     <string name="type" default="Method Call"/>
@@ -125,9 +125,9 @@
       <string name="method" />
     </InlineTuple>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CallGetCachableObject">
+<elementdef name="CallGetCachableObject">
   <InlineTuple>
     <!-- 0 -->
     <int name="shared" />
@@ -144,18 +144,18 @@
     <!-- 3 -->
     <int name="nodeID" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="RspGetCachableObject">
+<elementdef name="RspGetCachableObject">
   <InlineTuple>
     <!-- 0 -->
     <InlineSubStream> 
 	  <element type="objectCaching_CachedObject_spec" name="object" />    
     </InlineSubStream>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="objectCaching_CacheOK">
+<elementdef name="objectCaching_CacheOK">
   <object type="objectCaching.CacheOK">
       <InlineDict>
         <IDEntry key="args">
@@ -165,16 +165,16 @@
         </IDEntry>
       </InlineDict>
   </object>
-</element>
+</elementdef>
 
-<element name="cache_Formation">
+<elementdef name="cache_Formation">
   <InlineTuple>
     <!-- 0: Name of formation -->
     <string name="name" />
     <!-- 1: Tuple of positions -->
     <tuple name="positions" />
   </InlineTuple>
-</element>
+</elementdef>
 
 </Elements>
 

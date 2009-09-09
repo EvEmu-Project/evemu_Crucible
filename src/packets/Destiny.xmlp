@@ -95,14 +95,14 @@ DST_WARPEXIT = 11
 
 <include file="General.h" />
 	
-<element name="Notify_DoDestinyUpdates">
+<elementdef name="Notify_DoDestinyUpdates">
   <InlineTuple>
 	 <!-- 0: list of DoDestinyUpdateMain -->
 	 <list name="updates" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestinyUpdateMain">
+<elementdef name="DoDestinyUpdateMain">
   <InlineTuple>
 	 <!-- 0: list of DoDestinyAction -->
 	 <list name="updates" />
@@ -111,28 +111,28 @@ DST_WARPEXIT = 11
 	 <!-- 2: this is a list of dogma events, like used in OnMultiEvent -->
 	 <list name="events" optional="true"/>
   </InlineTuple>
-</element>
+</elementdef>
 
 <!-- same call as above, completely omitting the events arg. -->
-<element name="DoDestinyUpdateMain_2">
+<elementdef name="DoDestinyUpdateMain_2">
   <InlineTuple>
 	 <!-- 0: list of DoDestinyAction -->
 	 <list name="updates" />
 	 <!-- 1 -->
 	 <bool name="waitForBubble" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestinyAction">
+<elementdef name="DoDestinyAction">
   <InlineTuple>
     <!-- stamp -->
     <int name="update_id" />
     <!-- event -->
 	<raw name="update" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_SlimItem">
+<elementdef name="DoDestiny_SlimItem">
 	<object type="foo.SlimItem">
 	  <InlineDict>
 	    <IDEntry key="itemID">
@@ -185,9 +185,9 @@ DST_WARPEXIT = 11
 		</IDEntry>
 	  </InlineDict>
 	</object>
-</element>
+</elementdef>
 
-<element name="DoDestiny_AddBalls">
+<elementdef name="DoDestiny_AddBalls">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="AddBalls" />
@@ -204,9 +204,9 @@ DST_WARPEXIT = 11
 		</InlineTuple>
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_OnSpecialFX13">
+<elementdef name="DoDestiny_OnSpecialFX13">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="OnSpecialFX" />
@@ -240,9 +240,9 @@ DST_WARPEXIT = 11
 		<int64 name="startTime" default="0" none_marker="0" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_OnSpecialFX10">
+<elementdef name="DoDestiny_OnSpecialFX10">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="OnSpecialFX" />
@@ -270,9 +270,9 @@ DST_WARPEXIT = 11
 		<int name="active" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_DamageDetails">
+<elementdef name="DoDestiny_DamageDetails">
   <InlineList>
     <InlineTuple>
 	  <real name="shield" />
@@ -282,10 +282,10 @@ DST_WARPEXIT = 11
 	<real name="armor" />
 	<real name="structure" />
   </InlineList>
-</element>
+</elementdef>
 
 
-<element name="DoDestinyDamageState">
+<elementdef name="DoDestinyDamageState">
     <InlineTuple>
       <InlineTuple>
         <!-- this is a ratio from 0-1 -->
@@ -299,10 +299,10 @@ DST_WARPEXIT = 11
       <!-- this is a ratio from 0-1 -->
       <real name="structure" />
     </InlineTuple>
-</element>
+</elementdef>
 
 
-<element name="DoDestiny_OnDamageStateChange">
+<elementdef name="DoDestiny_OnDamageStateChange">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="OnDamageStateChange" />
@@ -314,10 +314,10 @@ DST_WARPEXIT = 11
         <raw name="state" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
 
-<element name="DoDestiny_SetSpeedFraction">
+<elementdef name="DoDestiny_SetSpeedFraction">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetSpeedFraction" />
@@ -329,10 +329,10 @@ DST_WARPEXIT = 11
 		<real name="fraction" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
 
-<element name="DoDestiny_SetNotificationRange">
+<elementdef name="DoDestiny_SetNotificationRange">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetNotificationRange" />
@@ -344,10 +344,10 @@ DST_WARPEXIT = 11
 		<real name="range" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
 
-<element name="DoDestiny_SetBallPosition">
+<elementdef name="DoDestiny_SetBallPosition">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetBallPosition" />
@@ -359,10 +359,10 @@ DST_WARPEXIT = 11
 		<real name="z" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
 
-<element name="DoDestiny_SetBallVelocity">
+<elementdef name="DoDestiny_SetBallVelocity">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetBallVelocity" />
@@ -374,9 +374,9 @@ DST_WARPEXIT = 11
 		<real name="z" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_FollowBall">
+<elementdef name="DoDestiny_FollowBall">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="FollowBall" />
@@ -388,9 +388,9 @@ DST_WARPEXIT = 11
 		<int name="unknown" /> <!-- seen 50 -->
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_Stop">
+<elementdef name="DoDestiny_Stop">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="Stop" />
@@ -400,9 +400,9 @@ DST_WARPEXIT = 11
 		<int name="entityID" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_GotoDirection">
+<elementdef name="DoDestiny_GotoDirection">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="GotoDirection" />
@@ -414,9 +414,9 @@ DST_WARPEXIT = 11
 		<real name="z" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_AlignTo">
+<elementdef name="DoDestiny_AlignTo">
   <InlineTuple>
     <!-- 0 -->
     <string name="update_name" default="AlignTo" />
@@ -425,9 +425,9 @@ DST_WARPEXIT = 11
       <int name="entityID" />
     </InlineTuple>
   </InlineTuple>
-</element>
+</elementdef>
   
-<element name="DoDestiny_GotoPoint">
+<elementdef name="DoDestiny_GotoPoint">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="GotoPoint" />
@@ -439,9 +439,9 @@ DST_WARPEXIT = 11
 		<real name="z" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_SetBallMass">
+<elementdef name="DoDestiny_SetBallMass">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetBallMass" />
@@ -451,9 +451,9 @@ DST_WARPEXIT = 11
 		<real name="mass" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_SetBallRadius">
+<elementdef name="DoDestiny_SetBallRadius">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetBallRadius" />
@@ -463,9 +463,9 @@ DST_WARPEXIT = 11
 		<real name="radius" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_SetBallMassive">
+<elementdef name="DoDestiny_SetBallMassive">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetBallMassive" />
@@ -476,9 +476,9 @@ DST_WARPEXIT = 11
 		<int name="is_massive" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_SetBallFree">
+<elementdef name="DoDestiny_SetBallFree">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetBallFree" />
@@ -489,9 +489,9 @@ DST_WARPEXIT = 11
 		<int name="is_free" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_SetBallGlobal">
+<elementdef name="DoDestiny_SetBallGlobal">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetBallGlobal" />
@@ -502,9 +502,9 @@ DST_WARPEXIT = 11
 		<int name="is_global" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_SetMaxSpeed">
+<elementdef name="DoDestiny_SetMaxSpeed">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetMaxSpeed" />
@@ -514,9 +514,9 @@ DST_WARPEXIT = 11
 		<real name="speed" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_WarpTo">
+<elementdef name="DoDestiny_WarpTo">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="WarpTo" />
@@ -536,9 +536,9 @@ DST_WARPEXIT = 11
 		<int name="u5" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_SetBallTroll">
+<elementdef name="DoDestiny_SetBallTroll">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetBallTroll" />
@@ -548,9 +548,9 @@ DST_WARPEXIT = 11
 		<int name="maybeAnotherEntityID" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_SetBoid">
+<elementdef name="DoDestiny_SetBoid">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetBoid" />
@@ -560,9 +560,9 @@ DST_WARPEXIT = 11
 		<int name="maybeAnotherEntityID" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_Orbit">
+<elementdef name="DoDestiny_Orbit">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="Orbit" />
@@ -573,9 +573,9 @@ DST_WARPEXIT = 11
 		<int name="distance" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_AddMushroom">
+<elementdef name="DoDestiny_AddMushroom">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="AddMushroom" />
@@ -587,9 +587,9 @@ DST_WARPEXIT = 11
 		<real name="unknown3" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_CloakBall">
+<elementdef name="DoDestiny_CloakBall">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="CloakBall" />
@@ -600,9 +600,9 @@ DST_WARPEXIT = 11
 		<!-- optional: maybe <real name="cloakMode" /> -->
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="OnDockingAccepted">
+<elementdef name="OnDockingAccepted">
 	<InlineTuple>
 	  <!-- 0 -->
       <InlineList>
@@ -619,9 +619,9 @@ DST_WARPEXIT = 11
       <!-- 2 -->
       <int name="stationID" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_RemoveBall">
+<elementdef name="DoDestiny_RemoveBall">
     <InlineTuple>
       <!-- 0: method -->
       <string name="update_name" default="RemoveBall" />
@@ -631,9 +631,9 @@ DST_WARPEXIT = 11
         <!-- there is an unknown optional int arg which may follow -->
       </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_RemoveBalls">
+<elementdef name="DoDestiny_RemoveBalls">
     <InlineTuple>
       <!-- 0: method -->
       <string name="update_name" default="RemoveBalls" />
@@ -642,9 +642,9 @@ DST_WARPEXIT = 11
         <intlist name="balls" />
       </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="SetState_DamageState">
+<elementdef name="SetState_DamageState">
     <InlineTuple>
       <!-- 0 -->
       <InlineTuple>
@@ -660,9 +660,9 @@ DST_WARPEXIT = 11
       <!-- 2 -->
       <real name="unknown2" />
     </InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_SetState">
+<elementdef name="DoDestiny_SetState">
     <InlineTuple>
       <!-- 0 -->
       <string name="update_name" default="SetState" />
@@ -712,10 +712,10 @@ DST_WARPEXIT = 11
         </object>
       </InlineTuple>
     </InlineTuple>
-</element>
+</elementdef>
 
 
-<element name="DoDestiny_OnDroneStateChange">
+<elementdef name="DoDestiny_OnDroneStateChange">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="OnDroneStateChange" />
@@ -735,10 +735,10 @@ DST_WARPEXIT = 11
 		<int name="controllerOwnerID" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
 
-<element name="DoDestiny_SetBallInteractive">
+<elementdef name="DoDestiny_SetBallInteractive">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="SetBallInteractive" />
@@ -750,9 +750,9 @@ DST_WARPEXIT = 11
 		<int name="interactive" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="DoDestiny_TerminalExplosion">
+<elementdef name="DoDestiny_TerminalExplosion">
 	<InlineTuple>
 	  <!-- 0 -->
 	  <string name="update_name" default="TerminalExplosion" />
@@ -763,7 +763,7 @@ DST_WARPEXIT = 11
 		<int name="unknown" />
 	  </InlineTuple>
 	</InlineTuple>
-</element>
+</elementdef>
 
 
 

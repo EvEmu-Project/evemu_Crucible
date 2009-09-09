@@ -1,8 +1,8 @@
 <Elements>
-  <element name="Call_GetTextsForGroup">
+  <elementdef name="Call_GetTextsForGroup">
     <InlineTuple>
       <int name="textgroup" />
       <string name="languageID" />
     </InlineTuple>
-  </element>
+  </elementdef>
 </Elements>

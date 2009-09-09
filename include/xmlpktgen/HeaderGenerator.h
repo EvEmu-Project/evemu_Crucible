@@ -32,16 +32,14 @@
 
 
 class ClassHeaderGenerator
-: public TmplGenerator<ClassHeaderGenerator> {
+: public Generator<ClassHeaderGenerator>
+{
 public:
 	ClassHeaderGenerator();
-	virtual ~ClassHeaderGenerator() {}
+
 protected:
-	void Process_root(FILE *into, TiXmlElement *element);
-	void Process_include(FILE *into, TiXmlElement *element);
-	
-	AllProcFDecls();
-	ProcFDecl(IDEntry);
+	AllGenProcDecls;
+	GenProcDecl( IDEntry );
 	
 	std::set<std::string> m_namesUsed;
 };

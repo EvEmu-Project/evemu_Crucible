@@ -5,7 +5,7 @@
 <include file="PasswordString.h" />
 
 <!-- this is not being used at the moment, more hrer for completeness -->
-<element name="VersionExchange">
+<elementdef name="VersionExchange">
  <InlineTuple>
 	<int name="birthday" value="170472" />
 	<int name="macho_version" />
@@ -14,35 +14,35 @@
 	<int name="build_version" />
 	<string name="project_version" />
  </InlineTuple>
-</element>
+</elementdef>
 
-<element name="NetCommand_QC">
+<elementdef name="NetCommand_QC">
 	<InlineTuple>
 		<none />
 		<!-- This should be "QC" -->
 		<string name="command" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="NetCommand_VK">
+<elementdef name="NetCommand_VK">
 	<InlineTuple>
 		<none />
 		<!-- This should be "VK" -->
 		<string name="command" />
 		<string name="vipKey" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="CryptoRequestPacket">
+<elementdef name="CryptoRequestPacket">
   <InlineTuple>
 	<!-- 0 -->
 	<string name="keyVersion" />
 	<!-- 1 -->
 	<dict name="keyParams" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CryptoAPIRequestParams">
+<elementdef name="CryptoAPIRequestParams">
   <InlineDict>
     <IDEntry key="crypting_sessionkey">
   	  <string name="sessionkey" />                                         
@@ -60,9 +60,9 @@
       <string name="sessionkeymethod" />
     </IDEntry>
   </InlineDict>
-</element>
+</elementdef>
 
-<element name="CryptoChallengePacket">
+<elementdef name="CryptoChallengePacket">
   <InlineTuple>
 	<!-- 0 -->
 	<string name="clientChallenge" />
@@ -100,9 +100,9 @@
 	  </IDEntry>
 	</InlineDict>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CryptoServerHandshake">
+<elementdef name="CryptoServerHandshake">
   <InlineTuple>
 	<!-- 0: serverChallenge -->
 	<string name="serverChallenge" />
@@ -146,9 +146,9 @@
 	  </IDEntry>
 	</InlineDict>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CryptoHandshakeResult">
+<elementdef name="CryptoHandshakeResult">
   <InlineTuple>
 	<!-- 0 -->
 	<string name="challenge_responsehash" />
@@ -157,9 +157,9 @@
 	<!-- 2 -->
 	<raw name="func_result" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CryptoHandshakeAck">
+<elementdef name="CryptoHandshakeAck">
 	<InlineDict>
 		<IDEntry key="live_updates">
 			<list name="live_updates" />
@@ -198,7 +198,7 @@
 			<int name="user_clientid" />
 		</IDEntry>
 	</InlineDict>
-</element>
+</elementdef>
 
 </Elements>
 

@@ -4,7 +4,7 @@
 <include file="General.h" />
 	
 
-<element name="AuthenticationReq">
+<elementdef name="AuthenticationReq">
  <InlineTuple>
   <!-- 0: clientinfo -->
   <InlineDict soft="true">
@@ -40,9 +40,9 @@
 
   <!-- potential optional field address... -->
  </InlineTuple>
-</element>
+</elementdef>
 
-<element name="AuthenticationRsp">
+<elementdef name="AuthenticationRsp">
  <InlineTuple>
   <!-- 0: serverinfo -->
   <InlineDict>
@@ -77,19 +77,19 @@
   <int name="proxyNodeID" />
   
  </InlineTuple>
-</element>
+</elementdef>
 
-<element name="RspPing">
+<elementdef name="RspPing">
   <InlineTuple>
     <!-- 0 -->
     <InlineSubStream>
       <int64 name="timestamp" />         
     </InlineSubStream>    
   </InlineTuple>
-</element>
+</elementdef>
 
 
-<element name="RspGetPostAuthenticationMessage">
+<elementdef name="RspGetPostAuthenticationMessage">
   <InlineTuple>
     <!-- 0 -->
     <InlineSubStream>
@@ -127,7 +127,7 @@
       </object>
     </InlineSubStream>                          
   </InlineTuple>        
-</element>
+</elementdef>
 
 
 

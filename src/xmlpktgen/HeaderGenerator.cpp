@@ -28,27 +28,30 @@
 #include "HeaderGenerator.h"
 #include "../common/logsys.h"
 
-ClassHeaderGenerator::ClassHeaderGenerator() {
-    AllProcFMaps(ClassHeaderGenerator);
-    ProcFMap(ClassHeaderGenerator, IDEntry, NULL);
+ClassHeaderGenerator::ClassHeaderGenerator()
+{
+    AllGenProcRegs( ClassHeaderGenerator );
+    GenProcReg( ClassHeaderGenerator, IDEntry, NULL );
 }
 
-void ClassHeaderGenerator::Process_root(FILE *into, TiXmlElement *element) {
+bool ClassHeaderGenerator::Process_elementdef(FILE* into, TiXmlElement* element)
+{
     const char *name = element->Attribute("name");
     if(name == NULL) {
         _log(COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row());
-        return;
+        return false;
     }
 
     TiXmlElement * main = element->FirstChildElement();
     if(main->NextSiblingElement() != NULL) {
         _log(COMMON__ERROR, "<element> at line %d contains more than one root element. skipping.", element->Row());
-        return;
+        return false;
     }
 
     const char *encode_type = GetEncodeType(element);
     fprintf(into,
-        "\nclass %s {\n"
+		"class %s\n"
+		"{\n"
         "public:\n"
         "   %s();\n"
         "   ~%s();\n"
@@ -69,41 +72,34 @@ void ClassHeaderGenerator::Process_root(FILE *into, TiXmlElement *element) {
         encode_type,
         name,
         name
-        );
+    );
 
     m_namesUsed.clear();
 
-    if(!ProcessFields(into, element, 1))
-        return;
-
-    fprintf(into, "\n\n};\n\n");
-}
-
-void ClassHeaderGenerator::Process_include(FILE *into, TiXmlElement *element) {
-    const char *file = element->Attribute("file");
-    if(file == NULL) {
-        _log(COMMON__ERROR, "field at line %d is missing the file attribute, skipping.", element->Row());
-        return;
-    }
-    fprintf(into, "#include \"%s\"\n", file);
-}
-
-bool ClassHeaderGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field))
+    if( !Recurse( into, element, 1 ) )
         return false;
-    return true;
+
+    fprintf( into,
+		"};\n"
+		"\n"
+	);
+
+	return true;
 }
 
-bool ClassHeaderGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field))
-        return false;
-    return true;
+bool ClassHeaderGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field);
 }
 
-bool ClassHeaderGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field))
-        return false;
-    return true;
+bool ClassHeaderGenerator::Process_InlineList(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field);
+}
+
+bool ClassHeaderGenerator::Process_InlineDict(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field);
 }
 
 bool ClassHeaderGenerator::Process_IDEntry(FILE *into, TiXmlElement *field) {
@@ -113,21 +109,17 @@ bool ClassHeaderGenerator::Process_IDEntry(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "<IDEntry> at line %d is missing the key attribute, skipping.", field->Row());
         return false;
     }
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+    return Recurse(into, field, 1);
 }
 
-bool ClassHeaderGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+bool ClassHeaderGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field, 1);
 }
 
-bool ClassHeaderGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field) {
-    if(!ProcessFields(into, field, 1))
-        return false;
-    return true;
+bool ClassHeaderGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field)
+{
+    return Recurse(into, field, 1);
 }
 
 bool ClassHeaderGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
@@ -292,7 +284,7 @@ bool ClassHeaderGenerator::Process_object(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into, "\t/* object of type %s */\n", type);
-    if(!ProcessFields(into, field, 1))
+    if(!Recurse(into, field, 1))
         return false;
     return true;
 }

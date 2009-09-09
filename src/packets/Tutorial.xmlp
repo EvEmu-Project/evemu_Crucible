@@ -1,12 +1,12 @@
 <Elements>
 
-<element name="Call_GetTutorialInfo">
+<elementdef name="Call_GetTutorialInfo">
 	<InlineTuple>
 		<int name="tutorialID" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="Rsp_GetTutorialInfo">
+<elementdef name="Rsp_GetTutorialInfo">
 	<object type="util.KeyVal">
 		<InlineDict>
 			<IDEntry key="pagecriterias">
@@ -23,6 +23,6 @@
 			</IDEntry>
 		</InlineDict>
 	</object>
-</element>
+</elementdef>
 
 </Elements>

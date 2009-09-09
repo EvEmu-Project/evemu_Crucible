@@ -5,7 +5,7 @@
 <include file="General.h" />
 <include file="ObjectCaching.h" />
 
-  <element name="ChannelInfo">
+  <elementdef name="ChannelInfo">
     <object type="util.Rowset">
       <InlineDict>
         <IDEntry key="header">
@@ -33,8 +33,8 @@
         </IDEntry>
       </InlineDict>
     </object>
-  </element>
-  <element name="ChannelInfoLine">
+  </elementdef>
+  <elementdef name="ChannelInfoLine">
     <InlineList>
       <int name="channelID" />
       <int name="ownerID" />
@@ -50,11 +50,11 @@
       <bool name="subscribed" />
       <int name="estimatedMemberCount" />
 	</InlineList>
-  </element>
+  </elementdef>
 
 
 
-  <element name="ChannelJoinChannelInfo">
+  <elementdef name="ChannelJoinChannelInfo">
     <object type="util.Row">
       <InlineDict>
         <IDEntry key="header">
@@ -91,8 +91,8 @@
         </IDEntry>
       </InlineDict>
     </object>
-  </element>
-  <element name="ChannelJoinChannelMods">
+  </elementdef>
+  <elementdef name="ChannelJoinChannelMods">
     <object type="util.Rowset">
       <InlineDict>
         <IDEntry key="header">
@@ -113,8 +113,8 @@
         </IDEntry>
       </InlineDict>
     </object>
-  </element>
-  <element name="ChannelJoinChannelModsLine">
+  </elementdef>
+  <elementdef name="ChannelJoinChannelModsLine">
     <InlineList>
       <int name="accessor" />
       <int name="mode" />
@@ -123,8 +123,8 @@
       <string name="admin" />
       <string name="reason" />
     </InlineList>
-  </element>
-  <element name="ChannelJoinChannelChars">
+  </elementdef>
+  <elementdef name="ChannelJoinChannelChars">
     <object type="util.Rowset">
       <InlineDict>
         <IDEntry key="header">
@@ -144,8 +144,8 @@
         </IDEntry>
       </InlineDict>
     </object>
-  </element>
-  <element name="ChannelJoinChannelCharsLine">
+  </elementdef>
+  <elementdef name="ChannelJoinChannelCharsLine">
     <InlineList>
       <int name="charID" />
       <int name="corpID" />
@@ -153,10 +153,10 @@
       <int name="role" />
       <int name="extra" />
     </InlineList>
-  </element>
+  </elementdef>
 
 
-  <element name="ChannelJoinReply">
+  <elementdef name="ChannelJoinReply">
     <InlineTuple>
       <raw name="ChannelID" />
       <int name="ok" default="1" />
@@ -166,50 +166,50 @@
         <raw name="ChannelChars" />
       </InlineTuple>
     </InlineTuple>
-  </element>
-  <element name="ChannelCreateReply">
+  </elementdef>
+  <elementdef name="ChannelCreateReply">
     <InlineTuple>
       <raw name="ChannelInfo" />
       <raw name="ChannelMods" />
       <raw name="ChannelChars" />
     </InlineTuple>
-  </element>
+  </elementdef>
 
-  <element name="Call_SendMessage">
+  <elementdef name="Call_SendMessage">
     <InlineTuple>
       <tuple name="channelID" />
       <string name="message" />
     </InlineTuple>
-  </element>
+  </elementdef>
 
-<element name="LSCChannelMultiDesc">
+<elementdef name="LSCChannelMultiDesc">
   <InlineTuple>
     <InlineTuple>
       <string name="type" />
       <int name="number" />
     </InlineTuple>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="RspGetChannels">
+<elementdef name="RspGetChannels">
   <InlineTuple>
     <!-- 0 -->
     <InlineSubStream>
 	  <element name="cachedcall" type="objectCaching_CachedMethodCallResult" />
     </InlineSubStream>                  
   </InlineTuple>
-</element>                
+</elementdef>                
 
-<element name="CallJoinChannels">
+<elementdef name="CallJoinChannels">
   <InlineTuple>
     <!-- 0 -->
     <list name="channels" />
     <!-- 1 -->
     <int name="unknown" />
   </InlineTuple>            
-</element>  
+</elementdef>  
 
-<element name="RspJoinChannels">
+<elementdef name="RspJoinChannels">
   <InlineTuple>
     <!-- 0 -->
     <InlineSubStream>
@@ -218,9 +218,9 @@
 	  <list name="channels" />
     </InlineSubStream>  
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="OnLSC_SenderInfo">
+<elementdef name="OnLSC_SenderInfo">
   <InlineTuple>
     <!-- 0: whoAllianceID -->
     <int name="allianceID" default="0" none_marker="0" />
@@ -239,9 +239,9 @@
 	<!-- 5: not sure its factionID -->
 	<int name="factionID" default="0" none_marker="0" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="NotifyOnLSC">
+<elementdef name="NotifyOnLSC">
   <InlineTuple>
     <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
     <raw name="channelID" />
@@ -254,9 +254,9 @@
     <!-- 4 -->
 	<tuple name="arguments" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="OnLSC_SendMessage">
+<elementdef name="OnLSC_SendMessage">
   <InlineTuple>
     <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
     <raw name="channelID" />
@@ -272,9 +272,9 @@
       <string name="message" />
     </InlineTuple>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="OnLSC_JoinChannel">
+<elementdef name="OnLSC_JoinChannel">
   <InlineTuple>
     <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
     <raw name="channelID" />
@@ -288,8 +288,8 @@
     <InlineTuple>
     </InlineTuple>
   </InlineTuple>
-</element>
-  <element name="OnLSC_DestroyChannel">
+</elementdef>
+  <elementdef name="OnLSC_DestroyChannel">
     <InlineTuple>
       <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
       <raw name="channelID" />
@@ -303,9 +303,9 @@
       <InlineTuple>
       </InlineTuple>
     </InlineTuple>
-  </element>
+  </elementdef>
 
-<element name="OnLSC_LeaveChannel">
+<elementdef name="OnLSC_LeaveChannel">
   <InlineTuple>
     <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
     <raw name="channelID" />
@@ -319,35 +319,35 @@
     <InlineTuple>
     </InlineTuple>
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CallLeaveChannels">
+<elementdef name="CallLeaveChannels">
   <InlineTuple>
     <!-- 0 -->
     <list name="channels" />
     <!-- 1 -->
     <bool name="unsubscribe" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CallLeaveChannel">
+<elementdef name="CallLeaveChannel">
   <InlineTuple>
     <!-- 0 -->
     <raw name="channel" />
     <!-- 1 -->
     <int name="unsubscribe" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_Page">
+<elementdef name="Call_Page">
   <InlineTuple>
     <intlist name="recipients" />
     <string name="subject" />
     <string name="body" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="NotifyOnMessage">
+<elementdef name="NotifyOnMessage">
   <InlineTuple>
     <intlist name="recipients" />
     <!-- 1: messageID: this might be a more complex type in the future.  -->
@@ -356,17 +356,17 @@
     <string name="subject" />
     <int64 name="sentTime" /> <!-- not sure _exactly_ what timestamp this should be -->
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_DeleteMessages">
+<elementdef name="Call_DeleteMessages">
   <InlineTuple>
     <!-- most likely this could be an LSCChannelMultiDesc too... -->
     <int name="channelID" />
     <intlist name="messages" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Rsp_GetEVEMailDetails">
+<elementdef name="Rsp_GetEVEMailDetails">
   <InlineTuple>
       <!-- first the actul message -->
       <object type="util.Row">
@@ -421,21 +421,21 @@
       if that is the case, then change this over to a <list> temporarily -->
       <element name="attachments" type="util_Rowset" />
   </InlineTuple>
-</element>
+</elementdef>
 
-  <element name="Call_LookupStringInt">
+  <elementdef name="Call_LookupStringInt">
     <InlineTuple>
       <string name="searchString" />
       <int name="searchOption" />
     </InlineTuple>
-  </element>
+  </elementdef>
 
-  <element name="Call_LookupIntString">
+  <elementdef name="Call_LookupIntString">
     <InlineTuple>
      <int name="searchOption" />
       <string name="searchString" />
     </InlineTuple>
-  </element>
+  </elementdef>
 </Elements>
 
 

@@ -34,45 +34,52 @@
 #endif
 
 ClassDecodeGenerator::ClassDecodeGenerator()
-: m_itemNumber(0),
-  m_name(NULL)
+: mItemNumber( 0 ),
+  mName( NULL )
 {
-	AllProcFMaps(ClassDecodeGenerator);
+	AllGenProcRegs(ClassDecodeGenerator);
 }
 
-void ClassDecodeGenerator::Process_root(FILE *into, TiXmlElement *element) {
-	const char *name = element->Attribute("name");
-	if(name == NULL) {
+bool ClassDecodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
+{
+	mName = element->Attribute("name");
+	if(mName == NULL) {
 		_log(COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row());
-		return;
+		return false;
 	}
 
 	fprintf(into,
-		"\n"
-		"bool %s::Decode(%s **in_packet) {\n"
+		"bool %s::Decode(%s **in_packet)\n"
+		"{\n"
 		"	//quick forwarder to avoid making the user cast it if they have a properly typed object\n"
 		"	PyRep *packet = *in_packet;\n"
 		"	*in_packet = NULL;\n"
 		"	return Decode(&packet);\n"
 		"}\n"
 		"\n"
-		"bool %s::Decode(PyRep **in_packet) {\n"
+		"bool %s::Decode(PyRep **in_packet)\n"
+		"{\n"
 		"	PyRep *packet = *in_packet;\n"
-		"	*in_packet = NULL;\n\n",
-		name, GetEncodeType(element), name);
+		"	*in_packet = NULL;"
+		"\n",
+		mName, GetEncodeType(element), mName);
 
-	m_itemNumber = 0;
-	m_variableQueue.push("packet");
-	m_name = name;
-	
-	if(!ProcessFields(into, element))
-		return;
+	mItemNumber = 0;
 
-	m_name = NULL;
+	push("packet");
 	
-	fprintf(into, "\n"
-				  "	delete packet;\n"
-				  "	return true;\n}\n");
+	if(!Recurse(into, element))
+		return false;
+
+	fprintf(into,
+		"\n"
+		"	delete packet;\n"
+		"	return true;\n"
+		"}\n"
+		"\n"
+	);
+
+	return true;
 }
 
 bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) {
@@ -86,7 +93,7 @@ bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 
 	const char *v = top();
 	
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	char iname[16];
 	snprintf(iname, sizeof(iname), "tuple%d", num);
 	//now we can generate the tuple decl
@@ -104,10 +111,10 @@ bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 		"	}\n"
 		"\n",
 		v, 
-			m_name, iname, v, 
+			mName, iname, v, 
 		iname, v, 
 		iname, count, 
-			m_name, iname, count, iname
+			mName, iname, count, iname
 	);
 
 	//now we need to queue up all the storage locations for the fields
@@ -118,7 +125,7 @@ bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 		push(varname);
 	}
 	
-	if(!ProcessFields(into, field))
+	if(!Recurse(into, field))
 		return false;
 	
 	pop();
@@ -137,7 +144,7 @@ bool ClassDecodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 
 	const char *v = top();
 	
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	char iname[16];
 	snprintf(iname, sizeof(iname), "list%d", num);
 	//now we can generate the tuple decl
@@ -155,10 +162,10 @@ bool ClassDecodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 		"	}\n"
 		"\n",
 		v, 
-			m_name, iname, v, 
+			mName, iname, v, 
 		iname, v, 
 		iname, count, 
-			m_name, iname, count, iname
+			mName, iname, count, iname
 	);
 
 	//now we need to queue up all the storage locations for the fields
@@ -169,7 +176,7 @@ bool ClassDecodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 		push(varname);
 	}
 	
-	if(!ProcessFields(into, field))
+	if(!Recurse(into, field))
 		return false;
 	
 	pop();
@@ -184,7 +191,7 @@ bool ClassDecodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 	TiXmlNode *i = NULL;
 	
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	char iname[16];
 	snprintf(iname, sizeof(iname), "dict%d", num);
 	const char *v = top();
@@ -197,7 +204,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}"
 		"\n",
-		v, m_name, iname, v
+		v, mName, iname, v
 	);
 
 	bool empty = true;
@@ -245,7 +252,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 			"		}\n"
 			"		PyString *key_string__ = (PyString *) key__;\n"
 			"		\n",
-			iname, v, iname, iname, iname, iname, iname, iname, iname, iname, iname, iname, m_name, iname
+			iname, v, iname, iname, iname, iname, iname, iname, iname, iname, iname, iname, mName, iname
 		);
 
 		while((i = field->IterateChildren( i )) ) {
@@ -291,7 +298,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 			snprintf(vvname, sizeof(vvname), "%s_cur->second", iname);
 			push(vvname);
 			
-			if(!ProcessFields(into, ele, 1))
+			if(!Recurse(into, ele, 1))
 				return false;
 			//fixed suffix...
 			fprintf(into, 
@@ -307,7 +314,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 				"		}\n"
 				"	}\n"
 				"	\n",
-				m_name, iname);
+				mName, iname);
 		} else {
 			fprintf(into, 
 				"		{ /* do nothing, soft dict */ }\n"
@@ -343,7 +350,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 				"		return false;\n"
 				"	}\n"
 				"	\n",
-				iname, vname, m_name, vname, iname);
+				iname, vname, mName, vname, iname);
 		}
 	}
 	
@@ -355,7 +362,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 
 bool ClassDecodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field) {
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "ss_%d", num);
 	const char *v = top();
 
@@ -377,13 +384,13 @@ bool ClassDecodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *fie
 		"		return false;\n"
 		"	}\n"
 		"	\n",
-		v, m_name, iname, v, iname, v, iname, iname, m_name, iname
+		v, mName, iname, v, iname, v, iname, iname, mName, iname
 	);
 	char ssname[32];
 	snprintf(ssname, sizeof(ssname), "%s->decoded", iname);
 	//Decode the sub-element
 	push(ssname);
-	if(!ProcessFields(into, field, 1))
+	if(!Recurse(into, field, 1))
 		return false;
 	
 	pop();
@@ -392,7 +399,7 @@ bool ClassDecodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *fie
 
 bool ClassDecodeGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field) {
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "ss_%d", num);
 	const char *v = top();
 
@@ -408,14 +415,14 @@ bool ClassDecodeGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *fie
 		"	PySubStruct *%s = (PySubStruct *) %s;\n"
 		"	\n",
 		v, 
-			m_name, iname, v, 
+			mName, iname, v, 
 		iname, v
 	);
 	char ssname[32];
 	snprintf(ssname, sizeof(ssname), "%s->sub", iname);
 	//Decode the sub-element
 	push(ssname);
-	if(!ProcessFields(into, field, 1))
+	if(!Recurse(into, field, 1))
 		return false;
 	
 	pop();
@@ -430,7 +437,7 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "dict_%d", num);
 	const char *v = top();
 	
@@ -457,7 +464,7 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		"	}\n"
 		"	\n",
 		v,
-			m_name, name, v,
+			mName, name, v,
 		name,
 		iname, v,
 		name, name,
@@ -466,7 +473,7 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
 		name,
 		name, name, name, name, name,
 			name, 
-				m_name, name, name, name, 
+				mName, name, name, name, 
 			name,
 			name, name
 	);
@@ -483,7 +490,7 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "dict_%d", num);
 	const char *v = top();
 	
@@ -510,7 +517,7 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		"	}\n"
 		"	\n",
 		v,
-			m_name, name, v,
+			mName, name, v,
 		name,
 		iname, v,
 		name, name,
@@ -519,7 +526,7 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
 		name,
 		name, name, name, name, name,
 			name,
-				m_name, name, name, name,
+				mName, name, name, name,
 			name,
 			name, name
 	);
@@ -556,7 +563,7 @@ bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "dict_%d", num);
 	const char *v = top();
 	
@@ -589,7 +596,7 @@ bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 		"	}\n"
 		"	\n",
 		v,
-			m_name, name, v,
+			mName, name, v,
 		name,
 		iname, v,
 		name, name,
@@ -598,9 +605,9 @@ bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 		name,
 		name, name, name, name, name,
 			name, pykey, 
-				m_name, name, pykey, name, name, 
+				mName, name, pykey, name, name, 
 			name, pyvalue, 
-				m_name, name, pyvalue, name, name, 
+				mName, name, pyvalue, name, name, 
 			pykey, pykey, name,
 			pyvalue, pyvalue, name,
 			name
@@ -618,7 +625,7 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "list_%d", num);
 	const char *v = top();
 
@@ -646,11 +653,11 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
 		"		%s.push_back(t->content());\n"
 		"	}\n"
 		"\n",
-		v, m_name, name, v, name,
+		v, mName, name, v, name,
 		iname, v,
 		name, name, name, iname, name, iname,
 		name, name, name, name, name, name,
-		name, m_name, name, name, name, name, name
+		name, mName, name, name, name, name, name
 	);
 	
 	pop();
@@ -665,7 +672,7 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "list_%d", num);
 	const char *v = top();
 
@@ -693,11 +700,11 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
 		"		%s.push_back(t->value);\n"
 		"	}\n"
 		"\n",
-		v, m_name, name, v, name,
+		v, mName, name, v, name,
 		iname, v,
 		name, name, name, iname, name, iname,
 		name, name, name, name, name, name,
-		name, m_name, name, name, name, name,
+		name, mName, name, name, name, name,
 		name
 	);
 
@@ -713,7 +720,7 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "list_%d", num);
 	const char *v = top();
 
@@ -746,7 +753,7 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 		"	}\n"
 		"\n",
 		v,
-			m_name, name, v,
+			mName, name, v,
 		name,
 		iname, v,
 		name, name,
@@ -760,7 +767,7 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
 		name,
 			name,
 			name,
-			m_name, name, name, name
+			mName, name, name, name
 	);
 	
 	pop();
@@ -780,7 +787,7 @@ bool ClassDecodeGenerator::Process_element(FILE *into, TiXmlElement *field) {
 	}
 
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "rep_%d", num);
 	
 	const char *v = top();
@@ -796,7 +803,7 @@ bool ClassDecodeGenerator::Process_element(FILE *into, TiXmlElement *field) {
 		iname, v,
 		v,
 		name, iname,
-			m_name, name
+			mName, name
 		);
 	
 	pop();
@@ -816,7 +823,7 @@ bool ClassDecodeGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
 	}
 
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "rep_%d", num);
 	
 	const char *v = top();
@@ -836,7 +843,7 @@ bool ClassDecodeGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
 		name,
 		name, type,
 		name, iname,
-			m_name, name
+			mName, name
 		);
 	
 	pop();
@@ -853,7 +860,7 @@ bool ClassDecodeGenerator::Process_none(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	\n",
-		v, m_name, v
+		v, mName, v
 		);
 	
 	pop();
@@ -868,7 +875,7 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 	}
 
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "obj_%d", num);
 	const char *v = top();
 
@@ -888,13 +895,13 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 		"		return false;\n"
 		"	}\n"
 		"	\n",
-		v, m_name, iname, v, iname, v, iname, type, m_name, iname  , type, iname
+		v, mName, iname, v, iname, v, iname, type, mName, iname  , type, iname
 	);
 	char ssname[32];
 	snprintf(ssname, sizeof(ssname), "%s->arguments", iname);
 	//Decode the sub-element
 	push(ssname);
-	if(!ProcessFields(into, field, 1))
+	if(!Recurse(into, field, 1))
 		return false;
 	
 	pop();
@@ -953,7 +960,7 @@ bool ClassDecodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
 			name,
 			name, type, v,
 			v,
-			m_name, name, v
+			mName, name, v
 	);
 
 	pop();
@@ -986,7 +993,7 @@ bool ClassDecodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
 			v,
 				name, v,
 		
-				m_name, name, v
+				mName, name, v
 		);
 	
 	pop();
@@ -1048,7 +1055,7 @@ bool ClassDecodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 		"	%s.items = list_%s->items;\n"
 		"	list_%s->items.clear();\n"
 		"	\n",
-		v, m_name, name, v, 
+		v, mName, name, v, 
 		name, v,
 		name, name,
 		name
@@ -1097,7 +1104,7 @@ bool ClassDecodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 		"	%s = NULL;\n"
 		"	\n",
 		v,
-			m_name, name, v,
+			mName, name, v,
 		name, v,
 		v
 		);
@@ -1144,7 +1151,7 @@ bool ClassDecodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 		"	%s.items = list_%s->items;\n"
 		"	list_%s->items.clear();\n"
 		"	\n",
-		v, m_name, name, v, 
+		v, mName, name, v, 
 		name, v,
 		name, name,
 		name
@@ -1166,7 +1173,7 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "bool_%d", num);
 	
 	const char *v = top();
@@ -1194,7 +1201,7 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 			"	PyBool *%s = (PyBool *) %s;\n"
 			"	%s = %s->value;\n"
 			"",
-			v, m_name, name, v, iname, v, name, iname
+			v, mName, name, v, iname, v, name, iname
 			);
 	} else {
 			fprintf(into, 
@@ -1216,7 +1223,7 @@ bool ClassDecodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
 			v, 
 				iname, v, 
 				name, iname,
-				m_name, name, v
+				mName, name, v
 			);
 	}
 	
@@ -1251,7 +1258,7 @@ bool ClassDecodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "int_%d", num);
 	
 	fprintf(into, 
@@ -1263,7 +1270,7 @@ bool ClassDecodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
 		"	PyInt *%s = (PyInt *) %s;\n"
 		"	%s = %s->value;\n"
 		"",
-		v, m_name, name, v, iname, v,
+		v, mName, name, v, iname, v,
 		name, iname
 		);
 
@@ -1297,7 +1304,7 @@ bool ClassDecodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "int64_%d", num);
 	
 	fprintf(into, 
@@ -1318,7 +1325,7 @@ bool ClassDecodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
 		v,
 			iname, v,
 			name, iname,
-			m_name, name, v
+			mName, name, v
 		);
 
 	if(is_optional) {
@@ -1353,7 +1360,7 @@ bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "string_%d", num);
 	
 	
@@ -1367,7 +1374,7 @@ bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 		"	%s = %s->content();\n"
 		"",
 		v,
-			m_name, name, v,
+			mName, name, v,
 		iname, v,
 		name, iname
 		);
@@ -1380,7 +1387,7 @@ bool ClassDecodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
 			"	}\n"
 			"",
 			iname, atobool( type1 ) ? "true" : "false",
-				m_name, name, type1, iname
+				mName, name, type1, iname
 			);
 	}
 	
@@ -1414,7 +1421,7 @@ bool ClassDecodeGenerator::Process_real(FILE *into, TiXmlElement *field) {
 	}
 	
 	char iname[16];
-	int num = m_itemNumber++;
+	int num = mItemNumber++;
 	snprintf(iname, sizeof(iname), "real_%d", num);
 	
 	fprintf(into, 
@@ -1426,7 +1433,7 @@ bool ClassDecodeGenerator::Process_real(FILE *into, TiXmlElement *field) {
 		"	PyFloat *%s = (PyFloat *) %s;\n"
 		"	%s = %s->value;\n"
 		"",
-		v, m_name, name, v, iname, v, name, iname
+		v, mName, name, v, iname, v, name, iname
 		);
 	
 	if(is_optional) {

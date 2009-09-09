@@ -202,15 +202,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\xmlpktgen\Generator.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\xmlpktgen\HeaderGenerator.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\xmlpktgen\ImplGenerator.cpp"
 				>
 			</File>
 			<File
@@ -257,10 +249,6 @@
 			</File>
 			<File
 				RelativePath="..\..\include\xmlpktgen\HeaderGenerator.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\xmlpktgen\ImplGenerator.h"
 				>
 			</File>
 			<File

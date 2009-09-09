@@ -2,109 +2,109 @@
 
 <Elements>
 
-<element name="OnSkillStartTraining">
+<elementdef name="OnSkillStartTraining">
   <InlineTuple>
     <string name="name" default="OnSkillStartTraining" />
     <int name="itemID" />
     <int64 name="endOfTraining" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="OnSkillTrainingStopped">
+<elementdef name="OnSkillTrainingStopped">
   <InlineTuple>
     <string name="name" default="OnSkillTrainingStopped" />
     <int name="itemID" />
     <int64 name="endOfTraining" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="OnSkillTrained">
+<elementdef name="OnSkillTrained">
   <InlineTuple>
     <string name="name" default="OnSkillTrained" />
     <int name="itemID" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="CallSetLabel">
+<elementdef name="CallSetLabel">
   <InlineTuple>
       <int name="itemID" />
       <string name="itemName" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="InvBroker_BindArgs">
+<elementdef name="InvBroker_BindArgs">
   <InlineTuple>
       <int name="entityID" />
       <raw name="unknown1" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Inventory_GetInventory">
+<elementdef name="Inventory_GetInventory">
   <InlineTuple>
       <int name="container" />
       <raw name="argument" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_TrashItems">
+<elementdef name="Call_TrashItems">
 	<InlineTuple>
 		<intlist name="items" />
 		<int name="locationID" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_Add_3">
+<elementdef name="Call_Add_3">
   <InlineTuple>
       <int name="itemID" />
       <int name="quantity" />
       <int name="flag" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_Add_2">
+<elementdef name="Call_Add_2">
   <InlineTuple>
       <int name="itemID" />
       <int name="quantity" none_marker="1" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_MultiAdd_3">
+<elementdef name="Call_MultiAdd_3">
   <InlineTuple>
       <intlist name="itemIDs" />
       <int name="quantity" none_marker="1" /> <!-- almost always 1 on a multiadd -->
       <int name="flag" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Inventory_CallReplaceCharges">
+<elementdef name="Inventory_CallReplaceCharges">
   <InlineTuple>
       <int name="flag" />
       <int name="itemID" />
       <int name="quantity" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Inventory_CallMultiMergeElement">
+<elementdef name="Inventory_CallMultiMergeElement">
     <InlineTuple>
         <int name="draggedItemID"/>
         <int name="stationaryItemID"/>
         <int name="draggedQty"/>
     </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Inventory_CallMultiMerge">
+<elementdef name="Inventory_CallMultiMerge">
     <InlineTuple>
         <list name="MMElements"/>
     </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Inventory_CallStackAll">
+<elementdef name="Inventory_CallStackAll">
     <InlineTuple none_marker="0">
         <int name="locationFlag" none_marker="0"/>
     </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_GetJournal">
+<elementdef name="Call_GetJournal">
   <InlineTuple>
     <int name="accountKey" />
 			<int64 name="fromDate" none_marker="0"/>
@@ -117,15 +117,15 @@
 			<!-- may be None -->
     <int name="rev" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_AssembleShip">
+<elementdef name="Call_AssembleShip">
   <InlineTuple>
     <intlist name="items" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="EntityEffectState">
+<elementdef name="EntityEffectState">
   <InlineList>
       <!-- the first 7 fields are the standard effect `environment`
          fields indexed by ENV_IDX_*, see OnGodmaShipEffect -->
@@ -149,9 +149,9 @@
 	  <!-- randomSeed -->
 	  <raw name="randomSeed" />
   </InlineList>
-</element>
+</elementdef>
 
-<element name="Rsp_CommonGetInfo_Entry">
+<elementdef name="Rsp_CommonGetInfo_Entry">
     <InlineList name="line">
       <int name="itemID" />
       <!-- this is an ItemRow -->
@@ -162,9 +162,9 @@
       <intdict name="attributes" />
       <int64 name="time" />
     </InlineList>
-</element>
+</elementdef>
 
-<element name="Rsp_ItemGetInfo">
+<elementdef name="Rsp_ItemGetInfo">
   <object type="util.Row">
 	<InlineDict>
 	  <IDEntry key="header">
@@ -181,9 +181,9 @@
 	  </IDEntry>
 	</InlineDict>
   </object>
-</element>
+</elementdef>
 
-<element name="Rsp_CommonGetInfo">
+<elementdef name="Rsp_CommonGetInfo">
   <object type="util.IndexRowset">
 	<InlineDict>
 	  <IDEntry key="header">
@@ -208,28 +208,28 @@
 	  </IDEntry>
 	</InlineDict>
   </object>
-</element>
+</elementdef>
 
-<element name="NotifyOnItemChange">
+<elementdef name="NotifyOnItemChange">
   <InlineTuple>
     <!-- 0: this is an ItemRow -->
     <raw name="itemRow" />
     <!-- 1: map from row index (ix* constants) to the old value for the item.  -->
     <intdict name="changes" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_GetOptionsForItemTypes">
+<elementdef name="Call_GetOptionsForItemTypes">
   <InlineTuple>
 	<intdict name="typeIDs" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Rsp_GetOptionsForItemTypes">
+<elementdef name="Rsp_GetOptionsForItemTypes">
 	<intdict name="typeIDs" />
-</element>
+</elementdef>
 
-<element name="Rsp_GetOptionsForItemTypes_Arg">
+<elementdef name="Rsp_GetOptionsForItemTypes_Arg">
 	<object type="util.KeyVal">
 		<InlineDict>
 			<IDEntry key="isRecyclable">
@@ -240,9 +240,9 @@
 			</IDEntry>
 		</InlineDict>
 	</object>
-</element>
+</elementdef>
 
-<element name="Rsp_GetReprocessingInfo">
+<elementdef name="Rsp_GetReprocessingInfo">
 	<InlineDict>
 		<IDEntry key="wetake">
 			<InlineList name="wetake">
@@ -257,11 +257,11 @@
 			<real name="combinedyield" />
 		</IDEntry>
 	</InlineDict>
-</element>
+</elementdef>
 
 <!-- this is ugly, but we dont really have a better way to deal with it right now. -->
 <!-- Don't change headerX ! -->
-<element name="Rsp_GetQuote">
+<elementdef name="Rsp_GetQuote">
 	<object type="util.Row">
 		<InlineDict>
 			<IDEntry key="header">
@@ -299,29 +299,29 @@
 			</IDEntry>
 		</InlineDict>
 	</object>
-</element>
+</elementdef>
 
-<element name="Rsp_GetQuotes">
+<elementdef name="Rsp_GetQuotes">
 	<intdict name="quotes" />
-</element>
+</elementdef>
 
-<element name="Rsp_GetQuote_Recoverables_Line">
+<elementdef name="Rsp_GetQuote_Recoverables_Line">
 	<InlineList>
 		<int name="typeID" />
 		<int name="unrecoverable" />
 		<int name="station" />
 		<int name="client" />
 	</InlineList>
-</element>
+</elementdef>
 
-<element name="Call_Drop2">
+<elementdef name="Call_Drop2">
   <InlineTuple>
     <intlist name="toDrop" />
     <int name="ownerID" />
   </InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_Reprocess">
+<elementdef name="Call_Reprocess">
 	<InlineTuple>
 		<intlist name="items" />
 		<int name="ownerID" none_marker="0" />
@@ -329,15 +329,15 @@
 		<bool name="unknown" />
 		<strlist name="skipChecks" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="Call_GetQuotes">
+<elementdef name="Call_GetQuotes">
 	<InlineTuple>
 		<intlist name="itemIDs" />
 	</InlineTuple>
-</element>
+</elementdef>
 
-<element name="Rsp_GetBlueprintAttributes">
+<elementdef name="Rsp_GetBlueprintAttributes">
 	<InlineDict>
 		<IDEntry key="blueprintID">
 			<int name="blueprintID" />
@@ -379,7 +379,7 @@
 			<int name="researchCopyTime" />
 		</IDEntry>
 	</InlineDict>
-</element>
+</elementdef>
 
 
 

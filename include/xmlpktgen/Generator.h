@@ -32,133 +32,154 @@
 #include <map>
 #include <string>
 
+template<typename X>
 class Generator
 {
 public:
-    virtual ~Generator() {}
-    virtual void Generate(FILE *into, TiXmlElement *root);
+    typedef bool ( X::*GenProc )( FILE* into, TiXmlElement* field );
 
-protected:
-    virtual void Process_root(FILE *into, TiXmlElement *element) = 0;
-    virtual void Process_include(FILE *into, TiXmlElement *element);
+	Generator() {}
+	virtual ~Generator() {}
 
-    const char *GetEncodeType(TiXmlElement *element) const;
-    std::map<std::string, std::string> m_eleTypes;
-};
-
-class ClassHeaderGenerator;
-
-template <class T>
-class TmplGenerator : public Generator {
-public:
-    virtual ~TmplGenerator() {}
-
-protected:
-    typedef bool (T:: * fProcPtr)(FILE *into, TiXmlElement *field);
-    typedef typename std::map<std::string, fProcPtr>::iterator iterator;
-
-    bool ProcessFields(FILE *into, TiXmlElement *element, int max=0) {
-        TiXmlNode *field = NULL;
-        int count = 0;
-        while((field = element->IterateChildren( field )) ) {
-            //pass through comments.
-            if(field->Type() == TiXmlNode::COMMENT) {
-                TiXmlComment *com = field->ToComment();
-                fprintf(into, "\t/* %s */\n", com->Value());
-                continue;
-            }
-            if(field->Type() != TiXmlNode::ELEMENT)
-                continue;   //skip crap we dont care about
-
-            count++;
-            if(max > 0 && count > max) {
-                _log(COMMON__ERROR, "Element at line %d has too many children elements, at most %d expected.", element->Row(), max);
-                return false;
-            }
-            if(!DispatchField(into, field->ToElement()))
-                return false;
-        }
-        return true;
-    }
-
-    bool DispatchField(FILE *into, TiXmlElement *field) {
-        iterator res;
-        res = m_procs.find(field->Value());
-        if(res == m_procs.end()) {
-            _log(COMMON__ERROR, "Unexpected field type '%s' on line %d", field->Value(), field->Row());
+    bool Generate( FILE* into, TiXmlElement* root )
+	{
+		std::map<std::string, GenProc>::iterator res = mGenProcs.find( root->Value() );
+        if( res == mGenProcs.end() )
+		{
+            _log(COMMON__ERROR, "Unexpected field type '%s' on line %d", root->Value(), root->Row());
             return false;
         }
-        fProcPtr p = res->second;
-        T *t = (T *) this;
 
-        return( (t->*p)(into, field) );
+        GenProc& p = res->second;
+        X* t = (X*) this;
+
+        return ( t->*p )( into, root );
     }
 
+protected:
+	bool Recurse( FILE* into, TiXmlElement* root, uint32 max = 0 )
+	{
+        TiXmlNode* field = NULL;
+		uint32 count = 0;
 
+        while( field = root->IterateChildren( field ) )
+		{
+            //pass through comments.
+            if( field->Type() == TiXmlNode::COMMENT )
+			{
+                TiXmlComment* comm = field->ToComment();
 
-    std::map<std::string, fProcPtr> m_procs;
+                fprintf( into, "\t/* %s */\n", comm->Value() );
+            }
+			//handle elements
+			else if( field->Type() == TiXmlNode::ELEMENT )
+			{
+				if( max > 0 && count > max )
+				{
+					_log(COMMON__ERROR, "Element at line %d has too many children elements, at most %u expected.", root->Row(), max);
+					return false;
+				}
+				++count;
+
+				TiXmlElement* elem = field->ToElement();
+
+				if( !Generate( into, elem ) )
+					return false;
+			}
+        }
+
+        return true;
+	}
+
+	void RegisterGenProc( const char* name, const GenProc& proc )
+	{
+		mGenProcs[ name ] = proc;
+	}
+    std::map<std::string, GenProc> mGenProcs;
+
+    const char* GetEncodeType( TiXmlElement* element ) const
+	{
+		TiXmlElement* main = element->FirstChildElement();
+		if( main == NULL )
+			return "PyRep";
+
+		std::map<std::string, std::string>::const_iterator res = mEncTypes.find( main->Value() );
+		if( res == mEncTypes.end() )
+			return "PyRep";
+
+		return res->second.c_str();
+	}
+	void RegisterEncodeType( const char* name, const char* encodeType )
+	{
+		mEncTypes[ name ] = encodeType;
+	}
+    std::map<std::string, std::string> mEncTypes;
 };
 
-#define ProcFDecl(t) \
-    bool Process_##t(FILE *into, TiXmlElement *field)
-#define ProcFMap(c, ename, type) \
-    m_eleTypes[ #ename ] = #type; m_procs[ #ename ] = &c::Process_##ename
+#define GenProcDecl( t ) \
+    bool Process_##t( FILE* into, TiXmlElement* field )
 
-#define AllProcFDecls() \
-    ProcFDecl(InlineTuple); \
-    ProcFDecl(InlineDict); \
-    ProcFDecl(InlineList); \
-    ProcFDecl(InlineSubStream); \
-    ProcFDecl(InlineSubStruct); \
-    ProcFDecl(strdict); \
-    ProcFDecl(intdict); \
-    ProcFDecl(primdict); \
-    ProcFDecl(strlist); \
-    ProcFDecl(intlist); \
-    ProcFDecl(int64list); \
-    ProcFDecl(element); \
-    ProcFDecl(elementptr); \
-    ProcFDecl(none); \
-    ProcFDecl(object); \
-    ProcFDecl(object_ex); \
-    ProcFDecl(buffer); \
-    ProcFDecl(raw); \
-    ProcFDecl(dict); \
-    ProcFDecl(list); \
-    ProcFDecl(tuple); \
-    ProcFDecl(int); \
-    ProcFDecl(bool); \
-    ProcFDecl(int64); \
-    ProcFDecl(real); \
-    ProcFDecl(string)
+#define GenProcReg( c, ename, type ) \
+	RegisterEncodeType( #ename, #type ); \
+	RegisterGenProc( #ename, &c::Process_##ename )
 
-#define AllProcFMaps(c) \
-    ProcFMap(c, InlineTuple, PyTuple); \
-    ProcFMap(c, InlineDict, PyDict); \
-    ProcFMap(c, InlineList, PyList); \
-    ProcFMap(c, InlineSubStream, PySubStream); \
-    ProcFMap(c, InlineSubStruct, PySubStruct); \
-    ProcFMap(c, strdict, PyDict); \
-    ProcFMap(c, intdict, PyDict); \
-    ProcFMap(c, primdict, PyDict); \
-    ProcFMap(c, strlist, PyList); \
-    ProcFMap(c, intlist, PyList); \
-    ProcFMap(c, int64list, PyList); \
-    ProcFMap(c, element, PyRep); \
-    ProcFMap(c, elementptr, PyRep); \
-    ProcFMap(c, none, PyRep); \
-    ProcFMap(c, object, PyObject); \
-    ProcFMap(c, object_ex, PyObjectEx); \
-    ProcFMap(c, buffer, PyBuffer); \
-    ProcFMap(c, raw, PyRep); \
-    ProcFMap(c, list, PyList); \
-    ProcFMap(c, tuple, PyTuple); \
-    ProcFMap(c, dict, PyDict); \
-    ProcFMap(c, int, PyInt); \
-    ProcFMap(c, bool, PyBool); \
-    ProcFMap(c, int64, PyInt); \
-    ProcFMap(c, real, PyFloat); \
-    ProcFMap(c, string, PyString)
+#define AllGenProcDecls \
+    GenProcDecl(InlineTuple); \
+    GenProcDecl(InlineDict); \
+    GenProcDecl(InlineList); \
+    GenProcDecl(InlineSubStream); \
+    GenProcDecl(InlineSubStruct); \
+    GenProcDecl(strdict); \
+    GenProcDecl(intdict); \
+    GenProcDecl(primdict); \
+    GenProcDecl(strlist); \
+    GenProcDecl(intlist); \
+    GenProcDecl(int64list); \
+    GenProcDecl(element); \
+	GenProcDecl(elementdef); \
+    GenProcDecl(elementptr); \
+    GenProcDecl(none); \
+    GenProcDecl(object); \
+    GenProcDecl(object_ex); \
+    GenProcDecl(buffer); \
+    GenProcDecl(raw); \
+    GenProcDecl(dict); \
+    GenProcDecl(list); \
+    GenProcDecl(tuple); \
+    GenProcDecl(int); \
+    GenProcDecl(bool); \
+    GenProcDecl(int64); \
+    GenProcDecl(real); \
+    GenProcDecl(string)
+
+#define AllGenProcRegs( c ) \
+    GenProcReg(c, InlineTuple, PyTuple); \
+    GenProcReg(c, InlineDict, PyDict); \
+    GenProcReg(c, InlineList, PyList); \
+    GenProcReg(c, InlineSubStream, PySubStream); \
+    GenProcReg(c, InlineSubStruct, PySubStruct); \
+    GenProcReg(c, strdict, PyDict); \
+    GenProcReg(c, intdict, PyDict); \
+    GenProcReg(c, primdict, PyDict); \
+    GenProcReg(c, strlist, PyList); \
+    GenProcReg(c, intlist, PyList); \
+    GenProcReg(c, int64list, PyList); \
+    GenProcReg(c, element, PyRep); \
+	GenProcReg(c, elementdef, PyRep); \
+    GenProcReg(c, elementptr, PyRep); \
+    GenProcReg(c, none, PyRep); \
+    GenProcReg(c, object, PyObject); \
+    GenProcReg(c, object_ex, PyObjectEx); \
+    GenProcReg(c, buffer, PyBuffer); \
+    GenProcReg(c, raw, PyRep); \
+    GenProcReg(c, list, PyList); \
+    GenProcReg(c, tuple, PyTuple); \
+    GenProcReg(c, dict, PyDict); \
+    GenProcReg(c, int, PyInt); \
+    GenProcReg(c, bool, PyBool); \
+    GenProcReg(c, int64, PyInt); \
+    GenProcReg(c, real, PyFloat); \
+    GenProcReg(c, string, PyString)
 
 
 
