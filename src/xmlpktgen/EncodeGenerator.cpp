@@ -134,7 +134,8 @@ bool ClassEncodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 
     //now we can generate the tuple decl
     fprintf(into,
-		"    PyTuple* %s = new PyTuple( %u );\n",
+		"    PyTuple* %s = new PyTuple( %u );\n"
+		"\n",
 		iname, count
 	);
 
@@ -143,7 +144,7 @@ bool ClassEncodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
     char varname[64];
     while( count-- > 0 )
 	{
-        snprintf(varname, sizeof(varname), "%s->items[%u]", iname, count);
+        snprintf(varname, sizeof(varname), "%s->items[ %u ]", iname, count);
         push(varname);
     }
 
@@ -175,7 +176,8 @@ bool ClassEncodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 
     //now we can generate the list decl
     fprintf(into,
-		"    PyList* %s = new PyList( %u );\n",
+		"    PyList* %s = new PyList( %u );\n"
+		"\n",
 		iname, count
 	);
 
@@ -184,7 +186,7 @@ bool ClassEncodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
     char varname[64];
     while( count-- > 0 )
 	{
-        snprintf( varname, sizeof(varname), "%s->items[%u]", iname, count );
+        snprintf( varname, sizeof(varname), "%s->items[ %u ]", iname, count );
         push(varname);
     }
 
@@ -209,7 +211,8 @@ bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
     snprintf(dictname, sizeof(dictname), "dict%u", item_num);
 
     fprintf(into,
-		"    PyDict* %s = new PyDict;\n",
+		"    PyDict* %s = new PyDict;\n"
+		"\n",
 		dictname
 	);
 
@@ -245,7 +248,8 @@ bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
         count++;
 
         fprintf(into,
-			"    PyRep* %s;\n",
+			"    PyRep* %s;\n"
+			"\n",
 			varname
 		);
         push(varname);
@@ -258,21 +262,21 @@ bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
         //taking the keyType into account
         if( keyType != NULL && !strcmp( keyType, "int" ) )
             fprintf(into,
-			    "    %s->items[\n"
-                "        new PyInt(%s)\n"
-                "    ] = %s;\n",
+			    "    %s->SetItem(\n"
+                "        new PyInt( %s ), %s\n"
+                "    );\n"
+				"\n",
 				dictname,
-				key,
-				varname
+				key, varname
 			);
         else
             fprintf(into,
-			     "     %s->items[\n"
-                 "          new PyString( \"%s\" )\n"
-                 "     ] = %s;\n",
+			     "     %s->SetItemString(\n"
+                 "          \"%s\", %s\n"
+                 "     );\n"
+				 "\n",
 				 dictname,
-				 key,
-				 varname
+				 key, varname
 			);
     }
 
@@ -292,7 +296,8 @@ bool ClassEncodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *fie
 
     //encode the sub-element into a temp
     fprintf(into,
-		"    PyRep* %s;\n",
+		"    PyRep* %s;\n"
+		"\n",
 		varname
 	);
 
@@ -317,7 +322,8 @@ bool ClassEncodeGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *fie
 
     //encode the sub-element into a temp
     fprintf(into,
-		"    PyRep* %s;\n",
+		"    PyRep* %s;\n"
+		"\n",
 		varname
 	);
 
@@ -347,39 +353,39 @@ bool ClassEncodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
     snprintf(rname, sizeof(rname), "dict%d", mItemNumber++);
 
     fprintf(into,
-        "    PyDict* %s = new PyDict;\n",
-        rname
-	);
-
-    fprintf(into,
+        "    PyDict* %s = new PyDict;\n"
         "    std::map<std::string, PyRep*>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
-        "    %s_end = %s.end();\n"
-        "    for(; %s_cur != %s_end; %s_cur++)\n"
-		"    {\n"
-        "        %s->items[\n"
-        "            new PyString( %s_cur->first )\n",
+        "    %s_end = %s.end();\n",
+        rname,
         name, name,
         name, name,
-        name, name,
-        name, name, name,
-            rname,
-                name
+        name, name
     );
 
     if( mFast )
         fprintf(into,
-            "        ] = %s_cur->second;\n"
-            "    }\n"
+            "    for(; %s_cur != %s_end; %s_cur++)\n"
+            "        %s->SetItemString(\n"
+			"            %s_cur->first.c_str(), %s_cur->second\n"
+			"        );\n"
             "    %s.clear();\n",
-            name,
+            name, name, name,
+                rname,
+                    name,
+                name,
             name
         );
 	else
         fprintf(into,
-            "        ] = %s_cur->second->Clone();\n"
-            "    }\n",
-            name
+            "    for(; %s_cur != %s_end; %s_cur++)\n"
+            "        %s->SetItemString(\n"
+			"            %s_cur->first.c_str(), %s_cur->second->Clone()\n"
+			"        );\n",
+            name, name, name,
+                rname,
+                    name,
+                name
         );
 
     fprintf(into,
@@ -403,39 +409,39 @@ bool ClassEncodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
     snprintf(rname, sizeof(rname), "dict%u", mItemNumber++);
 
     fprintf(into,
-        "    PyDict* %s = new PyDict;\n",
-        rname
-	);
-
-    fprintf(into,
+        "    PyDict* %s = new PyDict;\n"
         "    std::map<int32, PyRep*>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
-        "    %s_end = %s.end();\n"
-        "    for(; %s_cur != %s_end; %s_cur++)\n"
-		"    {\n"
-        "        %s->items[\n"
-        "            new PyInt( %s_cur->first )\n",
+        "    %s_end = %s.end();\n",
+        rname,
         name, name,
         name, name,
-        name, name,
-        name, name, name,
-            rname,
-                name
+        name, name
     );
 
     if( mFast )
         fprintf(into,
-            "        ] = %s_cur->second;\n"
-            "    }\n"
+            "    for(; %s_cur != %s_end; %s_cur++)\n"
+            "        %s->SetItem(\n"
+            "            new PyInt( %s_cur->first ), %s_cur->second\n"
+			"        );\n"
             "    %s.clear();\n",
-            name,
+            name, name, name,
+                rname,
+                    name,
+                name,
             name
         );
     else
         fprintf(into,
-            "        ] = %s_cur->second->Clone();\n"
-            "    }\n",
-            name
+            "    for(; %s_cur != %s_end; %s_cur++)\n"
+            "        %s->SetItem(\n"
+            "            new PyInt( %s_cur->first ), %s_cur->second->Clone()\n"
+			"        );\n",
+            name, name, name,
+                rname,
+                    name,
+                name
         );
 
     fprintf(into,
@@ -479,29 +485,23 @@ bool ClassEncodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
     snprintf(rname, sizeof(rname), "dict%u", mItemNumber++);
 
     fprintf(into,
-        "    PyDict* %s = new PyDict;\n",
-        rname
-	);
-
-    fprintf(into,
+        "    PyDict* %s = new PyDict;\n"
         "    std::map<%s, %s>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
         "    for(; %s_cur != %s_end; %s_cur++)\n"
-		"    {\n"
-        "        %s->items[\n"
-        "            new Py%s( %s_cur->first )\n"
-        "        ] = new Py%s( %s_cur->second );\n"
-        "    }\n"
+        "        %s->SetItem(\n"
+        "            new Py%s( %s_cur->first ), new Py%s( %s_cur->second )\n"
+		"        );\n"
         "    %s = %s;\n"
         "\n",
+        rname,
         key, value, name, name,
         name, name,
         name, name,
         name, name, name,
             rname,
-                pykey, name,
-            pyvalue, name,
+                pykey, name, pyvalue, name,
         top(), rname
     );
 
@@ -520,22 +520,17 @@ bool ClassEncodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
     snprintf(rname, sizeof(rname), "list%u", mItemNumber++);
 
     fprintf(into,
-        "    PyList* %s = new PyList;\n",
-        rname
-	);
-
-    fprintf(into,
+        "    PyList* %s = new PyList;\n"
         "    std::vector<std::string>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
         "    for(; %s_cur != %s_end; %s_cur++)\n"
-		"    {\n"
-        "        %s->items.push_back(\n"
-        "            new PyString( *%s_cur )\n"
+        "        %s->AddItemString(\n"
+		"            %s_cur->c_str()\n"
         "        );\n"
-        "    }\n"
         "    %s = %s;\n"
         "\n",
+        rname,
         name, name,
 		name, name,
 		name, name,
@@ -560,22 +555,17 @@ bool ClassEncodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
     snprintf(rname, sizeof(rname), "list%u", mItemNumber++);
 
     fprintf(into,
-        "    PyList* %s = new PyList;\n",
-        rname
-	);
-
-    fprintf(into,
+        "    PyList* %s = new PyList;\n"
         "    std::vector<int32>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
         "    for(; %s_cur != %s_end; %s_cur++)\n"
-		"    {\n"
-        "        %s->items.push_back(\n"
-        "            new PyInt( *%s_cur )\n"
+        "        %s->AddItemInt(\n"
+        "            *%s_cur\n"
         "        );\n"
-        "    }\n"
         "    %s = %s;\n"
         "\n",
+        rname,
         name, name,
 		name, name,
 		name, name,
@@ -600,22 +590,17 @@ bool ClassEncodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
     snprintf(rname, sizeof(rname), "list%u", mItemNumber++);
 
     fprintf(into,
-        "    PyList *%s = new PyList;\n",
-        rname
-	);
-
-    fprintf(into,
+        "    PyList *%s = new PyList;\n"
         "    std::vector<int64>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
         "    for(; %s_cur != %s_end; %s_cur++)\n"
-		"    {\n"
-        "        %s->items.push_back(\n"
-        "            new PyLong( *%s_cur )\n"
+        "        %s->AddItemLong(\n"
+        "            *%s_cur\n"
         "        );\n"
-        "    }\n"
         "    %s = %s;\n"
         "\n",
+        rname,
         name, name,
 		name, name,
 		name, name,
@@ -666,8 +651,7 @@ bool ClassEncodeGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
         "        %s = new PyNone();\n"
         "    }\n"
-		"    else\n"
-		"    {\n",
+		"    else\n",
         name,
             mName, name,
             top()
@@ -676,14 +660,12 @@ bool ClassEncodeGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
     if( mFast )
         fprintf(into,
             "        %s = %s->FastEncode();\n"
-            "    }\n"
 			"\n",
 			top(), name
 		);
     else
         fprintf(into,
             "        %s = %s->Encode();\n"
-            "    }\n"
 			"\n",
 			top(), name
 		);
@@ -715,7 +697,9 @@ bool ClassEncodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 
     //now we can generate the args decl
     fprintf(into,
-		"    PyRep* %s;\n", iname
+		"    PyRep* %s;\n"
+		"\n",
+		iname
 	);
 
     push(iname);
