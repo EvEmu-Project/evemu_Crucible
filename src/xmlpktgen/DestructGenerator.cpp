@@ -45,7 +45,8 @@ bool ClassDestructGenerator::Process_elementdef(FILE *into, TiXmlElement *elemen
     fprintf(into,
         "%s::~%s()\n"
 		"{\n",
-        name, name);
+        name, name
+	);
 
     if(!Recurse(into, element))
         return false;
@@ -101,17 +102,18 @@ bool ClassDestructGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
+
     fprintf(into,
-        "   std::map<std::string, PyRep *>::iterator %s_cur, %s_end;\n"
-        "   //free any existing elements first\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       delete %s_cur->second;\n"
-        "   }\n"
-        "   \n",
-        name, name, name,
-        name, name, name,
+        "    std::map<std::string, PyRep*>::iterator %s_cur, %s_end;\n"
+        "    //free any existing elements first\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+		"        PyDecRef( %s_cur->second );\n"
+        "\n",
+        name, name,
+		name, name,
+		name, name,
         name, name, name,
         name
     );
@@ -124,17 +126,18 @@ bool ClassDestructGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
+
     fprintf(into,
-        "   std::map<int32, PyRep *>::iterator %s_cur, %s_end;\n"
-        "   //free any existing elements first\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       delete %s_cur->second;\n"
-        "   }\n"
-        "   \n",
-        name, name, name,
-        name, name, name,
+        "    std::map<int32, PyRep*>::iterator %s_cur, %s_end;\n"
+        "    //free any existing elements first\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+		"        PyDecRef( %s_cur->second );\n"
+        "\n",
+        name, name,
+		name, name,
+		name, name,
         name, name, name,
         name
     );
@@ -167,7 +170,11 @@ bool ClassDestructGenerator::Process_elementptr(FILE *into, TiXmlElement *field)
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\tdelete %s;\n", name);
+
+    fprintf(into,
+		"    SafeDelete( %s );\n",
+		name
+	);
     return true;
 }
 
@@ -195,7 +202,10 @@ bool ClassDestructGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
         return false;
     }
 
-	fprintf( into, "\tPySafeDecRef( %s );\n", name );
+	fprintf( into,
+		"    PySafeDecRef( %s );\n",
+		name
+	);
     return true;
 }
 
@@ -205,7 +215,11 @@ bool ClassDestructGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\tdelete %s;\n", name);
+
+    fprintf(into,
+		"    PySafeDecRef( %s );\n",
+		name
+	);
     return true;
 }
 
@@ -215,7 +229,10 @@ bool ClassDestructGenerator::Process_raw(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\tdelete %s;\n", name);
+    fprintf(into,
+		"    PySafeDecRef( %s );\n",
+		name
+	);
     return true;
 }
 
@@ -229,7 +246,10 @@ bool ClassDestructGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\tPySafeDecRef( %s );\n", name);
+    fprintf(into,
+		"    PySafeDecRef( %s );\n",
+		name
+	);
     return true;
 }
 

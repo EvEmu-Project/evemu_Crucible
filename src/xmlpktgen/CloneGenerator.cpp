@@ -43,14 +43,14 @@ bool ClassCloneGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
     }
 
     fprintf(into,
-        "%s *%s::Clone() const\n"
+        "%s* %s::Clone() const\n"
 		"{\n"
-        "   %s *res = new %s;\n"
+        "   %s* res = new %s;\n"
         "   res->CloneFrom(this);\n"
         "   return res;\n"
         "}\n"
         "\n"
-        "void %s::CloneFrom(const %s *from)\n"
+        "void %s::CloneFrom(const %s* from)\n"
 		"{\n",
         name, name,
             name, name,
@@ -110,7 +110,7 @@ bool ClassCloneGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   std::map<std::string, PyRep *>::const_iterator %s_cur, %s_end;\n"
+        "   std::map<std::string, PyRep*>::const_iterator %s_cur, %s_end;\n"
         "   //free any existing elements first\n"
         "   %s_cur = %s.begin();\n"
         "   %s_end = %s.end();\n"
@@ -143,7 +143,7 @@ bool ClassCloneGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   std::map<int32, PyRep *>::const_iterator %s_cur, %s_end;\n"
+        "   std::map<int32, PyRep*>::const_iterator %s_cur, %s_end;\n"
         "   //free any existing elements first\n"
         "   %s_cur = %s.begin();\n"
         "   %s_end = %s.end();\n"
@@ -220,7 +220,7 @@ bool ClassCloneGenerator::Process_element(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the type attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t%s.CloneFrom(&from->%s);\n", name, name);
+    fprintf(into, "\t%s.CloneFrom( &from->%s );\n", name, name);
     return true;
 }
 
@@ -237,7 +237,7 @@ bool ClassCloneGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "   delete %s;\n"
-        "   if(from->%s == NULL) {\n"
+        "   if( from->%s == NULL ) {\n"
             //TODO: log an error
         "       %s = NULL;\n"
         "   } else {\n"
@@ -305,7 +305,7 @@ bool ClassCloneGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "   delete %s;\n"
-        "   if(from->%s == NULL) {\n"
+        "   if( from->%s == NULL ) {\n"
             //TODO: log an error
         "       %s = NULL;\n"
         "   } else {\n"
@@ -358,7 +358,7 @@ bool ClassCloneGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 
     fprintf(into,
 		"   PySafeDecRef( %s );\n"
-        "   if(from->%s == NULL) {\n"
+        "   if( from->%s == NULL ) {\n"
             //TODO: log an error
         "       %s = NULL;\n"
         "   } else {\n"

@@ -49,17 +49,17 @@ bool ClassDecodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
 	}
 
 	fprintf(into,
-		"bool %s::Decode(%s **in_packet)\n"
+		"bool %s::Decode(%s** in_packet)\n"
 		"{\n"
 		"	//quick forwarder to avoid making the user cast it if they have a properly typed object\n"
-		"	PyRep *packet = *in_packet;\n"
+		"	PyRep* packet = *in_packet;\n"
 		"	*in_packet = NULL;\n"
-		"	return Decode(&packet);\n"
+		"	return Decode( &packet );\n"
 		"}\n"
 		"\n"
-		"bool %s::Decode(PyRep **in_packet)\n"
+		"bool %s::Decode(PyRep** in_packet)\n"
 		"{\n"
-		"	PyRep *packet = *in_packet;\n"
+		"	PyRep* packet = *in_packet;\n"
 		"	*in_packet = NULL;"
 		"\n",
 		mName, GetEncodeType(element), mName);

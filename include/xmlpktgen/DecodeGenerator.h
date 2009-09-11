@@ -36,14 +36,14 @@ public:
 	ClassDecodeGenerator();
 
 protected:
-	int mItemNumber;
-	std::stack<std::string> mVariableStack;
-	const char* mName;
-	
 	const char* top() const { return mVariableStack.top().c_str(); }
 	void pop() { mVariableStack.pop(); }
 	void push(const char* v) { mVariableStack.push( v ); }
-	
+
+	const char* mName;
+	std::stack<std::string> mVariableStack;
+	uint32 mItemNumber;
+
 	AllGenProcDecls;
 };
 

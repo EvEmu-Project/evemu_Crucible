@@ -47,9 +47,10 @@ bool ClassDumpGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
     }
 
     fprintf(into,
-        "void %s::Dump(LogType l_type, const char *pfx) const\n"
+        "void %s::Dump( LogType l_type, const char* pfx ) const\n"
 		"{\n"
-        "   _log(l_type, \"%%s%s\", pfx);\n",
+        "    _log( l_type, \"%%s%s\", pfx );\n"
+		"\n",
         name, name
 	);
 
@@ -112,17 +113,17 @@ bool ClassDumpGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size());\n"
-        "   std::map<std::string, PyRep *>::const_iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       _log(l_type, \"%%s Key: %%s\", pfx, %s_cur->first.c_str());\n"
-        "       std::string n(pfx);\n"
-        "       n += \"      \";\n"
-        "       %s_cur->second->Dump(l_type, n.c_str());\n"
-        "   }\n"
-        "   \n",
+        "    _log( l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size() );\n"
+        "    std::map<std::string, PyRep*>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++) {\n"
+        "        _log( l_type, \"%%s Key: %%s\", pfx, %s_cur->first.c_str() );\n"
+        "        std::string n( pfx );\n"
+        "        n += \"      \";\n"
+        "        %s_cur->second->Dump( l_type, n.c_str() );\n"
+        "    }\n"
+        "\n",
         name, name, name,
         name, name, name,
         name, name, name,
@@ -139,17 +140,17 @@ bool ClassDumpGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size());\n"
-        "   std::map<int32, PyRep *>::const_iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       _log(l_type, \"%%s   Key: %%u\", pfx, %s_cur->first);\n"
-        "       std::string n(pfx);\n"
-        "       n += \"        \";\n"
-        "       %s_cur->second->Dump(l_type, n.c_str());\n"
-        "   }\n"
-        "   \n",
+        "    _log( l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size() );\n"
+        "    std::map<int32, PyRep*>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++) {\n"
+        "        _log( l_type, \"%%s   Key: %%u\", pfx, %s_cur->first );\n"
+        "        std::string n( pfx );\n"
+        "        n += \"        \";\n"
+        "        %s_cur->second->Dump( l_type, n.c_str() );\n"
+        "    }\n"
+        "\n",
         name, name, name,
         name, name, name,
         name, name, name,
@@ -190,15 +191,14 @@ bool ClassDumpGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
     //could make PyRep's out of them and use ->Dump, but thats annoying
 
     fprintf(into,
-        "   _log(l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size());\n"
-        "   std::map<%s, %s>::const_iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       //total crap casting here since we do not know the correct printf format\n"
-        "       _log(l_type, \"%%s   Key: %%u -> Value: %%u\", pfx, uint32(%s_cur->first), uint32(%s_cur->second));\n"
-        "   }\n"
-        "   \n",
+        "    _log( l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size() );\n"
+        "    std::map<%s, %s>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+        "        //total crap casting here since we do not know the correct printf format\n"
+        "        _log( l_type, \"%%s   Key: %%u -> Value: %%u\", pfx, uint32( %s_cur->first ), uint32( %s_cur->second ) );\n"
+        "\n",
         name, name,
         key, value, name, name,
         name, name,
@@ -216,21 +216,19 @@ bool ClassDumpGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s: String list with %%lu entries\", pfx, %s.size());\n"
-        "   std::vector<std::string>::const_iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   int %s_index;\n"
-        "   for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-        "       _log(l_type, \"%%s   [%%02d] %%s\", pfx, %s_index, (*%s_cur).c_str());\n"
-        "   }\n"
-        "   \n",
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        name
+        "    _log( l_type, \"%%s%s: String list with %%lu entries\", pfx, %s.size() );\n"
+        "    std::vector<std::string>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for( int %s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++ )\n"
+        "        _log( l_type, \"%%s   [%%02d] %%s\", pfx, %s_index, ( *%s_cur ).c_str() );\n"
+        "\n",
+        name, name,
+		name, name,
+		name, name,
+        name, name,
+		name, name, name, name, name,
+		name, name
     );
     return true;
 }
@@ -242,21 +240,19 @@ bool ClassDumpGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s: Integer list with %%lu entries\", pfx, %s.size());\n"
-        "   std::vector<int32>::const_iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   int %s_index;\n"
-        "   for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-        "       _log(l_type, \"%%s   [%%02d] %%d\", pfx, %s_index, *%s_cur);\n"
-        "   }\n"
-        "   \n",
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        name
+        "    _log( l_type, \"%%s%s: Integer list with %%lu entries\", pfx, %s.size() );\n"
+        "    std::vector<int32>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for( int %s_index; = 0; %s_cur != %s_end; %s_cur++, %s_index++ )\n"
+        "        _log( l_type, \"%%s   [%%02d] %%d\", pfx, %s_index, *%s_cur );\n"
+        "\n",
+        name, name,
+		name, name,
+		name, name,
+        name, name,
+		name, name, name, name, name,
+		name, name
     );
     return true;
 }
@@ -268,21 +264,19 @@ bool ClassDumpGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s: Integer list with %%lu entries\", pfx, %s.size());\n"
-        "   std::vector<int64>::const_iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   int %s_index;\n"
-        "   for(%s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++) {\n"
-        "       _log(l_type, \"%%s   [%%02d] \" I64d, pfx, %s_index, *%s_cur);\n"
-        "   }\n"
-        "   \n",
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        name
+        "    _log( l_type, \"%%s%s: Integer list with %%lu entries\", pfx, %s.size() );\n"
+        "    std::vector<int64>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for( int %s_index; = 0; %s_cur != %s_end; %s_cur++, %s_index++ )\n"
+        "        _log( l_type, \"%%s   [%%02d] \" I64d, pfx, %s_index, *%s_cur );\n"
+        "\n",
+        name, name,
+		name, name,
+		name, name,
+        name, name,
+		name, name, name, name, name,
+		name, name
     );
     return true;
 }
@@ -294,11 +288,16 @@ bool ClassDumpGenerator::Process_element(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s:\", pfx);\n"
-        "   std::string %s_n(pfx);\n"
-        "   %s_n += \"    \";\n"
-        "   %s.Dump(l_type, %s_n.c_str());\n",
-        name, name, name, name, name);
+        "    _log( l_type, \"%%s%s:\", pfx );\n"
+        "    std::string %s_n( pfx );\n"
+        "    %s_n += \"    \";\n"
+        "    %s.Dump( l_type, %s_n.c_str() );\n"
+		"\n",
+        name,
+		name,
+		name,
+		name, name
+	);
     return true;
 }
 
@@ -309,21 +308,21 @@ bool ClassDumpGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s:\", pfx);\n"
-        "   std::string %s_n(pfx);\n"
-        "   %s_n += \"    \";\n"
-        "   if(%s == NULL) {\n"
-        "       _log(l_type, \"%%sERROR: NULL OBJECT!\", %s_n.c_str());\n"
-        "   } else {\n"
-        "       %s->Dump(l_type, %s_n.c_str());\n"
-        "   }\n",
+        "    _log( l_type, \"%%s%s:\", pfx );\n"
+        "    std::string %s_n( pfx );\n"
+        "    %s_n += \"    \";\n"
+        "    if( %s == NULL )\n"
+		"        _log( l_type, \"%%sERROR: NULL OBJECT!\", %s_n.c_str() );\n"
+        "    else\n"
+        "        %s->Dump( l_type, %s_n.c_str() );\n"
+        "\n",
         name,
         name,
         name,
         name,
         name,
-        name,
-        name);
+        name, name
+	);
     return true;
 }
 
@@ -339,7 +338,8 @@ bool ClassDumpGenerator::Process_object(FILE *into, TiXmlElement *field) {
     }
 
     fprintf(into,
-        "   _log(l_type, \"%%sObject of type %s:\", pfx);\n",
+        "   _log( l_type, \"%%sObject of type %s:\", pfx );\n"
+		"\n",
         type
 	);
 
@@ -362,17 +362,19 @@ bool ClassDumpGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
 	}
 
 	fprintf( into,
-		"	_log( l_type, \"%%s%s (%s):\", pfx );\n"
-		"	if( %s == NULL )\n"
-		"		_log( l_type, \"%%s	NULL\", pfx );\n"
-		"	else\n"
-		"	{\n"
-		"		std::string %s_n( pfx );\n"
-		"		%s_n += \"	\";\n"
-		"		%s->Dump( l_type, %s_n.c_str() );\n"
-		"	}\n",
+		"    _log( l_type, \"%%s%s (%s):\", pfx );\n"
+		"    if( %s == NULL )\n"
+		"        _log( l_type, \"%%s	NULL\", pfx );\n"
+		"    else\n"
+		"    {\n"
+		"        std::string %s_n( pfx );\n"
+		"        %s_n += \"	\";\n"
+		"        %s->Dump( l_type, %s_n.c_str() );\n"
+		"    }\n"
+		"\n",
 		name, type,
 		name,
+
 			name,
 			name,
 			name, name
@@ -388,11 +390,16 @@ bool ClassDumpGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s: \", pfx);\n"
-        "   std::string %s_n(pfx);\n"
-        "   %s_n += \"    \";\n"
-        "   %s->Dump(l_type, %s_n.c_str());\n",
-        name, name, name, name, name);
+        "    _log( l_type, \"%%s%s: \", pfx );\n"
+        "    std::string %s_n( pfx );\n"
+        "    %s_n += \"    \";\n"
+        "    %s->Dump( l_type, %s_n.c_str() );\n"
+		"\n",
+        name,
+		name,
+		name,
+		name, name
+	);
     return true;
 }
 
@@ -403,21 +410,21 @@ bool ClassDumpGenerator::Process_raw(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s:\", pfx);\n"
-        "   std::string %s_n(pfx);\n"
-        "   %s_n += \"    \";\n"
-        "   if(%s == NULL) {\n"
-        "       _log(l_type, \"%%sERROR: NULL REP!\", %s_n.c_str());\n"
-        "   } else {\n"
-        "       %s->Dump(l_type, %s_n.c_str());\n"
-        "   }\n",
+        "    _log( l_type, \"%%s%s:\", pfx );\n"
+        "    std::string %s_n( pfx );\n"
+        "    %s_n += \"    \";\n"
+        "    if( %s == NULL )\n"
+        "        _log( l_type, \"%%sERROR: NULL REP!\", %s_n.c_str() );\n"
+        "    else\n"
+        "        %s->Dump( l_type, %s_n.c_str() );\n"
+        "\n",
         name,
         name,
         name,
         name,
         name,
-        name,
-        name);
+        name, name
+	);
     return true;
 }
 
@@ -428,11 +435,16 @@ bool ClassDumpGenerator::Process_list(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s: \", pfx);\n"
-        "   std::string %s_n(pfx);\n"
-        "   %s_n += \"    \";\n"
-        "   %s.Dump(l_type, %s_n.c_str());\n",
-        name, name, name, name, name);
+        "    _log( l_type, \"%%s%s: \", pfx );\n"
+        "    std::string %s_n( pfx );\n"
+        "    %s_n += \"    \";\n"
+        "    %s.Dump( l_type, %s_n.c_str() );\n"
+		"\n",
+        name,
+		name,
+		name,
+		name, name
+	);
     return true;
 }
 
@@ -443,21 +455,22 @@ bool ClassDumpGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s:\", pfx);\n"
-        "   std::string %s_n(pfx);\n"
-        "   %s_n += \"    \";\n"
-        "   if(%s == NULL) {\n"
-        "       _log(l_type, \"%%sERROR: NULL TUPLE!\", %s_n.c_str());\n"
-        "   } else {\n"
-        "       %s->Dump(l_type, %s_n.c_str());\n"
-        "   }\n",
+        "    _log( l_type, \"%%s%s:\", pfx );\n"
+        "    std::string %s_n( pfx );\n"
+        "    %s_n += \"    \";\n"
+        "    if( %s == NULL )\n"
+        "        _log( l_type, \"%%sERROR: NULL TUPLE!\", %s_n.c_str() );\n"
+        "    else\n"
+        "        %s->Dump( l_type, %s_n.c_str() );\n"
+        "\n",
         name,
         name,
         name,
         name,
         name,
-        name,
-        name);
+
+        name, name
+	);
     return true;
 }
 
@@ -468,11 +481,16 @@ bool ClassDumpGenerator::Process_dict(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "   _log(l_type, \"%%s%s: \", pfx);\n"
-        "   std::string %s_n(pfx);\n"
-        "   %s_n += \"    \";\n"
-        "   %s.Dump(l_type, %s_n.c_str());\n",
-        name, name, name, name, name);
+        "    _log( l_type, \"%%s%s: \", pfx );\n"
+        "    std::string %s_n( pfx );\n"
+        "    %s_n += \"    \";\n"
+        "    %s.Dump( l_type, %s_n.c_str() );\n"
+		"\n",
+        name,
+		name,
+		name,
+		name, name
+	);
     return true;
 }
 
@@ -482,7 +500,11 @@ bool ClassDumpGenerator::Process_bool(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t_log(l_type, \"%%s%s=%%s\", pfx, %s?\"true\":\"false\");\n", name, name);
+    fprintf(into,
+		"    _log( l_type, \"%%s%s=%%s\", pfx, %s ? \"true\" : \"false\" );\n"
+		"\n",
+		name, name
+	);
     return true;
 }
 
@@ -492,7 +514,11 @@ bool ClassDumpGenerator::Process_int(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t_log(l_type, \"%%s%s=%%u\", pfx, %s);\n", name, name);
+    fprintf(into,
+		"    _log( l_type, \"%%s%s=%%u\", pfx, %s );\n"
+		"\n",
+		name, name
+	);
     return true;
 }
 
@@ -502,7 +528,11 @@ bool ClassDumpGenerator::Process_int64(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t_log(l_type, \"%%s%s=\" I64d, pfx, %s);\n", name, name);
+    fprintf(into,
+		"    _log( l_type, \"%%s%s=\" I64d, pfx, %s );\n"
+		"\n",
+		name, name
+	);
     return true;
 }
 
@@ -512,7 +542,11 @@ bool ClassDumpGenerator::Process_string(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t_log(l_type, \"%%s%s='%%s'\", pfx, %s.c_str());\n", name, name);
+    fprintf(into,
+		"    _log( l_type, \"%%s%s='%%s'\", pfx, %s.c_str() );\n"
+		"\n",
+		name, name
+	);
     return true;
 }
 
@@ -522,7 +556,11 @@ bool ClassDumpGenerator::Process_real(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t_log(l_type, \"%%s%s=%%.13f\", pfx, %s);\n", name, name);
+    fprintf(into,
+		"    _log( l_type, \"%%s%s=%%.13f\", pfx, %s );\n"
+		"\n",
+		name, name
+	);
     return true;
 }
 

@@ -38,10 +38,27 @@ public:
 	ClassHeaderGenerator();
 
 protected:
+	bool RegisterName( const char* name, uint32 row )
+	{
+		if( mNamesUsed.find( name ) != mNamesUsed.end() )
+		{
+	        _log( COMMON__ERROR, "Field at line %u: The name '%s' is already used.", row, name );
+
+			return false;
+		}
+
+		mNamesUsed.insert( name );
+		return true;
+	}
+	void ClearNames()
+	{
+		mNamesUsed.clear();
+	}
+
+	std::set<std::string> mNamesUsed;
+
 	AllGenProcDecls;
 	GenProcDecl( IDEntry );
-	
-	std::set<std::string> m_namesUsed;
 };
 
 

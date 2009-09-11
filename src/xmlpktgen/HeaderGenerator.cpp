@@ -36,13 +36,13 @@ ClassHeaderGenerator::ClassHeaderGenerator()
 
 bool ClassHeaderGenerator::Process_elementdef(FILE* into, TiXmlElement* element)
 {
-    const char *name = element->Attribute("name");
+    const char* name = element->Attribute("name");
     if(name == NULL) {
         _log(COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row());
         return false;
     }
 
-    TiXmlElement * main = element->FirstChildElement();
+    TiXmlElement* main = element->FirstChildElement();
     if(main->NextSiblingElement() != NULL) {
         _log(COMMON__ERROR, "<element> at line %d contains more than one root element. skipping.", element->Row());
         return false;
@@ -53,17 +53,19 @@ bool ClassHeaderGenerator::Process_elementdef(FILE* into, TiXmlElement* element)
 		"class %s\n"
 		"{\n"
         "public:\n"
-        "   %s();\n"
-        "   ~%s();\n"
-        "   \n"
-        "   void Dump(LogType type, const char *pfx = \"\") const;\n"
-        "   bool Decode(PyRep **packet);    //consumes packet\n"
-        "   bool Decode(%s **packet);\n"
-        "   %s *Encode();\n"
-        "   %s *FastEncode();\n"
-        "   %s *Clone() const;\n"
-        "   void CloneFrom(const %s *from);\n"
-        "   \n",
+        "    %s();\n"
+        "    ~%s();\n"
+        "\n"
+        "    void Dump( LogType type, const char* pfx = \"\" ) const;\n"
+		"\n"
+        "    bool Decode( PyRep** packet );    //consumes packet\n"
+        "    bool Decode( %s** packet );\n"
+        "    %s* Encode();\n"
+        "    %s* FastEncode();\n"
+		"\n"
+        "    %s* Clone() const;\n"
+        "    void CloneFrom( const %s* from );\n"
+        "\n",
         name,
         name,
         name,
@@ -74,8 +76,6 @@ bool ClassHeaderGenerator::Process_elementdef(FILE* into, TiXmlElement* element)
         name
     );
 
-    m_namesUsed.clear();
-
     if( !Recurse( into, element, 1 ) )
         return false;
 
@@ -83,6 +83,8 @@ bool ClassHeaderGenerator::Process_elementdef(FILE* into, TiXmlElement* element)
 		"};\n"
 		"\n"
 	);
+
+    ClearNames();
 
 	return true;
 }
@@ -109,6 +111,7 @@ bool ClassHeaderGenerator::Process_IDEntry(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "<IDEntry> at line %d is missing the key attribute, skipping.", field->Row());
         return false;
     }
+
     return Recurse(into, field, 1);
 }
 
@@ -128,12 +131,15 @@ bool ClassHeaderGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tstd::map<std::string, PyRep *>\t%s;\n", name);
+
+    fprintf(into,
+		"    std::map<std::string, PyRep*>\t%s;\n",
+		name
+	);
+
     return true;
 }
 
@@ -143,12 +149,14 @@ bool ClassHeaderGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tstd::map<int32, PyRep *>\t%s;\n", name);
+
+    fprintf(into,
+		"    std::map<int32, PyRep*>\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -179,12 +187,13 @@ bool ClassHeaderGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tstd::map<%s, %s>\t%s;\n", key, value, name);
+
+    fprintf(into,
+		"    std::map<%s, %s>\t%s;\n",
+		key, value, name
+	);
     return true;
 }
 
@@ -194,12 +203,14 @@ bool ClassHeaderGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tstd::vector<std::string>\t%s;\n", name);
+
+    fprintf(into,
+		"    std::vector<std::string>\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -209,12 +220,15 @@ bool ClassHeaderGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tstd::vector<int32>\t%s;\n", name);
+
+    fprintf(into,
+		"    std::vector<int32>\t%s;\n",
+		name
+	);
+
     return true;
 }
 
@@ -224,12 +238,14 @@ bool ClassHeaderGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tstd::vector<int64>\t%s;\n", name);
+
+    fprintf(into,
+		"    std::vector<int64>\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -239,17 +255,19 @@ bool ClassHeaderGenerator::Process_element(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
-        return false;
-    }
     const char *type = field->Attribute("type");
     if(type == NULL) {
         _log(COMMON__ERROR, "field at line %d is missing the type attribute, skipping.", field->Row());
         return false;
     }
-    m_namesUsed.insert(name);
-    fprintf(into, "\t%s\t%s;\n", type, name);
+
+    if( !RegisterName( name, field->Row() ) )
+        return false;
+
+    fprintf(into,
+		"    %s\t%s;\n",
+		type, name
+	);
     return true;
 }
 
@@ -259,17 +277,19 @@ bool ClassHeaderGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
-        return false;
-    }
     const char *type = field->Attribute("type");
     if(type == NULL) {
         _log(COMMON__ERROR, "field at line %d is missing the type attribute, skipping.", field->Row());
         return false;
     }
-    m_namesUsed.insert(name);
-    fprintf(into, "\t%s\t*%s;\n", type, name);
+
+    if( !RegisterName( name, field->Row() ) )
+        return false;
+
+    fprintf(into,
+		"    %s*\t%s;\n",
+		type, name
+	);
     return true;
 }
 
@@ -283,10 +303,12 @@ bool ClassHeaderGenerator::Process_object(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "object at line %d is missing the type attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t/* object of type %s */\n", type);
-    if(!Recurse(into, field, 1))
-        return false;
-    return true;
+
+    fprintf(into,
+		"    /* object of type %s */\n",
+		type
+	);
+    return Recurse(into, field, 1);
 }
 
 bool ClassHeaderGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
@@ -297,13 +319,6 @@ bool ClassHeaderGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
         _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
-    if( m_namesUsed.find( name ) != m_namesUsed.end() )
-	{
-        _log( COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name );
-        return false;
-    }
-	m_namesUsed.insert( name );
-
 	const char *type = field->Attribute( "type" );
 	if( type == NULL )
 	{
@@ -311,7 +326,13 @@ bool ClassHeaderGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
 		return false;
 	}
 
-	fprintf( into, "\t%s\t*%s;\n", type, name );
+    if( !RegisterName( name, field->Row() ) )
+        return false;
+
+	fprintf( into,
+		"    %s*\t%s;\n",
+		type, name
+	);
     return true;
 }
 
@@ -321,12 +342,14 @@ bool ClassHeaderGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tPyBuffer\t*%s;\n", name);
+
+    fprintf(into,
+		"    PyBuffer*\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -336,12 +359,14 @@ bool ClassHeaderGenerator::Process_raw(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tPyRep\t\t*%s;\n", name);
+
+    fprintf(into,
+		"    PyRep*\t\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -351,12 +376,14 @@ bool ClassHeaderGenerator::Process_list(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tPyList\t%s;\n", name);
+
+    fprintf(into,
+		"    PyList\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -366,12 +393,14 @@ bool ClassHeaderGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tPyTuple\t*%s;   //due to (somewhat false) sizing constructor, must be dynamic memory.\n", name);
+
+    fprintf(into,
+		"    PyTuple*\t%s;   //due to (somewhat false) sizing constructor, must be dynamic memory.\n",
+		name
+	);
     return true;
 }
 
@@ -381,12 +410,14 @@ bool ClassHeaderGenerator::Process_dict(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tPyDict\t%s;\n", name);
+
+    fprintf(into,
+		"    PyDict\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -396,12 +427,14 @@ bool ClassHeaderGenerator::Process_bool(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tbool\t\t%s;\n", name);
+
+    fprintf(into,
+		"    bool\t\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -411,12 +444,14 @@ bool ClassHeaderGenerator::Process_int(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tint32\t\t%s;\n", name);
+
+    fprintf(into,
+		"    int32\t\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -426,12 +461,14 @@ bool ClassHeaderGenerator::Process_int64(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tint64\t\t%s;\n", name);
+
+    fprintf(into,
+		"    int64\t\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -441,12 +478,14 @@ bool ClassHeaderGenerator::Process_string(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tstd::string\t%s;\n", name);
+
+    fprintf(into,
+		"    std::string\t%s;\n",
+		name
+	);
     return true;
 }
 
@@ -456,12 +495,14 @@ bool ClassHeaderGenerator::Process_real(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(m_namesUsed.find(name) != m_namesUsed.end()) {
-        _log(COMMON__ERROR, "field at line %d: the name '%s' is already used", field->Row(), name);
+
+    if( !RegisterName( name, field->Row() ) )
         return false;
-    }
-    m_namesUsed.insert(name);
-    fprintf(into, "\tdouble\t\t%s;\n", name);
+
+    fprintf(into,
+		"    double\t\t%s;\n",
+		name
+	);
     return true;
 }
 
