@@ -317,7 +317,7 @@ PyResult CorpRegistryBound::Handle_GetSuggestedTickerNames(PyCallArgs &call) {
             sTN.tN += arg.arg[i];
         }
     }
-    result->add(sTN.Encode());
+    result->AddItem( sTN.Encode() );
 
     return result;
 }

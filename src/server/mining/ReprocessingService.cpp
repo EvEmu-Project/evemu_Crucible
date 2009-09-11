@@ -349,15 +349,16 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
         end = recoverables.end();
 
         for(; cur != end; cur++) {
-            Rsp_GetQuote_Recoverables_Line line;
+            uint32 ratio = cur->amountPerBatch * res.quantityToProcess / item->type().portionSize();
+
+			Rsp_GetQuote_Recoverables_Line line;
 
             line.typeID =           cur->typeID;
-            uint32 ratio = cur->amountPerBatch * res.quantityToProcess / item->type().portionSize();
             line.unrecoverable =    uint32((1.0 - efficiency)           * ratio);
             line.station =          uint32(efficiency * m_tax           * ratio);
             line.client =           uint32(efficiency * (1.0 - m_tax)   * ratio);
 
-            res.lines.add(line.Encode());
+            res.lines.AddItem( line.Encode() );
         }
     }
 

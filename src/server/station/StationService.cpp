@@ -52,7 +52,7 @@ PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
 	t->items[1] = new PyInt(call.client->GetCorporationID());
 	t->items[2] = new PyInt(call.client->GetAllianceID());
 	t->items[3] = new PyInt(0);	//unknown, might be factionID
-	res->add(t);
+	res->AddItem(t);
 
 	return res;
 }

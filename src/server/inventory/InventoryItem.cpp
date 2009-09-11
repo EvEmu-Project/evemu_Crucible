@@ -688,8 +688,8 @@ void InventoryItem::SetOnline(bool newval) {
     ogf.error = new PyNone();
 
     Notify_OnMultiEvent multi;
-    multi.events.add(omac.FastEncode());
-    multi.events.add(ogf.FastEncode());
+    multi.events.AddItem( omac.FastEncode() );
+    multi.events.AddItem( ogf.FastEncode() );
 
     PyTuple *tmp = multi.FastEncode();   //this is consumed below
     c->SendNotification("OnMultiEvent", "clientID", &tmp);

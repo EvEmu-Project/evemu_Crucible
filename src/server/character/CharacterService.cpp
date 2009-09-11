@@ -533,11 +533,11 @@ PyResult CharacterService::Handle_GetCharacterAppearanceList(PyCallArgs &call) {
     cur = args.ints.begin();
     end = args.ints.end();
     for(; cur != end; cur++) {
-        PyRep *r = m_db.GetCharacterAppearance(*cur);
+        PyRep* r = m_db.GetCharacterAppearance(*cur);
         if(r == NULL)
             r = new PyNone();
 
-        l->add(r);
+        l->AddItem(r);
     }
 
     return(l);

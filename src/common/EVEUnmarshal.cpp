@@ -848,7 +848,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
                 break;
 			IncreaseIndex( clen );
 
-            obj->list_data.add( el );
+            obj->list_data.AddItem( el );
         }
 		IncreaseIndex( 1 );
 

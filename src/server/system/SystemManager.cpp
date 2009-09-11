@@ -341,7 +341,7 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 
 		//ss.slims
 		PyDict *slim_dict = ent->MakeSlimItem();
-		ss.slims.add(new PyObject("foo.SlimItem", slim_dict));
+		ss.slims.AddItem(new PyObject("foo.SlimItem", slim_dict));
 
 		//append the destiny binary data...
 		ent->EncodeDestiny(setstate_buffer);

@@ -870,7 +870,7 @@ void RamProxyService::_EncodeBillOfMaterials(const std::vector<RequiredItem> &re
         // and this is thing I'm not sure about ... if I understood it well, "Extra material" is everything not fully consumed,
         // "Raw material" is everything fully consumed and "Waste Material" is amount of material wasted ...
         if(line.damagePerJob < 1.0) {
-            into.extras.lines.add(line.Encode());
+            into.extras.lines.AddItem( line.Encode() );
         } else {
             // if there are losses, make line for waste material list
             if(charMaterialMultiplier > 1.0) {
@@ -878,9 +878,9 @@ void RamProxyService::_EncodeBillOfMaterials(const std::vector<RequiredItem> &re
                 wastage.CloneFrom(&line);       // simply copy origial line ...
                 wastage.quantity = ceil(wastage.quantity * (charMaterialMultiplier - 1.0)); // ... and calculate proper quantity
 
-                into.wasteMaterials.lines.add(wastage.Encode());
+                into.wasteMaterials.lines.AddItem( wastage.Encode() );
             }
-            into.rawMaterials.lines.add(line.Encode());
+            into.rawMaterials.lines.AddItem( line.Encode() );
         }
     }
 }

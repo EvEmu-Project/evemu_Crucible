@@ -126,7 +126,7 @@ PyResult LSCService::Handle_GetChannels(PyCallArgs &call) {
 
     std::map<uint32, LSCChannel *>::iterator cur = m_channels.begin(), end = m_channels.end();
     for (;cur!=end;cur++) {
-        info.lines.add(cur->second->EncodeChannel(charID));
+        info.lines.AddItem( cur->second->EncodeChannel(charID) );
     }
 
 
@@ -214,7 +214,7 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
 
             channel->JoinChannel( call.client );
 
-            ml->add( chjr.FastEncode() );
+            ml->AddItem( chjr.FastEncode() );
         }
     }
 

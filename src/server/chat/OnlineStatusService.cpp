@@ -48,26 +48,10 @@ PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
 
 	//this is used to query the initial online state of all friends.
 
-	PyRep *result = NULL;
+	util_Rowset rs;
 
-	PyObject *rowset = new PyObject();
-	result = rowset;
-	rowset->type = "util.Rowset";
-	PyDict *args = new PyDict();
-	rowset->arguments = args;
+	rs.header.push_back( "characterID" );
+	rs.header.push_back( "online" );
 
-	//RowClass:
-	args->SetItemString("RowClass", new PyString("util.Row", true));
-
-	//header:
-	PyList *header = new PyList();
-	args->SetItemString("header", header);
-	header->addStr("characterID");
-	header->addStr("online");
-
-	//lines:
-	PyList *charlist = new PyList();
-	args->SetItemString("lines", charlist);
-
-	return result;
+	return rs.FastEncode();
 }

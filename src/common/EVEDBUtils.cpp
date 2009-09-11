@@ -126,7 +126,8 @@ PyObject *DBResultToRowset(DBQueryResult &result)
     DBResultRow row;
     while(result.GetRow(row)) {
         PyList *linedata = new PyList( cc );
-        rowlist->add(linedata);
+        rowlist->AddItem(linedata);
+
         for(r = 0; r < cc; r++) {
             linedata->SetItem( r, DBColumnToPyRep(row, r) );
         }
@@ -394,7 +395,7 @@ void DBResultToIntIntlistDict( DBQueryResult &result, std::map<int32, PyRep *> &
 			last_key = k;
 		}
 
-        l->add( new PyInt( row.GetInt( 1 ) ) );
+        l->AddItemInt(  row.GetInt( 1 ) );
     }
 }
 

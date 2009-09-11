@@ -161,9 +161,9 @@ PyResult CorporationService::Handle_GetAllCorpMedals(PyCallArgs &call) {
 
 	_log(SERVICE__ERROR, "%s::GetAllCorpMedals(%lu) unimplemented.", GetName(), arg.arg);
 
-	util_Rowset rs;
 	PyList *res = new PyList;
 
+	util_Rowset rs;
 	rs.header.push_back("medalID");
 	rs.header.push_back("ownerID");
 	rs.header.push_back("title");
@@ -172,16 +172,16 @@ PyResult CorporationService::Handle_GetAllCorpMedals(PyCallArgs &call) {
 	rs.header.push_back("date");
 	rs.header.push_back("noRecepients");
 
-	res->add(rs.FastEncode());
-	rs.header.clear();
+	res->AddItem( rs.FastEncode() );
 
+	rs.header.clear();
 	rs.header.push_back("medalID");
 	rs.header.push_back("part");
 	rs.header.push_back("layer");
 	rs.header.push_back("graphic");
 	rs.header.push_back("color");
 
-	res->add(rs.FastEncode());
+	res->AddItem( rs.FastEncode() );
 
 	return res;
 }

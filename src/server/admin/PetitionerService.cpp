@@ -89,8 +89,8 @@ PyResult PetitionerService::Handle_GetCategories(PyCallArgs &call) {
 	//takes no arguments
 	
 	PyList *result = new PyList();
-	result->addStr("Test Cat");
-	result->addStr("Test Cat2");
+	result->AddItemString("Test Cat");
+	result->AddItemString("Test Cat2");
     sLog.Debug("Petitioner Service", "called GetCategories stub");
 
 	return result;

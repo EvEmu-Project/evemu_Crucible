@@ -208,7 +208,8 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
 	for(; cur != end; cur++) {
 		choice.actionID = cur->first;
 		choice.actionText = cur->second;
-		res.dialogue.add(choice.Encode());
+
+		res.dialogue.AddItem( choice.Encode() );
 	}
 
 	//TODO: send loyaltyPoints in the keywords return.

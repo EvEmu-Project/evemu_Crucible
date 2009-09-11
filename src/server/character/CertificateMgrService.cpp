@@ -121,7 +121,7 @@ PyResult CertificateMgrService::Handle_BatchCertificateGrant(PyCallArgs &call) {
     end = arg.ints.end();
     for(; cur != end; cur++) {
         if(_GrantCertificate(call.client->GetCharacterID(), *cur))
-            res->addInt(*cur);
+            res->AddItemInt(*cur);
     }
 
     return res;

@@ -314,7 +314,7 @@ PyRep *LSCChannel::EncodeChannelMods() {
 	int i = 0, N = m_mods.size();
 
 	for (; i < N; i++) {
-		info.lines.add(m_mods[i].Encode());
+		info.lines.AddItem( m_mods[i].Encode() );
 	}
 
 	return info.Encode();
@@ -329,7 +329,7 @@ PyRep *LSCChannel::EncodeChannelChars() {
 	{
 		std::map<uint32, LSCChannelChar>::const_iterator res = m_chars.find( cur->first );
 		if( res != m_chars.end() )
-			info.lines.add( res->second.Encode() );
+			info.lines.AddItem( res->second.Encode() );
 	}
 
 	return info.FastEncode();

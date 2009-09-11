@@ -98,38 +98,21 @@ PyBoundObject *CorpStationMgrService::_CreateBoundObject(Client *c, const PyRep 
 }
 
 
-PyResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call) {
-	PyRep *result = NULL;
-	
-	//start building the Rowset
-	PyObject *rowset = new PyObject();
-	result = rowset;
-	rowset->type = "util.Rowset";
-	PyDict *args = new PyDict();
-	rowset->arguments = args;
-	
-	//header:
-	PyList *header = new PyList();
-	args->SetItemString("header", header);
-	header->addStr("ownerID");
-	header->addStr("ownerName");
-	header->addStr("typeID");
+PyResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call)
+{
+	util_Rowset rs;
 
-	//RowClass:
-	args->SetItemString("RowClass", new PyString("util.Row", true));
+	rs.header.push_back( "ownerID" );
+	rs.header.push_back( "ownerName" );
+	rs.header.push_back( "typeID" );
 
-	//lines:
-	PyList *charlist = new PyList();
-	args->SetItemString("lines", charlist);
+	PyList* chardata = new PyList;
+	chardata->AddItemInt( 3004349 );
+	chardata->AddItemString( "Carbircelle Hatiniestan" );
+	chardata->AddItemInt( 1378 );
+	rs.lines.AddItem( chardata );
 
-	PyList *chardata = new PyList();
-	charlist->items.push_back(chardata);
-	
-	chardata->items.push_back(new PyInt(3004349));
-	chardata->items.push_back(new PyString("Carbircelle Hatiniestan"));
-	chardata->items.push_back(new PyInt(1378));
-
-	return result;
+	return rs.FastEncode();
 }
 
 
@@ -154,21 +137,21 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call)
 		codelog(SERVICE__ERROR, "Failed to get owners.");
 		return NULL;
 	}
-	l->add( tmp );
+	l->AddItem( tmp );
 	
 	tmp = m_db->ListStationCorps(m_stationID);
 	if(tmp == NULL) {
 		codelog(SERVICE__ERROR, "Failed to get corps");
 		return NULL;
 	}
-	l->add( tmp );
+	l->AddItem( tmp );
 	
 	tmp = m_db->ListStationOffices(m_stationID);
 	if(tmp == NULL) {
 		codelog(SERVICE__ERROR, "Failed to get offices.");
 		return NULL;
 	}
-	l->add( tmp );
+	l->AddItem( tmp );
 
 	return(l);
 

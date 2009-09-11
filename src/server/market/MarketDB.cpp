@@ -497,14 +497,14 @@ PyObject *MarketDB::GetMarketGroups() {
 	PyDict *parentSets = new PyDict();
 	PyList *header = new PyList();
 	
-	header->addStr("marketGroupID");
-	header->addStr("parentGroupID");
-	header->addStr("marketGroupName");
-	header->addStr("description");
-	header->addStr("graphicID");
-	header->addStr("hasTypes");
-	header->addStr("types");	//this column really contains an entire list.
-	header->addStr("dataID");
+	header->AddItemString("marketGroupID");
+	header->AddItemString("parentGroupID");
+	header->AddItemString("marketGroupName");
+	header->AddItemString("description");
+	header->AddItemString("graphicID");
+	header->AddItemString("hasTypes");
+	header->AddItemString("types");	//this column really contains an entire list.
+	header->AddItemString("dataID");
 	
 	args->SetItemString("header", header);
 	args->SetItemString("idName", new PyString("parentGroupID"));
@@ -564,7 +564,7 @@ PyObject *MarketDB::GetMarketGroups() {
 			entry.types.insert(entry.types.begin(), tt->second.begin(), tt->second.end());
 
 		//record ourself in the parent's list.
-		parentList->add( entry.Encode() );
+		parentList->AddItem( entry.Encode() );
 	}
 	entry.graphicID = NULL;
 	entry.parentGroupID = NULL;

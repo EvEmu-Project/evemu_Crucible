@@ -125,48 +125,48 @@ void HandlePingRequest(Client* client, PyPacket * packet)
     PyList* pingList = (PyList*)ret->payload->items[0];
     if (pingList->IsList())
     {
-        PyTuple * pingTuple = new PyTuple(3);
+        PyTuple* pingTuple = new PyTuple(3);
 
         pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);        // this should be the time the packet was received (we cheat here a bit)
         pingTuple->items[1] = new PyLong(Win32TimeNow());             // this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
         pingTuple->items[2] = new PyString("proxy::handle_message");
 
-        pingList->add(pingTuple);
+        pingList->AddItem( pingTuple );
 
         pingTuple = new PyTuple(3);
         pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
         pingTuple->items[1] = new PyLong(Win32TimeNow());
         pingTuple->items[2] = new PyString("proxy::writing");
 
-        pingList->add(pingTuple);
+        pingList->AddItem( pingTuple );
 
         pingTuple = new PyTuple(3);
         pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
         pingTuple->items[1] = new PyLong(Win32TimeNow());
         pingTuple->items[2] = new PyString("server::handle_message");
 
-        pingList->add(pingTuple);
+        pingList->AddItem( pingTuple );
 
         pingTuple = new PyTuple(3);
         pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
         pingTuple->items[1] = new PyLong(Win32TimeNow());
         pingTuple->items[2] = new PyString("server::turnaround");
 
-        pingList->add(pingTuple);
+        pingList->AddItem( pingTuple );
 
         pingTuple = new PyTuple(3);
         pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
         pingTuple->items[1] = new PyLong(Win32TimeNow());
         pingTuple->items[2] = new PyString("proxy::handle_message");
 
-        pingList->add(pingTuple);
+        pingList->AddItem( pingTuple );
 
         pingTuple = new PyTuple(3);
         pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
         pingTuple->items[1] = new PyLong(Win32TimeNow());
         pingTuple->items[2] = new PyString("proxy::writing");
 
-        pingList->add(pingTuple);
+        pingList->AddItem( pingTuple );
     }
 
     client->FastQueuePacket(&ret);  // doesn't clone so eats the ret object upon sending.
@@ -965,12 +965,12 @@ PyDict *Client::MakeSlimItem() const {
         cur = items.begin();
         end = items.end();
         for(; cur != end; cur++) {
-            PyTuple *t = new PyTuple( 2 );
+            PyTuple* t = new PyTuple( 2 );
 
             t->items[0] = new PyInt( (*cur)->itemID() );
             t->items[1] = new PyInt( (*cur)->typeID() );
 
-            l->add(t);
+            l->AddItem(t);
         }
 
         slim->SetItemString("modules", l);
@@ -1128,7 +1128,7 @@ void Client::TargetLost(SystemEntity *who) {
     te.targetID = who->GetID();
 
     Notify_OnMultiEvent multi;
-    multi.events.add(te.FastEncode());
+    multi.events.AddItem( te.FastEncode() );
 
     PyTuple *tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
@@ -1141,7 +1141,7 @@ void Client::TargetedAdd(SystemEntity *who) {
     te.targetID = who->GetID();
 
     Notify_OnMultiEvent multi;
-    multi.events.add(te.FastEncode());
+    multi.events.AddItem( te.FastEncode() );
 
     PyTuple *tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
@@ -1154,7 +1154,7 @@ void Client::TargetedLost(SystemEntity *who) {
     te.targetID = who->GetID();
 
     Notify_OnMultiEvent multi;
-    multi.events.add(te.FastEncode());
+    multi.events.AddItem( te.FastEncode() );
 
     PyTuple *tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
@@ -1167,7 +1167,7 @@ void Client::TargetsCleared() {
     te.targetID = 0;
 
     Notify_OnMultiEvent multi;
-    multi.events.add(te.FastEncode());
+    multi.events.AddItem( te.FastEncode() );
 
     PyTuple *tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);

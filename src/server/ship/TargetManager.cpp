@@ -380,9 +380,8 @@ PyList *TargetManager::GetTargets() const {
 	std::map<SystemEntity *, TargetEntry *>::const_iterator cur, end;
 	cur = m_targets.begin();
 	end = m_targets.end();
-	for(; cur != end; cur++) {
-		result->addInt(cur->first->GetID());
-	}
+	for(; cur != end; cur++)
+		result->AddItemInt( cur->first->GetID() );
 
 	return result;
 }
@@ -393,9 +392,8 @@ PyList *TargetManager::GetTargeters() const {
 	std::map<SystemEntity *, TargetedByEntry *>::const_iterator cur, end;
 	cur = m_targetedBy.begin();
 	end = m_targetedBy.end();
-	for(; cur != end; cur++) {
-		result->addInt(cur->first->GetID());
-	}
+	for(; cur != end; cur++)
+		result->AddItemInt( cur->first->GetID() );
 
 	return result;
 }

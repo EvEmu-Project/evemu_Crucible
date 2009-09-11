@@ -156,10 +156,10 @@ void ItemAttributeMgr::SetIntEx(Attr attr, const int_t &v, bool persist) {
             // build the special list for rechargables
             PyList *l = new PyList;
 
-            l->addInt(v);
-            l->addLong(Win32TimeNow());
-            l->add(_PyGet(GetReal(i->second.tau) / 5.0));
-            l->add(PyGet(i->second.cap));
+            l->AddItemInt( v );
+            l->AddItemLong( Win32TimeNow() );
+            l->AddItem( _PyGet( GetReal( i->second.tau ) / 5.0 ) );
+            l->AddItem( PyGet( i->second.cap ) );
 
             oldValue = l;
         }
@@ -192,10 +192,11 @@ void ItemAttributeMgr::SetRealEx(Attr attr, const real_t &v, bool persist) {
             if(i != m_tauCap.end()) {
                 // build the special list for rechargables
                 PyList *l = new PyList;
-                l->addReal(v);
-                l->addLong(Win32TimeNow());
-                l->add(_PyGet(GetReal(i->second.tau) / 5.0));
-                l->add(PyGet(i->second.cap));
+
+                l->AddItemReal( v );
+                l->AddItemLong( Win32TimeNow() );
+                l->AddItem( _PyGet( GetReal( i->second.tau ) / 5.0 ) );
+                l->AddItem( PyGet( i->second.cap ) );
 
                 oldValue = l;
             }
@@ -222,10 +223,11 @@ void ItemAttributeMgr::Clear(Attr attr) {
         if(i != m_tauCap.end()) {
             // build the special list for rechargables
             PyList *l = new PyList;
-            l->add(PyGet(attr));
-            l->addInt(Win32TimeNow());
-            l->add(_PyGet(GetReal(i->second.tau) / 5.0));
-            l->add(PyGet(i->second.cap));
+
+            l->AddItem( PyGet( attr ) );
+            l->AddItemLong( Win32TimeNow() );
+            l->AddItem( _PyGet( GetReal( i->second.tau ) / 5.0 ) );
+            l->AddItem( PyGet( i->second.cap ) );
 
             oldValue = l;
         }

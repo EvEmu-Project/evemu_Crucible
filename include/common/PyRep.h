@@ -499,21 +499,15 @@ public:
     bool empty() const { return items.empty(); }
     void clear();
 
+    PyRep* GetItem( size_t index ) const { return items.at( index ); }
+
     void SetItem( size_t index, PyRep* object )
 	{
-		PyRep*& rep = items.at( index );
+		PyRep** rep = &items.at( index );
 
-		PySafeDecRef( rep );
-		rep = object;
+		PySafeDecRef( *rep );
+		*rep = object;
 	}
-
-    /**
-     * @brief overloading the [] operator for reference lookup.
-     *
-     * @param[in] index the position of the required object.
-     * @return The pointer to the indexed object.
-     */
-    PyRep* operator[]( size_t index ) const { return items.at( index ); }
 
 	/**
 	 * @brief Overload of assigment operator to handle object ownership.
@@ -558,30 +552,22 @@ public:
     bool empty() const { return items.empty(); }
     void clear();
 
-    void add(PyRep* i) { items.push_back( i ); }
+	PyRep* GetItem( size_t index ) const { return items.at( index ); }
 
-    void addInt(int32 intval) { add( new PyInt( intval ) ); }
-    void addLong(int64 intval) { add( new PyLong( intval ) ); }
-    void addReal(double realval) { add( new PyFloat( realval ) ); }
-    void addStr(const char* str) { add( new PyString( str ) ); }
-
-    void SetItem(size_t index, PyRep* i)
+    void SetItem( size_t index, PyRep* object )
 	{
-		PyRep*& rep = items.at( index );
+		PyRep** rep = &items.at( index );
 
-		PySafeDecRef( rep );
-		rep = i;
+		PySafeDecRef( *rep );
+		*rep = object;
     }
-
     void SetItemString(size_t index, const char* str) { SetItem( index, new PyString( str ) ); }
 
-	/**
-	 * @brief Overload of operator[] for easier access.
-	 *
-	 * @param[in] index Index of required object.
-	 * @return Pointer to object.
-	 */
-	PyRep* operator[]( size_t index ) const { return items.at( index ); }
+    void AddItem(PyRep* i) { items.push_back( i ); }
+    void AddItemInt(int32 intval) { AddItem( new PyInt( intval ) ); }
+    void AddItemLong(int64 intval) { AddItem( new PyLong( intval ) ); }
+    void AddItemReal(double realval) { AddItem( new PyFloat( realval ) ); }
+    void AddItemString(const char* str) { AddItem( new PyString( str ) ); }
 
 	/**
 	 * @brief Overload of assigment operator to handle object ownership.
@@ -816,16 +802,10 @@ public:
 
 	void clear() { mFields.clear(); }
 
+	PyRep* GetField( size_t index ) const { return mFields.GetItem( index ); }
+
     bool SetField(uint32 index, PyRep* value);
     bool SetField(const char* colName, PyRep* value);
-
-	/**
-	 * @brief Overload of operator[] for easier access.
-	 *
-	 * @param[in] index Index of required object.
-	 * @return Pointer to object.
-	 */
-	PyRep* operator[]( size_t index ) const { return mFields[ index ]; }
 
 	/**
 	 * @brief Assigment operator to handle ownership things.

@@ -725,7 +725,7 @@ PyObject *Character::GetDescription() const {
     util_Row row;
 
     row.header.push_back("description");
-    row.line.add(new PyString(description()));
+    row.line.AddItemString( description().c_str() );
 
     return row.FastEncode();
 }
@@ -744,7 +744,7 @@ PyList *Character::GetSkillQueue() {
         el.typeID = cur->typeID;
         el.level = cur->level;
 
-        list->add( el.FastEncode() );
+        list->AddItem( el.FastEncode() );
     }
 
     return list;
