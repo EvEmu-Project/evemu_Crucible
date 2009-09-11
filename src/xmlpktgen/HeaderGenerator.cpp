@@ -60,7 +60,7 @@ bool ClassHeaderGenerator::Process_elementdef(FILE* into, TiXmlElement* element)
 		"\n"
         "    bool Decode( PyRep** packet );    //consumes packet\n"
         "    bool Decode( %s** packet );\n"
-        "    %s* Encode();\n"
+        "    %s* Encode() const;\n"
         "    %s* FastEncode();\n"
 		"\n"
         "    %s* Clone() const;\n"

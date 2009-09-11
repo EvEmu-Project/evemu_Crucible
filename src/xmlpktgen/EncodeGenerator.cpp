@@ -34,7 +34,7 @@ ClassEncodeGenerator::ClassEncodeGenerator()
   mItemNumber( 0 ),
   mName( NULL )
 {
-    AllGenProcRegs(ClassEncodeGenerator);
+    AllGenProcRegs( ClassEncodeGenerator );
 }
 
 bool ClassEncodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
@@ -45,7 +45,7 @@ bool ClassEncodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
         return false;
     }
 
-    TiXmlElement * main = element->FirstChildElement();
+    TiXmlElement* main = element->FirstChildElement();
     if(main->NextSiblingElement() != NULL) {
         _log(COMMON__ERROR, "<element> at line %d contains more than one root element. skipping.", element->Row());
         return false;
@@ -53,10 +53,12 @@ bool ClassEncodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
 
     const char *encode_type = GetEncodeType(element);
     fprintf(into,
-        "%s *%s::Encode()\n"
+        "%s* %s::Encode() const\n"
 		"{\n"
-        "   %s *res = NULL;\n",
-        encode_type, mName, encode_type
+        "    %s* res = NULL;\n"
+		"\n",
+        encode_type, mName,
+		    encode_type
 	);
 /*
         "\n"
@@ -69,15 +71,14 @@ bool ClassEncodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
 	clear();
 
     mFast = false;
-	push( "res" );
 
+	push( "res" );
     if(!Recurse(into, element))
         return false;
 
 
     fprintf(into,
-		"\n"
-		"	return res;\n"
+		"    return res;\n"
 		"}\n"
 		"\n"
 	);
@@ -87,10 +88,12 @@ bool ClassEncodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
      *
     */
     fprintf(into,
-        "%s *%s::FastEncode()\n"
+        "%s* %s::FastEncode()\n"
 		"{\n"
-        "   %s *res = NULL;\n",
-        encode_type, mName, encode_type
+        "    %s* res = NULL;\n"
+		"\n",
+        encode_type, mName,
+		    encode_type
 	);
 /*
         "\n"
@@ -103,14 +106,13 @@ bool ClassEncodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
 	clear();
 
     mFast = true;
-    push("res");
 
+    push("res");
     if(!Recurse(into, element))
         return false;
 
     fprintf(into,
-		"\n"
-		"	return res;\n"
+		"    return res;\n"
 		"}\n"
 		"\n"
 	);
@@ -120,32 +122,39 @@ bool ClassEncodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
 
 bool ClassEncodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) {
     //first, we need to know how many elements this tuple has:
-    TiXmlNode *i = NULL;
-    int count = 0;
+    TiXmlNode* i = NULL;
+    uint32 count = 0;
     while( (i = field->IterateChildren( i )) ) {
         if(i->Type() == TiXmlNode::ELEMENT)
             count++;
     }
 
-    int num = mItemNumber++;
     char iname[16];
-    snprintf(iname, sizeof(iname), "tuple%d", num);
+    snprintf( iname, sizeof(iname), "tuple%u", mItemNumber++ );
 
     //now we can generate the tuple decl
-    fprintf(into, "\tPyTuple *%s = new PyTuple(%d);\n", iname, count);
+    fprintf(into,
+		"    PyTuple* %s = new PyTuple( %u );\n",
+		iname, count
+	);
 
     //now we need to queue up all the storage locations for the fields
     //need to be backward
     char varname[64];
-    for(count--; count >= 0; count--) {
-        snprintf(varname, sizeof(varname), "%s->items[%d]", iname, count);
+    while( count-- > 0 )
+	{
+        snprintf(varname, sizeof(varname), "%s->items[%u]", iname, count);
         push(varname);
     }
 
     if(!Recurse(into, field))
         return false;
 
-    fprintf(into, "\t%s = %s;\n\t\n", top(), iname);
+    fprintf(into,
+		"    %s = %s;\n"
+		"\n",
+		top(), iname
+	);
 
 
     pop();
@@ -154,35 +163,39 @@ bool ClassEncodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 
 bool ClassEncodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
     //first, we need to know how many elements this tuple has:
-    TiXmlNode *i = NULL;
-    int count = 0;
+    TiXmlNode* i = NULL;
+    uint32 count = 0;
     while( (i = field->IterateChildren( i )) ) {
-        if(i->Type() != TiXmlNode::ELEMENT)
-            continue;   //skip crap we dont care about
-        count++;
+        if(i->Type() == TiXmlNode::ELEMENT)
+            count++;
     }
 
-    int num = mItemNumber++;
     char iname[16];
-    snprintf(iname, sizeof(iname), "list%d", num);
-    //now we can generate the tuple decl
+    snprintf(iname, sizeof(iname), "list%u", mItemNumber++);
+
+    //now we can generate the list decl
     fprintf(into,
-        "\tPyList *%s = new PyList();\n"
-        "\t%s->items.resize(%d, NULL);\n", iname, iname, count);
+		"    PyList* %s = new PyList( %u );\n",
+		iname, count
+	);
 
     //now we need to queue up all the storage locations for the fields
     //need to be backward
     char varname[64];
-    for(count--; count >= 0; count--) {
-        snprintf(varname, sizeof(varname), "%s->items[%d]", iname, count);
+    while( count-- > 0 )
+	{
+        snprintf( varname, sizeof(varname), "%s->items[%u]", iname, count );
         push(varname);
     }
 
     if(!Recurse(into, field))
         return false;
 
-    fprintf(into, "\t%s = %s;\n\t\n", top(), iname);
-
+    fprintf(into,
+		"    %s = %s;\n"
+		"\n",
+		top(), iname
+	);
 
     pop();
     return true;
@@ -191,16 +204,21 @@ bool ClassEncodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 
     //first, create the dict container
-    int num = mItemNumber++;
+	uint32 item_num = mItemNumber++;
     char dictname[16];
-    snprintf(dictname, sizeof(dictname), "dict%d", num);
-    fprintf(into, "\tPyDict *%s = new PyDict();\n", dictname);
+    snprintf(dictname, sizeof(dictname), "dict%u", item_num);
+
+    fprintf(into,
+		"    PyDict* %s = new PyDict;\n",
+		dictname
+	);
 
     //now we process each element, putting it into the dict:
-    TiXmlNode *i = NULL;
-    int count = 0;
+    TiXmlNode* i = NULL;
+    uint32 count = 0;
     char varname[32];
-    while((i = field->IterateChildren( i )) ) {
+    while( i = field->IterateChildren( i ) )
+	{
         if(i->Type() == TiXmlNode::COMMENT) {
             TiXmlComment *com = i->ToComment();
             fprintf(into, "\t/* %s */\n", com->Value());
@@ -209,12 +227,13 @@ bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
         if(i->Type() != TiXmlNode::ELEMENT)
             continue;   //skip crap we dont care about
 
-        TiXmlElement *ele = i->ToElement();
+        TiXmlElement* ele = i->ToElement();
         //we only handle IDEntry elements
         if(std::string("IDEntry") != ele->Value()) {
             _log(COMMON__ERROR, "non-IDEntry in <InlineDict> at line %d, ignoring.", ele->Row());
             continue;
         }
+
         const char *key = ele->Attribute("key");
         const char *keyType = ele->Attribute("key_type");
         if(key == NULL) {
@@ -222,10 +241,13 @@ bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
             continue;
         }
 
-        snprintf(varname, sizeof(varname), "dict%d_%d", num, count);
+        snprintf(varname, sizeof(varname), "dict%u_%u", item_num, count);
         count++;
 
-        fprintf(into, "\tPyRep *%s;\n", varname);
+        fprintf(into,
+			"    PyRep* %s;\n",
+			varname
+		);
         push(varname);
 
         //now process the data part, putting the value into `varname`
@@ -234,18 +256,31 @@ bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 
         //now store the result in the dict:
         //taking the keyType into account
-        if (keyType != NULL && !strcmp(keyType, "int")) {
-            fprintf(into, "\t%s->items[\n"
-                          "\t\tnew PyInt(%s)\n"
-                          "\t] = %s;\n", dictname, key, varname);
-        } else {
-            fprintf(into, "\t%s->items[\n"
-                          "\t\tnew PyString(\"%s\")\n"
-                          "\t] = %s;\n", dictname, key, varname);
-        }
-
+        if( keyType != NULL && !strcmp( keyType, "int" ) )
+            fprintf(into,
+			    "    %s->items[\n"
+                "        new PyInt(%s)\n"
+                "    ] = %s;\n",
+				dictname,
+				key,
+				varname
+			);
+        else
+            fprintf(into,
+			     "     %s->items[\n"
+                 "          new PyString( \"%s\" )\n"
+                 "     ] = %s;\n",
+				 dictname,
+				 key,
+				 varname
+			);
     }
-    fprintf(into, "\t%s = %s;\n\t\n", top(), dictname);
+
+    fprintf(into,
+		"     %s = %s;\n"
+		"\n",
+		top(), dictname
+	);
 
     pop();
     return true;
@@ -253,17 +288,24 @@ bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 
 bool ClassEncodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field) {
     char varname[16];
-    int num = mItemNumber++;
-    snprintf(varname, sizeof(varname), "ss_%d", num);
+    snprintf(varname, sizeof(varname), "ss_%d", mItemNumber++);
 
     //encode the sub-element into a temp
-    fprintf(into, "\tPyRep *%s;\n", varname);
+    fprintf(into,
+		"    PyRep* %s;\n",
+		varname
+	);
+
     push(varname);
     if(!Recurse(into, field, 1))
         return false;
 
     //now make a substream from the temp at store it where it is needed
-    fprintf(into, "\t%s = new PySubStream(%s);\n", top(), varname);
+    fprintf(into,
+		"    %s = new PySubStream( %s );\n"
+		"\n",
+		top(), varname
+	);
 
     pop();
     return true;
@@ -271,17 +313,24 @@ bool ClassEncodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *fie
 
 bool ClassEncodeGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field) {
     char varname[16];
-    int num = mItemNumber++;
-    snprintf(varname, sizeof(varname), "ss_%d", num);
+    snprintf(varname, sizeof(varname), "ss_%d", mItemNumber++);
 
     //encode the sub-element into a temp
-    fprintf(into, "\tPyRep *%s;\n", varname);
+    fprintf(into,
+		"    PyRep* %s;\n",
+		varname
+	);
+
     push(varname);
     if(!Recurse(into, field, 1))
         return false;
 
     //now make a substream from the temp at store it where it is needed
-    fprintf(into, "\t%s = new PySubStruct(%s);\n", top(), varname);
+    fprintf(into,
+		"    %s = new PySubStruct( %s );\n"
+		"\n",
+		top(), varname
+	);
 
     pop();
     return true;
@@ -294,45 +343,48 @@ bool ClassEncodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    int num = mItemNumber++;
     char rname[16];
-    snprintf(rname, sizeof(rname), "dict%d", num);
-    fprintf(into, "\t\n");
+    snprintf(rname, sizeof(rname), "dict%d", mItemNumber++);
 
     fprintf(into,
-        "   PyDict *%s = new PyDict();\n"
-        "   std::map<std::string, PyRep *>::iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       %s->items[\n"
-        "           new PyString(%s_cur->first)\n",
-        rname,
+        "    PyDict* %s = new PyDict;\n",
+        rname
+	);
+
+    fprintf(into,
+        "    std::map<std::string, PyRep*>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+		"    {\n"
+        "        %s->items[\n"
+        "            new PyString( %s_cur->first )\n",
         name, name,
         name, name,
         name, name,
         name, name, name,
             rname,
                 name
-        );
-    if(mFast) {
+    );
+
+    if( mFast )
         fprintf(into,
-        "       ] = %s_cur->second;\n"
-        "   }\n"
-        "   %s.clear();\n",
+            "        ] = %s_cur->second;\n"
+            "    }\n"
+            "    %s.clear();\n",
             name,
             name
-            );
-    } else {
+        );
+	else
         fprintf(into,
-        "       ] = %s_cur->second->Clone();\n"
-        "   }\n",
+            "        ] = %s_cur->second->Clone();\n"
+            "    }\n",
             name
-            );
-    }
+        );
+
     fprintf(into,
-        "   %s = %s;\n"
-        "   \n",
+        "    %s = %s;\n"
+        "\n",
         top(), rname
     );
 
@@ -347,45 +399,48 @@ bool ClassEncodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    int num = mItemNumber++;
     char rname[16];
-    snprintf(rname, sizeof(rname), "dict%d", num);
-    fprintf(into, "\t\n");
+    snprintf(rname, sizeof(rname), "dict%u", mItemNumber++);
 
     fprintf(into,
-        "   PyDict *%s = new PyDict();\n"
-        "   std::map<int32, PyRep *>::iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       %s->items[\n"
-        "           new PyInt(%s_cur->first)\n",
-        rname,
+        "    PyDict* %s = new PyDict;\n",
+        rname
+	);
+
+    fprintf(into,
+        "    std::map<int32, PyRep*>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+		"    {\n"
+        "        %s->items[\n"
+        "            new PyInt( %s_cur->first )\n",
         name, name,
         name, name,
         name, name,
         name, name, name,
             rname,
                 name
-        );
-    if(mFast) {
+    );
+
+    if( mFast )
         fprintf(into,
-        "       ] = %s_cur->second;\n"
-        "   }\n"
-        "   %s.clear();\n",
+            "        ] = %s_cur->second;\n"
+            "    }\n"
+            "    %s.clear();\n",
             name,
             name
-            );
-    } else {
+        );
+    else
         fprintf(into,
-        "       ] = %s_cur->second->Clone();\n"
-        "   }\n",
+            "        ] = %s_cur->second->Clone();\n"
+            "    }\n",
             name
-            );
-    }
+        );
+
     fprintf(into,
-        "   %s = %s;\n"
-        "   \n",
+        "    %s = %s;\n"
+        "\n",
         top(), rname
     );
 
@@ -420,24 +475,26 @@ bool ClassEncodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    int num = mItemNumber++;
     char rname[16];
-    snprintf(rname, sizeof(rname), "dict%d", num);
-    fprintf(into, "\t\n");
+    snprintf(rname, sizeof(rname), "dict%u", mItemNumber++);
 
     fprintf(into,
-        "   PyDict *%s = new PyDict();\n"
-        "   std::map<%s, %s>::iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       %s->items[\n"
-        "           new Py%s(%s_cur->first)\n"
-        "       ] = new Py%s(%s_cur->second);\n"
-        "   }\n"
-        "   %s = %s;\n"
-        "   \n",
-        rname,
+        "    PyDict* %s = new PyDict;\n",
+        rname
+	);
+
+    fprintf(into,
+        "    std::map<%s, %s>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+		"    {\n"
+        "        %s->items[\n"
+        "            new Py%s( %s_cur->first )\n"
+        "        ] = new Py%s( %s_cur->second );\n"
+        "    }\n"
+        "    %s = %s;\n"
+        "\n",
         key, value, name, name,
         name, name,
         name, name,
@@ -459,28 +516,32 @@ bool ClassEncodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    int num = mItemNumber++;
     char rname[16];
-    snprintf(rname, sizeof(rname), "list%d", num);
-    fprintf(into, "\t\n");
+    snprintf(rname, sizeof(rname), "list%u", mItemNumber++);
 
     fprintf(into,
-        "   PyList *%s = new PyList();\n"
-        "   std::vector<std::string>::iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       %s->items.push_back(\n"
-        "           new PyString(*%s_cur)\n"
-        "       );\n"
-        "   }\n"
-        "   %s = %s;\n"
-        "   \n",
+        "    PyList* %s = new PyList;\n",
+        rname
+	);
+
+    fprintf(into,
+        "    std::vector<std::string>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+		"    {\n"
+        "        %s->items.push_back(\n"
+        "            new PyString( *%s_cur )\n"
+        "        );\n"
+        "    }\n"
+        "    %s = %s;\n"
+        "\n",
+        name, name,
+		name, name,
+		name, name,
+        name, name, name,
         rname,
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        rname, name,
+		    name,
         top(), rname
     );
 
@@ -495,28 +556,32 @@ bool ClassEncodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    int num = mItemNumber++;
     char rname[16];
-    snprintf(rname, sizeof(rname), "list%d", num);
-    fprintf(into, "\t\n");
+    snprintf(rname, sizeof(rname), "list%u", mItemNumber++);
 
     fprintf(into,
-        "   PyList *%s = new PyList();\n"
-        "   std::vector<int32>::iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       %s->items.push_back(\n"
-        "           new PyInt(*%s_cur)\n"
-        "       );\n"
-        "   }\n"
-        "   %s = %s;\n"
-        "   \n",
+        "    PyList* %s = new PyList;\n",
+        rname
+	);
+
+    fprintf(into,
+        "    std::vector<int32>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+		"    {\n"
+        "        %s->items.push_back(\n"
+        "            new PyInt( *%s_cur )\n"
+        "        );\n"
+        "    }\n"
+        "    %s = %s;\n"
+        "\n",
+        name, name,
+		name, name,
+		name, name,
+        name, name, name,
         rname,
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        rname, name,
+		    name,
         top(), rname
     );
 
@@ -531,28 +596,32 @@ bool ClassEncodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    int num = mItemNumber++;
     char rname[16];
-    snprintf(rname, sizeof(rname), "list%d", num);
-    fprintf(into, "\t\n");
+    snprintf(rname, sizeof(rname), "list%u", mItemNumber++);
 
     fprintf(into,
-        "   PyList *%s = new PyList();\n"
-        "   std::vector<int64>::iterator %s_cur, %s_end;\n"
-        "   %s_cur = %s.begin();\n"
-        "   %s_end = %s.end();\n"
-        "   for(; %s_cur != %s_end; %s_cur++) {\n"
-        "       %s->items.push_back(\n"
-        "           new PyLong(*%s_cur)\n"
-        "       );\n"
-        "   }\n"
-        "   %s = %s;\n"
-        "   \n",
+        "    PyList *%s = new PyList;\n",
+        rname
+	);
+
+    fprintf(into,
+        "    std::vector<int64>::const_iterator %s_cur, %s_end;\n"
+        "    %s_cur = %s.begin();\n"
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+		"    {\n"
+        "        %s->items.push_back(\n"
+        "            new PyLong( *%s_cur )\n"
+        "        );\n"
+        "    }\n"
+        "    %s = %s;\n"
+        "\n",
+        name, name,
+		name, name,
+		name, name,
+        name, name, name,
         rname,
-        name, name, name,
-        name, name, name,
-        name, name, name,
-        rname, name,
+		    name,
         top(), rname
     );
 
@@ -566,13 +635,20 @@ bool ClassEncodeGenerator::Process_element(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    if(mFast) {
+
+    if( mFast )
         fprintf(into,
-            "       %s = %s.FastEncode();\n", top(), name);
-    } else {
+            "    %s = %s.FastEncode();\n"
+			"\n",
+			top(), name
+		);
+    else
         fprintf(into,
-            "       %s = %s.Encode();\n", top(), name);
-    }
+            "    %s = %s.Encode();\n"
+			"\n",
+			top(), name
+		);
+
     pop();
     return true;
 }
@@ -583,30 +659,46 @@ bool ClassEncodeGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
+
     fprintf(into,
-        "   if(%s == NULL) {\n"
-        "       _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
-        "       %s = new PyNone();\n"
-        "   } else {\n",
+        "    if( %s == NULL )\n"
+		"    {\n"
+        "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
+        "        %s = new PyNone();\n"
+        "    }\n"
+		"    else\n"
+		"    {\n",
         name,
             mName, name,
             top()
-        );
-    if(mFast) {
+    );
+
+    if( mFast )
         fprintf(into,
-            "       %s = %s->FastEncode();\n"
-            "   }\n", top(), name);
-    } else {
+            "        %s = %s->FastEncode();\n"
+            "    }\n"
+			"\n",
+			top(), name
+		);
+    else
         fprintf(into,
-            "       %s = %s->Encode();\n"
-            "   }\n", top(), name);
-    }
+            "        %s = %s->Encode();\n"
+            "    }\n"
+			"\n",
+			top(), name
+		);
+
     pop();
     return true;
 }
 
 bool ClassEncodeGenerator::Process_none(FILE *into, TiXmlElement *field) {
-    fprintf(into, "\t%s = new PyNone();\n", top());
+    fprintf(into,
+		"    %s = new PyNone();\n"
+		"\n",
+		top()
+	);
+
     pop();
     return true;
 }
@@ -618,23 +710,26 @@ bool ClassEncodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    int num = mItemNumber++;
     char iname[16];
-    snprintf(iname, sizeof(iname), "args%d", num);
-    //now we can generate the tuple decl
-    fprintf(into, "\tPyRep *%s;\n", iname);
+    snprintf(iname, sizeof(iname), "args%u", mItemNumber++);
+
+    //now we can generate the args decl
+    fprintf(into,
+		"    PyRep* %s;\n", iname
+	);
 
     push(iname);
-
     if(!Recurse(into, field, 1))
         return false;
 
     fprintf(into,
-        "   %s = new PyObject(\n"
-        "           \"%s\",\n"
-        "           %s\n"
-        "       );\n"
-        "   \n", top(), type, iname);
+        "    %s = new PyObject(\n"
+        "             \"%s\", %s\n"
+        "         );\n"
+        "\n",
+		top(),
+		    type, iname
+	);
 
     pop();
     return true;
@@ -689,7 +784,8 @@ bool ClassEncodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 			"    {\n"
 			"        %s = %s;\n"
 			"        %s = NULL;\n"
-			"    }\n",
+			"    }\n"
+			"\n",
 			v, name,
 			name
 		);
@@ -697,7 +793,8 @@ bool ClassEncodeGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
 	else
 	{
 		fprintf( into,
-			"        %s = new %s( *%s );\n",
+			"        %s = new %s( *%s );\n"
+			"\n",
 			v, type, name
 		);
 	}
@@ -712,21 +809,37 @@ bool ClassEncodeGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
+
+	const char* v = top();
     fprintf(into,
-        "   if(%s == NULL) {\n"
-        "       _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty buffer.\");\n"
-        "       %s = new PyBuffer(0);\n"
-        "   }\n",
+        "    if( %s == NULL )\n"
+		"    {\n"
+        "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty buffer.\");\n"
+        "        %s = new PyBuffer( 0 );\n"
+        "    }\n"
+		"    else\n",
         name,
             mName, name,
-            name
-        );
-    if(mFast) {
-        fprintf(into, "\t%s = %s;\n"
-                      "\t%s = NULL;\n", top(), name, name);
-    } else {
-        fprintf(into, "\t%s = %s->Clone();\n", top(), name);
-    }
+            v
+    );
+
+    if( mFast )
+        fprintf(into,
+		    "    {\n"
+		    "        %s = %s;\n"
+            "        %s = NULL;\n"
+			"    }\n"
+			"\n",
+			v, name,
+			name
+		);
+    else
+        fprintf(into,
+		    "        %s = %s->Clone();\n"
+			"\n",
+			v, name
+		);
+
     pop();
     return true;
 }
@@ -737,21 +850,37 @@ bool ClassEncodeGenerator::Process_raw(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
+
+	const char* v = top();
     fprintf(into,
-        "   if(%s == NULL) {\n"
-        "       _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
-        "       %s = new PyNone();\n"
-        "   }\n",
+        "    if( %s == NULL )\n"
+		"    {\n"
+        "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
+        "        %s = new PyNone();\n"
+        "    }\n"
+		"    else\n",
         name,
             mName, name,
-            name
-        );
-    if(mFast) {
-        fprintf(into, "\t%s = %s;\n"
-                      "\t%s = NULL;\n", top(), name, name);
-    } else {
-        fprintf(into, "\t%s = %s->Clone();\n", top(), name);
-    }
+            v
+    );
+
+    if( mFast )
+        fprintf(into,
+		    "    {\n"
+		    "        %s = %s;\n"
+            "        %s = NULL;\n"
+			"    }\n"
+			"\n",
+			v, name,
+			name
+		);
+	else
+        fprintf(into,
+		    "        %s = %s->Clone();\n"
+			"\n",
+			v, name
+		);
+
     pop();
     return true;
 }
@@ -763,40 +892,50 @@ bool ClassEncodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    const char *optional = field->Attribute("optional");
-    bool is_optional = false;
-    if(optional != NULL && std::string("true") == optional)
-        is_optional = true;
-    if(is_optional) {
-        fprintf(into, " if(%s.empty()) {\n"
-                      "     %s = new PyNone();\n"
-                      " } else {\n",
+    bool optional = false;
+    const char* optional_str = field->Attribute("optional");
+    if( optional != NULL )
+        optional = atobool( optional_str );
+
+	const char* v = top();
+    if( optional )
+	{
+        fprintf(into,
+			"    if( %s.empty() )\n"
+            "        %s = new PyNone;\n"
+			"    else\n",
             name,
-                top());
+                v
+		);
     }
 
-    if(mFast) {
-        int num = mItemNumber++;
+    if( mFast )
+	{
         char rname[16];
-        snprintf(rname, sizeof(rname), "list%d", num);
-        fprintf(into, "\t\n");
+        snprintf(rname, sizeof(rname), "list%u", mItemNumber++);
 
         fprintf(into,
-            "   PyList *%s = new PyList();\n"
-            "   %s->items = %s.items;\n"    //steal the items
-            "   %s.items.clear();\n"
-            "   %s = %s;\n",
-            rname,
+			"    {\n"
+            "        PyList* %s = new PyList;\n"
+			"\n"
+            "        %s->items = %s.items;\n"    //steal the items
+            "        %s.items.clear();\n"
+			"\n"
+            "        %s = %s;\n"
+			"    }\n"
+			"\n",
+			rname,
             rname, name,
             name,
-            top(), rname);
-    } else {
-        fprintf(into, "\t%s = %s.Clone();\n", top(), name);
+            v, rname
+		);
     }
-
-    if(is_optional) {
-        fprintf(into, " }\n" );
-    }
+	else
+        fprintf(into,
+		    "        %s = new PyList( %s );\n"
+			"\n",
+			v, name
+		);
 
     pop();
     return true;
@@ -809,51 +948,60 @@ bool ClassEncodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    bool is_optional = false;
-    const char *optional = field->Attribute("optional");
-    if(optional != NULL)
-        is_optional = atobool( optional );
+    bool optional = false;
+    const char* optional_str = field->Attribute("optional");
+    if( optional_str != NULL )
+        optional = atobool( optional_str );
 
+	const char* v = top();
     fprintf(into,
-        "   if(%s == NULL) {\n"
-        "       _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty tuple.\");\n"
-        "       %s = new PyTuple(0);\n"
-        "   }\n",
+        "    if( %s == NULL )\n"
+		"    {\n"
+        "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty tuple.\");\n"
+        "        %s = new PyTuple( 0 );\n"
+        "    }\n"
+		"    else\n",
         name,
             mName, name,
-            name
-        );
+            v
+    );
 
-    if(is_optional) {
-        fprintf(into, " if(%s->empty()) {\n"
-                      "     %s = new PyNone();\n"
-                      " } else {\n",
+    if( optional )
+        fprintf(into,
+		    "    if( %s->empty() )\n"
+            "        %s = new PyNone;\n"
+            "    else\n",
             name,
-                top());
-    }
+                v
+		);
 
-    if(mFast) {
-        int num = mItemNumber++;
+    if( mFast )
+	{
         char rname[16];
-        snprintf(rname, sizeof(rname), "list%d", num);
-        fprintf(into, "\t\n");
+        snprintf(rname, sizeof(rname), "tuple%u", mItemNumber++);
 
         fprintf(into,
-            "   PyTuple *%s = new PyTuple(0);\n"
-            "   %s->items = %s->items;\n"   //steal the items
-            "   %s->items.clear();\n"
-            "   %s = %s;\n",
+			"    {\n"
+            "        PyTuple* %s = new PyTuple( 0 );\n"
+			"\n"
+            "        %s->items = %s->items;\n"   //steal the items
+            "        %s->items.clear();\n"
+			"\n"
+            "        %s = %s;\n"
+			"    }\n"
+			"\n",
             rname,
             rname, name,
             name,
-            top(), rname);
-    } else {
-        fprintf(into, "\t%s = %s->Clone();\n", top(), name);
-    }
-
-    if(is_optional) {
-        fprintf(into, " }\n" );
-    }
+            v, rname
+		);
+	}
+    else
+        fprintf(into,
+		    "        %s = new PyTuple( *%s );\n"
+			"\n",
+			v, name
+		);
 
     pop();
     return true;
@@ -866,40 +1014,47 @@ bool ClassEncodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    const char *optional = field->Attribute("optional");
-    bool is_optional = false;
-    if(optional != NULL && std::string("true") == optional)
-        is_optional = true;
-    if(is_optional) {
-        fprintf(into, " if(%s->empty()) {\n"
-                      "     %s = new PyNone();\n"
-                      " } else {\n",
-            name,
-                top());
-    }
+    bool optional = false;
+    const char* optional_str = field->Attribute("optional");
+    if( optional_str != NULL )
+        optional = atobool( optional_str );
 
-    if(mFast) {
-        int num = mItemNumber++;
+	const char* v = top();
+    if( optional )
+        fprintf(into,
+		    "    if( %s.empty() )\n"
+            "        %s = new PyNone;\n"
+            "    else\n",
+            name,
+                v
+		);
+
+    if(mFast)
+	{
         char rname[16];
-        snprintf(rname, sizeof(rname), "dict%d", num);
-        fprintf(into, "\t\n");
+        snprintf(rname, sizeof(rname), "dict%u", mItemNumber++);
 
         fprintf(into,
-            "   PyDict *%s = new PyDict();\n"
-            "   %s->items = %s.items;\n"    //steal the items
-            "   %s.items.clear();\n"
-            "   %s = %s;\n",
+			"    {\n"
+            "        PyDict* %s = new PyDict;\n"
+			"\n"
+            "        %s->items = %s.items;\n"    //steal the items
+            "        %s.items.clear();\n"
+			"\n"
+            "        %s = %s;\n"
+			"    }\n"
+			"\n",
             rname,
             rname, name,
             name,
-            top(), rname);
-    } else {
-        fprintf(into, "\t%s = %s.Clone();\n", top(), name);
-    }
-
-    if(is_optional) {
-        fprintf(into, " }\n" );
-    }
+            v, rname
+		);
+    } else
+        fprintf(into,
+		    "        %s = new PyDict( %s );\n"
+			"\n",
+			v, name
+		);
 
     pop();
     return true;
@@ -911,7 +1066,13 @@ bool ClassEncodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
-    fprintf(into, "\t%s = new PyBool(%s);\n", top(), name);
+
+    fprintf(into,
+		"    %s = new PyBool( %s );\n"
+		"\n",
+		top(), name
+	);
+
     pop();
     return true;
 }
@@ -924,19 +1085,24 @@ bool ClassEncodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
     }
 
     //this should be done better:
-    const char *none_marker = field->Attribute("none_marker");
-    if(none_marker != NULL) {
-        fprintf(into, " if(%s == %s) {\n"
-                      "     %s = new PyNone();\n"
-                      " } else {\n"
-                      "     %s = new PyInt(%s);\n"
-                      " }\n",
+    const char* none_marker = field->Attribute("none_marker");
+
+	const char* v = top();
+    if( none_marker != NULL )
+        fprintf(into,
+			"    if( %s == %s )\n"
+            "        %s = new PyNone;\n"
+            "    else\n",
             name, none_marker,
-                top(),
-                top(), name);
-    } else {
-        fprintf(into, "\t%s = new PyInt(%s);\n", top(), name);
-    }
+                v
+        );
+
+    fprintf(into,
+	    "    %s = new PyInt( %s );\n"
+		"\n",
+	    v, name
+	);
+
     pop();
     return true;
 }
@@ -947,20 +1113,26 @@ bool ClassEncodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
         _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
         return false;
     }
+
     //this should be done better:
-    const char *none_marker = field->Attribute("none_marker");
-    if(none_marker != NULL) {
-        fprintf(into, " if(%s == %s) {\n"
-                      "     %s = new PyNone();\n"
-                      " } else {\n"
-                      "     %s = new PyLong(%s);\n"
-                      " }\n",
+    const char* none_marker = field->Attribute("none_marker");
+
+	const char* v = top();
+    if( none_marker != NULL )
+        fprintf(into,
+		    "    if( %s == %s )\n"
+            "        %s = new PyNone;\n"
+            "    else\n",
             name, none_marker,
-                top(),
-                top(), name);
-    } else {
-        fprintf(into, "\t%s = new PyLong(%s);\n", top(), name);
-    }
+                v
+        );
+
+    fprintf(into,
+		"    %s = new PyLong( %s );\n"
+		"\n",
+		v, name
+	);
+
     pop();
     return true;
 }
@@ -972,26 +1144,31 @@ bool ClassEncodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
         return false;
     }
 
-    std::string type1_s = "";
-    const char *type1 = field->Attribute("type1");
-    if(type1 != NULL && std::string("true") == type1) {
-        type1_s = ", ";
-        type1_s += type1;
+	bool type1 = false;
+    const char* type1_str = field->Attribute("type1");
+	if( type1_str != NULL )
+		type1 = atobool( type1_str );
+
+    const char* none_marker = field->Attribute("none_marker");
+
+	const char* v = top();
+    if( none_marker != NULL )
+	{
+        fprintf(into,
+			"    if( %s == \"%s\" )\n"
+            "        %s = new PyNone;\n"
+            "    else\n",
+            name, none_marker,
+                v
+		);
     }
 
-    const char *none_marker = field->Attribute("none_marker");
-    if(none_marker != NULL) {
-        fprintf(into, " if(%s == \"%s\") {\n"
-                      "     %s = new PyNone();\n"
-                      " } else {\n"
-                      "     %s = new PyString(%s%s);\n"
-                      " }\n",
-            name, none_marker,
-                top(),
-                top(), name, type1_s.c_str());
-    } else {
-        fprintf(into, "\t%s = new PyString(%s%s);\n", top(), name, type1_s.c_str());
-    }
+    fprintf(into,
+		"    %s = new PyString( %s, %s );\n"
+		"\n",
+		v, name, type1 ? "true" : "false"
+	);
+
     pop();
     return true;
 }
@@ -1004,19 +1181,26 @@ bool ClassEncodeGenerator::Process_real(FILE *into, TiXmlElement *field) {
     }
 
     //this should be done better:
-    const char *none_marker = field->Attribute("none_marker");
-    if(none_marker != NULL) {
-        fprintf(into, " if(%s == %s) {\n"
-                      "     %s = new PyNone();\n"
-                      " } else {\n"
-                      "     %s = new PyFloat(%s);\n"
-                      " }\n",
+    const char* none_marker = field->Attribute("none_marker");
+
+	const char* v = top();
+    if( none_marker != NULL )
+	{
+        fprintf(into, 
+			"    if( %s == %s )\n"
+            "        %s = new PyNone;\n"
+            "    else\n",
             name, none_marker,
-                top(),
-                top(), name);
-    } else {
-        fprintf(into, "\t%s = new PyFloat(%s);\n", top(), name);
+                v
+        );
     }
+
+    fprintf(into,
+		"    %s = new PyFloat( %s );\n"
+		"\n",
+		v, name
+	);
+
     pop();
     return true;
 }

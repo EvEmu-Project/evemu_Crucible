@@ -36,16 +36,16 @@ public:
 	ClassEncodeGenerator();
 	
 protected:
-	bool mFast;
-	uint32 mItemNumber;
-	std::stack<std::string> mVariableStack;
-	const char* mName;
-	
 	const char* top() const { return mVariableStack.top().c_str(); }
 	void pop() { mVariableStack.pop(); }
 	void push(const char *v) { mVariableStack.push( v ); }
 	void clear() { while( !mVariableStack.empty() ) pop(); }
-	
+
+	bool mFast;
+	uint32 mItemNumber;
+	std::stack<std::string> mVariableStack;
+	const char* mName;
+
 	AllGenProcDecls;
 };
 

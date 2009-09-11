@@ -114,13 +114,17 @@ bool ClassDumpGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size() );\n"
+		"\n"
         "    std::map<std::string, PyRep*>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
-        "    for(; %s_cur != %s_end; %s_cur++) {\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+		"    {\n"
         "        _log( l_type, \"%%s Key: %%s\", pfx, %s_cur->first.c_str() );\n"
+		"\n"
         "        std::string n( pfx );\n"
         "        n += \"      \";\n"
+		"\n"
         "        %s_cur->second->Dump( l_type, n.c_str() );\n"
         "    }\n"
         "\n",
@@ -141,13 +145,17 @@ bool ClassDumpGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size() );\n"
+		"\n"
         "    std::map<int32, PyRep*>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
-        "    for(; %s_cur != %s_end; %s_cur++) {\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+		"    {\n"
         "        _log( l_type, \"%%s   Key: %%u\", pfx, %s_cur->first );\n"
+		"\n"
         "        std::string n( pfx );\n"
         "        n += \"        \";\n"
+		"\n"
         "        %s_cur->second->Dump( l_type, n.c_str() );\n"
         "    }\n"
         "\n",
@@ -192,6 +200,7 @@ bool ClassDumpGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
 
     fprintf(into,
         "    _log( l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size() );\n"
+		"\n"
         "    std::map<%s, %s>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
@@ -217,6 +226,7 @@ bool ClassDumpGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s: String list with %%lu entries\", pfx, %s.size() );\n"
+		"\n"
         "    std::vector<std::string>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
@@ -241,10 +251,11 @@ bool ClassDumpGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s: Integer list with %%lu entries\", pfx, %s.size() );\n"
+		"\n"
         "    std::vector<int32>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
-        "    for( int %s_index; = 0; %s_cur != %s_end; %s_cur++, %s_index++ )\n"
+        "    for( int %s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++ )\n"
         "        _log( l_type, \"%%s   [%%02d] %%d\", pfx, %s_index, *%s_cur );\n"
         "\n",
         name, name,
@@ -265,10 +276,11 @@ bool ClassDumpGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s: Integer list with %%lu entries\", pfx, %s.size() );\n"
+		"\n"
         "    std::vector<int64>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
-        "    for( int %s_index; = 0; %s_cur != %s_end; %s_cur++, %s_index++ )\n"
+        "    for( int %s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++ )\n"
         "        _log( l_type, \"%%s   [%%02d] \" I64d, pfx, %s_index, *%s_cur );\n"
         "\n",
         name, name,
@@ -289,8 +301,10 @@ bool ClassDumpGenerator::Process_element(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
+		"\n"
         "    std::string %s_n( pfx );\n"
         "    %s_n += \"    \";\n"
+		"\n"
         "    %s.Dump( l_type, %s_n.c_str() );\n"
 		"\n",
         name,
@@ -309,8 +323,10 @@ bool ClassDumpGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
+		"\n"
         "    std::string %s_n( pfx );\n"
         "    %s_n += \"    \";\n"
+		"\n"
         "    if( %s == NULL )\n"
 		"        _log( l_type, \"%%sERROR: NULL OBJECT!\", %s_n.c_str() );\n"
         "    else\n"
@@ -363,12 +379,14 @@ bool ClassDumpGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
 
 	fprintf( into,
 		"    _log( l_type, \"%%s%s (%s):\", pfx );\n"
+		"\n"
 		"    if( %s == NULL )\n"
 		"        _log( l_type, \"%%s	NULL\", pfx );\n"
 		"    else\n"
 		"    {\n"
 		"        std::string %s_n( pfx );\n"
 		"        %s_n += \"	\";\n"
+		"\n"
 		"        %s->Dump( l_type, %s_n.c_str() );\n"
 		"    }\n"
 		"\n",
@@ -391,8 +409,10 @@ bool ClassDumpGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s: \", pfx );\n"
+		"\n"
         "    std::string %s_n( pfx );\n"
         "    %s_n += \"    \";\n"
+		"\n"
         "    %s->Dump( l_type, %s_n.c_str() );\n"
 		"\n",
         name,
@@ -411,8 +431,10 @@ bool ClassDumpGenerator::Process_raw(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
+		"\n"
         "    std::string %s_n( pfx );\n"
         "    %s_n += \"    \";\n"
+		"\n"
         "    if( %s == NULL )\n"
         "        _log( l_type, \"%%sERROR: NULL REP!\", %s_n.c_str() );\n"
         "    else\n"
@@ -436,8 +458,10 @@ bool ClassDumpGenerator::Process_list(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s: \", pfx );\n"
+		"\n"
         "    std::string %s_n( pfx );\n"
         "    %s_n += \"    \";\n"
+		"\n"
         "    %s.Dump( l_type, %s_n.c_str() );\n"
 		"\n",
         name,
@@ -456,8 +480,10 @@ bool ClassDumpGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
+		"\n"
         "    std::string %s_n( pfx );\n"
         "    %s_n += \"    \";\n"
+		"\n"
         "    if( %s == NULL )\n"
         "        _log( l_type, \"%%sERROR: NULL TUPLE!\", %s_n.c_str() );\n"
         "    else\n"
@@ -482,8 +508,10 @@ bool ClassDumpGenerator::Process_dict(FILE *into, TiXmlElement *field) {
     }
     fprintf(into,
         "    _log( l_type, \"%%s%s: \", pfx );\n"
+		"\n"
         "    std::string %s_n( pfx );\n"
         "    %s_n += \"    \";\n"
+		"\n"
         "    %s.Dump( l_type, %s_n.c_str() );\n"
 		"\n",
         name,
