@@ -248,11 +248,13 @@ size_t PyMarshalStringTable::LookupIndex(const std::string &str)
 size_t PyMarshalStringTable::LookupIndex(const char* str)
 {
     uint32 hashValue = hash( str );
-    std::tr1::unordered_map<uint32, uint8>::const_iterator Itr = mStringTable.find( hashValue );
-    if( Itr != mStringTable.end() )
+
+    std::tr1::unordered_map<uint32, uint8>::const_iterator res = mStringTable.find( hashValue );
+    if( res != mStringTable.end() )
     {
-        return Itr->second + 1;
+        return ( res->second + 1 );
     }
+
     return STRING_TABLE_ERROR;
 }
 

@@ -15,6 +15,9 @@ evetool_LDADD = \
 	-lpthread \
 	-lreadline
 
+evetool_LDFLAGS = \
+	@MYSQL_LDFLAGS@
+
 stuff_extract_SOURCES = \
 	stuff_extract.cpp
 

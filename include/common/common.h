@@ -212,6 +212,8 @@ using namespace std;
 #  ifndef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
 #    define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP {0, 0, 0, PTHREAD_MUTEX_RECURSIVE_NP, __LOCK_INITIALIZER}
 #  endif
+#  define _finite __finite
+#  define _isnan __isnan
 #endif
 
 

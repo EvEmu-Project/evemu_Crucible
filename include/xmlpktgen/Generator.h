@@ -42,8 +42,8 @@ public:
 	virtual ~Generator() {}
 
     bool Generate( FILE* into, TiXmlElement* root )
-	{
-		std::map<std::string, GenProc>::iterator res = mGenProcs.find( root->Value() );
+    {
+        typename std::map<std::string, GenProc>::iterator res = mGenProcs.find( root->Value() );
         if( res == mGenProcs.end() )
 		{
             _log(COMMON__ERROR, "Unexpected field type '%s' on line %d", root->Value(), root->Row());
@@ -57,39 +57,39 @@ public:
     }
 
 protected:
-	bool Recurse( FILE* into, TiXmlElement* root, uint32 max = 0 )
-	{
+    bool Recurse( FILE* into, TiXmlElement* root, uint32 max = 0 )
+    {
         TiXmlNode* field = NULL;
-		uint32 count = 0;
+        uint32 count = 0;
 
-        while( field = root->IterateChildren( field ) )
-		{
+        while( ( field = root->IterateChildren( field ) ) )
+        {
             //pass through comments.
             if( field->Type() == TiXmlNode::COMMENT )
-			{
+            {
                 TiXmlComment* comm = field->ToComment();
 
                 fprintf( into, "\t/* %s */\n", comm->Value() );
             }
-			//handle elements
-			else if( field->Type() == TiXmlNode::ELEMENT )
-			{
-				if( max > 0 && count > max )
-				{
-					_log(COMMON__ERROR, "Element at line %d has too many children elements, at most %u expected.", root->Row(), max);
-					return false;
-				}
-				++count;
+            //handle elements
+            else if( field->Type() == TiXmlNode::ELEMENT )
+            {
+                if( max > 0 && count > max )
+                {
+                    _log(COMMON__ERROR, "Element at line %d has too many children elements, at most %u expected.", root->Row(), max);
+                    return false;
+                }
+                ++count;
 
-				TiXmlElement* elem = field->ToElement();
+                TiXmlElement* elem = field->ToElement();
 
-				if( !Generate( into, elem ) )
-					return false;
-			}
+                if( !Generate( into, elem ) )
+                    return false;
+            }
         }
 
         return true;
-	}
+    }
 
 	void RegisterGenProc( const char* name, const GenProc& proc )
 	{

@@ -190,8 +190,6 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
     end = sizeMap.lower_bound( 1 );
     for(; cur != end; cur++)
     {
-        uint8 len = (cur->first >> 3);
-
 /* util macro's for faster buffer setting
  * TODO this needs to be reworked into a more generic sollution.
  */
@@ -352,7 +350,7 @@ void MarshalVisitor::VisitString(const PyString *rep)
         {
             //string is long enough for a string table entry, check it.
             size_t sid = sPyStringTable.LookupIndex(rep->content());
-            if(sid != -1)
+            if(sid != STRING_TABLE_ERROR)
             {
                 PutByte(Op_PyStringTableItem);
                 PutByte(sid);

@@ -220,7 +220,7 @@ bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
     TiXmlNode* i = NULL;
     uint32 count = 0;
     char varname[32];
-    while( i = field->IterateChildren( i ) )
+    while( ( i = field->IterateChildren( i ) ) )
 	{
         if(i->Type() == TiXmlNode::COMMENT) {
             TiXmlComment *com = i->ToComment();
@@ -878,7 +878,7 @@ bool ClassEncodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 
     bool optional = false;
     const char* optional_str = field->Attribute("optional");
-    if( optional != NULL )
+    if( optional_str != NULL )
         optional = atobool( optional_str );
 
 	const char* v = top();

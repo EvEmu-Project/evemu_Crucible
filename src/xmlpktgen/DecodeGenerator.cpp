@@ -34,8 +34,8 @@
 #endif
 
 ClassDecodeGenerator::ClassDecodeGenerator()
-: mItemNumber( 0 ),
-  mName( NULL )
+: mName( NULL ),
+  mItemNumber( 0 )
 {
 	AllGenProcRegs(ClassDecodeGenerator);
 }

@@ -28,7 +28,8 @@
 
 #include "PyRep.h"
 
-#define STRING_TABLE_ERROR -1
+/* Since returned index is always > 0, we may use 0 as error signal. */
+#define STRING_TABLE_ERROR 0
 
 /* we made up this list so we have efficient string communication with the client */
 extern const char *StringTable[];

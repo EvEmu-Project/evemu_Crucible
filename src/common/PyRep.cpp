@@ -226,7 +226,7 @@ void PyFloat::visit( PyVisitorLvl *v, int64 lvl ) const
 }
 
 #define LONG_MAX      2147483647L   /* maximum (signed) long value */
-#define Py_IS_INFINITY(X) (!_finite(X) && !_isnan(X))
+#define Py_IS_INFINITY( X ) ( !_finite( X ) && !_isnan( X ) )
 
 int32 PyFloat::hash() const
 {
@@ -397,7 +397,7 @@ PyBuffer::~PyBuffer()
 }
 
 void PyBuffer::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sData buffer of length %u\n", pfx, m_length);
+    fprintf(into, "%sData buffer of length %lu\n", pfx, m_length);
 
     //kinda hackish:
     if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
@@ -451,7 +451,6 @@ int32 PyBuffer::hash() const
         return m_hash_cache;
 
     void *ptr;
-    size_t size;
     register size_t len;
     register unsigned char *p;
     register long x;
@@ -1526,7 +1525,7 @@ PySubStream& PySubStream::operator=(const PySubStream &oth)
 /* PyRep ChecksumedStream Class                                         */
 /************************************************************************/
 PyChecksumedStream::PyChecksumedStream( PyRep* t, uint32 sum ) : PyRep( PyRep::PyTypeChecksumedStream ), stream( t ), checksum( sum ) {}
-PyChecksumedStream::PyChecksumedStream( const PyChecksumedStream& oth ) : PyRep( PyRep::PyTypeChecksumedStream ), checksum( oth.checksum ), stream( oth.stream->Clone() ) {}
+PyChecksumedStream::PyChecksumedStream( const PyChecksumedStream& oth ) : PyRep( PyRep::PyTypeChecksumedStream ), stream( oth.stream->Clone() ), checksum( oth.checksum ) {}
 PyChecksumedStream::~PyChecksumedStream()
 {
     PyDecRef( stream );
