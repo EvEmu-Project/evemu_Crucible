@@ -61,7 +61,7 @@
 
 PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
 {
-    /* check for valid colm */
+    /* check for valid column */
     if(row.IsNull(column_index))
     {
         return new PyNone();
@@ -69,17 +69,18 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
 
     switch(row.ColumnType(column_index))
     {
-    case DBQueryResult::Real:
+    case DBTYPE_R8:
+    case DBTYPE_R4:
         return new PyFloat(row.GetDouble(column_index));
-    case DBQueryResult::Int8:
-    case DBQueryResult::Int16:
-    case DBQueryResult::Int32:
+    case DBTYPE_I1:
+    case DBTYPE_I2:
+    case DBTYPE_I4:
         return new PyInt(row.GetInt(column_index));
-    case DBQueryResult::Int64:
+    case DBTYPE_I8:
             return new PyLong(row.GetInt64(column_index));
-    case DBQueryResult::Binary:
+    case DBTYPE_BYTES:
         return new PyBuffer((const uint8 *) row.GetText(column_index), row.GetColumnLength(column_index));
-    case DBQueryResult::Bool:
+    case DBTYPE_BOOL:
         {
             int field_data = row.GetInt(column_index);
             // safe thingy to make sure we don't fuck things up in the db
@@ -87,12 +88,14 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
             return new PyBool( field_data != 0 );
         }
 
-    case DBQueryResult::DateTime:
-    case DBQueryResult::String:
+    case DBTYPE_STR:
+        return new PyString(row.GetText(column_index));
     default:
+        sLog.Error("DBColumnToPyRep", "invalid column type");
+
+        /* hack... MAJOR... */
         return new PyString(row.GetText(column_index));
     }
-    //unreachable:
     return new PyNone();
 }
 
@@ -399,23 +402,6 @@ void DBResultToIntIntlistDict( DBQueryResult &result, std::map<int32, PyRep *> &
     }
 }
 
-DBTYPE GetPackedColumnType( DBQueryResult::ColType colType )
-{
-    switch( colType )
-    {
-        case DBQueryResult::Int8:       return DBTYPE_I1;
-        case DBQueryResult::Int16:      return DBTYPE_I2;
-        case DBQueryResult::Int32:      return DBTYPE_I4;
-        case DBQueryResult::Int64:      return DBTYPE_I8;
-        case DBQueryResult::Real:       return DBTYPE_R8;
-        case DBQueryResult::DateTime:   return DBTYPE_FILETIME;
-        case DBQueryResult::String:     return DBTYPE_STR;
-        case DBQueryResult::Binary:     return DBTYPE_BYTES;
-        case DBQueryResult::Bool:       return DBTYPE_BOOL;
-        default:                        return DBTYPE_STR; //default to string
-    }
-}
-
 void FillPackedRow( const DBResultRow &row, PyPackedRow &into )
 {
     uint32 cc = row.ColumnCount();
@@ -423,9 +409,9 @@ void FillPackedRow( const DBResultRow &row, PyPackedRow &into )
         into.SetField( i, DBColumnToPyRep( row, i ) );
 }
 
-PyPackedRow *CreatePackedRow( const DBResultRow &row, DBRowDescriptor* header, bool headerOwner )
+PyPackedRow *CreatePackedRow( const DBResultRow &row, DBRowDescriptor* header )
 {
-    PyPackedRow *res = new PyPackedRow( header, headerOwner );
+    PyPackedRow *res = new PyPackedRow( header );
 	FillPackedRow( row, *res );
     return res;
 }
@@ -438,10 +424,12 @@ PyList *DBResultToPackedRowList( DBQueryResult &result )
 
     DBResultRow row;
     for( uint32 i = 0; result.GetRow( row ); i++ )
-        //this is piece of crap due to header cloning
-        res->SetItem( i, CreatePackedRow( row, new DBRowDescriptor( *header ), true ) );
+    {
+        res->SetItem( i, CreatePackedRow( row, header ) );
+        PyIncRef( header );
+    }
 
-    SafeDelete( header );
+    PyDecRef( header );
     return res;
 }
 
@@ -456,7 +444,10 @@ PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
 	DBResultRow row;
 	uint32 i = 0;
     while( result.GetRow(row) )
-        list->SetItem( i++, CreatePackedRow( row, new DBRowDescriptor( *header ), true ) );
+    {
+        list->SetItem( i++, CreatePackedRow( row, header ) );
+        PyIncRef( header );
+    }
 
     PyTuple * root = new PyTuple(2);
     root->SetItem( 0, header );
@@ -510,5 +501,7 @@ PyObjectEx *DBResultToCRowset( DBQueryResult &result )
 
 PyPackedRow *DBRowToPackedRow( DBResultRow &row )
 {
-    return CreatePackedRow( row, new DBRowDescriptor( row ), true );
+    DBRowDescriptor *header = new DBRowDescriptor( row );
+
+    return CreatePackedRow( row, header );
 }

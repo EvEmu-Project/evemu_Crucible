@@ -160,7 +160,7 @@ void PyDumpVisitor::VisitPackedRow(const PyPackedRow *rep, int64 lvl )
     uint32 cc = rep->header().ColumnCount();
 
 	_print( lvl, "Packed Row" );
-	_print( lvl, "  column_count=%u header_owner=%s", cc, rep->isHeaderOwner() ? "yes" : "no" ); 
+	_print( lvl, "  column_count=%u", cc ); 
 
 	PyPackedRow::const_iterator cur, end;
 	cur = rep->begin();

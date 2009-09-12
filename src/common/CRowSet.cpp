@@ -44,7 +44,10 @@ PyPackedRow &CRowSet::GetRow(uint32 index) const
 
 PyPackedRow &CRowSet::NewRow()
 {
-	PyPackedRow *row = new PyPackedRow( new DBRowDescriptor( _GetRowDesc() ), true );
+    DBRowDescriptor & rowDesc = _GetRowDesc();
+    PyPackedRow *row = new PyPackedRow( &rowDesc );
+    PyIncRef( &rowDesc );
+
 	list_data.AddItem( row );
 	return *row;
 }
@@ -88,6 +91,3 @@ PyDict *CRowSet::_CreateKeywords(DBRowDescriptor *rowDesc)
 
 	return keywords;
 }
-
-
-

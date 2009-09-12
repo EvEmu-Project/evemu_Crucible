@@ -1252,24 +1252,22 @@ PyTuple *PyObjectEx_Type2::_CreateHeader(PyTuple *args, PyDict *keywords)
 /************************************************************************/
 /* PyPackedRow                                                          */
 /************************************************************************/
-PyPackedRow::PyPackedRow( DBRowDescriptor* header, bool header_owner ) : PyRep( PyRep::PyTypePackedRow ), mHeader( header ), mHeaderOwner( header_owner ), mFields( header->ColumnCount() ) {}
-PyPackedRow::PyPackedRow( const PyPackedRow &oth ) : PyRep( PyRep::PyTypePackedRow ),
- mHeader( oth.isHeaderOwner() ? new DBRowDescriptor( oth.header() ) : &oth.header() ), mHeaderOwner( oth.isHeaderOwner() )
+PyPackedRow::PyPackedRow( DBRowDescriptor* header ) : PyRep( PyRep::PyTypePackedRow ), mHeader( header ), mFields( header->ColumnCount() ) {}
+PyPackedRow::PyPackedRow( const PyPackedRow &oth ) : PyRep( PyRep::PyTypePackedRow ), mHeader( &oth.header() )
 {
-	// Use assigment operator
+	// Use assignment operator
 	*this = oth;
 }
 
 PyPackedRow::~PyPackedRow()
 {
-    if( isHeaderOwner() )
-        PyDecRef( mHeader );
+    PyDecRef( mHeader );
 }
 
 void PyPackedRow::Dump(FILE *into, const char *pfx) const
 {
     fprintf( into, "%sPacked Row\n", pfx );
-    fprintf( into, "%s column_count=%lu header_owner=%s\n", pfx, mFields.size(), isHeaderOwner() ? "yes" : "no" );
+    fprintf( into, "%s column_count=%lu\n", pfx, mFields.size() );
 
     const_iterator cur, end;
     cur = this->begin();
@@ -1291,7 +1289,7 @@ void PyPackedRow::Dump(FILE *into, const char *pfx) const
 void PyPackedRow::Dump(LogType ltype, const char *pfx) const
 {
     _log( ltype, "%sPacked Row", pfx );
-    _log( ltype, "%s column_count=%lu header_owner=%s", pfx, mFields.size(), isHeaderOwner() ? "yes" : "no" );
+    _log( ltype, "%s column_count=%lu", pfx, mFields.size() );
 
     const_iterator cur, end;
     cur = this->begin();

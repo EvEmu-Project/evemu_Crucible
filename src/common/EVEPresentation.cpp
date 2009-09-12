@@ -61,7 +61,7 @@ EVEPresentation::~EVEPresentation() {
 }
 
 bool EVEPresentation::Connected() const {
-    return(net->Connected());
+    return net->Connected();
 }
 
 void EVEPresentation::Disconnect() {
@@ -101,7 +101,6 @@ PyPacket *EVEPresentation::PopPacket() {
         return(PopPacket());
     }
 }
-
 
 void EVEPresentation::QueuePacket(PyPacket *p) {
     if(p == NULL)
@@ -151,8 +150,8 @@ void EVEPresentation::_NetQueuePacket(EVENetPacket **p) {
         return;
     }
 
-    _log(NET__PRES_RAW_OUT, "Outbound Raw Packet:");
-    _hex(NET__PRES_RAW_OUT, (*p)->data, (*p)->length);
+    //_log(NET__PRES_RAW_OUT, "Outbound Raw Packet:");
+    //_hex(NET__PRES_RAW_OUT, (*p)->data, (*p)->length);
 
     net->FastQueuePacket(p);
 }
@@ -254,7 +253,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
                 _QueueRep(tmp);
                 delete tmp;
             } else {
-                //im sure cr.keyVersion can specify either CryptoAPI or PyCrypto, but its all binary so im not sure how.
+                //I'm sure cr.keyVersion can specify either CryptoAPI or PyCrypto, but its all binary so im not sure how.
                 PyRep *params = cr.keyParams.Clone();
                 CryptoAPIRequestParams car;
                 if(!car.Decode(&params)) {
@@ -346,7 +345,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
         }   break;
     }
     //recurse, just in case the next packet is here already.
-    return(PopPacket());
+    return PopPacket();
 }
 
 void EVEPresentation::_SendHandshake() {
@@ -371,14 +370,6 @@ std::string EVEPresentation::GetConnectedAddress() const {
     struct in_addr  in;
     in.s_addr = net->GetrIP();
     snprintf(buf, sizeof(buf), "%s:%d", inet_ntoa(in), net->GetrPort());
-    return(buf);
+    return buf;
     //return net->GetrIP();
 }
-
-
-
-
-
-
-
-

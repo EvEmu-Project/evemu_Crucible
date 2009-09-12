@@ -63,14 +63,6 @@ void DBResultToIntIntDict(DBQueryResult &result, std::map<int32, int32> &into);
 void DBResultToUIntUIntDict(DBQueryResult &result, std::map<uint32, uint32> &into);
 void DBResultToIntIntlistDict(DBQueryResult &result, std::map<int32, PyRep *> &into);
 
-/**
- * This routine returns DBTYPE based on DBQueryResult::ColType.
- *
- * @param[in] colType DBQueryResult::ColType.
- * @return DBTYPE.
- */
-DBTYPE GetPackedColumnType(DBQueryResult::ColType colType);
-
 PyList *DBResultToPackedRowList(DBQueryResult &result);
 PyTuple *DBResultToPackedRowListTuple(DBQueryResult &result);
 PyObjectEx *DBResultToCRowset(DBQueryResult &result);

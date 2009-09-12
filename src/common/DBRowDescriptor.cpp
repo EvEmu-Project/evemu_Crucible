@@ -37,7 +37,7 @@ DBRowDescriptor::DBRowDescriptor(const DBQueryResult &res)
 	uint32 cc = res.ColumnCount();
 
 	for( uint32 i = 0; i < cc; i++ )
-		AddColumn( res.ColumnName( i ), GetPackedColumnType( res.ColumnType( i ) ) );
+		AddColumn( res.ColumnName( i ), res.ColumnType( i ) );
 }
 
 DBRowDescriptor::DBRowDescriptor(const DBResultRow &row)
@@ -46,7 +46,7 @@ DBRowDescriptor::DBRowDescriptor(const DBResultRow &row)
 	uint32 cc = row.ColumnCount();
 
 	for( uint32 i = 0; i < cc; i++ )
-		AddColumn( row.ColumnName( i ), GetPackedColumnType( row.ColumnType( i ) ) );
+		AddColumn( row.ColumnName( i ), row.ColumnType( i ) );
 }
 
 uint32 DBRowDescriptor::ColumnCount() const
@@ -112,5 +112,3 @@ PyTuple *DBRowDescriptor::_CreateArgs()
 
 	return args;
 }
-
-

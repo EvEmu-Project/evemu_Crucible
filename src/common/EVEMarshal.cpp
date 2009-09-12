@@ -206,7 +206,7 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
 #define setdouble(x) setchunk(double, x)
 
         /* note the assert are disabled because of performance flows */
-        PyRep* r = rep->GetField( cur->second );
+        PyRep *r = rep->GetField( cur->second );
         if( r != NULL )
         {
             switch( header.GetColumnType( cur->second ) )
@@ -288,7 +288,8 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
         if( off == 0 )
             unpacked.push_back( 0 );
 
-		PyRep* r = rep->GetField( cur->second );
+        PyRep *r = rep->GetField( cur->second );
+
         if( r != NULL )
             if( r-> IsBool() )
                 unpacked.back() |= (r->AsBool().value << off);
@@ -318,7 +319,7 @@ void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
     end = sizeMap.end();
     for(; cur != end; cur++)
     {
-		PyRep* r = rep->GetField( cur->second );
+        PyRep *r = rep->GetField( cur->second );
         if( r == NULL )
             r = new PyNone;
 

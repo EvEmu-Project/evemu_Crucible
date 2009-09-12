@@ -40,36 +40,34 @@ static const uint32 EVE_TCP_SERVER_TIMEOUT_MS = 600000;
 
 class EVETCPConnection : public TCPConnection {
 public:
-	
 	EVETCPConnection();
 	EVETCPConnection(int32 ID, EVETCPServer* iServer, SOCKET iSock, int32 irIP, int16 irPort);
 	virtual ~EVETCPConnection();
-	
-	
+
 	//outgoing...
 	virtual void	QueuePacket(EVENetPacket *tnps);
 	virtual void	FastQueuePacket(EVENetPacket **tnps);
-	
+
 	//incoming
 	EVENetPacket*	PopPacket();
-	
+
 protected:
 	void	OutQueuePush(EVENetPacket* pack);
-	
+
 	virtual bool RecvData(char* errbuf = 0);
-	
+
 	//overload incoming
 	virtual bool ProcessReceivedData(char* errbuf = 0);
-	
+
 	virtual void ClearBuffers();
-	
+
 	EVETCPServer*		Server;
-	
+
 	//input queue (received from network)
 	Mutex MInQueue;
 	Timer timeout_timer;
 	StreamPacketizer InQueue;
-	
+
 	//output queue... (being sent out)
 	MyQueue<EVENetPacket> OutQueue;
 	Mutex	MOutQueueLock;

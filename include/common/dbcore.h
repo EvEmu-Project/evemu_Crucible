@@ -36,7 +36,7 @@
 
 #include <string>
 #include <vector>
-
+#include "packet_types.h"
 class DBcore;
 
 class DBerror {
@@ -61,29 +61,15 @@ protected:
 class DBResultRow;
 class DBQueryResult {
 public:
-    //error during the query, if RunQuery returned false.
+    /* error during the query, if RunQuery returned false. */
     DBerror error;
 
     DBQueryResult();
     ~DBQueryResult();
 
-    typedef enum {
-        Int8,
-        Int16,
-        Int32,
-        Int64,
-        Real,
-        DateTime,
-        String,
-        Binary,
-        Bool
-    } ColType;
-
     uint32 ColumnCount() const { return(m_col_count); }
     const char *ColumnName(uint32 column) const;
-    ColType ColumnType(uint32 column) const;
-
-
+    DBTYPE ColumnType(uint32 column) const;
 
     void Reset();
     bool GetRow(DBResultRow &into);
@@ -119,7 +105,7 @@ public:
     //proxy methods up to our query result:
     uint32 ColumnCount() const;
     const char *ColumnName(uint32 column) const;
-    DBQueryResult::ColType ColumnType(uint32 column) const;
+    DBTYPE ColumnType(uint32 column) const;
 
 protected:
     //for DBQueryResult

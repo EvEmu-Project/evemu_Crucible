@@ -47,8 +47,8 @@
 using std::string;
 
 #ifndef WIN32
-#define INT_MAX 0x7FFFFFFF
-#endif
+#  define INT_MAX 0x7FFFFFFF
+#endif//WIN32
 
 class UnmarshalState {
 public:
@@ -968,7 +968,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
 
 		// This is only an assumption, though PyPackedRow does not
 		// support anything else ....
-        PyPackedRow *row = new PyPackedRow( (DBRowDescriptor *)header_element, true );
+        PyPackedRow *row = new PyPackedRow( (DBRowDescriptor *)header_element );
 
         if(len < 1) {
             _log(NET__UNMARSHAL_ERROR, "Not enough data for packed length (missing length and data)\n");

@@ -25,6 +25,7 @@
 
 #include "../common/common.h"
 
+#include "packet_types.h"
 #include "dbcore.h"
 
 #include <errmsg.h>
@@ -36,6 +37,7 @@
 #include "MiscFunctions.h"
 #include "misc.h"
 #include "LogNew.h"
+#include <assert.h>
 
 //#define COLUMN_BOUNDS_CHECKING
 
@@ -327,7 +329,9 @@ bool DBcore::Open_locked(int32* errnum, char* errbuf) {
     return true;
 }
 
-
+/************************************************************************/
+/* DBerror                                                              */
+/************************************************************************/
 DBerror::DBerror() {
     ClearError();
 }
@@ -342,6 +346,9 @@ void DBerror::ClearError() {
     m_errno = 0;
 }
 
+/************************************************************************/
+/* DBQueryResult                                                        */
+/************************************************************************/
 DBQueryResult::DBQueryResult()
 : m_col_count(0),
   m_res(NULL),
@@ -380,64 +387,76 @@ const char *DBQueryResult::ColumnName(uint32 column) const {
     return m_fields[column]->name;
 }
 
-DBQueryResult::ColType DBQueryResult::ColumnType(uint32 column) const {
+/* mysql to DBTYPE convention table */
+static const DBTYPE DBTYPE_MYSQL_TABLE[] =
+{
+    DBTYPE_I4,      //[0]MYSQL_TYPE_DECIMAL             /* assumption that this variable will never be bigger than 32 bits... if it will then we need to change it to I8 */
+    DBTYPE_I1,      //[1]MYSQL_TYPE_TINY
+    DBTYPE_I2,      //[2]MYSQL_TYPE_SHORT
+    DBTYPE_I4,      //[3]MYSQL_TYPE_LONG
+    DBTYPE_R4,      //[4]MYSQL_TYPE_FLOAT
+    DBTYPE_R8,      //[5]MYSQL_TYPE_DOUBLE
+    DBTYPE_STR,     //[6]MYSQL_TYPE_NULL               /* assumption that this is correct */
+    DBTYPE_FILETIME,//[7]MYSQL_TYPE_TIMESTAMP
+    DBTYPE_I8,      //[8]MYSQL_TYPE_LONGLONG
+    DBTYPE_I4,      //[9]MYSQL_TYPE_INT24
+    DBTYPE_FILETIME,//[10]MYSQL_TYPE_DATE
+    DBTYPE_FILETIME,//[11]MYSQL_TYPE_TIME
+    DBTYPE_FILETIME,//[12]MYSQL_TYPE_DATETIME
+    DBTYPE_FILETIME,//[13]MYSQL_TYPE_YEAR
+    DBTYPE_FILETIME,//[14]MYSQL_TYPE_NEWDATE
+    DBTYPE_STR,     //[15]MYSQL_TYPE_VARCHAR
+    DBTYPE_BOOL,    //[16]MYSQL_TYPE_BIT
+    DBTYPE_STR,     //[17]MYSQL_TYPE_NEWDECIMAL=246     /* assumption and prob wrong */
+    DBTYPE_STR,     //[18]MYSQL_TYPE_ENUM=247
+    DBTYPE_STR,     //[19]MYSQL_TYPE_SET=248            /* unhandled */
+    DBTYPE_STR,     //[20]MYSQL_TYPE_TINY_BLOB=249
+    DBTYPE_STR,     //[21]MYSQL_TYPE_MEDIUM_BLOB=250
+    DBTYPE_STR,     //[22]MYSQL_TYPE_LONG_BLOB=251
+    DBTYPE_STR,     //[23]MYSQL_TYPE_BLOB=252
+    DBTYPE_STR,     //[24]MYSQL_TYPE_VAR_STRING=253
+    DBTYPE_STR,     //[25]MYSQL_TYPE_STRING=254
+    DBTYPE_STR,     //[26]MYSQL_TYPE_GEOMETRY=255       /* unhandled */
+};
+
+DBTYPE DBQueryResult::ColumnType(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {
         sLog.Error("DBCore Query Result", "ColumnType: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
-        return String;     //nothing better to do...
+        return DBTYPE_STR;     //nothing better to do...
     }
 #endif
 
-    switch(m_fields[column]->type) {
-    //! TODO: not handled.
-    case MYSQL_TYPE_VARCHAR:
-    case MYSQL_TYPE_NEWDECIMAL:
-        return String;
-    case FIELD_TYPE_TINY:
-        // Disabled because it causes wrong marshal behavior.
-        //if (m_fields[column]->length == 1)
-        //    return Bool;
-        return Int8;
-    case FIELD_TYPE_SHORT:
-        return Int16;
-    case FIELD_TYPE_INT24:  //3-byte medium int
-    case FIELD_TYPE_LONG:
-        return Int32;
-    case FIELD_TYPE_LONGLONG:
-        return Int64;
-    case FIELD_TYPE_FLOAT:
-    case FIELD_TYPE_DOUBLE:
-        return Real;
+    uint32 columnType = m_fields[column]->type;
 
-        /* capt: this one is very strange */
-    case FIELD_TYPE_DECIMAL:    //fixed-point number
-        return Real;
+    /* debug checks */
+    /*assert(
+        columnType != MYSQL_TYPE_NEWDECIMAL &&
+        columnType != MYSQL_TYPE_NULL &&
+        columnType != MYSQL_TYPE_BIT &&
+        columnType != MYSQL_TYPE_ENUM &&
+        columnType != MYSQL_TYPE_SET &&
+        columnType != MYSQL_TYPE_TINY_BLOB &&
+        columnType != MYSQL_TYPE_MEDIUM_BLOB &&
+        columnType != MYSQL_TYPE_LONG_BLOB &&
+        columnType != MYSQL_TYPE_BLOB &&
+        columnType != MYSQL_TYPE_SET &&
+        columnType != MYSQL_TYPE_GEOMETRY );*/
 
-    case FIELD_TYPE_TIMESTAMP:
-    case FIELD_TYPE_DATE:
-    case FIELD_TYPE_TIME:
-    case FIELD_TYPE_DATETIME:
-    case FIELD_TYPE_YEAR:
-    case FIELD_TYPE_NEWDATE:
-        return DateTime;
-    case FIELD_TYPE_TINY_BLOB:
-    case FIELD_TYPE_MEDIUM_BLOB:
-    case FIELD_TYPE_LONG_BLOB:
-    case FIELD_TYPE_BLOB:
-        return Binary;
-    case FIELD_TYPE_NULL:
-    case FIELD_TYPE_SET:        //unhandled
-    case FIELD_TYPE_GEOMETRY:   //unhandled
-    case FIELD_TYPE_VAR_STRING:
-    case FIELD_TYPE_STRING:
-    case FIELD_TYPE_ENUM:
-        return String;
-    case FIELD_TYPE_BIT:
-        return Bool;
-    }
+    /* TODO: handle unsigned types ( assigned to Captnoord )    
+    */
 
-    sLog.Error("DBCore Query Result", "unable to find proper column type conversion: 0x%X", m_fields[column]->type);
-    return String;
+    /* tricky part of this system and different compared to other db systems */
+    if ( columnType > 245 )
+
+        /* tricky needs to be checked */
+        columnType-=229; // MYSQL_TYPE_NEWDECIMAL - MYSQL_TYPE_BIT
+
+    /* column type lookup */
+    DBTYPE type = DBTYPE_MYSQL_TABLE[ columnType ];
+
+    /* possible add tracing here... */
+    return type;
 }
 
 void DBQueryResult::SetResult(MYSQL_RES **res, uint32 colcount)
@@ -492,10 +511,13 @@ const char *DBResultRow::ColumnName(uint32 column) const {
     return m_result->ColumnName(column);
 }
 
-DBQueryResult::ColType DBResultRow::ColumnType(uint32 column) const {
+DBTYPE DBResultRow::ColumnType(uint32 column) const {
     if(m_result == NULL)
-        return(DBQueryResult::String);
-    return(m_result->ColumnType(column));
+    {
+        sLog.Error("DBCore DBQueryResult", "unable to get ColumnType");
+        return DBTYPE_STR;
+    }
+    return m_result->ColumnType(column);
 }
 
 uint32 DBResultRow::GetColumnLength(uint32 column) const {

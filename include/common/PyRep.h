@@ -33,6 +33,15 @@
 #include "packet_types.h"
 #include "PyVisitor.h"
 
+/* note: python object behavior tracing.
+ */
+//#define PY_OBJ_TRACE
+#ifdef PY_OBJ_TRACE
+#  define _py_obj_trace(str, ...) printf(str, __VA_ARGS__)
+#else
+#  define _py_obj_trace(str, ...) do {} while(0)
+#endif//PY_OBJ_TRACE
+
 /* note: this will decrease memory use with 50% but increase load time with 50%
  * enabling this would have to wait until references work properly. Or when
  * you operate the server using the cache store system this can also be enabled.
@@ -181,16 +190,16 @@ public:
     void IncRef()
     {
         mRefcnt++;
-        //printf("PyRep:0x%p | ref:%u inc\n", this, mRefcnt);
+        _py_obj_trace("PyRep:0x%p | ref:%u inc\n", this, mRefcnt);
     }
 
     void DecRef()
     {
         mRefcnt--;
-        //printf("PyRep:0x%p | ref:%u dec\n", this, mRefcnt);
+        _py_obj_trace("PyRep:0x%p | ref:%u dec\n", this, mRefcnt);
         if (mRefcnt <= 0)
         {
-            //printf("PyRep:0x%p | deleted\n", this);
+            _py_obj_trace("PyRep:0x%p | deleted\n", this);
             delete this;
         }
     }
@@ -526,7 +535,7 @@ public:
 /**
  * @brief Python list.
  *
- * Python's list, compeletely mutable.
+ * Python's list, completely mutable.
  */
 class PyList : public PyRep
 {
@@ -782,7 +791,7 @@ public:
 	typedef storage_type::iterator          iterator;
 	typedef storage_type::const_iterator    const_iterator;
 
-    PyPackedRow(DBRowDescriptor* header, bool header_owner);
+    PyPackedRow(DBRowDescriptor* header);
 	PyPackedRow(const PyPackedRow& oth);
     virtual ~PyPackedRow();
 
@@ -794,7 +803,6 @@ public:
 
     // Header:
     DBRowDescriptor& header() const { return *mHeader; }
-    bool isHeaderOwner() const { return mHeaderOwner; }
 
     // Fields:
 	const_iterator begin() const { return mFields.begin(); }
@@ -819,7 +827,6 @@ public:
 
 protected:
     DBRowDescriptor* const mHeader;
-    const bool mHeaderOwner;
 
     storage_type mFields;
 };
@@ -892,7 +899,7 @@ public:
     const uint32 checksum;
 };
 
-/* note: this will decrease mem use with 50% but increase load time with 50%
+/* note: this will decrease memory use with 50% but increase load time with 50%
  * enabling this would have to wait until references work properly.
  */
 //#pragma pack(pop)
