@@ -123,9 +123,11 @@ bool ClassEncodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
 bool ClassEncodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) {
     //first, we need to know how many elements this tuple has:
     TiXmlNode* i = NULL;
+
     uint32 count = 0;
-    while( (i = field->IterateChildren( i )) ) {
-        if(i->Type() == TiXmlNode::ELEMENT)
+    while( ( i = field->IterateChildren( i ) ) )
+    {
+        if( i->Type() == TiXmlNode::ELEMENT )
             count++;
     }
 
@@ -271,9 +273,9 @@ bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
 			);
         else
             fprintf(into,
-			     "     %s->SetItemString(\n"
-                 "          \"%s\", %s\n"
-                 "     );\n"
+			     "    %s->SetItemString(\n"
+                 "        \"%s\", %s\n"
+                 "    );\n"
 				 "\n",
 				 dictname,
 				 key, varname
@@ -281,7 +283,7 @@ bool ClassEncodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field) {
     }
 
     fprintf(into,
-		"     %s = %s;\n"
+		"    %s = %s;\n"
 		"\n",
 		top(), dictname
 	);
@@ -709,7 +711,7 @@ bool ClassEncodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
     fprintf(into,
         "    %s = new PyObject(\n"
         "             \"%s\", %s\n"
-        "         );\n"
+        "    );\n"
         "\n",
 		top(),
 		    type, iname
@@ -840,7 +842,7 @@ bool ClassEncodeGenerator::Process_raw(FILE *into, TiXmlElement *field) {
         "    if( %s == NULL )\n"
 		"    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
-        "        %s = new PyNone();\n"
+        "        %s = new PyNone;\n"
         "    }\n"
 		"    else\n",
         name,
@@ -1052,7 +1054,7 @@ bool ClassEncodeGenerator::Process_bool(FILE *into, TiXmlElement *field) {
     }
 
     fprintf(into,
-		"    %s = new PyBool( %s );\n"
+		"        %s = new PyBool( %s );\n"
 		"\n",
 		top(), name
 	);
@@ -1082,7 +1084,7 @@ bool ClassEncodeGenerator::Process_int(FILE *into, TiXmlElement *field) {
         );
 
     fprintf(into,
-	    "    %s = new PyInt( %s );\n"
+	    "        %s = new PyInt( %s );\n"
 		"\n",
 	    v, name
 	);
@@ -1112,7 +1114,7 @@ bool ClassEncodeGenerator::Process_int64(FILE *into, TiXmlElement *field) {
         );
 
     fprintf(into,
-		"    %s = new PyLong( %s );\n"
+		"        %s = new PyLong( %s );\n"
 		"\n",
 		v, name
 	);
@@ -1148,7 +1150,7 @@ bool ClassEncodeGenerator::Process_string(FILE *into, TiXmlElement *field) {
     }
 
     fprintf(into,
-		"    %s = new PyString( %s, %s );\n"
+		"        %s = new PyString( %s, %s );\n"
 		"\n",
 		v, name, type1 ? "true" : "false"
 	);
@@ -1180,7 +1182,7 @@ bool ClassEncodeGenerator::Process_real(FILE *into, TiXmlElement *field) {
     }
 
     fprintf(into,
-		"    %s = new PyFloat( %s );\n"
+		"        %s = new PyFloat( %s );\n"
 		"\n",
 		v, name
 	);

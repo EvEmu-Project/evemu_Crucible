@@ -1255,7 +1255,7 @@ PyTuple *PyObjectEx_Type2::_CreateHeader(PyTuple *args, PyDict *keywords)
 PyPackedRow::PyPackedRow( DBRowDescriptor* header ) : PyRep( PyRep::PyTypePackedRow ), mHeader( header ), mFields( header->ColumnCount() ) {}
 PyPackedRow::PyPackedRow( const PyPackedRow &oth ) : PyRep( PyRep::PyTypePackedRow ), mHeader( &oth.header() )
 {
-    PyIncRef(&oth.header());
+    PyIncRef( mHeader );
 	*this = oth;
 }
 
