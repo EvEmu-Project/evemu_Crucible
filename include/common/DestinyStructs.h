@@ -84,18 +84,18 @@ enum { //destiny mode!
 #endif//OLD_STRUCTS
 
 typedef enum {
-	DSTBALL_GOTO        = 0, // Also used for AlignTo
+	DSTBALL_GOTO        = 0,    // Also used for AlignTo
 	DSTBALL_FOLLOW      = 1,
 	DSTBALL_STOP        = 2,
 	DSTBALL_WARP        = 3,
 	DSTBALL_ORBIT       = 4,
 	DSTBALL_MISSILE     = 5,
-	DSTBALL_MUSHROOM    = 6,	//Expanding gravity wall
-	DSTBALL_BOID        = 7,		//Swarm like behavior
-	DSTBALL_TROLL       = 8,		//used for ejected cans. Free ball that will become fixed after a while.
-	DSTBALL_MINIBALL    = 9,
-	DSTBALL_FIELD       = 10,		//Force field ball
-	DSTBALL_RIGID       = 11, 	//A ball that will never move, stations, etc..
+	DSTBALL_MUSHROOM    = 6,    //Expanding gravity wall
+	DSTBALL_BOID        = 7,    //Swarm like behavior
+	DSTBALL_TROLL       = 8,    //used for ejected cans. Free ball that will become fixed after a while.
+    DSTBALL_FIELD       = 9,    //Force field ball
+	DSTBALL_MINIBALL    = 10,
+	DSTBALL_RIGID       = 11,   //A ball that will never move, stations, etc..
 	DSTBALL_FORMATION   = 12
 } BallMode;
 
