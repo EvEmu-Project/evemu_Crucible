@@ -443,7 +443,7 @@ DBTYPE DBQueryResult::ColumnType(uint32 column) const {
         columnType != MYSQL_TYPE_SET &&
         columnType != MYSQL_TYPE_GEOMETRY );*/
 
-    /* TODO: handle unsigned types ( assigned to Captnoord )    
+    /* TODO: handle unsigned types ( assigned to Captnoord )
     */
 
     /* tricky part of this system and different compared to other db systems */
@@ -554,7 +554,8 @@ uint32 DBResultRow::GetUInt(uint32 column) const {
     //use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
     return(strtoul(m_row[column], NULL, 0));
 }
-
+//_strtoi64
+//strtoll, strtoull 
 int64 DBResultRow::GetInt64(uint32 column) const {
 #ifdef COLUMN_BOUNDS_CHECKING
     if(column >= ColumnCount()) {

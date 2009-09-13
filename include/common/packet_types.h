@@ -610,24 +610,49 @@ typedef enum {
 */
 
 typedef enum {
-	DBTYPE_I1			= 0x10,
-	DBTYPE_UI1			= 0x11,
-	DBTYPE_BOOL			= 0x0B,
+    DBTYPE_EMPTY        = 0x00, // not supported
+    DBTYPE_NULL         = 0x01, // not supported
 	DBTYPE_I2			= 0x02,
-	DBTYPE_UI2			= 0x12,
-	DBTYPE_I4			= 0x03,
-	DBTYPE_UI4			= 0x13,
-	DBTYPE_R4			= 0x04,
-	DBTYPE_I8			= 0x14,
-	DBTYPE_R8			= 0x05,
+    DBTYPE_I4			= 0x03,
+    DBTYPE_R4			= 0x04,
+    DBTYPE_R8			= 0x05,
+    DBTYPE_CY			= 0x06, // money
+    DBTYPE_DATE         = 0x07, // not supported
+    DBTYPE_BSTR         = 0x08, // not supported
+    DBTYPE_IDISPATCH    = 0x09, // not supported
+    DBTYPE_ERROR        = 0x0A,
+    DBTYPE_BOOL			= 0x0B, // not supported
+    DBTYPE_VARIANT      = 0x0C, // not supported
+    DBTYPE_IUNKNOWN     = 0x0D, // not supported
+    DBTYPE_DECIMAL      = 0x0E, // not supported
+    DBTYPE_BLOB         = 0x0F, // not supported
+    DBTYPE_I1			= 0x10,
+	DBTYPE_UI1			= 0x11,
+	DBTYPE_UI2			= 0x12,	
+	DBTYPE_UI4			= 0x13,	
+	DBTYPE_I8			= 0x14,	
 	DBTYPE_UI8			= 0x15,
-	DBTYPE_CY			= 0x06, //money
-	DBTYPE_FILETIME		= 0x40, //64 bits
+    DBTYPE_GUID         = 0x48, // not supported
 	DBTYPE_BYTES		= 0x80,
 	DBTYPE_STR			= 0x81,
-	DBTYPE_WSTR			= 0x82
+	DBTYPE_WSTR			= 0x82,
+    DBTYPE_NUMERIC      = 0x83, // not supported
+    DBTYPE_UDT          = 0x84, // not supported
+    DBTYPE_DBDATE       = 0x85, // not supported
+    DBTYPE_DBTIME       = 0x86, // not supported
+    DBTYPE_DBTIMESTAMP  = 0x87, // not supported
+    DBTYPE_HCHAPTER     = 0x88, // not supported
+    DBTYPE_FILETIME		= 0x40, // 64 bits
+    DBTYPE_PROPVARIANT  = 0x8A, // not supported
+    DBTYPE_VARNUMERIC   = 0x8B  // not supported
 } DBTYPE;
 
+/** DBTYPE type flags
+ *  DBTYPE_ARRAY        = 0x2000
+ *  DBTYPE_BYREF        = 0x4000
+ *  DBTYPE_VECTOR       = 0x1000
+ *  DBTYPE_RESERVED     = 0x8000
+ */
 
 /*
  *
