@@ -1,8 +1,22 @@
 INCLUDES += -I$(srcdir)/../../include/common/
 
-BUILT_DISTS = \
-	ObjectCaching.xmlp \
-	General.xmlp \
+# Define rule for turning .xmlp files into source files
+SUFFIXES = \
+	.xmlp
+
+.xmlp.cpp:
+	@echo Generating $^ -\> $@
+	../xmlpktgen/xmlpktgen $^
+
+noinst_LIBRARIES = \
+	libpackets.a
+# Tmp disable, not needed and screws things up
+#	libauth.a
+
+#libauth_a_SOURCES = \
+#	Authentication.xmlp
+
+libpackets_a_SOURCES = \
 	AccountPkts.xmlp \
 	Character.xmlp \
 	CorporationPkts.xmlp \
@@ -10,48 +24,54 @@ BUILT_DISTS = \
 	Destiny.xmlp \
 	DogmaIM.xmlp \
 	Inventory.xmlp \
+	General.xmlp \
 	Language.xmlp \
 	LSCPkts.xmlp \
 	Manufacturing.xmlp \
 	Market.xmlp \
 	Missions.xmlp \
+	ObjectCaching.xmlp \
 	Standing2.xmlp \
 	Tutorial.xmlp \
-	Wallet.xmlp 
-#	Authentication.xmlp 
-#	SkillPkts.xmlp 
+	Wallet.xmlp
+#	SkillPkts.xmlp
 
-noinst_LIBRARIES = \
-	libpackets.a
-# Tmp disable, not needed and screws things up
-#	libauth.a
-
-#libauth_a_SOURCES = 
-#	$(BUILT_DISTS) 
-#	Authentication.cpp 
-
-libpackets_a_SOURCES = \
-	$(BUILT_DISTS) \
-	ObjectCaching.cpp \
-	General.cpp \
+# All generated source files should be cleanable
+MOSTLYCLEANFILES = \
 	AccountPkts.cpp \
+	AccountPkts.h \
 	Character.cpp \
+	Character.h \
 	CorporationPkts.cpp \
+	CorporationPkts.h \
 	Crypto.cpp \
+	Crypto.h \
 	Destiny.cpp \
+	Destiny.h \
 	DogmaIM.cpp \
+	DogmaIM.h \
 	Inventory.cpp \
+	Inventory.h \
+	General.cpp \
+	General.h \
 	Language.cpp \
+	Language.h \
 	LSCPkts.cpp \
+	LSCPkts.h \
 	Manufacturing.cpp \
+	Manufacturing.h \
 	Market.cpp \
+	Market.h \
 	Missions.cpp \
+	Missions.h \
+	ObjectCaching.cpp \
+	ObjectCaching.h \
 	Standing2.cpp \
+	Standing2.h \
 	Tutorial.cpp \
-	Wallet.cpp
-#	SkillPkts.cpp 
-
-%.cpp: %.xmlp
-	@echo Generating $^ -\> $@
-	../xmlpktgen/xmlpktgen $^
+	Tutorial.h \
+	Wallet.cpp \
+	Wallet.h
+#	SkillPkts.cpp
+#	SkillPkts.h
 

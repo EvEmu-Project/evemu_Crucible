@@ -1,6 +1,18 @@
 INCLUDES += -I$(srcdir)/../../include/common/
 INCLUDES += -I$(srcdir)/../../include/server/
 
+# Define rule for building precompiled header
+SUFFIXES = \
+	.h.gch
+
+.h.h.gch:
+	$(CXXCOMPILE) $^ -c -o $@
+
+# This if far from perfect since it triggers
+# only on 'make all'
+BUILT_SOURCES = \
+	$(srcdir)/../../include/server/EVEmuServerPCH.h.gch
+
 AM_CXXFLAGS += \
 	-pipe \
 	-fno-inline \
