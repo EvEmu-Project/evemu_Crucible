@@ -388,7 +388,7 @@ const char *DBQueryResult::ColumnName(uint32 column) const {
 }
 
 /* mysql to DBTYPE convention table */
-static const DBTYPE DBTYPE_MYSQL_TABLE[] =
+static const DBTYPE DBTYPE_MYSQL_TABLE_SIGNED[] =
 {
     DBTYPE_I4,      //[0]MYSQL_TYPE_DECIMAL             /* assumption that this variable will never be bigger than 32 bits... if it will then we need to change it to I8 */
     DBTYPE_I1,      //[1]MYSQL_TYPE_TINY
@@ -400,6 +400,37 @@ static const DBTYPE DBTYPE_MYSQL_TABLE[] =
     DBTYPE_FILETIME,//[7]MYSQL_TYPE_TIMESTAMP
     DBTYPE_I8,      //[8]MYSQL_TYPE_LONGLONG
     DBTYPE_I4,      //[9]MYSQL_TYPE_INT24
+    DBTYPE_FILETIME,//[10]MYSQL_TYPE_DATE
+    DBTYPE_FILETIME,//[11]MYSQL_TYPE_TIME
+    DBTYPE_FILETIME,//[12]MYSQL_TYPE_DATETIME
+    DBTYPE_FILETIME,//[13]MYSQL_TYPE_YEAR
+    DBTYPE_FILETIME,//[14]MYSQL_TYPE_NEWDATE
+    DBTYPE_STR,     //[15]MYSQL_TYPE_VARCHAR
+    DBTYPE_BOOL,    //[16]MYSQL_TYPE_BIT
+    DBTYPE_STR,     //[17]MYSQL_TYPE_NEWDECIMAL=246     /* assumption and prob wrong */
+    DBTYPE_STR,     //[18]MYSQL_TYPE_ENUM=247
+    DBTYPE_STR,     //[19]MYSQL_TYPE_SET=248            /* unhandled */
+    DBTYPE_STR,     //[20]MYSQL_TYPE_TINY_BLOB=249
+    DBTYPE_STR,     //[21]MYSQL_TYPE_MEDIUM_BLOB=250
+    DBTYPE_STR,     //[22]MYSQL_TYPE_LONG_BLOB=251
+    DBTYPE_STR,     //[23]MYSQL_TYPE_BLOB=252
+    DBTYPE_STR,     //[24]MYSQL_TYPE_VAR_STRING=253
+    DBTYPE_STR,     //[25]MYSQL_TYPE_STRING=254
+    DBTYPE_STR,     //[26]MYSQL_TYPE_GEOMETRY=255       /* unhandled */
+};
+
+static const DBTYPE DBTYPE_MYSQL_TABLE_UNSIGNED[] =
+{
+    DBTYPE_UI4,      //[0]MYSQL_TYPE_DECIMAL             /* assumption that this variable will never be bigger than 32 bits... if it will then we need to change it to I8 */
+    DBTYPE_UI1,      //[1]MYSQL_TYPE_TINY
+    DBTYPE_UI2,      //[2]MYSQL_TYPE_SHORT
+    DBTYPE_UI4,      //[3]MYSQL_TYPE_LONG
+    DBTYPE_R4,      //[4]MYSQL_TYPE_FLOAT
+    DBTYPE_R8,      //[5]MYSQL_TYPE_DOUBLE
+    DBTYPE_STR,     //[6]MYSQL_TYPE_NULL               /* assumption that this is correct */
+    DBTYPE_FILETIME,//[7]MYSQL_TYPE_TIMESTAMP
+    DBTYPE_UI8,      //[8]MYSQL_TYPE_LONGLONG
+    DBTYPE_UI4,      //[9]MYSQL_TYPE_INT24
     DBTYPE_FILETIME,//[10]MYSQL_TYPE_DATE
     DBTYPE_FILETIME,//[11]MYSQL_TYPE_TIME
     DBTYPE_FILETIME,//[12]MYSQL_TYPE_DATETIME
@@ -443,17 +474,18 @@ DBTYPE DBQueryResult::ColumnType(uint32 column) const {
         columnType != MYSQL_TYPE_SET &&
         columnType != MYSQL_TYPE_GEOMETRY );*/
 
-    /* TODO: handle unsigned types ( assigned to Captnoord )
-    */
-
-    /* tricky part of this system and different compared to other db systems */
     if ( columnType > 245 )
 
         /* tricky needs to be checked */
         columnType-=229; // MYSQL_TYPE_NEWDECIMAL - MYSQL_TYPE_BIT
 
-    /* column type lookup */
-    DBTYPE type = DBTYPE_MYSQL_TABLE[ columnType ];
+    DBTYPE type;
+    if ( m_fields[column]->flags & UNSIGNED_FLAG )
+        type = DBTYPE_MYSQL_TABLE_UNSIGNED[ columnType ];
+    else
+        type = DBTYPE_MYSQL_TABLE_SIGNED[ columnType ];
+
+    assert(type);
 
     /* possible add tracing here... */
     return type;
