@@ -230,16 +230,20 @@ PyMarshalStringTable::PyMarshalStringTable()
 {
     for( size_t i = 0; i < StringTableSize; i++ )
     {
-        uint32 hashValue = hash( StringTable[i] );
-        mStringTable[hashValue] = static_cast<uint8>( i );
-        mPyStringTable[i] = StringTable[i];
+        mStringTable[ hash( StringTable[ i ] ) ] = static_cast<uint8>( i );
+
+        mPyStringTable[i] = new PyString( StringTable[i] );
     }
 }
 
-PyMarshalStringTable::~PyMarshalStringTable() {}
+PyMarshalStringTable::~PyMarshalStringTable()
+{
+    for( size_t i = 0; i < StringTableSize; i++ )
+        PyDecRef( mPyStringTable[ i ] );
+}
 
 /* lookup a index using a string */
-size_t PyMarshalStringTable::LookupIndex(const std::string &str)
+size_t PyMarshalStringTable::LookupIndex(const std::string& str)
 {
 	return LookupIndex( str.c_str() );
 }
@@ -250,35 +254,29 @@ size_t PyMarshalStringTable::LookupIndex(const char* str)
     uint32 hashValue = hash( str );
 
     std::tr1::unordered_map<uint32, uint8>::const_iterator res = mStringTable.find( hashValue );
-    if( res != mStringTable.end() )
-    {
-        return ( res->second + 1 );
-    }
+    if( res == mStringTable.end() )
+        return STRING_TABLE_ERROR;
 
-    return STRING_TABLE_ERROR;
+    return ( res->second + 1 );
 }
 
-bool PyMarshalStringTable::LookupString(uint8 index, std::string &str)
+const char* PyMarshalStringTable::LookupString(uint8 index)
 {
     if( --index >= StringTableSize )
-    {
-        str.clear();
-        return false;
-    }
+        return NULL;
 
-    str = StringTable[index];
-    return true;
+    return StringTable[ index ];
 }
 
-bool PyMarshalStringTable::LookupPyString(uint8 index, const PyString *&str)
+const PyString* PyMarshalStringTable::LookupPyString(uint8 index)
 {
     if( --index >= StringTableSize )
     {
         /* crash HARD */
-        assert(false);
-        return false;
+        assert( false );
+
+        return NULL;
     }
 
-    str = &mPyStringTable[index];
-    return true;
+    return mPyStringTable[ index ];
 }

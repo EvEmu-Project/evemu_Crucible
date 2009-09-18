@@ -43,7 +43,16 @@ string generate_key(int length);
 void build_hex_line(const char *buffer, unsigned long length, unsigned long offset, char *out_buffer, unsigned char padding=4);
 
 void EscapeStringSequence(std::string &subject,  const std::string &find, const std::string &replace);
-uint32 CalcCRC16(uint8 *bin_data, int len, uint32 initial_crc);
+/**
+ * This is functionally equivalent to python's binascii.crc_hqx.
+ *
+ * @param[in] data Binary data to be checksumed.
+ * @param[in] len  Length of binary data.
+ * @param[in] crc  CRC value to start with.
+ *
+ * @return CRC-16 checksum.
+ */
+uint16 crc_hqx(const uint8* data, size_t len, uint16 crc = 0);
 
 uint32 GetFileLength(const char *file);
 

@@ -69,7 +69,7 @@ protected:
             {
                 TiXmlComment* comm = field->ToComment();
 
-                fprintf( into, "\t/* %s */\n", comm->Value() );
+                fprintf( into, "    /* %s */\n", comm->Value() );
             }
             //handle elements
             else if( field->Type() == TiXmlNode::ELEMENT )

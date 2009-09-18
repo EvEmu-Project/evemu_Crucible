@@ -405,6 +405,10 @@
 				RelativePath="..\..\include\common\types.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\include\common\XMLParser.h"
+				>
+			</File>
 			<Filter
 				Name="Log"
 				>

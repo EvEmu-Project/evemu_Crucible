@@ -424,15 +424,15 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
         }
         uint8 value = Getuint8();
 
-        const PyString * sharedString = NULL;
-        if( sPyStringTable.LookupPyString(value, sharedString) == false)
+        const PyString* sharedString = sPyStringTable.LookupPyString( value );
+        if( sharedString == NULL )
         {
             assert(false);
             sLog.Error("unmarshal", "String Table Item %d is out of range!\n", value);
 
             char ebuf[64];
-            snprintf(ebuf, 64, "Invalid String Table Item %d", value);
-            res = new PyString(ebuf);
+            snprintf(ebuf, 64, "Invalid String Table Item %u", value);
+            res = new PyString( ebuf );
         }
         else
         {

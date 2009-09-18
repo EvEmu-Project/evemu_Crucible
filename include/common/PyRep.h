@@ -187,25 +187,28 @@ public:
     //using this method is discouraged, it generally means your doing something wrong... CheckType() should cover almost all needs
     PyType GetType() const { return m_type; }
 
-    void IncRef()
+    void IncRef() const
     {
-        mRefcnt++;
-        _py_obj_trace("PyRep:0x%p | ref:%u inc\n", this, mRefcnt);
+        mRefCnt++;
+        _py_obj_trace("PyRep:0x%p | ref:%u inc\n", this, mRefCnt);
     }
 
-    void DecRef()
+    void DecRef() const
     {
-        mRefcnt--;
-        _py_obj_trace("PyRep:0x%p | ref:%u dec\n", this, mRefcnt);
-        if (mRefcnt <= 0)
+        mRefCnt--;
+        _py_obj_trace( "PyRep:0x%p | ref:%u dec\n", this, mRefCnt );
+
+        if( mRefCnt <= 0 )
         {
-            _py_obj_trace("PyRep:0x%p | deleted\n", this);
+            _py_obj_trace( "PyRep:0x%p | deleted\n", this );
             delete this;
         }
     }
+
 protected:
     const PyType m_type;
-    size_t mRefcnt;
+
+    mutable size_t mRefCnt;
 };
 
 /**

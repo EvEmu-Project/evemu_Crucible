@@ -198,18 +198,10 @@ static uint16 crc16_table[256] = {
     0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0,
 };
 
-/* I think this really returns a uint16
- *
- * this is functionally equivalent to python's binascii.crc_hqx
- */
-uint32 CalcCRC16(uint8 *bin_data, int len, uint32 initial_crc) {
-    uint32 crc;
+uint16 crc_hqx(const uint8* data, size_t len, uint16 crc)
+{
+    while( len-- )
+        crc = ( crc << 8 ) ^ crc16_table[ ( crc >> 8 ) ^ ( *data++ ) ];
 
-    crc = initial_crc;
-
-    while(len--) {
-        crc=((crc<<8)&0xff00)^crc16_table[((crc>>8)&0xff)^*bin_data++];
-    }
-
-    return(crc);
+    return crc;
 }

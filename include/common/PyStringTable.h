@@ -65,7 +65,7 @@ public:
      * @param[in] string that needs a lookup for a index nr.
      * @return the index number of the string that was given, returns -1 if string is not found.
      */
-    size_t LookupIndex(const std::string &str);
+    size_t LookupIndex(const std::string& str);
 
     /**
     * @brief lookup a index nr using a string
@@ -83,10 +83,9 @@ public:
      * no long description
      *
      * @param[in] index is the index of the string that needs to be looked up.
-     * @param[out] str is the string that we have looked up if successful.
-     * @return true if the index is valid and false if its beyond the range.
+     * @return if succeeds returns pointer to static string; if fails returns NULL.
      */
-    bool LookupString(uint8 index, std::string &str);
+    const char* LookupString(uint8 index);
 
     /**
      * @brief lookup a PyString object using a index
@@ -94,10 +93,9 @@ public:
      * no long description
      *
      * @param[in] index is the index of the string that needs to be looked up.
-     * @param[out] str is the PyString that we have looked up if successful.
-     * @return true if the index is valid and false if its beyond the range.
+     * @return if succeeds returns desired PyString; if fails returns NULL.
      */
-    bool LookupPyString(uint8 index, const PyString *&str);
+    const PyString* LookupPyString(uint8 index);
 
 private:
     /**
@@ -124,7 +122,7 @@ private:
     typedef StringTableMap::const_iterator          StringTableMapConstItr;
 
     StringTableMap  mStringTable;
-    PyString     mPyStringTable[StringTableSize];
+    PyString*       mPyStringTable[StringTableSize];
 };
 
 extern PyMarshalStringTable PyStringTable;
