@@ -163,7 +163,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 			return NULL;
 		}
 		PyInt *iii = (PyInt *) v;
-		wantStations = (iii->value==0)?false:true;
+		wantStations = (iii->value()==0)?false:true;
 	}
 	if(packet->items.size() > 3) {
 		PyRep *v = packet->items[3];
@@ -174,7 +174,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 			return false;
 		}
 		PyInt *iii = (PyInt *) v;
-		wantSystems = (iii->value==0)?false:true;
+		wantSystems = (iii->value()==0)?false:true;
 	}
 	if(packet->items.size() > 2) {
 		PyRep *v = packet->items[2];
@@ -185,7 +185,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 			return false;
 		}
 		PyInt *iii = (PyInt *) v;
-		wantConstellations = (iii->value==0)?false:true;
+		wantConstellations = (iii->value()==0)?false:true;
 	}
 	if(packet->items.size() > 1) {
 		PyRep *v = packet->items[1];
@@ -196,7 +196,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 			return false;
 		}
 		PyInt *iii = (PyInt *) v;
-		wantRegions = (iii->value==0)?false:true;
+		wantRegions = (iii->value()==0)?false:true;
 	}
 	if(packet->items.size() > 0) {
 		PyRep *v = packet->items[0];
@@ -207,7 +207,7 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 			return false;
 		}
 		PyInt *iii = (PyInt *) v;
-		arg = iii->value;
+		arg = iii->value();
 	}
 	if(packet->items.size() == 0 || packet->items.size() > 6) {
 		_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: tuple0 is the wrong size: expected 1-6, but got %lu", packet->items.size());

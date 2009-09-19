@@ -44,6 +44,15 @@ class PyObject;
 class PyBuffer;
 class PyCachedObjectDecoder;
 
+struct CacheFileHeader
+{
+    uint64 timestamp;
+    uint32 version;
+    uint32 length;
+    uint32 magic;
+};
+static const uint32 CacheFileMagic = 0xFF886622;
+
 class CachedObjectMgr {
 public:
     ~CachedObjectMgr();
@@ -73,10 +82,11 @@ public:
     //PyRep *_MakeCacheHint(const char *oname);
     //void AddCacheHint(const char *oname, const char *key, PyDict *into);
 
-    bool LoadCachedObject(const char *obj_name, PySubStream *into);
-    bool LoadCachedFile(const char *filename, const char *oname, PySubStream *into);
-    PyCachedObjectDecoder *LoadCachedFile(const char *filename, const char *oname);
-    PyCachedCall *LoadCachedCall(const char *filename, const char *oname);   //returns ownership
+    PySubStream* LoadCachedFile(const char *obj_name);
+    PySubStream* LoadCachedFile(PyRep *key, const char *oname);
+    PySubStream* LoadCachedFile(const char *filename, const char *oname);
+    PyCachedObjectDecoder *LoadCachedObject(const char *filename, const char *oname);
+    PyCachedCall *LoadCachedCall(const char *filename, const char *oname);
 
     //Cache file storage routines:
     bool LoadCachedFromFile(const std::string &cacheDir, const std::string &objectID);
@@ -85,12 +95,7 @@ public:
     bool SaveCachedToFile(const std::string &cacheDir, const PyRep *objectID) const;
 
 protected:
-    bool LoadCachedObject(PyRep *key, const char *oname, PySubStream *into);
-    PyCachedObjectDecoder *LoadCachedObject(const char *obj_name);  //returns ownership
-    PyCachedObjectDecoder *LoadCachedObject(PyRep *key, const char *oname); //returns ownership
-
     //static bool AddCachedFileContents(const char *filename, const char *oname, PySubStream *into);
-
     void GetCacheFileName(PyRep *key, std::string &into);
 
     void _UpdateCache(const PyRep *objectID, PyBuffer **buffer);

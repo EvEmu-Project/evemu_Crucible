@@ -108,7 +108,7 @@ uint32 BaseRowsetReader::base_iterator::GetInt(uint32 index) const {
     if(ele == NULL || !ele->IsInt())
         return(0x7F000000LL);
     PyInt *e = (PyInt *) ele;
-    return(e->value);
+    return(e->value());
 }
 
 uint64 BaseRowsetReader::base_iterator::GetInt64(uint32 index) const {
@@ -116,7 +116,7 @@ uint64 BaseRowsetReader::base_iterator::GetInt64(uint32 index) const {
     if(ele == NULL || !ele->IsInt())
         return(0x7F0000007F000000LL);
     PyInt *e = (PyInt *) ele;
-    return(e->value);
+    return(e->value());
 }
 
 double BaseRowsetReader::base_iterator::GetReal(uint32 index) const {
@@ -124,7 +124,7 @@ double BaseRowsetReader::base_iterator::GetReal(uint32 index) const {
     if(ele == NULL || !ele->IsFloat())
         return(-9999999.0);
     PyFloat *e = (PyFloat *) ele;
-    return(e->value);
+    return(e->value());
 }
 
 bool BaseRowsetReader::base_iterator::IsNone(uint32 index) const {
@@ -170,12 +170,12 @@ std::string BaseRowsetReader::base_iterator::GetAsString(uint32 index) const {
     } else if(ele->IsInt()) {
         PyInt *i = (PyInt *) ele;
         char buf[64];
-        snprintf(buf, sizeof(buf), "%d", i->value);
+        snprintf(buf, sizeof(buf), "%d", i->value());
         return(std::string(buf));
     } else if(ele->IsFloat()) {
         PyFloat *i = (PyFloat *) ele;
         char buf[64];
-        snprintf(buf, sizeof(buf), "%f", i->value);
+        snprintf(buf, sizeof(buf), "%f", i->value());
         return(std::string(buf));
     } else {
         char buf[64];
@@ -344,9 +344,9 @@ SetSQLDumper::SetSQLDumper(FILE *f, const char *tablename)
 }
 
 void SetSQLDumper::VisitObject(const PyObject *rep) {
-    if(rep->type != "util.Rowset") {
+    if(rep->type() != "util.Rowset") {
         //traverse the object as usual.
-        rep->arguments->visit(this);
+        rep->arguments()->visit(this);
         return;
     }
 

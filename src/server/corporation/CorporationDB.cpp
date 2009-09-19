@@ -329,7 +329,7 @@ static std::string _IoN(PyRep *r) {
     if(!r->IsInt())
         return("NULL");
     char buf[32];
-    snprintf(buf, 32, "%u", uint32(((PyInt*)r)->value));
+    snprintf(buf, 32, "%d", r->AsInt().value());
     return(buf);
 }
 

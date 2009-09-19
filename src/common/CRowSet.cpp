@@ -34,12 +34,12 @@ CRowSet::CRowSet(DBRowDescriptor **rowDesc)
 
 uint32 CRowSet::GetRowCount() const
 {
-	return list_data.size();
+	return list().size();
 }
 
 PyPackedRow &CRowSet::GetRow(uint32 index) const
 {
-	return list_data.GetItem( index )->AsPackedRow();
+	return list().GetItem( index )->AsPackedRow();
 }
 
 PyPackedRow &CRowSet::NewRow()
@@ -49,7 +49,7 @@ PyPackedRow &CRowSet::NewRow()
 
     PyPackedRow *row = new PyPackedRow( &rowDesc );
     
-	list_data.AddItem( row );
+	list().AddItem( row );
 	return *row;
 }
 

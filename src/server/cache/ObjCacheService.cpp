@@ -233,9 +233,10 @@ void ObjCacheService::PrimeCache()
     printf("\n");
 }
 
-bool ObjCacheService::LoadCachedFile(const char *filename, const char *oname, PySubStream *into) {
+PySubStream* ObjCacheService::LoadCachedFile(const char *filename, const char *oname)
+{
 	//temp hack...
-	return(m_cache.LoadCachedFile(filename, oname, into));
+	return m_cache.LoadCachedFile( filename, oname );
 }
 
 
@@ -252,8 +253,6 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 		}
 	}
 	
-	PySubStream *ss;
-	
 	//first try to generate it from the database...
 	//we go to the DB with a string, not a rep
 	PyRep *cache = m_db.GetCachableObject(objectID_string);
@@ -263,8 +262,9 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 	} else {
 		//failed to query from the database... fall back to old
 		//hackish file loading.
-		ss = new PySubStream();
-		if(!m_cache.LoadCachedObject(objectID_string.c_str(), ss)) {
+		PySubStream* ss = m_cache.LoadCachedFile( objectID_string.c_str() );
+		if( ss == NULL )
+        {
 			_log(SERVICE__ERROR, "Failed to create or load cache file for '%s'", objectID_string.c_str());
 			return false;
 		}

@@ -117,8 +117,8 @@ protected:
 			return (    mConstruct.Generate( into, field )
 					 && mDestruct.Generate( into, field )
 					 && mDump.Generate( into, field )
-					 && mEncode.Generate( into, field )
 					 && mDecode.Generate( into, field )
+					 && mEncode.Generate( into, field )
 					 && mClone.Generate( into, field )     );
 		}
 

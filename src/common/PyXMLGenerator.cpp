@@ -41,7 +41,7 @@ PyXMLGenerator::~PyXMLGenerator() {
 
 void PyXMLGenerator::VisitInteger(const PyInt *rep) {
     fprintf(m_into, "%s<%s name=\"integer%d\" />\n", top(),
-        (rep->value > 0xFFFFFFFFLL)?"int64":"int",
+        (rep->value() > 0xFFFFFFFFLL)?"int64":"int",
         m_item++
         );
 }
@@ -79,13 +79,13 @@ void PyXMLGenerator::VisitObject(const PyObject *rep) {
     //do not visit the type:
 
     fprintf(m_into, "%s<object type=\"%s\">\n", top(),
-        rep->type.c_str()
+        rep->type().c_str()
         );
 
     std::string indent(top());
     indent += indent_amount;
     push(indent.c_str());
-    rep->arguments->visit(this);
+    rep->arguments()->visit(this);
     pop();
 
     fprintf(m_into, "%s</object>\n", top()
@@ -100,7 +100,7 @@ void PyXMLGenerator::VisitSubStruct(const PySubStruct *rep) {
     std::string indent(top());
     indent += indent_amount;
     push(indent.c_str());
-    rep->sub->visit(this);
+    rep->sub()->visit(this);
     pop();
 
     fprintf(m_into, "%s</InlineSubStruct>\n", top()
@@ -111,11 +111,11 @@ void PyXMLGenerator::VisitSubStream(const PySubStream *rep) {
     fprintf(m_into, "%s<InlineSubStream>\n", top()  );
 
     rep->DecodeData();
-    if(rep->decoded != NULL) {
+    if(rep->decoded() != NULL) {
         std::string indent(top());
         indent += indent_amount;
         push(indent.c_str());
-        rep->decoded->visit(this);
+        rep->decoded()->visit(this);
         pop();
     } else {
         fprintf(m_into, "%s  <!-- UNABLE TO DECODE SUBSTREAM! -->\n", top());

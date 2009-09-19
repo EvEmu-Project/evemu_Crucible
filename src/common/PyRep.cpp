@@ -87,16 +87,16 @@ int32 PyRep::hash() const
 /************************************************************************/
 /* PyRep Integer Class                                                  */
 /************************************************************************/
-PyInt::PyInt( const int32 i ) : PyRep( PyRep::PyTypeInt ), value( i ) {}
-PyInt::PyInt( const PyInt &oth ) : PyRep( PyRep::PyTypeInt ), value( oth.value ) {}
+PyInt::PyInt( const int32 i ) : PyRep( PyRep::PyTypeInt ), mValue( i ) {}
+PyInt::PyInt( const PyInt &oth ) : PyRep( PyRep::PyTypeInt ), mValue( oth.value() ) {}
 PyInt::~PyInt() {}
 
 void PyInt::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sInteger field: %d\n", pfx, value);
+    fprintf(into, "%sInteger field: %d\n", pfx, value());
 }
 
 void PyInt::Dump(LogType type, const char *pfx) const {
-    _log(type, "%sInteger field: %d", pfx, value);
+    _log(type, "%sInteger field: %d", pfx, value());
 }
 
 EVEMU_INLINE PyRep *PyInt::Clone() const
@@ -118,7 +118,7 @@ int32 PyInt::hash() const
 {
     /* XXX If this is changed, you also need to change the way
     Python's long, float and complex types are hashed. */
-    int32 x = value;
+    int32 x = mValue;
     if( x == -1 )
         x = -2;
     return x;
@@ -127,16 +127,16 @@ int32 PyInt::hash() const
 /************************************************************************/
 /* PyRep Long Class                                                     */
 /************************************************************************/
-PyLong::PyLong( const int64 i ) : PyRep( PyRep::PyTypeLong ), value( i ) {}
-PyLong::PyLong( const PyLong &oth ) : PyRep( PyRep::PyTypeLong ), value( oth.value ) {}
+PyLong::PyLong( const int64 i ) : PyRep( PyRep::PyTypeLong ), mValue( i ) {}
+PyLong::PyLong( const PyLong &oth ) : PyRep( PyRep::PyTypeLong ), mValue( oth.value() ) {}
 PyLong::~PyLong() {}
 
 void PyLong::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sInteger field: "I64d"\n", pfx, value);
+    fprintf(into, "%sInteger field: "I64d"\n", pfx, value());
 }
 
 void PyLong::Dump(LogType type, const char *pfx) const {
-    _log(type, "%sInteger field: "I64d, pfx, value);
+    _log(type, "%sInteger field: "I64d, pfx, value());
 }
 
 EVEMU_INLINE PyRep *PyLong::Clone() const
@@ -181,11 +181,11 @@ int32 PyLong::hash() const
     while( --i >= 0 ) {
         /* Force a native long #-bits (32 or 64) circular shift */
         x = ((x << PyLong_SHIFT) & ~PyLong_MASK) | ((x >> LONG_BIT_PyLong_SHIFT) & PyLong_MASK);
-        x += ((uint8*)&value)[i];// v->ob_digit[i];
+        x += ((uint8*)&mValue)[i];// v->ob_digit[i];
         /* If the addition above overflowed (thinking of x as
         unsigned), we compensate by incrementing.  This preserves
         the value modulo ULONG_MAX. */
-        if( (unsigned long)x < ((uint8*)&value)[i] )//v->ob_digit[i])
+        if( (unsigned long)x < ((uint8*)&mValue)[i] )//v->ob_digit[i])
             x++;
     }
 #undef LONG_BIT_PyLong_SHIFT
@@ -198,16 +198,16 @@ int32 PyLong::hash() const
 /************************************************************************/
 /* PyRep Real/float/double Class                                        */
 /************************************************************************/
-PyFloat::PyFloat( const double &i ) : PyRep( PyRep::PyTypeFloat ), value( i ) {}
-PyFloat::PyFloat( const PyFloat &oth ) : PyRep( PyRep::PyTypeFloat ), value( oth.value ) {}
+PyFloat::PyFloat( const double &i ) : PyRep( PyRep::PyTypeFloat ), mValue( i ) {}
+PyFloat::PyFloat( const PyFloat &oth ) : PyRep( PyRep::PyTypeFloat ), mValue( oth.value() ) {}
 PyFloat::~PyFloat() {}
 
 void PyFloat::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sReal Field: %f\n", pfx, value);
+    fprintf(into, "%sReal Field: %f\n", pfx, value());
 }
 
 void PyFloat::Dump(LogType type, const char *pfx) const {
-    _log(type, "%sReal Field: %f", pfx, value);
+    _log(type, "%sReal Field: %f", pfx, value());
 }
 
 PyRep *PyFloat::Clone() const
@@ -230,7 +230,7 @@ void PyFloat::visit( PyVisitorLvl *v, int64 lvl ) const
 
 int32 PyFloat::hash() const
 {
-    double v = value;
+    double v = mValue;
     double intpart, fractpart;
     int expo;
     long hipart;
@@ -289,16 +289,16 @@ int32 PyFloat::hash() const
 /************************************************************************/
 /* PyRep Boolean Class                                                  */
 /************************************************************************/
-PyBool::PyBool( bool i ) : PyRep( PyRep::PyTypeBool ), value( i ) {}
-PyBool::PyBool( const PyBool &oth ) : PyRep( PyRep::PyTypeBool ), value( oth.value ) {}
+PyBool::PyBool( bool i ) : PyRep( PyRep::PyTypeBool ), mValue( i ) {}
+PyBool::PyBool( const PyBool &oth ) : PyRep( PyRep::PyTypeBool ), mValue( oth.value() ) {}
 PyBool::~PyBool() {}
 
 void PyBool::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sBoolean field: %s\n", pfx, value?"true":"false");
+    fprintf(into, "%sBoolean field: %s\n", pfx, value()?"true":"false");
 }
 
 void PyBool::Dump(LogType type, const char *pfx) const {
-    _log(type, "%sBoolean field: %s", pfx, value?"true":"false");
+    _log(type, "%sBoolean field: %s", pfx, value()?"true":"false");
 }
 
 PyRep *PyBool::Clone() const
@@ -522,15 +522,6 @@ void PyString::visit( PyVisitor *v ) const
 void PyString::visit( PyVisitorLvl *v, int64 lvl ) const
 {
 	v->VisitString( this, lvl );
-}
-
-PyString &PyString::operator=(const PyString &oth)
-{
-	m_value = oth.m_value;
-	// we may also copy hash cache
-	m_hash_cache = oth.m_hash_cache;
-
-	return *this;
 }
 
 int32 PyString::hash() const
@@ -933,35 +924,33 @@ PyDict& PyDict::operator=(const PyDict& oth)
 /************************************************************************/
 /* PyRep Object Class                                                   */
 /************************************************************************/
-PyObject::PyObject( const char* _type, PyRep* _args ) : PyRep( PyRep::PyTypeObject ), type( _type ), arguments( _args ) {}
+PyObject::PyObject( const char* type, PyRep* args ) : PyRep( PyRep::PyTypeObject ), mType( type ), mArguments( args ) {}
 PyObject::PyObject( const PyObject& oth ) : PyRep( PyRep::PyTypeObject ),
-  type(), arguments( NULL )
+  mType( oth.type() ), mArguments( oth.arguments()->Clone() )
 {
-	// Use assigment operator
-	*this = oth;
 }
 
 PyObject::~PyObject()
 {
-    PySafeDecRef( arguments );
+    PySafeDecRef( mArguments );
 }
 
 void PyObject::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sObject:\n", pfx);
-    fprintf(into, "%s  PyType: %s\n", pfx, type.c_str());
+    fprintf(into, "%s  PyType: %s\n", pfx, type().c_str());
 
     std::string m(pfx);
     m += "  Args: ";
-    arguments->Dump(into, m.c_str());
+    arguments()->Dump(into, m.c_str());
 }
 
 void PyObject::Dump(LogType ltype, const char *pfx) const {
     _log(ltype, "%sObject:", pfx);
-    _log(ltype, "%s  PyType: %s", pfx, type.c_str());
+    _log(ltype, "%s  PyType: %s", pfx, type().c_str());
 
     std::string m(pfx);
     m += "  Args: ";
-    arguments->Dump(ltype, m.c_str());
+    arguments()->Dump(ltype, m.c_str());
 }
 
 PyRep* PyObject::Clone() const
@@ -979,25 +968,12 @@ void PyObject::visit( PyVisitorLvl* v, int64 lvl ) const
 	v->VisitObject( this, lvl );
 }
 
-PyObject& PyObject::operator=(const PyObject &oth)
-{
-	type = oth.type;
-
-	PySafeDecRef( arguments );
-	if( oth.arguments == NULL )
-		arguments = NULL;
-	else
-		arguments = oth.arguments->Clone();
-
-	return *this;
-}
-
 /************************************************************************/
 /* PyObjectEx                                                           */
 /************************************************************************/
-PyObjectEx::PyObjectEx( bool _is_type_2, PyRep* _header ) : PyRep( PyRep::PyTypeObjectEx ), header( _header ), is_type_2( _is_type_2 ) {}
+PyObjectEx::PyObjectEx( bool is_type_2, PyRep* header ) : PyRep( PyRep::PyTypeObjectEx ), mHeader( header ), mIsType2( is_type_2 ) {}
 PyObjectEx::PyObjectEx( const PyObjectEx& oth ) : PyRep( PyRep::PyTypeObjectEx ),
-  header( NULL ), is_type_2( oth.is_type_2 )
+  mHeader( oth.header()->Clone() ), mIsType2( oth.isType2() )
 {
 	// Use assigment operator
 	*this = oth;
@@ -1005,28 +981,28 @@ PyObjectEx::PyObjectEx( const PyObjectEx& oth ) : PyRep( PyRep::PyTypeObjectEx )
 
 PyObjectEx::~PyObjectEx()
 {
-    PySafeDecRef( header );
+    PySafeDecRef( mHeader );
 }
 
 void PyObjectEx::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sObjectEx%s\n", pfx, (is_type_2 ? " (Type2)" : ""));
+    fprintf(into, "%sObjectEx%s\n", pfx, (isType2() ? " (Type2)" : ""));
     fprintf(into, "%sHeader:\n", pfx);
-    if(header == NULL)
+    if(header() == NULL)
         fprintf(into, "%s  None\n", pfx);
     else {
         std::string p(pfx);
         p += "  ";
 
-        header->Dump(into, p.c_str());
+        header()->Dump(into, p.c_str());
     }
 
     fprintf(into, "%sList data:\n", pfx);
-    if(list_data.empty())
+    if(list().empty())
         fprintf(into, "%s  Empty\n", pfx);
     else {
         const_list_iterator cur, end;
-        cur = list_data.begin();
-        end = list_data.end();
+        cur = list().begin();
+        end = list().end();
         char t[16];
         for(int i = 0; cur != end; cur++, i++) {
             std::string n(pfx);
@@ -1037,12 +1013,12 @@ void PyObjectEx::Dump(FILE *into, const char *pfx) const {
     }
 
     fprintf(into, "%sDict data:\n", pfx);
-    if(dict_data.empty())
+    if(dict().empty())
         fprintf(into, "%s  Empty\n", pfx);
     else {
         const_dict_iterator cur, end;
-        cur = dict_data.begin();
-        end = dict_data.end();
+        cur = dict().begin();
+        end = dict().end();
         char t[16];
         for(int i = 0; cur != end; cur++, i++) {
             std::string k(pfx);
@@ -1062,25 +1038,25 @@ void PyObjectEx::Dump(LogType ltype, const char *pfx) const {
     if(!is_log_enabled(ltype))
         return;
 
-    {_log(ltype, "%sObjectEx%s\n", pfx, (is_type_2 ? " (Type2)" : ""));}
+    {_log(ltype, "%sObjectEx%s\n", pfx, (isType2() ? " (Type2)" : ""));}
     {_log(ltype, "%sHeader:\n", pfx);}
 
-    if(header == NULL)
+    if(header() == NULL)
         {_log(ltype, "%s  None\n", pfx);}
     else {
         std::string p(pfx);
         p += "  ";
 
-        header->Dump(ltype, p.c_str());
+        header()->Dump(ltype, p.c_str());
     }
 
     {_log(ltype, "%sList data:", pfx);}
-    if(list_data.empty())
+    if(list().empty())
         {_log(ltype, "%s  Empty", pfx);}
     else {
         const_list_iterator cur, end;
-        cur = list_data.begin();
-        end = list_data.end();
+        cur = list().begin();
+        end = list().end();
         char t[16];
         for(int i = 0; cur != end; cur++, i++) {
             std::string n(pfx);
@@ -1091,12 +1067,12 @@ void PyObjectEx::Dump(LogType ltype, const char *pfx) const {
     }
 
     {_log(ltype, "%sDict data:", pfx);}
-    if(dict_data.empty())
+    if(dict().empty())
         {_log(ltype, "%s  Empty", pfx);}
     else {
         const_dict_iterator cur, end;
-        cur = dict_data.begin();
-        end = dict_data.end();
+        cur = dict().begin();
+        end = dict().end();
         char t[16];
         for(int i = 0; cur != end; cur++, i++) {
             std::string k(pfx);
@@ -1129,14 +1105,8 @@ void PyObjectEx::visit( PyVisitorLvl* v, int64 lvl ) const
 
 PyObjectEx& PyObjectEx::operator=(const PyObjectEx& oth)
 {
-	PySafeDecRef( header );
-    if( oth.header != NULL )
-        header = oth.header->Clone();
-    else
-        header = NULL;
-
-	list_data = oth.list_data;
-	dict_data = oth.dict_data;
+	mList = oth.list();
+	mDict = oth.dict();
 
 	return *this;
 }
@@ -1148,22 +1118,22 @@ PyObjectEx_Type1::PyObjectEx_Type1(const char *type, PyTuple *args, PyDict *keyw
 
 PyString &PyObjectEx_Type1::GetType() const
 {
-	assert( header );
-	return header->AsTuple().items.at( 0 )->AsString();
+	assert( header() );
+	return header()->AsTuple().items.at( 0 )->AsString();
 }
 
 PyTuple &PyObjectEx_Type1::GetArgs() const
 {
-	assert( header );
-	return header->AsTuple().items.at( 1 )->AsTuple();
+	assert( header() );
+	return header()->AsTuple().items.at( 1 )->AsTuple();
 }
 
 PyDict &PyObjectEx_Type1::GetKeywords() const
 {
 	// This one is slightly more complicated since
 	// keywords are optional.
-	assert( header );
-	PyTuple &t = header->AsTuple();
+	assert( header() );
+	PyTuple &t = header()->AsTuple();
 
 	if( t.size() < 3 )
 		t.items.push_back( new PyDict );
@@ -1209,14 +1179,14 @@ PyObjectEx_Type2::PyObjectEx_Type2(PyTuple *args, PyDict *keywords)
 
 PyTuple &PyObjectEx_Type2::GetArgs() const
 {
-	assert( header );
-	return header->AsTuple().items.at( 0 )->AsTuple();
+	assert( header() );
+	return header()->AsTuple().items.at( 0 )->AsTuple();
 }
 
 PyDict &PyObjectEx_Type2::GetKeywords() const
 {
-	assert( header );
-	return header->AsTuple().items.at( 1 )->AsDict();
+	assert( header() );
+	return header()->AsTuple().items.at( 1 )->AsDict();
 }
 
 PyRep *PyObjectEx_Type2::FindKeyword(const char *keyword) const
@@ -1349,7 +1319,7 @@ bool PyPackedRow::SetField(const char* colName, PyRep* value)
     return SetField( header().FindColumn( colName ), value );
 }
 
-PyPackedRow& PyPackedRow::operator=(const PyPackedRow& oth)
+PyPackedRow& PyPackedRow::operator=( const PyPackedRow& oth )
 {
 	mFields = oth.mFields;
 
@@ -1365,25 +1335,25 @@ int32 PyPackedRow::hash() const
 /************************************************************************/
 /* PyRep SubStruct Class                                                */
 /************************************************************************/
-PySubStruct::PySubStruct( PyRep* t ) : PyRep( PyRep::PyTypeSubStruct ), sub( t ) {}
-PySubStruct::PySubStruct( const PySubStruct& oth ) : PyRep( PyRep::PyTypeSubStruct ), sub( oth.sub->Clone() ) {}
+PySubStruct::PySubStruct( PyRep* t ) : PyRep( PyRep::PyTypeSubStruct ), mSub( t ) {}
+PySubStruct::PySubStruct( const PySubStruct& oth ) : PyRep( PyRep::PyTypeSubStruct ), mSub( oth.sub()->Clone() ) {}
 PySubStruct::~PySubStruct()
 {
-    PyDecRef( sub );
+    PyDecRef( mSub );
 }
 
 void PySubStruct::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sSubstruct:\n", pfx);
     std::string m(pfx);
     m += "    ";
-    sub->Dump(into, m.c_str());
+    sub()->Dump(into, m.c_str());
 }
 
 void PySubStruct::Dump(LogType type, const char *pfx) const {
     _log(type, "%sSubstruct:", pfx);
     std::string m(pfx);
     m += "    ";
-    sub->Dump(type, m.c_str());
+    sub()->Dump(type, m.c_str());
 }
 
 PyRep* PySubStruct::Clone() const
@@ -1404,10 +1374,10 @@ void PySubStruct::visit( PyVisitorLvl* v, int64 lvl ) const
 /************************************************************************/
 /* PyRep SubStream Class                                                */
 /************************************************************************/
-PySubStream::PySubStream( PyRep* t ) : PyRep( PyRep::PyTypeSubStream ), data( NULL ), decoded( t ) {}
-PySubStream::PySubStream( const PyBuffer& buffer ): PyRep(PyRep::PyTypeSubStream), data( new PyBuffer( buffer ) ), decoded( NULL ) {}
+PySubStream::PySubStream( PyRep* t ) : PyRep( PyRep::PyTypeSubStream ), mData( NULL ), mDecoded( t ) {}
+PySubStream::PySubStream( const PyBuffer& buffer ): PyRep(PyRep::PyTypeSubStream), mData( new PyBuffer( buffer ) ), mDecoded( NULL ) {}
 PySubStream::PySubStream( const PySubStream& oth ) : PyRep(PyRep::PyTypeSubStream),
- data( NULL ), decoded( NULL )
+ mData( NULL ), mDecoded( NULL )
 {
 	// Use assigment operator
 	*this = oth;
@@ -1415,28 +1385,28 @@ PySubStream::PySubStream( const PySubStream& oth ) : PyRep(PyRep::PyTypeSubStrea
 
 PySubStream::~PySubStream()
 {
-	PySafeDecRef( data );
-    PySafeDecRef( decoded );
+	PySafeDecRef( mData );
+    PySafeDecRef( mDecoded );
 }
 
 void PySubStream::Dump(FILE *into, const char *pfx) const {
-    if(decoded == NULL) {
+    if( decoded() == NULL ) {
         //we have not decoded this substream, leave it as hex:
-        if(data == NULL) {
+        if( data() == NULL ) {
             fprintf(into, "%sINVALID Substream: no data\n", pfx);
         } else {
             fprintf(into, "%sSubstream:\n", pfx);
 
             std::string m(pfx);
             m += "  ";
-			data->Dump( into, m.c_str() );
+			data()->Dump( into, m.c_str() );
         }
     } else {
-        fprintf(into, "%sSubstream: %s\n", pfx, ( data == NULL ) ? "from rep" : "from data");
+        fprintf(into, "%sSubstream: %s\n", pfx, ( data() == NULL ) ? "from rep" : "from data");
 
         std::string m(pfx);
         m += "    ";
-        decoded->Dump(into, m.c_str());
+        decoded()->Dump(into, m.c_str());
     }
 }
 
@@ -1445,23 +1415,23 @@ void PySubStream::Dump(LogType type, const char *pfx) const {
     if(!is_log_enabled(type))
         return;
 
-    if(decoded == NULL) {
+    if( decoded() == NULL ) {
         //we have not decoded this substream, leave it as hex:
-        if(data == NULL) {
+        if( data() == NULL ) {
             _log(type, "%sINVALID Substream: no data\n", pfx);
         } else {
             _log(type, "%sSubstream:\n", pfx);
 
             std::string m(pfx);
             m += "  ";
-			data->Dump( type, m.c_str() );
+			data()->Dump( type, m.c_str() );
         }
     } else {
-        _log(type, "%sSubstream: %s\n", pfx, ( data == NULL ) ? "from rep" : "from data");
+        _log(type, "%sSubstream: %s\n", pfx, ( data() == NULL ) ? "from rep" : "from data");
 
         std::string m(pfx);
         m += "    ";
-        decoded->Dump(type, m.c_str());
+        decoded()->Dump(type, m.c_str());
     }
 }
 
@@ -1480,41 +1450,41 @@ void PySubStream::visit( PyVisitorLvl* v, int64 lvl ) const
 	v->VisitSubStream( this, lvl );
 }
 
-void PySubStream::EncodeData()
+void PySubStream::EncodeData() const
 {
-    if(decoded == NULL)
+    if( decoded() == NULL )
         return;
 
-	PySafeDecRef( data );
+	PySafeDecRef( mData );
 
 	uint32 len;
     uint8* buf = Marshal( this, len, false );
 
 	// Move ownership of buffer to PyBuffer
-	data = new PyBuffer( &buf, len );
+	mData = new PyBuffer( &buf, len );
 }
 
 void PySubStream::DecodeData() const
 {
-    if(data == NULL)
+    if( data() == NULL )
         return;
 
-    decoded = InflateAndUnmarshal( data->content(), data->size() );
+    mDecoded = InflateAndUnmarshal( data()->content(), data()->size() );
 }
 
 PySubStream& PySubStream::operator=(const PySubStream &oth)
 {
-	PySafeDecRef( data );
-	if( oth.data == NULL )
-		data = NULL;
+	PySafeDecRef( mData );
+	if( oth.data() == NULL )
+		mData = NULL;
 	else
-		data = new PyBuffer( *oth.data );
+		mData = new PyBuffer( *oth.data() );
 
-	PySafeDecRef( decoded );
-	if( oth.decoded == NULL )
-		decoded = NULL;
+	PySafeDecRef( mDecoded );
+	if( oth.decoded() == NULL )
+		mDecoded = NULL;
 	else
-		decoded = oth.decoded->Clone();
+		mDecoded = oth.decoded()->Clone();
 
 	return *this;
 }
@@ -1522,21 +1492,21 @@ PySubStream& PySubStream::operator=(const PySubStream &oth)
 /************************************************************************/
 /* PyRep ChecksumedStream Class                                         */
 /************************************************************************/
-PyChecksumedStream::PyChecksumedStream( PyRep* t, uint32 sum ) : PyRep( PyRep::PyTypeChecksumedStream ), stream( t ), checksum( sum ) {}
-PyChecksumedStream::PyChecksumedStream( const PyChecksumedStream& oth ) : PyRep( PyRep::PyTypeChecksumedStream ), stream( oth.stream->Clone() ), checksum( oth.checksum ) {}
+PyChecksumedStream::PyChecksumedStream( PyRep* t, uint32 sum ) : PyRep( PyRep::PyTypeChecksumedStream ), mStream( t ), mChecksum( sum ) {}
+PyChecksumedStream::PyChecksumedStream( const PyChecksumedStream& oth ) : PyRep( PyRep::PyTypeChecksumedStream ), mStream( oth.stream()->Clone() ), mChecksum( oth.checksum() ) {}
 PyChecksumedStream::~PyChecksumedStream()
 {
-    PyDecRef( stream );
+    PyDecRef( mStream );
 }
 
 void PyChecksumedStream::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sStream With Checksum: 0x%08x\n", pfx, checksum);
-    stream->Dump(into, pfx);
+    fprintf(into, "%sStream With Checksum: 0x%08x\n", pfx, checksum());
+    stream()->Dump(into, pfx);
 }
 
 void PyChecksumedStream::Dump(LogType type, const char *pfx) const {
-    _log(type, "%sStream With Checksum: 0x%08x", pfx, checksum);
-    stream->Dump(type, pfx);
+    _log(type, "%sStream With Checksum: 0x%08x", pfx, checksum());
+    stream()->Dump(type, pfx);
 }
 
 PyRep* PyChecksumedStream::Clone() const

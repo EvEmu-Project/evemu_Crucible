@@ -637,10 +637,10 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
         Notify_OnCorpMemberChange ocmc;
 
         ocmc.charID = args.charID;
-        ocmc.newCorpID = ((PyInt *)change.corporationIDNew)->value;
-        ocmc.oldCorpID = ((PyInt *)change.corporationIDOld)->value;
-        ocmc.newDate = ((PyInt *)OCAC.applicationDateTimeNew)->value;
-        ocmc.oldDate = ((PyInt *)OCAC.applicationDateTimeOld)->value;
+        ocmc.newCorpID = change.corporationIDNew->AsInt().value();
+        ocmc.oldCorpID = change.corporationIDOld->AsInt().value();
+        ocmc.newDate = OCAC.applicationDateTimeNew->AsInt().value();
+        ocmc.oldDate = OCAC.applicationDateTimeOld->AsInt().value();
 
 
         // both corporations' members will be notified about the change

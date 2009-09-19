@@ -509,11 +509,8 @@ PyObject *MarketDB::GetMarketGroups() {
 	args->SetItemString("header", header);
 	args->SetItemString("idName", new PyString("parentGroupID"));
 	args->SetItemString("RowClass", new PyString("util.Row", true));
-	args->SetItemString("idName2", new PyNone());
+	args->SetItemString("idName2", new PyNone);
 	args->SetItemString("items", parentSets);
-
-	std::map<int, PyList *> parentLists;	//maps marketGroupID -> list of children MarketGroup_Entry-s
-	std::map<int, PyList *>::iterator cur, end;
 	
 	//now fill in items.
 	// we have to satisfy this structure... which uses parentGroupID as the
@@ -522,64 +519,31 @@ PyObject *MarketDB::GetMarketGroups() {
 	//marketGroupID, parentGroupID, marketGroupName, description, graphicID, hasTypes, types
 	std::map< int, std::set<uint32> >::const_iterator tt;
 	MarketGroup_Entry entry;
-	PyNone none_gid;
-	PyInt int_gid(0);
-	PyInt int_pgid(0);
-	while(res.GetRow(row)) {
-		entry.marketGroupID = row.GetUInt(0);
+	while( res.GetRow(row) )
+	{
+		entry.marketGroupID = row.GetUInt( 0 );
 
 		//figure out the parent ID, mapping NULL to -1 for our map.
-		int parentID;
-		if(row.IsNull(1)) {
-			parentID = -1;
-			entry.parentGroupID = &none_gid;
-		} else {
-			parentID = int_pgid.value = row.GetUInt(1);
-			entry.parentGroupID = &int_pgid;
-		}
-		//find the list for this parent ID
-		PyList *parentList;
-		cur = parentLists.find(parentID);
-		if(cur != parentLists.end()) {
-			parentList = cur->second;
-		} else {
-			parentList = parentLists[parentID] = new PyList();
-		}
-		
-		entry.marketGroupName = row.GetText(2);
-		entry.description = row.GetText(3);
-		
-		if(row.IsNull(4)) {
-			entry.graphicID = &none_gid;
-		} else {
-			int_gid.value = row.GetUInt(4);
-			entry.graphicID = &int_gid;
-		}
-		
-		entry.hasTypes = row.GetUInt(5);
+		entry.parentGroupID = ( row.IsNull( 1 ) ? -1 : row.GetUInt( 1 ) );
 
+		entry.marketGroupName = row.GetText( 2 );
+		entry.description = row.GetText( 3 );
+		entry.graphicID = ( row.IsNull( 4 ) ? -1 : row.GetUInt( 4 ) );		
+		entry.hasTypes = row.GetUInt( 5 );
+
+		// Insert all types
 		entry.types.clear();
-		tt = types.find(entry.marketGroupID);
-		if(tt != types.end())
-			entry.types.insert(entry.types.begin(), tt->second.begin(), tt->second.end());
+		tt = types.find( entry.marketGroupID );
+		if( tt != types.end() )
+			entry.types.insert( entry.types.begin(), tt->second.begin(), tt->second.end() );
 
-		//record ourself in the parent's list.
-		parentList->AddItem( entry.Encode() );
-	}
-	entry.graphicID = NULL;
-	entry.parentGroupID = NULL;
-
-	//now we actually stick the parent lists into the FilterRowset's items dict.
-	cur = parentLists.begin();
-	end = parentLists.end();
-	for(; cur != end; cur++)
-		//takes ownership of the list.
-		if(cur->first == -1)
-			parentSets->SetItem(new PyNone, cur->second);
+		if( entry.parentGroupID == -1 )
+			parentSets->SetItem( new PyNone,                       entry.FastEncode() );
 		else
-			parentSets->SetItem(new PyInt(cur->first), cur->second);
+			parentSets->SetItem( new PyInt( entry.parentGroupID ), entry.FastEncode() );
+	}
 
-	return(new PyObject("util.FilterRowset", args));
+	return new PyObject( "util.FilterRowset", args );
 }
 
 uint32 MarketDB::StoreBuyOrder(

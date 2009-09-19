@@ -61,7 +61,7 @@ PyString &DBRowDescriptor::GetColumnName(uint32 index) const
 
 DBTYPE DBRowDescriptor::GetColumnType(uint32 index) const
 {
-	return (DBTYPE)_GetColumn( index ).items.at( 1 )->AsInt().value;
+	return (DBTYPE)_GetColumn( index ).items.at( 1 )->AsInt().value();
 }
 
 uint32 DBRowDescriptor::FindColumn(const char *name) const

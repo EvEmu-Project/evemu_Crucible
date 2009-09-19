@@ -92,9 +92,7 @@ PyBoundObject *CorpStationMgrService::_CreateBoundObject(Client *c, const PyRep 
 		codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bind_args->TypeString());
 		return NULL;
 	}
-	const PyInt *i = (const PyInt *) bind_args;
-
-	return(new CorpStationMgrIMBound(m_manager, &m_db, i->value));
+	return new CorpStationMgrIMBound( m_manager, &m_db, bind_args->AsInt().value() );
 }
 
 

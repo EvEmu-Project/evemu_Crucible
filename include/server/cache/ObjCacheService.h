@@ -58,7 +58,7 @@ public:
 	void InsertCacheHints(hintSet hset, PyDict *into);
 	PyRep *GetCacheHint(const char *objectID);
 
-	bool LoadCachedFile(const char *filename, const char *oname, PySubStream *into);
+	PySubStream* LoadCachedFile(const char *filename, const char *oname);
 
 	//handlers for simple cached method calls.
 	bool IsCacheLoaded(const PyRep *objectID) const;

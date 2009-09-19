@@ -58,6 +58,7 @@ bool ClassHeaderGenerator::Process_elementdef(FILE* into, TiXmlElement* element)
         "\n"
         "    void Dump( LogType type, const char* pfx = \"\" ) const;\n"
 		"\n"
+        "    bool Decode( const PyRep* packet );\n"
         "    bool Decode( PyRep** packet );    //consumes packet\n"
         "    bool Decode( %s** packet );\n"
         "    %s* Encode() const;\n"

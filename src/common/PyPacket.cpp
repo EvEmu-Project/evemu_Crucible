@@ -116,11 +116,11 @@ bool PyPacket::Decode(PyRep **in_packet)
 
     if(packet->IsChecksumedStream())
     {
-        PyChecksumedStream *cs = (PyChecksumedStream *) packet;
+        PyChecksumedStream* cs = &packet->AsChecksumedStream();
 
         //TODO: check cs->checksum
-		PyIncRef( cs->stream );
-        packet = cs->stream;
+        packet = cs->stream();
+        PyIncRef( packet );
 
         PyDecRef( cs );
     }
@@ -128,17 +128,20 @@ bool PyPacket::Decode(PyRep **in_packet)
     //Dragon nuance... it gets wrapped again
     if(packet->IsSubStream())
     {
-        PySubStream *cs = (PySubStream *) packet;
-        cs->DecodeData();
-        if(cs->decoded == NULL)
+        PySubStream* ss = &packet->AsSubStream();
+
+        ss->DecodeData();
+        if(ss->decoded() == NULL)
         {
             codelog(NET__PACKET_ERROR, "failed: unable to decode initial packet substream.");
             SafeDelete(packet);
             return false;
         }
-        packet = cs->decoded;
-        cs->decoded = NULL;
-        SafeDelete(cs);
+
+        packet = ss->decoded();
+        PyIncRef( packet );
+
+        PyDecRef( ss );
     }
 
     if(!packet->IsObject())
@@ -149,16 +152,16 @@ bool PyPacket::Decode(PyRep **in_packet)
     }
 
     PyObject *packeto = (PyObject *) packet;
-    type_string = packeto->type;
+    type_string = packeto->type();
 
-    if(!packeto->arguments->IsTuple())
+    if(!packeto->arguments()->IsTuple())
     {
         codelog(NET__PACKET_ERROR, "failed: packet body does not contain a tuple");
         SafeDelete(packet);
         return false;
     }
 
-    PyTuple *tuple = (PyTuple *) packeto->arguments;
+    PyTuple *tuple = (PyTuple *) packeto->arguments();
 
     if(tuple->items.size() != 6)
     {
@@ -176,7 +179,7 @@ bool PyPacket::Decode(PyRep **in_packet)
         return false;
     }
     PyInt *typer = (PyInt *) tuple->items[0];
-    switch(typer->value) {
+    switch(typer->value()) {
     case AUTHENTICATION_REQ:
     case AUTHENTICATION_RSP:
     case IDENTIFICATION_REQ:
@@ -192,10 +195,10 @@ bool PyPacket::Decode(PyRep **in_packet)
     case SESSIONINITIALSTATENOTIFICATION:
     case PING_REQ:
     case PING_RSP:
-        type = (MACHONETMSG_TYPE) typer->value;
+        type = (MACHONETMSG_TYPE) typer->value();
         break;
     default:
-        codelog(NET__PACKET_ERROR, "failed: Unknown message type "I64u, typer->value);
+        codelog(NET__PACKET_ERROR, "failed: Unknown message type "I64u, typer->value());
         SafeDelete(packet);
 
         return false;
@@ -222,7 +225,7 @@ bool PyPacket::Decode(PyRep **in_packet)
     if(tuple->items[3]->IsInt())
     {
         PyInt *i = (PyInt *) tuple->items[3];
-        userid = i->value;
+        userid = i->value();
     } else if(tuple->items[3]->IsNone()) {
         userid = 0;
     } else {
@@ -361,13 +364,13 @@ bool PyAddress::Decode(PyRep *&in_object) {
     PyObject *obj = (PyObject *) base;
     //do we care about the object type? should be "macho.MachoAddress"
 
-    if(!obj->arguments->IsTuple()) {
+    if(!obj->arguments()->IsTuple()) {
         codelog(NET__PACKET_ERROR, "Invalid argument type, expected tuple");
         SafeDelete(base);
         return false;
     }
 
-    PyTuple *args = (PyTuple *) obj->arguments;
+    PyTuple *args = (PyTuple *) obj->arguments();
     if(args->items.size() < 3) {
         codelog(NET__PACKET_ERROR, "Not enough elements in address tuple: %lu", args->items.size());
         args->Dump(NET__PACKET_ERROR, "  ");
@@ -483,9 +486,6 @@ bool PyAddress::Decode(PyRep *&in_object) {
 }
 
 PyRep *PyAddress::Encode() {
-    PyObject *r = new PyObject();
-    r->type = "macho.MachoAddress";
-
     PyTuple *t;
     switch(type) {
     case Any:
@@ -502,8 +502,8 @@ PyRep *PyAddress::Encode() {
         else
             t->items[2] = new PyLong(typeID);
 
-        r->arguments = t;
         break;
+
     case Node:
         t = new PyTuple(4);
         t->items[0] = new PyString("N");
@@ -519,8 +519,8 @@ PyRep *PyAddress::Encode() {
         else
             t->items[3] = new PyLong(callID);
 
-        r->arguments = t;
         break;
+
     case Client:
         t = new PyTuple(4);
         t->items[0] = new PyString("C");
@@ -530,8 +530,9 @@ PyRep *PyAddress::Encode() {
             t->items[3] = new PyNone();
         else
             t->items[3] = new PyString(service.c_str());
-        r->arguments = t;
+
         break;
+
     case Broadcast:
         t = new PyTuple(4);
         t->items[0] = new PyString("B");
@@ -544,14 +545,17 @@ PyRep *PyAddress::Encode() {
         t->items[2] = new PyList();
         //typeID
         t->items[3] = new PyString(bcast_idtype.c_str());
-        r->arguments = t;
+
         break;
+
     case Invalid:
         //this still needs to be something which will not crash us.
-        r->arguments = new PyNone();
+        t = new PyTuple(0);
+
         break;
     }
-    return(r);
+
+    return new PyObject( "macho.MachoAddress", t );
 }
 
 bool PyAddress::_DecodeService(PyRep *rep) {
@@ -570,7 +574,7 @@ bool PyAddress::_DecodeService(PyRep *rep) {
 
 bool PyAddress::_DecodeCallID(PyRep *rep) {
     if(rep->IsInt()) {
-        callID = ((PyInt *) rep)->value;
+        callID = rep->AsInt().value();
     } else if(rep->IsNone()) {
         callID = 0;
     } else {
@@ -583,7 +587,7 @@ bool PyAddress::_DecodeCallID(PyRep *rep) {
 
 bool PyAddress::_DecodeTypeID(PyRep *rep) {
     if(rep->IsInt()) {
-        typeID = ((PyInt *) rep)->value;
+        typeID = rep->AsInt().value();
     } else if(rep->IsNone()) {
         typeID = 0;
     } else {
@@ -682,19 +686,19 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
     PySubStream *ss = (PySubStream *) payload2->items[1];
 
     ss->DecodeData();
-    if(ss->decoded == NULL) {
+    if(ss->decoded() == NULL) {
         codelog(NET__PACKET_ERROR, "Unable to decode call stream");
         SafeDelete(payload);
         return false;
     }
 
-    if(!ss->decoded->IsTuple()) {
+    if(!ss->decoded()->IsTuple()) {
         codelog(NET__PACKET_ERROR, "packet body does not contain a tuple");
         SafeDelete(payload);
         return false;
     }
 
-    PyTuple *maint = (PyTuple *) ss->decoded;
+    PyTuple *maint = (PyTuple *) ss->decoded();
     if(maint->items.size() != 4) {
         codelog(NET__PACKET_ERROR, "packet body has %lu elements, expected %d", maint->items.size(), 4);
         SafeDelete(payload);
@@ -704,7 +708,7 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
     //parse first tuple element, unknown
     if(maint->items[0]->IsInt()) {
         PyInt *tuple0 = (PyInt *) maint->items[0];
-        remoteObject = tuple0->value;
+        remoteObject = tuple0->value();
         remoteObjectStr = "";
     } else if(maint->items[0]->IsString()) {
         PyString *tuple0 = (PyString *) maint->items[0];
@@ -869,19 +873,19 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     PySubStream *ss = (PySubStream *) payload2->items[1];
 
     ss->DecodeData();
-    if(ss->decoded == NULL) {
+    if(ss->decoded() == NULL) {
         codelog(NET__PACKET_ERROR, "Unable to decode call stream");
         SafeDelete(payload);
         return false;
     }
 
-    if(!ss->decoded->IsTuple()) {
+    if(!ss->decoded()->IsTuple()) {
         codelog(NET__PACKET_ERROR, "packet body does not contain a tuple");
         SafeDelete(payload);
         return false;
     }
 
-    PyTuple *robjt = (PyTuple *) ss->decoded;
+    PyTuple *robjt = (PyTuple *) ss->decoded();
     if(robjt->items.size() != 2) {
         codelog(NET__PACKET_ERROR, "packet body has %lu elements, expected %d", robjt->items.size(), 2);
         SafeDelete(payload);
@@ -891,7 +895,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     //parse first tuple element, remote object
     if(robjt->items[0]->IsInt()) {
         PyInt *tuple0 = (PyInt *) robjt->items[0];
-        remoteObject = tuple0->value;
+        remoteObject = tuple0->value();
         remoteObjectStr = "";
     } else if(robjt->items[0]->IsString()) {
         PyString *tuple0 = (PyString *) robjt->items[0];

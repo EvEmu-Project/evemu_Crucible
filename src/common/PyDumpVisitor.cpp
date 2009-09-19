@@ -57,19 +57,19 @@ PyLogsysDump::PyLogsysDump(LogType type, LogType hex_type, bool full_hex, bool f
 // --- Visitors implementation ---
 
 void PyDumpVisitor::VisitInteger(const PyInt *rep, int64 lvl ) {
-    _print(lvl, "Integer field: %d", rep->value);
+    _print(lvl, "Integer field: %d", rep->value());
 }
 
 void PyDumpVisitor::VisitLong(const PyLong *rep, int64 lvl ) {
-    _print(lvl, "Integer field: "I64d, rep->value);
+    _print(lvl, "Integer field: "I64d, rep->value());
 }
 
 void PyDumpVisitor::VisitReal(const PyFloat *rep, int64 lvl ) {
-    _print(lvl, "Real field: %f", rep->value);
+    _print(lvl, "Real field: %f", rep->value());
 }
 
 void PyDumpVisitor::VisitBoolean(const PyBool *rep, int64 lvl ) {
-    _print(lvl, "Boolean field: %s", rep->value ? "true" : "false");
+    _print(lvl, "Boolean field: %s", rep->value() ? "true" : "false");
 }
 
 void PyDumpVisitor::VisitNone(const PyNone *rep, int64 lvl ) {
@@ -125,13 +125,13 @@ void PyDumpVisitor::VisitObjectEx(const PyObjectEx *rep, int64 lvl )
 	_print( lvl, "ObjectEx:" );
     _print( lvl, "Header:" );
 
-    rep->header->visit(this, lvl + idenAmt );
+    rep->header()->visit(this, lvl + idenAmt );
 
     {
-		_print( lvl, "ListData: %u entries", (uint32)rep->list_data.size() );
+		_print( lvl, "ListData: %u entries", (uint32)rep->list().size() );
         PyObjectEx::const_list_iterator cur, end;
-        cur = rep->list_data.begin();
-        end = rep->list_data.end();
+        cur = rep->list().begin();
+        end = rep->list().end();
         for(uint32 i = 0; cur != end; ++cur, ++i)
         {
 			_print( lvl, "  [%2d] ", i );
@@ -140,10 +140,10 @@ void PyDumpVisitor::VisitObjectEx(const PyObjectEx *rep, int64 lvl )
     }
 
     {
-		_print( lvl, "DictData: %u entries", (uint32)rep->dict_data.size() );
+		_print( lvl, "DictData: %u entries", (uint32)rep->dict().size() );
         PyObjectEx::const_dict_iterator cur, end;
-        cur = rep->dict_data.begin();
-        end = rep->dict_data.end();
+        cur = rep->dict().begin();
+        end = rep->dict().end();
         for(uint32 i = 0; cur != end; ++cur, ++i)
         {
 			_print( lvl, "  [%2d] Key: ", i );
@@ -179,32 +179,32 @@ void PyDumpVisitor::VisitPackedRow(const PyPackedRow *rep, int64 lvl )
 void PyDumpVisitor::VisitObject(const PyObject *rep, int64 lvl )
 {
 	_print( lvl, "Object:" );
-	_print( lvl, "  Type: %s", rep->type.c_str() );
+	_print( lvl, "  Type: %s", rep->type().c_str() );
 	_print( lvl, "  Args: " );
 
-    rep->arguments->visit(this, lvl + idenAmt );
+    rep->arguments()->visit(this, lvl + idenAmt );
 }
 
 void PyDumpVisitor::VisitSubStruct(const PySubStruct *rep, int64 lvl ) {
 	_print( lvl, "SubStruct: " );
 
-    rep->sub->visit(this, lvl + idenAmt );
+    rep->sub()->visit(this, lvl + idenAmt );
 }
 
 void PyDumpVisitor::VisitSubStream(const PySubStream *rep, int64 lvl ) {
-    if(rep->decoded == NULL) {
+    if(rep->decoded() == NULL) {
         //we have not decoded this substream, leave it as hex:
-        if(rep->data == NULL) {
+        if(rep->data() == NULL) {
             _print(lvl, "INVALID Substream: no data\n");
         } else {
             _print(lvl, "Substream:\n");
 
-			rep->data->visit( this, lvl + idenAmt );
+			rep->data()->visit( this, lvl + idenAmt );
         }
     } else {
-        _print(lvl, "Substream: %s\n", ( rep->data == NULL ) ? "from rep" : "from data");
+        _print(lvl, "Substream: %s\n", ( rep->data() == NULL ) ? "from rep" : "from data");
 
-		rep->decoded->visit( this, lvl + idenAmt );
+		rep->decoded()->visit( this, lvl + idenAmt );
     }
 }
 

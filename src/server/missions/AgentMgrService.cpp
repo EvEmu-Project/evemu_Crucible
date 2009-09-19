@@ -117,7 +117,7 @@ PyBoundObject *AgentMgrService::_CreateBoundObject(Client *c, const PyRep *bind_
 		return NULL;
 	}
 	
-	uint32 agentID = ((const PyInt *)bind_args)->value;
+	uint32 agentID = bind_args->AsInt().value();
 
 	Agent *agent = _GetAgent(agentID);
 	if(agent == NULL) {
@@ -189,10 +189,7 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
 	}
 	
 	uint32 actionID = 0;
-	if(args.arg->IsInt()) {
-		PyInt *i = (PyInt *) args.arg;
-		actionID = i->value;
-	}
+	actionID = args.arg->AsInt().value();
 	
 	uint32 loyaltyPoints;
 	DoAction_Result res;

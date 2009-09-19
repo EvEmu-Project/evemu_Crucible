@@ -2,49 +2,48 @@
 
 <Elements>
 
-<elementdef name="objectCaching_CachedObject_data">
+<elementdef name="objectCaching_CachedObject">
   <object type="objectCaching.CachedObject">
-	<InlineTuple>
-	  <!-- 0 -->
-	  <InlineTuple>
-		<!-- 0 -->
-		<int64 name="timestamp" />
-		<!-- 1 -->
-		<int name="version" />
-	  </InlineTuple>
-	  <!-- 1 -->
-	  <none />
-	  <!-- 2 -->
-	  <!-- 2 -->
-	  <int name="nodeID" />
-	  <!-- 3 -->
-	  <int name="shared" />    
-	  <!-- 4 -->
-	  <buffer name="data" />
-	  <!-- 5 -->
-	  <int name="compressed" />
-	  <!-- 6 -->
-	  <!-- either a string or a tuple -->
-	  <raw name="objectID" />
-	</InlineTuple>
+    <InlineTuple>
+      <!-- 0 -->
+      <InlineTuple>
+        <!-- 0 -->
+        <int64 name="timestamp" />
+        <!-- 1 -->
+        <int name="version" />
+      </InlineTuple>
+      <!-- 1 -->
+      <none />
+      <!-- 2 -->
+      <int name="nodeID" />
+      <!-- 3 -->
+      <int name="shared" />
+      <!-- 4 -->
+      <raw name="data" />
+      <!-- 5 -->
+      <int name="compressed" />
+      <!-- 6 -->
+      <!-- either a string or a tuple -->
+      <raw name="objectID" />
+    </InlineTuple>
   </object>
 </elementdef>
 
 <elementdef name="objectCaching_CachedObject_spec">
   <object type="util.CachedObject">
-	<InlineTuple>
-	  <!-- 0 -->
-	  <raw name="objectID" />
-	  <!-- 1 -->
-	  <int name="nodeID" />
-	  <!-- 2 -->
-	  <InlineTuple>
-		<!-- 0 -->
-		<int64 name="timestamp" />
-		<!-- 1 -->
-		<int name="version" />
-	  </InlineTuple>
-	</InlineTuple>
+    <InlineTuple>
+      <!-- 0 -->
+      <raw name="objectID" />
+      <!-- 1 -->
+      <int name="nodeID" />
+      <!-- 2 -->
+      <InlineTuple>
+        <!-- 0 -->
+        <int64 name="timestamp" />
+        <!-- 1 -->
+        <int name="version" />
+      </InlineTuple>
+    </InlineTuple>
   </object>
 </elementdef>
 

@@ -56,27 +56,22 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	//we can get an integer or a boolean right now...
 	bool corporate_wallet = false;
 	
-	if(args.arg->IsInt()) {
-		PyInt *i = (PyInt *) args.arg;
-		corporate_wallet = (i->value != 0);
-	} else if(args.arg->IsBool()) {
-		PyBool *i = (PyBool *) args.arg;
-		corporate_wallet = i->value;
-	} else {
+	if( args.arg->IsInt() )
+		corporate_wallet = ( args.arg->AsInt().value() != 0 );
+	else if( args.arg->IsBool() )
+		corporate_wallet = args.arg->AsBool().value();
+	else
+    {
 		codelog(CLIENT__ERROR, "Invalid arguments");
 		return NULL;
 	}
 	
-	if(!corporate_wallet) { //personal wallet
-		PyRep *result = new PyFloat(call.client->GetBalance());
-		return result;
-	} else {	//corporate wallet
-		PyRep *result = new PyFloat(
-			m_db.GetCorpBalance(call.client->GetCorporationID())
-			);
-		return result;
-	}
-	return NULL;
+	if(corporate_wallet)
+        //corporate wallet
+		return new PyFloat( m_db.GetCorpBalance( call.client->GetCorporationID() ) );
+    else
+        //personal wallet
+		return new PyFloat( call.client->GetBalance() );
 }
 
 //givecash takes (ownerID, retval['qty'], retval['reason'][:40])
@@ -337,21 +332,24 @@ PyResult AccountService::Handle_GetJournal(PyCallArgs &call) {
 	}
 
 	bool ca = false;
-	if (args.corpAccount->IsBool()) {
-		ca = ((PyBool *)args.corpAccount)->value;
-	} else if (args.corpAccount->IsInt()) {
-		ca = (((PyInt *)args.corpAccount)->value != 0);
-	} else {
+	if( args.corpAccount->IsBool() )
+		ca = args.corpAccount->AsBool().value();
+	else if( args.corpAccount->IsInt() )
+		ca = ( args.corpAccount->AsInt().value() != 0 );
+	else
+    {
 		// problem
-		_log(SERVICE__WARNING, "%s: Unsupported value for corpAccount", GetName());
+		_log( SERVICE__WARNING, "%s: Unsupported value for corpAccount", GetName() );
+
 		return NULL;
 	}
 		
-	if (ca) {
-		return m_db.GetJournal(call.client->GetCorporationID(), args.refTypeID, args.accountKey, args.fromDate);
-	} else {
-		return m_db.GetJournal(call.client->GetCharacterID(), args.refTypeID, args.accountKey, args.fromDate);
-	}
+    return m_db.GetJournal(
+        ( ca ? call.client->GetCorporationID() : call.client->GetCharacterID() ),
+        args.refTypeID,
+        args.accountKey,
+        args.fromDate
+    );
 }
 
 PyResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call) {

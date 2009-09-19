@@ -39,24 +39,24 @@ void SubStreamDecoder:: VisitString(const PyString *rep) {}
 void SubStreamDecoder::VisitPackedRow(const PyPackedRow *rep) {}
 //! Object type visitor
 void SubStreamDecoder::VisitObject(const PyObject *rep) {
-    rep->arguments->visit(this);
+    rep->arguments()->visit(this);
 }
 
 void SubStreamDecoder::VisitObjectEx(const PyObjectEx *rep) {
-    rep->header->visit(this);
+    rep->header()->visit(this);
 
     {
         PyObjectEx::const_list_iterator cur, end;
-        cur = rep->list_data.begin();
-        end = rep->list_data.end();
+        cur = rep->list().begin();
+        end = rep->list().end();
         for(; cur != end; ++cur)
             (*cur)->visit(this);
     }
 
     {
         PyObjectEx::const_dict_iterator cur, end;
-        cur = rep->dict_data.begin();
-        end = rep->dict_data.end();
+        cur = rep->dict().begin();
+        end = rep->dict().end();
         for(; cur != end; ++cur)
         {
             cur->first->visit(this);
@@ -66,7 +66,7 @@ void SubStreamDecoder::VisitObjectEx(const PyObjectEx *rep) {
 }
 
 void SubStreamDecoder::VisitSubStruct(const PySubStruct *rep) {
-    rep->sub->visit(this);
+    rep->sub()->visit(this);
 }
 
 
@@ -75,8 +75,8 @@ void SubStreamDecoder::VisitSubStruct(const PySubStruct *rep) {
 //! the substream, searching for nested substreams that needs decoding...
 void SubStreamDecoder::VisitSubStream(const PySubStream *rep) {
     rep->DecodeData();
-    if(rep->decoded != NULL)
-       rep->decoded->visit(this);
+    if(rep->decoded() != NULL)
+       rep->decoded()->visit(this);
 }
 
 
@@ -133,8 +133,8 @@ void PyVisitor::VisitObjectExHeader(const PyObjectEx *rep) {
 
 void PyVisitor::VisitObjectExList(const PyObjectEx *rep) {
     PyObjectEx::const_list_iterator cur, end;
-    cur = rep->list_data.begin();
-    end = rep->list_data.end();
+    cur = rep->list().begin();
+    end = rep->list().end();
     for(int i = 0; cur != end; cur++, i++)
         VisitObjectExListElement(rep, i, *cur);
 }
@@ -145,8 +145,8 @@ void PyVisitor::VisitObjectExListElement(const PyObjectEx *rep, uint32 index, co
 
 void PyVisitor::VisitObjectExDict(const PyObjectEx *rep) {
     PyObjectEx::const_dict_iterator cur, end;
-    cur = rep->dict_data.begin();
-    end = rep->dict_data.end();
+    cur = rep->dict().begin();
+    end = rep->dict().end();
     for(int i = 0; cur != end; cur++, i++)
         VisitObjectExDictElement(rep, i, cur->first, cur->second);
 }

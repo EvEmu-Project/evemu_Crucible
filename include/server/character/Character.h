@@ -260,36 +260,44 @@ public:
 #define INT(v) \
 	uint32 v;
 #define INT_DYN(v) \
-	bool IsNull_##v() const { \
-		return(v == NULL); \
+	bool IsNull_##v() const \
+    { \
+		return ( v == NULL ); \
 	} \
-	uint32 Get_##v() const { \
-		return(IsNull_##v() ? NULL : *v); \
+	uint32 Get_##v() const \
+    { \
+		return ( IsNull_##v() ? NULL : *v ); \
 	} \
-	void Set_##v(uint32 val) { \
+	void Set_##v(uint32 val)\
+    { \
 		Clear_##v(); \
 		v = new uint32(val); \
 	} \
-	void Clear_##v() { \
-		if(!IsNull_##v()) \
+	void Clear_##v() \
+    { \
+		if( !IsNull_##v() ) \
 			delete v; \
 		v = NULL; \
 	}
 #define REAL(v) \
 	double v;
 #define REAL_DYN(v) \
-	bool IsNull_##v() const { \
-		return(v == NULL); \
+	bool IsNull_##v() const \
+    { \
+		return ( v == NULL ); \
 	} \
-	double Get_##v() const { \
-		return(IsNull_##v() ? NULL : *v); \
+	double Get_##v() const \
+    { \
+		return ( IsNull_##v() ? NULL : *v ); \
 	} \
-	void Set_##v(double val) { \
+	void Set_##v(double val) \
+    { \
 		Clear_##v(); \
-		v = new double(val); \
+		v = new double( val ); \
 	} \
-	void Clear_##v() { \
-		if(!IsNull_##v()) \
+	void Clear_##v() \
+    { \
+		if( !IsNull_##v() ) \
 			delete v; \
 		v = NULL; \
 	}

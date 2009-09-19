@@ -230,11 +230,12 @@ public:
     void visit(PyVisitor *v) const;
     void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    int32 GetValue() const { return value; }
+    int32 value() const { return mValue; }
+
     int32 hash() const;
 
-//private:
-    int32 value;
+protected:
+    const int32 mValue;
 };
 
 /**
@@ -255,11 +256,12 @@ public:
     void visit(PyVisitor *v) const;
     void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    int64 GetValue() { return value; }
+    int64 value() const { return mValue; }
+
     int32 hash() const;
 
-//private:
-    int64 value;
+protected:
+    const int64 mValue;
 };
 
 /**
@@ -280,11 +282,11 @@ public:
     void visit(PyVisitor *v) const;
     void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    double GetValue() { return value; }
+    double value() const { return mValue; }
     int32 hash() const;
 
-//private:
-    double value;
+protected:
+    const double mValue;
 };
 
 /**
@@ -305,8 +307,10 @@ public:
     void visit(PyVisitor *v) const;
     void visit(PyVisitorLvl *v, int64 lvl) const;
 
-//private:
-    bool value;
+	bool value() const { return mValue; }
+
+protected:
+    const bool mValue;
 };
 
 /**
@@ -400,12 +404,12 @@ protected:
 /**
  * @brief Python string.
  *
- * Usual string. Unlike Python's string, our one is mutable.
+ * Usual string.
  */
 class PyString : public PyRep
 {
 public:
-    PyString(const char *str = "", bool type_1=false);
+    PyString(const char *str, bool type_1=false);
     PyString(const std::string &str, bool type_1=false);
 	PyString(const PyBuffer &buf, bool type_1=false); //to deal with non-string buffers poorly placed in strings (CCP)
 	PyString(const PyString &oth);
@@ -461,22 +465,10 @@ public:
 	 */
 	bool operator==(const PyString &oth) const { return ( hash() == oth.hash() ); }
 
-	/**
-	 * @brief Assigment operator.
-	 *
-	 * This needs to be defined by hand because of const m_is_type_1.
-	 * Once is this member removed, this function may also be
-	 * removed, passing its job to compiler-generated one.
-	 *
-	 * @param[in] oth String content of which should be assigned.
-	 * @return Itself.
-	 */
-	PyString& operator=(const PyString &oth);
-
     int32 hash() const;
 
 protected:
-    std::string m_value;
+    const std::string m_value;
     const bool m_is_type_1; //true if this is an Op_PyByteString instead of the default Op_PyByteString2
 
     mutable int32 m_hash_cache;
@@ -677,7 +669,7 @@ public:
 class PyObject : public PyRep
 {
 public:
-    PyObject(const char* _type = "", PyRep* _args = NULL);
+    PyObject(const char* type, PyRep* args);
 	PyObject(const PyObject& oth);
     virtual ~PyObject();
 
@@ -687,16 +679,12 @@ public:
     void visit(PyVisitor *v) const;
     void visit(PyVisitorLvl *v, int64 lvl) const;
 
-	/**
-	 * @brief Assigment operator, handles arguments ownership.
-	 *
-	 * @param[in] oth PyObject the content of which should be copied.
-	 * @return Itself.
-	 */
-	PyObject& operator=(const PyObject& oth);
+	const std::string &type() const { return mType; }
+	PyRep* arguments() const { return mArguments; }
 
-    std::string type;
-    PyRep* arguments;
+protected:
+    const std::string mType;
+    PyRep* const mArguments;
 };
 
 /**
@@ -717,7 +705,7 @@ public:
     typedef dict_type::iterator             dict_iterator;
     typedef dict_type::const_iterator       const_dict_iterator;
 
-    PyObjectEx(bool _is_type_2, PyRep* _header = NULL);
+    PyObjectEx(bool is_type_2, PyRep* header);
 	PyObjectEx(const PyObjectEx& oth);
     virtual ~PyObjectEx();
 
@@ -727,6 +715,15 @@ public:
     void visit(PyVisitor *v) const;
     void visit(PyVisitorLvl *v, int64 lvl) const;
 
+	PyRep* header() const { return mHeader; }
+	bool isType2() const { return mIsType2; }
+
+	list_type& list() { return mList; }
+	const list_type& list() const { return mList; }
+
+	dict_type& dict() { return mDict; }
+	const dict_type& dict() const { return mDict; }
+
 	/**
 	 * @brief Assigment operator to handle ownership things.
 	 *
@@ -735,11 +732,12 @@ public:
 	 */
 	PyObjectEx& operator=(const PyObjectEx& oth);
 
-    PyRep* header;
-    const bool is_type_2;
+protected:
+    PyRep* const mHeader;
+    const bool mIsType2;
 
-    list_type list_data;
-    dict_type dict_data;
+    list_type mList;
+    dict_type mDict;
 };
 
 /**
@@ -847,13 +845,16 @@ public:
     void visit(PyVisitor *v) const;
     void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    PyRep *const sub;
+	PyRep* sub() const { return mSub; }
+
+protected:
+    PyRep* const mSub;
 };
 
 class PySubStream : public PyRep
 {
 public:
-    PySubStream(PyRep *t = NULL);
+    PySubStream(PyRep* t);
     PySubStream(const PyBuffer& buffer);
 	PySubStream(const PySubStream& oth);
     virtual ~PySubStream();
@@ -864,8 +865,11 @@ public:
     void visit(PyVisitor *v) const;
     void visit(PyVisitorLvl *v, int64 lvl) const;
 
+	PyBuffer* data() const { return mData; }
+	PyRep* decoded() const { return mDecoded; }
+
     //call to ensure that `data` represents `decoded` IF DATA IS NULL
-    void EncodeData();
+    void EncodeData() const;
 
     //call to ensure that `decoded` represents `data`
     void DecodeData() const;
@@ -878,11 +882,10 @@ public:
 	 */
 	PySubStream& operator=(const PySubStream& oth);
 
-    PyBuffer *data;
-
-    //set this and make data NULL to make somebody else marshal it
+protected:
     //if both are non-NULL, they are considered to be equivalent
-    mutable PyRep* decoded;
+    mutable PyBuffer* mData;
+    mutable PyRep* mDecoded;
 };
 
 class PyChecksumedStream : public PyRep
@@ -898,8 +901,12 @@ public:
     void visit(PyVisitor *v) const;
     void visit(PyVisitorLvl *v, int64 lvl) const;
 
-    PyRep *const stream;
-    const uint32 checksum;
+	PyRep* stream() const { return mStream; }
+	uint32 checksum() const { return mChecksum; }
+
+protected:
+    PyRep* const mStream;
+    const uint32 mChecksum;
 };
 
 /* note: this will decrease memory use with 50% but increase load time with 50%

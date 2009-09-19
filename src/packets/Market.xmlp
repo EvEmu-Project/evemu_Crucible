@@ -6,13 +6,13 @@
 <elementdef name="MarketGroup_Entry">
   <InlineList>
     <int name="marketGroupID" />
-    <raw name="parentGroupID" />    <!-- may be None -->
+    <int name="parentGroupID" none_marker="-1" />
     <string name="marketGroupName" />
     <string name="description" />
-    <raw name="graphicID" />        <!-- may be None -->
+    <int name="graphicID" none_marker="-1" />
     <int name="hasTypes" />
     <intlist name="types" />
-	<int name="dataID" default="0" />
+    <int name="dataID" default="0" />
   </InlineList>
 </elementdef>
 

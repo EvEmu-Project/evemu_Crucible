@@ -200,44 +200,52 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
     _log(CLIENT__MESSAGE, "  Appearance Data:");
 
 #define INT(v) \
-    itr = from.find(#v); \
-    if(itr != from.end()) { \
-        if(!itr->second->IsInt()) { \
-            _log(CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString()); \
-        } else { \
-            v = ((PyInt *)itr->second)->value; \
-            _log(CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), v); \
+    itr = from.find( #v ); \
+    if( itr != from.end() ) \
+    { \
+        if( itr->second->IsInt() ) \
+        { \
+            v = itr->second->AsInt().value(); \
+            _log( CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), v ); \
         } \
+        else \
+            _log( CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString() ); \
     }
 #define INT_DYN(v) \
-    itr = from.find(#v); \
-    if(itr != from.end()) { \
-        if(!itr->second->IsInt()) { \
-            _log(CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString()); \
-        } else { \
-            Set_##v(((PyInt *)itr->second)->value); \
-            _log(CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), Get_##v()); \
+    itr = from.find( #v ); \
+    if( itr != from.end() ) \
+    { \
+        if( !itr->second->IsInt() ) \
+        { \
+            Set_##v( itr->second->AsInt().value() ); \
+            _log( CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), Get_##v() ); \
         } \
+        else \
+            _log( CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString() ); \
     }
 #define REAL(v) \
-    itr = from.find(#v); \
-    if(itr != from.end()) { \
-        if(!itr->second->IsFloat()) { \
-            _log(CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString()); \
-        } else { \
-            v = ((PyFloat *)itr->second)->value; \
-            _log(CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), v); \
+    itr = from.find( #v ); \
+    if( itr != from.end() ) \
+    { \
+        if( itr->second->IsFloat() ) \
+        { \
+            v = itr->second->AsFloat().value(); \
+            _log( CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), v ); \
         } \
+        else \
+            _log( CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString() ); \
     }
 #define REAL_DYN(v) \
-    itr = from.find(#v); \
-    if(itr != from.end()) { \
-        if(!itr->second->IsFloat()) {\
-            _log(CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString()); \
-        } else { \
-            Set_##v(((PyFloat *)itr->second)->value); \
-            _log(CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), Get_##v()); \
+    itr = from.find( #v ); \
+    if( itr != from.end() ) \
+    { \
+        if( itr->second->IsFloat() ) \
+        { \
+            Set_##v( itr->second->AsFloat().value() ); \
+            _log( CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), Get_##v() ); \
         } \
+        else \
+            _log( CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString() ); \
     }
 #include "character/CharacterAppearance_fields.h"
 }

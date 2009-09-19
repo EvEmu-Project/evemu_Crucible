@@ -848,7 +848,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
                 break;
 			IncreaseIndex( clen );
 
-            obj->list_data.AddItem( el );
+            obj->list().AddItem( el );
         }
 		IncreaseIndex( 1 );
 
@@ -868,7 +868,7 @@ static uint32 UnmarshalData(UnmarshalReferenceMap *state, const uint8 *packet, u
                 break;
 			IncreaseIndex( clen );
 
-			obj->dict_data.SetItem( key, value );
+			obj->dict().SetItem( key, value );
         }
 		IncreaseIndex( 1 );
 

@@ -422,7 +422,7 @@ void CatCacheObject(const char *file) {
 	printf("Dumping cached object %s:\n", abs_fname.c_str());
 
 	CachedObjectMgr mgr;
-	PyCachedObjectDecoder *obj = mgr.LoadCachedFile(abs_fname.c_str(), file);
+	PyCachedObjectDecoder *obj = mgr.LoadCachedObject(abs_fname.c_str(), file);
 	if(obj == NULL) {
 		_log(CLIENT__ERROR, "Unable to load or decode '%s'!", abs_fname.c_str());
 		return;
@@ -504,14 +504,14 @@ void ObjectToSQL(const Seperator &command) {
 	printf("Converting cached object %s:\n", abs_fname.c_str());
 
 	CachedObjectMgr mgr;
-	PyCachedObjectDecoder *obj = mgr.LoadCachedFile(abs_fname.c_str(), command.arg[1]);
+	PyCachedObjectDecoder *obj = mgr.LoadCachedObject(abs_fname.c_str(), command.arg[1]);
 	if(obj == NULL) {
 		_log(CLIENT__ERROR, "Unable to load or decode '%s'!", abs_fname.c_str());
 		return;
 	}
 
 	obj->cache->DecodeData();
-	if(obj->cache->decoded == NULL) {
+	if(obj->cache->decoded() == NULL) {
 		_log(CLIENT__ERROR, "Unable to load or decode body of '%s'!", abs_fname.c_str());
 		delete obj;
 		return;
@@ -525,9 +525,10 @@ void ObjectToSQL(const Seperator &command) {
 	}
 
 	bool success = false;
-	if(obj->cache->decoded->IsObject()) {
+	if(obj->cache->decoded()->IsObject()) {
 		util_Rowset rowset;
-		if(!rowset.Decode(&obj->cache->decoded)) {
+		if( !rowset.Decode( obj->cache->decoded() ) )
+        {
 			_log(CLIENT__ERROR, "Unable to load a rowset from the object body!");
 			delete obj;
 			return;
@@ -535,18 +536,19 @@ void ObjectToSQL(const Seperator &command) {
 	
 		RowsetReader reader(&rowset);
 		success = ReaderToSQL<RowsetReader>(command.arg[2], command.arg[3], out, reader);
-	} else if(obj->cache->decoded->IsTuple()) {
+	} else if(obj->cache->decoded()->IsTuple()) {
 		util_Tupleset rowset;
-		if(!rowset.Decode(&obj->cache->decoded)) {
+		if( !rowset.Decode( obj->cache->decoded() ) )
+        {
 			_log(CLIENT__ERROR, "Unable to load a tupleset from the object body!");
 			delete obj;
 			return;
 		}
-	
-		TuplesetReader reader(&rowset);
+
+        TuplesetReader reader(&rowset);
 		success = ReaderToSQL<TuplesetReader>(command.arg[2], command.arg[3], out, reader);
 	} else {
-		_log(CLIENT__ERROR, "Unknown cache body type: %s", obj->cache->decoded->TypeString());
+		_log(CLIENT__ERROR, "Unknown cache body type: %s", obj->cache->decoded()->TypeString());
 	}
 
 	fclose(out);

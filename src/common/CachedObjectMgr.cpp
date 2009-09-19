@@ -48,12 +48,11 @@ static const uint32 HackCacheNodeID = 333444;
 
 CachedObjectMgr::~CachedObjectMgr()
 {
-    std::map<std::string, CacheRecord *>::iterator cur, end;
+    std::map<std::string, CacheRecord*>::iterator cur, end;
     cur = m_cachedObjects.begin();
     end = m_cachedObjects.end();
-    for(; cur != end; cur++) {
-        delete cur->second;
-    }
+    for(; cur != end; cur++)
+        SafeDelete( cur->second );
 }
 
 CachedObjectMgr::CacheRecord::~CacheRecord()
@@ -119,8 +118,14 @@ void CachedObjectMgr::UpdateCacheFromSS(const std::string &objectID, PySubStream
         return;
     }
 
-    PyString str(objectID);
-    _UpdateCache(&str, &cache.cache->data);
+    PyString* str = new PyString( objectID );
+
+    PyBuffer* buf = cache.cache->data();
+    PyIncRef( buf );
+
+    _UpdateCache(str, &buf);
+
+    PyDecRef( str );
 }
 
 void CachedObjectMgr::UpdateCache(const std::string &objectID, PyRep **in_cached_data) {
@@ -234,16 +239,6 @@ bool CachedObjectMgr::IsCacheUpToDate(const PyRep *objectID, uint32 version, uin
             && res->second->timestamp == timestamp);
 }
 
-typedef struct {
-    uint64 timestamp;
-    uint32 version;
-    uint32 length;
-    uint32 magic;
-} CacheFileHeader;
-
-static const uint32 CacheFileMagic = 0xFF886622;
-
-
 bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const std::string &objectID) {
     //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
     PyString str(objectID);
@@ -348,21 +343,6 @@ void CachedObjectMgr::AddCacheHint(const char *oname, const char *key, PyDict *i
 }
 */
 
-bool CachedObjectMgr::LoadCachedObject(const char *obj_name, PySubStream *into) {
-    PyString oname_str(obj_name);
-    return(LoadCachedObject(&oname_str, obj_name, into));
-}
-
-bool CachedObjectMgr::LoadCachedObject(PyRep *key, const char *oname, PySubStream *into) {
-    std::string fname;
-    GetCacheFileName(key, fname);
-
-    std::string abs_fname = "../data/cache/";
-    abs_fname += fname;
-
-    return(LoadCachedFile(abs_fname.c_str(), oname, into));
-}
-
 
 /*bool CachedObjectMgr::AddCachedFileContents(const char *filename, const char
     *oname, PySubStream *into) { PySubStream *cache;
@@ -371,70 +351,12 @@ bool CachedObjectMgr::LoadCachedObject(PyRep *key, const char *oname, PySubStrea
 
 }*/
 
-bool CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname, PySubStream *into) {
-    uint32 file_length = GetFileLength(abs_fname);
-    if(file_length == 0) {
-        _log(CLIENT__ERROR, "Unable to stat cache file '%s' for oname '%s'", abs_fname, oname);
-        return false;
-    }
-    file_length += 10; // reserve?
-
-    FILE *f = fopen(abs_fname, "rb");
-    if(f == NULL) {
-        _log(CLIENT__ERROR, "Unable to open cache file '%s' for oname '%s': %s", abs_fname, oname, strerror(errno));
-        return false;
-    }
-
-	uint8* data = new uint8[file_length];
-	uint32 len = fread(into->data, 1, file_length, f);
-
-	into->data = new PyBuffer( &data, len );
-
-    fclose(f);
-
-    _log(CLIENT__MESSAGE, "Loaded cache file for '%s': length %d/%d", oname, len, file_length);
-
-    return true;
+PySubStream* CachedObjectMgr::LoadCachedFile(const char *obj_name) {
+    PyString oname_str(obj_name);
+    return LoadCachedFile(&oname_str, obj_name);
 }
 
-PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(const char *obj_name) {
-    PyString s(obj_name);
-    return(LoadCachedObject(&s, obj_name));
-}
-
-PyCachedObjectDecoder *CachedObjectMgr::LoadCachedFile(const char *filename, const char *oname) {
-    PySubStream *into = new PySubStream();
-    if(!LoadCachedFile(filename, oname, into)) {
-        delete into;
-        return NULL;
-    }
-
-    PyCachedObjectDecoder *obj = new PyCachedObjectDecoder();
-    if(!obj->Decode(&into)) {   //into is consumed.
-        delete obj;
-        return NULL;
-    }
-
-    return(obj);
-}
-
-PyCachedCall *CachedObjectMgr::LoadCachedCall(const char *filename, const char *oname) {
-    PySubStream *into = new PySubStream();
-    if(!LoadCachedFile(filename, oname, into)) {
-        delete into;
-        return NULL;
-    }
-
-    PyCachedCall *obj = new PyCachedCall();
-    if(!obj->Decode(&into)) {   //into is consumed.
-        delete obj;
-        return NULL;
-    }
-
-    return(obj);
-}
-
-PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(PyRep *key, const char *oname) {
+PySubStream *CachedObjectMgr::LoadCachedFile(PyRep *key, const char *oname) {
     std::string fname;
     GetCacheFileName(key, fname);
 
@@ -442,6 +364,61 @@ PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(PyRep *key, const char 
     abs_fname += fname;
 
     return(LoadCachedFile(abs_fname.c_str(), oname));
+}
+
+PySubStream* CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname) {
+    uint32 file_length = GetFileLength(abs_fname);
+    if(file_length == 0) {
+        _log(CLIENT__ERROR, "Unable to stat cache file '%s' for oname '%s'", abs_fname, oname);
+        return false;
+    }
+
+    FILE *f = fopen(abs_fname, "rb");
+    if(f == NULL) {
+        _log(CLIENT__ERROR, "Unable to open cache file '%s' for oname '%s': %s", abs_fname, oname, strerror(errno));
+        return false;
+    }
+
+    PyBuffer* buf = new PyBuffer( file_length );
+
+    fread( buf->content(), 1, file_length, f );
+
+    fclose(f);
+
+    _log(CLIENT__MESSAGE, "Loaded cache file for '%s': length %u", oname, file_length);
+
+    PySubStream* ss = new PySubStream( *buf );
+    PyDecRef( buf );
+
+    return ss;
+}
+
+PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(const char *filename, const char *oname) {
+    PySubStream* ss = LoadCachedFile(filename, oname);
+    if( ss == NULL )
+        return NULL;
+
+    PyCachedObjectDecoder *obj = new PyCachedObjectDecoder();
+    if(!obj->Decode(&ss)) {   //ss is consumed.
+        SafeDelete( obj );
+        return NULL;
+    }
+
+    return(obj);
+}
+
+PyCachedCall *CachedObjectMgr::LoadCachedCall(const char *filename, const char *oname) {
+    PySubStream* ss = LoadCachedFile(filename, oname);
+    if( ss == NULL )
+        return NULL;
+
+    PyCachedCall *obj = new PyCachedCall();
+    if(!obj->Decode(&ss)) {   //ss is consumed.
+        SafeDelete( obj );
+        return NULL;
+    }
+
+    return(obj);
 }
 
 void CachedObjectMgr::GetCacheFileName(PyRep *key, std::string &into) {
@@ -562,26 +539,26 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
     objectID = NULL;
 
     ss->DecodeData();
-    if(ss->decoded == NULL) {
+    if(ss->decoded() == NULL) {
         _log(CLIENT__ERROR, "Unable to decode initial stream for PyCachedObject");
         delete ss;
         return false;
     }
 
-    if(!ss->decoded->IsObject()) {
-        _log(CLIENT__ERROR, "Cache substream does not contain an object: %s", ss->decoded->TypeString());
+    if(!ss->decoded()->IsObject()) {
+        _log(CLIENT__ERROR, "Cache substream does not contain an object: %s", ss->decoded()->TypeString());
         delete ss;
         return false;
     }
-    PyObject *po = (PyObject *) ss->decoded;
+    PyObject *po = (PyObject *) ss->decoded();
     //TODO: could check type string, dont care... (should be objectCaching.CachedObject)
 
-    if(!po->arguments->IsTuple()) {
-        _log(CLIENT__ERROR, "Cache object's args is not a tuple: %s", po->arguments->TypeString());
+    if(!po->arguments()->IsTuple()) {
+        _log(CLIENT__ERROR, "Cache object's args is not a tuple: %s", po->arguments()->TypeString());
         delete ss;
         return false;
     }
-    PyTuple *args = (PyTuple *) po->arguments;
+    PyTuple *args = (PyTuple *) po->arguments();
 
     if(args->items.size() != 7) {
         _log(CLIENT__ERROR, "Cache object's args tuple has %lu elements instead of 7", args->items.size());
@@ -634,11 +611,11 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
     PyInt *timer = (PyInt *) objVt->items[0];
     PyInt *versionr = (PyInt *) objVt->items[1];
 
-    timestamp = timer->value;
-    version = (uint32)versionr->value;              //TODO loose the typecasts
-    nodeID = (uint32)nodeidr->value;
-    shared = (sharedr->value != 0);
-    compressed = (compressedr->value != 0);
+    timestamp = timer->value();
+    version = versionr->value();
+    nodeID = nodeidr->value();
+    shared = ( sharedr->value() != 0 );
+    compressed = ( compressedr->value() != 0 );
 
 
 
@@ -677,15 +654,11 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
 }
 
 PyObject *PyCachedObject::Encode() {
-    PyObject *obj = new PyObject();
-
-    obj->type = "objectCaching.CachedObject";
     PyTuple *arg_tuple = new PyTuple(7);
-    obj->arguments = arg_tuple;
 
     PyTuple *versiont = new PyTuple(2);
     versiont->items[0] = new PyLong(timestamp);
-    versiont->items[1] = new PyLong(version);
+    versiont->items[1] = new PyInt(version);
 
 
     arg_tuple->items[0] = versiont;
@@ -724,15 +697,11 @@ PyObject *PyCachedObject::Encode() {
     //same cloning stattement as above.
     arg_tuple->items[6] = objectID->Clone();
 
-    return(obj);
+    return new PyObject( "objectCaching.CachedObject", arg_tuple );
 }
 
 PyObject *PyCachedObjectDecoder::EncodeHint() {
-    PyObject *obj = new PyObject();
-
-    obj->type = "util.CachedObject";
     PyTuple *arg_tuple = new PyTuple(3);
-    obj->arguments = arg_tuple;
 
     PyTuple *versiont = new PyTuple(2);
     versiont->items[0] = new PyLong(timestamp);
@@ -745,7 +714,7 @@ PyObject *PyCachedObjectDecoder::EncodeHint() {
 
     arg_tuple->items[2] = versiont;
 
-    return(obj);
+    return new PyObject( "util.CachedObject", arg_tuple );
 }
 
 
@@ -781,18 +750,18 @@ bool PyCachedCall::Decode(PySubStream **in_ss) {
     result = NULL;
 
     ss->DecodeData();
-    if(ss->decoded == NULL) {
+    if(ss->decoded() == NULL) {
         _log(CLIENT__ERROR, "Unable to decode initial stream for PyCachedCall");
         delete ss;
         return false;
     }
 
-    if(!ss->decoded->IsDict()) {
-        _log(CLIENT__ERROR, "Cached call substream does not contain a dict: %s", ss->decoded->TypeString());
+    if(!ss->decoded()->IsDict()) {
+        _log(CLIENT__ERROR, "Cached call substream does not contain a dict: %s", ss->decoded()->TypeString());
         delete ss;
         return false;
     }
-    PyDict *po = (PyDict *) ss->decoded;
+    PyDict *po = (PyDict *) ss->decoded();
 
     PyDict::const_iterator cur, end;
     cur = po->begin();
