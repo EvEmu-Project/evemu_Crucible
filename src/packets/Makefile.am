@@ -17,6 +17,8 @@ noinst_LIBRARIES = \
 #	Authentication.xmlp
 
 libpackets_a_SOURCES = \
+	General.xmlp \
+	ObjectCaching.xmlp \
 	AccountPkts.xmlp \
 	Character.xmlp \
 	CorporationPkts.xmlp \
@@ -24,13 +26,11 @@ libpackets_a_SOURCES = \
 	Destiny.xmlp \
 	DogmaIM.xmlp \
 	Inventory.xmlp \
-	General.xmlp \
 	Language.xmlp \
 	LSCPkts.xmlp \
 	Manufacturing.xmlp \
 	Market.xmlp \
 	Missions.xmlp \
-	ObjectCaching.xmlp \
 	Standing2.xmlp \
 	Tutorial.xmlp \
 	Wallet.xmlp
