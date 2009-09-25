@@ -80,6 +80,8 @@
 
 /** Platform in depended includes
   */
+#include <float.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>

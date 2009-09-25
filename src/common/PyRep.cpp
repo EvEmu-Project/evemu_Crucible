@@ -225,7 +225,7 @@ void PyFloat::visit( PyVisitorLvl *v, int64 lvl ) const
 	v->VisitReal( this, lvl );
 }
 
-#define LONG_MAX      2147483647L   /* maximum (signed) long value */
+#define INT32_MAX 2147483647L   /* maximum int32 value */
 #define Py_IS_INFINITY( X ) ( !_finite( X ) && !_isnan( X ) )
 
 int32 PyFloat::hash() const
@@ -243,7 +243,7 @@ int32 PyFloat::hash() const
     fractpart = modf(v, &intpart);
     if (fractpart == 0.0) {
         /* This must return the same hash as an equal int or long. */
-        if (intpart > LONG_MAX || -intpart > LONG_MAX) {
+        if (intpart > INT32_MAX || -intpart > INT32_MAX) {
             /* Convert to long and use its hash. */
             PyRep *plong;	/* converted to Python long */
             if (Py_IS_INFINITY(intpart))
