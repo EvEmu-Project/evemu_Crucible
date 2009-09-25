@@ -79,7 +79,7 @@ void PyXMLGenerator::VisitObject(const PyObject *rep) {
     //do not visit the type:
 
     fprintf(m_into, "%s<object type=\"%s\">\n", top(),
-        rep->type().c_str()
+        rep->type()->content().c_str()
         );
 
     std::string indent(top());
@@ -234,7 +234,7 @@ void PyXMLGenerator::VisitDict(const PyDict *rep) {
         }
         PyString *str = (PyString *) cur->first;
 
-        fprintf(m_into, "%s<IDEntry key=\"%s\">\n", top(), str->content());
+        fprintf(m_into, "%s<IDEntry key=\"%s\">\n", top(), str->content().c_str());
 
         std::string indent(top());
         indent += indent_amount;

@@ -26,12 +26,28 @@
 #ifndef EVE_UNMARSHAL_H
 #define EVE_UNMARSHAL_H
 
-#include "types.h"
+#include "common.h"
 
 class PyRep;
 
-//returns ownership!
-extern PyRep *InflateAndUnmarshal(const uint8 *body, uint32 body_len);
+/**
+ * @brief Turns marshal stream into Python object.
+ *
+ * @param[in] data Marshal stream.
+ * @param[in] len  Length of stream.
+ *
+ * @return Ownership of Python object.
+ */
+extern PyRep* Unmarshal(const uint8* data, uint32 len);
+/**
+ * @brief Turns possibly inflated marshal stream into Python object.
+ *
+ * @param[in] data Marshal stream.
+ * @param[in] len  Length of stream.
+ *
+ * @return Ownership of Python object.
+*/
+extern PyRep* InflateUnmarshal(const uint8* data, uint32 len);
 
 #endif
 

@@ -51,12 +51,13 @@ bool ContainsNonPrintables( const char *c, uint32 length ) {
     return false;
 }
 
-bool ContainsNonPrintables( const PyString* str )
-{
-    return ContainsNonPrintables( str->content(), str->size());
-}
-
 bool ContainsNonPrintables( const std::string& str )
 {
-    return ContainsNonPrintables( str.c_str(), str.size());
+    return ContainsNonPrintables( str.c_str(), str.size() );
 }
+
+bool ContainsNonPrintables( const PyString* str )
+{
+    return ContainsNonPrintables( str->content() );
+}
+

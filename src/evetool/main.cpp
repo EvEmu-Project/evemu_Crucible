@@ -166,13 +166,16 @@ int main(int argc, char *argv[]) {
 }
 
 void TestCache() {
-	PyString *s = new PyString("charCreationInfo.departments");
+	PyString* str = new PyString("charCreationInfo.departments");
 
-	uint32 len = 0;
-	uint8 *data = Marshal(s, len, false);
+	uint32 len;
+	uint8* data = Marshal( str, len );
+    PyDecRef( str );
 	
 	std::string into;
-	Base64::encode(data, len, into, false);
+    // Skip first 5 bytes (marshal header)
+	Base64::encode( &data[5], len-5, into, false );
+    SafeDeleteArray( data );
 
 	printf("Marshaled, base64'd string: '%s'\n", into.c_str());
 }
@@ -352,7 +355,7 @@ void ListCache(const char *in_filter) {
 		if(len < 4 || b[0] != '~')
 			continue;
 		
-		PyRep *rep = InflateAndUnmarshal(b, uint32(len-3));
+		PyRep *rep = InflateUnmarshal(b, uint32(len-3));
 
 		std::string hexed;
 		char buf[10];
@@ -667,7 +670,7 @@ void UnmarshalLogText(const Seperator &command) {
 	_log(NET__UNMARSHAL_TRACE, "Decoded %lu bytes:", result.size());
 	_hex(NET__UNMARSHAL_BUFHEX, &result[0], uint32(result.size()));
 	
-	PyRep *r = InflateAndUnmarshal(&result[0], uint32(result.size()));
+	PyRep *r = InflateUnmarshal(&result[0], uint32(result.size()));
 	if(r == NULL) {
 		printf("Failed to unmarshal.\n");
 	} else {
@@ -689,28 +692,40 @@ void TestMarshal() {
 	header->AddColumn( "volume", DBTYPE_I8 );
 	header->AddColumn( "orders", DBTYPE_I4 );
 	
-	CRowSet rs( &header );
+	CRowSet* rs = new CRowSet( &header );
 
-	PyPackedRow &row = rs.NewRow();
+	PyPackedRow& row = rs->NewRow();
 	row.SetField( "historyDate", new PyLong( Win32TimeNow() ) );
-	row.SetField( "lowPrice", new PyInt( 18000 ) );
-	row.SetField( "highPrice", new PyInt( 19000 ) );
-	row.SetField( "avgPrice", new PyInt( 18400 ) );
-	row.SetField( "volume", new PyInt( 5463586 ) );
+	row.SetField( "lowPrice", new PyLong( 18000 ) );
+	row.SetField( "highPrice", new PyLong( 19000 ) );
+	row.SetField( "avgPrice", new PyLong( 18400 ) );
+	row.SetField( "volume", new PyLong( 5463586 ) );
 	row.SetField( "orders", new PyInt( 254 ) );
 
-	uint32 mlen = 0;
 	_log(COMMON__MESSAGE, "Marshaling...");
-	uint8 *marshaled = Marshal( &rs, mlen, true );
-	
-	_log(COMMON__MESSAGE, "Unmarshaling...");
-	PyRep *rep = InflateAndUnmarshal(marshaled, mlen);
-	if(rep != NULL) {
-		rep->Dump(stdout, " Final: ");
-	}
+    uint32 len;
+	uint8* marshaled = MarshalDeflate( rs, len );
+    PyDecRef( rs );
 
+    if( marshaled == NULL )
+    {
+        sLog.Error( "mtest", "Failed to marshal Python object." );
+        return;
+    }
+
+	_log(COMMON__MESSAGE, "Unmarshaling...");
+	PyRep* rep = InflateUnmarshal( marshaled, len );
 	SafeDeleteArray( marshaled );
-	SafeDelete( rep );
+
+    if(rep == NULL)
+    {
+        sLog.Error( "mtest", "Failed to unmarshal Python object." );
+        return;
+    }
+
+	rep->Dump( stdout, " Final: " );
+
+    PyDecRef( rep );
 }
 
 void LoadScript(const char *filename) {

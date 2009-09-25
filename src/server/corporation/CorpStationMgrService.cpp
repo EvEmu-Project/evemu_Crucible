@@ -99,6 +99,7 @@ PyBoundObject *CorpStationMgrService::_CreateBoundObject(Client *c, const PyRep 
 PyResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call)
 {
 	util_Rowset rs;
+    rs.lines = new PyList;
 
 	rs.header.push_back( "ownerID" );
 	rs.header.push_back( "ownerName" );
@@ -108,7 +109,7 @@ PyResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call)
 	chardata->AddItemInt( 3004349 );
 	chardata->AddItemString( "Carbircelle Hatiniestan" );
 	chardata->AddItemInt( 1378 );
-	rs.lines.AddItem( chardata );
+	rs.lines->AddItem( chardata );
 
 	return rs.FastEncode();
 }

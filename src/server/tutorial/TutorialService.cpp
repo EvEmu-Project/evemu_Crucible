@@ -102,11 +102,12 @@ PyResult TutorialService::Handle_GetContextHelp(PyCallArgs &call) {
 
 PyResult TutorialService::Handle_GetCharacterTutorialState(PyCallArgs &call) {
 	util_Rowset rs;
+    rs.lines = new PyList;
 
 	rs.header.push_back("characterID");
 	rs.header.push_back("tutorialID");
 	rs.header.push_back("pageID");
 	rs.header.push_back("eventTypeID");
 
-	return(rs.Encode());
+	return rs.Encode();
 }

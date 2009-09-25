@@ -156,16 +156,13 @@ PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
 
     ch->ClearSkillQueue();
 
-    std::vector<PyRep *>::iterator cur, end;
-    cur = args.queue.items.begin();
-    end = args.queue.items.end();
-    for (; cur != end; cur++) {
-        // take ownership
-        PyRep *r = *cur;
-        *cur = NULL;
-
-        SkillQueue_Element el;
-        if( !el.Decode( &r ) )
+    SkillQueue_Element el;
+    std::vector<PyRep*>::const_iterator cur, end;
+    cur = args.queue->begin();
+    end = args.queue->end();
+    for (; cur != end; cur++)
+    {
+        if( !el.Decode( *cur ) )
         {
             _log(CLIENT__ERROR, "%s: Failed to decode element of SkillQueue. Skipping.", call.client->GetName());
             continue;

@@ -58,13 +58,13 @@ void PyLookupDump::VisitInteger(const PyInt *rep) {
 
 void PyLookupDump::VisitString(const PyString *rep) {
     if(ContainsNonPrintables( rep )) {
-        _print("String%s: '<binary, len=%d>'", rep->isType1()?" (Type1)":"", rep->size());
+        _print("String%s: '<binary, len=%d>'", rep->isType1()?" (Type1)":"", rep->content().size());
     } else {
-        const char *look = m_resolver->LookupString(rep->content());
+        const char *look = m_resolver->LookupString(rep->content().c_str());
         if(look != NULL)
-            _print("String%s: '%s' (%s)", rep->isType1()?" (Type1)":"", rep->content(), look);
+            _print("String%s: '%s' (%s)", rep->isType1()?" (Type1)":"", rep->content().c_str(), look);
         else
-            _print("String%s: '%s'", rep->isType1()?" (Type1)":"", rep->content());
+            _print("String%s: '%s'", rep->isType1()?" (Type1)":"", rep->content().c_str());
     }
 }
 

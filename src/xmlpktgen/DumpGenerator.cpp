@@ -457,17 +457,25 @@ bool ClassDumpGenerator::Process_list(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "    _log( l_type, \"%%s%s: \", pfx );\n"
+        "    _log( l_type, \"%%s%s:\", pfx );\n"
 		"\n"
         "    std::string %s_n( pfx );\n"
         "    %s_n += \"    \";\n"
 		"\n"
-        "    %s.Dump( l_type, %s_n.c_str() );\n"
-		"\n",
+        "    if( %s == NULL )\n"
+        "        _log( l_type, \"%%sERROR: NULL LIST!\", %s_n.c_str() );\n"
+        "    else\n"
+        "        %s->Dump( l_type, %s_n.c_str() );\n"
+        "\n",
         name,
-		name,
-		name,
-		name, name
+
+        name,
+        name,
+
+        name,
+            name,
+
+            name, name
 	);
     return true;
 }
@@ -490,12 +498,14 @@ bool ClassDumpGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         "        %s->Dump( l_type, %s_n.c_str() );\n"
         "\n",
         name,
-        name,
-        name,
+
         name,
         name,
 
-        name, name
+        name,
+            name,
+
+            name, name
 	);
     return true;
 }
@@ -507,17 +517,25 @@ bool ClassDumpGenerator::Process_dict(FILE *into, TiXmlElement *field) {
         return false;
     }
     fprintf(into,
-        "    _log( l_type, \"%%s%s: \", pfx );\n"
+        "    _log( l_type, \"%%s%s:\", pfx );\n"
 		"\n"
         "    std::string %s_n( pfx );\n"
         "    %s_n += \"    \";\n"
 		"\n"
-        "    %s.Dump( l_type, %s_n.c_str() );\n"
-		"\n",
+        "    if( %s == NULL )\n"
+        "        _log( l_type, \"%%sERROR: NULL DICT!\", %s_n.c_str() );\n"
+        "    else\n"
+        "        %s->Dump( l_type, %s_n.c_str() );\n"
+        "\n",
         name,
-		name,
-		name,
-		name, name
+
+        name,
+        name,
+
+        name,
+            name,
+
+            name, name
 	);
     return true;
 }

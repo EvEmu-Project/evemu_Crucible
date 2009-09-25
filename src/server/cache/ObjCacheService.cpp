@@ -225,9 +225,12 @@ void ObjCacheService::PrimeCache()
 	CacheKeysMapConstItr cur, end;
 	cur = m_cacheKeys.begin();
 	end = m_cacheKeys.end();
-	for(; cur != end; cur++) {
-		PyString str(cur->first);
-		_LoadCachableObject(&str);
+	for(; cur != end; cur++)
+    {
+		PyString* str = new PyString( cur->first );
+		_LoadCachableObject(str);
+        PyDecRef( str );
+
 		putchar('.'); // print a dot so we have a indication of loading. I know this sucks.
 	}
     printf("\n");
@@ -289,15 +292,13 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 	return true;
 }
 
-PyRep *ObjCacheService::GetCacheHint(const char *objectID) {
-	PyString str(objectID);
-	
-	if(!_LoadCachableObject(&str))
+PyRep *ObjCacheService::GetCacheHint(const PyRep* objectID) {
+	if(!_LoadCachableObject(objectID))
 		return NULL;	//print done already
 
-	PyObject *cache_hint = m_cache.MakeCacheHint(&str);
+	PyObject *cache_hint = m_cache.MakeCacheHint(objectID);
 	if(cache_hint == NULL) {
-		_log(SERVICE__ERROR, "Unable to build cache hint for object ID '%s' (h), skipping.", objectID);
+		_log(SERVICE__ERROR, "Unable to build cache hint for object ID '%s' (h), skipping.", CachedObjectMgr::OIDToString(objectID).c_str());
 		return NULL;
 	}
 
@@ -334,7 +335,10 @@ void ObjCacheService::InsertCacheHints(hintSet hset, PyDict *into) {
 		}
 
 		//get the hint
-		PyRep *cache_hint = GetCacheHint(objects[r]);
+        PyString* str = new PyString( objects[r] );
+		PyRep *cache_hint = GetCacheHint( str );
+        PyDecRef( str );
+
 		if(cache_hint == NULL)
 			continue;	//print already done.
 
@@ -372,6 +376,7 @@ ObjectCachedMethodID::ObjectCachedMethodID(const char *service, const char *meth
 	objectID = c.FastEncode();
 }
 
-ObjectCachedMethodID::~ObjectCachedMethodID() {
-	delete objectID;
+ObjectCachedMethodID::~ObjectCachedMethodID()
+{
+	PyDecRef( objectID );
 }

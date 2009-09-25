@@ -103,8 +103,9 @@ void CachedObjectMgr::InvalidateCache(const PyRep *objectID) {
     const std::string str = OIDToString(objectID);
 
     std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);;
-    if(res != m_cachedObjects.end()) {
-        delete res->second;
+    if(res != m_cachedObjects.end())
+    {
+        SafeDelete( res->second );
         m_cachedObjects.erase(res);
     }
 }
@@ -143,8 +144,13 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
     //}
 
     uint32 len;
-    uint8* data = Marshal(cached_data, len);
+    uint8* data = MarshalDeflate( cached_data, len );
 	PyDecRef( cached_data );
+    if( data == NULL )
+    {
+        sLog.Error( "Cached Obj Mgr", "Failed to marshal or deflate new cache object." );
+        return;
+    }
 
 	PyBuffer* buf = new PyBuffer( &data, len );
     _UpdateCache(objectID, &buf);
@@ -171,7 +177,7 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer) {
     if(res != m_cachedObjects.end())
     {
         _log(SERVICE__CACHE, "Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->size(), res->second->version);
-        delete res->second;
+        SafeDelete( res->second );
     }
 
     _log(SERVICE__CACHE, "Registering new cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), r->cache->size(), r->version);
@@ -214,7 +220,7 @@ PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
     co.shared = true;
     co.objectID = res->second->objectID->Clone();
     co.cache = res->second->cache;
-    if(res->second->cache->size() == 0 || ( *res->second->cache )[0] == SubStreamHeaderByte)
+    if(res->second->cache->size() == 0 || ( *res->second->cache )[0] == MarshalHeaderByte)
         co.compressed = false;
     else
         co.compressed = true;
@@ -276,7 +282,8 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
     cache->version = header.version;
 
     if(fread(cache->cache->content(), sizeof(uint8), header.length, f) != header.length) {
-        delete cache;
+        SafeDelete( cache );
+
         fclose(f);
         return false;
     }
@@ -284,10 +291,9 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
 
     std::map<std::string, CacheRecord *>::iterator res;
     res = m_cachedObjects.find(str);
-    if(res != m_cachedObjects.end()) {
+    if(res != m_cachedObjects.end())
         //clear out the old one
-        delete res->second;
-    }
+        SafeDelete( res->second );
 
     m_cachedObjects[str] = cache;
 
@@ -387,10 +393,7 @@ PySubStream* CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *
 
     _log(CLIENT__MESSAGE, "Loaded cache file for '%s': length %u", oname, file_length);
 
-    PySubStream* ss = new PySubStream( *buf );
-    PyDecRef( buf );
-
-    return ss;
+    return new PySubStream( buf );
 }
 
 PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(const char *filename, const char *oname) {
@@ -463,8 +466,8 @@ PyCachedObjectDecoder::PyCachedObjectDecoder()
 }
 
 PyCachedObjectDecoder::~PyCachedObjectDecoder() {
-    delete cache;
-    delete objectID;
+    PySafeDecRef( cache );
+    PySafeDecRef( objectID );
 }
 
 PyCachedObject::PyCachedObject()
@@ -479,8 +482,8 @@ PyCachedObject::PyCachedObject()
 }
 
 PyCachedObject::~PyCachedObject() {
-    delete cache;
-    delete objectID;
+    PySafeDecRef( cache );
+    PySafeDecRef( objectID );
 }
 
 PyCachedObject *PyCachedObject::Clone() const {
@@ -533,10 +536,8 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
     PySubStream *ss = *in_ss;    //consume
     *in_ss = NULL;
 
-    delete cache;
-    cache = NULL;
-    delete objectID;
-    objectID = NULL;
+    PySafeDecRef( cache );
+    PySafeDecRef( objectID );
 
     ss->DecodeData();
     if(ss->decoded() == NULL) {
@@ -626,21 +627,15 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
         args->items[4] = NULL;
     } else if(args->items[4]->IsBuffer()) {
         //this is a data buffer, likely compressed.
-		cache = new PySubStream( args->items[4]->AsBuffer() );
-        if(cache == NULL) {
-            _log(CLIENT__ERROR, "Cache object's content buffer is not a substream!");
-            delete ss;
-            return false;
-        }
+        PyBuffer* buf = &args->items[4]->AsBuffer();
+
+        PyIncRef( buf );
+		cache = new PySubStream( buf );
     } else if(args->items[4]->IsString()) {
         //this is a data buffer, likely compressed, not sure why it comes through as a string...
-        //hack for now:
-		cache = new PySubStream( PyBuffer( args->items[4]->AsString() ) );
-        if(cache == NULL) {
-            _log(CLIENT__ERROR, "Cache object's content buffer is not a substream!");
-            delete ss;
-            return false;
-        }
+        PyString* str = &args->items[4]->AsString();
+
+        cache = new PySubStream( new PyBuffer( *str ) );
     } else {
         _log(CLIENT__ERROR, "Cache object's arg %d is not a substream or buffer: %s", 4, args->items[4]->TypeString());
         delete ss;
@@ -697,7 +692,9 @@ PyObject *PyCachedObject::Encode() {
     //same cloning stattement as above.
     arg_tuple->items[6] = objectID->Clone();
 
-    return new PyObject( "objectCaching.CachedObject", arg_tuple );
+    return new PyObject(
+        new PyString( "objectCaching.CachedObject" ), arg_tuple
+    );
 }
 
 PyObject *PyCachedObjectDecoder::EncodeHint() {
@@ -714,7 +711,9 @@ PyObject *PyCachedObjectDecoder::EncodeHint() {
 
     arg_tuple->items[2] = versiont;
 
-    return new PyObject( "util.CachedObject", arg_tuple );
+    return new PyObject(
+        new PyString( "util.CachedObject" ), arg_tuple
+    );
 }
 
 
@@ -723,7 +722,7 @@ PyCachedCall::PyCachedCall() : result(NULL)
 }
 
 PyCachedCall::~PyCachedCall() {
-    delete result;
+    PySafeDecRef( result );
 }
 
 PyCachedCall *PyCachedCall::Clone() const {
@@ -746,8 +745,7 @@ bool PyCachedCall::Decode(PySubStream **in_ss) {
     PySubStream *ss = *in_ss;    //consume
     *in_ss = NULL;
 
-    delete result;
-    result = NULL;
+    PySafeDecRef( result );
 
     ss->DecodeData();
     if(ss->decoded() == NULL) {
@@ -770,7 +768,7 @@ bool PyCachedCall::Decode(PySubStream **in_ss) {
         if(!cur->first->IsString())
             continue;
         PyString *key = (PyString *) cur->first;
-        if(*key == "lret")
+        if( key->content() == "lret" )
             result = cur->second->Clone();
     }
 

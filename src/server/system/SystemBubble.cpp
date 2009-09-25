@@ -220,6 +220,7 @@ void SystemBubble::_SendAddBalls(SystemEntity *to_who) {
 	head->sequence = DestinyManager::GetStamp();
 
 	DoDestiny_AddBalls addballs;
+    addballs.slims = new PyList;
 	
 	std::map<uint32, SystemEntity *>::const_iterator cur, end;
 	cur = m_entities.begin();
@@ -230,8 +231,7 @@ void SystemBubble::_SendAddBalls(SystemEntity *to_who) {
 		//damageState
 		addballs.damages[ cur->second->GetID() ] = cur->second->MakeDamageState();
 		//slim item
-		PyDict *slim_dict = cur->second->MakeSlimItem();
-		addballs.slims.AddItem(new PyObject("foo.SlimItem", slim_dict));
+		addballs.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), cur->second->MakeSlimItem() ) );
 		//append the destiny binary data...
 		cur->second->EncodeDestiny(destiny_buffer);
 	}
@@ -282,8 +282,9 @@ void SystemBubble::_BubblecastAddBall(SystemEntity *about_who) {
 		return;
 	}
 	
-	DoDestiny_AddBalls addballs;
 	std::vector<uint8> destiny_buffer;
+	DoDestiny_AddBalls addballs;
+    addballs.slims = new PyList;
 
 	//create AddBalls header
 	destiny_buffer.resize(sizeof(Destiny::AddBall_header));
@@ -299,7 +300,7 @@ void SystemBubble::_BubblecastAddBall(SystemEntity *about_who) {
 	//encode damage state
 	addballs.damages[about_who->GetID()] = about_who->MakeDamageState();
 	//encode SlimItem
-	addballs.slims.AddItem(new PyObject("foo.SlimItem", about_who->MakeSlimItem()));
+	addballs.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), about_who->MakeSlimItem() ) );
 	
 	//bubblecast the update
 	PyTuple *tmp = addballs.FastEncode();

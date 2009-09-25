@@ -297,8 +297,9 @@ double SystemManager::GetWarpSpeed() const {
 	return(3.0f * one_AU_in_m);
 }
 
-void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState &ss) const {
-	std::vector<uint8> setstate_buffer(sizeof(Destiny::AddBall_header));
+void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState &ss) const
+{
+    std::vector<uint8> setstate_buffer(sizeof(Destiny::AddBall_header));
 	setstate_buffer.reserve(10240);
 	
 	Destiny::AddBall_header *head = (Destiny::AddBall_header *) &setstate_buffer[0];
@@ -328,7 +329,10 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 
 //bubble is null??? why???
 	bubble->GetEntities(visible_entities);
-	
+
+    PySafeDecRef( ss.slims );
+    ss.slims = new PyList;
+
 	//go through all entities and gather the info we need...
 	std::set<SystemEntity *>::const_iterator cur, end;
 	cur = visible_entities.begin();
@@ -340,8 +344,7 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 		ss.damageState[ ent->GetID() ] = ent->MakeDamageState();
 
 		//ss.slims
-		PyDict *slim_dict = ent->MakeSlimItem();
-		ss.slims.AddItem(new PyObject("foo.SlimItem", slim_dict));
+		ss.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), ent->MakeSlimItem() ) );
 
 		//append the destiny binary data...
 		ent->EncodeDestiny(setstate_buffer);

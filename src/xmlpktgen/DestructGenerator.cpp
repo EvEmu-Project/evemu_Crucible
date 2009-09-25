@@ -237,6 +237,15 @@ bool ClassDestructGenerator::Process_raw(FILE *into, TiXmlElement *field) {
 }
 
 bool ClassDestructGenerator::Process_list(FILE *into, TiXmlElement *field) {
+    const char *name = field->Attribute("name");
+    if(name == NULL) {
+        _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+        return false;
+    }
+    fprintf(into,
+		"    PySafeDecRef( %s );\n",
+		name
+	);
     return true;
 }
 
@@ -254,6 +263,15 @@ bool ClassDestructGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 }
 
 bool ClassDestructGenerator::Process_dict(FILE *into, TiXmlElement *field) {
+    const char *name = field->Attribute("name");
+    if(name == NULL) {
+        _log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+        return false;
+    }
+    fprintf(into,
+		"    PySafeDecRef( %s );\n",
+		name
+	);
     return true;
 }
 

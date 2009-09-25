@@ -203,16 +203,12 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
     }
 
     Inventory_CallMultiMergeElement element;
-    PyRep* codedElement;
 
     std::vector<PyRep *>::const_iterator cur, end;
-    cur = elements.MMElements.items.begin();
-    end = elements.MMElements.items.end();
-
+    cur = elements.MMElements->begin();
+    end = elements.MMElements->end();
     for (; cur != end; cur++) {
-        codedElement = *cur;
-
-        if(!element.Decode(&codedElement)) {
+        if(!element.Decode( *cur )) {
             codelog(SERVICE__ERROR, "Unable to decode element. Skipping.");
             continue;
         }
@@ -232,7 +228,6 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
         stationaryItem->Merge( (InventoryItemRef)draggedItem, element.draggedQty );
     }
 
-    elements.MMElements.items.clear();
     return NULL;
 }
 

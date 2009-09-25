@@ -26,26 +26,82 @@
 #ifndef EVE_MARSHAL_H
 #define EVE_MARSHAL_H
 
-#include "types.h"
+#include "common.h"
+#include "EVEMarshalOpcodes.h"
 #include "PyVisitor.h"
 
-//returns ownership!
-//default deflate to false as deflation is not implemented yet
-extern uint8 *Marshal(const PyRep *rep, uint32 &len, bool inlineSubStream = true);
+/*
+ * @brief Marshal Stream builder.
+ *
+ * @param[in]  rep Python object to marshal.
+ * @param[out] len Variable which receives length of resulting buffer.
+ *
+ * @return Ownership of buffer with marshaled data.
+ */
+extern uint8* Marshal(const PyRep* rep, uint32& len);
+/*
+ * @brief Deflated Marshal Stream builder.
+ *
+ * @param[in]  rep            Python object to marshal.
+ * @param[out] len            Variable which receives length of resulting buffer.
+ * @param[in]  deflationLimit The least size of buffer which gets deflated.
+ *
+ * @return Ownership of buffer with deflated marshaled data.
+ */
+extern uint8* MarshalDeflate(const PyRep* rep, uint32& len, const uint32 deflationLimit = 0x2000);
 
 class MarshalVisitor : public PyVisitor
 {
 public:
-    EVEMU_INLINE MarshalVisitor() : mWriteIndex(0), mAllocatedMem( 0x1000 ), mBuffer(NULL) {
-        mBuffer = (uint8*)malloc( mAllocatedMem );
+    EVEMU_INLINE MarshalVisitor() : mBuffer( NULL ), mWriteIndex( 0 ), mAllocatedMem( 0 )
+    {
+        Put<uint8>( MarshalHeaderByte );
+
+        /*
+         * Mapcount
+         * the amount of referenced objects within a marshal stream.
+         * Note: Atm not supported.
+         */
+        Put<uint32>( 0 ); // Mapcount
     }
-    EVEMU_INLINE ~MarshalVisitor() {
-        free( mBuffer );
+    EVEMU_INLINE ~MarshalVisitor()
+    {
+        SafeFree( mBuffer );
     }
 
-    /** adds a integer to the data stream
-     *  Note:  assuming the value is unsigned
-     *         research shows that Op_PyByte can be negative
+    /** @return marshaled data. */
+    EVEMU_INLINE const uint8* data() const
+    {
+        return mBuffer;
+    }
+    /**
+     * @brief Transfers ownership of marshaled data.
+     *
+     * @param[out] data Receives pointer to marshaled data.
+     *
+     * @return Length of marshaled data.
+     */
+    EVEMU_INLINE uint32 data( uint8** data )
+    {
+        *data = mBuffer;
+        uint32 len = mWriteIndex;
+
+        mBuffer = NULL;
+        mWriteIndex = mAllocatedMem = 0;
+
+        return len;
+    }
+    /** @return size of marshaled data. */
+    EVEMU_INLINE uint32 size() const
+    {
+        return mWriteIndex;
+    }
+
+    /**
+     * adds a integer to the data stream
+     *
+     * @note assuming the value is unsigned
+     *       research shows that Op_PyByte can be negative
      */
     void VisitInteger(const PyInt *rep);
     void VisitLong(const PyLong *rep);
@@ -89,126 +145,52 @@ private:
     void _PyInt_AsByteArray(const PyLong* v);
 
     // not very efficient but it will do for now
-    EVEMU_INLINE void reserve(uint32 size) {
+    EVEMU_INLINE void reserve(uint32 size)
+    {
         uint32 neededMem = mWriteIndex + size;
-        if (neededMem > mAllocatedMem)
+        if( neededMem > mAllocatedMem )
         {
-            mBuffer = (uint8*)realloc(mBuffer, neededMem + 0x1000);
+            mBuffer = (uint8*)realloc( mBuffer, neededMem + 0x1000 );
             mAllocatedMem = neededMem + 0x1000;
         }
     }
 
 public:
-
-    EVEMU_INLINE void PutByte(uint8 b) {
-        reserve(1);
-        mBuffer[mWriteIndex] = b;
-        mWriteIndex++;
+    /** adds given value to the data stream */
+    template<typename X>
+    EVEMU_INLINE void Put( const X& value )
+    {
+        reserve( sizeof( X ) );
+        *(X*)&mBuffer[mWriteIndex] = value;
+        mWriteIndex += sizeof( X );
     }
 
-    EVEMU_INLINE void PutSizeEx(uint32 size) {
-        if (size < 0xFF)
-        {
-            reserve(1);
-            mBuffer[mWriteIndex] = (uint8)size;
-            mWriteIndex++;
-        }
-        else
-        {
-            reserve(5);
-            mBuffer[mWriteIndex++] = 0xFF;
-            (*((uint32*)&mBuffer[mWriteIndex])) = size;
-            mWriteIndex+=4;
-        }
-    }
-
-    EVEMU_INLINE void PutBytes(const void *v, uint32 len) {
+    /** adds given bytes to the data stream */
+    EVEMU_INLINE void Put(const void* v, uint32 len)
+    {
         reserve( len );
         memcpy( &mBuffer[mWriteIndex], v, len );
         mWriteIndex += len;
     }
 
-    /** adds a double do the data stream
-     */
-    EVEMU_INLINE void PutDouble(const double& value) {
-        reserve(8);
-        (*((double*)&mBuffer[mWriteIndex])) = value;
-        mWriteIndex+=8;
-    }
-
-    /** adds a uint64 do the data stream
-     */
-    EVEMU_INLINE void PutUint64(const uint64& value) {
-        reserve(8);
-        (*((uint64*)&mBuffer[mWriteIndex])) = value;
-        mWriteIndex+=8;
-    }
-
-    /** adds a uint64 do the data stream
-     */
-    EVEMU_INLINE void PutInt64(const int64& value) {
-        reserve(8);
-        (*((int64*)&mBuffer[mWriteIndex])) = value;
-        mWriteIndex+=8;
-    }
-
-    /** adds a uint32 do the data stream
-     */
-    EVEMU_INLINE void PutUint32(const uint32 value) {
-        reserve(4);
-        (*((uint32*)&mBuffer[mWriteIndex])) = value;
-        mWriteIndex+=4;
-    }
-
-    /** adds a uint32 do the data stream
-    */
-    EVEMU_INLINE void PutInt32(const int32 value) {
-        reserve(4);
-        (*((int32*)&mBuffer[mWriteIndex])) = value;
-        mWriteIndex+=4;
-    }
-
-    /** adds a uint16 do the data stream
-      */
-    EVEMU_INLINE void PutUint16(const uint16 value) {
-        reserve(2);
-        (*((uint16*)&mBuffer[mWriteIndex])) = value;
-        mWriteIndex+=2;
-    }
-
-    EVEMU_INLINE void PutInt16(const int16 value) {
-        reserve(2);
-        (*((int16*)&mBuffer[mWriteIndex])) = value;
-        mWriteIndex+=2;
-    }
-
-    /** adds a uint8 do the data stream
-      */
-    EVEMU_INLINE void PutUint8(uint8 value) {
-        reserve(1);
-        mBuffer[mWriteIndex] = value; mWriteIndex++;
-    }
-
-    /** adds a uint8 do the data stream
-    */
-    EVEMU_INLINE void PutInt8(int8 value) {
-        reserve(1);
-        (*((int8*)&mBuffer[mWriteIndex])) = value; mWriteIndex++;
-    }
-
-    EVEMU_INLINE uint32 size() {
-        return mWriteIndex;
-    }
-
-    EVEMU_INLINE uint8* data() {
-        return mBuffer;
+    /** utility for extended size. */
+    EVEMU_INLINE void PutSizeEx(uint32 size)
+    {
+        if( size < 0xFF )
+        {
+            Put<uint8>( size );
+        }
+        else
+        {
+            Put<uint8>( 0xFF );
+            Put<uint32>( size );
+        }
     }
 
 protected:
-
+    uint8*              mBuffer;
     uint32              mWriteIndex;
     uint32              mAllocatedMem;
-    uint8               *mBuffer;
 };
 
 #endif

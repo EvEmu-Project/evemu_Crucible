@@ -188,30 +188,29 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	uint32 actionID = 0;
-	actionID = args.arg->AsInt().value();
-	
-	uint32 loyaltyPoints;
-	DoAction_Result res;
-	std::map<uint32, std::string> choices;
+	//TODO: send loyaltyPoints in the keywords return.
+	//uint32 loyaltyPoints = m_agent->GetLoyaltyPoints(call.client);
 
-	loyaltyPoints = m_agent->GetLoyaltyPoints(call.client);
-	m_agent->DoAction(call.client, actionID, res.agentSays, choices);
+	DoAction_Result res;
+    res.dialogue = new PyList;
+
+	std::map<uint32, std::string> choices;
+	m_agent->DoAction( call.client, args.arg->AsInt().value(), res.agentSays, choices );
 
 	DoAction_Dialogue_Item choice;
+
 	std::map<uint32, std::string>::iterator cur, end;
 	cur = choices.begin();
 	end = choices.end();
-	for(; cur != end; cur++) {
+	for(; cur != end; cur++)
+    {
 		choice.actionID = cur->first;
 		choice.actionText = cur->second;
 
-		res.dialogue.AddItem( choice.Encode() );
+		res.dialogue->AddItem( choice.Encode() );
 	}
 
-	//TODO: send loyaltyPoints in the keywords return.
-	
-	return(res.Encode());
+	return res.FastEncode();
 }
 
 

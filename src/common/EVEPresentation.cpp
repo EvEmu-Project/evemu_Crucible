@@ -73,15 +73,18 @@ PyPacket *EVEPresentation::PopPacket() {
     if(netp == NULL)
         return NULL;    //nothing to get yet.
 
-    if(netp->length > EVESocketMaxNumberOfBytes) {
-        delete netp;
+    if(netp->length > EVESocketMaxNumberOfBytes)
+    {
         _log(NET__PRES_ERROR, "%s: Received invalid version exchange!", GetConnectedAddress().c_str());
+
+        SafeDelete( netp );
         return NULL;
     }
 
     //take the raw packet and turn it into a PyRep
-    PyRep *r = InflateAndUnmarshal(netp->data, netp->length);
-    delete netp;
+    PyRep *r = InflateUnmarshal(netp->data, netp->length);
+    SafeDelete( netp );
+
     if(r == NULL)
         return NULL;    //failed to inflate or unmarshal the packet
 
@@ -90,15 +93,19 @@ PyPacket *EVEPresentation::PopPacket() {
         r->Dump(NET__PRES_REP, "    ");
     }
 
-    try {
-        return(_Dispatch(r));
-    } catch(PyException &e) {
+    try
+    {
+        return _Dispatch( r );
+    }
+    catch(PyException &e)
+    {
         //send it raw
-        PyRep *payload = e.ssException.hijack();
+        PyRep* payload = e.ssException.hijack();
         _QueueRep(payload);
-        delete payload;
+        PyDecRef( payload );
+
         //do recurse
-        return(PopPacket());
+        return PopPacket();
     }
 }
 
@@ -113,16 +120,16 @@ void EVEPresentation::FastQueuePacket(PyPacket **p) {
     if(p == NULL || *p == NULL)
         return;
 
-    PyRep *r = (*p)->Encode();
+    PyRep* r = (*p)->Encode();
     if(r == NULL) {
         _log(NET__PRES_ERROR, "%s: Failed to encode???", GetConnectedAddress().c_str());
         SafeDelete(*p);
         return;
     }
-    SafeDelete(*p);
+    SafeDelete( *p );
 
-    _QueueRep(r);
-    delete r;
+    _QueueRep( r );
+    PyDecRef( r );
 }
 
 void EVEPresentation::_QueueRep(const PyRep *rep) {
@@ -133,9 +140,9 @@ void EVEPresentation::_QueueRep(const PyRep *rep) {
     }
 
     EVENetPacket *packet = new EVENetPacket;
-    packet->data = Marshal(rep, packet->length);
+    packet->data = MarshalDeflate(rep, packet->length);
     if(packet->data == NULL) {
-        sLog.Error("Eve Presentation", "%s: Error marshaling packet!", GetConnectedAddress().c_str());
+        sLog.Error("Eve Presentation", "%s: Error marshaling or deflating packet!", GetConnectedAddress().c_str());
         return;
     }
 
@@ -145,8 +152,8 @@ void EVEPresentation::_QueueRep(const PyRep *rep) {
 void EVEPresentation::_NetQueuePacket(EVENetPacket **p) {
     if((*p)->length > EVESocketMaxNumberOfBytes) {
         _log(NET__PRES_ERROR, "%s: tried to queue a packet which is too large! %u exceeds the hard coded limit of %u bytes!", GetConnectedAddress().c_str(), (*p)->length, EVESocketMaxNumberOfBytes);
-        delete *p;
-        *p = NULL;
+
+        SafeDelete( *p );
         return;
     }
 
@@ -209,9 +216,9 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
                 }
                 _log(NET__PRES_DEBUG, "%s: Got Queue Check command.", GetConnectedAddress().c_str());
                 //they return position in queue
-                PyRep *tmp = new PyInt(1);
-                _QueueRep(tmp);
-                delete tmp;
+                PyRep* rsp = new PyInt( 1 );
+                _QueueRep( rsp );
+                PyDecRef( rsp );
 
                 //now act like client just connected
                 //send out handshake again
@@ -249,14 +256,13 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
                 m_state = CryptoRequestReceived_ChallengeWait;
 
                 //send out accept response
-                PyRep *tmp = new PyString("OK CC");
-                _QueueRep(tmp);
-                delete tmp;
+                PyRep* rsp = new PyString( "OK CC" );
+                _QueueRep( rsp );
+                PyDecRef( rsp );
             } else {
                 //I'm sure cr.keyVersion can specify either CryptoAPI or PyCrypto, but its all binary so im not sure how.
-                PyRep *params = cr.keyParams.Clone();
                 CryptoAPIRequestParams car;
-                if(!car.Decode(&params)) {
+                if(!car.Decode( cr.keyParams )) {
                     _log(NET__PRES_ERROR, "%s: Received invalid CryptoAPI request!", GetConnectedAddress().c_str());
                     break;
                 }
@@ -268,7 +274,7 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
 
         case CryptoRequestReceived_ChallengeWait: {
             //just to be sure
-            SafeDelete(m_request);
+            SafeDelete( m_request );
             m_request = new CryptoChallengePacket;
             if(!m_request->Decode(&r)) {
                 _log(NET__PRES_ERROR, "%s: Received invalid crypto challenge!", GetConnectedAddress().c_str());
@@ -284,9 +290,9 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
                 SafeDelete(m_request);
 
                 //send passwordVersion required: 1=plain, 2=hashed
-                PyRep *r = new PyInt(1);
-                _QueueRep(r);
-                delete r;
+                PyRep* rsp = new PyInt( 1 );
+                _QueueRep( rsp );
+                PyDecRef( rsp );
 
                 break;
             }
@@ -310,9 +316,9 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
             server_shake.boot_codename = EVEProjectCodename;
             server_shake.boot_region = EVEProjectRegion;
 
-            r = server_shake.FastEncode();
-            _QueueRep(r);
-            delete r;
+            PyRep* rsp = server_shake.FastEncode();
+            _QueueRep( rsp );
+            PyDecRef( rsp );
 
             m_state = CryptoHandshakeSent;
         }   break;
@@ -325,23 +331,23 @@ PyPacket *EVEPresentation::_Dispatch(PyRep *r) {
             }
 
             //this is a bit crappy ...
-            client->Login(m_request);
+            client->Login( m_request );
 
-            SafeDelete(m_request);
+            SafeDelete( m_request );
 
             m_state = AcceptingPackets;
-
         }   break;
 
         case AcceptingPackets: {
             //take the PyRep and turn it into a PyPacket
-            PyPacket *p = new PyPacket;
-            if(!p->Decode(&r)) { //r is consumed here
+            PyPacket* p = new PyPacket;
+            if( !p->Decode( &r ) ) //r is consumed here
+            {
                 _log(NET__PRES_ERROR, "%s: Failed to decode packet rep", GetConnectedAddress().c_str());
 				SafeDelete( p );
                 break;
             }
-            return(p);
+            return( p );
         }   break;
     }
     //recurse, just in case the next packet is here already.

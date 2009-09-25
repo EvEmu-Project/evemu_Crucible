@@ -54,27 +54,30 @@ bool ClassHeaderGenerator::Process_elementdef(FILE* into, TiXmlElement* element)
 		"{\n"
         "public:\n"
         "    %s();\n"
+        "    %s( const %s& oth );\n"
         "    ~%s();\n"
         "\n"
         "    void Dump( LogType type, const char* pfx = \"\" ) const;\n"
 		"\n"
         "    bool Decode( const PyRep* packet );\n"
-        "    bool Decode( PyRep** packet );    //consumes packet\n"
+        "    bool Decode( PyRep** packet );\n"
         "    bool Decode( %s** packet );\n"
         "    %s* Encode() const;\n"
         "    %s* FastEncode();\n"
 		"\n"
-        "    %s* Clone() const;\n"
-        "    void CloneFrom( const %s* from );\n"
+        "    %s& operator=( const %s& oth );\n"
         "\n",
         name,
+
         name,
+        name, name,
         name,
+
+            encode_type,
         encode_type,
         encode_type,
-        encode_type,
-        name,
-        name
+
+        name, name
     );
 
     if( !Recurse( into, element, 1 ) )
@@ -382,7 +385,7 @@ bool ClassHeaderGenerator::Process_list(FILE *into, TiXmlElement *field) {
         return false;
 
     fprintf(into,
-		"    PyList\t%s;\n",
+		"    PyList*\t\t%s;\n",
 		name
 	);
     return true;
@@ -399,7 +402,7 @@ bool ClassHeaderGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         return false;
 
     fprintf(into,
-		"    PyTuple*\t%s;   //due to (somewhat false) sizing constructor, must be dynamic memory.\n",
+		"    PyTuple*\t%s;\n",
 		name
 	);
     return true;
@@ -416,7 +419,7 @@ bool ClassHeaderGenerator::Process_dict(FILE *into, TiXmlElement *field) {
         return false;
 
     fprintf(into,
-		"    PyDict\t%s;\n",
+		"    PyDict*\t%s;\n",
 		name
 	);
     return true;

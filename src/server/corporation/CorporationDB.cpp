@@ -796,13 +796,15 @@ PyRep *CorporationDB::Fetch(uint32 corpID, uint32 from, uint32 count) {
     // Have to send back a list that contains a tuple that contains an int and a list...
     // params probably needs the following stuff: stationID, typeID, officeID, officeFolderID
     Reply_FetchOffice reply;
-    reply.params.AddItemInt( rr.GetInt(0) );
-    reply.params.AddItemInt( rr.GetInt(1) );
-    reply.officeID = rr.GetInt(2);
-    reply.params.AddItemInt( reply.officeID );
-    reply.params.AddItemInt( rr.GetInt(3) );
+    reply.params = new PyList;
 
-    return reply.Encode();
+    reply.params->AddItemInt( rr.GetInt(0) );
+    reply.params->AddItemInt( rr.GetInt(1) );
+    reply.officeID = rr.GetInt(2);
+    reply.params->AddItemInt( reply.officeID );
+    reply.params->AddItemInt( rr.GetInt(3) );
+
+    return reply.FastEncode();
 }
 uint32 CorporationDB::GetQuoteForRentingAnOffice(uint32 stationID) {
     DBQueryResult res;

@@ -343,7 +343,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field)
     	
 			    //conditional prefix...
 			    fprintf( into, 
-				    "        if( *key_string__ == \"%s\" )\n"
+                    "        if( key_string__->content() == \"%s\" )\n"
                     "        {\n"
 				    "            %s_%s = true;\n"
                     "\n",
@@ -372,7 +372,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field)
 		if( soft_attr != NULL && atobool( soft_attr ) == true )
 			fprintf( into, 
 				"        {\n"
-				"            _log( NET__PACKET_ERROR, \"Decode %s failed: Unknown key string '%%s' in %s\", key_string__->content() );\n"
+                "            _log( NET__PACKET_ERROR, \"Decode %s failed: Unknown key string '%%s' in %s\", key_string__->content().c_str() );\n"
                 "\n"
 				"            return false;\n"
 				"        }\n"
@@ -1006,9 +1006,9 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 		"    }\n"
         "    const PyObject* %s = &%s->AsObject();\n"
 		"\n"
-        "    if( %s->type() != \"%s\" )\n"
+        "    if( %s->type()->content() != \"%s\" )\n"
         "    {\n"
-        "        _log( NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong object type. Expected '%s', got '%%s'\", %s->type().c_str() );\n"
+        "        _log( NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong object type. Expected '%s', got '%%s'\", %s->type()->content().c_str() );\n"
         "\n"
 		"        return false;\n"
 		"    }\n"
@@ -1171,11 +1171,16 @@ bool ClassDecodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 	if( optional_str != NULL )
 		optional = atobool( optional_str );
 
+    fprintf( into,
+        "    PySafeDecRef( %s );\n",
+        name
+    );
+
 	const char* v = top();
 	if( optional )
 		fprintf(into, 
 			"    if( %s->IsNone() )\n"
-			"        %s.clear();\n"
+			"        %s = NULL;\n"
 			"    else\n",
 			v,
 				name
@@ -1184,9 +1189,8 @@ bool ClassDecodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 	fprintf(into,
 		"    if( %s->IsList() )\n"
         "    {\n"
-        "        const PyList* list_%s = &%s->AsList();\n"
-        "\n"
-		"        %s = *list_%s;\n"
+        "        %s = &%s->AsList();\n"
+        "        PyIncRef( %s );\n"
 		"    }\n"
         "    else\n"
         "    {\n"
@@ -1197,7 +1201,7 @@ bool ClassDecodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
 		"\n",
         v,
             name, v,
-            name, name,
+            name,
 
             mName, name, v
 	);
@@ -1272,11 +1276,16 @@ bool ClassDecodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 	if( optional_str != NULL )
 		optional = atobool( optional_str );
 
+    fprintf( into,
+        "    PySafeDecRef( %s );\n",
+        name
+    );
+
 	const char* v = top();
 	if( optional )
 		fprintf( into, 
 			"    if( %s->IsNone() )\n"
-			"        %s.clear();\n"
+			"        %s = NULL;\n"
 			"    else\n",
 			v,
 				name
@@ -1285,9 +1294,8 @@ bool ClassDecodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 	fprintf(into,
 		"    if( %s->IsDict() )\n"
         "    {\n"
-        "        const PyDict* dict_%s = &%s->AsDict();\n"
-        "\n"
-		"        %s = *dict_%s;\n"
+        "        %s = &%s->AsDict();\n"
+        "        PyIncRef( %s );\n"
 		"    }\n"
         "    else\n"
         "    {\n"
@@ -1298,7 +1306,7 @@ bool ClassDecodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
 		"\n",
         v,
             name, v,
-            name, name,
+            name,
 
             mName, name, v
 	);

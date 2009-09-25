@@ -52,38 +52,34 @@ PyResult PyCallable::Call(const std::string &method, PyCallArgs &args) {
 }
 
 
-PyCallArgs::PyCallArgs(Client *c, PyTuple **tup, PyDict **dict)
+PyCallArgs::PyCallArgs(Client *c, PyTuple* tup, PyDict* dict)
 : client(c),
-  tuple(*tup)
+  tuple(tup)
 {
-	*tup = NULL;
-	
-	PyDict *d = *dict;
-	*dict = NULL;
+	PyIncRef( tup );
 
-	PyDict::const_iterator cur, end;
-	cur = d->begin();
-	end = d->end();
+    PyDict::const_iterator cur, end;
+	cur = dict->begin();
+	end = dict->end();
 	for(; cur != end; cur++) {
 		if(!cur->first->IsString()) {
 			_log(SERVICE__ERROR, "Non-string key in call named arguments. Skipping.");
 			cur->first->Dump(SERVICE__ERROR, "    ");
 			continue;
 		}
-		byname[ cur->first->AsString().content() ] = cur->second->Clone();
+		byname[ cur->first->AsString().content() ] = cur->second;
+        PyIncRef( cur->second );
 	}
-
-	PyDecRef( d );
 }
 
 PyCallArgs::~PyCallArgs() {
-	delete tuple;
+	PySafeDecRef( tuple );
+
 	std::map<std::string, PyRep *>::iterator cur, end;
 	cur = byname.begin();
 	end = byname.end();
-	for(; cur != end; cur++) {
-		delete cur->second;
-	}
+	for(; cur != end; cur++)
+		PySafeDecRef( cur->second );
 }
 
 void PyCallArgs::Dump(LogType type) const {

@@ -103,13 +103,8 @@ PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
 		}
 		
 		_log(SERVICE__MESSAGE, "%s Service: MachoBindObject also contains call to %s", GetName(), boundcall.method_name.c_str());
-
-		//grr.. ownership transfer.
-		PyDict *tmp_dict = new PyDict();
-		tmp_dict->items = boundcall.dict_arguments.items;
-		boundcall.dict_arguments.items.clear();
 		
-		PyCallArgs sub_args(call.client, &boundcall.arguments, &tmp_dict);
+        PyCallArgs sub_args( call.client, boundcall.arguments, boundcall.dict_arguments );
 		
 		//do the call:
 		PyResult result = our_obj->Call(boundcall.method_name, sub_args);

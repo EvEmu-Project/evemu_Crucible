@@ -112,7 +112,9 @@ PyObject *DBResultToRowset(DBQueryResult &result)
     uint32 cc = result.ColumnCount();
 
     PyDict *args = new PyDict();
-    PyObject *res = new PyObject("util.Rowset", args);
+    PyObject *res = new PyObject(
+        new PyString( "util.Rowset" ), args
+    );
 
     /* check if we have a empty query result and return a empty RowSet */
     if( cc == 0 )
@@ -199,7 +201,9 @@ PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
 
     //start building the IndexRowset
     PyDict *args = new PyDict();
-    PyObject *res = new PyObject("util.IndexRowset", args);
+    PyObject *res = new PyObject(
+        new PyString( "util.IndexRowset" ), args
+    );
 
     if(cc == 0 || cc < key_index)
         return res;
@@ -237,13 +241,13 @@ PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
 PyObject *DBRowToKeyVal(DBResultRow &row) {
 
     PyDict *args = new PyDict();
-    PyObject *res = new PyObject("util.KeyVal", args);
+    PyObject *res = new PyObject(
+        new PyString( "util.KeyVal" ), args
+    );
     
     uint32 cc = row.ColumnCount();
     for( uint32 r = 0; r < cc; r++ )
-    {
         args->SetItemString( row.ColumnName(r), DBColumnToPyRep(row, r));
-    }
 
     return res;
 }
@@ -252,7 +256,9 @@ PyObject *DBRowToRow(DBResultRow &row, const char *type)
 {
 
     PyDict *args = new PyDict();
-    PyObject *res = new PyObject(type, args);
+    PyObject *res = new PyObject(
+        new PyString( type ), args
+    );
 
     //list off the column names:
     uint32 cc = row.ColumnCount();
@@ -399,7 +405,7 @@ void DBResultToIntIntlistDict( DBQueryResult &result, std::map<int32, PyRep *> &
 			std::map<int32, PyRep *>::iterator res = into.find(k);
 			if( res != into.end() )
 				//log an error or warning?
-				SafeDelete( res->second );
+				PyDecRef( res->second );
 
 			into[k] = l = new PyList();
 			last_key = k;

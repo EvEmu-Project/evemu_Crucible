@@ -45,7 +45,7 @@ class PyCallStream;
 
 class PyCallArgs {
 public:
-	PyCallArgs(Client *c, PyTuple **tup, PyDict **dict);
+	PyCallArgs(Client *c, PyTuple* tup, PyDict* dict);
 	~PyCallArgs();
 
 	void Dump(LogType type) const;

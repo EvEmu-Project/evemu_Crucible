@@ -308,19 +308,19 @@ PyRep *LSCChannel::EncodeChannelSmall(uint32 charID) {
 	
 	return info.Encode();
 }
-PyRep *LSCChannel::EncodeChannelMods() {
+PyRep *LSCChannel::EncodeChannelMods()
+{
 	ChannelJoinChannelMods info;
+    info.lines = new PyList;
 
-	int i = 0, N = m_mods.size();
-
-	for (; i < N; i++) {
-		info.lines.AddItem( m_mods[i].Encode() );
-	}
+	for( int i = 0; i < m_mods.size(); i++ )
+		info.lines->AddItem( m_mods[i].Encode() );
 
 	return info.Encode();
 }
 PyRep *LSCChannel::EncodeChannelChars() {
 	ChannelJoinChannelChars info;
+    info.lines = new PyList;
 
 	std::map<uint32, LSCChannelChar>::iterator cur, end;
 	cur = m_chars.begin();
@@ -329,14 +329,15 @@ PyRep *LSCChannel::EncodeChannelChars() {
 	{
 		std::map<uint32, LSCChannelChar>::const_iterator res = m_chars.find( cur->first );
 		if( res != m_chars.end() )
-			info.lines.AddItem( res->second.Encode() );
+			info.lines->AddItem( res->second.Encode() );
 	}
 
 	return info.FastEncode();
 }
 PyRep *LSCChannel::EncodeEmptyChannelChars() {
 	ChannelJoinChannelChars info;
-	return info.Encode();
+    info.lines = new PyList;
+	return info.FastEncode();
 }
 
 const char *LSCChannel::GetTypeString() {

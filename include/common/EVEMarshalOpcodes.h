@@ -26,8 +26,7 @@
 #ifndef EVE_MARSHAL_OPCODES_H
 #define EVE_MARSHAL_OPCODES_H
 
-//PyRepOpcodes
-typedef enum
+enum PyRepOpcodes
 {
 	Op_PyNone				= 0x01,
 	Op_PyByteString			= 0x02,	//a string with "Object Name"?
@@ -77,11 +76,11 @@ typedef enum
 	Op_PyUnicodeString		= 0x2E,
 	Op_PyVarInteger			= 0x2F, // variable length integer field??? // PyLong from Byte array
 	PyRepOpcodeMask			= 0x3F
-} PyRepOpcodes;	//6 bits
+};	//6 bits
 
 static const uint8 PyRepSaveMask = 0x40;
 static const uint8 PyRepUnknownMask = 0x80;
-static const uint8 SubStreamHeaderByte = 0x7E;	//'~'
+static const uint8 MarshalHeaderByte = 0x7E;	//'~'
 
 #endif//EVE_MARSHAL_OPCODES_H
 

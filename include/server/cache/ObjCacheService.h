@@ -56,19 +56,23 @@ public:
 		hAppearanceCachables
 	} hintSet;
 	void InsertCacheHints(hintSet hset, PyDict *into);
-	PyRep *GetCacheHint(const char *objectID);
+
+    PyRep *GetCacheHint(const PyRep* objectID);
 
 	PySubStream* LoadCachedFile(const char *filename, const char *oname);
 
 	//handlers for simple cached method calls.
 	bool IsCacheLoaded(const PyRep *objectID) const;
+	bool IsCacheLoaded(const ObjectCachedMethodID &m) const { return(IsCacheLoaded(m.objectID)); }
+
 	void InvalidateCache(const PyRep *objectID);
+	void InvalidateCache(const ObjectCachedMethodID &m) { InvalidateCache(m.objectID); }
+
 	void GiveCache(const PyRep *objectID, PyRep **contents);
+	void GiveCache(const ObjectCachedMethodID &m, PyRep **contents) { GiveCache(m.objectID, contents); }
+
 	PyObject *MakeObjectCachedMethodCallResult(const PyRep *objectID, const char *versionCheck="run");
-	inline bool IsCacheLoaded(const ObjectCachedMethodID &m) const { return(IsCacheLoaded(m.objectID)); }
-	inline void GiveCache(const ObjectCachedMethodID &m, PyRep **contents) { GiveCache(m.objectID, contents); }
-	inline PyObject *MakeObjectCachedMethodCallResult(const ObjectCachedMethodID &m, const char *versionCheck="run") { return(MakeObjectCachedMethodCallResult(m.objectID, versionCheck)); }
-	inline void InvalidateCache(const ObjectCachedMethodID &m) { InvalidateCache(m.objectID); }
+	PyObject *MakeObjectCachedMethodCallResult(const ObjectCachedMethodID &m, const char *versionCheck="run") { return(MakeObjectCachedMethodCallResult(m.objectID, versionCheck)); }
 	
 protected:
 

@@ -276,7 +276,7 @@ public:
 	void Clear_##v() \
     { \
 		if( !IsNull_##v() ) \
-			delete v; \
+			SafeDelete( v ); \
 		v = NULL; \
 	}
 #define REAL(v) \
@@ -298,7 +298,7 @@ public:
 	void Clear_##v() \
     { \
 		if( !IsNull_##v() ) \
-			delete v; \
+			SafeDelete( v ); \
 		v = NULL; \
 	}
 #include "character/CharacterAppearance_fields.h"

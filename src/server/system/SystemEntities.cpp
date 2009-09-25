@@ -178,7 +178,7 @@ SystemStargateEntity::SystemStargateEntity(SystemManager *system, const DBSystem
 }
 SystemStargateEntity::~SystemStargateEntity() {
 	targets.DoDestruction();
-	delete m_jumps;
+	PySafeDecRef( m_jumps );
 }
 	
 bool SystemStargateEntity::LoadExtras(SystemDB *db) {

@@ -88,49 +88,40 @@ PyResult LSCService::Handle_GetChannels(PyCallArgs &call) {
             also there are things like:
             - empireID
     */
-    ChannelInfo info;
     std::vector<std::string> names;
 
-    Client * c = call.client;
     m_db.GetChannelNames(call.client->GetCharacterID(), names);
 
-
-
-    uint32 channelID;
-    uint32 charID;
-    charID = channelID = c->GetCharacterID();
-
-    if
-        (m_channels.find(channelID) == m_channels.end())
+    uint32 channelID = call.client->GetCharacterID();
+    if( m_channels.find(channelID) == m_channels.end() )
         CreateChannel(channelID, call.client->GetName(), LSCChannel::normal, true);
 
-    channelID = c->GetCorporationID();
-    if
-        (m_channels.find(channelID) == m_channels.end())
+    channelID = call.client->GetCorporationID();
+    if( m_channels.find(channelID) == m_channels.end() )
         CreateChannel(channelID, "System Channels\\Corp", names[1].c_str(), LSCChannel::corp);
 
-    channelID = c->GetSystemID();
-    if
-        (m_channels.find(channelID) == m_channels.end())
+    channelID = call.client->GetSystemID();
+    if( m_channels.find(channelID) == m_channels.end() )
         CreateChannel(channelID, "System Channels\\Local", names[2].c_str(), LSCChannel::solarsystem);
 
-    channelID = c->GetConstellationID();
-    if
-        (m_channels.find(channelID) == m_channels.end())
+    channelID = call.client->GetConstellationID();
+    if( m_channels.find(channelID) == m_channels.end() )
         CreateChannel(channelID, "System Channels\\Constellation", names[3].c_str(), LSCChannel::constellation);
 
-    channelID = c->GetRegionID();
-    if
-        (m_channels.find(channelID) == m_channels.end())
+    channelID = call.client->GetRegionID();
+    if( m_channels.find(channelID) == m_channels.end() )
         CreateChannel(channelID, "System Channels\\Region", names[4].c_str(), LSCChannel::region);
 
-    std::map<uint32, LSCChannel *>::iterator cur = m_channels.begin(), end = m_channels.end();
-    for (;cur!=end;cur++) {
-        info.lines.AddItem( cur->second->EncodeChannel(charID) );
-    }
+    ChannelInfo info;
+    info.lines = new PyList;
 
+    std::map<uint32, LSCChannel*>::iterator cur, end;
+    cur = m_channels.begin();
+    end = m_channels.end();
+    for(; cur != end; cur++)
+        info.lines->AddItem( cur->second->EncodeChannel( call.client->GetCharacterID() ) );
 
-    return info.Encode();
+    return info.FastEncode();
 }
 
 PyResult LSCService::Handle_GetRookieHelpChannel(PyCallArgs &call) {
@@ -147,8 +138,8 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
     std::set<uint32> toJoin;
 
     PyList::const_iterator cur, end;
-	cur = args.channels.begin();
-	end = args.channels.end();
+	cur = args.channels->begin();
+	end = args.channels->end();
 
     for( ; cur != end; cur++ )
 	{
@@ -231,10 +222,10 @@ PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
 
     {
         PyList::const_iterator cur, end;
-        cur = args.channels.begin();
-        end = args.channels.end();
+        cur = args.channels->begin();
+        end = args.channels->end();
 
-        for(; cur != end ;cur++)
+        for(; cur != end; cur++)
         {
             if( (*cur)->IsInt() )
                 toLeave.insert( (*cur)->AsInt().value() );
@@ -281,12 +272,16 @@ PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
 
     return (new PyNone());
 }
-void LSCService::CharacterLogout(uint32 charID, OnLSC_SenderInfo * si) {
-    std::map<uint32, LSCChannel*>::iterator cur = m_channels.begin(), end = m_channels.end();
-    for (;cur!=end;cur++) {
-        if ((*cur).second->IsJoined(charID)) (*cur).second->LeaveChannel(charID, si->Clone());
-    }
-    delete si;
+void LSCService::CharacterLogout(uint32 charID, OnLSC_SenderInfo* si)
+{
+    std::map<uint32, LSCChannel*>::iterator cur, end;
+    cur = m_channels.begin();
+    end = m_channels.end();
+    for(; cur != end; cur++)
+        if( cur->second->IsJoined( charID ) )
+            cur->second->LeaveChannel( charID, new OnLSC_SenderInfo( *si ) );
+
+    SafeDelete( si );
 }
 
 PyResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
@@ -373,46 +368,38 @@ PyResult LSCService::Handle_DestroyChannel(PyCallArgs &call) {
     return new PyNone();
 }
 PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
-    uint32 channelID;
-    PyTuple * arg = call.tuple;
-
-    if (arg->items.size() != 2 || !arg->items[0]->IsTuple() || !arg->items[1]->IsString()) {
+    if(    call.tuple->size() != 2
+        || !call.tuple->GetItem(0)->IsTuple()
+        || !call.tuple->GetItem(1)->IsString() )
+    {
         codelog(SERVICE__ERROR, "%s: Bad arguments (T0)", call.client->GetName());
         return new PyInt(0);
     }
 
-    const char * message = arg->items[1]->AsString().content();
-    arg = (PyTuple *)arg->items[0];
+    PyTuple* arg = &call.tuple->GetItem(0)->AsTuple();
+    const char* message = call.tuple->GetItem(1)->AsString().content().c_str();
 
-    if( arg->IsInt() )
-        channelID = arg->AsInt().value();
-    else if( arg->IsTuple() )
+    if(     arg->size() != 1
+        || !arg->GetItem(0)->IsTuple() )
     {
-        if( arg->items.size() != 1 || !arg->GetItem(0)->IsTuple() )
-        {
-            codelog(SERVICE__ERROR, "%s: Bad arguments (T1)", call.client->GetName());
-            return new PyInt(0);
-        }
-        arg = &arg->GetItem(0)->AsTuple();
-
-        if( arg->size() != 2 || !arg->GetItem(1)->IsInt() )
-        {
-            codelog(SERVICE__ERROR, "%s: Bad arguments (T2)", call.client->GetName());
-            return new PyInt(0);
-        }
-        channelID = arg->GetItem(1)->AsInt().value();
-    }
-    else
-    {
-        codelog(SERVICE__ERROR, "%s: Bad arguments (T3)", call.client->GetName());
+        codelog(SERVICE__ERROR, "%s: Bad arguments (T1)", call.client->GetName());
         return new PyInt(0);
     }
+    arg = &arg->GetItem(0)->AsTuple();
+
+    if(     arg->size() != 2
+        || !arg->GetItem(1)->IsInt() )
+    {
+        codelog(SERVICE__ERROR, "%s: Bad arguments (T2)", call.client->GetName());
+        return new PyInt(0);
+    }
+    uint32 channelID = arg->GetItem(1)->AsInt().value();
 
     if (m_channels.find(channelID) == m_channels.end()) {
         codelog(SERVICE__ERROR, "%s: Couldn't find channel %u", call.client->GetName(), channelID);
         return new PyInt(0);
     }
-    LSCChannel * channel = m_channels[channelID];
+    LSCChannel* channel = m_channels[channelID];
 
     channel->SendMessage(call.client, message);
 

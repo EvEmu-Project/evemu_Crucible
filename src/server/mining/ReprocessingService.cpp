@@ -333,6 +333,7 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
     }
 
     Rsp_GetQuote res;
+    res.lines = new PyList;
     res.leftOvers = item->quantity() % item->type().portionSize();
     res.quantityToProcess = item->quantity() - res.leftOvers;
     res.playerStanding = 0.0;   // hack
@@ -347,8 +348,8 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
         std::vector<Recoverable>::const_iterator cur, end;
         cur = recoverables.begin();
         end = recoverables.end();
-
-        for(; cur != end; cur++) {
+        for(; cur != end; cur++)
+        {
             uint32 ratio = cur->amountPerBatch * res.quantityToProcess / item->type().portionSize();
 
 			Rsp_GetQuote_Recoverables_Line line;
@@ -358,10 +359,10 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
             line.station =          uint32(efficiency * m_tax           * ratio);
             line.client =           uint32(efficiency * (1.0 - m_tax)   * ratio);
 
-            res.lines.AddItem( line.Encode() );
+            res.lines->AddItem( line.Encode() );
         }
     }
 
-    return res.Encode();
+    return res.FastEncode();
 }
 

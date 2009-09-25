@@ -604,7 +604,7 @@ void Character::UpdateSkillQueue()
 
                 PyTuple *tmp = osst.FastEncode();
                 c->QueueDestinyEvent( &tmp );
-                SafeDelete( tmp );
+                PyDecRef( tmp );
 
                 c->UpdateSkillTraining();
             }
@@ -646,7 +646,7 @@ void Character::UpdateSkillQueue()
 
                 PyTuple *tmp = osst.FastEncode();
                 c->QueueDestinyEvent( &tmp );
-                SafeDelete( tmp );
+                PyDecRef( tmp );
 
                 c->UpdateSkillTraining();
             }
@@ -672,7 +672,7 @@ void Character::UpdateSkillQueue()
 
                 PyTuple *tmp = ost.FastEncode();
                 c->QueueDestinyEvent( &tmp );
-                SafeDelete( tmp );
+                PyDecRef( tmp );
 
                 c->UpdateSkillTraining();
             }
@@ -729,11 +729,14 @@ PyObject *Character::CharGetInfo() {
     return(result.FastEncode());
 }
 
-PyObject *Character::GetDescription() const {
+PyObject *Character::GetDescription() const
+{
     util_Row row;
 
     row.header.push_back("description");
-    row.line.AddItemString( description().c_str() );
+
+    row.line = new PyList;
+    row.line->AddItemString( description().c_str() );
 
     return row.FastEncode();
 }

@@ -100,7 +100,7 @@ const char *BaseRowsetReader::base_iterator::GetString(uint32 index) const {
     if(!ele->IsString())
         return("NON-STRING ELEMENT");
     PyString *str = (PyString *) ele;
-    return str->content();
+    return str->content().c_str();
 }
 
 uint32 BaseRowsetReader::base_iterator::GetInt(uint32 index) const {
@@ -205,17 +205,17 @@ RowsetReader::RowsetReader(const util_Rowset *rowset)
 }
 
 RowsetReader::iterator RowsetReader::begin() {
-    if(m_set->lines.items.empty())
-        return(end());
-    return(iterator(this, false));
+    if(m_set->lines->empty())
+        return end();
+    return iterator(this, false);
 }
 
 size_t RowsetReader::size() const {
-    return(m_set->lines.items.size());
+    return(m_set->lines->size());
 }
 
 bool RowsetReader::empty() const {
-    return(m_set->lines.items.empty());
+    return(m_set->lines->empty());
 }
 
 RowsetReader::iterator::iterator()
@@ -243,10 +243,9 @@ bool RowsetReader::iterator::operator!=(const iterator &other) {
 }
 
 PyRep *RowsetReader::_getRow(uint32 index) const {
-    const PyList *l = &m_set->lines;
-    if(l->items.size() <= index)    //InvalidRow will be caught here!
+    if( m_set->lines->size() <= index )    //InvalidRow will be caught here!
         return NULL;
-    return(l->items[index]);
+    return m_set->lines->GetItem( index );
 }
 
 size_t RowsetReader::ColumnCount() const {
@@ -283,17 +282,17 @@ TuplesetReader::TuplesetReader(const util_Tupleset *Tupleset)
 }
 
 TuplesetReader::iterator TuplesetReader::begin() {
-    if(m_set->lines.items.empty())
-        return(end());
-    return(iterator(this, false));
+    if( m_set->lines->empty() )
+        return end();
+    return iterator( this, false );
 }
 
 size_t TuplesetReader::size() const {
-    return(m_set->lines.items.size());
+    return m_set->lines->size();
 }
 
 bool TuplesetReader::empty() const {
-    return(m_set->lines.items.empty());
+    return m_set->lines->empty();
 }
 
 TuplesetReader::iterator::iterator()
@@ -321,10 +320,9 @@ bool TuplesetReader::iterator::operator!=(const iterator &other) {
 }
 
 PyRep *TuplesetReader::_getRow(uint32 index) const {
-    const PyList *l = &m_set->lines;
-    if(l->items.size() <= index)    //InvalidRow will be caught here!
+    if( m_set->lines->size() <= index )    //InvalidRow will be caught here!
         return NULL;
-    return(l->items[index]);
+    return m_set->lines->GetItem( index );
 }
 
 size_t TuplesetReader::ColumnCount() const {
@@ -344,7 +342,7 @@ SetSQLDumper::SetSQLDumper(FILE *f, const char *tablename)
 }
 
 void SetSQLDumper::VisitObject(const PyObject *rep) {
-    if(rep->type() != "util.Rowset") {
+    if(rep->type()->content() != "util.Rowset") {
         //traverse the object as usual.
         rep->arguments()->visit(this);
         return;

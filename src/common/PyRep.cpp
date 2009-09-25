@@ -70,7 +70,7 @@ const char *PyRepTypeString[] = {
 PyRep::PyRep(PyType t) : m_type(t), mRefCnt(1) {}
 PyRep::~PyRep() {}
 
-const char *PyRep::TypeString() const
+const char* PyRep::TypeString() const
 {
     if (m_type >= 0 && m_type < PyTypeMax)
         return PyRepTypeString[m_type];
@@ -355,52 +355,52 @@ int32 PyNone::hash() const
 /************************************************************************/
 /* PyRep Buffer Class                                                   */
 /************************************************************************/
-PyBuffer::PyBuffer( const uint8 *buffer, size_t length ) : PyRep( PyRep::PyTypeBuffer ),
-  m_value( new uint8[ length ] ), m_length( length ), m_hash_cache( -1 )
+PyBuffer::PyBuffer( const uint8* buffer, size_t size ) : PyRep( PyRep::PyTypeBuffer ),
+  mValue( new uint8[ size ] ), mSize( size ), mHashCache( -1 )
 {
-    assert( m_value );
+    assert( mValue );
 
-    memcpy( m_value, buffer, length );
+    memcpy( mValue, buffer, size );
 }
 
-PyBuffer::PyBuffer( uint8 **buffer, size_t length ) : PyRep( PyRep::PyTypeBuffer ),
-  m_value( *buffer ), m_length( length ), m_hash_cache( -1 )
+PyBuffer::PyBuffer( uint8** buffer, size_t size ) : PyRep( PyRep::PyTypeBuffer ),
+  mValue( *buffer ), mSize( size ), mHashCache( -1 )
 {
     *buffer = NULL;
 }
 
-PyBuffer::PyBuffer( size_t length ) : PyRep( PyRep::PyTypeBuffer ),
-  m_value( new uint8[ length ] ), m_length( length ), m_hash_cache( -1 )
+PyBuffer::PyBuffer( size_t size ) : PyRep( PyRep::PyTypeBuffer ),
+  mValue( new uint8[ size ] ), mSize( size ), mHashCache( -1 )
 {
-    assert( m_value );
+    assert( mValue );
 }
 
-PyBuffer::PyBuffer( const PyString &str ) : PyRep( PyRep::PyTypeBuffer ),
-  m_value( new uint8[ str.size() ] ), m_length( str.size() ), m_hash_cache( -1 )
+PyBuffer::PyBuffer( const PyString& str ) : PyRep( PyRep::PyTypeBuffer ),
+  mValue( new uint8[ str.content().size() ] ), mSize( str.content().size() ), mHashCache( -1 )
 {
-    assert( m_value );
+    assert( mValue );
 
-	memcpy( m_value, str.content(), str.size() );
+	memcpy( mValue, str.content().c_str(), str.content().size() );
 }
 
-PyBuffer::PyBuffer( const PyBuffer &buffer ) : PyRep( PyRep::PyTypeBuffer ),
-m_value( new uint8[ buffer.size() ] ), m_length( buffer.size() ), m_hash_cache( buffer.m_hash_cache )
+PyBuffer::PyBuffer( const PyBuffer& buffer ) : PyRep( PyRep::PyTypeBuffer ),
+  mValue( new uint8[ buffer.size() ] ), mSize( buffer.size() ), mHashCache( buffer.mHashCache )
 {
-    assert( m_value );
+    assert( mValue );
 
-	memcpy( m_value, buffer.content(), buffer.size() );
+	memcpy( mValue, buffer.content(), buffer.size() );
 }
 
 PyBuffer::~PyBuffer()
 {
-    delete m_value;
+    delete mValue;
 }
 
 void PyBuffer::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sData buffer of length %lu\n", pfx, m_length);
+    fprintf(into, "%sData buffer of length %lu\n", pfx, size());
 
     //kinda hackish:
-    if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
+    if(size() > 2 && (*this)[0] == GZipHeaderByte) {
         uint32 len = size();
         uint8 *buf = InflatePacket(content(), &len, true);
         if(buf != NULL) {
@@ -414,10 +414,10 @@ void PyBuffer::Dump(FILE *into, const char *pfx) const {
 }
 
 void PyBuffer::Dump(LogType type, const char *pfx) const {
-    _log(type, "%sData buffer of length %d", pfx, m_length);
+    _log(type, "%sData buffer of length %d", pfx, size());
 
     //kinda hackish:
-    if(m_length > 2 && *m_value == GZipStreamHeaderByte) {
+    if(size() > 2 && (*this)[0] == GZipHeaderByte) {
         uint32 len = size();
         uint8 *buf = InflatePacket(content(), &len, true);
         if(buf != NULL) {
@@ -447,8 +447,8 @@ void PyBuffer::visit( PyVisitorLvl *v, int64 lvl ) const
 
 int32 PyBuffer::hash() const
 {
-    if( m_hash_cache != -1 )
-        return m_hash_cache;
+    if( mHashCache != -1 )
+        return mHashCache;
 
     void *ptr;
     register size_t len;
@@ -471,41 +471,41 @@ int32 PyBuffer::hash() const
 
     //if (!get_buf(self, &ptr, &size, ANY_BUFFER))
     //    return -1;
-    ptr = m_value;
+    ptr = mValue;
     p = (unsigned char *) ptr;
-    len = m_length;
+    len = mSize;
     x = *p << 7;
     while( --len >= 0 )
         x = (1000003*x) ^ *p++;
-    x ^= m_length;
+    x ^= mSize;
     if( x == -1 )
         x = -2;
-    m_hash_cache = x;
+    mHashCache = x;
     return x;
 }
 
 /************************************************************************/
 /* PyString                                                          */
 /************************************************************************/
-PyString::PyString( const char *str, bool type_1 ) : PyRep( PyRep::PyTypeString ), m_value( str ), m_is_type_1( type_1 ), m_hash_cache( -1 ) {}
-PyString::PyString( const std::string &str, bool type_1 ) : PyRep( PyRep::PyTypeString ), m_value( str ), m_is_type_1( type_1 ), m_hash_cache( -1 ) {}
-PyString::PyString( const PyBuffer &buf, bool type_1 ) : PyRep( PyRep::PyTypeString ), m_value( (const char *) buf.content(), buf.size() ), m_is_type_1( type_1 ), m_hash_cache( -1 ) {}
-PyString::PyString( const PyString &oth ) : PyRep( PyRep::PyTypeString ), m_value( oth.m_value ), m_is_type_1( oth.m_is_type_1 ), m_hash_cache( oth.m_hash_cache ) {}
+PyString::PyString( const char* str, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( str ), mIsType1( type_1 ), mHashCache( -1 ) {}
+PyString::PyString( const std::string& str, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( str ), mIsType1( type_1 ), mHashCache( -1 ) {}
+PyString::PyString( const PyBuffer& buf, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( (const char *) buf.content(), buf.size() ), mIsType1( type_1 ), mHashCache( -1 ) {}
+PyString::PyString( const PyString& oth ) : PyRep( PyRep::PyTypeString ), mValue( oth.mValue ), mIsType1( oth.mIsType1 ), mHashCache( oth.mHashCache ) {}
 PyString::~PyString() {}
 
 void PyString::Dump(FILE *into, const char *pfx) const {
-    if(ContainsNonPrintables( m_value ) ) {
-        fprintf(into, "%sString%s: '<binary, len=%lu>'\n", pfx, m_is_type_1?" (Type1)":"", m_value.length());
+    if(ContainsNonPrintables( this ) ) {
+        fprintf(into, "%sString%s: '<binary, len=%lu>'\n", pfx, isType1()?" (Type1)":"", content().length());
     } else {
-        fprintf(into, "%sString%s: '%s'\n", pfx, m_is_type_1?" (Type1)":"", m_value.c_str());
+        fprintf(into, "%sString%s: '%s'\n", pfx, isType1()?" (Type1)":"", content().c_str());
     }
 }
 
 void PyString::Dump(LogType type, const char *pfx) const {
-    if(ContainsNonPrintables( m_value ) ) {
-        _log(type, "%sString%s: '<binary, len=%lu>'", pfx, m_is_type_1?" (Type1)":"", m_value.length());
+    if(ContainsNonPrintables( this ) ) {
+        _log(type, "%sString%s: '<binary, len=%lu>'", pfx, isType1()?" (Type1)":"", content().length());
     } else {
-        _log(type, "%sString%s: '%s'", pfx, m_is_type_1?" (Type1)":"", m_value.c_str());
+        _log(type, "%sString%s: '%s'", pfx, isType1()?" (Type1)":"", content().c_str());
     }
 }
 
@@ -526,23 +526,23 @@ void PyString::visit( PyVisitorLvl *v, int64 lvl ) const
 
 int32 PyString::hash() const
 {
-    if( m_hash_cache != -1 )
-        return m_hash_cache;
+    if( mHashCache != -1 )
+        return mHashCache;
 
     register size_t len;
     register unsigned char *p;
     register int32 x;
 
-    len = m_value.length();
-    p = (unsigned char *) m_value.c_str();
+    len = mValue.length();
+    p = (unsigned char *) mValue.c_str();
     x = *p << 7;
     while (--len > 0)
         x = (1000003*x) ^ *p++;
-    x ^= m_value.length();
+    x ^= mValue.length();
     if (x == -1)
         x = -2;
 
-    m_hash_cache = x;
+    mHashCache = x;
     return x;
 }
 
@@ -924,20 +924,21 @@ PyDict& PyDict::operator=(const PyDict& oth)
 /************************************************************************/
 /* PyRep Object Class                                                   */
 /************************************************************************/
-PyObject::PyObject( const char* type, PyRep* args ) : PyRep( PyRep::PyTypeObject ), mType( type ), mArguments( args ) {}
+PyObject::PyObject( PyString* type, PyRep* args ) : PyRep( PyRep::PyTypeObject ), mType( type ), mArguments( args ) {}
 PyObject::PyObject( const PyObject& oth ) : PyRep( PyRep::PyTypeObject ),
-  mType( oth.type() ), mArguments( oth.arguments()->Clone() )
+  mType( new PyString( *oth.type() ) ), mArguments( oth.arguments()->Clone() )
 {
 }
 
 PyObject::~PyObject()
 {
-    PySafeDecRef( mArguments );
+    PyDecRef( mType );
+    PyDecRef( mArguments );
 }
 
 void PyObject::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sObject:\n", pfx);
-    fprintf(into, "%s  PyType: %s\n", pfx, type().c_str());
+    fprintf(into, "%s  PyType: %s\n", pfx, type()->content().c_str());
 
     std::string m(pfx);
     m += "  Args: ";
@@ -946,7 +947,7 @@ void PyObject::Dump(FILE *into, const char *pfx) const {
 
 void PyObject::Dump(LogType ltype, const char *pfx) const {
     _log(ltype, "%sObject:", pfx);
-    _log(ltype, "%s  PyType: %s", pfx, type().c_str());
+    _log(ltype, "%s  PyType: %s", pfx, type()->content().c_str());
 
     std::string m(pfx);
     m += "  Args: ";
@@ -971,9 +972,9 @@ void PyObject::visit( PyVisitorLvl* v, int64 lvl ) const
 /************************************************************************/
 /* PyObjectEx                                                           */
 /************************************************************************/
-PyObjectEx::PyObjectEx( bool is_type_2, PyRep* header ) : PyRep( PyRep::PyTypeObjectEx ), mHeader( header ), mIsType2( is_type_2 ) {}
+PyObjectEx::PyObjectEx( bool is_type_2, PyRep* header ) : PyRep( PyRep::PyTypeObjectEx ), mHeader( header ), mIsType2( is_type_2 ), mList( new PyList ), mDict( new PyDict ) {}
 PyObjectEx::PyObjectEx( const PyObjectEx& oth ) : PyRep( PyRep::PyTypeObjectEx ),
-  mHeader( oth.header()->Clone() ), mIsType2( oth.isType2() )
+  mHeader( oth.header()->Clone() ), mIsType2( oth.isType2() ), mList( new PyList ), mDict( new PyDict )
 {
 	// Use assigment operator
 	*this = oth;
@@ -982,6 +983,9 @@ PyObjectEx::PyObjectEx( const PyObjectEx& oth ) : PyRep( PyRep::PyTypeObjectEx )
 PyObjectEx::~PyObjectEx()
 {
     PySafeDecRef( mHeader );
+
+    PyDecRef( mList );
+    PyDecRef( mDict );
 }
 
 void PyObjectEx::Dump(FILE *into, const char *pfx) const {
@@ -1105,8 +1109,8 @@ void PyObjectEx::visit( PyVisitorLvl* v, int64 lvl ) const
 
 PyObjectEx& PyObjectEx::operator=(const PyObjectEx& oth)
 {
-	mList = oth.list();
-	mDict = oth.dict();
+	list() = oth.list();
+	dict() = oth.dict();
 
 	return *this;
 }
@@ -1151,7 +1155,7 @@ PyRep *PyObjectEx_Type1::FindKeyword(const char *keyword) const
 	for(; cur != end; cur++)
 	{
 		if( cur->first->IsString() )
-			if( cur->first->AsString() == keyword )
+			if( cur->first->AsString().content() == keyword )
 				return cur->second;
 	}
 
@@ -1199,7 +1203,7 @@ PyRep *PyObjectEx_Type2::FindKeyword(const char *keyword) const
 	for(; cur != end; cur++)
 	{
 		if( cur->first->IsString() )
-			if( cur->first->AsString() == keyword )
+			if( cur->first->AsString().content() == keyword )
 				return cur->second;
 	}
 
@@ -1222,22 +1226,24 @@ PyTuple *PyObjectEx_Type2::_CreateHeader(PyTuple *args, PyDict *keywords)
 /************************************************************************/
 /* PyPackedRow                                                          */
 /************************************************************************/
-PyPackedRow::PyPackedRow( DBRowDescriptor* header ) : PyRep( PyRep::PyTypePackedRow ), mHeader( header ), mFields( header->ColumnCount() ) {}
-PyPackedRow::PyPackedRow( const PyPackedRow &oth ) : PyRep( PyRep::PyTypePackedRow ), mHeader( &oth.header() )
+PyPackedRow::PyPackedRow( DBRowDescriptor* header ) : PyRep( PyRep::PyTypePackedRow ), mHeader( header ), mFields( new PyList( header->ColumnCount() ) ) {}
+PyPackedRow::PyPackedRow( const PyPackedRow &oth ) : PyRep( PyRep::PyTypePackedRow ), mHeader( &oth.header() ), mFields( new PyList( oth.header().ColumnCount() ) )
 {
     PyIncRef( mHeader );
+
 	*this = oth;
 }
 
 PyPackedRow::~PyPackedRow()
 {
     PyDecRef( mHeader );
+    PyDecRef( mFields );
 }
 
 void PyPackedRow::Dump(FILE *into, const char *pfx) const
 {
     fprintf( into, "%sPacked Row\n", pfx );
-    fprintf( into, "%s column_count=%lu\n", pfx, mFields.size() );
+    fprintf( into, "%s column_count=%lu\n", pfx, mFields->size() );
 
     const_iterator cur, end;
     cur = this->begin();
@@ -1246,7 +1252,7 @@ void PyPackedRow::Dump(FILE *into, const char *pfx) const
     for(uint32 i = 0; cur != end; cur++, i++)
     {
         std::string n( pfx );
-        snprintf( buf, 32, "  [%u] %s: ", i, header().GetColumnName( i ).content() );
+        snprintf( buf, 32, "  [%u] %s: ", i, header().GetColumnName( i ).content().c_str() );
         n += buf;
 
         if( (*cur) == NULL )
@@ -1259,7 +1265,7 @@ void PyPackedRow::Dump(FILE *into, const char *pfx) const
 void PyPackedRow::Dump(LogType ltype, const char *pfx) const
 {
     _log( ltype, "%sPacked Row", pfx );
-    _log( ltype, "%s column_count=%lu", pfx, mFields.size() );
+    _log( ltype, "%s column_count=%lu", pfx, mFields->size() );
 
     const_iterator cur, end;
     cur = this->begin();
@@ -1268,7 +1274,7 @@ void PyPackedRow::Dump(LogType ltype, const char *pfx) const
     for(uint32 i = 0; cur != end; cur++, i++)
     {
         std::string n( pfx );
-        snprintf( buf, 32, "  [%u] %s: ", i, header().GetColumnName( i ).content() );
+        snprintf( buf, 32, "  [%u] %s: ", i, header().GetColumnName( i ).content().c_str() );
         n += buf;
 
         if( (*cur) == NULL ) {
@@ -1296,7 +1302,7 @@ void PyPackedRow::visit( PyVisitorLvl* v, int64 lvl ) const
 
 bool PyPackedRow::SetField(uint32 index, PyRep* value)
 {
-    if( index >= mFields.size() )
+    if( index >= mFields->size() )
         return false;
 
     if( value != NULL )
@@ -1310,7 +1316,7 @@ bool PyPackedRow::SetField(uint32 index, PyRep* value)
         }
     }
 
-	mFields.SetItem( index, value );
+	mFields->SetItem( index, value );
     return true;
 }
 
@@ -1321,7 +1327,7 @@ bool PyPackedRow::SetField(const char* colName, PyRep* value)
 
 PyPackedRow& PyPackedRow::operator=( const PyPackedRow& oth )
 {
-	mFields = oth.mFields;
+	*mFields = *oth.mFields;
 
 	return *this;
 }
@@ -1374,14 +1380,10 @@ void PySubStruct::visit( PyVisitorLvl* v, int64 lvl ) const
 /************************************************************************/
 /* PyRep SubStream Class                                                */
 /************************************************************************/
-PySubStream::PySubStream( PyRep* t ) : PyRep( PyRep::PyTypeSubStream ), mData( NULL ), mDecoded( t ) {}
-PySubStream::PySubStream( const PyBuffer& buffer ): PyRep(PyRep::PyTypeSubStream), mData( new PyBuffer( buffer ) ), mDecoded( NULL ) {}
+PySubStream::PySubStream( PyRep* rep ) : PyRep( PyRep::PyTypeSubStream ), mData( NULL ), mDecoded( rep ) {}
+PySubStream::PySubStream( PyBuffer* buffer ): PyRep(PyRep::PyTypeSubStream), mData(  buffer ), mDecoded( NULL ) {}
 PySubStream::PySubStream( const PySubStream& oth ) : PyRep(PyRep::PyTypeSubStream),
- mData( NULL ), mDecoded( NULL )
-{
-	// Use assigment operator
-	*this = oth;
-}
+ mData( oth.data() == NULL ? NULL : new PyBuffer( *oth.data() ) ), mDecoded( oth.decoded() == NULL ? NULL : oth.decoded()->Clone() ) {}
 
 PySubStream::~PySubStream()
 {
@@ -1458,7 +1460,7 @@ void PySubStream::EncodeData() const
 	PySafeDecRef( mData );
 
 	uint32 len;
-    uint8* buf = Marshal( this, len, false );
+    uint8* buf = Marshal( decoded(), len );
 
 	// Move ownership of buffer to PyBuffer
 	mData = new PyBuffer( &buf, len );
@@ -1469,24 +1471,9 @@ void PySubStream::DecodeData() const
     if( data() == NULL )
         return;
 
-    mDecoded = InflateAndUnmarshal( data()->content(), data()->size() );
-}
+    PySafeDecRef( mDecoded );
 
-PySubStream& PySubStream::operator=(const PySubStream &oth)
-{
-	PySafeDecRef( mData );
-	if( oth.data() == NULL )
-		mData = NULL;
-	else
-		mData = new PyBuffer( *oth.data() );
-
-	PySafeDecRef( mDecoded );
-	if( oth.decoded() == NULL )
-		mDecoded = NULL;
-	else
-		mDecoded = oth.decoded()->Clone();
-
-	return *this;
+    mDecoded = Unmarshal( data()->content(), data()->size() );
 }
 
 /************************************************************************/

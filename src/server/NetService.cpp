@@ -44,11 +44,9 @@ NetService::~NetService() {
 }
 
 PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
-	PyTuple *result = new PyTuple(2);
-	PyString str("machoNet.serviceInfo");
+    PyString* str = new PyString( "machoNet.serviceInfo" );
 
-	PyRep *serverinfo;
-	if(!m_manager->cache_service->IsCacheLoaded(&str)) {
+	if(!m_manager->cache_service->IsCacheLoaded(str)) {
 		//not cached yet, we have to generate it
 		PyDict *dict = new PyDict;
 
@@ -139,17 +137,18 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 		dict->SetItemString("gangSvcObjectHandler", new PyNone());
 
 		//register it
-		m_manager->cache_service->GiveCache(&str, (PyRep **)&dict);
+		m_manager->cache_service->GiveCache(str, (PyRep **)&dict);
 	}
-	serverinfo = m_manager->cache_service->GetCacheHint(str.content());
+	PyRep* serverinfo = m_manager->cache_service->GetCacheHint(str);
+    PyDecRef( str );
 
-	PyDict *initvals = new PyDict();
+	PyDict* initvals = new PyDict();
     //send all the cache hints needed for server info.
 	m_manager->cache_service->InsertCacheHints(ObjCacheService::hLoginCachables, initvals);
 
-	result->items[0] = serverinfo;
-	result->items[1] = initvals;
-
+	PyTuple* result = new PyTuple( 2 );
+	result->SetItem( 0, serverinfo );
+	result->SetItem( 1, initvals );
 	return result;
 }
 

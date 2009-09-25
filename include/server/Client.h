@@ -224,8 +224,8 @@ public:
 
 	virtual const char *GetName() const { return GetChar() ? GetChar()->itemName().c_str() : "(null)"; }
 	virtual PyDict *MakeSlimItem() const;
-	virtual void QueueDestinyUpdate(PyTuple **du);
-	virtual void QueueDestinyEvent(PyTuple **multiEvent);
+	virtual void QueueDestinyUpdate(PyTuple** du);
+	virtual void QueueDestinyEvent(PyTuple** multiEvent);
 
 	virtual void TargetAdded(SystemEntity *who);
 	virtual void TargetLost(SystemEntity *who);
@@ -297,8 +297,8 @@ protected:
 
 private:
 	//queues for destiny updates:
-	std::vector<PyRep *> m_destinyEventQueue;	//we own these. These are events as used in OnMultiEvent
-	std::vector<PyRep *> m_destinyUpdateQueue;	//we own these. They are the `update` which go into DoDestinyAction
+	PyList* m_destinyEventQueue;	//we own these. These are events as used in OnMultiEvent
+	PyList* m_destinyUpdateQueue;	//we own these. They are the `update` which go into DoDestinyAction
 	void _SendQueuedUpdates();
 
 	//FunctorTimerQueue m_delayQueue;

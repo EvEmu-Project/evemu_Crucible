@@ -344,11 +344,11 @@ public:
 class PyBuffer : public PyRep
 {
 public:
-    PyBuffer(const uint8 *buffer, size_t length);
-    PyBuffer(uint8 **buffer, size_t length);
-    PyBuffer(size_t length);
-    PyBuffer(const PyString &str);
-	PyBuffer(const PyBuffer &oth);
+    PyBuffer(const uint8* buffer, size_t size);
+    PyBuffer(uint8** buffer, size_t size);
+    PyBuffer(size_t size);
+    PyBuffer(const PyString& str);
+	PyBuffer(const PyBuffer& oth);
     virtual ~PyBuffer();
 
     void Dump(FILE *into, const char *pfx) const;
@@ -362,13 +362,13 @@ public:
      *
      * @return the pointer to the PyBuffer content
      */
-    uint8* content() { return m_value; }
+    uint8* content() { return mValue; }
     /**
      * @brief Get the const PyBuffer content
      *
      * @return the pointer to the const PyBuffer content
      */
-    const uint8* content() const { return m_value; }
+    const uint8* content() const { return mValue; }
 
 	/**
 	 * @brief Overload of operator[] for indexed access.
@@ -390,15 +390,15 @@ public:
      *
      * @return return the size of the buffer.
      */
-    size_t size() const { return m_length; }
+    size_t size() const { return mSize; }
 
     int32 hash() const;
 
 protected:
-    uint8 *const m_value;
-    const size_t m_length;
+    uint8 *const mValue;
+    const size_t mSize;
 
-	mutable int32 m_hash_cache;
+	mutable int32 mHashCache;
 };
 
 /**
@@ -409,10 +409,10 @@ protected:
 class PyString : public PyRep
 {
 public:
-    PyString(const char *str, bool type_1=false);
-    PyString(const std::string &str, bool type_1=false);
-	PyString(const PyBuffer &buf, bool type_1=false); //to deal with non-string buffers poorly placed in strings (CCP)
-	PyString(const PyString &oth);
+    PyString(const char* str, bool type_1=false);
+    PyString(const std::string& str, bool type_1=false);
+	PyString(const PyBuffer& buf, bool type_1=false); //to deal with non-string buffers poorly placed in strings (CCP)
+	PyString(const PyString& oth);
     virtual ~PyString();
 
     void Dump(FILE *into, const char *pfx) const;
@@ -424,54 +424,24 @@ public:
     /**
      * @brief Get the PyString content
      *
-     * @return the pointer to the char* array.
+     * @return the std::string reference.
      */
-    const char* content() const { return m_value.c_str(); }
-
-	/**
-	 * @brief Overload of operator[] to allow indexed access.
-	 *
-	 * @param[in] index Index of character to return.
-	 * @return Const character with given index.
-	 */
-	const char& operator[](size_t index) const { return m_value[ index ]; }
-
-    /**
-     * @brief Get the length of the PyString
-     *
-     * @return the length of the string as size_t
-     */
-    size_t size() const { return m_value.size(); }
-
-	/**
-	 * @brief Checks if string is empty or not.
-	 *
-	 * @return True if string is empty, false if not.
-	 */
-	bool empty() const { return m_value.empty(); }
+    const std::string& content() const { return mValue; }
 
 	/**
 	 * @brief Checks if string is of type 1.
 	 *
 	 * @return True if string is of type 1, false if not.
 	 */
-	bool isType1() const { return m_is_type_1; }
-
-	/**
-	 * @brief Overload of operator== for easier and more performant (hash) comparisons.
-	 *
-	 * @param[in] oth The other string for comparison.
-	 * @return True if strings are equal, false otherwise.
-	 */
-	bool operator==(const PyString &oth) const { return ( hash() == oth.hash() ); }
+	bool isType1() const { return mIsType1; }
 
     int32 hash() const;
 
 protected:
-    const std::string m_value;
-    const bool m_is_type_1; //true if this is an Op_PyByteString instead of the default Op_PyByteString2
+    const std::string mValue;
+    const bool mIsType1; //true if this is an Op_PyByteString instead of the default Op_PyByteString2
 
-    mutable int32 m_hash_cache;
+    mutable int32 mHashCache;
 };
 
 /**
@@ -669,7 +639,7 @@ public:
 class PyObject : public PyRep
 {
 public:
-    PyObject(const char* type, PyRep* args);
+    PyObject(PyString* type, PyRep* args);
 	PyObject(const PyObject& oth);
     virtual ~PyObject();
 
@@ -679,11 +649,11 @@ public:
     void visit(PyVisitor *v) const;
     void visit(PyVisitorLvl *v, int64 lvl) const;
 
-	const std::string &type() const { return mType; }
+	PyString* type() const { return mType; }
 	PyRep* arguments() const { return mArguments; }
 
 protected:
-    const std::string mType;
+    PyString* const mType;
     PyRep* const mArguments;
 };
 
@@ -718,11 +688,11 @@ public:
 	PyRep* header() const { return mHeader; }
 	bool isType2() const { return mIsType2; }
 
-	list_type& list() { return mList; }
-	const list_type& list() const { return mList; }
+	list_type& list() { return *mList; }
+	const list_type& list() const { return *mList; }
 
-	dict_type& dict() { return mDict; }
-	const dict_type& dict() const { return mDict; }
+	dict_type& dict() { return *mDict; }
+	const dict_type& dict() const { return *mDict; }
 
 	/**
 	 * @brief Assigment operator to handle ownership things.
@@ -736,8 +706,8 @@ protected:
     PyRep* const mHeader;
     const bool mIsType2;
 
-    list_type mList;
-    dict_type mDict;
+    list_type* const mList;
+    dict_type* const mDict;
 };
 
 /**
@@ -806,12 +776,11 @@ public:
     DBRowDescriptor& header() const { return *mHeader; }
 
     // Fields:
-	const_iterator begin() const { return mFields.begin(); }
-	const_iterator end() const { return mFields.end(); }
+	const_iterator begin() const { return mFields->begin(); }
+	const_iterator end() const { return mFields->end(); }
+	void clear() { mFields->clear(); }
 
-	void clear() { mFields.clear(); }
-
-	PyRep* GetField( size_t index ) const { return mFields.GetItem( index ); }
+	PyRep* GetField( size_t index ) const { return mFields->GetItem( index ); }
 
     bool SetField(uint32 index, PyRep* value);
     bool SetField(const char* colName, PyRep* value);
@@ -828,8 +797,7 @@ public:
 
 protected:
     DBRowDescriptor* const mHeader;
-
-    storage_type mFields;
+    storage_type* const mFields;
 };
 
 class PySubStruct : public PyRep
@@ -854,8 +822,8 @@ protected:
 class PySubStream : public PyRep
 {
 public:
-    PySubStream(PyRep* t);
-    PySubStream(const PyBuffer& buffer);
+    PySubStream(PyRep* rep);
+    PySubStream(PyBuffer* buffer);
 	PySubStream(const PySubStream& oth);
     virtual ~PySubStream();
 
@@ -873,14 +841,6 @@ public:
 
     //call to ensure that `decoded` represents `data`
     void DecodeData() const;
-
-	/**
-	 * @brief Assigment operator to handle ownership things.
-	 *
-	 * @param[in] oth PySubStream the content of which should be copied.
-	 * @return Itself.
-	 */
-	PySubStream& operator=(const PySubStream& oth);
 
 protected:
     //if both are non-NULL, they are considered to be equivalent

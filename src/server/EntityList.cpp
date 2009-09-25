@@ -289,7 +289,7 @@ void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple *
 		}
 	}
 
-	SafeDelete( payload );
+	PyDecRef( payload );
 }
 
 void EntityList::Multicast(const character_set &cset, const char *notifyType, const char *idType, PyTuple **in_payload, bool seq) const {

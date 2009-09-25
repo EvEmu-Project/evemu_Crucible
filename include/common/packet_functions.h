@@ -28,7 +28,7 @@
 
 #include "types.h"
 
-static const uint8 GZipStreamHeaderByte = 0x78;	// 'x'
+static const uint8 GZipHeaderByte = 0x78;	// 'x'
 
 uint8 *DeflatePacket(const uint8 *data, uint32 *length);						//returns ownership of buffer!
 uint8 *InflatePacket(const uint8 *data, uint32 *length, bool quiet = false);	//returns ownership of buffer!

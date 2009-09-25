@@ -45,7 +45,8 @@ bool ClassConstructGenerator::Process_elementdef(FILE *into, TiXmlElement *eleme
 	fprintf(into,
 		"%s::%s()\n"
 		"{\n",
-		name, name);
+		name, name
+    );
 	
 	if(!Recurse(into, element))
 		return false;
@@ -53,6 +54,12 @@ bool ClassConstructGenerator::Process_elementdef(FILE *into, TiXmlElement *eleme
 	fprintf(into,
 		"}\n"
 		"\n"
+        "%s::%s( const %s& oth )\n"
+        "{\n"
+        "    *this = oth;\n"
+        "}\n"
+        "\n",
+        name, name, name
 	);
 
 	return true;
@@ -202,6 +209,16 @@ bool ClassConstructGenerator::Process_raw(FILE *into, TiXmlElement *field) {
 }
 
 bool ClassConstructGenerator::Process_list(FILE *into, TiXmlElement *field) {
+	const char *name = field->Attribute("name");
+	if(name == NULL) {
+		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+		return false;
+	}
+
+	fprintf(into,
+		"    %s = NULL;\n",
+		name
+	);
 	return true;
 }
 
@@ -220,6 +237,16 @@ bool ClassConstructGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
 }
 
 bool ClassConstructGenerator::Process_dict(FILE *into, TiXmlElement *field) {
+	const char *name = field->Attribute("name");
+	if(name == NULL) {
+		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+		return false;
+	}
+
+	fprintf(into,
+		"    %s = NULL;\n",
+		name
+	);
 	return true;
 }
 

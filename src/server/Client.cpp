@@ -43,6 +43,8 @@ Client::Client(PyServiceMgr &services, EVETCPConnection *&con)
   m_moveTimer(500),
   m_movePoint(0, 0, 0),
   m_timeEndTrain(0),
+  m_destinyEventQueue( new PyList ),
+  m_destinyUpdateQueue( new PyList ),
   m_nextNotifySequence(1)
 //  m_nextDestinyUpdate(46751)
 {
@@ -81,6 +83,9 @@ Client::~Client() {
     m_services.ClearBoundObjects(this);
 
     targets.DoDestruction();
+
+    PyDecRef( m_destinyEventQueue );
+    PyDecRef( m_destinyUpdateQueue );
 }
 
 void Client::QueuePacket(PyPacket *p) {
@@ -365,7 +370,7 @@ void Client::ChannelLeft(LSCChannel *chan) {
 void Client::Login(CryptoChallengePacket *pack) {
     _log(CLIENT__MESSAGE, "Login with %s", pack->user_name.c_str());
 
-	if(!m_services.serviceDB().DoLogin(pack->user_name.c_str(), pack->user_password->GetPassword().content(), m_accountID, m_accountRole)) {
+	if(!m_services.serviceDB().DoLogin(pack->user_name.c_str(), pack->user_password->GetPassword().content().c_str(), m_accountID, m_accountRole)) {
         _log(CLIENT__MESSAGE, "%s: Login rejected by DB", pack->user_name.c_str());
 
 		throw PyException( new GPSTransportClosed( "LoginAuthFailed" ) );
@@ -375,6 +380,7 @@ void Client::Login(CryptoChallengePacket *pack) {
 
     //send this before session change
     CryptoHandshakeAck ack;
+    ack.live_updates = new PyList;
     ack.jit = pack->user_languageid;
     ack.userid = GetAccountID();
     ack.maxSessionTime = new PyNone;
@@ -382,11 +388,12 @@ void Client::Login(CryptoChallengePacket *pack) {
     ack.role = GetAccountRole();
     ack.address = m_net.GetConnectedAddress();
     ack.inDetention = new PyNone;
+    ack.client_hashes = new PyList;
     ack.user_clientid = GetAccountID();
 
-	PyRep *r = ack.FastEncode();
+	PyRep* r = ack.FastEncode();
     m_net._QueueRep( r );
-	SafeDelete( r );
+	PyDecRef( r );
 
     session.Set_userType(1);    //user type 1 is normal user, type 23 is a trial account user.
     session.Set_userid(GetAccountID());
@@ -428,12 +435,12 @@ void Client::_CheckSessionChange() {
 
     SessionChangeNotification scn;
 
-    session.EncodeChange(scn);
-    if(scn.changes.empty())
+    session.EncodeChange( scn );
+    if( scn.changes->empty() )
         return;
 
     _log(CLIENT__SESSION, "Session updated, sending session change");
-    scn.changes.Dump(CLIENT__SESSION, "  Changes: ");
+    scn.changes->Dump(CLIENT__SESSION, "  Changes: ");
 
     //this is probably not necessary...
     scn.nodesOfInterest.push_back(m_services.GetNodeID());
@@ -714,7 +721,7 @@ void Client::_ProcessCallRequest(PyPacket *packet) {
     }
 
     //build arguments
-    PyCallArgs args(this, &call.arg_tuple, &call.arg_dict);
+    PyCallArgs args(this, call.arg_tuple, call.arg_dict);
 
     try {
         //parts of call may be consumed here
@@ -762,17 +769,16 @@ void Client::_ProcessNotification(PyPacket *packet) {
         return;
     }
 
-    if(notify.method == "ClientHasReleasedTheseObjects") {
-        PyRep *n;
+    if(notify.method == "ClientHasReleasedTheseObjects")
+    {
         ServerNotification_ReleaseObj element;
-        PyList::const_iterator cur, end;
-        cur = notify.elements.begin();
-        end = notify.elements.end();
-        for(; cur != end; cur++) {
-            //damn cloning thing...
-            n = (*cur)->Clone();
 
-            if(!element.Decode(&n)) {
+        PyList::const_iterator cur, end;
+        cur = notify.elements->begin();
+        end = notify.elements->end();
+        for(; cur != end; cur++)
+        {
+            if(!element.Decode( *cur )) {
                 _log(CLIENT__ERROR, "Notification '%s' from %s: Failed to decode element. Skipping.", notify.method.c_str(), GetName());
                 continue;
             }
@@ -851,52 +857,61 @@ void Client::_SendException(PyPacket *req, MACHONETERR_TYPE type, PyRep **payloa
 
 //these are specialized Queue functions when our caller can
 //easily provide us with our own copy of the data.
-void Client::QueueDestinyUpdate(PyTuple **du) {
+void Client::QueueDestinyUpdate(PyTuple **du)
+{
     DoDestinyAction act;
     act.update_id = DestinyManager::GetStamp();
     act.update = *du;
     *du = NULL;
 
-    m_destinyUpdateQueue.push_back( act.FastEncode() );
+    m_destinyUpdateQueue->AddItem( act.FastEncode() );
 }
 
-void Client::QueueDestinyEvent(PyTuple **multiEvent) {
-    m_destinyEventQueue.push_back(*multiEvent);
+void Client::QueueDestinyEvent(PyTuple** multiEvent)
+{
+    m_destinyEventQueue->AddItem( *multiEvent );
     *multiEvent = NULL;
 }
 
 void Client::_SendQueuedUpdates() {
-    if(!m_destinyUpdateQueue.empty()) {
+    if( !m_destinyUpdateQueue->empty() )
+    {
         DoDestinyUpdateMain dum;
 
         //first insert the destiny updates.
-        dum.updates.items = m_destinyUpdateQueue;
-        m_destinyUpdateQueue.clear();
+        dum.updates = m_destinyUpdateQueue;
+        PyIncRef( m_destinyUpdateQueue );
 
         //encode any multi-events which go along with it.
-        dum.events.items = m_destinyEventQueue;
-        m_destinyEventQueue.clear();
+        dum.events = m_destinyEventQueue;
+        PyIncRef( m_destinyEventQueue );
 
         //right now, we never wait. I am sure they do this for a reason, but
         //I haven't found it yet
         dum.waitForBubble = false;
 
         //now send it
-        PyTuple *t = dum.FastEncode();
+        PyTuple* t = dum.FastEncode();
         t->Dump(DESTINY__UPDATES, "");
-        SendNotification("DoDestinyUpdate", "clientID", &t);
-    } else if(!m_destinyEventQueue.empty()) {
+        SendNotification( "DoDestinyUpdate", "clientID", &t );
+    }
+    else if( !m_destinyEventQueue->empty() )
+    {
         Notify_OnMultiEvent nom;
 
         //insert updates, clear our queue
-        nom.events.items = m_destinyEventQueue;
-        m_destinyEventQueue.clear();
+        nom.events = m_destinyEventQueue;
+        PyIncRef( m_destinyEventQueue );
 
         //send it
-        PyTuple *t = nom.FastEncode();   //this is consumed below
+        PyTuple* t = nom.FastEncode();   //this is consumed below
         t->Dump(DESTINY__UPDATES, "");
-        SendNotification("OnMultiEvent", "charid", &t);
-    } //else nothing to do ...
+        SendNotification( "OnMultiEvent", "charid", &t );
+    } //else nothing to be sent ...
+
+    // clear the queues now, after the packets have been sent
+    m_destinyEventQueue->clear();
+    m_destinyUpdateQueue->clear();
 }
 
 void Client::SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq) {
@@ -1121,16 +1136,18 @@ void Client::TargetAdded(SystemEntity *who) {
     delete up;
 }
 
-void Client::TargetLost(SystemEntity *who) {
+void Client::TargetLost(SystemEntity *who)
+{
     //OnMultiEvent: OnTarget lost
     Notify_OnTarget te;
     te.mode = "lost";
     te.targetID = who->GetID();
 
     Notify_OnMultiEvent multi;
-    multi.events.AddItem( te.FastEncode() );
+    multi.events = new PyList;
+    multi.events->AddItem( te.FastEncode() );
 
-    PyTuple *tmp = multi.FastEncode();   //this is consumed below
+    PyTuple* tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
@@ -1141,35 +1158,40 @@ void Client::TargetedAdd(SystemEntity *who) {
     te.targetID = who->GetID();
 
     Notify_OnMultiEvent multi;
-    multi.events.AddItem( te.FastEncode() );
+    multi.events = new PyList;
+    multi.events->AddItem( te.FastEncode() );
 
-    PyTuple *tmp = multi.FastEncode();   //this is consumed below
+    PyTuple* tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
-void Client::TargetedLost(SystemEntity *who) {
+void Client::TargetedLost(SystemEntity *who)
+{
     //OnMultiEvent: OnTarget otherlost
     Notify_OnTarget te;
     te.mode = "otherlost";
     te.targetID = who->GetID();
 
     Notify_OnMultiEvent multi;
-    multi.events.AddItem( te.FastEncode() );
+    multi.events = new PyList;
+    multi.events->AddItem( te.FastEncode() );
 
-    PyTuple *tmp = multi.FastEncode();   //this is consumed below
+    PyTuple* tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
-void Client::TargetsCleared() {
+void Client::TargetsCleared()
+{
     //OnMultiEvent: OnTarget clear
     Notify_OnTarget te;
     te.mode = "clear";
     te.targetID = 0;
 
     Notify_OnMultiEvent multi;
-    multi.events.AddItem( te.FastEncode() );
+    multi.events = new PyList;
+    multi.events->AddItem( te.FastEncode() );
 
-    PyTuple *tmp = multi.FastEncode();   //this is consumed below
+    PyTuple* tmp = multi.FastEncode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 

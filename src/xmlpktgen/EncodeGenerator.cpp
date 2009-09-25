@@ -710,7 +710,7 @@ bool ClassEncodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
 
     fprintf(into,
         "    %s = new PyObject(\n"
-        "             \"%s\", %s\n"
+        "             new PyString( \"%s\" ), %s\n"
         "    );\n"
         "\n",
 		top(),
@@ -884,44 +884,36 @@ bool ClassEncodeGenerator::Process_list(FILE *into, TiXmlElement *field) {
         optional = atobool( optional_str );
 
 	const char* v = top();
+    fprintf(into,
+        "    if( %s == NULL )\n"
+		"    {\n"
+        "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty list.\");\n"
+        "        %s = new PyList;\n"
+        "    }\n"
+		"    else\n",
+        name,
+            mName, name,
+            v
+    );
+
     if( optional )
-	{
         fprintf(into,
-			"    if( %s.empty() )\n"
+            "    if( %s->empty() )\n"
             "        %s = new PyNone;\n"
 			"    else\n",
             name,
                 v
 		);
-    }
 
-    if( mFast )
-	{
-        char rname[16];
-        snprintf(rname, sizeof(rname), "list%u", mItemNumber++);
-
-        fprintf(into,
-			"    {\n"
-            "        PyList* %s = new PyList;\n"
-			"\n"
-            "        %s->items = %s.items;\n"    //steal the items
-            "        %s.items.clear();\n"
-			"\n"
-            "        %s = %s;\n"
-			"    }\n"
-			"\n",
-			rname,
-            rname, name,
-            name,
-            v, rname
-		);
-    }
-	else
-        fprintf(into,
-		    "        %s = new PyList( %s );\n"
-			"\n",
-			v, name
-		);
+    fprintf(into,
+		"    {\n"
+        "        %s = %s;\n"
+        "        PyIncRef( %s );\n"
+		"    }\n"
+		"\n",
+		v, name,
+        name
+	);
 
     pop();
     return true;
@@ -961,33 +953,15 @@ bool ClassEncodeGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
                 v
 		);
 
-    if( mFast )
-	{
-        char rname[16];
-        snprintf(rname, sizeof(rname), "tuple%u", mItemNumber++);
-
-        fprintf(into,
-			"    {\n"
-            "        PyTuple* %s = new PyTuple( 0 );\n"
-			"\n"
-            "        %s->items = %s->items;\n"   //steal the items
-            "        %s->items.clear();\n"
-			"\n"
-            "        %s = %s;\n"
-			"    }\n"
-			"\n",
-            rname,
-            rname, name,
-            name,
-            v, rname
-		);
-	}
-    else
-        fprintf(into,
-		    "        %s = new PyTuple( *%s );\n"
-			"\n",
-			v, name
-		);
+    fprintf(into,
+		"    {\n"
+        "        %s = %s;\n"
+        "        PyIncRef( %s );\n"
+		"    }\n"
+		"\n",
+        v, name,
+        name
+	);
 
     pop();
     return true;
@@ -1006,41 +980,36 @@ bool ClassEncodeGenerator::Process_dict(FILE *into, TiXmlElement *field) {
         optional = atobool( optional_str );
 
 	const char* v = top();
+    fprintf(into,
+        "    if( %s == NULL )\n"
+		"    {\n"
+        "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty dict.\");\n"
+        "        %s = new PyDict;\n"
+        "    }\n"
+		"    else\n",
+        name,
+            mName, name,
+            v
+    );
+
     if( optional )
         fprintf(into,
-		    "    if( %s.empty() )\n"
+            "    if( %s->empty() )\n"
             "        %s = new PyNone;\n"
             "    else\n",
             name,
                 v
 		);
 
-    if(mFast)
-	{
-        char rname[16];
-        snprintf(rname, sizeof(rname), "dict%u", mItemNumber++);
-
-        fprintf(into,
-			"    {\n"
-            "        PyDict* %s = new PyDict;\n"
-			"\n"
-            "        %s->items = %s.items;\n"    //steal the items
-            "        %s.items.clear();\n"
-			"\n"
-            "        %s = %s;\n"
-			"    }\n"
-			"\n",
-            rname,
-            rname, name,
-            name,
-            v, rname
-		);
-    } else
-        fprintf(into,
-		    "        %s = new PyDict( %s );\n"
-			"\n",
-			v, name
-		);
+    fprintf(into,
+		"    {\n"
+        "        %s = %s;\n"
+        "        PyIncRef( %s );\n"
+		"    }\n"
+		"\n",
+        v, name,
+        name
+	);
 
     pop();
     return true;

@@ -43,7 +43,7 @@ void EVEAttributeMgr::EncodeAttributes(std::map<int32, PyRep *> &into) const {
         end = m_ints.end();
         for(; cur != end; cur++) {
             if(into.find(cur->first) != into.end())
-                delete into[cur->first];
+                PyDecRef( into[cur->first] );
             into[cur->first] = _PyGet(cur->second);
         }
     }
@@ -54,7 +54,7 @@ void EVEAttributeMgr::EncodeAttributes(std::map<int32, PyRep *> &into) const {
         end = m_reals.end();
         for(; cur != end; cur++) {
             if(into.find(cur->first) != into.end())
-                delete into[cur->first];
+                PyDecRef( into[cur->first] );
             into[cur->first] = _PyGet(cur->second);
         }
     }
@@ -95,7 +95,7 @@ void EVEAdvancedAttributeMgr::EncodeAttributes(std::map<int32, PyRep *> &into) c
         end = m_ints.end();
         for(; cur != end; cur++) {
             if(into.find(cur->first) != into.end())
-                delete into[cur->first];
+                PyDecRef( into[cur->first] );
             into[cur->first] = PyGet(cur->first);
         }
     }
@@ -106,7 +106,7 @@ void EVEAdvancedAttributeMgr::EncodeAttributes(std::map<int32, PyRep *> &into) c
         end = m_reals.end();
         for(; cur != end; cur++) {
             if(into.find(cur->first) != into.end())
-                delete into[cur->first];
+                PyDecRef( into[cur->first] );
             into[cur->first] = PyGet(cur->first);
         }
     }
@@ -320,7 +320,8 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
         return;
 
     Client *c = m_factory.entity_list.FindCharacter( item().ownerID() );
-    if(c != NULL) {
+    if(c != NULL)
+    {
         Notify_OnModuleAttributeChange omac;
         omac.ownerID = m_item.ownerID();
         omac.itemKey = m_item.itemID();
@@ -329,12 +330,14 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
         omac.oldValue = oldValue;
         omac.newValue = newValue;
 
-        PyTuple *tmp = omac.FastEncode();
+        PyTuple* tmp = omac.FastEncode();
         c->QueueDestinyEvent(&tmp);
-    } else {
+    }
+    else
+    {
         // delete the reps
-        SafeDelete( oldValue );
-        SafeDelete( newValue );
+        PyDecRef( oldValue );
+        PyDecRef( newValue );
     }
 }
 

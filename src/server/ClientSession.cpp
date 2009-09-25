@@ -366,7 +366,10 @@ void ClientSession::Clear_rolesAtOther()
 }
 
 
-void ClientSession::EncodeChange(SessionChangeNotification &into) {
+void ClientSession::EncodeChange(SessionChangeNotification &into)
+{
+    PySafeDecRef( into.changes );
+    into.changes = new PyDict;
 
 	PyTuple *t;
 
@@ -377,7 +380,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.userType)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "userType" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.userType)); t->items[1] = new PyInt(*(m_current.userType)); } *(m_last.userType) =
 	*(m_current.userType); }
     if(t != 0)
-        into.changes.SetItemString("userType", t);
+        into.changes->SetItemString("userType", t);
 	t = 0;
 	if(m_current.userid == 0)
 	{
@@ -385,7 +388,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.userid)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "userid" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.userid)); t->items[1] = new PyInt(*(m_current.userid)); } *(m_last.userid) =
 	*(m_current.userid); }
     if(t != 0)
-        into.changes.SetItemString("userid", t);
+        into.changes->SetItemString("userid", t);
 	t = 0;
 	if(m_current.address == 0)
 	{
@@ -393,7 +396,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.address)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "address" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyString(*(m_last.address)); t->items[1] = new PyString(*(m_current.address)); } *(m_last.address) =
 	*(m_current.address); }
     if(t != 0)
-        into.changes.SetItemString("address", t);
+        into.changes->SetItemString("address", t);
 	t = 0;
 	if(m_current.role == 0)
 	{
@@ -401,7 +404,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.role)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "role" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.role)); t->items[1] = new PyInt(*(m_current.role)); } *(m_last.role) =
 	*(m_current.role); }
     if(t != 0)
-        into.changes.SetItemString("role", t);
+        into.changes->SetItemString("role", t);
 	t = 0;
 	if(m_current.languageID == 0)
 	{
@@ -409,7 +412,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.languageID)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "languageID" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyString(*(m_last.languageID)); t->items[1] = new PyString(*(m_current.languageID)); } *(m_last.languageID) =
 	*(m_current.languageID); }
     if(t != 0)
-        into.changes.SetItemString("languageID", t);
+        into.changes->SetItemString("languageID", t);
 	t = 0;
 	if(m_current.constellationid == 0)
 	{
@@ -417,7 +420,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.constellationid)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "constellationid" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.constellationid)); t->items[1] = new PyInt(*(m_current.constellationid)); } *(m_last.constellationid) =
 	*(m_current.constellationid); }
     if(t != 0)
-        into.changes.SetItemString("constellationid", t);
+        into.changes->SetItemString("constellationid", t);
 	t = 0;
 	if(m_current.corpid == 0)
 	{
@@ -425,7 +428,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.corpid)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "corpid" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.corpid)); t->items[1] = new PyInt(*(m_current.corpid)); } *(m_last.corpid) =
 	*(m_current.corpid); }
 	if(t != 0)
-		into.changes.SetItemString("corpid", t);
+		into.changes->SetItemString("corpid", t);
 	t = 0;
 	if(m_current.regionid == 0)
 	{
@@ -433,7 +436,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.regionid)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "regionid" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.regionid)); t->items[1] = new PyInt(*(m_current.regionid)); } *(m_last.regionid) =
 	*(m_current.regionid); }
 	if(t != 0)
-		into.changes.SetItemString("regionid", t);
+		into.changes->SetItemString("regionid", t);
 	t = 0;
 	if(m_current.stationid == 0)
 	{
@@ -441,7 +444,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.stationid)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "stationid" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.stationid)); t->items[1] = new PyInt(*(m_current.stationid)); } *(m_last.stationid) =
 	*(m_current.stationid); }
 	if(t != 0)
-		into.changes.SetItemString("stationid", t);
+		into.changes->SetItemString("stationid", t);
 	t = 0;
 	if(m_current.solarsystemid == 0)
 	{
@@ -449,7 +452,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.solarsystemid)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "solarsystemid" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.solarsystemid)); t->items[1] = new PyInt(*(m_current.solarsystemid)); } *(m_last.solarsystemid) =
 	*(m_current.solarsystemid); }
 	if(t != 0)
-		into.changes.SetItemString("solarsystemid", t);
+		into.changes->SetItemString("solarsystemid", t);
 	t = 0;
 	if(m_current.locationid == 0)
 	{
@@ -457,7 +460,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.locationid)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "locationid" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.locationid)); t->items[1] = new PyInt(*(m_current.locationid)); } *(m_last.locationid) =
 	*(m_current.locationid); }
 	if(t != 0)
-		into.changes.SetItemString("locationid", t);
+		into.changes->SetItemString("locationid", t);
 	t = 0;
 	if(m_current.gangrole == 0)
 	{
@@ -465,7 +468,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.gangrole)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "gangrole" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.gangrole)); t->items[1] = new PyInt(*(m_current.gangrole)); } *(m_last.gangrole) =
 	*(m_current.gangrole); }
 	if(t != 0)
-		into.changes.SetItemString("gangrole", t);
+		into.changes->SetItemString("gangrole", t);
 	t = 0;
 	if(m_current.hqID == 0)
 	{
@@ -473,7 +476,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.hqID)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "hqID" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.hqID)); t->items[1] = new PyInt(*(m_current.hqID)); } *(m_last.hqID) =
 	*(m_current.hqID); }
 	if(t != 0)
-		into.changes.SetItemString("hqID", t);
+		into.changes->SetItemString("hqID", t);
 	t = 0;
 	if(m_current.solarsystemid2 == 0)
 	{
@@ -481,7 +484,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.solarsystemid2)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "solarsystemid2" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.solarsystemid2)); t->items[1] = new PyInt(*(m_current.solarsystemid2)); } *(m_last.solarsystemid2) =
 	*(m_current.solarsystemid2); }
 	if(t != 0)
-		into.changes.SetItemString("solarsystemid2", t);
+		into.changes->SetItemString("solarsystemid2", t);
 	t = 0;
 	if(m_current.shipid == 0)
 	{
@@ -489,7 +492,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.shipid)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "shipid" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.shipid)); t->items[1] = new PyInt(*(m_current.shipid)); } *(m_last.shipid) =
 	*(m_current.shipid); }
 	if(t != 0)
-		into.changes.SetItemString("shipid", t);
+		into.changes->SetItemString("shipid", t);
 	t = 0;
 	if(m_current.charid == 0)
 	{
@@ -497,7 +500,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.charid)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "charid" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.charid)); t->items[1] = new PyInt(*(m_current.charid)); } *(m_last.charid) =
 	*(m_current.charid); }
 	if(t != 0)
-		into.changes.SetItemString("charid", t);
+		into.changes->SetItemString("charid", t);
 	t = 0;
 	if(m_current.inDetention == 0)
 	{
@@ -505,7 +508,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.inDetention)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "inDetention" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.inDetention)); t->items[1] = new PyInt(*(m_current.inDetention)); } *(m_last.inDetention) =
 	*(m_current.inDetention); }
 	if(t != 0)
-		into.changes.SetItemString("inDetention", t);
+		into.changes->SetItemString("inDetention", t);
 	t = 0;
 	if(m_current.corprole == 0)
 	{
@@ -513,7 +516,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.corprole)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "corprole" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.corprole)); t->items[1] = new PyInt(*(m_current.corprole)); } *(m_last.corprole) =
 	*(m_current.corprole); }
 	if(t != 0)
-		into.changes.SetItemString("corprole", t);
+		into.changes->SetItemString("corprole", t);
 	t = 0;
 	if(m_current.rolesAtAll == 0)
 	{
@@ -521,7 +524,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.rolesAtAll)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "rolesAtAll" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.rolesAtAll)); t->items[1] = new PyInt(*(m_current.rolesAtAll)); } *(m_last.rolesAtAll) =
 	*(m_current.rolesAtAll); }
 	if(t != 0)
-		into.changes.SetItemString("rolesAtAll", t);
+		into.changes->SetItemString("rolesAtAll", t);
 	t = 0;
 	if(m_current.rolesAtBase == 0)
 	{
@@ -529,7 +532,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.rolesAtBase)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "rolesAtBase" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.rolesAtBase)); t->items[1] = new PyInt(*(m_current.rolesAtBase)); } *(m_last.rolesAtBase) =
 	*(m_current.rolesAtBase); }
 	if(t != 0)
-		into.changes.SetItemString("rolesAtBase", t);
+		into.changes->SetItemString("rolesAtBase", t);
 	t = 0;
 	if(m_current.rolesAtHQ == 0)
 	{
@@ -537,7 +540,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
 	*(m_current.rolesAtHQ)) { do { if(log_type_info[ CLIENT__SESSION ].enabled) { log_message(CLIENT__SESSION, "Session change: " "rolesAtHQ" " changed in value." ); } } while(false); t = new PyTuple(2); t->items[0] = new PyInt(*(m_last.rolesAtHQ)); t->items[1] = new PyInt(*(m_current.rolesAtHQ)); } *(m_last.rolesAtHQ) =
 	*(m_current.rolesAtHQ); }
 	if(t != 0)
-		into.changes.SetItemString("rolesAtHQ", t);
+		into.changes->SetItemString("rolesAtHQ", t);
 	t = 0;
 	if(m_current.rolesAtOther == 0)
 	{
@@ -592,7 +595,7 @@ void ClientSession::EncodeChange(SessionChangeNotification &into) {
         *(m_last.rolesAtOther) = *(m_current.rolesAtOther);
     }
 	if(t != 0)
-		into.changes.SetItemString("rolesAtOther", t);
+		into.changes->SetItemString("rolesAtOther", t);
 
 	m_dirty = false;
 }

@@ -83,7 +83,7 @@ void PyDumpVisitor::VisitBuffer(const PyBuffer *rep, int64 lvl ) {
     _print(lvl, "Data buffer of length %d", rep->size());
 
     //kinda hackish:
-    if(rep->size() > 2 && *(rep->content()) == GZipStreamHeaderByte) {
+    if(rep->size() > 2 && (*rep)[0] == GZipHeaderByte) {
         uint32 len = rep->size();
         uint8 *buf = InflatePacket(rep->content(), &len, true);
         if(buf != NULL) {
@@ -106,17 +106,17 @@ void PyDumpVisitor::VisitString( const PyString *rep, int64 lvl )
     if(ContainsNonPrintables( rep ))
     {
         if ( rep->isType1() == true )
-            _print(lvl, "String%s: '<binary, len=%d>'", " (Type1)", rep->size());
+            _print(lvl, "String%s: '<binary, len=%d>'", " (Type1)", rep->content().size());
         else
-            _print(lvl, "String%s: '<binary, len=%d>'", "", rep->size());
+            _print(lvl, "String%s: '<binary, len=%d>'", "", rep->content().size());
     }
     else
     {
         //print_string.append("String%s: '%s'");
         if ( rep->isType1() == true )
-            _print(lvl, "String%s: '%s'", " (Type1)", rep->content());
+            _print(lvl, "String%s: '%s'", " (Type1)", rep->content().c_str());
         else
-            _print(lvl, "String%s: '%s'", "", rep->content());
+            _print(lvl, "String%s: '%s'", "", rep->content().c_str());
     }
 }
 
@@ -167,7 +167,7 @@ void PyDumpVisitor::VisitPackedRow(const PyPackedRow *rep, int64 lvl )
 	end = rep->end();
     for( uint32 i = 0; cur != end; cur++, i++ )
     {
-		_print( lvl, "  [%u] %s: ", i, rep->header().GetColumnName( i ).content() );
+		_print( lvl, "  [%u] %s: ", i, rep->header().GetColumnName( i ).content().c_str() );
 
 		if( (*cur) == NULL )
 			_print( lvl + idenAmt, "NULL" );
@@ -179,7 +179,7 @@ void PyDumpVisitor::VisitPackedRow(const PyPackedRow *rep, int64 lvl )
 void PyDumpVisitor::VisitObject(const PyObject *rep, int64 lvl )
 {
 	_print( lvl, "Object:" );
-	_print( lvl, "  Type: %s", rep->type().c_str() );
+	_print( lvl, "  Type: %s", rep->type()->content().c_str() );
 	_print( lvl, "  Args: " );
 
     rep->arguments()->visit(this, lvl + idenAmt );
