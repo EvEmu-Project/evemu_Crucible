@@ -28,7 +28,6 @@
 
 #include "Generator.h"
 
-
 class ClassDumpGenerator
 : public Generator<ClassDumpGenerator>
 {
@@ -39,8 +38,6 @@ protected:
 	AllGenProcDecls;
 	GenProcDecl(IDEntry);
 };
-
-
 
 #endif
 

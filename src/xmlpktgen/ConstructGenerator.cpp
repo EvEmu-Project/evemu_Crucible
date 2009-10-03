@@ -23,10 +23,9 @@
 	Author:		Zhur
 */
 
+#include "XMLPktGenPCH.h"
 
-#include "common.h"
 #include "ConstructGenerator.h"
-#include "../common/logsys.h"
 
 ClassConstructGenerator::ClassConstructGenerator()
 {

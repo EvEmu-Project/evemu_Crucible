@@ -23,14 +23,9 @@
     Author:     Zhur
 */
 
-#include "common.h"
+#include "XMLPktGenPCH.h"
+
 #include "XMLPacketGen.h"
-#include "../common/logsys.h"
-#include <string>
-#include <map>
-#include <errno.h>
-#include <string.h>
-#include <stdio.h>
 
 const char* const XMLPacketGen::s_mGenFileComment =
 "/*  EVEmu: EVE Online Server Emulator\n"
@@ -135,13 +130,8 @@ bool XMLPacketGen::GenPackets( const char* header, const char* source )
         "#ifndef %s\n"
         "#define %s\n"
         "\n"
-        "#include <string>\n"
-        "#include <vector>\n"
-        "#include <map>\n"
-        "#include \"common.h\"\n"
-        "#include \"logsys.h\"\n"
-        "#include \"PyVisitor.h\"\n"
-        "#include \"PyRep.h\"\n"
+        "#include \"python/PyVisitor.h\"\n"
+        "#include \"python/PyRep.h\"\n"
         "\n"
         "\n",
         s_mGenFileComment, def.c_str(), def.c_str()
@@ -165,7 +155,8 @@ bool XMLPacketGen::GenPackets( const char* header, const char* source )
     fprintf(src,
         "%s\n"
         "\n"
-        "#include <string>\n"
+        "#include \"EVECommonPCH.h\"\n"
+	"\n"
         "#include \"%s\"\n"
         "\n"
         "\n"

@@ -26,7 +26,6 @@
 #ifndef __CONSTRUCTGENERATOR_H_INCL__
 #define __CONSTRUCTGENERATOR_H_INCL__
 
-
 #include "Generator.h"
 
 class ClassConstructGenerator
@@ -39,10 +38,6 @@ protected:
 	AllGenProcDecls;
 	GenProcDecl(IDEntry);
 };
-
-
-
-
 
 #endif
 

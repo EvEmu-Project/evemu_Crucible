@@ -26,8 +26,6 @@
 #ifndef __XMLPACKETGEN_H_INCL__
 #define __XMLPACKETGEN_H_INCL__
 
-#include <tinyxml.h>
-
 #include "HeaderGenerator.h"
 #include "ConstructGenerator.h"
 #include "DestructGenerator.h"

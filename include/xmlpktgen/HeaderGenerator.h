@@ -27,9 +27,6 @@
 #define __HEADERGENERATOR_H_INCL__
 
 #include "Generator.h"
-#include <set>
-
-
 
 class ClassHeaderGenerator
 : public Generator<ClassHeaderGenerator>
@@ -60,7 +57,6 @@ protected:
 	AllGenProcDecls;
 	GenProcDecl( IDEntry );
 };
-
 
 #endif
 

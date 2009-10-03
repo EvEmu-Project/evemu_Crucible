@@ -28,8 +28,6 @@
 
 #include "Generator.h"
 
-
-
 class ClassCloneGenerator
 : public Generator<ClassCloneGenerator>
 {
@@ -40,8 +38,6 @@ protected:
 	AllGenProcDecls;
 	GenProcDecl(IDEntry);
 };
-
-
 
 #endif
 

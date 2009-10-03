@@ -1,1 +1,4 @@
-SUBDIRS = tinyxml
+SUBDIRS = \
+	gangsta \
+	tinyxml \
+	utils

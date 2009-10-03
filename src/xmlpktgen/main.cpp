@@ -23,13 +23,9 @@
 	Author:		Zhur
 */
 
+#include "XMLPktGenPCH.h"
 
-#include "../common/common.h"
-#include "../common/logsys.h"
 #include "XMLPacketGen.h"
-#include <string>
-#include <sys/stat.h>
-
 
 int main(int argc, char *argv[]) {
 	if(argc != 2) {

@@ -27,7 +27,6 @@
 #define __DECODEGENERATOR_H_INCL__
 
 #include "Generator.h"
-#include <stack>
 
 class ClassDecodeGenerator
 : public Generator<ClassDecodeGenerator>

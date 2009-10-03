@@ -23,10 +23,9 @@
 	Author:		Zhur
 */
 
+#include "XMLPktGenPCH.h"
 
-#include "common.h"
 #include "HeaderGenerator.h"
-#include "../common/logsys.h"
 
 ClassHeaderGenerator::ClassHeaderGenerator()
 {
@@ -59,7 +58,7 @@ bool ClassHeaderGenerator::Process_elementdef(FILE* into, TiXmlElement* element)
         "\n"
         "    void Dump( LogType type, const char* pfx = \"\" ) const;\n"
 		"\n"
-        "    bool Decode( const PyRep* packet );\n"
+        "    bool Decode( PyRep* packet );\n"
         "    bool Decode( PyRep** packet );\n"
         "    bool Decode( %s** packet );\n"
         "    %s* Encode() const;\n"
@@ -402,7 +401,7 @@ bool ClassHeaderGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
         return false;
 
     fprintf(into,
-		"    PyTuple*\t%s;\n",
+		"    PyTuple*\t\t%s;\n",
 		name
 	);
     return true;
@@ -419,7 +418,7 @@ bool ClassHeaderGenerator::Process_dict(FILE *into, TiXmlElement *field) {
         return false;
 
     fprintf(into,
-		"    PyDict*\t%s;\n",
+		"    PyDict*\t\t%s;\n",
 		name
 	);
     return true;
@@ -487,7 +486,7 @@ bool ClassHeaderGenerator::Process_string(FILE *into, TiXmlElement *field) {
         return false;
 
     fprintf(into,
-		"    std::string\t%s;\n",
+		"    std::string\t\t%s;\n",
 		name
 	);
     return true;

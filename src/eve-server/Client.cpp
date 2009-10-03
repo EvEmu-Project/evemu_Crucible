@@ -1,0 +1,1456 @@
+/*
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2008 The EVEmu Team
+    For the latest information visit http://evemu.mmoforge.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
+
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:     Zhur
+*/
+
+#include "EVEServerPCH.h"
+
+static const uint32 PING_INTERVAL_US = 60000;
+
+Client::Client(PyServiceMgr &services, EVETCPConnection** con)
+: DynamicSystemEntity(NULL),
+  EVEClientSession( con ),
+  modules(this),
+  m_services(services),
+  m_pingTimer(PING_INTERVAL_US),
+  m_system(NULL),
+//  m_destinyTimer(1000, true), //accurate timing is essential
+//  m_lastDestinyTime(Timer::GetTimeSeconds()),
+  m_moveState(msIdle),
+  m_moveTimer(500),
+  m_movePoint(0, 0, 0),
+  m_timeEndTrain(0),
+  m_destinyEventQueue( new PyList ),
+  m_destinyUpdateQueue( new PyList ),
+  m_nextNotifySequence(1)
+//  m_nextDestinyUpdate(46751)
+{
+    m_moveTimer.Disable();
+    m_pingTimer.Start();
+
+    // Start handshake
+    Reset();
+}
+
+Client::~Client() {
+    if( GetChar() ) {
+        // we have valid character
+
+        // LSC logout
+        m_services.lsc_service->CharacterLogout(GetCharacterID(), LSCChannel::_MakeSenderInfo(this));
+
+        //before we remove ourself from the system, store our last location.
+        SavePosition();
+
+        // remove ourselves from system
+        if(m_system != NULL)
+            m_system->RemoveClient(this);   //handles removing us from bubbles and sending RemoveBall events.
+
+        //johnsus - characterOnline mod
+        // switch character online flag to 0
+        m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), false);
+    }
+
+    if(GetAccountID() != 0) { // this is not very good ....
+        m_services.serviceDB().SetAccountOnlineStatus(GetAccountID(), false);
+    }
+
+    m_services.ClearBoundObjects(this);
+
+    targets.DoDestruction();
+
+    PyDecRef( m_destinyEventQueue );
+    PyDecRef( m_destinyUpdateQueue );
+}
+
+bool Client::ProcessNet() {
+
+    if(!Connected())
+        return false;
+
+    if(m_pingTimer.Check()) {
+        //_log(CLIENT__TRACE, "%s: Sending ping request.", GetName());
+        _SendPingRequest();
+    }
+
+    PyPacket *p;
+    while((p = PopPacket())) {
+        {
+            PyLogsysDump dumper(CLIENT__IN_ALL);
+            _log(CLIENT__IN_ALL, "Received packet:");
+            p->Dump(CLIENT__IN_ALL, &dumper);
+        }
+
+        try
+        {
+            if( !DispatchPacket( p ) )
+                sLog.Error( "Client", "%s: Failed to dispatch packet of type %s (%d).", GetName(), MACHONETMSG_TYPE_NAMES[ p->type ], (int)p->type );
+        }
+        catch( PyException& e )
+        {
+            PyRep* except = e.ssException.hijack();
+
+            _SendException( p->dest, p->source.callID, p->type, WRAPPEDEXCEPTION, &except );
+        }
+
+        SafeDelete( p );
+    }
+
+    // send queued updates
+    _SendQueuedUpdates();
+
+    return true;
+}
+
+void Client::Process() {
+    if(m_moveTimer.Check(false)) {
+        m_moveTimer.Disable();
+        _MoveState s = m_moveState;
+        m_moveState = msIdle;
+        switch(s) {
+        case msIdle:
+            _log(CLIENT__ERROR, "%s: Move timer expired when no move is pending.", GetName());
+            break;
+        //used to delay stargate animation
+        case msJump:
+            _ExecuteJump();
+            break;
+        }
+    }
+
+    if( m_timeEndTrain != 0 )
+    {
+        if( m_timeEndTrain <= Win32TimeNow() )
+            GetChar()->UpdateSkillQueue();
+    }
+
+    modules.Process();
+
+    SystemEntity::Process();
+}
+
+//this displays a modal error dialog on the client side.
+void Client::SendErrorMsg(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    char *str = NULL;
+    assert(vasprintf(&str, fmt, args) > 0);
+
+    _log(CLIENT__ERROR, "Sending Error Message to %s:", GetName());
+    log_messageVA(CLIENT__ERROR, fmt, args);
+    va_end(args);
+
+    //want to send some sort of notify with a "ServerMessage" message ID maybe?
+    //else maybe a "ChatTxt"??
+    Notify_OnRemoteMessage n;
+    n.msgType = "CustomError";
+    n.args[ "error" ] = new PyString(str);
+    PyTuple *tmp = n.FastEncode();
+
+    SendNotification("OnRemoteMessage", "charid", &tmp);
+
+    free(str);
+}
+
+//this displays a modal info dialog on the client side.
+void Client::SendInfoModalMsg(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    char *str = NULL;
+    assert(vasprintf(&str, fmt, args) > 0 );
+
+    _log(CLIENT__MESSAGE, "Info Modal to %s:", GetName());
+    log_messageVA(CLIENT__MESSAGE, fmt, args);
+    va_end(args);
+
+    //want to send some sort of notify with a "ServerMessage" message ID maybe?
+    //else maybe a "ChatTxt"??
+    Notify_OnRemoteMessage n;
+    n.msgType = "ServerMessage";
+    n.args[ "msg" ] = new PyString(str);
+    PyTuple *tmp = n.FastEncode();
+
+    SendNotification("OnRemoteMessage", "charid", &tmp);
+
+    free(str);
+}
+
+//this displays a little notice (like combat messages)
+void Client::SendNotifyMsg(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    char *str = NULL;
+    assert(vasprintf(&str, fmt, args) > 0);
+
+    _log(CLIENT__MESSAGE, "Notify to %s:", GetName());
+    log_messageVA(CLIENT__MESSAGE, fmt, args);
+    va_end(args);
+
+    //want to send some sort of notify with a "ServerMessage" message ID maybe?
+    //else maybe a "ChatTxt"??
+    Notify_OnRemoteMessage n;
+    n.msgType = "CustomNotify";
+    n.args[ "notify" ] = new PyString(str);
+    PyTuple *tmp = n.FastEncode();
+
+    SendNotification("OnRemoteMessage", "charid", &tmp);
+
+    free(str);
+}
+
+//there may be a less hackish way to do this.
+void Client::SelfChatMessage(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    char *str = NULL;
+    assert( vasprintf(&str, fmt, args) > 0 );
+    va_end(args);
+
+    if(m_channels.empty()) {
+        _log(CLIENT__ERROR, "%s: Tried to send self chat, but we are not joined to any channels: %s", GetName(), str);
+        free(str);
+        return;
+    }
+
+
+    _log(CLIENT__TEXT, "%s: Self message on all channels: %s", GetName(), str);
+
+    //this is such a pile of crap, but im not sure whats better.
+    //maybe a private message...
+    std::set<LSCChannel *>::iterator cur, end;
+    cur = m_channels.begin();
+    end = m_channels.end();
+    for(; cur != end; cur++) {
+        (*cur)->SendMessage(this, str, true);
+    }
+
+    //m_channels[
+
+    //just send it to the first channel we are in..
+    /*LSCChannel *chan = *(m_channels.begin());
+    char self_id[24];   //such crap..
+    snprintf(self_id, sizeof(self_id), "%u", GetCharacterID());
+    if(chan->GetName() == self_id) {
+        if(m_channels.size() > 1) {
+            chan = *(++m_channels.begin());
+        }
+    }*/
+
+    free(str);
+}
+
+void Client::ChannelJoined(LSCChannel *chan) {
+    m_channels.insert(chan);
+}
+
+void Client::ChannelLeft(LSCChannel *chan) {
+    m_channels.erase(chan);
+}
+
+bool Client::EnterSystem() {
+    if(m_system != NULL && m_system->GetID() != GetSystemID()) {
+        //we have different m_system
+        m_system->RemoveClient(this);
+        m_system = NULL;
+
+        delete m_destiny;
+        m_destiny = NULL;
+    }
+
+    if(m_system == NULL) {
+        //m_system is NULL, we need new system
+        //find our system manager and register ourself with it.
+        m_system = m_services.entity_list.FindOrBootSystem(GetSystemID());
+        if(m_system == NULL) {
+            _log(CLIENT__ERROR, "Failed to boot system %u for char %s (%u)", GetSystemID(), GetName(), GetCharacterID());
+            SendErrorMsg("Unable to boot system %u", GetSystemID());
+            return false;
+        }
+        m_system->AddClient(this);
+    }
+
+    if(IsStation(GetLocationID())) {
+        //we entered station, delete m_destiny
+        delete m_destiny;
+        m_destiny = NULL;
+
+        //remove ourselves from any bubble
+        m_system->bubbles.Remove(this, false);
+
+        OnCharNowInStation();
+    } else if(IsSolarSystem(GetLocationID())) {
+        //we are in a system, so we need a destiny manager
+        m_destiny = new DestinyManager(this, m_system);
+        //ship should never be NULL.
+        m_destiny->SetShipCapabilities( GetShip() );
+        //set position.
+        m_destiny->SetPosition(GetShip()->position(), false);
+        //for now, we always enter a system stopped.
+        m_destiny->Halt(false);
+    }
+
+    return true;
+}
+
+void Client::MoveToLocation(uint32 location, const GPoint &pt) {
+    if(GetLocationID() == location) {
+        // This is a warp or simple movement
+        MoveToPosition(pt);
+        return;
+    }
+
+    if(IsStation(GetLocationID())) {
+        OnCharNoLongerInStation();
+    }
+
+    uint32 stationID, solarSystemID, constellationID, regionID;
+    if(IsStation(location)) {
+        // Entering station
+        stationID = location;
+
+        m_services.serviceDB().GetStationInfo(
+            stationID,
+            &solarSystemID, &constellationID, &regionID,
+            NULL, NULL, NULL
+        );
+
+        GetShip()->Move(stationID, flagHangar);
+    } else if(IsSolarSystem(location)) {
+        // Entering a solarsystem
+        // source is GetLocation()
+        // destinaion is location
+
+        stationID = 0;
+        solarSystemID = location;
+
+        m_services.serviceDB().GetSystemInfo(
+            solarSystemID,
+            &constellationID, &regionID,
+            NULL, NULL
+        );
+
+        GetShip()->Move(solarSystemID, flagShipOffline);
+        GetShip()->Relocate(pt);
+    } else {
+        SendErrorMsg("Move requested to unsupported location %u", location);
+        return;
+    }
+
+    //move the character_ record... we really should derive the char's location from the entity table...
+    GetChar()->SetLocation(stationID, solarSystemID, constellationID, regionID);
+
+    EnterSystem();
+
+    _UpdateSession( GetChar() );
+    _SendSessionChange();
+}
+
+void Client::MoveToPosition(const GPoint &pt) {
+    if(m_destiny == NULL)
+        return;
+    m_destiny->Halt(true);
+    m_destiny->SetPosition(pt, true);
+    GetShip()->Relocate(pt);
+}
+
+void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
+{
+    InventoryItemRef item = m_services.item_factory.GetItem( itemID );
+    if( !item ) {
+        codelog(SERVICE__ERROR, "%s: Unable to load item %u", GetName(), itemID);
+        return;
+    }
+
+    bool was_module = ( item->flag() >= flagSlotFirst && item->flag() <= flagSlotLast);
+
+    //do the move. This will update the DB and send the notification.
+    item->Move(location, flag);
+
+    if(was_module || (item->flag() >= flagSlotFirst && item->flag() <= flagSlotLast)) {
+        //it was equipped, or is now. so modules need to know.
+        modules.UpdateModules();
+    }
+}
+
+void Client::BoardShip(ShipRef new_ship) {
+    //TODO: make sure we are really allowed to board this thing...
+
+    if(!new_ship->singleton()) {
+        _log(CLIENT__ERROR, "%s: tried to board ship %u, which is not assembled.", GetName(), new_ship->itemID());
+        SendErrorMsg("You cannot board a ship which is not assembled!");
+        return;
+    }
+
+    if(m_system != NULL)
+        m_system->RemoveClient(this);
+
+    _SetSelf( new_ship );
+    m_char->MoveInto( *new_ship, flagPilot, false );
+
+    mSession.SetInt( "shipid", new_ship->itemID() );
+
+    modules.UpdateModules();
+
+    if(m_system != NULL)
+        m_system->AddClient(this);
+
+    if(m_destiny != NULL)
+        m_destiny->SetShipCapabilities( GetShip() );
+}
+
+void Client::_UpdateSession( const CharacterConstRef& character )
+{
+    if( !character )
+        return;
+
+    mSession.SetInt( "charid",          character->itemID() );
+    mSession.SetInt( "corpid",          character->corporationID() );
+    if( character->stationID() == 0 )
+    {
+        // in space
+        mSession.Clear( "stationid" );
+        mSession.SetInt( "solarsystemid",   character->solarSystemID() );
+
+        mSession.SetInt( "locationid",      character->solarSystemID() );
+    }
+    else
+    {
+        // in station
+        mSession.Clear( "solarsystemid" );
+        mSession.SetInt( "stationid",      character->stationID() );
+
+        mSession.SetInt( "locationid",     character->stationID() );
+    }
+    mSession.SetInt( "solarsystemid2",  character->solarSystemID() );
+    mSession.SetInt( "constellationid", character->constellationID() );
+    mSession.SetInt( "regionid",        character->regionID() );
+
+    mSession.SetInt( "hqID",            character->corporationHQ() );
+    mSession.SetLong( "corprole",       character->corpRole() );
+    mSession.SetLong( "rolesAtAll",     character->rolesAtAll() );
+    mSession.SetLong( "rolesAtBase",    character->rolesAtBase() );
+    mSession.SetLong( "rolesAtHQ",      character->rolesAtHQ() );
+    mSession.SetLong( "rolesAtOther",   character->rolesAtOther() );
+
+    mSession.SetInt( "shipid",          character->locationID() );
+}
+
+void Client::_SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel )
+{
+    //build the packet:
+    PyPacket* p = new PyPacket;
+    p->type_string = "macho.CallRsp";
+    p->type = CALL_RSP;
+
+    p->source = source;
+
+    p->dest.type = PyAddress::Client;
+    p->dest.typeID = GetAccountID();
+    p->dest.callID = callID;
+
+    p->userid = GetAccountID();
+
+    p->payload = new PyTuple(1);
+    p->payload->SetItem( 0, new PySubStream( *return_value ) );
+    *return_value = NULL;   //consumed
+
+    if(channel != NULL)
+    {
+        p->named_payload = new PyDict();
+        p->named_payload->SetItemString( "channel", new PyString( channel ) );
+    }
+
+    FastQueuePacket( &p );
+}
+
+void Client::_SendException( const PyAddress& source, uint64 callID, MACHONETMSG_TYPE in_response_to, MACHONETERR_TYPE exception_type, PyRep** payload )
+{
+    //build the packet:
+    PyPacket* p = new PyPacket;
+    p->type_string = "macho.ErrorResponse";
+    p->type = ERRORRESPONSE;
+
+    p->source = source;
+
+    p->dest.type = PyAddress::Client;
+    p->dest.typeID = GetAccountID();
+    p->dest.callID = callID;
+
+    p->userid = GetAccountID();
+
+    macho_MachoException e;
+    e.in_response_to = in_response_to;
+    e.exception_type = exception_type;
+    e.payload = *payload;
+    *payload = NULL;    //consumed
+
+    p->payload = e.Encode();
+    FastQueuePacket(&p);
+}
+
+void Client::_SendSessionChange()
+{
+    if( !mSession.isDirty() )
+        return;
+
+    SessionChangeNotification scn;
+    scn.changes = new PyDict;
+
+    mSession.EncodeChanges( scn.changes );
+    if( scn.changes->empty() )
+        return;
+
+    _log(CLIENT__SESSION, "Session updated, sending session change");
+    scn.changes->Dump(CLIENT__SESSION, "  Changes: ");
+
+    //this is probably not necessary...
+    scn.nodesOfInterest.push_back( services().GetNodeID() );
+
+    //build the packet:
+    PyPacket* p = new PyPacket;
+    p->type_string = "macho.SessionChangeNotification";
+    p->type = SESSIONCHANGENOTIFICATION;
+
+    p->source.type = PyAddress::Node;
+    p->source.typeID = services().GetNodeID();
+    p->source.callID = 0;
+
+    p->dest.type = PyAddress::Client;
+    p->dest.typeID = GetAccountID();
+    p->dest.callID = 0;
+
+    p->userid = GetAccountID();
+
+    p->payload = scn.FastEncode();
+
+    p->named_payload = new PyDict();
+    p->named_payload->SetItemString( "channel", new PyString( "sessionchange" ) );
+
+    FastQueuePacket( &p );
+}
+
+void Client::_SendPingRequest()
+{
+    PyPacket *ping_req = new PyPacket();
+
+    ping_req->type = PING_REQ;
+    ping_req->type_string = "macho.PingReq";
+
+    ping_req->source.type = PyAddress::Node;
+    ping_req->source.typeID = services().GetNodeID();
+    ping_req->source.service = "ping";
+    ping_req->source.callID = 0;
+
+    ping_req->dest.type = PyAddress::Client;
+    ping_req->dest.typeID = GetAccountID();
+    ping_req->dest.callID = 0;
+
+    ping_req->userid = GetAccountID();
+
+    ping_req->payload = new PyTuple(1);
+    ping_req->payload->items[0] = new PyList();  //times
+    ping_req->named_payload = new PyDict();
+
+    FastQueuePacket(&ping_req);
+}
+
+void Client::_SendPingResponse()
+{
+    PyPacket* ret = new PyPacket;
+    ret->type = PING_RSP;
+    ret->type_string = "macho.PingRsp";
+
+    ret->source.type = PyAddress::Node;
+    ret->source.typeID = services().GetNodeID();
+    ret->source.service = "ping";
+    ret->source.callID = 0;
+
+    ret->dest.type = PyAddress::Client;
+    ret->dest.typeID = GetAccountID();
+    ret->dest.callID = 0;
+
+    ret->userid = GetAccountID();
+
+    /*  Here the hacking begins, the ping packet handles the timestamps of various packet handling steps.
+        To really simulate/emulate that we need the various packet handlers which in fact we don't have ( :P ).
+        So the next piece of code "fake's" it, with a slight delay on the received packet time.
+    */
+    PyList* pingList = new PyList;
+    PyTuple* pingTuple;
+
+    pingTuple = new PyTuple(3);
+    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);        // this should be the time the packet was received (we cheat here a bit)
+    pingTuple->items[1] = new PyLong(Win32TimeNow());             // this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
+    pingTuple->items[2] = new PyString("proxy::handle_message");
+    pingList->AddItem( pingTuple );
+
+    pingTuple = new PyTuple(3);
+    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
+    pingTuple->items[1] = new PyLong(Win32TimeNow());
+    pingTuple->items[2] = new PyString("proxy::writing");
+    pingList->AddItem( pingTuple );
+
+    pingTuple = new PyTuple(3);
+    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
+    pingTuple->items[1] = new PyLong(Win32TimeNow());
+    pingTuple->items[2] = new PyString("server::handle_message");
+    pingList->AddItem( pingTuple );
+
+    pingTuple = new PyTuple(3);
+    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
+    pingTuple->items[1] = new PyLong(Win32TimeNow());
+    pingTuple->items[2] = new PyString("server::turnaround");
+    pingList->AddItem( pingTuple );
+
+    pingTuple = new PyTuple(3);
+    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
+    pingTuple->items[1] = new PyLong(Win32TimeNow());
+    pingTuple->items[2] = new PyString("proxy::handle_message");
+    pingList->AddItem( pingTuple );
+
+    pingTuple = new PyTuple(3);
+    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
+    pingTuple->items[1] = new PyLong(Win32TimeNow());
+    pingTuple->items[2] = new PyString("proxy::writing");
+    pingList->AddItem( pingTuple );
+
+    // Set payload
+    ret->payload = new PyTuple( 1 );
+    ret->payload->SetItem( 0, pingList );
+
+    // Don't clone so it eats the ret object upon sending.
+    FastQueuePacket( &ret );
+}
+
+//these are specialized Queue functions when our caller can
+//easily provide us with our own copy of the data.
+void Client::QueueDestinyUpdate(PyTuple **du)
+{
+    DoDestinyAction act;
+    act.update_id = DestinyManager::GetStamp();
+    act.update = *du;
+    *du = NULL;
+
+    m_destinyUpdateQueue->AddItem( act.FastEncode() );
+}
+
+void Client::QueueDestinyEvent(PyTuple** multiEvent)
+{
+    m_destinyEventQueue->AddItem( *multiEvent );
+    *multiEvent = NULL;
+}
+
+void Client::_SendQueuedUpdates() {
+    if( !m_destinyUpdateQueue->empty() )
+    {
+        DoDestinyUpdateMain dum;
+
+        //first insert the destiny updates.
+        dum.updates = m_destinyUpdateQueue;
+        PyIncRef( m_destinyUpdateQueue );
+
+        //encode any multi-events which go along with it.
+        dum.events = m_destinyEventQueue;
+        PyIncRef( m_destinyEventQueue );
+
+        //right now, we never wait. I am sure they do this for a reason, but
+        //I haven't found it yet
+        dum.waitForBubble = false;
+
+        //now send it
+        PyTuple* t = dum.FastEncode();
+        t->Dump(DESTINY__UPDATES, "");
+        SendNotification( "DoDestinyUpdate", "clientID", &t );
+    }
+    else if( !m_destinyEventQueue->empty() )
+    {
+        Notify_OnMultiEvent nom;
+
+        //insert updates, clear our queue
+        nom.events = m_destinyEventQueue;
+        PyIncRef( m_destinyEventQueue );
+
+        //send it
+        PyTuple* t = nom.FastEncode();   //this is consumed below
+        t->Dump(DESTINY__UPDATES, "");
+        SendNotification( "OnMultiEvent", "charid", &t );
+    } //else nothing to be sent ...
+
+    // clear the queues now, after the packets have been sent
+    m_destinyEventQueue->clear();
+    m_destinyUpdateQueue->clear();
+}
+
+void Client::SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq) {
+
+    //build a little notification out of it.
+    EVENotificationStream notify;
+    notify.remoteObject = 1;
+    notify.args = *payload;
+    *payload = NULL;    //consumed
+
+    PyAddress dest;
+    dest.type = PyAddress::Broadcast;
+    dest.service = notifyType;
+    dest.bcast_idtype = idType;
+
+    //now send it to the client
+    SendNotification(dest, notify, seq);
+}
+
+
+void Client::SendNotification(const PyAddress &dest, EVENotificationStream &noti, bool seq) {
+
+    //build the packet:
+    PyPacket *p = new PyPacket();
+    p->type_string = "macho.Notification";
+    p->type = NOTIFICATION;
+
+    p->source.type = PyAddress::Node;
+    p->source.typeID = m_services.GetNodeID();
+
+    p->dest = dest;
+
+    p->userid = GetAccountID();
+
+    p->payload = noti.Encode();
+
+    if(seq) {
+        p->named_payload = new PyDict();
+        p->named_payload->SetItemString("sn", new PyInt(m_nextNotifySequence++));
+    }
+
+    _log(CLIENT__NOTIFY_DUMP, "Sending notify of type %s with ID type %s", dest.service.c_str(), dest.bcast_idtype.c_str());
+    if(is_log_enabled(CLIENT__NOTIFY_REP)) {
+        PyLogsysDump dumper(CLIENT__NOTIFY_REP, CLIENT__NOTIFY_REP, true, true);
+        p->Dump(CLIENT__NOTIFY_REP, &dumper);
+    }
+
+    FastQueuePacket(&p);
+}
+
+PyDict *Client::MakeSlimItem() const {
+    PyDict *slim = DynamicSystemEntity::MakeSlimItem();
+
+    slim->SetItemString("charID", new PyInt(GetCharacterID()));
+    slim->SetItemString("corpID", new PyInt(GetCorporationID()));
+    slim->SetItemString("allianceID", new PyNone);
+    slim->SetItemString("warFactionID", new PyNone);
+
+    //encode the modules list, if we have any visible modules
+    std::vector<InventoryItemRef> items;
+    GetShip()->FindByFlagRange( flagHiSlot0, flagHiSlot7, items );
+    if( !items.empty() )
+    {
+        PyList *l = new PyList();
+
+        std::vector<InventoryItemRef>::iterator cur, end;
+        cur = items.begin();
+        end = items.end();
+        for(; cur != end; cur++) {
+            PyTuple* t = new PyTuple( 2 );
+
+            t->items[0] = new PyInt( (*cur)->itemID() );
+            t->items[1] = new PyInt( (*cur)->typeID() );
+
+            l->AddItem(t);
+        }
+
+        slim->SetItemString("modules", l);
+    }
+
+    slim->SetItemString("color", new PyFloat(0.0));
+    slim->SetItemString("bounty", new PyInt(GetBounty()));
+    slim->SetItemString("securityStatus", new PyFloat(GetSecurityRating()));
+
+    return(slim);
+}
+
+void Client::WarpTo(const GPoint &to, double distance) {
+    if(m_moveState != msIdle || m_moveTimer.Enabled()) {
+        _log(CLIENT__ERROR, "%s: WarpTo called when a move is already pending. Ignoring.", GetName());
+        return;
+    }
+
+    m_destiny->WarpTo(to, distance);
+    //TODO: OnModuleAttributeChange with attribute 18 for capacitory charge
+}
+
+void Client::StargateJump(uint32 fromGate, uint32 toGate) {
+    if(m_moveState != msIdle || m_moveTimer.Enabled()) {
+        _log(CLIENT__ERROR, "%s: StargateJump called when a move is already pending. Ignoring.", GetName());
+        return;
+    }
+
+    //TODO: verify that they are actually close to 'fromGate'
+    //TODO: verify that 'fromGate' actually jumps to 'toGate'
+
+    uint32 solarSystemID, constellationID, regionID;
+    GPoint position;
+    if(!m_services.serviceDB().GetStaticItemInfo(
+        toGate,
+        &solarSystemID, &constellationID, &regionID, &position
+    )) {
+        codelog(CLIENT__ERROR, "%s: Failed to query information for stargate %u", GetName(), toGate);
+        return;
+    }
+
+    m_moveSystemID = solarSystemID;
+    m_movePoint = position;
+    m_movePoint.x -= 15000;
+
+    m_destiny->SendJumpOut(fromGate);
+    //TODO: send 'effects.GateActivity' on 'toGate' at the same time
+
+    //delay the move so they can see the JumpOut animation
+    _postMove(msJump, 5000);
+}
+
+void Client::_postMove(_MoveState type, uint32 wait_ms) {
+    m_moveState = type;
+    m_moveTimer.Start(wait_ms);
+}
+
+void Client::_ExecuteJump() {
+    if(m_destiny == NULL)
+        return;
+
+    MoveToLocation(m_moveSystemID, m_movePoint);
+}
+
+bool Client::AddBalance(double amount) {
+    if(!GetChar()->AlterBalance(amount))
+        return false;
+
+    //send notification of change
+    OnAccountChange ac;
+    ac.accountKey = "cash";
+    ac.ownerid = GetCharacterID();
+    ac.balance = GetBalance();
+    PyTuple *answer = ac.FastEncode();
+    SendNotification("OnAccountChange", "cash", &answer, false);
+
+    return true;
+}
+
+
+
+bool Client::SelectCharacter(uint32 char_id) {
+    //get char
+    m_char = m_services.item_factory.GetCharacter( char_id );
+    if( !GetChar() )
+        return false;
+
+    ShipRef ship = m_services.item_factory.GetShip( GetChar()->locationID() );
+    if( !ship )
+        return false;
+    BoardShip( ship );  //updates modules
+
+    if(!EnterSystem())
+        return false;
+
+    // update skill queue
+    GetChar()->UpdateSkillQueue();
+
+    _UpdateSession( GetChar() );
+    _SendSessionChange();
+
+    //johnsus - characterOnline mod
+    m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), true);
+
+    return true;
+}
+
+void Client::UpdateSkillTraining()
+{
+    if( GetChar() )
+        m_timeEndTrain = GetChar()->GetEndOfTraining();
+    else
+        m_timeEndTrain = 0;
+}
+
+double Client::GetPropulsionStrength() const {
+    if(GetShip() == NULL)
+        return(3.0f);
+    //just making shit up, I think skills modify this, as newbies
+    //tend to end up with 3.038 instead of the base 3.0 on their ship..
+    double res;
+    res =  GetShip()->propulsionFusionStrength();
+    res += GetShip()->propulsionIonStrength();
+    res += GetShip()->propulsionMagpulseStrength();
+    res += GetShip()->propulsionPlasmaStrength();
+    res += GetShip()->propulsionFusionStrengthBonus();
+    res += GetShip()->propulsionIonStrengthBonus();
+    res += GetShip()->propulsionMagpulseStrengthBonus();
+    res += GetShip()->propulsionPlasmaStrengthBonus();
+    res += 0.038f;
+    return res;
+}
+
+void Client::TargetAdded(SystemEntity *who) {
+    PyTuple *up = NULL;
+
+    DoDestiny_OnDamageStateChange odsc;
+    odsc.entityID = who->GetID();
+    odsc.state = who->MakeDamageState();
+    up = odsc.FastEncode();
+    QueueDestinyUpdate(&up);
+    delete up;
+
+    Notify_OnTarget te;
+    te.mode = "add";
+    te.targetID = who->GetID();
+    up = te.FastEncode();
+    QueueDestinyEvent(&up);
+    delete up;
+}
+
+void Client::TargetLost(SystemEntity *who)
+{
+    //OnMultiEvent: OnTarget lost
+    Notify_OnTarget te;
+    te.mode = "lost";
+    te.targetID = who->GetID();
+
+    Notify_OnMultiEvent multi;
+    multi.events = new PyList;
+    multi.events->AddItem( te.FastEncode() );
+
+    PyTuple* tmp = multi.FastEncode();   //this is consumed below
+    SendNotification("OnMultiEvent", "clientID", &tmp);
+}
+
+void Client::TargetedAdd(SystemEntity *who) {
+    //OnMultiEvent: OnTarget otheradd
+    Notify_OnTarget te;
+    te.mode = "otheradd";
+    te.targetID = who->GetID();
+
+    Notify_OnMultiEvent multi;
+    multi.events = new PyList;
+    multi.events->AddItem( te.FastEncode() );
+
+    PyTuple* tmp = multi.FastEncode();   //this is consumed below
+    SendNotification("OnMultiEvent", "clientID", &tmp);
+}
+
+void Client::TargetedLost(SystemEntity *who)
+{
+    //OnMultiEvent: OnTarget otherlost
+    Notify_OnTarget te;
+    te.mode = "otherlost";
+    te.targetID = who->GetID();
+
+    Notify_OnMultiEvent multi;
+    multi.events = new PyList;
+    multi.events->AddItem( te.FastEncode() );
+
+    PyTuple* tmp = multi.FastEncode();   //this is consumed below
+    SendNotification("OnMultiEvent", "clientID", &tmp);
+}
+
+void Client::TargetsCleared()
+{
+    //OnMultiEvent: OnTarget clear
+    Notify_OnTarget te;
+    te.mode = "clear";
+    te.targetID = 0;
+
+    Notify_OnMultiEvent multi;
+    multi.events = new PyList;
+    multi.events->AddItem( te.FastEncode() );
+
+    PyTuple* tmp = multi.FastEncode();   //this is consumed below
+    SendNotification("OnMultiEvent", "clientID", &tmp);
+}
+
+void Client::SavePosition() {
+    if(GetShip() == NULL || m_destiny == NULL) {
+        _log(CLIENT__TRACE, "%s: Unable to save position. We are probably not in space.", GetName());
+        return;
+    }
+    GetShip()->Relocate( m_destiny->GetPosition() );
+}
+
+bool Client::LaunchDrone(InventoryItemRef drone) {
+#if 0
+drop 166328265
+
+OnItemChange ,*args= (Row(itemID: 166328265,typeID: 15508,
+    ownerID: 105651216,locationID: 166363674,flag: 87,
+    contraband: 0,singleton: 1,quantity: 1,groupID: 100,
+    categoryID: 18,customInfo: (166363674, None)),
+    {10: None}) ,**kw= {}
+
+OnItemChange ,*args= (Row(itemID: 166328265,typeID: 15508,
+    ownerID: 105651216,locationID: 30001369,flag: 0,
+    contraband: 0,singleton: 1,quantity: 1,groupID: 100,
+    categoryID: 18,customInfo: (166363674, None)),
+    {3: 166363674, 4: 87}) ,**kw= {}
+
+returns list of deployed drones.
+
+internaly scatters:
+    OnItemLaunch ,*args= ([166328265], [166328265])
+
+DoDestinyUpdate ,*args= ([(31759,
+    ('OnDroneStateChange',
+        [166328265, 105651216, 166363674, 0, 15508, 105651216])
+    ), (31759,
+    ('OnDamageStateChange',
+        (2100212375, [(1.0, 400000.0, 127997215757036940L), 1.0, 1.0]))
+    ), (31759, ('AddBalls',
+        ...
+    True
+
+DoDestinyUpdate ,*args= ([(31759,
+    ('Orbit', (166328265, 166363674, 750.0))
+    ), (31759,
+    ('SetSpeedFraction', (166328265, 0.265625)))],
+    False) ,**kw= {} )
+#endif
+
+    if(!IsSolarSystem(GetLocationID())) {
+        _log(SERVICE__ERROR, "%s: Trying to launch drone when not in space!", GetName());
+        return false;
+    }
+
+    _log(CLIENT__MESSAGE, "%s: Launching drone %u", GetName(), drone->itemID());
+
+    //first, the item gets moved into space
+    //TODO: set customInfo to a tuple: (shipID, None)
+    drone->Move(GetSystemID(), flagAutoFit);
+    //temp for testing:
+    drone->Move(GetShipID(), flagDroneBay, false);
+
+    //now we create an NPC to represent it.
+    GPoint position(GetPosition());
+    position.x += 750.0f;   //total crap.
+
+    //this adds itself into the system.
+    NPC *drone_npc = new NPC(
+        m_system,
+        m_services,
+        drone,
+        GetCorporationID(),
+        GetAllianceID(),
+        position);
+    m_system->AddNPC(drone_npc);
+
+    //now we tell the client that "its ALIIIIIVE"
+    //DoDestinyUpdate:
+
+    //drone_npc->Destiny()->SendAddBall();
+
+    /*PyList *actions = new PyList();
+    DoDestinyAction act;
+    act.update_id = NextDestinyUpdateID();  //update ID?
+    */
+    //  OnDroneStateChange
+/*  {
+        DoDestiny_OnDroneStateChange du;
+        du.droneID = drone->itemID();
+        du.ownerID = GetCharacterID();
+        du.controllerID = GetShipID();
+        du.activityState = 0;
+        du.droneTypeID = drone->typeID();
+        du.controllerOwnerID = GetShip()->ownerID();
+        act.update = du.FastEncode();
+        actions->add( act.FastEncode() );
+    }*/
+
+    //  AddBall
+    /*{
+        DoDestiny_AddBall addball;
+        drone_npc->MakeAddBall(addball, act.update_id);
+        act.update = addball.FastEncode();
+        actions->add( act.FastEncode() );
+    }*/
+
+    //  Orbit
+/*  {
+        DoDestiny_Orbit du;
+        du.entityID = drone->itemID();
+        du.orbitEntityID = GetCharacterID();
+        du.distance = 750;
+        act.update = du.FastEncode();
+        actions->add( act.FastEncode() );
+    }
+
+    //  SetSpeedFraction
+    {
+        DoDestiny_SetSpeedFraction du;
+        du.entityID = drone->itemID();
+        du.fraction = 0.265625f;
+        act.update = du.FastEncode();
+        actions->add( act.FastEncode() );
+    }*/
+
+//testing:
+/*  {
+        DoDestiny_SetBallInteractive du;
+        du.entityID = drone->itemID();
+        du.interactive = 1;
+        act.update = du.FastEncode();
+        actions->add( act.FastEncode() );
+    }
+    {
+        DoDestiny_SetBallInteractive du;
+        du.entityID = GetCharacterID();
+        du.interactive = 1;
+        act.update = du.FastEncode();
+        actions->add( act.FastEncode() );
+    }*/
+
+    //NOTE: we really want to broadcast this...
+    //TODO: delay this until after the return.
+    //_SendDestinyUpdate(&actions, false);
+
+    return false;
+}
+
+//assumes that the backend DB stuff was already done.
+void Client::JoinCorporationUpdate(uint32 corp_id) {
+    GetChar()->JoinCorporation(corp_id);
+
+    _UpdateSession( GetChar() );
+
+    //logs indicate that we need to push this update out asap.
+    _SendSessionChange();
+}
+
+/************************************************************************/
+/* character notification messages wrapper                              */
+/************************************************************************/
+void Client::OnCharNoLongerInStation()
+{
+    NotifyOnCharNoLongerInStation packet;
+
+    packet.charID = GetCharacterID();
+    packet.corpID = GetCorporationID();
+    packet.allianceID = GetAllianceID();
+    PyTuple *tmp = packet.Encode();
+
+    // this entire line should be something like this Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
+    services().entity_list.Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
+}
+
+/* besides broadcasting the message this function should handle everything for this event */
+void Client::OnCharNowInStation()
+{
+    NotifyOnCharNowInStation n;
+    n.charID = GetCharacterID();
+    n.corpID = GetCorporationID();
+    n.allianceID = GetAllianceID();
+    PyTuple *tmp = n.Encode();
+    services().entity_list.Broadcast("OnCharNowInStation", "stationid", &tmp);
+}
+
+/************************************************************************/
+/* EVEClientSession interface                                           */
+/************************************************************************/
+uint32 Client::_GetUserCount()
+{
+    return services().entity_list.GetClientCount();
+}
+
+bool Client::_Authenticate( CryptoChallengePacket& ccp )
+{
+    _log(CLIENT__MESSAGE, "Login with %s:", ccp.user_name.c_str());
+
+    if( ccp.user_password == NULL )
+    {
+        _log(CLIENT__MESSAGE, "    Rejected by server; requesting plain password");
+
+        //send passwordVersion required: 1=plain, 2=hashed
+        PyRep* rsp = new PyInt( 1 );
+        mNet->QueueRep( rsp );
+        PyDecRef( rsp );
+
+        return false;
+    }
+
+    uint32 accountID, accountRole;
+	if( !services().serviceDB().DoLogin(
+            ccp.user_name.c_str(),
+            ccp.user_password->GetPassword().content().c_str(),
+            accountID, accountRole ) )
+    {
+        _log(CLIENT__MESSAGE, "    Rejected by DB");
+
+        GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
+        mNet->QueueRep( except );
+        PyDecRef( except );
+
+        return false;
+    }
+
+    _log( CLIENT__MESSAGE, "    Successfull" );
+
+    m_services.serviceDB().SetAccountOnlineStatus( accountID, true );
+
+    //marshaled Python string "None"
+    static const uint8 handshakeFunc[] = { 0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65 };
+
+    //send our handshake
+    CryptoServerHandshake server_shake;
+    server_shake.serverChallenge = "";
+    server_shake.func_marshaled_code = new PyBuffer( handshakeFunc, sizeof(handshakeFunc) );
+	server_shake.verification = new PyBool( false );
+    server_shake.cluster_usercount = _GetUserCount();
+    server_shake.proxy_nodeid = 0xFFAA;
+    server_shake.user_logonqueueposition = _GetQueuePosition();
+    // binascii.crc_hqx of marshaled single-element tuple containing 64 zero-bytes string
+    server_shake.challenge_responsehash = "55087";
+
+    server_shake.macho_version = MachoNetVersion;
+    server_shake.boot_version = EVEVersionNumber;
+    server_shake.boot_build = EVEBuildVersion;
+    server_shake.boot_codename = EVEProjectCodename;
+    server_shake.boot_region = EVEProjectRegion;
+
+    PyRep* rsp = server_shake.FastEncode();
+    mNet->QueueRep( rsp );
+    PyDecRef( rsp );
+
+    // Setup session, but don't send the change yet.
+    mSession.SetString( "address",    EVEClientSession::GetAddress().c_str() );
+    mSession.SetString( "languageID", ccp.user_languageid.c_str() );
+
+    //user type 1 is normal user, type 23 is a trial account user.
+    mSession.SetInt( "userType", 1 );
+    mSession.SetInt( "userid",   accountID );
+    mSession.SetInt( "role",     accountRole );
+
+    return true;
+}
+
+void Client::_FuncResultReceived( CryptoHandshakeResult& result )
+{
+    //send this before session change
+    CryptoHandshakeAck ack;
+    ack.live_updates = new PyList;
+    ack.jit = GetLanguageID();
+    ack.userid = GetAccountID();
+    ack.maxSessionTime = new PyNone;
+    ack.userType = 1;
+    ack.role = GetAccountRole();
+    ack.address = GetAddress();
+    ack.inDetention = new PyNone;
+    ack.client_hashes = new PyList;
+    ack.user_clientid = GetAccountID();
+
+	PyRep* r = ack.FastEncode();
+    mNet->QueueRep( r );
+	PyDecRef( r );
+
+    // Send out the session change
+    _SendSessionChange();
+}
+
+/************************************************************************/
+/* EVEPacketDispatcher interface                                        */
+/************************************************************************/
+bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
+{
+    PyCallable* dest;
+    if( packet->dest.service.empty() )
+    {
+        //bound object
+        uint32 nodeID, bindID;
+        if( sscanf( req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID ) != 2 )
+        {
+            _log(CLIENT__ERROR, "Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
+            return false;
+        }
+
+        if( nodeID != m_services.GetNodeID() )
+        {
+            _log(CLIENT__ERROR, "Unknown nodeID %u received (expected %u).", nodeID, m_services.GetNodeID());
+            return false;
+        }
+
+        dest = services().FindBoundObject( bindID );
+        if( dest == NULL )
+        {
+            _log(CLIENT__ERROR, "Failed to find bound object %u.", bindID);
+            return false;
+        }
+    }
+    else
+    {
+        //service
+        dest = services().LookupService( packet->dest.service );
+        if( dest == NULL )
+        {
+            _log(CLIENT__ERROR, "Unable to find service to handle call to:");
+            packet->dest.Dump(CLIENT__ERROR, "    ");
+#ifndef WIN32
+#   warning TODO: throw proper exception to client (exceptions.ServiceNotFound).
+#endif
+            throw PyException( new PyNone );
+        }
+    }
+
+    //build arguments
+    PyCallArgs args( this, req.arg_tuple, req.arg_dict );
+
+    //parts of call may be consumed here
+    PyResult result = dest->Call( req.method, args );
+    PyRep* res = result.ssResult.hijack();
+
+    _SendSessionChange();  //send out the session change before the return.
+    _SendCallReturn( packet->dest, packet->source.callID, &res );
+
+    return true;
+}
+
+bool Client::Handle_Notify( PyPacket* packet )
+{
+    //turn this thing into a notify stream:
+    ServerNotification notify;
+    if( !notify.Decode( packet->payload ) )
+    {
+        _log(CLIENT__ERROR, "Failed to convert rep into a notify stream");
+        return false;
+    }
+
+    if(notify.method == "ClientHasReleasedTheseObjects")
+    {
+        ServerNotification_ReleaseObj element;
+
+        PyList::const_iterator cur, end;
+        cur = notify.elements->begin();
+        end = notify.elements->end();
+        for(; cur != end; cur++)
+        {
+            if(!element.Decode( *cur )) {
+                _log(CLIENT__ERROR, "Notification '%s' from %s: Failed to decode element. Skipping.", notify.method.c_str(), GetName());
+                continue;
+            }
+
+            uint32 nodeID, bindID;
+            if(sscanf(element.boundID.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
+                _log(CLIENT__ERROR, "Notification '%s' from %s: Failed to parse bind string '%s'. Skipping.",
+                    notify.method.c_str(), GetName(), element.boundID.c_str());
+                continue;
+            }
+
+            if(nodeID != m_services.GetNodeID()) {
+                _log(CLIENT__ERROR, "Notification '%s' from %s: Unknown nodeID %u received (expected %u). Skipping.",
+                    notify.method.c_str(), GetName(), nodeID, m_services.GetNodeID());
+                continue;
+            }
+
+            m_services.ClearBoundObject(bindID);
+        }
+    }
+    else
+    {
+        _log(CLIENT__ERROR, "Unhandled notification from %s: unknown method '%s'", GetName(), notify.method.c_str());
+        return false;
+    }
+
+    _SendSessionChange();  //just for good measure...
+    return true;
+}
+
+/*
+FunctorTimerQueue::TimerID Client::Delay( uint32 time_in_ms, void (Client::* clientCall)() ) {
+    Functor *f = new SimpleClientFunctor(this, clientCall);
+    return(m_delayQueue.Schedule( &f, time_in_ms ));
+}
+
+FunctorTimerQueue::TimerID Client::Delay( uint32 time_in_ms, ClientFunctor **functor ) {
+    Functor *f = *functor;
+    *functor = NULL;
+    return(m_delayQueue.Schedule( &f, time_in_ms ));
+}
+
+
+
+
+FunctorTimerQueue::FunctorTimerQueue()
+: m_nextID(0)
+{
+}
+
+FunctorTimerQueue::~FunctorTimerQueue() {
+    std::vector<Entry *>::iterator cur, end;
+    cur = m_queue.begin();
+    end = m_queue.end();
+    for(; cur != end; cur++) {
+        delete *cur;
+    }
+}
+
+FunctorTimerQueue::TimerID FunctorTimerQueue::Schedule(Functor **what, uint32 in_how_many_ms) {
+    Entry *e = new Entry(++m_nextID, *what, in_how_many_ms);
+    *what = NULL;
+    m_queue.push_back(e);
+    return(e->id);
+}
+
+bool FunctorTimerQueue::Cancel(TimerID id) {
+    std::vector<Entry *>::iterator cur, end;
+    cur = m_queue.begin();
+    end = m_queue.end();
+    for(; cur != end; cur++) {
+        if((*cur)->id == id) {
+            m_queue.erase(cur);
+            return true;
+        }
+    }
+    return false;
+}
+
+void FunctorTimerQueue::Process() {
+    std::vector<Entry *>::iterator cur, tmp;
+    cur = m_queue.begin();
+    while(cur != m_queue.end()) {
+        Entry *e = *cur;
+        if(e->when.Check(false)) {
+            //call the functor.
+            (*e->func)();
+            //we are done with this crap.
+            delete e;
+            cur = m_queue.erase(cur);
+        } else {
+            cur++;
+        }
+    }
+}
+
+FunctorTimerQueue::Entry::Entry(TimerID _id, Functor *_func, uint32 time_ms)
+: id(_id),
+  func(_func),
+  when(time_ms)
+{
+    when.Start();
+}
+
+FunctorTimerQueue::Entry::~Entry() {
+    delete func;
+}
+*/
+

@@ -23,10 +23,9 @@
 	Author:		Zhur
 */
 
+#include "XMLPktGenPCH.h"
 
-#include "common.h"
 #include "CloneGenerator.h"
-#include "../common/logsys.h"
 
 ClassCloneGenerator::ClassCloneGenerator()
 {

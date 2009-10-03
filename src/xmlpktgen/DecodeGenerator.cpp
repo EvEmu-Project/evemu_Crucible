@@ -23,11 +23,9 @@
 	Author:		Zhur
 */
 
+#include "XMLPktGenPCH.h"
 
-#include "common.h"
 #include "DecodeGenerator.h"
-#include "../common/logsys.h"
-#include "MiscFunctions.h"
 
 #ifndef WIN32
 #warning Decoder is not properly freeing old items in the case of object re-use
@@ -49,7 +47,7 @@ bool ClassDecodeGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
 	}
 
 	fprintf(into,
-        "bool %s::Decode( const PyRep* packet )\n"
+        "bool %s::Decode( PyRep* packet )\n"
         "{\n",
 		mName
     );
@@ -112,7 +110,7 @@ bool ClassDecodeGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field) 
 		"        return false;\n"
 		"    }\n"
         "\n"
-        "    const PyTuple* %s = &%s->AsTuple();\n"
+        "    PyTuple* %s = &%s->AsTuple();\n"
 		"    if( %s->size() != %u )\n"
         "    {\n"
 		"        _log( NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong size: expected %d, but got %%lu\", %s->size() );\n"
@@ -167,7 +165,7 @@ bool ClassDecodeGenerator::Process_InlineList(FILE *into, TiXmlElement *field) {
 		"        return false;\n"
 		"    }\n"
         "\n"
-        "    const PyList* %s = &%s->AsList();\n"
+        "    PyList* %s = &%s->AsList();\n"
 		"    if( %s->size() != %u )\n"
         "    {\n"
 		"        _log( NET__PACKET_ERROR, \"Decode %s failed: %s is the wrong size: expected %d, but got %%lu\", %s->size() );\n"
@@ -219,7 +217,7 @@ bool ClassDecodeGenerator::Process_InlineDict(FILE *into, TiXmlElement *field)
         "\n"
 		"        return false;\n"
 		"    }\n"
-        "    const PyDict* %s = &%s->AsDict();\n"
+        "    PyDict* %s = &%s->AsDict();\n"
 		"\n",
 		v,
             mName, iname, v,
@@ -449,7 +447,7 @@ bool ClassDecodeGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *fie
         "\n"
 		"        return false;\n"
 		"    }\n"
-        "    const PySubStream* %s = &%s->AsSubStream();\n"
+        "    PySubStream* %s = &%s->AsSubStream();\n"
 		"\n"
 		"    //make sure its decoded\n"
 		"    %s->DecodeData();\n"
@@ -493,7 +491,7 @@ bool ClassDecodeGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *fie
         "\n"
 		"		return false;\n"
 		"	}\n"
-        "	const PySubStruct* %s = &%s->AsSubStruct();\n"
+        "	PySubStruct* %s = &%s->AsSubStruct();\n"
 		"\n",
 		v, 
 			mName, iname, v, 
@@ -531,7 +529,7 @@ bool ClassDecodeGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
         "\n"
 		"        return false;\n"
 		"    }\n"
-        "    const PyDict* %s = &%s->AsDict();\n"
+        "    PyDict* %s = &%s->AsDict();\n"
         "\n"
 		"    %s.clear();\n"
 		"    PyDict::const_iterator %s_cur, %s_end;\n"
@@ -588,7 +586,7 @@ bool ClassDecodeGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
         "\n"
 		"        return false;\n"
 		"    }\n"
-        "    const PyDict* %s = &%s->AsDict();\n"
+        "    PyDict* %s = &%s->AsDict();\n"
         "\n"
 		"    %s.clear();\n"
 		"    PyDict::const_iterator %s_cur, %s_end;\n"
@@ -672,7 +670,7 @@ bool ClassDecodeGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
         "\n"
 		"        return false;\n"
 		"    }\n"
-        "    const PyDict* %s = &%s->AsDict();\n"
+        "    PyDict* %s = &%s->AsDict();\n"
         "\n"
 		"    %s.clear();\n"
 		"    PyDict::const_iterator %s_cur, %s_end;\n"
@@ -739,7 +737,7 @@ bool ClassDecodeGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
         "\n"
 		"        return false;\n"
 		"    }\n"
-        "    const PyList* %s = &%s->AsList();\n"
+        "    PyList* %s = &%s->AsList();\n"
         "\n"
 		"    %s.clear();\n"
 		"    PyList::const_iterator %s_cur, %s_end;\n"
@@ -796,7 +794,7 @@ bool ClassDecodeGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
         "\n"
 		"        return false;\n"
 		"    }\n"
-        "    const PyList* %s = &%s->AsList();\n"
+        "    PyList* %s = &%s->AsList();\n"
         "\n"
 		"    %s.clear();\n"
 		"    PyList::const_iterator %s_cur, %s_end;\n"
@@ -853,7 +851,7 @@ bool ClassDecodeGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
         "\n"
 		"        return false;\n"
 		"    }\n"
-        "    const PyList* %s = &%s->AsList();\n"
+        "    PyList* %s = &%s->AsList();\n"
         "\n"
 		"    %s.clear();\n"
 		"    PyList::const_iterator %s_cur, %s_end;\n"
@@ -1004,7 +1002,7 @@ bool ClassDecodeGenerator::Process_object(FILE *into, TiXmlElement *field) {
         "\n"
 		"        return false;\n"
 		"    }\n"
-        "    const PyObject* %s = &%s->AsObject();\n"
+        "    PyObject* %s = &%s->AsObject();\n"
 		"\n"
         "    if( %s->type()->content() != \"%s\" )\n"
         "    {\n"

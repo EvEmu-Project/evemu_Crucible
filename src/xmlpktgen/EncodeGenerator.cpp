@@ -23,11 +23,9 @@
 	Author:		Zhur
 */
 
+#include "XMLPktGenPCH.h"
 
-#include "common.h"
 #include "EncodeGenerator.h"
-#include "../common/logsys.h"
-#include "MiscFunctions.h"
 
 ClassEncodeGenerator::ClassEncodeGenerator()
 : mFast( false ),

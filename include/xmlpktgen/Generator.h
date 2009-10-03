@@ -26,12 +26,6 @@
 #ifndef __GENERATOR_H_INCL__
 #define __GENERATOR_H_INCL__
 
-#include <tinyxml.h>
-#include "../common/logsys.h"
-#include <stdio.h>
-#include <map>
-#include <string>
-
 template<typename X>
 class Generator
 {

@@ -23,14 +23,9 @@
 	Author:		Zhur
 */
 
+#include "XMLPktGenPCH.h"
 
-#include "common.h"
 #include "DumpGenerator.h"
-#include "../common/logsys.h"
-
-
-
-
 
 ClassDumpGenerator::ClassDumpGenerator()
 {

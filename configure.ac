@@ -31,6 +31,7 @@ AH_TEMPLATE([USING_BIG_ENDIAN], Define this if you are on a big-endian system.)
 AH_TEMPLATE([USING_LITTLE_ENDIAN], Define this if you are on a non-big-endian system.)
 AH_TEMPLATE([X64], Define this if you are under an X64-based operating system.)
 AH_TEMPLATE([X86], Define this if you are under an X86-based 32bit operating system.)
+AH_TEMPLATE([TINYXML_USE_STL], Define this if you want tinyxml to use native STL.)
 AH_TEMPLATE([EVEMU_REVISION], The revision of the latest checkout)
 
 # Checks for libraries.
@@ -105,7 +106,8 @@ AC_SUBST(LIBNET_CFLAGS)
 AC_CHECK_HEADERS(readline/readline.h,, AC_MSG_ERROR([can't find readline]))
 
 # Define compile/library flags.
-AC_SUBST(AM_CXXFLAGS, "$AM_CXXFLAGS $INCLUDES $MYSQL_CFLAGS -Wall -DTIXML_USE_STL $LIBNET_CFLAGS")
+AC_DEFINE(TINYXML_USE_STL)
+AC_SUBST(AM_CXXFLAGS, "$AM_CXXFLAGS -pipe -fno-inline -Wall -ansi")
 AC_SUBST(AM_LDFLAGS, "$AM_LDFLAGS")
 
 # Checks for header files.
@@ -133,13 +135,16 @@ fi
 AC_CONFIG_FILES([
 	Makefile
 	dep/Makefile
+	dep/gangsta/Makefile
 	dep/tinyxml/Makefile
+	dep/utils/Makefile
 	src/common/Makefile
 	src/xmlpktgen/Makefile
-	src/packets/Makefile
-	src/collector/Makefile
-	src/evetool/Makefile
-	src/server/Makefile
+	src/eve-common/Makefile
+	src/eve-common/packets/Makefile
+	src/eve-server/Makefile
+	src/eve-tool/Makefile
+	src/eve-collector/Makefile
 ])
 
 AC_OUTPUT

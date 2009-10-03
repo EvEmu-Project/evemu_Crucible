@@ -27,7 +27,6 @@
 #define __ENCODEGENERATOR_H_INCL__
 
 #include "Generator.h"
-#include <stack>
 
 class ClassEncodeGenerator
 : public Generator<ClassEncodeGenerator>
@@ -48,7 +47,6 @@ protected:
 
 	AllGenProcDecls;
 };
-
 
 #endif
 

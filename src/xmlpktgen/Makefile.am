@@ -1,17 +1,7 @@
-INCLUDES += -I$(srcdir)/../../dep/tinyxml/
-INCLUDES += -I$(srcdir)/../../include/common/
-INCLUDES += -I$(srcdir)/../../include/xmlpktgen/
-
-bin_PROGRAMS = xmlpktgen
+bin_PROGRAMS = \
+	xmlpktgen
 
 xmlpktgen_SOURCES = \
-	../common/logsys.cpp \
-	../common/logsys.h \
-	../common/logtypes.h \
-	../common/misc.cpp \
-	../common/misc.h \
-	../common/MiscFunctions.cpp \
-	../common/MiscFunctions.h \
 	CloneGenerator.cpp \
 	CloneGenerator.h \
 	ConstructGenerator.cpp \
@@ -29,12 +19,14 @@ xmlpktgen_SOURCES = \
 	HeaderGenerator.h \
 	main.cpp \
 	XMLPacketGen.cpp \
-	XMLPacketGen.h
+	XMLPacketGen.h \
+	XMLPktGenPCH.h
+
+xmlpktgen_CXXFLAGS = \
+	-I$(srcdir)/../../dep/ \
+	-I$(srcdir)/../../include/common/ \
+	-I$(srcdir)/../../include/xmlpktgen/
 
 xmlpktgen_LDADD = \
-	$(srcdir)/../../dep/tinyxml/libtinyxml.a
-
-xmlpktgen_LDFLAGS = \
-	-rdynamic \
-	@AM_LDFLAGS@
-
+	$(srcdir)/../../dep/tinyxml/libtinyxml.a \
+	$(srcdir)/../common/libcommon.a

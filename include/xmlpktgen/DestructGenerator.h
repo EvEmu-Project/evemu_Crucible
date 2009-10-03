@@ -28,7 +28,6 @@
 
 #include "Generator.h"
 
-
 class ClassDestructGenerator
 : public Generator<ClassDestructGenerator>
 {
@@ -39,10 +38,6 @@ protected:
 	AllGenProcDecls;
 	GenProcDecl(IDEntry);
 };
-
-
-
-
 
 #endif
 
