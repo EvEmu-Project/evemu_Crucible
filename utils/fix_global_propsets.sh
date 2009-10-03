@@ -4,7 +4,7 @@
 # WARNING:
 #  Running this script will wipe all previous svn:ignore propsets
 
-if [ ! -f configure ] ; then
+if [ ! -f configure.ac ] ; then
   echo "You must run this script in the root of the trunk."
   exit 1
 fi
