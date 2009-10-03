@@ -14,19 +14,19 @@ for i in ./ $(svn -R list | grep /\$); do
         if [ -f $i/.svn.ignore ] ; then
                 echo "Merging ${i}.svn.ignore with global"
                 cat ${i}.svn.ignore .svn.ignore.global | sort  | uniq > ${i}.svn.ignore
-								svn propget svn:ignore $i | diff -Bq - ${i}.svn.ignore
-								if [ $? -ne 0 ] ; then 
-									echo Propset differs, updating...
+		svn propget svn:ignore $i | diff -Bq - ${i}.svn.ignore
+		if [ $? -ne 0 ] ; then 
+			echo Propset differs, updating...
                 	svn propset svn:ignore -F ${i}.svn.ignore $i
-									echo
-								fi
+			echo
+		fi
         else
-								svn propget svn:ignore $i | diff -Bq - .svn.ignore.global
-								if [ $? -ne 0 ] ; then
-									echo Propset differs with global, updating propset
+		svn propget svn:ignore $i | diff -Bq - .svn.ignore.global
+		if [ $? -ne 0 ] ; then
+			echo Propset differs with global, updating propset
                 	svn propset svn:ignore -F .svn.ignore.global $i
-									echo
-								fi
+			echo
+		fi
         fi
 done
 
