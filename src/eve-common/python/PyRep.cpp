@@ -311,6 +311,7 @@ void PyBool::visit( PyVisitorLvl *v, int64 lvl ) const
 /* PyRep None Class                                                     */
 /************************************************************************/
 PyNone::PyNone() : PyRep( PyRep::PyTypeNone ) {}
+PyNone::PyNone( const PyNone& oth ) : PyRep( PyRep::PyTypeNone ) {}
 PyNone::~PyNone() {}
 
 void PyNone::Dump(FILE *into, const char *pfx) const {
@@ -323,7 +324,7 @@ void PyNone::Dump(LogType type, const char *pfx) const {
 
 PyRep *PyNone::Clone() const
 {
-	return new PyNone( *this );
+    return new PyNone( *this );
 }
 
 void PyNone::visit( PyVisitor *v ) const
@@ -339,7 +340,7 @@ void PyNone::visit( PyVisitorLvl *v, int64 lvl ) const
 int32 PyNone::hash() const
 {
     /* damn hack... bleh.. but its done like this... in python and PyNone is a static singleton....*/
-    int32 * hash = (int32 *)this;
+    int32* hash = (int32*)this;
     return *((int32*)&hash);
 }
 

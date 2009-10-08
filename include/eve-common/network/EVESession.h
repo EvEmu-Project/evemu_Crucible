@@ -42,7 +42,6 @@ public:
 
     TCPConnection::state_t GetState() const { return mNet->GetState(); }
 	std::string GetAddress() const { return mNet->GetAddress(); }
-	void Disconnect() { return mNet->Disconnect(); }
 
 	void Reset();
 

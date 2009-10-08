@@ -45,8 +45,8 @@ EVEClientSession::EVEClientSession( EVETCPConnection** n )
 
 EVEClientSession::~EVEClientSession()
 {
-    //let the server thread know we are done with this connection
-    //mNet->Free();
+    // Destroy connection we used
+    delete mNet;
 }
 
 void EVEClientSession::Reset()

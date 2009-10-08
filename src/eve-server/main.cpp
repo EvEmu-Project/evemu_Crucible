@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
 
         //check for timeouts in other threads
         //timeout_manager.CheckTimeouts();
-        while( ( tcpc = tcps.NewQueuePop() ) )
+        while( ( tcpc = tcps.PopConnection() ) )
         {
             Client* c = new Client( services, &tcpc );
 
@@ -255,7 +255,8 @@ int main(int argc, char *argv[])
     services.serviceDB().SetServerOnlineStatus(false);
 
     /* after this point the system will crash if there are threads using this.. */
-    delete pLog;
+    SafeDelete( pMarshalStringTable );
+    SafeDelete( pLog );
 
     // win crap.
     //_CrtDumpMemoryLeaks();

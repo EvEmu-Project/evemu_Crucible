@@ -137,19 +137,31 @@ class TCPServer : public BaseTCPServer
 {
 public:
     /**
+     * @brief Deletes all stored connections.
+     */
+    ~TCPServer()
+    {
+        LockMutex lock( &mMQueue );
+
+        X* conn;
+        while( ( conn = PopConnection() ) )
+            SafeDelete( conn );
+    }
+
+    /**
      * @brief Pops connection from queue.
      *
      * @return Popped connection.
      */
-	X* NewQueuePop()
+	X* PopConnection()
     {
-        LockMutex lock( &mMNewQueue );
+        LockMutex lock( &mMQueue );
 
 		X* ret = NULL;
-	    if( !mNewQueue.empty() )
+	    if( !mQueue.empty() )
         {
-		    ret = mNewQueue.front();
-		    mNewQueue.pop();
+		    ret = mQueue.front();
+		    mQueue.pop();
 	    }
 
 		return ret;
@@ -163,15 +175,15 @@ protected:
      */
 	void AddConnection( X* con )
     {
-        LockMutex lock( &mMNewQueue );
+        LockMutex lock( &mMQueue );
 
-        mNewQueue.push( con );
+        mQueue.push( con );
 	}
 
     /** Mutex to protect connection queue. */
-	Mutex           mMNewQueue;
+	Mutex           mMQueue;
     /** Connection queue. */
-	std::queue<X*>  mNewQueue;
+	std::queue<X*>  mQueue;
 };
 
 

@@ -316,6 +316,7 @@ class PyNone : public PyRep
 {
 public:
     PyNone();
+    PyNone( const PyNone& oth );
     virtual ~PyNone();
 
     void Dump(FILE *into, const char *pfx) const;

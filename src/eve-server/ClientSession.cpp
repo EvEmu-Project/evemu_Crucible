@@ -201,12 +201,15 @@ void ClientSession::_Set( const char* name, PyRep* value )
     }
 
     PyRep* current = v->GetItem( 1 );
-
     if( value->hash() != current->hash() )
     {
         v->SetItem( 1, value );
 
         mDirty = true;
+    }
+    else
+    {
+        PyDecRef( value );
     }
 }
 
