@@ -83,9 +83,9 @@ Client::~Client() {
     PyDecRef( m_destinyUpdateQueue );
 }
 
-bool Client::ProcessNet() {
-
-    if(!Connected())
+bool Client::ProcessNet()
+{
+    if( GetState() != TCPConnection::STATE_CONNECTED )
         return false;
 
     if(m_pingTimer.Check()) {

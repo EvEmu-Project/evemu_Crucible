@@ -593,7 +593,7 @@ void TriToOBJ(const Seperator &command) {
 }
 
 //based on PyString_DecodeEscape from python.
-static bool PyString_DecodeEscape(const char *s, vector<uint8> &result)
+static bool PyString_DecodeEscape(const char *s, std::vector<uint8>& result)
 {
 	int c;
 	const char *end;
@@ -676,8 +676,9 @@ static bool PyString_DecodeEscape(const char *s, vector<uint8> &result)
 
 
 
-void UnmarshalLogText(const Seperator &command) {
-	vector<uint8> result;
+void UnmarshalLogText(const Seperator &command)
+{
+    std::vector<uint8> result;
 	if(!PyString_DecodeEscape(command.argplus[1], result)) {
 		printf("Failed to decode string... trying with what we did get (%lu bytes).\n", result.size());
 	}

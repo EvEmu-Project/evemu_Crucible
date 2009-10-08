@@ -40,7 +40,7 @@ public:
 	EVEClientSession( EVETCPConnection** n );
 	virtual ~EVEClientSession();
 
-    bool Connected() const { return mNet->Connected(); }
+    TCPConnection::state_t GetState() const { return mNet->GetState(); }
 	std::string GetAddress() const { return mNet->GetAddress(); }
 	void Disconnect() { return mNet->Disconnect(); }
 

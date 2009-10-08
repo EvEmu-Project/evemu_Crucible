@@ -20,120 +20,158 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Zhur, Bloody.Rabbit
 */
 
 #ifndef TCPSERVER_H_
 #define TCPSERVER_H_
 
+#include "network/Socket.h"
 #include "threading/Mutex.h"
 
-#define TCPServer_ErrorBufferSize	1024
+/** Size of error buffer BaseTCPServer uses. */
+extern const uint32 TCPSRV_ERRBUF_SIZE;
+/** Time (in milliseconds) between periodical checks of socket for new connections. */
+extern const uint32 TCPSRV_LOOP_GRANULARITY;
 
-//this is the non-connection type specific server.
-class BaseTCPServer {
+/**
+ * @brief Generic class for TCP server.
+ *
+ * @author Zhur, Bloody.Rabbit
+ */
+class BaseTCPServer
+{
 public:
-	BaseTCPServer(int16 iPort = 0);
+    /**
+     * @brief Creates empty TCP server.
+     */
+	BaseTCPServer();
+    /**
+     * @brief Cleans server up.
+     */
 	virtual ~BaseTCPServer();
 
-	bool	Open(int16 iPort = 0, char* errbuf = 0);			// opens the port
-	void	Close();						// closes the port
-	bool	IsOpen();
-	inline int16	GetPort()		{ return pPort; }
-	inline int32	GetNextID() { return NextID++; }
+    /** @return TCP port the server listens on. */
+	uint16  GetPort() const { return mPort; }
+    /** @return True if listening has been opened, false if not. */
+	bool    IsOpen() const;
+
+    /**
+     * @brief Start listening on specified port.
+     *
+     * @param[in]  port   Port on which listening should be started.
+     * @param[out] errbuf Error buffer which receives description of error.
+     *
+     * @return True if listening has been started successfully, false if not.
+     */
+	bool    Open( uint16 port, char* errbuf = 0 );
+    /**
+     * @brief Stops started listening.
+     */
+	void    Close();
 
 protected:
-	static ThreadReturnType TCPServerLoop(void* tmp);
-	
-	//factory method:
-	virtual void CreateNewConnection(int32 ID, SOCKET in_socket, int32 irIP, int16 irPort) = 0;
-	
-	
-	virtual void	Process();
-	bool	RunLoop();
-	Mutex	MLoopRunning;
-	
-	void StopLoopAndWait();
-	
-	void	ListenNewConnections();
+    /**
+     * @brief Starts worker thread.
+     *
+     * This function just starts worker thread; it doesn't check
+     * whether there already is one running!
+     */
+    void            StartLoop();
+    /**
+     * @brief Waits for worker thread to terminate.
+     */
+	void            WaitLoop();
 
-	int32	NextID;
+    /**
+     * @brief Does periodical stuff to keep the server alive.
+     *
+     * @return True if the server should be further processed, false if not (eg. error occurred).
+     */
+    virtual bool    Process();
+    /**
+     * @brief Accepts all new connections.
+     */
+    void            ListenNewConnections();
 
-	Mutex	MRunLoop;
-	bool	pRunLoop;
+    /**
+     * @brief Processes new connection.
+     *
+     * This function must be overloaded by children to process new connections.
+     * Called every time a new connection is accepted.
+     */
+	virtual void    CreateNewConnection( Socket* sock, uint32 rIP, uint16 rPort ) = 0;
 
-	Mutex	MSock;
-	SOCKET	sock;
-	int16	pPort;
+    /**
+     * @brief Loop for worker threads.
+     *
+     * This function only casts arg to BaseTCPServer and calls
+     * member TCPServerLoop().
+     *
+     * @param[in] arg Pointer to BaseTCPServer.
+     */
+	static ThreadReturnType TCPServerLoop( void* arg );
+    /**
+     * @brief Loop for worker threads.
+     */
+    ThreadReturnType        TCPServerLoop();
 
+    /** Mutex to protect socket and associated variables. */
+	mutable Mutex   mMSock;
+    /** Socket used for listening. */
+	Socket*         mSock;
+    /** Port the socket is listening on. */
+	uint16          mPort;
+
+    /** Worker thread acquires this mutex before it starts processing; used for thread synchronization. */
+    mutable Mutex   mMLoopRunning;
 };
 
-template<class T>
-class TCPServer : public BaseTCPServer {
-protected:
-	typedef typename std::vector<T *> vstore;
-	typedef typename std::vector<T *>::iterator vitr;
+/**
+ * @brief Connection-type-dependent version of TCP server.
+ *
+ * @author Zhur, Bloody.Rabbit
+ */
+template<typename X>
+class TCPServer : public BaseTCPServer
+{
 public:
-	TCPServer(int16 iPort = 0)
-	: BaseTCPServer(iPort) {
-	}
-	
-	virtual ~TCPServer() {
-		StopLoopAndWait();
-	
-		//i'm not sure what the right thing to do here is...
-		//we are freeing a connection which somebody likely has a pointer to..
-		//but, we really shouldn't ever get called anyhow..
-		vitr cur, end;
-		cur = m_list.begin();
-		end = m_list.end();
-		for(; cur != end; cur++) {
-			delete *cur;
-		}
-	}
-	
-	T * NewQueuePop() {
-		T * ret = NULL;
-		MNewQueue.lock();
-		if(!m_NewQueue.empty()) {
-			ret = m_NewQueue.front();
-			m_NewQueue.pop();
-		}
-		MNewQueue.unlock();
+    /**
+     * @brief Pops connection from queue.
+     *
+     * @return Popped connection.
+     */
+	X* NewQueuePop()
+    {
+        LockMutex lock( &mMNewQueue );
+
+		X* ret = NULL;
+	    if( !mNewQueue.empty() )
+        {
+		    ret = mNewQueue.front();
+		    mNewQueue.pop();
+	    }
+
 		return ret;
 	}
 	
 protected:
-	virtual void Process() {
-		BaseTCPServer::Process();
-		
-		vitr cur;
-		cur = m_list.begin();
-		while(cur != m_list.end()) {
-			T *data = *cur;
-			if (data->IsFree() && (!data->CheckNetActive())) {
-				delete data;
-				cur = m_list.erase(cur);
-			} else {
-				if (!data->Process())
-					data->Disconnect();
-				cur++;
-			}
-		}
+    /**
+     * @brief Adds connection to the queue.
+     *
+     * @param[in] con Connection to be added to the queue.
+     */
+	void AddConnection( X* con )
+    {
+        LockMutex lock( &mMNewQueue );
+
+        mNewQueue.push( con );
 	}
-	
-	void AddConnection(T *con) {
-		m_list.push_back(con);
-		MNewQueue.lock();
-		m_NewQueue.push(con);
-		MNewQueue.unlock();
-	}
-	
-	//queue of new connections, for the app to pull from
-	Mutex	MNewQueue;
-	std::queue<T *> m_NewQueue;
-	
-	vstore m_list;
+
+    /** Mutex to protect connection queue. */
+	Mutex           mMNewQueue;
+    /** Connection queue. */
+	std::queue<X*>  mNewQueue;
 };
 
 

@@ -30,14 +30,22 @@
 #   define ERRBUF_SIZE 1024
 #endif
 
-int32	ResolveIP(const char* hostname, char* errbuf = 0);
+uint32  ResolveIP(const char* hostname, char* errbuf = 0);
 //bool	ParseAddress(const char* iAddress, int32* oIP, int16* oPort, char* errbuf = 0);
 
 #ifdef WIN32
-class InitWinsock {
+class InitWinsock
+{
 public:
-	InitWinsock();
-	~InitWinsock();
+	InitWinsock()
+    {
+	    WSADATA wsadata;
+	    WSAStartup( MAKEWORD( 1, 1 ), &wsadata );
+    }
+	~InitWinsock()
+    {
+	    WSACleanup();
+    }
 };
 #endif
 

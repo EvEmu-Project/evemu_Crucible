@@ -29,26 +29,21 @@
 #include "marshal/EVEUnmarshal.h"
 #include "network/EVETCPConnection.h"
 
-const uint32 EVE_TCP_CONNECTION_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
-const uint32 EVE_TCP_CONNECTION_MAX_PACKET_LEN = 1000000;
+const uint32 EVETCPCONN_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+const uint32 EVETCPCONN_PACKET_LIMIT = 10485760;
 
 //client side
 EVETCPConnection::EVETCPConnection()
 : TCPConnection(),
-  mTimeoutTimer(EVE_TCP_CONNECTION_TIMEOUT_MS)
+  mTimeoutTimer( EVETCPCONN_TIMEOUT )
 {
 }
 
 //server side case
-EVETCPConnection::EVETCPConnection(int32 ID, SOCKET in_socket, int32 irIP, int16 irPort)
-: TCPConnection(ID, in_socket, irIP, irPort),
-  mTimeoutTimer(EVE_TCP_CONNECTION_TIMEOUT_MS)
+EVETCPConnection::EVETCPConnection( Socket* sock, uint32 rIP, uint16 rPort )
+: TCPConnection( sock, rIP, rPort ),
+  mTimeoutTimer( EVETCPCONN_TIMEOUT )
 {
-}
-
-EVETCPConnection::~EVETCPConnection()
-{
-	//the queues free their content right now I believe.
 }
 
 void EVETCPConnection::QueueRep( const PyRep* rep )
@@ -58,8 +53,8 @@ void EVETCPConnection::QueueRep( const PyRep* rep )
 
     if( buf == NULL )
         sLog.Error( "Network", "Failed to marshal new packet." );
-    else if( length > EVE_TCP_CONNECTION_MAX_PACKET_LEN )
-        sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %u.", length, EVE_TCP_CONNECTION_MAX_PACKET_LEN );
+    else if( length > EVETCPCONN_PACKET_LIMIT )
+        sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %u.", length, EVETCPCONN_PACKET_LIMIT );
     else
         ServerSendQueuePushEnd( (const uint8 *)&length, sizeof( length ), &buf, length );
 
@@ -68,16 +63,15 @@ void EVETCPConnection::QueueRep( const PyRep* rep )
 
 PyRep* EVETCPConnection::PopRep()
 {
-	if( !MInQueue.trylock() )
-		return NULL;
-    StreamPacketizer::Packet* p = InQueue.PopPacket();
-	MInQueue.unlock();
+    mMInQueue.lock();
+    StreamPacketizer::Packet* p = mInQueue.PopPacket();
+	mMInQueue.unlock();
 
     PyRep* res = NULL;
     if( p != NULL )
     {
-        if( p->length > EVE_TCP_CONNECTION_MAX_PACKET_LEN )
-            sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %u.", p->length, EVE_TCP_CONNECTION_MAX_PACKET_LEN );
+        if( p->length > EVETCPCONN_PACKET_LIMIT )
+            sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %u.", p->length, EVETCPCONN_PACKET_LIMIT );
         else
             res = InflateUnmarshal( p->data, p->length );
     }
@@ -86,31 +80,28 @@ PyRep* EVETCPConnection::PopRep()
 	return res;
 }
 
-bool EVETCPConnection::ProcessReceivedData(char* errbuf) {
-	if (errbuf)
+bool EVETCPConnection::ProcessReceivedData( char* errbuf )
+{
+	if( errbuf )
 		errbuf[0] = 0;
-	if (!recvbuf)
+
+	if( mRecvBuf == NULL || mRecvBufSize == 0 || mRecvBufUsed == 0 )
 		return true;
 
-	MInQueue.lock();
-    {
-		mTimeoutTimer.Start();
-		
-		InQueue.InputBytes(recvbuf, recvbuf_used);
-		if(recvbuf_size > 1024) {
-			//if the recvbuf grows too large, kill it off and start over
-			//this is purely an optimization, it could be killed each time or never...
-			SafeDeleteArray(recvbuf);
-			recvbuf_size = 0;
-		}
-		recvbuf_used = 0;
-    }
-	MInQueue.unlock();
-	
-	return true;
+	mTimeoutTimer.Start();
+
+    LockMutex lock( &mMInQueue );
+    // put bytes into packetizer
+    mInQueue.InputBytes( mRecvBuf, mRecvBufUsed );
+
+    // delete recieve queue
+    SafeDelete( mRecvBuf );
+    mRecvBufSize = mRecvBufUsed = 0;
+
+    return true;
 }
 
-bool EVETCPConnection::RecvData(char* errbuf)
+bool EVETCPConnection::RecvData( char* errbuf )
 {
 	if( !TCPConnection::RecvData( errbuf ) )
         return false;
@@ -118,7 +109,7 @@ bool EVETCPConnection::RecvData(char* errbuf)
 	if( mTimeoutTimer.Check() )
     {
 		if( errbuf )
-			snprintf( errbuf, TCPConnection_ErrorBufferSize, "EVETCPConnection::RecvData(): Connection timeout" );
+			snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "EVETCPConnection::RecvData(): Connection timeout" );
 		return false;
 	}
 
@@ -129,12 +120,9 @@ void EVETCPConnection::ClearBuffers()
 {
 	TCPConnection::ClearBuffers();
 
-    MInQueue.lock();
-    {
-	    mTimeoutTimer.Start();
+    mTimeoutTimer.Start();
 
-	    InQueue.ClearBuffers();
-    }
-	MInQueue.unlock();
+    LockMutex lock( &mMInQueue );
+    mInQueue.ClearBuffers();
 }
 

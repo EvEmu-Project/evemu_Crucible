@@ -53,7 +53,7 @@ void EVEClientSession::Reset()
 {
     mPacketHandler = NULL;
 
-    if( !Connected() )
+    if( GetState() != TCPConnection::STATE_CONNECTED )
         // Connection has been lost, there's no point in reset
         return;
 

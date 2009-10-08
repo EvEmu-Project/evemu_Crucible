@@ -395,7 +395,7 @@ void PyBuffer::Dump(FILE *into, const char *pfx) const {
         uint32 len = size();
         uint8 *buf = InflatePacket(content(), &len, true);
         if(buf != NULL) {
-            string p(pfx);
+            std::string p(pfx);
             p += "  ";
             fprintf(into, "%sData buffer contains gzipped data of length %u\n", p.c_str(), len);
             pfxPreviewHexDump(p.c_str(), into, buf, len);
@@ -412,7 +412,7 @@ void PyBuffer::Dump(LogType type, const char *pfx) const {
         uint32 len = size();
         uint8 *buf = InflatePacket(content(), &len, true);
         if(buf != NULL) {
-            string p(pfx);
+            std::string p(pfx);
             p += "  ";
             _log(type, "%sData buffer contains gzipped data of length %u", p.c_str(), len);
             pfxPreviewHexDump(p.c_str(), type, buf, len);

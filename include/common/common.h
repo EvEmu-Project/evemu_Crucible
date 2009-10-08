@@ -119,8 +119,6 @@
 #   include <tr1/unordered_set>
 #endif//WIN32
 
-using namespace std;
-
 /** Visual Studio memory leak detection
   */
 #ifdef WIN32

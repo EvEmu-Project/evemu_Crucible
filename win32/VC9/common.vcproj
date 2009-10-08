@@ -200,6 +200,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\common\network\Socket.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\common\network\StreamPacketizer.cpp"
 					>
 				</File>
@@ -306,11 +310,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\include\common\network\StreamPacketizer.h"
+					RelativePath="..\..\include\common\network\Socket.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\include\common\network\TCPBasicServer.h"
+					RelativePath="..\..\include\common\network\StreamPacketizer.h"
 					>
 				</File>
 				<File
@@ -347,10 +351,6 @@
 				</File>
 				<File
 					RelativePath="..\..\include\common\utils\misc.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\common\utils\queue.h"
 					>
 				</File>
 				<File

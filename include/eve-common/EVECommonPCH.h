@@ -38,6 +38,7 @@
 #include "database/dbtype.h"
 #include "log/logsys.h"
 #include "log/LogNew.h"
+#include "network/Socket.h"
 #include "network/StreamPacketizer.h"
 #include "network/TCPConnection.h"
 #include "network/TCPServer.h"

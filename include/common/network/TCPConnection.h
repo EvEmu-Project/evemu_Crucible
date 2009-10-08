@@ -20,169 +20,230 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Zhur, Bloody.Rabbit
 */
 
 #ifndef TCP_CONNECTION_H
 #define TCP_CONNECTION_H
 
+#include "network/Socket.h"
 #include "threading/Mutex.h"
-#include "utils/queue.h"
 
-class BaseTCPServer;
-class ServerPacket;
+/** Size of error buffer TCPConnection uses. */
+static const uint32 TCPCONN_ERRBUF_SIZE = 1024;
+/** Size limit for receive buffer of TCPConnection. */
+extern const uint32 TCPCONN_RECVBUF_LIMIT;
+/** Time (in milliseconds) between periodical process for incoming/outgoing data. */
+extern const uint32 TCPCONN_LOOP_GRANULARITY;
 
-#define TCPConnection_ErrorBufferSize	1024
-#define MaxTCPReceiveBufferSize			524288
-
-
-#ifndef DEF_eConnectionType
-#   define DEF_eConnectionType
-enum eConnectionType
-{
-    Incoming,
-    Outgoing
-};
-#endif
-
-
+/**
+ * @brief Generic class for TCP connections.
+ *
+ * @author Zhur, Bloody.Rabbit
+ */
 class TCPConnection
 {
-	friend class BaseTCPServer;
-protected:
-	typedef enum {
-		TCPS_Ready = 0,
-		TCPS_Connecting = 1,
-		TCPS_Connected = 100,
-		TCPS_Disconnecting = 200,	//I do not know the difference between Disconnecting and Closing
-		TCPS_Disconnected = 201,
-		TCPS_Closing = 250,
-		TCPS_Error = 255
-	} State_t;
-	
 public:
-	//socket created by a server (incoming)
-	TCPConnection(int32 ID, SOCKET iSock, int32 irIP, int16 irPort);
-	//socket created to connect to a server (outgoing)
-	TCPConnection();	// for outgoing connections
-	
+    /** Describes all states this object may be in. */
+	enum state_t
+    {
+		STATE_DISCONNECTED, /**< No connection. */
+		STATE_CONNECTING,   /**< Connection pending (asynchronous connection). */
+		STATE_CONNECTED,    /**< Connection established, transferring data. */
+		STATE_DISCONNECTING /**< Disconnect pending, waiting for all data to be sent. */
+    };
+
+    /**
+     * @brief Creates new connection in STATE_DISCONNECTED.
+     */
+	TCPConnection();
+    /**
+     * @brief Cleans connection up.
+     */
 	virtual ~TCPConnection();
-	
-	// Functions for outgoing connections
-	bool			Connect(const char* irAddress, int16 irPort, char* errbuf = 0);
-	virtual bool	ConnectIP(int32 irIP, int16 irPort, char* errbuf = 0);
-	void			AsyncConnect(const char* irAddress, int16 irPort);
-	void			AsyncConnect(int32 irIP, int16 irPort);
-	virtual void	Disconnect();
 
-	bool			Send(const uint8* data, int32 size);
-	
-	char*			PopLine();		//returns ownership of allocated byte array
-	inline int32	GetrIP()		const	{ return rIP; }
-	inline int16	GetrPort()		const	{ return rPort; }
-	
+    /** @return Remote IP. */
+	uint32          GetrIP() const	 { return mrIP; }
+    /** @return Remote port. */
+	uint16          GetrPort() const { return mrPort; }
 	/**
-	 * \brief GetAddress returns a string containing the ip and the port number
-	 *
-	 * @return std::string ip and port address.
-	 * @note its kinda slow this way.
+	 * @return String in format "<remote_address>:<remote_port>".
+     *
+     * @note It's kinda slow this way.
 	 */
-	std::string		GetAddress()
-	{
-		/* "The Matrix is a system, 'Neo'. That system is our enemy. But when you're inside, you look around, what do you see?"
-		* @note Aim I'm sorry :'( but I don't think this is cross platform compatible.
-		*/
-		uint8 *addr = (uint8*)&rIP;
-		uint16 port = *(uint16*)&rPort;
+	std::string		GetAddress();
+    /** @return Current state of connection. */
+	state_t         GetState() const;
 
-		char address[22];
-		int len = snprintf(address, 22, "%u.%u.%u.%u:%d", addr[0], addr[1],addr[2],addr[3], port);
+    /**
+     * @brief Connects to specified address.
+     *
+     * This function does synchronous connect, ie. blocks calling thread
+     * until connect either succeeds or fails. Benefit is that outcome
+     * of connect is known immediately.
+     *
+     * @param[in]  rIP    Target remote IP address.
+     * @param[in]  rPort  Target remote TCP port.
+     * @param[out] errbuf String buffer which receives error desription.
+     *
+     * @return True if connection succeeds, false if not.
+     */
+	bool            Connect( uint32 rIP, uint16 rPort, char* errbuf = 0 );
+    /**
+     * @brief Schedules asynchronous connect to specified address.
+     *
+     * This function does asynchronous connect, ie. does not block
+     * calling thread at all. However, result of connect is not
+     * known immediately.
+     *
+     * @param[in] rIP   Target remote IP address.
+     * @param[in] rPort Target remote TCP port.
+     */
+	void            AsyncConnect( uint32 rIP, uint16 rPort );
+    /**
+     * @brief Schedules disconnect of current connection.
+     *
+     * Connection will be closed as soon as possible. Note that
+     * this may take some time since we wait for emptying send
+     * queue before actually disconnecting.
+     */
+	void            Disconnect();
 
-		/* snprintf will return < 0 when a error occurs so return NULL */
-		if (len < 0)
-			return NULL;
-		return address;
-	}	
-
-	virtual State_t	GetState() const;
-	inline bool		Connected()	const	{ return (GetState() == TCPS_Connected); }
-	bool			ConnectReady() const;
-	void			Free();		// Inform TCPServer that this connection object is no longer referanced
-
-	inline int32	GetID()	const		{ return id; }
-
-	bool			GetEcho();
-	void			SetEcho(bool iValue);
-	bool GetSockName(char *host, uint16 *port);
+    /**
+     * @brief Enqueues data to be sent.
+     *
+     * @param[in] data Pointer to data.
+     * @param[in] size Size of data.
+     *
+     * @return True if data has been accepted, false if not.
+     */
+	bool			Send( const uint8* data, uint32 size );
 	
-	//should only be used by TCPServer<T>:
-	bool			CheckNetActive();
-	inline bool		IsFree() const { return pFree; }
-	virtual bool	Process();
-
 protected:
-	void			SetState(State_t iState);
+    /**
+     * @brief Creates connection from an existing socket.
+     *
+     * @param[in] sock  Socket to be used for connection.
+     * @param[in] rIP   Remote IP socket is connected to.
+     * @param[in] rPort Remote TCP port socket is connected to.
+     */
+	TCPConnection( Socket* sock, uint32 rIP, uint16 rPort );
 
-	static ThreadReturnType TCPConnectionLoop(void* tmp);
-//	SOCKET			sock;
-	bool			RunLoop();
-	Mutex			MLoopRunning;
-	Mutex	MAsyncConnect;
-	bool	GetAsyncConnect();
-	bool	SetAsyncConnect(bool iValue);
-	char*	charAsyncConnect;
-	bool	pAsyncConnect;	//this flag should really be turned into a state instead.
+    /**
+     * @brief Sets current state to the given one.
+     *
+     * @param[in] state State to be switched to.
+     */
+	void			SetState( state_t state );
 
-	virtual bool ProcessReceivedData(char* errbuf = 0);
-	virtual bool SendData(bool &sent_something, char* errbuf = 0);
-	virtual bool RecvData(char* errbuf = 0);
-	virtual int _doConnect(int fd, struct sockaddr_in *addr, int addr_len);
-	
-	virtual void ClearBuffers();
+    /**
+     * @brief Starts working thread.
+     *
+     * This function just starts a thread, does not check
+     * whether there is already one running!
+     */
+    void            StartLoop();
+    /**
+     * @brief Blocks calling thread until working thread terminates.
+     */
+    void            WaitLoop();
 
-	
-	bool m_previousLineEnd;
+    /**
+     * @brief Does all stuff that needs to be periodically done to keep connection alive.
+     *
+     * @return True if connection should be further processed, false if not (eg. error, disconnected).
+     */
+	virtual bool    Process();
+    /**
+     * @brief Processes received data.
+     *
+     * This function must be overloaded by children to process received data.
+     * Called every time a chunk of new data is received.
+     *
+     * @return True if processing ran fine, false if not.
+     */
+	virtual bool    ProcessReceivedData( char* errbuf = 0 ) = 0;
 
-	eConnectionType	ConnectionType;
-	Mutex	MRunLoop;
-	bool	pRunLoop;
+    /**
+     * @brief Sends data in send queue.
+     *
+     * @param[out] send_something This variable is set to true if anything has been sent, false otherwise.
+     * @param[out] errbuf         Buffer which receives desription of error.
+     *
+     * @return True if send was OK, false if not.
+     */
+	virtual bool    SendData( bool& sent_something, char* errbuf = 0 );
+    /**
+     * @brief Receives data and puts them into receive queue.
+     *
+     * @param[out] errbuf Buffer which receives description of error.
+     *
+     * @return True if receive was OK, false if not.
+     */
+	virtual bool    RecvData( char* errbuf = 0 );
+    /**
+     * @brief Disconnects socket.
+     */
+	void            DoDisconnect();
 
-	SOCKET	connection_socket;
-	int32	id;
-	int32	rIP;
-	int16	rPort; // host byte order
-	bool	pFree;
-	
-	mutable Mutex	MState;
-	State_t	pState;
-	
-	//text based line out queue.
-	Mutex MLineOutQueue;
-	virtual bool	LineOutQueuePush(char* line);	//this is really kinda a hack for the transition to packet mode. Returns true to stop processing the output.
-	MyQueue<char> LineOutQueue;
-	
-	uint8*	recvbuf;
-	int32	recvbuf_size;
-	int32	recvbuf_used;
-	
-	int32	recvbuf_echo;
-	volatile bool	pEcho;
-	
-	Mutex	MSendQueue;
-	uint8*	sendbuf;
-	int32	sendbuf_size;
-	int32	sendbuf_used;
-	bool	ServerSendQueuePop(uint8** data, int32* size);
-	bool	ServerSendQueuePopForce(uint8** data, int32* size);		//does a lock() instead of a trylock()
-	
-	void	ServerSendQueuePushEnd(const uint8* head_data, int32 head_size, const uint8* data, int32 size);
-	void	ServerSendQueuePushEnd(const uint8* data, int32 size);
-	void	ServerSendQueuePushEnd(const uint8* head_data, int32 head_size, uint8** data, int32 size);
-	void	ServerSendQueuePushEnd(uint8** data, int32 size);
-	void	ServerSendQueuePushFront(uint8* data, int32 size);
-	
-private:
-	void FinishDisconnect();
+    /**
+     * @brief Clears send and receive buffers.
+     */
+	virtual void    ClearBuffers();
+
+    /**
+     * @brief Loop for worker threads.
+     *
+     * This function just casts given arg into TCPConnection and calls
+     * member TCPConnectionLoop.
+     *
+     * @param[in] arg Pointer to TCPConnection.
+     */
+	static ThreadReturnType TCPConnectionLoop( void* arg );
+    /**
+     * @brief Loop for worker threads.
+     */
+    ThreadReturnType        TCPConnectionLoop();
+
+    /** Protection of socket and associated variables. */
+    mutable Mutex   mMSock;
+    /** Socket for connection. */
+    Socket*         mSock;
+    /** State the socket is in. */
+	state_t         mSockState;
+    /** Remote IP the socket is connected to. */
+	uint32          mrIP;
+    /** Remote TCP port the socket is connected to; is in host byte order. */
+	uint16          mrPort;
+
+    /** When a thread is running TCPConnectionLoop, it acquires this mutex first; used for synchronization. */
+    mutable Mutex   mMLoopRunning;
+
+	void	        ServerSendQueuePushFront( const uint8* data, uint32 size );
+
+    void	        ServerSendQueuePushEnd( const uint8* head_data, uint32 head_size, const uint8* data, uint32 size );
+	void	        ServerSendQueuePushEnd( const uint8* head_data, uint32 head_size, uint8** data, uint32 size );
+	void	        ServerSendQueuePushEnd( const uint8* data, uint32 size );
+	void	        ServerSendQueuePushEnd( uint8** data, uint32 size );
+
+	bool	        ServerSendQueuePop( uint8** data, uint32* size );
+	bool	        ServerSendQueuePopForce( uint8** data, uint32* size );		//does a lock() instead of a trylock()
+
+    /** Mutex protecting send queue. */
+	mutable Mutex   mMSendQueue;
+    /** Send queue. */
+	uint8*          mSendBuf;
+    /** Send queue allocated size. */
+	uint32          mSendBufSize;
+    /** Send queue used size. */
+	uint32          mSendBufUsed;
+
+    /** Receive queue. */
+	uint8*          mRecvBuf;
+    /** Receive queue allocated size. */
+	uint32          mRecvBufSize;
+    /** Receive queue used size. */
+	uint32          mRecvBufUsed;
 };
 
 

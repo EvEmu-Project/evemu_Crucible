@@ -13,9 +13,10 @@ libcommon_a_SOURCES = \
 	log/logtypes.h \
 	network/NetUtils.cpp \
 	network/NetUtils.h \
+	network/Socket.cpp \
+	network/Socket.h \
 	network/StreamPacketizer.cpp \
 	network/StreamPacketizer.h \
-	network/TCPBasicServer.h \
 	network/TCPConnection.cpp \
 	network/TCPConnection.h \
 	network/TCPServer.cpp \
@@ -29,7 +30,6 @@ libcommon_a_SOURCES = \
 	utils/gpoint.h \
 	utils/misc.cpp \
 	utils/misc.h \
-	utils/queue.h \
 	utils/RefPtr.h \
 	utils/seperator.h \
 	utils/timer.cpp \

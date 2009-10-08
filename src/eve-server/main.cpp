@@ -25,8 +25,8 @@
 
 #include "EVEServerPCH.h"
 
-static void CatchSignal(int sig_num);
-static bool InitSignalHandlers();
+static void InitSignalHandlers();
+static void CatchSignal( int sig_num );
 
 // Global hooks
 DBcore* pDatabase;
@@ -35,9 +35,9 @@ MarshalStringTable* pMarshalStringTable;
 
 static volatile bool RunLoops = true;
 
-int main(int argc, char *argv[]) {
-
-    printf("Copyright (C) 2006-2009 Evemu Team. http://evemu.mmoforge.org/\n");
+int main(int argc, char *argv[])
+{
+    printf("Copyright (C) 2006-2009 EVEmu Team. http://evemu.mmoforge.org/\n");
     printf("This program is free software; you can redistribute it and/or modify it under\n");
     printf("the terms of the GNU Lesser General Public License as published by the Free \n");
     printf("Software Foundation; either version 2 of the License, or (at your option) any\n");
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     pMarshalStringTable = new MarshalStringTable;
 
     sLog.Log("main", "EVEmu %s", EVEMU_REVISION );
-    sLog.Log("server init", "\n\tSupported Client: %s\n\tVersion %.2f\n\tBuild %d\n\tMachoNet %d",
+    sLog.Log("server init", "\n\tSupported Client: %s\n\tVersion %.2f\n\tBuild %d\n\tMachoNet %u",
         EVEProjectVersion, EVEVersionNumber, EVEBuildVersion, MachoNetVersion);
 
     //it is important to do this before doing much of anything, in case they use it.
@@ -115,14 +115,14 @@ int main(int argc, char *argv[]) {
     //Start up the TCP server
     EVETCPServer tcps;
 
-    char errbuf[TCPConnection_ErrorBufferSize];
-    if (tcps.Open(sConfig.server.port, errbuf))
+    char errbuf[ TCPCONN_ERRBUF_SIZE ];
+    if( tcps.Open( sConfig.server.port, errbuf ) )
     {
-        sLog.Success("server init", "TCP listener started on port %d.", sConfig.server.port);
+        sLog.Success("server init", "TCP listener started on port %u.", sConfig.server.port);
     }
     else
     {
-        sLog.Error("server init", "Failed to start TCP listener on port %d:\n\t%s", sConfig.server.port, errbuf);
+        sLog.Error("server init", "Failed to start TCP listener on port %u:\n\t%s", sConfig.server.port, errbuf);
         return 1;
     }
 
@@ -209,16 +209,15 @@ int main(int argc, char *argv[]) {
      */
 
     /* program events system */
-    if(InitSignalHandlers() == false)
-        return 1;
+    InitSignalHandlers();
 
     uint32 start;
     uint32 etime;
     uint32 last_time = GetTickCount();
     uint32 server_main_loop_delay = 10; // delay 10 ms.
 
-    EVETCPConnection *tcpc;
-    while(RunLoops == true)
+    EVETCPConnection* tcpc;
+    while( RunLoops == true )
     {
         Timer::SetCurrentTime();
         start = GetTickCount();
@@ -227,8 +226,6 @@ int main(int argc, char *argv[]) {
         //timeout_manager.CheckTimeouts();
         while( ( tcpc = tcps.NewQueuePop() ) )
         {
-            std::string connectionAddress = tcpc->GetAddress();
-            //printf("New TCP connection from %s\n", connectionAddress.c_str());
             Client* c = new Client( services, &tcpc );
 
             entity_list.Add( &c );
@@ -246,13 +243,14 @@ int main(int argc, char *argv[]) {
             Sleep( server_main_loop_delay - etime );
 
         /* slow crap as hell */
-        pLog->SetTime(time(NULL));
+        pLog->SetTime( time(NULL) );
     }
 
     sLog.Log("server shutdown", "Main loop stopped" );
-    sLog.Log("server shutdown", "TCP listener stopped." );
 
     tcps.Close();
+
+    sLog.Log("server shutdown", "TCP listener stopped." );
 
     services.serviceDB().SetServerOnlineStatus(false);
 
@@ -264,7 +262,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-static bool InitSignalHandlers()
+static void InitSignalHandlers()
 {
     signal( SIGINT, CatchSignal );
     signal( SIGTERM, CatchSignal );
@@ -275,10 +273,11 @@ static bool InitSignalHandlers()
 #else
     signal( SIGHUP, CatchSignal );
 #endif
-    return true;
 }
 
-static void CatchSignal(int sig_num) {
-    sLog.Log("Signal system", "Caught signal: %d\n", sig_num);
+static void CatchSignal( int sig_num )
+{
+    sLog.Log( "Signal system", "Caught signal: %d", sig_num );
+
     RunLoops = false;
 }

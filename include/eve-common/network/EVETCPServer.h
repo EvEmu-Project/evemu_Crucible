@@ -28,21 +28,17 @@
 
 #include "network/EVETCPConnection.h"
 
+/**
+ * @brief EVE derivation of TCP server.
+ *
+ * @author Zhur
+ */
 class EVETCPServer : public TCPServer<EVETCPConnection>
 {
-public:
-	EVETCPServer( int16 iPort = 0 )
-    : TCPServer<EVETCPConnection>( iPort )
-    {
-    }
-	
 protected:
-	//virtual void	Process();
-	
-	//factory method, really should be redone!
-	virtual void CreateNewConnection(int32 ID, SOCKET in_socket, int32 irIP, int16 irPort)
+	virtual void CreateNewConnection( Socket* sock, uint32 rIP, uint16 rPort )
     {
-	    AddConnection( new EVETCPConnection(ID, in_socket, irIP, irPort) );
+	    AddConnection( new EVETCPConnection( sock, rIP, rPort ) );
     }
 };
 #endif /*EVETCPSERVER_H_*/

@@ -27,40 +27,37 @@
 
 #include "network/NetUtils.h"
 
-int32 ResolveIP(const char* hostname, char* errbuf) {
+uint32 ResolveIP(const char* hostname, char* errbuf) {
 #ifdef WIN32
 	static InitWinsock ws;
 #endif
-	if (errbuf)
+	if( errbuf )
 		errbuf[0] = 0;
-	if (hostname == 0) {
-		if (errbuf)
-			snprintf(errbuf, ERRBUF_SIZE, "ResolveIP(): hostname == 0");
+
+	if( hostname == NULL )
+    {
+		if( errbuf )
+			snprintf(errbuf, ERRBUF_SIZE, "ResolveIP(): hostname == NULL");
 		return 0;
 	}
-    struct sockaddr_in	server_sin;
+
+    hostent* phostent = gethostbyname( hostname );
+	if( phostent == NULL)
+    {
 #ifdef WIN32
-	PHOSTENT phostent = NULL;
+		if( errbuf )
+			snprintf( errbuf, ERRBUF_SIZE, "Unable to get the host name. Error: %i", WSAGetLastError() );
 #else
-	struct hostent *phostent = NULL;
-#endif
-	server_sin.sin_family = AF_INET;
-	if ((phostent = gethostbyname(hostname)) == NULL) {
-#ifdef WIN32
-		if (errbuf)
-			snprintf(errbuf, ERRBUF_SIZE, "Unable to get the host name. Error: %i", WSAGetLastError());
-#else
-		if (errbuf)
-			snprintf(errbuf, ERRBUF_SIZE, "Unable to get the host name. Error: %s", strerror(errno));
+		if( errbuf )
+			snprintf( errbuf, ERRBUF_SIZE, "Unable to get the host name. Error: %s", strerror( errno ) );
 #endif
 		return 0;
 	}
-#ifdef WIN32
-	memcpy ((char FAR *)&(server_sin.sin_addr), phostent->h_addr, phostent->h_length);
-#else
-	memcpy ((char*)&(server_sin.sin_addr), phostent->h_addr, phostent->h_length);
-#endif
-	return server_sin.sin_addr.s_addr;
+
+    in_addr addr;
+	memcpy( &addr, phostent->h_addr, phostent->h_length );
+
+	return addr.s_addr;
 }
 
 /*bool ParseAddress(const char* iAddress, int32* oIP, int16* oPort, char* errbuf) {
@@ -76,15 +73,3 @@ int32 ResolveIP(const char* hostname, char* errbuf) {
 	return false;
 }*/
 
-#ifdef WIN32
-InitWinsock::InitWinsock() {
-	WORD version = MAKEWORD (1,1);
-	WSADATA wsadata;
-	WSAStartup (version, &wsadata);
-}
-
-InitWinsock::~InitWinsock() {
-	WSACleanup();
-}
-
-#endif

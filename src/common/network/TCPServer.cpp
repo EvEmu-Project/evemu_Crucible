@@ -28,235 +28,226 @@
 #include "network/TCPServer.h"
 #include "log/LogNew.h"
 
-#define SERVER_LOOP_GRANULARITY 3	//# of ms between checking our socket/queues
+const uint32 TCPSRV_ERRBUF_SIZE = 1024;
+const uint32 TCPSRV_LOOP_GRANULARITY = 5;
 
-BaseTCPServer::BaseTCPServer(int16 in_port) {
-	NextID = 1;
-	pPort = in_port;
-	sock = 0;
-	pRunLoop = true;
-#ifdef WIN32
-	_beginthread( BaseTCPServer::TCPServerLoop, 0, this );
-#else
-	pthread_t thread;
-	pthread_create(&thread, NULL, &BaseTCPServer::TCPServerLoop, this);
-#endif
+BaseTCPServer::BaseTCPServer()
+: mSock( NULL ),
+  mPort( 0 )
+{
 }
 
 BaseTCPServer::~BaseTCPServer()
 {
-	StopLoopAndWait();
+    // Close socket
+	Close();
+
+    // Wait until worker thread terminates
+    WaitLoop();
 }
 
-void BaseTCPServer::StopLoopAndWait() {
-	MRunLoop.lock();
-	if(pRunLoop)
-    {
-		pRunLoop = false;
-		MRunLoop.unlock();
-		//wait for loop to stop.
-		MLoopRunning.lock();
-		MLoopRunning.unlock();
-	}
-    else
-    {
-		MRunLoop.unlock();
-	}
-}
+bool BaseTCPServer::IsOpen() const
+{
+    bool ret;
 
-bool BaseTCPServer::RunLoop() {
-	bool ret;
-	MRunLoop.lock();
-	ret = pRunLoop;
-	MRunLoop.unlock();
+	mMSock.lock();
+	ret = ( mSock != NULL );
+	mMSock.unlock();
+
 	return ret;
 }
 
-ThreadReturnType BaseTCPServer::TCPServerLoop( void* tmp )
+bool BaseTCPServer::Open( uint16 port, char* errbuf )
+{
+	if( errbuf != NULL )
+		errbuf[0] = 0;
+
+	// mutex lock
+	LockMutex lock( &mMSock );
+
+	if( IsOpen() ) 
+	{
+		if( errbuf != NULL )
+			snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "Listening socket already open" );
+		return false;
+	}
+    else
+    {
+        mMSock.unlock();
+
+        // Wait for thread to terminate
+        WaitLoop();
+
+        mMSock.lock();
+    }
+
+//	Setting up TCP port for new TCP connections
+	mSock = new Socket( AF_INET, SOCK_STREAM, 0 );
+
+// Quag: don't think following is good stuff for TCP, good for UDP
+// Mis: SO_REUSEADDR shouldn't be a problem for tcp--allows you to restart
+// without waiting for conn's in TIME_WAIT to die
+	unsigned int reuse_addr = 1;
+	mSock->setopt( SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof( reuse_addr ) );
+
+//	Setup internet address information.  
+//	This is used with the bind() call
+	sockaddr_in address;
+	memset( &address, 0, sizeof( address ) );
+
+	address.sin_family = AF_INET;
+	address.sin_port = htons( port );
+	address.sin_addr.s_addr = htonl( INADDR_ANY );
+
+	if( mSock->bind( (sockaddr*)&address, sizeof( address ) ) < 0 )
+    {
+		if( errbuf != NULL )
+			sprintf( errbuf, "bind(): < 0" );
+
+        SafeDelete( mSock );
+		return false;
+	}
+
+	unsigned int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
+	mSock->setopt( SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof( bufsize ) );
+
+#ifdef WIN32
+	unsigned long nonblocking = 1;
+	mSock->ioctl( FIONBIO, &nonblocking );
+#else
+	mSock->fcntl( F_SETFL, O_NONBLOCK );
+#endif
+
+	if( mSock->listen() == SOCKET_ERROR )
+    {
+#ifdef WIN32
+		if( errbuf != NULL )
+			snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "listen() failed, Error: %u", WSAGetLastError() );
+#else
+		if( errbuf != NULL )
+			snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "listen() failed, Error: %s", strerror( errno ) );
+#endif
+
+        SafeDelete( mSock );
+		return false;
+	}
+
+    mPort = port;
+
+    // Start processing thread
+    StartLoop();
+
+	return true;
+}
+
+void BaseTCPServer::Close()
+{
+	LockMutex lock( &mMSock );
+
+    SafeDelete( mSock );
+    mPort = 0;
+}
+
+void BaseTCPServer::StartLoop()
 {
 #ifdef WIN32
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
+	_beginthread( BaseTCPServer::TCPServerLoop, 0, this );
+#else
+	pthread_t thread;
+	pthread_create( &thread, NULL, &BaseTCPServer::TCPServerLoop, this );
 #endif
-	if ( tmp == NULL ) {
-        sLog.Error("Base TCP", "tmp == NULL");
-		THREAD_RETURN(NULL);
-	}
-	BaseTCPServer* tcps = (BaseTCPServer*) tmp;
-	
-#ifndef WIN32
-    sLog.Log("Threading", "Starting TCPServerLoop with thread ID %d", pthread_self());
-#endif//WIN32
+}
 
-	uint32 start;
+void BaseTCPServer::WaitLoop()
+{
+	//wait for loop to stop.
+	mMLoopRunning.lock();
+	mMLoopRunning.unlock();
+}
+
+bool BaseTCPServer::Process()
+{
+    LockMutex lock( &mMSock );
+
+    if( !IsOpen() )
+        return false;
+
+	ListenNewConnections();
+    return true;
+}
+
+void BaseTCPServer::ListenNewConnections()
+{
+    Socket*         sock;
+    sockaddr_in     from;
+    unsigned int    fromlen;
+    
+    from.sin_family = AF_INET;
+    fromlen = sizeof( from );
+
+	LockMutex lock( &mMSock );
+
+	// Check for pending connects
+	while( ( sock = mSock->accept( (sockaddr*)&from, &fromlen ) ) != NULL )
+    {
+#ifdef WIN32
+    	unsigned long nonblocking = 1;
+		sock->ioctl( FIONBIO, &nonblocking );
+#else
+		sock->fcntl( F_SETFL, O_NONBLOCK );
+#endif /* !WIN32 */
+
+		unsigned int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
+		sock->setopt( SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof( bufsize ) );
+
+		// New TCP connection, this must consume the socket.
+		CreateNewConnection( sock, from.sin_addr.s_addr, ntohs( from.sin_port ) );
+	}
+}
+
+ThreadReturnType BaseTCPServer::TCPServerLoop( void* arg )
+{
+	BaseTCPServer* tcps = reinterpret_cast<BaseTCPServer*>( arg );
+    assert( tcps != NULL );
+
+    return tcps->TCPServerLoop();
+}
+
+ThreadReturnType BaseTCPServer::TCPServerLoop()
+{
+#ifdef WIN32
+	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL );
+#endif
+
+#ifndef WIN32
+    sLog.Log( "Threading", "Starting TCPServerLoop with thread ID %d", pthread_self() );
+#endif
+
+	mMLoopRunning.lock();
+
+	uint32 start = GetTickCount();
 	uint32 etime;
-	uint32 last_time = GetTickCount();
-	tcps->MLoopRunning.lock();
-	while (tcps->RunLoop())
+	uint32 last_time;
+
+	while( Process() )
 	{
-		start = GetTickCount();
-		tcps->Process();
 		/* UPDATE */
 		last_time = GetTickCount();
 		etime = last_time - start;
 
 		// do the stuff for thread sleeping
-		if( SERVER_LOOP_GRANULARITY > etime )
-			Sleep( SERVER_LOOP_GRANULARITY - etime );
+		if( TCPSRV_LOOP_GRANULARITY > etime )
+			Sleep( TCPSRV_LOOP_GRANULARITY - etime );
+
+		start = GetTickCount();
 	}
-	tcps->MLoopRunning.unlock();
+
+	mMLoopRunning.unlock();
 	
 #ifndef WIN32
-    sLog.Log("Threading", "Ending TCPServerLoop with thread ID %d", pthread_self());
-#endif//WIN32
+    sLog.Log( "Threading", "Ending TCPServerLoop with thread ID %d", pthread_self() );
+#endif
 	
-	THREAD_RETURN(NULL);
+	THREAD_RETURN( NULL );
 }
 
-void BaseTCPServer::Process()
-{
-	ListenNewConnections();
-}
-
-void BaseTCPServer::ListenNewConnections() {
-    SOCKET tmpsock;
-    struct sockaddr_in	from;
-    struct in_addr	in;
-    unsigned int	fromlen;
-    unsigned short	port;
-    
-    from.sin_family = AF_INET;
-    fromlen = sizeof(from);
-	LockMutex lock(&MSock);
-	if (!sock)
-		return;
-
-	// Check for pending connects
-#ifdef WIN32
-	unsigned long nonblocking = 1;
-	while ((tmpsock = accept(sock, (struct sockaddr*) &from, (int *) &fromlen)) != INVALID_SOCKET) {
-		ioctlsocket (tmpsock, FIONBIO, &nonblocking);
-#else
-#ifdef __CYGWIN__
-	while ((tmpsock = accept(sock, (struct sockaddr *) &from, (int *) &fromlen)) != INVALID_SOCKET) {
-#else
-	while ((tmpsock = accept(sock, (struct sockaddr*) &from, &fromlen)) != INVALID_SOCKET) {
-#endif
-		fcntl(tmpsock, F_SETFL, O_NONBLOCK);
-#endif
-		int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
-		setsockopt(tmpsock, SOL_SOCKET, SO_RCVBUF, (char*) &bufsize, sizeof(bufsize));
-		port = from.sin_port;
-		in.s_addr = from.sin_addr.s_addr;
-		
-		// New TCP connection, this must consume the socket.
-		CreateNewConnection(GetNextID(), tmpsock, in.s_addr, ntohs(from.sin_port));
-	}
-}
-
-bool BaseTCPServer::Open(int16 in_port, char* errbuf) {
-	
-	if (errbuf != NULL)
-	{
-		errbuf[0] = 0;
-	}
-
-	// mutex lock
-	LockMutex lock(&MSock);
-	if (sock != 0) 
-	{
-		if (errbuf != NULL)
-		{
-			snprintf(errbuf, TCPServer_ErrorBufferSize, "Listening socket already open");
-		}
-		return false;
-	}
-
-	if (in_port != 0) {
-		pPort = in_port;
-	}
-
-#ifdef WIN32
-	SOCKADDR_IN address;
-	unsigned long nonblocking = 1;
-#else
-	struct sockaddr_in address;
-#endif
-	int reuse_addr = 1;
-
-//	Setup internet address information.  
-//	This is used with the bind() call
-	memset((char *) &address, 0, sizeof(address));
-	address.sin_family = AF_INET;
-	address.sin_port = htons(pPort);
-	address.sin_addr.s_addr = htonl(INADDR_ANY);
-
-//	Setting up TCP port for new TCP connections
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == INVALID_SOCKET) {
-		if (errbuf)
-			snprintf(errbuf, TCPServer_ErrorBufferSize, "socket(): INVALID_SOCKET");
-		return false;
-	}
-
-// Quag: don't think following is good stuff for TCP, good for UDP
-// Mis: SO_REUSEADDR shouldn't be a problem for tcp--allows you to restart
-// without waiting for conn's in TIME_WAIT to die
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &reuse_addr, sizeof(reuse_addr));
-
-	if (bind(sock, (struct sockaddr *) &address, sizeof(address)) < 0) {
-#ifdef WIN32
-		closesocket(sock);
-#else
-		close(sock);
-#endif
-		sock = 0;
-		if (errbuf)
-			sprintf(errbuf, "bind(): <0");
-		return false;
-	}
-
-	int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
-	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char*) &bufsize, sizeof(bufsize));
-#ifdef WIN32
-	ioctlsocket (sock, FIONBIO, &nonblocking);
-#else
-	fcntl(sock, F_SETFL, O_NONBLOCK);
-#endif
-
-	if (listen(sock, SOMAXCONN) == SOCKET_ERROR) {
-#ifdef WIN32
-		closesocket(sock);
-		if (errbuf)
-			snprintf(errbuf, TCPServer_ErrorBufferSize, "listen() failed, Error: %d", WSAGetLastError());
-#else
-		close(sock);
-		if (errbuf)
-			snprintf(errbuf, TCPServer_ErrorBufferSize, "listen() failed, Error: %s", strerror(errno));
-#endif
-		sock = 0;
-		return false;
-	}
-
-	return true;
-}
-
-void BaseTCPServer::Close() {
-	StopLoopAndWait();
-	
-	LockMutex lock(&MSock);
-	if (sock) {
-#ifdef WIN32
-		closesocket(sock);
-#else
-		close(sock);
-#endif
-	}
-	sock = 0;
-}
-
-bool BaseTCPServer::IsOpen() {
-	MSock.lock();
-	bool ret = (bool) (sock != 0);
-	MSock.unlock();
-	return ret;
-}

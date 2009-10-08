@@ -27,37 +27,63 @@
 #define EVETCPCONNECTION_H_
 
 class PyRep;
+class EVETCPServer;
 
-//not sure what we should set this to, I think the client does some sort of keep alive...
-extern const uint32 EVE_TCP_CONNECTION_TIMEOUT_MS;
-//this is a limit hard coded in the eve client! (NetClient.dll)
-extern const uint32 EVE_TCP_CONNECTION_MAX_PACKET_LEN;
+/** Time (in milliseconds) after which the connection is dropped if no data were received. */
+extern const uint32 EVETCPCONN_TIMEOUT;
+/** Hardcoded limit of packet size (NetClient.dll) */
+extern const uint32 EVETCPCONN_PACKET_LIMIT;
 
-class EVETCPConnection : public TCPConnection {
+/**
+ * @brief EVE derivation of TCP connection.
+ *
+ * @author Zhur, Bloody.Rabbit
+ */
+class EVETCPConnection : public TCPConnection
+{
+    friend class EVETCPServer;
 public:
+    /**
+     * @brief Creates empty EVE connection.
+     */
 	EVETCPConnection();
-	EVETCPConnection(int32 ID, SOCKET iSock, int32 irIP, int16 irPort);
-	virtual ~EVETCPConnection();
 
-	//outgoing...
+    /**
+     * @brief Queues given PyRep into send queue.
+     *
+     * @param[in] rep PyRep to be queued.
+     */
 	void    QueueRep( const PyRep* rep );
 
-	//incoming
+    /**
+     * @brief Pops PyRep from receive queue.
+     *
+     * @return Popped PyRep; NULL if nothing was received.
+     */
 	PyRep*  PopRep();
 
 protected:
-	virtual bool RecvData(char* errbuf = 0);
+    /**
+     * @brief Creates new EVE connection from existing socket.
+     *
+     * @param[in] sock  Socket to be used for connection.
+     * @param[in] rIP   Remote IP the socket is connected to.
+     * @param[in] rPort Remote TCP port the socket is connected to.
+     */
+	EVETCPConnection( Socket* sock, uint32 rIP, uint16 rPort );
 
-	//overload incoming
-	virtual bool ProcessReceivedData(char* errbuf = 0);
+	virtual bool RecvData( char* errbuf = 0 );
+	virtual bool ProcessReceivedData( char* errbuf = 0 );
 
 	virtual void ClearBuffers();
 
+    /** Timer used to implement timeout. */
 	Timer mTimeoutTimer;
 
-    //input queue (received from network)
-	Mutex MInQueue;
-	StreamPacketizer InQueue;
+    /** Mutex to protect received data queue. */
+	Mutex mMInQueue;
+    /** Received data queue. */
+	StreamPacketizer mInQueue;
 };
 
 #endif /*EVETCPCONNECTION_H_*/
