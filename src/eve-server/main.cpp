@@ -109,7 +109,6 @@ int main(int argc, char *argv[])
             return 1;
         }
     }
-
     pDatabase = &db;
 
     //Start up the TCP server

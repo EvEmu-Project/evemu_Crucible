@@ -23,16 +23,17 @@
 	Author:		Zhur, Bloody.Rabbit
 */
 
-#ifndef TCP_CONNECTION_H
-#define TCP_CONNECTION_H
+#ifndef __TCP_CONNECTION_H__INCL__
+#define __TCP_CONNECTION_H__INCL__
 
 #include "network/Socket.h"
 #include "threading/Mutex.h"
+#include "utils/Buffer.h"
 
 /** Size of error buffer TCPConnection uses. */
 static const uint32 TCPCONN_ERRBUF_SIZE = 1024;
-/** Size limit for receive buffer of TCPConnection. */
-extern const uint32 TCPCONN_RECVBUF_LIMIT;
+/** Size of receive buffer TCPConnection uses. */
+extern const uint32 TCPCONN_RECVBUF_SIZE;
 /** Time (in milliseconds) between periodical process for incoming/outgoing data. */
 extern const uint32 TCPCONN_LOOP_GRANULARITY;
 
@@ -73,7 +74,7 @@ public:
 	 */
 	std::string		GetAddress();
     /** @return Current state of connection. */
-	state_t         GetState() const;
+    state_t         GetState() const { return mSockState; }
 
     /**
      * @brief Connects to specified address.
@@ -112,13 +113,12 @@ public:
     /**
      * @brief Enqueues data to be sent.
      *
-     * @param[in] data Pointer to data.
-     * @param[in] size Size of data.
+     * @param[in] data Buffer with data; pointer is invalidated by the function.
      *
      * @return True if data has been accepted, false if not.
      */
-	bool			Send( const uint8* data, uint32 size );
-	
+	bool			Send( Buffer** data );
+
 protected:
     /**
      * @brief Creates connection from an existing socket.
@@ -128,13 +128,6 @@ protected:
      * @param[in] rPort Remote TCP port socket is connected to.
      */
 	TCPConnection( Socket* sock, uint32 rIP, uint16 rPort );
-
-    /**
-     * @brief Sets current state to the given one.
-     *
-     * @param[in] state State to be switched to.
-     */
-	void			SetState( state_t state );
 
     /**
      * @brief Starts working thread.
@@ -158,7 +151,10 @@ protected:
      * @brief Processes received data.
      *
      * This function must be overloaded by children to process received data.
-     * Called every time a chunk of new data is received.
+     * Called every time a chunk of new data is received. Please note that
+     * receive buffer is overwritten every time data is received.
+     *
+     * @param[out] errbuf Buffer which receives description of error.
      *
      * @return True if processing ran fine, false if not.
      */
@@ -167,12 +163,11 @@ protected:
     /**
      * @brief Sends data in send queue.
      *
-     * @param[out] send_something This variable is set to true if anything has been sent, false otherwise.
-     * @param[out] errbuf         Buffer which receives desription of error.
+     * @param[out] errbuf Buffer which receives desription of error.
      *
      * @return True if send was OK, false if not.
      */
-	virtual bool    SendData( bool& sent_something, char* errbuf = 0 );
+	virtual bool    SendData( char* errbuf = 0 );
     /**
      * @brief Receives data and puts them into receive queue.
      *
@@ -219,35 +214,17 @@ protected:
     /** When a thread is running TCPConnectionLoop, it acquires this mutex first; used for synchronization. */
     mutable Mutex   mMLoopRunning;
 
-	void	        ServerSendQueuePushFront( const uint8* data, uint32 size );
-
-    void	        ServerSendQueuePushEnd( const uint8* head_data, uint32 head_size, const uint8* data, uint32 size );
-	void	        ServerSendQueuePushEnd( const uint8* head_data, uint32 head_size, uint8** data, uint32 size );
-	void	        ServerSendQueuePushEnd( const uint8* data, uint32 size );
-	void	        ServerSendQueuePushEnd( uint8** data, uint32 size );
-
-	bool	        ServerSendQueuePop( uint8** data, uint32* size );
-	bool	        ServerSendQueuePopForce( uint8** data, uint32* size );		//does a lock() instead of a trylock()
-
     /** Mutex protecting send queue. */
-	mutable Mutex   mMSendQueue;
+	mutable Mutex       mMSendQueue;
     /** Send queue. */
-	uint8*          mSendBuf;
-    /** Send queue allocated size. */
-	uint32          mSendBufSize;
-    /** Send queue used size. */
-	uint32          mSendBufUsed;
+    std::deque<Buffer*> mSendQueue;
 
-    /** Receive queue. */
-	uint8*          mRecvBuf;
-    /** Receive queue allocated size. */
-	uint32          mRecvBufSize;
-    /** Receive queue used size. */
-	uint32          mRecvBufUsed;
+    /** Receive buffer. */
+    Buffer*             mRecvBuf;
 };
 
 
-#endif
+#endif /* !__TCP_CONNECTION_H__INCL__ */
 
 
 

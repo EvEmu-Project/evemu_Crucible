@@ -23,40 +23,29 @@
 	Author:		Zhur
 */
 
-#ifndef STREAM_PACKETIZER_H
-#define STREAM_PACKETIZER_H
+#ifndef __STREAM_PACKETIZER_H__INCL__
+#define __STREAM_PACKETIZER_H__INCL__
 
-class StreamPacketizer {
+#include "utils/Buffer.h"
+
+class StreamPacketizer
+{
 public:
-	class Packet {
-	public:
-		Packet();
-		Packet(uint32 len);
-		~Packet();
-		
-		Packet *Clone() const;
-		uint32 length;
-		uint8 *data;
-	};
-	
-	StreamPacketizer();
 	~StreamPacketizer();
 
-	void InputBytes(const uint8 *data, uint32 len);	
-	Packet *PopPacket();
-	
-	void ClearBuffers();
+	void InputData( const Buffer& data );
+    void Process();
+
+	Buffer* PopPacket();
+
+    void ClearBuffers();
 
 protected:
-	uint8 *m_partial;
-	uint32 m_partialLength;
-	uint32 m_payloadLength;
-	
-	std::queue<Packet *> m_packets;
+    Buffer mBuffer;
+
+    std::queue<Buffer*> mPackets;
 };
 
-
-
-#endif
+#endif /* !__STREAM_PACKETIZER_H__INCL__ */
 
 

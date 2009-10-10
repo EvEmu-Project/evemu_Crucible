@@ -27,142 +27,60 @@
 
 #include "network/StreamPacketizer.h"
 
-StreamPacketizer::Packet::Packet() {
-	length = 0;
-	data = NULL;
-}
-StreamPacketizer::Packet::Packet(uint32 len) {
-	length = len;
-	if(len > 0)
-		data = new uint8[len];
-	else
-		data = NULL;
-}
-StreamPacketizer::Packet::~Packet() {
-	delete[] data;
-}
-
-StreamPacketizer::Packet *StreamPacketizer::Packet::Clone() const {
-	Packet *p = new Packet(length);
-	if(length > 0)
-		memcpy(p->data, data, length);
-	return(p);
-}
-	
-StreamPacketizer::StreamPacketizer() {
-	m_partial = NULL;
-	m_payloadLength = 0;
-}
-
-StreamPacketizer::~StreamPacketizer() {
+StreamPacketizer::~StreamPacketizer()
+{
 	ClearBuffers();
 }
 
-void StreamPacketizer::ClearBuffers() {
-	delete[] m_partial;
-	m_partial = NULL;
-	
-	while(!m_packets.empty()) {
-		delete m_packets.front();
-		m_packets.pop();
-	}
+void StreamPacketizer::InputData( const Buffer& data )
+{
+    mBuffer.Add( data );
 }
 
-void StreamPacketizer::InputBytes(const uint8 *data, uint32 len) {
-	while(len > 0) {
-//fprintf(stderr, "%p: IB len %d partial %p %d/%d\n", this, len, m_partial, m_partialLength, m_payloadLength);
-		if(m_partial == NULL) {
-			//no partial packet to start with...
-			if(len < sizeof(uint32)) {
-				//not even enough for a length, just save it.
-				m_partial = new uint8[sizeof(uint32)];
-				memcpy(m_partial, data, len);
-				m_partialLength = len;
-				return;
-			}
-	
-			m_payloadLength = *((const uint32 *) data);
-			len -= sizeof(uint32);
-			data += sizeof(uint32);
+void StreamPacketizer::Process()
+{
+    size_t index = 0;
+    while( true )
+    {
+        // Read packet length
+        if( mBuffer.size() < index + sizeof( uint32 ) )
+            break;
+        uint32 len = mBuffer.Get<uint32>( index );
 
-			if(len < m_payloadLength) {
-				//we do not have the entire packet.
-				m_partial = new uint8[m_payloadLength];
-				memcpy(m_partial, data, len);
-				m_partialLength = len;
-//fprintf(stderr, "%p: New partial packet %d/%d received.\n", this, m_partialLength, m_payloadLength);
-				break;
-			}
-			
-			//else, we have an entire packet, process it.
-			Packet *sp = new Packet(m_payloadLength);
-			memcpy(sp->data, data, m_payloadLength);
-			m_packets.push(sp);
-			len -= m_payloadLength;
-			data += m_payloadLength;
-			m_partialLength = 0;
-			m_payloadLength = 0;
-			//let the loop carry us around to hit this code again.
-		} else {
-			//we have a partial packet to work from.
-			if(m_payloadLength == 0) {
-				//we have a partial length, no data yet.
-				if((m_partialLength+len) < sizeof(uint32)) {
-					//STILL do not have an entire length.
-					memcpy(m_partial+m_partialLength, data, len);
-					m_partialLength += len;
-					break;
-				}
+        // Push new packet to the queue
+        if( mBuffer.size() < index + sizeof( uint32 ) + len )
+            break;
+        mPackets.push( new Buffer( &mBuffer[ index + sizeof( uint32 ) ], len ) );
+        index += sizeof( uint32 ) + len;
+    }
 
-				//copy in what we need.
-				uint32 need_bytes = sizeof(uint32) - m_partialLength;
-				memcpy(m_partial+m_partialLength, data, need_bytes);
-				len -= need_bytes;
-				data += need_bytes;
-				
-				m_payloadLength = *((const uint32 *) m_partial);
-				delete[] m_partial;
-				m_partial = NULL;
-				m_partialLength = 0;
-				
-				//let the loop handle the data segment now.
-			} else {
-				//we have a partial packet body....
-				if((m_partialLength+len) < m_payloadLength) {
-					//we do not have the entire packet yet, append and keep going.
-					memcpy(m_partial+m_partialLength, data, len);
-					m_partialLength += len;
-					break;
-				}
-
-				//we have an entire packet
-
-				//copy in the rest of the partial packet.
-				uint32 need_bytes = m_payloadLength - m_partialLength;
-				memcpy(m_partial+m_partialLength, data, need_bytes);
-				len -= need_bytes;
-				data += need_bytes;
-				
-				Packet *sp = new Packet();
-				sp->data = m_partial;
-				sp->length = m_payloadLength;
-				m_packets.push(sp);
-				m_partial = NULL;
-				m_partialLength = 0;
-				m_payloadLength = 0;
-
-				//let the loop handle the remaining bytes.
-			} //end "we have a partial data segment"
-		} //end "we have a partial packet"
-	} //end "while we have bytes"
+    if( index > 0 )
+    {
+        // Resize our buffer
+        size_t newSize = mBuffer.size() - index;
+        if( newSize > 0 )
+            mBuffer.Write( 0, &mBuffer[ index ], newSize );
+        mBuffer.Resize( newSize, 0 );
+    }
 }
 
-StreamPacketizer::Packet *StreamPacketizer::PopPacket() {
-	if(m_packets.empty())
-		return NULL;
-	Packet *r = m_packets.front();
-	m_packets.pop();
-	return(r);
+Buffer* StreamPacketizer::PopPacket()
+{
+    Buffer* ret = NULL;
+    if( !mPackets.empty() )
+    {
+        ret = mPackets.front();
+        mPackets.pop();
+    }
+
+    return ret;
+}
+
+void StreamPacketizer::ClearBuffers()
+{
+    Buffer* buf;
+    while( ( buf = PopPacket() ) )
+        SafeDelete( buf );
 }
 
 

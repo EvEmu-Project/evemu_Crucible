@@ -56,7 +56,14 @@ void EVETCPConnection::QueueRep( const PyRep* rep )
     else if( length > EVETCPCONN_PACKET_LIMIT )
         sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %u.", length, EVETCPCONN_PACKET_LIMIT );
     else
-        ServerSendQueuePushEnd( (const uint8 *)&length, sizeof( length ), &buf, length );
+    {
+        Buffer* head = new Buffer;
+        head->Add<uint32>( length );
+        Send( &head );
+
+        Buffer* payload = new Buffer( &buf, length );
+        Send( &payload );
+    }
 
 	SafeDelete( buf );
 }
@@ -64,19 +71,19 @@ void EVETCPConnection::QueueRep( const PyRep* rep )
 PyRep* EVETCPConnection::PopRep()
 {
     mMInQueue.lock();
-    StreamPacketizer::Packet* p = mInQueue.PopPacket();
+    Buffer* packet = mInQueue.PopPacket();
 	mMInQueue.unlock();
 
     PyRep* res = NULL;
-    if( p != NULL )
+    if( packet != NULL )
     {
-        if( p->length > EVETCPCONN_PACKET_LIMIT )
-            sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %u.", p->length, EVETCPCONN_PACKET_LIMIT );
+        if( packet->size() > EVETCPCONN_PACKET_LIMIT )
+            sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %u.", packet->size(), EVETCPCONN_PACKET_LIMIT );
         else
-            res = InflateUnmarshal( p->data, p->length );
+            res = InflateUnmarshal( &(*packet)[ 0 ], packet->size() );
     }
 
-    SafeDelete( p );
+    SafeDelete( packet );
 	return res;
 }
 
@@ -85,18 +92,14 @@ bool EVETCPConnection::ProcessReceivedData( char* errbuf )
 	if( errbuf )
 		errbuf[0] = 0;
 
-	if( mRecvBuf == NULL || mRecvBufSize == 0 || mRecvBufUsed == 0 )
-		return true;
+    LockMutex lock( &mMInQueue );
+
+    // put bytes into packetizer
+    mInQueue.InputData( *mRecvBuf );
+    // process packetizer
+    mInQueue.Process();
 
 	mTimeoutTimer.Start();
-
-    LockMutex lock( &mMInQueue );
-    // put bytes into packetizer
-    mInQueue.InputBytes( mRecvBuf, mRecvBufUsed );
-
-    // delete recieve queue
-    SafeDelete( mRecvBuf );
-    mRecvBufSize = mRecvBufUsed = 0;
 
     return true;
 }

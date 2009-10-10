@@ -23,6 +23,7 @@ libcommon_a_SOURCES = \
 	network/TCPServer.h \
 	threading/Mutex.cpp \
 	threading/Mutex.h \
+	utils/Buffer.h \
 	utils/crc32.cpp \
 	utils/crc32.h \
 	utils/DirWalker.cpp \

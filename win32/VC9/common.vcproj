@@ -338,6 +338,10 @@
 				Name="utils"
 				>
 				<File
+					RelativePath="..\..\include\common\utils\Buffer.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\common\utils\crc32.h"
 					>
 				</File>
