@@ -25,7 +25,6 @@
 
 #include "EVECommonPCH.h"
 
-#include "network/packet_functions.h"
 #include "python/classes/DBRowDescriptor.h"
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
@@ -83,9 +82,9 @@ void PyDumpVisitor::VisitBuffer(const PyBuffer *rep, int64 lvl ) {
     _print(lvl, "Data buffer of length %d", rep->size());
 
     //kinda hackish:
-    if(rep->size() > 2 && (*rep)[0] == GZipHeaderByte) {
+    if(rep->size() > 2 && (*rep)[0] == DeflateHeaderByte) {
         uint32 len = rep->size();
-        uint8 *buf = InflatePacket(rep->content(), &len, true);
+        uint8 *buf = InflateData(rep->content(), &len, true);
         if(buf != NULL) {
             _print(lvl, "  Data buffer contains gzipped data of length %u", len);
 

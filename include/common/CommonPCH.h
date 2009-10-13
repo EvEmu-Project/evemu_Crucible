@@ -36,5 +36,8 @@
 // tinyxml header
 #include "tinyxml/tinyxml.h"
 
+// zlib header
+#include <zlib.h>
+
 #endif /* !__COMMON_PCH_H__INCL__ */
 

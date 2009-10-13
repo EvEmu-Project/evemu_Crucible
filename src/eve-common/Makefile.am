@@ -35,10 +35,6 @@ libevecommon_a_SOURCES = \
 	network/EVETCPConnection.cpp \
 	network/EVETCPConnection.h \
 	network/EVETCPServer.h \
-	network/packet_dump.cpp \
-	network/packet_dump.h \
-	network/packet_functions.cpp \
-	network/packet_functions.h \
 	network/packet_types.h \
 	python/classes/CRowSet.cpp \
 	python/classes/CRowSet.h \

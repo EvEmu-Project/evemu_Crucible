@@ -26,6 +26,8 @@ libcommon_a_SOURCES = \
 	utils/Buffer.h \
 	utils/crc32.cpp \
 	utils/crc32.h \
+	utils/Deflate.cpp \
+	utils/Deflate.h \
 	utils/DirWalker.cpp \
 	utils/DirWalker.h \
 	utils/gpoint.h \

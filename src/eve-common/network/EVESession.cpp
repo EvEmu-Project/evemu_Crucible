@@ -28,7 +28,6 @@
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEUnmarshal.h"
 #include "network/EVESession.h"
-#include "network/packet_functions.h"
 #include "packets/Crypto.h"
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"

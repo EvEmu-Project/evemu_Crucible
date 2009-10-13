@@ -232,6 +232,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\common\utils\Deflate.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\common\utils\DirWalker.cpp"
 					>
 				</File>
@@ -343,6 +347,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\common\utils\crc32.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\common\utils\Deflate.h"
 					>
 				</File>
 				<File

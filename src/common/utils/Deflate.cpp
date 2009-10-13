@@ -23,10 +23,10 @@
 	Author:		Zhur
 */
 
-#include "EVECommonPCH.h"
+#include "CommonPCH.h"
 
-#include "network/packet_dump.h"
-#include "network/packet_functions.h"
+#include "log/logsys.h"
+#include "utils/Deflate.h"
 
 //#define MEMORY_DEBUG
 
@@ -48,7 +48,7 @@ void e_free_func(voidpf opaque, voidpf address)
 #endif//MEMORY_DEBUG
 
 //returns ownership of buffer!
-uint8 *DeflatePacket(const uint8 *data, uint32 *length)
+uint8* DeflateData( const uint8* data, uint32* length )
 {
 	if(data == NULL || length == NULL || *length == 0)
 		return NULL;
@@ -104,7 +104,7 @@ uint8 *DeflatePacket(const uint8 *data, uint32 *length)
 /** Inflate the packet and allocate enough memory for decompression
   * Note: returns ownership of buffer!
   */
-uint8 *InflatePacket(const uint8 *data, uint32 *length, bool quiet)
+uint8* InflateData( const uint8* data, uint32* length, bool quiet )
 {
     u_long  sourcelen = (u_long)*length;
     Bytef * source = (Bytef *)data;

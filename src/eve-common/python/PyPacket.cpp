@@ -25,8 +25,6 @@
 
 #include "EVECommonPCH.h"
 
-#include "network/packet_dump.h"
-#include "network/packet_functions.h"
 #include "python/PyPacket.h"
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"

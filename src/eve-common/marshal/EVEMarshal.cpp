@@ -25,8 +25,6 @@
 
 #include "EVECommonPCH.h"
 
-#include "network/packet_dump.h"
-#include "network/packet_functions.h"
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEMarshalOpcodes.h"
 #include "marshal/EVEMarshalStringTable.h"
@@ -62,7 +60,7 @@ uint8* MarshalDeflate(const PyRep* rep, uint32& len, const uint32 deflationLimit
     if( len >= deflationLimit )
     {
         // Deflate the buffer
-        uint8* dataDeflated = DeflatePacket( data, &len );
+        uint8* dataDeflated = DeflateData( data, &len );
         SafeDeleteArray( data );
         data = dataDeflated;
     }

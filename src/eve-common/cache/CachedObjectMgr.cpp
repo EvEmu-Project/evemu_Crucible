@@ -28,7 +28,6 @@
 #include "cache/CachedObjectMgr.h"
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEMarshalOpcodes.h"
-#include "network/packet_functions.h"
 #include "packets/ObjectCaching.h"
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"

@@ -23,16 +23,12 @@
 	Author:		Zhur
 */
 
-#ifndef PACKET_DUMP_H
-#define PACKET_DUMP_H
+#ifndef PACKET_FUNCTIONS_H
+#define PACKET_FUNCTIONS_H
 
-void DumpPacketAscii(const uint8* buf, int32 size, int32 cols=16, int32 skip=0);
-void DumpPacketHex(const uint8* buf, int32 size, int32 cols=16, int32 skip=0);
-void DumpPacketBin(const void* data, int32 len);
-void DumpPacket(const uint8* buf, int32 size);
-void DumpPacketBin(int32 data);
-void DumpPacketBin(int16 data);
-void DumpPacketBin(int8 data);
-void DumpPacketPreview(const uint8* buf, int32 size);
+static const uint8 DeflateHeaderByte = 0x78;	// 'x'
+
+uint8* DeflateData( const uint8* data, uint32* length );
+uint8* InflateData( const uint8* data, uint32* length, bool quiet = false );
 
 #endif

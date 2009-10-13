@@ -47,7 +47,6 @@
 #include "log/LogNew.h"
 #include "log/logsys.h"
 
-#include "network/packet_functions.h"
 #include "network/StreamPacketizer.h"
 #include "network/TCPConnection.h"
 #include "network/TCPServer.h"
@@ -55,6 +54,7 @@
 #include "threading/Mutex.h"
 
 #include "utils/crc32.h"
+#include "utils/Deflate.h"
 #include "utils/DirWalker.h"
 #include "utils/gpoint.h"
 #include "utils/misc.h"

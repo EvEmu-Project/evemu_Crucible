@@ -25,9 +25,6 @@
 
 #include "EVECommonPCH.h"
 
-#include "network/packet_dump.h"
-#include "network/packet_functions.h"
-
 #include "python/classes/DBRowDescriptor.h"
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
@@ -77,10 +74,10 @@ PyRep* InflateUnmarshal(const uint8* data, uint32 len)
 {
     bool inflated = false;
 
-    if( data[0] == GZipHeaderByte )
+    if( data[0] == DeflateHeaderByte )
     {
         // The stream is deflated
-        data = InflatePacket( data, &len );
+        data = InflateData( data, &len );
         if( data == NULL )
         {
             sLog.Error( "Unmarshal", "Failed to inflate stream of length %u.", len );

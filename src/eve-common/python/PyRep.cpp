@@ -28,7 +28,6 @@
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEUnmarshal.h"
 #include "marshal/EVEMarshalOpcodes.h"
-#include "network/packet_functions.h"
 #include "python/classes/DBRowDescriptor.h"
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
@@ -392,9 +391,9 @@ void PyBuffer::Dump(FILE *into, const char *pfx) const {
     fprintf(into, "%sData buffer of length %lu\n", pfx, size());
 
     //kinda hackish:
-    if(size() > 2 && (*this)[0] == GZipHeaderByte) {
+    if(size() > 2 && (*this)[0] == DeflateHeaderByte) {
         uint32 len = size();
-        uint8 *buf = InflatePacket(content(), &len, true);
+        uint8 *buf = InflateData(content(), &len, true);
         if(buf != NULL) {
             std::string p(pfx);
             p += "  ";
@@ -409,9 +408,9 @@ void PyBuffer::Dump(LogType type, const char *pfx) const {
     _log(type, "%sData buffer of length %d", pfx, size());
 
     //kinda hackish:
-    if(size() > 2 && (*this)[0] == GZipHeaderByte) {
+    if(size() > 2 && (*this)[0] == DeflateHeaderByte) {
         uint32 len = size();
-        uint8 *buf = InflatePacket(content(), &len, true);
+        uint8 *buf = InflateData(content(), &len, true);
         if(buf != NULL) {
             std::string p(pfx);
             p += "  ";

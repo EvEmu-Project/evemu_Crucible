@@ -31,9 +31,6 @@
 // MySQL header
 #include <mysql.h>
 
-// Zlib header
-#include <zlib.h>
-
 // common headers
 #include "database/dbtype.h"
 #include "log/logsys.h"
@@ -44,6 +41,7 @@
 #include "network/TCPServer.h"
 #include "utils/Base64.h"
 #include "utils/crc32.h"
+#include "utils/Deflate.h"
 #include "utils/misc.h"
 #include "utils/timer.h"
 #include "utils/utils_hex.h"

@@ -219,14 +219,6 @@
 					RelativePath="..\..\src\eve-common\network\EVETCPConnection.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\..\src\eve-common\network\packet_dump.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\eve-common\network\packet_functions.cpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="packets"
@@ -674,14 +666,6 @@
 				</File>
 				<File
 					RelativePath="..\..\include\eve-common\network\EVETCPServer.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\eve-common\network\packet_dump.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\eve-common\network\packet_functions.h"
 					>
 				</File>
 				<File
