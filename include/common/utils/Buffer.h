@@ -178,18 +178,6 @@ public:
         // Append value
         Write( size(), value );
     }
-    /**
-     * @brief Specialization for adding other buffers.
-     *
-     * @param[in] value Other buffer the content of which
-     *                  should be added.
-     */
-    template<>
-    void Add<Buffer>( const Buffer& value )
-    {
-        // Append data
-        Write( size(), &value[0], value.size() );
-    }
 
     /**
      * @brief Writes data to buffer.
@@ -221,18 +209,6 @@ public:
 
         *(X*)&mBuffer[ index ] = value;
         mSize = std::max( size(), index + sizeof( X ) );
-    }
-    /**
-     * @brief Specialization for writing other buffers.
-     *
-     * @param[in] index Index at which buffer should be written.
-     * @param[in] value Other buffer the content of which
-     *                  should be written to this buffer.
-     */
-    template<>
-    void Write<Buffer>( size_t index, const Buffer& value )
-    {
-        Write( index, &value[0], value.size() );
     }
 
     /**
@@ -345,5 +321,31 @@ protected:
             return newSize;
     }
 };
+
+/**
+ * @brief Specialization for adding other buffers.
+ *
+ * @param[in] value Other buffer the content of which
+ *                  should be added.
+ */
+template<>
+EVEMU_INLINE void Buffer::Add<Buffer>( const Buffer& value )
+{
+    // Append data
+    Write( size(), &value[0], value.size() );
+}
+
+/**
+ * @brief Specialization for writing other buffers.
+ *
+ * @param[in] index Index at which buffer should be written.
+ * @param[in] value Other buffer the content of which
+ *                  should be written to this buffer.
+ */
+template<>
+EVEMU_INLINE void Buffer::Write<Buffer>( size_t index, const Buffer& value )
+{
+    Write( index, &value[0], value.size() );
+}
 
 #endif /* !__BUFFER_H__INCL__ */

@@ -68,7 +68,11 @@ unsigned int Socket::recv( void* buf, unsigned int len, int flags )
 
 unsigned int Socket::recvfrom( void* buf, unsigned int len, int flags, sockaddr* from, unsigned int* fromlen )
 {
+#ifdef WIN32
     return ::recvfrom( mSock, (char*)buf, len, flags, from, (int*)fromlen );
+#else
+    return ::recvfrom( mSock, buf, len, flags, from, fromlen );
+#endif /* !WIN32 */
 }
 
 unsigned int Socket::send( const void* buf, unsigned int len, int flags )
@@ -93,7 +97,11 @@ int Socket::listen( int backlog )
 
 Socket* Socket::accept( sockaddr* addr, unsigned int* addrlen )
 {
-    SOCKET sock = ::accept( mSock, addr, (int*)addrlen );
+#ifdef WIN32
+    SOCKET sock = ::accept( mSock, addr, (unsigned int*)addrlen );
+#else
+    SOCKET sock = ::accept( mSock, addr, addrlen );
+#endif /* !WIN32 */
 
     if( sock != INVALID_SOCKET )
         return new Socket( sock );

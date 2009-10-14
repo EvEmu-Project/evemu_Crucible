@@ -56,16 +56,11 @@
   * url: http://msdn.microsoft.com/en-us/library/z8y1yy88(VS.80).aspx
   */
 #if WIN32
-#   ifdef _DEBUG
-#       define EVEMU_INLINE
-#       define ASCENT_FORCEINLINE __forceinline
-#   else
-#       define EVEMU_INLINE inline
-#       define ASCENT_FORCEINLINE __forceinline
-#   endif//_DEBUG
+#   define EVEMU_INLINE inline
+#   define EVEMU_FORCEINLINE __forceinline
 #else
 #   define EVEMU_INLINE inline
-#   define ASCENT_FORCEINLINE inline
+#   define EVEMU_FORCEINLINE __attriubte__((always_inline))
 #endif//WIN32
 
 
