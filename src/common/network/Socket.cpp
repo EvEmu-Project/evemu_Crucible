@@ -98,7 +98,7 @@ int Socket::listen( int backlog )
 Socket* Socket::accept( sockaddr* addr, unsigned int* addrlen )
 {
 #ifdef WIN32
-    SOCKET sock = ::accept( mSock, addr, (unsigned int*)addrlen );
+    SOCKET sock = ::accept( mSock, addr, (int*)addrlen );
 #else
     SOCKET sock = ::accept( mSock, addr, addrlen );
 #endif /* !WIN32 */

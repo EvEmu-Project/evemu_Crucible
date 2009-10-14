@@ -55,12 +55,12 @@
   * '__forceinline' functions can improve performance but only under certain circumstances
   * url: http://msdn.microsoft.com/en-us/library/z8y1yy88(VS.80).aspx
   */
-#if WIN32
+#ifdef WIN32
 #   define EVEMU_INLINE inline
 #   define EVEMU_FORCEINLINE __forceinline
 #else
 #   define EVEMU_INLINE inline
-#   define EVEMU_FORCEINLINE __attriubte__((always_inline))
+#   define EVEMU_FORCEINLINE __attribute__((always_inline))
 #endif//WIN32
 
 
