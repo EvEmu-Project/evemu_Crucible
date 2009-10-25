@@ -58,7 +58,7 @@ void EVETCPConnection::QueueRep( const PyRep* rep )
     else
     {
         Buffer* head = new Buffer;
-        head->Add<uint32>( length );
+        head->Write<uint32>( length );
         Send( &head );
 
         Buffer* payload = new Buffer( &buf, length );

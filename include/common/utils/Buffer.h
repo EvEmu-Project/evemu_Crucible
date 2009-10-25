@@ -38,30 +38,17 @@ class Buffer
 {
 public:
     /**
-     * @brief Creates (possibly pre-allocated) empty buffer.
-     *
-     * @param[in] len Length to pre-allocate.
-     */
-    explicit Buffer( size_t len = 0 )
-    : mBuffer( NULL ),
-      mSize( 0 ),
-      mSizeAllocated( 0 )
-    {
-        // Reserve required memory
-        Reserve( len );
-    }
-    /**
      * @brief Creates buffer of given length.
      *
      * @param[in] len   Length of buffer to be created.
      * @param[in] value Value to fill the buffer with.
      */
-    Buffer( size_t len, const uint8& value )
+    Buffer( size_t len = 0, const uint8& value = 0 )
     : mBuffer( NULL ),
       mSize( 0 ),
-      mSizeAllocated( 0 )
+      mCapacity( 0 ),
+      mPosition( 0 )
     {
-        // Resize to required size
         Resize( len, value );
     }
     /**
@@ -73,10 +60,10 @@ public:
     Buffer( const uint8* data, size_t len )
     : mBuffer( NULL ),
       mSize( 0 ),
-      mSizeAllocated( 0 )
+      mCapacity( 0 ),
+      mPosition( 0 )
     {
-        // Add data into buffer
-        Add( data, len );
+        Set( data, len );
     }
     /**
      * @brief Create buffer with given content.
@@ -90,14 +77,13 @@ public:
     Buffer( uint8** data, size_t len )
     : mBuffer( *data ),
       mSize( len ),
-      mSizeAllocated( len )
+      mCapacity( len ),
+      mPosition( 0 )
     {
         // Invalidate the pointer
         *data = NULL;
     }
-    /**
-     * @brief Deletes buffer.
-     */
+    /** Deletes buffer. */
     ~Buffer()
     {
         // Free buffer
@@ -107,6 +93,81 @@ public:
     /********************************************************************/
     /* Read methods                                                     */
     /********************************************************************/
+    /**
+     * @brief Checks if given element can be read from stream.
+     *
+     * @retval true  Element can be read.
+     * @retval false Not enough data for element.
+     */
+    template<typename X>
+    bool isAvailable() const
+    {
+        return isAvailable( sizeof( X ) );
+    }
+    /**
+     * @brief Checks whether stream contains given number of bytes.
+     *
+     * @param[in] len Number of bytes to be checked.
+     *
+     * @retval true  Stream contains at least given number of bytes.
+     * @retval false Stream contains less than given number of bytes.
+     */
+    bool isAvailable( size_t len ) const
+    {
+        return ( mPosition + len <= size() );
+    }
+
+    /**
+     * @brief Peeks element from buffer.
+     *
+     * @return Peeked element.
+     */
+    template<typename X>
+    const X& Peek() const
+    {
+        return Peek<X>( 1 )[0];
+    }
+    /**
+     * @brief Peeks multiple elements from buffer.
+     *
+     * @param[in] count Count of elements to peek.
+     *
+     * @return Array of peeked elements.
+     */
+    template<typename X>
+    const X* Peek( size_t count ) const
+    {
+        assert( mPosition + count * sizeof( X ) <= size() );
+
+        return &Get<X>( mPosition );
+    }
+
+    /**
+     * @brief Reads element from buffer.
+     *
+     * @return Read element.
+     */
+    template<typename X>
+    const X& Read() const
+    {
+        return Read<X>( 1 )[0];
+    }
+    /**
+     * @brief Reads multiple elements from buffer.
+     *
+     * @param[in] count Count of elements to read.
+     *
+     * @return Array of read elements.
+     */
+    template<typename X>
+    const X* Read( size_t count ) const
+    {
+        const X* res = Peek<X>( count );
+        mPosition += count * sizeof( X );
+
+        return res;
+    }
+
     /**
      * @brief Gets element from buffer.
      *
@@ -156,15 +217,45 @@ public:
     /********************************************************************/
     /* Write methods                                                    */
     /********************************************************************/
+    /** Drops already read data. */
+    void DropRead()
+    {
+        Set( &mBuffer[ mPosition ], size() - mPosition );
+
+        mPosition = 0;
+    }
+
+    /**
+     * @brief Sets content of buffer.
+     *
+     * @param[in] data Pointer to new content.
+     * @param[in] len  Length of new content.
+     */
+    void Set( const uint8* data, size_t len )
+    {
+        Write( 0, data, len );
+        Resize( len );
+    }
+    /**
+     * @brief Sets content of buffer.
+     *
+     * @param[in] value New content.
+     */
+    template<typename X>
+    void Set( const X& value )
+    {
+        Write( 0, value );
+        Resize( sizeof( X ) );
+    }
+
     /**
      * @brief Adds data into buffer.
      *
      * @param[in] data Pointer to data.
      * @param[in] len  Length of data.
      */
-    void Add( const uint8* data, size_t len )
+    void Write( const uint8* data, size_t len )
     {
-        // Append data
         Write( size(), data, len );
     }
     /**
@@ -173,9 +264,8 @@ public:
      * @param[in] value Value to be added into buffer.
      */
     template<typename X>
-    void Add( const X& value )
+    void Write( const X& value )
     {
-        // Append value
         Write( size(), value );
     }
 
@@ -219,10 +309,7 @@ public:
     template<typename X>
     Buffer& operator<<( const X& value )
     {
-        // Add value
-        Add( value );
-
-        // Return ourselves
+        Write( value );
         return *this;
     }
 
@@ -231,6 +318,8 @@ public:
     /********************************************************************/
     /** @return Current size of buffer. */
     size_t size() const { return mSize; }
+    /** @return Current capacity of buffer. */
+    size_t capacity() const { return mCapacity; }
 
     /**
      * @brief Reserves (pre-allocates) memory for buffer.
@@ -242,7 +331,7 @@ public:
      */
     void Reserve( size_t requiredSize )
     {
-        if( requiredSize > mSizeAllocated )
+        if( requiredSize > capacity() )
             _Reallocate( requiredSize );
     }
     /**
@@ -250,19 +339,24 @@ public:
      *
      * Changes size of buffer, possibly reallocating it.
      *
+     * If read position during shrink goes out of range,
+     * it is set to the end of the buffer.
+     *
      * @param[in] requiredSize The new size of buffer.
      * @param[in] value        When expanding buffer the gap will be filled by this value.
      */
-    void Resize( size_t requiredSize, const uint8& value )
+    void Resize( size_t requiredSize, const uint8& value = 0 )
     {
-        // Reallocate
         _Reallocate( requiredSize );
 
-        // If a gap was created, fill it with value
         if( requiredSize > size() )
+            // A gap was created, fill it with value
             memset( &mBuffer[ size() ], value, requiredSize - size() );
+        else if( requiredSize < mPosition )
+            // Position went out of range,
+            // set it to end of buffer.
+            mPosition = requiredSize;
 
-        // Set new size
         mSize = requiredSize;
     }
 
@@ -271,8 +365,11 @@ protected:
     uint8* mBuffer;
     /** Current size of buffer. */
     size_t mSize;
-    /** Actual allocated memory for buffer. */
-    size_t mSizeAllocated;
+    /** Current capacity of buffer. */
+    size_t mCapacity;
+
+    /** Current read position in stream. */
+    mutable size_t mPosition;
 
     /**
      * @brief Reallocates buffer.
@@ -284,43 +381,53 @@ protected:
      */
     void _Reallocate( size_t requiredSize )
     {
-        // Calculate new size
-        size_t newSize = _CalcBufferSize( mSizeAllocated, requiredSize );
-        assert( newSize >= requiredSize );
-        if( newSize != mSizeAllocated )
+        size_t newCapacity = _CalcBufferCapacity( capacity(), requiredSize );
+        assert( newCapacity >= requiredSize );
+
+        if( newCapacity != capacity() )
         {
-            // Reallocate
-            mBuffer = (uint8*)realloc( mBuffer, newSize );
-            mSizeAllocated = newSize;
+            mBuffer = (uint8*)realloc( mBuffer, newCapacity );
+            mCapacity = newCapacity;
         }
     }
 
     /**
-     * @brief Calculates buffer size.
+     * @brief Calculates buffer capacity.
      *
-     * Based on current and required size of the buffer,
-     * this function calculates size of buffer to be allocated.
+     * Based on current capacity and required size of the buffer,
+     * this function calculates capacity of buffer to be allocated.
      *
-     * @param[in] currentSize  Current size of buffer.
-     * @param[in] requiredSize Required size of buffer.
+     * @param[in] currentCapacity Current capacity of buffer.
+     * @param[in] requiredSize    Required size of buffer.
      *
-     * @return Size of buffer to be allocated.
+     * @return Capacity to be allocated.
      */
-    static size_t _CalcBufferSize( size_t currentSize, size_t requiredSize )
+    static size_t _CalcBufferCapacity( size_t currentCapacity, size_t requiredSize )
     {
         // BUFFER_SIZE_SNAP must consist of 1 bit, otherwise stuff below won't work!
         static const size_t BUFFER_SIZE_SNAP = ( 1L << 10 ); // 1 kB
 
         // Calculate multiple of BUFFER_SIZE_SNAP equal or greater than requiredSize:
-        size_t newSize = ( requiredSize + BUFFER_SIZE_SNAP - 1 ) & ~( BUFFER_SIZE_SNAP - 1 );
+        size_t newCapacity = ( requiredSize + BUFFER_SIZE_SNAP - 1 ) & ~( BUFFER_SIZE_SNAP - 1 );
 
-        if( requiredSize <= currentSize && currentSize < newSize )
+        if( requiredSize <= currentCapacity && currentCapacity < newCapacity )
             // This saves some memory ...
-            return currentSize;
+            return currentCapacity;
         else
-            return newSize;
+            return newCapacity;
     }
 };
+
+/**
+ * @brief Specialization for setting other buffers.
+ *
+ * @param[in] value Buffer with new content.
+ */
+template<>
+EVEMU_INLINE void Buffer::Set<Buffer>( const Buffer& value )
+{
+    Set( &value[0], value.size() );
+}
 
 /**
  * @brief Specialization for adding other buffers.
@@ -329,10 +436,9 @@ protected:
  *                  should be added.
  */
 template<>
-EVEMU_INLINE void Buffer::Add<Buffer>( const Buffer& value )
+EVEMU_INLINE void Buffer::Write<Buffer>( const Buffer& value )
 {
-    // Append data
-    Write( size(), &value[0], value.size() );
+    Write( &value[0], value.size() );
 }
 
 /**

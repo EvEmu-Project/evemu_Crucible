@@ -352,9 +352,7 @@ bool TCPConnection::SendData( char* errbuf )
 
             if( (uint32)status < buf->size() )
             {
-                size_t newSize = buf->size() - status;
-                buf->Write( 0, &(*buf)[ status ], newSize );
-                buf->Resize( newSize, 0 );
+                buf->Set( &(*buf)[ status ], buf->size() - status );
 
                 LockMutex queueLock( &mMSendQueue );
 

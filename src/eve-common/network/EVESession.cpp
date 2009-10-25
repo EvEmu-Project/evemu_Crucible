@@ -97,7 +97,7 @@ void EVEClientSession::FastQueuePacket( PyPacket** p )
 
 PyPacket* EVEClientSession::PopPacket()
 {
-    PyRep *r = mNet->PopRep();
+    PyRep* r = mNet->PopRep();
     if( r == NULL )
         return NULL;
 

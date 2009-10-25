@@ -34,34 +34,21 @@ StreamPacketizer::~StreamPacketizer()
 
 void StreamPacketizer::InputData( const Buffer& data )
 {
-    mBuffer.Add( data );
+    mBuffer << data;
 }
 
 void StreamPacketizer::Process()
 {
-    size_t index = 0;
-    while( true )
+    while(   mBuffer.isAvailable<uint32>()
+          && mBuffer.isAvailable( sizeof( uint32 ) + mBuffer.Peek<uint32>() ) )
     {
-        // Read packet length
-        if( mBuffer.size() < index + sizeof( uint32 ) )
-            break;
-        uint32 len = mBuffer.Get<uint32>( index );
-
         // Push new packet to the queue
-        if( mBuffer.size() < index + sizeof( uint32 ) + len )
-            break;
-        mPackets.push( new Buffer( &mBuffer[ index + sizeof( uint32 ) ], len ) );
-        index += sizeof( uint32 ) + len;
+        uint32 len = mBuffer.Read<uint32>();
+
+        mPackets.push( new Buffer( mBuffer.Read<uint8>( len ), len ) );
     }
 
-    if( index > 0 )
-    {
-        // Resize our buffer
-        size_t newSize = mBuffer.size() - index;
-        if( newSize > 0 )
-            mBuffer.Write( 0, &mBuffer[ index ], newSize );
-        mBuffer.Resize( newSize, 0 );
-    }
+    mBuffer.DropRead();
 }
 
 Buffer* StreamPacketizer::PopPacket()
