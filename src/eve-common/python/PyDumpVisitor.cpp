@@ -79,12 +79,12 @@ void PyDumpVisitor::VisitBuffer(const PyBuffer *rep, int64 lvl ) {
 
     std::string curIden(lvl, ' '); // please clean this one...
 
-    _print(lvl, "Data buffer of length %d", rep->size());
+    _print(lvl, "Data buffer of length %d", rep->content().size());
 
     //kinda hackish:
-    if(rep->size() > 2 && (*rep)[0] == DeflateHeaderByte) {
-        uint32 len = rep->size();
-        uint8 *buf = InflateData(rep->content(), &len, true);
+    if(rep->content().size() > 2 && rep->content()[0] == DeflateHeaderByte) {
+        uint32 len = rep->content().size();
+        uint8 *buf = InflateData(&rep->content()[0], &len, true);
         if(buf != NULL) {
             _print(lvl, "  Data buffer contains gzipped data of length %u", len);
 
@@ -93,9 +93,9 @@ void PyDumpVisitor::VisitBuffer(const PyBuffer *rep, int64 lvl ) {
             free(buf);
         }
     }
-    else if(rep->size() > 0)
+    else if(rep->content().size() > 0)
     {
-        _hexDump(rep->content(), rep->size(), curIden.c_str());
+        _hexDump(&rep->content()[0], rep->content().size(), curIden.c_str());
     }
 }
 

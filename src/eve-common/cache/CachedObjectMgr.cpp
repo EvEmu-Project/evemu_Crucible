@@ -157,7 +157,7 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer) {
     r->cache = *buffer;
 	*buffer = NULL;
 
-    r->version = CRC32::Generate(r->cache->content(), r->cache->size());
+    r->version = CRC32::Generate(&r->cache->content()[0], r->cache->content().size());
 
     const std::string str = OIDToString(objectID);
 
@@ -166,11 +166,11 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer) {
     res = m_cachedObjects.find(str);
     if(res != m_cachedObjects.end())
     {
-        _log(SERVICE__CACHE, "Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->size(), res->second->version);
+        _log(SERVICE__CACHE, "Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->content().size(), res->second->version);
         SafeDelete( res->second );
     }
 
-    _log(SERVICE__CACHE, "Registering new cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), r->cache->size(), r->version);
+    _log(SERVICE__CACHE, "Registering new cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), r->cache->content().size(), r->version);
 
     m_cachedObjects[str] = r;
 }
@@ -210,7 +210,7 @@ PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
     co.shared = true;
     co.objectID = res->second->objectID->Clone();
     co.cache = res->second->cache;
-    if(res->second->cache->size() == 0 || ( *res->second->cache )[0] == MarshalHeaderByte)
+    if(res->second->cache->content().size() == 0 || res->second->cache->content()[0] == MarshalHeaderByte)
         co.compressed = false;
     else
         co.compressed = true;
@@ -315,12 +315,12 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
     header.timestamp = res->second->timestamp;
     header.version = res->second->version;
     header.magic = CacheFileMagic;
-    header.length = res->second->cache->size();
+    header.length = res->second->cache->content().size();
     if(fwrite(&header, sizeof(header), 1, f) != 1) {
         fclose(f);
         return false;
     }
-    if(fwrite(res->second->cache->content(), sizeof(uint8), header.length, f) != header.length) {
+    if(fwrite(&res->second->cache->content()[0], sizeof(uint8), header.length, f) != header.length) {
         fclose(f);
         return false;
     }

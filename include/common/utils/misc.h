@@ -56,7 +56,7 @@ void MakeLowerString(const char *source, char *target);
  * error occurs, these functions will return -1, and the contents of strp is undefined.
  * @todo check http://www.koders.com/c/fidA509CB3A8622E36F7CE0851560975BE02C89E9C7.aspx
  */
-int	asnprintf(char** strp, const char* fmt, ...);
+int	asprintf(char** strp, const char* fmt, ...);
 int	vasprintf(char** strp, const char* fmt, va_list ap);
 #endif
 

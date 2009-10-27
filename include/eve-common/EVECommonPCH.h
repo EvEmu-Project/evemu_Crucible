@@ -31,6 +31,9 @@
 // MySQL header
 #include <mysql.h>
 
+// dep headers
+#include "utils/Base64.h"
+
 // common headers
 #include "database/dbtype.h"
 #include "log/logsys.h"
@@ -39,7 +42,7 @@
 #include "network/StreamPacketizer.h"
 #include "network/TCPConnection.h"
 #include "network/TCPServer.h"
-#include "utils/Base64.h"
+#include "utils/Buffer.h"
 #include "utils/crc32.h"
 #include "utils/Deflate.h"
 #include "utils/misc.h"

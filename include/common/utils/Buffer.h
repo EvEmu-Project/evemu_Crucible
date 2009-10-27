@@ -213,6 +213,17 @@ public:
      * @return Const reference to required byte.
      */
     const uint8& operator[]( size_t index ) const { return Get<uint8>( index ); }
+    /**
+     * @brief Reads element from buffer.
+     *
+     * @param[in] value Destination of read value.
+     */
+    template<typename X>
+    const Buffer& operator>>( X& value ) const
+    {
+        value = Read<X>();
+        return *this;
+    }
 
     /********************************************************************/
     /* Write methods                                                    */
@@ -310,6 +321,17 @@ public:
     Buffer& operator<<( const X& value )
     {
         Write( value );
+        return *this;
+    }
+    /**
+     * @brief Sets content of buffer.
+     *
+     * @param[in] value New content.
+     */
+    template<typename X>
+    Buffer& operator=( const X& value )
+    {
+        Set( value );
         return *this;
     }
 

@@ -37,6 +37,7 @@
 
 #include "threading/Mutex.h"
 
+#include "utils/Buffer.h"
 #include "utils/DirWalker.h"
 #include "utils/misc.h"
 #include "utils/seperator.h"

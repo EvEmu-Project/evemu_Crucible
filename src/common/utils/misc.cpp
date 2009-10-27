@@ -70,7 +70,7 @@ void MakeLowerString(const char *source, char *target) {
 }
 
 #ifdef WIN32
-int	asnprintf(char** strp, const char* fmt, ...)
+int	asprintf(char** strp, const char* fmt, ...)
 {
 	va_list argptr;
 

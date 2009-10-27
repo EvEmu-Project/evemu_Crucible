@@ -346,54 +346,27 @@ int32 PyNone::hash() const
 /************************************************************************/
 /* PyRep Buffer Class                                                   */
 /************************************************************************/
-PyBuffer::PyBuffer( const uint8* buffer, size_t size ) : PyRep( PyRep::PyTypeBuffer ),
-  mValue( new uint8[ size ] ), mSize( size ), mHashCache( -1 )
-{
-    assert( mValue );
-
-    memcpy( mValue, buffer, size );
-}
-
-PyBuffer::PyBuffer( uint8** buffer, size_t size ) : PyRep( PyRep::PyTypeBuffer ),
-  mValue( *buffer ), mSize( size ), mHashCache( -1 )
+PyBuffer::PyBuffer( const uint8* buffer, size_t size ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer, size ) ), mHashCache( -1 ) {}
+PyBuffer::PyBuffer( uint8** buffer, size_t size ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer, size ) ), mHashCache( -1 ) {}
+PyBuffer::PyBuffer( Buffer** buffer ) : PyRep( PyRep::PyTypeBuffer ),
+  mValue( *buffer ), mHashCache( -1 )
 {
     *buffer = NULL;
 }
-
-PyBuffer::PyBuffer( size_t size ) : PyRep( PyRep::PyTypeBuffer ),
-  mValue( new uint8[ size ] ), mSize( size ), mHashCache( -1 )
-{
-    assert( mValue );
-}
-
-PyBuffer::PyBuffer( const PyString& str ) : PyRep( PyRep::PyTypeBuffer ),
-  mValue( new uint8[ str.content().size() ] ), mSize( str.content().size() ), mHashCache( -1 )
-{
-    assert( mValue );
-
-	memcpy( mValue, str.content().c_str(), str.content().size() );
-}
-
-PyBuffer::PyBuffer( const PyBuffer& buffer ) : PyRep( PyRep::PyTypeBuffer ),
-  mValue( new uint8[ buffer.size() ] ), mSize( buffer.size() ), mHashCache( buffer.mHashCache )
-{
-    assert( mValue );
-
-	memcpy( mValue, buffer.content(), buffer.size() );
-}
-
+PyBuffer::PyBuffer( const PyString& str ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( (const uint8*)str.content().c_str(), str.content().size() ) ), mHashCache( -1 ) {}
+PyBuffer::PyBuffer( const PyBuffer& buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( &buffer.content()[0], buffer.content().size() ) ), mHashCache( buffer.mHashCache ) {}
 PyBuffer::~PyBuffer()
 {
     delete mValue;
 }
 
 void PyBuffer::Dump(FILE *into, const char *pfx) const {
-    fprintf(into, "%sData buffer of length %lu\n", pfx, size());
+    fprintf(into, "%sData buffer of length %lu\n", pfx, content().size());
 
     //kinda hackish:
-    if(size() > 2 && (*this)[0] == DeflateHeaderByte) {
-        uint32 len = size();
-        uint8 *buf = InflateData(content(), &len, true);
+    if(content().size() > 2 && content()[0] == DeflateHeaderByte) {
+        uint32 len = content().size();
+        uint8 *buf = InflateData(&content()[0], &len, true);
         if(buf != NULL) {
             std::string p(pfx);
             p += "  ";
@@ -405,12 +378,12 @@ void PyBuffer::Dump(FILE *into, const char *pfx) const {
 }
 
 void PyBuffer::Dump(LogType type, const char *pfx) const {
-    _log(type, "%sData buffer of length %d", pfx, size());
+    _log(type, "%sData buffer of length %d", pfx, content().size());
 
     //kinda hackish:
-    if(size() > 2 && (*this)[0] == DeflateHeaderByte) {
-        uint32 len = size();
-        uint8 *buf = InflateData(content(), &len, true);
+    if(content().size() > 2 && content()[0] == DeflateHeaderByte) {
+        uint32 len = content().size();
+        uint8 *buf = InflateData(&content()[0], &len, true);
         if(buf != NULL) {
             std::string p(pfx);
             p += "  ";
@@ -441,7 +414,6 @@ int32 PyBuffer::hash() const
     if( mHashCache != -1 )
         return mHashCache;
 
-    void *ptr;
     register int len;
     register unsigned char *p;
     register long x;
@@ -462,13 +434,12 @@ int32 PyBuffer::hash() const
 
     //if (!get_buf(self, &ptr, &size, ANY_BUFFER))
     //    return -1;
-    ptr = mValue;
-    p = (unsigned char *) ptr;
-    len = mSize;
+    p = (unsigned char *) &content()[0];
+    len = content().size();
     x = *p << 7;
     while( --len >= 0 )
         x = (1000003*x) ^ *p++;
-    x ^= mSize;
+    x ^= content().size();
     if( x == -1 )
         x = -2;
     mHashCache = x;
@@ -480,7 +451,7 @@ int32 PyBuffer::hash() const
 /************************************************************************/
 PyString::PyString( const char* str, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( str ), mIsType1( type_1 ), mHashCache( -1 ) {}
 PyString::PyString( const std::string& str, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( str ), mIsType1( type_1 ), mHashCache( -1 ) {}
-PyString::PyString( const PyBuffer& buf, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( (const char *) buf.content(), buf.size() ), mIsType1( type_1 ), mHashCache( -1 ) {}
+PyString::PyString( const PyBuffer& buf, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( (const char *) &buf.content()[0], buf.content().size() ), mIsType1( type_1 ), mHashCache( -1 ) {}
 PyString::PyString( const PyString& oth ) : PyRep( PyRep::PyTypeString ), mValue( oth.mValue ), mIsType1( oth.mIsType1 ), mHashCache( oth.mHashCache ) {}
 PyString::~PyString() {}
 
@@ -1466,7 +1437,7 @@ void PySubStream::DecodeData() const
 
     PySafeDecRef( mDecoded );
 
-    mDecoded = Unmarshal( data()->content(), data()->size() );
+    mDecoded = Unmarshal( &data()->content()[0], data()->content().size() );
 }
 
 /************************************************************************/

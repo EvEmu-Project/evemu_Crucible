@@ -341,7 +341,7 @@ class PyBuffer : public PyRep
 public:
     PyBuffer(const uint8* buffer, size_t size);
     PyBuffer(uint8** buffer, size_t size);
-    PyBuffer(size_t size);
+    PyBuffer(Buffer** buffer);
     PyBuffer(const PyString& str);
     PyBuffer(const PyBuffer& oth);
     virtual ~PyBuffer();
@@ -355,29 +355,14 @@ public:
     /**
      * @brief Get the const PyBuffer content
      *
-     * @return the pointer to the const PyBuffer content
+     * @return const PyBuffer content
      */
-    const uint8* content() const { return mValue; }
-    /**
-     * @brief Overload of operator[] for const indexed access.
-     *
-     * @param[in] index Index of byte.
-     * @return Const byte in PyBuffer content with specified index.
-     */
-    const uint8& operator[](size_t index) const { assert( index < size() ); return content()[ index ]; }
-
-    /**
-     * @brief Get the PyBuffer size.
-     *
-     * @return return the size of the buffer.
-     */
-    size_t size() const { return mSize; }
+    const Buffer& content() const { return *mValue; }
 
     int32 hash() const;
 
 protected:
-    uint8* const mValue;
-    const size_t mSize;
+    const Buffer* const mValue;
 
     mutable int32 mHashCache;
 };

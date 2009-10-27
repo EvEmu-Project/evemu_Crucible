@@ -171,7 +171,7 @@ PyObject *PyService::_BuildCachedReturn(PySubStream **in_result, const char *ses
 	
 	cached.timeStamp = Win32TimeNow();
 	//we can use whatever checksum we want here, as the client just remembers it and sends it back to us.
-	cached.version = crc_hqx(result->data()->content(), result->data()->size(), 0);
+	cached.version = crc_hqx(&result->data()->content()[0], result->data()->content().size(), 0);
 	
 	return(cached.Encode());
 }

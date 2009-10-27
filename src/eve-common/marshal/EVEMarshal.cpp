@@ -168,9 +168,9 @@ void MarshalVisitor::VisitBuffer(const PyBuffer *rep)
 {
     Put<uint8>(Op_PyBuffer);
 
-    uint32 len = rep->size();
+    uint32 len = rep->content().size();
     PutSizeEx(len);
-    Put(rep->content(), len);
+    Put(&rep->content()[0], len);
 }
 
 void MarshalVisitor::VisitPackedRow(const PyPackedRow *rep)
@@ -450,8 +450,8 @@ void MarshalVisitor::VisitSubStream(const PySubStream *rep)
     }
 
     //we have the marshaled data, use it.
-    PutSizeEx(rep->data()->size());
-    Put(rep->data()->content(), rep->data()->size());
+    PutSizeEx(rep->data()->content().size());
+    Put(&rep->data()->content()[0], rep->data()->content().size());
 }
 
 //! TODO: check the implementation of this...
