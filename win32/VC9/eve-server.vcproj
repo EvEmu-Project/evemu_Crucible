@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\dep;..\..\include\common;..\..\include\eve-common;..\..\src\eve-common;..\..\include\eve-server"
-				PreprocessorDefinitions="WIN32;_DEBUG;USE_RUNTIME_EXCEPTIONS"
+				PreprocessorDefinitions="WIN32"
 				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
@@ -121,7 +121,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\..\dep;..\..\include\common;..\..\include\eve-common;..\..\src\eve-common;..\..\include\eve-server"
-				PreprocessorDefinitions="WIN32;USE_RUNTIME_EXCEPTIONS"
+				PreprocessorDefinitions="WIN32"
 				ExceptionHandling="2"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"

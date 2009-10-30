@@ -67,19 +67,18 @@ PyObject *CachedObjectMgr::CacheRecord::EncodeHint() const {
 // its more interesting, either way we should come out with some string...
 std::string CachedObjectMgr::OIDToString(const PyRep *objectID) {
     StringCollapseVisitor v;
-    objectID->visit(&v);
-    if(!v.good)
+    if( !objectID->visit( v ) )
     {
         sLog.Error("Cached Obj Mgr", "Failed to convert cache hind object ID into collapsed string:");
         objectID->Dump(SERVICE__ERROR, "    ");
-        return("");
+        return "";
     }
-    return(v.result);
+    return v.result;
 }
 
 bool CachedObjectMgr::HaveCached(const std::string &objectID) const {
     //this is very sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyString str(objectID);
+    PyString str( objectID );
     return(HaveCached(&str));
 }
 
@@ -120,7 +119,7 @@ void CachedObjectMgr::UpdateCacheFromSS(const std::string &objectID, PySubStream
 }
 
 void CachedObjectMgr::UpdateCache(const std::string &objectID, PyRep **in_cached_data) {
-    PyString str(objectID);
+    PyString str( objectID );
     UpdateCache(&str, in_cached_data);
 }
 
@@ -133,8 +132,7 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
         //cached_data->visit(&dumper, 0);
     //}
 
-    uint32 len;
-    uint8* data = MarshalDeflate( cached_data, len );
+    Buffer* data = MarshalDeflate( cached_data );
 	PyDecRef( cached_data );
     if( data == NULL )
     {
@@ -142,8 +140,8 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
         return;
     }
 
-	PyBuffer* buf = new PyBuffer( &data, len );
-    _UpdateCache(objectID, &buf);
+	PyBuffer* buf = new PyBuffer( &data );
+    _UpdateCache( objectID, &buf );
 }
 
 void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer) {
@@ -157,7 +155,7 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer) {
     r->cache = *buffer;
 	*buffer = NULL;
 
-    r->version = CRC32::Generate(&r->cache->content()[0], r->cache->content().size());
+    r->version = CRC32::Generate( &r->cache->content()[0], r->cache->content().size() );
 
     const std::string str = OIDToString(objectID);
 
@@ -177,7 +175,7 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer) {
 
 PyObject *CachedObjectMgr::MakeCacheHint(const std::string &objectID) {
     //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyString str(objectID);
+    PyString str( objectID );
     return(MakeCacheHint(&str));
 }
 
@@ -192,7 +190,7 @@ PyObject *CachedObjectMgr::MakeCacheHint(const PyRep *objectID) {
 
 PyObject *CachedObjectMgr::GetCachedObject(const std::string &objectID) {
     //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyString str(objectID);
+    PyString str( objectID );
     return(GetCachedObject(&str));
 }
 
@@ -410,11 +408,12 @@ PyCachedCall *CachedObjectMgr::LoadCachedCall(const char *filename, const char *
     return(obj);
 }
 
-void CachedObjectMgr::GetCacheFileName(PyRep *key, std::string &into) {
-    uint32 len = 0;
-    uint8 *data = Marshal(key, len);
+void CachedObjectMgr::GetCacheFileName(PyRep *key, std::string &into)
+{
+    Buffer data;
+    Marshal( key, data );
 
-    Base64::encode(data, len, into, false);
+    Base64::encode( &data[0], data.size(), into, false );
 
     std::string::size_type epos = into.find('=');
     if(epos != std::string::npos)

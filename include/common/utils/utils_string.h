@@ -25,17 +25,32 @@
 #ifndef UTILS_STRING_H
 #define UTILS_STRING_H
 
-/**
-  * @brief converts a multi byte string to a unicode string.
-  *
-  * @param[out] wcstr the destination wide character (unicode) string.
-  * @param[in] mbstr the source multi byte character string.
-  * @param[in] max the max amount of characters to be converted.
-  * @return the amount of converted characters, returns 0 if a error occurred.
-  */
-extern size_t py_mbstowcs( uint16 * wcstr, const char * mbstr, size_t max );
+#include "utils/Buffer.h"
 
-bool ContainsNonPrintables( const char *c, uint32 length );
+/**
+ * @brief converts a multi byte string to a unicode string.
+ *
+ * @param[out] wcstr the destination wide character (unicode) string.
+ * @param[in]  mbstr the source multi byte character string.
+ * @param[in]  max   the max amount of characters to be converted.
+ *
+ * @return the amount of converted characters, returns 0 if a error occurred.
+ */
+size_t py_mbstowcs( uint16* wcstr, const char* mbstr, size_t max );
+/**
+ * @brief Decodes string escapes into actual characters.
+ *
+ * Based on PyString_DecodeEscape from Python.
+ *
+ * @param[in]  str  Escaped string.
+ * @param[out] into The result will be put here.
+ *
+ * @retval true  Decode ran OK.
+ * @retval false Error occured during decoding.
+ */
+bool py_decode_escape( const char* str, Buffer& into );
+
+bool ContainsNonPrintables( const char* c, uint32 length );
 bool ContainsNonPrintables( const std::string& str );
 
 #endif // UTILS_STRING_H

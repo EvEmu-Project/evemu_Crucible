@@ -6,7 +6,6 @@ SUBDIRS = \
 noinst_LIBRARIES = \
 	libevecommon.a
 
-# Packet files must be processed first
 libevecommon_a_SOURCES = \
 	cache/CachedObjectMgr.cpp \
 	cache/CachedObjectMgr.h \
@@ -21,13 +20,10 @@ libevecommon_a_SOURCES = \
 	marshal/EVEMarshal.cpp \
 	marshal/EVEMarshal.h \
 	marshal/EVEMarshalOpcodes.h \
-	marshal/EVEMarshalReferenceMap.h \
 	marshal/EVEMarshalStringTable.cpp \
 	marshal/EVEMarshalStringTable.h \
 	marshal/EVEUnmarshal.cpp \
 	marshal/EVEUnmarshal.h \
-	marshal/EVEZeroCompress.cpp \
-	marshal/EVEZeroCompress.h \
 	network/EVEPktDispatch.cpp \
 	network/EVEPktDispatch.h \
 	network/EVESession.cpp \

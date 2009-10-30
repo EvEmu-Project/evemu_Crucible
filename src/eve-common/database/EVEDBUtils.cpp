@@ -411,7 +411,7 @@ void DBResultToIntIntlistDict( DBQueryResult &result, std::map<int32, PyRep *> &
 			last_key = k;
 		}
 
-        l->AddItemInt(  row.GetInt( 1 ) );
+        l->AddItemInt( row.GetInt( 1 ) );
     }
 }
 

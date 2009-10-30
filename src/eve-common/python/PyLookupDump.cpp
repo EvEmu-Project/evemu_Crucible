@@ -32,42 +32,39 @@
 
 static const uint32 MIN_RESOLVABLE_INT = 100;
 
-PyLookupDump::PyLookupDump(PyLookupResolver *res, LogType type, bool full_hex, bool full_lists)
-: PyLogsysDump(type, full_hex, full_lists),
-  m_resolver(res)
+PyLookupDumpVisitor::PyLookupDumpVisitor( PyLookupResolver* _resolver, LogType log_type, LogType log_hex_type, const char* pfx, bool full_nested, bool full_hex )
+: PyLogDumpVisitor( log_type, log_hex_type, pfx, full_nested, full_hex ),
+  mResolver( _resolver )
 {
 }
 
-PyLookupDump::PyLookupDump(PyLookupResolver *res, LogType type, LogType hex_type, bool full_hex, bool full_lists)
-: PyLogsysDump(type, hex_type, full_hex, full_lists),
-  m_resolver(res)
+bool PyLookupDumpVisitor::VisitInteger( const PyInt* rep )
 {
-}
+    const char* look = resolver()->LookupInt( rep->value() );
 
-PyLookupDump::~PyLookupDump() {
-}
-
-void PyLookupDump::VisitInteger(const PyInt *rep) {
-    const char *look = m_resolver->LookupInt(rep->value());
-    if(look != NULL)
-        _print("Integer field: "I64u" (%s)", rep->value(), look);
+    if( look != NULL )
+        _print( "%sInteger field: %d (%s)", _pfx(), rep->value(), look );
     else
-        _print("Integer field: "I64u, rep->value());
+        _print( "%sInteger field: %d", _pfx(), rep->value() );
+
+    return true;
 }
 
-void PyLookupDump::VisitString(const PyString *rep) {
-    if(ContainsNonPrintables( rep )) {
-        _print("String%s: '<binary, len=%d>'", rep->isType1()?" (Type1)":"", rep->content().size());
-    } else {
-        const char *look = m_resolver->LookupString(rep->content().c_str());
-        if(look != NULL)
-            _print("String%s: '%s' (%s)", rep->isType1()?" (Type1)":"", rep->content().c_str(), look);
+bool PyLookupDumpVisitor::VisitString( const PyString* rep )
+{
+    if( ContainsNonPrintables( rep ) )
+        _print( "%sString%s: '<binary, len=%lu>'", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().size() );
+    else
+    {
+        const char* look = resolver()->LookupString( rep->content().c_str() );
+
+        if( look != NULL )
+            _print( "%sString%s: '%s' (%s)", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().c_str(), look );
         else
-            _print("String%s: '%s'", rep->isType1()?" (Type1)":"", rep->content().c_str());
+            _print( "%sString%s: '%s'", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().c_str() );
     }
-}
 
-PyLookupResolver::PyLookupResolver() {
+    return true;
 }
 
 bool PyLookupResolver::LoadIntFile(const char *file) {

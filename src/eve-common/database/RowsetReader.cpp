@@ -337,110 +337,104 @@ const char *TuplesetReader::ColumnName(uint32 index) const {
     return("INVALID COLUMN INDEX");
 }
 
-SetSQLDumper::SetSQLDumper(FILE *f, const char *tablename)
-: m_file(f),
-  m_tablename(tablename)
+SetSQLDumper::SetSQLDumper( FILE* f, const char* table )
+: mFile( f ),
+  mTable( table )
 {
 }
 
-void SetSQLDumper::VisitObject(const PyObject *rep) {
-    if(rep->type()->content() != "util.Rowset") {
-        //traverse the object as usual.
-        rep->arguments()->visit(this);
-        return;
+bool SetSQLDumper::VisitObject( const PyObject* rep )
+{
+    if( rep->type()->content() == "util.Rowset" )
+    {
+        //we found a friend, decode it
+        //must be duplicated in order to be decoded ...
+        PyObject* dup = new PyObject( *rep );
+
+        util_Rowset rowset;
+        if( !rowset.Decode( &dup ) )
+        {
+            codelog( COMMON__PYREP, "Unable to load a rowset from the object body!" );
+
+            PyDecRef( dup );
+        }
+        else
+        {
+            PyDecRef( dup );
+
+            RowsetReader reader( &rowset );
+            if( !ReaderToSQL<RowsetReader>( mTable.c_str(), NULL, mFile, reader ) )
+                codelog( COMMON__PYREP, "Failed to convert rowset to SQL." );
+            else
+                return true;
+        }
     }
 
-    //we found a friend, decode it
-    //this is annoying to have to clone it, but we cannot modify our pointer, and Decode wants to consume it.
-    PyObject *dup = (PyObject *) rep->Clone();
-
-    util_Rowset rowset;
-    if(!rowset.Decode(&dup)) {
-        codelog(COMMON__PYREP, "Unable to load a rowset from the object body!");
-        delete dup;
-        return;
-    }
-    delete dup; //rowset took what it wanted.
-
-    RowsetReader reader(&rowset);
-    if(!ReaderToSQL<RowsetReader>(m_tablename.c_str(), NULL, m_file, reader)) {
-        codelog(COMMON__PYREP, "Failed to convert rowset to SQL");
-        return;
-    }
+    //fallback
+    return PyVisitor::VisitObject( rep );
 }
 
-void SetSQLDumper::VisitTuple(const PyTuple *rep) {
-
+bool SetSQLDumper::VisitTuple( const PyTuple* rep )
+{
     //first we want to check to see if this could possibly even be a tupleset.
+    if(    rep->size() == 2
+        && rep->GetItem( 0 )->IsList()
+        && rep->GetItem( 1 )->IsList() )
+    {
+        const PyList* possible_header = &rep->GetItem( 0 )->AsList();
+        const PyList* possible_items = &rep->GetItem( 1 )->AsList();
 
-    if(     rep->items.size() != 2
-       ||   !rep->items[0]->IsList()
-       ||   !rep->items[1]->IsList() ) {
+        //check each element of the lists to make sure they line up.
+        bool valid = true;
+        PyList::const_iterator cur, end;
 
-        //! visit tuple elements.
-        PyTuple::const_iterator cur, end;
-        cur = rep->begin();
-        end = rep->end();
-        for(; cur != end; ++cur) {
-            (*cur)->visit(this);
+        cur = possible_header->begin();
+        end = possible_header->end();
+        for(; valid && cur != end; ++cur)
+        {
+            if( !(*cur)->IsString() )
+                valid = false;
         }
-        return;
-    }
 
-    const PyList *possible_header = (const PyList *) rep->items[0];
-    const PyList *possible_items = (const PyList *) rep->items[1];
+        cur = possible_items->begin();
+        end = possible_items->end();
+        for(; valid && cur != end; ++cur)
+        {
+            if( !(*cur)->IsList() )
+                valid = false;
 
-    //check each element of the lists to make sure they line up.
-    PyList::const_iterator cur, end;
-    cur = possible_header->begin();
-    end = possible_header->end();
-    for(; cur != end; ++cur) {
-        if(! (*cur)->IsString()) {
-            //nope...
-            PyTuple::const_iterator curT, endT;
-            curT = rep->begin();
-            endT = rep->end();
-            for(; curT != endT; ++curT) {
-                (*curT)->visit(this);
+            //it would be possible I guess to check each element of each item to make sure
+            //it is a terminal type (non-container), but I dont care right now.
+        }
+
+        if( valid )
+        {
+            //ok, it looks like a tupleset... nothing we can do now but interpret it as one...
+            //must be duplicated in order to be decoded ...
+            PyTuple* dup = new PyTuple( *rep );
+
+            util_Tupleset rowset;
+            if( !rowset.Decode( &dup ) )
+            {
+                codelog( COMMON__PYREP, "Unable to interpret tuple as a tupleset, it may not even be one." );
+
+                PyDecRef( dup );
             }
-            return;
-        }
-    }
-    cur = possible_items->begin();
-    end = possible_items->end();
-    for(; cur != end; cur++) {
-        if(! (*cur)->IsList()) {
-            //nope...
-            PyTuple::const_iterator curT, endT;
-            curT = rep->begin();
-            endT = rep->end();
-            for(; curT != endT; ++curT) {
-                (*curT)->visit(this);
+            else
+            {
+                PyDecRef( dup );
+
+                TuplesetReader reader( &rowset );
+                if( !ReaderToSQL<TuplesetReader>( mTable.c_str(), NULL, mFile, reader ) )
+                    codelog( COMMON__PYREP, "Failed to convert tupleset to SQL." );
+                else
+                    return true;
             }
-            return;
         }
-        //it would be possible I guess to check each element of each item to make sure
-        //it is a terminal type (non-container), but I dont care right now.
     }
 
-    //ok, it looks like a tupleset... nothing we can do now but interpret it as one...
-
-    //this is annoying to have to clone it, but we cannot modify our pointer, and Decode wants to consume it.
-    PyTuple *dup = (PyTuple *) rep->Clone();
-
-    util_Tupleset rowset;
-    if(!rowset.Decode(&dup)) {
-        codelog(COMMON__PYREP, "Unable to interpret tuple as a tupleset, it may not even be one.");
-        delete dup;
-        return;
-    }
-    delete dup; //util_Tupleset took what it wanted.
-
-    TuplesetReader reader(&rowset);
-    if(!ReaderToSQL<TuplesetReader>(m_tablename.c_str(), NULL, m_file, reader)) {
-        codelog(COMMON__PYREP, "Failed to convert tupleset to SQL");
-        return;
-    }
+    //fallback
+    return PyVisitor::VisitTuple( rep );
 }
 
 

@@ -25,134 +25,78 @@
 
 #include "CommonPCH.h"
 
-#include "log/logsys.h"
 #include "utils/Deflate.h"
 
-//#define MEMORY_DEBUG
+const uint8 DeflateHeaderByte = 0x78; //'x'
 
-#ifndef MEMORY_DEBUG
-#  define e_alloc_func Z_NULL
-#  define e_free_func Z_NULL
-#else
-//These functions only exist to make my memory profiler
-voidpf e_alloc_func(voidpf opaque, uInt items, uInt size)
+bool IsDeflated( const Buffer& data )
 {
-	voidpf tmp = new uint8[items * size];
-	return(tmp);
+    return ( DeflateHeaderByte == data[0] );
 }
 
-void e_free_func(voidpf opaque, voidpf address)
+bool DeflateData( Buffer& data )
 {
-	delete[] (uint8 *)address;
-}
-#endif//MEMORY_DEBUG
+    Buffer dataDeflated;
+    if( !DeflateData( data, dataDeflated ) )
+        return false;
 
-//returns ownership of buffer!
-uint8* DeflateData( const uint8* data, uint32* length )
-{
-	if(data == NULL || length == NULL || *length == 0)
-		return NULL;
-
-	z_stream zstream;
-	zstream.next_in   = const_cast<uint8 *>(data);
-	zstream.avail_in  = *length;
-	zstream.zalloc    = e_alloc_func;
-	zstream.zfree     = e_free_func;
-	zstream.opaque    = Z_NULL;
-
-	//int zerror = deflateInit(&zstream, Z_DEFAULT_COMPRESSION);
-	int zerror = deflateInit(&zstream, Z_DEFAULT_COMPRESSION);
-	
-	if(zerror != Z_OK) {
-		_log(COMMON__ERROR, "Error: DeflatePacket: deflateInit() returned %d (%s).",
-			zerror, (zstream.msg == NULL ? "No additional message" : zstream.msg));
-
-		return NULL;
-	}
-
-	*length = deflateBound(&zstream, *length);
-	uint8 *out_data = (uint8 *)malloc( *length );
-
-	zstream.next_out  = out_data;
-	zstream.avail_out = *length;
-
-	zerror = deflate(&zstream, Z_FINISH);
-
-	if(zerror == Z_STREAM_END) {
-		//deflation successfully
-		deflateEnd(&zstream);
-		//truncate output buffer to necessary size
-		*length = zstream.total_out;
-		out_data = (uint8 *)realloc(out_data, *length);
-		return out_data;
-	}
-	else
-	{
-		//error occurred
-		_log(COMMON__ERROR, "Error: DeflatePacket: deflate() returned %d (%s).",
-			zerror, (zstream.msg == NULL ? "No additional message" : zstream.msg));
-
-		deflateEnd(&zstream);
-		//delete output buffer
-		*length = 0;
-		free( out_data );
-
-		return NULL;
-	}
+    data = dataDeflated;
+    return true;
 }
 
-/** Inflate the packet and allocate enough memory for decompression
-  * Note: returns ownership of buffer!
-  */
-uint8* InflateData( const uint8* data, uint32* length, bool quiet )
+bool DeflateData( const Buffer& input, Buffer& output )
 {
-    u_long  sourcelen = (u_long)*length;
-    Bytef * source = (Bytef *)data;
+    const size_t outputIndex = output.size();
+    size_t outputSize = compressBound( input.size() );
+    output.Resize( outputIndex + outputSize );
 
-    /* One of the key things of the ZLIB stuff is that we 'sometimes' don't know the size of the uncompressed data.
-     * My idea is to fix this regarding the first phase of the parsing of the data (the parser) is to go trough a
-     * couple of output buffer size. First buffer size would be 4x the initial buffer size, implying that the
-     * compression ratio is about 75%. The second buffer size would be 8x the initial buffer size, implying that the
-     * compression ratio is about 87.5%. The third and last buffer size is 16x the initial buffer size implying that
-     * the compression ratio is about 93.75%. This theory is really stupid because there is no way to actually know.
-     */
+    int res = compress( &output[ outputIndex ], (uLongf*)&outputSize, &input[ 0 ], input.size() );
 
-    uint32 bufferMultiplier = 4;
-    u_long outBufferLen = sourcelen * bufferMultiplier;
-    u_long allocatedBufferLen = outBufferLen;
-
-    Bytef * outBuffer = (Bytef *)malloc(outBufferLen);
-
-    int zlibUncompressResult = uncompress(outBuffer, &outBufferLen, source, sourcelen);
-
-    if( zlibUncompressResult == Z_BUF_ERROR )
+    if( Z_OK == res )
     {
-        for( int loop_limiter = 0; zlibUncompressResult == Z_BUF_ERROR; loop_limiter++ )
-        {
-            /* because this code is a possible fuck up, we limit the mount of tries */
-            if( loop_limiter > 100 )
-            {
-                zlibUncompressResult = Z_MEM_ERROR;
-                _log(COMMON__ERROR, "uncompress increase buffer overflow safe mechanism");
-                break;
-            }
-
-            bufferMultiplier *= 2;
-            outBufferLen = sourcelen * bufferMultiplier;
-            allocatedBufferLen = outBufferLen;
-
-            outBuffer = (Bytef*)realloc(outBuffer, outBufferLen); // resize the output buffer
-            zlibUncompressResult = uncompress(outBuffer, &outBufferLen, source, sourcelen); // and try it again
-        }
+        output.Resize( outputIndex + outputSize );
+        return true;
     }
-
-    if( zlibUncompressResult != Z_OK )
+    else
     {
-        _log(COMMON__ERROR, "uncompress went wrong ***PANIC***");
-        free( outBuffer );
+        output.Resize( outputIndex );
         return false;
     }
+}
 
-    *length = outBufferLen;
-    return outBuffer;
+bool InflateData( Buffer& data )
+{
+    Buffer dataInflated;
+    if( !InflateData( data, dataInflated ) )
+        return false;
+
+    data = dataInflated;
+    return true;
+}
+
+bool InflateData( const Buffer& input, Buffer& output )
+{
+    const size_t outputIndex = output.size();
+    size_t outputSize = 0;
+    size_t sizeMultiplier = 0;
+
+    int res = 0;
+    do
+    {
+        outputSize = ( input.size() << ++sizeMultiplier );
+        output.Resize( outputIndex + outputSize );
+
+        res = uncompress( &output[ outputIndex ], (uLongf*)&outputSize, &input[ 0 ], input.size() );
+    } while( Z_BUF_ERROR == res );
+
+    if( Z_OK == res )
+    {
+        output.Resize( outputIndex + outputSize );
+        return true;
+    }
+    else
+    {
+        output.Resize( outputIndex );
+        return false;
+    }
 }

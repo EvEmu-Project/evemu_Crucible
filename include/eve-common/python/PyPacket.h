@@ -31,7 +31,7 @@
 class PyRep;
 class PyTuple;
 class PyDict;
-class PyVisitorLvl;
+class PyVisitor;
 
 class PyAddress {
 public:
@@ -89,7 +89,7 @@ public:
     PyPacket();
     ~PyPacket();
 
-    void Dump(LogType type, PyVisitorLvl *dumper);
+    void Dump(LogType type, PyVisitor& dumper);
     bool Decode(PyRep **packet);    //consumes packet
     PyRep *Encode();
     PyPacket *Clone() const;
@@ -131,7 +131,7 @@ public:
     PyCallStream();
     ~PyCallStream();
 
-    void Dump(LogType type, PyVisitorLvl *dumper);
+    void Dump(LogType type, PyVisitor& dumper);
     bool Decode(const std::string &type, PyTuple *&payload); //consumes substream
     PyTuple *Encode();
     PyCallStream *Clone() const;
@@ -149,7 +149,7 @@ public:
     EVENotificationStream();
     ~EVENotificationStream();
 
-    void Dump(LogType type, PyVisitorLvl *dumper);
+    void Dump(LogType type, PyVisitor& dumper);
     bool Decode(const std::string &pkt_type, const std::string &notify_type, PyTuple *&payload); //consumes substream
     PyTuple *Encode();
     EVENotificationStream *Clone() const;

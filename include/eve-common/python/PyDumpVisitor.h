@@ -28,74 +28,84 @@
 
 #include "python/PyVisitor.h"
 
-class PyDumpVisitor
-: public PyVisitorLvl {
+class PyDumpVisitor : public PyPfxVisitor
+{
 public:
-    PyDumpVisitor(bool full_lists);
-    virtual ~PyDumpVisitor();
+    PyDumpVisitor( const char* pfx = "", bool full_nested = false );
+
+    bool fullNested() const { return mFullNested; }
 
 protected:
-    virtual void _print(const char *str, ...) = 0;
-    virtual void _print(uint32 iden, const char *str, ...) = 0;
-    virtual void _hexDump(const uint8 *bytes, uint32 len, const char * ident) = 0;
-
-    const bool m_full_lists;
+    // Output functions
+    virtual void _print( const char* fmt, ... ) = 0;
+    virtual void _dump( const char* pfx, const uint8* data, size_t len ) = 0;
 
     //! primitive data visitors
-    void VisitInteger(const PyInt *rep, int64 lvl );
-    void VisitLong(const PyLong *rep, int64 lvl );
-    void VisitReal(const PyFloat *rep, int64 lvl );
-    void VisitBoolean(const PyBool *rep, int64 lvl );
-    void VisitNone(const PyNone *rep, int64 lvl );
-    void VisitBuffer(const PyBuffer *rep, int64 lvl );
-    void VisitString(const PyString *rep, int64 lvl );
-    //! PackedRow type visitor
-    void VisitPackedRow(const PyPackedRow *rep, int64 lvl );
+    bool VisitInteger( const PyInt* rep );
+    bool VisitLong( const PyLong* rep );
+    bool VisitReal( const PyFloat* rep );
+    bool VisitBoolean( const PyBool* rep );
+    bool VisitNone( const PyNone* rep );
+    bool VisitBuffer( const PyBuffer* rep );
+    bool VisitString( const PyString* rep );
+
+    //! the nested types Visitor
+    bool VisitTuple( const PyTuple* rep );
+    bool VisitList( const PyList* rep );
+    bool VisitDict( const PyDict* rep );
+
     //! Object type visitor
-    void VisitObject(const PyObject *rep, int64 lvl );
-    void VisitObjectEx(const PyObjectEx *rep, int64 lvl );
-    //! Structureated types Visitor
-    void VisitSubStruct(const PySubStruct *rep, int64 lvl );
-        virtual void VisitSubStream(const PySubStream *rep, int64 lvl );
-    void VisitChecksumedStream(const PyChecksumedStream *rep, int64 lvl );
-    //! the data types Visitor
-        virtual void VisitDict(const PyDict *rep, int64 lvl );
-        virtual void VisitList(const PyList *rep, int64 lvl );
-        virtual void VisitTuple(const PyTuple *rep, int64 lvl );
+    bool VisitObject( const PyObject* rep );
+    bool VisitObjectEx( const PyObjectEx* rep );
+    //! PackedRow type visitor
+    bool VisitPackedRow( const PyPackedRow* rep );
+    //! wrapper types Visitor
+    bool VisitSubStruct( const PySubStruct* rep );
+    bool VisitSubStream( const PySubStream* rep );
+    bool VisitChecksumedStream( const PyChecksumedStream* rep );
+
+private:
+    const bool mFullNested;
 };
 
-class PyLogsysDump : public PyDumpVisitor {
+class PyLogDumpVisitor : public PyDumpVisitor
+{
 public:
-    PyLogsysDump(LogType type, bool full_hex = false, bool full_lists = false);
-    PyLogsysDump(LogType type, LogType hex_type, bool full_hex, bool full_lists);
-    virtual ~PyLogsysDump() { }
+    PyLogDumpVisitor( LogType log_type, LogType log_hex_type, const char* pfx = "", bool full_nested = false, bool full_hex = false );
+
+    bool fullHex() const { return mFullHex; }
+
+    LogType logType() const { return mLogType; }
+    LogType logHexType() const { return mLogHexType; }
 
 protected:
-    //overloaded for speed enhancements when disabled
-    void VisitDict(const PyDict *rep, int64 lvl );
-    void VisitList(const PyList *rep, int64 lvl );
-    void VisitTuple(const PyTuple *rep, int64 lvl );
-    void VisitSubStream(const PySubStream *rep, int64 lvl );
+    void _print( const char* fmt, ... );
+    void _dump( const char* pfx, const uint8* data, size_t len );
 
-    const LogType m_type;
-    const LogType m_hex_type;
-    const bool m_full_hex;
-    void _print(const char *str, ...);
-    void _print(uint32 iden, const char *str, ...);
-    void _hexDump(const uint8 *bytes, uint32 len, const char * ident);
+private:
+    const bool mFullHex;
+
+    const LogType mLogType;
+    const LogType mLogHexType;
 };
 
-class PyFileDump : public PyDumpVisitor {
+class PyFileDumpVisitor : public PyDumpVisitor
+{
 public:
-    PyFileDump(FILE *into, bool full_hex = false);
-    virtual ~PyFileDump() { }
+    PyFileDumpVisitor( FILE* _file, const char* pfx = "", bool full_nested = false, bool full_hex = false );
+
+    bool fullHex() const { return mFullHex; }
+
+    FILE* file() const { return mFile; }
 
 protected:
-    FILE *const m_into;
-    const bool m_full_hex;
-    void _print(const char *str, ...);
-    void _hexDump(const uint8 *bytes, uint32 len, const char * ident);
-    void _pfxHexDump(const uint8 *bytes, uint32 len, const char * ident);
+    void _print( const char* fmt, ... );
+    void _dump( const char* pfx, const uint8* data, size_t len );
+
+private:
+    const bool mFullHex;
+
+    FILE* const mFile;
 };
 
 #endif

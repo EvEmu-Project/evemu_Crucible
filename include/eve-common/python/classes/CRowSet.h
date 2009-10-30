@@ -53,7 +53,7 @@ public:
     /**
      * @return Row count.
      */
-    uint32 GetRowCount() const { return list().size(); }
+    size_t GetRowCount() const { return list().size(); }
 
     /**
      * @param[in] Index of row to be returned.

@@ -71,6 +71,7 @@ uint64       filesize(FILE* fd);
 std::string  generate_key(int length);
 int32	     hextoi(char* num);
 int64	     hextoi64(char* num);
+uint64       npowof2( uint64 num );
 char*	     strn0cpy(char* dest, const char* source, int32 size);
 bool	     strn0cpyt(char* dest, const char* source, int32 size);
 

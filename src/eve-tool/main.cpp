@@ -42,6 +42,7 @@
 #include "utils/misc.h"
 #include "utils/seperator.h"
 #include "utils/timer.h"
+#include "utils/utils_string.h"
 #include "utils/utils_time.h"
 
 // eve-common headers
@@ -55,7 +56,6 @@
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEMarshalStringTable.h"
 #include "marshal/EVEUnmarshal.h"
-#include "marshal/EVEZeroCompress.h"
 
 #include "network/packet_types.h"
 
@@ -77,8 +77,6 @@
 #   include <readline/history.h>
 #endif /* !NO_READLINE */
 
-#define CACHE_DIR "../data/cache"
-
 // global log hook.
 NewLog* pLog;
 MarshalStringTable* pMarshalStringTable;
@@ -94,8 +92,8 @@ static ThreadReturnType UserInputThread(void *data);
 void ProcessInput(char *input);
 void LoadScript(const char *filename);
 
-
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     /* logging system */
     pLog = new NewLog;
     /* marshal string table */
@@ -181,23 +179,8 @@ int main(int argc, char *argv[]) {
 	return(0);
 }
 
-void TestCache() {
-	PyString* str = new PyString("charCreationInfo.departments");
-
-	uint32 len;
-	uint8* data = Marshal( str, len );
-    PyDecRef( str );
-	
-	std::string into;
-    // Skip first 5 bytes (marshal header)
-	Base64::encode( &data[5], len-5, into, false );
-    SafeDeleteArray( data );
-
-	printf("Marshaled, base64'd string: '%s'\n", into.c_str());
-}
-
-
-static ThreadReturnType UserInputThread(void *data) {
+static ThreadReturnType UserInputThread(void *data)
+{
 #ifndef NO_READLINE
 	stifle_history(100);
 	
@@ -215,16 +198,18 @@ static ThreadReturnType UserInputThread(void *data) {
 	}
 	
 #else	//NO READLINE
-	char *input_buffer = new char[10240];
-	while(RunLoops) {
-		if(fgets(input_buffer, 10239, stdin) == NULL) {
-			if(feof(stdin)) {
-				//do nothing...
-			} else {
-				_log(CCLIENT__ERROR, "Failed to read a line");
+	char* input_buffer = new char[10240];
+	while( RunLoops )
+    {
+		if( fgets( input_buffer, 10239, stdin ) == NULL )
+        {
+			if( feof( stdin ) )
+            {
+			    RunLoops = false;
+			    break;
 			}
-			RunLoops = false;
-			break;
+            else
+				_log(CCLIENT__ERROR, "Failed to read a line");
 		}
 		
 		//else, we got a string
@@ -232,7 +217,7 @@ static ThreadReturnType UserInputThread(void *data) {
 		InputQueue.push(strdup(input_buffer));
 		MInputQueue.unlock();
 	}
-	delete input_buffer;
+	SafeDelete( input_buffer );
 #endif
 	
 	THREAD_RETURN(0);
@@ -248,18 +233,13 @@ void CatchSignal(int sig_num) {
 	fclose(stdin);
 }
 
-void ListCache(const char *filter);
-void CatCacheObject(const char *file);
-void CatCacheCall(const char *file);
-void CatAllObjects(const char *file);
 void TimeToString(const char *time);
+void PrintTimeNow();
 void ObjectToSQL(const Seperator &command);
 void TriToOBJ(const Seperator &command);
 void UnmarshalLogText(const Seperator &command);
 void DestinyDumpLogText(const Seperator &command);
-void PrintTimeNow();
 void TestMarshal();
-void TestZeroCompress();
 
 void ProcessInput(char *input) {
 	//strip newlines
@@ -274,51 +254,26 @@ void ProcessInput(char *input) {
 	
 	Seperator sep(input);
 	
-	if(strcasecmp(sep.arg[0], "exit") == 0) {
+	if(strcasecmp(sep.arg[0], "exit") == 0)
 		RunLoops = false;
-		return;
-	} else if(strcasecmp(sep.arg[0], "ls") == 0) {
-		ListCache(sep.arg[1]);
-		return;
-	} else if(strcasecmp(sep.arg[0], "catc") == 0) {
-		CatCacheCall(sep.arg[1]);
-		return;
-	} else if(strcasecmp(sep.arg[0], "cato") == 0) {
-		CatCacheObject(sep.arg[1]);
-		return;
-	} else if(strcasecmp(sep.arg[0], "obj2sql") == 0) {
-		ObjectToSQL(sep);
-		return;
-	} else if(strcasecmp(sep.arg[0], "catall") == 0) {
-		CatAllObjects(sep.arg[1]);
-		return;
-	} else if(strcasecmp(sep.arg[0], "time") == 0) {
-		TimeToString(sep.arg[1]);
-		return;
-	} else if(strcasecmp(sep.arg[0], "now") == 0) {
-		PrintTimeNow();
-		return;
-	} else if(strcasecmp(sep.arg[0], "tri2obj") == 0) {
-		TriToOBJ(sep);
-		return;
-	} else if(strcasecmp(sep.arg[0], "mtest") == 0) {
-		TestMarshal();
-		return;
-	} else if(strcasecmp(sep.arg[0], "unmarshal") == 0) {
-		UnmarshalLogText(sep);
-		return;
-	} else if(strcasecmp(sep.arg[0], "script") == 0) {
+    else if(strcasecmp(sep.arg[0], "script") == 0)
 		LoadScript(sep.arg[1]);
-		return;
-	} else if(strcasecmp(sep.arg[0], "destinydump") == 0) {
+    else if(strcasecmp(sep.arg[0], "time") == 0)
+		TimeToString(sep.arg[1]);
+    else if(strcasecmp(sep.arg[0], "now") == 0)
+		PrintTimeNow();
+    else if(strcasecmp(sep.arg[0], "obj2sql") == 0)
+		ObjectToSQL(sep);
+    else if(strcasecmp(sep.arg[0], "tri2obj") == 0)
+		TriToOBJ(sep);
+    else if(strcasecmp(sep.arg[0], "unmarshal") == 0)
+		UnmarshalLogText(sep);
+    else if(strcasecmp(sep.arg[0], "destinydump") == 0)
 		DestinyDumpLogText(sep);
-		return;
-	} else if(strcasecmp(sep.arg[0], "zctest") == 0) {
-		TestZeroCompress();
-		return;
-	} else {
+    else if(strcasecmp(sep.arg[0], "mtest") == 0)
+		TestMarshal();
+    else
 		printf("Unknown command '%s'\n", sep.arg[0]);
-	}
 }
 
 void TimeToString(const char *time) {
@@ -331,193 +286,19 @@ void TimeToString(const char *time) {
 	printf("\n"I64u" is %s\n", t, Win32TimeToString(t).c_str());
 }
 
-void PrintTimeNow() {
-	printf("\nNow in Win32 time: "I64u"\n", Win32TimeNow());
+void PrintTimeNow()
+{
+	printf( "Now in Win32 time: "I64u"\n", Win32TimeNow() );
 }
 
-void ListCache(const char *in_filter) {
-	std::string filter;
-	if(in_filter != NULL && *in_filter == ' ') {
-		in_filter++;
-		filter = in_filter;
-	}
-	std::vector<std::string> files;
-	if(!DirWalker::ListDirectory(CACHE_DIR, files)) {
-		printf("Unable to read cache dir\n");
-		return;
-	}
-
-	printf("Cache files:\n");
-	std::vector<std::string>::iterator cur, end;
-	cur = files.begin();
-	end = files.end();
-	for(; cur != end; cur++) {
-		std::string s(*cur);
-		if(s.find(".cache") == std::string::npos) {
-			if(!filter.empty())
-				printf("file '%s' is not a cache file\n", s.c_str());
-			continue;
-		}
-		std::string fname = s;
-
-		
-		s.erase(s.find('.'));
-		s.append("=======");
-		uint8 *b = new uint8[s.length()];
-		size_t len = s.length();
-		Base64::decode(s, b, len);
-		
-		//impossible that this is a stream.
-		if(len < 4 || b[0] != '~')
-			continue;
-		
-		PyRep *rep = InflateUnmarshal(b, uint32(len-3));
-
-		std::string hexed;
-		char buf[10];
-		size_t r;
-		for(r = 0; r < len; r++) {
-			if(b[r] < ' ' || b[r] > '~') {
-				snprintf(buf, 9, "\\x%02x", b[r]);
-			} else {
-				buf[0] = b[r];
-				buf[1] = '\0';
-			}
-			hexed += buf;
-		}
-		
-		if(!filter.empty()) {
-			if(strstr(hexed.c_str(), filter.c_str()) == NULL) {
-				delete rep;
-				continue;
-			}
-		}
-		
-		printf("file: %s\n", fname.c_str());
-		printf("  --> %s\n", hexed.c_str());
-		if(rep != NULL)
-			rep->Dump(stdout, "    --> ");
-	}
-	printf("\n");
-}
-
-
-void CatAllObjects(const char *in_filter) {
-	std::string filter;
-	if(in_filter != NULL && *in_filter == ' ') {
-		in_filter++;
-		filter = in_filter;
-	}
-	std::vector<std::string> files;
-	if(!DirWalker::ListDirectory(CACHE_DIR, files)) {
-		printf("Unable to read cache dir\n");
-		return;
-	}
-
-	printf("Cache files:\n");
-	std::vector<std::string>::iterator cur, end;
-	cur = files.begin();
-	end = files.end();
-	for(; cur != end; cur++) {
-		std::string s(*cur);
-		if(s.find(".cache") == std::string::npos) {
-			if(!filter.empty())
-				printf("file '%s' is not a cache file\n", s.c_str());
-			continue;
-		}
-		std::string fname = s;
-
-		
-		s.erase(s.find('.'));
-
-		CatCacheObject(s.c_str());
-	}
-}
-
-void CatCacheObject(const char *file) {
-	std::string abs_fname(CACHE_DIR "/");
-	abs_fname += file;
-	abs_fname += ".cache";
-	printf("Dumping cached object %s:\n", abs_fname.c_str());
-
-	CachedObjectMgr mgr;
-	PyCachedObjectDecoder *obj = mgr.LoadCachedObject(abs_fname.c_str(), file);
-	if(obj == NULL) {
-		_log(CLIENT__ERROR, "Unable to load or decode '%s'!", abs_fname.c_str());
-		return;
-	}
-
-	printf("Cached Object Data:\n");
-	obj->Dump(stdout, "    ", false);
-
-	printf("Cached Object Contents:\n");
-	SubStreamDecoder ssd;
-	obj->cache->visit(&ssd);
-	obj->cache->Dump(stdout, "    ");
-}
-
-void CatCacheCall(const char *file) {
-	std::string abs_fname(CACHE_DIR "/");
-	abs_fname += file;
-	abs_fname += ".cache";
-	printf("Dumping cached object %s:\n", abs_fname.c_str());
-
-	CachedObjectMgr mgr;
-	PyCachedCall *obj = mgr.LoadCachedCall(abs_fname.c_str(), file);
-	if(obj == NULL) {
-		_log(CLIENT__ERROR, "Unable to load or decode '%s'!", abs_fname.c_str());
-		return;
-	}
-
-	printf("Cached Call Data:\n");
-	obj->Dump(stdout, "    ", false);
-
-	printf("Cached Call Results:\n");
-	SubStreamDecoder ssd;
-	obj->result->visit(&ssd);
-	obj->result->Dump(stdout, "    ");
-	
-	
-	
-/*  uint32 file_length = GetFileLength(abs_fname.c_str());
-	if(file_length == 0) {
-		_log(CLIENT__ERROR, "Unable to stat cache file '%s'", abs_fname.c_str());
-		return;
-	}
-	
-	FILE *f = fopen(abs_fname.c_str(), "rb");
-	if(f == NULL) {
-		_log(CLIENT__ERROR, "Unable to open cache file '%s': %s", abs_fname.c_str(), strerror(errno));
-		return;
-	}
-	
-	uint8 *b = new uint8[file_length+10];
-	int32 len = fread(b, 1, file_length+10, f);
-	fclose(f);
-
-	PySubStream *into = new PySubStream();
-	into->data = b;
-	into->length = len;
-
-	into->DecodeData();
-	if(into->decoded == NULL) {
-		_log(CLIENT__ERROR, "Unable to unmarshal cache file '%s'", abs_fname.c_str());
-		_hex(CLIENT__ERROR, into->data, into->length);
-		return;
-	}
-	SubStreamDecoder ssd;
-	into->decoded->visit(&ssd);
-	into->Dump(stdout, "    ");*/
-}
-
-void ObjectToSQL(const Seperator &command) {
+void ObjectToSQL(const Seperator &command)
+{
 	if(command.argnum != 4) {
 		printf("Usage: obj2sql [cache_file] [table_name] [key_field] [file_name]\n");
 		return;
 	}
 
-	
-	std::string abs_fname(CACHE_DIR "/");
+    std::string abs_fname( "../data/cache/" );
 	abs_fname += command.arg[1];
 	abs_fname += ".cache";
 	printf("Converting cached object %s:\n", abs_fname.c_str());
@@ -593,113 +374,28 @@ void TriToOBJ(const Seperator &command) {
 	printf("%s - %s - written.\n", command.arg[2], command.arg[3]);
 }
 
-//based on PyString_DecodeEscape from python.
-static bool PyString_DecodeEscape(const char *s, std::vector<uint8>& result)
-{
-	int c;
-	const char *end;
-    /*
-	char *p, *buf;
-	PyObject *v;
-	int newlen = recode_encoding ? 4*len:len;
-	v = PyString_FromStringAndSize((char *)NULL, newlen);
-	if (v == NULL)
-		return NULL;
-	p = buf = PyString_AsString(v);
-	*/
-	int len = (int)strlen(s);
-	end = s + len;
-	while (s < end) {
-		if (*s != '\\') {
-			result.push_back(*s++);
-			continue;
-		}
-		s++;
-        if (s==end) {
-            //ended with a \ char
-			return false;
-		}
-		switch (*s++) {
-		/* XXX This assumes ASCII! */
-		case '\n': break;	//?
-		case '\\': result.push_back('\\'); break;
-		case '\'': result.push_back('\''); break;
-		case '\"': result.push_back('\"'); break;
-		case 'b':  result.push_back('\b'); break;
-		case 'f':  result.push_back('\014'); break; /* FF */
-		case 't':  result.push_back('\t'); break;
-		case 'n':  result.push_back('\n'); break;
-		case 'r':  result.push_back('\r'); break;
-		case 'v':  result.push_back('\013'); break; /* VT */
-		case 'a':  result.push_back('\007'); break; /* BEL, not classic C */
-		case '0': case '1': case '2': case '3':
-		case '4': case '5': case '6': case '7':
-			c = s[-1] - '0';
-			if ('0' <= *s && *s <= '7') {
-				c = (c<<3) + *s++ - '0';
-				if ('0' <= *s && *s <= '7')
-					c = (c<<3) + *s++ - '0';
-			}
-			 result.push_back(c);
-			break;
-		case 'x':
-			if (isxdigit(s[0]) 
-			    && isxdigit(s[1])) {
-				unsigned int x = 0;
-				c = *s;
-				s++;
-				if (isdigit(c))
-					x = c - '0';
-				else if (islower(c))
-					x = 10 + c - 'a';
-				else
-					x = 10 + c - 'A';
-				x = x << 4;
-				c = *s;
-				s++;
-				if (isdigit(c))
-					x += c - '0';
-				else if (islower(c))
-					x += 10 + c - 'a';
-				else
-					x += 10 + c - 'A';
-				 result.push_back(x);
-				break;
-			}
-			//"invalid \\x escape");
-			return false;
-		default:
-			return false;
-		}
-	}
-	return true;
-}
-
-
-
 void UnmarshalLogText(const Seperator &command)
 {
-    std::vector<uint8> result;
-	if(!PyString_DecodeEscape(command.argplus[1], result)) {
-		printf("Failed to decode string... trying with what we did get (%lu bytes).\n", result.size());
+    Buffer data;
+	if( !py_decode_escape( command.argplus[1], data ) )
+    {
+		sLog.Error( "unmarshal", "Failed to decode string into binary." );
+        return;
 	}
 
-	_log(NET__UNMARSHAL_TRACE, "Decoded %lu bytes:", result.size());
-	_hex(NET__UNMARSHAL_BUFHEX, &result[0], uint32(result.size()));
-	
-	PyRep *r = InflateUnmarshal(&result[0], uint32(result.size()));
-	if(r == NULL) {
-		printf("Failed to unmarshal.\n");
-	} else {
-		//decode substreams.
-		SubStreamDecoder ssd;
-		r->visit(&ssd);
-		printf("Unmarshaled rep:\n");
-		r->Dump(stdout, "    ");
+	PyRep* r = InflateUnmarshal( data );
+	if( r == NULL )
+		sLog.Error( "unmarshal", "Failed to unmarshal binary." );
+    else
+    {
+        sLog.Success( "unmarshal", "Result:" );
+
+		r->Dump( stdout, "    " );
 	}
 }
 
-void TestMarshal() {
+void TestMarshal()
+{
 	DBRowDescriptor *header = new DBRowDescriptor;
 	// Fill header:
 	header->AddColumn( "historyDate", DBTYPE_FILETIME );
@@ -719,30 +415,29 @@ void TestMarshal() {
 	row.SetField( "volume", new PyLong( 5463586 ) );
 	row.SetField( "orders", new PyInt( 254 ) );
 
-	_log(COMMON__MESSAGE, "Marshaling...");
-    uint32 len;
-	uint8* marshaled = MarshalDeflate( rs, len );
-    PyDecRef( rs );
+    sLog.Log( "mtest", "Marshaling..." );
 
+    Buffer* marshaled = MarshalDeflate( rs );
+    PyDecRef( rs );
     if( marshaled == NULL )
     {
         sLog.Error( "mtest", "Failed to marshal Python object." );
         return;
     }
 
-	_log(COMMON__MESSAGE, "Unmarshaling...");
-	PyRep* rep = InflateUnmarshal( marshaled, len );
-	SafeDeleteArray( marshaled );
+    sLog.Log( "mtest", "Unmarshaling..." );
 
-    if(rep == NULL)
-    {
+	PyRep* rep = InflateUnmarshal( *marshaled );
+	SafeDelete( marshaled );
+    if( rep == NULL )
         sLog.Error( "mtest", "Failed to unmarshal Python object." );
-        return;
+    else
+    {
+        sLog.Success( "mtest", "Final:" );
+	    rep->Dump( stdout, "    " );
+
+        PyDecRef( rep );
     }
-
-	rep->Dump( stdout, " Final: " );
-
-    PyDecRef( rep );
 }
 
 void LoadScript(const char *filename) {
@@ -772,45 +467,13 @@ void LoadScript(const char *filename) {
 	}
 }
 
-void DestinyDumpLogText(const Seperator &command) {
-	std::vector<uint8> result;
-
-	if(!PyString_DecodeEscape(command.argplus[1], result))
+void DestinyDumpLogText( const Seperator &command )
+{
+    Buffer data;
+    if( !py_decode_escape( command.argplus[1], data ) )
 		return;
 
-	Destiny::DumpUpdate(DESTINY__MESSAGE, &result[0], uint32(result.size()));
-}
-
-void TestZeroCompress() {
-	uint8 input[] = {
-		0x00, 0xC3, 0xF5, 0x28, 0x5C, 0x8F, 0x16, 0x85, 0x40, 0x90, 0x38, 0x0C, 0x23, 0x20, 0x27, 0xC9, 0x01, 0xA7, 0x14, 0xA7, 0x15, 0xA7,
-		0xFF, 0xA7, 0x05, 0xA7, 0x14, 0xA7, 0x01, 0xA7, 0x01, 0x81, 0x31, 0x96, 0x93, 0x03, 0x90, 0x96, 0x98, 0x84, 0xFD, 0xC8, 0xC9, 0x01,
-		0x07, 0x01
-	};
-
-	_log(COMMON__MESSAGE, "Original: %lu bytes", sizeof(input));
-	_hex(COMMON__MESSAGE, input, sizeof(input));
-
-	std::vector<uint8> unpacked;
-	UnpackZeroCompressed(input, sizeof(input), unpacked);
-
-	_log(COMMON__MESSAGE, "Unpacked: %lu bytes", unpacked.size());
-	_hex(COMMON__MESSAGE, &unpacked[0], (uint32)unpacked.size());
-
-	std::vector<uint8> repacked;
-	PackZeroCompressed(&unpacked[0], unpacked.size(), repacked);
-	
-	_log(COMMON__MESSAGE, "Re-packed: %lu bytes", repacked.size());
-	for(size_t r = 0; r < repacked.size(); r++) {
-		if(r % 16 == 0 && r != 0)
-			printf("\n");
-
-		if(repacked[r] != input[r])
-			printf("(%02X) ", repacked[r]);
-		else
-			printf("%02X ", repacked[r]);
-	}
-	printf("\n");
+	Destiny::DumpUpdate( DESTINY__MESSAGE, &data[0], data.size() );
 }
 
 

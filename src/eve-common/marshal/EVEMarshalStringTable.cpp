@@ -28,7 +28,7 @@
 #include "marshal/EVEMarshalStringTable.h"
 
 /* we made up this list so we have efficient string communication with the client */
-const char *StringTable[StringTableSize] =
+const char* const MarshalStringTable::s_mStringTable[] =
 {
     "*corpid",
     "*locationid",
@@ -226,58 +226,36 @@ const char *StringTable[StringTableSize] =
     "agent.ResearchMissionDetails",
     "agent.StorylineMissionDetails",
 };
+const size_t MarshalStringTable::s_mStringTableSize = sizeof( MarshalStringTable::s_mStringTable ) / sizeof( const char* );
 
 MarshalStringTable::MarshalStringTable()
 {
-    for( size_t i = 0; i < StringTableSize; i++ )
-    {
-        mStringTable[ hash( StringTable[ i ] ) ] = static_cast<uint8>( i );
-
-        mPyStringTable[i] = new PyString( StringTable[i] );
-    }
-}
-
-MarshalStringTable::~MarshalStringTable()
-{
-    for( size_t i = 0; i < StringTableSize; i++ )
-        PyDecRef( mPyStringTable[ i ] );
+    for( uint8 i = 1; i <= s_mStringTableSize; i++ )
+        mStringTableMap.insert(
+            std::make_pair( hash( LookupString( i ) ), i )
+        );
 }
 
 /* lookup a index using a string */
-size_t MarshalStringTable::LookupIndex(const std::string& str)
+uint8 MarshalStringTable::LookupIndex( const std::string& str )
 {
 	return LookupIndex( str.c_str() );
 }
 
 /* lookup a index using a string */
-size_t MarshalStringTable::LookupIndex(const char* str)
+uint8 MarshalStringTable::LookupIndex( const char* str )
 {
-    uint32 hashValue = hash( str );
-
-    std::tr1::unordered_map<uint32, uint8>::const_iterator res = mStringTable.find( hashValue );
-    if( res == mStringTable.end() )
+    StringTableMapConstItr res = mStringTableMap.find( hash( str ) );
+    if( mStringTableMap.end() == res )
         return STRING_TABLE_ERROR;
 
-    return ( res->second + 1 );
+    return res->second;
 }
 
-const char* MarshalStringTable::LookupString(uint8 index)
+const char* MarshalStringTable::LookupString( uint8 index )
 {
-    if( --index >= StringTableSize )
+    if( --index < s_mStringTableSize )
+        return s_mStringTable[ index ];
+    else
         return NULL;
-
-    return StringTable[ index ];
-}
-
-const PyString* MarshalStringTable::LookupPyString(uint8 index)
-{
-    if( --index >= StringTableSize )
-    {
-        /* crash HARD */
-        assert( false );
-
-        return NULL;
-    }
-
-    return mPyStringTable[ index ];
 }

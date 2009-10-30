@@ -25,193 +25,163 @@
 
 #include "EVECommonPCH.h"
 
+#include "python/classes/DBRowDescriptor.h"
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
 
-//! primitive data visitors
-void SubStreamDecoder::VisitInteger(const PyInt *rep) {}
-void SubStreamDecoder::VisitLong(const PyLong *rep) {}
-void SubStreamDecoder::VisitReal(const PyFloat *rep) {}
-void SubStreamDecoder::VisitBoolean(const PyBool *rep) {}
-void SubStreamDecoder::VisitNone(const PyNone *rep) {}
-void SubStreamDecoder::VisitBuffer(const PyBuffer *rep) {}
-void SubStreamDecoder::VisitString(const PyString *rep) {}
-//! PackedRow type visitor
-void SubStreamDecoder::VisitPackedRow(const PyPackedRow *rep) {}
-//! Object type visitor
-void SubStreamDecoder::VisitObject(const PyObject *rep) {
-    rep->arguments()->visit(this);
+/************************************************************************/
+/* PyVisitor                                                            */
+/************************************************************************/
+bool PyVisitor::VisitTuple( const PyTuple* rep )
+{
+    PyTuple::const_iterator cur, end;
+    cur = rep->begin();
+    end = rep->end();
+    for(; cur != end; cur++)
+    {
+        if( !(*cur)->visit( *this ) )
+            return false;
+    }
+    return true;
 }
 
-void SubStreamDecoder::VisitObjectEx(const PyObjectEx *rep) {
-    rep->header()->visit(this);
+bool PyVisitor::VisitList( const PyList* rep )
+{
+    PyList::const_iterator cur, end;
+    cur = rep->begin();
+    end = rep->end();
+    for(; cur != end; cur++ )
+    {
+        if( !(*cur)->visit( *this ) )
+            return false;
+    }
+    return true;
+}
+
+bool PyVisitor::VisitDict( const PyDict* rep )
+{
+    PyDict::const_iterator cur, end;
+    cur = rep->begin();
+    end = rep->end();
+    for(; cur != end; cur++)
+    {
+        if( !cur->first->visit( *this ) )
+            return false;
+        if( !cur->second->visit( *this ) )
+            return false;
+    }
+    return true;
+}
+
+bool PyVisitor::VisitObject( const PyObject* rep )
+{
+    if( !rep->type()->visit( *this ) )
+        return false;
+    if( !rep->arguments()->visit( *this ) )
+        return false;
+    return true;
+}
+
+bool PyVisitor::VisitObjectEx( const PyObjectEx* rep )
+{
+    if( !rep->header()->visit( *this ) )
+        return false;
 
     {
         PyObjectEx::const_list_iterator cur, end;
         cur = rep->list().begin();
         end = rep->list().end();
-        for(; cur != end; ++cur)
-            (*cur)->visit(this);
+        for(; cur != end; cur++)
+        {
+            if( !(*cur)->visit( *this ) )
+                return false;
+        }
     }
 
     {
         PyObjectEx::const_dict_iterator cur, end;
         cur = rep->dict().begin();
         end = rep->dict().end();
-        for(; cur != end; ++cur)
+        for(; cur != end; cur++)
         {
-            cur->first->visit(this);
-            cur->second->visit(this);
+            if( !cur->first->visit( *this ) )
+                return false;
+            if( !cur->second->visit( *this ) )
+                return false;
         }
     }
+
+    return true;
 }
 
-void SubStreamDecoder::VisitSubStruct(const PySubStruct *rep) {
-    rep->sub()->visit(this);
-}
+bool PyVisitor::VisitPackedRow( const PyPackedRow* rep )
+{
+    if( !rep->header()->visit( *this ) )
+        return false;
 
-
-//! the visitor needed for decoding the substream.
-//! @note whe only need to decode, and then visit the data types inside
-//! the substream, searching for nested substreams that needs decoding...
-void SubStreamDecoder::VisitSubStream(const PySubStream *rep) {
-    rep->DecodeData();
-    if(rep->decoded() != NULL)
-       rep->decoded()->visit(this);
-}
-
-
-void SubStreamDecoder::VisitChecksumedStream(const PyChecksumedStream *rep) {}
-
-void SubStreamDecoder::VisitDict(const PyDict *rep) {
-
-    PyDict::const_iterator cur, end;
+    PyPackedRow::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
-    for(; cur != end; ++cur) {
-        cur->first->visit(this);
-        cur->second->visit(this);
+    for(; cur != end; cur++)
+    {
+        if( !(*cur)->visit( *this ) )
+            return false;
     }
+
+    return true;
 }
 
-void SubStreamDecoder::VisitList(const PyList *rep) {
+bool PyVisitor::VisitSubStruct( const PySubStruct* rep )
+{
+    if( !rep->sub()->visit( *this ) )
+        return false;
+    return true;
+}
 
-    PyList::const_iterator cur, end;
-    cur = rep->begin();
-    end = rep->end();
-    for(; cur != end; ++cur) {
-        (*cur)->visit(this);
+bool PyVisitor::VisitSubStream( const PySubStream* rep )
+{
+    if( rep->decoded() == NULL )
+    {
+        if( rep->data() == NULL )
+            return false;
+
+        rep->DecodeData();
+        if( rep->decoded() == NULL )
+            return false;
     }
+    if( !rep->decoded()->visit( *this ) )
+        return false;
+    return true;
 }
 
-void SubStreamDecoder::VisitTuple(const PyTuple *rep) {
-
-    PyTuple::const_iterator cur, end;
-    cur = rep->begin();
-    end = rep->end();
-    for(; cur != end; ++cur) {
-        (*cur)->visit(this);
-    }
-}
-// TODO: remove this after testing.
-
-/*
-void PyVisitor::VisitObject(const PyObject *rep) {
-    rep->arguments->visit(this);
+bool PyVisitor::VisitChecksumedStream( const PyChecksumedStream* rep )
+{
+    if( !rep->stream()->visit( *this ) )
+        return false;
+    return true;
 }
 
-void PyVisitor::VisitPackedRow(const PyPackedRow *rep) { }
-
-void PyVisitor::VisitObjectEx(const PyObjectEx *rep) {
-    VisitObjectExHeader(rep);
-    VisitObjectExList(rep);
-    VisitObjectExDict(rep);
+/************************************************************************/
+/* PyPfxVisitor                                                         */
+/************************************************************************/
+PyPfxVisitor::PyPfxVisitor( const char* pfx )
+{
+    mPfxStack.push( pfx );
 }
 
-void PyVisitor::VisitObjectExHeader(const PyObjectEx *rep) {
-    rep->header->visit(this);
+void PyPfxVisitor::_pfxExtend( const char* fmt, ... )
+{
+    va_list ap;
+    va_start( ap, fmt );
+
+    char* res;
+    vasprintf( &res, fmt, ap );
+
+    va_end( ap );
+
+    std::string p( _pfx() );
+    p += res;
+    mPfxStack.push( p );
+
+    SafeFree( res );
 }
-
-void PyVisitor::VisitObjectExList(const PyObjectEx *rep) {
-    PyObjectEx::const_list_iterator cur, end;
-    cur = rep->list().begin();
-    end = rep->list().end();
-    for(int i = 0; cur != end; cur++, i++)
-        VisitObjectExListElement(rep, i, *cur);
-}
-
-void PyVisitor::VisitObjectExListElement(const PyObjectEx *rep, uint32 index, const PyRep *ele) {
-    ele->visit(this);
-}
-
-void PyVisitor::VisitObjectExDict(const PyObjectEx *rep) {
-    PyObjectEx::const_dict_iterator cur, end;
-    cur = rep->dict().begin();
-    end = rep->dict().end();
-    for(int i = 0; cur != end; cur++, i++)
-        VisitObjectExDictElement(rep, i, cur->first, cur->second);
-}
-
-void PyVisitor::VisitObjectExDictElement(const PyObjectEx *rep, uint32 index, const PyRep *key, const PyRep *value) {
-    key->visit(this);
-    value->visit(this);
-}
-
-void PyVisitor::VisitSubStruct(const PySubStruct *rep) {
-    rep->sub->visit(this);
-}
-
-void PyVisitor::VisitSubStream(const PySubStream *rep) {
-    if(rep->decoded != NULL)
-        rep->decoded->visit(this);
-}
-
-void PyVisitor::VisitChecksumedStream(const PyChecksumedStream *rep) {
-    rep->stream->visit(this);
-}
-
-void PyVisitor::VisitDict(const PyDict *rep) {
-
-    PyDict::const_iterator cur, end;
-    cur = rep->begin();
-    end = rep->end();
-    uint32 r;
-    for(r = 0; cur != end; cur++, r++) {
-        VisitDictElement(rep, r, cur->first, cur->second);
-    }
-}
-
-
-void PyVisitor::VisitDictElement(const PyDict *rep, uint32 index, const PyRep *key, const PyRep *value) {
-    key->visit(this);
-    value->visit(this);
-}
-
-
-void PyVisitor::VisitList(const PyList *rep) {
-    PyList::const_iterator cur, end;
-    cur = rep->begin();
-    end = rep->end();
-    uint32 r;
-    for(r = 0; cur != end; cur++, r++) {
-        VisitListElement(rep, r, *cur);
-    }
-}
-
-void PyVisitor::VisitListElement(const PyList *rep, uint32 index, const PyRep *ele) {
-    ele->visit(this);
-}
-
-void PyVisitor::VisitTuple(const PyTuple *rep) {
-    PyTuple::const_iterator cur, end;
-    cur = rep->begin();
-    end = rep->end();
-    uint32 r;
-    for(r = 0; cur != end; cur++, r++) {
-        VisitTupleElement(rep, r, *cur);
-    }
-}
-
-void PyVisitor::VisitTupleElement(const PyTuple *rep, uint32 index, const PyRep *ele) {
-    ele->visit(this);
-}*/

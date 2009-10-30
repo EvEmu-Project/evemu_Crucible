@@ -192,52 +192,38 @@ public:
 
 //run through the rep, concatenating all the strings together and noting if
 //there are a no non-string types in the rep (lists and tuples are OK)
-class StringCollapseVisitor : public PyVisitor {
+class StringCollapseVisitor
+: public PyVisitor
+{
 public:
-    StringCollapseVisitor()
-        : good(true) {}
+    std::string result;
 
-    EVEMU_INLINE void VisitInteger(const PyInt *rep) { good = false; }
-    EVEMU_INLINE void VisitLong(const PyLong *rep) { good = false; }
-    EVEMU_INLINE void VisitReal(const PyFloat *rep) { good = false; }
-    EVEMU_INLINE void VisitBoolean(const PyBool *rep) { good = false; }
-    EVEMU_INLINE void VisitNone(const PyNone *rep) { good = false; }
-    EVEMU_INLINE void VisitBuffer(const PyBuffer *rep) { good = false; }
-    EVEMU_INLINE void VisitString(const PyString *rep) {
-        if(!result.empty())
+    bool VisitInteger( const PyInt* rep ) { return false; }
+    bool VisitLong( const PyLong* rep ) { return false; }
+    bool VisitReal( const PyFloat* rep ) { return false; }
+    bool VisitBoolean( const PyBool* rep ) { return false; }
+    bool VisitNone( const PyNone* rep ) { return false; }
+    bool VisitBuffer( const PyBuffer* rep ) { return false; }
+    bool VisitString( const PyString* rep )
+    {
+        if( !result.empty() )
             result += ".";
         result += rep->content();
+
+        return true;
     }
-    //! PackedRow type visitor
-    EVEMU_INLINE void VisitPackedRow(const PyPackedRow *rep) { good = false; }
-    //! Object type visitor
-    EVEMU_INLINE void VisitObject(const PyObject *rep) { good = false; }
-    EVEMU_INLINE void VisitObjectEx(const PyObjectEx *rep) { good = false; }
 
-    EVEMU_INLINE void VisitSubStruct(const PySubStruct *rep) { good = false; }
-    EVEMU_INLINE void VisitSubStream(const PySubStream *rep) { good = false; }
-    EVEMU_INLINE void VisitChecksumedStream(const PyChecksumedStream *rep) { good = false; }
+    bool VisitDict(const PyDict *rep) { return false; }
 
-    EVEMU_INLINE void VisitDict(const PyDict *rep) { good = false; }
-    EVEMU_INLINE void VisitList(const PyList *rep)
-	{
-		PyList::const_iterator cur, end;
-		cur = rep->items.begin();
-		end = rep->items.end();
-		for(; cur != end; cur++)
-			(*cur)->visit( this );
-	}
-    EVEMU_INLINE void VisitTuple(const PyTuple *rep)
-	{
-		PyTuple::const_iterator cur, end;
-		cur = rep->items.begin();
-		end = rep->items.end();
-		for(; cur != end; cur++)
-			(*cur)->visit( this );
-	}
+    bool VisitObject(const PyObject *rep) { return false; }
+    bool VisitObjectEx(const PyObjectEx *rep) { return false; }
 
-    std::string result;
-    bool good;
+    bool VisitPackedRow(const PyPackedRow *rep) { return false; }
+
+    bool VisitSubStruct(const PySubStruct *rep) { return false; }
+    bool VisitSubStream(const PySubStream *rep) { return false; }
+    bool VisitChecksumedStream(const PyChecksumedStream *rep) { return false; }
+
 };
 
 #endif

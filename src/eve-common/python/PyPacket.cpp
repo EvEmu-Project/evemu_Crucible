@@ -83,7 +83,7 @@ PyPacket *PyPacket::Clone() const
     return res;
 }
 
-void PyPacket::Dump(LogType ltype, PyVisitorLvl *dumper)
+void PyPacket::Dump(LogType ltype, PyVisitor& dumper)
 {
     _log(ltype, "Packet:");
     _log(ltype, "  Type: %s", type_string.c_str());
@@ -94,12 +94,12 @@ void PyPacket::Dump(LogType ltype, PyVisitorLvl *dumper)
     dest.Dump(ltype, "    ");
     _log(ltype, "  User ID: %u", userid);
     _log(ltype, "  Payload:");
-    payload->visit(dumper, 0);
+    payload->visit( dumper );
     if(named_payload == NULL) {
         _log(ltype, "  Named Payload: None");
     } else {
         _log(ltype, "  Named Payload:");
-        named_payload->visit(dumper, 0);
+        named_payload->visit( dumper );
     }
 }
 
@@ -626,7 +626,8 @@ PyCallStream *PyCallStream::Clone() const {
     return res;
 }
 
-void PyCallStream::Dump(LogType type, PyVisitorLvl *dumper) {
+void PyCallStream::Dump(LogType type, PyVisitor& dumper)
+{
     _log(type, "Call Stream:");
     if(remoteObject == 0) {
         _log(type, "  Remote Object: '%s'", remoteObjectStr.c_str());
@@ -634,12 +635,12 @@ void PyCallStream::Dump(LogType type, PyVisitorLvl *dumper) {
         _log(type, "  Remote Object: %d", remoteObject);
     _log(type, "  Method: %s", method.c_str());
     _log(type, "  Arguments:");
-    arg_tuple->visit(dumper, 0);
+    arg_tuple->visit( dumper );
     if(arg_dict == NULL) {
         _log(type, "  Named Arguments: None");
     } else {
         _log(type, "  Named Arguments:");
-        arg_dict->visit(dumper, 0);
+        arg_dict->visit( dumper );
     }
 }
 
@@ -821,7 +822,8 @@ EVENotificationStream *EVENotificationStream::Clone() const {
     return res;
 }
 
-void EVENotificationStream::Dump(LogType type, PyVisitorLvl *dumper) {
+void EVENotificationStream::Dump(LogType type, PyVisitor& dumper)
+{
     _log(type, "Notification: %s", notifyType.c_str());
     if(remoteObject == 0) {
         _log(type, "  Remote Object: %s", remoteObjectStr.c_str());
@@ -829,7 +831,7 @@ void EVENotificationStream::Dump(LogType type, PyVisitorLvl *dumper) {
         _log(type, "  Remote Object: %u", remoteObject);
     }
     _log(type, "  Arguments:");
-    args->visit(dumper, 0);
+    args->visit( dumper );
 }
 
 bool EVENotificationStream::Decode(const std::string &pkt_type, const std::string &notify_type, PyTuple *&in_payload) {
@@ -904,8 +906,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     } else {
         codelog(NET__PACKET_ERROR, "main tuple[0] has invalid type %s", robjt->items[0]->TypeString());
         _log(NET__PACKET_ERROR, " in:");
-        PyLogsysDump d(NET__PACKET_ERROR);
-        payload->visit(&d, 0);
+        payload->Dump( NET__PACKET_ERROR, "" );
         PyDecRef(payload);
         return false;
     }
@@ -913,8 +914,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     if(!robjt->items[1]->IsTuple()) {
         codelog(NET__PACKET_ERROR, "main tuple[1] has non-tuple type %s", robjt->items[0]->TypeString());
         _log(NET__PACKET_ERROR, " it is:");
-        PyLogsysDump d(NET__PACKET_ERROR);
-        payload->visit(&d, 0);
+        payload->Dump( NET__PACKET_ERROR, "" );
         PyDecRef(payload);
         return false;
     }
@@ -935,8 +935,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     } else {
         codelog(NET__PACKET_ERROR, "sub tuple[0] has invalid type %s", subt->items[0]->TypeString());
         _log(NET__PACKET_ERROR, " in:");
-        PyLogsysDump d(NET__PACKET_ERROR);
-        payload->visit(&d, 0);
+        payload->Dump( NET__PACKET_ERROR, "" );
         PyDecRef(payload);
         return false;
     }
@@ -946,8 +945,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     if(!subt->items[1]->IsTuple()) {
         codelog(NET__PACKET_ERROR, "subt tuple[1] has non-tuple type %s", robjt->items[0]->TypeString());
         _log(NET__PACKET_ERROR, " it is:");
-        PyLogsysDump d(NET__PACKET_ERROR);
-        payload->visit(&d, 0);
+        payload->Dump( NET__PACKET_ERROR, "" );
         PyDecRef(payload);
         return false;
     }

@@ -303,6 +303,18 @@ int64 hextoi64(char* num) {
 	return ret;
 }
 
+uint64 npowof2( uint64 num )
+{
+    --num;
+    num |= ( num >> 1 );
+    num |= ( num >> 2 );
+    num |= ( num >> 4 );
+    num |= ( num >> 8 );
+    num |= ( num >> 16 );
+    num |= ( num >> 32 );
+    return ++num;
+}
+
 // normal strncpy doesn't put a null term on copied strings, this one does
 // ref: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcecrt/htm/_wcecrt_strncpy_wcsncpy.asp
 char* strn0cpy(char* dest, const char* source, int32 size) {

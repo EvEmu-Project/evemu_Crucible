@@ -20,12 +20,11 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Zhur, mmcs
+    Author:     Zhur, mmcs, Bloody.Rabbit
 */
 
-
-#ifndef PY_VISITOR_H
-#define PY_VISITOR_H
+#ifndef __PY_VISITOR_H__INCL__
+#define __PY_VISITOR_H__INCL__
 
 class PyRep;
 class PyInt;
@@ -45,88 +44,49 @@ class PyList;
 class PyTuple;
 class PyPackedRow;
 
-class PyVisitorLvl {
-public:
-    virtual ~PyVisitorLvl() {}
-
-    //! primitive data visitors
-    virtual void VisitInteger(const PyInt *rep, int64 lvl ) = 0;
-    virtual void VisitLong(const PyLong *rep, int64 lvl ) = 0;
-    virtual void VisitReal(const PyFloat *rep, int64 lvl ) = 0;
-    virtual void VisitBoolean(const PyBool *rep, int64 lvl ) = 0;
-    virtual void VisitNone(const PyNone *rep, int64 lvl ) = 0;
-    virtual void VisitBuffer(const PyBuffer *rep, int64 lvl ) = 0;
-    virtual void VisitString(const PyString *rep, int64 lvl ) = 0;
-    //! PackedRow type visitor
-    virtual void VisitPackedRow(const PyPackedRow *rep, int64 lvl ) = 0;
-    //! Object type visitor
-    virtual void VisitObject(const PyObject *rep, int64 lvl ) = 0;
-    virtual void VisitObjectEx(const PyObjectEx *rep, int64 lvl ) = 0;
-    //! Structureated types Visitor
-    virtual void VisitSubStruct(const PySubStruct *rep, int64 lvl ) = 0;
-    virtual void VisitSubStream(const PySubStream *rep, int64 lvl ) = 0;
-    virtual void VisitChecksumedStream(const PyChecksumedStream *rep, int64 lvl ) = 0;
-    //! the data types Visitor
-    virtual void VisitDict(const PyDict *rep, int64 lvl ) = 0;
-    virtual void VisitList(const PyList *rep, int64 lvl ) = 0;
-    virtual void VisitTuple(const PyTuple *rep, int64 lvl ) = 0;
-};
-
-class PyVisitor {
+class PyVisitor
+{
 public:
     virtual ~PyVisitor() {}
 
     //! primitive data visitors
-    virtual void VisitInteger(const PyInt *rep) = 0;
-    virtual void VisitLong(const PyLong *rep) = 0;
-    virtual void VisitReal(const PyFloat *rep) = 0;
-    virtual void VisitBoolean(const PyBool *rep) = 0;
-    virtual void VisitNone(const PyNone *rep) = 0;
-    virtual void VisitBuffer(const PyBuffer *rep) = 0;
-    virtual void VisitString(const PyString *rep) = 0;
-    //! PackedRow type visitor
-    virtual void VisitPackedRow(const PyPackedRow *rep) = 0;
+    virtual bool VisitInteger( const PyInt* rep ) { return true; }
+    virtual bool VisitLong( const PyLong* rep ) { return true; }
+    virtual bool VisitReal( const PyFloat* rep ) { return true; }
+    virtual bool VisitBoolean( const PyBool* rep ) { return true; }
+    virtual bool VisitNone( const PyNone* rep ) { return true; }
+    virtual bool VisitBuffer( const PyBuffer* rep ) { return true; }
+    virtual bool VisitString( const PyString* rep ) { return true; }
+
+    //! the nested types Visitor
+    virtual bool VisitTuple( const PyTuple* rep );
+    virtual bool VisitList( const PyList* rep );
+    virtual bool VisitDict( const PyDict* rep );
+
     //! Object type visitor
-    virtual void VisitObject(const PyObject *rep) = 0;
-    virtual void VisitObjectEx(const PyObjectEx *rep) = 0;
-    //! Structureated types Visitor
-    virtual void VisitSubStruct(const PySubStruct *rep) = 0;
-    virtual void VisitSubStream(const PySubStream *rep) = 0;
-    virtual void VisitChecksumedStream(const PyChecksumedStream *rep) = 0;
-    //! the data types Visitor
-    virtual void VisitDict(const PyDict *rep) = 0;
-    virtual void VisitList(const PyList *rep) = 0;
-    virtual void VisitTuple(const PyTuple *rep) = 0;
+    virtual bool VisitObject( const PyObject* rep );
+    virtual bool VisitObjectEx( const PyObjectEx* rep );
+
+    //! PackedRow type visitor
+    virtual bool VisitPackedRow( const PyPackedRow* rep );
+
+    //! wrapper types Visitor
+    virtual bool VisitSubStruct( const PySubStruct* rep );
+    virtual bool VisitSubStream( const PySubStream* rep );
+    virtual bool VisitChecksumedStream( const PyChecksumedStream* rep );
 };
 
-
-class SubStreamDecoder : public PyVisitor {
+class PyPfxVisitor : public PyVisitor
+{
 public:
-    virtual ~SubStreamDecoder() {}
+    PyPfxVisitor( const char* pfx = "" );
 
-    //! primitive data visitors
-    void VisitInteger(const PyInt *rep);
-    void VisitLong(const PyLong *rep);
-    void VisitReal(const PyFloat *rep);
-    void VisitBoolean(const PyBool *rep);
-    void VisitNone(const PyNone *rep);
-    void VisitBuffer(const PyBuffer *rep);
-    void VisitString(const PyString *rep);
-    //! PackedRow type visitor
-    void VisitPackedRow(const PyPackedRow *rep);
-    //! Object type visitor
-    void VisitObject(const PyObject *rep);
-    void VisitObjectEx(const PyObjectEx *rep);
-    void VisitSubStruct(const PySubStruct *rep);
+protected:
+    const char* _pfx() const { return mPfxStack.top().c_str(); }
+    void _pfxExtend( const char* fmt, ... );
+    void _pfxWithdraw() { mPfxStack.pop(); }
 
-    //! the visitor needed for decoding the substream.
-    void VisitSubStream(const PySubStream *rep);
-
-    void VisitChecksumedStream(const PyChecksumedStream *rep);
-    //! the data types Visitor
-    void VisitDict(const PyDict *rep);
-    void VisitList(const PyList *rep);
-    void VisitTuple(const PyTuple *rep);
+    std::stack<std::string> mPfxStack;
 };
 
-#endif
+#endif /* !__PY_VISITOR_H__INCL__ */

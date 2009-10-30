@@ -28,10 +28,9 @@
 
 #include "python/PyDumpVisitor.h"
 
-class PyLookupResolver {
+class PyLookupResolver
+{
 public:
-	PyLookupResolver();
-
 	bool LoadIntFile(const char *file);
 	bool LoadStringFile(const char *file);
 
@@ -44,18 +43,19 @@ protected:
 	mutable std::string m_dateBuffer;	//not thread safe or reentrant...
 };
 
-class PyLookupDump
-: public PyLogsysDump {
+class PyLookupDumpVisitor : public PyLogDumpVisitor
+{
 public:
-	PyLookupDump(PyLookupResolver *res, LogType type, bool full_hex = false, bool full_lists=false);
-	PyLookupDump(PyLookupResolver *res, LogType type, LogType hex_type, bool full_hex, bool full_lists);
-	virtual ~PyLookupDump();
+    PyLookupDumpVisitor( PyLookupResolver* _resolver, LogType log_type, LogType log_hex_type, const char* pfx = "", bool full_nested = false, bool full_hex = false );
+
+    PyLookupResolver* resolver() const { return mResolver; }
 
 protected:
-	virtual void VisitInteger(const PyInt *rep);
-	virtual void VisitString(const PyString *rep);
-	
-	PyLookupResolver *const m_resolver;	//we do not own this.
+	bool VisitInteger( const PyInt* rep );
+	bool VisitString( const PyString* rep );
+
+private:
+	PyLookupResolver* const mResolver;
 };
 
 #endif

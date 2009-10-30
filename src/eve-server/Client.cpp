@@ -96,9 +96,9 @@ bool Client::ProcessNet()
     PyPacket *p;
     while((p = PopPacket())) {
         {
-            PyLogsysDump dumper(CLIENT__IN_ALL);
             _log(CLIENT__IN_ALL, "Received packet:");
-            p->Dump(CLIENT__IN_ALL, &dumper);
+            PyLogDumpVisitor dumper(CLIENT__IN_ALL, CLIENT__IN_ALL);
+            p->Dump(CLIENT__IN_ALL, dumper);
         }
 
         try
@@ -741,9 +741,10 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream &noti
     }
 
     _log(CLIENT__NOTIFY_DUMP, "Sending notify of type %s with ID type %s", dest.service.c_str(), dest.bcast_idtype.c_str());
-    if(is_log_enabled(CLIENT__NOTIFY_REP)) {
-        PyLogsysDump dumper(CLIENT__NOTIFY_REP, CLIENT__NOTIFY_REP, true, true);
-        p->Dump(CLIENT__NOTIFY_REP, &dumper);
+    if(is_log_enabled(CLIENT__NOTIFY_REP))
+    {
+        PyLogDumpVisitor dumper(CLIENT__NOTIFY_REP, CLIENT__NOTIFY_REP, "", true, true);
+        p->Dump(CLIENT__NOTIFY_REP, dumper);
     }
 
     FastQueuePacket(&p);

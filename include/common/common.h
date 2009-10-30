@@ -26,6 +26,14 @@
 #ifndef __COMMON_H
 #define __COMMON_H
 
+/** custom config include
+  * Note: mainly for 'UNIX' builds
+  */
+#ifdef HAVE_CONFIG_H
+#   include "config.h"
+#endif//HAVE_CONFIG_H
+
+
 /** Build platform defines
   */
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
@@ -34,6 +42,14 @@
 #   endif//WIN32
 #endif
 
+
+/** Define NDEBUG according to _DEBUG.
+  */
+#ifdef _DEBUG
+#   undef NDEBUG
+#else /* !_DEBUG */
+#   define NDEBUG 1
+#endif /* !_DEBUG */
 
 /** Visual Studio 'errors'/'warnings'
   */
@@ -49,27 +65,6 @@
 #       endif// _DEBUG
 #   endif//_MSC_VER
 #endif//WIN32
-
-
-/** 'inlined' functions 'can' improve performance, the compiler will judge how this will be handled.
-  * '__forceinline' functions can improve performance but only under certain circumstances
-  * url: http://msdn.microsoft.com/en-us/library/z8y1yy88(VS.80).aspx
-  */
-#ifdef WIN32
-#   define EVEMU_INLINE inline
-#   define EVEMU_FORCEINLINE __forceinline
-#else
-#   define EVEMU_INLINE inline
-#   define EVEMU_FORCEINLINE __attribute__((always_inline))
-#endif//WIN32
-
-
-/** custom config include
-  * Note: mainly for 'UNIX' builds
-  */
-#ifdef HAVE_CONFIG_H
-#   include "config.h"
-#endif//HAVE_CONFIG_H
 
 
 /** Platform in depended includes
@@ -167,17 +162,6 @@
 #endif//WIN32
 
 
-/** 'undefine' min / max so that there won't be major conflicts regarding std
-  */
-#ifdef min
-#   undef min
-#endif//min
-
-#ifdef max
-#  undef max
-#endif//max
-
-
 /** set platform depended macros
   */
 #if WIN32
@@ -209,6 +193,31 @@
 #   define _finite __finite
 #   define _isnan __isnan
 #endif
+
+
+/** 'undefine' min / max so that there won't be major conflicts regarding std
+  */
+#ifdef min
+#   undef min
+#endif//min
+
+#ifdef max
+#  undef max
+#endif//max
+
+
+/** 'inlined' functions 'can' improve performance, the compiler will judge how this will be handled.
+  * '__forceinline' functions can improve performance but only under certain circumstances
+  * url: http://msdn.microsoft.com/en-us/library/z8y1yy88(VS.80).aspx
+  */
+#ifdef WIN32
+#   define EVEMU_INLINE inline
+#   define EVEMU_FORCEINLINE __forceinline
+#else
+#   define EVEMU_INLINE inline
+#   define EVEMU_FORCEINLINE __attribute__((always_inline))
+#endif//WIN32
+
 
 /** dll interface stuff
   */
@@ -281,31 +290,27 @@ typedef void* ThreadReturnType;
   * URL: http://nedprod.com/programs/index.html
   * Note: always nullify pointers after deletion, why? because its safer on a MT application
   */
-#define ASCENT_ENABLE_SAFE_DELETE               // only delete and NULL after
-#define ASCENT_ENABLE_EXTRA_SAFE_DELETE         // check the array for NULL pointer then delete and NULL after
-//#define ASCENT_ENABLE_ULTRA_SAFE_DELETE       // check object and array for NULL pointer then delete and NULL after
+#define ASCENT_ENABLE_SAFE_DELETE 1             // only delete and NULL after
+#define ASCENT_ENABLE_EXTRA_SAFE_DELETE 1       // check the array for NULL pointer then delete and NULL after
+//#define ASCENT_ENABLE_ULTRA_SAFE_DELETE 1     // check object and array for NULL pointer then delete and NULL after
 
-#ifndef ASCENT_ENABLE_SAFE_DELETE
-#  define SafeDelete(p){delete p;}
-#  define SafeDeleteArray(p){delete [] p;}
-#  define SafeFree(p){free(p);}
+#if defined ( ASCENT_ENABLE_ULTRA_SAFE_DELETE )
+#   define SafeDelete( p )      { if( p != NULL ) { delete p; p = NULL; } }
+#   define SafeDeleteArray( p ) { if( p != NULL ) { delete[] p; p = NULL; } }
+#   define SafeFree( p )        { if( p != NULL ) { free( p ); p = NULL; } }
+#elif defined ( ASCENT_ENABLE_EXTRA_SAFE_DELETE )
+#   define SafeDelete( p )      { delete p; p = NULL; }
+#   define SafeDeleteArray( p ) { if( p != NULL ) { delete[] p; p = NULL; } }
+#   define SafeFree( p )        { if( p != NULL ) { free( p ); p = NULL; } }
+#elif defined ( ASCENT_ENABLE_SAFE_DELETE )
+#   define SafeDelete( p )      { delete p; p = NULL; }
+#   define SafeDeleteArray( p ) { delete[] p; p = NULL; }
+#   define SafeFree( p )        { free( p ); p = NULL; }
 #else
-#  ifndef ASCENT_ENABLE_EXTRA_SAFE_DELETE
-#    define SafeDelete(p) { delete p; p=NULL; }
-#    define SafeDeleteArray(p) { delete [] p; p=NULL; }
-#    define SafeFree(p) { free(p); p=NULL; }
-#  else
-#    ifndef ASCENT_ENABLE_ULTRA_SAFE_DELETE
-#      define SafeDelete(p) { delete p; p = NULL; }
-#      define SafeDeleteArray(p) { if (p != NULL) { delete [] p; p = NULL; } }
-#      define SafeFree(p) { if (p != NULL) { free(p); p = NULL; } }
-#    else
-#      define SafeDelete(p) { if (p != NULL) { delete p; p = NULL; } }
-#      define SafeDeleteArray(p) { if (p != NULL) { delete [] p; p = NULL; } }
-#      define SafeFree(p) { if (p != NULL) { free(p); p = NULL; } }
-#    endif//ASCENT_ENABLE_ULTRA_SAFE_DELETE
-#  endif//ASCENT_ENABLE_EXTRA_SAFE_DELETE
-#endif//ASCENT_ENABLE_SAFE_DELETE
+#   define SafeDelete( p )      { delete p; }
+#   define SafeDeleteArray( p ) { delete[] p; }
+#   define SafeFree( p )        { free( p ); }
+#endif
 
 
 /** platform depended typedefs and prototypes

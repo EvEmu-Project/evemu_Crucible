@@ -82,7 +82,6 @@
 #include "marshal/EVEMarshalOpcodes.h"
 #include "marshal/EVEMarshalStringTable.h"
 #include "marshal/EVEUnmarshal.h"
-#include "marshal/EVEZeroCompress.h"
 
 #include "packets/AccountPkts.h"
 #include "packets/CorporationPkts.h"

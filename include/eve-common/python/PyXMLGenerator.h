@@ -29,42 +29,39 @@
 #include "python/PyVisitor.h"
 
 class PyXMLGenerator
-: public PyVisitor {
+: public PyPfxVisitor
+{
 public:
-    PyXMLGenerator(FILE *into);
-    virtual ~PyXMLGenerator();
+    PyXMLGenerator( FILE* into, const char* pfx = "" );
 
 protected:
-    FILE *const m_into;
-    int m_item;
-
-    std::stack<const char *> m_indentStack;
-
-    inline const char *top() const { return(m_indentStack.top()); }
-    inline void pop() { m_indentStack.pop(); }
-    inline void push(const char *v) { m_indentStack.push(v); }
-
     //! primitive data visitors
-    void VisitInteger(const PyInt *rep);
-    void VisitReal(const PyFloat *rep);
-    void VisitBoolean(const PyBool *rep);
-    void VisitNone(const PyNone *rep);
-    void VisitBuffer(const PyBuffer *rep);
-    void VisitString(const PyString *rep);
+    bool VisitInteger( const PyInt* rep );
+    bool VisitLong( const PyLong* rep );
+    bool VisitReal( const PyFloat* rep );
+    bool VisitBoolean( const PyBool* rep );
+    bool VisitNone( const PyNone* rep );
+    bool VisitBuffer( const PyBuffer* rep );
+    bool VisitString( const PyString* rep );
+
     //! PackedRow type visitor
-    void VisitPackedRow(const PyPackedRow *rep);
+    bool VisitPackedRow( const PyPackedRow* rep );
+
     //! Object type visitor
-    void VisitObject(const PyObject *rep);
-    void VisitObjectEx(const PyObjectEx *rep);
+    bool VisitObject( const PyObject* rep );
+    bool VisitObjectEx( const PyObjectEx* rep );
 
-    void VisitSubStruct(const PySubStruct *rep);
-    void VisitSubStream(const PySubStream *rep);
-    void VisitChecksumedStream(const PyChecksumedStream *rep);
+    bool VisitSubStruct( const PySubStruct* rep );
+    bool VisitSubStream( const PySubStream* rep );
+    bool VisitChecksumedStream( const PyChecksumedStream* rep );
 
-    void VisitDict(const PyDict *rep);
-    void VisitList(const PyList *rep);
-    void VisitTuple(const PyTuple *rep);
+    bool VisitDict( const PyDict* rep );
+    bool VisitList( const PyList* rep );
+    bool VisitTuple( const PyTuple* rep );
 
+private:
+    FILE* const mInto;
+    uint32 mItem;
 };
 
 #endif

@@ -28,113 +28,114 @@
 #include "python/PyXMLGenerator.h"
 #include "python/PyRep.h"
 
-static const char *indent_amount = "  ";
-
-PyXMLGenerator::PyXMLGenerator(FILE *into)
-: PyVisitor(),
-  m_into(into),
-  m_item(0)
+PyXMLGenerator::PyXMLGenerator( FILE* into, const char* pfx )
+: PyPfxVisitor( pfx ),
+  mInto( into ),
+  mItem( 0 )
 {
-    push(indent_amount);
 }
 
-PyXMLGenerator::~PyXMLGenerator() {
+bool PyXMLGenerator::VisitInteger( const PyInt* rep )
+{
+    fprintf( mInto, "%s<int name=\"integer%u\" />\n", _pfx(), mItem++ );
+
+    return true;
 }
 
-void PyXMLGenerator::VisitInteger(const PyInt *rep) {
-    fprintf(m_into, "%s<%s name=\"integer%d\" />\n", top(),
-        (rep->value() > 0xFFFFFFFFLL)?"int64":"int",
-        m_item++
-        );
+bool PyXMLGenerator::VisitLong( const PyLong* rep )
+{
+    fprintf( mInto, "%s<int64 name=\"long%u\" />\n", _pfx(), mItem++ );
+
+    return true;
 }
 
-void PyXMLGenerator::VisitReal(const PyFloat *rep) {
-    fprintf(m_into, "%s<real name=\"real%d\" />\n", top(),
-        m_item++
-        );
+bool PyXMLGenerator::VisitReal( const PyFloat* rep )
+{
+    fprintf( mInto, "%s<real name=\"real%u\" />\n", _pfx(), mItem++ );
+
+    return true;
 }
 
-void PyXMLGenerator::VisitBoolean(const PyBool *rep) {
-    fprintf(m_into, "%s<bool name=\"bool%d\" />\n", top(),
-        m_item++
-        );
+bool PyXMLGenerator::VisitBoolean( const PyBool* rep )
+{
+    fprintf( mInto, "%s<bool name=\"bool%u\" />\n", _pfx(), mItem++ );
+
+    return true;
 }
 
-void PyXMLGenerator::VisitNone(const PyNone *rep) {
-    fprintf(m_into, "%s<none />\n", top());
+bool PyXMLGenerator::VisitNone( const PyNone* rep )
+{
+    fprintf( mInto, "%s<none />\n", _pfx() );
+
+    return true;
 }
 
-void PyXMLGenerator::VisitBuffer(const PyBuffer *rep) {
-    fprintf(m_into, "%s<buffer name=\"buffer%d\" />\n", top(),
-        m_item++
-        );
+bool PyXMLGenerator::VisitBuffer( const PyBuffer* rep )
+{
+    fprintf( mInto, "%s<buffer name=\"buffer%u\" />\n", _pfx(), mItem++ );
+
+    return true;
 }
 
-void PyXMLGenerator::VisitString(const PyString *rep) {
-    fprintf(m_into, "%s<string name=\"string%d\" />\n", top(),
-        m_item++
-        );
+bool PyXMLGenerator::VisitString( const PyString* rep )
+{
+    fprintf( mInto, "%s<string name=\"string%u\" />\n", _pfx(), mItem++ );
+
+    return true;
 }
 
-
-void PyXMLGenerator::VisitObject(const PyObject *rep) {
+bool PyXMLGenerator::VisitObject( const PyObject* rep )
+{
     //do not visit the type:
+    fprintf( mInto, "%s<object type=\"%s\">\n", _pfx(), rep->type()->content().c_str() );
 
-    fprintf(m_into, "%s<object type=\"%s\">\n", top(),
-        rep->type()->content().c_str()
-        );
+    _pfxExtend( "    " );
+    bool res = rep->arguments()->visit( *this );
+    _pfxWithdraw();
 
-    std::string indent(top());
-    indent += indent_amount;
-    push(indent.c_str());
-    rep->arguments()->visit(this);
-    pop();
+    fprintf( mInto, "%s</object>\n", _pfx() );
 
-    fprintf(m_into, "%s</object>\n", top()
-        );
-
+    return res;
 }
 
-void PyXMLGenerator::VisitSubStruct(const PySubStruct *rep) {
-    fprintf(m_into, "%s<InlineSubStruct>\n", top()
-        );
+bool PyXMLGenerator::VisitSubStruct( const PySubStruct* rep )
+{
+    fprintf( mInto, "%s<InlineSubStruct>\n", _pfx() );
 
-    std::string indent(top());
-    indent += indent_amount;
-    push(indent.c_str());
-    rep->sub()->visit(this);
-    pop();
+    _pfxExtend( "    " );
+    bool res = PyVisitor::VisitSubStruct( rep );
+    _pfxWithdraw();
 
-    fprintf(m_into, "%s</InlineSubStruct>\n", top()
-        );
+    fprintf( mInto, "%s</InlineSubStruct>\n", _pfx() );
+
+    return res;
 }
 
-void PyXMLGenerator::VisitSubStream(const PySubStream *rep) {
-    fprintf(m_into, "%s<InlineSubStream>\n", top()  );
+bool PyXMLGenerator::VisitSubStream( const PySubStream* rep )
+{
+    fprintf( mInto, "%s<InlineSubStream>\n", _pfx() );
 
-    rep->DecodeData();
-    if(rep->decoded() != NULL) {
-        std::string indent(top());
-        indent += indent_amount;
-        push(indent.c_str());
-        rep->decoded()->visit(this);
-        pop();
-    } else {
-        fprintf(m_into, "%s  <!-- UNABLE TO DECODE SUBSTREAM! -->\n", top());
-    }
+    _pfxExtend( "    " );
+    bool res = PyVisitor::VisitSubStream( rep );
+    _pfxWithdraw();
 
-    fprintf(m_into, "%s</InlineSubStream>\n", top() );
+    fprintf( mInto, "%s</InlineSubStream>\n", _pfx() );
+
+    return true;
 }
 
-void PyXMLGenerator::VisitDict(const PyDict *rep) {
-
-    enum {
+bool PyXMLGenerator::VisitDict( const PyDict* rep )
+{
+    enum
+    {
         DictInline,
         DictStringKey,
         DictIntKey,
         DictRaw
     } ktype;
-    enum {
+
+    enum
+    {
         ValueUnknown,
         ValueString,
         ValueInt,
@@ -151,135 +152,148 @@ void PyXMLGenerator::VisitDict(const PyDict *rep) {
     end = rep->end();
     for(; cur != end; ++cur)
     {
-        if(cur->first->IsString()) {
-            if(ktype == DictIntKey) {
+        if( cur->first->IsString() )
+        {
+            if( ktype == DictIntKey )
+            {
                 //we have varying key types, raw dict it is.
                 ktype = DictRaw;
                 break;
-            } else if(ktype == DictInline) {
+            }
+            else if( ktype == DictInline )
                 ktype = DictStringKey;
-            }
-        } else if(cur->first->IsInt()) {
-            if(ktype == DictStringKey) {
+        }
+        else if( cur->first->IsInt() )
+        {
+            if( ktype == DictStringKey )
+            {
                 //we have varying key types, raw dict it is.
                 ktype = DictRaw;
                 break;
-            } else if(ktype == DictInline) {
-                ktype = DictIntKey;
             }
-        } else {
+            else if( ktype == DictInline )
+                ktype = DictIntKey;
+        }
+        else
+        {
             //anything but those key types is more than we can think about, keep it raw.
             ktype = DictRaw;
             break;
         }
 
-        if(cur->second->IsString()) {
-            if(vtype == ValueInt || vtype == ValueReal) {
+        if( cur->second->IsString() )
+        {
+            if( vtype == ValueInt || vtype == ValueReal )
                 vtype = ValueMixed;
-            } else if(vtype == ValueUnknown)
+            else if( vtype == ValueUnknown )
                 vtype = ValueString;
-        } else if(cur->second->IsInt()) {
-            if(vtype == ValueString || vtype == ValueReal) {
-                vtype = ValueMixed;
-            } else if(vtype == ValueUnknown)
-                vtype = ValueInt;
-        } else if(cur->second->IsFloat()) {
-            if(vtype == ValueString || vtype == ValueInt) {
-                vtype = ValueMixed;
-            } else if(vtype == ValueUnknown)
-                vtype = ValueReal;
-        } else {
-            vtype = ValueMixed;
         }
+        else if(cur->second->IsInt())
+        {
+            if( vtype == ValueString || vtype == ValueReal )
+                vtype = ValueMixed;
+            else if( vtype == ValueUnknown )
+                vtype = ValueInt;
+        }
+        else if( cur->second->IsFloat() )
+        {
+            if( vtype == ValueString || vtype == ValueInt )
+                vtype = ValueMixed;
+            else if(vtype == ValueUnknown)
+                vtype = ValueReal;
+        }
+        else
+            vtype = ValueMixed;
     }
 
-    if(ktype == DictRaw) {
-        fprintf(m_into, "%s<dict name=\"dict%d\" />\n", top(), m_item++);
-        return;
-    } else if(ktype == DictIntKey) {
+    if( ktype == DictRaw )
+    {
+        fprintf( mInto, "%s<dict name=\"dict%u\" />\n", _pfx(), mItem++ );
+        return true;
+    }
+    else if( ktype == DictIntKey )
+    {
         //cant do an inline dict, but can try a vector
-        switch(vtype) {
+        switch( vtype )
+        {
         case ValueString:
-            fprintf(m_into, "%s<intdict name=\"dict%d\" type=\"string\" />\n", top(), m_item++);
+            fprintf( mInto, "%s<intdict name=\"dict%u\" type=\"string\" />\n", _pfx(), mItem++ );
             break;
         case ValueInt:
-            fprintf(m_into, "%s<intdict name=\"dict%d\" type=\"int\" />\n", top(), m_item++);
+            fprintf( mInto, "%s<intdict name=\"dict%u\" type=\"int\" />\n", _pfx(), mItem++ );
             break;
         case ValueReal:
-            fprintf(m_into, "%s<intdict name=\"dict%d\" type=\"real\" />\n", top(), m_item++);
+            fprintf( mInto, "%s<intdict name=\"dict%u\" type=\"real\" />\n", _pfx(), mItem++ );
             break;
         case ValueUnknown:
         case ValueMixed:
-            fprintf(m_into, "%s<rawdict name=\"dict%d\" />\n", top(), m_item++);
+            fprintf( mInto, "%s<rawdict name=\"dict%u\" />\n", _pfx(), mItem++ );
             break;
         }
-        return;
+
+        return true;
     }
 
+    fprintf( mInto, "%s<InlineDict>\n", _pfx() );
 
-
-    fprintf(m_into, "%s<InlineDict>\n", top()
-        );
-
-    std::string indent(top());
-    indent += indent_amount;
-    push(indent.c_str());
+    _pfxExtend( "    " );
 
     //! visit dict elements.
     cur = rep->begin();
     end = rep->end();
-    for(; cur != end; ++cur) {
-
-        if(!cur->first->IsString()) {
-            fprintf(m_into, "%s<!-- non-string dict key of type %s -->\n", top(), cur->first->TypeString());
-            return;
+    for(; cur != end; ++cur)
+    {
+        if( !cur->first->IsString() )
+        {
+            fprintf( mInto, "%s<!-- non-string dict key of type %s -->\n", _pfx(), cur->first->TypeString() );
+            return false;
         }
-        PyString *str = (PyString *) cur->first;
+        PyString* str = &cur->first->AsString();
 
-        fprintf(m_into, "%s<IDEntry key=\"%s\">\n", top(), str->content().c_str());
+        fprintf( mInto, "%s<IDEntry key=\"%s\">\n", _pfx(), str->content().c_str() );
 
-        std::string indent(top());
-        indent += indent_amount;
-        push(indent.c_str());
-        cur->second->visit(this);
-        pop();
+        _pfxExtend( "    " );
+        cur->second->visit( *this );
+        _pfxWithdraw();
 
-        fprintf(m_into, "%s</IDEntry>\n", top() );
+        fprintf( mInto, "%s</IDEntry>\n", _pfx() );
     }
 
-    pop();
+    _pfxWithdraw();
 
-    fprintf(m_into, "%s</InlineDict>\n", top() );
+    fprintf( mInto, "%s</InlineDict>\n", _pfx() );
+
+    return true;
 }
 
-void PyXMLGenerator::VisitList(const PyList *rep) {
-
+bool PyXMLGenerator::VisitList( const PyList* rep )
+{
     //for now presume we cant do anything useful with lists that contain
     //more than a few things...
-    if(rep->items.size() < 5) {
-        fprintf(m_into, "%s<InlineList>\n", top()
-            );
+    if( rep->size() < 5 )
+    {
+        fprintf( mInto, "%s<InlineList>\n", _pfx() );
 
-        std::string indent(top());
-        indent += indent_amount;
-        push(indent.c_str());
+        _pfxExtend( "    " );
 
         //! visit the list elements.
         PyList::const_iterator cur, end;
         cur = rep->begin();
         end = rep->end();
-        for(uint32 i = 0; cur != end; ++cur, ++i) {
-            fprintf(m_into, "%s<!-- %d -->\n", top(), i );
-            (*cur)->visit(this);
+        for( uint32 i = 0; cur != end; ++cur, ++i )
+        {
+            fprintf( mInto, "%s<!-- %u -->\n", _pfx(), i );
+            (*cur)->visit( *this );
         }
 
-        pop();
+        _pfxWithdraw();
 
-        fprintf(m_into, "%s</InlineList>\n", top() );
+        fprintf( mInto, "%s</InlineList>\n", _pfx() );
     }
     else
     {
-        enum {
+        enum
+        {
             TypeUnknown,
             TypeString,
             TypeInteger,
@@ -292,69 +306,87 @@ void PyXMLGenerator::VisitList(const PyList *rep) {
         PyList::const_iterator cur, end;
         cur = rep->begin();
         end = rep->end();
-        for(; cur != end; cur++) {
-            if((*cur)->IsString()) {
-                if(eletype == TypeInteger || eletype == TypeReal) {
+        for(; cur != end; cur++)
+        {
+            if( (*cur)->IsString() )
+            {
+                if( eletype == TypeInteger || eletype == TypeReal )
+                {
                     eletype = TypeMixed;
                     break;
-                } else if(eletype == TypeUnknown)
+                }
+                else if( eletype == TypeUnknown )
                     eletype = TypeString;
-            } else if((*cur)->IsInt()) {
-                if(eletype == TypeString || eletype == TypeReal) {
+            }
+            else if( (*cur)->IsInt() )
+            {
+                if( eletype == TypeString || eletype == TypeReal )
+                {
                     eletype = TypeMixed;
                     break;
-                } else if(eletype == TypeUnknown)
+                }
+                else if( eletype == TypeUnknown )
                     eletype = TypeInteger;
-            } else if((*cur)->IsFloat()) {
-                if(eletype == TypeString || eletype == TypeInteger) {
+            }
+            else if( (*cur)->IsFloat() )
+            {
+                if( eletype == TypeString || eletype == TypeInteger )
+                {
                     eletype = TypeMixed;
                     break;
-                } else if(eletype == TypeUnknown)
+                }
+                else if( eletype == TypeUnknown )
                     eletype = TypeReal;
-            } else {
+            }
+            else
+            {
                 eletype = TypeMixed;
                 break;
             }
         }
-        switch(eletype) {
+
+        switch( eletype )
+        {
         case TypeString:
-            fprintf(m_into, "%s<stringlist name=\"list%d\" />\n", top(), m_item++);
+            fprintf( mInto, "%s<stringlist name=\"list%u\" />\n", _pfx(), mItem++ );
             break;
         case TypeInteger:
-            fprintf(m_into, "%s<intlist name=\"list%d\" />\n", top(), m_item++);
+            fprintf( mInto, "%s<intlist name=\"list%u\" />\n", _pfx(), mItem++ );
             break;
         case TypeReal:
-            fprintf(m_into, "%s<reallist name=\"list%d\" />\n", top(), m_item++);
+            fprintf( mInto, "%s<reallist name=\"list%u\" />\n", _pfx(), mItem++ );
             break;
         case TypeUnknown:
         case TypeMixed:
-            fprintf(m_into, "%s<list name=\"list%d\" />\n", top(), m_item++);
+            fprintf( mInto, "%s<list name=\"list%u\" />\n", _pfx(), mItem++ );
             break;
         }
     }
+
+    return true;
 }
 
-void PyXMLGenerator::VisitTuple(const PyTuple *rep) {
+bool PyXMLGenerator::VisitTuple( const PyTuple* rep )
+{
+    fprintf( mInto, "%s<InlineTuple>\n", _pfx() );
 
-    fprintf(m_into, "%s<InlineTuple>\n", top()
-        );
-
-    std::string indent(top());
-    indent += indent_amount;
-    push(indent.c_str());
+    _pfxExtend( "    " );
 
     //! visits the tuple elements.
     PyTuple::const_iterator cur, end;
     cur = rep->begin();
     end = rep->end();
-    for(uint32 i = 0; cur != end; ++cur, ++i) {
-        fprintf(m_into, "%s<!-- %d -->\n", top(), i );
-        (*cur)->visit(this);
+    for(uint32 i = 0; cur != end; ++cur, ++i)
+    {
+        fprintf( mInto, "%s<!-- %d -->\n", _pfx(), i );
+        (*cur)->visit( *this );
     }
 
-    pop();
+    _pfxWithdraw();
 
-    fprintf(m_into, "%s</InlineTuple>\n", top() );
+    fprintf( mInto, "%s</InlineTuple>\n", _pfx() );
+
+    return true;
 }
 
 

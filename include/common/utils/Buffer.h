@@ -26,6 +26,8 @@
 #ifndef __BUFFER_H__INCL__
 #define __BUFFER_H__INCL__
 
+#include "utils/misc.h"
+
 /**
  * @brief Generic class for buffers.
  *
@@ -82,6 +84,20 @@ public:
     {
         // Invalidate the pointer
         *data = NULL;
+    }
+    /**
+     * @brief Create buffer with duplicated content.
+     *
+     * @param[in] oth The other buffer; source of data.
+     */
+    Buffer( const Buffer& oth )
+    : mBuffer( NULL ),
+      mSize( 0 ),
+      mCapacity( 0 ),
+      mPosition( 0 )
+    {
+        // Use assigment operator
+        *this = oth;
     }
     /** Deletes buffer. */
     ~Buffer()
@@ -334,6 +350,14 @@ public:
         Set( value );
         return *this;
     }
+    /**
+     * Template above doesn't overload compiler-generated
+     * assigment operator ... we must do it manually.
+     */
+    Buffer& operator=( const Buffer& value )
+    {
+        return operator=<Buffer>( value );
+    }
 
     /********************************************************************/
     /* Size methods                                                     */
@@ -426,11 +450,12 @@ protected:
      */
     static size_t _CalcBufferCapacity( size_t currentCapacity, size_t requiredSize )
     {
-        // BUFFER_SIZE_SNAP must consist of 1 bit, otherwise stuff below won't work!
-        static const size_t BUFFER_SIZE_SNAP = ( 1L << 10 ); // 1 kB
+        size_t newCapacity = 0;
 
-        // Calculate multiple of BUFFER_SIZE_SNAP equal or greater than requiredSize:
-        size_t newCapacity = ( requiredSize + BUFFER_SIZE_SNAP - 1 ) & ~( BUFFER_SIZE_SNAP - 1 );
+        if( requiredSize > 0x100 )
+            newCapacity = (size_t)npowof2( requiredSize );
+        else if( requiredSize > 0 )
+            newCapacity = 0x100;
 
         if( requiredSize <= currentCapacity && currentCapacity < newCapacity )
             // This saves some memory ...

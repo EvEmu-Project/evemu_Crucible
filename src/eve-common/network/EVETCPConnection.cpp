@@ -48,21 +48,18 @@ EVETCPConnection::EVETCPConnection( Socket* sock, uint32 rIP, uint16 rPort )
 
 void EVETCPConnection::QueueRep( const PyRep* rep )
 {
-    uint32 length;
-    uint8* buf = MarshalDeflate( rep, length );
-
+    Buffer* buf = MarshalDeflate( rep );
     if( buf == NULL )
         sLog.Error( "Network", "Failed to marshal new packet." );
-    else if( length > EVETCPCONN_PACKET_LIMIT )
-        sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %u.", length, EVETCPCONN_PACKET_LIMIT );
+    else if( buf->size() > EVETCPCONN_PACKET_LIMIT )
+        sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %lu.", buf->size(), EVETCPCONN_PACKET_LIMIT );
     else
     {
-        Buffer* head = new Buffer;
-        head->Write<uint32>( length );
-        Send( &head );
+        // Insert size of buffer before the content itself
+        buf->Write<Buffer>( sizeof( uint32 ), *buf );
+        buf->Write<uint32>( 0, buf->size() - sizeof( uint32 ) );
 
-        Buffer* payload = new Buffer( &buf, length );
-        Send( &payload );
+        Send( &buf );
     }
 
 	SafeDelete( buf );
@@ -78,12 +75,13 @@ PyRep* EVETCPConnection::PopRep()
     if( packet != NULL )
     {
         if( packet->size() > EVETCPCONN_PACKET_LIMIT )
-            sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %u.", packet->size(), EVETCPCONN_PACKET_LIMIT );
+            sLog.Error( "Network", "Packet length %lu exceeds hardcoded packet length limit %u.", packet->size(), EVETCPCONN_PACKET_LIMIT );
         else
-            res = InflateUnmarshal( &(*packet)[ 0 ], packet->size() );
+            res = InflateUnmarshal( *packet );
+
+        SafeDelete( packet );
     }
 
-    SafeDelete( packet );
 	return res;
 }
 

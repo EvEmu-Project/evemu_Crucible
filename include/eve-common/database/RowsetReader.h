@@ -156,37 +156,18 @@ protected:
 };
 
 //this object scans a pyrep for rowsets or tuplesets, and uses ReaderToSQL on them
-class SetSQLDumper : public PyVisitor {
+class SetSQLDumper 
+: public PyVisitor
+{
 public:
-    SetSQLDumper(FILE *f, const char *tablename = "UNKNOWN");
-    virtual ~SetSQLDumper() {}
+    SetSQLDumper( FILE* f, const char* table = "UNKNOWN" );
 
-    //! primitive data visitors
-    EVEMU_INLINE void VisitInteger(const PyInt *rep) {}
-    EVEMU_INLINE void VisitReal(const PyFloat *rep) {}
-    EVEMU_INLINE void VisitBoolean(const PyBool *rep) {}
-    EVEMU_INLINE void VisitNone(const PyNone *rep) {}
-    EVEMU_INLINE void VisitBuffer(const PyBuffer *rep) {}
-    EVEMU_INLINE void VisitString(const PyString *rep) {}
-    //! PackedRow type visitor
-    EVEMU_INLINE void VisitPackedRow(const PyPackedRow *rep) {}
+    bool VisitObject( const PyObject* rep );
+    bool VisitTuple( const PyTuple* rep );
 
-    //! Object type visitor
-    void VisitObject(const PyObject *rep);
-
-    EVEMU_INLINE void VisitObjectEx(const PyObjectEx *rep) {}
-    //! Structureated types Visitor
-    EVEMU_INLINE void VisitSubStruct(const PySubStruct *rep) {}
-    EVEMU_INLINE void VisitSubStream(const PySubStream *rep) {}
-    EVEMU_INLINE void VisitChecksumedStream(const PyChecksumedStream *rep) {}
-    //! the data types Visitor
-    EVEMU_INLINE void VisitDict(const PyDict *rep) {}
-    EVEMU_INLINE void VisitList(const PyList *rep) {}
-
-    void VisitTuple(const PyTuple *rep);
 protected:
-    FILE *const m_file; //we do not own this file
-    const std::string m_tablename;
+    FILE* const mFile;
+    const std::string mTable;
 };
 
 #endif

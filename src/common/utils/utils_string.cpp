@@ -39,6 +39,83 @@ size_t py_mbstowcs( uint16 * wcstr, const char * mbstr, size_t max )
     return i;
 }
 
+bool py_decode_escape( const char* str, Buffer& into )
+{
+    int len = (int)strlen( str );
+	const char* end = str + len;
+	while( str < end )
+    {
+	    int c;
+
+		if( *str != '\\' )
+        {
+			into.Write<char>( *str++ );
+			continue;
+		}
+        if( ++str == end )
+            //ended with a \ char
+			return false;
+
+        switch( *str++ )
+        {
+		/* XXX This assumes ASCII! */
+		case '\n': break;	//?
+		case '\\': into.Write<char>('\\'); break;
+		case '\'': into.Write<char>('\''); break;
+		case '\"': into.Write<char>('\"'); break;
+		case 'b':  into.Write<char>('\b'); break;
+		case 'f':  into.Write<char>('\014'); break; /* FF */
+		case 't':  into.Write<char>('\t'); break;
+		case 'n':  into.Write<char>('\n'); break;
+		case 'r':  into.Write<char>('\r'); break;
+		case 'v':  into.Write<char>('\013'); break; /* VT */
+		case 'a':  into.Write<char>('\007'); break; /* BEL, not classic C */
+		case '0': case '1': case '2': case '3':
+		case '4': case '5': case '6': case '7':
+			c = str[-1] - '0';
+			if( '0' <= *str && *str <= '7' )
+            {
+				c = (c<<3) + *str++ - '0';
+				if( '0' <= *str && *str <= '7' )
+					c = (c<<3) + *str++ - '0';
+			}
+			into.Write<uint8>( c );
+			break;
+		case 'x':
+			if( isxdigit( str[0] ) && isxdigit( str[1] ) )
+            {
+				unsigned int x = 0;
+				c = *str++;
+
+                if( isdigit(c) )
+					x = c - '0';
+				else if( islower(c) )
+					x = 10 + c - 'a';
+				else
+					x = 10 + c - 'A';
+
+				x = x << 4;
+				c = *str++;
+
+                if( isdigit(c) )
+					x += c - '0';
+				else if( islower(c) )
+					x += 10 + c - 'a';
+				else
+					x += 10 + c - 'A';
+
+				into.Write<uint8>( x );
+				break;
+			}
+			//"invalid \\x escape");
+			return false;
+		default:
+			return false;
+		}
+	}
+	return true;
+}
+
 /************************************************************************/
 /* ContainsNonPrintables                                                */
 /************************************************************************/

@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\dep;..\..\include\common;..\..\include\eve-common;..\..\src\eve-common;..\..\include\eve-tool"
-				PreprocessorDefinitions="WIN32;_DEBUG;NO_READLINE"
+				PreprocessorDefinitions="WIN32;NO_READLINE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\..\dep;..\..\include\common;..\..\include\eve-common;..\..\src\eve-common;..\..\include\eve-tool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;NO_READLINE"
+				PreprocessorDefinitions="WIN32;NO_READLINE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
