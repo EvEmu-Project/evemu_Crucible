@@ -68,10 +68,9 @@ protected:
 */
 
 
-InsuranceService::InsuranceService(PyServiceMgr *mgr, DBcore *db)
+InsuranceService::InsuranceService(PyServiceMgr *mgr)
 : PyService(mgr, "insuranceSvc"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

@@ -33,7 +33,7 @@
 class InsuranceService
 : public PyService {
 public:
-	InsuranceService(PyServiceMgr *mgr, DBcore *db);
+	InsuranceService(PyServiceMgr *mgr);
 	virtual ~InsuranceService();
 
 protected:

@@ -31,9 +31,10 @@
 #include "PyService.h"
 
 class PosMgrService
-: public PyService {
+: public PyService
+{
 public:
-	PosMgrService(PyServiceMgr *mgr, DBcore *db);
+	PosMgrService(PyServiceMgr *mgr);
 	virtual ~PosMgrService();
 
 protected:

@@ -30,9 +30,10 @@
 #include "tutorial/TutorialDB.h"
 #include "PyService.h"
 
-class TutorialService : public PyService {
+class TutorialService : public PyService
+{
 public:
-	TutorialService(PyServiceMgr *mgr, DBcore *db);
+	TutorialService(PyServiceMgr *mgr);
 	virtual ~TutorialService();
 
 protected:

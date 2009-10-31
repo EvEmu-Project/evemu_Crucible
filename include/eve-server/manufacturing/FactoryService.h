@@ -29,9 +29,10 @@
 #include "manufacturing/FactoryDB.h"
 #include "PyService.h"
 
-class FactoryService : public PyService {
+class FactoryService : public PyService
+{
 public:
-	FactoryService(PyServiceMgr *mgr, DBcore *db);
+	FactoryService(PyServiceMgr *mgr);
 	virtual ~FactoryService();
 
 private:

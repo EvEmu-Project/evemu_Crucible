@@ -24,7 +24,7 @@ public:
 		CommandFunc function;
 	};
 
-	CommandDispatcher(PyServiceMgr &services, DBcore &db);
+	CommandDispatcher(PyServiceMgr &services);
 	virtual ~CommandDispatcher();
 
 	PyResult Execute(Client *from, const char *msg);

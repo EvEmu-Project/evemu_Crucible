@@ -28,11 +28,9 @@
 
 #include "ServiceDB.h"
 
-class FactoryDB : public ServiceDB {
+class FactoryDB : public ServiceDB
+{
 public:
-	FactoryDB(DBcore *db);
-	virtual ~FactoryDB();
-
 	PyRep *GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) const;
 	PyRep *GetMaterialCompositionOfItemType(const uint32 typeID) const;
 };

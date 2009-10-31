@@ -28,10 +28,9 @@
 
 PyCallable_Make_InnerDispatcher(TutorialService)
 
-TutorialService::TutorialService(PyServiceMgr *mgr, DBcore *dbc)
+TutorialService::TutorialService(PyServiceMgr *mgr)
 : PyService(mgr, "tutorialSvc"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(dbc)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

@@ -32,7 +32,7 @@
 
 class SkillMgrService : public PyService {
 public:
-	SkillMgrService(PyServiceMgr *mgr, DBcore *db);
+	SkillMgrService(PyServiceMgr *mgr);
 	virtual ~SkillMgrService();
 
 protected:

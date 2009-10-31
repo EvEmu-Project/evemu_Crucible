@@ -27,10 +27,9 @@
 
 PyCallable_Make_InnerDispatcher(CorpMgrService)
 
-CorpMgrService::CorpMgrService(PyServiceMgr *mgr, DBcore *db)
+CorpMgrService::CorpMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "corpmgr"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

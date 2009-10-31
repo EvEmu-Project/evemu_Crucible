@@ -32,9 +32,10 @@
 
 class PyRep;
 
-class DogmaIMService : public PyService {
+class DogmaIMService : public PyService
+{
 public:
-	DogmaIMService(PyServiceMgr *mgr, DBcore *dbc);
+	DogmaIMService(PyServiceMgr *mgr);
 	virtual ~DogmaIMService();
 
 protected:

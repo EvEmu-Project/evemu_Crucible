@@ -31,7 +31,7 @@
 
 class CharacterService : public PyService {
 public:
-	CharacterService(PyServiceMgr *mgr, DBcore *dbc);
+	CharacterService(PyServiceMgr *mgr);
 	virtual ~CharacterService();
 	
 protected:

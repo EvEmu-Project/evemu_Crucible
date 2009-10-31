@@ -26,10 +26,9 @@
 
 PyCallable_Make_InnerDispatcher(RamProxyService)
 
-RamProxyService::RamProxyService(PyServiceMgr *mgr, DBcore *db)
+RamProxyService::RamProxyService(PyServiceMgr *mgr)
 : PyService(mgr, "ramProxy"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

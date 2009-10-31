@@ -25,15 +25,6 @@
 
 #include "EVEServerPCH.h"
 
-ConfigDB::ConfigDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-ConfigDB::~ConfigDB() {
-}
-
-
 PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
 #ifndef WIN32
 #warning we need to deal with corporations!
@@ -49,7 +40,7 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
     DBQueryResult res;
     DBResultRow row;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         " entity.itemID as ownerID,"
         " entity.itemName as ownerName,"
@@ -64,7 +55,7 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
     //this is pretty hackish... will NOT work if they mix things...
     //this was only put in to deal with "new" statics, like corporations.
     if(!res.GetRow(row)) {
-        if(!m_db->RunQuery(res,
+        if(!sDatabase.RunQuery(res,
             "SELECT "
             " ownerID,ownerName,typeID"
             " FROM eveStaticOwners "
@@ -90,7 +81,7 @@ PyRep *ConfigDB::GetMultiAllianceShortNamesEx(const std::vector<int32> &entityID
 
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         " entity.itemID as allianceID,"
         " entity.itemName as shortName" //we likely need to use customInfo or something for this.
@@ -128,7 +119,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
     DBQueryResult res;
 
     if(use_map) {
-        if(!m_db->RunQuery(res,
+        if(!sDatabase.RunQuery(res,
             "SELECT "
             " mapDenormalize.itemID AS locationID,"
             " mapDenormalize.itemName as locationName,"
@@ -142,7 +133,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
             return NULL;
         }
     } else {
-        if(!m_db->RunQuery(res,
+        if(!sDatabase.RunQuery(res,
             "SELECT "
             " entity.itemID AS locationID,"
             " entity.itemName as locationName,"
@@ -168,7 +159,7 @@ PyRep *ConfigDB::GetMultiCorpTickerNamesEx(const std::vector<int32> &entityIDs) 
 
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   corporationID, tickerName, "
         "   shape1, shape2, shape3,"
@@ -191,7 +182,7 @@ PyRep *ConfigDB::GetMultiGraphicsEx(const std::vector<int32> &entityIDs) {
 
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         "   graphicID,url3D,urlWeb,icon,urlSound,explosionID"
         " FROM eveGraphics "
@@ -208,7 +199,7 @@ PyObject *ConfigDB::GetUnits() {
 
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         " unitID,unitName,displayName"
         " FROM eveUnits "))
@@ -237,7 +228,7 @@ PyObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
 
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   groupID,typeID,itemID,itemName,solarSystemID AS locationID,"
         "   orbitID,"
@@ -264,7 +255,7 @@ PyObject *ConfigDB::GetMap(uint32 solarSystemID) {
 #warning a lot of missing data in GetMap
 #endif
     //how in the world do they get a list in the freakin rowset for destinations???
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   itemID,"
         "   itemName,"
@@ -295,7 +286,7 @@ PyObject *ConfigDB::ListLanguages() {
     DBQueryResult res;
 
     //how in the world do they get a list in the freakin rowset for destinations???
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   languageID,languageName,translatedLanguageName"
         " FROM languages"
@@ -316,7 +307,7 @@ PyRep *ConfigDB::GetMultiInvTypesEx(const std::vector<int32> &entityIDs) {
 
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         "   typeID,groupID,typeName,description,graphicID,radius,"
         "   mass,volume,capacity,portionSize,raceID,basePrice,"
@@ -334,7 +325,7 @@ PyRep *ConfigDB::GetMultiInvTypesEx(const std::vector<int32> &entityIDs) {
 PyRep *ConfigDB::GetStationSolarSystemsByOwner(uint32 ownerID) {
     DBQueryResult res;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         " corporationID, solarSystemID "
         " FROM staStations "
@@ -352,7 +343,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
     DBQueryResult res;
     DBResultRow row;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         " groupID "
         " FROM eveNames "
@@ -427,7 +418,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
             return (NULL);
     }
 
-    if (!m_db->RunQuery(res, query.c_str(), celestialID))
+    if (!sDatabase.RunQuery(res, query.c_str(), celestialID))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return NULL;
@@ -438,7 +429,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
 
 PyRep *ConfigDB::GetTextsForGroup(const std::string & langID, uint32 textgroup) {
     DBQueryResult res;
-    if (!m_db->RunQuery(res, "SELECT textLabel, `text` FROM intro WHERE langID = '%s' AND textgroup = %u", langID.c_str(), textgroup))
+    if (!sDatabase.RunQuery(res, "SELECT textLabel, `text` FROM intro WHERE langID = '%s' AND textgroup = %u", langID.c_str(), textgroup))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return NULL;

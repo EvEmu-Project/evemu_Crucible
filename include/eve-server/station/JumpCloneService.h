@@ -30,9 +30,10 @@
 #include "PyService.h"
 
 class JumpCloneService
-: public PyService {
+: public PyService
+{
 public:
-	JumpCloneService(PyServiceMgr *mgr, DBcore *db);
+	JumpCloneService(PyServiceMgr *mgr);
 	virtual ~JumpCloneService();
 
 protected:

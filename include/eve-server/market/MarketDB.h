@@ -32,17 +32,16 @@ class PyRep;
 
 static const uint32 HISTORY_AGGREGATION_DAYS = 5;	//how many days in the past is the cutoff between "new" and "old" price history.
 
-typedef enum {
+typedef enum
+{
 	TransactionTypeSell = 0,
 	TransactionTypeBuy = 1
 } MktTransType;
 
 class MarketDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	MarketDB(DBcore *db);
-	virtual ~MarketDB();
-	
 	PyRep *GetStationAsks(uint32 stationID);
 	PyRep *GetSystemAsks(uint32 solarSystemID);
 	PyRep *GetRegionBest(uint32 regionID);

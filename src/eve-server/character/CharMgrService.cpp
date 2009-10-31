@@ -27,10 +27,9 @@
 
 PyCallable_Make_InnerDispatcher(CharMgrService)
 
-CharMgrService::CharMgrService(PyServiceMgr *mgr, DBcore *dbc)
+CharMgrService::CharMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "charmgr"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(dbc)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

@@ -118,9 +118,10 @@ protected:
 	const SpawnBoundsType m_boundsType;
 };
 
-class SpawnManager {
+class SpawnManager
+{
 public:
-	SpawnManager(DBcore &db, SystemManager &mgr, PyServiceMgr &svc);
+	SpawnManager(SystemManager &mgr, PyServiceMgr &svc);
 	~SpawnManager();
 	
 	bool Load();

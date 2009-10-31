@@ -77,10 +77,6 @@
 #   include <readline/history.h>
 #endif /* !NO_READLINE */
 
-// global log hook.
-NewLog* pLog;
-MarshalStringTable* pMarshalStringTable;
-
 void CatchSignal(int sig_num);
 
 static volatile bool RunLoops = true;
@@ -94,11 +90,6 @@ void LoadScript(const char *filename);
 
 int main(int argc, char *argv[])
 {
-    /* logging system */
-    pLog = new NewLog;
-    /* marshal string table */
-    pMarshalStringTable = new MarshalStringTable;
-
 	if (signal(SIGINT, CatchSignal) == SIG_ERR)	{
 		_log(CCLIENT__INIT_ERR, "Could not set signal handler");
 		return 1;

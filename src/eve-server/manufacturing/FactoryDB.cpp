@@ -25,18 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-FactoryDB::FactoryDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-FactoryDB::~FactoryDB() {
-}
-
 PyRep *FactoryDB::GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) const {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 				"SELECT requiredTypeID, quantity, damagePerJob, activityID"
 				" FROM typeActivityMaterials"
 				" WHERE typeID = %u",
@@ -52,7 +44,7 @@ PyRep *FactoryDB::GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) 
 PyRep *FactoryDB::GetMaterialCompositionOfItemType(const uint32 typeID) const {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 				"SELECT requiredTypeID AS typeID, quantity"
 				" FROM typeActivityMaterials"
 				" WHERE typeID = (SELECT blueprintTypeID FROM invBlueprintTypes WHERE productTypeID = %u)"

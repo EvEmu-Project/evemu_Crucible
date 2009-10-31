@@ -25,19 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-TutorialDB::TutorialDB(DBcore *db) 
-: ServiceDB(db)
-{
-}
-
-TutorialDB::~TutorialDB()
-{
-}
-
 PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT pageID, criteriaID"
 		" FROM tutorial_pages"
 		" JOIN tutorial_page_criteria USING (pageID)"
@@ -53,7 +44,7 @@ PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
 PyRep *TutorialDB::GetPages(uint32 tutorialID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT pageID, pageNumber, pageName, text, imagePath, audioPath, 0 AS dataID" 
 		" FROM tutorial_pages"
 		" WHERE tutorialID=%u"
@@ -69,7 +60,7 @@ PyRep *TutorialDB::GetPages(uint32 tutorialID) {
 PyRep *TutorialDB::GetTutorial(uint32 tutorialID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res, 
+	if(!sDatabase.RunQuery(res, 
 		"SELECT tutorialID, tutorialName, nextTutorialID, 0 AS dataID" 
 		" FROM tutorials"
 		" WHERE tutorialID=%u", tutorialID))
@@ -84,7 +75,7 @@ PyRep *TutorialDB::GetTutorial(uint32 tutorialID) {
 PyRep *TutorialDB::GetTutorialCriterias(uint32 tutorialID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res, 
+	if(!sDatabase.RunQuery(res, 
 		"SELECT criteriaID" 
 		" FROM tutorials_criterias"
 		" WHERE tutorialID=%u", tutorialID))
@@ -99,7 +90,7 @@ PyRep *TutorialDB::GetTutorialCriterias(uint32 tutorialID) {
 PyRep *TutorialDB::GetAllTutorials() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res, 
+	if(!sDatabase.RunQuery(res, 
 		"SELECT tutorialID, tutorialName, nextTutorialID, categoryID, 0 AS dataID"
 		" FROM tutorials"))
 	{
@@ -113,7 +104,7 @@ PyRep *TutorialDB::GetAllTutorials() {
 PyRep *TutorialDB::GetAllCriterias() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res, 
+	if(!sDatabase.RunQuery(res, 
 		"SELECT criteriaID, criteriaName, messageText, audioPath, 0 AS dataID" 
 		" FROM tutorial_criteria"))
 	{
@@ -127,7 +118,7 @@ PyRep *TutorialDB::GetAllCriterias() {
 PyRep *TutorialDB::GetCategories() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" categoryID, categoryName, description, 0 AS dataID"
 		" FROM tutorial_categories"))

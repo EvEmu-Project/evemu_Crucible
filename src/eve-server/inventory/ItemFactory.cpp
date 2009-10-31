@@ -25,9 +25,7 @@
 
 #include "EVEServerPCH.h"
 
-ItemFactory::ItemFactory(DBcore &db, EntityList &el) : entity_list(el), m_db(&db)
-{
-}
+ItemFactory::ItemFactory(EntityList& el) : entity_list(el) {}
 
 ItemFactory::~ItemFactory() {
     // items

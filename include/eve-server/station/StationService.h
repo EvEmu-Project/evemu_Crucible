@@ -30,9 +30,10 @@
 #include "station/StationDB.h"
 #include "PyService.h"
 
-class StationService : public PyService {
+class StationService : public PyService
+{
 public:
-	StationService(PyServiceMgr *mgr, DBcore *db);
+	StationService(PyServiceMgr *mgr);
 	virtual ~StationService();
 
 protected:

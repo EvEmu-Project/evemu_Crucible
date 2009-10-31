@@ -64,10 +64,9 @@ SpawnEntry::SpawnEntry(
 {
 }
 
-SpawnManager::SpawnManager(DBcore &db, SystemManager &mgr, PyServiceMgr &svc)
+SpawnManager::SpawnManager(SystemManager &mgr, PyServiceMgr &svc)
 : m_system(mgr),
-  m_services(svc),
-  m_db(&db)
+  m_services(svc)
 {
 }
 

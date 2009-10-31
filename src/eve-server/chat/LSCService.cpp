@@ -30,11 +30,10 @@
 PyCallable_Make_InnerDispatcher(LSCService)
 
 
-LSCService::LSCService(PyServiceMgr *mgr, DBcore *db, CommandDispatcher* cd)
+LSCService::LSCService(PyServiceMgr *mgr, CommandDispatcher* cd)
 : PyService(mgr, "LSC"),
   m_dispatch(new Dispatcher(this)),
   m_commandDispatch(cd),
-  m_db(db),
   nextFreeChannelID(200000000)
 {
     _SetCallDispatcher(m_dispatch);

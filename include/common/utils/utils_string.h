@@ -53,4 +53,14 @@ bool py_decode_escape( const char* str, Buffer& into );
 bool ContainsNonPrintables( const char* c, uint32 length );
 bool ContainsNonPrintables( const std::string& str );
 
+/**
+ * function to convert a vector of numbers to a string containing string representatives of those
+ * numbers.
+ *
+ * @param[in]  ints     contains the numbers that need to converted.
+ * @param[in]  if_empty is the default value added if ints is empty.
+ * @param[out] into     contains the string representatives of the numbers.
+ */
+void ListToINString( const std::vector<int32>& ints, std::string& into, const char* if_empty = "" );
+
 #endif // UTILS_STRING_H

@@ -55,12 +55,6 @@ class InventoryDB
 {
 public:
 	/*
-	 * Constructor & Destructor
-	 */
-	InventoryDB(DBcore *db);
-	virtual ~InventoryDB();
-
-	/*
 	 * Category stuff
 	 * (invCategories)
 	 */

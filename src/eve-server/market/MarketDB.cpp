@@ -26,18 +26,10 @@
 
 #include "EVEServerPCH.h"
 
-MarketDB::MarketDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-MarketDB::~MarketDB() {
-}
-
 PyRep *MarketDB::GetStationAsks(uint32 stationID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	typeID, MAX(price) AS price, volRemaining, stationID "
 		" FROM market_orders "
@@ -58,7 +50,7 @@ PyRep *MarketDB::GetStationAsks(uint32 stationID) {
 PyRep *MarketDB::GetSystemAsks(uint32 solarSystemID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	typeID, MAX(price) AS price, volRemaining, stationID "
 		" FROM market_orders "
@@ -79,7 +71,7 @@ PyRep *MarketDB::GetSystemAsks(uint32 solarSystemID) {
 PyRep *MarketDB::GetRegionBest(uint32 regionID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	typeID, MAX(price) AS price, volRemaining, stationID "
 		" FROM market_orders "
@@ -138,7 +130,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 
 	//query sell orders
 	//TODO: consider the `jumps` field... is it actually used? might be a pain in the ass if we need to actually populate it based on each queryier's location
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	price, volRemaining, typeID, `range`, orderID,"
 		"   volEntered, minVolume, bid, issued, duration,"
@@ -155,7 +147,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 	tup->items[0] = DBResultToCRowset(res);
 	
 	//query buy orders
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	price, volRemaining, typeID, `range`, orderID,"
 		"   volEntered, minVolume, bid, issued, duration,"
@@ -177,7 +169,7 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 PyRep *MarketDB::GetCharOrders(uint32 characterID) {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"   orderID, typeID, charID, regionID, stationID,"
 		"   `range`, bid, price, volEntered, volRemaining,"
@@ -197,7 +189,7 @@ PyRep *MarketDB::GetCharOrders(uint32 characterID) {
 PyRep *MarketDB::GetOrderRow(uint32 orderID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	price, volRemaining, typeID, `range`, orderID,"
 		"   volEntered, minVolume, bid, issued, duration,"
@@ -238,7 +230,7 @@ PyRep *MarketDB::GetOldPriceHistory(uint32 regionID, uint32 typeID) {
 	ordering.push_back("volume");
 	ordering.push_back("orders");*/
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	historyDate, lowPrice, highPrice, avgPrice,"
 		"	volume, orders "
@@ -276,7 +268,7 @@ PyRep *MarketDB::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
 	//NOTE: it may be a good idea to cache the historyDate column in each
 	//record when they are inserted instead of re-calculating it each query.
 	// this would also allow us to put together an index as well...
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	transactionDateTime-(transactionDateTime%%" I64d ") AS historyDate,"
 		"	MIN(price) AS lowPrice,"
@@ -305,7 +297,7 @@ bool MarketDB::BuildOldPriceHistory() {
 	cutoff_time -= HISTORY_AGGREGATION_DAYS * Win32Time_Day;
 
 	//build the history record from the recent market transactions.
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"INSERT INTO"
 		"	market_history_old"
 		" 	(regionID, typeID, historyDate, lowPrice, highPrice, avgPrice, volume, orders)"
@@ -334,7 +326,7 @@ bool MarketDB::BuildOldPriceHistory() {
 	}
 	
 	//now remove the transactions which have been aged out?
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"DELETE FROM"
 		"	market_transactions"
 		" WHERE"
@@ -355,12 +347,12 @@ PyObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable)
     
     if ( payable == true )
     {
-        success = m_db->RunQuery(res, "SELECT billID, billTypeID, debtorID, creditorID, amount, dueDateTime, interest,"
+        success = sDatabase.RunQuery(res, "SELECT billID, billTypeID, debtorID, creditorID, amount, dueDateTime, interest,"
             "externalID, paid externalID2 FROM billspayable WHERE debtorID = %u", corpID);
     }
     else
     {
-        success = m_db->RunQuery(res, "SELECT billID, billTypeID, debtorID, creditorID, amount, dueDateTime, interest,"
+        success = sDatabase.RunQuery(res, "SELECT billID, billTypeID, debtorID, creditorID, amount, dueDateTime, interest,"
             "externalID, paid externalID2 FROM billsreceivable WHERE creditorID = %u", corpID);
     }
 
@@ -376,7 +368,7 @@ PyObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable)
 PyObject *MarketDB::GetRefTypes() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" billTypeID,"
 		" billTypeName,"
@@ -443,7 +435,7 @@ PyObject *MarketDB::GetMarketGroups() {
 	//first we need to query out all the types because we need them to 
 	// fill in the 'types' subquery for each row of the result
 	std::map< int, std::set<uint32> > types;	//maps marketGroupID -> typeID
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	marketGroupID,typeID"
 		" FROM invTypes"
@@ -458,7 +450,7 @@ PyObject *MarketDB::GetMarketGroups() {
 	while(res.GetRow(row))
 		types[row.GetUInt(0)].insert(row.GetUInt(1));
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	marketGroupID, parentGroupID"
 		" FROM invMarketGroups"))
@@ -482,7 +474,7 @@ PyObject *MarketDB::GetMarketGroups() {
 	_PropigateItems(types, parentChild, childParent, -1);
 
 	//now we get to do the other query.
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	marketGroupID, parentGroupID, marketGroupName, description, graphicID, hasTypes"
 		" FROM invMarketGroups"))
@@ -588,7 +580,7 @@ uint32 MarketDB::FindBuyOrder(
 ) {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT orderID"
 		"	FROM market_orders"
 		"	WHERE bid=1"
@@ -623,7 +615,7 @@ uint32 MarketDB::FindSellOrder(
 ) {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT orderID"
 		"	FROM market_orders"
 		"	WHERE bid=0"
@@ -652,7 +644,7 @@ uint32 MarketDB::FindSellOrder(
 bool MarketDB::GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID, uint32 &quantity, double &price) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" volRemaining,"
 		" price,"
@@ -684,7 +676,7 @@ bool MarketDB::GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID
 bool MarketDB::AlterOrderQuantity(uint32 orderID, uint32 new_qty) {
 	DBerror err;
 
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"UPDATE"
 		" market_orders"
 		" SET volRemaining = %u"
@@ -701,7 +693,7 @@ bool MarketDB::AlterOrderQuantity(uint32 orderID, uint32 new_qty) {
 bool MarketDB::AlterOrderPrice(uint32 orderID, double new_price) {
 	DBerror err;
 
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"UPDATE"
 		" market_orders"
 		" SET price = %f"
@@ -718,7 +710,7 @@ bool MarketDB::AlterOrderPrice(uint32 orderID, double new_price) {
 bool MarketDB::DeleteOrder(uint32 orderID) {
 	DBerror err;
 
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"DELETE"
 		" FROM market_orders"
 		" WHERE orderID = %u",
@@ -735,7 +727,7 @@ bool MarketDB::AddCharacterBalance(uint32 char_id, double delta)
 {
 	DBerror err;
 
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"UPDATE character_ SET balance=balance+%.2f WHERE characterID=%u",delta,char_id))
 	{
 		_log(SERVICE__ERROR, "Error in query : %s", err.c_str());
@@ -756,7 +748,7 @@ bool MarketDB::RecordTransaction(
 ) {
 	DBerror err;
 	
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"INSERT INTO"
 		" market_transactions ("
 		"	transactionID, transactionDateTime, typeID, quantity,"
@@ -801,7 +793,7 @@ uint32 MarketDB::_StoreOrder(
 	//TODO: implement the contraband flag properly.
 	//TODO: implement the isCorp flag properly.
 	uint32 orderID;
-	if(!m_db->RunQueryLID(err, orderID,
+	if(!sDatabase.RunQueryLID(err, orderID,
 		"INSERT INTO market_orders ("
 		"	typeID, charID, regionID, stationID,"
 		"	`range`, bid, price, volEntered, volRemaining, issued,"

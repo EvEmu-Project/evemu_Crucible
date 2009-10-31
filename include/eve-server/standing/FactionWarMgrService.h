@@ -29,9 +29,10 @@
 #include "standing/FactionWarMgrDB.h"
 #include "PyService.h"
 
-class FactionWarMgrService : public PyService {
+class FactionWarMgrService : public PyService
+{
 public:
-	FactionWarMgrService(PyServiceMgr *mgr, DBcore *db);
+	FactionWarMgrService(PyServiceMgr *mgr);
 	~FactionWarMgrService();
 
 	PyCallable_DECL_CALL(GetWarFactions)

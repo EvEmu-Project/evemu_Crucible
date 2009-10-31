@@ -34,25 +34,16 @@
  *
  */
 
-class DBcore;
-class DBResultRow;
-class GPoint;
 class ItemFactory;
 
-class PyObject;
-class PyDict;
 class EntityList;
 class Client;
 class CharacterData;
 class CorpMemberInfo;
-//class InventoryItem;
 
-class ServiceDB {
+class ServiceDB
+{
 public:
-	ServiceDB(DBcore *db);
-	ServiceDB(ServiceDB *db);	//alternate constructor which simply steals the dbcore from a different serviceDB object to prevent having to expose it.
-	virtual ~ServiceDB();
-
 	/**
 	 * DoLogin()
 	 *
@@ -63,7 +54,7 @@ public:
 	 * @param[out] acountID
 	 * @param[out] role
 	 * @author 
-	*/
+	 */
 	bool DoLogin(const char *login, const char *pass, uint32 &accountID, uint32 &role);
 
 	//entity/item stuff:
@@ -91,8 +82,6 @@ public:
 	void SetAccountOnlineStatus(uint32 accountID, bool onoff_status);
 
 protected:
-	DBcore *const m_db;	//we do not own this pointer
-	
 	void ProcessStringChange(const char * key, const std::string & oldValue, const std::string & newValue, PyDict * notif, std::vector<std::string> & dbQ);
 	void ProcessRealChange(const char * key, double oldValue, double newValue, PyDict * notif, std::vector<std::string> & dbQ);
 	void ProcessIntChange(const char * key, uint32 oldValue, uint32 newValue, PyDict * notif, std::vector<std::string> & dbQ);

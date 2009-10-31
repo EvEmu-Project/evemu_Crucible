@@ -107,7 +107,7 @@ public:
 
     /** PyType check functions
       */
-    //using this method is discouraged, it generally means your doing something wrong... CheckType() should cover almost all needs
+    //using this method is discouraged, it generally means your doing something wrong... Is<type>() should cover almost all needs
     PyType GetType() const          { return mType; }
 
     bool IsInt() const              { return mType == PyTypeInt; }
@@ -325,6 +325,7 @@ class PyBuffer : public PyRep
 public:
     PyBuffer( const uint8* buffer, size_t size );
     PyBuffer( uint8** buffer, size_t size );
+    PyBuffer( const Buffer& buffer );
     PyBuffer( Buffer** buffer );
     PyBuffer( const PyString& str );
     PyBuffer( const PyBuffer& oth );

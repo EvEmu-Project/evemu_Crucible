@@ -46,12 +46,35 @@ NetService::~NetService() {
 PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
     PyString* str = new PyString( "machoNet.serviceInfo" );
 
-	if(!m_manager->cache_service->IsCacheLoaded(str)) {
-		//not cached yet, we have to generate it
+	if(!m_manager->cache_service->IsCacheLoaded(str))
+    {
 		PyDict *dict = new PyDict;
 
+        /* ServiceCallGPCS.py:197
+        where = self.machoNet.serviceInfo[service]
+        if where:
+            for (k, v,) in self.machoNet.serviceInfo.iteritems():
+                if ((k != service) and (v and (v.startswith(where) or where.startswith(v)))):
+                    nodeID = self.services.get(k, None)
+                    break
+        */
 		dict->SetItemString("trademgr", new PyString("station"));
-		dict->SetItemString("stationSvc", new PyNone());
+		dict->SetItemString("tutorialSvc", new PyString("station"));
+		dict->SetItemString("bookmark", new PyString("station"));
+		dict->SetItemString("slash", new PyString("station"));
+		dict->SetItemString("wormholeMgr", new PyString("station"));
+		dict->SetItemString("account", new PyString("station"));
+		dict->SetItemString("gangSvc", new PyString("station"));
+		dict->SetItemString("contractMgr", new PyString("station"));
+
+		dict->SetItemString("LSC", new PyString("location"));
+		dict->SetItemString("station", new PyString("location"));
+		dict->SetItemString("config", new PyString("locationPreferred"));
+
+		dict->SetItemString("scanMgr", new PyString("solarsystem"));
+		dict->SetItemString("keeper", new PyString("solarsystem"));
+
+        dict->SetItemString("stationSvc", new PyNone());
 		dict->SetItemString("zsystem", new PyNone());
 		dict->SetItemString("invbroker", new PyNone());
 		dict->SetItemString("droneMgr", new PyNone());
@@ -76,23 +99,17 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 		dict->SetItemString("dungeon", new PyNone());
 		dict->SetItemString("npcSvc", new PyNone());
 		dict->SetItemString("sessionMgr", new PyNone());
-		dict->SetItemString("LSC", new PyString("location"));
 		dict->SetItemString("allianceRegistry", new PyNone());
-		dict->SetItemString("tutorialSvc", new PyString("station"));
-		dict->SetItemString("bookmark", new PyString("station"));
 		dict->SetItemString("cache", new PyNone());
 		dict->SetItemString("character", new PyNone());
 		dict->SetItemString("factory", new PyNone());
 		dict->SetItemString("facWarMgr", new PyNone());
 		dict->SetItemString("corpStationMgr", new PyNone());
 		dict->SetItemString("authentication", new PyNone());
-		dict->SetItemString("station", new PyString("location"));
 		dict->SetItemString("effectCompiler", new PyNone());
-		dict->SetItemString("slash", new PyString("station"));
 		dict->SetItemString("charmgr", new PyNone());
 		dict->SetItemString("BSD", new PyNone());
 		dict->SetItemString("reprocessingSvc", new PyNone());
-		dict->SetItemString("config", new PyString("locationPreferred"));
 		dict->SetItemString("billingMgr", new PyNone());
 		dict->SetItemString("billMgr", new PyNone());
 		dict->SetItemString("lookupSvc", new PyNone());
@@ -104,7 +121,6 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 		dict->SetItemString("dataconfig", new PyNone());
 		dict->SetItemString("lien", new PyNone());
 		dict->SetItemString("i2", new PyNone());
-		dict->SetItemString("wormholeMgr", new PyString("station"));
 		dict->SetItemString("pathfinder", new PyNone());
 		dict->SetItemString("alert", new PyNone());
 		dict->SetItemString("director", new PyNone());
@@ -118,17 +134,12 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 		dict->SetItemString("corpmgr", new PyNone());
 		dict->SetItemString("warRegistry", new PyNone());
 		dict->SetItemString("corpRegistry", new PyNone());
-		dict->SetItemString("account", new PyString("station"));
-		dict->SetItemString("gangSvc", new PyString("station"));
 		dict->SetItemString("objectCaching", new PyNone());
 		dict->SetItemString("counter", new PyNone());
 		dict->SetItemString("petitioner", new PyNone());
-		dict->SetItemString("keeper", new PyString("solarsystem"));
 		dict->SetItemString("LPSvc", new PyNone());
 		dict->SetItemString("clientStatsMgr", new PyNone());
 		dict->SetItemString("jumpbeaconsvc", new PyNone());
-		dict->SetItemString("scanMgr", new PyString("solarsystem"));
-		dict->SetItemString("contractMgr", new PyString("station"));
 		dict->SetItemString("debug", new PyNone());
 		dict->SetItemString("languageSvc", new PyNone());
 		dict->SetItemString("skillMgr", new PyNone());

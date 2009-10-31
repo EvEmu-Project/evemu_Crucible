@@ -31,11 +31,9 @@
 
 class PyRep;
 
-class TutorialDB : public ServiceDB {
+class TutorialDB : public ServiceDB
+{
 public:
-	TutorialDB(DBcore *db);
-	virtual ~TutorialDB();
-
 	PyRep *GetPageCriterias(uint32 tutorialID);
 	PyRep *GetPages(uint32 tutorialID);
 	PyRep *GetTutorial(uint32 tutorialID);

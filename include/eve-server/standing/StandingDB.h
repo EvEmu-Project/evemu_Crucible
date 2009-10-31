@@ -30,18 +30,14 @@
 #include "ServiceDB.h"
 
 class StandingDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	StandingDB(DBcore *db);
-	virtual ~StandingDB();
-
 	PyObject *GetNPCStandings();
 	PyObject *GetCharStandings(uint32 characterID);
 	PyObject *GetCharPrimeStandings(uint32 characterID);
 	PyObject *GetCharNPCStandings(uint32 characterID);
 	PyObject *GetStandingTransactions(uint32 characterID);
-
-protected:
 };
 
 

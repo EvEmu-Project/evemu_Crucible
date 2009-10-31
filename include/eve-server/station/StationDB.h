@@ -116,10 +116,10 @@ protected:
 };
 
 
-class StationDB : public ServiceDB {
+class StationDB : public ServiceDB
+{
 public:
-	StationDB(DBcore *db);
-	virtual ~StationDB();
+	StationDB();
 
 	PyRep *GetSolarSystem(uint32 ssid);
 	PyRep *DoGetStation(uint32 ssid);

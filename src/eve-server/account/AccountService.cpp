@@ -27,10 +27,9 @@
 
 PyCallable_Make_InnerDispatcher(AccountService)
 
-AccountService::AccountService(PyServiceMgr *mgr, DBcore *db)
+AccountService::AccountService(PyServiceMgr *mgr)
 : PyService(mgr, "account"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 	

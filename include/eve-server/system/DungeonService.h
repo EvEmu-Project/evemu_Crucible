@@ -30,9 +30,10 @@
 #include "PyService.h"
 
 class DungeonService
-: public PyService {
+: public PyService
+{
 public:
-	DungeonService(PyServiceMgr *mgr, DBcore *db);
+	DungeonService(PyServiceMgr *mgr);
 	virtual ~DungeonService();
 
 protected:

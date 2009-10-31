@@ -32,11 +32,9 @@
 class PyRep;
 
 class ConfigDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-    ConfigDB(DBcore *db);
-    virtual ~ConfigDB();
-
     PyRep *GetMultiOwnersEx(const std::vector<int32> &entityIDs);
     PyRep *GetMultiLocationsEx(const std::vector<int32> &entityIDs);
     PyRep *GetMultiAllianceShortNamesEx(const std::vector<int32> &entityIDs);

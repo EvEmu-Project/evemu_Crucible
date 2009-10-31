@@ -27,10 +27,9 @@
 
 PyCallable_Make_InnerDispatcher(CertificateMgrService)
 
-CertificateMgrService::CertificateMgrService(PyServiceMgr *mgr, DBcore *db)
+CertificateMgrService::CertificateMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "certificateMgr"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

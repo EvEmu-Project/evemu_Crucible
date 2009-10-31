@@ -25,18 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-MissionDB::MissionDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-MissionDB::~MissionDB() {
-}
-
 PyObjectEx *MissionDB::GetAgents() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	agt.agentID,"
 		"	agt.agentTypeID,"
@@ -66,7 +58,7 @@ AgentLevel *MissionDB::LoadAgentLevel(uint8 level) {
 	
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT missionID,missionName,missionLevel,"
 		"	agtMissions.missionTypeID,missionTypeName,"
 		"	importantMission"

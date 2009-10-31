@@ -32,10 +32,10 @@ class PyRep;
 class DBQueryResult;
 
 class ObjCacheDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	ObjCacheDB(DBcore *db);
-	virtual ~ObjCacheDB();
+	ObjCacheDB();
 	
 	PyRep *GetCachableObject(const std::string &type);
 	

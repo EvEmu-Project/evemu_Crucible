@@ -33,9 +33,6 @@ class ShipDB
 : public ServiceDB
 {
 public:
-	ShipDB(DBcore *db);
-	virtual ~ShipDB();
-
 	PyTuple *GetFormations();
 };
 

@@ -30,10 +30,9 @@
 PyCallable_Make_InnerDispatcher(BillMgrService)
 
 
-BillMgrService::BillMgrService(PyServiceMgr *mgr, DBcore *db)
+BillMgrService::BillMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "billMgr"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

@@ -34,11 +34,9 @@ class PyRep;
 class AgentActions;
 
 class MissionDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	MissionDB(DBcore *db);
-	virtual ~MissionDB();
-
 	PyObjectEx *GetAgents();
 	bool LoadAgentActions(uint32 agentID, std::map<uint32, AgentActions *> &into);
 	

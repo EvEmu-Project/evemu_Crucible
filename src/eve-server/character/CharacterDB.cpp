@@ -25,17 +25,15 @@
 
 #include "EVEServerPCH.h"
 
-CharacterDB::CharacterDB(DBcore *db) : ServiceDB(db)
+CharacterDB::CharacterDB()
 {
 	load_name_validation_set();
 }
 
-CharacterDB::~CharacterDB() {}
-
 PyObject *CharacterDB::GetCharacterList(uint32 accountID) {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" characterID,itemName AS characterName,0 as deletePrepareDateTime,"
 		" gender,accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,hairID,"
@@ -78,7 +76,7 @@ bool CharacterDB::ValidateCharName(const char *name)
 PyObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" itemName AS shortName,bloodlineID,gender,bounty,character_.corporationID,allianceID,title,startDateTime,createDateTime,"
 		" securityRating,character_.balance,character_.stationID,solarSystemID,constellationID,regionID,"
@@ -99,7 +97,7 @@ PyObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 PyObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" entity.typeID,"
 		" character_.corporationID,"
@@ -139,7 +137,7 @@ PyObject *CharacterDB::GetCharPublicInfo3(uint32 characterID) {
 
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" character_.bounty,"
 		" character_.title,"
@@ -160,7 +158,7 @@ PyObject *CharacterDB::GetCharPublicInfo3(uint32 characterID) {
 bool CharacterDB::GetCharItems(uint32 characterID, std::vector<uint32> &into) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"  itemID"
 		" FROM entity"
@@ -181,7 +179,7 @@ bool CharacterDB::GetCharItems(uint32 characterID, std::vector<uint32> &into) {
 PyObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,hairID,"
 		" lipstickID,makeupID,skinID,backgroundID,lightID,"
@@ -203,7 +201,7 @@ PyObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
 bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {
 	DBQueryResult res;
 
-	if (!m_db->RunQuery(res,
+	if (!sDatabase.RunQuery(res,
 		" SELECT "
 		"        intelligence, charisma, perception, memory, willpower "
 		" FROM chrAncestries "
@@ -233,7 +231,7 @@ bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligen
   */
 bool CharacterDB::GetLocationCorporationByCareer(CharacterData &cdata) {
 	DBQueryResult res;
-	if (!m_db->RunQuery(res, 
+	if (!sDatabase.RunQuery(res, 
 	 "SELECT "
 	 "  chrSchools.corporationID, "
 	 "  chrSchools.schoolID, "
@@ -273,7 +271,7 @@ bool CharacterDB::GetLocationCorporationByCareer(CharacterData &cdata) {
 bool CharacterDB::GetSkillsByRace(uint32 raceID, std::map<uint32, uint32> &into) {
 	DBQueryResult res;
 
-	if (!m_db->RunQuery(res,
+	if (!sDatabase.RunQuery(res,
 		"SELECT "
 		"        skillTypeID, levels"
 		" FROM chrRaceSkills "
@@ -300,7 +298,7 @@ bool CharacterDB::GetSkillsByRace(uint32 raceID, std::map<uint32, uint32> &into)
 bool CharacterDB::GetSkillsByCareer(uint32 careerID, std::map<uint32, uint32> &into) {
 	DBQueryResult res;
 
-	if (!m_db->RunQuery(res,
+	if (!sDatabase.RunQuery(res,
 		"SELECT "
 		"        skillTypeID, levels"
 		" FROM chrCareerSkills"
@@ -327,7 +325,7 @@ bool CharacterDB::GetSkillsByCareer(uint32 careerID, std::map<uint32, uint32> &i
 bool CharacterDB::GetSkillsByCareerSpeciality(uint32 careerSpecialityID, std::map<uint32, uint32> &into) {
 	DBQueryResult res;
 
-	if (!m_db->RunQuery(res,
+	if (!sDatabase.RunQuery(res,
 		"SELECT "
 		"        skillTypeID, levels"
 		" FROM chrCareerSpecialitySkills"
@@ -354,7 +352,7 @@ bool CharacterDB::GetSkillsByCareerSpeciality(uint32 careerSpecialityID, std::ma
 PyString *CharacterDB::GetNote(uint32 ownerID, uint32 itemID) {
 	DBQueryResult res;
 
-	if (!m_db->RunQuery(res,
+	if (!sDatabase.RunQuery(res,
 			"SELECT `note` FROM `chrNotes` WHERE ownerID = %u AND itemID = %u",
 			ownerID, itemID)
 		)
@@ -374,7 +372,7 @@ bool CharacterDB::SetNote(uint32 ownerID, uint32 itemID, const char *str) {
 
 	if (str[0] == '\0') {
 		// str is empty
-		if (!m_db->RunQuery(err,
+		if (!sDatabase.RunQuery(err,
 			"DELETE FROM `chrNotes` "
 			" WHERE itemID = %u AND ownerID = %u LIMIT 1",
 			ownerID, itemID)
@@ -386,9 +384,9 @@ bool CharacterDB::SetNote(uint32 ownerID, uint32 itemID, const char *str) {
 	} else {
 		// escape it before insertion
 		std::string escaped;
-		m_db->DoEscapeString(escaped, str);
+		sDatabase.DoEscapeString(escaped, str);
 
-		if (!m_db->RunQuery(err,
+		if (!sDatabase.RunQuery(err,
 			"REPLACE INTO `chrNotes` (itemID, ownerID, note)	"
 			"VALUES (%u, %u, '%s')",
 			ownerID, itemID, escaped.c_str())
@@ -407,12 +405,12 @@ uint32 CharacterDB::AddOwnerNote(uint32 charID, const std::string & label, const
 	uint32 id;
 
 	std::string lblS;
-	m_db->DoEscapeString(lblS, label);
+	sDatabase.DoEscapeString(lblS, label);
 
 	std::string contS;
-	m_db->DoEscapeString(contS, content);
+	sDatabase.DoEscapeString(contS, content);
 
-	if (!m_db->RunQueryLID(err, id, 
+	if (!sDatabase.RunQueryLID(err, id, 
 		"INSERT INTO chrOwnerNote (ownerID, label, note) VALUES (%u, '%s', '%s');",
 		charID, lblS.c_str(), contS.c_str()))
 	{
@@ -427,9 +425,9 @@ bool CharacterDB::EditOwnerNote(uint32 charID, uint32 noteID, const std::string 
 	DBerror err;
 
 	std::string contS;
-	m_db->DoEscapeString(contS, content);
+	sDatabase.DoEscapeString(contS, content);
 
-	if (!m_db->RunQuery(err,
+	if (!sDatabase.RunQuery(err,
 		"UPDATE chrOwnerNote SET note = '%s' WHERE ownerID = %u AND noteID = %u;",
 		contS.c_str(), charID, noteID))
 	{
@@ -443,7 +441,7 @@ bool CharacterDB::EditOwnerNote(uint32 charID, uint32 noteID, const std::string 
 PyObject *CharacterDB::GetOwnerNoteLabels(uint32 charID) {
 	DBQueryResult res;
 
-	if (!m_db->RunQuery(res, "SELECT noteID, label FROM chrOwnerNote WHERE ownerID = %u", charID))
+	if (!sDatabase.RunQuery(res, "SELECT noteID, label FROM chrOwnerNote WHERE ownerID = %u", charID))
 	{
 		codelog(SERVICE__ERROR, "Error on query: %s", res.error.c_str());
 		return (NULL);
@@ -455,7 +453,7 @@ PyObject *CharacterDB::GetOwnerNoteLabels(uint32 charID) {
 PyObject *CharacterDB::GetOwnerNote(uint32 charID, uint32 noteID) {
 	DBQueryResult res;
 
-	if (!m_db->RunQuery(res, "SELECT note FROM chrOwnerNote WHERE ownerID = %u AND noteID = %u", charID, noteID))
+	if (!sDatabase.RunQuery(res, "SELECT note FROM chrOwnerNote WHERE ownerID = %u AND noteID = %u", charID, noteID))
 	{
 		codelog(SERVICE__ERROR, "Error on query: %s", res.error.c_str());
 		return (NULL);
@@ -478,7 +476,7 @@ uint32 CharacterDB::djb2_hash( const char* str )
 void CharacterDB::load_name_validation_set()
 {
 	DBQueryResult res;
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" characterID, itemName AS characterName"
 		" FROM character_"

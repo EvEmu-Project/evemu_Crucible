@@ -25,7 +25,7 @@
 
 #include "EVEServerPCH.h"
 
-CommandDispatcher::CommandDispatcher(PyServiceMgr &services, DBcore &db) : m_services(services), m_db(&db) {}
+CommandDispatcher::CommandDispatcher(PyServiceMgr &services) : m_services(services) {}
 
 CommandDispatcher::~CommandDispatcher() {
 	std::map<std::string, CommandRecord *>::iterator cur, end;

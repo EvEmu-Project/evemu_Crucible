@@ -26,15 +26,6 @@
 
 #include "EVEServerPCH.h"
 
-ItemDB::ItemDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-ItemDB::~ItemDB() {
-}
-
-
 
 
 

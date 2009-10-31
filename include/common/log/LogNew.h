@@ -26,6 +26,8 @@
 #ifndef LOG_NEW_H
 #define LOG_NEW_H
 
+#include "utils/Singleton.h"
+
 // console output colors
 #ifdef WIN32
 #  define TRED FOREGROUND_RED | FOREGROUND_INTENSITY
@@ -55,6 +57,7 @@
  * @date August 2009
  */
 class NewLog
+: public Singleton<NewLog>
 {
 public:
     NewLog();
@@ -128,7 +131,7 @@ private:
     void log( const char * str, ... );
 };
 
-#endif//LOG_NEW_H
+#define sLog \
+    ( NewLog::get() )
 
-extern NewLog *pLog;
-#define sLog (*pLog)
+#endif//LOG_NEW_H

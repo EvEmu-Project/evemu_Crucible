@@ -25,18 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-MapDB::MapDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-MapDB::~MapDB() {
-}
-
 PyObject *MapDB::GetPseudoSecurities() {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res, "SELECT solarSystemID, security FROM mapSolarSystems"))
+	if(!sDatabase.RunQuery(res, "SELECT solarSystemID, security FROM mapSolarSystems"))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -48,7 +40,7 @@ PyObject *MapDB::GetPseudoSecurities() {
 PyObject *MapDB::GetStationExtraInfo() {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		"	stationID,solarSystemID,operationID,stationTypeID,corporationID AS ownerID"
 		" FROM staStations"
@@ -64,7 +56,7 @@ PyObject *MapDB::GetStationExtraInfo() {
 PyObject *MapDB::GetStationOpServices() {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		"	operationID, serviceID"
 		" FROM staOperationServices"
@@ -80,7 +72,7 @@ PyObject *MapDB::GetStationOpServices() {
 PyObject *MapDB::GetStationServiceInfo() {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		"	serviceID,serviceName"
 		" FROM staServices"

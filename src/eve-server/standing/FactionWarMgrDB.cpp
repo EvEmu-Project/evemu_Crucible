@@ -25,15 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-FactionWarMgrDB::FactionWarMgrDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
 PyRep *FactionWarMgrDB::GetWarFactions() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT factionID, militiaCorporationID"
 		" FROM chrFactions"
 		" WHERE militiaCorporationID IS NOT NULL"))
@@ -63,7 +58,7 @@ PyRep *FactionWarMgrDB::GetFacWarSystems() {
 uint32 FactionWarMgrDB::GetFactionMilitiaCorporation(const uint32 factionID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT militiaCorporationID"
 		" FROM chrFactions"
 		" WHERE factionID=%u",

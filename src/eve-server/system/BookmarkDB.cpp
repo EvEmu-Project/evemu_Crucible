@@ -25,15 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-BookmarkDB::BookmarkDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
 PyObject *BookmarkDB::GetBookmarks(uint32 ownerID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" bookmarkID,"
 		" ownerID,"

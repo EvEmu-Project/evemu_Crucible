@@ -25,19 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-CommandDB::CommandDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-CommandDB::~CommandDB() {
-}
-
-
 bool CommandDB::ItemSearch(const char *query, std::map<uint32, std::string> &into) {
 	
 	std::string escaped;
-	m_db->DoEscapeString(escaped, query);
+	sDatabase.DoEscapeString(escaped, query);
 
 	DBQueryResult result;
 	DBResultRow row;
@@ -46,7 +37,7 @@ bool CommandDB::ItemSearch(const char *query, std::map<uint32, std::string> &int
 
 	//we need to query out the primary message here... not sure how to properly
 	//grab the "main message" though... the text/plain clause is pretty hackish.
-	if (!m_db->RunQuery(result,
+	if (!sDatabase.RunQuery(result,
 		" SELECT typeID,typeName"
 		" FROM invTypes"
 		" WHERE"
@@ -68,7 +59,7 @@ bool CommandDB::GetRoidDist(const char * sec, std::map<double, uint32> &roids) {
 	DBQueryResult res;
 	DBResultRow row;
 
-	if (!m_db->RunQuery(res,
+	if (!sDatabase.RunQuery(res,
 		" SELECT roidID, percent FROM roidDistribution WHERE systemSec = '%s' ", sec))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());

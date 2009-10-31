@@ -30,11 +30,9 @@
 #include "ServiceDB.h"
 
 class DogmaIMDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	DogmaIMDB(DBcore *db);
-	virtual ~DogmaIMDB();
-	
 protected:
 };
 

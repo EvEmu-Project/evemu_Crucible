@@ -29,9 +29,10 @@
 #include "PyService.h"
 
 class LanguageService
-: public PyService {
+: public PyService
+{
 public:
-	LanguageService(PyServiceMgr *mgr, DBcore *db);
+	LanguageService(PyServiceMgr *mgr);
 	virtual ~LanguageService();
 
 protected:

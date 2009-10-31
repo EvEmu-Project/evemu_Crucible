@@ -62,10 +62,9 @@ protected:
 */
 
 
-LanguageService::LanguageService(PyServiceMgr *mgr, DBcore *db)
+LanguageService::LanguageService(PyServiceMgr *mgr)
 : PyService(mgr, "languageSvc"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

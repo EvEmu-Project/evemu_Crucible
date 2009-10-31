@@ -29,13 +29,9 @@
 #include "ServiceDB.h"
 
 class ItemDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	ItemDB(DBcore *db);
-	virtual ~ItemDB();
-
-
-
 protected:
 };
 

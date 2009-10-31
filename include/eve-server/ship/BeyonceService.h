@@ -33,7 +33,7 @@
 class BeyonceService
 : public PyService {
 public:
-	BeyonceService(PyServiceMgr *mgr, DBcore *db);
+	BeyonceService(PyServiceMgr *mgr);
 	virtual ~BeyonceService();
 
 protected:

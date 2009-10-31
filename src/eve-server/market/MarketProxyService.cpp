@@ -63,10 +63,9 @@ protected:
 */
 
 
-MarketProxyService::MarketProxyService(PyServiceMgr *mgr, DBcore *db)
+MarketProxyService::MarketProxyService(PyServiceMgr *mgr)
 : PyService(mgr, "marketProxy"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

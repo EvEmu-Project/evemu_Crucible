@@ -25,18 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-InventoryDB::InventoryDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-InventoryDB::~InventoryDB() {
-}
-
 bool InventoryDB::GetCategory(EVEItemCategories category, CategoryData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " categoryName,"
         " description,"
@@ -65,7 +57,7 @@ bool InventoryDB::GetCategory(EVEItemCategories category, CategoryData &into) {
 bool InventoryDB::GetGroup(uint32 groupID, GroupData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " categoryID,"
         " groupName,"
@@ -108,7 +100,7 @@ bool InventoryDB::GetGroup(uint32 groupID, GroupData &into) {
 bool InventoryDB::GetType(uint32 typeID, TypeData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " groupID,"
         " typeName,"
@@ -157,7 +149,7 @@ bool InventoryDB::GetType(uint32 typeID, TypeData &into) {
 bool InventoryDB::GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " parentBlueprintTypeID,"
         " productTypeID,"
@@ -206,7 +198,7 @@ bool InventoryDB::GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &in
 bool InventoryDB::GetCharacterType(uint32 bloodlineID, CharacterTypeData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         "  bloodlineName,"
         "  raceID,"
@@ -259,7 +251,7 @@ bool InventoryDB::GetCharacterType(uint32 bloodlineID, CharacterTypeData &into) 
 bool InventoryDB::GetCharacterTypeByBloodline(uint32 bloodlineID, uint32 &characterTypeID) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         "  typeID"
         " FROM bloodlineTypes"
@@ -284,7 +276,7 @@ bool InventoryDB::GetCharacterTypeByBloodline(uint32 bloodlineID, uint32 &charac
 bool InventoryDB::GetBloodlineByCharacterType(uint32 characterTypeID, uint32 &bloodlineID) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         "  bloodlineID"
         " FROM bloodlineTypes"
@@ -321,7 +313,7 @@ bool InventoryDB::GetCharacterTypeByBloodline(uint32 bloodlineID, uint32 &charac
 bool InventoryDB::GetShipType(uint32 shipTypeID, ShipTypeData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " weaponTypeID, miningTypeID, skillTypeID"
         " FROM invShipTypes"
@@ -348,7 +340,7 @@ bool InventoryDB::GetShipType(uint32 shipTypeID, ShipTypeData &into) {
 bool InventoryDB::GetStationType(uint32 stationTypeID, StationTypeData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " dockingBayGraphicID, hangarGraphicID,"
         " dockEntryX, dockEntryY, dockEntryZ,"
@@ -388,7 +380,7 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
     // For certain ranges of itemID-s we use specialized tables:
     if(IsRegion(itemID)) {
         //region
-        if(!m_db->RunQuery(res,
+        if(!sDatabase.RunQuery(res,
             "SELECT"
             " regionName, 3 AS typeID, factionID, 1 AS locationID, 0 AS flag, 0 AS contraband,"
             " 1 AS singleton, 1 AS quantity, x, y, z, '' AS customInfo"
@@ -400,7 +392,7 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
         }
     } else if(IsConstellation(itemID)) {
         //contellation
-        if(!m_db->RunQuery(res,
+        if(!sDatabase.RunQuery(res,
             "SELECT"
             " constellationName, 4 AS typeID, factionID, regionID, 0 AS flag, 0 AS contraband,"
             " 1 AS singleton, 1 AS quantity, x, y, z, '' AS customInfo"
@@ -412,7 +404,7 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
         }
     } else if(IsSolarSystem(itemID)) {
         //solar system
-        if(!m_db->RunQuery(res,
+        if(!sDatabase.RunQuery(res,
             "SELECT"
             " solarSystemName, 5 AS typeID, factionID, constellationID, 0 AS flag, 0 AS contraband,"
             " 1 AS singleton, 1 AS quantity, x, y, z, '' AS customInfo"
@@ -424,7 +416,7 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
         }
     } else if(IsUniverseCelestial(itemID)) {
         //use mapDenormalize
-        if(!m_db->RunQuery(res,
+        if(!sDatabase.RunQuery(res,
             "SELECT"
             " itemName, typeID, 1 AS ownerID, solarSystemID, 0 AS flag, 0 AS contraband,"
             " 1 AS singleton, 1 AS quantity, x, y, z, '' AS customInfo"
@@ -436,7 +428,7 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
         }
     } else if(IsStargate(itemID)) {
         //use mapDenormalize LEFT-JOIN-ing mapSolarSystems to get factionID
-        if(!m_db->RunQuery(res,
+        if(!sDatabase.RunQuery(res,
             "SELECT"
             " itemName, typeID, factionID, solarSystemID, 0 AS flag, 0 AS contraband,"
             " 1 AS singleton, 1 AS quantity, mapDenormalize.x, mapDenormalize.y, mapDenormalize.z, '' AS customInfo"
@@ -449,7 +441,7 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
         }
     } else if(IsStation(itemID)) {
         //station
-        if(!m_db->RunQuery(res,
+        if(!sDatabase.RunQuery(res,
             "SELECT"
             " stationName, stationTypeID, corporationID, solarSystemID, 0 AS flag, 0 AS contraband,"
             " 1 AS singleton, 1 AS quantity, x, y, z, '' AS customInfo"
@@ -461,7 +453,7 @@ bool InventoryDB::GetItem(uint32 itemID, ItemData &into) {
         }
     } else {
         //fallback to entity
-        if(!m_db->RunQuery(res,
+        if(!sDatabase.RunQuery(res,
             "SELECT"
             " itemName, typeID, ownerID, locationID, flag, contraband,"
             " singleton, quantity, x, y, z, customInfo"
@@ -502,10 +494,10 @@ uint32 InventoryDB::NewItem(const ItemData &data) {
     uint32 eid;
 
     std::string nameEsc, customInfoEsc;
-    m_db->DoEscapeString(nameEsc, data.name);
-    m_db->DoEscapeString(customInfoEsc, data.customInfo);
+    sDatabase.DoEscapeString(nameEsc, data.name);
+    sDatabase.DoEscapeString(customInfoEsc, data.customInfo);
 
-    if(!m_db->RunQueryLID(err, eid,
+    if(!sDatabase.RunQueryLID(err, eid,
         "INSERT INTO entity ("
         "   itemName, typeID, ownerID, locationID, flag,"
         "   contraband, singleton, quantity, x, y, z,"
@@ -536,10 +528,10 @@ bool InventoryDB::SaveItem(uint32 itemID, const ItemData &data) {
     DBerror err;
 
     std::string nameEsc, customInfoEsc;
-    m_db->DoEscapeString(nameEsc, data.name);
-    m_db->DoEscapeString(customInfoEsc, data.customInfo);
+    sDatabase.DoEscapeString(nameEsc, data.name);
+    sDatabase.DoEscapeString(customInfoEsc, data.customInfo);
 
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "UPDATE entity"
         " SET"
         " itemName = '%s',"
@@ -583,7 +575,7 @@ bool InventoryDB::DeleteItem(uint32 itemID) {
 
     //NOTE: all child entities should be deleted by the caller first.
 
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE"
         " FROM entity"
         " WHERE itemID=%u",
@@ -605,7 +597,7 @@ bool InventoryDB::GetItemContents(uint32 itemID, std::vector<uint32> &into)
 {
     DBQueryResult res;
 
-    if( !m_db->RunQuery( res,
+    if( !sDatabase.RunQuery( res,
         "SELECT "
         " itemID"
         " FROM entity "
@@ -627,7 +619,7 @@ bool InventoryDB::GetItemContents(uint32 itemID, EVEItemFlags flag, std::vector<
 {
     DBQueryResult res;
 
-    if( !m_db->RunQuery( res,
+    if( !sDatabase.RunQuery( res,
         "SELECT "
         " itemID"
         " FROM entity "
@@ -650,7 +642,7 @@ bool InventoryDB::GetItemContents(uint32 itemID, EVEItemFlags flag, uint32 owner
 {
     DBQueryResult res;
 
-    if( !m_db->RunQuery( res,
+    if( !sDatabase.RunQuery( res,
         "SELECT "
         " itemID"
         " FROM entity "
@@ -673,7 +665,7 @@ bool InventoryDB::GetItemContents(uint32 itemID, EVEItemFlags flag, uint32 owner
 bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " attributeID,"
         " valueInt,"
@@ -712,7 +704,7 @@ bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
 bool InventoryDB::LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " attributeID,"
         " valueInt,"
@@ -751,7 +743,7 @@ bool InventoryDB::LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into) {
 
 bool InventoryDB::UpdateAttribute_int(uint32 itemID, uint32 attributeID, int v) {
     DBerror err;
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "REPLACE INTO entity_attributes"
         "   (itemID, attributeID, valueInt, valueFloat)"
         " VALUES"
@@ -766,7 +758,7 @@ bool InventoryDB::UpdateAttribute_int(uint32 itemID, uint32 attributeID, int v) 
 
 bool InventoryDB::UpdateAttribute_double(uint32 itemID, uint32 attributeID, double v) {
     DBerror err;
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "REPLACE INTO entity_attributes"
         "   (itemID, attributeID, valueInt, valueFloat)"
         " VALUES"
@@ -780,7 +772,7 @@ bool InventoryDB::UpdateAttribute_double(uint32 itemID, uint32 attributeID, doub
 }
 bool InventoryDB::EraseAttribute(uint32 itemID, uint32 attributeID) {
     DBerror err;
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM entity_attributes"
         " WHERE itemID=%u AND attributeID=%u",
         itemID, attributeID)
@@ -793,7 +785,7 @@ bool InventoryDB::EraseAttribute(uint32 itemID, uint32 attributeID) {
 
 bool InventoryDB::EraseAttributes(uint32 itemID) {
     DBerror err;
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE"
         " FROM entity_attributes"
         " WHERE itemID=%u",
@@ -808,7 +800,7 @@ bool InventoryDB::EraseAttributes(uint32 itemID) {
 bool InventoryDB::GetBlueprint(uint32 blueprintID, BlueprintData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " copy,"
         " materialLevel,"
@@ -839,7 +831,7 @@ bool InventoryDB::GetBlueprint(uint32 blueprintID, BlueprintData &into) {
 bool InventoryDB::NewBlueprint(uint32 blueprintID, const BlueprintData &data) {
     DBerror err;
 
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "INSERT"
         " INTO invBlueprints"
         " (blueprintID, copy, materialLevel, productivityLevel, licensedProductionRunsRemaining)"
@@ -857,7 +849,7 @@ bool InventoryDB::NewBlueprint(uint32 blueprintID, const BlueprintData &data) {
 bool InventoryDB::SaveBlueprint(uint32 blueprintID, const BlueprintData &data) {
     DBerror err;
 
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "UPDATE invBlueprints"
         " SET"
         " copy = %u,"
@@ -880,7 +872,7 @@ bool InventoryDB::SaveBlueprint(uint32 blueprintID, const BlueprintData &data) {
 bool InventoryDB::DeleteBlueprint(uint32 blueprintID) {
     DBerror err;
 
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE"
         " FROM invBlueprints"
         " WHERE blueprintID=%u",
@@ -895,7 +887,7 @@ bool InventoryDB::DeleteBlueprint(uint32 blueprintID) {
 bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         "  chr.accountID,"
         "  chr.title,"
@@ -961,7 +953,7 @@ bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
 bool InventoryDB::GetCharacterAppearance(uint32 characterID, CharacterAppearance &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         "  accessoryID,"
         "  beardID,"
@@ -1050,7 +1042,7 @@ bool InventoryDB::GetCorpMemberInfo(uint32 characterID, CorpMemberInfo &into) {
     DBQueryResult res;
     DBResultRow row;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         "  corpRole,"
         "  rolesAtAll,"
@@ -1077,7 +1069,7 @@ bool InventoryDB::GetCorpMemberInfo(uint32 characterID, CorpMemberInfo &into) {
     into.rolesAtOther = row.GetUInt64(4);
 
     // this is hack and belongs somewhere else
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         "  corporation.stationID"
         " FROM character_"
@@ -1130,11 +1122,11 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
     DBerror err;
 
     std::string titleEsc, descriptionEsc;
-    m_db->DoEscapeString(titleEsc, data.title);
-    m_db->DoEscapeString(descriptionEsc, data.description);
+    sDatabase.DoEscapeString(titleEsc, data.title);
+    sDatabase.DoEscapeString(descriptionEsc, data.description);
 
     // Table character_ goes first
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "INSERT INTO character_"
         // CharacterData:
         "  (characterID, accountID, title, description, bounty, balance, securityRating, petitionMessage,"
@@ -1192,7 +1184,7 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
 
     // Hack in the first employment record
     // TODO: Eventually, this should go under corp stuff...
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "INSERT INTO chrEmployment"
         "  (characterID, corporationID, startDate, deleted)"
         " VALUES"
@@ -1204,7 +1196,7 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
     }
 
     // And one more member to the corporation
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "UPDATE corporation"
         "  SET memberCount = memberCount + 1"
         " WHERE corporationID = %u",
@@ -1221,12 +1213,12 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
     DBerror err;
 
     std::string titleEsc;
-    m_db->DoEscapeString(titleEsc, data.title);
+    sDatabase.DoEscapeString(titleEsc, data.title);
 
     std::string descriptionEsc;
-    m_db->DoEscapeString(descriptionEsc, data.description);
+    sDatabase.DoEscapeString(descriptionEsc, data.description);
 
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "UPDATE character_"
         " SET"
         "  accountID = %u,"
@@ -1282,7 +1274,7 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
 bool InventoryDB::SaveCharacterAppearance(uint32 characterID, const CharacterAppearance &data) {
     DBerror err;
 
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "UPDATE character_"
         " SET"
         "  accessoryID = %s,"
@@ -1336,7 +1328,7 @@ bool InventoryDB::SaveCharacterAppearance(uint32 characterID, const CharacterApp
 bool InventoryDB::SaveCorpMemberInfo(uint32 characterID, const CorpMemberInfo &data) {
     DBerror err;
 
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "UPDATE character_"
         " SET"
         "  corpRole = " I64u ","
@@ -1366,7 +1358,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     DBerror err;
 
     // eveMailDetails
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM eveMailDetails"
         "  USING eveMail, eveMailDetails"
         " WHERE"
@@ -1381,7 +1373,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     }
 
     // eveMail
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM eveMail"
         " WHERE (senderID = %u OR channelID = %u)",
         characterID, characterID))
@@ -1392,7 +1384,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     }
 
     // crpCharShares
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM crpCharShares"
         " WHERE characterID = %u",
         characterID))
@@ -1403,7 +1395,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     }
 
     // bookmarks
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM bookmarks"
         " WHERE ownerID = %u",
         characterID))
@@ -1414,7 +1406,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     }
 
     // market_journal
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM market_journal"
         " WHERE characterID = %u",
         characterID))
@@ -1425,7 +1417,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     }
 
     // market_orders
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM market_orders"
         " WHERE charID =% lu",
         characterID))
@@ -1436,7 +1428,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     }
 
     // market_transactions
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM market_transactions"
         " WHERE clientID = %u",
         characterID))
@@ -1447,7 +1439,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     }
 
     // chrStandings
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM chrStandings"
         " WHERE characterID = %u",
         characterID))
@@ -1458,7 +1450,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     }
 
     // chrNPCStandings
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM chrNPCStandings"
         " WHERE characterID = %u",
         characterID))
@@ -1469,7 +1461,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     }
 
     // chrEmployment
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM chrEmployment"
         " WHERE characterID = %u",
         characterID))
@@ -1480,7 +1472,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
     }
 
     // character_
-    if(!m_db->RunQuery(err,
+    if(!sDatabase.RunQuery(err,
         "DELETE FROM character_"
         " WHERE characterID = %u",
         characterID))
@@ -1495,7 +1487,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
 bool InventoryDB::GetCelestialObject(uint32 celestialID, CelestialObjectData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " security, radius, celestialIndex, orbitIndex"
         " FROM mapDenormalize"
@@ -1524,7 +1516,7 @@ bool InventoryDB::GetCelestialObject(uint32 celestialID, CelestialObjectData &in
 bool InventoryDB::GetSolarSystem(uint32 solarSystemID, SolarSystemData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " xMin, yMin, zMin,"
         " xMax, yMax, zMax,"
@@ -1568,7 +1560,7 @@ bool InventoryDB::GetSolarSystem(uint32 solarSystemID, SolarSystemData &into) {
 bool InventoryDB::GetStation(uint32 stationID, StationData &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT"
         " security, dockingCostPerVolume, maxShipVolumeDockable, officeRentalCost, operationID,"
         " reprocessingEfficiency, reprocessingStationsTake, reprocessingHangarFlag"
@@ -1602,7 +1594,7 @@ bool InventoryDB::GetStation(uint32 stationID, StationData &into) {
 bool InventoryDB::LoadSkillQueue(uint32 characterID, SkillQueue &into) {
     DBQueryResult res;
 
-    if( !m_db->RunQuery( res,
+    if( !sDatabase.RunQuery( res,
         "SELECT"
         " typeID, level"
         " FROM chrSkillQueue"
@@ -1630,7 +1622,7 @@ bool InventoryDB::LoadSkillQueue(uint32 characterID, SkillQueue &into) {
 bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
     DBerror err;
 
-    if( !m_db->RunQuery( err,
+    if( !sDatabase.RunQuery( err,
         "DELETE"
         " FROM chrSkillQueue"
         " WHERE characterID = %u",
@@ -1659,7 +1651,7 @@ bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
         query += buf;
     }
 
-    if( !m_db->RunQuery( err,
+    if( !sDatabase.RunQuery( err,
         "INSERT"
         " INTO chrSkillQueue (characterID, orderIndex, typeID, level)"
         " VALUES %s",

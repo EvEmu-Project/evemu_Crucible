@@ -28,11 +28,9 @@
 #include "ServiceDB.h"
 
 class MapDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	MapDB(DBcore *db);
-	virtual ~MapDB();
-	
 	PyObject *GetPseudoSecurities();
 	PyObject *GetStationExtraInfo();
 	PyObject *GetStationOpServices();

@@ -25,17 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-SystemDB::SystemDB(DBcore *db) : ServiceDB(db)
-{
-}
-
-SystemDB::~SystemDB() {
-}
-
 bool SystemDB::LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &into) {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" itemID,typeID,groupID,orbitID,"
 		" x,y,z,radius,security,itemName"
@@ -69,7 +62,7 @@ bool SystemDB::LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &
 bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity> &into) {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	entity.itemID,"
 		"	entity.typeID,"
@@ -110,7 +103,7 @@ bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDy
 PyObject *SystemDB::ListFactions() {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" factionID"
 		" FROM chrFactions "))
@@ -125,7 +118,7 @@ PyObject *SystemDB::ListFactions() {
 PyObject *SystemDB::ListJumps(uint32 stargateID) {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" celestialID AS toCelestialID,"
 		" solarSystemID AS locationID"

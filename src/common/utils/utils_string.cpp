@@ -132,3 +132,47 @@ bool ContainsNonPrintables( const std::string& str )
     return ContainsNonPrintables( str.c_str(), str.size() );
 }
 
+void ListToINString( const std::vector<int32>& ints, std::string& into, const char* if_empty )
+{
+    if( ints.empty() )
+    {
+        into = if_empty;
+        return;
+    }
+
+/** Some small theory about numbers to strings
+ * on x86 the max size of a number converted to
+ * a string is:
+ * uint32 -1 results in
+ * "4294967295" which is 10 characters.
+ * on x64 the max size of a number converted to
+ * a string is:
+ * uint64 -1 results in
+ * "18446744073709551615" which is is 20 characters.
+ */
+#ifdef X64
+#  define FORMATTED_INT_STR_SIZE 20
+#else
+#  define FORMATTED_INT_STR_SIZE 10
+#endif//X64
+
+    into.clear();
+    into.resize(ints.size() * (FORMATTED_INT_STR_SIZE + 1));
+    size_t format_index = 0;
+
+    /* handle everything except the last one */
+    for(uint32 i = 0; i < (ints.size()-1); i++)
+    {
+        char* enty_ptr = &into[format_index];
+        uint32 entry_number = ints[i];
+        int formated_len = snprintf(enty_ptr, FORMATTED_INT_STR_SIZE, "%u,", entry_number);
+        format_index+=formated_len;
+    }
+
+    /* handle the last one */
+    char* enty_ptr = &into[format_index];
+    uint32 entry_number = ints[ints.size()-1]; // vector list max is size - 1
+    int formated_len = snprintf(enty_ptr, FORMATTED_INT_STR_SIZE, "%u", entry_number);
+    format_index+=formated_len;
+}
+

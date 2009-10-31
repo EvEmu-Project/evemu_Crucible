@@ -72,10 +72,9 @@ protected:
 	Agent *const m_agent;	//we do not own this.
 };
 
-AgentMgrService::AgentMgrService(PyServiceMgr *mgr, DBcore *db)
+AgentMgrService::AgentMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "agentMgr"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

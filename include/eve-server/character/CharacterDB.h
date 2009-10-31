@@ -35,10 +35,10 @@ class ItemFactory;
 class InventoryItem;
 class Client;
 
-class CharacterDB : public ServiceDB {
+class CharacterDB : public ServiceDB
+{
 public:
-	CharacterDB(DBcore *db);
-	virtual ~CharacterDB();
+	CharacterDB();
 
 	PyObject *GetCharacterList(uint32 accountID);
 	PyObject *GetCharSelectInfo(uint32 characterID);

@@ -26,8 +26,7 @@
 #include "EVEServerPCH.h"
 
 
-EntityList::EntityList(DBcore &db) : m_services(NULL), m_db(db) {}
-
+EntityList::EntityList() : m_services( NULL ) {}
 EntityList::~EntityList() {
 	{
 	    client_list::iterator cur, end;
@@ -348,7 +347,7 @@ SystemManager *EntityList::FindOrBootSystem(uint32 systemID) {
 
     sLog.Log("Entity List", "Booting system %u", systemID);
 	
-	SystemManager *mgr = new SystemManager(systemID, m_db, *m_services);
+	SystemManager *mgr = new SystemManager(systemID, *m_services);
 	if(!mgr->BootSystem()) {
 		delete mgr;
 		return NULL;

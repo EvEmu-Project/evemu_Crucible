@@ -45,6 +45,7 @@
  * @date December 2008
  */
 class MarshalStringTable
+: public Singleton<MarshalStringTable>
 {
 public:
     MarshalStringTable();
@@ -108,8 +109,8 @@ private:
     static const size_t s_mStringTableSize;
 };
 
-extern MarshalStringTable* pMarshalStringTable;
-#define sMarshalStringTable ( *pMarshalStringTable )
+#define sMarshalStringTable \
+    ( MarshalStringTable::get() )
 
 #endif /* !__EVE_MARSHAL_STRING_TABLE_H__INCL__ */
 

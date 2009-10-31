@@ -70,11 +70,9 @@ struct RequiredItem {
 	bool isSkill;
 };
 
-class RamProxyDB : public ServiceDB {
+class RamProxyDB : public ServiceDB
+{
 public:
-	RamProxyDB(DBcore *db);
-	virtual ~RamProxyDB();
-
 	PyRep *GetJobs2(const uint32 ownerID, const bool completed, const uint64 fromDate, const uint64 toDate);
 	PyRep *AssemblyLinesSelectPublic(const uint32 regionID);
 	PyRep *AssemblyLinesSelectPersonal(const uint32 charID);

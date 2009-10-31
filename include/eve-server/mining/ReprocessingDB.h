@@ -28,17 +28,16 @@
 
 #include "ServiceDB.h"
 
-struct Recoverable {
+struct Recoverable
+{
 	int typeID;
 	int amountPerBatch;
 };
 
 class ReprocessingDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	ReprocessingDB(DBcore *db);
-	virtual ~ReprocessingDB();
-
 	bool IsRefinable(const uint32 typeID);
 	bool IsRecyclable(const uint32 typeID);
 	bool LoadStatic(const uint32 stationID, double &efficiency, double &tax);

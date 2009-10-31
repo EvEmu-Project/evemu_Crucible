@@ -29,9 +29,10 @@ PyCallable_Make_InnerDispatcher(ReprocessingService)
 
 
 class ReprocessingServiceBound
-: public PyBoundObject {
+: public PyBoundObject
+{
 public:
-    ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB *db, uint32 stationID);
+    ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB& db, uint32 stationID);
     virtual ~ReprocessingServiceBound();
 
     PyCallable_DECL_CALL(GetOptionsForItemTypes)
@@ -47,7 +48,7 @@ protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;
 
-    ReprocessingDB *const m_db;
+    ReprocessingDB& m_db;
 
     uint32 m_stationID;
     double m_staEfficiency;
@@ -59,10 +60,9 @@ protected:
 
 PyCallable_Make_InnerDispatcher(ReprocessingServiceBound)
 
-ReprocessingService::ReprocessingService(PyServiceMgr *mgr, DBcore *db)
+ReprocessingService::ReprocessingService(PyServiceMgr *mgr)
 : PyService(mgr, "reprocessingSvc"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 }
@@ -84,7 +84,7 @@ PyBoundObject *ReprocessingService::_CreateBoundObject(Client *c, const PyRep *b
         return NULL;
     }
 
-    ReprocessingServiceBound *obj = new ReprocessingServiceBound(m_manager, &m_db, stationID);
+    ReprocessingServiceBound *obj = new ReprocessingServiceBound(m_manager, m_db, stationID);
     if(!obj->Load()) {
         _log(SERVICE__ERROR, "Failed to load static info for station %u.", stationID);
         delete obj;
@@ -95,7 +95,7 @@ PyBoundObject *ReprocessingService::_CreateBoundObject(Client *c, const PyRep *b
 
 //******************************************************************************
 
-ReprocessingServiceBound::ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB *db, uint32 stationID)
+ReprocessingServiceBound::ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB& db, uint32 stationID)
 : PyBoundObject(mgr),
   m_dispatch(new Dispatcher(this)),
   m_db(db),
@@ -121,7 +121,7 @@ void ReprocessingServiceBound::Release() {
 }
 
 bool ReprocessingServiceBound::Load() {
-    return(m_db->LoadStatic(m_stationID, m_staEfficiency, m_tax));
+    return(m_db.LoadStatic(m_stationID, m_staEfficiency, m_tax));
 }
 
 PyResult ReprocessingServiceBound::Handle_GetOptionsForItemTypes(PyCallArgs &call) {
@@ -141,8 +141,8 @@ PyResult ReprocessingServiceBound::Handle_GetOptionsForItemTypes(PyCallArgs &cal
     end = call_args.typeIDs.end();
 
     for(; cur != end; cur++) {
-        arg.isRecyclable = m_db->IsRecyclable(cur->first);
-        arg.isRefinable = m_db->IsRefinable(cur->first);
+        arg.isRecyclable = m_db.IsRecyclable(cur->first);
+        arg.isRefinable = m_db.IsRefinable(cur->first);
 
         rsp.typeIDs[cur->first] = arg.Encode();
     }
@@ -247,7 +247,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
         double efficiency = _CalcReprocessingEfficiency( call.client, item );
 
         std::vector<Recoverable> recoverables;
-        if( !m_db->GetRecoverables( item->typeID(), recoverables ) )
+        if( !m_db.GetRecoverables( item->typeID(), recoverables ) )
             continue;
 
         std::vector<Recoverable>::iterator cur_rec, end_rec;
@@ -340,7 +340,7 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
 
     if(item->quantity() >= item->type().portionSize()) {
         std::vector<Recoverable> recoverables;
-        if( !m_db->GetRecoverables( item->typeID(), recoverables ) )
+        if( !m_db.GetRecoverables( item->typeID(), recoverables ) )
             return NULL;
 
         double efficiency = _CalcReprocessingEfficiency(c, item);

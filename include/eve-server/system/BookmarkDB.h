@@ -32,8 +32,6 @@ class BookmarkDB
 : public ServiceDB
 {
 public:
-	BookmarkDB(DBcore *db);
-
 	PyObject *GetBookmarks(uint32 ownerID);
 };
 

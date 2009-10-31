@@ -27,8 +27,9 @@
 
 PyCallable_Make_InnerDispatcher(StationService)
 
-StationService::StationService(PyServiceMgr *mgr, DBcore *db)
-: PyService(mgr, "station"), m_dispatch(new Dispatcher(this)), m_db(db)
+StationService::StationService(PyServiceMgr *mgr)
+: PyService(mgr, "station"),
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

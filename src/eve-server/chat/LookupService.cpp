@@ -68,10 +68,9 @@ protected:
 */
 
 
-LookupService::LookupService(PyServiceMgr *mgr, DBcore *db)
+LookupService::LookupService(PyServiceMgr *mgr)
 : PyService(mgr, "lookupSvc"),
-m_dispatch(new Dispatcher(this)),
-m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

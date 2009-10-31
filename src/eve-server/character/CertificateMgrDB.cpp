@@ -25,11 +25,6 @@
 
 #include "EVEServerPCH.h"
 
-CertificateMgrDB::CertificateMgrDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
 PyRep *CertificateMgrDB::GetMyCertificates(uint32 characterID) {
 	_log(DATABASE__ERROR, "%u: GetMyCertificates unimplemented.", characterID);
 
@@ -45,7 +40,7 @@ PyRep *CertificateMgrDB::GetMyCertificates(uint32 characterID) {
 PyRep *CertificateMgrDB::GetCertificateCategories() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" categoryID,"
 		" categoryName,"
@@ -63,7 +58,7 @@ PyRep *CertificateMgrDB::GetCertificateCategories() {
 PyRep *CertificateMgrDB::GetAllShipCertificateRecommendations() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" shipTypeID,"
 		" certificateID,"
@@ -81,7 +76,7 @@ PyRep *CertificateMgrDB::GetAllShipCertificateRecommendations() {
 PyRep *CertificateMgrDB::GetCertificateClasses() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" classID,"
 		" className,"

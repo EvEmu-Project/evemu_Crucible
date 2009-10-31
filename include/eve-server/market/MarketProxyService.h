@@ -30,9 +30,10 @@
 #include "PyService.h"
 
 class MarketProxyService
-: public PyService {
+: public PyService
+{
 public:
-	MarketProxyService(PyServiceMgr *mgr, DBcore *db);
+	MarketProxyService(PyServiceMgr *mgr);
 	virtual ~MarketProxyService();
 
 protected:

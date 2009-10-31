@@ -106,10 +106,9 @@ const uint32 ObjCacheService::AppearanceCachableObjectCount = sizeof(ObjCacheSer
 
 PyCallable_Make_InnerDispatcher(ObjCacheService)
 
-ObjCacheService::ObjCacheService(PyServiceMgr *mgr, DBcore *dbc, const char *cacheDir)
+ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
 : PyService(mgr, "objectCaching"),
   m_dispatch(new Dispatcher(this)),
-  m_db(dbc),
   m_cacheDir(cacheDir)
 {
 	_SetCallDispatcher(m_dispatch);

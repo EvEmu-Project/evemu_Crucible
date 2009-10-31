@@ -31,9 +31,10 @@
 #include "PyService.h"
 
 class ShipService
-: public PyService {
+: public PyService
+{
 public:
-	ShipService(PyServiceMgr *mgr, DBcore *db);
+	ShipService(PyServiceMgr *mgr);
 	virtual ~ShipService();
 
 protected:

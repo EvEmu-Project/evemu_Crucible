@@ -30,9 +30,10 @@
 #include "PyService.h"
 #include "market/MarketDB.h"
 
-class BillMgrService : public PyService {
+class BillMgrService : public PyService
+{
 public:
-	BillMgrService(PyServiceMgr *mgr, DBcore *db);
+	BillMgrService(PyServiceMgr *mgr);
 	virtual ~BillMgrService();
 
 protected:

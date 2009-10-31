@@ -27,10 +27,9 @@
 
 PyCallable_Make_InnerDispatcher(FactionWarMgrService)
 
-FactionWarMgrService::FactionWarMgrService(PyServiceMgr *mgr, DBcore *db)
+FactionWarMgrService::FactionWarMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "facWarMgr"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

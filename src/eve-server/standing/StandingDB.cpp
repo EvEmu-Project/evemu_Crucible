@@ -25,19 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-StandingDB::StandingDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-StandingDB::~StandingDB() {
-}
-
-
 PyObject *StandingDB::GetNPCStandings() {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" fromID,toID,standing"
 		" FROM npcStandings"
@@ -54,7 +45,7 @@ PyObject *StandingDB::GetNPCStandings() {
 PyObject *StandingDB::GetCharStandings(uint32 characterID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" toID, standing"
 		" FROM chrStandings"
@@ -75,7 +66,7 @@ PyObject *StandingDB::GetCharPrimeStandings(uint32 characterID) {
 #ifndef WIN32
 #warning hacking GetCharPrimeStandings until we know what it does
 #endif
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" itemID AS ownerID,"
 		" itemName AS ownerName,"
@@ -95,7 +86,7 @@ PyObject *StandingDB::GetCharPrimeStandings(uint32 characterID) {
 PyObject *StandingDB::GetCharNPCStandings(uint32 characterID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" fromID, standing"
 		" FROM chrNPCStandings"
@@ -112,7 +103,7 @@ PyObject *StandingDB::GetCharNPCStandings(uint32 characterID) {
 PyObject *StandingDB::GetStandingTransactions(uint32 characterID) {
 	/*DBQueryResult res;
 
-	if (!m_db->RunQuery(res,
+	if (!sDatabase.RunQuery(res,
 		" SELECT * FROM chrStandingChanges "
 		" WHERE toID = %u ", characterID
 		))

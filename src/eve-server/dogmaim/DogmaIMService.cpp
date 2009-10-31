@@ -78,10 +78,9 @@ protected:
 };
 
 
-DogmaIMService::DogmaIMService(PyServiceMgr *mgr, DBcore *dbc)
+DogmaIMService::DogmaIMService(PyServiceMgr *mgr)
 : PyService(mgr, "dogmaIM"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(dbc)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

@@ -374,6 +374,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\common\utils\Singleton.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\common\utils\timer.h"
 					>
 				</File>

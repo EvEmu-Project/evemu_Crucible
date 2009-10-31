@@ -27,10 +27,9 @@
 
 PyCallable_Make_InnerDispatcher(PosMgrService)
 
-PosMgrService::PosMgrService(PyServiceMgr *mgr, DBcore *db)
+PosMgrService::PosMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "posMgr"),
-m_dispatch(new Dispatcher(this)),
-m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

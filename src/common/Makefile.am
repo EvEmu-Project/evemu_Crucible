@@ -35,6 +35,7 @@ libcommon_a_SOURCES = \
 	utils/misc.h \
 	utils/RefPtr.h \
 	utils/seperator.h \
+	utils/Singleton.h \
 	utils/timer.cpp \
 	utils/timer.h \
 	utils/utils_hex.cpp \

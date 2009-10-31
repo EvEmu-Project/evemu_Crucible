@@ -25,23 +25,6 @@
 
 #include "EVEServerPCH.h"
 
-ServiceDB::ServiceDB(DBcore *db)
-: m_db(db)
-{
-}
-
-//this is a specialized constructor to help with information hiding:
-// if somebody needs to make a new specialized ServiceDB subclass,
-// and already has some other ServiceDB subclass which points to the
-// correct DB, then it can simply use that ServiceDB as a template
-// instead of having to go find the raw dbcore object.
-ServiceDB::ServiceDB(ServiceDB *existing_db)
-: m_db(existing_db->m_db)
-{
-}
-
-ServiceDB::~ServiceDB() {}
-
 bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &accountID, uint32 &role) {
 	DBQueryResult res;
 
@@ -50,12 +33,12 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &accountID, 
 		return false;
 	}
 
-	if(!m_db->IsSafeString(login) || !m_db->IsSafeString(pass)) {
+	if(!sDatabase.IsSafeString(login) || !sDatabase.IsSafeString(pass)) {
 		_log(SERVICE__ERROR, "Invalid characters in login or password!");
 		return false;
 	}
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT accountID,role,password,PASSWORD('%s'),MD5('%s'), online"
 		" FROM account"
 		" WHERE accountName='%s'", pass, pass, login))
@@ -80,7 +63,7 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &accountID, 
 			}
 		}
 
-		if(!m_db->RunQuery(res,
+		if(!sDatabase.RunQuery(res,
 			"SELECT accountID,role,password,PASSWORD('%s'),MD5('%s'), online"
 			" FROM account"
 			" WHERE accountName='%s'", pass, pass, login))
@@ -116,7 +99,7 @@ bool ServiceDB::DoLogin(const char *login, const char *pass, uint32 &accountID, 
 bool ServiceDB::CreateNewAccount( const char * accountName, const char * accountPass, uint64 role )
 {
 	DBerror err;
-	if (!m_db->RunQuery(err,
+	if (!sDatabase.RunQuery(err,
 		"INSERT INTO `account` (accountName,password,role) VALUES ('%s', MD5('%s'), "I64u");",
 			accountName, accountPass, role)
 	) {
@@ -129,7 +112,7 @@ bool ServiceDB::CreateNewAccount( const char * accountName, const char * account
 PyObject *ServiceDB::GetSolRow(uint32 systemID) const {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		//not sure if this is gunna be valid all the time...
 		"SELECT "
 		"	itemID,entity.typeID,ownerID,locationID,flag,contraband,singleton,quantity,"
@@ -159,7 +142,7 @@ PyObject *ServiceDB::GetSolRow(uint32 systemID) const {
 PyObject *ServiceDB::GetSolDroneState(uint32 systemID) const {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		//not sure if this is gunna be valid all the time...
 		"SELECT "
 		"	droneID, solarSystemID, ownerID, controllerID,"
@@ -185,7 +168,7 @@ bool ServiceDB::GetSystemInfo(uint32 systemID, uint32 *constellationID, uint32 *
 		return true;
 
 	DBQueryResult res;
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" constellationID,"
 		" regionID,"
@@ -226,7 +209,7 @@ bool ServiceDB::GetStaticItemInfo(uint32 itemID, uint32 *systemID, uint32 *const
 		return true;
 
 	DBQueryResult res;
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" solarSystemID,"
 		" constellationID,"
@@ -273,7 +256,7 @@ bool ServiceDB::GetStationInfo(uint32 stationID, uint32 *systemID, uint32 *const
 		return true;
 
 	DBQueryResult res;
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" solarSystemID,"
 		" constellationID,"
@@ -330,7 +313,7 @@ bool ServiceDB::GetStationInfo(uint32 stationID, uint32 *systemID, uint32 *const
 uint32 ServiceDB::GetDestinationStargateID(uint32 fromSystem, uint32 toSystem) {
 	DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		" SELECT "
 		"    fromStargate.solarSystemID AS fromSystem,"
 		"    fromStargate.itemID AS fromGate,"
@@ -363,9 +346,9 @@ bool ServiceDB::GetConstant(const char *name, uint32 &into) {
 	DBQueryResult res;
 
 	std::string escaped;
-	m_db->DoEscapeString(escaped, name);
+	sDatabase.DoEscapeString(escaped, name);
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 	"SELECT"
 	"	constantValue"
 	" FROM eveConstants"
@@ -393,7 +376,7 @@ void ServiceDB::ProcessStringChange(const char * key, const std::string & oldVal
 		std::string newEscValue;
 		std::string qValue(key);
 
-		m_db->DoEscapeString(newEscValue, newValue);
+		sDatabase.DoEscapeString(newEscValue, newValue);
 		
 		// add to notification
 		PyTuple * val = new PyTuple(2);
@@ -448,7 +431,7 @@ void ServiceDB::SetCharacterOnlineStatus(uint32 char_id, bool onoff_status) {
 
 	_log(CLIENT__TRACE, "ChrStatus: Setting character %u %s.", char_id, onoff_status ? "Online" : "Offline");
 
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"UPDATE character_"
 		" SET online = %d"
 		" WHERE characterID = %u",
@@ -464,7 +447,7 @@ void ServiceDB::SetServerOnlineStatus(bool onoff_status) {
 
 	_log(onoff_status ? SERVER__INIT : SERVER__SHUTDOWN, "SrvStatus: Server is %s, setting serverStartTime.", onoff_status ? "coming Online" : "going Offline");
 
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"REPLACE INTO srvStatus (config_name, config_value)"
 		" VALUES ('%s', %s)",
 		"serverStartTime",
@@ -475,7 +458,7 @@ void ServiceDB::SetServerOnlineStatus(bool onoff_status) {
 
 	_log(CLIENT__TRACE, "ChrStatus: Setting all characters and accounts offline.");
 
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"UPDATE character_, account"
 		" SET character_.online = 0,"
 		"     account.online = 0"))
@@ -489,7 +472,7 @@ void ServiceDB::SetAccountOnlineStatus(uint32 accountID, bool onoff_status) {
 
 	_log(CLIENT__TRACE, "AccStatus: Setting account %u %s.", accountID, onoff_status ? "Online" : "Offline");
 
-	if(!m_db->RunQuery(err,
+	if(!sDatabase.RunQuery(err,
 		"UPDATE account "
 		" SET account.online = %d "
 		" WHERE accountID = %u ",

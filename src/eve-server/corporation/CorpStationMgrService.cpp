@@ -28,12 +28,12 @@
 PyCallable_Make_InnerDispatcher(CorpStationMgrService)
 
 class CorpStationMgrIMBound
-: public PyBoundObject {
+: public PyBoundObject
+{
 public:
-
 	PyCallable_Make_Dispatcher(CorpStationMgrIMBound)
 	
-	CorpStationMgrIMBound(PyServiceMgr *mgr, CorporationDB *db, uint32 station_id)
+	CorpStationMgrIMBound(PyServiceMgr *mgr, CorporationDB& db, uint32 station_id)
 	: PyBoundObject(mgr),
 	  m_dispatch(new Dispatcher(this)),
 	  m_db(db),
@@ -66,16 +66,16 @@ public:
 	PyCallable_DECL_CALL(RentOffice)
 
 protected:
-	Dispatcher *const m_dispatch;
-	CorporationDB *const m_db;	//we do not own this
+    Dispatcher *const m_dispatch;
+
+    CorporationDB& m_db;	//we do not own this
 	const uint32 m_stationID;
 };
 
 
-CorpStationMgrService::CorpStationMgrService(PyServiceMgr *mgr, DBcore *db)
+CorpStationMgrService::CorpStationMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "corpStationMgr"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 
@@ -92,7 +92,7 @@ PyBoundObject *CorpStationMgrService::_CreateBoundObject(Client *c, const PyRep 
 		codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bind_args->TypeString());
 		return NULL;
 	}
-	return new CorpStationMgrIMBound( m_manager, &m_db, bind_args->AsInt().value() );
+	return new CorpStationMgrIMBound( m_manager, m_db, bind_args->AsInt().value() );
 }
 
 
@@ -131,21 +131,21 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call)
 
 	PyRep *tmp;
 
-	tmp = m_db->ListStationOwners(m_stationID);
+	tmp = m_db.ListStationOwners(m_stationID);
 	if(tmp == NULL) {
 		codelog(SERVICE__ERROR, "Failed to get owners.");
 		return NULL;
 	}
 	l->AddItem( tmp );
 	
-	tmp = m_db->ListStationCorps(m_stationID);
+	tmp = m_db.ListStationCorps(m_stationID);
 	if(tmp == NULL) {
 		codelog(SERVICE__ERROR, "Failed to get corps");
 		return NULL;
 	}
 	l->AddItem( tmp );
 	
-	tmp = m_db->ListStationOffices(m_stationID);
+	tmp = m_db.ListStationOffices(m_stationID);
 	if(tmp == NULL) {
 		codelog(SERVICE__ERROR, "Failed to get offices.");
 		return NULL;
@@ -193,7 +193,7 @@ PyResult CorpStationMgrIMBound::Handle_GetPotentialHomeStations(PyCallArgs &call
 	//returns a rowset: stationID, typeID
 
 	_log(CLIENT__ERROR, "Hacking GetPotentialHomeStations");
-	result = m_db->ListCorpStations(call.client->GetCorporationID());
+	result = m_db.ListCorpStations(call.client->GetCorporationID());
 
 	return result;
 }
@@ -224,7 +224,7 @@ PyResult CorpStationMgrIMBound::Handle_GetQuoteForRentingAnOffice(PyCallArgs &ca
 
 	// Unless I produce an invalid ISK value (probably a NAN), this won't fail,
 	// the dialog box will be displayed... have to make sure this doesn't fail
-	return (new PyInt(m_db->GetQuoteForRentingAnOffice(stationID)));
+	return (new PyInt(m_db.GetQuoteForRentingAnOffice(stationID)));
 }
 PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	// 1 param, corp rent price	//TODO: check against what we think it should cost.
@@ -237,7 +237,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	uint32 location = call.client->GetLocationID();
 
 	// check if the corp has enough money
-	double corpBalance = m_db->GetCorpBalance(call.client->GetCorporationID());
+	double corpBalance = m_db.GetCorpBalance(call.client->GetCorporationID());
 	if (corpBalance < arg.arg) {
 		_log(SERVICE__ERROR, "%s: Corp doesn't have enough money to rent an office.", call.client->GetName());
 		return (new PyInt(0));
@@ -246,7 +246,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
 	// We should also check if the station has a free office atm...
 	OfficeInfo oInfo(call.client->GetCorporationID(), call.client->GetStationID());
-	oInfo.officeID = m_db->ReserveOffice(oInfo);
+	oInfo.officeID = m_db.ReserveOffice(oInfo);
 	// should we also put this into the entity table?
 
 
@@ -282,10 +282,10 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
 
 	// remove the money
-	m_db->AddBalanceToCorp(oInfo.corporationID, -double(arg.arg));
+	m_db.AddBalanceToCorp(oInfo.corporationID, -double(arg.arg));
 	corpBalance -= arg.arg;	// This is the new corp money. Do I have to make a casting here?
 	// record the transaction
-	m_db->GiveCash(oInfo.corporationID, RefType_officeRentalFee, oInfo.corporationID, oInfo.stationID, "unknown", call.client->GetAccountID(), accountCash, -double(arg.arg), corpBalance, "Renting office for 30 days"); 
+	m_db.GiveCash(oInfo.corporationID, RefType_officeRentalFee, oInfo.corporationID, oInfo.stationID, "unknown", call.client->GetAccountID(), accountCash, -double(arg.arg), corpBalance, "Renting office for 30 days"); 
 
 	MulticastTarget mct;
 	mct.corporations.insert(oInfo.corporationID);
@@ -343,7 +343,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	// TODO: get the correct evemail content from somewhere
 	// TODO: send it to every corp member who's affected by it. corpRoleAccountant, corpRoleJuniorAccountant or equiv
 	m_manager->lsc_service->SendMail(
-		m_db->GetStationCorporationCEO(oInfo.stationID), 
+		m_db.GetStationCorporationCEO(oInfo.stationID), 
 		call.client->GetCharacterID(), 
 		"Bill issued", 
 		"Bill issued for renting an office");

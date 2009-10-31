@@ -296,17 +296,11 @@ int32 PyNone::hash() const
 /************************************************************************/
 PyBuffer::PyBuffer( const uint8* buffer, size_t size ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer, size ) ), mHashCache( -1 ) {}
 PyBuffer::PyBuffer( uint8** buffer, size_t size ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer, size ) ), mHashCache( -1 ) {}
-PyBuffer::PyBuffer( Buffer** buffer ) : PyRep( PyRep::PyTypeBuffer ),
-  mValue( *buffer ), mHashCache( -1 )
-{
-    *buffer = NULL;
-}
+PyBuffer::PyBuffer( const Buffer& buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer ) ), mHashCache( -1 ) {}
+PyBuffer::PyBuffer( Buffer** buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( *buffer ), mHashCache( -1 ) { *buffer = NULL; }
 PyBuffer::PyBuffer( const PyString& str ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( (const uint8*)str.content().c_str(), str.content().size() ) ), mHashCache( -1 ) {}
-PyBuffer::PyBuffer( const PyBuffer& buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( &buffer.content()[0], buffer.content().size() ) ), mHashCache( buffer.mHashCache ) {}
-PyBuffer::~PyBuffer()
-{
-    delete mValue;
-}
+PyBuffer::PyBuffer( const PyBuffer& buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer.content() ) ), mHashCache( buffer.mHashCache ) {}
+PyBuffer::~PyBuffer() { delete mValue; }
 
 PyRep* PyBuffer::Clone() const
 {

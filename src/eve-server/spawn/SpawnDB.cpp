@@ -25,22 +25,13 @@
 
 #include "EVEServerPCH.h"
 
-SpawnDB::SpawnDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-SpawnDB::~SpawnDB() {
-}
-
-
 bool SpawnDB::LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup *> &into) {
     DBQueryResult res;
 
     //we could avoid this join by doing the `spawns` select first and collecting the
     //spawn group IDs needed... but this is fine for now.
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         " spawnGroups.spawnGroupID,"
         " spawnGroups.spawnGroupName,"
@@ -78,7 +69,7 @@ bool SpawnDB::LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup 
     std::string INstr;
     ListToINString(groupIDs, INstr, "-1");
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         " spawnGroupID,"
         " npcTypeID,"
@@ -132,7 +123,7 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
     //we could avoid this join by doing the `spawns` select first and collecting the
     //spawn group IDs needed... but this is fine for now.
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         " spawnID,"
         " spawnGroupID,"
@@ -209,7 +200,7 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
     ListToINString(entryIDs, INstr, "-1");
 
     //we could avoid this order by clause by exposing the `m_bounds` member of SpawnEntry
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         " spawnID,"
         " pointIndex,"

@@ -30,9 +30,10 @@
 #include "PyService.h"
 
 class ScenarioService
-: public PyService {
+: public PyService
+{
 public:
-	ScenarioService(PyServiceMgr *mgr, DBcore *db);
+	ScenarioService(PyServiceMgr *mgr);
 	virtual ~ScenarioService();
 
 protected:

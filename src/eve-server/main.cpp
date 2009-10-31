@@ -28,11 +28,6 @@
 static void InitSignalHandlers();
 static void CatchSignal( int sig_num );
 
-// Global hooks
-DBcore* pDatabase;
-NewLog* pLog;
-MarshalStringTable* pMarshalStringTable;
-
 static volatile bool RunLoops = true;
 
 int main(int argc, char *argv[])
@@ -48,11 +43,6 @@ int main(int argc, char *argv[])
     printf("FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more\n");
     printf("details.\n");
     printf("\n");
-
-    /* logging system */
-    pLog = new NewLog;
-    /* marshal string table */
-    pMarshalStringTable = new MarshalStringTable;
 
     sLog.Log("main", "EVEmu %s", EVEMU_REVISION );
     sLog.Log("server init", "\n\tSupported Client: %s\n\tVersion %.2f\n\tBuild %d\n\tMachoNet %u",
@@ -94,22 +84,17 @@ int main(int argc, char *argv[])
     }
 
     //connect to the database...
-    DBcore db;
+    DBerror err;
+    if( !sDatabase.Open( err,
+        sConfig.database.host.c_str(),
+        sConfig.database.username.c_str(),
+        sConfig.database.password.c_str(),
+        sConfig.database.db.c_str(),
+        sConfig.database.port ) )
     {
-        DBerror err;
-        if(!db.Open(err,
-            sConfig.database.host.c_str(),
-            sConfig.database.username.c_str(),
-            sConfig.database.password.c_str(),
-            sConfig.database.db.c_str(),
-            sConfig.database.port)
-        )
-        {
-            sLog.Error("server init", "Unable to connect to the database: %s", err.c_str());
-            return 1;
-        }
+        sLog.Error( "server init", "Unable to connect to the database: %s", err.c_str() );
+        return 1;
     }
-    pDatabase = &db;
 
     //Start up the TCP server
     EVETCPServer tcps;
@@ -125,15 +110,15 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    EntityList entity_list(db);
-    ItemFactory item_factory(db, entity_list);
+    EntityList entity_list;
+    ItemFactory item_factory( entity_list );
 
     //now, the service manager...
-    PyServiceMgr services(888444, db, entity_list, item_factory);
+    PyServiceMgr services( 888444, entity_list, item_factory );
 
     //setup the command dispatcher
-    CommandDispatcher command_dispatcher(services, db);
-    RegisterAllCommands(command_dispatcher);
+    CommandDispatcher command_dispatcher( services );
+    RegisterAllCommands( command_dispatcher );
 
     /*
      * Service creation and registration.
@@ -142,53 +127,53 @@ int main(int argc, char *argv[])
     sLog.Log("server init", "Creating services.");
 
     services.RegisterService(new ClientStatsMgr(&services));
-    services.RegisterService(new AgentMgrService(&services, &db));
-    services.RegisterService(new MissionMgrService(&services, &db));
-    services.RegisterService(new AccountService(&services, &db));
+    services.RegisterService(new AgentMgrService(&services));
+    services.RegisterService(new MissionMgrService(&services));
+    services.RegisterService(new AccountService(&services));
     services.RegisterService(new UserService(&services));
     services.RegisterService(new AlertService(&services));
     services.RegisterService(new AuthService(&services));
-    services.RegisterService(new BillMgrService(&services, &db));
-    services.RegisterService(new BookmarkService(&services, &db));
-    services.RegisterService(new CertificateMgrService(&services, &db));
-    services.RegisterService(new CharacterService(&services, &db));
-    services.RegisterService(new CharMgrService(&services, &db));
-    services.RegisterService(new ConfigService(&services, &db));
-    services.RegisterService(new LanguageService(&services, &db));
-    services.RegisterService(new CorpMgrService(&services, &db));
-    services.RegisterService(new CorpStationMgrService(&services, &db));
-    services.RegisterService(new CorporationService(&services, &db));
-    services.RegisterService(new CorpRegistryService(&services, &db));
+    services.RegisterService(new BillMgrService(&services));
+    services.RegisterService(new BookmarkService(&services));
+    services.RegisterService(new CertificateMgrService(&services));
+    services.RegisterService(new CharacterService(&services));
+    services.RegisterService(new CharMgrService(&services));
+    services.RegisterService(new ConfigService(&services));
+    services.RegisterService(new LanguageService(&services));
+    services.RegisterService(new CorpMgrService(&services));
+    services.RegisterService(new CorpStationMgrService(&services));
+    services.RegisterService(new CorporationService(&services));
+    services.RegisterService(new CorpRegistryService(&services));
     services.RegisterService(new LPService(&services));
-    services.RegisterService(new DogmaIMService(&services, &db));
+    services.RegisterService(new DogmaIMService(&services));
     services.RegisterService(new InvBrokerService(&services));
-    services.RegisterService(services.lsc_service = new LSCService(&services, &db, &command_dispatcher));
-    services.RegisterService(services.cache_service = new ObjCacheService(&services, &db, sConfig.files.cacheDir.c_str()));
-    services.RegisterService(new LookupService(&services, &db));
+    services.RegisterService(services.lsc_service = new LSCService(&services, &command_dispatcher));
+    services.RegisterService(services.cache_service = new ObjCacheService(&services, sConfig.files.cacheDir.c_str()));
+    services.RegisterService(new LookupService(&services));
     services.RegisterService(new VoiceMgrService(&services));
-    services.RegisterService(new ShipService(&services, &db));
-    services.RegisterService(new InsuranceService(&services, &db));
-    services.RegisterService(new BeyonceService(&services, &db));
-    services.RegisterService(new MapService(&services, &db));
+    services.RegisterService(new ShipService(&services));
+    services.RegisterService(new InsuranceService(&services));
+    services.RegisterService(new BeyonceService(&services));
+    services.RegisterService(new MapService(&services));
     services.RegisterService(new OnlineStatusService(&services));
-    services.RegisterService(new Standing2Service(&services, &db));
+    services.RegisterService(new Standing2Service(&services));
     services.RegisterService(new WarRegistryService(&services));
-    services.RegisterService(new FactionWarMgrService(&services, &db));
-    services.RegisterService(new StationService(&services, &db));
-    services.RegisterService(new StationSvcService(&services, &db));
-    services.RegisterService(new JumpCloneService(&services, &db));
-    services.RegisterService(new KeeperService(&services, &db));
-    services.RegisterService(new DungeonService(&services, &db));
-    services.RegisterService(new SkillMgrService(&services, &db));
-    services.RegisterService(new TutorialService(&services, &db));
+    services.RegisterService(new FactionWarMgrService(&services));
+    services.RegisterService(new StationService(&services));
+    services.RegisterService(new StationSvcService(&services));
+    services.RegisterService(new JumpCloneService(&services));
+    services.RegisterService(new KeeperService(&services));
+    services.RegisterService(new DungeonService(&services));
+    services.RegisterService(new SkillMgrService(&services));
+    services.RegisterService(new TutorialService(&services));
     services.RegisterService(new PetitionerService(&services));
     services.RegisterService(new SlashService(&services, &command_dispatcher));
-    services.RegisterService(new MarketProxyService(&services, &db));
+    services.RegisterService(new MarketProxyService(&services));
     services.RegisterService(new ContractMgrService(&services));
-    services.RegisterService(new ReprocessingService(&services, &db));
-    services.RegisterService(new FactoryService(&services, &db));
-    services.RegisterService(new RamProxyService(&services, &db));
-    services.RegisterService(new PosMgrService(&services, &db));
+    services.RegisterService(new ReprocessingService(&services));
+    services.RegisterService(new FactoryService(&services));
+    services.RegisterService(new RamProxyService(&services));
+    services.RegisterService(new PosMgrService(&services));
     services.RegisterService(new NetService(&services));
 
     sLog.Log("server init", "Priming cached objects.");
@@ -242,7 +227,7 @@ int main(int argc, char *argv[])
             Sleep( server_main_loop_delay - etime );
 
         /* slow crap as hell */
-        pLog->SetTime( time(NULL) );
+        sLog.SetTime( time(NULL) );
     }
 
     sLog.Log("server shutdown", "Main loop stopped" );
@@ -252,10 +237,6 @@ int main(int argc, char *argv[])
     sLog.Log("server shutdown", "TCP listener stopped." );
 
     services.serviceDB().SetServerOnlineStatus(false);
-
-    /* after this point the system will crash if there are threads using this.. */
-    SafeDelete( pMarshalStringTable );
-    SafeDelete( pLog );
 
     // win crap.
     //_CrtDumpMemoryLeaks();

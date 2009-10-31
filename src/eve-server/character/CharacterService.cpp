@@ -27,10 +27,9 @@
 
 PyCallable_Make_InnerDispatcher(CharacterService)
 
-CharacterService::CharacterService(PyServiceMgr *mgr, DBcore *dbc)
+CharacterService::CharacterService(PyServiceMgr *mgr)
 : PyService(mgr, "character"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(dbc)
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

@@ -40,14 +40,15 @@ class StationType;
 
 class Inventory;
 
-class ItemFactory {
+class ItemFactory
+{
 	friend class InventoryItem;	//only for access to _DeleteItem
 public:
-	ItemFactory(DBcore &db, EntityList &el);
+	ItemFactory(EntityList& el);
 	~ItemFactory();
 	
-	EntityList &entity_list;	//we do not own this.
-	InventoryDB &db() { return(m_db); }
+	EntityList& entity_list;	//we do not own this.
+	InventoryDB& db() { return(m_db); }
 
 	/*
 	 * Category stuff

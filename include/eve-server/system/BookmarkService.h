@@ -29,9 +29,10 @@
 
 #include "PyService.h"
 
-class BookmarkService : public PyService {
+class BookmarkService : public PyService
+{
 public:
-	BookmarkService(PyServiceMgr *mgr, DBcore *db);
+	BookmarkService(PyServiceMgr *mgr);
 	virtual ~BookmarkService();
 
 protected:

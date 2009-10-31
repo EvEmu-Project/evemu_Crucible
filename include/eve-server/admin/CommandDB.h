@@ -28,11 +28,9 @@
 #include "ServiceDB.h"
 
 class CommandDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	CommandDB(DBcore *db);
-	virtual ~CommandDB();
-	
 	bool ItemSearch(const char *query, std::map<uint32, std::string> &into);
 	bool GetRoidDist(const char * sec, std::map<double, uint32> &roids);
 };

@@ -49,11 +49,9 @@ public:
 };
 
 class SystemDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	SystemDB(DBcore *db);
-	virtual ~SystemDB();
-	
 	bool LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &into);
 	bool LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity> &into);
 

@@ -28,12 +28,11 @@
 
 using namespace Destiny;
 
-SystemManager::SystemManager(uint32 systemID, DBcore &db, PyServiceMgr &svc)
+SystemManager::SystemManager(uint32 systemID, PyServiceMgr &svc)
 : m_systemID(systemID),
   m_systemName(""),
-  m_db(&db),
   m_services(svc),
-  m_spawnManager(new SpawnManager(db, *this, m_services)),
+  m_spawnManager(new SpawnManager(*this, m_services)),
   m_entityChanged(false)
 {
 	m_db.GetSystemInfo(GetID(), NULL, NULL, &m_systemName, &m_systemSecurity);

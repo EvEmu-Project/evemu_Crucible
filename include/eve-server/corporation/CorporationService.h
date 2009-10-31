@@ -30,9 +30,10 @@
 #include "corporation/CorporationDB.h"
 #include "PyService.h"
 
-class CorporationService : public PyService {
+class CorporationService : public PyService
+{
 public:
-	CorporationService(PyServiceMgr *mgr, DBcore *db);
+	CorporationService(PyServiceMgr *mgr);
 	virtual ~CorporationService();
 
 protected:

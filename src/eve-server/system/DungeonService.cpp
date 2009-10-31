@@ -63,10 +63,9 @@ protected:
 */
 
 
-DungeonService::DungeonService(PyServiceMgr *mgr, DBcore *db)
+DungeonService::DungeonService(PyServiceMgr *mgr)
 : PyService(mgr, "dungeon"),
-m_dispatch(new Dispatcher(this)),
-m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

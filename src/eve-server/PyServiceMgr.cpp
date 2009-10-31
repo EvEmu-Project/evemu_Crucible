@@ -27,8 +27,14 @@
 
 #include "EVEServerPCH.h"
 
-PyServiceMgr::PyServiceMgr( uint32 nodeID, DBcore &db, EntityList &elist, ItemFactory &ifactory ) : item_factory(ifactory), 
-    entity_list(elist), lsc_service(NULL), cache_service(NULL), m_nextBindID(100), m_nodeID(nodeID), m_svcDB(&db)
+PyServiceMgr::PyServiceMgr( uint32 nodeID, EntityList& elist, ItemFactory& ifactory )
+: item_factory( ifactory ),
+  entity_list( elist ),
+  lsc_service( NULL ),
+  cache_service( NULL ),
+  m_nextBindID( 100 ),
+  m_nodeID( nodeID ),
+  m_svcDB()
 {
 	entity_list.UseServices(this);
 }

@@ -30,11 +30,9 @@
 #include "ServiceDB.h"
 
 class PosMgrDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	PosMgrDB(DBcore *db);
-	virtual ~PosMgrDB();
-	
 	PyRep *GetControlTowerFuelRequirements();
 };
 

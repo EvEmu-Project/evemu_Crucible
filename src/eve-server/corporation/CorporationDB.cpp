@@ -25,18 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-CorporationDB::CorporationDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-CorporationDB::~CorporationDB() {
-}
-
 PyObject *CorporationDB::ListCorpStations(uint32 corp_id) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   stationID, stationTypeID AS typeID"
         " FROM staStations"
@@ -54,7 +46,7 @@ PyObject *CorporationDB::ListCorpStations(uint32 corp_id) {
 PyObject *CorporationDB::ListStationOffices(uint32 station_id) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   corporationID, itemID, officeFolderID"
         " FROM crpOffices"
@@ -74,7 +66,7 @@ PyObject *CorporationDB::ListStationCorps(uint32 station_id) {
 
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   corporationID,corporationName,description,shares,graphicID,"
         "   memberCount,ceoID,stationID,raceID,corporationType,creatorID,"
@@ -99,7 +91,7 @@ PyObject *CorporationDB::ListStationCorps(uint32 station_id) {
 PyObject *CorporationDB::ListStationOwners(uint32 station_id) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   itemID AS ownerID, itemName AS ownerName, typeID"
         " FROM corporation"
@@ -119,7 +111,7 @@ PyObject *CorporationDB::ListStationOwners(uint32 station_id) {
 PyDict *CorporationDB::ListAllCorpInfo() {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   corporationName,"
         "   corporationID,mainActivityID,secondaryActivityID,"
@@ -145,7 +137,7 @@ PyDict *CorporationDB::ListAllCorpInfo() {
 bool CorporationDB::ListAllCorpFactions(std::map<uint32, uint32> &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   corporationID,factionID"
         " FROM crpNPCCorporations"
@@ -162,7 +154,7 @@ bool CorporationDB::ListAllCorpFactions(std::map<uint32, uint32> &into) {
 bool CorporationDB::ListAllFactionStationCounts(std::map<uint32, uint32> &into) {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   factionID, COUNT(DISTINCT staStations.stationID) "
         " FROM crpNPCCorporations"
@@ -182,7 +174,7 @@ bool CorporationDB::ListAllFactionSystemCounts(std::map<uint32, uint32> &into) {
     DBQueryResult res;
 
     //this is not quite right, but its good enough.
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   factionID, COUNT(solarSystemID) "
         " FROM mapSolarSystems"
@@ -201,7 +193,7 @@ bool CorporationDB::ListAllFactionRegions(std::map<int32, PyRep *> &into) {
     DBQueryResult res;
 
     //this is not quite right, but its good enough.
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   factionID,regionID "
         " FROM mapRegions"
@@ -220,7 +212,7 @@ bool CorporationDB::ListAllFactionConstellations(std::map<int32, PyRep *> &into)
     DBQueryResult res;
 
     //this is not quite right, but its good enough.
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   factionID,constellationID "
         " FROM mapConstellations"
@@ -239,7 +231,7 @@ bool CorporationDB::ListAllFactionSolarSystems(std::map<int32, PyRep *> &into) {
     DBQueryResult res;
 
     //this is not quite right, but its good enough.
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   factionID,solarSystemID "
         " FROM mapSolarSystems"
@@ -258,7 +250,7 @@ bool CorporationDB::ListAllFactionRaces(std::map<int32, PyRep *> &into) {
     DBQueryResult res;
 
     //this is not quite right, but its good enough.
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   factionID,raceID "
         " FROM factionRaces"
@@ -276,7 +268,7 @@ bool CorporationDB::ListAllFactionRaces(std::map<int32, PyRep *> &into) {
 PyObject *CorporationDB::ListNPCDivisions() {
     DBQueryResult res;
 
-    if(!m_db->RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         "   divisionID, divisionName, description, leaderType"
         " FROM crpNPCDivisions"
@@ -293,7 +285,7 @@ PyObject *CorporationDB::GetEmploymentRecord(uint32 charID) {
     DBQueryResult res;
 
     //do we really need this order by??
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT startDate, corporationID, deleted "
         "   FROM chrEmployment "
         "   WHERE characterID = %u "
@@ -338,14 +330,14 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID
     corpID = 0;
 
     std::string cName, cDesc, cTick, cURL;
-    m_db->DoEscapeString(cName, corpInfo.corpName);
-    m_db->DoEscapeString(cDesc, corpInfo.description);
-    m_db->DoEscapeString(cTick, corpInfo.corpTicker);
-    m_db->DoEscapeString(cURL, corpInfo.url);
+    sDatabase.DoEscapeString(cName, corpInfo.corpName);
+    sDatabase.DoEscapeString(cDesc, corpInfo.description);
+    sDatabase.DoEscapeString(cTick, corpInfo.corpTicker);
+    sDatabase.DoEscapeString(cURL, corpInfo.url);
 
     //TODO: we should be able to get our race ID directly from our Client
     //object eventually, instead of pulling it from this join.
-    if (!m_db->RunQueryLID(err, corpID,
+    if (!sDatabase.RunQueryLID(err, corpID,
         " INSERT INTO corporation ( "
         "   corporationName, description, tickerName, url, "
         "   taxRate, minimumJoinStanding, corporationType, hasPlayerPersonnelManager, sendCharTerminationMessage, "
@@ -382,7 +374,7 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID
     // (well, not exactly there, but it has to be cached, and i don't know how
     // that works clientside...)
     // This is a temp hack to make my life easier
-    if (!m_db->RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         " REPLACE INTO eveStaticOwners (ownerID,ownerName,typeID) "
         "   VALUES (%u, '%s', 2)",
         corpID, cName.c_str()))
@@ -392,7 +384,7 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID
     }
 
     // And create a channel too
-    if (!m_db->RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         " INSERT INTO channels ("
         "   channelID, ownerID, displayName, motd, comparisonKey, "
         "   memberless, password, mailingList, cspa, temporary, "
@@ -419,7 +411,7 @@ bool CorporationDB::CreateCorporationChangePacket(Notify_OnCorporaionChanged & c
     DBQueryResult res;
     DBResultRow row;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         "   corporationID,corporationName,description,tickerName,url,"
         "   taxRate,minimumJoinStanding,corporationType,hasPlayerPersonnelManager,"
@@ -477,7 +469,7 @@ bool CorporationDB::CreateCorporationChangePacket(Notify_OnCorporaionChanged & c
     _NI(division7New, 33);
     cc.deletedNew = row.GetUInt(34);
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         "   corporationID,corporationName,description,tickerName,url,"
         "   taxRate,minimumJoinStanding,corporationType,hasPlayerPersonnelManager,"
@@ -544,7 +536,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 
     DBerror err;
     // Decrease previous corp's member count
-    if (!m_db->RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         "UPDATE corporation "
         "   SET corporation.memberCount = corporation.memberCount-1"
         "   WHERE corporation.corporationID = %u",
@@ -556,7 +548,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
     }
 
     // Set new corp
-    if (!m_db->RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         "UPDATE character_ SET "
         "   corporationID = %u, corporationDateTime = "I64u", "
         "   corpRole = "I64u", rolesAtAll = "I64u", rolesAtBase = "I64u", rolesAtHQ = "I64u", rolesAtOther = "I64u" "
@@ -572,7 +564,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
     }
 
     // Increase new corp's member number...
-    if (!m_db->RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         "UPDATE corporation "
         "   SET memberCount = memberCount+1"
         "   WHERE corporationID = %u",
@@ -584,7 +576,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
     }
 
     // Add new employment history record
-    if (!m_db->RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         "INSERT INTO chrEmployment VALUES (%u, %u, "I64u", 0)",
         charID, corpID, Win32TimeNow()
         ))
@@ -600,7 +592,7 @@ bool CorporationDB::CreateCorporationCreatePacket(Notify_OnCorporaionChanged & c
     DBQueryResult res;
     DBResultRow row;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         "   corporationID,corporationName,description,tickerName,url,"
         "   taxRate,minimumJoinStanding,corporationType,hasPlayerPersonnelManager,"
@@ -701,7 +693,7 @@ PyObject *CorporationDB::GetCorporation(uint32 corpID) {
     DBQueryResult res;
     DBResultRow row;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         "   corporationID,corporationName,description,tickerName,url,"
         "   taxRate,minimumJoinStanding,corporationType,hasPlayerPersonnelManager,"
@@ -729,7 +721,7 @@ PyObject *CorporationDB::GetCorporation(uint32 corpID) {
 PyObject *CorporationDB::GetEveOwners() {
     DBQueryResult res;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT * FROM eveStaticOwners "))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -742,7 +734,7 @@ PyObject *CorporationDB::GetEveOwners() {
 PyObject *CorporationDB::GetStations(uint32 corpID) {
     DBQueryResult res;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         " stationID, stationTypeID as typeID "
         " FROM staStations "
@@ -758,7 +750,7 @@ PyObject *CorporationDB::GetStations(uint32 corpID) {
 uint32 CorporationDB::GetOffices(uint32 corpID) {
     DBQueryResult res;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         " COUNT(1) AS OfficeNumber "
         " FROM crpOffices "
@@ -780,7 +772,7 @@ PyRep *CorporationDB::Fetch(uint32 corpID, uint32 from, uint32 count) {
     DBQueryResult res;
     DBResultRow rr;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT stationID, typeID, itemID, officeFolderID "
         " FROM crpOffices "
         " WHERE corporationID = %u "
@@ -810,7 +802,7 @@ uint32 CorporationDB::GetQuoteForRentingAnOffice(uint32 stationID) {
     DBQueryResult res;
     DBResultRow row;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         " officeRentalCost "
         " FROM staStations "
@@ -839,7 +831,7 @@ uint32 CorporationDB::ReserveOffice(const OfficeInfo & oInfo) {
 
     // First add it into the entity table
     uint32 officeID = 0;
-    if (!m_db->RunQueryLID(err, officeID,
+    if (!sDatabase.RunQueryLID(err, officeID,
         " INSERT INTO entity ("
         " itemName, typeID, ownerID, locationID, flag, contraband, singleton, "
         " quantity, x, y, z, customInfo "
@@ -856,7 +848,7 @@ uint32 CorporationDB::ReserveOffice(const OfficeInfo & oInfo) {
     }
 
     // inserts with the id gotten previously
-    if (!m_db->RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         " INSERT INTO crpOffices "
         " (corporationID, stationID, itemID, typeID, officeFolderID) "
         " VALUES "
@@ -876,7 +868,7 @@ uint32 CorporationDB::ReserveOffice(const OfficeInfo & oInfo) {
 //NOTE: it makes sense to push this up to ServiceDB, since others will likely need this too.
 uint32 CorporationDB::GetStationOwner(uint32 stationID) {
     DBQueryResult res;
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT corporationID "
         " FROM staStations "
         " WHERE stationID = %u ", stationID))
@@ -895,7 +887,7 @@ uint32 CorporationDB::GetStationOwner(uint32 stationID) {
 
 PyRep *CorporationDB::GetMyApplications(uint32 charID) {
     DBQueryResult res;
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT corporationID, characterID, applicationText, roles, grantableRoles, "
         " status, applicationDateTime, deleted, lastCorpUpdaterID "
         " FROM chrApplications "
@@ -914,8 +906,8 @@ bool CorporationDB::InsertApplication(const ApplicationInfo & aInfo) {
 
     DBerror err;
     std::string safeMessage;
-    m_db->DoEscapeString(safeMessage, aInfo.appText);
-    if (!m_db->RunQuery(err,
+    sDatabase.DoEscapeString(safeMessage, aInfo.appText);
+    if (!sDatabase.RunQuery(err,
         " INSERT INTO chrApplications ("
         " corporationID, characterID, applicationText, roles, grantableRoles, status, "
         " applicationDateTime, deleted, lastCorpUpdaterID "
@@ -933,7 +925,7 @@ bool CorporationDB::InsertApplication(const ApplicationInfo & aInfo) {
 
 PyRep *CorporationDB::GetApplications(uint32 corpID) {
     DBQueryResult res;
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         " corporationID, characterID, applicationText, roles, grantableRoles, status, "
         " applicationDateTime, deleted, lastCorpUpdaterID "
@@ -949,7 +941,7 @@ PyRep *CorporationDB::GetApplications(uint32 corpID) {
 
 uint32 CorporationDB::GetStationCorporationCEO(uint32 stationID) {
     DBQueryResult res;
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT corporation.ceoID "
         " FROM corporation "
         " LEFT JOIN staStations "
@@ -969,7 +961,7 @@ uint32 CorporationDB::GetStationCorporationCEO(uint32 stationID) {
 
 uint32 CorporationDB::GetCorporationCEO(uint32 corpID) {
     DBQueryResult res;
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT ceoID "
         " FROM corporation "
         " WHERE corporation.corporationID = %u ", corpID))
@@ -987,7 +979,7 @@ uint32 CorporationDB::GetCorporationCEO(uint32 corpID) {
 
 bool CorporationDB::GetCurrentApplicationInfo(uint32 charID, uint32 corpID, ApplicationInfo & aInfo) {
     DBQueryResult res;
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         " status, applicationText, applicationDateTime, roles, grantableRoles, lastCorpUpdaterID, deleted "
         " FROM chrApplications "
@@ -1027,8 +1019,8 @@ bool CorporationDB::UpdateApplication(const ApplicationInfo & info) {
 
     DBerror err;
     std::string clear;
-    m_db->DoEscapeString(clear, info.appText);
-    if (!m_db->RunQuery(err,
+    sDatabase.DoEscapeString(clear, info.appText);
+    if (!sDatabase.RunQuery(err,
         " UPDATE chrApplications "
         " SET status = %u, lastCorpUpdaterID = %u, applicationText = '%s' "
         " WHERE corporationID = %u AND characterID = %u ", info.status, info.lastCID, clear.c_str(), info.corpID, info.charID))
@@ -1041,7 +1033,7 @@ bool CorporationDB::UpdateApplication(const ApplicationInfo & info) {
 
 bool CorporationDB::DeleteApplication(const ApplicationInfo & info) {
     DBerror err;
-    if (!m_db->RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         " DELETE FROM chrApplications "
         " WHERE corporationID = %u AND characterID = %u ", info.corpID, info.charID))
     {
@@ -1058,7 +1050,7 @@ bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, 
 
     DBQueryResult res;
     DBResultRow row;
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         "   title, corporationDateTime, corporationID, "
         "   corpRole, rolesAtAll, rolesAtBase, "
@@ -1114,7 +1106,7 @@ bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, 
 bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivisionNames & divs, PyDict * notif) {
     DBQueryResult res;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         " division1, division2, division3, division4, division5, division6, division7 "
         " FROM corporation "
@@ -1150,7 +1142,7 @@ bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivision
 
     query += " WHERE corporationID = %u";
 
-    if ((N > 0) && (!m_db->RunQuery(res.error, query.c_str(), corpID))) {
+    if ((N > 0) && (!sDatabase.RunQuery(res.error, query.c_str(), corpID))) {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return false;
     }
@@ -1161,7 +1153,7 @@ bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivision
 bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporation & upd, PyDict * notif) {
     DBQueryResult res;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT description, url, taxRate "
         " FROM corporation "
         " WHERE corporationID = %u ", corpID))
@@ -1192,7 +1184,7 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
     query += " WHERE corporationID = %u";
 
     // only update if there is anything to update
-    if ((N > 0) && (!m_db->RunQuery(res.error, query.c_str(), corpID))) {
+    if ((N > 0) && (!sDatabase.RunQuery(res.error, query.c_str(), corpID))) {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return false;
     }
@@ -1204,7 +1196,7 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
 bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDict * notif) {
     DBQueryResult res;
 
-    if (!m_db->RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT shape1, shape2, shape3, color1, color2, color3, typeface "
         " FROM corporation "
         " WHERE corporationID = %u ", corpID))
@@ -1237,7 +1229,7 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDic
     }
 
     query += " WHERE corporationID = %u ";
-    if ((N > 0) && (!m_db->RunQuery(res.error, query.c_str(), corpID))) {
+    if ((N > 0) && (!sDatabase.RunQuery(res.error, query.c_str(), corpID))) {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return false;
     }

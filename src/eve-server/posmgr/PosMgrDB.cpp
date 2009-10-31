@@ -27,17 +27,9 @@
 
 #include "EVEServerPCH.h"
 
-PosMgrDB::PosMgrDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-PosMgrDB::~PosMgrDB() {
-}
-
 PyRep *PosMgrDB::GetControlTowerFuelRequirements() {
 	DBQueryResult res;
-	if (!m_db->RunQuery(res,
+	if (!sDatabase.RunQuery(res,
 		" SELECT "
 		"   controlTowerTypeID, resourceTypeID, purpose, quantity, factionID, minSecurityLevel "
 		" FROM invControlTowerResources "))

@@ -25,9 +25,6 @@
 
 #include "EVEServerPCH.h"
 
-AccountDB::AccountDB(DBcore *db) : ServiceDB(db) {}
-AccountDB::~AccountDB() {}
-
 PyObject *AccountDB::GetRefTypes() {
 	DBQueryResult res;
 	
@@ -88,9 +85,9 @@ bool ServiceDB::GiveCash( uint32 characterID, JournalRefType refTypeID, uint32 o
 	DBerror err;
 	
 	std::string eReason;
-	m_db->DoEscapeString(eReason, reason);
+	sDatabase.DoEscapeString(eReason, reason);
 	std::string eArg1;
-	m_db->DoEscapeString(eArg1, argID1);
+	sDatabase.DoEscapeString(eArg1, argID1);
 
 	if(!sDatabase.RunQuery(err, 
         "INSERT INTO market_journal(characterID,refID,transDate,refTypeID,ownerID1,ownerID2,argID1,accountID,accountKey,amount,balance,reason) "

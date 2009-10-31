@@ -30,9 +30,10 @@
 #include "PyService.h"
 
 class KeeperService
-: public PyService {
+: public PyService
+{
 public:
-	KeeperService(PyServiceMgr *mgr, DBcore *db);
+	KeeperService(PyServiceMgr *mgr);
 	virtual ~KeeperService();
 
 protected:

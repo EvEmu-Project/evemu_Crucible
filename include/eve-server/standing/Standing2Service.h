@@ -30,9 +30,10 @@
 #include "standing/StandingDB.h"
 #include "PyService.h"
 
-class Standing2Service : public PyService {
+class Standing2Service : public PyService
+{
 public:
-	Standing2Service(PyServiceMgr *mgr, DBcore *db);
+	Standing2Service(PyServiceMgr *mgr);
 	virtual ~Standing2Service();
 
 protected:

@@ -29,11 +29,9 @@
 #include "ServiceDB.h"
 
 class MiningDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	MiningDB(ServiceDB *other_db);	//we hijack the DB pointer from the supplied object to work around an information hiding issue.
-	virtual ~MiningDB();
-	
 protected:
 };
 

@@ -25,9 +25,6 @@
 
 #include "EVEServerPCH.h"
 
-DogmaIMDB::DogmaIMDB(DBcore *db) : ServiceDB(db) {}
-DogmaIMDB::~DogmaIMDB() {}
-
 
 
 

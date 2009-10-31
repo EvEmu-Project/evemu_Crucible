@@ -60,9 +60,10 @@ CHT_MAX_USERS_PER_IMMEDIATE_CHANNEL = 50
 
 class CommandDispatcher;
 
-class LSCService : public PyService {
+class LSCService : public PyService
+{
 public:
-    LSCService(PyServiceMgr *mgr, DBcore *db, CommandDispatcher *cd);
+    LSCService(PyServiceMgr *mgr, CommandDispatcher *cd);
     virtual ~LSCService();
 
     PyResult ExecuteCommand(Client *from, const char *msg);

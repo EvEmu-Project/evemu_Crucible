@@ -33,11 +33,9 @@ class LSCService;
 class LSCChannel;
 
 class LSCDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	LSCDB(DBcore *db);
-	virtual ~LSCDB();
-	
 	PyObject *LookupChars(const char *match, bool exact);
 	PyObject *LookupPlayerChars(const char *match, bool exact);
 	PyObject *LookupCorporations(const std::string &);

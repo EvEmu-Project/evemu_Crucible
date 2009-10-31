@@ -31,6 +31,7 @@
 
 #include "database/dbtype.h"
 #include "threading/Mutex.h"
+#include "utils/Singleton.h"
 
 class DBcore;
 
@@ -112,7 +113,9 @@ protected:
     DBQueryResult *m_result;
 };
 
-class DBcore {
+class DBcore
+: public Singleton<DBcore>
+{
 public:
     enum eStatus { Closed, Connected, Error };
 
@@ -163,35 +166,7 @@ private:
     bool    pSSL;
 };
 
-// helper class to implement a sequence concept.
-// made an object because the mysql method for implementing them feels
-// like a hack and I didn't want it spread around the code.
-class DBSequence {
-public:
-    DBSequence(DBcore *db, const char *table_name)
-    : m_db(db), m_table(table_name) {}
-
-    bool Init();    //setup without forcing the starting value. (sequence table must exist)
-    bool Init(uint32 last_used_value);      //setup the sequence with the specified last used value.
-    bool Init(const char *last_used_query, uint32 default_if_empty);    //determine the last used value by running the specified query.
-
-    uint32 NextValue();
-protected:
-    DBcore *const m_db;
-    const std::string m_table;
-};
-
-/**
- * function to convert a vector of numbers to a string containing string representatives of those
- * numbers.
- *
- * @param[in] ints contains the numbers that need to converted.
- * @param[in] if_emptry is the default value added if ints is empty.
- * @param[out] into contains the string representatives of the numbers.
- */
-extern void ListToINString(const std::vector<int32> &ints, std::string &into, const char *if_empty);
+#define sDatabase \
+    ( DBcore::get() )
 
 #endif
-
-extern DBcore* pDatabase;
-#define sDatabase (*pDatabase)

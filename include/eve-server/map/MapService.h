@@ -30,9 +30,10 @@
 #include "PyService.h"
 #include "map/MapDB.h"
 
-class MapService : public PyService {
+class MapService : public PyService
+{
 public:
-	MapService(PyServiceMgr *mgr, DBcore *db);
+	MapService(PyServiceMgr *mgr);
 	virtual ~MapService();
 
 protected:

@@ -30,9 +30,10 @@
 #include "config/ConfigDB.h"
 #include "PyService.h"
 
-class ConfigService : public PyService {
+class ConfigService : public PyService
+{
 public:
-	ConfigService(PyServiceMgr *mgr, DBcore *db);
+	ConfigService(PyServiceMgr *mgr);
 	virtual ~ConfigService();
 
 protected:

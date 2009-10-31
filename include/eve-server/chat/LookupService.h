@@ -31,9 +31,10 @@
 #include "PyService.h"
 
 class LookupService
-: public PyService {
+: public PyService
+{
 public:
-	LookupService(PyServiceMgr *mgr, DBcore *db);
+	LookupService(PyServiceMgr *mgr);
 	virtual ~LookupService();
 
 protected:

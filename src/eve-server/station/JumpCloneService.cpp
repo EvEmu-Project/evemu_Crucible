@@ -59,10 +59,9 @@ protected:
 
 
 
-JumpCloneService::JumpCloneService(PyServiceMgr *mgr, DBcore *db)
+JumpCloneService::JumpCloneService(PyServiceMgr *mgr)
 : PyService(mgr, "jumpCloneSvc"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 	

@@ -32,9 +32,10 @@
 
 
 class StationSvcService
-: public PyService {
+: public PyService
+{
 public:
-	StationSvcService(PyServiceMgr *mgr, DBcore *db);
+	StationSvcService(PyServiceMgr *mgr);
 	virtual ~StationSvcService();
 
 protected:

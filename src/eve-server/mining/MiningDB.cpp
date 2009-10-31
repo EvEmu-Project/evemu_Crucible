@@ -27,14 +27,6 @@
 
 #include "EVEServerPCH.h"
 
-MiningDB::MiningDB(ServiceDB *db)
-: ServiceDB(db)
-{
-}
-
-MiningDB::~MiningDB() {
-}
-
 
 
 

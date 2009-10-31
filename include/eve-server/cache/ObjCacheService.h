@@ -42,7 +42,7 @@ public:
 
 class ObjCacheService : public PyService {
 public:
-	ObjCacheService(PyServiceMgr *mgr, DBcore *dbc, const char *cacheDir);
+	ObjCacheService(PyServiceMgr *mgr, const char *cacheDir);
 	virtual ~ObjCacheService();
 
 	void PrimeCache();

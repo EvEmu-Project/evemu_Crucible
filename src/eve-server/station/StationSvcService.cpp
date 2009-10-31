@@ -68,10 +68,9 @@ protected:
 */
 
 
-StationSvcService::StationSvcService(PyServiceMgr *mgr, DBcore *db)
+StationSvcService::StationSvcService(PyServiceMgr *mgr)
 : PyService(mgr, "stationSvc"),
-m_dispatch(new Dispatcher(this)),
-m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

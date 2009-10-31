@@ -28,10 +28,9 @@
 PyCallable_Make_InnerDispatcher(SkillMgrService)
 PyCallable_Make_InnerDispatcher(SkillMgrBound)
 
-SkillMgrService::SkillMgrService(PyServiceMgr *mgr, DBcore *db)
+SkillMgrService::SkillMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "skillMgr"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 }

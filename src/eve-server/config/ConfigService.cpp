@@ -27,10 +27,9 @@
 
 PyCallable_Make_InnerDispatcher(ConfigService)
 
-ConfigService::ConfigService(PyServiceMgr *mgr, DBcore *db)
+ConfigService::ConfigService(PyServiceMgr *mgr)
 : PyService(mgr, "config"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

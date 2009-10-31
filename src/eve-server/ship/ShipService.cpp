@@ -27,11 +27,12 @@
 
 PyCallable_Make_InnerDispatcher(ShipService)
 
-class ShipBound : public PyBoundObject {
+class ShipBound : public PyBoundObject
+{
 public:
     PyCallable_Make_Dispatcher(ShipBound)
 
-    ShipBound(PyServiceMgr *mgr, ShipDB *db)
+    ShipBound(PyServiceMgr *mgr, ShipDB& db)
     : PyBoundObject(mgr),
       m_db(db),
       m_dispatch(new Dispatcher(this))
@@ -61,13 +62,14 @@ public:
     PyCallable_DECL_CALL(Eject)
 
 protected:
-    ShipDB *const m_db;
+    ShipDB& m_db;
     Dispatcher *const m_dispatch;
 };
 
 
-ShipService::ShipService(PyServiceMgr *mgr, DBcore *db) : PyService(mgr, "ship"),
-m_dispatch(new Dispatcher(this)), m_db(db)
+ShipService::ShipService(PyServiceMgr *mgr)
+: PyService(mgr, "ship"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 
@@ -82,7 +84,7 @@ PyBoundObject *ShipService::_CreateBoundObject(Client *c, const PyRep *bind_args
     _log(CLIENT__MESSAGE, "ShipService bind request for:");
     bind_args->Dump(CLIENT__MESSAGE, "    ");
 
-    return(new ShipBound(m_manager, &m_db));
+    return(new ShipBound(m_manager, m_db));
 }
 
 PyResult ShipBound::Handle_Board(PyCallArgs &call) {
@@ -119,7 +121,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
     //int ignoreContraband = args.arg;
 
     GPoint dockPosition;
-    if(!m_db->GetStationInfo(call.client->GetLocationID(), NULL, NULL, NULL, NULL, &dockPosition, NULL)) {
+    if(!m_db.GetStationInfo(call.client->GetLocationID(), NULL, NULL, NULL, NULL, &dockPosition, NULL)) {
         _log(SERVICE__ERROR, "%s: Failed to query location of station %u for undock.", call.client->GetName(), call.client->GetLocationID());
         //TODO: throw exception
         return NULL;

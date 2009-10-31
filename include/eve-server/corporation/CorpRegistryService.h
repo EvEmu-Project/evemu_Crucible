@@ -31,9 +31,10 @@
 #include "PyService.h"
 
 class CorpRegistryService
-: public PyService {
+: public PyService
+{
 public:
-	CorpRegistryService(PyServiceMgr *mgr, DBcore *db);
+	CorpRegistryService(PyServiceMgr *mgr);
 	virtual ~CorpRegistryService();
 
 protected:

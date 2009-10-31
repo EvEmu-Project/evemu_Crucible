@@ -27,7 +27,10 @@
 #ifndef __EVEMU_SERVER_CONFIG_H__INCL__
 #define __EVEMU_SERVER_CONFIG_H__INCL__
 
-class EVEmuServerConfig : public XMLParser {
+class EVEmuServerConfig
+: public XMLParser,
+  public Singleton<EVEmuServerConfig>
+{
 public:
 	EVEmuServerConfig();
 	virtual ~EVEmuServerConfig();
@@ -67,7 +70,7 @@ protected:
 	void _ParseFiles(TiXmlElement *ele);
 };
 
-// config for everyone to use
-extern EVEmuServerConfig sConfig;
+#define sConfig \
+    ( EVEmuServerConfig::get() )
 
 #endif /* !__EVEMU_SERVER_CONFIG_H__INCL__ */

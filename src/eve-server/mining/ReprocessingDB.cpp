@@ -25,18 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-ReprocessingDB::ReprocessingDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-ReprocessingDB::~ReprocessingDB() {
-}
-
 bool ReprocessingDB::IsRefinable(const uint32 typeID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 				"SELECT NULL"
 				" FROM typeActivityMaterials"
 				" WHERE typeID=%u"
@@ -55,7 +47,7 @@ bool ReprocessingDB::IsRefinable(const uint32 typeID) {
 bool ReprocessingDB::IsRecyclable(const uint32 typeID) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 				"SELECT NULL FROM typeActivityMaterials"
 				" LEFT JOIN invBlueprintTypes ON typeID = blueprintTypeID"
 				" WHERE damagePerJob = 1 AND ("
@@ -77,7 +69,7 @@ bool ReprocessingDB::IsRecyclable(const uint32 typeID) {
 bool ReprocessingDB::LoadStatic(const uint32 stationID, double &efficiency, double &tax) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 				"SELECT reprocessingEfficiency, reprocessingStationsTake"
 				" FROM staStations"
 				" WHERE stationID=%u",
@@ -104,7 +96,7 @@ bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverabl
 	DBQueryResult res;
 	DBResultRow row;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 				"SELECT requiredTypeID, MIN(quantity) FROM typeActivityMaterials"
 				" LEFT JOIN invBlueprintTypes ON typeID = blueprintTypeID"
 				" WHERE damagePerJob = 1 AND ("

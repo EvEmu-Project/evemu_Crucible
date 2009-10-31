@@ -44,15 +44,16 @@ class ItemFactory;
 
 class LSCService;
 
-class PyServiceMgr {
+class PyServiceMgr
+{
 public:
-	PyServiceMgr(uint32 nodeID, DBcore &db, EntityList &elist, ItemFactory &ifactory);
+	PyServiceMgr( uint32 nodeID, EntityList& elist, ItemFactory& ifactory );
 	~PyServiceMgr();
 	
 	void Process();
 		
-	void RegisterService(PyService *d);
-	PyService *LookupService(const std::string &name);
+	void RegisterService( PyService* d );
+	PyService* LookupService( const std::string& name );
 	
 	uint32 GetNodeID() const { return(m_nodeID); }
 	

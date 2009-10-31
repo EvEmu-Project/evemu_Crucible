@@ -32,7 +32,7 @@
 
 class CharMgrService : public PyService {
 public:
-	CharMgrService(PyServiceMgr *mgr, DBcore *dbc);
+	CharMgrService(PyServiceMgr *mgr);
 	virtual ~CharMgrService();
 
 protected:

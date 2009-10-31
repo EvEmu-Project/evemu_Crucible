@@ -75,10 +75,9 @@ protected:
 };
 
 
-BeyonceService::BeyonceService(PyServiceMgr *mgr, DBcore *db)
+BeyonceService::BeyonceService(PyServiceMgr *mgr)
 : PyService(mgr, "beyonce"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

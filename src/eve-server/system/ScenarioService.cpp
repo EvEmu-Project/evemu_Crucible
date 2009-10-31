@@ -60,10 +60,9 @@ protected:
 */
 
 
-ScenarioService::ScenarioService(PyServiceMgr *mgr, DBcore *db)
+ScenarioService::ScenarioService(PyServiceMgr *mgr)
 : PyService(mgr, "scenario"),
-m_dispatch(new Dispatcher(this)),
-m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

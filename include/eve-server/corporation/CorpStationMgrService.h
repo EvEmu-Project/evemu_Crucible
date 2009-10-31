@@ -32,9 +32,10 @@
 
 class PyRep;
 
-class CorpStationMgrService : public PyService {
+class CorpStationMgrService : public PyService
+{
 public:
-	CorpStationMgrService(PyServiceMgr *mgr, DBcore *db);
+	CorpStationMgrService(PyServiceMgr *mgr);
 	virtual ~CorpStationMgrService();
 
 protected:

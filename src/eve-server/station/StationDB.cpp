@@ -27,13 +27,9 @@
 
 storage StationDB::thingy;
 
-StationDB::StationDB(DBcore *db)
-: ServiceDB(db)
+StationDB::StationDB()
 {
 	thingy.load();
-}
-
-StationDB::~StationDB() {
 }
 
 PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
@@ -43,7 +39,7 @@ PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 	// old code for reference.
 	/*DBQueryResult res;
 	
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" solarSystemID,"			// nr
 		" solarSystemName,"			// string
@@ -78,7 +74,7 @@ PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 PyRep *StationDB::DoGetStation(uint32 sid) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		" SELECT "
 		" staStations.stationID, staStations.security, staStations.dockingCostPerVolume, staStations.maxShipVolumeDockable, "
 		" staStations.officeRentalCost, staStations.operationID, staStations.stationTypeID, staStations.corporationID AS ownerID, staStations.solarSystemID, staStations.constellationID, "
@@ -116,7 +112,7 @@ PyRep *StationDB::DoGetStation(uint32 sid) {
 PyRep *StationDB::GetStationItemBits(uint32 sid) {
 	DBQueryResult res;
 
-	if(!m_db->RunQuery(res,
+	if(!sDatabase.RunQuery(res,
 		" SELECT "
 		" staStations.stationID, "
 		" staStations.stationTypeID, staStations.corporationID AS ownerID, "

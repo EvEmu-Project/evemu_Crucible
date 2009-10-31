@@ -46,7 +46,7 @@ class PyServiceMgr;
 
 class SystemManager {
 public:
-	SystemManager(uint32 systemID, DBcore &db, PyServiceMgr &svc);
+	SystemManager(uint32 systemID, PyServiceMgr &svc);
 	virtual ~SystemManager();
 	
 	//bubble stuff:

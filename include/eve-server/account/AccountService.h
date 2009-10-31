@@ -33,7 +33,7 @@
 class AccountService
 : public PyService {
 public:
-	AccountService(PyServiceMgr *mgr, DBcore *db);
+	AccountService(PyServiceMgr *mgr);
 	virtual ~AccountService();
 
 protected:

@@ -34,11 +34,9 @@ class PyRep;
 class OfficeInfo;
 
 class CorporationDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-    CorporationDB(DBcore *db);
-    virtual ~CorporationDB();
-
     PyObject *GetCorporation(uint32 corpID);
     PyObject *GetStations(uint32 corpID);
     PyObject *GetEveOwners();

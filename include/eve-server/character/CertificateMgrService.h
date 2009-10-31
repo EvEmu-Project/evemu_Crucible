@@ -33,7 +33,7 @@ class CertificateMgrService
 : public PyService
 {
 public:
-	CertificateMgrService(PyServiceMgr *mgr, DBcore *db);
+	CertificateMgrService(PyServiceMgr *mgr);
 	~CertificateMgrService();
 
 protected:

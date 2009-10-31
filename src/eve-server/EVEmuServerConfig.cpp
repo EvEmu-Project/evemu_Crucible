@@ -25,9 +25,8 @@
 
 #include "EVEServerPCH.h"
 
-EVEmuServerConfig sConfig;
-
-EVEmuServerConfig::EVEmuServerConfig() {
+EVEmuServerConfig::EVEmuServerConfig()
+{
 	// import the needed handler prototypes
 	XMLParser::Handlers["server"] =   static_cast<XMLParser::ElementHandler>(&EVEmuServerConfig::_ParseServer);
 	XMLParser::Handlers["database"] = static_cast<XMLParser::ElementHandler>(&EVEmuServerConfig::_ParseDatabase);

@@ -31,11 +31,9 @@ class SpawnGroup;
 class SpawnEntry;
 
 class SpawnDB
-: public ServiceDB {
+: public ServiceDB
+{
 public:
-	SpawnDB(DBcore *db);
-	virtual ~SpawnDB();
-
 	bool LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup *> &into);
 	bool LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, SpawnGroup *> &groups, std::map<uint32, SpawnEntry *> &into);
 

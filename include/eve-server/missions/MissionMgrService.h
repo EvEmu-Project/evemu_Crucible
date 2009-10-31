@@ -29,9 +29,10 @@
 #include "PyService.h"
 
 class MissionMgrService
-: public PyService {
+: public PyService
+{
 public:
-	MissionMgrService(PyServiceMgr *mgr, DBcore *db);
+	MissionMgrService(PyServiceMgr *mgr);
 	virtual ~MissionMgrService();
 
 protected:

@@ -27,10 +27,9 @@
 
 PyCallable_Make_InnerDispatcher(BookmarkService)
 
-BookmarkService::BookmarkService(PyServiceMgr *mgr, DBcore *db)
+BookmarkService::BookmarkService(PyServiceMgr *mgr)
 : PyService(mgr, "bookmark"),
-  m_dispatch(new Dispatcher(this)),
-  m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 

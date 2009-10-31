@@ -25,14 +25,6 @@
 
 #include "EVEServerPCH.h"
 
-ShipDB::ShipDB(DBcore *db)
-: ServiceDB(db)
-{
-}
-
-ShipDB::~ShipDB() {
-}
-
 PyTuple *ShipDB::GetFormations() {
 	//vicious crap... but this is gunna be a bit of work to load from the DB (nested tuples)
 	PyTuple *res = new PyTuple(2);

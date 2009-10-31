@@ -62,10 +62,9 @@ protected:
 */
 
 
-MissionMgrService::MissionMgrService(PyServiceMgr *mgr, DBcore *db)
+MissionMgrService::MissionMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "missionMgr"),
-m_dispatch(new Dispatcher(this)),
-m_db(db)
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 
