@@ -28,6 +28,118 @@
 #include "utils/Buffer.h"
 
 /**
+ * @brief Appends string to end of another one.
+ *
+ * @param[in,out] ret     Pointer to the original string; result is stored here.
+ * @param[in,out] bufsize Amount of allocated memory pointed by ret.
+ * @param[in,out] strlen  Length of string in ret.
+ * @param[in]     fmt     Format of string to append.
+ *
+ * @return New length of string.
+ */
+size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const char* fmt, ... );
+
+/**
+ * @brief Converts string to boolean.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return Resulting boolean.
+ */
+bool atobool( const char* str );
+
+/**
+ * @brief Escapes string.
+ *
+ * @param[in,out] subject String to be escaped.
+ * @param[in]     find    String which shall be replaced.
+ * @param[in]     replace String with which to replace.
+ */
+void EscapeString( std::string& subject, const std::string& find, const std::string& replace );
+
+/**
+ * @brief Generates random key.
+ *
+ * @param[in] length Length of key to generate.
+ *
+ * @return Generated key.
+ */
+std::string generate_key( size_t length );
+
+/**
+ * @brief Converts string with hex number to the number itself.
+ *
+ * @param[in] num Hex string.
+ *
+ * @return The number.
+ */
+template<typename X>
+X hexto( char* num );
+
+/**
+ * @brief Checks whether character is printable.
+ *
+ * @param[in] c The character to be checked.
+ *
+ * @retval true  The character is printable.
+ * @retval false The character is not printable.
+ */
+bool IsPrintable( char c );
+/**
+ * @brief Checks whether string is printable.
+ *
+ * @param[in] str    String to be checked.
+ * @param[in] length Length of string.
+ *
+ * @retval true  The string is printable.
+ * @retval false The string is not printable.
+ */
+bool IsPrintable( const char* str, size_t length );
+/**
+ * @brief Checks whether string is printable.
+ *
+ * @param[in] str String to be checked.
+ *
+ * @retval true  The string is printable.
+ * @retval false The string is not printable.
+ */
+bool IsPrintable( const std::string& str );
+
+/**
+ * @brief Convers num to string.
+ *
+ * @param[in] num The number to be converted.
+ *
+ * @return Pointer to static array where result is stored.
+ */
+const char* itoa( int num );
+
+/**
+ * function to convert a vector of numbers to a string containing string representatives of those
+ * numbers.
+ *
+ * @param[in]  ints     contains the numbers that need to converted.
+ * @param[in]  if_empty is the default value added if ints is empty.
+ * @param[out] into     contains the string representatives of the numbers.
+ */
+void ListToINString( const std::vector<int32>& ints, std::string& into, const char* if_empty = "" );
+
+/**
+ * @brief toupper() for strings.
+ *
+ * @param[in]  source Source string.
+ * @param[out] target Array which receives result. 
+ */
+void MakeUpperString( const char* source, char* target );
+/**
+ * @brief tolower() for strings.
+ *
+ * @param[in]  source Source string.
+ * @param[out] target Array which receives result. 
+ */
+void MakeLowerString( const char* source, char* target );
+
+/**
  * @brief converts a multi byte string to a unicode string.
  *
  * @param[out] wcstr the destination wide character (unicode) string.
@@ -50,17 +162,58 @@ size_t py_mbstowcs( uint16* wcstr, const char* mbstr, size_t max );
  */
 bool py_decode_escape( const char* str, Buffer& into );
 
-bool ContainsNonPrintables( const char* c, uint32 length );
-bool ContainsNonPrintables( const std::string& str );
-
 /**
- * function to convert a vector of numbers to a string containing string representatives of those
- * numbers.
+ * @brief Copies given amount of characters from source to dest.
  *
- * @param[in]  ints     contains the numbers that need to converted.
- * @param[in]  if_empty is the default value added if ints is empty.
- * @param[out] into     contains the string representatives of the numbers.
+ * Unlike normal strncpy this one puts null terminator to the end
+ * of the string.
+ * ref: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcecrt/htm/_wcecrt_strncpy_wcsncpy.asp
+ *
+ * @param[out] dest   Array which receives result.
+ * @param[in]  source Source string.
+ * @param[in]  size   Number of characters to copy.
+ *
+ * @return Pointer to destination.
  */
-void ListToINString( const std::vector<int32>& ints, std::string& into, const char* if_empty = "" );
+char* strn0cpy( char* dest, const char* source, size_t size );
+/**
+ * @brief Copies given amount of characters from source to dest.
+ *
+ * Unlike normal strncpy this one puts null terminator to the end
+ * of the string.
+ * ref: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcecrt/htm/_wcecrt_strncpy_wcsncpy.asp
+ *
+ * @param[out] dest   Array which receives result.
+ * @param[in]  source Source string.
+ * @param[in]  size   Number of characters to copy.
+ *
+ * @retval true  String was truncated during copying.
+ * @retval false No string truncation occurred.
+ */
+bool strn0cpyt( char* dest, const char* source, size_t size );
+
+template<typename X>
+EVEMU_INLINE X hexto( char* num )
+{
+	const size_t len = strlen( num );
+
+	X ret = 0;
+
+	for( size_t order = 0; order < len; ++order )
+    {
+        const size_t i = ( len - ( order + 1 ) );
+
+		if( num[i] >= 'A' && num[i] <= 'F' )
+			ret += ( ( ( num[i] - 'A' ) + 10 ) << ( order << 2 ) );
+		else if( num[i] >= 'a' && num[i] <= 'f' )
+			ret += ( ( ( num[i] - 'a' ) + 10 ) << ( order << 2 ) );
+		else if( num[i] >= '0' && num[i] <= '9' )
+			ret += ( ( num[i] - '0' ) << ( order << 2 ) );
+		else
+			return 0;
+	}
+
+	return ret;
+}
 
 #endif // UTILS_STRING_H

@@ -26,7 +26,7 @@
 #include "CommonPCH.h"
 
 #include "log/logsys.h"
-#include "utils/misc.h"
+#include "utils/utils_hex.h"
 
 FILE *logsys_log_file = NULL;
 
@@ -49,7 +49,7 @@ void log_hex(LogType type, const void *data, unsigned long length, unsigned char
     char buffer[80];
     uint32 offset;
     for(offset=0;offset<length;offset+=16) {
-        build_hex_line((const char *)data,length,offset,buffer,padding);
+        build_hex_line((const uint8 *)data,length,offset,buffer,padding);
         log_message(type, "%s", buffer);    //%s is to prevent % escapes in the ascii
     }
 }
@@ -61,7 +61,7 @@ void log_phex(LogType type, const void *data, unsigned long length, unsigned cha
         char buffer[80];
         log_hex(type, data, 1024-32, padding);
         log_message(type, " ... truncated ...");
-        build_hex_line((const char *)data,length,length-16,buffer,padding);
+        build_hex_line((const uint8 *)data,length,length-16,buffer,padding);
         log_message(type, "%s", buffer);
     }
 }

@@ -26,6 +26,17 @@
 #ifndef UTILS_HEX_H
 #define UTILS_HEX_H
 
+/**
+ * @brief Build a printable line suitable for hex dump.
+ *
+ * @param[in]  buffer  Buffer which is being dumped.
+ * @param[in]  length  Length of buffer.
+ * @param[in]  offset  Offset at which the dump should start.
+ * @param[out] ret     Array where result is stored.
+ * @param[in]  padding Padding to be used when printing offset.
+ */
+void build_hex_line( const uint8* buffer, size_t length, size_t offset, char* ret, unsigned int padding = 4 );
+
 void pfxHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length);
 void pfxHexDump(const char *pfx, LogType type, const uint8 *data, uint32 length);
 void pfxPreviewHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length);

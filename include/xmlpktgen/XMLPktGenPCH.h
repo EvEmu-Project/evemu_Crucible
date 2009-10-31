@@ -34,6 +34,6 @@
 // common headers
 #include "log/logsys.h"
 #include "log/LogNew.h"
-#include "utils/misc.h"
+#include "utils/utils_string.h"
 
 #endif /* !__XMLPKTGEN_H__INCL__ */

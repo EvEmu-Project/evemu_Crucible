@@ -55,9 +55,9 @@ UserError *MakeCustomError(const char *fmt, ...) {
     return err;
 }
 
-bool ContainsNonPrintables( const PyString* str )
+bool IsPrintable( const PyString* str )
 {
-    return ContainsNonPrintables( str->content() );
+    return IsPrintable( str->content() );
 }
 
 bool DBTYPE_IsCompatible(DBTYPE type, const PyRep &rep)

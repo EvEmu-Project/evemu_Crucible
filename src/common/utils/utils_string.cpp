@@ -27,6 +27,176 @@
 
 #include "utils/utils_string.h"
 
+size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const char* fmt, ... )
+{
+    if( *ret )
+        assert( *bufsize > *strlen );
+    else
+        *bufsize = *strlen = 0;
+
+	va_list ap;
+	va_start( ap, fmt );
+
+	int chars = -1;
+	while( chars == -1 || chars >= (int)( *bufsize - *strlen ) )
+    {
+		if( chars == -1 )
+			*bufsize += 256;
+		else
+			*bufsize += chars + 1;
+
+        *ret = (char*)realloc( *ret, *bufsize );
+
+		chars = vsnprintf( &( *ret )[ *strlen ], ( *bufsize - *strlen ), fmt, ap );
+	}
+
+	va_end( ap );
+
+	*strlen += chars;
+	return *strlen;
+}
+
+bool atobool( const char* str )
+{
+    if( !strcasecmp( str, "true" ) )
+	    return true;
+    else if( !strcasecmp( str, "false" ) )
+	    return false;
+    else if( !strcasecmp( str, "yes" ) )
+	    return true;
+    else if( !strcasecmp( str, "no" ) )
+	    return false;
+    else if( !strcasecmp( str, "y" ) )
+	    return true;
+    else if( !strcasecmp( str, "n" ) )
+	    return false;
+    else if( !strcasecmp( str, "on" ) )
+	    return true;
+    else if( !strcasecmp( str, "off" ) )
+	    return false;
+    else if( !strcasecmp( str, "enable" ) )
+	    return true;
+    else if( !strcasecmp( str, "disable" ) )
+	    return false;
+    else if( !strcasecmp( str, "enabled" ) )
+	    return true;
+    else if( !strcasecmp( str, "disabled" ) )
+	    return false;
+    else if( atoi( str ) )
+	    return true;
+    else
+        return false;
+}
+
+void EscapeString( std::string& subject, const std::string& find, const std::string& replace )
+{
+    std::string::size_type pos = 0;
+    while( ( pos = subject.find( find, pos ) ) != std::string::npos )
+    {
+        subject.replace( pos, find.length(), replace );
+        pos += replace.length();
+    }
+}
+
+std::string generate_key( size_t length )
+{
+    static const char CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    static const size_t CHARS_COUNT = sizeof( CHARS ) / sizeof( char );
+
+    std::string key;
+
+    for(; 0 < length; --length)
+        key += CHARS[ MakeRandomInt( 0, CHARS_COUNT - 1 ) ];
+
+    return key;
+}
+
+bool IsPrintable( char c )
+{
+    return ( isgraph( c ) || isspace( c ) );
+}
+
+bool IsPrintable( const char* str, size_t length )
+{
+    for(; length > 0; ++str, --length)
+    {
+        if( !IsPrintable( *str ) )
+            return false;
+    }
+    return true;
+}
+
+bool IsPrintable( const std::string& str )
+{
+    return IsPrintable( str.c_str(), str.size() );
+}
+
+#define _ITOA_BUFLEN 11
+
+const char* itoa( int num )
+{
+    static char buf[ _ITOA_BUFLEN ];
+    memset( buf, 0, _ITOA_BUFLEN );
+
+    snprintf( buf, _ITOA_BUFLEN, "%d", num );
+
+    return buf;
+}
+
+void ListToINString( const std::vector<int32>& ints, std::string& into, const char* if_empty )
+{
+    if( ints.empty() )
+    {
+        into = if_empty;
+        return;
+    }
+
+    /*
+     * Some small theory about numbers to strings
+     *
+     * the max size of a number converted to
+     * a string is:
+     * uint32 -1 results in
+     * "4294967295" which is 10 characters.
+     */
+    size_t format_index = into.size();
+    into.resize( format_index + ints.size() * ( 10 + 1 ) );
+
+    std::vector<int32>::const_iterator cur, end;
+    cur = ints.begin();
+    end = ints.end();
+    for(; cur != end; ++cur)
+    {
+        if( ( cur + 1 ) != end )
+            format_index += snprintf( &into[ format_index ], 12, "%d,", *cur );
+        else
+            // last value to be printed
+            format_index += snprintf( &into[ format_index ], 11, "%d", *cur );
+    }
+}
+
+void MakeUpperString( const char* source, char* target )
+{
+    if( !target )
+        return;
+
+    for(; *source; ++target, ++source )
+        *target = toupper( *source );
+
+    *target = 0;
+}
+
+void MakeLowerString( const char* source, char* target )
+{
+    if( !target )
+        return;
+
+    for(; *source; ++target, ++source )
+        *target = tolower( *source );
+
+    *target = 0;
+}
+
 size_t py_mbstowcs( uint16 * wcstr, const char * mbstr, size_t max )
 {
     size_t i;
@@ -116,63 +286,37 @@ bool py_decode_escape( const char* str, Buffer& into )
 	return true;
 }
 
-/************************************************************************/
-/* ContainsNonPrintables                                                */
-/************************************************************************/
-bool ContainsNonPrintables( const char *c, uint32 length ) {
-    for(; length > 0; c++, length--) {
-        if( !isgraph( *c ) && !isspace( *c ) )
-            return true;
-    }
-    return false;
+char* strn0cpy( char* dest, const char* source, size_t size )
+{
+	if( !dest )
+		return 0;
+
+	if( size == 0 || source == 0 )
+    {
+		dest[0] = 0;
+		return dest;
+	}
+
+	strncpy( dest, source, size );
+	dest[ size - 1 ] = 0;
+
+	return dest;
 }
 
-bool ContainsNonPrintables( const std::string& str )
+bool strn0cpyt( char* dest, const char* source, size_t size )
 {
-    return ContainsNonPrintables( str.c_str(), str.size() );
-}
+	if( !dest )
+		return 0;
 
-void ListToINString( const std::vector<int32>& ints, std::string& into, const char* if_empty )
-{
-    if( ints.empty() )
+	if( size == 0 || source == 0 )
     {
-        into = if_empty;
-        return;
-    }
+		dest[0] = 0;
+		return true;
+	}
 
-/** Some small theory about numbers to strings
- * on x86 the max size of a number converted to
- * a string is:
- * uint32 -1 results in
- * "4294967295" which is 10 characters.
- * on x64 the max size of a number converted to
- * a string is:
- * uint64 -1 results in
- * "18446744073709551615" which is is 20 characters.
- */
-#ifdef X64
-#  define FORMATTED_INT_STR_SIZE 20
-#else
-#  define FORMATTED_INT_STR_SIZE 10
-#endif//X64
+	strncpy( dest, source, size );
+	dest[ size - 1 ] = 0;
 
-    into.clear();
-    into.resize(ints.size() * (FORMATTED_INT_STR_SIZE + 1));
-    size_t format_index = 0;
-
-    /* handle everything except the last one */
-    for(uint32 i = 0; i < (ints.size()-1); i++)
-    {
-        char* enty_ptr = &into[format_index];
-        uint32 entry_number = ints[i];
-        int formated_len = snprintf(enty_ptr, FORMATTED_INT_STR_SIZE, "%u,", entry_number);
-        format_index+=formated_len;
-    }
-
-    /* handle the last one */
-    char* enty_ptr = &into[format_index];
-    uint32 entry_number = ints[ints.size()-1]; // vector list max is size - 1
-    int formated_len = snprintf(enty_ptr, FORMATTED_INT_STR_SIZE, "%u", entry_number);
-    format_index+=formated_len;
+	return ( source[ strlen( dest ) ] == 0 );
 }
 

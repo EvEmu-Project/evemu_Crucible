@@ -80,10 +80,10 @@ bool PyDumpVisitor::VisitBuffer( const PyBuffer* rep )
 
 bool PyDumpVisitor::VisitString( const PyString *rep )
 {
-    if( ContainsNonPrintables( rep ) )
-        _print( "%sString%s: '<binary, len=%lu>'", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().length() );
-    else
+    if( IsPrintable( rep ) )
         _print( "%sString%s: '%s'", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().c_str() );
+    else
+        _print( "%sString%s: '<binary, len=%lu>'", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().length() );
 
     return true;
 }

@@ -25,86 +25,74 @@
 
 #include "CommonPCH.h"
 
+#include "log/LogNew.h"
 #include "utils/XMLParser.h"
 
-XMLParser::XMLParser() {
-	ParseOkay = false;
-}
-
-bool XMLParser::ParseFile(const char *file, const char *root_ele) {
-    std::map<std::string,ElementHandler>::iterator handler;
+bool XMLParser::ParseFile( const char* file, const char* root_ele )
+{
 	TiXmlDocument doc( file );
-	if(!doc.LoadFile()) {
-		printf("Unable to load '%s': %s\n", file, doc.ErrorDesc());
-		return false;
+	if( !doc.LoadFile() )
+    {
+        sLog.Error( "XMLParser", "Unable to load '%s': %s.", file, doc.ErrorDesc() );
+        return false;
 	}
 	
 	TiXmlElement *root = doc.FirstChildElement( root_ele );
-	if(root == NULL) {
-		printf("Unable to find root '%s' in %s\n",root_ele, file);
+	if( root == NULL )
+    {
+        sLog.Error( "XMLParser", "Unable to find root '%s' in %s.", root_ele, file );
 		return false;
 	}
 
-	ParseOkay=true;
-	
-	TiXmlNode *main_element = NULL;
-	while( (main_element = root->IterateChildren( main_element )) ) {
-		if(main_element->Type() != TiXmlNode::ELEMENT)
-			continue;	//skip crap we dont care about
-		TiXmlElement *ele = (TiXmlElement *) main_element;
+	TiXmlNode* main_element = NULL;
+	while( ( main_element = root->IterateChildren( main_element ) ) )
+    {
+		if( main_element->Type() == TiXmlNode::ELEMENT )
+        {
+		    TiXmlElement* ele = (TiXmlElement*)main_element;
 
-		handler=Handlers.find(ele->Value());
-		if (handler!=Handlers.end() && handler->second) {
-			ElementHandler h=handler->second;
-			
-			/*
-			 * 
-			 * This is kinda a sketchy operation here, since all of these
-			 * element handler methods will be functions in child classes.
-			 * This essentially causes us to do an un-checkable (and hence
-			 * un-handle-properly-able) cast down to the child class. This
-			 * WILL BREAK if any children classes do multiple inheritance.
-			 * 
-			 * 
-			 */
-			
-			(this->*h)(ele);
-		} else {
-			//unhandled element.... do nothing for now
-		}
-		
+            std::map<std::string, ElementParser>::const_iterator parser = mParsers.find( ele->Value() );
+		    if( mParsers.end() == parser )
+                continue;
+
+		    /*
+		     * This is kinda a sketchy operation here, since all of these
+		     * element handler methods will be functions in child classes.
+		     * This essentially causes us to do an un-checkable (and hence
+		     * un-handle-properly-able) cast down to the child class. This
+		     * WILL BREAK if any children classes do multiple inheritance.
+		     */
+		    if( !( this->*( parser->second ) )( ele ) )
+                return false;
+        }
 	}
 	
-	return(ParseOkay);
+	return true;
 }
 
-const char *XMLParser::ParseTextBlock(TiXmlNode *within, const char *name, bool optional) {
-	TiXmlElement * txt = within->FirstChildElement(name);
-	if(txt == NULL) {
-		if(!optional) {
-			printf("Unable to find a '%s' element on %s element at line %d\n", name, within->Value(), within->Row());
-			ParseOkay=false;
-		}
+const char* XMLParser::ParseTextBlock( TiXmlNode* within, const char* name, bool optional )
+{
+	TiXmlElement* txt = within->FirstChildElement( name );
+	if( txt == NULL )
+    {
+		if( !optional )
+            sLog.Error( "XMLParser", "Unable to find element '%s' in element '%s' at line %d.", name, within->Value(), within->Row() );
 		return NULL;
 	}
-	TiXmlNode *contents = txt->FirstChild();
-	if(contents == NULL || contents->Type() != TiXmlNode::TEXT) {
-		if(!optional)
-			printf("Node '%s' was expected to be a text element in %s element at line %d\n", name, txt->Value(), txt->Row());
-		return NULL;
-	}
-	return(contents->Value());
+
+    return GetText( txt, optional );
 }
 
-const char *XMLParser::GetText(TiXmlNode *within, bool optional) {
-	TiXmlNode *contents = within->FirstChild();
-	if(contents == NULL || contents->Type() != TiXmlNode::TEXT) {
-		if(!optional) {
-			printf("Node was expected to be a text element in %s element at line %d\n", within->Value(), within->Row());
-			ParseOkay=false;
-		}
+const char* XMLParser::GetText( TiXmlNode* within, bool optional )
+{
+	TiXmlNode* contents = within->FirstChild();
+	if( contents == NULL || contents->Type() != TiXmlNode::TEXT )
+    {
+		if( !optional )
+            sLog.Error( "XMLParser", "Expected a text element in element '%s' at line %d.", within->Value(), within->Row() );
 		return NULL;
 	}
-	return(contents->Value());
+
+	return contents->Value();
 }
 

@@ -36,7 +36,7 @@ extern UserError *MakeUserError(const char *exceptionType, const std::map<std::s
 //makes UserError with type "CustomError"
 extern UserError *MakeCustomError(const char *fmt, ...);
 
-bool ContainsNonPrintables( const PyString* str );
+bool IsPrintable( const PyString* str );
 
 /**
  * Checks compatibility between DBTYPE and PyRep.

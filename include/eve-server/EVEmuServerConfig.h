@@ -33,18 +33,19 @@ class EVEmuServerConfig
 {
 public:
 	EVEmuServerConfig();
-	virtual ~EVEmuServerConfig();
 
 	// From <server/>
-	struct {
+	struct
+    {
 		uint16	port;
 		double	startBalance;
-		bool	autoAccount;
-		uint32	autoAccountRole;
+		bool	autoAccount; // create account at login if doesn't exist.
+		uint32	autoAccountRole; // role to assign to auto created account.
 	} server;
 
 	// From <database/>
-	struct {
+	struct
+    {
 		std::string host;
 		std::string username;
 		std::string password;
@@ -53,21 +54,17 @@ public:
 	} database;
 
 	// From <files/>
-	struct {
-		std::string strings;
+	struct
+    {
 		std::string log;
 		std::string logSettings;
 		std::string cacheDir;
 	} files;
 
-	virtual std::string GetByName(const std::string &var_name) const;
-
-	void Dump() const;
-
 protected:
-	void _ParseServer(TiXmlElement *ele);
-	void _ParseDatabase(TiXmlElement *ele);
-	void _ParseFiles(TiXmlElement *ele);
+	bool _ParseServer( TiXmlElement* ele );
+	bool _ParseDatabase( TiXmlElement* ele );
+	bool _ParseFiles( TiXmlElement* ele );
 };
 
 #define sConfig \

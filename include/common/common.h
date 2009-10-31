@@ -317,6 +317,8 @@ typedef void* ThreadReturnType;
   */
 #ifdef WIN32
 int gettimeofday( timeval* tv, void* reserved );
+int	asprintf( char** strp, const char* fmt, ... );
+int	vasprintf( char** strp, const char* fmt, va_list ap );
 #else /* !WIN32 */
 typedef int SOCKET;
 void Sleep( uint32 x );

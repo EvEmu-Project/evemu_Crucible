@@ -357,7 +357,7 @@ bool ReaderToSQL(const char *table_name, const char *key_field, FILE *out, Reade
                 fprintf(out, "NULL");
             } else {
                 std::string colval = cur.GetAsString(col);
-                EscapeStringSequence(colval, "'", "\\'");
+                EscapeString(colval, "'", "\\'");
                 fprintf(out, "'%s'", colval.c_str());
             }
         }

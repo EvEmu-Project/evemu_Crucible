@@ -40,29 +40,24 @@ PyLookupDumpVisitor::PyLookupDumpVisitor( PyLookupResolver* _resolver, LogType l
 
 bool PyLookupDumpVisitor::VisitInteger( const PyInt* rep )
 {
-    const char* look = resolver()->LookupInt( rep->value() );
+    if( !PyLogDumpVisitor::VisitInteger( rep ) )
+        return false;
 
+    const char* look = resolver()->LookupInt( rep->value() );
     if( look != NULL )
-        _print( "%sInteger field: %d (%s)", _pfx(), rep->value(), look );
-    else
-        _print( "%sInteger field: %d", _pfx(), rep->value() );
+        _print( "%s    %s", _pfx(), look );
 
     return true;
 }
 
 bool PyLookupDumpVisitor::VisitString( const PyString* rep )
 {
-    if( ContainsNonPrintables( rep ) )
-        _print( "%sString%s: '<binary, len=%lu>'", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().size() );
-    else
-    {
-        const char* look = resolver()->LookupString( rep->content().c_str() );
+    if( !PyLogDumpVisitor::VisitString( rep ) )
+        return false;
 
-        if( look != NULL )
-            _print( "%sString%s: '%s' (%s)", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().c_str(), look );
-        else
-            _print( "%sString%s: '%s'", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().c_str() );
-    }
+    const char* look = resolver()->LookupString( rep->content().c_str() );
+    if( look != NULL )
+        _print( "%s    %s", _pfx(), look );
 
     return true;
 }

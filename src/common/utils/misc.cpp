@@ -27,402 +27,8 @@
 
 #include "utils/misc.h"
 
-const char *MakeUpperString(const char *source) {
-    static char str[128];
-    if (!source)
-	    return NULL;
-    MakeUpperString(source, str);
-    return str;
-}
-
-void MakeUpperString(const char *source, char *target) {
-    if (!source || !target) {
-	*target=0;
-        return;
-    }
-    while (*source)
-    {
-        *target = toupper(*source);
-        target++;source++;
-    }
-    *target = 0;
-}
-
-const char *MakeLowerString(const char *source) {
-    static char str[128];
-    if (!source)
-	    return NULL;
-    MakeLowerString(source, str);
-    return str;
-}
-
-void MakeLowerString(const char *source, char *target) {
-    if (!source || !target) {
-	*target=0;
-        return;
-    }
-    while (*source)
-    {
-        *target = tolower(*source);
-        target++;source++;
-    }
-    *target = 0;
-}
-
-#ifdef WIN32
-int	asprintf(char** strp, const char* fmt, ...)
+static uint16 crc16_table[ 256 ] =
 {
-	va_list argptr;
-
-	va_start(argptr, fmt);
-	int res = vasprintf(strp, fmt, argptr);
-	va_end(argptr);
-
-	return res;
-}
-
-int	vasprintf(char** strp, const char* fmt, va_list ap)
-{
-    //va_list ap_temp;
-    //va_copy(ap_temp, ap);
-	//int size = vsnprintf(NULL, 0, fmt, ap);
-    int size = 0x4000;
-    char* buff = (char*)malloc(size+1);
-
-	if (buff == NULL)
-    {
-        assert(false);
-		return -1;
-    }
-
-	size = vsnprintf(buff, size, fmt, ap);
-
-    buff[size] = '\0';
-	(*strp) = buff;
-	return size;
-}
-#endif//WIN32
-
-int32 AppendAnyLenString(char** ret, int32* bufsize, int32* strlen, const char* format, ...) {
-	if (*bufsize == 0)
-		*bufsize = 256;
-	if (*ret == 0)
-		*strlen = 0;
-	int chars = -1;
-	char* oldret = 0;
-	va_list argptr;
-	va_start(argptr, format);
-	while (chars == -1 || chars >= (int32)(*bufsize-*strlen)) {
-		if (chars == -1)
-			*bufsize += 256;
-		else
-			*bufsize += chars + 25;
-		oldret = *ret;
-		*ret = new char[*bufsize];
-		if (oldret) {
-			if (*strlen)
-				memcpy(*ret, oldret, *strlen);
-			SafeDelete(oldret);
-		}
-		chars = vsnprintf(&(*ret)[*strlen], (*bufsize-*strlen), format, argptr);
-	}
-	va_end(argptr);
-	*strlen += chars;
-	return *strlen;
-}
-
-bool atobool(const char* iBool) {
-	if (!strcasecmp(iBool, "true"))
-		return true;
-	if (!strcasecmp(iBool, "false"))
-		return false;
-	if (!strcasecmp(iBool, "yes"))
-		return true;
-	if (!strcasecmp(iBool, "no"))
-		return false;
-	if (!strcasecmp(iBool, "on"))
-		return true;
-	if (!strcasecmp(iBool, "off"))
-		return false;
-	if (!strcasecmp(iBool, "enable"))
-		return true;
-	if (!strcasecmp(iBool, "disable"))
-		return false;
-	if (!strcasecmp(iBool, "enabled"))
-		return true;
-	if (!strcasecmp(iBool, "disabled"))
-		return false;
-	if (!strcasecmp(iBool, "y"))
-		return true;
-	if (!strcasecmp(iBool, "n"))
-		return false;
-	if (atoi(iBool))
-		return true;
-	return false;
-}
-
-void build_hex_line(const char *buffer, unsigned long length, unsigned long offset, char *out_buffer, unsigned char padding)
-{
-char *ptr=out_buffer;
-int i;
-char printable[17];
-    ptr+=sprintf(ptr,"%0*lu:",padding,offset);
-    for(i=0;i<16; i++) {
-        if (i==8) {
-            strcpy(ptr," -");
-            ptr+=2;
-        }
-        if (i+offset < length) {
-            unsigned char c=*(const unsigned char *)(buffer+offset+i);
-            ptr+=sprintf(ptr," %02x",c);
-            printable[i]=isprint(c) ? c : '.';
-        } else {
-            ptr+=sprintf(ptr,"   ");
-            printable[i]=0;
-        }
-    }
-    sprintf(ptr,"  | %.16s",printable);
-}
-
-/*void dump_message_column(unsigned char *buffer, unsigned long length, string leader, FILE *to)
-{
-unsigned long i,j;
-unsigned long rows,offset=0;
-    rows=(length/16)+1;
-    for(i=0;i<rows;i++) {
-        fprintf(to, "%s%05lu: ",leader.c_str(),i*16);
-        for(j=0;j<16;j++) {
-            if(j == 8)
-                fprintf(to, "- ");
-            if (offset+j<length)
-                fprintf(to, "%02x ",*(buffer+offset+j));
-            else
-                fprintf(to, "   ");
-        }
-        fprintf(to, "| ");
-        for(j=0;j<16;j++,offset++) {
-            if (offset<length) {
-                char c=*(buffer+offset);
-                fprintf(to, "%c",isprint(c) ? c : '.');
-            }
-        }
-        fprintf(to, "\n");
-    }
-}*/
-
-void EscapeStringSequence(std::string &subject,  const std::string &find, const std::string &replace) {
-    std::string::size_type pos = 0;
-    while((pos = subject.find(find, pos)) != std::string::npos) {
-        subject.replace(pos, find.length(), replace);
-        pos += replace.length();
-    }
-}
-
-uint64 filesize( const char* filename )
-{
-    FILE* fd = fopen( filename, "r" );
-    if( fd == NULL )
-        return 0;
-
-    return filesize( fd );
-}
-
-uint64 filesize( FILE* fd )
-{
-#ifdef WIN32
-	return _filelength( _fileno( fd ) );
-#else
-	struct stat file_stat;
-	fstat( fileno( fd ), &file_stat );
-	return file_stat.st_size;
-#endif
-}
-
-std::string generate_key(int length)
-{
-    std::string key;
-//TODO: write this for win32...
-#ifndef WIN32
-    int i;
-    timeval now;
-    static const char *chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    for(i=0;i<length;i++) {
-        gettimeofday(&now,NULL);
-        srand(now.tv_sec^now.tv_usec);
-        key+=(char)chars[(int) (36.0*rand()/(RAND_MAX+1.0))];
-    }
-#endif
-    return key;
-}
-
-int32 hextoi(char* num) {
-	size_t len = strlen(num);
-	if (len < 3)
-		return 0;
-
-	if (num[0] != '0' || (num[1] != 'x' && num[1] != 'X'))
-		return 0;
-
-	int32 ret = 0;
-	int mul = 1;
-	for (size_t i=len-1; i>=2; i--) {
-		if (num[i] >= 'A' && num[i] <= 'F')
-			ret += ((num[i] - 'A') + 10) * mul;
-		else if (num[i] >= 'a' && num[i] <= 'f')
-			ret += ((num[i] - 'a') + 10) * mul;
-		else if (num[i] >= '0' && num[i] <= '9')
-			ret += (num[i] - '0') * mul;
-		else
-			return 0;
-		mul *= 16;
-	}
-	return ret;
-}
-
-int64 hextoi64(char* num) {
-	size_t len = strlen(num);
-	if (len < 3)
-		return 0;
-
-	if (num[0] != '0' || (num[1] != 'x' && num[1] != 'X'))
-		return 0;
-
-	int64 ret = 0;
-	int mul = 1;
-	for (size_t i=len-1; i>=2; i--) {
-		if (num[i] >= 'A' && num[i] <= 'F')
-			ret += ((num[i] - 'A') + 10) * mul;
-		else if (num[i] >= 'a' && num[i] <= 'f')
-			ret += ((num[i] - 'a') + 10) * mul;
-		else if (num[i] >= '0' && num[i] <= '9')
-			ret += (num[i] - '0') * mul;
-		else
-			return 0;
-		mul *= 16;
-	}
-	return ret;
-}
-
-uint64 npowof2( uint64 num )
-{
-    --num;
-    num |= ( num >> 1 );
-    num |= ( num >> 2 );
-    num |= ( num >> 4 );
-    num |= ( num >> 8 );
-    num |= ( num >> 16 );
-    num |= ( num >> 32 );
-    return ++num;
-}
-
-// normal strncpy doesn't put a null term on copied strings, this one does
-// ref: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcecrt/htm/_wcecrt_strncpy_wcsncpy.asp
-char* strn0cpy(char* dest, const char* source, int32 size) {
-	if (!dest)
-		return 0;
-	if (size == 0 || source == 0) {
-		dest[0] = 0;
-		return dest;
-	}
-	strncpy(dest, source, size);
-	dest[size - 1] = 0;
-	return dest;
-}
-
-// String N w/null Copy Truncated?
-// return value =true if entire string(source) fit, false if it was truncated
-bool strn0cpyt(char* dest, const char* source, int32 size) {
-	if (!dest)
-		return 0;
-	if (size == 0 || source == 0) {
-		dest[0] = 0;
-		return true;
-	}
-	strncpy(dest, source, size);
-	dest[size - 1] = 0;
-	return (bool) (source[strlen(dest)] == 0);
-}
-
-//I didn't even look to see if windows supports random();
-#ifdef WIN32
-#   define SeedRandom srand
-#   define GenerateRandom rand
-#else
-#   define SeedRandom srandom
-#   define GenerateRandom random
-#endif
-
-int MakeRandomInt(int low, int high)
-{
-	return (int)MakeRandomFloat( (double)low, (double)high );
-}
-
-double MakeRandomFloat(double low, double high)
-{
-    if( low > high )
-        std::swap( low, high );
-
-    double diff = high - low;
-	if( diff == 0 )
-		return low;
-
-	static bool seeded = false;
-	if( !seeded )
-	{
-		SeedRandom( (unsigned int)time(0) * (unsigned int)( time(0) % (int)diff ) );
-		seeded = true;
-	}
-
-    return ( low + diff * ( (double)GenerateRandom() / (double)RAND_MAX ) );
-}
-
-#define _ITOA_BUFLEN 25
-
-const char* itoa(int num)
-{
-    static char buf[ _ITOA_BUFLEN ];
-
-    memset( buf, 0, _ITOA_BUFLEN );
-    snprintf( buf, _ITOA_BUFLEN, "%d", num );
-
-    return buf;
-}
-
-#ifndef WIN32
-const char * itoa(int num, char* a,int b) {
-		static char temp[_ITOA_BUFLEN];
-		memset(temp,0,_ITOA_BUFLEN);
-		snprintf(temp,_ITOA_BUFLEN,"%d",num);
-		return temp;
-		return temp;
-}
-#endif
-
-#ifndef WIN32
-void print_stacktrace()
-{
-#if defined( FREEBSD ) || defined( __CYGWIN__ )
-    printf("Insert stack trace here...\n");
-#else
-    void* ba[20];
-    int n = backtrace( ba, 20 );
-    if( n != 0 )
-    {
-        char** names = backtrace_symbols( ba, n );
-        if( names != NULL )
-        {
-            int i;
-            printf( "called from %s\n", (char*)names[0] );
-            for( i = 1; i < n; ++i )
-                printf( "            %s\n", (char*)names[i] );
-        }
-        SafeFree( names );
-    }
-#endif //!FREEBSD
-}
-#endif //!WIN32
-
-static uint16 crc16_table[256] = {
     0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
     0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
     0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
@@ -457,10 +63,76 @@ static uint16 crc16_table[256] = {
     0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0,
 };
 
-uint16 crc_hqx(const uint8* data, size_t len, uint16 crc)
+uint16 crc_hqx( const uint8* data, size_t len, uint16 crc )
 {
     while( len-- )
         crc = ( crc << 8 ) ^ crc16_table[ ( crc >> 8 ) ^ ( *data++ ) ];
 
     return crc;
 }
+
+uint64 filesize( const char* filename )
+{
+    FILE* fd = fopen( filename, "r" );
+    if( fd == NULL )
+        return 0;
+
+    return filesize( fd );
+}
+
+uint64 filesize( FILE* fd )
+{
+#ifdef WIN32
+	return _filelength( _fileno( fd ) );
+#else
+	struct stat file_stat;
+	fstat( fileno( fd ), &file_stat );
+	return file_stat.st_size;
+#endif
+}
+
+uint64 npowof2( uint64 num )
+{
+    --num;
+    num |= ( num >> 1 );
+    num |= ( num >> 2 );
+    num |= ( num >> 4 );
+    num |= ( num >> 8 );
+    num |= ( num >> 16 );
+    num |= ( num >> 32 );
+    return ++num;
+}
+
+//I didn't even look to see if windows supports random();
+#ifdef WIN32
+#   define SeedRandom srand
+#   define GenerateRandom rand
+#else
+#   define SeedRandom srandom
+#   define GenerateRandom random
+#endif
+
+int64 MakeRandomInt( int64 low, int64 high )
+{
+	return (int64)MakeRandomFloat( (double)low, (double)high );
+}
+
+double MakeRandomFloat( double low, double high )
+{
+    if( low > high )
+        std::swap( low, high );
+
+    double diff = high - low;
+	if( diff == 0 )
+		return low;
+
+	static bool seeded = false;
+	if( !seeded )
+	{
+		SeedRandom( (unsigned int)time(0) * (unsigned int)( time(0) % (int)diff ) );
+		seeded = true;
+	}
+
+    return ( low + diff * ( (double)GenerateRandom() / (double)RAND_MAX ) );
+}
+

@@ -23,77 +23,8 @@
     Author:     Zhur
 */
 
-#ifndef _MISC_H
-#define _MISC_H
-
-//////////////////////////////////////////////////////////////////////
-//
-//  MakeUpperString
-//   i     : source - allocated null-terminated string
-//   return: pointer to static buffer with the target string
-const char *MakeUpperString(const char *source);
-const char *MakeLowerString(const char *source);
-//////////////////////////////////////////////////////////////////////
-//
-//  MakeUpperString
-//   i : source - allocated null-terminated string
-//   io: target - allocated buffer, at least of size strlen(source)+1
-void MakeUpperString(const char *source, char *target);
-void MakeLowerString(const char *source, char *target);
-
-
-#ifdef WIN32
-/**
- * @note copied from: http://linux.die.net/man/3/vasprintf
- * The functions asprintf() and vasprintf() are analogues of sprintf() and
- * vsprintf(), except that they allocate a string large enough to hold the
- * output including the terminating null byte, and return a pointer to it
- * via the first parameter. This pointer should be passed to free(3) to
- * release the allocated storage when it is no longer needed.
- *
- * @return When successful, these functions return the number of bytes printed,
- * just like sprintf(3). If memory allocation wasn't possible, or some other
- * error occurs, these functions will return -1, and the contents of strp is undefined.
- * @todo check http://www.koders.com/c/fidA509CB3A8622E36F7CE0851560975BE02C89E9C7.aspx
- */
-int	asprintf(char** strp, const char* fmt, ...);
-int	vasprintf(char** strp, const char* fmt, va_list ap);
-#endif
-
-int32	     AppendAnyLenString(char** ret, int32* bufsize, int32* strlen, const char* format, ...);
-bool	     atobool(const char* iBool);
-void         build_hex_line(const char *buffer, unsigned long length, unsigned long offset, char *out_buffer, unsigned char padding=4);
-void	     CoutTimestamp(bool ms = true);
-//void       dump_message_column(unsigned char *buffer, unsigned long length, string leader="", FILE *to = stdout);
-void         EscapeStringSequence(std::string &subject,  const std::string &find, const std::string &replace);
-uint64       filesize(const char* filename);
-uint64       filesize(FILE* fd);
-std::string  generate_key(int length);
-int32	     hextoi(char* num);
-int64	     hextoi64(char* num);
-uint64       npowof2( uint64 num );
-char*	     strn0cpy(char* dest, const char* source, int32 size);
-bool	     strn0cpyt(char* dest, const char* source, int32 size);
-
-/*
- * solar: generate a random integer in the range low-high
- * this should be used instead of the rand()%limit method
- *
- * Doing all our work as doubles theoretically maximizes our
- * use of the random bits generated, instead of throwing many
- * of them away like the rand()%limit
- */
-int          MakeRandomInt(int low = 0, int high = RAND_MAX);
-double       MakeRandomFloat(double low = 0, double high = 1);
-
-const char *itoa(int num);	//not thread safe
-#ifndef WIN32
-const char *itoa(int num, char* a,int b);
-#endif
-
-#ifndef WIN32
-void print_stacktrace();
-#endif
+#ifndef __MISC_H__INCL__
+#define __MISC_H__INCL__
 
 /**
  * This is functionally equivalent to python's binascii.crc_hqx.
@@ -104,6 +35,53 @@ void print_stacktrace();
  *
  * @return CRC-16 checksum.
  */
-uint16 crc_hqx(const uint8* data, size_t len, uint16 crc = 0);
+uint16 crc_hqx( const uint8* data, size_t len, uint16 crc = 0 );
 
-#endif
+/**
+ * @brief Obtains filesize.
+ *
+ * @param[in] filename Name of file to examine.
+ *
+ * @return Size of file.
+ */
+uint64 filesize( const char* filename );
+/**
+ * @brief Obtains filesize.
+ *
+ * @param[in] fd Descriptor of file to examine.
+ *
+ * @return Size of file.
+ */
+uint64 filesize( FILE* fd );
+
+/**
+ * @brief Calculates next (greater or equal)
+ *        power-of-two number.
+ *
+ * @param[in] num Base number.
+ *
+ * @return Power-of-two number which is greater than or
+ *         equal to the base number.
+ */
+uint64 npowof2( uint64 num );
+
+/**
+ * @brief Generates random integer from interval [low; high].
+ *
+ * @param[in] low  Low boundary of interval.
+ * @param[in] high High boundary of interval.
+ *
+ * @return The generated integer.
+ */
+int64 MakeRandomInt( int64 low = 0, int64 high = RAND_MAX );
+/**
+ * @brief Generates random real from interval [low; high].
+ *
+ * @param[in] low  Low boundary of interval.
+ * @param[in] high High boundary of interval.
+ *
+ * @return The generated real.
+ */
+double MakeRandomFloat( double low = 0, double high = 1 );
+
+#endif /* !__MISC_H__INCL__ */
