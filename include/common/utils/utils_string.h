@@ -163,6 +163,14 @@ size_t py_mbstowcs( uint16* wcstr, const char* mbstr, size_t max );
 bool py_decode_escape( const char* str, Buffer& into );
 
 /**
+ * @brief Splits path to its components.
+ *
+ * @param[in]  path Path to split.
+ * @param[out] into Vector which receives components of the path.
+ */
+void split_path( const std::string& path, std::vector<std::string>& into );
+
+/**
  * @brief Copies given amount of characters from source to dest.
  *
  * Unlike normal strncpy this one puts null terminator to the end

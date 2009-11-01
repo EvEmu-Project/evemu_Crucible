@@ -286,6 +286,30 @@ bool py_decode_escape( const char* str, Buffer& into )
 	return true;
 }
 
+void split_path( const std::string& path, std::vector<std::string>& into )
+{
+	const char* p = path.c_str();
+	const char* begin = p;
+	size_t len = 0;
+
+	for(; *p != '\0'; ++p)
+    {
+		if( *p == '/' || *p == '\\' )
+        {
+            into.push_back( std::string( begin, len ) );
+			len = 0;
+			begin = p + 1;
+		}
+        else
+        {
+			++len;
+		}
+	}
+
+	if( begin < p )
+        into.push_back( std::string( begin, len ) );
+}
+
 char* strn0cpy( char* dest, const char* source, size_t size )
 {
 	if( !dest )

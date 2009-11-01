@@ -206,6 +206,14 @@
 				RelativePath="..\..\dep\utils\counted_ptr.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\dep\utils\TriFile.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\dep\utils\TriFile.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

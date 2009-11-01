@@ -202,7 +202,7 @@ protected:
     mutable size_t mRefCnt;
 
     /** Lookup table for PyRep type object type names. */
-    static const char* s_mTypeString[];
+    static const char* const s_mTypeString[];
 };
 
 /**

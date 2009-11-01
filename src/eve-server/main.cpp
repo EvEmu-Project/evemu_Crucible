@@ -25,7 +25,7 @@
 
 #include "EVEServerPCH.h"
 
-static void InitSignalHandlers();
+static void SetupSignals();
 static void CatchSignal( int sig_num );
 
 static volatile bool RunLoops = true;
@@ -193,12 +193,12 @@ int main(int argc, char *argv[])
      */
 
     /* program events system */
-    InitSignalHandlers();
+    SetupSignals();
 
     uint32 start;
     uint32 etime;
     uint32 last_time = GetTickCount();
-    uint32 server_main_loop_delay = 10; // delay 10 ms.
+    const uint32 server_main_loop_delay = 10; // delay 10 ms.
 
     EVETCPConnection* tcpc;
     while( RunLoops == true )
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-static void InitSignalHandlers()
+static void SetupSignals()
 {
     signal( SIGINT, CatchSignal );
     signal( SIGTERM, CatchSignal );

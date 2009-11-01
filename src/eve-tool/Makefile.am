@@ -3,9 +3,10 @@ bin_PROGRAMS = \
 	stuff_extract
 
 evetool_SOURCES = \
-	main.cpp \
-	TriFile.cpp \
-	TriFile.h
+	Commands.cpp \
+	Commands.h \
+	EVEToolPCH.h \
+	main.cpp
 
 evetool_CXXFLAGS = \
 	$(MYSQL_CFLAGS) \
@@ -24,8 +25,7 @@ evetool_LDADD = \
 evetool_LDFLAGS = \
 	@MYSQL_LDFLAGS@ \
 	-lz \
-	-lpthread \
-	-lreadline
+	-lpthread
 
 stuff_extract_SOURCES = \
 	stuff_extract.cpp

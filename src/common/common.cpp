@@ -67,6 +67,14 @@ int	vasprintf( char** strp, const char* fmt, va_list ap )
 	(*strp) = buff;
 	return size;
 }
+
+int mkdir( const char* pathname, int mode ) 
+{ 
+    int result = CreateDirectory( pathname, NULL ); 
+
+    /* mkdir returns 0 for success, opposite of CreateDirectory() */ 
+    return ( result ? 0 : -1 ); 
+} 
 #else /* !WIN32 */
 void Sleep( uint32 x )
 {

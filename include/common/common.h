@@ -179,6 +179,9 @@
 #       define va_copy(a, b) ((va_list)((a) = (b)))
 #   endif
 #   define localtime_r(x, y) localtime_s(y, x)
+#   define S_IRWXU 0
+#   define S_IRWXG 0
+#   define S_IRWXO 0
 #else
 #   ifndef PATH_MAX
 #       define MAX_PATH 1024
@@ -319,6 +322,7 @@ typedef void* ThreadReturnType;
 int gettimeofday( timeval* tv, void* reserved );
 int	asprintf( char** strp, const char* fmt, ... );
 int	vasprintf( char** strp, const char* fmt, va_list ap );
+int mkdir( const char* pathname, int mode );
 #else /* !WIN32 */
 typedef int SOCKET;
 void Sleep( uint32 x );
