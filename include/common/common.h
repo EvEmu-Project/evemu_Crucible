@@ -85,14 +85,16 @@
 /** STL includes
   */
 #include <algorithm>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <queue>
 #include <list>
 #include <map>
+#include <memory>
+#include <new>
+#include <queue>
 #include <set>
+#include <sstream>
 #include <stack>
+#include <string>
+#include <vector>
 
 
 /** TR1 STL includes
@@ -114,9 +116,7 @@
 #ifdef WIN32
 #   ifdef _DEBUG
 #       include <crtdbg.h>
-#       include <new>
-#       include <memory>
-#       define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#       define new new( _NORMAL_BLOCK, __FILE__, __LINE__ )
 #   endif//_DEBUG
 #endif//WIN32
 
@@ -175,9 +175,6 @@
 #   endif /* _MSC_VER >= 1500 */
 #   define strncasecmp _strnicmp
 #   define strcasecmp _stricmp
-#   ifndef va_copy
-#       define va_copy(a, b) ((va_list)((a) = (b)))
-#   endif
 #   define localtime_r(x, y) localtime_s(y, x)
 #   define S_IRWXU 0
 #   define S_IRWXG 0
@@ -207,6 +204,14 @@
 #ifdef max
 #  undef max
 #endif//max
+
+
+/** if not defined, define va_copy
+  * using memcpy() because of possible array implementation
+  */
+#ifndef va_copy
+#   define va_copy( a, b ) memcpy( &( a ), &( b ), sizeof( va_list ) )
+#endif
 
 
 /** 'inlined' functions 'can' improve performance, the compiler will judge how this will be handled.
@@ -320,8 +325,8 @@ typedef void* ThreadReturnType;
   */
 #ifdef WIN32
 int gettimeofday( timeval* tv, void* reserved );
-int	asprintf( char** strp, const char* fmt, ... );
-int	vasprintf( char** strp, const char* fmt, va_list ap );
+int asprintf( char** strp, const char* fmt, ... );
+int vasprintf( char** strp, const char* fmt, va_list ap );
 int mkdir( const char* pathname, int mode );
 #else /* !WIN32 */
 typedef int SOCKET;

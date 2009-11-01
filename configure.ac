@@ -34,13 +34,6 @@ AH_TEMPLATE([X86], Define this if you are under an X86-based 32bit operating sys
 AH_TEMPLATE([TINYXML_USE_STL], Define this if you want tinyxml to use native STL.)
 AH_TEMPLATE([EVEMU_REVISION], The revision of the latest checkout)
 
-# Checks for libraries.
-
-# Mysql >5.0
-AX_LIB_MYSQL([5.0])
-AC_SUBST(MYSQL_CFLAGS)
-AC_SUBST(MYSQL_LDFLAGS)
-
 # Checking for a 64bit system
 AC_MSG_CHECKING([uname -m for detecting host operating system architecture])
 ARCH=`uname -m`
@@ -86,29 +79,36 @@ AC_ARG_ENABLE(evetool, AC_HELP_STRING([--enable-evetool],[enable the eve tool]),
 esac],[anvil=false])
 AM_CONDITIONAL(EVETOOL, test x$evetool = xtrue)
 
+# Checks for libraries.
+
+# Mysql >5.0
+AX_LIB_MYSQL([5.0])
+AC_SUBST(MYSQL_CFLAGS)
+AC_SUBST(MYSQL_LDFLAGS)
+
 # Check for zlib
 AC_CHECK_LIB(z, deflate,, AC_MSG_ERROR([can't find zlib]))
 
-# Check for pcap
-AC_CHECK_LIB(pcap, pcap_open_live,, AC_MSG_ERROR([can't find libpcap]))
-AC_CHECK_HEADERS(pcap.h,, AC_MSG_ERROR([can't find pcap.h]))
+# Collector-specific libraries
+if test x$collector = xtrue; then
+	# Check for pcap
+	AC_CHECK_LIB(pcap, pcap_open_live,, AC_MSG_ERROR([can't find libpcap]))
+	AC_CHECK_HEADERS(pcap.h,, AC_MSG_ERROR([can't find pcap.h]))
 
-# nids
-AC_CHECK_LIB(nids, nids_init,, AC_MSG_ERROR([can't find libnids]))
-AC_CHECK_HEADERS(nids.h,, AC_MSG_ERROR([can't find nids.h]))
+	# nids
+	AC_CHECK_LIB(nids, nids_init,, AC_MSG_ERROR([can't find libnids]))
+	AC_CHECK_HEADERS(nids.h,, AC_MSG_ERROR([can't find nids.h]))
 
-# libnet
-AC_CHECK_LIB(net, main,, AC_MSG_ERROR([can't find libnet]))
-LIBNET_CFLAGS=`libnet-config --defines`
-AC_SUBST(LIBNET_CFLAGS)
-
-# readline
-AC_CHECK_HEADERS(readline/readline.h,, AC_MSG_ERROR([can't find readline]))
+	# libnet
+	AC_CHECK_LIB(net, main,, AC_MSG_ERROR([can't find libnet]))
+	LIBNET_CFLAGS=`libnet-config --defines`
+	AC_SUBST(LIBNET_CFLAGS)
+fi
 
 # Define compile/library flags.
 AC_DEFINE(TINYXML_USE_STL)
 AC_SUBST(AM_CXXFLAGS, "$AM_CXXFLAGS -pipe -fno-inline -Wall -ansi")
-AC_SUBST(AM_LDFLAGS, "$AM_LDFLAGS")
+AC_SUBST(AM_LDFLAGS)
 
 # Checks for header files.
 

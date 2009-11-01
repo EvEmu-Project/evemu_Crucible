@@ -23,6 +23,7 @@ xmlpktgen_SOURCES = \
 	XMLPktGenPCH.h
 
 xmlpktgen_CXXFLAGS = \
+	$(AM_CXXFLAGS) \
 	-I$(srcdir)/../../dep/ \
 	-I$(srcdir)/../../include/common/ \
 	-I$(srcdir)/../../include/xmlpktgen/

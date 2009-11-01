@@ -106,7 +106,7 @@ void ObjectToSQL( const Seperator& cmd )
             delete obj;
             return;
         }
-    
+
         RowsetReader reader(&rowset);
         success = ReaderToSQL<RowsetReader>(cmd.arg[2], cmd.arg[3], out, reader);
     } else if(obj->cache->decoded()->IsTuple()) {
@@ -140,7 +140,7 @@ void TestMarshal( const Seperator& cmd )
     header->AddColumn( "avgPrice", DBTYPE_CY );
     header->AddColumn( "volume", DBTYPE_I8 );
     header->AddColumn( "orders", DBTYPE_I4 );
-    
+
     CRowSet* rs = new CRowSet( &header );
 
     PyPackedRow& row = rs->NewRow();
@@ -185,11 +185,7 @@ void PrintTimeNow( const Seperator& cmd )
 void TimeToString( const Seperator& cmd )
 {
     uint64 t;
-#ifndef WIN32   // Make GCC happy.
-    sscanf( cmd.arg[1], I64u, (unsigned long long int*)&t );
-#else
     sscanf( cmd.arg[1], I64u, &t );
-#endif
 
     sLog.Log( "time", I64u" is %s.", t, Win32TimeToString( t ).c_str() );
 }
@@ -232,23 +228,23 @@ void UnmarshalLogText( const Seperator& cmd )
     }
 }
 
+#pragma pack( 1 )
+struct FileHeader
+{
+    uint32 file_size;
+    uint32 path_len;
+};
+#pragma pack()
+
+struct FileHeaderObj
+{
+    uint32 length;
+    size_t offset;
+    std::string filename;
+};
+
 void StuffExtract( const Seperator& cmd )
 {
-    #pragma pack( 1 )
-    struct FileHeader
-    {
-        uint32 file_size;
-        uint32 path_len;
-    };
-    #pragma pack()
-
-    struct FileHeaderObj
-    {
-        uint32 length;
-        size_t offset;
-        std::string filename;
-    };
-
     if( cmd.argnum != 1 )
     {
         sLog.Error( "xstuff", "Usage: %s [.stuff file]", cmd.arg[0] );

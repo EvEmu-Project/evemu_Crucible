@@ -62,6 +62,7 @@ libevecommon_a_SOURCES = \
 	EVEVersion.h
 
 libevecommon_a_CXXFLAGS = \
+	$(AM_CXXFLAGS) \
 	$(MYSQL_CFLAGS) \
 	-I$(srcdir)/../../dep/ \
 	-I$(srcdir)/../../include/common/ \

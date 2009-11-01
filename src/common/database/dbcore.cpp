@@ -587,12 +587,10 @@ int64 DBResultRow::GetInt64(uint32 column) const {
         return 0;       //nothing better to do...
     }
 #endif
+
     int64 value;
-#ifndef WIN32   // Make GCC happy.
-    sscanf( m_row[column], I64d, (long long int*)&value );
-#else
     sscanf( m_row[column], I64d, &value );
-#endif
+
     return value;
 }
 
@@ -605,11 +603,8 @@ uint64 DBResultRow::GetUInt64(uint32 column) const {
 #endif
 
     uint64 value;
-#ifndef WIN32   // Make GCC happy.
-    sscanf( m_row[column], I64u, (unsigned long long int*)&value );
-#else
     sscanf( m_row[column], I64u, &value );
-#endif
+
     return value;
 }
 

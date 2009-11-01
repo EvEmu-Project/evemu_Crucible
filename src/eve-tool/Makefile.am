@@ -1,6 +1,5 @@
 bin_PROGRAMS = \
-	evetool \
-	stuff_extract
+	evetool
 
 evetool_SOURCES = \
 	Commands.cpp \
@@ -9,6 +8,7 @@ evetool_SOURCES = \
 	main.cpp
 
 evetool_CXXFLAGS = \
+	$(AM_CXXFLAGS) \
 	$(MYSQL_CFLAGS) \
 	-I$(srcdir)/../../dep/ \
 	-I$(srcdir)/../../include/common/ \
@@ -26,9 +26,3 @@ evetool_LDFLAGS = \
 	@MYSQL_LDFLAGS@ \
 	-lz \
 	-lpthread
-
-stuff_extract_SOURCES = \
-	stuff_extract.cpp
-
-stuff_extract_CXXFLAGS = \
-	-I$(srcdir)/../../include/common/

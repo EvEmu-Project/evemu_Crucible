@@ -51,6 +51,7 @@ libcommon_a_SOURCES = \
 	CommonPCH.h
 
 libcommon_a_CXXFLAGS = \
+	$(AM_CXXFLAGS) \
 	$(MYSQL_CFLAGS) \
 	-I$(srcdir)/../../dep/ \
 	-I$(srcdir)/../../include/common/
