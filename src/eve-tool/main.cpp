@@ -26,7 +26,6 @@
 #include "EVEToolPCH.h"
 
 #include "main.h"
-#include "Commands.h"
 
 int main( int argc, char* argv[] )
 {
