@@ -25,21 +25,8 @@
 
 #include "EVEToolPCH.h"
 
+#include "main.h"
 #include "Commands.h"
-
-static volatile bool RunLoops = true;
-
-//user input:
-static Mutex MInputQueue;
-static std::queue<char*> InputQueue; //consumer must free() these strings.
-
-static ThreadReturnType UserInputThread( void* data );
-void ProcessInput( char* input );
-void CatchSignal( int sig_num );
-void SetupSignals();
-
-void LoadScript( const char* filename );
-void LoadScript( FILE* f );
 
 int main( int argc, char* argv[] )
 {
@@ -49,165 +36,72 @@ int main( int argc, char* argv[] )
     else
         sLog.Success( "init", "Log settings loaded from %s", "log.ini" );
 
-    //start the "input" thread
-#ifdef WIN32
-    _beginthread( UserInputThread, 0, NULL );
-#else
-    pthread_t thread;
-    pthread_create( &thread, NULL, UserInputThread, NULL );
-#endif
-
     //skip first argument (launch path), we don't need it
     --argc;
     ++argv;
 
     for(; argc > 0; --argc, ++argv)
-        LoadScript( *argv );
+        ProcessFile( *argv );
 
-    SetupSignals();
+    ProcessFile( stdin );
 
-    /*
-     * THE MAIN LOOP
-     *
-     * Everything except IO should happen in this loop, in this thread context.
-     *
-     */
-    const uint32 LOOP_DELAY = 10; // delay 10 ms
-    uint32 start, etime;
-
-    while( RunLoops )
-    {
-        start = GetTickCount();
-
-        Timer::SetCurrentTime();
-
-        //process input:
-        MInputQueue.lock();
-        while( !InputQueue.empty() )
-        {
-            char* str = InputQueue.front();
-            InputQueue.pop();
-            MInputQueue.unlock();
-
-            ProcessInput( str );
-            free( str );
-
-            MInputQueue.lock();
-        }
-        MInputQueue.unlock();
-
-        etime = GetTickCount() - start;
-        if( LOOP_DELAY > etime )
-            Sleep( LOOP_DELAY - etime );
-    }
-
-    sLog.Log( "shutdown", "Main loop stopped." );
+    sLog.Log( "shutdown", "Exiting." );
 
     return 0;
 }
 
-static ThreadReturnType UserInputThread( void *data )
+void ProcessString( const char* str )
 {
-    LoadScript( stdin );
-
-    THREAD_RETURN( 0 );
+    ProcessCommand( Seperator( str ) );
 }
 
-void ProcessInput( char* input )
+void ProcessString( const std::string& str )
 {
-    const Seperator sep( input );
-    
-    if( 0 == strcasecmp( sep.arg[0], "exit" ) )
-    {
-        RunLoops = false;
-        return;
-    }
-    else if( 0 == strcasecmp( sep.arg[0], "script" ) )
-    {
-        LoadScript( sep.arg[1] );
-        return;
-    }
-
-    for( size_t i = 0; i < EVETOOL_COMMAND_COUNT; ++i )
-    {
-        const EVEToolCommand& cmd = EVETOOL_COMMANDS[ i ];
-
-        if( 0 == strcasecmp( sep.arg[0], cmd.name ) )
-        {
-            ( *cmd.callback )( sep );
-            return;
-        }
-    }
-
-    sLog.Error( "input", "Unknown command '%s'.", sep.arg[0] );
+    ProcessString( str.c_str() );
 }
 
-void SetupSignals()
-{
-    signal( SIGINT, CatchSignal );
-    signal( SIGTERM, CatchSignal );
-    signal( SIGABRT, CatchSignal );
-#ifdef WIN32
-    signal( SIGBREAK, CatchSignal );
-    signal( SIGABRT_COMPAT, CatchSignal );
-#else
-    signal( SIGHUP, CatchSignal );
-#endif
-}
-
-void CatchSignal( int sig_num )
-{
-    sLog.Log( "Signal system", "Caught signal: %d.", sig_num );
-
-    RunLoops = false;
-
-    //do this to get the input thread to die off gracefully.
-    fclose( stdin );
-}
-
-void LoadScript( const char* filename )
-{
-    FILE* script = fopen( filename, "r" );
-    if( script == NULL )
-    {
-        sLog.Error( "script", "Unable to open script '%s'.", filename );
-        return;
-    }
-
-    sLog.Log( "script", "Queuing commands from script '%s'.", filename );
-    LoadScript( script );
-
-    if( feof( script ) )
-        sLog.Success( "script", "Load of script '%s' successfully completed.", filename );
-    else
-        sLog.Error( "script", "Error occured while reading script '%s'.", filename );
-
-    fclose( script );
-}
-
-void LoadScript( FILE* f )
+void ProcessFile( FILE* file )
 {
     std::string cmd;
 
-    while( RunLoops )
+    while( true )
     {
-        char input = fgetc( f );
+        char input = fgetc( file );
 
         if( '\n' == input || EOF == input )
         {
             if( !cmd.empty() )
             {
-                LockMutex lock( &MInputQueue );
-                InputQueue.push( strdup( cmd.c_str() ) );
+                ProcessString( cmd );
+                cmd.clear();
             }
 
-            cmd.clear();
             if( EOF == input )
                 break;
         }
         else
             cmd += input;
     }
+}
+
+void ProcessFile( const char* filename )
+{
+    FILE* file = fopen( filename, "r" );
+    if( file == NULL )
+    {
+        sLog.Error( "input", "Unable to open script '%s'.", filename );
+        return;
+    }
+
+    sLog.Log( "input", "Queuing commands from script '%s'.", filename );
+    ProcessFile( file );
+
+    if( feof( file ) )
+        sLog.Success( "input", "Load of script '%s' successfully completed.", filename );
+    else
+        sLog.Error( "input", "Error occured while reading script '%s'.", filename );
+
+    fclose( file );
 }
 
 

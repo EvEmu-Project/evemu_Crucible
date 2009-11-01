@@ -20,20 +20,44 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Zhur, Bloody.Rabbit
+    Author:        Zhur
 */
 
-#ifndef __COMMANDS_H__INCL__
-#define __COMMANDS_H__INCL__
+#ifndef __MAIN_H__INCL__
+#define __MAIN_H__INCL__
 
-struct EVEToolCommand
-{
-    const char* name;
-    void ( *callback )( const Seperator& cmd );
-};
+/**
+ * @brief Processes given string as command.
+ *
+ * @param[in] str String to be processed.
+ */
+void ProcessString( const char* str );
+/**
+ * @brief Processes given string as command.
+ *
+ * @param[in] str String to be processed.
+ */
+void ProcessString( const std::string& str );
 
-extern const EVEToolCommand EVETOOL_COMMANDS[];
-extern const size_t         EVETOOL_COMMAND_COUNT;
+/**
+ * @brief Processed given command.
+ *
+ * @param[in] cmd Command to be processed.
+ */
+void ProcessCommand( const Seperator& cmd );
 
-#endif /* !__COMMANDS_H__INCL__ */
+/**
+ * @brief Loads commands from given file.
+ *
+ * @param[in] file File to load commands from.
+ */
+void ProcessFile( FILE* file );
+/**
+ * @brief Loads commands from given file.
+ *
+ * @param[in] filename Name of file to load commands from.
+ */
+void ProcessFile( const char* filename );
+
+#endif /* !__MAIN_H__INCL__ */
 

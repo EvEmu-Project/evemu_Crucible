@@ -3,9 +3,9 @@ bin_PROGRAMS = \
 
 evetool_SOURCES = \
 	Commands.cpp \
-	Commands.h \
 	EVEToolPCH.h \
-	main.cpp
+	main.cpp \
+	main.h
 
 evetool_CXXFLAGS = \
 	$(AM_CXXFLAGS) \

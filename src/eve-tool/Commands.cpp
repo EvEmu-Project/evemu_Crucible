@@ -25,35 +25,63 @@
 
 #include "EVEToolPCH.h"
 
-#include "Commands.h"
+#include "main.h"
 
 /************************************************************************/
-/* Command declaration                                                  */
+/* Commands declaration                                                 */
 /************************************************************************/
 void DestinyDumpLogText( const Seperator& cmd );
+void ExitProgram( const Seperator& cmd );
+void PrintHelp( const Seperator& cmd );
 void ObjectToSQL( const Seperator& cmd );
 void TestMarshal( const Seperator& cmd );
 void PrintTimeNow( const Seperator& cmd );
+void LoadScript( const Seperator& cmd );
 void TimeToString( const Seperator& cmd );
 void TriToOBJ( const Seperator& cmd );
 void UnmarshalLogText( const Seperator& cmd );
 void StuffExtract( const Seperator& cmd );
 
-const EVEToolCommand EVETOOL_COMMANDS[] =
+const struct
 {
-    { "destiny",   &DestinyDumpLogText },
-    { "obj2sql",   &ObjectToSQL        },
-    { "mtest",     &TestMarshal        },
-    { "now",       &PrintTimeNow       },
-    { "time",      &TimeToString       },
-    { "tri2obj",   &TriToOBJ           },
-    { "unmarshal", &UnmarshalLogText   },
-    { "xstuff",    &StuffExtract       }
+    const char* name;
+    void ( *callback )( const Seperator& cmd );
+    const char* help;
+} EVETOOL_COMMANDS[] =
+{
+    { "destiny",   &DestinyDumpLogText, "Converts given string to binary and dumps it as destiny binary." },
+    { "exit",      &ExitProgram,        "Quits current session."                                          },
+    { "help",      &PrintHelp,          "Lists available commands or prints help about specified one."    },
+    { "mtest",     &TestMarshal,        "Performs marshal test."                                          },
+    { "now",       &PrintTimeNow,       "Prints current time in Win32 time format."                       },
+    { "obj2sql",   &ObjectToSQL,        "Converts specified cache object into an SQL update."             },
+    { "script",    &LoadScript,         "Loads input from specified file(s)."                             },
+    { "time",      &TimeToString,       "Interprets given integer as Win32 time."                         },
+    { "tri2obj",   &TriToOBJ,           "Dumps specified TRI file."                                       },
+    { "unmarshal", &UnmarshalLogText,   "Converts given string to binary and unmarshals it."              },
+    { "xstuff",    &StuffExtract,       "Dumps specified STUFF file."                                     }
 };
-const size_t EVETOOL_COMMAND_COUNT = ( sizeof( EVETOOL_COMMANDS ) / sizeof( EVEToolCommand ) );
+const size_t EVETOOL_COMMAND_COUNT = ( sizeof( EVETOOL_COMMANDS ) / sizeof( EVETOOL_COMMANDS[0] ) );
 
 /************************************************************************/
-/* Command implementation                                               */
+/* ProcessCommand implementation                                        */
+/************************************************************************/
+void ProcessCommand( const Seperator& cmd )
+{
+    for( size_t i = 0; i < EVETOOL_COMMAND_COUNT; ++i )
+    {
+        if( 0 == strcasecmp( cmd.arg[0], EVETOOL_COMMANDS[i].name ) )
+        {
+            ( *EVETOOL_COMMANDS[i].callback )( cmd );
+            return;
+        }
+    }
+
+    sLog.Error( "input", "Unknown command '%s'.", cmd.arg[0] );
+}
+
+/************************************************************************/
+/* Commands implementation                                              */
 /************************************************************************/
 void DestinyDumpLogText( const Seperator& cmd )
 {
@@ -62,6 +90,95 @@ void DestinyDumpLogText( const Seperator& cmd )
         return;
 
     Destiny::DumpUpdate( DESTINY__MESSAGE, &data[0], data.size() );
+}
+
+void ExitProgram( const Seperator& cmd )
+{
+    // just close standart input
+    fclose( stdin );
+}
+
+void PrintHelp( const Seperator& cmd )
+{
+    if( cmd.argnum == 0 )
+    {
+        sLog.Log( "help", "Available commands:" );
+
+        for( size_t i = 0; i < EVETOOL_COMMAND_COUNT; ++i )
+            sLog.Log( "help", "%s", EVETOOL_COMMANDS[i].name );
+
+        sLog.Log( "help", "You can get detailed help by typing '%s'.", "help <command> [<command>] ..." );
+    }
+    else
+    {
+        for( size_t i = 1; i <= cmd.argnum; ++i )
+        {
+            size_t j = 0;
+            for(; j < EVETOOL_COMMAND_COUNT; ++j )
+            {
+                if( 0 == strcasecmp( cmd.arg[i], EVETOOL_COMMANDS[j].name ) )
+                {
+                    sLog.Log( "help", "%s: %s", EVETOOL_COMMANDS[j].name, EVETOOL_COMMANDS[j].help );
+                    break;
+                }
+            }
+
+            if( j == EVETOOL_COMMAND_COUNT )
+                sLog.Error( "help", "Unknown command '%s'.", cmd.arg[i] );
+        }
+    }
+}
+
+void TestMarshal( const Seperator& cmd )
+{
+    DBRowDescriptor *header = new DBRowDescriptor;
+    // Fill header:
+    header->AddColumn( "historyDate", DBTYPE_FILETIME );
+    header->AddColumn( "lowPrice", DBTYPE_CY );
+    header->AddColumn( "highPrice", DBTYPE_CY );
+    header->AddColumn( "avgPrice", DBTYPE_CY );
+    header->AddColumn( "volume", DBTYPE_I8 );
+    header->AddColumn( "orders", DBTYPE_I4 );
+
+    CRowSet* rs = new CRowSet( &header );
+
+    PyPackedRow& row = rs->NewRow();
+    row.SetField( "historyDate", new PyLong( Win32TimeNow() ) );
+    row.SetField( "lowPrice", new PyLong( 18000 ) );
+    row.SetField( "highPrice", new PyLong( 19000 ) );
+    row.SetField( "avgPrice", new PyLong( 18400 ) );
+    row.SetField( "volume", new PyLong( 5463586 ) );
+    row.SetField( "orders", new PyInt( 254 ) );
+
+    sLog.Log( "mtest", "Marshaling..." );
+
+    Buffer* marshaled = MarshalDeflate( rs );
+    PyDecRef( rs );
+    if( marshaled == NULL )
+    {
+        sLog.Error( "mtest", "Failed to marshal Python object." );
+        return;
+    }
+
+    sLog.Log( "mtest", "Unmarshaling..." );
+
+    PyRep* rep = InflateUnmarshal( *marshaled );
+    SafeDelete( marshaled );
+    if( rep == NULL )
+    {
+        sLog.Error( "mtest", "Failed to unmarshal Python object." );
+        return;
+    }
+
+    sLog.Success( "mtest", "Final:" );
+    rep->Dump( stdout, "    " );
+
+    PyDecRef( rep );
+}
+
+void PrintTimeNow( const Seperator& cmd )
+{
+    sLog.Log( "now", "Now in Win32 time: "I64u".", Win32TimeNow() );
 }
 
 void ObjectToSQL( const Seperator& cmd )
@@ -130,56 +247,16 @@ void ObjectToSQL( const Seperator& cmd )
         printf("Success.\n");
 }
 
-void TestMarshal( const Seperator& cmd )
+void LoadScript( const Seperator& cmd )
 {
-    DBRowDescriptor *header = new DBRowDescriptor;
-    // Fill header:
-    header->AddColumn( "historyDate", DBTYPE_FILETIME );
-    header->AddColumn( "lowPrice", DBTYPE_CY );
-    header->AddColumn( "highPrice", DBTYPE_CY );
-    header->AddColumn( "avgPrice", DBTYPE_CY );
-    header->AddColumn( "volume", DBTYPE_I8 );
-    header->AddColumn( "orders", DBTYPE_I4 );
-
-    CRowSet* rs = new CRowSet( &header );
-
-    PyPackedRow& row = rs->NewRow();
-    row.SetField( "historyDate", new PyLong( Win32TimeNow() ) );
-    row.SetField( "lowPrice", new PyLong( 18000 ) );
-    row.SetField( "highPrice", new PyLong( 19000 ) );
-    row.SetField( "avgPrice", new PyLong( 18400 ) );
-    row.SetField( "volume", new PyLong( 5463586 ) );
-    row.SetField( "orders", new PyInt( 254 ) );
-
-    sLog.Log( "mtest", "Marshaling..." );
-
-    Buffer* marshaled = MarshalDeflate( rs );
-    PyDecRef( rs );
-    if( marshaled == NULL )
+    if( cmd.argnum < 1 )
     {
-        sLog.Error( "mtest", "Failed to marshal Python object." );
+        sLog.Error( "script", "Usage: %s file [file] ...", cmd.arg[0] );
         return;
     }
 
-    sLog.Log( "mtest", "Unmarshaling..." );
-
-    PyRep* rep = InflateUnmarshal( *marshaled );
-    SafeDelete( marshaled );
-    if( rep == NULL )
-    {
-        sLog.Error( "mtest", "Failed to unmarshal Python object." );
-        return;
-    }
-
-    sLog.Success( "mtest", "Final:" );
-    rep->Dump( stdout, "    " );
-
-    PyDecRef( rep );
-}
-
-void PrintTimeNow( const Seperator& cmd )
-{
-    sLog.Log( "now", "Now in Win32 time: "I64u".", Win32TimeNow() );
+    for( uint32 i = 1; i <= (uint32)cmd.argnum; ++i )
+        ProcessFile( cmd.arg[ i ] );
 }
 
 void TimeToString( const Seperator& cmd )
