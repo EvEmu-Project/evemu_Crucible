@@ -45,7 +45,7 @@ enum PyRepOpcode
 	Op_PyCharString			= 0x0F,	//a single character string
 	Op_PyShortString		= 0x10,	//string limited to 255 chars
 	Op_PyStringTableItem	= 0x11,
-	Op_PyUnicodeByteString	= 0x12,
+	Op_PyWStringUCS2		= 0x12,
 	Op_PyLongString			= 0x13, //string with length extension support
 	Op_PyTuple				= 0x14,
 	Op_PyList				= 0x15,
@@ -61,19 +61,19 @@ enum PyRepOpcode
 	Op_PyTrue				= 0x1F,
 	Op_PyFalse				= 0x20,
 	Op_cPicked				= 0x21,
-	Op_ObjectEx1			= 0x22,
-	Op_ObjectEx2			= 0x23, // still not 100% completed
+	Op_PyObjectEx1			= 0x22,
+	Op_PyObjectEx2			= 0x23, // still not 100% completed
 	Op_PyEmptyTuple			= 0x24,
 	Op_PyOneTuple			= 0x25,
 	Op_PyEmptyList			= 0x26,
 	Op_PyOneList			= 0x27,
-	Op_PyEmptyUnicodeString = 0x28,
-	Op_PyUnicodeCharString	= 0x29,	// a single character string
+	Op_PyEmptyWString       = 0x28,
+	Op_PyWStringUCS2Char	= 0x29,	// a single character string
 	Op_PyPackedRow			= 0x2A,	// still working on this one...
 	Op_PySubStream			= 0x2B,
 	Op_PyTwoTuple			= 0x2C,
 	Op_PackedTerminator		= 0x2D,
-	Op_PyUnicodeString		= 0x2E,
+	Op_PyWStringUTF8		= 0x2E,
 	Op_PyVarInteger			= 0x2F, // variable length integer field??? // PyLong from Byte array
 	PyRepOpcodeMask			= 0x3F
 };	//6 bits

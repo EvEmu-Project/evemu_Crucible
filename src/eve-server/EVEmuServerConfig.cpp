@@ -53,7 +53,7 @@ EVEmuServerConfig::EVEmuServerConfig()
 	files.cacheDir = "";
 }
 
-bool EVEmuServerConfig::_ParseServer( TiXmlElement* ele )
+bool EVEmuServerConfig::_ParseServer( const TiXmlElement* ele )
 {
 	const char* text;
 
@@ -76,7 +76,7 @@ bool EVEmuServerConfig::_ParseServer( TiXmlElement* ele )
     return true;
 }
 
-bool EVEmuServerConfig::_ParseDatabase( TiXmlElement* ele )
+bool EVEmuServerConfig::_ParseDatabase( const TiXmlElement* ele )
 {
 	const char* text;
 
@@ -103,7 +103,7 @@ bool EVEmuServerConfig::_ParseDatabase( TiXmlElement* ele )
     return true;
 }
 
-bool EVEmuServerConfig::_ParseFiles( TiXmlElement* ele )
+bool EVEmuServerConfig::_ParseFiles( const TiXmlElement* ele )
 {
 	const char* text;
 

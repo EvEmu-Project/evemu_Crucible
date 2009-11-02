@@ -62,9 +62,9 @@ public:
 	} files;
 
 protected:
-	bool _ParseServer( TiXmlElement* ele );
-	bool _ParseDatabase( TiXmlElement* ele );
-	bool _ParseFiles( TiXmlElement* ele );
+	bool _ParseServer( const TiXmlElement* ele );
+	bool _ParseDatabase( const TiXmlElement* ele );
+	bool _ParseFiles( const TiXmlElement* ele );
 };
 
 #define sConfig \

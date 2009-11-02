@@ -177,14 +177,14 @@ private:
     /** Loads table string from stream. */
     PyRep* LoadStringTable();
 
-    /** Loads empty unicode string from stream. */
-    PyRep* LoadStringUnicodeEmpty() { return new PyString( "" ); }
-    /** Loads single unicode character string from stream. */
-    PyRep* LoadStringUnicodeChar() { return new PyString( Read<char>( 2 ), (size_t)2 ); }
-    /** Loads unicode byte string from stream. */
-    PyRep* LoadStringUnicodeByte();
-    /** Loads unicode string from stream. */
-    PyRep* LoadStringUnicode();
+    /** Loads empty wide string from stream. */
+    PyRep* LoadWStringEmpty() { return new PyString( "" ); }
+    /** Loads single UCS-2 character string from stream. */
+    PyRep* LoadWStringUCS2Char() { return new PyString( (const char*)Read<uint16>( 1 ), sizeof( uint16 ) ); }
+    /** Loads UCS-2 string from stream. */
+    PyRep* LoadWStringUCS2();
+    /** Loads UTF-8 string from stream. */
+    PyRep* LoadWStringUTF8();
 
     /** Loads buffer from stream. */
     PyRep* LoadBuffer();

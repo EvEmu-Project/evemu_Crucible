@@ -89,7 +89,7 @@ PyRep* ( UnmarshalStream::* const UnmarshalStream::s_mLoadMap[ PyRepOpcodeMask +
     &UnmarshalStream::LoadStringChar,           //Op_PyCharString
     &UnmarshalStream::LoadStringShort,          //Op_PyShortString
     &UnmarshalStream::LoadStringTable,          //Op_PyStringTableItem
-    &UnmarshalStream::LoadStringUnicodeByte,    //Op_PyUnicodeByteString
+    &UnmarshalStream::LoadWStringUCS2,          //Op_PyWStringUCS2
     &UnmarshalStream::LoadStringLong,           //Op_PyLongString
     &UnmarshalStream::LoadTuple,                //Op_PyTuple
     &UnmarshalStream::LoadList,                 //Op_PyList
@@ -105,19 +105,19 @@ PyRep* ( UnmarshalStream::* const UnmarshalStream::s_mLoadMap[ PyRepOpcodeMask +
     &UnmarshalStream::LoadBoolTrue,             //Op_PyTrue
     &UnmarshalStream::LoadBoolFalse,            //Op_PyFalse
     &UnmarshalStream::LoadError,                //Op_cPicked
-    &UnmarshalStream::LoadObjectEx1,            //Op_ObjectEx1
-    &UnmarshalStream::LoadObjectEx2,            //Op_ObjectEx2
+    &UnmarshalStream::LoadObjectEx1,            //Op_PyObjectEx1
+    &UnmarshalStream::LoadObjectEx2,            //Op_PyObjectEx2
     &UnmarshalStream::LoadTupleEmpty,           //Op_PyEmptyTuple
     &UnmarshalStream::LoadTupleOne,             //Op_PyOneTuple
     &UnmarshalStream::LoadListEmpty,            //Op_PyEmptyList
     &UnmarshalStream::LoadListOne,              //Op_PyOneList
-    &UnmarshalStream::LoadStringUnicodeEmpty,   //Op_PyEmptyUnicodeString
-    &UnmarshalStream::LoadStringUnicodeChar,    //Op_PyUnicodeCharString
+    &UnmarshalStream::LoadWStringEmpty,         //Op_PyEmptyWString
+    &UnmarshalStream::LoadWStringUCS2Char,      //Op_PyWStringUCS2Char
     &UnmarshalStream::LoadPackedRow,            //Op_PyPackedRow
     &UnmarshalStream::LoadSubStream,            //Op_PySubStream
     &UnmarshalStream::LoadTupleTwo,             //Op_PyTwoTuple
     &UnmarshalStream::LoadError,                //Op_PackedTerminator
-    &UnmarshalStream::LoadStringUnicode,        //Op_PyUnicodeString
+    &UnmarshalStream::LoadWStringUTF8,          //Op_PyWStringUTF8
     &UnmarshalStream::LoadIntegerVar,           //Op_PyVarInteger
     &UnmarshalStream::LoadError,
     &UnmarshalStream::LoadError,
@@ -302,15 +302,15 @@ PyRep* UnmarshalStream::LoadStringTable()
         return new PyString( str );
 }
 
-PyRep* UnmarshalStream::LoadStringUnicodeByte()
+PyRep* UnmarshalStream::LoadWStringUCS2()
 {
     const uint32 len = ReadSizeEx();
-    const char* wstr = Read<char>( len );
+    const uint16* wstr = Read<uint16>( len );
 
-	return new PyString( wstr, len, true );
+	return new PyString( (const char*)wstr, len * sizeof( uint16 ), false );
 }
 
-PyRep* UnmarshalStream::LoadStringUnicode()
+PyRep* UnmarshalStream::LoadWStringUTF8()
 {
     const uint32 len = ReadSizeEx();
     const char* wstr = Read<char>( len );

@@ -317,9 +317,9 @@ bool MarshalStream::VisitObject( const PyObject* rep )
 bool MarshalStream::VisitObjectEx( const PyObjectEx* rep )
 {
     if( rep->isType2() == true )
-        Put<uint8>( Op_ObjectEx2 );
+        Put<uint8>( Op_PyObjectEx2 );
     else
-        Put<uint8>( Op_ObjectEx1 );
+        Put<uint8>( Op_PyObjectEx1 );
 
     if( !rep->header()->visit( *this ) )
         return false;

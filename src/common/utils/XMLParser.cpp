@@ -28,7 +28,7 @@
 #include "log/LogNew.h"
 #include "utils/XMLParser.h"
 
-bool XMLParser::ParseFile( const char* file, const char* root_ele )
+bool XMLParser::ParseFile( const char* file )
 {
 	TiXmlDocument doc( file );
 	if( !doc.LoadFile() )
@@ -36,33 +36,43 @@ bool XMLParser::ParseFile( const char* file, const char* root_ele )
         sLog.Error( "XMLParser", "Unable to load '%s': %s.", file, doc.ErrorDesc() );
         return false;
 	}
-	
-	TiXmlElement *root = doc.FirstChildElement( root_ele );
+
+    TiXmlElement* root = doc.RootElement();
 	if( root == NULL )
     {
-        sLog.Error( "XMLParser", "Unable to find root '%s' in %s.", root_ele, file );
+        sLog.Error( "XMLParser", "Unable to find root in %s.", file );
 		return false;
 	}
 
-	TiXmlNode* main_element = NULL;
-	while( ( main_element = root->IterateChildren( main_element ) ) )
+    return Recurse( root );
+}
+
+bool XMLParser::ParseElement( const TiXmlElement* element )
+{
+    std::map<std::string, ElementParser>::const_iterator parser = mParsers.find( element->Value() );
+    if( mParsers.end() == parser )
+        return false;
+
+    /*
+     * This is kinda a sketchy operation here, since all of these
+     * element handler methods will be functions in child classes.
+     * This essentially causes us to do an un-checkable (and hence
+     * un-handle-properly-able) cast down to the child class. This
+     * WILL BREAK if any children classes do multiple inheritance.
+     */
+    return ( this->*( parser->second ) )( element );
+}
+
+bool XMLParser::Recurse( const TiXmlElement* element )
+{
+	const TiXmlNode* child = NULL;
+	while( ( child = element->IterateChildren( child ) ) )
     {
-		if( main_element->Type() == TiXmlNode::ELEMENT )
+		if( child->Type() == TiXmlNode::ELEMENT )
         {
-		    TiXmlElement* ele = (TiXmlElement*)main_element;
+		    const TiXmlElement* childElement = (const TiXmlElement*)child;
 
-            std::map<std::string, ElementParser>::const_iterator parser = mParsers.find( ele->Value() );
-		    if( mParsers.end() == parser )
-                continue;
-
-		    /*
-		     * This is kinda a sketchy operation here, since all of these
-		     * element handler methods will be functions in child classes.
-		     * This essentially causes us to do an un-checkable (and hence
-		     * un-handle-properly-able) cast down to the child class. This
-		     * WILL BREAK if any children classes do multiple inheritance.
-		     */
-		    if( !( this->*( parser->second ) )( ele ) )
+            if( !ParseElement( childElement ) )
                 return false;
         }
 	}
@@ -70,9 +80,9 @@ bool XMLParser::ParseFile( const char* file, const char* root_ele )
 	return true;
 }
 
-const char* XMLParser::ParseTextBlock( TiXmlNode* within, const char* name, bool optional )
+const char* XMLParser::ParseTextBlock( const TiXmlNode* within, const char* name, bool optional )
 {
-	TiXmlElement* txt = within->FirstChildElement( name );
+	const TiXmlElement* txt = within->FirstChildElement( name );
 	if( txt == NULL )
     {
 		if( !optional )
@@ -83,9 +93,9 @@ const char* XMLParser::ParseTextBlock( TiXmlNode* within, const char* name, bool
     return GetText( txt, optional );
 }
 
-const char* XMLParser::GetText( TiXmlNode* within, bool optional )
+const char* XMLParser::GetText( const TiXmlNode* within, bool optional )
 {
-	TiXmlNode* contents = within->FirstChild();
+	const TiXmlNode* contents = within->FirstChild();
 	if( contents == NULL || contents->Type() != TiXmlNode::TEXT )
     {
 		if( !optional )

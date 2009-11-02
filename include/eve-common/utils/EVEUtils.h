@@ -36,6 +36,14 @@ extern UserError *MakeUserError(const char *exceptionType, const std::map<std::s
 //makes UserError with type "CustomError"
 extern UserError *MakeCustomError(const char *fmt, ...);
 
+/**
+ * @brief Checks whether string is printable.
+ *
+ * @param[in] str String to be checked.
+ *
+ * @retval true  The string is printable.
+ * @retval false The string is not printable.
+ */
 bool IsPrintable( const PyString* str );
 
 /**
@@ -45,7 +53,7 @@ bool IsPrintable( const PyString* str );
  * @param[in] rep PyRep to check.
  * @return True if arguments are compatible, false if not.
  */
-extern bool DBTYPE_IsCompatible(DBTYPE type, const PyRep &rep);
+bool DBTYPE_IsCompatible(DBTYPE type, const PyRep &rep);
 
 #endif
 

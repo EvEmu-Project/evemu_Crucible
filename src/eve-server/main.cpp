@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     // Load server configuration
     sLog.Log("server init", "Loading server configuration...");
     
-    if( !sConfig.ParseFile( "eveserver.xml", "eve" ) )
+    if( !sConfig.ParseFile( "eveserver.xml" ) )
     {
         sLog.Error( "server init", "Loading server configuration failed.");
         return 1;

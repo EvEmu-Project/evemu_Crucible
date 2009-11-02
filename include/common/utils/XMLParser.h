@@ -29,7 +29,7 @@
 /**
  * @brief Utility for parsing XML files.
  *
- * See note in XMLParser::ParseFile() before inheriting this class.
+ * See note in XMLParser::ParseElement() before inheriting this class.
  *
  * @author Zhur, Bloody.Rabbit
  */
@@ -39,14 +39,23 @@ public:
     /**
      * @brief Parses file using registered parsers.
      *
-     * @param[in] file     File to parse.
-     * @param[in] root_ele Root element of file to be parsed.
+     * @param[in] file File to parse.
      *
      * @retval true  Parsing successfull.
      * @retval false Error occurred during parsing.
      */
-    bool ParseFile( const char* file, const char* root_ele );
-	
+    bool ParseFile( const char* file );
+
+    /**
+     * @brief Parses element using registered parsers.
+     *
+     * @param[in] element Element to be parsed.
+     *
+     * @retval true  Parsing successfull.
+     * @retval false Error occurred during parsing.
+     */
+    bool ParseElement( const TiXmlElement* element );
+
 protected:
     /**
      * @brief Registers a parser.
@@ -55,10 +64,20 @@ protected:
      * @param[in] parser The parser itself.
      */
     template<typename X>
-    void RegisterParser( const char* name, bool ( X::* parser )( TiXmlElement* ele ) )
+    void RegisterParser( const char* name, bool ( X::* parser )( const TiXmlElement* ele ) )
     {
         mParsers[ name ] = static_cast<ElementParser>( parser );
     }
+
+    /**
+     * @brief Recurses into all children of element.
+     *
+     * @param[in] element Element to recurse into.
+     *
+     * @retval true  Parsing successfull.
+     * @retval false Error occurred during parsing.
+     */
+    bool Recurse( const TiXmlElement* element );
 
     /**
      * @brief Extracts text from given node.
@@ -73,7 +92,7 @@ protected:
      *
      * @return Extracted text; NULL if an error occurred.
      */
-	static const char* ParseTextBlock( TiXmlNode* within, const char* name, bool optional = false );
+	static const char* ParseTextBlock( const TiXmlNode* within, const char* name, bool optional = false );
     /**
      * @brief Extracts text from given node.
      *
@@ -86,11 +105,11 @@ protected:
      *
      * @return Extracted text; NULL if an error occurred.
      */
-	static const char* GetText( TiXmlNode* within, bool optional = false );
+	static const char* GetText( const TiXmlNode* within, bool optional = false );
 
 private:
     /** Type of element parsers (casted). */
-    typedef bool ( XMLParser::* ElementParser )( TiXmlElement* ele );
+    typedef bool ( XMLParser::* ElementParser )( const TiXmlElement* ele );
     /** Parser storage. */
     std::map<std::string, ElementParser> mParsers;
 };
