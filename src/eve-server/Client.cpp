@@ -1194,7 +1194,7 @@ bool Client::_Authenticate( CryptoChallengePacket& ccp )
     uint32 accountID, accountRole;
 	if( !services().serviceDB().DoLogin(
             ccp.user_name.c_str(),
-            ccp.user_password->GetPassword().content().c_str(),
+            ccp.user_password->GetPassword()->content().c_str(),
             accountID, accountRole ) )
     {
         _log(CLIENT__MESSAGE, "    Rejected by DB");

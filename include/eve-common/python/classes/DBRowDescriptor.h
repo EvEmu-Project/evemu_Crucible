@@ -45,11 +45,11 @@ public:
 	/**
 	 * @param[in] result Query result to build column list from.
 	 */
-	DBRowDescriptor(const DBQueryResult &res);
+	DBRowDescriptor( const DBQueryResult& res );
 	/**
 	 * @param[in] result Row to build column list from.
 	 */
-	DBRowDescriptor(const DBResultRow &row);
+	DBRowDescriptor( const DBResultRow& row );
 
 	/**
 	 * @return Column count.
@@ -57,19 +57,22 @@ public:
     uint32 ColumnCount() const;
 	/**
 	 * @param[in] index Index of column name of which should be returned.
+     *
 	 * @return Name of column.
 	 */
-    PyString &GetColumnName(uint32 index) const;
+    PyString* GetColumnName( uint32 index ) const;
 	/**
 	 * @param[in] index Index of column type of which should be returned.
+     *
 	 * @return Type of column.
 	 */
-    DBTYPE GetColumnType(uint32 index) const;
+    DBTYPE GetColumnType( uint32 index ) const;
 	/**
 	 * @param[in] name Name of column index of which should be returned.
+     *
 	 * @return Index of column; column count if not found.
 	 */
-    uint32 FindColumn(const char *name) const;
+    uint32 FindColumn( const char* name ) const;
 
 	/**
 	 * Adds new column.
@@ -77,14 +80,14 @@ public:
 	 * @param[in] name Name of new column.
 	 * @param[in] type Type of new column.
 	 */
-	void AddColumn(const char *name, DBTYPE type);
+	void AddColumn( const char* name, DBTYPE type );
 
 protected:
 	// Helper functions:
-	PyTuple &_GetColumnList() const;
-	PyTuple &_GetColumn(size_t index) const;
+	PyTuple* _GetColumnList() const;
+	PyTuple* _GetColumn(size_t index) const;
 
-	static PyTuple *_CreateArgs();
+	static PyTuple* _CreateArgs();
 };
 
 #endif /* !__DB_ROW_DESCRIPTOR_H__INCL__ */

@@ -346,9 +346,9 @@ void InventoryItem::Delete() {
     m_factory._DeleteItem( itemID() );
 }
 
-PyPackedRow *InventoryItem::GetItemRow() const
+PyPackedRow* InventoryItem::GetItemRow() const
 {
-	DBRowDescriptor *header = new DBRowDescriptor;
+	DBRowDescriptor* header = new DBRowDescriptor;
 	header->AddColumn( "itemID",     DBTYPE_I4 );
 	header->AddColumn( "typeID",     DBTYPE_I2 );
 	header->AddColumn( "ownerID",    DBTYPE_I4 );
@@ -361,24 +361,24 @@ PyPackedRow *InventoryItem::GetItemRow() const
 	header->AddColumn( "categoryID", DBTYPE_UI1 );
 	header->AddColumn( "customInfo", DBTYPE_STR );
 
-	PyPackedRow *row = new PyPackedRow( header );
-    GetItemRow( *row );
+	PyPackedRow* row = new PyPackedRow( header );
+    GetItemRow( row );
     return row;
 }
 
-void InventoryItem::GetItemRow(PyPackedRow &into) const
+void InventoryItem::GetItemRow( PyPackedRow* into ) const
 {
-    into.SetField( "itemID",        new PyInt( itemID() ) );
-    into.SetField( "typeID",        new PyInt( typeID() ) );
-    into.SetField( "locationID",    new PyInt( locationID() ) );
-    into.SetField( "ownerID",       new PyInt( ownerID() ) );
-    into.SetField( "flag",          new PyInt( flag() ) );
-    into.SetField( "contraband",    new PyBool( contraband() ) );
-    into.SetField( "singleton",     new PyBool( singleton() ) );
-    into.SetField( "quantity",      new PyInt( quantity() ) );
-    into.SetField( "groupID",       new PyInt( groupID() ) );
-    into.SetField( "categoryID",    new PyInt( categoryID() ) );
-    into.SetField( "customInfo",    new PyString( customInfo() ) );
+    into->SetField( "itemID",     new PyInt( itemID() ) );
+    into->SetField( "typeID",     new PyInt( typeID() ) );
+    into->SetField( "locationID", new PyInt( locationID() ) );
+    into->SetField( "ownerID",    new PyInt( ownerID() ) );
+    into->SetField( "flag",       new PyInt( flag() ) );
+    into->SetField( "contraband", new PyBool( contraband() ) );
+    into->SetField( "singleton",  new PyBool( singleton() ) );
+    into->SetField( "quantity",   new PyInt( quantity() ) );
+    into->SetField( "groupID",    new PyInt( groupID() ) );
+    into->SetField( "categoryID", new PyInt( categoryID() ) );
+    into->SetField( "customInfo", new PyString( customInfo() ) );
 }
 
 bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {

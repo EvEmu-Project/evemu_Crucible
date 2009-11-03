@@ -612,13 +612,13 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
         args->items[4] = NULL;
     } else if(args->items[4]->IsBuffer()) {
         //this is a data buffer, likely compressed.
-        PyBuffer* buf = &args->items[4]->AsBuffer();
+        PyBuffer* buf = args->items[4]->AsBuffer();
 
         PyIncRef( buf );
 		cache = new PySubStream( buf );
     } else if(args->items[4]->IsString()) {
         //this is a data buffer, likely compressed, not sure why it comes through as a string...
-        PyString* str = &args->items[4]->AsString();
+        PyString* str = args->items[4]->AsString();
 
         cache = new PySubStream( new PyBuffer( *str ) );
     } else {

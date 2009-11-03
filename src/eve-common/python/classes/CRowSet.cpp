@@ -28,32 +28,32 @@
 #include "python/classes/CRowSet.h"
 #include "python/classes/DBRowDescriptor.h"
 
-CRowSet::CRowSet(DBRowDescriptor** rowDesc)
+CRowSet::CRowSet( DBRowDescriptor** rowDesc )
 : PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
 {
 	*rowDesc = NULL;
 }
 
-PyPackedRow& CRowSet::NewRow()
+PyPackedRow* CRowSet::NewRow()
 {
-    DBRowDescriptor& rowDesc = _GetRowDesc();
-    PyIncRef( &rowDesc );
+    DBRowDescriptor* rowDesc = _GetRowDesc();
+    PyIncRef( rowDesc );
 
-    PyPackedRow* row = new PyPackedRow( &rowDesc );
-    
-	list().AddItem( row );
-	return *row;
+    PyPackedRow* row = new PyPackedRow( rowDesc );
+
+    list().AddItem( row );
+	return row;
 }
 
-DBRowDescriptor& CRowSet::_GetRowDesc() const
+DBRowDescriptor* CRowSet::_GetRowDesc() const
 {
 	PyRep* r = FindKeyword( "header" );
 	assert( r );
 
-	return ( DBRowDescriptor& )r->AsObjectEx();
+	return (DBRowDescriptor*)r->AsObjectEx();
 }
 
-PyList& CRowSet::_GetColumnList() const
+PyList* CRowSet::_GetColumnList() const
 {
 	PyRep* r = FindKeyword( "columns" );
 	assert( r );
@@ -79,7 +79,7 @@ PyDict* CRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 	uint32 cc = rowDesc->ColumnCount();
 	PyList* columns = new PyList( cc );
 	for( uint32 i = 0; i < cc; i++ )
-		columns->SetItem( i,  new PyString( rowDesc->GetColumnName( i ) ) );
+		columns->SetItem( i,  new PyString( *rowDesc->GetColumnName( i ) ) );
 	keywords->SetItemString( "columns", columns );
 
 	return keywords;

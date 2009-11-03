@@ -53,7 +53,7 @@ bool IsPrintable( const PyString* str );
  * @param[in] rep PyRep to check.
  * @return True if arguments are compatible, false if not.
  */
-bool DBTYPE_IsCompatible(DBTYPE type, const PyRep &rep);
+bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep );
 
 #endif
 

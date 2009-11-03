@@ -131,8 +131,8 @@ public:
      */
     bool Populate(Rsp_CommonGetInfo_Entry &into) const;
 
-    PyPackedRow *GetItemRow() const;
-    void GetItemRow(PyPackedRow &into) const;
+    PyPackedRow* GetItemRow() const;
+    void GetItemRow( PyPackedRow* into ) const;
 
     PyObject *ItemGetInfo() const;
 

@@ -317,12 +317,11 @@ PyObject *CorporationDB::GetMedalsReceived(uint32 charID) {
     return(rs.FastEncode());
 }
 
-static std::string _IoN(PyRep *r) {
-    if(!r->IsInt())
-        return("NULL");
-    char buf[32];
-    snprintf(buf, 32, "%d", r->AsInt().value());
-    return(buf);
+static std::string _IoN( PyRep* r )
+{
+    if( !r->IsInt() )
+        return "NULL";
+    return itoa( r->AsInt()->value() );
 }
 
 bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID, uint32 stationID, uint32 & corpID) {

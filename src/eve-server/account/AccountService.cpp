@@ -56,9 +56,9 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	bool corporate_wallet = false;
 	
 	if( args.arg->IsInt() )
-		corporate_wallet = ( args.arg->AsInt().value() != 0 );
+		corporate_wallet = ( args.arg->AsInt()->value() != 0 );
 	else if( args.arg->IsBool() )
-		corporate_wallet = args.arg->AsBool().value();
+		corporate_wallet = args.arg->AsBool()->value();
 	else
     {
 		codelog(CLIENT__ERROR, "Invalid arguments");
@@ -332,9 +332,9 @@ PyResult AccountService::Handle_GetJournal(PyCallArgs &call) {
 
 	bool ca = false;
 	if( args.corpAccount->IsBool() )
-		ca = args.corpAccount->AsBool().value();
+		ca = args.corpAccount->AsBool()->value();
 	else if( args.corpAccount->IsInt() )
-		ca = ( args.corpAccount->AsInt().value() != 0 );
+		ca = ( args.corpAccount->AsInt()->value() != 0 );
 	else
     {
 		// problem

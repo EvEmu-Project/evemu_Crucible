@@ -415,17 +415,17 @@ void DBResultToIntIntlistDict( DBQueryResult &result, std::map<int32, PyRep *> &
     }
 }
 
-void FillPackedRow( const DBResultRow &row, PyPackedRow &into )
+void FillPackedRow( const DBResultRow& row, PyPackedRow* into )
 {
     uint32 cc = row.ColumnCount();
-    for(uint32 i = 0; i < cc; i++)
-        into.SetField( i, DBColumnToPyRep( row, i ) );
+    for( uint32 i = 0; i < cc; i++ )
+        into->SetField( i, DBColumnToPyRep( row, i ) );
 }
 
-PyPackedRow *CreatePackedRow( const DBResultRow &row, DBRowDescriptor* header )
+PyPackedRow* CreatePackedRow( const DBResultRow& row, DBRowDescriptor* header )
 {
-    PyPackedRow *res = new PyPackedRow( header );
-	FillPackedRow( row, *res );
+    PyPackedRow* res = new PyPackedRow( header );
+	FillPackedRow( row, res );
     return res;
 }
 
@@ -505,7 +505,7 @@ PyObjectEx *DBResultToCRowset( DBQueryResult &result )
 	DBResultRow row;
 	while( result.GetRow( row ) )
 	{
-		PyPackedRow &into = rowset->NewRow();
+		PyPackedRow* into = rowset->NewRow();
 		FillPackedRow( row, into );
 	}
 

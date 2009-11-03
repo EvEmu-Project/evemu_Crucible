@@ -67,7 +67,7 @@ PyCallArgs::PyCallArgs(Client *c, PyTuple* tup, PyDict* dict)
 			cur->first->Dump(SERVICE__ERROR, "    ");
 			continue;
 		}
-		byname[ cur->first->AsString().content() ] = cur->second;
+		byname[ cur->first->AsString()->content() ] = cur->second;
         PyIncRef( cur->second );
 	}
 }

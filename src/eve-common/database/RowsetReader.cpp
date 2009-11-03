@@ -381,8 +381,8 @@ bool SetSQLDumper::VisitTuple( const PyTuple* rep )
         && rep->GetItem( 0 )->IsList()
         && rep->GetItem( 1 )->IsList() )
     {
-        const PyList* possible_header = &rep->GetItem( 0 )->AsList();
-        const PyList* possible_items = &rep->GetItem( 1 )->AsList();
+        const PyList* possible_header = rep->GetItem( 0 )->AsList();
+        const PyList* possible_items = rep->GetItem( 1 )->AsList();
 
         //check each element of the lists to make sure they line up.
         bool valid = true;

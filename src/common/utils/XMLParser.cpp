@@ -70,7 +70,7 @@ bool XMLParser::Recurse( const TiXmlElement* element )
     {
 		if( child->Type() == TiXmlNode::ELEMENT )
         {
-		    const TiXmlElement* childElement = (const TiXmlElement*)child;
+		    const TiXmlElement* childElement = child->ToElement();
 
             if( !ParseElement( childElement ) )
                 return false;

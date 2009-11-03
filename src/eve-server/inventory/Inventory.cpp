@@ -131,9 +131,9 @@ void Inventory::DeleteContents(ItemFactory &factory)
     mContents.clear();
 }
 
-CRowSet *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
+CRowSet* Inventory::List( EVEItemFlags _flag, uint32 forOwner ) const
 {
-	DBRowDescriptor *header = new DBRowDescriptor;
+	DBRowDescriptor* header = new DBRowDescriptor;
 	header->AddColumn( "itemID",     DBTYPE_I4 );
 	header->AddColumn( "typeID",     DBTYPE_I2 );
 	header->AddColumn( "ownerID",    DBTYPE_I4 );
@@ -146,24 +146,25 @@ CRowSet *Inventory::List(EVEItemFlags _flag, uint32 forOwner) const
 	header->AddColumn( "categoryID", DBTYPE_UI1 );
 	header->AddColumn( "customInfo", DBTYPE_STR );
 
-    CRowSet *rowset = new CRowSet( &header );
-    List( *rowset, _flag, forOwner );
+    CRowSet* rowset = new CRowSet( &header );
+    List( rowset, _flag, forOwner );
     return rowset;
 }
 
-void Inventory::List(CRowSet &into, EVEItemFlags _flag, uint32 forOwner) const
+void Inventory::List( CRowSet* into, EVEItemFlags _flag, uint32 forOwner ) const
 {
     //there has to be a better way to build this...
     std::map<uint32, InventoryItemRef>::const_iterator cur, end;
     cur = mContents.begin();
     end = mContents.end();
-    for(; cur != end; cur++) {
+    for(; cur != end; cur++)
+    {
         InventoryItemRef i = cur->second;
 
-        if(    (i->flag() == _flag       || _flag == flagAnywhere)
-            && (i->ownerID() == forOwner || forOwner == 0) )
+        if(    ( i->flag() == _flag       || _flag == flagAnywhere )
+            && ( i->ownerID() == forOwner || forOwner == 0 ) )
         {
-			PyPackedRow &row = into.NewRow();
+			PyPackedRow* row = into->NewRow();
 			i->GetItemRow( row );
         }
     }

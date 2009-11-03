@@ -143,24 +143,24 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
     for( ; cur != end; cur++ )
 	{
         if( (*cur)->IsInt() )
-            toJoin.insert( (*cur)->AsInt().value() );
+            toJoin.insert( (*cur)->AsInt()->value() );
 		else if( (*cur)->IsTuple() )
 		{
-            PyTuple *prt = &(*cur)->AsTuple();
+            PyTuple* prt = (*cur)->AsTuple();
 
             if( prt->items.size() != 1 || !prt->items[0]->IsTuple() )
 			{
                 codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                 continue;
             }
-            prt = &prt->items[0]->AsTuple();
+            prt = prt->items[0]->AsTuple();
 
             if( prt->items.size() != 2 || /* !prt->items[0]->IsString() || unnessecary */ !prt->items[1]->IsInt() )
 			{
                 codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                 continue;
             }
-            toJoin.insert( prt->items[1]->AsInt().value() );
+            toJoin.insert( prt->items[1]->AsInt()->value() );
         }
 		else
 		{
@@ -227,30 +227,34 @@ PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
         for(; cur != end; cur++)
         {
             if( (*cur)->IsInt() )
-                toLeave.insert( (*cur)->AsInt().value() );
+                toLeave.insert( (*cur)->AsInt()->value() );
             else if( (*cur)->IsTuple() )
             {
-                PyTuple* prt = &(*cur)->AsTuple();
+                PyTuple* prt = (*cur)->AsTuple();
 
-                if( prt->items[0]->IsInt() ) {
-                    toLeave.insert( prt->GetItem( 0 )->AsInt().value() );
+                if( prt->GetItem( 0 )->IsInt() )
+                {
+                    toLeave.insert( prt->GetItem( 0 )->AsInt()->value() );
                     continue;
                 }
 
-                if (!prt->items[0]->IsTuple()) {
+                if( !prt->GetItem( 0 )->IsTuple() )
+                {
                     codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                     continue;
                 }
-                prt = (PyTuple*)prt->items[0];
-                if (prt->items[0]->IsTuple()) {
-                    prt = (PyTuple*)prt->items[0];
-                }
-                if (prt->items.size() != 2 || !prt->items[1]->IsInt()) {
+                prt = prt->GetItem( 0 )->AsTuple();
+
+                if( prt->GetItem( 0 )->IsTuple() )
+                    prt = prt->GetItem( 0 )->AsTuple();
+
+                if( prt->size() != 2 || !prt->GetItem( 1 )->IsInt() )
+                {
                     codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                     continue;
                 }
 
-                toLeave.insert( prt->GetItem(1)->AsInt().value() );
+                toLeave.insert( prt->GetItem( 1 )->AsInt()->value() );
             }
             else
             {
@@ -293,24 +297,24 @@ PyResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
     uint32 toLeave;
 
     if( arg.channel->IsInt() )
-        toLeave = arg.channel->AsInt().value();
+        toLeave = arg.channel->AsInt()->value();
     else if( arg.channel->IsTuple() )
     {
-        PyTuple* prt = &arg.channel->AsTuple();
+        PyTuple* prt = arg.channel->AsTuple();
 
-        if( prt->GetItem(0)->IsInt() )
-            toLeave = prt->GetItem(0)->AsInt().value();
-        else if( prt->GetItem(0)->IsTuple() )
+        if( prt->GetItem( 0 )->IsInt() )
+            toLeave = prt->GetItem( 0 )->AsInt()->value();
+        else if( prt->GetItem( 0 )->IsTuple() )
         {
-            prt = &prt->GetItem(0)->AsTuple();
+            prt = prt->GetItem( 0 )->AsTuple();
 
-            if( prt->items.size() != 2 || !prt->GetItem(1)->IsInt() )
+            if( prt->items.size() != 2 || !prt->GetItem( 1 )->IsInt() )
             {
                 codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
                 return NULL;
             }
 
-            toLeave = prt->GetItem(1)->AsInt().value();
+            toLeave = prt->GetItem( 1 )->AsInt()->value();
         }
         else
         {
@@ -375,34 +379,35 @@ PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
         return new PyInt(0);
     }
 
-    PyTuple* arg = &call.tuple->GetItem(0)->AsTuple();
-    const char* message = call.tuple->GetItem(1)->AsString().content().c_str();
+    PyTuple* arg = call.tuple->GetItem( 0 )->AsTuple();
+    const char* message = call.tuple->GetItem( 1 )->AsString()->content().c_str();
 
     if(     arg->size() != 1
-        || !arg->GetItem(0)->IsTuple() )
+        || !arg->GetItem( 0 )->IsTuple() )
     {
         codelog(SERVICE__ERROR, "%s: Bad arguments (T1)", call.client->GetName());
-        return new PyInt(0);
+        return new PyInt( 0 );
     }
-    arg = &arg->GetItem(0)->AsTuple();
+    arg = arg->GetItem( 0 )->AsTuple();
 
     if(     arg->size() != 2
-        || !arg->GetItem(1)->IsInt() )
+        || !arg->GetItem( 1 )->IsInt() )
     {
         codelog(SERVICE__ERROR, "%s: Bad arguments (T2)", call.client->GetName());
-        return new PyInt(0);
+        return new PyInt( 0 );
     }
-    uint32 channelID = arg->GetItem(1)->AsInt().value();
+    uint32 channelID = arg->GetItem( 1 )->AsInt()->value();
 
-    if (m_channels.find(channelID) == m_channels.end()) {
+    if( m_channels.find( channelID ) == m_channels.end() )
+    {
         codelog(SERVICE__ERROR, "%s: Couldn't find channel %u", call.client->GetName(), channelID);
-        return new PyInt(0);
+        return new PyInt( 0 );
     }
     LSCChannel* channel = m_channels[channelID];
 
     channel->SendMessage(call.client, message);
 
-    return new PyInt(1);
+    return new PyInt( 1 );
 }
 
 

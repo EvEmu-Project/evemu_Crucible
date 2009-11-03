@@ -29,12 +29,12 @@
 #include "python/PyRep.h"
 
 /**
- * \brief Python object "util.PasswordString"
+ * @brief Python object "util.PasswordString"
  *
  * This object is used when transporting
  * plain password over network.
  *
- * \author Bloody.Rabbit
+ * @author Bloody.Rabbit
  */
 class PasswordString
 : public PyObjectEx_Type2
@@ -43,15 +43,13 @@ public:
 	/**
 	 * @param[in] password Password to be stored.
 	 */
-	PasswordString(const char *password = "");
+	PasswordString( const char* password = "" );
 
-	/**
-	 * @return Password stored within this object.
-	 */
-	PyString &GetPassword() const;
+	/** @return Password stored within this object. */
+	PyString* GetPassword() const;
 
 protected:
-	static PyTuple *_CreateArgs(const char *password);
+	static PyTuple* _CreateArgs( const char* password );
 };
 
 #endif /* !__PASSWORD_STRING_H__INCL__ */

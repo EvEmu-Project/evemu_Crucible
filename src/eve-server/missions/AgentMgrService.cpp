@@ -116,7 +116,7 @@ PyBoundObject *AgentMgrService::_CreateBoundObject(Client *c, const PyRep *bind_
 		return NULL;
 	}
 	
-	uint32 agentID = bind_args->AsInt().value();
+	uint32 agentID = bind_args->AsInt()->value();
 
 	Agent *agent = _GetAgent(agentID);
 	if(agent == NULL) {
@@ -194,7 +194,7 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
     res.dialogue = new PyList;
 
 	std::map<uint32, std::string> choices;
-	m_agent->DoAction( call.client, args.arg->AsInt().value(), res.agentSays, choices );
+	m_agent->DoAction( call.client, args.arg->AsInt()->value(), res.agentSays, choices );
 
 	DoAction_Dialogue_Item choice;
 

@@ -284,7 +284,7 @@ bool PyDumpVisitor::VisitPackedRow( const PyPackedRow* rep )
     end = rep->end();
     for( uint32 i = 0; cur != end; cur++, i++ )
     {
-        _pfxExtend( "  [%2u] %s: ", i, rep->header()->GetColumnName( i ).content().c_str() );
+        _pfxExtend( "  [%2u] %s: ", i, rep->header()->GetColumnName( i )->content().c_str() );
 
         bool res = true;
         if( (*cur) == NULL )

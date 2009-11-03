@@ -53,7 +53,7 @@ int32 ClientSession::GetLastInt( const char* name ) const
     if( !v->IsInt() )
         return 0;
 
-    return v->AsInt().value();
+    return v->AsInt()->value();
 }
 
 int32 ClientSession::GetCurrentInt( const char* name ) const
@@ -65,7 +65,7 @@ int32 ClientSession::GetCurrentInt( const char* name ) const
     if( !v->IsInt() )
         return 0;
 
-    return v->AsInt().value();
+    return v->AsInt()->value();
 }
 
 void ClientSession::SetInt( const char* name, int32 value )
@@ -82,7 +82,7 @@ int64 ClientSession::GetLastLong( const char* name ) const
     if( !v->IsLong() )
         return 0;
 
-    return v->AsLong().value();
+    return v->AsLong()->value();
 }
 
 int64 ClientSession::GetCurrentLong( const char* name ) const
@@ -94,7 +94,7 @@ int64 ClientSession::GetCurrentLong( const char* name ) const
     if( !v->IsLong() )
         return 0;
 
-    return v->AsLong().value();
+    return v->AsLong()->value();
 }
 
 void ClientSession::SetLong( const char* name, int64 value )
@@ -111,7 +111,7 @@ std::string ClientSession::GetLastString( const char* name ) const
     if( !v->IsString() )
         return std::string();
 
-    return v->AsString().content();
+    return v->AsString()->content();
 }
 
 std::string ClientSession::GetCurrentString( const char* name ) const
@@ -123,7 +123,7 @@ std::string ClientSession::GetCurrentString( const char* name ) const
     if( !v->IsString() )
         return std::string();
 
-    return v->AsString().content();
+    return v->AsString()->content();
 }
 
 void ClientSession::SetString( const char* name, const char* value )
@@ -143,8 +143,8 @@ void ClientSession::EncodeChanges( PyDict* into )
     end = mSession->end();
     for(; cur != end; cur++)
     {
-        PyString* str = &cur->first->AsString();
-        PyTuple* value = &cur->second->AsTuple();
+        PyString* str = cur->first->AsString();
+        PyTuple* value = cur->second->AsTuple();
 
         PyRep* last = value->GetItem( 0 );
         PyRep* current = value->GetItem( 1 );
@@ -170,7 +170,7 @@ PyTuple* ClientSession::_GetValueTuple( const char* name ) const
     PyRep* v = mSession->GetItemString( name );
     if( v == NULL )
         return NULL;
-    return &v->AsTuple();
+    return v->AsTuple();
 }
 
 PyRep* ClientSession::_GetLast( const char* name ) const

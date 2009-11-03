@@ -28,35 +28,35 @@
 #include "python/classes/Exceptions.h"
 #include "EVEVersion.h"
 
-GPSTransportClosed::GPSTransportClosed(const char *reason)
+GPSTransportClosed::GPSTransportClosed( const char* reason )
 : PyObjectEx_Type1( "exceptions.GPSTransportClosed", _CreateArgs( reason ), _CreateKeywords( reason ) )
 {
 }
 
-void GPSTransportClosed::AddKeyword(const char *name, PyRep *value)
+void GPSTransportClosed::AddKeyword( const char* name, PyRep* value )
 {
-	_GetReasonArgs().SetItemString( name, value );
+	_GetReasonArgs()->SetItemString( name, value );
 }
 
-PyDict &GPSTransportClosed::_GetReasonArgs() const
+PyDict* GPSTransportClosed::_GetReasonArgs() const
 {
-	PyRep *r = FindKeyword( "reasonArgs" );
+	PyRep* r = FindKeyword( "reasonArgs" );
 	assert( r );
 
 	return r->AsDict();
 }
 
-PyTuple *GPSTransportClosed::_CreateArgs(const char *reason)
+PyTuple* GPSTransportClosed::_CreateArgs( const char* reason )
 {
-	PyTuple *args = new PyTuple( 1 );
+	PyTuple* args = new PyTuple( 1 );
 	args->SetItem( 0, new PyString( reason ) );
 
 	return args;
 }
 
-PyDict *GPSTransportClosed::_CreateKeywords(const char *reason)
+PyDict* GPSTransportClosed::_CreateKeywords( const char* reason )
 {
-	PyDict *keywords = new PyDict;
+	PyDict* keywords = new PyDict;
 	//keywords->SetItemString( "origin", new PyString( "proxy" ) );
 	keywords->SetItemString( "reasonArgs", new PyDict );
 	keywords->SetItemString( "clock", new PyLong( Win32TimeNow() ) );
@@ -72,42 +72,42 @@ PyDict *GPSTransportClosed::_CreateKeywords(const char *reason)
 	return keywords;
 }
 
-UserError::UserError(const char *msg)
+UserError::UserError( const char* msg )
 : PyObjectEx_Type1( "ccp_exceptions.UserError", _CreateArgs( msg ), _CreateKeywords( msg ) )
 {
 }
 
-void UserError::AddKeyword(const char *name, PyRep *value)
+void UserError::AddKeyword( const char* name, PyRep* value )
 {
-	_GetTupleKeywords().SetItemString( name, value );
-	_GetDictKeywords().SetItemString( name, value );
+	_GetTupleKeywords()->SetItemString( name, value );
+	_GetDictKeywords()->SetItemString( name, value );
 }
 
-PyDict &UserError::_GetTupleKeywords() const
+PyDict* UserError::_GetTupleKeywords() const
 {
-	return GetArgs().items.at( 1 )->AsDict();
+	return GetArgs()->GetItem( 1 )->AsDict();
 }
 
-PyDict &UserError::_GetDictKeywords() const
+PyDict* UserError::_GetDictKeywords() const
 {
-	PyRep *r = FindKeyword( "dict" );
+	PyRep* r = FindKeyword( "dict" );
 	assert( r );
 
 	return r->AsDict();
 }
 
-PyTuple *UserError::_CreateArgs(const char *msg)
+PyTuple* UserError::_CreateArgs( const char* msg )
 {
-	PyTuple *args = new PyTuple( 2 );
+	PyTuple* args = new PyTuple( 2 );
 	args->SetItem( 0, new PyString( msg ) );
 	args->SetItem( 1, new PyDict );
 
 	return args;
 }
 
-PyDict *UserError::_CreateKeywords(const char *msg)
+PyDict* UserError::_CreateKeywords( const char* msg )
 {
-	PyDict *keywords = new PyDict;
+	PyDict* keywords = new PyDict;
 	keywords->SetItemString( "msg", new PyString( msg ) );
 	keywords->SetItemString( "dict", new PyDict );
 

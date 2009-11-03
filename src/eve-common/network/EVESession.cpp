@@ -153,7 +153,7 @@ PyPacket* EVEClientSession::_HandleCommand( PyRep* rep )
         _log(NET__PRES_ERROR, "%s: Invalid packet during waiting for command (tuple expected).", GetAddress().c_str());
     }
     // decode
-    else if( rep->AsTuple().size() == 2 )
+    else if( rep->AsTuple()->size() == 2 )
     {
         //QC = Queue Check
         NetCommand_QC cmd;
@@ -178,7 +178,7 @@ PyPacket* EVEClientSession::_HandleCommand( PyRep* rep )
             Reset();
         }
     }
-    else if( rep->AsTuple().size() == 3 )
+    else if( rep->AsTuple()->size() == 3 )
     {
         //this is sent when client is logging in
         NetCommand_VK cmd;

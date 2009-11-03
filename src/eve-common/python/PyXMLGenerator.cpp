@@ -248,7 +248,7 @@ bool PyXMLGenerator::VisitDict( const PyDict* rep )
             fprintf( mInto, "%s<!-- non-string dict key of type %s -->\n", _pfx(), cur->first->TypeString() );
             return false;
         }
-        PyString* str = &cur->first->AsString();
+        PyString* str = cur->first->AsString();
 
         fprintf( mInto, "%s<IDEntry key=\"%s\">\n", _pfx(), str->content().c_str() );
 

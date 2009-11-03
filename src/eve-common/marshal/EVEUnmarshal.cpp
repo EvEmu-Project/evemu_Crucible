@@ -455,7 +455,7 @@ PyRep* UnmarshalStream::LoadObject()
         return NULL;
     }
 
-    return new PyObject( &type->AsString(), arguments );
+    return new PyObject( type->AsString(), arguments );
 }
 
 PyRep* UnmarshalStream::LoadSubStruct()

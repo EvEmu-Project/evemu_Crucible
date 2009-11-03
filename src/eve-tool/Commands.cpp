@@ -111,7 +111,7 @@ void PrintHelp( const Seperator& cmd )
     }
     else
     {
-        for( size_t i = 1; i <= cmd.argnum; ++i )
+        for( size_t i = 1; i <= (size_t)cmd.argnum; ++i )
         {
             size_t j = 0;
             for(; j < EVETOOL_COMMAND_COUNT; ++j )
@@ -142,13 +142,13 @@ void TestMarshal( const Seperator& cmd )
 
     CRowSet* rs = new CRowSet( &header );
 
-    PyPackedRow& row = rs->NewRow();
-    row.SetField( "historyDate", new PyLong( Win32TimeNow() ) );
-    row.SetField( "lowPrice", new PyLong( 18000 ) );
-    row.SetField( "highPrice", new PyLong( 19000 ) );
-    row.SetField( "avgPrice", new PyLong( 18400 ) );
-    row.SetField( "volume", new PyLong( 5463586 ) );
-    row.SetField( "orders", new PyInt( 254 ) );
+    PyPackedRow* row = rs->NewRow();
+    row->SetField( "historyDate", new PyLong( Win32TimeNow() ) );
+    row->SetField( "lowPrice", new PyLong( 18000 ) );
+    row->SetField( "highPrice", new PyLong( 19000 ) );
+    row->SetField( "avgPrice", new PyLong( 18400 ) );
+    row->SetField( "volume", new PyLong( 5463586 ) );
+    row->SetField( "orders", new PyInt( 254 ) );
 
     sLog.Log( "mtest", "Marshaling..." );
 

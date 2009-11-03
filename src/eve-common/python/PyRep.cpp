@@ -72,13 +72,15 @@ const char* PyRep::TypeString() const
 void PyRep::Dump( FILE* into, const char* pfx ) const
 {
     PyFileDumpVisitor dumper( into, pfx );
-    this->visit( dumper );
+
+    visit( dumper );
 }
 
 void PyRep::Dump( LogType type, const char* pfx ) const
 {
     PyLogDumpVisitor dumper( type, type, pfx );
-    this->visit( dumper );
+
+    visit( dumper );
 }
 
 int32 PyRep::hash() const
@@ -707,30 +709,42 @@ PyObjectEx& PyObjectEx::operator=( const PyObjectEx& oth )
 /************************************************************************/
 PyObjectEx_Type1::PyObjectEx_Type1( const char* type, PyTuple* args, PyDict* keywords ) : PyObjectEx( false, _CreateHeader( type, args, keywords ) ) {}
 
-PyDict& PyObjectEx_Type1::GetKeywords() const
+PyString* PyObjectEx_Type1::GetType() const
+{
+    assert( header() );
+    return header()->AsTuple()->GetItem( 0 )->AsString();
+}
+
+PyTuple* PyObjectEx_Type1::GetArgs() const
+{
+    assert( header() );
+    return header()->AsTuple()->GetItem( 1 )->AsTuple();
+}
+
+PyDict* PyObjectEx_Type1::GetKeywords() const
 {
 	// This one is slightly more complicated since
 	// keywords are optional.
 	assert( header() );
-	PyTuple& t = header()->AsTuple();
+	PyTuple* t = header()->AsTuple();
 
-	if( t.size() < 3 )
-		t.items.push_back( new PyDict );
+	if( t->size() < 3 )
+		t->items.push_back( new PyDict );
 
-	return t.items.at( 2 )->AsDict();
+	return t->items.at( 2 )->AsDict();
 }
 
 PyRep* PyObjectEx_Type1::FindKeyword( const char* keyword ) const
 {
-	PyDict& kw = GetKeywords();
+	PyDict* kw = GetKeywords();
 
 	PyDict::const_iterator cur, end;
-	cur = kw.begin();
-	end = kw.end();
+	cur = kw->begin();
+	end = kw->end();
 	for(; cur != end; cur++)
 	{
 		if( cur->first->IsString() )
-			if( cur->first->AsString().content() == keyword )
+			if( cur->first->AsString()->content() == keyword )
 				return cur->second;
 	}
 
@@ -756,17 +770,29 @@ PyTuple* PyObjectEx_Type1::_CreateHeader( const char* type, PyTuple* args, PyDic
 /************************************************************************/
 PyObjectEx_Type2::PyObjectEx_Type2( PyTuple* args, PyDict* keywords ) : PyObjectEx( true, _CreateHeader( args, keywords ) ) {}
 
+PyTuple* PyObjectEx_Type2::GetArgs() const
+{
+    assert( header() );
+    return header()->AsTuple()->GetItem( 0 )->AsTuple();
+}
+
+PyDict* PyObjectEx_Type2::GetKeywords() const
+{
+    assert( header() );
+    return header()->AsTuple()->GetItem( 1 )->AsDict();
+}
+
 PyRep* PyObjectEx_Type2::FindKeyword( const char* keyword ) const
 {
-	PyDict& kw = GetKeywords();
+	PyDict* kw = GetKeywords();
 
 	PyDict::const_iterator cur, end;
-	cur = kw.begin();
-	end = kw.end();
+	cur = kw->begin();
+	end = kw->end();
 	for(; cur != end; cur++)
 	{
 		if( cur->first->IsString() )
-			if( cur->first->AsString().content() == keyword )
+			if( cur->first->AsString()->content() == keyword )
 				return cur->second;
 	}
 
@@ -822,7 +848,7 @@ bool PyPackedRow::SetField( uint32 index, PyRep* value )
     if( value != NULL )
     {
         // verify type
-        if( !DBTYPE_IsCompatible( header()->GetColumnType( index ), *value ) )
+        if( !DBTYPE_IsCompatible( header()->GetColumnType( index ), value ) )
         {
             //sLog.Error("PyPackedRow", "uncompatible DBTYPE");
             PyDecRef( value );

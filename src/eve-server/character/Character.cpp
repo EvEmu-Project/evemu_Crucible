@@ -176,12 +176,14 @@ CharacterAppearance::CharacterAppearance() {
 #undef NULL_FIELD
 }
 
-CharacterAppearance::CharacterAppearance(const CharacterAppearance &from) {
+CharacterAppearance::CharacterAppearance( const CharacterAppearance& from )
+{
     //just do deep copy
     *this = from;
 }
 
-CharacterAppearance::~CharacterAppearance() {
+CharacterAppearance::~CharacterAppearance()
+{
     //delete all dynamic fields
 #define CLEAR_FIELD(v) \
     Clear_##v();
@@ -193,9 +195,10 @@ CharacterAppearance::~CharacterAppearance() {
 #undef CLEAR_FIELD
 }
 
-void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
+void CharacterAppearance::Build( const std::map<std::string, PyRep*>& from )
+{
     //builds our contents from strdict
-    std::map<std::string, PyRep *>::const_iterator itr;
+    std::map<std::string, PyRep*>::const_iterator itr;
 
     _log(CLIENT__MESSAGE, "  Appearance Data:");
 
@@ -205,7 +208,7 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
     { \
         if( itr->second->IsInt() ) \
         { \
-            v = itr->second->AsInt().value(); \
+            v = itr->second->AsInt()->value(); \
             _log( CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), v ); \
         } \
         else \
@@ -217,7 +220,7 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
     { \
         if( !itr->second->IsInt() ) \
         { \
-            Set_##v( itr->second->AsInt().value() ); \
+            Set_##v( itr->second->AsInt()->value() ); \
             _log( CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), Get_##v() ); \
         } \
         else \
@@ -229,7 +232,7 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
     { \
         if( itr->second->IsFloat() ) \
         { \
-            v = itr->second->AsFloat().value(); \
+            v = itr->second->AsFloat()->value(); \
             _log( CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), v ); \
         } \
         else \
@@ -241,7 +244,7 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
     { \
         if( itr->second->IsFloat() ) \
         { \
-            Set_##v( itr->second->AsFloat().value() ); \
+            Set_##v( itr->second->AsFloat()->value() ); \
             _log( CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), Get_##v() ); \
         } \
         else \
@@ -250,7 +253,8 @@ void CharacterAppearance::Build(const std::map<std::string, PyRep *> &from) {
 #include "character/CharacterAppearance_fields.h"
 }
 
-void CharacterAppearance::operator=(const CharacterAppearance &from) {
+void CharacterAppearance::operator=( const CharacterAppearance& from )
+{
 #define COPY(v) \
     v = from.v;
 #define COPY_DYN(v) \

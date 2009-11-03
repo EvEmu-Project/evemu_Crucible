@@ -29,62 +29,62 @@
 #include "python/PyRep.h"
 
 /**
- * \brief Python object "exceptions.GPSTransportClosed".
+ * @brief Python object "exceptions.GPSTransportClosed".
  *
  * This exception is used when
  * refusing client login.
  *
- * \author Bloody.Rabbit
+ * @author Bloody.Rabbit
  */
 class GPSTransportClosed
 : public PyObjectEx_Type1
 {
 public:
-	GPSTransportClosed(const char *reason);
+	GPSTransportClosed( const char* reason );
 
 	/**
-	 * \brief Adds keyword to exception.
+	 * @brief Adds keyword to exception.
 	 *
 	 * @param[in] name The keyword.
 	 * @param[in] value Value to be associated with the keyword.
 	 */
-	void AddKeyword(const char *name, PyRep *value);
+	void AddKeyword( const char* name, PyRep* value );
 
 protected:
-	PyDict &_GetReasonArgs() const;
+	PyDict* _GetReasonArgs() const;
 
-	static PyTuple *_CreateArgs(const char *reason);
-	static PyDict *_CreateKeywords(const char *reason);
+	static PyTuple* _CreateArgs( const char* reason );
+	static PyDict* _CreateKeywords( const char* reason );
 };
 
 /**
- * \brief Python object "ccp_exceptions.UserError"
+ * @brief Python object "ccp_exceptions.UserError"
  *
  * This exception can be used
  * for various errors.
  *
- * \author Bloody.Rabbit
+ * @author Bloody.Rabbit
  */
 class UserError
 : public PyObjectEx_Type1
 {
 public:
-	UserError(const char *msg);
+	UserError( const char* msg );
 
 	/**
-	 * \brief Adds keyword to exception.
+	 * @brief Adds keyword to exception.
 	 *
 	 * @param[in] name The keyword.
 	 * @param[in] value Value to be associated with the keyword.
 	 */
-	void AddKeyword(const char *name, PyRep *value);
+	void AddKeyword( const char* name, PyRep* value );
 
 protected:
-	PyDict &_GetTupleKeywords() const;
-	PyDict &_GetDictKeywords() const;
+	PyDict* _GetTupleKeywords() const;
+	PyDict* _GetDictKeywords() const;
 
-	static PyTuple *_CreateArgs(const char *msg);
-	static PyDict *_CreateKeywords(const char *msg);
+	static PyTuple* _CreateArgs( const char* msg );
+	static PyDict* _CreateKeywords( const char* msg );
 };
 
 #endif /* !__EXCEPTIONS_H__INCL__ */

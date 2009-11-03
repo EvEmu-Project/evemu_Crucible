@@ -77,7 +77,7 @@ PyBoundObject *ReprocessingService::_CreateBoundObject(Client *c, const PyRep *b
         return NULL;
     }
 
-    uint32 stationID = bind_args->AsInt().value();
+    uint32 stationID = bind_args->AsInt()->value();
 
     if(!IsStation(stationID)) {
         codelog(CLIENT__ERROR, "%s: Expected stationID, but hasn't got any.", c->GetName());

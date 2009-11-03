@@ -60,73 +60,73 @@ bool IsPrintable( const PyString* str )
     return IsPrintable( str->content() );
 }
 
-bool DBTYPE_IsCompatible(DBTYPE type, const PyRep &rep)
+bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep )
 {
 // Helper macro, checks type and range
 #define CheckTypeRangeUnsigned( type, lower_bound, upper_bound ) \
-    ( rep.Is##type() && (uint64)rep.As##type().value() >= lower_bound && (uint64)rep.As##type().value() <= upper_bound )
+    ( rep->Is##type() && (uint64)rep->As##type()->value() >= lower_bound && (uint64)rep->As##type()->value() <= upper_bound )
 #define CheckTypeRange( type, lower_bound, upper_bound ) \
-    ( rep.Is##type() && rep.As##type().value() >= lower_bound && rep.As##type().value() <= upper_bound )
+    ( rep->Is##type() && rep->As##type()->value() >= lower_bound && rep->As##type()->value() <= upper_bound )
 
     switch( type )
     {
         case DBTYPE_UI8:
         case DBTYPE_CY:
         case DBTYPE_FILETIME:
-            return CheckTypeRangeUnsigned( Int, 0LL, 0xFFFFFFFFFFFFFFFFLL )
-                   || CheckTypeRangeUnsigned( Long, 0LL, 0xFFFFFFFFFFFFFFFFLL )
-                   || CheckTypeRangeUnsigned( Float, 0LL, 0xFFFFFFFFFFFFFFFFLL );
+            return (   CheckTypeRangeUnsigned( Int, 0LL, 0xFFFFFFFFFFFFFFFFLL )
+                    || CheckTypeRangeUnsigned( Long, 0LL, 0xFFFFFFFFFFFFFFFFLL )
+                    || CheckTypeRangeUnsigned( Float, 0LL, 0xFFFFFFFFFFFFFFFFLL ) );
         case DBTYPE_UI4:
-            return CheckTypeRangeUnsigned( Int, 0L, 0xFFFFFFFFL )
-                   || CheckTypeRangeUnsigned( Long, 0L, 0xFFFFFFFFL )
-                   || CheckTypeRangeUnsigned( Float, 0L, 0xFFFFFFFFL );
+            return (   CheckTypeRangeUnsigned( Int, 0L, 0xFFFFFFFFL )
+                    || CheckTypeRangeUnsigned( Long, 0L, 0xFFFFFFFFL )
+                    || CheckTypeRangeUnsigned( Float, 0L, 0xFFFFFFFFL ) );
         case DBTYPE_UI2:
-            return CheckTypeRangeUnsigned( Int, 0, 0xFFFF )
-                   || CheckTypeRangeUnsigned( Long, 0, 0xFFFF )
-                   || CheckTypeRangeUnsigned( Float, 0, 0xFFFF );
+            return (   CheckTypeRangeUnsigned( Int, 0, 0xFFFF )
+                    || CheckTypeRangeUnsigned( Long, 0, 0xFFFF )
+                    || CheckTypeRangeUnsigned( Float, 0, 0xFFFF ) );
         case DBTYPE_UI1:
-            return CheckTypeRangeUnsigned( Int, 0, 0xFF )
-                   || CheckTypeRangeUnsigned( Long, 0, 0xFF )
-                   || CheckTypeRangeUnsigned( Float, 0, 0xFF );
+            return (   CheckTypeRangeUnsigned( Int, 0, 0xFF )
+                    || CheckTypeRangeUnsigned( Long, 0, 0xFF )
+                    || CheckTypeRangeUnsigned( Float, 0, 0xFF ) );
 
         case DBTYPE_I8:
-            return CheckTypeRange( Int, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL )
-                   || CheckTypeRange( Long, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL )
-                   || CheckTypeRange( Float, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL );
+            return (   CheckTypeRange( Int, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL )
+                    || CheckTypeRange( Long, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL )
+                    || CheckTypeRange( Float, -0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL ) );
         case DBTYPE_I4:
-            return CheckTypeRange( Int, -0x7FFFFFFFL, 0x7FFFFFFFL )
-                   || CheckTypeRange( Long, -0x7FFFFFFFL, 0x7FFFFFFFL )
-                   || CheckTypeRange( Float, -0x7FFFFFFFL, 0x7FFFFFFFL );
+            return (   CheckTypeRange( Int, -0x7FFFFFFFL, 0x7FFFFFFFL )
+                    || CheckTypeRange( Long, -0x7FFFFFFFL, 0x7FFFFFFFL )
+                    || CheckTypeRange( Float, -0x7FFFFFFFL, 0x7FFFFFFFL ) );
         case DBTYPE_I2:
-            return CheckTypeRange( Int, -0x7FFF, 0x7FFF )
-                   || CheckTypeRange( Long, -0x7FFF, 0x7FFF )
-                   || CheckTypeRange( Float, -0x7FFF, 0x7FFF );
+            return (   CheckTypeRange( Int, -0x7FFF, 0x7FFF )
+                    || CheckTypeRange( Long, -0x7FFF, 0x7FFF )
+                    || CheckTypeRange( Float, -0x7FFF, 0x7FFF ) );
         case DBTYPE_I1:
-            return CheckTypeRange( Int, -0x7F, 0x7F )
-                   || CheckTypeRange( Long, -0x7F, 0x7F )
-                   || CheckTypeRange( Float, -0x7F, 0x7F );
+            return (   CheckTypeRange( Int, -0x7F, 0x7F )
+                    || CheckTypeRange( Long, -0x7F, 0x7F )
+                    || CheckTypeRange( Float, -0x7F, 0x7F ) );
 
         case DBTYPE_R8:
-            return CheckTypeRange( Int, -DBL_MAX, DBL_MAX )
-                   || CheckTypeRange( Long, -DBL_MAX, DBL_MAX )
-                   || CheckTypeRange( Float, -DBL_MAX, DBL_MAX );
+            return (   CheckTypeRange( Int, -DBL_MAX, DBL_MAX )
+                    || CheckTypeRange( Long, -DBL_MAX, DBL_MAX )
+                    || CheckTypeRange( Float, -DBL_MAX, DBL_MAX ) );
         case DBTYPE_R4:
-            return CheckTypeRange( Int, -FLT_MAX, FLT_MAX )
-                   || CheckTypeRange( Long, -FLT_MAX, FLT_MAX )
-                   || CheckTypeRange( Float, -FLT_MAX, FLT_MAX );
+            return (   CheckTypeRange( Int, -FLT_MAX, FLT_MAX )
+                    || CheckTypeRange( Long, -FLT_MAX, FLT_MAX )
+                    || CheckTypeRange( Float, -FLT_MAX, FLT_MAX ) );
 
         case DBTYPE_BOOL:
-            return rep.IsBool();
+            return rep->IsBool();
 
         case DBTYPE_BYTES:
-            return rep.IsBuffer();
+            return rep->IsBuffer();
 
         case DBTYPE_STR:
         case DBTYPE_WSTR:
-            return rep.IsString();
+            return rep->IsString();
     }
 
-    return rep.IsNone();
+    return rep->IsNone();
 
 #undef CheckTypeRange
 #undef CheckTypeRangeUnsigned

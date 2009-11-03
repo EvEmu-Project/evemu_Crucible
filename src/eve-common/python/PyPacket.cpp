@@ -113,7 +113,7 @@ bool PyPacket::Decode(PyRep **in_packet)
 
     if(packet->IsChecksumedStream())
     {
-        PyChecksumedStream* cs = &packet->AsChecksumedStream();
+        PyChecksumedStream* cs = packet->AsChecksumedStream();
 
         //TODO: check cs->checksum
         packet = cs->stream();
@@ -125,7 +125,7 @@ bool PyPacket::Decode(PyRep **in_packet)
     //Dragon nuance... it gets wrapped again
     if(packet->IsSubStream())
     {
-        PySubStream* ss = &packet->AsSubStream();
+        PySubStream* ss = packet->AsSubStream();
 
         ss->DecodeData();
         if(ss->decoded() == NULL)
@@ -574,7 +574,7 @@ bool PyAddress::_DecodeService(PyRep *rep) {
 
 bool PyAddress::_DecodeCallID(PyRep *rep) {
     if(rep->IsInt()) {
-        callID = rep->AsInt().value();
+        callID = rep->AsInt()->value();
     } else if(rep->IsNone()) {
         callID = 0;
     } else {
@@ -587,7 +587,7 @@ bool PyAddress::_DecodeCallID(PyRep *rep) {
 
 bool PyAddress::_DecodeTypeID(PyRep *rep) {
     if(rep->IsInt()) {
-        typeID = rep->AsInt().value();
+        typeID = rep->AsInt()->value();
     } else if(rep->IsNone()) {
         typeID = 0;
     } else {

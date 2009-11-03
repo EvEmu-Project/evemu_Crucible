@@ -134,11 +134,12 @@ PyResult BeyonceBound::Handle_FollowBall(PyCallArgs &call) {
 	}
 
 	double distance;
-	if(args.distance->IsInt()) {
-		distance = args.distance->AsInt().value();
-	} else if(args.distance->IsFloat()) {
-		distance = args.distance->AsFloat().value();
-	} else {
+	if( args.distance->IsInt() )
+		distance = args.distance->AsInt()->value();
+    else if( args.distance->IsFloat() )
+		distance = args.distance->AsFloat()->value();
+    else
+    {
 		codelog(CLIENT__ERROR, "%s: Invalid type %s for distance argument received.", call.client->GetName(), args.distance->TypeString());
 		return NULL;
 	}
@@ -245,11 +246,12 @@ PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 	}
 
 	double distance;
-	if(arg.distance->IsInt()) {
-		distance = arg.distance->AsInt().value();
-	} else if(arg.distance->IsFloat()) {
-		distance = arg.distance->AsFloat().value();
-	} else {
+	if( arg.distance->IsInt() )
+		distance = arg.distance->AsInt()->value();
+    else if( arg.distance->IsFloat() )
+		distance = arg.distance->AsFloat()->value();
+    else
+    {
 		codelog(CLIENT__ERROR, "%s: Invalid type %s for distance argument received.", call.client->GetName(), arg.distance->TypeString());
 		return NULL;
 	}
@@ -294,8 +296,8 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 	} else {
 		distance =
 			res->second->IsInt()
-			? res->second->AsInt().value()
-			: res->second->AsFloat().value();
+			? res->second->AsInt()->value()
+			: res->second->AsFloat()->value();
 	}
 
 	//we need to delay the destiny updates until after we return

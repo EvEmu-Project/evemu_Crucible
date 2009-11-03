@@ -48,7 +48,7 @@ public:
     /**
      * @param[in] rowDesc DBRowDescriptor header to be used.
      */
-    CRowSet(DBRowDescriptor** rowDesc);
+    CRowSet( DBRowDescriptor** rowDesc );
 
     /**
      * @return Row count.
@@ -60,16 +60,16 @@ public:
      *
      * @return Row with given index.
      */
-    PyPackedRow& GetRow(uint32 index) const { return list().GetItem( index )->AsPackedRow(); }
+    PyPackedRow* GetRow( uint32 index ) const { return list().GetItem( index )->AsPackedRow(); }
 
     /**
      * @return New row which user may fill.
      */
-    PyPackedRow& NewRow();
+    PyPackedRow* NewRow();
 
 protected:
-	DBRowDescriptor& _GetRowDesc() const;
-	PyList& _GetColumnList() const;
+	DBRowDescriptor* _GetRowDesc() const;
+	PyList* _GetColumnList() const;
 
 	static PyTuple* _CreateArgs();
 	static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);

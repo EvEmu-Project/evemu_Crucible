@@ -32,7 +32,7 @@ DBRowDescriptor::DBRowDescriptor()
 {
 }
 
-DBRowDescriptor::DBRowDescriptor(const DBQueryResult &res)
+DBRowDescriptor::DBRowDescriptor( const DBQueryResult& res )
 : PyObjectEx_Type1( "blue.DBRowDescriptor", _CreateArgs(), NULL )
 {
 	uint32 cc = res.ColumnCount();
@@ -41,7 +41,7 @@ DBRowDescriptor::DBRowDescriptor(const DBQueryResult &res)
 		AddColumn( res.ColumnName( i ), res.ColumnType( i ) );
 }
 
-DBRowDescriptor::DBRowDescriptor(const DBResultRow &row)
+DBRowDescriptor::DBRowDescriptor( const DBResultRow& row )
 : PyObjectEx_Type1( "blue.DBRowDescriptor", _CreateArgs(), NULL )
 {
 	uint32 cc = row.ColumnCount();
@@ -52,27 +52,27 @@ DBRowDescriptor::DBRowDescriptor(const DBResultRow &row)
 
 uint32 DBRowDescriptor::ColumnCount() const
 {
-	return _GetColumnList().size();
+	return _GetColumnList()->size();
 }
 
-PyString &DBRowDescriptor::GetColumnName(uint32 index) const
+PyString* DBRowDescriptor::GetColumnName( uint32 index ) const
 {
-	return _GetColumn( index ).items.at( 0 )->AsString();
+	return _GetColumn( index )->GetItem( 0 )->AsString();
 }
 
-DBTYPE DBRowDescriptor::GetColumnType(uint32 index) const
+DBTYPE DBRowDescriptor::GetColumnType( uint32 index ) const
 {
-	return (DBTYPE)_GetColumn( index ).items.at( 1 )->AsInt().value();
+	return (DBTYPE)_GetColumn( index )->GetItem( 1 )->AsInt()->value();
 }
 
-uint32 DBRowDescriptor::FindColumn(const char *name) const
+uint32 DBRowDescriptor::FindColumn( const char* name ) const
 {
 	uint32 cc = ColumnCount();
-    PyString * stringName = new PyString( name );
+    PyString* stringName = new PyString( name );
     
 	for( uint32 i = 0; i < cc; i++ )
     {
-		if( stringName->hash() == GetColumnName( i ).hash() )
+		if( stringName->hash() == GetColumnName( i )->hash() )
         {
             PyDecRef( stringName );
 			return i;
@@ -83,32 +83,31 @@ uint32 DBRowDescriptor::FindColumn(const char *name) const
 	return cc;
 }
 
-void DBRowDescriptor::AddColumn(const char *name, DBTYPE type)
+void DBRowDescriptor::AddColumn( const char* name, DBTYPE type )
 {
-	PyTuple *col = new PyTuple( 2 );
+	PyTuple* col = new PyTuple( 2 );
 
 	col->SetItem( 0, new PyString( name ) );
 	col->SetItem( 1, new PyInt( type ) );
 
-	_GetColumnList().items.push_back( col );
+	_GetColumnList()->items.push_back( col );
 }
 
-PyTuple &DBRowDescriptor::_GetColumnList() const
+PyTuple* DBRowDescriptor::_GetColumnList() const
 {
-	// using at() guarantees bound check
-	return GetArgs().items.at( 0 )->AsTuple();
+	return GetArgs()->GetItem( 0 )->AsTuple();
 }
 
-PyTuple &DBRowDescriptor::_GetColumn(size_t index) const
+PyTuple* DBRowDescriptor::_GetColumn( size_t index ) const
 {
-	return _GetColumnList().items.at( index )->AsTuple();
+	return _GetColumnList()->GetItem( index )->AsTuple();
 }
 
-PyTuple *DBRowDescriptor::_CreateArgs()
+PyTuple* DBRowDescriptor::_CreateArgs()
 {
-	PyTuple *columnList = new PyTuple( 0 );
+	PyTuple* columnList = new PyTuple( 0 );
 
-	PyTuple *args = new PyTuple( 1 );
+	PyTuple* args = new PyTuple( 1 );
 	args->SetItem( 0, columnList );
 
 	return args;

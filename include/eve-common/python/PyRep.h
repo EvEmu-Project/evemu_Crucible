@@ -73,12 +73,14 @@ class DBRowDescriptor;
 #define PySafeIncRef(op) if( (op) == NULL ) ; else PyIncRef( op )
 #define PySafeDecRef(op) if( (op) == NULL ) ; else PyDecRef( op )
 
-/** PyRep base Python wire object
+/**
+ * @brief Base Python wire object
  */
 class PyRep
 {
 public:
-    /** PyRep Python wire object types
+    /**
+     * @brief Python wire object types
      */
     enum PyType
     {
@@ -130,45 +132,69 @@ public:
     const char* TypeString() const;
 
     // tools for easy access, less typecasting...
-    PyInt& AsInt()                                       { assert( IsInt() ); return *(PyInt *)this; }
-    const PyInt& AsInt() const                           { assert( IsInt() ); return *(const PyInt *)this; }
-    PyLong& AsLong()                                     { assert( IsLong() ); return *(PyLong *)this; }
-    const PyLong& AsLong() const                         { assert( IsLong() ); return *(const PyLong *)this; }
-    PyFloat& AsFloat()                                   { assert( IsFloat() ); return *(PyFloat *)this; }
-    const PyFloat& AsFloat() const                       { assert( IsFloat() ); return *(const PyFloat *)this; }
-    PyBool& AsBool()                                     { assert( IsBool() ); return *(PyBool *)this; }
-    const PyBool& AsBool() const                         { assert( IsBool() ); return *(const PyBool *)this; }
-    PyBuffer& AsBuffer()                                 { assert( IsBuffer() ); return *(PyBuffer *)this; }
-    const PyBuffer& AsBuffer() const                     { assert( IsBuffer() ); return *(const PyBuffer *)this; }
-    PyString& AsString()                                 { assert( IsString() ); return *(PyString *)this; }
-    const PyString& AsString() const                     { assert( IsString() ); return *(const PyString *)this; }
-    PyTuple& AsTuple()                                   { assert( IsTuple() ); return *(PyTuple *)this; }
-    const PyTuple& AsTuple() const                       { assert( IsTuple() ); return *(const PyTuple *)this; }
-    PyList& AsList()                                     { assert( IsList() ); return *(PyList *)this; }
-    const PyList& AsList() const                         { assert( IsList() ); return *(const PyList *)this; }
-    PyDict& AsDict()                                     { assert( IsDict() ); return *(PyDict *)this; }
-    const PyDict& AsDict() const                         { assert( IsDict() ); return *(const PyDict *)this; }
-    PyNone& AsNone()                                     { assert( IsNone() ); return *(PyNone *)this; }
-    const PyNone& AsNone() const                         { assert( IsNone() ); return *(const PyNone *)this; }
-    PySubStruct& AsSubStruct()                           { assert( IsSubStruct() ); return *(PySubStruct *)this; }
-    const PySubStruct& AsSubStruct() const               { assert( IsSubStruct() ); return *(const PySubStruct *)this; }
-    PySubStream& AsSubStream()                           { assert( IsSubStream() ); return *(PySubStream *)this; }
-    const PySubStream& AsSubStream() const               { assert( IsSubStream() ); return *(const PySubStream *)this; }
-    PyChecksumedStream& AsChecksumedStream()             { assert( IsChecksumedStream() ); return *(PyChecksumedStream *)this; }
-    const PyChecksumedStream& AsChecksumedStream() const { assert( IsChecksumedStream() ); return *(const PyChecksumedStream *)this; }
-    PyObject& AsObject()                                 { assert( IsObject() ); return *(PyObject *)this; }
-    const PyObject& AsObject() const                     { assert( IsObject() ); return *(const PyObject *)this; }
-    PyObjectEx& AsObjectEx()                             { assert( IsObjectEx() ); return *(PyObjectEx *)this; }
-    const PyObjectEx& AsObjectEx() const                 { assert( IsObjectEx() ); return *(const PyObjectEx *)this; }
-    PyPackedRow& AsPackedRow()                           { assert( IsPackedRow() ); return *(PyPackedRow *)this; }
-    const PyPackedRow& AsPackedRow() const               { assert( IsPackedRow() ); return *(const PyPackedRow *)this; }
+    PyInt* AsInt()                                       { assert( IsInt() ); return (PyInt*)this; }
+    const PyInt* AsInt() const                           { assert( IsInt() ); return (const PyInt*)this; }
+    PyLong* AsLong()                                     { assert( IsLong() ); return (PyLong*)this; }
+    const PyLong* AsLong() const                         { assert( IsLong() ); return (const PyLong*)this; }
+    PyFloat* AsFloat()                                   { assert( IsFloat() ); return (PyFloat*)this; }
+    const PyFloat* AsFloat() const                       { assert( IsFloat() ); return (const PyFloat*)this; }
+    PyBool* AsBool()                                     { assert( IsBool() ); return (PyBool*)this; }
+    const PyBool* AsBool() const                         { assert( IsBool() ); return (const PyBool*)this; }
+    PyBuffer* AsBuffer()                                 { assert( IsBuffer() ); return (PyBuffer*)this; }
+    const PyBuffer* AsBuffer() const                     { assert( IsBuffer() ); return (const PyBuffer*)this; }
+    PyString* AsString()                                 { assert( IsString() ); return (PyString*)this; }
+    const PyString* AsString() const                     { assert( IsString() ); return (const PyString*)this; }
+    PyTuple* AsTuple()                                   { assert( IsTuple() ); return (PyTuple*)this; }
+    const PyTuple* AsTuple() const                       { assert( IsTuple() ); return (const PyTuple*)this; }
+    PyList* AsList()                                     { assert( IsList() ); return (PyList*)this; }
+    const PyList* AsList() const                         { assert( IsList() ); return (const PyList*)this; }
+    PyDict* AsDict()                                     { assert( IsDict() ); return (PyDict*)this; }
+    const PyDict* AsDict() const                         { assert( IsDict() ); return (const PyDict*)this; }
+    PyNone* AsNone()                                     { assert( IsNone() ); return (PyNone*)this; }
+    const PyNone* AsNone() const                         { assert( IsNone() ); return (const PyNone*)this; }
+    PySubStruct* AsSubStruct()                           { assert( IsSubStruct() ); return (PySubStruct*)this; }
+    const PySubStruct* AsSubStruct() const               { assert( IsSubStruct() ); return (const PySubStruct*)this; }
+    PySubStream* AsSubStream()                           { assert( IsSubStream() ); return (PySubStream*)this; }
+    const PySubStream* AsSubStream() const               { assert( IsSubStream() ); return (const PySubStream*)this; }
+    PyChecksumedStream* AsChecksumedStream()             { assert( IsChecksumedStream() ); return (PyChecksumedStream*)this; }
+    const PyChecksumedStream* AsChecksumedStream() const { assert( IsChecksumedStream() ); return (const PyChecksumedStream*)this; }
+    PyObject* AsObject()                                 { assert( IsObject() ); return (PyObject*)this; }
+    const PyObject* AsObject() const                     { assert( IsObject() ); return (const PyObject*)this; }
+    PyObjectEx* AsObjectEx()                             { assert( IsObjectEx() ); return (PyObjectEx*)this; }
+    const PyObjectEx* AsObjectEx() const                 { assert( IsObjectEx() ); return (const PyObjectEx*)this; }
+    PyPackedRow* AsPackedRow()                           { assert( IsPackedRow() ); return (PyPackedRow*)this; }
+    const PyPackedRow* AsPackedRow() const               { assert( IsPackedRow() ); return (const PyPackedRow*)this; }
 
+    /**
+     * @brief Dumps object to file.
+     *
+     * @param[in] into File into which dump should be written.
+     * @param[in] pfx  Prefix which is put in front of each line.
+     */
     void Dump( FILE* into, const char* pfx ) const;
+    /**
+     * @brief Dumps object to console.
+     *
+     * @param[in] type Log type to use for dump.
+     * @param[in] pfx  Prefix which is put in front of each line.
+     */
     void Dump( LogType type, const char* pfx ) const;
 
+    /**
+     * @brief Clones object.
+     *
+     * @return Indentical copy of object.
+     */
     virtual PyRep* Clone() const = 0;
+    /**
+     * @brief Visits object.
+     *
+     * @param[in] v Visitor to be used for visiting.
+     *
+     * @retval true  Visit successfull.
+     * @retval false Error during visit.
+     */
     virtual bool visit( PyVisitor& v ) const = 0;
-
     /**
      * @brief virtual function to generate a hash value of a object.
      * 
@@ -178,12 +204,20 @@ public:
      */
     virtual int32 hash() const;
 
+    /**
+     * @brief Increments reference count of object by one.
+     */
     void IncRef() const
     {
         ++mRefCnt;
         _py_obj_trace( "PyRep:0x%p | ref:%u inc\n", this, mRefCnt );
     }
-
+    /**
+     * @brief Decrements reference count of object by one.
+     *
+     * If reference count of object reaches zero, object
+     * is deleted.
+     */
     void DecRef() const
     {
         --mRefCnt;
@@ -715,17 +749,9 @@ class PyObjectEx_Type1
 public:
     PyObjectEx_Type1( const char* type, PyTuple* args, PyDict* keywords );
 
-    PyString& GetType() const
-    {
-        assert( header() );
-        return header()->AsTuple().GetItem( 0 )->AsString();
-    }
-    PyTuple& GetArgs() const
-    {
-        assert( header() );
-        return header()->AsTuple().GetItem( 1 )->AsTuple();
-    }
-    PyDict& GetKeywords() const;
+    PyString* GetType() const;
+    PyTuple* GetArgs() const;
+    PyDict* GetKeywords() const;
 
     PyRep* FindKeyword( const char* keyword ) const;
 
@@ -744,16 +770,8 @@ class PyObjectEx_Type2
 public:
     PyObjectEx_Type2( PyTuple* args, PyDict* keywords );
 
-    PyTuple& GetArgs() const
-    {
-        assert( header() );
-        return header()->AsTuple().GetItem( 0 )->AsTuple();
-    }
-    PyDict& GetKeywords() const
-    {
-        assert( header() );
-        return header()->AsTuple().GetItem( 1 )->AsDict();
-    }
+    PyTuple* GetArgs() const;
+    PyDict* GetKeywords() const;
 
     PyRep* FindKeyword( const char* keyword ) const;
 
