@@ -300,12 +300,38 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
 
 	// Now comes an OnItemChange notification, no need to do anything server-side
-	Notify_OnItemChange N_oic;
-	N_oic.locationID = oInfo.officeFolderID;
-	N_oic.itemID = oInfo.officeID;
-	N_oic.ownerID = ac.ownerid;
+    util_Row Noic_row;
 
-	PyTuple * res3 = N_oic.FastEncode();
+    Noic_row.header.push_back( "itemID" );
+    Noic_row.header.push_back( "typeID" );
+    Noic_row.header.push_back( "ownerID" );
+    Noic_row.header.push_back( "locationID" );
+    Noic_row.header.push_back( "flag" );
+    Noic_row.header.push_back( "contraband" );
+    Noic_row.header.push_back( "singleton" );
+    Noic_row.header.push_back( "quantity" );
+    Noic_row.header.push_back( "groupID" );
+    Noic_row.header.push_back( "categoryID" );
+    Noic_row.header.push_back( "customInfo" );
+
+    Noic_row.line = new PyList;
+    Noic_row.line->AddItemInt( oInfo.officeID );
+    Noic_row.line->AddItemInt( 27 );
+    Noic_row.line->AddItemInt( ac.ownerid );
+    Noic_row.line->AddItemInt( oInfo.officeFolderID );
+    Noic_row.line->AddItemInt( flagOfficeSlotFirst );
+    Noic_row.line->AddItemInt( 0 );
+    Noic_row.line->AddItemInt( 1 );
+    Noic_row.line->AddItemInt( 1 );
+    Noic_row.line->AddItemInt( EVEDB::invGroups::Station_Services );
+    Noic_row.line->AddItemInt( EVEDB::invCategories::Station );
+    Noic_row.line->AddItem( new PyNone );
+
+	NotifyOnItemChange Noic;
+    Noic.itemRow = Noic_row.FastEncode();
+    Noic.changes[ixOwnerID] = new PyInt( 4 );
+
+	PyTuple* res3 = Noic.FastEncode();
 	// This is a possible broadcast-candidate
 	m_manager->entity_list.Multicast("OnItemChange", "*stationid&corpid", &res3, NOTIF_DEST__LOCATION, location, false);
 

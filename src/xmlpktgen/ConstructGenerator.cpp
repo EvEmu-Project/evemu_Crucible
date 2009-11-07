@@ -29,28 +29,29 @@
 
 ClassConstructGenerator::ClassConstructGenerator()
 {
-	AllGenProcRegs(ClassConstructGenerator);
-	GenProcReg(ClassConstructGenerator, IDEntry, NULL);
+	AllGenProcRegs( ClassConstructGenerator );
+	GenProcReg( ClassConstructGenerator, dictInlineEntry, NULL );
 }
 
-bool ClassConstructGenerator::Process_elementdef(FILE *into, TiXmlElement *element)
+bool ClassConstructGenerator::Process_elementDef( FILE* into, TiXmlElement* element )
 {
-	const char *name = element->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row());
+	const char* name = element->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row() );
 		return false;
 	}
 
-	fprintf(into,
+	fprintf( into,
 		"%s::%s()\n"
 		"{\n",
 		name, name
     );
-	
-	if(!Recurse(into, element))
+
+	if( !Recurse( into, element ) )
 		return false;
-	
-	fprintf(into,
+
+	fprintf( into,
 		"}\n"
 		"\n"
         "%s::%s( const %s& oth )\n"
@@ -64,79 +65,21 @@ bool ClassConstructGenerator::Process_elementdef(FILE *into, TiXmlElement *eleme
 	return true;
 }
 
-bool ClassConstructGenerator::Process_InlineTuple(FILE *into, TiXmlElement *field)
+bool ClassConstructGenerator::Process_element( FILE* into, TiXmlElement* field )
 {
-	return Recurse(into, field);
+	return true;
 }
 
-bool ClassConstructGenerator::Process_InlineList(FILE *into, TiXmlElement *field)
+bool ClassConstructGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
 {
-	return Recurse(into, field);
-}
-
-bool ClassConstructGenerator::Process_InlineDict(FILE *into, TiXmlElement *field)
-{
-	return Recurse(into, field);
-}
-
-bool ClassConstructGenerator::Process_IDEntry(FILE *into, TiXmlElement *field)
-{
-	//we dont really even care about this...
-	const char *key = field->Attribute("key");
-	if(key == NULL) {
-		_log(COMMON__ERROR, "<IDEntry> at line %d is missing the key attribute, skipping.", field->Row());
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
 		return false;
 	}
 
-	return Recurse(into, field, 1);
-}
-
-bool ClassConstructGenerator::Process_InlineSubStream(FILE *into, TiXmlElement *field)
-{
-	return Recurse(into, field, 1);
-}
-
-bool ClassConstructGenerator::Process_InlineSubStruct(FILE *into, TiXmlElement *field)
-{
-	return Recurse(into, field, 1);
-}
-
-bool ClassConstructGenerator::Process_strdict(FILE *into, TiXmlElement *field) {
-	return true;
-}
-
-bool ClassConstructGenerator::Process_intdict(FILE *into, TiXmlElement *field) {
-	return true;
-}
-
-bool ClassConstructGenerator::Process_primdict(FILE *into, TiXmlElement *field) {
-	return true;
-}
-
-bool ClassConstructGenerator::Process_strlist(FILE *into, TiXmlElement *field) {
-	return true;
-}
-
-bool ClassConstructGenerator::Process_intlist(FILE *into, TiXmlElement *field) {
-	return true;
-}
-
-bool ClassConstructGenerator::Process_int64list(FILE *into, TiXmlElement *field) {
-	return true;
-}
-
-bool ClassConstructGenerator::Process_element(FILE *into, TiXmlElement *field) {
-	return true;
-}
-
-bool ClassConstructGenerator::Process_elementptr(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return false;
-	}
-
-	fprintf(into,
+	fprintf( into,
 		"    %s = NULL;\n",
 		name
 	);
@@ -144,27 +87,202 @@ bool ClassConstructGenerator::Process_elementptr(FILE *into, TiXmlElement *field
 	return true;
 }
 
-bool ClassConstructGenerator::Process_none(FILE *into, TiXmlElement *field) {
-	return true;
-}
-
-bool ClassConstructGenerator::Process_object(FILE *into, TiXmlElement *field)
+bool ClassConstructGenerator::Process_raw( FILE* into, TiXmlElement* field )
 {
-	const char *type = field->Attribute("type");
-	if(type == NULL) {
-		_log(COMMON__ERROR, "object at line %d is missing the type attribute, skipping.", field->Row());
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
 		return false;
 	}
 
-	fprintf(into,
-		"    /* object of type %s */\n",
-		type
+	fprintf( into,
+		"    %s = NULL;\n",
+		name
 	);
 
-	return Recurse(into, field, 1);
+	return true;
 }
 
-bool ClassConstructGenerator::Process_object_ex(FILE *into, TiXmlElement *field) {
+bool ClassConstructGenerator::Process_int( FILE* into, TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+		return false;
+	}
+
+	const char* def = field->Attribute( "default" );
+	if( def == NULL )
+		def = "0";
+
+	fprintf( into,
+		"    %s = %s;\n",
+		name, def
+	);
+
+	return true;
+}
+
+bool ClassConstructGenerator::Process_long( FILE* into, TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+		return false;
+	}
+
+	const char* def = field->Attribute( "default" );
+	if( def == NULL )
+		def = "0";
+
+	fprintf( into,
+		"    %s = %s;\n",
+		name, def
+	);
+
+	return true;
+}
+
+bool ClassConstructGenerator::Process_real( FILE* into, TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+		return false;
+	}
+
+	const char* def = field->Attribute( "default" );
+	if( def == NULL )
+		def = "0.0";
+
+	fprintf( into,
+		"    %s = %s;\n",
+		name, def
+	);
+
+	return true;
+}
+
+bool ClassConstructGenerator::Process_bool( FILE* into, TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+		return false;
+	}
+
+	const char* def = field->Attribute( "default" );
+	if( def == NULL )
+		def = "false";
+
+	fprintf( into,
+		"    %s = %s;\n",
+		name, def
+	);
+
+	return true;
+}
+
+bool ClassConstructGenerator::Process_none( FILE* into, TiXmlElement* field )
+{
+	return true;
+}
+
+bool ClassConstructGenerator::Process_string( FILE* into, TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+		return false;
+	}
+
+	const char* def = field->Attribute( "default" );
+	if( def == NULL )
+		def = "";
+
+	fprintf( into,
+		"    %s = \"%s\";\n",
+		name, def
+	);
+
+	return true;
+}
+
+bool ClassConstructGenerator::Process_stringInline( FILE* into, TiXmlElement* field )
+{
+    return true;
+}
+
+bool ClassConstructGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+		return false;
+	}
+
+	fprintf( into,
+		"    %s = NULL;\n",
+		name
+	);
+
+	return true;
+}
+
+bool ClassConstructGenerator::Process_token( FILE* into, TiXmlElement* field )
+{
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
+    {
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
+
+    fprintf( into,
+	    "    %s = NULL;\n",
+	    name
+    );
+
+    return true;
+}
+
+bool ClassConstructGenerator::Process_tokenInline( FILE* into, TiXmlElement* field )
+{
+    return true;
+}
+
+bool ClassConstructGenerator::Process_object( FILE* into, TiXmlElement* field )
+{
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
+	{
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
+
+    fprintf( into,
+        "    %s = NULL;\n"
+        "\n",
+        name
+    );
+
+    return true;
+}
+
+bool ClassConstructGenerator::Process_objectInline( FILE* into, TiXmlElement* field )
+{
+    return Recurse( into, field, 2 );
+}
+
+bool ClassConstructGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
+{
 	const char *name = field->Attribute( "name" );
 	if( name == NULL )
 	{
@@ -176,167 +294,127 @@ bool ClassConstructGenerator::Process_object_ex(FILE *into, TiXmlElement *field)
 		"    %s = NULL;\n",
 		name
 	);
+
 	return true;
 }
 
-bool ClassConstructGenerator::Process_buffer(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+bool ClassConstructGenerator::Process_tuple( FILE* into, TiXmlElement* field )
+{
+	const char *name = field->Attribute( "name" );
+	if( name == NULL )
+	{
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute.", field->Row() );
 		return false;
 	}
 
-	fprintf(into,
+	fprintf( into,
 		"    %s = NULL;\n",
 		name
 	);
+
 	return true;
 }
 
-bool ClassConstructGenerator::Process_raw(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+bool ClassConstructGenerator::Process_tupleInline( FILE* into, TiXmlElement* field )
+{
+	return Recurse( into, field );
+}
+
+bool ClassConstructGenerator::Process_list( FILE* into, TiXmlElement* field )
+{
+	const char *name = field->Attribute( "name" );
+	if( name == NULL )
+	{
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute.", field->Row() );
 		return false;
 	}
 
-	fprintf(into,
+	fprintf( into,
 		"    %s = NULL;\n",
 		name
 	);
+
 	return true;
 }
 
-bool ClassConstructGenerator::Process_list(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+bool ClassConstructGenerator::Process_listInline( FILE* into, TiXmlElement* field )
+{
+	return Recurse( into, field );
+}
+
+bool ClassConstructGenerator::Process_listInt( FILE* into, TiXmlElement* field )
+{
+	return true;
+}
+
+bool ClassConstructGenerator::Process_listLong( FILE* into, TiXmlElement* field )
+{
+	return true;
+}
+
+bool ClassConstructGenerator::Process_listStr( FILE* into, TiXmlElement* field )
+{
+	return true;
+}
+
+bool ClassConstructGenerator::Process_dict( FILE* into, TiXmlElement* field )
+{
+	const char *name = field->Attribute( "name" );
+	if( name == NULL )
+	{
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute.", field->Row() );
 		return false;
 	}
 
-	fprintf(into,
+	fprintf( into,
 		"    %s = NULL;\n",
 		name
 	);
+
 	return true;
 }
 
-bool ClassConstructGenerator::Process_tuple(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+bool ClassConstructGenerator::Process_dictInline( FILE* into, TiXmlElement* field )
+{
+	return Recurse( into, field );
+}
+
+bool ClassConstructGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement* field )
+{
+	//we dont really even care about this...
+	const char* key = field->Attribute( "key" );
+	if( key == NULL )
+    {
+		_log( COMMON__ERROR, "<dictInlineEntry> at line %d is missing the key attribute, skipping.", field->Row() );
 		return false;
 	}
 
-	fprintf(into,
-		"    %s = NULL;\n",
-		name
-	);
+	return Recurse( into, field, 1 );
+}
+
+bool ClassConstructGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
+{
 	return true;
 }
 
-bool ClassConstructGenerator::Process_dict(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return false;
-	}
-
-	fprintf(into,
-		"    %s = NULL;\n",
-		name
-	);
+bool ClassConstructGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
+{
 	return true;
 }
 
-bool ClassConstructGenerator::Process_bool(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return false;
-	}
-
-	const char *def = field->Attribute("default");
-	if( def == NULL )
-		def = "false";
-
-	fprintf(into,
-		"    %s = %s;\n",
-		name, def
-	);
+bool ClassConstructGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
+{
 	return true;
 }
 
-bool ClassConstructGenerator::Process_int(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return false;
-	}
-
-	const char *def = field->Attribute("default");
-	if(def == NULL)
-		def = "0";
-
-	fprintf(into,
-		"    %s = %s;\n",
-		name, def
-	);
-	return true;
+bool ClassConstructGenerator::Process_substreamInline( FILE* into, TiXmlElement* field )
+{
+	return Recurse( into, field, 1 );
 }
 
-bool ClassConstructGenerator::Process_int64(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return false;
-	}
-
-	const char *def = field->Attribute("default");
-	if(def == NULL)
-		def = "0";
-
-	fprintf(into,
-		"    %s = %s;\n",
-		name, def
-	);
-	return true;
-}
-
-bool ClassConstructGenerator::Process_string(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return false;
-	}
-
-	const char *def = field->Attribute("default");
-	if(def == NULL)
-		def = "";
-
-	fprintf(into,
-		"    %s = \"%s\";\n",
-		name, def
-	);
-	return true;
-}
-
-bool ClassConstructGenerator::Process_real(FILE *into, TiXmlElement *field) {
-	const char *name = field->Attribute("name");
-	if(name == NULL) {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
-		return false;
-	}
-
-	const char *def = field->Attribute("default");
-	if(def == NULL)
-		def = "0.0";
-
-	fprintf(into,
-		"    %s = %s;\n",
-		name, def
-	);
-	return true;
+bool ClassConstructGenerator::Process_substructInline( FILE* into, TiXmlElement* field )
+{
+	return Recurse( into, field, 1 );
 }
 
 

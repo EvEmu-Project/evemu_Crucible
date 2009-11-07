@@ -126,25 +126,35 @@ extern void log_messageVA( LogType type, uint32 iden, const char *fmt, va_list a
     free(log_msg);
 }
 
-void log_enable(LogType t) {
+void log_enable( LogType t )
+{
     real_log_type_info[t].enabled = true;
 }
 
-void log_disable(LogType t) {
+void log_disable( LogType t )
+{
     real_log_type_info[t].enabled = false;
 }
 
-void log_toggle(LogType t) {
+void log_toggle( LogType t )
+{
     real_log_type_info[t].enabled = !real_log_type_info[t].enabled;
 }
 
-bool log_open_logfile(const char *fname) {
-    if(logsys_log_file != NULL)
-        fclose(logsys_log_file);
-    logsys_log_file = fopen(fname, "w");
-    if(logsys_log_file == NULL)
+bool log_open_logfile( const char* filename )
+{
+    if( !log_close_logfile() )
         return false;
-    return true;
+
+    logsys_log_file = fopen( filename, "w" );
+    return ( NULL != logsys_log_file );
+}
+
+bool log_close_logfile()
+{
+    if( NULL == logsys_log_file )
+        return true;
+    return ( 0 == fclose( logsys_log_file ) );
 }
 
 bool load_log_settings(const char *filename) {

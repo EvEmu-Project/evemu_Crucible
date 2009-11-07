@@ -64,7 +64,7 @@ PyList* CRowSet::_GetColumnList() const
 PyTuple* CRowSet::_CreateArgs()
 {
 	PyTuple* args = new PyTuple( 1 );
-	args->SetItem( 0, new PyString( "dbutil.CRowset", true ) );
+	args->SetItem( 0, new PyToken( "dbutil.CRowset" ) );
 
 	return args;
 }

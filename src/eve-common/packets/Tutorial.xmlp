@@ -1,28 +1,31 @@
-<Elements>
 
-<elementdef name="Call_GetTutorialInfo">
-	<InlineTuple>
-		<int name="tutorialID" />
-	</InlineTuple>
-</elementdef>
 
-<elementdef name="Rsp_GetTutorialInfo">
-	<object type="util.KeyVal">
-		<InlineDict>
-			<IDEntry key="pagecriterias">
-				<raw name="pagecriterias" />
-			</IDEntry>
-			<IDEntry key="pages">
-				<raw name="pages" />
-			</IDEntry>
-			<IDEntry key="tutorial">
-				<raw name="tutorial" />
-			</IDEntry>
-			<IDEntry key="criterias">
-				<raw name="criterias" />
-			</IDEntry>
-		</InlineDict>
-	</object>
-</elementdef>
+<elements>
 
-</Elements>
+  <elementDef name="Call_GetTutorialInfo">
+	  <tupleInline>
+		  <int name="tutorialID" />
+	  </tupleInline>
+  </elementDef>
+
+  <elementDef name="Rsp_GetTutorialInfo">
+    <objectInline>
+      <stringInline value="util.KeyVal" />
+	    <dictInline>
+        <dictInlineEntry key="pagecriterias">
+          <raw name="pagecriterias" />
+		    </dictInlineEntry>
+        <dictInlineEntry key="pages">
+			    <raw name="pages" />
+		    </dictInlineEntry>
+        <dictInlineEntry key="tutorial">
+			    <raw name="tutorial" />
+		    </dictInlineEntry>
+        <dictInlineEntry key="criterias">
+			    <raw name="criterias" />
+		    </dictInlineEntry>
+	    </dictInline>
+    </objectInline>
+  </elementDef>
+
+</elements>

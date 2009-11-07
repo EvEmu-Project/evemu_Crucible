@@ -28,12 +28,12 @@
 #include "python/classes/DBRowDescriptor.h"
 
 DBRowDescriptor::DBRowDescriptor()
-: PyObjectEx_Type1( "blue.DBRowDescriptor", _CreateArgs(), NULL )
+: PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs(), NULL )
 {
 }
 
 DBRowDescriptor::DBRowDescriptor( const DBQueryResult& res )
-: PyObjectEx_Type1( "blue.DBRowDescriptor", _CreateArgs(), NULL )
+: PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs(), NULL )
 {
 	uint32 cc = res.ColumnCount();
 
@@ -42,7 +42,7 @@ DBRowDescriptor::DBRowDescriptor( const DBQueryResult& res )
 }
 
 DBRowDescriptor::DBRowDescriptor( const DBResultRow& row )
-: PyObjectEx_Type1( "blue.DBRowDescriptor", _CreateArgs(), NULL )
+: PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs(), NULL )
 {
 	uint32 cc = row.ColumnCount();
 

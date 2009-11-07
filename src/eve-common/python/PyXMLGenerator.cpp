@@ -44,7 +44,7 @@ bool PyXMLGenerator::VisitInteger( const PyInt* rep )
 
 bool PyXMLGenerator::VisitLong( const PyLong* rep )
 {
-    fprintf( mInto, "%s<int64 name=\"long%u\" />\n", _pfx(), mItem++ );
+    fprintf( mInto, "%s<long name=\"long%u\" />\n", _pfx(), mItem++ );
 
     return true;
 }
@@ -86,40 +86,39 @@ bool PyXMLGenerator::VisitString( const PyString* rep )
 
 bool PyXMLGenerator::VisitObject( const PyObject* rep )
 {
-    //do not visit the type:
-    fprintf( mInto, "%s<object type=\"%s\">\n", _pfx(), rep->type()->content().c_str() );
+    fprintf( mInto, "%s<objectInline>\n", _pfx() );
 
     _pfxExtend( "    " );
-    bool res = rep->arguments()->visit( *this );
+    bool res = PyPfxVisitor::VisitObject( rep );
     _pfxWithdraw();
 
-    fprintf( mInto, "%s</object>\n", _pfx() );
+    fprintf( mInto, "%s</objectInline>\n", _pfx() );
 
     return res;
 }
 
 bool PyXMLGenerator::VisitSubStruct( const PySubStruct* rep )
 {
-    fprintf( mInto, "%s<InlineSubStruct>\n", _pfx() );
+    fprintf( mInto, "%s<substructInline>\n", _pfx() );
 
     _pfxExtend( "    " );
     bool res = PyVisitor::VisitSubStruct( rep );
     _pfxWithdraw();
 
-    fprintf( mInto, "%s</InlineSubStruct>\n", _pfx() );
+    fprintf( mInto, "%s</substructInline>\n", _pfx() );
 
     return res;
 }
 
 bool PyXMLGenerator::VisitSubStream( const PySubStream* rep )
 {
-    fprintf( mInto, "%s<InlineSubStream>\n", _pfx() );
+    fprintf( mInto, "%s<substreamInline>\n", _pfx() );
 
     _pfxExtend( "    " );
     bool res = PyVisitor::VisitSubStream( rep );
     _pfxWithdraw();
 
-    fprintf( mInto, "%s</InlineSubStream>\n", _pfx() );
+    fprintf( mInto, "%s</substreamInline>\n", _pfx() );
 
     return true;
 }
@@ -217,24 +216,24 @@ bool PyXMLGenerator::VisitDict( const PyDict* rep )
         switch( vtype )
         {
         case ValueString:
-            fprintf( mInto, "%s<intdict name=\"dict%u\" type=\"string\" />\n", _pfx(), mItem++ );
+            fprintf( mInto, "%s<dictInt name=\"dict%u\" type=\"string\" />\n", _pfx(), mItem++ );
             break;
         case ValueInt:
-            fprintf( mInto, "%s<intdict name=\"dict%u\" type=\"int\" />\n", _pfx(), mItem++ );
+            fprintf( mInto, "%s<dictInt name=\"dict%u\" type=\"int\" />\n", _pfx(), mItem++ );
             break;
         case ValueReal:
-            fprintf( mInto, "%s<intdict name=\"dict%u\" type=\"real\" />\n", _pfx(), mItem++ );
+            fprintf( mInto, "%s<dictInt name=\"dict%u\" type=\"real\" />\n", _pfx(), mItem++ );
             break;
         case ValueUnknown:
         case ValueMixed:
-            fprintf( mInto, "%s<rawdict name=\"dict%u\" />\n", _pfx(), mItem++ );
+            fprintf( mInto, "%s<dictRaw name=\"dict%u\" />\n", _pfx(), mItem++ );
             break;
         }
 
         return true;
     }
 
-    fprintf( mInto, "%s<InlineDict>\n", _pfx() );
+    fprintf( mInto, "%s<dictInline>\n", _pfx() );
 
     _pfxExtend( "    " );
 
@@ -250,18 +249,18 @@ bool PyXMLGenerator::VisitDict( const PyDict* rep )
         }
         PyString* str = cur->first->AsString();
 
-        fprintf( mInto, "%s<IDEntry key=\"%s\">\n", _pfx(), str->content().c_str() );
+        fprintf( mInto, "%s<dictInlineEntry key=\"%s\">\n", _pfx(), str->content().c_str() );
 
         _pfxExtend( "    " );
         cur->second->visit( *this );
         _pfxWithdraw();
 
-        fprintf( mInto, "%s</IDEntry>\n", _pfx() );
+        fprintf( mInto, "%s</dictInlineEntry>\n", _pfx() );
     }
 
     _pfxWithdraw();
 
-    fprintf( mInto, "%s</InlineDict>\n", _pfx() );
+    fprintf( mInto, "%s</dictInline>\n", _pfx() );
 
     return true;
 }
@@ -272,7 +271,7 @@ bool PyXMLGenerator::VisitList( const PyList* rep )
     //more than a few things...
     if( rep->size() < 5 )
     {
-        fprintf( mInto, "%s<InlineList>\n", _pfx() );
+        fprintf( mInto, "%s<listInline>\n", _pfx() );
 
         _pfxExtend( "    " );
 
@@ -288,7 +287,7 @@ bool PyXMLGenerator::VisitList( const PyList* rep )
 
         _pfxWithdraw();
 
-        fprintf( mInto, "%s</InlineList>\n", _pfx() );
+        fprintf( mInto, "%s</listInline>\n", _pfx() );
     }
     else
     {
@@ -348,13 +347,13 @@ bool PyXMLGenerator::VisitList( const PyList* rep )
         switch( eletype )
         {
         case TypeString:
-            fprintf( mInto, "%s<stringlist name=\"list%u\" />\n", _pfx(), mItem++ );
+            fprintf( mInto, "%s<listStr name=\"list%u\" />\n", _pfx(), mItem++ );
             break;
         case TypeInteger:
-            fprintf( mInto, "%s<intlist name=\"list%u\" />\n", _pfx(), mItem++ );
+            fprintf( mInto, "%s<listInt name=\"list%u\" />\n", _pfx(), mItem++ );
             break;
         case TypeReal:
-            fprintf( mInto, "%s<reallist name=\"list%u\" />\n", _pfx(), mItem++ );
+            fprintf( mInto, "%s<listReal name=\"list%u\" />\n", _pfx(), mItem++ );
             break;
         case TypeUnknown:
         case TypeMixed:
@@ -368,7 +367,7 @@ bool PyXMLGenerator::VisitList( const PyList* rep )
 
 bool PyXMLGenerator::VisitTuple( const PyTuple* rep )
 {
-    fprintf( mInto, "%s<InlineTuple>\n", _pfx() );
+    fprintf( mInto, "%s<tupleInline>\n", _pfx() );
 
     _pfxExtend( "    " );
 
@@ -384,7 +383,7 @@ bool PyXMLGenerator::VisitTuple( const PyTuple* rep )
 
     _pfxWithdraw();
 
-    fprintf( mInto, "%s</InlineTuple>\n", _pfx() );
+    fprintf( mInto, "%s</tupleInline>\n", _pfx() );
 
     return true;
 }

@@ -423,36 +423,34 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     if( !character )
         return;
 
-    mSession.SetInt( "charid",          character->itemID() );
-    mSession.SetInt( "corpid",          character->corporationID() );
+    mSession.SetInt( "charid", character->itemID() );
+    mSession.SetInt( "corpid", character->corporationID() );
     if( character->stationID() == 0 )
     {
-        // in space
         mSession.Clear( "stationid" );
-        mSession.SetInt( "solarsystemid",   character->solarSystemID() );
 
-        mSession.SetInt( "locationid",      character->solarSystemID() );
+        mSession.SetInt( "solarsystemid", character->solarSystemID() );
+        mSession.SetInt( "locationid", character->solarSystemID() );
     }
     else
     {
-        // in station
         mSession.Clear( "solarsystemid" );
-        mSession.SetInt( "stationid",      character->stationID() );
 
-        mSession.SetInt( "locationid",     character->stationID() );
+        mSession.SetInt( "stationid", character->stationID() );
+        mSession.SetInt( "locationid", character->stationID() );
     }
-    mSession.SetInt( "solarsystemid2",  character->solarSystemID() );
+    mSession.SetInt( "solarsystemid2", character->solarSystemID() );
     mSession.SetInt( "constellationid", character->constellationID() );
-    mSession.SetInt( "regionid",        character->regionID() );
+    mSession.SetInt( "regionid", character->regionID() );
 
-    mSession.SetInt( "hqID",            character->corporationHQ() );
-    mSession.SetLong( "corprole",       character->corpRole() );
-    mSession.SetLong( "rolesAtAll",     character->rolesAtAll() );
-    mSession.SetLong( "rolesAtBase",    character->rolesAtBase() );
-    mSession.SetLong( "rolesAtHQ",      character->rolesAtHQ() );
-    mSession.SetLong( "rolesAtOther",   character->rolesAtOther() );
+    mSession.SetInt( "hqID", character->corporationHQ() );
+    mSession.SetLong( "corprole", character->corpRole() );
+    mSession.SetLong( "rolesAtAll", character->rolesAtAll() );
+    mSession.SetLong( "rolesAtBase", character->rolesAtBase() );
+    mSession.SetLong( "rolesAtHQ", character->rolesAtHQ() );
+    mSession.SetLong( "rolesAtOther", character->rolesAtOther() );
 
-    mSession.SetInt( "shipid",          character->locationID() );
+    mSession.SetInt( "shipid", character->locationID() );
 }
 
 void Client::_SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel )
@@ -574,20 +572,17 @@ void Client::_SendPingRequest()
     FastQueuePacket(&ping_req);
 }
 
-void Client::_SendPingResponse()
+void Client::_SendPingResponse( const PyAddress& source, uint64 callID )
 {
     PyPacket* ret = new PyPacket;
     ret->type = PING_RSP;
     ret->type_string = "macho.PingRsp";
 
-    ret->source.type = PyAddress::Node;
-    ret->source.typeID = services().GetNodeID();
-    ret->source.service = "ping";
-    ret->source.callID = 0;
+    ret->source = source;
 
     ret->dest.type = PyAddress::Client;
     ret->dest.typeID = GetAccountID();
-    ret->dest.callID = 0;
+    ret->dest.callID = callID;
 
     ret->userid = GetAccountID();
 
@@ -856,29 +851,30 @@ bool Client::AddBalance(double amount) {
 
 
 
-bool Client::SelectCharacter(uint32 char_id) {
-    //get char
+bool Client::SelectCharacter( uint32 char_id )
+{
     m_char = m_services.item_factory.GetCharacter( char_id );
     if( !GetChar() )
         return false;
 
-    ShipRef ship = m_services.item_factory.GetShip( GetChar()->locationID() );
+    _UpdateSession( GetChar() );
+
+    ShipRef ship = m_services.item_factory.GetShip( GetShipID() );
     if( !ship )
         return false;
-    BoardShip( ship );  //updates modules
 
-    if(!EnterSystem())
+    BoardShip( ship );
+
+    if( !EnterSystem() )
         return false;
 
     // update skill queue
     GetChar()->UpdateSkillQueue();
 
-    _UpdateSession( GetChar() );
-    _SendSessionChange();
-
     //johnsus - characterOnline mod
-    m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), true);
+    m_services.serviceDB().SetCharacterOnlineStatus( GetCharacterID(), true );
 
+    _SendSessionChange();
     return true;
 }
 

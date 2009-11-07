@@ -91,6 +91,7 @@ PyResult CharMgrService::Handle_GetTopBounties(PyCallArgs &call) {
 	_log(SERVICE__ERROR, "%s::GetTopBounties unimplemented.", GetName());
 
 	util_Rowset rs;
+    rs.lines = new PyList;
 
 	rs.header.push_back("characterID");
 	rs.header.push_back("ownerName");

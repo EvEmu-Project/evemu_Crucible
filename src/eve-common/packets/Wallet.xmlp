@@ -1,23 +1,23 @@
 
 
-<Elements>
+<elements>
 
-<elementdef name="OnAccountChange">
-  <InlineTuple>
-    <string name="accountKey" />
-    <int name="ownerid" />
-    <real name="balance" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="OnAccountChange">
+    <tupleInline>
+      <string name="accountKey" />
+      <int name="ownerid" />
+      <real name="balance" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_GiveCash">
-  <InlineTuple>
-    <int  name="destination" />
-    <real name="amount" />
-    <string name="reason" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Call_GiveCash">
+    <tupleInline>
+      <int  name="destination" />
+      <real name="amount" />
+      <string name="reason" />
+    </tupleInline>
+  </elementDef>
 
-</Elements>
+</elements>
 
 

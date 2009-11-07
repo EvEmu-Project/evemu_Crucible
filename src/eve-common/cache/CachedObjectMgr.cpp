@@ -263,15 +263,15 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
         return false;
     }
 
-    uint8* buf = new uint8[ header.length ];
-    if( fread( buf, sizeof( uint8 ), header.length, f ) != header.length )
+    Buffer* buf = new Buffer( header.length );
+    if( fread( &(*buf)[0], sizeof( uint8 ), header.length, f ) != header.length )
     {
         SafeDelete( buf );
 
-        fclose(f);
+        fclose( f );
         return false;
     }
-    fclose(f);
+    fclose( f );
 
     std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find( str );
     if( res != m_cachedObjects.end() )
@@ -279,7 +279,7 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
 
     CacheRecord* cache = m_cachedObjects[ str ] = new CacheRecord;
     cache->objectID = objectID->Clone();
-    cache->cache = new PyBuffer( &buf, header.length );
+    cache->cache = new PyBuffer( &buf );
     cache->timestamp = header.timestamp;
     cache->version = header.version;
 

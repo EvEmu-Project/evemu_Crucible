@@ -33,10 +33,10 @@ class ClassDestructGenerator
 {
 public:
 	ClassDestructGenerator();
-	
+
 protected:
 	AllGenProcDecls;
-	GenProcDecl(IDEntry);
+	GenProcDecl( dictInlineEntry );
 };
 
 #endif

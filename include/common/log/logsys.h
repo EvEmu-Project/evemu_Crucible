@@ -68,28 +68,43 @@
 
 
 #define LOG_CATEGORY(category) LOG_ ##category ,
-typedef enum {
+enum LogCategory
+{
     #include "logtypes.h"
     NUMBER_OF_LOG_CATEGORIES
-} LogCategory;
+};
 
 #define LOG_TYPE(category, type, enabled, str) category##__##type ,
-typedef enum {
+enum LogType
+{
     #include "logtypes.h"
     NUMBER_OF_LOG_TYPES
-} LogType;
+};
 
-extern const char *log_category_names[NUMBER_OF_LOG_CATEGORIES];
+extern const char* log_category_names[NUMBER_OF_LOG_CATEGORIES];
 
-typedef struct {
+struct LogTypeStatus
+{
     bool enabled;
     LogCategory category;
     const char *name;
     const char *display_name;
-} LogTypeStatus;
+};
 
 //expose a read-only pointer
-extern const LogTypeStatus *log_type_info;
+extern const LogTypeStatus* log_type_info;
+
+#define is_log_enabled( type ) \
+    ( log_type_info[ ( type ) ].enabled )
+
+extern void log_enable( LogType t );
+extern void log_disable( LogType t );
+extern void log_toggle( LogType t );
+
+extern bool log_open_logfile( const char* filename );
+extern bool log_close_logfile();
+
+extern bool load_log_settings( const char* filename );
 
 extern void log_message(LogType type, const char *fmt, ...);
 extern void log_messageVA(LogType type, const char *fmt, va_list args);
@@ -97,63 +112,58 @@ extern void log_messageVA(LogType type, uint32 iden, const char *fmt, va_list ar
 extern void log_hex(LogType type, const void *data, unsigned long length, unsigned char padding=4);
 extern void log_phex(LogType type, const void *data, unsigned long length, unsigned char padding=4);
 
-#ifdef DISABLE_LOGSYS
-    //completely disabled, this is the best I can come up with since we have no variadic macros
-    inline void _log(LogType, const char *, ...) {}
-    inline void codelog(LogType, const char *, ...) {}
-#else   //!DISABLE_LOGSYS
-    #ifdef NO_VARIADIC_MACROS
-        inline void _log(LogType type, const char *fmt, ...) {
-            va_list args;
-            va_start(args, fmt);
-            if(log_type_info[type].enabled) {
-                log_messageVA(type, fmt, args);
-            }
-            va_end(args);
-        }
-        inline void codelog(LogType type, const char *fmt, ...) {
-            //we cannot actually implement this one without variadic
-            va_list args;
-            va_start(args, fmt);
-            if(log_type_info[type].enabled) {
-                log_messageVA(type, fmt, args);
-            }
-            va_end(args);
-        }
-    #else //!NO_VARIADIC_MACROS
-        //we have variadic macros, hooray!
-        //the do-while construct is needed to allow a ; at the end of log(); lines when used
-        //in conditional statements without {}'s
-        #define _log( type, format, ...) \
-                if(log_type_info[ type ].enabled) \
-                    log_message(type, format, ##__VA_ARGS__)
+#if defined ( DISABLE_LOGSYS )
+//completely disabled, this is the best I can come up with since we have no variadic macros
+#   define _log( type, fmt, ... )
+#   define codelog( type, fmt, ... )
+#elif defined ( NO_VARIADIC_MACROS )
+inline void _log( LogType type, const char* fmt, ... )
+{
+    va_list args;
+    va_start( args, fmt );
 
-        #define codelog( type, format, ...) \
-                if(log_type_info[ type ].enabled) \
-                    log_message(type, "%s(%s:%d): " format, \
-                        __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
-    #endif //!NO_VARIADIC_MACROS
-#endif  //!DISABLE_LOGSYS
+    if( is_log_enabled( type ) )
+        log_messageVA( type, fmt, args );
+
+    va_end( args );
+}
+//we cannot actually implement this one without variadic
+inline void codelog( LogType type, const char* fmt, ... )
+{
+    va_list args;
+    va_start( args, fmt );
+
+    if( is_log_enabled( type ) )
+        log_messageVA( type, fmt, args );
+
+    va_end(args);
+}
+#else
+//we have variadic macros, hooray!
+#   define _log( type, fmt, ... ) \
+        if( !is_log_enabled( type ) ) \
+            ; \
+        else \
+            log_message( type, fmt, ##__VA_ARGS__ )
+
+#   define codelog( type, fmt, ... ) \
+        if( !is_log_enabled( type ) ) \
+            ; \
+        else \
+            log_message( type, "%s(%s:%d): " fmt, __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__ )
+#endif
 
 #define _hex( type, data, len) \
-        if(log_type_info[ type ].enabled) \
-            log_hex(type, (const char *)data, len)
+    if( !is_log_enabled( type ) ) \
+        ; \
+    else \
+        log_hex( type, (const char*)data, len )
 
 #define phex( type, data, len) \
-        if(log_type_info[ type ].enabled) \
-            log_phex(type, (const char *)data, len)
-
-extern void log_enable(LogType t);
-extern void log_disable(LogType t);
-extern void log_toggle(LogType t);
-
-extern bool log_open_logfile(const char *file);
-extern bool log_close_logfile(const char *fname);
-
-bool load_log_settings(const char *filename);
-
-#define is_log_enabled( type ) \
-    log_type_info[ type ].enabled
+    if( !is_log_enabled( type ) ) \
+        ; \
+    else \
+        log_phex( type, (const char*)data, len )
 
 
 #endif /*LOGSYS_H_*/

@@ -73,7 +73,7 @@ PyRep* ( UnmarshalStream::* const UnmarshalStream::s_mLoadMap[ PyRepOpcodeMask +
 {
     &UnmarshalStream::LoadError,
     &UnmarshalStream::LoadNone,                 //Op_PyNone
-    &UnmarshalStream::LoadStringByte,           //Op_PyByteString
+    &UnmarshalStream::LoadToken,                //Op_PyToken
     &UnmarshalStream::LoadIntegerLongLong,      //Op_PyLongLong
     &UnmarshalStream::LoadIntegerLong,          //Op_PyLong
     &UnmarshalStream::LoadIntegerSignedShort,   //Op_PySignedShort
@@ -260,20 +260,12 @@ PyRep* UnmarshalStream::LoadIntegerVar()
     }
 }
 
-PyRep* UnmarshalStream::LoadStringByte()
-{
-    const uint8 len = Read<uint8>();
-    const char* str = Read<char>( len );
-
-    return new PyString( str, len, true );
-}
-
 PyRep* UnmarshalStream::LoadStringShort()
 {
     const uint8 len = Read<uint8>();
     const char* str = Read<char>( len );
 
-    return new PyString( str, len, false);
+    return new PyString( str, len );
 }
 
 PyRep* UnmarshalStream::LoadStringLong()
@@ -281,7 +273,7 @@ PyRep* UnmarshalStream::LoadStringLong()
     const uint32 len = ReadSizeEx();
     const char* str = Read<char>( len );
 
-    return new PyString( str, len, false );
+    return new PyString( str, len );
 }
 
 PyRep* UnmarshalStream::LoadStringTable()
@@ -307,7 +299,7 @@ PyRep* UnmarshalStream::LoadWStringUCS2()
     const uint32 len = ReadSizeEx();
     const uint16* wstr = Read<uint16>( len );
 
-	return new PyString( (const char*)wstr, len * sizeof( uint16 ), false );
+	return new PyString( (const char*)wstr, len * sizeof( uint16 ) );
 }
 
 PyRep* UnmarshalStream::LoadWStringUTF8()
@@ -315,7 +307,15 @@ PyRep* UnmarshalStream::LoadWStringUTF8()
     const uint32 len = ReadSizeEx();
     const char* wstr = Read<char>( len );
 
-	return new PyString( wstr, len, false );
+	return new PyString( wstr, len );
+}
+
+PyRep* UnmarshalStream::LoadToken()
+{
+    const uint8 len = Read<uint8>();
+    const char* str = Read<char>( len );
+
+    return new PyToken( str, len );
 }
 
 PyRep* UnmarshalStream::LoadBuffer()
@@ -442,7 +442,7 @@ PyRep* UnmarshalStream::LoadObject()
 
     if( !type->IsString() )
     {
-        sLog.Error( "Unmarshal", "Object: Expected string as type, got %s.", type->TypeString() );
+        sLog.Error( "Unmarshal", "Object: Expected 'String' as type, got '%s'.", type->TypeString() );
 
         PyDecRef( type );
         return NULL;

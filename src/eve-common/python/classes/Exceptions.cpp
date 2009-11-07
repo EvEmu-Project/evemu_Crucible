@@ -29,7 +29,7 @@
 #include "EVEVersion.h"
 
 GPSTransportClosed::GPSTransportClosed( const char* reason )
-: PyObjectEx_Type1( "exceptions.GPSTransportClosed", _CreateArgs( reason ), _CreateKeywords( reason ) )
+: PyObjectEx_Type1( new PyToken( "exceptions.GPSTransportClosed" ), _CreateArgs( reason ), _CreateKeywords( reason ) )
 {
 }
 
@@ -73,7 +73,7 @@ PyDict* GPSTransportClosed::_CreateKeywords( const char* reason )
 }
 
 UserError::UserError( const char* msg )
-: PyObjectEx_Type1( "ccp_exceptions.UserError", _CreateArgs( msg ), _CreateKeywords( msg ) )
+: PyObjectEx_Type1( new PyToken( "ccp_exceptions.UserError" ), _CreateArgs( msg ), _CreateKeywords( msg ) )
 {
 }
 

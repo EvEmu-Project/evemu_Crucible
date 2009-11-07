@@ -77,13 +77,19 @@ bool PyDumpVisitor::VisitBuffer( const PyBuffer* rep )
     return true;
 }
 
-
 bool PyDumpVisitor::VisitString( const PyString *rep )
 {
     if( IsPrintable( rep ) )
-        _print( "%sString%s: '%s'", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().c_str() );
+        _print( "%sString: '%s'", _pfx(), rep->content().c_str() );
     else
-        _print( "%sString%s: '<binary, len=%lu>'", _pfx(), rep->isType1() ? " (Type1)" : "", rep->content().length() );
+        _print( "%sString: '<binary, len=%lu>'", _pfx(), rep->content().length() );
+
+    return true;
+}
+
+bool PyDumpVisitor::VisitToken( const PyToken* rep )
+{
+    _print( "%sToken: '%s'", _pfx(), rep->content().c_str() );
 
     return true;
 }

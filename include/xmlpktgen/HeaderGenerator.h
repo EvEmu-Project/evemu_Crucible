@@ -55,7 +55,7 @@ protected:
 	std::set<std::string> mNamesUsed;
 
 	AllGenProcDecls;
-	GenProcDecl( IDEntry );
+	GenProcDecl( dictInlineEntry );
 };
 
 #endif

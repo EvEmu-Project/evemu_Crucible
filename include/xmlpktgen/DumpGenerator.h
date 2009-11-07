@@ -33,10 +33,10 @@ class ClassDumpGenerator
 {
 public:
 	ClassDumpGenerator();
-	
+
 protected:
 	AllGenProcDecls;
-	GenProcDecl(IDEntry);
+	GenProcDecl( dictInlineEntry );
 };
 
 #endif

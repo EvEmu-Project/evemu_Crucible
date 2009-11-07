@@ -1,214 +1,209 @@
 
 
-<Elements>
+<elements>
 
-<elementdef name="Call_Dogma_Activate">
-  <InlineTuple>
-    <int name="itemID" />
-    <string name="effectName" />
-    <!-- optional: -->
-    <int name="target" none_marker="0" default="0"/>
-    <int name="repeat" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Call_Dogma_Activate">
+    <tupleInline>
+      <int name="itemID" />
+      <string name="effectName" />
+      <!-- optional: -->
+      <int name="target" none_marker="0" default="0" />
+      <int name="repeat" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_Dogma_Deactivate">
-  <InlineTuple>
-    <int name="itemID" />
-    <string name="effectName" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Call_Dogma_Deactivate">
+    <tupleInline>
+      <int name="itemID" />
+      <string name="effectName" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Rsp_Dogma_AddTarget">
-  <InlineTuple>
-    <bool name="success" />
-    <intlist name="targets" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Rsp_Dogma_AddTarget">
+    <tupleInline>
+      <bool name="success" />
+      <listInt name="targets" />
+    </tupleInline>
+  </elementDef>
 
+  <elementDef name="Notify_OnGodmaShipEffect">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnGodmaShipEffect" />
+      <int name="itemID" />
+      <int name="effectID" />
+      <long name="when" />
+      <int name="start" />
+      <int name="active" />
+      <!-- Environment. see ENV_IDX_* -->
+      <listInline>
+        <int name="env_itemID" />
+        <int name="env_charID" />
+        <int name="env_shipID" />
+        <int name="env_target" none_marker="0" default="0"/> <!-- optional -->
+        <raw name="env_other" /> <!-- can be complex -->
+        <list name="env_area" /> <!-- not sure what data goes in here. -->
+        <int name="env_effectID" />
+      </listInline>
+      <long name="startTime" />
+      <long name="duration" /> <!-- seen an 0x07! I think it means infinite. -->
+      <int name="repeat" />
+      <raw name="randomSeed" />
+      <raw name="error" />
+      <!-- <raw name="stall" /> -->
+    </tupleInline>
+  </elementDef>
 
+  <elementDef name="Notify_OnModuleAttributeChange">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnModuleAttributeChange" />
+      <int name="ownerID" />
+      <int name="itemKey" />
+      <int name="attributeID" />
+      <long name="time" />
+      <raw name="newValue" />
+      <raw name="oldValue" />
+      <!-- <raw name="scatterAttr" /> -->
+    </tupleInline>
+  </elementDef>
 
+  <elementDef name="Notify_OnEffectHit">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnEffectHit" />
+      <!-- what did the shooting -->
+      <int name="itemID" />
+      <!-- what type of effect? projectileFired for example -->
+      <int name="effectID" />
+      <!-- what got hit -->
+      <int name="targetID" />
+      <!-- the damage which was done -->
+      <real name="damage" />
+    </tupleInline>
+  </elementDef>
 
+  <!-- this notify represents damage done to us by something else -->
+  <elementDef name="Notify_OnDamageMessage_Self">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnDamageMessage" />
+      <!-- messageID: from eveMessages  -->
+      <string name="messageID" />
+      <dictInline>
+        <!-- can also have target here... -->
+        <dictInlineEntry key="damage">
+		      <real name="damage" />
+        </dictInlineEntry>
+        <dictInlineEntry key="source">
+		      <int name="source" />
+        </dictInlineEntry>
+        <dictInlineEntry key="splash">
+		      <string name="splash" />
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Notify_OnGodmaShipEffect">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnGodmaShipEffect" />
-    <int name="itemID" />
-    <int name="effectID" />
-    <int64 name="when" />
-    <int name="start" />
-    <int name="active" />
-    <!-- Environment. see ENV_IDX_* -->
-    <InlineList>
-      <int name="env_itemID" />
-      <int name="env_charID" />
-      <int name="env_shipID" />
-      <int name="env_target" none_marker="0" default="0"/> <!-- optional -->
-      <raw name="env_other" /> <!-- can be complex -->
-      <list name="env_area" /> <!-- not sure what data goes in here. -->
-      <int name="env_effectID" />
-    </InlineList>
-    <int64 name="startTime" />
-    <int64 name="duration" /> <!-- seen an 0x07! I think it means infinite. -->
-    <int name="repeat" />
-    <raw name="randomSeed" />
-    <raw name="error" />
-    <!-- <raw name="stall" /> -->
-  </InlineTuple>
-</elementdef>
+  <!-- this notify represents damage done to us by something else -->
+  <elementDef name="Notify_OnDamageMessage_Other">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnDamageMessage" />
+      <!-- messageID: from eveMessages  -->
+      <string name="messageID" />
+      <dictInline>
+        <!-- can also have target here... -->
+        <dictInlineEntry key="damage">
+		      <real name="damage" />
+        </dictInlineEntry>
+        <dictInlineEntry key="target">
+		      <int name="target" />
+        </dictInlineEntry>
+        <dictInlineEntry key="weapon">
+		      <tupleInline name="_weapon">
+            <!-- this should be set to fmtMapping_itemTypeName -->
+            <int name="format_type" />
+            <int name="weaponType" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="splash">
+		      <string name="splash" />
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Notify_OnModuleAttributeChange">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnModuleAttributeChange" />
-    <int name="ownerID" />
-    <int name="itemKey" />
-    <int name="attributeID" />
-    <int64 name="time" />
-    <raw name="newValue" />
-    <raw name="oldValue" />
-    <!-- <raw name="scatterAttr" /> -->
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Notify_OnDamageMessages">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnDamageMessages" />
+      <!-- this is a list of Notify_OnDamageMessage_* -->
+      <list name="messages" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Notify_OnEffectHit">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnEffectHit" />
-    <!-- what did the shooting -->
-    <int name="itemID" />
-    <!-- what type of effect? projectileFired for example -->
-    <int name="effectID" />
-    <!-- what got hit -->
-    <int name="targetID" />
-    <!-- the damage which was done -->
-    <real name="damage" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Notify_OnEffectMessage">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnEffectMessage" />
+      <!-- messageID: from eveMessages  -->
+      <string name="messageID" />
+      <dict name="arguments" />
+    </tupleInline>
+  </elementDef>
 
-<!-- this notify represents damage done to us by something else -->
-<elementdef name="Notify_OnDamageMessage_Self">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnDamageMessage" />
-    <!-- messageID: from eveMessages  -->
-    <string name="messageID" />
-    <InlineDict>
-      <!-- can also have target here... -->
-      <IDEntry key="damage">
-		<real name="damage" />
-      </IDEntry>
-      <IDEntry key="source">
-		<int name="source" />
-      </IDEntry>
-      <IDEntry key="splash">
-		<string name="splash" />
-      </IDEntry>
-    </InlineDict>
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Notify_OnTarget">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnTarget" />
+      <!--
+          One of:
+          try - starting to target?
+          add - targeting successful
+          clear - clear all targets
+          lost - target lost
+          otheradd - somebody else has targeted you
+          otherlost - somebody else has stopped targeting you
+      -->
+      <string name="mode" />
+      <int name="targetID" />
+      <!-- only seen on `target lost` events, but doesn't seem to do anything -->
+      <string name="reason" />
+    </tupleInline>
+  </elementDef>
 
-<!-- this notify represents damage done to us by something else -->
-<elementdef name="Notify_OnDamageMessage_Other">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnDamageMessage" />
-    <!-- messageID: from eveMessages  -->
-    <string name="messageID" />
-    <InlineDict>
-      <!-- can also have target here... -->
-      <IDEntry key="damage">
-		<real name="damage" />
-      </IDEntry>
-      <IDEntry key="target">
-		<int name="target" />
-      </IDEntry>
-      <IDEntry key="weapon">
-		<InlineTuple name="_weapon">
-          <!-- this should be set to fmtMapping_itemTypeName -->
-          <int name="format_type" />
-          <int name="weaponType" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="splash">
-		<string name="splash" />
-      </IDEntry>
-    </InlineDict>
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Notify_OnTargets">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnTargets" />
+      <!-- this is a list of Notify_OnTarget messages -->
+      <list name="messages" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Notify_OnDamageMessages">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnDamageMessages" />
-    <!-- this is a list of Notify_OnDamageMessage_* -->
-    <list name="messages" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Notify_OnGodmaFlushLocation">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnGodmaFlushLocation" />
+      <!-- not sure yet -->
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Notify_OnEffectMessage">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnEffectMessage" />
-    <!-- messageID: from eveMessages  -->
-    <string name="messageID" />
-    <dict name="arguments" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Notify_OnGodmaFlushLocationProfile">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnGodmaFlushLocationProfile" />
+      <!-- not sure yet -->
+    </tupleInline>
+  </elementDef>
 
+  <elementDef name="Notify_OnMultiEvent">
+    <tupleInline>
+      <list name="events" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Notify_OnTarget">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnTarget" />
-    <!-- One of:
-        try - starting to target?
-        add - targeting successful
-        clear - clear all targets
-        lost - target lost
-        otheradd - somebody else has targeted you
-        otherlost - somebody else has stopped targeting you
-    -->
-    <string name="mode" />
-    <int name="targetID" />
-    <!-- only seen on `target lost` events, but doesn't seem to do anything -->
-    <string name="reason" />
-  </InlineTuple>
-</elementdef>
-
-<elementdef name="Notify_OnTargets">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnTargets" />
-    <!-- this is a list of Notify_OnTarget messages -->
-    <list name="messages" />
-  </InlineTuple>
-</elementdef>
-
-<elementdef name="Notify_OnGodmaFlushLocation">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnGodmaFlushLocation" />
-    <!-- not sure yet -->
-  </InlineTuple>
-</elementdef>
-
-<elementdef name="Notify_OnGodmaFlushLocationProfile">
-  <InlineTuple>
-    <!-- setup to go into an OnMultiEvent (notify_type) -->
-    <string name="notify_type" default="OnGodmaFlushLocationProfile" />
-    <!-- not sure yet -->
-  </InlineTuple>
-</elementdef>
-
-<elementdef name="Notify_OnMultiEvent">
-  <InlineTuple>
-    <list name="events" />
-  </InlineTuple>
-</elementdef>
-
-
-</Elements>
+</elements>
 
 

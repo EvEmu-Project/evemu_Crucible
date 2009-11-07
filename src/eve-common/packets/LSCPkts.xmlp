@@ -1,41 +1,43 @@
 
 
-<Elements>
+<elements>
 
-<include file="General.h" />
-<include file="ObjectCaching.h" />
+  <include file="General.h" />
+  <include file="ObjectCaching.h" />
 
-  <elementdef name="ChannelInfo">
-    <object type="util.Rowset">
-      <InlineDict>
-        <IDEntry key="header">
-          <InlineList name="uu_0">
-            <string name="uu_1" default="channelID" />
-            <string name="uu_2" default="ownerID" />
-            <string name="uu_3" default="displayName" />
-            <string name="uu_4" default="motd" />
-            <string name="uu_5" default="comparisonKey" />
-            <string name="uu_6" default="memberless" />
-            <string name="uu_7" default="password" />
-            <string name="uu_8" default="mailingList" />
-            <string name="uu_9" default="cspa" />
-            <string name="uu_10" default="temporary" />
-            <string name="uu_11" default="mode" />
-            <string name="uu_12" default="subscribed" />
-            <string name="uu_13" default="estimatedMemberCount" />
-          </InlineList>
-        </IDEntry>
-        <IDEntry key="RowClass">
-          <string name="rowclass" default="util.Row" type1="true"/>
-        </IDEntry>
-        <IDEntry key="lines">
+  <elementDef name="ChannelInfo">
+    <objectInline>
+      <stringInline value="util.Rowset" />
+      <dictInline>
+        <dictInlineEntry key="header">
+          <listInline>
+            <stringInline value="channelID" />
+            <stringInline value="ownerID" />
+            <stringInline value="displayName" />
+            <stringInline value="motd" />
+            <stringInline value="comparisonKey" />
+            <stringInline value="memberless" />
+            <stringInline value="password" />
+            <stringInline value="mailingList" />
+            <stringInline value="cspa" />
+            <stringInline value="temporary" />
+            <stringInline value="mode" />
+            <stringInline value="subscribed" />
+            <stringInline value="estimatedMemberCount" />
+          </listInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="RowClass">
+          <tokenInline value="util.Row" />
+        </dictInlineEntry>
+        <dictInlineEntry key="lines">
           <list name="lines" />
-        </IDEntry>
-      </InlineDict>
-    </object>
-  </elementdef>
-  <elementdef name="ChannelInfoLine">
-    <InlineList>
+        </dictInlineEntry>
+      </dictInline>
+    </objectInline>
+  </elementDef>
+
+  <elementDef name="ChannelInfoLine">
+    <listInline>
       <int name="channelID" />
       <int name="ownerID" />
       <string name="displayName" />
@@ -49,32 +51,31 @@
       <int name="mode" />
       <bool name="subscribed" />
       <int name="estimatedMemberCount" />
-	</InlineList>
-  </elementdef>
+	  </listInline>
+  </elementDef>
 
-
-
-  <elementdef name="ChannelJoinChannelInfo">
-    <object type="util.Row">
-      <InlineDict>
-        <IDEntry key="header">
-          <InlineList name="uu_0">
-            <string name="uu_1" default="channelID" />
-            <string name="uu_2" default="ownerID" />
-            <string name="uu_3" default="displayName" />
-            <string name="uu_4" default="motd" />
-            <string name="uu_5" default="comparisonKey" />
-            <string name="uu_6" default="memberless" />
-            <string name="uu_7" default="password" />
-            <string name="uu_8" default="mailingList" />
-            <string name="uu_9" default="cspa" />
-            <string name="uu_10" default="temporary" />
-            <string name="uu_12" default="subscribed" />
-			<string name="uu_13" default="languageRestriction" />
-          </InlineList>
-        </IDEntry>
-        <IDEntry key="line">
-          <InlineList name="uu_14">
+  <elementDef name="ChannelJoinChannelInfo">
+    <objectInline>
+      <stringInline value="util.Row" />
+      <dictInline>
+        <dictInlineEntry key="header">
+          <listInline>
+            <stringInline value="channelID" />
+            <stringInline value="ownerID" />
+            <stringInline value="displayName" />
+            <stringInline value="motd" />
+            <stringInline value="comparisonKey" />
+            <stringInline value="memberless" />
+            <stringInline value="password" />
+            <stringInline value="mailingList" />
+            <stringInline value="cspa" />
+            <stringInline value="temporary" />
+            <stringInline value="subscribed" />
+            <stringInline value="languageRestriction" />
+          </listInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="line">
+          <listInline>
             <int name="channelID" />
             <int name="ownerID" />
             <string name="displayName" />
@@ -86,357 +87,367 @@
             <int name="cspa" />
             <int name="temporary" />
             <int name="subscribed" />
-			<bool name="languageRestriction" default="false" />
-		  </InlineList>
-        </IDEntry>
-      </InlineDict>
-    </object>
-  </elementdef>
-  <elementdef name="ChannelJoinChannelMods">
-    <object type="util.Rowset">
-      <InlineDict>
-        <IDEntry key="header">
-          <InlineList name="uu_0">
-            <string name="uu_1" default="accessor" />
-            <string name="uu_2" default="mode" />
-            <string name="uu_3" default="untilWhen" />
-            <string name="uu_4" default="originalMode" />
-            <string name="uu_5" default="admin" />
-            <string name="uu_6" default="reason" />
-          </InlineList>
-        </IDEntry>
-        <IDEntry key="RowClass">
-          <string name="rowclass" default="util.Row" type1="true"/>
-        </IDEntry>
-        <IDEntry key="lines">
+            <bool name="languageRestriction" default="false" />
+          </listInline>
+        </dictInlineEntry>
+      </dictInline>
+    </objectInline>
+  </elementDef>
+
+  <elementDef name="ChannelJoinChannelMods">
+    <objectInline>
+      <stringInline value="util.Rowset" />
+      <dictInline>
+        <dictInlineEntry key="header">
+          <listInline>
+            <stringInline value="accessor" />
+            <stringInline value="mode" />
+            <stringInline value="untilWhen" />
+            <stringInline value="originalMode" />
+            <stringInline value="admin" />
+            <stringInline value="reason" />
+          </listInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="RowClass">
+          <tokenInline value="util.Row" />
+        </dictInlineEntry>
+        <dictInlineEntry key="lines">
           <list name="lines" />
-        </IDEntry>
-      </InlineDict>
-    </object>
-  </elementdef>
-  <elementdef name="ChannelJoinChannelModsLine">
-    <InlineList>
+        </dictInlineEntry>
+      </dictInline>
+    </objectInline>
+  </elementDef>
+
+  <elementDef name="ChannelJoinChannelModsLine">
+    <listInline>
       <int name="accessor" />
       <int name="mode" />
-      <int64 name="untilWhen" />
+      <long name="untilWhen" />
       <int name="originalMode" />
       <string name="admin" />
       <string name="reason" />
-    </InlineList>
-  </elementdef>
-  <elementdef name="ChannelJoinChannelChars">
-    <object type="util.Rowset">
-      <InlineDict>
-        <IDEntry key="header">
-          <InlineList name="uu_0">
-            <string name="uu_1" default="charID" />
-            <string name="uu_2" default="corpID" />
-            <string name="uu_3" default="allianceID" />
-            <string name="uu_4" default="role" />
-            <string name="uu_5" default="extra" />
-          </InlineList>
-        </IDEntry>
-        <IDEntry key="RowClass">
-          <string name="rowclass" default="util.Row" type1="true"/>
-        </IDEntry>
-        <IDEntry key="lines">
+    </listInline>
+  </elementDef>
+
+  <elementDef name="ChannelJoinChannelChars">
+    <objectInline>
+      <stringInline value="util.Rowset" />
+      <dictInline>
+        <dictInlineEntry key="header">
+          <listInline>
+            <stringInline value="charID" />
+            <stringInline value="corpID" />
+            <stringInline value="allianceID" />
+            <stringInline value="role" />
+            <stringInline value="extra" />
+          </listInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="RowClass">
+          <tokenInline value="util.Row" />
+        </dictInlineEntry>
+        <dictInlineEntry key="lines">
           <list name="lines" />
-        </IDEntry>
-      </InlineDict>
-    </object>
-  </elementdef>
-  <elementdef name="ChannelJoinChannelCharsLine">
-    <InlineList>
+        </dictInlineEntry>
+      </dictInline>
+    </objectInline>
+  </elementDef>
+
+  <elementDef name="ChannelJoinChannelCharsLine">
+    <listInline>
       <int name="charID" />
       <int name="corpID" />
       <int name="allianceID" />
       <int name="role" />
       <int name="extra" />
-    </InlineList>
-  </elementdef>
+    </listInline>
+  </elementDef>
 
-
-  <elementdef name="ChannelJoinReply">
-    <InlineTuple>
+  <elementDef name="ChannelJoinReply">
+    <tupleInline>
       <raw name="ChannelID" />
       <int name="ok" default="1" />
-      <InlineTuple>
+      <tupleInline>
         <raw name="ChannelInfo" />
         <raw name="ChannelMods" />
         <raw name="ChannelChars" />
-      </InlineTuple>
-    </InlineTuple>
-  </elementdef>
-  <elementdef name="ChannelCreateReply">
-    <InlineTuple>
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="ChannelCreateReply">
+    <tupleInline>
       <raw name="ChannelInfo" />
       <raw name="ChannelMods" />
       <raw name="ChannelChars" />
-    </InlineTuple>
-  </elementdef>
+    </tupleInline>
+  </elementDef>
 
-  <elementdef name="Call_SendMessage">
-    <InlineTuple>
+  <elementDef name="Call_SendMessage">
+    <tupleInline>
       <tuple name="channelID" />
       <string name="message" />
-    </InlineTuple>
-  </elementdef>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="LSCChannelMultiDesc">
-  <InlineTuple>
-    <InlineTuple>
-      <string name="type" />
-      <int name="number" />
-    </InlineTuple>
-  </InlineTuple>
-</elementdef>
+  <elementDef name="LSCChannelMultiDesc">
+    <tupleInline>
+      <tupleInline>
+        <string name="type" />
+        <int name="number" />
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="RspGetChannels">
-  <InlineTuple>
-    <!-- 0 -->
-    <InlineSubStream>
-	  <element name="cachedcall" type="objectCaching_CachedMethodCallResult" />
-    </InlineSubStream>                  
-  </InlineTuple>
-</elementdef>                
+  <elementDef name="RspGetChannels">
+    <tupleInline>
+      <!-- 0 -->
+      <substreamInline>
+	      <element name="cachedcall" type="objectCaching_CachedMethodCallResult" />
+      </substreamInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="CallJoinChannels">
-  <InlineTuple>
-    <!-- 0 -->
-    <list name="channels" />
-    <!-- 1 -->
-    <int name="unknown" />
-  </InlineTuple>            
-</elementdef>  
+  <elementDef name="CallJoinChannels">
+    <tupleInline>
+      <!-- 0 -->
+      <list name="channels" />
+      <!-- 1 -->
+      <int name="unknown" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="RspJoinChannels">
-  <InlineTuple>
-    <!-- 0 -->
-    <InlineSubStream>
-      <!-- list of complex elements, one for each requested channel
-	    with details about the channel -->
-	  <list name="channels" />
-    </InlineSubStream>  
-  </InlineTuple>
-</elementdef>
+  <elementDef name="RspJoinChannels">
+    <tupleInline>
+      <!-- 0 -->
+      <substreamInline>
+        <!-- list of complex elements, one for each requested channel
+	      with details about the channel -->
+	      <list name="channels" />
+      </substreamInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="OnLSC_SenderInfo">
-  <InlineTuple>
-    <!-- 0: whoAllianceID -->
-    <int name="allianceID" default="0" none_marker="0" />
-    <!-- 1: whoCorpID -->                  
-    <int name="corpID" />
-    <!-- 2: who (could be this list, or could be just an integer ID) -->  
-    <InlineList>
+  <elementDef name="OnLSC_SenderInfo">
+    <tupleInline>
+      <!-- 0: whoAllianceID -->
+      <int name="allianceID" default="0" none_marker="0" />
+      <!-- 1: whoCorpID -->
+      <int name="corpID" />
+      <!-- 2: who (could be this list, or could be just an integer ID) -->
+      <listInline>
         <int name="senderID" />
         <string name="senderName" />
         <int name="senderType" />
-    </InlineList>
-    <!-- 3: whoRole -->
-	<int64 name="role" />
-    <!-- 4: whoCorpRole -->
-	<int64 name="corp_role" />
-	<!-- 5: not sure its factionID -->
-	<int name="factionID" default="0" none_marker="0" />
-  </InlineTuple>
-</elementdef>
+      </listInline>
+      <!-- 3: whoRole -->
+	    <long name="role" />
+      <!-- 4: whoCorpRole -->
+	    <long name="corp_role" />
+	    <!-- 5: not sure its factionID -->
+	    <int name="factionID" default="0" none_marker="0" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="NotifyOnLSC">
-  <InlineTuple>
-    <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
-    <raw name="channelID" />
-    <!-- 1: estimated member count -->                  
-    <int name="member_count" />
-    <!-- 2 -->  
-    <string name="method" />
-    <!-- 3 -->
-	<elementptr type="OnLSC_SenderInfo" name="sender" />
-    <!-- 4 -->
-	<tuple name="arguments" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="NotifyOnLSC">
+    <tupleInline>
+      <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
+      <raw name="channelID" />
+      <!-- 1: estimated member count -->
+      <int name="member_count" />
+      <!-- 2 -->
+      <string name="method" />
+      <!-- 3 -->
+	    <elementPtr type="OnLSC_SenderInfo" name="sender" />
+      <!-- 4 -->
+	    <tuple name="arguments" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="OnLSC_SendMessage">
-  <InlineTuple>
-    <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
-    <raw name="channelID" />
-    <!-- 1 -->
-    <int name="member_count" />
-    <!-- 2 -->
-    <string name="method" default="SendMessage" />
-    <!-- 3: sender info -->
-	<elementptr type="OnLSC_SenderInfo" name="sender" />
-    <!-- 4 -->
-    <InlineTuple>
-      <!-- 0 -->
-      <string name="message" />
-    </InlineTuple>
-  </InlineTuple>
-</elementdef>
-
-<elementdef name="OnLSC_JoinChannel">
-  <InlineTuple>
-    <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
-    <raw name="channelID" />
-    <!-- 1 -->
-    <int name="member_count" />
-    <!-- 2 -->
-    <string name="method" default="JoinChannel" />
-    <!-- 3: sender info -->
-	<elementptr type="OnLSC_SenderInfo" name="sender" />
-    <!-- 4 -->
-    <InlineTuple>
-    </InlineTuple>
-  </InlineTuple>
-</elementdef>
-  <elementdef name="OnLSC_DestroyChannel">
-    <InlineTuple>
+  <elementDef name="OnLSC_SendMessage">
+    <tupleInline>
       <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
       <raw name="channelID" />
       <!-- 1 -->
       <int name="member_count" />
       <!-- 2 -->
-      <string name="method" default="DestroyChannel" />
+      <stringInline value="SendMessage" />
       <!-- 3: sender info -->
-      <elementptr type="OnLSC_SenderInfo" name="sender" />
+	    <elementPtr type="OnLSC_SenderInfo" name="sender" />
       <!-- 4 -->
-      <InlineTuple>
-      </InlineTuple>
-    </InlineTuple>
-  </elementdef>
+      <tupleInline>
+        <!-- 0 -->
+        <string name="message" />
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="OnLSC_LeaveChannel">
-  <InlineTuple>
-    <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
-    <raw name="channelID" />
-    <!-- 1 -->
-    <int name="member_count" />
-    <!-- 2 -->
-    <string name="method" default="LeaveChannel" />
-    <!-- 3: sender info -->
-	<elementptr type="OnLSC_SenderInfo" name="sender" />
-    <!-- 4 -->
-    <InlineTuple>
-    </InlineTuple>
-  </InlineTuple>
-</elementdef>
+  <elementDef name="OnLSC_JoinChannel">
+    <tupleInline>
+      <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
+      <raw name="channelID" />
+      <!-- 1 -->
+      <int name="member_count" />
+      <!-- 2 -->
+      <stringInline value="JoinChannel" />
+      <!-- 3: sender info -->
+	    <elementPtr type="OnLSC_SenderInfo" name="sender" />
+      <!-- 4 -->
+      <tupleInline>
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="CallLeaveChannels">
-  <InlineTuple>
-    <!-- 0 -->
-    <list name="channels" />
-    <!-- 1 -->
-    <bool name="unsubscribe" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="OnLSC_DestroyChannel">
+    <tupleInline>
+      <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
+      <raw name="channelID" />
+      <!-- 1 -->
+      <int name="member_count" />
+      <!-- 2 -->
+      <stringInline value="DestroyChannel" />
+      <!-- 3: sender info -->
+      <elementPtr type="OnLSC_SenderInfo" name="sender" />
+      <!-- 4 -->
+      <tupleInline>
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="CallLeaveChannel">
-  <InlineTuple>
-    <!-- 0 -->
-    <raw name="channel" />
-    <!-- 1 -->
-    <int name="unsubscribe" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="OnLSC_LeaveChannel">
+    <tupleInline>
+      <!-- 0: channel ID, either an int, or an LSCChannelMultiDesc  -->
+      <raw name="channelID" />
+      <!-- 1 -->
+      <int name="member_count" />
+      <!-- 2 -->
+      <stringInline value="LeaveChannel" />
+      <!-- 3: sender info -->
+	    <elementPtr type="OnLSC_SenderInfo" name="sender" />
+      <!-- 4 -->
+      <tupleInline>
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_Page">
-  <InlineTuple>
-    <intlist name="recipients" />
-    <string name="subject" />
-    <string name="body" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="CallLeaveChannels">
+    <tupleInline>
+      <!-- 0 -->
+      <list name="channels" />
+      <!-- 1 -->
+      <bool name="unsubscribe" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="NotifyOnMessage">
-  <InlineTuple>
-    <intlist name="recipients" />
-    <!-- 1: messageID: this might be a more complex type in the future.  -->
-    <int name="messageID" />
-    <int name="senderID" />
-    <string name="subject" />
-    <int64 name="sentTime" /> <!-- not sure _exactly_ what timestamp this should be -->
-  </InlineTuple>
-</elementdef>
+  <elementDef name="CallLeaveChannel">
+    <tupleInline>
+      <!-- 0 -->
+      <raw name="channel" />
+      <!-- 1 -->
+      <int name="unsubscribe" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_DeleteMessages">
-  <InlineTuple>
-    <!-- most likely this could be an LSCChannelMultiDesc too... -->
-    <int name="channelID" />
-    <intlist name="messages" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Call_Page">
+    <tupleInline>
+      <listInt name="recipients" />
+      <string name="subject" />
+      <string name="body" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Rsp_GetEVEMailDetails">
-  <InlineTuple>
-      <!-- first the actul message -->
-      <object type="util.Row">
-    	<InlineDict>
-    	  <IDEntry key="header">
-    		<InlineList name="not_used1">
-              <string name="head_messageID" default="messageID" />
-              <string name="head_senderID" default="senderID" />
-              <string name="head_subject" default="subject" />
-              <string name="head_body" default="body" />
-              <string name="head_created" default="created" />
-              <string name="head_mimeType" default="mimeType" />
-              <string name="head_channelID" default="channelID" />
-              <string name="head_deleted" default="deleted" />
-            </InlineList>
-    	  </IDEntry>
-    	  <IDEntry key="line">
-    		<InlineList name="not_used2">
+  <elementDef name="NotifyOnMessage">
+    <tupleInline>
+      <listInt name="recipients" />
+      <!-- 1: messageID: this might be a more complex type in the future.  -->
+      <int name="messageID" />
+      <int name="senderID" />
+      <string name="subject" />
+      <!-- not sure _exactly_ what timestamp this should be -->
+      <long name="sentTime" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_DeleteMessages">
+    <tupleInline>
+      <!-- most likely this could be an LSCChannelMultiDesc too... -->
+      <int name="channelID" />
+      <listInt name="messages" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Rsp_GetEVEMailDetails">
+    <tupleInline>
+      <!-- first the actual message -->
+      <objectInline>
+        <stringInline value="util.Row" />
+        <dictInline>
+          <dictInlineEntry key="header">
+	          <listInline>
+              <stringInline value="messageID" />
+              <stringInline value="senderID" />
+              <stringInline value="subject" />
+              <stringInline value="body" />
+              <stringInline value="created" />
+              <stringInline value="mimeType" />
+              <stringInline value="channelID" />
+              <stringInline value="deleted" />
+            </listInline>
+          </dictInlineEntry>
+          <dictInlineEntry key="line">
+	          <listInline>
               <int name="messageID" />
               <int name="senderID" />
               <string name="subject" />
               <string name="body" />
-              <int64 name="created" />
+              <long name="created" />
               <!-- mimeType is a nested row... silly CCP -->
-              <object type="util.Row">
-            	<InlineDict>
-            	  <IDEntry key="header">
-                    <InlineList name="not_used3">
-                      <string name="head_mimeTypeID" default="mimeTypeID" />
-                      <string name="head_mimeType2" default="mimeType" />
-                      <string name="head_binary" default="binary" />
-                    </InlineList>
-            	  </IDEntry>
-            	  <IDEntry key="line">
-                    <InlineList name="not_used4">
+              <objectInline name="mimeType">
+                <stringInline value="util.Row" />
+                <dictInline>
+                  <dictInlineEntry key="header">
+                    <listInline>
+                      <stringInline value="mimeTypeID" />
+                      <stringInline value="mimeType" />
+                      <stringInline value="binary" />
+                    </listInline>
+                  </dictInlineEntry>
+                  <dictInlineEntry key="line">
+                    <listInline>
                       <int name="mimeTypeID" />
                       <string name="mimeType" />
                       <int name="binary" />
-                    </InlineList>
-            	  </IDEntry>
-            	</InlineDict>
-              </object>
+                    </listInline>
+                  </dictInlineEntry>
+                </dictInline>
+              </objectInline>
               <int name="channelID" />
               <int name="deleted" />
-            </InlineList>
-    	  </IDEntry>
-    	</InlineDict>
-      </object>
-    
+            </listInline>
+          </dictInlineEntry>
+        </dictInline>
+      </objectInline>
       <!-- then any attachments. this is a util.Rowset -->
       <!-- this might not work due to a type1 string issue in rowclass here,
       if that is the case, then change this over to a <list> temporarily -->
       <element name="attachments" type="util_Rowset" />
-  </InlineTuple>
-</elementdef>
+    </tupleInline>
+  </elementDef>
 
-  <elementdef name="Call_LookupStringInt">
-    <InlineTuple>
+  <elementDef name="Call_LookupStringInt">
+    <tupleInline>
       <string name="searchString" />
       <int name="searchOption" />
-    </InlineTuple>
-  </elementdef>
+    </tupleInline>
+  </elementDef>
 
-  <elementdef name="Call_LookupIntString">
-    <InlineTuple>
-     <int name="searchOption" />
+  <elementDef name="Call_LookupIntString">
+    <tupleInline>
+      <int name="searchOption" />
       <string name="searchString" />
-    </InlineTuple>
-  </elementdef>
-</Elements>
+    </tupleInline>
+  </elementDef>
+
+</elements>
 
 
 

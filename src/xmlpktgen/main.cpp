@@ -32,9 +32,9 @@ int main(int argc, char *argv[]) {
 		printf("Usage: %s [packet xml file]\n", argv[0]);
 		return(1);
 	}
-	
+
 	const char *file = argv[1];
-	
+
 	std::string basename = file;
 	basename = basename.substr(0, basename.length()-5);
 
@@ -72,14 +72,14 @@ int main(int argc, char *argv[]) {
 		}
 	}
 #endif
-	
+
 	XMLPacketGen gen;
 	if( !gen.LoadFile( xml.c_str() ) )
 		return 1;
 
 	if( !gen.GenPackets( h.c_str(), cpp.c_str() ) )
 		return 1;
-	
+
 	return 0;
 }
 

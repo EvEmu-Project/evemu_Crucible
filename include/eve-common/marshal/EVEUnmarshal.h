@@ -168,8 +168,6 @@ private:
     PyRep* LoadStringEmpty() { return new PyString( "" ); }
     /** Loads single character string from stream. */
     PyRep* LoadStringChar() { return new PyString( Read<char>( 1 ), (size_t)1 ); }
-    /** Loads byte string from stream. */
-    PyRep* LoadStringByte();
     /** Loads short (up to 255 chars) string from stream. */
     PyRep* LoadStringShort();
     /** Loads long (no limit) string from stream. */
@@ -185,6 +183,9 @@ private:
     PyRep* LoadWStringUCS2();
     /** Loads UTF-8 string from stream. */
     PyRep* LoadWStringUTF8();
+
+    /** Loads token from stream. */
+    PyRep* LoadToken();
 
     /** Loads buffer from stream. */
     PyRep* LoadBuffer();

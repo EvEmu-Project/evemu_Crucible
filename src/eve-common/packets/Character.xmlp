@@ -1,211 +1,205 @@
 
 
-<Elements>
+<elements>
 
-<include file="General.h" />
-	
-<elementdef name="RspGetCharactersToSelect">
-  <InlineTuple>
-    <!-- 0 -->
-    <InlineSubStream>
-		<element type="util_Rowset" name="chars" />
-    </InlineSubStream>
-  </InlineTuple>
-</elementdef>
+  <include file="General.h" />
 
-<elementdef name="CallGetCharacterToSelect">            
-  <InlineTuple>
-    <!-- 0 -->
-    <int name="charID" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="RspGetCharactersToSelect">
+    <tupleInline>
+      <!-- 0 -->
+      <substreamInline>
+		    <element type="util_Rowset" name="chars" />
+      </substreamInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="RspGetCharacterToSelect">
-  <InlineTuple>
-    <!-- 0 -->
-    <InlineSubStream>
-	  <element type="util_Rowset" name="character" />
-    </InlineSubStream>
-  </InlineTuple>     
-</elementdef>
-
-<elementdef name="RspGetCharCreationInfo">
-  <InlineTuple>           
-    <!-- 0 -->
-    <InlineSubStream>
-	  <strdict name="caches" type="element" element="objectCaching_CachedObject_spec" />
-	</InlineSubStream>
-  </InlineTuple>
-</elementdef>
-
-<elementdef name="CallSelectCharacterID">               
-  <InlineTuple>
-    <!-- 0 -->
-    <int name="charID" />
-	<!-- 1 -->
-	<!-- may be boolean or integer -->
-	<raw name="loadTutorialDungeon" />
-	<!-- 2 -->
-	<raw name="unknown" />
-  </InlineTuple>
-</elementdef>
-
-
-
-
-
-<elementdef name="CallValidateName">
-  <InlineTuple>
-    <!-- 0 -->
-    <string name="name" />
-  </InlineTuple>
-</elementdef>
-
-<elementdef name="RspValidateName">
-  <InlineTuple>
-    <!-- 0 -->
-    <InlineSubStream>
-      <bool name="result" />
-    </InlineSubStream>       
-  </InlineTuple>
-</elementdef>
-
-<elementdef name="CallCreateCharacter">
-  <InlineTuple>
-    <!-- 0 -->
-    <string name="name" />
-    <!-- 1 -->
-    <int name="bloodlineID" />
-    <!-- 2 -->
-    <int name="genderID" />
-    <!-- 3 -->
-    <int name="ancestryID" />
-	<!-- 4: schoolID -->
-	<none />
-	<!-- 5: departmentID -->
-	<none />
-	<!-- 6: fieldID -->
-	<none />
-	<!-- 7: specialityID -->
-	<none />
-    <!-- 8 -->
-    <int name="IntelligenceAdd" />
-    <!-- 9 -->
-    <int name="CharismaAdd" />
-    <!-- 10 -->
-    <int name="PerceptionAdd" />
-    <!-- 11 -->
-    <int name="MemoryAdd" />    
-    <!-- 12 -->
-    <int name="WillpowerAdd" />
-    <!-- 13 -->
-    <strdict name="appearance" />
-  </InlineTuple>                
-</elementdef>
-
-<elementdef name="CallCreateCharacter2">
-  <InlineTuple>
-    <!-- 0 -->
-    <string name="name" />
-    <!-- 1 -->
-    <int name="bloodlineID" />
-    <!-- 2 -->
-    <int name="genderID" />
-    <!-- 3 -->
-    <int name="ancestryID" />
-    <!-- 4: appearence -->
-    <strdict name="appearance" />
-  </InlineTuple>
-</elementdef>
-  
-  
-<elementdef name="RspCreateCharacter">
-  <InlineTuple>                 
-    <!-- 0 -->  
-    <InlineSubStream>
-      <int name="charID" />
-    </InlineSubStream>      
-  </InlineTuple>                   
-</elementdef>
-
-<elementdef name="NotifyOnCharNowInStation">
-  <InlineTuple>
-	  <InlineTuple>
-		  <!-- 0 -->
-		  <int name="charID" />
-		  <!-- 1 -->
-		  <int name="corpID" />
-		  <!-- 2 -->
-		  <int name="allianceID" default="0" none_marker="0" />
-		  <!-- 3 -->
-		  <int name="unknown" default="0" none_marker="0" />
-	  </InlineTuple>
-  </InlineTuple>
-</elementdef>
-
-<elementdef name="NotifyOnCharNoLongerInStation">
-  <InlineTuple>
-    <InlineTuple>
+  <elementDef name="CallGetCharacterToSelect">
+    <tupleInline>
       <!-- 0 -->
       <int name="charID" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="RspGetCharacterToSelect">
+    <tupleInline>
+      <!-- 0 -->
+      <substreamInline>
+	      <element type="util_Rowset" name="character" />
+      </substreamInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="RspGetCharCreationInfo">
+    <tupleInline>
+      <!-- 0 -->
+      <substreamInline>
+	      <dictStr name="caches" />
+	    </substreamInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="CallSelectCharacterID">
+    <tupleInline>
+      <!-- 0 -->
+      <int name="charID" />
+	    <!-- 1 -->
+	    <bool name="loadTutorialDungeon" soft="true" />
+	    <!-- 2 -->
+	    <raw name="unknown" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="CallValidateName">
+    <tupleInline>
+      <!-- 0 -->
+      <string name="name" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="RspValidateName">
+    <tupleInline>
+      <!-- 0 -->
+      <substreamInline>
+        <bool name="result" />
+      </substreamInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="CallCreateCharacter">
+    <tupleInline>
+      <!-- 0 -->
+      <string name="name" />
       <!-- 1 -->
-      <int name="corpID" />
+      <int name="bloodlineID" />
       <!-- 2 -->
-      <int name="allianceID" default="0" none_marker="0" />
+      <int name="genderID" />
       <!-- 3 -->
-      <int name="unknown" default="0" none_marker="0" />
-    </InlineTuple>
-  </InlineTuple>
-</elementdef>
+      <int name="ancestryID" />
+	    <!-- 4: schoolID -->
+	    <none />
+	    <!-- 5: departmentID -->
+	    <none />
+	    <!-- 6: fieldID -->
+	    <none />
+	    <!-- 7: specialityID -->
+	    <none />
+      <!-- 8 -->
+      <int name="IntelligenceAdd" />
+      <!-- 9 -->
+      <int name="CharismaAdd" />
+      <!-- 10 -->
+      <int name="PerceptionAdd" />
+      <!-- 11 -->
+      <int name="MemoryAdd" />
+      <!-- 12 -->
+      <int name="WillpowerAdd" />
+      <!-- 13 -->
+      <dictStr name="appearance" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_SetNote">
-	<InlineTuple>
-		<int name="itemID" />
-		<string name="note" />
-	</InlineTuple>
-</elementdef>
+  <elementDef name="CallCreateCharacter2">
+    <tupleInline>
+      <!-- 0 -->
+      <string name="name" />
+      <!-- 1 -->
+      <int name="bloodlineID" />
+      <!-- 2 -->
+      <int name="genderID" />
+      <!-- 3 -->
+      <int name="ancestryID" />
+      <!-- 4: appearance -->
+      <dictStr name="appearance" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_AddOwnerNote">
-  <InlineTuple>
-    <string name="label" />
-    <string name="content" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="RspCreateCharacter">
+    <tupleInline>
+      <!-- 0 -->
+      <substreamInline>
+        <int name="charID" />
+      </substreamInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_EditOwnerNote">
-  <InlineTuple>
-    <int name="noteID" />
-    <string name="label" />
-    <string name="content" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="NotifyOnCharNowInStation">
+    <tupleInline>
+	    <tupleInline>
+		    <!-- 0 -->
+		    <int name="charID" />
+		    <!-- 1 -->
+		    <int name="corpID" />
+		    <!-- 2 -->
+		    <int name="allianceID" default="0" none_marker="0" />
+		    <!-- 3 -->
+		    <int name="unknown" default="0" none_marker="0" />
+	    </tupleInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_BatchCertificateUpdate">
-  <InlineTuple>
-    <primdict name="update" key="uint32" pykey="Int" value="uint32" pyvalue="Int" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="NotifyOnCharNoLongerInStation">
+    <tupleInline>
+      <tupleInline>
+        <!-- 0 -->
+        <int name="charID" />
+        <!-- 1 -->
+        <int name="corpID" />
+        <!-- 2 -->
+        <int name="allianceID" default="0" none_marker="0" />
+        <!-- 3 -->
+        <int name="unknown" default="0" none_marker="0" />
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="SkillQueue_Element">
-  <InlineTuple>
-    <int name="typeID" />
-    <int name="level" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Call_SetNote">
+	  <tupleInline>
+		  <int name="itemID" />
+		  <string name="note" />
+	  </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_SaveSkillQueue">
-  <InlineTuple>
-    <!-- 0: List of SkillQueue_Element -->
-    <list name="queue" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Call_AddOwnerNote">
+    <tupleInline>
+      <string name="label" />
+      <string name="content" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_InjectSkillIntoBrain">
-  <InlineTuple>
-    <intlist name="skills" />
-  </InlineTuple>
-</elementdef>
-  
-</Elements>
+  <elementDef name="Call_EditOwnerNote">
+    <tupleInline>
+      <int name="noteID" />
+      <string name="label" />
+      <string name="content" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_BatchCertificateUpdate">
+    <tupleInline>
+      <dictRaw name="update" key="uint32" pykey="Int" value="uint32" pyvalue="Int" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="SkillQueue_Element">
+    <tupleInline>
+      <int name="typeID" />
+      <int name="level" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_SaveSkillQueue">
+    <tupleInline>
+      <!-- 0: List of SkillQueue_Element -->
+      <list name="queue" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_InjectSkillIntoBrain">
+    <tupleInline>
+      <listInt name="skills" />
+    </tupleInline>
+  </elementDef>
+
+</elements>
 
 

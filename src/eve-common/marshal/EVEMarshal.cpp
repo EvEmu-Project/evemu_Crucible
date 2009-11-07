@@ -204,14 +204,9 @@ bool MarshalStream::VisitBuffer( const PyBuffer* rep )
 
 bool MarshalStream::VisitString( const PyString* rep )
 {
-    uint32 len = (uint32)rep->content().size();
-    if( rep->isType1() )
-    {
-        Put<uint8>( Op_PyByteString );
-        PutSizeEx( len );
-        Put( (uint8*)rep->content().c_str(), len );
-    }
-    else if( len == 0 )
+    size_t len = rep->content().size();
+
+    if( len == 0 )
     {
         Put<uint8>( Op_PyEmptyString );
     }
@@ -238,6 +233,17 @@ bool MarshalStream::VisitString( const PyString* rep )
         }
         // TODO: use Op_PyUnicodeString?
     }
+
+    return true;
+}
+
+bool MarshalStream::VisitToken( const PyToken* rep )
+{
+    const size_t len = rep->content().size();
+
+    Put<uint8>( Op_PyToken );
+    PutSizeEx( len );
+    Put( (uint8*)rep->content().c_str(), len );
 
     return true;
 }

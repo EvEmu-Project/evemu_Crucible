@@ -1,39 +1,40 @@
-<Elements>
 
-<!-- this is not being used at the moment, more hrer for completeness -->
-<elementdef name="GetFactionInfoRsp">
- <InlineTuple>
-	<!-- 0: factionIDbyNPCCorpID: dict: corpID -> factionID    -->
-    <primdict name="factionIDbyNPCCorpID" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
-	<!-- 1: factionRegions: dict: factionID -> intlist -->
-    <intdict name="factionRegions" />
-	<!-- 2: factionConstellations: dict: factionID -> intlist -->
-    <intdict name="factionConstellations" />
-	<!-- 3: factionSolarSystems: dict: factionID -> intlist -->
-    <intdict name="factionSolarSystems" />
-	<!-- 4: factionRaces: dict: factionID -> intlist -->
-    <intdict name="factionRaces" />
-	<!-- 5: factionStationCount: dict: factionID -> count -->
-    <primdict name="factionStationCount" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
-	<!-- 6: factionSolarSystemCount: dict: factionID -> count -->
-    <primdict name="factionSolarSystemCount" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
-	<!-- 7: npcCorpInfo: dict: corpID -> util.Row -->
-    <!--
-        corporationName,
-        corporationID,mainActivityID,secondaryActivityID,
-        size,extent,solarSystemID,investorID1,investorShares1,investorID2,
-        investorShares2,investorID3,investorShares3,investorID4,investorShares4,
-        friendID,enemyID,publicShares,initialPrice,minSecurity,scattered,
-        fringe,corridor,hub,border,factionID,sizeFactor,stationCount,
-        stationSystemCount,stationID,ceoID,ceoName
-    -->
-    <raw name="npcCorpInfo" />
- </InlineTuple>
-</elementdef>
+<elements>
+
+  <!-- this is not being used at the moment, more hrer for completeness -->
+  <elementDef name="GetFactionInfoRsp">
+    <tupleInline>
+	    <!-- 0: factionIDbyNPCCorpID: dict: corpID -> factionID    -->
+      <dictRaw name="factionIDbyNPCCorpID" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
+	    <!-- 1: factionRegions: dict: factionID -> listInt -->
+      <dictInt name="factionRegions" />
+	    <!-- 2: factionConstellations: dict: factionID -> listInt -->
+      <dictInt name="factionConstellations" />
+	    <!-- 3: factionSolarSystems: dict: factionID -> listInt -->
+      <dictInt name="factionSolarSystems" />
+	    <!-- 4: factionRaces: dict: factionID -> listInt -->
+      <dictInt name="factionRaces" />
+	    <!-- 5: factionStationCount: dict: factionID -> count -->
+      <dictRaw name="factionStationCount" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
+	    <!-- 6: factionSolarSystemCount: dict: factionID -> count -->
+      <dictRaw name="factionSolarSystemCount" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
+	    <!-- 7: npcCorpInfo: dict: corpID -> util.Row -->
+      <!--
+          corporationName,
+          corporationID,mainActivityID,secondaryActivityID,
+          size,extent,solarSystemID,investorID1,investorShares1,investorID2,
+          investorShares2,investorID3,investorShares3,investorID4,investorShares4,
+          friendID,enemyID,publicShares,initialPrice,minSecurity,scattered,
+          fringe,corridor,hub,border,factionID,sizeFactor,stationCount,
+          stationSystemCount,stationID,ceoID,ceoName
+      -->
+      <raw name="npcCorpInfo" />
+   </tupleInline>
+  </elementDef>
 
 
-  <elementdef name="Call_AddCorporation">
-    <InlineTuple>
+  <elementDef name="Call_AddCorporation">
+    <tupleInline>
       <string name="corpName" />
       <string name="corpTicker" />
       <string name="description" />
@@ -46,653 +47,615 @@
       <raw name="color2" />
       <raw name="color3" />
       <raw name="unknown" />
-    </InlineTuple>
-  </elementdef>
+    </tupleInline>
+  </elementDef>
 
-  <elementdef name="Item_GetSuggestedTickerNames">
-    <object type="util.KeyVal">
-      <InlineDict>
-        <IDEntry key="tickerName">
+  <elementDef name="Item_GetSuggestedTickerNames">
+    <objectInline>
+      <stringInline value="util.KeyVal" />
+      <dictInline>
+        <dictInlineEntry key="tickerName">
           <string name="tN" />
-        </IDEntry>
-      </InlineDict>
-    </object>
-  </elementdef>
+        </dictInlineEntry>
+      </dictInline>
+    </objectInline>
+  </elementDef>
 
-  <elementdef name="Notify_OnCorporaionChanged">
-    <InlineTuple>
+  <elementDef name="Notify_OnCorporaionChanged">
+    <tupleInline>
       <int name="corpID" />
-      <InlineDict>
-        <IDEntry key="corporationID">
-          <InlineTuple name="ide1">
+      <dictInline>
+        <dictInlineEntry key="corporationID">
+          <tupleInline>
             <raw name="corporationIDOld" />
             <int name="corporationIDNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="corporationName">
-          <InlineTuple name="ide2">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="corporationName">
+          <tupleInline>
             <raw name="corporationNameOld" />
             <string name="corporationNameNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="description">
-          <InlineTuple name="ide3">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="description">
+          <tupleInline>
             <raw name="descriptionOld" />
             <string name="descriptionNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="tickerName">
-          <InlineTuple name="ide4">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="tickerName">
+          <tupleInline>
             <raw name="tickerNameOld" />
             <string name="tickerNameNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="url">
-          <InlineTuple name="ide5">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="url">
+          <tupleInline>
             <raw name="urlOld" />
             <string name="urlNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="taxRate">
-          <InlineTuple name="ide6">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="taxRate">
+          <tupleInline>
             <raw name="taxRateOld" />
             <real name="taxRateNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="minimumJoinStanding">
-          <InlineTuple name="ide7">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="minimumJoinStanding">
+          <tupleInline>
             <raw name="minimumJoinStandingOld" />
             <real name="minimumJoinStandingNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="corporationType">
-          <InlineTuple name="ide8">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="corporationType">
+          <tupleInline>
             <raw name="corporationTypeOld" />
             <int name="corporationTypeNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="hasPlayerPersonnelManager">
-          <InlineTuple name="ide9">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="hasPlayerPersonnelManager">
+          <tupleInline>
             <raw name="hasPlayerPersonnelManagerOld" />
             <int name="hasPlayerPersonnelManagerNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="sendCharTerminationMessage">
-          <InlineTuple name="ide10">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="sendCharTerminationMessage">
+          <tupleInline>
             <raw name="sendCharTerminationMessageOld" />
             <int name="sendCharTerminationMessageNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="creatorID">
-          <InlineTuple name="ide11">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="creatorID">
+          <tupleInline>
             <raw name="creatorIDOld" />
             <int name="creatorIDNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="stationID">
-          <InlineTuple name="ide12">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="stationID">
+          <tupleInline>
             <raw name="stationIDOld" />
             <int name="stationIDNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="raceID">
-          <InlineTuple name="ide13">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="raceID">
+          <tupleInline>
             <raw name="raceIDOld" />
             <raw name="raceIDNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="allianceID">
-          <InlineTuple name="ide14">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="allianceID">
+          <tupleInline>
             <raw name="allianceIDOld" />
             <raw name="allianceIDNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="shares">
-          <InlineTuple name="ide15">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="shares">
+          <tupleInline>
             <raw name="sharesOld" />
-            <int64 name="sharesNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="memberCount">
-          <InlineTuple name="ide16">
+            <long name="sharesNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="memberCount">
+          <tupleInline>
             <raw name="memberCountOld" />
             <int name="memberCountNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="memberLimit">
-          <InlineTuple name="ide17">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="memberLimit">
+          <tupleInline>
             <raw name="memberLimitOld" />
             <int name="memberLimitNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="allowedMemberRaceIDs">
-          <InlineTuple name="ide18">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="allowedMemberRaceIDs">
+          <tupleInline>
             <raw name="allowedMemberRaceIDsOld" />
             <int name="allowedMemberRaceIDsNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="graphicID">
-          <InlineTuple name="ide19">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="graphicID">
+          <tupleInline>
             <raw name="graphicIDOld" />
             <int name="graphicIDNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="shape1">
-          <InlineTuple name="ide20">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="shape1">
+          <tupleInline>
             <raw name="shape1Old" />
             <raw name="shape1New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="shape2">
-          <InlineTuple name="ide21">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="shape2">
+          <tupleInline>
             <raw name="shape2Old" />
             <raw name="shape2New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="shape3">
-          <InlineTuple name="ide22">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="shape3">
+          <tupleInline>
             <raw name="shape3Old" />
             <raw name="shape3New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="color1">
-          <InlineTuple name="ide23">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="color1">
+          <tupleInline>
             <raw name="color1Old" />
             <raw name="color1New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="color2">
-          <InlineTuple name="ide24">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="color2">
+          <tupleInline>
             <raw name="color2Old" />
             <raw name="color2New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="color3">
-          <InlineTuple name="ide25">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="color3">
+          <tupleInline>
             <raw name="color3Old" />
             <raw name="color3New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="typeface">
-          <InlineTuple name="ide26">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="typeface">
+          <tupleInline>
             <raw name="typefaceOld" />
             <raw name="typefaceNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="division1">
-          <InlineTuple name="ide27">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="division1">
+          <tupleInline>
             <raw name="division1Old" />
             <raw name="division1New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="division2">
-          <InlineTuple name="ide28">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="division2">
+          <tupleInline>
             <raw name="division2Old" />
             <raw name="division2New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="division3">
-          <InlineTuple name="ide29">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="division3">
+          <tupleInline>
             <raw name="division3Old" />
             <raw name="division3New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="division4">
-          <InlineTuple name="ide30">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="division4">
+          <tupleInline>
             <raw name="division4Old" />
             <raw name="division4New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="division5">
-          <InlineTuple name="ide31">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="division5">
+          <tupleInline>
             <raw name="division5Old" />
             <raw name="division5New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="division6">
-          <InlineTuple name="ide32">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="division6">
+          <tupleInline>
             <raw name="division6Old" />
             <raw name="division6New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="division7">
-          <InlineTuple name="ide33">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="division7">
+          <tupleInline>
             <raw name="division7Old" />
             <raw name="division7New" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="deleted">
-          <InlineTuple name="ide34">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="deleted">
+          <tupleInline>
             <raw name="deletedOld" />
             <int name="deletedNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="ceoID">
-          <InlineTuple name="ide35">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="ceoID">
+          <tupleInline>
             <raw name="ceoIDOld" />
             <int name="ceoIDNew" />
-          </InlineTuple>
-        </IDEntry>
-      </InlineDict>
-    </InlineTuple>
-  </elementdef>
+          </tupleInline>
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
 
-  <elementdef name="Notify_OCCSessionChangeNotification">
-    <InlineDict>
-      <IDEntry key="corprole">
-        <InlineTuple name="it1">
-          <int64 name="corpRoleOld" />
-          <int64 name="corpRoleNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="corpid">
-        <InlineTuple name="it2">
+  <elementDef name="Notify_OCCSessionChangeNotification">
+    <dictInline>
+      <dictInlineEntry key="corprole">
+        <tupleInline>
+          <long name="corpRoleOld" />
+          <long name="corpRoleNew" />
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="corpid">
+        <tupleInline>
           <int name="corpidOld" />
           <int name="corpidNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="rolesAtAll">
-        <InlineTuple name="it3">
-          <int64 name="corpRoleAllOld" />
-          <int64 name="corpRoleAllNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="rolesAtBase">
-        <InlineTuple name="it4">
-          <int64 name="corpRoleBaseOld" />
-          <int64 name="corpRoleBaseNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="hqID">
-        <InlineTuple name="it5">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="rolesAtAll">
+        <tupleInline>
+          <long name="corpRoleAllOld" />
+          <long name="corpRoleAllNew" />
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="rolesAtBase">
+        <tupleInline>
+          <long name="corpRoleBaseOld" />
+          <long name="corpRoleBaseNew" />
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="hqID">
+        <tupleInline>
           <int name="corpHqIDOld" />
           <int name="corpHqIDNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="rolesAtHQ">
-        <InlineTuple name="it6">
-          <int64 name="corpRoleHQOld" />
-          <int64 name="corpRoleHQNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="rolesAtOther">
-        <InlineTuple name="it7">
-          <int64 name="corpRoleOtherOld" />
-          <int64 name="corpRoleOtherNew" />
-        </InlineTuple>
-      </IDEntry>
-    </InlineDict>
-  </elementdef>
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="rolesAtHQ">
+        <tupleInline>
+          <long name="corpRoleHQOld" />
+          <long name="corpRoleHQNew" />
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="rolesAtOther">
+        <tupleInline>
+          <long name="corpRoleOtherOld" />
+          <long name="corpRoleOtherNew" />
+        </tupleInline>
+      </dictInlineEntry>
+    </dictInline>
+  </elementDef>
 
-  <elementdef name="CorpOfficeSparseRowset">
-    <object type="util.SparseRowset">
-      <InlineTuple>
+  <elementDef name="CorpOfficeSparseRowset">
+    <objectInline>
+      <stringInline value="util.SparseRowset" />
+      <tupleInline>
         <!-- This is probably a header. No indication of it though -->
-        <InlineList>
+        <listInline>
           <!-- This has to be String Table Item 155, which is out of range, so I have to create it a bit differently -->
-          <string name="stationID" default="stationID" />
-          <string name="typeID" default="typeID" />
-          <string name="officeID" default="officeID" />
-          <string name="officeFolderID" default="officeFolderID" />
-        </InlineList>
+          <stringInline value="stationID" />
+          <stringInline value="typeID" />
+          <stringInline value="officeID" />
+          <stringInline value="officeFolderID" />
+        </listInline>
         <!-- Substruct containing a substream containing the binding stuff -->
         <!-- String, Dict, int field -->
         <raw name="bindedObject" />
         <!-- Maybe number of offices? -->
         <int name="officeNumber" default="0" />
-      </InlineTuple>
-    </object>
-  </elementdef>
+      </tupleInline>
+    </objectInline>
+  </elementDef>
 
-  <elementdef name="Notify_OnObjectPublicAttributesUpdated">
-    <InlineTuple>
+  <elementDef name="Notify_OnObjectPublicAttributesUpdated">
+    <tupleInline>
       <string name="bindID" />
-      <InlineDict>
-        <IDEntry key="realRowCount">
+      <dictInline>
+        <dictInlineEntry key="realRowCount">
           <int name="realRowCount" default="2" />
-        </IDEntry>
-      </InlineDict>
-      <InlineTuple>
+        </dictInlineEntry>
+      </dictInline>
+      <tupleInline>
         <!-- empty tuple so far -->
-      </InlineTuple>
-      <InlineDict>
-        <IDEntry key="partial">
-          <InlineList name="unused1">
+      </tupleInline>
+      <dictInline>
+        <dictInlineEntry key="partial">
+          <listInline>
             <!-- This way the old value isn't going to be saved, but the call doesn't fail at least... :S -->
-            <!-- <string name="unused2" default="realRowCount" /> Remove for the moment... -->
-          </InlineList>
-        </IDEntry>
-        <IDEntry key="changePKIndexValue">
+            <!-- <stringInline value="realRowCount" /> Remove for the moment... -->
+          </listInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="changePKIndexValue">
           <int name="changePKIndexValue" />
-        </IDEntry>
-        <IDEntry key="notificationParams">
-          <dict name="unused3" />
-        </IDEntry>
-        <IDEntry key="change">
+        </dictInlineEntry>
+        <dictInlineEntry key="notificationParams">
+          <dict name="notificationParams" />
+        </dictInlineEntry>
+        <dictInlineEntry key="change">
           <raw name="changes" />
-        </IDEntry>
-      </InlineDict>
-    </InlineTuple>
-  </elementdef>
-  <elementdef name="OfficeAttributeUpdate">
-    <InlineDict name="unused4">
-      <IDEntry key="typeID">
-        <InlineTuple name="unused5">
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="OfficeAttributeUpdate">
+    <dictInline>
+      <dictInlineEntry key="typeID">
+        <tupleInline>
           <raw name="oldTypeID" />
           <int name="newTypeID" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="stationID">
-        <InlineTuple name="unused6">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="stationID">
+        <tupleInline>
           <raw name="oldStationID" />
           <int name="newStationID" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="officeFolderID">
-        <InlineTuple name="unused7">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="officeFolderID">
+        <tupleInline>
           <raw name="oldOfficeFolderID" />
           <int name="newOfficeFolderID" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="officeID">
-        <InlineTuple name="unused8">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="officeID">
+        <tupleInline>
           <raw name="oldOfficeID" />
           <int name="newOfficeID" />
-        </InlineTuple>
-      </IDEntry>
-    </InlineDict>
-  </elementdef>           
+        </tupleInline>
+      </dictInlineEntry>
+    </dictInline>
+  </elementDef>
 
-  <elementdef name="Notify_OnItemChange">
-    <InlineTuple>
-      <object type="util.Row">
-        <InlineDict>
-          <IDEntry key="header">
-            <InlineList name="unusedX">
-              <string name="unused1"  default="itemID" />
-              <string name="unused2"  default="typeID" />
-              <string name="unused3"  default="ownerID" />
-              <string name="unused4"  default="locationID" />
-              <string name="unused5"  default="flag" />
-              <string name="unused6"  default="contraband" />
-              <string name="unused7"  default="singleton" />
-              <string name="unused8"  default="quantity" />
-              <string name="unused9"  default="groupID" />
-              <string name="unused10" default="categoryID" />
-              <string name="unused11" default="customInfo" />
-            </InlineList>
-          </IDEntry>
-          <IDEntry key="line">
-            <InlineList name="unusedY">
-              <int name="itemID" />
-              <int name="typeID" default="27" />
-              <int name="ownerID" />
-              <int name="locationID" />
-              <int name="flag" default="84" />
-              <int name="contraband" default="0" />
-              <int name="singleton" default="1" />
-              <int name="quantity" default="1" />
-              <int name="groupID" default="16" />
-              <int name="categoryID" default="3" />
-              <raw name="customInfo" />
-            </InlineList>
-          </IDEntry>
-        </InlineDict>
-      </object>
-      <InlineDict>
-        <IDEntry key="2" key_type="int">
-          <int name="unused12" default="4" />
-          <!-- What this could be? -->
-        </IDEntry>
-      </InlineDict>
-    </InlineTuple>
-  </elementdef>
-
-  <elementdef name="Notify_OnOfficeRentalChanged">
-    <InlineTuple>
+  <elementDef name="Notify_OnOfficeRentalChanged">
+    <tupleInline>
       <int name="ownerID" />
       <int name="officeID" />
       <int name="officeFolderID" />
-    </InlineTuple>
-  </elementdef>
+    </tupleInline>
+  </elementDef>
 
-  <elementdef name="Notify_OnBillReceived">
-    <InlineTuple>
+  <elementDef name="Notify_OnBillReceived">
+    <tupleInline>
       <!-- Empty tuple, very funny :S. Then what is it good for? -->
-    </InlineTuple>
-  </elementdef>
+    </tupleInline>
+  </elementDef>
 
-  <elementdef name="Reply_FetchOffice">
-    <InlineList>
-      <InlineTuple>
+  <elementDef name="Reply_FetchOffice">
+    <listInline>
+      <tupleInline>
         <int name="officeID" />
         <list name="params" />
-      </InlineTuple>
-    </InlineList>
-  </elementdef>
+      </tupleInline>
+    </listInline>
+  </elementDef>
 
-  <elementdef name="Call_InsertApplication">
-    <InlineTuple>
+  <elementDef name="Call_InsertApplication">
+    <tupleInline>
       <int name="corpID" />
       <string name="message" />
-    </InlineTuple>
-  </elementdef>
+    </tupleInline>
+  </elementDef>
 
-  <elementdef name="Notify_OnCorporationApplicationChanged">
-    <InlineTuple name="uu1">
+  <elementDef name="Notify_OnCorporationApplicationChanged">
+    <tupleInline>
       <int name="charID" />
       <int name="corpID" />
-      <InlineDict name="uu3">
-        <IDEntry key="status">
-          <InlineTuple name="uu4">
+      <dictInline>
+        <dictInlineEntry key="status">
+          <tupleInline>
             <raw name="statusOld" />
             <raw name="statusNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="corporationID">
-          <InlineTuple name="uu5">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="corporationID">
+          <tupleInline>
             <raw name="corporationIDOld" />
             <raw name="corporationIDNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="roles">
-          <InlineTuple name="uu6">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="roles">
+          <tupleInline>
             <raw name="rolesOld" />
             <raw name="rolesNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="grantableRoles">
-          <InlineTuple name="uu7">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="grantableRoles">
+          <tupleInline>
             <raw name="grantableRolesOld" />
             <raw name="grantableRolesNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="deleted">
-          <InlineTuple name="uu8">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="deleted">
+          <tupleInline>
             <raw name="deletedOld" />
             <raw name="deletedNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="applicationText">
-          <InlineTuple name="uu9">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="applicationText">
+          <tupleInline>
             <raw name="applicationTextOld" />
             <raw name="applicationTextNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="lastCorpUpdaterID">
-          <InlineTuple name="uu10">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="lastCorpUpdaterID">
+          <tupleInline>
             <raw name="lastCorpUpdaterIDOld" />
             <raw name="lastCorpUpdaterIDNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="applicationDateTime">
-          <InlineTuple name="uu11">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="applicationDateTime">
+          <tupleInline>
             <raw name="applicationDateTimeOld" />
             <raw name="applicationDateTimeNew" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="characterID">
-          <InlineTuple name="uu12">
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="characterID">
+          <tupleInline>
             <raw name="characterIDOld" />
             <raw name="characterIDNew" />
-          </InlineTuple>
-        </IDEntry>
-      </InlineDict>
-    </InlineTuple>
-  </elementdef>
-  
-  <elementdef name="Call_UpdateApplicationOffer">
-    <InlineTuple>
+          </tupleInline>
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_UpdateApplicationOffer">
+    <tupleInline>
       <int name="charID" />
       <string name="appText" />
       <int name="newStatus" />
       <none />
-    </InlineTuple>
-  </elementdef>
-  <elementdef name="MemberAttributeUpdate">
-    <InlineDict name="uu1">
-      <IDEntry key="grantableRolesAtOther">
-        <InlineTuple name="uu1">
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="MemberAttributeUpdate">
+    <dictInline>
+      <dictInlineEntry key="grantableRolesAtOther">
+        <tupleInline>
           <raw name="grantableRolesAtOtherOld" />
           <raw name="grantableRolesAtOtherNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="corporationID">
-        <InlineTuple name="uu2">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="corporationID">
+        <tupleInline>
           <raw name="corporationIDOld" />
           <raw name="corporationIDNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="baseID">
-        <InlineTuple name="uu3">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="baseID">
+        <tupleInline>
           <raw name="baseIDOld" />
           <raw name="baseIDNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="roles">
-        <InlineTuple name="uu4">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="roles">
+        <tupleInline>
           <raw name="rolesOld" />
           <raw name="rolesNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="title">
-        <InlineTuple name="uu5">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="title">
+        <tupleInline>
           <raw name="titleOld" />
           <raw name="titleNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="accountKey">
-        <InlineTuple name="uu6">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="accountKey">
+        <tupleInline>
           <raw name="accountKeyOld" />
           <raw name="accountKeyNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="grantableRoles">
-        <InlineTuple name="uu7">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="grantableRoles">
+        <tupleInline>
           <raw name="grantableRolesOld" />
           <raw name="grantableRolesNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="grantableRolesAtHQ">
-        <InlineTuple name="uu9">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="grantableRolesAtHQ">
+        <tupleInline>
           <raw name="grantableRolesAtHQOld" />
           <raw name="grantableRolesAtHQNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="startDateTime">
-        <InlineTuple name="uuw">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="startDateTime">
+        <tupleInline>
           <raw name="startDateTimeOld" />
           <raw name="startDateTimeNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="divisionID">
-        <InlineTuple name="uue">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="divisionID">
+        <tupleInline>
           <raw name="divisionIDOld" />
           <raw name="divisionIDNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="titleMask">
-        <InlineTuple name="uur">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="titleMask">
+        <tupleInline>
           <raw name="titleMaskOld" />
           <raw name="titleMaskNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="characterID">
-        <InlineTuple name="uuz">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="characterID">
+        <tupleInline>
           <raw name="characterIDOld" />
           <raw name="characterIDNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="squadronID">
-        <InlineTuple name="uuu">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="squadronID">
+        <tupleInline>
           <raw name="squadronIDOld" />
           <raw name="squadronIDNew" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="grantableRolesAtBase">
-        <InlineTuple name="uui">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="grantableRolesAtBase">
+        <tupleInline>
           <raw name="grantableRolesAtBaseOld" />
           <raw name="grantableRolesAtBaseNew" />
-        </InlineTuple>
-      </IDEntry>
+        </tupleInline>
+      </dictInlineEntry>
 <!--
-      <IDEntry key="STI145">
-        <InlineTuple name="uu8">
+      <dictInlineEntry key="STI145">
+        <tupleInline name="uu8">
           <raw name="STI145Old" />
           <raw name="STI145New" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="STI146">
-        <InlineTuple name="uut">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="STI146">
+        <tupleInline name="uut">
           <raw name="STI146Old" />
           <raw name="STI146New" />
-        </InlineTuple>
-      </IDEntry>
-      <IDEntry key="STI147">
-        <InlineTuple name="uuq">
+        </tupleInline>
+      </dictInlineEntry>
+      <dictInlineEntry key="STI147">
+        <tupleInline name="uuq">
           <raw name="STI147Old" />
           <raw name="STI147New" />
-        </InlineTuple>
-      </IDEntry>
+        </tupleInline>
+      </dictInlineEntry>
 -->
-    </InlineDict>
-  </elementdef>
-  <elementdef name="Notify_OnCorpMemberChange">
-    <InlineTuple>
+    </dictInline>
+  </elementDef>
+
+  <elementDef name="Notify_OnCorpMemberChange">
+    <tupleInline>
       <int name="charID" />
-      <InlineDict name="id">
-        <IDEntry key="corporationID">
-          <InlineTuple name="uu1">
+      <dictInline>
+        <dictInlineEntry key="corporationID">
+          <tupleInline>
             <int name="oldCorpID" />
             <int name="newCorpID" />
-          </InlineTuple>
-        </IDEntry>
-        <IDEntry key="startDateTime">
-          <InlineTuple name="uu2">
-            <int64 name="oldDate" />
-            <int64 name="newDate" />
-          </InlineTuple>
-        </IDEntry>
-      </InlineDict>
-    </InlineTuple>
-  </elementdef>
-  <elementdef name="Notify_IntRaw">
-    <InlineTuple>
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="startDateTime">
+          <tupleInline>
+            <long name="oldDate" />
+            <long name="newDate" />
+          </tupleInline>
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Notify_IntRaw">
+    <tupleInline>
       <int name="key" />
       <raw name="data" />
-    </InlineTuple>
-  </elementdef>
+    </tupleInline>
+  </elementDef>
 
-  <elementdef name="Call_UpdateApplication">
-    <InlineTuple>
+  <elementDef name="Call_UpdateApplication">
+    <tupleInline>
       <int name="corpID" />
       <string name="message" />
       <int name="status" /> <!-- ? -->
       <raw name="date" />
-    </InlineTuple>
-  </elementdef>
-  <elementdef name="Call_UpdateDivisionNames">
-    <InlineTuple>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_UpdateDivisionNames">
+    <tupleInline>
       <string name="div1" />
       <string name="div2" />
       <string name="div3" />
@@ -700,17 +663,19 @@
       <string name="div5" />
       <string name="div6" />
       <string name="div7" />
-    </InlineTuple>
-  </elementdef>
-  <elementdef name="Call_UpdateCorporation">
-    <InlineTuple>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_UpdateCorporation">
+    <tupleInline>
       <string name="description" />
       <string name="address" />
       <real name="tax" />
-    </InlineTuple>
-  </elementdef>
-  <elementdef name="Call_UpdateLogo">
-    <InlineTuple>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_UpdateLogo">
+    <tupleInline>
       <int name="shape1" none_marker="0" />
       <int name="shape2" none_marker="0" />
       <int name="shape3" none_marker="0" />
@@ -718,10 +683,11 @@
       <int name="color2" none_marker="0" />
       <int name="color3" none_marker="0" />
       <raw name="typeface" /> <!-- Prolly always none -->
-    </InlineTuple>
-  </elementdef>
-  <elementdef name="Call_GetRecruitmentAdsByCriteria">
-    <InlineTuple>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_GetRecruitmentAdsByCriteria">
+    <tupleInline>
       <int name="regionID" />
       <int name="skillPoints" />
       <int name="typeMask" />
@@ -730,6 +696,7 @@
       <int name="isInAlliance" />
       <int name="minMembers" />
       <int name="maxMembers" />
-    </InlineTuple>
-  </elementdef>
-</Elements>
+    </tupleInline>
+  </elementDef>
+
+</elements>

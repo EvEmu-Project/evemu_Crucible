@@ -45,17 +45,18 @@ const char* const PyRep::s_mTypeString[] =
     "Boolean",          //3
     "Buffer",           //4
     "String",           //5
-    "Tuple",            //6
-    "List",             //7
-    "Dict",             //8
-    "None",             //9
-    "SubStruct",        //10
-    "SubStream",        //11
-    "ChecksumedStream", //12
-    "Object",           //13
-    "ObjectEx",         //14
-    "PackedRow",        //15
-    "UNKNOWN TYPE",     //16
+    "Token",            //6
+    "Tuple",            //7
+    "List",             //8
+    "Dict",             //9
+    "None",             //10
+    "SubStruct",        //11
+    "SubStream",        //12
+    "ChecksumedStream", //13
+    "Object",           //14
+    "ObjectEx",         //15
+    "PackedRow",        //16
+    "UNKNOWN TYPE",     //17
 };
 
 PyRep::PyRep( PyType t ) : mType( t ), mRefCnt( 1 ) {}
@@ -94,7 +95,6 @@ int32 PyRep::hash() const
 /************************************************************************/
 PyInt::PyInt( const int32 i ) : PyRep( PyRep::PyTypeInt ), mValue( i ) {}
 PyInt::PyInt( const PyInt& oth ) : PyRep( PyRep::PyTypeInt ), mValue( oth.value() ) {}
-PyInt::~PyInt() {}
 
 PyRep* PyInt::Clone() const
 {
@@ -121,7 +121,6 @@ int32 PyInt::hash() const
 /************************************************************************/
 PyLong::PyLong( const int64 i ) : PyRep( PyRep::PyTypeLong ), mValue( i ) {}
 PyLong::PyLong( const PyLong& oth ) : PyRep( PyRep::PyTypeLong ), mValue( oth.value() ) {}
-PyLong::~PyLong() {}
 
 PyRep* PyLong::Clone() const
 {
@@ -179,7 +178,6 @@ int32 PyLong::hash() const
 /************************************************************************/
 PyFloat::PyFloat( const double& i ) : PyRep( PyRep::PyTypeFloat ), mValue( i ) {}
 PyFloat::PyFloat( const PyFloat& oth ) : PyRep( PyRep::PyTypeFloat ), mValue( oth.value() ) {}
-PyFloat::~PyFloat() {}
 
 PyRep* PyFloat::Clone() const
 {
@@ -257,7 +255,6 @@ int32 PyFloat::hash() const
 /************************************************************************/
 PyBool::PyBool( bool i ) : PyRep( PyRep::PyTypeBool ), mValue( i ) {}
 PyBool::PyBool( const PyBool& oth ) : PyRep( PyRep::PyTypeBool ), mValue( oth.value() ) {}
-PyBool::~PyBool() {}
 
 PyRep* PyBool::Clone() const
 {
@@ -274,7 +271,6 @@ bool PyBool::visit( PyVisitor& v ) const
 /************************************************************************/
 PyNone::PyNone() : PyRep( PyRep::PyTypeNone ) {}
 PyNone::PyNone( const PyNone& oth ) : PyRep( PyRep::PyTypeNone ) {}
-PyNone::~PyNone() {}
 
 PyRep* PyNone::Clone() const
 {
@@ -352,14 +348,14 @@ int32 PyBuffer::hash() const
 }
 
 /************************************************************************/
-/* PyString                                                          */
+/* PyString                                                             */
 /************************************************************************/
-PyString::PyString( const char* str, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( str ), mIsType1( type_1 ), mHashCache( -1 ) {}
-PyString::PyString( const char* str, size_t len, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( str, len ), mIsType1( type_1 ), mHashCache( -1 ) {}
-PyString::PyString( const std::string& str, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( str ), mIsType1( type_1 ), mHashCache( -1 ) {}
-PyString::PyString( const PyBuffer& buf, bool type_1 ) : PyRep( PyRep::PyTypeString ), mValue( (const char *) &buf.content()[0], buf.content().size() ), mIsType1( type_1 ), mHashCache( -1 ) {}
-PyString::PyString( const PyString& oth ) : PyRep( PyRep::PyTypeString ), mValue( oth.mValue ), mIsType1( oth.mIsType1 ), mHashCache( oth.mHashCache ) {}
-PyString::~PyString() {}
+PyString::PyString( const char* str ) : PyRep( PyRep::PyTypeString ), mValue( str ), mHashCache( -1 ) {}
+PyString::PyString( const char* str, size_t len ) : PyRep( PyRep::PyTypeString ), mValue( str, len ), mHashCache( -1 ) {}
+PyString::PyString( const std::string& str ) : PyRep( PyRep::PyTypeString ), mValue( str ), mHashCache( -1 ) {}
+PyString::PyString( const PyBuffer& buf ) : PyRep( PyRep::PyTypeString ), mValue( (const char *) &buf.content()[0], buf.content().size() ), mHashCache( -1 ) {}
+PyString::PyString( const PyToken& token ) : PyRep( PyRep::PyTypeString ), mValue( token.content() ), mHashCache( -1 ) {}
+PyString::PyString( const PyString& oth ) : PyRep( PyRep::PyTypeString ), mValue( oth.mValue ), mHashCache( oth.mHashCache ) {}
 
 PyRep* PyString::Clone() const
 {
@@ -391,6 +387,25 @@ int32 PyString::hash() const
 
     mHashCache = x;
     return x;
+}
+
+/************************************************************************/
+/* PyToken                                                              */
+/************************************************************************/
+PyToken::PyToken( const char* token ) : PyRep( PyRep::PyTypeToken ), mValue( token ) {}
+PyToken::PyToken( const char* token, size_t len ) : PyRep( PyRep::PyTypeToken ), mValue( token, len ) {}
+PyToken::PyToken( const std::string& token ) : PyRep( PyRep::PyTypeToken ), mValue( token ) {}
+PyToken::PyToken( const PyString& token ) : PyRep( PyRep::PyTypeToken ), mValue( token.content() ) {}
+PyToken::PyToken( const PyToken& oth ) : PyRep( PyRep::PyTypeToken ), mValue( oth.content() ) {}
+
+PyRep* PyToken::Clone() const
+{
+    return new PyToken( *this );
+}
+
+bool PyToken::visit( PyVisitor& v ) const
+{
+    return v.VisitToken( this );
 }
 
 /************************************************************************/
@@ -707,12 +722,12 @@ PyObjectEx& PyObjectEx::operator=( const PyObjectEx& oth )
 /************************************************************************/
 /* PyObjectEx_Type1                                                     */
 /************************************************************************/
-PyObjectEx_Type1::PyObjectEx_Type1( const char* type, PyTuple* args, PyDict* keywords ) : PyObjectEx( false, _CreateHeader( type, args, keywords ) ) {}
+PyObjectEx_Type1::PyObjectEx_Type1( PyToken* type, PyTuple* args, PyDict* keywords ) : PyObjectEx( false, _CreateHeader( type, args, keywords ) ) {}
 
-PyString* PyObjectEx_Type1::GetType() const
+PyToken* PyObjectEx_Type1::GetType() const
 {
     assert( header() );
-    return header()->AsTuple()->GetItem( 0 )->AsString();
+    return header()->AsTuple()->GetItem( 0 )->AsToken();
 }
 
 PyTuple* PyObjectEx_Type1::GetArgs() const
@@ -731,7 +746,7 @@ PyDict* PyObjectEx_Type1::GetKeywords() const
 	if( t->size() < 3 )
 		t->items.push_back( new PyDict );
 
-	return t->items.at( 2 )->AsDict();
+	return t->GetItem( 2 )->AsDict();
 }
 
 PyRep* PyObjectEx_Type1::FindKeyword( const char* keyword ) const
@@ -751,13 +766,13 @@ PyRep* PyObjectEx_Type1::FindKeyword( const char* keyword ) const
 	return NULL;
 }
 
-PyTuple* PyObjectEx_Type1::_CreateHeader( const char* type, PyTuple* args, PyDict* keywords )
+PyTuple* PyObjectEx_Type1::_CreateHeader( PyToken* type, PyTuple* args, PyDict* keywords )
 {
 	if( args == NULL )
 		args = new PyTuple( 0 );
 
 	PyTuple* head = new PyTuple( keywords == NULL ? 2 : 3 );
-	head->SetItem( 0, new PyString( type, true ) );
+	head->SetItem( 0, type );
 	head->SetItem( 1, args );
 	if( head->size() > 2 )
 		head->SetItem( 2, keywords );

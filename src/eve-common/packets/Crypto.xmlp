@@ -1,205 +1,203 @@
 
 
-<Elements>
 
-<include file="python/classes/PasswordString.h" />
+<elements>
 
-<!-- this is not being used at the moment, more hrer for completeness -->
-<elementdef name="VersionExchange">
- <InlineTuple>
-	<int name="birthday" value="170472" />
-	<int name="macho_version" />
-	<int name="user_count" />
-	<real name="version_number" />
-	<int name="build_version" />
-	<string name="project_version" />
- </InlineTuple>
-</elementdef>
+  <include file="python/classes/PasswordString.h" />
 
-<elementdef name="NetCommand_QC">
-	<InlineTuple>
-		<none />
-		<!-- This should be "QC" -->
-		<string name="command" />
-	</InlineTuple>
-</elementdef>
+  <elementDef name="VersionExchange">
+    <tupleInline>
+	    <int name="birthday" />
+	    <int name="macho_version" />
+	    <int name="user_count" />
+	    <real name="version_number" />
+	    <int name="build_version" />
+	    <string name="project_version" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="NetCommand_VK">
-	<InlineTuple>
-		<none />
-		<!-- This should be "VK" -->
-		<string name="command" />
-		<string name="vipKey" />
-	</InlineTuple>
-</elementdef>
+  <elementDef name="NetCommand_QC">
+	  <tupleInline>
+		  <none />
+		  <stringInline value="QC" />
+	  </tupleInline>
+  </elementDef>
 
-<elementdef name="CryptoRequestPacket">
-  <InlineTuple>
-	<!-- 0 -->
-	<string name="keyVersion" />
-	<!-- 1 -->
-	<dict name="keyParams" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="NetCommand_VK">
+	  <tupleInline>
+		  <none />
+		  <stringInline value="VK" />
+		  <string name="vipKey" />
+	  </tupleInline>
+  </elementDef>
 
-<elementdef name="CryptoAPIRequestParams">
-  <InlineDict>
-    <IDEntry key="crypting_sessionkey">
-  	  <string name="sessionkey" />                                         
-    </IDEntry>
-    <IDEntry key="signing_hashmethod">
-      <string name="hashmethod" />
-    </IDEntry>
-    <IDEntry key="crypting_sessionkeylength">
-      <int name="sessionkeylength" />
-    </IDEntry>
-    <IDEntry key="crypting_securityprovidertype">
-      <string name="provider" />
-    </IDEntry>
-    <IDEntry key="crypting_sessionkeymethod">
-      <string name="sessionkeymethod" />
-    </IDEntry>
-  </InlineDict>
-</elementdef>
+  <elementDef name="CryptoRequestPacket">
+    <tupleInline>
+	    <!-- 0 -->
+	    <string name="keyVersion" />
+	    <!-- 1 -->
+	    <dict name="keyParams" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="CryptoChallengePacket">
-  <InlineTuple>
-	<!-- 0 -->
-	<string name="clientChallenge" />
-	<!-- 1 -->
-	<InlineDict>
-	  <IDEntry key="macho_version">
-		<int name="macho_version" />
-	  </IDEntry>
-	  <IDEntry key="boot_version">
-		<real name="boot_version" />
-	  </IDEntry>
-	  <IDEntry key="boot_build">
-		<int name="boot_build" />
-	  </IDEntry>
-	  <IDEntry key="boot_codename">
-		<string name="boot_codename" />
-	  </IDEntry>
-	  <IDEntry key="boot_region">
-		<string name="boot_region" />
-	  </IDEntry>
-	  <IDEntry key="user_name">
-		<string name="user_name" />
-	  </IDEntry>
-	  <IDEntry key="user_password">
-		<object_ex name="user_password" type="PasswordString" optional="true" />
-	  </IDEntry>
-	  <IDEntry key="user_password_hash">
-		<string name="user_password_hash" none_marker="" />
-	  </IDEntry>
-	  <IDEntry key="user_languageid">
-		<string name="user_languageid" />
-	  </IDEntry>
-	  <IDEntry key="user_affiliateid">
-		<int name="user_affiliateid" />
-	  </IDEntry>
-	</InlineDict>
-  </InlineTuple>
-</elementdef>
+  <elementDef name="CryptoAPIRequestParams">
+    <dictInline>
+      <dictInlineEntry key="crypting_sessionkey">
+        <string name="sessionkey" />
+      </dictInlineEntry>
+      <dictInlineEntry key="signing_hashmethod">
+        <string name="hashmethod" />
+      </dictInlineEntry>
+      <dictInlineEntry key="crypting_sessionkeylength">
+        <int name="sessionkeylength" />
+      </dictInlineEntry>
+      <dictInlineEntry key="crypting_securityprovidertype">
+        <string name="provider" />
+      </dictInlineEntry>
+      <dictInlineEntry key="crypting_sessionkeymethod">
+        <string name="sessionkeymethod" />
+      </dictInlineEntry>
+    </dictInline>
+  </elementDef>
 
-<elementdef name="CryptoServerHandshake">
-  <InlineTuple>
-	<!-- 0: serverChallenge -->
-	<string name="serverChallenge" />
-	<!-- 1: func -->
-	<InlineTuple>
-    <!-- 0: marshaled code -->
-    <raw name="func_marshaled_code" />
-		<!-- 1: verification -->
-		<raw name="verification" />
-	</InlineTuple>
-	<!-- 2: context -->
-	<strdict name="context" />
-	<!-- 3: response -->
-	<InlineDict>
-	  <IDEntry key="challenge_responsehash">
-		<string name="challenge_responsehash" />
-	  </IDEntry>
-	  <IDEntry key="macho_version">
-		<int name="macho_version" />
-	  </IDEntry>
-	  <IDEntry key="boot_version">
-		<real name="boot_version" />
-	  </IDEntry>
-	  <IDEntry key="boot_build">
-		<int name="boot_build" />
-	  </IDEntry>
-	  <IDEntry key="boot_codename">
-		<string name="boot_codename" />
-	  </IDEntry>
-	  <IDEntry key="boot_region">
-		<string name="boot_region" />
-	  </IDEntry>
-	  <IDEntry key="cluster_usercount">
-		<int name="cluster_usercount" />
-	  </IDEntry>
-	  <IDEntry key="proxy_nodeid">
-		<int name="proxy_nodeid" />
-	  </IDEntry>
-	  <IDEntry key="user_logonqueueposition">
-		<int name="user_logonqueueposition" />
-	  </IDEntry>
-	</InlineDict>
-  </InlineTuple>
-</elementdef>
+  <elementDef name="CryptoChallengePacket">
+    <tupleInline>
+	    <!-- 0 -->
+	    <string name="clientChallenge" />
+	    <!-- 1 -->
+	    <dictInline>
+	      <dictInlineEntry key="macho_version">
+		      <int name="macho_version" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="boot_version">
+		      <real name="boot_version" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="boot_build">
+		      <int name="boot_build" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="boot_codename">
+		      <string name="boot_codename" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="boot_region">
+		      <string name="boot_region" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="user_name">
+		      <string name="user_name" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="user_password">
+		      <objectEx name="user_password" type="PasswordString" optional="true" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="user_password_hash">
+		      <string name="user_password_hash" none_marker="" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="user_languageid">
+		      <string name="user_languageid" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="user_affiliateid">
+		      <int name="user_affiliateid" />
+	      </dictInlineEntry>
+	    </dictInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="CryptoHandshakeResult">
-  <InlineTuple>
-	<!-- 0 -->
-	<string name="challenge_responsehash" />
-	<!-- 1 -->
-	<string name="func_output" />
-	<!-- 2 -->
-	<raw name="func_result" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="CryptoServerHandshake">
+    <tupleInline>
+	    <!-- 0: serverChallenge -->
+	    <string name="serverChallenge" />
+	    <!-- 1: func -->
+	    <tupleInline>
+        <!-- 0: marshaled code -->
+        <raw name="func_marshaled_code" />
+		    <!-- 1: verification -->
+		    <raw name="verification" />
+	    </tupleInline>
+	    <!-- 2: context -->
+	    <dictStr name="context" />
+	    <!-- 3: response -->
+	    <dictInline>
+	      <dictInlineEntry key="challenge_responsehash">
+		      <string name="challenge_responsehash" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="macho_version">
+		      <int name="macho_version" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="boot_version">
+		      <real name="boot_version" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="boot_build">
+		      <int name="boot_build" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="boot_codename">
+		      <string name="boot_codename" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="boot_region">
+		      <string name="boot_region" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="cluster_usercount">
+		      <int name="cluster_usercount" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="proxy_nodeid">
+		      <int name="proxy_nodeid" />
+	      </dictInlineEntry>
+	      <dictInlineEntry key="user_logonqueueposition">
+		      <int name="user_logonqueueposition" />
+	      </dictInlineEntry>
+	    </dictInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="CryptoHandshakeAck">
-	<InlineDict>
-		<IDEntry key="live_updates">
-			<list name="live_updates" />
-		</IDEntry>
-		<IDEntry key="session_init">
-			<InlineDict name="session_init">
-				<IDEntry key="jit">
-					<string name="jit" />
-				</IDEntry>
-				<IDEntry key="userid">
-					<int name="userid" />
-				</IDEntry>
-				<IDEntry key="maxSessionTime">
-					<!-- Seen 'None' -->
-					<raw name="maxSessionTime" />
-				</IDEntry>
-				<IDEntry key="userType">
-					<int name="userType" />
-				</IDEntry>
-				<IDEntry key="role">
-					<int name="role" />
-				</IDEntry>
-				<IDEntry key="address">
-					<string name="address" />
-				</IDEntry>
-				<IDEntry key="inDetention">
-					<!-- Seen 'None' -->
-					<raw name="inDetention" />
-				</IDEntry>
-			</InlineDict>
-		</IDEntry>
-		<IDEntry key="client_hashes">
-			<list name="client_hashes" />
-		</IDEntry>
-		<IDEntry key="user_clientid">
-			<int name="user_clientid" />
-		</IDEntry>
-	</InlineDict>
-</elementdef>
+  <elementDef name="CryptoHandshakeResult">
+    <tupleInline>
+	    <!-- 0 -->
+	    <string name="challenge_responsehash" />
+	    <!-- 1 -->
+	    <string name="func_output" />
+	    <!-- 2 -->
+	    <raw name="func_result" />
+    </tupleInline>
+  </elementDef>
 
-</Elements>
+  <elementDef name="CryptoHandshakeAck">
+	  <dictInline>
+		  <dictInlineEntry key="live_updates">
+			  <list name="live_updates" />
+		  </dictInlineEntry>
+		  <dictInlineEntry key="session_init">
+			  <dictInline>
+				  <dictInlineEntry key="jit">
+					  <string name="jit" />
+				  </dictInlineEntry>
+				  <dictInlineEntry key="userid">
+					  <int name="userid" />
+				  </dictInlineEntry>
+				  <dictInlineEntry key="maxSessionTime">
+					  <!-- Seen 'None' -->
+					  <raw name="maxSessionTime" />
+				  </dictInlineEntry>
+				  <dictInlineEntry key="userType">
+					  <int name="userType" />
+				  </dictInlineEntry>
+				  <dictInlineEntry key="role">
+					  <int name="role" />
+				  </dictInlineEntry>
+				  <dictInlineEntry key="address">
+					  <string name="address" />
+				  </dictInlineEntry>
+				  <dictInlineEntry key="inDetention">
+					  <!-- Seen 'None' -->
+					  <raw name="inDetention" />
+				  </dictInlineEntry>
+			  </dictInline>
+		  </dictInlineEntry>
+		  <dictInlineEntry key="client_hashes">
+			  <list name="client_hashes" />
+		  </dictInlineEntry>
+		  <dictInlineEntry key="user_clientid">
+			  <int name="user_clientid" />
+		  </dictInlineEntry>
+	  </dictInline>
+  </elementDef>
+
+</elements>
 
 

@@ -193,7 +193,7 @@ public:
 	void MoveToPosition(const GPoint &pt);
 	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
 	bool EnterSystem();
-	bool SelectCharacter(uint32 char_id);
+	bool SelectCharacter( uint32 char_id );
 	void JoinCorporationUpdate(uint32 corp_id);
 	void SavePosition();
 	void UpdateSkillTraining();
@@ -258,7 +258,7 @@ protected:
 	void _SendException( const PyAddress& source, uint64 callID, MACHONETMSG_TYPE in_response_to, MACHONETERR_TYPE exception_type, PyRep** payload );
 	void _SendSessionChange();
 	void _SendPingRequest();
-    void _SendPingResponse();
+    void _SendPingResponse( const PyAddress& source, uint64 callID );
 
 	PyServiceMgr& m_services;
 	Timer m_pingTimer;
@@ -299,7 +299,7 @@ protected:
     /********************************************************************/
     bool Handle_CallReq( PyPacket* packet, PyCallStream& req );
     bool Handle_Notify( PyPacket* packet );
-    bool Handle_PingReq( PyPacket* packet ) { _SendPingResponse(); return true; }
+    bool Handle_PingReq( PyPacket* packet ) { _SendPingResponse( packet->dest, packet->source.callID ); return true; }
     bool Handle_PingRsp( PyPacket* packet ) { /* do nothing */ return true; }
 
 private:

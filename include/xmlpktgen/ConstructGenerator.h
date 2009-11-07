@@ -36,7 +36,7 @@ public:
 
 protected:
 	AllGenProcDecls;
-	GenProcDecl(IDEntry);
+	GenProcDecl( dictInlineEntry );
 };
 
 #endif

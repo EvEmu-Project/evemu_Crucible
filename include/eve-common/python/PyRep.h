@@ -48,6 +48,7 @@ class PyFloat;
 class PyBool;
 class PyBuffer;
 class PyString;
+class PyToken;
 class PyTuple;
 class PyList;
 class PyDict;
@@ -90,18 +91,19 @@ public:
         PyTypeBool              = 3,
         PyTypeBuffer            = 4,
         PyTypeString            = 5,
-        PyTypeTuple             = 6,
-        PyTypeList              = 7,
-        PyTypeDict              = 8,
-        PyTypeNone              = 9,
-        PyTypeSubStruct         = 10,
-        PyTypeSubStream         = 11,
-        PyTypeChecksumedStream  = 12,
-        PyTypeObject            = 13,
-        PyTypeObjectEx          = 14,
-        PyTypePackedRow         = 15,
-        PyTypeError             = 16,
-        PyTypeMax               = 16,
+        PyTypeToken             = 6,
+        PyTypeTuple             = 7,
+        PyTypeList              = 8,
+        PyTypeDict              = 9,
+        PyTypeNone              = 10,
+        PyTypeSubStruct         = 11,
+        PyTypeSubStream         = 12,
+        PyTypeChecksumedStream  = 13,
+        PyTypeObject            = 14,
+        PyTypeObjectEx          = 15,
+        PyTypePackedRow         = 16,
+        PyTypeError             = 17,
+        PyTypeMax               = 17,
     };
 
     PyRep( PyType t );
@@ -118,6 +120,7 @@ public:
     bool IsBool() const             { return mType == PyTypeBool; }
     bool IsBuffer() const           { return mType == PyTypeBuffer; }
     bool IsString() const           { return mType == PyTypeString; }
+    bool IsToken() const            { return mType == PyTypeToken; }
     bool IsTuple() const            { return mType == PyTypeTuple; }
     bool IsList() const             { return mType == PyTypeList; }
     bool IsDict() const             { return mType == PyTypeDict; }
@@ -144,6 +147,8 @@ public:
     const PyBuffer* AsBuffer() const                     { assert( IsBuffer() ); return (const PyBuffer*)this; }
     PyString* AsString()                                 { assert( IsString() ); return (PyString*)this; }
     const PyString* AsString() const                     { assert( IsString() ); return (const PyString*)this; }
+    PyToken* AsToken()                                   { assert( IsToken() ); return (PyToken*)this; }
+    const PyToken* AsToken() const                       { assert( IsToken() ); return (const PyToken*)this; }
     PyTuple* AsTuple()                                   { assert( IsTuple() ); return (PyTuple*)this; }
     const PyTuple* AsTuple() const                       { assert( IsTuple() ); return (const PyTuple*)this; }
     PyList* AsList()                                     { assert( IsList() ); return (PyList*)this; }
@@ -250,7 +255,6 @@ class PyInt : public PyRep
 public:
     PyInt( const int32 i );
 	PyInt( const PyInt& oth );
-    virtual ~PyInt();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -273,7 +277,6 @@ class PyLong : public PyRep
 public:
     PyLong( const int64 i );
 	PyLong( const PyLong& oth );
-    virtual ~PyLong();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -296,7 +299,6 @@ class PyFloat : public PyRep
 public:
     PyFloat( const double& i );
 	PyFloat( const PyFloat& oth );
-    virtual ~PyFloat();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -318,7 +320,6 @@ class PyBool : public PyRep
 public:
     PyBool( bool i );
 	PyBool( const PyBool& oth );
-    virtual ~PyBool();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -339,7 +340,6 @@ class PyNone : public PyRep
 public:
     PyNone();
     PyNone( const PyNone& oth );
-    virtual ~PyNone();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -391,12 +391,12 @@ protected:
 class PyString : public PyRep
 {
 public:
-    PyString( const char* str, bool type_1=false );
-    PyString( const char* str, size_t str_len, bool type_1=false );
-	PyString( const std::string& str, bool type_1=false );
-    PyString( const PyBuffer& buf, bool type_1=false );
+    PyString( const char* str );
+    PyString( const char* str, size_t str_len );
+	PyString( const std::string& str );
+    PyString( const PyBuffer& buf );
+    PyString( const PyToken& token );
     PyString( const PyString& oth );
-    virtual ~PyString();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -408,20 +408,40 @@ public:
      */
     const std::string& content() const { return mValue; }
 
-    /**
-     * @brief Checks if string is of type 1.
-     *
-     * @return True if string is of type 1, false if not.
-     */
-    bool isType1() const { return mIsType1; }
-
     int32 hash() const;
 
 protected:
     const std::string mValue;
-    const bool mIsType1; //true if this is an Op_PyByteString instead of the default Op_PyByteString2
 
     mutable int32 mHashCache;
+};
+
+/**
+ * @brief Python token (eg. class name).
+ *
+ * Usually part of PyObject or PyObjectEx.
+ */
+class PyToken : public PyRep
+{
+public:
+    PyToken( const char* token );
+    PyToken( const char* token, size_t len );
+    PyToken( const std::string& token );
+    PyToken( const PyString& token );
+    PyToken( const PyToken& oth );
+
+    PyRep* Clone() const;
+    bool visit( PyVisitor& v ) const;
+
+    /**
+     * @brief Obtain token.
+     *
+     * @return Token.
+     */
+    const std::string& content() const { return mValue; }
+
+protected:
+    const std::string mValue;
 };
 
 /**
@@ -743,20 +763,19 @@ protected:
  *
  * @author Bloody.Rabbit
  */
-class PyObjectEx_Type1
-: public PyObjectEx
+class PyObjectEx_Type1 : public PyObjectEx
 {
 public:
-    PyObjectEx_Type1( const char* type, PyTuple* args, PyDict* keywords );
+    PyObjectEx_Type1( PyToken* type, PyTuple* args, PyDict* keywords );
 
-    PyString* GetType() const;
+    PyToken* GetType() const;
     PyTuple* GetArgs() const;
     PyDict* GetKeywords() const;
 
     PyRep* FindKeyword( const char* keyword ) const;
 
 protected:
-    static PyTuple* _CreateHeader( const char* type, PyTuple* args, PyDict* keywords );
+    static PyTuple* _CreateHeader( PyToken* type, PyTuple* args, PyDict* keywords );
 };
 
 /**
@@ -764,8 +783,7 @@ protected:
  *
  * @author Bloody.Rabbit
  */
-class PyObjectEx_Type2
-: public PyObjectEx
+class PyObjectEx_Type2 : public PyObjectEx
 {
 public:
     PyObjectEx_Type2( PyTuple* args, PyDict* keywords );
@@ -830,7 +848,7 @@ protected:
 class PySubStruct : public PyRep
 {
 public:
-    PySubStruct( PyRep *t );
+    PySubStruct( PyRep* t );
 	PySubStruct( const PySubStruct& oth );
     virtual ~PySubStruct();
 

@@ -107,6 +107,8 @@ protected:
     bool VisitBuffer( const PyBuffer* rep );
     //! add a string object to the data stream
     bool VisitString( const PyString* rep );
+    //! add a token object to the data stream
+    bool VisitToken( const PyToken* rep );
 
     /** Add a tuple object to the stream */
     bool VisitTuple( const PyTuple* rep );

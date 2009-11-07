@@ -142,84 +142,101 @@ PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
 		return NULL;
     }*/
 
+	PyTuple* t = call.tuple;
+	call.tuple = NULL;
+
+	if( t->size() > 6 || t->size() == 0 )
+    {
+		_log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: tuple0 is the wrong size: expected 1-6, but got %lu", t->size() );
+
+		PyDecRef( t );
+		return NULL;
+	}
+
 	uint32 arg = 0;
 	bool wantRegions = false;
 	bool wantConstellations = false;
 	bool wantSystems = false;
 	bool wantStations = false;
 
-	PyTuple *packet = call.tuple;
-	call.tuple = NULL;
-	if(packet->items.size() > 5) {
+	if( t->size() > 5 )
+    {
 		//do nothing with this field, we do not understand it.
 	}
-	if(packet->items.size() > 4) {
-		PyRep *v = packet->items[4];
-		if(!v->IsInt()) {
-			_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 4 is not an int: %s", 
-				v->TypeString());
-			delete packet;
+
+	if( t->size() > 4 )
+    {
+		PyRep* v = t->GetItem( 4 );
+		if( !v->IsInt() )
+        {
+			_log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 4 is not an int: %s", v->TypeString() );
+
+			PyDecRef( t );
 			return NULL;
 		}
-		PyInt *iii = (PyInt *) v;
-		wantStations = (iii->value()==0)?false:true;
-	}
-	if(packet->items.size() > 3) {
-		PyRep *v = packet->items[3];
-		if(!v->IsInt()) {
-			_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 3 is not an int: %s", 
-				v->TypeString());
-			delete packet;
-			return false;
-		}
-		PyInt *iii = (PyInt *) v;
-		wantSystems = (iii->value()==0)?false:true;
-	}
-	if(packet->items.size() > 2) {
-		PyRep *v = packet->items[2];
-		if(!v->IsInt()) {
-			_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 2 is not an int: %s", 
-				v->TypeString());
-			delete packet;
-			return false;
-		}
-		PyInt *iii = (PyInt *) v;
-		wantConstellations = (iii->value()==0)?false:true;
-	}
-	if(packet->items.size() > 1) {
-		PyRep *v = packet->items[1];
-		if(!v->IsInt()) {
-			_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 1 is not an int: %s", 
-				v->TypeString());
-			delete packet;
-			return false;
-		}
-		PyInt *iii = (PyInt *) v;
-		wantRegions = (iii->value()==0)?false:true;
-	}
-	if(packet->items.size() > 0) {
-		PyRep *v = packet->items[0];
-		if(!v->IsInt()) {
-			_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 0 is not an int: %s", 
-				v->TypeString());
-			delete packet;
-			return false;
-		}
-		PyInt *iii = (PyInt *) v;
-		arg = iii->value();
-	}
-	if(packet->items.size() == 0 || packet->items.size() > 6) {
-		_log(NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: tuple0 is the wrong size: expected 1-6, but got %lu", packet->items.size());
-		delete packet;
-		return false;
+
+		wantStations = ( 0 != v->AsInt()->value() );
 	}
 
-	delete packet;
-	
-	PyRep *result = m_db.GetMapObjects(arg,
-		wantRegions, wantConstellations, wantSystems, wantStations);
-	
-	return result;
+	if( t->size() > 3 )
+    {
+		PyRep* v = t->GetItem( 3 );
+		if( !v->IsInt() )
+        {
+			_log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 3 is not an int: %s", v->TypeString() );
+
+			PyDecRef( t );
+			return NULL;
+		}
+
+        wantSystems = ( 0 != v->AsInt()->value() );
+	}
+
+	if( t->size() > 2 )
+    {
+		PyRep* v = t->GetItem( 2 );
+		if( !v->IsInt() )
+        {
+			_log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 2 is not an int: %s", v->TypeString() );
+
+			PyDecRef( t );
+			return NULL;
+		}
+
+        wantConstellations = ( 0 != v->AsInt()->value() );
+	}
+
+	if( t->size() > 1 )
+    {
+		PyRep* v = t->GetItem( 1 );
+		if( !v->IsInt() )
+        {
+			_log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 1 is not an int: %s", v->TypeString() );
+
+			PyDecRef( t );
+			return NULL;
+		}
+
+		wantRegions = ( 0 != v->AsInt()->value() );
+	}
+
+	if( t->size() > 0 )
+    {
+		PyRep* v = t->GetItem( 0 );
+		if( !v->IsInt() )
+        {
+			_log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 0 is not an int: %s", v->TypeString() );
+
+			PyDecRef( t );
+			return NULL;
+		}
+
+        arg = v->AsInt()->value();
+	}
+
+	PyDecRef( t );
+
+    return m_db.GetMapObjects( arg, wantRegions, wantConstellations, wantSystems, wantStations );
 }
 
 PyResult ConfigService::Handle_GetMultiInvTypesEx(PyCallArgs &call) {

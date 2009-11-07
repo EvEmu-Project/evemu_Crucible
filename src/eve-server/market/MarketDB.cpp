@@ -500,7 +500,7 @@ PyObject *MarketDB::GetMarketGroups() {
 	
 	args->SetItemString("header", header);
 	args->SetItemString("idName", new PyString("parentGroupID"));
-	args->SetItemString("RowClass", new PyString("util.Row", true));
+	args->SetItemString("RowClass", new PyToken("util.Row"));
 	args->SetItemString("idName2", new PyNone);
 	args->SetItemString("items", parentSets);
 	

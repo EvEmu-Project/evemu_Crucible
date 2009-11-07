@@ -33,7 +33,7 @@ class ClassEncodeGenerator
 {
 public:
 	ClassEncodeGenerator();
-	
+
 protected:
 	const char* top() const { return mVariableStack.top().c_str(); }
 	void pop() { mVariableStack.pop(); }

@@ -29,7 +29,7 @@
 enum PyRepOpcode
 {
 	Op_PyNone				= 0x01,
-	Op_PyByteString			= 0x02,	//a string with "Object Name"?
+	Op_PyToken				= 0x02,
 	Op_PyLongLong			= 0x03,
 	Op_PyLong				= 0x04,
 	Op_PySignedShort		= 0x05,

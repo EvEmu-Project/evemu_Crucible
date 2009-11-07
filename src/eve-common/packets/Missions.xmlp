@@ -1,89 +1,87 @@
 
 
-<Elements>
+<elements>
 
+  <!-- this object is not really an object type on live, just convenience here -->
+  <elementDef name="DoAction_Dialogue_Item">
+    <tupleInline>
+      <int name="actionID" />
+      <string name="actionText" />
+    </tupleInline>
+  </elementDef>
 
-<!-- this object is not really an object type on live, just convenience here -->
-<elementdef name="DoAction_Dialogue_Item">
-  <InlineTuple>
-    <int name="actionID" />
-    <string name="actionText" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="DoAction_Result">
+    <tupleInline>
+      <tupleInline>
+        <!-- this is the main text -->
+        <string name="agentSays" />
+        <!-- this is a list of DoAction_Dialogue_Item -->
+        <list name="dialogue" />
+      </tupleInline>
+      <dictInline>
+        <dictInlineEntry key="loyaltyPoints">
+		      <int name="loyaltyPoints" default="0" />
+	      </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="DoAction_Result">
-  <InlineTuple>
-   <InlineTuple>
-    <!-- this is the main text -->
-	<string name="agentSays" />
-    <!-- this is a list of DoAction_Dialogue_Item -->
-	<list name="dialogue" />
-   </InlineTuple>
-   <InlineDict>
-	  <IDEntry key="loyaltyPoints">
-		<int name="loyaltyPoints" default="0" />
-	  </IDEntry>
-   </InlineDict>
-  </InlineTuple>
-</elementdef>
+  <elementDef name="JournalDetails_Mission_Item">
+    <tupleInline>
+      <!-- states: 0,1: not accepted, >1: accepted -->
+      <int name="missionState" />
+      <!-- really a soft boolean -->
+      <int name="importantMission" />
+      <string name="missionType" />
+      <string name="missionName" />
+      <int name="agentID" />
+      <long name="expirationTime" />
+      <list name="bookmarks" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="JournalDetails_Mission_Item">
-  <InlineTuple>
-    <!-- states: 0,1: not accepted, >1: accepted -->
-    <int name="missionState" />
-    <!-- really a soft boolean -->
-    <int name="importantMission" />
-    <string name="missionType" />
-    <string name="missionName" />
-    <int name="agentID" />
-    <int64 name="expirationTime" />
-    <list name="bookmarks" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="JournalDetails_Offer_Item">
+    <tupleInline>
+      <int name="agentID" />
+      <string name="offerName" />
+      <!-- LP cost -->
+      <int name="loyaltyPoints" /> <!-- this might need to be a string -->
+      <long name="expirationTime" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="JournalDetails_Offer_Item">
-  <InlineTuple>
-    <int name="agentID" />
-    <string name="offerName" />
-    <!-- LP cost -->
-    <int name="loyaltyPoints" /> <!-- this might need to be a string --> 
-    <int64 name="expirationTime" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="JournalDetails_Research_Item">
+    <tupleInline>
+      <int name="agentID" />
+      <!-- field -->
+      <int name="typeID" />
+      <!-- points per day -->
+      <real name="ppd" />
+      <!-- current points -->
+      <real name="points" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="JournalDetails_Research_Item">
-  <InlineTuple>
-    <int name="agentID" />
-    <!-- field -->
-    <int name="typeID" />
-    <!-- points per day -->
-    <real name="ppd" />
-    <!-- current points -->
-    <real name="points" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="GetMyJournalDetails_Result">
+    <tupleInline>
+      <!-- this is a list of JournalDetails_Mission_Item -->
+	    <list name="missions" />
+      <!-- this is a list of JournalDetails_Offer_Item -->
+	    <list name="offers" />
+      <!-- this is a list of JournalDetails_Research_Item -->
+	    <list name="research" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="GetMyJournalDetails_Result">
-  <InlineTuple>
-    <!-- this is a list of JournalDetails_Mission_Item -->
-	<list name="missions" />
-    <!-- this is a list of JournalDetails_Offer_Item -->
-	<list name="offers" />
-    <!-- this is a list of JournalDetails_Research_Item -->
-	<list name="research" />
-  </InlineTuple>
-</elementdef>
+  <!-- may be preceeded by an
+  OnRemoteMessage: ('AgtMissionOfferWarning', {} ) -->
+  <elementDef name="OnAgentMissionChange_Args">
+    <tupleInline>
+      <string name="action" />    <!-- seen 'offered' -->
+      <int name="missionID" />
+    </tupleInline>
+  </elementDef>
 
-<!-- may be preceeded by an
-OnRemoteMessage: ('AgtMissionOfferWarning', {} ) -->
-<elementdef name="OnAgentMissionChange_Args">
-  <InlineTuple>
-    <string name="action" />    <!-- seen 'offered' -->
-    <int name="missionID" />
-  </InlineTuple>
-</elementdef>
-
-
-</Elements>
+</elements>
 
 

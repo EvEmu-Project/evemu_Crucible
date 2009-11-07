@@ -118,62 +118,70 @@ protected:
 	RegisterGenProc( #ename, &c::Process_##ename )
 
 #define AllGenProcDecls \
-    GenProcDecl(InlineTuple); \
-    GenProcDecl(InlineDict); \
-    GenProcDecl(InlineList); \
-    GenProcDecl(InlineSubStream); \
-    GenProcDecl(InlineSubStruct); \
-    GenProcDecl(strdict); \
-    GenProcDecl(intdict); \
-    GenProcDecl(primdict); \
-    GenProcDecl(strlist); \
-    GenProcDecl(intlist); \
-    GenProcDecl(int64list); \
-    GenProcDecl(element); \
-	GenProcDecl(elementdef); \
-    GenProcDecl(elementptr); \
-    GenProcDecl(none); \
-    GenProcDecl(object); \
-    GenProcDecl(object_ex); \
-    GenProcDecl(buffer); \
-    GenProcDecl(raw); \
-    GenProcDecl(dict); \
-    GenProcDecl(list); \
-    GenProcDecl(tuple); \
-    GenProcDecl(int); \
-    GenProcDecl(bool); \
-    GenProcDecl(int64); \
-    GenProcDecl(real); \
-    GenProcDecl(string)
+    GenProcDecl( elementDef ); \
+    GenProcDecl( element ); \
+    GenProcDecl( elementPtr ); \
+    GenProcDecl( raw ); \
+    GenProcDecl( int ); \
+    GenProcDecl( long ); \
+    GenProcDecl( real ); \
+    GenProcDecl( bool ); \
+    GenProcDecl( none ); \
+    GenProcDecl( string ); \
+    GenProcDecl( stringInline ); \
+    GenProcDecl( buffer ); \
+    GenProcDecl( token ); \
+    GenProcDecl( tokenInline ); \
+    GenProcDecl( object ); \
+    GenProcDecl( objectInline ); \
+    GenProcDecl( objectEx ); \
+    GenProcDecl( tuple ); \
+    GenProcDecl( tupleInline ); \
+    GenProcDecl( list ); \
+    GenProcDecl( listInline ); \
+    GenProcDecl( listInt ); \
+    GenProcDecl( listLong ); \
+    GenProcDecl( listStr ); \
+    GenProcDecl( dict ); \
+    GenProcDecl( dictInline ); \
+    GenProcDecl( dictRaw ); \
+    GenProcDecl( dictInt ); \
+    GenProcDecl( dictStr ); \
+    GenProcDecl( substreamInline ); \
+    GenProcDecl( substructInline )
 
 #define AllGenProcRegs( c ) \
-    GenProcReg(c, InlineTuple, PyTuple); \
-    GenProcReg(c, InlineDict, PyDict); \
-    GenProcReg(c, InlineList, PyList); \
-    GenProcReg(c, InlineSubStream, PySubStream); \
-    GenProcReg(c, InlineSubStruct, PySubStruct); \
-    GenProcReg(c, strdict, PyDict); \
-    GenProcReg(c, intdict, PyDict); \
-    GenProcReg(c, primdict, PyDict); \
-    GenProcReg(c, strlist, PyList); \
-    GenProcReg(c, intlist, PyList); \
-    GenProcReg(c, int64list, PyList); \
-    GenProcReg(c, element, PyRep); \
-	GenProcReg(c, elementdef, PyRep); \
-    GenProcReg(c, elementptr, PyRep); \
-    GenProcReg(c, none, PyRep); \
-    GenProcReg(c, object, PyObject); \
-    GenProcReg(c, object_ex, PyObjectEx); \
-    GenProcReg(c, buffer, PyBuffer); \
-    GenProcReg(c, raw, PyRep); \
-    GenProcReg(c, list, PyList); \
-    GenProcReg(c, tuple, PyTuple); \
-    GenProcReg(c, dict, PyDict); \
-    GenProcReg(c, int, PyInt); \
-    GenProcReg(c, bool, PyBool); \
-    GenProcReg(c, int64, PyInt); \
-    GenProcReg(c, real, PyFloat); \
-    GenProcReg(c, string, PyString)
+    GenProcReg( c, elementDef, PyRep ); \
+    GenProcReg( c, element, PyRep ); \
+    GenProcReg( c, elementPtr, PyRep ); \
+    GenProcReg( c, raw, PyRep ); \
+    GenProcReg( c, int, PyInt ); \
+    GenProcReg( c, long, PyInt ); \
+    GenProcReg( c, real, PyFloat ); \
+    GenProcReg( c, bool, PyBool ); \
+    GenProcReg( c, none, PyRep ); \
+    GenProcReg( c, string, PyString ); \
+    GenProcReg( c, stringInline, PyString ); \
+    GenProcReg( c, buffer, PyBuffer ); \
+    GenProcReg( c, token, PyToken ); \
+    GenProcReg( c, tokenInline, PyToken ); \
+    GenProcReg( c, object, PyObject ); \
+    GenProcReg( c, objectInline, PyObject ); \
+    GenProcReg( c, objectEx, PyObjectEx ); \
+    GenProcReg( c, tuple, PyTuple ); \
+    GenProcReg( c, tupleInline, PyTuple ); \
+    GenProcReg( c, list, PyList ); \
+    GenProcReg( c, listInline, PyList ); \
+    GenProcReg( c, listInt, PyList ); \
+    GenProcReg( c, listLong, PyList ); \
+    GenProcReg( c, listStr, PyList ); \
+    GenProcReg( c, dict, PyDict ); \
+    GenProcReg( c, dictInline, PyDict ); \
+    GenProcReg( c, dictRaw, PyDict ); \
+    GenProcReg( c, dictInt, PyDict ); \
+    GenProcReg( c, dictStr, PyDict ); \
+    GenProcReg( c, substreamInline, PySubStream ); \
+    GenProcReg( c, substructInline, PySubStruct )
 
 
 

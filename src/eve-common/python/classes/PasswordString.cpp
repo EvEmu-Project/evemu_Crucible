@@ -40,7 +40,7 @@ PyString* PasswordString::GetPassword() const
 PyTuple* PasswordString::_CreateArgs( const char* password )
 {
 	PyTuple* head = new PyTuple( 2 );
-	head->SetItem( 0, new PyString( "util.PasswordString", true ) );
+	head->SetItem( 0, new PyToken( "util.PasswordString" ) );
 	head->SetItem( 1, new PyString( password ) );
 
 	return head;

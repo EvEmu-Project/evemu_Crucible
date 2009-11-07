@@ -34,6 +34,7 @@ class PyBool;
 class PyNone;
 class PyBuffer;
 class PyString;
+class PyToken;
 class PyObject;
 class PyObjectEx;
 class PySubStruct;
@@ -57,6 +58,7 @@ public:
     virtual bool VisitNone( const PyNone* rep ) { return true; }
     virtual bool VisitBuffer( const PyBuffer* rep ) { return true; }
     virtual bool VisitString( const PyString* rep ) { return true; }
+    virtual bool VisitToken( const PyToken* rep ) { return true; }
 
     //! the nested types Visitor
     virtual bool VisitTuple( const PyTuple* rep );

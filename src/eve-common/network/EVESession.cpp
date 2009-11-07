@@ -161,10 +161,6 @@ PyPacket* EVEClientSession::_HandleCommand( PyRep* rep )
         {
             _log(NET__PRES_ERROR, "%s: Failed to decode 2-arg command.", GetAddress().c_str());
         }
-        else if( cmd.command != "QC" )
-        {
-            _log(NET__PRES_ERROR, "%s: Unknown 2-arg command '%s'.", GetAddress().c_str(), cmd.command.c_str());
-        }
         else
         {
             _log(NET__PRES_DEBUG, "%s: Got Queue Check command.", GetAddress().c_str());
@@ -185,10 +181,6 @@ PyPacket* EVEClientSession::_HandleCommand( PyRep* rep )
         if( !cmd.Decode( &rep ) )
         {
             _log(NET__PRES_ERROR, "%s: Failed to decode 3-arg command.", GetAddress().c_str());
-        }
-        else if( cmd.command != "VK" )
-	    {
-            _log(NET__PRES_ERROR, "%s: Unknown 3-arg command '%s'.", GetAddress().c_str(), cmd.command.c_str());
         }
         else
         {

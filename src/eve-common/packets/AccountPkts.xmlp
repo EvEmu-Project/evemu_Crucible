@@ -1,137 +1,125 @@
 
-<Elements>
 
-<include file="General.h" />
-	
+<elements>
 
-<elementdef name="AuthenticationReq">
- <InlineTuple>
-  <!-- 0: clientinfo -->
-  <InlineDict soft="true">
-   <IDEntry key="version.project">
-	<string name="project_version" />
-   </IDEntry>
-   <IDEntry key="code.version">
-	<int name="code_version" />
-   </IDEntry>
-   <IDEntry key="version.build">
-	<int name="build_version" />
-   </IDEntry>
-   <IDEntry key="languageID">
-	<string name="languageID" />
-   </IDEntry>
-   <!--<IDEntry key="os.hashid">
-	<int name="os_hashid" />
-   </IDEntry>-->
-   <IDEntry key="affiliate.ID">
-	<int name="affiliate" />
-   </IDEntry>
-   <IDEntry key="version.number">
-	<real name="version_number" />
-   </IDEntry>
-  
-  </InlineDict>
-  
-  <!-- 1 -->
-  <string name="login" />
-  
-  <!-- 2 -->
-  <string name="password" />
+  <include file="General.h" />
 
-  <!-- potential optional field address... -->
- </InlineTuple>
-</elementdef>
+  <elementDef name="AuthenticationReq">
+    <tupleInline>
+      <!-- 0: clientinfo -->
+      <dictInline soft="true">
+        <dictInlineEntry key="version.project">
+	        <string name="project_version" />
+        </dictInlineEntry>
+        <dictInlineEntry key="code.version">
+	        <int name="code_version" />
+        </dictInlineEntry>
+        <dictInlineEntry key="version.build">
+	        <int name="build_version" />
+        </dictInlineEntry>
+        <dictInlineEntry key="languageID">
+	        <string name="languageID" />
+        </dictInlineEntry>
+        <!--
+        <dictInlineEntry key="os.hashid">
+	        <int name="os_hashid" />
+        </dictInlineEntry>
+        -->
+        <dictInlineEntry key="affiliate.ID">
+	        <int name="affiliate" />
+        </dictInlineEntry>
+        <dictInlineEntry key="version.number">
+	        <real name="version_number" />
+        </dictInlineEntry>
+      </dictInline>
+      <!-- 1 -->
+      <string name="login" />
+      <!-- 2 -->
+      <string name="password" />
+      <!-- potential optional field address... -->
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="AuthenticationRsp">
- <InlineTuple>
-  <!-- 0: serverinfo -->
-  <InlineDict>
-  
-   <IDEntry key_type="string" key="version.project">
-	<string name="project_version" />
-   </IDEntry>
-   <IDEntry key_type="string" key="version.build">
-	<int name="build_version" />
-   </IDEntry>
-   <IDEntry key_type="string" key="version.number">
-	<real name="version_number" />
-   </IDEntry>
-  
-  </InlineDict>
-  
-  <!-- 1: userID -->
-  <int name="accountID" />
-  
-  <!-- 2 -->
-  <int64 name="role" />
-  
-  <!-- 3 -->
-  <InlineSubStream>
-	  <InlineTuple>
-		  <dict name="cachables" />
-		  <dict name="services" />
-	  </InlineTuple>
-  </InlineSubStream>
-  
-  <!-- 4: proxyNodeID -->
-  <int name="proxyNodeID" />
-  
- </InlineTuple>
-</elementdef>
+  <elementDef name="AuthenticationRsp">
+    <tupleInline>
+      <!-- 0: serverinfo -->
+      <dictInline>
+        <dictInlineEntry key="version.project">
+	        <string name="project_version" />
+        </dictInlineEntry>
+        <dictInlineEntry key="version.build">
+	        <int name="build_version" />
+        </dictInlineEntry>
+        <dictInlineEntry key="version.number">
+	        <real name="version_number" />
+        </dictInlineEntry>
+      </dictInline>
+      <!-- 1: userID -->
+      <int name="accountID" />
+      <!-- 2 -->
+      <long name="role" />
+      <!-- 3 -->
+      <substreamInline>
+	      <tupleInline>
+		      <dict name="cachables" />
+		      <dict name="services" />
+	      </tupleInline>
+      </substreamInline>
+      <!-- 4: proxyNodeID -->
+      <int name="proxyNodeID" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="RspPing">
-  <InlineTuple>
-    <!-- 0 -->
-    <InlineSubStream>
-      <int64 name="timestamp" />         
-    </InlineSubStream>    
-  </InlineTuple>
-</elementdef>
+  <elementDef name="RspPing">
+    <tupleInline>
+      <!-- 0 -->
+      <substreamInline>
+        <long name="timestamp" />
+      </substreamInline>
+    </tupleInline>
+  </elementDef>
 
+  <elementDef name="RspGetPostAuthenticationMessage">
+    <tupleInline>
+      <!-- 0 -->
+      <substreamInline>
+        <objectInline>
+          <stringInline value="util.KeyVal" />
+          <dictInline>
+            <dictInlineEntry key="message">
+              <string name="message" />
+            </dictInlineEntry>
+            <dictInlineEntry key="args">
+              <dictInline>
+                <dictInlineEntry key="showStatusBar">
+                  <int name="showStatusBar" />
+                </dictInlineEntry>
+                <dictInlineEntry key="center">
+                  <int name="center" />
+                </dictInlineEntry>
+                <dictInlineEntry key="showAddressBar">
+                  <int name="showAddressBar" />
+                </dictInlineEntry>
+                <dictInlineEntry key="url">
+                  <string name="url" />
+                </dictInlineEntry>
+                <dictInlineEntry key="showOptions">
+                  <int name="showOptions" />
+                </dictInlineEntry>
+                <dictInlineEntry key="showButtons">
+                  <int name="showButtons" />
+                </dictInlineEntry>
+                <dictInlineEntry key="showModal">
+                  <int name="showModal" />
+                </dictInlineEntry>
+              </dictInline>
+            </dictInlineEntry>
+          </dictInline>
+        </objectInline>
+      </substreamInline>
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="RspGetPostAuthenticationMessage">
-  <InlineTuple>
-    <!-- 0 -->
-    <InlineSubStream>
-      <object type="util.KeyVal">
-        <InlineDict>
-          <IDEntry key="message">
-            <string name="message" />
-          </IDEntry>
-          <IDEntry key="args">
-            <InlineDict name="args">
-              <IDEntry key="showStatusBar">
-                <int name="showStatusBar" />
-              </IDEntry>
-              <IDEntry key="center">
-                <int name="center" />
-              </IDEntry> 
-              <IDEntry key="showAddressBar">
-                <int name="showAddressBar" />         
-              </IDEntry>
-              <IDEntry key="url">
-                <string name="url" />
-              </IDEntry>         
-              <IDEntry key="showOptions">
-                <int name="showOptions" />
-              </IDEntry>             
-              <IDEntry key="showButtons">
-                <int name="showButtons" />
-              </IDEntry>
-              <IDEntry key="showModal">    
-                <int name="showModal" />
-              </IDEntry>
-            </InlineDict>           
-          </IDEntry>
-        </InlineDict>    
-      </object>
-    </InlineSubStream>                          
-  </InlineTuple>        
-</elementdef>
-
-
-
-
-</Elements>
+</elements>
 
 

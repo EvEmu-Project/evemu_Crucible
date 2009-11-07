@@ -342,41 +342,47 @@ void DBerror::ClearError() {
 /* DBQueryResult                                                        */
 /************************************************************************/
 DBQueryResult::DBQueryResult()
-: m_col_count(0),
-  m_res(NULL),
-  m_fields(NULL)
+: mColumnCount( 0 ),
+  mResult( NULL ),
+  mFields( NULL )
 {
 }
 
-DBQueryResult::~DBQueryResult() {
+DBQueryResult::~DBQueryResult()
+{
+    SafeDeleteArray( mFields );
 
-    SafeDelete(m_fields);
-
-    if(m_res != NULL)
-        mysql_free_result(m_res);
+    if( NULL != mResult )
+        mysql_free_result( mResult );
 }
 
-bool DBQueryResult::GetRow(DBResultRow &into) {
-    if(m_res == NULL)
+bool DBQueryResult::GetRow( DBResultRow& into )
+{
+    if( NULL == mResult )
         return false;
-    MYSQL_ROW row = mysql_fetch_row(m_res);
-    if(row == NULL)
+
+    MYSQL_ROW row = mysql_fetch_row( mResult );
+    if( NULL == row )
         return false;
-    uint32 *lengths = (uint32*)mysql_fetch_lengths(m_res);
-    if(lengths == NULL)
+
+    uint32* lengths = (uint32*)mysql_fetch_lengths( mResult );
+    if( NULL == lengths )
         return false;
-    into.SetData(this, row, lengths);
+
+    into.SetData( this, row, lengths );
     return true;
 }
 
-const char *DBQueryResult::ColumnName(uint32 column) const {
+const char* DBQueryResult::ColumnName( uint32 index ) const
+{
 #ifdef COLUMN_BOUNDS_CHECKING
-    if(column >= ColumnCount()) {
-        sLog.Error("DBCore Query Result", "ColumnName: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
+    if( index >= ColumnCount() )
+    {
+        sLog.Error( "DBCore Query Result", "ColumnName: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount() );
         return "(ERROR)";      //nothing better to do...
     }
 #endif
-    return m_fields[column]->name;
+    return mFields[ index ]->name;
 }
 
 /* mysql to DBTYPE convention table */
@@ -442,15 +448,17 @@ static const DBTYPE DBTYPE_MYSQL_TABLE_UNSIGNED[] =
     DBTYPE_STR,     //[26]MYSQL_TYPE_GEOMETRY=255       /* unhandled */
 };
 
-DBTYPE DBQueryResult::ColumnType(uint32 column) const {
+DBTYPE DBQueryResult::ColumnType( uint32 index ) const
+{
 #ifdef COLUMN_BOUNDS_CHECKING
-    if(column >= ColumnCount()) {
-        sLog.Error("DBCore Query Result", "ColumnType: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount());
+    if( index >= ColumnCount() )
+    {
+        sLog.Error( "DBCore Query Result", "ColumnType: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount() );
         return DBTYPE_STR;     //nothing better to do...
     }
 #endif
 
-    uint32 columnType = m_fields[column]->type;
+    uint32 columnType = mFields[ index ]->type;
 
     /* debug checks */
     /*assert(
@@ -467,47 +475,46 @@ DBTYPE DBQueryResult::ColumnType(uint32 column) const {
         columnType != MYSQL_TYPE_GEOMETRY );*/
 
     if ( columnType > 245 )
-
         /* tricky needs to be checked */
         columnType-=229; // MYSQL_TYPE_NEWDECIMAL - MYSQL_TYPE_BIT
 
     DBTYPE type;
-    if ( m_fields[column]->flags & UNSIGNED_FLAG )
+    if ( mFields[ index ]->flags & UNSIGNED_FLAG )
         type = DBTYPE_MYSQL_TABLE_UNSIGNED[ columnType ];
     else
         type = DBTYPE_MYSQL_TABLE_SIGNED[ columnType ];
 
-    assert(type);
-
     /* possible add tracing here... */
+    assert( type );
+
     return type;
 }
 
-void DBQueryResult::SetResult(MYSQL_RES **res, uint32 colcount)
+void DBQueryResult::SetResult( MYSQL_RES** res, uint32 colCount )
 {
-    if( m_res != NULL )
-	{
-        mysql_free_result( m_res );
-		SafeDelete( m_fields );
-	}
+    SafeDeleteArray( mFields );
 
-    m_res = *res;
+    if( NULL != mResult )
+        mysql_free_result( mResult );
+
+    mResult = *res;
     *res = NULL;
-    m_col_count = colcount;
+    mColumnCount = colCount;
 
-    if( m_res != NULL )
+    if( NULL != mResult )
 	{
-		m_fields = new MYSQL_FIELD*[m_col_count];
+		mFields = new MYSQL_FIELD*[ ColumnCount() ];
 	    
 		// we are
-		for( uint32 i = 0; i < m_col_count; i++ )
-			m_fields[i] = mysql_fetch_field( m_res );
+		for( uint32 i = 0; i < ColumnCount(); ++i )
+			mFields[ i ] = mysql_fetch_field( mResult );
 	}
 }
 
-void DBQueryResult::Reset() {
-    if(m_res != NULL)
-        mysql_data_seek(m_res, 0);
+void DBQueryResult::Reset()
+{
+    if( NULL != mResult )
+        mysql_data_seek( mResult, 0);
 }
 
 DBResultRow::DBResultRow()

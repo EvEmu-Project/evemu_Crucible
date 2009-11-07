@@ -55,7 +55,8 @@ protected:
 
 
 class DBResultRow;
-class DBQueryResult {
+class DBQueryResult
+{
 public:
     /* error during the query, if RunQuery returned false. */
     DBerror error;
@@ -63,22 +64,22 @@ public:
     DBQueryResult();
     ~DBQueryResult();
 
-    uint32 ColumnCount() const { return(m_col_count); }
-    const char *ColumnName(uint32 column) const;
-    DBTYPE ColumnType(uint32 column) const;
+    uint32 ColumnCount() const { return mColumnCount; }
+    const char* ColumnName( uint32 index ) const;
+    DBTYPE ColumnType( uint32 index ) const;
 
     void Reset();
-    bool GetRow(DBResultRow &into);
-    size_t GetRowCount() {return m_res->row_count;}
+    bool GetRow( DBResultRow& into );
+    size_t GetRowCount() { return mResult->row_count; }
 
 protected:
     //for DBcore:
     friend class DBcore;
-    void SetResult(MYSQL_RES **res, uint32 colcount);
+    void SetResult( MYSQL_RES** res, uint32 colCount );
 
-    uint32 m_col_count;
-    MYSQL_RES *m_res;
-    MYSQL_FIELD **m_fields;
+    uint32 mColumnCount;
+    MYSQL_RES* mResult;
+    MYSQL_FIELD** mFields;
 };
 
 class DBResultRow {

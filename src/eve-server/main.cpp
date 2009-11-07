@@ -238,6 +238,8 @@ int main(int argc, char *argv[])
 
     services.serviceDB().SetServerOnlineStatus(false);
 
+    log_close_logfile();
+
     // win crap.
     //_CrtDumpMemoryLeaks();
     return 0;

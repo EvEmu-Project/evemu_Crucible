@@ -55,29 +55,29 @@ protected:
 	public:
 		HeaderGenerator()
 		{
-			GenProcReg( HeaderGenerator, Elements, NULL );
+			GenProcReg( HeaderGenerator, elements, NULL );
 			GenProcReg( HeaderGenerator, include, NULL );
-			GenProcReg( HeaderGenerator, elementdef, NULL );
+			GenProcReg( HeaderGenerator, elementDef, NULL );
 		}
 
 	protected:
-		GenProcDecl( Elements )
+		GenProcDecl( elements )
 		{
 			return Recurse( into, field );
 		}
 		GenProcDecl( include )
 		{
-			const char *file = field->Attribute("file");
-			if(file == NULL)
+			const char* file = field->Attribute( "file" );
+			if( file == NULL )
 			{
-				_log(COMMON__ERROR, "field at line %d is missing the file attribute, skipping.", field->Row());
+				_log( COMMON__ERROR, "field at line %d is missing the file attribute, skipping.", field->Row() );
 				return false;
 			}
 
 			fprintf(into, "#include \"%s\"\n", file);
 			return true;
 		}
-		GenProcDecl( elementdef )
+		GenProcDecl( elementDef )
 		{
 			return mHeader.Generate( into, field );
 		}
@@ -95,13 +95,13 @@ protected:
 	public:
 		SourceGenerator()
 		{
-			GenProcReg( SourceGenerator, Elements, NULL );
+			GenProcReg( SourceGenerator, elements, NULL );
 			GenProcReg( SourceGenerator, include, NULL );
-			GenProcReg( SourceGenerator, elementdef, NULL );
+			GenProcReg( SourceGenerator, elementDef, NULL );
 		}
 
 	protected:
-		GenProcDecl( Elements )
+		GenProcDecl( elements )
 		{
 			return Recurse( into, field );
 		}
@@ -110,7 +110,7 @@ protected:
 			//ignore
 			return true;
 		}
-		GenProcDecl( elementdef )
+		GenProcDecl( elementDef )
 		{
 			return (    mConstruct.Generate( into, field )
 					 && mDestruct.Generate( into, field )

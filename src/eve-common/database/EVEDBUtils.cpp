@@ -128,7 +128,7 @@ PyObject *DBResultToRowset(DBQueryResult &result)
     }
 
     //RowClass:
-    args->SetItemString("RowClass", new PyString("util.Row", true));
+    args->SetItemString("RowClass", new PyToken("util.Row"));
 
     //lines:
     PyList *rowlist = new PyList();
@@ -215,7 +215,7 @@ PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
         header->SetItemString(i, result.ColumnName(i));
 
     //RowClass:
-    args->SetItemString("RowClass", new PyString("util.Row", true));
+    args->SetItemString("RowClass", new PyToken("util.Row"));
     //idName:
     args->SetItemString("idName", new PyString( result.ColumnName(key_index) ));
 

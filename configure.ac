@@ -2,7 +2,7 @@
 #
 
 AC_PREREQ(2.59)
-AC_INIT(evemu, 0.6-trunk, nospam@evemu.sf.net)
+AC_INIT(evemu, svn-trunk, nospam@evemu.sf.net)
 AM_CONFIG_HEADER(config.h)
 
 if test x$prefix = xNONE; then

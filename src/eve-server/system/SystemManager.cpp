@@ -371,13 +371,18 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 		ss.solItem = new PyNone();
 	}
 
-	
+	//ss.effectStates
+    ss.effectStates = new PyList;
+
+	//ss.allianceBridges
+    ss.allianceBridges = new PyList;
+
 	_log(DESTINY__TRACE, "Set State:");
 	ss.Dump(DESTINY__TRACE, "    ");
 	_log(DESTINY__TRACE, "    Buffer:");
 	_hex(DESTINY__TRACE, &ss.destiny_state->content()[0], ss.destiny_state->content().size());
-	
-	_log(DESTINY__TRACE, "    Decoded:");
+
+    _log(DESTINY__TRACE, "    Decoded:");
 	Destiny::DumpUpdate(DESTINY__TRACE, &ss.destiny_state->content()[0], ss.destiny_state->content().size());
 }
 

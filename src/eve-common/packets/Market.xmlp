@@ -1,106 +1,102 @@
 
 
-<Elements>
+<elements>
 
-<!-- this really doesn't belong here -->
-<elementdef name="MarketGroup_Entry">
-  <InlineList>
-    <int name="marketGroupID" />
-    <int name="parentGroupID" none_marker="-1" />
-    <string name="marketGroupName" />
-    <string name="description" />
-    <int name="graphicID" none_marker="-1" />
-    <int name="hasTypes" />
-    <intlist name="types" />
-    <int name="dataID" default="0" />
-  </InlineList>
-</elementdef>
+  <!-- this really doesn't belong here -->
+  <elementDef name="MarketGroup_Entry">
+    <listInline>
+      <int name="marketGroupID" />
+      <int name="parentGroupID" none_marker="-1" />
+      <string name="marketGroupName" />
+      <string name="description" />
+      <int name="graphicID" none_marker="-1" />
+      <int name="hasTypes" />
+      <listInt name="types" />
+      <int name="dataID" default="0" />
+    </listInline>
+  </elementDef>
 
-
-
-<elementdef name="GetPriceHistory_Header">
-    <object type="blue.DBRowDescriptor">
-      <InlineTuple>
-        <InlineTuple>
-          <string name="_historyDate" default="historyDate" />
+  <elementDef name="GetPriceHistory_Header">
+    <objectInline>
+      <stringInline value="blue.DBRowDescriptor" />
+      <tupleInline>
+        <tupleInline>
+          <stringInline value="historyDate" />
           <int name="_historyDateV" default="64" />
-        </InlineTuple>
-        <InlineTuple>
-          <string name="_lowPrice" default="lowPrice" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="lowPrice" />
           <int name="_lowPriceV" default="6" />
-        </InlineTuple>
-        <InlineTuple>
-          <string name="_highPrice" default="highPrice" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="highPrice" />
           <int name="_highPriceV" default="6" />
-        </InlineTuple>
-        <InlineTuple>
-          <string name="_avgPrice" default="avgPrice" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="avgPrice" />
           <int name="_avgPriceV" default="6" />
-        </InlineTuple>
-        <InlineTuple>
-          <string name="_volume" default="volume" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="volume" />
           <int name="_volumeV" default="20" />
-        </InlineTuple>
-        <InlineTuple>
-          <string name="_orders" default="orders" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="orders" />
           <int name="_ordersV" default="3" />
-        </InlineTuple>
-      </InlineTuple>
-    </object>
-</elementdef>
+        </tupleInline>
+      </tupleInline>
+    </objectInline>
+  </elementDef>
 
-<elementdef name="GetPriceHistory_Entry">
-  <object type="blue.DBRow">
-    <InlineTuple>
+  <elementDef name="GetPriceHistory_Entry">
+    <objectInline>
+      <stringInline value="blue.DBRow" />
+      <tupleInline>
+        <element type="GetPriceHistory_Header" name="header" />
+        <tupleInline>
+          <long name="historyDate" />
+          <real name="lowPrice" />
+          <real name="highPrice" />
+          <real name="avgPrice" />
+          <long name="volume" />
+          <int name="orders" />
+        </tupleInline>
+      </tupleInline>
+    </objectInline>
+  </elementDef>
+
+  <elementDef name="Rsp_GetPriceHistory">
+    <tupleInline>
       <element type="GetPriceHistory_Header" name="header" />
-      <InlineTuple>
-        <int64 name="historyDate" />
-        <real name="lowPrice" />
-        <real name="highPrice" />
-        <real name="avgPrice" />
-        <int64 name="volume" />
-        <int name="orders" />
-      </InlineTuple>
-    </InlineTuple>
-  </object>
-</elementdef>
+      <list name="rows" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Rsp_GetPriceHistory">
-  <InlineTuple>
-    <element type="GetPriceHistory_Header" name="header" />
-    <list name="rows" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Call_PlaceCharOrder">
+    <tupleInline>
+      <int name="stationID" />
+      <int name="typeID" />
+      <real name="price" />
+      <int name="quantity" />
+      <bool name="bid" soft="true" />
+      <int name="orderRange" />
+      <int name="itemID" none_marker="0" />
+      <int name="minVolume" />
+      <int name="duration" /> <!-- in days -->
+      <bool name="useCorp" soft="true" />
+      <bool name="located" none_marker="false" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Call_PlaceCharOrder">
-  <InlineTuple>
-    <int name="stationID" />
-    <int name="typeID" />
-    <real name="price" />
-    <int name="quantity" />
-    <bool name="bid" soft="true" />
-    <int name="orderRange" />
-    <int name="itemID" none_marker="0" />
-    <int name="minVolume" />
-    <int name="duration" /> <!-- in days -->
-    <bool name="useCorp" soft="true" />
-    <bool name="located" none_marker="false" />
-  </InlineTuple>
-</elementdef>
+  <elementDef name="Notify_OnOwnOrderChanged">
+    <tupleInline>
+      <raw name="order" />
+      <!-- Reason: Add or Expiry (probably a "Change" or something too) -->
+      <string name="reason" />
+	    <bool name="isCorp" />
+    </tupleInline>
+  </elementDef>
 
-<elementdef name="Notify_OnOwnOrderChanged">
-  <InlineTuple>
-    <raw name="order" />
-    <!-- Reason: Add or Expiry (probably a "Change" or something too) -->
-    <string name="reason" />
-	<bool name="isCorp" />
-  </InlineTuple>
-</elementdef>
-
-
-
-
-
-</Elements>
+</elements>
 
 
