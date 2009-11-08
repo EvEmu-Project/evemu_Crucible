@@ -127,9 +127,10 @@ protected:
     GenProcDecl( real ); \
     GenProcDecl( bool ); \
     GenProcDecl( none ); \
+    GenProcDecl( buffer ); \
     GenProcDecl( string ); \
     GenProcDecl( stringInline ); \
-    GenProcDecl( buffer ); \
+    GenProcDecl( wstring ); \
     GenProcDecl( token ); \
     GenProcDecl( tokenInline ); \
     GenProcDecl( object ); \
@@ -160,9 +161,10 @@ protected:
     GenProcReg( c, real, PyFloat ); \
     GenProcReg( c, bool, PyBool ); \
     GenProcReg( c, none, PyRep ); \
+    GenProcReg( c, buffer, PyBuffer ); \
     GenProcReg( c, string, PyString ); \
     GenProcReg( c, stringInline, PyString ); \
-    GenProcReg( c, buffer, PyBuffer ); \
+    GenProcReg( c, wstring, PyWString ); \
     GenProcReg( c, token, PyToken ); \
     GenProcReg( c, tokenInline, PyToken ); \
     GenProcReg( c, object, PyObject ); \

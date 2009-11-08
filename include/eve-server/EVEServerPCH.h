@@ -38,6 +38,8 @@
 
 #include "tinyxml/tinyxml.h"
 
+#include "utf8cpp/utf8.h"
+
 #include "utils/Base64.h"
 #include "utils/counted_ptr.h"
 

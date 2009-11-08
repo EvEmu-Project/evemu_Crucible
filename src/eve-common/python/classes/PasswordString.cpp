@@ -27,21 +27,21 @@
 
 #include "python/classes/PasswordString.h"
 
-PasswordString::PasswordString( const char* password )
+PasswordString::PasswordString( PyWString* password )
 : PyObjectEx_Type2( _CreateArgs( password ), NULL )
 {
 }
 
-PyString* PasswordString::GetPassword() const
+PyWString* PasswordString::GetPassword() const
 {
-	return GetArgs()->GetItem( 1 )->AsString();
+	return GetArgs()->GetItem( 1 )->AsWString();
 }
 
-PyTuple* PasswordString::_CreateArgs( const char* password )
+PyTuple* PasswordString::_CreateArgs( PyWString* password )
 {
 	PyTuple* head = new PyTuple( 2 );
 	head->SetItem( 0, new PyToken( "util.PasswordString" ) );
-	head->SetItem( 1, new PyString( password ) );
+	head->SetItem( 1, password );
 
 	return head;
 }

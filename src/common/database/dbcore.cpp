@@ -165,7 +165,7 @@ bool DBcore::DoQuery_locked(DBerror &err, const char *query, int32 querylen, boo
 
         pStatus = Error;
         err.SetError(num, mysql_error(&mysql));
-        sLog.Error("DBCore Query", "#%d in '%s': %s", err.GetErrno(), query, err.c_str());
+        sLog.Error("DBCore Query", "#%d in '%s': %s", err.GetErrNo(), query, err.c_str());
         return false;
     }
 
@@ -186,7 +186,7 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
     {
         sLog.Error("DBCore Query", "Query: %s failed", query);
         if(errnum != NULL)
-            *errnum = err.GetErrno();
+            *errnum = err.GetErrNo();
         if(errbuf != NULL)
             strcpy(errbuf, err.c_str());
         return false;
@@ -307,8 +307,7 @@ bool DBcore::Open_locked(int32* errnum, char* errbuf) {
         return false;
     }
 
-    // force MySQL to not convert utf8 to latin1, because
-    // client wants unconverted raw utf8
+    // Setup character set we wish to use
     if(mysql_set_character_set(&mysql, "utf8") != 0) {
         pStatus = Error;
         if(errnum)
@@ -324,23 +323,89 @@ bool DBcore::Open_locked(int32* errnum, char* errbuf) {
 /************************************************************************/
 /* DBerror                                                              */
 /************************************************************************/
-DBerror::DBerror() {
+DBerror::DBerror()
+{
     ClearError();
 }
 
-void DBerror::SetError(uint32 err, const char *str) {
-    m_str = str;
-    m_errno = err;
+void DBerror::SetError( uint32 err, const char* str )
+{
+    mErrStr = str;
+    mErrNo = err;
 }
 
-void DBerror::ClearError() {
-    m_str = "No Error";
-    m_errno = 0;
+void DBerror::ClearError()
+{
+    mErrStr = "No Error";
+    mErrNo = 0;
 }
 
 /************************************************************************/
 /* DBQueryResult                                                        */
 /************************************************************************/
+/* mysql to DBTYPE convention table */
+const DBTYPE DBQueryResult::MYSQL_DBTYPE_TABLE_SIGNED[] =
+{
+    DBTYPE_I4,      //[0]MYSQL_TYPE_DECIMAL             /* assumption that this variable will never be bigger than 32 bits... if it will then we need to change it to I8 */
+    DBTYPE_I1,      //[1]MYSQL_TYPE_TINY
+    DBTYPE_I2,      //[2]MYSQL_TYPE_SHORT
+    DBTYPE_I4,      //[3]MYSQL_TYPE_LONG
+    DBTYPE_R4,      //[4]MYSQL_TYPE_FLOAT
+    DBTYPE_R8,      //[5]MYSQL_TYPE_DOUBLE
+    DBTYPE_STR,     //[6]MYSQL_TYPE_NULL               /* assumption that this is correct */
+    DBTYPE_FILETIME,//[7]MYSQL_TYPE_TIMESTAMP
+    DBTYPE_I8,      //[8]MYSQL_TYPE_LONGLONG
+    DBTYPE_I4,      //[9]MYSQL_TYPE_INT24
+    DBTYPE_FILETIME,//[10]MYSQL_TYPE_DATE
+    DBTYPE_FILETIME,//[11]MYSQL_TYPE_TIME
+    DBTYPE_FILETIME,//[12]MYSQL_TYPE_DATETIME
+    DBTYPE_FILETIME,//[13]MYSQL_TYPE_YEAR
+    DBTYPE_FILETIME,//[14]MYSQL_TYPE_NEWDATE
+    DBTYPE_STR,     //[15]MYSQL_TYPE_VARCHAR
+    DBTYPE_BOOL,    //[16]MYSQL_TYPE_BIT
+    DBTYPE_STR,     //[17]MYSQL_TYPE_NEWDECIMAL=246     /* assumption and prob wrong */
+    DBTYPE_STR,     //[18]MYSQL_TYPE_ENUM=247
+    DBTYPE_STR,     //[19]MYSQL_TYPE_SET=248            /* unhandled */
+    DBTYPE_STR,     //[20]MYSQL_TYPE_TINY_BLOB=249
+    DBTYPE_STR,     //[21]MYSQL_TYPE_MEDIUM_BLOB=250
+    DBTYPE_STR,     //[22]MYSQL_TYPE_LONG_BLOB=251
+    DBTYPE_STR,     //[23]MYSQL_TYPE_BLOB=252
+    DBTYPE_STR,     //[24]MYSQL_TYPE_VAR_STRING=253
+    DBTYPE_STR,     //[25]MYSQL_TYPE_STRING=254
+    DBTYPE_STR,     //[26]MYSQL_TYPE_GEOMETRY=255       /* unhandled */
+};
+
+const DBTYPE DBQueryResult::MYSQL_DBTYPE_TABLE_UNSIGNED[] =
+{
+    DBTYPE_UI4,      //[0]MYSQL_TYPE_DECIMAL             /* assumption that this variable will never be bigger than 32 bits... if it will then we need to change it to I8 */
+    DBTYPE_UI1,      //[1]MYSQL_TYPE_TINY
+    DBTYPE_UI2,      //[2]MYSQL_TYPE_SHORT
+    DBTYPE_UI4,      //[3]MYSQL_TYPE_LONG
+    DBTYPE_R4,      //[4]MYSQL_TYPE_FLOAT
+    DBTYPE_R8,      //[5]MYSQL_TYPE_DOUBLE
+    DBTYPE_STR,     //[6]MYSQL_TYPE_NULL               /* assumption that this is correct */
+    DBTYPE_FILETIME,//[7]MYSQL_TYPE_TIMESTAMP
+    DBTYPE_UI8,      //[8]MYSQL_TYPE_LONGLONG
+    DBTYPE_UI4,      //[9]MYSQL_TYPE_INT24
+    DBTYPE_FILETIME,//[10]MYSQL_TYPE_DATE
+    DBTYPE_FILETIME,//[11]MYSQL_TYPE_TIME
+    DBTYPE_FILETIME,//[12]MYSQL_TYPE_DATETIME
+    DBTYPE_FILETIME,//[13]MYSQL_TYPE_YEAR
+    DBTYPE_FILETIME,//[14]MYSQL_TYPE_NEWDATE
+    DBTYPE_STR,     //[15]MYSQL_TYPE_VARCHAR
+    DBTYPE_BOOL,    //[16]MYSQL_TYPE_BIT
+    DBTYPE_STR,     //[17]MYSQL_TYPE_NEWDECIMAL=246     /* assumption and prob wrong */
+    DBTYPE_STR,     //[18]MYSQL_TYPE_ENUM=247
+    DBTYPE_STR,     //[19]MYSQL_TYPE_SET=248            /* unhandled */
+    DBTYPE_STR,     //[20]MYSQL_TYPE_TINY_BLOB=249
+    DBTYPE_STR,     //[21]MYSQL_TYPE_MEDIUM_BLOB=250
+    DBTYPE_STR,     //[22]MYSQL_TYPE_LONG_BLOB=251
+    DBTYPE_STR,     //[23]MYSQL_TYPE_BLOB=252
+    DBTYPE_STR,     //[24]MYSQL_TYPE_VAR_STRING=253
+    DBTYPE_STR,     //[25]MYSQL_TYPE_STRING=254
+    DBTYPE_STR,     //[26]MYSQL_TYPE_GEOMETRY=255       /* unhandled */
+};
+
 DBQueryResult::DBQueryResult()
 : mColumnCount( 0 ),
   mResult( NULL ),
@@ -373,6 +438,12 @@ bool DBQueryResult::GetRow( DBResultRow& into )
     return true;
 }
 
+void DBQueryResult::Reset()
+{
+    if( NULL != mResult )
+        mysql_data_seek( mResult, 0);
+}
+
 const char* DBQueryResult::ColumnName( uint32 index ) const
 {
 #ifdef COLUMN_BOUNDS_CHECKING
@@ -384,69 +455,6 @@ const char* DBQueryResult::ColumnName( uint32 index ) const
 #endif
     return mFields[ index ]->name;
 }
-
-/* mysql to DBTYPE convention table */
-static const DBTYPE DBTYPE_MYSQL_TABLE_SIGNED[] =
-{
-    DBTYPE_I4,      //[0]MYSQL_TYPE_DECIMAL             /* assumption that this variable will never be bigger than 32 bits... if it will then we need to change it to I8 */
-    DBTYPE_I1,      //[1]MYSQL_TYPE_TINY
-    DBTYPE_I2,      //[2]MYSQL_TYPE_SHORT
-    DBTYPE_I4,      //[3]MYSQL_TYPE_LONG
-    DBTYPE_R4,      //[4]MYSQL_TYPE_FLOAT
-    DBTYPE_R8,      //[5]MYSQL_TYPE_DOUBLE
-    DBTYPE_STR,     //[6]MYSQL_TYPE_NULL               /* assumption that this is correct */
-    DBTYPE_FILETIME,//[7]MYSQL_TYPE_TIMESTAMP
-    DBTYPE_I8,      //[8]MYSQL_TYPE_LONGLONG
-    DBTYPE_I4,      //[9]MYSQL_TYPE_INT24
-    DBTYPE_FILETIME,//[10]MYSQL_TYPE_DATE
-    DBTYPE_FILETIME,//[11]MYSQL_TYPE_TIME
-    DBTYPE_FILETIME,//[12]MYSQL_TYPE_DATETIME
-    DBTYPE_FILETIME,//[13]MYSQL_TYPE_YEAR
-    DBTYPE_FILETIME,//[14]MYSQL_TYPE_NEWDATE
-    DBTYPE_STR,     //[15]MYSQL_TYPE_VARCHAR
-    DBTYPE_BOOL,    //[16]MYSQL_TYPE_BIT
-    DBTYPE_STR,     //[17]MYSQL_TYPE_NEWDECIMAL=246     /* assumption and prob wrong */
-    DBTYPE_STR,     //[18]MYSQL_TYPE_ENUM=247
-    DBTYPE_STR,     //[19]MYSQL_TYPE_SET=248            /* unhandled */
-    DBTYPE_STR,     //[20]MYSQL_TYPE_TINY_BLOB=249
-    DBTYPE_STR,     //[21]MYSQL_TYPE_MEDIUM_BLOB=250
-    DBTYPE_STR,     //[22]MYSQL_TYPE_LONG_BLOB=251
-    DBTYPE_STR,     //[23]MYSQL_TYPE_BLOB=252
-    DBTYPE_STR,     //[24]MYSQL_TYPE_VAR_STRING=253
-    DBTYPE_STR,     //[25]MYSQL_TYPE_STRING=254
-    DBTYPE_STR,     //[26]MYSQL_TYPE_GEOMETRY=255       /* unhandled */
-};
-
-static const DBTYPE DBTYPE_MYSQL_TABLE_UNSIGNED[] =
-{
-    DBTYPE_UI4,      //[0]MYSQL_TYPE_DECIMAL             /* assumption that this variable will never be bigger than 32 bits... if it will then we need to change it to I8 */
-    DBTYPE_UI1,      //[1]MYSQL_TYPE_TINY
-    DBTYPE_UI2,      //[2]MYSQL_TYPE_SHORT
-    DBTYPE_UI4,      //[3]MYSQL_TYPE_LONG
-    DBTYPE_R4,      //[4]MYSQL_TYPE_FLOAT
-    DBTYPE_R8,      //[5]MYSQL_TYPE_DOUBLE
-    DBTYPE_STR,     //[6]MYSQL_TYPE_NULL               /* assumption that this is correct */
-    DBTYPE_FILETIME,//[7]MYSQL_TYPE_TIMESTAMP
-    DBTYPE_UI8,      //[8]MYSQL_TYPE_LONGLONG
-    DBTYPE_UI4,      //[9]MYSQL_TYPE_INT24
-    DBTYPE_FILETIME,//[10]MYSQL_TYPE_DATE
-    DBTYPE_FILETIME,//[11]MYSQL_TYPE_TIME
-    DBTYPE_FILETIME,//[12]MYSQL_TYPE_DATETIME
-    DBTYPE_FILETIME,//[13]MYSQL_TYPE_YEAR
-    DBTYPE_FILETIME,//[14]MYSQL_TYPE_NEWDATE
-    DBTYPE_STR,     //[15]MYSQL_TYPE_VARCHAR
-    DBTYPE_BOOL,    //[16]MYSQL_TYPE_BIT
-    DBTYPE_STR,     //[17]MYSQL_TYPE_NEWDECIMAL=246     /* assumption and prob wrong */
-    DBTYPE_STR,     //[18]MYSQL_TYPE_ENUM=247
-    DBTYPE_STR,     //[19]MYSQL_TYPE_SET=248            /* unhandled */
-    DBTYPE_STR,     //[20]MYSQL_TYPE_TINY_BLOB=249
-    DBTYPE_STR,     //[21]MYSQL_TYPE_MEDIUM_BLOB=250
-    DBTYPE_STR,     //[22]MYSQL_TYPE_LONG_BLOB=251
-    DBTYPE_STR,     //[23]MYSQL_TYPE_BLOB=252
-    DBTYPE_STR,     //[24]MYSQL_TYPE_VAR_STRING=253
-    DBTYPE_STR,     //[25]MYSQL_TYPE_STRING=254
-    DBTYPE_STR,     //[26]MYSQL_TYPE_GEOMETRY=255       /* unhandled */
-};
 
 DBTYPE DBQueryResult::ColumnType( uint32 index ) const
 {
@@ -476,18 +484,14 @@ DBTYPE DBQueryResult::ColumnType( uint32 index ) const
 
     if ( columnType > 245 )
         /* tricky needs to be checked */
-        columnType-=229; // MYSQL_TYPE_NEWDECIMAL - MYSQL_TYPE_BIT
+        columnType -= 229; // MYSQL_TYPE_NEWDECIMAL - MYSQL_TYPE_BIT
 
-    DBTYPE type;
-    if ( mFields[ index ]->flags & UNSIGNED_FLAG )
-        type = DBTYPE_MYSQL_TABLE_UNSIGNED[ columnType ];
-    else
-        type = DBTYPE_MYSQL_TABLE_SIGNED[ columnType ];
+    return ( IsUnsigned( index ) ? MYSQL_DBTYPE_TABLE_UNSIGNED : MYSQL_DBTYPE_TABLE_SIGNED )[ columnType ];
+}
 
-    /* possible add tracing here... */
-    assert( type );
-
-    return type;
+bool DBQueryResult::IsUnsigned( uint32 index ) const
+{
+    return ( mFields[ index ]->flags & UNSIGNED_FLAG );
 }
 
 void DBQueryResult::SetResult( MYSQL_RES** res, uint32 colCount )
@@ -511,147 +515,116 @@ void DBQueryResult::SetResult( MYSQL_RES** res, uint32 colCount )
 	}
 }
 
-void DBQueryResult::Reset()
-{
-    if( NULL != mResult )
-        mysql_data_seek( mResult, 0);
-}
-
 DBResultRow::DBResultRow()
-: m_row(NULL),
-  m_lengths(NULL),
-  m_result(NULL)
+: mRow( NULL ),
+  mLengths( NULL ),
+  mResult( NULL )
 {
 }
 
-void DBResultRow::SetData(DBQueryResult *res, MYSQL_ROW &row, const uint32 *lengths) {
-    m_row = row;
-    m_result = res;
-    m_lengths = lengths;
-}
-
-uint32 DBResultRow::ColumnCount() const {
-    if(m_result == NULL)
-        return 0;
-    return(m_result->ColumnCount());
-}
-
-const char *DBResultRow::ColumnName(uint32 column) const {
-    if(m_result == NULL)
-        return "NULL RESULT";
-    return m_result->ColumnName(column);
-}
-
-DBTYPE DBResultRow::ColumnType(uint32 column) const {
-    if(m_result == NULL)
+uint32 DBResultRow::GetColumnLength( uint32 index ) const
+{
+#ifdef COLUMN_BOUNDS_CHECKING
+    if( index >= ColumnCount() )
     {
-        sLog.Error("DBCore DBQueryResult", "unable to get ColumnType");
-        return DBTYPE_STR;
-    }
-    return m_result->ColumnType(column);
-}
-
-uint32 DBResultRow::GetColumnLength(uint32 column) const {
-#ifdef COLUMN_BOUNDS_CHECKING
-    if(column >= ColumnCount()) {
-        sLog.Error("DBCore Result Row", "GetColumnLength: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+        sLog.Error( "DBCore Result Row", "GetColumnLength: Column index %u exceeds number of columns (%u) in row", index, ColumnCount() );
         return 0;       //nothing better to do...
     }
 #endif
-    return m_lengths[column];
+    return mLengths[ index ];
 }
 
-
-//these all assume that row is valid.. its your fault if it is not!
-
-int32 DBResultRow::GetInt(uint32 column) const {
+int32 DBResultRow::GetInt( uint32 index ) const
+{
 #ifdef COLUMN_BOUNDS_CHECKING
-    if(column >= ColumnCount()) {
-        sLog.Error("DBCore Result Row", "GetInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+    if( index >= ColumnCount() )
+    {
+        sLog.Error( "DBCore Result Row", "GetInt: Column index %u exceeds number of columns (%u) in row", index, ColumnCount() );
         return 0;       //nothing better to do...
     }
 #endif
     //use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
-    return(strtol(m_row[column], NULL, 0));
+    return strtol( GetText( index ), NULL, 0 );
 }
 
-uint32 DBResultRow::GetUInt(uint32 column) const {
+uint32 DBResultRow::GetUInt( uint32 index ) const
+{
 #ifdef COLUMN_BOUNDS_CHECKING
-    if(column >= ColumnCount()) {
-        sLog.Error("DBCore Result Row", "GetUInt: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+    if( index >= ColumnCount() )
+    {
+        sLog.Error( "DBCore Result Row", "GetUInt: Column index %u exceeds number of columns (%u) in row", index, ColumnCount() );
         return 0;       //nothing better to do...
     }
 #endif
     //use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
-    return(strtoul(m_row[column], NULL, 0));
+    return strtoul( GetText( index ), NULL, 0 );
 }
-//_strtoi64
-//strtoll, strtoull 
-int64 DBResultRow::GetInt64(uint32 column) const {
+
+int64 DBResultRow::GetInt64( uint32 index ) const
+{
 #ifdef COLUMN_BOUNDS_CHECKING
-    if(column >= ColumnCount()) {
-        sLog.Error("DBCore Result Row", "GetInt64: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+    if( index >= ColumnCount() )
+    {
+        sLog.Error( "DBCore Result Row", "GetInt64: Column index %u exceeds number of columns (%u) in row", index, ColumnCount() );
         return 0;       //nothing better to do...
     }
 #endif
 
     int64 value;
-    sscanf( m_row[column], I64d, &value );
+    sscanf( GetText( index ), I64d, &value );
 
     return value;
 }
 
-uint64 DBResultRow::GetUInt64(uint32 column) const {
+uint64 DBResultRow::GetUInt64( uint32 index ) const
+{
 #ifdef COLUMN_BOUNDS_CHECKING
-    if(column >= ColumnCount()) {
-        sLog.Error("DBCore Result Row", "GetUInt64: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
+    if( index >= ColumnCount() )
+    {
+        sLog.Error( "DBCore Result Row", "GetUInt64: Column index %u exceeds number of columns (%u) in row", index, ColumnCount() );
         return 0;       //nothing better to do...
     }
 #endif
 
     uint64 value;
-    sscanf( m_row[column], I64u, &value );
+    sscanf( GetText( index ), I64u, &value );
 
     return value;
 }
 
-float DBResultRow::GetFloat(uint32 column) const {
+float DBResultRow::GetFloat( uint32 index ) const
+{
 #ifdef COLUMN_BOUNDS_CHECKING
-    if(column >= ColumnCount()) {
-        sLog.Error("DBCore Result Row", "GetFloat: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
-        return 0;       //nothing better to do...
-    }
-#endif
-#ifdef WIN32
-    return (float)atof(m_row[column]);
-#else
-    return strtof(m_row[column], NULL);
-#endif
-}
-
-double DBResultRow::GetDouble(uint32 column) const {
-#ifdef COLUMN_BOUNDS_CHECKING
-    if(column >= ColumnCount()) {
-        sLog.Error("DBCore Result Row", "GetDouble: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
-        return 0;       //nothing better to do...
-    }
-#endif
-    return strtod(m_row[column], NULL);
-}
-
-uint32 DBResultRow::GetBinary(uint32 column, uint8 *into, uint32 in_length) const {
-#ifdef COLUMN_BOUNDS_CHECKING
-    if(column >= ColumnCount()) {
-        sLog.Error("DBCore Result Row", "GetBinary: Column index %u exceeds number of columns (%u) in row", column, ColumnCount());
-        return 0;       //nothing better to do...
-    }
-#endif
-    if(in_length < m_lengths[column])
+    if( index >= ColumnCount() )
     {
-        sLog.Error("DBCore Result Row", "GetBinary: insufficient buffer space provided for column %u of length %u (%u provided)", column, m_lengths[column], in_length);
-        return 0;
+        sLog.Error( "DBCore Result Row", "GetFloat: Column index %u exceeds number of columns (%u) in row", index, ColumnCount() );
+        return 0;       //nothing better to do...
     }
-    memcpy(into, m_row[column], m_lengths[column]);
-    return m_lengths[column];
+#endif
+
+#ifdef WIN32
+    return (float)atof( GetText( index ) );
+#else
+    return strtof( GetText( index ), NULL );
+#endif
+}
+
+double DBResultRow::GetDouble( uint32 index ) const
+{
+#ifdef COLUMN_BOUNDS_CHECKING
+    if( index >= ColumnCount() )
+    {
+        sLog.Error( "DBCore Result Row", "GetDouble: Column index %u exceeds number of columns (%u) in row", index, ColumnCount() );
+        return 0;       //nothing better to do...
+    }
+#endif
+    return strtod( GetText( index ), NULL );
+}
+
+void DBResultRow::SetData( DBQueryResult* res, MYSQL_ROW& row, const uint32* lengths )
+{
+    mRow = row;
+    mResult = res;
+    mLengths = lengths;
 }
 

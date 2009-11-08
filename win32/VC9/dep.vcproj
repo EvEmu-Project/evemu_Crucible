@@ -215,6 +215,26 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="utf8cpp"
+			>
+			<File
+				RelativePath="..\..\dep\utf8cpp\utf8-checked.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\dep\utf8cpp\utf8-core.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\dep\utf8cpp\utf8-unchecked.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\dep\utf8cpp\utf8.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

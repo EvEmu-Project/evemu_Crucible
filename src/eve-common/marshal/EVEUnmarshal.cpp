@@ -299,7 +299,7 @@ PyRep* UnmarshalStream::LoadWStringUCS2()
     const uint32 len = ReadSizeEx();
     const uint16* wstr = Read<uint16>( len );
 
-	return new PyString( (const char*)wstr, len * sizeof( uint16 ) );
+	return new PyWString( wstr, len );
 }
 
 PyRep* UnmarshalStream::LoadWStringUTF8()
@@ -307,7 +307,7 @@ PyRep* UnmarshalStream::LoadWStringUTF8()
     const uint32 len = ReadSizeEx();
     const char* wstr = Read<char>( len );
 
-	return new PyString( wstr, len );
+	return new PyWString( wstr, len );
 }
 
 PyRep* UnmarshalStream::LoadToken()
@@ -528,7 +528,7 @@ PyRep* UnmarshalStream::LoadPackedRow()
 
     for( uint32 i = 0; i < cc; i++ )
 	{
-		uint8 size = DBTYPE_SizeOf( row->header()->GetColumnType( i ) );
+		uint8 size = DBTYPE_GetSizeBits( row->header()->GetColumnType( i ) );
 
         sizeMap.insert( std::make_pair( size, i ) );
 		sum += size;

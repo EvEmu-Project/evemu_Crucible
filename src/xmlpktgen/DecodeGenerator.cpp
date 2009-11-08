@@ -382,6 +382,46 @@ bool ClassDecodeGenerator::Process_none( FILE* into, TiXmlElement* field )
 	return true;
 }
 
+bool ClassDecodeGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+		return false;
+	}
+
+	const char* v = top();
+	fprintf( into,
+        "    PySafeDecRef( %s );\n"
+		"    if( %s->IsBuffer() )\n"
+        "    {\n"
+        "        %s = %s->AsBuffer();\n"
+        "        PyIncRef( %s );\n"
+		"    }\n"
+        "    else if( %s->IsString() )\n"
+		"        %s = new PyBuffer( *%s->AsString() );\n"
+		"    else\n"
+        "    {\n"
+		"        _log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a buffer: %%s\", %s->TypeString());\n"
+        "\n"
+		"        return false;\n"
+		"    }\n"
+		"\n",
+        name,
+		v,
+			name, v,
+			name,
+		v,
+			name, v,
+
+			mName, name, v
+	);
+
+	pop();
+	return true;
+}
+
 bool ClassDecodeGenerator::Process_string( FILE* into, TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
@@ -403,7 +443,6 @@ bool ClassDecodeGenerator::Process_string( FILE* into, TiXmlElement* field )
 			v,
 				name, none_marker
         );
-
 
     fprintf( into,
 		"    if( %s->IsString() )\n"
@@ -466,40 +505,42 @@ bool ClassDecodeGenerator::Process_stringInline( FILE* into, TiXmlElement* field
     return true;
 }
 
-bool ClassDecodeGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+bool ClassDecodeGenerator::Process_wstring( FILE* into, TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
     {
-		_log(COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row());
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
 		return false;
 	}
 
+    //this should be done better:
+	const char* none_marker = field->Attribute( "none_marker" );
+
 	const char* v = top();
-	fprintf( into,
-        "    PySafeDecRef( %s );\n"
-		"    if( %s->IsBuffer() )\n"
+	if( none_marker != NULL )
+		fprintf( into,
+			"    if( %s->IsNone() )\n"
+			"        %s = \"%s\";\n"
+			"    else\n",
+			v,
+				name, none_marker
+        );
+
+    fprintf( into,
+		"    if( %s->IsWString() )\n"
+		"        %s = %s->AsWString()->content();\n"
+        "    else\n"
         "    {\n"
-        "        %s = %s->AsBuffer();\n"
-        "        PyIncRef( %s );\n"
-		"    }\n"
-        "    else if( %s->IsString() )\n"
-		"        %s = new PyBuffer( *%s->AsString() );\n"
-		"    else\n"
-        "    {\n"
-		"        _log(NET__PACKET_ERROR, \"Decode %s failed: %s is not a buffer: %%s\", %s->TypeString());\n"
+		"        _log( NET__PACKET_ERROR, \"Decode %s failed: %s is not a wide string: %%s\", %s->TypeString() );\n"
         "\n"
 		"        return false;\n"
 		"    }\n"
 		"\n",
-        name,
-		v,
-			name, v,
-			name,
-		v,
-			name, v,
+        v,
+            name, v,
 
-			mName, name, v
+            mName, name, v
 	);
 
 	pop();

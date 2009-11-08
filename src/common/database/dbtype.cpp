@@ -27,7 +27,7 @@
 
 #include "database/dbtype.h"
 
-uint8 DBTYPE_SizeOf(DBTYPE type)
+uint8 DBTYPE_GetSizeBits( DBTYPE type )
 {
     switch( type )
     {
@@ -54,36 +54,12 @@ uint8 DBTYPE_SizeOf(DBTYPE type)
         case DBTYPE_WSTR:
             return 0;
     }
+
     return 0;
 }
 
-uint8 DBTYPE_GetSize( DBTYPE type )
+uint8 DBTYPE_GetSizeBytes( DBTYPE type )
 {
-    switch( type )
-    {
-    case DBTYPE_I8:
-    case DBTYPE_UI8:
-    case DBTYPE_R8:
-    case DBTYPE_CY:
-    case DBTYPE_FILETIME:
-        return 8;
-    case DBTYPE_I4:
-    case DBTYPE_UI4:
-    case DBTYPE_R4:
-        return 4;
-    case DBTYPE_I2:
-    case DBTYPE_UI2:
-        return 2;
-    case DBTYPE_I1:
-    case DBTYPE_UI1:
-        return 1;
-    case DBTYPE_BOOL:
-        return 1; // compensated outside of this function
-    case DBTYPE_BYTES:
-    case DBTYPE_STR:
-    case DBTYPE_WSTR:
-        return 0;
-    }
-    return 0;
+    return ( ( DBTYPE_GetSizeBits( type ) + 7 ) >> 3 );
 }
 

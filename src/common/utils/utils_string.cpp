@@ -197,18 +197,6 @@ void MakeLowerString( const char* source, char* target )
     *target = 0;
 }
 
-size_t py_mbstowcs( uint16 * wcstr, const char * mbstr, size_t max )
-{
-    size_t i;
-    for (i = 0; i < max; i++, wcstr++, mbstr++) {
-        *wcstr = *mbstr;
-        if (*wcstr == '\0') {
-            break;
-        }
-    }
-    return i;
-}
-
 bool py_decode_escape( const char* str, Buffer& into )
 {
     int len = (int)strlen( str );

@@ -251,6 +251,26 @@ bool ClassHeaderGenerator::Process_none( FILE* into, TiXmlElement* field )
     return true;
 }
 
+bool ClassHeaderGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+		return false;
+	}
+
+    if( !RegisterName( name, field->Row() ) )
+        return false;
+
+    fprintf( into,
+		"    PyBuffer*\t%s;\n",
+		name
+	);
+
+    return true;
+}
+
 bool ClassHeaderGenerator::Process_string( FILE* into, TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
@@ -276,7 +296,7 @@ bool ClassHeaderGenerator::Process_stringInline( FILE* into, TiXmlElement* field
     return true;
 }
 
-bool ClassHeaderGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::Process_wstring( FILE* into, TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -289,7 +309,7 @@ bool ClassHeaderGenerator::Process_buffer( FILE* into, TiXmlElement* field )
         return false;
 
     fprintf( into,
-		"    PyBuffer*\t%s;\n",
+		"    std::string\t\t%s;\n",
 		name
 	);
 

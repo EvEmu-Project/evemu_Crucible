@@ -92,7 +92,9 @@ void SystemPlanetEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	#pragma pack()
 
 	int start = into.size();
-	into.resize(start + sizeof(AddBall_Planet) + data.itemName.length()*sizeof(uint16) );
+	into.resize(start
+        + sizeof(AddBall_Planet)
+        + data.itemName.length()*sizeof(uint16) );
 	uint8 *ptr = &into[start];
 	AddBall_Planet *item = (AddBall_Planet *) ptr;
 	ptr += sizeof(AddBall_Planet);
@@ -106,9 +108,8 @@ void SystemPlanetEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	item->head.sub_type = AddBallSubType_planet;
 	item->main.formationID = 0xFF;
 	
-	item->name.name_len = data.itemName.length();
-
-	py_mbstowcs(item->name.name, data.itemName.c_str(), data.itemName.length());
+    item->name.name_len = utf8::distance( data.itemName.begin(), data.itemName.end() );
+    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), item->name.name );
 }
 
 SystemStationEntity::SystemStationEntity(SystemManager *system, const DBSystemEntity &entity)
@@ -154,8 +155,8 @@ void SystemStationEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	//slide pointer over points...
 	item = (AddBall_Station *) (((uint8 *) item)+(miniball_count-1)*sizeof(MiniBall));
 	
-	item->name.name_len = data.itemName.length();
-	py_mbstowcs(item->name.name, data.itemName.c_str(), data.itemName.length());
+    item->name.name_len = utf8::distance( data.itemName.begin(), data.itemName.end() );
+    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), item->name.name );
 }
 
 PyDict *SystemStationEntity::MakeSlimItem() const {
@@ -239,9 +240,9 @@ void SystemAsteroidBeltEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	item->head.z = data.position.z;
 	item->head.sub_type = AddBallSubType_asteroidBelt;
 	item->main.formationID = 0xFF;
-	
-	item->name.name_len = data.itemName.length();
-	py_mbstowcs(item->name.name, data.itemName.c_str(), data.itemName.length());
+
+    item->name.name_len = utf8::distance( data.itemName.begin(), data.itemName.end() );
+    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), item->name.name );
 }
 
 bool SystemAsteroidBeltEntity::LoadExtras(SystemDB *db) {
@@ -352,8 +353,8 @@ void SystemDungeonEntranceEntity::EncodeDestiny(std::vector<uint8> &into) const 
 	//slide pointer over points...
 	item = (AddBall_Dungeon *) (((uint8 *) item)+(miniball_count-1)*sizeof(MiniBall));
 
-	item->name.name_len = itemName.length();
-	py_mbstowcs(item->name.name, itemName.c_str(), itemName.length());
+    item->name.name_len = utf8::distance( itemName.begin(), itemName.end() );
+    utf8::utf8to16( itemName.begin(), itemName.end(), item->name.name );
 }
 
 

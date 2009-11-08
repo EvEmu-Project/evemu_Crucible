@@ -231,7 +231,26 @@ bool MarshalStream::VisitString( const PyString* rep )
             PutSizeEx( len );
             Put( (uint8*)rep->content().c_str(), len );
         }
-        // TODO: use Op_PyUnicodeString?
+    }
+
+    return true;
+}
+
+bool MarshalStream::VisitWString( const PyWString* rep )
+{
+    size_t len = rep->content().size();
+
+    if( 0 == len )
+    {
+        Put<uint8>( Op_PyEmptyWString );
+    }
+    else
+    {
+        // We don't have to consider any conversions because
+        // UTF-8 is more space-efficient than UCS-2.
+
+        Put<uint8>( Op_PyWStringUTF8 );
+        Put( (const uint8*)rep->content().c_str(), len );
     }
 
     return true;
@@ -373,7 +392,7 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
 
     for( uint32 i = 0; i < cc; i++ )
     {
-        uint8 size = DBTYPE_SizeOf( header->GetColumnType( i ) );
+        uint8 size = DBTYPE_GetSizeBits( header->GetColumnType( i ) );
 
         sizeMap.insert( std::make_pair( size, i ) );
         sum += size;

@@ -167,7 +167,7 @@ private:
     /** Loads empty string from stream. */
     PyRep* LoadStringEmpty() { return new PyString( "" ); }
     /** Loads single character string from stream. */
-    PyRep* LoadStringChar() { return new PyString( Read<char>( 1 ), (size_t)1 ); }
+    PyRep* LoadStringChar() { return new PyString( Read<char>( 1 ), 1 ); }
     /** Loads short (up to 255 chars) string from stream. */
     PyRep* LoadStringShort();
     /** Loads long (no limit) string from stream. */
@@ -176,9 +176,9 @@ private:
     PyRep* LoadStringTable();
 
     /** Loads empty wide string from stream. */
-    PyRep* LoadWStringEmpty() { return new PyString( "" ); }
+    PyRep* LoadWStringEmpty() { return new PyWString( "", 0 ); }
     /** Loads single UCS-2 character string from stream. */
-    PyRep* LoadWStringUCS2Char() { return new PyString( (const char*)Read<uint16>( 1 ), sizeof( uint16 ) ); }
+    PyRep* LoadWStringUCS2Char() { return new PyWString( Read<uint16>( 1 ), 1 ); }
     /** Loads UCS-2 string from stream. */
     PyRep* LoadWStringUCS2();
     /** Loads UTF-8 string from stream. */

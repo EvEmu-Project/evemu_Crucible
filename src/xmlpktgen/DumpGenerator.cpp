@@ -226,6 +226,32 @@ bool ClassDumpGenerator::Process_none( FILE* into, TiXmlElement* field )
     return true;
 }
 
+bool ClassDumpGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+		return false;
+	}
+
+    fprintf( into,
+        "    _log( l_type, \"%%s%s: \", pfx );\n"
+		"\n"
+        "    std::string %s_n( pfx );\n"
+        "    %s_n += \"    \";\n"
+		"\n"
+        "    %s->Dump( l_type, %s_n.c_str() );\n"
+		"\n",
+        name,
+		name,
+		name,
+		name, name
+	);
+
+    return true;
+}
+
 bool ClassDumpGenerator::Process_string( FILE* into, TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
@@ -262,7 +288,7 @@ bool ClassDumpGenerator::Process_stringInline( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::Process_wstring( FILE* into, TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -272,16 +298,8 @@ bool ClassDumpGenerator::Process_buffer( FILE* into, TiXmlElement* field )
 	}
 
     fprintf( into,
-        "    _log( l_type, \"%%s%s: \", pfx );\n"
-		"\n"
-        "    std::string %s_n( pfx );\n"
-        "    %s_n += \"    \";\n"
-		"\n"
-        "    %s->Dump( l_type, %s_n.c_str() );\n"
+		"    _log( l_type, \"%%s%s='%%s'\", pfx, %s.c_str() );\n"
 		"\n",
-        name,
-		name,
-		name,
 		name, name
 	);
 

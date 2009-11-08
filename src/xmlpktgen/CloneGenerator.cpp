@@ -219,6 +219,32 @@ bool ClassCloneGenerator::Process_none( FILE* into, TiXmlElement* field )
     return true;
 }
 
+bool ClassCloneGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+{
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
+    {
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
+
+    fprintf( into,
+        "    PySafeDecRef( %s );\n"
+        "    if( oth.%s == NULL )\n"
+        "        %s = NULL;\n" //TODO: log an error
+        "    else\n"
+		"        %s = new PyBuffer( *oth.%s );\n"
+        "\n",
+        name,
+        name,
+            name,
+
+            name, name
+    );
+
+    return true;
+}
+
 bool ClassCloneGenerator::Process_string( FILE* into, TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
@@ -242,7 +268,7 @@ bool ClassCloneGenerator::Process_stringInline( FILE* into, TiXmlElement* field 
     return true;
 }
 
-bool ClassCloneGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::Process_wstring( FILE* into, TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -252,17 +278,9 @@ bool ClassCloneGenerator::Process_buffer( FILE* into, TiXmlElement* field )
     }
 
     fprintf( into,
-        "    PySafeDecRef( %s );\n"
-        "    if( oth.%s == NULL )\n"
-        "        %s = NULL;\n" //TODO: log an error
-        "    else\n"
-		"        %s = new PyBuffer( *oth.%s );\n"
+        "    %s = oth.%s;\n"
         "\n",
-        name,
-        name,
-            name,
-
-            name, name
+        name, name
     );
 
     return true;

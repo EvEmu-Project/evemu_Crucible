@@ -82,7 +82,7 @@
 		      <string name="boot_region" />
 	      </dictInlineEntry>
 	      <dictInlineEntry key="user_name">
-		      <string name="user_name" />
+		      <wstring name="user_name" />
 	      </dictInlineEntry>
 	      <dictInlineEntry key="user_password">
 		      <objectEx name="user_password" type="PasswordString" optional="true" />
@@ -91,7 +91,7 @@
 		      <string name="user_password_hash" none_marker="" />
 	      </dictInlineEntry>
 	      <dictInlineEntry key="user_languageid">
-		      <string name="user_languageid" />
+		      <wstring name="user_languageid" />
 	      </dictInlineEntry>
 	      <dictInlineEntry key="user_affiliateid">
 		      <int name="user_affiliateid" />

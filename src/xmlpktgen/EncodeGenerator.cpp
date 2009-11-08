@@ -342,6 +342,49 @@ bool ClassEncodeGenerator::Process_none( FILE* into, TiXmlElement* field )
     return true;
 }
 
+bool ClassEncodeGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+		return false;
+	}
+
+	const char* v = top();
+    fprintf( into,
+        "    if( %s == NULL )\n"
+		"    {\n"
+        "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty buffer.\");\n"
+        "        %s = new PyBuffer( (uint8*)NULL, 0 );\n"
+        "    }\n"
+		"    else\n",
+        name,
+            mName, name,
+            v
+    );
+
+    if( mFast )
+        fprintf( into,
+		    "    {\n"
+		    "        %s = %s;\n"
+            "        %s = NULL;\n"
+			"    }\n"
+			"\n",
+			v, name,
+			name
+		);
+    else
+        fprintf( into,
+		    "        %s = %s->Clone();\n"
+			"\n",
+			v, name
+		);
+
+    pop();
+    return true;
+}
+
 bool ClassEncodeGenerator::Process_string( FILE* into, TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
@@ -393,7 +436,7 @@ bool ClassEncodeGenerator::Process_stringInline( FILE* into, TiXmlElement* field
     return true;
 }
 
-bool ClassEncodeGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+bool ClassEncodeGenerator::Process_wstring( FILE* into, TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -402,35 +445,23 @@ bool ClassEncodeGenerator::Process_buffer( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-	const char* v = top();
-    fprintf( into,
-        "    if( %s == NULL )\n"
-		"    {\n"
-        "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty buffer.\");\n"
-        "        %s = new PyBuffer( (uint8*)NULL, 0 );\n"
-        "    }\n"
-		"    else\n",
-        name,
-            mName, name,
-            v
-    );
+    const char* none_marker = field->Attribute( "none_marker" );
 
-    if( mFast )
+	const char* v = top();
+    if( none_marker != NULL )
         fprintf( into,
-		    "    {\n"
-		    "        %s = %s;\n"
-            "        %s = NULL;\n"
-			"    }\n"
-			"\n",
-			v, name,
-			name
+			"    if( %s == \"%s\" )\n"
+            "        %s = new PyNone;\n"
+            "    else\n",
+            name, none_marker,
+                v
 		);
-    else
-        fprintf( into,
-		    "        %s = %s->Clone();\n"
-			"\n",
-			v, name
-		);
+
+    fprintf( into,
+		"        %s = new PyWString( %s );\n"
+		"\n",
+		v, name
+	);
 
     pop();
     return true;

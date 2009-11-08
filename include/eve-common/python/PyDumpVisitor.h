@@ -48,6 +48,7 @@ protected:
     bool VisitNone( const PyNone* rep );
     bool VisitBuffer( const PyBuffer* rep );
     bool VisitString( const PyString* rep );
+    bool VisitWString( const PyWString* rep );
     bool VisitToken( const PyToken* rep );
 
     //! the nested types Visitor

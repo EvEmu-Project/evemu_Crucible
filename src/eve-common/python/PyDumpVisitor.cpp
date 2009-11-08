@@ -87,6 +87,17 @@ bool PyDumpVisitor::VisitString( const PyString *rep )
     return true;
 }
 
+bool PyDumpVisitor::VisitWString( const PyWString* rep )
+{
+    // how to do it correctly?
+    if( IsPrintable( rep ) )
+        _print( "%sWString: '%s'", _pfx(), rep->content().c_str() );
+    else
+        _print( "%sWstring: '<binary, len=%lu>'", _pfx(), rep->content().length() );
+
+    return true;
+}
+
 bool PyDumpVisitor::VisitToken( const PyToken* rep )
 {
     _print( "%sToken: '%s'", _pfx(), rep->content().c_str() );

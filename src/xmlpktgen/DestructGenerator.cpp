@@ -123,16 +123,6 @@ bool ClassDestructGenerator::Process_none( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDestructGenerator::Process_string( FILE* into, TiXmlElement* field )
-{
-    return true;
-}
-
-bool ClassDestructGenerator::Process_stringInline( FILE* into, TiXmlElement* field )
-{
-    return true;
-}
-
 bool ClassDestructGenerator::Process_buffer( FILE* into, TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
@@ -147,6 +137,21 @@ bool ClassDestructGenerator::Process_buffer( FILE* into, TiXmlElement* field )
 		name
 	);
 
+    return true;
+}
+
+bool ClassDestructGenerator::Process_string( FILE* into, TiXmlElement* field )
+{
+    return true;
+}
+
+bool ClassDestructGenerator::Process_stringInline( FILE* into, TiXmlElement* field )
+{
+    return true;
+}
+
+bool ClassDestructGenerator::Process_wstring( FILE* into, TiXmlElement* field )
+{
     return true;
 }
 

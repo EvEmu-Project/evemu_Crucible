@@ -45,6 +45,15 @@ extern UserError *MakeCustomError(const char *fmt, ...);
  * @retval false The string is not printable.
  */
 bool IsPrintable( const PyString* str );
+/**
+ * @brief Checks whether string is printable.
+ *
+ * @param[in] str String to be checked.
+ *
+ * @retval true  The string is printable.
+ * @retval false The string is not printable.
+ */
+bool IsPrintable( const PyWString* str );
 
 /**
  * Checks compatibility between DBTYPE and PyRep.

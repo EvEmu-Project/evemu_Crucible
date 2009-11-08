@@ -32,6 +32,8 @@
 #include <mysql.h>
 
 // dep headers
+#include "utf8cpp/utf8.h"
+
 #include "utils/Base64.h"
 
 // common headers

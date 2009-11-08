@@ -137,6 +137,7 @@ AC_CONFIG_FILES([
 	dep/Makefile
 	dep/gangsta/Makefile
 	dep/tinyxml/Makefile
+	dep/utf8cpp/Makefile
 	dep/utils/Makefile
 	src/common/Makefile
 	src/xmlpktgen/Makefile

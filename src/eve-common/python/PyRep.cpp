@@ -45,18 +45,19 @@ const char* const PyRep::s_mTypeString[] =
     "Boolean",          //3
     "Buffer",           //4
     "String",           //5
-    "Token",            //6
-    "Tuple",            //7
-    "List",             //8
-    "Dict",             //9
-    "None",             //10
-    "SubStruct",        //11
-    "SubStream",        //12
-    "ChecksumedStream", //13
-    "Object",           //14
-    "ObjectEx",         //15
-    "PackedRow",        //16
-    "UNKNOWN TYPE",     //17
+    "WString",          //6
+    "Token",            //7
+    "Tuple",            //8
+    "List",             //9
+    "Dict",             //10
+    "None",             //11
+    "SubStruct",        //12
+    "SubStream",        //13
+    "ChecksumedStream", //14
+    "Object",           //15
+    "ObjectEx",         //16
+    "PackedRow",        //17
+    "UNKNOWN TYPE",     //18
 };
 
 PyRep::PyRep( PyType t ) : mType( t ), mRefCnt( 1 ) {}
@@ -387,6 +388,54 @@ int32 PyString::hash() const
 
     mHashCache = x;
     return x;
+}
+
+/************************************************************************/
+/* PyWString                                                            */
+/************************************************************************/
+PyWString::PyWString( const char* str, size_t len ) : PyRep( PyRep::PyTypeWString ), mValue( str, len ), mHashCache( -1 ) {}
+PyWString::PyWString( const uint16* str, size_t len ) : PyRep( PyRep::PyTypeWString ), mValue( _Convert( str, len ) ), mHashCache( -1 ) {}
+PyWString::PyWString( const std::string& str ) : PyRep( PyRep::PyTypeWString ), mValue( str ), mHashCache( -1 ) {}
+PyWString::PyWString( const PyString& str ) : PyRep( PyRep::PyTypeWString ), mValue( str.content() ), mHashCache( -1 ) {}
+PyWString::PyWString( const PyWString& oth ) : PyRep( PyRep::PyTypeWString ), mValue( oth.mValue ), mHashCache( oth.mHashCache ) {}
+
+PyRep* PyWString::Clone() const
+{
+    return new PyWString( *this );
+}
+
+bool PyWString::visit( PyVisitor& v ) const
+{
+    return v.VisitWString( this );
+}
+
+size_t PyWString::size() const
+{
+    return utf8::distance( content().begin(), content().end() );
+}
+
+int32 PyWString::hash() const
+{
+    if( mHashCache != -1 )
+        return mHashCache;
+
+    register int32 x;
+
+    // not implemented
+    x = PyRep::hash();
+    if( x == -1 )
+        x = -2;
+
+    mHashCache = x;
+    return x;
+}
+
+std::string PyWString::_Convert( const uint16* str, size_t len )
+{
+    std::string enc;
+    utf8::utf16to8( str, str + len, std::back_inserter( enc ) );
+
+    return enc;
 }
 
 /************************************************************************/

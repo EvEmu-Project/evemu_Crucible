@@ -157,9 +157,9 @@ double DynamicSystemEntity::GetAgility() const {
 //TODO: ask the destiny manager to do this for us!
 void DynamicSystemEntity::EncodeDestiny(std::vector<uint8> &into) const {
 	int start = into.size();
-	int slen = strlen(GetName());
-	
-	const GPoint &position = GetPosition();
+
+    std::string name( GetName() );
+	const GPoint& position = GetPosition();
 	
 /*	if(m_warpActive) {
 		#pragma pack(1)
@@ -227,7 +227,7 @@ void DynamicSystemEntity::EncodeDestiny(std::vector<uint8> &into) const {
 		
 		into.resize(start 
 			+ sizeof(AddBall_Stop) 
-			+ slen*sizeof(uint16) );
+			+ name.length()*sizeof(uint16) );
 		uint8 *ptr = &into[start];
 		AddBall_Stop *item = (AddBall_Stop *) ptr;
 		ptr += sizeof(AddBall_Stop);
@@ -255,8 +255,8 @@ void DynamicSystemEntity::EncodeDestiny(std::vector<uint8> &into) const {
 		
 		item->main.formationID = 0xFF;
 		
-		item->name.name_len = slen;	// in number of unicode chars
-		py_mbstowcs(item->name.name, GetName(), slen);
+        item->name.name_len = utf8::distance( name.begin(), name.end() );	// in number of unicode chars
+        utf8::utf8to16( name.begin(), name.end(), item->name.name );
 	}
 }
 

@@ -212,6 +212,8 @@ public:
 
         return true;
     }
+    bool VisitWString( const PyWString* rep ) { return false; }
+    bool VisitToken( const PyToken* rep ) { return false; }
 
     bool VisitDict(const PyDict *rep) { return false; }
 

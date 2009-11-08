@@ -43,13 +43,13 @@ public:
 	/**
 	 * @param[in] password Password to be stored.
 	 */
-	PasswordString( const char* password = "" );
+	PasswordString( PyWString* password );
 
 	/** @return Password stored within this object. */
-	PyString* GetPassword() const;
+	PyWString* GetPassword() const;
 
 protected:
-	static PyTuple* _CreateArgs( const char* password );
+	static PyTuple* _CreateArgs( PyWString* password );
 };
 
 #endif /* !__PASSWORD_STRING_H__INCL__ */

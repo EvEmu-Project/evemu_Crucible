@@ -35,22 +35,24 @@
 
 class DBcore;
 
-class DBerror {
+class DBerror
+{
 public:
     DBerror();
 
-    uint32 GetErrno() const { return(m_errno); }
-    const char *GetError() const { return(m_str.c_str()); }
-    const char *c_str() const { return(m_str.c_str()); }
+    uint32 GetErrNo() const { return mErrNo; }
+    const char* GetError() const { return mErrStr.c_str(); }
+
+    const char* c_str() const { return GetError(); }
 
 protected:
     //for DBcore:
     friend class DBcore;
-    void SetError(uint32 err, const char *str);
+    void SetError( uint32 err, const char* str );
     void ClearError();
 
-    std::string m_str;
-    uint32 m_errno;
+    std::string mErrStr;
+    uint32 mErrNo;
 };
 
 
@@ -58,19 +60,21 @@ class DBResultRow;
 class DBQueryResult
 {
 public:
+    DBQueryResult();
+    ~DBQueryResult();
+
     /* error during the query, if RunQuery returned false. */
     DBerror error;
 
-    DBQueryResult();
-    ~DBQueryResult();
+    bool GetRow( DBResultRow& into );
+    size_t GetRowCount() { return mResult->row_count; }
+    void Reset();
 
     uint32 ColumnCount() const { return mColumnCount; }
     const char* ColumnName( uint32 index ) const;
     DBTYPE ColumnType( uint32 index ) const;
 
-    void Reset();
-    bool GetRow( DBResultRow& into );
-    size_t GetRowCount() { return mResult->row_count; }
+    bool IsUnsigned( uint32 index ) const;
 
 protected:
     //for DBcore:
@@ -80,38 +84,44 @@ protected:
     uint32 mColumnCount;
     MYSQL_RES* mResult;
     MYSQL_FIELD** mFields;
+
+    static const DBTYPE MYSQL_DBTYPE_TABLE_SIGNED[];
+    static const DBTYPE MYSQL_DBTYPE_TABLE_UNSIGNED[];
 };
 
-class DBResultRow {
+class DBResultRow
+{
 public:
     DBResultRow();
 
-    uint32 GetColumnLength(uint32 column) const;
+    uint32 GetColumnLength( uint32 index ) const;
 
-    bool IsNull(uint32 column) const { return(m_row[column] == NULL); }
-    bool IsSigned(uint32 column) const { return(m_row[column][0] == '-'); }
-    const char *GetText(uint32 column) const { return(m_row[column]); }
-    int32 GetInt(uint32 column) const;
-    uint32 GetUInt(uint32 column) const;
-    int64 GetInt64(uint32 column) const;
-    uint64 GetUInt64(uint32 column) const;
-    float GetFloat(uint32 column) const;
-    double GetDouble(uint32 column) const;
-    uint32 GetBinary(uint32 column, uint8 *into, uint32 in_length) const;
+    bool IsNull( uint32 index ) const { return ( NULL == GetText( index ) ); }
+
+    const char* GetText( uint32 index ) const { return mRow[ index ]; }
+    int32 GetInt( uint32 index ) const;
+    uint32 GetUInt( uint32 index ) const;
+    int64 GetInt64( uint32 index ) const;
+    uint64 GetUInt64( uint32 index ) const;
+    float GetFloat( uint32 index ) const;
+    double GetDouble( uint32 index ) const;
 
     //proxy methods up to our query result:
-    uint32 ColumnCount() const;
-    const char *ColumnName(uint32 column) const;
-    DBTYPE ColumnType(uint32 column) const;
+    uint32 ColumnCount() const { return mResult->ColumnCount(); }
+    const char* ColumnName( uint32 index ) const { return mResult->ColumnName( index ); }
+    DBTYPE ColumnType( uint32 index ) const { return mResult->ColumnType( index ); }
+
+    bool IsUnsigned( uint32 index ) const { return mResult->IsUnsigned( index ); }
 
 protected:
     //for DBQueryResult
     friend class DBQueryResult;
-    void SetData(DBQueryResult *res, MYSQL_ROW &row, const uint32 *lengths);
+    void SetData( DBQueryResult* res, MYSQL_ROW& row, const uint32* lengths );
 
-    MYSQL_ROW m_row;
-    const uint32 *m_lengths;
-    DBQueryResult *m_result;
+    MYSQL_ROW mRow;
+    const uint32* mLengths;
+
+    DBQueryResult* mResult;
 };
 
 class DBcore

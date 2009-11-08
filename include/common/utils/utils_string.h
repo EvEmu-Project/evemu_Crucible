@@ -67,16 +67,6 @@ void EscapeString( std::string& subject, const std::string& find, const std::str
 std::string generate_key( size_t length );
 
 /**
- * @brief Converts string with hex number to the number itself.
- *
- * @param[in] num Hex string.
- *
- * @return The number.
- */
-template<typename X>
-X hexto( char* num );
-
-/**
  * @brief Checks whether character is printable.
  *
  * @param[in] c The character to be checked.
@@ -140,16 +130,6 @@ void MakeUpperString( const char* source, char* target );
 void MakeLowerString( const char* source, char* target );
 
 /**
- * @brief converts a multi byte string to a unicode string.
- *
- * @param[out] wcstr the destination wide character (unicode) string.
- * @param[in]  mbstr the source multi byte character string.
- * @param[in]  max   the max amount of characters to be converted.
- *
- * @return the amount of converted characters, returns 0 if a error occurred.
- */
-size_t py_mbstowcs( uint16* wcstr, const char* mbstr, size_t max );
-/**
  * @brief Decodes string escapes into actual characters.
  *
  * Based on PyString_DecodeEscape from Python.
@@ -199,29 +179,5 @@ char* strn0cpy( char* dest, const char* source, size_t size );
  * @retval false No string truncation occurred.
  */
 bool strn0cpyt( char* dest, const char* source, size_t size );
-
-template<typename X>
-EVEMU_INLINE X hexto( char* num )
-{
-	const size_t len = strlen( num );
-
-	X ret = 0;
-
-	for( size_t order = 0; order < len; ++order )
-    {
-        const size_t i = ( len - ( order + 1 ) );
-
-		if( num[i] >= 'A' && num[i] <= 'F' )
-			ret += ( ( ( num[i] - 'A' ) + 10 ) << ( order << 2 ) );
-		else if( num[i] >= 'a' && num[i] <= 'f' )
-			ret += ( ( ( num[i] - 'a' ) + 10 ) << ( order << 2 ) );
-		else if( num[i] >= '0' && num[i] <= '9' )
-			ret += ( ( num[i] - '0' ) << ( order << 2 ) );
-		else
-			return 0;
-	}
-
-	return ret;
-}
 
 #endif // UTILS_STRING_H

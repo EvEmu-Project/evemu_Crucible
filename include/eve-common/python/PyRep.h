@@ -48,6 +48,7 @@ class PyFloat;
 class PyBool;
 class PyBuffer;
 class PyString;
+class PyWString;
 class PyToken;
 class PyTuple;
 class PyList;
@@ -91,19 +92,20 @@ public:
         PyTypeBool              = 3,
         PyTypeBuffer            = 4,
         PyTypeString            = 5,
-        PyTypeToken             = 6,
-        PyTypeTuple             = 7,
-        PyTypeList              = 8,
-        PyTypeDict              = 9,
-        PyTypeNone              = 10,
-        PyTypeSubStruct         = 11,
-        PyTypeSubStream         = 12,
-        PyTypeChecksumedStream  = 13,
-        PyTypeObject            = 14,
-        PyTypeObjectEx          = 15,
-        PyTypePackedRow         = 16,
-        PyTypeError             = 17,
-        PyTypeMax               = 17,
+        PyTypeWString           = 6,
+        PyTypeToken             = 7,
+        PyTypeTuple             = 8,
+        PyTypeList              = 9,
+        PyTypeDict              = 10,
+        PyTypeNone              = 11,
+        PyTypeSubStruct         = 12,
+        PyTypeSubStream         = 13,
+        PyTypeChecksumedStream  = 14,
+        PyTypeObject            = 15,
+        PyTypeObjectEx          = 16,
+        PyTypePackedRow         = 17,
+        PyTypeError             = 18,
+        PyTypeMax               = 18,
     };
 
     PyRep( PyType t );
@@ -120,6 +122,7 @@ public:
     bool IsBool() const             { return mType == PyTypeBool; }
     bool IsBuffer() const           { return mType == PyTypeBuffer; }
     bool IsString() const           { return mType == PyTypeString; }
+    bool IsWString() const          { return mType == PyTypeWString; }
     bool IsToken() const            { return mType == PyTypeToken; }
     bool IsTuple() const            { return mType == PyTypeTuple; }
     bool IsList() const             { return mType == PyTypeList; }
@@ -147,6 +150,8 @@ public:
     const PyBuffer* AsBuffer() const                     { assert( IsBuffer() ); return (const PyBuffer*)this; }
     PyString* AsString()                                 { assert( IsString() ); return (PyString*)this; }
     const PyString* AsString() const                     { assert( IsString() ); return (const PyString*)this; }
+    PyWString* AsWString()                               { assert( IsWString() ); return (PyWString*)this; }
+    const PyWString* AsWString() const                   { assert( IsWString() ); return (const PyWString*)this; }
     PyToken* AsToken()                                   { assert( IsToken() ); return (PyToken*)this; }
     const PyToken* AsToken() const                       { assert( IsToken() ); return (const PyToken*)this; }
     PyTuple* AsTuple()                                   { assert( IsTuple() ); return (PyTuple*)this; }
@@ -304,6 +309,7 @@ public:
     bool visit( PyVisitor& v ) const;
 
     double value() const { return mValue; }
+
     int32 hash() const;
 
 protected:
@@ -411,6 +417,57 @@ public:
     int32 hash() const;
 
 protected:
+    const std::string mValue;
+
+    mutable int32 mHashCache;
+};
+
+/**
+ * @brief Python wide string.
+ *
+ * Stores the string encoded in UTF-8. We don't use UCS-2
+ * because MySQL client doesn't support it.
+ */
+class PyWString : public PyRep
+{
+public:
+    PyWString( const char* str, size_t len );
+    PyWString( const uint16* str, size_t len );
+    PyWString( const std::string& str );
+    PyWString( const PyString& str );
+    PyWString( const PyWString& oth );
+
+    PyRep* Clone() const;
+    bool visit( PyVisitor& v ) const;
+
+    /**
+     * @brief Get the PyWString content.
+     *
+     * @return the std::string reference.
+     */
+    const std::string& content() const { return mValue; }
+    /**
+     * @brief Obtains length of string.
+     *
+     * @return Length of string in UTF-8 characters.
+     */
+    size_t size() const;
+
+    int32 hash() const;
+
+protected:
+    /**
+     * @brief Construction helper.
+     *
+     * Converts UCS-2 to UTF-8.
+     *
+     * @param[in] str UCS-2 string.
+     * @param[in] len Length of string (in UCS-2 characters).
+     *
+     * @return UTF-8 string.
+     */
+    static std::string _Convert( const uint16* str, size_t len );
+
     const std::string mValue;
 
     mutable int32 mHashCache;
