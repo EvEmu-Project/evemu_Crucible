@@ -28,26 +28,7 @@
 
 #include "utils/Singleton.h"
 
-// console output colors
-#ifdef WIN32
-#  define TRED FOREGROUND_RED | FOREGROUND_INTENSITY
-#  define TGREEN FOREGROUND_GREEN | FOREGROUND_INTENSITY
-#  define TYELLOW FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY
-#  define TNORMAL FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE
-#  define TWHITE TNORMAL | FOREGROUND_INTENSITY
-#  define TBLUE FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY
-#else
-#  define TRED 1
-#  define TGREEN 2
-#  define TYELLOW 3
-#  define TNORMAL 4
-#  define TWHITE 5
-#  define TBLUE 6
-#endif//WIN32
-
 /**
- * \class NewLog
- *
  * @brief a small and simple logging system.
  *
  * This class is designed to be a simple logging system that both logs to file
@@ -62,60 +43,63 @@ class NewLog
 public:
     NewLog();
     ~NewLog();
+
     /**
      * @brief Logs a message to file.
      *
      * @param[in] source is the source from where the message is printed.
-     * @param[in] str is the message itself.
+     * @param[in] fmt is the message itself.
      */
-    void Log( const char * source, const char * str, ... );
+    void Log( const char* source, const char* fmt, ... );
 
     /**
      * @brief Logs error message to console and file.
      *
      * @param[in] source is the source from where the message is printed.
-     * @param[in] str is the error message itself.
+     * @param[in] fmt is the error message itself.
      */
-    void Error( const char * source, const char * err, ... );
+    void Error( const char* source, const char* fmt, ... );
 
     /**
      * @brief Logs a warning message to file.
      *
      * @param[in] source is the source from where the message is printed.
-     * @param[in] str is the message itself.
+     * @param[in] fmt is the message itself.
      */
-    void Warning( const char * source, const char * str, ... );
+    void Warning( const char* source, const char* fmt, ... );
 
     /**
      * @brief Logs a success message to file.
      *
      * @param[in] source is the source from where the message is printed.
-     * @param[in] str is the message itself.
+     * @param[in] fmt is the message itself.
      */
-    void Success( const char * source, const char * format, ... );
+    void Success( const char* source, const char* fmt, ... );
 
     /**
      * @brief Logs a debug message to file and console.
      *
-     * Logs a debug message to file and console and will be optimized out on a release build.
+     * Optimized out on a release build.
      *
      * @param[in] source is the source from where the message is printed.
-     * @param[in] str is the message itself.
+     * @param[in] fmt is the message itself.
      */
-    void Debug(const char * source, const char * format, ...);
+    void Debug(const char* source, const char* fmt, ...);
 
     /**
      * @brief Sets the log system time every main loop.
      *
      * @param[in] time is the timestamp.
      */
-    void SetTime( time_t time );
+    void SetTime( time_t time ) { mTime = time; }
+
 private:
 #ifdef WIN32
-    HANDLE stdout_handle, stderr_handle;
+    const HANDLE mStdoutHandle, mStderrHandle;
 #endif//WIN32
-    FILE *  m_logfile;
-    time_t  UNIXTIME;// crap there should be 1 generic easy to understand time manager.
+
+    FILE*   mLogfile;
+    time_t  mTime;// crap there should be 1 generic easy to understand time manager.
 
     /* internal time logger
      * writes the time to a FILE handle.
@@ -126,9 +110,6 @@ private:
      * sets the color of the text that is about to get printed.
      */
     void SetColor( unsigned int color );
-
-    /* internal system logger... */
-    void log( const char * str, ... );
 };
 
 #define sLog \

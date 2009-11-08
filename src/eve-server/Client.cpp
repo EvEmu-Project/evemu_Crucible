@@ -312,19 +312,21 @@ bool Client::EnterSystem() {
     return true;
 }
 
-void Client::MoveToLocation(uint32 location, const GPoint &pt) {
-    if(GetLocationID() == location) {
+void Client::MoveToLocation( uint32 location, const GPoint& pt )
+{
+    if( GetLocationID() == location )
+    {
         // This is a warp or simple movement
-        MoveToPosition(pt);
+        MoveToPosition( pt );
         return;
     }
 
-    if(IsStation(GetLocationID())) {
+    if( IsStation( GetLocationID() ) )
         OnCharNoLongerInStation();
-    }
 
     uint32 stationID, solarSystemID, constellationID, regionID;
-    if(IsStation(location)) {
+    if( IsStation( location ) )
+    {
         // Entering station
         stationID = location;
 
@@ -334,12 +336,13 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
             NULL, NULL, NULL
         );
 
-        GetShip()->Move(stationID, flagHangar);
-    } else if(IsSolarSystem(location)) {
+        GetShip()->Move( stationID, flagHangar );
+    }
+    else if( IsSolarSystem( location ) )
+    {
         // Entering a solarsystem
         // source is GetLocation()
         // destinaion is location
-
         stationID = 0;
         solarSystemID = location;
 
@@ -349,19 +352,22 @@ void Client::MoveToLocation(uint32 location, const GPoint &pt) {
             NULL, NULL
         );
 
-        GetShip()->Move(solarSystemID, flagShipOffline);
-        GetShip()->Relocate(pt);
-    } else {
-        SendErrorMsg("Move requested to unsupported location %u", location);
+        GetShip()->Move( solarSystemID, flagShipOffline );
+        GetShip()->Relocate( pt );
+    }
+    else
+    {
+        SendErrorMsg( "Move requested to unsupported location %u", location );
         return;
     }
 
     //move the character_ record... we really should derive the char's location from the entity table...
-    GetChar()->SetLocation(stationID, solarSystemID, constellationID, regionID);
+    GetChar()->SetLocation( stationID, solarSystemID, constellationID, regionID );
+    //update session with new values
+    _UpdateSession( GetChar() );
 
     EnterSystem();
 
-    _UpdateSession( GetChar() );
     _SendSessionChange();
 }
 
@@ -1141,15 +1147,14 @@ void Client::JoinCorporationUpdate(uint32 corp_id) {
 /************************************************************************/
 void Client::OnCharNoLongerInStation()
 {
-    NotifyOnCharNoLongerInStation packet;
+    NotifyOnCharNoLongerInStation n;
+    n.charID = GetCharacterID();
+    n.corpID = GetCorporationID();
+    n.allianceID = GetAllianceID();
 
-    packet.charID = GetCharacterID();
-    packet.corpID = GetCorporationID();
-    packet.allianceID = GetAllianceID();
-    PyTuple *tmp = packet.Encode();
-
+    PyTuple* tmp = n.FastEncode();
     // this entire line should be something like this Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
-    services().entity_list.Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
+    services().entity_list.Broadcast( "OnCharNoLongerInStation", "stationid", &tmp );
 }
 
 /* besides broadcasting the message this function should handle everything for this event */
@@ -1159,20 +1164,87 @@ void Client::OnCharNowInStation()
     n.charID = GetCharacterID();
     n.corpID = GetCorporationID();
     n.allianceID = GetAllianceID();
-    PyTuple *tmp = n.Encode();
-    services().entity_list.Broadcast("OnCharNowInStation", "stationid", &tmp);
+
+    PyTuple* tmp = n.FastEncode();
+    services().entity_list.Broadcast( "OnCharNowInStation", "stationid", &tmp );
 }
 
 /************************************************************************/
 /* EVEClientSession interface                                           */
 /************************************************************************/
+void Client::_GetVersion( VersionExchange& version )
+{
+    version.birthday = EVEBirthday;
+    version.macho_version = MachoNetVersion;
+    version.user_count = _GetUserCount();
+    version.version_number = EVEVersionNumber;
+    version.build_version = EVEBuildVersion;
+    version.project_version = EVEProjectVersion;
+}
+
 uint32 Client::_GetUserCount()
 {
     return services().entity_list.GetClientCount();
 }
 
-bool Client::_Authenticate( CryptoChallengePacket& ccp )
+bool Client::_VerifyVersion( VersionExchange& version )
 {
+    _log(NET__PRES_REP, "%s: Received Low Level Version Exchange:", GetAddress().c_str());
+    version.Dump(NET__PRES_REP, "    ");
+
+    if( version.birthday != EVEBirthday )
+        _log(NET__PRES_ERROR, "%s: Client's birthday does not match ours!", GetAddress().c_str());
+
+    if( version.macho_version != MachoNetVersion )
+        _log(NET__PRES_ERROR, "%s: Client's macho_version not match ours!", GetAddress().c_str());
+
+    if( version.version_number != EVEVersionNumber )
+        _log(NET__PRES_ERROR, "%s: Client's version_number not match ours!", GetAddress().c_str());
+
+    if( version.build_version != EVEBuildVersion )
+        _log(NET__PRES_ERROR, "%s: Client's build_version not match ours!", GetAddress().c_str());
+
+    if( version.project_version != EVEProjectVersion )
+        _log(NET__PRES_ERROR, "%s: Client's project_version not match ours!", GetAddress().c_str());
+
+    return true;
+}
+
+bool Client::_VerifyCrypto( CryptoRequestPacket& cr )
+{
+    if( cr.keyVersion != "placebo" )
+    {
+        //I'm sure cr.keyVersion can specify either CryptoAPI or PyCrypto, but its all binary so im not sure how.
+        CryptoAPIRequestParams car;
+        if( !car.Decode( cr.keyParams ) )
+        {
+            _log(NET__PRES_ERROR, "%s: Received invalid CryptoAPI request!", GetAddress().c_str());
+        }
+        else
+        {
+            _log(NET__PRES_ERROR, "%s: Unhandled CryptoAPI request: hashmethod=%s sessionkeylength=%d provider=%s sessionkeymethod=%s", GetAddress().c_str(), car.hashmethod.c_str(), car.sessionkeylength, car.provider.c_str(), car.sessionkeymethod.c_str());
+            _log(NET__PRES_ERROR, "%s: You must change your client to use Placebo crypto in common.ini to talk to this server!\n", GetAddress().c_str());
+        }
+
+        return false;
+    }
+    else
+    {
+        _log(NET__PRES_DEBUG, "%s: Received Placebo crypto request, accepting.", GetAddress().c_str());
+
+        //send out accept response
+        PyRep* rsp = new PyString( "OK CC" );
+        mNet->QueueRep( rsp );
+        PyDecRef( rsp );
+
+        return true;
+    }
+}
+
+bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
+{
+    _log(NET__PRES_DEBUG, "%s: Received Client Challenge.", GetAddress().c_str());
+
     _log(CLIENT__MESSAGE, "Login with %s:", ccp.user_name.c_str());
 
     if( ccp.user_password == NULL )
@@ -1231,19 +1303,21 @@ bool Client::_Authenticate( CryptoChallengePacket& ccp )
     PyDecRef( rsp );
 
     // Setup session, but don't send the change yet.
-    mSession.SetString( "address",    EVEClientSession::GetAddress().c_str() );
+    mSession.SetString( "address", EVEClientSession::GetAddress().c_str() );
     mSession.SetString( "languageID", ccp.user_languageid.c_str() );
 
     //user type 1 is normal user, type 23 is a trial account user.
     mSession.SetInt( "userType", 1 );
-    mSession.SetInt( "userid",   accountID );
-    mSession.SetInt( "role",     accountRole );
+    mSession.SetInt( "userid", accountID );
+    mSession.SetInt( "role", accountRole );
 
     return true;
 }
 
-void Client::_FuncResultReceived( CryptoHandshakeResult& result )
+bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
 {
+    _log(NET__PRES_DEBUG, "%s: Handshake result received.", GetAddress().c_str());
+
     //send this before session change
     CryptoHandshakeAck ack;
     ack.live_updates = new PyList;
@@ -1263,6 +1337,8 @@ void Client::_FuncResultReceived( CryptoHandshakeResult& result )
 
     // Send out the session change
     _SendSessionChange();
+
+    return true;
 }
 
 /************************************************************************/

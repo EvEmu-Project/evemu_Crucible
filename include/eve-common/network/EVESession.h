@@ -31,35 +31,127 @@
 class PyPacket;
 class PyRep;
 
+class VersionExchange;
+class CryptoRequestPacket;
 class CryptoChallengePacket;
 class CryptoHandshakeResult;
 
+/**
+ * @brief Client session from server's side.
+ *
+ * Defines what server needs to do when dealing with client;
+ * takes care of initial authentication, before actual
+ * packets are sent.
+ *
+ * @author Bloody.Rabbit
+ */
 class EVEClientSession
 {
 public:
+    /** Typedef for readability. */
+    typedef TCPConnection::state_t state_t;
+
+    /**
+     * @param[in] n Connection of this session.
+     */
 	EVEClientSession( EVETCPConnection** n );
+    /**
+     * @brief Destroys contained connection.
+     */
 	virtual ~EVEClientSession();
 
-    TCPConnection::state_t GetState() const { return mNet->GetState(); }
+    /** Wrapper of TCPConnection::GetState(). */
+    state_t GetState() const { return mNet->GetState(); }
+    /** Wrapper of TCPConnection::GetAddress(). */
 	std::string GetAddress() const { return mNet->GetAddress(); }
 
+    /**
+     * @brief Resets session.
+     *
+     * Reset session so we act like client just connected.
+     */
 	void Reset();
 
+    /**
+     * @brief Queues new packet.
+     *
+     * @param[in] p Packed to be queued.
+     */
 	void QueuePacket( const PyPacket* p );
+    /**
+     * @brief Queues new packet, retaking ownership.
+     *
+     * @param[in] p Packed to be queued.
+     */
 	void FastQueuePacket( PyPacket** p );
 
+    /**
+     * @brief Pops new packet from queue.
+     *
+     * @return Popped packet.
+     */
 	PyPacket* PopPacket();
 
 protected:
+    /**
+     * @brief Obtains version.
+     *
+     * @param[in] version Object to be filled with version information.
+     */
+    virtual void _GetVersion( VersionExchange& version ) = 0;
+    /** @return Current count of connected users. */
 	virtual uint32 _GetUserCount() = 0;
+    /** @return Current position in connection queue. */
 	virtual uint32 _GetQueuePosition() = 0;
 
-	virtual bool _Authenticate( CryptoChallengePacket& ccp ) = 0;
+    /**
+     * @brief Verifies version.
+     *
+     * @param[in] version Version sent by client.
+     *
+     * @retval true  Verification succeeded; proceeds to next state.
+     * @retval false Verification failed; stays in current state.
+     */
+    virtual bool _VerifyVersion( VersionExchange& version ) = 0;
+    /**
+     * @brief Verifies VIP key.
+     *
+     * @param[in] vipKey VIP key sent by client.
+     *
+     * @retval true  Verification succeeded; proceeds to next state.
+     * @retval false Verification failed; stays in current state.
+     */
+	virtual bool _VerifyVIPKey( const std::string& vipKey ) = 0;
+    /**
+     * @brief Verifies crypto.
+     *
+     * @param[in] cr Crypto sent by client.
+     *
+     * @retval true  Verification succeeded; proceeds to next state.
+     * @retval false Verification failed; stays in current state.
+     */
+    virtual bool _VerifyCrypto( CryptoRequestPacket& cr ) = 0;
+    /**
+     * @brief Verifies login.
+     *
+     * @param[in] ccp Login data sent by client.
+     *
+     * @retval true  Verification succeeded; proceeds to next state.
+     * @retval false Verification failed; stays in current state.
+     */
+	virtual bool _VerifyLogin( CryptoChallengePacket& ccp ) = 0;
+    /**
+     * @brief Verifies function result.
+     *
+     * @param[in] result Function result sent by client.
+     *
+     * @retval true  Verification succeeded; proceeds to next state.
+     * @retval false Verification failed; stays in current state.
+     */
+	virtual bool _VerifyFuncResult( CryptoHandshakeResult& result ) = 0;
 
-	virtual void _VIPKeyReceived( const std::string& vipKey ) = 0;
-	virtual void _FuncResultReceived( CryptoHandshakeResult& result ) = 0;
-
-	EVETCPConnection* const mNet;	//we do not own this, is never NULL
+    /** Connection of this session. */
+	EVETCPConnection* const mNet;
 
 private:
     // State machine facility:

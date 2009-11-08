@@ -286,13 +286,15 @@ protected:
     /********************************************************************/
     /* EVEClientSession interface                                       */
     /********************************************************************/
+    void _GetVersion( VersionExchange& version );
     uint32 _GetUserCount();
     uint32 _GetQueuePosition() { /* hack */ return 1; }
 
-    bool _Authenticate( CryptoChallengePacket& ccp );
-
-    void _VIPKeyReceived( const std::string& vipKey ) { /* do nothing */ }
-    void _FuncResultReceived( CryptoHandshakeResult& result );
+    bool _VerifyVersion( VersionExchange& version );
+    bool _VerifyCrypto( CryptoRequestPacket& cr );
+    bool _VerifyLogin( CryptoChallengePacket& ccp );
+    bool _VerifyVIPKey( const std::string& vipKey ) { /* do nothing */ return true; }
+    bool _VerifyFuncResult( CryptoHandshakeResult& result );
 
     /********************************************************************/
     /* EVEPacketDispatcher interface                                    */

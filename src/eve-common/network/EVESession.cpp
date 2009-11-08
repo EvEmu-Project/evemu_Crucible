@@ -57,12 +57,7 @@ void EVEClientSession::Reset()
         return;
 
     VersionExchange version;
-    version.birthday = EVEBirthday;
-    version.macho_version = MachoNetVersion;
-    version.user_count = _GetUserCount();
-    version.version_number = EVEVersionNumber;
-    version.build_version = EVEBuildVersion;
-    version.project_version = EVEProjectVersion;
+    _GetVersion( version );
 
     PyRep* r = version.FastEncode();
     mNet->QueueRep( r );
@@ -115,31 +110,9 @@ PyPacket* EVEClientSession::_HandleVersion( PyRep* rep )
     //we are waiting for their version information...
     VersionExchange ve;
     if( !ve.Decode( &rep ) )
-    {
         _log(NET__PRES_ERROR, "%s: Received invalid version exchange!", GetAddress().c_str());
-    }
-    else
-    {
-        _log(NET__PRES_REP, "%s: Received Low Level Version Exchange:", GetAddress().c_str());
-        ve.Dump(NET__PRES_REP, "    ");
-
-        if(ve.birthday != EVEBirthday)
-            _log(NET__PRES_ERROR, "%s: Client's birthday does not match ours!", GetAddress().c_str());
-
-        if(ve.macho_version != MachoNetVersion)
-            _log(NET__PRES_ERROR, "%s: Client's macho_version not match ours!", GetAddress().c_str());
-
-        if(ve.version_number != EVEVersionNumber)
-            _log(NET__PRES_ERROR, "%s: Client's version_number not match ours!", GetAddress().c_str());
-
-        if(ve.build_version != EVEBuildVersion)
-            _log(NET__PRES_ERROR, "%s: Client's build_version not match ours!", GetAddress().c_str());
-
-        if(ve.project_version != EVEProjectVersion)
-            _log(NET__PRES_ERROR, "%s: Client's project_version not match ours!", GetAddress().c_str());
-
+    else if( _VerifyVersion( ve ) )
         mPacketHandler = &EVEClientSession::_HandleCommand;
-    }
 
     // recurse
     return PopPacket();
@@ -186,11 +159,8 @@ PyPacket* EVEClientSession::_HandleCommand( PyRep* rep )
         {
             _log(NET__PRES_DEBUG, "%s: Got VK command, vipKey=%s.", GetAddress().c_str(), cmd.vipKey.c_str());
 
-            // Pass the VIP key to child
-            _VIPKeyReceived( cmd.vipKey );
-
-	        // Continue in handshake
-            mPacketHandler = &EVEClientSession::_HandleCrypto;
+            if( _VerifyVIPKey( cmd.vipKey ) )
+                mPacketHandler = &EVEClientSession::_HandleCrypto;
         }
     }
     else
@@ -207,34 +177,9 @@ PyPacket* EVEClientSession::_HandleCrypto( PyRep* rep )
 {
     CryptoRequestPacket cr;
     if( !cr.Decode( &rep ) )
-    {
         _log(NET__PRES_ERROR, "%s: Received invalid crypto request!", GetAddress().c_str());
-    }
-    else if( cr.keyVersion != "placebo" )
-    {
-        //I'm sure cr.keyVersion can specify either CryptoAPI or PyCrypto, but its all binary so im not sure how.
-        CryptoAPIRequestParams car;
-        if( !car.Decode( cr.keyParams ) )
-        {
-            _log(NET__PRES_ERROR, "%s: Received invalid CryptoAPI request!", GetAddress().c_str());
-        }
-        else
-        {
-            _log(NET__PRES_ERROR, "%s: Unhandled CryptoAPI request: hashmethod=%s sessionkeylength=%d provider=%s sessionkeymethod=%s", GetAddress().c_str(), car.hashmethod.c_str(), car.sessionkeylength, car.provider.c_str(), car.sessionkeymethod.c_str());
-            _log(NET__PRES_ERROR, "%s: You must change your client to use Placebo crypto in common.ini to talk to this server!\n", GetAddress().c_str());
-        }
-    }
-    else
-    {
-        _log(NET__PRES_DEBUG, "%s: Received Placebo crypto request, accepting.", GetAddress().c_str());
-
-        //send out accept response
-        PyRep* rsp = new PyString( "OK CC" );
-        mNet->QueueRep( rsp );
-        PyDecRef( rsp );
-
+    else if( _VerifyCrypto( cr ) )
         mPacketHandler = &EVEClientSession::_HandleAuthentication;
-    }
 
     // recurse
     return PopPacket();
@@ -245,17 +190,9 @@ PyPacket* EVEClientSession::_HandleAuthentication( PyRep* rep )
     //just to be sure
     CryptoChallengePacket ccp;
     if( !ccp.Decode( &rep ) )
-    {
         _log(NET__PRES_ERROR, "%s: Received invalid crypto challenge!", GetAddress().c_str());
-    }
-    else
-    {
-        _log(NET__PRES_DEBUG, "%s: Received Client Challenge.", GetAddress().c_str());
-
-        if( _Authenticate( ccp ) )
-            // Continue in handshake
-            mPacketHandler = &EVEClientSession::_HandleFuncResult;
-    }
+    else if( _VerifyLogin( ccp ) )
+        mPacketHandler = &EVEClientSession::_HandleFuncResult;
 
     return PopPacket();
 }
@@ -264,19 +201,9 @@ PyPacket* EVEClientSession::_HandleFuncResult( PyRep* rep )
 {
     CryptoHandshakeResult hr;
     if( !hr.Decode( &rep ) )
-    {
         _log(NET__PRES_ERROR, "%s: Received invalid crypto handshake result!", GetAddress().c_str());
-    }
-    else
-    {
-        _log(NET__PRES_DEBUG, "%s: Handshake result received.", GetAddress().c_str());
-
-        // Pass it to child
-        _FuncResultReceived( hr );
-
-        // Continue in handshake
+    else if( _VerifyFuncResult( hr ) )
         mPacketHandler = &EVEClientSession::_HandlePacket;
-    }
 
     // recurse
     return PopPacket();
@@ -292,9 +219,7 @@ PyPacket* EVEClientSession::_HandlePacket( PyRep* rep )
         SafeDelete( p );
     }
     else
-    {
         return p;
-    }
 
     // recurse
     return PopPacket();
