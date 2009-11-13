@@ -128,8 +128,10 @@ bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep )
             return rep->IsBuffer();
 
         case DBTYPE_STR:
-        case DBTYPE_WSTR:
             return rep->IsString();
+
+        case DBTYPE_WSTR:
+            return rep->IsWString();
     }
 
     return rep->IsNone();

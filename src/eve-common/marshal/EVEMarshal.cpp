@@ -250,6 +250,7 @@ bool MarshalStream::VisitWString( const PyWString* rep )
         // UTF-8 is more space-efficient than UCS-2.
 
         Put<uint8>( Op_PyWStringUTF8 );
+        PutSizeEx( len );
         Put( (const uint8*)rep->content().c_str(), len );
     }
 

@@ -419,11 +419,17 @@ int32 PyWString::hash() const
     if( mHashCache != -1 )
         return mHashCache;
 
+    register int len;
+    register unsigned char *p;
     register int32 x;
 
-    // not implemented
-    x = PyRep::hash();
-    if( x == -1 )
+    len = mValue.length();
+    p = (unsigned char *) mValue.c_str();
+    x = *p << 7;
+    while (--len >= 0)
+        x = (1000003*x) ^ *p++;
+    x ^= mValue.length();
+    if (x == -1)
         x = -2;
 
     mHashCache = x;
