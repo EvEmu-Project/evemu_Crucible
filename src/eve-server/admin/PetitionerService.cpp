@@ -85,25 +85,26 @@ PyBoundObject *PetitionerService::_CreateBoundObject(Client *c, PyRep *bind_args
 }*/
 
 
-PyResult PetitionerService::Handle_GetCategories(PyCallArgs &call) {
+PyResult PetitionerService::Handle_GetCategories( PyCallArgs& call )
+{
 	//takes no arguments
 	
-	PyList *result = new PyList();
-	result->AddItemString("Test Cat");
-	result->AddItemString("Test Cat2");
-    sLog.Debug("Petitioner Service", "called GetCategories stub");
+    sLog.Debug( "PetitionerService", "Called GetCategories stub." );
+
+	PyList* result = new PyList;
+	result->AddItemString( "Test Cat" );
+	result->AddItemString( "Test Cat2" );
 
 	return result;
 }
 
 
-PyResult PetitionerService::Handle_GetUnreadMessages(PyCallArgs &call) {
+PyResult PetitionerService::Handle_GetUnreadMessages( PyCallArgs& call )
+{
 	//takes no arguments
 
-	//unknown...
-	PyList *result = new PyList();
-	
-    sLog.Debug("Petitioner Service", "called GetUnreadMessages stub");
+    sLog.Debug( "PetitionerService", "Called GetUnreadMessages stub." );
 
-	return result;
+	//unknown...
+	return new PyList;
 }

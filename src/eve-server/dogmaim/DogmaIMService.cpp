@@ -258,8 +258,9 @@ PyResult DogmaIMBound::Handle_ClearTargets(PyCallArgs &call) {
 	return NULL;
 }
 
-PyResult DogmaIMBound::Handle_GetWeaponBankInfoForShip(PyCallArgs &call) {
-	_log(SERVICE__ERROR, "GetWeaponBankInfoForShip unimplemented.");
+PyResult DogmaIMBound::Handle_GetWeaponBankInfoForShip( PyCallArgs& call )
+{
+    sLog.Debug( "DogmaIMBound", "Called GetWeaponBankInfoForShip stub." );
 
-	return(new PyDict);
+    return new PyDict;
 }

@@ -205,13 +205,22 @@ bool PyDumpVisitor::VisitDict( const PyDict* rep )
 bool PyDumpVisitor::VisitObject( const PyObject* rep )
 {
     _print( "%sObject:", _pfx() );
-    _print( "%s  PyType: %s", _pfx(), rep->type()->content().c_str() );
 
-    _pfxExtend( "  Args: " );
-    bool res = rep->arguments()->visit( *this );
+    _pfxExtend( "  Type: " );
+    bool res = rep->type()->visit( *this );
     _pfxWithdraw();
 
-    return res;
+    if( !res )
+        return false;
+
+    _pfxExtend( "  Args: " );
+    res = rep->arguments()->visit( *this );
+    _pfxWithdraw();
+
+    if( !res )
+        return false;
+
+    return true;
 }
 
 bool PyDumpVisitor::VisitObjectEx( const PyObjectEx* rep )

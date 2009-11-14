@@ -39,12 +39,13 @@ UserService::~UserService() {
 	delete m_dispatch;
 }
 
-PyResult UserService::Handle_GetRedeemTokens(PyCallArgs &call) {
-    sLog.Debug("UserService", "Unhandled call to %s::GetRedeemTokens.", GetName());
-
+PyResult UserService::Handle_GetRedeemTokens( PyCallArgs& call )
+{
 	// takes no args
 
-	return(new PyList);
+    sLog.Debug( "UserService", "Called GetRedeemTokens stub." );
+
+	return new PyList;
 }
 
 

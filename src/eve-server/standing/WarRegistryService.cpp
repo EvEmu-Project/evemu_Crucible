@@ -83,22 +83,23 @@ PyBoundObject *WarRegistryService::_CreateBoundObject(Client *c, const PyRep *bi
 	return(new WarRegistryBound(m_manager, args.arg1));
 }
 
-PyResult WarRegistryBound::Handle_GetWars(PyCallArgs &call) {
-    sLog.Debug("War Registry Bound", "called GetWars stubb");
+PyResult WarRegistryBound::Handle_GetWars( PyCallArgs& call )
+{
+    sLog.Debug( "WarRegistryBound", "Called GetWars stub." );
 
 	util_IndexRowset irowset;
 
-	irowset.header.push_back("warID");
-	irowset.header.push_back("declaredByID");
-	irowset.header.push_back("againstID");
-	irowset.header.push_back("timeDeclared");
-	irowset.header.push_back("timeFinished");
-	irowset.header.push_back("retracted");
-	irowset.header.push_back("retractedBy");
-	irowset.header.push_back("billID");
-	irowset.header.push_back("mutual");
+	irowset.header.push_back( "warID" );
+	irowset.header.push_back( "declaredByID" );
+	irowset.header.push_back( "againstID" );
+	irowset.header.push_back( "timeDeclared" );
+	irowset.header.push_back( "timeFinished" );
+	irowset.header.push_back( "retracted" );
+	irowset.header.push_back( "retractedBy" );
+	irowset.header.push_back( "billID" );
+	irowset.header.push_back( "mutual" );
 
 	irowset.idName = "warID";
 
-	return(irowset.Encode());
+	return irowset.FastEncode();
 }

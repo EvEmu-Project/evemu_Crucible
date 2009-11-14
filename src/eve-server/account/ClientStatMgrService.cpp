@@ -41,8 +41,9 @@ ClientStatsMgr::~ClientStatsMgr()
 
 /** client submitting stats.... unknown content
   */
-PyResult ClientStatsMgr::Handle_SubmitStats(PyCallArgs &call)
+PyResult ClientStatsMgr::Handle_SubmitStats( PyCallArgs& call )
 {
-    sLog.Debug("ClientStatsMgr", "called SubmitStats stub");
+    sLog.Debug( "ClientStatsMgr", "Called SubmitStats stub." );
+
 	return new PyNone;
 }
