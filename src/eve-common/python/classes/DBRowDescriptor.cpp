@@ -26,6 +26,7 @@
 #include "EVECommonPCH.h"
 
 #include "python/classes/DBRowDescriptor.h"
+#include "utils/EVEUtils.h"
 
 DBRowDescriptor::DBRowDescriptor()
 : PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs(), NULL )
@@ -81,6 +82,20 @@ uint32 DBRowDescriptor::FindColumn( const char* name ) const
 
     PyDecRef( stringName );
 	return cc;
+}
+
+bool DBRowDescriptor::VerifyValue( uint32 index, PyRep* value )
+{
+    if( index >= ColumnCount() )
+        return false;
+
+    if( NULL != value )
+    {
+        if( !DBTYPE_IsCompatible( GetColumnType( index ), value ) )
+            return false;
+    }
+
+    return true;
 }
 
 void DBRowDescriptor::AddColumn( const char* name, DBTYPE type )

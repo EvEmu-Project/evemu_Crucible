@@ -344,66 +344,68 @@ void DBerror::ClearError()
 /* DBQueryResult                                                        */
 /************************************************************************/
 /* mysql to DBTYPE convention table */
+/* treating all strings as wide isn't probably the best solution but it's
+   the easiest one which preserves wide strings. */
 const DBTYPE DBQueryResult::MYSQL_DBTYPE_TABLE_SIGNED[] =
 {
-    DBTYPE_I4,      //[0]MYSQL_TYPE_DECIMAL             /* assumption that this variable will never be bigger than 32 bits... if it will then we need to change it to I8 */
-    DBTYPE_I1,      //[1]MYSQL_TYPE_TINY
-    DBTYPE_I2,      //[2]MYSQL_TYPE_SHORT
-    DBTYPE_I4,      //[3]MYSQL_TYPE_LONG
-    DBTYPE_R4,      //[4]MYSQL_TYPE_FLOAT
-    DBTYPE_R8,      //[5]MYSQL_TYPE_DOUBLE
-    DBTYPE_STR,     //[6]MYSQL_TYPE_NULL               /* assumption that this is correct */
-    DBTYPE_FILETIME,//[7]MYSQL_TYPE_TIMESTAMP
-    DBTYPE_I8,      //[8]MYSQL_TYPE_LONGLONG
-    DBTYPE_I4,      //[9]MYSQL_TYPE_INT24
-    DBTYPE_FILETIME,//[10]MYSQL_TYPE_DATE
-    DBTYPE_FILETIME,//[11]MYSQL_TYPE_TIME
-    DBTYPE_FILETIME,//[12]MYSQL_TYPE_DATETIME
-    DBTYPE_FILETIME,//[13]MYSQL_TYPE_YEAR
-    DBTYPE_FILETIME,//[14]MYSQL_TYPE_NEWDATE
-    DBTYPE_STR,     //[15]MYSQL_TYPE_VARCHAR
-    DBTYPE_BOOL,    //[16]MYSQL_TYPE_BIT
-    DBTYPE_STR,     //[17]MYSQL_TYPE_NEWDECIMAL=246     /* assumption and prob wrong */
-    DBTYPE_STR,     //[18]MYSQL_TYPE_ENUM=247
-    DBTYPE_STR,     //[19]MYSQL_TYPE_SET=248            /* unhandled */
-    DBTYPE_STR,     //[20]MYSQL_TYPE_TINY_BLOB=249
-    DBTYPE_STR,     //[21]MYSQL_TYPE_MEDIUM_BLOB=250
-    DBTYPE_STR,     //[22]MYSQL_TYPE_LONG_BLOB=251
-    DBTYPE_STR,     //[23]MYSQL_TYPE_BLOB=252
-    DBTYPE_STR,     //[24]MYSQL_TYPE_VAR_STRING=253
-    DBTYPE_STR,     //[25]MYSQL_TYPE_STRING=254
-    DBTYPE_STR,     //[26]MYSQL_TYPE_GEOMETRY=255       /* unhandled */
+    DBTYPE_ERROR,   //[ 0]MYSQL_TYPE_DECIMAL            /* DECIMAL or NUMERIC field */
+    DBTYPE_I1,      //[ 1]MYSQL_TYPE_TINY               /* TINYINT field */
+    DBTYPE_I2,      //[ 2]MYSQL_TYPE_SHORT              /* SMALLINT field */
+    DBTYPE_I4,      //[ 3]MYSQL_TYPE_LONG               /* INTEGER field */
+    DBTYPE_R4,      //[ 4]MYSQL_TYPE_FLOAT              /* FLOAT field */
+    DBTYPE_R8,      //[ 5]MYSQL_TYPE_DOUBLE             /* DOUBLE or REAL field */
+    DBTYPE_ERROR,   //[ 6]MYSQL_TYPE_NULL               /* NULL-type field */
+    DBTYPE_FILETIME,//[ 7]MYSQL_TYPE_TIMESTAMP          /* TIMESTAMP field */
+    DBTYPE_I8,      //[ 8]MYSQL_TYPE_LONGLONG           /* BIGINT field */
+    DBTYPE_I4,      //[ 9]MYSQL_TYPE_INT24              /* MEDIUMINT field */
+    DBTYPE_ERROR,   //[10]MYSQL_TYPE_DATE               /* DATE field */
+    DBTYPE_ERROR,   //[11]MYSQL_TYPE_TIME               /* TIME field */
+    DBTYPE_ERROR,   //[12]MYSQL_TYPE_DATETIME           /* DATETIME field */
+    DBTYPE_ERROR,   //[13]MYSQL_TYPE_YEAR               /* YEAR field */
+    DBTYPE_ERROR,   //[14]MYSQL_TYPE_NEWDATE            /* ??? */
+    DBTYPE_ERROR,   //[15]MYSQL_TYPE_VARCHAR            /* ??? */
+    DBTYPE_BOOL,    //[16]MYSQL_TYPE_BIT                /* BIT field (MySQL 5.0.3 and up) */
+    DBTYPE_ERROR,   //[17]MYSQL_TYPE_NEWDECIMAL=246     /* Precision math DECIMAL or NUMERIC field (MySQL 5.0.3 and up) */
+    DBTYPE_ERROR,   //[18]MYSQL_TYPE_ENUM=247           /* ENUM field */
+    DBTYPE_ERROR,   //[19]MYSQL_TYPE_SET=248            /* SET field */
+    DBTYPE_WSTR,    //[20]MYSQL_TYPE_TINY_BLOB=249      /* TINYBLOB or TINYTEXT field */
+    DBTYPE_WSTR,    //[21]MYSQL_TYPE_MEDIUM_BLOB=250    /* MEDIUMBLOB or MEDIUMTEXT field */
+    DBTYPE_WSTR,    //[22]MYSQL_TYPE_LONG_BLOB=251      /* LONGBLOB or LONGTEXT field */
+    DBTYPE_WSTR,    //[23]MYSQL_TYPE_BLOB=252           /* BLOB or TEXT field */
+    DBTYPE_WSTR,    //[24]MYSQL_TYPE_VAR_STRING=253     /* VARCHAR or VARBINARY field */
+    DBTYPE_WSTR,    //[25]MYSQL_TYPE_STRING=254         /* CHAR or BINARY field */
+    DBTYPE_ERROR,   //[26]MYSQL_TYPE_GEOMETRY=255       /* Spatial field */
 };
 
 const DBTYPE DBQueryResult::MYSQL_DBTYPE_TABLE_UNSIGNED[] =
 {
-    DBTYPE_UI4,      //[0]MYSQL_TYPE_DECIMAL             /* assumption that this variable will never be bigger than 32 bits... if it will then we need to change it to I8 */
-    DBTYPE_UI1,      //[1]MYSQL_TYPE_TINY
-    DBTYPE_UI2,      //[2]MYSQL_TYPE_SHORT
-    DBTYPE_UI4,      //[3]MYSQL_TYPE_LONG
-    DBTYPE_R4,      //[4]MYSQL_TYPE_FLOAT
-    DBTYPE_R8,      //[5]MYSQL_TYPE_DOUBLE
-    DBTYPE_STR,     //[6]MYSQL_TYPE_NULL               /* assumption that this is correct */
-    DBTYPE_FILETIME,//[7]MYSQL_TYPE_TIMESTAMP
-    DBTYPE_UI8,      //[8]MYSQL_TYPE_LONGLONG
-    DBTYPE_UI4,      //[9]MYSQL_TYPE_INT24
-    DBTYPE_FILETIME,//[10]MYSQL_TYPE_DATE
-    DBTYPE_FILETIME,//[11]MYSQL_TYPE_TIME
-    DBTYPE_FILETIME,//[12]MYSQL_TYPE_DATETIME
-    DBTYPE_FILETIME,//[13]MYSQL_TYPE_YEAR
-    DBTYPE_FILETIME,//[14]MYSQL_TYPE_NEWDATE
-    DBTYPE_STR,     //[15]MYSQL_TYPE_VARCHAR
-    DBTYPE_BOOL,    //[16]MYSQL_TYPE_BIT
-    DBTYPE_STR,     //[17]MYSQL_TYPE_NEWDECIMAL=246     /* assumption and prob wrong */
-    DBTYPE_STR,     //[18]MYSQL_TYPE_ENUM=247
-    DBTYPE_STR,     //[19]MYSQL_TYPE_SET=248            /* unhandled */
-    DBTYPE_STR,     //[20]MYSQL_TYPE_TINY_BLOB=249
-    DBTYPE_STR,     //[21]MYSQL_TYPE_MEDIUM_BLOB=250
-    DBTYPE_STR,     //[22]MYSQL_TYPE_LONG_BLOB=251
-    DBTYPE_STR,     //[23]MYSQL_TYPE_BLOB=252
-    DBTYPE_STR,     //[24]MYSQL_TYPE_VAR_STRING=253
-    DBTYPE_STR,     //[25]MYSQL_TYPE_STRING=254
-    DBTYPE_STR,     //[26]MYSQL_TYPE_GEOMETRY=255       /* unhandled */
+    DBTYPE_ERROR,   //[ 0]MYSQL_TYPE_DECIMAL            /* DECIMAL or NUMERIC field */
+    DBTYPE_UI1,     //[ 1]MYSQL_TYPE_TINY               /* TINYINT field */
+    DBTYPE_UI2,     //[ 2]MYSQL_TYPE_SHORT              /* SMALLINT field */
+    DBTYPE_UI4,     //[ 3]MYSQL_TYPE_LONG               /* INTEGER field */
+    DBTYPE_R4,      //[ 4]MYSQL_TYPE_FLOAT              /* FLOAT field */
+    DBTYPE_R8,      //[ 5]MYSQL_TYPE_DOUBLE             /* DOUBLE or REAL field */
+    DBTYPE_ERROR,   //[ 6]MYSQL_TYPE_NULL               /* NULL-type field */
+    DBTYPE_FILETIME,//[ 7]MYSQL_TYPE_TIMESTAMP          /* TIMESTAMP field */
+    DBTYPE_UI8,     //[ 8]MYSQL_TYPE_LONGLONG           /* BIGINT field */
+    DBTYPE_UI4,     //[ 9]MYSQL_TYPE_INT24              /* MEDIUMINT field */
+    DBTYPE_ERROR,   //[10]MYSQL_TYPE_DATE               /* DATE field */
+    DBTYPE_ERROR,   //[11]MYSQL_TYPE_TIME               /* TIME field */
+    DBTYPE_ERROR,   //[12]MYSQL_TYPE_DATETIME           /* DATETIME field */
+    DBTYPE_ERROR,   //[13]MYSQL_TYPE_YEAR               /* YEAR field */
+    DBTYPE_ERROR,   //[14]MYSQL_TYPE_NEWDATE            /* ??? */
+    DBTYPE_ERROR,   //[15]MYSQL_TYPE_VARCHAR            /* ??? */
+    DBTYPE_BOOL,    //[16]MYSQL_TYPE_BIT                /* BIT field (MySQL 5.0.3 and up) */
+    DBTYPE_ERROR,   //[17]MYSQL_TYPE_NEWDECIMAL=246     /* Precision math DECIMAL or NUMERIC field (MySQL 5.0.3 and up) */
+    DBTYPE_ERROR,   //[18]MYSQL_TYPE_ENUM=247           /* ENUM field */
+    DBTYPE_ERROR,   //[19]MYSQL_TYPE_SET=248            /* SET field */
+    DBTYPE_WSTR,    //[20]MYSQL_TYPE_TINY_BLOB=249      /* TINYBLOB or TINYTEXT field */
+    DBTYPE_WSTR,    //[21]MYSQL_TYPE_MEDIUM_BLOB=250    /* MEDIUMBLOB or MEDIUMTEXT field */
+    DBTYPE_WSTR,    //[22]MYSQL_TYPE_LONG_BLOB=251      /* LONGBLOB or LONGTEXT field */
+    DBTYPE_WSTR,    //[23]MYSQL_TYPE_BLOB=252           /* BLOB or TEXT field */
+    DBTYPE_WSTR,    //[24]MYSQL_TYPE_VAR_STRING=253     /* VARCHAR or VARBINARY field */
+    DBTYPE_WSTR,    //[25]MYSQL_TYPE_STRING=254         /* CHAR or BINARY field */
+    DBTYPE_ERROR,   //[26]MYSQL_TYPE_GEOMETRY=255       /* Spatial field */
 };
 
 DBQueryResult::DBQueryResult()
@@ -468,30 +470,35 @@ DBTYPE DBQueryResult::ColumnType( uint32 index ) const
 
     uint32 columnType = mFields[ index ]->type;
 
-    /* debug checks */
-    /*assert(
-        columnType != MYSQL_TYPE_NEWDECIMAL &&
-        columnType != MYSQL_TYPE_NULL &&
-        columnType != MYSQL_TYPE_BIT &&
-        columnType != MYSQL_TYPE_ENUM &&
-        columnType != MYSQL_TYPE_SET &&
-        columnType != MYSQL_TYPE_TINY_BLOB &&
-        columnType != MYSQL_TYPE_MEDIUM_BLOB &&
-        columnType != MYSQL_TYPE_LONG_BLOB &&
-        columnType != MYSQL_TYPE_BLOB &&
-        columnType != MYSQL_TYPE_SET &&
-        columnType != MYSQL_TYPE_GEOMETRY );*/
+    /* tricky needs to be checked */
+    if ( columnType > MYSQL_TYPE_BIT )
+        columnType -= ( MYSQL_TYPE_NEWDECIMAL - MYSQL_TYPE_BIT - 1 );
 
-    if ( columnType > 245 )
-        /* tricky needs to be checked */
-        columnType -= 229; // MYSQL_TYPE_NEWDECIMAL - MYSQL_TYPE_BIT
+    DBTYPE result = ( IsUnsigned( index ) ? MYSQL_DBTYPE_TABLE_UNSIGNED : MYSQL_DBTYPE_TABLE_SIGNED )[ columnType ];
 
-    return ( IsUnsigned( index ) ? MYSQL_DBTYPE_TABLE_UNSIGNED : MYSQL_DBTYPE_TABLE_SIGNED )[ columnType ];
+    /* if result is (wide) binary string, set result to DBTYPE_BYTES. */
+    if( ( DBTYPE_STR == result
+          || DBTYPE_WSTR == result )
+        && IsBinary( index ) )
+    {
+        result = DBTYPE_BYTES;
+    }
+
+    /* debug check */
+    assert( DBTYPE_ERROR != result );
+    return result;
 }
 
 bool DBQueryResult::IsUnsigned( uint32 index ) const
 {
     return ( mFields[ index ]->flags & UNSIGNED_FLAG );
+}
+
+bool DBQueryResult::IsBinary( uint32 index ) const
+{
+    // According to MySQL C API Documentation, binary string
+    // fields like BLOB or VAR_BINARY have charset "63".
+    return ( 63 == mFields[ index ]->charsetnr );
 }
 
 void DBQueryResult::SetResult( MYSQL_RES** res, uint32 colCount )

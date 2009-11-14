@@ -63,7 +63,7 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
 {
     /* check for valid column */
     if(row.IsNull(column_index))
-        return new PyNone();
+        return new PyNone;
 
     const DBTYPE type = row.ColumnType(column_index);
     switch(type)
@@ -84,9 +84,6 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
     case DBTYPE_R4:
         return new PyFloat( row.GetDouble(column_index) );
 
-    case DBTYPE_BYTES:
-        return new PyBuffer( (const uint8*)row.GetText(column_index), row.GetColumnLength(column_index) );
-
     case DBTYPE_BOOL:
     {
         int32 field_data = row.GetInt(column_index);
@@ -96,12 +93,18 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
         return new PyBool( field_data != 0 );
     }
 
+    case DBTYPE_STR:
+        return new PyString( row.GetText(column_index), row.GetColumnLength(column_index) );
+
+    case DBTYPE_WSTR:
+        return new PyWString( row.GetText(column_index), row.GetColumnLength(column_index) );
+
     default:
         sLog.Error("DBColumnToPyRep", "invalid column type: %u", type);
         /* hack... MAJOR... */
 
-    case DBTYPE_STR:
-        return new PyString(row.GetText(column_index));
+    case DBTYPE_BYTES:
+        return new PyBuffer( (const uint8*)row.GetText(column_index), row.GetColumnLength(column_index) );
     }
 }
 

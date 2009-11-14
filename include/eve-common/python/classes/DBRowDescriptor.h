@@ -73,6 +73,16 @@ public:
 	 * @return Index of column; column count if not found.
 	 */
     uint32 FindColumn( const char* name ) const;
+    /**
+     * @brief Verifies value for certain column.
+     *
+     * @param[in] index Index of the column.
+     * @param[in] value The value.
+     *
+     * @retval true  Type of column and type of value are compatible.
+     * @retval false Type of column and type of value aren't compatible.
+     */
+    bool VerifyValue( uint32 index, PyRep* value );
 
 	/**
 	 * Adds new column.

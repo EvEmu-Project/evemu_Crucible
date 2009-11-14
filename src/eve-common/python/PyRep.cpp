@@ -912,18 +912,10 @@ bool PyPackedRow::visit( PyVisitor& v ) const
 
 bool PyPackedRow::SetField( uint32 index, PyRep* value )
 {
-    if( index >= mFields->size() )
-        return false;
-
-    if( value != NULL )
+    if( !header()->VerifyValue( index, value ) )
     {
-        // verify type
-        if( !DBTYPE_IsCompatible( header()->GetColumnType( index ), value ) )
-        {
-            //sLog.Error("PyPackedRow", "uncompatible DBTYPE");
-            PyDecRef( value );
-            return false;
-        }
+        PySafeDecRef( value );
+        return false;
     }
 
 	mFields->SetItem( index, value );
