@@ -37,30 +37,30 @@ PyTuple *ShipDB::GetFormations() {
 	f.positions = new PyTuple(4);
 
 	pos.x = 100;	pos.y = 0;		pos.z = 0;
-	f.positions->items[0] = pos.FastEncode();
+	f.positions->items[0] = pos.Encode();
 	pos.x = 0;		pos.y = 100;	pos.z = 0;
-	f.positions->items[1] = pos.FastEncode();
+	f.positions->items[1] = pos.Encode();
 	pos.x = -100;	pos.y = 0;		pos.z = 0;
-	f.positions->items[2] = pos.FastEncode();
+	f.positions->items[2] = pos.Encode();
 	pos.x = 0;		pos.y = -100;	pos.z = 0;
-	f.positions->items[3] = pos.FastEncode();
+	f.positions->items[3] = pos.Encode();
 
-	res->items[0] = f.FastEncode();
+	res->items[0] = f.Encode();
 
 	//Arrow formation
 	f.name = "Arrow";
 	f.positions = new PyTuple(4);
 
 	pos.x = 100;	pos.y = 0;		pos.z = -50;
-	f.positions->items[0] = pos.FastEncode();
+	f.positions->items[0] = pos.Encode();
 	pos.x = 50;		pos.y = 0;		pos.z = 0;
-	f.positions->items[1] = pos.FastEncode();
+	f.positions->items[1] = pos.Encode();
 	pos.x = -100;	pos.y = 0;		pos.z = -50;
-	f.positions->items[2] = pos.FastEncode();
+	f.positions->items[2] = pos.Encode();
 	pos.x = -50;	pos.y = 0;		pos.z = 0;
-	f.positions->items[3] = pos.FastEncode();
+	f.positions->items[3] = pos.Encode();
 
-	res->items[1] = f.FastEncode();
+	res->items[1] = f.Encode();
 
 	return res;
 }

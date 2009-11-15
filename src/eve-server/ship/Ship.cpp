@@ -204,7 +204,7 @@ PyObject *Ship::ShipGetInfo()
     //maximumRangeCap
     entry.attributes[ 797 ] = new PyFloat( 250000.000000 );
 
-    result.items[ itemID() ] = entry.FastEncode();
+    result.items[ itemID() ] = entry.Encode();
 
     //now encode contents...
     std::vector<InventoryItemRef> equipped;
@@ -221,10 +221,10 @@ PyObject *Ship::ShipGetInfo()
             codelog( ITEM__ERROR, "%s (%u): Failed to load item %u for ShipGetInfo", itemName().c_str(), itemID(), (*cur)->itemID() );
         }
         else
-            result.items[ (*cur)->itemID() ] = entry.FastEncode();
+            result.items[ (*cur)->itemID() ] = entry.Encode();
     }
 
-    return result.FastEncode();
+    return result.Encode();
 }
 
 void Ship::AddItem(InventoryItemRef item)

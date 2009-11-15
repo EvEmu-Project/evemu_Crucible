@@ -54,5 +54,5 @@ PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
 	rs.header.push_back( "characterID" );
 	rs.header.push_back( "online" );
 
-	return rs.FastEncode();
+	return rs.Encode();
 }

@@ -314,7 +314,7 @@ PyObject *CorporationDB::GetMedalsReceived(uint32 charID) {
     rs.header.push_back("reason");
     rs.header.push_back("status");
 
-    return(rs.FastEncode());
+    return(rs.Encode());
 }
 
 static std::string _IoN( PyRep* r )
@@ -795,7 +795,7 @@ PyRep *CorporationDB::Fetch(uint32 corpID, uint32 from, uint32 count) {
     reply.params->AddItemInt( reply.officeID );
     reply.params->AddItemInt( rr.GetInt(3) );
 
-    return reply.FastEncode();
+    return reply.Encode();
 }
 uint32 CorporationDB::GetQuoteForRentingAnOffice(uint32 stationID) {
     DBQueryResult res;

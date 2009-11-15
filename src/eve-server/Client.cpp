@@ -165,7 +165,7 @@ void Client::SendErrorMsg(const char *fmt, ...) {
     Notify_OnRemoteMessage n;
     n.msgType = "CustomError";
     n.args[ "error" ] = new PyString(str);
-    PyTuple *tmp = n.FastEncode();
+    PyTuple *tmp = n.Encode();
 
     SendNotification("OnRemoteMessage", "charid", &tmp);
 
@@ -188,7 +188,7 @@ void Client::SendInfoModalMsg(const char *fmt, ...) {
     Notify_OnRemoteMessage n;
     n.msgType = "ServerMessage";
     n.args[ "msg" ] = new PyString(str);
-    PyTuple *tmp = n.FastEncode();
+    PyTuple *tmp = n.Encode();
 
     SendNotification("OnRemoteMessage", "charid", &tmp);
 
@@ -211,7 +211,7 @@ void Client::SendNotifyMsg(const char *fmt, ...) {
     Notify_OnRemoteMessage n;
     n.msgType = "CustomNotify";
     n.args[ "notify" ] = new PyString(str);
-    PyTuple *tmp = n.FastEncode();
+    PyTuple *tmp = n.Encode();
 
     SendNotification("OnRemoteMessage", "charid", &tmp);
 
@@ -545,7 +545,7 @@ void Client::_SendSessionChange()
 
     p->userid = GetAccountID();
 
-    p->payload = scn.FastEncode();
+    p->payload = scn.Encode();
 
     p->named_payload = new PyDict();
     p->named_payload->SetItemString( "channel", new PyString( "sessionchange" ) );
@@ -652,7 +652,7 @@ void Client::QueueDestinyUpdate(PyTuple **du)
     act.update = *du;
     *du = NULL;
 
-    m_destinyUpdateQueue->AddItem( act.FastEncode() );
+    m_destinyUpdateQueue->AddItem( act.Encode() );
 }
 
 void Client::QueueDestinyEvent(PyTuple** multiEvent)
@@ -679,7 +679,7 @@ void Client::_SendQueuedUpdates() {
         dum.waitForBubble = false;
 
         //now send it
-        PyTuple* t = dum.FastEncode();
+        PyTuple* t = dum.Encode();
         t->Dump(DESTINY__UPDATES, "");
         SendNotification( "DoDestinyUpdate", "clientID", &t );
     }
@@ -692,7 +692,7 @@ void Client::_SendQueuedUpdates() {
         PyIncRef( m_destinyEventQueue );
 
         //send it
-        PyTuple* t = nom.FastEncode();   //this is consumed below
+        PyTuple* t = nom.Encode();   //this is consumed below
         t->Dump(DESTINY__UPDATES, "");
         SendNotification( "OnMultiEvent", "charid", &t );
     } //else nothing to be sent ...
@@ -849,7 +849,7 @@ bool Client::AddBalance(double amount) {
     ac.accountKey = "cash";
     ac.ownerid = GetCharacterID();
     ac.balance = GetBalance();
-    PyTuple *answer = ac.FastEncode();
+    PyTuple *answer = ac.Encode();
     SendNotification("OnAccountChange", "cash", &answer, false);
 
     return true;
@@ -916,14 +916,14 @@ void Client::TargetAdded(SystemEntity *who) {
     DoDestiny_OnDamageStateChange odsc;
     odsc.entityID = who->GetID();
     odsc.state = who->MakeDamageState();
-    up = odsc.FastEncode();
+    up = odsc.Encode();
     QueueDestinyUpdate(&up);
     delete up;
 
     Notify_OnTarget te;
     te.mode = "add";
     te.targetID = who->GetID();
-    up = te.FastEncode();
+    up = te.Encode();
     QueueDestinyEvent(&up);
     delete up;
 }
@@ -937,9 +937,9 @@ void Client::TargetLost(SystemEntity *who)
 
     Notify_OnMultiEvent multi;
     multi.events = new PyList;
-    multi.events->AddItem( te.FastEncode() );
+    multi.events->AddItem( te.Encode() );
 
-    PyTuple* tmp = multi.FastEncode();   //this is consumed below
+    PyTuple* tmp = multi.Encode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
@@ -951,9 +951,9 @@ void Client::TargetedAdd(SystemEntity *who) {
 
     Notify_OnMultiEvent multi;
     multi.events = new PyList;
-    multi.events->AddItem( te.FastEncode() );
+    multi.events->AddItem( te.Encode() );
 
-    PyTuple* tmp = multi.FastEncode();   //this is consumed below
+    PyTuple* tmp = multi.Encode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
@@ -966,9 +966,9 @@ void Client::TargetedLost(SystemEntity *who)
 
     Notify_OnMultiEvent multi;
     multi.events = new PyList;
-    multi.events->AddItem( te.FastEncode() );
+    multi.events->AddItem( te.Encode() );
 
-    PyTuple* tmp = multi.FastEncode();   //this is consumed below
+    PyTuple* tmp = multi.Encode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
@@ -981,9 +981,9 @@ void Client::TargetsCleared()
 
     Notify_OnMultiEvent multi;
     multi.events = new PyList;
-    multi.events->AddItem( te.FastEncode() );
+    multi.events->AddItem( te.Encode() );
 
-    PyTuple* tmp = multi.FastEncode();   //this is consumed below
+    PyTuple* tmp = multi.Encode();   //this is consumed below
     SendNotification("OnMultiEvent", "clientID", &tmp);
 }
 
@@ -1078,16 +1078,16 @@ DoDestinyUpdate ,*args= ([(31759,
         du.activityState = 0;
         du.droneTypeID = drone->typeID();
         du.controllerOwnerID = GetShip()->ownerID();
-        act.update = du.FastEncode();
-        actions->add( act.FastEncode() );
+        act.update = du.Encode();
+        actions->add( act.Encode() );
     }*/
 
     //  AddBall
     /*{
         DoDestiny_AddBall addball;
         drone_npc->MakeAddBall(addball, act.update_id);
-        act.update = addball.FastEncode();
-        actions->add( act.FastEncode() );
+        act.update = addball.Encode();
+        actions->add( act.Encode() );
     }*/
 
     //  Orbit
@@ -1096,8 +1096,8 @@ DoDestinyUpdate ,*args= ([(31759,
         du.entityID = drone->itemID();
         du.orbitEntityID = GetCharacterID();
         du.distance = 750;
-        act.update = du.FastEncode();
-        actions->add( act.FastEncode() );
+        act.update = du.Encode();
+        actions->add( act.Encode() );
     }
 
     //  SetSpeedFraction
@@ -1105,8 +1105,8 @@ DoDestinyUpdate ,*args= ([(31759,
         DoDestiny_SetSpeedFraction du;
         du.entityID = drone->itemID();
         du.fraction = 0.265625f;
-        act.update = du.FastEncode();
-        actions->add( act.FastEncode() );
+        act.update = du.Encode();
+        actions->add( act.Encode() );
     }*/
 
 //testing:
@@ -1114,15 +1114,15 @@ DoDestinyUpdate ,*args= ([(31759,
         DoDestiny_SetBallInteractive du;
         du.entityID = drone->itemID();
         du.interactive = 1;
-        act.update = du.FastEncode();
-        actions->add( act.FastEncode() );
+        act.update = du.Encode();
+        actions->add( act.Encode() );
     }
     {
         DoDestiny_SetBallInteractive du;
         du.entityID = GetCharacterID();
         du.interactive = 1;
-        act.update = du.FastEncode();
-        actions->add( act.FastEncode() );
+        act.update = du.Encode();
+        actions->add( act.Encode() );
     }*/
 
     //NOTE: we really want to broadcast this...
@@ -1152,7 +1152,7 @@ void Client::OnCharNoLongerInStation()
     n.corpID = GetCorporationID();
     n.allianceID = GetAllianceID();
 
-    PyTuple* tmp = n.FastEncode();
+    PyTuple* tmp = n.Encode();
     // this entire line should be something like this Broadcast("OnCharNoLongerInStation", "stationid", &tmp);
     services().entity_list.Broadcast( "OnCharNoLongerInStation", "stationid", &tmp );
 }
@@ -1165,7 +1165,7 @@ void Client::OnCharNowInStation()
     n.corpID = GetCorporationID();
     n.allianceID = GetAllianceID();
 
-    PyTuple* tmp = n.FastEncode();
+    PyTuple* tmp = n.Encode();
     services().entity_list.Broadcast( "OnCharNowInStation", "stationid", &tmp );
 }
 
@@ -1298,7 +1298,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     server_shake.boot_codename = EVEProjectCodename;
     server_shake.boot_region = EVEProjectRegion;
 
-    PyRep* rsp = server_shake.FastEncode();
+    PyRep* rsp = server_shake.Encode();
     mNet->QueueRep( rsp );
     PyDecRef( rsp );
 
@@ -1331,7 +1331,7 @@ bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
     ack.client_hashes = new PyList;
     ack.user_clientid = GetAccountID();
 
-	PyRep* r = ack.FastEncode();
+	PyRep* r = ack.Encode();
     mNet->QueueRep( r );
 	PyDecRef( r );
 

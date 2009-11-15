@@ -224,7 +224,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {
 	rsp.success = true;
 	rsp.targets.push_back(target->GetID());
 	
-	return(rsp.FastEncode());
+	return(rsp.Encode());
 }
 
 PyResult DogmaIMBound::Handle_RemoveTarget(PyCallArgs &call) {

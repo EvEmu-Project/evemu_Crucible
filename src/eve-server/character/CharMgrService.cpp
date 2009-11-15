@@ -98,7 +98,7 @@ PyResult CharMgrService::Handle_GetTopBounties(PyCallArgs &call) {
 	rs.header.push_back("bounty");
 	rs.header.push_back("online");
 
-	return rs.FastEncode();
+	return rs.Encode();
 }
 
 

@@ -530,9 +530,9 @@ PyObject *MarketDB::GetMarketGroups() {
 			entry.types.insert( entry.types.begin(), tt->second.begin(), tt->second.end() );
 
 		if( entry.parentGroupID == -1 )
-			parentSets->SetItem( new PyNone,                       entry.FastEncode() );
+			parentSets->SetItem( new PyNone,                       entry.Encode() );
 		else
-			parentSets->SetItem( new PyInt( entry.parentGroupID ), entry.FastEncode() );
+			parentSets->SetItem( new PyInt( entry.parentGroupID ), entry.Encode() );
 	}
 
 	return new PyObject(

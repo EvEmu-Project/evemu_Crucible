@@ -480,7 +480,7 @@ PyResult CharacterService::Handle_GetRecentShipKillsAndLosses(PyCallArgs &call) 
     rs.header.push_back("finalDamageDone");
     rs.header.push_back("moonID");
 
-    return(rs.FastEncode());
+    return(rs.Encode());
 }
 
 /////////////////////////

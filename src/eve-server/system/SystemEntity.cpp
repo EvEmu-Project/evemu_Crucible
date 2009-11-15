@@ -45,7 +45,7 @@ double SystemEntity::DistanceTo2(const SystemEntity *other) const {
 PyTuple *SystemEntity::MakeDamageState() const {
 	DoDestinyDamageState ddds;
 	MakeDamageState(ddds);
-	return(ddds.FastEncode());
+	return(ddds.Encode());
 }
 
 ItemSystemEntity::ItemSystemEntity(InventoryItemRef self)

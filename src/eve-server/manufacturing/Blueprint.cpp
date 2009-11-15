@@ -291,7 +291,7 @@ PyDict *Blueprint::GetBlueprintAttributes() const {
 	rsp.researchProductivityTime = type().researchProductivityTime();
 	rsp.researchCopyTime = type().researchCopyTime();
 
-	return(rsp.FastEncode());
+	return(rsp.Encode());
 }
 
 void Blueprint::SaveBlueprint() const

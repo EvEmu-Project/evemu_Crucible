@@ -28,8 +28,7 @@
 #include "EncodeGenerator.h"
 
 ClassEncodeGenerator::ClassEncodeGenerator()
-: mFast( false ),
-  mItemNumber( 0 ),
+: mItemNumber( 0 ),
   mName( NULL )
 {
     AllGenProcRegs( ClassEncodeGenerator );
@@ -64,37 +63,7 @@ bool ClassEncodeGenerator::Process_elementDef( FILE* into, TiXmlElement* element
     mItemNumber = 0;
 	clear();
 
-    mFast = false;
-
 	push( "res" );
-    if( !Recurse( into, element ) )
-        return false;
-
-
-    fprintf( into,
-		"    return res;\n"
-		"}\n"
-		"\n"
-	);
-
-    /*
-     * Now build the fast encode
-     */
-    fprintf( into,
-        "%s* %s::FastEncode()\n"
-		"{\n"
-        "    %s* res = NULL;\n"
-		"\n",
-        encode_type, mName,
-		    encode_type
-	);
-
-    mItemNumber = 0;
-	clear();
-
-    mFast = true;
-
-    push( "res" );
     if( !Recurse( into, element ) )
         return false;
 
@@ -116,18 +85,11 @@ bool ClassEncodeGenerator::Process_element( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    if( mFast )
-        fprintf( into,
-            "    %s = %s.FastEncode();\n"
-			"\n",
-			top(), name
-		);
-    else
-        fprintf( into,
-            "    %s = %s.Encode();\n"
-			"\n",
-			top(), name
-		);
+    fprintf( into,
+        "    %s = %s.Encode();\n"
+		"\n",
+		top(), name
+	);
 
     pop();
     return true;
@@ -144,29 +106,20 @@ bool ClassEncodeGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
 
     const char* v = top();
     fprintf( into,
-        "    if( %s == NULL )\n"
+        "    if( NULL == %s )\n"
 		"    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
-        "        %s = new PyNone();\n"
+        "        %s = new PyNone;\n"
         "    }\n"
-		"    else\n",
+		"    else\n"
+        "        %s = %s->Encode();\n"
+		"\n",
         name,
             mName, name,
-            v
-    );
+            v,
 
-    if( mFast )
-        fprintf( into,
-            "        %s = %s->FastEncode();\n"
-			"\n",
-			v, name
-		);
-    else
-        fprintf( into,
-            "        %s = %s->Encode();\n"
-			"\n",
-			v, name
-		);
+		    v, name
+    );
 
     pop();
     return true;
@@ -183,33 +136,24 @@ bool ClassEncodeGenerator::Process_raw( FILE* into, TiXmlElement* field )
 
 	const char* v = top();
     fprintf( into,
-        "    if( %s == NULL )\n"
+        "    if( NULL == %s )\n"
 		"    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
         "        %s = new PyNone;\n"
         "    }\n"
-		"    else\n",
+		"    else\n"
+	    "    {\n"
+	    "        %s = %s;\n"
+        "        PyIncRef( %s );\n"
+		"    }\n"
+		"\n",
         name,
             mName, name,
-            v
-    );
+            v,
 
-    if( mFast )
-        fprintf( into,
-		    "    {\n"
-		    "        %s = %s;\n"
-            "        %s = NULL;\n"
-			"    }\n"
-			"\n",
 			v, name,
 			name
-		);
-	else
-        fprintf( into,
-		    "        %s = %s->Clone();\n"
-			"\n",
-			v, name
-		);
+    );
 
     pop();
     return true;
@@ -333,7 +277,7 @@ bool ClassEncodeGenerator::Process_bool( FILE* into, TiXmlElement* field )
 bool ClassEncodeGenerator::Process_none( FILE* into, TiXmlElement* field )
 {
     fprintf( into,
-		"    %s = new PyNone();\n"
+		"    %s = new PyNone;\n"
 		"\n",
 		top()
 	);
@@ -353,33 +297,24 @@ bool ClassEncodeGenerator::Process_buffer( FILE* into, TiXmlElement* field )
 
 	const char* v = top();
     fprintf( into,
-        "    if( %s == NULL )\n"
+        "    if( NULL == %s )\n"
 		"    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty buffer.\");\n"
         "        %s = new PyBuffer( (uint8*)NULL, 0 );\n"
         "    }\n"
-		"    else\n",
+		"    else\n"
+	    "    {\n"
+	    "        %s = %s;\n"
+        "        PyIncRef( %s );\n"
+		"    }\n"
+		"\n",
         name,
             mName, name,
-            v
-    );
+            v,
 
-    if( mFast )
-        fprintf( into,
-		    "    {\n"
-		    "        %s = %s;\n"
-            "        %s = NULL;\n"
-			"    }\n"
-			"\n",
 			v, name,
 			name
-		);
-    else
-        fprintf( into,
-		    "        %s = %s->Clone();\n"
-			"\n",
-			v, name
-		);
+    );
 
     pop();
     return true;
@@ -658,7 +593,7 @@ bool ClassEncodeGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
 			"    if( %s == NULL )\n"
 			"    {\n"
 			"        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
-			"        %s = new PyNone();\n"
+			"        %s = new PyNone;\n"
 			"    }\n"
 			"    else\n",
 			name,
@@ -666,22 +601,15 @@ bool ClassEncodeGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
 				v
 		);
 
-	if( mFast )
-		fprintf( into,
-			"    {\n"
-			"        %s = %s;\n"
-			"        %s = NULL;\n"
-			"    }\n"
-			"\n",
-			v, name,
-			name
-		);
-	else
-		fprintf( into,
-			"        %s = new %s( *%s );\n"
-			"\n",
-			v, type, name
-		);
+	fprintf( into,
+		"    {\n"
+		"        %s = %s;\n"
+        "        PyIncRef( %s );\n"
+		"    }\n"
+		"\n",
+		v, name,
+		name
+	);
 
 	pop();
     return true;
@@ -1201,49 +1129,35 @@ bool ClassEncodeGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    char rname[16];
-    snprintf( rname, sizeof( rname ), "dict%u", mItemNumber++ );
+    char iname[16];
+    snprintf( iname, sizeof( iname ), "dict%u", mItemNumber++ );
 
     fprintf( into,
         "    PyDict* %s = new PyDict;\n"
         "    std::map<int32, PyRep*>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
-        "    %s_end = %s.end();\n",
-        rname,
-        name, name,
-        name, name,
-        name, name
-    );
-
-    if( mFast )
-        fprintf( into,
-            "    for(; %s_cur != %s_end; %s_cur++)\n"
-            "        %s->SetItem(\n"
-            "            new PyInt( %s_cur->first ), %s_cur->second\n"
-			"        );\n"
-            "    %s.clear();\n",
-            name, name, name,
-                rname,
-                    name,
-                name,
-            name
-        );
-    else
-        fprintf( into,
-            "    for(; %s_cur != %s_end; %s_cur++)\n"
-            "        %s->SetItem(\n"
-            "            new PyInt( %s_cur->first ), %s_cur->second->Clone()\n"
-			"        );\n",
-            name, name, name,
-                rname,
-                    name,
-                name
-        );
-
-    fprintf( into,
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+        "    {\n"
+        "        PyIncRef( %s_cur->second );\n"
+        "\n"
+        "        %s->SetItem(\n"
+        "            new PyInt( %s_cur->first ), %s_cur->second\n"
+		"        );\n"
+        "    }\n"
         "    %s = %s;\n"
         "\n",
-        top(), rname
+        iname,
+        name, name,
+        name, name,
+        name, name,
+        name, name, name,
+            name,
+
+            iname,
+                name, name,
+
+        top(), iname
     );
 
     pop();
@@ -1259,49 +1173,35 @@ bool ClassEncodeGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    char rname[16];
-    snprintf( rname, sizeof( rname ), "dict%d", mItemNumber++ );
+    char iname[16];
+    snprintf( iname, sizeof( iname ), "dict%d", mItemNumber++ );
 
     fprintf( into,
         "    PyDict* %s = new PyDict;\n"
         "    std::map<std::string, PyRep*>::const_iterator %s_cur, %s_end;\n"
         "    %s_cur = %s.begin();\n"
-        "    %s_end = %s.end();\n",
-        rname,
-        name, name,
-        name, name,
-        name, name
-    );
-
-    if( mFast )
-        fprintf( into,
-            "    for(; %s_cur != %s_end; %s_cur++)\n"
-            "        %s->SetItemString(\n"
-			"            %s_cur->first.c_str(), %s_cur->second\n"
-			"        );\n"
-            "    %s.clear();\n",
-            name, name, name,
-                rname,
-                    name,
-                name,
-            name
-        );
-	else
-        fprintf( into,
-            "    for(; %s_cur != %s_end; %s_cur++)\n"
-            "        %s->SetItemString(\n"
-			"            %s_cur->first.c_str(), %s_cur->second->Clone()\n"
-			"        );\n",
-            name, name, name,
-                rname,
-                    name,
-                name
-        );
-
-    fprintf( into,
+        "    %s_end = %s.end();\n"
+        "    for(; %s_cur != %s_end; %s_cur++)\n"
+        "    {\n"
+        "        PyIncRef( %s_cur->second );\n"
+        "\n"
+        "        %s->SetItemString(\n"
+		"            %s_cur->first.c_str(), %s_cur->second\n"
+		"        );\n"
+        "    }\n"
         "    %s = %s;\n"
         "\n",
-        top(), rname
+        iname,
+        name, name,
+        name, name,
+        name, name,
+        name, name, name,
+            name,
+
+            iname,
+                name, name,
+
+        top(), iname
     );
 
     pop();

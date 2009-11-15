@@ -113,7 +113,7 @@ bool LSCChannel::JoinChannel(Client * c) {
 		for( ; cur != end; cur++ )
 			mct.characters.insert( cur->first );
 
-		PyTuple *answer = join.FastEncode();
+		PyTuple *answer = join.Encode();
 		m_service->entityList().Multicast( "OnLSC", GetTypeString(), &answer, mct );
 	//}
 
@@ -140,7 +140,7 @@ void LSCChannel::LeaveChannel(uint32 charID, OnLSC_SenderInfo * si) {
 	for(; cur != end; cur++)
 		mct.characters.insert( cur->first );
 
-	PyTuple *answer = leave.FastEncode();
+	PyTuple *answer = leave.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
 void LSCChannel::LeaveChannel(Client *c, bool self) {
@@ -164,7 +164,7 @@ void LSCChannel::LeaveChannel(Client *c, bool self) {
 	for(; cur != end; cur++)
 		mct.characters.insert( cur->first );
 
-	PyTuple *answer = leave.FastEncode();
+	PyTuple *answer = leave.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 
 	m_chars.erase(charID);
@@ -185,7 +185,7 @@ void LSCChannel::Evacuate(Client * c) {
 	for(; cur != end; cur++)
 		mct.characters.insert(cur->first);
 	
-	PyTuple *answer = dc.FastEncode();
+	PyTuple *answer = dc.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
 void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
@@ -332,12 +332,12 @@ PyRep *LSCChannel::EncodeChannelChars() {
 			info.lines->AddItem( res->second.Encode() );
 	}
 
-	return info.FastEncode();
+	return info.Encode();
 }
 PyRep *LSCChannel::EncodeEmptyChannelChars() {
 	ChannelJoinChannelChars info;
     info.lines = new PyList;
-	return info.FastEncode();
+	return info.Encode();
 }
 
 const char *LSCChannel::GetTypeString() {

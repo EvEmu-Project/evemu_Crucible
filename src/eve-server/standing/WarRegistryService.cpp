@@ -101,5 +101,5 @@ PyResult WarRegistryBound::Handle_GetWars( PyCallArgs& call )
 
 	irowset.idName = "warID";
 
-	return irowset.FastEncode();
+	return irowset.Encode();
 }

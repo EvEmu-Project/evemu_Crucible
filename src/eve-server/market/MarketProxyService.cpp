@@ -460,7 +460,7 @@ void MarketProxyService::_SendOnOwnOrderChanged(Client *who, uint32 orderID, con
     ooc.order = m_db.GetOrderRow(orderID);
     ooc.reason = action;
     ooc.isCorp = isCorp;
-    PyTuple *tmp = ooc.FastEncode();
+    PyTuple *tmp = ooc.Encode();
     who->SendNotification("OnOwnOrderChanged", "clientID", &tmp);   //tmp consumed.
 }
 

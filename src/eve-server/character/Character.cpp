@@ -606,7 +606,7 @@ void Character::UpdateSkillQueue()
                 osst.itemID = currentTraining->itemID();
                 osst.endOfTraining = 0;
 
-                PyTuple *tmp = osst.FastEncode();
+                PyTuple *tmp = osst.Encode();
                 c->QueueDestinyEvent( &tmp );
                 PyDecRef( tmp );
 
@@ -648,7 +648,7 @@ void Character::UpdateSkillQueue()
                 osst.itemID = currentTraining->itemID();
                 osst.endOfTraining = timeTraining;
 
-                PyTuple *tmp = osst.FastEncode();
+                PyTuple *tmp = osst.Encode();
                 c->QueueDestinyEvent( &tmp );
                 PyDecRef( tmp );
 
@@ -674,7 +674,7 @@ void Character::UpdateSkillQueue()
                 OnSkillTrained ost;
                 ost.itemID = currentTraining->itemID();
 
-                PyTuple *tmp = ost.FastEncode();
+                PyTuple *tmp = ost.Encode();
                 c->QueueDestinyEvent( &tmp );
                 PyDecRef( tmp );
 
@@ -710,7 +710,7 @@ PyObject *Character::CharGetInfo() {
     if(!Populate(entry))
         return NULL;    //print already done.
 
-    result.items[m_itemID] = entry.FastEncode();
+    result.items[m_itemID] = entry.Encode();
 
     //now encode skills...
     std::vector<InventoryItemRef> skills;
@@ -726,11 +726,11 @@ PyObject *Character::CharGetInfo() {
         if(!(*cur)->Populate(entry)) {
             codelog(ITEM__ERROR, "%s (%u): Failed to load skill item %u for CharGetInfo", m_itemName.c_str(), itemID(), (*cur)->itemID());
         } else {
-            result.items[(*cur)->itemID()] = entry.FastEncode();
+            result.items[(*cur)->itemID()] = entry.Encode();
         }
     }
 
-    return(result.FastEncode());
+    return(result.Encode());
 }
 
 PyObject *Character::GetDescription() const
@@ -742,7 +742,7 @@ PyObject *Character::GetDescription() const
     row.line = new PyList;
     row.line->AddItemString( description().c_str() );
 
-    return row.FastEncode();
+    return row.Encode();
 }
 
 PyList *Character::GetSkillQueue() {
@@ -759,7 +759,7 @@ PyList *Character::GetSkillQueue() {
         el.typeID = cur->typeID;
         el.level = cur->level;
 
-        list->AddItem( el.FastEncode() );
+        list->AddItem( el.Encode() );
     }
 
     return list;

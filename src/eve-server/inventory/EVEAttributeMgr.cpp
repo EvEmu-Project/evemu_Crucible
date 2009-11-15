@@ -330,7 +330,7 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
         omac.oldValue = oldValue;
         omac.newValue = newValue;
 
-        PyTuple* tmp = omac.FastEncode();
+        PyTuple* tmp = omac.Encode();
         c->QueueDestinyEvent(&tmp);
     }
     else

@@ -300,7 +300,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 	ondam.damage = total_damage;
 	ondam.source = d.source->GetID();
 	ondam.splash = "";
-	up = ondam.FastEncode();
+	up = ondam.Encode();
 	QueueDestinyEvent(&up);
 	delete up;
 
@@ -320,7 +320,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 		ondamo.target = GetID();
 		ondamo.splash = "";
 
-		up = ondamo.FastEncode();
+		up = ondamo.Encode();
 		targets.QueueTBDestinyEvent(&up);
 		delete up;
 	}
@@ -349,10 +349,10 @@ void ItemSystemEntity::_SendDamageStateChanged() const {
 	
 	DoDestiny_OnDamageStateChange ddsc;
 	ddsc.entityID = GetID();
-	ddsc.state = state.FastEncode();
+	ddsc.state = state.Encode();
 	
 	PyTuple *up;
-	up = ddsc.FastEncode();
+	up = ddsc.Encode();
 	targets.QueueTBDestinyUpdate(&up);
 }
 

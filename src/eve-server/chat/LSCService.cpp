@@ -120,7 +120,7 @@ PyResult LSCService::Handle_GetChannels(PyCallArgs &call) {
     for(; cur != end; cur++)
         info.lines->AddItem( cur->second->EncodeChannel( call.client->GetCharacterID() ) );
 
-    return info.FastEncode();
+    return info.Encode();
 }
 
 PyResult LSCService::Handle_GetRookieHelpChannel(PyCallArgs &call) {
@@ -202,7 +202,7 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
 
             channel->JoinChannel( call.client );
 
-            ml->AddItem( chjr.FastEncode() );
+            ml->AddItem( chjr.Encode() );
         }
     }
 

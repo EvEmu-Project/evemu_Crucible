@@ -185,7 +185,7 @@ PyResult Command_pop(Client *who, CommandDB *db, PyServiceMgr *services, const S
 	Notify_OnRemoteMessage n;
 	n.msgType = args.arg[1];
 	n.args[ args.arg[2] ] = new PyString(args.argplus[3]);
-	PyTuple *tmp = n.FastEncode();
+	PyTuple *tmp = n.Encode();
 	
 	who->SendNotification("OnRemoteMessage", "charid", &tmp);
 

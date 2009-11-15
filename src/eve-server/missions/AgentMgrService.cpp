@@ -209,7 +209,7 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
 		res.dialogue->AddItem( choice.Encode() );
 	}
 
-	return res.FastEncode();
+	return res.Encode();
 }
 
 

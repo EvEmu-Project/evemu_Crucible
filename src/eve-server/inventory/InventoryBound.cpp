@@ -103,7 +103,7 @@ PyResult InventoryBound::Handle_ListStations(PyCallArgs &call) {
     rowset.header.push_back("stationID");
     rowset.header.push_back("itemCount");
 
-    return(rowset.FastEncode());
+    return(rowset.Encode());
 }
 
 PyResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
@@ -286,7 +286,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
                 result.arg = newItem->itemID();
 
                 //Return new item result
-                return result.FastEncode();
+                return result.Encode();
             }
         }
         else

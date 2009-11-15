@@ -113,7 +113,7 @@ PyResult CorpStationMgrIMBound::Handle_GetEveOwners(PyCallArgs &call)
 	chardata->AddItemInt( 1378 );
 	rs.lines->AddItem( chardata );
 
-	return rs.FastEncode();
+	return rs.Encode();
 }
 
 
@@ -272,7 +272,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 		change.newTypeID = oInfo.typeID;
 		N_pau.changes = change.Encode();
 		
-		PyTuple * res1 = N_pau.FastEncode(); // This is good enough as there are no old values atm
+		PyTuple * res1 = N_pau.Encode(); // This is good enough as there are no old values atm
 		// Who has to know about this public object's update?
 
 		// This has to be sent to everyone in the station
@@ -330,10 +330,10 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
     Noic_row.line->AddItem( new PyNone );
 
 	NotifyOnItemChange Noic;
-    Noic.itemRow = Noic_row.FastEncode();
+    Noic.itemRow = Noic_row.Encode();
     Noic.changes[ixOwnerID] = new PyInt( 4 );
 
-	PyTuple* res3 = Noic.FastEncode();
+	PyTuple* res3 = Noic.Encode();
 	// This is a possible broadcast-candidate
 	m_manager->entity_list.Multicast("OnItemChange", "*stationid&corpid", &res3, NOTIF_DEST__LOCATION, location, false);
 

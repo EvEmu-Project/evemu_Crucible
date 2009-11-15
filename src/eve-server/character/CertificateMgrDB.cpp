@@ -34,7 +34,7 @@ PyRep *CertificateMgrDB::GetMyCertificates(uint32 characterID) {
 	rs.header.push_back("grantDate");
 	rs.header.push_back("visiblityFlags");
 
-	return(rs.FastEncode());
+	return(rs.Encode());
 }
 
 PyRep *CertificateMgrDB::GetCertificateCategories() {

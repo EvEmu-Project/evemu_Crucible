@@ -59,7 +59,7 @@ void EVEClientSession::Reset()
     VersionExchange version;
     _GetVersion( version );
 
-    PyRep* r = version.FastEncode();
+    PyRep* r = version.Encode();
     mNet->QueueRep( r );
     PyDecRef( r );
 

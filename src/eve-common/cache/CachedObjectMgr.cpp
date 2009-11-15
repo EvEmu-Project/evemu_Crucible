@@ -59,7 +59,7 @@ PyObject *CachedObjectMgr::CacheRecord::EncodeHint() const {
     spec.timestamp = timestamp;
     spec.version = version;
 
-    return(spec.FastEncode());
+    return(spec.Encode());
 }
 
 //extract out the string contents of the object ID... if its a single string,

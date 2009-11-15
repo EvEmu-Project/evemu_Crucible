@@ -106,7 +106,7 @@ PyResult SkillMgrBound::Handle_GetSkillHistory(PyCallArgs &call) {
     rowset.header.push_back("relativePoints");
     rowset.header.push_back("absolutePoints");
 
-    return rowset.FastEncode();
+    return rowset.Encode();
 }
 
 PyResult SkillMgrBound::Handle_CharAddImplant(PyCallArgs &call) {

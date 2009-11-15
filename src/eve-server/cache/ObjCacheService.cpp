@@ -211,7 +211,7 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
 	/*if(m_cache.IsCacheUpToDate(args.objectID, args.version, args.timestamp)) {
 		//they throw an exception for "its up to date", lets give it a try...
 		objectCaching_CacheOK except;
-		return(PyException(except.FastEncode()));
+		return(PyException(except.Encode()));
 	}*/
 	
 	PyObject *result = m_cache.GetCachedObject(args.objectID);
@@ -364,7 +364,7 @@ PyObject *ObjCacheService::MakeObjectCachedMethodCallResult(const PyRep *objectI
 	objectCaching_CachedMethodCallResult_object c;
 	c.versionCheck = versionCheck;
 	c.object = m_cache.MakeCacheHint(objectID);
-	return c.FastEncode();
+	return c.Encode();
 }
 
 ObjectCachedMethodID::ObjectCachedMethodID(const char *service, const char *method)
@@ -372,7 +372,7 @@ ObjectCachedMethodID::ObjectCachedMethodID(const char *service, const char *meth
 	SimpleMethodCallID c;
 	c.service = service;
 	c.method = method;
-	objectID = c.FastEncode();
+	objectID = c.Encode();
 }
 
 ObjectCachedMethodID::~ObjectCachedMethodID()

@@ -405,7 +405,7 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
         es.repeat = 0;
         es.randomSeed = new PyNone;
 
-        result.activeEffects[es.env_effectID] = es.FastEncode();
+        result.activeEffects[es.env_effectID] = es.Encode();
     }
 
     //activeEffects:
@@ -426,7 +426,7 @@ PyObject *InventoryItem::ItemGetInfo() const {
     if(!Populate(result.entry))
         return NULL;    //print already done.
 
-    return(result.FastEncode());
+    return(result.Encode());
 }
 
 
@@ -689,10 +689,10 @@ void InventoryItem::SetOnline(bool newval) {
 
     Notify_OnMultiEvent multi;
     multi.events = new PyList;
-    multi.events->AddItem( omac.FastEncode() );
-    multi.events->AddItem( ogf.FastEncode() );
+    multi.events->AddItem( omac.Encode() );
+    multi.events->AddItem( ogf.Encode() );
 
-    PyTuple* tmp = multi.FastEncode();   //this is consumed below
+    PyTuple* tmp = multi.Encode();   //this is consumed below
     c->SendNotification("OnMultiEvent", "clientID", &tmp);
 
 

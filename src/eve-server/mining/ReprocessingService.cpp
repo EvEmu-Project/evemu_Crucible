@@ -200,7 +200,7 @@ PyResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
             rsp.quotes[*cur] = quote;
     }
 
-    return(rsp.FastEncode());
+    return(rsp.Encode());
 }
 
 PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
@@ -363,6 +363,6 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
         }
     }
 
-    return res.FastEncode();
+    return res.Encode();
 }
 

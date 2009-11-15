@@ -246,7 +246,7 @@ void SystemBubble::_SendAddBalls(SystemEntity *to_who) {
 	_log(DESTINY__TRACE, "    Ball Decoded:");
 	Destiny::DumpUpdate(DESTINY__TRACE, &addballs.destiny_binary->content()[0], addballs.destiny_binary->content().size());
 
-	PyTuple *tmp = addballs.FastEncode();
+	PyTuple *tmp = addballs.Encode();
 	to_who->QueueDestinyUpdate(&tmp);	//may consume, but may not.
 	delete tmp;	//may not have been consumed.
 }
@@ -271,7 +271,7 @@ void SystemBubble::_SendRemoveBalls(SystemEntity *to_who) {
 	_log(DESTINY__TRACE, "Remove Balls:");
 	remove_balls.Dump(DESTINY__TRACE, "    ");
 	
-	PyTuple *tmp = remove_balls.FastEncode();
+	PyTuple *tmp = remove_balls.Encode();
 	to_who->QueueDestinyUpdate(&tmp);	//may consume, but may not.
 	delete tmp;	//may not have been consumed.
 }
@@ -303,7 +303,7 @@ void SystemBubble::_BubblecastAddBall(SystemEntity *about_who) {
 	addballs.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), about_who->MakeSlimItem() ) );
 	
 	//bubblecast the update
-	PyTuple *tmp = addballs.FastEncode();
+	PyTuple *tmp = addballs.Encode();
 	BubblecastDestinyUpdate(&tmp, "AddBall");	//consumed
 }
 
@@ -321,7 +321,7 @@ void SystemBubble::_BubblecastRemoveBall(SystemEntity *about_who) {
 	_log(DESTINY__TRACE, "Remove Ball:");
 	removeball.Dump(DESTINY__TRACE, "    ");
 	
-	PyTuple *tmp = removeball.FastEncode();
+	PyTuple *tmp = removeball.Encode();
 	BubblecastDestinyUpdate(&tmp, "RemoveBall");	//consumed
 }
 

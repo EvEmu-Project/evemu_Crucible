@@ -425,7 +425,7 @@ void ActivatableModule::_SendGodmaShipEffect(EVEEffectID effect, bool active) {
 	gse.error = new PyNone();
 
 	//should this only go to ourself?
-	PyTuple *up = gse.FastEncode();
+	PyTuple *up = gse.Encode();
 	m_pilot->QueueDestinyEvent(&up);
 	delete up;
 }
@@ -446,7 +446,7 @@ void ActivatableModule::_SendWeaponEffect(const char *effect, SystemEntity *targ
 	sfx.repeat = 1;
 	sfx.startTime = Win32TimeNow();
 	
-	PyTuple *up = sfx.FastEncode();
+	PyTuple *up = sfx.Encode();
 	m_pilot->Destiny()->SendSingleDestinyUpdate(&up);	//consumed
 	delete up;
 }

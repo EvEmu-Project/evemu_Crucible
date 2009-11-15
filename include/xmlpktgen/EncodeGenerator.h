@@ -40,7 +40,6 @@ protected:
 	void push(const char *v) { mVariableStack.push( v ); }
 	void clear() { while( !mVariableStack.empty() ) pop(); }
 
-	bool mFast;
 	uint32 mItemNumber;
 	std::stack<std::string> mVariableStack;
 	const char* mName;

@@ -708,7 +708,7 @@ void DestinyManager::Stop(bool update) {
 		DoDestiny_Stop du;
 		du.entityID = m_self->GetID();
 		
-		PyTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.Encode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -732,7 +732,7 @@ void DestinyManager::Halt(bool update) {
 		du.entityID = m_self->GetID();
 		du.fraction = 0.0;
 	
-		updates.push_back(du.FastEncode());
+		updates.push_back(du.Encode());
 		}
 		{
 		DoDestiny_SetBallVelocity du;
@@ -741,7 +741,7 @@ void DestinyManager::Halt(bool update) {
 		du.y = 0.0;
 		du.z = 0.0;
 	
-		updates.push_back(du.FastEncode());
+		updates.push_back(du.Encode());
 		}
 		
 		SendDestinyUpdate(updates, false);
@@ -769,7 +769,7 @@ void DestinyManager::Follow(SystemEntity *who, double distance, bool update) {
 		du.ballID = who->GetID();
 		du.unknown = uint32(distance);
 		
-		PyTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.Encode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -796,7 +796,7 @@ void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {
 		du.orbitEntityID = who->GetID();
 		du.distance = uint32(distance);
 		
-		PyTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.Encode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -849,7 +849,7 @@ void DestinyManager::SetPosition(const GPoint &pt, bool update) {
 		du.y = pt.y;
 		du.z = pt.z;
 		
-		PyTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.Encode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 	m_system->bubbles.UpdateBubble(m_self, update);
@@ -865,7 +865,7 @@ void DestinyManager::SetSpeedFraction(double fraction, bool update) {
 		du.entityID = m_self->GetID();
 		du.fraction = fraction;
 		
-		PyTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.Encode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -896,7 +896,7 @@ void DestinyManager::AlignTo(const GPoint &direction, bool update) {
 		du.y = direction.y;
 		du.z = direction.z;
 		
-		PyTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.Encode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -921,7 +921,7 @@ void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
 		du.y = direction.y;
 		du.z = direction.z;
 		
-		PyTuple *tmp = du.FastEncode();
+		PyTuple *tmp = du.Encode();
 		SendSingleDestinyUpdate(&tmp);	//consumed
 	}
 }
@@ -951,7 +951,7 @@ void DestinyManager::WarpTo(const GPoint &where, double distance, bool update) {
 		du.distance = distance;
 		du.u5 = 30;
 		
-		updates.push_back(du.FastEncode());
+		updates.push_back(du.Encode());
 		}
 	
 		{
@@ -963,7 +963,7 @@ void DestinyManager::WarpTo(const GPoint &where, double distance, bool update) {
 		du.start = 1;
 		du.active = 0;
 		
-		updates.push_back(du.FastEncode());
+		updates.push_back(du.Encode());
 		}
 		
 		SendDestinyUpdate(updates, false);
@@ -1007,7 +1007,7 @@ void DestinyManager::SendJumpOut(uint32 stargateID) const {
 	{
 	DoDestiny_Stop du;
 	du.entityID = m_self->GetID();
-	updates.push_back(du.FastEncode());
+	updates.push_back(du.Encode());
 	}
 
 	{
@@ -1034,7 +1034,7 @@ void DestinyManager::SendTerminalExplosion() const {
 		DoDestiny_TerminalExplosion du;
 		du.entityID = m_self->GetID();
 		du.unknown = 1206;	//no idead right now.
-		updates.push_back(du.FastEncode());
+		updates.push_back(du.Encode());
 	}
 	
 	SendDestinyUpdate(updates, false);
@@ -1052,19 +1052,19 @@ void DestinyManager::SendJumpIn() const {
 	effect.isOffensive = 0;
 	effect.start = 1;
 	effect.active = 0;
-	updates.push_back(effect.FastEncode());
+	updates.push_back(effect.Encode());
 
 	DoDestiny_SetSpeedFraction ssf;
 	ssf.entityID = m_self->GetID();
 	ssf.fraction = 0.0;
-	updates.push_back(ssf.FastEncode());
+	updates.push_back(ssf.Encode());
 
 	DoDestiny_SetBallVelocity sbv;
 	sbv.entityID = m_self->GetID();
 	sbv.x = 0.0;
 	sbv.y = 0.0;
 	sbv.z = 0.0;
-	updates.push_back(sbv.FastEncode());
+	updates.push_back(sbv.Encode());
 
 	SendDestinyUpdate(updates, false);
 }
@@ -1078,7 +1078,7 @@ void DestinyManager::SendGateActivity() const {
 	du.start = 1;
 	du.active = 0;
 	
-	PyTuple *tmp = du.FastEncode();
+	PyTuple *tmp = du.Encode();
 	SendSingleDestinyUpdate(&tmp);	//consumed
 }
 
@@ -1089,7 +1089,7 @@ void DestinyManager::SendSetState(const SystemBubble *b) const {
 	ss.ego = m_self->GetID();
 	m_system->MakeSetState(b, ss);
 
-	PyTuple *tmp = ss.FastEncode();
+	PyTuple *tmp = ss.Encode();
 	SendSingleDestinyUpdate(&tmp, true);	//consumed
 }
 

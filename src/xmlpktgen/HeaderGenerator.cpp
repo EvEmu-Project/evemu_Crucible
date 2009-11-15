@@ -64,7 +64,6 @@ bool ClassHeaderGenerator::Process_elementDef( FILE* into, TiXmlElement* element
         "    bool Decode( PyRep** packet );\n"
         "    bool Decode( %s** packet );\n"
         "    %s* Encode() const;\n"
-        "    %s* FastEncode();\n"
 		"\n"
         "    %s& operator=( const %s& oth );\n"
         "\n",
@@ -75,7 +74,6 @@ bool ClassHeaderGenerator::Process_elementDef( FILE* into, TiXmlElement* element
         name,
 
             encode_type,
-        encode_type,
         encode_type,
 
         name, name

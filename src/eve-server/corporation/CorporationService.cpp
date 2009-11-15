@@ -86,7 +86,7 @@ PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 		return NULL;
 	}
 	
-	return(rsp.FastEncode());
+	return(rsp.Encode());
 	
 
     /*
@@ -171,7 +171,7 @@ PyResult CorporationService::Handle_GetAllCorpMedals(PyCallArgs &call) {
 	rs.header.push_back("date");
 	rs.header.push_back("noRecepients");
 
-	res->AddItem( rs.FastEncode() );
+	res->AddItem( rs.Encode() );
 
 	rs.header.clear();
 	rs.header.push_back("medalID");
@@ -180,7 +180,7 @@ PyResult CorporationService::Handle_GetAllCorpMedals(PyCallArgs &call) {
 	rs.header.push_back("graphic");
 	rs.header.push_back("color");
 
-	res->AddItem( rs.FastEncode() );
+	res->AddItem( rs.Encode() );
 
 	return res;
 }
@@ -201,7 +201,7 @@ PyResult CorporationService::Handle_GetRecruitmentAdTypes(PyCallArgs &call) {
 	rs.header.push_back("dataID");
 	rs.header.push_back("groupDataID");
 
-	return rs.FastEncode();
+	return rs.Encode();
 }
 
 PyResult CorporationService::Handle_GetRecruitmentAdsByCriteria(PyCallArgs &call) {
@@ -230,7 +230,7 @@ PyResult CorporationService::Handle_GetRecruitmentAdsByCriteria(PyCallArgs &call
 	rs.header.push_back("skillPoints");
 	rs.header.push_back("channelID");
 
-	return rs.FastEncode();
+	return rs.Encode();
 }
 
 
