@@ -227,12 +227,9 @@ void ObjCacheService::PrimeCache()
 	for(; cur != end; cur++)
     {
 		PyString* str = new PyString( cur->first );
-		_LoadCachableObject(str);
+		_LoadCachableObject( str );
         PyDecRef( str );
-
-		putchar('.'); // print a dot so we have a indication of loading. I know this sucks.
 	}
-    printf("\n");
 }
 
 PySubStream* ObjCacheService::LoadCachedFile(const char *filename, const char *oname)
@@ -248,9 +245,11 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 	
 	const std::string objectID_string = CachedObjectMgr::OIDToString(objectID);
 
-	if(!m_cacheDir.empty()) {
-		if(m_cache.LoadCachedFromFile(m_cacheDir, objectID)) {
-			_log(SERVICE__CACHE, "Loaded cached object '%s' from file.", objectID_string.c_str());
+	if(!m_cacheDir.empty())
+    {
+		if( m_cache.LoadCachedFromFile( m_cacheDir, objectID ) )
+        {
+			_log( SERVICE__CACHE, "Loaded cached object '%s' from file.", objectID_string.c_str() );
 			return true;
 		}
 	}
@@ -279,13 +278,9 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
 	if(!m_cacheDir.empty())
     {
 		if(!m_cache.SaveCachedToFile(m_cacheDir, objectID))
-        {
-            sLog.Error("Obj Cache Svc", "Failed to save cache file for '%s' in '%s'", objectID_string.c_str(), m_cacheDir.c_str());
-		}
+            sLog.Error( "ObjCacheService", "Failed to save cache file for '%s' in '%s'", objectID_string.c_str(), m_cacheDir.c_str() );
         else
-        {
-            sLog.Log("Obj Cache Svc", "Saved cached object '%s' to file.", objectID_string.c_str());
-		}
+            sLog.Log( "ObjCacheService", "Saved cached object '%s' to file.", objectID_string.c_str() );
 	}
 
 	return true;

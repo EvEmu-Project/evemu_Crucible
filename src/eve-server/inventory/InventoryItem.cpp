@@ -381,23 +381,26 @@ void InventoryItem::GetItemRow( PyPackedRow* into ) const
     into->SetField( "customInfo", new PyString( customInfo() ) );
 }
 
-bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
+bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result ) const
+{
     //itemID:
     result.itemID = itemID();
 
     //invItem:
+    PySafeDecRef( result.invItem );
     result.invItem = GetItemRow();
 
     //hacky, but it doesn't really hurt anything.
-    if(isOnline() != 0) {
+    if( 0 != isOnline() )
+    {
         //there is an effect that goes along with this. We should
         //probably be properly tracking the effect due to some
         // timer things, but for now, were hacking it.
         EntityEffectState es;
-        es.env_itemID = m_itemID;
-        es.env_charID = m_ownerID;  //may not be quite right...
-        es.env_shipID = m_locationID;
-        es.env_target = m_locationID;   //this is what they do.
+        es.env_itemID = itemID();
+        es.env_charID = ownerID();  //may not be quite right...
+        es.env_shipID = locationID();
+        es.env_target = locationID();   //this is what they do.
         es.env_other = new PyNone;
         es.env_effectID = effectOnline;
         es.startTime = Win32TimeNow() - Win32Time_Hour; //act like it happened an hour ago
@@ -412,7 +415,7 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry &result) const {
     //result.entry.activeEffects[id] = List[11];
 
     //attributes:
-    attributes.EncodeAttributes(result.attributes);
+    attributes.EncodeAttributes( result.attributes );
 
     //no idea what time this is supposed to be
     result.time = Win32TimeNow();
