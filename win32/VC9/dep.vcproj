@@ -203,10 +203,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\dep\utils\counted_ptr.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\dep\utils\TriFile.cpp"
 				>
 			</File>

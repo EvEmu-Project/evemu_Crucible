@@ -247,7 +247,8 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
 
 
 //NOTE: duplicated from module manager code. They should share some day!
-void NPCAIMgr::_SendWeaponEffect(const char *effect, SystemEntity *target) {
+void NPCAIMgr::_SendWeaponEffect( const char*effect, SystemEntity *target )
+{
 	DoDestiny_OnSpecialFX13 sfx;
 	sfx.entityID = m_npc->Item()->itemID();
 	sfx.moduleID = m_npc->Item()->itemID();
@@ -263,9 +264,9 @@ void NPCAIMgr::_SendWeaponEffect(const char *effect, SystemEntity *target) {
 	sfx.repeat = 1;
 	sfx.startTime = Win32TimeNow();
 	
-	PyTuple *up = sfx.Encode();
-	m_npc->Destiny()->SendSingleDestinyUpdate(&up);	//consumed
-	delete up;
+	PyTuple* up = sfx.Encode();
+	m_npc->Destiny()->SendSingleDestinyUpdate( &up );	//consumed
+    PySafeDecRef( up );
 }
 
 

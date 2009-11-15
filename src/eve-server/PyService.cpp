@@ -70,53 +70,60 @@ PyResult PyService::Handle_MachoResolveObject(PyCallArgs &call) {
 }
 
 
-PyResult PyService::Handle_MachoBindObject(PyCallArgs &call) {
+PyResult PyService::Handle_MachoBindObject( PyCallArgs& call )
+{
 	CallMachoBindObject args;
-	if(!args.Decode(&call.tuple)) {
-		codelog(SERVICE__ERROR, "%s Service: %s: Failed to decode arguments", GetName(), call.client->GetName());
+	if( !args.Decode( &call.tuple ) )
+    {
+		codelog( SERVICE__ERROR, "%s Service: %s: Failed to decode arguments", GetName(), call.client->GetName() );
 		return NULL;
 	}
 
-	_log(SERVICE__MESSAGE, "%s Service: %s: Processing MachoBindObject", GetName(), call.client->GetName());
+	_log( SERVICE__MESSAGE, "%s Service: %s: Processing MachoBindObject", GetName(), call.client->GetName() );
 	
 	//first we need to get our implementation to actually create the object
 	//which they are trying to bind to.
-	PyBoundObject *our_obj = _CreateBoundObject(call.client, args.bindParams);
-	if(our_obj == NULL) {
-		_log(SERVICE__ERROR, "%s Service: %s: Unable to create bound object for:", GetName(), call.client->GetName());
+	PyBoundObject* our_obj = _CreateBoundObject( call.client, args.bindParams );
+	if( NULL == our_obj )
+    {
+		_log( SERVICE__ERROR, "%s Service: %s: Unable to create bound object for:", GetName(), call.client->GetName() );
 		args.bindParams->Dump(SERVICE__ERROR, "    ");
+
 		return NULL;
 	}
 
-	PyTuple *robjs = new PyTuple(2);
+	PyTuple* robjs = new PyTuple( 2 );
 	//now we register 
-	robjs->items[0] = m_manager->BindObject(call.client, our_obj);
+    robjs->SetItem( 0, m_manager->BindObject( call.client, our_obj ) );
 
-	if(args.call->IsNone()) {
+	if( args.call->IsNone() )
 		//no call was specified...
-		robjs->items[1] = new PyNone();
-	} else {
+        robjs->SetItem( 1, new PyNone );
+    else
+    {
 		CallMachoBindObject_call boundcall;
-		if(!boundcall.Decode(&args.call)) {
-			codelog(SERVICE__ERROR, "%s Service: %s: Failed to decode boundcall arguments", GetName(), call.client->GetName());
+		if( !boundcall.Decode( &args.call ) )
+        {
+			codelog( SERVICE__ERROR, "%s Service: %s: Failed to decode boundcall arguments", GetName(), call.client->GetName() );
 			return NULL;
 		}
 		
-		_log(SERVICE__MESSAGE, "%s Service: MachoBindObject also contains call to %s", GetName(), boundcall.method_name.c_str());
+		_log( SERVICE__MESSAGE, "%s Service: MachoBindObject also contains call to %s", GetName(), boundcall.method_name.c_str() );
 		
         PyCallArgs sub_args( call.client, boundcall.arguments, boundcall.dict_arguments );
 		
 		//do the call:
-		PyResult result = our_obj->Call(boundcall.method_name, sub_args);
+		PyResult result = our_obj->Call( boundcall.method_name, sub_args );
 
-		robjs->items[1] = result.ssResult.hijack();
+        PyIncRef( result.ssResult );
+        robjs->SetItem( 1, result.ssResult );
 
 		//ok, now we have finished our sub-call... hooray.
 	}
 
 	//ok, we have created and bound the object requested, as well as made any sub-call we needed to do.
 	//we are done.
-	return(robjs);
+	return robjs;
 }
 
 PyBoundObject *PyService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
@@ -151,29 +158,32 @@ const char *const PyService::s_checkTimeStrings[_checkCount] = {
 };
 
 /* this is untested... */
-PyObject *PyService::_BuildCachedReturn(PySubStream **in_result, const char *sessionInfo, CacheCheckTime check) {
+PyObject *PyService::_BuildCachedReturn( PySubStream** in_result, const char* sessionInfo, CacheCheckTime check )
+{
 	objectCaching_CachedMethodCallResult cached;
 	
-	PySubStream *result = *in_result;
+	PySubStream* result = *in_result;
 	*in_result = NULL;		//consume it.
 	
 	//we need to checksum the marshaled data...
 	result->EncodeData();
-	if(result->data() == NULL) {
-		_log(SERVICE__ERROR, "%s: Failed to build cached return", GetName());
-		delete result;
+	if( result->data() == NULL )
+    {
+		_log( SERVICE__ERROR, "%s: Failed to build cached return", GetName() );
+
+        PyDecRef( result );
 		return NULL;
 	}
 	
 	cached.call_return = result;	//this entire result is going to get cloned in the Encode(), and then destroyed when we return... what a waste...
 	cached.sessionInfo = sessionInfo;
-	cached.clientWhen = s_checkTimeStrings[check];
+	cached.clientWhen = s_checkTimeStrings[ check ];
 	
 	cached.timeStamp = Win32TimeNow();
 	//we can use whatever checksum we want here, as the client just remembers it and sends it back to us.
-	cached.version = crc_hqx(&result->data()->content()[0], result->data()->content().size(), 0);
+	cached.version = crc_hqx( &result->data()->content()[0], result->data()->content().size(), 0 );
 	
-	return(cached.Encode());
+	return cached.Encode();
 }
 
 

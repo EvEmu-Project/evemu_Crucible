@@ -89,8 +89,11 @@ PyRep *MarketDB::GetRegionBest(uint32 regionID) {
 	return(DBResultToIndexRowset(res, "typeID"));
 }
 
-PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
+PyRep *MarketDB::GetOrders( uint32 regionID, uint32 typeID )
+{
 	DBQueryResult res;
+
+	PyTuple* tup = new PyTuple( 2 );
 
 	/*DBColumnTypeMap colmap;
 	colmap["volRemaining"] = DBTYPE_R8;
@@ -138,13 +141,14 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 		" FROM market_orders "
 		" WHERE regionID=%u AND typeID=%u AND bid=%d", regionID, typeID, TransactionTypeSell))
 	{
-		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
+		codelog( MARKET__ERROR, "Error in query: %s", res.error.c_str() );
+
+        PyDecRef( tup );
 		return NULL;
 	}
 
-	PyTuple *tup = new PyTuple(2);
 	//this is wrong.
-	tup->items[0] = DBResultToCRowset(res);
+    tup->SetItem( 0, DBResultToCRowset( res ) );
 	
 	//query buy orders
 	if(!sDatabase.RunQuery(res,
@@ -155,15 +159,16 @@ PyRep *MarketDB::GetOrders(uint32 regionID, uint32 typeID) {
 		" FROM market_orders "
 		" WHERE regionID=%u AND typeID=%u AND bid=%d", regionID, typeID, TransactionTypeBuy))
 	{
-		delete tup;
-		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
+		codelog( MARKET__ERROR, "Error in query: %s", res.error.c_str() );
+
+        PyDecRef( tup );
 		return NULL;
 	}
 	
 	//this is wrong.
-	tup->items[1] = DBResultToCRowset(res);
+    tup->SetItem( 1, DBResultToCRowset( res ) );
 	
-	return(tup);
+	return tup;
 }
 
 PyRep *MarketDB::GetCharOrders(uint32 characterID) {

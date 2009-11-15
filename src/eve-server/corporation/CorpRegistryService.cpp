@@ -851,26 +851,32 @@ PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
     notif.data = new PyDict();
 
     double corp_orig = m_db.GetCorpBalance(notif.key);
-    if(corp_orig < logo_change) {
-        _log(SERVICE__ERROR, "%s: Cannot afford corporation logo change costs!", call.client->GetName());
-        delete notif.data; notif.data = NULL;
-        call.client->SendErrorMsg("Your corporation doesn't have enough money (%u ISK) to change it's logo!", logo_changeu);
-        return(new PyNone());
+    if( corp_orig < logo_change )
+    {
+        _log( SERVICE__ERROR, "%s: Cannot afford corporation logo change costs!", call.client->GetName() );
+        call.client->SendErrorMsg( "Your corporation doesn't have enough money (%u ISK) to change it's logo!", logo_changeu );
+
+        PyDecRef( notif.data );
+        return new PyNone;
     }
 
     // Try to do the update. If it fails, we won't take the money.
-    if (!m_db.UpdateLogo(notif.key, upd, (PyDict*)notif.data)) {
-        codelog(SERVICE__ERROR, "Corporation logo change failed...");
-        delete notif.data; notif.data = NULL;
-        return(new PyNone());
+    if( !m_db.UpdateLogo( notif.key, upd, (PyDict*)notif.data ) )
+    {
+        codelog( SERVICE__ERROR, "Corporation logo change failed..." );
+
+        PyDecRef( notif.data );
+        return new PyNone;
     }
 
     //take the money out of their wallet (sends wallet blink event)
     // The amount has to be double!!!
-    if(!m_db.AddBalanceToCorp(notif.key, -logo_change)) {
-        codelog(SERVICE__ERROR, "%s: Failed to take money for corp logo change!", call.client->GetName());
-        delete notif.data; notif.data = NULL;
-        return(new PyNone());
+    if( !m_db.AddBalanceToCorp( notif.key, -logo_change ) )
+    {
+        codelog( SERVICE__ERROR, "%s: Failed to take money for corp logo change!", call.client->GetName() );
+
+        PyDecRef( notif.data );
+        return new PyNone;
     }
 
     double corp_new = m_db.GetCorpBalance(notif.key);

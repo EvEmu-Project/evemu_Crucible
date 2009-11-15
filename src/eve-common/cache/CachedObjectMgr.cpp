@@ -527,13 +527,15 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
     ss->DecodeData();
     if(ss->decoded() == NULL) {
         _log(CLIENT__ERROR, "Unable to decode initial stream for PyCachedObject");
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
 
     if(!ss->decoded()->IsObject()) {
         _log(CLIENT__ERROR, "Cache substream does not contain an object: %s", ss->decoded()->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
     PyObject *po = (PyObject *) ss->decoded();
@@ -541,53 +543,62 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
 
     if(!po->arguments()->IsTuple()) {
         _log(CLIENT__ERROR, "Cache object's args is not a tuple: %s", po->arguments()->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
     PyTuple *args = (PyTuple *) po->arguments();
 
     if(args->items.size() != 7) {
         _log(CLIENT__ERROR, "Cache object's args tuple has %lu elements instead of 7", args->items.size());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
 
     if(!args->items[0]->IsTuple()) {
         _log(CLIENT__ERROR, "Cache object's arg %d is not a Tuple: %s", 0, args->items[0]->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
     //ignore unknown [1]
     /*if(!args->items[1]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's arg %d is not a None: %s", 1, args->items[1]->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }*/
     if(!args->items[2]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's arg %d is not an Integer: %s", 2, args->items[2]->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
     if(!args->items[3]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's arg %d is not an Integer: %s", 3, args->items[3]->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
     if(!args->items[5]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's arg %d is not a : %s", 5, args->items[5]->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
 
     PyTuple *objVt = (PyTuple *) args->items[0];
     if(!objVt->items[0]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 0, objVt->items[0]->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
     if(!objVt->items[1]->IsInt()) {
         _log(CLIENT__ERROR, "Cache object's version tuple %d is not an Integer: %s", 1, objVt->items[1]->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
 
@@ -623,13 +634,14 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
         cache = new PySubStream( new PyBuffer( *str ) );
     } else {
         _log(CLIENT__ERROR, "Cache object's arg %d is not a substream or buffer: %s", 4, args->items[4]->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
 
     objectID = args->items[6]->Clone();
 
-    delete ss;
+    PyDecRef( ss );
     return true;
 }
 
@@ -735,13 +747,15 @@ bool PyCachedCall::Decode(PySubStream **in_ss) {
     ss->DecodeData();
     if(ss->decoded() == NULL) {
         _log(CLIENT__ERROR, "Unable to decode initial stream for PyCachedCall");
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
 
     if(!ss->decoded()->IsDict()) {
         _log(CLIENT__ERROR, "Cached call substream does not contain a dict: %s", ss->decoded()->TypeString());
-        delete ss;
+
+        PyDecRef( ss );
         return false;
     }
     PyDict *po = (PyDict *) ss->decoded();
@@ -757,6 +771,6 @@ bool PyCachedCall::Decode(PySubStream **in_ss) {
             result = cur->second->Clone();
     }
 
-    delete ss;
+    PyDecRef( ss );
     return(result != NULL);
 }

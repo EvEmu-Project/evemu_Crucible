@@ -221,27 +221,33 @@ void EntityList::Multicast(const character_set &cset, const PyAddress &dest, EVE
 
 //in theory this could be written in therms of the more generic
 //MulticastTarget function, but this is much more efficient.
-void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple **payload, NotificationDestination target, uint32 target_id, bool seq) {
-	std::list<Client *>::const_iterator cur, end;
+void EntityList::Multicast( const char* notifyType, const char* idType, PyTuple** payload, NotificationDestination target, uint32 target_id, bool seq )
+{
+    PyTuple* p = *payload;
+    *payload = NULL;
+
+	std::list<Client*>::const_iterator cur, end;
 	cur = m_clients.begin();
 	end = m_clients.end();
-	PyTuple * temp;
-	for(; cur != end; cur++) {
-		switch (target) {
+	for(; cur != end; cur++)
+    {
+		switch( target )
+        {
 		case NOTIF_DEST__LOCATION:
-			if ((*cur)->GetLocationID() != target_id)
+			if( (*cur)->GetLocationID() != target_id )
 				continue;
 			break;
 		case NOTIF_DEST__CORPORATION:
-			if ((*cur)->GetCorporationID() != target_id)
+			if( (*cur)->GetCorporationID() != target_id )
 				continue;
 			break;
 		}
-		temp = (PyTuple*)(*payload)->Clone();
-		(*cur)->SendNotification(notifyType, idType, &temp, seq);
+
+		PyTuple* temp = new PyTuple( *p );
+		(*cur)->SendNotification( notifyType, idType, &temp, seq );
 	}
-	delete (*payload);
-	*payload = NULL;
+
+    PyDecRef( p );
 }
 
 void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple **in_payload, const MulticastTarget &mcset, bool seq)

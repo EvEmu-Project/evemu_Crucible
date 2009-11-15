@@ -38,63 +38,69 @@ class PyDict;
 class PyServiceMgr;
 class PyCallStream;
 
-class PyCallArgs {
+class PyCallArgs
+{
 public:
-	PyCallArgs(Client *c, PyTuple* tup, PyDict* dict);
+	PyCallArgs( Client *c, PyTuple* tup, PyDict* dict );
 	~PyCallArgs();
 
-	void Dump(LogType type) const;
+	void Dump( LogType type ) const;
 
-	Client *const client;	//we do not own this
-	PyTuple *tuple;		//we own this, but it may be taken
-	std::map<std::string, PyRep *> byname;	//we own this, but elements may be taken.
+	Client* const client;	//we do not own this
+	PyTuple* tuple;		//we own this, but it may be taken
+	std::map<std::string, PyRep*> byname;	//we own this, but elements may be taken.
 };
 
-class PyResult {
-protected:
-	PyResult();
+class PyResult
+{
 public:
-	PyResult(PyRep *result);	//takes ownership
+	PyResult( PyRep* result );
+    PyResult( const PyResult& oth );
 	~PyResult();
-	
-	//I dislike smart pointers, but I need them here due to copying when returning objects
-	counted_ptr<PyRep> ssResult;	//must never be NULL
+
+    PyResult& operator=( const PyResult& oth );
+
+    PyRep* ssResult;
 };
 
-class PyException {
-protected:
-	PyException();
+class PyException
+{
 public:
-	PyException(PyRep *except);		//takes ownership
+	PyException( PyRep* except );
+    PyException( const PyException& oth );
 	~PyException();
 
-	counted_ptr<PyRep> ssException;	//must never be NULL
+    PyException& operator=( const PyException& oth );
+
+    PyRep* ssException;
 };
 
 
 
 
 
-class PyCallable {
+class PyCallable
+{
 public:
-	class CallDispatcher {
+	class CallDispatcher
+    {
 	public:
 		virtual ~CallDispatcher() {}
 
-		virtual PyResult Dispatch(const std::string &method_name, PyCallArgs &call) = 0;
+		virtual PyResult Dispatch( const std::string& method_name, PyCallArgs& call ) = 0;
 	};
 	
 	PyCallable();
 	virtual ~PyCallable();
 
 	//returns ownership:
-	virtual PyResult Call(const std::string &method, PyCallArgs &args);
+	virtual PyResult Call( const std::string& method, PyCallArgs& args );
 	
 protected:
-	void _SetCallDispatcher(CallDispatcher *d) { m_serviceDispatch = d; }
+	void _SetCallDispatcher( CallDispatcher* d ) { m_serviceDispatch = d; }
 
 private:
-	CallDispatcher *m_serviceDispatch;	//must not be NULL after constructor, we do not own this.
+	CallDispatcher* m_serviceDispatch;	//must not be NULL after constructor, we do not own this.
 };
 
 #endif // __PYCALLABLE_H__

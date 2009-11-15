@@ -108,9 +108,7 @@ bool Client::ProcessNet()
         }
         catch( PyException& e )
         {
-            PyRep* except = e.ssException.hijack();
-
-            _SendException( p->dest, p->source.callID, p->type, WRAPPEDEXCEPTION, &except );
+            _SendException( p->dest, p->source.callID, p->type, WRAPPEDEXCEPTION, &e.ssException );
         }
 
         SafeDelete( p );
@@ -910,22 +908,25 @@ double Client::GetPropulsionStrength() const {
     return res;
 }
 
-void Client::TargetAdded(SystemEntity *who) {
-    PyTuple *up = NULL;
+void Client::TargetAdded( SystemEntity* who )
+{
+    PyTuple* up = NULL;
 
     DoDestiny_OnDamageStateChange odsc;
     odsc.entityID = who->GetID();
     odsc.state = who->MakeDamageState();
+
     up = odsc.Encode();
-    QueueDestinyUpdate(&up);
-    delete up;
+    QueueDestinyUpdate( &up );
+    PySafeDecRef( up );
 
     Notify_OnTarget te;
     te.mode = "add";
     te.targetID = who->GetID();
+
     up = te.Encode();
-    QueueDestinyEvent(&up);
-    delete up;
+    QueueDestinyEvent( &up );
+    PySafeDecRef( up );
 }
 
 void Client::TargetLost(SystemEntity *who)
@@ -1390,10 +1391,9 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
 
     //parts of call may be consumed here
     PyResult result = dest->Call( req.method, args );
-    PyRep* res = result.ssResult.hijack();
 
     _SendSessionChange();  //send out the session change before the return.
-    _SendCallReturn( packet->dest, packet->source.callID, &res );
+    _SendCallReturn( packet->dest, packet->source.callID, &result.ssResult );
 
     return true;
 }

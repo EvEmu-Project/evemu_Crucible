@@ -397,7 +397,8 @@ void ActivatableModule::Deactivate(const std::string &effectName) {
 	}
 }
 
-void ActivatableModule::_SendGodmaShipEffect(EVEEffectID effect, bool active) {
+void ActivatableModule::_SendGodmaShipEffect( EVEEffectID effect, bool active )
+{
 	Notify_OnGodmaShipEffect gse;
 	gse.itemID = m_item->itemID();
 	gse.effectID = effect;
@@ -408,29 +409,32 @@ void ActivatableModule::_SendGodmaShipEffect(EVEEffectID effect, bool active) {
 	gse.env_charID = m_item->ownerID();	//a little questionable
 	gse.env_shipID = m_item->locationID();
 	gse.env_target = m_target;
-	if(active) {
-		PyTuple *env_other = new PyTuple(3);
+	if( active )
+    {
+		PyTuple* env_other = new PyTuple( 3 );
+        env_other->SetItem( 0, new PyInt( m_item->locationID() ) ); //ship ID.
+        env_other->SetItem( 1, new PyInt( 29 ) ); //no idea
+		env_other->SetItem( 2, new PyInt( 215 ) );	//no idea
+
 		gse.env_other = env_other;
-		env_other->items[0] = new PyInt(m_item->locationID());	//ship ID.
-		env_other->items[1] = new PyInt(29);	//no idea
-		env_other->items[2] = new PyInt(215);	//no idea
-	} else {
-		gse.env_other = new PyNone();
 	}
+    else
+		gse.env_other = new PyNone;
 	gse.env_effectID = gse.effectID;
 	gse.startTime = gse.when;
 	gse.duration = _ActivationInterval();
 	gse.repeat = m_repeatCount;
-	gse.randomSeed = new PyNone();
-	gse.error = new PyNone();
+	gse.randomSeed = new PyNone;
+	gse.error = new PyNone;
 
 	//should this only go to ourself?
-	PyTuple *up = gse.Encode();
-	m_pilot->QueueDestinyEvent(&up);
-	delete up;
+	PyTuple* up = gse.Encode();
+	m_pilot->QueueDestinyEvent( &up );
+    PySafeDecRef( up );
 }
 
-void ActivatableModule::_SendWeaponEffect(const char *effect, SystemEntity *target) {
+void ActivatableModule::_SendWeaponEffect( const char* effect, SystemEntity* target )
+{
 	DoDestiny_OnSpecialFX13 sfx;
 	sfx.entityID = m_pilot->GetShipID();
 	sfx.moduleID = m_item->itemID();
@@ -446,9 +450,9 @@ void ActivatableModule::_SendWeaponEffect(const char *effect, SystemEntity *targ
 	sfx.repeat = 1;
 	sfx.startTime = Win32TimeNow();
 	
-	PyTuple *up = sfx.Encode();
-	m_pilot->Destiny()->SendSingleDestinyUpdate(&up);	//consumed
-	delete up;
+	PyTuple* up = sfx.Encode();
+	m_pilot->Destiny()->SendSingleDestinyUpdate( &up );	//consumed
+    PySafeDecRef( up );
 }
 
 void ActivatableModule::DeactivateModule(bool update) {

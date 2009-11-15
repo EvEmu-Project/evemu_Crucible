@@ -280,7 +280,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 	if(total_damage <= 0.0)
 		return(killed);
 	
-	PyTuple *up;
+	PyTuple* up;
 
 	//Notifications to ourself:
 	Notify_OnEffectHit noeh;
@@ -290,8 +290,8 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 	noeh.damage = total_damage;
 
 	up = noeh.Encode();
-	QueueDestinyEvent(&up);
-	delete up;
+	QueueDestinyEvent( &up );
+    PySafeDecRef( up );
 
 	//NOTE: could send out the RD version of this message instead of the R version, which
 	//includes "weapon" and "owner" instead of "source".
@@ -300,17 +300,19 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 	ondam.damage = total_damage;
 	ondam.source = d.source->GetID();
 	ondam.splash = "";
+
 	up = ondam.Encode();
-	QueueDestinyEvent(&up);
-	delete up;
+	QueueDestinyEvent( &up );
+    PySafeDecRef( up );
 
 	//Notifications to others:
 	//I am not sure what the correct scope of this broadcast
 	//should be. For now, it goes to anybody targeting us.
-	if(targets.IsTargetedBySomething()) {
+	if( targets.IsTargetedBySomething() )
+    {
 		up = noeh.Encode();
-		targets.QueueTBDestinyEvent(&up);
-		delete up;
+		targets.QueueTBDestinyEvent( &up );
+        PySafeDecRef( up );
 
 		Notify_OnDamageMessage_Other ondamo;
 		ondamo.messageID = "AttackHit3";		//TODO: select this based on the severity of the hit...
@@ -321,17 +323,16 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 		ondamo.splash = "";
 
 		up = ondamo.Encode();
-		targets.QueueTBDestinyEvent(&up);
-		delete up;
+		targets.QueueTBDestinyEvent( &up );
+        PySafeDecRef( up );
 	}
 	
-	if(killed == true) {
-		Killed(d);
-	} else {
+	if( true == killed )
+		Killed( d );
+    else
 		_SendDamageStateChanged();
-	}
 
-	return(killed);
+	return killed;
 }
 
 bool Client::ApplyDamage(Damage &d) {

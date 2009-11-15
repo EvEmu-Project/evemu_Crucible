@@ -90,34 +90,42 @@ void DestinyManager::SendDestinyUpdate(std::vector<PyTuple *> &updates, bool sel
 	SendDestinyUpdate(updates, events, self_only);
 }
 
-void DestinyManager::SendDestinyUpdate(std::vector<PyTuple *> &updates, std::vector<PyTuple *> &events, bool self_only) const {
-	if(self_only) {
-		_log(DESTINY__TRACE, "[%u] Sending destiny update (%lu, %lu) to self (%u).", GetStamp(), updates.size(), events.size(), m_self->GetID());
-		std::vector<PyTuple *>::iterator cur, end;
-		
+void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vector<PyTuple*>& events, bool self_only ) const
+{
+	if( self_only )
+    {
+		_log( DESTINY__TRACE, "[%u] Sending destiny update (%lu, %lu) to self (%u).", GetStamp(), updates.size(), events.size(), m_self->GetID() );
+
+        std::vector<PyTuple*>::iterator cur, end;
 		cur = updates.begin();
 		end = updates.end();
-		for(; cur != end; cur++) {
-			PyTuple *t = *cur;
-			m_self->QueueDestinyUpdate(&t);
-			delete t;	//they are not required to consume it.
+		for(; cur != end; cur++)
+        {
+			PyTuple* t = *cur;
+			m_self->QueueDestinyUpdate( &t );
+            PySafeDecRef( t ); //they are not required to consume it.
 		}
 		updates.clear();
 		
 		cur = events.begin();
 		end = events.end();
-		for(; cur != end; cur++) {
-			PyTuple *t = *cur;
-			m_self->QueueDestinyEvent(&t);
-			delete t;	//they are not required to consume it.
+		for(; cur != end; cur++)
+        {
+			PyTuple* t = *cur;
+			m_self->QueueDestinyEvent( &t );
+            PySafeDecRef( t ); //they are not required to consume it.
 		}
 		events.clear();
-	} else if(m_self->Bubble() != NULL) {
-		_log(DESTINY__TRACE, "[%u] Broadcasting destiny update (%lu, %lu)", GetStamp(), updates.size(), events.size());
+	}
+    else if( NULL != m_self->Bubble() )
+    {
+		_log( DESTINY__TRACE, "[%u] Broadcasting destiny update (%lu, %lu)", GetStamp(), updates.size(), events.size() );
 
-		m_self->Bubble()->BubblecastDestiny(updates, events, "destiny");
-	} else {
-		_log(DESTINY__ERROR, "[%u] Cannot broadcast destiny update (%lu, %lu); entity (%u) is not in any bubble.", GetStamp(), updates.size(), events.size(), m_self->GetID());
+		m_self->Bubble()->BubblecastDestiny( updates, events, "destiny" );
+	}
+    else
+    {
+		_log( DESTINY__ERROR, "[%u] Cannot broadcast destiny update (%lu, %lu); entity (%u) is not in any bubble.", GetStamp(), updates.size(), events.size(), m_self->GetID() );
 	}
 }
 

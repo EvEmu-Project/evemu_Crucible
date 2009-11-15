@@ -271,42 +271,50 @@ SystemEntity *TargetManager::GetTarget(uint32 targetID, bool need_locked) const 
 	return NULL;	//not found.
 }
 
-void TargetManager::QueueTBDestinyEvent(PyTuple **up_in) const {
-	PyTuple *up = *up_in;
+void TargetManager::QueueTBDestinyEvent( PyTuple** up_in ) const
+{
+	PyTuple* up = *up_in;
 	*up_in = NULL;	//could optimize out one of the Clones in here...
 	
-	std::map<SystemEntity *, TargetedByEntry *>::const_iterator cur, end;
+	PyTuple* up_dup = NULL;
+
+    std::map<SystemEntity*, TargetedByEntry*>::const_iterator cur, end;
 	cur = m_targetedBy.begin();
 	end = m_targetedBy.end();
-	PyTuple *up_dup = NULL;
-	for(; cur != end; ++cur) {
-		if(up_dup == NULL)
+	for(; cur != end; ++cur)
+    {
+		if( NULL == up_dup )
 			up_dup = new PyTuple( *up );
-		cur->first->QueueDestinyEvent(&up_dup);
+
+		cur->first->QueueDestinyEvent( &up_dup );
 		//they may not have consumed it (NPCs for example), so dont re-dup it in that case.
 	}
-	
-	delete up_dup;
-	delete up;
+
+    PySafeDecRef( up_dup );
+    PyDecRef( up );
 }
 
-void TargetManager::QueueTBDestinyUpdate(PyTuple **up_in) const {
-	PyTuple *up = *up_in;
+void TargetManager::QueueTBDestinyUpdate( PyTuple** up_in ) const
+{
+	PyTuple* up = *up_in;
 	*up_in = NULL;	//could optimize out one of the Clones in here...
 	
-	std::map<SystemEntity *, TargetedByEntry *>::const_iterator cur, end;
+	PyTuple* up_dup = NULL;
+
+    std::map<SystemEntity*, TargetedByEntry*>::const_iterator cur, end;
 	cur = m_targetedBy.begin();
 	end = m_targetedBy.end();
-	PyTuple *up_dup = NULL;
-	for(; cur != end; ++cur) {
-		if(up_dup == NULL)
+	for(; cur != end; ++cur)
+    {
+		if( NULL == up_dup )
 			up_dup = new PyTuple( *up );
-		cur->first->QueueDestinyUpdate(&up_dup);
+
+		cur->first->QueueDestinyUpdate( &up_dup );
 		//they may not have consumed it (NPCs for example), so dont re-dup it in that case.
 	}
-	
-	delete up_dup;
-	delete up;
+
+    PySafeDecRef( up_dup );
+    PyDecRef( up );
 }
 
 /*void TargetManager::TargetedByLocking(SystemEntity *from_who) {

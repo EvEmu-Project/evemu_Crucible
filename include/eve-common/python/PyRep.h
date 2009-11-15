@@ -108,9 +108,6 @@ public:
         PyTypeMax               = 18,
     };
 
-    PyRep( PyType t );
-    virtual ~PyRep();
-
     /** PyType check functions
       */
     //using this method is discouraged, it generally means your doing something wrong... Is<type>() should cover almost all needs
@@ -241,8 +238,10 @@ public:
     }
 
 protected:
-    const PyType mType;
+    PyRep( PyType t );
+    virtual ~PyRep();
 
+    const PyType mType;
     mutable size_t mRefCnt;
 
     /** Lookup table for PyRep type object type names. */
@@ -369,7 +368,6 @@ public:
     PyBuffer( Buffer** buffer );
     PyBuffer( const PyString& str );
     PyBuffer( const PyBuffer& oth );
-    virtual ~PyBuffer();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -384,8 +382,9 @@ public:
     int32 hash() const;
 
 protected:
-    const Buffer* const mValue;
+    virtual ~PyBuffer();
 
+    const Buffer* const mValue;
     mutable int32 mHashCache;
 };
 
@@ -418,7 +417,6 @@ public:
 
 protected:
     const std::string mValue;
-
     mutable int32 mHashCache;
 };
 
@@ -469,7 +467,6 @@ protected:
     static std::string _Convert( const uint16* str, size_t len );
 
     const std::string mValue;
-
     mutable int32 mHashCache;
 };
 
@@ -515,7 +512,6 @@ public:
 
     PyTuple( size_t item_count );
     PyTuple( const PyTuple& oth );
-    virtual ~PyTuple();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -562,6 +558,9 @@ public:
 
 	// This needs to be public for now.
     storage_type items;
+
+protected:
+    virtual ~PyTuple();
 };
 
 /**
@@ -578,7 +577,6 @@ public:
 
     PyList( size_t item_count = 0 );
     PyList( const PyList& oth );
-    virtual ~PyList();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -636,6 +634,9 @@ public:
 
     // This needs to be public:
     storage_type items;
+
+protected:
+    virtual ~PyList();
 };
 
 /**
@@ -680,7 +681,6 @@ public:
 
     PyDict();
     PyDict( const PyDict& oth );
-    virtual ~PyDict();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -739,6 +739,9 @@ public:
     PyDict& operator=( const PyDict& oth );
 
     storage_type items;
+
+protected:
+    virtual ~PyDict();
 };
 
 /**
@@ -752,7 +755,6 @@ class PyObject : public PyRep
 public:
     PyObject( PyString* type, PyRep* args );
     PyObject( const PyObject& oth );
-    virtual ~PyObject();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -761,6 +763,8 @@ public:
     PyRep* arguments() const { return mArguments; }
 
 protected:
+    virtual ~PyObject();
+
     PyString* const mType;
     PyRep* const mArguments;
 };
@@ -785,7 +789,6 @@ public:
 
     PyObjectEx( bool is_type_2, PyRep* header );
     PyObjectEx( const PyObjectEx& oth );
-    virtual ~PyObjectEx();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -808,6 +811,8 @@ public:
     PyObjectEx& operator=( const PyObjectEx& oth );
 
 protected:
+    virtual ~PyObjectEx();
+
     PyRep* const mHeader;
     const bool mIsType2;
 
@@ -869,7 +874,6 @@ public:
 
     PyPackedRow( DBRowDescriptor* header );
     PyPackedRow( const PyPackedRow& oth );
-    virtual ~PyPackedRow();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -898,6 +902,8 @@ public:
     int32 hash() const;
 
 protected:
+    virtual ~PyPackedRow();
+
     DBRowDescriptor* const mHeader;
     storage_type* const mFields;
 };
@@ -907,7 +913,6 @@ class PySubStruct : public PyRep
 public:
     PySubStruct( PyRep* t );
 	PySubStruct( const PySubStruct& oth );
-    virtual ~PySubStruct();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -915,6 +920,8 @@ public:
     PyRep* sub() const { return mSub; }
 
 protected:
+    virtual ~PySubStruct();
+
     PyRep* const mSub;
 };
 
@@ -924,7 +931,6 @@ public:
     PySubStream( PyRep* rep );
     PySubStream( PyBuffer* buffer );
 	PySubStream( const PySubStream& oth );
-    virtual ~PySubStream();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -939,6 +945,8 @@ public:
     void DecodeData() const;
 
 protected:
+    virtual ~PySubStream();
+
     //if both are non-NULL, they are considered to be equivalent
     mutable PyBuffer* mData;
     mutable PyRep* mDecoded;
@@ -949,7 +957,6 @@ class PyChecksumedStream : public PyRep
 public:
     PyChecksumedStream( PyRep* t, uint32 sum );
 	PyChecksumedStream( const PyChecksumedStream& oth );
-    virtual ~PyChecksumedStream();
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -958,6 +965,8 @@ public:
     uint32 checksum() const { return mChecksum; }
 
 protected:
+    virtual ~PyChecksumedStream();
+
     PyRep* const mStream;
     const uint32 mChecksum;
 };

@@ -100,12 +100,35 @@ void PyCallArgs::Dump(LogType type) const {
 	}
 }
 
-/* default PyResult */
-PyResult::PyResult()                : ssResult(NULL) {}
-PyResult::PyResult(PyRep *result)   : ssResult((result==NULL) ? new PyNone() : result ) {}
-PyResult::~PyResult() {}
+/* PyResult */
+PyResult::PyResult( PyRep* result ) : ssResult( NULL == result ? new PyNone : result ) {}
+PyResult::PyResult( const PyResult& oth ) : ssResult( NULL ) { *this = oth; }
+PyResult::~PyResult() { PySafeDecRef( ssResult ); }
 
-/* default PyException */
-PyException::PyException() : ssException(NULL) {}
-PyException::PyException(PyRep *except) : ssException((except==NULL) ? new PyNone : except) {}
-PyException::~PyException() {}
+PyResult& PyResult::operator=( const PyResult& oth )
+{
+    PySafeDecRef( ssResult );
+    ssResult = oth.ssResult;
+
+    if( NULL != ssResult )
+        PyIncRef( ssResult );
+
+    return *this;
+}
+
+/* PyException */
+PyException::PyException( PyRep* except ) : ssException( NULL == except ? new PyNone : except ) {}
+PyException::PyException( const PyException& oth ) : ssException( NULL ) { *this = oth; }
+PyException::~PyException() { PySafeDecRef( ssException ); }
+
+PyException& PyException::operator=( const PyException& oth )
+{
+    PySafeDecRef( ssException );
+    ssException = oth.ssException;
+
+    if( NULL != ssException )
+        PyIncRef( ssException );
+
+    return *this;
+}
+

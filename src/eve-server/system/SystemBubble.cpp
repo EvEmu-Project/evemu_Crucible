@@ -60,46 +60,54 @@ void SystemBubble::BubblecastDestiny(std::vector<PyTuple *> &updates, std::vecto
 
 //send a destiny update to everybody in the bubble.
 //assume that static entities are also not interested in destiny updates.
-void SystemBubble::BubblecastDestinyUpdate(PyTuple **payload, const char *desc) const {
-	PyTuple *up = *payload;
+void SystemBubble::BubblecastDestinyUpdate( PyTuple** payload, const char* desc ) const
+{
+	PyTuple* up = *payload;
 	*payload = NULL;	//could optimize out one of the Clones in here...
 	
-	std::set<SystemEntity *>::const_iterator cur, end, tmp;
+	PyTuple* up_dup = NULL;
+
+    std::set<SystemEntity*>::const_iterator cur, end, tmp;
 	cur = m_dynamicEntities.begin();
 	end = m_dynamicEntities.end();
-	PyTuple *up_dup = NULL;
-	for(; cur != end; ++cur) {
-		if(up_dup == NULL)
+	for(; cur != end; ++cur)
+    {
+		if( NULL == up_dup )
 			up_dup = new PyTuple( *up );
-		_log(DESTINY__BUBBLE_TRACE, "Bubblecast %s update to %s (%u)", desc, (*cur)->GetName(), (*cur)->GetID());
-		(*cur)->QueueDestinyUpdate(&up_dup);
+
+		_log( DESTINY__BUBBLE_TRACE, "Bubblecast %s update to %s (%u)", desc, (*cur)->GetName(), (*cur)->GetID() );
+		(*cur)->QueueDestinyUpdate( &up_dup );
 		//they may not have consumed it (NPCs for example), so dont re-dup it in that case.
 	}
-	
-	delete up_dup;
-	delete up;
+
+    PySafeDecRef( up_dup );
+    PyDecRef( up );
 }
 
 //send a destiny event to everybody in the bubble.
 //assume that static entities are also not interested in destiny updates.
-void SystemBubble::BubblecastDestinyEvent(PyTuple **payload, const char *desc) const {
-	PyTuple *up = *payload;
+void SystemBubble::BubblecastDestinyEvent( PyTuple** payload, const char* desc ) const
+{
+	PyTuple* up = *payload;
 	*payload = NULL;	//could optimize out one of the Clones in here...
 	
-	std::set<SystemEntity *>::const_iterator cur, end, tmp;
+	PyTuple* up_dup = NULL;
+
+    std::set<SystemEntity *>::const_iterator cur, end, tmp;
 	cur = m_dynamicEntities.begin();
 	end = m_dynamicEntities.end();
-	PyTuple *up_dup = NULL;
-	for(; cur != end; ++cur) {
-		if(up_dup == NULL)
+	for(; cur != end; ++cur)
+    {
+		if( NULL == up_dup )
 			up_dup = new PyTuple( *up );
-		_log(DESTINY__BUBBLE_TRACE, "Bubblecast %s event to %s (%u)", desc, (*cur)->GetName(), (*cur)->GetID());
-		(*cur)->QueueDestinyEvent(&up_dup);
+
+		_log( DESTINY__BUBBLE_TRACE, "Bubblecast %s event to %s (%u)", desc, (*cur)->GetName(), (*cur)->GetID() );
+		(*cur)->QueueDestinyEvent( &up_dup );
 		//they may not have consumed it (NPCs for example), so dont re-dup it in that case.
 	}
-	
-	delete up_dup;
-	delete up;
+
+    PySafeDecRef( up_dup );
+    PyDecRef( up );
 }
 
 //called at some regular interval from the bubble manager.
@@ -206,74 +214,82 @@ void SystemBubble::AppendBalls(DoDestiny_SetState &ss, std::vector<uint8> &setst
 }
 #endif
 
-void SystemBubble::_SendAddBalls(SystemEntity *to_who) {
-	if(m_entities.empty()) {
-		_log(DESTINY__TRACE, "Add Balls: Nothing to send.");
+void SystemBubble::_SendAddBalls( SystemEntity* to_who )
+{
+	if( m_entities.empty() )
+    {
+		_log( DESTINY__TRACE, "Add Balls: Nothing to send." );
 		return;
 	}
 	
-	std::vector<uint8> destiny_buffer(sizeof(Destiny::AddBall_header));
-	destiny_buffer.reserve(1024);
+	std::vector<uint8> destiny_buffer( sizeof( Destiny::AddBall_header ) );
+	destiny_buffer.reserve( 1024 );
 	
-	Destiny::AddBall_header *head = (Destiny::AddBall_header *) &destiny_buffer[0];
+	Destiny::AddBall_header* head = (Destiny::AddBall_header*)&destiny_buffer[0];
 	head->more = 0;
 	head->sequence = DestinyManager::GetStamp();
 
 	DoDestiny_AddBalls addballs;
     addballs.slims = new PyList;
 	
-	std::map<uint32, SystemEntity *>::const_iterator cur, end;
+	std::map<uint32, SystemEntity*>::const_iterator cur, end;
 	cur = m_entities.begin();
 	end = m_entities.end();
-	for(; cur != end; ++cur) {
-		if(cur->second->IsVisibleSystemWide())
+	for(; cur != end; ++cur)
+    {
+		if( cur->second->IsVisibleSystemWide() )
 			continue;	//it is already in their destiny state
+
 		//damageState
 		addballs.damages[ cur->second->GetID() ] = cur->second->MakeDamageState();
 		//slim item
 		addballs.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), cur->second->MakeSlimItem() ) );
 		//append the destiny binary data...
-		cur->second->EncodeDestiny(destiny_buffer);
+		cur->second->EncodeDestiny( destiny_buffer );
 	}
 	
-	addballs.destiny_binary = new PyBuffer(&destiny_buffer[0], destiny_buffer.size());
+	addballs.destiny_binary = new PyBuffer( &destiny_buffer[0], destiny_buffer.size() );
 	destiny_buffer.clear();
 
-	_log(DESTINY__TRACE, "Add Balls:");
-	addballs.Dump(DESTINY__TRACE, "    ");
-	_log(DESTINY__TRACE, "    Ball Binary:");
-	_hex(DESTINY__TRACE, &addballs.destiny_binary->content()[0], addballs.destiny_binary->content().size());
-	_log(DESTINY__TRACE, "    Ball Decoded:");
-	Destiny::DumpUpdate(DESTINY__TRACE, &addballs.destiny_binary->content()[0], addballs.destiny_binary->content().size());
+	_log( DESTINY__TRACE, "Add Balls:" );
+	addballs.Dump( DESTINY__TRACE, "    " );
+	_log( DESTINY__TRACE, "    Ball Binary:" );
+	_hex( DESTINY__TRACE, &addballs.destiny_binary->content()[0], addballs.destiny_binary->content().size() );
+	_log( DESTINY__TRACE, "    Ball Decoded:" );
+	Destiny::DumpUpdate( DESTINY__TRACE, &addballs.destiny_binary->content()[0], addballs.destiny_binary->content().size() );
 
-	PyTuple *tmp = addballs.Encode();
-	to_who->QueueDestinyUpdate(&tmp);	//may consume, but may not.
-	delete tmp;	//may not have been consumed.
+	PyTuple* tmp = addballs.Encode();
+	to_who->QueueDestinyUpdate( &tmp );	//may consume, but may not.
+    PySafeDecRef( tmp );
 }
 
-void SystemBubble::_SendRemoveBalls(SystemEntity *to_who) {
-	if(m_entities.empty()) {
-		_log(DESTINY__TRACE, "Remove Balls: Nothing to send.");
+void SystemBubble::_SendRemoveBalls( SystemEntity* to_who )
+{
+	if( m_entities.empty() )
+    {
+		_log( DESTINY__TRACE, "Remove Balls: Nothing to send." );
 		return;
 	}
 	
 	DoDestiny_RemoveBalls remove_balls;
 	
-	std::map<uint32, SystemEntity *>::const_iterator cur, end;
+	std::map<uint32, SystemEntity*>::const_iterator cur, end;
 	cur = m_entities.begin();
 	end = m_entities.end();
-	for(; cur != end; ++cur) {
-		if(cur->second->IsVisibleSystemWide())
+	for(; cur != end; ++cur)
+    {
+		if( cur->second->IsVisibleSystemWide() )
 			continue;	//do not remove these from their state!
-		remove_balls.balls.push_back(cur->second->GetID());
+
+		remove_balls.balls.push_back( cur->second->GetID() );
 	}
 	
-	_log(DESTINY__TRACE, "Remove Balls:");
-	remove_balls.Dump(DESTINY__TRACE, "    ");
+	_log( DESTINY__TRACE, "Remove Balls:" );
+	remove_balls.Dump( DESTINY__TRACE, "    " );
 	
-	PyTuple *tmp = remove_balls.Encode();
-	to_who->QueueDestinyUpdate(&tmp);	//may consume, but may not.
-	delete tmp;	//may not have been consumed.
+	PyTuple* tmp = remove_balls.Encode();
+	to_who->QueueDestinyUpdate( &tmp );	//may consume, but may not.
+    PySafeDecRef( tmp );
 }
 
 void SystemBubble::_BubblecastAddBall(SystemEntity *about_who) {
