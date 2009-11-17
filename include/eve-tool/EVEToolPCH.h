@@ -65,8 +65,7 @@
 
 #include "packets/General.h"
 
-#include "python/classes/DBRowDescriptor.h"
-#include "python/classes/CRowSet.h"
+#include "python/classes/Database.h"
 
 #include "python/PyRep.h"
 #include "python/PyVisitor.h"

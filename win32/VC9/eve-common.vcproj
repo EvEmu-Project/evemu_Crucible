@@ -523,11 +523,7 @@
 					Name="classes"
 					>
 					<File
-						RelativePath="..\..\src\eve-common\python\classes\CRowSet.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\..\src\eve-common\python\classes\DBRowDescriptor.cpp"
+						RelativePath="..\..\src\eve-common\python\classes\Database.cpp"
 						>
 					</File>
 					<File
@@ -535,7 +531,7 @@
 						>
 					</File>
 					<File
-						RelativePath="..\..\src\eve-common\python\classes\PasswordString.cpp"
+						RelativePath="..\..\src\eve-common\python\classes\Utils.cpp"
 						>
 					</File>
 				</Filter>
@@ -696,11 +692,7 @@
 					Name="classes"
 					>
 					<File
-						RelativePath="..\..\include\eve-common\python\classes\CRowSet.h"
-						>
-					</File>
-					<File
-						RelativePath="..\..\include\eve-common\python\classes\DBRowDescriptor.h"
+						RelativePath="..\..\include\eve-common\python\classes\Database.h"
 						>
 					</File>
 					<File
@@ -708,7 +700,7 @@
 						>
 					</File>
 					<File
-						RelativePath="..\..\include\eve-common\python\classes\PasswordString.h"
+						RelativePath="..\..\include\eve-common\python\classes\Utils.h"
 						>
 					</File>
 				</Filter>

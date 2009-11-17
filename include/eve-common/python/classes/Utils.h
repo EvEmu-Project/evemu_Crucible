@@ -23,8 +23,8 @@
     Author:     Bloody.Rabbit
 */
 
-#ifndef __PASSWORD_STRING_H__INCL__
-#define __PASSWORD_STRING_H__INCL__
+#ifndef __UTILS_H__INCL__
+#define __UTILS_H__INCL__
 
 #include "python/PyRep.h"
 
@@ -52,5 +52,5 @@ protected:
 	static PyTuple* _CreateArgs( PyWString* password );
 };
 
-#endif /* !__PASSWORD_STRING_H__INCL__ */
+#endif /* !__UTILS_H__INCL__ */
 

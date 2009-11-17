@@ -28,7 +28,7 @@
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEUnmarshal.h"
 #include "marshal/EVEMarshalOpcodes.h"
-#include "python/classes/DBRowDescriptor.h"
+#include "python/classes/Database.h"
 #include "python/PyDumpVisitor.h"
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"

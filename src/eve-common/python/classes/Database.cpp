@@ -25,9 +25,13 @@
 
 #include "EVECommonPCH.h"
 
-#include "python/classes/DBRowDescriptor.h"
+#include "python/classes/Database.h"
+
 #include "utils/EVEUtils.h"
 
+/************************************************************************/
+/* DBRowDescriptor                                                      */
+/************************************************************************/
 DBRowDescriptor::DBRowDescriptor()
 : PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs(), NULL )
 {
@@ -126,4 +130,64 @@ PyTuple* DBRowDescriptor::_CreateArgs()
 	args->SetItem( 0, columnList );
 
 	return args;
+}
+
+/************************************************************************/
+/* CRowSet                                                              */
+/************************************************************************/
+CRowSet::CRowSet( DBRowDescriptor** rowDesc )
+: PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
+{
+	*rowDesc = NULL;
+}
+
+PyPackedRow* CRowSet::NewRow()
+{
+    DBRowDescriptor* rowDesc = _GetRowDesc();
+    PyIncRef( rowDesc );
+
+    PyPackedRow* row = new PyPackedRow( rowDesc );
+
+    list().AddItem( row );
+	return row;
+}
+
+DBRowDescriptor* CRowSet::_GetRowDesc() const
+{
+	PyRep* r = FindKeyword( "header" );
+	assert( r );
+
+	return (DBRowDescriptor*)r->AsObjectEx();
+}
+
+PyList* CRowSet::_GetColumnList() const
+{
+	PyRep* r = FindKeyword( "columns" );
+	assert( r );
+
+	return r->AsList();
+}
+
+PyTuple* CRowSet::_CreateArgs()
+{
+	PyTuple* args = new PyTuple( 1 );
+	args->SetItem( 0, new PyToken( "dbutil.CRowset" ) );
+
+	return args;
+}
+
+PyDict* CRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
+{
+	assert( rowDesc );
+
+	PyDict* keywords = new PyDict;
+	keywords->SetItemString( "header", rowDesc );
+
+	uint32 cc = rowDesc->ColumnCount();
+	PyList* columns = new PyList( cc );
+	for( uint32 i = 0; i < cc; i++ )
+		columns->SetItem( i,  new PyString( *rowDesc->GetColumnName( i ) ) );
+	keywords->SetItemString( "columns", columns );
+
+	return keywords;
 }

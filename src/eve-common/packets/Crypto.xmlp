@@ -3,7 +3,7 @@
 
 <elements>
 
-  <include file="python/classes/PasswordString.h" />
+  <include file="python/classes/Utils.h" />
 
   <elementDef name="VersionExchange">
     <tupleInline>

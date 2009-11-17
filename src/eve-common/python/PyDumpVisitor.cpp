@@ -25,7 +25,7 @@
 
 #include "EVECommonPCH.h"
 
-#include "python/classes/DBRowDescriptor.h"
+#include "python/classes/Database.h"
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
 #include "python/PyDumpVisitor.h"

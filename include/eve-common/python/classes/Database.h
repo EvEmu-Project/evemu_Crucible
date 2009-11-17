@@ -23,19 +23,19 @@
     Author:     Bloody.Rabbit
 */
 
-#ifndef __DB_ROW_DESCRIPTOR_H__INCL__
-#define __DB_ROW_DESCRIPTOR_H__INCL__
+#ifndef __DATABASE_H__INCL__
+#define __DATABASE_H__INCL__
 
 #include "database/dbcore.h"
 #include "python/PyRep.h"
 
 /**
- * \brief Python object "blue.DBRowDescriptor".
+ * @brief Python object "blue.DBRowDescriptor".
  *
  * This object is used by PyPackedRow and CRowSet
  * to describe stored columns.
  *
- * \author Bloody.Rabbit
+ * @author Bloody.Rabbit
  */
 class DBRowDescriptor
 : public PyObjectEx_Type1
@@ -100,5 +100,51 @@ protected:
 	static PyTuple* _CreateArgs();
 };
 
-#endif /* !__DB_ROW_DESCRIPTOR_H__INCL__ */
+/**
+ * @brief Python object "dbutil.CRowset".
+ *
+ * This object contains DBRowDescriptor header
+ * and bunch of PyPackedRows.
+ *
+ * @note At the moment it's designed that once
+ * it's created, its header cannot be changed.
+ * I don't know whether it's correct or not,
+ * but it makes our life easier.
+ *
+ * @author Bloody.Rabbit
+ */
+class CRowSet
+: public PyObjectEx_Type2
+{
+public:
+    /**
+     * @param[in] rowDesc DBRowDescriptor header to be used.
+     */
+    CRowSet( DBRowDescriptor** rowDesc );
 
+    /**
+     * @return Row count.
+     */
+    size_t GetRowCount() const { return list().size(); }
+
+    /**
+     * @param[in] Index of row to be returned.
+     *
+     * @return Row with given index.
+     */
+    PyPackedRow* GetRow( uint32 index ) const { return list().GetItem( index )->AsPackedRow(); }
+
+    /**
+     * @return New row which user may fill.
+     */
+    PyPackedRow* NewRow();
+
+protected:
+	DBRowDescriptor* _GetRowDesc() const;
+	PyList* _GetColumnList() const;
+
+	static PyTuple* _CreateArgs();
+	static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
+};
+
+#endif /* !__DATABASE_H__INCL__ */

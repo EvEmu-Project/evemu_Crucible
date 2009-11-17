@@ -102,10 +102,9 @@
 #include "packets/Standing2.h"
 #include "packets/Tutorial.h"
 
-#include "python/classes/CRowSet.h"
-#include "python/classes/DBRowDescriptor.h"
+#include "python/classes/Database.h"
 #include "python/classes/Exceptions.h"
-#include "python/classes/PasswordString.h"
+#include "python/classes/Utils.h"
 
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"

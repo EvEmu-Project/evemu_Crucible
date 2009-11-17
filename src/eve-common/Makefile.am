@@ -32,14 +32,12 @@ libevecommon_a_SOURCES = \
 	network/EVETCPConnection.h \
 	network/EVETCPServer.h \
 	network/packet_types.h \
-	python/classes/CRowSet.cpp \
-	python/classes/CRowSet.h \
-	python/classes/DBRowDescriptor.cpp \
-	python/classes/DBRowDescriptor.h \
+	python/classes/Database.cpp \
+	python/classes/Database.h \
 	python/classes/Exceptions.cpp \
 	python/classes/Exceptions.h \
-	python/classes/PasswordString.cpp \
-	python/classes/PasswordString.h \
+	python/classes/Utils.cpp \
+	python/classes/Utils.h \
 	python/PyDumpVisitor.cpp \
 	python/PyDumpVisitor.h \
 	python/PyLookupDump.cpp \

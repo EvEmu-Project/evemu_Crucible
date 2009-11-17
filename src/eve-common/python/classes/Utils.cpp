@@ -23,56 +23,26 @@
     Author:     Bloody.Rabbit
 */
 
-#ifndef __CROWSET_H__INCL__
-#define __CROWSET_H__INCL__
+#include "EVECommonPCH.h"
 
-#include "python/PyRep.h"
+#include "python/classes/Utils.h"
 
-/**
- * \brief Python object "dbutil.CRowset".
- *
- * This object contains DBRowDescriptor header
- * and bunch of PyPackedRows.
- *
- * @note At the moment it's designed that once
- * it's created, its header cannot be changed.
- * I don't know whether it's correct or not,
- * but it makes our life easier.
- *
- * \author Bloody.Rabbit
- */
-class CRowSet
-: public PyObjectEx_Type2
+PasswordString::PasswordString( PyWString* password )
+: PyObjectEx_Type2( _CreateArgs( password ), NULL )
 {
-public:
-    /**
-     * @param[in] rowDesc DBRowDescriptor header to be used.
-     */
-    CRowSet( DBRowDescriptor** rowDesc );
+}
 
-    /**
-     * @return Row count.
-     */
-    size_t GetRowCount() const { return list().size(); }
+PyWString* PasswordString::GetPassword() const
+{
+	return GetArgs()->GetItem( 1 )->AsWString();
+}
 
-    /**
-     * @param[in] Index of row to be returned.
-     *
-     * @return Row with given index.
-     */
-    PyPackedRow* GetRow( uint32 index ) const { return list().GetItem( index )->AsPackedRow(); }
+PyTuple* PasswordString::_CreateArgs( PyWString* password )
+{
+	PyTuple* head = new PyTuple( 2 );
+	head->SetItem( 0, new PyToken( "util.PasswordString" ) );
+	head->SetItem( 1, password );
 
-    /**
-     * @return New row which user may fill.
-     */
-    PyPackedRow* NewRow();
+	return head;
+}
 
-protected:
-	DBRowDescriptor* _GetRowDesc() const;
-	PyList* _GetColumnList() const;
-
-	static PyTuple* _CreateArgs();
-	static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
-};
-
-#endif /* !__CROWSET_H__INCL__ */
