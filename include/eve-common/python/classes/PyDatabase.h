@@ -23,8 +23,8 @@
     Author:     Bloody.Rabbit
 */
 
-#ifndef __DATABASE_H__INCL__
-#define __DATABASE_H__INCL__
+#ifndef __PY_DATABASE_H__INCL__
+#define __PY_DATABASE_H__INCL__
 
 #include "database/dbcore.h"
 #include "python/PyRep.h"
@@ -147,4 +147,4 @@ protected:
 	static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
 };
 
-#endif /* !__DATABASE_H__INCL__ */
+#endif /* !__PY_DATABASE_H__INCL__ */

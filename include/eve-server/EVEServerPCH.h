@@ -102,9 +102,9 @@
 #include "packets/Standing2.h"
 #include "packets/Tutorial.h"
 
-#include "python/classes/Database.h"
-#include "python/classes/Exceptions.h"
-#include "python/classes/Utils.h"
+#include "python/classes/PyDatabase.h"
+#include "python/classes/PyExceptions.h"
+#include "python/classes/PyUtils.h"
 
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"

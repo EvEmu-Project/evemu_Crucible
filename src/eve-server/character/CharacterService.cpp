@@ -136,22 +136,25 @@ PyResult CharacterService::Handle_GetAppearanceInfo(PyCallArgs &call) {
     return result;
 }
 
-PyResult CharacterService::Handle_ValidateName(PyCallArgs &call) {
-    Call_SingleStringArg arg;
-    if(!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode args.");
+PyResult CharacterService::Handle_ValidateName( PyCallArgs& call )
+{
+    Call_SingleWStringArg arg;
+    if( !arg.Decode( &call.tuple ) )
+    {
+        _log( SERVICE__ERROR, "Failed to decode args." );
         return NULL;
     }
 
     // perform checks on the "name" that is passed.  we may want to impliment something
     // to limit the kind of names allowed.
 
-    return(new PyBool(m_db.ValidateCharName(arg.arg.c_str())));
+    return new PyBool( m_db.ValidateCharName( arg.arg.c_str() ) );
 }
 
-PyResult CharacterService::Handle_ValidateNameEx(PyCallArgs &call) {
+PyResult CharacterService::Handle_ValidateNameEx( PyCallArgs& call )
+{
     //just redirect it now
-    return(Handle_ValidateName(call));
+    return Handle_ValidateName( call );
 }
 
 PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {

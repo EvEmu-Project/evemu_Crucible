@@ -484,6 +484,12 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="Call_SingleWStringArg">
+    <tupleInline>
+      <wstring name="arg" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Call_SingleArg">
     <tupleInline>
       <raw name="arg" />

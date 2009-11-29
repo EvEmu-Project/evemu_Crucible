@@ -25,7 +25,7 @@
 
 #include "EVECommonPCH.h"
 
-#include "python/classes/Database.h"
+#include "python/classes/PyDatabase.h"
 
 #include "utils/EVEUtils.h"
 

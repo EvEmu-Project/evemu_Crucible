@@ -523,15 +523,15 @@
 					Name="classes"
 					>
 					<File
-						RelativePath="..\..\src\eve-common\python\classes\Database.cpp"
+						RelativePath="..\..\src\eve-common\python\classes\PyDatabase.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\..\src\eve-common\python\classes\Exceptions.cpp"
+						RelativePath="..\..\src\eve-common\python\classes\PyExceptions.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\..\src\eve-common\python\classes\Utils.cpp"
+						RelativePath="..\..\src\eve-common\python\classes\PyUtils.cpp"
 						>
 					</File>
 				</Filter>
@@ -692,15 +692,15 @@
 					Name="classes"
 					>
 					<File
-						RelativePath="..\..\include\eve-common\python\classes\Database.h"
+						RelativePath="..\..\include\eve-common\python\classes\PyDatabase.h"
 						>
 					</File>
 					<File
-						RelativePath="..\..\include\eve-common\python\classes\Exceptions.h"
+						RelativePath="..\..\include\eve-common\python\classes\PyExceptions.h"
 						>
 					</File>
 					<File
-						RelativePath="..\..\include\eve-common\python\classes\Utils.h"
+						RelativePath="..\..\include\eve-common\python\classes\PyUtils.h"
 						>
 					</File>
 				</Filter>

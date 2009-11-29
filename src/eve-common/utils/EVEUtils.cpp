@@ -25,7 +25,7 @@
 
 #include "EVECommonPCH.h"
 
-#include "python/classes/Exceptions.h"
+#include "python/classes/PyExceptions.h"
 #include "utils/EVEUtils.h"
 
 UserError *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args)

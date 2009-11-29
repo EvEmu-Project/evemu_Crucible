@@ -32,12 +32,12 @@ libevecommon_a_SOURCES = \
 	network/EVETCPConnection.h \
 	network/EVETCPServer.h \
 	network/packet_types.h \
-	python/classes/Database.cpp \
-	python/classes/Database.h \
-	python/classes/Exceptions.cpp \
-	python/classes/Exceptions.h \
-	python/classes/Utils.cpp \
-	python/classes/Utils.h \
+	python/classes/PyDatabase.cpp \
+	python/classes/PyDatabase.h \
+	python/classes/PyExceptions.cpp \
+	python/classes/PyExceptions.h \
+	python/classes/PyUtils.cpp \
+	python/classes/PyUtils.h \
 	python/PyDumpVisitor.cpp \
 	python/PyDumpVisitor.h \
 	python/PyLookupDump.cpp \

@@ -23,8 +23,8 @@
 	Author:		Bloody.Rabbit
 */
 
-#ifndef __EXCEPTIONS_H__INCL__
-#define __EXCEPTIONS_H__INCL__
+#ifndef __PY_EXCEPTIONS_H__INCL__
+#define __PY_EXCEPTIONS_H__INCL__
 
 #include "python/PyRep.h"
 
@@ -87,4 +87,4 @@ protected:
 	static PyDict* _CreateKeywords( const char* msg );
 };
 
-#endif /* !__EXCEPTIONS_H__INCL__ */
+#endif /* !__PY_EXCEPTIONS_H__INCL__ */

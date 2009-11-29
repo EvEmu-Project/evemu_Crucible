@@ -23,26 +23,34 @@
     Author:     Bloody.Rabbit
 */
 
-#include "EVECommonPCH.h"
+#ifndef __PY_UTILS_H__INCL__
+#define __PY_UTILS_H__INCL__
 
-#include "python/classes/Utils.h"
+#include "python/PyRep.h"
 
-PasswordString::PasswordString( PyWString* password )
-: PyObjectEx_Type2( _CreateArgs( password ), NULL )
+/**
+ * @brief Python object "util.PasswordString"
+ *
+ * This object is used when transporting
+ * plain password over network.
+ *
+ * @author Bloody.Rabbit
+ */
+class PasswordString
+: public PyObjectEx_Type2
 {
-}
+public:
+	/**
+	 * @param[in] password Password to be stored.
+	 */
+	PasswordString( PyWString* password );
 
-PyWString* PasswordString::GetPassword() const
-{
-	return GetArgs()->GetItem( 1 )->AsWString();
-}
+	/** @return Password stored within this object. */
+	PyWString* GetPassword() const;
 
-PyTuple* PasswordString::_CreateArgs( PyWString* password )
-{
-	PyTuple* head = new PyTuple( 2 );
-	head->SetItem( 0, new PyToken( "util.PasswordString" ) );
-	head->SetItem( 1, password );
+protected:
+	static PyTuple* _CreateArgs( PyWString* password );
+};
 
-	return head;
-}
+#endif /* !__PY_UTILS_H__INCL__ */
 

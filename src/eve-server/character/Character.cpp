@@ -218,7 +218,7 @@ void CharacterAppearance::Build( const std::map<std::string, PyRep*>& from )
     itr = from.find( #v ); \
     if( itr != from.end() ) \
     { \
-        if( !itr->second->IsInt() ) \
+        if( itr->second->IsInt() ) \
         { \
             Set_##v( itr->second->AsInt()->value() ); \
             _log( CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), Get_##v() ); \

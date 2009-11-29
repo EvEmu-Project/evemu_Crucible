@@ -28,7 +28,7 @@
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEMarshalOpcodes.h"
 #include "marshal/EVEMarshalStringTable.h"
-#include "python/classes/Database.h"
+#include "python/classes/PyDatabase.h"
 #include "python/PyRep.h"
 #include "python/PyVisitor.h"
 #include "utils/EVEUtils.h"

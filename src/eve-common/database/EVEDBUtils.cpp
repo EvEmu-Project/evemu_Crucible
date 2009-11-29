@@ -27,7 +27,7 @@
 
 #include "database/EVEDBUtils.h"
 #include "packets/General.h"
-#include "python/classes/Database.h"
+#include "python/classes/PyDatabase.h"
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
 

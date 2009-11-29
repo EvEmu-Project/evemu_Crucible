@@ -25,7 +25,7 @@
 
 #include "EVECommonPCH.h"
 
-#include "python/classes/Exceptions.h"
+#include "python/classes/PyExceptions.h"
 #include "EVEVersion.h"
 
 GPSTransportClosed::GPSTransportClosed( const char* reason )

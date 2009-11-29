@@ -49,26 +49,10 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="CallValidateName">
-    <tupleInline>
-      <!-- 0 -->
-      <string name="name" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspValidateName">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <bool name="result" />
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="CallCreateCharacter">
     <tupleInline>
       <!-- 0 -->
-      <string name="name" />
+      <wstring name="name" />
       <!-- 1 -->
       <int name="bloodlineID" />
       <!-- 2 -->
@@ -101,7 +85,7 @@
   <elementDef name="CallCreateCharacter2">
     <tupleInline>
       <!-- 0 -->
-      <string name="name" />
+      <wstring name="name" />
       <!-- 1 -->
       <int name="bloodlineID" />
       <!-- 2 -->

@@ -65,7 +65,7 @@
 
 #include "packets/General.h"
 
-#include "python/classes/Database.h"
+#include "python/classes/PyDatabase.h"
 
 #include "python/PyRep.h"
 #include "python/PyVisitor.h"
