@@ -4,6 +4,7 @@
 AC_PREREQ(2.59)
 AC_INIT(evemu, svn-trunk, nospam@evemu.sf.net)
 AM_CONFIG_HEADER(config.h)
+AC_CONFIG_MACRO_DIR([m4])
 
 if test x$prefix = xNONE; then
         prefix=/usr/local
