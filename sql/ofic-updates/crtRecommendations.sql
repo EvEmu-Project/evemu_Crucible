@@ -8,7 +8,7 @@ CREATE TABLE `crtRecommendations` (
   `recommendationLevel` int(10) unsigned NOT NULL,
   `recommendationID` int(10) unsigned NOT NULL,
   PRIMARY KEY  (`shipTypeID`,`certificateID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Data for the table `crtRecommendations` */
 

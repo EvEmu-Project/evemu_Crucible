@@ -6,7 +6,7 @@ CREATE TABLE `mapLocationWormholeClasses` (
   `locationID` int(10) unsigned NOT NULL,
   `wormholeClassID` int(10) unsigned NOT NULL,
   PRIMARY KEY  (`locationID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Data for the table `mapLocationWormholeClasses` */
 

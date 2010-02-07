@@ -32,7 +32,7 @@ CREATE TABLE `crpNPCCorporations` (
   `stationCount` int(11) default NULL,
   `stationSystemCount` int(11) default NULL,
   PRIMARY KEY  (`corporationID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 /*Data for the table `crpNPCCorporations` */
 

@@ -1,7 +1,7 @@
 DATABASE INSTALLATION GUIDE:
 =============================
  1. Download official EVE database dump:
-     http://eve.no-ip.de/apo120/apo120-mysql5-v1.sql.bz2
+     http://eve.no-ip.de/apo15/apo15-mysql5-v1.sql.bz2
     Unpack it - you should get file with ".sql" extension.
 
  2. Create database into which you want to stick all the EVEmu DB stuff.

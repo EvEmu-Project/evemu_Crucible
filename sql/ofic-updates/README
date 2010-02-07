@@ -2,17 +2,23 @@ Files in this directory contain following updates for official EVE database dump
 
 Table name                           Note
 ---------------------------------------------------------------
-crpNPCCorporations                   incomplete, missing columns `mainActivityID`, `secondaryActivityID`
-crpNPCCorporationTrades              used to be in dump, removed
+chrCareers                           missing rows
+chrCareerSpecialities                missing rows
+chrRaceSkills                        missing rows
+chrSchoolAgents                      missing rows
+chrSchools                           missing rows
+crpNPCCorporations                   missing columns (`mainActivityID`, `secondaryActivityID`)
+crpNPCCorporationTrades              not in dump
 crpNPCTickerNames                    not in dump
-crtRelationships                     incomplete, missing column `childTypeID`, missing data for skills
 crtRecommendations                   not in dump
-dgmAttributeTypes                    incomplete, missing columns `attributeCategory`, `attributeIdx`, `maxAttributeID`, `chargeRechargeTimeID`
-dgmTypeAttributes                    incomplete, missing data for entities and wormholes
+crtRelationships                     missing columns (`childTypeID`)
+dgmAttributeTypes                    missing columns (`attributeCategory`, `attributeIdx`, `maxAttributeID`, `chargeRechargeTimeID`)
+dgmTypeAttributes                    missing rows
+dgmTypeEffects                       missing rows
 eveConstants                         not in dump
 eveMessages                          not in dump
 eveRoles                             not in dump
-invBlueprintTypes                    incomplete, missing column `chanceOfReverseEngineering`
+invBlueprintTypes                    missing columns (`chanceOfReverseEngineering`)
 invShipTypes                         not in dump
 mapCelestialDescriptions             not in dump
 mapLocationWormholeClasses           not in dump

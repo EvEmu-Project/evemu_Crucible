@@ -10,7 +10,7 @@ CREATE TABLE `crtRelationships` (
   `childID` int(10) unsigned NOT NULL,
   `childTypeID` int(10) unsigned NOT NULL,
   PRIMARY KEY  (`relationshipID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Data for the table `crtRelationships` */
 
