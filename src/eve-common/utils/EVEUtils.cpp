@@ -74,6 +74,10 @@ bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep )
 #define CheckTypeRange( type, lower_bound, upper_bound ) \
     ( rep->Is##type() && rep->As##type()->value() >= lower_bound && rep->As##type()->value() <= upper_bound )
 
+    if( rep->IsNone() )
+        // represents NULL
+        return true;
+
     switch( type )
     {
         case DBTYPE_UI8:
@@ -134,7 +138,7 @@ bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep )
             return rep->IsWString();
     }
 
-    return rep->IsNone();
+    return false;
 
 #undef CheckTypeRange
 #undef CheckTypeRangeUnsigned

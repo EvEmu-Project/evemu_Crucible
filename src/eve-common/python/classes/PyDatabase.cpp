@@ -90,16 +90,7 @@ uint32 DBRowDescriptor::FindColumn( const char* name ) const
 
 bool DBRowDescriptor::VerifyValue( uint32 index, PyRep* value )
 {
-    if( index >= ColumnCount() )
-        return false;
-
-    if( NULL != value )
-    {
-        if( !DBTYPE_IsCompatible( GetColumnType( index ), value ) )
-            return false;
-    }
-
-    return true;
+    return DBTYPE_IsCompatible( GetColumnType( index ), value );
 }
 
 void DBRowDescriptor::AddColumn( const char* name, DBTYPE type )

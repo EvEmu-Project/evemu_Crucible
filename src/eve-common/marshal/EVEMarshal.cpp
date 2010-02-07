@@ -409,10 +409,7 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
     for(; cur != end; cur++)
     {
         const uint32 index = cur->second;
-
         const PyRep* r = rep->GetField( index );
-        if( NULL == r )
-            continue;
 
         /* note the assert are disabled because of performance flows */
         switch( header->GetColumnType( index ) )
@@ -422,35 +419,35 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
             case DBTYPE_CY:
             case DBTYPE_FILETIME:
             {
-                unpacked.Write<int64>( r->AsLong()->value() );
+                unpacked.Write<int64>( r->IsNone() ? 0 : r->AsLong()->value() );
             } break;
 
             case DBTYPE_I4:
             case DBTYPE_UI4:
             {
-                unpacked.Write<int32>( r->AsInt()->value() );
+                unpacked.Write<int32>( r->IsNone() ? 0 : r->AsInt()->value() );
             } break;
 
             case DBTYPE_I2:
             case DBTYPE_UI2:
             {
-                unpacked.Write<int16>( r->AsInt()->value() );
+                unpacked.Write<int16>( r->IsNone() ? 0 : r->AsInt()->value() );
             } break;
 
             case DBTYPE_I1:
             case DBTYPE_UI1:
             {
-                unpacked.Write<int8>( r->AsInt()->value() );
+                unpacked.Write<int8>( r->IsNone() ? 0 : r->AsInt()->value() );
             } break;
 
             case DBTYPE_R8:
             {
-                unpacked.Write<double>( r->AsFloat()->value() );
+                unpacked.Write<double>( r->IsNone() ? 0.0 : r->AsFloat()->value() );
             } break;
 
             case DBTYPE_R4:
             {
-                unpacked.Write<float>( r->AsFloat()->value() );
+                unpacked.Write<float>( r->IsNone() ? 0.0 : r->AsFloat()->value() );
             } break;
 
             case DBTYPE_BOOL:
@@ -469,10 +466,7 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
     for( uint8 bit_off = 0; cur != end; cur++ )
     {
         const uint32 index = cur->second;
-
-        const PyRep* r = rep->GetField( index );
-        if( NULL == r )
-            continue;
+        const PyBool* r = rep->GetField( index )->AsBool();
 
         if( 7 < bit_off )
             bit_off = 0;
@@ -480,7 +474,7 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
             unpacked.Write<uint8>( 0 );
 
         uint8& byte = unpacked.Get<uint8>( unpacked.size() - 1 );
-        byte |= ( r->AsBool()->value() << bit_off++ );
+        byte |= ( r->value() << bit_off++ );
     }
 
     //pack the bytes with the zero compression algorithm.
@@ -493,10 +487,7 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
     for(; cur != end; cur++)
     {
         const uint32 index = cur->second;
-
         const PyRep* r = rep->GetField( index );
-        if( NULL == r )
-            r = new PyNone;
 
         if( !r->visit( *this ) )
             return false;

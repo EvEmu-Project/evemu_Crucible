@@ -113,7 +113,10 @@ std::string generate_key( size_t length )
 
 bool IsPrintable( char c )
 {
-    return ( isgraph( c ) || isspace( c ) );
+    // They seem to expect it unsigned ...
+    const unsigned char _c = c;
+
+    return ( isgraph( _c ) || isspace( _c ) );
 }
 
 bool IsPrintable( const char* str, size_t length )

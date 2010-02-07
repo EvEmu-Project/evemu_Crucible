@@ -914,7 +914,7 @@ bool PyPackedRow::SetField( uint32 index, PyRep* value )
 {
     if( !header()->VerifyValue( index, value ) )
     {
-        PySafeDecRef( value );
+        PyDecRef( value );
         return false;
     }
 
