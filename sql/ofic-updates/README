@@ -22,6 +22,3 @@ invBlueprintTypes                    missing columns (`chanceOfReverseEngineerin
 invShipTypes                         not in dump
 mapCelestialDescriptions             not in dump
 mapLocationWormholeClasses           not in dump
-
-Scripts 'merge-sql.bat' (for Windows) and 'merge-sql.sh' (for Linux) merge all SQL updates into one file called 'ofic-update.sql', which is easier to import.
-

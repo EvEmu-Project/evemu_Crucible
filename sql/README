@@ -4,24 +4,24 @@ DATABASE INSTALLATION GUIDE:
      http://eve.no-ip.de/apo15/apo15-mysql5-v1.sql.bz2
     Unpack it - you should get file with ".sql" extension.
 
- 2. Create database into which you want to stick all the EVEmu DB stuff.
-
- 3. Import the official dump (the one you downloaded and unpacked).
-
- 4. Go to subdirectory ./ofic-updates and:
+ 2. Go to subdirectory utils and:
     a) If you are on Windows:
-        Execute merge-sql.bat.
+        Execute merge-evemu-updates.bat and merge-ofic-updates.bat.
     b) If you are on Linux:
-        Execute merge-sql.sh.
-    Now import file ofic-update.sql, which the script generated.
+        Execute merge-evemu-updates.sh and merge-ofic-updates.sh.
 
- 5. Import evemu_static-dump.sql.
+    After that browse back to parent directory sql. Note the 2 new files
+    called ofic-updates.sql and evemu-updates.sql.
 
- 6. Import evemu_dynamic-dump.sql.
+ 3. Create database into which you want to stick all the EVEmu DB stuff.
 
- 7. Import all the updates from subdirectory ./evemu-updates.
-
- 8. Import prime_db.sql.
+ 4. Import the .sql files in following order:
+    a) apo15-mysql5-v1.sql (official dump; the one you downloaded and unpacked)
+    b) ofic-updates.sql
+    c) evemu_static-dump.sql
+    d) evemu_dynamic-dump.sql
+    e) evemu-updates.sql
+    f) prime_db.sql
 
 FILE DESCRIPTION:
 ===================
