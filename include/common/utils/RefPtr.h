@@ -27,12 +27,12 @@
 #define __REF_PTR_H__INCL__
 
 /**
- * \brief Reference counting based smart pointer.
+ * @brief Reference counting based smart pointer.
  *
  * This smart pointer cares about acquiring/releasing reference
  * of the stored object. Manual to be as performant as possible.
  *
- * \author Bloody.Rabbit
+ * @author Bloody.Rabbit
  */
 template<typename X>
 class RefPtr
@@ -43,7 +43,7 @@ public:
 	 *
 	 * @param[in] p Pointer to object to be referenced.
 	 */
-	explicit RefPtr(X* p = NULL)
+	explicit RefPtr( X* p = NULL )
 	: mPtr( p )
 	{
 		if( *this )
@@ -54,7 +54,7 @@ public:
 	 *
 	 * @param[in] oth Object to copy the reference from.
 	 */
-	RefPtr(const RefPtr& oth)
+	RefPtr( const RefPtr& oth )
 	: mPtr( oth.get() )
 	{
 		if( *this )
@@ -66,7 +66,7 @@ public:
 	 * @param[in] oth Object to copy the reference from.
 	 */
 	template<typename Y>
-	RefPtr(const RefPtr<Y>& oth)
+	RefPtr( const RefPtr<Y>& oth )
 	: mPtr( oth.get() )
 	{
 		if( *this )
@@ -87,7 +87,7 @@ public:
 	 *
 	 * @param[in] oth Object to copy the reference from.
 	 */
-	RefPtr& operator=(const RefPtr& oth)
+	RefPtr& operator=( const RefPtr& oth )
 	{
 		if( *this )
 			(*this)->DecRef();
@@ -105,7 +105,7 @@ public:
 	 * @param[in] oth Object to copy the reference from.
 	 */
 	template<typename Y>
-	RefPtr& operator=(const RefPtr<Y>& oth)
+	RefPtr& operator=( const RefPtr<Y>& oth )
 	{
 		if( *this )
 			(*this)->DecRef();
@@ -137,7 +137,7 @@ public:
 	 * @return True if both references are of same object, false if not.
 	 */
 	template<typename Y>
-	bool operator==(const RefPtr<Y>& oth) const
+	bool operator==( const RefPtr<Y>& oth ) const
 	{
 		return ( get() == oth.get() );
 	}
@@ -146,7 +146,7 @@ public:
 	 * Acts as static_cast.
 	 */
 	template<typename Y>
-	static RefPtr StaticCast(const RefPtr<Y>& oth)
+	static RefPtr StaticCast( const RefPtr<Y>& oth )
 	{
 		return RefPtr( static_cast<X*>( oth.get() ) );
 	}
@@ -156,54 +156,65 @@ protected:
 };
 
 /**
- * \brief Class RefPtr can cooperate with.
+ * @brief Class RefPtr can cooperate with.
  *
  * This class has all stuff needed to cooperate with
  * RefPtr. If you want some of your classes to be
  * reference-counted, derive them from this class.
  *
- * \author Bloody.Rabbit
+ * @author Bloody.Rabbit
  */
 class RefObject
 {
 	template<typename X>
 	friend class RefPtr;
+
 public:
 	/**
-	 * \brief Initializes reference count.
+	 * @brief Initializes reference count.
 	 *
 	 * @param[in] initRefCount Initial reference count.
 	 */
-	RefObject(size_t initRefCount)
+	RefObject( size_t initRefCount )
 	: mRefCount( initRefCount )
 	{
 	}
 
 	/**
-	 * \brief Destructor; must be virtual.
+	 * @brief Destructor; must be virtual.
 	 *
 	 * Must be virtual if proper destructor should be
 	 * invoked upon destruction.
 	 */
 	virtual ~RefObject()
 	{
-		assert( mRefCount == 0 );
+		assert( 0 == mRefCount );
 	}
 
 protected:
+    /**
+     * @brief Increments reference count of object by one.
+     */
 	void IncRef() const
 	{
-		mRefCount++;
+		++mRefCount;
 	}
+    /**
+     * @brief Decrements reference count of object by one.
+     *
+     * If reference count of object reaches zero, object
+     * is deleted.
+     */
 	void DecRef() const
 	{
-		assert( mRefCount > 0 );
-		mRefCount--;
+		assert( 0 < mRefCount );
+		--mRefCount;
 
-		if( mRefCount == 0 )
+		if( 0 == mRefCount )
 			delete this;
 	}
 
+    /** Reference count of instance. */
 	mutable size_t mRefCount;
 };
 

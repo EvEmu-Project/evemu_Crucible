@@ -389,7 +389,7 @@ void PyLogDumpVisitor::_dump( const char* pfx, const uint8* data, size_t len )
     if( fullHex() )
         pfxHexDump( pfx, logHexType(), data, len );
     else
-        pfxPreviewHexDump( pfx, logHexType(), data, len );
+        pfxHexDumpPreview( pfx, logHexType(), data, len );
 }
 
 PyFileDumpVisitor::PyFileDumpVisitor( FILE* _file, const char* pfx, bool full_nested, bool full_hex )
@@ -415,5 +415,5 @@ void PyFileDumpVisitor::_dump( const char* pfx, const uint8* data, size_t len )
     if( fullHex() )
         pfxHexDump( pfx, file(), data, len );
     else
-        pfxPreviewHexDump( pfx, file(), data, len );
+        pfxHexDumpPreview( pfx, file(), data, len );
 }

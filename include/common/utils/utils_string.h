@@ -102,7 +102,7 @@ bool IsPrintable( const std::string& str );
  *
  * @return Pointer to static array where result is stored.
  */
-const char* itoa( int num );
+const char* itoa( int64 num );
 
 /**
  * function to convert a vector of numbers to a string containing string representatives of those

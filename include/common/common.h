@@ -63,6 +63,7 @@
 #       if _DEBUG
 #           define _CRTDBG_MAP_ALLOC 1
 #       endif// _DEBUG
+#       define _SCL_SECURE_NO_WARNINGS 1
 #   endif//_MSC_VER
 #endif//WIN32
 

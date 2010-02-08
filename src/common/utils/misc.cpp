@@ -94,13 +94,15 @@ uint64 filesize( FILE* fd )
 uint64 npowof2( uint64 num )
 {
     --num;
-    num |= ( num >> 1 );
-    num |= ( num >> 2 );
-    num |= ( num >> 4 );
-    num |= ( num >> 8 );
+    num |= ( num >>  1 );
+    num |= ( num >>  2 );
+    num |= ( num >>  4 );
+    num |= ( num >>  8 );
     num |= ( num >> 16 );
     num |= ( num >> 32 );
-    return ++num;
+    ++num;
+
+    return num;
 }
 
 //I didn't even look to see if windows supports random();

@@ -26,6 +26,9 @@
 #ifndef UTILS_HEX_H
 #define UTILS_HEX_H
 
+/** The maximal number of bytes printed by pfxHexDumpPreview. */
+extern const uint32 HEX_DUMP_PREVIEW_LIMIT;
+
 /**
  * @brief Build a printable line suitable for hex dump.
  *
@@ -37,9 +40,9 @@
  */
 void build_hex_line( const uint8* buffer, size_t length, size_t offset, char* ret, unsigned int padding = 4 );
 
-void pfxHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length);
-void pfxHexDump(const char *pfx, LogType type, const uint8 *data, uint32 length);
-void pfxPreviewHexDump(const char *pfx, FILE *into, const uint8 *data, uint32 length);
-void pfxPreviewHexDump(const char *pfx, LogType type, const uint8 *data, uint32 length);
+void pfxHexDump( const char* pfx, FILE* into, const uint8* data, uint32 length );
+void pfxHexDump( const char* pfx, LogType type, const uint8* data, uint32 length );
+void pfxHexDumpPreview( const char* pfx, FILE* into, const uint8* data, uint32 length );
+void pfxHexDumpPreview( const char* pfx, LogType type, const uint8* data, uint32 length );
 
 #endif // UTILS_HEX_H
