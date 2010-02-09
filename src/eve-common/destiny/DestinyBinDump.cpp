@@ -95,9 +95,12 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		data += sizeof(Destiny::ShipSector);
 		len -= sizeof(Destiny::ShipSector);
 		
-		_log(into, "   maxSpeed=%.2f, V=(%.3f, %.3f, %.3f) PS=%.4f, SF=%.3f",
-			shipchunk->max_speed, shipchunk->velocity_x, shipchunk->velocity_y, shipchunk->velocity_z,
-			shipchunk->agility, shipchunk->speed_fraction);
+		_log(into, "   maxSpeed=%.2f, V=(%.3f, %.3f, %.3f) unknown=(%.3f, %.3f, %.3f) PS=%.4f, SF=%.3f",
+			shipchunk->max_speed,
+            shipchunk->velocity_x, shipchunk->velocity_y, shipchunk->velocity_z,
+            shipchunk->unknown_x, shipchunk->unknown_y, shipchunk->unknown_z,
+			shipchunk->agility,
+            shipchunk->speed_fraction);
 	}
 	
 	_log(into, "   %s:", Destiny::DSTBALL_modeNames[ballhead->mode]);

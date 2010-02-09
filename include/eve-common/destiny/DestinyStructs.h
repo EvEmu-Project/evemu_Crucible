@@ -536,8 +536,11 @@ struct ShipSector {
 /*076*/double velocity_x;
 /*084*/double velocity_y;
 /*092*/double velocity_z;
-/*100*/double agility;	//3.037999998778105 = object+0x0A8
-/*108*/double speed_fraction;	//I think this is object+0x0B0
+/*100*/double unknown_x; //might not really be x at all
+/*108*/double unknown_y; //might not really be y at all
+/*116*/double unknown_z; //might not really be z at all
+/*124*/double agility;	//3.037999998778105 = object+0x0A8
+/*132*/double speed_fraction;	//I think this is object+0x0B0
 };
 
 struct MiniBall {

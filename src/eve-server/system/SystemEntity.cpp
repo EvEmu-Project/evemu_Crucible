@@ -250,8 +250,11 @@ void DynamicSystemEntity::EncodeDestiny(std::vector<uint8> &into) const {
 		item->ship.velocity_x = 0.0;	//TODO: use destiny's velocity
 		item->ship.velocity_y = 0.0;
 		item->ship.velocity_z = 0.0;
+        item->ship.unknown_x = 0.0;
+        item->ship.unknown_y = 0.0;
+        item->ship.unknown_z = 0.0;
 		item->ship.agility = GetAgility();
-		item->ship.speed_fraction = 1.0;	//TODO: put in speed fraction!
+		item->ship.speed_fraction = 0.0;	//TODO: put in speed fraction!
 		
 		item->main.formationID = 0xFF;
 		
