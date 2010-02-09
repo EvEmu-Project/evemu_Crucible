@@ -93,17 +93,17 @@ PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index)
     }
 
     case DBTYPE_STR:
-        return new PyString( row.GetText(column_index), row.GetColumnLength(column_index) );
+        return new PyString( row.GetText(column_index), row.ColumnLength(column_index) );
 
     case DBTYPE_WSTR:
-        return new PyWString( row.GetText(column_index), row.GetColumnLength(column_index) );
+        return new PyWString( row.GetText(column_index), row.ColumnLength(column_index) );
 
     default:
         sLog.Error("DBColumnToPyRep", "invalid column type: %u", type);
         /* hack... MAJOR... */
 
     case DBTYPE_BYTES:
-        return new PyBuffer( (const uint8*)row.GetText(column_index), row.GetColumnLength(column_index) );
+        return new PyBuffer( (const uint8*)row.GetText(column_index), row.ColumnLength(column_index) );
     }
 }
 

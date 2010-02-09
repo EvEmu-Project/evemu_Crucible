@@ -315,8 +315,8 @@ bool TCPConnection::Process()
 
 bool TCPConnection::SendData( char* errbuf )
 {
-	if( errbuf )
-		errbuf[0] = 0;
+    if( errbuf )
+	errbuf[0] = 0;
 
     LockMutex lock( &mMSock );
 
@@ -325,67 +325,73 @@ bool TCPConnection::SendData( char* errbuf )
         return false;
 
     mMSendQueue.lock();
-	while( !mSendQueue.empty() )
+    while( !mSendQueue.empty() )
     {
         Buffer* buf = mSendQueue.front();
         mSendQueue.pop_front();
         mMSendQueue.unlock();
 
 #ifdef WIN32
-		int status = mSock->send( &(*buf)[ 0 ], buf->size(), 0 );
+	int status = mSock->send( &(*buf)[ 0 ], buf->size(), 0 );
 #else
-		int status = mSock->send( &(*buf)[ 0 ], buf->size(), MSG_NOSIGNAL );
-		if( errno == EPIPE )
+	int status = mSock->send( &(*buf)[ 0 ], buf->size(), MSG_NOSIGNAL );
+	if( errno == EPIPE )
             status = SOCKET_ERROR;
 #endif
 
-		if( status >= 0 )
-        {
-			if( (uint32)status > buf->size() )
-            {
-                if( errbuf )
-			        snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): WTF! status > size." );
-
-                SafeDelete( buf );
-				return false;
-			}
-
-            if( (uint32)status < buf->size() )
-            {
-                buf->Set( &(*buf)[ status ], buf->size() - status );
-
-                LockMutex queueLock( &mMSendQueue );
-
-                mSendQueue.push_front( buf );
-                buf = NULL;
-            }
-		}
-		else if( status == SOCKET_ERROR )
+        if( status == SOCKET_ERROR )
         {
 #ifdef WIN32
-			if( WSAGetLastError() != WSAEWOULDBLOCK )
+            if( WSAGetLastError() == WSAEWOULDBLOCK )
 #else
-			if( errno != EWOULDBLOCK )
-#endif
-			{
-				if( errbuf )
+            if( errno == EWOULDBLOCK )
+#endif /* !WIN32 */
+            {
+                // Act like nothing was sent
+                status = 0;
+            }
+            else
+            {
+		if( errbuf )
 #ifdef WIN32
                     snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): send(): Errorcode: %u", WSAGetLastError() );
 #else
-					snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): send(): Errorcode: %s", strerror( errno ) );
+		    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): send(): Errorcode: %s", strerror( errno ) );
 #endif
 
                 SafeDelete( buf );
-				return false;
-			}
-		}
+                return false;
+	    }
+        }
 
-		SafeDelete( buf );
+        if( (uint32)status > buf->size() )
+        {
+            if( errbuf )
+                snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): WTF! status > size." );
+
+            SafeDelete( buf );
+            return false;
+        }
+        else if( (uint32)status < buf->size() )
+        {
+            if( status > 0 )
+                buf->Set( &(*buf)[ status ], buf->size() - status );
+
+            LockMutex queueLock( &mMSendQueue );
+
+            mSendQueue.push_front( buf );
+            buf = NULL;
+        }
+        else
+        {
+            SafeDelete( buf );
+        }
+
         mMSendQueue.lock();
-	}
+    }
     mMSendQueue.unlock();
 
-	return true;
+    return true;
 }
 
 bool TCPConnection::RecvData( char* errbuf )
@@ -407,41 +413,42 @@ bool TCPConnection::RecvData( char* errbuf )
             mRecvBuf->Resize( TCPCONN_RECVBUF_SIZE, 0 );
 
         int status = mSock->recv( &(*mRecvBuf)[ 0 ], mRecvBuf->size(), 0 );
+
         if( status > 0 )
         {
             mRecvBuf->Resize( status, 0 );
 
-		    if( !ProcessReceivedData( errbuf ) )
-			    return false;
+	    if( !ProcessReceivedData( errbuf ) )
+                return false;
         }
         else if( status == 0 )
         {
-		    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Connection closed" );
+	    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Connection closed" );
 
-		    return false;
-	    }
-	    else if( status == SOCKET_ERROR )
+	    return false;
+        }
+	else if( status == SOCKET_ERROR )
         {
 #ifdef WIN32
-		    if ( WSAGetLastError() != WSAEWOULDBLOCK )
+	    if ( WSAGetLastError() == WSAEWOULDBLOCK )
 #else
-		    if ( errno != EWOULDBLOCK )
+	    if ( errno == EWOULDBLOCK )
 #endif
-            {
-			    if( errbuf )
-#ifdef WIN32
-				    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %i", WSAGetLastError() );
-#else
-				    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %s", strerror( errno ) );
-#endif
-
-			    return false;
-		    }
-            else
             {
                 return true;
             }
+            else
+            {
+	        if( errbuf )
+#ifdef WIN32
+		    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %i", WSAGetLastError() );
+#else
+		    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %s", strerror( errno ) );
+#endif
+
+                return false;
 	    }
+	}
     }
 }
 

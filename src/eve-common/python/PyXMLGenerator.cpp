@@ -120,7 +120,7 @@ bool PyXMLGenerator::VisitSubStream( const PySubStream* rep )
 
     fprintf( mInto, "%s</substreamInline>\n", _pfx() );
 
-    return true;
+    return res;
 }
 
 bool PyXMLGenerator::VisitDict( const PyDict* rep )

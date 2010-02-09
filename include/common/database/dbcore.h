@@ -95,8 +95,6 @@ class DBResultRow
 public:
     DBResultRow();
 
-    uint32 GetColumnLength( uint32 index ) const;
-
     bool IsNull( uint32 index ) const { return ( NULL == GetText( index ) ); }
 
     const char* GetText( uint32 index ) const { return mRow[ index ]; }
@@ -111,6 +109,7 @@ public:
     uint32 ColumnCount() const { return mResult->ColumnCount(); }
     const char* ColumnName( uint32 index ) const { return mResult->ColumnName( index ); }
     DBTYPE ColumnType( uint32 index ) const { return mResult->ColumnType( index ); }
+    uint32 ColumnLength( uint32 index ) const;
 
     bool IsUnsigned( uint32 index ) const { return mResult->IsUnsigned( index ); }
     bool IsBinary( uint32 index ) const { return mResult->IsBinary( index ); }
@@ -118,10 +117,10 @@ public:
 protected:
     //for DBQueryResult
     friend class DBQueryResult;
-    void SetData( DBQueryResult* res, MYSQL_ROW& row, const uint32* lengths );
+    void SetData( DBQueryResult* res, MYSQL_ROW& row, const unsigned long* lengths );
 
     MYSQL_ROW mRow;
-    const uint32* mLengths;
+    const unsigned long* mLengths;
 
     DBQueryResult* mResult;
 };

@@ -43,6 +43,7 @@ class PyObject;
 class PyBuffer;
 class PyCachedObjectDecoder;
 
+#pragma pack(1)
 struct CacheFileHeader
 {
     uint64 timestamp;
@@ -50,7 +51,9 @@ struct CacheFileHeader
     uint32 length;
     uint32 magic;
 };
-static const uint32 CacheFileMagic = 0xFF886622;
+#pragma pack()
+
+extern const uint32 CacheFileMagic;
 
 class CachedObjectMgr {
 public:

@@ -547,6 +547,7 @@ PyRep *PyAddress::Encode() {
         break;
 
     case Invalid:
+    default:
         //this still needs to be something which will not crash us.
         t = new PyTuple(0);
 

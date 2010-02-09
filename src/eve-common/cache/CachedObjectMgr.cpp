@@ -34,6 +34,7 @@
 #include "python/PyDumpVisitor.h"
 #include "utils/EVEUtils.h"
 
+const uint32 CacheFileMagic = 0xFF886622;
 static const uint32 HackCacheNodeID = 333444;
 
 CachedObjectMgr::~CachedObjectMgr()

@@ -432,7 +432,7 @@ bool DBQueryResult::GetRow( DBResultRow& into )
     if( NULL == row )
         return false;
 
-    uint32* lengths = (uint32*)mysql_fetch_lengths( mResult );
+    const unsigned long* lengths = mysql_fetch_lengths( mResult );
     if( NULL == lengths )
         return false;
 
@@ -529,7 +529,7 @@ DBResultRow::DBResultRow()
 {
 }
 
-uint32 DBResultRow::GetColumnLength( uint32 index ) const
+uint32 DBResultRow::ColumnLength( uint32 index ) const
 {
 #ifdef COLUMN_BOUNDS_CHECKING
     if( index >= ColumnCount() )
@@ -628,7 +628,7 @@ double DBResultRow::GetDouble( uint32 index ) const
     return strtod( GetText( index ), NULL );
 }
 
-void DBResultRow::SetData( DBQueryResult* res, MYSQL_ROW& row, const uint32* lengths )
+void DBResultRow::SetData( DBQueryResult* res, MYSQL_ROW& row, const unsigned long* lengths )
 {
     mRow = row;
     mResult = res;

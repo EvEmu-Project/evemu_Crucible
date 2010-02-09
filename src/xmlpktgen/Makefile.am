@@ -1,4 +1,4 @@
-bin_PROGRAMS = \
+noinst_PROGRAMS = \
 	xmlpktgen
 
 xmlpktgen_SOURCES = \
