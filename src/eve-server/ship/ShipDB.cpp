@@ -25,42 +25,47 @@
 
 #include "EVEServerPCH.h"
 
-PyTuple *ShipDB::GetFormations() {
+PyTuple* ShipDB::GetFormations()
+{
 	//vicious crap... but this is gunna be a bit of work to load from the DB (nested tuples)
-	PyTuple *res = new PyTuple(2);
+	PyTuple* res = new PyTuple( 2 );
 
 	cache_Formation f;
 	Call_PointArg pos;
 
 	//Diamond formation
 	f.name = "Diamond";
-	f.positions = new PyTuple(4);
+
+    PySafeDecRef( f.positions );
+	f.positions = new PyTuple( 4 );
 
 	pos.x = 100;	pos.y = 0;		pos.z = 0;
-	f.positions->items[0] = pos.Encode();
+	f.positions->SetItem( 0, pos.Encode() );
 	pos.x = 0;		pos.y = 100;	pos.z = 0;
-	f.positions->items[1] = pos.Encode();
+    f.positions->SetItem( 1, pos.Encode() );
 	pos.x = -100;	pos.y = 0;		pos.z = 0;
-	f.positions->items[2] = pos.Encode();
+	f.positions->SetItem( 2, pos.Encode() );
 	pos.x = 0;		pos.y = -100;	pos.z = 0;
-	f.positions->items[3] = pos.Encode();
+	f.positions->SetItem( 3, pos.Encode() );
 
-	res->items[0] = f.Encode();
+	res->SetItem( 0, f.Encode() );
 
 	//Arrow formation
 	f.name = "Arrow";
-	f.positions = new PyTuple(4);
+
+    PySafeDecRef( f.positions );
+	f.positions = new PyTuple( 4 );
 
 	pos.x = 100;	pos.y = 0;		pos.z = -50;
-	f.positions->items[0] = pos.Encode();
+	f.positions->SetItem( 0, pos.Encode() );
 	pos.x = 50;		pos.y = 0;		pos.z = 0;
-	f.positions->items[1] = pos.Encode();
+    f.positions->SetItem( 1, pos.Encode() );
 	pos.x = -100;	pos.y = 0;		pos.z = -50;
-	f.positions->items[2] = pos.Encode();
+	f.positions->SetItem( 2, pos.Encode() );
 	pos.x = -50;	pos.y = 0;		pos.z = 0;
-	f.positions->items[3] = pos.Encode();
+	f.positions->SetItem( 3, pos.Encode() );
 
-	res->items[1] = f.Encode();
+	res->SetItem( 1, f.Encode() );
 
 	return res;
 }

@@ -601,14 +601,15 @@ void Character::UpdateSkillQueue()
 
             currentTraining->MoveInto( *this, flagSkill, true );
 
-            if(c != NULL) {
+            if( c != NULL )
+            {
                 OnSkillTrainingStopped osst;
                 osst.itemID = currentTraining->itemID();
                 osst.endOfTraining = 0;
 
-                PyTuple *tmp = osst.Encode();
+                PyTuple* tmp = osst.Encode();
                 c->QueueDestinyEvent( &tmp );
-                PyDecRef( tmp );
+                PySafeDecRef( tmp );
 
                 c->UpdateSkillTraining();
             }
@@ -643,14 +644,15 @@ void Character::UpdateSkillQueue()
             currentTraining->MoveInto( *this, flagSkillInTraining );
             currentTraining->Set_expiryTime( timeTraining );
 
-            if(c != NULL) {
+            if( c != NULL )
+            {
                 OnSkillStartTraining osst;
                 osst.itemID = currentTraining->itemID();
                 osst.endOfTraining = timeTraining;
 
-                PyTuple *tmp = osst.Encode();
+                PyTuple* tmp = osst.Encode();
                 c->QueueDestinyEvent( &tmp );
-                PyDecRef( tmp );
+                PySafeDecRef( tmp );
 
                 c->UpdateSkillTraining();
             }
@@ -674,9 +676,9 @@ void Character::UpdateSkillQueue()
                 OnSkillTrained ost;
                 ost.itemID = currentTraining->itemID();
 
-                PyTuple *tmp = ost.Encode();
+                PyTuple* tmp = ost.Encode();
                 c->QueueDestinyEvent( &tmp );
-                PyDecRef( tmp );
+                PySafeDecRef( tmp );
 
                 c->UpdateSkillTraining();
             }

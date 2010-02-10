@@ -79,6 +79,10 @@ UserError::UserError( const char* msg )
 
 void UserError::AddKeyword( const char* name, PyRep* value )
 {
+    // We need 2 refs ... the first one is given to us,
+    // but we must create the second one ...
+    PyIncRef( value );
+
 	_GetTupleKeywords()->SetItemString( name, value );
 	_GetDictKeywords()->SetItemString( name, value );
 }

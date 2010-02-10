@@ -332,10 +332,10 @@ bool TCPConnection::SendData( char* errbuf )
         mMSendQueue.unlock();
 
 #ifdef WIN32
-	int status = mSock->send( &(*buf)[ 0 ], buf->size(), 0 );
+        int status = mSock->send( &(*buf)[ 0 ], buf->size(), 0 );
 #else
-	int status = mSock->send( &(*buf)[ 0 ], buf->size(), MSG_NOSIGNAL );
-	if( errno == EPIPE )
+        int status = mSock->send( &(*buf)[ 0 ], buf->size(), MSG_NOSIGNAL );
+        if( errno == EPIPE )
             status = SOCKET_ERROR;
 #endif
 
@@ -352,16 +352,16 @@ bool TCPConnection::SendData( char* errbuf )
             }
             else
             {
-		if( errbuf )
+                if( errbuf )
 #ifdef WIN32
                     snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): send(): Errorcode: %u", WSAGetLastError() );
 #else
-		    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): send(): Errorcode: %s", strerror( errno ) );
+                    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): send(): Errorcode: %s", strerror( errno ) );
 #endif
 
                 SafeDelete( buf );
                 return false;
-	    }
+            }
         }
 
         if( (uint32)status > buf->size() )
@@ -418,37 +418,37 @@ bool TCPConnection::RecvData( char* errbuf )
         {
             mRecvBuf->Resize( status, 0 );
 
-	    if( !ProcessReceivedData( errbuf ) )
+            if( !ProcessReceivedData( errbuf ) )
                 return false;
         }
         else if( status == 0 )
         {
-	    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Connection closed" );
+            snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Connection closed" );
 
-	    return false;
+            return false;
         }
-	else if( status == SOCKET_ERROR )
+        else if( status == SOCKET_ERROR )
         {
 #ifdef WIN32
-	    if ( WSAGetLastError() == WSAEWOULDBLOCK )
+            if ( WSAGetLastError() == WSAEWOULDBLOCK )
 #else
-	    if ( errno == EWOULDBLOCK )
+            if ( errno == EWOULDBLOCK )
 #endif
             {
                 return true;
             }
             else
             {
-	        if( errbuf )
+                if( errbuf )
 #ifdef WIN32
-		    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %i", WSAGetLastError() );
+                    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %i", WSAGetLastError() );
 #else
-		    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %s", strerror( errno ) );
+                    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %s", strerror( errno ) );
 #endif
 
                 return false;
-	    }
-	}
+            }
+        }
     }
 }
 
