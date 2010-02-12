@@ -83,12 +83,11 @@ PyBoundObject *ScenarioService::_CreateBoundObject(Client *c, const PyRep *bind_
 }*/
 
 
-PyResult ScenarioService::Handle_ResetD(PyCallArgs &call) {
-	PyRep *result = NULL;
+PyResult ScenarioService::Handle_ResetD( PyCallArgs& call )
+{
+    sLog.Debug( "ScenarioService", "Called ResetD stub." );
 
-	codelog(SERVICE__ERROR, "Unhandled ResetD");
-
-	return result;
+	return new PyNone;
 }
 
 

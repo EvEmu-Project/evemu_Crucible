@@ -94,19 +94,24 @@ PyResult TutorialService::Handle_GetCategories(PyCallArgs &call) {
 	return(m_db.GetCategories());
 }
 
-PyResult TutorialService::Handle_GetContextHelp(PyCallArgs &call) {
-	//unimplemented
-	return(new PyList());
+PyResult TutorialService::Handle_GetContextHelp( PyCallArgs& call )
+{
+    sLog.Debug( "TutorialService", "Called GetContextHelp stub." );
+
+    return new PyList;
 }
 
-PyResult TutorialService::Handle_GetCharacterTutorialState(PyCallArgs &call) {
+PyResult TutorialService::Handle_GetCharacterTutorialState( PyCallArgs& call )
+{
+    sLog.Debug( "TutorialService", "Called GetCharacterTutorialState stub." );
+
 	util_Rowset rs;
     rs.lines = new PyList;
 
-	rs.header.push_back("characterID");
-	rs.header.push_back("tutorialID");
-	rs.header.push_back("pageID");
-	rs.header.push_back("eventTypeID");
+	rs.header.push_back( "characterID" );
+	rs.header.push_back( "tutorialID" );
+	rs.header.push_back( "pageID" );
+	rs.header.push_back( "eventTypeID" );
 
 	return rs.Encode();
 }

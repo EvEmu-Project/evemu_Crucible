@@ -42,11 +42,12 @@ PosMgrService::~PosMgrService() {
 }
 
 /*
-PyBoundObject *PosMgrService::_CreateBoundObject(Client *c, PyRep *bind_args) {
-	_log(CLIENT__MESSAGE, "PosMgrService bind request for:");
-	bind_args->Dump(stdout, "    ");
+PyBoundObject* PosMgrService::_CreateBoundObject( Client* c, const PyRep* bind_args )
+{
+	_log( CLIENT__MESSAGE, "PosMgrService bind request for:" );
+	bind_args->Dump( CLIENT__MESSAGE, "    " );
 
-	return(new PosMgrServiceBound(m_manager, &m_db));
+	return new PosMgrServiceBound( m_manager, &m_db );
 }*/
 
 PyResult PosMgrService::Handle_GetControlTowerFuelRequirements(PyCallArgs &args) {

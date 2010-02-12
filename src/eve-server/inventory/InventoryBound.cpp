@@ -95,15 +95,16 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
 }
 
 
-PyResult InventoryBound::Handle_ListStations(PyCallArgs &call) {
-    codelog(SERVICE__ERROR, "Unimplemented.");
+PyResult InventoryBound::Handle_ListStations( PyCallArgs& call )
+{
+    sLog.Debug( "InventoryBound", "Called ListStations stub." );
 
     util_Rowset rowset;
 
-    rowset.header.push_back("stationID");
-    rowset.header.push_back("itemCount");
+    rowset.header.push_back( "stationID" );
+    rowset.header.push_back( "itemCount" );
 
-    return(rowset.Encode());
+    return rowset.Encode();
 }
 
 PyResult InventoryBound::Handle_GetItem(PyCallArgs &call) {

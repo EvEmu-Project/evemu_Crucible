@@ -84,22 +84,20 @@ InsuranceService::~InsuranceService() {
 
 
 /*
-PyBoundObject *InsuranceService::_CreateBoundObject(Client *c, PyRep *bind_args) {
-	_log(CLIENT__MESSAGE, "InsuranceService bind request for:");
-	bind_args->Dump(stdout, "    ");
+PyBoundObject* InsuranceService::_CreateBoundObject( Client* c, const PyRep* bind_args )
+{
+	_log( CLIENT__MESSAGE, "InsuranceService bind request for:" );
+	bind_args->Dump( CLIENT__MESSAGE, "    " );
 
-	return(new InsuranceBound(m_manager, &m_db));
+	return new InsuranceBound( m_manager, &m_db );
 }*/
 
 
-PyResult InsuranceService::Handle_GetContractForShip(PyCallArgs &call) {
-	PyRep *result = NULL;
+PyResult InsuranceService::Handle_GetContractForShip( PyCallArgs& call )
+{
+    sLog.Debug( "InsuranceService", "Called GetContractForShip stub." );
 
-	result = new PyNone();
-
-	_log(CLIENT__MESSAGE, "GetContractForShip not implemented!");
-	
-	return result;
+    return new PyNone;
 }
 
 

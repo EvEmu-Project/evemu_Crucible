@@ -44,12 +44,13 @@ ContractMgrService::~ContractMgrService()
 	delete m_dispatch;
 }
 
-PyResult ContractMgrService::Handle_NumRequiringAttention(PyCallArgs &call) {
-	_log(SERVICE__WARNING, "%s: NumReqiringAttention unimplemented.", GetName());
+PyResult ContractMgrService::Handle_NumRequiringAttention( PyCallArgs& call )
+{
+    sLog.Debug( "ContractMgrService", "Called NumRequiringAttention stub." );
 
-	PyDict *args = new PyDict;
-	args->SetItemString("n", new PyInt(0));
-	args->SetItemString("ncorp", new PyInt(0));
+	PyDict* args = new PyDict;
+	args->SetItemString( "n", new PyInt( 0 ) );
+	args->SetItemString( "ncorp", new PyInt( 0 ) );
 
 	return new PyObject(
         new PyString( "util.KeyVal" ), args

@@ -71,15 +71,12 @@ PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
   * @Note: this process is only usefully when we supply the client with a valid errorID.
   *      meaning that we should code a errorID tracker for it. To handle these.
   */
-PyResult AlertService::Handle_BeanDelivery(PyCallArgs &call) {
-	PyRep *result = NULL;
-
+PyResult AlertService::Handle_BeanDelivery( PyCallArgs& call )
+{
 	/* Unhandled for now as we have no interest in receiving batched python stack traces
 	 * nor official style debugging... Just gimme the info dude (see Handle_SendClientStackTraceAlert).
 	 */
-	result = new PyNone();
-	
-	return result;
+	return new PyNone;
 }
 
 /**

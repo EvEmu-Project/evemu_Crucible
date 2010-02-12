@@ -100,7 +100,8 @@ PyObject *StandingDB::GetCharNPCStandings(uint32 characterID) {
 	return DBResultToRowset(res);
 }
 
-PyObject *StandingDB::GetStandingTransactions(uint32 characterID) {
+PyObject *StandingDB::GetStandingTransactions( uint32 characterID )
+{
 	/*DBQueryResult res;
 
 	if (!sDatabase.RunQuery(res,
@@ -115,24 +116,24 @@ PyObject *StandingDB::GetStandingTransactions(uint32 characterID) {
 	return (DBResultToRowset(res));*/
 
 	//since we dont support standing changes in any way yet, its useless to have such stuff in db
-	_log(DATABASE__MESSAGE, "StandingChanges unimplemented.");
+    sLog.Debug( "StandingDB", "Called GetStandingTransactions stub." );
 
 	util_Rowset res;
 
-	res.header.push_back("eventID");
-	res.header.push_back("eventTypeID");
-	res.header.push_back("eventDateTime");
-	res.header.push_back("fromID");
-	res.header.push_back("toID");
-	res.header.push_back("modification");
-	res.header.push_back("originalFromID");
-	res.header.push_back("originalToID");
-	res.header.push_back("int_1");
-	res.header.push_back("int_2");
-	res.header.push_back("int_3");
-	res.header.push_back("msg");
+	res.header.push_back( "eventID" );
+	res.header.push_back( "eventTypeID" );
+	res.header.push_back( "eventDateTime" );
+	res.header.push_back( "fromID" );
+	res.header.push_back( "toID" );
+	res.header.push_back( "modification" );
+	res.header.push_back( "originalFromID" );
+	res.header.push_back( "originalToID" );
+	res.header.push_back( "int_1" );
+	res.header.push_back( "int_2" );
+	res.header.push_back( "int_3" );
+	res.header.push_back( "msg" );
 
-	return(res.Encode());
+	return res.Encode();
 }
 
 

@@ -95,46 +95,49 @@ PyResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
     return new PyInt( ch->GetEndOfTraining() );
 }
 
-PyResult SkillMgrBound::Handle_GetSkillHistory(PyCallArgs &call) {
-    _log(SERVICE__WARNING, "GetSkillHistory unimplemented.");
+PyResult SkillMgrBound::Handle_GetSkillHistory( PyCallArgs& call )
+{
+    sLog.Debug( "SkillMgrBound", "Called GetSkillHistory stub." );
 
     util_Rowset rowset;
 
-    rowset.header.push_back("logDateTime");
-    rowset.header.push_back("eventID");
-    rowset.header.push_back("skillTypeID");
-    rowset.header.push_back("relativePoints");
-    rowset.header.push_back("absolutePoints");
+    rowset.header.push_back( "logDateTime" );
+    rowset.header.push_back( "eventID" );
+    rowset.header.push_back( "skillTypeID" );
+    rowset.header.push_back( "relativePoints" );
+    rowset.header.push_back( "absolutePoints" );
 
     return rowset.Encode();
 }
 
-PyResult SkillMgrBound::Handle_CharAddImplant(PyCallArgs &call) {
+PyResult SkillMgrBound::Handle_CharAddImplant( PyCallArgs& call )
+{
     //takes itemid
     Call_SingleIntegerArg args;
-    if(!args.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName());
+    if( !args.Decode( &call.tuple ) )
+    {
+        codelog( CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName() );
         return NULL;
     }
 
-    codelog(CLIENT__ERROR, "%s: add implant arg: %u", call.client->GetName(), args.arg);
-    codelog(SERVICE__ERROR, "Unimplemented.");
+    sLog.Debug( "SkillMgrBound", "Called CharAddImplant stub." );
 
-    return(NULL);
+    return NULL;
 }
 
-PyResult SkillMgrBound::Handle_RemoveImplantFromCharacter(PyCallArgs &call) {
+PyResult SkillMgrBound::Handle_RemoveImplantFromCharacter( PyCallArgs& call )
+{
     //takes itemid
     Call_SingleIntegerArg args;
-    if(!args.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName());
+    if( !args.Decode( &call.tuple ) )
+    {
+        codelog( CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName() );
         return NULL;
     }
 
-    codelog(CLIENT__ERROR, "%s: remove implant arg: %u", call.client->GetName(), args.arg);
-    codelog(SERVICE__ERROR, "Unimplemented.");
+    sLog.Debug( "SkillMgrBound", "Called RemoveImplantFromCharacter stub." );
 
-    return(NULL);
+    return NULL;
 }
 
 PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
@@ -190,26 +193,30 @@ PyResult SkillMgrBound::Handle_AddToEndOfSkillQueue(PyCallArgs &call) {
     return NULL;
 }
 
-PyResult SkillMgrBound::Handle_GetRespecInfo(PyCallArgs &call) {
+PyResult SkillMgrBound::Handle_GetRespecInfo( PyCallArgs& call )
+{
     // takes no arguments
-    _log(SERVICE__MESSAGE, "%s: GetRespecInfo unimplemented.", GetBindStr().c_str());
+    sLog.Debug( "SkillMgrBound", "Called GetRespecInfo stub." );
 
     // return dict
-    PyDict *result = new PyDict;
-    result->SetItemString("freeRespecs", new PyInt(0));
-    result->SetItemString("nextRespecTime", new PyLong(Win32TimeNow() + Win32Time_Year));
+    PyDict* result = new PyDict;
+    result->SetItemString( "freeRespecs", new PyInt( 0 ) );
+    result->SetItemString( "nextRespecTime", new PyLong( Win32TimeNow() + Win32Time_Year ) );
 
     return result;
 }
 
-PyResult SkillMgrBound::Handle_CharStartTrainingSkillByTypeID(PyCallArgs &call) {
+PyResult SkillMgrBound::Handle_CharStartTrainingSkillByTypeID( PyCallArgs& call )
+{
     Call_SingleIntegerArg args;
-    if(!args.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName());
+    if( !args.Decode( &call.tuple ) )
+    {
+        codelog( CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName() );
         return NULL;
     }
 
-    _log(SERVICE__ERROR, "%s: CharStartTrainingSkillByTypeID unimplemented.", call.client->GetName());
+    sLog.Debug( "SkillMgrBound", "Called CharStartTrainingSkillByTypeID stub." );
+
     return NULL;
 }
 

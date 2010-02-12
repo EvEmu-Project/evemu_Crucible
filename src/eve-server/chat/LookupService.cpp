@@ -90,11 +90,12 @@ LookupService::~LookupService() {
 
 
 /*
-PyBoundObject *LookupService::_CreateBoundObject(Client *c, PyRep *bind_args) {
-	_log(CLIENT__MESSAGE, "LookupService bind request for:");
-	bind_args->Dump(stdout, "    ");
+PyBoundObject* LookupService::_CreateBoundObject( Client* c, const PyRep* bind_args )
+{
+	_log( CLIENT__MESSAGE, "LookupService bind request for:" );
+	bind_args->Dump( CLIENT__MESSAGE, "    " );
 
-	return(new LookupSvcBound(m_manager, &m_db));
+	return new LookupSvcBound( m_manager, &m_db );
 }*/
 
 

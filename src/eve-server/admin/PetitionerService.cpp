@@ -77,11 +77,12 @@ PetitionerService::~PetitionerService() {
 
 
 /*
-PyBoundObject *PetitionerService::_CreateBoundObject(Client *c, PyRep *bind_args) {
-	_log(CLIENT__MESSAGE, "PetitionerService bind request for:");
-	bind_args->Dump(stdout, "    ");
+PyBoundObject* PetitionerService::_CreateBoundObject( Client* c, const PyRep* bind_args )
+{
+	_log( CLIENT__MESSAGE, "PetitionerService bind request for:" );
+	bind_args->Dump( CLIENT__MESSAGE, "    " );
 
-	return(new PetitionerBound(m_manager, &m_db));
+	return new PetitionerBound( m_manager, &m_db );
 }*/
 
 

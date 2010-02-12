@@ -204,20 +204,20 @@ PyResult CorpStationMgrIMBound::Handle_SetHomeStation(PyCallArgs &call) {
 
 	//this takes an integer: stationID
 	//price is prompted for on the client side.
-	
-	_log(CLIENT__ERROR, "SetHomeStation is not implemented");
 
-	return(new PyNone());
+    sLog.Debug( "CorpStationMgrIMBound", "Called SetHomeStation stub." );
+
+    return new PyNone;
 }
 
 PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
 
 	//this takes an integer: cloneTypeID
 	//price is prompted for on the client side.
-	
-	_log(CLIENT__ERROR, "SetCloneTypeID is not implemented");
 
-	return(new PyNone());
+    sLog.Debug( "CorpStationMgrIMBound", "Called SetCloneTypeID stub." );
+
+    return new PyNone;
 }
 
 PyResult CorpStationMgrIMBound::Handle_GetQuoteForRentingAnOffice(PyCallArgs &call) {

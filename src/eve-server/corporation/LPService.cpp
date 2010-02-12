@@ -42,16 +42,18 @@ LPService::~LPService()
 	delete m_dispatch;
 }
 
-PyResult LPService::Handle_GetLPForCharacterCorp(PyCallArgs &call) {
-	_log(SERVICE__ERROR, "%s::GetLPForCharacterCorp not implemented yet.", GetName());
+PyResult LPService::Handle_GetLPForCharacterCorp( PyCallArgs& call )
+{
+    sLog.Debug( "LPService", "Called GetLPForCharacterCorp stub." );
 
-	return(new PyInt(0));
+	return new PyInt( 0 );
 }
 
-PyResult LPService::Handle_GetLPsForCharacter(PyCallArgs &call) {
+PyResult LPService::Handle_GetLPsForCharacter( PyCallArgs& call )
+{
 	//no args
 
-	_log(SERVICE__ERROR, "%s::GetLPsForCharacter unimplemented.", GetName());
+    sLog.Debug( "LPService", "Called GetLPsForCharacter stub." );
 
 	return new PyList;
 }

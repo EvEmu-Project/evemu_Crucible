@@ -344,7 +344,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
 
     //TODO: make sure this person actually owns this char...
 
-    _log(CLIENT__MESSAGE, "Timed delete of char %u unimplemented. Deleting Immediately.", args.arg);
+    sLog.Debug( "CharacterService", "Called PrepareCharacterForDelete stub: deleting immediately." );
 
     { // character scope to make sure char_item is deleted immediately
         CharacterRef char_item = m_manager->item_factory.GetCharacter( args.arg );
@@ -382,14 +382,16 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
     return(new PyLong(Win32TimeNow() + Win32Time_Second*5));
 }
 
-PyResult CharacterService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call) {
+PyResult CharacterService::Handle_CancelCharacterDeletePrepare( PyCallArgs& call )
+{
     Call_SingleIntegerArg args;
-    if(!args.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName());
+    if( !args.Decode( &call.tuple ) )
+    {
+        codelog( CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName() );
         return NULL;
     }
 
-    _log(CLIENT__ERROR, "Cancel delete (of char %u) unimplemented.", args.arg);
+    sLog.Debug( "CharacterService", "Called CancelCharacterDeletePrepare stub." );
 
     //returns nothing.
     return NULL;
@@ -436,30 +438,25 @@ PyResult CharacterService::Handle_GetOwnerNote(PyCallArgs &call) {
 }
 
 
-PyResult CharacterService::Handle_GetHomeStation(PyCallArgs &call) {
+PyResult CharacterService::Handle_GetHomeStation( PyCallArgs& call )
+{
     //returns the station ID of the station where this player's Clone is
-    PyRep *result = NULL;
+    sLog.Debug( "CharacterService", "Called GetHomeStation stub." );
 
-    _log(CLIENT__ERROR, "GetHomeStation() is not really implemented.");
-
-    result = new PyInt(call.client->GetStationID());
-
-    return result;
+    return new PyInt( call.client->GetStationID() );
 }
 
-PyResult CharacterService::Handle_GetCloneTypeID(PyCallArgs &call) {
-    PyRep *result = NULL;
-
-    _log(CLIENT__ERROR, "GetCloneTypeID() is not really implemented.");
+PyResult CharacterService::Handle_GetCloneTypeID( PyCallArgs& call )
+{
+    sLog.Debug( "CharacterService", "Called GetCloneTypeID stub." );
 
     //currently hardcoded Clone Grade Alpha
-    result = new PyInt(164);
-
-    return result;
+    return new PyInt( 164 );
 }
 
-PyResult CharacterService::Handle_GetRecentShipKillsAndLosses(PyCallArgs &call) {
-    _log(SERVICE__WARNING, "%s::GetRecentShipKillsAndLosses unimplemented.", GetName());
+PyResult CharacterService::Handle_GetRecentShipKillsAndLosses( PyCallArgs& call )
+{
+    sLog.Debug( "CharacterService", "Called GetRecentShipKillsAndLosses stub." );
 
     util_Rowset rs;
 

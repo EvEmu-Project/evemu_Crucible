@@ -40,17 +40,18 @@ PyRep *FactionWarMgrDB::GetWarFactions() {
 	return(DBResultToIntIntDict(res));
 }
 
-PyRep *FactionWarMgrDB::GetFacWarSystems() {
-	_log(DATABASE__MESSAGE, "GetFacWarSystems unimplemented.");
+PyRep* FactionWarMgrDB::GetFacWarSystems()
+{
+    sLog.Debug( "FactionWarMgrDB", "Called GetFacWarSystems stub." );
 
 	//fill some crap
-	PyDict *result = new PyDict;
-	PyDict *dict;
+	PyDict* result = new PyDict;
+	PyDict* dict;
 
 	dict = new PyDict;
-	dict->SetItemString("occupierID", new PyInt(500002));
-	dict->SetItemString("factionID", new PyInt(500002));
-	result->SetItem(new PyInt(30002097), dict);
+	dict->SetItemString( "occupierID", new PyInt( 500002 ) );
+	dict->SetItemString( "factionID", new PyInt( 500002 ) );
+	result->SetItem( new PyInt( 30002097 ), dict );
 
 	return result;
 }

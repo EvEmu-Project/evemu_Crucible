@@ -126,9 +126,12 @@ PyResult PyService::Handle_MachoBindObject( PyCallArgs& call )
 	return robjs;
 }
 
-PyBoundObject *PyService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
-	_log(SERVICE__ERROR, "%s Service: Default _CreateBoundObject called, somebody didnt read the comments. This method must be overridden if bound objects are provided by the service!", GetName());
-	bind_args->Dump(stdout, "  Bind Args: ");
+PyBoundObject* PyService::_CreateBoundObject( Client* c, const PyRep* bind_args )
+{
+	_log( SERVICE__ERROR, "%s Service: Default _CreateBoundObject called, somebody didnt read the comments."
+                          " This method must be overridden if bound objects are provided by the service!", GetName());
+	bind_args->Dump( SERVICE__ERROR, "  Bind Args: " );
+
 	//this is probably going to cause us to crash:
 	return NULL;
 }

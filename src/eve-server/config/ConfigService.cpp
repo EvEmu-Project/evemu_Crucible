@@ -275,7 +275,7 @@ CREATE TABLE GetMapConnections (
   PRIMARY KEY()
 );
 */
-	_log(SERVICE__ERROR, "Unhandled ConfigService::GetMapConnections");
+    sLog.Debug( "ConfigService", "Called GetMapConnections stub." );
 
 	return NULL;
 }

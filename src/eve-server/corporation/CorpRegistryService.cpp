@@ -144,11 +144,12 @@ CorpRegistryService::~CorpRegistryService() {
 
 
 
-PyBoundObject *CorpRegistryService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
-    _log(CLIENT__MESSAGE, "CorpRegistryService bind request for:");
-    bind_args->Dump(stdout, "    ");
+PyBoundObject* CorpRegistryService::_CreateBoundObject( Client* c, const PyRep* bind_args )
+{
+    _log( CLIENT__MESSAGE, "CorpRegistryService bind request for:" );
+    bind_args->Dump( CLIENT__MESSAGE, "    " );
 
-    return(new CorpRegistryBound(m_manager, m_db));
+    return new CorpRegistryBound( m_manager, m_db );
 }
 
 
@@ -156,22 +157,23 @@ PyResult CorpRegistryBound::Handle_GetEveOwners(PyCallArgs &call) {
     return (m_db.GetEveOwners());
 }
 
-PyResult CorpRegistryBound::Handle_GetInfoWindowDataForChar(PyCallArgs &call) {
+PyResult CorpRegistryBound::Handle_GetInfoWindowDataForChar( PyCallArgs& call )
+{
     //takes characterID
 
-    _log(CLIENT__MESSAGE, "GetInfoWindowDataForChar not implemented!");
+    sLog.Debug( "CorpRegistryBound", "Called GetInfoWindowDataForChar stub." );
 
-    return(new PyNone());
+    return new PyNone;
 }
 
-PyResult CorpRegistryBound::Handle_GetLockedItemLocations(PyCallArgs &call) {
+PyResult CorpRegistryBound::Handle_GetLockedItemLocations( PyCallArgs& call )
+{
     //takes characterID
 
-    _log(CLIENT__MESSAGE, "GetLockedItemLocations not implemented!");
+    sLog.Debug( "CorpRegistryBound", "Called GetLockedItemLocations stub." );
 
     //this returns an empty list for me on live.
-
-    return(new PyList());
+    return new PyList;
 }
 
 PyResult CorpRegistryBound::Handle_GetCorporation(PyCallArgs &call) {

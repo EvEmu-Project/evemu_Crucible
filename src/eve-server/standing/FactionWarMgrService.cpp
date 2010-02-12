@@ -57,38 +57,41 @@ PyResult FactionWarMgrService::Handle_GetWarFactions(PyCallArgs &call) {
 	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
 }
 
-PyResult FactionWarMgrService::Handle_GetFacWarSystems(PyCallArgs &call) {
-	_log(SERVICE__ERROR, "%s::GetFacWarSystems not fully unimplemented.", GetName());
+PyResult FactionWarMgrService::Handle_GetFacWarSystems( PyCallArgs& call )
+{
+	ObjectCachedMethodID method_id( GetName(), "GetFacWarSystems" );
 
-	ObjectCachedMethodID method_id(GetName(), "GetFacWarSystems");
-
-	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
-		PyRep *res = m_db.GetWarFactions();
-		if(res == NULL)
+	if( !m_manager->cache_service->IsCacheLoaded( method_id ) )
+    {
+		PyRep* res = m_db.GetWarFactions();
+		if( res == NULL )
 			return NULL;
-		m_manager->cache_service->GiveCache(method_id, &res);
+
+		m_manager->cache_service->GiveCache( method_id, &res );
 	}
 
-	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
+	return m_manager->cache_service->MakeObjectCachedMethodCallResult( method_id );
 }
 
-PyResult FactionWarMgrService::Handle_GetCharacterRankOverview(PyCallArgs &call) {
+PyResult FactionWarMgrService::Handle_GetCharacterRankOverview( PyCallArgs& call )
+{
 	Call_SingleIntegerArg arg;
-	if(!arg.Decode(&call.tuple)) {
-		_log(SERVICE__ERROR, "Failed to decode args.");
+	if( !arg.Decode( &call.tuple ) )
+    {
+		_log( SERVICE__ERROR, "Failed to decode args." );
 		return NULL;
 	}
 
-	_log(SERVICE__WARNING, "%s::GetCharacterRankOverview(charid=%u) unimplemented.", GetName(), arg.arg);
+    sLog.Debug( "FactionWarMgrService", "Called GetCharacterRankOverview stub." );
 
 	util_Rowset rs;
 
-	rs.header.push_back("currentRank");
-	rs.header.push_back("highestRank");
-	rs.header.push_back("factionID");
-	rs.header.push_back("lastModified");
+	rs.header.push_back( "currentRank" );
+	rs.header.push_back( "highestRank" );
+	rs.header.push_back( "factionID" );
+	rs.header.push_back( "lastModified" );
 
-	return(rs.Encode());
+	return rs.Encode();
 }
 
 PyResult FactionWarMgrService::Handle_GetFactionMilitiaCorporation(PyCallArgs &call) {

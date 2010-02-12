@@ -87,16 +87,17 @@ PyResult CharMgrService::Handle_GetPublicInfo3(PyCallArgs &call) {
 	return result;
 }
 
-PyResult CharMgrService::Handle_GetTopBounties(PyCallArgs &call) {
-	_log(SERVICE__ERROR, "%s::GetTopBounties unimplemented.", GetName());
+PyResult CharMgrService::Handle_GetTopBounties( PyCallArgs& call )
+{
+    sLog.Debug( "CharMgrService", "Called GetTopBounties stub." );
 
 	util_Rowset rs;
     rs.lines = new PyList;
 
-	rs.header.push_back("characterID");
-	rs.header.push_back("ownerName");
-	rs.header.push_back("bounty");
-	rs.header.push_back("online");
+	rs.header.push_back( "characterID" );
+	rs.header.push_back( "ownerName" );
+	rs.header.push_back( "bounty" );
+	rs.header.push_back( "online" );
 
 	return rs.Encode();
 }

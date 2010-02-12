@@ -72,19 +72,21 @@ JumpCloneService::~JumpCloneService() {
 	delete m_dispatch;
 }
 
-PyBoundObject *JumpCloneService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
-	_log(CLIENT__MESSAGE, "JumpCloneService bind request for:");
-	bind_args->Dump(stdout, "    ");
+PyBoundObject* JumpCloneService::_CreateBoundObject( Client* c, const PyRep* bind_args )
+{
+	_log( CLIENT__MESSAGE, "JumpCloneService bind request for:" );
+	bind_args->Dump( CLIENT__MESSAGE, "    " );
 
-	return(new JumpCloneBound(m_manager, &m_db));
+	return new JumpCloneBound( m_manager, &m_db );
 }
 
-PyResult JumpCloneBound::Handle_InstallCloneInStation(PyCallArgs &call) {
+PyResult JumpCloneBound::Handle_InstallCloneInStation( PyCallArgs& call )
+{
 	//takes no arguments, returns no arguments
 
-	_log(CLIENT__ERROR, "Unhandled InstallCloneInStation");
-	
-	return(new PyNone());
+    sLog.Debug( "JumpCloneBound", "Called InstallCloneInStation stub." );
+
+    return new PyNone;
 }
 
 PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
@@ -92,12 +94,12 @@ PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
 	//returns (clones, implants, timeLastJump)
 	//where jumpClones is a rowset? with at least columns: jumpCloneID, locationID
 
-	_log(CLIENT__ERROR, "Unimplemented GetCloneState");
+    sLog.Debug( "JumpCloneBound", "Called GetCloneState stub." );
 
-	PyDict *d = new PyDict;
-	d->SetItemString("clones", new PyNone);
-	d->SetItemString("implants", new PyNone);
-	d->SetItemString("timeLastJump", new PyNone);
+	PyDict* d = new PyDict;
+	d->SetItemString( "clones", new PyNone );
+	d->SetItemString( "implants", new PyNone );
+	d->SetItemString( "timeLastJump", new PyNone );
 
 	return new PyObject(
         new PyString( "util.KeyVal" ), d

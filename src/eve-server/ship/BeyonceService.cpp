@@ -90,11 +90,12 @@ BeyonceService::~BeyonceService() {
 }
 
 
-PyBoundObject *BeyonceService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
-	_log(CLIENT__MESSAGE, "BeyonceService bind request for:");
-	bind_args->Dump(stdout, "    ");
+PyBoundObject* BeyonceService::_CreateBoundObject( Client* c, const PyRep* bind_args )
+{
+	_log( CLIENT__MESSAGE, "BeyonceService bind request for:" );
+	bind_args->Dump( CLIENT__MESSAGE, "    " );
 
-	return(new BeyonceBound(m_manager, c));
+	return new BeyonceBound( m_manager, c );
 }
 
 

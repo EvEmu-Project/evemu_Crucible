@@ -146,14 +146,13 @@ PyResult DogmaIMBound::Handle_CharGetInfo(PyCallArgs &call) {
 	return result;
 }
 
-PyResult DogmaIMBound::Handle_CheckSendLocationInfo(PyCallArgs &call) {
+PyResult DogmaIMBound::Handle_CheckSendLocationInfo( PyCallArgs& call )
+{
 	//no arguments
-	PyRep *result = NULL;
 
-	result = new PyNone();
-	_log(SERVICE__ERROR, "Unhandled DogmaIMBound::CheckSendLocationInfo");
+    sLog.Debug( "DogmaIMBound", "Called CheckSendLocationInfo stub." );
 
-	return result;
+	return new PyNone;
 }
 
 PyResult DogmaIMBound::Handle_GetTargets(PyCallArgs &call) {
@@ -166,34 +165,30 @@ PyResult DogmaIMBound::Handle_GetTargeters(PyCallArgs &call) {
 	return call.client->targets.GetTargeters();
 }
 
-PyResult DogmaIMBound::Handle_Activate(PyCallArgs &call) {
+PyResult DogmaIMBound::Handle_Activate( PyCallArgs& call )
+{
 	Call_Dogma_Activate args;
-	if(!args.Decode(&call.tuple)) {
-		codelog(SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName());
+	if( !args.Decode( &call.tuple ) )
+    {
+		codelog( SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName() );
 		return NULL;
 	}
-	
-	codelog(SERVICE__ERROR, "Unimplemented (mostly)");
-	
-	//TODO: make sure we are allowed to do this.
-	
-	int res = call.client->modules.Activate(args.itemID, args.effectName, args.target, args.repeat);
-	
-	return(new PyInt(res));
+
+    //TODO: make sure we are allowed to do this.
+	return new PyInt( call.client->modules.Activate( args.itemID, args.effectName, args.target, args.repeat ) );
 }
 
-PyResult DogmaIMBound::Handle_Deactivate(PyCallArgs &call) {
+PyResult DogmaIMBound::Handle_Deactivate( PyCallArgs& call )
+{
 	Call_Dogma_Deactivate args;
-	if(!args.Decode(&call.tuple)) {
-		codelog(SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName());
+	if( !args.Decode( &call.tuple ) )
+    {
+		codelog( SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName() );
 		return NULL;
 	}
-	
-	codelog(SERVICE__ERROR, "Mostly Unimplemented");
-	
-	//TODO: make sure we are allowed to do this.
-	
-	call.client->modules.Deactivate(args.itemID, args.effectName);
+
+    //TODO: make sure we are allowed to do this.
+    call.client->modules.Deactivate( args.itemID, args.effectName );
 
 	return NULL;
 }

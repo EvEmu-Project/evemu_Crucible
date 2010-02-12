@@ -150,85 +150,90 @@ PyResult CorporationService::Handle_GetMedalsReceived(PyCallArgs &call) {
 	return t;
 }
 
-PyResult CorporationService::Handle_GetAllCorpMedals(PyCallArgs &call) {
+PyResult CorporationService::Handle_GetAllCorpMedals( PyCallArgs& call )
+{
 	//arg is corporationID
 	Call_SingleIntegerArg arg;
-	if(!arg.Decode(&call.tuple)) {
-		_log(SERVICE__ERROR, "Failed to decode args.");
+	if( !arg.Decode( &call.tuple ) )
+    {
+		_log( SERVICE__ERROR, "Failed to decode args." );
 		return NULL;
 	}
 
-	_log(SERVICE__ERROR, "%s::GetAllCorpMedals(%lu) unimplemented.", GetName(), arg.arg);
+    sLog.Debug( "CorporationService", "Called GetAllCorpMedals stub." );
 
-	PyList *res = new PyList;
+	PyList* res = new PyList;
 
 	util_Rowset rs;
-	rs.header.push_back("medalID");
-	rs.header.push_back("ownerID");
-	rs.header.push_back("title");
-	rs.header.push_back("description");
-	rs.header.push_back("creatorID");
-	rs.header.push_back("date");
-	rs.header.push_back("noRecepients");
 
+	rs.header.push_back( "medalID" );
+	rs.header.push_back( "ownerID" );
+	rs.header.push_back( "title" );
+	rs.header.push_back( "description" );
+	rs.header.push_back( "creatorID" );
+	rs.header.push_back( "date" );
+	rs.header.push_back( "noRecepients" );
 	res->AddItem( rs.Encode() );
 
 	rs.header.clear();
-	rs.header.push_back("medalID");
-	rs.header.push_back("part");
-	rs.header.push_back("layer");
-	rs.header.push_back("graphic");
-	rs.header.push_back("color");
 
+	rs.header.push_back( "medalID" );
+	rs.header.push_back( "part" );
+	rs.header.push_back( "layer" );
+	rs.header.push_back( "graphic" );
+	rs.header.push_back( "color" );
 	res->AddItem( rs.Encode() );
 
 	return res;
 }
 
-PyResult CorporationService::Handle_GetRecruitmentAdTypes(PyCallArgs &call) {
+PyResult CorporationService::Handle_GetRecruitmentAdTypes( PyCallArgs& call )
+{
 	//no args
 
-	_log(SERVICE__ERROR, "%s::GetRecruitmentAdTypes unimplemented.", GetName());
+    sLog.Debug( "CorporationService", "Called GetRecruitmentAdTypes stub." );
 
 	util_Rowset rs;
 
-	rs.header.push_back("groupID");
-	rs.header.push_back("groupName");
-	rs.header.push_back("typeID");
-	rs.header.push_back("typeMask");
-	rs.header.push_back("typeName");
-	rs.header.push_back("description");
-	rs.header.push_back("dataID");
-	rs.header.push_back("groupDataID");
+	rs.header.push_back( "groupID" );
+	rs.header.push_back( "groupName" );
+	rs.header.push_back( "typeID" );
+	rs.header.push_back( "typeMask" );
+	rs.header.push_back( "typeName" );
+	rs.header.push_back( "description" );
+	rs.header.push_back( "dataID" );
+	rs.header.push_back( "groupDataID" );
 
 	return rs.Encode();
 }
 
-PyResult CorporationService::Handle_GetRecruitmentAdsByCriteria(PyCallArgs &call) {
+PyResult CorporationService::Handle_GetRecruitmentAdsByCriteria( PyCallArgs& call )
+{
+	//this is cached on live with check "5 minutes"
+
 	Call_GetRecruitmentAdsByCriteria args;
-	if(!args.Decode(&call.tuple)) {
-		_log(SERVICE__ERROR, "Failed to decode args.");
+	if( !args.Decode( &call.tuple ) )
+    {
+		_log( SERVICE__ERROR, "Failed to decode args." );
 		return NULL;
 	}
 
-	//this is cached on live with check "5 minutes"
-
-	_log(SERVICE__ERROR, "%s::GetRecruitmentAdsByCriteria unimplemented.", GetName());
+    sLog.Debug( "CorporationService", "Called GetRecruitmentAdsByCriteria stub." );
 
 	util_Rowset rs;
 
-	rs.header.push_back("adID");
-	rs.header.push_back("corporationID");
-	rs.header.push_back("allianceID");
-	rs.header.push_back("expiryDateTime");
-	rs.header.push_back("stationID");
-	rs.header.push_back("regionID");
-	rs.header.push_back("raceMask");
-	rs.header.push_back("typeMask");
-	rs.header.push_back("description");
-	rs.header.push_back("createDateTime");
-	rs.header.push_back("skillPoints");
-	rs.header.push_back("channelID");
+	rs.header.push_back( "adID" );
+	rs.header.push_back( "corporationID" );
+	rs.header.push_back( "allianceID" );
+	rs.header.push_back( "expiryDateTime" );
+	rs.header.push_back( "stationID" );
+	rs.header.push_back( "regionID" );
+	rs.header.push_back( "raceMask" );
+	rs.header.push_back( "typeMask" );
+	rs.header.push_back( "description" );
+	rs.header.push_back( "createDateTime" );
+	rs.header.push_back( "skillPoints" );
+	rs.header.push_back( "channelID" );
 
 	return rs.Encode();
 }

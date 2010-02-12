@@ -163,20 +163,22 @@ PyResult AgentMgrService::Handle_GetMyJournalDetails(PyCallArgs &call) {
 	return result;
 }
 
-PyResult AgentMgrService::Handle_GetMyEpicJournalDetails(PyCallArgs &call) {
+PyResult AgentMgrService::Handle_GetMyEpicJournalDetails( PyCallArgs& call )
+{
 	//no args
 
-	_log(SERVICE__ERROR, "%s::GetMyEpicJournalDetails unimplemented.", GetName());
+    sLog.Debug( "AgentMgrService", "Called GetMyEpicJournalDetails stub." );
 
 	return new PyList;
 }
 
-PyResult AgentMgrBound::Handle_GetInfoServiceDetails(PyCallArgs &call) {
+PyResult AgentMgrBound::Handle_GetInfoServiceDetails( PyCallArgs& call )
+{
 	//takes no arguments
-	
-	codelog(SERVICE__ERROR, "GetInfoServiceDetails unimplemented.");
-	
-	return(new PyNone());
+
+    sLog.Debug( "AgentMgrBound", "Called GetInfoServiceDetails stub." );
+
+    return new PyNone;
 }
 
 PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
