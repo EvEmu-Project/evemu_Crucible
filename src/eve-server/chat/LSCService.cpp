@@ -541,15 +541,19 @@ void LSCService::SendMail(uint32 sender, const std::vector<int32> &recipients, c
 //stuck here to be close to related functionality
 //theres a lot of duplicated crap in here...
 //this could be replaced by the SendNewEveMail if it weren't in the Client
-void Client::SelfEveMail(const char *subject, const char *fmt, ...) {
+void Client::SelfEveMail( const char* subject, const char* fmt, ... )
+{
     va_list args;
-    va_start(args, fmt);
-    char *str = NULL;
-    assert( vasprintf(&str, fmt, args) > 0 );
-    va_end(args);
+    va_start( args, fmt );
 
-    m_services.lsc_service->SendMail(GetCharacterID(), GetCharacterID(), subject, str);
-    free(str);
+    char* str = NULL;
+    vasprintf( &str, fmt, args );
+    assert( str );
+
+    va_end( args );
+
+    m_services.lsc_service->SendMail( GetCharacterID(), GetCharacterID(), subject, str );
+    SafeFree( str );
 }
 
 PyResult LSCService::Handle_MarkMessagesRead(PyCallArgs &call) {

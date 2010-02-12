@@ -148,99 +148,111 @@ void Client::Process() {
 }
 
 //this displays a modal error dialog on the client side.
-void Client::SendErrorMsg(const char *fmt, ...) {
+void Client::SendErrorMsg( const char* fmt, ... )
+{
     va_list args;
-    va_start(args, fmt);
-    char *str = NULL;
-    assert(vasprintf(&str, fmt, args) > 0);
+    va_start( args, fmt );
 
-    _log(CLIENT__ERROR, "Sending Error Message to %s:", GetName());
-    log_messageVA(CLIENT__ERROR, fmt, args);
-    va_end(args);
+    char* str = NULL;
+    vasprintf( &str, fmt, args );
+    assert( str );
+
+    _log( CLIENT__ERROR, "Sending Error Message to %s:", GetName() );
+    log_messageVA( CLIENT__ERROR, fmt, args );
+    va_end( args );
 
     //want to send some sort of notify with a "ServerMessage" message ID maybe?
     //else maybe a "ChatTxt"??
     Notify_OnRemoteMessage n;
     n.msgType = "CustomError";
-    n.args[ "error" ] = new PyString(str);
-    PyTuple *tmp = n.Encode();
+    n.args[ "error" ] = new PyString( str );
 
-    SendNotification("OnRemoteMessage", "charid", &tmp);
+    PyTuple* tmp = n.Encode();
+    SendNotification( "OnRemoteMessage", "charid", &tmp );
 
-    free(str);
+    SafeFree( str );
 }
 
 //this displays a modal info dialog on the client side.
-void Client::SendInfoModalMsg(const char *fmt, ...) {
+void Client::SendInfoModalMsg( const char* fmt, ... )
+{
     va_list args;
-    va_start(args, fmt);
-    char *str = NULL;
-    assert(vasprintf(&str, fmt, args) > 0 );
+    va_start( args, fmt );
 
-    _log(CLIENT__MESSAGE, "Info Modal to %s:", GetName());
-    log_messageVA(CLIENT__MESSAGE, fmt, args);
-    va_end(args);
+    char* str = NULL;
+    vasprintf( &str, fmt, args );
+    assert( str );
+
+    _log( CLIENT__MESSAGE, "Info Modal to %s:", GetName() );
+    log_messageVA( CLIENT__MESSAGE, fmt, args );
+    va_end( args );
 
     //want to send some sort of notify with a "ServerMessage" message ID maybe?
     //else maybe a "ChatTxt"??
     Notify_OnRemoteMessage n;
     n.msgType = "ServerMessage";
-    n.args[ "msg" ] = new PyString(str);
-    PyTuple *tmp = n.Encode();
+    n.args[ "msg" ] = new PyString( str );
 
-    SendNotification("OnRemoteMessage", "charid", &tmp);
+    PyTuple* tmp = n.Encode();
+    SendNotification( "OnRemoteMessage", "charid", &tmp );
 
-    free(str);
+    SafeFree( str );
 }
 
 //this displays a little notice (like combat messages)
-void Client::SendNotifyMsg(const char *fmt, ...) {
+void Client::SendNotifyMsg( const char* fmt, ... )
+{
     va_list args;
-    va_start(args, fmt);
-    char *str = NULL;
-    assert(vasprintf(&str, fmt, args) > 0);
+    va_start( args, fmt );
 
-    _log(CLIENT__MESSAGE, "Notify to %s:", GetName());
-    log_messageVA(CLIENT__MESSAGE, fmt, args);
-    va_end(args);
+    char* str = NULL;
+    vasprintf( &str, fmt, args );
+    assert( str );
+
+    _log( CLIENT__MESSAGE, "Notify to %s:", GetName() );
+    log_messageVA( CLIENT__MESSAGE, fmt, args );
+    va_end( args );
 
     //want to send some sort of notify with a "ServerMessage" message ID maybe?
     //else maybe a "ChatTxt"??
     Notify_OnRemoteMessage n;
     n.msgType = "CustomNotify";
-    n.args[ "notify" ] = new PyString(str);
-    PyTuple *tmp = n.Encode();
+    n.args[ "notify" ] = new PyString( str );
 
-    SendNotification("OnRemoteMessage", "charid", &tmp);
+    PyTuple* tmp = n.Encode();
+    SendNotification( "OnRemoteMessage", "charid", &tmp );
 
-    free(str);
+    SafeFree( str );
 }
 
 //there may be a less hackish way to do this.
-void Client::SelfChatMessage(const char *fmt, ...) {
+void Client::SelfChatMessage( const char* fmt, ... )
+{
     va_list args;
-    va_start(args, fmt);
-    char *str = NULL;
-    assert( vasprintf(&str, fmt, args) > 0 );
-    va_end(args);
+    va_start( args, fmt );
 
-    if(m_channels.empty()) {
-        _log(CLIENT__ERROR, "%s: Tried to send self chat, but we are not joined to any channels: %s", GetName(), str);
-        free(str);
+    char* str = NULL;
+    vasprintf( &str, fmt, args );
+    assert( str );
+
+    va_end( args );
+
+    if( m_channels.empty() )
+    {
+        _log( CLIENT__ERROR, "%s: Tried to send self chat, but we are not joined to any channels: %s", GetName(), str );
+        free( str );
         return;
     }
 
-
-    _log(CLIENT__TEXT, "%s: Self message on all channels: %s", GetName(), str);
+    _log( CLIENT__TEXT, "%s: Self message on all channels: %s", GetName(), str );
 
     //this is such a pile of crap, but im not sure whats better.
     //maybe a private message...
-    std::set<LSCChannel *>::iterator cur, end;
+    std::set<LSCChannel*>::iterator cur, end;
     cur = m_channels.begin();
     end = m_channels.end();
-    for(; cur != end; cur++) {
-        (*cur)->SendMessage(this, str, true);
-    }
+    for(; cur != end; ++cur)
+        (*cur)->SendMessage( this, str, true );
 
     //m_channels[
 
@@ -254,7 +266,7 @@ void Client::SelfChatMessage(const char *fmt, ...) {
         }
     }*/
 
-    free(str);
+    SafeFree( str );
 }
 
 void Client::ChannelJoined(LSCChannel *chan) {

@@ -41,16 +41,21 @@ UserError *MakeUserError(const char *exceptionType, const std::map<std::string, 
 	return err;
 }
 
-UserError *MakeCustomError(const char *fmt, ...) {
+UserError* MakeCustomError( const char* fmt, ... )
+{
     va_list va;
-    va_start(va, fmt);
-    char *str = NULL;
-    assert(vasprintf(&str, fmt, va) > 0);
-    va_end(va);
+    va_start( va, fmt );
 
-	UserError *err = new UserError( "CustomError" );
+    char* str = NULL;
+    vasprintf( &str, fmt, va );
+    assert( str );
+
+    va_end( va );
+
+	UserError* err = new UserError( "CustomError" );
 	err->AddKeyword( "error", new PyString( str ) );
-    SafeFree(str);
+
+    SafeFree( str );
 
     return err;
 }
