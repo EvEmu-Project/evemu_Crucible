@@ -14,6 +14,7 @@ xmlpktgen_SOURCES = \
 	DumpGenerator.h \
 	EncodeGenerator.cpp \
 	EncodeGenerator.h \
+	Generator.cpp \
 	Generator.h \
 	HeaderGenerator.cpp \
 	HeaderGenerator.h \

@@ -27,75 +27,114 @@
 
 #include "utils/DirWalker.h"
 
-bool DirWalker::ListDirectory(const char *dir, std::vector<std::string> &into) {
-	DirWalker d(dir);
-	if(!d.GetFile())
-		return false;	//empty list
-	into.push_back(d.CurrentFileName());
-	while(d.GetFile())
-		into.push_back(d.CurrentFileName());
-	return true;
+DirWalker::DirWalker()
+#ifdef WIN32
+: mFind( INVALID_HANDLE_VALUE ),
+  mFindData(),
+  mValid( false ),
+  mFirst( false )
+#else
+: mDir( NULL ),
+  mFile( NULL ),
+  mSuffix()
+#endif /* !WIN32 */
+{
 }
 
-DirWalker::DirWalker(const char *dir)
-: m_valid(false)
+DirWalker::~DirWalker()
+{
+    CloseDir();
+}
+
+const char* DirWalker::currentFileName()
 {
 #ifdef WIN32
-	m_find = FindFirstFile(dir, &m_data);
-	m_first = true;
-#else
-	m_dir = opendir(dir);
-	if(m_dir == NULL) {
-		printf("Failed to open dir %s: %s", dir, strerror(errno));
-	}
-	m_data = NULL;
-#endif
-}
-
-DirWalker::~DirWalker() {
-#ifdef WIN32
-	if(m_find != INVALID_HANDLE_VALUE)
-		FindClose(m_find);
-#else
-	if(m_dir != NULL)
-		closedir(m_dir);
-#endif
-}
-
-bool DirWalker::GetFile() {
-#ifdef WIN32
-	if(m_find == INVALID_HANDLE_VALUE) {
-		m_valid = false;
-		return false;
-	}
-	if(m_first) {
-		m_first = false;
-		return true;
-	}
-	
-	m_valid = (FindNextFile(m_find, &m_data) == TRUE);
-	return true;
-#else
-	if(m_dir == NULL) {
-		m_valid = false;
-		return false;
-	}
-	
-	m_data = readdir(m_dir);
-	m_valid = (m_data != NULL);
-	return(m_valid);
-#endif
-}
-
-//access to the current file.
-const char *DirWalker::CurrentFileName() {
-	if(!m_valid)
+	if( !mValid )
 		return NULL;
-#ifdef WIN32
-	//may not work, it is really a WCHAR
-	return((const char *)m_data.cFileName);
+
+	return mFindData.cFileName;
 #else
-	return(m_data->d_name);
+    if( NULL == mFile )
+        return NULL;
+
+	return mFile->d_name;
+#endif
+}
+
+bool DirWalker::OpenDir( const char* dir, const char* suffix )
+{
+    CloseDir();
+
+#ifdef WIN32
+    // Let Windows do the suffix matching
+    std::string d( dir );
+    d += "/*";
+    d += suffix;
+
+	mFind = FindFirstFile( d.c_str(), &mFindData );
+    mValid = ( INVALID_HANDLE_VALUE != mFind );
+	mFirst = true;
+
+    // If no file was found, see if at least
+    // the directory was found ...
+    return ( mValid ? true : ( ERROR_PATH_NOT_FOUND != GetLastError() ) );
+#else
+	mDir = opendir( dir );
+	mFile = NULL;
+    mSuffix = suffix;
+
+    return ( NULL != mDir );
+#endif
+}
+
+void DirWalker::CloseDir()
+{
+#ifdef WIN32
+	if( INVALID_HANDLE_VALUE != mFind )
+		FindClose( mFind );
+
+    mValid = false;
+    mFirst = false;
+#else
+	if( NULL != mDir )
+		closedir( mDir );
+
+    mFile = NULL;
+    mSuffix.clear();
+#endif
+}
+
+bool DirWalker::NextFile()
+{
+#ifdef WIN32
+    if( INVALID_HANDLE_VALUE == mFind )
+        return false;
+
+    if( mFirst )
+        mFirst = false;
+    else
+	    mValid = ( TRUE == FindNextFile( mFind, &mFindData ) );
+
+    return mValid;
+#else
+	if( NULL == mDir )
+		return false;
+
+    // We need to do the suffix matching here
+    while( NULL != ( mFile = readdir( mDir ) ) )
+    {
+        const std::string filename( currentFileName() );
+        const size_t pos = filename.rfind( mSuffix );
+
+        if( std::string::npos == pos )
+            continue;
+        else if( filename.length() != ( pos + mSuffix.length() ) )
+            continue;
+        else
+            return true;
+    }
+
+    return false;
 #endif
 }
 

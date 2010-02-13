@@ -44,7 +44,6 @@ libcommon_a_SOURCES = \
 	utils/utils_string.h \
 	utils/utils_time.cpp \
 	utils/utils_time.h \
-	utils/XMLParser.cpp \
 	utils/XMLParser.h \
 	common.cpp \
 	common.h \

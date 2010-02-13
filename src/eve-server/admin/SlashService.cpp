@@ -99,20 +99,12 @@ PyResult SlashService::Handle_SlashCmd( PyCallArgs& call )
         throw PyException( MakeCustomError( "You need to have ROLE_SLASH to execute commands." ) );
     }
 
-    Call_SingleArg args;
-    if( !args.Decode( &call.tuple ) )
+    Call_SingleWStringSoftArg arg;
+    if( !arg.Decode( &call.tuple ) )
     {
         codelog( SERVICE__ERROR, "Failed to decode arguments" );
         return NULL;
     }
 
-    if( args.arg->IsString() )
-        return m_commandDispatch->Execute( call.client, args.arg->AsString()->content().c_str() );
-    else if( args.arg->IsWString() )
-        return m_commandDispatch->Execute( call.client, args.arg->AsWString()->content().c_str() );
-    else
-    {
-        _log( SERVICE__ERROR, "Unsupported command type '%s'.", args.arg->TypeString() );
-        return NULL;
-    }
+    return m_commandDispatch->Execute( call.client, arg.arg.c_str() );
 }

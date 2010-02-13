@@ -23,12 +23,11 @@
 	Author:		Zhur
 */
 
-
 #ifndef __EVEMU_SERVER_CONFIG_H__INCL__
 #define __EVEMU_SERVER_CONFIG_H__INCL__
 
 class EVEmuServerConfig
-: public XMLParser,
+: public XMLParser<EVEmuServerConfig>,
   public Singleton<EVEmuServerConfig>
 {
 public:
@@ -62,9 +61,38 @@ public:
 	} files;
 
 protected:
-	bool _ParseServer( const TiXmlElement* ele );
-	bool _ParseDatabase( const TiXmlElement* ele );
-	bool _ParseFiles( const TiXmlElement* ele );
+    bool ProcessEve( const TiXmlElement* ele );
+	bool ProcessServer( const TiXmlElement* ele );
+	bool ProcessDatabase( const TiXmlElement* ele );
+	bool ProcessFiles( const TiXmlElement* ele );
+
+    /**
+     * @brief Extracts text from given node.
+     *
+     * Function finds first child of given name and gives
+     * it to function GetText.
+     *
+     * @param[in] within   The node to extract the text from.
+     * @param[in] name     Name of child to extract the text from.
+     * @param[in] optional If set to true, no error is printed when
+     *                     an error occurs.
+     *
+     * @return Extracted text; NULL if an error occurred.
+     */
+    static const char* ParseTextBlock( const TiXmlNode* within, const char* name, bool optional = false );
+    /**
+     * @brief Extracts text from given node.
+     *
+     * Function obtains first child and if it's text element,
+     * returns its content.
+     *
+     * @param[in] within   The node to extract text from.
+     * @param[in] optional If set to true, no error is printed when
+     *                     an error occurs.
+     *
+     * @return Extracted text; NULL if an error occurred.
+     */
+    static const char* GetText( const TiXmlNode* within, bool optional = false );
 };
 
 #define sConfig \

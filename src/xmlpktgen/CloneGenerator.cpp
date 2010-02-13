@@ -27,31 +27,38 @@
 
 #include "CloneGenerator.h"
 
-ClassCloneGenerator::ClassCloneGenerator()
+ClassCloneGenerator::ClassCloneGenerator( FILE* outputFile )
+: Generator( outputFile )
 {
-    AllGenProcRegs( ClassCloneGenerator );
-    GenProcReg( ClassCloneGenerator, dictInlineEntry, NULL );
+    RegisterProcessors();
 }
 
-bool ClassCloneGenerator::Process_elementDef( FILE* into, TiXmlElement* element )
+void ClassCloneGenerator::RegisterProcessors()
 {
-    const char* name = element->Attribute( "name" );
+    Generator::RegisterProcessors();
+
+    RegisterParser( "dictInlineEntry", static_cast<ElementParser>( &ClassCloneGenerator::ProcessDictInlineEntry ) );
+}
+
+bool ClassCloneGenerator::ProcessElementDef( const TiXmlElement* field )
+{
+    const char* name = field->Attribute( "name" );
     if( name == NULL )
     {
-        _log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row() );
+        _log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "%s& %s::operator=( const %s& oth )\n"
 		"{\n",
         name, name, name
     );
 
-    if( !Recurse( into, element ) )
+    if( !ParseElementChildren( field ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    return *this;\n"
         "}\n"
         "\n"
@@ -60,7 +67,7 @@ bool ClassCloneGenerator::Process_elementDef( FILE* into, TiXmlElement* element 
 	return true;
 }
 
-bool ClassCloneGenerator::Process_element( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessElement( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -75,7 +82,7 @@ bool ClassCloneGenerator::Process_element( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -84,7 +91,7 @@ bool ClassCloneGenerator::Process_element( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessElementPtr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -99,7 +106,7 @@ bool ClassCloneGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    SafeDelete( %s );\n"
         "    if( oth.%s == NULL )\n"
             //TODO: log an error
@@ -117,7 +124,7 @@ bool ClassCloneGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_raw( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessRaw( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -126,7 +133,7 @@ bool ClassCloneGenerator::Process_raw( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "   PySafeDecRef( %s );\n"
         "   if( oth.%s == NULL )\n"
         "       %s = NULL;\n"  //TODO: log an error
@@ -142,7 +149,7 @@ bool ClassCloneGenerator::Process_raw( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_int( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessInt( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -151,7 +158,7 @@ bool ClassCloneGenerator::Process_int( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -160,7 +167,7 @@ bool ClassCloneGenerator::Process_int( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_long( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessLong( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -169,7 +176,7 @@ bool ClassCloneGenerator::Process_long( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -178,7 +185,7 @@ bool ClassCloneGenerator::Process_long( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_real( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessReal( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -187,7 +194,7 @@ bool ClassCloneGenerator::Process_real( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -196,7 +203,7 @@ bool ClassCloneGenerator::Process_real( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_bool( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessBool( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -205,7 +212,7 @@ bool ClassCloneGenerator::Process_bool( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -214,12 +221,12 @@ bool ClassCloneGenerator::Process_bool( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_none( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessNone( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassCloneGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessBuffer( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -228,7 +235,7 @@ bool ClassCloneGenerator::Process_buffer( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    PySafeDecRef( %s );\n"
         "    if( oth.%s == NULL )\n"
         "        %s = NULL;\n" //TODO: log an error
@@ -245,7 +252,7 @@ bool ClassCloneGenerator::Process_buffer( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_string( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessString( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -254,7 +261,7 @@ bool ClassCloneGenerator::Process_string( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -263,12 +270,12 @@ bool ClassCloneGenerator::Process_string( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_stringInline( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessStringInline( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassCloneGenerator::Process_wstring( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessWString( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -277,7 +284,7 @@ bool ClassCloneGenerator::Process_wstring( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -286,7 +293,12 @@ bool ClassCloneGenerator::Process_wstring( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_token( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessWStringInline( const TiXmlElement* field )
+{
+    return true;
+}
+
+bool ClassCloneGenerator::ProcessToken( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -295,7 +307,7 @@ bool ClassCloneGenerator::Process_token( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "   PySafeDecRef( %s );\n"
         "   if( oth.%s == NULL )\n"
         "       %s = NULL;\n"  //TODO: log an error
@@ -311,12 +323,12 @@ bool ClassCloneGenerator::Process_token( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_tokenInline( FILE* into, TiXmlElement* element )
+bool ClassCloneGenerator::ProcessTokenInline( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassCloneGenerator::Process_object( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessObject( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -325,7 +337,7 @@ bool ClassCloneGenerator::Process_object( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    PySafeDecRef( %s );\n"
         "    if( NULL == oth.%s )\n"
         "        %s = NULL;\n"
@@ -342,12 +354,12 @@ bool ClassCloneGenerator::Process_object( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_objectInline( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessObjectInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 2 );
+    return ParseElementChildren( field, 2 );
 }
 
-bool ClassCloneGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessObjectEx( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -362,7 +374,7 @@ bool ClassCloneGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
         return false;
 	}
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    PySafeDecRef( %s );\n"
 		"    if( oth.%s == NULL )\n"
 		"        %s = NULL;\n"
@@ -378,7 +390,7 @@ bool ClassCloneGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_tuple( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessTuple( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -387,7 +399,7 @@ bool ClassCloneGenerator::Process_tuple( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"   PySafeDecRef( %s );\n"
         "   if( oth.%s == NULL )\n"
         "       %s = NULL;\n" //TODO: log an error
@@ -404,12 +416,12 @@ bool ClassCloneGenerator::Process_tuple( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_tupleInline( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessTupleInline( const TiXmlElement* field )
 {
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassCloneGenerator::Process_list( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessList( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -418,7 +430,7 @@ bool ClassCloneGenerator::Process_list( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    PySafeDecRef( %s );\n"
         "    if( oth.%s == NULL )\n"
         "        %s = NULL;\n"
@@ -435,12 +447,12 @@ bool ClassCloneGenerator::Process_list( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_listInline( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessListInline( const TiXmlElement* field )
 {
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassCloneGenerator::Process_listInt( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessListInt( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -449,7 +461,7 @@ bool ClassCloneGenerator::Process_listInt( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -458,7 +470,7 @@ bool ClassCloneGenerator::Process_listInt( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_listLong( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessListLong( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -467,7 +479,7 @@ bool ClassCloneGenerator::Process_listLong( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -476,7 +488,7 @@ bool ClassCloneGenerator::Process_listLong( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_listStr( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessListStr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -485,7 +497,7 @@ bool ClassCloneGenerator::Process_listStr( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -494,7 +506,7 @@ bool ClassCloneGenerator::Process_listStr( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_dict( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessDict( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -503,7 +515,7 @@ bool ClassCloneGenerator::Process_dict( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf(into,
+    fprintf(mOutputFile,
         "    PySafeDecRef( %s );\n"
         "    if( oth.%s == NULL )\n"
         "        %s = NULL;\n"
@@ -520,12 +532,12 @@ bool ClassCloneGenerator::Process_dict( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_dictInline( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessDictInline( const TiXmlElement* field )
 {
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassCloneGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessDictInlineEntry( const TiXmlElement* field )
 {
     //we dont really even care about this...
     const char* key = field->Attribute( "key" );
@@ -535,10 +547,10 @@ bool ClassCloneGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement* fie
         return false;
     }
 
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
-bool ClassCloneGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessDictRaw( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -547,7 +559,7 @@ bool ClassCloneGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = oth.%s;\n"
         "\n",
         name, name
@@ -556,7 +568,7 @@ bool ClassCloneGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessDictInt( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -565,7 +577,7 @@ bool ClassCloneGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    std::map<int32, PyRep*>::const_iterator %s_cur, %s_end;\n"
         "\n"
         "    //free any existing elements first\n"
@@ -598,7 +610,7 @@ bool ClassCloneGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessDictStr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -607,7 +619,7 @@ bool ClassCloneGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    std::map<std::string, PyRep*>::const_iterator %s_cur, %s_end;\n"
         "\n"
         "    //free any existing elements first\n"
@@ -640,14 +652,14 @@ bool ClassCloneGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassCloneGenerator::Process_substreamInline( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessSubStreamInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
-bool ClassCloneGenerator::Process_substructInline( FILE* into, TiXmlElement* field )
+bool ClassCloneGenerator::ProcessSubStructInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
 

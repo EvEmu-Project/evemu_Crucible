@@ -29,21 +29,59 @@
 #include "Generator.h"
 
 class ClassDecodeGenerator
-: public Generator<ClassDecodeGenerator>
+: public Generator
 {
 public:
-	ClassDecodeGenerator();
+	ClassDecodeGenerator( FILE* outputFile = NULL );
 
 protected:
 	const char* top() const { return mVariableStack.top().c_str(); }
 	void pop() { mVariableStack.pop(); }
 	void push(const char* v) { mVariableStack.push( v ); }
 
+    bool ProcessElementDef( const TiXmlElement* field );
+    bool ProcessElement( const TiXmlElement* field );
+    bool ProcessElementPtr( const TiXmlElement* field );
+
+    bool ProcessRaw( const TiXmlElement* field );
+    bool ProcessInt( const TiXmlElement* field );
+    bool ProcessLong( const TiXmlElement* field );
+    bool ProcessReal( const TiXmlElement* field );
+    bool ProcessBool( const TiXmlElement* field );
+    bool ProcessNone( const TiXmlElement* field );
+    bool ProcessBuffer( const TiXmlElement* field );
+
+    bool ProcessString( const TiXmlElement* field );
+    bool ProcessStringInline( const TiXmlElement* field );
+    bool ProcessWString( const TiXmlElement* field );
+    bool ProcessWStringInline( const TiXmlElement* field );
+    bool ProcessToken( const TiXmlElement* field );
+    bool ProcessTokenInline( const TiXmlElement* field );
+
+    bool ProcessObject( const TiXmlElement* field );
+    bool ProcessObjectInline( const TiXmlElement* field );
+    bool ProcessObjectEx( const TiXmlElement* field );
+
+    bool ProcessTuple( const TiXmlElement* field );
+    bool ProcessTupleInline( const TiXmlElement* field );
+    bool ProcessList( const TiXmlElement* field );
+    bool ProcessListInline( const TiXmlElement* field );
+    bool ProcessListInt( const TiXmlElement* field );
+    bool ProcessListLong( const TiXmlElement* field );
+    bool ProcessListStr( const TiXmlElement* field );
+    bool ProcessDict( const TiXmlElement* field );
+    bool ProcessDictInline( const TiXmlElement* field );
+    bool ProcessDictRaw( const TiXmlElement* field );
+    bool ProcessDictInt( const TiXmlElement* field );
+    bool ProcessDictStr( const TiXmlElement* field );
+
+    bool ProcessSubStreamInline( const TiXmlElement* field );
+    bool ProcessSubStructInline( const TiXmlElement* field );
+
+private:
 	const char* mName;
 	std::stack<std::string> mVariableStack;
 	uint32 mItemNumber;
-
-	AllGenProcDecls;
 };
 
 

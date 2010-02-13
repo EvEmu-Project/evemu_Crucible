@@ -28,9 +28,10 @@
 EVEmuServerConfig::EVEmuServerConfig()
 {
 	// register needed parsers
-    RegisterParser( "server",   &EVEmuServerConfig::_ParseServer );
-    RegisterParser( "database", &EVEmuServerConfig::_ParseDatabase );
-    RegisterParser( "files",    &EVEmuServerConfig::_ParseFiles );
+    RegisterParser( "eve",      &EVEmuServerConfig::ProcessEve );
+    RegisterParser( "server",   &EVEmuServerConfig::ProcessServer );
+    RegisterParser( "database", &EVEmuServerConfig::ProcessDatabase );
+    RegisterParser( "files",    &EVEmuServerConfig::ProcessFiles );
 
 	// Set sane defaults
 
@@ -53,7 +54,12 @@ EVEmuServerConfig::EVEmuServerConfig()
 	files.cacheDir = "";
 }
 
-bool EVEmuServerConfig::_ParseServer( const TiXmlElement* ele )
+bool EVEmuServerConfig::ProcessEve( const TiXmlElement* ele )
+{
+    return ParseElementChildren( ele );
+}
+
+bool EVEmuServerConfig::ProcessServer( const TiXmlElement* ele )
 {
 	const char* text;
 
@@ -76,7 +82,7 @@ bool EVEmuServerConfig::_ParseServer( const TiXmlElement* ele )
     return true;
 }
 
-bool EVEmuServerConfig::_ParseDatabase( const TiXmlElement* ele )
+bool EVEmuServerConfig::ProcessDatabase( const TiXmlElement* ele )
 {
 	const char* text;
 
@@ -103,7 +109,7 @@ bool EVEmuServerConfig::_ParseDatabase( const TiXmlElement* ele )
     return true;
 }
 
-bool EVEmuServerConfig::_ParseFiles( const TiXmlElement* ele )
+bool EVEmuServerConfig::ProcessFiles( const TiXmlElement* ele )
 {
 	const char* text;
 
@@ -122,3 +128,28 @@ bool EVEmuServerConfig::_ParseFiles( const TiXmlElement* ele )
     return true;
 }
 
+const char* EVEmuServerConfig::ParseTextBlock( const TiXmlNode* within, const char* name, bool optional )
+{
+    const TiXmlElement* txt = within->FirstChildElement( name );
+    if( txt == NULL )
+    {
+        if( !optional )
+            sLog.Error( "XMLParser", "Unable to find element '%s' in element '%s' at line %d.", name, within->Value(), within->Row() );
+        return NULL;
+    }
+
+    return GetText( txt, optional );
+}
+
+const char* EVEmuServerConfig::GetText( const TiXmlNode* within, bool optional )
+{
+    const TiXmlNode* contents = within->FirstChild();
+    if( contents == NULL || contents->Type() != TiXmlNode::TEXT )
+    {
+        if( !optional )
+            sLog.Error( "XMLParser", "Expected a text element in element '%s' at line %d.", within->Value(), within->Row() );
+        return NULL;
+    }
+
+    return contents->Value();
+}

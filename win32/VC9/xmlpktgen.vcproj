@@ -201,6 +201,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\xmlpktgen\Generator.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\xmlpktgen\HeaderGenerator.cpp"
 				>
 			</File>

@@ -26,6 +26,8 @@
 #ifndef __XML_PARSER_H__INCL__
 #define __XML_PARSER_H__INCL__
 
+#include "log/LogNew.h"
+
 /**
  * @brief Utility for parsing XML files.
  *
@@ -33,6 +35,7 @@
  *
  * @author Zhur, Bloody.Rabbit
  */
+template<typename _Self>
 class XMLParser
 {
 public:
@@ -44,7 +47,24 @@ public:
      * @retval true  Parsing successfull.
      * @retval false Error occurred during parsing.
      */
-    bool ParseFile( const char* file );
+    bool ParseFile( const char* file )
+    {
+        TiXmlDocument doc( file );
+        if( !doc.LoadFile() )
+        {
+            sLog.Error( "XMLParser", "Unable to load '%s': %s.", file, doc.ErrorDesc() );
+            return false;
+        }
+
+        TiXmlElement* root = doc.RootElement();
+        if( root == NULL )
+        {
+            sLog.Error( "XMLParser", "Unable to find root in '%s'.", file );
+            return false;
+        }
+
+        return ParseElement( root );
+    }
 
     /**
      * @brief Parses element using registered parsers.
@@ -54,62 +74,85 @@ public:
      * @retval true  Parsing successfull.
      * @retval false Error occurred during parsing.
      */
-    bool ParseElement( const TiXmlElement* element );
+    bool ParseElement( const TiXmlElement* element )
+    {
+        typename std::map<std::string, ElementParser>::const_iterator res = mParsers.find( element->Value() );
+        if( mParsers.end() == res )
+        {
+            sLog.Error( "XMLParser", "Unknown element '%s' at line %d.", element->Value(), element->Row() );
+            return false;
+        }
+
+        /*
+         * This is kinda a sketchy operation here, since all of these
+         * element handler methods will be functions in child classes.
+         * This essentially causes us to do an un-checkable (and hence
+         * un-handle-properly-able) cast down to the child class. This
+         * WILL BREAK if any children classes do multiple inheritance.
+         */
+        return ( static_cast<self_t*>( this )->*( res->second ) )( element );
+    }
+
+    /**
+     * @brief Parses element's children using registered parsers.
+     *
+     * @param[in] element Element the children of which should be parsed.
+     * @param[in] max     The maximal count of children to be processed; 0 means all.
+     *
+     * @retval true  Parsing successfull.
+     * @retval false Error occurred during parsing.
+     */
+    bool ParseElementChildren( const TiXmlElement* element, size_t max = 0 )
+    {
+        const TiXmlNode* child = NULL;
+
+        size_t count = 0;
+        while( ( child = element->IterateChildren( child ) ) )
+        {
+            if( child->Type() == TiXmlNode::ELEMENT )
+            {
+                const TiXmlElement* childElement = child->ToElement();
+
+                if( 0 < max && max <= count )
+                {
+                    sLog.Error( "XMLParser", "Maximal children count %lu exceeded"
+                                             " in element '%s' at line %d"
+                                             " by element '%s' at line %d.",
+                                             max,
+                                             element->Value(), element->Row(),
+                                             childElement->Value(), childElement->Row() );
+
+                    return false;
+                }
+
+                if( !ParseElement( childElement ) )
+                    return false;
+
+                ++count;
+            }
+        }
+
+        return true;
+    }
 
 protected:
+    /** Type of our child which is deriving from us. */
+    typedef _Self self_t;
+    /** Type of element parsers. */
+    typedef bool ( self_t::* ElementParser )( const TiXmlElement* ele );
+
     /**
      * @brief Registers a parser.
      *
      * @param[in] name   Name of element to be parsed by the parser.
      * @param[in] parser The parser itself.
      */
-    template<typename X>
-    void RegisterParser( const char* name, bool ( X::* parser )( const TiXmlElement* ele ) )
+    void RegisterParser( const char* name, const ElementParser& parser )
     {
-        mParsers[ name ] = static_cast<ElementParser>( parser );
+        mParsers[ name ] = parser;
     }
 
-    /**
-     * @brief Recurses into all children of element.
-     *
-     * @param[in] element Element to recurse into.
-     *
-     * @retval true  Parsing successfull.
-     * @retval false Error occurred during parsing.
-     */
-    bool Recurse( const TiXmlElement* element );
-
-    /**
-     * @brief Extracts text from given node.
-     *
-     * Function finds first child of given name and gives
-     * it to function GetText.
-     *
-     * @param[in] within   The node to extract the text from.
-     * @param[in] name     Name of child to extract the text from.
-     * @param[in] optional If set to true, no error is printed when
-     *                     an error occurs.
-     *
-     * @return Extracted text; NULL if an error occurred.
-     */
-	static const char* ParseTextBlock( const TiXmlNode* within, const char* name, bool optional = false );
-    /**
-     * @brief Extracts text from given node.
-     *
-     * Function obtains first child and if it's text element,
-     * returns its content.
-     *
-     * @param[in] within   The node to extract text from.
-     * @param[in] optional If set to true, no error is printed when
-     *                     an error occurs.
-     *
-     * @return Extracted text; NULL if an error occurred.
-     */
-	static const char* GetText( const TiXmlNode* within, bool optional = false );
-
 private:
-    /** Type of element parsers (casted). */
-    typedef bool ( XMLParser::* ElementParser )( const TiXmlElement* ele );
     /** Parser storage. */
     std::map<std::string, ElementParser> mParsers;
 };

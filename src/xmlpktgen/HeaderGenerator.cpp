@@ -27,30 +27,55 @@
 
 #include "HeaderGenerator.h"
 
-ClassHeaderGenerator::ClassHeaderGenerator()
+ClassHeaderGenerator::ClassHeaderGenerator( FILE* outputFile )
+: Generator( outputFile )
 {
-    AllGenProcRegs( ClassHeaderGenerator );
-    GenProcReg( ClassHeaderGenerator, dictInlineEntry, NULL );
+    RegisterProcessors();
 }
 
-bool ClassHeaderGenerator::Process_elementDef( FILE* into, TiXmlElement* element )
+bool ClassHeaderGenerator::RegisterName( const char* name, uint32 row )
 {
-    const char* name = element->Attribute("name");
+	if( mNamesUsed.find( name ) != mNamesUsed.end() )
+	{
+        _log( COMMON__ERROR, "Field at line %u: The name '%s' is already used.", row, name );
+
+		return false;
+	}
+
+	mNamesUsed.insert( name );
+	return true;
+}
+
+void ClassHeaderGenerator::ClearNames()
+{
+	mNamesUsed.clear();
+}
+
+void ClassHeaderGenerator::RegisterProcessors()
+{
+    Generator::RegisterProcessors();
+
+    RegisterParser( "dictInlineEntry", static_cast<ElementParser>( &ClassHeaderGenerator::ProcessDictInlineEntry ) );
+}
+
+bool ClassHeaderGenerator::ProcessElementDef( const TiXmlElement* field )
+{
+    const char* name = field->Attribute("name");
     if( name == NULL )
     {
-        _log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row() );
+        _log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
-    TiXmlElement* main = element->FirstChildElement();
+    const TiXmlElement* main = field->FirstChildElement();
     if( main->NextSiblingElement() != NULL )
     {
-        _log( COMMON__ERROR, "<element> at line %d contains more than one root element. skipping.", element->Row() );
+        _log( COMMON__ERROR, "<element> at line %d contains more than one root element. skipping.", field->Row() );
         return false;
     }
 
-    const char* encode_type = GetEncodeType( element );
-    fprintf( into,
+    const char* encode_type = GetEncodeType( main );
+    fprintf( mOutputFile,
 		"class %s\n"
 		"{\n"
         "public:\n"
@@ -79,10 +104,10 @@ bool ClassHeaderGenerator::Process_elementDef( FILE* into, TiXmlElement* element
         name, name
     );
 
-    if( !Recurse( into, element, 1 ) )
+    if( !ParseElement( main ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"};\n"
 		"\n"
 	);
@@ -92,7 +117,7 @@ bool ClassHeaderGenerator::Process_elementDef( FILE* into, TiXmlElement* element
 	return true;
 }
 
-bool ClassHeaderGenerator::Process_element( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessElement( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -110,7 +135,7 @@ bool ClassHeaderGenerator::Process_element( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    %s\t%s;\n",
 		type, name
 	);
@@ -118,7 +143,7 @@ bool ClassHeaderGenerator::Process_element( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessElementPtr( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -136,7 +161,7 @@ bool ClassHeaderGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    %s*\t%s;\n",
 		type, name
 	);
@@ -144,7 +169,7 @@ bool ClassHeaderGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_raw( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessRaw( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -156,7 +181,7 @@ bool ClassHeaderGenerator::Process_raw( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    PyRep*\t\t%s;\n",
 		name
 	);
@@ -164,7 +189,7 @@ bool ClassHeaderGenerator::Process_raw( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_int( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessInt( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -176,7 +201,7 @@ bool ClassHeaderGenerator::Process_int( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    int32\t\t%s;\n",
 		name
 	);
@@ -184,7 +209,7 @@ bool ClassHeaderGenerator::Process_int( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_long( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessLong( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -196,7 +221,7 @@ bool ClassHeaderGenerator::Process_long( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    int64\t\t%s;\n",
 		name
 	);
@@ -204,7 +229,7 @@ bool ClassHeaderGenerator::Process_long( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_real( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessReal( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -216,7 +241,7 @@ bool ClassHeaderGenerator::Process_real( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    double\t\t%s;\n",
 		name
 	);
@@ -224,7 +249,7 @@ bool ClassHeaderGenerator::Process_real( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_bool( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessBool( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -236,7 +261,7 @@ bool ClassHeaderGenerator::Process_bool( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    bool\t\t%s;\n",
 		name
 	);
@@ -244,12 +269,12 @@ bool ClassHeaderGenerator::Process_bool( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_none( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessNone( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassHeaderGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessBuffer( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -261,7 +286,7 @@ bool ClassHeaderGenerator::Process_buffer( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    PyBuffer*\t%s;\n",
 		name
 	);
@@ -269,7 +294,7 @@ bool ClassHeaderGenerator::Process_buffer( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_string( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessString( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -281,7 +306,7 @@ bool ClassHeaderGenerator::Process_string( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    std::string\t\t%s;\n",
 		name
 	);
@@ -289,12 +314,12 @@ bool ClassHeaderGenerator::Process_string( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_stringInline( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessStringInline( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassHeaderGenerator::Process_wstring( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessWString( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -306,7 +331,7 @@ bool ClassHeaderGenerator::Process_wstring( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    std::string\t\t%s;\n",
 		name
 	);
@@ -314,7 +339,12 @@ bool ClassHeaderGenerator::Process_wstring( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_token( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessWStringInline( const TiXmlElement* field )
+{
+    return true;
+}
+
+bool ClassHeaderGenerator::ProcessToken( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -326,7 +356,7 @@ bool ClassHeaderGenerator::Process_token( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 	    "    PyToken*\t\t%s;\n",
 	    name
     );
@@ -334,12 +364,12 @@ bool ClassHeaderGenerator::Process_token( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_tokenInline( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessTokenInline( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassHeaderGenerator::Process_object( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessObject( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -348,7 +378,7 @@ bool ClassHeaderGenerator::Process_object( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    PyObject*\t%s;\n",
         name
     );
@@ -356,12 +386,12 @@ bool ClassHeaderGenerator::Process_object( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_objectInline( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessObjectInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 2 );
+    return ParseElementChildren( field, 2 );
 }
 
-bool ClassHeaderGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessObjectEx( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -379,7 +409,7 @@ bool ClassHeaderGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s*\t%s;\n",
 		type, name
 	);
@@ -387,7 +417,7 @@ bool ClassHeaderGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_tuple( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessTuple( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -399,7 +429,7 @@ bool ClassHeaderGenerator::Process_tuple( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    PyTuple*\t\t%s;\n",
 		name
 	);
@@ -407,12 +437,12 @@ bool ClassHeaderGenerator::Process_tuple( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_tupleInline( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessTupleInline( const TiXmlElement* field )
 {
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassHeaderGenerator::Process_list( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessList( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -424,7 +454,7 @@ bool ClassHeaderGenerator::Process_list( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    PyList*\t\t%s;\n",
 		name
 	);
@@ -432,12 +462,12 @@ bool ClassHeaderGenerator::Process_list( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_listInline( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessListInline( const TiXmlElement* field )
 {
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassHeaderGenerator::Process_listInt( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessListInt( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -449,7 +479,7 @@ bool ClassHeaderGenerator::Process_listInt( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    std::vector<int32>\t%s;\n",
 		name
 	);
@@ -457,7 +487,7 @@ bool ClassHeaderGenerator::Process_listInt( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_listLong( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessListLong( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -469,7 +499,7 @@ bool ClassHeaderGenerator::Process_listLong( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    std::vector<int64>\t%s;\n",
 		name
 	);
@@ -477,7 +507,7 @@ bool ClassHeaderGenerator::Process_listLong( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_listStr( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessListStr( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -489,7 +519,7 @@ bool ClassHeaderGenerator::Process_listStr( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    std::vector<std::string>\t%s;\n",
 		name
 	);
@@ -497,7 +527,7 @@ bool ClassHeaderGenerator::Process_listStr( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_dict( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessDict( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -509,7 +539,7 @@ bool ClassHeaderGenerator::Process_dict( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    PyDict*\t\t%s;\n",
 		name
 	);
@@ -517,12 +547,12 @@ bool ClassHeaderGenerator::Process_dict( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_dictInline( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessDictInline( const TiXmlElement* field )
 {
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassHeaderGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessDictInlineEntry( const TiXmlElement* field )
 {
     //we dont really even care about this...
     const char* key = field->Attribute( "key" );
@@ -532,10 +562,10 @@ bool ClassHeaderGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement* fi
         return false;
     }
 
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
-bool ClassHeaderGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessDictRaw( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -572,7 +602,7 @@ bool ClassHeaderGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    std::map<%s, %s>\t%s;\n",
 		key, value, name
 	);
@@ -580,7 +610,7 @@ bool ClassHeaderGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessDictInt( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -592,7 +622,7 @@ bool ClassHeaderGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    std::map<int32, PyRep*>\t%s;\n",
 		name
 	);
@@ -600,7 +630,7 @@ bool ClassHeaderGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessDictStr( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -612,7 +642,7 @@ bool ClassHeaderGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
     if( !RegisterName( name, field->Row() ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    std::map<std::string, PyRep*>\t%s;\n",
 		name
 	);
@@ -620,14 +650,14 @@ bool ClassHeaderGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassHeaderGenerator::Process_substreamInline( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessSubStreamInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
-bool ClassHeaderGenerator::Process_substructInline( FILE* into, TiXmlElement* field )
+bool ClassHeaderGenerator::ProcessSubStructInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
 

@@ -5,7 +5,7 @@
   <elementDef name="Call_Dogma_Activate">
     <tupleInline>
       <int name="itemID" />
-      <string name="effectName" />
+      <wstring name="effectName" soft="true" />
       <!-- optional: -->
       <int name="target" none_marker="0" default="0" />
       <int name="repeat" />

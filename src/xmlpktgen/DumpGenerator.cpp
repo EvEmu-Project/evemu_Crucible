@@ -27,22 +27,29 @@
 
 #include "DumpGenerator.h"
 
-ClassDumpGenerator::ClassDumpGenerator()
+ClassDumpGenerator::ClassDumpGenerator( FILE* outputFile )
+: Generator( outputFile )
 {
-    AllGenProcRegs( ClassDumpGenerator );
-    GenProcReg( ClassDumpGenerator, dictInlineEntry, NULL );
+    RegisterProcessors();
 }
 
-bool ClassDumpGenerator::Process_elementDef( FILE* into, TiXmlElement* element )
+void ClassDumpGenerator::RegisterProcessors()
 {
-    const char* name = element->Attribute( "name" );
+    Generator::RegisterProcessors();
+
+    RegisterParser( "dictInlineEntry", static_cast<ElementParser>( &ClassDumpGenerator::ProcessDictInlineEntry ) );
+}
+
+bool ClassDumpGenerator::ProcessElementDef( const TiXmlElement* field )
+{
+    const char* name = field->Attribute( "name" );
     if( name == NULL )
     {
-        _log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row() );
+        _log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "void %s::Dump( LogType l_type, const char* pfx ) const\n"
 		"{\n"
         "    _log( l_type, \"%%s%s\", pfx );\n"
@@ -50,10 +57,10 @@ bool ClassDumpGenerator::Process_elementDef( FILE* into, TiXmlElement* element )
         name, name
 	);
 
-    if( !Recurse( into, element ) )
+    if( !ParseElementChildren( field ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"}\n"
 		"\n"
 	);
@@ -61,7 +68,7 @@ bool ClassDumpGenerator::Process_elementDef( FILE* into, TiXmlElement* element )
 	return true;
 }
 
-bool ClassDumpGenerator::Process_element( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessElement( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -70,7 +77,7 @@ bool ClassDumpGenerator::Process_element( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
 		"\n"
         "    std::string %s_n( pfx );\n"
@@ -87,7 +94,7 @@ bool ClassDumpGenerator::Process_element( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessElementPtr( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -96,7 +103,7 @@ bool ClassDumpGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
 		"\n"
         "    std::string %s_n( pfx );\n"
@@ -118,7 +125,7 @@ bool ClassDumpGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_raw( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessRaw( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -127,7 +134,7 @@ bool ClassDumpGenerator::Process_raw( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
 		"\n"
         "    std::string %s_n( pfx );\n"
@@ -149,7 +156,7 @@ bool ClassDumpGenerator::Process_raw( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_int( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessInt( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -158,7 +165,7 @@ bool ClassDumpGenerator::Process_int( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    _log( l_type, \"%%s%s=%%u\", pfx, %s );\n"
 		"\n",
 		name, name
@@ -167,7 +174,7 @@ bool ClassDumpGenerator::Process_int( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_long( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessLong( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -176,7 +183,7 @@ bool ClassDumpGenerator::Process_long( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    _log( l_type, \"%%s%s=\" I64d, pfx, %s );\n"
 		"\n",
 		name, name
@@ -185,7 +192,7 @@ bool ClassDumpGenerator::Process_long( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_real( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessReal( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -194,7 +201,7 @@ bool ClassDumpGenerator::Process_real( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    _log( l_type, \"%%s%s=%%.13f\", pfx, %s );\n"
 		"\n",
 		name, name
@@ -203,7 +210,7 @@ bool ClassDumpGenerator::Process_real( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_bool( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessBool( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -212,7 +219,7 @@ bool ClassDumpGenerator::Process_bool( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    _log( l_type, \"%%s%s=%%s\", pfx, %s ? \"true\" : \"false\" );\n"
 		"\n",
 		name, name
@@ -221,12 +228,12 @@ bool ClassDumpGenerator::Process_bool( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_none( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessNone( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDumpGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessBuffer( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -235,7 +242,7 @@ bool ClassDumpGenerator::Process_buffer( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s: \", pfx );\n"
 		"\n"
         "    std::string %s_n( pfx );\n"
@@ -252,7 +259,7 @@ bool ClassDumpGenerator::Process_buffer( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_string( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessString( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -261,7 +268,7 @@ bool ClassDumpGenerator::Process_string( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    _log( l_type, \"%%s%s='%%s'\", pfx, %s.c_str() );\n"
 		"\n",
 		name, name
@@ -270,16 +277,16 @@ bool ClassDumpGenerator::Process_string( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_stringInline( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessStringInline( const TiXmlElement* field )
 {
     const char* value = field->Attribute( "value" );
     if( NULL == value )
     {
-        _log( COMMON__ERROR, "String element at line %d has no type attribute.", field->Row() );
+        _log( COMMON__ERROR, "String element at line %d has no value attribute.", field->Row() );
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%sString '%s'\", pfx );\n"
         "\n",
         value
@@ -288,7 +295,7 @@ bool ClassDumpGenerator::Process_stringInline( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_wstring( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessWString( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -297,7 +304,7 @@ bool ClassDumpGenerator::Process_wstring( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    _log( l_type, \"%%s%s='%%s'\", pfx, %s.c_str() );\n"
 		"\n",
 		name, name
@@ -306,7 +313,25 @@ bool ClassDumpGenerator::Process_wstring( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_token( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessWStringInline( const TiXmlElement* field )
+{
+    const char* value = field->Attribute( "value" );
+    if( NULL == value )
+    {
+        _log( COMMON__ERROR, "WString element at line %d has no value attribute.", field->Row() );
+        return false;
+    }
+
+    fprintf( mOutputFile,
+        "    _log( l_type, \"%%sWString '%s'\", pfx );\n"
+        "\n",
+        value
+    );
+
+    return true;
+}
+
+bool ClassDumpGenerator::ProcessToken( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -315,7 +340,7 @@ bool ClassDumpGenerator::Process_token( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
 	    "\n"
         "    std::string %s_n( pfx );\n"
@@ -340,7 +365,7 @@ bool ClassDumpGenerator::Process_token( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_tokenInline( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessTokenInline( const TiXmlElement* field )
 {
     const char* value = field->Attribute( "value" );
     if( NULL == value )
@@ -349,7 +374,7 @@ bool ClassDumpGenerator::Process_tokenInline( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%sToken '%s'\", pfx );\n"
         "\n",
         value
@@ -358,7 +383,7 @@ bool ClassDumpGenerator::Process_tokenInline( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_object( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessObject( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -367,7 +392,7 @@ bool ClassDumpGenerator::Process_object( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
         "\n"
         "    if( NULL == %s )\n"
@@ -392,17 +417,17 @@ bool ClassDumpGenerator::Process_object( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_objectInline( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessObjectInline( const TiXmlElement* field )
 {
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%sObject:\", pfx );\n"
         "\n"
     );
 
-    return Recurse( into, field, 2 );
+    return ParseElementChildren( field, 2 );
 }
 
-bool ClassDumpGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessObjectEx( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -417,7 +442,7 @@ bool ClassDumpGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    _log( l_type, \"%%s%s (%s):\", pfx );\n"
 		"\n"
 		"    if( %s == NULL )\n"
@@ -441,7 +466,7 @@ bool ClassDumpGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_tuple( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessTuple( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -450,7 +475,7 @@ bool ClassDumpGenerator::Process_tuple( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
 		"\n"
         "    std::string %s_n( pfx );\n"
@@ -475,13 +500,13 @@ bool ClassDumpGenerator::Process_tuple( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_tupleInline( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessTupleInline( const TiXmlElement* field )
 {
     //do we want to display the tuple in the dump?
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassDumpGenerator::Process_list( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessList( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -490,7 +515,7 @@ bool ClassDumpGenerator::Process_list( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
 		"\n"
         "    std::string %s_n( pfx );\n"
@@ -515,13 +540,13 @@ bool ClassDumpGenerator::Process_list( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_listInline( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessListInline( const TiXmlElement* field )
 {
     //do we want to display the list in the dump?
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassDumpGenerator::Process_listInt( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessListInt( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -530,7 +555,7 @@ bool ClassDumpGenerator::Process_listInt( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s: Integer list with %%lu entries\", pfx, %s.size() );\n"
 		"\n"
         "    std::vector<int32>::const_iterator %s_cur, %s_end;\n"
@@ -550,7 +575,7 @@ bool ClassDumpGenerator::Process_listInt( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_listLong( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessListLong( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -559,7 +584,7 @@ bool ClassDumpGenerator::Process_listLong( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s: Integer list with %%lu entries\", pfx, %s.size() );\n"
 		"\n"
         "    std::vector<int64>::const_iterator %s_cur, %s_end;\n"
@@ -579,7 +604,7 @@ bool ClassDumpGenerator::Process_listLong( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_listStr( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessListStr( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -588,7 +613,7 @@ bool ClassDumpGenerator::Process_listStr( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s: String list with %%lu entries\", pfx, %s.size() );\n"
 		"\n"
         "    std::vector<std::string>::const_iterator %s_cur, %s_end;\n"
@@ -608,7 +633,7 @@ bool ClassDumpGenerator::Process_listStr( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_dict( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessDict( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -617,7 +642,7 @@ bool ClassDumpGenerator::Process_dict( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s:\", pfx );\n"
 		"\n"
         "    std::string %s_n( pfx );\n"
@@ -642,13 +667,13 @@ bool ClassDumpGenerator::Process_dict( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_dictInline( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessDictInline( const TiXmlElement* field )
 {
     //do we want to display the dict in the dump?
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassDumpGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessDictInlineEntry( const TiXmlElement* field )
 {
     //we dont really even care about this...
     const char* key = field->Attribute( "key" );
@@ -658,10 +683,10 @@ bool ClassDumpGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement* fiel
         return false;
     }
 
-	return Recurse( into, field, 1 );
+	return ParseElementChildren( field, 1 );
 }
 
-bool ClassDumpGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessDictRaw( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -698,7 +723,7 @@ bool ClassDumpGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
     //TODO: un-kludge this with respect to printf placeholders/types
     //could make PyRep's out of them and use ->Dump, but thats annoying
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size() );\n"
 		"\n"
         "    std::map<%s, %s>::const_iterator %s_cur, %s_end;\n"
@@ -719,7 +744,7 @@ bool ClassDumpGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessDictInt( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -728,7 +753,7 @@ bool ClassDumpGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size() );\n"
 		"\n"
         "    std::map<int32, PyRep*>::const_iterator %s_cur, %s_end;\n"
@@ -754,7 +779,7 @@ bool ClassDumpGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessDictStr( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -763,7 +788,7 @@ bool ClassDumpGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    _log( l_type, \"%%s%s: Dictionary with %%lu entries\", pfx, %s.size() );\n"
 		"\n"
         "    std::map<std::string, PyRep*>::const_iterator %s_cur, %s_end;\n"
@@ -789,15 +814,15 @@ bool ClassDumpGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDumpGenerator::Process_substreamInline( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessSubStreamInline( const TiXmlElement* field )
 {
     //do we want to display the substream in the dump?
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
-bool ClassDumpGenerator::Process_substructInline( FILE* into, TiXmlElement* field )
+bool ClassDumpGenerator::ProcessSubStructInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
 

@@ -94,10 +94,10 @@ int main( int argc, char* argv[] )
         }
 #endif
 
-        if( !gen.LoadFile( xml.c_str() ) )
-            return -1;
+        gen.SetHeaderFile( h.c_str() );
+        gen.SetSourceFile( cpp.c_str() );
 
-        if( !gen.GenPackets( h.c_str(), cpp.c_str() ) )
+        if( !gen.ParseFile( xml.c_str() ) )
             return -1;
     }
 

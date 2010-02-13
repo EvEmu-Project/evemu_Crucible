@@ -29,33 +29,59 @@
 #include "Generator.h"
 
 class ClassHeaderGenerator
-: public Generator<ClassHeaderGenerator>
+: public Generator
 {
 public:
-	ClassHeaderGenerator();
+	ClassHeaderGenerator( FILE* outputFile = NULL );
 
 protected:
-	bool RegisterName( const char* name, uint32 row )
-	{
-		if( mNamesUsed.find( name ) != mNamesUsed.end() )
-		{
-	        _log( COMMON__ERROR, "Field at line %u: The name '%s' is already used.", row, name );
+	bool RegisterName( const char* name, uint32 row );
+	void ClearNames();
 
-			return false;
-		}
+    void RegisterProcessors();
 
-		mNamesUsed.insert( name );
-		return true;
-	}
-	void ClearNames()
-	{
-		mNamesUsed.clear();
-	}
+    bool ProcessElementDef( const TiXmlElement* field );
+    bool ProcessElement( const TiXmlElement* field );
+    bool ProcessElementPtr( const TiXmlElement* field );
 
+    bool ProcessRaw( const TiXmlElement* field );
+    bool ProcessInt( const TiXmlElement* field );
+    bool ProcessLong( const TiXmlElement* field );
+    bool ProcessReal( const TiXmlElement* field );
+    bool ProcessBool( const TiXmlElement* field );
+    bool ProcessNone( const TiXmlElement* field );
+    bool ProcessBuffer( const TiXmlElement* field );
+
+    bool ProcessString( const TiXmlElement* field );
+    bool ProcessStringInline( const TiXmlElement* field );
+    bool ProcessWString( const TiXmlElement* field );
+    bool ProcessWStringInline( const TiXmlElement* field );
+    bool ProcessToken( const TiXmlElement* field );
+    bool ProcessTokenInline( const TiXmlElement* field );
+
+    bool ProcessObject( const TiXmlElement* field );
+    bool ProcessObjectInline( const TiXmlElement* field );
+    bool ProcessObjectEx( const TiXmlElement* field );
+
+    bool ProcessTuple( const TiXmlElement* field );
+    bool ProcessTupleInline( const TiXmlElement* field );
+    bool ProcessList( const TiXmlElement* field );
+    bool ProcessListInline( const TiXmlElement* field );
+    bool ProcessListInt( const TiXmlElement* field );
+    bool ProcessListLong( const TiXmlElement* field );
+    bool ProcessListStr( const TiXmlElement* field );
+    bool ProcessDict( const TiXmlElement* field );
+    bool ProcessDictInline( const TiXmlElement* field );
+    bool ProcessDictInlineEntry( const TiXmlElement* field );
+    bool ProcessDictRaw( const TiXmlElement* field );
+    bool ProcessDictInt( const TiXmlElement* field );
+    bool ProcessDictStr( const TiXmlElement* field );
+
+    bool ProcessSubStreamInline( const TiXmlElement* field );
+    bool ProcessSubStructInline( const TiXmlElement* field );
+
+private:
 	std::set<std::string> mNamesUsed;
-
-	AllGenProcDecls;
-	GenProcDecl( dictInlineEntry );
 };
 
 #endif

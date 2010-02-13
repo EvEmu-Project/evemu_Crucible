@@ -26,166 +26,96 @@
 #ifndef __GENERATOR_H_INCL__
 #define __GENERATOR_H_INCL__
 
-template<typename X>
+/**
+ * @brief Generic class for xmlpktgen's generators.
+ *
+ * All children classes must call RegisterProcessors
+ * during construction!
+ *
+ * @author Zhur, Bloody.Rabbit
+ */
 class Generator
+: public XMLParser<Generator>
 {
 public:
-    typedef bool ( X::*GenProc )( FILE* into, TiXmlElement* field );
+    /**
+     * @brief Primary constructor.
+     *
+     * @param[in] outputFile The output file.
+     */
+    Generator( FILE* outputFile = NULL );
 
-	Generator() {}
-	virtual ~Generator() {}
-
-    bool Generate( FILE* into, TiXmlElement* root )
-    {
-        typename std::map<std::string, GenProc>::iterator res = mGenProcs.find( root->Value() );
-        if( res == mGenProcs.end() )
-		{
-            _log(COMMON__ERROR, "Unexpected field type '%s' on line %d", root->Value(), root->Row());
-            return false;
-        }
-
-        GenProc& p = res->second;
-        X* t = (X*) this;
-
-        return ( t->*p )( into, root );
-    }
+    /**
+     * @brief Sets output file.
+     *
+     * @param[in] outputFile New output file.
+     */
+    void SetOutputFile( FILE* outputFile ) { mOutputFile = outputFile; }
 
 protected:
-    bool Recurse( FILE* into, TiXmlElement* root, uint32 max = 0 )
-    {
-        TiXmlNode* field = NULL;
-        uint32 count = 0;
+    /** Registers all the Generator processors. */
+    void RegisterProcessors();
 
-        while( ( field = root->IterateChildren( field ) ) )
-        {
-            //pass through comments.
-            if( field->Type() == TiXmlNode::COMMENT )
-            {
-                TiXmlComment* comm = field->ToComment();
+    virtual bool ProcessElementDef( const TiXmlElement* field ) = 0;
+    virtual bool ProcessElement( const TiXmlElement* field ) = 0;
+    virtual bool ProcessElementPtr( const TiXmlElement* field ) = 0;
 
-                fprintf( into, "    /* %s */\n", comm->Value() );
-            }
-            //handle elements
-            else if( field->Type() == TiXmlNode::ELEMENT )
-            {
-                if( max > 0 && count > max )
-                {
-                    _log(COMMON__ERROR, "Element at line %d has too many children elements, at most %u expected.", root->Row(), max);
-                    return false;
-                }
-                ++count;
+    virtual bool ProcessRaw( const TiXmlElement* field ) = 0;
+    virtual bool ProcessInt( const TiXmlElement* field ) = 0;
+    virtual bool ProcessLong( const TiXmlElement* field ) = 0;
+    virtual bool ProcessReal( const TiXmlElement* field ) = 0;
+    virtual bool ProcessBool( const TiXmlElement* field ) = 0;
+    virtual bool ProcessNone( const TiXmlElement* field ) = 0;
+    virtual bool ProcessBuffer( const TiXmlElement* field ) = 0;
 
-                TiXmlElement* elem = field->ToElement();
+    virtual bool ProcessString( const TiXmlElement* field ) = 0;
+    virtual bool ProcessStringInline( const TiXmlElement* field ) = 0;
+    virtual bool ProcessWString( const TiXmlElement* field ) = 0;
+    virtual bool ProcessWStringInline( const TiXmlElement* field ) = 0;
+    virtual bool ProcessToken( const TiXmlElement* field ) = 0;
+    virtual bool ProcessTokenInline( const TiXmlElement* field ) = 0;
 
-                if( !Generate( into, elem ) )
-                    return false;
-            }
-        }
+    virtual bool ProcessObject( const TiXmlElement* field ) = 0;
+    virtual bool ProcessObjectInline( const TiXmlElement* field ) = 0;
+    virtual bool ProcessObjectEx( const TiXmlElement* field ) = 0;
 
-        return true;
-    }
+    virtual bool ProcessTuple( const TiXmlElement* field ) = 0;
+    virtual bool ProcessTupleInline( const TiXmlElement* field ) = 0;
+    virtual bool ProcessList( const TiXmlElement* field ) = 0;
+    virtual bool ProcessListInline( const TiXmlElement* field ) = 0;
+    virtual bool ProcessListInt( const TiXmlElement* field ) = 0;
+    virtual bool ProcessListLong( const TiXmlElement* field ) = 0;
+    virtual bool ProcessListStr( const TiXmlElement* field ) = 0;
+    virtual bool ProcessDict( const TiXmlElement* field ) = 0;
+    virtual bool ProcessDictInline( const TiXmlElement* field ) = 0;
+    virtual bool ProcessDictRaw( const TiXmlElement* field ) = 0;
+    virtual bool ProcessDictInt( const TiXmlElement* field ) = 0;
+    virtual bool ProcessDictStr( const TiXmlElement* field ) = 0;
 
-	void RegisterGenProc( const char* name, const GenProc& proc )
-	{
-		mGenProcs[ name ] = proc;
-	}
-    std::map<std::string, GenProc> mGenProcs;
+    virtual bool ProcessSubStreamInline( const TiXmlElement* field ) = 0;
+    virtual bool ProcessSubStructInline( const TiXmlElement* field ) = 0;
 
-    const char* GetEncodeType( TiXmlElement* element ) const
-	{
-		TiXmlElement* main = element->FirstChildElement();
-		if( main == NULL )
-			return "PyRep";
+    /**
+     * @brief Obtains encode type of given element.
+     *
+     * @param[in] element The element to be examined.
+     *
+     * @return The encode type of element.
+     */
+    static const char* GetEncodeType( const TiXmlElement* element );
 
-		std::map<std::string, std::string>::const_iterator res = mEncTypes.find( main->Value() );
-		if( res == mEncTypes.end() )
-			return "PyRep";
+    /** The current output file. */
+    FILE* mOutputFile;
 
-		return res->second.c_str();
-	}
-	void RegisterEncodeType( const char* name, const char* encodeType )
-	{
-		mEncTypes[ name ] = encodeType;
-	}
-    std::map<std::string, std::string> mEncTypes;
+private:
+    /** Loads encode types. */
+    static void LoadEncTypes();
+
+    /** True if encode types has been loaded. */
+    static bool smEncTypesLoaded;
+    /** Encode type map. */
+    static std::map<std::string, std::string> smEncTypes;
 };
-
-#define GenProcDecl( t ) \
-    bool Process_##t( FILE* into, TiXmlElement* field )
-
-#define GenProcReg( c, ename, type ) \
-	RegisterEncodeType( #ename, #type ); \
-	RegisterGenProc( #ename, &c::Process_##ename )
-
-#define AllGenProcDecls \
-    GenProcDecl( elementDef ); \
-    GenProcDecl( element ); \
-    GenProcDecl( elementPtr ); \
-    GenProcDecl( raw ); \
-    GenProcDecl( int ); \
-    GenProcDecl( long ); \
-    GenProcDecl( real ); \
-    GenProcDecl( bool ); \
-    GenProcDecl( none ); \
-    GenProcDecl( buffer ); \
-    GenProcDecl( string ); \
-    GenProcDecl( stringInline ); \
-    GenProcDecl( wstring ); \
-    GenProcDecl( token ); \
-    GenProcDecl( tokenInline ); \
-    GenProcDecl( object ); \
-    GenProcDecl( objectInline ); \
-    GenProcDecl( objectEx ); \
-    GenProcDecl( tuple ); \
-    GenProcDecl( tupleInline ); \
-    GenProcDecl( list ); \
-    GenProcDecl( listInline ); \
-    GenProcDecl( listInt ); \
-    GenProcDecl( listLong ); \
-    GenProcDecl( listStr ); \
-    GenProcDecl( dict ); \
-    GenProcDecl( dictInline ); \
-    GenProcDecl( dictRaw ); \
-    GenProcDecl( dictInt ); \
-    GenProcDecl( dictStr ); \
-    GenProcDecl( substreamInline ); \
-    GenProcDecl( substructInline )
-
-#define AllGenProcRegs( c ) \
-    GenProcReg( c, elementDef, PyRep ); \
-    GenProcReg( c, element, PyRep ); \
-    GenProcReg( c, elementPtr, PyRep ); \
-    GenProcReg( c, raw, PyRep ); \
-    GenProcReg( c, int, PyInt ); \
-    GenProcReg( c, long, PyInt ); \
-    GenProcReg( c, real, PyFloat ); \
-    GenProcReg( c, bool, PyBool ); \
-    GenProcReg( c, none, PyRep ); \
-    GenProcReg( c, buffer, PyBuffer ); \
-    GenProcReg( c, string, PyString ); \
-    GenProcReg( c, stringInline, PyString ); \
-    GenProcReg( c, wstring, PyWString ); \
-    GenProcReg( c, token, PyToken ); \
-    GenProcReg( c, tokenInline, PyToken ); \
-    GenProcReg( c, object, PyObject ); \
-    GenProcReg( c, objectInline, PyObject ); \
-    GenProcReg( c, objectEx, PyObjectEx ); \
-    GenProcReg( c, tuple, PyTuple ); \
-    GenProcReg( c, tupleInline, PyTuple ); \
-    GenProcReg( c, list, PyList ); \
-    GenProcReg( c, listInline, PyList ); \
-    GenProcReg( c, listInt, PyList ); \
-    GenProcReg( c, listLong, PyList ); \
-    GenProcReg( c, listStr, PyList ); \
-    GenProcReg( c, dict, PyDict ); \
-    GenProcReg( c, dictInline, PyDict ); \
-    GenProcReg( c, dictRaw, PyDict ); \
-    GenProcReg( c, dictInt, PyDict ); \
-    GenProcReg( c, dictStr, PyDict ); \
-    GenProcReg( c, substreamInline, PySubStream ); \
-    GenProcReg( c, substructInline, PySubStruct )
-
-
 
 #endif
 

@@ -23,32 +23,63 @@
 	Author:		Zhur
 */
 
-/* Capt: Even that I don't always like boost, it has a very useful class called FileSystem which does this stuff very crossplatform */
-
 #ifndef __DIRWALKER_H_INCL__
 #define __DIRWALKER_H_INCL__
 
-class DirWalker {
+/**
+ * @brief Simple class for directory listing.
+ *
+ * @note Capt: Even that I don't always like boost,
+ *       it has a very useful class called FileSystem
+ *       which does this stuff very crossplatform.
+ *
+ * @author Zhur, Bloody.Rabbit
+ */
+class DirWalker
+{
 public:
-	static bool ListDirectory(const char *dir, std::vector<std::string> &into);
-	
-	DirWalker(const char *dir);
+	DirWalker();
 	~DirWalker();
 
-	bool GetFile();
-	
-	//access to the current file.
-	const char *CurrentFileName();
-	
+    /** @return Current file name. */
+	const char* currentFileName();
+
+    /**
+     * @brief Opens directory for listing.
+     *
+     * @param[in] dir    Path to directory; must NOT end with backslash.
+     * @param[in] suffix Only files with this suffix are matched.
+     *
+     * @retval true  Directory opened successfully.
+     * @return false Failed to open directory.
+     */
+    bool OpenDir( const char* dir, const char* suffix = "" );
+    /**
+     * @brief Closes opened directory.
+     */
+    void CloseDir();
+
+    /**
+     * @brief Iterates over to next file in directory.
+     *
+     * @note This function must be called after OpenDir()
+     *       before calling currentFileName().
+     *
+     * @retval true  Iteration successfull.
+     * @retval false Iteration failed; most likely there are no more files.
+     */
+    bool NextFile();
+
 protected:
-	bool m_valid;
 #ifdef WIN32
-	HANDLE m_find;
-	WIN32_FIND_DATA m_data;
-	bool m_first;
+	HANDLE mFind;
+	WIN32_FIND_DATA mFindData;
+    bool mValid;
+	bool mFirst;
 #else
-	DIR *m_dir;
-	struct dirent *m_data;
+	DIR* mDir;
+	struct dirent* mFile;
+    std::string mSuffix;
 #endif
 };
 

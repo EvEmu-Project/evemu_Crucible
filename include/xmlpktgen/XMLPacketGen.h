@@ -34,107 +34,73 @@
 #include "DecodeGenerator.h"
 #include "CloneGenerator.h"
 
+/**
+ * @brief XML Packet Generator class.
+ *
+ * Top-level class, controls the generation.
+ *
+ * @author Zhur, Bloody.Rabbit
+ */
 class XMLPacketGen
+: public XMLParser<XMLPacketGen>
 {
 public:
-	XMLPacketGen();
-	virtual ~XMLPacketGen();
+    /**
+     * @brief Primary constructor.
+     *
+     * @param[in] header Header file to be generated.
+     * @param[in] source Source file to be generated.
+     */
+    XMLPacketGen( const char* header = "", const char* source = "" );
+    /**
+     * @brief Destructory; closes output files.
+     */
+    ~XMLPacketGen();
 
-	bool LoadFile(const char* xml_file);
+    /**
+     * @brief Sets header file.
+     *
+     * @param[in] header Header file to be generated.
+     */
+    void SetHeaderFile( const char* header );
 
-	bool GenPackets(const char* header, const char* source);
+    /**
+     * @brief Sets source file.
+     *
+     * @param[in] source Source file to be generated.
+     */
+    void SetSourceFile( const char* source );
 
 protected:
-	/**
-	 * Special header wrapper generator, assures there's nothing
-	 * but include and elementdef at top-level.
-	 */
-	class HeaderGenerator
-	: public Generator<HeaderGenerator>
-	{
-	public:
-		HeaderGenerator()
-		{
-			GenProcReg( HeaderGenerator, elements, NULL );
-			GenProcReg( HeaderGenerator, include, NULL );
-			GenProcReg( HeaderGenerator, elementDef, NULL );
-		}
+    bool ParseElements( const TiXmlElement* field );
+    bool ParseInclude( const TiXmlElement* field );
+    bool ParseElementDef( const TiXmlElement* field );
 
-	protected:
-		GenProcDecl( elements )
-		{
-			return Recurse( into, field );
-		}
-		GenProcDecl( include )
-		{
-			const char* file = field->Attribute( "file" );
-			if( file == NULL )
-			{
-				_log( COMMON__ERROR, "field at line %d is missing the file attribute, skipping.", field->Row() );
-				return false;
-			}
+private:
+    /**
+     * @brief Opens output files.
+     *
+     * @retval true  Open succeeded.
+     * @retval false Open failed.
+     */
+    bool OpenFiles();
 
-			fprintf(into, "#include \"%s\"\n", file);
-			return true;
-		}
-		GenProcDecl( elementDef )
-		{
-			return mHeader.Generate( into, field );
-		}
+    FILE*       mHeaderFile;
+    std::string mHeaderFileName;
+    FILE*       mSourceFile;
+    std::string mSourceFileName;
 
-		ClassHeaderGenerator mHeader;
-	};
+	ClassCloneGenerator		mClone;
+	ClassConstructGenerator	mConstruct;
+	ClassDecodeGenerator	mDecode;
+	ClassDestructGenerator	mDestruct;
+	ClassDumpGenerator		mDump;
+	ClassEncodeGenerator	mEncode;
+	ClassHeaderGenerator    mHeader;
 
-	/**
-	 * Special source wrapper generator, duplicates each field
-	 * to all of source generators.
-	 */
-	class SourceGenerator
-	: public Generator<SourceGenerator>
-	{
-	public:
-		SourceGenerator()
-		{
-			GenProcReg( SourceGenerator, elements, NULL );
-			GenProcReg( SourceGenerator, include, NULL );
-			GenProcReg( SourceGenerator, elementDef, NULL );
-		}
+	static std::string FNameToDef( const char* buf );
 
-	protected:
-		GenProcDecl( elements )
-		{
-			return Recurse( into, field );
-		}
-		GenProcDecl( include )
-		{
-			//ignore
-			return true;
-		}
-		GenProcDecl( elementDef )
-		{
-			return (    mConstruct.Generate( into, field )
-					 && mDestruct.Generate( into, field )
-					 && mDump.Generate( into, field )
-					 && mDecode.Generate( into, field )
-					 && mEncode.Generate( into, field )
-					 && mClone.Generate( into, field )     );
-		}
-
-		ClassConstructGenerator	mConstruct;
-		ClassDestructGenerator	mDestruct;
-		ClassDumpGenerator		mDump;
-		ClassEncodeGenerator	mEncode;
-		ClassDecodeGenerator	mDecode;
-		ClassCloneGenerator		mClone;
-	};
-
-	TiXmlDocument mDoc;
-
-	static const char* const s_mGenFileComment;
-	static HeaderGenerator   s_mHeaderGenerator;
-    static SourceGenerator   s_mSourceGenerator;
-
-	static std::string FNameToDef(const char* buf);
+    static const char* const smGenFileComment;
 };
 
 #endif//__XMLPACKETGEN_H_INCL__

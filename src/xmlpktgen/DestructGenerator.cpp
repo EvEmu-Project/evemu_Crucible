@@ -27,31 +27,38 @@
 
 #include "DestructGenerator.h"
 
-ClassDestructGenerator::ClassDestructGenerator()
+ClassDestructGenerator::ClassDestructGenerator( FILE* outputFile )
+: Generator( outputFile )
 {
-    AllGenProcRegs( ClassDestructGenerator );
-    GenProcReg( ClassDestructGenerator, dictInlineEntry, NULL );
+    RegisterProcessors();
 }
 
-bool ClassDestructGenerator::Process_elementDef( FILE* into, TiXmlElement* element )
+void ClassDestructGenerator::RegisterProcessors()
 {
-    const char* name = element->Attribute( "name" );
+    Generator::RegisterProcessors();
+
+    RegisterParser( "dictInlineEntry", static_cast<ElementParser>( &ClassDestructGenerator::ProcessDictInlineEntry ) );
+}
+
+bool ClassDestructGenerator::ProcessElementDef( const TiXmlElement* field )
+{
+    const char* name = field->Attribute( "name" );
     if( name == NULL )
     {
-        _log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row() );
+        _log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "%s::~%s()\n"
 		"{\n",
         name, name
 	);
 
-    if( !Recurse( into, element ) )
+    if( !ParseElementChildren( field ) )
         return false;
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"}\n"
 		"\n"
 	);
@@ -59,12 +66,12 @@ bool ClassDestructGenerator::Process_elementDef( FILE* into, TiXmlElement* eleme
 	return true;
 }
 
-bool ClassDestructGenerator::Process_element( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessElement( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessElementPtr( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -73,7 +80,7 @@ bool ClassDestructGenerator::Process_elementPtr( FILE* into, TiXmlElement* field
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    SafeDelete( %s );\n",
 		name
 	);
@@ -81,7 +88,7 @@ bool ClassDestructGenerator::Process_elementPtr( FILE* into, TiXmlElement* field
     return true;
 }
 
-bool ClassDestructGenerator::Process_raw( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessRaw( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -90,7 +97,7 @@ bool ClassDestructGenerator::Process_raw( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    PySafeDecRef( %s );\n",
 		name
 	);
@@ -98,32 +105,32 @@ bool ClassDestructGenerator::Process_raw( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDestructGenerator::Process_int( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessInt( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_long( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessLong( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_real( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessReal( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_bool( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessBool( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_none( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessNone( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessBuffer( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -132,7 +139,7 @@ bool ClassDestructGenerator::Process_buffer( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    PySafeDecRef( %s );\n",
 		name
 	);
@@ -140,22 +147,27 @@ bool ClassDestructGenerator::Process_buffer( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDestructGenerator::Process_string( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessString( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_stringInline( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessStringInline( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_wstring( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessWString( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_token( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessWStringInline( const TiXmlElement* field )
+{
+    return true;
+}
+
+bool ClassDestructGenerator::ProcessToken( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -164,7 +176,7 @@ bool ClassDestructGenerator::Process_token( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
 	    "    PySafeDecRef( %s );\n",
 	    name
     );
@@ -172,12 +184,12 @@ bool ClassDestructGenerator::Process_token( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDestructGenerator::Process_tokenInline( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessTokenInline( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_object( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessObject( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -186,7 +198,7 @@ bool ClassDestructGenerator::Process_object( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    PySafeDecRef( %s );\n"
         "\n",
         name
@@ -195,29 +207,12 @@ bool ClassDestructGenerator::Process_object( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDestructGenerator::Process_objectInline( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessObjectInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 2 );
+    return ParseElementChildren( field, 2 );
 }
 
-bool ClassDestructGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
-{
-    const char* name = field->Attribute( "name" );
-    if( name == NULL )
-	{
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-        return false;
-    }
-
-	fprintf( into,
-		"    PySafeDecRef( %s );\n",
-		name
-	);
-
-    return true;
-}
-
-bool ClassDestructGenerator::Process_tuple( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessObjectEx( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -226,7 +221,7 @@ bool ClassDestructGenerator::Process_tuple( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+	fprintf( mOutputFile,
 		"    PySafeDecRef( %s );\n",
 		name
 	);
@@ -234,12 +229,7 @@ bool ClassDestructGenerator::Process_tuple( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDestructGenerator::Process_tupleInline( FILE* into, TiXmlElement* field )
-{
-    return Recurse( into, field );
-}
-
-bool ClassDestructGenerator::Process_list( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessTuple( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -248,7 +238,7 @@ bool ClassDestructGenerator::Process_list( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    PySafeDecRef( %s );\n",
 		name
 	);
@@ -256,26 +246,12 @@ bool ClassDestructGenerator::Process_list( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDestructGenerator::Process_listInline( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessTupleInline( const TiXmlElement* field )
 {
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassDestructGenerator::Process_listInt( FILE* into, TiXmlElement* field )
-{
-    return true;
-}
-
-bool ClassDestructGenerator::Process_listLong( FILE* into, TiXmlElement* field )
-{
-    return true;
-}
-
-bool ClassDestructGenerator::Process_listStr( FILE* into, TiXmlElement* field ) {
-    return true;
-}
-
-bool ClassDestructGenerator::Process_dict( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessList( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -284,7 +260,7 @@ bool ClassDestructGenerator::Process_dict( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
 		"    PySafeDecRef( %s );\n",
 		name
 	);
@@ -292,12 +268,48 @@ bool ClassDestructGenerator::Process_dict( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDestructGenerator::Process_dictInline( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessListInline( const TiXmlElement* field )
 {
-    return Recurse( into, field );
+    return ParseElementChildren( field );
 }
 
-bool ClassDestructGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessListInt( const TiXmlElement* field )
+{
+    return true;
+}
+
+bool ClassDestructGenerator::ProcessListLong( const TiXmlElement* field )
+{
+    return true;
+}
+
+bool ClassDestructGenerator::ProcessListStr( const TiXmlElement* field ) {
+    return true;
+}
+
+bool ClassDestructGenerator::ProcessDict( const TiXmlElement* field )
+{
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
+	{
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
+
+    fprintf( mOutputFile,
+		"    PySafeDecRef( %s );\n",
+		name
+	);
+
+    return true;
+}
+
+bool ClassDestructGenerator::ProcessDictInline( const TiXmlElement* field )
+{
+    return ParseElementChildren( field );
+}
+
+bool ClassDestructGenerator::ProcessDictInlineEntry( const TiXmlElement* field )
 {
     //we dont really even care about this...
     const char* key = field->Attribute( "key" );
@@ -307,15 +319,15 @@ bool ClassDestructGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement* 
         return false;
     }
 
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
-bool ClassDestructGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessDictRaw( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassDestructGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessDictInt( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -324,7 +336,7 @@ bool ClassDestructGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    std::map<int32, PyRep*>::iterator %s_cur, %s_end;\n"
         "    //free any existing elements first\n"
         "    %s_cur = %s.begin();\n"
@@ -342,7 +354,7 @@ bool ClassDestructGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDestructGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessDictStr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -351,7 +363,7 @@ bool ClassDestructGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    std::map<std::string, PyRep*>::iterator %s_cur, %s_end;\n"
         "    //free any existing elements first\n"
         "    %s_cur = %s.begin();\n"
@@ -369,14 +381,14 @@ bool ClassDestructGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassDestructGenerator::Process_substreamInline( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessSubStreamInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
-bool ClassDestructGenerator::Process_substructInline( FILE* into, TiXmlElement* field )
+bool ClassDestructGenerator::ProcessSubStructInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 1 );
+    return ParseElementChildren( field, 1 );
 }
 
 

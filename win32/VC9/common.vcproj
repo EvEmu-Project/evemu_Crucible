@@ -259,10 +259,6 @@
 					RelativePath="..\..\src\common\utils\utils_time.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\..\src\common\utils\XMLParser.cpp"
-					>
-				</File>
 			</Filter>
 		</Filter>
 		<Filter

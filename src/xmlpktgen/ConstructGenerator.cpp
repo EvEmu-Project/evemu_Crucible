@@ -27,31 +27,38 @@
 
 #include "ConstructGenerator.h"
 
-ClassConstructGenerator::ClassConstructGenerator()
+ClassConstructGenerator::ClassConstructGenerator( FILE* outputFile )
+: Generator( outputFile )
 {
-	AllGenProcRegs( ClassConstructGenerator );
-	GenProcReg( ClassConstructGenerator, dictInlineEntry, NULL );
+    RegisterProcessors();
 }
 
-bool ClassConstructGenerator::Process_elementDef( FILE* into, TiXmlElement* element )
+void ClassConstructGenerator::RegisterProcessors()
 {
-	const char* name = element->Attribute( "name" );
+    Generator::RegisterProcessors();
+
+    RegisterParser( "dictInlineEntry", static_cast<ElementParser>( &ClassConstructGenerator::ProcessDictInlineEntry ) );
+}
+
+bool ClassConstructGenerator::ProcessElementDef( const TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
 	if( name == NULL )
     {
-		_log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", element->Row() );
+		_log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", field->Row() );
 		return false;
 	}
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"%s::%s()\n"
 		"{\n",
 		name, name
     );
 
-	if( !Recurse( into, element ) )
+	if( !ParseElementChildren( field ) )
 		return false;
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"}\n"
 		"\n"
         "%s::%s( const %s& oth )\n"
@@ -65,29 +72,12 @@ bool ClassConstructGenerator::Process_elementDef( FILE* into, TiXmlElement* elem
 	return true;
 }
 
-bool ClassConstructGenerator::Process_element( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessElement( const TiXmlElement* field )
 {
 	return true;
 }
 
-bool ClassConstructGenerator::Process_elementPtr( FILE* into, TiXmlElement* field )
-{
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
-    {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
-
-	fprintf( into,
-		"    %s = NULL;\n",
-		name
-	);
-
-	return true;
-}
-
-bool ClassConstructGenerator::Process_raw( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessElementPtr( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -96,7 +86,7 @@ bool ClassConstructGenerator::Process_raw( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = NULL;\n",
 		name
 	);
@@ -104,7 +94,24 @@ bool ClassConstructGenerator::Process_raw( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_int( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessRaw( const TiXmlElement* field )
+{
+	const char* name = field->Attribute( "name" );
+	if( name == NULL )
+    {
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+		return false;
+	}
+
+	fprintf( mOutputFile,
+		"    %s = NULL;\n",
+		name
+	);
+
+	return true;
+}
+
+bool ClassConstructGenerator::ProcessInt( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -117,7 +124,7 @@ bool ClassConstructGenerator::Process_int( FILE* into, TiXmlElement* field )
 	if( def == NULL )
 		def = "0";
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = %s;\n",
 		name, def
 	);
@@ -125,7 +132,7 @@ bool ClassConstructGenerator::Process_int( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_long( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessLong( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -138,7 +145,7 @@ bool ClassConstructGenerator::Process_long( FILE* into, TiXmlElement* field )
 	if( def == NULL )
 		def = "0";
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = %s;\n",
 		name, def
 	);
@@ -146,7 +153,7 @@ bool ClassConstructGenerator::Process_long( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_real( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessReal( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -159,7 +166,7 @@ bool ClassConstructGenerator::Process_real( FILE* into, TiXmlElement* field )
 	if( def == NULL )
 		def = "0.0";
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = %s;\n",
 		name, def
 	);
@@ -167,7 +174,7 @@ bool ClassConstructGenerator::Process_real( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_bool( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessBool( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -180,7 +187,7 @@ bool ClassConstructGenerator::Process_bool( FILE* into, TiXmlElement* field )
 	if( def == NULL )
 		def = "false";
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = %s;\n",
 		name, def
 	);
@@ -188,12 +195,12 @@ bool ClassConstructGenerator::Process_bool( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_none( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessNone( const TiXmlElement* field )
 {
 	return true;
 }
 
-bool ClassConstructGenerator::Process_buffer( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessBuffer( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -202,7 +209,7 @@ bool ClassConstructGenerator::Process_buffer( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = NULL;\n",
 		name
 	);
@@ -210,7 +217,7 @@ bool ClassConstructGenerator::Process_buffer( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_string( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessString( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -223,7 +230,7 @@ bool ClassConstructGenerator::Process_string( FILE* into, TiXmlElement* field )
 	if( def == NULL )
 		def = "";
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = \"%s\";\n",
 		name, def
 	);
@@ -231,12 +238,12 @@ bool ClassConstructGenerator::Process_string( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_stringInline( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessStringInline( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassConstructGenerator::Process_wstring( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessWString( const TiXmlElement* field )
 {
 	const char* name = field->Attribute( "name" );
 	if( name == NULL )
@@ -249,7 +256,7 @@ bool ClassConstructGenerator::Process_wstring( FILE* into, TiXmlElement* field )
 	if( def == NULL )
 		def = "";
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = \"%s\";\n",
 		name, def
 	);
@@ -257,7 +264,12 @@ bool ClassConstructGenerator::Process_wstring( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_token( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessWStringInline( const TiXmlElement* field )
+{
+    return true;
+}
+
+bool ClassConstructGenerator::ProcessToken( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -266,7 +278,7 @@ bool ClassConstructGenerator::Process_token( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
 	    "    %s = NULL;\n",
 	    name
     );
@@ -274,12 +286,12 @@ bool ClassConstructGenerator::Process_token( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassConstructGenerator::Process_tokenInline( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessTokenInline( const TiXmlElement* field )
 {
     return true;
 }
 
-bool ClassConstructGenerator::Process_object( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessObject( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
@@ -288,7 +300,7 @@ bool ClassConstructGenerator::Process_object( FILE* into, TiXmlElement* field )
         return false;
     }
 
-    fprintf( into,
+    fprintf( mOutputFile,
         "    %s = NULL;\n"
         "\n",
         name
@@ -297,29 +309,12 @@ bool ClassConstructGenerator::Process_object( FILE* into, TiXmlElement* field )
     return true;
 }
 
-bool ClassConstructGenerator::Process_objectInline( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessObjectInline( const TiXmlElement* field )
 {
-    return Recurse( into, field, 2 );
+    return ParseElementChildren( field, 2 );
 }
 
-bool ClassConstructGenerator::Process_objectEx( FILE* into, TiXmlElement* field )
-{
-	const char *name = field->Attribute( "name" );
-	if( name == NULL )
-	{
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute.", field->Row() );
-		return false;
-	}
-
-	fprintf( into,
-		"    %s = NULL;\n",
-		name
-	);
-
-	return true;
-}
-
-bool ClassConstructGenerator::Process_tuple( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessObjectEx( const TiXmlElement* field )
 {
 	const char *name = field->Attribute( "name" );
 	if( name == NULL )
@@ -328,7 +323,7 @@ bool ClassConstructGenerator::Process_tuple( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = NULL;\n",
 		name
 	);
@@ -336,12 +331,7 @@ bool ClassConstructGenerator::Process_tuple( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_tupleInline( FILE* into, TiXmlElement* field )
-{
-	return Recurse( into, field );
-}
-
-bool ClassConstructGenerator::Process_list( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessTuple( const TiXmlElement* field )
 {
 	const char *name = field->Attribute( "name" );
 	if( name == NULL )
@@ -350,7 +340,7 @@ bool ClassConstructGenerator::Process_list( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = NULL;\n",
 		name
 	);
@@ -358,27 +348,12 @@ bool ClassConstructGenerator::Process_list( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_listInline( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessTupleInline( const TiXmlElement* field )
 {
-	return Recurse( into, field );
+	return ParseElementChildren( field );
 }
 
-bool ClassConstructGenerator::Process_listInt( FILE* into, TiXmlElement* field )
-{
-	return true;
-}
-
-bool ClassConstructGenerator::Process_listLong( FILE* into, TiXmlElement* field )
-{
-	return true;
-}
-
-bool ClassConstructGenerator::Process_listStr( FILE* into, TiXmlElement* field )
-{
-	return true;
-}
-
-bool ClassConstructGenerator::Process_dict( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessList( const TiXmlElement* field )
 {
 	const char *name = field->Attribute( "name" );
 	if( name == NULL )
@@ -387,7 +362,7 @@ bool ClassConstructGenerator::Process_dict( FILE* into, TiXmlElement* field )
 		return false;
 	}
 
-	fprintf( into,
+	fprintf( mOutputFile,
 		"    %s = NULL;\n",
 		name
 	);
@@ -395,12 +370,49 @@ bool ClassConstructGenerator::Process_dict( FILE* into, TiXmlElement* field )
 	return true;
 }
 
-bool ClassConstructGenerator::Process_dictInline( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessListInline( const TiXmlElement* field )
 {
-	return Recurse( into, field );
+	return ParseElementChildren( field );
 }
 
-bool ClassConstructGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessListInt( const TiXmlElement* field )
+{
+	return true;
+}
+
+bool ClassConstructGenerator::ProcessListLong( const TiXmlElement* field )
+{
+	return true;
+}
+
+bool ClassConstructGenerator::ProcessListStr( const TiXmlElement* field )
+{
+	return true;
+}
+
+bool ClassConstructGenerator::ProcessDict( const TiXmlElement* field )
+{
+	const char *name = field->Attribute( "name" );
+	if( name == NULL )
+	{
+		_log( COMMON__ERROR, "field at line %d is missing the name attribute.", field->Row() );
+		return false;
+	}
+
+	fprintf( mOutputFile,
+		"    %s = NULL;\n",
+		name
+	);
+
+	return true;
+}
+
+bool ClassConstructGenerator::ProcessDictInline( const TiXmlElement* field )
+{
+	return ParseElementChildren( field );
+}
+
+bool ClassConstructGenerator::ProcessDictInlineEntry( const TiXmlElement* field )
 {
 	//we dont really even care about this...
 	const char* key = field->Attribute( "key" );
@@ -410,32 +422,32 @@ bool ClassConstructGenerator::Process_dictInlineEntry( FILE* into, TiXmlElement*
 		return false;
 	}
 
-	return Recurse( into, field, 1 );
+	return ParseElementChildren( field, 1 );
 }
 
-bool ClassConstructGenerator::Process_dictRaw( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessDictRaw( const TiXmlElement* field )
 {
 	return true;
 }
 
-bool ClassConstructGenerator::Process_dictInt( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessDictInt( const TiXmlElement* field )
 {
 	return true;
 }
 
-bool ClassConstructGenerator::Process_dictStr( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessDictStr( const TiXmlElement* field )
 {
 	return true;
 }
 
-bool ClassConstructGenerator::Process_substreamInline( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessSubStreamInline( const TiXmlElement* field )
 {
-	return Recurse( into, field, 1 );
+	return ParseElementChildren( field, 1 );
 }
 
-bool ClassConstructGenerator::Process_substructInline( FILE* into, TiXmlElement* field )
+bool ClassConstructGenerator::ProcessSubStructInline( const TiXmlElement* field )
 {
-	return Recurse( into, field, 1 );
+	return ParseElementChildren( field, 1 );
 }
 
 
