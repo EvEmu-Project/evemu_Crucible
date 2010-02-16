@@ -133,16 +133,19 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
         //cached_data->visit(&dumper, 0);
     //}
 
-    Buffer* data = MarshalDeflate( cached_data );
+    Buffer* data = new Buffer;
+    bool res = MarshalDeflate( cached_data, *data );
 	PyDecRef( cached_data );
-    if( data == NULL )
-    {
-        sLog.Error( "Cached Obj Mgr", "Failed to marshal or deflate new cache object." );
-        return;
-    }
 
-	PyBuffer* buf = new PyBuffer( &data );
-    _UpdateCache( objectID, &buf );
+    if( res )
+    {
+	    PyBuffer* buf = new PyBuffer( &data );
+        _UpdateCache( objectID, &buf );
+    }
+    else
+        sLog.Error( "Cached Obj Mgr", "Failed to marshal or deflate new cache object." );
+
+    SafeDelete( data );
 }
 
 void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer) {
@@ -359,26 +362,39 @@ PySubStream *CachedObjectMgr::LoadCachedFile(PyRep *key, const char *oname) {
     return(LoadCachedFile(abs_fname.c_str(), oname));
 }
 
-PySubStream* CachedObjectMgr::LoadCachedFile(const char *abs_fname, const char *oname) {
-    uint32 file_length = filesize(abs_fname);
-    if(file_length == 0) {
-        _log(CLIENT__ERROR, "Unable to stat cache file '%s' for oname '%s'", abs_fname, oname);
+PySubStream* CachedObjectMgr::LoadCachedFile( const char* abs_fname, const char* oname )
+{
+    FILE* f = fopen( abs_fname, "rb" );
+    if( f == NULL )
+    {
+        _log( CLIENT__ERROR, "Unable to open cache file '%s' for oname '%s': %s", abs_fname, oname, strerror( errno ) );
         return false;
     }
 
-    FILE *f = fopen(abs_fname, "rb");
-    if(f == NULL) {
-        _log(CLIENT__ERROR, "Unable to open cache file '%s' for oname '%s': %s", abs_fname, oname, strerror(errno));
+    uint32 file_length = filesize( f );
+    if( file_length == 0 )
+    {
+        _log( CLIENT__ERROR, "Unable to stat cache file '%s' for oname '%s'", abs_fname, oname );
+
+        fclose( f );
         return false;
     }
 
-    uint8* buf = new uint8[ file_length ];
-    fread( buf, sizeof( uint8 ), file_length, f );
-    fclose(f);
+    Buffer* buf = new Buffer( file_length );
 
-    _log(CLIENT__MESSAGE, "Loaded cache file for '%s': length %u", oname, file_length);
+    if( file_length != fread( &( *buf )[0], sizeof( uint8 ), file_length, f ) )
+    {
+        _log( CLIENT__ERROR, "Unable to read cache file '%s' for oname '%s%': %s", abs_fname, oname, strerror( errno ) );
 
-    return new PySubStream( new PyBuffer( &buf, file_length ) );
+        SafeDelete( buf );
+        fclose( f );
+        return false;
+    }
+    fclose( f );
+
+    _log( CLIENT__MESSAGE, "Loaded cache file for '%s': length %u", oname, file_length );
+
+    return new PySubStream( new PyBuffer( &buf ) );
 }
 
 PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(const char *filename, const char *oname) {

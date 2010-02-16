@@ -39,67 +39,333 @@
 class Buffer
 {
 public:
+    /** Typedef for size type. */
+    typedef size_t size_type;
+
+    /**
+     * @brief Buffer's const iterator.
+     *
+     * @author Bloody.Rabbit
+     */
+    template<typename T>
+    class const_iterator
+    : public std::iterator<std::random_access_iterator_tag, T>
+    {
+        /** Typedef for our base due to readibility. */
+        typedef std::iterator<std::random_access_iterator_tag, T> _Base;
+
+    public:
+        /** Typedef for iterator category. */
+        typedef typename _Base::iterator_category iterator_category;
+        /** Typedef for value type. */
+        typedef typename _Base::value_type        value_type;
+        /** Typedef for difference type. */
+        typedef typename _Base::difference_type   difference_type;
+        /** Typedef for pointer. */
+        typedef typename _Base::pointer           pointer;
+        /** Typedef for reference. */
+        typedef typename _Base::reference         reference;
+
+        /** Typedef for const pointer. */
+        typedef const T* const_pointer;
+        /** Typedef for const reference. */
+        typedef const T& const_reference;
+
+        /**
+         * @brief Default constructor.
+         *
+         * @param[in] buffer The parent Buffer.
+         * @param[in] index  The index.
+         */
+        const_iterator( const Buffer* buffer = NULL, size_type index = 0 )
+        : mIndex( index ),
+          mBuffer( buffer )
+        {
+        }
+        /** Copy constructor. */
+        const_iterator( const const_iterator& oth )
+        : mIndex( oth.mIndex ),
+          mBuffer( oth.mBuffer )
+        {
+        }
+
+        /** Copy operator. */
+        const_iterator& operator=( const const_iterator& oth )
+        {
+            mIndex = oth.mIndex;
+            mBuffer = oth.mBuffer;
+            return *this;
+        }
+
+        /**
+         * @brief Converts const_iterator to another const_iterator
+         *        with different type.
+         *
+         * @return The new const_iterator.
+         */
+        template<typename T2>
+        const_iterator<T2> As() const { return const_iterator<T2>( mBuffer, mIndex ); }
+
+        /** Dereference operator. */
+        const_reference operator*() const
+        {
+            // make sure we have valid buffer
+            assert( mBuffer );
+            // make sure we're not going off the bounds
+            assert( 1 <= mBuffer->end<value_type>() - *this );
+
+            // obtain the value and return
+            return *(const_pointer)&( mBuffer->mBuffer )[ mIndex ];
+        }
+        /** Dereference operator. */
+        const_pointer operator->() const { return &**this; }
+        /** Subscript operator. */
+        const_reference operator[]( difference_type diff ) const { return *( *this + diff ); }
+
+        /** Sum operator. */
+        const_iterator operator+( difference_type diff ) const
+        {
+            const_iterator res( *this );
+            return ( res += diff );
+        }
+        /** Add operator. */
+        const_iterator& operator+=( difference_type diff )
+        {
+            // turn the diff into byte diff
+            const difference_type res = ( diff * sizeof( value_type ) );
+
+            // make sure we have valid buffer
+            assert( mBuffer );
+            // make sure we won't go negative
+            assert( 0 <= mIndex + res );
+            // make sure we won't go past end
+            assert( mIndex + res <= mBuffer->size() );
+
+            // set new index
+            mIndex += res;
+
+            return *this;
+        }
+        /** Preincrement operator. */
+        const_iterator& operator++() { return ( *this += 1 );  }
+        /** Postincrement operator. */
+        const_iterator operator++( int )
+        {
+            const_iterator res( *this );
+            ++*this;
+            return res;
+        }
+
+        /** Diff operator. */
+        const_iterator operator-( difference_type diff ) const
+        {
+            const_iterator res( *this );
+            return ( res -= diff );
+        }
+        /** Subtract operator. */
+        const_iterator& operator-=( difference_type diff ) { return ( *this += ( -diff ) ); }
+        /** Predecrement operator. */
+        const_iterator& operator--() { return ( *this -= 1 ); }
+        /** Postdecrement operator. */
+        const_iterator operator--( int )
+        {
+            const_iterator res( *this );
+            --*this;
+            return res;
+        }
+
+        /** Diff operator. */
+        difference_type operator-( const const_iterator& oth ) const
+        {
+            // make sure we have same parent buffer
+            assert( oth.mBuffer == mBuffer );
+            // return difference in element offset
+            return ( ( mIndex - oth.mIndex ) / sizeof( value_type ) );
+        }
+
+        /** Equal operator. */
+        bool operator==( const const_iterator& oth ) const
+        {
+            // make sure we have same parent buffer
+            assert( oth.mBuffer == mBuffer );
+            // return the result
+            return ( mIndex == oth.mIndex );
+        }
+        /** Non-equal operator. */
+        bool operator!=( const const_iterator& oth ) const { return !( *this == oth ); }
+
+        /** Less-than operator. */
+        bool operator<( const const_iterator& oth ) const
+        {
+            // make sure we have same parent buffer
+            assert( oth.mBuffer == mBuffer );
+            // return the result
+            return ( mIndex < oth.mIndex );
+        }
+        /** Greater-than operator. */
+        bool operator>( const const_iterator& oth ) const
+        {
+            // make sure we have same parent buffer
+            assert( oth.mBuffer == mBuffer );
+            // return the result
+            return ( mIndex > oth.mIndex );
+        }
+        /** Less-equal operator. */
+        bool operator<=( const const_iterator& oth ) const { return !( *this > oth ); }
+        /** Greater-equal operator. */
+        bool operator>=( const const_iterator& oth ) const { return !( *this < oth ); }
+
+    protected:
+        /** Index in buffer, in bytes. */
+        size_type mIndex;
+        /** The parent Buffer. */
+        const Buffer* mBuffer;
+    };
+
+    /**
+     * @brief Buffer's iterator.
+     *
+     * @author Bloody.Rabbit
+     */
+    template<typename T>
+    class iterator
+    : public const_iterator<T>
+    {
+        /** Typedef for our base due to readibility. */
+        typedef const_iterator<T> _Base;
+
+    public:
+        /** Typedef for iterator category. */
+        typedef typename _Base::iterator_category iterator_category;
+        /** Typedef for value type. */
+        typedef typename _Base::value_type        value_type;
+        /** Typedef for difference type. */
+        typedef typename _Base::difference_type   difference_type;
+        /** Typedef for pointer. */
+        typedef typename _Base::pointer           pointer;
+        /** Typedef for const pointer. */
+        typedef typename _Base::const_pointer     const_pointer;
+        /** Typedef for reference. */
+        typedef typename _Base::reference         reference;
+        /** Typedef for const reference. */
+        typedef typename _Base::const_reference   const_reference;
+
+        /**
+         * @brief Default constructor.
+         *
+         * @param[in] buffer The parent Buffer.
+         * @param[in] index  The index.
+         */
+        iterator( Buffer* buffer = NULL, size_type index = 0 ) : _Base( buffer, index ) {}
+        /** Copy constructor. */
+        iterator( const iterator& oth ) : _Base( oth ) {}
+
+        /** Copy operator. */
+        iterator& operator=( const iterator& oth ) { *(_Base*)this = oth; return *this; }
+
+        /**
+         * @brief Converts iterator to another iterator
+         *        with different type.
+         *
+         * @return The new iterator.
+         */
+        template<typename T2>
+        iterator<T2> As() const { return iterator<T2>( _Base::mBuffer, _Base::mIndex ); }
+
+        /** Dereference operator. */
+        reference operator*() const { return const_cast<reference>( **(_Base*)this ); }
+        /** Dereference operator. */
+        pointer operator->() const { return &**this; }
+        /** Subscript operator. */
+        reference operator[]( difference_type diff ) const { return *( *this + diff ); }
+
+        /** Sum operator. */
+        iterator operator+( difference_type diff ) const
+        {
+            iterator res( *this );
+            return ( res += diff );
+        }
+        /** Add operator. */
+        iterator operator+=( difference_type diff ) { *(_Base*)this += diff; return *this; }
+        /** Preincrement operator. */
+        iterator& operator++() { ++*(_Base*)this; return *this; }
+        /** Postincrement operator. */
+        iterator operator++( int )
+        {
+            iterator res( *this );
+            ++*this;
+            return res;
+        }
+
+        /** Diff operator. */
+        iterator operator-( difference_type diff ) const
+        {
+            iterator res( *this );
+            return ( res -= diff );
+        }
+        /** Subtract operator. */
+        iterator& operator-=( difference_type diff ) { *(_Base*)this -= diff; return *this; }
+        /** Predecrement operator. */
+        iterator& operator--() { --*(_Base*)this; return *this; }
+        /** Postdecrement operator. */
+        iterator operator--( int )
+        {
+            iterator res( *this );
+            --*this;
+            return res;
+        }
+
+        /** Diff operator. */
+        difference_type operator-( const _Base& oth ) const { return ( *(_Base*)this - oth ); }
+    };
+
     /**
      * @brief Creates buffer of given length.
      *
-     * @param[in] len   Length of buffer to be created.
-     * @param[in] value Value to fill the buffer with.
+     * Resizes buffer to be @a len bytes long, filling
+     * it with @a value.
+     *
+     * @param[in] len  Length of buffer to be created.
+     * @param[in] fill Value to fill the buffer with.
      */
-    Buffer( size_t len = 0, const uint8& value = 0 )
+    Buffer( size_type len = 0, const uint8& fill = 0 )
     : mBuffer( NULL ),
       mSize( 0 ),
-      mCapacity( 0 ),
-      mPosition( 0 )
+      mCapacity( 0 )
     {
-        Resize( len, value );
+        /* unfortunately, we cannot use template here
+           since it's not possible to explicitly instantiate
+           constructor .... assuming uint8 */
+        Resize<uint8>( len, fill );
     }
     /**
-     * @brief Create buffer with given content.
+     * @brief Creates buffer with given content.
      *
-     * @param[in] data New content of buffer.
-     * @param[in] len  Length of buffer.
+     * Fills buffer with content determined by
+     * iterators @a first and @a last.
+     *
+     * @param[in] first Iterator pointing to first element.
+     * @param[in] last  Iterator pointing to element after the last one.
      */
-    Buffer( const uint8* data, size_t len )
+    template<typename Iter>
+    Buffer( Iter first, Iter last )
     : mBuffer( NULL ),
       mSize( 0 ),
-      mCapacity( 0 ),
-      mPosition( 0 )
+      mCapacity( 0 )
     {
-        Set( data, len );
+        // assign the content
+        AssignSeq( first, last );
     }
-    /**
-     * @brief Create buffer with given content.
-     *
-     * Takes ownership of data; invalidates
-     * given pointer.
-     *
-     * @param[in] data New content of buffer.
-     * @param[in] len  Length of buffer.
-     */
-    Buffer( uint8** data, size_t len )
-    : mBuffer( *data ),
-      mSize( len ),
-      mCapacity( len ),
-      mPosition( 0 )
-    {
-        // Invalidate the pointer
-        *data = NULL;
-    }
-    /**
-     * @brief Create buffer with duplicated content.
-     *
-     * @param[in] oth The other buffer; source of data.
-     */
+    /** Copy constructor. */
     Buffer( const Buffer& oth )
     : mBuffer( NULL ),
       mSize( 0 ),
-      mCapacity( 0 ),
-      mPosition( 0 )
+      mCapacity( 0 )
     {
         // Use assigment operator
         *this = oth;
     }
-    /** Deletes buffer. */
+    /** Destructor; deletes buffer. */
     ~Buffer()
     {
         // Free buffer
@@ -109,109 +375,37 @@ public:
     /********************************************************************/
     /* Read methods                                                     */
     /********************************************************************/
-    /**
-     * @brief Checks if given element can be read from stream.
-     *
-     * @retval true  Element can be read.
-     * @retval false Not enough data for element.
-     */
-    template<typename X>
-    bool isAvailable() const
-    {
-        return isAvailable( sizeof( X ) );
-    }
-    /**
-     * @brief Checks whether stream contains given number of bytes.
-     *
-     * @param[in] len Number of bytes to be checked.
-     *
-     * @retval true  Stream contains at least given number of bytes.
-     * @retval false Stream contains less than given number of bytes.
-     */
-    bool isAvailable( size_t len ) const
-    {
-        return ( mPosition + len <= size() );
-    }
-
-    /**
-     * @brief Peeks element from buffer.
-     *
-     * @return Peeked element.
-     */
-    template<typename X>
-    const X& Peek() const
-    {
-        return Peek<X>( 1 )[0];
-    }
-    /**
-     * @brief Peeks multiple elements from buffer.
-     *
-     * @param[in] count Count of elements to peek.
-     *
-     * @return Array of peeked elements.
-     */
-    template<typename X>
-    const X* Peek( size_t count ) const
-    {
-        assert( mPosition + count * sizeof( X ) <= size() );
-
-        return &Get<X>( mPosition );
-    }
-
-    /**
-     * @brief Reads element from buffer.
-     *
-     * @return Read element.
-     */
-    template<typename X>
-    const X& Read() const
-    {
-        return Read<X>( 1 )[0];
-    }
-    /**
-     * @brief Reads multiple elements from buffer.
-     *
-     * @param[in] count Count of elements to read.
-     *
-     * @return Array of read elements.
-     */
-    template<typename X>
-    const X* Read( size_t count ) const
-    {
-        const X* res = Peek<X>( count );
-        mPosition += count * sizeof( X );
-
-        return res;
-    }
+    /** @return iterator to begin. */
+    template<typename T>
+    iterator<T> begin() { return iterator<T>( this, 0 ); }
+    /** @return const_iterator to begin. */
+    template<typename T>
+    const_iterator<T> begin() const { return const_iterator<T>( this, 0 ); }
+    /** @return iterator to end. */
+    template<typename T>
+    iterator<T> end() { return iterator<T>( this, size() ); }
+    /** @return const_iterator to end. */
+    template<typename T>
+    const_iterator<T> end() const { return const_iterator<T>( this, size() ); }
 
     /**
      * @brief Gets element from buffer.
      *
-     * @param[in] index Index of byte the element starts at.
+     * @param[in] index Index of element in the buffer.
      *
      * @return Reference to element.
      */
-    template<typename X>
-    X& Get( size_t index )
-    {
-        assert( index + sizeof( X ) <= size() );
-
-        return *(X*)&mBuffer[ index ];
-    }
+    template<typename T>
+    T& Get( size_type index ) { return *( begin<T>() + index ); }
     /**
      * @brief Gets const element from buffer.
      *
-     * @param[in] index Index of byte the element starts at.
+     * @param[in] index Index of element in the buffer.
      *
      * @return Const reference to element.
      */
-    template<typename X>
-    const X& Get( size_t index ) const
-    {
-        assert( index + sizeof( X ) <= size() );
-
-        return *(const X*)&mBuffer[ index ];
-    }
+    template<typename T>
+    const T& Get( size_type index ) const { return *( begin<T>() + index ); }
 
     /**
      * @brief Overload of access operator[].
@@ -220,7 +414,7 @@ public:
      *
      * @return Reference to required byte.
      */
-    uint8& operator[]( size_t index ) { return Get<uint8>( index ); }
+    uint8& operator[]( size_type index ) { return Get<uint8>( index ); }
     /**
      * @brief Overload of const access operator[].
      *
@@ -228,194 +422,337 @@ public:
      *
      * @return Const reference to required byte.
      */
-    const uint8& operator[]( size_t index ) const { return Get<uint8>( index ); }
-    /**
-     * @brief Reads element from buffer.
-     *
-     * @param[in] value Destination of read value.
-     */
-    template<typename X>
-    const Buffer& operator>>( X& value ) const
-    {
-        value = Read<X>();
-        return *this;
-    }
+    const uint8& operator[]( size_type index ) const { return Get<uint8>( index ); }
 
     /********************************************************************/
     /* Write methods                                                    */
     /********************************************************************/
-    /** Drops already read data. */
-    void DropRead()
-    {
-        Set( &mBuffer[ mPosition ], size() - mPosition );
-
-        mPosition = 0;
-    }
-
     /**
-     * @brief Sets content of buffer.
+     * @brief Appends a single value to buffer.
      *
-     * @param[in] data Pointer to new content.
-     * @param[in] len  Length of new content.
+     * @param[in] value Value to be appended.
      */
-    void Set( const uint8* data, size_t len )
+    template<typename T>
+    void Append( const T& value )
     {
-        Write( 0, data, len );
-        Resize( len );
+        // we wish to append to the end
+        const const_iterator<T> index = end<T>();
+
+        // make enough room; we're going to fill the gap immediately
+        _ResizeAt<T>( index, 1 );
+
+        // assign the value, filling the gap
+        AssignAt<T>( index, value );
     }
     /**
-     * @brief Sets content of buffer.
+     * @brief Appends a sequence of elements to buffer.
+     *
+     * @param[in] first Iterator pointing to first element.
+     * @param[in] last  Iterator pointing to element after the last one.
+     */
+    template<typename Iter>
+    void AppendSeq( Iter first, Iter last )
+    {
+        // we wish to append to the end
+        const const_iterator<typename std::iterator_traits<Iter>::value_type>
+            index = end<typename std::iterator_traits<Iter>::value_type>();
+
+        // make enough room; we're going to fill the gap immediately
+        _ResizeAt<typename std::iterator_traits<Iter>::value_type>( index, last - first );
+
+        // assign the value, filling the gap
+        AssignSeqAt<Iter>( index, first, last );
+    }
+
+    /**
+     * @brief Assigns a single value to buffer.
      *
      * @param[in] value New content.
      */
-    template<typename X>
-    void Set( const X& value )
+    template<typename T>
+    void Assign( const T& value )
     {
-        Write( 0, value );
-        Resize( sizeof( X ) );
+        // we wish to assign to beginning
+        const const_iterator<T> index = begin<T>();
+
+        // do we have enough space?
+        if( 1 <= end<T>() - index )
+        {
+            // yes, we do: assign the value
+            AssignAt<T>( index, value );
+
+            // shrink the buffer; no gap will be created
+            _ResizeAt<T>( index, 1 );
+        }
+        else
+        {
+            // no, we don't: make enough room; we're going to fill the gap immediately
+            _ResizeAt<T>( index, 1 );
+
+            // assign the value, filling the gap
+            AssignAt<T>( index, value );
+        }
+    }
+    /**
+     * @brief Assigns a sequence of elements to buffer.
+     *
+     * @param[in] first Iterator pointing to first element.
+     * @param[in] last  Iterator pointing to element after the last one.
+     */
+    template<typename Iter>
+    void AssignSeq( Iter first, Iter last )
+    {
+        // we wish to assign to beginning
+        const const_iterator<typename std::iterator_traits<Iter>::value_type>
+            index = begin<typename std::iterator_traits<Iter>::value_type>();
+
+        // do we have enough space?
+        if( last - first <= end<typename std::iterator_traits<Iter>::value_type>() - index )
+        {
+            // yes, we do: assign the value
+            AssignSeqAt<Iter>( index, first, last );
+
+            // shrink the buffer; no gap will be created
+            _ResizeAt<typename std::iterator_traits<Iter>::value_type>( index, last - first );
+        }
+        else
+        {
+            // no, we don't: make enough room; we're going to fill the gap immediately
+            _ResizeAt<typename std::iterator_traits<Iter>::value_type>( index, last - first );
+
+            // assign the value, filling the gap
+            AssignSeqAt<Iter>( index, first, last );
+        }
     }
 
     /**
-     * @brief Adds data into buffer.
+     * @brief Assigns a single value to buffer at specific point.
      *
-     * @param[in] data Pointer to data.
-     * @param[in] len  Length of data.
+     * @param[in] index Point at which the value should be assigned.
+     * @param[in] value New content.
      */
-    void Write( const uint8* data, size_t len )
+    template<typename T>
+    void AssignAt( const_iterator<T> index, const T& value )
     {
-        Write( size(), data, len );
+        // make sure we're not going off the bounds
+        assert( 1 <= end<T>() - index );
+
+        // turn iterator into byte offset
+        const size_type _index = ( index.template As<uint8>() - begin<uint8>() );
+        // assign the value
+        *(T*)&mBuffer[ _index ] = value;
     }
     /**
-     * @brief Adds value into buffer.
+     * @brief Assigns a sequence of elements to buffer at specific point.
      *
-     * @param[in] value Value to be added into buffer.
+     * @param[in] index Point at which the sequence of elements should be assigned.
+     * @param[in] first Iterator pointing to first element.
+     * @param[in] last  Iterator pointing to element after the last one.
      */
-    template<typename X>
-    void Write( const X& value )
+    template<typename Iter>
+    void AssignSeqAt( const_iterator<typename std::iterator_traits<Iter>::value_type> index, Iter first, Iter last )
     {
-        Write( size(), value );
-    }
+        // make sure we're not going off the bounds
+        assert( last - first <= end<typename std::iterator_traits<Iter>::value_type>() - index );
 
-    /**
-     * @brief Writes data to buffer.
-     *
-     * @param[in] index Index at which data should be written.
-     * @param[in] data  Pointer to data.
-     * @param[in] len   Length of data.
-     */
-    void Write( size_t index, const uint8* data, size_t len )
-    {
-        assert( index <= size() );
-        Reserve( index + len );
-
-        // Use memmove because it allows overlapping
-        memmove( &mBuffer[ index ], data, len );
-        mSize = std::max( size(), index + len );
-    }
-    /**
-     * @brief Writes value to buffer.
-     *
-     * @param[in] index Index at which value should be written.
-     * @param[in] value Value to be written to buffer.
-     */
-    template<typename X>
-    void Write( size_t index, const X& value )
-    {
-        assert( index <= size() );
-        Reserve( index + sizeof( X ) );
-
-        *(X*)&mBuffer[ index ] = value;
-        mSize = std::max( size(), index + sizeof( X ) );
+        // is there anything to assign?
+        if( first != last )
+        {
+            // turn the iterator into byte offset
+            const size_type _index = ( index.template As<uint8>() - begin<uint8>() );
+            // obtain byte length of input data
+            const size_type _len = sizeof( typename std::iterator_traits<Iter>::value_type ) * ( last - first );
+            // assign the content
+            memmove( &mBuffer[ _index ], &*first, _len );
+        }
     }
 
     /**
-     * @brief Adds value into buffer.
+     * @brief Appends a value to buffer.
      *
-     * @param[in] value Value to be added into buffer.
+     * @param[in] value Value to be appended.
      */
-    template<typename X>
-    Buffer& operator<<( const X& value )
+    template<typename T>
+    Buffer& operator<<( const T& value )
     {
-        Write( value );
+        // append the value
+        Append<T>( value );
+        // return ourselves
         return *this;
     }
     /**
-     * @brief Sets content of buffer.
+     * @brief Assigns new value to buffer.
      *
      * @param[in] value New content.
      */
-    template<typename X>
-    Buffer& operator=( const X& value )
+    template<typename T>
+    Buffer& operator=( const T& value )
     {
-        Set( value );
+        // assign the value
+        Assign<T>( value );
+        // return ourselves
         return *this;
     }
-    /**
-     * Template above doesn't overload compiler-generated
-     * assigment operator ... we must do it manually.
-     */
+    /** Copy operator. */
     Buffer& operator=( const Buffer& value )
     {
-        return operator=<Buffer>( value );
+        // assign new content
+        AssignSeq( value.begin<uint8>(), value.end<uint8>() );
+        // return ourselves
+        return *this;
     }
 
     /********************************************************************/
     /* Size methods                                                     */
     /********************************************************************/
-    /** @return Current size of buffer. */
-    size_t size() const { return mSize; }
-    /** @return Current capacity of buffer. */
-    size_t capacity() const { return mCapacity; }
+    /** @return Current size of buffer, in bytes. */
+    size_type size() const { return mSize; }
+    /** @return Current capacity of buffer, in bytes. */
+    size_type capacity() const { return mCapacity; }
 
     /**
      * @brief Reserves (pre-allocates) memory for buffer.
      *
+     * Pre-allocates memory for buffer to hold at least
+     * @a requiredCount number of elements.
+     *
      * Should be used in cases where lazy reallocating
      * can negatively affect performance.
      *
-     * @param[in] requiredSize The least size of buffer.
+     * @param[in] requiredCount The least reserved number of elements.
      */
-    void Reserve( size_t requiredSize )
+    template<typename T>
+    void Reserve( size_type requiredCount )
     {
-        if( requiredSize > capacity() )
-            _Reallocate( requiredSize );
+        // reserve at beginning
+        ReserveAt<T>( begin<T>(), requiredCount );
     }
+
+    /**
+     * @brief Reserves (pre-allocates) memory for buffer at specific point.
+     *
+     * Pre-allocates memory for buffer to hold at least
+     * @a requiredCount number of elements, counting from @a index.
+     *
+     * Should be used in cases where lazy reallocating
+     * can negatively affect performance.
+     *
+     * @param[in] index         The point at which the memory should be reserved.
+     * @param[in] requiredCount The least reserved number of elements.
+     */
+    template<typename T>
+    void ReserveAt( const_iterator<T> index, size_type requiredCount )
+    {
+        // make sure we're not going off the bounds
+        assert( index <= end<T>() );
+
+        // turn iterator into byte offset
+        const size_type _index = ( index.template As<uint8>() - begin<uint8>() );
+        // obtain required size in bytes
+        const size_type _requiredSize = sizeof( T ) * requiredCount;
+
+        // reallocate if necessary
+        if( _index + _requiredSize > capacity() )
+            _Reallocate( _index + _requiredSize );
+    }
+
     /**
      * @brief Resizes buffer.
      *
-     * Changes size of buffer, possibly reallocating it.
+     * Changes size of buffer to hold @a requiredCount
+     * number of elements, possibly reallocating it.
      *
-     * If read position during shrink goes out of range,
-     * it is set to the end of the buffer.
-     *
-     * @param[in] requiredSize The new size of buffer.
-     * @param[in] value        When expanding buffer the gap will be filled by this value.
+     * @param[in] requiredCount The number of elements to hold.
+     * @param[in] fill          During buffer expansion the gap will be filled by this value.
      */
-    void Resize( size_t requiredSize, const uint8& value = 0 )
+    template<typename T>
+    void Resize( size_type requiredCount, const uint8& fill = 0 )
     {
-        _Reallocate( requiredSize );
+        // Resize at beginning
+        ResizeAt<T>( begin<T>(), requiredCount, fill );
+    }
 
-        if( requiredSize > size() )
-            // A gap was created, fill it with value
-            memset( &mBuffer[ size() ], value, requiredSize - size() );
-        else if( requiredSize < mPosition )
-            // Position went out of range,
-            // set it to end of buffer.
-            mPosition = requiredSize;
+    /**
+     * @brief Resizes buffer.
+     *
+     * Changes size of buffer to hold @a requiredCount
+     * number of elements, counting from @a index,
+     * possibly reallocating it.
+     *
+     * @param[in] index         The point at which the buffer should be resized.
+     * @param[in] requiredCount The number of elements to hold.
+     * @param[in] fill          During buffer expansion the gap will be filled by this value.
+     */
+    template<typename T>
+    void ResizeAt( const_iterator<T> index, size_type requiredCount, const uint8& fill = 0 )
+    {
+        // make sure we're not going off the bounds
+        assert( index <= end<T>() );
 
-        mSize = requiredSize;
+        // keep old size
+        const size_type _oldSize = size();
+        // do actual resize
+        _ResizeAt<T>( index, requiredCount );
+
+        // turn iterator into byte offset
+        const size_type _index = ( index.template As<uint8>() - begin<uint8>() );
+        // obtain required size in bytes
+        const size_type _requiredSize = sizeof( T ) * requiredCount;
+
+        // has a gap been created?
+        if( _index + _requiredSize > _oldSize )
+            // fill it with value
+            memset( &mBuffer[ _oldSize ], fill, _index + _requiredSize - _oldSize );
     }
 
 protected:
     /** Pointer to start of buffer. */
     uint8* mBuffer;
-    /** Current size of buffer. */
-    size_t mSize;
-    /** Current capacity of buffer. */
-    size_t mCapacity;
+    /** Current size of buffer, in bytes. */
+    size_type mSize;
+    /** Current capacity of buffer, in bytes. */
+    size_type mCapacity;
 
-    /** Current read position in stream. */
-    mutable size_t mPosition;
+    /**
+     * @brief Resizes buffer.
+     *
+     * Similar to Resize, but does not care
+     * about the gaps that may be created.
+     *
+     * @param[in] requiredCount The number of elements to hold.
+     */
+    template<typename T>
+    void _Resize( size_type requiredCount )
+    {
+        // resize at beginning
+        _ResizeAt<T>( begin<T>(), requiredCount );
+    }
+
+    /**
+     * @brief Resizes buffer.
+     *
+     * Similar to ResizeAt, but does not care
+     * about the gaps that may be created.
+     *
+     * @param[in] index         The point at which the buffer should be resized.
+     * @param[in] requiredCount The number of elements to hold.
+     */
+    template<typename T>
+    void _ResizeAt( const_iterator<T> index, size_type requiredCount )
+    {
+        // make sure we're not going off the bounds
+        assert( index <= end<T>() );
+
+        // turn index into byte offset
+        const size_type _index = ( index.template As<uint8>() - begin<uint8>() );
+        // obtain required size in bytes
+        const size_type _requiredSize = sizeof( T ) * requiredCount;
+
+        // reallocate
+        _Reallocate( _index + _requiredSize );
+        // set new size
+        mSize = ( _index + _requiredSize );
+    }
 
     /**
      * @brief Reallocates buffer.
@@ -423,16 +760,21 @@ protected:
      * Reallocates buffer so it can efficiently store
      * given amount of data.
      *
-     * @param[in] requiredSize Least required new size of buffer.
+     * @param[in] requiredSize The least required new size of buffer, in bytes.
      */
-    void _Reallocate( size_t requiredSize )
+    void _Reallocate( size_type requiredSize )
     {
-        size_t newCapacity = _CalcBufferCapacity( capacity(), requiredSize );
-        assert( newCapacity >= requiredSize );
+        // calculate new capacity for required size
+        size_type newCapacity = _CalcBufferCapacity( capacity(), requiredSize );
+        // make sure new capacity is bigger than required size
+        assert( requiredSize <= newCapacity );
 
+        // has the capacity changed?
         if( newCapacity != capacity() )
         {
+            // reallocate
             mBuffer = (uint8*)realloc( mBuffer, newCapacity );
+            // set new capacity
             mCapacity = newCapacity;
         }
     }
@@ -443,62 +785,30 @@ protected:
      * Based on current capacity and required size of the buffer,
      * this function calculates capacity of buffer to be allocated.
      *
-     * @param[in] currentCapacity Current capacity of buffer.
-     * @param[in] requiredSize    Required size of buffer.
+     * @param[in] currentCapacity Current capacity of buffer, in bytes.
+     * @param[in] requiredSize    Required size of buffer, in bytes.
      *
      * @return Capacity to be allocated.
      */
-    static size_t _CalcBufferCapacity( size_t currentCapacity, size_t requiredSize )
+    static size_type _CalcBufferCapacity( size_type currentCapacity, size_type requiredSize )
     {
-        size_t newCapacity = 0;
+        size_type newCapacity = 0;
 
-        if( requiredSize > 0x100 )
-            newCapacity = (size_t)npowof2( requiredSize );
-        else if( requiredSize > 0 )
+        // if more than 0x100 bytes required, return next power of 2
+        if( 0x100 < requiredSize )
+            newCapacity = (size_type)npowof2( requiredSize );
+        // else if non-zero, return 0x100 bytes
+        else if( 0 < requiredSize )
             newCapacity = 0x100;
+        // else return 0 bytes
 
+        /* if current capacity is sufficient and at the same time smaller
+           than the new capacity, return current one ... saves resources */
         if( requiredSize <= currentCapacity && currentCapacity < newCapacity )
-            // This saves some memory ...
             return currentCapacity;
         else
             return newCapacity;
     }
 };
-
-/**
- * @brief Specialization for setting other buffers.
- *
- * @param[in] value Buffer with new content.
- */
-template<>
-EVEMU_INLINE void Buffer::Set<Buffer>( const Buffer& value )
-{
-    Set( &value[0], value.size() );
-}
-
-/**
- * @brief Specialization for adding other buffers.
- *
- * @param[in] value Other buffer the content of which
- *                  should be added.
- */
-template<>
-EVEMU_INLINE void Buffer::Write<Buffer>( const Buffer& value )
-{
-    Write( &value[0], value.size() );
-}
-
-/**
- * @brief Specialization for writing other buffers.
- *
- * @param[in] index Index at which buffer should be written.
- * @param[in] value Other buffer the content of which
- *                  should be written to this buffer.
- */
-template<>
-EVEMU_INLINE void Buffer::Write<Buffer>( size_t index, const Buffer& value )
-{
-    Write( index, &value[0], value.size() );
-}
 
 #endif /* !__BUFFER_H__INCL__ */

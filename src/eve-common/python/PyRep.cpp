@@ -293,12 +293,13 @@ int32 PyNone::hash() const
 /************************************************************************/
 /* PyRep Buffer Class                                                   */
 /************************************************************************/
-PyBuffer::PyBuffer( const uint8* buffer, size_t size ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer, size ) ), mHashCache( -1 ) {}
-PyBuffer::PyBuffer( uint8** buffer, size_t size ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer, size ) ), mHashCache( -1 ) {}
+PyBuffer::PyBuffer( size_t len, const uint8& value ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( len, value ) ), mHashCache( -1 ) {}
 PyBuffer::PyBuffer( const Buffer& buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer ) ), mHashCache( -1 ) {}
+
 PyBuffer::PyBuffer( Buffer** buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( *buffer ), mHashCache( -1 ) { *buffer = NULL; }
-PyBuffer::PyBuffer( const PyString& str ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( (const uint8*)str.content().c_str(), str.content().size() ) ), mHashCache( -1 ) {}
+PyBuffer::PyBuffer( const PyString& str ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( str.content().begin(), str.content().end() ) ), mHashCache( -1 ) {}
 PyBuffer::PyBuffer( const PyBuffer& buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer.content() ) ), mHashCache( buffer.mHashCache ) {}
+
 PyBuffer::~PyBuffer() { delete mValue; }
 
 PyRep* PyBuffer::Clone() const
@@ -354,6 +355,7 @@ int32 PyBuffer::hash() const
 PyString::PyString( const char* str ) : PyRep( PyRep::PyTypeString ), mValue( str ), mHashCache( -1 ) {}
 PyString::PyString( const char* str, size_t len ) : PyRep( PyRep::PyTypeString ), mValue( str, len ), mHashCache( -1 ) {}
 PyString::PyString( const std::string& str ) : PyRep( PyRep::PyTypeString ), mValue( str ), mHashCache( -1 ) {}
+
 PyString::PyString( const PyBuffer& buf ) : PyRep( PyRep::PyTypeString ), mValue( (const char *) &buf.content()[0], buf.content().size() ), mHashCache( -1 ) {}
 PyString::PyString( const PyToken& token ) : PyRep( PyRep::PyTypeString ), mValue( token.content() ), mHashCache( -1 ) {}
 PyString::PyString( const PyString& oth ) : PyRep( PyRep::PyTypeString ), mValue( oth.mValue ), mHashCache( oth.mHashCache ) {}
@@ -394,8 +396,8 @@ int32 PyString::hash() const
 /* PyWString                                                            */
 /************************************************************************/
 PyWString::PyWString( const char* str, size_t len ) : PyRep( PyRep::PyTypeWString ), mValue( str, len ), mHashCache( -1 ) {}
-PyWString::PyWString( const uint16* str, size_t len ) : PyRep( PyRep::PyTypeWString ), mValue( _Convert( str, len ) ), mHashCache( -1 ) {}
 PyWString::PyWString( const std::string& str ) : PyRep( PyRep::PyTypeWString ), mValue( str ), mHashCache( -1 ) {}
+
 PyWString::PyWString( const PyString& str ) : PyRep( PyRep::PyTypeWString ), mValue( str.content() ), mHashCache( -1 ) {}
 PyWString::PyWString( const PyWString& oth ) : PyRep( PyRep::PyTypeWString ), mValue( oth.mValue ), mHashCache( oth.mHashCache ) {}
 
@@ -436,20 +438,13 @@ int32 PyWString::hash() const
     return x;
 }
 
-std::string PyWString::_Convert( const uint16* str, size_t len )
-{
-    std::string enc;
-    utf8::utf16to8( str, str + len, std::back_inserter( enc ) );
-
-    return enc;
-}
-
 /************************************************************************/
 /* PyToken                                                              */
 /************************************************************************/
 PyToken::PyToken( const char* token ) : PyRep( PyRep::PyTypeToken ), mValue( token ) {}
 PyToken::PyToken( const char* token, size_t len ) : PyRep( PyRep::PyTypeToken ), mValue( token, len ) {}
 PyToken::PyToken( const std::string& token ) : PyRep( PyRep::PyTypeToken ), mValue( token ) {}
+
 PyToken::PyToken( const PyString& token ) : PyRep( PyRep::PyTypeToken ), mValue( token.content() ) {}
 PyToken::PyToken( const PyToken& oth ) : PyRep( PyRep::PyTypeToken ), mValue( oth.content() ) {}
 

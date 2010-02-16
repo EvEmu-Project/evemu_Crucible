@@ -1297,7 +1297,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     //send our handshake
     CryptoServerHandshake server_shake;
     server_shake.serverChallenge = "";
-    server_shake.func_marshaled_code = new PyBuffer( handshakeFunc, sizeof(handshakeFunc) );
+    server_shake.func_marshaled_code = new PyBuffer( handshakeFunc, handshakeFunc + sizeof( handshakeFunc ) );
 	server_shake.verification = new PyBool( false );
     server_shake.cluster_usercount = _GetUserCount();
     server_shake.proxy_nodeid = 0xFFAA;

@@ -248,7 +248,7 @@ void SystemBubble::_SendAddBalls( SystemEntity* to_who )
 		cur->second->EncodeDestiny( destiny_buffer );
 	}
 	
-	addballs.destiny_binary = new PyBuffer( &destiny_buffer[0], destiny_buffer.size() );
+	addballs.destiny_binary = new PyBuffer( destiny_buffer.begin(), destiny_buffer.end() );
 	destiny_buffer.clear();
 
 	_log( DESTINY__TRACE, "Add Balls:" );
@@ -310,7 +310,7 @@ void SystemBubble::_BubblecastAddBall(SystemEntity *about_who) {
 
 	//encode destiny binary
 	about_who->EncodeDestiny(destiny_buffer);
-	addballs.destiny_binary = new PyBuffer(&destiny_buffer[0], destiny_buffer.size());
+	addballs.destiny_binary = new PyBuffer( destiny_buffer.begin(), destiny_buffer.end() );
 	destiny_buffer.clear();
 
 	//encode damage state

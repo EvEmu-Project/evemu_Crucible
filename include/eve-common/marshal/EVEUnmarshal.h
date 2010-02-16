@@ -54,9 +54,7 @@ class UnmarshalStream
 {
 public:
     UnmarshalStream()
-    : mBuffer( NULL ),
-      mStoreIndex( 0 ),
-      mStoredObjects( NULL )
+    : mStoredObjects( NULL )
     {
     }
 
@@ -71,21 +69,26 @@ public:
 
 protected:
     /** Peeks element from stream. */
-    template<typename X>
-    const X& Peek() const { return mBuffer->Peek<X>(); }
+    template<typename T>
+    const T& Peek() const { return *Peek<T>( 1 ); }
     /** Peeks elements from stream. */
-    template<typename X>
-    const X* Peek( size_t count ) const { return mBuffer->Peek<X>( count ); }
+    template<typename T>
+    Buffer::const_iterator<T> Peek( size_t count ) const { return mInItr.As<T>(); }
 
     /** Reads element from stream. */
-    template<typename X>
-    const X& Read() const { return mBuffer->Read<X>(); }
+    template<typename T>
+    const T& Read() { return *Read<T>( 1 ); }
     /** Reads elements from stream. */
-    template<typename X>
-    const X* Read( size_t count ) const { return mBuffer->Read<X>( count ); }
+    template<typename T>
+    Buffer::const_iterator<T> Read( size_t count )
+    {
+        Buffer::const_iterator<T> res = Peek<T>( count );
+        mInItr = ( res + count ).template As<uint8>();
+        return res;
+    }
 
     /** Reads extended size from stream. */
-    uint32 ReadSizeEx() const
+    uint32 ReadSizeEx()
     {
         uint32 size = Read<uint8>();
         if( 0xFF == size )
@@ -95,7 +98,7 @@ protected:
     }
 
     /** Initializes loading and loads rep from stream. */
-    PyRep* LoadStream();
+    PyRep* LoadStream( size_t streamLength );
 
     /** Loads rep from stream. */
     PyRep* LoadRep();
@@ -103,14 +106,21 @@ protected:
     /**
      * @brief Initializes object store.
      *
-     * @param[in] saveCount Number of saved objects within the stream.
+     * @param[in] streamLength Length of stream.
+     * @param[in] saveCount    Number of saved objects within the stream.
      */
-    void CreateObjectStore( uint32 saveCount );
+    void CreateObjectStore( size_t streamLength, uint32 saveCount );
     /**
      * @brief Destroys object store.
      */
     void DestroyObjectStore();
 
+    /**
+     * @brief Obtains storage index for StoreObject.
+     *
+     * @return Storage index.
+     */
+    uint32 GetStorageIndex() { return *mStoreIndexItr++; }
     /**
      * @brief Obtains previously stored object.
      *
@@ -119,12 +129,6 @@ protected:
      * @return The stored object.
      */
     PyRep* GetStoredObject( uint32 index );
-    /**
-     * @brief Obtains storage index for StoreObject.
-     *
-     * @return Storage index.
-     */
-    uint32 GetStorageIndex();
     /**
      * @brief Stores object.
      *
@@ -167,7 +171,7 @@ private:
     /** Loads empty string from stream. */
     PyRep* LoadStringEmpty() { return new PyString( "" ); }
     /** Loads single character string from stream. */
-    PyRep* LoadStringChar() { return new PyString( Read<char>( 1 ), 1 ); }
+    PyRep* LoadStringChar();
     /** Loads short (up to 255 chars) string from stream. */
     PyRep* LoadStringShort();
     /** Loads long (no limit) string from stream. */
@@ -178,7 +182,7 @@ private:
     /** Loads empty wide string from stream. */
     PyRep* LoadWStringEmpty() { return new PyWString( "", 0 ); }
     /** Loads single UCS-2 character string from stream. */
-    PyRep* LoadWStringUCS2Char() { return new PyWString( Read<uint16>( 1 ), 1 ); }
+    PyRep* LoadWStringUCS2Char();
     /** Loads UCS-2 string from stream. */
     PyRep* LoadWStringUCS2();
     /** Loads UTF-8 string from stream. */
@@ -208,19 +212,21 @@ private:
 
     /** Loads dict from stream. */
     PyRep* LoadDict();
+
     /** Loads object from stream. */
     PyRep* LoadObject();
-    /** Loads sub struct from stream. */
-    PyRep* LoadSubStruct();
-    /** Loads sub stream from stream. */
-    PyRep* LoadSubStream();
-    /** Loads checksumed stream from stream. */
-    PyRep* LoadChecksumedStream();
-
     /** Loads extended object of type 1 from stream. */
     PyRep* LoadObjectEx1();
     /** Loads extended object of type 2 from stream. */
     PyRep* LoadObjectEx2();
+
+    /** Loads sub stream from stream. */
+    PyRep* LoadSubStream();
+    /** Loads sub struct from stream. */
+    PyRep* LoadSubStruct();
+    /** Loads checksumed stream from stream. */
+    PyRep* LoadChecksumedStream();
+
     /** Loads packed row from stream. */
     PyRep* LoadPackedRow();
 
@@ -234,12 +240,13 @@ private:
     /** Helper; loads zero-compressed buffer from stream. */
     bool LoadZeroCompressed( Buffer& into );
 
-    /** Buffer which we are processing. */
-    const Buffer* mBuffer;
+    /** Buffer iterator we are processing. */
+    Buffer::const_iterator<uint8> mInItr;
+
     /** Next store index for referencing in the buffer. */
-    size_t mStoreIndex;
+    Buffer::const_iterator<uint32> mStoreIndexItr;
     /** Referenced objects within the buffer. */
-    PyRep** mStoredObjects;
+    PyList* mStoredObjects;
 
     /** Load function map. */
     static PyRep* ( UnmarshalStream::* const s_mLoadMap[] )();

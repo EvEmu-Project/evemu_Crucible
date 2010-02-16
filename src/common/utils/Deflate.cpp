@@ -46,20 +46,21 @@ bool DeflateData( Buffer& data )
 
 bool DeflateData( const Buffer& input, Buffer& output )
 {
-    const size_t outputIndex = output.size();
-    size_t outputSize = compressBound( input.size() );
-    output.Resize( outputIndex + outputSize );
+    const Buffer::iterator<uint8> out = output.end<uint8>();
 
-    int res = compress( &output[ outputIndex ], (uLongf*)&outputSize, &input[ 0 ], input.size() );
+    size_t outputSize = compressBound( input.size() );
+    output.ResizeAt( out, outputSize );
+
+    int res = compress( &*out, (uLongf*)&outputSize, &input[0], input.size() );
 
     if( Z_OK == res )
     {
-        output.Resize( outputIndex + outputSize );
+        output.ResizeAt( out, outputSize );
         return true;
     }
     else
     {
-        output.Resize( outputIndex );
+        output.ResizeAt( out, 0 );
         return false;
     }
 }
@@ -76,7 +77,8 @@ bool InflateData( Buffer& data )
 
 bool InflateData( const Buffer& input, Buffer& output )
 {
-    const size_t outputIndex = output.size();
+    const Buffer::iterator<uint8> out = output.end<uint8>();
+
     size_t outputSize = 0;
     size_t sizeMultiplier = 0;
 
@@ -84,19 +86,19 @@ bool InflateData( const Buffer& input, Buffer& output )
     do
     {
         outputSize = ( input.size() << ++sizeMultiplier );
-        output.Resize( outputIndex + outputSize );
+        output.ResizeAt( out, outputSize );
 
-        res = uncompress( &output[ outputIndex ], (uLongf*)&outputSize, &input[ 0 ], input.size() );
+        res = uncompress( &*out, (uLongf*)&outputSize, &input[0], input.size() );
     } while( Z_BUF_ERROR == res );
 
     if( Z_OK == res )
     {
-        output.Resize( outputIndex + outputSize );
+        output.ResizeAt( out, outputSize );
         return true;
     }
     else
     {
-        output.Resize( outputIndex );
+        output.ResizeAt( out, 0 );
         return false;
     }
 }

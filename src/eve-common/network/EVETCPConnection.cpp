@@ -48,16 +48,20 @@ EVETCPConnection::EVETCPConnection( Socket* sock, uint32 rIP, uint16 rPort )
 
 void EVETCPConnection::QueueRep( const PyRep* rep )
 {
-    Buffer* buf = MarshalDeflate( rep );
-    if( buf == NULL )
+    Buffer* buf = new Buffer;
+
+    // make room for length
+    const Buffer::iterator<uint32> bufLen = buf->end<uint32>();
+    buf->ResizeAt( bufLen, 1 );
+
+    if( !MarshalDeflate( rep, *buf ) )
         sLog.Error( "Network", "Failed to marshal new packet." );
     else if( buf->size() > EVETCPCONN_PACKET_LIMIT )
         sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %lu.", buf->size(), EVETCPCONN_PACKET_LIMIT );
     else
     {
-        // Insert size of buffer before the content itself
-        buf->Write<Buffer>( sizeof( uint32 ), *buf );
-        buf->Write<uint32>( 0, buf->size() - sizeof( uint32 ) );
+        // write length
+        *bufLen = ( buf->size() - sizeof( uint32 ) );
 
         Send( &buf );
     }

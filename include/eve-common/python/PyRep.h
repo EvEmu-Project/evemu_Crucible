@@ -362,11 +362,19 @@ public:
 class PyBuffer : public PyRep
 {
 public:
-    PyBuffer( const uint8* buffer, size_t size );
-    PyBuffer( uint8** buffer, size_t size );
+    /** Calls Buffer::Buffer( size_t, const uint8& ). */
+    PyBuffer( size_t len, const uint8& value );
+    /** Calls Buffer::Buffer( Iter, Iter ). */
+    template<typename Iter>
+    PyBuffer( Iter first, Iter last );
+    /** Calls Buffer::Buffer( const Buffer& ). */
     PyBuffer( const Buffer& buffer );
+
+    /** Takes ownership of a passed Buffer. */
     PyBuffer( Buffer** buffer );
+    /** Copy constructor. */
     PyBuffer( const PyString& str );
+    /** Copy constructor. */
     PyBuffer( const PyBuffer& oth );
 
     PyRep* Clone() const;
@@ -396,11 +404,21 @@ protected:
 class PyString : public PyRep
 {
 public:
+    /** Calls std::string( const char* ). */
     PyString( const char* str );
-    PyString( const char* str, size_t str_len );
+    /** Calls std::string( const char*, size_t ). */
+    PyString( const char* str, size_t len );
+    /** Calls std::string( Iter, Iter ). */
+    template<typename Iter>
+    PyString( Iter first, Iter last );
+    /** Calls std::string( const std::string& ). */
 	PyString( const std::string& str );
+
+    /** Copy constructor. */
     PyString( const PyBuffer& buf );
+    /** Copy constructor. */
     PyString( const PyToken& token );
+    /** Copy constructor. */
     PyString( const PyString& oth );
 
     PyRep* Clone() const;
@@ -429,10 +447,17 @@ protected:
 class PyWString : public PyRep
 {
 public:
+    /** Calls std::string( const char*, size_t ). */
     PyWString( const char* str, size_t len );
-    PyWString( const uint16* str, size_t len );
+    /** Calls std::string( Iter, Iter ). */
+    template<typename Iter>
+    PyWString( Iter first, Iter last );
+    /** Calls std::string( const std::string& ). */
     PyWString( const std::string& str );
+
+    /** Copy constructor. */
     PyWString( const PyString& str );
+    /** Copy constructor. */
     PyWString( const PyWString& oth );
 
     PyRep* Clone() const;
@@ -454,18 +479,6 @@ public:
     int32 hash() const;
 
 protected:
-    /**
-     * @brief Construction helper.
-     *
-     * Converts UCS-2 to UTF-8.
-     *
-     * @param[in] str UCS-2 string.
-     * @param[in] len Length of string (in UCS-2 characters).
-     *
-     * @return UTF-8 string.
-     */
-    static std::string _Convert( const uint16* str, size_t len );
-
     const std::string mValue;
     mutable int32 mHashCache;
 };
@@ -478,10 +491,19 @@ protected:
 class PyToken : public PyRep
 {
 public:
+    /** Calls std::string( const char* ). */
     PyToken( const char* token );
+    /** Calls std::string( const char*, size_t ). */
     PyToken( const char* token, size_t len );
+    /** Calls std::string( Iter, Iter ). */
+    template<typename Iter>
+    PyToken( Iter first, Iter last );
+    /** Calls std::string( const std::string& ). */
     PyToken( const std::string& token );
+
+    /** Copy constructor. */
     PyToken( const PyString& token );
+    /** Copy constructor. */
     PyToken( const PyToken& oth );
 
     PyRep* Clone() const;
@@ -975,5 +997,18 @@ protected:
  * enabling this would have to wait until references work properly.
  */
 //#pragma pack(pop)
+
+/* note: these need to be in header since they are templates ... we don't mess
+ * the class definitions up with them, we stick them here instead to have them
+ * all together.
+ */
+template<typename Iter>
+EVEMU_INLINE PyBuffer::PyBuffer( Iter first, Iter last ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( first, last ) ), mHashCache( -1 ) {}
+template<typename Iter>
+EVEMU_INLINE PyString::PyString( Iter first, Iter last ) : PyRep( PyRep::PyTypeString ), mValue( first, last ), mHashCache( -1 ) {}
+template<typename Iter>
+EVEMU_INLINE PyWString::PyWString( Iter first, Iter last ) : PyRep( PyRep::PyTypeWString ), mValue( first, last ), mHashCache( -1 ) {}
+template<typename Iter>
+EVEMU_INLINE PyToken::PyToken( Iter first, Iter last ) : PyRep( PyRep::PyTypeToken ), mValue( first, last ) {}
 
 #endif//EVE_PY_REP_H

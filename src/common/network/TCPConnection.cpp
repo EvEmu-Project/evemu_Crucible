@@ -375,7 +375,7 @@ bool TCPConnection::SendData( char* errbuf )
         else if( (uint32)status < buf->size() )
         {
             if( status > 0 )
-                buf->Set( &(*buf)[ status ], buf->size() - status );
+                buf->AssignSeq( buf->begin<uint8>() + status, buf->end<uint8>() );
 
             LockMutex queueLock( &mMSendQueue );
 
@@ -408,15 +408,15 @@ bool TCPConnection::RecvData( char* errbuf )
     while( true )
     {
         if( mRecvBuf == NULL )
-            mRecvBuf = new Buffer( TCPCONN_RECVBUF_SIZE, 0 );
+            mRecvBuf = new Buffer( TCPCONN_RECVBUF_SIZE );
         else if( mRecvBuf->size() < TCPCONN_RECVBUF_SIZE )
-            mRecvBuf->Resize( TCPCONN_RECVBUF_SIZE, 0 );
+            mRecvBuf->Resize<uint8>( TCPCONN_RECVBUF_SIZE );
 
         int status = mSock->recv( &(*mRecvBuf)[ 0 ], mRecvBuf->size(), 0 );
 
         if( status > 0 )
         {
-            mRecvBuf->Resize( status, 0 );
+            mRecvBuf->Resize<uint8>( status );
 
             if( !ProcessReceivedData( errbuf ) )
                 return false;

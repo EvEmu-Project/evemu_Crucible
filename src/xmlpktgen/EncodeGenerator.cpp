@@ -301,7 +301,7 @@ bool ClassEncodeGenerator::ProcessBuffer( const TiXmlElement* field )
         "    if( NULL == %s )\n"
 		"    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty buffer.\");\n"
-        "        %s = new PyBuffer( (uint8*)NULL, 0 );\n"
+        "        %s = new PyBuffer( 0 );\n"
         "    }\n"
 		"    else\n"
 	    "    {\n"

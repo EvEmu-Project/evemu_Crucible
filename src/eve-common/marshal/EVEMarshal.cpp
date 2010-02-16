@@ -39,30 +39,29 @@ bool Marshal( const PyRep* rep, Buffer& into )
     return v.Save( rep, into );
 }
 
-Buffer* MarshalDeflate( const PyRep* rep, const uint32 deflationLimit )
+bool MarshalDeflate( const PyRep* rep, Buffer& into, const uint32 deflationLimit )
 {
-    Buffer* data = new Buffer;
-    if( !Marshal( rep, *data ) )
-    {
-        SafeDelete( data );
+    Buffer data;
+    if( !Marshal( rep, data ) )
         return false;
-    }
 
-    if( data->size() >= deflationLimit )
+    if( data.size() >= deflationLimit )
+        return DeflateData( data, into );
+    else
     {
-        if( !DeflateData( *data ) )
-        {
-            SafeDelete( data );
-            return false;
-        }
+        into.AppendSeq( data.begin<uint8>(), data.end<uint8>() );
+        return true;
     }
-
-    return data;
 }
 
 /************************************************************************/
 /* MarshalStream                                                        */
 /************************************************************************/
+MarshalStream::MarshalStream()
+: mBuffer( NULL )
+{
+}
+
 bool MarshalStream::Save( const PyRep* rep, Buffer& into )
 {
     mBuffer = &into;
@@ -197,8 +196,11 @@ bool MarshalStream::VisitBuffer( const PyBuffer* rep )
 {
     Put<uint8>( Op_PyBuffer );
 
-    PutSizeEx( rep->content().size() );
-    Put( rep->content() );
+    const Buffer& buf = rep->content();
+
+    PutSizeEx( buf.size() );
+    Put( buf.begin<uint8>(), buf.end<uint8>() );
+
     return true;
 }
 
@@ -229,7 +231,7 @@ bool MarshalStream::VisitString( const PyString* rep )
         {
             Put<uint8>( Op_PyLongString );
             PutSizeEx( len );
-            Put( (uint8*)rep->content().c_str(), len );
+            Put( rep->content().begin(), rep->content().end() );
         }
     }
 
@@ -251,7 +253,7 @@ bool MarshalStream::VisitWString( const PyWString* rep )
 
         Put<uint8>( Op_PyWStringUTF8 );
         PutSizeEx( len );
-        Put( (const uint8*)rep->content().c_str(), len );
+        Put( rep->content().begin(), rep->content().end() );
     }
 
     return true;
@@ -259,11 +261,12 @@ bool MarshalStream::VisitWString( const PyWString* rep )
 
 bool MarshalStream::VisitToken( const PyToken* rep )
 {
-    const size_t len = rep->content().size();
-
     Put<uint8>( Op_PyToken );
-    PutSizeEx( len );
-    Put( (uint8*)rep->content().c_str(), len );
+
+    const std::string& str = rep->content();
+
+    PutSizeEx( str.size() );
+    Put( str.begin(), str.end() );
 
     return true;
 }
@@ -401,7 +404,7 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
 
     Buffer unpacked;
     sum = ( ( sum + 7 ) >> 3 );
-    unpacked.Reserve( sum );
+    unpacked.Reserve<uint8>( sum );
 
     std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
     cur = sizeMap.begin();
@@ -419,35 +422,35 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
             case DBTYPE_CY:
             case DBTYPE_FILETIME:
             {
-                unpacked.Write<int64>( r->IsNone() ? 0 : r->AsLong()->value() );
+                unpacked.Append<int64>( r->IsNone() ? 0 : r->AsLong()->value() );
             } break;
 
             case DBTYPE_I4:
             case DBTYPE_UI4:
             {
-                unpacked.Write<int32>( r->IsNone() ? 0 : r->AsInt()->value() );
+                unpacked.Append<int32>( r->IsNone() ? 0 : r->AsInt()->value() );
             } break;
 
             case DBTYPE_I2:
             case DBTYPE_UI2:
             {
-                unpacked.Write<int16>( r->IsNone() ? 0 : r->AsInt()->value() );
+                unpacked.Append<int16>( r->IsNone() ? 0 : r->AsInt()->value() );
             } break;
 
             case DBTYPE_I1:
             case DBTYPE_UI1:
             {
-                unpacked.Write<int8>( r->IsNone() ? 0 : r->AsInt()->value() );
+                unpacked.Append<int8>( r->IsNone() ? 0 : r->AsInt()->value() );
             } break;
 
             case DBTYPE_R8:
             {
-                unpacked.Write<double>( r->IsNone() ? 0.0 : r->AsFloat()->value() );
+                unpacked.Append<double>( r->IsNone() ? 0.0 : r->AsFloat()->value() );
             } break;
 
             case DBTYPE_R4:
             {
-                unpacked.Write<float>( r->IsNone() ? 0.0 : r->AsFloat()->value() );
+                unpacked.Append<float>( r->IsNone() ? 0.0 : r->AsFloat()->value() );
             } break;
 
             case DBTYPE_BOOL:
@@ -461,20 +464,25 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
         }
     }
 
+    uint8 bitOffset = 0;
+    Buffer::iterator<uint8> bitByte;
+
     cur = sizeMap.lower_bound( 1 );
     end = sizeMap.lower_bound( 0 );
-    for( uint8 bit_off = 0; cur != end; cur++ )
+    for(; cur != end; ++cur)
     {
         const uint32 index = cur->second;
         const PyBool* r = rep->GetField( index )->AsBool();
 
-        if( 7 < bit_off )
-            bit_off = 0;
-        if( 0 == bit_off )
-            unpacked.Write<uint8>( 0 );
+        if( 7 < bitOffset )
+            bitOffset = 0;
+        if( 0 == bitOffset )
+        {
+            bitByte = unpacked.end<uint8>();
+            unpacked.ResizeAt( bitByte, 1 );
+        }
 
-        uint8& byte = unpacked.Get<uint8>( unpacked.size() - 1 );
-        byte |= ( r->value() << bit_off++ );
+        *bitByte |= ( r->value() << bitOffset++ );
     }
 
     //pack the bytes with the zero compression algorithm.
@@ -525,8 +533,10 @@ bool MarshalStream::VisitSubStream( const PySubStream* rep )
     }
 
     //we have the marshaled data, use it.
-    PutSizeEx( rep->data()->content().size() );
-    Put( rep->data()->content() );
+    const Buffer& data = rep->data()->content();
+
+    PutSizeEx( data.size() );
+    Put( data.begin<uint8>(), data.end<uint8>() );
 
     return true;
 }
@@ -558,7 +568,7 @@ void MarshalStream::SaveVarInteger( const PyLong* v )
     {
         Put<uint8>(Op_PyVarInteger);
         Put<uint8>(integerSize);
-        Put((uint8*)&value, integerSize);
+        Put( &( (uint8*)&value )[0], &( (uint8*)&value )[integerSize] );
     }
     else
     {
@@ -571,33 +581,26 @@ bool MarshalStream::SaveZeroCompressed( const Buffer& data )
 {
     Buffer packed;
 
-    while( data.isAvailable<uint8>() )
+    Buffer::const_iterator<uint8> cur, end;
+    cur = data.begin<uint8>();
+    end = data.end<uint8>();
+    while( cur < end )
     {
-		// We need to have enough room without moving (otherwise
-		// it would invalidate our pointer obtained below); size
-		// is 1 byte of opcode + at most 2x 8 bytes.
-        packed.Reserve( packed.size() + 1 + 2 * 8 );
-
         // Insert opcode
-        packed.Write<uint8>( 0 );
-        ZeroCompressOpcode* opcode = (ZeroCompressOpcode*)&packed.Get<uint8>( packed.size() - 1 );
+        Buffer::iterator<ZeroCompressOpcode> opcode = packed.end<ZeroCompressOpcode>();
+        packed.ResizeAt( opcode, 1 );
 
         // Encode first part
-        if( 0x00 == data.Peek<uint8>() )
+        if( 0x00 == *cur )
         {
             opcode->firstIsZero = true;
             opcode->firstLen = -1;
 
             do
             {
-                data.Read<uint8>();
+                ++cur;
                 ++opcode->firstLen;
-                if( 7 <= opcode->firstLen )
-                    break;
-
-                if( !data.isAvailable<uint8>() )
-                    break;
-            } while( 0x00 == data.Peek<uint8>() );
+            } while( 7 > opcode->firstLen && ( cur < end ? 0x00 == *cur : false ) );
         }
         else
         {
@@ -606,41 +609,28 @@ bool MarshalStream::SaveZeroCompressed( const Buffer& data )
 
             do
             {
-                packed.Write<uint8>( data.Read<uint8>() );
+                packed.Append<uint8>( *cur++ );
                 --opcode->firstLen;
-                if( 0 >= opcode->firstLen )
-                    break;
-
-                if( !data.isAvailable<uint8>() )
-                    break;
-            } while( 0x00 != data.Peek<uint8>() );
+            } while( 0 < opcode->firstLen && ( cur < end ? 0x00 != *cur : false ) );
         }
 
         // Check whether we have data for second part
-        if( !data.isAvailable<uint8>() )
+        if( cur >= end )
         {
             opcode->secondIsZero = true;
             opcode->secondLen = 0;
-
-            break;
         }
-
         // Encode second part
-        if( 0x00 == data.Peek<uint8>() )
+        else if( 0x00 == *cur )
         {
             opcode->secondIsZero = true;
             opcode->secondLen = -1;
 
             do
             {
-                data.Read<uint8>();
+                ++cur;
                 ++opcode->secondLen;
-                if( 7 <= opcode->secondLen )
-                    break;
-
-                if( !data.isAvailable<uint8>() )
-                    break;
-            } while( 0x00 == data.Peek<uint8>() );
+            } while( 7 > opcode->secondLen && ( cur < end ? 0x00 == *cur : false ) );
         }
         else
         {
@@ -649,20 +639,15 @@ bool MarshalStream::SaveZeroCompressed( const Buffer& data )
 
             do
             {
-                packed.Write<uint8>( data.Read<uint8>() );
+                packed.Append<uint8>( *cur++ );
                 --opcode->secondLen;
-                if( 0 >= opcode->secondLen )
-                    break;
-
-                if( !data.isAvailable<uint8>() )
-                    break;
-            } while( 0x00 != data.Peek<uint8>() );
+            } while( 0 < opcode->secondLen && ( cur < end ? 0x00 != *cur : false ) );
         }
     }
 
     PutSizeEx( packed.size() );
     if( 0 < packed.size() )
-        Put( packed );
+        Put( packed.begin<uint8>(), packed.end<uint8>() );
 
     return true;
 }

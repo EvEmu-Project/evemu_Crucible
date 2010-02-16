@@ -43,24 +43,25 @@ extern bool Marshal( const PyRep* rep, Buffer& into );
  * @brief Deflated Marshal Stream builder.
  *
  * @param[in]  rep            Python object to marshal.
+ * @param[out] into           Buffer which receives deflated marshaled stream.
  * @param[in]  deflationLimit The least size of buffer which gets deflated.
  *
- * @return Ownership of buffer with deflated marshaled data.
+ * @retval true  Marshaling ran successfully.
+ * @retval false Error occured during marshaling.
  */
-extern Buffer* MarshalDeflate( const PyRep* rep, const uint32 deflationLimit = 0x2000 );
+extern bool MarshalDeflate( const PyRep* rep, Buffer& into, const uint32 deflationLimit = 0x2000 );
 
 /**
  * @brief Turns Python objects into marshal bytecode.
  *
  * @author Captnoord, Bloody.Rabbit
  */
-class MarshalStream : protected PyVisitor
+class MarshalStream
+: protected PyVisitor
 {
 public:
-    MarshalStream()
-    : mBuffer( NULL )
-    {
-    }
+    /** initializes object */
+    MarshalStream();
 
     /** saves given rep to given buffer */
     bool Save( const PyRep* rep, Buffer& into );
@@ -70,10 +71,12 @@ protected:
     bool SaveStream( const PyRep* rep );
 
     /** adds given value to the data stream */
-    template<typename X>
-    void Put( const X& value ) { mBuffer->Write( value ); }
+    template<typename T>
+    void Put( const T& value ) { mBuffer->Append<T>( value ); }
     /** adds given bytes to the data stream */
-    void Put( const uint8* v, uint32 len ) { mBuffer->Write( v, len ); }
+    template<typename Iter>
+    void Put( Iter first, Iter last ) { mBuffer->AppendSeq<Iter>( first, last ); }
+
     /** utility for extended size. */
     void PutSizeEx( uint32 size )
     {

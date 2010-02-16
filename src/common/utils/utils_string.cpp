@@ -210,7 +210,7 @@ bool py_decode_escape( const char* str, Buffer& into )
 
 		if( *str != '\\' )
         {
-			into.Write<char>( *str++ );
+			into.Append<char>( *str++ );
 			continue;
 		}
         if( ++str == end )
@@ -221,16 +221,16 @@ bool py_decode_escape( const char* str, Buffer& into )
         {
 		/* XXX This assumes ASCII! */
 		case '\n': break;	//?
-		case '\\': into.Write<char>('\\'); break;
-		case '\'': into.Write<char>('\''); break;
-		case '\"': into.Write<char>('\"'); break;
-		case 'b':  into.Write<char>('\b'); break;
-		case 'f':  into.Write<char>('\014'); break; /* FF */
-		case 't':  into.Write<char>('\t'); break;
-		case 'n':  into.Write<char>('\n'); break;
-		case 'r':  into.Write<char>('\r'); break;
-		case 'v':  into.Write<char>('\013'); break; /* VT */
-		case 'a':  into.Write<char>('\007'); break; /* BEL, not classic C */
+		case '\\': into.Append<char>('\\'); break;
+		case '\'': into.Append<char>('\''); break;
+		case '\"': into.Append<char>('\"'); break;
+		case 'b':  into.Append<char>('\b'); break;
+		case 'f':  into.Append<char>('\014'); break; /* FF */
+		case 't':  into.Append<char>('\t'); break;
+		case 'n':  into.Append<char>('\n'); break;
+		case 'r':  into.Append<char>('\r'); break;
+		case 'v':  into.Append<char>('\013'); break; /* VT */
+		case 'a':  into.Append<char>('\007'); break; /* BEL, not classic C */
 		case '0': case '1': case '2': case '3':
 		case '4': case '5': case '6': case '7':
 			c = str[-1] - '0';
@@ -240,7 +240,7 @@ bool py_decode_escape( const char* str, Buffer& into )
 				if( '0' <= *str && *str <= '7' )
 					c = (c<<3) + *str++ - '0';
 			}
-			into.Write<uint8>( c );
+			into.Append<uint8>( c );
 			break;
 		case 'x':
 			if( isxdigit( str[0] ) && isxdigit( str[1] ) )
@@ -265,7 +265,7 @@ bool py_decode_escape( const char* str, Buffer& into )
 				else
 					x += 10 + c - 'A';
 
-				into.Write<uint8>( x );
+				into.Append<uint8>( x );
 				break;
 			}
 			//"invalid \\x escape");

@@ -350,7 +350,7 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 	}
 
 	//ss.destiny_state
-	ss.destiny_state = new PyBuffer(&setstate_buffer[0], setstate_buffer.size());
+	ss.destiny_state = new PyBuffer( setstate_buffer.begin(), setstate_buffer.end() );
 	setstate_buffer.clear();
 	
 	//ss.gangCorps

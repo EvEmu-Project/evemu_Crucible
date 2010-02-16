@@ -152,9 +152,11 @@ void TestMarshal( const Seperator& cmd )
 
     sLog.Log( "mtest", "Marshaling..." );
 
-    Buffer* marshaled = MarshalDeflate( rs );
+    Buffer marshaled;
+    bool res = MarshalDeflate( rs, marshaled );
     PyDecRef( rs );
-    if( marshaled == NULL )
+
+    if( !res )
     {
         sLog.Error( "mtest", "Failed to marshal Python object." );
         return;
@@ -162,8 +164,7 @@ void TestMarshal( const Seperator& cmd )
 
     sLog.Log( "mtest", "Unmarshaling..." );
 
-    PyRep* rep = InflateUnmarshal( *marshaled );
-    SafeDelete( marshaled );
+    PyRep* rep = InflateUnmarshal( marshaled );
     if( rep == NULL )
     {
         sLog.Error( "mtest", "Failed to unmarshal Python object." );
