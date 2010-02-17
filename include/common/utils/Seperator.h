@@ -20,60 +20,34 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Zhur, Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#ifndef __SEPERATOR_H__INCL__
+#define __SEPERATOR_H__INCL__
 
-PyTuple* ShipDB::GetFormations()
+#include "utils/utils_string.h"
+
+/**
+ * @brief Separates string to arguments.
+ *
+ * @author Zhur, Bloody.Rabbit
+ */
+class Seperator
 {
-	//vicious crap... but this is gunna be a bit of work to load from the DB (nested tuples)
-	PyTuple* res = new PyTuple( 2 );
+public:
+	Seperator( const char* str,
+               const char* divs = " \t",
+               const char* quotes = "\"\'" );
 
-	Beyonce_Formation f;
+    const std::string& arg( size_t index ) const { return mArgs[ index ]; }
+    size_t argCount() const { return mArgs.size(); }
 
-	//Diamond formation
-	f.name = "Diamond";
+    bool isNumber( size_t index ) const { return ::IsNumber( arg( index ) ); }
+    bool isHexNumber( size_t index ) const { return ::IsHexNumber( arg( index ) ); }
 
-    f.pos1.x = 100;
-    f.pos1.y = 0;
-    f.pos1.z = 0;
+protected:
+    std::vector<std::string> mArgs;
+};
 
-    f.pos2.x = 0;
-    f.pos2.y = 100;
-    f.pos2.z = 0;
-
-    f.pos3.x = -100;
-    f.pos3.y = 0;
-    f.pos3.z = 0;
-
-    f.pos4.x = 0;
-    f.pos4.y = -100;
-    f.pos4.z = 0;
-
-    res->SetItem( 0, f.Encode() );
-
-	//Arrow formation
-	f.name = "Arrow";
-
-    f.pos1.x = 100;
-    f.pos1.y = 0;
-    f.pos1.z = -50;
-
-    f.pos2.x = 50;
-    f.pos2.y = 0;
-    f.pos2.z = 0;
-
-    f.pos3.x = -100;
-    f.pos3.y = 0;
-    f.pos3.z = -50;
-
-    f.pos4.x = -50;
-    f.pos4.y = 0;
-    f.pos4.z = 0;
-
-    res->SetItem( 1, f.Encode() );
-
-	return res;
-}
-
+#endif /* !__SEPERATOR_H__INCL__ */

@@ -20,7 +20,7 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Bloody.Rabbit
 */
 
 #ifndef __EVE_TOOL_PCH_H__INCL__
@@ -33,9 +33,12 @@
 
 // dep headers
 #include "utils/Base64.h"
+#include "utils/RefPtr.h"
 #include "utils/TriFile.h"
 
 // common headers
+#include "database/dbtype.h"
+
 #include "log/logsys.h"
 #include "log/LogNew.h"
 
@@ -43,7 +46,7 @@
 
 #include "utils/Buffer.h"
 #include "utils/misc.h"
-#include "utils/seperator.h"
+#include "utils/Seperator.h"
 #include "utils/timer.h"
 #include "utils/utils_string.h"
 #include "utils/utils_time.h"

@@ -48,6 +48,7 @@
 #include "utils/crc32.h"
 #include "utils/Deflate.h"
 #include "utils/misc.h"
+#include "utils/RefPtr.h"
 #include "utils/Singleton.h"
 #include "utils/timer.h"
 #include "utils/utils_hex.h"

@@ -46,10 +46,11 @@ BillMgrService::~BillMgrService() {
 }
 
 
-PyResult BillMgrService::Handle_GetBillTypes(PyCallArgs &call) {
-	PyRep *result = NULL;
+PyResult BillMgrService::Handle_GetBillTypes( PyCallArgs& call )
+{
+	PyRep* result = NULL;
 
-	ObjectCachedMethodID method_id(GetName(), "GetRefTypes");
+	ObjectCachedMethodID method_id(GetName(), "GetBillTypes");
 
 	//check to see if this method is in the cache already.
 	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {

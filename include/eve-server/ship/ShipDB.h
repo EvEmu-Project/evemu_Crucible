@@ -33,7 +33,7 @@ class ShipDB
 : public ServiceDB
 {
 public:
-	PyTuple *GetFormations();
+	PyTuple* GetFormations();
 };
 
 

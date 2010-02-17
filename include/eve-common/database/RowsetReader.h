@@ -160,14 +160,15 @@ class SetSQLDumper
 : public PyVisitor
 {
 public:
-    SetSQLDumper( FILE* f, const char* table = "UNKNOWN" );
+    SetSQLDumper( const char* table, const char* keyField, FILE* out );
 
     bool VisitObject( const PyObject* rep );
     bool VisitTuple( const PyTuple* rep );
 
 protected:
-    FILE* const mFile;
     const std::string mTable;
+    const std::string mKeyField;
+    FILE* const mOut;
 };
 
 #endif

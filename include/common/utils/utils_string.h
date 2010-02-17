@@ -27,6 +27,9 @@
 
 #include "utils/Buffer.h"
 
+/** std::string to use where you would use NULL for const char*. */
+extern const std::string NULL_STRING;
+
 /**
  * @brief Appends string to end of another one.
  *
@@ -67,6 +70,64 @@ void EscapeString( std::string& subject, const std::string& find, const std::str
 std::string generate_key( size_t length );
 
 /**
+ * @brief Checks whether character is a number.
+ *
+ * @param[in] c The character to be checked.
+ *
+ * @retval true  The character is a number.
+ * @retval false The character is not a number.
+ */
+bool IsNumber( char c );
+/**
+ * @brief Checks whether string is a number.
+ *
+ * @param[in] str The string to be checked.
+ * @param[in] len Length of the string.
+ *
+ * @retval true  The string is a number.
+ * @retval false The string is not a number.
+ */
+bool IsNumber( const char* str, size_t len );
+/**
+ * @brief Checks whether string is a number.
+ *
+ * @param[in] str The string to be checked.
+ *
+ * @retval true  The string is a number.
+ * @retval false The string is not a number.
+ */
+bool IsNumber( const std::string& str );
+
+/**
+ * @brief Checks whether character is a hexadecimal number.
+ *
+ * @param[in] c The character to be checked.
+ *
+ * @retval true  The character is a hexadecimal number.
+ * @retval false The character is not a hexadecimal number.
+ */
+bool IsHexNumber( char c );
+/**
+ * @brief Checks whether string is a hexadecimal number.
+ *
+ * @param[in] str The string to be checked.
+ * @param[in] len Length of the string.
+ *
+ * @retval true  The string is a hexadecimal number.
+ * @retval false The string is not a hexadecimal number.
+ */
+bool IsHexNumber( const char* str, size_t len );
+/**
+ * @brief Checks whether string is a hexadecimal number.
+ *
+ * @param[in] str The string to be checked.
+ *
+ * @retval true  The string is a hexadecimal number.
+ * @retval false The string is not a hexadecimal number.
+ */
+bool IsHexNumber( const std::string& str );
+
+/**
  * @brief Checks whether character is printable.
  *
  * @param[in] c The character to be checked.
@@ -78,13 +139,13 @@ bool IsPrintable( char c );
 /**
  * @brief Checks whether string is printable.
  *
- * @param[in] str    String to be checked.
- * @param[in] length Length of string.
+ * @param[in] str String to be checked.
+ * @param[in] len Length of string.
  *
  * @retval true  The string is printable.
  * @retval false The string is not printable.
  */
-bool IsPrintable( const char* str, size_t length );
+bool IsPrintable( const char* str, size_t len );
 /**
  * @brief Checks whether string is printable.
  *

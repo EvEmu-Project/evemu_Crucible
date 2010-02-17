@@ -20,60 +20,51 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#ifndef __COMMANDS_H__INCL__
+#define __COMMANDS_H__INCL__
 
-PyTuple* ShipDB::GetFormations()
+/** Struct describing one eve-tool command. */
+struct EVEToolCommand
 {
-	//vicious crap... but this is gunna be a bit of work to load from the DB (nested tuples)
-	PyTuple* res = new PyTuple( 2 );
+    /** Name of the command; for invocation. */
+    const char* name;
+    /** Callback; what to call. */
+    void ( *callback )( const Seperator& cmd );
+    /** Description of command. */
+    const char* description;
+};
 
-	Beyonce_Formation f;
+/** Array of all available commands in eve-tool. */
+extern const EVEToolCommand EVETOOL_COMMANDS[];
+/** Number of available commands. */
+extern const size_t EVETOOL_COMMAND_COUNT;
 
-	//Diamond formation
-	f.name = "Diamond";
+/**
+ * @brief Finds a command.
+ *
+ * @param[in] name Name of command.
+ *
+ * @return Found command; NULL if not found.
+ */
+const EVEToolCommand* FindCommand( const char* name );
+/**
+ * @brief Finds a command.
+ *
+ * @param[in] name Name of command.
+ *
+ * @return Found command; NULL if not found.
+ */
+const EVEToolCommand* FindCommand( const std::string& name );
 
-    f.pos1.x = 100;
-    f.pos1.y = 0;
-    f.pos1.z = 0;
+/**
+ * @brief Processed given command.
+ *
+ * @param[in] cmd Command to be processed.
+ */
+void ProcessCommand( const Seperator& cmd );
 
-    f.pos2.x = 0;
-    f.pos2.y = 100;
-    f.pos2.z = 0;
-
-    f.pos3.x = -100;
-    f.pos3.y = 0;
-    f.pos3.z = 0;
-
-    f.pos4.x = 0;
-    f.pos4.y = -100;
-    f.pos4.z = 0;
-
-    res->SetItem( 0, f.Encode() );
-
-	//Arrow formation
-	f.name = "Arrow";
-
-    f.pos1.x = 100;
-    f.pos1.y = 0;
-    f.pos1.z = -50;
-
-    f.pos2.x = 50;
-    f.pos2.y = 0;
-    f.pos2.z = 0;
-
-    f.pos3.x = -100;
-    f.pos3.y = 0;
-    f.pos3.z = -50;
-
-    f.pos4.x = -50;
-    f.pos4.y = 0;
-    f.pos4.z = 0;
-
-    res->SetItem( 1, f.Encode() );
-
-	return res;
-}
+#endif /* !__COMMANDS_H__INCL__ */
 

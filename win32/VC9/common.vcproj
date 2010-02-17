@@ -244,6 +244,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\common\utils\Seperator.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\common\utils\timer.cpp"
 					>
 				</File>
@@ -366,7 +370,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\include\common\utils\seperator.h"
+					RelativePath="..\..\include\common\utils\Seperator.h"
 					>
 				</File>
 				<File

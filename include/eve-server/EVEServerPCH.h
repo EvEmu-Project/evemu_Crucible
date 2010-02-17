@@ -59,7 +59,7 @@
 #include "utils/gpoint.h"
 #include "utils/misc.h"
 #include "utils/RefPtr.h"
-#include "utils/seperator.h"
+#include "utils/Seperator.h"
 #include "utils/timer.h"
 #include "utils/utils_time.h"
 #include "utils/utils_string.h"

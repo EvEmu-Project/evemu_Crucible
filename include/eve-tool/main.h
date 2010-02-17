@@ -26,6 +26,13 @@
 #ifndef __MAIN_H__INCL__
 #define __MAIN_H__INCL__
 
+/** Cache directory to be used. */
+extern const char* const CACHE_DIR;
+/** Log settings file to be used. */
+extern const char* const LOG_SETTINGS_FILE;
+/** Log file to be used. */
+extern const char* const LOG_FILE;
+
 /**
  * @brief Processes given string as command.
  *
@@ -40,13 +47,6 @@ void ProcessString( const char* str );
 void ProcessString( const std::string& str );
 
 /**
- * @brief Processed given command.
- *
- * @param[in] cmd Command to be processed.
- */
-void ProcessCommand( const Seperator& cmd );
-
-/**
  * @brief Loads commands from given file.
  *
  * @param[in] file File to load commands from.
@@ -58,6 +58,12 @@ void ProcessFile( FILE* file );
  * @param[in] filename Name of file to load commands from.
  */
 void ProcessFile( const char* filename );
+/**
+ * @brief Loads commands from given file.
+ *
+ * @param[in] filename Name of file to load commands from.
+ */
+void ProcessFile( const std::string& filename );
 
 #endif /* !__MAIN_H__INCL__ */
 

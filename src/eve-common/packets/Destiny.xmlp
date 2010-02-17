@@ -738,6 +738,20 @@ DST_WARPEXIT = 11
 	  </tupleInline>
   </elementDef>
 
+  <elementDef name="Beyonce_Formation">
+    <tupleInline>
+      <!-- 0: Name of formation -->
+      <string name="name" />
+      <!-- 1: Tuple of positions -->
+      <tupleInline>
+        <element name="pos1" type="Call_PointArg" />
+        <element name="pos2" type="Call_PointArg" />
+        <element name="pos3" type="Call_PointArg" />
+        <element name="pos4" type="Call_PointArg" />
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
+
 </elements>
 
 

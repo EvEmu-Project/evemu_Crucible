@@ -116,9 +116,8 @@ protected:
     std::map<std::string, CacheRecord *> m_cachedObjects;   //we own these pointers
 };
 
-
-
-class PyCachedObject {
+class PyCachedObject
+{
 public:
     PyCachedObject();
     ~PyCachedObject();
@@ -143,7 +142,8 @@ public:
     /*6*/PyRep *objectID;   //generally a string or tuple.
 };
 
-class PyCachedObjectDecoder {
+class PyCachedObjectDecoder
+{
 public:
     PyCachedObjectDecoder();
     ~PyCachedObjectDecoder();
@@ -167,7 +167,8 @@ public:
 };
 
 
-class PyCachedCall {
+class PyCachedCall
+{
 public:
     PyCachedCall();
     ~PyCachedCall();
@@ -218,17 +219,16 @@ public:
     bool VisitWString( const PyWString* rep ) { return false; }
     bool VisitToken( const PyToken* rep ) { return false; }
 
-    bool VisitDict(const PyDict *rep) { return false; }
+    bool VisitDict( const PyDict* rep ) { return false; }
 
-    bool VisitObject(const PyObject *rep) { return false; }
-    bool VisitObjectEx(const PyObjectEx *rep) { return false; }
+    bool VisitObject( const PyObject* rep ) { return false; }
+    bool VisitObjectEx( const PyObjectEx* rep ) { return false; }
 
-    bool VisitPackedRow(const PyPackedRow *rep) { return false; }
+    bool VisitPackedRow( const PyPackedRow* rep ) { return false; }
 
-    bool VisitSubStruct(const PySubStruct *rep) { return false; }
-    bool VisitSubStream(const PySubStream *rep) { return false; }
-    bool VisitChecksumedStream(const PyChecksumedStream *rep) { return false; }
-
+    bool VisitSubStruct( const PySubStruct* rep ) { return false; }
+    bool VisitSubStream( const PySubStream* rep ) { return false; }
+    bool VisitChecksumedStream( const PyChecksumedStream* rep ) { return false; }
 };
 
 #endif

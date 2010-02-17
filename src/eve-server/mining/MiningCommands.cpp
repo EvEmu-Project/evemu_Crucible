@@ -25,110 +25,120 @@
 
 #include "EVEServerPCH.h"
 
-uint32 GetAsteroidType(double p, const std::map<double, uint32>& roids);
-void SpawnAsteroid(SystemManager* system, uint32 typeID, double radius, const GVector& position);
+uint32 GetAsteroidType( double p, const std::map<double, uint32>& roids );
+void SpawnAsteroid( SystemManager* system, uint32 typeID, double radius, const GVector& position );
 
-PyResult Command_roid(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
-	if(!args.IsNumber(1))
-		throw(PyException(MakeCustomError("Argument 1 should be an item type ID")));
+PyResult Command_roid( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	if( !args.isNumber( 1 ) )
+		throw PyException( MakeCustomError( "Argument 1 should be an item type ID" ) );
+    const uint32 typeID = atoi( args.arg( 1 ).c_str() );
 
-	if(!args.IsNumber(2))
-		throw(PyException(MakeCustomError("Argument 2 should be a radius")));
+	if( !args.isNumber( 2 ) )
+		throw PyException( MakeCustomError( "Argument 2 should be a radius" ) );
+    const double radius = atof( args.arg( 2 ).c_str() );
 
-	double radius = atof(args.arg[2]);
-	if(radius <= 0)
-		throw(PyException(MakeCustomError("Invalid radius.")));
+	if( 0 >= radius )
+		throw PyException( MakeCustomError( "Invalid radius." ) );
 
-	if(!who->IsInSpace()) 
-		throw(PyException(MakeCustomError("You must be in space to spawn things.")));
+	if( !who->IsInSpace() )
+		throw PyException( MakeCustomError( "You must be in space to spawn things." ) );
 
-	_log(COMMAND__MESSAGE, "Roid %s of radius %f", args.arg[1], radius);
+    sLog.Log( "Command", "Roid %u of radius %f", typeID, radius );
 
-	GPoint position(who->GetPosition());
+	GPoint position( who->GetPosition() );
 	position.x += radius + 1 + who->GetRadius();	//put it raw enough away to not push us around.
 	
-	SpawnAsteroid( who->System(), atoi(args.arg[1]), radius, position );
+	SpawnAsteroid( who->System(), typeID, radius, position );
 
-	return(new PyString("Spawn successsfull."));
+	return new PyString( "Spawn successsfull." );
 }
 
-PyResult Command_spawnbelt(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
-	if(!who->IsInSpace()) 
-		throw(PyException(MakeCustomError("You must be in space to spawn things.")));
+PyResult Command_spawnbelt( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	if( !who->IsInSpace() )
+		throw PyException( MakeCustomError( "You must be in space to spawn things." ) );
 
-	GPoint position(who->GetPosition());
-	
-	double beltradius = 100000.0;
-	double beltdistance = 25000.0;
-	double roidradius = 600.0;
-	int pcs = 160 + MakeRandomFloat( -10, 10 );
-	double beltangle = M_PI * 2 / 3;
-	double R = sqrt(position.x * position.x + position.z * position.z);
+    const double beltradius = 100000.0;
+	const double beltdistance = 25000.0;
+	const double roidradius = 600.0;
+	const double beltangle = M_PI * 2.0 / 3.0;
+	const uint32 pcs = 160 + MakeRandomInt( -10, 10 );
 
-	GPoint r = position * (R + beltdistance - beltradius) / R, mposition;
+	const GPoint position( who->GetPosition() );
+
+	const double R = sqrt( position.x * position.x + position.z * position.z );
+	const GPoint r = position * ( R + beltdistance - beltradius ) / R;
+
+	double phi = atan( position.x / position.z );
+	if( position.z < 0 )
+		phi += M_PI;
+
+	SystemManager* sys = who->System();
+	std::map<double, uint32> roidDist;
+	if( !db->GetRoidDist( sys->GetSystemSecurity(), roidDist ) )
+    {
+        sLog.Error( "Command", "Couldn't get roid list for system security %s", sys->GetSystemSecurity() );
+
+		throw PyException( MakeCustomError( "Couldn't get roid list for system security %s", sys->GetSystemSecurity() ) );
+	}
 
 	double alpha;
-	double phi = atan(position.x / position.z);
-	if (position.z < 0) {
-		phi += M_PI;
-	}
+    GPoint mposition;
 
-	SystemManager * sys = who->System();
-	std::map<double, uint32> roidDist;
-	if(!db->GetRoidDist(sys->GetSystemSecurity(), roidDist)) {
-		codelog(SERVICE__ERROR, "Couldn't get roid list for system security %s", sys->GetSystemSecurity());
-		throw(PyException(MakeCustomError("Couldn't get roid list for system security %s", sys->GetSystemSecurity())));
-	}
-
-	for ( int i=0;i<pcs;i++ ) {
+	for( uint32 i = 0; i < pcs; ++i )
+    {
 		alpha = beltangle * MakeRandomFloat( -0.5, 0.5 );
-		mposition.x = beltradius * sin(phi + alpha) + roidradius * MakeRandomFloat( 0, 15 );
-		mposition.z = beltradius * cos(phi + alpha) + roidradius * MakeRandomFloat( 0, 15 );
+
+		mposition.x = beltradius * sin( phi + alpha ) + roidradius * MakeRandomFloat( 0, 15 );
+		mposition.z = beltradius * cos( phi + alpha ) + roidradius * MakeRandomFloat( 0, 15 );
 		mposition.y = position.y - r.y + roidradius * MakeRandomFloat( 0, 15 );
 
 		SpawnAsteroid( who->System(), GetAsteroidType( MakeRandomFloat(), roidDist ), roidradius * MakeRandomFloat( 0.5, 1.5 ), r + mposition );
 	}
 
-	return(new PyString("Spawn successsfull."));
+	return new PyString( "Spawn successsfull." );
 }
 
-PyResult Command_growbelt(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
-	throw(PyException(MakeCustomError("Not implemented yet.")));
+PyResult Command_growbelt( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	throw PyException( MakeCustomError( "Not implemented yet." ) );
 }
 
-uint32 GetAsteroidType(double p, const std::map<double, uint32>& roids) {
+uint32 GetAsteroidType( double p, const std::map<double, uint32>& roids )
+{
 	std::map<double, uint32>::const_iterator cur, end;
 	cur = roids.begin();
 	end = roids.end();
-
-	for (;cur!=end;cur++) {
-		if ((*cur).first > p) return (*cur).second;
+	for(; cur != end; ++cur )
+    {
+		if( cur->first > p )
+            return cur->second;
 	}
 
 	return 1230; // return Veldspar
 }
 
-void SpawnAsteroid(SystemManager* system, uint32 typeID, double radius, const GVector& position) {
+void SpawnAsteroid( SystemManager* system, uint32 typeID, double radius, const GVector& position )
+{
 	//TODO: make item in IsUniverseAsteroid() range...
-	ItemData idata(
-		typeID,
-		1 /* who->GetCorporationID() */, //owner
-		system->GetID(),
-		flagAutoFit,
-		"",	//name
-		position
-	);
+	ItemData idata( typeID,
+		            1 /* who->GetCorporationID() */, //owner
+		            system->GetID(),
+		            flagAutoFit,
+		            "",	//name
+		            position );
 
-    InventoryItemRef i = system->itemFactory().SpawnItem(idata);
+    InventoryItemRef i = system->itemFactory().SpawnItem( idata );
 	if( !i )
-		throw(PyException(MakeCustomError("Unable to spawn item of type %u.", typeID)));
+		throw PyException( MakeCustomError( "Unable to spawn item of type %u.", typeID ) );
 
-	i->Set_radius(radius);
+	i->Set_radius( radius );
 
-	Asteroid* new_roid = new Asteroid(system, i);	//takes a ref.
+	Asteroid* new_roid = new Asteroid( system, i );	//takes a ref.
 	//TODO: check for a local asteroid belt object?
 	//TODO: actually add this to the asteroid belt too...
-	system->AddEntity(new_roid);
+	system->AddEntity( new_roid );
 }
 
 

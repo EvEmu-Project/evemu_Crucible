@@ -60,7 +60,7 @@ const char* const PyRep::s_mTypeString[] =
     "UNKNOWN TYPE",     //18
 };
 
-PyRep::PyRep( PyType t ) : mType( t ), mRefCnt( 1 ) {}
+PyRep::PyRep( PyType t ) : RefObject( 1 ), mType( t ) {}
 PyRep::~PyRep() {}
 
 const char* PyRep::TypeString() const

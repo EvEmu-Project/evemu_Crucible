@@ -27,6 +27,8 @@
 
 #include "utils/utils_string.h"
 
+const std::string NULL_STRING = "NULL";
+
 size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const char* fmt, ... )
 {
     if( *ret )
@@ -111,6 +113,94 @@ std::string generate_key( size_t length )
     return key;
 }
 
+bool IsNumber( char c )
+{
+    return isdigit( c );
+}
+
+bool IsNumber( const char* str, size_t len )
+{
+    // skip sign if there is one
+    if( 1 >= len )
+    {
+        if(    '-' == str[0]
+            || '+' == str[0] )
+        {
+            str += 1;
+            len -= 1;
+        }
+    }
+
+    if( 0 == len )
+        return false;
+
+    bool seenDec = false;
+    for(; len > 0; ++str, --len)
+    {
+        if( !IsNumber( *str ) )
+        {
+            if( !seenDec && '.' == *str )
+                seenDec = true;
+            else
+                return false;
+        }
+    }
+
+    return true;
+}
+
+bool IsNumber( const std::string& str )
+{
+    return IsNumber( str.c_str(), str.length() );
+}
+
+bool IsHexNumber( char c )
+{
+    return isxdigit( c );
+}
+
+bool IsHexNumber( const char* str, size_t len )
+{
+    // skip sign if there is one
+    if( 1 >= len )
+    {
+        if(    '-' == str[0]
+            || '+' == str[0] )
+        {
+            str += 1;
+            len -= 1;
+        }
+    }
+
+    // skip "0x" or "0X" prefix if there is one
+    if( 2 >= len )
+    {
+        if(    '0' == str[0]
+            && (    'x' == str[1]
+                 || 'X' == str[1] ) )
+        {
+            str += 2;
+            len -= 2;
+        }
+    }
+
+    if( 0 == len )
+        return false;
+
+    for(; len > 0; ++str, --len)
+    {
+        if( !IsHexNumber( *str ) )
+            return false;
+    }
+
+    return true;
+}
+
+bool IsHexNumber( const std::string& str )
+{
+    return IsHexNumber( str.c_str(), str.length() );
+}
+
 bool IsPrintable( char c )
 {
     // They seem to expect it unsigned ...
@@ -119,13 +209,14 @@ bool IsPrintable( char c )
     return ( isgraph( _c ) || isspace( _c ) );
 }
 
-bool IsPrintable( const char* str, size_t length )
+bool IsPrintable( const char* str, size_t len )
 {
-    for(; length > 0; ++str, --length)
+    for(; len > 0; ++str, --len)
     {
         if( !IsPrintable( *str ) )
             return false;
     }
+
     return true;
 }
 

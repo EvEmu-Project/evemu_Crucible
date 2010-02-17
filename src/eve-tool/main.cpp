@@ -26,14 +26,24 @@
 #include "EVEToolPCH.h"
 
 #include "main.h"
+#include "Commands.h"
+
+const char* const CACHE_DIR = "../data/cache/";
+const char* const LOG_SETTINGS_FILE = "log.ini";
+const char* const LOG_FILE = "logs/evetool.log";
 
 int main( int argc, char* argv[] )
 {
     // Load server log settings ( will be removed )
-    if( !load_log_settings( "log.ini" ) )
-        sLog.Warning( "init", "Unable to read %s (this file is optional)", "log.ini" );
+    if( !load_log_settings( LOG_SETTINGS_FILE ) )
+        sLog.Warning( "init", "Unable to read %s (this file is optional)", LOG_SETTINGS_FILE );
     else
-        sLog.Success( "init", "Log settings loaded from %s", "log.ini" );
+        sLog.Success( "init", "Log settings loaded from %s", LOG_SETTINGS_FILE );
+
+    if( !log_open_logfile( LOG_FILE ) )
+        sLog.Warning( "init", "Unable to open log file '%s', only logging to the screen now.", LOG_FILE );
+    else
+        sLog.Success( "init", "Opened log file %s", LOG_FILE );
 
     //skip first argument (launch path), we don't need it
     --argc;
@@ -85,20 +95,25 @@ void ProcessFile( FILE* file )
 
 void ProcessFile( const char* filename )
 {
-    FILE* file = fopen( filename, "r" );
-    if( file == NULL )
+    ProcessFile( std::string( filename ) );
+}
+
+void ProcessFile( const std::string& filename )
+{
+    FILE* file = fopen( filename.c_str(), "r" );
+    if( NULL == file )
     {
-        sLog.Error( "input", "Unable to open script '%s'.", filename );
+        sLog.Error( "input", "Unable to open script '%s'.", filename.c_str() );
         return;
     }
 
-    sLog.Log( "input", "Queuing commands from script '%s'.", filename );
+    sLog.Log( "input", "Queuing commands from script '%s'.", filename.c_str() );
     ProcessFile( file );
 
     if( feof( file ) )
-        sLog.Success( "input", "Load of script '%s' successfully completed.", filename );
+        sLog.Success( "input", "Load of script '%s' successfully completed.", filename.c_str() );
     else
-        sLog.Error( "input", "Error occured while reading script '%s'.", filename );
+        sLog.Error( "input", "Error occured while reading script '%s'.", filename.c_str() );
 
     fclose( file );
 }

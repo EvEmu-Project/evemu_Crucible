@@ -26,15 +26,6 @@
 #ifndef EVE_PY_REP_H
 #define EVE_PY_REP_H
 
-/* note: python object behavior tracing.
- */
-//#define PY_OBJ_TRACE
-#ifdef PY_OBJ_TRACE
-#  define _py_obj_trace(str, ...) printf(str, __VA_ARGS__)
-#else
-#  define _py_obj_trace(str, ...) do {} while(0)
-#endif//PY_OBJ_TRACE
-
 /* note: this will decrease memory use with 50% but increase load time with 50%
  * enabling this would have to wait until references work properly. Or when
  * you operate the server using the cache store system this can also be enabled.
@@ -72,13 +63,13 @@ class DBRowDescriptor;
 #define PyDecRef(op) (op)->DecRef()
 
 /* Macros to use in case the object pointer may be NULL */
-#define PySafeIncRef(op) if( (op) == NULL ) ; else PyIncRef( op )
-#define PySafeDecRef(op) if( (op) == NULL ) ; else PyDecRef( op )
+#define PySafeIncRef(op) if( NULL == (op) ) ; else PyIncRef( op )
+#define PySafeDecRef(op) if( NULL == (op) ) ; else PyDecRef( op )
 
 /**
  * @brief Base Python wire object
  */
-class PyRep
+class PyRep : public RefObject
 {
 public:
     /**
@@ -172,6 +163,9 @@ public:
     PyPackedRow* AsPackedRow()                           { assert( IsPackedRow() ); return (PyPackedRow*)this; }
     const PyPackedRow* AsPackedRow() const               { assert( IsPackedRow() ); return (const PyPackedRow*)this; }
 
+    using RefObject::IncRef;
+    using RefObject::DecRef;
+
     /**
      * @brief Dumps object to file.
      *
@@ -211,38 +205,11 @@ public:
      */
     virtual int32 hash() const;
 
-    /**
-     * @brief Increments reference count of object by one.
-     */
-    void IncRef() const
-    {
-        ++mRefCnt;
-        _py_obj_trace( "PyRep:0x%p | ref:%u inc\n", this, mRefCnt );
-    }
-    /**
-     * @brief Decrements reference count of object by one.
-     *
-     * If reference count of object reaches zero, object
-     * is deleted.
-     */
-    void DecRef() const
-    {
-        --mRefCnt;
-        _py_obj_trace( "PyRep:0x%p | ref:%u dec\n", this, mRefCnt );
-
-        if( mRefCnt <= 0 )
-        {
-            _py_obj_trace( "PyRep:0x%p | deleted\n", this );
-            delete this;
-        }
-    }
-
 protected:
     PyRep( PyType t );
     virtual ~PyRep();
 
     const PyType mType;
-    mutable size_t mRefCnt;
 
     /** Lookup table for PyRep type object type names. */
     static const char* const s_mTypeString[];

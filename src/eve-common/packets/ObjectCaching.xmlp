@@ -8,23 +8,23 @@
       <tupleInline>
         <!-- 0 -->
         <tupleInline>
-          <!-- 0 -->
+          <!-- 0: timestamp when the object has been created -->
           <long name="timestamp" />
-          <!-- 1 -->
+          <!-- 1: version of object -->
           <int name="version" />
         </tupleInline>
         <!-- 1 -->
         <none />
-        <!-- 2 -->
+        <!-- 2: nodeID where the object is kept -->
         <int name="nodeID" />
-        <!-- 3 -->
+        <!-- 3: true if shared among users, thus
+                worth keeping in cache on proxies -->
         <int name="shared" />
-        <!-- 4 -->
-        <raw name="data" />
-        <!-- 5 -->
+        <!-- 4: marshaled content of object -->
+        <buffer name="pickle" />
+        <!-- 5: true if pickle is compressed -->
         <int name="compressed" />
-        <!-- 6 -->
-        <!-- either a string or a tuple -->
+        <!-- 6: unique identifier of object -->
         <raw name="objectID" />
       </tupleInline>
     </objectInline>
@@ -116,7 +116,7 @@
       <!-- 0 -->
       <stringInline value="Method Call" />
       <!-- 1 -->
-      <string name="where" default="server" />
+      <string name="origin" default="server" />
       <!-- 2 -->
       <tupleInline>
         <!-- 0 -->
@@ -166,15 +166,6 @@
         </dictInlineEntry>
       </dictInline>
     </objectInline>
-  </elementDef>
-
-  <elementDef name="cache_Formation">
-    <tupleInline>
-      <!-- 0: Name of formation -->
-      <string name="name" />
-      <!-- 1: Tuple of positions -->
-      <tuple name="positions" />
-    </tupleInline>
   </elementDef>
 
 </elements>

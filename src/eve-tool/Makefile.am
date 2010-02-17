@@ -3,6 +3,7 @@ bin_PROGRAMS = \
 
 evetool_SOURCES = \
 	Commands.cpp \
+	Commands.h \
 	EVEToolPCH.h \
 	main.cpp \
 	main.h

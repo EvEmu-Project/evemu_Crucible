@@ -25,7 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-CommandDispatcher::CommandDispatcher(PyServiceMgr &services) : m_services(services) {}
+CommandDispatcher::CommandDispatcher( PyServiceMgr& services )
+: m_services( services )
+{
+}
 
 CommandDispatcher::~CommandDispatcher() {
 	std::map<std::string, CommandRecord *>::iterator cur, end;
@@ -36,11 +39,13 @@ CommandDispatcher::~CommandDispatcher() {
 	}
 }
 
-PyResult CommandDispatcher::Execute(Client *from, const char *msg) {
+PyResult CommandDispatcher::Execute( Client *from, const char* msg )
+{
 	//might want to check for # or / at the beginning of this crap.
-	Seperator sep(msg+1);
+	Seperator sep( &msg[1] );
 
-	if(sep.argnum == 0) {
+	if( 0 == sep.argCount() )
+    {
 		//empty command, return list of commands
 		std::string reason = "Commands: ";
 
@@ -58,30 +63,32 @@ PyResult CommandDispatcher::Execute(Client *from, const char *msg) {
 		throw PyException( err );
 	}
 	
-	std::map<std::string, CommandRecord *>::const_iterator res;
-	res = m_commands.find(sep.arg[0]);
-	if(res == m_commands.end()) {
-        sLog.Error("CMD Dispatcher", "Unable to find command '%s' for %s", sep.arg[0], from->GetName());
-		throw(PyException(MakeCustomError("Unknown command '%s'", sep.arg[0])));
+	std::map<std::string, CommandRecord*>::const_iterator res = m_commands.find( sep.arg( 0 ) );
+	if( m_commands.end() == res )
+    {
+        sLog.Error( "CommandDispatcher", "Unable to find command '%s' for %s", sep.arg( 0 ).c_str(), from->GetName() );
+
+		throw PyException( MakeCustomError( "Unknown command '%s'", sep.arg( 0 ).c_str() ) );
 	}
 	
-	CommandRecord *rec = res->second;
+	CommandRecord* rec = res->second;
 
-	if((from->GetAccountRole() & rec->required_role) != rec->required_role) {
-        sLog.Error("CMD Dispatcher", "Access denied to %s for command '%s', had role 0x%x, need role 0x%x", from->GetName(), rec->command.c_str(), from->GetAccountRole(), rec->required_role);
-		throw(PyException(MakeCustomError("Access denied to command '%s'", sep.arg[0])));
+	if( ( from->GetAccountRole() & rec->required_role ) != rec->required_role )
+    {
+        sLog.Error( "CommandDispatcher", "Access denied to %s for command '%s', had role 0x%x, need role 0x%x",
+                    from->GetName(), rec->command.c_str(), from->GetAccountRole(), rec->required_role );
+
+        throw PyException( MakeCustomError( "Access denied to command '%s'", sep.arg( 0 ).c_str() ) );
 	}
 
-	return rec->function(from, &m_db, &m_services, sep);
+	return ( *rec->function )( from, &m_db, &m_services, sep );
 }
 
-void CommandDispatcher::AddCommand(const char *cmd, const char *desc, uint32 required_role, CommandFunc function) {
-	std::map<std::string, CommandRecord *>::iterator res;
-	res = m_commands.find(cmd);
-	
-	if(res != m_commands.end())
-		delete res->second;	//watch for command overwrite
-	
-	CommandRecord *rec = new CommandRecord(cmd, desc, required_role, function);
-	m_commands[cmd] = rec;
+void CommandDispatcher::AddCommand( const char* cmd, const char* desc, uint32 required_role, CommandFunc function )
+{
+	std::map<std::string, CommandRecord*>::iterator res = m_commands.find( cmd );
+	if( m_commands.end() != res )
+        SafeDelete( res->second );
+
+	m_commands[cmd] = new CommandRecord( cmd, desc, required_role, function );
 }

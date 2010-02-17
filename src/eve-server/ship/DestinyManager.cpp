@@ -499,7 +499,6 @@ void DestinyManager::_Warp() {
 			velocity_magnitude, dist_remaining);
 		
 	} else if(seconds_into_warp < m_warpState->slow_time) {
-		printf("Warp Peak Speed:\n");
 		//dont simplify this, the roundoff error caused by all the extra
 		// multiply/divide crap they is major enough as to cause problems
 		double delta_t = (m_warpState->acceleration_time * 3.0f) - ((seconds_into_warp * 3.0f)+1.0f);

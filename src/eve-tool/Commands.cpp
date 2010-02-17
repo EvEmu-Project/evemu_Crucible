@@ -26,6 +26,7 @@
 #include "EVEToolPCH.h"
 
 #include "main.h"
+#include "Commands.h"
 
 /************************************************************************/
 /* Commands declaration                                                 */
@@ -42,12 +43,10 @@ void TriToOBJ( const Seperator& cmd );
 void UnmarshalLogText( const Seperator& cmd );
 void StuffExtract( const Seperator& cmd );
 
-const struct
-{
-    const char* name;
-    void ( *callback )( const Seperator& cmd );
-    const char* help;
-} EVETOOL_COMMANDS[] =
+/************************************************************************/
+/* Command array stuff                                                  */
+/************************************************************************/
+const EVEToolCommand EVETOOL_COMMANDS[] =
 {
     { "destiny",   &DestinyDumpLogText, "Converts given string to binary and dumps it as destiny binary." },
     { "exit",      &ExitProgram,        "Quits current session."                                          },
@@ -61,23 +60,35 @@ const struct
     { "unmarshal", &UnmarshalLogText,   "Converts given string to binary and unmarshals it."              },
     { "xstuff",    &StuffExtract,       "Dumps specified STUFF file."                                     }
 };
-const size_t EVETOOL_COMMAND_COUNT = ( sizeof( EVETOOL_COMMANDS ) / sizeof( EVETOOL_COMMANDS[0] ) );
+const size_t EVETOOL_COMMAND_COUNT = ( sizeof( EVETOOL_COMMANDS ) / sizeof( EVEToolCommand ) );
 
-/************************************************************************/
-/* ProcessCommand implementation                                        */
-/************************************************************************/
-void ProcessCommand( const Seperator& cmd )
+const EVEToolCommand* FindCommand( const char* name )
+{
+    return FindCommand( std::string( name ) );
+}
+
+const EVEToolCommand* FindCommand( const std::string& name )
 {
     for( size_t i = 0; i < EVETOOL_COMMAND_COUNT; ++i )
     {
-        if( 0 == strcasecmp( cmd.arg[0], EVETOOL_COMMANDS[i].name ) )
-        {
-            ( *EVETOOL_COMMANDS[i].callback )( cmd );
-            return;
-        }
+        const EVEToolCommand* c = &EVETOOL_COMMANDS[i];
+
+        if( c->name == name )
+            return c;
     }
 
-    sLog.Error( "input", "Unknown command '%s'.", cmd.arg[0] );
+    return NULL;
+}
+
+void ProcessCommand( const Seperator& cmd )
+{
+    const char* cmdName = cmd.arg( 0 ).c_str();
+    const EVEToolCommand* c = FindCommand( cmdName );
+
+    if( NULL == c )
+        sLog.Error( "input", "Unknown command '%s'.", cmdName );
+    else
+        ( *c->callback )( cmd );
 }
 
 /************************************************************************/
@@ -85,11 +96,27 @@ void ProcessCommand( const Seperator& cmd )
 /************************************************************************/
 void DestinyDumpLogText( const Seperator& cmd )
 {
-    Buffer data;
-    if( !py_decode_escape( cmd.argplus[1], data ) )
-        return;
+    const char* cmdName = cmd.arg( 0 ).c_str();
 
-    Destiny::DumpUpdate( DESTINY__MESSAGE, &data[0], data.size() );
+    if( 1 == cmd.argCount() )
+    {
+        sLog.Error( cmdName, "Usage: %s destiny-binary [destiny-binary] ...", cmdName );
+        return;
+    }
+
+    for( size_t i = 1; i < cmd.argCount(); ++i )
+    {
+        const std::string& destinyBinaryStr = cmd.arg( i );
+
+        Buffer destinyBinary;
+        if( !py_decode_escape( destinyBinaryStr.c_str(), destinyBinary ) )
+        {
+            sLog.Error( cmdName, "Failed to decode destiny binary." );
+            continue;
+        }
+
+        Destiny::DumpUpdate( DESTINY__MESSAGE, &destinyBinary[0], destinyBinary.size() );
+    }
 }
 
 void ExitProgram( const Seperator& cmd )
@@ -100,37 +127,40 @@ void ExitProgram( const Seperator& cmd )
 
 void PrintHelp( const Seperator& cmd )
 {
-    if( cmd.argnum == 0 )
+    const char* cmdName = cmd.arg( 0 ).c_str();
+
+    if( 1 == cmd.argCount() )
     {
-        sLog.Log( "help", "Available commands:" );
+        sLog.Log( cmdName, "Available commands:" );
 
         for( size_t i = 0; i < EVETOOL_COMMAND_COUNT; ++i )
-            sLog.Log( "help", "%s", EVETOOL_COMMANDS[i].name );
+        {
+            const EVEToolCommand* c = &EVETOOL_COMMANDS[i];
 
-        sLog.Log( "help", "You can get detailed help by typing '%s'.", "help <command> [<command>] ..." );
+            sLog.Log( cmdName, "%s", c->name );
+        }
+
+        sLog.Log( cmdName, "You can get detailed help by typing '%s <command> [<command>] ...'.", cmdName );
     }
     else
     {
-        for( size_t i = 1; i <= (size_t)cmd.argnum; ++i )
+        for( size_t i = 1; i < cmd.argCount(); ++i )
         {
-            size_t j = 0;
-            for(; j < EVETOOL_COMMAND_COUNT; ++j )
-            {
-                if( 0 == strcasecmp( cmd.arg[i], EVETOOL_COMMANDS[j].name ) )
-                {
-                    sLog.Log( "help", "%s: %s", EVETOOL_COMMANDS[j].name, EVETOOL_COMMANDS[j].help );
-                    break;
-                }
-            }
+            const std::string& cmdStr = cmd.arg( i );
+            const EVEToolCommand* c = FindCommand( cmdStr );
 
-            if( j == EVETOOL_COMMAND_COUNT )
-                sLog.Error( "help", "Unknown command '%s'.", cmd.arg[i] );
+            if( NULL == c )
+                sLog.Error( cmdName, "Unknown command '%s'.", cmdStr.c_str() );
+            else
+                sLog.Log( cmdName, "%s: %s", c->name, c->description );
         }
     }
 }
 
 void TestMarshal( const Seperator& cmd )
 {
+    const char* cmdName = cmd.arg( 0 ).c_str();
+
     DBRowDescriptor *header = new DBRowDescriptor;
     // Fill header:
     header->AddColumn( "historyDate", DBTYPE_FILETIME );
@@ -150,7 +180,7 @@ void TestMarshal( const Seperator& cmd )
     row->SetField( "volume", new PyLong( 5463586 ) );
     row->SetField( "orders", new PyInt( 254 ) );
 
-    sLog.Log( "mtest", "Marshaling..." );
+    sLog.Log( cmdName, "Marshaling..." );
 
     Buffer marshaled;
     bool res = MarshalDeflate( rs, marshaled );
@@ -158,20 +188,20 @@ void TestMarshal( const Seperator& cmd )
 
     if( !res )
     {
-        sLog.Error( "mtest", "Failed to marshal Python object." );
+        sLog.Error( cmdName, "Failed to marshal Python object." );
         return;
     }
 
-    sLog.Log( "mtest", "Unmarshaling..." );
+    sLog.Log( cmdName, "Unmarshaling..." );
 
     PyRep* rep = InflateUnmarshal( marshaled );
-    if( rep == NULL )
+    if( NULL == rep )
     {
-        sLog.Error( "mtest", "Failed to unmarshal Python object." );
+        sLog.Error( cmdName, "Failed to unmarshal Python object." );
         return;
     }
 
-    sLog.Success( "mtest", "Final:" );
+    sLog.Success( cmdName, "Final:" );
     rep->Dump( stdout, "    " );
 
     PyDecRef( rep );
@@ -179,130 +209,160 @@ void TestMarshal( const Seperator& cmd )
 
 void PrintTimeNow( const Seperator& cmd )
 {
-    sLog.Log( "now", "Now in Win32 time: "I64u".", Win32TimeNow() );
+    const char* cmdName = cmd.arg( 0 ).c_str();
+
+    sLog.Log( cmdName, "Now in Win32 time: "I64u".", Win32TimeNow() );
 }
 
 void ObjectToSQL( const Seperator& cmd )
 {
-    if(cmd.argnum != 4) {
-        printf("Usage: obj2sql [cache_file] [table_name] [key_field] [file_name]\n");
+    const char* cmdName = cmd.arg( 0 ).c_str();
+
+    if( 5 != cmd.argCount() )
+    {
+        sLog.Error( cmdName, "Usage: %s [cache_file] [table_name] [key_field] [file_name]", cmdName );
         return;
     }
+    const std::string& cacheFile = cmd.arg( 1 );
+    const std::string& tableName = cmd.arg( 2 );
+    const std::string& keyField = cmd.arg( 3 );
+    const std::string& fileName = cmd.arg( 4 );
 
     std::string abs_fname( "../data/cache/" );
-    abs_fname += cmd.arg[1];
+    abs_fname += cacheFile;
     abs_fname += ".cache";
-    printf("Converting cached object %s:\n", abs_fname.c_str());
+
+    sLog.Log( cmdName, "Converting cached object %s:\n", abs_fname.c_str() );
 
     CachedObjectMgr mgr;
-    PyCachedObjectDecoder *obj = mgr.LoadCachedObject(abs_fname.c_str(), cmd.arg[1]);
-    if(obj == NULL) {
-        _log(CLIENT__ERROR, "Unable to load or decode '%s'!", abs_fname.c_str());
+    PyCachedObjectDecoder* obj = mgr.LoadCachedObject( abs_fname.c_str(), cacheFile.c_str() );
+    if( obj == NULL )
+    {
+        sLog.Error( cmdName, "Unable to load or decode '%s'!", abs_fname.c_str() );
         return;
     }
 
     obj->cache->DecodeData();
-    if(obj->cache->decoded() == NULL) {
-        _log(CLIENT__ERROR, "Unable to load or decode body of '%s'!", abs_fname.c_str());
-        delete obj;
+    if( obj->cache->decoded() == NULL )
+    {
+        sLog.Error( cmdName, "Unable to load or decode body of '%s'!", abs_fname.c_str() );
+
+        SafeDelete( obj );
         return;
     }
 
-    FILE *out = fopen(cmd.arg[4], "w");
-    if(out == NULL) {
-        _log(CLIENT__ERROR, "Unable to open output file '%s'", cmd.arg[4]);
-        delete obj;
+    FILE* out = fopen( fileName.c_str(), "w" );
+    if( out == NULL )
+    {
+        sLog.Error( cmdName, "Unable to open output file '%s'", fileName.c_str() );
+
+        SafeDelete( obj );
         return;
     }
 
-    bool success = false;
-    if(obj->cache->decoded()->IsObject()) {
-        util_Rowset rowset;
-        if( !rowset.Decode( obj->cache->decoded() ) )
-        {
-            _log(CLIENT__ERROR, "Unable to load a rowset from the object body!");
-            delete obj;
-            return;
-        }
+    SetSQLDumper dumper( tableName.c_str(), keyField.c_str(), out );
+    if( obj->cache->decoded()->visit( dumper ) )
+        sLog.Success( cmdName, "Dumping of %s succeeded.", tableName.c_str() );
+    else
+        sLog.Error( cmdName, "Dumping of %s failed.", tableName.c_str() );
 
-        RowsetReader reader(&rowset);
-        success = ReaderToSQL<RowsetReader>(cmd.arg[2], cmd.arg[3], out, reader);
-    } else if(obj->cache->decoded()->IsTuple()) {
-        util_Tupleset rowset;
-        if( !rowset.Decode( obj->cache->decoded() ) )
-        {
-            _log(CLIENT__ERROR, "Unable to load a tupleset from the object body!");
-            delete obj;
-            return;
-        }
-
-        TuplesetReader reader(&rowset);
-        success = ReaderToSQL<TuplesetReader>(cmd.arg[2], cmd.arg[3], out, reader);
-    } else {
-        _log(CLIENT__ERROR, "Unknown cache body type: %s", obj->cache->decoded()->TypeString());
-    }
-
-    fclose(out);
-    delete obj;
-    if(success)
-        printf("Success.\n");
+    fclose( out );
+    SafeDelete( obj );
 }
 
 void LoadScript( const Seperator& cmd )
 {
-    if( cmd.argnum < 1 )
+    const char* cmdName = cmd.arg( 0 ).c_str();
+
+    if( 1 == cmd.argCount() )
     {
-        sLog.Error( "script", "Usage: %s file [file] ...", cmd.arg[0] );
+        sLog.Error( cmdName, "Usage: %s file [file] ...", cmdName );
         return;
     }
 
-    for( uint32 i = 1; i <= (uint32)cmd.argnum; ++i )
-        ProcessFile( cmd.arg[ i ] );
+    for( size_t i = 1; i < cmd.argCount(); ++i )
+        ProcessFile( cmd.arg( i ) );
 }
 
 void TimeToString( const Seperator& cmd )
 {
-    uint64 t;
-    sscanf( cmd.arg[1], I64u, &t );
+    const char* cmdName = cmd.arg( 0 ).c_str();
 
-    sLog.Log( "time", I64u" is %s.", t, Win32TimeToString( t ).c_str() );
+    if( 1 == cmd.argCount() )
+    {
+        sLog.Error( cmdName, "Usage: %s win32-time [win32-time] ...", cmdName );
+        return;
+    }
+
+    for( size_t i = 1; i < cmd.argCount(); ++i )
+    {
+        const std::string& timeStr = cmd.arg( i );
+
+        uint64 t;
+        sscanf( timeStr.c_str(), I64u, &t );
+        const std::string time = Win32TimeToString( t );
+
+        sLog.Log( cmdName, "%s is %s.", timeStr.c_str(), time.c_str() );
+    }
 }
 
 void TriToOBJ( const Seperator& cmd )
 {
-    if(cmd.argnum != 3) {
-        printf("Usage: tri2obj [trifile] [objout] [mtlout]\n");
+    const char* cmdName = cmd.arg( 0 ).c_str();
+
+    if( 4 != cmd.argCount() )
+    {
+        sLog.Error( cmdName, "Usage: %s [trifile] [objout] [mtlout]", cmdName );
         return;
     }
+    const std::string& trifile = cmd.arg( 1 );
+    const std::string& objout = cmd.arg( 2 );
+    const std::string& mtlout = cmd.arg( 3 );
 
     TriExporter::TriFile f;
-    if(!f.LoadFile(cmd.arg[1])) {
-        printf("Failed to load TRI file.\n");
+    if( !f.LoadFile( trifile.c_str() ) )
+    {
+        sLog.Error( cmdName, "Failed to load trifile '%s'.", trifile.c_str() );
         return;
     }
 
     f.DumpHeaders();
-    f.ExportObj(cmd.arg[2], cmd.arg[3]);
-    printf("%s - %s - written.\n", cmd.arg[2], cmd.arg[3]);
+    f.ExportObj( objout.c_str(), mtlout.c_str() );
+
+    sLog.Success( cmdName, "%s - %s - written.", objout.c_str(), mtlout.c_str() );
 }
 
 void UnmarshalLogText( const Seperator& cmd )
 {
-    Buffer data;
-    if( !py_decode_escape( cmd.argplus[1], data ) )
+    const char* cmdName = cmd.arg( 0 ).c_str();
+
+    if( 1 == cmd.argCount() )
     {
-        sLog.Error( "unmarshal", "Failed to decode string into binary." );
+        sLog.Error( cmdName, "Usage: %s marshal-binary [marshal-binary] ...", cmdName );
         return;
     }
 
-    PyRep* r = InflateUnmarshal( data );
-    if( r == NULL )
-        sLog.Error( "unmarshal", "Failed to unmarshal binary." );
-    else
+    for( size_t i = 1; i < cmd.argCount(); ++i )
     {
-        sLog.Success( "unmarshal", "Result:" );
+        const std::string& marshalBinaryStr = cmd.arg( i );
 
-        r->Dump( stdout, "    " );
+        Buffer marshalBinary;
+        if( !py_decode_escape( marshalBinaryStr.c_str(), marshalBinary ) )
+        {
+            sLog.Error( cmdName, "Failed to decode string into binary." );
+            continue;
+        }
+
+        PyRep* r = InflateUnmarshal( marshalBinary );
+        if( NULL == r )
+            sLog.Error( cmdName, "Failed to unmarshal binary." );
+        else
+        {
+            sLog.Success( cmdName, "Result:" );
+            r->Dump( stdout, "    " );
+
+            PyDecRef( r );
+        }
     }
 }
 
@@ -323,27 +383,30 @@ struct FileHeaderObj
 
 void StuffExtract( const Seperator& cmd )
 {
-    if( cmd.argnum != 1 )
+    const char* cmdName = cmd.arg( 0 ).c_str();
+
+    if( 2 != cmd.argCount() )
     {
-        sLog.Error( "xstuff", "Usage: %s [.stuff file]", cmd.arg[0] );
+        sLog.Error( cmdName, "Usage: %s [.stuff file]", cmdName );
         return;
     }
+    const std::string& filename = cmd.arg( 1 );
 
-    FILE* in = fopen( cmd.arg[1], "rb" );
-    if( in == NULL )
+    FILE* in = fopen( filename.c_str(), "rb" );
+    if( NULL == in )
     {
-        sLog.Error( "xstuff", "Unable to open %s.", cmd.arg[1] );
+        sLog.Error( cmdName, "Unable to open %s.", filename.c_str() );
         return;
     }
 
     uint32 file_count;
-    if( fread( &file_count, sizeof( file_count ), 1, in ) != 1 )
+    if( 1 != fread( &file_count, sizeof( file_count ), 1, in ) )
     {
-        sLog.Log( "xstuff", "Unable to read file count." );
+        sLog.Log( cmdName, "Unable to read file count." );
         return;
     }
 
-    sLog.Log( "xstuff", "There are %u files in %s.", file_count, cmd.arg[1] );
+    sLog.Log( cmdName, "There are %u files in %s.", file_count, filename.c_str() );
 
     std::vector<FileHeaderObj> headers;
     headers.resize( file_count );
@@ -352,9 +415,9 @@ void StuffExtract( const Seperator& cmd )
     for( uint32 i = 0; i < file_count; i++ )
     {
         FileHeader head;
-        if( fread( &head, sizeof( head ), 1, in ) != 1 )
+        if( 1 != fread( &head, sizeof( head ), 1, in ) )
         {
-            sLog.Error( "xstuff", "Unable to read header of file #%u.", i );
+            sLog.Error( cmdName, "Unable to read header of file #%u.", i );
             return;
         }
 
@@ -366,15 +429,15 @@ void StuffExtract( const Seperator& cmd )
 
         //read path name.
         obj.filename.resize( head.path_len );
-        if( fread( &obj.filename[0], 1, head.path_len, in ) != head.path_len )
+        if( head.path_len != fread( &obj.filename[0], 1, head.path_len, in ) )
         {
-            sLog.Error( "xstuff", "Unable to read name of file #%u.", i );
+            sLog.Error( cmdName, "Unable to read name of file #%u.", i );
             return;
         }
         //drop read NULL term
         obj.filename.resize( head.path_len - 1 );
 
-        sLog.Log( "xstuff", "File #%u has length %u and path %s.", i, obj.length, obj.filename.c_str() );
+        sLog.Log( cmdName, "File #%u has length %u and path %s.", i, obj.length, obj.filename.c_str() );
         offset += head.file_size;
     }
 
@@ -402,28 +465,27 @@ void StuffExtract( const Seperator& cmd )
             {
                 //this is the file component.
                 FILE* out = fopen( pathname.c_str(), "wb" );
-                if( out == NULL )
+                if( NULL == out )
                 {
-                    sLog.Error( "xstuff", "Unable to create file %s: %s.", pathname.c_str(), strerror( errno ) );
+                    sLog.Error( cmdName, "Unable to create file %s: %s.", pathname.c_str(), strerror( errno ) );
                     break;
                 }
 
-                sLog.Log( "xstuff", "Extracting file %s of length %u.", pathname.c_str(), cur->length );
+                sLog.Log( cmdName, "Extracting file %s of length %u.", pathname.c_str(), cur->length );
 
-                char* buffer = new char[ cur->length ];
-                if( fread( buffer, 1, cur->length, in ) != cur->length )
+                Buffer buf( cur->length );
+                if( cur->length != fread( &buf[0], 1, cur->length, in ) )
                 {
-                    sLog.Error( "xstuff", "Unable to read file %s: %s.", cur->filename.c_str(), strerror( errno ) );
+                    sLog.Error( cmdName, "Unable to read file %s: %s.", cur->filename.c_str(), strerror( errno ) );
                     break;
                 }
 
-                if( fwrite( buffer, 1, cur->length, out ) != cur->length )
+                if( cur->length != fwrite( &buf[0], 1, cur->length, out ) )
                 {
-                    sLog.Error( "xstuff", "Unable to write file %s: %s", pathname.c_str(), strerror( errno ) );
+                    sLog.Error( cmdName, "Unable to write file %s: %s", pathname.c_str(), strerror( errno ) );
                     break;
                 }
 
-                SafeDeleteArray( buffer );
                 fclose( out );
             }
             else
@@ -431,19 +493,19 @@ void StuffExtract( const Seperator& cmd )
                 //this is an intermediate directory.
                 struct stat stat_struct;
 
-                if( stat( pathname.c_str(), &stat_struct ) == -1 )
+                if( -1 == stat( pathname.c_str(), &stat_struct ) )
                 {
-                    if( errno == ENOENT )
+                    if( ENOENT == errno )
                     {
-                        if( mkdir( pathname.c_str(), ( S_IRWXU | S_IRWXG | S_IRWXO ) ) == -1 )
+                        if( -1 == mkdir( pathname.c_str(), ( S_IRWXU | S_IRWXG | S_IRWXO ) ) )
                         {
-                            sLog.Error( "xstuff", "Failed to make intermediate directory %s: %s", pathname.c_str(), strerror( errno ) );
+                            sLog.Error( cmdName, "Failed to make intermediate directory %s: %s", pathname.c_str(), strerror( errno ) );
                             break;
                         }
                     }
                     else
                     {
-                        sLog.Error( "xstuff", "Unable to stat %s: %s", pathname.c_str(), strerror( errno ) );
+                        sLog.Error( cmdName, "Unable to stat %s: %s", pathname.c_str(), strerror( errno ) );
                         break;
                     }
                 }
@@ -453,6 +515,6 @@ void StuffExtract( const Seperator& cmd )
 
     fclose( in );
 
-    sLog.Log( "xstuff", "Extracting from archive %s finished.", cmd.arg[1] );
+    sLog.Log( cmdName, "Extracting from archive %s finished.", filename.c_str() );
 }
 

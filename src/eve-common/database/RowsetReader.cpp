@@ -337,9 +337,10 @@ const char *TuplesetReader::ColumnName(uint32 index) const {
     return("INVALID COLUMN INDEX");
 }
 
-SetSQLDumper::SetSQLDumper( FILE* f, const char* table )
-: mFile( f ),
-  mTable( table )
+SetSQLDumper::SetSQLDumper( const char* table, const char* keyField, FILE* out )
+: mTable( table ),
+  mKeyField( keyField ),
+  mOut( out )
 {
 }
 
@@ -363,7 +364,7 @@ bool SetSQLDumper::VisitObject( const PyObject* rep )
             PyDecRef( dup );
 
             RowsetReader reader( &rowset );
-            if( !ReaderToSQL<RowsetReader>( mTable.c_str(), NULL, mFile, reader ) )
+            if( !ReaderToSQL<RowsetReader>( mTable.c_str(), mKeyField.c_str(), mOut, reader ) )
                 codelog( COMMON__PYREP, "Failed to convert rowset to SQL." );
             else
                 return true;
@@ -425,7 +426,7 @@ bool SetSQLDumper::VisitTuple( const PyTuple* rep )
                 PyDecRef( dup );
 
                 TuplesetReader reader( &rowset );
-                if( !ReaderToSQL<TuplesetReader>( mTable.c_str(), NULL, mFile, reader ) )
+                if( !ReaderToSQL<TuplesetReader>( mTable.c_str(), mKeyField.c_str(), mOut, reader ) )
                     codelog( COMMON__PYREP, "Failed to convert tupleset to SQL." );
                 else
                     return true;
