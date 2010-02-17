@@ -20,9 +20,7 @@ evetool_LDADD = \
 	$(srcdir)/../eve-common/libevecommon.a \
 	$(srcdir)/../eve-common/packets/libpackets.a \
 	$(srcdir)/../common/libcommon.a \
-	$(srcdir)/../../dep/utils/libutils.a
-
-evetool_LDFLAGS = \
+	$(srcdir)/../../dep/utils/libutils.a \
 	@MYSQL_LDFLAGS@ \
 	-lz \
 	-lpthread

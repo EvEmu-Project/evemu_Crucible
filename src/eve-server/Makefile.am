@@ -387,9 +387,7 @@ eveserver_LDADD = \
 	$(srcdir)/../common/libcommon.a \
 	$(srcdir)/../../dep/utils/libutils.a \
 	$(srcdir)/../../dep/tinyxml/libtinyxml.a \
-	$(srcdir)/../../dep/gangsta/libgangsta.a
-
-eveserver_LDFLAGS = \
+	$(srcdir)/../../dep/gangsta/libgangsta.a \
 	@MYSQL_LDFLAGS@ \
 	-lz \
 	-lpthread

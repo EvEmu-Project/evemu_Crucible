@@ -84,8 +84,6 @@ AM_CONDITIONAL(EVETOOL, test x$evetool = xtrue)
 
 # Mysql >5.0
 AX_LIB_MYSQL([5.0])
-AC_SUBST(MYSQL_CFLAGS)
-AC_SUBST(MYSQL_LDFLAGS)
 
 # Check for zlib
 AC_CHECK_LIB(z, deflate,, AC_MSG_ERROR([can't find zlib]))

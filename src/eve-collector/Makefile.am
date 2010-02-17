@@ -12,17 +12,11 @@ collector_SOURCES = \
 	method_types.h
 
 collector_LDADD = \
+	$(srcdir)/../eve-common/libevecommon.a \
+	$(srcdir)/../eve-common/packets/libpackets.a \
 	$(srcdir)/../common/libcommon.a \
-	$(srcdir)/../packets/libpackets.a \
+	@MYSQL_LDFLAGS@ \
 	-lpcap \
 	-lnids \
 	-ldl \
-	-lz \
-	@MYSQL_LDFLAGS@ \
-	@AM_LDFLAGS@
-
-collector_LDFLAGS = \
-	-pipe \
-	-rdynamic \
-	@AM_LDFLAGS@
-
+	-lz

@@ -30,5 +30,5 @@ xmlpktgen_CXXFLAGS = \
 	-I$(srcdir)/../../include/xmlpktgen/
 
 xmlpktgen_LDADD = \
-	$(srcdir)/../../dep/tinyxml/libtinyxml.a \
-	$(srcdir)/../common/libcommon.a
+	$(srcdir)/../common/libcommon.a \
+	$(srcdir)/../../dep/tinyxml/libtinyxml.a
