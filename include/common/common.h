@@ -34,22 +34,26 @@
 #endif//HAVE_CONFIG_H
 
 
+/** Define DEBUG according to _DEBUG.
+  */
+#if !defined( DEBUG ) && defined( _DEBUG )
+#   define DEBUG 1
+# endif /* !defined( DEBUG ) && defined( _DEBUG ) */
+
+/** Define NDEBUG according to DEBUG; default to NDEBUG.
+  */
+#if defined( DEBUG )
+#   undef NDEBUG
+#elif !defined( NDEBUG )
+#   define NDEBUG 1
+#endif /* !defined( DEBUG ) && !defined( NDEBUG ) */
+
+
 /** Build platform defines
   */
-#if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
-#   ifndef WIN32
-#       define WIN32
-#   endif//WIN32
-#endif
-
-
-/** Define NDEBUG according to _DEBUG.
-  */
-#ifdef _DEBUG
-#   undef NDEBUG
-#else /* !_DEBUG */
-#   define NDEBUG 1
-#endif /* !_DEBUG */
+#if !defined( WIN32 ) && ( defined( __WIN32__ ) || defined( _WIN32 ) )
+#   define WIN32 1
+#endif /* !defined ( WIN32 ) && ( defined( __WIN32__ ) || defined( _WIN32 ) ) */
 
 /** Visual Studio 'errors'/'warnings'
   */
@@ -60,9 +64,9 @@
 #       define _CRT_SECURE_NO_WARNINGS 1
 #       define _CRT_SECURE_NO_DEPRECATE 1
 #       define _CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES 1
-#       if _DEBUG
+#       if DEBUG
 #           define _CRTDBG_MAP_ALLOC 1
-#       endif// _DEBUG
+#       endif// DEBUG
 #       define _SCL_SECURE_NO_WARNINGS 1
 #   endif//_MSC_VER
 #endif//WIN32
@@ -115,10 +119,10 @@
 /** Visual Studio memory leak detection
   */
 #ifdef WIN32
-#   ifdef _DEBUG
+#   ifdef DEBUG
 #       include <crtdbg.h>
 #       define new new( _NORMAL_BLOCK, __FILE__, __LINE__ )
-#   endif//_DEBUG
+#   endif//DEBUG
 #endif//WIN32
 
 

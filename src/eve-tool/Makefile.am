@@ -10,6 +10,7 @@ evetool_SOURCES = \
 
 evetool_CXXFLAGS = \
 	$(AM_CXXFLAGS) \
+	$(EVEMU_CXXFLAGS) \
 	$(MYSQL_CFLAGS) \
 	-I$(srcdir)/../../dep/ \
 	-I$(srcdir)/../../include/common/ \
@@ -22,6 +23,6 @@ evetool_LDADD = \
 	$(srcdir)/../eve-common/packets/libpackets.a \
 	$(srcdir)/../common/libcommon.a \
 	$(srcdir)/../../dep/utils/libutils.a \
-	@MYSQL_LDFLAGS@ \
+	$(MYSQL_LDFLAGS) \
 	-lz \
 	-lpthread

@@ -8,3 +8,7 @@ libtinyxml_a_SOURCES = \
 	tinyxmlerror.cpp \
 	tinyxml.h \
 	tinyxmlparser.cpp
+
+libtinyxml_a_CXXFLAGS = \
+	$(AM_CXXFLAGS) \
+	$(EVEMU_CXXFLAGS)

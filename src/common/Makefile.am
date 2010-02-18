@@ -52,6 +52,7 @@ libcommon_a_SOURCES = \
 
 libcommon_a_CXXFLAGS = \
 	$(AM_CXXFLAGS) \
+	$(EVEMU_CXXFLAGS) \
 	$(MYSQL_CFLAGS) \
 	-I$(srcdir)/../../dep/ \
 	-I$(srcdir)/../../include/common/

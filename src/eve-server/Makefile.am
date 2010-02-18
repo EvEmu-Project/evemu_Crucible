@@ -1,6 +1,7 @@
 # As we are building many libraries here, it is much easier
 # to use global variable
 AM_CXXFLAGS += \
+	$(EVEMU_CXXFLAGS) \
 	$(MYSQL_CFLAGS) \
 	-I$(srcdir)/../../dep/ \
 	-I$(srcdir)/../../include/common/ \
@@ -388,6 +389,6 @@ eveserver_LDADD = \
 	$(srcdir)/../../dep/utils/libutils.a \
 	$(srcdir)/../../dep/tinyxml/libtinyxml.a \
 	$(srcdir)/../../dep/gangsta/libgangsta.a \
-	@MYSQL_LDFLAGS@ \
+	$(MYSQL_LDFLAGS) \
 	-lz \
 	-lpthread

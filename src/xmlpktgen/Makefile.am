@@ -25,6 +25,7 @@ xmlpktgen_SOURCES = \
 
 xmlpktgen_CXXFLAGS = \
 	$(AM_CXXFLAGS) \
+	$(EVEMU_CXXFLAGS) \
 	-I$(srcdir)/../../dep/ \
 	-I$(srcdir)/../../include/common/ \
 	-I$(srcdir)/../../include/xmlpktgen/

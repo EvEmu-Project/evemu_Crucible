@@ -7,3 +7,7 @@ libgangsta_a_SOURCES = \
 	GaMath.h \
 	GaTypes.cpp \
 	GaTypes.h
+
+libgangsta_a_CXXFLAGS = \
+	$(AM_CXXFLAGS) \
+	$(EVEMU_CXXFLAGS)

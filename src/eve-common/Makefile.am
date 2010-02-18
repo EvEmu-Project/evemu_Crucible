@@ -61,6 +61,7 @@ libevecommon_a_SOURCES = \
 
 libevecommon_a_CXXFLAGS = \
 	$(AM_CXXFLAGS) \
+	$(EVEMU_CXXFLAGS) \
 	$(MYSQL_CFLAGS) \
 	-I$(srcdir)/../../dep/ \
 	-I$(srcdir)/../../include/common/ \

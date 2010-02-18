@@ -1,5 +1,6 @@
 # We must use AM_CXXFLAGS, libpackets_a_CXXFLAGS breaks compilation
 AM_CXXFLAGS += \
+	$(EVEMU_CXXFLAGS) \
 	$(MYSQL_CFLAGS) \
 	-I$(srcdir)/../../../dep/ \
 	-I$(srcdir)/../../../include/common/ \
