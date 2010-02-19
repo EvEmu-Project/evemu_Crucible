@@ -8,7 +8,7 @@
     <tupleInline>
       <!-- 0 -->
       <substreamInline>
-		    <element type="util_Rowset" name="chars" />
+        <element name="chars" type="util_Rowset" />
       </substreamInline>
     </tupleInline>
   </elementDef>
@@ -24,7 +24,7 @@
     <tupleInline>
       <!-- 0 -->
       <substreamInline>
-	      <element type="util_Rowset" name="character" />
+        <element name="character" type="util_Rowset" />
       </substreamInline>
     </tupleInline>
   </elementDef>

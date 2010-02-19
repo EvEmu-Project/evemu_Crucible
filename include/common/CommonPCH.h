@@ -28,16 +28,15 @@
 
 #include "common.h"
 
-// MySQL headers
+/************************************************************************/
+/* dep includes                                                         */
+/************************************************************************/
 #include <mysql.h>
 #include <mysqld_error.h>
 #include <errmsg.h>
-
-// tinyxml header
-#include "tinyxml/tinyxml.h"
-
-// zlib header
 #include <zlib.h>
+
+#include "tinyxml/tinyxml.h"
 
 #endif /* !__COMMON_PCH_H__INCL__ */
 

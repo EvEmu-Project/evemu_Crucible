@@ -28,10 +28,11 @@
 
 #include "common.h"
 
-// MySQL header
+/************************************************************************/
+/* dep includes                                                         */
+/************************************************************************/
 #include <mysql.h>
 
-// dep headers
 #include "gangsta/GaPreReqs.h"
 #include "gangsta/GaMath.h"
 #include "gangsta/GaTypes.h"
@@ -42,7 +43,9 @@
 
 #include "utils/Base64.h"
 
-// common headers
+/************************************************************************/
+/* common includes                                                      */
+/************************************************************************/
 #include "database/dbcore.h"
 
 #include "log/LogNew.h"
@@ -65,7 +68,12 @@
 #include "utils/utils_string.h"
 #include "utils/XMLParser.h"
 
-// eve-common headers
+/************************************************************************/
+/* eve-common includes                                                  */
+/************************************************************************/
+#include "EVEmuRevision.h"
+#include "EVEVersion.h"
+
 #include "cache/CachedObjectMgr.h"
 
 #include "database/EVEDBUtils.h"
@@ -101,10 +109,6 @@
 #include "packets/Standing2.h"
 #include "packets/Tutorial.h"
 
-#include "python/classes/PyDatabase.h"
-#include "python/classes/PyExceptions.h"
-#include "python/classes/PyUtils.h"
-
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
 #include "python/PyPacket.h"
@@ -112,16 +116,28 @@
 #include "python/PyLookupDump.h"
 #include "python/PyXMLGenerator.h"
 
+#include "python/classes/PyDatabase.h"
+#include "python/classes/PyExceptions.h"
+#include "python/classes/PyUtils.h"
+
 #include "tables/invCategories.h"
 #include "tables/invGroups.h"
 
 #include "utils/EVEUtils.h"
 
-#include "EVEmuRevision.h"
-#include "EVEVersion.h"
+/************************************************************************/
+/* eve-server includes                                                  */
+/************************************************************************/
+#include "Client.h"
+#include "ClientSession.h"
+#include "EntityList.h"
+#include "EVEmuServerConfig.h"
+#include "NetService.h"
+#include "PyBoundObject.h"
+#include "PyCallable.h"
+#include "PyServiceCD.h"
+#include "PyServiceMgr.h"
 
-
-// then class files
 #include "account/AccountDB.h"
 #include "account/AccountService.h"
 #include "account/AuthService.h"
@@ -149,7 +165,6 @@
 #include "character/CharMgrService.h"
 #include "character/Skill.h"
 #include "character/SkillMgrService.h"
-
 
 // chat stuff
 #include "chat/LookupService.h"
@@ -197,13 +212,11 @@
 #include "manufacturing/RamProxyDB.h"
 #include "manufacturing/RamProxyService.h"
 
-
 //services:
 #include "missions/AgentMgrService.h"
 #include "missions/MissionMgrService.h"
 #include "missions/Agent.h"
 #include "missions/MissionDB.h"
-
 
 #include "mining/Asteroid.h"
 #include "mining/AsteroidBeltManager.h"
@@ -240,7 +253,6 @@
 #include "system/SystemEntity.h"
 #include "system/SystemManager.h"
 
-
 #include "ship/ModuleManager.h"
 #include "ship/BeyonceService.h"
 #include "ship/DestinyManager.h"
@@ -259,7 +271,6 @@
 #include "standing/StandingDB.h"
 #include "standing/WarRegistryService.h"
 
-
 #include "station/JumpCloneService.h"
 #include "station/Station.h"
 #include "station/StationDB.h"
@@ -268,15 +279,5 @@
 
 #include "tutorial/TutorialDB.h"
 #include "tutorial/TutorialService.h"
-
-#include "Client.h"
-#include "ClientSession.h"
-#include "EntityList.h"
-#include "EVEmuServerConfig.h"
-#include "NetService.h"
-#include "PyBoundObject.h"
-#include "PyCallable.h"
-#include "PyServiceCD.h"
-#include "PyServiceMgr.h"
 
 #endif//__EVE_SERVER_PCH_H__INCL__

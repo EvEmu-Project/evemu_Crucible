@@ -175,6 +175,10 @@
 					RelativePath="..\..\src\eve-common\database\RowsetReader.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\eve-common\database\RowsetToSQL.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="destiny"

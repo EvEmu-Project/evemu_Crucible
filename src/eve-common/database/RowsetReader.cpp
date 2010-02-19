@@ -29,314 +29,221 @@
 #include "database/RowsetToSQL.h"
 #include "python/PyRep.h"
 
-BaseRowsetReader::base_iterator::base_iterator(const BaseRowsetReader *parent, bool is_end)
-: m_end(is_end),
-  m_index(0),
-  m_baseReader(parent)
+/************************************************************************/
+/* BaseRowsetReader                                                     */
+/************************************************************************/
+size_t BaseRowsetReader::FindColumn( const char* name )
+{
+    const uint32 cc = columnCount();
+
+    for( uint32 i = 0; i < cc; ++i )
+    {
+        if( 0 == strcmp( name, columnName( i ) ) )
+            return i;
+    }
+
+    return cc;
+}
+
+/************************************************************************/
+/* BaseRowsetReader::iterator                                           */
+/************************************************************************/
+BaseRowsetReader::iterator::iterator()
+: mRowIndex( -1 )
 {
 }
 
-const BaseRowsetReader::base_iterator &RowsetReader::base_iterator::operator++() {
-    m_index++;
-    if(m_index >= m_baseReader->size())
-        m_end = true;
-    return(*this);
+std::string BaseRowsetReader::iterator::GetAsString( size_t index ) const
+{
+    const PyRep::PyType t = GetType( index );
+
+    switch( t )
+    {
+    case PyRep::PyTypeNone:
+        return "NULL";
+    case PyRep::PyTypeBool:
+        return itoa( GetBool( index ) ? 1 : 0 );
+    case PyRep::PyTypeInt:
+        return itoa( GetInt( index ) );
+    case PyRep::PyTypeLong:
+        return itoa( GetLong( index ) );
+    case PyRep::PyTypeFloat:
+        {
+            char buf[64];
+            snprintf( buf, 64, "%f", GetFloat( index ) );
+            return buf;
+        }
+    case PyRep::PyTypeString:
+        {
+            std::string str = GetString( index );
+            EscapeString( str, "'", "\\'" );
+
+            str.insert( str.begin(), '\'' );
+            str.insert( str.end(),   '\'' );
+
+            return str;
+        }
+    case PyRep::PyTypeWString:
+        {
+            std::string str = GetWString( index );
+            EscapeString( str, "'", "\\'" );
+
+            str.insert( str.begin(), '\'' );
+            str.insert( str.end(),   '\'' );
+
+            return str;
+        }
+    default:
+        {
+            char buf[64];
+            snprintf( buf, 64, "'UNKNOWN TYPE %u'", t );
+            return buf;
+        }
+    }
 }
 
-bool BaseRowsetReader::base_iterator::_baseEqual(const base_iterator &other) const {
-    if(m_end && other.m_end)
-        return true;    //'end' iterator
-    if(m_end || other.m_end)
+const BaseRowsetReader::iterator& BaseRowsetReader::iterator::operator++()
+{
+    if( _baseReader()->rowCount() > _rowIndex() )
+        _SetRow( _rowIndex() + 1 );
+
+    return *this;
+}
+
+const BaseRowsetReader::iterator& BaseRowsetReader::iterator::operator--()
+{
+    if( 0 < _rowIndex() )
+        _SetRow( _rowIndex() - 1 );
+
+    return *this;
+}
+
+bool BaseRowsetReader::iterator::operator==( const iterator& other ) const
+{
+    if( _baseReader() != other._baseReader() )
         return false;
-    return(m_index == other.m_index);
+    else if( _rowIndex() != other._rowIndex() )
+        return false;
+    return true;
 }
 
-
-uint32 BaseRowsetReader::base_iterator::_find(const char *fieldname) const {
-    if(m_end)
-        return(InvalidRow);
-    std::map<std::string, uint32>::const_iterator res;
-    res = m_baseReader->m_fieldMap.find(fieldname);
-    if(res == m_baseReader->m_fieldMap.end())
-        return(InvalidRow);
-    return(res->second);
-}
-
-PyRep *BaseRowsetReader::base_iterator::_find(uint32 index) const {
-    if(m_end)
-        return NULL;
-    if(index == InvalidRow)
-        return NULL;
-
-    PyRep *row = m_baseReader->_getRow(m_index);
-    if(row == NULL || !row->IsList())
-        return NULL;
-
-    PyList *rowl = (PyList *) row;
-    if(rowl->items.size() <= index)
-        return NULL;
-
-    return(rowl->items[index]);
-}
-
-//not using _find to allow for more verbose error messages
-const char *BaseRowsetReader::base_iterator::GetString(const char *fieldname) const {
-    if(m_end)
-        return("INVALID ROW");
-    std::map<std::string, uint32>::const_iterator res;
-    res = m_baseReader->m_fieldMap.find(fieldname);
-    if(res == m_baseReader->m_fieldMap.end())
-        return("UNKNOWN COLUMN");
-    return(GetString(res->second));
-}
-
-//not using _find to allow for more verbose error messages
-const char *BaseRowsetReader::base_iterator::GetString(uint32 index) const {
-    PyRep *row = m_baseReader->_getRow(m_index);
-    if(row == NULL || !row->IsList())
-        return("NON-LIST ROW");
-    PyList *rowl = (PyList *) row;
-    if(rowl->items.size() <= index)
-        return("INVALID INDEX");
-    PyRep *ele = rowl->items[index];
-    if(!ele->IsString())
-        return("NON-STRING ELEMENT");
-    PyString *str = (PyString *) ele;
-    return str->content().c_str();
-}
-
-uint32 BaseRowsetReader::base_iterator::GetInt(uint32 index) const {
-    PyRep *ele = _find(index);
-    if(ele == NULL || !ele->IsInt())
-        return(0x7F000000LL);
-    PyInt *e = (PyInt *) ele;
-    return(e->value());
-}
-
-uint64 BaseRowsetReader::base_iterator::GetInt64(uint32 index) const {
-    PyRep *ele = _find(index);
-    if(ele == NULL || !ele->IsInt())
-        return(0x7F0000007F000000LL);
-    PyInt *e = (PyInt *) ele;
-    return(e->value());
-}
-
-double BaseRowsetReader::base_iterator::GetReal(uint32 index) const {
-    PyRep *ele = _find(index);
-    if(ele == NULL || !ele->IsFloat())
-        return(-9999999.0);
-    PyFloat *e = (PyFloat *) ele;
-    return(e->value());
-}
-
-bool BaseRowsetReader::base_iterator::IsNone(uint32 index) const {
-    PyRep *ele = _find(index);
-    return(ele != NULL && ele->IsNone());
-}
-
-PyRep::PyType BaseRowsetReader::base_iterator::GetType(uint32 index) const {
-    PyRep *ele = _find(index);
-    return(ele->GetType());
-}
-
-/*void RowsetReader::Dump(LogType type) {
-    iterator cur, end;
-    cur = begin();
-    end = end();
-    for(; cur != end; cur++) {
-        _log(type, "
-    }
-}*/
-
-std::string BaseRowsetReader::base_iterator::GetAsString(const char *fieldname) const {
-    if(m_end)
-        return("INVALID ROW");
-    std::map<std::string, uint32>::const_iterator res;
-    res = m_baseReader->m_fieldMap.find(fieldname);
-    if(res == m_baseReader->m_fieldMap.end())
-        return("UNKNOWN COLUMN");
-    return(GetAsString(res->second));
-}
-
-std::string BaseRowsetReader::base_iterator::GetAsString(uint32 index) const {
-    PyRep *row = m_baseReader->_getRow(m_index);
-    if(row == NULL || !row->IsList())
-        return("NON-LIST ROW");
-    PyList *rowl = (PyList *) row;
-    if(rowl->items.size() <= index)
-        return("INVALID INDEX");
-    PyRep *ele = rowl->items[index];
-    if(ele->IsString()) {
-        PyString *str = (PyString *) ele;
-        return str->content();
-    } else if(ele->IsInt()) {
-        PyInt *i = (PyInt *) ele;
-        char buf[64];
-        snprintf(buf, sizeof(buf), "%d", i->value());
-        return(std::string(buf));
-    } else if(ele->IsFloat()) {
-        PyFloat *i = (PyFloat *) ele;
-        char buf[64];
-        snprintf(buf, sizeof(buf), "%f", i->value());
-        return(std::string(buf));
-    } else {
-        char buf[64];
-        snprintf(buf, sizeof(buf), "(%s)", ele->TypeString());
-        return(std::string(buf));
-    }
-}
-
-
-
-
-
-
-
-
-RowsetReader::RowsetReader(const util_Rowset *rowset)
-: BaseRowsetReader(),
-  m_set(rowset)
+/************************************************************************/
+/* PyRowsetReader::iterator                                             */
+/************************************************************************/
+bool PyRowsetReader::iterator::IsNone( size_t index ) const
 {
-    std::vector<std::string>::const_iterator cur, end;
-    cur = rowset->header.begin();
-    end = rowset->header.end();
-    uint32 index;
-    for(index = 0; cur != end; ++cur, ++index) {
-        m_fieldMap[*cur] = index;
-    }
+    if( NULL == GetRep( index ) )
+        return true;
+    return BaseRowsetReader::iterator::IsNone( index );
 }
 
-RowsetReader::iterator RowsetReader::begin() {
-    if(m_set->lines->empty())
-        return end();
-    return iterator(this, false);
+bool PyRowsetReader::iterator::GetBool( size_t index ) const
+{
+    return GetRep( index )->AsBool()->value();
 }
 
-size_t RowsetReader::size() const {
-    return(m_set->lines->size());
+uint32 PyRowsetReader::iterator::GetInt( size_t index ) const
+{
+    return GetRep( index )->AsInt()->value();
 }
 
-bool RowsetReader::empty() const {
-    return(m_set->lines->empty());
+uint64 PyRowsetReader::iterator::GetLong( size_t index ) const
+{
+    return GetRep( index )->AsLong()->value();
 }
 
+double PyRowsetReader::iterator::GetFloat( size_t index ) const
+{
+    return GetRep( index )->AsFloat()->value();
+}
+
+const char* PyRowsetReader::iterator::GetString( size_t index ) const
+{
+    return GetRep( index )->AsString()->content().c_str();
+}
+
+const char* PyRowsetReader::iterator::GetWString( size_t index ) const
+{
+    return GetRep( index )->AsWString()->content().c_str();
+}
+
+/************************************************************************/
+/* RowsetReader                                                         */
+/************************************************************************/
+RowsetReader::RowsetReader( const util_Rowset& rowset )
+: mSet( rowset )
+{
+}
+
+RowsetReader::~RowsetReader()
+{
+}
+
+/************************************************************************/
+/* RowsetReader::iterator                                               */
+/************************************************************************/
 RowsetReader::iterator::iterator()
-: base_iterator(NULL, true),
-  m_parent(NULL)
+: mParent( NULL ),
+  mRow( NULL )
 {
 }
 
-RowsetReader::iterator::iterator(RowsetReader *parent, bool is_end)
-: base_iterator(parent, is_end),
-  m_parent(parent)
+RowsetReader::iterator::iterator( RowsetReader* parent, size_t rowIndex )
+: mParent( parent ),
+  mRow( NULL )
 {
+    _SetRow( rowIndex );
 }
 
-bool RowsetReader::iterator::operator==(const iterator &other) {
-    if(m_parent != other.m_parent)
-        return false;
-    return(_baseEqual(other));
-}
-
-bool RowsetReader::iterator::operator!=(const iterator &other) {
-    if(m_parent != other.m_parent)
-        return true;
-    return(!_baseEqual(other));
-}
-
-PyRep *RowsetReader::_getRow(uint32 index) const {
-    if( m_set->lines->size() <= index )    //InvalidRow will be caught here!
-        return NULL;
-    return m_set->lines->GetItem( index );
-}
-
-size_t RowsetReader::ColumnCount() const {
-    return(m_set->header.size());
-}
-
-const char *RowsetReader::ColumnName(uint32 index) const {
-    if(index < ColumnCount())
-        return(m_set->header[index].c_str());
-    return("INVALID COLUMN INDEX");
-}
-
-
-
-
-
-
-
-
-
-
-
-TuplesetReader::TuplesetReader(const util_Tupleset *Tupleset)
-: BaseRowsetReader(),
-  m_set(Tupleset)
+void RowsetReader::iterator::_SetRow( size_t rowIndex )
 {
-    std::vector<std::string>::const_iterator cur, end;
-    cur = Tupleset->header.begin();
-    end = Tupleset->header.end();
-    uint32 index;
-    for(index = 0; cur != end; cur++, index++) {
-        m_fieldMap[*cur] = index;
+    if( _rowIndex() != rowIndex )
+    {
+        mRow = ( mParent->rowCount() > rowIndex
+                 ? mParent->_GetRow( rowIndex )
+                 : NULL );
     }
+
+    PyRowsetReader::iterator::_SetRow( rowIndex );
 }
 
-TuplesetReader::iterator TuplesetReader::begin() {
-    if( m_set->lines->empty() )
-        return end();
-    return iterator( this, false );
+/************************************************************************/
+/* TuplesetReader                                                       */
+/************************************************************************/
+TuplesetReader::TuplesetReader( const util_Tupleset& tupleset )
+: mSet( tupleset )
+{
 }
 
-size_t TuplesetReader::size() const {
-    return m_set->lines->size();
-}
-
-bool TuplesetReader::empty() const {
-    return m_set->lines->empty();
-}
-
+/************************************************************************/
+/* TuplesetReader::iterator                                             */
+/************************************************************************/
 TuplesetReader::iterator::iterator()
-: base_iterator(NULL, true),
-  m_parent(NULL)
+: mParent( NULL )
 {
 }
 
-TuplesetReader::iterator::iterator(TuplesetReader *parent, bool is_end)
-: base_iterator(parent, is_end),
-  m_parent(parent)
+TuplesetReader::iterator::iterator( TuplesetReader* parent, size_t rowIndex )
+: mParent( parent )
 {
+    _SetRow( rowIndex );
 }
 
-bool TuplesetReader::iterator::operator==(const iterator &other) {
-    if(m_parent != other.m_parent)
-        return false;
-    return(_baseEqual(other));
+void TuplesetReader::iterator::_SetRow( size_t rowIndex )
+{
+    if( _rowIndex() != rowIndex )
+    {
+        mRow = ( mParent->rowCount() > rowIndex
+                 ? mParent->_GetRow( rowIndex )
+                 : NULL );
+    }
+
+    PyRowsetReader::iterator::_SetRow( rowIndex );
 }
 
-bool TuplesetReader::iterator::operator!=(const iterator &other) {
-    if(m_parent != other.m_parent)
-        return true;
-    return(!_baseEqual(other));
-}
-
-PyRep *TuplesetReader::_getRow(uint32 index) const {
-    if( m_set->lines->size() <= index )    //InvalidRow will be caught here!
-        return NULL;
-    return m_set->lines->GetItem( index );
-}
-
-size_t TuplesetReader::ColumnCount() const {
-    return(m_set->header.size());
-}
-
-const char *TuplesetReader::ColumnName(uint32 index) const {
-    if(index < ColumnCount())
-        return(m_set->header[index].c_str());
-    return("INVALID COLUMN INDEX");
-}
-
+/************************************************************************/
+/* SetSQLDumper                                                         */
+/************************************************************************/
 SetSQLDumper::SetSQLDumper( const char* table, const char* keyField, FILE* out )
 : mTable( table ),
   mKeyField( keyField ),
@@ -344,41 +251,10 @@ SetSQLDumper::SetSQLDumper( const char* table, const char* keyField, FILE* out )
 {
 }
 
-bool SetSQLDumper::VisitObject( const PyObject* rep )
-{
-    if( rep->type()->content() == "util.Rowset" )
-    {
-        //we found a friend, decode it
-        //must be duplicated in order to be decoded ...
-        PyObject* dup = new PyObject( *rep );
-
-        util_Rowset rowset;
-        if( !rowset.Decode( &dup ) )
-        {
-            codelog( COMMON__PYREP, "Unable to load a rowset from the object body!" );
-
-            PyDecRef( dup );
-        }
-        else
-        {
-            PyDecRef( dup );
-
-            RowsetReader reader( &rowset );
-            if( !ReaderToSQL<RowsetReader>( mTable.c_str(), mKeyField.c_str(), mOut, reader ) )
-                codelog( COMMON__PYREP, "Failed to convert rowset to SQL." );
-            else
-                return true;
-        }
-    }
-
-    //fallback
-    return PyVisitor::VisitObject( rep );
-}
-
 bool SetSQLDumper::VisitTuple( const PyTuple* rep )
 {
     //first we want to check to see if this could possibly even be a tupleset.
-    if(    rep->size() == 2
+    if(    2 == rep->size()
         && rep->GetItem( 0 )->IsList()
         && rep->GetItem( 1 )->IsList() )
     {
@@ -411,25 +287,19 @@ bool SetSQLDumper::VisitTuple( const PyTuple* rep )
         if( valid )
         {
             //ok, it looks like a tupleset... nothing we can do now but interpret it as one...
+            util_Tupleset rowset;
+
             //must be duplicated in order to be decoded ...
             PyTuple* dup = new PyTuple( *rep );
-
-            util_Tupleset rowset;
             if( !rowset.Decode( &dup ) )
-            {
-                codelog( COMMON__PYREP, "Unable to interpret tuple as a tupleset, it may not even be one." );
-
-                PyDecRef( dup );
-            }
+                sLog.Error( "SetSQLDumper", "Unable to interpret tuple as a tupleset, it may not even be one." );
             else
             {
-                PyDecRef( dup );
-
-                TuplesetReader reader( &rowset );
-                if( !ReaderToSQL<TuplesetReader>( mTable.c_str(), mKeyField.c_str(), mOut, reader ) )
-                    codelog( COMMON__PYREP, "Failed to convert tupleset to SQL." );
-                else
+                TuplesetReader reader( rowset );
+                if( ReaderToSQL<TuplesetReader>( mTable.c_str(), mKeyField.c_str(), mOut, reader ) )
                     return true;
+
+                sLog.Error( "SetSQLDumper", "Failed to convert tupleset to SQL." );
             }
         }
     }
@@ -438,18 +308,27 @@ bool SetSQLDumper::VisitTuple( const PyTuple* rep )
     return PyVisitor::VisitTuple( rep );
 }
 
+bool SetSQLDumper::VisitObject( const PyObject* rep )
+{
+    if( rep->type()->content() == "util.Rowset" )
+    {
+        //we found a friend, decode it
+        util_Rowset rowset;
 
+        //must be duplicated in order to be decoded ...
+        PyObject* dup = new PyObject( *rep );
+        if( !rowset.Decode( &dup ) )
+            sLog.Error( "SetSQLDumper", "Unable to load a rowset from the object body!" );
+        else
+        {
+            RowsetReader reader( rowset );
+            if( ReaderToSQL<RowsetReader>( mTable.c_str(), mKeyField.c_str(), mOut, reader ) )
+                return true;
 
+            sLog.Error( "SetSQLDumper", "Failed to convert rowset to SQL." );
+        }
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
+    //fallback
+    return PyVisitor::VisitObject( rep );
+}

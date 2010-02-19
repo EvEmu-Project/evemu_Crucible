@@ -29,141 +29,174 @@
 #include "packets/General.h"
 #include "python/PyVisitor.h"
 
-/*
- * this object is incredibly slow, so dont use it a lot...
- */
-class BaseRowsetReader {
+class BaseRowsetReader
+{
 public:
     virtual ~BaseRowsetReader() {}
 
     /* Required set of operations:
     iterator begin();
     iterator end();
-    bool empty() const;
-    uint32 ColumnCount() const;
-    const char *ColumnName(uint32 index) const;
     */
-    virtual size_t size() const = 0;    //number of rows
 
-    //void Dump(LogType type);
+    virtual size_t columnCount() const = 0;
+    virtual const char* columnName( size_t index ) const = 0;
+    virtual size_t FindColumn( const char* name );
+
+    virtual size_t rowCount() const = 0;
 
 protected:
-    //internally used constant
-    static const uint32 InvalidRow = 0xFFFFFFFF;
-
-    class base_iterator {
+    class iterator
+    {
     public:
-        const char *GetString(const char *fieldname) const;
-        bool IsNone(const char *fieldname) const        { return(IsNone(_find(fieldname))); }
-        uint32 GetInt(const char *fieldname) const      { return(GetInt(_find(fieldname))); }
-        uint64 GetInt64(const char *fieldname) const    { return(GetInt64(_find(fieldname))); }
-        double GetReal(const char *fieldname) const     { return(GetReal(_find(fieldname))); }
-        const char *GetString(uint32 index) const;
-        bool IsNone(uint32 index) const;
-        uint32 GetInt(uint32 index) const;
-        uint64 GetInt64(uint32 index) const;
-        double GetReal(uint32 index) const;
+        virtual PyRep::PyType GetType( size_t index ) const = 0;
+        virtual bool IsNone( size_t index ) const { return ( PyRep::PyTypeNone == GetType( index ) ); }
 
-        //these Gets convert whatever we have into a string
-        std::string GetAsString(const char *fieldname) const;
-        std::string GetAsString(uint32 index) const;
+        virtual bool GetBool( size_t index ) const = 0;
+        virtual uint32 GetInt( size_t index ) const = 0;
+        virtual uint64 GetLong( size_t index ) const = 0;
+        virtual double GetFloat( size_t index ) const = 0;
+        virtual const char* GetString( size_t index ) const = 0;
+        virtual const char* GetWString( size_t index ) const = 0;
 
-        PyRep::PyType GetType(uint32 index) const;
+        //convert whatever we have into a string
+        std::string GetAsString( size_t index ) const;
 
-        const base_iterator &operator++();
+        const iterator& operator++();
+        const iterator& operator++(int) { return ++*this; }
+        const iterator& operator--();
+        const iterator& operator--(int) { return --*this; }
+
+        bool operator==( const iterator& oth ) const;
+        bool operator!=( const iterator& oth ) const { return !( *this == oth ); }
+
     protected:
-        base_iterator(const BaseRowsetReader *parent, bool is_end);
+        iterator();
 
-        bool _baseEqual(const base_iterator &other) const;
-        uint32 _find(const char *name) const;
-        PyRep *_find(uint32 index) const;
+        virtual size_t _rowIndex() const { return mRowIndex; }
+        virtual BaseRowsetReader* _baseReader() const = 0;
 
-        bool m_end;
-        uint32 m_index;
-    private:
-        const BaseRowsetReader *m_baseReader;   //we do NOT own this
+        virtual void _SetRow( size_t rowIndex ) { mRowIndex = rowIndex; }
+
+        size_t mRowIndex;
     };
-
-    //for vc6 compat (access to _getRow())
-    //friend class base_iterator;
-    virtual PyRep *_getRow(uint32 index) const = 0;
-
-    std::map<std::string, uint32> m_fieldMap;
 };
 
+class PyRowsetReader : public BaseRowsetReader
+{
+protected:
+    class iterator : public BaseRowsetReader::iterator
+    {
+    public:
+        virtual PyRep* GetRep( size_t index ) const = 0;
 
-class RowsetReader : public BaseRowsetReader {
+        PyRep::PyType GetType( size_t index ) const { return GetRep( index )->GetType(); }
+        bool IsNone( size_t index ) const;
+
+        bool GetBool( size_t index ) const;
+        uint32 GetInt( size_t index ) const;
+        uint64 GetLong( size_t index ) const;
+        double GetFloat( size_t index ) const;
+        const char* GetString( size_t index ) const;
+        const char* GetWString( size_t index ) const;
+    };
+};
+
+class RowsetReader : public PyRowsetReader
+{
 public:
-    RowsetReader(const util_Rowset *rowset);
-    virtual ~RowsetReader() {}
+    RowsetReader( const util_Rowset& rowset );
+    ~RowsetReader();
 
-    class iterator : public base_iterator {
+    class iterator : public PyRowsetReader::iterator
+    {
         friend class RowsetReader;
     public:
         iterator();
 
-        bool operator==(const iterator &other);
-        bool operator!=(const iterator &other);
+        PyRep* GetRep( size_t index ) const { return mRow->GetItem( index ); }
 
     protected:
-        //private constructor for RowsetReader
-        iterator(RowsetReader *parent, bool is_end);
-        RowsetReader *m_parent;
+        iterator( RowsetReader* parent, size_t rowIndex );
+
+        BaseRowsetReader* _baseReader() const { return mParent; }
+
+        void _SetRow( size_t rowIndex );
+
+        RowsetReader* mParent;
+        PyList* mRow;
     };
 
-    iterator begin();
-    iterator end() { return(iterator(this, true)); }
-    size_t size() const;    //number of rows
-    bool empty() const;
-    size_t ColumnCount() const;
-    const char *ColumnName(uint32 index) const;
+    size_t columnCount() const { return mSet.header.size(); }
+    const char* columnName( size_t index ) const { return mSet.header[ index ].c_str(); }
+
+    size_t rowCount() const { return mSet.lines->size(); }
+
+    iterator begin() { return iterator( this, 0 ); }
+    iterator end() { return iterator( this, rowCount() ); }
 
 protected:
-    virtual PyRep *_getRow(uint32 index) const;
-    const util_Rowset *const m_set;     //we do NOT own this pointer
+    PyList* _GetRow( size_t index ) const { return mSet.lines->GetItem( index )->AsList(); }
+
+    const util_Rowset& mSet;
 };
 
-
-class TuplesetReader : public BaseRowsetReader {
+class TuplesetReader : public PyRowsetReader
+{
 public:
-    TuplesetReader(const util_Tupleset *rowset);
-    virtual ~TuplesetReader() {}
+    TuplesetReader( const util_Tupleset& tupleset );
 
-    class iterator : public base_iterator {
+    class iterator : public PyRowsetReader::iterator
+    {
         friend class TuplesetReader;
     public:
         iterator();
 
-        bool operator==(const iterator &other);
-        bool operator!=(const iterator &other);
+        PyRep* GetRep( size_t index ) const { return mRow->GetItem( index ); }
 
     protected:
-        //private constructor for RowsetReader
-        iterator(TuplesetReader *parent, bool is_end);
-        TuplesetReader *m_parent;
+        iterator( TuplesetReader* parent, size_t rowIndex );
+
+        BaseRowsetReader* _baseReader() const { return mParent; }
+
+        void _SetRow( size_t rowIndex );
+
+        TuplesetReader* mParent;
+        PyList* mRow;
     };
 
-    iterator begin();
-    iterator end() { return(iterator(this, true)); }
-    size_t size() const;    //number of rows
-    bool empty() const;
-    size_t ColumnCount() const;
-    const char *ColumnName(uint32 index) const;
+    size_t columnCount() const { return mSet.header.size(); }
+    const char* columnName( size_t index ) const { return mSet.header[ index ].c_str(); }
+
+    size_t rowCount() const { return mSet.lines->size(); }
+
+    iterator begin() { return iterator( this, 0 ); }
+    iterator end() { return iterator( this, rowCount() ); }
 
 protected:
-    virtual PyRep *_getRow(uint32 index) const;
-    const util_Tupleset *const m_set;       //we do NOT own this pointer
+    PyList* _GetRow( size_t index ) const { return mSet.lines->GetItem( index )->AsList(); }
+
+    const util_Tupleset& mSet;       //we do NOT own this pointer
 };
 
-//this object scans a pyrep for rowsets or tuplesets, and uses ReaderToSQL on them
+/**
+ * @brief Python object SQL dumper.
+ *
+ * Scans visited PyRep for any dumpable rowsets or
+ * tuplesets; if any is found, it's dumped using
+ * RowsetToSQL.
+ *
+ * @author Zhur, Bloody.Rabbit
+ */
 class SetSQLDumper 
 : public PyVisitor
 {
 public:
     SetSQLDumper( const char* table, const char* keyField, FILE* out );
 
-    bool VisitObject( const PyObject* rep );
     bool VisitTuple( const PyTuple* rep );
+
+    bool VisitObject( const PyObject* rep );
 
 protected:
     const std::string mTable;

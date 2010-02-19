@@ -28,15 +28,18 @@
 
 #include "common.h"
 
-// MySQL header
+/************************************************************************/
+/* dep includes                                                         */
+/************************************************************************/
 #include <mysql.h>
 
-// dep headers
 #include "utils/Base64.h"
 #include "utils/RefPtr.h"
 #include "utils/TriFile.h"
 
-// common headers
+/************************************************************************/
+/* common includes                                                      */
+/************************************************************************/
 #include "database/dbtype.h"
 
 #include "log/logsys.h"
@@ -51,7 +54,9 @@
 #include "utils/utils_string.h"
 #include "utils/utils_time.h"
 
-// eve-common headers
+/************************************************************************/
+/* eve-common includes                                                  */
+/************************************************************************/
 #include "cache/CachedObjectMgr.h"
 
 #include "database/RowsetReader.h"
@@ -67,10 +72,10 @@
 
 #include "packets/General.h"
 
-#include "python/classes/PyDatabase.h"
-
 #include "python/PyRep.h"
 #include "python/PyVisitor.h"
+
+#include "python/classes/PyDatabase.h"
 
 #include "utils/EVEUtils.h"
 

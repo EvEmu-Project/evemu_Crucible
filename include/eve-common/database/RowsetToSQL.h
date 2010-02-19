@@ -20,350 +20,191 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Zhur
+    Author:     Zhur, Bloody.Rabbit
 */
-
-//this is a template function which takes an object which models
-// int ColumnCount();
-// const char *ColumnName(uint32 column);
-// typedef iterator;
-// iterator begin();
-// iterator end();
-// and who's iterator models:
-// bool IsNone(uint32 column);
-// PyRep::Type GetType(uint32 column);
-// std::string GetAsString(uint32 column)
-//
-// current compatible classes:
-//  RowsetReader
-//  TuplesetReader
 
 #ifndef __ROWSETTOSQL_H_INCL__
 #define __ROWSETTOSQL_H_INCL__
 
-//this is a little mini state machine
-typedef enum {
-    ReaderColumnInteger,
-    ReaderColumnIntegerNull,
-    ReaderColumnReal,
-    ReaderColumnRealNull,
-    ReaderColumnString,
-    ReaderColumnStringNull,
-    ReaderColumnLongString,
-    ReaderColumnLongStringNull,
-    ReaderColumnUnknown,
-    ReaderColumnUnknownNull,
-    ReaderColumnError   //invalid element encountered (non-terminal)
-} ReaderColumnContentsType;
+#include "python/PyRep.h"
 
-static const uint32 ReaderColumnLongStringCutoff = 63;
+/** The largest amount of rows to be inserted by single query. */
+extern const size_t INSERT_QUERY_ROW_LIMIT;
 
-static const char *const ReaderColumnContentTypeStrings[11] = {
-    /*ReaderColumnInteger*/         "INT UNSIGNED NOT NULL",
-    /*ReaderColumnIntegerNull*/     "INT UNSIGNED NULL",
-    /*ReaderColumnReal*/            "REAL NOT NULL",
-    /*ReaderColumnRealNull*/        "REAL NULL",
-    /*ReaderColumnString*/          "VARCHAR(64) NOT NULL",
-    /*ReaderColumnStringNull*/      "VARCHAR(64) NULL",
-    /*ReaderColumnLongString*/      "MEDIUMTEXT NOT NULL",
-    /*ReaderColumnLongStringNull*/  "MEDIUMTEXT NULL",
-    /*ReaderColumnUnknown*/         "TEXT NOT NULL",
-    /*ReaderColumnUnknownNull*/     "TEXT NULL",
-    /*ReaderColumnError*/           "ERROR"
+/**
+ * @brief Helper class for column description.
+ *
+ * Describes single column.
+ *
+ * @author Zhur, Bloody.Rabbit
+ */
+class ReaderColumnContentDesc
+{
+public:
+    /** Known column types. */
+    enum ColumnType
+    {
+        TYPE_INTEGER,
+        TYPE_FLOAT,
+        TYPE_STRING,
+        TYPE_WSTRING,
+
+        TYPE_UNKNOWN,
+        TYPE_ERROR
+    };
+
+    /** Primary constructor. */
+    ReaderColumnContentDesc();
+
+    /** @return Type of column. */
+    ColumnType type() const { return mType; }
+    /** @return Whether column may be NULL. */
+    bool isNull() const { return mIsNull; }
+
+    /** @return Type of column, in SQL. */
+    const char* typeString() const { return smTypeStrings[ type() ]; }
+    /** @return Whether column may be NULL, in SQL. */
+    const char* nullString() const { return smNullStrings[ isNull() ]; }
+
+    /**
+     * @brief Processes PyRep type to determine type of column.
+     *
+     * @param[in] t PyRep type.
+     */
+    void Process( const PyRep::PyType t );
+
+protected:
+    /** Type of column. */
+    ColumnType mType;
+    /** Whether column may be NULL. */
+    bool mIsNull;
+
+    /** Known types of column, in SQL. */
+    static const char* const smTypeStrings[];
+    /** Whether column may be NULL, in SQL. */
+    static const char* const smNullStrings[];
 };
 
-
-//look through the rows in a reader and try to classify the storage type of each column
-template <class Reader>
-void ClassifyColumnTypes(std::vector<ReaderColumnContentsType> &into, Reader &reader) {
-    uint32 cc = reader.ColumnCount();
+/**
+ * @brief Classifies columns using ReaderColumnContentDesc.
+ *
+ * @param[out] into   Array of ReaderColumnContentDesc objects, which receive column descriptions.
+ * @param[in]  reader Rowset reader to use.
+ */
+template<typename _Reader>
+void ClassifyColumnTypes( std::vector<ReaderColumnContentDesc>& into, _Reader& reader )
+{
+    const size_t cc = reader.columnCount();
 
     into.clear();
-    into.resize(cc, ReaderColumnUnknown);
+    into.resize( cc );
 
-    typename Reader::iterator cur, end;
+    typename _Reader::iterator cur, end;
     cur = reader.begin();
     end = reader.end();
-    for(; cur != end; ++cur) {
-        for(uint32 col = 0; col < cc; col++) {
-            switch(into[col]) {
-            case ReaderColumnInteger:
-                switch(cur.GetType(col)) {
-                case PyRep::PyTypeNone:
-                    into[col] = ReaderColumnIntegerNull;
-                    break;
-                case PyRep::PyTypeInt:
-                    break;  //no transition
-                case PyRep::PyTypeFloat:
-                    //we can become a real
-                    into[col] = ReaderColumnReal;
-                    break;
-                case PyRep::PyTypeString:
-                    //we can become a string
-                    into[col] = ReaderColumnString;
-                    break;
-                default:
-                    //anything else is an error.
-                    into[col] = ReaderColumnError;
-                    break;
-                }
-                break;
-            case ReaderColumnIntegerNull:
-                switch(cur.GetType(col)) {
-                case PyRep::PyTypeNone:
-                    break;  //no transition
-                case PyRep::PyTypeInt:
-                    break;  //no transition
-                case PyRep::PyTypeFloat:
-                    //we can become a real
-                    into[col] = ReaderColumnRealNull;
-                    break;
-                case PyRep::PyTypeString:
-                    //we can become a string
-                    into[col] = ReaderColumnStringNull;
-                    break;
-                default:
-                    //anything else is an error.
-                    into[col] = ReaderColumnError;
-                    break;
-                }
-                break;
-            case ReaderColumnReal:
-                switch(cur.GetType(col)) {
-                case PyRep::PyTypeNone:
-                    into[col] = ReaderColumnRealNull;
-                    break;
-                case PyRep::PyTypeInt:
-                    break;  //no transition, stay in real land
-                case PyRep::PyTypeFloat:
-                    break;  //no transition
-                case PyRep::PyTypeString:
-                    //we can become a string
-                    into[col] = ReaderColumnString;
-                    break;
-                default:
-                    //anything else is an error.
-                    into[col] = ReaderColumnError;
-                    break;
-                }
-                break;
-            case ReaderColumnRealNull:
-                switch(cur.GetType(col)) {
-                case PyRep::PyTypeNone:
-                    break;  //no transition
-                case PyRep::PyTypeInt:
-                    break;  //no transition, stay in real land
-                case PyRep::PyTypeFloat:
-                    break;  //no transition
-                case PyRep::PyTypeString:
-                    //we can become a string
-                    into[col] = ReaderColumnString;
-                    break;
-                default:
-                    //anything else is an error.
-                    into[col] = ReaderColumnError;
-                    break;
-                }
-                break;
-            case ReaderColumnString:
-                switch(cur.GetType(col)) {
-                case PyRep::PyTypeNone:
-                    into[col] = ReaderColumnStringNull;
-                case PyRep::PyTypeInt:
-                    break;  //no transition, stay in string land
-                case PyRep::PyTypeFloat:
-                    break;  //no transition, stay in string land
-                case PyRep::PyTypeString: {
-                    std::string contents = cur.GetAsString(col);
-                    if(contents.length() > ReaderColumnLongStringCutoff)
-                        into[col] = ReaderColumnLongString;
-                    break;
-                }
-                default:
-                    //anything else is an error.
-                    into[col] = ReaderColumnError;
-                    break;
-                }
-                break;
-            case ReaderColumnStringNull:
-                switch(cur.GetType(col)) {
-                case PyRep::PyTypeNone:
-                    break;  //no transition
-                case PyRep::PyTypeInt:
-                    break;  //no transition, stay in string land
-                case PyRep::PyTypeFloat:
-                    break;  //no transition, stay in string land
-                case PyRep::PyTypeString: {
-                    std::string contents = cur.GetAsString(col);
-                    if(contents.length() > ReaderColumnLongStringCutoff)
-                        into[col] = ReaderColumnLongStringNull;
-                    break;
-                }
-                default:
-                    //anything else is an error.
-                    into[col] = ReaderColumnError;
-                    break;
-                }
-                break;
-            case ReaderColumnLongString:
-                switch(cur.GetType(col)) {
-                case PyRep::PyTypeNone:
-                    into[col] = ReaderColumnLongStringNull;
-                    break;
-                case PyRep::PyTypeInt:
-                    break;  //no transition, stay in string land
-                case PyRep::PyTypeFloat:
-                    break;  //no transition, stay in string land
-                case PyRep::PyTypeString:
-                    break;  //no transition
-                default:
-                    //anything else is an error.
-                    into[col] = ReaderColumnError;
-                    break;
-                }
-                break;
-            case ReaderColumnLongStringNull:
-                switch(cur.GetType(col)) {
-                case PyRep::PyTypeNone:
-                    break;  //no transition
-                case PyRep::PyTypeInt:
-                    break;  //no transition, stay in string land
-                case PyRep::PyTypeFloat:
-                    break;  //no transition, stay in string land
-                case PyRep::PyTypeString:
-                    break;  //no transition
-                default:
-                    //anything else is an error.
-                    into[col] = ReaderColumnError;
-                    break;
-                }
-                break;
-            case ReaderColumnUnknown:
-                switch(cur.GetType(col)) {
-                case PyRep::PyTypeNone:
-                    into[col] = ReaderColumnUnknownNull;
-                    break;
-                case PyRep::PyTypeInt:
-                    into[col] = ReaderColumnInteger;
-                    break;
-                case PyRep::PyTypeFloat:
-                    into[col] = ReaderColumnReal;
-                    break;
-                case PyRep::PyTypeString: {
-                    std::string contents = cur.GetAsString(col);
-                    if(contents.length() > ReaderColumnLongStringCutoff)
-                        into[col] = ReaderColumnLongString;
-                    else
-                        into[col] = ReaderColumnString;
-                    break;
-                }
-                default:
-                    //anything else is an error.
-                    into[col] = ReaderColumnError;
-                    break;
-                }
-                break;
-            case ReaderColumnUnknownNull:
-                switch(cur.GetType(col)) {
-                case PyRep::PyTypeNone:
-                    break;  //no transition
-                case PyRep::PyTypeInt:
-                    into[col] = ReaderColumnIntegerNull;
-                    break;
-                case PyRep::PyTypeFloat:
-                    into[col] = ReaderColumnRealNull;
-                    break;
-                case PyRep::PyTypeString: {
-                    std::string contents = cur.GetAsString(col);
-                    if(contents.length() > ReaderColumnLongStringCutoff)
-                        into[col] = ReaderColumnLongStringNull;
-                    else
-                        into[col] = ReaderColumnStringNull;
-                    break;
-                }
-                default:
-                    //anything else is an error.
-                    into[col] = ReaderColumnError;
-                    break;
-                }
-                break;
-            case ReaderColumnError:
-                //nothing can get us out of this state.
-                break;
-            }
-        }
-    }
+    for(; cur != end; ++cur)
+        for( size_t col = 0; col < cc; ++col )
+            into[col].Process( cur.GetType( col ) );
 }
 
-template <class Reader>
-bool ReaderToSQL(const char *table_name, const char *key_field, FILE *out, Reader &reader) {
-    uint32 col;
-    uint32 cc = reader.ColumnCount();
-    int key_col = -1;
+/**
+ * @brief Dumps rowset to SQL.
+ *
+ * @param[in]  table_name Name of table to be created.
+ * @param[in]  key_field  Key field of table.
+ * @param[out] out        Output file.
+ * @param[in]  reader     Rowset reader to use.
+ */
+template<typename _Reader>
+bool ReaderToSQL( const char* table_name, const char* key_field, FILE* out, _Reader& reader )
+{
+    const size_t cc = reader.columnCount();
 
-    if(key_field != NULL) {
-        for(col = 0; col < cc; col++) {
-            if(strcmp(key_field, reader.ColumnName(col)) == 0) {
-                key_col = col;
-                break;
-            }
-        }
-        if(key_col == -1) {
-            _log(CLIENT__ERROR, "Unable to find key column '%s'", key_field);
-            return false;
-        }
+    const size_t key_col = reader.FindColumn( key_field );
+    if( cc == key_col )
+    {
+        sLog.Error( "ReaderToSQL", "Unable to find key column '%s'.", key_field );
+        return false;
     }
 
-    std::vector<ReaderColumnContentsType> types;
-    ClassifyColumnTypes<Reader>(types, reader);
+    std::vector<ReaderColumnContentDesc> types;
+    ClassifyColumnTypes<_Reader>( types, reader );
+
+    fprintf( out,
+             "--- %s schema ---\n"
+             "\n"
+             "CREATE TABLE `%s` (\n",
+             table_name,
+             table_name
+    );
 
     std::string field_list;
-    fprintf(out, "CREATE TABLE %s (\n", table_name);
-    for(col = 0; col < cc; col++) {
-        //a little type patchwork to handle all-NULL fields which end in ID
-        if(types[col] == ReaderColumnUnknownNull || types[col] == ReaderColumnUnknown) {
-            std::string cn = reader.ColumnName(col);
-            if(cn.rfind("ID") == (cn.length()-2))
-                types[col] = ReaderColumnIntegerNull;
-        }
+    for( size_t col = 0; col < cc; ++col )
+    {
+        const char* colName = reader.columnName( col );
+        const ReaderColumnContentDesc& colDesc = types[col];
 
+        fprintf( out,
+                 "%s  `%s` %s %s%s",
+                 ( 0 != col ? ",\n" : "" ),
+                 colName,
+                 colDesc.typeString(),
+                 colDesc.nullString(),
+                 ( key_col == col ? " PRIMARY KEY" : "" )
+        );
 
-        if(col != 0)
-            fprintf(out, ",\n");
-        if(col == (size_t)key_col)
-            fprintf(out, "  %s %s PRIMARY KEY", reader.ColumnName(col), ReaderColumnContentTypeStrings[types[col]]);
-        else    //hack it to TEXT for simplicity for now
-            fprintf(out, "  %s %s", reader.ColumnName(col), ReaderColumnContentTypeStrings[types[col]]);
-
-        if(col != 0)
+        if( 0 != col  )
             field_list += ",";
-        field_list += reader.ColumnName(col);
+        field_list += "`";
+        field_list += colName;
+        field_list += "`";
     }
-    if(key_field == NULL) {
-        fprintf(out, ",\n  PRIMARY KEY()");
-    }
-    fprintf(out, "\n);\n\n\n--- %s data ---\n\n", table_name);
 
-    typedef typename Reader::iterator T_iterator;
-    T_iterator cur, end;
+    fprintf( out,
+             "%s\n"
+             ");\n"
+             "\n"
+             "--- end %s schema ---\n"
+             "\n"
+             "--- %s data ---\n"
+             "\n",
+             ( NULL == key_field ? ",\n  PRIMARY KEY()" : "" ),
+             table_name,
+             table_name
+    );
+
+    typename _Reader::iterator cur, end;
     cur = reader.begin();
     end = reader.end();
-    for(; cur != end; ++cur) {
-        fprintf(out, "INSERT INTO %s (%s) VALUES(", table_name, field_list.c_str());
-        for(col = 0; col < cc; col++) {
-            if(col != 0)
-                fprintf(out, ",");
-            if(cur.IsNone(col)) {
-                fprintf(out, "NULL");
-            } else {
-                std::string colval = cur.GetAsString(col);
-                EscapeString(colval, "'", "\\'");
-                fprintf(out, "'%s'", colval.c_str());
-            }
+    for( size_t rowIndex = 0; cur != end; ++cur, ++rowIndex )
+    {
+        if( 0 == ( rowIndex % INSERT_QUERY_ROW_LIMIT ) )
+        {
+            if( 0 != rowIndex )
+                fprintf( out, ";\n" );
+
+            fprintf( out, "INSERT INTO `%s`(%s) VALUES ", table_name, field_list.c_str() );
         }
-        fprintf(out, ");\n");
+        else
+            fprintf( out, "," );
+
+        fprintf( out, "(" );
+        for( size_t col = 0; col < cc; ++col )
+        {
+            if( col != 0 )
+                fprintf( out, "," );
+
+            fprintf( out, "%s", cur.GetAsString( col ).c_str() );
+        }
+        fprintf( out, ")" );
     }
-    fprintf(out, "\n\n--- end %s ---\n\n", table_name);
+
+    fprintf( out,
+             ";\n"
+             "\n"
+             "--- end %s data ---\n",
+             table_name
+    );
 
     return true;
 }

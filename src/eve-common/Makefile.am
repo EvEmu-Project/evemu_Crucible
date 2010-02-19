@@ -13,6 +13,7 @@ libevecommon_a_SOURCES = \
 	database/EVEDBUtils.h \
 	database/RowsetReader.cpp \
 	database/RowsetReader.h \
+	database/RowsetToSQL.cpp \
 	database/RowsetToSQL.h \
 	destiny/DestinyBinDump.cpp \
 	destiny/DestinyBinDump.h \

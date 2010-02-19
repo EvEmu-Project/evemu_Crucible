@@ -28,22 +28,28 @@
 
 #include "common.h"
 
-// MySQL header
+/************************************************************************/
+/* dep includes                                                         */
+/************************************************************************/
 #include <mysql.h>
 
-// dep headers
 #include "utf8cpp/utf8.h"
 
 #include "utils/Base64.h"
 
-// common headers
+/************************************************************************/
+/* common includes                                                      */
+/************************************************************************/
 #include "database/dbtype.h"
+
 #include "log/logsys.h"
 #include "log/LogNew.h"
+
 #include "network/Socket.h"
 #include "network/StreamPacketizer.h"
 #include "network/TCPConnection.h"
 #include "network/TCPServer.h"
+
 #include "utils/Buffer.h"
 #include "utils/crc32.h"
 #include "utils/Deflate.h"
