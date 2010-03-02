@@ -15,7 +15,7 @@
   <elementDef name="Call_Dogma_Deactivate">
     <tupleInline>
       <int name="itemID" />
-      <string name="effectName" />
+      <wstring name="effectName" soft="true" />
     </tupleInline>
   </elementDef>
 
