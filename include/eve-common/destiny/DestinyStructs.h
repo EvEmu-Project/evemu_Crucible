@@ -552,7 +552,7 @@ struct MiniBall {
 
 struct MiniBallList {
 	uint16 count;
-	MiniBall balls[1];	//we have at least 1 if we are gunna include this. This is really to address a MS C++ issue though.
+	MiniBall balls[0];
 };
 
 struct NameStruct {

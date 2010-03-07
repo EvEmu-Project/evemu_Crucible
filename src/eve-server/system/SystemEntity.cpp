@@ -155,12 +155,11 @@ double DynamicSystemEntity::GetAgility() const {
 }
 
 //TODO: ask the destiny manager to do this for us!
-void DynamicSystemEntity::EncodeDestiny(std::vector<uint8> &into) const {
-	int start = into.size();
-
-    std::string name( GetName() );
+void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
+{
 	const GPoint& position = GetPosition();
-	
+    const std::string itemName( GetName() );
+
 /*	if(m_warpActive) {
 		#pragma pack(1)
 		struct AddBall_Warp {
@@ -215,51 +214,46 @@ void DynamicSystemEntity::EncodeDestiny(std::vector<uint8> &into) const {
 		item->name.name_len = slen;	// in number of unicode chars
 		py_mbstowcs(item->name.name, GetName());
 	} else*/ {
-		#pragma pack(1)
-		struct AddBall_Stop {
-			BallHeader head;
-			MassSector mass;
-			ShipSector ship;
-			DSTBALL_STOP_Struct main;
-			NameStruct name;
-		};
-		#pragma pack()
-		
-		into.resize(start 
-			+ sizeof(AddBall_Stop) 
-			+ name.length()*sizeof(uint16) );
-		uint8 *ptr = &into[start];
-		AddBall_Stop *item = (AddBall_Stop *) ptr;
-		ptr += sizeof(AddBall_Stop);
-		
-		item->head.entityID = GetID();
-		item->head.mode = Destiny::DSTBALL_STOP;
-		item->head.radius = GetRadius();
-		item->head.x = position.x;
-		item->head.y = position.y;
-		item->head.z = position.z;
-		item->head.sub_type = AddBallSubType_player;
+        BallHeader head;
+		head.entityID = GetID();
+		head.mode = Destiny::DSTBALL_STOP;
+		head.radius = GetRadius();
+		head.x = position.x;
+		head.y = position.y;
+		head.z = position.z;
+		head.sub_type = AddBallSubType_player;
+        into.Append( head );
 
-		item->mass.mass = GetMass();
-		item->mass.cloak = 0;
-		item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-		item->mass.corpID = GetCorporationID();
-		item->mass.allianceID = GetAllianceID();
-		
-		item->ship.max_speed = GetMaxVelocity();
-		item->ship.velocity_x = 0.0;	//TODO: use destiny's velocity
-		item->ship.velocity_y = 0.0;
-		item->ship.velocity_z = 0.0;
-        item->ship.unknown_x = 0.0;
-        item->ship.unknown_y = 0.0;
-        item->ship.unknown_z = 0.0;
-		item->ship.agility = GetAgility();
-		item->ship.speed_fraction = 0.0;	//TODO: put in speed fraction!
-		
-		item->main.formationID = 0xFF;
-		
-        item->name.name_len = utf8::distance( name.begin(), name.end() );	// in number of unicode chars
-        utf8::utf8to16( name.begin(), name.end(), item->name.name );
+        MassSector mass;
+		mass.mass = GetMass();
+		mass.cloak = 0;
+		mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+		mass.corpID = GetCorporationID();
+		mass.allianceID = GetAllianceID();
+        into.Append( mass );
+
+        ShipSector ship;
+		ship.max_speed = GetMaxVelocity();
+		ship.velocity_x = 0.0;	//TODO: use destiny's velocity
+		ship.velocity_y = 0.0;
+		ship.velocity_z = 0.0;
+        ship.unknown_x = 0.0;
+        ship.unknown_y = 0.0;
+        ship.unknown_z = 0.0;
+		ship.agility = GetAgility();
+		ship.speed_fraction = 0.0;	//TODO: put in speed fraction!
+        into.Append( ship );
+
+        DSTBALL_STOP_Struct main;
+		main.formationID = 0xFF;
+        into.Append( main );
+
+        const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
+        into.Append( nameLen );
+
+        const Buffer::iterator<uint16> name = into.end<uint16>();
+        into.ResizeAt( name, nameLen );
+        utf8::utf8to16( itemName.begin(), itemName.end(), name );
 	}
 }
 

@@ -190,7 +190,7 @@ void SystemBubble::GetEntities(std::set<SystemEntity *> &into) const {
 //NOTE: not used right now. May never be used... see SystemManager::MakeSetState
 //this is called as a part of the SetState routine for initial enter space.
 //it appends information for all entities contained within the bubble.
-#if 0
+/*
 void SystemBubble::AppendBalls(DoDestiny_SetState &ss, std::vector<uint8> &setstate_buffer) const {
 	if(m_entities.empty()) {
 		return;
@@ -212,7 +212,7 @@ void SystemBubble::AppendBalls(DoDestiny_SetState &ss, std::vector<uint8> &setst
 		cur->second->EncodeDestiny(setstate_buffer);
 	}
 }
-#endif
+*/
 
 void SystemBubble::_SendAddBalls( SystemEntity* to_who )
 {
@@ -221,18 +221,18 @@ void SystemBubble::_SendAddBalls( SystemEntity* to_who )
 		_log( DESTINY__TRACE, "Add Balls: Nothing to send." );
 		return;
 	}
-	
-	std::vector<uint8> destiny_buffer( sizeof( Destiny::AddBall_header ) );
-	destiny_buffer.reserve( 1024 );
-	
-	Destiny::AddBall_header* head = (Destiny::AddBall_header*)&destiny_buffer[0];
-	head->more = 0;
-	head->sequence = DestinyManager::GetStamp();
 
-	DoDestiny_AddBalls addballs;
+    Buffer* destinyBuffer = new Buffer;
+
+    Destiny::AddBall_header head;
+	head.more = 0;
+	head.sequence = DestinyManager::GetStamp();
+    destinyBuffer->Append( head );
+
+    DoDestiny_AddBalls addballs;
     addballs.slims = new PyList;
-	
-	std::map<uint32, SystemEntity*>::const_iterator cur, end;
+
+    std::map<uint32, SystemEntity*>::const_iterator cur, end;
 	cur = m_entities.begin();
 	end = m_entities.end();
 	for(; cur != end; ++cur)
@@ -240,27 +240,30 @@ void SystemBubble::_SendAddBalls( SystemEntity* to_who )
 		if( cur->second->IsVisibleSystemWide() )
 			continue;	//it is already in their destiny state
 
-		//damageState
+        //damageState
 		addballs.damages[ cur->second->GetID() ] = cur->second->MakeDamageState();
 		//slim item
 		addballs.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), cur->second->MakeSlimItem() ) );
 		//append the destiny binary data...
-		cur->second->EncodeDestiny( destiny_buffer );
+		cur->second->EncodeDestiny( *destinyBuffer );
 	}
-	
-	addballs.destiny_binary = new PyBuffer( destiny_buffer.begin(), destiny_buffer.end() );
-	destiny_buffer.clear();
 
-	_log( DESTINY__TRACE, "Add Balls:" );
-	addballs.Dump( DESTINY__TRACE, "    " );
-	_log( DESTINY__TRACE, "    Ball Binary:" );
-	_hex( DESTINY__TRACE, &addballs.destiny_binary->content()[0], addballs.destiny_binary->content().size() );
-	_log( DESTINY__TRACE, "    Ball Decoded:" );
-	Destiny::DumpUpdate( DESTINY__TRACE, &addballs.destiny_binary->content()[0], addballs.destiny_binary->content().size() );
+    addballs.destiny_binary = new PyBuffer( &destinyBuffer );
+    SafeDelete( destinyBuffer );
 
-	PyTuple* tmp = addballs.Encode();
-	to_who->QueueDestinyUpdate( &tmp );	//may consume, but may not.
-    PySafeDecRef( tmp );
+    _log( DESTINY__TRACE, "Add Balls:" );
+    addballs.Dump( DESTINY__TRACE, "    " );
+    _log( DESTINY__TRACE, "    Ball Binary:" );
+    _hex( DESTINY__TRACE, &( addballs.destiny_binary->content() )[0],
+                          addballs.destiny_binary->content().size() );
+
+    _log( DESTINY__TRACE, "    Ball Decoded:" );
+    Destiny::DumpUpdate( DESTINY__TRACE, &( addballs.destiny_binary->content() )[0],
+                                         addballs.destiny_binary->content().size() );
+
+    PyTuple* t = addballs.Encode();
+	to_who->QueueDestinyUpdate( &t );	//may consume, but may not.
+    PySafeDecRef( t );
 }
 
 void SystemBubble::_SendRemoveBalls( SystemEntity* to_who )
@@ -292,35 +295,39 @@ void SystemBubble::_SendRemoveBalls( SystemEntity* to_who )
     PySafeDecRef( tmp );
 }
 
-void SystemBubble::_BubblecastAddBall(SystemEntity *about_who) {
-	if(m_dynamicEntities.empty()) {
-		_log(DESTINY__TRACE, "Add Ball: Nobody to receive.");
+void SystemBubble::_BubblecastAddBall( SystemEntity* about_who )
+{
+	if( m_dynamicEntities.empty() )
+    {
+		_log( DESTINY__TRACE, "Add Ball: Nobody to receive." );
 		return;
 	}
-	
-	std::vector<uint8> destiny_buffer;
-	DoDestiny_AddBalls addballs;
+
+    Buffer* destinyBuffer = new Buffer;
+
+    //create AddBalls header
+	Destiny::AddBall_header head;
+	head.more = 0;
+	head.sequence = DestinyManager::GetStamp();
+    destinyBuffer->Append( head );
+
+    DoDestiny_AddBalls addballs;
     addballs.slims = new PyList;
 
-	//create AddBalls header
-	destiny_buffer.resize(sizeof(Destiny::AddBall_header));
-	Destiny::AddBall_header *head = (Destiny::AddBall_header *) &destiny_buffer[0];
-	head->more = 0;
-	head->sequence = DestinyManager::GetStamp();
+    //encode destiny binary
+	about_who->EncodeDestiny( *destinyBuffer );
+	addballs.destiny_binary = new PyBuffer( &destinyBuffer );
+    SafeDelete( destinyBuffer );
 
-	//encode destiny binary
-	about_who->EncodeDestiny(destiny_buffer);
-	addballs.destiny_binary = new PyBuffer( destiny_buffer.begin(), destiny_buffer.end() );
-	destiny_buffer.clear();
-
-	//encode damage state
-	addballs.damages[about_who->GetID()] = about_who->MakeDamageState();
+    //encode damage state
+	addballs.damages[ about_who->GetID() ] = about_who->MakeDamageState();
 	//encode SlimItem
 	addballs.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), about_who->MakeSlimItem() ) );
-	
-	//bubblecast the update
-	PyTuple *tmp = addballs.Encode();
-	BubblecastDestinyUpdate(&tmp, "AddBall");	//consumed
+
+    //bubblecast the update
+	PyTuple* t = addballs.Encode();
+	BubblecastDestinyUpdate( &t, "AddBall" );
+    PySafeDecRef( t );
 }
 
 void SystemBubble::_BubblecastRemoveBall(SystemEntity *about_who) {

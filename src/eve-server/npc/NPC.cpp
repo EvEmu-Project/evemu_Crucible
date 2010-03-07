@@ -95,11 +95,10 @@ void NPC::TargetedAdd(SystemEntity *who) {
 	m_AI->Targeted(who);
 }
 
-void NPC::EncodeDestiny(std::vector<uint8> &into) const {
-	int start = into.size();
-	int slen = 0;
-
-	const GPoint &position = GetPosition();
+void NPC::EncodeDestiny( Buffer& into ) const
+{
+	const GPoint& position = GetPosition();
+    const std::string itemName( GetName() );
 
 	/*if(m_orbitingID != 0) {
 		#pragma pack(1)
@@ -147,51 +146,46 @@ void NPC::EncodeDestiny(std::vector<uint8> &into) const {
 		item->name.name_len = slen;	// in number of unicode chars
 		//strcpy_fake_unicode(item->name.name, GetName());
 	} else */{
-		#pragma pack(1)
-		struct AddBall_Stop {
-			BallHeader head;
-			MassSector mass;
-			ShipSector ship;
-			DSTBALL_STOP_Struct main;
-			NameStruct name;
-		};
-		#pragma pack()
+        BallHeader head;
+		head.entityID = GetID();
+		head.mode = Destiny::DSTBALL_STOP;
+		head.radius = GetRadius();
+		head.x = position.x;
+		head.y = position.y;
+		head.z = position.z;
+		head.sub_type = AddBallSubType_orbitingNPC;
+        into.Append( head );
 
-		into.resize(start 
-			+ sizeof(AddBall_Stop) 
-			+ slen*sizeof(uint16) );
-		uint8 *ptr = &into[start];
-		AddBall_Stop *item = (AddBall_Stop *) ptr;
-		ptr += sizeof(AddBall_Stop);
+        MassSector mass;
+		mass.mass = GetMass();
+		mass.cloak = 0;
+		mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+		mass.corpID = GetCorporationID();
+		mass.allianceID = GetAllianceID();
+        into.Append( mass );
 
-		item->head.entityID = GetID();
-		item->head.mode = Destiny::DSTBALL_STOP;
-		item->head.radius = GetRadius();
-		item->head.x = position.x;
-		item->head.y = position.y;
-		item->head.z = position.z;
-		item->head.sub_type = AddBallSubType_orbitingNPC;
+        ShipSector ship;
+		ship.max_speed = GetMaxVelocity();
+		ship.velocity_x = 0.0;
+		ship.velocity_y = 0.0;
+		ship.velocity_z = 0.0;
+        ship.unknown_x = 0.0;
+        ship.unknown_y = 0.0;
+        ship.unknown_z = 0.0;
+		ship.agility = GetAgility();
+		ship.speed_fraction = 0.0;
+        into.Append( ship );
 
-		item->mass.mass = GetMass();
-		item->mass.cloak = 0;
-		item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-		item->mass.corpID = GetCorporationID();
-		item->mass.allianceID = GetAllianceID();
+        DSTBALL_STOP_Struct main;
+		main.formationID = 0xFF;
+        into.Append( main );
 
-		item->ship.max_speed = GetMaxVelocity();
-		item->ship.velocity_x = 0.0;
-		item->ship.velocity_y = 0.0;
-		item->ship.velocity_z = 0.0;
-        item->ship.unknown_x = 0.0;
-        item->ship.unknown_y = 0.0;
-        item->ship.unknown_z = 0.0;
-		item->ship.agility = GetAgility();
-		item->ship.speed_fraction = 0.0;
+        const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
+        into.Append( nameLen );
 
-		item->main.formationID = 0xFF;
-
-		item->name.name_len = slen;	// in number of unicode chars
-		//strcpy_fake_unicode(item->name.name, GetName());
+        const Buffer::iterator<uint16> name = into.end<uint16>();
+        into.ResizeAt( name, nameLen );
+        utf8::utf8to16( itemName.begin(), itemName.end(), name );
 	}
 }
 

@@ -105,7 +105,7 @@ public:
 	
 	void Grow();
 	
-	virtual void EncodeDestiny(std::vector<uint8> &into) const;
+	virtual void EncodeDestiny( Buffer& into ) const;
 	//virtual PyDict *MakeSlimItem() const;
 	
 protected:

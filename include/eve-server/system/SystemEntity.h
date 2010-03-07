@@ -97,7 +97,7 @@ public:
 	virtual SystemManager *System() const = 0;	//may yeild NULL
 	
 	//expand the vector as needed, and encode the destiny update into it.
-	virtual void EncodeDestiny(std::vector<uint8> &into) const = 0;
+	virtual void EncodeDestiny( Buffer& into ) const = 0;
 	//return ownership of a new foo.SlimItem dict
 	virtual PyDict *MakeSlimItem() const = 0;
 	//fill in the supplied damage state object.
@@ -163,7 +163,7 @@ public:
 	//partial implementation of SystemEntity interface:
 	virtual void ProcessDestiny();
 	virtual const GPoint &GetPosition() const;
-	virtual void EncodeDestiny(std::vector<uint8> &into) const;
+	virtual void EncodeDestiny( Buffer& into ) const;
 	virtual bool IsStaticEntity() const { return false; }
 
 	virtual double GetMass() const;

@@ -197,24 +197,29 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		return(0);
 	}
 
-	//not right:
-	if(ballhead->sub_type == 66 || ballhead->sub_type == 64) {
-		const Destiny::MiniBallList *mbl = (const Destiny::MiniBallList *) data;
-		data += (sizeof(Destiny::MiniBallList)-sizeof(Destiny::MiniBall));
-		len -= (sizeof(Destiny::MiniBallList)-sizeof(Destiny::MiniBall));
-		if(mbl->count > 0) {
-			_log(into, "    MiniBall Count: %d", mbl->count);
-			int r;
-			for(r = 0; r < mbl->count; r++) {
-				const Destiny::MiniBall *mini = (const Destiny::MiniBall *) data;
-				data += sizeof(Destiny::MiniBall);
-				len -= sizeof(Destiny::MiniBall);
-				_log(into, "        [%d] pos (%.3f, %.3f, %.3f) radius %.2f", 
-					r, mini->x, mini->y, mini->z, mini->radius);
-			}
-		}
-	}
-	
+    //not right:
+    if( ( ballhead->sub_type == 64 ) || ( ballhead->sub_type == 66 ) )
+    {
+        const Destiny::MiniBallList* mbl = (const Destiny::MiniBallList*)data;
+        data += sizeof( Destiny::MiniBallList );
+        len -= sizeof( Destiny::MiniBallList );
+
+        if( 0 < mbl->count )
+        {
+            _log( into, "    MiniBall Count: %d", mbl->count );
+
+            for( uint16 r = 0; r < mbl->count; ++r )
+            {
+                const Destiny::MiniBall* mini = (const Destiny::MiniBall*)data;
+                data += sizeof( Destiny::MiniBall );
+                len -= sizeof( Destiny::MiniBall );
+
+                _log( into, "        [%d] pos (%.3f, %.3f, %.3f) radius %.2f",
+                      r, mini->x, mini->y, mini->z, mini->radius );
+            }
+        }
+    }
+
 	const Destiny::NameStruct *name = (const Destiny::NameStruct *) data;
 	data += sizeof(Destiny::NameStruct);
 	len -= sizeof(Destiny::NameStruct);

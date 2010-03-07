@@ -27,28 +27,36 @@
 
 using namespace Destiny;
 
-SimpleSystemEntity *SimpleSystemEntity::MakeEntity(SystemManager *system, const DBSystemEntity &entity) {
-	switch(entity.groupID) {
-	case EVEDB::invGroups::Sun:
-	case EVEDB::invGroups::Planet:
-	case EVEDB::invGroups::Moon:
-		return(new SystemPlanetEntity(system, entity));
-	case EVEDB::invGroups::Asteroid_Belt:
-		return(new SystemAsteroidBeltEntity(system, entity));
-	case EVEDB::invGroups::Stargate:	//Stargate
-		return(new SystemStargateEntity(system, entity));
-	//case EVEDB::invGroup::Cargo_Container:	//Cargo Container
-	case EVEDB::invGroups::Station:		//Station
-		return(new SystemStationEntity(system, entity));
-	default:
-        sLog.Error("Simple sys Entity", "Unrecognized entity type '%u' on '%s' (%u), falling back to simple space item.", entity.typeID, entity.itemName.c_str(), entity.itemID);
-		break;
+SimpleSystemEntity* SimpleSystemEntity::MakeEntity( SystemManager* system, const DBSystemEntity& entity )
+{
+	switch( entity.groupID )
+    {
+	    case EVEDB::invGroups::Sun:
+	    case EVEDB::invGroups::Planet:
+	    case EVEDB::invGroups::Moon:
+		    return new SystemPlanetEntity( system, entity );
+
+	    case EVEDB::invGroups::Asteroid_Belt:
+		    return new SystemAsteroidBeltEntity( system, entity );
+
+	    case EVEDB::invGroups::Stargate:	//Stargate
+		    return new SystemStargateEntity( system, entity );
+
+	    //case EVEDB::invGroup::Cargo_Container:	//Cargo Container
+	    case EVEDB::invGroups::Station:		//Station
+		    return new SystemStationEntity( system, entity );
+
+	    default:
+            sLog.Error( "Simple sys Entity", "Unrecognized entity type '%u' on '%s' (%u), falling back to simple space item.",
+                        entity.typeID, entity.itemName.c_str(), entity.itemID );
+		    return new SystemSimpleEntity( system, entity );
 	}
-	return new SystemSimpleEntity(system, entity);
 }
 
-SimpleSystemEntity::SimpleSystemEntity(SystemManager *system, const DBSystemEntity &entity)
-: InanimateSystemEntity(system), data(entity) {}
+SimpleSystemEntity::SimpleSystemEntity( SystemManager* system, const DBSystemEntity& entity )
+: InanimateSystemEntity(system), data(entity)
+{
+}
 
 bool SimpleSystemEntity::LoadExtras(SystemDB *db) {
 	return true;
@@ -82,81 +90,66 @@ void InanimateSystemEntity::QueueDestinyEvent(PyTuple **multiEvent) {
 
 SystemPlanetEntity::SystemPlanetEntity(SystemManager *system, const DBSystemEntity &entity) : SimpleSystemEntity(system, entity) {}
 
-void SystemPlanetEntity::EncodeDestiny(std::vector<uint8> &into) const {
-	#pragma pack(1)
-	struct AddBall_Planet {
-		BallHeader head;
-		DSTBALL_RIGID_Struct main;
-		NameStruct name;
-	};
-	#pragma pack()
+void SystemPlanetEntity::EncodeDestiny( Buffer& into ) const
+{
+	BallHeader head;
+	head.entityID = data.itemID;
+	head.mode = Destiny::DSTBALL_RIGID;
+	head.radius = data.radius;
+	head.x = data.position.x;
+	head.y = data.position.y;
+	head.z = data.position.z;
+	head.sub_type = AddBallSubType_planet;
+    into.Append( head );
 
-	int start = into.size();
-	into.resize(start
-        + sizeof(AddBall_Planet)
-        + data.itemName.length()*sizeof(uint16) );
-	uint8 *ptr = &into[start];
-	AddBall_Planet *item = (AddBall_Planet *) ptr;
-	ptr += sizeof(AddBall_Planet);
+    DSTBALL_RIGID_Struct main;
+	main.formationID = 0xFF;
+    into.Append( main );
 
-	item->head.entityID = data.itemID;
-	item->head.mode = Destiny::DSTBALL_RIGID;
-	item->head.radius = data.radius;
-	item->head.x = data.position.x;
-	item->head.y = data.position.y;
-	item->head.z = data.position.z;
-	item->head.sub_type = AddBallSubType_planet;
-	item->main.formationID = 0xFF;
-	
-    item->name.name_len = utf8::distance( data.itemName.begin(), data.itemName.end() );
-    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), item->name.name );
+    const uint8 nameLen = utf8::distance( data.itemName.begin(), data.itemName.end() );
+    into.Append( nameLen );
+
+    const Buffer::iterator<uint16> name = into.end<uint16>();
+    into.ResizeAt( name, nameLen );
+    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), name );
 }
 
 SystemStationEntity::SystemStationEntity(SystemManager *system, const DBSystemEntity &entity)
 : SimpleSystemEntity(system, entity) {
 }
 
-void SystemStationEntity::EncodeDestiny(std::vector<uint8> &into) const {
-	#pragma pack(1)
-	struct AddBall_Station {
-		BallHeader head;
-		DSTBALL_RIGID_Struct main;
-		MiniBallList miniballs;
-		NameStruct name;
-	};
-	#pragma pack()
-	
-	int miniball_count = 1;
-	
-	int start = into.size();
-	into.resize(start 
-		+ sizeof(AddBall_Station) 
-		+ (miniball_count-1)*sizeof(MiniBall)
-		+ data.itemName.length()*sizeof(uint16) );
-	uint8 *ptr = &into[start];
-	AddBall_Station *item = (AddBall_Station *) ptr;
+void SystemStationEntity::EncodeDestiny( Buffer& into ) const
+{
+    BallHeader head;
+	head.entityID = data.itemID;
+	head.mode = Destiny::DSTBALL_RIGID;
+	head.radius = data.radius;
+	head.x = data.position.x;
+	head.y = data.position.y;
+	head.z = data.position.z;
+	head.sub_type = AddBallSubType_station;
+    into.Append( head );
 
-	item->head.entityID = data.itemID;
-	item->head.mode = Destiny::DSTBALL_RIGID;
-	item->head.radius = data.radius;
-	item->head.x = data.position.x;
-	item->head.y = data.position.y;
-	item->head.z = data.position.z;
-	item->head.sub_type = AddBallSubType_station;
-	item->main.formationID = 0xFF;
-	
-	item->miniballs.count = miniball_count;
-	//TOTAL CRAP: we do not have this in our DB right now... 
-	item->miniballs.balls[0].x = -7701.181;
-	item->miniballs.balls[0].y = 8060.06;
-	item->miniballs.balls[0].z = 27878.900;
-	item->miniballs.balls[0].radius = 1639.241;
-	
-	//slide pointer over points...
-	item = (AddBall_Station *) (((uint8 *) item)+(miniball_count-1)*sizeof(MiniBall));
-	
-    item->name.name_len = utf8::distance( data.itemName.begin(), data.itemName.end() );
-    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), item->name.name );
+    DSTBALL_RIGID_Struct main;
+	main.formationID = 0xFF;
+    into.Append( main );
+
+    const uint16 miniballsCount = 1;
+    into.Append( miniballsCount );
+
+    MiniBall miniball;
+    miniball.x = -7701.181;
+    miniball.y = 8060.06;
+    miniball.z = 27878.900;
+    miniball.radius = 1639.241;
+    into.Append( miniball );
+
+    const uint8 nameLen = utf8::distance( data.itemName.begin(), data.itemName.end() );
+    into.Append( nameLen );
+
+    const Buffer::iterator<uint16> name = into.end<uint16>();
+    into.ResizeAt( name, nameLen );
+    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), name );
 }
 
 PyDict *SystemStationEntity::MakeSlimItem() const {
@@ -214,35 +207,28 @@ SystemAsteroidBeltEntity::~SystemAsteroidBeltEntity() {
 	delete m_manager;
 }
 
-void SystemAsteroidBeltEntity::EncodeDestiny(std::vector<uint8> &into) const {
-	#pragma pack(1)
-	struct AddBall_AsteroidBelt {
-		BallHeader head;
-		DSTBALL_RIGID_Struct main;
-		NameStruct name;
-	};
-	#pragma pack()
-	
-	
-	int start = into.size();
-	into.resize(start 
-		+ sizeof(AddBall_AsteroidBelt)
-		+ data.itemName.length()*sizeof(uint16) );
-	uint8 *ptr = &into[start];
-	AddBall_AsteroidBelt *item = (AddBall_AsteroidBelt *) ptr;
-	ptr += sizeof(AddBall_AsteroidBelt);
+void SystemAsteroidBeltEntity::EncodeDestiny( Buffer& into ) const
+{
+    BallHeader head;
+	head.entityID = data.itemID;
+	head.mode = Destiny::DSTBALL_RIGID;
+	head.radius = data.radius;
+	head.x = data.position.x;
+	head.y = data.position.y;
+	head.z = data.position.z;
+	head.sub_type = AddBallSubType_asteroidBelt;
+    into.Append( head );
 
-	item->head.entityID = data.itemID;
-	item->head.mode = Destiny::DSTBALL_RIGID;
-	item->head.radius = data.radius;
-	item->head.x = data.position.x;
-	item->head.y = data.position.y;
-	item->head.z = data.position.z;
-	item->head.sub_type = AddBallSubType_asteroidBelt;
-	item->main.formationID = 0xFF;
+    DSTBALL_RIGID_Struct main;
+	main.formationID = 0xFF;
+    into.Append( main );
 
-    item->name.name_len = utf8::distance( data.itemName.begin(), data.itemName.end() );
-    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), item->name.name );
+    const uint8 nameLen = utf8::distance( data.itemName.begin(), data.itemName.end() );
+    into.Append( nameLen );
+
+    const Buffer::iterator<uint16> name = into.end<uint16>();
+    into.ResizeAt( name, nameLen );
+    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), name );
 }
 
 bool SystemAsteroidBeltEntity::LoadExtras(SystemDB *db) {
@@ -304,57 +290,49 @@ PyDict *SystemDungeonEntranceEntity::MakeSlimItem() const {
 	return(slim);
 }
 
-void SystemDungeonEntranceEntity::EncodeDestiny(std::vector<uint8> &into) const {
-	#pragma pack(1)
-	struct AddBall_Dungeon {
-		BallHeader head;
-		MassSector mass;
-		DSTBALL_STOP_Struct main;
-		MiniBallList miniballs;
-		NameStruct name;
-	};
-	#pragma pack()
-	
-	int miniball_count = 1;
+void SystemDungeonEntranceEntity::EncodeDestiny( Buffer& into ) const
+{
+	const GPoint& position = m_self->position();
+	const std::string itemName( GetName() );
 
-	const std::string itemName = m_self->itemName();
-	
-	int start = into.size();
-	into.resize(start 
-		+ sizeof(AddBall_Dungeon)
-		+ (miniball_count-1)*sizeof(MiniBall)
-		+ itemName.length()*sizeof(uint16) );
-	uint8 *ptr = &into[start];
-	AddBall_Dungeon *item = (AddBall_Dungeon *) ptr;
-	ptr += sizeof(AddBall_Dungeon);
+    BallHeader head;
+	head.entityID = m_self->itemID();
+	head.mode = Destiny::DSTBALL_STOP;
+	head.radius = GetRadius();
+	head.x = position.x;
+	head.y = position.y;
+	head.z = position.z;
+	head.sub_type = AddBallSubType_dungeonEntrance;
+    into.Append( head );
 
-	item->head.entityID = m_self->itemID();
-	item->head.mode = Destiny::DSTBALL_STOP;
-	item->head.radius = GetRadius();
-	const GPoint &pos = m_self->position();
-	item->head.x = pos.x;
-	item->head.y = pos.y;
-	item->head.z = pos.z;
-	item->head.sub_type = AddBallSubType_dungeonEntrance;
-	item->mass.mass = 10000000000.00;
-	item->mass.cloak = 0;
-	item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-	item->mass.corpID = m_self->ownerID();	//a little hacky...
-	item->mass.allianceID = 0xFFFFFFFF;
-	item->main.formationID = 0xFF;
-	
-	item->miniballs.count = miniball_count;
-	//TOTAL CRAP: we do not have this in our DB right now... 
-	item->miniballs.balls[0].x = -7701.181;
-	item->miniballs.balls[0].y = 8060.06;
-	item->miniballs.balls[0].z = 2778.900;
-	item->miniballs.balls[0].radius = GetRadius();
+    MassSector mass;
+	mass.mass = 10000000000.00;
+	mass.cloak = 0;
+	mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+	mass.corpID = m_self->ownerID();	//a little hacky...
+	mass.allianceID = 0xFFFFFFFF;
+    into.Append( mass );
 
-	//slide pointer over points...
-	item = (AddBall_Dungeon *) (((uint8 *) item)+(miniball_count-1)*sizeof(MiniBall));
+    DSTBALL_STOP_Struct main;
+	main.formationID = 0xFF;
+    into.Append( main );
 
-    item->name.name_len = utf8::distance( itemName.begin(), itemName.end() );
-    utf8::utf8to16( itemName.begin(), itemName.end(), item->name.name );
+    const uint16 miniballCount = 1;
+    into.Append( miniballCount );
+
+    MiniBall miniball;
+    miniball.x = -7701.181;
+    miniball.y = 8060.06;
+    miniball.z = 27878.900;
+    miniball.radius = 1639.241;
+    into.Append( miniball );
+
+    const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
+    into.Append( nameLen );
+
+    const Buffer::iterator<uint16> name = into.end<uint16>();
+    into.ResizeAt( name, nameLen );
+    utf8::utf8to16( itemName.begin(), itemName.end(), name );
 }
 
 

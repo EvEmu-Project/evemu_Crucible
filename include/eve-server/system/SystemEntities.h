@@ -89,7 +89,7 @@ public:
 	SystemPlanetEntity(SystemManager *system, const DBSystemEntity &entity);
 	virtual ~SystemPlanetEntity() { targets.DoDestruction(); }
 
-	virtual void EncodeDestiny(std::vector<uint8> &into) const;
+	virtual void EncodeDestiny( Buffer& into ) const;
 };
 
 class SystemStationEntity : public SimpleSystemEntity {
@@ -97,7 +97,7 @@ public:
 	SystemStationEntity(SystemManager *system, const DBSystemEntity &entity);
 	virtual ~SystemStationEntity() { targets.DoDestruction(); }
 	
-	virtual void EncodeDestiny(std::vector<uint8> &into) const;
+	virtual void EncodeDestiny( Buffer& into ) const;
 	virtual PyDict *MakeSlimItem() const;
 };
 
@@ -132,7 +132,8 @@ public:
 	virtual bool IsVisibleSystemWide() const { return true; }
 
 	virtual PyDict *MakeSlimItem() const;
-	virtual void EncodeDestiny(std::vector<uint8> &into) const;
+	virtual void EncodeDestiny( Buffer& into ) const;
+
 protected:
 	SystemManager *const m_system;	//we do not own this
 };

@@ -298,12 +298,12 @@ double SystemManager::GetWarpSpeed() const {
 
 void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState &ss) const
 {
-    std::vector<uint8> setstate_buffer(sizeof(Destiny::AddBall_header));
-	setstate_buffer.reserve(10240);
-	
-	Destiny::AddBall_header *head = (Destiny::AddBall_header *) &setstate_buffer[0];
-	head->more = 0;
-	head->sequence = ss.stamp;
+    Buffer* stateBuffer = new Buffer;
+
+    AddBall_header head;
+	head.more = 0;
+	head.sequence = ss.stamp;
+    stateBuffer->Append( head );
 	
 	//I am not thrilled with this mechanism, but I cant think of a better
 	//way to deal with it right now. The issue is that we need to send out
@@ -311,34 +311,39 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 	// entities in our current bubble. Well, it is likely that some things
 	// in our bubble are system-wide, and we would be sending out duplciates.
 	// so, we use a set to enforce uniqueness.
-	std::set<SystemEntity *> visible_entities;
+	std::set<SystemEntity*> visibleEntities;
 	{
-		std::map<uint32, SystemEntity *>::const_iterator cur, end;
+		std::map<uint32, SystemEntity*>::const_iterator cur, end;
 		cur = m_entities.begin();
 		end = m_entities.end();
-		for(; cur != end; ++cur) {
-			if(!cur->second->IsVisibleSystemWide()) {
-//_log(COMMON__WARNING, "%u is not visible!", cur->first);
+		for(; cur != end; ++cur)
+        {
+			if( !cur->second->IsVisibleSystemWide() )
+            {
+                //_log(COMMON__WARNING, "%u is not visible!", cur->first);
 				continue;
 			}
-//_log(COMMON__WARNING, "%u is system wide visible!", cur->first);
-			visible_entities.insert(cur->second);
+
+            //_log(COMMON__WARNING, "%u is system wide visible!", cur->first);
+			visibleEntities.insert( cur->second );
 		}
 	}
 
-//bubble is null??? why???
-	bubble->GetEntities(visible_entities);
+    //bubble is null??? why???
+	bubble->GetEntities( visibleEntities );
 
     PySafeDecRef( ss.slims );
     ss.slims = new PyList;
 
 	//go through all entities and gather the info we need...
-	std::set<SystemEntity *>::const_iterator cur, end;
-	cur = visible_entities.begin();
-	end = visible_entities.end();
-	for(; cur != end; ++cur) {
-		SystemEntity *ent = *cur;
-//_log(COMMON__WARNING, "Encoding entity %u", ent->GetID());
+	std::set<SystemEntity*>::const_iterator cur, end;
+	cur = visibleEntities.begin();
+	end = visibleEntities.end();
+	for(; cur != end; ++cur)
+    {
+		SystemEntity* ent = *cur;
+        //_log(COMMON__WARNING, "Encoding entity %u", ent->GetID());
+
 		//ss.damageState
 		ss.damageState[ ent->GetID() ] = ent->MakeDamageState();
 
@@ -346,29 +351,31 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 		ss.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), ent->MakeSlimItem() ) );
 
 		//append the destiny binary data...
-		ent->EncodeDestiny(setstate_buffer);
+		ent->EncodeDestiny( *stateBuffer );
 	}
 
 	//ss.destiny_state
-	ss.destiny_state = new PyBuffer( setstate_buffer.begin(), setstate_buffer.end() );
-	setstate_buffer.clear();
+	ss.destiny_state = new PyBuffer( &stateBuffer );
+    SafeDelete( stateBuffer );
 	
 	//ss.gangCorps
 
 	//ss.aggressors
 
 	//ss.droneState
-	ss.droneState = m_db.GetSolDroneState(m_systemID);
-	if(ss.droneState == NULL) {
-		_log(SERVICE__ERROR, "Unable to query dronestate entity for destiny update in system %u!", m_systemID);
-		ss.droneState = new PyNone();
+	ss.droneState = m_db.GetSolDroneState( m_systemID );
+	if( NULL == ss.droneState )
+    {
+		_log( SERVICE__ERROR, "Unable to query dronestate entity for destiny update in system %u!", m_systemID );
+		ss.droneState = new PyNone;
 	}
 
 	//ss.solItem
-	ss.solItem = m_db.GetSolRow(m_systemID);
-	if(ss.solItem == NULL) {
-		_log(CLIENT__ERROR, "Unable to query solarsystem entity for destiny update in system %u!", m_systemID);
-		ss.solItem = new PyNone();
+	ss.solItem = m_db.GetSolRow( m_systemID );
+	if( NULL == ss.solItem )
+    {
+		_log( CLIENT__ERROR, "Unable to query solarsystem entity for destiny update in system %u!", m_systemID );
+		ss.solItem = new PyNone;
 	}
 
 	//ss.effectStates
@@ -377,17 +384,20 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 	//ss.allianceBridges
     ss.allianceBridges = new PyList;
 
-	_log(DESTINY__TRACE, "Set State:");
-	ss.Dump(DESTINY__TRACE, "    ");
-	_log(DESTINY__TRACE, "    Buffer:");
-	_hex(DESTINY__TRACE, &ss.destiny_state->content()[0], ss.destiny_state->content().size());
+    _log( DESTINY__TRACE, "Set State:" );
+    ss.Dump( DESTINY__TRACE, "    " );
+    _log( DESTINY__TRACE, "    Buffer:" );
+    _hex( DESTINY__TRACE, &( ss.destiny_state->content() )[0],
+                          ss.destiny_state->content().size() );
 
-    _log(DESTINY__TRACE, "    Decoded:");
-	Destiny::DumpUpdate(DESTINY__TRACE, &ss.destiny_state->content()[0], ss.destiny_state->content().size());
+    _log( DESTINY__TRACE, "    Decoded:" );
+    Destiny::DumpUpdate( DESTINY__TRACE, &( ss.destiny_state->content() )[0],
+                                         ss.destiny_state->content().size() );
 }
 
-ItemFactory &SystemManager::itemFactory() const {
-	return(m_services.item_factory);
+ItemFactory& SystemManager::itemFactory() const
+{
+	return m_services.item_factory;
 }
 
 
