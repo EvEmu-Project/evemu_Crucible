@@ -32,8 +32,11 @@ PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, con
     const uint32 typeID = atoi( args.arg( 1 ).c_str() );
 
 	uint32 qty = 1;
-	if( args.isNumber( 2 ) )
-		qty = atoi( args.arg( 2 ).c_str() );
+    if( 2 < args.argCount() )
+    {
+	    if( args.isNumber( 2 ) )
+		    qty = atoi( args.arg( 2 ).c_str() );
+    }
 
 	_log( COMMAND__MESSAGE, "Create %s %u times", args.arg( 1 ).c_str(), qty );
 
