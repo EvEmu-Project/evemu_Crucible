@@ -335,78 +335,65 @@ PyResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
     return NULL;
 }
 
-PyResult LSCService::Handle_CreateChannel(PyCallArgs &call) {
+PyResult LSCService::Handle_CreateChannel( PyCallArgs& call )
+{
     Call_SingleStringArg name;
-    if (!name.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
+    if( !name.Decode( call.tuple ) )
+    {
+        sLog.Error( "LSCService", "%s: Invalid arguments", call.client->GetName() );
         return NULL;
     }
 
-    LSCChannel * channel;
-    channel = CreateChannel(name.arg.c_str());
+    LSCChannel* channel = CreateChannel( name.arg.c_str() );
+    channel->JoinChannel( call.client );
 
-    channel->JoinChannel(call.client);
     ChannelCreateReply reply;
     reply.ChannelChars = channel->EncodeChannelChars();
-    reply.ChannelInfo = channel->EncodeChannelSmall(call.client->GetCharacterID());
+    reply.ChannelInfo = channel->EncodeChannelSmall( call.client->GetCharacterID() );
     reply.ChannelMods = channel->EncodeChannelMods();
-
     return reply.Encode();
 }
-PyResult LSCService::Handle_DestroyChannel(PyCallArgs &call) {
+
+PyResult LSCService::Handle_DestroyChannel( PyCallArgs& call )
+{
     Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
+    if( !arg.Decode( call.tuple ) )
+    {
+        sLog.Error( "LSCService", "%s: Invalid arguments", call.client->GetName() );
         return NULL;
     }
 
-    if (m_channels.find(arg.arg) == m_channels.end()) {
-        return new PyNone();
+    std::map<uint32, LSCChannel*>::iterator res = m_channels.find( arg.arg );
+    if( m_channels.end() == res )
+    {
+        sLog.Error( "LSCService", "%s: Couldn't find channel %u", call.client->GetName(), arg.arg );
+        return NULL;
     }
 
-    m_channels[arg.arg]->Evacuate(call.client);
-    delete m_channels[arg.arg];
-    m_channels.erase(arg.arg);
+    res->second->Evacuate( call.client );
+    SafeDelete( res->second );
+    m_channels.erase( res );
 
-    return new PyNone();
+    return new PyNone;
 }
-PyResult LSCService::Handle_SendMessage(PyCallArgs &call) {
-    if(    call.tuple->size() != 2
-        || !call.tuple->GetItem(0)->IsTuple()
-        || !call.tuple->GetItem(1)->IsString() )
+
+PyResult LSCService::Handle_SendMessage( PyCallArgs& call )
+{
+    Call_SendMessage args;
+    if( !args.Decode( call.tuple ) )
     {
-        codelog(SERVICE__ERROR, "%s: Bad arguments (T0)", call.client->GetName());
-        return new PyInt(0);
+        sLog.Error( "LSCService", "%s: Invalid arguments", call.client->GetName() );
+        return NULL;
     }
 
-    PyTuple* arg = call.tuple->GetItem( 0 )->AsTuple();
-    const char* message = call.tuple->GetItem( 1 )->AsString()->content().c_str();
-
-    if(     arg->size() != 1
-        || !arg->GetItem( 0 )->IsTuple() )
+    std::map<uint32, LSCChannel*>::iterator res = m_channels.find( args.channel.id );
+    if( m_channels.end() == res )
     {
-        codelog(SERVICE__ERROR, "%s: Bad arguments (T1)", call.client->GetName());
-        return new PyInt( 0 );
+        sLog.Error( "LSCService", "%s: Couldn't find channel %u", call.client->GetName(), args.channel.id );
+        return NULL;
     }
-    arg = arg->GetItem( 0 )->AsTuple();
 
-    if(     arg->size() != 2
-        || !arg->GetItem( 1 )->IsInt() )
-    {
-        codelog(SERVICE__ERROR, "%s: Bad arguments (T2)", call.client->GetName());
-        return new PyInt( 0 );
-    }
-    uint32 channelID = arg->GetItem( 1 )->AsInt()->value();
-
-    if( m_channels.find( channelID ) == m_channels.end() )
-    {
-        codelog(SERVICE__ERROR, "%s: Couldn't find channel %u", call.client->GetName(), channelID);
-        return new PyInt( 0 );
-    }
-    LSCChannel* channel = m_channels[channelID];
-
-    channel->SendMessage(call.client, message);
-
+    res->second->SendMessage( call.client, args.message.c_str() );
     return new PyInt( 1 );
 }
 

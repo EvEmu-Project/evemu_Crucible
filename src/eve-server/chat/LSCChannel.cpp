@@ -285,7 +285,7 @@ PyRep *LSCChannel::EncodeID() {
 		return (new PyInt(m_channelID));
 
 	LSCChannelMultiDesc desc;
-	desc.number = m_channelID;
+	desc.id = m_channelID;
 	desc.type = GetTypeString();
 
 	return desc.Encode();

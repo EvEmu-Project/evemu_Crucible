@@ -182,19 +182,19 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_SendMessage">
-    <tupleInline>
-      <tuple name="channelID" />
-      <string name="message" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="LSCChannelMultiDesc">
     <tupleInline>
       <tupleInline>
         <string name="type" />
-        <int name="number" />
+        <int name="id" />
       </tupleInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_SendMessage">
+    <tupleInline>
+      <element name="channel" type="LSCChannelMultiDesc" />
+      <wstring name="message" />
     </tupleInline>
   </elementDef>
 
