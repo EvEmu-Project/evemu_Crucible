@@ -435,7 +435,7 @@
 
   <elementDef name="Call_LookupStringInt">
     <tupleInline>
-      <string name="searchString" />
+      <wstring name="searchString" />
       <int name="searchOption" />
     </tupleInline>
   </elementDef>
@@ -443,7 +443,7 @@
   <elementDef name="Call_LookupIntString">
     <tupleInline>
       <int name="searchOption" />
-      <string name="searchString" />
+      <wstring name="searchString" />
     </tupleInline>
   </elementDef>
 
