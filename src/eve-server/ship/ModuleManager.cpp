@@ -203,6 +203,28 @@ void ModuleManager::ReplaceCharges(EVEItemFlags flag, InventoryItemRef new_charg
 	m_modules[slot]->ChangeCharge(new_charge);
 }
 
+void ModuleManager::DeactivateAllModules()
+{
+    std::map<uint32, uint8>::const_iterator res = m_moduleByID.begin();
+    for(; res != m_moduleByID.end(); res++ )
+    {
+        ShipModule *mod = m_modules[res->second];
+        if( mod != NULL )
+        {
+            try
+            {
+                ActivatableModule* amod = dynamic_cast<ActivatableModule*>(mod);
+                if( amod != NULL )
+                    amod->DeactivateModule( true );
+            }
+            catch( char * str )
+            {
+                _log(SHIP__MODULE_TRACE, "Error (%s)", str);
+            }
+        }
+    }
+}
+
 ShipModule *ShipModule::CreateModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_) {
 	/*switch(self->groupID()) {
 	//TODO: make an enum for this crap, or pull it from the DB.

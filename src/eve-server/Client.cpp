@@ -827,6 +827,8 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         return;
     }
 
+    modules.DeactivateAllModules();
+
     m_moveSystemID = solarSystemID;
     m_movePoint = position;
     m_movePoint.x -= 15000;

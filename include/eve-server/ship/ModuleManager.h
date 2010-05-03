@@ -160,8 +160,8 @@ public:
 	int Activate(uint32 itemID, const std::string &effectName, uint32 target, uint32 repeat);
 	void Deactivate(uint32 itemID, const std::string &effectName);
 	void ReplaceCharges(EVEItemFlags flag, InventoryItemRef charge);
-	
-	
+ 	void DeactivateAllModules();
+
 protected:
 	Client *const m_pilot;
 	
