@@ -37,7 +37,7 @@ void ClassConstructGenerator::RegisterProcessors()
 {
     Generator::RegisterProcessors();
 
-    RegisterParser( "dictInlineEntry", static_cast<ElementParser>( &ClassConstructGenerator::ProcessDictInlineEntry ) );
+    AddMemberParser( "dictInlineEntry", &ClassConstructGenerator::ProcessDictInlineEntry );
 }
 
 bool ClassConstructGenerator::ProcessElementDef( const TiXmlElement* field )

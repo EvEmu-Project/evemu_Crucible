@@ -27,7 +27,7 @@
 #define __EVEMU_SERVER_CONFIG_H__INCL__
 
 class EVEmuServerConfig
-: public XMLParser<EVEmuServerConfig>,
+: public XMLParserEx,
   public Singleton<EVEmuServerConfig>
 {
 public:

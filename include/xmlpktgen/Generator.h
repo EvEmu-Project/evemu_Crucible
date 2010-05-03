@@ -35,7 +35,7 @@
  * @author Zhur, Bloody.Rabbit
  */
 class Generator
-: public XMLParser<Generator>
+: public XMLParserEx
 {
 public:
     /**

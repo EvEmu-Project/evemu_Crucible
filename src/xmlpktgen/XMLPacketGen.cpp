@@ -62,9 +62,9 @@ XMLPacketGen::XMLPacketGen( const char* header, const char* source )
   mSourceFile( NULL ),
   mSourceFileName( source )
 {
-    RegisterParser( "elements",   &XMLPacketGen::ParseElements );
-    RegisterParser( "include",    &XMLPacketGen::ParseInclude );
-    RegisterParser( "elementDef", &XMLPacketGen::ParseElementDef );
+    AddMemberParser( "elements",   &XMLPacketGen::ParseElements );
+    AddMemberParser( "include",    &XMLPacketGen::ParseInclude );
+    AddMemberParser( "elementDef", &XMLPacketGen::ParseElementDef );
 }
 
 XMLPacketGen::~XMLPacketGen()

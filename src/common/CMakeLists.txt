@@ -83,7 +83,8 @@ SET( utils_SOURCE
      "${COMPONENT_SOURCE_DIR}/utils/timer.cpp"
      "${COMPONENT_SOURCE_DIR}/utils/utils_hex.cpp"
      "${COMPONENT_SOURCE_DIR}/utils/utils_string.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/utils_time.cpp" )
+     "${COMPONENT_SOURCE_DIR}/utils/utils_time.cpp"
+     "${COMPONENT_SOURCE_DIR}/utils/XMLParser.cpp" )
 
 #####################
 # Setup the library #

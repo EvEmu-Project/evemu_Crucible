@@ -28,10 +28,10 @@
 EVEmuServerConfig::EVEmuServerConfig()
 {
 	// register needed parsers
-    RegisterParser( "eve",      &EVEmuServerConfig::ProcessEve );
-    RegisterParser( "server",   &EVEmuServerConfig::ProcessServer );
-    RegisterParser( "database", &EVEmuServerConfig::ProcessDatabase );
-    RegisterParser( "files",    &EVEmuServerConfig::ProcessFiles );
+    AddMemberParser( "eve",      &EVEmuServerConfig::ProcessEve );
+    AddMemberParser( "server",   &EVEmuServerConfig::ProcessServer );
+    AddMemberParser( "database", &EVEmuServerConfig::ProcessDatabase );
+    AddMemberParser( "files",    &EVEmuServerConfig::ProcessFiles );
 
 	// Set sane defaults
 
@@ -74,7 +74,7 @@ bool EVEmuServerConfig::ProcessServer( const TiXmlElement* ele )
 	text = ParseTextBlock( ele, "autoAccount", true );
 	if( text )
 		server.autoAccount = atobool( text );
-	
+
 	text = ParseTextBlock( ele, "autoAccountRole", true );
 	if( text )
 		server.autoAccountRole = atof( text );
