@@ -118,5 +118,80 @@ bool Skill::SkillPrereqsComplete(Character &ch)
 	return true;
 }
 
+bool Skill::FitModuleSkillCheck(InventoryItemRef item, CharacterRef character)
+{	
+	//TODO: move to skills
+	SkillRef requiredSkill;
+	
+	//Primary Skill
+	if(!item->requiredSkill1() == 0)
+	{
+		requiredSkill = character->GetSkill( item->requiredSkill1() );
+		if( !requiredSkill )
+			return false;
+
+		if( item->requiredSkill1Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+
+	//Secondary Skill
+	if(!item->requiredSkill2() == 0)
+	{
+		requiredSkill = character->GetSkill( item->requiredSkill2() );
+		if( !requiredSkill )
+			return false;
+
+		if( item->requiredSkill2Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+	
+	//Tertiary Skill
+	if(!item->requiredSkill3() == 0)
+	{
+		requiredSkill = character->GetSkill( item->requiredSkill3() );
+		if( !requiredSkill )
+			return false;
+
+		if( item->requiredSkill3Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+	
+	//Quarternary Skill
+	if(!item->requiredSkill4() == 0)
+	{
+		requiredSkill = character->GetSkill( item->requiredSkill4() );
+		if( !requiredSkill )
+			return false;
+
+		if( item->requiredSkill4Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+	
+	//Quinary Skill
+	if(!item->requiredSkill5() == 0)
+	{
+		requiredSkill = character->GetSkill( item->requiredSkill5() );
+		if( !requiredSkill )
+			return false;
+
+		if( item->requiredSkill5Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+	
+	//Senary Skill
+	if(!item->requiredSkill6() == 0)
+	{
+		requiredSkill = character->GetSkill( item->requiredSkill6() );
+		if( !requiredSkill )
+			return false;
+
+		if( item->requiredSkill6Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+
+	return true;
+}
+
+
 
 

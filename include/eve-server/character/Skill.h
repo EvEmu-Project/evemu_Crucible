@@ -77,6 +77,11 @@ public:
 	 */
 	bool SkillPrereqsComplete(Character &ch);
 
+	/**
+	 *Performs check on fitting items
+	 */
+	static bool FitModuleSkillCheck(InventoryItemRef item, CharacterRef character);
+
 protected:
 	Skill(
 		ItemFactory &_factory,

@@ -155,34 +155,51 @@ double Ship::GetCapacity(EVEItemFlags flag) const
     }
 }
 
-void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const
+void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
 {
-    if( flag == flagDroneBay )
+	CharacterRef character = c->GetChar();
+	
+	if( flag == flagDroneBay )
     {
         if( item->categoryID() != EVEDB::invCategories::Drone )
             //Can only put drones in drone bay
             throw PyException( MakeUserError( "ItemCannotBeInDroneBay" ) );
-        InventoryEx::ValidateAddItem( flag, item );
     }
     else if( flag == flagShipHangar )
     {
-        if( !hasShipMaintenanceBay() )
+		if( !c->GetShip()->attributes.Attr_hasShipMaintenanceBay )
             // We have no ship maintenance bay
-            throw PyException( MakeCustomError( "%s has no ship maintenance bay.", itemName().c_str() ) );
+			throw PyException( MakeCustomError( "%s has no ship maintenance bay.", item->itemName().c_str() ) );
         if( item->categoryID() != EVEDB::invCategories::Ship )
             // Only ships may be put here
             throw PyException( MakeCustomError( "Only ships may be placed into ship maintenance bay." ) );
-        InventoryEx::ValidateAddItem( flag, item );
     }
     else if( flag == flagHangar )
     {
-        if( !hasCorporateHangars() )
+		if( !c->GetShip()->attributes.Attr_hasCorporateHangars )
             // We have no corporate hangars
-            throw PyException( MakeCustomError( "%s has no corporate hangars.", itemName().c_str() ) );
-        InventoryEx::ValidateAddItem( flag, item );
+            throw PyException( MakeCustomError( "%s has no corporate hangars.", item->itemName().c_str() ) );
     }
     else if( flag == flagCargoHold )
-        InventoryEx::ValidateAddItem( flag, item );
+	{
+		//TODO: Add capacity checker
+	}
+	else if( flag > flagLowSlot0  &&  flag < flagHiSlot7 )
+	{
+		if(!Skill::FitModuleSkillCheck(item, character))
+			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+	}
+	else if( flag > flagRigSlot0  &&  flag < flagRigSlot7 )
+	{
+		if(!Skill::FitModuleSkillCheck(item, character))
+			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+	}
+	else if( flag > flagSubSystem0  &&  flag < flagSubSystem7 )
+	{
+		if(!Skill::FitModuleSkillCheck(item, character))
+			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+	}
+	
 }
 
 PyObject *Ship::ShipGetInfo()

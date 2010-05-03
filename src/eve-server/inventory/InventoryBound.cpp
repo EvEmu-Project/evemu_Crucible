@@ -272,7 +272,8 @@ PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
 
 PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint32 quantity, EVEItemFlags flag) {
     //If were here, we can try move all the items (validated)
-    std::vector<int32>::const_iterator cur, end;
+
+	std::vector<int32>::const_iterator cur, end;
     cur = items.begin();
     end = items.end();
     for(; cur != end; cur++) {
@@ -296,7 +297,15 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
             }
             else
             {
-                mInventory.ValidateAddItem( flag, newItem );
+                //Unlike the other validate item requests, fitting an item requires a skill check, which means passing the character
+				if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
+				{
+					Ship::ValidateAddItem( flag, newItem, c );
+				}
+				else
+				{
+					mInventory.ValidateAddItem( flag, newItem );
+				}
 
                 //Move New item to its new location
                 c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh modules
@@ -311,8 +320,15 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
         }
         else
         {
-            //Its a move request
-            mInventory.ValidateAddItem( flag, sourceItem );
+			//Unlike the other validate item requests, fitting an item requires a skill check
+			if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
+			{
+				Ship::ValidateAddItem( flag, sourceItem, c );
+			}
+			else
+			{
+				mInventory.ValidateAddItem( flag, sourceItem );
+			}
 
             c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);  // properly refresh modules
         }

@@ -183,7 +183,7 @@ public:
 	void Delete();
 
 	double GetCapacity(EVEItemFlags flag) const;
-	void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const;
+	static void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c);
 
 	/*
 	 * Public fields:
