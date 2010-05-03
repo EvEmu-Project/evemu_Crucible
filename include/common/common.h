@@ -31,22 +31,7 @@
   */
 #ifdef HAVE_CONFIG_H
 #   include "config.h"
-#endif//HAVE_CONFIG_H
-
-
-/** Define DEBUG according to _DEBUG.
-  */
-#if !defined( DEBUG ) && defined( _DEBUG )
-#   define DEBUG 1
-# endif /* !defined( DEBUG ) && defined( _DEBUG ) */
-
-/** Define NDEBUG according to DEBUG; default to NDEBUG.
-  */
-#if defined( DEBUG )
-#   undef NDEBUG
-#elif !defined( NDEBUG )
-#   define NDEBUG 1
-#endif /* !defined( DEBUG ) && !defined( NDEBUG ) */
+#endif /* HAVE_CONFIG_H */
 
 
 /** Build platform defines
@@ -57,19 +42,17 @@
 
 /** Visual Studio 'errors'/'warnings'
   */
-#ifdef WIN32
-#   ifdef _MSC_VER
-//#    pragma warning(disable:4996)
-//#    pragma warning(disable:4251) // dll-interface bullshit
-#       define _CRT_SECURE_NO_WARNINGS 1
-#       define _CRT_SECURE_NO_DEPRECATE 1
-#       define _CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES 1
-#       if DEBUG
-#           define _CRTDBG_MAP_ALLOC 1
-#       endif// DEBUG
-#       define _SCL_SECURE_NO_WARNINGS 1
-#   endif//_MSC_VER
-#endif//WIN32
+#ifdef _MSC_VER
+//#   pragma warning(disable:4996)
+//#   pragma warning(disable:4251) // dll-interface bullshit
+#   define _CRT_SECURE_NO_WARNINGS 1
+#   define _CRT_SECURE_NO_DEPRECATE 1
+#   define _CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES 1
+#   ifndef NDEBUG
+#       define _CRTDBG_MAP_ALLOC 1
+#   endif /* !NDEBUG */
+#   define _SCL_SECURE_NO_WARNINGS 1
+#endif /* _MSC_VER */
 
 
 /** Platform in depended includes
@@ -110,20 +93,20 @@
 #   include <tuple>
 #   include <unordered_map>
 #   include <unordered_set>
-#else
+#else /* !WIN32 */
 #   include <tr1/tuple>
 #   include <tr1/unordered_map>
 #   include <tr1/unordered_set>
-#endif//WIN32
+#endif /* !WIN32 */
 
 /** Visual Studio memory leak detection
   */
 #ifdef WIN32
-#   ifdef DEBUG
+#   ifndef NDEBUG
 #       include <crtdbg.h>
 #       define new new( _NORMAL_BLOCK, __FILE__, __LINE__ )
-#   endif//DEBUG
-#endif//WIN32
+#   endif /* !NDEBUG */
+#endif /* WIN32 */
 
 
 /** visual leak detection, only enable when you know what your doing and have installed vld
@@ -141,7 +124,7 @@
 
 /** Platform dependent defines and includes
   */
-#if WIN32
+#ifdef WIN32
 #   define WIN32_LEAN_AND_MEAN
 #   define _WIN32_WINNT 0x0500
 #   define NOMINMAX
@@ -151,7 +134,7 @@
 #   include <sys/timeb.h>
 #   include <io.h>
 #   include <process.h>
-#else
+#else /* !WIN32 */
 #   include <arpa/inet.h>
 #   include <netinet/in.h>
 #   include <sys/socket.h>
@@ -164,19 +147,19 @@
 #   include <netdb.h>
 #   include <pthread.h>
 #   include <unistd.h>
-#endif//WIN32
+#endif /* !WIN32 */
 
 
 /** set platform depended macros
   */
-#if WIN32
+#ifdef WIN32
 #   define snprintf _snprintf
 #   if _MSC_VER < 1500
 #       define vsnprintf _vsnprintf
 #   else /* _MSC_VER >= 1500 */
 #       ifndef strdup
 #           define strdup _strdup
-#       endif
+#       endif /* !strdup */
 #   endif /* _MSC_VER >= 1500 */
 #   define strncasecmp _strnicmp
 #   define strcasecmp _stricmp
@@ -184,31 +167,31 @@
 #   define S_IRWXU 0
 #   define S_IRWXG 0
 #   define S_IRWXO 0
-#else
+#else /* !WIN32 */
 #   ifndef PATH_MAX
 #       define MAX_PATH 1024
-#   else
+#   else /* PATH_MAX */
 #       define MAX_PATH PATH_MAX
-#   endif//PATH_MAX
+#   endif /* PATH_MAX */
 #   define INVALID_SOCKET -1
 #   define SOCKET_ERROR -1
 #   ifndef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
 #       define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP {0, 0, 0, PTHREAD_MUTEX_RECURSIVE_NP, __LOCK_INITIALIZER}
-#   endif
+#   endif /* !PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP */
 #   define _finite __finite
 #   define _isnan __isnan
-#endif
+#endif /* !WIN32 */
 
 
 /** 'undefine' min / max so that there won't be major conflicts regarding std
   */
 #ifdef min
 #   undef min
-#endif//min
+#endif /* min */
 
 #ifdef max
 #  undef max
-#endif//max
+#endif /* max */
 
 
 /** if not defined, define va_copy
@@ -216,7 +199,7 @@
   */
 #ifndef va_copy
 #   define va_copy( a, b ) memcpy( &( a ), &( b ), sizeof( va_list ) )
-#endif
+#endif /* !va_copy */
 
 
 /** 'inlined' functions 'can' improve performance, the compiler will judge how this will be handled.
@@ -226,19 +209,19 @@
 #ifdef WIN32
 #   define EVEMU_INLINE inline
 #   define EVEMU_FORCEINLINE __forceinline
-#else
+#else /* !WIN32 */
 #   define EVEMU_INLINE inline
 #   define EVEMU_FORCEINLINE __attribute__((always_inline))
-#endif//WIN32
+#endif /* !WIN32 */
 
 
 /** dll interface stuff
   */
 #ifdef WIN32
 #  define DLLFUNC extern "C" __declspec(dllexport)
-#else
+#else /* !WIN32 */
 #  define DLLFUNC extern "C"
-#endif//WIN32
+#endif /* !WIN32 */
 
 /** Use correct types for x64 platforms, too
   */
@@ -271,19 +254,19 @@ typedef uint8_t uint8;
 #  define I64u "%I64u"
 #  define I64x "%I64x"
 #  define I64X "%I64X"
-#else
+#else /* !WIN32 */
 #  ifdef X64
 #    define I64d "%ld"
 #    define I64u "%lu"
 #    define I64x "%lx"
 #    define I64X "%lX"
-#  else
+#  else /* !X64 */
 #    define I64d "%lld"
 #    define I64u "%llu"
 #    define I64x "%llx"
 #    define I64X "%llX"
-#  endif//X64
-#endif//WIN32
+#  endif /* !X64 */
+#endif /* !WIN32 */
 
 /** Return thread macro's
   * URL: http://msdn.microsoft.com/en-us/library/hw264s73(VS.80).aspx
@@ -293,10 +276,10 @@ typedef uint8_t uint8;
 #ifdef WIN32
 typedef void ThreadReturnType;
 #  define THREAD_RETURN( x ) return
-#else
+#else /* !WIN32 */
 typedef void* ThreadReturnType;
 #  define THREAD_RETURN( x ) return ( x )
-#endif
+#endif /* !WIN32 */
 
 
 /** Basic programming tips
@@ -340,7 +323,7 @@ uint32 GetTickCount();
 #   ifndef __CYGWIN__
 char* strupr( char* tmp );
 char* strlwr( char* tmp );
-#   endif//__CYGWIN__
+#   endif /* !__CYGWIN__ */
 #endif /* !WIN32 */
 
 #endif

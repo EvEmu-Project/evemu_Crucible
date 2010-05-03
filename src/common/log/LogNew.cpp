@@ -35,7 +35,7 @@
 #  define TNORMAL FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE
 #  define TWHITE  TNORMAL | FOREGROUND_INTENSITY
 #  define TBLUE   FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY
-#else
+#else /* !WIN32 */
 #  define TRED 1
 #  define TGREEN 2
 #  define TYELLOW 3
@@ -54,15 +54,15 @@ const char* colorstrings[ TBLUE + 1 ] =
     "\033[01;37m",
     "\033[1;34m",
 };
-#endif//WIN32
+#endif /* !WIN32 */
 
 NewLog::NewLog()
 #ifdef WIN32
 : mStdoutHandle( GetStdHandle( STD_OUTPUT_HANDLE ) ),
   mStderrHandle( GetStdHandle( STD_ERROR_HANDLE ) )
-#endif//WIN32
+#endif /* WIN32 */
 {
-    /* set initial log system time */
+    // set initial log system time
     SetTime( time( NULL ) );
 
     tm t;
@@ -72,7 +72,7 @@ NewLog::NewLog()
     snprintf( log_filename, MAX_PATH + 1, "eveserver_%02u-%02u-%04u-%02u-%02u.log", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min );
 
     mLogfile = fopen( log_filename, "w" );
-    /* we would crash as soon as anyone tried to print anything anyway */
+    // we would crash as soon as anyone tried to print anything anyway
     assert( NULL != mLogfile );
 
     Debug( "Log", "Log system initiated" );
@@ -228,7 +228,7 @@ void NewLog::Notice(const char * source, const char * format, ...)
 
 void NewLog::Debug( const char* source, const char* fmt, ... )
 {
-#ifdef DEBUG
+#ifndef NDEBUG
     LogTime( stdout ); LogTime( mLogfile );
 
     SetColor( TBLUE );
@@ -253,12 +253,12 @@ void NewLog::Debug( const char* source, const char* fmt, ... )
     va_end( ap2 );
 
     SetColor( TNORMAL );
-#endif//DEBUG
+#endif /* !NDEBUG */
 }
 
 void NewLog::LogTime( FILE* fp )
 {
-    /* this will be replaced my a timing thread somehow */
+    // this will be replaced my a timing thread somehow
     SetTime( time(NULL) );
 
     tm t;
@@ -269,10 +269,10 @@ void NewLog::LogTime( FILE* fp )
 
 void NewLog::SetColor( unsigned int color )
 {
-#ifndef WIN32
-    fputs( colorstrings[ color ], stdout );
-#else
+#ifdef WIN32
     SetConsoleTextAttribute( mStdoutHandle, (WORD)color );
-#endif
+#else /* !WIN32 */
+    fputs( colorstrings[ color ], stdout );
+#endif /* !WIN32 */
 }
 
