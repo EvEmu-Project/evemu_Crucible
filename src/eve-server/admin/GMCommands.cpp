@@ -24,10 +24,11 @@
 */
 
 #include "EVEServerPCH.h"
-#include "..\..\include\eve-server\inventory\InventoryDB.h"
-//#include "..\..\include\eve-server\PyCallable.h"
-#include "..\..\include\eve-server\Client.h"
-#include "..\..\include\eve-server\inventory\InventoryItem.h"
+
+//#include "PyCallable.h"
+#include "Client.h"
+#include "inventory/InventoryDB.h"
+#include "inventory/InventoryItem.h"
 
 PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {

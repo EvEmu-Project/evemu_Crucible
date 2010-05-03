@@ -28,7 +28,7 @@
 #define __INVENTORYDB_H_INCL__
 
 #include "ServiceDB.h"
-#include "..\..\trunk\include\eve-server\inventory\ItemRef.h"
+#include "inventory/ItemRef.h"
 
 class EVEAttributeMgr;
 

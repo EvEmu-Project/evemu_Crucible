@@ -24,7 +24,8 @@
 */
 
 #include "EVEServerPCH.h"
-#include "..\..\trunk\include\eve-server\ship\ModuleManager.h"
+
+#include "ship/ModuleManager.h"
 
 bool InventoryDB::GetCategory(EVEItemCategories category, CategoryData &into) {
     DBQueryResult res;
