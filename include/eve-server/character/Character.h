@@ -468,6 +468,7 @@ public:
 	double                  balance() const { return m_balance; }
 	double                  securityRating() const { return m_securityRating; }
 	uint32                  logonMinutes() const { return m_logonMinutes; }
+	void					addSecurityRating( double secutiryAmount ) { m_securityRating += secutiryAmount; }
 
 	// Corporation:
 	uint32                  corporationID() const { return m_corporationID; }

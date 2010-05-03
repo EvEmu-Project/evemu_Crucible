@@ -73,6 +73,13 @@ public:
 
 		return *this;
 	}
+	void SumWithMultFactor( double factor )
+	{
+		kinetic += kinetic * factor;
+		thermal += thermal * factor;
+		em += em * factor;
+		explosive += explosive * factor;
+	}
 
 	double kinetic;
 	double thermal;

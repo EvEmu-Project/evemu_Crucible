@@ -485,13 +485,18 @@ static const CorpRoleFlags corpRoleAll =
 
 //these come from dgmEffects.
 typedef enum {
+	effectShieldBoosting			= 4,	//effects.ShieldBoosting
+	effectMissileLaunching			= 9,	//effects.MissileDeployment
 	effectTargetAttack				= 10,	//effects.Laser
 	effectLoPower					= 11,
 	effectHiPower					= 12,
 	effectMedPower					= 13,
 	effectOnline					= 16,
+	effectArmorRepair				= 27,	//effects.ArmorRepair
 	effectProjectileFired			= 34,
+	effectEMPWave					= 38,
 	effectMiningLaser				= 67,	//effects.Laser
+	effectEmpFieldRange				= 99,
 	effectSkillEffect				= 132,
 	effectAnchorDrop				= 649,
 	effectAnchorLift				= 650,

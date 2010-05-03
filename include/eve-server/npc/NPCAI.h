@@ -63,9 +63,14 @@ protected:
 	
 	Timer m_processTimer;
 	Timer m_mainAttackTimer;
+
+	Timer m_shieldBoosterTimer;
+	Timer m_armorRepairTimer;
+
+	//Timer m_warpScramblerTimer;
+	//Timer m_webifierTimer;
+
 };
-
-
 
 #endif
 

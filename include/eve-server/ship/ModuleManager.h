@@ -100,7 +100,9 @@ protected:
 	uint32 m_repeatCount;
 	uint32 m_target;
 	
-private:
+//private:
+	// Transformed in protected to get access in derived classes
+protected:
 	//its possible that a module offers multiple active effects, but
 	//I am not sure.. this will not support it if that is the case...
 	const char *const m_effectName;	//must point into static string data.
@@ -168,6 +170,208 @@ protected:
 };
 
 
+/**
+ * \class MiningStripLaserModule
+ *
+ * @brief control the module Strip miner.
+ *
+ * The Strip Miner module used in Mining Barges
+ *
+ * This miner type is diferent from normal one because its time is
+ * greater, for this we need to make sure that the effects.Laser
+ * is sent to client several times, maybe 24 to 26 times.
+ *
+ * @author Stranho
+ * @date 06/30/2009.
+ */
+class MiningStripLaserModule : public ActivatableModule {
+public:
+	MiningStripLaserModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("miningLaser", owner, self, charge_), m_EffectTimer(0), m_MiningDuration(0) {}
+	virtual ~MiningStripLaserModule() {}
+protected:
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+	Timer m_EffectTimer;
+	int32 m_MiningDuration;		// used when the user cancels the mining before completation
+};
+
+
+/**
+ * \class ShieldBoostingModule
+ *
+ * @brief control the shield boosting module.
+ *
+ * Gives a boost in the shield charge at cost
+ * of capacitor power.
+ *
+ * @author Stranho
+ * @date 06/30/2009.
+ */
+class ShieldBoostingModule : public ActivatableModule {
+public:
+	ShieldBoostingModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("shieldBoosting", owner, self, charge_) {}
+	virtual ~ShieldBoostingModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+
+/**
+ * \class ShieldExtenderModule
+ *
+ * @brief control the shield total strength.
+ *
+ * Increase the ship shield capacity,
+ * giving it more hit points.
+ *
+ * @author Stranho
+ * @date 06/30/2009.
+ */
+class ShieldExtenderModule : public PassiveModule {
+public:
+	ShieldExtenderModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: PassiveModule(owner, self, charge_) {}
+	virtual ~ShieldExtenderModule() {}
+
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+};
+
+
+/**
+ * \class ArmorRepairModule
+ *
+ * @brief Repair damage to the ships armor.
+ *
+ * Gives a boost in the shield charge at cost
+ * of capacitor power.
+ *
+ * @author Stranho
+ * @date 06/30/2009.
+ */
+class ArmorRepairModule : public ActivatableModule {
+public:
+	ArmorRepairModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("armorRepair", owner, self, charge_) {}
+	virtual ~ArmorRepairModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+
+/**
+ * \class ArmorPlatesModule
+ *
+ * @brief Armor Plates
+ *
+ * Increases the maximum strength of the Armor.
+ *
+ * @author Stranho
+ * @date 07/02/2009.
+ */
+class ArmorPlatesModule : public PassiveModule {
+public:
+	ArmorPlatesModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: PassiveModule(owner, self, charge_) {}
+	virtual ~ArmorPlatesModule() {}
+
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+};
+
+
+/**
+ * \class PowerDiagnosticsModule
+ *
+ * @brief Power Diagnostics System
+ *
+ * Monitors and optimizes the power grid. Gives a boost to 
+ * power core output and gives an increase in shield
+ * and capacitor recharge rate.
+ *
+ * @author Stranho
+ * @date 07/02/2009.
+ */
+class PowerDiagnosticsModule : public PassiveModule {
+public:
+	PowerDiagnosticsModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: PassiveModule(owner, self, charge_) 
+	{
+		m_ShieldRechargeRateMultiplier = 0.0;
+		m_CapacitorRechargeRateMultiplier = 0.0;
+		m_ShieldRechargeRate = 0;
+		m_RechargeRate = 0;
+		m_PowerOutput = 0;
+		m_ShieldCapacity = 0;
+		m_CapacitorCapacity = 0;
+	}
+	virtual ~PowerDiagnosticsModule() {}
+
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+
+protected:
+	double m_ShieldRechargeRateMultiplier;
+	double m_CapacitorRechargeRateMultiplier;
+	uint32 m_ShieldRechargeRate;
+	uint32 m_RechargeRate;
+	uint32 m_PowerOutput;
+	uint32 m_ShieldCapacity;
+	uint32 m_CapacitorCapacity;
+};
+
+
+/**
+ * \class SmartBombModule
+ *
+ * @brief Do damage to nearby ships
+ *
+ * Sends a wave of blast that hit any
+ * nearvy ships in the range.
+ *
+ * @author Stranho
+ * @date 06/30/2009.
+ */
+class SmartBombModule : public ActivatableModule {
+public:
+	SmartBombModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~SmartBombModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
 
 
 

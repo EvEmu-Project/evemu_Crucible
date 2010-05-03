@@ -459,7 +459,7 @@ void DestinyManager::_InitWarp() {
 		vector_from_goal
 		);
 	//during the warp, we are not in any bubble.
-	m_self->Bubble()->Remove(m_self);
+	//m_self->Bubble()->Remove(m_self);
 }
 
 void DestinyManager::_Warp() {
@@ -524,12 +524,21 @@ void DestinyManager::_Warp() {
 		_log(PHYSICS__TRACEPOS, "Entity %u: Warp Slowing: velocity %f m/s with %f m left to go.", 
 			m_self->GetID(),
 			velocity_magnitude, dist_remaining);
-
+		
+		//put ourself back into a bubble.
+		m_system->bubbles.UpdateBubble(m_self);
+		
 		//note, this should actually be checked AFTER we change new_velocity.
 		//but hey, it doesn't get copied into ball.velocity until later anyhow.
 		if(velocity_magnitude < m_maxShipVelocity) {
 			stop = true;
 		}
+	}
+
+	if( m_warpState->acceleration_time > 1000 )
+	{
+		//during the warp, we are not in any bubble.
+		m_self->Bubble()->Remove(m_self);
 	}
 	
 	GVector vector_to_us = m_warpState->normvec_them_to_us * dist_remaining;
@@ -546,7 +555,7 @@ void DestinyManager::_Warp() {
 		delete m_warpState;
 		m_warpState = NULL;
 		//put ourself back into a bubble.
-		m_system->bubbles.UpdateBubble(m_self);
+		//m_system->bubbles.UpdateBubble(m_self);
 		Stop(false);	//no updates, client is doing this too.
 	}
 }

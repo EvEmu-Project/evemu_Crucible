@@ -87,21 +87,6 @@ Damage::~Damage()
 
 
 
-void Client::ApplyDamageModifiers(Damage &d, SystemEntity *target) {
-	
-}
-
-void Client::_ReduceDamage(Damage &d) {
-	// armorEmDamageResonance
-	// armorExplosiveDamageResonance
-	// armorKineticDamageResonance
-	// armorThermalDamageResonance
-	// shieldEmDamageResonance
-	// shieldExplosiveDamageResonance
-	// shieldKineticDamageResonance
-	// shieldThermalDamageResonance
-}
-
 static const char *DamageMessageIDs_Self[6] = {
 	"AttackHit1R",	//barely scratches
 	"AttackHit2R",	//lightly hits
@@ -145,10 +130,13 @@ void ItemSystemEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target) {
 //default implementation bases everything directly on our item.
 //the notifications which this puts out probably needs some work.
 bool ItemSystemEntity::ApplyDamage(Damage &d) {
-	_log(ITEM__TRACE, "%u: Applying %.1f total damage from %u", GetID(), d.GetTotal(), d.source->GetID());
+	_log(ITEM__TRACE, "%s(%u): Applying %.1f total damage from %u", GetName(), GetID(), d.GetTotal(), d.source->GetID());
 	
 	double total_damage = 0;
 	bool killed = false;
+	int random_damage = 0;
+	double random_damage_mult = 1.0;
+
 	
 	//apply resistances...
 	//damageResistance?
@@ -171,16 +159,41 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 	//TODO: deal with seepage from shield into armor.
 	//shieldUniformity
 	//uniformity (chance of seeping through to armor)
-	
+
+	// Make a random value to use in msg's and attack multiplier
+	random_damage = MakeRandomInt( 0, 5 );
+	random_damage_mult = (double)(random_damage / 10.0);	// chance from 0 to 50% more damage
+
+	/*
+	 * Here we calculates the uniformity thing.
+	 * I think this must be calculated based on
+	 * the type of damage -> resistance basis.
+	*
+	double shield_uniformity = available_shield / m_self->shieldCapacity();
+	if( shield_uniformity < ( 1.0  - m_self->shieldUniformity() ) )
+	{
+		/*
+		 * As far i can see mostly npc/entities have a 
+		 * chance of transpassing when the shield is below 25%
+		/
+	}
+	//*/
+
+	// Not sure about this, but with this we get some random hits... :)
+	shield_damage.SumWithMultFactor( random_damage_mult );
 	double total_shield_damage = shield_damage.GetTotal();
-	if(total_shield_damage <= available_shield) {
+
+	if(total_shield_damage <= available_shield)
+	{
 		//we can take all this damage with our shield...
 		double new_charge = m_self->shieldCharge() - total_shield_damage;
+
 		m_self->Set_shieldCharge(new_charge);
-		
 		total_damage += total_shield_damage;
-		_log(ITEM__TRACE, "%u: Applying entire %.1f damage to shields. New charge: %.1f", GetID(), total_shield_damage, new_charge);
-	} else {
+		_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to shields. New charge: %.1f", GetName(), GetID(), total_shield_damage, new_charge);
+	}
+	else
+	{
 		//first determine how much we can actually apply to 
 		//the shield, the rest goes further down.
 		double consumed_shield_ratio = available_shield / shield_damage.GetTotal();
@@ -188,7 +201,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 		if(available_shield > 0) {
 			total_damage += available_shield;
 			
-			_log(ITEM__TRACE, "%u: Shield depleated with %.1f damage. %.1f damage remains.", GetID(), available_shield, d.GetTotal());
+			_log(ITEM__TRACE, "%s(%u): Shield depleated with %.1f damage. %.1f damage remains.", GetName(), GetID(), available_shield, d.GetTotal());
 			
 			//set shield to 0, it is fully depleated.
 			m_self->Set_shieldCharge(0);
@@ -215,24 +228,30 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 		//TODO: figure out how much passes through to structure/modules.
 		//armorUniformity
 		
+		// Not sure about this, but with this we get some random hits... :)
+		armor_damage.SumWithMultFactor( random_damage_mult );
 		double total_armor_damage = armor_damage.GetTotal();
-		if(total_armor_damage <= available_armor) {
+		if(total_armor_damage <= available_armor)
+		{
 			//we can take all this damage with our armor...
 			double new_damage = m_self->armorDamage() + total_armor_damage;
 			m_self->Set_armorDamage(new_damage);
 			
 			total_damage += total_armor_damage;
-			_log(ITEM__TRACE, "%u: Applying entire %.1f damage to armor. New armor damage: %.1f", GetID(), total_armor_damage, new_damage);
-		} else {
+			_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to armor. New armor damage: %.1f", GetName(), GetID(), total_armor_damage, new_damage);
+		}
+		else
+		{
 			//first determine how much we can actually apply to 
 			//the armor, the rest goes further down.
 			double consumed_armor_ratio = available_armor / armor_damage.GetTotal();
 			d *= 1.0 - consumed_armor_ratio;
 
-			if(available_armor > 0) {
+			if(available_armor > 0)
+			{
 				total_damage += available_armor;
 				
-				_log(ITEM__TRACE, "%u: Armor depleated with %.1f damage. %.1f damage remains.", GetID(), available_armor, d.GetTotal());
+				_log(ITEM__TRACE, "%s(%u): Armor depleated with %.1f damage. %.1f damage remains.", GetName(), GetID(), available_armor, d.GetTotal());
 				
 				//all armor has been penetrated.
 				m_self->Set_armorDamage(m_self->armorHP());
@@ -259,16 +278,30 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 			//activeKineticDamageResonance
 			//activeExplosiveDamageResonance
 			//structureUniformity
+
+			// If we have a passive or an active module to boost the resistance.
+			// The modules itself must provide us this value.
+			hull_damage.em *= m_self->hullEmDamageResonance();
+			hull_damage.explosive *= m_self->hullExplosiveDamageResonance();
+			hull_damage.kinetic *= m_self->hullKineticDamageResonance();
+			hull_damage.thermal *= m_self->hullThermalDamageResonance();
+
+
+			// Not sure about this, but with this we get some random hits... :)
+			hull_damage.SumWithMultFactor( random_damage_mult );
 			double total_hull_damage = hull_damage.GetTotal();
 			total_damage += total_hull_damage;
-			if(total_hull_damage < available_hull) {
+			if(total_hull_damage < available_hull)
+			{
 				//we can take all this damage with our hull...
 				double new_damage = m_self->damage() + total_hull_damage;
 				m_self->Set_damage(new_damage);
-				_log(ITEM__TRACE, "%u: Applying entire %.1f damage to structure. New structure damage: %.1f", GetID(), total_hull_damage, new_damage);
-			} else {
+				_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to structure. New structure damage: %.1f", GetName(), GetID(), total_hull_damage, new_damage);
+			}
+			else
+			{
 				//dead....
-				_log(ITEM__TRACE, "%u: %.1f damage has depleated our structure. Time to explode.", GetID(), total_hull_damage);
+				_log(ITEM__TRACE, "%s(%u): %.1f damage has depleated our structure. Time to explode.", GetName(), GetID(), total_hull_damage);
 				killed = true;
 				m_self->Set_damage(m_self->hp());
 			}
@@ -277,10 +310,10 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 		}
 	}
 	
-	if(total_damage <= 0.0)
+	if( total_damage <= 0.0 )
 		return(killed);
 	
-	PyTuple* up;
+	PyTuple *up;
 
 	//Notifications to ourself:
 	Notify_OnEffectHit noeh;
@@ -290,32 +323,32 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 	noeh.damage = total_damage;
 
 	up = noeh.Encode();
-	QueueDestinyEvent( &up );
-    PySafeDecRef( up );
+	QueueDestinyEvent(&up);
+	PySafeDecRef( up );
 
 	//NOTE: could send out the RD version of this message instead of the R version, which
 	//includes "weapon" and "owner" instead of "source".
 	Notify_OnDamageMessage_Self ondam;
-	ondam.messageID = "AttackHit2R";	//TODO: randomize/select this somehow.
+	//ondam.messageID = "AttackHit2R";	//TODO: randomize/select this somehow.
+	ondam.messageID = DamageMessageIDs_Self[random_damage];
 	ondam.damage = total_damage;
 	ondam.source = d.source->GetID();
 	ondam.splash = "";
-
 	up = ondam.Encode();
-	QueueDestinyEvent( &up );
-    PySafeDecRef( up );
+	QueueDestinyEvent(&up);
+	PySafeDecRef( up );
 
 	//Notifications to others:
 	//I am not sure what the correct scope of this broadcast
 	//should be. For now, it goes to anybody targeting us.
-	if( targets.IsTargetedBySomething() )
-    {
+	if(targets.IsTargetedBySomething()) {
 		up = noeh.Encode();
-		targets.QueueTBDestinyEvent( &up );
-        PySafeDecRef( up );
+		targets.QueueTBDestinyEvent(&up);
+		PySafeDecRef( up );
 
 		Notify_OnDamageMessage_Other ondamo;
-		ondamo.messageID = "AttackHit3";		//TODO: select this based on the severity of the hit...
+		//ondamo.messageID = "AttackHit3";		//TODO: select this based on the severity of the hit...
+		ondamo.messageID = DamageMessageIDs_Other[random_damage];
 		ondamo.format_type = fmtMapping_itemTypeName;
 		ondamo.weaponType = d.weapon->typeID();
 		ondamo.damage = total_damage;
@@ -323,25 +356,301 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 		ondamo.splash = "";
 
 		up = ondamo.Encode();
-		targets.QueueTBDestinyEvent( &up );
-        PySafeDecRef( up );
+		targets.QueueTBDestinyEvent(&up);
+		PySafeDecRef( up );
 	}
 	
-	if( true == killed )
-		Killed( d );
-    else
+	if(killed == true)
+	{
+		Killed(d);
+	}
+	else
+	{
 		_SendDamageStateChanged();
+	}
 
-	return killed;
+	return(killed);
 }
 
+void Client::_ReduceDamage(Damage &d) {
+	// armorEmDamageResonance
+	// armorExplosiveDamageResonance
+	// armorKineticDamageResonance
+	// armorThermalDamageResonance
+	// shieldEmDamageResonance
+	// shieldExplosiveDamageResonance
+	// shieldKineticDamageResonance
+	// shieldThermalDamageResonance
+}
+
+void Client::ApplyDamageModifiers(Damage &d, SystemEntity *target)
+{
+}
+
+// for now this uses ItemSystemEntity
 bool Client::ApplyDamage(Damage &d) {
 	_ReduceDamage(d);
 	
-	//shieldUniformity
-	//structureUniformity
+	return ItemSystemEntity::ApplyDamage(d);
+}
 
-	return(false);
+// This is a NPC implementation of damage system (incomplete)
+bool NPC::ApplyDamage(Damage &d) {
+	_log(ITEM__TRACE, "%u: Applying %.1f total damage from %u", GetID(), d.GetTotal(), d.source->GetID());
+ 	
+	double total_damage = 0;
+	bool killed = false;
+	int random_damage = 0;
+	double random_damage_mult = 1.0;
+	
+	//apply resistances...
+	//damageResistance?
+	
+	//Shield:
+	double available_shield = m_shieldCharge;
+	Damage shield_damage = d.MultiplyDup(
+		m_self->shieldKineticDamageResonance(),
+		m_self->shieldThermalDamageResonance(),
+		m_self->shieldEmDamageResonance(),
+		m_self->shieldExplosiveDamageResonance()
+	);
+	//other:
+	//emDamageResistanceBonus
+	//explosiveDamageResistanceBonus
+	//kineticDamageResistanceBonus
+	//thermalDamageResistanceBonus
+	// 
+
+
+
+	//TODO: deal with seepage from shield into armor.
+ 	//shieldUniformity
+	//uniformity (chance of seeping through to armor)
+ 
+	/*
+	 * Here we calculates the uniformity thing.
+	 * I think this must be calculated based on
+	 * the type of damage -> resistance basis.
+	*
+	double shield_uniformity = available_shield / m_self->shieldCapacity();
+	if( shield_uniformity < ( 1.0  - m_self->shieldUniformity() ) )
+	{
+		/*
+		 * As far i can see mostly npc/entities have a 
+		 * chance of transpassing when the shield is below 25%
+		/
+	}
+	*/
+
+	// Make a random value to use in msg's and attack multiplier
+	random_damage = MakeRandomInt( 0, 5 );
+	random_damage_mult = (double)(random_damage / 10.0);
+
+	// Not sure about this, but with this we get some random hits... :)
+	//total_shield_damage += total_shield_damage * random_damage_mult;
+	shield_damage.SumWithMultFactor( random_damage_mult );
+	double total_shield_damage = shield_damage.GetTotal();
+
+	if(total_shield_damage <= available_shield)
+	{
+		//we can take all this damage with our shield...
+		double new_charge = m_shieldCharge - total_shield_damage;
+
+		m_shieldCharge = new_charge;
+		total_damage += total_shield_damage;
+		_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to shields. New charge: %.1f", GetName(), GetID(), total_shield_damage, new_charge);
+	}
+	else
+	{
+		//first determine how much we can actually apply to 
+		//the shield, the rest goes further down.
+		double consumed_shield_ratio = available_shield / shield_damage.GetTotal();
+		d *= 1.0 - consumed_shield_ratio;
+		if(available_shield > 0) {
+			total_damage += available_shield;
+			
+			_log(ITEM__TRACE, "%s(%us): Shield depleated with %.1f damage. %.1f damage remains.", GetName(), GetID(), available_shield, d.GetTotal());
+			
+			//set shield to 0, it is fully depleated.
+			m_shieldCharge = 0;
+		}
+		
+		//Armor:
+		double available_armor = m_self->armorHP() - m_armorDamage;
+		Damage armor_damage = d.MultiplyDup(
+			m_self->armorKineticDamageResonance(),
+			m_self->armorThermalDamageResonance(),
+			m_self->armorEmDamageResonance(),
+			m_self->armorExplosiveDamageResonance()
+		);
+		//other:
+		//activeEmResistanceBonus
+		//activeExplosiveResistanceBonus
+		//activeThermicResistanceBonus
+		//activeKineticResistanceBonus
+		//passiveEmDamageResistanceBonus
+		//passiveExplosiveDamageResistanceBonus
+		//passiveKineticDamageResistanceBonus
+		//passiveThermicDamageResistanceBonus
+
+		//TODO: figure out how much passes through to structure/modules.
+		//armorUniformity
+		
+		// Not sure about this, but with this we get some random hits... :)
+		//total_armor_damage += total_armor_damage * random_damage_mult;
+		armor_damage.SumWithMultFactor( random_damage_mult );
+		double total_armor_damage = armor_damage.GetTotal();
+		
+		if(total_armor_damage <= available_armor)
+		{
+			//we can take all this damage with our armor...
+			double new_damage = m_armorDamage + total_armor_damage;
+			m_armorDamage = new_damage;
+			
+			total_damage += total_armor_damage;
+			_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to armor. New armor damage: %.1f", GetName(), GetID(), total_armor_damage, new_damage);
+		}
+		else
+		{
+			//first determine how much we can actually apply to 
+			//the armor, the rest goes further down.
+			double consumed_armor_ratio = available_armor / armor_damage.GetTotal();
+			d *= 1.0 - consumed_armor_ratio;
+
+			if(available_armor > 0)
+			{
+				total_damage += available_armor;
+				
+				_log(ITEM__TRACE, "%s(%u): Armor depleated with %.1f damage. %.1f damage remains.", GetName(), GetID(), available_armor, d.GetTotal());
+				
+				//all armor has been penetrated.
+				m_armorDamage = m_self->armorHP();
+			}
+			
+			
+			//Hull/Structure:
+			
+			//The base hp and damage attributes represent structure.
+			double available_hull = m_self->hp() - m_hullDamage;
+			Damage hull_damage = d.MultiplyDup(
+				m_self->hullKineticDamageResonance(),
+				m_self->hullThermalDamageResonance(),
+				m_self->hullEmDamageResonance(),
+				m_self->hullExplosiveDamageResonance()
+			);
+			//other:
+			//passiveEmDamageResonanceMultiplier
+			//passiveThermalDamageResonanceMultiplier
+			//passiveKineticDamageResonanceMultiplier
+			//passiveExplosiveDamageResonanceMultiplier
+			//activeEmDamageResonance
+			//activeThermalDamageResonance
+			//activeKineticDamageResonance
+			//activeExplosiveDamageResonance
+			//structureUniformity
+
+			// Not sure about this, but with this we get some random hits... :)
+			//total_hull_damage += total_hull_damage * random_damage_mult;
+			hull_damage.SumWithMultFactor( random_damage_mult );
+			double total_hull_damage = hull_damage.GetTotal();
+			total_damage += total_hull_damage;
+
+			if(total_hull_damage < available_hull)
+			{
+
+				//we can take all this damage with our hull...
+				double new_damage = m_hullDamage + total_hull_damage;
+				m_hullDamage = new_damage;
+				_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to structure. New structure damage: %.1f", GetName(), GetID(), total_hull_damage, new_damage);
+			}
+			else
+			{
+				//dead....
+				_log(ITEM__TRACE, "%s(%u): %.1f damage has depleated our structure. Time to explode.", GetName(), GetID(), total_hull_damage);
+				killed = true;
+				m_hullDamage = m_self->hp();
+			}
+			
+			//TODO: deal with damaging modules. no idea the mechanics on this.
+		}
+	}
+	
+	//if( total_damage <= 0.0 )
+	//	return(killed);
+	
+	PyTuple *up;
+
+	//Notifications to ourself:
+	Notify_OnEffectHit noeh;
+	noeh.itemID = d.source->GetID();
+	noeh.effectID = d.effect;
+	noeh.targetID = GetID();
+	noeh.damage = total_damage;
+
+	up = noeh.Encode();
+	QueueDestinyEvent(&up);
+	PySafeDecRef( up );
+
+	//NOTE: could send out the RD version of this message instead of the R version, which
+	//includes "weapon" and "owner" instead of "source".
+	Notify_OnDamageMessage_Self ondam;
+	//ondam.messageID = "AttackHit2R";	//TODO: randomize/select this somehow.
+	ondam.messageID = DamageMessageIDs_Self[random_damage];
+	ondam.damage = total_damage;
+	ondam.source = d.source->GetID();
+	ondam.splash = "";
+	up = ondam.Encode();
+	QueueDestinyEvent(&up);
+	PySafeDecRef( up );
+
+	//Notifications to others:
+	//I am not sure what the correct scope of this broadcast
+	//should be. For now, it goes to anybody targeting us.
+	if(targets.IsTargetedBySomething()) {
+		up = noeh.Encode();
+		targets.QueueTBDestinyEvent(&up);
+		PySafeDecRef( up );
+
+		Notify_OnDamageMessage_Other ondamo;
+		//ondamo.messageID = "AttackHit3";		//TODO: select this based on the severity of the hit...
+		ondamo.messageID = DamageMessageIDs_Other[random_damage];
+		ondamo.format_type = fmtMapping_itemTypeName;
+		ondamo.weaponType = d.weapon->typeID();
+		ondamo.damage = total_damage;
+		ondamo.target = GetID();
+		ondamo.splash = "";
+
+		up = ondamo.Encode();
+		targets.QueueTBDestinyEvent(&up);
+		PySafeDecRef( up );
+	}
+	
+	if(killed == true)
+	{
+		Killed(d);
+	}
+	else
+	{
+		_SendDamageStateChanged();
+	}
+
+	return(killed);
+
+}
+ 
+
+void NPC::_SendDamageStateChanged() const
+{
+	DoDestinyDamageState state;
+	MakeDamageState(state);
+	
+	DoDestiny_OnDamageStateChange ddsc;
+	ddsc.entityID = GetID();
+	ddsc.state = state.Encode();
+	
+	PyTuple *up;
+	up = ddsc.Encode();
+	targets.QueueTBDestinyUpdate(&up);
 }
 
 void ItemSystemEntity::_SendDamageStateChanged() const {
@@ -389,7 +698,7 @@ void Client::Killed(Damage &fatal_blow) {
 		ItemData idata(
 			itemTypeCapsule,
 			GetCharacterID(),
-			GetStationID(),
+			GetLocationID(),
 			flagCapsule,
 			capsule_name.c_str()
 		);
@@ -418,16 +727,35 @@ void Client::Killed(Damage &fatal_blow) {
 	}
 }
 
-void NPC::Killed(Damage &fatal_blow) {
+void NPC::Killed(Damage &fatal_blow)
+{
+	m_destiny->Stop();
+
 	DynamicSystemEntity::Killed(fatal_blow);
 	
+	SystemEntity *killer = fatal_blow.source;
+	Client* client = m_services.entity_list.FindByShip( killer->Item()->ownerID() );
+	if( !killer->IsClient() )
+	{
+		if( client != NULL )
+		{
+			killer = static_cast<SystemEntity*>(client);
+		}
+	}
+	else
+	{
+		client = killer->CastToClient();
+	}
 	//TODO: drop loot.
-	_DropLoot(fatal_blow.source);
+	//_DropLoot(fatal_blow.source);
+	_DropLoot(killer);
 	
 	//award kill bounty.
-	_AwardBounty(fatal_blow.source);
+	//_AwardBounty(fatal_blow.source);
+	_AwardBounty(killer);
 	
 	//TODO: award status changes. (entitySecurityStatusKillBonus)
+	client->GetChar()->addSecurityRating( m_self->entitySecurityStatusKillBonus() );
 
 	//notify our spawner that we are gone.
 	if(m_spawner != NULL) {

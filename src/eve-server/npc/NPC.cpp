@@ -50,6 +50,12 @@ NPC::NPC(
 	m_AI = new NPCAIMgr(this);
 	
 	m_destiny->SetPosition(position, false);
+	
+	/* Gets the value from the NPC and put on our own vars */
+	m_shieldCharge = self->shieldCharge();
+	m_armorDamage = 0.0;
+	m_hullDamage = 0.0;
+
 }
 
 NPC::~NPC() {
@@ -190,8 +196,37 @@ void NPC::EncodeDestiny( Buffer& into ) const
 }
 
 
-
-
+void NPC::MakeDamageState(DoDestinyDamageState &into) const {
+	into.shield = m_shieldCharge / m_self->shieldCapacity();
+	into.tau = 100000;	//no freakin clue.
+	into.timestamp = Win32TimeNow();
+	into.armor = 1.0 - (m_armorDamage / m_self->armorHP());
+	into.structure = 1.0 - (m_hullDamage / m_self->hp());
+}
+ 
+void NPC::UseShieldRecharge()
+{
+	// We recharge our shield until it's reaches the shield capacity.
+	if( m_shieldCharge < this->Item()->shieldCapacity() )
+	{
+		// Not found the information on how much it's consume from capacitor
+		m_shieldCharge += this->Item()->entityShieldBoostAmount();
+	}
+	// TODO: Need to send SpecialFX / amount update
+}
+ 
+void NPC::UseArmorRepairer()
+{
+	// We recharge our shield until it's reaches the shield capacity.
+	if( m_armorDamage > 0 )
+	{
+		// Not found the information on how much it's consume from capacitor
+		m_armorDamage -= this->Item()->entityArmorRepairAmount();
+		if( m_armorDamage < 0.0 )
+			m_armorDamage = 0.0;
+	}
+	// TODO: Need to send SpecialFX / amount update
+}
 
 
 

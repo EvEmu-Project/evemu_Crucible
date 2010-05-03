@@ -32,16 +32,45 @@ NPCAIMgr::NPCAIMgr(NPC *who)
   m_entityAttackRange2(who->Item()->entityAttackRange()*who->Item()->entityAttackRange()),
   m_npc(who),
   m_processTimer(50),	//arbitrary.
-  m_mainAttackTimer(1)	//we want this to always trigger the first time through.
+  m_mainAttackTimer(1),	//we want this to always trigger the first time through.
+  m_shieldBoosterTimer(who->Item()->entityShieldBoostDuration()),
+  m_armorRepairTimer(who->Item()->entityArmorRepairDuration())
 {
 	m_processTimer.Start();
 	m_mainAttackTimer.Start();
+
+	// This NPC uses Shield Booster
+	if( who->Item()->entityShieldBoostDuration() > 0 )
+		m_shieldBoosterTimer.Start();
+	// This NPC uses armor repairer
+	if( who->Item()->entityArmorRepairDuration() > 0 )
+		m_armorRepairTimer.Start();
+
 }
 	
 void NPCAIMgr::Process() {
 	if(!m_processTimer.Check())
 		return;
-	
+
+	// Test to see if we have a Shield Booster
+	if( m_shieldBoosterTimer.Enabled() )
+	{
+		// It's time to recharge?
+		if( m_shieldBoosterTimer.Check() )
+		{
+			m_npc->UseShieldRecharge();
+		}
+	}
+	// Test to see if we have an Armor Repair
+	if( m_armorRepairTimer.Enabled() )
+	{
+		// It's time to recharge?
+		if( m_armorRepairTimer.Check() )
+		{
+			m_npc->UseArmorRepairer();
+		}
+	}
+
 	switch(m_state) {
 	case Idle:
 		//TODO: wander around?
@@ -158,7 +187,9 @@ void NPCAIMgr::_EnterEngaged(SystemEntity *target) {
 void NPCAIMgr::Targeted(SystemEntity *by_who) {
 	//TODO: determind lock speed.
 	//TODO: obey maxLockedTargets
-	m_npc->targets.StartTargeting(by_who, 1000);
+	//m_npc->targets.StartTargeting(by_who, 1000);
+	if( m_npc->targets.GetTotalTargets() < m_npc->Item()->maxLockedTargets() )
+		m_npc->targets.StartTargeting( by_who, 1000 );
 	
 	switch(m_state) {
 	case Idle: {
@@ -260,7 +291,8 @@ void NPCAIMgr::_SendWeaponEffect( const char*effect, SystemEntity *target )
 	sfx.start = 1;
 	sfx.active = 1;
 //omit these for now, setting up the repeat might be a network optimization, but we dont need it right now.
-	sfx.duration_ms = 1960;	//no idea...
+	//sfx.duration_ms = 1960;	//no idea...
+	sfx.duration_ms = m_npc->Item()->speed();
 	sfx.repeat = 1;
 	sfx.startTime = Win32TimeNow();
 	

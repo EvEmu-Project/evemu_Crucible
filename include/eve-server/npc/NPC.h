@@ -80,6 +80,12 @@ public:
 	
 	void ForcedSetPosition(const GPoint &pt);
 	
+
+	virtual bool ApplyDamage(Damage &d);
+	virtual void MakeDamageState(DoDestinyDamageState &into) const;
+
+	void UseShieldRecharge();
+	void UseArmorRepairer();
 	
 	/*
 	
@@ -101,7 +107,7 @@ entityAttackDelayMin
 entityAttackDelayMax
 	*/
 	
-	
+
 protected:
 	void _AwardBounty(SystemEntity *who);
 	void _DropLoot(SystemEntity *owner);
@@ -115,6 +121,19 @@ protected:
 	uint32 m_orbitingID;
 
 	NPCAIMgr *m_AI;	//never NULL
+
+
+	/* Used to calculate the damages on NPCs
+	 * I don't know why, npc->Set_shieldCharge does not work
+	 * calling npc->shieldCharge() return the complete shield
+	 * So we get the values on creation and use then instead.
+	*/
+	double m_shieldCharge;
+	double m_armorDamage;
+	double m_hullDamage;
+
+	void _SendDamageStateChanged() const;
+
 };
 
 #endif

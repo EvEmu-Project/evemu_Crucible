@@ -564,6 +564,11 @@ typedef enum {
 	Destructible_Agents_With_Guns = 719,
 	Destructible_Agent_NPCs = 720,
 	Temp = 721,
+
+
+	Power_Diagnostics			= 766,		// Power Diagnostic System
+
+
  } invGroups;
 
  }
