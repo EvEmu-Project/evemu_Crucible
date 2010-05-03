@@ -50,6 +50,7 @@ public:
 		PyCallable_REG_CALL(CorpStationMgrIMBound, GetQuoteForRentingAnOffice)
 		PyCallable_REG_CALL(CorpStationMgrIMBound, RentOffice)
         PyCallable_REG_CALL(CorpStationMgrIMBound, GetCorporateStationOffice)
+		PyCallable_REG_CALL(CorpStationMgrIMBound, GetNumberOfUnrentedOffices)
 	}
 	virtual ~CorpStationMgrIMBound() { delete m_dispatch; }
 	virtual void Release() {
@@ -66,6 +67,7 @@ public:
 	PyCallable_DECL_CALL(GetQuoteForRentingAnOffice)
 	PyCallable_DECL_CALL(RentOffice)
     PyCallable_DECL_CALL(GetCorporateStationOffice)
+	PyCallable_DECL_CALL(GetNumberOfUnrentedOffices)
 
 protected:
     Dispatcher *const m_dispatch;
@@ -545,6 +547,17 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice( PyCallArgs& ca
 
     return new PyNone;
 }
+
+PyResult CorpStationMgrIMBound::Handle_GetNumberOfUnrentedOffices( PyCallArgs &call ) 
+{
+	//Extremely hackish and temporary.  Just getting some number working to pass to the client.
+	//TODO: add handler that queries the data from the StationType struct.  Not exactly sure how to do this,
+	//		but will involve call.client->GetStationID as the arguments to StationType.officeSlots() (hopefully)
+	const int office_hack = 1;
+
+	return (new PyInt(office_hack));
+}
+
 
 
 
