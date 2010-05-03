@@ -28,6 +28,7 @@
 #define __INVENTORYDB_H_INCL__
 
 #include "ServiceDB.h"
+#include "..\..\trunk\include\eve-server\inventory\ItemRef.h"
 
 class EVEAttributeMgr;
 
@@ -267,6 +268,29 @@ public:
 	 * @return True if load succeeds, false if fails.
 	 */
 	bool GetStation(uint32 stationID, StationData &into);
+	
+	/* /Fit command helper function
+	 *
+	 * Determines which slots the selected module can be fit to
+	 *
+	 * @param[in] itemID of the item to be checked
+	 * @param[in] into Container where data should be stored.
+	 * @return True if load succeeds, false if fails.
+	 * returns 0,1,2,3 for module, low slot, med slot, or high slot respectively
+	 */
+	static bool GetModulePowerSlot(uint32 itemID, uint32 &into);
+	static bool GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into);
+	/*
+	 * Determines which slots are open on current ship
+	 *
+	 * @param[in] slotType 0,1,2,3 for module, low, med, or high slot respectively
+	 * @param[in] shipID of the ship to be checked
+	 * @param[in] into Container where data should be stored.
+	 * @return True if load succeeds, false if fails.
+	 * returns arry of slot flags 0 for open, 1 for filled
+	 */
+	static bool GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 shipID, uint32 &into);
+
 };
 
 

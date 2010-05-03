@@ -162,7 +162,13 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
-    if( call.tuple->items.size() == 3 )
+    
+	ShipRef ship = call.client->GetShip();
+	uint32 powerSlot;
+	uint32 useableSlot;
+
+	
+	if( call.tuple->items.size() == 3 )
     {
         Call_MultiAdd_3 args;
         if(!args.Decode(&call.tuple)) {
@@ -170,10 +176,23 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
             return NULL;
         }
 
+		if((EVEItemFlags)args.flag == 0 )
+		{
+
+			//Get Range of slots for item
+			InventoryDB::GetModulePowerSlot(args.itemIDs[0], powerSlot);
+
+			//Get open slots available on ship
+			InventoryDB::GetOpenPowerSlots(powerSlot,ship,call.client->GetShipID(), useableSlot);			
+			
+			//Set item flag to first useable open slot found
+			args.flag = useableSlot;
+
+		}
+		
         //NOTE: They can specify "None" in the quantity field to indicate
         //their intention to move all... we turn this into a 0 for simplicity.
 
-        //TODO: should verify args.flag before casting!
         return _ExecAdd( call.client, args.itemIDs, args.quantity, (EVEItemFlags)args.flag );
     }
     else if( call.tuple->items.size() == 1 )

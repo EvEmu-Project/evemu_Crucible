@@ -28,6 +28,8 @@ COMMAND( getattr, ROLE_ADMIN,
          "(itemID) (attributeID) - Retrieves attribute value." )
 COMMAND( setattr, ROLE_ADMIN,
          "(itemID) (attributeID) (value) - Sets attributeID of itemID to value." )
+COMMAND( fit, ROLE_ADMIN,
+		"(itemID) - Fits selected item to active ship." )
 
 
 

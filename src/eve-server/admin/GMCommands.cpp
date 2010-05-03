@@ -24,6 +24,10 @@
 */
 
 #include "EVEServerPCH.h"
+#include "..\..\include\eve-server\inventory\InventoryDB.h"
+//#include "..\..\include\eve-server\PyCallable.h"
+#include "..\..\include\eve-server\Client.h"
+#include "..\..\include\eve-server\inventory\InventoryItem.h"
 
 PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
@@ -402,3 +406,67 @@ PyResult Command_setattr( Client* who, CommandDB* db, PyServiceMgr* services, co
 
 	return new PyString( "Operation successfull." );
 }
+
+PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	uint32 typeID;
+
+	if( args.argCount() == 3)
+	{
+		if( !args.isNumber( 2 ) )
+			throw PyException( MakeCustomError( "Argument 1 must be type ID." ) );
+		typeID = atoi( args.arg( 2 ).c_str() );
+	}
+	else if( args.argCount() == 2 )
+	{
+		if( !args.isNumber( 1 ) )
+			throw PyException( MakeCustomError( "Argument 1 must be type ID." ) );
+		typeID = atoi( args.arg( 1 ).c_str() );
+	}
+
+	uint32 qty = 1;
+
+	_log( COMMAND__MESSAGE, "Create %s %u times", typeID, qty );
+
+	//create into their cargo hold unless they are docked in a station,
+	//then stick it in their hangar instead.
+	
+	//TODO: switch functions over to premade enums instead of arrays.
+	
+	//TODO: clean this up
+	uint32 locationID;
+	EVEItemFlags flag;
+	uint32 powerSlot;
+	uint32 useableSlot;
+	std::string affectName = "online";
+
+	//Get Range of slots for item
+	InventoryDB::GetModulePowerSlotByTypeID( typeID, powerSlot );
+
+	//Get open slots available on ship
+	InventoryDB::GetOpenPowerSlots(powerSlot, who->GetShip(), who->GetShip(), useableSlot);			
+			
+	ItemData idata(
+		typeID,
+		who->GetCharacterID(),
+		0, //temp location
+		flag = (EVEItemFlags)useableSlot,
+		qty
+	);
+
+	InventoryItemRef i = services->item_factory.SpawnItem( idata );
+	if( !i )
+		throw PyException( MakeCustomError( "Unable to create item of type %s.", typeID ) );
+
+	//Move to location
+	//who->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag);
+	who->MoveItem( i->itemID(), who->GetShipID(), flag );
+	who->modules.Activate( i->itemID(), affectName, who->GetAccountID() , 0 );
+
+	return new PyString( "Creation successfull." );
+
+}
+
+
+
+
