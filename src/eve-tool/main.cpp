@@ -34,6 +34,11 @@ const char* const LOG_FILE = "logs/evetool.log";
 
 int main( int argc, char* argv[] )
 {
+#if defined( WIN32 ) && !defined( NDEBUG )
+    // Under Windows setup memory leak detection
+    _CrtSetDbgFlag( _CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG ) );
+#endif /* defined( WIN32 ) && !defined( NDEBUG ) */
+
     // Load server log settings ( will be removed )
     if( !load_log_settings( LOG_SETTINGS_FILE ) )
         sLog.Warning( "init", "Unable to read %s (this file is optional)", LOG_SETTINGS_FILE );
