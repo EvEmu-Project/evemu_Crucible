@@ -439,6 +439,16 @@ void ServiceDB::SetCharacterOnlineStatus(uint32 char_id, bool onoff_status) {
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 	}
+
+    if( onoff_status )
+    {
+        _log(CLIENT__TRACE, "SrvStatus: Incrementing ConnectSinceStartup.");
+
+        if(!sDatabase.RunQuery(err, "UPDATE srvStatus SET config_value = config_value + 1 WHERE config_name = 'connectSinceStartup'"))
+        {
+            codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+        }
+    }
 }
 
 //johnsus - serverStartType mod
@@ -455,6 +465,15 @@ void ServiceDB::SetServerOnlineStatus(bool onoff_status) {
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 	}
+
+    _log(SERVER__INIT, "SrvStatus: Resetting ConnectSinceStartup.");
+
+    if(!sDatabase.RunQuery(err, "REPLACE INTO srvStatus (config_name, config_value)"
+        " VALUES ('%s', '0')",
+        "connectSinceStartup"))
+    {
+        codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+    }
 
 	_log(CLIENT__TRACE, "ChrStatus: Setting all characters and accounts offline.");
 
