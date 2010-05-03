@@ -522,6 +522,13 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="CallWarpToStuffAutopilot">
+    <tupleInline>
+      <!-- really this call uses keywords, and I think the item ID just happens to end up in the args as a fluke. -->
+      <int name="item" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Call_FollowBall">
     <tupleInline>
       <int name="ballID" />

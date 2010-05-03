@@ -49,6 +49,7 @@ public:
 		PyCallable_REG_CALL(BeyonceBound, Dock)
 		PyCallable_REG_CALL(BeyonceBound, StargateJump)
 		PyCallable_REG_CALL(BeyonceBound, UpdateStateRequest)
+		PyCallable_REG_CALL(BeyonceBound, WarpToStuffAutopilot)
 
 		if(c->Destiny() != NULL)
 			c->Destiny()->SendSetState(c->Bubble());
@@ -69,6 +70,7 @@ public:
 	PyCallable_DECL_CALL(Dock)
 	PyCallable_DECL_CALL(StargateJump)
 	PyCallable_DECL_CALL(UpdateStateRequest)
+	PyCallable_DECL_CALL(WarpToStuffAutopilot)
 
 protected:
 	Dispatcher *const m_dispatch;
@@ -289,7 +291,8 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 	double distance;
 	std::map<std::string, PyRep *>::const_iterator res = call.byname.find("minRange");
 	if(res == call.byname.end()) {
-		codelog(CLIENT__ERROR, "%s: range not found, using 15 km.", call.client->GetName());
+		//Not needed, this is the correct behavior
+		//codelog(CLIENT__ERROR, "%s: range not found, using 15 km.", call.client->GetName());
 		distance = 15000.0;
 	} else if(!res->second->IsInt() && !res->second->IsFloat()) {
 		codelog(CLIENT__ERROR, "%s: range of invalid type %s, expected Integer or Real; using 15 km.", call.client->GetName(), res->second->TypeString());
@@ -318,6 +321,34 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 
 	call.client->WarpTo(se->GetPosition(), distance);
 	
+	return NULL;
+}
+
+PyResult BeyonceBound::Handle_WarpToStuffAutopilot(PyCallArgs &call) {
+	CallWarpToStuffAutopilot arg;
+	
+	if(!arg.Decode(&call.tuple)) {
+		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
+		return NULL;
+	}
+	//Change this to change the default autopilot distance (Faster Autopilot FTW)
+	double distance = 15000.0;
+
+	//Don't update destiny until done with warp
+	SystemManager *sm = call.client->System();
+	if(sm == NULL) {
+		codelog(CLIENT__ERROR, "%s: no system manager found", call.client->GetName());
+		return NULL;
+	}
+	SystemEntity *se = sm->get(arg.item);
+	if(se ==  NULL) {
+		codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.item);
+		return NULL;
+	}
+	//Adding in object radius
+	distance += call.client->GetRadius() + se->GetRadius();
+	call.client->WarpTo(se->GetPosition(), distance);
+
 	return NULL;
 }
 
