@@ -316,7 +316,7 @@ bool ClassDecodeGenerator::ProcessBool( const TiXmlElement* field )
     bool soft = false;
     const char* soft_str = field->Attribute( "soft" );
     if( soft_str != NULL )
-        soft = atobool( soft_str );
+        soft = str2<bool>( soft_str );
 
 	const char* none_marker = field->Attribute( "none_marker" );
 
@@ -515,7 +515,7 @@ bool ClassDecodeGenerator::ProcessWString( const TiXmlElement* field )
     bool soft = false;
     const char* soft_str = field->Attribute( "soft" );
     if( soft_str != NULL )
-        soft = atobool( soft_str );
+        soft = str2<bool>( soft_str );
 
 	const char* none_marker = field->Attribute( "none_marker" );
 
@@ -613,7 +613,7 @@ bool ClassDecodeGenerator::ProcessToken( const TiXmlElement* field )
     bool optional = false;
     const char* optional_str = field->Attribute( "optional" );
     if( optional_str != NULL )
-	    optional = atobool( optional_str );
+	    optional = str2<bool>( optional_str );
 
     fprintf( mOutputFile,
         "    PySafeDecRef( %s );\n",
@@ -707,7 +707,7 @@ bool ClassDecodeGenerator::ProcessObject( const TiXmlElement* field )
 	bool optional = false;
 	const char* optional_str = field->Attribute( "optional" );
 	if( NULL != optional_str )
-		optional = atobool( optional_str );
+		optional = str2<bool>( optional_str );
 
     fprintf( mOutputFile,
         "    PySafeDecRef( %s );\n",
@@ -805,7 +805,7 @@ bool ClassDecodeGenerator::ProcessObjectEx( const TiXmlElement* field )
 	bool optional = false;
 	const char* optional_str = field->Attribute( "optional" );
 	if( optional_str != NULL )
-		optional = atobool( optional_str );
+		optional = str2<bool>( optional_str );
 
     fprintf( mOutputFile,
         "    PySafeDecRef( %s );\n",
@@ -860,7 +860,7 @@ bool ClassDecodeGenerator::ProcessTuple( const TiXmlElement* field )
 	bool optional = false;
 	const char* optional_str = field->Attribute( "optional" );
 	if( optional_str != NULL )
-		optional = atobool( optional_str );
+		optional = str2<bool>( optional_str );
 
     fprintf( mOutputFile,
         "    PySafeDecRef( %s );\n",
@@ -970,7 +970,7 @@ bool ClassDecodeGenerator::ProcessList( const TiXmlElement* field )
 	bool optional = false;
 	const char* optional_str = field->Attribute("optional");
 	if( optional_str != NULL )
-		optional = atobool( optional_str );
+		optional = str2<bool>( optional_str );
 
     fprintf( mOutputFile,
         "    PySafeDecRef( %s );\n",
@@ -1267,7 +1267,7 @@ bool ClassDecodeGenerator::ProcessDict( const TiXmlElement* field )
 	bool optional = false;
 	const char* optional_str = field->Attribute( "optional" );
 	if( optional_str != NULL )
-		optional = atobool( optional_str );
+		optional = str2<bool>( optional_str );
 
     fprintf( mOutputFile,
         "    PySafeDecRef( %s );\n",
@@ -1320,7 +1320,7 @@ bool ClassDecodeGenerator::ProcessDictInline( const TiXmlElement* field )
     bool soft = false;
     const char* soft_str = field->Attribute( "soft" );
     if( soft_str != NULL )
-        soft = atobool( soft_str );
+        soft = str2<bool>( soft_str );
 
 	const char* v = top();
 	//make sure its a dict

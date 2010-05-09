@@ -435,7 +435,7 @@ bool ClassEncodeGenerator::ProcessToken( const TiXmlElement* field )
     bool optional = false;
     const char* optional_str = field->Attribute("optional");
     if( optional_str != NULL )
-        optional = atobool( optional_str );
+        optional = str2<bool>( optional_str );
 
     const char* v = top();
     if( optional )
@@ -505,7 +505,7 @@ bool ClassEncodeGenerator::ProcessObject( const TiXmlElement* field )
 	bool optional = false;
 	const char* optional_str = field->Attribute( "optional" );
 	if( NULL != optional_str )
-		optional = atobool( optional_str );
+		optional = str2<bool>( optional_str );
 
     const char* v = top();
     if( optional )
@@ -598,7 +598,7 @@ bool ClassEncodeGenerator::ProcessObjectEx( const TiXmlElement* field )
 	bool optional = false;
 	const char* optional_str = field->Attribute( "optional" );
 	if( optional_str != NULL )
-		optional = atobool( optional_str );
+		optional = str2<bool>( optional_str );
 
 	const char *v = top();
 	if( optional )
@@ -648,7 +648,7 @@ bool ClassEncodeGenerator::ProcessTuple( const TiXmlElement* field )
     bool optional = false;
     const char* optional_str = field->Attribute("optional");
     if( optional_str != NULL )
-        optional = atobool( optional_str );
+        optional = str2<bool>( optional_str );
 
 	const char* v = top();
     fprintf( mOutputFile,
@@ -743,7 +743,7 @@ bool ClassEncodeGenerator::ProcessList( const TiXmlElement* field )
     bool optional = false;
     const char* optional_str = field->Attribute( "optional" );
     if( optional_str != NULL )
-        optional = atobool( optional_str );
+        optional = str2<bool>( optional_str );
 
 	const char* v = top();
     fprintf( mOutputFile,
@@ -948,7 +948,7 @@ bool ClassEncodeGenerator::ProcessDict( const TiXmlElement* field )
     bool optional = false;
     const char* optional_str = field->Attribute("optional");
     if( optional_str != NULL )
-        optional = atobool( optional_str );
+        optional = str2<bool>( optional_str );
 
 	const char* v = top();
     fprintf( mOutputFile,

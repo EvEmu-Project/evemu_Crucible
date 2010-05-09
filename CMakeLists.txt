@@ -20,12 +20,12 @@ INCLUDE( "TestX64" )
 
 # Custom options
 OPTION( EVE_COLLECTOR
-        "Include eve-collector."
+        "Build eve-collector."
         OFF )
 OPTION( EVE_TOOL
-        "Include eve-tool."
+        "Build eve-tool."
         OFF )
-OPTION( EVE_EXTRACT_REV
+OPTION( EVE_EXTRACT_SVN_REV
         "Extract current revision using SVN tools."
         OFF )
 OPTION( TINYXML_USE_STL
@@ -43,9 +43,9 @@ TEST_BIG_ENDIAN( BIG_ENDIAN )
 FIND_PACKAGE( "MySql" 5.0 REQUIRED )
 FIND_PACKAGE( "ZLIB" REQUIRED )
 
-IF( EVE_EXTRACT_REV )
+IF( EVE_EXTRACT_SVN_REV )
     FIND_PACKAGE( "Subversion" REQUIRED )
-ENDIF( EVE_EXTRACT_REV )
+ENDIF( EVE_EXTRACT_SVN_REV )
 
 #################
 # Configuration #
@@ -63,14 +63,12 @@ IF( WIN32 )
 ENDIF( WIN32 )
 
 # Fill EVEMU_REVISION appropriately
-IF( EVE_EXTRACT_REV )
-    # Extract current revision
+IF( EVE_EXTRACT_SVN_REV )
     Subversion_WC_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
-    SET( EVEMU_REVISION "${${PROJECT_NAME}_WC_REVISION}" )
-ELSE( EVE_EXTRACT_REV )
-    # Just fill "N/A"
+    SET( EVEMU_REVISION "${${PROJECT_NAME}_WC_LAST_CHANGED_REV}" )
+ELSE( EVE_EXTRACT_SVN_REV )
     SET( EVEMU_REVISION "N/A" )
-ENDIF( EVE_EXTRACT_REV )
+ENDIF( EVE_EXTRACT_SVN_REV )
 
 # Setup config.h
 CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.cmake"

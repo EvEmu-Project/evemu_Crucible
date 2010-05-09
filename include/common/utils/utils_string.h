@@ -20,8 +20,9 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Captnoord
+    Author:     Captnoord, Bloody.Rabbit
 */
+
 #ifndef UTILS_STRING_H
 #define UTILS_STRING_H
 
@@ -43,15 +44,6 @@ extern const std::string NULL_STRING;
 size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const char* fmt, ... );
 
 /**
- * @brief Converts string to boolean.
- *
- * @param[in] str String to be converted.
- *
- * @return Resulting boolean.
- */
-bool atobool( const char* str );
-
-/**
  * @brief Escapes string.
  *
  * @param[in,out] subject String to be escaped.
@@ -67,7 +59,7 @@ void EscapeString( std::string& subject, const std::string& find, const std::str
  *
  * @return Generated key.
  */
-std::string generate_key( size_t length );
+std::string GenerateKey( size_t length );
 
 /**
  * @brief Checks whether character is a number.
@@ -179,14 +171,14 @@ void ListToINString( const std::vector<int32>& ints, std::string& into, const ch
  * @brief toupper() for strings.
  *
  * @param[in]  source Source string.
- * @param[out] target Array which receives result. 
+ * @param[out] target Array which receives result.
  */
 void MakeUpperString( const char* source, char* target );
 /**
  * @brief tolower() for strings.
  *
  * @param[in]  source Source string.
- * @param[out] target Array which receives result. 
+ * @param[out] target Array which receives result.
  */
 void MakeLowerString( const char* source, char* target );
 
@@ -201,7 +193,7 @@ void MakeLowerString( const char* source, char* target );
  * @retval true  Decode ran OK.
  * @retval false Error occured during decoding.
  */
-bool py_decode_escape( const char* str, Buffer& into );
+bool PyDecodeEscape( const char* str, Buffer& into );
 
 /**
  * @brief Splits path to its components.
@@ -209,7 +201,144 @@ bool py_decode_escape( const char* str, Buffer& into );
  * @param[in]  path Path to split.
  * @param[out] into Vector which receives components of the path.
  */
-void split_path( const std::string& path, std::vector<std::string>& into );
+void SplitPath( const std::string& path, std::vector<std::string>& into );
+
+/**
+ * @brief Generic string conversion template.
+ *
+ * Intentionally never defined to cause linking error
+ * whenever used. The actual functionality is provided
+ * by template specializations below.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @param A value corresponding to content of @a str.
+ */
+template<typename T>
+T str2( const char* str );
+/**
+ * @brief Generic string conversion template.
+ *
+ * Redirect to const char* version.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @param A value corresponding to content of @a str.
+ */
+template<typename T>
+T str2( const std::string& str ) { return str2<T>( str.c_str() ); }
+
+/**
+ * @brief Converts string to boolean.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @param A boolean corresponding to content of @a str.
+ */
+template<>
+bool str2<bool>( const char* str );
+
+/**
+ * @brief Converts string to integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An integer corresponding to content of @a str.
+ */
+template<>
+int64 str2<int64>( const char* str );
+/**
+ * @brief Converts string to integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An integer corresponding to content of @a str.
+ */
+template<>
+EVEMU_INLINE int32 str2<int32>( const char* str ) { return str2<int64>( str ); }
+/**
+ * @brief Converts string to integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An integer corresponding to content of @a str.
+ */
+template<>
+EVEMU_INLINE int16 str2<int16>( const char* str ) { return str2<int32>( str ); }
+/**
+ * @brief Converts string to integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An integer corresponding to content of @a str.
+ */
+template<>
+EVEMU_INLINE int8 str2<int8>( const char* str ) { return str2<int16>( str ); }
+
+/**
+ * @brief Converts string to unsigned integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An unsigned integer corresponding to content of @a str.
+ */
+template<>
+uint64 str2<uint64>( const char* str );
+/**
+ * @brief Converts string to unsigned integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An unsigned integer corresponding to content of @a str.
+ */
+template<>
+EVEMU_INLINE uint32 str2<uint32>( const char* str ) { return str2<uint64>( str ); }
+/**
+ * @brief Converts string to unsigned integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An unsigned integer corresponding to content of @a str.
+ */
+template<>
+EVEMU_INLINE uint16 str2<uint16>( const char* str ) { return str2<uint32>( str ); }
+/**
+ * @brief Converts string to unsigned integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An unsigned integer corresponding to content of @a str.
+ */
+template<>
+EVEMU_INLINE uint8 str2<uint8>( const char* str ) { return str2<uint16>( str ); }
+
+/**
+ * @brief Converts string to real number.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return A real number corresponding to content of @a str.
+ */
+template<>
+long double str2<long double>( const char* str );
+/**
+ * @brief Converts string to real number.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return A real number corresponding to content of @a str.
+ */
+template<>
+EVEMU_INLINE double str2<double>( const char* str ) { return str2<long double>( str ); }
+/**
+ * @brief Converts string to real number.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return A real number corresponding to content of @a str.
+ */
+template<>
+EVEMU_INLINE float str2<float>( const char* str ) { return str2<double>( str ); }
 
 /**
  * @brief Copies given amount of characters from source to dest.

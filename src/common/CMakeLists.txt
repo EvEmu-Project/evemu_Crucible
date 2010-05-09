@@ -73,7 +73,8 @@ SET( utils_INCLUDE
      "${COMPONENT_INCLUDE_DIR}/utils/utils_hex.h"
      "${COMPONENT_INCLUDE_DIR}/utils/utils_string.h"
      "${COMPONENT_INCLUDE_DIR}/utils/utils_time.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/XMLParser.h" )
+     "${COMPONENT_INCLUDE_DIR}/utils/XMLParser.h"
+     "${COMPONENT_INCLUDE_DIR}/utils/XMLParserEx.h" )
 SET( utils_SOURCE
      "${COMPONENT_SOURCE_DIR}/utils/crc32.cpp"
      "${COMPONENT_SOURCE_DIR}/utils/Deflate.cpp"
@@ -83,7 +84,8 @@ SET( utils_SOURCE
      "${COMPONENT_SOURCE_DIR}/utils/timer.cpp"
      "${COMPONENT_SOURCE_DIR}/utils/utils_hex.cpp"
      "${COMPONENT_SOURCE_DIR}/utils/utils_string.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/utils_time.cpp" )
+     "${COMPONENT_SOURCE_DIR}/utils/utils_time.cpp"
+     "${COMPONENT_SOURCE_DIR}/utils/XMLParser.cpp" )
 
 #####################
 # Setup the library #
@@ -115,7 +117,9 @@ ADD_LIBRARY( "${COMPONENT_NAME}"
              ${threading_INCLUDE} ${threading_SOURCE}
              ${utils_INCLUDE}     ${utils_SOURCE} )
 
-TARGET_BUILD_PCH( "${COMPONENT_NAME}" "CommonPCH.h" "common.cpp" )
+TARGET_BUILD_PCH( "${COMPONENT_NAME}"
+                  "CommonPCH.h"
+                  "common.cpp" )
 
 ######################
 # Export directories #

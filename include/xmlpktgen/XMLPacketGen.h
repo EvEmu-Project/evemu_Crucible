@@ -42,7 +42,7 @@
  * @author Zhur, Bloody.Rabbit
  */
 class XMLPacketGen
-: public XMLParser<XMLPacketGen>
+: public XMLParserEx
 {
 public:
     /**

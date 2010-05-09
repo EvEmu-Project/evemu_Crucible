@@ -31,6 +31,11 @@ void usage();
 
 int main( int argc, char* argv[] )
 {
+#if defined( WIN32 ) && !defined( NDEBUG )
+    // Under Windows setup memory leak detection
+    _CrtSetDbgFlag( _CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG ) );
+#endif /* defined( WIN32 ) && !defined( NDEBUG ) */
+
     // skip first argument, not interested
     --argc;
     ++argv;

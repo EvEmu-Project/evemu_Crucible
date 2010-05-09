@@ -41,44 +41,44 @@ Generator::Generator( FILE* outputFile )
 
 void Generator::RegisterProcessors()
 {
-    RegisterParser( "elementDef",      &Generator::ProcessElementDef );
-    RegisterParser( "element",         &Generator::ProcessElement );
-    RegisterParser( "elementPtr",      &Generator::ProcessElementPtr );
+    AddMemberParser( "elementDef",      &Generator::ProcessElementDef );
+    AddMemberParser( "element",         &Generator::ProcessElement );
+    AddMemberParser( "elementPtr",      &Generator::ProcessElementPtr );
 
-    RegisterParser( "raw",             &Generator::ProcessRaw );
-    RegisterParser( "int",             &Generator::ProcessInt );
-    RegisterParser( "long",            &Generator::ProcessLong );
-    RegisterParser( "real",            &Generator::ProcessReal );
-    RegisterParser( "bool",            &Generator::ProcessBool );
-    RegisterParser( "none",            &Generator::ProcessNone );
-    RegisterParser( "buffer",          &Generator::ProcessBuffer );
+    AddMemberParser( "raw",             &Generator::ProcessRaw );
+    AddMemberParser( "int",             &Generator::ProcessInt );
+    AddMemberParser( "long",            &Generator::ProcessLong );
+    AddMemberParser( "real",            &Generator::ProcessReal );
+    AddMemberParser( "bool",            &Generator::ProcessBool );
+    AddMemberParser( "none",            &Generator::ProcessNone );
+    AddMemberParser( "buffer",          &Generator::ProcessBuffer );
 
-    RegisterParser( "string",          &Generator::ProcessString );
-    RegisterParser( "stringInline",    &Generator::ProcessStringInline );
-    RegisterParser( "wstring",         &Generator::ProcessWString );
-    RegisterParser( "wstringInline",   &Generator::ProcessWStringInline );
-    RegisterParser( "token",           &Generator::ProcessToken );
-    RegisterParser( "tokenInline",     &Generator::ProcessTokenInline );
+    AddMemberParser( "string",          &Generator::ProcessString );
+    AddMemberParser( "stringInline",    &Generator::ProcessStringInline );
+    AddMemberParser( "wstring",         &Generator::ProcessWString );
+    AddMemberParser( "wstringInline",   &Generator::ProcessWStringInline );
+    AddMemberParser( "token",           &Generator::ProcessToken );
+    AddMemberParser( "tokenInline",     &Generator::ProcessTokenInline );
 
-    RegisterParser( "object",          &Generator::ProcessObject );
-    RegisterParser( "objectInline",    &Generator::ProcessObjectInline );
-    RegisterParser( "objectEx",        &Generator::ProcessObjectEx );
+    AddMemberParser( "object",          &Generator::ProcessObject );
+    AddMemberParser( "objectInline",    &Generator::ProcessObjectInline );
+    AddMemberParser( "objectEx",        &Generator::ProcessObjectEx );
 
-    RegisterParser( "tuple",           &Generator::ProcessTuple );
-    RegisterParser( "tupleInline",     &Generator::ProcessTupleInline );
-    RegisterParser( "list",            &Generator::ProcessList );
-    RegisterParser( "listInline",      &Generator::ProcessListInline );
-    RegisterParser( "listInt",         &Generator::ProcessListInt );
-    RegisterParser( "listLong",        &Generator::ProcessListLong );
-    RegisterParser( "listStr",         &Generator::ProcessListStr );
-    RegisterParser( "dict",            &Generator::ProcessDict );
-    RegisterParser( "dictInline",      &Generator::ProcessDictInline );
-    RegisterParser( "dictRaw",         &Generator::ProcessDictRaw );
-    RegisterParser( "dictInt",         &Generator::ProcessDictInt );
-    RegisterParser( "dictStr",         &Generator::ProcessDictStr );
+    AddMemberParser( "tuple",           &Generator::ProcessTuple );
+    AddMemberParser( "tupleInline",     &Generator::ProcessTupleInline );
+    AddMemberParser( "list",            &Generator::ProcessList );
+    AddMemberParser( "listInline",      &Generator::ProcessListInline );
+    AddMemberParser( "listInt",         &Generator::ProcessListInt );
+    AddMemberParser( "listLong",        &Generator::ProcessListLong );
+    AddMemberParser( "listStr",         &Generator::ProcessListStr );
+    AddMemberParser( "dict",            &Generator::ProcessDict );
+    AddMemberParser( "dictInline",      &Generator::ProcessDictInline );
+    AddMemberParser( "dictRaw",         &Generator::ProcessDictRaw );
+    AddMemberParser( "dictInt",         &Generator::ProcessDictInt );
+    AddMemberParser( "dictStr",         &Generator::ProcessDictStr );
 
-    RegisterParser( "substreamInline", &Generator::ProcessSubStreamInline );
-    RegisterParser( "substructInline", &Generator::ProcessSubStructInline );
+    AddMemberParser( "substreamInline", &Generator::ProcessSubStreamInline );
+    AddMemberParser( "substructInline", &Generator::ProcessSubStructInline );
 }
 
 const char* Generator::GetEncodeType( const TiXmlElement* element )

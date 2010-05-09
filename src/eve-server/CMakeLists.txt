@@ -19,7 +19,7 @@ SET( INCLUDE
      "${COMPONENT_INCLUDE_DIR}/Client.h"
      "${COMPONENT_INCLUDE_DIR}/ClientSession.h"
      "${COMPONENT_INCLUDE_DIR}/EntityList.h"
-     "${COMPONENT_INCLUDE_DIR}/EVEmuServerConfig.h"
+     "${COMPONENT_INCLUDE_DIR}/EVEServerConfig.h"
      "${COMPONENT_INCLUDE_DIR}/EVEServerPCH.h"
      "${COMPONENT_INCLUDE_DIR}/NetService.h"
      "${COMPONENT_INCLUDE_DIR}/PyBoundObject.h"
@@ -32,7 +32,7 @@ SET( SOURCE
      "${COMPONENT_SOURCE_DIR}/Client.cpp"
      "${COMPONENT_SOURCE_DIR}/ClientSession.cpp"
      "${COMPONENT_SOURCE_DIR}/EntityList.cpp"
-     "${COMPONENT_SOURCE_DIR}/EVEmuServerConfig.cpp"
+     "${COMPONENT_SOURCE_DIR}/EVEServerConfig.cpp"
      "${COMPONENT_SOURCE_DIR}/main.cpp"
      "${COMPONENT_SOURCE_DIR}/NetService.cpp"
      "${COMPONENT_SOURCE_DIR}/PyBoundObject.cpp"
@@ -440,10 +440,17 @@ ADD_EXECUTABLE( "${COMPONENT_NAME}"
                 ${system_INCLUDE}         ${system_SOURCE}
                 ${tutorial_INCLUDE}       ${tutorial_SOURCE} )
 
-TARGET_BUILD_PCH( "${COMPONENT_NAME}" "EVEServerPCH.h" "main.cpp" )
+TARGET_BUILD_PCH( "${COMPONENT_NAME}"
+                  "EVEServerPCH.h"
+                  "main.cpp" )
 TARGET_LINK_LIBRARIES( "${COMPONENT_NAME}"
                        "eve-common" "common" "dep"
                        ${MYSQL_LIBRARIES} ${ZLIB_LIBRARIES} )
+
+INSTALL( TARGETS "${COMPONENT_NAME}"
+         RUNTIME DESTINATION "bin" )
+INSTALL( FILES "${PROJECT_SOURCE_DIR}/utils/eve-server.xml"
+         DESTINATION "etc" )
 
 ######################
 # Export directories #

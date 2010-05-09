@@ -58,38 +58,6 @@ size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const ch
 	return *strlen;
 }
 
-bool atobool( const char* str )
-{
-    if( !strcasecmp( str, "true" ) )
-	    return true;
-    else if( !strcasecmp( str, "false" ) )
-	    return false;
-    else if( !strcasecmp( str, "yes" ) )
-	    return true;
-    else if( !strcasecmp( str, "no" ) )
-	    return false;
-    else if( !strcasecmp( str, "y" ) )
-	    return true;
-    else if( !strcasecmp( str, "n" ) )
-	    return false;
-    else if( !strcasecmp( str, "on" ) )
-	    return true;
-    else if( !strcasecmp( str, "off" ) )
-	    return false;
-    else if( !strcasecmp( str, "enable" ) )
-	    return true;
-    else if( !strcasecmp( str, "disable" ) )
-	    return false;
-    else if( !strcasecmp( str, "enabled" ) )
-	    return true;
-    else if( !strcasecmp( str, "disabled" ) )
-	    return false;
-    else if( atoi( str ) )
-	    return true;
-    else
-        return false;
-}
-
 void EscapeString( std::string& subject, const std::string& find, const std::string& replace )
 {
     std::string::size_type pos = 0;
@@ -100,7 +68,7 @@ void EscapeString( std::string& subject, const std::string& find, const std::str
     }
 }
 
-std::string generate_key( size_t length )
+std::string GenerateKey( size_t length )
 {
     static const char CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     static const size_t CHARS_COUNT = sizeof( CHARS ) / sizeof( char );
@@ -291,7 +259,7 @@ void MakeLowerString( const char* source, char* target )
     *target = 0;
 }
 
-bool py_decode_escape( const char* str, Buffer& into )
+bool PyDecodeEscape( const char* str, Buffer& into )
 {
     int len = (int)strlen( str );
 	const char* end = str + len;
@@ -368,7 +336,7 @@ bool py_decode_escape( const char* str, Buffer& into )
 	return true;
 }
 
-void split_path( const std::string& path, std::vector<std::string>& into )
+void SplitPath( const std::string& path, std::vector<std::string>& into )
 {
 	const char* p = path.c_str();
 	const char* begin = p;
@@ -390,6 +358,63 @@ void split_path( const std::string& path, std::vector<std::string>& into )
 
 	if( begin < p )
         into.push_back( std::string( begin, len ) );
+}
+
+template<>
+bool str2<bool>( const char* str )
+{
+    if( !strcasecmp( str, "true" ) )
+	    return true;
+    else if( !strcasecmp( str, "false" ) )
+	    return false;
+    else if( !strcasecmp( str, "yes" ) )
+	    return true;
+    else if( !strcasecmp( str, "no" ) )
+	    return false;
+    else if( !strcasecmp( str, "y" ) )
+	    return true;
+    else if( !strcasecmp( str, "n" ) )
+	    return false;
+    else if( !strcasecmp( str, "on" ) )
+	    return true;
+    else if( !strcasecmp( str, "off" ) )
+	    return false;
+    else if( !strcasecmp( str, "enable" ) )
+	    return true;
+    else if( !strcasecmp( str, "disable" ) )
+	    return false;
+    else if( !strcasecmp( str, "enabled" ) )
+	    return true;
+    else if( !strcasecmp( str, "disabled" ) )
+	    return false;
+    else if( str2<int>( str ) )
+	    return true;
+    else
+        return false;
+}
+
+template<>
+int64 str2<int64>( const char* str )
+{
+    int64 v = 0;
+    sscanf( str, I64d, &v );
+    return v;
+}
+
+template<>
+uint64 str2<uint64>( const char* str )
+{
+    uint64 v = 0;
+    sscanf( str, I64u, &v );
+    return v;
+}
+
+template<>
+long double str2<long double>( const char* str )
+{
+    long double v = 0.0;
+    sscanf( str, "%Lf", &v );
+    return v;
 }
 
 char* strn0cpy( char* dest, const char* source, size_t size )

@@ -28,12 +28,17 @@
 #include "main.h"
 #include "Commands.h"
 
-const char* const CACHE_DIR = "../data/cache/";
-const char* const LOG_SETTINGS_FILE = "log.ini";
-const char* const LOG_FILE = "logs/evetool.log";
+const char* const CACHE_DIR = "../cache";
+const char* const LOG_FILE = "../log/eve-tool.log";
+const char* const LOG_SETTINGS_FILE = "../log/log.ini";
 
 int main( int argc, char* argv[] )
 {
+#if defined( WIN32 ) && !defined( NDEBUG )
+    // Under Windows setup memory leak detection
+    _CrtSetDbgFlag( _CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG ) );
+#endif /* defined( WIN32 ) && !defined( NDEBUG ) */
+
     // Load server log settings ( will be removed )
     if( !load_log_settings( LOG_SETTINGS_FILE ) )
         sLog.Warning( "init", "Unable to read %s (this file is optional)", LOG_SETTINGS_FILE );

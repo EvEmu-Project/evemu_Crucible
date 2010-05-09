@@ -51,7 +51,9 @@ SOURCE_GROUP( "src"     FILES ${SOURCE} )
 ADD_EXECUTABLE( "${COMPONENT_NAME}"
                 ${INCLUDE} ${SOURCE} )
 
-TARGET_BUILD_PCH( "${COMPONENT_NAME}" "XMLPktGenPCH.h" "main.cpp" )
+TARGET_BUILD_PCH( "${COMPONENT_NAME}"
+                  "XMLPktGenPCH.h"
+                  "main.cpp" )
 TARGET_LINK_LIBRARIES( "${COMPONENT_NAME}"
                        "common" "dep" )
 
