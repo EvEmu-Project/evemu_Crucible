@@ -23,8 +23,8 @@
 	Author:		Bloody.Rabbit
 */
 
-#ifndef __SINGLETON_H__INCL__
-#define __SINGLETON_H__INCL__
+#ifndef __SINGLETON__H__INCL__
+#define __SINGLETON__H__INCL__
 
 /**
  * @brief Template used for singleton classes.
@@ -61,8 +61,9 @@ protected:
     static std::auto_ptr<X> mInstance;
 };
 
-template<typename X>
-std::auto_ptr<X> Singleton<X>::mInstance( NULL );
+#define EXPORT_SINGLETON( T ) \
+    template<> \
+    std::auto_ptr<T> Singleton<T>::mInstance( NULL )
 
-#endif /* !__SINGLETON_H__INCL__ */
+#endif /* !__SINGLETON__H__INCL__ */
 

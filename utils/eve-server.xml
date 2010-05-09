@@ -1,0 +1,28 @@
+<!--
+The goal of this file is to specify as little as possible. Try the defaults
+for each parameter, and set them only if it does not work. (DB params are
+a likely exception to this goal).
+-->
+<eve>
+    <server>
+        <!-- <port>26001</port> -->
+        <!-- <startBalance>6666000000.0</startBalance> -->
+
+        <!-- <autoAccount>false</autoAccount> -->
+        <!-- <autoAccountRole>2</autoAccountRole> -->
+    </server>
+
+    <database>
+        <host>127.0.0.1</host>
+        <username>eve</username>
+        <password>eve</password>
+        <db>eve</db>
+        <!-- <port>3306</port> -->
+    </database>
+
+    <files>
+        <!-- <log>../log/eve-server.log</log> -->
+        <!-- <logSettings>../log/log.ini</logSettings> -->
+        <!-- <cacheDir></cacheDir> -->
+    </files>
+</eve>

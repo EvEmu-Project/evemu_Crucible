@@ -109,7 +109,7 @@ void DestinyDumpLogText( const Seperator& cmd )
         const std::string& destinyBinaryStr = cmd.arg( i );
 
         Buffer destinyBinary;
-        if( !py_decode_escape( destinyBinaryStr.c_str(), destinyBinary ) )
+        if( !PyDecodeEscape( destinyBinaryStr.c_str(), destinyBinary ) )
         {
             sLog.Error( cmdName, "Failed to decode destiny binary." );
             continue;
@@ -347,7 +347,7 @@ void UnmarshalLogText( const Seperator& cmd )
         const std::string& marshalBinaryStr = cmd.arg( i );
 
         Buffer marshalBinary;
-        if( !py_decode_escape( marshalBinaryStr.c_str(), marshalBinary ) )
+        if( !PyDecodeEscape( marshalBinaryStr.c_str(), marshalBinary ) )
         {
             sLog.Error( cmdName, "Failed to decode string into binary." );
             continue;
@@ -449,7 +449,7 @@ void StuffExtract( const Seperator& cmd )
         //split the path into components, make the intermediate directories
         //if needed, and then finally open the file and write it out.
         std::vector<std::string> components;
-        split_path( cur->filename, components );
+        SplitPath( cur->filename, components );
 
         std::string pathname = ".";
 

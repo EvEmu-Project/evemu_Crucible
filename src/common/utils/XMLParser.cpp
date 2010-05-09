@@ -25,6 +25,7 @@
 
 #include "CommonPCH.h"
 
+#include "log/LogNew.h"
 #include "utils/XMLParser.h"
 
 /************************************************************************/
@@ -36,13 +37,7 @@ XMLParser::XMLParser()
 
 XMLParser::~XMLParser()
 {
-    std::map<std::string, ElementParser*>::iterator cur, end;
-    cur = mParsers.begin();
-    end = mParsers.end();
-    for(; cur != end; ++cur )
-        SafeDelete( cur->second );
-
-    mParsers.clear();
+    ClearParsers();
 }
 
 bool XMLParser::ParseFile( const char* file ) const
@@ -116,6 +111,22 @@ void XMLParser::AddParser( const char* name, ElementParser* parser )
 
 void XMLParser::RemoveParser( const char* name )
 {
-    mParsers.erase( name );
+    std::map<std::string, ElementParser*>::iterator res = mParsers.find( name );
+    if( mParsers.end() != res )
+    {
+        SafeDelete( res->second );
+        mParsers.erase( res );
+    }
+}
+
+void XMLParser::ClearParsers()
+{
+    std::map<std::string, ElementParser*>::iterator cur, end;
+    cur = mParsers.begin();
+    end = mParsers.end();
+    for(; cur != end; ++cur )
+        SafeDelete( cur->second );
+
+    mParsers.clear();
 }
 

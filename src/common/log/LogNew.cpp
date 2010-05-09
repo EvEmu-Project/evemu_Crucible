@@ -27,6 +27,8 @@
 
 #include "log/LogNew.h"
 
+EXPORT_SINGLETON( NewLog );
+
 // console output colors
 #ifdef WIN32
 #  define TRED    FOREGROUND_RED | FOREGROUND_INTENSITY

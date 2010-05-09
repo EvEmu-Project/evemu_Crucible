@@ -40,6 +40,6 @@
 #include "log/LogNew.h"
 
 #include "utils/utils_string.h"
-#include "utils/XMLParser.h"
+#include "utils/XMLParserEx.h"
 
 #endif /* !__XMLPKTGEN_H__INCL__ */

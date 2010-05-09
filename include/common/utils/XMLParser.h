@@ -26,8 +26,6 @@
 #ifndef __XML_PARSER_H__INCL__
 #define __XML_PARSER_H__INCL__
 
-#include "log/LogNew.h"
-
 /**
  * @brief Utility for parsing XML files.
  *
@@ -106,93 +104,14 @@ public:
      * @param[in] name Name of element to be parsed by the parser.
      */
     void RemoveParser( const char* name );
+    /**
+     * @brief Clears all parsers.
+     */
+    void ClearParsers();
 
 private:
     /** Parser storage. */
     std::map<std::string, ElementParser*> mParsers;
-};
-
-/**
- * @brief A somewhat extended version of XMLParser.
- *
- * @author Bloody.Rabbit
- */
-class XMLParserEx
-: public XMLParser
-{
-public:
-    /**
-     * @brief An implementation of ElementParser for member method parsers.
-     *
-     * @author Bloody.Rabbit
-     */
-    template<typename T>
-    class MemberElementParser
-    : public ElementParser
-    {
-    public:
-        /** Type of class. */
-        typedef T Class;
-        /** Type of method. */
-        typedef bool ( Class::* Method )( const TiXmlElement* );
-
-        /**
-         * @brief Primary constructor.
-         *
-         * @param[in] instance Instance of class.
-         * @param[in] method   Member method.
-         */
-        MemberElementParser( Class* instance, const Method& method )
-        : mInstance( instance ),
-          mMethod( method )
-        {
-        }
-
-        /**
-         * @brief Invokes parser method.
-         *
-         * @param[in] field The element to be parsed.
-         *
-         * @retval true  Parsing successfull.
-         * @retval false Parsing failed.
-         */
-        bool Parse( const TiXmlElement* field )
-        {
-            return ( mInstance->*mMethod )( field );
-        }
-
-    protected:
-        /** The instance that the method should be invoked upon. */
-        Class* mInstance;
-        /** The parser method. */
-        Method mMethod;
-    };
-
-    /**
-     * @brief Adds a member parser.
-     *
-     * @param[in] name     A name of element which the parser should parse.
-     * @param[in] instance Instance of parser class.
-     * @param[in] method   Parser method.
-     */
-    template<typename T>
-    void AddMemberParser( const char* name, T* instance, bool ( T::* method )( const TiXmlElement* ) )
-    {
-        AddParser( name, new MemberElementParser<T>( instance, method ) );
-    }
-
-protected:
-    /**
-     * @brief Adds a member parser, assuming that instance is @a this.
-     *
-     * @param[in] name   A name of element which the parser should parse.
-     * @param[in] method Parser method.
-     */
-    template<typename T>
-    void AddMemberParser( const char* name, bool ( T::* method )( const TiXmlElement* ) )
-    {
-        AddMemberParser<T>( name, static_cast< T* >( this ), method );
-    }
 };
 
 #endif /* !__XML_PARSER_H__INCL__ */

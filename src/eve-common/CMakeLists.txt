@@ -18,7 +18,6 @@ SET( COMPONENT_PACKETS_DIR "${PROJECT_BINARY_DIR}/src/${COMPONENT_NAME}" )
 # eve-common
 SET( INCLUDE
      "${COMPONENT_INCLUDE_DIR}/EVECommonPCH.h"
-     "${COMPONENT_INCLUDE_DIR}/EVEmuRevision.h"
      "${COMPONENT_INCLUDE_DIR}/EVEVersion.h" )
 SET( SOURCE
      "" )
@@ -221,7 +220,9 @@ ADD_LIBRARY( "${COMPONENT_NAME}"
              ${tables_INCLUDE}         ${tables_SOURCE}
              ${utils_INCLUDE}          ${utils_SOURCE} )
 
-TARGET_BUILD_PCH( "${COMPONENT_NAME}" "EVECommonPCH.h" "utils/EVEUtils.cpp" )
+TARGET_BUILD_PCH( "${COMPONENT_NAME}"
+                  "EVECommonPCH.h"
+                  "utils/EVEUtils.cpp" )
 
 ######################
 # Export directories #

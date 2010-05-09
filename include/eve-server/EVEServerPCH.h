@@ -66,12 +66,11 @@
 #include "utils/timer.h"
 #include "utils/utils_time.h"
 #include "utils/utils_string.h"
-#include "utils/XMLParser.h"
+#include "utils/XMLParserEx.h"
 
 /************************************************************************/
 /* eve-common includes                                                  */
 /************************************************************************/
-#include "EVEmuRevision.h"
 #include "EVEVersion.h"
 
 #include "cache/CachedObjectMgr.h"
@@ -131,7 +130,7 @@
 #include "Client.h"
 #include "ClientSession.h"
 #include "EntityList.h"
-#include "EVEmuServerConfig.h"
+#include "EVEServerConfig.h"
 #include "NetService.h"
 #include "PyBoundObject.h"
 #include "PyCallable.h"
