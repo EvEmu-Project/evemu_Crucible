@@ -2,8 +2,8 @@
 
 <elements>
 
-  <include file="General.h" />
-  <include file="ObjectCaching.h" />
+  <include file="packets/General.h" />
+  <include file="packets/ObjectCaching.h" />
 
   <elementDef name="ChannelInfo">
     <objectInline>
