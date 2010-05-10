@@ -256,3 +256,77 @@ void Ship::AddItem(InventoryItemRef item)
         item->ChangeSingleton( true );
     }
 }
+
+bool Ship::ValidateBoardShip(ShipRef ship, CharacterRef character)
+{
+
+	SkillRef requiredSkill;
+	
+	//Primary Skill
+	if(!ship->requiredSkill1() == 0)
+	{
+		requiredSkill = character->GetSkill( ship->requiredSkill1() );
+		if( !requiredSkill )
+			return false;
+
+		if( ship->requiredSkill1Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+
+	//Secondary Skill
+	if(!ship->requiredSkill2() == 0)
+	{
+		requiredSkill = character->GetSkill( ship->requiredSkill2() );
+		if( !requiredSkill )
+			return false;
+
+		if( ship->requiredSkill2Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+	
+	//Tertiary Skill
+	if(!ship->requiredSkill3() == 0)
+	{
+		requiredSkill = character->GetSkill( ship->requiredSkill3() );
+		if( !requiredSkill )
+			return false;
+
+		if( ship->requiredSkill3Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+	
+	//Quarternary Skill
+	if(!ship->requiredSkill4() == 0)
+	{
+		requiredSkill = character->GetSkill( ship->requiredSkill4() );
+		if( !requiredSkill )
+			return false;
+
+		if( ship->requiredSkill4Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+	
+	//Quinary Skill
+	if(!ship->requiredSkill5() == 0)
+	{
+		requiredSkill = character->GetSkill( ship->requiredSkill5() );
+		if( !requiredSkill )
+			return false;
+
+		if( ship->requiredSkill5Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+	
+	//Senary Skill
+	if(!ship->requiredSkill6() == 0)
+	{
+		requiredSkill = character->GetSkill( ship->requiredSkill6() );
+		if( !requiredSkill )
+			return false;
+
+		if( ship->requiredSkill6Level() > requiredSkill->skillLevel() )
+			return false;
+	}
+
+	return true;
+}

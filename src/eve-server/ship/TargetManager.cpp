@@ -174,6 +174,10 @@ bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {
 		return false;
 	}
 
+	//Check that they aren't targeting themselves
+	if(who == m_self)
+		return false;
+
 	//TODO: check against max locked target.
 	
 	TargetEntry *te = new TargetEntry(who);
@@ -405,6 +409,24 @@ PyList *TargetManager::GetTargeters() const {
 
 	return result;
 }
+uint32 TargetManager::TimeToLock(ShipRef ship, SystemEntity *target) const {
+
+	double scanRes = ship->attributes.GetReal( ship->attributes.Attr_scanResolution );
+	double sigRad = 25;
+	
+		if( target->IsClient() || target->IsNPC() )
+			sigRad = target->Item()->attributes.GetReal( target->Item()->attributes.Attr_signatureRadius );
+		
+
+	uint32 time = ( 40000 / ( scanRes ) )/( pow( log( sigRad + sqrt( sigRad * sigRad + 1) ), 2) );
+
+	if( time > 180 )
+		time = 180;
+
+	return time;
+}
+
+
 
 
 

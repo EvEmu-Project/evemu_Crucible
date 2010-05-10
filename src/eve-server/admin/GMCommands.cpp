@@ -147,7 +147,8 @@ PyResult Command_translocate( Client* who, CommandDB* db, PyServiceMgr* services
 
 PyResult Command_tr( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-    const std::string& name = args.arg( 1 );
+
+	const std::string& name = args.arg( 1 );
 	if( "me" != name )
 		throw PyException( MakeCustomError( "Translocate (/TR) to non-me who '%s' is not supported yet.", name.c_str() ) );
 	
@@ -158,7 +159,8 @@ PyResult Command_tr( Client* who, CommandDB* db, PyServiceMgr* services, const S
     sLog.Log( "Command", "Translocate to %u.", loc );
 
 	GPoint p( 0.0f, 1000000.0f, 0.0f ); //when going to a system, who knows where to stick them... could find a stargate and stick them near it I guess...
-	
+
+		
 	if( !IsStation( loc ) && !IsSolarSystem( loc ) )
     {
 		Client* target = services->entity_list.FindCharacter( loc );
@@ -171,7 +173,7 @@ PyResult Command_tr( Client* who, CommandDB* db, PyServiceMgr* services, const S
 		p = target->GetPosition();
 	}
 
-	who->MoveToLocation( loc, p );
+	who->MoveToLocation( loc , p );
 	return new PyString( "Translocation successfull." );
 }
 
@@ -435,7 +437,6 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 	//TODO: switch functions over to premade enums instead of arrays.
 	
 	//TODO: clean this up
-	uint32 locationID;
 	EVEItemFlags flag;
 	uint32 powerSlot;
 	uint32 useableSlot;
@@ -467,7 +468,81 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 	return new PyString( "Creation successfull." );
 
 }
+PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	uint32 typeID;
+	uint8 level;
+	CharacterRef character;
+	EVEItemFlags flag;
+	uint32 gty = 1;
+	uint8 oldSkillLevel = 0;
+	uint32 ownerID = 0;
+
+	if( args.argCount() == 4 )
+	{  
+		if( args.isNumber( 1 ) )
+		{
+			ownerID = atoi( args.arg( 1 ).c_str() );
+			character = services->entity_list.FindCharacter( ownerID )->GetChar();
+		}
+		else if( args.arg( 1 ) == "me" )
+		{
+			ownerID = who->GetCharacterID();
+			character = who->GetChar();
+		}
+		else if( !args.isNumber( 1 ) )
+		{
+			const char *name = args.arg( 1 ).c_str();
+			Client *target = services->entity_list.FindCharacter( name );
+			if(target == NULL)
+				throw PyException( MakeCustomError( "Cannot find Character by the name of %s", name ) );
+			ownerID = target->GetCharacterID();
+		}
+		else
+			throw PyException( MakeCustomError( "Argument 1 must be Character ID or Character Name ") );
+
+
+		if( !args.isNumber( 2 ) )
+			throw PyException( MakeCustomError( "Argument 2 must be type ID." ) );
+		typeID = atoi( args.arg( 2 ).c_str() );
+	
+		if( !args.isNumber( 3 ) )
+			throw PyException( MakeCustomError( "Argument 3 must be level" ) );
+		level = atoi( args.arg( 3 ).c_str() );
+	
+		//levels don't go higher than 5
+		if( level > 5 )
+			level = 5;
+	}
+
+	ItemData idata(
+		typeID,
+		ownerID,
+		0, //temp location
+		flag = (EVEItemFlags)flagSkill,
+		gty
+	);
+
+	InventoryItemRef item = services->item_factory.SpawnItem( idata );
+	SkillRef skill = SkillRef::StaticCast( item );
+
+
+	if( !item )
+		throw PyException( MakeCustomError( "Unable to create item of type %s.", item->typeID() ) );
+	
+	if(character->HasSkill( skill->typeID() ) )
+	{
+		SkillRef oldSkill = character->GetSkill( skill->typeID() );
+		oldSkillLevel = oldSkill->attributes.GetInt( oldSkill->attributes.Attr_skillLevel );
+	}
+		
+	if( level > oldSkillLevel )
+	{
+		character->InjectSkillIntoBrain( skill, level);
+		return new PyString ( "Gifting skills complete" );
+	}
 
 
 
-
+	return new PyString ("Skill Gifting Failure");
+}

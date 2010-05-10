@@ -210,10 +210,11 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {
 		codelog(SERVICE__ERROR, "Unable to find entity %u in system %u from '%s'", args.arg, smgr->GetID(), call.client->GetName());
 		return NULL;
 	}
+	
+	ShipRef ship = call.client->GetShip();
 
-	codelog(SERVICE__ERROR, "AddTarget timer not implemented.");
-	call.client->targets.StartTargeting(target, 2000);
-
+	if( !call.client->targets.StartTargeting(target, call.client->targets.TimeToLock( ship, target ) ) )
+		return NULL;
 
 	Rsp_Dogma_AddTarget rsp;
 	rsp.success = true;

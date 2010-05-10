@@ -45,6 +45,8 @@ public:
 	virtual void Process();
 	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
 	virtual void Deactivate(const std::string &effectName);
+	virtual	bool OnlineModule();
+	virtual void OfflineModule();
 	
 	void ChangeCharge(InventoryItemRef new_charge);
 
@@ -161,6 +163,7 @@ public:
 	void Deactivate(uint32 itemID, const std::string &effectName);
 	void ReplaceCharges(EVEItemFlags flag, InventoryItemRef charge);
  	void DeactivateAllModules();
+
 
 protected:
 	Client *const m_pilot;
@@ -351,7 +354,7 @@ protected:
  * @brief Do damage to nearby ships
  *
  * Sends a wave of blast that hit any
- * nearvy ships in the range.
+ * nearby ships in the range.
  *
  * @author Stranho
  * @date 06/30/2009.
@@ -372,6 +375,303 @@ protected:
 	virtual uint32 _ActivationInterval() const;
 
 };
+
+//God this sucks... and yes there is definately a better way to do this, but for now, im writting them out to get them working,
+//then we'll see which ones can be combined, or even if this can be incorporated into xmlpacketgen (it probably should be)
+
+
+class AfterburnerModule : public ActivatableModule {
+public:
+	AfterburnerModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("speedBoostMassAddition", owner, self, charge_) {}
+	virtual ~AfterburnerModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+/*
+class WarpStabilizerModule : public ActivatableModule {
+public:
+	WarpStabilizerModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~WarpStabilizerModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class ArmorHardenerModule : public ActivatableModule {
+public:
+	ArmorHardenerModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~ArmorHardenerModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class AutomatedTargetingModule : public ActivatableModule {
+public:
+	AutomatedTargetingModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~AutomatedTargetingModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class AuxiliaryPowerCoreModule : public ActivatableModule {
+public:
+	AuxiliaryPowerCoreModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~AuxiliaryPowerCoreModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class BallisticControlModule : public ActivatableModule {
+public:
+	BallisticControlModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~BallisticControlModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class CapacitorBatteryModule : public ActivatableModule {
+public:
+	CapacitorBatteryModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~CapacitorBatteryModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class CapacitorBoosterModule : public ActivatableModule {
+public:
+	CapacitorBoosterModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~CapacitorBoosterModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class CapacitorRechargerModule : public ActivatableModule {
+public:
+	CapacitorRechargerModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~CapacitorRechargerModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class CargoScannerModule : public ActivatableModule {
+public:
+	CargoScannerModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~CargoScannerModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class CloakingDeviceModule : public ActivatableModule {
+public:
+	CloakingDeviceModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~CloakingDeviceModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class CountermeasureLauncherModule : public ActivatableModule {
+public:
+	CountermeasureLauncherModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~CountermeasureLauncherModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class CPUEnhancerModule : public ActivatableModule {
+public:
+	CPUEnhancerModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~CPUEnhancerModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class DamageControlModule : public ActivatableModule {
+public:
+	DamageControlModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~DamageControlModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class DroneControlRangeModule : public ActivatableModule {
+public:
+	DroneControlRangeModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~DroneControlRangeModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class DroneModule : public ActivatableModule {
+public:
+	DroneModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~DroneModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+class DroneControlModule : public ActivatableModule {
+public:
+	DroneControlModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_)
+		: ActivatableModule("empWave", owner, self, charge_) {}
+	virtual ~DroneControlModule() {}
+protected:
+	void _SendGodmaShipEffect(uint32 effect, bool active);
+	virtual int Activate(const std::string &effectName, uint32 target, uint32 repeat);
+	virtual void Deactivate(const std::string &effectName);
+	virtual void Process();
+	virtual void StartEffect();
+	virtual void DoEffect();
+	virtual void StopEffect();
+	virtual uint32 _ActivationInterval() const;
+
+};
+
+*/
+
+
 
 
 

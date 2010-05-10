@@ -133,6 +133,13 @@ PyObject *SystemDB::ListJumps(uint32 stargateID) {
 	return DBResultToRowset(res);
 }
 
+uint32 SystemDB::GetObjectLocationID( uint32 itemID ) {
+	
+	//TODO: implement database logic and query
+
+	return NULL;
+}
+
 
 
 

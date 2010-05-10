@@ -172,6 +172,7 @@ public:
 	uint32 GetShipID() const                        { return mSession.GetCurrentInt( "shipid" ); }
     uint32 GetGangRole() const                      { return mSession.GetCurrentInt( "gangrole" ); }
 
+
 	// character data
 	CharacterRef GetChar() const                    { return m_char; }
 	ShipRef GetShip() const                         { return ShipRef::StaticCast( Item() ); }
@@ -216,6 +217,7 @@ public:
 	void SelfEveMail(const char *subject, const char *fmt, ...);
 	void ChannelJoined(LSCChannel *chan);
 	void ChannelLeft(LSCChannel *chan);
+	void UpdateSession( const char *sessionType, int value );
 
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, void (Client::* clientCall)() );
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, ClientFunctor **functor );

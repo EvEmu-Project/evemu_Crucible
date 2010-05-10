@@ -159,6 +159,13 @@ enum EVEContainerTypes {
 	containerCorpMarket			= 10012
 };
 
+enum EVERookieShipTypes {
+	amarrRookie						= 596,
+	caldariRookie					= 601,
+	gallenteRookie					= 606,
+	minmatarRookie					= 588,
+};
+
 
 #include "tables/invCategories.h"
 typedef EVEDB::invCategories::invCategories EVEItemCategories;
@@ -276,6 +283,7 @@ typedef enum EVEItemFlags
 //some alternative names for entries above.
 static const EVEItemFlags flagSlotFirst = flagLowSlot0;	//duplicate values
 static const EVEItemFlags flagSlotLast = flagFixedSlot;
+static const EVEItemFlags flagNone = flagAutoFit;
 
 static const EVEItemFlags flagAnywhere = flagAutoFit;
 static const uint8 MAX_MODULE_COUNT = flagSlotLast - flagSlotFirst + 1;
@@ -486,6 +494,7 @@ static const CorpRoleFlags corpRoleAll =
 //these come from dgmEffects.
 typedef enum {
 	effectShieldBoosting			= 4,	//effects.ShieldBoosting
+	effectSpeedBoost				= 7,		//effects.SppedBoost
 	effectMissileLaunching			= 9,	//effects.MissileDeployment
 	effectTargetAttack				= 10,	//effects.Laser
 	effectLoPower					= 11,

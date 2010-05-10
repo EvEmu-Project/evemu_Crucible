@@ -54,6 +54,7 @@ class SystemDB
 public:
 	bool LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &into);
 	bool LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity> &into);
+	static uint32 GetObjectLocationID( uint32 itemID );
 
 	PyObject *ListFactions();
 	PyObject *ListJumps(uint32 stargateID);

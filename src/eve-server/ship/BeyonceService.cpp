@@ -421,6 +421,46 @@ PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
 	//when docking, xyz doesn't matter...
 	call.client->MoveToLocation(arg.arg, GPoint(0, 0, 0));
 
+	//clear all targets
+	call.client->targets.ClearAllTargets();
+
+	//Check if player is in pod, in which case they get a rookie ship for free
+	if( call.client->GetShip()->typeID() == itemTypeCapsule ) {
+		//set base type for rookie ship
+		uint32 typeID = caldariRookie;
+
+		//set spawn location for hangar - not sure if this is correct.  Do you instantly get put in the rookie ship?
+		EVEItemFlags flag = (EVEItemFlags)flagHangar;
+
+		//create rookie ship of appropriate type
+		if(call.client->GetChar()->race() == raceAmarr )
+			typeID = amarrRookie;
+		else if(call.client->GetChar()->race() == raceCaldari )
+			typeID = caldariRookie;
+		else if(call.client->GetChar()->race() == raceGallente )
+			typeID = gallenteRookie;
+		else if(call.client->GetChar()->race() == raceMinmatar )
+			typeID = minmatarRookie;
+		
+		//create data for new rookie ship
+		ItemData idata(
+			typeID,
+			call.client->GetCharacterID(),
+			0, //temp location
+			flag,
+			1
+		);
+		//spawn rookie
+		InventoryItemRef i = call.client->services().item_factory.SpawnItem( idata );
+	
+		//move the new rookie ship into the players hanger in station
+		if(!i)
+			throw PyException( MakeCustomError( "Unable to generate correct rookie ship" ) );
+
+		i->Move( call.client->GetStationID(), flag, true );
+
+	}
+
 	return NULL;
 }
 

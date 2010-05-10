@@ -140,6 +140,9 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
             break;
 
         case containerGlobal:
+			flag = flagNone;
+			break;
+
         case containerSolarSystem:
         case containerScrapHeap:
         case containerFactory:
@@ -185,11 +188,13 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
         _log(SERVICE__ERROR, "Character %u tried to rename item %u of character %u.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
         return NULL;
     }
+	
+    item->Rename( args.itemName.c_str() );
 
-    item->Rename(args.itemName.c_str());
 
-    //do we need to send some sort of update?
-
+	//maybe?
+	call.client->UpdateSession("shipid", item->itemID() );
+	
     return NULL;
 }
 

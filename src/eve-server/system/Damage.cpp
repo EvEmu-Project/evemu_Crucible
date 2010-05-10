@@ -682,6 +682,7 @@ void DynamicSystemEntity::Killed(Damage &fatal_blow) {
 void Client::Killed(Damage &fatal_blow) {
 	DynamicSystemEntity::Killed(fatal_blow);
 
+
 	if(GetShip()->typeID() == itemTypeCapsule) {
 		//we have been pod killed... off we go.
 
@@ -692,6 +693,8 @@ void Client::Killed(Damage &fatal_blow) {
 	} else {
 		//our ship has been destroyed. Off to our capsule.
 		//We are currently not keeping our real capsule around in the DB, so we need to make a new one.
+
+		//m_system->bubbles.Remove(this, true);
 		
 		std::string capsule_name = GetName();
 		capsule_name += "'s Capsule";
@@ -699,7 +702,7 @@ void Client::Killed(Damage &fatal_blow) {
 			itemTypeCapsule,
 			GetCharacterID(),
 			GetLocationID(),
-			flagCapsule,
+			flagAutoFit,
 			capsule_name.c_str()
 		);
 
@@ -711,19 +714,32 @@ void Client::Killed(Damage &fatal_blow) {
 		}
 		
 		ShipRef dead_ship = GetShip();	//grab a ship ref to ensure that nobody else nukes it first.
-		
+
 		//ok, nothing can fail now, we need have our capsule, make the transition.
 		
 		//put the capsule where the ship was
 		capsule->Relocate(dead_ship->position());
 		
-		//this updates m_self and manages destiny updates as needed.
-		//This sends the RemoveBall for the old ship.
-		BoardShip((ShipRef)capsule);
+		//move it out of the way
+		dead_ship->Move(this->GetLocationID(), (EVEItemFlags)flagNone, true );
+
+
 		
+		//this updates m_self and manages destiny updates as needed.
+		BoardShip((ShipRef)capsule);
+
+		mSession.SetInt("shipid", capsule->itemID() );
+
+		//This sends the RemoveBall for the old ship.
+
+
+		
+
 		//kill off the old ship.
 		//TODO: figure out anybody else which may be referencing this ship...
 		dead_ship->Delete();	//remove from the DB.
+		
+
 	}
 }
 

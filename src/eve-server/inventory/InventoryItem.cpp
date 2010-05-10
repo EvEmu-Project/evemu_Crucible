@@ -412,7 +412,7 @@ bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result ) const
     }
 
     //activeEffects:
-    //result.entry.activeEffects[id] = List[11];
+    //result..activeEffects[id] = List[11];
 
     //attributes:
     attributes.EncodeAttributes( result.attributes );
@@ -434,8 +434,8 @@ PyObject *InventoryItem::ItemGetInfo() const {
 
 
 void InventoryItem::Rename(const char *to) {
-    m_itemName = to;
-    // TODO: send some kind of update?
+    
+	m_itemName = to;
     SaveItem();
 }
 

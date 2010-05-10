@@ -45,6 +45,8 @@ public:
         PyCallable_REG_CALL(ShipBound, Drop)
         PyCallable_REG_CALL(ShipBound, ScoopDrone)
         PyCallable_REG_CALL(ShipBound, Jettison)
+		PyCallable_REG_CALL(ShipBound, Eject)
+		PyCallable_REG_CALL(ShipBound, LeaveShip)
     }
 
     virtual ~ShipBound() {delete m_dispatch;}
@@ -60,6 +62,7 @@ public:
     PyCallable_DECL_CALL(ScoopDrone)
     PyCallable_DECL_CALL(Jettison)
     PyCallable_DECL_CALL(Eject)
+	PyCallable_DECL_CALL(LeaveShip)
 
 protected:
     ShipDB& m_db;
@@ -89,22 +92,74 @@ PyBoundObject *ShipService::_CreateBoundObject(Client *c, const PyRep *bind_args
 
 PyResult ShipBound::Handle_Board(PyCallArgs &call) {
     Call_SingleIntegerArg args;
+
+	//we want to remember this, as it will change after the boardship call
+	ShipRef old_ship = call.client->GetShip();
+
     if(!args.Decode(&call.tuple)) {
         codelog(CLIENT__ERROR, "%s: failed to decode arguments", call.client->GetName());
         return NULL;
     }
+	
+	ShipRef ship = m_manager->item_factory.GetShip( args.arg );
 
     if(call.client->IsInSpace()) {
-        //TODO: handle the logistics of this!
-        codelog(CLIENT__ERROR, "%s: Boarding a ship in space is not yet implemented!!!!", call.client->GetName());
-    }
+        //If client is in space and they are boarding a ship, they must be in a pod.  
+		//Therefore, the pod must be consumed, and session transerfered, exactly as it is if the person boards
+		//a ship from a pod in a station.  However, if they are not in a pod (idk if you can board straight from one ship to another)
+		//then that ship needs to be left there.  For now, just assume the capsule is the only way to do it.
 
-    ShipRef ship = m_manager->item_factory.GetShip( args.arg );
+		if( !ship ) {
+			_log(CLIENT__ERROR, "%s: Failed to get new ship %u.", call.client->GetName(), args.arg);
+		}
+		else
+		{
+		if( ship->ValidateBoardShip( ship, call.client->GetChar()) )
+			{
+				call.client->BoardShip( ship );
+					
+				//consume pod, as it is placed inside the ship
+				if(old_ship->typeID() == itemTypeCapsule ) {
+					call.client->MoveItem( old_ship->itemID(), 0, (EVEItemFlags)flagNone );
+						old_ship->Delete();
+				}
+				else
+				{
+					//TODO: can this actually happen?
+				}
+
+				return NULL;
+			}
+			else
+				throw PyException( MakeCustomError( "You do not have the required skills to fly a %s", ship->itemName().c_str() ) );		
+		}
+
+		codelog(CLIENT__ERROR, "%s: Boarding a ship in space is not yet implemented!!!!", call.client->GetName());
+
+		return NULL;
+	}
+
+    
     if( !ship ) {
         _log(CLIENT__ERROR, "%s: Failed to get new ship %u.", call.client->GetName(), args.arg);
     }
     else
-        call.client->BoardShip( ship );
+	{
+		if( ship->ValidateBoardShip( ship, call.client->GetChar()) )
+		{
+			call.client->BoardShip( ship );
+			
+			//consume pod, as it is placed inside the ship
+			if(old_ship->typeID() == itemTypeCapsule ) {
+				call.client->MoveItem( old_ship->itemID(), 0, (EVEItemFlags)flagNone );
+					old_ship->Delete();
+			}
+
+			return NULL;
+		}
+		else
+			throw PyException( MakeCustomError( "You do not have the required skills to fly a %s", ship->itemName().c_str() ) );		
+	}
 
     return NULL;
 }
@@ -137,6 +192,12 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
     //  dict:
     //      3->(insert station ID)
     //      4->4
+	/*
+	PyTuple *tmp = new PyTuple;
+		util.Row
+	
+	call.client->SendNotification("OnItemChange", "charid", &tmp, false);
+	*/
 
     //Update the custom info field.
     char ci[256];
@@ -145,6 +206,15 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 
     //do session change...
     call.client->MoveToLocation(call.client->GetSystemID(), dockPosition);
+
+	//calculate undock movement
+	//GPoint dest = GPoint(call.client->x()+ 10000 , call.client->y(), call.client->z());
+	
+	//move away from dock
+	//call.client->Destiny()->GotoDirection(dest);
+	
+	//prevent client from stopping ship automatically stopping - this is sloppy
+
 
     //revert custom info, for testing.
     call.client->GetShip()->SetCustomInfo(NULL);
@@ -351,12 +421,40 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 PyResult ShipBound::Handle_Eject(PyCallArgs &call) {
     //no arguments.
 
+	//get character name
+	std::string name = call.client->GetName();
+	name += "'s Capsule";
+
+	//save old ship position
+	GPoint p = call.client->GetShip()->position();
+
     //spawn capsule (inside ship, flagCapsule, singleton)
+	ItemData idata(
+		name.c_str(),
+		itemTypeCapsule,
+		call.client->GetCharacterID(),
+		call.client->GetLocationID(),
+		(EVEItemFlags)flagCapsule,
+		false, true, 1,
+		call.client->GetShip()->position(),
+		""
+	);
+
+	InventoryItemRef i = call.client->services().item_factory.SpawnShip( idata );
+
+	if(!i)
+		throw PyException( MakeCustomError ( "Unable to generate escape pod" ) );
+
     //change location of capsule from old ship to systemID (flag 56->0)
+	i->Move(call.client->GetLocationID(), (EVEItemFlags)flagAutoFit, true);
+
+	ShipRef capsule = call.client->services().item_factory.GetShip( i->itemID() );
 
     //send session change for shipID change
+	call.client->BoardShip( capsule );
 
     return NULL;
+	
     //things which came after the return (but probably do not have to...
 
     //DoDestinyUpdate
@@ -376,6 +474,53 @@ PyResult ShipBound::Handle_Eject(PyCallArgs &call) {
         //SetBallInteractive (capsule, true)
         //OnSlimItemChange (capsule, SlimItem)
         //SetMaxSpeed (capsule)
+}
+
+PyResult ShipBound::Handle_LeaveShip(PyCallArgs &call){
+	
+	//leave ship into capsule in station
+
+	//remember the old ship
+	ShipRef old_ship = call.client->GetShip();
+	
+	//get character name
+	std::string name = call.client->GetName();
+	name += "'s Capsule";
+
+	//save old ship position - this doesn't matter in a station though, so it really could be anything, just re-using code for simplicity
+	GPoint p = call.client->GetShip()->position();
+
+    //spawn capsule (inside ship, flagCapsule, singleton)
+	ItemData idata(
+		name.c_str(),
+		itemTypeCapsule,
+		call.client->GetCharacterID(),
+		call.client->GetLocationID(),
+		(EVEItemFlags)flagCapsule,
+		false, true, 1,
+		call.client->GetShip()->position(),
+		""
+	);
+	
+	//build the capsule
+	InventoryItemRef i = call.client->services().item_factory.SpawnShip( idata );
+
+	if(!i)
+		throw PyException( MakeCustomError ( "Unable to generate escape pod" ) );
+
+	//move capsule into the players hangar
+	i->Move(call.client->GetLocationID(), (EVEItemFlags)flagHangar, true);
+	
+	//get the capsule we just made
+	ShipRef capsule = m_manager->item_factory.GetShip( i->itemID() );
+
+    //send session change for shipID change
+	call.client->BoardShip( capsule );
+
+
+
+	return NULL;
+
 }
 
 

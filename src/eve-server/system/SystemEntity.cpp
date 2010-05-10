@@ -37,6 +37,13 @@ void SystemEntity::Process() {
 	targets.Process();
 }
 
+uint32 SystemEntity::GetLocationID(SystemEntity *se)
+{
+	uint32 itemID = se->GetID();
+	
+	return (SystemDB::GetObjectLocationID( itemID ) );
+}
+
 double SystemEntity::DistanceTo2(const SystemEntity *other) const {
 	GVector delta(GetPosition(), other->GetPosition());
 	return(delta.lengthSquared());

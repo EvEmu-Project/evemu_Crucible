@@ -28,7 +28,7 @@
   <elementDef name="CallSetLabel">
     <tupleInline>
       <int name="itemID" />
-      <string name="itemName" />
+      <wstring name="itemName" />
     </tupleInline>
   </elementDef>
 

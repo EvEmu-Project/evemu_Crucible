@@ -559,6 +559,50 @@ bool Character::InjectSkillIntoBrain(SkillRef skill)
     return true;
 }
 
+bool Character::InjectSkillIntoBrain(SkillRef skill, uint8 level)
+{
+    Client *c = m_factory.entity_list.FindCharacter( itemID() );
+	
+
+    SkillRef oldSkill = GetSkill( skill->typeID() );
+    if( oldSkill )
+    {
+
+		oldSkill->attributes.SetNotify(true);
+		oldSkill->Set_skillLevel( level );
+		oldSkill->Set_skillPoints( pow(2, ( 2.5 * level ) - 2.5 ) * SKILL_BASE_POINTS * ( oldSkill->attributes.GetInt( oldSkill->attributes.Attr_skillTimeConstant ) ) );
+
+		return true;
+    }
+
+    // are we injecting from a stack of skills?
+    if( skill->quantity() > 1 )
+    {
+        // split the stack to obtain single item
+        InventoryItemRef single_skill = skill->Split( 1 );
+        if( !single_skill )
+        {
+            _log( ITEM__ERROR, "%s (%u): Unable to split stack of %s (%u).", itemName().c_str(), itemID(), skill->itemName().c_str(), skill->itemID() );
+            return false;
+        }
+
+        // use single_skill ...
+        single_skill->MoveInto( *this, flagSkill );
+    }
+    else
+		skill->MoveInto( *this, flagSkill );
+
+	skill->Set_skillLevel( level );
+	//TODO: get right number of skill points
+	//skill->Set_skillPoints( SKILL_BASE_POINTS * skillTimeConstant() * pow(32, (level - 1) / 2.0) );
+	skill->Set_skillPoints( pow(2,( 2.5 * level) - 2.5 ) * SKILL_BASE_POINTS * ( skill->attributes.GetInt( skill->attributes.Attr_skillTimeConstant ) ) );
+	
+	
+    return true;
+}
+
+
+
 void Character::AddToSkillQueue(uint32 typeID, uint8 level)
 {
     QueuedSkill qs;

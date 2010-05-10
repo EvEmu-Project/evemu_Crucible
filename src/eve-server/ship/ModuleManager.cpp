@@ -225,21 +225,58 @@ void ModuleManager::DeactivateAllModules()
     }
 }
 
-ShipModule *ShipModule::CreateModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_) {
-	/*switch(self->groupID()) {
-	//TODO: make an enum for this crap, or pull it from the DB.
-	case 74:	//Hybrid Weapon
-	case 55:	//Projectile Weapon
-		return(new HybridWeaponModule(owner, self, charge_));
-	case 53:	//Energy Weapon
-		return(new LaserWeaponModule(owner, self, charge_));
-	case 54:	//Mining Laser
-		return(new MiningLaserModule(owner, self, charge_));
-	default:
-		return(new GenericShipModule(owner, self, charge_));
+bool ShipModule::OnlineModule()
+{
+	//check if cpu and powerGrid can handle the item, and if it can, add to the ship powerLoad and cpuLoad
+	int cpuLoad = m_pilot->GetShip()->cpuLoad();
+	int powerLoad = m_pilot->GetShip()->powerLoad();
+	int cpuNeed = m_item->cpu();
+	int powerNeed = m_item->power();
+	int shipCpu = m_pilot->GetShip()->cpuOutput();
+	int shipPower = m_pilot->GetShip()->powerOutput();
+
+	if( !( ( cpuLoad + cpuNeed ) <= shipCpu && ( powerLoad + powerNeed <= shipPower ) ) )
+	{
+		m_pilot->SendNotifyMsg("You do not have enough CPU or Powergrid to put this module Online");
+		return false;
 	}
-	*/
-	switch(self->groupID())
+
+	cpuLoad += cpuNeed;
+	powerLoad += powerNeed;
+
+	m_pilot->GetShip()->Set_cpuLoad( cpuLoad );
+	m_pilot->GetShip()->Set_powerLoad( powerLoad );
+
+	return true;
+
+}
+
+void ShipModule::OfflineModule()
+{
+	//take cpu and powergrid load off
+	int cpuLoad = m_pilot->GetShip()->cpuLoad();
+	int cpuNeed = m_item->cpu();
+	cpuLoad -= cpuNeed;
+
+	int powerLoad = m_pilot->GetShip()->powerLoad();
+	int powerNeed = m_item->power();
+	powerLoad -= powerNeed;
+
+	//these should never happen
+	if( cpuLoad < 0 )
+		cpuLoad = 0;
+	if( powerLoad < 0 )
+		powerLoad = 0;
+
+	m_pilot->GetShip()->Set_cpuLoad( cpuLoad );
+	m_pilot->GetShip()->Set_powerLoad( powerLoad );
+
+}
+
+
+
+ShipModule *ShipModule::CreateModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_) {
+ 	switch(self->groupID())
 	{
 		//TODO: make an enum for this crap, or pull it from the DB.
 		// enum in invGroups.h
@@ -274,6 +311,110 @@ ShipModule *ShipModule::CreateModule(Client *owner, InventoryItemRef self, Inven
 		case EVEDB::invGroups::Smart_Bomb:	// Smart Bomb Device
 			return(new SmartBombModule(owner, self, charge_));
 
+		case EVEDB::invGroups::Afterburner:	//Afterburner
+			return(new AfterburnerModule(owner, self, charge_));
+		/*
+		case EVEDB::invGroups::Anti_Warp_Scrambler:  //Warp Stabilizers
+			return(new WarpStabilizerModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Armor_Hardener:
+			return(new ArmorHardenerModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Automated_Targeting_System:
+			return(new AutomatedTargetingModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Auxiliary_Power_Core:
+			return(new AuxiliaryPowerCoreModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Ballistic_Control_system:
+			return(new BallisticControlModule(owner, self, charge_));
+			
+		case EVEDB::invGroups::Capacitor_Battery:
+			return(new CapacitorBatteryModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Capacitor_Booster:
+			return(new CapacitorBoosterModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Capacitor_Recharger:
+			return(new CapacitorRechargerModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Cargo_Scanner:
+			return(new CargoScannerModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Cloaking_Device:
+			return(new CloakingDeviceModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Countermeasure_Launcher:
+			return(new CountermeasureLauncherModule(owner, self, charge_));
+
+		case EVEDB::invGroups::CPU_Enhancer:
+			return(new CPUEnhancerModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Damage_Control:
+			return(new DamageControlModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Drone_Control_Range_Module:
+			return(new DroneControlRangeModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Drone_Control_Unit:
+			return(new DroneControlModule(owner, self, charge_));
+		
+		case EVEDB::invGroups::Drone_Damage_Modules:
+			return(new DroneDamageModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Drone_Modules:
+			return(new DroneModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Drone_Tracking_Modules:
+			return(new DroneTrackingModule(owner, self, charge_));
+
+		case EVEDB::invGroups::DroneBayExpander:
+			return(new DroneBayExpander(owner, self, charge_));
+
+		case EVEDB::invGroups::ECCM:
+			return(new ECCMModule(owner, self, charge_));
+
+		case EVEDB::invGroups::ECM:
+			return(new ECMModule(owner, self, charge_));
+
+		case EVEDB::invGroups::ECM_Burst:
+			return(new ECMBurstModule(owner, self, charge_));
+
+		case EVEDB::invGroups::ECM_Stabilizer:
+			return(new ECMStabilizerModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Energy_Destabilizer:
+			return(new EnergyDestabilizerModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Energy_Transfer_Array:
+			return(new EnergyTransferArrayModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Energy_Vampire:
+			return(new EnergyVampireModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Gang_Coordinator:
+			return(new GangCoordinatorModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Gyrostabilizer:
+			return(new GyrostabilizerModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Heat_Sink:
+			return(new HeatSinkModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Hull_Mods:
+			return(new HullModificationModule(owner, self, charge_));
+
+		case EVEDB::invGroups::Hull_Repair_Unit:
+			return(new HullRepairUnit(owner, self, charge_));
+
+		case EVEDB::invGroups::Microwarpdrive:
+			return(new MicrowarpdriveModule(owner, self, charge_));
+
+		*/
+
+
+			
+
 		default:
 			return(new GenericShipModule(owner, self, charge_));
 	}
@@ -292,9 +433,7 @@ ShipModule::ShipModule(Client *pilot, InventoryItemRef self, InventoryItemRef ch
   m_timer(0)
 {
 	m_timer.Disable();
-
-	if( m_item->isOnline() )
-		m_state = Online;
+	m_state = PuttingOnline; //never create module that is automatically online
 }
 
 ShipModule::~ShipModule()
@@ -309,11 +448,20 @@ void ShipModule::Process() {
 		break;
 	
 	case PuttingOnline:
-		if(m_timer.Check(false)) {
+		//these base classes of modules do not support any sort of targeting through inheritance, aka, no timer needed.
+		//if(m_timer.Check(false)) { 
 			_log(SHIP__MODULE_TRACE, "Module %s (%u): Putting module online.", m_item->itemName().c_str(), m_item->itemID());
-			m_state = Online;
-			m_item->PutOnline();
-		}
+			if( OnlineModule() )
+			{
+				m_state = Online;
+				m_item->PutOnline();
+			}
+			else
+			{
+				m_state = Offline;
+				m_item->PutOffline();
+			}
+		//}
 		break;
 		
 	case Online:
@@ -331,12 +479,15 @@ void ShipModule::Process() {
 
 int ShipModule::Activate(const std::string &effectName, uint32 target, uint32 repeat) {
 	_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation requested for effect '%s' in state %d.", m_item->itemName().c_str(), m_item->itemID(), effectName.c_str(), m_state);
-	if(effectName == "online") {
+	if(effectName == "online" || effectName == "Online" ) { //added second statement to handle automatic client requests
 		if(m_state == Offline) {
 			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activate requested for effect.", m_item->itemName().c_str(), m_item->itemID());
-			m_timer.Start(_ActivationInterval());
-			m_state = PuttingOnline;
-			return(1);
+			if( OnlineModule() )
+			{
+				m_timer.Start(_ActivationInterval());
+				m_state = PuttingOnline;
+				return(1);
+			}
 		} else {
 			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation requested in state %d, ignoring.", m_item->itemName().c_str(), m_item->itemID(), m_state);
 			return(0);
@@ -978,6 +1129,7 @@ int MiningStripLaserModule::Activate(const std::string &effectName, uint32 targe
 				//timer is already running.
 				m_item->PutOffline();
 				m_repeatCount = 0;
+				m_pilot->SendNotifyMsg("You do not have enough CPU or Powergrid to put this module online");
 				return 0;
 			}
 			return 1;
@@ -1059,9 +1211,17 @@ void ShieldBoostingModule::DoEffect()
 {
 	codelog(SHIP__MODULE_TRACE, "Module %s (%u type %u): Triggering.", m_item->itemName().c_str(), m_item->itemID(), m_item->typeID());
 	
-	uint32 actualCharge = m_pilot->GetShip()->charge();
+	int actualCharge = m_pilot->GetShip()->charge();
 	/* TODO: calculates the reduction on capacitor need based on char skill */
 	actualCharge -= m_item->capacitorNeed();
+	
+	if( actualCharge <= 0 )
+	{
+		actualCharge = 0;
+		Deactivate(m_effectName);
+		m_pilot->SendNotifyMsg("You do not have enough capacitor charge"); //TODO: whatever this is really supposed to be
+	}
+
 	m_pilot->GetShip()->Set_charge(actualCharge);
 
 	uint32 actualShield = m_pilot->GetShip()->shieldCharge();
@@ -1172,6 +1332,7 @@ void ShieldBoostingModule::Process()
 				_log(SHIP__MODULE_TRACE, "Module %s (%u): No more repeates requested. Deactivating.", m_item->itemName().c_str(), m_item->itemID());
 				m_state = Deactivating;
 			}
+
 		}
 		break;
 		
@@ -1244,6 +1405,7 @@ int ShieldBoostingModule::Activate(const std::string &effectName, uint32 target,
 				//timer is already running.
 				m_item->PutOffline();
 				m_repeatCount = 0;
+				m_pilot->SendNotifyMsg("You do not have enough CPU or Powergrid to put this module online");
 				return 0;
 			}
 			return 1;
@@ -1334,6 +1496,7 @@ int ShieldExtenderModule::Activate(const std::string &effectName, uint32 target,
 			{
 				m_state = Offline;
 				m_item->PutOffline();
+				m_pilot->SendNotifyMsg("You do not have enough CPU or Powergrid to put this module online");
 				return 0;
 			}
 			return 1;
@@ -1594,6 +1757,7 @@ int ArmorRepairModule::Activate(const std::string &effectName, uint32 target, ui
 				//timer is already running.
 				m_item->PutOffline();
 				m_repeatCount = 0;
+				m_pilot->SendNotifyMsg("You do not have enough CPU or Powergrid to put this module online");
 				return 0;
 			}
 			return 1;
@@ -1798,6 +1962,7 @@ int PowerDiagnosticsModule::Activate(const std::string &effectName, uint32 targe
 			{
 				m_state = Offline;
 				m_item->PutOffline();
+				m_pilot->SendNotifyMsg("You do not have enough CPU or Powergrid to put this module online");
 				return 0;
 			}
 			return 1;
@@ -1900,6 +2065,7 @@ void PowerDiagnosticsModule::Deactivate(const std::string &effectName) {
 
 			m_state = Offline;
 			m_item->PutOffline();
+
 		}
 		else
 		{
@@ -2126,6 +2292,7 @@ int SmartBombModule::Activate(const std::string &effectName, uint32 target, uint
 				//timer is already running.
 				m_item->PutOffline();
 				m_repeatCount = 0;
+				m_pilot->SendNotifyMsg("You do not have enough CPU or Powergrid to put this module online");
 				return 0;
 			}
 			return 1;
@@ -2143,6 +2310,273 @@ int SmartBombModule::Activate(const std::string &effectName, uint32 target, uint
 }
 
 void SmartBombModule::Deactivate(const std::string &effectName) {
+	_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivate requested for effect '%s' in state %d.", m_item->itemName().c_str(), m_item->itemID(), effectName.c_str(), m_state);
+	if( effectName == m_effectName )
+	{
+		if( m_state == Active )
+		{
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivate requested for effect.", m_item->itemName().c_str(), m_item->itemID());
+			m_state = Deactivating;
+			//timer is already running.
+		}
+		else
+		{
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivation requested in state %d, ignoring.", m_item->itemName().c_str(), m_item->itemID(), m_state);
+		}
+	}
+	else if( effectName == "online" )
+	{
+		if( m_state == Online || m_state == Active )
+		{
+			uint32 cpuLoad = m_pilot->GetShip()->cpuLoad();
+			cpuLoad -= m_item->cpu();
+			cpuLoad = cpuLoad < 0 ? 0 : cpuLoad;
+			m_pilot->GetShip()->Set_cpuLoad( cpuLoad );
+
+			uint32 powerLoad = m_pilot->GetShip()->powerLoad();
+			powerLoad -= m_item->power();
+			powerLoad = powerLoad < 0 ? 0 : powerLoad;
+			m_pilot->GetShip()->Set_powerLoad( powerLoad );
+
+			m_state = Offline;
+			m_item->PutOffline();
+		}
+		else
+		{
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivation requested in state %d, ignoring.", m_item->itemName().c_str(), m_item->itemID(), m_state);
+		}
+	}
+	else
+	{
+		_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivation requested in state %d with unknown effect '%s'", m_item->itemName().c_str(), m_item->itemID(), m_state, effectName.c_str());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////ItWasLuck/////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+void AfterburnerModule::StartEffect() {
+	
+	_SendGodmaShipEffect( effectSpeedBoost, true);
+}
+
+/* Overrided method to put specific calculations/timers and so on. */
+void AfterburnerModule::DoEffect()
+{
+	codelog(SHIP__MODULE_TRACE, "Module %s (%u type %u): Triggering.", m_item->itemName().c_str(), m_item->itemID(), m_item->typeID());
+	
+	int actualCharge = m_pilot->GetShip()->charge();
+	/* TODO: calculates the reduction on capacitor need based on char skill */
+	actualCharge -= m_item->capacitorNeed();
+
+	if( actualCharge <= 0 )
+	{
+		actualCharge = 0;
+		Deactivate(m_effectName);
+	}
+
+	m_pilot->GetShip()->Set_charge(actualCharge);
+
+	uint32 maxVelocity = m_pilot->GetShip()->maxVelocity();
+	/* TODO: calculates the bonus based on char skill */
+	maxVelocity = (maxVelocity * m_item->speedBonus() / 100 );
+
+	m_pilot->GetShip()->Set_maxVelocity(maxVelocity);
+	
+	/*send destiny OnSpecialFX to display the effect */
+	DoDestiny_OnSpecialFX13 sfx;
+	sfx.entityID = m_pilot->GetShipID();
+	sfx.moduleID = m_item->itemID();
+	sfx.moduleTypeID = m_item->typeID();
+	sfx.targetID = 0;
+	sfx.otherTypeID = 0;
+	sfx.effect_type = "effects.Boost";
+	sfx.isOffensive = 0;
+	sfx.start = 1;
+	sfx.active = 1;
+	sfx.duration_ms = m_item->duration();
+	sfx.repeat = 1;
+	sfx.startTime = Win32TimeNow();
+	
+	PyTuple *up = sfx.Encode();
+	m_pilot->Destiny()->SendSingleDestinyUpdate(&up);	//consumed
+	PySafeDecRef( up );
+}
+
+void AfterburnerModule::StopEffect()
+{
+	_SendGodmaShipEffect( effectSpeedBoost, false );
+}
+
+uint32 AfterburnerModule::_ActivationInterval() const
+{
+	/* TODO: calculates the reduction on duration based on char skill */
+	return m_item->duration();
+}
+
+void AfterburnerModule::_SendGodmaShipEffect(uint32 effect, bool active)
+{
+	Notify_OnGodmaShipEffect gse;
+	gse.itemID = m_item->itemID();
+	gse.effectID = effect;
+	gse.when = Win32TimeNow();
+	gse.start = active?1:0;
+	gse.active = active?1:0;
+	gse.env_itemID = m_item->itemID();
+	gse.env_charID = m_item->ownerID();	//a little questionable
+	gse.env_shipID = m_item->locationID();
+	gse.env_target = 0;
+	if(active) {
+		PyTuple *env_other = new PyTuple(3);
+		env_other->SetItem(0, new PyInt(m_item->locationID()) );	//ship ID.
+		env_other->SetItem(1, new PyInt(30) );	//no idea
+		env_other->SetItem(2, new PyInt(215) );	//no idea
+		
+		gse.env_other = env_other;
+	} else {
+		gse.env_other = new PyNone();
+	}
+	gse.env_effectID = gse.effectID;
+	gse.startTime = gse.when;
+	gse.duration = _ActivationInterval();
+	gse.repeat = m_repeatCount;
+	gse.randomSeed = new PyNone();
+	gse.error = new PyNone();
+
+	//should this only go to ourself?
+	// No need to send to all clients closer
+	PyTuple *up = gse.Encode();
+	m_pilot->QueueDestinyEvent(&up);
+	PySafeDecRef( up );
+}
+
+
+/* Overrided method
+ * We override this because our proccess is not the same
+ * as general ship module.
+*/
+void AfterburnerModule::Process()
+{
+	switch( m_state )
+	{
+	case Offline:
+	case PuttingOnline:
+	case Online:
+		//pass up to parent.
+		ShipModule::Process();
+		break;
+		
+	case Active:
+		if( m_timer.Check() )
+		{
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation timer expired.", m_item->itemName().c_str(), m_item->itemID());
+			
+			DoEffect();
+
+			if( m_repeatCount > 0 )
+			{
+				m_repeatCount--;
+				//let the timer go again.
+			}
+			else
+			{
+				_log(SHIP__MODULE_TRACE, "Module %s (%u): No more repeates requested. Deactivating.", m_item->itemName().c_str(), m_item->itemID());
+				m_state = Deactivating;
+			}
+		}
+		break;
+		
+	case Deactivating:
+		if( m_timer.Check(false) )
+		{
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivation complete, module online.", m_item->itemName().c_str(), m_item->itemID());
+			m_state = Online;
+			StopEffect();	//must send stop effect before clearing target info!
+			m_target = 0;
+			m_repeatCount = 0;
+		}
+		break;
+		
+	//no default on purpose.
+	}
+}
+
+int AfterburnerModule::Activate(const std::string &effectName, uint32 target, uint32 repeat)
+{
+	if( effectName == m_effectName )
+	{
+		if( m_state == Online )
+		{
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation requested with %s (tgt=%u, r=%u)", m_item->itemName().c_str(), m_item->itemID(), m_effectName, target, repeat);
+			
+			if( repeat > 1 )
+			{
+				m_state = Active;
+				m_repeatCount = repeat;
+			}
+			else
+			{
+				m_state = Deactivating;
+				m_repeatCount = 0;
+			}
+			
+			m_timer.Start( _ActivationInterval() );
+			m_target = target;
+			StartEffect();
+			DoEffect();
+			return 1;
+		}
+		else
+		{
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation requested with %s in state %d. Ignoring..", m_item->itemName().c_str(), m_item->itemID(), m_effectName, m_state);
+			return 0;
+		}
+	}
+	else if( effectName == "online" )
+	{
+		if(m_state == Offline)
+		{
+			uint32 cpuLoad = m_pilot->GetShip()->cpuLoad();
+			cpuLoad += m_item->cpu();
+			uint32 powerLoad = m_pilot->GetShip()->powerLoad();
+			powerLoad += m_item->power();
+			if( !(cpuLoad > m_pilot->GetShip()->cpuOutput()) && !(powerLoad > m_pilot->GetShip()->powerOutput()) )
+			{
+				m_pilot->GetShip()->Set_cpuLoad( cpuLoad );
+				m_pilot->GetShip()->Set_powerLoad( powerLoad );
+
+				_log(SHIP__MODULE_TRACE, "Module %s (%u): Activate requested for effect.", m_item->itemName().c_str(), m_item->itemID());
+				m_timer.Start(_ActivationInterval());
+				m_state = PuttingOnline;
+			}
+			else
+			{
+				m_state = Offline;
+				//timer is already running.
+				m_item->PutOffline();
+				m_repeatCount = 0;
+				m_pilot->SendNotifyMsg("You do not have enough CPU or Powergrid to put this module online");
+				return 0;
+			}
+			return 1;
+		}
+		else
+		{
+			_log(SHIP__MODULE_TRACE, "Module %s (%u): Activation requested in state %d, ignoring.", m_item->itemName().c_str(), m_item->itemID(), m_state);
+			return(0);
+		}
+	}
+	else
+	{
+		return ShipModule::Activate( effectName, target, repeat );
+	}
+}
+
+void AfterburnerModule::Deactivate(const std::string &effectName) {
 	_log(SHIP__MODULE_TRACE, "Module %s (%u): Deactivate requested for effect '%s' in state %d.", m_item->itemName().c_str(), m_item->itemID(), effectName.c_str(), m_state);
 	if( effectName == m_effectName )
 	{

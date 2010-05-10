@@ -57,6 +57,7 @@ public:
 	void QueueTBDestinyUpdate(PyTuple **up) const;	//queue a destiny update to all people targeting me.
 
 	void Dump() const;
+	uint32 TimeToLock(ShipRef ship, SystemEntity *target) const; 
 	
 	//Packet builders:
 	PyList *GetTargets() const;

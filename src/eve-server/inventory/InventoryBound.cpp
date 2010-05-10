@@ -283,6 +283,9 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
             continue;
         }
 
+		//Get old position
+		EVEItemFlags old_flag = sourceItem->flag();
+
         //NOTE: a multi add can come in with quantity 0 to indicate "all"
         if( quantity == 0 )
             quantity = sourceItem->quantity();
@@ -314,6 +317,13 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
                 Call_SingleIntegerArg result;
                 result.arg = newItem->itemID();
 
+				//if it's going on a ship, it needs to be put online
+				if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
+				{
+					newItem->Set_isOnline( 0 );  //seems counter-intuitive, i know, but it works
+					c->modules.Activate( newItem->itemID(), "Online", NULL, NULL);
+				}
+
                 //Return new item result
                 return result.Encode();
             }
@@ -331,7 +341,37 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 			}
 
             c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);  // properly refresh modules
+			
         }
+
+
+		//update modules
+		c->modules.UpdateModules();
+
+		//check if item is comming off of a ship
+		//TODO: move to ModuleManager
+		if( (old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7) || (old_flag >= flagRigSlot0 && flag <= flagRigSlot7) )
+		{
+			int cpuLoad = c->GetShip()->cpuLoad();
+			int cpuNeed = sourceItem->cpu();
+			cpuLoad -= cpuNeed;
+
+			int powerLoad = c->GetShip()->powerLoad();
+			int powerNeed = sourceItem->power();
+			powerLoad -= powerNeed;
+
+			//these should never happen
+			if( cpuLoad < 0 )
+				cpuLoad = 0;
+			if( powerLoad < 0 )
+				powerLoad = 0;
+
+			c->GetShip()->Set_cpuLoad( cpuLoad );
+			c->GetShip()->Set_powerLoad( powerLoad );
+	
+		}
+
+
     }
 
     //Return Null if no item was created

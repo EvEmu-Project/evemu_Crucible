@@ -409,7 +409,6 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
 }
 
 void Client::BoardShip(ShipRef new_ship) {
-    //TODO: make sure we are really allowed to board this thing...
 
     if(!new_ship->singleton()) {
         _log(CLIENT__ERROR, "%s: tried to board ship %u, which is not assembled.", GetName(), new_ship->itemID());
@@ -421,7 +420,7 @@ void Client::BoardShip(ShipRef new_ship) {
         m_system->RemoveClient(this);
 
     _SetSelf( new_ship );
-    m_char->MoveInto( *new_ship, flagPilot, false );
+    m_char->MoveInto( *new_ship, flagPilot, true );
 
     mSession.SetInt( "shipid", new_ship->itemID() );
 
@@ -432,6 +431,7 @@ void Client::BoardShip(ShipRef new_ship) {
 
     if(m_destiny != NULL)
         m_destiny->SetShipCapabilities( GetShip() );
+
 }
 
 void Client::_UpdateSession( const CharacterConstRef& character )
@@ -1462,6 +1462,11 @@ bool Client::Handle_Notify( PyPacket* packet )
     return true;
 }
 
+void Client::UpdateSession(const char *sessionType, int value)
+{
+	mSession.SetInt(sessionType, value);
+}
+
 /*
 FunctorTimerQueue::TimerID Client::Delay( uint32 time_in_ms, void (Client::* clientCall)() ) {
     Functor *f = new SimpleClientFunctor(this, clientCall);
@@ -1539,5 +1544,4 @@ FunctorTimerQueue::Entry::Entry(TimerID _id, Functor *_func, uint32 time_ms)
 FunctorTimerQueue::Entry::~Entry() {
     delete func;
 }
-*/
-
+*/

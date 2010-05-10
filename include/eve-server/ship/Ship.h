@@ -195,6 +195,12 @@ public:
 	 */
 	PyObject *ShipGetInfo();
 
+	/*
+	 * Validates boarding ship
+	 */
+	bool ValidateBoardShip(ShipRef ship, CharacterRef who);
+
+
 protected:
 	Ship(
 		ItemFactory &_factory,
