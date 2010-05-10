@@ -69,7 +69,7 @@ int main( int argc, char* argv[] )
 
     // Load server configuration
     sLog.Log("server init", "Loading server configuration...");
-    
+
     if( !sConfig.ParseFile( CONFIG_FILE ) )
     {
         sLog.Error( "server init", "Loading server configuration '%s' failed.", CONFIG_FILE );
@@ -240,9 +240,6 @@ int main( int argc, char* argv[] )
         // do the stuff for thread sleeping
         if( MAIN_LOOP_DELAY > etime )
             Sleep( MAIN_LOOP_DELAY - etime );
-
-        /* slow crap as hell */
-        sLog.SetTime( time(NULL) );
     }
 
     sLog.Log("server shutdown", "Main loop stopped" );
