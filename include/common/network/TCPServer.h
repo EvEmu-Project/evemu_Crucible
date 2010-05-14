@@ -110,11 +110,11 @@ protected:
      *
      * @param[in] arg Pointer to BaseTCPServer.
      */
-	static ThreadReturnType TCPServerLoop( void* arg );
+	static thread_return_t TCPServerLoop( void* arg );
     /**
      * @brief Loop for worker threads.
      */
-    ThreadReturnType        TCPServerLoop();
+    thread_return_t        TCPServerLoop();
 
     /** Mutex to protect socket and associated variables. */
 	mutable Mutex   mMSock;
@@ -166,7 +166,7 @@ public:
 
 		return ret;
 	}
-	
+
 protected:
     /**
      * @brief Adds connection to the queue.

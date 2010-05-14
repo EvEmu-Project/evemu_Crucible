@@ -14,6 +14,7 @@ SET( CMAKE_MODULE_PATH
      "${PROJECT_SOURCE_DIR}/cmake"
      "${CMAKE_MODULE_PATH}" )
 
+INCLUDE( "CheckSymbolExists" )
 INCLUDE( "TargetBuildPCH" )
 INCLUDE( "TestBigEndian" )
 INCLUDE( "TestX64" )
@@ -35,9 +36,13 @@ OPTION( TINYXML_USE_STL
 #########
 # Tests #
 #########
-# Examine platform
+# Examine platform & compiler
 TEST_X64( X64 )
 TEST_BIG_ENDIAN( BIG_ENDIAN )
+
+CHECK_SYMBOL_EXISTS( "__FreeBSD__" "" FREE_BSD )
+
+SET( GNUC ${CMAKE_COMPILER_IS_GNUCXX} )
 
 # Check for dependencies
 FIND_PACKAGE( "MySql" 5.0 REQUIRED )

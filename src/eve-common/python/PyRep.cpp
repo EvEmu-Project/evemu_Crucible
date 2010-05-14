@@ -133,12 +133,14 @@ bool PyLong::visit( PyVisitor& v ) const
     return v.VisitLong( this );
 }
 
+int32 PyLong::hash() const
+{
 #define PyLong_SHIFT    15
 #define PyLong_BASE     (1 << PyLong_SHIFT)
 #define PyLong_MASK     ((int)(PyLong_BASE - 1))
 
-int32 PyLong::hash() const
-{
+#define LONG_BIT_PyLong_SHIFT	(8*sizeof(long) - PyLong_SHIFT)
+
     long x;
     int i;
     int sign;
@@ -153,7 +155,6 @@ int32 PyLong::hash() const
         sign = -1;
         i = -(i);
     }
-#define LONG_BIT_PyLong_SHIFT	(8*sizeof(long) - PyLong_SHIFT)
     /* The following loop produces a C long x such that (unsigned long)x
     is congruent to the absolute value of v modulo ULONG_MAX.  The
     resulting x is nonzero if and only if v is. */
@@ -167,11 +168,16 @@ int32 PyLong::hash() const
         if( (unsigned long)x < ((uint8*)&mValue)[i] )//v->ob_digit[i])
             x++;
     }
-#undef LONG_BIT_PyLong_SHIFT
     x = x * sign;
     if( x == -1 )
         x = -2;
     return x;
+
+#undef PyLong_SHIFT
+#undef PyLong_BASE
+#undef PyLong_MASK
+
+#undef LONG_BIT_PyLong_SHIFT
 }
 
 /************************************************************************/
@@ -190,11 +196,16 @@ bool PyFloat::visit( PyVisitor& v ) const
 	return v.VisitReal( this );
 }
 
-#define INT32_MAX 2147483647L   /* maximum int32 value */
-#define Py_IS_INFINITY( X ) ( !_finite( X ) && !_isnan( X ) )
+// maximum int32 value
+#ifndef INT32_MAX
+#   define INT32_MAX 2147483647L
+#endif /* !INT32_MAX */
 
 int32 PyFloat::hash() const
 {
+#define Py_IS_INFINITY( X ) \
+    ( !finite( X ) && !isnan( X ) )
+
     double v = mValue;
     double intpart, fractpart;
     int expo;
@@ -249,6 +260,8 @@ int32 PyFloat::hash() const
     if (x == -1)
         x = -2;
     return x;
+
+#undef Py_IS_INFINITY
 }
 
 /************************************************************************/
