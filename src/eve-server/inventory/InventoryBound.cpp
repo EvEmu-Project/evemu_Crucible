@@ -368,10 +368,31 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 
 			c->GetShip()->Set_cpuLoad( cpuLoad );
 			c->GetShip()->Set_powerLoad( powerLoad );
-	
+
+
+			int turretSlotsLeft = c->GetShip()->turretSlotsLeft();
+			int launcherSlotsLeft = c->GetShip()->launcherSlotsLeft();
+
+			//Because I can't read typeeffects to verify whether a mountpoint is even needed I had to be creative
+			//Surely this is a bad idea, but it won't break other modules and should work for a fair amount of turrets
+			//Once effects can be read via m_item only the below if/else has to be replaced with the below two lines.
+			//int turretSlotsNeed = m_item->turretFitted();
+			//int launcherSlotsNeed = m_item->launcherFitted();
+			int turretSlotsNeed = 0;
+			int launcherSlotsNeed = 0;
+
+			int groupID = sourceItem->groupID();
+				if (groupID == 56 || groupID == 136 || groupID == 256 || groupID == 308  || groupID == 481 || groupID == 501 || groupID == 506 || groupID == 507 || groupID == 508 || groupID == 509 || groupID == 510 || groupID == 511 || groupID == 512 || groupID == 524 || groupID == 589 || groupID == 771 || groupID == 779 || groupID == 862 || groupID == 918)
+			{
+				launcherSlotsNeed = 1;
+			}
+			else if (groupID == 53 || groupID == 54 || groupID == 55 || groupID == 74 || groupID == 464 || groupID == 483 )
+			{
+				turretSlotsNeed = 1;
+			}
+			c->GetShip()->Set_turretSlotsLeft( turretSlotsLeft + turretSlotsNeed );
+			c->GetShip()->Set_launcherSlotsLeft( launcherSlotsLeft + launcherSlotsNeed );
 		}
-
-
     }
 
     //Return Null if no item was created

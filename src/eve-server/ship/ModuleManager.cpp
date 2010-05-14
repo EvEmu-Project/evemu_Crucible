@@ -234,6 +234,26 @@ bool ShipModule::OnlineModule()
 	int powerNeed = m_item->power();
 	int shipCpu = m_pilot->GetShip()->cpuOutput();
 	int shipPower = m_pilot->GetShip()->powerOutput();
+	int turretSlotsLeft = m_pilot->GetShip()->turretSlotsLeft();
+	int launcherSlotsLeft = m_pilot->GetShip()->launcherSlotsLeft();
+
+	//Because I can't read typeeffects to verify whether a mountpoint is even needed I had to be creative
+	//Surely this is a bad idea, but it won't break other modules and should work for a fair amount of turrets
+	//Once effects can be read via m_item only the below if/else has to be replaced with the below two lines.
+	//int turretSlotsNeed = m_item->turretFitted();
+	//int launcherSlotsNeed = m_item->launcherFitted();
+	int turretSlotsNeed = 0;
+	int launcherSlotsNeed = 0;
+
+	int groupID = m_item->groupID();
+		if (groupID == 56 || groupID == 136 || groupID == 256 || groupID == 308  || groupID == 481 || groupID == 501 || groupID == 506 || groupID == 507 || groupID == 508 || groupID == 509 || groupID == 510 || groupID == 511 || groupID == 512 || groupID == 524 || groupID == 589 || groupID == 771 || groupID == 779 || groupID == 862 || groupID == 918)
+	{
+		launcherSlotsNeed = 1;
+	}
+	else if (groupID == 53 || groupID == 54 || groupID == 55 || groupID == 74 || groupID == 464 || groupID == 483 )
+	{
+		turretSlotsNeed = 1;
+	}
 
 	if( !( ( cpuLoad + cpuNeed ) <= shipCpu && ( powerLoad + powerNeed <= shipPower ) ) )
 	{
@@ -241,9 +261,23 @@ bool ShipModule::OnlineModule()
 		return false;
 	}
 
+	if( turretSlotsLeft < 1 && turretSlotsNeed == 1)
+	{
+		m_pilot->SendNotifyMsg("You do not have enough available turret hardpoints to put this module Online");
+		return false;
+	}
+
+	if( launcherSlotsLeft < 1 && launcherSlotsNeed == 1)
+	{
+		m_pilot->SendNotifyMsg("You do not have enough available launcher hardpoints to put this module Online");
+		return false;
+	}
+
 	cpuLoad += cpuNeed;
 	powerLoad += powerNeed;
 
+	m_pilot->GetShip()->Set_turretSlotsLeft( turretSlotsLeft - turretSlotsNeed );
+	m_pilot->GetShip()->Set_launcherSlotsLeft( launcherSlotsLeft - launcherSlotsNeed );
 	m_pilot->GetShip()->Set_cpuLoad( cpuLoad );
 	m_pilot->GetShip()->Set_powerLoad( powerLoad );
 
