@@ -51,7 +51,7 @@
 // Define this if tinyxml should use native STL.
 #cmakedefine TINYXML_USE_STL 1
 
-// EVEMU_REVISION
-// The revision of the source working tree.
-#define EVEMU_REVISION "@EVEMU_REVISION@"
+// EVEMU_VERSION
+// The version of source.
+#define EVEMU_VERSION "@PROJECT_VERSION@"
 

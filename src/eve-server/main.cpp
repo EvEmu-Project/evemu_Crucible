@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
     printf("details.\n");
     printf("\n");
 
-    sLog.Log("main", "EVEmu %s", EVEMU_REVISION );
+    sLog.Log("main", "EVEmu %s", EVEMU_VERSION );
     sLog.Log("server init", "\n"
         "\tSupported Client: %s\n"
         "\tVersion %.2f\n"

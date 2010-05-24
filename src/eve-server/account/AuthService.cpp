@@ -32,7 +32,7 @@ static const char *const loginMessage =
 	"<head>"
 	"</head>"
 	"<body>"
-		"Welcome to <b>EVEmu Server " EVEMU_REVISION "</b>.<br>"
+		"Welcome to <b>EVEmu Server " EVEMU_VERSION "</b>.<br>"
 		"<br>"
 		"You can find a lot of interesting info about this project at <a href=\"http://evemu.sourceforge.net/\">SoureForge.net</a> or at <a href=\"http://mmoforge.org/gf/project/evemu\">MMOForge.org</a>.<br>"
 		"<br>"

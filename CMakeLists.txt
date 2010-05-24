@@ -15,11 +15,12 @@ SET( CMAKE_MODULE_PATH
      "${CMAKE_MODULE_PATH}" )
 
 INCLUDE( "CheckSymbolExists" )
+
 INCLUDE( "TargetBuildPCH" )
 INCLUDE( "TestBigEndian" )
 INCLUDE( "TestX64" )
 
-# Custom options
+# Options
 OPTION( EVE_COLLECTOR
         "Build eve-collector."
         OFF )
@@ -33,15 +34,19 @@ OPTION( TINYXML_USE_STL
         "tinyxml will use native STL."
         ON )
 
+SET( PROJECT_VERSION "0.7-trunk" )
+
 #########
 # Tests #
 #########
-# Examine platform & compiler
+# Examine hardware
 TEST_X64( X64 )
 TEST_BIG_ENDIAN( BIG_ENDIAN )
 
+# Examine OS
 CHECK_SYMBOL_EXISTS( "__FreeBSD__" "" FREE_BSD )
 
+# Examine compiler
 SET( GNUC ${CMAKE_COMPILER_IS_GNUCXX} )
 
 # Check for dependencies
@@ -52,27 +57,27 @@ IF( EVE_EXTRACT_SVN_REV )
     FIND_PACKAGE( "Subversion" REQUIRED )
 ENDIF( EVE_EXTRACT_SVN_REV )
 
+FIND_PACKAGE( "Doxygen" )
+
 #################
 # Configuration #
 #################
 # Platform-specific configuration
 IF( WIN32 )
-    # Compile flags
     STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}" )
     STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}" )
     STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}" )
     STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}" )
     STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
-    # Standard libraries
+
     SET( CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} wsock32.lib" )
 ENDIF( WIN32 )
 
-# Fill EVEMU_REVISION appropriately
+# Update PROJECT_VERSION appropriately
 IF( EVE_EXTRACT_SVN_REV )
     Subversion_WC_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
-    SET( EVEMU_REVISION "${${PROJECT_NAME}_WC_LAST_CHANGED_REV}" )
-ELSE( EVE_EXTRACT_SVN_REV )
-    SET( EVEMU_REVISION "N/A" )
+
+    SET( PROJECT_VERSION "${PROJECT_VERSION}-r${${PROJECT_NAME}_WC_LAST_CHANGED_REV}" )
 ENDIF( EVE_EXTRACT_SVN_REV )
 
 # Setup config.h
@@ -88,9 +93,9 @@ INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
 #############################
 ADD_SUBDIRECTORY( "dep" )
 ADD_SUBDIRECTORY( "src/common" )
-ADD_SUBDIRECTORY( "src/xmlpktgen" )
 ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
+ADD_SUBDIRECTORY( "src/xmlpktgen" )
 
 IF( EVE_COLLECTOR )
     ADD_SUBDIRECTORY( "src/eve-collector" )
@@ -99,3 +104,7 @@ ENDIF( EVE_COLLECTOR )
 IF( EVE_TOOL )
     ADD_SUBDIRECTORY( "src/eve-tool" )
 ENDIF( EVE_TOOL )
+
+IF( DOXYGEN_FOUND )
+    ADD_SUBDIRECTORY( "doc" )
+ENDIF( DOXYGEN_FOUND )

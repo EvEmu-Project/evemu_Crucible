@@ -42,7 +42,7 @@
  *   c) the configuration
  *        NDEBUG, (debug)
  *        TINYXML_USE_STL
- *        EVEMU_REVISION
+ *        EVEMU_VERSION
  *
  * The rest of code relies on these defines.
  */
