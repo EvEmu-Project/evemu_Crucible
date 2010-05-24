@@ -211,8 +211,6 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
         return(new PyInt(0));
     }
 
-
-
     // Register new corp
     uint32 corpID;
     if (!m_db.AddCorporation(args, call.client->GetCharacterID(), call.client->GetStationID(), corpID)) {
@@ -220,16 +218,15 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
         return (new PyInt(0));
     }
     //adding a corporation might affect eveStaticOwners, so we gotta invalidate the cache...
-    PyString cache_name("config.StaticOwners");
-    m_manager->cache_service->InvalidateCache(&cache_name);
-
-
+    PyString * cache_name = new PyString("config.StaticOwners");
+    m_manager->cache_service->InvalidateCache(cache_name);
+	PySafeDecRef(cache_name);
 
     //take the money out of their wallet (sends wallet blink event)
-    // The ammount has to be double!!!
+    // The amount has to be double!!!
     if(!call.client->AddBalance(double(-corp_cost))) {
         codelog(SERVICE__ERROR, "%s: Failed to take money for corp startup!", call.client->GetName());
-        //TODO: do something? I dont wanna deal with deleting the corp right now...
+        //TODO: do something? I don't wanna deal with deleting the corp right now...
     }
 
     //record the transaction in their journal.

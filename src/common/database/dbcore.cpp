@@ -493,14 +493,14 @@ DBTYPE DBQueryResult::ColumnType( uint32 index ) const
 
 bool DBQueryResult::IsUnsigned( uint32 index ) const
 {
-    return ( mFields[ index ]->flags & UNSIGNED_FLAG );
+    return (mFields[index]->flags & UNSIGNED_FLAG) != 0;
 }
 
 bool DBQueryResult::IsBinary( uint32 index ) const
 {
     // According to MySQL C API Documentation, binary string
     // fields like BLOB or VAR_BINARY have charset "63".
-    return ( 63 == mFields[ index ]->charsetnr );
+    return (63 == mFields[ index ]->charsetnr);
 }
 
 void DBQueryResult::SetResult( MYSQL_RES** res, uint32 colCount )
