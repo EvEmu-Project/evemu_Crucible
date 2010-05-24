@@ -494,7 +494,7 @@ static const CorpRoleFlags corpRoleAll =
 //these come from dgmEffects.
 typedef enum {
 	effectShieldBoosting			= 4,	//effects.ShieldBoosting
-	effectSpeedBoost				= 7,		//effects.SppedBoost
+	effectSpeedBoost				= 7,	//effects.SpeedBoost
 	effectMissileLaunching			= 9,	//effects.MissileDeployment
 	effectTargetAttack				= 10,	//effects.Laser
 	effectLoPower					= 11,
@@ -603,6 +603,7 @@ typedef enum {
 	dgmEffArea = 3,
 	dgmEffOnline = 4,
 } EffectCategories;
+
 
 /*
  *

@@ -45,6 +45,7 @@ public:
 	static uint32 GetStamp() { return(m_stamp); }
 	static bool IsTicActive() { return(m_stampTimer.Check(false)); }
 	static void TicCompleted() { if(m_stampTimer.Check(true)) m_stamp++; }
+	Destiny::BallMode GetState() { return State; }
 
 	DestinyManager(SystemEntity *self, SystemManager *system);
 	~DestinyManager();

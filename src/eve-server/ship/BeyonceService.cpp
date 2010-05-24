@@ -375,6 +375,12 @@ PyResult BeyonceBound::Handle_Stop(PyCallArgs &call) {
 		return NULL;
 	}
 
+	if( destiny->GetState() == Destiny::DSTBALL_WARP ) {
+		call.client->SendNotifyMsg( "You can't do this while warping");
+		return NULL;
+	}
+		
+
 	destiny->Stop();
 
 	return NULL;

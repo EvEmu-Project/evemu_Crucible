@@ -50,7 +50,8 @@ typedef enum {
 	Mining_Laser = 54,
 	Projectile_Weapon = 55,
 	Missile_Launcher = 56,
-	Power_Manager = 57,
+	Power_Manager = 57, //Another duplicate
+	Shield_Power_Relay = 57, //---
 	Gyrostabilizer = 59,
 	Damage_Control = 60,
 	Capacitor_Battery = 61,
@@ -64,7 +65,8 @@ typedef enum {
 	Hybrid_Weapon = 74,
 	Capacitor_Booster = 76,
 	Shield_Hardener = 77,
-	Hull_Mods = 78,
+	Hull_Mods = 78, //should be reinforced bulkheads
+	Reinforced_Bulkheads = 78, //need to remove Hull_Mods
 	ECM_Burst = 80,
 	Passive_Targeting_System = 82,
 	Ammo = 83,
@@ -218,7 +220,8 @@ typedef enum {
 	Planetary_Cloud = 312,
 	Drugs = 313,
 	Miscellaneous = 314,
-	Anti_Warp_Scrambler = 315,
+	Anti_Warp_Scrambler = 315,	//Another duplicate
+	Warp_Core_Stabilizer = 315, //----
 	Gang_Coordinator = 316,
 	Computer_Interface_Node = 317,
 	Landmark = 318,
@@ -564,7 +567,17 @@ typedef enum {
 	Destructible_Agents_With_Guns = 719,
 	Destructible_Agent_NPCs = 720,
 	Temp = 721,
-	Power_Diagnostics			= 766,		// Power Diagnostic System
+	Inertial_Stabilizer = 762,
+	Nanofiber_Internal_Structure = 763,
+	Overdrive_Injector_System = 764,
+	Expanded_Cargohold = 765,
+	Power_Diagnostics = 766,
+	Capacitor_Power_Relay = 767,
+	Capacitor_Flux_Coil = 768,
+	Reactor_Control_Unit = 769,
+	Shield_Flux_Coil = 770,
+	Missile_Launcher_Bomb = 862,
+
 
 
  } invGroups;
