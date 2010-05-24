@@ -350,8 +350,8 @@
   <elementDef name="Call_Page">
     <tupleInline>
       <listInt name="recipients" />
-      <string name="subject" />
-      <string name="body" />
+      <wstring name="subject" soft="true" />
+      <wstring name="body" soft="true"/>
     </tupleInline>
   </elementDef>
 
