@@ -26,6 +26,7 @@
 
 
 #include "EVEServerPCH.h"
+#include <ctype.h>
 
 PyObject *LSCDB::LookupChars(const char *match, bool exact) {
 	DBQueryResult res;
@@ -58,6 +59,27 @@ PyObject *LSCDB::LookupChars(const char *match, bool exact) {
 		}
 	}
 	
+	return DBResultToRowset(res);
+}
+
+PyObject *LSCDB::LookupOwners(const char *match, bool exact) {
+	DBQueryResult res;
+	
+	std::string matchEsc;
+	sDatabase.DoEscapeString(matchEsc, match);
+	
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		" characterID AS ownerID, itemName AS characterName, typeID" //characterID AS ownerID - client wants characterID to be called ownerID
+		" FROM character_"
+		"  LEFT JOIN entity ON characterID = itemID"
+		" WHERE characterID >= 140000000 AND online = 1" //AND online = 1 - checks if the target character is online, avoiding an epic fail
+		"  AND itemName %s '%s'",
+		exact?"=":"RLIKE", matchEsc.c_str()))
+	{
+		_log(DATABASE__ERROR, "Failed to lookup player char '%s': %s.", matchEsc.c_str(), res.error.c_str());
+		return NULL;
+	}
 	
 	return DBResultToRowset(res);
 }

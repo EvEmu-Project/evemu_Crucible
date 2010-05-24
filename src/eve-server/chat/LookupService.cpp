@@ -75,6 +75,7 @@ LookupService::LookupService(PyServiceMgr *mgr)
 	_SetCallDispatcher(m_dispatch);
 
 	PyCallable_REG_CALL(LookupService, LookupCharacters)
+	PyCallable_REG_CALL(LookupService, LookupOwners)
 	PyCallable_REG_CALL(LookupService, LookupPlayerCharacters)
 	PyCallable_REG_CALL(LookupService, LookupCorporations)
 	PyCallable_REG_CALL(LookupService, LookupFactions)
@@ -108,6 +109,17 @@ PyResult LookupService::Handle_LookupCharacters(PyCallArgs &call) {
 	
 	return m_db.LookupChars(args.searchString.c_str(), args.searchOption ? true : false);
 }
+//LookupOwners
+PyResult LookupService::Handle_LookupOwners(PyCallArgs &call) {
+	Call_LookupStringInt args;
+	if (!args.Decode(&call.tuple)) {
+		codelog(SERVICE__ERROR, "Wrong incoming param in LookupOwners");
+		return false;
+	}
+	
+	return m_db.LookupOwners(args.searchString.c_str(),  true );
+}
+
 PyResult LookupService::Handle_LookupPlayerCharacters(PyCallArgs &call) {
 	Call_LookupStringInt args;
 	if (!args.Decode(&call.tuple)) {
@@ -115,7 +127,7 @@ PyResult LookupService::Handle_LookupPlayerCharacters(PyCallArgs &call) {
 		return false;
 	}
 
-	return m_db.LookupPlayerChars(args.searchString.c_str(), args.searchOption ? true : false);
+	return m_db.LookupPlayerChars(args.searchString.c_str(),  true);
 }
 PyResult LookupService::Handle_LookupCorporations(PyCallArgs &call) {
 	Call_LookupStringInt args;

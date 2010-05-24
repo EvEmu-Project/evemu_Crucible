@@ -304,10 +304,25 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 				if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
 				{
 					Ship::ValidateAddItem( flag, newItem, c );
+					
+					//it's a new module, make sure it's state starts at offline
+					newItem->PutOffline();
+
+					//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
+					c->GetShip()->Set_mass( c->GetShip()->mass() + newItem->massAddition() );
 				}
 				else
 				{
 					mInventory.ValidateAddItem( flag, newItem );
+				}
+
+				if( (old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7) || (old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) )
+				{
+					//comming from ship, we need to deactivate
+					c->modules.Deactivate( newItem->itemID(), "online" );
+
+					//and remove mass
+					c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
 				}
 
                 //Move New item to its new location
@@ -316,13 +331,6 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
                 //Create new item id return result
                 Call_SingleIntegerArg result;
                 result.arg = newItem->itemID();
-
-				//if it's going on a ship, it needs to be put online
-				if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
-				{
-					newItem->Set_isOnline( 0 );  //seems counter-intuitive, i know, but it works
-					c->modules.Activate( newItem->itemID(), "Online", NULL, NULL);
-				}
 
                 //Return new item result
                 return result.Encode();
@@ -334,65 +342,35 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 			if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
 			{
 				Ship::ValidateAddItem( flag, sourceItem, c );
+
+				//it's a new module, make sure it's state starts at offline
+				sourceItem->PutOffline();
+
+				//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
+				c->GetShip()->Set_mass( c->GetShip()->mass() + sourceItem->massAddition() );
+
 			}
 			else
 			{
 				mInventory.ValidateAddItem( flag, sourceItem );
 			}
 
+			if( (old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7) || (old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) )
+			{
+				//comming from ship, we need to deactivate
+				c->modules.Deactivate( sourceItem->itemID(), "online" );
+
+				//and remove mass
+				c->GetShip()->Set_mass( c->GetShip()->mass() - sourceItem->massAddition() );
+			}
+
+
             c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);  // properly refresh modules
 			
         }
 
-
 		//update modules
 		c->modules.UpdateModules();
-
-		//check if item is comming off of a ship
-		//TODO: move to ModuleManager
-		if( (old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7) || (old_flag >= flagRigSlot0 && flag <= flagRigSlot7) )
-		{
-			int cpuLoad = c->GetShip()->cpuLoad();
-			int cpuNeed = sourceItem->cpu();
-			cpuLoad -= cpuNeed;
-
-			int powerLoad = c->GetShip()->powerLoad();
-			int powerNeed = sourceItem->power();
-			powerLoad -= powerNeed;
-
-			//these should never happen
-			if( cpuLoad < 0 )
-				cpuLoad = 0;
-			if( powerLoad < 0 )
-				powerLoad = 0;
-
-			c->GetShip()->Set_cpuLoad( cpuLoad );
-			c->GetShip()->Set_powerLoad( powerLoad );
-
-
-			int turretSlotsLeft = c->GetShip()->turretSlotsLeft();
-			int launcherSlotsLeft = c->GetShip()->launcherSlotsLeft();
-
-			//Because I can't read typeeffects to verify whether a mountpoint is even needed I had to be creative
-			//Surely this is a bad idea, but it won't break other modules and should work for a fair amount of turrets
-			//Once effects can be read via m_item only the below if/else has to be replaced with the below two lines.
-			//int turretSlotsNeed = m_item->turretFitted();
-			//int launcherSlotsNeed = m_item->launcherFitted();
-			int turretSlotsNeed = 0;
-			int launcherSlotsNeed = 0;
-
-			int groupID = sourceItem->groupID();
-				if (groupID == 56 || groupID == 136 || groupID == 256 || groupID == 308  || groupID == 481 || groupID == 501 || groupID == 506 || groupID == 507 || groupID == 508 || groupID == 509 || groupID == 510 || groupID == 511 || groupID == 512 || groupID == 524 || groupID == 589 || groupID == 771 || groupID == 779 || groupID == 862 || groupID == 918)
-			{
-				launcherSlotsNeed = 1;
-			}
-			else if (groupID == 53 || groupID == 54 || groupID == 55 || groupID == 74 || groupID == 464 || groupID == 483 )
-			{
-				turretSlotsNeed = 1;
-			}
-			c->GetShip()->Set_turretSlotsLeft( turretSlotsLeft + turretSlotsNeed );
-			c->GetShip()->Set_launcherSlotsLeft( launcherSlotsLeft + launcherSlotsNeed );
-		}
     }
 
     //Return Null if no item was created

@@ -85,7 +85,7 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
     into.SetResult(&result, col_count);
 	
 	//DEBUG STUFF
-	sLog.Debug("%s",query);
+	//sLog.Debug("%s",query);
 	//End Debug Stuff
 
 

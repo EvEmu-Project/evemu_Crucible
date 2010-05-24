@@ -1,7 +1,10 @@
 //no macroguard on purpose
 
+
 COMMAND( create, ROLE_ADMIN,
          "(itemID) [count] - Create count or 1 of the specified item." )
+COMMAND( createitem, ROLE_ADMIN,
+         "(itemID) [count] - Create count or 1 of the specified item.(from Insider)" )
 COMMAND( search, ROLE_ADMIN,
          "(text) - Search for items matching the specified query" )
 COMMAND( translocate, ROLE_ADMIN,
@@ -32,7 +35,13 @@ COMMAND( fit, ROLE_ADMIN,
 		"(itemID) - Fits selected item to active ship." )
 COMMAND( giveskill, ROLE_ADMIN,
 		"(itemID) - gives skills to fit item." )
-
-
-
-
+COMMAND( online, ROLE_ADMIN,
+		"(entityID) - online all modules on the ship of the entityID. entityID=me=>online my modules" )
+COMMAND( unload, ROLE_ADMIN,
+		"(entityID) (itemID) - unload module itemID from entityID (itemID=all=>unload all) (entityID=me=>my modules)" )
+COMMAND( heal, ROLE_ADMIN,
+		"(entityID) - heal the character with the entityID" )
+COMMAND( repairmodules, ROLE_ADMIN,
+		"(entityID) (itemID) - repair the modules of the character with the entityID" )
+COMMAND( unspawn, ROLE_ADMIN,
+		"(entityID) (itemID) - unload module itemID from entityID (itemID=all=>unload all) (entityID=me=>my modules)" )

@@ -32,7 +32,7 @@
 
 PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-	if( !args.argCount() < 2 ) {
+	if( args.argCount() < 2 ) {
 		throw PyException( MakeCustomError("Correct Usage: /create [typeID]") );
 	}
 
@@ -82,9 +82,64 @@ PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, con
 	return new PyString( "Creation successfull." );
 }
 
+PyResult Command_createitem( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	if( args.argCount() < 2 ) {
+		throw PyException( MakeCustomError("Correct Usage: /create [typeID]") );
+	}
+	
+	//basically, a copy/paste from Command_create. The client seems to call this multiple times, 
+	//each time it creates an item
+	if( !args.isNumber( 1 ) )
+		throw PyException( MakeCustomError( "Argument 1 must be type ID." ) );
+    const uint32 typeID = atoi( args.arg( 1 ).c_str() );
+ 
+	uint32 qty = 1;
+    if( 2 < args.argCount() )
+    {
+	    if( args.isNumber( 2 ) )
+		    qty = atoi( args.arg( 2 ).c_str() );
+    }
+
+	_log( COMMAND__MESSAGE, "Create %s %u times", args.arg( 1 ).c_str(), qty );
+
+	//create into their cargo hold unless they are docked in a station,
+	//then stick it in their hangar instead.
+	uint32 locationID;
+	EVEItemFlags flag;
+	if( who->IsInSpace() )
+    {
+		locationID = who->GetShipID();
+		flag = flagCargoHold;
+	}
+    else
+    {
+		locationID = who->GetStationID();
+		flag = flagHangar;
+	}
+	
+	ItemData idata(
+		typeID,
+		who->GetCharacterID(),
+		0, //temp location
+		flag,
+		qty
+	);
+
+	InventoryItemRef i = services->item_factory.SpawnItem( idata );
+	if( !i )
+		throw PyException( MakeCustomError( "Unable to create item of type %s.", args.arg( 1 ).c_str() ) );
+
+	//Move to location
+	i->Move( locationID, flag, true );
+
+	return new PyString( "Creation successfull." );
+}
+
+
 PyResult Command_search( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-	if( !args.argCount() < 2 ) {
+	if( args.argCount() < 2 ) {
 		throw PyException( MakeCustomError("Correct Usage: /search [text]") );
 	}
 
@@ -129,7 +184,7 @@ PyResult Command_search( Client* who, CommandDB* db, PyServiceMgr* services, con
 PyResult Command_translocate( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
 
-	if( !args.argCount() < 2 ) {
+	if( args.argCount() < 2 ) {
 		throw PyException( MakeCustomError("Correct Usage: /transloacte [entityID]") );
 	}
 
@@ -160,7 +215,7 @@ PyResult Command_translocate( Client* who, CommandDB* db, PyServiceMgr* services
 
 PyResult Command_tr( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-	if( !args.argCount() < 2 ) {
+	if( args.argCount() < 3 ) {
 		throw PyException( MakeCustomError("Correct Usage: /tr [entityID]") );
 	}
 
@@ -196,7 +251,7 @@ PyResult Command_tr( Client* who, CommandDB* db, PyServiceMgr* services, const S
 PyResult Command_giveisk( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
 
-	if( !args.argCount() < 3 ) {
+	if( args.argCount() < 3 ) {
 		throw PyException( MakeCustomError("Correct Usage: /giveisk [entityID (0=self)] [amount]") );
 	}
 
@@ -268,7 +323,7 @@ PyResult Command_goto( Client* who, CommandDB* db, PyServiceMgr* services, const
 
 PyResult Command_spawn( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-	if( !args.argCount() < 2 ) {
+	if( args.argCount() < 2 ) {
 		throw PyException( MakeCustomError("Correct Usage: /spawn [typeID]") );
 	}
 	
@@ -351,7 +406,7 @@ PyResult Command_syncloc( Client* who, CommandDB* db, PyServiceMgr* services, co
 PyResult Command_setbpattr( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
 	
-	if( !args.argCount() < 2 ) {
+	if( args.argCount() < 6 ) {
 		throw PyException( MakeCustomError("Correct Usage: /setbpattr [blueprintID] [0 (not copy) or 1 (copy)] [material level] [productivity level] [remaining runs]") );
 	}
 	
@@ -402,7 +457,7 @@ PyResult Command_state(Client *who, CommandDB *db, PyServiceMgr *services, const
 
 PyResult Command_getattr( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-	if( !args.argCount() < 3 ) {
+	if( args.argCount() < 3 ) {
 		throw PyException( MakeCustomError("Correct Usage: /getattr [itemID] [attributeID]") );
 	}
 	if( !args.isNumber( 1 ) )
@@ -422,7 +477,7 @@ PyResult Command_getattr( Client* who, CommandDB* db, PyServiceMgr* services, co
 
 PyResult Command_setattr( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-	if( !args.argCount() < 4 ) {
+	if( args.argCount() < 4 ) {
 		throw PyException( MakeCustomError("Correct Usage: /setattr [itemID] [attributeID] [value]") );
 	}
 
@@ -450,7 +505,7 @@ PyResult Command_setattr( Client* who, CommandDB* db, PyServiceMgr* services, co
 PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
 	
-	if( !args.argCount() < 2 ) {
+	if( args.argCount() < 2 ) {
 		throw PyException( MakeCustomError("Correct Usage: /fit [typeID] ") );
 	}
 	
@@ -512,11 +567,7 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 }
 PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-	
-	if( !args.argCount() < 2 ) {
-		throw PyException( MakeCustomError("Correct Usage: /giveskill [Character Name or ID] [skillID] [desired level]") );
-	}
-	
+
 	uint32 typeID;
 	uint8 level;
 	CharacterRef character;
@@ -560,7 +611,8 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
 		//levels don't go higher than 5
 		if( level > 5 )
 			level = 5;
-	}
+	} else
+		throw PyException( MakeCustomError("Correct Usage: /giveskill [Character Name or ID] [skillID] [desired level]") );
 
 	ItemData idata(
 		typeID,
@@ -592,4 +644,142 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
 
 
 	return new PyString ("Skill Gifting Failure");
+}
+
+
+PyResult Command_online(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+	
+	if( args.argCount() == 2 )
+	{ 
+		if( strcmp("me", args.arg( 1 ).c_str())!=0 )
+			if( !args.isNumber( 1 ) )
+				throw PyException( MakeCustomError( "Argument 1 should be an entity ID or me (me=self)" ) );
+			uint32 entity = atoi( args.arg( 1 ).c_str() );
+	
+		Client* tgt;
+		if( strcmp("me", args.arg( 1 ).c_str())==0 )
+			tgt = who;
+		else
+		{
+			tgt = services->entity_list.FindCharacter( entity );
+			if( NULL == tgt )
+				throw PyException( MakeCustomError( "Unable to find character %u", entity ) );
+		}
+		//check if in capsule. this is very bad. a better aproach would be an
+		//inPod function, but this is a fast hack
+		if( tgt->GetShip()->typeID()!=670 )
+			tgt->modules.OnlineAll();
+		else
+			throw PyException( MakeCustomError( "Command failed: You can't activate modules while in pod"));
+
+		return(new PyString("All modules have been put Online"));
+	}
+	else
+		throw PyException( MakeCustomError( "Command failed: You got the arguments all wrong!"));
+}
+
+PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+	
+	if( args.argCount() >= 2 && args.argCount() <= 3 )
+	{ 
+		uint32 item=0,entity=0;
+
+		if( strcmp("me", args.arg( 1 ).c_str())!=0 )
+			if( !args.isNumber( 1 ) )
+			{
+				throw PyException( MakeCustomError( "Argument 1 should be an entity ID or me (me=self)" ) );
+			}
+			entity = atoi( args.arg( 1 ).c_str() );
+
+		if( args.argCount() ==3 )
+		{
+			if( strcmp("all", args.arg( 2 ).c_str())!=0 )
+				if( !args.isNumber( 2 ) )
+					throw PyException( MakeCustomError( "Argument 2 should be an item ID or all" ) );
+				item = atoi( args.arg( 2 ).c_str() );
+		}
+	
+		//select character
+		Client* tgt;
+		if( strcmp("me", args.arg( 1 ).c_str())==0 )
+			tgt = who;
+		else
+		{
+			tgt = services->entity_list.FindCharacter( entity );
+
+			if( NULL == tgt )
+				throw PyException( MakeCustomError( "Unable to find character %u", entity ) );
+		}
+
+		if( tgt->IsInSpace() )
+			throw PyException( MakeCustomError( "Character needs to be docked!" ) );
+
+		if( args.argCount() == 3 && strcmp("all", args.arg( 2 ).c_str())!=0)
+			tgt->modules.UnloadModule(item);
+
+		if( args.argCount() == 3 && strcmp("all", args.arg( 2 ).c_str())==0)
+			tgt->modules.UnloadAllModules();
+
+		return(new PyString("All modules have been unloaded"));
+	}
+	else
+		throw PyException( MakeCustomError( "Command failed: You got the arguments all wrong!"));
+}
+
+PyResult Command_heal( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	if( args.argCount()== 1 )
+	{
+		who->GetShip()->Set_armorDamage(0);
+		who->GetShip()->Set_damage(0);
+		who->GetShip()->Set_shieldCharge(who->GetShip()->shieldCapacity());
+	}
+	if( args.argCount() == 2 )
+	{
+		if( !args.isNumber( 1 ) )
+			{
+				throw PyException( MakeCustomError( "Argument 1 should be a character ID" ) );
+			}
+		uint32 entity = atoi( args.arg( 1 ).c_str() );
+
+		Client *target = services->entity_list.FindCharacter( entity );
+		if(target == NULL)
+			throw PyException( MakeCustomError( "Cannot find Character by the entity %d", entity ) );
+		target->GetShip()->Set_armorDamage(0);
+		target->GetShip()->Set_damage(0);
+		target->GetShip()->Set_shieldCharge(who->GetShip()->shieldCapacity());
+	}
+
+	return(new PyString("Heal successful!"));
+}
+
+PyResult Command_repairmodules( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	
+	if(args.argCount()==1)
+	{
+		who->modules.RepairModules();
+	}
+	if(args.argCount()==2)
+	{
+		if( !args.isNumber( 1 ) )
+			{
+				throw PyException( MakeCustomError( "Argument 1 should be a character ID" ) );
+			}
+		uint32 charID = atoi( args.arg( 1 ).c_str() );
+
+		Client *target = services->entity_list.FindCharacter( charID );
+		if(target == NULL)
+			throw PyException( MakeCustomError( "Cannot find Character by the entity %d", charID ) );
+		target->modules.RepairModules();
+	}
+
+	return(new PyString("Modules repaired successful!"));
+}
+
+PyResult Command_unspawn( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	throw PyException( MakeCustomError("Unspawn not implemented yet!"));
+
+	return NULL;
 }

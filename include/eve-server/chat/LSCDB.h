@@ -37,6 +37,7 @@ class LSCDB
 {
 public:
 	PyObject *LookupChars(const char *match, bool exact);
+	PyObject *LookupOwners(const char *match, bool exact);
 	PyObject *LookupPlayerChars(const char *match, bool exact);
 	PyObject *LookupCorporations(const std::string &);
 	PyObject *LookupFactions(const std::string &);
