@@ -32,6 +32,10 @@
 
 PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
+	if( !args.argCount() < 2 ) {
+		throw PyException( MakeCustomError("Correct Usage: /create [typeID]") );
+	}
+
 	if( !args.isNumber( 1 ) )
 		throw PyException( MakeCustomError( "Argument 1 must be type ID." ) );
     const uint32 typeID = atoi( args.arg( 1 ).c_str() );
@@ -80,7 +84,11 @@ PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, con
 
 PyResult Command_search( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-    const std::string& query = args.arg( 1 );
+	if( !args.argCount() < 2 ) {
+		throw PyException( MakeCustomError("Correct Usage: /search [text]") );
+	}
+
+	const std::string& query = args.arg( 1 );
 
 	//an empty query is a bad idea.
 	if( 0 == query.length() )
@@ -120,6 +128,11 @@ PyResult Command_search( Client* who, CommandDB* db, PyServiceMgr* services, con
 
 PyResult Command_translocate( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
+
+	if( !args.argCount() < 2 ) {
+		throw PyException( MakeCustomError("Correct Usage: /transloacte [entityID]") );
+	}
+
     if( !args.isNumber( 1 ) )
 		throw PyException( MakeCustomError( "Argument 1 should be an entity ID" ) );
 	uint32 loc = atoi( args.arg( 1 ).c_str() );
@@ -147,6 +160,9 @@ PyResult Command_translocate( Client* who, CommandDB* db, PyServiceMgr* services
 
 PyResult Command_tr( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
+	if( !args.argCount() < 2 ) {
+		throw PyException( MakeCustomError("Correct Usage: /tr [entityID]") );
+	}
 
 	const std::string& name = args.arg( 1 );
 	if( "me" != name )
@@ -179,6 +195,11 @@ PyResult Command_tr( Client* who, CommandDB* db, PyServiceMgr* services, const S
 
 PyResult Command_giveisk( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
+
+	if( !args.argCount() < 3 ) {
+		throw PyException( MakeCustomError("Correct Usage: /giveisk [entityID (0=self)] [amount]") );
+	}
+
 	if( !args.isNumber( 1 ) )
 		throw PyException( MakeCustomError( "Argument 1 should be an entity ID (0=self)" ) );
 	uint32 entity = atoi( args.arg( 1 ).c_str() );
@@ -204,7 +225,7 @@ PyResult Command_giveisk( Client* who, CommandDB* db, PyServiceMgr* services, co
 PyResult Command_pop( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
 	if( 4 != args.argCount() )
-		throw PyException( MakeCustomError( "Bad arguments." ) );
+		throw PyException( MakeCustomError( "Correct Usage: /pop [message type] [key] [text]" ) );
 
 	//CustomNotify: notify
 	//ServerMessage: msg
@@ -232,7 +253,7 @@ PyResult Command_goto( Client* who, CommandDB* db, PyServiceMgr* services, const
         || !args.isNumber( 2 )
         || !args.isNumber( 3 ) )
     {
-		throw PyException( MakeCustomError( "Arguments must be 3 numbers" ) );
+		throw PyException( MakeCustomError( "Correct Usage: /goto [x coord] [y coor] [z coord]" ) );
     }
 
 	GPoint p( atof( args.arg( 1 ).c_str() ),
@@ -247,6 +268,10 @@ PyResult Command_goto( Client* who, CommandDB* db, PyServiceMgr* services, const
 
 PyResult Command_spawn( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
+	if( !args.argCount() < 2 ) {
+		throw PyException( MakeCustomError("Correct Usage: /spawn [typeID]") );
+	}
+	
 	if( !args.isNumber( 1 ) )
 		throw PyException( MakeCustomError( "Argument 1 should be an item type ID" ) );
     const uint32 typeID = atoi( args.arg( 1 ).c_str() );
@@ -325,6 +350,11 @@ PyResult Command_syncloc( Client* who, CommandDB* db, PyServiceMgr* services, co
 // isn't much comfortable, but I don't know about better solution ...
 PyResult Command_setbpattr( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
+	
+	if( !args.argCount() < 2 ) {
+		throw PyException( MakeCustomError("Correct Usage: /setbpattr [blueprintID] [0 (not copy) or 1 (copy)] [material level] [productivity level] [remaining runs]") );
+	}
+	
 	if( !args.isNumber( 1 ) )
 		throw PyException( MakeCustomError( "Argument 1 must be blueprint ID. (got %s)", args.arg( 1 ).c_str() ) );
     const uint32 blueprintID = atoi( args.arg( 1 ).c_str() );
@@ -372,6 +402,9 @@ PyResult Command_state(Client *who, CommandDB *db, PyServiceMgr *services, const
 
 PyResult Command_getattr( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
+	if( !args.argCount() < 3 ) {
+		throw PyException( MakeCustomError("Correct Usage: /getattr [itemID] [attributeID]") );
+	}
 	if( !args.isNumber( 1 ) )
 		throw PyException( MakeCustomError( "1st argument must be itemID (got %s).", args.arg( 1 ).c_str() ) );
     const uint32 itemID = atoi( args.arg( 1 ).c_str() );
@@ -389,6 +422,10 @@ PyResult Command_getattr( Client* who, CommandDB* db, PyServiceMgr* services, co
 
 PyResult Command_setattr( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
+	if( !args.argCount() < 4 ) {
+		throw PyException( MakeCustomError("Correct Usage: /setattr [itemID] [attributeID] [value]") );
+	}
+
 	if( !args.isNumber( 1 ) )
 		throw PyException( MakeCustomError( "1st argument must be itemID (got %s).", args.arg( 1 ).c_str() ) );
     const uint32 itemID = atoi( args.arg( 1 ).c_str() );
@@ -412,6 +449,11 @@ PyResult Command_setattr( Client* who, CommandDB* db, PyServiceMgr* services, co
 
 PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
+	
+	if( !args.argCount() < 2 ) {
+		throw PyException( MakeCustomError("Correct Usage: /fit [typeID] ") );
+	}
+	
 	uint32 typeID;
 
 	if( args.argCount() == 3)
@@ -470,6 +512,11 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 }
 PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
+	
+	if( !args.argCount() < 2 ) {
+		throw PyException( MakeCustomError("Correct Usage: /giveskill [Character Name or ID] [skillID] [desired level]") );
+	}
+	
 	uint32 typeID;
 	uint8 level;
 	CharacterRef character;
