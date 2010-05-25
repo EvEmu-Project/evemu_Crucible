@@ -51,8 +51,8 @@ EVEServerConfig::EVEServerConfig()
     database.db = "eve";
 
     // files
-    files.log = "../log/eve-server.log";
-    files.logSettings = "../log/log.ini";
+    files.log = "log/eve-server.log";
+    files.logSettings = "log/log.ini";
     files.cacheDir = "";
 }
 

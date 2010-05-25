@@ -68,7 +68,15 @@ void EVEClientSession::Reset()
 
 void EVEClientSession::QueuePacket( const PyPacket* p )
 {
+	if (p == NULL)
+		return;
     PyPacket* packet = p->Clone();
+
+    if (packet == NULL)
+    {
+        sLog.Error("Network", "QueuePacket was unable to clone a PyPacket");
+        return;
+    }
 
     FastQueuePacket( &packet );
 }
@@ -79,10 +87,11 @@ void EVEClientSession::FastQueuePacket( PyPacket** p )
         return;
 
     PyRep* r = (*p)->Encode();
+    // maybe change PyPacket to a object with a reference..
     SafeDelete( *p );
     if( r == NULL )
     {
-        _log(NET__PRES_ERROR, "%s: Failed to encode???", GetAddress().c_str());
+        sLog.Error("Network", "%s: Failed to encode a Fast queue packet???", GetAddress().c_str());
         return;
     }
 
@@ -110,7 +119,7 @@ PyPacket* EVEClientSession::_HandleVersion( PyRep* rep )
     //we are waiting for their version information...
     VersionExchange ve;
     if( !ve.Decode( &rep ) )
-        _log(NET__PRES_ERROR, "%s: Received invalid version exchange!", GetAddress().c_str());
+        sLog.Error("Network", "%s: Received invalid version exchange!", GetAddress().c_str());
     else if( _VerifyVersion( ve ) )
         mPacketHandler = &EVEClientSession::_HandleCommand;
 
@@ -123,7 +132,7 @@ PyPacket* EVEClientSession::_HandleCommand( PyRep* rep )
     //check if it actually is tuple
     if( !rep->IsTuple() )
     {
-        _log(NET__PRES_ERROR, "%s: Invalid packet during waiting for command (tuple expected).", GetAddress().c_str());
+        sLog.Error("Network", "%s: Invalid packet during waiting for command (tuple expected).", GetAddress().c_str());
     }
     // decode
     else if( rep->AsTuple()->size() == 2 )
@@ -132,11 +141,11 @@ PyPacket* EVEClientSession::_HandleCommand( PyRep* rep )
         NetCommand_QC cmd;
         if( !cmd.Decode( &rep ) )
         {
-            _log(NET__PRES_ERROR, "%s: Failed to decode 2-arg command.", GetAddress().c_str());
+            sLog.Error("Network", "%s: Failed to decode 2-arg command.", GetAddress().c_str());
         }
         else
         {
-            _log(NET__PRES_DEBUG, "%s: Got Queue Check command.", GetAddress().c_str());
+            sLog.Debug("Network", "%s: Got Queue Check command.", GetAddress().c_str());
 
             //they return position in queue
             PyRep* rsp = new PyInt( _GetQueuePosition() );
@@ -153,11 +162,11 @@ PyPacket* EVEClientSession::_HandleCommand( PyRep* rep )
         NetCommand_VK cmd;
         if( !cmd.Decode( &rep ) )
         {
-            _log(NET__PRES_ERROR, "%s: Failed to decode 3-arg command.", GetAddress().c_str());
+            sLog.Error("Network", "%s: Failed to decode 3-arg command.", GetAddress().c_str());
         }
         else
         {
-            _log(NET__PRES_DEBUG, "%s: Got VK command, vipKey=%s.", GetAddress().c_str(), cmd.vipKey.c_str());
+            sLog.Debug("Network", "%s: Got VK command, vipKey=%s.", GetAddress().c_str(), cmd.vipKey.c_str());
 
             if( _VerifyVIPKey( cmd.vipKey ) )
                 mPacketHandler = &EVEClientSession::_HandleCrypto;
@@ -177,7 +186,7 @@ PyPacket* EVEClientSession::_HandleCrypto( PyRep* rep )
 {
     CryptoRequestPacket cr;
     if( !cr.Decode( &rep ) )
-        _log(NET__PRES_ERROR, "%s: Received invalid crypto request!", GetAddress().c_str());
+        sLog.Error("Network", "%s: Received invalid crypto request!", GetAddress().c_str());
     else if( _VerifyCrypto( cr ) )
         mPacketHandler = &EVEClientSession::_HandleAuthentication;
 
@@ -190,7 +199,7 @@ PyPacket* EVEClientSession::_HandleAuthentication( PyRep* rep )
     //just to be sure
     CryptoChallengePacket ccp;
     if( !ccp.Decode( &rep ) )
-        _log(NET__PRES_ERROR, "%s: Received invalid crypto challenge!", GetAddress().c_str());
+		sLog.Error("Network", "%s: Received invalid crypto challenge!", GetAddress().c_str());
     else if( _VerifyLogin( ccp ) )
         mPacketHandler = &EVEClientSession::_HandleFuncResult;
 
@@ -201,7 +210,7 @@ PyPacket* EVEClientSession::_HandleFuncResult( PyRep* rep )
 {
     CryptoHandshakeResult hr;
     if( !hr.Decode( &rep ) )
-        _log(NET__PRES_ERROR, "%s: Received invalid crypto handshake result!", GetAddress().c_str());
+		sLog.Error("Network", "%s: Received invalid crypto handshake result!", GetAddress().c_str());
     else if( _VerifyFuncResult( hr ) )
         mPacketHandler = &EVEClientSession::_HandlePacket;
 
@@ -215,7 +224,7 @@ PyPacket* EVEClientSession::_HandlePacket( PyRep* rep )
     PyPacket* p = new PyPacket;
     if( !p->Decode( &rep ) ) //rep is consumed here
     {
-        _log(NET__PRES_ERROR, "%s: Failed to decode packet rep", GetAddress().c_str());
+		sLog.Error("Network", "%s: Failed to decode packet rep", GetAddress().c_str());
         SafeDelete( p );
     }
     else
