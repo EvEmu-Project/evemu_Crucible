@@ -27,7 +27,7 @@ SET( EVEMU_COLLECTOR_ENABLE          OFF
      CACHE BOOL "Enable eve-collector." )
 SET( EVEMU_EXTRACT_SVN_REV           OFF
      CACHE BOOL "Extract current revision using SVN tools." )
-SET( EVEMU_ROOT_DIR                  "."
+SET( EVEMU_ROOT_DIR                  ".."
      CACHE PATH "The root of EVEmu workspace." )
 SET( EVEMU_SERVER_SHOW_LOGIN_MESSAGE ON
      CACHE BOOL "Show a message to a client when logging in." )
