@@ -21,8 +21,8 @@ a likely exception to this goal).
     </database>
 
     <files>
-        <!-- <log>./log/eve-server.log</log> -->
-        <!-- <logSettings>./etc/log.ini</logSettings> -->
+        <!-- <log>../log/eve-server.log</log> -->
+        <!-- <logSettings>../etc/log.ini</logSettings> -->
         <!-- <cacheDir></cacheDir> -->
     </files>
 </eve>
