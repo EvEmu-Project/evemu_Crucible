@@ -23,18 +23,19 @@ INCLUDE( "TestBigEndian" )
 INCLUDE( "TestX64" )
 
 # Options
-OPTION( EVE_COLLECTOR
-        "Build eve-collector."
-        OFF )
-OPTION( EVE_TOOL
-        "Build eve-tool."
-        OFF )
-OPTION( EVE_EXTRACT_SVN_REV
-        "Extract current revision using SVN tools."
-        OFF )
-OPTION( TINYXML_USE_STL
-        "tinyxml will use native STL."
-        ON )
+SET( EVEMU_COLLECTOR_ENABLE          OFF
+     CACHE BOOL "Enable eve-collector." )
+SET( EVEMU_EXTRACT_SVN_REV           OFF
+     CACHE BOOL "Extract current revision using SVN tools." )
+SET( EVEMU_ROOT_DIR                  "."
+     CACHE PATH "The root of EVEmu workspace." )
+SET( EVEMU_SERVER_SHOW_LOGIN_MESSAGE ON
+     CACHE BOOL "Show a message to a client when logging in." )
+SET( EVEMU_TOOL_ENABLE               OFF
+     CACHE BOOL "Enable eve-tool." )
+
+SET( TINYXML_USE_STL                 ON
+     CACHE BOOL "tinyxml will use native STL." )
 
 #########
 # Tests #
@@ -53,9 +54,9 @@ SET( GNUC ${CMAKE_COMPILER_IS_GNUCXX} )
 FIND_PACKAGE( "MySQL" 5.0 REQUIRED )
 FIND_PACKAGE( "ZLIB" REQUIRED )
 
-IF( EVE_EXTRACT_SVN_REV )
+IF( EVEMU_EXTRACT_SVN_REV )
     FIND_PACKAGE( "Subversion" REQUIRED )
-ENDIF( EVE_EXTRACT_SVN_REV )
+ENDIF( EVEMU_EXTRACT_SVN_REV )
 
 # Check for other dependencies
 FIND_PACKAGE( "Doxygen" )
@@ -79,11 +80,11 @@ IF( WIN32 )
 ENDIF( WIN32 )
 
 # Update PROJECT_VERSION appropriately
-IF( EVE_EXTRACT_SVN_REV )
+IF( EVEMU_EXTRACT_SVN_REV )
     Subversion_WC_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
 
     SET( PROJECT_VERSION "${PROJECT_VERSION}-r${${PROJECT_NAME}_WC_LAST_CHANGED_REV}" )
-ENDIF( EVE_EXTRACT_SVN_REV )
+ENDIF( EVEMU_EXTRACT_SVN_REV )
 
 # Setup config.h
 CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.cmake"
@@ -131,10 +132,10 @@ ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
 ADD_SUBDIRECTORY( "src/xmlpktgen" )
 
-IF( EVE_COLLECTOR )
+IF( EVEMU_COLLECTOR_ENABLE )
     ADD_SUBDIRECTORY( "src/eve-collector" )
-ENDIF( EVE_COLLECTOR )
+ENDIF( EVEMU_COLLECTOR_ENABLE )
 
-IF( EVE_TOOL )
+IF( EVEMU_TOOL_ENABLE )
     ADD_SUBDIRECTORY( "src/eve-tool" )
-ENDIF( EVE_TOOL )
+ENDIF( EVEMU_TOOL_ENABLE )

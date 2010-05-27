@@ -25,16 +25,16 @@
 
 #include "EVEServerPCH.h"
 
-#ifdef SHOW_LOGIN_MESSAGE
+#ifdef EVEMU_SERVER_SHOW_LOGIN_MESSAGE
 //some adverts - may be customized
-static const char *const loginMessage = 
+static const char* const loginMessage =
 "<html>"
 	"<head>"
 	"</head>"
 	"<body>"
-		"Welcome to <b>EVEmu Server " EVEMU_VERSION "</b>.<br>"
+		"Welcome to <b>EVEmu Server "EVEMU_VERSION"</b>.<br>"
 		"<br>"
-		"You can find a lot of interesting info about this project at <a href=\"http://evemu.sourceforge.net/\">SoureForge.net</a> or at <a href=\"http://mmoforge.org/gf/project/evemu\">MMOForge.org</a>.<br>"
+		"You can find a lot of interesting info about this project at <a href=\"http://evemu.sourceforge.net/\">SourceForge.net</a> or at <a href=\"http://mmoforge.org/gf/project/evemu\">MMOForge.org</a>.<br>"
 		"<br>"
 		"You can also join our IRC channel at <b>irc.mmoforge.org:6667</b>, channel <b>#evemu</b>.<br>"
 		"<br>"
@@ -42,7 +42,7 @@ static const char *const loginMessage =
 		"EVEmu development team"
 	"</body>"
 "</html>";
-#endif /* SHOW_LOGIN_MESSAGE */
+#endif /* EVEMU_SERVER_SHOW_LOGIN_MESSAGE */
 
 class AuthService::Dispatcher
 : public PyCallableDispatcher<AuthService> {
@@ -73,7 +73,7 @@ PyResult AuthService::Handle_Ping(PyCallArgs &call) {
 
 
 PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call) {
-	PyRep *result = NULL;
+	PyRep* result = NULL;
 /*
 	PyObject *o = new PyObject();
 	result = o;
@@ -96,13 +96,14 @@ PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call) {
 				args->items[ new PyString("showModal") ] = new PyInt(1);
 */
 
-#ifdef SHOW_LOGIN_MESSAGE
-	PyDict *args = new PyDict;
-	args->add("message", loginMessage);
-	result = new PyObject("util.KeyVal", args);
-#else /* !SHOW_LOGIN_MESSAGE */
+#ifdef EVEMU_SERVER_SHOW_LOGIN_MESSAGE
+	PyDict* args = new PyDict;
+	args->SetItemString( "message", new PyString( loginMessage ) );
+
+	result = new PyObject( new PyString( "util.KeyVal" ), args );
+#else /* !EVEMU_SERVER_SHOW_LOGIN_MESSAGE */
 	result = new PyNone;
-#endif /* !SHOW_LOGIN_MESSAGE */
+#endif /* !EVEMU_SERVER_SHOW_LOGIN_MESSAGE */
 
 	return result;
 }

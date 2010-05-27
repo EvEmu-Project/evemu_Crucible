@@ -31,19 +31,19 @@ EXPORT_SINGLETON( NewLog );
 
 // console output colors
 #ifdef WIN32
-#  define TRED    FOREGROUND_RED | FOREGROUND_INTENSITY
-#  define TGREEN  FOREGROUND_GREEN | FOREGROUND_INTENSITY
-#  define TYELLOW FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY
-#  define TNORMAL FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE
-#  define TWHITE  TNORMAL | FOREGROUND_INTENSITY
-#  define TBLUE   FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY
+#   define TRED    ( FOREGROUND_RED | FOREGROUND_INTENSITY )
+#   define TGREEN  ( FOREGROUND_GREEN | FOREGROUND_INTENSITY )
+#   define TYELLOW ( FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY )
+#   define TNORMAL ( FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE )
+#   define TWHITE  ( TNORMAL | FOREGROUND_INTENSITY )
+#   define TBLUE   ( FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY )
 #else /* !WIN32 */
-#  define TRED 1
-#  define TGREEN 2
-#  define TYELLOW 3
-#  define TNORMAL 4
-#  define TWHITE 5
-#  define TBLUE 6
+#   define TRED    1
+#   define TGREEN  2
+#   define TYELLOW 3
+#   define TNORMAL 4
+#   define TWHITE  5
+#   define TBLUE   6
 
 const char* colorstrings[ TBLUE + 1 ] =
 {
@@ -299,7 +299,8 @@ void NewLog::SetLogfileDefault()
 
     // open default logfile
     char filename[ MAX_PATH + 1 ];
-    snprintf( filename, MAX_PATH + 1, "../log/log_%02u-%02u-%04u-%02u-%02u.log", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min );
+    snprintf( filename, MAX_PATH + 1, EVEMU_ROOT_DIR"/log/log_%02u-%02u-%04u-%02u-%02u.log",
+              t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min );
 
     if( SetLogfile( filename ) )
         sLog.Success( "Log", "Opened logfile '%s'.", filename );

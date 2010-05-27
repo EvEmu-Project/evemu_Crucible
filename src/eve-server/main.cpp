@@ -28,7 +28,7 @@
 static void SetupSignals();
 static void CatchSignal( int sig_num );
 
-static const char* const CONFIG_FILE = "../etc/eve-server.xml";
+static const char* const CONFIG_FILE = EVEMU_ROOT_DIR"/etc/eve-server.xml";
 static const uint32 MAIN_LOOP_DELAY = 10; // delay 10 ms.
 
 static volatile bool RunLoops = true;
@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
     printf("details.\n");
     printf("\n");
 
-    sLog.Log("main", "EVEmu %s", EVEMU_VERSION );
+    sLog.Log("main", "EVEmu "EVEMU_VERSION );
     sLog.Log("server init", "\n"
         "\tSupported Client: %s\n"
         "\tVersion %.2f\n"
