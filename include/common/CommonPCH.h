@@ -34,9 +34,10 @@
 #include <mysql.h>
 #include <mysqld_error.h>
 #include <errmsg.h>
-#include <zlib.h>
 
-#include "tinyxml/tinyxml.h"
+#include <tinyxml.h>
+
+#include <zlib.h>
 
 #endif /* !__COMMON_PCH_H__INCL__ */
 

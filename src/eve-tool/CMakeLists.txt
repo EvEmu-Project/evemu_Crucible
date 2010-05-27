@@ -26,7 +26,9 @@ SET( SOURCE
 # Setup the executable #
 ########################
 INCLUDE_DIRECTORIES( "${MYSQL_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${dep_INCLUDE_DIR}" )
+
+INCLUDE_DIRECTORIES( "${utils_INCLUDE_DIR}" )
+
 INCLUDE_DIRECTORIES( "${common_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${eve-common_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${eve-common_PACKETS_DIR}" )
@@ -42,7 +44,8 @@ TARGET_BUILD_PCH( "${COMPONENT_NAME}"
                   "EVEToolPCH.h"
                   "main.cpp" )
 TARGET_LINK_LIBRARIES( "${COMPONENT_NAME}"
-                       "eve-common" "common" "dep"
+                       "eve-common" "common"
+                       "utils"
                        ${MYSQL_LIBRARIES} ${ZLIB_LIBRARIES} )
 
 INSTALL( TARGETS "${COMPONENT_NAME}"

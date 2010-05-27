@@ -8,7 +8,9 @@
 # Initial setup #
 #################
 CMAKE_MINIMUM_REQUIRED( VERSION 2.6 FATAL_ERROR )
+
 PROJECT( "evemu" )
+SET( PROJECT_VERSION "0.7-trunk" )
 
 SET( CMAKE_MODULE_PATH
      "${PROJECT_SOURCE_DIR}/cmake"
@@ -34,8 +36,6 @@ OPTION( TINYXML_USE_STL
         "tinyxml will use native STL."
         ON )
 
-SET( PROJECT_VERSION "0.7-trunk" )
-
 #########
 # Tests #
 #########
@@ -49,15 +49,20 @@ CHECK_SYMBOL_EXISTS( "__FreeBSD__" "" FREE_BSD )
 # Examine compiler
 SET( GNUC ${CMAKE_COMPILER_IS_GNUCXX} )
 
-# Check for dependencies
-FIND_PACKAGE( "MySql" 5.0 REQUIRED )
+# Check for necessary dependencies
+FIND_PACKAGE( "MySQL" 5.0 REQUIRED )
 FIND_PACKAGE( "ZLIB" REQUIRED )
 
 IF( EVE_EXTRACT_SVN_REV )
     FIND_PACKAGE( "Subversion" REQUIRED )
 ENDIF( EVE_EXTRACT_SVN_REV )
 
+# Check for other dependencies
 FIND_PACKAGE( "Doxygen" )
+
+FIND_PACKAGE( "Gangsta" QUIET )
+FIND_PACKAGE( "TinyXML" QUIET )
+FIND_PACKAGE( "UTF8CPP" QUIET )
 
 #################
 # Configuration #
@@ -91,7 +96,36 @@ INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
 #############################
 # Recurse to subdirectories #
 #############################
-ADD_SUBDIRECTORY( "dep" )
+ADD_SUBDIRECTORY( "dep/utils" )
+
+IF( NOT GANGSTA_FOUND )
+    ADD_SUBDIRECTORY( "dep/gangsta" )
+
+    SET( GANGSTA_FOUND       TRUE )
+    SET( GANGSTA_INCLUDE_DIR "${gangsta_INCLUDE_DIR}" )
+    SET( GANGSTA_LIBRARIES   "gangsta" )
+ENDIF( NOT GANGSTA_FOUND )
+
+IF( NOT TINYXML_FOUND )
+    ADD_SUBDIRECTORY( "dep/tinyxml" )
+
+    SET( TINYXML_FOUND       TRUE )
+    SET( TINYXML_INCLUDE_DIR "${tinyxml_INCLUDE_DIR}" )
+    SET( TINYXML_LIBRARIES   "tinyxml" )
+ENDIF( NOT TINYXML_FOUND )
+
+IF( NOT UTF8CPP_FOUND )
+    ADD_SUBDIRECTORY( "dep/utf8cpp" )
+
+    SET( UTF8CPP_FOUND       TRUE )
+    SET( UTF8CPP_INCLUDE_DIR "${utf8cpp_INCLUDE_DIR}" )
+    SET( UTF8CPP_LIBRARIES   "utf8cpp" )
+ENDIF( NOT UTF8CPP_FOUND )
+
+IF( DOXYGEN_FOUND )
+    ADD_SUBDIRECTORY( "doc" )
+ENDIF( DOXYGEN_FOUND )
+
 ADD_SUBDIRECTORY( "src/common" )
 ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
@@ -104,7 +138,3 @@ ENDIF( EVE_COLLECTOR )
 IF( EVE_TOOL )
     ADD_SUBDIRECTORY( "src/eve-tool" )
 ENDIF( EVE_TOOL )
-
-IF( DOXYGEN_FOUND )
-    ADD_SUBDIRECTORY( "doc" )
-ENDIF( DOXYGEN_FOUND )

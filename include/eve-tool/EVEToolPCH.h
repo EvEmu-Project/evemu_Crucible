@@ -31,11 +31,11 @@
 /************************************************************************/
 /* dep includes                                                         */
 /************************************************************************/
+#include <Base64.h>
+
 #include <mysql.h>
 
-#include "utils/Base64.h"
-#include "utils/RefPtr.h"
-#include "utils/TriFile.h"
+#include <TriFile.h>
 
 /************************************************************************/
 /* common includes                                                      */
@@ -49,6 +49,7 @@
 
 #include "utils/Buffer.h"
 #include "utils/misc.h"
+#include "utils/RefPtr.h"
 #include "utils/Seperator.h"
 #include "utils/timer.h"
 #include "utils/utils_string.h"

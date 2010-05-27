@@ -360,8 +360,13 @@ SET( tutorial_SOURCE
 ########################
 # Setup the executable #
 ########################
+INCLUDE_DIRECTORIES( "${GANGSTA_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${MYSQL_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${dep_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${TINYXML_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${UTF8CPP_INCLUDE_DIR}" )
+
+INCLUDE_DIRECTORIES( "${utils_INCLUDE_DIR}" )
+
 INCLUDE_DIRECTORIES( "${common_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${eve-common_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${eve-common_PACKETS_DIR}" )
@@ -444,7 +449,9 @@ TARGET_BUILD_PCH( "${COMPONENT_NAME}"
                   "EVEServerPCH.h"
                   "main.cpp" )
 TARGET_LINK_LIBRARIES( "${COMPONENT_NAME}"
-                       "eve-common" "common" "dep"
+                       "eve-common" "common"
+                       "utils"
+                       ${GANGSTA_LIBRARIES} ${TINYXML_LIBRARIES}
                        ${MYSQL_LIBRARIES} ${ZLIB_LIBRARIES} )
 
 INSTALL( TARGETS "${COMPONENT_NAME}"

@@ -74,8 +74,8 @@ public:
     const char* ColumnName( uint32 index ) const;
     DBTYPE ColumnType( uint32 index ) const;
 
-    inline bool IsUnsigned( uint32 index ) const;
-    inline bool IsBinary( uint32 index ) const;
+    bool IsUnsigned( uint32 index ) const;
+    bool IsBinary( uint32 index ) const;
 
 protected:
     //for DBcore:

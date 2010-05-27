@@ -26,8 +26,6 @@
 #ifndef G_POINT_H
 #define G_POINT_H
 
-#include "gangsta/GaTypes.h"
-
 //typedef Ga::GaVec3 GPoint;
 class GPoint : public Ga::GaVec3 {
 public:
@@ -38,7 +36,7 @@ public:
 	 GPoint(const GPoint& oth):Ga::GaVec3(oth){}
 	 GPoint(const Ga::GaVec3& oth):Ga::GaVec3(oth){}
 };
-		
+
 class GVector : public Ga::GaVec3 {
 public:
 	GVector():Ga::GaVec3(){}
@@ -58,16 +56,16 @@ class GPoint {
 public:
 	GPoint();
 	GPoint(double x, double y, double z);
-	
+
 	inline void operator()(double nx, double ny, double nz) { pt[0] = nx; pt[1] = ny; pt[2] = nz; }
 
 	inline const double x() const { return(pt[0]); }
 	inline const double y() const { return(pt[1]); }
 	inline const double z() const { return(pt[2]); }
-	
+
 	GPoint cross(const GPoint &them) const;
 	double dot3(const GPoint &them) const;
-	
+
 	const GPoint &operator+=(const GPoint &v2);
 	const GPoint &operator-=(const GPoint &v2);
 	const GPoint &operator*=(const double c);
@@ -90,7 +88,7 @@ public:
 	GVector(const GPoint &them);
 	GVector(const GPoint &from, const GPoint &to);
 	GVector(double x, double y, double z);
-	
+
 	void normalize();
 	double normalize_getlen();	//normalize and return the calculated length while your at it
 	double length() const;
@@ -102,13 +100,13 @@ public:
 	GVector4();
 	GVector4(const GPoint &them);
 	GVector4(double x, double y, double z, double w = 1.0f);
-	
+
 	inline void operator()(double nx, double ny, double nz, double nw) { pt[0] = nx; pt[1] = ny; pt[2] = nz; W = nw; }
 	double dot4(const GVector4 &them) const;
 	double dot4(const GPoint &them) const;
-	
+
 	inline const double w() const { return(W); }
-	
+
 	double W;
 };
 
@@ -116,12 +114,12 @@ class G2Point {
 public:
 	G2Point();
 	G2Point(double x, double y);
-	
+
 	inline void operator()(double nx, double ny) { pt[0] = nx; pt[1] = ny; }
 
 	inline const double x() const { return(pt[0]); }
 	inline const double y() const { return(pt[1]); }
-	
+
 	double pt[2];
 };
 
@@ -129,9 +127,9 @@ class G2iPoint {
 public:
 	G2iPoint();
 	G2iPoint(int nx, int ny);
-	
+
 	inline void operator()(int nx, int ny) { x = nx; y = ny; }
-	
+
 	int x;
 	int y;
 };

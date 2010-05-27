@@ -41,7 +41,8 @@ SET( SOURCE
 ########################
 # Setup the executable #
 ########################
-INCLUDE_DIRECTORIES( "${dep_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${TINYXML_INCLUDE_DIR}" )
+
 INCLUDE_DIRECTORIES( "${common_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${COMPONENT_INCLUDE_DIR}" )
 
@@ -55,7 +56,8 @@ TARGET_BUILD_PCH( "${COMPONENT_NAME}"
                   "XMLPktGenPCH.h"
                   "main.cpp" )
 TARGET_LINK_LIBRARIES( "${COMPONENT_NAME}"
-                       "common" "dep" )
+                       "common"
+                       ${TINYXML_LIBRARIES} )
 
 ######################
 # Export directories #

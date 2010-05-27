@@ -2,7 +2,8 @@
 # Check if the system is 64bit or not
 #
 #  TEST_X64( VARIABLE )
-#  VARIABLE - variable to store the result to
+#    VARIABLE - variable to store the result to
+#
 
 MACRO( TEST_X64 VARIABLE )
     IF( NOT DEFINED ${VARIABLE} )
