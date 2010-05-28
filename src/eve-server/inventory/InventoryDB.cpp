@@ -1819,7 +1819,9 @@ bool InventoryDB::GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 &into)
 	
 	for( uint32 flag = firstFlag; flag < (firstFlag + slotsOnShip); flag++ )
 	{
-		if(ship->FindFirstByFlag((EVEItemFlags)flag) == 0)
+        // this is far from efficient as we are iterating trough all of the ships item slots.... every iteration... so this will be slow when you got loads of players
+        // with a single free slot.
+    	if(ship->IsEmptyByFlag((EVEItemFlags)flag))
 		{
 			into = flag;
 			return true;

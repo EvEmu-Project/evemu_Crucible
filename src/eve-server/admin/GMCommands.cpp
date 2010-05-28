@@ -790,7 +790,7 @@ PyResult Command_dogma( Client* who, CommandDB* db, PyServiceMgr* services, cons
 {
 	//"dogma" "140019878" "agility" "=" "0.2"
 
-	if( !args.argCount() == 5 ) {
+	if( !(args.argCount() == 5) ) {
 		throw PyException( MakeCustomError("Correct Usage: /dogma [itemID] [attributeName] = [value]") );
 	}
 

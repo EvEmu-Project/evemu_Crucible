@@ -272,31 +272,3 @@ void ItemSystemEntity::MakeDamageState(DoDestinyDamageState &into) const {
 	into.armor = 1.0 - (m_self->armorDamage() / m_self->armorHP());
 	into.structure = 1.0 - (m_self->damage() / m_self->hp());
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

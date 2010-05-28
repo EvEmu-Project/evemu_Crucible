@@ -181,6 +181,7 @@ InventoryItemRef Inventory::FindFirstByFlag(EVEItemFlags _flag) const
             return cur->second;
     }
 
+    sLog.Error("Inventory", "unable to find first by flag");
     return InventoryItemRef();
 }
 
@@ -212,21 +213,57 @@ InventoryItemRef Inventory::GetByTypeFlag(uint32 typeID, EVEItemFlags flag) cons
 
 uint32 Inventory::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItemRef> &items) const
 {
-    uint32 count = 0;
-
     std::map<uint32, InventoryItemRef>::const_iterator cur, end;
     cur = mContents.begin();
     end = mContents.end();
     for(; cur != end; cur++)
     {
-        if( cur->second->flag() == _flag )
+        if (cur->second != NULL) 
         {
-            items.push_back( cur->second );
-            count++;
+            if(cur->second->flag() == _flag)
+            {
+                items.push_back( cur->second );
+            }
         }
     }
+    return items.size();
+}
 
-    return count;
+bool Inventory::FindSingleByFlag( EVEItemFlags flag, InventoryItemRef &item ) const
+{
+    std::map<uint32, InventoryItemRef>::const_iterator cur, end;
+    cur = mContents.begin();
+    end = mContents.end();
+    for(; cur != end; cur++)
+    {
+        if (cur->second != NULL)
+        {
+            if(cur->second->flag() == flag)
+            {
+                item = cur->second;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool Inventory::IsEmptyByFlag( EVEItemFlags flag )
+{
+    std::map<uint32, InventoryItemRef>::const_iterator cur, end;
+    cur = mContents.begin();
+    end = mContents.end();
+    for(; cur != end; cur++)
+    {
+        if (cur->second != NULL)
+        {
+            if(cur->second->flag() == flag)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 uint32 Inventory::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItemRef> &items) const
@@ -335,6 +372,8 @@ double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
 
     return totalVolume;
 }
+
+
 
 /*
  * InventoryEx

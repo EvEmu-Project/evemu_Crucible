@@ -139,25 +139,25 @@ public:
     /*
      * Public Fields:
      */
-    uint32                  itemID() const { return(m_itemID); }
-    const std::string &     itemName() const { return(m_itemName); }
-    const ItemType &        type() const { return(m_type); }
-    uint32                  ownerID() const { return(m_ownerID); }
-    uint32                  locationID() const { return(m_locationID); }
-    EVEItemFlags            flag() const { return(m_flag); }
-    bool                    contraband() const { return(m_contraband); }
-    bool                    singleton() const { return(m_singleton); }
-    uint32                  quantity() const { return(m_quantity); }
-    const GPoint &          position() const { return(m_position); }
-    const std::string &     customInfo() const { return(m_customInfo); }
+    uint32                  itemID() const      { return m_itemID; }
+    const std::string &     itemName() const    { return m_itemName; }
+    const ItemType &        type() const        { return m_type; }
+    uint32                  ownerID() const     { return m_ownerID; }
+    uint32                  locationID() const  { return m_locationID; }
+    EVEItemFlags            flag() const        { return m_flag; }
+    bool                    contraband() const  { return m_contraband; }
+    bool                    singleton() const   { return m_singleton; }
+    uint32                  quantity() const    { return m_quantity; }
+    const GPoint &          position() const    { return m_position; }
+    const std::string &     customInfo() const  { return m_customInfo; }
 
 
     // helper type methods
-    uint32                  typeID() const { return(type().id()); }
-    const ItemGroup &       group() const { return(type().group()); }
-    uint32                  groupID() const { return(type().groupID()); }
-    const ItemCategory &    category() const { return(type().category()); }
-    EVEItemCategories       categoryID() const { return(type().categoryID()); }
+    uint32                  typeID() const      { return type().id(); }
+    const ItemGroup &       group() const       { return type().group(); }
+    uint32                  groupID() const     { return type().groupID(); }
+    const ItemCategory &    category() const    { return type().category(); }
+    EVEItemCategories       categoryID() const  { return type().categoryID(); }
 
     /*
      * Attribute access:

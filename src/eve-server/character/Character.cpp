@@ -482,7 +482,11 @@ SkillRef Character::GetSkill(uint32 skillTypeID) const
 
 SkillRef Character::GetSkillInTraining() const
 {
-    return SkillRef::StaticCast( FindFirstByFlag( flagSkillInTraining ) );
+    InventoryItemRef item;
+    if (!FindSingleByFlag(flagSkillInTraining, item))
+        sLog.Debug("Character","unable to find skill in training");
+
+    return SkillRef::StaticCast( item );
 }
 
 double Character::GetSPPerMin(SkillRef skill) const

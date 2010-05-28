@@ -188,19 +188,3 @@ PyObject *PyService::_BuildCachedReturn( PySubStream** in_result, const char* se
 	
 	return cached.Encode();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
