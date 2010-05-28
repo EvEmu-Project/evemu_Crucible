@@ -218,9 +218,9 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
         return (new PyInt(0));
     }
     //adding a corporation might affect eveStaticOwners, so we gotta invalidate the cache...
-    PyString * cache_name = new PyString("config.StaticOwners");
-    m_manager->cache_service->InvalidateCache(cache_name);
-	PySafeDecRef(cache_name);
+    PyString* cache_name = new PyString( "config.StaticOwners" );
+    m_manager->cache_service->InvalidateCache( cache_name );
+    PySafeDecRef( cache_name );
 
     //take the money out of their wallet (sends wallet blink event)
     // The amount has to be double!!!
