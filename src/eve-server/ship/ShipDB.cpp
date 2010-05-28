@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+#include "String.h"
 
 PyTuple* ShipDB::GetFormations()
 {
@@ -75,5 +76,82 @@ PyTuple* ShipDB::GetFormations()
     res->SetItem( 1, f.Encode() );
 
 	return res;
+}
+
+int ShipDB::GetEffectID(int typeID) {
+
+	DBQueryResult res;
+
+	if( !sDatabase.RunQuery(res,
+		" SELECT "
+		" effectID "
+		" FROM dgmtypeeffects "
+		" WHERE typeID = '%u' AND isDefault = 1 ",
+		typeID) )
+	{
+		_log( DATABASE__ERROR, "Error in effect query for typeID = %u", typeID );
+	}
+
+	DBResultRow row;
+
+	if( !res.GetRow(row) ) {
+		_log( DATABASE__ERROR, "Error in effect get row for typeID = %u", typeID );
+	}
+
+
+
+	return row.GetUInt(0);
+}
+
+std::string ShipDB::GetEffectName(int effectID) {
+
+	DBQueryResult res;
+
+	if( !sDatabase.RunQuery(res,
+		" SELECT "
+		" effectName "
+		" FROM dgmeffects "
+		" WHERE effectID = '%u' ",
+		effectID) )
+	{
+		_log( DATABASE__ERROR, "Error in effect query for effectID = %u", effectID );
+	}
+
+	DBResultRow row;
+
+	if( !res.GetRow(row) ) {
+		_log( DATABASE__ERROR, "Error in effect get row for effectID = %u", effectID );
+	}
+	
+	if( row.ColumnCount() == 0 )
+		return "none";
+	
+	return row.GetText(0);
+
+}
+
+std::string ShipDB::GetSFXEffectName(int effectID) {
+
+	DBQueryResult res;
+
+	if( !sDatabase.RunQuery(res,
+		" SELECT "
+		" guid "
+		" FROM dgmeffects "
+		" WHERE effectID = '%u' ",
+		effectID) )
+	{
+		_log( DATABASE__ERROR, "Error in effect query for guid where effectID = %u", effectID );
+	}
+
+	DBResultRow row;
+
+	if( !res.GetRow(row) ) {
+		_log( DATABASE__ERROR, "Error in effect get row for guid where effectID = %u", effectID );
+	}
+	
+
+	return row.GetText(0);
+
 }
 

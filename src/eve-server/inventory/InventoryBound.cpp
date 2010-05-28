@@ -164,6 +164,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
     
 	ShipRef ship = call.client->GetShip();
+	uint32 typeID;
 	uint32 powerSlot;
 	uint32 useableSlot;
 
@@ -179,11 +180,14 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
 		if((EVEItemFlags)args.flag == 0 )
 		{
 
+			//Get Item TypeID - this is bad
+			InventoryDB::GetTypeID(args.itemIDs[0], typeID);
+
 			//Get Range of slots for item
-			InventoryDB::GetModulePowerSlot(args.itemIDs[0], powerSlot);
+			InventoryDB::GetModulePowerSlotByTypeID(typeID, powerSlot);
 
 			//Get open slots available on ship
-			InventoryDB::GetOpenPowerSlots(powerSlot,ship,call.client->GetShipID(), useableSlot);			
+			InventoryDB::GetOpenPowerSlots(powerSlot,ship , useableSlot);			
 			
 			//Set item flag to first useable open slot found
 			args.flag = useableSlot;

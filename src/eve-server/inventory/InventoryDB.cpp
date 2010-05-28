@@ -1665,7 +1665,7 @@ bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
 
     return true;
 }
-bool InventoryDB::GetModulePowerSlot(uint32 itemID, uint32 &into)
+bool InventoryDB::GetTypeID(uint32 itemID, uint32 &typeID)
 {
 	DBQueryResult res;
 	DBResultRow row;
@@ -1684,58 +1684,8 @@ bool InventoryDB::GetModulePowerSlot(uint32 itemID, uint32 &into)
         return false;
     }
 
-	uint32 typeID = row.GetUInt(0);
+	typeID = row.GetUInt(0);
 
-	if(!sDatabase.RunQuery(res,
-		" SELECT "
-		" groupID "
-		" FROM invtypes "
-		" WHERE typeID = %u ",typeID))
-	{
-		_log(DATABASE__ERROR, "Failed to get groupID for typeID = %u", typeID);
-	}
-
-	if(!res.GetRow(row)) {
-        _log(DATABASE__ERROR, "Item of type %u not found.", itemID);
-        return false;
-    }
-
-	uint32 groupID = row.GetUInt(0);
-
-	//TODO: Move this to header to be used elsewhere, or move to database
-	//TODO: Add support for rigs and subsystems
-	int lowSlot[5] = {57,59,60,62,78};										//groupID's that mount to Low Slots
-	int medSlot[16] = {38,39,40,43,46,47,48,49,52,61,63,65,76,77,80,82};	//groupID's that mount to Medium Slots
-	int highSlot[10] = {41,53,54,55,56,67,68,71,72,74};						//groupID's that mount to High Slots
-
-	//TODO: Refine the check
-	int i;
-	for( i = 0; i<5; i++ )
-	{
-		if(groupID == lowSlot[i])
-		{
-			into = 1;
-			return true;
-		}
-	}
-
-	for( i = 0; i<16; i++ )
-	{
-		if(groupID == medSlot[i])
-		{
-			into = 2;
-			return true;
-		}
-	}
-
-	for( i = 0; i<10; i++ )
-	{
-		if(groupID == highSlot[i])
-		{
-			into = 3;
-			return true;
-		}
-	}
 }
 
 bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)
@@ -1747,11 +1697,12 @@ bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)
 		" SELECT "
 		" groupID "
 		" FROM invtypes "
-		" WHERE typeID = %u ",typeID))
+		" WHERE typeID = '%u' ",
+		typeID))
 	{
 		_log(DATABASE__ERROR, "Failed to get groupID for typeID = %u", typeID);
 	}
-
+	
 	if(!res.GetRow(row)) {
         _log(DATABASE__ERROR, "Item of type %u not found.", typeID);
         return false;
@@ -1759,73 +1710,93 @@ bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)
 
 	uint32 groupID = row.GetUInt(0);
 
-	//TODO: Move this to header to be used elsewhere, or move to database
-	//TODO: Add support for rigs and subsystems
-	int lowSlot[5] = {57,59,60,62,78};										//groupID's that mount to Low Slots
-	int medSlot[16] = {38,39,40,43,46,47,48,49,52,61,63,65,76,77,80,82};	//groupID's that mount to Medium Slots
-	int highSlot[10] = {41,53,54,55,56,67,68,71,72,74};						//groupID's that mount to High Slots
-
-	//TODO: Refine the check
-	int i;
-	for( i = 0; i<5; i++ )
+	//TODO: put in invCat
+	if( groupID == 773 ||
+		groupID == 774 ||
+		groupID == 775 ||
+		groupID == 776 ||
+		groupID == 777 ||
+		groupID == 778 ||
+		groupID == 779 ||
+		groupID == 780 ||
+		groupID == 781 ||
+		groupID == 782 ||
+		groupID == 786 || 
+		groupID == 896 ||
+		groupID == 904 )
 	{
-		if(groupID == lowSlot[i])
-		{
-			into = 1;
-			return true;
-		}
+		into = 0;
+		return true;
 	}
 
-	for( i = 0; i<16; i++ )
+
+	if(!sDatabase.RunQuery(res,
+		" SELECT "
+		" effectID "
+		" FROM dgmtypeeffects "
+		" WHERE typeID = '%u' AND ( effectID = 11 OR effectID = 12 OR effectID = 13 ) ",
+		typeID))
 	{
-		if(groupID == medSlot[i])
-		{
-			into = 2;
-			return true;
-		}
+		_log(DATABASE__ERROR, "Failed to get slot for typeID = %u", typeID);
 	}
 
-	for( i = 0; i<10; i++ )
-	{
-		if(groupID == highSlot[i])
-		{
-			into = 3;
-			return true;
-		}
-	}
-	throw PyException( MakeCustomError( "Item of type: %u is not fittable (could be a rig, as they haven't been implemented)", typeID ) );
-	return false;
+	if(!res.GetRow(row)) {
+        _log(DATABASE__ERROR, "Item of type %u not found.", typeID);
+        return false;
+    }
+
+	uint32 slotType = row.GetUInt(0);
+
+	//such crap...
+	if( slotType == 11 ) {
+		into = 1;
+		return true;
+	} else if( slotType == 12 ) {
+		into = 3;
+		return true;
+	} else if( slotType == 13 ){
+		into = 2;
+		return true;
+	} else
+		throw PyException( MakeCustomError( "Item of type: %u is not fittable (could be a rig, as they haven't been implemented)", typeID ) );
+
 }
 
-bool InventoryDB::GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 shipID, uint32 &into)
+bool InventoryDB::GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 &into)
 {
 	DBQueryResult res;
 	uint32 attributeID = 0;
 	uint32 firstFlag;
 	DBResultRow row;
+	uint32 slotsOnShip;
 
 	if( slotType == 0 )
 	{
 		//TODO: Implement Rigs
-		attributeID = 0;
-		sLog.Debug("GetOpenPowerSlots","Rig Fitting Has Not Been Implemented");
+		attributeID = 1137;
+		firstFlag = 92; //rigslot0
+		slotsOnShip = ship->rigSlots();
 	}
 	else if( slotType == 1 )
 	{
 		attributeID = 12;
-		firstFlag = 11;
+		firstFlag = 11; //lowslot0
+		slotsOnShip = ship->lowSlots();
 	}
 	else if( slotType == 2 )
 	{
 		attributeID = 13;
-		firstFlag = 19;
+		firstFlag = 19; //medslot0
+		slotsOnShip = ship->medSlots();
 	}
 	else if( slotType == 3 )
 	{
 		attributeID = 14;
-		firstFlag = 27;
+		firstFlag = 27; //hislot0
+		slotsOnShip = ship->hiSlots();
 	}	
 
+	/*
 	if(!sDatabase.RunQuery(res,
 		" SELECT "
 		" valueInt "
@@ -1833,16 +1804,18 @@ bool InventoryDB::GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 shipID
 		" WHERE typeID = %u AND attributeID = %u ",
 		ship->typeID(), attributeID))
 	{
-		_log(DATABASE__ERROR, "slot values for ship of typeID = %u could not be found", shipID);
+		_log(DATABASE__ERROR, "slot values for ship of typeID = %u could not be found", ship->typeID() );
 		return false;
 	}
 
 	if(!res.GetRow(row)) {
-        _log(DATABASE__ERROR, "Ship of typeID %u not found.", shipID);
+        _log(DATABASE__ERROR, "Ship of typeID %u not found.", ship->typeID() );
         return false;
     }
 
 	uint32 slotsOnShip = row.GetUInt(0);
+	*/
+
 	
 	for( uint32 flag = firstFlag; flag < (firstFlag + slotsOnShip); flag++ )
 	{

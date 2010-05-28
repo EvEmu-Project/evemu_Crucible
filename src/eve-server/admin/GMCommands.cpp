@@ -528,12 +528,7 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 
 	_log( COMMAND__MESSAGE, "Create %s %u times", typeID, qty );
 
-	//create into their cargo hold unless they are docked in a station,
-	//then stick it in their hangar instead.
-	
-	//TODO: switch functions over to premade enums instead of arrays.
-	
-	//TODO: clean this up
+
 	EVEItemFlags flag;
 	uint32 powerSlot;
 	uint32 useableSlot;
@@ -543,7 +538,7 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 	InventoryDB::GetModulePowerSlotByTypeID( typeID, powerSlot );
 
 	//Get open slots available on ship
-	InventoryDB::GetOpenPowerSlots(powerSlot, who->GetShip(), who->GetShip(), useableSlot);			
+	InventoryDB::GetOpenPowerSlots(powerSlot, who->GetShip(), useableSlot);			
 			
 	ItemData idata(
 		typeID,
@@ -557,14 +552,21 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 	if( !i )
 		throw PyException( MakeCustomError( "Unable to create item of type %s.", typeID ) );
 
-	//Move to location
-	//who->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag);
 	who->MoveItem( i->itemID(), who->GetShipID(), flag );
-	who->modules.Activate( i->itemID(), affectName, who->GetAccountID() , 0 );
 
 	return new PyString( "Creation successfull." );
 
 }
+
+PyResult Command_giveskills( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args ) {
+
+	//pass to command_giveskill
+	Command_giveskill(who,db,services,args);
+
+	return NULL;
+
+}
+
 PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
 
@@ -780,6 +782,43 @@ PyResult Command_repairmodules( Client* who, CommandDB* db, PyServiceMgr* servic
 PyResult Command_unspawn( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
 	throw PyException( MakeCustomError("Unspawn not implemented yet!"));
+
+	return NULL;
+}
+
+PyResult Command_dogma( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	//"dogma" "140019878" "agility" "=" "0.2"
+
+	if( !args.argCount() == 5 ) {
+		throw PyException( MakeCustomError("Correct Usage: /dogma [itemID] [attributeName] = [value]") );
+	}
+
+	if( !args.isNumber( 1 ) ){
+		throw PyException( MakeCustomError("Invalid itemID. \n Correct Usage: /dogma [itemID] [attributeName] = [value]") );
+	}
+	uint32 itemID = atoi( args.arg( 1 ).c_str() );
+
+	if( args.isNumber( 2 ) ) {
+		throw PyException( MakeCustomError("Invalid attributeName. \n Correct Usage: /dogma [itemID] [attributeName] = [value]") );
+	}
+	const char *attributeName = args.arg( 2 ).c_str();
+
+	if( !args.isNumber( 4 ) ){
+		throw PyException( MakeCustomError("Invalid attribute value. \n Correct Usage: /dogma [itemID] [attributeName] = [value]") );
+	}
+	double atributeValue = atof( args.arg( 4 ).c_str() );
+
+	//get item
+	InventoryItemRef item = services->item_factory.GetItem( itemID );
+
+	//get attributeID
+	uint32 attributeID = db->GetAttributeID( attributeName );
+	
+	
+
+
+
 
 	return NULL;
 }

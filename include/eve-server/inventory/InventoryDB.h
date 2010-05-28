@@ -278,7 +278,6 @@ public:
 	 * @return True if load succeeds, false if fails.
 	 * returns 0,1,2,3 for module, low slot, med slot, or high slot respectively
 	 */
-	static bool GetModulePowerSlot(uint32 itemID, uint32 &into);
 	static bool GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into);
 	/*
 	 * Determines which slots are open on current ship
@@ -289,7 +288,9 @@ public:
 	 * @return True if load succeeds, false if fails.
 	 * returns arry of slot flags 0 for open, 1 for filled
 	 */
-	static bool GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 shipID, uint32 &into);
+	static bool GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 &into);
+
+	static bool GetTypeID(uint32 itemID, uint32 &typeID);
 
 };
 

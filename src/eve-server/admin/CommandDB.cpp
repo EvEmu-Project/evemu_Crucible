@@ -75,6 +75,33 @@ bool CommandDB::GetRoidDist(const char * sec, std::map<double, uint32> &roids) {
 	return !roids.empty();
 }
 
+int CommandDB::GetAttributeID(const char *attributeName) {
+
+	DBQueryResult res;
+	DBResultRow row;
+	std::string escape;
+	sDatabase.DoEscapeString(escape, attributeName);
+
+	if(!sDatabase.RunQuery(res,
+		" SELECT "
+		" attributeID "
+		" FROM dgmattributetypes "
+		" WHERE attributeName = '%s' ",
+		escape.c_str() ) )
+	{
+		_log(DATABASE__ERROR, "Error retrieving attributeID for attributeName = '%s' ", escape.c_str() );
+		return 0;
+	}
+
+	if( !res.GetRow(row) ){
+		_log(DATABASE__ERROR, "Null result finding attributeID for attributeName = '%s' ", escape.c_str() );
+		return 0;
+	}
+
+	return row.GetUInt( 0 );
+
+}
+
 
 
 

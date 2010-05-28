@@ -45,3 +45,16 @@ COMMAND( repairmodules, ROLE_ADMIN,
 		"(entityID) (itemID) - repair the modules of the character with the entityID" )
 COMMAND( unspawn, ROLE_ADMIN,
 		"(entityID) (itemID) - unload module itemID from entityID (itemID=all=>unload all) (entityID=me=>my modules)" )
+COMMAND( giveskills, ROLE_ADMIN,
+		"(itemID) - gives skills to character." )
+COMMAND( dogma, ROLE_ADMIN,
+		"(attribute) - change item attribute value" )
+/*COMMAND( entity, ROLE_ADMIN,
+		"(entityID) - unknown" )
+COMMAND( chatban, ROLE_ADMIN,
+		"(characterID) - bans character from channel" )
+COMMAND( whois, ROLE_ADMIN,
+		"(characterName) - returns information on character")
+COMMAND( giveallskills, ROLE_ADMIN,
+		"(characterID) - gives all skills to character")
+*/

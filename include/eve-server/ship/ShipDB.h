@@ -34,6 +34,9 @@ class ShipDB
 {
 public:
 	PyTuple* GetFormations();
+	static int GetEffectID(int typeID);
+	static std::string GetEffectName(int effectID);
+	static std::string GetSFXEffectName(int effectID);
 };
 
 
