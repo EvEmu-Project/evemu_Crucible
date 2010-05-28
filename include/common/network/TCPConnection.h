@@ -194,11 +194,11 @@ protected:
      *
      * @param[in] arg Pointer to TCPConnection.
      */
-	static ThreadReturnType TCPConnectionLoop( void* arg );
+	static thread_return_t TCPConnectionLoop( void* arg );
     /**
      * @brief Loop for worker threads.
      */
-    ThreadReturnType        TCPConnectionLoop();
+    thread_return_t        TCPConnectionLoop();
 
     /** Protection of socket and associated variables. */
     mutable Mutex   mMSock;

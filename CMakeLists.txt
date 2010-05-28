@@ -8,67 +8,83 @@
 # Initial setup #
 #################
 CMAKE_MINIMUM_REQUIRED( VERSION 2.6 FATAL_ERROR )
+
 PROJECT( "evemu" )
+SET( PROJECT_VERSION "0.7-experimental" )
 
 SET( CMAKE_MODULE_PATH
      "${PROJECT_SOURCE_DIR}/cmake"
      "${CMAKE_MODULE_PATH}" )
 
+INCLUDE( "CheckSymbolExists" )
+
 INCLUDE( "TargetBuildPCH" )
 INCLUDE( "TestBigEndian" )
 INCLUDE( "TestX64" )
 
-# Custom options
-OPTION( EVE_COLLECTOR
-        "Build eve-collector."
-        OFF )
-OPTION( EVE_TOOL
-        "Build eve-tool."
-        OFF )
-OPTION( EVE_EXTRACT_SVN_REV
-        "Extract current revision using SVN tools."
-        OFF )
-OPTION( TINYXML_USE_STL
-        "tinyxml will use native STL."
-        ON )
+# Options
+SET( EVEMU_COLLECTOR_ENABLE          OFF
+     CACHE BOOL "Enable eve-collector." )
+SET( EVEMU_EXTRACT_SVN_REV           OFF
+     CACHE BOOL "Extract current revision using SVN tools." )
+SET( EVEMU_ROOT_DIR                  ".."
+     CACHE PATH "The root of EVEmu workspace." )
+SET( EVEMU_SERVER_SHOW_LOGIN_MESSAGE ON
+     CACHE BOOL "Show a message to a client when logging in." )
+SET( EVEMU_TOOL_ENABLE               OFF
+     CACHE BOOL "Enable eve-tool." )
+
+SET( TINYXML_USE_STL                 ON
+     CACHE BOOL "tinyxml will use native STL." )
 
 #########
 # Tests #
 #########
-# Examine platform
+# Examine hardware
 TEST_X64( X64 )
 TEST_BIG_ENDIAN( BIG_ENDIAN )
 
-# Check for dependencies
-FIND_PACKAGE( "MySql" 5.0 REQUIRED )
+# Examine OS
+CHECK_SYMBOL_EXISTS( "__FreeBSD__" "" FREE_BSD )
+
+# Examine compiler
+SET( GNUC ${CMAKE_COMPILER_IS_GNUCXX} )
+
+# Check for necessary dependencies
+FIND_PACKAGE( "MySQL" 5.0 REQUIRED )
 FIND_PACKAGE( "ZLIB" REQUIRED )
 
-IF( EVE_EXTRACT_SVN_REV )
+IF( EVEMU_EXTRACT_SVN_REV )
     FIND_PACKAGE( "Subversion" REQUIRED )
-ENDIF( EVE_EXTRACT_SVN_REV )
+ENDIF( EVEMU_EXTRACT_SVN_REV )
+
+# Check for other dependencies
+FIND_PACKAGE( "Doxygen" )
+
+FIND_PACKAGE( "Gangsta" QUIET )
+FIND_PACKAGE( "TinyXML" QUIET )
+FIND_PACKAGE( "UTF8CPP" QUIET )
 
 #################
 # Configuration #
 #################
 # Platform-specific configuration
 IF( WIN32 )
-    # Compile flags
     STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}" )
     STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}" )
     STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}" )
     STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}" )
     STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
-    # Standard libraries
+
     SET( CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} wsock32.lib" )
 ENDIF( WIN32 )
 
-# Fill EVEMU_REVISION appropriately
-IF( EVE_EXTRACT_SVN_REV )
+# Update PROJECT_VERSION appropriately
+IF( EVEMU_EXTRACT_SVN_REV )
     Subversion_WC_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
-    SET( EVEMU_REVISION "${${PROJECT_NAME}_WC_LAST_CHANGED_REV}" )
-ELSE( EVE_EXTRACT_SVN_REV )
-    SET( EVEMU_REVISION "N/A" )
-ENDIF( EVE_EXTRACT_SVN_REV )
+
+    SET( PROJECT_VERSION "${PROJECT_VERSION}-r${${PROJECT_NAME}_WC_LAST_CHANGED_REV}" )
+ENDIF( EVEMU_EXTRACT_SVN_REV )
 
 # Setup config.h
 CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.cmake"
@@ -81,16 +97,45 @@ INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
 #############################
 # Recurse to subdirectories #
 #############################
-ADD_SUBDIRECTORY( "dep" )
+ADD_SUBDIRECTORY( "dep/utils" )
+
+IF( NOT GANGSTA_FOUND )
+    ADD_SUBDIRECTORY( "dep/gangsta" )
+
+    SET( GANGSTA_FOUND       TRUE )
+    SET( GANGSTA_INCLUDE_DIR "${gangsta_INCLUDE_DIR}" )
+    SET( GANGSTA_LIBRARIES   "gangsta" )
+ENDIF( NOT GANGSTA_FOUND )
+
+IF( NOT TINYXML_FOUND )
+    ADD_SUBDIRECTORY( "dep/tinyxml" )
+
+    SET( TINYXML_FOUND       TRUE )
+    SET( TINYXML_INCLUDE_DIR "${tinyxml_INCLUDE_DIR}" )
+    SET( TINYXML_LIBRARIES   "tinyxml" )
+ENDIF( NOT TINYXML_FOUND )
+
+IF( NOT UTF8CPP_FOUND )
+    ADD_SUBDIRECTORY( "dep/utf8cpp" )
+
+    SET( UTF8CPP_FOUND       TRUE )
+    SET( UTF8CPP_INCLUDE_DIR "${utf8cpp_INCLUDE_DIR}" )
+    SET( UTF8CPP_LIBRARIES   "utf8cpp" )
+ENDIF( NOT UTF8CPP_FOUND )
+
+IF( DOXYGEN_FOUND )
+    ADD_SUBDIRECTORY( "doc" )
+ENDIF( DOXYGEN_FOUND )
+
 ADD_SUBDIRECTORY( "src/common" )
-ADD_SUBDIRECTORY( "src/xmlpktgen" )
 ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
+ADD_SUBDIRECTORY( "src/xmlpktgen" )
 
-IF( EVE_COLLECTOR )
+IF( EVEMU_COLLECTOR_ENABLE )
     ADD_SUBDIRECTORY( "src/eve-collector" )
-ENDIF( EVE_COLLECTOR )
+ENDIF( EVEMU_COLLECTOR_ENABLE )
 
-IF( EVE_TOOL )
+IF( EVEMU_TOOL_ENABLE )
     ADD_SUBDIRECTORY( "src/eve-tool" )
-ENDIF( EVE_TOOL )
+ENDIF( EVEMU_TOOL_ENABLE )

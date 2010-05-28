@@ -31,19 +31,19 @@ EXPORT_SINGLETON( NewLog );
 
 // console output colors
 #ifdef WIN32
-#  define TRED    FOREGROUND_RED | FOREGROUND_INTENSITY
-#  define TGREEN  FOREGROUND_GREEN | FOREGROUND_INTENSITY
-#  define TYELLOW FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY
-#  define TNORMAL FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE
-#  define TWHITE  TNORMAL | FOREGROUND_INTENSITY
-#  define TBLUE   FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY
+#   define TRED    ( FOREGROUND_RED | FOREGROUND_INTENSITY )
+#   define TGREEN  ( FOREGROUND_GREEN | FOREGROUND_INTENSITY )
+#   define TYELLOW ( FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY )
+#   define TNORMAL ( FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE )
+#   define TWHITE  ( TNORMAL | FOREGROUND_INTENSITY )
+#   define TBLUE   ( FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY )
 #else /* !WIN32 */
-#  define TRED 1
-#  define TGREEN 2
-#  define TYELLOW 3
-#  define TNORMAL 4
-#  define TWHITE 5
-#  define TBLUE 6
+#   define TRED    1
+#   define TGREEN  2
+#   define TYELLOW 3
+#   define TNORMAL 4
+#   define TWHITE  5
+#   define TBLUE   6
 
 const char* colorstrings[ TBLUE + 1 ] =
 {
@@ -59,23 +59,15 @@ const char* colorstrings[ TBLUE + 1 ] =
 #endif /* !WIN32 */
 
 NewLog::NewLog()
+: mLogfile( NULL ),
+  mTime( 0 )
 #ifdef WIN32
-: mStdoutHandle( GetStdHandle( STD_OUTPUT_HANDLE ) ),
+  ,mStdoutHandle( GetStdHandle( STD_OUTPUT_HANDLE ) ),
   mStderrHandle( GetStdHandle( STD_ERROR_HANDLE ) )
 #endif /* WIN32 */
 {
-    // set initial log system time
-    SetTime( time( NULL ) );
-
-    tm t;
-    localtime_r( &mTime, &t );
-
-    char log_filename[ MAX_PATH + 1 ];
-    snprintf( log_filename, MAX_PATH + 1, "eveserver_%02u-%02u-%04u-%02u-%02u.log", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min );
-
-    mLogfile = fopen( log_filename, "w" );
-    // we would crash as soon as anyone tried to print anything anyway
-    assert( NULL != mLogfile );
+    // open default logfile
+    SetLogfileDefault();
 
     Debug( "Log", "Log system initiated" );
 }
@@ -84,189 +76,208 @@ NewLog::~NewLog()
 {
     Debug( "Log", "Log system shutting down" );
 
-    if( NULL != mLogfile )
-        fclose( mLogfile );
+    // close logfile
+    SetLogfile( (FILE*)NULL );
 }
 
 void NewLog::Log( const char* source, const char* fmt, ... )
 {
-    LogTime( stdout ); LogTime( mLogfile );
+    PrintTime();
 
     SetColor( TNORMAL );
-    fputs( "L ", stdout ); fputs( "L ", mLogfile );
+    Print( " L " );
 
     if( source && *source )
     {
         SetColor( TWHITE );
-        fputs( source, stdout ); fputs( source, mLogfile );
-        fputs( ": ", stdout ); fputs( ": ", mLogfile );
+        Print( "%s: ", source );
+
         SetColor( TNORMAL );
     }
 
-    va_list ap, ap2;
+    va_list ap;
     va_start( ap, fmt );
-    va_copy( ap2, ap ); /* this is a design flaw ( UNIX related ) */
 
-    vfprintf( stdout, fmt, ap ); vfprintf( mLogfile, fmt, ap2 );
-    fputc( '\n', stdout ); fputc( '\n', mLogfile );
+    PrintVa( fmt, ap );
+    Print( "\n" );
 
     va_end( ap );
-    va_end( ap2 );
 
     SetColor( TNORMAL );
 }
 
 void NewLog::Error( const char* source, const char* fmt, ... )
 {
-    LogTime( stdout ); LogTime( mLogfile );
+    PrintTime();
 
     SetColor( TRED );
-    fputs( "E ", stdout ); fputs( "E ", mLogfile );
+    Print( " E " );
 
     if( source && *source )
     {
         SetColor( TWHITE );
-        fputs( source, stdout ); fputs( source, mLogfile );
-        fputs( ": ", stdout ); fputs( ": ", mLogfile );
+        Print( "%s: ", source );
+
         SetColor( TRED );
     }
 
-    va_list ap, ap2;
+    va_list ap;
     va_start( ap, fmt );
-    va_copy( ap2, ap ); /* this is a design flaw ( UNIX related ) */
 
-    vfprintf( stdout, fmt, ap ); vfprintf( mLogfile, fmt, ap2 );
-    fputc( '\n', stdout ); fputc( '\n', mLogfile );
+    PrintVa( fmt, ap );
+    Print( "\n" );
 
     va_end( ap );
-    va_end( ap2 );
 
     SetColor( TNORMAL );
 }
 
 void NewLog::Warning( const char* source, const char* fmt, ... )
 {
-    LogTime( stdout ); LogTime( mLogfile );
+    PrintTime();
 
     SetColor( TYELLOW );
-    fputs( "W ", stdout ); fputs( "W ", mLogfile );
+    Print( " W " );
 
     if( source && *source )
     {
         SetColor( TWHITE );
-        fputs( source, stdout ); fputs( source, mLogfile );
-        fputs( ": ", stdout ); fputs( ": ", mLogfile );
+        Print( "%s: ", source );
+
         SetColor( TYELLOW );
     }
 
-    va_list ap, ap2;
+    va_list ap;
     va_start( ap, fmt );
-    va_copy( ap2, ap ); /* this is a design flaw ( UNIX related ) */
 
-    vfprintf( stdout, fmt, ap ); vfprintf( mLogfile, fmt, ap2 );
-    fputc( '\n', stdout ); fputc( '\n', mLogfile );
+    PrintVa( fmt, ap );
+    Print( "\n" );
 
     va_end( ap );
-    va_end( ap2 );
 
     SetColor( TNORMAL );
 }
 
 void NewLog::Success( const char* source, const char* fmt, ... )
 {
-    LogTime( stdout ); LogTime( mLogfile );
+    PrintTime();
 
     SetColor( TGREEN );
-    fputs( "S ", stdout ); fputs( "S ", mLogfile );
+    Print( " S " );
 
     if( source && *source )
     {
         SetColor( TWHITE );
-        fputs( source, stdout ); fputs( source, mLogfile );
-        fputs( ": ", stdout ); fputs( ": ", mLogfile );
+        Print( "%s: ", source );
+
         SetColor( TGREEN );
     }
 
-    va_list ap, ap2;
+    va_list ap;
     va_start( ap, fmt );
-    va_copy( ap2, ap ); /* this is a design flaw ( UNIX related ) */
 
-    vfprintf( stdout, fmt, ap ); vfprintf( mLogfile, fmt, ap2 );
-    fputc( '\n', stdout ); fputc( '\n', mLogfile );
+    PrintVa( fmt, ap );
+    Print( "\n" );
 
     va_end( ap );
-    va_end( ap2 );
 
     SetColor( TNORMAL );
 }
 
-#if 0
-void NewLog::Notice(const char * source, const char * format, ...)
-{
-#ifdef ENABLE_CONSOLE_LOG
-    /* notice is old loglevel 0/string */
-    LOCK_LOG;
-    va_list ap;
-    va_start(ap, format);
-    Time();
-    fputs("N ", stdout);
-    if(*source)
-    {
-        Color(TWHITE);
-        fputs(source, stdout);
-        putchar(':');
-        putchar(' ');
-        Color(TNORMAL);
-    }
-
-    vfprintf( mLogfile, format, ap );
-    putchar('\n');
-    va_end(ap);
-    Color(TNORMAL);
-    UNLOCK_LOG;
-#endif//ENABLE_CONSOLE_LOG
-}
-#endif
-
 void NewLog::Debug( const char* source, const char* fmt, ... )
 {
 #ifndef NDEBUG
-    LogTime( stdout ); LogTime( mLogfile );
+    PrintTime();
 
     SetColor( TBLUE );
-    fputs( "D ", stdout ); fputs( "D ", mLogfile );
+    Print( " D " );
 
     if( source && *source )
     {
         SetColor( TWHITE );
-        fputs( source, stdout ); fputs( source, mLogfile );
-        fputs( ": ", stdout ); fputs( ": ", mLogfile );
+        Print( "%s: ", source );
+
         SetColor( TBLUE );
     }
 
-    va_list ap, ap2;
+    va_list ap;
     va_start( ap, fmt );
-    va_copy( ap2, ap ); /* this is a design flaw ( UNIX related ) */
 
-    vfprintf( stdout, fmt, ap ); vfprintf( mLogfile, fmt, ap2 );
-    fputc( '\n', stdout ); fputc( '\n', mLogfile );
+    PrintVa( fmt, ap );
+    Print( "\n" );
 
     va_end( ap );
-    va_end( ap2 );
 
     SetColor( TNORMAL );
 #endif /* !NDEBUG */
 }
 
-void NewLog::LogTime( FILE* fp )
+bool NewLog::SetLogfile( const char* filename )
+{
+    // if we got NULL, don't try to open it, pass it directly instead
+    if( NULL == filename )
+        return SetLogfile( (FILE*)NULL );
+
+    // open the new logfile
+    FILE* file = fopen( filename, "w" );
+    if( NULL == file )
+        return false;
+
+    // pass the new logfile
+    return SetLogfile( file );
+}
+
+bool NewLog::SetLogfile( FILE* file )
+{
+    // if we already have a logfile, close it first
+    if( NULL != mLogfile )
+        assert( 0 == fclose( mLogfile ) );
+
+    // set the new logfile
+    mLogfile = file;
+    return true;
+}
+
+void NewLog::Print( const char* fmt, ... )
+{
+    va_list ap;
+    va_start( ap, fmt );
+
+    PrintVa( fmt, ap );
+
+    va_end( ap );
+}
+
+void NewLog::PrintVa( const char* fmt, va_list ap )
+{
+    if( NULL != mLogfile )
+    {
+        // this is a design flaw ( UNIX related )
+        va_list ap2;
+        va_copy( ap2, ap );
+
+        vfprintf( mLogfile, fmt, ap2 );
+
+#ifndef NDEBUG
+        // flush immediately so logfile is accurate if we crash
+        fflush( mLogfile );
+#endif /* !NDEBUG */
+
+        va_end( ap2 );
+    }
+
+    vprintf( fmt, ap );
+}
+
+void NewLog::PrintTime()
 {
     // this will be replaced my a timing thread somehow
-    SetTime( time(NULL) );
+    SetTime( time( NULL ) );
 
     tm t;
     localtime_r( &mTime, &t );
 
-    fprintf( fp, "%02u:%02u:%02u ", t.tm_hour, t.tm_min, t.tm_sec );
+    Print( "%02u:%02u:%02u", t.tm_hour, t.tm_min, t.tm_sec );
 }
 
 void NewLog::SetColor( unsigned int color )
@@ -278,3 +289,21 @@ void NewLog::SetColor( unsigned int color )
 #endif /* !WIN32 */
 }
 
+void NewLog::SetLogfileDefault()
+{
+    // set initial log system time
+    SetTime( time( NULL ) );
+
+    tm t;
+    localtime_r( &mTime, &t );
+
+    // open default logfile
+    char filename[ MAX_PATH + 1 ];
+    snprintf( filename, MAX_PATH + 1, EVEMU_ROOT_DIR"/log/log_%02u-%02u-%04u-%02u-%02u.log",
+              t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min );
+
+    if( SetLogfile( filename ) )
+        sLog.Success( "Log", "Opened logfile '%s'.", filename );
+    else
+        sLog.Warning( "Log", "Unable to open logfile '%s': %s", filename, strerror( errno ) );
+}

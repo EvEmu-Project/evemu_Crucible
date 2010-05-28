@@ -2,7 +2,7 @@
 
 <elements>
 
-  <include file="General.h" />
+  <include file="packets/General.h" />
 
   <elementDef name="RspGetCharactersToSelect">
     <tupleInline>

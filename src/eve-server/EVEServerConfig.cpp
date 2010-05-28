@@ -52,7 +52,7 @@ EVEServerConfig::EVEServerConfig()
 
     // files
     files.log = "../log/eve-server.log";
-    files.logSettings = "../log/log.ini";
+    files.logSettings = "../etc/log.ini";
     files.cacheDir = "";
 }
 

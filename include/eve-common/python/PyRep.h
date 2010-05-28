@@ -198,7 +198,7 @@ public:
     virtual bool visit( PyVisitor& v ) const = 0;
     /**
      * @brief virtual function to generate a hash value of a object.
-     * 
+     *
      * virtual function to generate a hash value of a object to facilitate the various maps and checks.
      *
      * @return returns a uint32 containing a hash function that represents the object.
@@ -970,12 +970,12 @@ protected:
  * all together.
  */
 template<typename Iter>
-EVEMU_INLINE PyBuffer::PyBuffer( Iter first, Iter last ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( first, last ) ), mHashCache( -1 ) {}
+inline PyBuffer::PyBuffer( Iter first, Iter last ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( first, last ) ), mHashCache( -1 ) {}
 template<typename Iter>
-EVEMU_INLINE PyString::PyString( Iter first, Iter last ) : PyRep( PyRep::PyTypeString ), mValue( first, last ), mHashCache( -1 ) {}
+inline PyString::PyString( Iter first, Iter last ) : PyRep( PyRep::PyTypeString ), mValue( first, last ), mHashCache( -1 ) {}
 template<typename Iter>
-EVEMU_INLINE PyWString::PyWString( Iter first, Iter last ) : PyRep( PyRep::PyTypeWString ), mValue( first, last ), mHashCache( -1 ) {}
+inline PyWString::PyWString( Iter first, Iter last ) : PyRep( PyRep::PyTypeWString ), mValue( first, last ), mHashCache( -1 ) {}
 template<typename Iter>
-EVEMU_INLINE PyToken::PyToken( Iter first, Iter last ) : PyRep( PyRep::PyTypeToken ), mValue( first, last ) {}
+inline PyToken::PyToken( Iter first, Iter last ) : PyRep( PyRep::PyTypeToken ), mValue( first, last ) {}
 
 #endif//EVE_PY_REP_H

@@ -91,7 +91,7 @@ DST_WARPACTIVATION = 10
 DST_WARPEXIT = 11
   -->
 
-  <include file="General.h" />
+  <include file="packets/General.h" />
 
   <elementDef name="Notify_DoDestinyUpdates">
     <tupleInline>

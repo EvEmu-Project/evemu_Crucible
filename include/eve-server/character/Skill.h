@@ -104,7 +104,7 @@ protected:
 		// check it's a skill
 		if( type.categoryID() != EVEDB::invCategories::Skill )
 		{
-			_log( ITEM__ERROR, "Trying to load %s as Skill.", type.category().name().c_str() );
+			sLog.Error("Skill", "Trying to load %s as Skill.", type.category().name().c_str() );
 			return RefPtr<_Ty>();
 		}
 

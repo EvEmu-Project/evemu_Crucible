@@ -65,7 +65,7 @@ bool BaseTCPServer::Open( uint16 port, char* errbuf )
 	// mutex lock
 	LockMutex lock( &mMSock );
 
-	if( IsOpen() ) 
+	if( IsOpen() )
 	{
 		if( errbuf != NULL )
 			snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "Listening socket already open" );
@@ -90,7 +90,7 @@ bool BaseTCPServer::Open( uint16 port, char* errbuf )
 	unsigned int reuse_addr = 1;
 	mSock->setopt( SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof( reuse_addr ) );
 
-//	Setup internet address information.  
+//	Setup internet address information.
 //	This is used with the bind() call
 	sockaddr_in address;
 	memset( &address, 0, sizeof( address ) );
@@ -181,7 +181,7 @@ void BaseTCPServer::ListenNewConnections()
     Socket*         sock;
     sockaddr_in     from;
     unsigned int    fromlen;
-    
+
     from.sin_family = AF_INET;
     fromlen = sizeof( from );
 
@@ -205,15 +205,15 @@ void BaseTCPServer::ListenNewConnections()
 	}
 }
 
-ThreadReturnType BaseTCPServer::TCPServerLoop( void* arg )
+thread_return_t BaseTCPServer::TCPServerLoop( void* arg )
 {
 	BaseTCPServer* tcps = reinterpret_cast<BaseTCPServer*>( arg );
     assert( tcps != NULL );
 
-    return tcps->TCPServerLoop();
+    THREAD_RETURN( tcps->TCPServerLoop() );
 }
 
-ThreadReturnType BaseTCPServer::TCPServerLoop()
+thread_return_t BaseTCPServer::TCPServerLoop()
 {
 #ifdef WIN32
 	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL );
@@ -243,11 +243,11 @@ ThreadReturnType BaseTCPServer::TCPServerLoop()
 	}
 
 	mMLoopRunning.unlock();
-	
+
 #ifndef WIN32
     sLog.Log( "Threading", "Ending TCPServerLoop with thread ID %d", pthread_self() );
 #endif
-	
+
 	THREAD_RETURN( NULL );
 }
 

@@ -255,7 +255,7 @@ int64 str2<int64>( const char* str );
  * @return An integer corresponding to content of @a str.
  */
 template<>
-EVEMU_INLINE int32 str2<int32>( const char* str ) { return str2<int64>( str ); }
+inline int32 str2<int32>( const char* str ) { return str2<int64>( str ); }
 /**
  * @brief Converts string to integer.
  *
@@ -264,7 +264,7 @@ EVEMU_INLINE int32 str2<int32>( const char* str ) { return str2<int64>( str ); }
  * @return An integer corresponding to content of @a str.
  */
 template<>
-EVEMU_INLINE int16 str2<int16>( const char* str ) { return str2<int32>( str ); }
+inline int16 str2<int16>( const char* str ) { return str2<int32>( str ); }
 /**
  * @brief Converts string to integer.
  *
@@ -273,7 +273,7 @@ EVEMU_INLINE int16 str2<int16>( const char* str ) { return str2<int32>( str ); }
  * @return An integer corresponding to content of @a str.
  */
 template<>
-EVEMU_INLINE int8 str2<int8>( const char* str ) { return str2<int16>( str ); }
+inline int8 str2<int8>( const char* str ) { return str2<int16>( str ); }
 
 /**
  * @brief Converts string to unsigned integer.
@@ -292,7 +292,7 @@ uint64 str2<uint64>( const char* str );
  * @return An unsigned integer corresponding to content of @a str.
  */
 template<>
-EVEMU_INLINE uint32 str2<uint32>( const char* str ) { return str2<uint64>( str ); }
+inline uint32 str2<uint32>( const char* str ) { return str2<uint64>( str ); }
 /**
  * @brief Converts string to unsigned integer.
  *
@@ -301,7 +301,7 @@ EVEMU_INLINE uint32 str2<uint32>( const char* str ) { return str2<uint64>( str )
  * @return An unsigned integer corresponding to content of @a str.
  */
 template<>
-EVEMU_INLINE uint16 str2<uint16>( const char* str ) { return str2<uint32>( str ); }
+inline uint16 str2<uint16>( const char* str ) { return str2<uint32>( str ); }
 /**
  * @brief Converts string to unsigned integer.
  *
@@ -310,7 +310,7 @@ EVEMU_INLINE uint16 str2<uint16>( const char* str ) { return str2<uint32>( str )
  * @return An unsigned integer corresponding to content of @a str.
  */
 template<>
-EVEMU_INLINE uint8 str2<uint8>( const char* str ) { return str2<uint16>( str ); }
+inline uint8 str2<uint8>( const char* str ) { return str2<uint16>( str ); }
 
 /**
  * @brief Converts string to real number.
@@ -329,7 +329,7 @@ long double str2<long double>( const char* str );
  * @return A real number corresponding to content of @a str.
  */
 template<>
-EVEMU_INLINE double str2<double>( const char* str ) { return str2<long double>( str ); }
+inline double str2<double>( const char* str ) { return str2<long double>( str ); }
 /**
  * @brief Converts string to real number.
  *
@@ -338,7 +338,7 @@ EVEMU_INLINE double str2<double>( const char* str ) { return str2<long double>( 
  * @return A real number corresponding to content of @a str.
  */
 template<>
-EVEMU_INLINE float str2<float>( const char* str ) { return str2<double>( str ); }
+inline float str2<float>( const char* str ) { return str2<double>( str ); }
 
 /**
  * @brief Copies given amount of characters from source to dest.

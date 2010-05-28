@@ -31,17 +31,17 @@
 /************************************************************************/
 /* dep includes                                                         */
 /************************************************************************/
+#include <Base64.h>
+
+#include <GaPreReqs.h>
+#include <GaMath.h>
+#include <GaTypes.h>
+
 #include <mysql.h>
 
-#include "gangsta/GaPreReqs.h"
-#include "gangsta/GaMath.h"
-#include "gangsta/GaTypes.h"
+#include <tinyxml.h>
 
-#include "tinyxml/tinyxml.h"
-
-#include "utf8cpp/utf8.h"
-
-#include "utils/Base64.h"
+#include <utf8.h>
 
 /************************************************************************/
 /* common includes                                                      */

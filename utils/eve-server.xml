@@ -22,7 +22,7 @@ a likely exception to this goal).
 
     <files>
         <!-- <log>../log/eve-server.log</log> -->
-        <!-- <logSettings>../log/log.ini</logSettings> -->
+        <!-- <logSettings>../etc/log.ini</logSettings> -->
         <!-- <cacheDir></cacheDir> -->
     </files>
 </eve>

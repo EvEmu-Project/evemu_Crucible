@@ -31,15 +31,11 @@
 #include "network/NetUtils.h"
 #include "utils/timer.h"
 
-#ifdef FREEBSD //Timothy Whitman - January 7, 2003
-#   define MSG_NOSIGNAL 0
-#endif
-
 const uint32 TCPCONN_RECVBUF_SIZE = 0x1000;
 const uint32 TCPCONN_LOOP_GRANULARITY = 5;
 
 #ifdef WIN32
-InitWinsock winsock;
+static InitWinsock winsock;
 #endif
 
 TCPConnection::TCPConnection()
@@ -240,7 +236,7 @@ void TCPConnection::WaitLoop()
     mMLoopRunning.unlock();
 }
 
-/* This is always called from an IO thread. Either the server socket's thread, or a 
+/* This is always called from an IO thread. Either the server socket's thread, or a
  * special thread we create when we make an outbound connection. */
 bool TCPConnection::Process()
 {
@@ -270,7 +266,7 @@ bool TCPConnection::Process()
             // All we had to do is connect, and it succeeded
             return true;
         }
-	
+
 	case STATE_CONNECTED:
         {
             // Receive data
@@ -294,7 +290,7 @@ bool TCPConnection::Process()
             // Both send and recv succeeded.
             return true;
         }
-	
+
 	case STATE_DISCONNECTING:
         {
             // Send anything that may be pending
@@ -331,10 +327,8 @@ bool TCPConnection::SendData( char* errbuf )
         mSendQueue.pop_front();
         mMSendQueue.unlock();
 
-#ifdef WIN32
-        int status = mSock->send( &(*buf)[ 0 ], buf->size(), 0 );
-#else
         int status = mSock->send( &(*buf)[ 0 ], buf->size(), MSG_NOSIGNAL );
+#ifdef WIN32
         if( errno == EPIPE )
             status = SOCKET_ERROR;
 #endif
@@ -482,15 +476,15 @@ void TCPConnection::ClearBuffers()
     SafeDelete( mRecvBuf );
 }
 
-ThreadReturnType TCPConnection::TCPConnectionLoop( void* arg )
+thread_return_t TCPConnection::TCPConnectionLoop( void* arg )
 {
 	TCPConnection* tcpc = reinterpret_cast<TCPConnection*>( arg );
     assert( tcpc != NULL );
 
-    return tcpc->TCPConnectionLoop();
+    THREAD_RETURN( tcpc->TCPConnectionLoop() );
 }
 
-ThreadReturnType TCPConnection::TCPConnectionLoop()
+thread_return_t TCPConnection::TCPConnectionLoop()
 {
 #ifdef WIN32
 	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL );
@@ -520,11 +514,11 @@ ThreadReturnType TCPConnection::TCPConnectionLoop()
 	}
 
 	mMLoopRunning.unlock();
-	
+
 #ifndef WIN32
 	sLog.Log( "Threading", "Ending TCPConnectionLoop with thread ID %d", pthread_self() );
 #endif
-	
+
 	THREAD_RETURN( NULL );
 }
 

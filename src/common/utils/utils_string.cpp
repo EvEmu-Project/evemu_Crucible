@@ -83,7 +83,7 @@ std::string GenerateKey( size_t length )
 
 bool IsNumber( char c )
 {
-    return isdigit( c );
+    return 0 != isdigit( c );
 }
 
 bool IsNumber( const char* str, size_t len )
@@ -124,7 +124,7 @@ bool IsNumber( const std::string& str )
 
 bool IsHexNumber( char c )
 {
-    return isxdigit( c );
+    return 0 != isxdigit( c );
 }
 
 bool IsHexNumber( const char* str, size_t len )

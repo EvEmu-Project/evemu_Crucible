@@ -75,7 +75,7 @@ protected:
 		// check it's an owner
 		if( type.categoryID() != EVEDB::invCategories::Owner )
 		{
-			_log( ITEM__ERROR, "Trying to load %s as Owner.", type.category().name().c_str() );
+			sLog.Error("Owner", "Trying to load %s as Owner.", type.category().name().c_str() );
 			return RefPtr<_Ty>();
 		}
 

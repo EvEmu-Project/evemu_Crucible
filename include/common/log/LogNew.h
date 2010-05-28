@@ -51,7 +51,6 @@ public:
      * @param[in] fmt is the message itself.
      */
     void Log( const char* source, const char* fmt, ... );
-
     /**
      * @brief Logs error message to console and file.
      *
@@ -59,7 +58,6 @@ public:
      * @param[in] fmt is the error message itself.
      */
     void Error( const char* source, const char* fmt, ... );
-
     /**
      * @brief Logs a warning message to file.
      *
@@ -67,7 +65,6 @@ public:
      * @param[in] fmt is the message itself.
      */
     void Warning( const char* source, const char* fmt, ... );
-
     /**
      * @brief Logs a success message to file.
      *
@@ -75,7 +72,6 @@ public:
      * @param[in] fmt is the message itself.
      */
     void Success( const char* source, const char* fmt, ... );
-
     /**
      * @brief Logs a debug message to file and console.
      *
@@ -87,6 +83,27 @@ public:
     void Debug(const char* source, const char* fmt, ...);
 
     /**
+     * @brief Sets the logfile to be used.
+     *
+     * @param[in] filename A name of file.
+     *
+     * @retval true  The new logfile was successfully opened.
+     * @retval false Failed to open the new logfile.
+     */
+    bool SetLogfile( const char* filename );
+    /**
+     * @brief Sets the logfile to be used.
+     *
+     * Passed @a file is closed during destruction.
+     *
+     * @param[in] file A handle to file.
+     *
+     * @retval true  The new logfile was successfully opened.
+     * @retval false Failed to open the new logfile.
+     */
+    bool SetLogfile( FILE* file );
+
+    /**
      * @brief Sets the log system time every main loop.
      *
      * @param[in] time is the timestamp.
@@ -94,22 +111,46 @@ public:
     void SetTime( time_t time ) { mTime = time; }
 
 private:
+    FILE*   mLogfile;
+    time_t  mTime;// crap there should be 1 generic easy to understand time manager.
+
 #ifdef WIN32
     const HANDLE mStdoutHandle, mStderrHandle;
 #endif//WIN32
 
-    FILE*   mLogfile;
-    time_t  mTime;// crap there should be 1 generic easy to understand time manager.
-
-    /* internal time logger
-     * writes the time to a FILE handle.
+    /**
+     * @brief Prints given arguments.
+     *
+     * This function does not do any processing and
+     * is to be used only internally.
+     *
+     * @param[in] fmt Format string.
+     * @param[in] ... Arguments.
      */
-    void LogTime( FILE* fp );
+    void Print( const char* fmt, ... );
+    /**
+     * @brief Prints given arguments.
+     *
+     * This function does not do any processing and
+     * is to be used only internally.
+     *
+     * @param[in] fmt Format string.
+     * @param[in] ap  Arguments.
+     */
+    void PrintVa( const char* fmt, va_list ap );
+    /**
+     * @brief Prints current time.
+     */
+    void PrintTime();
 
-    /* internal Console color setter.
-     * sets the color of the text that is about to get printed.
+    /**
+     * @brief Sets the color of the output text.
      */
     void SetColor( unsigned int color );
+    /**
+     * @brief Sets the default logfile.
+     */
+    void SetLogfileDefault();
 };
 
 #define sLog \
