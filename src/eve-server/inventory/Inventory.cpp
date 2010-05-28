@@ -28,67 +28,70 @@
 /*
  * Inventory
  */
+
+Inventory::Inventory() : mContentsLoaded(false) {}
+Inventory::~Inventory() {}
+
 Inventory *Inventory::Cast(InventoryItemRef item)
 {
-    if( item )
+    if( !item )
+        return NULL;
+    switch( item->categoryID() )
     {
-        switch( item->categoryID() )
-        {
-            //! TODO: not handled.
-            case EVEDB::invCategories::_System:
-            case EVEDB::invCategories::Owner:
-            case EVEDB::invCategories::Celestial:
-            case EVEDB::invCategories::Station:
-            case EVEDB::invCategories::Material:
-            case EVEDB::invCategories::Accessories:
-            case EVEDB::invCategories::Module:
-            case EVEDB::invCategories::Charge:
-            case EVEDB::invCategories::Blueprint:
-            case EVEDB::invCategories::Trading:
-            case EVEDB::invCategories::Entity:
-            case EVEDB::invCategories::Bonus:
-            case EVEDB::invCategories::Skill:
-            case EVEDB::invCategories::Commodity:
-            case EVEDB::invCategories::Drone:
-            case EVEDB::invCategories::Implant:
-            case EVEDB::invCategories::Deployable:
-            case EVEDB::invCategories::Structure:
-            case EVEDB::invCategories::Reaction:
-            case EVEDB::invCategories::Asteroid:
-                break;
-            case EVEDB::invCategories::Ship:    return ShipRef::StaticCast( item ).get();
-        }
-
-        switch( item->groupID() )
-        {
-            case EVEDB::invGroups::Station:     return StationRef::StaticCast( item ).get();
-            case EVEDB::invGroups::Character:   return CharacterRef::StaticCast( item ).get();
-        }
+        //! TODO: not handled.
+        case EVEDB::invCategories::_System:
+        case EVEDB::invCategories::Owner:
+        case EVEDB::invCategories::Celestial:
+        case EVEDB::invCategories::Station:
+        case EVEDB::invCategories::Material:
+        case EVEDB::invCategories::Accessories:
+        case EVEDB::invCategories::Module:
+        case EVEDB::invCategories::Charge:
+        case EVEDB::invCategories::Blueprint:
+        case EVEDB::invCategories::Trading:
+        case EVEDB::invCategories::Entity:
+        case EVEDB::invCategories::Bonus:
+        case EVEDB::invCategories::Skill:
+        case EVEDB::invCategories::Commodity:
+        case EVEDB::invCategories::Drone:
+        case EVEDB::invCategories::Implant:
+        case EVEDB::invCategories::Deployable:
+        case EVEDB::invCategories::Structure:
+        case EVEDB::invCategories::Reaction:
+        case EVEDB::invCategories::Asteroid:
+            sLog.Warning("Inventory", "unhandled item categoryID used on cast");
+            break;
+        case EVEDB::invCategories::Ship:    return ShipRef::StaticCast( item ).get();
     }
 
+    switch( item->groupID() )
+    {
+        case EVEDB::invGroups::Station:     return StationRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Character:   return CharacterRef::StaticCast( item ).get();
+    }
+
+    // maybe add extra debug info on what for type or item.
+    sLog.Error("Inventory", "unable to Cast item");
     return NULL;
-}
-
-Inventory::Inventory()
-: mContentsLoaded(false)
-{
-}
-
-Inventory::~Inventory()
-{
 }
 
 bool Inventory::LoadContents(ItemFactory &factory)
 {
+    // check if the contents has already been loaded...
     if( ContentsLoaded() )
+    {
         return true;
+    }
 
-    _log( ITEM__TRACE, "Recursively loading contents of inventory %u", inventoryID() );
+    sLog.Debug("Inventory", "Recursively loading contents of inventory %u", inventoryID() );
 
     //load the list of items we need
     std::vector<uint32> items;
     if( !GetItems( factory, items ) )
+    {
+        sLog.Error("Inventory", "Failed  to get items of %u", inventoryID() );
         return false;
+    }
 
     //Now get each one from the factory (possibly recursing)
     std::vector<uint32>::iterator cur, end;
@@ -99,7 +102,7 @@ bool Inventory::LoadContents(ItemFactory &factory)
         InventoryItemRef i = factory.GetItem( *cur );
         if( !i )
         {
-            _log( ITEM__ERROR, "Failed to load item %u contained in %u. Skipping.", *cur, inventoryID() );
+            sLog.Error("Inventory", "Failed to load item %u contained in %u. Skipping.", *cur, inventoryID() );
             continue;
         }
 
@@ -312,9 +315,10 @@ void Inventory::AddItem(InventoryItemRef item)
     {
         mContents.insert( std::make_pair( item->itemID(), item ) );
 
-        _log( ITEM__TRACE, "   Updated location %u to contain item %u with flag %d.", inventoryID(), item->itemID(), (int)item->flag() );
+        sLog.Debug("Inventory", "Updated location %u to contain item %u with flag %d.", inventoryID(), item->itemID(), (int)item->flag() );
     }
     //else already here
+    sLog.Debug("Inventory", "unable to updated location %u to contain item %u with flag %d, because it already happend.", inventoryID(), item->itemID(), (int)item->flag() );
 }
 
 void Inventory::RemoveItem(uint32 itemID)
@@ -324,8 +328,9 @@ void Inventory::RemoveItem(uint32 itemID)
     {
         mContents.erase( res );
 
-        _log( ITEM__TRACE, "   Updated location %u to no longer contain item %u.", inventoryID(), itemID );
+        sLog.Debug("Inventory", "Updated location %u to no longer contain item %u.", inventoryID(), itemID );
     }
+    sLog.Debug("Inventory", "unable to remove %u from %u.", itemID, inventoryID() );
 }
 
 void Inventory::StackAll(EVEItemFlags locFlag, uint32 forOwner)
@@ -343,9 +348,7 @@ void Inventory::StackAll(EVEItemFlags locFlag, uint32 forOwner)
         InventoryItemRef i = cur->second;
         cur++;
 
-        if( !i->singleton()
-            && (forOwner == 0
-               || forOwner == i->ownerID() ) )
+        if( !i->singleton() && ( forOwner == 0 || forOwner == i->ownerID() ) )
         {
             std::map<uint32, InventoryItemRef>::iterator res = types.find( i->typeID() );
             if( res == types.end() )
@@ -373,8 +376,6 @@ double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
     return totalVolume;
 }
 
-
-
 /*
  * InventoryEx
  */
@@ -392,5 +393,3 @@ void InventoryEx::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) cons
         throw PyException( MakeUserError( "NotEnoughCargoSpace", args ) );
     }
 }
-
-
