@@ -1711,19 +1711,19 @@ bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)
 	uint32 groupID = row.GetUInt(0);
 
 	//TODO: put in invCat
-	if( groupID == 773 ||
-		groupID == 774 ||
-		groupID == 775 ||
-		groupID == 776 ||
-		groupID == 777 ||
-		groupID == 778 ||
-		groupID == 779 ||
-		groupID == 780 ||
-		groupID == 781 ||
-		groupID == 782 ||
-		groupID == 786 || 
-		groupID == 896 ||
-		groupID == 904 )
+	if( groupID == EVEDB::invGroups::Rig_Armor						||
+		groupID == EVEDB::invGroups::Rig_Astronautic				||
+		groupID == EVEDB::invGroups::Rig_Drone						||
+		groupID == EVEDB::invGroups::Rig_Electronics				||
+		groupID == EVEDB::invGroups::Rig_Electronics_Superiority	||
+		groupID == EVEDB::invGroups::Rig_Energy_Grid				||
+		groupID == EVEDB::invGroups::Rig_Energy_Weapon				||
+		groupID == EVEDB::invGroups::Rig_Hybrid_Weapon				||
+		groupID == EVEDB::invGroups::Rig_Launcher					||
+		groupID == EVEDB::invGroups::Rig_Mining						||
+		groupID == EVEDB::invGroups::Rig_Projectile_Weapon			|| 
+		groupID == EVEDB::invGroups::Rig_Security_Transponder		||
+		groupID == EVEDB::invGroups::Rig_Shield						)
 	{
 		into = 0;
 		return true;

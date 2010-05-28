@@ -577,8 +577,19 @@ typedef enum {
 	Reactor_Control_Unit = 769,
 	Shield_Flux_Coil = 770,
 	Missile_Launcher_Bomb = 862,
-
-
+	Rig_Armor = 773,
+	Rig_Shield = 774,
+	Rig_Energy_Weapon = 775,
+	Rig_Hybrid_Weapon = 776,
+	Rig_Projectile_Weapon =777,
+	Rig_Drone = 778,
+	Rig_Launcher = 779,
+	Rig_Electronics = 780,
+	Rig_Energy_Grid = 781,
+	Rig_Astronautic = 782,
+	Rig_Electronics_Superiority = 786,
+	Rig_Security_Transponder = 896,
+	Rig_Mining = 904
 
  } invGroups;
 
