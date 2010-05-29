@@ -24,7 +24,6 @@
 */
 
 #include "EVEServerPCH.h"
-#include "String.h"
 
 PyTuple* ShipDB::GetFormations()
 {
