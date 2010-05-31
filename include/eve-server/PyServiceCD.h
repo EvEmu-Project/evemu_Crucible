@@ -52,12 +52,11 @@ public:
 
 	//CallDispatcher interface:
 	virtual PyResult Dispatch(const std::string &method_name, PyCallArgs &call) {
-		_log(SERVICE__ERROR, "method_name = '%s'",method_name.c_str());
 		//this could be done a lot more efficiently with a custom data structure IF NEEDED
 		mapitr res;
 		res = m_serviceCalls.find(method_name);
 		if(res == m_serviceCalls.end()) {
-			_log(SERVICE__ERROR, "Unknown call to '%s' by '%s'", method_name.c_str(), call.client->GetName());
+			sLog.Error("Unknown call to '%s' by '%s'", method_name.c_str(), call.client->GetName());
 			return NULL;
 		}
 		

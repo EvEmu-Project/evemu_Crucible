@@ -1400,6 +1400,12 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
         }
     }
 
+	//Debug code
+	if( req.method.c_str() == "BeanCount" || req.method.c_str() == "BeanDelivery" )
+		sLog.Error("Server", "%s call made to %s",req.method.c_str(),packet->dest.service.c_str());
+	else 
+		sLog.Log("Server", "%s call made to %s",req.method.c_str(),packet->dest.service.c_str());
+
     //build arguments
     PyCallArgs args( this, req.arg_tuple, req.arg_dict );
 
@@ -1544,4 +1550,4 @@ FunctorTimerQueue::Entry::Entry(TimerID _id, Functor *_func, uint32 time_ms)
 FunctorTimerQueue::Entry::~Entry() {
     delete func;
 }
-*/
+*/
