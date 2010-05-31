@@ -106,6 +106,7 @@
 #include "packets/ObjectCaching.h"
 #include "packets/Market.h"
 #include "packets/Standing2.h"
+#include "packets/Trade.h"
 #include "packets/Tutorial.h"
 
 #include "python/PyVisitor.h"
@@ -275,6 +276,9 @@
 #include "station/StationDB.h"
 #include "station/StationService.h"
 #include "station/StationSvcService.h"
+
+#include "trade/TradeService.h"
+#include "trade/TradeDB.h"
 
 #include "tutorial/TutorialDB.h"
 #include "tutorial/TutorialService.h"
