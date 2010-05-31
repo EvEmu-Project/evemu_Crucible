@@ -182,17 +182,50 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
     }
     else if( flag == flagCargoHold )
 	{
-		//TODO: Add capacity checker
+		//get all items in cargohold
+		uint32 capacityUsed = 0;
+		std::vector<InventoryItemRef> items;
+		c->GetShip()->FindByFlag(flag, items);
+		for(uint32 i = 0; i < items.size(); i++){
+			capacityUsed += items[i]->volume();
+		}
+		if( capacityUsed + item->volume() > c->GetShip()->capacity() )
+			throw PyException( MakeCustomError( "Not enough cargo space!") );
+
 	}
 	else if( flag > flagLowSlot0  &&  flag < flagHiSlot7 )
 	{
 		if(!Skill::FitModuleSkillCheck(item, character))
 			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+		if(item->categoryID() == EVEDB::invCategories::Charge) {
+			InventoryItemRef module;
+			c->GetShip()->FindSingleByFlag(flag, module);
+			//Not sure if modules have to be online to recieve ammo
+			/*
+			if(!module->isOnline())
+				throw PyException( MakeCustomError( "This module is not online" ) );
+			*/
+			if(module->chargeSize() != item->chargeSize() )
+				throw PyException( MakeCustomError( "The charge is not the correct size for this module." ) );
+			if(module->chargeGroup1() != item->groupID())
+				throw PyException( MakeCustomError( "Incorrect charge type for this module.") );
+		}
 	}
 	else if( flag > flagRigSlot0  &&  flag < flagRigSlot7 )
 	{
 		if(!Skill::FitModuleSkillCheck(item, character))
 			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+		if(c->GetShip()->rigSize() != item->rigSize())
+			throw PyException( MakeCustomError( "Your ship cannot fit this size module" ) );
+		
+		uint32 calibration = 0;
+		std::vector<InventoryItemRef> items;
+		c->GetShip()->FindByFlagRange(flagRigSlot0, flagRigSlot7, items);
+		for(uint32 i = 0; i < items.size(); i++ ) {
+			calibration += items[i]->upgradeCost();
+		}
+		if( calibration + item->upgradeCost() > c->GetShip()->upgradeCapacity() )
+			throw PyException( MakeCustomError( "Your ship cannot handle the extra calibration" ) );
 	}
 	else if( flag > flagSubSystem0  &&  flag < flagSubSystem7 )
 	{
@@ -225,8 +258,12 @@ PyObject *Ship::ShipGetInfo()
 
     //now encode contents...
     std::vector<InventoryItemRef> equipped;
-    //find all the equipped items
+	std::vector<InventoryItemRef> integrated;
+    //find all the equipped items and rigs
     FindByFlagRange( flagLowSlot0, flagFixedSlot, equipped );
+	FindByFlagRange( flagRigSlot0, flagRigSlot7, integrated );
+	//append them into one list
+	equipped.insert(equipped.end(), integrated.begin(), integrated.end() );
     //encode an entry for each one.
     std::vector<InventoryItemRef>::iterator cur, end;
     cur = equipped.begin();

@@ -1426,6 +1426,7 @@ ATTRI(1540,stealthBomberLauncherPower2,0,false)
 ATTRI(1541,jumpHarmonicsModifier,0,false)
 ATTRI(1544,maxGroupFitted,0,false)
 ATTRI(1545,dreadnoughtShipBonusM3,0,false)
+ATTRI(1547,rigSize,0,false)
 
 #undef ATTR
 #undef ATTRI

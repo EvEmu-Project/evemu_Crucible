@@ -85,6 +85,7 @@ SET( packets_INCLUDE
      "${COMPONENT_PACKETS_DIR}/packets/Missions.h"
      "${COMPONENT_PACKETS_DIR}/packets/ObjectCaching.h"
      "${COMPONENT_PACKETS_DIR}/packets/Standing2.h"
+	 "${COMPONENT_PACKETS_DIR}/packets/Trade.h"
      "${COMPONENT_PACKETS_DIR}/packets/Tutorial.h"
      "${COMPONENT_PACKETS_DIR}/packets/Wallet.h" )
 SET( packets_SOURCE
@@ -103,6 +104,7 @@ SET( packets_SOURCE
      "${COMPONENT_PACKETS_DIR}/packets/Missions.cpp"
      "${COMPONENT_PACKETS_DIR}/packets/ObjectCaching.cpp"
      "${COMPONENT_PACKETS_DIR}/packets/Standing2.cpp"
+	 "${COMPONENT_PACKETS_DIR}/packets/Trade.cpp"
      "${COMPONENT_PACKETS_DIR}/packets/Tutorial.cpp"
      "${COMPONENT_PACKETS_DIR}/packets/Wallet.cpp" )
 SET( packets_XMLP
@@ -121,6 +123,7 @@ SET( packets_XMLP
      "${COMPONENT_SOURCE_DIR}/packets/Missions.xmlp"
      "${COMPONENT_SOURCE_DIR}/packets/ObjectCaching.xmlp"
      "${COMPONENT_SOURCE_DIR}/packets/Standing2.xmlp"
+	 "${COMPONENT_SOURCE_DIR}/packets/Trade.xmlp"
      "${COMPONENT_SOURCE_DIR}/packets/Tutorial.xmlp"
      "${COMPONENT_SOURCE_DIR}/packets/Wallet.xmlp" )
 

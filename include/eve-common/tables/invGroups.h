@@ -576,7 +576,6 @@ typedef enum {
 	Capacitor_Flux_Coil = 768,
 	Reactor_Control_Unit = 769,
 	Shield_Flux_Coil = 770,
-	Missile_Launcher_Bomb = 862,
 	Rig_Armor = 773,
 	Rig_Shield = 774,
 	Rig_Energy_Weapon = 775,
@@ -588,6 +587,7 @@ typedef enum {
 	Rig_Energy_Grid = 781,
 	Rig_Astronautic = 782,
 	Rig_Electronics_Superiority = 786,
+	Missile_Launcher_Bomb = 862,
 	Rig_Security_Transponder = 896,
 	Rig_Mining = 904
 

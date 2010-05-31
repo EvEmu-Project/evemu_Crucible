@@ -1,0 +1,38 @@
+<elements>
+  <include file ="Trade.h" />
+
+  <elementDef name="InitiateTradeRsp">
+    <objectInline>
+      <stringInline value="util.Moniker" />
+      <tupleInline>
+        <stringInline value="trademgr" />
+        <int name ="unknown1" />
+        <tupleInline>
+          <int name="stationID" />
+          <tupleInline>
+            <int name="ownerID" />
+            <int name="targetID" />
+          </tupleInline>
+          <raw name="unknown5" />
+          <raw name="unknown6" />
+          <int name="when" />
+        </tupleInline>
+        <int name="unknown7" />
+      </tupleInline>
+    </objectInline>
+  </elementDef>
+
+  <elementDef name="Trade_BindArgs">
+    <tupleInline>
+      <int name="stationID" />
+      <tupleInline>
+        <int name="ownerID" />
+        <int name="targetID" />
+      </tupleInline>
+      <raw name="unknown5" />
+      <raw name="unknown6" />
+      <int name="when" />
+    </tupleInline>
+  </elementDef>
+  
+</elements>

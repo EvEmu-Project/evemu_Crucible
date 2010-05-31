@@ -348,7 +348,12 @@ SET( system_SOURCE
      "${COMPONENT_SOURCE_DIR}/system/SystemEntities.cpp"
      "${COMPONENT_SOURCE_DIR}/system/SystemEntity.cpp"
      "${COMPONENT_SOURCE_DIR}/system/SystemManager.cpp" )
-
+# eve-server/trade
+SET( trade_INCLUDE
+	 "${COMPONENT_INCLUDE_DIR}/trade/TradeService.h"
+	 "${COMPONENT_INCLUDE_DIR}/trade/TradeDB.h" )
+SET( trade_SOURCE
+	"${COMPONENT_SOURCE_DIR}/trade/TradeService.cpp" )
 # eve-server/tutorial
 SET( tutorial_INCLUDE
      "${COMPONENT_INCLUDE_DIR}/tutorial/TutorialDB.h"
@@ -394,6 +399,7 @@ SOURCE_GROUP( "include\\spawn"         FILES ${spawn_INCLUDE} )
 SOURCE_GROUP( "include\\standing"      FILES ${standing_INCLUDE} )
 SOURCE_GROUP( "include\\station"       FILES ${station_INCLUDE} )
 SOURCE_GROUP( "include\\system"        FILES ${system_INCLUDE} )
+SOURCE_GROUP( "include\\trade"		   FILES ${trade_INCLUDE} )
 SOURCE_GROUP( "include\\tutorial"      FILES ${tutorial_INCLUDE} )
 
 SOURCE_GROUP( "src"                FILES ${SOURCE} )
@@ -418,6 +424,7 @@ SOURCE_GROUP( "src\\spawn"         FILES ${spawn_SOURCE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_SOURCE} )
 SOURCE_GROUP( "src\\station"       FILES ${station_SOURCE} )
 SOURCE_GROUP( "src\\system"        FILES ${system_SOURCE} )
+SOURCE_GROUP( "src\\trade"		   FILES ${trade_SOURCE} )
 SOURCE_GROUP( "src\\tutorial"      FILES ${tutorial_SOURCE} )
 
 ADD_EXECUTABLE( "${COMPONENT_NAME}"
@@ -443,6 +450,7 @@ ADD_EXECUTABLE( "${COMPONENT_NAME}"
                 ${standing_INCLUDE}       ${standing_SOURCE}
                 ${station_INCLUDE}        ${station_SOURCE}
                 ${system_INCLUDE}         ${system_SOURCE}
+				${trade_INCLUDE}		  ${trade_SOURCE}
                 ${tutorial_INCLUDE}       ${tutorial_SOURCE} )
 
 TARGET_BUILD_PCH( "${COMPONENT_NAME}"

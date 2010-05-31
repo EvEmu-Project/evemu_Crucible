@@ -1400,8 +1400,8 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
         }
     }
 
-	//Debug code
-	if( req.method.c_str() == "BeanCount" || req.method.c_str() == "BeanDelivery" )
+	//Debug code	
+	if( req.method == "BeanCount" )
 		sLog.Error("Server", "%s call made to %s",req.method.c_str(),packet->dest.service.c_str());
 	else 
 		sLog.Log("Server", "%s call made to %s",req.method.c_str(),packet->dest.service.c_str());

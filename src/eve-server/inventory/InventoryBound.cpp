@@ -310,7 +310,8 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 					Ship::ValidateAddItem( flag, newItem, c );
 					
 					//it's a new module, make sure it's state starts at offline
-					newItem->PutOffline();
+					if( flag >= flagLowSlot0 && flag <= flagHiSlot7 )
+						newItem->PutOffline();
 
 					//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
 					c->GetShip()->Set_mass( c->GetShip()->mass() + newItem->massAddition() );
@@ -322,11 +323,11 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 
 				if( (old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7) || (old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) )
 				{
-					//comming from ship, we need to deactivate
-					c->modules.Deactivate( newItem->itemID(), "online" );
-
-					//and remove mass
-					c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
+					//comming from ship, we need to deactivate it and remove mass if it isn't a charge
+					if( newItem->categoryID() != EVEDB::invCategories::Charge ) {
+						c->modules.Deactivate( newItem->itemID(), "online" );
+						c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
+					}
 				}
 
                 //Move New item to its new location
@@ -361,13 +362,12 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 
 			if( (old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7) || (old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) )
 			{
-				//comming from ship, we need to deactivate
-				c->modules.Deactivate( sourceItem->itemID(), "online" );
-
-				//and remove mass
-				c->GetShip()->Set_mass( c->GetShip()->mass() - sourceItem->massAddition() );
+					//comming from ship, we need to deactivate it and remove mass if it isn't a charge
+					if( sourceItem->categoryID() != EVEDB::invCategories::Charge ) {
+						c->modules.Deactivate( sourceItem->itemID(), "online" );
+						c->GetShip()->Set_mass( c->GetShip()->mass() - sourceItem->massAddition() );
+					}
 			}
-
 
             c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);  // properly refresh modules
 			

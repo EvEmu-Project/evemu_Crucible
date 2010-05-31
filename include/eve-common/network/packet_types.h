@@ -287,6 +287,8 @@ static const EVEItemFlags flagNone = flagAutoFit;
 
 static const EVEItemFlags flagAnywhere = flagAutoFit;
 static const uint8 MAX_MODULE_COUNT = flagSlotLast - flagSlotFirst + 1;
+static const uint8 MAX_RIG_COUNT = flagRigSlot7 - flagRigSlot0 + 1;
+static const uint8 MAX_ASSEMBLY_COUNT = flagSubSystem7 - flagSubSystem0 + 1;
 
 #define FlagToSlot(flag) \
 	(flag - flagSlotFirst)
