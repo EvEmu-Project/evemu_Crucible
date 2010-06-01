@@ -23,7 +23,6 @@
 	Author:		Zhur
 */
 
-
 #ifndef __PYBOUNDOBJECT_H_INCL__
 #define __PYBOUNDOBJECT_H_INCL__
 
@@ -58,6 +57,3 @@ private:
 };
 
 #endif
-
-
-

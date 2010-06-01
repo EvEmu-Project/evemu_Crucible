@@ -210,7 +210,7 @@ thread_return_t BaseTCPServer::TCPServerLoop( void* arg )
 	BaseTCPServer* tcps = reinterpret_cast<BaseTCPServer*>( arg );
     assert( tcps != NULL );
 
-    THREAD_RETURN( tcps->TCPServerLoop() );
+    tcps->TCPServerLoop();
 }
 
 thread_return_t BaseTCPServer::TCPServerLoop()

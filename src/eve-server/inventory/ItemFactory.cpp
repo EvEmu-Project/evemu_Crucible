@@ -208,7 +208,6 @@ InventoryItemRef ItemFactory::SpawnItem(ItemData &data) {
 
     // spawn successful; store the ref
     m_items.insert( std::make_pair( i->itemID(), i ) );
-    // return
     return i;
 }
 
@@ -287,22 +286,3 @@ void ItemFactory::_DeleteItem(uint32 itemID)
         m_items.erase( res );
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
