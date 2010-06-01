@@ -20,7 +20,7 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		ItWasLuck
+	Author:		Luck
 */
 
 #ifndef __MODULEMANAGER_H_INCL__
@@ -40,32 +40,12 @@ public:
 		Online,
 		Active,
 		Overloaded,
+		Deactivating,
 		Deactive
 	} State;
 
-	typedef enum {
-		AlreadyFitted,			//module is has already been validated for fit. This is only true of modules that were online when you logged off
-		NewModule				//module that has just been created or just turned online
-	} Fit;
-
-	typedef enum {
-		ActiveModule,					//modules that only have active effecs
-		PassiveModule,				//modules that only have passive effects
-		Both					//some modules have both, i think?
-	} APGroup;
-
-	typedef enum {
-		Turret,
-		Launcher,
-		Miner,
-		StripMiner
-	} Type;
-
 	State m_state;				//state of the module
-	Fit m_fit;					//whether or not it was already on the ship
-	Type m_type;				//whether it's a missle launcher, turret, or whatever
-	APGroup m_apGroup;			//active, passive, or both
-	
+
 	Client *const m_pilot;		//owner of the ship the module is fitted to
 
 	InventoryItemRef m_item;	//the module itself
@@ -77,19 +57,19 @@ public:
 
 	uint32 m_repeatCount;
 	uint32 m_target;
-	bool m_active;
 
 	SystemEntity *target;
+	
+	//ModuleEffect *m_effect;
 
 	std::string m_effectName;
 
 	uint32 m_effectInterval;
-	uint32 m_interval;
-
-	EVEEffectID m_effectID;
+	uint32 m_activationInterval;
 
 	//static factory method
 	static ShipModule *CreateModule(Client *owner, InventoryItemRef self, InventoryItemRef charge); 
+	static ShipModule *CreateRig(Client *owner, InventoryItemRef self);
 	
 	//ShipModule building blocks
 	InventoryItemRef item() const { return(m_item); }
@@ -97,62 +77,103 @@ public:
 
 	//ShipModule Processors
 	virtual void Process();												//functional ship module process loop
-	virtual void Deactivate(const std::string &effectName);
+	virtual void Deactivate(const std::string &effectName = "online" );
 	virtual int  Activate(const std::string &effectName = "online", uint32 target = 0, uint32 repeat = 0);
+	virtual int	 Upgrade();//adding rigs
+	virtual void Downgrade();//removing rigs
 
 	//ShipModule CoProcessors
-	virtual bool Validate_Online();
-	virtual void Handle_Online();
-	virtual bool Validate_Offline();
-	virtual void Handle_Offline();
-	virtual bool Validate_Active();
-	virtual void Handle_Active(bool start);
-	virtual void DoPassiveEffects(bool online);
-	virtual void DoActiveEffects(bool online);
+	virtual bool ValidateOnline();
+	virtual bool ValidateOffline();
+	virtual bool ValidateActive();
+	virtual bool ValidateDeactive();
+	virtual bool ValidateEffect(bool active);
+	virtual void DoEffect(bool active);
+	
+
 
 	//Effects Functions
-	virtual void ActiveShipVelocityEffects(bool online);
-	virtual void ArmorHPEffects(bool online);
-	virtual void ArmorResistanceEffects(bool online);
-	virtual void ShieldHPEffects(bool online);
-	virtual void ShieldResistanceEffects(bool online);
-	virtual void ShieldRechargeEffects(bool online);
-	virtual void HullHPEffects(bool online);
-	virtual void HullResistanceEffects(bool online);
-	virtual void ShipVelocityEffects(bool online);
-	virtual void ShipCpuEffects(bool online);
-	virtual void ShipPowerEffects(bool online);
-	virtual void ShipCapacitorChargeEffects(bool online);
-	virtual void ShipCapacitorRechargeRateEffects(bool online);
-	virtual void ShipCargoCapacityEffects(bool online);
-	virtual void ShipScanStrengthEffects(bool online);
-	virtual void ShipSignatureRadiusEffects(bool online);
-	virtual void ShipDroneCapacityEffects(bool online);
-	virtual void ShipAgilityEffects(bool online);
-	virtual void ShipScanResolutionEffects(bool online);
-	virtual void ShipMaxTargetsEffects(bool online);
-	virtual void ShipMaxTargetRangeEffects(bool online);
-	virtual void ShipWarpScrambleStrengthEffects(bool online);
-	virtual void ShipPropulsionStrengthEffects(bool online);
-	virtual void ActiveModulePassiveShieldResists(bool online);
-	virtual void ActiveModulePassiveArmorResists(bool online);
+	virtual void DoPassiveEffects(bool add, bool notify);
+	virtual void DoActiveModulePassiveEffects(bool add, bool notify);
+	virtual void DoUpgradeLoad(bool add, bool notify);
+	virtual void DoCapacitorNeed(bool startup, bool notify);
+	virtual void DoArmorHPBonus(bool add, bool notify);
+	virtual void DoArmorHPBonusAdd(bool add, bool notify);
+	virtual void DoArmorHPMultiplier(bool add, bool notify);
+	virtual void DoArmorEmDamageResistanceBonus(bool add, bool notify);
+	virtual void DoArmorExplosiveDamageResistanceBonus(bool add, bool notify);
+	virtual void DoArmorKineticDamageResistanceBonus(bool add, bool notify);
+	virtual void DoArmorThermalDamageResistanceBonu(bool add, bool notify);
+	virtual void DoShieldCapacity(bool add, bool notify);
+	virtual void DoShieldCapacityBonus(bool add, bool notify);
+	virtual void DoShieldCapacityMultiplier(bool add, bool notify);
+	virtual void DoShieldEmDamageResistanceBonus(bool add, bool notify);
+	virtual void DoShieldExplosiveDamageResistanceBonus(bool add, bool notify);
+	virtual void DoShieldKineticDamageResistanceBonus(bool add, bool notify);
+	virtual void DoShieldThermalDamageResistanceBonu(bool add, bool notify);
+	virtual void DoShieldRechargeRateMultiplier(bool add, bool notify);
+	virtual void DoHullHpBonus(bool add, bool notify);
+	virtual void DoStructureHPMultiplier(bool add, bool notify);
+	virtual void DoStructureEmDamageResistanceBonus(bool add, bool notify);
+	virtual void DoStructureExplosiveDamageResistanceBonus(bool add, bool notify);
+	virtual void DoStructureKineticDamageResistanceBonus(bool add, bool notify);
+	virtual void DoStructureThermalDamageResistanceBonu(bool add, bool notify);
+	virtual void DoImplantBonusVelocity(bool add, bool notify);
+	virtual void DoSpeedBonus(bool add, bool notify);
+	virtual void DoMaxVelocityBonus(bool add, bool notify);
+	virtual void DoCpuMultiplier(bool add, bool notify);
+	virtual void DoPowerIncrease(bool add, bool notify);
+	virtual void DoPowerOutputBonus(bool add, bool notify);
+	virtual void DoPowerOutputMultiplier(bool add, bool notify);
+	virtual void DoCapacitorBonus(bool add, bool notify);
+	virtual void DoCapacitorCapacityMultiplier(bool add, bool notify);
+	virtual void DoCapacitorRechargeRateMultiplier(bool add, bool notify);
+	virtual void DoCargoCapacityMultiplier(bool add, bool notify);
+	virtual void DoScanStrengthBonus(bool add, bool notify);
+	virtual void DoScanGravimetricStrengthPercent(bool add, bool notify);
+	virtual void DoScanLadarStrengthPercent(bool add, bool notify);
+	virtual void DoScanMagnetometricStrengthPercent(bool add, bool notify);
+	virtual void DoScanRadarStrengthPercent(bool add, bool notify);
+	virtual void DoSignatureRadiusBonus(bool add, bool notify);
+	virtual void DoDroneCapacityBonus(bool add, bool notify);
+	virtual void DoAgilityMultiplier(bool add, bool notify);
+	virtual void DoScanResultionBonus(bool add, bool notify);
+	virtual void DoScanResultionMultiplier(bool add, bool notify);
+	virtual void DoMaxTargetRangeBonus(bool add, bool notify);
+	virtual void DoMaxLockedTargetsBonus(bool add, bool notify);
+	virtual void DoWarpScrambleStrength(bool add, bool notify);
+	virtual void DoPropulsionFusionStrength(bool add, bool notify);
+	virtual void DoPropulsionIonStrength(bool add, bool notify);
+	virtual void DoPropulsionMagpulseStrength(bool add, bool notify);
+	virtual void DoPropulsionPlasmaStrength(bool add, bool notify);
+	virtual void DoPassiveArmorEmDamageResistanceBonus(bool add, bool notify);
+	virtual void DoPassiveArmorExplosiveDamageResistanceBonus(bool add, bool notify);
+	virtual void DoPassiveArmorKineticDamageResistanceBonus(bool add, bool notify);
+	virtual void DoPassiveArmorThermalDamageResistanceBonu(bool add, bool notify);
+	virtual void DoPassiveShieldEmDamageResistanceBonus(bool add, bool notify);
+	virtual void DoPassiveShieldExplosiveDamageResistanceBonus(bool add, bool notify);
+	virtual void DoPassiveShieldKineticDamageResistanceBonus(bool add, bool notify);
+	virtual void DoPassiveShieldThermalDamageResistanceBonus(bool add, bool notify);
+
 
 	//Helper Functions
-	virtual bool IsTurret();											//checks if the new module is a turret
-	virtual bool IsLauncher();											//checks if the new module is a launcher
-	virtual bool IsMiner();												//checks if the new module is a miner
-	virtual bool IsStripMiner();										//checks if the new module is a strip miner
-	virtual bool IsShieldExtender();									//checks if the new module is a shield extender
-	virtual bool IsAutomatedTargetingSystem();							//checks if the new module is an automated targeting system
-	virtual bool AffectsArmor();										//checks if the new module affects armor
-	virtual bool AffectsShield();										//checks if the new module affects shield
-	virtual bool AffectsHull();											//checks if the new module affects hull
-	virtual bool AffectsDrones();										//checks if the new module affects your drones
-	virtual bool IsInertialStabilizer();								//checks if the new modules is an inertial stabilizer
 	virtual void ChangeMState(State new_state);							//changes the m_state variable to the appropriate value
 	virtual bool Equals(double a, int b, double percision = 0.0001);	//used to determine if floats are equal to ints within a certain percision (less than the eve client uses)
 	virtual int	 ToInt(double a);										//used to return an integer to the client.  Rounds down
 	virtual int GetState() { return m_state;}
+	virtual void GetActivationInterval();
+	virtual bool AffectsArmor();
+	virtual bool AffectsShield();
+	virtual bool AffectsHull();
+
+	//Godma Handlers
+	virtual void DoGodmaEffects(bool active);
+
+	//Graphics Handlers
+	virtual void DoSpecialFX(bool startup);
+	virtual int SFXEffectInterval();
+	
+
 	
 	void ChangeCharge(InventoryItemRef new_charge);
 
@@ -160,10 +181,40 @@ public:
 protected:
 	//Constructor
 	ShipModule(Client *owner, InventoryItemRef self, InventoryItemRef charge);
+	ShipModule(Client *owner, InventoryItemRef self);
 
 public:
 	//Deconstructor
 	virtual ~ShipModule();
+};
+class ModuleEffect {
+public:
+	ModuleEffect();
+	~ModuleEffect();
+
+	uint32			effectID;
+	std::string		effectName;
+	uint32			effectCategory;
+	uint32			preExpression;
+	uint32			postExpression;
+	std::string		description;
+	std::string		guid;
+	uint32			graphicID;
+	uint32			isOffensive;
+	uint32			isAssistance;
+	uint32			durationAttributeID;
+	uint32			trackingSpeedAttributeID;
+	uint32			dischargeAttributeID;
+	uint32			rangeAttributeID;
+	uint32			falloffAttributeID;
+	uint32			disallowAutoRepeat;
+	uint32			published;
+	uint32			isWarpSafe;
+	uint32			rangeChance;
+	uint32			electronicChance;
+	uint32			propulsionChance;
+	uint32			distribution;
+	std::string		sfxName;
 };
 
 class ModuleManager {
@@ -175,6 +226,8 @@ public:
 	void UpdateModules();
 	
 	int Activate(uint32 itemID, const std::string &effectName, uint32 target, uint32 repeat);
+	int Upgrade(uint32 itemID);
+	void Downgrade(uint32 itemID);
 	void Deactivate(uint32 itemID, const std::string &effectName);
 	void ReplaceCharges(EVEItemFlags flag, InventoryItemRef charge);
  	void DeactivateAllModules();
@@ -189,7 +242,9 @@ protected:
 	Client *const m_pilot;
 	
 	std::map<uint32, uint8> m_moduleByID;	//maps itemID to m_modules index
+	std::map<uint32, uint8> m_rigByID;
 	ShipModule *m_modules[MAX_MODULE_COUNT];
+	ShipModule *m_rigs[MAX_RIG_COUNT];
 };
 
 #endif

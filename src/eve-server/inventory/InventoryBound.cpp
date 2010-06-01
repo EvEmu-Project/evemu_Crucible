@@ -41,6 +41,7 @@ InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItem
     PyCallable_REG_CALL(InventoryBound, ReplaceCharges)
     PyCallable_REG_CALL(InventoryBound, MultiMerge)
     PyCallable_REG_CALL(InventoryBound, StackAll)
+	PyCallable_REG_CALL(InventoryBound, DestroyFitting)
 }
 
 InventoryBound::~InventoryBound()
@@ -274,6 +275,29 @@ PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
     return NULL;
 }
 
+PyResult InventoryBound::Handle_DestroyFitting(PyCallArgs &call) {
+
+	sLog.Debug("InventoryBound","Called DestroyFittings stub");
+
+	Call_SingleIntegerArg args;
+	if(!args.Decode(&call.tuple)){
+		sLog.Error("Destroy Fittings","Failed to decode args.");
+	}
+	//remove the rig effects from the ship
+	call.client->modules.Downgrade(args.arg);
+	
+	//get the actual item
+	InventoryItemRef item = m_manager->item_factory.GetItem(args.arg);
+
+	//move the item to the void or w/e
+	call.client->MoveItem(item->itemID(), mInventory.inventoryID(), flagAutoFit);
+
+	//delete the item
+	item->Delete();
+
+	return NULL;
+}
+
 PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint32 quantity, EVEItemFlags flag) {
     //If were here, we can try move all the items (validated)
 
@@ -309,8 +333,8 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 				{
 					Ship::ValidateAddItem( flag, newItem, c );
 					
-					//it's a new module, make sure it's state starts at offline
-					if( flag >= flagLowSlot0 && flag <= flagHiSlot7 )
+					//it's a new module, make sure it's state starts at offline so that it is added correctly
+					if( newItem->categoryID() != EVEDB::invCategories::Charge )
 						newItem->PutOffline();
 
 					//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
@@ -321,13 +345,17 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 					mInventory.ValidateAddItem( flag, newItem );
 				}
 
-				if( (old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7) || (old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) )
+				if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
 				{
 					//comming from ship, we need to deactivate it and remove mass if it isn't a charge
 					if( newItem->categoryID() != EVEDB::invCategories::Charge ) {
 						c->modules.Deactivate( newItem->itemID(), "online" );
 						c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
 					}
+				}
+				if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7)
+				{
+					c->modules.Downgrade(newItem->itemID()); //should never happen as it should be handled by DestroyFittings
 				}
 
                 //Move New item to its new location
@@ -348,8 +376,9 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 			{
 				Ship::ValidateAddItem( flag, sourceItem, c );
 
-				//it's a new module, make sure it's state starts at offline
-				sourceItem->PutOffline();
+				//it's a new module, make sure it's state starts at offline so that it is added correctly
+				if( sourceItem->categoryID() != EVEDB::invCategories::Charge )
+					sourceItem->PutOffline();
 
 				//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
 				c->GetShip()->Set_mass( c->GetShip()->mass() + sourceItem->massAddition() );
@@ -360,13 +389,17 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 				mInventory.ValidateAddItem( flag, sourceItem );
 			}
 
-			if( (old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7) || (old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) )
+			if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
 			{
 					//comming from ship, we need to deactivate it and remove mass if it isn't a charge
 					if( sourceItem->categoryID() != EVEDB::invCategories::Charge ) {
 						c->modules.Deactivate( sourceItem->itemID(), "online" );
 						c->GetShip()->Set_mass( c->GetShip()->mass() - sourceItem->massAddition() );
 					}
+			}
+			if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7)
+			{
+				c->modules.Downgrade(sourceItem->itemID()); //should never happen as it should be handled by DestroyFittings
 			}
 
             c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);  // properly refresh modules

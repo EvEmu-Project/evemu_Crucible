@@ -217,14 +217,7 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
 			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
 		if(c->GetShip()->rigSize() != item->rigSize())
 			throw PyException( MakeCustomError( "Your ship cannot fit this size module" ) );
-		
-		uint32 calibration = 0;
-		std::vector<InventoryItemRef> items;
-		c->GetShip()->FindByFlagRange(flagRigSlot0, flagRigSlot7, items);
-		for(uint32 i = 0; i < items.size(); i++ ) {
-			calibration += items[i]->upgradeCost();
-		}
-		if( calibration + item->upgradeCost() > c->GetShip()->upgradeCapacity() )
+		if( c->GetShip()->upgradeLoad() + item->upgradeCost() > c->GetShip()->upgradeCapacity() )
 			throw PyException( MakeCustomError( "Your ship cannot handle the extra calibration" ) );
 	}
 	else if( flag > flagSubSystem0  &&  flag < flagSubSystem7 )

@@ -77,80 +77,48 @@ PyTuple* ShipDB::GetFormations()
 	return res;
 }
 
-int ShipDB::GetEffectID(int typeID) {
+PyObject* ShipDB::GetEffectInformation(std::string effectName) {
 
 	DBQueryResult res;
 
-	if( !sDatabase.RunQuery(res,
+	if(sDatabase.RunQuery(res,
 		" SELECT "
-		" effectID "
-		" FROM dgmtypeeffects "
-		" WHERE typeID = '%u' AND isDefault = 1 ",
-		typeID) )
-	{
-		_log( DATABASE__ERROR, "Error in effect query for typeID = %u", typeID );
-	}
-
-	DBResultRow row;
-
-	if( !res.GetRow(row) ) {
-		_log( DATABASE__ERROR, "Error in effect get row for typeID = %u", typeID );
-	}
-
-
-
-	return row.GetUInt(0);
-}
-
-std::string ShipDB::GetEffectName(int effectID) {
-
-	DBQueryResult res;
-
-	if( !sDatabase.RunQuery(res,
-		" SELECT "
-		" effectName "
+		" effectID, "
+		" effectName, " 
+		" effectCategory, "
+		" preExpression, "
+		" postExpression, "
+		" description, "
+		" guid, "
+		" graphicID, " 
+		" isOffensive, " 
+		" isAssistance, "
+		" durationAttributeID, "
+		" trackingSpeedAttributeID, "
+		" dischargeAttributeID, "
+		" rangeAttributeID, "
+		" falloffAttributeID, " 
+		" disallowAutoRepeate, "
+		" published, "
+		" displayName, " 
+		" isWarpStable, "
+		" rangeChance, "
+		" electronicChance, "
+		" propulsionChance, "
+		" distribution, "
+		" sfxName, "
+		" npcUsageChanceAttributeID, "
+		" npcActivationChanceAttributeID, "
+		" fittingUsageChanceAttributeID "
 		" FROM dgmeffects "
-		" WHERE effectID = '%u' ",
-		effectID) )
+		" WHERE effectName = '%s' ",
+		effectName))
 	{
-		_log( DATABASE__ERROR, "Error in effect query for effectID = %u", effectID );
+		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+		return NULL;
 	}
 
-	DBResultRow row;
-
-	if( !res.GetRow(row) ) {
-		_log( DATABASE__ERROR, "Error in effect get row for effectID = %u", effectID );
-	}
-	
-	if( row.ColumnCount() == 0 )
-		return "none";
-	
-	return row.GetText(0);
-
-}
-
-std::string ShipDB::GetSFXEffectName(int effectID) {
-
-	DBQueryResult res;
-
-	if( !sDatabase.RunQuery(res,
-		" SELECT "
-		" guid "
-		" FROM dgmeffects "
-		" WHERE effectID = '%u' ",
-		effectID) )
-	{
-		_log( DATABASE__ERROR, "Error in effect query for guid where effectID = %u", effectID );
-	}
-
-	DBResultRow row;
-
-	if( !res.GetRow(row) ) {
-		_log( DATABASE__ERROR, "Error in effect get row for guid where effectID = %u", effectID );
-	}
-	
-
-	return row.GetText(0);
+	return DBResultToRowset(res);
 
 }
 

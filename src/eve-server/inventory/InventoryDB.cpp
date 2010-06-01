@@ -603,7 +603,7 @@ bool InventoryDB::GetItemContents(uint32 itemID, std::vector<uint32> &into)
         "SELECT "
         " itemID"
         " FROM entity "
-        " WHERE locationID=%u",
+        " WHERE locationID = %u",
         itemID ) )
     {
         codelog(SERVICE__ERROR, "Error in query for item %u: %s", itemID, res.error.c_str());
@@ -616,7 +616,6 @@ bool InventoryDB::GetItemContents(uint32 itemID, std::vector<uint32> &into)
 
     return true;
 }
-
 bool InventoryDB::GetItemContents(uint32 itemID, EVEItemFlags flag, std::vector<uint32> &into)
 {
     DBQueryResult res;
@@ -1711,22 +1710,23 @@ bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)
 	uint32 groupID = row.GetUInt(0);
 
 	//TODO: put in invCat
-	if( groupID == EVEDB::invGroups::Rig_Armor						||
-		groupID == EVEDB::invGroups::Rig_Astronautic				||
-		groupID == EVEDB::invGroups::Rig_Drone						||
-		groupID == EVEDB::invGroups::Rig_Electronics				||
-		groupID == EVEDB::invGroups::Rig_Electronics_Superiority	||
-		groupID == EVEDB::invGroups::Rig_Energy_Grid				||
-		groupID == EVEDB::invGroups::Rig_Energy_Weapon				||
-		groupID == EVEDB::invGroups::Rig_Hybrid_Weapon				||
-		groupID == EVEDB::invGroups::Rig_Launcher					||
-		groupID == EVEDB::invGroups::Rig_Mining						||
-		groupID == EVEDB::invGroups::Rig_Projectile_Weapon			|| 
-		groupID == EVEDB::invGroups::Rig_Security_Transponder		||
-		groupID == EVEDB::invGroups::Rig_Shield						)
-	{
-		into = 0;
-		return true;
+	switch( groupID) {
+		case EVEDB::invGroups::Rig_Armor:
+		case EVEDB::invGroups::Rig_Astronautic:
+		case EVEDB::invGroups::Rig_Drone:
+		case EVEDB::invGroups::Rig_Electronics:
+		case EVEDB::invGroups::Rig_Electronics_Superiority:
+		case EVEDB::invGroups::Rig_Energy_Grid:
+		case EVEDB::invGroups::Rig_Energy_Weapon:
+		case EVEDB::invGroups::Rig_Hybrid_Weapon:
+		case EVEDB::invGroups::Rig_Launcher:
+		case EVEDB::invGroups::Rig_Mining:
+		case EVEDB::invGroups::Rig_Projectile_Weapon:
+		case EVEDB::invGroups::Rig_Security_Transponder:
+		case EVEDB::invGroups::Rig_Shield:
+
+			into = 0;
+			return true;
 	}
 
 
@@ -1795,27 +1795,6 @@ bool InventoryDB::GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 &into)
 		firstFlag = 27; //hislot0
 		slotsOnShip = ship->hiSlots();
 	}	
-
-	/*
-	if(!sDatabase.RunQuery(res,
-		" SELECT "
-		" valueInt "
-		" FROM dgmtypeattributes "
-		" WHERE typeID = %u AND attributeID = %u ",
-		ship->typeID(), attributeID))
-	{
-		_log(DATABASE__ERROR, "slot values for ship of typeID = %u could not be found", ship->typeID() );
-		return false;
-	}
-
-	if(!res.GetRow(row)) {
-        _log(DATABASE__ERROR, "Ship of typeID %u not found.", ship->typeID() );
-        return false;
-    }
-
-	uint32 slotsOnShip = row.GetUInt(0);
-	*/
-
 	
 	for( uint32 flag = firstFlag; flag < (firstFlag + slotsOnShip); flag++ )
 	{

@@ -20,11 +20,10 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		ItWasLuck
+	Author:		Luck
 */
 #include "EVEServerPCH.h"
 
-//Creates the module manager for the client
 ModuleManager::ModuleManager(Client *pilot)
 : m_pilot(pilot)  //Accessing m_pilot here will cause serious problems
 {
@@ -34,13 +33,13 @@ ModuleManager::ModuleManager(Client *pilot)
 //Deconstructor for the module manager
 //iterates through and destroys all modules
 ModuleManager::~ModuleManager() {
+	
 	uint8 r;
 	for(r = 0; r < MAX_MODULE_COUNT; r++) {
 		delete m_modules[r];
 	}
 }
 
-//used for the GM macro "Online my modules" and online command
 void ModuleManager::OnlineAll()
 {
 	std::map<uint32, uint8> ::iterator p;
@@ -52,7 +51,6 @@ void ModuleManager::OnlineAll()
 	}
 }
 
-//used for GM macro "Repare my modules" and repaimodules command
 void ModuleManager::RepairModules()
 {
 	std::map<uint32, uint8> ::iterator p;
@@ -63,7 +61,6 @@ void ModuleManager::RepairModules()
 	}
 }
 
-//used for GM macro and unload command
 void ModuleManager::UnloadModule(uint32 itemID)
 {
 	std::map<uint32, uint8> ::iterator p;
@@ -86,7 +83,6 @@ void ModuleManager::UnloadModule(uint32 itemID)
 	}
 }
 
-//used for GM macro and unload command
 void ModuleManager::UnloadAllModules()
 {
 	ShipModule *mod;
@@ -227,6 +223,25 @@ void ModuleManager::UpdateModules() {
 		m_modules[slot] = ShipModule::CreateModule(m_pilot, module, charge);
 		m_moduleByID[module->itemID()] = slot;
 	}
+
+	//Rig Handler
+	//this is substantially easier because there are no charges to handle, just one item
+	uint8 rSlot;
+	for(rSlot = 92; rSlot < 100; rSlot++) { //92 - rigSlot0 //100 rigSlot7 + 1
+		EVEItemFlags rFlag = (EVEItemFlags)rSlot;
+		
+		uint32 slotIndex = rSlot - 92; //rigSlot0
+		InventoryItemRef item;
+		if( !ship->FindSingleByFlag(rFlag, item) ) {
+			//SafeDelete( m_rigs[slotIndex] ); - MEMORY LEAK
+			continue;
+		}
+
+		if ( m_rigByID.find(item->itemID()) == m_rigByID.end()  ) {
+			m_rigByID.insert( std::make_pair( item->itemID(), slotIndex ) );
+			m_rigs[slotIndex] = ShipModule::CreateRig(m_pilot, item);
+		}
+	}
 }
 
 int ModuleManager::Activate(uint32 itemID, const std::string &effectName, uint32 target, uint32 repeat) {
@@ -254,6 +269,54 @@ int ModuleManager::Activate(uint32 itemID, const std::string &effectName, uint32
 	//activate it and return that we did to the client
 	return(mod->Activate(effectName, target, repeat));
 }
+
+int ModuleManager::Upgrade(uint32 itemID) {
+	
+	std::map<uint32, uint8>::const_iterator res;
+	res = m_rigByID.find(itemID);
+	//check if you have the module on your ship
+	if(res == m_rigByID.end()) {
+
+		//log error
+		_log(SHIP__ERROR, "Activate: %s: failed to find module %u", m_pilot->GetName(), itemID);
+		return 0;
+	}
+
+	//grab the actual module
+	ShipModule *mod = m_rigs[res->second];
+	if(mod == NULL) {
+
+		//if this happens we have bigger problems than your module not working
+		codelog(SHIP__ERROR, "%s: failed to activate module %u", m_pilot->GetName(), itemID);
+		return 0;
+	}
+
+	return(mod->Upgrade());
+}
+void ModuleManager::Downgrade(uint32 itemID) {
+	
+	std::map<uint32, uint8>::const_iterator res;
+	res = m_rigByID.find(itemID);
+	//check if you have the module on your ship
+	if(res == m_rigByID.end()) {
+
+		//log error
+		_log(SHIP__ERROR, "Activate: %s: failed to find module %u", m_pilot->GetName(), itemID);
+		return;
+	}
+
+	//grab the actual module
+	ShipModule *mod = m_rigs[res->second];
+	if(mod == NULL) {
+
+		//if this happens we have bigger problems than your module not working
+		codelog(SHIP__ERROR, "%s: failed to activate module %u", m_pilot->GetName(), itemID);
+		return;
+	}
+
+	mod->Downgrade();
+}
+
 
 void ModuleManager::Deactivate(uint32 itemID, const std::string &effectName) {
 
@@ -332,33 +395,49 @@ ShipModule::ShipModule(Client *pilot, InventoryItemRef self, InventoryItemRef ch
   m_activationTimer(0),
   m_effectTimer(0),
   m_effectName("none"),
-  m_repeatCount(1000),
+  m_repeatCount(0),
   m_target(0),
-  m_fit(NewModule),
-  m_type(Turret),
-  m_interval(0),
-  m_apGroup(ActiveModule),
-  m_effectID(effectShieldBoosting),
-  m_active(true)
+  m_activationInterval(0)
 {
+	//activate it if it's a new module
+	if( !m_item->isOnline() )
+		Activate();
+	else
+		m_state = Online;
+}
+ShipModule::ShipModule(Client *pilot, InventoryItemRef self)
+: m_state(Offline),
+  m_pilot(pilot),
+  m_item(self),
+  m_activationTimer(0),
+  m_effectTimer(0),
+  m_effectName("none"),
+  m_repeatCount(1000),
+  m_target(0)
+{
+
+	sLog.Debug("ModuleMgr", "Called Upgrade Ship stub");
 
 	//activate it if it's a new module
 	if( !m_item->isOnline() )
-		Activate("online", NULL, NULL);
-
+		Upgrade();
+	else
+		m_state = Online;
 }
 
-//Ship Module Deconstructor
 ShipModule::~ShipModule()
 {
 }
 
-//ShipModule module constructor.  Creates new instance
 ShipModule *ShipModule::CreateModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_) {
 
 	//This module is then built out to a specific type
 	return(new ShipModule(owner, self, charge_));
 
+}
+ShipModule *ShipModule::CreateRig(Client *owner, InventoryItemRef self) {
+	//These modules are all extremely similar, and simple
+	return(new ShipModule(owner, self));
 }
 
 void ShipModule::ChangeCharge(InventoryItemRef new_charge) {
@@ -369,7 +448,7 @@ void ShipModule::ChangeCharge(InventoryItemRef new_charge) {
 	if(m_state == Online ) {
 
 		//check if active
-		if( m_state == Active || Overloaded ) {
+		if( m_state == Active || m_state == Overloaded ) {
 
 			//Tell pilot he needs to deactive this weapon before changing the charge
 			m_pilot->SendNotifyMsg( "You must deactivate the weapon before changing the charge" );
@@ -384,17 +463,17 @@ void ShipModule::ChangeCharge(InventoryItemRef new_charge) {
 	}
 
 }
-
-
-////////////////////////////////////////////////////////////
-/////////////////ShipModule Processors//////////////////////
-////////////////////////////////////////////////////////////
-
 void ShipModule::Process() {
+	
 	switch(m_state) {
+		case Active:
+			if( m_activationTimer.Check() )
+			
+			break;
+		case Overloaded:
 
-
-
+			//not implemented yet
+			break;
 
 	}
 	
@@ -403,64 +482,72 @@ void ShipModule::Process() {
 
 int ShipModule::Activate(const std::string &effectName, uint32 target, uint32 repeat) {
 
-	if( effectName == "online" )  {
+	m_target = target;
+	m_effectName = effectName;
+	m_repeatCount = repeat;
 
-		if( m_state == Online ){
-			m_pilot->SendNotifyMsg("Module is already online");
-			return 0;
-		}
+	//build effect here
 
-		//online the module
-		if( Validate_Online() ) {
-			Handle_Online();
-			return 1;
-		} else {
-			//do nothing
-			return 0;
-		}
-
-	} else if ( effectName == m_effectName ) {
-
-		if( Validate_Active() ) {
-			Handle_Active(true);
-			return 1;
-		} else {
-			//do nothing
-			return 0;
-		}
-
-	} else if ( effectName == "overload" ) { //idk if this is correct
-
-		//do overload stuff
-
+	if( ValidateEffect(true) ) {
+		DoEffect(true);
+		return 1;
+	} else {
+		return 0;
 	}
-
-	return 0;
 }
-
 void ShipModule::Deactivate(const std::string &effectName) {
 
-	if( effectName == "online" ) {
+	m_effectName = effectName;
 
-		//offline the module
-		if( Validate_Offline() )
-			Handle_Offline();
-		else 
-			m_pilot->SendNotifyMsg("You cannont deactivate this module");
-			//Note to self: this should go in Validate_Offline
-
-	} else if ( effectName == m_effectName ) {
-
-		//deactivate module
-
+	if( ValidateEffect(false) ) {
+		DoEffect(false);
 	}
 }
+int ShipModule::Upgrade() {
 
+	if( m_item->upgradeCost() + m_pilot->GetShip()->upgradeLoad() > m_pilot->GetShip()->upgradeCapacity() )
+		sLog.Error("ModuleMgr","Invalid ship upgrade. Check Ship::ValidateAddItem function");
+	
+	m_item->PutOnline();
+	m_state = Online;
 
-////////////////////////////////////////////////////////////
-///////////////ShipModule CoProcessors//////////////////////
-////////////////////////////////////////////////////////////
-bool ShipModule::Validate_Online() {
+	DoUpgradeLoad(true,false);
+
+	DoPassiveEffects(true,false);
+	return 1;
+}
+void ShipModule::Downgrade() {
+
+	//TODO: check that modules exists
+	DoUpgradeLoad(false,false);
+
+	DoPassiveEffects(false,false);
+
+}
+
+bool ShipModule::ValidateEffect(bool activate) {
+
+	//only really 2 types of effects we have to worry about.  Online/Offline, and everything else
+	if( activate ) {
+		if( m_effectName == "online" ) {
+			if( ValidateOnline() )
+				return true;
+		} else {
+			if( ValidateActive() )
+				return true;
+		}
+	} else {
+		if( m_effectName == "online" ) {
+			if( ValidateOffline() )
+				return true;
+		} else {
+			if( ValidateDeactive() )
+				return true;
+		}
+	}
+	return false;
+}
+bool ShipModule::ValidateOnline() {
 
 	//check for cpu
 	if( m_item->cpu() + m_pilot->GetShip()->cpuLoad() > m_pilot->GetShip()->cpuOutput() ) {
@@ -515,365 +602,300 @@ bool ShipModule::Validate_Online() {
 		}
 	}
 
-	
 	//if we pass everything, return true
 	return true;
 
 }
 
-void ShipModule::Handle_Online() {
-
-	//change module state to online
-	ChangeMState(Online);
-
-	//Put item online
-	m_item->PutOnline();
-
-	//consume cpu
-	m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() + m_item->cpu() );
-
-	//consume powergrid
-	m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() + m_item->power() );
-
-	//if in space, consume all capacitor
-	if( m_pilot->IsInSpace() )
-		m_pilot->GetShip()->Set_charge( 0 );
-
-	//do all passive effects
-	//go through all modules which have passive effects
-	DoPassiveEffects(true);
-
-		
-
-		/* 
-		 * The AffectsShield, AffectsHull and AffectsArmor functions are necessary
-		 * because hardeners for all three use the same attribute (ex. emDamageResistanceBonus)
-		 * and therefore we have to check which one it should be affecting
-		 */
-	
-		/* Questions and TODO:
-		 * What do amarrNavyBonus and those type things do...
-		 * Whats the best way to access other modules on the ship from here...
-		 * Remeber to check power and cpu when modules that modify it are offlined
-		 * Neet to figure out a good way to apply stacking penalties
-		 * Need to make unfitting effects handled in offline
-		 */
-
-
-	  //do the few additions that active modules do when just online
-
-		//check for other modules that will effect these modules.  Shield boosting bonuses, tracking speed bonus, fire rates...ect
-		//drone control range stuff, scanning amplifiers
-
-		//etc...
-
-	//TODO: CHECK FOR SKILLS
-	
-
-}
-
-bool ShipModule::Validate_Offline() {
-
+bool ShipModule::ValidateOffline() {
 
 	//for now, just return true, till i figure out what needs to go in here
 	return true;
-
 }
 
-void ShipModule::Handle_Offline() {
+bool ShipModule::ValidateActive() {
 
-	//check if it's already online
-	if( m_state == Offline )
-		return;
+	//check that module is online
+	if( !m_state == Online )
+		return false;
 
-	//change module state to offline
-	ChangeMState(Offline);
-
-	//Put item offline
-	m_item->PutOffline();
-
-	//return cpu
-	m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() - m_item->cpu() );
-
-	//return powergrid
-	m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() - m_item->power() );
-
-	//undo all passive effects
-	//go through all modules which have passive effects
-	DoPassiveEffects(false);
-
-
-	//TODO: CHECK FOR SKILLS
-
-}
-
-bool ShipModule::Validate_Active() {
+	//don't know when this would happen, but just in case
+	if( !m_pilot->IsInSpace() )
+			return false;
 
 	//check for activation energy
-	//if( m_item->
+	double capacitorNeed = m_item->capacitorNeed();
+	double charge = m_pilot->GetShip()->charge();
+	if( capacitorNeed > charge ) {
+		m_pilot->SendNotifyMsg("You do not have enough capacitor to activate this module");
+		return false;
+	}
+	return true;
+}
 
+bool ShipModule::ValidateDeactive(){
 
+	if( m_activationTimer.Check() )
+		return true;
 
+	ChangeMState(Deactivating);
 	return false;
 }
 
-void ShipModule::Handle_Active(bool start) {
+void ShipModule::DoEffect(bool active) {
 
-	if( start ) {
+	if( active ) {
+		if(m_effectName == "online") {
+			//change state
+			ChangeMState(Online);
+			m_item->PutOnline();
+			
+			//consume cpu and powergrid
+			m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() + m_item->cpu() );
+			m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() + m_item->power() );
 
-		//do module startup stuff here
-		//first time activation energy
-		//shenanagans
+			//if in space, consume all capacitor
+			if( m_pilot->IsInSpace() )
+				m_pilot->GetShip()->Set_charge( 0 );
 
+			//if the module is passive, do passive effects
+			if( m_item->capacitorNeed() == 0 ){
+				DoPassiveEffects(true,false);
+			} else {
+				DoActiveModulePassiveEffects(true,false);
+			}
+		} else {
+			sLog.Debug("ModuleManager","Called Activate Effect stub");
+		}
 	} else {
-
-		//normal operation
-
-	}
-
-}
-
-
-
-void ShipModule::DoPassiveEffects(bool online) {
+		if( m_effectName == "online") {
+			//change state
+			ChangeMState(Offline);
+			m_item->PutOffline();
 	
-	switch ( m_item->groupID() ) {
-		case EVEDB::invGroups::Armor_Coating:
-			ArmorHPEffects(online);
-			ArmorResistanceEffects(online);
-			break;
-		case EVEDB::invGroups::Armor_Hardener:
-			ActiveModulePassiveArmorResists(online);
-			break;
-		case EVEDB::invGroups::Armor_Plating_Energized:
-			ArmorHPEffects(online);
-			ArmorResistanceEffects(online);
-			break;
-		case EVEDB::invGroups::Armor_Reinforcer:
-			ArmorHPEffects(online);
-			break;
-		case EVEDB::invGroups::Automated_Targeting_System:
-			ShipMaxTargetsEffects(online);
-			break;
-		case EVEDB::invGroups::Auxiliary_Power_Core:
-			ShipPowerEffects(online);
-			break;
-		case EVEDB::invGroups::Capacitor_Battery:
-			ShipCapacitorChargeEffects(online);
-			break;
-		case EVEDB::invGroups::Capacitor_Flux_Coil:
-			ShipCapacitorChargeEffects(online);
-			ShipCapacitorRechargeRateEffects(online);
-			ShieldHPEffects(online);
-			ShieldRechargeEffects(online);
-			break;
-		case EVEDB::invGroups::Capacitor_Power_Relay:
-			ShipCapacitorChargeEffects(online);
-			ShipCapacitorRechargeRateEffects(online);
-			break;
-		case EVEDB::invGroups::Capacitor_Recharger:
-			ShipCapacitorRechargeRateEffects(online);
-			break;
-		case EVEDB::invGroups::CPU_Enhancer:
-			ShipCpuEffects(online);
-			break;
-		case EVEDB::invGroups::DroneBayExpander:
-			ShipDroneCapacityEffects(online);
-			break;
-		case EVEDB::invGroups::ECM_Stabilizer:
-			ShipScanStrengthEffects(online);
-			break;
-		case EVEDB::invGroups::Expanded_Cargohold:
-			ShipCargoCapacityEffects(online);
-			ShipVelocityEffects(online);
-			HullHPEffects(online);
-			break;
-		case EVEDB::invGroups::Inertial_Stabilizer:
-			ShipAgilityEffects(online);
-			break;
-		case EVEDB::invGroups::Nanofiber_Internal_Structure:
-			ShipAgilityEffects(online);
-			ShipVelocityEffects(online);
-			HullHPEffects(online);
-			break;
-		case EVEDB::invGroups::Overdrive_Injector_System:
-			ShipCargoCapacityEffects(online);
-			ShipVelocityEffects(online);
-			break;
-		case EVEDB::invGroups::Power_Diagnostics:
-			ShipPowerEffects(online);
-			ShipCapacitorRechargeRateEffects(online);
-			ShipCapacitorChargeEffects(online);
-			ShieldHPEffects(online);
-			ShieldRechargeEffects(online);
-			break;
-		case EVEDB::invGroups::Reactor_Control_Unit:
-			ShipPowerEffects(online);
-			ShipCapacitorRechargeRateEffects(online);
-			ShipCapacitorChargeEffects(online);
-			ShieldHPEffects(online);
-			ShieldRechargeEffects(online);
-			break;
-		case EVEDB::invGroups::Reinforced_Bulkheads:
-			HullHPEffects(online);
-			ShipVelocityEffects(online);
-			ShipAgilityEffects(online);
-			break;
-		case EVEDB::invGroups::Sensor_Backup_Array:
-			ShipScanStrengthEffects(online);
-			break;
-		case EVEDB::invGroups::Shield_Amplifier:
-			ShieldResistanceEffects(online);
-			break;
-		case EVEDB::invGroups::Shield_Extender:
-			ShieldHPEffects(online);
-			ShipSignatureRadiusEffects(online);
-			break;
-		case EVEDB::invGroups::Shield_Flux_Coil:
-			ShipCapacitorChargeEffects(online);
-			ShipCapacitorRechargeRateEffects(online);
-			ShipPowerEffects(online);
-			ShieldHPEffects(online);
-			ShieldRechargeEffects(online);
-			break;
-		case EVEDB::invGroups::Shield_Hardener:
-			ActiveModulePassiveShieldResists(online);
-			break;
-		case EVEDB::invGroups::Shield_Power_Relay:
-			ShipCapacitorChargeEffects(online);
-			ShipCapacitorRechargeRateEffects(online);
-			ShipPowerEffects(online);
-			ShieldHPEffects(online);
-			ShieldRechargeEffects(online);
-			break;
-		case EVEDB::invGroups::Shield_Recharger:
-			ShieldRechargeEffects(online);
-			break;
-		case EVEDB::invGroups::Signal_Amplifier:
-			ShipModule::ShipMaxTargetRangeEffects(online);
-			ShipModule::ShipMaxTargetsEffects(online);
-			ShipModule::ShipScanResolutionEffects(online);
-			break;
-		case EVEDB::invGroups::Warp_Core_Stabilizer:
-			ShipMaxTargetRangeEffects(online);
-			ShipPropulsionStrengthEffects(online);
-			ShipScanResolutionEffects(online);
-			ShipWarpScrambleStrengthEffects(online);
-			break;
-	}
+			//give back cpu and powergrid
+			m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() - m_item->cpu() );
+			m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() - m_item->power() );
 
-}
-
-
-void ShipModule::DoActiveEffects(bool online) {
-
-	//do all active effects
-	switch ( m_item->groupID() ) {
-		case EVEDB::invGroups::Afterburner:
-			ActiveShipVelocityEffects(online);
-			break;
-	}
-
-}
-////////////////////////////////////////////////////////////
-///////////////ShipModule Effect Functions//////////////////
-////////////////////////////////////////////////////////////
-
-/* All ship effects functions follow the same layout. You should be able 
- * to do copy and replace all on the three names in brackets, throw in your formula and have your function
- * Enjoy :)
- 
-void ShipModule::[AttributeModifiedName]Effects( bool online ) {
- 		
-	double [AttributeModifiedName];
-	double [AttributeModifiedName]Modifier;
-	double new[AttributeModifiedName];
-
-	if( online ) {
-		//Attribute [AttributeModifierName]
-		if( !m_item->[AttributeModifierName] == [AttributeDefaultValue] ) {
-			[AttributeModifiedName] = m_pilot->GetShip()->[AttributeModifiedName];
-			[AttributeModifiedName]Modifier = m_item->[AttributeModifierName];
-			new[AttributeModifiedName] = [Formula For calculating online value]
-			m_pilot->GetShip()->Set_[AttributeModifiedName]( new[AttributeModifiedName] );
-		}
-	} else {
-		//Attribute [AttributeModifierName]
-		if( !m_item->[AttributeModifierName] == [AttributeDefaultValue] || [value which would result in division by 0] ) {
-			[AttributeModifiedName] = m_pilot->GetShip()->[AttributeModifiedName];
-			[AttributeModifiedName]Modifier = m_item->[AttributeModifierName];
-			new[AttributeModifiedName] = [Formula For calculating offline value]
-			m_pilot->GetShip()->Set_[AttributeModifiedName]( new[AttributeModifiedName] );
+			//if the module is passive, do passive effects
+			if( m_item->capacitorNeed() == 0 ){
+				DoPassiveEffects(false,false);
+			} else {
+				DoActiveModulePassiveEffects(false,false);
+			}
+		} else {
+			sLog.Debug("ModuleManager", "Called Deactivate Effect stub");
 		}
 	}
+
 }
 
+/* change stuff
+    Notify_OnModuleAttributeChange omac;
+    omac.ownerID = m_ownerID;
+    omac.itemKey = m_itemID;
+    omac.attributeID = ItemAttributeMgr::Attr_isOnline;
+    omac.time = Win32TimeNow();
+    omac.newValue = new PyInt(newval?1:0);
+    omac.oldValue = new PyInt(newval?0:1);   //hack... should use old, but its not cooperating today.
 */
-void ShipModule::ActiveShipVelocityEffects(bool online)	{
 
-	//handles microwarp, afterburners and cloaks
-	//Attributes available: speedFactor, speedBoostFactor, speedBoostFactorCalc1 speedBoostFactorCalc2
+void ShipModule::DoPassiveEffects(bool add, bool notify) {
 	
-	//Cruising speed * (1 + (base boost of AB or MWD * (1 + accel control level * 0.05) * (ab/mwd implant(s)) * (thrust / (ship mass + modules mass)))
-	
-	//calculate new speed
-	double maxVelocity = m_pilot->GetShip()->maxVelocity();
-	double shipMass = m_pilot->GetShip()->mass();
-	double maxVelocityMod1 = m_item->speedBoostFactor();
-	double maxVelocityMod2;
-	double maxVelocityMod3;
-	double newMaxVelocity;
-
+	 DoArmorHPBonus(add,notify);
+	 DoArmorHPBonusAdd(add,notify);
+	 DoArmorHPMultiplier(add,notify);
+	 DoArmorEmDamageResistanceBonus(add,notify);
+	 DoArmorExplosiveDamageResistanceBonus(add,notify);
+	 DoArmorKineticDamageResistanceBonus(add,notify);
+	 DoArmorThermalDamageResistanceBonu(add,notify);
+	 DoShieldCapacity(add,notify);
+	 DoShieldCapacityBonus(add,notify);
+	 DoShieldCapacityMultiplier(add,notify);
+	 DoShieldEmDamageResistanceBonus(add,notify);
+	 DoShieldExplosiveDamageResistanceBonus(add,notify);
+	 DoShieldKineticDamageResistanceBonus(add,notify);
+	 DoShieldThermalDamageResistanceBonu(add,notify);
+	 DoShieldRechargeRateMultiplier(add,notify);
+	 DoHullHpBonus(add,notify);
+	 DoStructureHPMultiplier(add,notify);
+	 DoStructureEmDamageResistanceBonus(add,notify);
+	 DoStructureExplosiveDamageResistanceBonus(add,notify);
+	 DoStructureKineticDamageResistanceBonus(add,notify);
+	 DoStructureThermalDamageResistanceBonu(add,notify);
+	 DoImplantBonusVelocity(add,notify);
+	 DoSpeedBonus(add,notify);
+	 DoMaxVelocityBonus(add,notify);
+	 DoCpuMultiplier(add,notify);
+	 DoPowerIncrease(add,notify);
+	 DoPowerOutputBonus(add,notify);
+	 DoPowerOutputMultiplier(add,notify);
+	 DoCapacitorBonus(add,notify);
+	 DoCapacitorCapacityMultiplier(add,notify);
+	 DoCapacitorRechargeRateMultiplier(add,notify);
+	 DoCargoCapacityMultiplier(add,notify);
+	 DoScanStrengthBonus(add,notify);
+	 DoScanGravimetricStrengthPercent(add,notify);
+	 DoScanLadarStrengthPercent(add,notify);
+	 DoScanMagnetometricStrengthPercent(add,notify);
+	 DoScanRadarStrengthPercent(add,notify);
+	 DoSignatureRadiusBonus(add,notify);
+	 DoDroneCapacityBonus(add,notify);
+	 DoAgilityMultiplier(add,notify);
+	 DoScanResultionBonus(add,notify);
+	 DoScanResultionMultiplier(add,notify);
+	 DoMaxTargetRangeBonus(add,notify);
+	 DoMaxLockedTargetsBonus(add,notify);
+	 DoWarpScrambleStrength(add,notify);
+	 DoPropulsionFusionStrength(add,notify);
+	 DoPropulsionIonStrength(add,notify);
+	 DoPropulsionMagpulseStrength(add,notify);
+	 DoPropulsionPlasmaStrength(add,notify);
 
 }
-void ShipModule::ArmorHPEffects(bool online) {
 
+void ShipModule::DoActiveModulePassiveEffects(bool add, bool notify) {
+	
+	 DoPassiveArmorEmDamageResistanceBonus(add,notify);
+	 DoPassiveArmorExplosiveDamageResistanceBonus(add,notify);
+	 DoPassiveArmorKineticDamageResistanceBonus(add,notify);
+	 DoPassiveArmorThermalDamageResistanceBonu(add,notify);
+	 DoPassiveShieldEmDamageResistanceBonus(add,notify);
+	 DoPassiveShieldExplosiveDamageResistanceBonus(add,notify);
+	 DoPassiveShieldKineticDamageResistanceBonus(add,notify);
+	 DoPassiveShieldThermalDamageResistanceBonus(add,notify);
+
+}
+
+void ShipModule::DoUpgradeLoad(bool add, bool notify) {
+
+	double upgradeLoad;
+	double upgradeLoadModifier;
+	double newUpgradeLoad;
+
+	if( add ) {
+		if( !Equals(m_item->upgradeCost(), 0) ) {
+			upgradeLoad = m_pilot->GetShip()->upgradeLoad();
+			upgradeLoadModifier = m_item->upgradeCost();
+			newUpgradeLoad = upgradeLoad + upgradeLoadModifier;
+			m_pilot->GetShip()->Set_upgradeLoad( newUpgradeLoad );
+		}
+	} else {
+		if( !Equals(m_item->upgradeCost(), 0) ) {
+			upgradeLoad = m_pilot->GetShip()->upgradeLoad();
+			upgradeLoadModifier = m_item->upgradeCost();
+			newUpgradeLoad = upgradeLoad - upgradeLoadModifier;
+			m_pilot->GetShip()->Set_upgradeLoad( newUpgradeLoad );
+		}
+	}
+}
+
+void ShipModule::DoCapacitorNeed(bool startup, bool notify) {
+
+	double capacitorCharge;
+	double capacitorChargeModifier;
+	double newCapacitorCharge;
+	
+	//idk if there is a difference, but for now, we'll keep the startup case in here
+	if( startup ) {
+		//do first time activation charge requirements
+		if( !Equals(m_item->capacitorNeed(), 0) ) {
+			capacitorCharge = m_pilot->GetShip()->charge();
+			capacitorChargeModifier = m_item->capacitorNeed();
+			newCapacitorCharge = capacitorCharge - capacitorChargeModifier;
+			m_pilot->GetShip()->Set_charge( newCapacitorCharge );
+		}
+	} else {
+		//consume normal activation cap charge
+		if( !Equals(m_item->capacitorNeed(), 0) ) {
+			capacitorCharge = m_pilot->GetShip()->charge();
+			capacitorChargeModifier = m_item->capacitorNeed();
+			newCapacitorCharge = capacitorCharge - capacitorChargeModifier;
+			m_pilot->GetShip()->Set_charge( newCapacitorCharge );
+		}
+	}
+	if( notify ) {
+		
+		Notify_OnModuleAttributeChange omac;
+		
+		omac.ownerID = m_pilot->GetCharacterID();
+		omac.itemKey = m_item->itemID();
+		omac.attributeID = ItemAttributeMgr::Attr_charge;
+		omac.time = Win32TimeNow();
+		omac.newValue = new PyInt(newCapacitorCharge);
+		omac.oldValue = new PyInt(capacitorCharge);
+		PyTuple* tmp = omac.Encode();
+
+		m_pilot->SendNotification("OnItemAttributeChange", "clientID", &tmp );
+	}
+}
+void ShipModule::DoArmorHPBonus(bool add, bool notify) {
+	
+	if( !AffectsArmor() )
+		return;
+	
 	double armorHP;
 	double armorHPModifier;
 	double newArmorHP;
 	
-	if( online ) { 
-		//Attribute armorHpBonus
+	if( add ) {
 		if( !m_item->armorHpBonus() == 0 ) {
 			armorHP = m_pilot->GetShip()->armorHP();
 			armorHPModifier = m_item->armorHpBonus();
 			newArmorHP = armorHP + armorHPModifier;
 			m_pilot->GetShip()->Set_armorHP( newArmorHP );
 		}
+	} else {
+		if( !m_item->armorHpBonus() == 0 ) {
+			armorHP = m_pilot->GetShip()->armorHP();
+			armorHPModifier = m_item->armorHpBonus();
+			newArmorHP = armorHP - armorHPModifier;
+			m_pilot->GetShip()->Set_armorHP( newArmorHP );
+		}
+	}
+}
+void ShipModule::DoArmorHPBonusAdd(bool add, bool notify) {
 
-		//Attribute armorHpBonusAdd
+	if( !AffectsArmor() )
+		return;
+
+	double armorHP;
+	double armorHPModifier;
+	double newArmorHP;
+
+	if( add ) {
 		if( !m_item->armorHpBonusAdd() == 0 ) {
 			armorHP = m_pilot->GetShip()->armorHP();
 			armorHPModifier = m_item->armorHpBonusAdd();
 			newArmorHP = armorHP + armorHPModifier;
 			m_pilot->GetShip()->Set_armorHP( newArmorHP );
 		}
+	} else {
+		if( !m_item->armorHpBonusAdd() == 0 ) {
+			armorHP = m_pilot->GetShip()->armorHP();
+			armorHPModifier = m_item->armorHpBonusAdd();
+			newArmorHP = armorHP - armorHPModifier;
+			m_pilot->GetShip()->Set_armorHP( newArmorHP );
+		}
+	}
+}
+void ShipModule::DoArmorHPMultiplier(bool add, bool notify) {
 
-		//Attribute armorHPMultiplier
+	if( !AffectsArmor() )
+		return;
+
+	double armorHP;
+	double armorHPModifier;
+	double newArmorHP;
+
+	if( add ) {
 		if( !Equals(m_item->armorHPMultiplier(), 1) ) {
 			armorHP = m_pilot->GetShip()->armorHP();
 			armorHPModifier = m_item->armorHPMultiplier();
 			newArmorHP = armorHP * armorHPModifier;
 			m_pilot->GetShip()->Set_armorHP( newArmorHP );
 		}
-	} else { 
-		//Attribute armorHpBonus
-		if( !m_item->armorHpBonus() == 0 ) {
-			armorHP = m_pilot->GetShip()->armorHP();
-			armorHPModifier = m_item->armorHpBonus();
-			newArmorHP = armorHP - armorHPModifier;
-			m_pilot->GetShip()->Set_armorHP( newArmorHP );
-		}
-
-		//Attribute armorHpBonusAdd
-		if( !m_item->armorHpBonusAdd() == 0 ) {
-			armorHP = m_pilot->GetShip()->armorHP();
-			armorHPModifier = m_item->armorHpBonusAdd();
-			newArmorHP = armorHP - armorHPModifier;
-			m_pilot->GetShip()->Set_armorHP( newArmorHP );
-		}
-
-		//Attribute armorHPMultiplier
+	} else {
 		if( !Equals(m_item->armorHPMultiplier(), 1) &&
 			!Equals(m_item->armorHPMultiplier(), 0)	) 
 		{
@@ -884,48 +906,23 @@ void ShipModule::ArmorHPEffects(bool online) {
 		}
 	}
 }
+void ShipModule::DoArmorEmDamageResistanceBonus(bool add, bool notify) {
 
-void ShipModule::ArmorResistanceEffects(bool online) {
-
+	if( !AffectsArmor() )
+		return;
+	
 	double armorResonance;
 	double resistanceModifier;
 	double newArmorResonance;
 
-	if( online ) {
-		//Attribute emDamageResistanceBonus
+	if( add ) {
 		if( !Equals(m_item->emDamageResistanceBonus(), 0) ) {
 			armorResonance = m_pilot->GetShip()->armorEmDamageResonance();
 			resistanceModifier = m_item->emDamageResistanceBonus();
 			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
 			m_pilot->GetShip()->Set_armorEmDamageResonance( newArmorResonance );
 		}
-
-		//Attribute explosiveDamageResistanceBonus
-		if( !Equals(m_item->explosiveDamageResistanceBonus(), 0) ) {
-			armorResonance = m_pilot->GetShip()->armorExplosiveDamageResonance();
-			resistanceModifier = m_item->explosiveDamageResistanceBonus();
-			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_armorExplosiveDamageResonance( newArmorResonance );
-		}
-
-		//Attribute kineticDamageResistanceBonus
-		if( !Equals(m_item->kineticDamageResistanceBonus(), 0) ) {
-			armorResonance = m_pilot->GetShip()->armorKineticDamageResonance();
-			resistanceModifier = m_item->kineticDamageResistanceBonus();
-			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_armorKineticDamageResonance( newArmorResonance );
-		}
-
-		//Attribute thermalDamageResistanceBonus
-		if( !Equals(m_item->thermalDamageResistanceBonus(), 0) ) {
-			armorResonance = m_pilot->GetShip()->armorThermalDamageResonance();
-			resistanceModifier = m_item->thermalDamageResistanceBonus();
-			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_armorThermalDamageResonance( newArmorResonance );
-		}
-
 	} else {
-		//Attribute emDamageResistanceBonus
 		if( !Equals(m_item->emDamageResistanceBonus(), 0)		&&
 			!Equals(m_item->emDamageResistanceBonus(), -100)	)
 		{
@@ -934,8 +931,25 @@ void ShipModule::ArmorResistanceEffects(bool online) {
 			newArmorResonance = armorResonance / ( 1 + resistanceModifier/ 100 );
 			m_pilot->GetShip()->Set_armorEmDamageResonance( newArmorResonance );
 		}
+	}
+}
+void ShipModule::DoArmorExplosiveDamageResistanceBonus(bool add, bool notify) {
 
-		//Attribute explosiveDamageResistanceBonus
+	if( !AffectsArmor() )
+		return;
+
+	double armorResonance;
+	double resistanceModifier;
+	double newArmorResonance;
+
+	if( add ) {
+		if( !Equals(m_item->explosiveDamageResistanceBonus(), 0) ) {
+			armorResonance = m_pilot->GetShip()->armorExplosiveDamageResonance();
+			resistanceModifier = m_item->explosiveDamageResistanceBonus();
+			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_armorExplosiveDamageResonance( newArmorResonance );
+		}
+	} else {
 		if( !Equals(m_item->explosiveDamageResistanceBonus(), 0)	 &&
 			!Equals(m_item->explosiveDamageResistanceBonus(), -100)	 )
 		{
@@ -944,8 +958,25 @@ void ShipModule::ArmorResistanceEffects(bool online) {
 			newArmorResonance = armorResonance / ( 1 + resistanceModifier/ 100 );
 			m_pilot->GetShip()->Set_armorExplosiveDamageResonance( newArmorResonance );
 		}
+	}
+}
+void ShipModule::DoArmorKineticDamageResistanceBonus(bool add, bool notify) {
 
-		//Attribute kineticDamageResistanceBonus
+	if( !AffectsArmor() )
+		return;
+
+	double armorResonance;
+	double resistanceModifier;
+	double newArmorResonance;
+
+	if( add ) {
+		if( !Equals(m_item->kineticDamageResistanceBonus(), 0) ) {
+			armorResonance = m_pilot->GetShip()->armorKineticDamageResonance();
+			resistanceModifier = m_item->kineticDamageResistanceBonus();
+			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_armorKineticDamageResonance( newArmorResonance );
+		}
+	} else {
 		if( !Equals(m_item->kineticDamageResistanceBonus(), 0)	&&
 			!Equals(m_item->kineticDamageResistanceBonus(), -100)  )
 		{
@@ -954,8 +985,25 @@ void ShipModule::ArmorResistanceEffects(bool online) {
 			newArmorResonance = armorResonance / ( 1 + resistanceModifier/ 100 );
 			m_pilot->GetShip()->Set_armorKineticDamageResonance( newArmorResonance );
 		}
+	}
+}
+void ShipModule::DoArmorThermalDamageResistanceBonu(bool add, bool notify) {
 
-		//Attribute thermalDamageResistanceBonus
+	if( !AffectsArmor() )
+		return;
+
+	double armorResonance;
+	double resistanceModifier;
+	double newArmorResonance;
+
+	if( add ) {
+		if( !Equals(m_item->thermalDamageResistanceBonus(), 0) ) {
+			armorResonance = m_pilot->GetShip()->armorThermalDamageResonance();
+			resistanceModifier = m_item->thermalDamageResistanceBonus();
+			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_armorThermalDamageResonance( newArmorResonance );
+		}
+	} else {
 		if( !Equals(m_item->thermalDamageResistanceBonus(), 0)		&&
 			!Equals(m_item->thermalDamageResistanceBonus(), -100)	)
 		{
@@ -965,33 +1013,67 @@ void ShipModule::ArmorResistanceEffects(bool online) {
 			m_pilot->GetShip()->Set_armorThermalDamageResonance( newArmorResonance );
 		}
 	}
-
 }
+void ShipModule::DoShieldCapacity(bool add, bool notify) {
 
-void ShipModule::ShieldHPEffects(bool online) {
+	if( !AffectsShield() )
+		return;
 
 	double shieldCapacity;
 	double capacityModifier;
-	int newShieldCapacity;
+	double newShieldCapacity;
 
-	if( online ) {
-		//Attribute capacity
+	if( add ) {
 		if( !m_item->capacity() == 0 ) {
 			shieldCapacity = m_pilot->GetShip()->shieldCapacity();
 			capacityModifier = m_item->capacity();
 			newShieldCapacity = shieldCapacity + capacityModifier;
 			m_pilot->GetShip()->Set_shieldCapacity( newShieldCapacity );
 		}
+	} else {
+		if( !m_item->capacity() == 0 ) {
+			shieldCapacity = m_pilot->GetShip()->shieldCapacity();
+			capacityModifier = m_item->capacity();
+			newShieldCapacity = shieldCapacity - capacityModifier;
+			m_pilot->GetShip()->Set_shieldCapacity( newShieldCapacity );
+		}
+	}
+}
+void ShipModule::DoShieldCapacityBonus(bool add, bool notify) {
 
-		//Attribute capacityBonus
+	if( !AffectsShield() )
+		return;
+
+	double shieldCapacity;
+	double capacityModifier;
+	double newShieldCapacity;
+
+	if( add ) {
 		if( !m_item->capacityBonus() == 0 ) {
 			shieldCapacity = m_pilot->GetShip()->shieldCapacity();
 			capacityModifier = m_item->capacityBonus();
 			newShieldCapacity = shieldCapacity + capacityModifier;
 			m_pilot->GetShip()->Set_shieldCapacity( newShieldCapacity );
 		}
+	} else {
+		if( !m_item->capacityBonus() == 0 ) {
+			shieldCapacity = m_pilot->GetShip()->shieldCapacity();
+			capacityModifier = m_item->capacityBonus();
+			newShieldCapacity = shieldCapacity - capacityModifier;
+			m_pilot->GetShip()->Set_shieldCapacity( newShieldCapacity );
+		}
+	}
+}
+void ShipModule::DoShieldCapacityMultiplier(bool add, bool notify) {
 
-		//Attribute shieldCapacityMultiplier
+	if( !AffectsShield() )
+		return;
+	
+	double shieldCapacity;
+	double capacityModifier;
+	double newShieldCapacity;
+
+	if( add ) {
 		if( !Equals(m_item->shieldCapacityMultiplier(), 1) ) {
 			shieldCapacity = m_pilot->GetShip()->shieldCapacity();
 			capacityModifier = m_item->shieldCapacityMultiplier();
@@ -999,24 +1081,7 @@ void ShipModule::ShieldHPEffects(bool online) {
 			m_pilot->GetShip()->Set_shieldCapacity( newShieldCapacity );
 		}
 	} else {
-		//Attribute capacity
-		if( !m_item->capacity() == 0 ) {
-			shieldCapacity = m_pilot->GetShip()->shieldCapacity();
-			capacityModifier = m_item->capacity();
-			newShieldCapacity = shieldCapacity - capacityModifier;
-			m_pilot->GetShip()->Set_shieldCapacity( newShieldCapacity );
-		}
-
-		//Attribute capacityBonus
-		if( !m_item->capacityBonus() == 0 ) {
-			shieldCapacity = m_pilot->GetShip()->shieldCapacity();
-			capacityModifier = m_item->capacityBonus();
-			newShieldCapacity = shieldCapacity - capacityModifier;
-			m_pilot->GetShip()->Set_shieldCapacity( newShieldCapacity );
-		}
-
-		//Attribute shieldCapacityMultiplier
-		if( !Equals(m_item->shieldCapacityMultiplier(), 1)	||
+		if( !Equals(m_item->shieldCapacityMultiplier(), 1)	&&
 			!Equals(m_item->shieldCapacityMultiplier(), 0)	)
 		{
 			shieldCapacity = m_pilot->GetShip()->shieldCapacity();
@@ -1025,50 +1090,24 @@ void ShipModule::ShieldHPEffects(bool online) {
 			m_pilot->GetShip()->Set_shieldCapacity( newShieldCapacity );
 		}
 	}
-
 }
+void ShipModule::DoShieldEmDamageResistanceBonus(bool add, bool notify) {
 
-void ShipModule::ShieldResistanceEffects(bool online) {
+	if( !AffectsShield() )
+		return;
 
 	double shipResonance;
 	double resistanceModifier;
 	double newResonance;
 
-	if( online ) {
-		//Attribute emDamageResistanceBonus
+	if( add ) {
 		if( !Equals(m_item->emDamageResistanceBonus(), 0) ) {
 			shipResonance = m_pilot->GetShip()->shieldEmDamageResonance();
 			resistanceModifier = m_item->emDamageResistanceBonus();
 			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
 			m_pilot->GetShip()->Set_shieldEmDamageResonance( newResonance );
 		}
-
-		//Attribute explosiveDamageResistanceBonus
-		if( !Equals(m_item->explosiveDamageResistanceBonus(), 0) ) {
-			shipResonance = m_pilot->GetShip()->shieldExplosiveDamageResonance();
-			resistanceModifier = m_item->explosiveDamageResistanceBonus();
-			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_shieldExplosiveDamageResonance( newResonance );
-		}
-
-		//Attribute kineticDamageResistanceBonus
-		if( !Equals(m_item->kineticDamageResistanceBonus(), 0) ) {
-			shipResonance = m_pilot->GetShip()->shieldKineticDamageResonance();
-			resistanceModifier = m_item->kineticDamageResistanceBonus();
-			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_shieldKineticDamageResonance( newResonance );
-		}
-
-		//Attribute thermalDamageResistanceBonus
-		if( !Equals(m_item->thermalDamageResistanceBonus(), 0) ) {
-			shipResonance = m_pilot->GetShip()->shieldThermalDamageResonance();
-			resistanceModifier = m_item->thermalDamageResistanceBonus();
-			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_shieldThermalDamageResonance( newResonance );
-		}
-
 	} else {
-		//Attribute emDamageResistanceBonus
 		if( !Equals(m_item->emDamageResistanceBonus(), 0)		&&
 			!Equals(m_item->emDamageResistanceBonus(), -100)	)
 		{
@@ -1077,8 +1116,25 @@ void ShipModule::ShieldResistanceEffects(bool online) {
 			newResonance = shipResonance / ( 1 + resistanceModifier / 100 );
 			m_pilot->GetShip()->Set_shieldEmDamageResonance( newResonance );
 		}
+	}
+}
+void ShipModule::DoShieldExplosiveDamageResistanceBonus(bool add, bool notify) {
 
-		//Attribute explosiveDamageResistanceBonus
+	if( !AffectsShield() )
+		return;
+
+	double shipResonance;
+	double resistanceModifier;
+	double newResonance;
+	
+	if( add ) {
+		if( !Equals(m_item->explosiveDamageResistanceBonus(), 0) ) {
+			shipResonance = m_pilot->GetShip()->shieldExplosiveDamageResonance();
+			resistanceModifier = m_item->explosiveDamageResistanceBonus();
+			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_shieldExplosiveDamageResonance( newResonance );
+		}
+	} else {
 		if( !Equals(m_item->explosiveDamageResistanceBonus(), 0)	&&
 			!Equals(m_item->explosiveDamageResistanceBonus(), -100)	)
 		{
@@ -1087,8 +1143,25 @@ void ShipModule::ShieldResistanceEffects(bool online) {
 			newResonance = shipResonance / ( 1 + resistanceModifier / 100 );
 			m_pilot->GetShip()->Set_shieldExplosiveDamageResonance( newResonance );
 		}
+	}
+}
+void ShipModule::DoShieldKineticDamageResistanceBonus(bool add, bool notify) {
 
-		//Attribute kineticDamageResistanceBonus
+	if( !AffectsShield() )
+		return;
+
+	double shipResonance;
+	double resistanceModifier;
+	double newResonance;
+
+	if( add ) {
+		if( !Equals(m_item->kineticDamageResistanceBonus(), 0) ) {
+			shipResonance = m_pilot->GetShip()->shieldKineticDamageResonance();
+			resistanceModifier = m_item->kineticDamageResistanceBonus();
+			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_shieldKineticDamageResonance( newResonance );
+		}
+	} else {
 		if( !Equals(m_item->kineticDamageResistanceBonus(), 0)		&&
 			!Equals(m_item->kineticDamageResistanceBonus(), -100)	)
 		{
@@ -1097,8 +1170,25 @@ void ShipModule::ShieldResistanceEffects(bool online) {
 			newResonance = shipResonance / ( 1 + resistanceModifier / 100 );
 			m_pilot->GetShip()->Set_shieldKineticDamageResonance( newResonance );
 		}
+	}
+}
+void ShipModule::DoShieldThermalDamageResistanceBonu(bool add, bool notify) {
 
-		//Attribute thermalDamageResistanceBonus
+	if( !AffectsShield() )
+		return;
+
+	double shipResonance;
+	double resistanceModifier;
+	double newResonance;
+
+	if( add ) {
+		if( !Equals(m_item->thermalDamageResistanceBonus(), 0) ) {
+			shipResonance = m_pilot->GetShip()->shieldThermalDamageResonance();
+			resistanceModifier = m_item->thermalDamageResistanceBonus();
+			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_shieldThermalDamageResonance( newResonance );
+		}
+	} else {
 		if( !Equals(m_item->thermalDamageResistanceBonus(), 0)		&&
 			!Equals(m_item->thermalDamageResistanceBonus(), -100)	)
 		{
@@ -1108,17 +1198,17 @@ void ShipModule::ShieldResistanceEffects(bool online) {
 			m_pilot->GetShip()->Set_shieldThermalDamageResonance( newResonance );
 		}
 	}
-
 }
+void ShipModule::DoShieldRechargeRateMultiplier(bool add, bool notify) {
 
-void ShipModule::ShieldRechargeEffects(bool online) {
+	if( !AffectsShield() )
+		return;
 
 	double shieldRechargeRate;
 	double rechargeRateModifier;
 	double newShieldRechargeRate;
 
-	if( online ) {
-		//Attribute shieldRechargeRateMultiplier
+	if( add ) {
 		if( !Equals(m_item->shieldRechargeRateMultiplier(), 1) ) {
 			shieldRechargeRate = m_pilot->GetShip()->shieldRechargeRate();
 			rechargeRateModifier = m_item->shieldRechargeRateMultiplier();
@@ -1126,7 +1216,6 @@ void ShipModule::ShieldRechargeEffects(bool online) {
 			m_pilot->GetShip()->Set_shieldRechargeRate( ToInt(newShieldRechargeRate) );
 		}
 	} else {
-		//Attribute shieldRechargeRateMultiplier
 		if( !Equals(m_item->shieldRechargeRateMultiplier(), 1)	&&
 			!Equals(m_item->shieldRechargeRateMultiplier(), 0)	)
 		{
@@ -1136,25 +1225,42 @@ void ShipModule::ShieldRechargeEffects(bool online) {
 			m_pilot->GetShip()->Set_shieldRechargeRate( ToInt(newShieldRechargeRate) );
 		}
 	}
-
 }
+void ShipModule::DoHullHpBonus(bool add, bool notify) {
 
-void ShipModule::HullHPEffects(bool online) {
+	if( !AffectsHull() )
+		return;
 
 	double hullHP;
 	double hullHPModifier;
 	double newHullHP;
 
-	if( online ) {
-		//Attribute hullHpBonus
+	if( add ) {
 		if( !m_item->hullHpBonus() == 0 ) {
 			hullHP = m_pilot->GetShip()->hp();
 			hullHPModifier = m_item->hullHpBonus();
 			newHullHP = hullHP + hullHPModifier;
 			m_pilot->GetShip()->Set_hp( newHullHP );
 		}
-		
-		//Attribute structureHPMultiplier
+	} else {
+		if( !m_item->hullHpBonus() == 0 ) {
+			hullHP = m_pilot->GetShip()->hp();
+			hullHPModifier = m_item->hullHpBonus();
+			newHullHP = hullHP - hullHPModifier;
+			m_pilot->GetShip()->Set_hp( newHullHP );
+		}
+	}
+}
+void ShipModule::DoStructureHPMultiplier(bool add, bool notify) {
+
+	if( !AffectsHull() )
+		return;
+
+	double hullHP;
+	double hullHPModifier;
+	double newHullHP;
+
+	if( add ) {
 		if( !Equals(m_item->structureHPMultiplier(), 1) ) {
 			hullHP = m_pilot->GetShip()->hp();
 			hullHPModifier = m_item->structureHPMultiplier();
@@ -1162,15 +1268,6 @@ void ShipModule::HullHPEffects(bool online) {
 			m_pilot->GetShip()->Set_hp( newHullHP );
 		}
 	} else {
-		//Attribute hullHpBonus
-		if( !m_item->hullHpBonus() == 0 ) {
-			hullHP = m_pilot->GetShip()->hp();
-			hullHPModifier = m_item->hullHpBonus();
-			newHullHP = hullHP - hullHPModifier;
-			m_pilot->GetShip()->Set_hp( newHullHP );
-		}
-		
-		//Attribute structureHPMultiplier
 		if( !Equals(m_item->structureHPMultiplier(), 1)	&&
 			!Equals(m_item->structureHPMultiplier(), 0)	)
 		{
@@ -1180,74 +1277,108 @@ void ShipModule::HullHPEffects(bool online) {
 			m_pilot->GetShip()->Set_hp( newHullHP );
 		}
 	}
-
 }
+void ShipModule::DoStructureEmDamageResistanceBonus(bool add, bool notify) {
 
-void ShipModule::HullResistanceEffects(bool online) {
+	if( !AffectsHull() )
+		return;
 
 	double hullResonance;
 	double hullResonanceModifier;
 	double newHullResonance;
 
-	if( online ) {
-		//Attribute emDamageResistanceBonus
-		if( !m_item->emDamageResistanceBonus() == 0 ) {
+	if( add ) {
+		if( !Equals(m_item->emDamageResistanceBonus(), 0) ) {
 			hullResonance = m_pilot->GetShip()->hullEmDamageResonance();
 			hullResonanceModifier = m_item->emDamageResistanceBonus();
 			newHullResonance = hullResonance + hullResonance * hullResonanceModifier / 100;
 			m_pilot->GetShip()->Set_hullEmDamageResonance( newHullResonance );
 		}
-		
-		//Attribute explosiveDamageResistanceBonus
-		if( !m_item->explosiveDamageResistanceBonus() == 0 ) {
+	} else {
+		if( !Equals(m_item->emDamageResistanceBonus(), 0)		&&
+			!Equals(m_item->emDamageResistanceBonus(), -100)	) 
+		{
+			hullResonance = m_pilot->GetShip()->hullEmDamageResonance();
+			hullResonanceModifier = m_item->emDamageResistanceBonus();
+			newHullResonance = hullResonance / ( 1 + hullResonanceModifier / 100 );
+			m_pilot->GetShip()->Set_hullEmDamageResonance( newHullResonance );
+		}
+	}
+}
+void ShipModule::DoStructureExplosiveDamageResistanceBonus(bool add, bool notify) {
+
+	if( !AffectsHull() )
+		return;
+
+	double hullResonance;
+	double hullResonanceModifier;
+	double newHullResonance;
+
+	if( add ) {
+		if( !Equals(m_item->explosiveDamageResistanceBonus(), 0) ) {
 			hullResonance = m_pilot->GetShip()->hullExplosiveDamageResonance();
 			hullResonanceModifier = m_item->explosiveDamageResistanceBonus();
 			newHullResonance = hullResonance + hullResonance * hullResonanceModifier / 100;
 			m_pilot->GetShip()->Set_hullEmDamageResonance( newHullResonance );
 		}
+	} else {
+		if( !Equals(m_item->explosiveDamageResistanceBonus(), 0)	&&
+			!Equals(m_item->explosiveDamageResistanceBonus(), -100) )
+		{
+			hullResonance = m_pilot->GetShip()->hullExplosiveDamageResonance();
+			hullResonanceModifier = m_item->explosiveDamageResistanceBonus();
+			newHullResonance = hullResonance / ( 1 + hullResonanceModifier / 100 );
+			m_pilot->GetShip()->Set_hullEmDamageResonance( newHullResonance );
+		}
+	}
+}
+void ShipModule::DoStructureKineticDamageResistanceBonus(bool add, bool notify) {
 
-		//Attribute kineticDamageResistanceBonus
-		if( !m_item->kineticDamageResistanceBonus() == 0 ) {
+	if( !AffectsHull() )
+		return;
+
+	double hullResonance;
+	double hullResonanceModifier;
+	double newHullResonance;
+
+	if( add ) {
+		if( !Equals(m_item->kineticDamageResistanceBonus(), 0) ) {
 			hullResonance = m_pilot->GetShip()->hullKineticDamageResonance();
 			hullResonanceModifier = m_item->kineticDamageResistanceBonus();
 			newHullResonance = hullResonance + hullResonance * hullResonanceModifier / 100;
 			m_pilot->GetShip()->Set_hullEmDamageResonance( newHullResonance );
 		}
+	} else {
+		if( !Equals(m_item->kineticDamageResistanceBonus(), 0)		&&
+			!Equals(m_item->kineticDamageResistanceBonus(), -100)	)
+		{
+			hullResonance = m_pilot->GetShip()->hullKineticDamageResonance();
+			hullResonanceModifier = m_item->kineticDamageResistanceBonus();
+			newHullResonance = hullResonance / ( 1 + hullResonanceModifier / 100 );
+			m_pilot->GetShip()->Set_hullEmDamageResonance( newHullResonance );
+		}
+	}
+}
+void ShipModule::DoStructureThermalDamageResistanceBonu(bool add, bool notify) {
 
-		//Attribute thermalDamageResistanceBonus
-		if( !m_item->thermalDamageResistanceBonus() == 0 ) {
+	if( !AffectsHull() )
+		return;
+
+	double hullResonance;
+	double hullResonanceModifier;
+	double newHullResonance;
+
+	if( add ) {
+		if( !Equals(m_item->thermalDamageResistanceBonus(), 0) ) {
 			hullResonance = m_pilot->GetShip()->hullThermalDamageResonance();
 			hullResonanceModifier = m_item->thermalDamageResistanceBonus();
 			newHullResonance = hullResonance + hullResonance * hullResonanceModifier / 100;
 			m_pilot->GetShip()->Set_hullEmDamageResonance( newHullResonance );
 		}
 	} else {
-		//Attribute emDamageResistanceBonus
-		if( !m_item->emDamageResistanceBonus() == 0 || -100 ) {
-			hullResonance = m_pilot->GetShip()->hullEmDamageResonance();
-			hullResonanceModifier = m_item->emDamageResistanceBonus();
-			newHullResonance = hullResonance / ( 1 + hullResonanceModifier / 100 );
-			m_pilot->GetShip()->Set_hullEmDamageResonance( newHullResonance );
-		}
-		
-		//Attribute explosiveDamageResistanceBonus
-		if( !m_item->explosiveDamageResistanceBonus() == 0 || -100 ) {
-			hullResonance = m_pilot->GetShip()->hullExplosiveDamageResonance();
-			hullResonanceModifier = m_item->explosiveDamageResistanceBonus();
-			newHullResonance = hullResonance / ( 1 + hullResonanceModifier / 100 );
-			m_pilot->GetShip()->Set_hullEmDamageResonance( newHullResonance );
-		}
-
-		//Attribute kineticDamageResistanceBonus
-		if( !m_item->kineticDamageResistanceBonus() == 0 || -100 ) {
-			hullResonance = m_pilot->GetShip()->hullKineticDamageResonance();
-			hullResonanceModifier = m_item->kineticDamageResistanceBonus();
-			newHullResonance = hullResonance / ( 1 + hullResonanceModifier / 100 );
-			m_pilot->GetShip()->Set_hullEmDamageResonance( newHullResonance );
-		}
-
-		//Attribute thermalDamageResistanceBonus
-		if( !m_item->thermalDamageResistanceBonus() == 0 || -100 ) {
+		if( !Equals(m_item->thermalDamageResistanceBonus(), 0)		&&
+			!Equals(m_item->thermalDamageResistanceBonus(), -100)	)
+		{
 			hullResonance = m_pilot->GetShip()->hullThermalDamageResonance();
 			hullResonanceModifier = m_item->thermalDamageResistanceBonus();
 			newHullResonance = hullResonance / ( 1 + hullResonanceModifier / 100 );
@@ -1255,31 +1386,57 @@ void ShipModule::HullResistanceEffects(bool online) {
 		}
 	}
 }
-
-void ShipModule::ShipVelocityEffects(bool online) {
+void ShipModule::DoImplantBonusVelocity(bool add, bool notify) {
 
 	double maxVelocity;
 	double maxVelocityModifier;
 	double newMaxVelocity;
 
-	if( online ) {
-		//Attribute implantBonusVelocity
+	if( add ) {
 		if( !m_item->implantBonusVelocity() == 0 ) {
 			maxVelocity = m_pilot->GetShip()->maxVelocity();
 			maxVelocityModifier = m_item->implantBonusVelocity();
 			newMaxVelocity = maxVelocity + maxVelocity * maxVelocityModifier / 100;
 			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
 		}
-		
-		//Attribute speedBonus
+	} else {
+		if( !m_item->implantBonusVelocity() == 0 || -100 ) {
+			maxVelocity = m_pilot->GetShip()->maxVelocity();
+			maxVelocityModifier = m_item->implantBonusVelocity();
+			newMaxVelocity = maxVelocity / ( 1 + maxVelocityModifier / 100 ) + 0.8; //round up
+			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
+		}
+	}
+}
+void ShipModule::DoSpeedBonus(bool add, bool notify) {
+
+	double maxVelocity;
+	double maxVelocityModifier;
+	double newMaxVelocity;
+
+	if( add ) {
 		if( !m_item->speedBonus() == 0 ) {
 			maxVelocity = m_pilot->GetShip()->maxVelocity();
 			maxVelocityModifier = m_item->speedBonus();
 			newMaxVelocity = maxVelocity + maxVelocityModifier;
 			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
 		}
-		
-		//Attribute maxVelocityBonus
+	} else {
+		if( !m_item->speedBonus() == 0 ) {
+			maxVelocity = m_pilot->GetShip()->maxVelocity();
+			maxVelocityModifier = m_item->speedBonus();
+			newMaxVelocity = maxVelocity - maxVelocityModifier;
+			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
+		}
+	}
+}
+void ShipModule::DoMaxVelocityBonus(bool add, bool notify) {
+
+	double maxVelocity;
+	double maxVelocityModifier;
+	double newMaxVelocity;
+
+	if( add ) {
 		if( !Equals(m_item->maxVelocityBonus(), 1) ) {
 			maxVelocity = m_pilot->GetShip()->maxVelocity();
 			maxVelocityModifier = m_item->maxVelocityBonus();
@@ -1287,23 +1444,6 @@ void ShipModule::ShipVelocityEffects(bool online) {
 			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
 		}
 	} else {
-		//Attribute implantBonusVelocity
-		if( !m_item->implantBonusVelocity() == 0 || -100 ) {
-			maxVelocity = m_pilot->GetShip()->maxVelocity();
-			maxVelocityModifier = m_item->implantBonusVelocity();
-			newMaxVelocity = maxVelocity / ( 1 + maxVelocityModifier / 100 ) + 0.8; //round up
-			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
-		}
-		
-		//Attribute speedBonus
-		if( !m_item->speedBonus() == 0 ) {
-			maxVelocity = m_pilot->GetShip()->maxVelocity();
-			maxVelocityModifier = m_item->speedBonus();
-			newMaxVelocity = maxVelocity - maxVelocityModifier;
-			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
-		}
-		
-		//Attribute maxVelocityBonus
 		if( !Equals(m_item->maxVelocityBonus(), 1) &&
 			!Equals(m_item->maxVelocityBonus(), 0) )
 		{
@@ -1313,17 +1453,14 @@ void ShipModule::ShipVelocityEffects(bool online) {
 			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
 		}
 	}
-
 }
-
-void ShipModule::ShipCpuEffects(bool online) {
-
+void ShipModule::DoCpuMultiplier(bool add, bool notify) {
+	
 	double cpuOutput;
 	double cpuOutputModifier;
 	int newCpuOutput;
 
-	if( online ) {
-		//Attribute cpuMultiplier
+	if( add ) {
 		if( !Equals(m_item->cpuMultiplier(), 1) ) {
 			cpuOutput = m_pilot->GetShip()->cpuOutput();
 			cpuOutputModifier = m_item->cpuMultiplier();
@@ -1331,7 +1468,6 @@ void ShipModule::ShipCpuEffects(bool online) {
 			m_pilot->GetShip()->Set_cpuOutput( newCpuOutput ); 
 		}
 	} else {
-		//Attribute cpuMultiplier
 		if( !Equals(m_item->cpuMultiplier(), 1) && 
 			!Equals(m_item->cpuMultiplier(), 0) ) 
 		{
@@ -1341,26 +1477,36 @@ void ShipModule::ShipCpuEffects(bool online) {
 			m_pilot->GetShip()->Set_cpuOutput( newCpuOutput ); //rounding
 		}
 	}
-
 }
-
-void ShipModule::ShipPowerEffects(bool online) {
+void ShipModule::DoPowerIncrease(bool add, bool notify) {
 
 	double powerOutput;
 	double powerOutputModifier;
 	double newPowerOutput;
 
-	if( online ) {
-		//Attribute powerIncrease
+	if( add ) {
 		if( !m_item->powerIncrease() == 0 ) {
 			powerOutput = m_pilot->GetShip()->powerOutput();
 			powerOutputModifier = m_item->powerIncrease();
 			newPowerOutput = powerOutput + powerOutputModifier;
 			m_pilot->GetShip()->Set_powerOutput( newPowerOutput );
 		}
-		
-		//Attribute powerOutputBonus
+	} else {
+		if( !m_item->powerIncrease() == 0 ) {
+			powerOutput = m_pilot->GetShip()->powerOutput();
+			powerOutputModifier = m_item->powerIncrease();
+			newPowerOutput = powerOutput - powerOutputModifier;
+			m_pilot->GetShip()->Set_powerOutput( newPowerOutput );
+		}
+	}
+}
+void ShipModule::DoPowerOutputBonus(bool add, bool notify) {
 
+	double powerOutput;
+	double powerOutputModifier;
+	double newPowerOutput;
+
+	if( add ) {
 		if( !m_item->powerOutputBonus() == 0	&&
 			!m_item->powerOutputBonus() == 1	) 
 		{
@@ -1369,8 +1515,24 @@ void ShipModule::ShipPowerEffects(bool online) {
 			newPowerOutput = powerOutput * powerOutputModifier;
 			m_pilot->GetShip()->Set_powerOutput( newPowerOutput );
 		}
+	} else {
+		if( !m_item->powerOutputBonus() == 1	&&
+			!m_item->powerOutputBonus() == 0	)
+		{
+			powerOutput = m_pilot->GetShip()->powerOutput();
+			powerOutputModifier = m_item->powerOutputBonus();
+			newPowerOutput = powerOutput / powerOutputModifier;
+			m_pilot->GetShip()->Set_powerOutput( newPowerOutput );
+		}
+	}
+}
+void ShipModule::DoPowerOutputMultiplier(bool add, bool notify) {
 
-		//Attribute powerOutputMultiplier
+	double powerOutput;
+	double powerOutputModifier;
+	double newPowerOutput;
+
+	if( add ) {
 		if( !m_item->powerOutputMultiplier() == 0	&&
 			!m_item->powerOutputMultiplier() == 1	)
 		{
@@ -1380,25 +1542,6 @@ void ShipModule::ShipPowerEffects(bool online) {
 			m_pilot->GetShip()->Set_powerOutput( newPowerOutput );
 		}
 	} else {
-		//Attribute powerIncrease
-		if( !m_item->powerIncrease() == 0 ) {
-			powerOutput = m_pilot->GetShip()->powerOutput();
-			powerOutputModifier = m_item->powerIncrease();
-			newPowerOutput = powerOutput - powerOutputModifier;
-			m_pilot->GetShip()->Set_powerOutput( newPowerOutput );
-		}
-
-		//Attribute powerOutputBonus
-		if( !m_item->powerOutputBonus() == 1	&&
-			!m_item->powerOutputBonus() == 0	)
-		{
-			powerOutput = m_pilot->GetShip()->powerOutput();
-			powerOutputModifier = m_item->powerOutputBonus();
-			newPowerOutput = powerOutput / powerOutputModifier;
-			m_pilot->GetShip()->Set_powerOutput( newPowerOutput );
-		}
-
-		//Attribute powerOutputMultiplier
 		if( !m_item->powerOutputMultiplier() == 1	&&
 			!m_item->powerOutputMultiplier() == 0	)
 		{
@@ -1408,25 +1551,36 @@ void ShipModule::ShipPowerEffects(bool online) {
 			m_pilot->GetShip()->Set_powerOutput( newPowerOutput );
 		}
 	}
-
 }
-
-void ShipModule::ShipCapacitorChargeEffects(bool online) {
+void ShipModule::DoCapacitorBonus(bool add, bool notify) {
 
 	double capacitorCapacity;
 	double capacitorCapacityModifier;
 	int newCapacitorCapacity;
 
-	if( online ) {
-		//Attribute capacityBonus
+	if( add ) {
 		if( !m_item->capacitorBonus() == 0 ) {
 			capacitorCapacity = m_pilot->GetShip()->capacitorCapacity();
 			capacitorCapacityModifier = m_item->capacitorBonus();
 			newCapacitorCapacity = capacitorCapacity + capacitorCapacityModifier;
 			m_pilot->GetShip()->Set_capacitorCapacity( newCapacitorCapacity );
 		}
+	} else {
+		if( !m_item->capacitorBonus() == 0 ) {
+			capacitorCapacity = m_pilot->GetShip()->capacitorCapacity();
+			capacitorCapacityModifier = m_item->capacitorBonus();
+			newCapacitorCapacity = capacitorCapacity - capacitorCapacityModifier;
+			m_pilot->GetShip()->Set_capacitorCapacity( newCapacitorCapacity );
+		}
+	}
+}
+void ShipModule::DoCapacitorCapacityMultiplier(bool add, bool notify) {
 
-		//Attribute capacitorCapacityMultiplier
+	double capacitorCapacity;
+	double capacitorCapacityModifier;
+	int newCapacitorCapacity;
+
+	if( add ) {
 		if( !Equals(m_item->capacitorCapacityMultiplier(), 0)	&&
 			!Equals(m_item->capacitorCapacityMultiplier(), 1)	)
 		{
@@ -1436,15 +1590,6 @@ void ShipModule::ShipCapacitorChargeEffects(bool online) {
 			m_pilot->GetShip()->Set_capacitorCapacity( newCapacitorCapacity );
 		}
 	} else {
-		//Attribute capacityBonus
-		if( !m_item->capacitorBonus() == 0 ) {
-			capacitorCapacity = m_pilot->GetShip()->capacitorCapacity();
-			capacitorCapacityModifier = m_item->capacitorBonus();
-			newCapacitorCapacity = capacitorCapacity - capacitorCapacityModifier;
-			m_pilot->GetShip()->Set_capacitorCapacity( newCapacitorCapacity );
-		}
-
-		//Attribute capacitorCapacityMultiplier
 		if( !Equals(m_item->capacitorCapacityMultiplier(), 0)	&&
 			!Equals(m_item->capacitorCapacityMultiplier(), 1)	)
 		{
@@ -1455,15 +1600,13 @@ void ShipModule::ShipCapacitorChargeEffects(bool online) {
 		}
 	}
 }
-
-void ShipModule::ShipCapacitorRechargeRateEffects(bool online) {
+void ShipModule::DoCapacitorRechargeRateMultiplier(bool add, bool notify) {
 
 	double rechargeRate;
 	double rechargeRateModifier;
 	double newRechargeRate;
 
-	if( online ) {
-		//Attribute capacitorRechargeRateMultiplier
+	if( add ) {
 		if( !Equals(m_item->capacitorRechargeRateMultiplier(), 1) ) {
 			rechargeRate = m_pilot->GetShip()->rechargeRate();
 			rechargeRateModifier = m_item->capacitorRechargeRateMultiplier();
@@ -1471,7 +1614,6 @@ void ShipModule::ShipCapacitorRechargeRateEffects(bool online) {
 			m_pilot->GetShip()->Set_rechargeRate( newRechargeRate );
 		}
 	} else {
-		//Attribute capacitorRechargeRateMultiplier
 		if( !Equals(m_item->capacitorRechargeRateMultiplier(), 1)	&&
 			!Equals(m_item->capacitorRechargeRateMultiplier(), 0)	)
 		{
@@ -1481,17 +1623,14 @@ void ShipModule::ShipCapacitorRechargeRateEffects(bool online) {
 			m_pilot->GetShip()->Set_rechargeRate( newRechargeRate );
 		}
 	}
-
 }
-
-void ShipModule::ShipCargoCapacityEffects(bool online) {
+void ShipModule::DoCargoCapacityMultiplier(bool add, bool notify) {
 
 	double cargoCapacity;
 	double cargoCapacityModifier;
 	double newCargoCapacity;
 	
-	if( online ) {
-		//Attribute cargoCapacityMultiplier
+	if( add ) {
 		if( !Equals(m_item->cargoCapacityMultiplier(), 1) ) {
 			cargoCapacity = m_pilot->GetShip()->capacity();
 			cargoCapacityModifier = m_item->cargoCapacityMultiplier();
@@ -1499,7 +1638,6 @@ void ShipModule::ShipCargoCapacityEffects(bool online) {
 			m_pilot->GetShip()->Set_capacity( newCargoCapacity );
 		}
 	} else {
-		//Attribute cargoCapacityMultiplier
 		if( !Equals(m_item->cargoCapacityMultiplier(), 1)	&&
 			!Equals(m_item->cargoCapacityMultiplier(), 0)	)
 		{
@@ -1510,15 +1648,13 @@ void ShipModule::ShipCargoCapacityEffects(bool online) {
 		}
 	}
 }
-
-void ShipModule::ShipScanStrengthEffects(bool online) {
+void ShipModule::DoScanStrengthBonus(bool add, bool notify) {
 
 	double scanStrength;
 	double scanStrengthModifier;
 	double newScanStrength;
 
-	if( online ) {
-		//Attribute scanStrengthBonus
+	if( add ) {
 		if( !m_item->scanStrengthBonus() == 0 ) {
 			//uses gravimetric scanners
 			if( !m_pilot->GetShip()->scanGravimetricStrength() == 0 ) {
@@ -1549,37 +1685,7 @@ void ShipModule::ShipScanStrengthEffects(bool online) {
 				m_pilot->GetShip()->Set_scanRadarStrength( newScanStrength );
 			}
 		}
-
-		//Attribute scanGravimetricStrengthPercent
-		if( !m_item->scanGravimetricStrengthPercent() == 0 ) {
-			scanStrength = m_pilot->GetShip()->scanGravimetricStrength();
-			scanStrengthModifier = m_item->scanGravimetricStrengthPercent();
-			newScanStrength = scanStrength + scanStrength * scanStrengthModifier / 100;
-			m_pilot->GetShip()->Set_scanGravimetricStrength( newScanStrength );
-		}
-		//Attribute scanLadarStrengthPercent
-		if( !m_item->scanLadarStrengthPercent() == 0 ) {
-			scanStrength = m_pilot->GetShip()->scanLadarStrength();
-			scanStrengthModifier = m_item->scanLadarStrengthPercent();
-			newScanStrength = scanStrength + scanStrength * scanStrengthModifier / 100;
-			m_pilot->GetShip()->Set_scanLadarStrength( newScanStrength );
-		}
-		//Attribute scanMagnetometricStrengthPercent
-		if( !m_item->scanMagnetometricStrengthPercent() == 0 ) {
-			scanStrength = m_pilot->GetShip()->scanMagnetometricStrength();
-			scanStrengthModifier = m_item->scanMagnetometricStrengthPercent();
-			newScanStrength = scanStrength + scanStrength * scanStrengthModifier / 100;
-			m_pilot->GetShip()->Set_scanMagnetometricStrength( newScanStrength );
-		}
-		//Attribute scanRadarStrengthPercent
-		if( !m_item->scanRadarStrengthPercent() == 0 ) {
-			scanStrength = m_pilot->GetShip()->scanRadarStrength();
-			scanStrengthModifier = m_item->scanRadarStrengthPercent();
-			newScanStrength = scanStrength + scanStrength * scanStrengthModifier / 100;
-			m_pilot->GetShip()->Set_scanRadarStrength( newScanStrength );
-		}
 	} else {
-		//Attribute scanStrengthBonus
 		if( !m_item->scanStrengthBonus() == 0 ) {
 			//uses gravimetric scanners
 			if( !m_pilot->GetShip()->scanGravimetricStrength() == 0		&&
@@ -1618,8 +1724,22 @@ void ShipModule::ShipScanStrengthEffects(bool online) {
 				m_pilot->GetShip()->Set_scanRadarStrength( newScanStrength );
 			}
 		}
+	}
+}
+void ShipModule::DoScanGravimetricStrengthPercent(bool add, bool notify) {
+	
+	double scanStrength;
+	double scanStrengthModifier;
+	double newScanStrength;
 
-		//Attribute scanGravimetricStrengthPercent
+	if( add ) {
+		if( !m_item->scanGravimetricStrengthPercent() == 0 ) {
+			scanStrength = m_pilot->GetShip()->scanGravimetricStrength();
+			scanStrengthModifier = m_item->scanGravimetricStrengthPercent();
+			newScanStrength = scanStrength + scanStrength * scanStrengthModifier / 100;
+			m_pilot->GetShip()->Set_scanGravimetricStrength( newScanStrength );
+		}
+	} else {
 		if( !m_item->scanGravimetricStrengthPercent() == 0		&&
 			!m_item->scanGravimetricStrengthPercent() == -100	)
 		{
@@ -1628,7 +1748,22 @@ void ShipModule::ShipScanStrengthEffects(bool online) {
 			newScanStrength = scanStrength / ( 1 + scanStrengthModifier / 100 );
 			m_pilot->GetShip()->Set_scanGravimetricStrength( newScanStrength );
 		}
-		//Attribute scanLadarStrengthPercent
+	}
+}
+void ShipModule::DoScanLadarStrengthPercent(bool add, bool notify) {
+
+	double scanStrength;
+	double scanStrengthModifier;
+	double newScanStrength;
+	
+	if( add ) {
+		if( !m_item->scanLadarStrengthPercent() == 0 ) {
+			scanStrength = m_pilot->GetShip()->scanLadarStrength();
+			scanStrengthModifier = m_item->scanLadarStrengthPercent();
+			newScanStrength = scanStrength + scanStrength * scanStrengthModifier / 100;
+			m_pilot->GetShip()->Set_scanLadarStrength( newScanStrength );
+		}
+	} else {
 		if( !m_item->scanLadarStrengthPercent() == 0		&&
 			!m_item->scanLadarStrengthPercent() == -100		)
 		{
@@ -1637,7 +1772,22 @@ void ShipModule::ShipScanStrengthEffects(bool online) {
 			newScanStrength = scanStrength / ( 1 + scanStrengthModifier / 100 );
 			m_pilot->GetShip()->Set_scanLadarStrength( newScanStrength );
 		}
-		//Attribute scanMagnetometricStrengthPercent
+	}
+}
+void ShipModule::DoScanMagnetometricStrengthPercent(bool add, bool notify) {
+	
+	double scanStrength;
+	double scanStrengthModifier;
+	double newScanStrength;
+
+	if( add ) {
+		if( !m_item->scanMagnetometricStrengthPercent() == 0 ) {
+			scanStrength = m_pilot->GetShip()->scanMagnetometricStrength();
+			scanStrengthModifier = m_item->scanMagnetometricStrengthPercent();
+			newScanStrength = scanStrength + scanStrength * scanStrengthModifier / 100;
+			m_pilot->GetShip()->Set_scanMagnetometricStrength( newScanStrength );
+		}
+	} else {
 		if( !m_item->scanMagnetometricStrengthPercent() == 0		&&
 			!m_item->scanMagnetometricStrengthPercent() == -100		)
 		{
@@ -1646,7 +1796,22 @@ void ShipModule::ShipScanStrengthEffects(bool online) {
 			newScanStrength = scanStrength / ( 1 + scanStrengthModifier / 100 );
 			m_pilot->GetShip()->Set_scanMagnetometricStrength( newScanStrength );
 		}
-		//Attribute scanRadarStrengthPercent
+	}
+}
+void ShipModule::DoScanRadarStrengthPercent(bool add, bool notify) {
+	
+	double scanStrength;
+	double scanStrengthModifier;
+	double newScanStrength;
+
+	if( add ) {
+		if( !m_item->scanRadarStrengthPercent() == 0 ) {
+			scanStrength = m_pilot->GetShip()->scanRadarStrength();
+			scanStrengthModifier = m_item->scanRadarStrengthPercent();
+			newScanStrength = scanStrength + scanStrength * scanStrengthModifier / 100;
+			m_pilot->GetShip()->Set_scanRadarStrength( newScanStrength );
+		}
+	} else {
 		if( !m_item->scanRadarStrengthPercent() == 0		&&
 			!m_item->scanRadarStrengthPercent() == -100		)
 		{
@@ -1657,15 +1822,13 @@ void ShipModule::ShipScanStrengthEffects(bool online) {
 		}
 	}
 }
-
-void ShipModule::ShipSignatureRadiusEffects(bool online) {
+void ShipModule::DoSignatureRadiusBonus(bool add, bool notify) {
 
 	double signatureRadius;
 	double signatureRadiusModifier;
 	double newSignatureRadius;
 
-	if( online ) {
-		//Attribute signatureRadiusBonus
+	if( add ) {
 		if( !m_item->signatureRadiusBonus() == 0 ) {
 			signatureRadius = m_pilot->GetShip()->signatureRadius();
 			signatureRadiusModifier = m_item->signatureRadiusBonus();
@@ -1673,7 +1836,6 @@ void ShipModule::ShipSignatureRadiusEffects(bool online) {
 			m_pilot->GetShip()->Set_signatureRadius( newSignatureRadius );
 		}
 	} else {
-		//Attribute signatureRadiusBonus
 		if( !m_item->signatureRadiusBonus() == 0 ) {
 			signatureRadius = m_pilot->GetShip()->signatureRadius();
 			signatureRadiusModifier = m_item->signatureRadiusBonus();
@@ -1681,17 +1843,14 @@ void ShipModule::ShipSignatureRadiusEffects(bool online) {
 			m_pilot->GetShip()->Set_signatureRadius( newSignatureRadius );
 		}
 	}
-
 }
-
-void ShipModule::ShipDroneCapacityEffects(bool online) {
+void ShipModule::DoDroneCapacityBonus(bool add, bool notify) {
 
 	double droneCapacity;
 	double droneCapacityModifier;
 	double newDroneCapacity;
 
-	if( online ) {
-		//Attribute droneCapacityBonus
+	if( add ) {
 		if( !m_item->droneCapacityBonus() == 0 ) {
 			droneCapacity = m_pilot->GetShip()->droneCapacity();
 			droneCapacityModifier = m_item->droneCapacityBonus();
@@ -1699,7 +1858,6 @@ void ShipModule::ShipDroneCapacityEffects(bool online) {
 			m_pilot->GetShip()->Set_droneCapacity( newDroneCapacity );
 		}
 	} else {
-		//Attribute droneCapacityBonus
 		if( !m_item->droneCapacityBonus() == 0 ) {
 			droneCapacity = m_pilot->GetShip()->droneCapacity();
 			droneCapacityModifier = m_item->droneCapacityBonus();
@@ -1707,77 +1865,62 @@ void ShipModule::ShipDroneCapacityEffects(bool online) {
 			m_pilot->GetShip()->Set_droneCapacity( newDroneCapacity );
 		}
 	}
-
 }
-
-void ShipModule::ShipAgilityEffects(bool online) {
+void ShipModule::DoAgilityMultiplier(bool add, bool notify) {
 
 	double agility;
 	double agilityModifier;
 	double newAgility;
 
-	if( online ) {
-		//Attribute agilityMultiplier
-		//for whatever reason it's different for inertial stabilizers
-		if( IsInertialStabilizer() ) {
-			if( !Equals(m_item->agilityMultiplier(), 1) ) {
-				agility = m_pilot->GetShip()->agility();
-				agilityModifier = m_item->agilityMultiplier();
-				newAgility = agility - agility * agilityModifier / 100;
-				m_pilot->GetShip()->Set_agility( newAgility );
-			}
-		} else {
-			//Attribute agilityMultiplier
-			if( !Equals(m_item->agilityMultiplier(), 1) ) {
-				agility = m_pilot->GetShip()->agility();
-				agilityModifier = m_item->agilityMultiplier();
-				newAgility = agility * -agilityModifier;
-				m_pilot->GetShip()->Set_agility( newAgility );
-			} 
-		}
+	if( add ) {
+		if( !Equals(m_item->agilityMultiplier(), 1) ) {
+			agility = m_pilot->GetShip()->agility();
+			agilityModifier = m_item->agilityMultiplier();
+			newAgility = agility * -agilityModifier;
+			m_pilot->GetShip()->Set_agility( newAgility );
+		} 
 	} else {
-		//Attribute agilityMultiplier
-		//for whatever reason it's different for inertial stabilizers
-		if( IsInertialStabilizer() ) {
-			if( !Equals(m_item->agilityMultiplier(), 1)		&&
-				!Equals(m_item->agilityMultiplier(), 100)	)
-			{
-				agility = m_pilot->GetShip()->agility();
-				agilityModifier = m_item->agilityMultiplier();
-				newAgility = agility / ( 1 - agilityModifier / 100 );
-				m_pilot->GetShip()->Set_agility( newAgility );
-			}
-		} else {
-			//Attribute agilityMultiplier
-			if( !Equals(m_item->agilityMultiplier(), 1)	&&
-				!Equals(m_item->agilityMultiplier(), 0)	)
-			{
-				agility = m_pilot->GetShip()->agility();
-				agilityModifier = m_item->agilityMultiplier();
-				newAgility = agility / agilityModifier;
-				m_pilot->GetShip()->Set_agility( newAgility );
-			}
+		if( !Equals(m_item->agilityMultiplier(), 1)	&&
+			!Equals(m_item->agilityMultiplier(), 0)	)
+		{
+			agility = m_pilot->GetShip()->agility();
+			agilityModifier = m_item->agilityMultiplier();
+			newAgility = agility / agilityModifier;
+			m_pilot->GetShip()->Set_agility( newAgility );
 		}
 	}
-
 }
-
-void ShipModule::ShipScanResolutionEffects(bool online) {
+void ShipModule::DoScanResultionBonus(bool add, bool notify) {
 
 	double scanResolution;
 	double scanResolutionModifier;
 	double newScanResolution;
 
-	if( online ) {
-		//Attribute scanResolutionBonus
+	if( add ) {
 		if( !Equals(m_item->scanResolutionBonus(), 0) ) {
 			scanResolution = m_pilot->GetShip()->scanResolution();
 			scanResolutionModifier = m_item->scanResolutionBonus();
 			newScanResolution = scanResolution + scanResolution * scanResolutionModifier / 100 + 0.5; //correction factor
 			m_pilot->GetShip()->Set_scanResolution( newScanResolution );
 		}
+	} else {
+		if( !Equals(m_item->scanResolutionBonus(), 0)		&&
+			!Equals(m_item->scanResolutionBonus(), -100)	)
+		{
+			scanResolution = m_pilot->GetShip()->scanResolution();
+			scanResolutionModifier = m_item->scanResolutionBonus();
+			newScanResolution = scanResolution / ( 1 + scanResolutionModifier / 100 ) + 0.5; //correction factor
+			m_pilot->GetShip()->Set_scanResolution( newScanResolution );
+		}
+	}
+}
+void ShipModule::DoScanResultionMultiplier(bool add, bool notify) {
 
-		//Attribute scanResolutionMultiplier
+	double scanResolution;
+	double scanResolutionModifier;
+	double newScanResolution;
+
+	if( add ) {
 		if( !Equals(m_item->scanResolutionMultiplier(), 0)	&&
 			!Equals(m_item->scanResolutionMultiplier(), 1)	)
 		{
@@ -1787,17 +1930,6 @@ void ShipModule::ShipScanResolutionEffects(bool online) {
 			m_pilot->GetShip()->Set_scanResolution( newScanResolution );
 		}
 	} else {
-		//Attribute scanResolutionBonus
-		if( !Equals(m_item->scanResolutionBonus(), 0)		&&
-			!Equals(m_item->scanResolutionBonus(), -100)	)
-		{
-			scanResolution = m_pilot->GetShip()->scanResolution();
-			scanResolutionModifier = m_item->scanResolutionBonus();
-			newScanResolution = scanResolution / ( 1 + scanResolutionModifier / 100 ) + 0.5; //correction factor
-			m_pilot->GetShip()->Set_scanResolution( newScanResolution );
-		}
-
-		//Attribute scanResolutionMultiplier
 		if( !Equals(m_item->scanResolutionMultiplier(), 0)	&&
 			!Equals(m_item->scanResolutionMultiplier(), 1)	)
 		{
@@ -1807,17 +1939,14 @@ void ShipModule::ShipScanResolutionEffects(bool online) {
 			m_pilot->GetShip()->Set_scanResolution( newScanResolution );
 		}
 	}
-
 }
-
-void ShipModule::ShipMaxTargetRangeEffects(bool online) {
+void ShipModule::DoMaxTargetRangeBonus(bool add, bool notify) {
 
 	double maxTargetRange;
 	double maxTargetRangeModifier;
 	double newMaxTargetRange;
 
-	if( online ) {
-		//Attribute maxTargetRangeBonus
+	if( add ) {
 		if( !Equals(m_item->maxTargetRangeBonus(), 0) ) {
 			maxTargetRange = m_pilot->GetShip()->maxTargetRange();
 			maxTargetRangeModifier = m_item->maxTargetRangeBonus();
@@ -1825,7 +1954,6 @@ void ShipModule::ShipMaxTargetRangeEffects(bool online) {
 			m_pilot->GetShip()->Set_maxTargetRange( newMaxTargetRange );
 		}
 	} else {
-		//Attribute maxTargetRangeBonus
 		if( !Equals(m_item->maxTargetRangeBonus(), 0)		&&
 			!Equals(m_item->maxTargetRangeBonus(), -100)	)
 		{
@@ -1835,17 +1963,14 @@ void ShipModule::ShipMaxTargetRangeEffects(bool online) {
 			m_pilot->GetShip()->Set_maxTargetRange( newMaxTargetRange );
 		}
 	}
-
 }
-
-void ShipModule::ShipMaxTargetsEffects(bool online) {
+void ShipModule::DoMaxLockedTargetsBonus(bool add, bool notify) {
 
 	double maxLockedTargets;
 	double maxLockedTargetsModifier;
 	double newMaxLockedTargets;
 
-	if( online ) {
-		//Attribute maxLockedTargetsBonus
+	if( add ) {
 		if( !m_item->maxLockedTargetsBonus() == 0 ) {
 			maxLockedTargets = m_pilot->GetShip()->maxLockedTargets();
 			maxLockedTargetsModifier = m_item->maxLockedTargetsBonus();
@@ -1853,7 +1978,6 @@ void ShipModule::ShipMaxTargetsEffects(bool online) {
 			m_pilot->GetShip()->Set_maxLockedTargets( newMaxLockedTargets );
 		}
 	} else {
-		//Attribute maxLockedTargetsBonus
 		if( !m_item->maxLockedTargetsBonus() == 0 ) {
 			maxLockedTargets = m_pilot->GetShip()->maxLockedTargets();
 			maxLockedTargetsModifier = m_item->maxLockedTargetsBonus();
@@ -1861,18 +1985,14 @@ void ShipModule::ShipMaxTargetsEffects(bool online) {
 			m_pilot->GetShip()->Set_maxLockedTargets( newMaxLockedTargets );
 		}
 	}
-
-
 }
-
-void ShipModule::ShipWarpScrambleStrengthEffects(bool online) {
+void ShipModule::DoWarpScrambleStrength(bool add, bool notify) {
 
 	double warpScrambleStrength;
 	double warpScrambleStrengthModifier;
 	double newWarpScrambleStrength;
 
-	if( online ) {
-		//Attribute warpScrambleStrength
+	if( add ) {
 		if( !m_item->warpScrambleStrength() == 0 ) {
 			warpScrambleStrength = m_pilot->GetShip()->warpScrambleStrength();
 			warpScrambleStrengthModifier = m_item->warpScrambleStrength();
@@ -1880,7 +2000,6 @@ void ShipModule::ShipWarpScrambleStrengthEffects(bool online) {
 			m_pilot->GetShip()->Set_warpScrambleStrength( newWarpScrambleStrength );
 		}
 	} else {
-		//Attribute warpScrambleStrength
 		if( !m_item->warpScrambleStrength() == 0 ) {
 			warpScrambleStrength = m_pilot->GetShip()->warpScrambleStrength();
 			warpScrambleStrengthModifier = m_item->warpScrambleStrength();
@@ -1888,41 +2007,80 @@ void ShipModule::ShipWarpScrambleStrengthEffects(bool online) {
 			m_pilot->GetShip()->Set_warpScrambleStrength( newWarpScrambleStrength );
 		}
 	}
-
 }
-
-void ShipModule::ShipPropulsionStrengthEffects(bool online) {
+void ShipModule::DoPropulsionFusionStrength(bool add, bool notify) {
 
 	double propulsionStrength;
 	double propulsionStrengthModifier;
 	double newPropulsionStrength;
 
-	if( online ) {
-		//Attribute propulsionFusionStrength
+	if( add ) {
 		if( !m_item->propulsionFusionStrength() == 0 ) {
 			propulsionStrength = m_pilot->GetShip()->propulsionFusionStrength();
 			propulsionStrengthModifier = m_item->propulsionFusionStrength();
 			newPropulsionStrength = propulsionStrength + propulsionStrengthModifier;
 			m_pilot->GetShip()->Set_propulsionFusionStrength( newPropulsionStrength );
 		}
-		
-		//Attribute propulsionIonStrength
+	} else {
+		if( !m_item->propulsionFusionStrength() == 0 ) {
+			propulsionStrength = m_pilot->GetShip()->propulsionFusionStrength();
+			propulsionStrengthModifier = m_item->propulsionFusionStrength();
+			newPropulsionStrength = propulsionStrength - propulsionStrengthModifier;
+			m_pilot->GetShip()->Set_propulsionFusionStrength( newPropulsionStrength );
+		}
+	}
+}
+void ShipModule::DoPropulsionIonStrength(bool add, bool notify) {
+
+	double propulsionStrength;
+	double propulsionStrengthModifier;
+	double newPropulsionStrength;
+
+	if( add ) {
 		if( !m_item->propulsionIonStrength() == 0 ) {
 			propulsionStrength = m_pilot->GetShip()->propulsionIonStrength();
 			propulsionStrengthModifier = m_item->propulsionIonStrength();
 			newPropulsionStrength = propulsionStrength + propulsionStrengthModifier;
 			m_pilot->GetShip()->Set_propulsionIonStrength( newPropulsionStrength );
 		}
-		
-		//Attribute propulsionMagpulseStrength
+	} else {
+		if( !m_item->propulsionIonStrength() == 0 ) {
+			propulsionStrength = m_pilot->GetShip()->propulsionIonStrength();
+			propulsionStrengthModifier = m_item->propulsionIonStrength();
+			newPropulsionStrength = propulsionStrength - propulsionStrengthModifier;
+			m_pilot->GetShip()->Set_propulsionIonStrength( newPropulsionStrength );
+		}
+	}
+}
+void ShipModule::DoPropulsionMagpulseStrength(bool add, bool notify) {
+
+	double propulsionStrength;
+	double propulsionStrengthModifier;
+	double newPropulsionStrength;
+
+	if( add ) {
 		if( !m_item->propulsionMagpulseStrength() == 0 ) {
 			propulsionStrength = m_pilot->GetShip()->propulsionMagpulseStrength();
 			propulsionStrengthModifier = m_item->propulsionMagpulseStrength();
 			newPropulsionStrength = propulsionStrength + propulsionStrengthModifier;
 			m_pilot->GetShip()->Set_propulsionMagpulseStrength( newPropulsionStrength );
 		}
-		
-		//Attribute propulsionPlasmaStrength
+	} else {
+		if( !m_item->propulsionMagpulseStrength() == 0 ) {
+			propulsionStrength = m_pilot->GetShip()->propulsionMagpulseStrength();
+			propulsionStrengthModifier = m_item->propulsionMagpulseStrength();
+			newPropulsionStrength = propulsionStrength - propulsionStrengthModifier;
+			m_pilot->GetShip()->Set_propulsionMagpulseStrength( newPropulsionStrength );
+		}
+	}
+}
+void ShipModule::DoPropulsionPlasmaStrength(bool add, bool notify) {
+
+	double propulsionStrength;
+	double propulsionStrengthModifier;
+	double newPropulsionStrength;
+
+	if( add ) {
 		if( !m_item->propulsionPlasmaStrength() == 0 ) {
 			propulsionStrength = m_pilot->GetShip()->propulsionPlasmaStrength();
 			propulsionStrengthModifier = m_item->propulsionPlasmaStrength();
@@ -1930,31 +2088,6 @@ void ShipModule::ShipPropulsionStrengthEffects(bool online) {
 			m_pilot->GetShip()->Set_propulsionPlasmaStrength( newPropulsionStrength );
 		}
 	} else {
-		//Attribute propulsionFusionStrength
-		if( !m_item->propulsionFusionStrength() == 0 ) {
-			propulsionStrength = m_pilot->GetShip()->propulsionFusionStrength();
-			propulsionStrengthModifier = m_item->propulsionFusionStrength();
-			newPropulsionStrength = propulsionStrength - propulsionStrengthModifier;
-			m_pilot->GetShip()->Set_propulsionFusionStrength( newPropulsionStrength );
-		}
-		
-		//Attribute propulsionIonStrength
-		if( !m_item->propulsionIonStrength() == 0 ) {
-			propulsionStrength = m_pilot->GetShip()->propulsionIonStrength();
-			propulsionStrengthModifier = m_item->propulsionIonStrength();
-			newPropulsionStrength = propulsionStrength - propulsionStrengthModifier;
-			m_pilot->GetShip()->Set_propulsionIonStrength( newPropulsionStrength );
-		}
-		
-		//Attribute propulsionMagpulseStrength
-		if( !m_item->propulsionMagpulseStrength() == 0 ) {
-			propulsionStrength = m_pilot->GetShip()->propulsionMagpulseStrength();
-			propulsionStrengthModifier = m_item->propulsionMagpulseStrength();
-			newPropulsionStrength = propulsionStrength - propulsionStrengthModifier;
-			m_pilot->GetShip()->Set_propulsionMagpulseStrength( newPropulsionStrength );
-		}
-		
-		//Attribute propulsionPlasmaStrength
 		if( !m_item->propulsionPlasmaStrength() == 0 ) {
 			propulsionStrength = m_pilot->GetShip()->propulsionPlasmaStrength();
 			propulsionStrengthModifier = m_item->propulsionPlasmaStrength();
@@ -1962,51 +2095,24 @@ void ShipModule::ShipPropulsionStrengthEffects(bool online) {
 			m_pilot->GetShip()->Set_propulsionPlasmaStrength( newPropulsionStrength );
 		}
 	}
-
-
 }
+void ShipModule::DoPassiveArmorEmDamageResistanceBonus(bool add, bool notify) {
 
-void ShipModule::ActiveModulePassiveArmorResists(bool online) {
-
+	if( !AffectsArmor() )
+		return;
+	
 	double armorResonance;
 	double resistanceModifier;
 	double newArmorResonance;
 
-	if( online ) {
-		//Attribute passiveEmDamageResistanceBonus
+	if( add ) {
 		if( !m_item->passiveEmDamageResistanceBonus() == 0 ) {
 			armorResonance = m_pilot->GetShip()->armorEmDamageResonance();
 			resistanceModifier = m_item->passiveEmDamageResistanceBonus();
 			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
 			m_pilot->GetShip()->Set_armorEmDamageResonance( newArmorResonance );
 		}
-
-		//Attribute passiveExplosiveDamageResistanceBonus
-		if( !m_item->passiveExplosiveDamageResistanceBonus() == 0 ) {
-			armorResonance = m_pilot->GetShip()->armorExplosiveDamageResonance();
-			resistanceModifier = m_item->passiveExplosiveDamageResistanceBonus();
-			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_armorExplosiveDamageResonance( newArmorResonance );
-		}
-
-		//Attribute passiveKineticDamageResistanceBonus
-		if( !m_item->passiveKineticDamageResistanceBonus() == 0 ) {
-			armorResonance = m_pilot->GetShip()->armorKineticDamageResonance();
-			resistanceModifier = m_item->passiveKineticDamageResistanceBonus();
-			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_armorKineticDamageResonance( newArmorResonance );
-		}
-
-		//Attribute passiveThermalDamageResistanceBonus
-		if( !m_item->passiveThermicDamageResistanceBonus() == 0 ) {
-			armorResonance = m_pilot->GetShip()->armorThermalDamageResonance();
-			resistanceModifier = m_item->passiveThermicDamageResistanceBonus();
-			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_armorThermalDamageResonance( newArmorResonance );
-		}
-
 	} else {
-		//Attribute passiveEmDamageResistanceBonus
 		if( !m_item->passiveEmDamageResistanceBonus() == 0		&&
 			!m_item->passiveEmDamageResistanceBonus() == -100	)
 		{
@@ -2015,8 +2121,25 @@ void ShipModule::ActiveModulePassiveArmorResists(bool online) {
 			newArmorResonance = armorResonance / ( 1 + resistanceModifier/ 100 );
 			m_pilot->GetShip()->Set_armorEmDamageResonance( newArmorResonance );
 		}
+	}
+}
+void ShipModule::DoPassiveArmorExplosiveDamageResistanceBonus(bool add, bool notify) {
 
-		//Attribute passiveExplosiveDamageResistanceBonus
+	if( !AffectsArmor() )
+		return;
+		
+	double armorResonance;
+	double resistanceModifier;
+	double newArmorResonance;
+
+	if( add ) {
+		if( !m_item->passiveExplosiveDamageResistanceBonus() == 0 ) {
+			armorResonance = m_pilot->GetShip()->armorExplosiveDamageResonance();
+			resistanceModifier = m_item->passiveExplosiveDamageResistanceBonus();
+			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_armorExplosiveDamageResonance( newArmorResonance );
+		}
+	} else {
 		if( !m_item->passiveExplosiveDamageResistanceBonus() == 0		&&
 			!m_item->passiveExplosiveDamageResistanceBonus() == -100	)
 		{
@@ -2025,8 +2148,25 @@ void ShipModule::ActiveModulePassiveArmorResists(bool online) {
 			newArmorResonance = armorResonance / ( 1 + resistanceModifier/ 100 );
 			m_pilot->GetShip()->Set_armorExplosiveDamageResonance( newArmorResonance );
 		}
+	}
+}
+void ShipModule::DoPassiveArmorKineticDamageResistanceBonus(bool add, bool notify) {
 
-		//Attribute passiveKineticDamageResistanceBonus
+	if( !AffectsArmor() )
+		return;
+		
+	double armorResonance;
+	double resistanceModifier;
+	double newArmorResonance;
+
+	if( add ) {
+		if( !m_item->passiveKineticDamageResistanceBonus() == 0 ) {
+			armorResonance = m_pilot->GetShip()->armorKineticDamageResonance();
+			resistanceModifier = m_item->passiveKineticDamageResistanceBonus();
+			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_armorKineticDamageResonance( newArmorResonance );
+		}
+	} else {
 		if( !m_item->passiveKineticDamageResistanceBonus() == 0		&&
 			!m_item->passiveKineticDamageResistanceBonus() == -100	)
 		{
@@ -2035,8 +2175,25 @@ void ShipModule::ActiveModulePassiveArmorResists(bool online) {
 			newArmorResonance = armorResonance / ( 1 + resistanceModifier/ 100 );
 			m_pilot->GetShip()->Set_armorKineticDamageResonance( newArmorResonance );
 		}
+	}
+}
+void ShipModule::DoPassiveArmorThermalDamageResistanceBonu(bool add, bool notify) {
 
-		//Attribute passiveThermalDamageResistanceBonus
+	if( !AffectsArmor() )
+		return;
+		
+	double armorResonance;
+	double resistanceModifier;
+	double newArmorResonance;
+
+	if( add ) {
+		if( !m_item->passiveThermicDamageResistanceBonus() == 0 ) {
+			armorResonance = m_pilot->GetShip()->armorThermalDamageResonance();
+			resistanceModifier = m_item->passiveThermicDamageResistanceBonus();
+			newArmorResonance = armorResonance + armorResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_armorThermalDamageResonance( newArmorResonance );
+		}
+	} else {
 		if( !m_item->passiveThermicDamageResistanceBonus() == 0		&&
 			!m_item->passiveThermicDamageResistanceBonus() == -100	)
 		{
@@ -2047,49 +2204,23 @@ void ShipModule::ActiveModulePassiveArmorResists(bool online) {
 		}
 	}
 }
+void ShipModule::DoPassiveShieldEmDamageResistanceBonus(bool add, bool notify) {
 
-void ShipModule::ActiveModulePassiveShieldResists(bool online) {
-
-
+	if( !AffectsShield() )
+		return;
+		
 	double shipResonance;
 	double resistanceModifier;
 	double newResonance;
 
-	if( online ) {
-		//Attribute passiveEmDamageResistanceBonus
+	if( add ) {
 		if( !m_item->passiveEmDamageResistanceBonus() == 0 ) {
 			shipResonance = m_pilot->GetShip()->shieldEmDamageResonance();
 			resistanceModifier = m_item->passiveEmDamageResistanceBonus();
 			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
 			m_pilot->GetShip()->Set_shieldEmDamageResonance( newResonance );
 		}
-
-		//Attribute passiveExplosiveDamageResistanceBonus
-		if( !m_item->passiveExplosiveDamageResistanceBonus() == 0 ) {
-			shipResonance = m_pilot->GetShip()->shieldExplosiveDamageResonance();
-			resistanceModifier = m_item->passiveExplosiveDamageResistanceBonus();
-			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_shieldExplosiveDamageResonance( newResonance );
-		}
-
-		//Attribute passiveKineticDamageResistanceBonus
-		if( !m_item->passiveKineticDamageResistanceBonus() == 0 ) {
-			shipResonance = m_pilot->GetShip()->shieldKineticDamageResonance();
-			resistanceModifier = m_item->passiveKineticDamageResistanceBonus();
-			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_shieldKineticDamageResonance( newResonance );
-		}
-
-		//Attribute passiveThermicDamageResistanceBonus
-		if( !m_item->passiveThermicDamageResistanceBonus() == 0 ) {
-			shipResonance = m_pilot->GetShip()->shieldThermalDamageResonance();
-			resistanceModifier = m_item->passiveThermicDamageResistanceBonus();
-			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
-			m_pilot->GetShip()->Set_shieldThermalDamageResonance( newResonance );
-		}
-
 	} else {
-		//Attribute passiveEmDamageResistanceBonus
 		if( !m_item->passiveEmDamageResistanceBonus() == 0		&&
 			!m_item->passiveEmDamageResistanceBonus() == -100	)
 		{
@@ -2098,8 +2229,25 @@ void ShipModule::ActiveModulePassiveShieldResists(bool online) {
 			newResonance = shipResonance / ( 1 + resistanceModifier / 100 );
 			m_pilot->GetShip()->Set_shieldEmDamageResonance( newResonance );
 		}
+	}
+}
+void ShipModule::DoPassiveShieldExplosiveDamageResistanceBonus(bool add, bool notify) {
 
-		//Attribute passiveExplosiveDamageResistanceBonus
+	if( !AffectsShield() )
+		return;
+		
+	double shipResonance;
+	double resistanceModifier;
+	double newResonance;
+
+	if( add ) {
+		if( !m_item->passiveExplosiveDamageResistanceBonus() == 0 ) {
+			shipResonance = m_pilot->GetShip()->shieldExplosiveDamageResonance();
+			resistanceModifier = m_item->passiveExplosiveDamageResistanceBonus();
+			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_shieldExplosiveDamageResonance( newResonance );
+		}
+	} else {
 		if( !m_item->passiveExplosiveDamageResistanceBonus() == 0		&&
 			!m_item->passiveExplosiveDamageResistanceBonus() == -100	)
 		{
@@ -2108,8 +2256,25 @@ void ShipModule::ActiveModulePassiveShieldResists(bool online) {
 			newResonance = shipResonance / ( 1 + resistanceModifier / 100 );
 			m_pilot->GetShip()->Set_shieldExplosiveDamageResonance( newResonance );
 		}
+	}
+}
+void ShipModule::DoPassiveShieldKineticDamageResistanceBonus(bool add, bool notify) {
 
-		//Attribute passiveKineticDamageResistanceBonus
+	if( !AffectsShield() )
+		return;
+		
+	double shipResonance;
+	double resistanceModifier;
+	double newResonance;
+
+	if( add ) {
+		if( !m_item->passiveKineticDamageResistanceBonus() == 0 ) {
+			shipResonance = m_pilot->GetShip()->shieldKineticDamageResonance();
+			resistanceModifier = m_item->passiveKineticDamageResistanceBonus();
+			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_shieldKineticDamageResonance( newResonance );
+		}
+	} else {
 		if( !m_item->passiveKineticDamageResistanceBonus() == 0		&&
 			!m_item->passiveKineticDamageResistanceBonus() == -100	)
 		{
@@ -2118,8 +2283,25 @@ void ShipModule::ActiveModulePassiveShieldResists(bool online) {
 			newResonance = shipResonance / ( 1 + resistanceModifier / 100 );
 			m_pilot->GetShip()->Set_shieldKineticDamageResonance( newResonance );
 		}
+	}
+}
+void ShipModule::DoPassiveShieldThermalDamageResistanceBonus(bool add, bool notify) {
 
-		//Attribute passiveThermicDamageResistanceBonus
+	if( !AffectsShield() )
+		return;
+		
+	double shipResonance;
+	double resistanceModifier;
+	double newResonance;
+
+	if( add ) {
+		if( !m_item->passiveThermicDamageResistanceBonus() == 0 ) {
+			shipResonance = m_pilot->GetShip()->shieldThermalDamageResonance();
+			resistanceModifier = m_item->passiveThermicDamageResistanceBonus();
+			newResonance = shipResonance + shipResonance * resistanceModifier / 100;
+			m_pilot->GetShip()->Set_shieldThermalDamageResonance( newResonance );
+		}
+	} else {
 		if( !m_item->passiveThermicDamageResistanceBonus() == 0		&&
 			!m_item->passiveThermicDamageResistanceBonus() == -100	)
 		{
@@ -2129,164 +2311,80 @@ void ShipModule::ActiveModulePassiveShieldResists(bool online) {
 			m_pilot->GetShip()->Set_shieldThermalDamageResonance( newResonance );
 		}
 	}
-
 }
-
-
-////////////////////////////////////////////////////////////
-///////////////ShipModule Helper Functions//////////////////
-////////////////////////////////////////////////////////////
-
-bool ShipModule::IsTurret() {
-
-	//check that the module is a member of the correct group
-
-	if( m_item->groupID() == EVEDB::invGroups::Energy_Weapon		||
-		m_item->groupID() == EVEDB::invGroups::Projectile_Weapon	||
-		m_item->groupID() == EVEDB::invGroups::Hybrid_Weapon		)
-	{
-		return true;
-
-	}
-
-	return false;
+void ShipModule::DoGodmaEffects(bool active) {
 	
+	Notify_OnGodmaShipEffect gse;
+	gse.itemID = m_item->itemID();
+	gse.effectID =
+	gse.when = Win32TimeNow();
+	gse.start = active?1:0;
+	gse.active = active?1:0;
+	gse.env_itemID = m_item->itemID();
+	gse.env_charID = m_item->ownerID();	//a little questionable
+	gse.env_shipID = m_item->locationID();
+	gse.env_target = m_target;
+	if( active )
+    {
+		PyTuple* env_other = new PyTuple( 3 );
+        env_other->SetItem( 0, new PyInt( m_item->locationID() ) ); //ship ID.
+        env_other->SetItem( 1, new PyInt( 29 ) ); //no idea
+		env_other->SetItem( 2, new PyInt( 215 ) );	//no idea
 
-}
-
-bool ShipModule::IsLauncher() {
-
-	//check that the module is a member of the correct group
-	if( m_item->groupID() == EVEDB::invGroups::Missile_Launcher				||
-		m_item->groupID() == EVEDB::invGroups::Missile_Launcher_Bomb		||
-		m_item->groupID() == EVEDB::invGroups::Missile_Launcher_Citadel		||
-		m_item->groupID() == EVEDB::invGroups::Missile_Launcher_Snowball	||
-		m_item->groupID() == EVEDB::invGroups::Missile_Launcher_Cruise		||
-		m_item->groupID() == EVEDB::invGroups::Missile_Launcher_Rocket		||
-		m_item->groupID() == EVEDB::invGroups::Missile_Launcher_Siege		||
-		m_item->groupID() == EVEDB::invGroups::Missile_Launcher_Standard	||
-		m_item->groupID() == EVEDB::invGroups::Missile_Launcher_Heavy		||
-		m_item->groupID() == EVEDB::invGroups::Missile_Launcher_Assault		||
-		m_item->groupID() == EVEDB::invGroups::Missile_Launcher_Defender	)
-	{
-		return true;
-
+		gse.env_other = env_other;
 	}
+    else
+		gse.env_other = new PyNone;
+	gse.env_effectID = gse.effectID;
+	gse.startTime = gse.when;
+	gse.duration =  m_activationInterval;
+	gse.repeat = m_repeatCount;
+	gse.randomSeed = new PyNone;
+	gse.error = new PyNone;
 
-	return false;
-
-}
-
-bool ShipModule::IsMiner() {
-
-	//check that the module is a member of the correct group
-	if( m_item->groupID() == EVEDB::invGroups::Mining_Laser				||
-		m_item->groupID() == EVEDB::invGroups::Strip_Miner				||
-		m_item->groupID() == EVEDB::invGroups::Frequency_Mining_Laser	)
-	{
-		return true;
-	}
-
-	return false;
+	//should this only go to ourself?
+	PyTuple* up = gse.Encode();
+	m_pilot->QueueDestinyEvent( &up );
+    PySafeDecRef( up );
 
 }
 
-bool ShipModule::IsStripMiner() {
+void ShipModule::DoSpecialFX(bool online) {
 
-	if( m_item->groupID() == EVEDB::invGroups::Strip_Miner )
-		return true;
+	DoDestiny_OnSpecialFX13 sfx;
 
-	return false;
-
-}
-
-bool ShipModule::IsShieldExtender() {
-
-	if( m_item->groupID() == EVEDB::invGroups::Shield_Extender )
-		return true;
-
-	return false;
-}
-
-bool ShipModule::IsAutomatedTargetingSystem() {
-
-	if( m_item->groupID() == EVEDB::invGroups::Automated_Targeting_System )
-		return true;
-
-	return false;
-}
-
-bool ShipModule::AffectsArmor() {
-
-	if( m_item->groupID() == EVEDB::invGroups::Armor_Coating			||
-		m_item->groupID() == EVEDB::invGroups::Armor_Reinforcer			||
-		m_item->groupID() == EVEDB::invGroups::Armor_Plating_Energized	||
-		m_item->groupID() == EVEDB::invGroups::Armor_Repair_Projector	||
-		m_item->groupID() == EVEDB::invGroups::Armor_Repair_Unit		||
-		m_item->groupID() == EVEDB::invGroups::Damage_Control			||
-		m_item->groupID() == EVEDB::invGroups::Armor_Hardener			)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool ShipModule::AffectsShield() {
+		sfx.entityID = m_pilot->GetShipID();
+		sfx.moduleID = m_item->itemID();
+		sfx.moduleTypeID = m_item->typeID();
+		sfx.targetID = m_target;
+		sfx.otherTypeID = 0;	//target->Item()->typeID();
+		//sfx.effect_type = 
+		//sfx.isOffensive = 
+		sfx.start = 1;
+		sfx.active = 1;
+		sfx.duration_ms = SFXEffectInterval();
+		sfx.repeat = 1;
+		sfx.startTime = Win32TimeNow();
 	
-	if( m_item->groupID() == EVEDB::invGroups::Shield_Amplifier		||
-		m_item->groupID() == EVEDB::invGroups::Shield_Disruptor		||
-		m_item->groupID() == EVEDB::invGroups::Shield_Extender		||
-		m_item->groupID() == EVEDB::invGroups::Shield_Booster		||
-		m_item->groupID() == EVEDB::invGroups::Shield_Hardener		||
-		m_item->groupID() == EVEDB::invGroups::Shield_Recharger		||
-		m_item->groupID() == EVEDB::invGroups::Damage_Control		||
-		m_item->groupID() == EVEDB::invGroups::Shield_Transporter	)
-	{
-		return true;
+		PyTuple* up = sfx.Encode();
+		m_pilot->Destiny()->SendSingleDestinyUpdate( &up );	//consumed
+		PySafeDecRef( up );
+
+}
+
+int ShipModule::SFXEffectInterval() {
+
+	//these are totally arbitrary :)
+
+	switch( m_item->groupID() ) {
+		case EVEDB::invGroups::Shield_Booster:
+			return m_activationInterval / 5;
+
+		default:
+			return m_activationInterval;
+			break;
 	}
-
-	return false;
 }
-
-bool ShipModule::AffectsHull() {
-
-	if( m_item->groupID() == EVEDB::invGroups::Hull_Mods		||
-		m_item->groupID() == EVEDB::invGroups::Damage_Control	||
-		m_item->groupID() == EVEDB::invGroups::Hull_Repair_Unit )
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool ShipModule::AffectsDrones() {
-
-	if( m_item->groupID() == EVEDB::invGroups::Drone_Control_Range_Module	||
-		m_item->groupID() == EVEDB::invGroups::Drone_Control_Unit			||
-		m_item->groupID() == EVEDB::invGroups::Drone_Damage_Modules			||
-		m_item->groupID() == EVEDB::invGroups::Drone_Modules				||
-		m_item->groupID() == EVEDB::invGroups::Drone_Navigation_Computer	||
-		m_item->groupID() == EVEDB::invGroups::Drone_Tracking_Modules		||
-		m_item->groupID() == EVEDB::invGroups::DroneBayExpander				)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool ShipModule::IsInertialStabilizer() {
-
-	if( m_item->groupID() == EVEDB::invGroups::Inertial_Stabilizer )
-		return true;
-
-	return false;
-}
-
-
-
 void ShipModule::ChangeMState(State new_state) {
 
 	//simply to clean up the code a bit
@@ -2306,11 +2404,67 @@ int ShipModule::ToInt(double a) {
 	int b = a;
 	return b;
 }
+void ShipModule::GetActivationInterval() {
+	
+	m_activationInterval = 4000;  //need to fix this
 
-/* TODO LIST
- * -Handle skill modifiers
- * -Handle attribute affects
- * -Handle deactivation effects
- */
+}
 
-//Contributors Mobbel, DanTheBanjoMan, Deer_Hunter
+
+bool ShipModule::AffectsArmor() {
+
+	//for now this will have to do, as I do not know where in the database where this information is
+	switch( m_item->groupID() ) {
+		case EVEDB::invGroups::Armor_Coating:
+		case EVEDB::invGroups::Armor_Hardener:
+		case EVEDB::invGroups::Armor_Plating_Energized:
+		case EVEDB::invGroups::Armor_Reinforcer:
+		case EVEDB::invGroups::Armor_Repair_Projector:
+		case EVEDB::invGroups::Armor_Repair_Unit:
+		case EVEDB::invGroups::Rig_Armor:
+			return true;
+	}
+	//TODO: add the rest of the modules
+	return false;
+}
+bool ShipModule::AffectsShield() {
+
+	//for now this will have to do, as I do not know where in the database where this information is
+	switch( m_item->groupID() ) {
+		case EVEDB::invGroups::Shield_Amplifier:
+		case EVEDB::invGroups::Shield_Boost_Amplifier:
+		case EVEDB::invGroups::Shield_Booster:
+		case EVEDB::invGroups::Shield_Disruptor:
+		case EVEDB::invGroups::Shield_Extender:
+		case EVEDB::invGroups::Shield_Flux_Coil:
+		case EVEDB::invGroups::Shield_Hardener:
+		case EVEDB::invGroups::Shield_Hardening_Array:
+		case EVEDB::invGroups::Shield_Power_Relay:
+		case EVEDB::invGroups::Shield_Recharger:
+		case EVEDB::invGroups::Shield_Transporter:
+		case EVEDB::invGroups::Rig_Shield:
+			return true;
+	}
+	//TODO: add the rest of the modules
+	return false;
+		
+}
+bool ShipModule::AffectsHull() {
+
+	//for now this will have to do, as I do not know where in the database where this information is
+	switch( m_item->groupID() ) {
+		case EVEDB::invGroups::Hull_Mods:
+		case EVEDB::invGroups::Hull_Repair_Unit:
+			return true;
+	}
+	//TODO: add the rest of the modules
+	return false;
+
+}
+ModuleEffect::ModuleEffect(){
+
+}
+ModuleEffect::~ModuleEffect(){
+
+}
+
