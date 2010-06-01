@@ -328,7 +328,7 @@ bool TCPConnection::SendData( char* errbuf )
         mMSendQueue.unlock();
 
         int status = mSock->send( &(*buf)[ 0 ], buf->size(), MSG_NOSIGNAL );
-#ifdef WIN32
+#ifndef WIN32
         if( errno == EPIPE )
             status = SOCKET_ERROR;
 #endif
@@ -481,7 +481,7 @@ thread_return_t TCPConnection::TCPConnectionLoop( void* arg )
 	TCPConnection* tcpc = reinterpret_cast<TCPConnection*>( arg );
     assert( tcpc != NULL );
 
-    THREAD_RETURN( tcpc->TCPConnectionLoop() );
+    return tcpc->TCPConnectionLoop();
 }
 
 thread_return_t TCPConnection::TCPConnectionLoop()
