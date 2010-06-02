@@ -120,7 +120,7 @@ void ModuleManager::UpdateModules() {
 	//This leaves us somewhat vulnerable to hacking, but oh well...
 	ShipRef ship = m_pilot->GetShip();
 	
-	_log(SHIP__MODULE_TRACE, "%s: Refreshing modules for ship %s (%u).", m_pilot->GetName(), ship->itemName().c_str(), ship->itemID());
+	sLog.Debug("ModuleMgr", "%s: Refreshing modules for ship %s (%u).", m_pilot->GetName(), ship->itemName().c_str(), ship->itemID());
 	
 	//TODO: iterate through all slots and fill in m_modules
 	//checking for inconsistencies as to not re-create 
@@ -160,7 +160,7 @@ void ModuleManager::UpdateModules() {
 				}
 				else
 				{
-					_log(SHIP__ERROR, "%s: Unexpected item category %d in slot %d (wanted charge)", m_pilot->GetName(), items[1]->categoryID(), flag);
+					sLog.Error("ModuleMgr","%s: Unexpected item category %d in slot %d (wanted charge)", m_pilot->GetName(), items[1]->categoryID(), flag);
 					valid = false;
 				}
 			}
@@ -173,13 +173,13 @@ void ModuleManager::UpdateModules() {
 				}
 				else
 				{
-					_log(SHIP__ERROR, "%s: Unexpected item category %d in slot %d (wanted module)", m_pilot->GetName(), items[1]->categoryID(), flag);
+					sLog.Error("ModuleMgr","%s: Unexpected item category %d in slot %d (wanted module)", m_pilot->GetName(), items[1]->categoryID(), flag);
 					valid = false;
 				}
 			}
 			else
-			{
-				_log(SHIP__ERROR, "%s: Unexpected item category %d in slot %d (wanted module or charge)", m_pilot->GetName(), items[0]->categoryID(), flag);
+			{ 
+				sLog.Error("ModuleMgr","%s: Unexpected item category %d in slot %d (wanted module or charge)", m_pilot->GetName(), items[0]->categoryID(), flag);
 				valid = false;
 			}
 
@@ -193,7 +193,7 @@ void ModuleManager::UpdateModules() {
 		else
 		{
 			//no idea why this would happen.. but its maybe possible..
-			_log(SHIP__ERROR, "%s: More than two items in a module slot (%d). We do not understand this yet!", m_pilot->GetName(), flag);
+			sLog.Error("ModuleMgr","%s: More than two items in a module slot (%d). We do not understand this yet!", m_pilot->GetName(), flag);
 			//ignore for now...
 			SafeDelete( m_modules[slot] );
 			continue;
@@ -205,11 +205,11 @@ void ModuleManager::UpdateModules() {
 			{
 				if( m_modules[slot]->charge() == charge )
 				{
-					_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is still in slot %d.", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot);
+					sLog.Debug("ModuleMgr","%s: Item %s (%u) is still in slot %d.", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot);
 				}
 				else
 				{
-					_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is still in slot %d, but has a new charge %s (%u).", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, ( !charge ? "None" : charge->itemName().c_str() ), ( !charge ? 0 : charge->itemID() ));
+					sLog.Debug("ModuleMgr","%s: Item %s (%u) is still in slot %d, but has a new charge %s (%u).", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, ( !charge ? "None" : charge->itemName().c_str() ), ( !charge ? 0 : charge->itemID() ));
 					m_modules[slot]->ChangeCharge(charge);
 				}
 				//no change...
@@ -219,7 +219,7 @@ void ModuleManager::UpdateModules() {
 
 			SafeDelete( m_modules[slot] );
 		}
-		_log(SHIP__MODULE_TRACE, "%s: Item %s (%u) is now in slot %d. Using charge %s (%u)", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, ( !charge ? "None" : charge->itemName().c_str() ), ( !charge ? 0 : charge->itemID() ));
+		sLog.Debug("ModuleMgr","%s: Item %s (%u) is now in slot %d. Using charge %s (%u)", m_pilot->GetName(), module->itemName().c_str(), module->itemID(), slot, ( !charge ? "None" : charge->itemName().c_str() ), ( !charge ? 0 : charge->itemID() ));
 		m_modules[slot] = ShipModule::CreateModule(m_pilot, module, charge);
 		m_moduleByID[module->itemID()] = slot;
 	}
@@ -233,7 +233,7 @@ void ModuleManager::UpdateModules() {
 		uint32 slotIndex = rSlot - 92; //rigSlot0
 		InventoryItemRef item;
 		if( !ship->FindSingleByFlag(rFlag, item) ) {
-			//SafeDelete( m_rigs[slotIndex] ); - MEMORY LEAK
+			sLog.Debug("ModuleMgr","FindSingleByFlag returned no results");
 			continue;
 		}
 
@@ -253,7 +253,7 @@ int ModuleManager::Activate(uint32 itemID, const std::string &effectName, uint32
 	if(res == m_moduleByID.end()) {
 
 		//log error
-		_log(SHIP__ERROR, "Activate: %s: failed to find module %u", m_pilot->GetName(), itemID);
+		sLog.Error("ModuleMgr","Activate: %s: failed to find module %u", m_pilot->GetName(), itemID);
 		return 0;
 	}
 
@@ -262,7 +262,7 @@ int ModuleManager::Activate(uint32 itemID, const std::string &effectName, uint32
 	if(mod == NULL) {
 
 		//if this happens we have bigger problems than your module not working
-		codelog(SHIP__ERROR, "%s: failed to activate module %u", m_pilot->GetName(), itemID);
+		sLog.Error("ModuleMgr","%s: failed to activate module %u", m_pilot->GetName(), itemID);
 		return 0;
 	}
 
@@ -278,7 +278,7 @@ int ModuleManager::Upgrade(uint32 itemID) {
 	if(res == m_rigByID.end()) {
 
 		//log error
-		_log(SHIP__ERROR, "Activate: %s: failed to find module %u", m_pilot->GetName(), itemID);
+		sLog.Error("ModuleManager","Upgrade: %s: failed to find rig %u", m_pilot->GetName(), itemID);
 		return 0;
 	}
 
@@ -287,7 +287,7 @@ int ModuleManager::Upgrade(uint32 itemID) {
 	if(mod == NULL) {
 
 		//if this happens we have bigger problems than your module not working
-		codelog(SHIP__ERROR, "%s: failed to activate module %u", m_pilot->GetName(), itemID);
+		sLog.Error("ModuleMgr","%s: failed to integrate rig %u", m_pilot->GetName(), itemID);
 		return 0;
 	}
 
@@ -301,7 +301,7 @@ void ModuleManager::Downgrade(uint32 itemID) {
 	if(res == m_rigByID.end()) {
 
 		//log error
-		_log(SHIP__ERROR, "Activate: %s: failed to find module %u", m_pilot->GetName(), itemID);
+		sLog.Error("ModuleMgr","Downgrade: %s: failed to find rig %u", m_pilot->GetName(), itemID);
 		return;
 	}
 
@@ -310,7 +310,7 @@ void ModuleManager::Downgrade(uint32 itemID) {
 	if(mod == NULL) {
 
 		//if this happens we have bigger problems than your module not working
-		codelog(SHIP__ERROR, "%s: failed to activate module %u", m_pilot->GetName(), itemID);
+		sLog.Error("ModuleMgr","%s: failed to remove rig %u", m_pilot->GetName(), itemID);
 		return;
 	}
 
@@ -327,7 +327,7 @@ void ModuleManager::Deactivate(uint32 itemID, const std::string &effectName) {
 	if(res == m_moduleByID.end()) {
 
 		//log error
-		_log(SHIP__ERROR, "Deactivate: %s: failed to find module %u.", m_pilot->GetName(), itemID);
+		sLog.Error("ModuleMgr","Deactivate: %s: failed to find module %u.", m_pilot->GetName(), itemID);
 		return;
 	}
 
@@ -336,7 +336,7 @@ void ModuleManager::Deactivate(uint32 itemID, const std::string &effectName) {
 
 	if(mod == NULL) {
 		//if this happens we have bigger problems than your module not working
-		codelog(SHIP__ERROR, "%s: failed to deactivate module %u", m_pilot->GetName(), itemID);
+		sLog.Error("ModuleMgr","%s: failed to deactivate module %u", m_pilot->GetName(), itemID);
 		return;
 	}
 
@@ -376,11 +376,11 @@ void ModuleManager::DeactivateAllModules()
         {
             try
             {
-				//TODO: implement deactivation logic
+				mod->Deactivate();
             }
             catch( char * str )
             {
-                _log(SHIP__MODULE_TRACE, "Error (%s)", str);
+				sLog.Debug("ModuleMgr", "Error (%s)", str);
             }
         }
     }
@@ -418,7 +418,7 @@ ShipModule::ShipModule(Client *pilot, InventoryItemRef self)
 
 	sLog.Debug("ModuleMgr", "Called Upgrade Ship stub");
 
-	//activate it if it's a new module
+	//activate it if it's a new rig
 	if( !m_item->isOnline() )
 		Upgrade();
 	else
@@ -443,21 +443,15 @@ ShipModule *ShipModule::CreateRig(Client *owner, InventoryItemRef self) {
 void ShipModule::ChangeCharge(InventoryItemRef new_charge) {
 
 	//You can only change charges while not active, but must be online
-
 	//check if online
 	if(m_state == Online ) {
-
 		//check if active
 		if( m_state == Active || m_state == Overloaded ) {
-
 			//Tell pilot he needs to deactive this weapon before changing the charge
 			m_pilot->SendNotifyMsg( "You must deactivate the weapon before changing the charge" );
-		
 		} else {
-
 			//change charges
 			m_charge = new_charge;
-
 		}
 
 	}
@@ -562,45 +556,14 @@ bool ShipModule::ValidateOnline() {
 	}
 
 	//if in space, check for cap
-	if( m_pilot->IsInSpace() )
+	if( m_pilot->IsInSpace() ) {
 		if( !m_pilot->GetShip()->charge() == m_pilot->GetShip()->capacitorCapacity() ){
 			m_pilot->SendNotifyMsg("You do not have enough available capacitor charge for this");
 			return false;
 		}
-
-
-	//check for ship conflicts - should this go in the _ExecAdd command?
-	//strip miner
-	if( m_item->groupID() == EVEDB::invGroups::Strip_Miner )
-		if( !m_pilot->GetShip()->groupID() == EVEDB::invGroups::Mining_Barge ) {
-			m_pilot->SendNotifyMsg("Your ship cannont use this module");
-			return false;
-		}
-
-	//super weapons
-	if( m_item->groupID() == EVEDB::invGroups::Super_Weapon ) {
-		if( m_item->typeID() == 24554 ) { //Erebus super weapon
-			if( !m_pilot->GetShip()->typeID() == 671 ) { //Erebus
-				m_pilot->SendNotifyMsg("Your ship cannont use this module");
-				return false;
-			}
-		} else if( m_item->typeID() == 23674 ) { //Ragnorok super weapon
-			if( !m_pilot->GetShip()->typeID() == 23773 ) { //Ragnorock
-				m_pilot->SendNotifyMsg("Your ship cannont use this module");
-				return false;
-			}
-		} else if( m_item->typeID() == 24550 ) { //Avatar super weapon
-			if( !m_pilot->GetShip()->typeID() == 11567 ) { //Avatar
-				m_pilot->SendNotifyMsg("Your ship cannont use this module");
-				return false;
-			}
-		} else if( m_item->typeID() == 24552 ) { //Leviathan super weapon
-			if( !m_pilot->GetShip()->typeID() == 3764 ) { // Leviathan
-				m_pilot->SendNotifyMsg("Your ship cannont use this module");
-				return false;
-			}
-		}
 	}
+
+	//check maxgroupsOnline attribute (id 978) 0 = no limit, 1 = 1
 
 	//if we pass everything, return true
 	return true;
@@ -610,7 +573,10 @@ bool ShipModule::ValidateOnline() {
 bool ShipModule::ValidateOffline() {
 
 	//for now, just return true, till i figure out what needs to go in here
-	return true;
+	if( m_state != Offline )
+		return true;
+	
+	return false;
 }
 
 bool ShipModule::ValidateActive() {
@@ -630,6 +596,11 @@ bool ShipModule::ValidateActive() {
 		m_pilot->SendNotifyMsg("You do not have enough capacitor to activate this module");
 		return false;
 	}
+
+	//check reactivation delay
+	//check maxGroupActive 0 = no limit, 1 = only 1;
+	//check disallowRepeatingActivation
+
 	return true;
 }
 
@@ -666,6 +637,8 @@ void ShipModule::DoEffect(bool active) {
 			}
 		} else {
 			sLog.Debug("ModuleManager","Called Activate Effect stub");
+			//don't forget to consume ammo Attr 713
+			//jumpDelayDuration timer public interface needed
 		}
 	} else {
 		if( m_effectName == "online") {
@@ -702,6 +675,7 @@ void ShipModule::DoEffect(bool active) {
 
 void ShipModule::DoPassiveEffects(bool add, bool notify) {
 	
+	//this is extremely slow compared to the switch, however, as the effect "online" tells us little about what actually happens, this is how it's done
 	 DoArmorHPBonus(add,notify);
 	 DoArmorHPBonusAdd(add,notify);
 	 DoArmorHPMultiplier(add,notify);
@@ -833,11 +807,11 @@ void ShipModule::DoArmorHPBonus(bool add, bool notify) {
 	
 	if( !AffectsArmor() )
 		return;
-	
+
 	double armorHP;
 	double armorHPModifier;
 	double newArmorHP;
-	
+
 	if( add ) {
 		if( !m_item->armorHpBonus() == 0 ) {
 			armorHP = m_pilot->GetShip()->armorHP();
@@ -2363,7 +2337,7 @@ void ShipModule::DoSpecialFX(bool online) {
 		sfx.start = 1;
 		sfx.active = 1;
 		sfx.duration_ms = SFXEffectInterval();
-		sfx.repeat = 1;
+		sfx.repeat = m_repeatCount;
 		sfx.startTime = Win32TimeNow();
 	
 		PyTuple* up = sfx.Encode();
@@ -2403,6 +2377,15 @@ bool ShipModule::Equals(double a, int b, double percision) {
 int ShipModule::ToInt(double a) {
 	int b = a;
 	return b;
+}
+bool ShipModule::TypeCast(double a) {
+
+	uint64 b = a;
+
+	if( a == b )
+		return true;
+
+	return false;
 }
 void ShipModule::GetActivationInterval() {
 	

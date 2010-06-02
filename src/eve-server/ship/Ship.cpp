@@ -197,14 +197,11 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
 	{
 		if(!Skill::FitModuleSkillCheck(item, character))
 			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+		if(!ValidateItemSpecifics(c,item))
+			throw PyException( MakeCustomError( "Your ship cannot equip this module" ) );
 		if(item->categoryID() == EVEDB::invCategories::Charge) {
 			InventoryItemRef module;
 			c->GetShip()->FindSingleByFlag(flag, module);
-			//Not sure if modules have to be online to recieve ammo
-			/*
-			if(!module->isOnline())
-				throw PyException( MakeCustomError( "This module is not online" ) );
-			*/
 			if(module->chargeSize() != item->chargeSize() )
 				throw PyException( MakeCustomError( "The charge is not the correct size for this module." ) );
 			if(module->chargeGroup1() != item->groupID())
@@ -359,4 +356,54 @@ bool Ship::ValidateBoardShip(ShipRef ship, CharacterRef character)
 	}
 
 	return true;
+}
+
+bool Ship::ValidateItemSpecifics(Client *c, InventoryItemRef equip) {
+
+	//declaring explicitly as int...not sure if this is needed or not
+	int groupID = c->GetShip()->groupID();
+	int typeID = c->GetShip()->typeID();
+	int canFitShipGroup1 = equip->canFitShipGroup1();
+	int canFitShipGroup2 = equip->canFitShipGroup2();
+	int canFitShipGroup3 = equip->canFitShipGroup3();
+	int canFitShipGroup4 = equip->canFitShipGroup4();
+	int canFitShipType1 = equip->canFitShipType1();
+	int canFitShipType2 = equip->canFitShipType2();
+	int canFitShipType3 = equip->canFitShipType3();
+	int canFitShipType4 = equip->canFitShipType4();
+
+	if( canFitShipGroup1 != 0 )
+		if( canFitShipGroup1 != groupID )
+			return false;
+
+	if( canFitShipGroup2 != 0 )
+		if( canFitShipGroup2 != groupID )
+			return false;
+
+	if( canFitShipGroup3 != 0 )
+		if( canFitShipGroup3 != groupID )
+			return false;
+
+	if( canFitShipGroup4 != 0 )
+		if( canFitShipGroup4 != groupID )
+			return false;
+
+	if( canFitShipType1 != 0 )
+		if( canFitShipType1 != typeID )
+			return false;
+
+	if( canFitShipType2 != 0 )
+		if( canFitShipType2 != typeID )
+			return false;
+
+	if( canFitShipType3 != 0 )
+		if( canFitShipType3 != typeID )
+			return false;
+
+	if( canFitShipType4 != 0 )
+		if( canFitShipType4 != typeID )
+			return false;
+
+	return true;
+
 }

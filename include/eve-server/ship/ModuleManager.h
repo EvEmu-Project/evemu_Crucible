@@ -160,6 +160,7 @@ public:
 	virtual void ChangeMState(State new_state);							//changes the m_state variable to the appropriate value
 	virtual bool Equals(double a, int b, double percision = 0.0001);	//used to determine if floats are equal to ints within a certain percision (less than the eve client uses)
 	virtual int	 ToInt(double a);										//used to return an integer to the client.  Rounds down
+	virtual bool TypeCast(double a);									//used to determine if the value is an integer or a float
 	virtual int GetState() { return m_state;}
 	virtual void GetActivationInterval();
 	virtual bool AffectsArmor();

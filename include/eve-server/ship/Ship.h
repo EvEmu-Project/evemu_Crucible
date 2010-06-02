@@ -183,7 +183,14 @@ public:
 	void Delete();
 
 	double GetCapacity(EVEItemFlags flag) const;
+	/*
+	 * _ExecAdd validation interface:
+	 */
 	static void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c);
+	/*
+	 * Checks for conflicts between ship and fitting
+	 */
+	static bool Ship::ValidateItemSpecifics(Client *c, InventoryItemRef equip);
 
 	/*
 	 * Public fields:

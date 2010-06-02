@@ -352,21 +352,38 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 						c->modules.Deactivate( newItem->itemID(), "online" );
 						c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
 					}
+
+					//Move New item to its new location
+					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh modules
+
+					//Create new item id return result
+					Call_SingleIntegerArg result;
+					result.arg = newItem->itemID();
+
+					//Return new item result
+					return result.Encode(); 
+
+				} else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) {
+					c->modules.Downgrade(newItem->itemID());
+
+					//move the item to the void or w/e
+					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flagAutoFit);
+
+					//delete the item
+					newItem->Delete();
+
+				} else {
+
+					//Move New item to its new location
+					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh modules
+
+					//Create new item id return result
+					Call_SingleIntegerArg result;
+					result.arg = newItem->itemID();
+
+					//Return new item result
+					return result.Encode(); 
 				}
-				if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7)
-				{
-					c->modules.Downgrade(newItem->itemID()); //should never happen as it should be handled by DestroyFittings
-				}
-
-                //Move New item to its new location
-                c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh modules
-
-                //Create new item id return result
-                Call_SingleIntegerArg result;
-                result.arg = newItem->itemID();
-
-                //Return new item result
-                return result.Encode();
             }
         }
         else
@@ -396,14 +413,24 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 						c->modules.Deactivate( sourceItem->itemID(), "online" );
 						c->GetShip()->Set_mass( c->GetShip()->mass() - sourceItem->massAddition() );
 					}
-			}
-			if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7)
-			{
-				c->modules.Downgrade(sourceItem->itemID()); //should never happen as it should be handled by DestroyFittings
-			}
 
-            c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);  // properly refresh modules
+					c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);
+
+			} else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) {
+				//remove effects
+				c->modules.Downgrade(sourceItem->itemID());
+				
+				//move the item to the void or w/e
+				c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flagAutoFit);
+
+				//delete the item
+				sourceItem->Delete();
+
+			} else {
+
+				c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);
 			
+			}
         }
 
 		//update modules
