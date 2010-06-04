@@ -190,7 +190,7 @@ public:
 	/*
 	 * Checks for conflicts between ship and fitting
 	 */
-	static bool Ship::ValidateItemSpecifics(Client *c, InventoryItemRef equip);
+	static bool ValidateItemSpecifics(Client *c, InventoryItemRef equip);
 
 	/*
 	 * Public fields:
