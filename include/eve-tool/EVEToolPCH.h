@@ -48,6 +48,7 @@
 #include "threading/Mutex.h"
 
 #include "utils/Buffer.h"
+#include "utils/crc32.h"
 #include "utils/misc.h"
 #include "utils/RefPtr.h"
 #include "utils/Seperator.h"
