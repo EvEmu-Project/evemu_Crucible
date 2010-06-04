@@ -218,7 +218,7 @@ uint32 CRC32::Update( const uint8* buf, size_t bufsize, uint32 crc32 )
         "shrl    $8, %%eax\n"
         "xorb    2(%%esi), %%bl\n"
         "xorl    (%%edi,%%ebx,4), %%eax\n"
-        "2:\n"
+    "2:\n"
         :
         : "a" ( val ), "g" ( buf ), "g" ( bufsize )
         : "bx", "cx", "dx", "si", "di"

@@ -59,8 +59,7 @@ IF( EVEMU_EXTRACT_SVN_REV )
 ENDIF( EVEMU_EXTRACT_SVN_REV )
 
 # Check for other dependencies
-FIND_PACKAGE( "Doxygen" )
-
+FIND_PACKAGE( "Doxygen" QUIET )
 FIND_PACKAGE( "Gangsta" QUIET )
 FIND_PACKAGE( "TinyXML" QUIET )
 FIND_PACKAGE( "UTF8CPP" QUIET )
@@ -94,9 +93,9 @@ CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.cmake"
 ADD_DEFINITIONS( "-DHAVE_CONFIG_H" )
 INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
 
-#############################
-# Recurse to subdirectories #
-#############################
+############################
+# Distributed dependencies #
+############################
 ADD_SUBDIRECTORY( "dep/utils" )
 
 IF( NOT GANGSTA_FOUND )
@@ -123,10 +122,18 @@ IF( NOT UTF8CPP_FOUND )
     SET( UTF8CPP_LIBRARIES   "utf8cpp" )
 ENDIF( NOT UTF8CPP_FOUND )
 
+###########################
+# Generated documentation #
+###########################
 IF( DOXYGEN_FOUND )
     ADD_SUBDIRECTORY( "doc" )
+ELSE( DOXYGEN_FOUND )
+    MESSAGE( WARNING "Doxygen not found: a generated documentation will not be available." )
 ENDIF( DOXYGEN_FOUND )
 
+################
+# EVEmu source #
+################
 ADD_SUBDIRECTORY( "src/common" )
 ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
