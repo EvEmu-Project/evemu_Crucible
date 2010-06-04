@@ -41,8 +41,10 @@
  *        MSVC, GNUC, (other)
  *   c) the configuration
  *        NDEBUG, (debug)
- *        TINYXML_USE_STL
+ *        EVEMU_ROOT_DIR
  *        EVEMU_VERSION
+ *        EVEMU_SERVER_SHOW_LOGIN_MESSAGE
+ *        TINYXML_USE_STL
  *
  * The rest of code relies on these defines.
  */
@@ -259,15 +261,11 @@ typedef uint8_t  uint8;
 // Important Quote: "_endthread and _endthreadex cause C++ destructors pending in the thread not to be called."
 // Result: mem leaks under windows
 #ifdef WIN32
-#  define THREAD_RETURN( x ) return
-
+#   define THREAD_RETURN( x ) ( x )
 typedef void thread_return_t;
-
 #else /* !WIN32 */
-#  define THREAD_RETURN( x ) return ( x )
-
+#   define THREAD_RETURN( x ) return ( x )
 typedef void* thread_return_t;
-
 #endif /* !WIN32 */
 
 // Basic programming tips
