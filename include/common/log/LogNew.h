@@ -23,9 +23,10 @@
     Author:     Captnoord
 */
 
-#ifndef LOG_NEW_H
-#define LOG_NEW_H
+#ifndef __LOG__LOG_NEW_H__INCL__
+#define __LOG__LOG_NEW_H__INCL__
 
+#include "threading/Mutex.h"
 #include "utils/Singleton.h"
 
 /**
@@ -80,7 +81,7 @@ public:
      * @param[in] source is the source from where the message is printed.
      * @param[in] fmt is the message itself.
      */
-    void Debug(const char* source, const char* fmt, ...);
+    void Debug( const char* source, const char* fmt, ... );
 
     /**
      * @brief Sets the logfile to be used.
@@ -111,12 +112,17 @@ public:
     void SetTime( time_t time ) { mTime = time; }
 
 private:
-    FILE*   mLogfile;
-    time_t  mTime;// crap there should be 1 generic easy to understand time manager.
+    /** The active logfile. */
+    FILE* mLogfile;
+    /** Current timestamp. */
+    time_t mTime; // crap there should be 1 generic easy to understand time manager.
+    /** Protection against concurrent log messages. */
+    Mutex mMutex;
 
 #ifdef WIN32
-    const HANDLE mStdoutHandle, mStderrHandle;
-#endif//WIN32
+    const HANDLE mStdOutHandle;
+    const HANDLE mStdErrHandle;
+#endif /* WIN32 */
 
     /**
      * @brief Prints given arguments.
@@ -156,4 +162,4 @@ private:
 #define sLog \
     ( NewLog::get() )
 
-#endif//LOG_NEW_H
+#endif /* !__LOG__LOG_NEW_H__INCL__ */

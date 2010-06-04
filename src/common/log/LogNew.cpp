@@ -62,8 +62,8 @@ NewLog::NewLog()
 : mLogfile( NULL ),
   mTime( 0 )
 #ifdef WIN32
-  ,mStdoutHandle( GetStdHandle( STD_OUTPUT_HANDLE ) ),
-  mStderrHandle( GetStdHandle( STD_ERROR_HANDLE ) )
+  ,mStdOutHandle( GetStdHandle( STD_OUTPUT_HANDLE ) ),
+  mStdErrHandle( GetStdHandle( STD_ERROR_HANDLE ) )
 #endif /* WIN32 */
 {
     // open default logfile
@@ -82,6 +82,8 @@ NewLog::~NewLog()
 
 void NewLog::Log( const char* source, const char* fmt, ... )
 {
+    LockMutex l( &mMutex );
+
     PrintTime();
 
     SetColor( TNORMAL );
@@ -108,6 +110,8 @@ void NewLog::Log( const char* source, const char* fmt, ... )
 
 void NewLog::Error( const char* source, const char* fmt, ... )
 {
+    LockMutex l( &mMutex );
+
     PrintTime();
 
     SetColor( TRED );
@@ -134,6 +138,8 @@ void NewLog::Error( const char* source, const char* fmt, ... )
 
 void NewLog::Warning( const char* source, const char* fmt, ... )
 {
+    LockMutex l( &mMutex );
+
     PrintTime();
 
     SetColor( TYELLOW );
@@ -160,6 +166,8 @@ void NewLog::Warning( const char* source, const char* fmt, ... )
 
 void NewLog::Success( const char* source, const char* fmt, ... )
 {
+    LockMutex l( &mMutex );
+
     PrintTime();
 
     SetColor( TGREEN );
@@ -187,6 +195,8 @@ void NewLog::Success( const char* source, const char* fmt, ... )
 void NewLog::Debug( const char* source, const char* fmt, ... )
 {
 #ifndef NDEBUG
+    LockMutex l( &mMutex );
+
     PrintTime();
 
     SetColor( TBLUE );
@@ -214,6 +224,8 @@ void NewLog::Debug( const char* source, const char* fmt, ... )
 
 bool NewLog::SetLogfile( const char* filename )
 {
+    LockMutex l( &mMutex );
+
     // if we got NULL, don't try to open it, pass it directly instead
     if( NULL == filename )
         return SetLogfile( (FILE*)NULL );
@@ -229,6 +241,8 @@ bool NewLog::SetLogfile( const char* filename )
 
 bool NewLog::SetLogfile( FILE* file )
 {
+    LockMutex l( &mMutex );
+
     // if we already have a logfile, close it first
     if( NULL != mLogfile )
         assert( 0 == fclose( mLogfile ) );
@@ -250,6 +264,8 @@ void NewLog::Print( const char* fmt, ... )
 
 void NewLog::PrintVa( const char* fmt, va_list ap )
 {
+    LockMutex l( &mMutex );
+
     if( NULL != mLogfile )
     {
         // this is a design flaw ( UNIX related )
@@ -271,6 +287,8 @@ void NewLog::PrintVa( const char* fmt, va_list ap )
 
 void NewLog::PrintTime()
 {
+    LockMutex l( &mMutex );
+
     // this will be replaced my a timing thread somehow
     SetTime( time( NULL ) );
 
@@ -282,8 +300,10 @@ void NewLog::PrintTime()
 
 void NewLog::SetColor( unsigned int color )
 {
+    LockMutex l( &mMutex );
+
 #ifdef WIN32
-    SetConsoleTextAttribute( mStdoutHandle, (WORD)color );
+    SetConsoleTextAttribute( mStdOutHandle, (WORD)color );
 #else /* !WIN32 */
     fputs( colorstrings[ color ], stdout );
 #endif /* !WIN32 */
@@ -291,6 +311,8 @@ void NewLog::SetColor( unsigned int color )
 
 void NewLog::SetLogfileDefault()
 {
+    LockMutex l( &mMutex );
+
     // set initial log system time
     SetTime( time( NULL ) );
 
