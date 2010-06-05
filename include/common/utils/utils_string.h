@@ -44,15 +44,6 @@ extern const std::string NULL_STRING;
 size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const char* fmt, ... );
 
 /**
- * @brief Escapes string.
- *
- * @param[in,out] subject String to be escaped.
- * @param[in]     find    String which shall be replaced.
- * @param[in]     replace String with which to replace.
- */
-void EscapeString( std::string& subject, const std::string& find, const std::string& replace );
-
-/**
  * @brief Generates random key.
  *
  * @param[in] length Length of key to generate.
@@ -194,6 +185,15 @@ void MakeLowerString( const char* source, char* target );
  * @retval false Error occured during decoding.
  */
 bool PyDecodeEscape( const char* str, Buffer& into );
+
+/**
+ * @brief Does search & replace on @a subject.
+ *
+ * @param[in,out] subject String to be searched.
+ * @param[in]     search  String which shall be replaced.
+ * @param[in]     replace String with which to replace.
+ */
+void SearchReplace( std::string& subject, const std::string& search, const std::string& replace );
 
 /**
  * @brief Splits path to its components.

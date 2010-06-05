@@ -76,7 +76,7 @@ std::string BaseRowsetReader::iterator::GetAsString( size_t index ) const
     case PyRep::PyTypeString:
         {
             std::string str = GetString( index );
-            EscapeString( str, "'", "\\'" );
+            SearchReplace( str, "'", "\\'" );
 
             str.insert( str.begin(), '\'' );
             str.insert( str.end(),   '\'' );
@@ -86,7 +86,7 @@ std::string BaseRowsetReader::iterator::GetAsString( size_t index ) const
     case PyRep::PyTypeWString:
         {
             std::string str = GetWString( index );
-            EscapeString( str, "'", "\\'" );
+            SearchReplace( str, "'", "\\'" );
 
             str.insert( str.begin(), '\'' );
             str.insert( str.end(),   '\'' );

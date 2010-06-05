@@ -58,16 +58,6 @@ size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const ch
 	return *strlen;
 }
 
-void EscapeString( std::string& subject, const std::string& find, const std::string& replace )
-{
-    std::string::size_type pos = 0;
-    while( ( pos = subject.find( find, pos ) ) != std::string::npos )
-    {
-        subject.replace( pos, find.length(), replace );
-        pos += replace.length();
-    }
-}
-
 std::string GenerateKey( size_t length )
 {
     static const char CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -334,6 +324,16 @@ bool PyDecodeEscape( const char* str, Buffer& into )
 		}
 	}
 	return true;
+}
+
+void SearchReplace( std::string& subject, const std::string& search, const std::string& replace )
+{
+    std::string::size_type pos = 0;
+    while( ( pos = subject.find( search, pos ) ) != std::string::npos )
+    {
+        subject.replace( pos, search.length(), replace );
+        pos += replace.length();
+    }
 }
 
 void SplitPath( const std::string& path, std::vector<std::string>& into )
