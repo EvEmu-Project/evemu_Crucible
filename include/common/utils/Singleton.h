@@ -23,8 +23,8 @@
 	Author:		Bloody.Rabbit
 */
 
-#ifndef __SINGLETON__H__INCL__
-#define __SINGLETON__H__INCL__
+#ifndef __UTILS__SINGLETON_H__INCL__
+#define __UTILS__SINGLETON_H__INCL__
 
 /**
  * @brief Template used for singleton classes.
@@ -42,22 +42,29 @@ template<typename X>
 class Singleton
 {
 public:
+    /**
+     * @brief Primary constructor.
+     *
+     * Checks if the instance being constructed is first, i.e.
+     * mInstance hasn't been filled yet. This only makes sense
+     * if the actual class is derived from Singleton.
+     */
     Singleton()
     {
         assert( NULL == mInstance.get() );
-
-        mInstance.reset( static_cast<X*>( this ) );
     }
 
+    /** @return Reference to the singleton instance. */
     static X& get()
     {
         if( NULL == mInstance.get() )
-            new X;
+            mInstance.reset( new X );
 
         return *mInstance;
     }
 
 protected:
+    /** Pointer to the singleton instance. */
     static std::auto_ptr<X> mInstance;
 };
 
@@ -65,5 +72,5 @@ protected:
     template<> \
     std::auto_ptr<T> Singleton<T>::mInstance( NULL )
 
-#endif /* !__SINGLETON__H__INCL__ */
+#endif /* !__UTILS__SINGLETON_H__INCL__ */
 

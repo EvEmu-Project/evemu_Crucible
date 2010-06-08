@@ -460,7 +460,8 @@ TARGET_LINK_LIBRARIES( "${COMPONENT_NAME}"
                        "eve-common" "common"
                        "utils"
                        ${GANGSTA_LIBRARIES} ${TINYXML_LIBRARIES}
-                       ${MYSQL_LIBRARIES} ${ZLIB_LIBRARIES} )
+                       ${MYSQL_LIBRARIES} ${ZLIB_LIBRARIES}
+                       ${CMAKE_THREAD_LIBS_INIT} )
 
 INSTALL( TARGETS "${COMPONENT_NAME}"
          RUNTIME DESTINATION "bin" )

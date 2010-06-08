@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Captnoord
+    Author:     Captnoord, Bloody.Rabbit
 */
 
 #include "CommonPCH.h"
@@ -56,16 +56,6 @@ size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const ch
 
 	*strlen += chars;
 	return *strlen;
-}
-
-void EscapeString( std::string& subject, const std::string& find, const std::string& replace )
-{
-    std::string::size_type pos = 0;
-    while( ( pos = subject.find( find, pos ) ) != std::string::npos )
-    {
-        subject.replace( pos, find.length(), replace );
-        pos += replace.length();
-    }
 }
 
 std::string GenerateKey( size_t length )
@@ -336,6 +326,16 @@ bool PyDecodeEscape( const char* str, Buffer& into )
 	return true;
 }
 
+void SearchReplace( std::string& subject, const std::string& search, const std::string& replace )
+{
+    std::string::size_type pos = 0;
+    while( ( pos = subject.find( search, pos ) ) != std::string::npos )
+    {
+        subject.replace( pos, search.length(), replace );
+        pos += replace.length();
+    }
+}
+
 void SplitPath( const std::string& path, std::vector<std::string>& into )
 {
 	const char* p = path.c_str();
@@ -361,7 +361,7 @@ void SplitPath( const std::string& path, std::vector<std::string>& into )
 }
 
 template<>
-bool str2<bool>( const char* str )
+bool str2< bool >( const char* str )
 {
     if( !strcasecmp( str, "true" ) )
 	    return true;
@@ -387,14 +387,14 @@ bool str2<bool>( const char* str )
 	    return true;
     else if( !strcasecmp( str, "disabled" ) )
 	    return false;
-    else if( str2<int>( str ) )
+    else if( str2< int >( str ) )
 	    return true;
     else
         return false;
 }
 
 template<>
-int64 str2<int64>( const char* str )
+int64 str2< int64 >( const char* str )
 {
     int64 v = 0;
     sscanf( str, I64d, &v );
@@ -402,7 +402,7 @@ int64 str2<int64>( const char* str )
 }
 
 template<>
-uint64 str2<uint64>( const char* str )
+uint64 str2< uint64 >( const char* str )
 {
     uint64 v = 0;
     sscanf( str, I64u, &v );
@@ -410,7 +410,7 @@ uint64 str2<uint64>( const char* str )
 }
 
 template<>
-long double str2<long double>( const char* str )
+long double str2< long double >( const char* str )
 {
     long double v = 0.0;
     sscanf( str, "%Lf", &v );
@@ -450,4 +450,3 @@ bool strn0cpyt( char* dest, const char* source, size_t size )
 
 	return ( source[ strlen( dest ) ] == 0 );
 }
-

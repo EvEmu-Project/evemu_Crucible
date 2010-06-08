@@ -46,7 +46,8 @@ TARGET_BUILD_PCH( "${COMPONENT_NAME}"
 TARGET_LINK_LIBRARIES( "${COMPONENT_NAME}"
                        "eve-common" "common"
                        "utils"
-                       ${MYSQL_LIBRARIES} ${ZLIB_LIBRARIES} )
+                       ${MYSQL_LIBRARIES} ${ZLIB_LIBRARIES}
+                       ${CMAKE_THREAD_LIBS_INIT} )
 
 INSTALL( TARGETS "${COMPONENT_NAME}"
          RUNTIME DESTINATION "bin" )

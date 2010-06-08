@@ -32,6 +32,7 @@
 /* Commands declaration                                                 */
 /************************************************************************/
 void DestinyDumpLogText( const Seperator& cmd );
+void CRC32Text( const Seperator& cmd );
 void ExitProgram( const Seperator& cmd );
 void PrintHelp( const Seperator& cmd );
 void ObjectToSQL( const Seperator& cmd );
@@ -49,6 +50,7 @@ void StuffExtract( const Seperator& cmd );
 const EVEToolCommand EVETOOL_COMMANDS[] =
 {
     { "destiny",   &DestinyDumpLogText, "Converts given string to binary and dumps it as destiny binary." },
+    { "crc32",     &CRC32Text,          "Computes CRC-32 checksum of given arguments."                    },
     { "exit",      &ExitProgram,        "Quits current session."                                          },
     { "help",      &PrintHelp,          "Lists available commands or prints help about specified one."    },
     { "mtest",     &TestMarshal,        "Performs marshal test."                                          },
@@ -116,6 +118,24 @@ void DestinyDumpLogText( const Seperator& cmd )
         }
 
         Destiny::DumpUpdate( DESTINY__MESSAGE, &destinyBinary[0], destinyBinary.size() );
+    }
+}
+
+void CRC32Text( const Seperator& cmd )
+{
+    const char* cmdName = cmd.arg( 0 ).c_str();
+
+    if( 1 == cmd.argCount() )
+    {
+        sLog.Error( cmdName, "Usage: %s text-to-checksum [text-to-checksum] ...", cmdName );
+        return;
+    }
+
+    for( size_t i = 1; i < cmd.argCount(); ++i )
+    {
+        const std::string& s = cmd.arg( i );
+
+        sLog.Log( cmdName, "%X", CRC32::Generate( (const uint8*)s.c_str(), s.size() ) );
     }
 }
 
