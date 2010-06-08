@@ -23,8 +23,8 @@
     Author:     Captnoord, Bloody.Rabbit
 */
 
-#ifndef UTILS_STRING_H
-#define UTILS_STRING_H
+#ifndef __UTILS__UTILS_STRING_H__INCL__
+#define __UTILS__UTILS_STRING_H__INCL__
 
 #include "utils/Buffer.h"
 
@@ -206,27 +206,25 @@ void SplitPath( const std::string& path, std::vector<std::string>& into );
 /**
  * @brief Generic string conversion template.
  *
- * Intentionally never defined to cause linking error
- * whenever used. The actual functionality is provided
- * by template specializations below.
+ * Try to use T( const char* ) directly.
  *
  * @param[in] str String to be converted.
  *
  * @param A value corresponding to content of @a str.
  */
-template<typename T>
-T str2( const char* str );
+template< typename T >
+T str2( const char* str ) { return str; }
 /**
  * @brief Generic string conversion template.
  *
- * Redirect to const char* version.
+ * Redirect to str2( const char* ).
  *
  * @param[in] str String to be converted.
  *
  * @param A value corresponding to content of @a str.
  */
-template<typename T>
-T str2( const std::string& str ) { return str2<T>( str.c_str() ); }
+template< typename T >
+T str2( const std::string& str ) { return str2< T >( str.c_str() ); }
 
 /**
  * @brief Converts string to boolean.
@@ -236,7 +234,7 @@ T str2( const std::string& str ) { return str2<T>( str.c_str() ); }
  * @param A boolean corresponding to content of @a str.
  */
 template<>
-bool str2<bool>( const char* str );
+bool str2< bool >( const char* str );
 
 /**
  * @brief Converts string to integer.
@@ -246,7 +244,7 @@ bool str2<bool>( const char* str );
  * @return An integer corresponding to content of @a str.
  */
 template<>
-int64 str2<int64>( const char* str );
+int64 str2< int64 >( const char* str );
 /**
  * @brief Converts string to integer.
  *
@@ -255,7 +253,7 @@ int64 str2<int64>( const char* str );
  * @return An integer corresponding to content of @a str.
  */
 template<>
-inline int32 str2<int32>( const char* str ) { return str2<int64>( str ); }
+inline int32 str2< int32 >( const char* str ) { return str2< int64 >( str ); }
 /**
  * @brief Converts string to integer.
  *
@@ -264,7 +262,7 @@ inline int32 str2<int32>( const char* str ) { return str2<int64>( str ); }
  * @return An integer corresponding to content of @a str.
  */
 template<>
-inline int16 str2<int16>( const char* str ) { return str2<int32>( str ); }
+inline int16 str2< int16 >( const char* str ) { return str2< int32 >( str ); }
 /**
  * @brief Converts string to integer.
  *
@@ -273,7 +271,7 @@ inline int16 str2<int16>( const char* str ) { return str2<int32>( str ); }
  * @return An integer corresponding to content of @a str.
  */
 template<>
-inline int8 str2<int8>( const char* str ) { return str2<int16>( str ); }
+inline int8 str2< int8 >( const char* str ) { return str2< int16 >( str ); }
 
 /**
  * @brief Converts string to unsigned integer.
@@ -283,7 +281,7 @@ inline int8 str2<int8>( const char* str ) { return str2<int16>( str ); }
  * @return An unsigned integer corresponding to content of @a str.
  */
 template<>
-uint64 str2<uint64>( const char* str );
+uint64 str2< uint64 >( const char* str );
 /**
  * @brief Converts string to unsigned integer.
  *
@@ -292,7 +290,7 @@ uint64 str2<uint64>( const char* str );
  * @return An unsigned integer corresponding to content of @a str.
  */
 template<>
-inline uint32 str2<uint32>( const char* str ) { return str2<uint64>( str ); }
+inline uint32 str2< uint32 >( const char* str ) { return str2< uint64 >( str ); }
 /**
  * @brief Converts string to unsigned integer.
  *
@@ -301,7 +299,7 @@ inline uint32 str2<uint32>( const char* str ) { return str2<uint64>( str ); }
  * @return An unsigned integer corresponding to content of @a str.
  */
 template<>
-inline uint16 str2<uint16>( const char* str ) { return str2<uint32>( str ); }
+inline uint16 str2<uint16>( const char* str ) { return str2< uint32 >( str ); }
 /**
  * @brief Converts string to unsigned integer.
  *
@@ -310,7 +308,7 @@ inline uint16 str2<uint16>( const char* str ) { return str2<uint32>( str ); }
  * @return An unsigned integer corresponding to content of @a str.
  */
 template<>
-inline uint8 str2<uint8>( const char* str ) { return str2<uint16>( str ); }
+inline uint8 str2<uint8>( const char* str ) { return str2< uint16 >( str ); }
 
 /**
  * @brief Converts string to real number.
@@ -320,7 +318,7 @@ inline uint8 str2<uint8>( const char* str ) { return str2<uint16>( str ); }
  * @return A real number corresponding to content of @a str.
  */
 template<>
-long double str2<long double>( const char* str );
+long double str2< long double >( const char* str );
 /**
  * @brief Converts string to real number.
  *
@@ -329,7 +327,7 @@ long double str2<long double>( const char* str );
  * @return A real number corresponding to content of @a str.
  */
 template<>
-inline double str2<double>( const char* str ) { return str2<long double>( str ); }
+inline double str2<double>( const char* str ) { return str2< long double >( str ); }
 /**
  * @brief Converts string to real number.
  *
@@ -338,7 +336,7 @@ inline double str2<double>( const char* str ) { return str2<long double>( str );
  * @return A real number corresponding to content of @a str.
  */
 template<>
-inline float str2<float>( const char* str ) { return str2<double>( str ); }
+inline float str2<float>( const char* str ) { return str2< double >( str ); }
 
 /**
  * @brief Copies given amount of characters from source to dest.
@@ -370,4 +368,4 @@ char* strn0cpy( char* dest, const char* source, size_t size );
  */
 bool strn0cpyt( char* dest, const char* source, size_t size );
 
-#endif // UTILS_STRING_H
+#endif /* !__UTILS__UTILS_STRING_H__INCL__ */

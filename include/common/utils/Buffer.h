@@ -1,30 +1,30 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2008 The EVEmu Team
+    For the latest information visit http://evemu.mmoforge.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Bloody.Rabbit
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:     Bloody.Rabbit
 */
 
-#ifndef __BUFFER_H__INCL__
-#define __BUFFER_H__INCL__
+#ifndef __UTILS__BUFFER_H__INCL__
+#define __UTILS__BUFFER_H__INCL__
 
 #include "utils/misc.h"
 
@@ -39,7 +39,7 @@
 class Buffer
 {
 public:
-    /** Typedef for size type. */
+    /// Typedef for size type.
     typedef size_t size_type;
 
     /**
@@ -51,24 +51,24 @@ public:
     class const_iterator
     : public std::iterator<std::random_access_iterator_tag, T>
     {
-        /** Typedef for our base due to readibility. */
+        /// Typedef for our base due to readibility.
         typedef std::iterator<std::random_access_iterator_tag, T> _Base;
 
     public:
-        /** Typedef for iterator category. */
+        /// Typedef for iterator category.
         typedef typename _Base::iterator_category iterator_category;
-        /** Typedef for value type. */
+        /// Typedef for value type.
         typedef typename _Base::value_type        value_type;
-        /** Typedef for difference type. */
+        /// Typedef for difference type.
         typedef typename _Base::difference_type   difference_type;
-        /** Typedef for pointer. */
+        /// Typedef for pointer.
         typedef typename _Base::pointer           pointer;
-        /** Typedef for reference. */
+        /// Typedef for reference.
         typedef typename _Base::reference         reference;
 
-        /** Typedef for const pointer. */
+        /// Typedef for const pointer.
         typedef const T* const_pointer;
-        /** Typedef for const reference. */
+        /// Typedef for const reference.
         typedef const T& const_reference;
 
         /**
@@ -82,14 +82,14 @@ public:
           mBuffer( buffer )
         {
         }
-        /** Copy constructor. */
+        /// Copy constructor.
         const_iterator( const const_iterator& oth )
         : mIndex( oth.mIndex ),
           mBuffer( oth.mBuffer )
         {
         }
 
-        /** Copy operator. */
+        /// Copy operator.
         const_iterator& operator=( const const_iterator& oth )
         {
             mIndex = oth.mIndex;
@@ -106,7 +106,7 @@ public:
         template<typename T2>
         const_iterator<T2> As() const { return const_iterator<T2>( mBuffer, mIndex ); }
 
-        /** Dereference operator. */
+        /// Dereference operator.
         const_reference operator*() const
         {
             // make sure we have valid buffer
@@ -117,18 +117,18 @@ public:
             // obtain the value and return
             return *(const_pointer)&( mBuffer->mBuffer )[ mIndex ];
         }
-        /** Dereference operator. */
+        /// Dereference operator.
         const_pointer operator->() const { return &**this; }
-        /** Subscript operator. */
+        /// Subscript operator.
         const_reference operator[]( difference_type diff ) const { return *( *this + diff ); }
 
-        /** Sum operator. */
+        /// Sum operator.
         const_iterator operator+( difference_type diff ) const
         {
             const_iterator res( *this );
             return ( res += diff );
         }
-        /** Add operator. */
+        /// Add operator.
         const_iterator& operator+=( difference_type diff )
         {
             // turn the diff into byte diff
@@ -146,9 +146,9 @@ public:
 
             return *this;
         }
-        /** Preincrement operator. */
+        /// Preincrement operator.
         const_iterator& operator++() { return ( *this += 1 );  }
-        /** Postincrement operator. */
+        /// Postincrement operator.
         const_iterator operator++( int )
         {
             const_iterator res( *this );
@@ -156,17 +156,17 @@ public:
             return res;
         }
 
-        /** Diff operator. */
+        /// Diff operator.
         const_iterator operator-( difference_type diff ) const
         {
             const_iterator res( *this );
             return ( res -= diff );
         }
-        /** Subtract operator. */
+        /// Subtract operator.
         const_iterator& operator-=( difference_type diff ) { return ( *this += ( -diff ) ); }
-        /** Predecrement operator. */
+        /// Predecrement operator.
         const_iterator& operator--() { return ( *this -= 1 ); }
-        /** Postdecrement operator. */
+        /// Postdecrement operator.
         const_iterator operator--( int )
         {
             const_iterator res( *this );
@@ -174,7 +174,7 @@ public:
             return res;
         }
 
-        /** Diff operator. */
+        /// Diff operator.
         difference_type operator-( const const_iterator& oth ) const
         {
             // make sure we have same parent buffer
@@ -183,7 +183,7 @@ public:
             return ( ( mIndex - oth.mIndex ) / sizeof( value_type ) );
         }
 
-        /** Equal operator. */
+        /// Equal operator.
         bool operator==( const const_iterator& oth ) const
         {
             // make sure we have same parent buffer
@@ -191,10 +191,10 @@ public:
             // return the result
             return ( mIndex == oth.mIndex );
         }
-        /** Non-equal operator. */
+        /// Non-equal operator.
         bool operator!=( const const_iterator& oth ) const { return !( *this == oth ); }
 
-        /** Less-than operator. */
+        /// Less-than operator.
         bool operator<( const const_iterator& oth ) const
         {
             // make sure we have same parent buffer
@@ -202,7 +202,7 @@ public:
             // return the result
             return ( mIndex < oth.mIndex );
         }
-        /** Greater-than operator. */
+        /// Greater-than operator.
         bool operator>( const const_iterator& oth ) const
         {
             // make sure we have same parent buffer
@@ -210,15 +210,15 @@ public:
             // return the result
             return ( mIndex > oth.mIndex );
         }
-        /** Less-equal operator. */
+        /// Less-equal operator.
         bool operator<=( const const_iterator& oth ) const { return !( *this > oth ); }
-        /** Greater-equal operator. */
+        /// Greater-equal operator.
         bool operator>=( const const_iterator& oth ) const { return !( *this < oth ); }
 
     protected:
-        /** Index in buffer, in bytes. */
+        /// Index in buffer, in bytes.
         size_type mIndex;
-        /** The parent Buffer. */
+        /// The parent Buffer.
         const Buffer* mBuffer;
     };
 
@@ -231,23 +231,23 @@ public:
     class iterator
     : public const_iterator<T>
     {
-        /** Typedef for our base due to readibility. */
+        /// Typedef for our base due to readibility.
         typedef const_iterator<T> _Base;
 
     public:
-        /** Typedef for iterator category. */
+        /// Typedef for iterator category.
         typedef typename _Base::iterator_category iterator_category;
-        /** Typedef for value type. */
+        /// Typedef for value type.
         typedef typename _Base::value_type        value_type;
-        /** Typedef for difference type. */
+        /// Typedef for difference type.
         typedef typename _Base::difference_type   difference_type;
-        /** Typedef for pointer. */
+        /// Typedef for pointer.
         typedef typename _Base::pointer           pointer;
-        /** Typedef for const pointer. */
+        /// Typedef for const pointer.
         typedef typename _Base::const_pointer     const_pointer;
-        /** Typedef for reference. */
+        /// Typedef for reference.
         typedef typename _Base::reference         reference;
-        /** Typedef for const reference. */
+        /// Typedef for const reference.
         typedef typename _Base::const_reference   const_reference;
 
         /**
@@ -257,10 +257,10 @@ public:
          * @param[in] index  The index.
          */
         iterator( Buffer* buffer = NULL, size_type index = 0 ) : _Base( buffer, index ) {}
-        /** Copy constructor. */
+        /// Copy constructor.
         iterator( const iterator& oth ) : _Base( oth ) {}
 
-        /** Copy operator. */
+        /// Copy operator.
         iterator& operator=( const iterator& oth ) { *(_Base*)this = oth; return *this; }
 
         /**
@@ -272,24 +272,24 @@ public:
         template<typename T2>
         iterator<T2> As() const { return iterator<T2>( _Base::mBuffer, _Base::mIndex ); }
 
-        /** Dereference operator. */
+        /// Dereference operator.
         reference operator*() const { return const_cast<reference>( **(_Base*)this ); }
-        /** Dereference operator. */
+        /// Dereference operator.
         pointer operator->() const { return &**this; }
-        /** Subscript operator. */
+        /// Subscript operator.
         reference operator[]( difference_type diff ) const { return *( *this + diff ); }
 
-        /** Sum operator. */
+        /// Sum operator.
         iterator operator+( difference_type diff ) const
         {
             iterator res( *this );
             return ( res += diff );
         }
-        /** Add operator. */
+        /// Add operator.
         iterator operator+=( difference_type diff ) { *(_Base*)this += diff; return *this; }
-        /** Preincrement operator. */
+        /// Preincrement operator.
         iterator& operator++() { ++*(_Base*)this; return *this; }
-        /** Postincrement operator. */
+        /// Postincrement operator.
         iterator operator++( int )
         {
             iterator res( *this );
@@ -297,17 +297,17 @@ public:
             return res;
         }
 
-        /** Diff operator. */
+        /// Diff operator.
         iterator operator-( difference_type diff ) const
         {
             iterator res( *this );
             return ( res -= diff );
         }
-        /** Subtract operator. */
+        /// Subtract operator.
         iterator& operator-=( difference_type diff ) { *(_Base*)this -= diff; return *this; }
-        /** Predecrement operator. */
+        /// Predecrement operator.
         iterator& operator--() { --*(_Base*)this; return *this; }
-        /** Postdecrement operator. */
+        /// Postdecrement operator.
         iterator operator--( int )
         {
             iterator res( *this );
@@ -315,7 +315,7 @@ public:
             return res;
         }
 
-        /** Diff operator. */
+        /// Diff operator.
         difference_type operator-( const _Base& oth ) const { return ( *(_Base*)this - oth ); }
     };
 
@@ -356,7 +356,7 @@ public:
         // assign the content
         AssignSeq( first, last );
     }
-    /** Copy constructor. */
+    /// Copy constructor.
     Buffer( const Buffer& oth )
     : mBuffer( NULL ),
       mSize( 0 ),
@@ -365,7 +365,7 @@ public:
         // Use assigment operator
         *this = oth;
     }
-    /** Destructor; deletes buffer. */
+    /// Destructor; deletes buffer.
     ~Buffer()
     {
         // Free buffer
@@ -375,16 +375,16 @@ public:
     /********************************************************************/
     /* Read methods                                                     */
     /********************************************************************/
-    /** @return iterator to begin. */
+    /// @return iterator to begin.
     template<typename T>
     iterator<T> begin() { return iterator<T>( this, 0 ); }
-    /** @return const_iterator to begin. */
+    /// @return const_iterator to begin.
     template<typename T>
     const_iterator<T> begin() const { return const_iterator<T>( this, 0 ); }
-    /** @return iterator to end. */
+    /// @return iterator to end.
     template<typename T>
     iterator<T> end() { return iterator<T>( this, size() ); }
-    /** @return const_iterator to end. */
+    /// @return const_iterator to end.
     template<typename T>
     const_iterator<T> end() const { return const_iterator<T>( this, size() ); }
 
@@ -593,7 +593,7 @@ public:
         // return ourselves
         return *this;
     }
-    /** Copy operator. */
+    /// Copy operator.
     Buffer& operator=( const Buffer& value )
     {
         // assign new content
@@ -605,9 +605,9 @@ public:
     /********************************************************************/
     /* Size methods                                                     */
     /********************************************************************/
-    /** @return Current size of buffer, in bytes. */
+    /// @return Current size of buffer, in bytes.
     size_type size() const { return mSize; }
-    /** @return Current capacity of buffer, in bytes. */
+    /// @return Current capacity of buffer, in bytes.
     size_type capacity() const { return mCapacity; }
 
     /**
@@ -706,11 +706,11 @@ public:
     }
 
 protected:
-    /** Pointer to start of buffer. */
+    /// Pointer to start of buffer.
     uint8* mBuffer;
-    /** Current size of buffer, in bytes. */
+    /// Current size of buffer, in bytes.
     size_type mSize;
-    /** Current capacity of buffer, in bytes. */
+    /// Current capacity of buffer, in bytes.
     size_type mCapacity;
 
     /**
@@ -811,4 +811,4 @@ protected:
     }
 };
 
-#endif /* !__BUFFER_H__INCL__ */
+#endif /* !__UTILS__BUFFER_H__INCL__ */
