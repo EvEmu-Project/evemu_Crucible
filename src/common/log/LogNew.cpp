@@ -325,7 +325,7 @@ void NewLog::SetLogfileDefault()
               t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min );
 
     if( SetLogfile( filename ) )
-        sLog.Success( "Log", "Opened logfile '%s'.", filename );
+        Success( "Log", "Opened logfile '%s'.", filename );
     else
-        sLog.Warning( "Log", "Unable to open logfile '%s': %s", filename, strerror( errno ) );
+        Warning( "Log", "Unable to open logfile '%s': %s", filename, strerror( errno ) );
 }
