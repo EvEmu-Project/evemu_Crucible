@@ -28,8 +28,6 @@
 /*************************************************************************/
 /* EVEServerConfig                                                       */
 /*************************************************************************/
-EXPORT_SINGLETON( EVEServerConfig );
-
 EVEServerConfig::EVEServerConfig()
 {
     // register needed parsers

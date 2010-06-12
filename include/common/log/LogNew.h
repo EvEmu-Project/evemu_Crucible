@@ -39,10 +39,12 @@
  * @date August 2009
  */
 class NewLog
-: public Singleton<NewLog>
+: public Singleton< NewLog >
 {
 public:
+    /// Primary constructor, initializes logging.
     NewLog();
+    /// Destructor, closes the logfile.
     ~NewLog();
 
     /**
@@ -111,54 +113,94 @@ public:
      */
     void SetTime( time_t time ) { mTime = time; }
 
-private:
-    /** The active logfile. */
-    FILE* mLogfile;
-    /** Current timestamp. */
-    time_t mTime; // crap there should be 1 generic easy to understand time manager.
-    /** Protection against concurrent log messages. */
-    Mutex mMutex;
+protected:
+    /// A convenience color enum.
+    enum Color
+    {
+        COLOR_DEFAULT, ///< A default color.
+        COLOR_BLACK,   ///< Black color.
+        COLOR_RED,     ///< Red color.
+        COLOR_GREEN,   ///< Green color.
+        COLOR_YELLOW,  ///< Yellow color.
+        COLOR_BLUE,    ///< Blue color.
+        COLOR_MAGENTA, ///< Magenta color.
+        COLOR_CYAN,    ///< Cyan color.
+        COLOR_WHITE,   ///< White color.
 
-#ifdef WIN32
-    const HANDLE mStdOutHandle;
-    const HANDLE mStdErrHandle;
-#endif /* WIN32 */
+        COLOR_COUNT    ///< Number of colors.
+    };
 
     /**
-     * @brief Prints given arguments.
+     * @brief Prints a message.
      *
-     * This function does not do any processing and
-     * is to be used only internally.
+     * This prints a generic message.
      *
-     * @param[in] fmt Format string.
-     * @param[in] ... Arguments.
+     * @param[in] color  Color of the message.
+     * @param[in] pfx    Single-character prefix/identificator.
+     * @param[in] source Origin of message.
+     * @param[in] fmt    The format string.
+     * @param[in] ap     The arguments.
      */
-    void Print( const char* fmt, ... );
-    /**
-     * @brief Prints given arguments.
-     *
-     * This function does not do any processing and
-     * is to be used only internally.
-     *
-     * @param[in] fmt Format string.
-     * @param[in] ap  Arguments.
-     */
-    void PrintVa( const char* fmt, va_list ap );
+    void PrintMsg( Color color, char pfx, const char* source, const char* fmt, va_list ap );
     /**
      * @brief Prints current time.
      */
     void PrintTime();
 
     /**
-     * @brief Sets the color of the output text.
+     * @brief Prints a raw message.
+     *
+     * This method only handles printing to all desired
+     * destinations (standard output and logfile at the moment).
+     *
+     * @param[in] fmt The format string.
+     * @param[in] ... The arguments.
      */
-    void SetColor( unsigned int color );
+    void Print( const char* fmt, ... );
+    /**
+     * @brief Prints a raw message.
+     *
+     * This method only handles printing to all desired
+     * destinations (standard output and logfile at the moment).
+     *
+     * @param[in] fmt The format string.
+     * @param[in] ap  The arguments.
+     */
+    void PrintVa( const char* fmt, va_list ap );
+
+    /**
+     * @brief Sets the color of the output text.
+     *
+     * @param[in] color The new color of output text.
+     */
+    void SetColor( Color color );
     /**
      * @brief Sets the default logfile.
      */
     void SetLogfileDefault();
+
+    /// The active logfile.
+    FILE* mLogfile;
+    /// Current timestamp.
+    time_t mTime; // crap there should be 1 generic easy to understand time manager.
+    /// Protection against concurrent log messages
+    Mutex mMutex;
+
+#ifdef WIN32
+    /// Handle to standard output stream.
+    const HANDLE mStdOutHandle;
+    /// Handle to standard error stream.
+    const HANDLE mStdErrHandle;
+
+    /// Color translation table.
+    static const WORD COLOR_TABLE[ COLOR_COUNT ];
+#else
+    /// Color translation table.
+    static const char* const COLOR_TABLE[ COLOR_COUNT ];
+#endif /* !WIN32 */
 };
 
+/// Evaluates to a NewLog instance.
 #define sLog \
     ( NewLog::get() )
 

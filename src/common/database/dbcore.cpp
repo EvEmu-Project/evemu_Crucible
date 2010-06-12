@@ -31,8 +31,6 @@
 #include "log/logsys.h"
 #include "utils/misc.h"
 
-EXPORT_SINGLETON( DBcore );
-
 //#define COLUMN_BOUNDS_CHECKING
 
 DBcore::DBcore(bool compress, bool ssl) : pCompress(compress), pSSL(ssl)
