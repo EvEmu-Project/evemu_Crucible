@@ -225,7 +225,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
     cdata.regionID = 10000016;
 
     cdata.bounty = 0;
-    cdata.balance = sConfig.server.startBalance;
+    cdata.balance = sConfig.character.startBalance;
     cdata.securityRating = 0;
     cdata.logonMinutes = 0;
     cdata.title = "No Title";

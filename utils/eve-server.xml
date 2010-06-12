@@ -3,14 +3,31 @@ The goal of this file is to specify as little as possible. Try the defaults
 for each parameter, and set them only if it does not work. (DB params are
 a likely exception to this goal).
 -->
-<eve>
-    <server>
-        <!-- <port>26001</port> -->
-        <!-- <startBalance>6666000000.0</startBalance> -->
+<eve-server>
 
-        <!-- <autoAccount>false</autoAccount> -->
-        <!-- <autoAccountRole>2</autoAccountRole> -->
-    </server>
+    <account>
+        <!-- <autoAccountRole>0</autoAccountRole> -->
+        <!-- <loginMessage>
+            &lt;html&gt;
+                &lt;head&gt;
+                &lt;/head&gt;
+                &lt;body&gt;
+                    Welcome to &lt;b&gt;EVEmu server&lt;/b&gt;.&lt;br&gt;
+                    &lt;br&gt;
+                    You can find a lot of interesting information about this project at &lt;a href=&quot;http://forum.evemu.org/&quot;&gt;forum.evemu.org&lt;/a&gt;.&lt;br&gt;
+                    &lt;br&gt;
+                    You can also join our IRC channel at &lt;b&gt;irc.mmoforge.org:6667&lt;/b&gt;, channel &lt;b&gt;#evemu&lt;/b&gt;.&lt;br&gt;
+                    &lt;br&gt;
+                    Best wishes,&lt;br&gt;
+                    EVEmu development team
+                &lt;/body&gt;
+            &lt;/html&gt;
+        </loginMessage> -->
+    </account>
+
+    <character>
+        <!-- <startBalance>6666000000.0</startBalance> -->
+    </character>
 
     <database>
         <host>127.0.0.1</host>
@@ -25,4 +42,9 @@ a likely exception to this goal).
         <!-- <logSettings>../etc/log.ini</logSettings> -->
         <!-- <cacheDir></cacheDir> -->
     </files>
-</eve>
+
+    <net>
+        <!-- <port>26001</port> -->
+    </net>
+
+</eve-server>

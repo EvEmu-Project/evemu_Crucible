@@ -77,26 +77,18 @@ int main( int argc, char* argv[] )
     }
 
     // Load server log settings ( will be removed )
-    if(!load_log_settings(sConfig.files.logSettings.c_str()))
-    {
-        sLog.Warning("server init", "Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str());
-    }
+    if( load_log_settings( sConfig.files.logSettings.c_str() ) )
+        sLog.Success( "server init", "Log settings loaded from %s", sConfig.files.logSettings.c_str() );
     else
-    {
-        sLog.Success("server init", "Log settings loaded from %s", sConfig.files.logSettings.c_str());
-    }
+        sLog.Warning( "server init", "Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str() );
 
     // open up the log file if specified ( will be removed )
-    if(!sConfig.files.log.empty())
+    if( !sConfig.files.log.empty() )
     {
-        if(log_open_logfile(sConfig.files.log.c_str()))
-        {
-            sLog.Success("server init", "Opened log file %s", sConfig.files.log.c_str());
-        }
+        if( log_open_logfile( sConfig.files.log.c_str() ) )
+            sLog.Success( "server init", "Opened log file %s", sConfig.files.log.c_str() );
         else
-        {
-            sLog.Warning("server init", "Unable to open log file '%s', only logging to the screen now.", sConfig.files.log.c_str());
-        }
+            sLog.Warning( "server init", "Unable to open log file '%s', only logging to the screen now.", sConfig.files.log.c_str() );
     }
 
     //connect to the database...
@@ -116,13 +108,13 @@ int main( int argc, char* argv[] )
     EVETCPServer tcps;
 
     char errbuf[ TCPCONN_ERRBUF_SIZE ];
-    if( tcps.Open( sConfig.server.port, errbuf ) )
+    if( tcps.Open( sConfig.net.port, errbuf ) )
     {
-        sLog.Success("server init", "TCP listener started on port %u.", sConfig.server.port);
+        sLog.Success( "server init", "TCP listener started on port %u.", sConfig.net.port );
     }
     else
     {
-        sLog.Error("server init", "Failed to start TCP listener on port %u:\n\t%s", sConfig.server.port, errbuf);
+        sLog.Error( "server init", "Failed to start TCP listener on port %u: %s.", sConfig.net.port, errbuf );
         return 1;
     }
 
