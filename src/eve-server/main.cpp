@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+#include "ship/dgmtypeattributeinfo.h"
 
 static void SetupSignals();
 static void CatchSignal( int sig_num );
@@ -111,6 +112,8 @@ int main( int argc, char* argv[] )
         sLog.Error( "server init", "Unable to connect to the database: %s", err.c_str() );
         return 1;
     }
+
+    dgmtypeattributemgr * _sDgmTypeAttrMgr = new dgmtypeattributemgr(); // needs to be after db init as its using it
 
     //Start up the TCP server
     EVETCPServer tcps;
