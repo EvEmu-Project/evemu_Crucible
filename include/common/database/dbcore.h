@@ -23,8 +23,8 @@
     Author:     Zhur
 */
 
-#ifndef DBCORE_H
-#define DBCORE_H
+#ifndef __DATABASE__DBCORE_H__INCL__
+#define __DATABASE__DBCORE_H__INCL__
 
 //this whole file could be interface-ized to support a different database
 //if you can get over the SQL incompatibilities and mysql auto increment problems.
@@ -181,4 +181,4 @@ private:
 #define sDatabase \
     ( DBcore::get() )
 
-#endif
+#endif /* !__DATABASE__DBCORE_H__INCL__ */

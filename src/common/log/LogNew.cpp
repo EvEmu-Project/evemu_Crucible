@@ -134,7 +134,7 @@ void NewLog::Debug( const char* source, const char* fmt, ... )
 
 bool NewLog::SetLogfile( const char* filename )
 {
-    LockMutex l( &mMutex );
+    MutexLock l( mMutex );
 
     FILE* file = NULL;
 
@@ -150,7 +150,7 @@ bool NewLog::SetLogfile( const char* filename )
 
 bool NewLog::SetLogfile( FILE* file )
 {
-    LockMutex l( &mMutex );
+    MutexLock l( mMutex );
 
     if( NULL != mLogfile )
         assert( 0 == fclose( mLogfile ) );
@@ -161,7 +161,7 @@ bool NewLog::SetLogfile( FILE* file )
 
 void NewLog::PrintMsg( Color color, char pfx, const char* source, const char* fmt, va_list ap )
 {
-    LockMutex l( &mMutex );
+    MutexLock l( mMutex );
 
     PrintTime();
 
@@ -184,7 +184,7 @@ void NewLog::PrintMsg( Color color, char pfx, const char* source, const char* fm
 
 void NewLog::PrintTime()
 {
-    LockMutex l( &mMutex );
+    MutexLock l( mMutex );
 
     // this will be replaced my a timing thread somehow
     SetTime( time( NULL ) );
@@ -207,7 +207,7 @@ void NewLog::Print( const char* fmt, ... )
 
 void NewLog::PrintVa( const char* fmt, va_list ap )
 {
-    LockMutex l( &mMutex );
+    MutexLock l( mMutex );
 
     if( NULL != mLogfile )
     {
@@ -232,7 +232,7 @@ void NewLog::SetColor( Color color )
 {
     assert( 0 <= color && color < COLOR_COUNT );
 
-    LockMutex l( &mMutex );
+    MutexLock l( mMutex );
 
 #ifdef WIN32
     SetConsoleTextAttribute( mStdOutHandle, COLOR_TABLE[ color ] );
@@ -243,7 +243,7 @@ void NewLog::SetColor( Color color )
 
 void NewLog::SetLogfileDefault()
 {
-    LockMutex l( &mMutex );
+    MutexLock l( mMutex );
 
     // set initial log system time
     SetTime( time( NULL ) );

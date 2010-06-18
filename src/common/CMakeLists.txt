@@ -65,6 +65,7 @@ SET( utils_INCLUDE
      "${COMPONENT_INCLUDE_DIR}/utils/Deflate.h"
      "${COMPONENT_INCLUDE_DIR}/utils/DirWalker.h"
      "${COMPONENT_INCLUDE_DIR}/utils/gpoint.h"
+     "${COMPONENT_INCLUDE_DIR}/utils/Lock.h"
      "${COMPONENT_INCLUDE_DIR}/utils/misc.h"
      "${COMPONENT_INCLUDE_DIR}/utils/RefPtr.h"
      "${COMPONENT_INCLUDE_DIR}/utils/Seperator.h"
