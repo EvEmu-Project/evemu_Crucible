@@ -312,7 +312,7 @@ void ItemAttributeMgr::Save() const {
 void ItemAttributeMgr::EncodeAttributes(std::map<int32, PyRep *> &into) const {
     // first insert type attributes
     m_item.type().attributes.EncodeAttributes(into);
-    // now isert (or overwrite) with our values
+    // now insert (or overwrite) with our values
     EVEAdvancedAttributeMgr::EncodeAttributes(into);
 }
 
