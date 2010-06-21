@@ -246,6 +246,83 @@ protected:
     bool m_notify;
 };
 
+// small map that does the magic of item attributes..
+class EvilNumber;
+
+/**
+ * @brief rewrite of the item attribute system.
+ *
+ * @author Captnoord.
+ * @date Juni 2010
+ */
+class AttributeMap
+{
+public:
+    /**
+     * @brief multiply this with @a
+     *
+     * Multiply this with @a.
+     *
+     * @param[in] attributeId the attribute id that needs to be changed.
+     * @param[in] num the number the attribute needs to be changed in.
+     *
+     * @retval true  The attribute has successfully been set and queued.
+     * @retval false The attribute change has not been queued but has not been changed.
+     */
+    bool SetAttribute(uint32 attributeId, EvilNumber &num);
+
+    /* ATM we don't load or save as we assume that all attribute modifiers are calculated on the fly
+     * except charge attributes but we won't handle them for now
+     */
+#if 0
+    bool Save();
+    bool Load();
+#endif
+
+protected:
+    /**
+     * @brief internal function to handle the change.
+     *
+     * @param[in] attributeId the attribute id that needs to be changed.
+     * @param[in] num the number the attribute needs to be changed in.
+     *
+     * @retval true  The attribute change has successfully been set and queued.
+     * @retval false The attribute change has not been queued but has been changed.
+     */
+    bool Change(uint32 attributeID, EvilNumber& old_val, EvilNumber& new_val);
+
+    /**
+     * @brief internal function to handle adding attributes.
+     *
+     * @param[in] attributeId the attribute id that needs to be added.
+     * @param[in] num the number the attribute needs to be set to.
+     *
+     * @retval true  The attribute has successfully been added and queued.
+     * @retval false The attribute addition has not been queued and not been changed.
+     */
+    bool Add(uint32 attributeID, EvilNumber& num);
+
+    /**
+     * @brief queue the attribute changes into the QueueDestinyEvent system.
+     *
+     * @param[in] attrChange the attribute id that needs to be added.
+     *
+     * @retval true  The attribute has successfully been added and queued.
+     * @retval false The attribute addition has not been queued and not been changed.
+     */
+    bool SendAttributeChanges(PyTuple* attrChange);
+
+    /** we belong to this item..
+     * @note possible design flaw because only items contain AttributeMap's so
+     *       we don't need to store this.
+     */
+    InventoryItem *mItem;
+
+    /**
+     * @note possible design flaw, stack corruption because of a enormous amount
+     *       of 'EvilNumber' objects not fitting into the stack.
+     */
+    std::map<uint32, EvilNumber> mAttributes;
+};
+
 #endif /* __EVE_ATTRIBUTE_MGR__H__INCL__ */
-
-
