@@ -265,6 +265,7 @@ SET( posmgr_SOURCE
 SET( ship_INCLUDE
      "${COMPONENT_INCLUDE_DIR}/ship/BeyonceService.h"
      "${COMPONENT_INCLUDE_DIR}/ship/DestinyManager.h"
+     "${COMPONENT_INCLUDE_DIR}/ship/dgmtypeattributeinfo.h"
      "${COMPONENT_INCLUDE_DIR}/ship/InsuranceService.h"
      "${COMPONENT_INCLUDE_DIR}/ship/ModuleManager.h"
      "${COMPONENT_INCLUDE_DIR}/ship/Ship.h"
@@ -274,6 +275,7 @@ SET( ship_INCLUDE
 SET( ship_SOURCE
      "${COMPONENT_SOURCE_DIR}/ship/BeyonceService.cpp"
      "${COMPONENT_SOURCE_DIR}/ship/DestinyManager.cpp"
+     "${COMPONENT_SOURCE_DIR}/ship/dgmtypeattributeinfo.cpp"
      "${COMPONENT_SOURCE_DIR}/ship/InsuranceService.cpp"
      "${COMPONENT_SOURCE_DIR}/ship/ModuleManager.cpp"
      "${COMPONENT_SOURCE_DIR}/ship/Ship.cpp"

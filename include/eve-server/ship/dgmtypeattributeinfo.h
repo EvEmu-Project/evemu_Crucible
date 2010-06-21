@@ -17,7 +17,7 @@ class EvilNumber
 public:
     typedef union _GenVal{
         float fVal;
-        __int32 iVal;
+        int32 iVal;
     } GenVal;
 
     EvilNumber() : mType(evil_number_nan) {mValue.iVal = 0;}
@@ -44,7 +44,7 @@ public:
         else if (mType == evil_number_float)
             sprintf(buff, "%f", mValue.fVal);
         else
-            __asm{int 3}; // bleh crash..
+            abort(); // bleh crash..
         return buff;
     }
 
@@ -85,7 +85,7 @@ protected:
                 this->mValue.fVal = tVal*val.mValue.fVal;
                 mType = evil_number_float;
             } else {
-                __asm{int 3}; // crash
+                abort(); // crash
             }
 
             // check if we are a integer
@@ -115,7 +115,7 @@ protected:
                 this->mValue.fVal = tVal/val.mValue.fVal;
                 mType = evil_number_float;
             } else {
-                __asm{int 3}; // crash
+                abort(); // crash
             }
 
             // check if we are a integer
