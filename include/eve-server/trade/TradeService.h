@@ -23,7 +23,6 @@
 	Author:		Luck
 */
 
-
 #ifndef __TRADE_SERVICE_H_INCL__
 #define __TRADE_SERVICE_H_INCL__
 
@@ -46,4 +45,4 @@ protected:
 
 };
 
-#endif
+#endif//__TRADE_SERVICE_H_INCL__

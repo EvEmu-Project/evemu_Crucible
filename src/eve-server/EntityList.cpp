@@ -25,7 +25,6 @@
 
 #include "EVEServerPCH.h"
 
-
 EntityList::EntityList() : m_services( NULL ) {}
 EntityList::~EntityList() {
 	{

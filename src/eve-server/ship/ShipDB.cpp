@@ -119,6 +119,4 @@ PyObject* ShipDB::GetEffectInformation(std::string effectName) {
 	}
 
 	return DBResultToRowset(res);
-
 }
-

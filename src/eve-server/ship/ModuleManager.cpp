@@ -625,6 +625,7 @@ void ShipModule::DoEffect(bool active) {
 			m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() + m_item->cpu() );
 			m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() + m_item->power() );
 
+
 			//if in space, consume all capacitor
 			if( m_pilot->IsInSpace() )
 				m_pilot->GetShip()->Set_charge( 0 );
@@ -1662,8 +1663,8 @@ void ShipModule::DoScanStrengthBonus(bool add, bool notify) {
 	} else {
 		if( !m_item->scanStrengthBonus() == 0 ) {
 			//uses gravimetric scanners
-			if( !m_pilot->GetShip()->scanGravimetricStrength() == 0		&&
-				!m_pilot->GetShip()->scanGravimetricStrength() == -100	)
+			if( !(m_pilot->GetShip()->scanGravimetricStrength() == 0) &&
+				!(m_pilot->GetShip()->scanGravimetricStrength() == -100) )
 			{
 				scanStrength = m_pilot->GetShip()->scanGravimetricStrength();
 				scanStrengthModifier = m_item->scanStrengthBonus();
@@ -1671,8 +1672,8 @@ void ShipModule::DoScanStrengthBonus(bool add, bool notify) {
 				m_pilot->GetShip()->Set_scanGravimetricStrength( newScanStrength );
 			}
 			//uses ladar scanners
-			if( !m_pilot->GetShip()->scanLadarStrength() == 0		&&
-				!m_pilot->GetShip()->scanLadarStrength() == -100	)
+			if( !(m_pilot->GetShip()->scanLadarStrength() == 0)	&&
+				!(m_pilot->GetShip()->scanLadarStrength() == -100) )
 			{
 				scanStrength = m_pilot->GetShip()->scanLadarStrength();
 				scanStrengthModifier = m_item->scanStrengthBonus();
@@ -1680,8 +1681,8 @@ void ShipModule::DoScanStrengthBonus(bool add, bool notify) {
 				m_pilot->GetShip()->Set_scanLadarStrength( newScanStrength );
 			}
 			//uses magnetometric scanners
-			if( !m_pilot->GetShip()->scanMagnetometricStrength() == 0		&&
-				!m_pilot->GetShip()->scanMagnetometricStrength() == -100	)
+			if( !(m_pilot->GetShip()->scanMagnetometricStrength() == 0) &&
+				!(m_pilot->GetShip()->scanMagnetometricStrength() == -100) )
 			{
 				scanStrength = m_pilot->GetShip()->scanMagnetometricStrength();
 				scanStrengthModifier = m_item->scanStrengthBonus();
@@ -1689,8 +1690,8 @@ void ShipModule::DoScanStrengthBonus(bool add, bool notify) {
 				m_pilot->GetShip()->Set_scanMagnetometricStrength( ToInt(newScanStrength) );
 			}
 			//uses radar scanners
-			if( !m_pilot->GetShip()->scanRadarStrength() == 0		&&
-				!m_pilot->GetShip()->scanRadarStrength() == -100	) 
+			if( !(m_pilot->GetShip()->scanRadarStrength() == 0) &&
+				!(m_pilot->GetShip()->scanRadarStrength() == -100) ) 
 			{
 				scanStrength = m_pilot->GetShip()->scanRadarStrength();
 				scanStrengthModifier = m_item->scanStrengthBonus();
@@ -2298,8 +2299,10 @@ void ShipModule::DoGodmaEffects(bool active) {
 	gse.env_charID = m_item->ownerID();	//a little questionable
 	gse.env_shipID = m_item->locationID();
 	gse.env_target = m_target;
+
 	if( active )
     {
+        // env_others are people and object that target you
 		PyTuple* env_other = new PyTuple( 3 );
         env_other->SetItem( 0, new PyInt( m_item->locationID() ) ); //ship ID.
         env_other->SetItem( 1, new PyInt( 29 ) ); //no idea

@@ -91,6 +91,13 @@ protected:
 	PyServiceMgr *m_services;	//we do not own this, only used for booting systems.
 };
 
+/**
+ * @todo convert this into a singleton.
+ */
+extern EntityList * _sEntityList;
+#define sEntityList (*_sEntityList)
+#define sPEntityList (_sEntityList)
+
 
 #endif
 

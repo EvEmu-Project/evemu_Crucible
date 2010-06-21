@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+#include "ship/dgmtypeattributeinfo.h"
 
 /*
  * EVEAttributeMgr
@@ -341,5 +342,77 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
     }
 }
 
+/************************************************************************/
+/* Start of new attribute system                                        */
+/************************************************************************/
+bool AttributeMap::SetAttribute( uint32 attributeId, EvilNumber& num )
+{
+    AttrMapItr itr = mAttributes.find(attributeId);
+    if (itr == mAttributes.end()) {
+        mAttributes.insert(std::make_pair(attributeId, num));
+        return Add(attributeId, num);
+    }
 
+    // I dono if this should happen... in short... if nothing changes... do nothing
+    if (itr->second == num)
+        return false;
 
+    // notify dogma to change the attribute, if we are unable to queue the change
+    // event. Don't change the value.
+    if (!Change(attributeId, itr->second, num))
+        return false;
+
+    itr->second = num;
+    return true;
+}
+
+bool AttributeMap::Change( uint32 attributeID, EvilNumber& old_val, EvilNumber& new_val )
+{
+    PyTuple* AttrChange = new PyTuple(7);
+    AttrChange->SetItem(0, new PyString("OnModuleAttributeChange"));
+    AttrChange->SetItem(1, new PyInt(mItem->ownerID()));
+    AttrChange->SetItem(2, new PyInt(mItem->itemID()));
+    AttrChange->SetItem(3, new PyInt(attributeID));
+    AttrChange->SetItem(4, new PyLong(Win32TimeNow()));
+    AttrChange->SetItem(5, old_val.GetPyObject());
+    AttrChange->SetItem(6, new_val.GetPyObject());
+
+    return SendAttributeChanges(AttrChange);
+}
+
+bool AttributeMap::Add( uint32 attributeID, EvilNumber& num )
+{
+    PyTuple* AttrChange = new PyTuple(7);
+    AttrChange->SetItem(0, new PyString("OnModuleAttributeChange"));
+    AttrChange->SetItem(1, new PyInt(mItem->ownerID()));
+    AttrChange->SetItem(2, new PyInt(mItem->itemID()));
+    AttrChange->SetItem(3, new PyInt(attributeID));
+    AttrChange->SetItem(4, new PyLong(Win32TimeNow()));
+    AttrChange->SetItem(5, num.GetPyObject());
+    AttrChange->SetItem(6, num.GetPyObject());
+
+    return SendAttributeChanges(AttrChange);
+}
+
+bool AttributeMap::SendAttributeChanges( PyTuple* attrChange )
+{
+    if (attrChange == NULL)
+    {
+        sLog.Error("AttributeMap", "unable to find client");
+        return false;
+    }
+
+    // O hell this character finding needs to be optimized ( redesigned so its not needed.. ).
+    Client *client = sEntityList.FindCharacter(mItem->ownerID());
+    if (client == NULL) {
+        sLog.Error("AttributeMap", "unable to find client");
+        return false;
+    }
+
+    client->QueueDestinyEvent(&attrChange);
+    return true;
+}
+
+/************************************************************************/
+/* End of new attribute system                                          */
+/************************************************************************/

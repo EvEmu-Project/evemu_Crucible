@@ -985,9 +985,7 @@ void DestinyManager::WarpTo(const GPoint &where, double distance, bool update) {
 		SendDestinyUpdate(updates, false);
 	}
 }
-	
-	
-	
+
 bool DestinyManager::_Turn() {
 #ifdef OLD_STUFF
 	double direction_cross = m_direction.dotProduct(m_targetDirection);	//cos(angle between)
@@ -1108,12 +1106,3 @@ void DestinyManager::SendSetState(const SystemBubble *b) const {
 	PyTuple *tmp = ss.Encode();
 	SendSingleDestinyUpdate(&tmp, true);	//consumed
 }
-
-
-
-
-
-
-
-
-

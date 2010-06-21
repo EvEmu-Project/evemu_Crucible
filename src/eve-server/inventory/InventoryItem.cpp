@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+#include "ship/dgmtypeattributeinfo.h"
 
 #ifndef INT_MAX
 #   define INT_MAX 0x7FFFFFFF
@@ -718,4 +719,14 @@ void InventoryItem::Relocate(const GPoint &pos) {
     SaveItem();
 }
 
+bool InventoryItem::SetAttribute( uint32 attributeID, int num )
+{
+    EvilNumber devil_number(num);
+    return mAttributeMap.SetAttribute(attributeID, devil_number);
+}
 
+bool InventoryItem::SetAttribute( uint32 attributeID, float num )
+{
+    EvilNumber devil_number(num);
+    return mAttributeMap.SetAttribute(attributeID, devil_number);
+}

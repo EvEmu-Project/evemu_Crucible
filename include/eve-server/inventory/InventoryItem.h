@@ -164,6 +164,17 @@ public:
      */
     ItemAttributeMgr attributes;
 
+    /************************************************************************/
+    /* start experimental new attribute system ( not operational )          */
+    /************************************************************************/
+    AttributeMap mAttributeMap;
+    bool SetAttribute(uint32 attributeID, int num);
+    bool SetAttribute(uint32 attributeID, float num);
+    /************************************************************************/
+    /* end experimental new attribute system                                */
+    /************************************************************************/
+
+
     /*
      * Redirections
      */

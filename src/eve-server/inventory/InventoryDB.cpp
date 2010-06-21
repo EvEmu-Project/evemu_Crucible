@@ -1684,7 +1684,7 @@ bool InventoryDB::GetTypeID(uint32 itemID, uint32 &typeID)
     }
 
 	typeID = row.GetUInt(0);
-
+    return true;
 }
 
 bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)

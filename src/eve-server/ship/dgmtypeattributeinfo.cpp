@@ -39,44 +39,7 @@ dgmtypeattributemgr::dgmtypeattributemgr()
     uint32 currentID = 0;
     DgmTypeAttributeSet * entry = NULL;
     DBResultRow row;
-    //while(1) {
-        /*SpawnGroup *g = new SpawnGroup(
-            row.GetUInt(0),
-            row.GetText(1),
-            row.GetUInt(2)
-            );
-        into[ g->id ] = g;*/
-        /*uint32 typeID = row.GetUInt(0);
-        if (typeID != currentID)
-        {
-            // hack check so I don't have todo complicated shit
-            if (currentID != 0)
-                mDgmTypeAttrInfo.insert(std::make_pair(currentID, entry)); // we have a different entry now so store the current one hehe
-            
-            entry = new DgmTypeAttributeSet;
-            currentID = typeID;
-        }*/
-
-        /*entry = new DgmTypeAttributeSet;
-
-        while(res.GetRow(row)) {
-            if(row.GetUInt(0) != currentID && currentID != 0)
-                break;
-            currentID = row.GetUInt(0);
-            DmgTypeAttribute * attr_entry = new DmgTypeAttribute;
-            attr_entry->attributeID = row.GetUInt(1);
-            if (row.IsNull(2) == true) {
-                attr_entry->number = EvilNumber(row.GetFloat(3));
-            } else {
-                attr_entry->number = EvilNumber(row.GetInt(2));
-            }
-
-            entry->attributeset.push_back(attr_entry);
-        }
-
-        mDgmTypeAttrInfo.insert(std::make_pair(currentID, entry));
-    }*/
-
+    
     int amount = res.GetRowCount();
     for (int i = 0; i < amount; i++)
     {

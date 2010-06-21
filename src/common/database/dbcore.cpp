@@ -68,9 +68,8 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
     uint32 querylen = vsnprintf(query, 16384, query_fmt, vlist);
     va_end(vlist);
 
-    if(!DoQuery_locked(into.error, query, querylen)) {
+    if(!DoQuery_locked(into.error, query, querylen))
         return false;
-    }
 
     uint32 col_count = mysql_field_count(&mysql);
     if(col_count == 0) {

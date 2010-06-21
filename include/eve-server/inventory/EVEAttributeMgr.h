@@ -279,6 +279,9 @@ public:
     bool Load();
 #endif
 
+    typedef std::map<uint32, EvilNumber>    AttrMap;
+    typedef AttrMap::iterator               AttrMapItr;
+
 protected:
     /**
      * @brief internal function to handle the change.
@@ -322,7 +325,7 @@ protected:
      * @note possible design flaw, stack corruption because of a enormous amount
      *       of 'EvilNumber' objects not fitting into the stack.
      */
-    std::map<uint32, EvilNumber> mAttributes;
+    AttrMap mAttributes;
 };
 
 #endif /* __EVE_ATTRIBUTE_MGR__H__INCL__ */

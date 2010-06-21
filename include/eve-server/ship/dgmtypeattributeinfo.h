@@ -10,8 +10,15 @@ enum EVIL_NUMBER_TYPE
     evil_number_float,
 };
 
-//@brief this is a class that kinda mimics how python polymorph's numbers.
 #pragma pack(push,1)
+class PyObject;
+
+/**
+ * @brief this is a class that kinda mimics how python polymorph's numbers.
+ *
+ * @author Captnoord.
+ * @date Juni 2010
+ */
 class EvilNumber
 {
 public:
@@ -36,6 +43,28 @@ public:
         return *this;
     }
 
+    bool operator==(const EvilNumber& val)
+    {
+        if (this->mType != val.mType)
+            return false;
+
+        // important to know is that 'if' they are both floats which would be
+        // exactly the same value the raw data would be exactly the same.
+        // so this check is valid for both floats and ints.
+        //
+        // @note I wonder... can I create 2 floats that would be equal when
+        // doing normal float compare and not equal when doing integer compare.
+        if (this->mValue.iVal == val.mValue.iVal)
+            return true;
+        else
+            return false;
+    }
+
+    /**
+     * @brief converts the EvilNumber value into a string
+     *
+     * @return the text representative of the value.
+     */
     std::string to_str()
     {
         char buff[32]; // max uint32 will result in a 10 char string, a float will result in a ? char string.
@@ -44,8 +73,25 @@ public:
         else if (mType == evil_number_float)
             sprintf(buff, "%f", mValue.fVal);
         else
-            abort(); // bleh crash..
+            assert(false); // bleh crash..
         return buff;
+    }
+
+    /**
+     * @brief converts the EvilNumber into a python object.
+     *
+     * @return the python object of the EvilNumber.
+     */
+    inline PyObject* GetPyObject()
+    {
+        if (mType == evil_number_int)
+            return (PyObject*)new PyInt(mValue.iVal);
+        else if (mType == evil_number_float)
+            return (PyObject*)new PyFloat(mValue.fVal);
+        else {
+            assert(false);
+            return false;
+        }
     }
 
 private:
@@ -53,9 +99,13 @@ private:
     EVIL_NUMBER_TYPE mType;
 
 protected:
-    // check if its possible a integer and do the conversion
-    // this is kinda a drain on performance... but at least
-    // integer math is faster than floating point math.
+    /**
+     * @brief check if its possible a integer and do the conversion
+     *
+     * checking every calculation for float/int conversion can be a drain on
+     * performance. But as integer math is fast then floating point math.
+     *
+     */
     inline void CheckIntegrety()
     {
         // check if we are a integer
@@ -67,7 +117,13 @@ protected:
         }
     }
 
-    // multiply this with val
+    /**
+     * @brief multiply this with @a
+     *
+     * Multiply this with @a.
+     *
+     * @param[in] val the value we are multiplying with.
+     */
     inline void Multiply(EvilNumber & val)
     {
         if (val.mType == mType) {
@@ -85,7 +141,7 @@ protected:
                 this->mValue.fVal = tVal*val.mValue.fVal;
                 mType = evil_number_float;
             } else {
-                abort(); // crash
+                assert(false); // crash
             }
 
             // check if we are a integer
@@ -93,7 +149,14 @@ protected:
         }
     }
 
-    // divide a generic number is evil as it should be possible todo int(2) / int(4) = float(0.5).
+    /**
+     * @brief divide this with @a
+     *
+     * Divide this with @a.
+     *
+     * @param[in] val the value we are dividing by.
+     * @todo handle "int(2) / int(4) = float(0.5)" in a fast anough way
+     */
     inline void Divide(EvilNumber & val)
     {
         if (val.mType == mType) {
@@ -115,7 +178,7 @@ protected:
                 this->mValue.fVal = tVal/val.mValue.fVal;
                 mType = evil_number_float;
             } else {
-                abort(); // crash
+                assert(false); // crash
             }
 
             // check if we are a integer
@@ -124,7 +187,7 @@ protected:
     }
 };
 
-// this represends 1 attribute modifier
+// this represents 1 attribute modifier
 class DmgTypeAttribute
 {
 public:
@@ -133,7 +196,7 @@ public:
 };
 #pragma pack(pop)
 
-// this represends a collection of attribute modifiers for a single typeID
+// this represents a collection of attribute modifiers for a single typeID
 struct DgmTypeAttributeSet
 {
     std::list<DmgTypeAttribute *> attributeset;

@@ -29,6 +29,8 @@
 static void SetupSignals();
 static void CatchSignal( int sig_num );
 
+#define EVEMU_ROOT_DIR ""
+
 static const char* const CONFIG_FILE = EVEMU_ROOT_DIR"/etc/eve-server.xml";
 static const uint32 MAIN_LOOP_DELAY = 10; // delay 10 ms.
 
@@ -129,11 +131,14 @@ int main( int argc, char* argv[] )
         return 1;
     }
 
-    EntityList entity_list;
-    ItemFactory item_factory( entity_list );
+    /**
+     * @todo change 'EntityList' system this into a singleton.
+     */
+    EntityList * _sEntityList = new EntityList; // warning this is a extern, macros are 'sEntityList' and 'sPEntityList'
+    ItemFactory item_factory( sEntityList );
 
     //now, the service manager...
-    PyServiceMgr services( 888444, entity_list, item_factory );
+    PyServiceMgr services( 888444, sEntityList, item_factory );
 
     //setup the command dispatcher
     CommandDispatcher command_dispatcher( services );
@@ -231,10 +236,10 @@ int main( int argc, char* argv[] )
         {
             Client* c = new Client( services, &tcpc );
 
-            entity_list.Add( &c );
+            sEntityList.Add( &c );
         }
 
-        entity_list.Process();
+        sEntityList.Process();
         services.Process();
 
         /* UPDATE */
