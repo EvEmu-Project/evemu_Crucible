@@ -7,30 +7,30 @@
 ##############
 # Initialize #
 ##############
-SET( COMPONENT_NAME        "gangsta" )
-SET( COMPONENT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/dep/${COMPONENT_NAME}" )
-SET( COMPONENT_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/dep/${COMPONENT_NAME}" )
+SET( TARGET_NAME        "gangsta" )
+SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/dep/${TARGET_NAME}" )
+SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/dep/${TARGET_NAME}" )
 
 #########
 # Files #
 #########
 SET( INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/GaMath.h"
-     "${COMPONENT_INCLUDE_DIR}/GaPreReqs.h"
-     "${COMPONENT_INCLUDE_DIR}/GaTypes.h" )
+     "${TARGET_INCLUDE_DIR}/GaMath.h"
+     "${TARGET_INCLUDE_DIR}/GaPreReqs.h"
+     "${TARGET_INCLUDE_DIR}/GaTypes.h" )
 SET( SOURCE
-     "${COMPONENT_SOURCE_DIR}/GaMath.cpp"
-     "${COMPONENT_SOURCE_DIR}/GaTypes.cpp" )
+     "${TARGET_SOURCE_DIR}/GaMath.cpp"
+     "${TARGET_SOURCE_DIR}/GaTypes.cpp" )
 
 #####################
 # Setup the library #
 #####################
-INCLUDE_DIRECTORIES( "${COMPONENT_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${TARGET_INCLUDE_DIR}" )
 
-ADD_LIBRARY( "${COMPONENT_NAME}"
+ADD_LIBRARY( "${TARGET_NAME}"
              ${INCLUDE} ${SOURCE} )
 
 ######################
 # Export directories #
 ######################
-SET( ${COMPONENT_NAME}_INCLUDE_DIR "${COMPONENT_INCLUDE_DIR}" PARENT_SCOPE )
+SET( ${TARGET_NAME}_INCLUDE_DIR "${TARGET_INCLUDE_DIR}" PARENT_SCOPE )

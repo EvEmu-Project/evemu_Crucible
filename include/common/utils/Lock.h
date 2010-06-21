@@ -74,23 +74,57 @@ public:
      * @brief Primary contructor, locks the object.
      *
      * @param[in] object Object to bound this lock to.
+     * @param[in] lock   Lock the object during construction.
      */
-    Lock( T& object )
-    : mObject( object )
+    Lock( T& object, bool lock = true )
+    : mObject( object ),
+      mLocked( false )
     {
-        mObject.Lock();
+        if( lock )
+            Relock();
     }
     /**
      * @brief Destructor, unlocks the object.
      */
     ~Lock()
     {
-        mObject.Unlock();
+        Unlock();
+    }
+
+    /**
+     * @brief Obtains the lock state of the object.
+     *
+     * @retval true  The object is locked.
+     * @retval false The object is not locked.
+     */
+    bool isLocked() const { return mLocked; }
+
+    /**
+     * @brief Locks the object.
+     */
+    void Relock()
+    {
+        if( !isLocked() )
+            mObject.Lock();
+
+        mLocked = true;
+    }
+    /**
+     * @brief Unlocks the object.
+     */
+    void Unlock()
+    {
+        if( isLocked() )
+            mObject.Unlock();
+
+        mLocked = false;
     }
 
 protected:
     /// The object this lock is bound to.
     T& mObject;
+    /// True the @a mObject is locked, false if not.
+    bool mLocked;
 };
 
 #endif /* !__UTILS__LOCK_H__INCL__ */

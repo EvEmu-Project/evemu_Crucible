@@ -4,13 +4,15 @@
 # Author: Bloody.Rabbit
 #
 
-#################
-# Initial setup #
-#################
+###############
+# CMake setup #
+###############
 CMAKE_MINIMUM_REQUIRED( VERSION 2.6 FATAL_ERROR )
 
 PROJECT( "evemu" )
-SET( PROJECT_VERSION "0.7-trunk" )
+SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
+SET( PROJECT_VENDOR              "The EVEmu development team" )
+SET( PROJECT_VERSION             "0.7-trunk" )
 
 SET( CMAKE_MODULE_PATH
      "${PROJECT_SOURCE_DIR}/cmake"
@@ -29,8 +31,6 @@ SET( EVEMU_EXTRACT_SVN_REV           OFF
      CACHE BOOL "Extract current revision using SVN tools." )
 SET( EVEMU_ROOT_DIR                  ".."
      CACHE PATH "The root of EVEmu workspace." )
-SET( EVEMU_SERVER_SHOW_LOGIN_MESSAGE ON
-     CACHE BOOL "Show a message to a client when logging in." )
 SET( EVEMU_TOOL_ENABLE               OFF
      CACHE BOOL "Enable eve-tool." )
 
@@ -147,3 +147,15 @@ ENDIF( EVEMU_COLLECTOR_ENABLE )
 IF( EVEMU_TOOL_ENABLE )
     ADD_SUBDIRECTORY( "src/eve-tool" )
 ENDIF( EVEMU_TOOL_ENABLE )
+
+###############
+# CPack setup #
+###############
+SET( CPACK_GENERATOR        "TGZ" )
+SET( CPACK_SOURCE_GENERATOR "TGZ" )
+
+SET( CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION_SUMMARY}" )
+SET( CPACK_PACKAGE_VENDOR              "${PROJECT_VENDOR}" )
+SET( CPACK_PACKAGE_VERSION             "${PROJECT_VERSION}" )
+
+INCLUDE( "CPack" )
