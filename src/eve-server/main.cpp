@@ -128,11 +128,7 @@ int main( int argc, char* argv[] )
         sLog.Error("server init", "Failed to start TCP listener on port %u:\n\t%s", sConfig.server.port, errbuf);
         return 1;
     }
-
-    /**
-     * @todo change 'EntityList' system this into a singleton.
-     */
-    EntityList * _sEntityList = new EntityList; // warning this is a extern, macros are 'sEntityList' and 'sPEntityList'
+	//make the item factory
     ItemFactory item_factory( sEntityList );
 
     //now, the service manager...

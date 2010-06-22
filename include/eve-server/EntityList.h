@@ -30,6 +30,9 @@
 #ifndef EVE_ENTITY_LIST_H
 #define EVE_ENTITY_LIST_H
 
+#include "threading/Mutex.h"
+#include "utils/Singleton.h"
+
 class Client;
 class PyAddress;
 class EVENotificationStream;
@@ -52,6 +55,7 @@ public:
 };
 
 class EntityList
+: public Singleton<EntityList>
 {
 public:
 	EntityList();
@@ -88,15 +92,14 @@ protected:
 	typedef std::map<uint32, SystemManager *> system_list;
 	system_list m_systems;
 
+	Mutex mMutex;
+
 	PyServiceMgr *m_services;	//we do not own this, only used for booting systems.
 };
 
-/**
- * @todo convert this into a singleton.
- */
-extern EntityList * _sEntityList;
-#define sEntityList (*_sEntityList)
-#define sPEntityList (_sEntityList)
+//Singleton
+#define sEntityList \
+	( EntityList::get() )
 
 
 #endif
