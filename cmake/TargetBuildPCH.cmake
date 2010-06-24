@@ -1,11 +1,12 @@
 # - Define macro to build precompiled header for a target
-# Builds a precompiled header while building target; currently MSVC support only.
 #
 # TARGET_BUILD_PCH( TARGET PRECOMPILED_HEADER BOUND_SOURCE )
-#   TARGET             - target to which add the precompiled header
-#   PRECOMPILED_HEADER - the header itself
-#   BOUND_SOURCE       - the source the header is bound to, i.e. it is built during
-#                        compilation of given source file
+#     Builds a precompiled header while building target; currently MSVC support only.
+#     Arguments:
+#         TARGET             - target to which add the precompiled header
+#         PRECOMPILED_HEADER - the header itself
+#         BOUND_SOURCE       - the source the header is bound to, i.e. it is built during
+#                              compilation of given source file
 #
 
 MACRO( TARGET_BUILD_PCH TARGET PRECOMPILED_HEADER BOUND_SOURCE )

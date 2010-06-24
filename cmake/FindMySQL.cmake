@@ -3,14 +3,14 @@
 # http://www.cmake.org/Wiki/CMakeUserFindMySQL
 # Slightly modified
 #
-#  MYSQL_FOUND       - True if MySQL found.
-#  MYSQL_INCLUDE_DIR - where to find mysql.h, etc.
-#  MYSQL_LIBRARIES   - List of libraries when using MySQL.
+#   MYSQL_FOUND       - True if MySQL found.
+#   MYSQL_INCLUDE_DIR - where to find mysql.h, etc.
+#   MYSQL_LIBRARIES   - List of libraries when using MySQL.
 #
 
 IF( MYSQL_INCLUDE_DIR )
-  # Already in cache, be silent
-  SET( MySQL_FIND_QUIETLY TRUE )
+    # Already in cache, be silent
+    SET( MySQL_FIND_QUIETLY TRUE )
 ENDIF( MYSQL_INCLUDE_DIR )
 
 FIND_PATH( MYSQL_INCLUDE_DIR mysql.h

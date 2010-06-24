@@ -1,14 +1,14 @@
 # - Find Gangsta
 # Find the native Gangsta includes and library
 #
-#  GANGSTA_FOUND       - True if Gangsta found.
-#  GANGSTA_INCLUDE_DIR - where to find GaTypes.h, etc.
-#  GANGSTA_LIBRARIES   - List of libraries when using Gangsta.
+#   GANGSTA_FOUND       - True if Gangsta found.
+#   GANGSTA_INCLUDE_DIR - where to find GaTypes.h, etc.
+#   GANGSTA_LIBRARIES   - List of libraries when using Gangsta.
 #
 
 IF( GANGSTA_INCLUDE_DIR )
-  # Already in cache, be silent
-  SET( Gangsta_FIND_QUIETLY TRUE )
+    # Already in cache, be silent
+    SET( Gangsta_FIND_QUIETLY TRUE )
 ENDIF( GANGSTA_INCLUDE_DIR )
 
 FIND_PATH( GANGSTA_INCLUDE_DIR GaTypes.h

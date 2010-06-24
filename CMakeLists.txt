@@ -27,6 +27,8 @@ INCLUDE( "TestX64" )
 # Options
 SET( EVEMU_COLLECTOR_ENABLE OFF
      CACHE BOOL   "Enable eve-collector." )
+SET( EVEMU_DOC_ENABLE       OFF
+     CACHE BOOL   "Generate HTML documentation (requires Doxygen)." )
 SET( EVEMU_ROOT_DIR         ".."
      CACHE PATH   "The root of EVEmu workspace." )
 SET( EVEMU_SOURCE_SCM       ""
@@ -55,6 +57,10 @@ FIND_PACKAGE( "MySQL" 5.0 REQUIRED )
 FIND_PACKAGE( "Threads" REQUIRED )
 FIND_PACKAGE( "ZLIB" REQUIRED )
 
+IF( EVEMU_DOC_ENABLE )
+    FIND_PACKAGE( "Doxygen" REQUIRED )
+ENDIF( EVEMU_DOC_ENABLE )
+
 IF( "${EVEMU_SOURCE_SCM}" STREQUAL "svn" )
     FIND_PACKAGE( "Subversion" REQUIRED )
 ELSEIF( "${EVEMU_SOURCE_SCM}" STREQUAL "git" )
@@ -62,7 +68,6 @@ ELSEIF( "${EVEMU_SOURCE_SCM}" STREQUAL "git" )
 ENDIF( "${EVEMU_SOURCE_SCM}" STREQUAL "svn" )
 
 # Check for other dependencies
-FIND_PACKAGE( "Doxygen" QUIET )
 FIND_PACKAGE( "Gangsta" QUIET )
 FIND_PACKAGE( "TinyXML" QUIET )
 FIND_PACKAGE( "UTF8CPP" QUIET )
@@ -130,11 +135,9 @@ ENDIF( NOT UTF8CPP_FOUND )
 ###########################
 # Generated documentation #
 ###########################
-IF( DOXYGEN_FOUND )
+IF( EVEMU_DOC_ENABLE )
     ADD_SUBDIRECTORY( "doc" )
-ELSE( DOXYGEN_FOUND )
-    MESSAGE( WARNING "Doxygen not found: a generated documentation will not be available." )
-ENDIF( DOXYGEN_FOUND )
+ENDIF( EVEMU_DOC_ENABLE )
 
 ################
 # EVEmu source #
@@ -155,9 +158,6 @@ ENDIF( EVEMU_TOOL_ENABLE )
 ###############
 # CPack setup #
 ###############
-SET( CPACK_GENERATOR        "TGZ" )
-SET( CPACK_SOURCE_GENERATOR "TGZ" )
-
 SET( CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION_SUMMARY}" )
 SET( CPACK_PACKAGE_VENDOR              "${PROJECT_VENDOR}" )
 SET( CPACK_PACKAGE_VERSION             "${PROJECT_VERSION}" )
