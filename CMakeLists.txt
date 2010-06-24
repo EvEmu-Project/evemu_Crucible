@@ -25,17 +25,17 @@ INCLUDE( "TestBigEndian" )
 INCLUDE( "TestX64" )
 
 # Options
-SET( EVEMU_COLLECTOR_ENABLE          OFF
-     CACHE BOOL "Enable eve-collector." )
-SET( EVEMU_EXTRACT_SVN_REV           OFF
-     CACHE BOOL "Extract current revision using SVN tools." )
-SET( EVEMU_ROOT_DIR                  ".."
-     CACHE PATH "The root of EVEmu workspace." )
-SET( EVEMU_TOOL_ENABLE               OFF
-     CACHE BOOL "Enable eve-tool." )
+SET( EVEMU_COLLECTOR_ENABLE OFF
+     CACHE BOOL   "Enable eve-collector." )
+SET( EVEMU_ROOT_DIR         ".."
+     CACHE PATH   "The root of EVEmu workspace." )
+SET( EVEMU_SOURCE_SCM       ""
+     CACHE STRING "Source SCM in use; supported are: '', 'svn', 'git'" )
+SET( EVEMU_TOOL_ENABLE      OFF
+     CACHE BOOL   "Enable eve-tool." )
 
-SET( TINYXML_USE_STL                 ON
-     CACHE BOOL "tinyxml will use native STL." )
+SET( TINYXML_USE_STL        ON
+     CACHE BOOL   "tinyxml will use native STL." )
 
 #########
 # Tests #
@@ -55,9 +55,11 @@ FIND_PACKAGE( "MySQL" 5.0 REQUIRED )
 FIND_PACKAGE( "Threads" REQUIRED )
 FIND_PACKAGE( "ZLIB" REQUIRED )
 
-IF( EVEMU_EXTRACT_SVN_REV )
+IF( "${EVEMU_SOURCE_SCM}" STREQUAL "svn" )
     FIND_PACKAGE( "Subversion" REQUIRED )
-ENDIF( EVEMU_EXTRACT_SVN_REV )
+ELSEIF( "${EVEMU_SOURCE_SCM}" STREQUAL "git" )
+    FIND_PACKAGE( "Git" REQUIRED )
+ENDIF( "${EVEMU_SOURCE_SCM}" STREQUAL "svn" )
 
 # Check for other dependencies
 FIND_PACKAGE( "Doxygen" QUIET )
@@ -80,11 +82,13 @@ IF( WIN32 )
 ENDIF( WIN32 )
 
 # Update PROJECT_VERSION appropriately
-IF( EVEMU_EXTRACT_SVN_REV )
+IF( "${EVEMU_SOURCE_SCM}" STREQUAL "svn" )
     Subversion_WC_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
-
     SET( PROJECT_VERSION "${PROJECT_VERSION}-r${${PROJECT_NAME}_WC_LAST_CHANGED_REV}" )
-ENDIF( EVEMU_EXTRACT_SVN_REV )
+ELSEIF( "${EVEMU_SOURCE_SCM}" STREQUAL "git" )
+    GIT_TREE_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
+    SET( PROJECT_VERSION "${PROJECT_VERSION}-${${PROJECT_NAME}_HASH_SHORT}" )
+ENDIF( "${EVEMU_SOURCE_SCM}" STREQUAL "svn" )
 
 # Setup config.h
 CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.cmake"
