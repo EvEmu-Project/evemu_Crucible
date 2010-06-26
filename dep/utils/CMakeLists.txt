@@ -7,29 +7,29 @@
 ##############
 # Initialize #
 ##############
-SET( COMPONENT_NAME        "utils" )
-SET( COMPONENT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/dep/${COMPONENT_NAME}" )
-SET( COMPONENT_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/dep/${COMPONENT_NAME}" )
+SET( TARGET_NAME        "utils" )
+SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/dep/${TARGET_NAME}" )
+SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/dep/${TARGET_NAME}" )
 
 #########
 # Files #
 #########
 SET( INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/Base64.h"
-     "${COMPONENT_INCLUDE_DIR}/TriFile.h" )
+     "${TARGET_INCLUDE_DIR}/Base64.h"
+     "${TARGET_INCLUDE_DIR}/TriFile.h" )
 SET( SOURCE
-     "${COMPONENT_SOURCE_DIR}/Base64.cpp"
-     "${COMPONENT_SOURCE_DIR}/TriFile.cpp" )
+     "${TARGET_SOURCE_DIR}/Base64.cpp"
+     "${TARGET_SOURCE_DIR}/TriFile.cpp" )
 
 #####################
 # Setup the library #
 #####################
-INCLUDE_DIRECTORIES( "${COMPONENT_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${TARGET_INCLUDE_DIR}" )
 
-ADD_LIBRARY( "${COMPONENT_NAME}"
+ADD_LIBRARY( "${TARGET_NAME}"
              ${INCLUDE} ${SOURCE} )
 
 ######################
 # Export directories #
 ######################
-SET( ${COMPONENT_NAME}_INCLUDE_DIR "${COMPONENT_INCLUDE_DIR}" PARENT_SCOPE )
+SET( ${TARGET_NAME}_INCLUDE_DIR "${TARGET_INCLUDE_DIR}" PARENT_SCOPE )

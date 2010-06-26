@@ -47,12 +47,12 @@ public:
      *
      * @author Bloody.Rabbit
      */
-    template<typename T>
+    template< typename T >
     class const_iterator
-    : public std::iterator<std::random_access_iterator_tag, T>
+    : public std::iterator< std::random_access_iterator_tag, T >
     {
         /// Typedef for our base due to readibility.
-        typedef std::iterator<std::random_access_iterator_tag, T> _Base;
+        typedef std::iterator< std::random_access_iterator_tag, T > _Base;
 
     public:
         /// Typedef for iterator category.
@@ -103,8 +103,8 @@ public:
          *
          * @return The new const_iterator.
          */
-        template<typename T2>
-        const_iterator<T2> As() const { return const_iterator<T2>( mBuffer, mIndex ); }
+        template< typename T2 >
+        const_iterator< T2 > As() const { return const_iterator< T2 >( mBuffer, mIndex ); }
 
         /// Dereference operator.
         const_reference operator*() const
@@ -112,7 +112,7 @@ public:
             // make sure we have valid buffer
             assert( mBuffer );
             // make sure we're not going off the bounds
-            assert( 1 <= mBuffer->end<value_type>() - *this );
+            assert( 1 <= mBuffer->end< value_type >() - *this );
 
             // obtain the value and return
             return *(const_pointer)&( mBuffer->mBuffer )[ mIndex ];
@@ -227,12 +227,12 @@ public:
      *
      * @author Bloody.Rabbit
      */
-    template<typename T>
+    template< typename T >
     class iterator
-    : public const_iterator<T>
+    : public const_iterator< T >
     {
         /// Typedef for our base due to readibility.
-        typedef const_iterator<T> _Base;
+        typedef const_iterator< T > _Base;
 
     public:
         /// Typedef for iterator category.
@@ -269,11 +269,11 @@ public:
          *
          * @return The new iterator.
          */
-        template<typename T2>
-        iterator<T2> As() const { return iterator<T2>( _Base::mBuffer, _Base::mIndex ); }
+        template< typename T2 >
+        iterator< T2 > As() const { return iterator< T2 >( _Base::mBuffer, _Base::mIndex ); }
 
         /// Dereference operator.
-        reference operator*() const { return const_cast<reference>( **(_Base*)this ); }
+        reference operator*() const { return const_cast< reference >( **(_Base*)this ); }
         /// Dereference operator.
         pointer operator->() const { return &**this; }
         /// Subscript operator.
@@ -336,7 +336,7 @@ public:
         /* unfortunately, we cannot use template here
            since it's not possible to explicitly instantiate
            constructor .... assuming uint8 */
-        Resize<uint8>( len, fill );
+        Resize< uint8 >( len, fill );
     }
     /**
      * @brief Creates buffer with given content.
@@ -347,7 +347,7 @@ public:
      * @param[in] first Iterator pointing to first element.
      * @param[in] last  Iterator pointing to element after the last one.
      */
-    template<typename Iter>
+    template< typename Iter >
     Buffer( Iter first, Iter last )
     : mBuffer( NULL ),
       mSize( 0 ),
@@ -376,17 +376,17 @@ public:
     /* Read methods                                                     */
     /********************************************************************/
     /// @return iterator to begin.
-    template<typename T>
-    iterator<T> begin() { return iterator<T>( this, 0 ); }
+    template< typename T >
+    iterator< T > begin() { return iterator< T >( this, 0 ); }
     /// @return const_iterator to begin.
-    template<typename T>
-    const_iterator<T> begin() const { return const_iterator<T>( this, 0 ); }
+    template< typename T >
+    const_iterator< T > begin() const { return const_iterator< T >( this, 0 ); }
     /// @return iterator to end.
-    template<typename T>
-    iterator<T> end() { return iterator<T>( this, size() ); }
+    template< typename T >
+    iterator< T > end() { return iterator< T >( this, size() ); }
     /// @return const_iterator to end.
-    template<typename T>
-    const_iterator<T> end() const { return const_iterator<T>( this, size() ); }
+    template< typename T >
+    const_iterator< T > end() const { return const_iterator< T >( this, size() ); }
 
     /**
      * @brief Gets element from buffer.
@@ -395,8 +395,8 @@ public:
      *
      * @return Reference to element.
      */
-    template<typename T>
-    T& Get( size_type index ) { return *( begin<T>() + index ); }
+    template< typename T >
+    T& Get( size_type index ) { return *( begin< T >() + index ); }
     /**
      * @brief Gets const element from buffer.
      *
@@ -404,8 +404,8 @@ public:
      *
      * @return Const reference to element.
      */
-    template<typename T>
-    const T& Get( size_type index ) const { return *( begin<T>() + index ); }
+    template< typename T >
+    const T& Get( size_type index ) const { return *( begin< T >() + index ); }
 
     /**
      * @brief Overload of access operator[].
@@ -414,7 +414,7 @@ public:
      *
      * @return Reference to required byte.
      */
-    uint8& operator[]( size_type index ) { return Get<uint8>( index ); }
+    uint8& operator[]( size_type index ) { return Get< uint8 >( index ); }
     /**
      * @brief Overload of const access operator[].
      *
@@ -422,7 +422,7 @@ public:
      *
      * @return Const reference to required byte.
      */
-    const uint8& operator[]( size_type index ) const { return Get<uint8>( index ); }
+    const uint8& operator[]( size_type index ) const { return Get< uint8 >( index ); }
 
     /********************************************************************/
     /* Write methods                                                    */
@@ -432,17 +432,17 @@ public:
      *
      * @param[in] value Value to be appended.
      */
-    template<typename T>
+    template< typename T >
     void Append( const T& value )
     {
         // we wish to append to the end
-        const const_iterator<T> index = end<T>();
+        const const_iterator< T > index = end< T >();
 
         // make enough room; we're going to fill the gap immediately
-        _ResizeAt<T>( index, 1 );
+        _ResizeAt< T >( index, 1 );
 
         // assign the value, filling the gap
-        AssignAt<T>( index, value );
+        AssignAt< T >( index, value );
     }
     /**
      * @brief Appends a sequence of elements to buffer.
@@ -450,18 +450,18 @@ public:
      * @param[in] first Iterator pointing to first element.
      * @param[in] last  Iterator pointing to element after the last one.
      */
-    template<typename Iter>
+    template< typename Iter >
     void AppendSeq( Iter first, Iter last )
     {
         // we wish to append to the end
-        const const_iterator<typename std::iterator_traits<Iter>::value_type>
-            index = end<typename std::iterator_traits<Iter>::value_type>();
+        const const_iterator< typename std::iterator_traits< Iter >::value_type >
+            index = end< typename std::iterator_traits< Iter >::value_type >();
 
         // make enough room; we're going to fill the gap immediately
-        _ResizeAt<typename std::iterator_traits<Iter>::value_type>( index, last - first );
+        _ResizeAt< typename std::iterator_traits< Iter >::value_type >( index, last - first );
 
         // assign the value, filling the gap
-        AssignSeqAt<Iter>( index, first, last );
+        AssignSeqAt< Iter >( index, first, last );
     }
 
     /**
@@ -469,28 +469,28 @@ public:
      *
      * @param[in] value New content.
      */
-    template<typename T>
+    template< typename T >
     void Assign( const T& value )
     {
         // we wish to assign to beginning
-        const const_iterator<T> index = begin<T>();
+        const const_iterator< T > index = begin< T >();
 
         // do we have enough space?
-        if( 1 <= end<T>() - index )
+        if( 1 <= end< T >() - index )
         {
             // yes, we do: assign the value
-            AssignAt<T>( index, value );
+            AssignAt< T >( index, value );
 
             // shrink the buffer; no gap will be created
-            _ResizeAt<T>( index, 1 );
+            _ResizeAt< T >( index, 1 );
         }
         else
         {
             // no, we don't: make enough room; we're going to fill the gap immediately
-            _ResizeAt<T>( index, 1 );
+            _ResizeAt< T >( index, 1 );
 
             // assign the value, filling the gap
-            AssignAt<T>( index, value );
+            AssignAt< T >( index, value );
         }
     }
     /**
@@ -499,29 +499,29 @@ public:
      * @param[in] first Iterator pointing to first element.
      * @param[in] last  Iterator pointing to element after the last one.
      */
-    template<typename Iter>
+    template< typename Iter >
     void AssignSeq( Iter first, Iter last )
     {
         // we wish to assign to beginning
-        const const_iterator<typename std::iterator_traits<Iter>::value_type>
-            index = begin<typename std::iterator_traits<Iter>::value_type>();
+        const const_iterator< typename std::iterator_traits< Iter >::value_type >
+            index = begin< typename std::iterator_traits< Iter >::value_type >();
 
         // do we have enough space?
-        if( last - first <= end<typename std::iterator_traits<Iter>::value_type>() - index )
+        if( last - first <= end< typename std::iterator_traits< Iter >::value_type >() - index )
         {
             // yes, we do: assign the value
-            AssignSeqAt<Iter>( index, first, last );
+            AssignSeqAt< Iter >( index, first, last );
 
             // shrink the buffer; no gap will be created
-            _ResizeAt<typename std::iterator_traits<Iter>::value_type>( index, last - first );
+            _ResizeAt< typename std::iterator_traits< Iter >::value_type >( index, last - first );
         }
         else
         {
             // no, we don't: make enough room; we're going to fill the gap immediately
-            _ResizeAt<typename std::iterator_traits<Iter>::value_type>( index, last - first );
+            _ResizeAt< typename std::iterator_traits< Iter >::value_type >( index, last - first );
 
             // assign the value, filling the gap
-            AssignSeqAt<Iter>( index, first, last );
+            AssignSeqAt< Iter >( index, first, last );
         }
     }
 
@@ -531,14 +531,14 @@ public:
      * @param[in] index Point at which the value should be assigned.
      * @param[in] value New content.
      */
-    template<typename T>
-    void AssignAt( const_iterator<T> index, const T& value )
+    template< typename T >
+    void AssignAt( const_iterator< T > index, const T& value )
     {
         // make sure we're not going off the bounds
-        assert( 1 <= end<T>() - index );
+        assert( 1 <= end< T >() - index );
 
         // turn iterator into byte offset
-        const size_type _index = ( index.template As<uint8>() - begin<uint8>() );
+        const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
         // assign the value
         *(T*)&mBuffer[ _index ] = value;
     }
@@ -549,19 +549,19 @@ public:
      * @param[in] first Iterator pointing to first element.
      * @param[in] last  Iterator pointing to element after the last one.
      */
-    template<typename Iter>
-    void AssignSeqAt( const_iterator<typename std::iterator_traits<Iter>::value_type> index, Iter first, Iter last )
+    template< typename Iter >
+    void AssignSeqAt( const_iterator< typename std::iterator_traits< Iter >::value_type > index, Iter first, Iter last )
     {
         // make sure we're not going off the bounds
-        assert( last - first <= end<typename std::iterator_traits<Iter>::value_type>() - index );
+        assert( last - first <= end< typename std::iterator_traits< Iter >::value_type >() - index );
 
         // is there anything to assign?
         if( first != last )
         {
             // turn the iterator into byte offset
-            const size_type _index = ( index.template As<uint8>() - begin<uint8>() );
+            const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
             // obtain byte length of input data
-            const size_type _len = sizeof( typename std::iterator_traits<Iter>::value_type ) * ( last - first );
+            const size_type _len = sizeof( typename std::iterator_traits< Iter >::value_type ) * ( last - first );
             // assign the content
             memmove( &mBuffer[ _index ], &*first, _len );
         }
@@ -572,11 +572,11 @@ public:
      *
      * @param[in] value Value to be appended.
      */
-    template<typename T>
+    template< typename T >
     Buffer& operator<<( const T& value )
     {
         // append the value
-        Append<T>( value );
+        Append< T >( value );
         // return ourselves
         return *this;
     }
@@ -585,11 +585,11 @@ public:
      *
      * @param[in] value New content.
      */
-    template<typename T>
+    template< typename T >
     Buffer& operator=( const T& value )
     {
         // assign the value
-        Assign<T>( value );
+        Assign< T >( value );
         // return ourselves
         return *this;
     }
@@ -597,7 +597,7 @@ public:
     Buffer& operator=( const Buffer& value )
     {
         // assign new content
-        AssignSeq( value.begin<uint8>(), value.end<uint8>() );
+        AssignSeq( value.begin< uint8 >(), value.end< uint8 >() );
         // return ourselves
         return *this;
     }
@@ -621,11 +621,11 @@ public:
      *
      * @param[in] requiredCount The least reserved number of elements.
      */
-    template<typename T>
+    template< typename T >
     void Reserve( size_type requiredCount )
     {
         // reserve at beginning
-        ReserveAt<T>( begin<T>(), requiredCount );
+        ReserveAt< T >( begin< T >(), requiredCount );
     }
 
     /**
@@ -640,14 +640,14 @@ public:
      * @param[in] index         The point at which the memory should be reserved.
      * @param[in] requiredCount The least reserved number of elements.
      */
-    template<typename T>
-    void ReserveAt( const_iterator<T> index, size_type requiredCount )
+    template< typename T >
+    void ReserveAt( const_iterator< T > index, size_type requiredCount )
     {
         // make sure we're not going off the bounds
-        assert( index <= end<T>() );
+        assert( index <= end< T >() );
 
         // turn iterator into byte offset
-        const size_type _index = ( index.template As<uint8>() - begin<uint8>() );
+        const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
         // obtain required size in bytes
         const size_type _requiredSize = sizeof( T ) * requiredCount;
 
@@ -665,11 +665,11 @@ public:
      * @param[in] requiredCount The number of elements to hold.
      * @param[in] fill          During buffer expansion the gap will be filled by this value.
      */
-    template<typename T>
+    template< typename T >
     void Resize( size_type requiredCount, const uint8& fill = 0 )
     {
         // Resize at beginning
-        ResizeAt<T>( begin<T>(), requiredCount, fill );
+        ResizeAt< T >( begin< T >(), requiredCount, fill );
     }
 
     /**
@@ -683,19 +683,19 @@ public:
      * @param[in] requiredCount The number of elements to hold.
      * @param[in] fill          During buffer expansion the gap will be filled by this value.
      */
-    template<typename T>
-    void ResizeAt( const_iterator<T> index, size_type requiredCount, const uint8& fill = 0 )
+    template< typename T >
+    void ResizeAt( const_iterator< T > index, size_type requiredCount, const uint8& fill = 0 )
     {
         // make sure we're not going off the bounds
-        assert( index <= end<T>() );
+        assert( index <= end< T >() );
 
         // keep old size
         const size_type _oldSize = size();
         // do actual resize
-        _ResizeAt<T>( index, requiredCount );
+        _ResizeAt< T >( index, requiredCount );
 
         // turn iterator into byte offset
-        const size_type _index = ( index.template As<uint8>() - begin<uint8>() );
+        const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
         // obtain required size in bytes
         const size_type _requiredSize = sizeof( T ) * requiredCount;
 
@@ -721,11 +721,11 @@ protected:
      *
      * @param[in] requiredCount The number of elements to hold.
      */
-    template<typename T>
+    template< typename T >
     void _Resize( size_type requiredCount )
     {
         // resize at beginning
-        _ResizeAt<T>( begin<T>(), requiredCount );
+        _ResizeAt< T >( begin< T >(), requiredCount );
     }
 
     /**
@@ -737,14 +737,14 @@ protected:
      * @param[in] index         The point at which the buffer should be resized.
      * @param[in] requiredCount The number of elements to hold.
      */
-    template<typename T>
-    void _ResizeAt( const_iterator<T> index, size_type requiredCount )
+    template< typename T >
+    void _ResizeAt( const_iterator< T > index, size_type requiredCount )
     {
         // make sure we're not going off the bounds
-        assert( index <= end<T>() );
+        assert( index <= end< T >() );
 
         // turn index into byte offset
-        const size_type _index = ( index.template As<uint8>() - begin<uint8>() );
+        const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
         // obtain required size in bytes
         const size_type _requiredSize = sizeof( T ) * requiredCount;
 

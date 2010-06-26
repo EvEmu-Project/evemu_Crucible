@@ -7,85 +7,80 @@
 ##############
 # Initialize #
 ##############
-SET( COMPONENT_NAME        "common" )
-SET( COMPONENT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${COMPONENT_NAME}" )
-SET( COMPONENT_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${COMPONENT_NAME}" )
+SET( TARGET_NAME        "common" )
+SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
+SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 
 #########
 # Files #
 #########
-# common
 SET( INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/common.h"
-     "${COMPONENT_INCLUDE_DIR}/CommonPCH.h" )
+     "${TARGET_INCLUDE_DIR}/common.h"
+     "${TARGET_INCLUDE_DIR}/CommonPCH.h" )
 SET( SOURCE
-     "${COMPONENT_SOURCE_DIR}/common.cpp" )
+     "${TARGET_SOURCE_DIR}/common.cpp" )
 
-# common/database
 SET( database_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/database/dbcore.h"
-     "${COMPONENT_INCLUDE_DIR}/database/dbtype.h" )
+     "${TARGET_INCLUDE_DIR}/database/dbcore.h"
+     "${TARGET_INCLUDE_DIR}/database/dbtype.h" )
 SET( database_SOURCE
-     "${COMPONENT_SOURCE_DIR}/database/dbcore.cpp"
-     "${COMPONENT_SOURCE_DIR}/database/dbtype.cpp" )
+     "${TARGET_SOURCE_DIR}/database/dbcore.cpp"
+     "${TARGET_SOURCE_DIR}/database/dbtype.cpp" )
 
-# common/log
 SET( log_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/log/LogNew.h"
-     "${COMPONENT_INCLUDE_DIR}/log/logsys.h"
-     "${COMPONENT_INCLUDE_DIR}/log/logtypes.h" )
+     "${TARGET_INCLUDE_DIR}/log/LogNew.h"
+     "${TARGET_INCLUDE_DIR}/log/logsys.h"
+     "${TARGET_INCLUDE_DIR}/log/logtypes.h" )
 SET( log_SOURCE
-     "${COMPONENT_SOURCE_DIR}/log/LogNew.cpp"
-     "${COMPONENT_SOURCE_DIR}/log/logsys.cpp" )
+     "${TARGET_SOURCE_DIR}/log/LogNew.cpp"
+     "${TARGET_SOURCE_DIR}/log/logsys.cpp" )
 
-# common/network
 SET( network_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/network/NetUtils.h"
-     "${COMPONENT_INCLUDE_DIR}/network/Socket.h"
-     "${COMPONENT_INCLUDE_DIR}/network/StreamPacketizer.h"
-     "${COMPONENT_INCLUDE_DIR}/network/TCPConnection.h"
-     "${COMPONENT_INCLUDE_DIR}/network/TCPServer.h" )
+     "${TARGET_INCLUDE_DIR}/network/NetUtils.h"
+     "${TARGET_INCLUDE_DIR}/network/Socket.h"
+     "${TARGET_INCLUDE_DIR}/network/StreamPacketizer.h"
+     "${TARGET_INCLUDE_DIR}/network/TCPConnection.h"
+     "${TARGET_INCLUDE_DIR}/network/TCPServer.h" )
 SET( network_SOURCE
-     "${COMPONENT_SOURCE_DIR}/network/NetUtils.cpp"
-     "${COMPONENT_SOURCE_DIR}/network/Socket.cpp"
-     "${COMPONENT_SOURCE_DIR}/network/StreamPacketizer.cpp"
-     "${COMPONENT_SOURCE_DIR}/network/TCPConnection.cpp"
-     "${COMPONENT_SOURCE_DIR}/network/TCPServer.cpp" )
+     "${TARGET_SOURCE_DIR}/network/NetUtils.cpp"
+     "${TARGET_SOURCE_DIR}/network/Socket.cpp"
+     "${TARGET_SOURCE_DIR}/network/StreamPacketizer.cpp"
+     "${TARGET_SOURCE_DIR}/network/TCPConnection.cpp"
+     "${TARGET_SOURCE_DIR}/network/TCPServer.cpp" )
 
-# common/threading
 SET( threading_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/threading/Mutex.h" )
+     "${TARGET_INCLUDE_DIR}/threading/Mutex.h" )
 SET( threading_SOURCE
-     "${COMPONENT_SOURCE_DIR}/threading/Mutex.cpp" )
+     "${TARGET_SOURCE_DIR}/threading/Mutex.cpp" )
 
-# common/utils
 SET( utils_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/utils/Buffer.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/crc32.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/Deflate.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/DirWalker.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/gpoint.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/misc.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/RefPtr.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/Seperator.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/Singleton.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/timer.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/utils_hex.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/utils_string.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/utils_time.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/XMLParser.h"
-     "${COMPONENT_INCLUDE_DIR}/utils/XMLParserEx.h" )
+     "${TARGET_INCLUDE_DIR}/utils/Buffer.h"
+     "${TARGET_INCLUDE_DIR}/utils/crc32.h"
+     "${TARGET_INCLUDE_DIR}/utils/Deflate.h"
+     "${TARGET_INCLUDE_DIR}/utils/DirWalker.h"
+     "${TARGET_INCLUDE_DIR}/utils/gpoint.h"
+     "${TARGET_INCLUDE_DIR}/utils/Lock.h"
+     "${TARGET_INCLUDE_DIR}/utils/misc.h"
+     "${TARGET_INCLUDE_DIR}/utils/RefPtr.h"
+     "${TARGET_INCLUDE_DIR}/utils/Seperator.h"
+     "${TARGET_INCLUDE_DIR}/utils/Singleton.h"
+     "${TARGET_INCLUDE_DIR}/utils/timer.h"
+     "${TARGET_INCLUDE_DIR}/utils/utils_hex.h"
+     "${TARGET_INCLUDE_DIR}/utils/utils_string.h"
+     "${TARGET_INCLUDE_DIR}/utils/utils_time.h"
+     "${TARGET_INCLUDE_DIR}/utils/XMLParser.h"
+     "${TARGET_INCLUDE_DIR}/utils/XMLParserEx.h" )
 SET( utils_SOURCE
-     "${COMPONENT_SOURCE_DIR}/utils/crc32.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/Deflate.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/DirWalker.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/misc.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/Seperator.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/timer.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/utils_hex.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/utils_string.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/utils_time.cpp"
-     "${COMPONENT_SOURCE_DIR}/utils/XMLParser.cpp" )
+     "${TARGET_SOURCE_DIR}/utils/crc32.cpp"
+     "${TARGET_SOURCE_DIR}/utils/Deflate.cpp"
+     "${TARGET_SOURCE_DIR}/utils/DirWalker.cpp"
+     "${TARGET_SOURCE_DIR}/utils/misc.cpp"
+     "${TARGET_SOURCE_DIR}/utils/Seperator.cpp"
+     "${TARGET_SOURCE_DIR}/utils/timer.cpp"
+     "${TARGET_SOURCE_DIR}/utils/utils_hex.cpp"
+     "${TARGET_SOURCE_DIR}/utils/utils_string.cpp"
+     "${TARGET_SOURCE_DIR}/utils/utils_time.cpp"
+     "${TARGET_SOURCE_DIR}/utils/XMLParser.cpp" )
 
 #####################
 # Setup the library #
@@ -94,7 +89,7 @@ INCLUDE_DIRECTORIES( "${MYSQL_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${TINYXML_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${ZLIB_INCLUDE_DIR}" )
 
-INCLUDE_DIRECTORIES( "${COMPONENT_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${TARGET_INCLUDE_DIR}" )
 
 SOURCE_GROUP( "include"            FILES ${INCLUDE} )
 SOURCE_GROUP( "include\\database"  FILES ${database_INCLUDE} )
@@ -110,7 +105,7 @@ SOURCE_GROUP( "src\\network"   FILES ${network_SOURCE} )
 SOURCE_GROUP( "src\\threading" FILES ${threading_SOURCE} )
 SOURCE_GROUP( "src\\utils"     FILES ${utils_SOURCE} )
 
-ADD_LIBRARY( "${COMPONENT_NAME}"
+ADD_LIBRARY( "${TARGET_NAME}"
              ${INCLUDE}           ${SOURCE}
              ${database_INCLUDE}  ${database_SOURCE}
              ${log_INCLUDE}       ${log_SOURCE}
@@ -118,11 +113,11 @@ ADD_LIBRARY( "${COMPONENT_NAME}"
              ${threading_INCLUDE} ${threading_SOURCE}
              ${utils_INCLUDE}     ${utils_SOURCE} )
 
-TARGET_BUILD_PCH( "${COMPONENT_NAME}"
+TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "CommonPCH.h"
                   "common.cpp" )
 
 ######################
 # Export directories #
 ######################
-SET( ${COMPONENT_NAME}_INCLUDE_DIR "${COMPONENT_INCLUDE_DIR}" PARENT_SCOPE )
+SET( ${TARGET_NAME}_INCLUDE_DIR "${TARGET_INCLUDE_DIR}" PARENT_SCOPE )

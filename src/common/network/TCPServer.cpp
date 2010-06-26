@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2008 The EVEmu Team
+    For the latest information visit http://evemu.mmoforge.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:     Zhur
 */
 
 #include "CommonPCH.h"
@@ -50,9 +50,9 @@ bool BaseTCPServer::IsOpen() const
 {
     bool ret;
 
-    mMSock.lock();
+    mMSock.Lock();
     ret = ( mSock != NULL );
-    mMSock.unlock();
+    mMSock.Unlock();
 
     return ret;
 }
@@ -63,7 +63,7 @@ bool BaseTCPServer::Open( uint16 port, char* errbuf )
         errbuf[0] = 0;
 
     // mutex lock
-    LockMutex lock( &mMSock );
+    MutexLock lock( mMSock );
 
     if( IsOpen() )
     {
@@ -73,12 +73,12 @@ bool BaseTCPServer::Open( uint16 port, char* errbuf )
     }
     else
     {
-        mMSock.unlock();
+        mMSock.Unlock();
 
         // Wait for thread to terminate
         WaitLoop();
 
-        mMSock.lock();
+        mMSock.Lock();
     }
 
     // Setting up TCP port for new TCP connections
@@ -141,7 +141,7 @@ bool BaseTCPServer::Open( uint16 port, char* errbuf )
 
 void BaseTCPServer::Close()
 {
-    LockMutex lock( &mMSock );
+    MutexLock lock( mMSock );
 
     SafeDelete( mSock );
     mPort = 0;
@@ -160,13 +160,13 @@ void BaseTCPServer::StartLoop()
 void BaseTCPServer::WaitLoop()
 {
     //wait for loop to stop.
-    mMLoopRunning.lock();
-    mMLoopRunning.unlock();
+    mMLoopRunning.Lock();
+    mMLoopRunning.Unlock();
 }
 
 bool BaseTCPServer::Process()
 {
-    LockMutex lock( &mMSock );
+    MutexLock lock( mMSock );
 
     if( !IsOpen() )
         return false;
@@ -184,7 +184,7 @@ void BaseTCPServer::ListenNewConnections()
     from.sin_family = AF_INET;
     fromlen = sizeof( from );
 
-    LockMutex lock( &mMSock );
+    MutexLock lock( mMSock );
 
     // Check for pending connects
     while( ( sock = mSock->accept( (sockaddr*)&from, &fromlen ) ) != NULL )
@@ -222,7 +222,7 @@ thread_return_t BaseTCPServer::TCPServerLoop()
     sLog.Log( "Threading", "Starting TCPServerLoop with thread ID %d", pthread_self() );
 #endif
 
-    mMLoopRunning.lock();
+    mMLoopRunning.Lock();
 
     uint32 start = GetTickCount();
     uint32 etime;
@@ -241,7 +241,7 @@ thread_return_t BaseTCPServer::TCPServerLoop()
         start = GetTickCount();
     }
 
-    mMLoopRunning.unlock();
+    mMLoopRunning.Unlock();
 
 #ifndef WIN32
     sLog.Log( "Threading", "Ending TCPServerLoop with thread ID %d", pthread_self() );

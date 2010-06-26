@@ -68,9 +68,8 @@ protected:
     static std::auto_ptr<X> mInstance;
 };
 
-#define EXPORT_SINGLETON( T ) \
-    template<> \
-    std::auto_ptr<T> Singleton<T>::mInstance( NULL )
+template<typename X>
+std::auto_ptr<X> Singleton<X>::mInstance( NULL );
 
 #endif /* !__UTILS__SINGLETON_H__INCL__ */
 

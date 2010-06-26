@@ -1,0 +1,67 @@
+<!--
+  Bitten recipe to build EVEmu.
+
+  Author: Bloody.Rabbit
+-->
+<build xmlns:c="http://bitten.edgewall.org/tools/c"
+       xmlns:sh="http://bitten.edgewall.org/tools/sh"
+       xmlns:svn="http://bitten.edgewall.org/tools/svn">
+    <!--
+      Checkout the source.
+
+      Do a checkout so we can save bandwidth on
+      subsequent builds.
+    -->
+    <step id="checkout"
+          description="Checking out ${path} at r${revision}.">
+        <svn:checkout url="http://svn.evemu.org"
+                      path="${path}"
+                      revision="${revision}"
+                      dir="../svn/${path}"
+                      shared_path="../svn/${path}" />
+    </step>
+    <!--
+      Configure the build.
+
+      Requires properly configured cmake in the
+      configuration file.
+    -->
+    <step id="config"
+          description="Configuring build of ${config} at r${revision} on ${platform}.">
+        <sh:exec file="${cmake.path}"
+                 args="-G '${cmake.generator}' -D CMAKE_BUILD_TYPE='Debug' -D CPACK_GENERATOR='TGZ' -D CPACK_PACKAGE_FILE_NAME='evemu-${config}-r${revision}-${platform}' -D EVEMU_SOURCE_REVISION='r${revision}' -D EVEMU_SOURCE_SCM='svn' ${cmake.args} '../svn/${path}'" />
+    </step>
+    <!--
+      Build the source.
+
+      The Makefiles have been generated, build
+      it.
+    -->
+    <step id="build"
+          description="Running make tool.">
+        <c:make target="all"
+                jobs="${make.jobs}" />
+    </step>
+    <!--
+      Create a binary package.
+
+      Take advantage of CPack and use it to create
+      the package.
+    -->
+    <step id="pack"
+          description="Creating a binary package.">
+        <c:make target="package"
+                jobs="${make.jobs}" />
+    </step>
+    <!--
+      Upload the package back to FTP.
+
+      We need wput for that, must be in the
+      configuration file.
+    -->
+    <step id="upload"
+          description="Uploading the package to builds.evemu.org.">
+        <sh:exec file="${wput.path}"
+                 args="--less-verbose --binary 'evemu-${config}-r${revision}-${platform}.tar.gz' 'ftp://${wput.username}:${wput.password}@builds.evemu.org/httpdocs/${config}/${platform}/'" />
+    </step>
+</build>

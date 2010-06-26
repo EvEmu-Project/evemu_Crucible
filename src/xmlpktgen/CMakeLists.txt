@@ -7,36 +7,35 @@
 ##############
 # Initialize #
 ##############
-SET( COMPONENT_NAME        "xmlpktgen" )
-SET( COMPONENT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${COMPONENT_NAME}" )
-SET( COMPONENT_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${COMPONENT_NAME}" )
+SET( TARGET_NAME        "xmlpktgen" )
+SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
+SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 
 #########
 # Files #
 #########
-# xmlpktgen
 SET( INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/Generator.h"
-     "${COMPONENT_INCLUDE_DIR}/CloneGenerator.h"
-     "${COMPONENT_INCLUDE_DIR}/ConstructGenerator.h"
-     "${COMPONENT_INCLUDE_DIR}/DecodeGenerator.h"
-     "${COMPONENT_INCLUDE_DIR}/DestructGenerator.h"
-     "${COMPONENT_INCLUDE_DIR}/DumpGenerator.h"
-     "${COMPONENT_INCLUDE_DIR}/EncodeGenerator.h"
-     "${COMPONENT_INCLUDE_DIR}/HeaderGenerator.h"
-     "${COMPONENT_INCLUDE_DIR}/XMLPacketGen.h"
-     "${COMPONENT_INCLUDE_DIR}/XMLPktGenPCH.h" )
+     "${TARGET_INCLUDE_DIR}/Generator.h"
+     "${TARGET_INCLUDE_DIR}/CloneGenerator.h"
+     "${TARGET_INCLUDE_DIR}/ConstructGenerator.h"
+     "${TARGET_INCLUDE_DIR}/DecodeGenerator.h"
+     "${TARGET_INCLUDE_DIR}/DestructGenerator.h"
+     "${TARGET_INCLUDE_DIR}/DumpGenerator.h"
+     "${TARGET_INCLUDE_DIR}/EncodeGenerator.h"
+     "${TARGET_INCLUDE_DIR}/HeaderGenerator.h"
+     "${TARGET_INCLUDE_DIR}/XMLPacketGen.h"
+     "${TARGET_INCLUDE_DIR}/XMLPktGenPCH.h" )
 SET( SOURCE
-     "${COMPONENT_SOURCE_DIR}/main.cpp"
-     "${COMPONENT_SOURCE_DIR}/Generator.cpp"
-     "${COMPONENT_SOURCE_DIR}/CloneGenerator.cpp"
-     "${COMPONENT_SOURCE_DIR}/ConstructGenerator.cpp"
-     "${COMPONENT_SOURCE_DIR}/DecodeGenerator.cpp"
-     "${COMPONENT_SOURCE_DIR}/DestructGenerator.cpp"
-     "${COMPONENT_SOURCE_DIR}/DumpGenerator.cpp"
-     "${COMPONENT_SOURCE_DIR}/EncodeGenerator.cpp"
-     "${COMPONENT_SOURCE_DIR}/HeaderGenerator.cpp"
-     "${COMPONENT_SOURCE_DIR}/XMLPacketGen.cpp" )
+     "${TARGET_SOURCE_DIR}/main.cpp"
+     "${TARGET_SOURCE_DIR}/Generator.cpp"
+     "${TARGET_SOURCE_DIR}/CloneGenerator.cpp"
+     "${TARGET_SOURCE_DIR}/ConstructGenerator.cpp"
+     "${TARGET_SOURCE_DIR}/DecodeGenerator.cpp"
+     "${TARGET_SOURCE_DIR}/DestructGenerator.cpp"
+     "${TARGET_SOURCE_DIR}/DumpGenerator.cpp"
+     "${TARGET_SOURCE_DIR}/EncodeGenerator.cpp"
+     "${TARGET_SOURCE_DIR}/HeaderGenerator.cpp"
+     "${TARGET_SOURCE_DIR}/XMLPacketGen.cpp" )
 
 ########################
 # Setup the executable #
@@ -44,18 +43,18 @@ SET( SOURCE
 INCLUDE_DIRECTORIES( "${TINYXML_INCLUDE_DIR}" )
 
 INCLUDE_DIRECTORIES( "${common_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${COMPONENT_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${TARGET_INCLUDE_DIR}" )
 
 SOURCE_GROUP( "include" FILES ${INCLUDE} )
 SOURCE_GROUP( "src"     FILES ${SOURCE} )
 
-ADD_EXECUTABLE( "${COMPONENT_NAME}"
+ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${INCLUDE} ${SOURCE} )
 
-TARGET_BUILD_PCH( "${COMPONENT_NAME}"
+TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "XMLPktGenPCH.h"
                   "main.cpp" )
-TARGET_LINK_LIBRARIES( "${COMPONENT_NAME}"
+TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "common"
                        ${TINYXML_LIBRARIES}
                        ${CMAKE_THREAD_LIBS_INIT} )
@@ -63,4 +62,4 @@ TARGET_LINK_LIBRARIES( "${COMPONENT_NAME}"
 ######################
 # Export directories #
 ######################
-SET( ${COMPONENT_NAME}_INCLUDE_DIR "${COMPONENT_INCLUDE_DIR}" PARENT_SCOPE )
+SET( ${TARGET_NAME}_INCLUDE_DIR "${TARGET_INCLUDE_DIR}" PARENT_SCOPE )

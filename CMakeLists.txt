@@ -4,13 +4,15 @@
 # Author: Bloody.Rabbit
 #
 
-#################
-# Initial setup #
-#################
+###############
+# CMake setup #
+###############
 CMAKE_MINIMUM_REQUIRED( VERSION 2.6 FATAL_ERROR )
 
 PROJECT( "evemu" )
-SET( PROJECT_VERSION "0.7-experimental" )
+SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
+SET( PROJECT_VENDOR              "The EVEmu development team" )
+SET( PROJECT_VERSION             "0.7-experimental" )
 
 SET( CMAKE_MODULE_PATH
      "${PROJECT_SOURCE_DIR}/cmake"
@@ -23,19 +25,19 @@ INCLUDE( "TestBigEndian" )
 INCLUDE( "TestX64" )
 
 # Options
-SET( EVEMU_COLLECTOR_ENABLE          OFF
-     CACHE BOOL "Enable eve-collector." )
-SET( EVEMU_EXTRACT_SVN_REV           OFF
-     CACHE BOOL "Extract current revision using SVN tools." )
-SET( EVEMU_ROOT_DIR                  ".."
-     CACHE PATH "The root of EVEmu workspace." )
-SET( EVEMU_SERVER_SHOW_LOGIN_MESSAGE ON
-     CACHE BOOL "Show a message to a client when logging in." )
-SET( EVEMU_TOOL_ENABLE               OFF
-     CACHE BOOL "Enable eve-tool." )
+SET( EVEMU_COLLECTOR_ENABLE OFF
+     CACHE BOOL   "Enable eve-collector." )
+SET( EVEMU_DOC_ENABLE       OFF
+     CACHE BOOL   "Generate HTML documentation (requires Doxygen)." )
+SET( EVEMU_ROOT_DIR         ".."
+     CACHE PATH   "The root of EVEmu workspace." )
+SET( EVEMU_SOURCE_SCM       ""
+     CACHE STRING "Source SCM in use; supported are: '', 'svn', 'git'" )
+SET( EVEMU_TOOL_ENABLE      OFF
+     CACHE BOOL   "Enable eve-tool." )
 
-SET( TINYXML_USE_STL                 ON
-     CACHE BOOL "tinyxml will use native STL." )
+SET( TINYXML_USE_STL        ON
+     CACHE BOOL   "tinyxml will use native STL." )
 
 #########
 # Tests #
@@ -55,12 +57,19 @@ FIND_PACKAGE( "MySQL" 5.0 REQUIRED )
 FIND_PACKAGE( "Threads" REQUIRED )
 FIND_PACKAGE( "ZLIB" REQUIRED )
 
-IF( EVEMU_EXTRACT_SVN_REV )
-    FIND_PACKAGE( "Subversion" REQUIRED )
-ENDIF( EVEMU_EXTRACT_SVN_REV )
+IF( EVEMU_DOC_ENABLE )
+    FIND_PACKAGE( "Doxygen" REQUIRED )
+ENDIF( EVEMU_DOC_ENABLE )
+
+IF( NOT DEFINED EVEMU_SOURCE_REVISION )
+    IF( EVEMU_SOURCE_SCM STREQUAL "svn" )
+        FIND_PACKAGE( "Subversion" REQUIRED )
+    ELSEIF( EVEMU_SOURCE_SCM STREQUAL "git" )
+        FIND_PACKAGE( "Git" REQUIRED )
+    ENDIF( EVEMU_SOURCE_SCM STREQUAL "svn" )
+ENDIF( NOT DEFINED EVEMU_SOURCE_REVISION )
 
 # Check for other dependencies
-FIND_PACKAGE( "Doxygen" QUIET )
 FIND_PACKAGE( "Gangsta" QUIET )
 FIND_PACKAGE( "TinyXML" QUIET )
 FIND_PACKAGE( "UTF8CPP" QUIET )
@@ -79,12 +88,23 @@ IF( WIN32 )
     SET( CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} wsock32.lib" )
 ENDIF( WIN32 )
 
-# Update PROJECT_VERSION appropriately
-IF( EVEMU_EXTRACT_SVN_REV )
-    Subversion_WC_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
+# Update EVEMU_SOURCE_REVISION and PROJECT_VERSION appropriately
+IF( NOT DEFINED EVEMU_SOURCE_REVISION )
+    IF( EVEMU_SOURCE_SCM STREQUAL "svn" )
+        Subversion_WC_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
+        SET( EVEMU_SOURCE_REVISION "r${${PROJECT_NAME}_WC_LAST_CHANGED_REV}"
+             CACHE STRING "Revision of the source." )
+    ELSEIF( EVEMU_SOURCE_SCM STREQUAL "git" )
+        GIT_TREE_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
+        SET( EVEMU_SOURCE_REVISION "${${PROJECT_NAME}_HASH_SHORT}"
+             CACHE STRING "Revision of the source." )
+    ENDIF( EVEMU_SOURCE_SCM STREQUAL "svn" )
+    MARK_AS_ADVANCED( EVEMU_SOURCE_REVISION )
+ENDIF( NOT DEFINED EVEMU_SOURCE_REVISION )
 
-    SET( PROJECT_VERSION "${PROJECT_VERSION}-r${${PROJECT_NAME}_WC_LAST_CHANGED_REV}" )
-ENDIF( EVEMU_EXTRACT_SVN_REV )
+IF( DEFINED EVEMU_SOURCE_REVISION )
+    SET( PROJECT_VERSION "${PROJECT_VERSION}-${EVEMU_SOURCE_REVISION}" )
+ENDIF( DEFINED EVEMU_SOURCE_REVISION )
 
 # Setup config.h
 CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.cmake"
@@ -126,11 +146,9 @@ ENDIF( NOT UTF8CPP_FOUND )
 ###########################
 # Generated documentation #
 ###########################
-IF( DOXYGEN_FOUND )
+IF( EVEMU_DOC_ENABLE )
     ADD_SUBDIRECTORY( "doc" )
-ELSE( DOXYGEN_FOUND )
-    MESSAGE( WARNING "Doxygen not found: a generated documentation will not be available." )
-ENDIF( DOXYGEN_FOUND )
+ENDIF( EVEMU_DOC_ENABLE )
 
 ################
 # EVEmu source #
@@ -147,3 +165,12 @@ ENDIF( EVEMU_COLLECTOR_ENABLE )
 IF( EVEMU_TOOL_ENABLE )
     ADD_SUBDIRECTORY( "src/eve-tool" )
 ENDIF( EVEMU_TOOL_ENABLE )
+
+###############
+# CPack setup #
+###############
+SET( CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION_SUMMARY}" )
+SET( CPACK_PACKAGE_VENDOR              "${PROJECT_VENDOR}" )
+SET( CPACK_PACKAGE_VERSION             "${PROJECT_VERSION}" )
+
+INCLUDE( "CPack" )

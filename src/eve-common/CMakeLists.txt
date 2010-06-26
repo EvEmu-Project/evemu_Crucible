@@ -7,165 +7,154 @@
 ##############
 # Initialize #
 ##############
-SET( COMPONENT_NAME        "eve-common" )
-SET( COMPONENT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${COMPONENT_NAME}" )
-SET( COMPONENT_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${COMPONENT_NAME}" )
-SET( COMPONENT_PACKETS_DIR "${PROJECT_BINARY_DIR}/src/${COMPONENT_NAME}" )
+SET( TARGET_NAME        "eve-common" )
+SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
+SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
+SET( TARGET_PACKETS_DIR "${PROJECT_BINARY_DIR}/src/${TARGET_NAME}" )
 
 #########
 # Files #
 #########
-# eve-common
 SET( INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/EVECommonPCH.h"
-     "${COMPONENT_INCLUDE_DIR}/EVEVersion.h" )
+     "${TARGET_INCLUDE_DIR}/EVECommonPCH.h"
+     "${TARGET_INCLUDE_DIR}/EVEVersion.h" )
 SET( SOURCE
      "" )
 
-# eve-common/cache
 SET( cache_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/cache/CachedObjectMgr.h" )
+     "${TARGET_INCLUDE_DIR}/cache/CachedObjectMgr.h" )
 SET( cache_SOURCE
-     "${COMPONENT_SOURCE_DIR}/cache/CachedObjectMgr.cpp" )
+     "${TARGET_SOURCE_DIR}/cache/CachedObjectMgr.cpp" )
 
-# eve-common/database
 SET( database_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/database/EVEDBUtils.h"
-     "${COMPONENT_INCLUDE_DIR}/database/RowsetReader.h"
-     "${COMPONENT_INCLUDE_DIR}/database/RowsetToSQL.h" )
+     "${TARGET_INCLUDE_DIR}/database/EVEDBUtils.h"
+     "${TARGET_INCLUDE_DIR}/database/RowsetReader.h"
+     "${TARGET_INCLUDE_DIR}/database/RowsetToSQL.h" )
 SET( database_SOURCE
-     "${COMPONENT_SOURCE_DIR}/database/EVEDBUtils.cpp"
-     "${COMPONENT_SOURCE_DIR}/database/RowsetReader.cpp"
-     "${COMPONENT_SOURCE_DIR}/database/RowsetToSQL.cpp" )
+     "${TARGET_SOURCE_DIR}/database/EVEDBUtils.cpp"
+     "${TARGET_SOURCE_DIR}/database/RowsetReader.cpp"
+     "${TARGET_SOURCE_DIR}/database/RowsetToSQL.cpp" )
 
-# eve-common/destiny
 SET( destiny_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/destiny/DestinyBinDump.h"
-     "${COMPONENT_INCLUDE_DIR}/destiny/DestinyStructs.h" )
+     "${TARGET_INCLUDE_DIR}/destiny/DestinyBinDump.h"
+     "${TARGET_INCLUDE_DIR}/destiny/DestinyStructs.h" )
 SET( destiny_SOURCE
-     "${COMPONENT_SOURCE_DIR}/destiny/DestinyBinDump.cpp" )
+     "${TARGET_SOURCE_DIR}/destiny/DestinyBinDump.cpp" )
 
-# eve-common/marshal
 SET( marshal_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/marshal/EVEMarshal.h"
-     "${COMPONENT_INCLUDE_DIR}/marshal/EVEMarshalOpcodes.h"
-     "${COMPONENT_INCLUDE_DIR}/marshal/EVEMarshalStringTable.h"
-     "${COMPONENT_INCLUDE_DIR}/marshal/EVEUnmarshal.h" )
+     "${TARGET_INCLUDE_DIR}/marshal/EVEMarshal.h"
+     "${TARGET_INCLUDE_DIR}/marshal/EVEMarshalOpcodes.h"
+     "${TARGET_INCLUDE_DIR}/marshal/EVEMarshalStringTable.h"
+     "${TARGET_INCLUDE_DIR}/marshal/EVEUnmarshal.h" )
 SET( marshal_SOURCE
-     "${COMPONENT_SOURCE_DIR}/marshal/EVEMarshal.cpp"
-     "${COMPONENT_SOURCE_DIR}/marshal/EVEMarshalStringTable.cpp"
-     "${COMPONENT_SOURCE_DIR}/marshal/EVEUnmarshal.cpp" )
+     "${TARGET_SOURCE_DIR}/marshal/EVEMarshal.cpp"
+     "${TARGET_SOURCE_DIR}/marshal/EVEMarshalStringTable.cpp"
+     "${TARGET_SOURCE_DIR}/marshal/EVEUnmarshal.cpp" )
 
-# eve-common/network
 SET( network_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/network/EVEPktDispatch.h"
-     "${COMPONENT_INCLUDE_DIR}/network/EVESession.h"
-     "${COMPONENT_INCLUDE_DIR}/network/EVETCPConnection.h"
-     "${COMPONENT_INCLUDE_DIR}/network/EVETCPServer.h"
-     "${COMPONENT_INCLUDE_DIR}/network/packet_types.h" )
+     "${TARGET_INCLUDE_DIR}/network/EVEPktDispatch.h"
+     "${TARGET_INCLUDE_DIR}/network/EVESession.h"
+     "${TARGET_INCLUDE_DIR}/network/EVETCPConnection.h"
+     "${TARGET_INCLUDE_DIR}/network/EVETCPServer.h"
+     "${TARGET_INCLUDE_DIR}/network/packet_types.h" )
 SET( network_SOURCE
-     "${COMPONENT_SOURCE_DIR}/network/EVEPktDispatch.cpp"
-     "${COMPONENT_SOURCE_DIR}/network/EVESession.cpp"
-     "${COMPONENT_SOURCE_DIR}/network/EVETCPConnection.cpp" )
+     "${TARGET_SOURCE_DIR}/network/EVEPktDispatch.cpp"
+     "${TARGET_SOURCE_DIR}/network/EVESession.cpp"
+     "${TARGET_SOURCE_DIR}/network/EVETCPConnection.cpp" )
 
-# eve-common/packets
 SET( packets_INCLUDE
-     "${COMPONENT_PACKETS_DIR}/packets/AccountPkts.h"
-     "${COMPONENT_PACKETS_DIR}/packets/CorporationPkts.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Crypto.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Destiny.h"
-     "${COMPONENT_PACKETS_DIR}/packets/DogmaIM.h"
-     "${COMPONENT_PACKETS_DIR}/packets/General.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Character.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Inventory.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Language.h"
-     "${COMPONENT_PACKETS_DIR}/packets/LSCPkts.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Manufacturing.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Market.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Missions.h"
-     "${COMPONENT_PACKETS_DIR}/packets/ObjectCaching.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Standing2.h"
-	 "${COMPONENT_PACKETS_DIR}/packets/Trade.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Tutorial.h"
-     "${COMPONENT_PACKETS_DIR}/packets/Wallet.h" )
+     "${TARGET_PACKETS_DIR}/packets/AccountPkts.h"
+     "${TARGET_PACKETS_DIR}/packets/CorporationPkts.h"
+     "${TARGET_PACKETS_DIR}/packets/Crypto.h"
+     "${TARGET_PACKETS_DIR}/packets/Destiny.h"
+     "${TARGET_PACKETS_DIR}/packets/DogmaIM.h"
+     "${TARGET_PACKETS_DIR}/packets/General.h"
+     "${TARGET_PACKETS_DIR}/packets/Character.h"
+     "${TARGET_PACKETS_DIR}/packets/Inventory.h"
+     "${TARGET_PACKETS_DIR}/packets/Language.h"
+     "${TARGET_PACKETS_DIR}/packets/LSCPkts.h"
+     "${TARGET_PACKETS_DIR}/packets/Manufacturing.h"
+     "${TARGET_PACKETS_DIR}/packets/Market.h"
+     "${TARGET_PACKETS_DIR}/packets/Missions.h"
+     "${TARGET_PACKETS_DIR}/packets/ObjectCaching.h"
+     "${TARGET_PACKETS_DIR}/packets/Standing2.h"
+     "${TARGET_PACKETS_DIR}/packets/Trade.h"
+     "${TARGET_PACKETS_DIR}/packets/Tutorial.h"
+     "${TARGET_PACKETS_DIR}/packets/Wallet.h" )
 SET( packets_SOURCE
-     "${COMPONENT_PACKETS_DIR}/packets/AccountPkts.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/CorporationPkts.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Crypto.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Destiny.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/DogmaIM.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/General.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Character.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Inventory.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Language.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/LSCPkts.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Manufacturing.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Market.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Missions.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/ObjectCaching.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Standing2.cpp"
-	 "${COMPONENT_PACKETS_DIR}/packets/Trade.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Tutorial.cpp"
-     "${COMPONENT_PACKETS_DIR}/packets/Wallet.cpp" )
+     "${TARGET_PACKETS_DIR}/packets/AccountPkts.cpp"
+     "${TARGET_PACKETS_DIR}/packets/CorporationPkts.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Crypto.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Destiny.cpp"
+     "${TARGET_PACKETS_DIR}/packets/DogmaIM.cpp"
+     "${TARGET_PACKETS_DIR}/packets/General.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Character.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Inventory.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Language.cpp"
+     "${TARGET_PACKETS_DIR}/packets/LSCPkts.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Manufacturing.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Market.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Missions.cpp"
+     "${TARGET_PACKETS_DIR}/packets/ObjectCaching.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Standing2.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Trade.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Tutorial.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Wallet.cpp" )
 SET( packets_XMLP
-     "${COMPONENT_SOURCE_DIR}/packets/AccountPkts.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/CorporationPkts.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Crypto.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Destiny.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/DogmaIM.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/General.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Character.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Inventory.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Language.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/LSCPkts.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Manufacturing.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Market.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Missions.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/ObjectCaching.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Standing2.xmlp"
-	 "${COMPONENT_SOURCE_DIR}/packets/Trade.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Tutorial.xmlp"
-     "${COMPONENT_SOURCE_DIR}/packets/Wallet.xmlp" )
+     "${TARGET_SOURCE_DIR}/packets/AccountPkts.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/CorporationPkts.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Crypto.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Destiny.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/DogmaIM.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/General.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Character.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Inventory.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Language.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/LSCPkts.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Manufacturing.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Market.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Missions.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/ObjectCaching.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Standing2.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Trade.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Tutorial.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Wallet.xmlp" )
 
-# eve-common/python
 SET( python_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/python/PyDumpVisitor.h"
-     "${COMPONENT_INCLUDE_DIR}/python/PyLookupDump.h"
-     "${COMPONENT_INCLUDE_DIR}/python/PyPacket.h"
-     "${COMPONENT_INCLUDE_DIR}/python/PyRep.h"
-     "${COMPONENT_INCLUDE_DIR}/python/PyTraceLog.h"
-     "${COMPONENT_INCLUDE_DIR}/python/PyVisitor.h"
-     "${COMPONENT_INCLUDE_DIR}/python/PyXMLGenerator.h" )
+     "${TARGET_INCLUDE_DIR}/python/PyDumpVisitor.h"
+     "${TARGET_INCLUDE_DIR}/python/PyLookupDump.h"
+     "${TARGET_INCLUDE_DIR}/python/PyPacket.h"
+     "${TARGET_INCLUDE_DIR}/python/PyRep.h"
+     "${TARGET_INCLUDE_DIR}/python/PyTraceLog.h"
+     "${TARGET_INCLUDE_DIR}/python/PyVisitor.h"
+     "${TARGET_INCLUDE_DIR}/python/PyXMLGenerator.h" )
 SET( python_SOURCE
-     "${COMPONENT_SOURCE_DIR}/python/PyDumpVisitor.cpp"
-     "${COMPONENT_SOURCE_DIR}/python/PyLookupDump.cpp"
-     "${COMPONENT_SOURCE_DIR}/python/PyPacket.cpp"
-     "${COMPONENT_SOURCE_DIR}/python/PyRep.cpp"
-     "${COMPONENT_SOURCE_DIR}/python/PyVisitor.cpp"
-     "${COMPONENT_SOURCE_DIR}/python/PyXMLGenerator.cpp" )
+     "${TARGET_SOURCE_DIR}/python/PyDumpVisitor.cpp"
+     "${TARGET_SOURCE_DIR}/python/PyLookupDump.cpp"
+     "${TARGET_SOURCE_DIR}/python/PyPacket.cpp"
+     "${TARGET_SOURCE_DIR}/python/PyRep.cpp"
+     "${TARGET_SOURCE_DIR}/python/PyVisitor.cpp"
+     "${TARGET_SOURCE_DIR}/python/PyXMLGenerator.cpp" )
 
-# eve-common/python/classes
 SET( python_classes_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/python/classes/PyDatabase.h"
-     "${COMPONENT_INCLUDE_DIR}/python/classes/PyExceptions.h"
-     "${COMPONENT_INCLUDE_DIR}/python/classes/PyUtils.h" )
+     "${TARGET_INCLUDE_DIR}/python/classes/PyDatabase.h"
+     "${TARGET_INCLUDE_DIR}/python/classes/PyExceptions.h"
+     "${TARGET_INCLUDE_DIR}/python/classes/PyUtils.h" )
 SET( python_classes_SOURCE
-     "${COMPONENT_SOURCE_DIR}/python/classes/PyDatabase.cpp"
-     "${COMPONENT_SOURCE_DIR}/python/classes/PyExceptions.cpp"
-     "${COMPONENT_SOURCE_DIR}/python/classes/PyUtils.cpp" )
+     "${TARGET_SOURCE_DIR}/python/classes/PyDatabase.cpp"
+     "${TARGET_SOURCE_DIR}/python/classes/PyExceptions.cpp"
+     "${TARGET_SOURCE_DIR}/python/classes/PyUtils.cpp" )
 
-# eve-common/tables
 SET( tables_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/tables/invCategories.h"
-     "${COMPONENT_INCLUDE_DIR}/tables/invGroups.h" )
+     "${TARGET_INCLUDE_DIR}/tables/invCategories.h"
+     "${TARGET_INCLUDE_DIR}/tables/invGroups.h" )
 SET( tables_SOURCE
      "" )
 
-# eve-common/utils
 SET( utils_INCLUDE
-     "${COMPONENT_INCLUDE_DIR}/utils/EVEUtils.h" )
+     "${TARGET_INCLUDE_DIR}/utils/EVEUtils.h" )
 SET( utils_SOURCE
-     "${COMPONENT_SOURCE_DIR}/utils/EVEUtils.cpp" )
+     "${TARGET_SOURCE_DIR}/utils/EVEUtils.cpp" )
 
 #####################
 # Setup the library #
@@ -176,8 +165,8 @@ INCLUDE_DIRECTORIES( "${UTF8CPP_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${utils_INCLUDE_DIR}" )
 
 INCLUDE_DIRECTORIES( "${common_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${COMPONENT_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${COMPONENT_PACKETS_DIR}" )
+INCLUDE_DIRECTORIES( "${TARGET_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${TARGET_PACKETS_DIR}" )
 
 SOURCE_GROUP( "include"                  FILES ${INCLUDE} )
 SOURCE_GROUP( "include\\cache"           FILES ${cache_INCLUDE} )
@@ -204,16 +193,16 @@ SOURCE_GROUP( "src\\python\\classes" FILES ${python_classes_SOURCE} )
 SOURCE_GROUP( "src\\tables"          FILES ${tables_SOURCE} )
 SOURCE_GROUP( "src\\utils"           FILES ${utils_SOURCE} )
 
-FILE( MAKE_DIRECTORY "${COMPONENT_PACKETS_DIR}/packets" )
+FILE( MAKE_DIRECTORY "${TARGET_PACKETS_DIR}/packets" )
 ADD_CUSTOM_COMMAND( OUTPUT ${packets_INCLUDE} ${packets_SOURCE}
                     COMMAND "xmlpktgen"
-                    ARGS -I "${COMPONENT_PACKETS_DIR}/packets"
-                         -S "${COMPONENT_PACKETS_DIR}/packets"
+                    ARGS -I "${TARGET_PACKETS_DIR}/packets"
+                         -S "${TARGET_PACKETS_DIR}/packets"
                          ${packets_XMLP}
                     DEPENDS "xmlpktgen"
                     COMMENT "Generating packet files..." )
 
-ADD_LIBRARY( "${COMPONENT_NAME}"
+ADD_LIBRARY( "${TARGET_NAME}"
              ${INCLUDE}                ${SOURCE}
              ${cache_INCLUDE}          ${cache_SOURCE}
              ${database_INCLUDE}       ${database_SOURCE}
@@ -226,12 +215,12 @@ ADD_LIBRARY( "${COMPONENT_NAME}"
              ${tables_INCLUDE}         ${tables_SOURCE}
              ${utils_INCLUDE}          ${utils_SOURCE} )
 
-TARGET_BUILD_PCH( "${COMPONENT_NAME}"
+TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "EVECommonPCH.h"
                   "utils/EVEUtils.cpp" )
 
 ######################
 # Export directories #
 ######################
-SET( ${COMPONENT_NAME}_INCLUDE_DIR "${COMPONENT_INCLUDE_DIR}" PARENT_SCOPE )
-SET( ${COMPONENT_NAME}_PACKETS_DIR "${COMPONENT_PACKETS_DIR}" PARENT_SCOPE )
+SET( ${TARGET_NAME}_INCLUDE_DIR "${TARGET_INCLUDE_DIR}" PARENT_SCOPE )
+SET( ${TARGET_NAME}_PACKETS_DIR "${TARGET_PACKETS_DIR}" PARENT_SCOPE )

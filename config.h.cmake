@@ -47,14 +47,6 @@
 // Define this if you want a non-debug (release) build
 // CMake passes this as a command-line define.
 
-// EVEMU_SERVER_SHOW_LOGIN_MESSAGE
-// Show a message to a client when logging in.
-#cmakedefine EVEMU_SERVER_SHOW_LOGIN_MESSAGE 1
-
-// TINYXML_USE_STL
-// Define this if tinyxml should use native STL.
-#cmakedefine TINYXML_USE_STL 1
-
 // EVEMU_ROOT_DIR
 // The root of EVEmu workspace.
 #define EVEMU_ROOT_DIR "@EVEMU_ROOT_DIR@"
@@ -63,3 +55,6 @@
 // The version of source.
 #define EVEMU_VERSION "@PROJECT_VERSION@"
 
+// TINYXML_USE_STL
+// Define this if tinyxml should use native STL.
+#cmakedefine TINYXML_USE_STL 1

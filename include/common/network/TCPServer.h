@@ -1,30 +1,30 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2008 The EVEmu Team
+    For the latest information visit http://evemu.mmoforge.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur, Bloody.Rabbit
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:     Zhur, Bloody.Rabbit
 */
 
-#ifndef TCPSERVER_H_
-#define TCPSERVER_H_
+#ifndef __NETWORK__TCP_SERVER_H__INCL__
+#define __NETWORK__TCP_SERVER_H__INCL__
 
 #include "network/Socket.h"
 #include "threading/Mutex.h"
@@ -45,16 +45,16 @@ public:
     /**
      * @brief Creates empty TCP server.
      */
-	BaseTCPServer();
+    BaseTCPServer();
     /**
      * @brief Cleans server up.
      */
-	virtual ~BaseTCPServer();
+    virtual ~BaseTCPServer();
 
     /** @return TCP port the server listens on. */
-	uint16  GetPort() const { return mPort; }
+    uint16 GetPort() const { return mPort; }
     /** @return True if listening has been opened, false if not. */
-	bool    IsOpen() const;
+    bool IsOpen() const;
 
     /**
      * @brief Start listening on specified port.
@@ -64,11 +64,11 @@ public:
      *
      * @return True if listening has been started successfully, false if not.
      */
-	bool    Open( uint16 port, char* errbuf = 0 );
+    bool Open( uint16 port, char* errbuf = 0 );
     /**
      * @brief Stops started listening.
      */
-	void    Close();
+    void Close();
 
 protected:
     /**
@@ -77,22 +77,22 @@ protected:
      * This function just starts worker thread; it doesn't check
      * whether there already is one running!
      */
-    void            StartLoop();
+    void StartLoop();
     /**
      * @brief Waits for worker thread to terminate.
      */
-	void            WaitLoop();
+    void WaitLoop();
 
     /**
      * @brief Does periodical stuff to keep the server alive.
      *
      * @return True if the server should be further processed, false if not (eg. error occurred).
      */
-    virtual bool    Process();
+    virtual bool Process();
     /**
      * @brief Accepts all new connections.
      */
-    void            ListenNewConnections();
+    void ListenNewConnections();
 
     /**
      * @brief Processes new connection.
@@ -100,7 +100,7 @@ protected:
      * This function must be overloaded by children to process new connections.
      * Called every time a new connection is accepted.
      */
-	virtual void    CreateNewConnection( Socket* sock, uint32 rIP, uint16 rPort ) = 0;
+    virtual void CreateNewConnection( Socket* sock, uint32 rIP, uint16 rPort ) = 0;
 
     /**
      * @brief Loop for worker threads.
@@ -110,21 +110,21 @@ protected:
      *
      * @param[in] arg Pointer to BaseTCPServer.
      */
-	static thread_return_t TCPServerLoop( void* arg );
+    static thread_return_t TCPServerLoop( void* arg );
     /**
      * @brief Loop for worker threads.
      */
-    thread_return_t        TCPServerLoop();
+    thread_return_t TCPServerLoop();
 
     /** Mutex to protect socket and associated variables. */
-	mutable Mutex   mMSock;
+    mutable Mutex mMSock;
     /** Socket used for listening. */
-	Socket*         mSock;
+    Socket* mSock;
     /** Port the socket is listening on. */
-	uint16          mPort;
+    uint16 mPort;
 
     /** Worker thread acquires this mutex before it starts processing; used for thread synchronization. */
-    mutable Mutex   mMLoopRunning;
+    mutable Mutex mMLoopRunning;
 };
 
 /**
@@ -141,7 +141,7 @@ public:
      */
     ~TCPServer()
     {
-        LockMutex lock( &mMQueue );
+        MutexLock lock( mMQueue );
 
         X* conn;
         while( ( conn = PopConnection() ) )
@@ -153,19 +153,19 @@ public:
      *
      * @return Popped connection.
      */
-	X* PopConnection()
+    X* PopConnection()
     {
-        LockMutex lock( &mMQueue );
+        MutexLock lock( mMQueue );
 
-		X* ret = NULL;
-	    if( !mQueue.empty() )
+        X* ret = NULL;
+        if( !mQueue.empty() )
         {
-		    ret = mQueue.front();
-		    mQueue.pop();
-	    }
+            ret = mQueue.front();
+            mQueue.pop();
+        }
 
-		return ret;
-	}
+        return ret;
+    }
 
 protected:
     /**
@@ -173,18 +173,17 @@ protected:
      *
      * @param[in] con Connection to be added to the queue.
      */
-	void AddConnection( X* con )
+    void AddConnection( X* con )
     {
-        LockMutex lock( &mMQueue );
+        MutexLock lock( mMQueue );
 
         mQueue.push( con );
-	}
+    }
 
     /** Mutex to protect connection queue. */
-	Mutex           mMQueue;
+    Mutex mMQueue;
     /** Connection queue. */
-	std::queue<X*>  mQueue;
+    std::queue<X*> mQueue;
 };
 
-
-#endif /*TCPSERVER_H_*/
+#endif /* !__NETWORK__TCP_SERVER_H__INCL__ */

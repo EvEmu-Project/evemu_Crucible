@@ -31,8 +31,6 @@
 #include "log/logsys.h"
 #include "utils/misc.h"
 
-EXPORT_SINGLETON( DBcore );
-
 //#define COLUMN_BOUNDS_CHECKING
 
 DBcore::DBcore(bool compress, bool ssl) : pCompress(compress), pSSL(ssl)
@@ -49,18 +47,17 @@ DBcore::~DBcore()
 // Sends the MySQL server a ping
 void DBcore::ping()
 {
-    if (!MDatabase.trylock())
+    // well, if it's locked, someone's using it. If someone's using it, it doesn't need a ping
+    if( MDatabase.TryLock() )
     {
-        // well, if it's locked, someone's using it. If someone's using it, it doesn't need a ping
-        return;
+        mysql_ping( &mysql );
+        MDatabase.Unlock();
     }
-    mysql_ping(&mysql);
-    MDatabase.unlock();
 }
 
 //query which returns a result (error is stored in the result if it occurs)
 bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
-    LockMutex lock(&MDatabase);
+    MutexLock lock(MDatabase);
 
     char query[16384];
     va_list vlist;
@@ -93,7 +90,7 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 
 //query which returns no information except error status
 bool DBcore::RunQuery(DBerror &err, const char *query_fmt, ...) {
-    LockMutex lock(&MDatabase);
+    MutexLock lock(MDatabase);
 
     va_list args;
     va_start(args, query_fmt);
@@ -112,7 +109,7 @@ bool DBcore::RunQuery(DBerror &err, const char *query_fmt, ...) {
 
 //query which returns affected rows:
 bool DBcore::RunQuery(DBerror &err, uint32 &affected_rows, const char *query_fmt, ...) {
-    LockMutex lock(&MDatabase);
+    MutexLock lock(MDatabase);
 
     va_list args;
     va_start(args, query_fmt);
@@ -133,7 +130,7 @@ bool DBcore::RunQuery(DBerror &err, uint32 &affected_rows, const char *query_fmt
 
 //query which returns last insert ID:
 bool DBcore::RunQueryLID(DBerror &err, uint32 &last_insert_id, const char *query_fmt, ...) {
-    LockMutex lock(&MDatabase);
+    MutexLock lock(MDatabase);
 
     va_list args;
     va_start(args, query_fmt);
@@ -185,7 +182,7 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
         *errnum = 0;
     if (errbuf)
         errbuf[0] = 0;
-    LockMutex lock(&MDatabase);
+    MutexLock lock(MDatabase);
 
     DBerror err;
     if(!DoQuery_locked(err, query, querylen, retry))
@@ -244,7 +241,7 @@ bool DBcore::IsSafeString(const char *str) {
 }
 
 bool DBcore::Open(const char* iHost, const char* iUser, const char* iPassword, const char* iDatabase, int16 iPort, int32* errnum, char* errbuf, bool iCompress, bool iSSL) {
-    LockMutex lock(&MDatabase);
+    MutexLock lock(MDatabase);
 
     pHost = iHost;
     pUser = iUser;
@@ -258,7 +255,7 @@ bool DBcore::Open(const char* iHost, const char* iUser, const char* iPassword, c
 }
 
 bool DBcore::Open(DBerror &err, const char* iHost, const char* iUser, const char* iPassword, const char* iDatabase, int16 iPort, bool iCompress, bool iSSL) {
-    LockMutex lock(&MDatabase);
+    MutexLock lock(MDatabase);
 
     pHost = iHost;
     pUser = iUser;

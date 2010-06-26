@@ -27,8 +27,6 @@
 
 #include "marshal/EVEMarshalStringTable.h"
 
-EXPORT_SINGLETON( MarshalStringTable );
-
 /* we made up this list so we have efficient string communication with the client */
 const char* const MarshalStringTable::s_mStringTable[] =
 {

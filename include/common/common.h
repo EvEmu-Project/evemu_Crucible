@@ -43,7 +43,6 @@
  *        NDEBUG, (debug)
  *        EVEMU_ROOT_DIR
  *        EVEMU_VERSION
- *        EVEMU_SERVER_SHOW_LOGIN_MESSAGE
  *        TINYXML_USE_STL
  *
  * The rest of code relies on these defines.

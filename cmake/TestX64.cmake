@@ -1,8 +1,9 @@
 # - Define macro to determine architecture
-# Check if the system is 64bit or not
 #
-#  TEST_X64( VARIABLE )
-#    VARIABLE - variable to store the result to
+# TEST_X64( VARIABLE )
+#     Check if the system is 64bit or not
+#     Arguments:
+#         VARIABLE - variable to store the result to
 #
 
 MACRO( TEST_X64 VARIABLE )

@@ -1,30 +1,30 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2008 The EVEmu Team
+    For the latest information visit http://evemu.mmoforge.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur, Bloody.Rabbit
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:     Zhur, Bloody.Rabbit
 */
 
-#ifndef __TCP_CONNECTION_H__INCL__
-#define __TCP_CONNECTION_H__INCL__
+#ifndef __NETWORK__TCP_CONNECTION_H__INCL__
+#define __NETWORK__TCP_CONNECTION_H__INCL__
 
 #include "network/Socket.h"
 #include "threading/Mutex.h"
@@ -46,35 +46,35 @@ class TCPConnection
 {
 public:
     /** Describes all states this object may be in. */
-	enum state_t
+    enum state_t
     {
-		STATE_DISCONNECTED, /**< No connection. */
-		STATE_CONNECTING,   /**< Connection pending (asynchronous connection). */
-		STATE_CONNECTED,    /**< Connection established, transferring data. */
-		STATE_DISCONNECTING /**< Disconnect pending, waiting for all data to be sent. */
+        STATE_DISCONNECTED, /**< No connection. */
+        STATE_CONNECTING,   /**< Connection pending (asynchronous connection). */
+        STATE_CONNECTED,    /**< Connection established, transferring data. */
+        STATE_DISCONNECTING /**< Disconnect pending, waiting for all data to be sent. */
     };
 
     /**
      * @brief Creates new connection in STATE_DISCONNECTED.
      */
-	TCPConnection();
+    TCPConnection();
     /**
      * @brief Cleans connection up.
      */
-	virtual ~TCPConnection();
+    virtual ~TCPConnection();
 
     /** @return Remote IP. */
-	uint32          GetrIP() const	 { return mrIP; }
+    uint32 GetrIP() const     { return mrIP; }
     /** @return Remote port. */
-	uint16          GetrPort() const { return mrPort; }
-	/**
-	 * @return String in format "<remote_address>:<remote_port>".
+    uint16 GetrPort() const { return mrPort; }
+    /**
+     * @return String in format "<remote_address>:<remote_port>".
      *
      * @note It's kinda slow this way.
-	 */
-	std::string		GetAddress();
+     */
+    std::string GetAddress();
     /** @return Current state of connection. */
-    state_t         GetState() const { return mSockState; }
+    state_t GetState() const { return mSockState; }
 
     /**
      * @brief Connects to specified address.
@@ -89,7 +89,7 @@ public:
      *
      * @return True if connection succeeds, false if not.
      */
-	bool            Connect( uint32 rIP, uint16 rPort, char* errbuf = 0 );
+    bool Connect( uint32 rIP, uint16 rPort, char* errbuf = 0 );
     /**
      * @brief Schedules asynchronous connect to specified address.
      *
@@ -100,7 +100,7 @@ public:
      * @param[in] rIP   Target remote IP address.
      * @param[in] rPort Target remote TCP port.
      */
-	void            AsyncConnect( uint32 rIP, uint16 rPort );
+    void AsyncConnect( uint32 rIP, uint16 rPort );
     /**
      * @brief Schedules disconnect of current connection.
      *
@@ -108,7 +108,7 @@ public:
      * this may take some time since we wait for emptying send
      * queue before actually disconnecting.
      */
-	void            Disconnect();
+    void Disconnect();
 
     /**
      * @brief Enqueues data to be sent.
@@ -117,7 +117,7 @@ public:
      *
      * @return True if data has been accepted, false if not.
      */
-	bool			Send( Buffer** data );
+    bool Send( Buffer** data );
 
 protected:
     /**
@@ -127,7 +127,7 @@ protected:
      * @param[in] rIP   Remote IP socket is connected to.
      * @param[in] rPort Remote TCP port socket is connected to.
      */
-	TCPConnection( Socket* sock, uint32 rIP, uint16 rPort );
+    TCPConnection( Socket* sock, uint32 rIP, uint16 rPort );
 
     /**
      * @brief Starts working thread.
@@ -135,18 +135,18 @@ protected:
      * This function just starts a thread, does not check
      * whether there is already one running!
      */
-    void            StartLoop();
+    void StartLoop();
     /**
      * @brief Blocks calling thread until working thread terminates.
      */
-    void            WaitLoop();
+    void WaitLoop();
 
     /**
      * @brief Does all stuff that needs to be periodically done to keep connection alive.
      *
      * @return True if connection should be further processed, false if not (eg. error, disconnected).
      */
-	virtual bool    Process();
+    virtual bool Process();
     /**
      * @brief Processes received data.
      *
@@ -158,7 +158,7 @@ protected:
      *
      * @return True if processing ran fine, false if not.
      */
-	virtual bool    ProcessReceivedData( char* errbuf = 0 ) = 0;
+    virtual bool ProcessReceivedData( char* errbuf = 0 ) = 0;
 
     /**
      * @brief Sends data in send queue.
@@ -167,7 +167,7 @@ protected:
      *
      * @return True if send was OK, false if not.
      */
-	virtual bool    SendData( char* errbuf = 0 );
+    virtual bool SendData( char* errbuf = 0 );
     /**
      * @brief Receives data and puts them into receive queue.
      *
@@ -175,16 +175,16 @@ protected:
      *
      * @return True if receive was OK, false if not.
      */
-	virtual bool    RecvData( char* errbuf = 0 );
+    virtual bool RecvData( char* errbuf = 0 );
     /**
      * @brief Disconnects socket.
      */
-	void            DoDisconnect();
+    void DoDisconnect();
 
     /**
      * @brief Clears send and receive buffers.
      */
-	virtual void    ClearBuffers();
+    virtual void ClearBuffers();
 
     /**
      * @brief Loop for worker threads.
@@ -194,37 +194,33 @@ protected:
      *
      * @param[in] arg Pointer to TCPConnection.
      */
-	static thread_return_t TCPConnectionLoop( void* arg );
+    static thread_return_t TCPConnectionLoop( void* arg );
     /**
      * @brief Loop for worker threads.
      */
-    thread_return_t        TCPConnectionLoop();
+    thread_return_t TCPConnectionLoop();
 
     /** Protection of socket and associated variables. */
-    mutable Mutex   mMSock;
+    mutable Mutex mMSock;
     /** Socket for connection. */
-    Socket*         mSock;
+    Socket* mSock;
     /** State the socket is in. */
-	state_t         mSockState;
+    state_t mSockState;
     /** Remote IP the socket is connected to. */
-	uint32          mrIP;
+    uint32 mrIP;
     /** Remote TCP port the socket is connected to; is in host byte order. */
-	uint16          mrPort;
+    uint16 mrPort;
 
     /** When a thread is running TCPConnectionLoop, it acquires this mutex first; used for synchronization. */
-    mutable Mutex   mMLoopRunning;
+    mutable Mutex mMLoopRunning;
 
     /** Mutex protecting send queue. */
-	mutable Mutex       mMSendQueue;
+    mutable Mutex mMSendQueue;
     /** Send queue. */
     std::deque<Buffer*> mSendQueue;
 
     /** Receive buffer. */
-    Buffer*             mRecvBuf;
+    Buffer* mRecvBuf;
 };
 
-
-#endif /* !__TCP_CONNECTION_H__INCL__ */
-
-
-
+#endif /* !__NETWORK__TCP_CONNECTION_H__INCL__ */
