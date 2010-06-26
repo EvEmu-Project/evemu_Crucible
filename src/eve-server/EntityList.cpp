@@ -25,8 +25,6 @@
 
 #include "EVEServerPCH.h"
 
-EXPORT_SINGLETON( EntityList );
-
 EntityList::EntityList() : m_services( NULL ) {}
 EntityList::~EntityList() {
 	{
