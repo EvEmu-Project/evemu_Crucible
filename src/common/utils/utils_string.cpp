@@ -36,26 +36,26 @@ size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const ch
     else
         *bufsize = *strlen = 0;
 
-	va_list ap;
-	va_start( ap, fmt );
+    va_list ap;
+    va_start( ap, fmt );
 
-	int chars = -1;
-	while( chars == -1 || chars >= (int)( *bufsize - *strlen ) )
+    int chars = -1;
+    while( chars == -1 || chars >= (int)( *bufsize - *strlen ) )
     {
-		if( chars == -1 )
-			*bufsize += 256;
-		else
-			*bufsize += chars + 1;
+        if( chars == -1 )
+            *bufsize += 256;
+        else
+            *bufsize += chars + 1;
 
         *ret = (char*)realloc( *ret, *bufsize );
 
-		chars = vsnprintf( &( *ret )[ *strlen ], ( *bufsize - *strlen ), fmt, ap );
-	}
+        chars = vsnprintf( &( *ret )[ *strlen ], ( *bufsize - *strlen ), fmt, ap );
+    }
 
-	va_end( ap );
+    va_end( ap );
 
-	*strlen += chars;
-	return *strlen;
+    *strlen += chars;
+    return *strlen;
 }
 
 std::string GenerateKey( size_t length )
@@ -251,79 +251,90 @@ void MakeLowerString( const char* source, char* target )
 
 bool PyDecodeEscape( const char* str, Buffer& into )
 {
-    int len = (int)strlen( str );
-	const char* end = str + len;
-	while( str < end )
-    {
-	    int c;
+    const size_t len = strlen( str );
+    const char* const end = str + len;
 
-		if( *str != '\\' )
+    while( str < end )
+    {
+        if( *str != '\\' )
         {
-			into.Append<char>( *str++ );
-			continue;
-		}
+            into.Append< char >( *str++ );
+            continue;
+        }
+
         if( ++str == end )
             //ended with a \ char
-			return false;
+            return false;
 
+        int c;
         switch( *str++ )
         {
-		/* XXX This assumes ASCII! */
-		case '\n': break;	//?
-		case '\\': into.Append<char>('\\'); break;
-		case '\'': into.Append<char>('\''); break;
-		case '\"': into.Append<char>('\"'); break;
-		case 'b':  into.Append<char>('\b'); break;
-		case 'f':  into.Append<char>('\014'); break; /* FF */
-		case 't':  into.Append<char>('\t'); break;
-		case 'n':  into.Append<char>('\n'); break;
-		case 'r':  into.Append<char>('\r'); break;
-		case 'v':  into.Append<char>('\013'); break; /* VT */
-		case 'a':  into.Append<char>('\007'); break; /* BEL, not classic C */
-		case '0': case '1': case '2': case '3':
-		case '4': case '5': case '6': case '7':
-			c = str[-1] - '0';
-			if( '0' <= *str && *str <= '7' )
+            /* XXX This assumes ASCII! */
+            case '\n':                                break; /* ? */
+            case '\\': into.Append< char >( '\\' );   break;
+            case '\'': into.Append< char >( '\'' );   break;
+            case '\"': into.Append< char >( '\"' );   break;
+            case 'b':  into.Append< char >( '\b' );   break;
+            case 'f':  into.Append< char >( '\014' ); break; /* FF */
+            case 't':  into.Append< char >( '\t' );   break;
+            case 'n':  into.Append< char >( '\n' );   break;
+            case 'r':  into.Append< char >( '\r' );   break;
+            case 'v':  into.Append< char >( '\013' ); break; /* VT */
+            case 'a':  into.Append< char >( '\007' ); break; /* BEL, not classic C */
+
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+                c = str[-1] - '0';
+                if( '0' <= *str && *str <= '7' )
+                {
+                    c = ( c << 3 ) + *str++ - '0';
+                    if( '0' <= *str && *str <= '7' )
+                        c = ( c << 3 ) + *str++ - '0';
+                }
+                into.Append< uint8 >( c );
+                break;
+
+        case 'x':
+            if( isxdigit( str[0] ) && isxdigit( str[1] ) )
             {
-				c = (c<<3) + *str++ - '0';
-				if( '0' <= *str && *str <= '7' )
-					c = (c<<3) + *str++ - '0';
-			}
-			into.Append<uint8>( c );
-			break;
-		case 'x':
-			if( isxdigit( str[0] ) && isxdigit( str[1] ) )
-            {
-				unsigned int x = 0;
-				c = *str++;
+                unsigned int x = 0;
+                c = *str++;
 
                 if( isdigit(c) )
-					x = c - '0';
-				else if( islower(c) )
-					x = 10 + c - 'a';
-				else
-					x = 10 + c - 'A';
+                    x = c - '0';
+                else if( islower(c) )
+                    x = 10 + c - 'a';
+                else
+                    x = 10 + c - 'A';
 
-				x = x << 4;
-				c = *str++;
+                x = x << 4;
+                c = *str++;
 
                 if( isdigit(c) )
-					x += c - '0';
-				else if( islower(c) )
-					x += 10 + c - 'a';
-				else
-					x += 10 + c - 'A';
+                    x += c - '0';
+                else if( islower(c) )
+                    x += 10 + c - 'a';
+                else
+                    x += 10 + c - 'A';
 
-				into.Append<uint8>( x );
-				break;
-			}
-			//"invalid \\x escape");
-			return false;
-		default:
-			return false;
-		}
-	}
-	return true;
+                into.Append< uint8 >( x );
+                break;
+            }
+            //"invalid \\x escape");
+            return false;
+
+        default:
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void SearchReplace( std::string& subject, const std::string& search, const std::string& replace )
@@ -338,115 +349,58 @@ void SearchReplace( std::string& subject, const std::string& search, const std::
 
 void SplitPath( const std::string& path, std::vector<std::string>& into )
 {
-	const char* p = path.c_str();
-	const char* begin = p;
-	size_t len = 0;
+    const char* p = path.c_str();
+    const char* begin = p;
+    size_t len = 0;
 
-	for(; *p != '\0'; ++p)
+    for(; *p != '\0'; ++p)
     {
-		if( *p == '/' || *p == '\\' )
+        if( *p == '/' || *p == '\\' )
         {
             into.push_back( std::string( begin, len ) );
-			len = 0;
-			begin = p + 1;
-		}
+            len = 0;
+            begin = p + 1;
+        }
         else
         {
-			++len;
-		}
-	}
+            ++len;
+        }
+    }
 
-	if( begin < p )
+    if( begin < p )
         into.push_back( std::string( begin, len ) );
-}
-
-template<>
-bool str2< bool >( const char* str )
-{
-    if( !strcasecmp( str, "true" ) )
-	    return true;
-    else if( !strcasecmp( str, "false" ) )
-	    return false;
-    else if( !strcasecmp( str, "yes" ) )
-	    return true;
-    else if( !strcasecmp( str, "no" ) )
-	    return false;
-    else if( !strcasecmp( str, "y" ) )
-	    return true;
-    else if( !strcasecmp( str, "n" ) )
-	    return false;
-    else if( !strcasecmp( str, "on" ) )
-	    return true;
-    else if( !strcasecmp( str, "off" ) )
-	    return false;
-    else if( !strcasecmp( str, "enable" ) )
-	    return true;
-    else if( !strcasecmp( str, "disable" ) )
-	    return false;
-    else if( !strcasecmp( str, "enabled" ) )
-	    return true;
-    else if( !strcasecmp( str, "disabled" ) )
-	    return false;
-    else if( str2< int >( str ) )
-	    return true;
-    else
-        return false;
-}
-
-template<>
-int64 str2< int64 >( const char* str )
-{
-    int64 v = 0;
-    sscanf( str, I64d, &v );
-    return v;
-}
-
-template<>
-uint64 str2< uint64 >( const char* str )
-{
-    uint64 v = 0;
-    sscanf( str, I64u, &v );
-    return v;
-}
-
-template<>
-long double str2< long double >( const char* str )
-{
-    long double v = 0.0;
-    sscanf( str, "%Lf", &v );
-    return v;
 }
 
 char* strn0cpy( char* dest, const char* source, size_t size )
 {
-	if( !dest )
-		return 0;
+    if( !dest )
+        return 0;
 
-	if( size == 0 || source == 0 )
+    if( size == 0 || source == 0 )
     {
-		dest[0] = 0;
-		return dest;
-	}
+        dest[0] = 0;
+        return dest;
+    }
 
-	strncpy( dest, source, size );
-	dest[ size - 1 ] = 0;
+    strncpy( dest, source, size );
+    dest[ size - 1 ] = 0;
 
-	return dest;
+    return dest;
 }
 
 bool strn0cpyt( char* dest, const char* source, size_t size )
 {
-	if( !dest )
-		return 0;
+    if( !dest )
+        return 0;
 
-	if( size == 0 || source == 0 )
+    if( size == 0 || source == 0 )
     {
-		dest[0] = 0;
-		return true;
-	}
+        dest[0] = 0;
+        return true;
+    }
 
-	strncpy( dest, source, size );
-	dest[ size - 1 ] = 0;
+    strncpy( dest, source, size );
+    dest[ size - 1 ] = 0;
 
-	return ( source[ strlen( dest ) ] == 0 );
+    return ( source[ strlen( dest ) ] == 0 );
 }
