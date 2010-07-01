@@ -29,35 +29,6 @@
 
 const std::string NULL_STRING = "NULL";
 
-size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const char* fmt, ... )
-{
-    if( *ret )
-        assert( *bufsize > *strlen );
-    else
-        *bufsize = *strlen = 0;
-
-    va_list ap;
-    va_start( ap, fmt );
-
-    int chars = -1;
-    while( chars == -1 || chars >= (int)( *bufsize - *strlen ) )
-    {
-        if( chars == -1 )
-            *bufsize += 256;
-        else
-            *bufsize += chars + 1;
-
-        *ret = (char*)realloc( *ret, *bufsize );
-
-        chars = vsnprintf( &( *ret )[ *strlen ], ( *bufsize - *strlen ), fmt, ap );
-    }
-
-    va_end( ap );
-
-    *strlen += chars;
-    return *strlen;
-}
-
 std::string GenerateKey( size_t length )
 {
     static const char CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -369,38 +340,4 @@ void SplitPath( const std::string& path, std::vector<std::string>& into )
 
     if( begin < p )
         into.push_back( std::string( begin, len ) );
-}
-
-char* strn0cpy( char* dest, const char* source, size_t size )
-{
-    if( !dest )
-        return 0;
-
-    if( size == 0 || source == 0 )
-    {
-        dest[0] = 0;
-        return dest;
-    }
-
-    strncpy( dest, source, size );
-    dest[ size - 1 ] = 0;
-
-    return dest;
-}
-
-bool strn0cpyt( char* dest, const char* source, size_t size )
-{
-    if( !dest )
-        return 0;
-
-    if( size == 0 || source == 0 )
-    {
-        dest[0] = 0;
-        return true;
-    }
-
-    strncpy( dest, source, size );
-    dest[ size - 1 ] = 0;
-
-    return ( source[ strlen( dest ) ] == 0 );
 }

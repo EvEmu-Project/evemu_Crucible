@@ -32,18 +32,6 @@
 extern const std::string NULL_STRING;
 
 /**
- * @brief Appends string to end of another one.
- *
- * @param[in,out] ret     Pointer to the original string; result is stored here.
- * @param[in,out] bufsize Amount of allocated memory pointed by ret.
- * @param[in,out] strlen  Length of string in ret.
- * @param[in]     fmt     Format of string to append.
- *
- * @return New length of string.
- */
-size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const char* fmt, ... );
-
-/**
  * @brief Generates random key.
  *
  * @param[in] length Length of key to generate.
@@ -202,35 +190,5 @@ void SearchReplace( std::string& subject, const std::string& search, const std::
  * @param[out] into Vector which receives components of the path.
  */
 void SplitPath( const std::string& path, std::vector<std::string>& into );
-
-/**
- * @brief Copies given amount of characters from source to dest.
- *
- * Unlike normal strncpy this one puts null terminator to the end
- * of the string.
- * ref: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcecrt/htm/_wcecrt_strncpy_wcsncpy.asp
- *
- * @param[out] dest   Array which receives result.
- * @param[in]  source Source string.
- * @param[in]  size   Number of characters to copy.
- *
- * @return Pointer to destination.
- */
-char* strn0cpy( char* dest, const char* source, size_t size );
-/**
- * @brief Copies given amount of characters from source to dest.
- *
- * Unlike normal strncpy this one puts null terminator to the end
- * of the string.
- * ref: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcecrt/htm/_wcecrt_strncpy_wcsncpy.asp
- *
- * @param[out] dest   Array which receives result.
- * @param[in]  source Source string.
- * @param[in]  size   Number of characters to copy.
- *
- * @retval true  String was truncated during copying.
- * @retval false No string truncation occurred.
- */
-bool strn0cpyt( char* dest, const char* source, size_t size );
 
 #endif /* !__UTILS__UTILS_STRING_H__INCL__ */
