@@ -26,6 +26,16 @@
 #ifndef __UTILS__STR2CONV_H__INCL__
 #define __UTILS__STR2CONV_H__INCL__
 
+#ifdef MSVC
+/*
+ * Following code produces lots of these, turning them off
+ * as they're meaningless.
+ *
+ * 'conversion' conversion from 'type1' to 'type2', possible loss of data
+ */
+#   pragma warning( disable : 4244 )
+#endif /* MSVC */
+
 /**
  * @brief Generic string conversion template.
  *
@@ -160,5 +170,13 @@ inline double str2<double>( const char* str ) { return str2< long double >( str 
  */
 template<>
 inline float str2<float>( const char* str ) { return str2< double >( str ); }
+
+#ifdef MSVC
+/*
+ * Turn the warning back to default.
+ * See above for details.
+ */
+#   pragma warning( default : 4244 )
+#endif /* MSVC */
 
 #endif /* !__UTILS__STR2CONV_H__INCL__ */
