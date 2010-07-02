@@ -28,20 +28,8 @@
 
 #include "utils/Buffer.h"
 
-/** std::string to use where you would use NULL for const char*. */
+/// std::string to use where you would use NULL for const char*.
 extern const std::string NULL_STRING;
-
-/**
- * @brief Appends string to end of another one.
- *
- * @param[in,out] ret     Pointer to the original string; result is stored here.
- * @param[in,out] bufsize Amount of allocated memory pointed by ret.
- * @param[in,out] strlen  Length of string in ret.
- * @param[in]     fmt     Format of string to append.
- *
- * @return New length of string.
- */
-size_t AppendAnyLenString( char** ret, size_t* bufsize, size_t* strlen, const char* fmt, ... );
 
 /**
  * @brief Generates random key.
@@ -204,168 +192,24 @@ void SearchReplace( std::string& subject, const std::string& search, const std::
 void SplitPath( const std::string& path, std::vector<std::string>& into );
 
 /**
- * @brief Generic string conversion template.
+ * @brief sprintf() for std::string.
  *
- * Try to use T( const char* ) directly.
+ * @param[in] into Where to store the result.
+ * @param[in] fmt  The format string.
+ * @param[in] ...  Arguments.
  *
- * @param[in] str String to be converted.
- *
- * @param A value corresponding to content of @a str.
+ * @return A value returned by vasprintf().
  */
-template< typename T >
-T str2( const char* str ) { return str; }
+int sprintf( std::string& into, const char* fmt, ... );
 /**
- * @brief Generic string conversion template.
+ * @brief vsprintf() for std::string.
  *
- * Redirect to str2( const char* ).
+ * @param[in] into Where to store the result.
+ * @param[in] fmt  The format string.
+ * @param[in] ap   Arguments.
  *
- * @param[in] str String to be converted.
- *
- * @param A value corresponding to content of @a str.
+ * @return A value returned by vasprintf().
  */
-template< typename T >
-T str2( const std::string& str ) { return str2< T >( str.c_str() ); }
-
-/**
- * @brief Converts string to boolean.
- *
- * @param[in] str String to be converted.
- *
- * @param A boolean corresponding to content of @a str.
- */
-template<>
-bool str2< bool >( const char* str );
-
-/**
- * @brief Converts string to integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An integer corresponding to content of @a str.
- */
-template<>
-int64 str2< int64 >( const char* str );
-/**
- * @brief Converts string to integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An integer corresponding to content of @a str.
- */
-template<>
-inline int32 str2< int32 >( const char* str ) { return str2< int64 >( str ); }
-/**
- * @brief Converts string to integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An integer corresponding to content of @a str.
- */
-template<>
-inline int16 str2< int16 >( const char* str ) { return str2< int32 >( str ); }
-/**
- * @brief Converts string to integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An integer corresponding to content of @a str.
- */
-template<>
-inline int8 str2< int8 >( const char* str ) { return str2< int16 >( str ); }
-
-/**
- * @brief Converts string to unsigned integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An unsigned integer corresponding to content of @a str.
- */
-template<>
-uint64 str2< uint64 >( const char* str );
-/**
- * @brief Converts string to unsigned integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An unsigned integer corresponding to content of @a str.
- */
-template<>
-inline uint32 str2< uint32 >( const char* str ) { return str2< uint64 >( str ); }
-/**
- * @brief Converts string to unsigned integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An unsigned integer corresponding to content of @a str.
- */
-template<>
-inline uint16 str2<uint16>( const char* str ) { return str2< uint32 >( str ); }
-/**
- * @brief Converts string to unsigned integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An unsigned integer corresponding to content of @a str.
- */
-template<>
-inline uint8 str2<uint8>( const char* str ) { return str2< uint16 >( str ); }
-
-/**
- * @brief Converts string to real number.
- *
- * @param[in] str String to be converted.
- *
- * @return A real number corresponding to content of @a str.
- */
-template<>
-long double str2< long double >( const char* str );
-/**
- * @brief Converts string to real number.
- *
- * @param[in] str String to be converted.
- *
- * @return A real number corresponding to content of @a str.
- */
-template<>
-inline double str2<double>( const char* str ) { return str2< long double >( str ); }
-/**
- * @brief Converts string to real number.
- *
- * @param[in] str String to be converted.
- *
- * @return A real number corresponding to content of @a str.
- */
-template<>
-inline float str2<float>( const char* str ) { return str2< double >( str ); }
-
-/**
- * @brief Copies given amount of characters from source to dest.
- *
- * Unlike normal strncpy this one puts null terminator to the end
- * of the string.
- * ref: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcecrt/htm/_wcecrt_strncpy_wcsncpy.asp
- *
- * @param[out] dest   Array which receives result.
- * @param[in]  source Source string.
- * @param[in]  size   Number of characters to copy.
- *
- * @return Pointer to destination.
- */
-char* strn0cpy( char* dest, const char* source, size_t size );
-/**
- * @brief Copies given amount of characters from source to dest.
- *
- * Unlike normal strncpy this one puts null terminator to the end
- * of the string.
- * ref: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcecrt/htm/_wcecrt_strncpy_wcsncpy.asp
- *
- * @param[out] dest   Array which receives result.
- * @param[in]  source Source string.
- * @param[in]  size   Number of characters to copy.
- *
- * @retval true  String was truncated during copying.
- * @retval false No string truncation occurred.
- */
-bool strn0cpyt( char* dest, const char* source, size_t size );
+int vsprintf( std::string& into, const char* fmt, va_list ap );
 
 #endif /* !__UTILS__UTILS_STRING_H__INCL__ */

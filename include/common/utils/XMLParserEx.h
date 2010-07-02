@@ -26,7 +26,7 @@
 #ifndef __UTILS__XML_PARSER_EX_H__INCL__
 #define __UTILS__XML_PARSER_EX_H__INCL__
 
-#include "utils/utils_string.h"
+#include "utils/str2conv.h"
 #include "utils/XMLParser.h"
 
 /**

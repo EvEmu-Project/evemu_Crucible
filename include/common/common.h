@@ -71,7 +71,9 @@
 
 // Visual Studio 'errors'/'warnings'
 #ifdef MSVC
-//#   pragma warning( disable : 4251 ) // dll-interface bullshit
+// 'identifier' : class 'type' needs to have dll-interface to be used by clients of class 'type2'
+//#   pragma warning( disable : 4251 )
+// 'function': was declared deprecated
 //#   pragma warning( disable : 4996 )
 
 #   define _CRT_SECURE_NO_WARNINGS                  1
