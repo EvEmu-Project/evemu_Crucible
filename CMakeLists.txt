@@ -125,7 +125,7 @@ ENDIF( EVEMU_SOURCE_REVISION )
 ############
 # config.h #
 ############
-CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.cmake"
+CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.in"
                 "${PROJECT_BINARY_DIR}/config.h"
                 ESCAPE_QUOTES @ONLY )
 
