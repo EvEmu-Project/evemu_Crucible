@@ -9,10 +9,6 @@
 // Define this if you are under an X64-based operating system.
 #cmakedefine X64 1
 
-// BIG_ENDIAN
-// Define this if you are on a big-endian system.
-#cmakedefine BIG_ENDIAN 1
-
 // WIN32
 // Define this if you are on Windows.
 // CMake passes this as a command-line define.

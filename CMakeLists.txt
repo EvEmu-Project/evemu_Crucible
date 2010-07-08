@@ -21,7 +21,6 @@ SET( CMAKE_MODULE_PATH
 INCLUDE( "CheckSymbolExists" )
 
 INCLUDE( "TargetBuildPCH" )
-INCLUDE( "TestBigEndian" )
 INCLUDE( "TestX64" )
 
 ###########
@@ -48,7 +47,6 @@ MARK_AS_ADVANCED( TINYXML_USE_STL )
 # Tests #
 #########
 TEST_X64( X64 )
-TEST_BIG_ENDIAN( BIG_ENDIAN )
 
 CHECK_SYMBOL_EXISTS( "__FreeBSD__" "" FREE_BSD )
 

@@ -35,10 +35,9 @@
  *
  *   a) the target platform
  *        X64, (x86)
- *        BIG_ENDIAN, (little endian)
  *        WIN32, CYGWIN, FREE_BSD, APPLE, (other)
  *   b) the compiler
- *        MSVC, GNUC, (other)
+ *        MSVC, GNUC, MINGW, (other)
  *   c) the configuration
  *        NDEBUG, (debug)
  *        EVEMU_ROOT_DIR
