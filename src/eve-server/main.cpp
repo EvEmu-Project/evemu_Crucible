@@ -36,10 +36,10 @@ static volatile bool RunLoops = true;
 
 int main( int argc, char* argv[] )
 {
-#if defined( WIN32 ) && !defined( NDEBUG )
-    // Under Windows setup memory leak detection
+#if defined( MSVC ) && !defined( NDEBUG )
+    // Under Visual Studio setup memory leak detection
     _CrtSetDbgFlag( _CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG ) );
-#endif /* defined( WIN32 ) && !defined( NDEBUG ) */
+#endif /* defined( MSVC ) && !defined( NDEBUG ) */
 
     printf("Copyright (C) 2006-2009 EVEmu Team. http://evemu.mmoforge.org/\n");
     printf("This program is free software; you can redistribute it and/or modify it under\n");

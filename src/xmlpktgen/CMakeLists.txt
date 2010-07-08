@@ -57,7 +57,7 @@ TARGET_BUILD_PCH( "${TARGET_NAME}"
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "common"
                        ${TINYXML_LIBRARIES}
-                       ${CMAKE_THREAD_LIBS_INIT} )
+                       ${PROJECT_STANDARD_LIBRARIES} )
 
 ######################
 # Export directories #

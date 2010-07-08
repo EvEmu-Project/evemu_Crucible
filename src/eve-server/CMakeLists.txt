@@ -442,7 +442,7 @@ TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "utils"
                        ${GANGSTA_LIBRARIES} ${TINYXML_LIBRARIES}
                        ${MYSQL_LIBRARIES} ${ZLIB_LIBRARIES}
-                       ${CMAKE_THREAD_LIBS_INIT} )
+                       ${PROJECT_STANDARD_LIBRARIES} )
 
 INSTALL( TARGETS "${TARGET_NAME}"
          RUNTIME DESTINATION "bin" )
