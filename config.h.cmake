@@ -40,6 +40,10 @@
 // Define this if you are using GNU C++ compiler.
 #cmakedefine GNUC 1
 
+// MINGW
+// Define this if you are using MinGW C++ compiler.
+#cmakedefine MINGW 1
+
 /*
  * Configuration
  */
