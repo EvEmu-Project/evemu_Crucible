@@ -34,10 +34,10 @@ const char* const LOG_SETTINGS_FILE = EVEMU_ROOT_DIR"/etc/log.ini";
 
 int main( int argc, char* argv[] )
 {
-#if defined( WIN32 ) && !defined( NDEBUG )
-    // Under Windows setup memory leak detection
+#if defined( MSVC ) && !defined( NDEBUG )
+    // Under Visual Studio setup memory leak detection
     _CrtSetDbgFlag( _CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG ) );
-#endif /* defined( WIN32 ) && !defined( NDEBUG ) */
+#endif /* defined( MSVC ) && !defined( NDEBUG ) */
 
     // Load server log settings ( will be removed )
     if( !load_log_settings( LOG_SETTINGS_FILE ) )
