@@ -92,7 +92,7 @@ PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
 PyResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
     CharacterRef ch = call.client->GetChar();
 
-    return new PyInt( ch->GetEndOfTraining() );
+    return new PyLong( ch->GetEndOfTraining() );
 }
 
 PyResult SkillMgrBound::Handle_GetSkillHistory( PyCallArgs& call )
