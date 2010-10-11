@@ -76,6 +76,8 @@ public:
     uint32 GetStationCorporationCEO(uint32 stationID);
     uint32 GetCorporationCEO(uint32 corpID);
 
+	uint32 GetCloneTypeCostByID(uint32 cloneTypeID);
+
     bool GetCurrentApplicationInfo(uint32 charID, uint32 corpID, ApplicationInfo &app);
     bool InsertApplication(const ApplicationInfo & aInfo);
     bool UpdateApplication(const ApplicationInfo &app);

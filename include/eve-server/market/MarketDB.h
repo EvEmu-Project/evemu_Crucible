@@ -60,7 +60,7 @@ public:
 	uint32 FindBuyOrder(uint32 stationID, uint32 typeID, double price, uint32 quantity, uint32 orderRange);
 	uint32 FindSellOrder(uint32 stationID, uint32 typeID, double price, uint32 quantity, uint32 orderRange);
 
-	bool GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID, uint32 &quantity, double &price);
+	bool GetOrderInfo(uint32 orderID, uint32 *orderOwnerID, uint32 *typeID, uint32 *stationID, uint32 *quantity, double *price, bool *isBuy, bool *isCorp);
 	bool AlterOrderQuantity(uint32 orderID, uint32 new_qty);
 	bool AlterOrderPrice(uint32 orderID, double new_price);
 	bool DeleteOrder(uint32 orderID);

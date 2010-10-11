@@ -68,6 +68,23 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         res.Reset();
     }
 
+	if(!res.GetRow(row)) {
+		if(!sDatabase.RunQuery(res,
+			"SELECT "
+			" characterID as ownerID,"
+			" itemName as ownerName,"
+			" typeID"
+			" FROM character_ "
+			" LEFT JOIN entity ON characterID = itemID"
+			" WHERE characterID in (%s)", ids.c_str()))
+		{
+			codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+			return NULL;
+		}
+	} else {
+		res.Reset();
+	}
+
     return(DBResultToTupleSet(res));
 }
 

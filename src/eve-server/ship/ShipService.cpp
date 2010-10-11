@@ -234,16 +234,22 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
         return NULL;
     }
 
-    //Start sloppy implementation
+	
     InventoryItemRef item = m_manager->item_factory.GetItem( args.items.front() );
     if( !item )
     {
         _log( ITEM__ERROR, "Failed to load ship %u to assemble.", args.items.front() );
         return NULL;
     }
+	
+	//check if the item is a stack
+	if( item->quantity() > 1 )
+	{
+		//Split the stack and assemble one ship
+		InventoryItemRef new_item = item->Split(1,true);
+	}
 
     item->ChangeSingleton(true, true);
-    //TODO: something...
 
     return NULL;
 }

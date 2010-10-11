@@ -34,11 +34,13 @@ class LSCChannel;
 
 class LSCChannelChar {
 public:
-	LSCChannelChar(LSCChannel *chan, uint32 corpID, uint32 charID, uint32 allianceID, uint32 role, uint32 extra) :
+	LSCChannelChar(LSCChannel *chan, uint32 corpID, uint32 charID, std::string charName, uint32 allianceID, uint32 warFactionID, uint32 role, uint32 extra) :
 	  m_parent(chan),
 	  m_corpID(corpID),
 	  m_charID(charID),
+          m_charName(charName),
 	  m_allianceID(allianceID),
+	  m_warFactionID(warFactionID),
 	  m_role(role),
 	  m_extra(extra) { }
 
@@ -49,7 +51,9 @@ protected:
 	LSCChannel *m_parent;
 	uint32 m_corpID;
 	uint32 m_charID;
+        std::string m_charName;
 	uint32 m_allianceID;
+	uint32 m_warFactionID;
 	uint32 m_role;
 	uint32 m_extra;
 };
@@ -100,7 +104,7 @@ public:
 		const char *comparisonKey,
 		bool memberless,
 		const char *password,
-		uint32 mailingList,
+		bool mailingList,
 		uint32 cspa,
 		uint32 temporary,
 		uint32 mode
@@ -141,7 +145,7 @@ protected:
 	std::string m_comparisonKey;
 	bool m_memberless;
 	std::string m_password;
-	uint32 m_mailingList;
+	bool m_mailingList;
 	uint32 m_cspa;
 	uint32 m_temporary;
 	uint32 m_mode;

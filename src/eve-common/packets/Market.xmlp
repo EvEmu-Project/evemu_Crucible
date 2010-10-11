@@ -87,6 +87,26 @@
       <bool name="located" none_marker="false" />
     </tupleInline>
   </elementDef>
+  
+  <elementDef name="Call_ModifyCharOrder">
+    <tupleInline>
+      <int name="orderID" />
+      <real name="new_price" />
+	  <bool name="bid" soft="true" />
+	  <int name="stationID" />
+	  <int name="solarSystemID" />
+	  <real name="old_price" />
+	  <int name="quantity" />
+	  <long name="duration" />
+    </tupleInline>
+  </elementDef>
+  
+  <elementDef name="Call_CancelCharOrder">
+    <tupleInline>
+      <int name="orderID" />
+      <int name="regionID" />
+    </tupleInline>
+  </elementDef>
 
   <elementDef name="Notify_OnOwnOrderChanged">
     <tupleInline>

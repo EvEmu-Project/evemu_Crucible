@@ -546,7 +546,7 @@ public:
     int32 hash() const;
 
 	// This needs to be public for now.
-    storage_type items;
+	storage_type items;
 
 protected:
     virtual ~PyTuple();

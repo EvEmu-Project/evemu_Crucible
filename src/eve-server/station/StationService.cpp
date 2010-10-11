@@ -48,12 +48,19 @@ PyResult StationService::Handle_GetStationItemBits(PyCallArgs &call) {
 PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
 	PyList *res = new PyList();
 
-	PyTuple *t = new PyTuple(4);
-	t->items[0] = new PyInt(call.client->GetCharacterID());
-	t->items[1] = new PyInt(call.client->GetCorporationID());
-	t->items[2] = new PyInt(call.client->GetAllianceID());
-	t->items[3] = new PyInt(0);	//unknown, might be factionID
-	res->AddItem(t);
+    std::vector<Client *> clients;
+    m_manager->entity_list.FindByStationID(call.client->GetStationID(), clients);
+    std::vector<Client *>::iterator cur, end;
+	cur = clients.begin();
+	end = clients.end();
+	for(; cur != end; cur++) {
+    	PyTuple *t = new PyTuple(4);
+        t->items[0] = new PyInt((*cur)->GetCharacterID());
+        t->items[1] = new PyInt((*cur)->GetCorporationID());
+        t->items[2] = new PyInt((*cur)->GetAllianceID());
+        t->items[3] = new PyInt(0);	//unknown, might be factionID
+        res->AddItem(t);
+    }
 
 	return res;
 }

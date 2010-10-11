@@ -32,8 +32,18 @@ PyRep *LSCChannelChar::Encode() const {
 	line.allianceID = m_allianceID;
 	line.charID = m_charID;
 	line.corpID = m_corpID;
-	line.extra = m_extra;
 	line.role = m_role;
+	line.warFactionID = m_warFactionID;
+
+    util_Row rs;
+    rs.header.push_back("ownerID");
+    rs.header.push_back("ownerName");
+    rs.header.push_back("typeID");
+    rs.line = new PyList;
+    rs.line->AddItemInt( m_charID );
+	rs.line->AddItemString( m_charName.c_str() );
+	rs.line->AddItemInt( 1378 );
+    line.extra = rs.Encode();//m_extra;
 
 	return line.Encode();
 }
@@ -61,7 +71,7 @@ LSCChannel::LSCChannel(
 	const char *comparisonKey,
 	bool memberless,
 	const char *password,
-	uint32 mailingList,
+	bool mailingList,
 	uint32 cspa,
 	uint32 temporary,
 	uint32 mode
@@ -93,10 +103,9 @@ bool LSCChannel::JoinChannel(Client * c) {
 	m_chars.insert(
 		std::make_pair(
 			c->GetCharacterID(),
-			LSCChannelChar( this, c->GetCorporationID(), c->GetCharacterID(), c->GetAllianceID(), c->GetAccountRole(), 0 )
+			LSCChannelChar( this, c->GetCorporationID(), c->GetCharacterID(), c->GetCharacterName(), c->GetAllianceID(), c->GetWarFactionID(), c->GetAccountRole(), 0 )
 		)
 	);
-	m_memberless = false;
 	c->ChannelJoined( this );
 
 	//if ((m_type != LSCChannel::normal) && (m_channelID > 2)) {

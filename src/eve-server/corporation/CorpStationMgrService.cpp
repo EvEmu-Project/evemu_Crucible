@@ -217,6 +217,23 @@ PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
 	//this takes an integer: cloneTypeID
 	//price is prompted for on the client side.
 
+	Call_SetCloneTypeID arg;
+	if(!arg.Decode(&call.tuple)){
+		sLog.Debug("CoporationMgrIMBound","Failed to determine Clone Type");
+	}
+
+	//Get cost of clone
+	int cost = m_db.GetCloneTypeCostByID(arg.CloneTypeID);
+
+	//Check if player has enough money
+	if(call.client->GetBalance() > cost) {
+		//subtract amount
+		call.client->AddBalance(-cost);
+	}
+
+	//update type of clone
+	
+
     sLog.Debug( "CorpStationMgrIMBound", "Called SetCloneTypeID stub." );
 
     return new PyNone;

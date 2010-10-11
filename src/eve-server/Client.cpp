@@ -440,6 +440,7 @@ void Client::_UpdateSession( const CharacterConstRef& character )
         return;
 
     mSession.SetInt( "charid", character->itemID() );
+    mSession.SetString( "charname", character->itemName().c_str() );
     mSession.SetInt( "corpid", character->corporationID() );
     if( character->stationID() == 0 )
     {

@@ -721,9 +721,22 @@ PyObject *CorporationDB::GetCorporation(uint32 corpID) {
 PyObject *CorporationDB::GetEveOwners() {
     DBQueryResult res;
 
-    if (!sDatabase.RunQuery(res,
+    /*if (!sDatabase.RunQuery(res,
         " SELECT * FROM eveStaticOwners "))
     {
+        codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+        return NULL;
+    }*/
+    if(!sDatabase.RunQuery(res,
+            "(SELECT"
+            " itemID as ownerID,"
+            " itemName as ownerName,"
+            " typeID FROM entity"
+            " WHERE itemId <140000000 AND itemID NOT IN(select ownerID from evestaticowners))"
+            " UNION ALL "
+            "(SELECT * FROM evestaticowners)"
+            " ORDER BY ownerID"))
+	{
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return NULL;
     }
@@ -975,6 +988,23 @@ uint32 CorporationDB::GetCorporationCEO(uint32 corpID) {
         return 0;
     }
     return row.GetUInt(0);
+}
+
+uint32 CorporationDB::GetCloneTypeCostByID(uint32 cloneTypeID) {
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res,
+		" SELECT basePrice "
+		" FROM invtypes "
+		" WHERE typeID = %u ", cloneTypeID))
+	{
+		sLog.Error("CorporationDB","Failed to retrieve basePrice of typeID = %u",cloneTypeID);
+	}
+	DBResultRow row;
+	if (!res.GetRow(row)) {
+		sLog.Error("CorporationDB","Query returned no results");
+		return 0;
+	}
+	return row.GetUInt(0);
 }
 
 bool CorporationDB::GetCurrentApplicationInfo(uint32 charID, uint32 corpID, ApplicationInfo & aInfo) {

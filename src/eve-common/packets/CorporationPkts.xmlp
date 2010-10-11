@@ -699,4 +699,10 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name ="Call_SetCloneTypeID">
+    <tupleInline>
+      <int name="CloneTypeID" />
+    </tupleInline>
+  </elementDef>
+
 </elements>

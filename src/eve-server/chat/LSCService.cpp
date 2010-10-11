@@ -46,6 +46,8 @@ LSCService::LSCService(PyServiceMgr *mgr, CommandDispatcher* cd)
     PyCallable_REG_CALL(LSCService, LeaveChannel)
     PyCallable_REG_CALL(LSCService, CreateChannel)
     PyCallable_REG_CALL(LSCService, DestroyChannel)
+	PyCallable_REG_CALL(LSCService, GetMembers)
+    PyCallable_REG_CALL(LSCService, GetMember)
     PyCallable_REG_CALL(LSCService, SendMessage)
 
     PyCallable_REG_CALL(LSCService, GetMyMessages)
@@ -197,8 +199,8 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
             // this one'll create an empty query result
             // noone implemented channel mods.
             chjr.ChannelMods = channel->EncodeChannelMods();
-            //rep->ChannelChars = channel->EncodeChannelChars();
-            chjr.ChannelChars = channel->EncodeEmptyChannelChars();
+            chjr.ChannelChars = channel->EncodeChannelChars();
+           // chjr.ChannelChars = channel->EncodeEmptyChannelChars();
 
             channel->JoinChannel( call.client );
 
@@ -348,7 +350,7 @@ PyResult LSCService::Handle_CreateChannel( PyCallArgs& call )
     channel->JoinChannel( call.client );
 
     ChannelCreateReply reply;
-    reply.ChannelChars = channel->EncodeChannelChars();
+	reply.ChannelChars = channel->EncodeChannelChars();
     reply.ChannelInfo = channel->EncodeChannelSmall( call.client->GetCharacterID() );
     reply.ChannelMods = channel->EncodeChannelMods();
     return reply.Encode();
@@ -408,10 +410,10 @@ PyResult LSCService::Handle_SendMessage( PyCallArgs& call )
 const int cmode = 2950;
 
 LSCChannel *LSCService::CreateChannel(uint32 channelID, const char * name, const char * motd, LSCChannel::Type type, bool maillist) {
-    return m_channels[channelID] = new LSCChannel(this, channelID, type, channelID, name, motd, NULL, true, "", maillist, true, false, cmode);
+	return m_channels[channelID] = new LSCChannel(this, channelID, type, 1, name, motd, NULL, false, "", maillist, true, false, cmode);//ownerID must be sent in responce to GetEveOwners
 }
 LSCChannel *LSCService::CreateChannel(uint32 channelID, const char * name, LSCChannel::Type type, bool maillist) {
-    return m_channels[channelID] = new LSCChannel(this, channelID, type, channelID, name, NULL, NULL, true, "", maillist, true, false, cmode);
+	return m_channels[channelID] = new LSCChannel(this, channelID, type, 1, name, NULL, NULL, false, "", maillist, true, false, cmode);
 }
 LSCChannel *LSCService::CreateChannel(uint32 channelID) {
     LSCChannel::Type type;
@@ -426,7 +428,7 @@ LSCChannel *LSCService::CreateChannel(uint32 channelID) {
     else if ((channelID >= 2000000) && (channelID < 3000000)) { type = LSCChannel::corp; name = "System Channels\\Corp"; motd = m_db.GetCorporationName(channelID); }
     else { type = LSCChannel::normal; name = m_db.GetCharacterName(channelID); motd = ""; } // this is either a char channel or something i have no idea about
 
-    return m_channels[channelID] = new LSCChannel(this, channelID, type, channelID, name.c_str(), motd.c_str(), NULL, true, NULL, false, true, false, cmode);
+	return m_channels[channelID] = new LSCChannel(this, channelID, type, 1, name.c_str(), motd.c_str(), NULL, false, NULL, false, true, false, cmode);
 }
 LSCChannel *LSCService::CreateChannel(uint32 channelID, LSCChannel::Type type) {
     std::string name;
@@ -441,7 +443,7 @@ LSCChannel *LSCService::CreateChannel(uint32 channelID, LSCChannel::Type type) {
     // this is either a char channel or something i have no idea about
     else { name = m_db.GetCharacterName(channelID); motd = ""; }
 
-    return m_channels[channelID] = new LSCChannel(this, channelID, type, channelID, name.c_str(), motd.c_str(), NULL, true, NULL, false, true, false, cmode);
+    return m_channels[channelID] = new LSCChannel(this, channelID, type, 1, name.c_str(), motd.c_str(), NULL, false, NULL, false, true, false, cmode);
 }
 LSCChannel *LSCService::CreateChannel(const char * name, bool maillist) {
     return CreateChannel(nextFreeChannelID++, name, LSCChannel::normal, maillist);
@@ -581,6 +583,55 @@ PyResult LSCService::Handle_DeleteMessages(PyCallArgs &call) {
     return NULL;
 }
 
+PyResult LSCService::Handle_GetMembers(PyCallArgs &call) {
+	CallGetMembers arg;
+	if (!arg.Decode(&call.tuple)) {
+		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
+		return NULL;
+	}
+
+	uint32 channelID;
+	if( arg.channel->IsInt() )
+		channelID = arg.channel->AsInt()->value();
+	else if( arg.channel->IsTuple() )
+	{
+		PyTuple* prt = arg.channel->AsTuple();
+
+		if( prt->GetItem( 0 )->IsInt() )
+			channelID = prt->GetItem( 0 )->AsInt()->value();
+		else if( prt->GetItem( 0 )->IsTuple() )
+		{
+			prt = prt->GetItem( 0 )->AsTuple();
+
+			if( prt->items.size() != 2 || !prt->GetItem( 1 )->IsInt() )
+			{
+				codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
+				return NULL;
+			}
+
+			channelID = prt->GetItem( 1 )->AsInt()->value();
+		}
+		else
+		{
+			codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
+			return NULL;
+		}
+	}
+	else
+	{
+		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
+		return NULL;
+	}
+
+	if( m_channels.find( channelID ) != m_channels.end() )
+		return m_channels[channelID]->EncodeChannelChars();
+
+	return NULL;
+}
+
+PyResult LSCService::Handle_GetMember(PyCallArgs &call) {
+	return NULL;
+}
 
 PyResult LSCService::ExecuteCommand(Client *from, const char *msg) {
     return(m_commandDispatch->Execute(from, msg));

@@ -94,6 +94,8 @@ protected:
     PyCallable_DECL_CALL(LeaveChannel)
     PyCallable_DECL_CALL(CreateChannel)
     PyCallable_DECL_CALL(DestroyChannel)
+    PyCallable_DECL_CALL(GetMembers)
+    PyCallable_DECL_CALL(GetMember)
     PyCallable_DECL_CALL(SendMessage)
 
     PyCallable_DECL_CALL(GetMyMessages)

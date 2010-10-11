@@ -112,7 +112,7 @@ PyObject* ShipDB::GetEffectInformation(std::string effectName) {
 		" fittingUsageChanceAttributeID "
 		" FROM dgmeffects "
 		" WHERE effectName = '%s' ",
-		effectName))
+		effectName.c_str()))
 	{
 		_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;

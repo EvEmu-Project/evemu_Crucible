@@ -206,6 +206,7 @@ public:
 		uint32 _logonMinutes = 0,
 		uint32 _corporationID = 0,
 		uint32 _allianceID = 0,
+		uint32 _warFactionID = 0,
 		uint32 _stationID = 0,
 		uint32 _solarSystemID = 0,
 		uint32 _constellationID = 0,
@@ -231,6 +232,7 @@ public:
 
 	uint32 corporationID;
 	uint32 allianceID;
+	uint32 warFactionID;
 
 	uint32 stationID;
 	uint32 solarSystemID;
@@ -478,6 +480,7 @@ public:
 	uint32                  corporationID() const { return m_corporationID; }
 	uint32                  corporationHQ() const { return m_corpHQ; }
 	uint32                  allianceID() const { return m_allianceID; }
+	uint32                  warFactionID() const { return m_warFactionID; }
 
 	// Corporation role:
 	uint64                  corpRole() const { return m_corpRole; }
@@ -589,6 +592,7 @@ protected:
 	uint32 m_corporationID;
 	uint32 m_corpHQ;
 	uint32 m_allianceID;
+	uint32 m_warFactionID;
 
 	uint64 m_corpRole;
 	uint64 m_rolesAtAll;
