@@ -198,10 +198,13 @@ PyResult SkillMgrBound::Handle_GetRespecInfo( PyCallArgs& call )
     // takes no arguments
     sLog.Debug( "SkillMgrBound", "Called GetRespecInfo stub." );
 
+
+	//Need to get Time since last respec
+
     // return dict
     PyDict* result = new PyDict;
     result->SetItemString( "freeRespecs", new PyInt( 0 ) );
-    result->SetItemString( "nextRespecTime", new PyLong( Win32TimeNow() + Win32Time_Year ) );
+    result->SetItemString( "nextRespecTime", new PyLong( Win32TimeNow() ) );
 
     return result;
 }
