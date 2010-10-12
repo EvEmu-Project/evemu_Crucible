@@ -502,7 +502,7 @@ PyResult CharacterService::Handle_GetCharacterDescription(PyCallArgs &call) {
 
 //////////////////////////////////
 PyResult CharacterService::Handle_SetCharacterDescription(PyCallArgs &call) {
-    Call_SingleStringArg args;
+    Call_SingleWStringSoftArg args;
     if(!args.Decode(&call.tuple)) {
         codelog(CLIENT__ERROR, "Invalid arguments");
         return NULL;
