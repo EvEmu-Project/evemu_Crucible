@@ -92,6 +92,12 @@ public:
      */
 	PyPacket* PopPacket();
 
+	/**
+	 * @brief Disconnects client from the server
+	 */
+	void CloseClientConnection() { mNet->Disconnect(); }
+	
+
 protected:
     /**
      * @brief Obtains version.

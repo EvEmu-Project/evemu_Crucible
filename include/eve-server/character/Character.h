@@ -444,6 +444,12 @@ public:
 
 	// NOTE: We do not handle Split/Merge logic since singleton-restricted construction does this for us.
 
+	/**
+	 * Gets char base attributes
+	 */
+	PyObject *GetCharacterBaseAttributes();
+
+
 	/*
 	 * Primary public packet builders:
 	 */

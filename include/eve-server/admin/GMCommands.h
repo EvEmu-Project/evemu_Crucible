@@ -49,6 +49,8 @@ COMMAND( giveskills, ROLE_ADMIN,
 		"(itemID) - gives skills to character." )
 COMMAND( dogma, ROLE_ADMIN,
 		"(attribute) - change item attribute value" )
+COMMAND( kick, ROLE_ADMIN,
+		"(charName) - kicks [charName] from the server")
 /*COMMAND( entity, ROLE_ADMIN,
 		"(entityID) - unknown" )
 COMMAND( chatban, ROLE_ADMIN,
