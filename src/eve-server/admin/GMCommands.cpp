@@ -823,26 +823,42 @@ PyResult Command_kick( Client* who, CommandDB* db, PyServiceMgr* services, const
 	
 	Client *target;
 
-	if( args.argCount() == 2 ) {
+	if( args.argCount() == 2 ) 
+	{
 
-		if( args.isNumber( 1 ) ) {
+		if( args.isNumber( 1 ) )
+		{
 			int id = atoi( args.arg( 1 ).c_str() );
 			target = services->entity_list.FindCharacter( id );
 		}
-		else if( !args.isNumber( 1 ) ) {
+		else
+		{
 			const char *name = args.arg( 1 ).c_str();
 			target = services->entity_list.FindCharacter( name );
 		}
-		else
-			throw PyException( MakeCustomError( "Indeterminate argument, quitting" ) );
 
-		if(target == NULL)
-			throw PyException( MakeCustomError( "Cannot find Character" ) );
-		else
-			target->DisconnectClient();
+	} 
+	//support for characters with first and last names
+	else if( args.argCount() == 3 )
+	{
+		if( args.isHexNumber( 1 ) )
+			throw PyException( MakeCustomError("Unknown arguments") );
 
-	} else
+		//there is probably a less string-y way to do this
+		std::string fname = args.arg( 1 ).c_str();
+		std::string lname = args.arg( 2 ).c_str();
+		std::string name = fname + " " + lname;
+		target = services->entity_list.FindCharacter( name.c_str() ) ;
+
+	} 
+	else
 		throw PyException( MakeCustomError("Correct Usage: /kick [Character Name]") );
+
+
+	if(target == NULL)
+		throw PyException( MakeCustomError( "Cannot find Character" ) );
+	else
+		target->DisconnectClient();
 
 	return NULL;
 
