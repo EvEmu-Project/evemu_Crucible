@@ -339,7 +339,7 @@ PyResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
 
 PyResult LSCService::Handle_CreateChannel( PyCallArgs& call )
 {
-    Call_SingleStringArg name;
+    Call_SingleWStringSoftArg name;
     if( !name.Decode( call.tuple ) )
     {
         sLog.Error( "LSCService", "%s: Invalid arguments", call.client->GetName() );
@@ -405,7 +405,7 @@ PyResult LSCService::Handle_SendMessage( PyCallArgs& call )
 
 
 
-
+ 
 
 const int cmode = 2950;
 
@@ -413,7 +413,7 @@ LSCChannel *LSCService::CreateChannel(uint32 channelID, const char * name, const
 	return m_channels[channelID] = new LSCChannel(this, channelID, type, 1, name, motd, NULL, false, "", maillist, true, false, cmode);//ownerID must be sent in responce to GetEveOwners
 }
 LSCChannel *LSCService::CreateChannel(uint32 channelID, const char * name, LSCChannel::Type type, bool maillist) {
-	return m_channels[channelID] = new LSCChannel(this, channelID, type, 1, name, NULL, NULL, false, "", maillist, true, false, cmode);
+ 	return m_channels[channelID] = new LSCChannel(this, channelID, type, 1, name, NULL, NULL, false, "", maillist, true, false, cmode);
 }
 LSCChannel *LSCService::CreateChannel(uint32 channelID) {
     LSCChannel::Type type;
