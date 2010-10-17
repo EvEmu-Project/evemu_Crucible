@@ -844,10 +844,7 @@ PyResult Command_kick( Client* who, CommandDB* db, PyServiceMgr* services, const
 		if( args.isHexNumber( 1 ) )
 			throw PyException( MakeCustomError("Unknown arguments") );
 
-		//there is probably a less string-y way to do this
-		std::string fname = args.arg( 1 ).c_str();
-		std::string lname = args.arg( 2 ).c_str();
-		std::string name = fname + " " + lname;
+		std::string name = args.arg( 1 ) + " " + args.arg( 2 );
 		target = services->entity_list.FindCharacter( name.c_str() ) ;
 
 	} 
@@ -862,4 +859,74 @@ PyResult Command_kick( Client* who, CommandDB* db, PyServiceMgr* services, const
 
 	return NULL;
 
+}
+PyResult Command_ban( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	Client *target;
+
+	if( args.argCount() == 2 ) 
+	{
+
+		if( !args.isNumber( 1 ) )
+		{
+			const char *name = args.arg( 1 ).c_str();
+			target = services->entity_list.FindCharacter( name );
+		}
+		else
+			throw PyException( MakeCustomError("Correct Usage: /ban [Character Name]") );
+
+	} 
+	//support for characters with first and last names
+	else if( args.argCount() == 3 )
+	{
+		if( args.isHexNumber( 1 ) )
+			throw PyException( MakeCustomError("Unknown arguments") );
+
+		std::string name = args.arg( 1 ) + " " + args.arg( 2 );
+		target = services->entity_list.FindCharacter( name.c_str() ) ;
+
+	} 
+	else
+		throw PyException( MakeCustomError("Correct Usage: /ban [Character Name]") );
+
+	//ban client
+	target->BanClient();
+
+	//disconnect client
+	target->DisconnectClient();
+
+	return NULL;
+}
+PyResult Command_unban( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+
+	if( args.argCount() == 2 ) 
+	{
+
+		if( !args.isNumber( 1 ) )
+		{
+			const char *name = args.arg( 1 ).c_str();
+			services->serviceDB().SetAccountBanStatus(db->GetAccountID(name),false);
+		}
+		else
+			throw PyException( MakeCustomError("Correct Usage: /ban [Character Name]") );
+
+	} 
+	//support for characters with first and last names
+	else if( args.argCount() == 3 )
+	{
+		if( args.isHexNumber( 1 ) )
+			throw PyException( MakeCustomError("Unknown arguments") );
+
+		std::string name = args.arg( 1 ) + " " + args.arg( 2 );
+		services->serviceDB().SetAccountBanStatus(db->GetAccountID(name),false);
+		
+
+	} 
+	else
+		throw PyException( MakeCustomError("Correct Usage: /unban [Character Name / Character ID]") );
+
+	
+	
+	return NULL;
 }

@@ -51,6 +51,10 @@ COMMAND( dogma, ROLE_ADMIN,
 		"(attribute) - change item attribute value" )
 COMMAND( kick, ROLE_ADMIN,
 		"(charName) - kicks [charName] from the server")
+COMMAND( ban, ROLE_ADMIN,
+		"(charName) - bans player's account from the server")
+COMMAND( unban, ROLE_ADMIN,
+		"(charName) - removes ban on player's account")
 /*COMMAND( entity, ROLE_ADMIN,
 		"(entityID) - unknown" )
 COMMAND( chatban, ROLE_ADMIN,

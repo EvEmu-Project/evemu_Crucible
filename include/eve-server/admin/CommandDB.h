@@ -34,6 +34,7 @@ public:
 	bool ItemSearch(const char *query, std::map<uint32, std::string> &into);
 	bool GetRoidDist(const char * sec, std::map<double, uint32> &roids);
 	int GetAttributeID(const char *attributeName);
+	int GetAccountID(std::string name);
 };
 
 

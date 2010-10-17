@@ -41,7 +41,7 @@ bool ServiceDB::DoLogin( const char* login, const char* pass, uint32& accountID,
     
     DBQueryResult res;
     if( !sDatabase.RunQuery( res,
-        "SELECT accountID, role, password, PASSWORD( '%s' ), MD5( '%s' ), online"
+        "SELECT accountID, role, password, PASSWORD( '%s' ), MD5( '%s' ), online, banned"
         " FROM account"
         " WHERE accountName = '%s'",
         pass, pass, login ) )
@@ -58,6 +58,11 @@ bool ServiceDB::DoLogin( const char* login, const char* pass, uint32& accountID,
             sLog.Error( "ServiceDB", "Account '%s' already logged in.", login );
             return false;
         }
+		if( 0 != row.GetInt( 6 ) )
+		{
+			sLog.Error( "ServiceDB", "Account '%s' has been banned from the server.", login);
+			return false;
+		}
 
         const std::string dbPass = row.GetText( 2 );
 
@@ -507,4 +512,19 @@ void ServiceDB::SetAccountOnlineStatus(uint32 accountID, bool onoff_status) {
     {
         codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
     }
+}
+
+void ServiceDB::SetAccountBanStatus(uint32 accountID, bool onoff_status) {
+	DBerror err;
+
+	_log(CLIENT__TRACE, "AccStatus: %s account %u.", onoff_status ? "Banned" : "Removed ban on", accountID );
+
+	if(!sDatabase.RunQuery(err,
+		" UPDATE account "
+		" SET account.banned = %d "
+		" WHERE accountID = %u ",
+		onoff_status, accountID))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+	}
 }

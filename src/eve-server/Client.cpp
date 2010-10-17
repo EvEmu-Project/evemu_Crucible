@@ -1186,6 +1186,23 @@ void Client::OnCharNowInStation()
 }
 
 /************************************************************************/
+/* EVEAdministration Interface                                          */
+/************************************************************************/
+void Client::DisconnectClient()
+{
+	//initiate closing the client TCP Connection
+	CloseClientConnection();
+}
+void Client::BanClient()
+{
+	//send message to client
+	SendNotifyMsg("You have been banned from this server and will be disconnected shortly.  You will no longer be able to log in");
+
+	//ban the client
+	services().serviceDB().SetAccountBanStatus( GetAccountID(), true );
+}
+
+/************************************************************************/
 /* EVEClientSession interface                                           */
 /************************************************************************/
 void Client::_GetVersion( VersionExchange& version )

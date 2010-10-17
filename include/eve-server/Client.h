@@ -256,7 +256,8 @@ public:
 	/********************************************************************/
     /* Server Administration Interface                                  */
     /********************************************************************/
-	void DisconnectClient() { CloseClientConnection(); }
+	void DisconnectClient();
+	void BanClient();
 	
 protected:
 	void _ReduceDamage(Damage &d);
