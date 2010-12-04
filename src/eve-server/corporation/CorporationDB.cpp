@@ -727,16 +727,20 @@ PyObject *CorporationDB::GetEveOwners() {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return NULL;
     }*/
-    if(!sDatabase.RunQuery(res,
-            "(SELECT"
-            " itemID as ownerID,"
-            " itemName as ownerName,"
-            " typeID FROM entity"
-            " WHERE itemId <140000000 AND itemID NOT IN(select ownerID from evestaticowners))"
-            " UNION ALL "
-            "(SELECT * FROM evestaticowners)"
-            " ORDER BY ownerID"))
-	{
+    if( !sDatabase.RunQuery( res,
+        "(SELECT"
+        " itemID AS ownerID,"
+        " itemName AS ownerName,"
+        " typeID"
+        " FROM entity"
+        " WHERE itemID < 140000000"
+        " AND itemID NOT IN ( SELECT ownerID from eveStaticOwners ) )"
+        " UNION ALL "
+        "(SELECT"
+        " *"
+        " FROM eveStaticOwners)"
+        " ORDER BY ownerID" ) )
+    {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return NULL;
     }
