@@ -58,17 +58,16 @@ CHT_MAX_USERS_PER_IMMEDIATE_CHANNEL = 50
  *
 */
 
-// Set the base (minimum) and maximum numbers for any user-created chat channel.
-// All user-created chat channels are created with IDs that are in this set:
-//     [baseChannelID,maxChannelID]  (note the inclusivity in that set)
-#define baseChannelID						200000000
-#define maxChannelID						4294967295
-
 class CommandDispatcher;
 
 class LSCService : public PyService
 {
 public:
+    // All user-created chat channels are created with IDs that are in this set:
+    //     [baseChannelID,maxChannelID]  (note the inclusivity in that set)
+    static const uint32 BASE_CHANNEL_ID;
+    static const uint32 MAX_CHANNEL_ID;
+
     LSCService(PyServiceMgr *mgr, CommandDispatcher *cd);
     virtual ~LSCService();
 

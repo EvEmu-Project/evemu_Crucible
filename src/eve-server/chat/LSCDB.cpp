@@ -25,8 +25,6 @@
 
 
 #include "EVEServerPCH.h"
-#include <ctype.h>
-
 
 PyObject *LSCDB::LookupChars(const char *match, bool exact) {
 	DBQueryResult res;
@@ -420,38 +418,37 @@ uint32 LSCDB::GetNextAvailableChannelID()
     // NOTE: For large servers, this is inefficient and as everything in this file should be using
     // the cached object system rather than touching the database, this query could cause large server slow-down
     // if there is a very large number of existing channels in the database.
-	if (!sDatabase.RunQuery(res, 
+	if( !sDatabase.RunQuery( res,
 		" SELECT "
 		"	channelID "
 		" FROM channels "
-		" WHERE channelID >= %u ", baseChannelID))
+		" WHERE channelID >= %u ", LSCService::BASE_CHANNEL_ID ))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return 0;
 	}
 
-	DBResultRow row;
-	int rowCount = 0;
-	int32 currentChannelID = baseChannelID;
-	int32 nextChannelID = 0;
+	uint32 currentChannelID = LSCService::BASE_CHANNEL_ID;
 
 	// Traverse through the rows in the query result until the first gap is found
 	// and return the value that would be first (or only one) in the gap as the next
 	// free channel ID:
-	while(res.GetRow(row))
+	DBResultRow row;
+	while( res.GetRow(row) )
 	{
-		nextChannelID = row.GetUInt(0);
-		if (nextChannelID > (currentChannelID + 1))
-			return (currentChannelID + 1);
-		else
-			currentChannelID = nextChannelID;
+            const uint32 channelID = row.GetUInt( 0 );
+
+            if( currentChannelID < channelID )
+                return currentChannelID;
+
+            ++currentChannelID;
 	}
 
-    // Check to make sure that the next available channelID is not equal to the Maximum channel ID value
-	if (nextChannelID < maxChannelID)
-		return (++nextChannelID);
+        // Check to make sure that the next available channelID is not equal to the Maximum channel ID value
+	if( currentChannelID <= LSCService::MAX_CHANNEL_ID )
+            return currentChannelID;
 	else
-		return 0;	// No free channel IDs found (this should never happen as there are way too many IDs to exhaust)
+            return 0;	// No free channel IDs found (this should never happen as there are way too many IDs to exhaust)
 }
 
 
@@ -568,8 +565,8 @@ void LSCDB::GetChannelInformation(std::string & name, uint32 & id,
 
 	if (!(res.GetRow(row)))
 	{
-		_log(SERVICE__ERROR, "Channel named '%s' isn't present in the database", name);
-		return;
+            _log(SERVICE__ERROR, "Channel named '%s' isn't present in the database", name.c_str() );
+            return;
 	}
 
 	id = row.GetUInt(0);

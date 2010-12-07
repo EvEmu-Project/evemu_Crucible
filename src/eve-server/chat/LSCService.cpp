@@ -26,9 +26,11 @@
 
 #include "EVEServerPCH.h"
 
-
 PyCallable_Make_InnerDispatcher(LSCService)
 
+// Set the base (minimum) and maximum numbers for any user-created chat channel.
+const uint32 LSCService::BASE_CHANNEL_ID = 200000000;
+const uint32 LSCService::MAX_CHANNEL_ID = 0xFFFFFFFF;
 
 LSCService::LSCService(PyServiceMgr *mgr, CommandDispatcher* cd)
 : PyService(mgr, "LSC"),
@@ -342,21 +344,19 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
     curs = toJoin.begin();
     ends = toJoin.end();
 
-	// Determine if the character is more than 30 days old (30*24*60*60*(1/0.0000001),
-    // and, if so, then set a flag that avoids joining this character to the Help\Help and
+    // Determine if the character is less than a month old
+    // and, if so, then set a flag that causes joining this character to the Help\Help and
     // Help\Rookie channels.
-	bool bSkipRookieChannelsForOlderChars = false;
-	if( ((Win32TimeNow() - (call.client->GetChar()->createDateTime())) > ((uint64)25920000000000)) )
-		bSkipRookieChannelsForOlderChars = true;
+    const bool isRookie = Win32TimeNow() < ( call.client->GetChar()->createDateTime() + Win32Time_Month );
 
     for( ; curs != ends; curs++ )
-	{
-		LSCChannel *channel;
+    {
+        LSCChannel *channel;
 
         uint32 channelID = *curs;
 
-		// Skip joining Help\Rookie and Help\Help channels when the character is older than 30 days:
-		if( (!(((channelID == 1) || (channelID == 2)) && bSkipRookieChannelsForOlderChars)) )
+		// Skip joining Help\Rookie and Help\Help channels when the character is no longer a rookie:
+                if( isRookie || !( channelID == 1 || channelID == 2 ) )
 		{
 			if( m_channels.find( channelID ) == m_channels.end() )
 				channel = CreateChannel( channelID );
