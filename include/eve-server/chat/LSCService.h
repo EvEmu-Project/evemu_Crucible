@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Zhur
+    Author:     Zhur, Aknor Jaden
 */
 
 
@@ -58,6 +58,12 @@ CHT_MAX_USERS_PER_IMMEDIATE_CHANNEL = 50
  *
 */
 
+// Set the base (minimum) and maximum numbers for any user-created chat channel.
+// All user-created chat channels are created with IDs that are in this set:
+//     [baseChannelID,maxChannelID]  (note the inclusivity in that set)
+#define baseChannelID						200000000
+#define maxChannelID						4294967295
+
 class CommandDispatcher;
 
 class LSCService : public PyService
@@ -93,10 +99,13 @@ protected:
     PyCallable_DECL_CALL(LeaveChannels)
     PyCallable_DECL_CALL(LeaveChannel)
     PyCallable_DECL_CALL(CreateChannel)
+	PyCallable_DECL_CALL(Configure)
     PyCallable_DECL_CALL(DestroyChannel)
     PyCallable_DECL_CALL(GetMembers)
     PyCallable_DECL_CALL(GetMember)
     PyCallable_DECL_CALL(SendMessage)
+	PyCallable_DECL_CALL(Invite)
+    PyCallable_DECL_CALL(AccessControl)
 
     PyCallable_DECL_CALL(GetMyMessages)
     PyCallable_DECL_CALL(GetMessageDetails)
@@ -105,8 +114,8 @@ protected:
     PyCallable_DECL_CALL(DeleteMessages)
 
 private:
-    uint32 nextFreeChannelID;
-
+    LSCChannel *CreateChannel(uint32 channelID, const char * name, const char * motd, LSCChannel::Type type, const char * compkey,
+		uint32 ownerID, bool memberless, const char * password, bool maillist, uint32 cspa, uint32 temporary, uint32 mode);
     LSCChannel *CreateChannel(uint32 channelID, const char * name, const char * motd, LSCChannel::Type type, bool maillist = false);
     LSCChannel *CreateChannel(uint32 channelID, const char * name, LSCChannel::Type type, bool maillist = false);
     LSCChannel *CreateChannel(uint32 channelID, LSCChannel::Type type);

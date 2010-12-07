@@ -20,7 +20,7 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Zhur, Aknor Jaden
 */
 
 
@@ -109,6 +109,7 @@ PyResult LookupService::Handle_LookupCharacters(PyCallArgs &call) {
 	
 	return m_db.LookupChars(args.searchString.c_str(), args.searchOption ? true : false);
 }
+
 //LookupOwners
 PyResult LookupService::Handle_LookupOwners(PyCallArgs &call) {
 	Call_LookupStringInt args;
@@ -116,8 +117,8 @@ PyResult LookupService::Handle_LookupOwners(PyCallArgs &call) {
 		codelog(SERVICE__ERROR, "Wrong incoming param in LookupOwners");
 		return false;
 	}
-	
-	return m_db.LookupOwners(args.searchString.c_str(),  true );
+
+	return m_db.LookupOwners(args.searchString.c_str(),  args.searchOption ? true : false );
 }
 
 PyResult LookupService::Handle_LookupPlayerCharacters(PyCallArgs &call) {
@@ -127,7 +128,7 @@ PyResult LookupService::Handle_LookupPlayerCharacters(PyCallArgs &call) {
 		return false;
 	}
 
-	return m_db.LookupPlayerChars(args.searchString.c_str(),  true);
+	return m_db.LookupPlayerChars(args.searchString.c_str(),  false);
 }
 PyResult LookupService::Handle_LookupCorporations(PyCallArgs &call) {
 	Call_LookupStringInt args;

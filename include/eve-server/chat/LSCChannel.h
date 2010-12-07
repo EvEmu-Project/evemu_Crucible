@@ -121,6 +121,37 @@ public:
 
 	const char *GetTypeString();
 
+	uint32 GetChannelID() { return m_channelID; }
+	uint32 GetOwnerID() { return m_ownerID; }
+	Type GetType() { return m_type; }
+	std::string GetDisplayName() { return m_displayName; }
+	std::string GetMOTD() { return m_motd; }
+	std::string GetComparisonKey() { return m_comparisonKey; }
+	bool GetMemberless() { return m_memberless; }
+	std::string GetPassword() { return m_password; }
+	bool GetMailingList() { return m_mailingList; }
+	uint32 GetCSPA() { return m_cspa; }
+	uint32 GetTemporary() { return m_temporary; }
+	uint32 GetMode() { return m_mode; }
+    uint32 GetMemberCount() { return m_chars.size(); }
+
+	void SetOwnerID(uint32 ownerID) { m_ownerID = ownerID; }
+	void SetType(Type new_type) { m_type = new_type; }
+	void SetDisplayName(std::string displayName) { m_displayName = displayName; }
+	void SetMOTD(std::string motd) { m_motd = motd; }
+	void SetComparisonKey(std::string comparisonKey) { m_comparisonKey = comparisonKey; }
+	void SetMemberless(bool memberless) { m_memberless = memberless; }
+	void SetPassword(std::string password) { m_password = password; }
+	void SetMailingList(bool mailingList) { m_mailingList = mailingList; }
+	void SetCSPA(uint32 cspa) { m_cspa = cspa; }
+	void SetTemporary(uint32 temporary) { m_temporary = temporary; }
+	void SetMode(uint32 mode) { m_mode = mode; }
+
+	void GetChannelInfo(uint32 * channelID, uint32 * ownerID, std::string &displayName, std::string &motd, std::string &comparisonKey,
+		bool * memberless, std::string &password, bool * mailingList, uint32 * cspa, uint32 * temporary, uint32 * mode);
+	void SetChannelInfo(uint32 ownerID, std::string displayName, std::string motd, std::string comparisonKey,
+		bool memberless, std::string password, bool mailingList, uint32 cspa, uint32 temporary, uint32 mode);
+
 	bool JoinChannel(Client * c);
 	void LeaveChannel(Client *c, bool self = true);
 	void LeaveChannel(uint32 charID, OnLSC_SenderInfo * si);

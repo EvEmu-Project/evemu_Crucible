@@ -20,7 +20,7 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Zhur, Aknor Jaden
 */
 
 
@@ -52,11 +52,36 @@ public:
 	bool DeleteMessage(uint32 messageID, uint32 readerID);
 	void GetChannelNames(uint32 charID, std::vector<std::string> & names);
 
+	uint32 GetNextAvailableChannelID();
+	bool IsChannelNameAvailable(std::string name);
+	bool IsChannelIDAvailable(uint32 channel_ID);
+	bool IsChannelSubscribedByThisChar(uint32 char_ID, uint32 channel_ID);
+
 	std::string GetRegionName(uint32 id) { return GetChannelName(id, "mapRegions", "regionName", "regionID"); }
 	std::string GetConstellationName(uint32 id) { return GetChannelName(id, "mapConstellations", "constellationName", "constellationID"); }
 	std::string GetSolarSystemName(uint32 id) { return GetChannelName(id, "mapSolarSystems", "solarSystemName", "solarSystemID"); }
 	std::string GetCorporationName(uint32 id) { return GetChannelName(id, "corporation", "corporationName", "corporationID"); }
 	std::string GetCharacterName(uint32 id) { return GetChannelName(id, "entity", "itemName", "itemID"); }
+
+	void GetChannelInformation(std::string & name, uint32 & id,
+		std::string & motd, uint32 & ownerid, std::string & compkey,
+		bool & memberless, std::string & password, bool & maillist,
+		uint32 & cspa, uint32 & temp, uint32 & mode);
+
+	void GetChannelSubscriptions(uint32 charID, std::vector<unsigned long> & ids, std::vector<std::string> & names,
+		std::vector<std::string> & MOTDs, std::vector<unsigned long> & ownerids, std::vector<std::string> & compkeys,
+		std::vector<int> & memberless, std::vector<std::string> & passwords, std::vector<int> & maillists,
+		std::vector<int> & cspas, std::vector<int> & temps, std::vector<int> & modes, int & channelCount);
+
+	std::string GetChannelInfo(uint32 channelID, std::string & name, std::string & motd);
+
+	int WriteNewChannelSubscriptionToDatabase(uint32 characterID, uint32 channelID);
+	int WriteNewChannelToDatabase(uint32 channelID, std::string name, uint32 ownerID, uint32 temporary);
+
+    int UpdateChannelConfigureInfo(LSCChannel * channel);
+
+    int RemoveChannelSubscriptionFromDatabase(uint32 channelID, uint32 charID);
+    int RemoveChannelFromDatabase(uint32 channelID);
 
 protected:
 	std::string GetChannelName(uint32 id, const char * table, const char * column, const char * key);

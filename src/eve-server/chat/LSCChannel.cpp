@@ -97,6 +97,37 @@ LSCChannel::~LSCChannel() {
 	_log(LSC__CHANNELS, "Destroying channel \"%s\"", m_displayName.c_str());
 }
 
+void LSCChannel::GetChannelInfo(uint32 * channelID, uint32 * ownerID, std::string &displayName, std::string &motd, std::string &comparisonKey,
+	bool * memberless, std::string &password, bool * mailingList, uint32 * cspa, uint32 * temporary, uint32 * mode)
+{
+	*channelID = GetChannelID();
+	*ownerID = GetOwnerID();
+	displayName = GetDisplayName();
+	motd = GetMOTD();
+	comparisonKey = GetComparisonKey();
+	*memberless = GetMemberless();
+	password = GetPassword();
+	*mailingList = GetMailingList();
+	*cspa = GetCSPA();
+	*temporary = GetTemporary();
+	*mode = GetMode();
+}
+
+void LSCChannel::SetChannelInfo(uint32 ownerID, std::string displayName, std::string motd, std::string comparisonKey,
+	bool memberless, std::string password, bool mailingList, uint32 cspa, uint32 temporary, uint32 mode)
+{
+	SetOwnerID(ownerID);
+	SetDisplayName(displayName);
+	SetMOTD(motd);
+	SetComparisonKey(comparisonKey);
+    SetMemberless(memberless);
+	SetPassword(password);
+	SetMailingList(mailingList);
+	SetCSPA(cspa);
+	SetTemporary(temporary);
+	SetMode(mode);
+}
+
 bool LSCChannel::JoinChannel(Client * c) {
 	_log(LSC__CHANNELS, "Channel %s: Join from %s", m_displayName.c_str(), c->GetName());
 
@@ -128,6 +159,7 @@ bool LSCChannel::JoinChannel(Client * c) {
 
 	return true;
 }
+
 void LSCChannel::LeaveChannel(uint32 charID, OnLSC_SenderInfo * si) {
 	_log(LSC__CHANNELS, "Channel %s: Leave from %u", m_displayName.c_str(), charID);
 
@@ -152,6 +184,7 @@ void LSCChannel::LeaveChannel(uint32 charID, OnLSC_SenderInfo * si) {
 	PyTuple *answer = leave.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
+
 void LSCChannel::LeaveChannel(Client *c, bool self) {
 	_log(LSC__CHANNELS, "Channel %s: Leave from %s", m_displayName.c_str(), c->GetName());
 
@@ -179,6 +212,7 @@ void LSCChannel::LeaveChannel(Client *c, bool self) {
 	m_chars.erase(charID);
 	c->ChannelLeft(this);
 }
+
 void LSCChannel::Evacuate(Client * c) {
 	OnLSC_DestroyChannel dc;
 
@@ -197,6 +231,7 @@ void LSCChannel::Evacuate(Client * c) {
 	PyTuple *answer = dc.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
+
 void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
 	MulticastTarget mct;
 
@@ -228,17 +263,6 @@ void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
 	PyTuple *answer = sm.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
-
-	
-
-		
-	
-		
-	
-
-
-
-
 
 bool LSCChannel::IsJoined(uint32 charID) {
 	return m_chars.find(charID) != m_chars.end();
@@ -289,6 +313,7 @@ PyRep *LSCChannel::EncodeChannel(uint32 charID) {
 
 	return line.Encode();
 }
+
 PyRep *LSCChannel::EncodeID() {
 	if (m_type == normal)
 		return (new PyInt(m_channelID));
@@ -317,6 +342,7 @@ PyRep *LSCChannel::EncodeChannelSmall(uint32 charID) {
 	
 	return info.Encode();
 }
+
 PyRep *LSCChannel::EncodeChannelMods()
 {
 	ChannelJoinChannelMods info;
@@ -327,6 +353,7 @@ PyRep *LSCChannel::EncodeChannelMods()
 
 	return info.Encode();
 }
+
 PyRep *LSCChannel::EncodeChannelChars() {
 	ChannelJoinChannelChars info;
     info.lines = new PyList;
@@ -343,6 +370,7 @@ PyRep *LSCChannel::EncodeChannelChars() {
 
 	return info.Encode();
 }
+
 PyRep *LSCChannel::EncodeEmptyChannelChars() {
 	ChannelJoinChannelChars info;
     info.lines = new PyList;
@@ -365,16 +393,3 @@ const char *LSCChannel::GetTypeString() {
 	}
 	return("unknown");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
