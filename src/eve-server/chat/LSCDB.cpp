@@ -76,19 +76,19 @@ PyObject *LSCDB::LookupOwners(const char *match, bool exact) {
         "SELECT"
         "  character_.characterID AS ownerID,"
         "  entity.itemName AS ownerName,"
-        "  invtypes.groupID AS groupID"
+        "  invTypes.groupID AS groupID"
         " FROM character_"
         "  LEFT JOIN entity ON characterID = itemID"
-        "  LEFT JOIN invtypes ON entity.typeID = invtypes.typeID"
+        "  LEFT JOIN invTypes ON entity.typeID = invTypes.typeID"
         " WHERE character_.characterID >= 140000000"
         "  AND entity.itemName %s '%s'"
         " UNION "
         "SELECT"
         "  corporation.corporationID AS ownerID,"
         "  corporation.corporationName AS ownerName,"
-        "  invtypes.groupID AS groupID"
+        "  invTypes.groupID AS groupID"
         " FROM corporation"
-        "  LEFT JOIN invtypes ON groupID = 2"
+        "  LEFT JOIN invTypes ON groupID = 2"
         " WHERE corporation.corporationName %s '%s'",
 		(exact?"=":"RLIKE"), matchEsc.c_str(), (exact?"=":"RLIKE"), matchEsc.c_str()))
 	{
@@ -436,19 +436,19 @@ uint32 LSCDB::GetNextAvailableChannelID()
 	DBResultRow row;
 	while( res.GetRow(row) )
 	{
-            const uint32 channelID = row.GetUInt( 0 );
+        const uint32 channelID = row.GetUInt( 0 );
 
-            if( currentChannelID < channelID )
-                return currentChannelID;
+        if( currentChannelID < channelID )
+            return currentChannelID;
 
-            ++currentChannelID;
+        ++currentChannelID;
 	}
 
         // Check to make sure that the next available channelID is not equal to the Maximum channel ID value
 	if( currentChannelID <= LSCService::MAX_CHANNEL_ID )
-            return currentChannelID;
+        return currentChannelID;
 	else
-            return 0;	// No free channel IDs found (this should never happen as there are way too many IDs to exhaust)
+        return 0;	// No free channel IDs found (this should never happen as there are way too many IDs to exhaust)
 }
 
 
@@ -570,10 +570,10 @@ void LSCDB::GetChannelInformation(std::string & name, uint32 & id,
 	}
 
 	id = row.GetUInt(0);
-	name = row.GetText(1);
-	motd = row.GetText(2);
+	name = (row.GetText(1) == NULL ? "" : row.GetText(1));	// empty displayName field in channels table row returns NULL, so fill this string with "" in that case
+	motd = (row.GetText(2) == NULL ? "" : row.GetText(2));	// empty motd field in channels table row returns NULL, so fill this string with "" in that case
 	ownerid = row.GetUInt(3);
-	compkey = row.GetText(4);
+	compkey = (row.GetText(4) == NULL ? "" : row.GetText(4));	// empty comparisonKey field in channels table row returns NULL, so fill this string with "" in that case
 	memberless = row.GetUInt(5) ? true : false;
 	password = (row.GetText(6) == NULL ? "" : row.GetText(6));	// empty password field in channels table row returns NULL, so fill this string with "" in that case
 	maillist = row.GetUInt(7) ? true : false;
@@ -627,10 +627,10 @@ void LSCDB::GetChannelSubscriptions(uint32 charID, std::vector<unsigned long> & 
 		++rowCount;
 
 		ids.push_back(row.GetUInt(0));
-		names.push_back(row.GetText(1));
-		MOTDs.push_back(row.GetText(2));
+		names.push_back((row.GetText(1) == NULL ? "" : row.GetText(1)));	// empty displayName field in channels table row returns NULL, so fill this string with "" in that case
+		MOTDs.push_back((row.GetText(2) == NULL ? "" : row.GetText(2)));	// empty motd field in channels table row returns NULL, so fill this string with "" in that case
 		ownerids.push_back(row.GetUInt(3));
-		compkeys.push_back(row.GetText(4));
+		compkeys.push_back((row.GetText(4) == NULL ? "" : row.GetText(4)));	// empty comparisonKey field in channels table row returns NULL, so fill this string with "" in that case
 		memberless.push_back(row.GetUInt(5));
 		passwords.push_back((row.GetText(6) == NULL ? "" : row.GetText(6)));	// empty password field in channels table row returns NULL, so fill this string with "" in that case
 		maillists.push_back(row.GetUInt(7));
