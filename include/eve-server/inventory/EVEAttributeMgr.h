@@ -247,84 +247,110 @@ protected:
 };
 
 // small map that does the magic of item attributes..
-class EvilNumber;
+//class EvilNumber;
 
 /**
- * @brief rewrite of the item attribute system.
- *
- * @author Captnoord.
- * @date Juni 2010
- */
+* @brief rewrite of the item attribute system.
+*
+* @author Captnoord.
+* @date Juni 2010
+* @note keeping track of the base value of the attribute is not implemented.
+* Besides the fact in increases memory concumption its unclear how to design it
+* at this moment.
+*/
 class AttributeMap
 {
 public:
+
+    // lazy ass anti compile errors
+    //AttributeMap() {}
+
     /**
-     * @brief multiply this with @a
-     *
-     * Multiply this with @a.
-     *
-     * @param[in] attributeId the attribute id that needs to be changed.
-     * @param[in] num the number the attribute needs to be changed in.
-     *
-     * @retval true  The attribute has successfully been set and queued.
-     * @retval false The attribute change has not been queued but has not been changed.
-     */
-    bool SetAttribute(uint32 attributeId, EvilNumber &num);
+    * we store our keeper so we can use it in the various functions.
+    * @note capt: the way I see it this isn't really needed... ( design thingy )
+    */
+    AttributeMap(InventoryItem & item);
+
+    /**
+    * @brief set the attribute with @num
+    *
+    * set the attribute with @num
+    *
+    * @param[in] attributeId the attribute id that needs to be changed.
+    * @param[in] num the number the attribute needs to be changed in.
+    *
+    * @retval true  The attribute has successfully been set and queued.
+    * @retval false The attribute change has not been queued but has not been changed.
+    */
+    bool SetAttribute(uint32 attributeId, EvilNumber &num, bool nofity = true);
+
+
+    EvilNumber GetAttribute(uint32 attributeId);
+
+    EvilNumber GetAttribute(const uint32 attributeId) const;
 
     /* ATM we don't load or save as we assume that all attribute modifiers are calculated on the fly
-     * except charge attributes but we won't handle them for now
-     */
+    * except charge attributes but we won't handle them for now
+    */
 #if 0
     bool Save();
-    bool Load();
 #endif
+
+    // load the default attributes that come with the itemID
+
 
     typedef std::map<uint32, EvilNumber>    AttrMap;
     typedef AttrMap::iterator               AttrMapItr;
+    typedef AttrMap::const_iterator         AttrMapConstItr;
+
+    bool Load();
+
+    //void set_item(InventoryItem *item) {mItem = item;}
 
 protected:
     /**
-     * @brief internal function to handle the change.
-     *
-     * @param[in] attributeId the attribute id that needs to be changed.
-     * @param[in] num the number the attribute needs to be changed in.
-     *
-     * @retval true  The attribute change has successfully been set and queued.
-     * @retval false The attribute change has not been queued but has been changed.
-     */
+    * @brief internal function to handle the change.
+    *
+    * @param[in] attributeId the attribute id that needs to be changed.
+    * @param[in] num the number the attribute needs to be changed in.
+    *
+    * @retval true  The attribute change has successfully been set and queued.
+    * @retval false The attribute change has not been queued but has been changed.
+    */
     bool Change(uint32 attributeID, EvilNumber& old_val, EvilNumber& new_val);
 
     /**
-     * @brief internal function to handle adding attributes.
-     *
-     * @param[in] attributeId the attribute id that needs to be added.
-     * @param[in] num the number the attribute needs to be set to.
-     *
-     * @retval true  The attribute has successfully been added and queued.
-     * @retval false The attribute addition has not been queued and not been changed.
-     */
+    * @brief internal function to handle adding attributes.
+    *
+    * @param[in] attributeId the attribute id that needs to be added.
+    * @param[in] num the number the attribute needs to be set to.
+    *
+    * @retval true  The attribute has successfully been added and queued.
+    * @retval false The attribute addition has not been queued and not been changed.
+    */
     bool Add(uint32 attributeID, EvilNumber& num);
 
     /**
-     * @brief queue the attribute changes into the QueueDestinyEvent system.
-     *
-     * @param[in] attrChange the attribute id that needs to be added.
-     *
-     * @retval true  The attribute has successfully been added and queued.
-     * @retval false The attribute addition has not been queued and not been changed.
-     */
+    * @brief queue the attribute changes into the QueueDestinyEvent system.
+    *
+    * @param[in] attrChange the attribute id that needs to be added.
+    *
+    * @retval true  The attribute has successfully been added and queued.
+    * @retval false The attribute addition has not been queued and not been changed.
+    */
     bool SendAttributeChanges(PyTuple* attrChange);
 
+
     /** we belong to this item..
-     * @note possible design flaw because only items contain AttributeMap's so
-     *       we don't need to store this.
-     */
-    InventoryItem *mItem;
+    * @note possible design flaw because only items contain AttributeMap's so
+    *       we don't need to store this.
+    */
+    InventoryItem &mItem;    
 
     /**
-     * @note possible design flaw, stack corruption because of a enormous amount
-     *       of 'EvilNumber' objects not fitting into the stack.
-     */
+    * @note possible design flaw, stack corruption because of a enormous amount
+    *       of 'EvilNumber' objects not fitting into the stack.
+    */
     AttrMap mAttributes;
 };
 

@@ -345,7 +345,13 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
 /************************************************************************/
 /* Start of new attribute system                                        */
 /************************************************************************/
-bool AttributeMap::SetAttribute( uint32 attributeId, EvilNumber& num )
+AttributeMap::AttributeMap( InventoryItem & item ) : mItem(item)
+{
+    // load the initial attributes for this item
+    //Load();
+}
+
+bool AttributeMap::SetAttribute( uint32 attributeId, EvilNumber &num, bool nofity /*= true*/ )
 {
     AttrMapItr itr = mAttributes.find(attributeId);
     if (itr == mAttributes.end()) {
@@ -359,8 +365,9 @@ bool AttributeMap::SetAttribute( uint32 attributeId, EvilNumber& num )
 
     // notify dogma to change the attribute, if we are unable to queue the change
     // event. Don't change the value.
-    if (!Change(attributeId, itr->second, num))
-        return false;
+    if (nofity)
+        if (!Change(attributeId, itr->second, num))
+            return false;
 
     itr->second = num;
     return true;
@@ -370,8 +377,8 @@ bool AttributeMap::Change( uint32 attributeID, EvilNumber& old_val, EvilNumber& 
 {
     PyTuple* AttrChange = new PyTuple(7);
     AttrChange->SetItem(0, new PyString("OnModuleAttributeChange"));
-    AttrChange->SetItem(1, new PyInt(mItem->ownerID()));
-    AttrChange->SetItem(2, new PyInt(mItem->itemID()));
+    AttrChange->SetItem(1, new PyInt(mItem.ownerID()));
+    AttrChange->SetItem(2, new PyInt(mItem.itemID()));
     AttrChange->SetItem(3, new PyInt(attributeID));
     AttrChange->SetItem(4, new PyLong(Win32TimeNow()));
     AttrChange->SetItem(5, old_val.GetPyObject());
@@ -384,8 +391,8 @@ bool AttributeMap::Add( uint32 attributeID, EvilNumber& num )
 {
     PyTuple* AttrChange = new PyTuple(7);
     AttrChange->SetItem(0, new PyString("OnModuleAttributeChange"));
-    AttrChange->SetItem(1, new PyInt(mItem->ownerID()));
-    AttrChange->SetItem(2, new PyInt(mItem->itemID()));
+    AttrChange->SetItem(1, new PyInt(mItem.ownerID()));
+    AttrChange->SetItem(2, new PyInt(mItem.itemID()));
     AttrChange->SetItem(3, new PyInt(attributeID));
     AttrChange->SetItem(4, new PyLong(Win32TimeNow()));
     AttrChange->SetItem(5, num.GetPyObject());
@@ -398,29 +405,39 @@ bool AttributeMap::SendAttributeChanges( PyTuple* attrChange )
 {
     if (attrChange == NULL)
     {
-        sLog.Error("AttributeMap", "unable to find client");
+        sLog.Error("AttributeMap", "unable to send NULL packet");
         return false;
     }
 
-    // O hell this character finding needs to be optimized ( redesigned so its not needed.. ).
-    Client *client = sEntityList.FindCharacter(mItem.ownerID());
-
-    /*if (client == NULL)
+    // Oh hell, this character finding needs to be optimized ( redesigned so its not needed.. ).
+    if( (mItem.ownerID() == 1) || (IsStation(mItem.itemID())) )
     {
-        client = sEntityList.FindByShip(mItem.ownerID());
-    }*/
-
-    if (client == NULL) {
-        __asm{int 3};
-        sLog.Error("AttributeMap", "unable to find client:%u", mItem.ownerID());
-        return false;
+        // This item is owned by the EVE System either directly, as in the case of a character object,
+        // or indirectly, as in the case of a Station, which is owned by the corporation that runs it.
+        // So, we don't need to queue up Destiny events in these cases.
+        return true;
     }
+    else
+    {
+        Client *client = sEntityList.FindCharacter(mItem.ownerID());
 
-    client->QueueDestinyEvent(&attrChange);
-    return true;
+        /*if (client == NULL)
+        {
+        client = sEntityList.FindByShip(mItem.ownerID());
+        }*/
+
+        if (client == NULL)
+        {
+            sLog.Error("AttributeMap", "unable to find client:%u", mItem.ownerID());
+            return false;
+        }
+        else
+        {
+            client->QueueDestinyEvent(&attrChange);
+            return true;
+        }
+    }
 }
-
-
 
 bool AttributeMap::Load()
 {
@@ -469,7 +486,6 @@ bool AttributeMap::Load()
 
     if(!sDatabase.RunQuery(res,"SELECT * FROM entity_attributes WHERE itemID='%u'", mItem.itemID())) {
         sLog.Error("AttributeMap", "Error in db load query: %s", res.error.c_str());
-
         return false;
     }
 
@@ -490,14 +506,38 @@ bool AttributeMap::Load()
         return false;
 
     DgmTypeAttributeSet::AttrSetItr itr = attr_set->attributeset.begin();
-    
+
     for (; itr != attr_set->attributeset.end(); itr++)
-        SetAttribute((*itr)->attributeID, (*itr)->number);
+        SetAttribute((*itr)->attributeID, (*itr)->number, false);
 
     return true;
 }
 
+EvilNumber AttributeMap::GetAttribute( uint32 attributeId )
+{
+    AttrMapItr itr = mAttributes.find(attributeId);
+    if (itr != mAttributes.end()) {
+        return itr->second;
+    }
+    else
+    {
+        sLog.Error("AttributeMap", "unable to find attribute: %u", attributeId);
+        return EvilNumber(0);
+    }
+}
 
+EvilNumber AttributeMap::GetAttribute( const uint32 attributeId ) const
+{
+    AttrMapConstItr itr = mAttributes.find(attributeId);
+    if (itr != mAttributes.end()) {
+        return itr->second;
+    }
+    else
+    {
+        sLog.Error("AttributeMap", "unable to find attribute: %u", attributeId);
+        return EvilNumber(0);
+    }
+}
 /************************************************************************/
 /* End of new attribute system                                          */
 /************************************************************************/

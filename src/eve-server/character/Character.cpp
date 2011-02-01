@@ -494,31 +494,21 @@ SkillRef Character::GetSkillInTraining() const
 
 double Character::GetSPPerMin( SkillRef skill )
 {
-    //double primaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill->primaryAttribute() );
-    //double secondaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill->secondaryAttribute() );
-
     EvilNumber primaryVal = mAttributeMap.GetAttribute(AttrPrimaryAttribute);
     EvilNumber secondaryVal = mAttributeMap.GetAttribute(AttrSecondaryAttribute);
 
-    uint8 skillLearningLevel = 0;
+    EvilNumber skillLearningLevel(0);
 
     //3374 - Skill Learning
     SkillRef skillLearning = GetSkill( 3374 );
     if( skillLearning )
-        skillLearningLevel = skillLearning->skillLevel();
+        skillLearningLevel = skillLearning->GetAttribute(AttrSkillLevel);
 
     primaryVal = primaryVal + secondaryVal / 2.0f;
     primaryVal = primaryVal * (EvilNumber(1.0f) + EvilNumber(0.02f) * skillLearningLevel);
-    primaryVal = primaryVal * 2.0f; /* this is hacky and should be applied only if total SP < 1.6M */
+    primaryVal = primaryVal * EvilNumber(2.0f); /* this is hacky and should be applied only if total SP < 1.6M */
 
-
-
-    // pure guess that it is a float
     return primaryVal.get_float();
-
-    //return (primaryVal + secondaryVal / 2.0f)
-      //   * (1.0f + 0.02f * skillLearningLevel)
-        // *  2.0f;
 }
 
 uint64 Character::GetEndOfTraining() const

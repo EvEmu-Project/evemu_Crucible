@@ -745,7 +745,7 @@ PyResult Command_heal( Client* who, CommandDB* db, PyServiceMgr* services, const
         const char* entity_str = args.arg( 1 ).c_str();
         
         if (entity_str == NULL)
-            throw PyException( MakeCustomError( "Cannot find Character by the entity %d", entity ) );
+            throw PyException( MakeCustomError( "Cannot find Character by the entity %d", entity_str ) );
 
 		int32 entity_id = atoi( entity_str );
 
