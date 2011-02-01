@@ -907,20 +907,24 @@ void Client::UpdateSkillTraining()
 
 double Client::GetPropulsionStrength() const {
     if(GetShip() == NULL)
-        return(3.0f);
+        return 3.0f;
+
     //just making shit up, I think skills modify this, as newbies
     //tend to end up with 3.038 instead of the base 3.0 on their ship..
-    double res;
-    res =  GetShip()->propulsionFusionStrength();
-    res += GetShip()->propulsionIonStrength();
-    res += GetShip()->propulsionMagpulseStrength();
-    res += GetShip()->propulsionPlasmaStrength();
-    res += GetShip()->propulsionFusionStrengthBonus();
-    res += GetShip()->propulsionIonStrengthBonus();
-    res += GetShip()->propulsionMagpulseStrengthBonus();
-    res += GetShip()->propulsionPlasmaStrengthBonus();
+    // @note rewrite this into something proper
+    EvilNumber res;
+    res =  GetShip()->GetAttribute(AttrPropulsionFusionStrength);
+    res += GetShip()->GetAttribute(AttrPropulsionIonStrength);
+    res += GetShip()->GetAttribute(AttrPropulsionMagpulseStrength);
+    res += GetShip()->GetAttribute(AttrPropulsionPlasmaStrength);
+    res += GetShip()->GetAttribute(AttrPropulsionFusionStrengthBonus);
+    res += GetShip()->GetAttribute(AttrPropulsionIonStrengthBonus);
+    res += GetShip()->GetAttribute(AttrPropulsionMagpulseStrengthBonus);
+    res += GetShip()->GetAttribute(AttrPropulsionPlasmaStrengthBonus);
     res += 0.038f;
-    return res;
+
+    /* I don't know what the attribute var types are.. but I know this should be a float.. */
+    return res.get_float();
 }
 
 void Client::TargetAdded( SystemEntity* who )

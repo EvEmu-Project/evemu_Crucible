@@ -124,6 +124,7 @@
 #include "tables/invGroups.h"
 
 #include "utils/EVEUtils.h"
+#include "utils/EvilNumber.h"
 
 /************************************************************************/
 /* eve-server includes                                                  */
@@ -204,6 +205,7 @@
 #include "inventory/ItemRef.h"
 #include "inventory/ItemType.h"
 #include "inventory/Owner.h"
+#include "inventory/AttributeEnum.h"
 
 // factory stuff
 #include "manufacturing/Blueprint.h"

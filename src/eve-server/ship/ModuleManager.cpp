@@ -267,7 +267,7 @@ int ModuleManager::Activate(uint32 itemID, const std::string &effectName, uint32
 	}
 
 	//activate it and return that we did to the client
-	return(mod->Activate(effectName, target, repeat));
+	return mod->Activate(effectName, target, repeat);
 }
 
 int ModuleManager::Upgrade(uint32 itemID) {
@@ -341,7 +341,7 @@ void ModuleManager::Deactivate(uint32 itemID, const std::string &effectName) {
 	}
 
 	//deactivate it
-	mod->Deactivate(effectName);
+	//mod->Deactivate(effectName);
 }
 
 void ModuleManager::ReplaceCharges(EVEItemFlags flag, InventoryItemRef new_charge) {
@@ -482,20 +482,20 @@ int ShipModule::Activate(const std::string &effectName, uint32 target, uint32 re
 
 	//build effect here
 
-	if( ValidateEffect(true) ) {
-		DoEffect(true);
-		return 1;
-	} else {
+	//if( ValidateEffect(true) ) {
+	//	DoEffect(true);
+	//	return 1;
+	//} else {
 		return 0;
-	}
+	//}
 }
 void ShipModule::Deactivate(const std::string &effectName) {
 
 	m_effectName = effectName;
 
-	if( ValidateEffect(false) ) {
-		DoEffect(false);
-	}
+	//if( ValidateEffect(false) ) {
+	//	DoEffect(false);
+	//}
 }
 int ShipModule::Upgrade() {
 
@@ -522,7 +522,7 @@ void ShipModule::Downgrade() {
 bool ShipModule::ValidateEffect(bool activate) {
 
 	//only really 2 types of effects we have to worry about.  Online/Offline, and everything else
-	if( activate ) {
+	/*if( activate ) {
 		if( m_effectName == "online" ) {
 			if( ValidateOnline() )
 				return true;
@@ -538,7 +538,7 @@ bool ShipModule::ValidateEffect(bool activate) {
 			if( ValidateDeactive() )
 				return true;
 		}
-	}
+	}*/
 	return false;
 }
 bool ShipModule::ValidateOnline() {
@@ -615,7 +615,7 @@ bool ShipModule::ValidateDeactive(){
 
 void ShipModule::DoEffect(bool active) {
 
-	if( active ) {
+	/*if( active ) {
 		if(m_effectName == "online") {
 			//change state
 			ChangeMState(Online);
@@ -661,7 +661,7 @@ void ShipModule::DoEffect(bool active) {
 			sLog.Debug("ModuleManager", "Called Deactivate Effect stub");
 		}
 	}
-
+*/
 }
 
 /* change stuff

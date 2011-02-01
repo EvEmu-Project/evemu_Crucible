@@ -819,11 +819,11 @@ void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {
 
 void DestinyManager::SetShipCapabilities(InventoryItemRef ship)
 {
-	double mass = ship->mass();
-	double radius = ship->radius();
-	double Inertia = ship->Inertia();
-	double agility = ship->agility();
-	int maxVelocity = ship->maxVelocity();
+	double mass = ship->GetAttribute(AttrMass).get_int();
+	double radius = ship->GetAttribute(AttrRadius).get_int();
+	double Inertia = ship->GetAttribute(AttrInertia).get_float();
+	double agility = ship->GetAttribute(AttrAgility).get_float();
+	int maxVelocity = ship->GetAttribute(AttrMaxVelocity).get_int();
 
 	//might need to care about turnAngle: Maximum turn angle of a ship in Radians, 0 to pi (3.14). 
 	//might need newAgility: Maximum "Thrust angle" for an object in Radians, 0 to pi (3.14).

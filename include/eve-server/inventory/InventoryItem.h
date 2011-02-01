@@ -165,37 +165,23 @@ public:
     ItemAttributeMgr attributes;
 
     /************************************************************************/
-    /* start experimental new attribute system ( not operational )          */
+    /* start experimental new attribute system                              */
+    /* @note yea this could be templated                                    */
     /************************************************************************/
     AttributeMap mAttributeMap;
     bool SetAttribute(uint32 attributeID, int num);
-    bool SetAttribute(uint32 attributeID, float num);
+    bool SetAttribute(uint32 attributeID, uint32 num);
+    bool SetAttribute(uint32 attributeID, int64 num);
+    bool SetAttribute(uint32 attributeID, uint64 num);
+    bool SetAttribute(uint32 attributeID, double num);
+    bool SetAttribute(uint32 attributeID, EvilNumber& num);
+
+
+    EvilNumber GetAttribute(uint32 attributeID);
+    EvilNumber GetAttribute(const uint32 attributeID) const;
     /************************************************************************/
     /* end experimental new attribute system                                */
     /************************************************************************/
-
-
-    /*
-     * Redirections
-     */
-    #define ATTRFUNC(name, type) \
-        inline type name() const { \
-            return(attributes.name()); \
-        } \
-        inline void Set_##name(const type &value) { \
-            attributes.Set_##name(value); \
-        } \
-        inline void Set_##name##_persist(const type &value) { \
-            attributes.Set_##name##_persist(value); \
-        } \
-        inline void Clear_##name() { \
-            attributes.Clear_##name(); \
-        }
-    #define ATTRI(ID, name, default_value, persistent) \
-        ATTRFUNC(name, int)
-    #define ATTRD(ID, name, default_value, persistent) \
-        ATTRFUNC(name, double)
-    #include "EVEAttributes.h"
 
 protected:
     InventoryItem(
@@ -203,7 +189,8 @@ protected:
         uint32 _itemID,
         // InventoryItem stuff:
         const ItemType &_type,
-        const ItemData &_data);
+        const ItemData &_data,
+        Client * _client);
     virtual ~InventoryItem();
 
     /*
