@@ -218,7 +218,8 @@ RefPtr<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 bool InventoryItem::_Load()
 {
     // load attributes
-    mAttributeMap.Load();
+    if(!attributes.Load())
+        return false;
 
     // update inventory
     Inventory *inventory = m_factory.GetInventory( locationID(), false );
@@ -657,42 +658,48 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<int32, PyRep *> &change
     c->SendNotification("OnItemChange", "charid", &tmp, false); //unsequenced.
 }
 
-void InventoryItem::SetOnline(bool newval)
-{
-    SetAttribute(AttrIsOnline, int(newval));
+void InventoryItem::SetOnline(bool newval) {
+    //bool old = isOnline();
+    Set_isOnline(newval);
 
-    Client *c = sEntityList.FindCharacter(m_ownerID);
+    Client *c = m_factory.entity_list.FindCharacter(m_ownerID);
     if(c == NULL)
-    {
-        sLog.Error("InventoryItem", "unable to set outselfs online//offline because we can't find the client");
-        return;
-    }
+        return; //not found or not online...
 
+    Notify_OnModuleAttributeChange omac;
+    omac.ownerID = m_ownerID;
+    omac.itemKey = m_itemID;
+    omac.attributeID = ItemAttributeMgr::Attr_isOnline;
+    omac.time = Win32TimeNow();
+    omac.newValue = new PyInt(newval?1:0);
+    omac.oldValue = new PyInt(newval?0:1);   //hack... should use old, but its not cooperating today.
 
     Notify_OnGodmaShipEffect ogf;
-    ogf.itemID = m_itemID; //0
-    ogf.effectID = effectOnline; //1
-    ogf.when = Win32TimeNow(); //2
-    ogf.start = newval?1:0; //3
-    ogf.active = newval?1:0; //4
-    ogf.env_itemID = ogf.itemID; //5
-    ogf.env_charID = m_ownerID; //5
-    ogf.env_shipID = m_locationID; //5
-    ogf.env_target = m_locationID; //5
-    ogf.env_effectID = ogf.effectID; //5
-    ogf.startTime = ogf.when; //6
-    ogf.duration = INT_MAX; //7 //I think this should be infinity (0x07 may be infinity?)
-    ogf.repeat = 0; //8
-    ogf.randomSeed = new PyNone(); //9
-    ogf.error = new PyNone(); //10
+    ogf.itemID = m_itemID;
+    ogf.effectID = effectOnline;
+    ogf.when = Win32TimeNow();
+    ogf.start = newval?1:0;
+    ogf.active = newval?1:0;
+    ogf.env_itemID = ogf.itemID;
+    ogf.env_charID = m_ownerID; //??
+    ogf.env_shipID = m_locationID;
+    ogf.env_target = m_locationID;
+    ogf.env_effectID = ogf.effectID;
+    ogf.startTime = ogf.when;
+    ogf.duration = INT_MAX; //I think this should be infinity (0x07 may be infinity?)
+    ogf.repeat = 0;
+    ogf.randomSeed = new PyNone();
+    ogf.error = new PyNone();
 
     Notify_OnMultiEvent multi;
     multi.events = new PyList;
-
+    multi.events->AddItem( omac.Encode() );
     multi.events->AddItem( ogf.Encode() );
 
     PyTuple* tmp = multi.Encode();   //this is consumed below
     c->SendNotification("OnMultiEvent", "clientID", &tmp);
+
+
 }
 
 void InventoryItem::SetCustomInfo(const char *ci) {
@@ -712,47 +719,14 @@ void InventoryItem::Relocate(const GPoint &pos) {
     SaveItem();
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, int64 num )
-{
-    EvilNumber devil_number(num);
-    return mAttributeMap.SetAttribute(attributeID, devil_number);
-}
-
-bool InventoryItem::SetAttribute( uint32 attributeID, double num )
-{
-    EvilNumber devil_number(num);
-    return mAttributeMap.SetAttribute(attributeID, devil_number);
-}
-
-bool InventoryItem::SetAttribute( uint32 attributeID, EvilNumber& num )
-{
-    return mAttributeMap.SetAttribute(attributeID, num);
-}
-
 bool InventoryItem::SetAttribute( uint32 attributeID, int num )
 {
     EvilNumber devil_number(num);
     return mAttributeMap.SetAttribute(attributeID, devil_number);
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, uint64 num )
+bool InventoryItem::SetAttribute( uint32 attributeID, float num )
 {
-    EvilNumber devil_number(*((int64*)&num));
+    EvilNumber devil_number(num);
     return mAttributeMap.SetAttribute(attributeID, devil_number);
-}
-
-bool InventoryItem::SetAttribute( uint32 attributeID, uint32 num )
-{
-    EvilNumber devil_number((int64)num);
-    return mAttributeMap.SetAttribute(attributeID, devil_number);
-}
-
-EvilNumber InventoryItem::GetAttribute( uint32 attributeID )
-{
-    return mAttributeMap.GetAttribute(attributeID);
-}
-
-EvilNumber InventoryItem::GetAttribute( const uint32 attributeID ) const
-{
-    return mAttributeMap.GetAttribute(attributeID);
 }

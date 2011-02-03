@@ -730,37 +730,29 @@ PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, cons
 
 PyResult Command_heal( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-    Client* heal_target = NULL;
 	if( args.argCount()== 1 )
-    {		
-        heal_target = who;
-	}
-    else if( args.argCount() == 2 )
 	{
-		if( !args.isNumber( 1 ) ) {
+		who->GetShip()->Set_armorDamage(0);
+		who->GetShip()->Set_damage(0);
+		who->GetShip()->Set_shieldCharge(who->GetShip()->shieldCapacity());
+	}
+	if( args.argCount() == 2 )
+	{
+		if( !args.isNumber( 1 ) )
+			{
 				throw PyException( MakeCustomError( "Argument 1 should be a character ID" ) );
-                return new PyString("Heal unsuccessful!");
-		}
+			}
+		uint32 entity = atoi( args.arg( 1 ).c_str() );
 
-        const char* entity_str = args.arg( 1 ).c_str();
-        
-        if (entity_str == NULL)
-            throw PyException( MakeCustomError( "Cannot find Character by the entity %d", entity_str ) );
-
-		int32 entity_id = atoi( entity_str );
-
-		Client *target = services->entity_list.FindCharacter( entity_id );
-        if(target == NULL)
-			throw PyException( MakeCustomError( "Cannot find Character by the entity %d", entity_id ) );
-
-        heal_target = target;
+		Client *target = services->entity_list.FindCharacter( entity );
+		if(target == NULL)
+			throw PyException( MakeCustomError( "Cannot find Character by the entity %d", entity ) );
+		target->GetShip()->Set_armorDamage(0);
+		target->GetShip()->Set_damage(0);
+		target->GetShip()->Set_shieldCharge(who->GetShip()->shieldCapacity());
 	}
 
-    heal_target->GetShip()->SetAttribute(AttrArmorDamage, 0);
-    heal_target->GetShip()->SetAttribute(AttrDamage, 0);
-    heal_target->GetShip()->SetAttribute(AttrShieldCharge, who->GetShip()->GetAttribute(AttrShieldCapacity));
-
-	return new PyString("Heal successful!");
+	return(new PyString("Heal successful!"));
 }
 
 PyResult Command_repairmodules( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )

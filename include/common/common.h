@@ -371,14 +371,6 @@ char* strlwr( char* tmp );
 #   endif /* _MSC_VER >= 1500 */
 #endif /* MSVC */
 
-#ifndef EVEMU_ROOT_DIR
-#  define EVEMU_ROOT_DIR ""
-#endif //EVEMU_ROOT_DIR
-
-#ifndef EVEMU_VERSION
-#  define EVEMU_VERSION "1"
-#endif//EVEMU_VERSION
-
 #ifdef MINGW
 /*
  * Define localtime_r as a call to localtime.

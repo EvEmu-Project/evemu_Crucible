@@ -492,23 +492,21 @@ SkillRef Character::GetSkillInTraining() const
     return SkillRef::StaticCast( item );
 }
 
-double Character::GetSPPerMin( SkillRef skill )
+double Character::GetSPPerMin(SkillRef skill) const
 {
-    EvilNumber primaryVal = mAttributeMap.GetAttribute(AttrPrimaryAttribute);
-    EvilNumber secondaryVal = mAttributeMap.GetAttribute(AttrSecondaryAttribute);
+    double primaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill->primaryAttribute() );
+    double secondaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill->secondaryAttribute() );
 
-    EvilNumber skillLearningLevel(0);
+    uint8 skillLearningLevel = 0;
 
     //3374 - Skill Learning
     SkillRef skillLearning = GetSkill( 3374 );
     if( skillLearning )
-        skillLearningLevel = skillLearning->GetAttribute(AttrSkillLevel);
+        skillLearningLevel = skillLearning->skillLevel();
 
-    primaryVal = primaryVal + secondaryVal / 2.0f;
-    primaryVal = primaryVal * (EvilNumber(1.0f) + EvilNumber(0.02f) * skillLearningLevel);
-    primaryVal = primaryVal * EvilNumber(2.0f); /* this is hacky and should be applied only if total SP < 1.6M */
-
-    return primaryVal.get_float();
+    return (primaryVal + secondaryVal / 2.0)
+         * (1.0 + 0.02 * skillLearningLevel)
+         *  2.0; /* this is hacky and should be applied only if total SP < 1.6M */
 }
 
 uint64 Character::GetEndOfTraining() const
@@ -517,8 +515,7 @@ uint64 Character::GetEndOfTraining() const
     if( !skill )
         return 0;
 
-    // major bleh.. it also supports int64 shit:S
-    return skill->GetAttribute(AttrExpiryTime).get_int();
+    return skill->expiryTime();
 }
 
 bool Character::InjectSkillIntoBrain(SkillRef skill)
@@ -691,8 +688,7 @@ void Character::UpdateSkillQueue()
             _log( ITEM__TRACE, "%s (%u): Starting training of skill %s (%u).", m_itemName.c_str(), m_itemID, currentTraining->itemName().c_str(), currentTraining->itemID() );
 
             double SPPerMinute = GetSPPerMin( currentTraining );
-            //  double SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 ) - currentTraining->skillPoints();
-            EvilNumber SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->GetAttribute(AttrSkillLevel) + 1) - currentTraining->GetAttribute(AttrSkillPoints);
+            double SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 ) - currentTraining->skillPoints();
 
             uint64 timeTraining = nextStartTime + Win32Time_Minute * SPToNextLevel / SPPerMinute;
 

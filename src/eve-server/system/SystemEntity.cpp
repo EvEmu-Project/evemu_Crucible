@@ -265,10 +265,10 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
 }
 
 void ItemSystemEntity::MakeDamageState(DoDestinyDamageState &into) const {
-	into.shield = (m_self->GetAttribute(AttrShieldCharge) / m_self->GetAttribute(AttrShieldCapacity)).get_float();
+	into.shield = m_self->shieldCharge() / m_self->shieldCapacity();
 	into.tau = 100000;	//no freaking clue.
 	into.timestamp = Win32TimeNow();
 //	armor damage isn't working...
-	into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage) / m_self->GetAttribute(AttrArmorHP)).get_float();
-	into.structure = 1.0 - (m_self->GetAttribute(AttrDamage) / m_self->GetAttribute(AttrHp)).get_float();
+	into.armor = 1.0 - (m_self->armorDamage() / m_self->armorHP());
+	into.structure = 1.0 - (m_self->damage() / m_self->hp());
 }
