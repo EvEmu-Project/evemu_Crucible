@@ -34,7 +34,7 @@ AccountService::AccountService(PyServiceMgr *mgr)
 	_SetCallDispatcher(m_dispatch);
 	
 	PyCallable_REG_CALL(AccountService, GetCashBalance)
-	PyCallable_REG_CALL(AccountService, GetRefTypes)
+	PyCallable_REG_CALL(AccountService, GetEntryTypes)
 	PyCallable_REG_CALL(AccountService, GetKeyMap)
 	PyCallable_REG_CALL(AccountService, GiveCash)
 	PyCallable_REG_CALL(AccountService, GiveCashFromCorpAccount)
@@ -78,15 +78,15 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 // notify OnAccountChange:
 // 		accountKey: 'cash', ownerID: charID or corpID, new balance
 
-PyResult AccountService::Handle_GetRefTypes(PyCallArgs &call) {
+PyResult AccountService::Handle_GetEntryTypes(PyCallArgs &call) {
 	PyRep *result = NULL;
 
-	ObjectCachedMethodID method_id(GetName(), "GetRefTypes");
+	ObjectCachedMethodID method_id(GetName(), "GetEntryTypes");
 
 	//check to see if this method is in the cache already.
 	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		//this method is not in cache yet, load up the contents and cache it.
-		result = m_db.GetRefTypes();
+		result = m_db.GetEntryTypes();
 		if(result == NULL) {
 			codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
 			result = new PyNone();

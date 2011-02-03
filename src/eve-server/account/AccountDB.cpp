@@ -25,10 +25,10 @@
 
 #include "EVEServerPCH.h"
 
-PyObject *AccountDB::GetRefTypes() {
+PyObject *AccountDB::GetEntryTypes() {
 	DBQueryResult res;
 	
-	if(!sDatabase.RunQuery(res, "SELECT refTypeID,refTypeText,description FROM market_refTypes"))
+	if(!sDatabase.RunQuery(res, "SELECT refTypeID AS entryTypeID,refTypeText AS entryTypeName,description FROM market_refTypes"))
     {
         sLog.Error("Account DB", "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -40,7 +40,7 @@ PyObject *AccountDB::GetRefTypes() {
 PyObject *AccountDB::GetKeyMap() {
 	DBQueryResult res;
 	
-	if(!sDatabase.RunQuery(res, "SELECT accountKey,accountType,accountName,description FROM market_keyMap"))
+	if(!sDatabase.RunQuery(res, "SELECT accountKey AS keyID,accountType AS keyType,accountName AS keyName,description FROM market_keyMap"))
     {
         sLog.Error("Account DB", "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -59,7 +59,7 @@ PyObject *AccountDB::GetJournal(uint32 charID, uint32 refTypeID, uint32 accountK
 	// 1 sec = 10.000.000 wow...
 	
 	if(!sDatabase.RunQuery(res,
-		"SELECT refID,transDate,refTypeID,ownerID1,ownerID2,argID1, accountKey,amount,balance,reason "
+		"SELECT refID AS transactionID,transDate AS transactionDate,0 AS referenceID, refTypeID AS entryTypeID,ownerID1,ownerID2,argID1, accountKey,amount,balance,reason AS description "
 		"FROM market_journal "
 		"WHERE (transDate >= " I64u " AND transDate <= " I64u ") "
 		"AND accountKey = %u "

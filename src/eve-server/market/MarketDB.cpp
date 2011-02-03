@@ -848,3 +848,25 @@ uint32 MarketDB::_StoreOrder(
 
 	return(orderID);
 }
+
+PyRep *MarketDB::GetTransactions(uint32 characterID, uint32 typeID, uint32 quantity, double minPrice, double maxPrice, uint64 fromDate, int buySell)
+{
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		" transactionID,transactionDateTime,typeID,quantity,price,transactionType,"
+		" 0 AS corpTransaction,clientID,stationID"
+		" FROM market_transactions "
+		" WHERE clientID=%u AND (typeID=%u OR 0=%u) AND"
+		" quantity>=%u AND price>=%f AND (price<=%f OR 0=%f) AND"
+		" transactionDateTime>=" I64u " AND (transactionType=%d OR -1=%d)",
+		characterID, typeID, typeID, quantity, minPrice, maxPrice, maxPrice, fromDate, buySell, buySell))
+	{
+		codelog( MARKET__ERROR, "Error in query: %s", res.error.c_str() );
+
+		return NULL;
+	}
+
+	return DBResultToRowset(res);
+}

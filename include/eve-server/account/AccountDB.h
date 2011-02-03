@@ -32,7 +32,7 @@ class PyObject;
 class AccountDB : public ServiceDB
 {
 public:
-	PyObject *GetRefTypes();
+	PyObject *GetEntryTypes();
 	PyObject *GetKeyMap();
 	PyObject *GetJournal(uint32 charID, uint32 refTypeID, uint32 accountKey, uint64 transDate);//mandela
 

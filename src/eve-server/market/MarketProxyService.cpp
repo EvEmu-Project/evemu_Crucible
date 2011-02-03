@@ -80,6 +80,7 @@ MarketProxyService::MarketProxyService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(MarketProxyService, GetCharOrders)
     PyCallable_REG_CALL(MarketProxyService, ModifyCharOrder)
     PyCallable_REG_CALL(MarketProxyService, CancelCharOrder)
+    PyCallable_REG_CALL(MarketProxyService, CharGetNewTransactions)
 }
 
 MarketProxyService::~MarketProxyService() {
@@ -593,6 +594,38 @@ PyResult MarketProxyService::Handle_CancelCharOrder(PyCallArgs &call) {
     _BroadcastOnMarketRefresh(call.client->GetRegionID());
 
     return NULL;
+}
+
+PyResult MarketProxyService::Handle_CharGetNewTransactions(PyCallArgs &call)
+{
+	PyRep *result = NULL;
+	Call_CharGetNewTransactions args;
+	if(!args.Decode(&call.tuple))
+	{
+		codelog(MARKET__ERROR, "Invalid arguments");
+		return NULL;
+	}
+
+	double minPrice;
+	if(args.minPrice->IsInt())
+		minPrice = args.minPrice->AsInt()->value();
+	else if(args.minPrice->IsFloat())
+		minPrice = args.minPrice->AsFloat()->value();
+	else
+	{
+		codelog(CLIENT__ERROR, "%s: Invalid type %s for minPrice argument received.", call.client->GetName(), args.minPrice->TypeString());
+		return NULL;
+	}
+
+	result = m_db.GetTransactions(args.clientID==0?call.client->GetCharacterID():args.clientID,
+			args.typeID, args.quantity, minPrice, args.maxPrice, args.fromDate, args.buySell);
+	if(result == NULL)
+	{
+		_log(SERVICE__ERROR, "%s: Failed to load CharGetNewTransactions", call.client->GetName());
+		return NULL;
+	}
+
+	return result;
 }
 
 PyResult MarketProxyService::Handle_StartupCheck(PyCallArgs &call)

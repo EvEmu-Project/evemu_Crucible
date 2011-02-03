@@ -43,7 +43,7 @@ protected:
 	AccountDB m_db;
 	
 	PyCallable_DECL_CALL(GetCashBalance)
-	PyCallable_DECL_CALL(GetRefTypes)
+	PyCallable_DECL_CALL(GetEntryTypes)
 	PyCallable_DECL_CALL(GetKeyMap)
 	PyCallable_DECL_CALL(GiveCash)
 	PyCallable_DECL_CALL(GiveCashFromCorpAccount)

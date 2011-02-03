@@ -116,6 +116,18 @@
 	    <bool name="isCorp" />
     </tupleInline>
   </elementDef>
+  
+  <elementDef name="Call_CharGetNewTransactions">
+    <tupleInline>
+      <int name="buySell" none_marker="-1" />
+      <int name="typeID" none_marker="0" />
+	  <int name="clientID" none_marker="0" />
+	  <int name="quantity"/>
+	  <long name="fromDate" none_marker="0" />
+	  <real name="maxPrice" none_marker="0" />
+	  <raw name="minPrice"/>
+    </tupleInline>
+  </elementDef>
 
 </elements>
 
