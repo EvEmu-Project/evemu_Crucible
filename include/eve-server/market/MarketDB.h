@@ -42,6 +42,7 @@ class MarketDB
 : public ServiceDB
 {
 public:
+	PyRep *CharGetNewTransactions(uint32 characterID);
 	PyRep *GetStationAsks(uint32 stationID);
 	PyRep *GetSystemAsks(uint32 solarSystemID);
 	PyRep *GetRegionBest(uint32 regionID);

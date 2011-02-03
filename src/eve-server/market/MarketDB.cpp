@@ -26,6 +26,20 @@
 
 #include "EVEServerPCH.h"
 
+PyRep *MarketDB::CharGetNewTransactions(uint32 characterID) {
+	DBQueryResult res;
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		"	transactionID, transactionDateTime, typeID, quantity, MAX(price) AS price, transactionType, clientID, regionID, stationID, corpTransaction "
+		" FROM market_transactions"
+		" WHERE clientID=%u"/*
+		" GROUP BY typeID"*/, characterID))
+	{
+		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
+		return NULL;
+	}
+	return(DBResultToRowset(res));
+}
 PyRep *MarketDB::GetStationAsks(uint32 stationID) {
 	DBQueryResult res;
 
@@ -782,10 +796,11 @@ bool MarketDB::RecordTransaction(
 		"INSERT INTO"
 		" market_transactions ("
 		"	transactionID, transactionDateTime, typeID, quantity,"
-		"	price, transactionType, clientID, regionID, stationID"
+		"	price, transactionType, clientID, regionID, stationID,"
+		"	corpTransaction"
 		" ) VALUES ("
 		"	NULL, " I64u ", %u, %u,"
-		"	%f, %d, %u, %u, %u"
+		"	%f, %d, %u, %u, %u, 0"
 		" )", 
 			Win32TimeNow(), typeID, quantity,
 			price, transactionType, charID, regionID, stationID

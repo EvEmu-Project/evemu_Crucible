@@ -80,6 +80,7 @@ MarketProxyService::MarketProxyService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(MarketProxyService, GetCharOrders)
     PyCallable_REG_CALL(MarketProxyService, ModifyCharOrder)
     PyCallable_REG_CALL(MarketProxyService, CancelCharOrder)
+	PyCallable_REG_CALL(MarketProxyService, CharGetNewTransactions)
     PyCallable_REG_CALL(MarketProxyService, CharGetNewTransactions)
 }
 
@@ -96,7 +97,16 @@ PyBoundObject *MarketProxyService::_CreateBoundObject(Client *c, const PyRep *bi
     return(new MarketProxyBound(m_manager, &m_db));
 }*/
 
+PyResult MarketProxyService::Handle_CharGetNewTransactions( PyCallArgs &call ){
+	PyRep *result = NULL;
 
+	result = m_db.CharGetNewTransactions(call.client->GetCharacterID());
+	if(result == NULL) {
+		_log(SERVICE__ERROR, "%s: Failed to load CharGetNewTransactions for character %u", call.client->GetCharacterID());
+		return NULL;
+	}
+	return result;
+}
 PyResult MarketProxyService::Handle_GetStationAsks(PyCallArgs &call) {
     PyRep *result = NULL;
 

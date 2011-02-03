@@ -56,6 +56,7 @@ protected:
     PyCallable_DECL_CALL(CharGetNewTransactions)
 	PyCallable_DECL_CALL(StartupCheck)
 	//PyCallable_DECL_CALL(GetCorporationOrders) //()
+	PyCallable_DECL_CALL(CharGetNewTransactions)
 	
 	void _ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID, uint32 quantity, Client *seller, InventoryItemRef item, bool isCorp);
 	void _ExecuteSellOrder(uint32 sell_order_id, uint32 stationID, uint32 quantity, Client *buyer, bool isCorp);
