@@ -356,6 +356,13 @@ public:
 
     int32 hash() const;
 
+    /**
+     * @brief Obtains length of the buffer.
+     *
+     * @return Length of buffer.
+     */
+    size_t size() const;
+
 protected:
     virtual ~PyBuffer();
 
@@ -436,6 +443,7 @@ public:
      * @return the std::string reference.
      */
     const std::string& content() const { return mValue; }
+    
     /**
      * @brief Obtains length of string.
      *

@@ -124,7 +124,7 @@ public:
 	 * @param[in] tuple tuple contains the packet info of the trace.
 	 * @return returns true if a success and false if a error is found (no special error handling for now).
 	 */
-	bool logTrace(PyRepTuple &tuple)
+	bool logTrace(PyTuple &tuple)
 	{
 		assert(mInitialized && "PyTraceLog isn't initialized");
 
@@ -171,9 +171,9 @@ public:
 		}*/
 
 		/* python stack trace payload */
-		if (tuple[1]->IsBuffer() == true)
+		//if (tuple.GetItem(1)->IsString() == true)
 		{
-			_logInternBufferPacket(tuple[1]);
+			_logInternBufferPacket(tuple.GetItem(1));
 		}
 
 		if (mLogToFile == true)
@@ -190,9 +190,9 @@ public:
 
 protected:
 
-	ASCENT_INLINE void _logInternStringMessage(PyRep* packet)
+	void _logInternStringMessage(PyRep* packet)
 	{
-		PyRepString & msg = packet->AsString();
+		PyString & msg = *packet->AsString();
 		if (mLogToConsole == true)
 		{
 			fprintf(stdout, "%s\n", msg.content());
@@ -204,38 +204,55 @@ protected:
 		}
 	}
 
-	ASCENT_INLINE void _logInternBufferMessage(PyRep* packet)
+	void _logInternBufferMessage(PyRep* packet)
 	{
-		PyRepBuffer & msg = packet->AsBuffer();
+		PyBuffer & msg = *packet->AsBuffer();
 		if (mLogToConsole == true)
 		{
-			fwrite(msg.content(), msg.size(), 1, stdout);
+			fwrite(msg.content().GetData(), msg.size(), 1, stdout);
 			fputc('\n', stdout);
 		}
 
 		if (mLogToFile == true)
 		{
-			fwrite(msg.content(), msg.size(), 1, mFout);
+			fwrite(msg.content().GetData(), msg.size(), 1, mFout);
 			fputc('\n', mFout);
 		}
 	}
 
 	// its unclear what this consists of so the current code mimics the one of _logInternBufferMessage
-	ASCENT_INLINE void _logInternBufferPacket(PyRep* packet)
+	void _logInternBufferPacket(PyRep* packet)
 	{
 		// just placement code atm...
-		PyRepBuffer & msg = packet->AsBuffer();
+		/*PyBuffer & msg = *packet->AsBuffer();
 		if (mLogToConsole == true)
 		{
-			fwrite(msg.content(), msg.size(), 1, stdout);
+			fwrite(msg.content().GetData(), msg.size(), 1, stdout);
 			fputc('\n', stdout);
 		}
 
 		if (mLogToFile == true)
 		{
-			fwrite(msg.content(), msg.size(), 1, mFout);
+			fwrite(msg.content().GetData(), msg.size(), 1, mFout);
 			fputc('\n', mFout);
-		}
+		}*/
+
+        if (packet->GetType() != PyRep::PyTypeString)
+            return;
+
+        PyString & msg = *packet->AsString();
+        if (mLogToConsole == true)
+        {
+            fwrite(msg.content().c_str(), msg.content().size(), 1, stdout);
+            fputc('\n', stdout);
+        }
+
+        if (mLogToFile == true)
+        {
+            fwrite(msg.content().c_str(), msg.content().size(), 1, mFout);
+            fputc('\n', mFout);
+        }
+
 	}
 
 	/**
@@ -245,7 +262,7 @@ protected:
 	 *
 	 * @param[in] str the format for the output message.
 	 */
-	ASCENT_INLINE void _logInternMessage(const char* str, ...)
+	void _logInternMessage(const char* str, ...)
 	{
 		va_list ap;
 		va_start(ap, str);
@@ -277,7 +294,7 @@ protected:
 	 *
 	 * @param[in] color the color flags / value's for Windows or UNIX, see TRED and the rest on top of this file.
 	 */
-	ASCENT_INLINE void _setLogColor(uint32 color)
+	void _setLogColor(uint32 color)
 	{
 #ifdef WIN32
 		SetConsoleTextAttribute(mStdoutHandle, TNORMAL);

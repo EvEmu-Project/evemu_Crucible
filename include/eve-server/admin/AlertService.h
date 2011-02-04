@@ -27,6 +27,7 @@
 #define _ALERT_SERVICE_H
 
 #include "PyService.h"
+#define DEV_DEBUG_TREAT
 #ifdef DEV_DEBUG_TREAT
 #   include "python/PyTraceLog.h"
 #else
