@@ -13,11 +13,19 @@ enum EVIL_NUMBER_TYPE
 class PyRep;
 
 /**
+ * @class EvilNumber
+ *
  * @brief this is a class that kinda mimics how python polymorph's numbers.
+ *
+ * This is a class that kinda mimics how python polymorph's numbers.
+ * VARIANT design style number class.
  *
  * @author Captnoord.
  * @date Juni 2010
+ * @todo try to create a performance test for this.
+ * @todo complete the compare operator overloads.
  */
+
 class EvilNumber
 {
 public:
@@ -64,38 +72,44 @@ public:
         return *this;
     }
 
+    /**
+     * @brief '==' operator overload
+     *
+     * @param[in] val
+     * @return will return true when this and val are equal
+     * @note can I create 2 floats that would be equal when doing normal float compare and not equal when doing integer compare.
+     */
     bool operator==(const EvilNumber& val)
     {
-        if (this->mType != val.mType)
-            return false;
-
-        // important to know is that 'if' they are both floats which would be
-        // exactly the same value the raw data would be exactly the same.
-        // so this check is valid for both floats and ints.
-        //
-        // @note I wonder... can I create 2 floats that would be equal when
-        // doing normal float compare and not equal when doing integer compare.
-        if (this->mValue.iVal == val.mValue.iVal)
-            return true;
-        else
-            return false;
+        if (this->mType == val.mType) {
+            return this->mValue.iVal == val.mValue.iVal;
+        } else {
+            // if parameter 1 is int then parameter 2 is float
+            if (this->mType == evil_number_int) {
+                return double(this->mValue.iVal) == val.mValue.fVal;
+            } else {
+                return this->mValue.fVal == double(val.mValue.iVal);
+            }
+        }
     }
 
-    /* current code is wrong... it checks if type is the same and if int value is the same... but thats crap because int(1) != float(1) */
     bool operator!=(const EvilNumber& val)
     {
-        if (this->mType != val.mType)
-            return true;
-
         // see comments from '==' operator.
-        if (this->mValue.iVal != val.mValue.iVal)
-            return true;
-        else
-            return false;
+        if (this->mType == val.mType) {
+            return this->mValue.iVal != val.mValue.iVal;
+        } else {
+            // if parameter 1 is int then parameter 2 is float
+            if (this->mType == evil_number_int) {
+                return double(this->mValue.iVal) != val.mValue.fVal;
+            } else {
+                return this->mValue.fVal != double(val.mValue.iVal);
+            }
+        }
     }
 
 /* code generating macro... which I hate, but for this solution its the cleanest way
- * @note: we need to add a file type (lets say .xx) to generate these codes...
+ * @note: we need to add a file type (lets say .xx) to generate the code
  */
 #define LOGIC_OPERATOR(a, b) \
     bool operator ##a ( ##b val) \
@@ -146,13 +160,11 @@ public:
             return float(this->mValue.iVal) <= val.mValue.fVal;
     }
 
-    
-
     /**
-    * @brief converts the EvilNumber value into a string
-    *
-    * @return the text representative of the value.
-    */
+     * @brief converts the EvilNumber value into a string
+     *
+     * @return the text representative of the value.
+     */
     std::string to_str()
     {
         char buff[32]; // max uint32 will result in a 10 char string, a float will result in a ? char string.
@@ -166,10 +178,10 @@ public:
     }
 
     /**
-    * @brief converts the EvilNumber into a python object.
-    *
-    * @return the python object of the EvilNumber.
-    */
+     * @brief converts the EvilNumber into a python object.
+     *
+     * @return the python object of the EvilNumber.
+     */
     PyRep* GetPyObject();
 
     // old system support
@@ -194,20 +206,28 @@ public:
 
     int64 get_int()
     {
-        if( !(mType == evil_number_int) )
-        {
-            mType = evil_number_int;
-            mValue.iVal = (int64)mValue.fVal;  // Cast double value to int64 value
+        if( mType != evil_number_int ) {
+            int64 temp = (int64)mValue.fVal;
+
+            /* this checks if the type convention lost stuff behind the comma */
+            if (double(temp) != mValue.fVal)
+                sLog.Warning("EvilNumber", "Invalid call get_int called on a double");
+
+            return (int64)mValue.fVal;
         }
         return mValue.iVal;
     }
 
     double get_float()
     {
-        if( !(mType == evil_number_float) )
-        {
-            mType = evil_number_float;
-            mValue.fVal = (double)mValue.iVal;  // Cast int64 value to double value
+        if( mType != evil_number_float ) {
+            double temp = (double)mValue.iVal;
+            
+            /* this checks if the type convention ended up on a double overflow */
+            if (int64(temp) != mValue.iVal)
+                sLog.Warning("EvilNumber", "Invalid call get_float called on a int");
+
+            return (double)mValue.iVal;
         }
         return mValue.fVal;
     }
@@ -219,30 +239,30 @@ private:
 
 protected:
     /**
-    * @brief check if its possible a integer and do the conversion
-    *
-    * checking every calculation for float/int conversion can be a drain on
-    * performance. But as integer math is fast then floating point math.
-    */
+     * @brief check if its possible a integer and do the conversion
+     *
+     * checking every calculation for float/int conversion can be a drain on
+     * performance. But as integer math is fast then floating point math.
+     */
     void CheckIntegrety();
 
     /**
-    * @brief multiply this with @a
-    *
-    * Multiply this with @a.
-    *
-    * @param[in] val the value we are multiplying with.
-    */
+     * @brief multiply this with @a
+     *
+     * Multiply this with @a.
+     *
+     * @param[in] val the value we are multiplying with.
+     */
     void Multiply(EvilNumber & val);
 
     /**
-    * @brief divide this with @a
-    *
-    * Divide this with @a.
-    *
-    * @param[in] val the value we are dividing by.
-    * @todo handle "int(2) / int(4) = float(0.5)" in a fast enough way
-    */
+     * @brief divide this with @a
+     *
+     * Divide this with @a.
+     *
+     * @param[in] val the value we are dividing by.
+     * @todo handle "int(2) / int(4) = float(0.5)" in a fast enough way
+     */
     void Divide(EvilNumber & val);
 
     // todo double check this..

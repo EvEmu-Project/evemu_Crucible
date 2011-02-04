@@ -161,6 +161,9 @@ EvilNumber::EvilNumber( int64 val ) : mType(evil_number_int)
     mValue.iVal = val;
 }
 
+/* this is tricky, as we only handle signed calculations.
+ * so this has the potentional to go wrong.
+ */
 EvilNumber::EvilNumber( uint64 val ) : mType(evil_number_int)
 {
     mValue.iVal = *((int64*)&val);
