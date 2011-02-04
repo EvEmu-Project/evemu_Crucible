@@ -32,17 +32,24 @@
 class BookmarkService : public PyService
 {
 public:
+    static const uint32 MAX_BOOKMARK_ID;
+
 	BookmarkService(PyServiceMgr *mgr);
 	virtual ~BookmarkService();
+
+    bool LookupBookmark(uint32 characterID, uint32 bookmarkID, uint32 &itemID, uint32 &typeID, double &x, double &y, double &z);
 
 protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
+    uint32 nextBookmarkID;
 
 	BookmarkDB m_db;
 
 	PyCallable_DECL_CALL(GetBookmarks)
 	PyCallable_DECL_CALL(BookmarkLocation)
+    PyCallable_DECL_CALL(DeleteBookmarks)
+    PyCallable_DECL_CALL(UpdateBookmark)
 };
 
 

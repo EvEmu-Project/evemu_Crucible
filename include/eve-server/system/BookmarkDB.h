@@ -33,6 +33,22 @@ class BookmarkDB
 {
 public:
 	PyObject *GetBookmarks(uint32 ownerID);
+
+   	uint32 GetNextAvailableBookmarkID();
+
+    uint32 FindBookmarkTypeID(uint32 itemID);
+
+    bool GetBookmarkInformation(uint32 bookmarkID, uint32 &ownerID, uint32 &itemID, uint32 &typeID,
+                                uint32 &flag, std::string &memo, uint64 &created, double &x, double &y,
+                                double &z, uint32 &locationID);
+
+    bool SaveNewBookmarkToDatabase(uint32 &bookmarkID, uint32 ownerID, uint32 itemID,
+                                   uint32 typeID, uint32 flag, std::string memo, uint64 created,
+                                   double x, double y, double z, uint32 locationID);
+
+    bool DeleteBookmarksFromDatabase(uint32 ownerID, std::vector<unsigned long> * bookmarkList);
+
+    bool UpdateBookmarkInDatabase(uint32 bookmarkID, uint32 ownerID, std::string memo);
 };
 
 #endif /* !__BOOKMARK_DB__H__INCL__ */

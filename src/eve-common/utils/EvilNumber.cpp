@@ -21,7 +21,7 @@ PyRep* EvilNumber::GetPyObject()
     }
 }
 
-void EvilNumber::CheckIntegrety()
+inline void EvilNumber::CheckIntegrety()
 {
     // check if we are a integer
     int cmp_val = (int)mValue.fVal;

@@ -43,6 +43,7 @@ public:
 		PyCallable_REG_CALL(BeyonceBound, Orbit)
 		PyCallable_REG_CALL(BeyonceBound, AlignTo)
 		PyCallable_REG_CALL(BeyonceBound, GotoDirection)
+        PyCallable_REG_CALL(BeyonceBound, GotoBookmark)
 		PyCallable_REG_CALL(BeyonceBound, SetSpeedFraction)
 		PyCallable_REG_CALL(BeyonceBound, Stop)
 		PyCallable_REG_CALL(BeyonceBound, WarpToStuff)
@@ -64,6 +65,7 @@ public:
 	PyCallable_DECL_CALL(Orbit)
 	PyCallable_DECL_CALL(AlignTo)
 	PyCallable_DECL_CALL(GotoDirection)
+    PyCallable_DECL_CALL(GotoBookmark)
 	PyCallable_DECL_CALL(SetSpeedFraction)
 	PyCallable_DECL_CALL(Stop)
 	PyCallable_DECL_CALL(WarpToStuff)
@@ -241,6 +243,68 @@ PyResult BeyonceBound::Handle_GotoDirection(PyCallArgs &call) {
 	return NULL;
 }
 
+PyResult BeyonceBound::Handle_GotoBookmark(PyCallArgs &call) {
+
+	if( !(call.tuple->GetItem( 0 )->IsInt()) )
+    {
+        sLog.Error( "BeyonceService::Handle_GotoBookmark()", "%s: Invalid type %s for bookmarkID received.", call.client->GetName(), call.tuple->GetItem( 0 )->TypeString() );
+		return NULL;
+	}
+    uint32 bookmarkID = call.tuple->GetItem( 0 )->AsInt()->value();
+
+	DestinyManager *destiny = call.client->Destiny();
+	if( destiny == NULL )
+    {
+		sLog.Error( "%s: Client has no destiny manager!", call.client->GetName() );
+		return NULL;
+	}
+
+    double x,y,z;
+    uint32 itemID;
+    uint32 typeID;
+    GPoint bookmarkPosition;
+
+    BookmarkService *bkSrvc = (BookmarkService *)(call.client->services().LookupService( "bookmark" ));
+        
+    if( bkSrvc == NULL )
+    {
+        sLog.Error( "BeyonceService::Handle_GotoBookmark()", "Attempt to access BookmarkService via (BookmarkService *)(call.client->services().LookupService(\"bookmark\")) returned NULL pointer." );
+		return NULL;
+    }
+    else
+    {
+        bkSrvc->LookupBookmark( call.client->GetCharacterID(),bookmarkID,itemID,typeID,x,y,z );
+
+        if( typeID == 5 )
+        {
+            // Bookmark type is coordinate, so use these directly from the bookmark system call:
+            bookmarkPosition.x = x;     // From bookmark x
+            bookmarkPosition.y = y;     // From bookmark y
+            bookmarkPosition.z = z;     // From bookmark z
+            
+            destiny->GotoDirection( bookmarkPosition );
+        }
+        else
+        {
+            // Bookmark type is of a static system entity, so search for it and obtain its coordinates:
+	        SystemManager *sm = call.client->System();
+	        if(sm == NULL) {
+                sLog.Error( "BeyonceService::Handle_GotoBookmark()", "%s: no system manager found", call.client->GetName() );
+		        return NULL;
+	        }
+            SystemEntity *se = sm->get( itemID );
+	        if(se ==  NULL) {
+                sLog.Error( "BeyonceService::Handle_GotoBookmark()", "%s: unable to find location %d", call.client->GetName(), itemID );
+		        return NULL;
+	        }
+
+            destiny->GotoDirection( se->GetPosition() );
+        }
+    }
+
+    return NULL;
+}
+
 PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 	Call_Orbit arg;
 	if(!arg.Decode(&call.tuple)) {
@@ -288,38 +352,141 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 		return NULL;
 	}
 
-	double distance;
-	std::map<std::string, PyRep *>::const_iterator res = call.byname.find("minRange");
-	if(res == call.byname.end()) {
-		//Not needed, this is the correct behavior
-		//codelog(CLIENT__ERROR, "%s: range not found, using 15 km.", call.client->GetName());
-		distance = 15000.0;
-	} else if(!res->second->IsInt() && !res->second->IsFloat()) {
-		codelog(CLIENT__ERROR, "%s: range of invalid type %s, expected Integer or Real; using 15 km.", call.client->GetName(), res->second->TypeString());
-		distance = 15000.0;
-	} else {
-		distance =
-			res->second->IsInt()
-			? res->second->AsInt()->value()
-			: res->second->AsFloat()->value();
-	}
+    if( arg.type == "item" )
+    {
+        // This section handles Warping to any object in the Overview
+	    double distance;
+	    std::map<std::string, PyRep *>::const_iterator res = call.byname.find("minRange");
+	    if(res == call.byname.end()) {
+		    //Not needed, this is the correct behavior
+		    //codelog(CLIENT__ERROR, "%s: range not found, using 15 km.", call.client->GetName());
+		    distance = 15000.0;
+	    } else if(!res->second->IsInt() && !res->second->IsFloat()) {
+		    codelog(CLIENT__ERROR, "%s: range of invalid type %s, expected Integer or Real; using 15 km.", call.client->GetName(), res->second->TypeString());
+		    distance = 15000.0;
+	    } else {
+		    distance =
+			    res->second->IsInt()
+			    ? res->second->AsInt()->value()
+			    : res->second->AsFloat()->value();
+	    }
 
-	//we need to delay the destiny updates until after we return
+	    //we need to delay the destiny updates until after we return
 
-	SystemManager *sm = call.client->System();
-	if(sm == NULL) {
-		codelog(CLIENT__ERROR, "%s: no system manager found", call.client->GetName());
+	    SystemManager *sm = call.client->System();
+	    if(sm == NULL) {
+		    codelog(CLIENT__ERROR, "%s: no system manager found", call.client->GetName());
+		    return NULL;
+	    }
+        SystemEntity *se = sm->get(arg.ID);
+	    if(se ==  NULL) {
+		    codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.ID);
+		    return NULL;
+	    }
+	    // don't forget to add radiuses
+	    distance += call.client->GetRadius() + se->GetRadius();
+
+	    call.client->WarpTo(se->GetPosition(), distance);
+    }
+    else if( arg.type == "bookmark" )
+    {
+        // This section handles Warping to any Bookmark:
+        double distance = 0.0;
+        double x,y,z;
+        uint32 itemID;
+        uint32 typeID;
+        GPoint bookmarkPosition;
+        
+        BookmarkService *bkSrvc = (BookmarkService *)(call.client->services().LookupService( "bookmark" ));
+        
+        if( bkSrvc == NULL )
+        {
+            sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Attempt to access BookmarkService via (BookmarkService *)(call.client->services().LookupService(\"bookmark\")) returned NULL pointer." );
+		    return NULL;
+        }
+        else
+        {
+            bkSrvc->LookupBookmark( call.client->GetCharacterID(),arg.ID,itemID,typeID,x,y,z );
+
+            // Calculate the warp-to distance specified by the client and add this to the final warp-to distance
+            std::map<std::string, PyRep *>::const_iterator res = call.byname.find("minRange");
+		    distance +=
+		        res->second->IsInt()
+		        ? res->second->AsInt()->value()
+		        : res->second->AsFloat()->value();
+
+            if( typeID == 5 )
+            {
+                // Bookmark type is coordinate, so use these directly from the bookmark system call:
+                bookmarkPosition.x = x;     // From bookmark x
+                bookmarkPosition.y = y;     // From bookmark y
+                bookmarkPosition.z = z;     // From bookmark z
+
+                call.client->WarpTo( bookmarkPosition, distance );
+            }
+            else
+            {
+	            DBQueryResult result;
+   	            DBResultRow row;
+                uint32 groupID = 0;
+
+                // Query database 'invTypes' table for the supplied typeID and retrieve the groupID for this type:
+	            if (!sDatabase.RunQuery(result, 
+		            " SELECT "
+		            "	groupID "
+		            " FROM invTypes "
+		            " WHERE typeID = %u ", typeID))
+	            {
+                    sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Error in query: %s", result.error.c_str() );
+		            return NULL;
+	            }
+
+                // Query went through, but check to see if there were zero rows, ie typeID was invalid,
+                // and if not, then get the groupID from the row:
+	            if ( !(result.GetRow(row)) )
+                {
+                    sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Invalid typeID: %u, no rows returned in db query.", typeID );
+                    return NULL;
+                }
+                groupID = row.GetUInt( 0 );
+
+                // Calculate distance from target warpable object that the ship will warp to, using minimum safe distance
+                // based upon groupID of the target object:
+                switch( groupID )
+                {
+                    case 6: // target object is a SUN
+                    case 7: // target object is a PLANET
+                    case 8: // target object is a MOON
+                        distance += 200000;
+                        break;
+                    default:
+                        break;
+                }
+
+                // Bookmark type is of a static system entity, so search for it and obtain its coordinates:
+	            SystemManager *sm = call.client->System();
+	            if(sm == NULL) {
+                    sLog.Error( "BeyonceService::Handle_WarpToStuff()", "%s: no system manager found", call.client->GetName() );
+		            return NULL;
+	            }
+                SystemEntity *se = sm->get( itemID );
+	            if(se ==  NULL) {
+                    sLog.Error( "BeyonceService::Handle_WarpToStuff()", "%s: unable to find location %d", call.client->GetName(), itemID );
+		            return NULL;
+	            }
+
+                // Add radiuses for ship and destination object:
+                distance += call.client->GetRadius() + se->GetRadius();
+
+                call.client->WarpTo( se->GetPosition(), distance );
+            }
+        }
+    }
+    else
+    {
+        sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Unexpected arg.type value: '%s'.", arg.type.c_str() );
 		return NULL;
-	}
-	SystemEntity *se = sm->get(arg.item);
-	if(se ==  NULL) {
-		codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.item);
-		return NULL;
-	}
-	// don't forget to add radiuses
-	distance += call.client->GetRadius() + se->GetRadius();
-
-	call.client->WarpTo(se->GetPosition(), distance);
+    }
 	
 	return NULL;
 }

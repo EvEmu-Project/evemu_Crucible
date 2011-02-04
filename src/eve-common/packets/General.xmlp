@@ -517,8 +517,8 @@
   <elementDef name="CallWarpToStuff">
     <tupleInline>
       <!-- really this call uses keywords, and I think the item ID just happens to end up in the args as a fluke. -->
-      <stringInline value="item" />
-      <int name="item" />
+      <string name="type" />
+      <int name="ID" />
     </tupleInline>
   </elementDef>
 
