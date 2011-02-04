@@ -26,20 +26,6 @@
 
 #include "EVEServerPCH.h"
 
-PyRep *MarketDB::CharGetNewTransactions(uint32 characterID) {
-	DBQueryResult res;
-	if(!sDatabase.RunQuery(res,
-		"SELECT"
-		"	transactionID, transactionDateTime, typeID, quantity, MAX(price) AS price, transactionType, clientID, regionID, stationID, corpTransaction "
-		" FROM market_transactions"
-		" WHERE clientID=%u"/*
-		" GROUP BY typeID"*/, characterID))
-	{
-		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
-		return NULL;
-	}
-	return(DBResultToRowset(res));
-}
 PyRep *MarketDB::GetStationAsks(uint32 stationID) {
 	DBQueryResult res;
 
