@@ -587,9 +587,17 @@ typedef enum {
 	Rig_Energy_Grid = 781,
 	Rig_Astronautic = 782,
 	Rig_Electronics_Superiority = 786,
+    Station_Upgrade_Platform = 835,
+    Station_Improvement_Platform = 836,
 	Missile_Launcher_Bomb = 862,
+    Destructable_Station_Services = 874,
+    Cosmic_Anomaly = 885,
 	Rig_Security_Transponder = 896,
-	Rig_Mining = 904
+    Covert_Beacon = 897,
+	Rig_Mining = 904,
+    Effect_Beacon = 920,
+    Wormhole = 988,
+    Secondary_Sun = 995
 
  } invGroups;
 

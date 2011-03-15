@@ -56,22 +56,34 @@ Inventory *Inventory::Cast(InventoryItemRef item)
         case EVEDB::invCategories::Drone:
         case EVEDB::invCategories::Implant:
         case EVEDB::invCategories::Deployable:
-        case EVEDB::invCategories::Structure:
         case EVEDB::invCategories::Reaction:
         case EVEDB::invCategories::Asteroid:
             sLog.Warning("Inventory", "unhandled item categoryID used on cast");
             break;
-        case EVEDB::invCategories::Ship:    return ShipRef::StaticCast( item ).get();
+        case EVEDB::invCategories::Structure:
+            return StructureRef::StaticCast( item ).get();
+            break;
+        case EVEDB::invCategories::Ship:
+            return ShipRef::StaticCast( item ).get();
+            break;
     }
 
     switch( item->groupID() )
     {
-        case EVEDB::invGroups::Station:     return StationRef::StaticCast( item ).get();
-        case EVEDB::invGroups::Character:   return CharacterRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Wreck:
+        case EVEDB::invGroups::Secure_Cargo_Container:
+        case EVEDB::invGroups::Audit_Log_Secure_Container:
+        case EVEDB::invGroups::Cargo_Container:
+        case EVEDB::invGroups::Freight_Container:
+        case EVEDB::invGroups::Spawn_Container:
+            return CargoContainerRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Station:         return StationRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Character:       return CharacterRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Solar_System:    return SolarSystemRef::StaticCast( item ).get();
     }
 
     // maybe add extra debug info on what for type or item.
-    sLog.Error("Inventory", "unable to Cast item");
+    sLog.Error("Inventory::Cast()", "Item cast not supported for item typeID = %u, groupID = %u, categoryID = %u", item->typeID(), item->groupID(), item->categoryID() );
     return NULL;
 }
 

@@ -27,7 +27,7 @@
 
 //upon this interval, check for entities which may have wandered out of their bubble without a major event happening.
 static const uint32 BubbleWanderTimer_S = 30;
-static const double BubbleRadius_m = 1e6;	//made up...
+static const double BubbleRadius_m = 380000;//1e6;	//made up...
 
 BubbleManager::BubbleManager()
 : m_wanderTimer(BubbleWanderTimer_S *1000)

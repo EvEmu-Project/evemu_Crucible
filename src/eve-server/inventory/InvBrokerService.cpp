@@ -42,6 +42,8 @@ public:
     {
         _SetCallDispatcher(m_dispatch);
 
+        m_strBoundObjectName = "InvBrokerBound";
+
         PyCallable_REG_CALL(InvBrokerBound, GetInventoryFromId)
         PyCallable_REG_CALL(InvBrokerBound, GetInventory)
         PyCallable_REG_CALL(InvBrokerBound, SetLabel)
@@ -106,6 +108,8 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
     }
     //bool passive = (args.arg2 != 0);  //no idea what this is for.
 
+    // TODO: this line is insufficient for some object types, like containers in space, so expand it
+    // by having a switch that acts differently based on either categoryID or groupID or both:
     Inventory *inventory = m_manager->item_factory.GetInventory( args.arg1 );
     if(inventory == NULL) {
         codelog(SERVICE__ERROR, "%s: Unable to load inventory %u", call.client->GetName(), args.arg1);
@@ -192,8 +196,11 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
     item->Rename( args.itemName.c_str() );
 
 
-	//maybe?
-	call.client->UpdateSession("shipid", item->itemID() );
+	// This call as-is is NOT correct for any item category other than ships,
+    // so until we can get the right string argument for other kinds of session updates,
+    // we need to block this call so our characters don't "board" non-ship objects:
+    if( item->categoryID() == EVEDB::invCategories::Ship )
+	    call.client->UpdateSession("shipid", item->itemID() );
 	
     return NULL;
 }

@@ -139,10 +139,10 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
         if(!sDatabase.RunQuery(res,
             "SELECT "
             " mapDenormalize.itemID AS locationID,"
-            " mapDenormalize.itemName as locationName,"
-            " mapDenormalize.x,"
-            " mapDenormalize.y,"
-            " mapDenormalize.z"
+            " mapDenormalize.itemName AS locationName,"
+            " mapDenormalize.x AS x,"
+            " mapDenormalize.y AS y,"
+            " mapDenormalize.z AS z"
             " FROM mapDenormalize "
             " WHERE itemID in (%s)", ids.c_str()))
         {
@@ -154,9 +154,9 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
             "SELECT "
             " entity.itemID AS locationID,"
             " entity.itemName as locationName,"
-            " entity.x,"
-            " entity.y,"
-            " entity.z"
+            " entity.x AS x,"
+            " entity.y AS y,"
+            " entity.z AS z"
             " FROM entity "
             " WHERE itemID in (%s)", ids.c_str()))
         {
@@ -165,6 +165,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
         }
     }
 
+    //return(DBResultToRowset(res));
     return(DBResultToTupleSet(res));
 }
 
@@ -228,7 +229,7 @@ PyObject *ConfigDB::GetUnits() {
     return(DBResultToIndexRowset(res, "unitID"));
 }
 
-PyObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
+PyObjectEx *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
     bool wantConstellations, bool wantSystems, bool wantStations)
 {
     const char *key = "solarSystemID";
@@ -262,7 +263,8 @@ PyObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
         return NULL;
     }
 
-    return DBResultToRowset(res);
+    return DBResultToCRowset(res);
+//    return DBResultToRowset(res);
 }
 
 PyObject *ConfigDB::GetMap(uint32 solarSystemID) {

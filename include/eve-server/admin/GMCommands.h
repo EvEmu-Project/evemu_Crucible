@@ -17,6 +17,8 @@ COMMAND( pop, ROLE_ADMIN,
          "(type) (key) (value) - Send an OnRemoteMessage" )
 COMMAND( goto, ROLE_ADMIN,
          "(x) (y) (z) - Jump to the specified position in space. Stopped." )
+COMMAND( spawnn, ROLE_ADMIN,
+         "(typeID) - Spawn an NPC with the specified type." )
 COMMAND( spawn, ROLE_ADMIN,
          "(typeID) - Spawn an NPC with the specified type." )
 COMMAND( location, ROLE_ADMIN,

@@ -40,6 +40,8 @@ public:
 	  m_stationID(station_id)
 	{
 		_SetCallDispatcher(m_dispatch);
+
+        m_strBoundObjectName = "CorpStationMgrIMBound";
 		
 		PyCallable_REG_CALL(CorpStationMgrIMBound, GetEveOwners)
 		PyCallable_REG_CALL(CorpStationMgrIMBound, GetCorporateStationInfo)
@@ -232,9 +234,10 @@ PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
 	}
 
 	//update type of clone
+	m_db.ChangeCloneType(call.client->GetCharacterID(),arg.CloneTypeID);
 	
 
-    sLog.Debug( "CorpStationMgrIMBound", "Called SetCloneTypeID stub." );
+    //sLog.Debug( "CorpStationMgrIMBound", "Called SetCloneTypeID stub." );
 
     return new PyNone;
 }

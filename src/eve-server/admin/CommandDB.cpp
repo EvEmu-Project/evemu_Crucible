@@ -55,6 +55,46 @@ bool CommandDB::ItemSearch(const char *query, std::map<uint32, std::string> &int
 	return true;
 }
 
+bool CommandDB::ItemSearch(uint32 typeID, uint32 &actualTypeID,
+    std::string &actualTypeName, uint32 &actualGroupID, uint32 &actualCategoryID, double &actualRadius)
+{
+	DBQueryResult result;
+	DBResultRow row;
+	
+    if (!sDatabase.RunQuery(result,
+        "SELECT  "
+        " invTypes.typeID,"
+        " invTypes.typeName,"
+        " invTypes.groupID,"
+        " invTypes.radius,"
+        " invGroups.categoryID"
+        " FROM invTypes"
+        "  LEFT JOIN invGroups"
+        "   ON invGroups.groupID = invTypes.groupID"
+        " WHERE typeID = %u",
+        typeID
+		))
+	{
+        sLog.Error( "CommandDB::ItemSearch()", "Error in query: %s", result.error.c_str() );
+		return (false);
+	}
+
+    if( !result.GetRow(row) )
+    {
+        sLog.Error( "CommandDB::ItemSearch()", "Query returned NO results: %s", result.error.c_str() );
+		return (false);
+    }
+
+    // Extract values from the first row:
+    actualTypeID = row.GetUInt( 0 );
+    actualTypeName = row.GetText( 1 );
+    actualGroupID = row.GetUInt( 2 );
+    actualCategoryID = row.GetUInt( 4 );
+    actualRadius = row.GetDouble( 3 );
+
+    return true;
+}
+
 bool CommandDB::GetRoidDist(const char * sec, std::map<double, uint32> &roids) {
 	DBQueryResult res;
 	DBResultRow row;

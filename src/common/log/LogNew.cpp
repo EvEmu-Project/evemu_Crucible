@@ -26,6 +26,8 @@
 #include "CommonPCH.h"
 
 #include "log/LogNew.h"
+#include "log/logtypes.h"
+#include "log/logsys.h"
 
 /*************************************************************************/
 /* NewLog                                                                */
@@ -122,14 +124,17 @@ void NewLog::Success( const char* source, const char* fmt, ... )
 
 void NewLog::Debug( const char* source, const char* fmt, ... )
 {
-#ifndef NDEBUG
-    va_list ap;
-    va_start( ap, fmt );
+//#ifndef NDEBUG
+    if( is_log_enabled( DEBUG__DEBUG ) )
+    {
+        va_list ap;
+        va_start( ap, fmt );
 
-    PrintMsg( COLOR_CYAN, 'D', source, fmt, ap );
+        PrintMsg( COLOR_CYAN, 'D', source, fmt, ap );
 
-    va_end( ap );
-#endif /* !NDEBUG */
+        va_end( ap );
+    }
+//#endif /* !NDEBUG */
 }
 
 bool NewLog::SetLogfile( const char* filename )

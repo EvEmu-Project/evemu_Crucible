@@ -201,6 +201,16 @@ OwnerRef ItemFactory::GetOwner(uint32 ownerID)
     return _GetItem<Owner>( ownerID );
 }
 
+StructureRef ItemFactory::GetStructure(uint32 structureID)
+{
+    return _GetItem<Structure>( structureID );
+}
+
+CargoContainerRef ItemFactory::GetCargoContainer(uint32 containerID)
+{
+    return _GetItem<CargoContainer>( containerID );
+}
+
 InventoryItemRef ItemFactory::SpawnItem(ItemData &data) {
     InventoryItemRef i = InventoryItem::Spawn(*this, data);
     if( !i )
@@ -253,6 +263,26 @@ OwnerRef ItemFactory::SpawnOwner(ItemData &data)
     OwnerRef o = Owner::Spawn( *this, data );
     if( !o )
         return OwnerRef();
+
+    m_items.insert( std::make_pair( o->itemID(), o ) );
+    return o;
+}
+
+StructureRef ItemFactory::SpawnStructure(ItemData &data)
+{
+    StructureRef o = Structure::Spawn( *this, data );
+    if( !o )
+        return StructureRef();
+
+    m_items.insert( std::make_pair( o->itemID(), o ) );
+    return o;
+}
+
+CargoContainerRef ItemFactory::SpawnCargoContainer(ItemData &data)
+{
+    CargoContainerRef o = CargoContainer::Spawn( *this, data );
+    if( !o )
+        return CargoContainerRef();
 
     m_items.insert( std::make_pair( o->itemID(), o ) );
     return o;

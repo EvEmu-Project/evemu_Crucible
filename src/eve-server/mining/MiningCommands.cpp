@@ -135,7 +135,8 @@ void SpawnAsteroid( SystemManager* system, uint32 typeID, double radius, const G
 
 	i->Set_radius( radius );
 
-	Asteroid* new_roid = new Asteroid( system, i );	//takes a ref.
+    // TODO: Rework this code now that 
+	AsteroidEntity* new_roid = new AsteroidEntity( i, system, *(system->GetServiceMgr()), position );
 	//TODO: check for a local asteroid belt object?
 	//TODO: actually add this to the asteroid belt too...
 	system->AddEntity( new_roid );

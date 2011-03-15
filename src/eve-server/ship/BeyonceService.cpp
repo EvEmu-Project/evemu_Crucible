@@ -38,6 +38,8 @@ public:
 	  m_dispatch(new Dispatcher(this))
 	{
 		_SetCallDispatcher(m_dispatch);
+
+        m_strBoundObjectName = "BeyonceBound";
 		
 		PyCallable_REG_CALL(BeyonceBound, FollowBall)
 		PyCallable_REG_CALL(BeyonceBound, Orbit)
@@ -341,7 +343,6 @@ PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 	}
 
 	destiny->Orbit(entity, distance);
-
 	return NULL;
 }
 
@@ -360,10 +361,10 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 	    if(res == call.byname.end()) {
 		    //Not needed, this is the correct behavior
 		    //codelog(CLIENT__ERROR, "%s: range not found, using 15 km.", call.client->GetName());
-		    distance = 15000.0;
+		    distance = 0.0;
 	    } else if(!res->second->IsInt() && !res->second->IsFloat()) {
 		    codelog(CLIENT__ERROR, "%s: range of invalid type %s, expected Integer or Real; using 15 km.", call.client->GetName(), res->second->TypeString());
-		    distance = 15000.0;
+		    distance = 0.0;
 	    } else {
 		    distance =
 			    res->second->IsInt()
@@ -383,10 +384,87 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 		    codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.ID);
 		    return NULL;
 	    }
-	    // don't forget to add radiuses
-	    distance += call.client->GetRadius() + se->GetRadius();
 
-	    call.client->WarpTo(se->GetPosition(), distance);
+		GPoint origin(0.0,0.0,0.0);
+		double distanceFromBodyOrigin = 0.0;
+		double distanceFromSystemOrigin = 0.0;
+		GPoint warpToPoint(se->GetPosition());								// Make a warp-in point variable
+        if( IsStaticMapItem(se->GetID()) )
+		{
+            switch( ((SimpleSystemEntity *)(se))->data.groupID )
+			{
+				case EVEDB::invGroups::Sun:
+				case EVEDB::invGroups::Planet:
+				case EVEDB::invGroups::Moon:
+                {
+					// Calculate final distance out from origin of celestial body along common warp-to vector:
+					distanceFromBodyOrigin = se->GetRadius();	        // Add celestial body's radius
+					distanceFromBodyOrigin += 20000000;					// Add 20,000km along common vector from celestial body origin to ensure
+																		// client camera rotation about ship does not take camera inside the celestial body's wireframe
+
+					// Calculate final warp-to point along common vector from celestial body's origin and add randomized position adjustment for multiple ships coming out of warp to not bump
+					GPoint celestialOrigin(se->GetPosition());							// Make a celestial body origin point variable
+                    GVector vectorFromOrigin(celestialOrigin, origin);					// Make a celestial body TO system origin origin vector variable
+                    GVector vectorToWarpPoint(vectorFromOrigin);                        // Make a vector to the Warp-In point
+					distanceFromSystemOrigin = vectorFromOrigin.length();		        // Calculate distance from system origin to celestial body origin
+
+					// Calculate warp-in point to provide different juxtapositioning of celestial body to the solar system origin, i.e, the sun
+					// This also provides a common warp-in point for the sun itself, which is the first case in this if-else if-else clause:
+					if( distanceFromSystemOrigin < (5.0 * ONE_AU_IN_METERS) )
+					{
+						// For all celestial bodies with orbit radius of under 5AU, including the sun,
+                        GVector rotationVector( 1.0, 1.0, 0.25 );
+                        vectorToWarpPoint.rotationTo( rotationVector );
+                        vectorToWarpPoint.normalize();
+                        warpToPoint += vectorToWarpPoint * distanceFromBodyOrigin;
+					}
+					else if( distanceFromSystemOrigin < (15.0 * ONE_AU_IN_METERS) )
+					{
+						// For all celestial bodies with orbit radius of under 15AU but more than 5AU,
+                        GVector rotationVector( -1.0, -1.0, 0.25 );
+                        vectorToWarpPoint.rotationTo( rotationVector );
+                        vectorToWarpPoint.normalize();
+                        warpToPoint += vectorToWarpPoint * distanceFromBodyOrigin;
+					}
+					else if( distanceFromSystemOrigin < (25.0 * ONE_AU_IN_METERS) )
+					{
+						// For all celestial bodies with orbit radius of under 25AU but more than 15AU,
+                        GVector rotationVector( 1.0, -1.0, -0.25 );
+                        vectorToWarpPoint.rotationTo( rotationVector );
+                        vectorToWarpPoint.normalize();
+                        warpToPoint += vectorToWarpPoint * distanceFromBodyOrigin;
+					}
+					else if( distanceFromSystemOrigin < (35.0 * ONE_AU_IN_METERS) )
+					{
+						// For all celestial bodies with orbit radius of under 35AU but more than 25AU,
+                        GVector rotationVector( -1.0, -1.0, -0.25 );
+                        vectorToWarpPoint.rotationTo( rotationVector );
+                        vectorToWarpPoint.normalize();
+                        warpToPoint += vectorToWarpPoint * distanceFromBodyOrigin;
+					}
+					else
+					{
+						// For all celestial bodies with orbit radius of more than 35AU,
+                        GVector rotationVector( -1.0, 1.0, -0.25 );
+                        vectorToWarpPoint.rotationTo( rotationVector );
+                        vectorToWarpPoint.normalize();
+                        warpToPoint += vectorToWarpPoint * distanceFromBodyOrigin;
+					}
+
+					// Randomize warp-in point:
+					warpToPoint.MakeRandomPointOnSphereLayer(1000.0,(1000.0+call.client->GetRadius()));
+					break;
+                }
+				default:
+                    // For all other objects, simply just add radius of ship and object:
+                    distance += call.client->GetRadius() + se->GetRadius();
+					break;
+			}
+		}
+        else
+            distance += call.client->GetRadius() + se->GetRadius();
+
+	    call.client->WarpTo( warpToPoint, distance );
     }
     else if( arg.type == "bookmark" )
     {
@@ -457,7 +535,7 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
                     case 6: // target object is a SUN
                     case 7: // target object is a PLANET
                     case 8: // target object is a MOON
-                        distance += 200000;
+                        //distance += 200000;
                         break;
                     default:
                         break;
@@ -542,9 +620,11 @@ PyResult BeyonceBound::Handle_Stop(PyCallArgs &call) {
 		return NULL;
 	}
 
-	if( destiny->GetState() == Destiny::DSTBALL_WARP ) {
-		call.client->SendNotifyMsg( "You can't do this while warping");
-		return NULL;
+    // Only disallow Stopping ship when in warp state AND ship speed is greater than 0.75 times ship's maxVelocity
+    if( (destiny->GetState() == Destiny::DSTBALL_WARP)
+        && (destiny->GetVelocity().length() >= (0.75*call.client->GetShip()->maxVelocity())) ) {
+		    call.client->SendNotifyMsg( "You can't do this while warping");
+		    return NULL;
 	}
 		
 
@@ -570,71 +650,10 @@ PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
 		codelog(CLIENT__ERROR, "%s: Client has no system manager.", call.client->GetName());
 		return NULL;
 	}
-	SystemEntity *station = sm->get(arg.arg);
-	if(station == NULL) {
-		codelog(CLIENT__ERROR, "%s: Station %u not found.", call.client->GetName(), arg.arg);
-		return NULL;
-	}
-	
-	const GPoint &position = station->GetPosition();
 
-	OnDockingAccepted da;
-	da.start_x = da.end_x = position.x;
-	da.start_y = da.end_y = position.y;
-	da.start_z = da.end_z = position.z;
-	da.stationID = arg.arg;
-
-	GPoint start(da.start_x, da.start_y, da.start_z);
-	GPoint end(da.end_x, da.end_y, da.end_z);
-	GVector direction(start, end);
-	direction.normalize();
-	
-	destiny->GotoDirection(direction);
-
-	//when docking, xyz doesn't matter...
-	call.client->MoveToLocation(arg.arg, GPoint(0, 0, 0));
-
-	//clear all targets
-	call.client->targets.ClearAllTargets();
-
-	//Check if player is in pod, in which case they get a rookie ship for free
-	if( call.client->GetShip()->typeID() == itemTypeCapsule ) {
-		//set base type for rookie ship
-		uint32 typeID = caldariRookie;
-
-		//set spawn location for hangar - not sure if this is correct.  Do you instantly get put in the rookie ship?
-		EVEItemFlags flag = (EVEItemFlags)flagHangar;
-
-		//create rookie ship of appropriate type
-		if(call.client->GetChar()->race() == raceAmarr )
-			typeID = amarrRookie;
-		else if(call.client->GetChar()->race() == raceCaldari )
-			typeID = caldariRookie;
-		else if(call.client->GetChar()->race() == raceGallente )
-			typeID = gallenteRookie;
-		else if(call.client->GetChar()->race() == raceMinmatar )
-			typeID = minmatarRookie;
-		
-		//create data for new rookie ship
-		ItemData idata(
-			typeID,
-			call.client->GetCharacterID(),
-			0, //temp location
-			flag,
-			1
-		);
-		//spawn rookie
-		InventoryItemRef i = call.client->services().item_factory.SpawnItem( idata );
-	
-		//move the new rookie ship into the players hanger in station
-		if(!i)
-			throw PyException( MakeCustomError( "Unable to generate correct rookie ship" ) );
-
-		i->Move( call.client->GetStationID(), flag, true );
-
-	}
-
-	return NULL;
+    // Attempt to Dock:
+    call.client->SetDockStationID( arg.arg );   // Set client to know what station it's trying to dock into just in case docking is delayed
+    return destiny->AttemptDockOperation();
 }
 
 PyResult BeyonceBound::Handle_StargateJump(PyCallArgs &call) {

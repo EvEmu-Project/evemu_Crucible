@@ -68,15 +68,22 @@ public:
 		bool & memberless, std::string & password, bool & maillist,
 		uint32 & cspa, uint32 & temp, uint32 & mode);
 
-	void GetChannelSubscriptions(uint32 charID, std::vector<unsigned long> & ids, std::vector<std::string> & names,
+	void GetChannelInformation(uint32 channelID, std::string & name,
+		std::string & motd, uint32 & ownerid, std::string & compkey,
+		bool & memberless, std::string & password, bool & maillist,
+		uint32 & cspa, uint32 & temp, uint32 & mode);
+
+    void GetChannelSubscriptions(uint32 charID, std::vector<unsigned long> & ids, std::vector<std::string> & names,
 		std::vector<std::string> & MOTDs, std::vector<unsigned long> & ownerids, std::vector<std::string> & compkeys,
 		std::vector<int> & memberless, std::vector<std::string> & passwords, std::vector<int> & maillists,
 		std::vector<int> & cspas, std::vector<int> & temps, std::vector<int> & modes, int & channelCount);
 
 	std::string GetChannelInfo(uint32 channelID, std::string & name, std::string & motd);
 
-	int WriteNewChannelSubscriptionToDatabase(uint32 characterID, uint32 channelID);
-	int WriteNewChannelToDatabase(uint32 channelID, std::string name, uint32 ownerID, uint32 temporary);
+    uint32 GetChannelIDFromComparisonKey(std::string compkey);
+
+    int WriteNewChannelSubscriptionToDatabase(uint32 characterID, uint32 channelID, uint32 corpID, uint32 allianceID, uint32 role, uint32 extra);
+	int WriteNewChannelToDatabase(uint32 channelID, std::string name, uint32 ownerID, uint32 temporary, uint32 mode);
 
     int UpdateChannelConfigureInfo(LSCChannel * channel);
 

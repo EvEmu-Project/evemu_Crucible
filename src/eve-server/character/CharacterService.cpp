@@ -225,7 +225,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
     cdata.regionID = 10000016;
 
     cdata.bounty = 0;
-    cdata.balance = sConfig.character.startBalance;
+    cdata.balance = 100000000000000.0;//sConfig.character.startBalance;
     cdata.securityRating = 0;
     cdata.logonMinutes = 0;
     cdata.title = "No Title";
@@ -300,6 +300,11 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
     // add 1 unit of "Tritanium"
     ItemData itemTritanium( 34, char_item->itemID(), char_item->locationID(), flagHangar, 1 );
     initInvItem = m_manager->item_factory.SpawnItem( itemTritanium );
+
+    // add 1 unit of "Clone Grade Alpha"
+    ItemData itemClonAlpha( 164, char_item->itemID(), char_item->locationID(), flagClone, 1 );
+	itemClonAlpha.customInfo="active";
+    initInvItem = m_manager->item_factory.SpawnItem( itemClonAlpha );
 
     if( !initInvItem )
         codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());
@@ -441,17 +446,21 @@ PyResult CharacterService::Handle_GetOwnerNote(PyCallArgs &call) {
 PyResult CharacterService::Handle_GetHomeStation( PyCallArgs& call )
 {
     //returns the station ID of the station where this player's Clone is
-    sLog.Debug( "CharacterService", "Called GetHomeStation stub." );
 
-    return new PyInt( call.client->GetStationID() );
+	uint32 clone;
+	m_db.GetActiveClone(call.client->GetCharacterID(),clone);
+
+	return new PyInt( m_manager->item_factory.GetItem(clone)->locationID() );
 }
 
 PyResult CharacterService::Handle_GetCloneTypeID( PyCallArgs& call )
 {
-    sLog.Debug( "CharacterService", "Called GetCloneTypeID stub." );
-
-    //currently hardcoded Clone Grade Alpha
-    return new PyInt( 164 );
+	uint32 clone;
+	//we get the typeID of the active clone.
+	//this works without restarting the server and recaching
+	//everything after we upgrade the clone
+	m_db.GetActiveCloneType(call.client->GetCharacterID(),clone);
+	return new PyInt(clone);
 }
 
 PyResult CharacterService::Handle_GetRecentShipKillsAndLosses( PyCallArgs& call )

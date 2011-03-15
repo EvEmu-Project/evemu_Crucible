@@ -80,6 +80,89 @@ protected:
 	const GPoint m_position;
 };*/
 
+/**
+ * DynamicSystemEntity which represents structure object in space
+ */
+class PyServiceMgr;
+class InventoryItem;
+class DestinyManager;
+class SystemManager;
+class ServiceDB;
+
+class AsteroidEntity
+: public DynamicSystemEntity
+{
+public:
+	AsteroidEntity(
+		InventoryItemRef asteroid,
+		SystemManager *system,
+		PyServiceMgr &services,
+		const GPoint &position);
+
+    /*
+	 * Primary public interface:
+	 */
+    InventoryItemRef GetStructureObject() { return _asteroidRef; }
+    DestinyManager * GetDestiny() { return m_destiny; }
+    SystemManager * GetSystem() { return m_system; }
+
+	/*
+	 * Public fields:
+	 */
+	
+	inline double x() const { return(GetPosition().x); }
+	inline double y() const { return(GetPosition().y); }
+	inline double z() const { return(GetPosition().z); }
+
+	//SystemEntity interface:
+	virtual EntityClass GetClass() const { return(ecAsteroidEntity); }
+	virtual bool IsAsteroidEntity() const { return true; }
+	virtual AsteroidEntity *CastToAsteroidEntity() { return(this); }
+	virtual const AsteroidEntity *CastToAsteroidEntity() const { return(this); }
+	virtual void Process();
+	virtual void EncodeDestiny( Buffer& into ) const;
+	virtual void TargetAdded(SystemEntity *who) {}
+    virtual void TargetLost(SystemEntity *who) {}
+    virtual void TargetedAdd(SystemEntity *who) {}
+    virtual void TargetedLost(SystemEntity *who) {}
+	virtual void TargetsCleared() {}
+	virtual void QueueDestinyUpdate(PyTuple **du) {/* not required to consume */}
+	virtual void QueueDestinyEvent(PyTuple **multiEvent) {/* not required to consume */}
+	virtual uint32 GetCorporationID() const { return(1); }
+	virtual uint32 GetAllianceID() const { return(0); }
+	virtual void Killed(Damage &fatal_blow);
+	virtual SystemManager *System() const { return(m_system); }
+	
+	void ForcedSetPosition(const GPoint &pt);
+	
+	virtual bool ApplyDamage(Damage &d);
+	virtual void MakeDamageState(DoDestinyDamageState &into) const;
+
+	void SendNotification(const PyAddress &dest, EVENotificationStream &noti, bool seq=true);
+	void SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq=true);
+
+	//inline const GPoint &GetPosition() const { return(m_position); }
+	//uint32 GetID() const { return(m_asteroidID); }
+	//virtual const char *GetName() const { return("Asteroid"); }
+	//virtual double GetRadius() const;	// { return(m_radius); }
+	
+	void Grow();
+
+protected:
+	/*
+	 * Member functions
+	 */
+
+	/*
+	 * Member fields:
+	 */
+	SystemManager *const m_system;	//we do not own this
+	PyServiceMgr &m_services;	//we do not own this
+    InventoryItemRef _asteroidRef;   // We don't own this
+};
+
+// OLD Asteroid class:
+/*
 class Asteroid : public ItemSystemEntity {
 public:
 	Asteroid(SystemManager *system, InventoryItemRef self);
@@ -117,17 +200,5 @@ protected:
 	//asteroid owner: 500021
 	//double m_radius;	//radius of 91-95 makes for reasonable asteroids.
 };
-
-
-
-
-
-
-
-
-
-
-
-#endif
-
-
+*/
+#endif /* !__ASTEROID__H__INCL__ */

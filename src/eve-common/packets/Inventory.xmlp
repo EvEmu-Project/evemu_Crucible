@@ -330,7 +330,15 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_Reprocess">
+    <elementDef name="Call_Drop3">
+        <tupleInline>
+            <list name="toDrop" />
+            <int name="ownerID" />
+            <bool name="unknown" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="Call_Reprocess">
 	  <tupleInline>
 		  <listInt name="items" />
 		  <int name="ownerID" none_marker="0" />

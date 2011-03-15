@@ -53,6 +53,13 @@ public:
 		ecClient,
 		ecNPC,
 		ecCelestial,
+        ecStation,
+        ecAsteroidEntity,
+        ecShipEntity,
+        ecDroneEntity,
+        ecContainerEntity,
+        ecStructureEntity,
+        ecDeployableEntity,
 		ecOther
 	} EntityClass;
 	
@@ -184,6 +191,20 @@ protected:
 	DestinyManager *m_destiny;	//we own this! NULL if we are not in a system
 };
 
+/*
+ * This class is used for Targetable and Destructable Celestial Objects
+ */
+class CelestialDynamicSystemEntity : public DynamicSystemEntity {
+public:
+	CelestialDynamicSystemEntity(DestinyManager *mgr=NULL /*ownership taken*/, InventoryItemRef self = InventoryItemRef());
+	virtual ~CelestialDynamicSystemEntity();
+
+	//partial implementation of SystemEntity interface:
+	virtual void EncodeDestiny( Buffer& into ) const;
+	virtual bool IsStaticEntity() const { return true; }
+    virtual bool IsVisibleSystemWide() const { return false; }
+
+};
 
 #endif
 

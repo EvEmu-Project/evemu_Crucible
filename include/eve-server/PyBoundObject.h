@@ -41,6 +41,7 @@ public:
 
 	//returns string "N=(nodeID):(bindID)"
 	std::string GetBindStr() const;
+    std::string GetBoundObjectClassStr() const { return m_strBoundObjectName; };
 
 	//just to say who we are:
 	virtual PyResult Call(const std::string &method, PyCallArgs &args);
@@ -50,6 +51,7 @@ protected:
 	void _SetNodeBindID(uint32 nodeID, uint32 bindID) { m_nodeID = nodeID; m_bindID = bindID; }
 
 	PyServiceMgr *const m_manager;
+    std::string m_strBoundObjectName;
 
 private:
 	uint32 m_nodeID;

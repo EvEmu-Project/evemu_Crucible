@@ -38,6 +38,8 @@ public:
 	{
 		_SetCallDispatcher(m_dispatch);
 
+        m_strBoundObjectName = "WarRegistryBound";
+
 		PyCallable_REG_CALL(WarRegistryBound, GetWars);
 	}
 	~WarRegistryBound()

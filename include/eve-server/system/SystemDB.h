@@ -43,9 +43,18 @@ public:
 class DBSystemDynamicEntity {
 public:
 	uint32 itemID;
+    std::string itemName;
 	uint32 typeID;
 	uint32 groupID;
+    uint32 ownerID;
+    uint32 locationID;
+    uint32 flag;
 	uint32 categoryID;
+    uint32 corporationID;
+    uint32 allianceID;
+    double x;
+    double y;
+    double z;
 };
 
 class SystemDB

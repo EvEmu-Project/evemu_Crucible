@@ -161,6 +161,22 @@ public:
 	 */
 	OwnerRef GetOwner(uint32 ownerID);
 
+	/**
+	 * Loads structure object.
+	 *
+	 * @param[in] structureID ID of structure object to load.
+	 * @return Pointer to Structure; NULL if fails.
+	 */
+	StructureRef GetStructure(uint32 structureID);
+
+	/**
+	 * Loads cargo container object.
+	 *
+	 * @param[in] containerID ID of cargo container object to load.
+	 * @return Pointer to CargoContainer; NULL if fails.
+	 */
+	CargoContainerRef GetCargoContainer(uint32 containerID);
+
 	//spawn a new item with the specified information, creating it in the DB as well.
 	InventoryItemRef SpawnItem(ItemData &data);
 	BlueprintRef SpawnBlueprint(ItemData &data, BlueprintData &bpData);
@@ -195,6 +211,20 @@ public:
 	 * @return Ref to new Owner object.
 	 */
 	OwnerRef SpawnOwner(ItemData &data);
+	/**
+	 * Spawns new structure.
+	 *
+	 * @param[in] data Item data for structure.
+	 * @return Ref to new Structure object.
+	 */
+	StructureRef SpawnStructure(ItemData &data);
+	/**
+	 * Spawns new cargo container.
+	 *
+	 * @param[in] data Item data for cargo container.
+	 * @return Ref to new CargoContainer object.
+	 */
+	CargoContainerRef SpawnCargoContainer(ItemData &data);
 
 	/*
 	 * Inventory stuff

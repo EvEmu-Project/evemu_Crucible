@@ -53,6 +53,8 @@ SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db)
 {
     _SetCallDispatcher(m_dispatch);
 
+    m_strBoundObjectName = "SkillMgrBound";
+
     PyCallable_REG_CALL(SkillMgrBound, InjectSkillIntoBrain)
     PyCallable_REG_CALL(SkillMgrBound, CharStartTrainingSkillByTypeID)
     PyCallable_REG_CALL(SkillMgrBound, CharStopTrainingSkill)

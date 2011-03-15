@@ -51,6 +51,8 @@ public:
 	  m_agent(agt)
 	{
 		_SetCallDispatcher(m_dispatch);
+
+        m_strBoundObjectName = "AgentMgrBound";
 		
 		PyCallable_REG_CALL(AgentMgrBound, GetInfoServiceDetails)
 		PyCallable_REG_CALL(AgentMgrBound, DoAction)

@@ -39,6 +39,8 @@ public:
 	  m_dispatch(new Dispatcher(this))
 	{
 		_SetCallDispatcher(m_dispatch);
+
+        m_strBoundObjectName = "JumpCloneBound";
 		
 		PyCallable_REG_CALL(JumpCloneBound, GetCloneState)
 		PyCallable_REG_CALL(JumpCloneBound, InstallCloneInStation)

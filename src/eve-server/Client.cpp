@@ -48,6 +48,10 @@ Client::Client(PyServiceMgr &services, EVETCPConnection** con)
     m_moveTimer.Disable();
     m_pingTimer.Start();
 
+    m_dockStationID = 0;
+    m_justUndocked = false;
+    m_needToDock = false;
+
     // Start handshake
     Reset();
 }
@@ -277,7 +281,8 @@ void Client::ChannelLeft(LSCChannel *chan) {
     m_channels.erase(chan);
 }
 
-bool Client::EnterSystem() {
+bool Client::EnterSystem(bool login) {
+
     if(m_system != NULL && m_system->GetID() != GetSystemID()) {
         //we have different m_system
         m_system->RemoveClient(this);
@@ -313,10 +318,25 @@ bool Client::EnterSystem() {
         m_destiny = new DestinyManager(this, m_system);
         //ship should never be NULL.
         m_destiny->SetShipCapabilities( GetShip() );
-        //set position.
-        m_destiny->SetPosition(GetShip()->position(), false);
-        //for now, we always enter a system stopped.
-        m_destiny->Halt(false);
+        
+		/*if( login )
+		{
+			// We are just logging in, so we need to warp to our last position from a
+			// random vector 15.0AU away:
+			GPoint warpToPoint( GetShip()->position() );
+			GPoint warpFromPoint( GetShip()->position() );
+			warpFromPoint.MakeRandomPointOnSphere( 15.0*ONE_AU_IN_METERS );
+			m_destiny->SetPosition( warpFromPoint, true );
+            WarpTo( warpToPoint, 0.0 );		// Warp ship from the random login point to the position saved on last disconnect
+		}
+		else */
+		{
+        
+			// This is NOT a login, so we always enter a system stopped.
+			m_destiny->Halt(false);
+			//set position.
+			m_destiny->SetPosition(GetShip()->position(), false);
+		}
     }
 
     return true;
@@ -832,7 +852,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 
     m_moveSystemID = solarSystemID;
     m_movePoint = position;
-    m_movePoint.x -= 15000;
+    m_movePoint.MakeRandomPointOnSphere( 10000 );   // Make Jump-In point a random spot on a 10km radius sphere about the stargate
 
     m_destiny->SendJumpOut(fromGate);
     //TODO: send 'effects.GateActivity' on 'toGate' at the same time
@@ -840,6 +860,40 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     //delay the move so they can see the JumpOut animation
     _postMove(msJump, 5000);
 }
+
+void Client::SetDockingPoint(GPoint &dockPoint)
+{
+    m_movePoint.x = dockPoint.x;
+    m_movePoint.y = dockPoint.y;
+    m_movePoint.z = dockPoint.z;
+}
+
+void Client::GetDockingPoint(GPoint &dockPoint)
+{
+    dockPoint.x = m_movePoint.x;
+    dockPoint.y = m_movePoint.y;
+    dockPoint.z = m_movePoint.z;
+}
+
+// THESE FUNCTIONS ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
+// *SetJustUndocking (only in Client.h)
+// *GetJustUndocking
+// *SetUndockAlignToPoint
+// *GetUndockAlignToPoint
+void Client::SetUndockAlignToPoint(GPoint &dest)
+{
+    m_undockAlignToPoint.x = dest.x;
+    m_undockAlignToPoint.y = dest.y;
+    m_undockAlignToPoint.z = dest.z;
+}
+
+void Client::GetUndockAlignToPoint(GPoint &dest)
+{
+    dest.x = m_undockAlignToPoint.x;
+    dest.y = m_undockAlignToPoint.y;
+    dest.z = m_undockAlignToPoint.z;
+}
+// --- END HACK FUNCTIONS FOR UNDOCK ---
 
 void Client::_postMove(_MoveState type, uint32 wait_ms) {
     m_moveState = type;
@@ -884,7 +938,7 @@ bool Client::SelectCharacter( uint32 char_id )
 
     BoardShip( ship );
 
-    if( !EnterSystem() )
+    if( !EnterSystem( true ) )
         return false;
 
     // update skill queue

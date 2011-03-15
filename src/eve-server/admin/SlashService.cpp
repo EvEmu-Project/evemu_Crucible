@@ -106,5 +106,7 @@ PyResult SlashService::Handle_SlashCmd( PyCallArgs& call )
         return NULL;
     }
 
+    sLog.Debug( "SlashService::Handle_SlashCmd()", "Slash command called: '%s'", arg.arg.c_str() );
+
     return m_commandDispatch->Execute( call.client, arg.arg.c_str() );
 }

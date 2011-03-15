@@ -379,7 +379,11 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
 
 				// Save this subscription to this channel to the database
 				if (!(m_db.IsChannelSubscribedByThisChar(charID, channel->GetChannelID())))
-					m_db.WriteNewChannelSubscriptionToDatabase( charID, channel->GetChannelID() );
+                    m_db.WriteNewChannelSubscriptionToDatabase( charID, channel->GetChannelID(),
+                        call.client->GetCorporationID(), call.client->GetAllianceID(),
+                        2, 0 );     // the "extra" field is hard-coded
+                                                                // to '0' for now since I don't
+                                                                // know what it's used for
 
 				ml->AddItem( chjr.Encode() );
 			}
@@ -436,13 +440,14 @@ PyResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
     {
         // Remove channel subscription from database if this character was subscribed to it.
         // NOTE: channel subscriptions are NOT saved to the database for private convo chats
-        if (m_db.IsChannelSubscribedByThisChar(call.client->GetCharacterID(),toLeave))
+        if( m_db.IsChannelSubscribedByThisChar(call.client->GetCharacterID(),toLeave) )
             m_db.RemoveChannelSubscriptionFromDatabase(toLeave,call.client->GetCharacterID());
 
         // Remove channel from database if this character was the last one
         // in the channel to leave and it was a private convo (temporary==1):
-        if ((m_channels.find( toLeave )->second->GetMemberCount() == 1)
-            && (m_channels.find( toLeave )->second->GetTemporary() != 0))
+        if( (m_channels.find( toLeave )->second->GetMemberCount() == 1)
+            && (m_channels.find( toLeave )->second->GetTemporary() != 0)
+            && (toLeave >= LSCService::BASE_CHANNEL_ID) )
                 m_db.RemoveChannelFromDatabase(toLeave);
 
         m_channels[ toLeave ]->LeaveChannel( call.client );
@@ -514,13 +519,14 @@ PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
             {
                 // Remove channel subscription from database if this character was subscribed to it.
                 // NOTE: channel subscriptions are NOT saved to the database for private convo chats
-                if (m_db.IsChannelSubscribedByThisChar(call.client->GetCharacterID(),*cur))
-                    m_db.RemoveChannelSubscriptionFromDatabase(*cur,call.client->GetCharacterID());
+                if( m_db.IsChannelSubscribedByThisChar(call.client->GetCharacterID(),*cur))
+                    m_db.RemoveChannelSubscriptionFromDatabase(*cur,call.client->GetCharacterID() );
 
                 // Remove channel from database if this character was the last one
                 // in the channel to leave and it was a private convo (temporary==1):
-                if ((m_channels.find( *cur )->second->GetMemberCount() == 1)
-                    && (m_channels.find( *cur )->second->GetTemporary() != 0))
+                if( (m_channels.find( *cur )->second->GetMemberCount() == 1)
+                    && (m_channels.find( *cur )->second->GetTemporary() != 0)
+                    && (m_channels.find( *cur )->second->GetChannelID() >= LSCService::BASE_CHANNEL_ID) )
                         m_db.RemoveChannelFromDatabase(*cur);
 
                 m_channels[*cur]->LeaveChannel(call.client);
@@ -608,8 +614,12 @@ PyResult LSCService::Handle_CreateChannel( PyCallArgs& call )
 		}
 
 		// Save channel info and channel subscription to the database
-		m_db.WriteNewChannelToDatabase(channel->GetChannelID(),channel->GetDisplayName(),call.client->GetCharacterID(),0);
-		m_db.WriteNewChannelSubscriptionToDatabase(call.client->GetCharacterID(),channel->GetChannelID());
+		m_db.WriteNewChannelToDatabase(channel->GetChannelID(),channel->GetDisplayName(), call.client->GetCharacterID(),0,cmode);
+        m_db.WriteNewChannelSubscriptionToDatabase( call.client->GetCharacterID(), channel->GetChannelID(),
+            call.client->GetCorporationID(), call.client->GetAllianceID(),
+            2, 0 );     // the "extra" field is hard-coded
+                                                    // to '0' for now since I don't
+                                                    // know what it's used for
 
 		channel->JoinChannel( call.client );
 
@@ -695,7 +705,7 @@ PyResult LSCService::Handle_CreateChannel( PyCallArgs& call )
 
 		// Save this channel to the database with the 'temporary' field marked as 1 so that when the last character
 		// leaves this channel, the server knows to remove it from the database:
-		m_db.WriteNewChannelToDatabase(channel_id,call.tuple->GetItem(0)->AsString()->content(),call.client->GetCharacterID(),1);
+		m_db.WriteNewChannelToDatabase(channel_id,call.tuple->GetItem(0)->AsString()->content(),call.client->GetCharacterID(),1,cmode);
 	}
 
 
@@ -706,7 +716,11 @@ PyResult LSCService::Handle_CreateChannel( PyCallArgs& call )
 		{
 			// Save this subscription to this channel to the database IF it is not temporary:
 			if (channel->GetTemporary() == 0)
-				m_db.WriteNewChannelSubscriptionToDatabase( call.client->GetCharacterID(), channel->GetChannelID() );
+                m_db.WriteNewChannelSubscriptionToDatabase( call.client->GetCharacterID(), channel->GetChannelID(),
+                    call.client->GetCorporationID(), call.client->GetAllianceID(),
+                    2, 0 );     // the "extra" field is hard-coded
+                                                            // to '0' for now since I don't
+                                                            // know what it's used for
 
 			channel->JoinChannel( call.client );
 
@@ -917,6 +931,10 @@ PyResult LSCService::Handle_DestroyChannel( PyCallArgs& call )
     // packet sent back to the client?
     // **************************
 
+    // Remove the channel from the database:
+    m_db.RemoveChannelFromDatabase( res->second->GetChannelID() );
+
+    // Finally, remove the channel from the server dynamic objects:
     res->second->Evacuate( call.client );
     SafeDelete( res->second );
     m_channels.erase( res );
@@ -993,6 +1011,13 @@ PyResult LSCService::Handle_AccessControl( PyCallArgs& call )
 	// -- Aknor Jaden (2010-11-26)
 
 	int32 channel_id = 0;
+
+    // BIG TODO:  The whole reason why normal players cannot post chats in other channels has to do with the Access Mode
+    // in the channel settings dialog in the client.  Now, I don't know why chatting in the Help/Rookie Help is not allowed
+    // for ANY normal players, however, at the very least, implementing the change in Access Mode to 3 = Allowed may fix
+    // the issue.  The only thing to figure out is how to format a packet to be sent to the client(s) to inform of the change
+    // in access mode.  Is this really needed though, since the owner will change the mode and the owner's client will know
+    // immediately, and anyone wanting to join will get that mode value when the JoinChannel has been called.
 
     // call.tuple->GetItem(0)->AsInt()->value() = channel ID
     // call.tuple->GetItem(1)->IsNone() == true  <---- change made to "" field
@@ -1097,10 +1122,6 @@ PyResult LSCService::Handle_Invite(PyCallArgs &call)
             //chatInvitePacket.integer5 = 1;
             //PyTuple *tuple = chatInvitePacket.Encode();
             //entityList().Unicast(invited_char_ID, "", "", &tuple, false);
-
-			// Save this subscription to this channel to the database IF it is not temporary:
-			if ((channel->GetTemporary() == 0) && (m_db.IsChannelSubscribedByThisChar(invited_char_ID, channel_ID) == false))
-				m_db.WriteNewChannelSubscriptionToDatabase( invited_char_ID, channel_ID );
 		}
 		else
 		{

@@ -29,6 +29,7 @@
 #include "inventory/ItemType.h"
 #include "inventory/Inventory.h"
 #include "inventory/InventoryItem.h"
+#include "system/SystemEntity.h"
 
 /**
  * Basic container for raw ship type data.
@@ -260,6 +261,93 @@ protected:
 	PyRep *GetItem() const { return GetItemRow(); }
 
 	void AddItem(InventoryItemRef item);
+};
+
+/**
+ * DynamicSystemEntity which represents ship object in space
+ */
+class PyServiceMgr;
+class InventoryItem;
+class DestinyManager;
+class SystemManager;
+class ServiceDB;
+
+class ShipEntity
+: public DynamicSystemEntity
+{
+public:
+	ShipEntity(
+		ShipRef ship,
+		SystemManager *system,
+		PyServiceMgr &services,
+		const GPoint &position);
+    ~ShipEntity();
+
+    /*
+	 * Primary public interface:
+	 */
+    ShipRef GetShipObject() { return _shipRef; }
+    DestinyManager * GetDestiny() { return m_destiny; }
+    SystemManager * GetSystem() { return m_system; }
+
+	/*
+	 * Public fields:
+	 */
+	
+	inline double x() const { return(GetPosition().x); }
+	inline double y() const { return(GetPosition().y); }
+	inline double z() const { return(GetPosition().z); }
+
+	//SystemEntity interface:
+	virtual EntityClass GetClass() const { return(ecShipEntity); }
+	virtual bool IsShipEntity() const { return true; }
+	virtual ShipEntity *CastToShipEntity() { return(this); }
+	virtual const ShipEntity *CastToShipEntity() const { return(this); }
+	virtual void Process();
+	virtual void EncodeDestiny( Buffer& into ) const;
+	virtual void TargetAdded(SystemEntity *who) {}
+    virtual void TargetLost(SystemEntity *who) {}
+    virtual void TargetedAdd(SystemEntity *who) {}
+    virtual void TargetedLost(SystemEntity *who) {}
+	virtual void TargetsCleared() {}
+	virtual void QueueDestinyUpdate(PyTuple **du) {/* not required to consume */}
+	virtual void QueueDestinyEvent(PyTuple **multiEvent) {/* not required to consume */}
+	virtual uint32 GetCorporationID() const { return(1); }
+	virtual uint32 GetAllianceID() const { return(0); }
+	virtual void Killed(Damage &fatal_blow);
+	virtual SystemManager *System() const { return(m_system); }
+	
+	void ForcedSetPosition(const GPoint &pt);
+	
+	virtual bool ApplyDamage(Damage &d);
+	virtual void MakeDamageState(DoDestinyDamageState &into) const;
+
+	void SendNotification(const PyAddress &dest, EVENotificationStream &noti, bool seq=true);
+	void SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq=true);
+
+protected:
+	/*
+	 * Member functions
+	 */
+    void _ReduceDamage(Damage &d);
+    void ApplyDamageModifiers(Damage &d, SystemEntity *target);
+    void _DropLoot(SystemEntity *owner);
+
+	/*
+	 * Member fields:
+	 */
+	SystemManager *const m_system;	//we do not own this
+	PyServiceMgr &m_services;	//we do not own this
+    ShipRef _shipRef;   // We don't own this
+
+	/* Used to calculate the damages on NPCs
+	 * I don't know why, npc->Set_shieldCharge does not work
+	 * calling npc->shieldCharge() return the complete shield
+	 * So we get the values on creation and use then instead.
+	*/
+	double m_shieldCharge;
+	double m_armorDamage;
+	double m_hullDamage;
 };
 
 #endif /* !__SHIP__H__INCL__ */

@@ -263,6 +263,7 @@ typedef enum EVEItemFlags
 	flagSecondaryStorage			= 122,	//Secondary Storage
 	flagCaptainsQuarters			= 123,	//Captains Quarters
 	flagWisPromenade				= 124,	//Wis Promenade
+    //Const: "flagWorldSpace" => "124"
 
 	flagSubSystem0					= 125,	//Sub system slot 0
 	flagSubSystem1					= 126,	//Sub system slot 1
@@ -273,11 +274,33 @@ typedef enum EVEItemFlags
 	flagSubSystem6					= 131,	//Sub system slot 6
 	flagSubSystem7					= 132,	//Sub system slot 7
 	
-	flagFactorySlotFirst			= 140,
-	flagFactorySlotLast				= 195,
+    flagSpecializedFuelBay          = 133,
+    flagSpecializedOreHold          = 134,
+    flagSpecializedGasHold          = 135,
+    flagSpecializedMineralHold      = 136,
+    flagSpecializedSalvageHold      = 137,
+    flagSpecializedShipHold         = 138,
+    flagSpecializedSmallShipHold    = 139,
+
+    flagFactorySlotFirst			= 140,
+    //flagSpecializedMediumShipHold   = 140,
+
+    flagSpecializedLargeShipHold    = 141,
+    flagSpecializedIndustrialShipHold = 142,
+    flagSpecializedAmmoHold         = 143,
+    flagStructureActive             = 144,
+    flagStructureInactive           = 145,
+    flagJunkyardReprocessed         = 146,
+    flagJunkyardTrashed             = 147,
+    flagSpecializedCommandCenterHold = 148,
+    flagSpecializedPlanetaryCommoditiesHold = 149,
+
+    flagFactorySlotLast				= 195,
 	
 	flagResearchFacilitySlotFirst	= 200,
-	flagResearchFacilitySlotLast	= 255
+	flagResearchFacilitySlotLast	= 255,
+
+	flagClone						= 400
 } EVEItemFlags;
 
 //some alternative names for entries above.

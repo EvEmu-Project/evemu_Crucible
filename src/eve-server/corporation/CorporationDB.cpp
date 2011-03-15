@@ -998,7 +998,7 @@ uint32 CorporationDB::GetCloneTypeCostByID(uint32 cloneTypeID) {
 	DBQueryResult res;
 	if (!sDatabase.RunQuery(res,
 		" SELECT basePrice "
-		" FROM invtypes "
+		" FROM invTypes "
 		" WHERE typeID = %u ", cloneTypeID))
 	{
 		sLog.Error("CorporationDB","Failed to retrieve basePrice of typeID = %u",cloneTypeID);
@@ -1271,6 +1271,26 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDic
     return true;
 }
 #undef NI
+
+//replace all the typeID of the character's clones
+bool CorporationDB::ChangeCloneType(uint32 characterID, uint32 typeID) {
+	DBQueryResult res;
+
+	if(sDatabase.RunQuery(res,
+		"UPDATE "
+		"entity "
+		"SET typeID=%u "
+		"where ownerID=%u "
+		"and flag='400'",
+		typeID,
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to change clone type of char %u: %s.", characterID, res.error.c_str());
+		return false;
+	}
+    sLog.Debug( "CorporationDB", "Clone upgrade successful" );
+	return true;
+}
 
 
 

@@ -32,6 +32,8 @@ InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItem
     PyBoundObject(mgr), m_dispatch(new Dispatcher(this)), mInventory(inventory), mFlag(flag)
 {
     _SetCallDispatcher(m_dispatch);
+    
+    m_strBoundObjectName = "InventoryBound";
 
     PyCallable_REG_CALL(InventoryBound, List)
     PyCallable_REG_CALL(InventoryBound, Add)
@@ -42,6 +44,7 @@ InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItem
     PyCallable_REG_CALL(InventoryBound, MultiMerge)
     PyCallable_REG_CALL(InventoryBound, StackAll)
 	PyCallable_REG_CALL(InventoryBound, DestroyFitting)
+    PyCallable_REG_CALL(InventoryBound, SetPassword)
 }
 
 InventoryBound::~InventoryBound()
@@ -296,6 +299,14 @@ PyResult InventoryBound::Handle_DestroyFitting(PyCallArgs &call) {
 	item->Delete();
 
 	return NULL;
+}
+
+PyResult InventoryBound::Handle_SetPassword(PyCallArgs &call) {
+    // TODO
+    uint32 item = 0;
+    item++;
+
+    return NULL;
 }
 
 PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint32 quantity, EVEItemFlags flag) {

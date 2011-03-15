@@ -155,7 +155,6 @@ RefPtr<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
         case EVEDB::invCategories::Module:
         case EVEDB::invCategories::Charge:
         case EVEDB::invCategories::Trading:
-        case EVEDB::invCategories::Entity:
         case EVEDB::invCategories::Bonus:
         case EVEDB::invCategories::Commodity:
         case EVEDB::invCategories::Drone:
@@ -173,10 +172,27 @@ RefPtr<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
         }
 
         ///////////////////////////////////////
+        // Entity:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Entity: {
+            if( (type.groupID() == EVEDB::invGroups::Spawn_Container) )
+                return CargoContainerRef( new CargoContainer( factory, itemID, type, data ) );
+            else
+                return CelestialObjectRef( new CelestialObject( factory, itemID, type, data ) );
+        }
+
+        ///////////////////////////////////////
         // Celestial:
         ///////////////////////////////////////
         case EVEDB::invCategories::Celestial: {
-            return CelestialObject::_LoadItem<CelestialObject>( factory, itemID, type, data );
+            if( (type.groupID() == EVEDB::invGroups::Secure_Cargo_Container)
+                || (type.groupID() == EVEDB::invGroups::Audit_Log_Secure_Container)
+                || (type.groupID() == EVEDB::invGroups::Freight_Container)
+                || (type.groupID() == EVEDB::invGroups::Cargo_Container)
+                || (type.groupID() == EVEDB::invGroups::Wreck) )
+                return CargoContainerRef( new CargoContainer( factory, itemID, type, data ) );
+            else
+                return CelestialObjectRef( new CelestialObject( factory, itemID, type, data ) );
         }
 
         ///////////////////////////////////////
@@ -267,11 +283,36 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
         ///////////////////////////////////////
         // Celestial:
+        // (used for Cargo Containers, Rings, and Biomasses, Wrecks, Large Collidable Objects, Clouds,
+        //  Cosmic Signatures, Mobile Sentry Guns, Global Warp Disruptors, Agents in Space, Cosmic Anomaly, Beacons, Wormholes,
+        //  and other celestial static objects such as NPC stations, stars, moons, planets, and stargates)
         ///////////////////////////////////////
         case EVEDB::invCategories::Celestial: {
-            _log( ITEM__ERROR, "Refusing to spawn celestial object '%s'.", data.name.c_str() );
-
-            return InventoryItemRef();
+            if ( (t->groupID() == EVEDB::invGroups::Secure_Cargo_Container)
+                || (t->groupID() == EVEDB::invGroups::Cargo_Container)
+                || (t->groupID() == EVEDB::invGroups::Freight_Container)
+                || (t->groupID() == EVEDB::invGroups::Audit_Log_Secure_Container)
+                || (t->groupID() == EVEDB::invGroups::Spawn_Container)
+                || (t->groupID() == EVEDB::invGroups::Wreck) )
+            {
+                // Spawn new Cargo Container
+                uint32 itemID = CargoContainer::_Spawn( factory, data );
+                if( itemID == 0 )
+                    return CargoContainerRef();
+                return CargoContainer::Load( factory, itemID );
+                //uint32 itemID = InventoryItem::_Spawn( factory, data );
+                //if( itemID == 0 )
+                //    return InventoryItemRef();
+                //return InventoryItem::Load( factory, itemID );
+            }
+            else
+            {
+                // Spawn new Celestial Object
+                uint32 itemID = CelestialObject::_Spawn( factory, data );
+                if( itemID == 0 )
+                    return CelestialObjectRef();
+                return CelestialObject::Load( factory, itemID );
+            }
         }
 
         ///////////////////////////////////////
@@ -302,9 +343,13 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
         // Station:
         ///////////////////////////////////////
         case EVEDB::invGroups::Station: {
-            _log( ITEM__ERROR, "Refusing to create station '%s'.", data.name.c_str() );
-
-            return InventoryItemRef();
+            //_log( ITEM__ERROR, "Refusing to create station '%s'.", data.name.c_str() );
+            //return InventoryItemRef();
+            //return Station::Spawn( factory, data );
+            uint32 itemID = Station::_Spawn( factory, data );
+            if( itemID == 0 )
+                return StationRef();
+            return Station::Load( factory, itemID );
         }
     }
 

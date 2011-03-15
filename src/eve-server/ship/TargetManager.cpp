@@ -164,7 +164,7 @@ void TargetManager::TargetLost(SystemEntity *who) {
 	m_self->TargetLost(who);
 }
 
-bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {
+bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {   // needs another argument: "ShipRef ship" to access ship attributes
 	//first make sure they are not already in the list
 	std::map<SystemEntity *, TargetEntry *>::iterator res;
 	res = m_targets.find(who);
@@ -178,7 +178,16 @@ bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {
 	if(who == m_self)
 		return false;
 
-	//TODO: check against max locked target.
+    //TODO: check against max locked target count
+    uint32 maxLockedTargets = 4;        // hard-coded for now, but this should be queried from ShipRef ship->maxLockedTargets()
+    if( m_targets.size() >= maxLockedTargets )
+        return false;
+
+    //TODO: check against max locked target range
+    double maxTargetLockRange = 50000;  // hard-coded for now, but this should be queried from ShipRef ship->maxTargetRange()
+    GVector rangeToTarget( who->GetPosition(), m_self->GetPosition() );
+    if( rangeToTarget.length() > maxTargetLockRange )
+        return false;
 	
 	TargetEntry *te = new TargetEntry(who);
 	te->state = TargetEntry::Locking;
@@ -411,8 +420,8 @@ PyList *TargetManager::GetTargeters() const {
 }
 uint32 TargetManager::TimeToLock(ShipRef ship, SystemEntity *target) const {
 
-	double scanRes = ship->attributes.GetReal( ship->attributes.Attr_scanResolution );
-	double sigRad = 25;
+	double scanRes = 300;//1080;//ship->attributes.GetReal( ship->attributes.Attr_scanResolution );
+	double sigRad = 137.3625;
 	
 		if( target->IsClient() || target->IsNPC() )
 			sigRad = target->Item()->attributes.GetReal( target->Item()->attributes.Attr_signatureRadius );

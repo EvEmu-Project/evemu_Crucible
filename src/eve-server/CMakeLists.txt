@@ -240,15 +240,18 @@ SET( npc_SOURCE
 
 SET( posmgr_INCLUDE
      "${TARGET_INCLUDE_DIR}/posmgr/PosMgrDB.h"
-     "${TARGET_INCLUDE_DIR}/posmgr/PosMgrService.h" )
+     "${TARGET_INCLUDE_DIR}/posmgr/PosMgrService.h"
+     "${TARGET_INCLUDE_DIR}/posmgr/Structure.h" )
 SET( posmgr_SOURCE
      "${TARGET_SOURCE_DIR}/posmgr/PosMgrDB.cpp"
-     "${TARGET_SOURCE_DIR}/posmgr/PosMgrService.cpp" )
+     "${TARGET_SOURCE_DIR}/posmgr/PosMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/posmgr/Structure.cpp" )
 
 SET( ship_INCLUDE
      "${TARGET_INCLUDE_DIR}/ship/BeyonceService.h"
      "${TARGET_INCLUDE_DIR}/ship/DestinyManager.h"
      "${TARGET_INCLUDE_DIR}/ship/dgmtypeattributeinfo.h"
+     "${TARGET_INCLUDE_DIR}/ship/Drone.h"
      "${TARGET_INCLUDE_DIR}/ship/InsuranceService.h"
      "${TARGET_INCLUDE_DIR}/ship/ModuleManager.h"
      "${TARGET_INCLUDE_DIR}/ship/Ship.h"
@@ -259,6 +262,7 @@ SET( ship_SOURCE
      "${TARGET_SOURCE_DIR}/ship/BeyonceService.cpp"
      "${TARGET_SOURCE_DIR}/ship/DestinyManager.cpp"
      "${TARGET_SOURCE_DIR}/ship/dgmtypeattributeinfo.cpp"
+     "${TARGET_SOURCE_DIR}/ship/Drone.cpp"
      "${TARGET_SOURCE_DIR}/ship/InsuranceService.cpp"
      "${TARGET_SOURCE_DIR}/ship/ModuleManager.cpp"
      "${TARGET_SOURCE_DIR}/ship/Ship.cpp"
@@ -304,7 +308,9 @@ SET( system_INCLUDE
      "${TARGET_INCLUDE_DIR}/system/BookmarkService.h"
      "${TARGET_INCLUDE_DIR}/system/BubbleManager.h"
      "${TARGET_INCLUDE_DIR}/system/Celestial.h"
+     "${TARGET_INCLUDE_DIR}/system/Container.h"
      "${TARGET_INCLUDE_DIR}/system/Damage.h"
+     "${TARGET_INCLUDE_DIR}/system/Deployable.h"
      "${TARGET_INCLUDE_DIR}/system/DungeonService.h"
      "${TARGET_INCLUDE_DIR}/system/KeeperService.h"
      "${TARGET_INCLUDE_DIR}/system/ScenarioService.h"
@@ -319,7 +325,9 @@ SET( system_SOURCE
      "${TARGET_SOURCE_DIR}/system/BookmarkService.cpp"
      "${TARGET_SOURCE_DIR}/system/BubbleManager.cpp"
      "${TARGET_SOURCE_DIR}/system/Celestial.cpp"
+     "${TARGET_SOURCE_DIR}/system/Container.cpp"
      "${TARGET_SOURCE_DIR}/system/Damage.cpp"
+     "${TARGET_SOURCE_DIR}/system/Deployable.cpp"
      "${TARGET_SOURCE_DIR}/system/DungeonService.cpp"
      "${TARGET_SOURCE_DIR}/system/KeeperService.cpp"
      "${TARGET_SOURCE_DIR}/system/ScenarioService.cpp"

@@ -87,6 +87,8 @@ public:
     bool UpdateDivisionNames(uint32 corpID, const Call_UpdateDivisionNames & divs, PyDict * notif);
     bool UpdateCorporation(uint32 corpID, const Call_UpdateCorporation & upd, PyDict * notif);
     bool UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDict * notif);
+	
+	bool ChangeCloneType(uint32 characterID, uint32 typeID);
 
 protected:
 };

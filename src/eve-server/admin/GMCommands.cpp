@@ -321,43 +321,167 @@ PyResult Command_goto( Client* who, CommandDB* db, PyServiceMgr* services, const
 	return new PyString( "Goto successfull." );
 }
 
-PyResult Command_spawn( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+PyResult Command_spawnn( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-	if( args.argCount() < 2 ) {
-		throw PyException( MakeCustomError("Correct Usage: /spawn [typeID]") );
-	}
-	
-	if( !args.isNumber( 1 ) )
-		throw PyException( MakeCustomError( "Argument 1 should be an item type ID" ) );
-    const uint32 typeID = atoi( args.arg( 1 ).c_str() );
+    uint32 typeID = 0;
+    uint32 actualTypeID = 0;
+    std::string actualTypeName = "";
+    uint32 actualGroupID = 0;
+    uint32 actualCategoryID = 0;
+    double actualRadius = 0.0;
+    InventoryItemRef item;
+    ShipRef ship;
+    
+    // "/spawnn" arguments:
+    // #1 = quantity ?
+    // #2 = some double value ?
+    // #3 = typeID
 
-    sLog.Log( "Command", "%s: Summon %u.", who->GetName(), typeID );
+	if( (args.argCount() < 4) || (args.argCount() > 4) )
+    {
+		throw PyException( MakeCustomError("LOL, we don't know the correct usage of /spawnn, sorry you're S.O.L., BUT it should have 4 arguments.") );
+	}
+
+    // Since we don't know what args 1 and 2 are, we don't care about them right now...
+
+	if( !(args.isNumber( 3 )) )
+		throw PyException( MakeCustomError( "Argument 3 should be an item type ID" ) );
+
+    typeID = atoi( args.arg( 3 ).c_str() );
 
 	if( !who->IsInSpace() )
 		throw PyException( MakeCustomError( "You must be in space to spawn things." ) );
-	
-	//hacking it...
-	GPoint loc( who->GetPosition() );
-	loc.x += 1500;
 
+    // Search for item type using typeID:
+    if( !(db->ItemSearch(typeID, actualTypeID, actualTypeName, actualGroupID, actualCategoryID, actualRadius) ) )
+    {
+        return new PyString( "Unknown typeID or typeName returned no matches." );
+    }
+
+	GPoint loc( who->GetPosition() );
+    // Calculate a random coordinate on the sphere centered on the player's position with
+    // a radius equal to the radius of the ship/celestial being spawned times 10 for really good measure of separation:
+    double radius = (actualRadius * 5.0) * (double)(MakeRandomInt( 1, 3));     // Scale the distance from player that the object will spawn to between 10x and 15x the object's radius
+    loc.MakeRandomPointOnSphere( radius );
+
+    // Spawn the item:
 	ItemData idata(
-		typeID,
-		who->GetCorporationID(), //owner
+		actualTypeID,
+		1, // owner is EVE System
 		who->GetLocationID(),
 		flagAutoFit,
-		"",
+        actualTypeName.c_str(),
 		loc
 	);
 
-	InventoryItemRef i = services->item_factory.SpawnItem( idata );
-	if( !i )
+    item = services->item_factory.SpawnItem( idata );
+	if( !item )
 		throw PyException( MakeCustomError( "Unable to spawn item of type %u.", typeID ) );
 
-	SystemManager* sys = who->System();
-	NPC* it = new NPC( sys, *services, i, who->GetCorporationID(), who->GetAllianceID(), loc );
-	sys->AddNPC( it );
+    DBSystemDynamicEntity entity;
 
-	return new PyString( "Spawn successfull." );
+    entity.allianceID = 0;
+    entity.categoryID = actualCategoryID;
+    entity.corporationID = 0;
+    entity.flag = 0;
+    entity.groupID = actualGroupID;
+    entity.itemID = item->itemID();
+    entity.itemName = actualTypeName;
+    entity.locationID = who->GetLocationID();
+    entity.ownerID = 1;
+    entity.typeID = actualTypeID;
+    entity.x = loc.x;
+    entity.y = loc.y;
+    entity.z = loc.z;
+
+    // Actually do the spawn using SystemManager's BuildEntity:
+    if( !(who->System()->BuildDynamicEntity( who, entity )) )
+        return new PyString( "Spawn Failed: typeID or typeName not supported." );
+
+    sLog.Log( "Command", "%s: Spawned %u.", who->GetName(), typeID );
+
+	return new PyString( "Spawn successful." );
+}
+
+PyResult Command_spawn( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+    uint32 typeID = 0;
+    uint32 actualTypeID = 0;
+    std::string actualTypeName = "";
+    uint32 actualGroupID = 0;
+    uint32 actualCategoryID = 0;
+    double actualRadius = 0.0;
+    InventoryItemRef item;
+    ShipRef ship;
+    
+	if( args.argCount() < 2 ) {
+		throw PyException( MakeCustomError("Correct Usage: /spawn [typeID(int)/typeName(string)]") );
+	}
+	
+	if( !(args.isNumber( 1 )) )
+		throw PyException( MakeCustomError( "Argument 1 should be an item type ID" ) );
+
+    typeID = atoi( args.arg( 1 ).c_str() );
+
+	if( !who->IsInSpace() )
+		throw PyException( MakeCustomError( "You must be in space to spawn things." ) );
+
+    // Search for item type using typeID:
+    if( !(db->ItemSearch(typeID, actualTypeID, actualTypeName, actualGroupID, actualCategoryID, actualRadius) ) )
+    {
+        return new PyString( "Unknown typeID or typeName returned no matches." );
+    }
+
+	GPoint loc( who->GetPosition() );
+    // Calculate a random coordinate on the sphere centered on the player's position with
+    // a radius equal to the radius of the ship/celestial being spawned times 10 for really good measure of separation:
+    double radius = (actualRadius * 5.0) * (double)(MakeRandomInt( 1, 3));     // Scale the distance from player that the object will spawn to between 10x and 15x the object's radius
+    loc.MakeRandomPointOnSphere( radius );
+
+    // Spawn the item:
+	ItemData idata(
+		actualTypeID,
+		1, // owner is EVE System
+		who->GetLocationID(),
+		flagAutoFit,
+        actualTypeName.c_str(),
+		loc
+	);
+
+    item = services->item_factory.SpawnItem( idata );
+	if( !item )
+		throw PyException( MakeCustomError( "Unable to spawn item of type %u.", typeID ) );
+
+    DBSystemDynamicEntity entity;
+
+    entity.allianceID = 0;
+    entity.categoryID = actualCategoryID;
+    entity.corporationID = 0;
+    entity.flag = 0;
+    entity.groupID = actualGroupID;
+    entity.itemID = item->itemID();
+    entity.itemName = actualTypeName;
+    entity.locationID = who->GetLocationID();
+    entity.ownerID = 1;
+    entity.typeID = actualTypeID;
+    entity.x = loc.x;
+    entity.y = loc.y;
+    entity.z = loc.z;
+
+    // Actually do the spawn using SystemManager's BuildEntity:
+    if( !(who->System()->BuildDynamicEntity( who, entity )) )
+        return new PyString( "Spawn Failed: typeID or typeName not supported." );
+
+    // TEST FOR FUN:  If this is a drone, make its destiny manager orbit the ship that spawned it like a little lost puppy...
+    if( item->categoryID() == EVEDB::invCategories::Drone )
+    {
+        ((DroneEntity *)(who->System()->get( entity.itemID )))->Destiny()->SetSpeedFraction( 1.0, true );
+        ((DroneEntity *)(who->System()->get( entity.itemID )))->Destiny()->Orbit( who, 1000.0, true );
+    }
+
+    sLog.Log( "Command", "%s: Spawned %u.", who->GetName(), typeID );
+
+	return new PyString( "Spawn successful." );
 }
 
 PyResult Command_location( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
@@ -509,7 +633,7 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 		throw PyException( MakeCustomError("Correct Usage: /fit [typeID] ") );
 	}
 	
-	uint32 typeID;
+	uint32 typeID = 0;
 
 	if( args.argCount() == 3)
 	{
@@ -534,28 +658,35 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 	uint32 useableSlot;
 	std::string affectName = "online";
 
-	//Get Range of slots for item
-	InventoryDB::GetModulePowerSlotByTypeID( typeID, powerSlot );
+    if( typeID == 0 )
+    {
+        throw PyException( MakeCustomError( "Unable to create item of type %u.", typeID ) );
+        return new PyString( "Creation FAILED." );
+    }
+    else
+    {
+    	//Get Range of slots for item
+	    InventoryDB::GetModulePowerSlotByTypeID( typeID, powerSlot );
 
-	//Get open slots available on ship
-	InventoryDB::GetOpenPowerSlots(powerSlot, who->GetShip(), useableSlot);			
+	    //Get open slots available on ship
+	    InventoryDB::GetOpenPowerSlots(powerSlot, who->GetShip(), useableSlot);			
 			
-	ItemData idata(
-		typeID,
-		who->GetCharacterID(),
-		0, //temp location
-		flag = (EVEItemFlags)useableSlot,
-		qty
-	);
+	    ItemData idata(
+		    typeID,
+		    who->GetCharacterID(),
+		    0, //temp location
+		    flag = (EVEItemFlags)useableSlot,
+		    qty
+	    );
 
-	InventoryItemRef i = services->item_factory.SpawnItem( idata );
-	if( !i )
-		throw PyException( MakeCustomError( "Unable to create item of type %s.", typeID ) );
+	    InventoryItemRef i = services->item_factory.SpawnItem( idata );
+	    if( !i )
+		    throw PyException( MakeCustomError( "Unable to create item of type %u.", typeID ) );
 
-	who->MoveItem( i->itemID(), who->GetShipID(), flag );
+	    who->MoveItem( i->itemID(), who->GetShipID(), flag );
 
-	return new PyString( "Creation successfull." );
-
+	    return new PyString( "Creation successfull." );
+    }
 }
 
 PyResult Command_giveskills( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args ) {
@@ -781,9 +912,42 @@ PyResult Command_repairmodules( Client* who, CommandDB* db, PyServiceMgr* servic
 
 PyResult Command_unspawn( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-	throw PyException( MakeCustomError("Unspawn not implemented yet!"));
+    uint32 entityID = 0;
+    uint32 itemID = 0;
+    
+	if( (args.argCount() < 3) || (args.argCount() > 3) )
+		throw PyException( MakeCustomError("Correct Usage: /unspawn (entityID) (itemID), and for now (entityID) is unused, so just type 0, and use the itemID from the entity table for (itemID)") );
+	
+    if( !(args.isNumber( 1 )) )
+		throw PyException( MakeCustomError( "Argument 1 should be an item entity ID" ) );
 
-	return NULL;
+    if( !(args.isNumber( 2 )) )
+		throw PyException( MakeCustomError( "Argument 2 should be an item item ID" ) );
+
+    entityID = atoi( args.arg( 1 ).c_str() );
+    itemID = atoi( args.arg( 2 ).c_str() );
+
+	if( !who->IsInSpace() )
+		throw PyException( MakeCustomError( "You must be in space to unspawn things." ) );
+
+    // Search for the itemRef for itemID:
+    InventoryItemRef itemRef = who->services().item_factory.GetItem( itemID );
+    SystemEntity * entityRef = who->System()->get( itemID );
+
+    // Actually do the unspawn using SystemManager's RemoveEntity:
+    if( entityRef == NULL )
+    {
+        return new PyString( "Un-Spawn Failed: itemID not found." );
+    }
+    else
+    {
+        who->System()->RemoveEntity( entityRef );
+        itemRef->Delete();
+    }
+
+    sLog.Log( "Command", "%s: Un-Spawned %u.", who->GetName(), itemID );
+
+	return new PyString( "Un-Spawn successfull." );
 }
 
 PyResult Command_dogma( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )

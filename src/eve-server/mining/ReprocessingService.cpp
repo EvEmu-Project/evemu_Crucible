@@ -105,6 +105,8 @@ ReprocessingServiceBound::ReprocessingServiceBound(PyServiceMgr *mgr, Reprocessi
 {
     _SetCallDispatcher(m_dispatch);
 
+    m_strBoundObjectName = "ReprocessingServiceBound";
+
     PyCallable_REG_CALL(ReprocessingServiceBound, GetOptionsForItemTypes)
     PyCallable_REG_CALL(ReprocessingServiceBound, GetReprocessingInfo)
     PyCallable_REG_CALL(ReprocessingServiceBound, GetQuote)

@@ -33,6 +33,8 @@ class Ship;
 class CelestialObject;
 class Skill;
 class Owner;
+class Structure;
+class CargoContainer;
 
 class Character;
 class SolarSystem;
@@ -54,6 +56,10 @@ typedef RefPtr<Skill>                    SkillRef;
 typedef RefPtr<const Skill>              SkillConstRef;
 typedef RefPtr<Owner>                    OwnerRef;
 typedef RefPtr<const Owner>              OwnerConstRef;
+typedef RefPtr<Structure>                StructureRef;
+typedef RefPtr<const Structure>          StructureConstRef;
+typedef RefPtr<CargoContainer>           CargoContainerRef;
+typedef RefPtr<const CargoContainer>     CargoContainerConstRef;
 
 typedef RefPtr<Character>                CharacterRef;
 typedef RefPtr<const Character>          CharacterConstRef;

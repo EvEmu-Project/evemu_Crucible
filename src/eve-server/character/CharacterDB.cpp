@@ -176,6 +176,82 @@ bool CharacterDB::GetCharItems(uint32 characterID, std::vector<uint32> &into) {
 	return true;
 }
 
+//returns a list of the itemID for all the clones belonging to the character
+bool CharacterDB::GetCharClones(uint32 characterID, std::vector<uint32> &into) {
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		"  itemID"
+		" FROM entity"
+		" WHERE ownerID = %u"
+		" and flag='400'",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query clones of char %u: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	while(res.GetRow(row))
+		into.push_back(row.GetUInt(0));
+	
+	return true;
+}
+
+//returns the itemID of the active clone
+//if you want to get the typeID of the clone, please use GetActiveCloneType
+bool CharacterDB::GetActiveClone(uint32 characterID, uint32 &itemID) {
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		"  itemID"
+		" FROM entity"
+		" WHERE ownerID = %u"
+		" and flag='400'"
+		" and customInfo='active'",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query active clone of char %u: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	res.GetRow(row);
+	itemID=row.GetUInt(0);
+	
+	return true;
+}
+
+//we use this function because, when we change the clone type,
+//the cached item type doesn't change, so we need to read it 
+//directly from the db
+bool CharacterDB::GetActiveCloneType(uint32 characterID, uint32 &typeID) {
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		"  typeID"
+		" FROM entity"
+		" WHERE ownerID = %u"
+		" and flag='400'"
+		" and customInfo='active'",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query active clone of char %u: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	res.GetRow(row);
+	typeID=row.GetUInt(0);
+	
+	return true;
+}
+
+
+
 PyObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
 	DBQueryResult res;
 	

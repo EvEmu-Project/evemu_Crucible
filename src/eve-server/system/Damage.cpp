@@ -637,7 +637,6 @@ bool NPC::ApplyDamage(Damage &d) {
 	return(killed);
 
 }
- 
 
 void NPC::_SendDamageStateChanged() const
 {
@@ -670,14 +669,12 @@ void SystemEntity::Killed(Damage &fatal_blow) {
 	targets.ClearAllTargets(false);	//I assume a client does not need this notification.
 }
 
-
 void DynamicSystemEntity::Killed(Damage &fatal_blow) {
 	ItemSystemEntity::Killed(fatal_blow);
 	if(m_destiny != NULL) {
 		m_destiny->SendTerminalExplosion();
 	}
 }
-
 
 void Client::Killed(Damage &fatal_blow) {
 	DynamicSystemEntity::Killed(fatal_blow);
@@ -742,6 +739,7 @@ void Client::Killed(Damage &fatal_blow) {
 
 	}
 }
+
 
 void NPC::Killed(Damage &fatal_blow)
 {
@@ -835,20 +833,399 @@ void NPC::_AwardBounty(SystemEntity *who) {
 }
 
 
+void ShipEntity::_ReduceDamage(Damage &d) {
+	// armorEmDamageResonance
+	// armorExplosiveDamageResonance
+	// armorKineticDamageResonance
+	// armorThermalDamageResonance
+	// shieldEmDamageResonance
+	// shieldExplosiveDamageResonance
+	// shieldKineticDamageResonance
+	// shieldThermalDamageResonance
+}
+
+void ShipEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
+{
+}
+
+// This is a ShipEntity implementation of damage system (incomplete)
+bool ShipEntity::ApplyDamage(Damage &d) {
+// for now this uses ItemSystemEntity
+	_ReduceDamage(d);
+	
+	return ItemSystemEntity::ApplyDamage(d);
+}
+
+void ShipEntity::Killed(Damage &fatal_blow)
+{
+	m_destiny->Stop();
+
+	DynamicSystemEntity::Killed(fatal_blow);
+	
+	SystemEntity *killer = fatal_blow.source;
+	Client* client = m_services.entity_list.FindByShip( killer->Item()->ownerID() );
+	if( !killer->IsClient() )
+	{
+		if( client != NULL )
+		{
+			killer = static_cast<SystemEntity*>(client);
+		}
+	}
+	else
+	{
+		client = killer->CastToClient();
+	}
+	//TODO: drop loot.
+	//_DropLoot(fatal_blow.source);
+	_DropLoot(killer);
+	
+	//TODO: award status changes. (entitySecurityStatusKillBonus)
+	client->GetChar()->addSecurityRating( m_self->entitySecurityStatusKillBonus() );
+	
+	m_system->RemoveEntity(this);
+}
+
+void ShipEntity::_DropLoot(SystemEntity *owner) {
+
+	//entityLootValueMin
+	//entityLootValueMax
+	//entityLootCountMin
+	//entityLootCountMax
+	//minLootCount
+	//maxLootCount
+	//minLootValue
+	//maxLootValue
+	
+	// Send an OnSpecialFX (9) for effects.Jettison (with can's ID, not npc)
+}
 
 
+void DroneEntity::_ReduceDamage(Damage &d) {
+	// armorEmDamageResonance
+	// armorExplosiveDamageResonance
+	// armorKineticDamageResonance
+	// armorThermalDamageResonance
+	// shieldEmDamageResonance
+	// shieldExplosiveDamageResonance
+	// shieldKineticDamageResonance
+	// shieldThermalDamageResonance
+}
+
+void DroneEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
+{
+}
+
+// This is a DroneEntity implementation of damage system (incomplete)
+bool DroneEntity::ApplyDamage(Damage &d) {
+// for now this uses ItemSystemEntity
+	_ReduceDamage(d);
+	
+	return ItemSystemEntity::ApplyDamage(d);
+}
+
+void DroneEntity::Killed(Damage &fatal_blow)
+{
+	m_destiny->Stop();
+
+	DynamicSystemEntity::Killed(fatal_blow);
+	
+	SystemEntity *killer = fatal_blow.source;
+	Client* client = m_services.entity_list.FindByShip( killer->Item()->ownerID() );
+	if( !killer->IsClient() )
+	{
+		if( client != NULL )
+		{
+			killer = static_cast<SystemEntity*>(client);
+		}
+	}
+	else
+	{
+		client = killer->CastToClient();
+	}
+	
+	//TODO: award status changes. (entitySecurityStatusKillBonus)
+	client->GetChar()->addSecurityRating( m_self->entitySecurityStatusKillBonus() );
+	
+	m_system->RemoveEntity(this);
+}
 
 
+void StructureEntity::_ReduceDamage(Damage &d) {
+	// armorEmDamageResonance
+	// armorExplosiveDamageResonance
+	// armorKineticDamageResonance
+	// armorThermalDamageResonance
+	// shieldEmDamageResonance
+	// shieldExplosiveDamageResonance
+	// shieldKineticDamageResonance
+	// shieldThermalDamageResonance
+}
+
+void StructureEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
+{
+}
+
+// This is a StructureEntity implementation of damage system (incomplete)
+bool StructureEntity::ApplyDamage(Damage &d) {
+// for now this uses ItemSystemEntity
+	_ReduceDamage(d);
+	
+	return ItemSystemEntity::ApplyDamage(d);
+}
+
+void StructureEntity::Killed(Damage &fatal_blow)
+{
+	m_destiny->Stop();
+
+	DynamicSystemEntity::Killed(fatal_blow);
+	
+	SystemEntity *killer = fatal_blow.source;
+	Client* client = m_services.entity_list.FindByShip( killer->Item()->ownerID() );
+	if( !killer->IsClient() )
+	{
+		if( client != NULL )
+		{
+			killer = static_cast<SystemEntity*>(client);
+		}
+	}
+	else
+	{
+		client = killer->CastToClient();
+	}
+	
+	//TODO: award status changes. (entitySecurityStatusKillBonus)
+	client->GetChar()->addSecurityRating( m_self->entitySecurityStatusKillBonus() );
+	
+	m_system->RemoveEntity(this);
+}
 
 
+void ContainerEntity::_ReduceDamage(Damage &d) {
+	// armorEmDamageResonance
+	// armorExplosiveDamageResonance
+	// armorKineticDamageResonance
+	// armorThermalDamageResonance
+	// shieldEmDamageResonance
+	// shieldExplosiveDamageResonance
+	// shieldKineticDamageResonance
+	// shieldThermalDamageResonance
+}
+
+void ContainerEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
+{
+}
+
+// This is a ContainerEntity implementation of damage system (incomplete)
+bool ContainerEntity::ApplyDamage(Damage &d) {
+// for now this uses ItemSystemEntity
+	_ReduceDamage(d);
+	
+	return ItemSystemEntity::ApplyDamage(d);
+}
+
+void ContainerEntity::Killed(Damage &fatal_blow)
+{
+	m_destiny->Stop();
+
+	DynamicSystemEntity::Killed(fatal_blow);
+	
+	SystemEntity *killer = fatal_blow.source;
+	Client* client = m_services.entity_list.FindByShip( killer->Item()->ownerID() );
+	if( !killer->IsClient() )
+	{
+		if( client != NULL )
+		{
+			killer = static_cast<SystemEntity*>(client);
+		}
+	}
+	else
+	{
+		client = killer->CastToClient();
+	}
+	
+	//TODO: award status changes. (entitySecurityStatusKillBonus)
+	client->GetChar()->addSecurityRating( m_self->entitySecurityStatusKillBonus() );
+	
+	m_system->RemoveEntity(this);
+}
 
 
+void DeployableEntity::_ReduceDamage(Damage &d) {
+	// armorEmDamageResonance
+	// armorExplosiveDamageResonance
+	// armorKineticDamageResonance
+	// armorThermalDamageResonance
+	// shieldEmDamageResonance
+	// shieldExplosiveDamageResonance
+	// shieldKineticDamageResonance
+	// shieldThermalDamageResonance
+}
+
+void DeployableEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
+{
+}
+
+// This is a DeployableEntity implementation of damage system (incomplete)
+bool DeployableEntity::ApplyDamage(Damage &d) {
+// for now this uses ItemSystemEntity
+	_ReduceDamage(d);
+	
+	return ItemSystemEntity::ApplyDamage(d);
+}
+
+void DeployableEntity::Killed(Damage &fatal_blow)
+{
+	m_destiny->Stop();
+
+	DynamicSystemEntity::Killed(fatal_blow);
+	
+	SystemEntity *killer = fatal_blow.source;
+	Client* client = m_services.entity_list.FindByShip( killer->Item()->ownerID() );
+	if( !killer->IsClient() )
+	{
+		if( client != NULL )
+		{
+			killer = static_cast<SystemEntity*>(client);
+		}
+	}
+	else
+	{
+		client = killer->CastToClient();
+	}
+	
+	//TODO: award status changes. (entitySecurityStatusKillBonus)
+	client->GetChar()->addSecurityRating( m_self->entitySecurityStatusKillBonus() );
+	
+	m_system->RemoveEntity(this);
+}
 
 
+// This is a AsteroidEntity implementation of damage system (incomplete)
+bool AsteroidEntity::ApplyDamage(Damage &d) {
+// for now this uses ItemSystemEntity
+	
+	return ItemSystemEntity::ApplyDamage(d);
+}
+
+void AsteroidEntity::Killed(Damage &fatal_blow)
+{
+	m_destiny->Stop();
+
+	DynamicSystemEntity::Killed(fatal_blow);
+	
+	SystemEntity *killer = fatal_blow.source;
+	Client* client = m_services.entity_list.FindByShip( killer->Item()->ownerID() );
+	if( !killer->IsClient() )
+	{
+		if( client != NULL )
+		{
+			killer = static_cast<SystemEntity*>(client);
+		}
+	}
+	else
+	{
+		client = killer->CastToClient();
+	}
+	
+	m_system->RemoveEntity(this);
+}
 
 
+void CelestialEntity::_ReduceDamage(Damage &d) {
+	// armorEmDamageResonance
+	// armorExplosiveDamageResonance
+	// armorKineticDamageResonance
+	// armorThermalDamageResonance
+	// shieldEmDamageResonance
+	// shieldExplosiveDamageResonance
+	// shieldKineticDamageResonance
+	// shieldThermalDamageResonance
+}
+
+void CelestialEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
+{
+}
+
+// This is a CelestialEntity implementation of damage system (incomplete)
+bool CelestialEntity::ApplyDamage(Damage &d) {
+// for now this uses ItemSystemEntity
+	_ReduceDamage(d);
+	
+	return ItemSystemEntity::ApplyDamage(d);
+}
+
+void CelestialEntity::Killed(Damage &fatal_blow)
+{
+	m_destiny->Stop();
+
+	DynamicSystemEntity::Killed(fatal_blow);
+	
+	SystemEntity *killer = fatal_blow.source;
+	Client* client = m_services.entity_list.FindByShip( killer->Item()->ownerID() );
+	if( !killer->IsClient() )
+	{
+		if( client != NULL )
+		{
+			killer = static_cast<SystemEntity*>(client);
+		}
+	}
+	else
+	{
+		client = killer->CastToClient();
+	}
+	
+	//TODO: award status changes. (entitySecurityStatusKillBonus)
+	client->GetChar()->addSecurityRating( m_self->entitySecurityStatusKillBonus() );
+	
+	m_system->RemoveEntity(this);
+}
 
 
+void StationEntity::_ReduceDamage(Damage &d) {
+	// armorEmDamageResonance
+	// armorExplosiveDamageResonance
+	// armorKineticDamageResonance
+	// armorThermalDamageResonance
+	// shieldEmDamageResonance
+	// shieldExplosiveDamageResonance
+	// shieldKineticDamageResonance
+	// shieldThermalDamageResonance
+}
 
+void StationEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
+{
+}
 
+// This is a StationEntity implementation of damage system (incomplete)
+bool StationEntity::ApplyDamage(Damage &d) {
+// for now this uses ItemSystemEntity
+	_ReduceDamage(d);
+	
+	return ItemSystemEntity::ApplyDamage(d);
+}
 
+void StationEntity::Killed(Damage &fatal_blow)
+{
+	m_destiny->Stop();
+
+	DynamicSystemEntity::Killed(fatal_blow);
+	
+	SystemEntity *killer = fatal_blow.source;
+	Client* client = m_services.entity_list.FindByShip( killer->Item()->ownerID() );
+	if( !killer->IsClient() )
+	{
+		if( client != NULL )
+		{
+			killer = static_cast<SystemEntity*>(client);
+		}
+	}
+	else
+	{
+		client = killer->CastToClient();
+	}
+	
+	//TODO: award status changes. (entitySecurityStatusKillBonus)
+	client->GetChar()->addSecurityRating( m_self->entitySecurityStatusKillBonus() );
+	
+	m_system->RemoveEntity(this);
+}

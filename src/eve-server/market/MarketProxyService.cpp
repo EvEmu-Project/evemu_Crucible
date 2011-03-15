@@ -80,7 +80,8 @@ MarketProxyService::MarketProxyService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(MarketProxyService, GetCharOrders)
     PyCallable_REG_CALL(MarketProxyService, ModifyCharOrder)
     PyCallable_REG_CALL(MarketProxyService, CancelCharOrder)
-	PyCallable_REG_CALL(MarketProxyService, CharGetNewTransactions)
+    PyCallable_REG_CALL(MarketProxyService, CharGetNewTransactions)
+    PyCallable_REG_CALL(MarketProxyService, StartupCheck)
 }
 
 MarketProxyService::~MarketProxyService() {

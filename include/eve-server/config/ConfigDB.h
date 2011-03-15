@@ -42,7 +42,7 @@ public:
     PyRep *GetMultiGraphicsEx(const std::vector<int32> &entityIDs);
     PyRep *GetMultiInvTypesEx(const std::vector<int32> &typeIDs);
     PyObject *GetUnits();
-    PyObject *GetMapObjects(uint32 entityID, bool wantRegions, bool wantConstellations, bool wantSystems, bool wantStations);
+    PyObjectEx *GetMapObjects(uint32 entityID, bool wantRegions, bool wantConstellations, bool wantSystems, bool wantStations);
     PyObject *GetMap(uint32 solarSystemID);
     PyObject *ListLanguages();
     PyRep *GetStationSolarSystemsByOwner(uint32 ownerID);

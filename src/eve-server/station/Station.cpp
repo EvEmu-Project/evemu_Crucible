@@ -125,6 +125,7 @@ Station::Station(
 	// Station stuff:
 	const StationData &_stData)
 : CelestialObject(_factory, _stationID, _type, _data, _cData),
+  m_stationType(_type),
   m_security(_stData.security),
   m_dockingCostPerVolume(_stData.dockingCostPerVolume),
   m_maxShipVolumeDockable(_stData.maxShipVolumeDockable),
@@ -163,4 +164,179 @@ bool Station::_Load()
 	return CelestialObject::_Load();
 }
 
+uint32 Station::_Spawn(ItemFactory &factory,
+    // InventoryItem stuff:
+    ItemData &data
+) {
+    // make sure it's a Station
+    const ItemType *item = factory.GetType(data.typeID);
+    if( !(item->categoryID() == EVEDB::invCategories::Station) )
+        return 0;
+
+    // store item data
+    uint32 stationID = InventoryItem::_Spawn(factory, data);
+    if( stationID == 0 )
+        return 0;
+
+    // nothing additional
+
+    return stationID;
+}
+
+using namespace Destiny;
+
+StationEntity::StationEntity(
+    StationRef station,
+	SystemManager *system,
+	PyServiceMgr &services,
+	const GPoint &position)
+: DynamicSystemEntity(new DestinyManager(this, system), station),
+  m_system(system),
+  m_services(services)
+{
+    _stationRef = station;
+	m_destiny->SetPosition(position, false);
+}
+
+void StationEntity::Process() {
+	SystemEntity::Process();
+}
+
+void StationEntity::ForcedSetPosition(const GPoint &pt) {
+	m_destiny->SetPosition(pt, false);
+}
+
+void StationEntity::EncodeDestiny( Buffer& into ) const
+{
+
+    const GPoint& position = GetPosition();
+    const std::string itemName( GetName() );
+/*
+	/*if(m_orbitingID != 0) {
+		#pragma pack(1)
+		struct AddBall_Orbit {
+			BallHeader head;
+			MassSector mass;
+			ShipSector ship;
+			DSTBALL_ORBIT_Struct main;
+			NameStruct name;
+		};
+		#pragma pack()
+		
+		into.resize(start 
+			+ sizeof(AddBall_Orbit) 
+			+ slen*sizeof(uint16) );
+		uint8 *ptr = &into[start];
+		AddBall_Orbit *item = (AddBall_Orbit *) ptr;
+		ptr += sizeof(AddBall_Orbit);
+		
+		item->head.entityID = GetID();
+		item->head.mode = Destiny::DSTBALL_ORBIT;
+		item->head.radius = m_self->radius();
+		item->head.x = x();
+		item->head.y = y();
+		item->head.z = z();
+		item->head.sub_type = AddBallSubType_orbitingNPC;
+		
+		item->mass.mass = m_self->mass();
+		item->mass.unknown51 = 0;
+		item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+		item->mass.corpID = GetCorporationID();
+		item->mass.unknown64 = 0xFFFFFFFF;
+		
+		item->ship.max_speed = m_self->maxVelocity();
+		item->ship.velocity_x = m_self->maxVelocity();	//hacky hacky
+		item->ship.velocity_y = 0.0;
+		item->ship.velocity_z = 0.0;
+		item->ship.agility = 1.0;	//hacky
+		item->ship.speed_fraction = 0.133f;	//just strolling around. TODO: put in speed fraction!
+		
+		item->main.unknown116 = 0xFF;
+		item->main.followID = m_orbitingID;
+		item->main.followRange = 6000.0f;
+		
+		item->name.name_len = slen;	// in number of unicode chars
+		//strcpy_fake_unicode(item->name.name, GetName());
+	} else {
+        BallHeader head;
+		head.entityID = GetID();
+		head.mode = Destiny::DSTBALL_STOP;
+		head.radius = GetRadius();
+		head.x = position.x;
+		head.y = position.y;
+		head.z = position.z;
+		head.sub_type = AddBallSubType_orbitingNPC;
+        into.Append( head );
+
+        MassSector mass;
+		mass.mass = GetMass();
+		mass.cloak = 0;
+		mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+		mass.corpID = GetCorporationID();
+		mass.allianceID = GetAllianceID();
+        into.Append( mass );
+
+        ShipSector ship;
+		ship.max_speed = GetMaxVelocity();
+		ship.velocity_x = 0.0;
+		ship.velocity_y = 0.0;
+		ship.velocity_z = 0.0;
+        ship.unknown_x = 0.0;
+        ship.unknown_y = 0.0;
+        ship.unknown_z = 0.0;
+		ship.agility = GetAgility();
+		ship.speed_fraction = 0.0;
+        into.Append( ship );
+
+        DSTBALL_STOP_Struct main;
+		main.formationID = 0xFF;
+        into.Append( main );
+
+        const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
+        into.Append( nameLen );
+
+        const Buffer::iterator<uint16> name = into.end<uint16>();
+        into.ResizeAt( name, nameLen );
+        utf8::utf8to16( itemName.begin(), itemName.end(), name );
+	}
+*/
+    BallHeader head;
+	head.entityID = GetID();
+	head.mode = Destiny::DSTBALL_RIGID;
+	head.radius = GetRadius();
+	head.x = position.x;
+	head.y = position.y;
+	head.z = position.z;
+	head.sub_type = AddBallSubType_station;
+    into.Append( head );
+
+    DSTBALL_RIGID_Struct main;
+	main.formationID = 0xFF;
+    into.Append( main );
+
+    const uint16 miniballsCount = 1;
+    into.Append( miniballsCount );
+
+    MiniBall miniball;
+    miniball.x = -7701.181;
+    miniball.y = 8060.06;
+    miniball.z = 27878.900;
+    miniball.radius = 1639.241;
+    into.Append( miniball );
+
+    const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
+    into.Append( nameLen );
+
+    const Buffer::iterator<uint16> name = into.end<uint16>();
+    into.ResizeAt( name, nameLen );
+    utf8::utf8to16( itemName.begin(), itemName.end(), name );
+}
+
+void StationEntity::MakeDamageState(DoDestinyDamageState &into) const {
+	into.shield = m_shieldCharge / m_self->shieldCapacity();
+	into.tau = 100000;	//no freakin clue.
+	into.timestamp = Win32TimeNow();
+	into.armor = 1.0 - (m_armorDamage / m_self->armorHP());
+	into.structure = 1.0 - (m_hullDamage / m_self->hp());
+}
 

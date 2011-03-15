@@ -26,6 +26,12 @@ typedef enum {
 	Structure = 23,
 	Reaction = 24,
 	Asteroid = 25,
+    Interiors = 26,
+    Placeables = 27,
+    Abstract = 29,
+    Subsystem = 32,
+    AncientRelics = 34,
+    Decryptors = 35
  } invCategories;
 
  }

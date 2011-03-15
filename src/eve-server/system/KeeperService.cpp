@@ -43,6 +43,8 @@ public:
 	  m_dispatch(new Dispatcher(this))
 	{
 		_SetCallDispatcher(m_dispatch);
+
+        m_strBoundObjectName = "KeeperBound";
 		
 //		PyCallable_REG_CALL(KeeperBound, EditDungeon)
 //		PyCallable_REG_CALL(KeeperBound, PlayDungeon)

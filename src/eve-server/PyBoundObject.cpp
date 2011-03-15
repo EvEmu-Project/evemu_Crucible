@@ -32,13 +32,14 @@ PyBoundObject::PyBoundObject(PyServiceMgr *mgr)
   m_nodeID(0),
   m_bindID(0)
 {
+    m_strBoundObjectName = "PyBoundObject";
 }
 
 PyBoundObject::~PyBoundObject() {
 }
 
 PyResult PyBoundObject::Call(const std::string &method, PyCallArgs &args) {
-	sLog.Debug("Bound Object","NodeID: %u BindID: %u calling %s", nodeID(), bindID(), method.c_str()); 
+    sLog.Debug("Bound Object","NodeID: %u BindID: %u calling %s in service manager '%s'", nodeID(), bindID(), method.c_str(), GetBoundObjectClassStr().c_str()); 
 	args.Dump(SERVICE__CALL_TRACE);
 
 	return(PyCallable::Call(method, args));

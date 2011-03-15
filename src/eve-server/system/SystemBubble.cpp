@@ -161,6 +161,9 @@ void SystemBubble::Add(SystemEntity *ent, bool notify) {
 void SystemBubble::Remove(SystemEntity *ent, bool notify) {
 	//assume that the entity is properly registered for its ID, and that
 	//we do not need to search other values.
+    if( ent->m_bubble == NULL )
+        return;     // Get outta here in case this was called again
+
 	_log(DESTINY__BUBBLE_DEBUG, "Removing entity %u from bubble %p at (%.2f,%.2f,%.2f) with radius %.2f", ent->GetID(), this, m_center.x, m_center.y, m_center.z, m_radius);
 	ent->m_bubble = NULL;
 	m_entities.erase(ent->GetID());

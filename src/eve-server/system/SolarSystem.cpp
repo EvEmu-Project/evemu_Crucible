@@ -123,5 +123,22 @@ bool SolarSystem::_Load()
 	return CelestialObject::_Load();
 }
 
+void SolarSystem::AddItemToInventory(InventoryItemRef item)
+{
+    AddItem( item );
+}
 
+void SolarSystem::AddItem(InventoryItemRef item)
+{
+    Inventory::AddItem( item );
+}
 
+void SolarSystem::RemoveItemFromInventory(InventoryItemRef item)
+{
+    RemoveItem( item );
+}
+
+void SolarSystem::RemoveItem(InventoryItemRef item)
+{
+    Inventory::RemoveItem( item );
+}

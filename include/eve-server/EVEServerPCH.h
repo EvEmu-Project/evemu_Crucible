@@ -234,6 +234,7 @@
 
 #include "posmgr/PosMgrDB.h"
 #include "posmgr/PosMgrService.h"
+#include "posmgr/Structure.h"
 
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
@@ -242,6 +243,8 @@
 #include "system/BookmarkService.h"
 #include "system/BubbleManager.h"
 #include "system/Celestial.h"
+#include "system/Container.h"
+#include "system/Deployable.h"
 #include "system/Damage.h"
 #include "system/DungeonService.h"
 #include "system/KeeperService.h"
@@ -256,6 +259,7 @@
 #include "ship/ModuleManager.h"
 #include "ship/BeyonceService.h"
 #include "ship/DestinyManager.h"
+#include "ship/Drone.h"
 #include "ship/InsuranceService.h"
 #include "ship/Ship.h"
 #include "ship/ShipDB.h"

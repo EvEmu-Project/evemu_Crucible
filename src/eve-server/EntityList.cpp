@@ -375,8 +375,16 @@ SystemManager *EntityList::FindOrBootSystem(uint32 systemID) {
 		return(res->second);
 
     sLog.Log("Entity List", "Booting system %u", systemID);
-	
-	SystemManager *mgr = new SystemManager(systemID, *m_services);
+/*	
+    ItemData idata(
+        5,
+        1,
+		systemID,
+		flagAutoFit,
+        1
+	);
+*/
+	SystemManager *mgr = new SystemManager(systemID, *m_services);//, idata);
 	if(!mgr->BootSystem()) {
 		delete mgr;
 		return NULL;

@@ -62,23 +62,34 @@ bool SystemDB::LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &
 bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity> &into) {
 	DBQueryResult res;
 	
-	if(!sDatabase.RunQuery(res,
+    if(!sDatabase.RunQuery(res,
 		"SELECT"
 		"	entity.itemID,"
+        "   entity.itemName,"
 		"	entity.typeID,"
+        "   entity.ownerID,"
+        "   entity.locationID,"
+        "   entity.flag,"
 		"	invTypes.groupID,"
-		"	invGroups.categoryID"
-		" FROM entity, invTypes, invGroups"
+		"	invGroups.categoryID,"
+        "   0,"//"   character_.corporationID,"
+        "   0,"//"   corporation.allianceID,"
+        "   x,"
+        "   y,"
+        "   z"
+		" FROM entity, invTypes, invGroups"//, character_, corporation"
 		" WHERE"
 		"	    entity.typeID=invTypes.typeID"
 		"	AND invTypes.groupID=invGroups.groupID"
-		"	AND invGroups.categoryID NOT IN (%d,%d,%d,%d)"
+		"	AND invGroups.categoryID NOT IN (%d,%d)"
+        //"   AND character_.characterID = entity.ownerID"
+        //"   AND corporation.corporationID = character_.corporationID"
 		"	AND locationID=%u",
 		//excluded categories:
 			//celestials:
-			EVEDB::invCategories::_System, EVEDB::invCategories::Celestial, EVEDB::invCategories::Station,
-			//NPCs:
-			EVEDB::invCategories::Entity,
+            EVEDB::invCategories::_System, EVEDB::invCategories::Station,
+            //NPCs:
+			//EVEDB::invCategories::Entity,
 		systemID
 	))
 	{
@@ -90,9 +101,18 @@ bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDy
 	DBSystemDynamicEntity entry;
 	while(res.GetRow(row)) {
 		entry.itemID = row.GetInt(0);
-		entry.typeID = row.GetInt(1);
-		entry.groupID = row.GetInt(2);
-		entry.categoryID = row.GetInt(3);
+        entry.itemName = row.GetText(1);
+		entry.typeID = row.GetInt(2);
+        entry.ownerID = row.GetInt(3);
+        entry.locationID = row.GetInt(4);
+        entry.flag = row.GetInt(5);
+		entry.groupID = row.GetInt(6);
+		entry.categoryID = row.GetInt(7);
+        entry.corporationID = row.GetInt(8);
+        entry.allianceID = row.GetInt(9);
+        entry.x = row.GetDouble(10);
+        entry.y = row.GetDouble(11);
+        entry.z = row.GetDouble(12);
 		into.push_back(entry);
 	}
 

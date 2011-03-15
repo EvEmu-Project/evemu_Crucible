@@ -583,6 +583,57 @@ void LSCDB::GetChannelInformation(std::string & name, uint32 & id,
 }
 
 
+// Function: Query 'channels' table for the channel whose 'channelID' matches the ID specified,
+// then return all parameters for that channel.
+void LSCDB::GetChannelInformation(uint32 channelID, std::string & name,
+	    std::string & motd, uint32 & ownerid, std::string & compkey,
+	    bool & memberless, std::string & password, bool & maillist,
+	    uint32 & cspa, uint32 & temp, uint32 & mode)
+{
+	DBQueryResult res;
+
+	if (!sDatabase.RunQuery(res, 
+		" SELECT "
+		"	channelID, "
+		"	displayName, "
+		"   motd, "
+		"   ownerID, "
+		"   comparisonKey, "
+		"   memberless, "
+		"   password, "
+		"   mailingList, "
+		"   cspa, "
+		"   temporary, "
+		"   mode "
+		" FROM channels "
+		" WHERE channelID = %u", channelID))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		return;
+	}
+
+	DBResultRow row;
+
+	if (!(res.GetRow(row)))
+	{
+            _log(SERVICE__ERROR, "Channel named '%s' isn't present in the database", name.c_str() );
+            return;
+	}
+
+	name = (row.GetText(1) == NULL ? "" : row.GetText(1));	// empty displayName field in channels table row returns NULL, so fill this string with "" in that case
+	motd = (row.GetText(2) == NULL ? "" : row.GetText(2));	// empty motd field in channels table row returns NULL, so fill this string with "" in that case
+	ownerid = row.GetUInt(3);
+	compkey = (row.GetText(4) == NULL ? "" : row.GetText(4));	// empty comparisonKey field in channels table row returns NULL, so fill this string with "" in that case
+	memberless = row.GetUInt(5) ? true : false;
+	password = (row.GetText(6) == NULL ? "" : row.GetText(6));	// empty password field in channels table row returns NULL, so fill this string with "" in that case
+	maillist = row.GetUInt(7) ? true : false;
+	cspa = row.GetUInt(8);
+	temp = row.GetUInt(9);
+	mode = row.GetUInt(10);
+}
+
+
+
 // Function: Query the 'channelChars' table for all channels subscribed to by the character specified by charID and
 // return lists of parameters for all of those channels as well as a total channel count.
 void LSCDB::GetChannelSubscriptions(uint32 charID, std::vector<unsigned long> & ids, std::vector<std::string> & names,
@@ -681,6 +732,32 @@ std::string LSCDB::GetChannelInfo(uint32 channelID, std::string & name, std::str
 }
 
 
+uint32 LSCDB::GetChannelIDFromComparisonKey(std::string compkey)
+{
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		"SELECT "
+		"	channelID "
+		" FROM channels"
+		" WHERE comparisonKey RLIKE '%s'", 
+        compkey.c_str()
+	))
+	{
+		_log(SERVICE__ERROR, "Error in GetChannelIDFromComparisonKey query: %s", res.error.c_str());
+		return 0;
+	}
+
+	DBResultRow row;
+
+	if (!res.GetRow(row)) {
+		_log(SERVICE__ERROR, "Couldn't find %s in table channels", compkey.c_str());
+        return 0;
+	}
+
+    return (row.GetInt(0));
+}
+
 std::string LSCDB::GetChannelName(uint32 id, const char * table, const char * column, const char * key) {
 	DBQueryResult res;
 
@@ -711,7 +788,7 @@ std::string LSCDB::GetChannelName(uint32 id, const char * table, const char * co
 
 // Take the channelID of a chat channel that a character specified by characterID just subscribed to
 // and create a new entry in the 'channelChars' table for this subscription.
-int LSCDB::WriteNewChannelSubscriptionToDatabase(uint32 characterID, uint32 channelID)
+int LSCDB::WriteNewChannelSubscriptionToDatabase(uint32 characterID, uint32 channelID, uint32 corpID, uint32 allianceID, uint32 role, uint32 extra)
 {
 	DBQueryResult res;
 	DBerror err;
@@ -719,8 +796,8 @@ int LSCDB::WriteNewChannelSubscriptionToDatabase(uint32 characterID, uint32 chan
 
 	if (!sDatabase.RunQuery(err,
 		" INSERT INTO channelChars "
-		" (channelID, corpID, charID, allianceID, role, extra) VALUES (%u, 0, %u, 0, 0, 0) ",
-		channelID, characterID
+		" (channelID, corpID, charID, allianceID, role, extra) VALUES (%u, %u, %u, %u, %u, %u) ",
+		channelID, corpID, characterID, allianceID, role, extra
 		))
 	{
 		_log(SERVICE__ERROR, "Error in query, Channel Subscription content couldn't be saved: %s", err.c_str());
@@ -734,7 +811,7 @@ int LSCDB::WriteNewChannelSubscriptionToDatabase(uint32 characterID, uint32 chan
 // Function: Take channelID, channel name, the characterID of the character creating the channel, and a flag
 // indicating whether this channel is a private convo (temporary), then create a new entry in the 'channels'
 // table.
-int LSCDB::WriteNewChannelToDatabase(uint32 channelID, std::string name, uint32 ownerID, uint32 temporary)
+int LSCDB::WriteNewChannelToDatabase(uint32 channelID, std::string name, uint32 ownerID, uint32 temporary, uint32 mode)
 {
 	DBQueryResult res;
 	DBerror err;
@@ -744,8 +821,8 @@ int LSCDB::WriteNewChannelToDatabase(uint32 channelID, std::string name, uint32 
 		" INSERT INTO channels "
 		"      (channelID, ownerID, displayName, motd, comparisonKey, memberless, password, mailingList,"
 		"       cspa, temporary, mode, subscribed, estimatedMemberCount) "
-		" VALUES (%u, %u, '%s', '%s', '%s', 0, NULL, 0, 0, %u, 1, 1, 1) ",
-		channelID, ownerID, name.c_str(), "", name.c_str(), temporary
+		" VALUES (%u, %u, '%s', '%s', '%s', 0, NULL, 0, 0, %u, %u, 1, 1) ",
+		channelID, ownerID, name.c_str(), "", name.c_str(), temporary, mode
 		))
 	{
 		_log(SERVICE__ERROR, "Error in query, New Channel couldn't be saved: %s", err.c_str());

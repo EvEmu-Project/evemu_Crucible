@@ -39,6 +39,8 @@ public:
     {
         _SetCallDispatcher(m_dispatch);
 
+        m_strBoundObjectName = "TradeBound";
+
         PyCallable_REG_CALL(TradeBound, List)
     }
     virtual ~TradeBound()
@@ -99,12 +101,12 @@ PyResult TradeService::Handle_InitiateTrade(PyCallArgs &call){
 
 	InitiateTradeRsp rsp;
 	
-	rsp.unknown1 = call.client->GetCharacterID();
+    rsp.nodeID = call.client->services().GetNodeID();
 	rsp.stationID = target->GetStationID();
 	rsp.ownerID = call.client->GetCharacterID();
 	rsp.targetID = target->GetCharacterID();
-	rsp.unknown5 = NULL;
-	rsp.unknown6 = NULL;
+	rsp.moneyToGive = NULL;
+	rsp.moneyToReceive = NULL;
 	rsp.when = Win32TimeNow();
 	rsp.unknown7 = NULL;
 
@@ -114,7 +116,7 @@ PyResult TradeService::Handle_InitiateTrade(PyCallArgs &call){
 }
 PyResult TradeBound::Handle_List(PyCallArgs &call) {
 
+    TradeListRsp tradeListResponse; 
 	sLog.Debug("TradeBound", "Called List stub");
-
-	return new PyList;
+	return tradeListResponse.Encode();
 }

@@ -195,7 +195,7 @@ public:
 	void MoveToLocation(uint32 location, const GPoint &pt);
 	void MoveToPosition(const GPoint &pt);
 	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
-	bool EnterSystem();
+	bool EnterSystem(bool login=false);
 	bool SelectCharacter( uint32 char_id );
 	void JoinCorporationUpdate(uint32 corp_id);
 	void SavePosition();
@@ -211,6 +211,19 @@ public:
 	//destiny stuff...
 	void WarpTo(const GPoint &p, double distance);
 	void StargateJump(uint32 fromGate, uint32 toGate);
+    void SetDockStationID(uint32 stationID) { m_dockStationID = stationID; };
+    uint32 GetDockStationID() { return m_dockStationID; };
+    void SetDockingPoint(GPoint &dockPoint);
+    void GetDockingPoint(GPoint &dockPoint);
+    bool GetPendingDockOperation() { return m_needToDock; };
+    void SetPendingDockOperation(bool needToDock) { m_needToDock = needToDock; }
+
+    // THESE FUNCTIONS ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
+    void SetJustUndocking(bool justUndocking) { m_justUndocked = justUndocking; }
+    bool GetJustUndocking() { return m_justUndocked; };
+    void SetUndockAlignToPoint(GPoint &dest);
+    void GetUndockAlignToPoint(GPoint &dest);
+    // --- END HACK FUNCTIONS FOR UNDOCK ---
 	
 	void SendErrorMsg(const char *fmt, ...);
 	void SendNotifyMsg(const char *fmt, ...);
@@ -289,7 +302,14 @@ protected:
 	Timer m_moveTimer;
 	uint32 m_moveSystemID;
 	GPoint m_movePoint;
+    uint32 m_dockStationID;
 	void _ExecuteJump();
+    bool m_needToDock;
+
+    // THESE VARIABLES ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
+    bool m_justUndocked;
+    GPoint m_undockAlignToPoint;
+    // --- END HACK VARIABLES FOR UNDOCK ---
 
 	uint64 m_timeEndTrain;
 

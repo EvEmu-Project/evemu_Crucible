@@ -49,6 +49,10 @@ public:
 	PyObject *GetOwnerNote(uint32 charID, uint32 noteID);
 	PyObject *GetCharacterAppearance(uint32 characterID);
 
+	bool GetCharClones(uint32 characterID, std::vector<uint32> &into); 
+	bool GetActiveClone(uint32 characterID, uint32 &itemID); 
+	bool GetActiveCloneType(uint32 characterID, uint32 &typeID); 
+
 	bool ValidateCharName(const char *name);
 	/**
 	 * add_name_validation_set
