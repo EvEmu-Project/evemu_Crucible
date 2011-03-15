@@ -343,7 +343,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call) {
     Call_Drop3 drop3args;
     Call_SingleIntList successfully_dropped;
 
-    std::vector<std::pair<uint32, uint32>> toDropList;
+    std::vector< std::pair< uint32, uint32 > > toDropList;
     uint32 contID = 0;
 
     //Get location of our ship
