@@ -83,8 +83,15 @@ public:
 	 * @param[in] toConsole When want to have the output written to the console pass true.
 	 * @param[in] toFile When want to have the output written to the specified file pass true.
 	 */
-	PyTraceLog(const char *path, bool toConsole = false, bool toFile = false) : mFout(NULL), mInitialized(false), mLogToConsole(toConsole),
-		mLogToFile(toFile), mStderrHandle(NULL), mStdoutHandle(NULL)
+	PyTraceLog(const char *path, bool toConsole = false, bool toFile = false)
+        : mFout(NULL),
+          mInitialized(false),
+          mLogToConsole(toConsole),
+          mLogToFile(toFile)
+#ifdef WIN32
+          ,mStderrHandle(NULL),
+          mStdoutHandle(NULL)
+#endif
 	{
 		if (toFile == true)
 		{
@@ -93,8 +100,8 @@ public:
 				printf("[error]PyTraceLog: sorry initializing the output file failed\n");
 		}
 
-		// get error handle
 #ifdef WIN32
+		// get error handle
 		if (mLogToConsole == true)
 		{
 			mStderrHandle = GetStdHandle(STD_ERROR_HANDLE);
@@ -195,12 +202,12 @@ protected:
 		PyString & msg = *packet->AsString();
 		if (mLogToConsole == true)
 		{
-			fprintf(stdout, "%s\n", msg.content());
+			fprintf(stdout, "%s\n", msg.content().c_str());
 		}
 
 		if (mLogToFile == true)
 		{
-			fprintf(mFout, "%s\n", msg.content());
+			fprintf(mFout, "%s\n", msg.content().c_str());
 		}
 	}
 
@@ -209,13 +216,13 @@ protected:
 		PyBuffer & msg = *packet->AsBuffer();
 		if (mLogToConsole == true)
 		{
-			fwrite(msg.content().GetData(), msg.size(), 1, stdout);
+			fwrite(&msg.content()[0], msg.size(), 1, stdout);
 			fputc('\n', stdout);
 		}
 
 		if (mLogToFile == true)
 		{
-			fwrite(msg.content().GetData(), msg.size(), 1, mFout);
+			fwrite(&msg.content()[0], msg.size(), 1, mFout);
 			fputc('\n', mFout);
 		}
 	}
@@ -227,13 +234,13 @@ protected:
 		/*PyBuffer & msg = *packet->AsBuffer();
 		if (mLogToConsole == true)
 		{
-			fwrite(msg.content().GetData(), msg.size(), 1, stdout);
+			fwrite(&msg.content()[0], msg.size(), 1, stdout);
 			fputc('\n', stdout);
 		}
 
 		if (mLogToFile == true)
 		{
-			fwrite(msg.content().GetData(), msg.size(), 1, mFout);
+			fwrite(&msg.content()[0], msg.size(), 1, mFout);
 			fputc('\n', mFout);
 		}*/
 

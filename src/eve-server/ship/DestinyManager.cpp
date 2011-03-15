@@ -1065,8 +1065,8 @@ PyResult DestinyManager::AttemptDockOperation()
 		return NULL;
 	}
 	
-    GPoint &stationDockPoint = ((StationEntity *)(station))->GetStationObject()->GetStationType()->dockEntry();     //station->GetPosition();
-    GVector &stationDockOrientation = ((StationEntity *)(station))->GetStationObject()->GetStationType()->dockOrientation();
+    GPoint stationDockPoint = static_cast< StationEntity* >( station )->GetStationObject()->GetStationType()->dockEntry();     //station->GetPosition();
+    GVector stationDockOrientation = static_cast< StationEntity*>( station )->GetStationObject()->GetStationType()->dockOrientation();
     const GPoint &position = who->GetPosition();
 
 	OnDockingAccepted da;

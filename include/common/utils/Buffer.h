@@ -407,8 +407,6 @@ public:
     template< typename T >
     const T& Get( size_type index ) const { return *( begin< T >() + index ); }
 
-    const uint8* GetData() const { return mBuffer; }
-
     /**
      * @brief Overload of access operator[].
      *
