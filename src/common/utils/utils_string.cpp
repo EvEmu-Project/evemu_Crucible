@@ -362,6 +362,6 @@ int vsprintf( std::string& into, const char* fmt, va_list ap )
     if( 0 <= code )
         into = buf;
 
-    SafeDelete( buf );
+    SafeFree( buf );
     return code;
 }

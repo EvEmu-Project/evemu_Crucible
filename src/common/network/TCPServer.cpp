@@ -102,7 +102,7 @@ bool BaseTCPServer::Open( uint16 port, char* errbuf )
     if( mSock->bind( (sockaddr*)&address, sizeof( address ) ) < 0 )
     {
         if( errbuf != NULL )
-            sprintf( errbuf, "bind(): < 0" );
+            snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "bind(): < 0" );
 
         SafeDelete( mSock );
         return false;

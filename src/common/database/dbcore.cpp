@@ -190,6 +190,10 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
         sLog.Error("DBCore Query", "Query: %s failed", query);
         if(errnum != NULL)
             *errnum = err.GetErrNo();
+        
+        /* @note possible buffer overflow because the size of 'errbuf' is unknown.
+         * @todo check if this function is actualy used and of so... change the strcpy to strncpy.
+         */
         if(errbuf != NULL)
             strcpy(errbuf, err.c_str());
         return false;
@@ -202,6 +206,10 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
             *result = NULL;
             if (errnum)
                 *errnum = UINT_MAX;
+ 
+            /* @note possible buffer overflow because the size of 'errbuf' is unknown.
+             * @todo check if this function is actualy used and of so... change the strcpy to strncpy.
+             */
             if (errbuf)
                 strcpy(errbuf, "DBcore::RunQuery: No Result");
             sLog.Error("DBCore Query", "Query: %s failed because it should return a result", query);

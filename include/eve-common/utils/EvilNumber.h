@@ -169,9 +169,9 @@ public:
     {
         char buff[32]; // max uint32 will result in a 10 char string, a float will result in a ? char string.
         if (mType == evil_number_int)
-            sprintf(buff, "%d", mValue.iVal);
+            snprintf(buff, 32, "%d", mValue.iVal);
         else if (mType == evil_number_float)
-            sprintf(buff, "%f", mValue.fVal);
+            snprintf(buff, 32, "%f", mValue.fVal);
         else
             assert(false); // bleh crash..
         return buff;
