@@ -59,6 +59,7 @@
 
 #include "utils/crc32.h"
 #include "utils/Deflate.h"
+#include "utils/EvilNumber.h"
 #include "utils/gpoint.h"
 #include "utils/misc.h"
 #include "utils/RefPtr.h"

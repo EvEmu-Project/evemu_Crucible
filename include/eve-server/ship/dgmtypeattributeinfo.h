@@ -3,13 +3,6 @@
 
 // this file should have all stuff regarding damage type attribute caching..
 
-enum EVIL_NUMBER_TYPE
-{
-    evil_number_nan,
-    evil_number_int,
-    evil_number_float,
-};
-
 #pragma pack(push,1)
 
 // this represents 1 attribute modifier
