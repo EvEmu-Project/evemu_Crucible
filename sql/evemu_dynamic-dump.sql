@@ -21,7 +21,7 @@ CREATE TABLE `account` (
   `password` varchar(43) NOT NULL default '',
   `role` int(10) unsigned NOT NULL default '0',
   `online` tinyint(1) NOT NULL default '0',
-  'banned' tinyint(1) NOT NULL default '0'
+  `banned` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`accountID`),
   UNIQUE KEY `accountName` (`accountName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
