@@ -112,7 +112,7 @@ public:
  * @note: we need to add a file type (lets say .xx) to generate the code
  */
 #define LOGIC_OPERATOR(a, b) \
-    bool operator ##a ( ##b val) \
+    bool operator a ( b val) \
     { \
         if (this->mType == evil_number_int) \
             return this->mValue.iVal < val; \
@@ -120,12 +120,12 @@ public:
             return this->mValue.fVal < double(val); \
     }
 
+
     /* using a code generating macro to generate logic operator handlers */
     LOGIC_OPERATOR( < , const uint8)
     LOGIC_OPERATOR( < , const uint16)
     LOGIC_OPERATOR( < , const uint32)
     LOGIC_OPERATOR( < , const double)
-
 
     LOGIC_OPERATOR( > , const int)
     LOGIC_OPERATOR( > , const uint8)
