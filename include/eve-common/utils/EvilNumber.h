@@ -9,6 +9,7 @@ enum EVIL_NUMBER_TYPE
     evil_number_float,
 };
 
+/* doing the pragma pack.. results in less memory but more cpu */
 #pragma pack(push,1)
 class PyRep;
 
@@ -41,7 +42,10 @@ public:
     EvilNumber(double val);
     EvilNumber(int64 val);
     EvilNumber(uint64 val);
-
+    
+    /************************************************************************/
+    /* EvilNumber manipulation operator handlers                            */
+    /************************************************************************/
     EvilNumber operator*(const EvilNumber& val)
     {
         Multiply((EvilNumber &)val);
@@ -71,6 +75,14 @@ public:
         Sub((EvilNumber &)val);
         return *this;
     }
+
+    /************************************************************************/
+    /* End of EvilNumber manipulation operator handlers                     */
+    /************************************************************************/
+
+    /************************************************************************/
+    /* EvilNumber logic logic operator handlers                             */
+    /************************************************************************/
 
     /**
      * @brief '==' operator overload
@@ -108,34 +120,6 @@ public:
         }
     }
 
-/* code generating macro... which I hate, but for this solution its the cleanest way
- * @note: we need to add a file type (lets say .xx) to generate the code
- */
-#define LOGIC_OPERATOR(a, b) \
-    bool operator a ( b val) \
-    { \
-        if (this->mType == evil_number_int) \
-            return this->mValue.iVal < val; \
-        else \
-            return this->mValue.fVal < double(val); \
-    }
-
-
-    /* using a code generating macro to generate logic operator handlers */
-    LOGIC_OPERATOR( < , const uint8)
-    LOGIC_OPERATOR( < , const uint16)
-    LOGIC_OPERATOR( < , const uint32)
-    LOGIC_OPERATOR( < , const double)
-
-    LOGIC_OPERATOR( > , const int)
-    LOGIC_OPERATOR( > , const uint8)
-    LOGIC_OPERATOR( > , const uint16)
-    LOGIC_OPERATOR( > , const uint32)
-
-    LOGIC_OPERATOR( > , const double)
-
-    LOGIC_OPERATOR( != , const uint32)
-
     bool operator>(const EvilNumber& val)
     {
         if (this->mType == evil_number_int && val.mType == evil_number_int)
@@ -159,6 +143,46 @@ public:
         else
             return float(this->mValue.iVal) <= val.mValue.fVal;
     }
+
+    /************************************************************************/
+    /* End of EvilNumber logic logic operator handlers                      */
+    /************************************************************************/
+
+/* code generating macro... which I hate, but for this solution its the cleanest way
+ * @note: we need to add a file type (lets say .xx) to generate the code
+ */
+#define LOGIC_OPERATOR(a, b) \
+    bool operator a ( b val) \
+    { \
+        if (this->mType == evil_number_int) \
+            return this->mValue.iVal < val; \
+        else \
+            return this->mValue.fVal < double(val); \
+    }
+
+
+    /* using a code generating macro to generate logic operator handlers
+     * @note expand these if needed.
+     */
+    
+    /* smaller */
+    LOGIC_OPERATOR( < , const uint8)
+    LOGIC_OPERATOR( < , const uint16)
+    LOGIC_OPERATOR( < , const uint32)
+    LOGIC_OPERATOR( < , const double)
+
+    /* bigger */
+    LOGIC_OPERATOR( > , const int)
+    LOGIC_OPERATOR( > , const uint8)
+    LOGIC_OPERATOR( > , const uint16)
+    LOGIC_OPERATOR( > , const uint32)
+
+    LOGIC_OPERATOR( > , const double)
+
+    /* not equal */
+    LOGIC_OPERATOR( != , const uint32)
+
+    
 
     /**
      * @brief converts the EvilNumber value into a string
@@ -184,25 +208,17 @@ public:
      */
     PyRep* GetPyObject();
 
-    // old system support
+    /************************************************************************/
+    /* old system support                                                   */
+    /* @note we call this old system support because even that it would be  */
+    /* faster doing the math with ints and floats we would like to do all   */
+    /* the math within the variant system to make sure we don't introduce   */
+    /* extra errors into the math.( see warnings on get_int and get_float ) */
+    /************************************************************************/
     EVIL_NUMBER_TYPE get_type()
     {
         return mType;
     }
-
-    /*
-    int64 get_int()
-    {
-        assert(mType == evil_number_int);
-        return mValue.iVal;
-    }
-
-    double get_float()
-    {
-        assert(mType == evil_number_float);
-        return mValue.fVal;
-    }
-    */
 
     int64 get_int()
     {
@@ -231,7 +247,9 @@ public:
         }
         return mValue.fVal;
     }
-    // end of old system support
+    /************************************************************************/
+    /* end of old system support                                            */
+    /************************************************************************/
 
 private:
     GenVal mValue;
