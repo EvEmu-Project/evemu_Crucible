@@ -220,33 +220,9 @@ public:
         return mType;
     }
 
-    int64 get_int()
-    {
-        if( mType != evil_number_int ) {
-            int64 temp = (int64)mValue.fVal;
+    int64 get_int();
 
-            /* this checks if the type convention lost stuff behind the comma */
-            if (double(temp) != mValue.fVal)
-                sLog.Warning("EvilNumber", "Invalid call get_int called on a double");
-
-            return (int64)mValue.fVal;
-        }
-        return mValue.iVal;
-    }
-
-    double get_float()
-    {
-        if( mType != evil_number_float ) {
-            double temp = (double)mValue.iVal;
-            
-            /* this checks if the type convention ended up on a double overflow */
-            if (int64(temp) != mValue.iVal)
-                sLog.Warning("EvilNumber", "Invalid call get_float called on a int");
-
-            return (double)mValue.iVal;
-        }
-        return mValue.fVal;
-    }
+    double get_float();
     /************************************************************************/
     /* end of old system support                                            */
     /************************************************************************/

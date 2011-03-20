@@ -2,7 +2,7 @@
 #include "utils/EvilNumber.h"
 #include "python/PyRep.h"
 
-const EvilNumber EvilTime_Second(10000000L);
+const EvilNumber EvilTime_Second(10000000);
 const EvilNumber EvilTime_Minute = Win32Time_Second * 60;
 const EvilNumber EvilTime_Hour = Win32Time_Minute * 60;
 const EvilNumber EvilTime_Day = Win32Time_Hour * 24;
@@ -169,6 +169,33 @@ EvilNumber::EvilNumber( uint64 val ) : mType(evil_number_int)
     mValue.iVal = *((int64*)&val);
 }
 
+int64 EvilNumber::get_int()
+{
+    if( mType != evil_number_int ) {
+        int64 temp = (int64)mValue.fVal;
+
+        /* this checks if the type convention lost stuff behind the comma */
+        if (double(temp) != mValue.fVal)
+            sLog.Warning("EvilNumber", "Invalid call get_int called on a double");
+
+        return (int64)mValue.fVal;
+    }
+    return mValue.iVal;
+}
+
+double EvilNumber::get_float()
+{
+    if( mType != evil_number_float ) {
+        double temp = (double)mValue.iVal;
+
+        /* this checks if the type convention ended up on a double overflow */
+        if (int64(temp) != mValue.iVal)
+            sLog.Warning("EvilNumber", "Invalid call get_float called on a int");
+
+        return (double)mValue.iVal;
+    }
+    return mValue.fVal;
+}
 EvilNumber operator*(const EvilNumber& val, const EvilNumber& val2)
 {
     EvilNumber result = val;
