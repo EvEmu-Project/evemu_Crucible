@@ -32,10 +32,7 @@ dgmtypeattributemgr::dgmtypeattributemgr()
     DBQueryResult res;
 
     if( !sDatabase.RunQuery( res,
-        "SELECT"
-        " *"
-        " FROM dgmTypeAttributes"
-        " ORDER BY typeID" ) )
+        "SELECT * FROM dgmTypeAttributes ORDER BY typeID" ) )
     {
         sLog.Error("DgmTypeAttrMgr", "Error in db load query: %s", res.error.c_str());
         return;
@@ -51,7 +48,7 @@ dgmtypeattributemgr::dgmtypeattributemgr()
         res.GetRow(row);
         uint32 typeID = row.GetUInt(0);
 
-        // need a better sollution for this
+        // need a better solution for this
         if (currentID == 0) {
             currentID = typeID;
             entry = new DgmTypeAttributeSet;
@@ -75,6 +72,15 @@ dgmtypeattributemgr::dgmtypeattributemgr()
     }
 }
 
+dgmtypeattributemgr::~dgmtypeattributemgr()
+{
+    DgmTypeAttributeMapItr itr = mDgmTypeAttrInfo.begin();
+    for (; itr != mDgmTypeAttrInfo.end(); itr++)
+    {
+        delete itr->second;
+    }
+}
+
 DgmTypeAttributeSet* dgmtypeattributemgr::GetDmgTypeAttributeSet( uint32 typeID )
 {
     DgmTypeAttributeMapItr itr;
@@ -87,10 +93,20 @@ DgmTypeAttributeSet* dgmtypeattributemgr::GetDmgTypeAttributeSet( uint32 typeID 
 
     if (!itr->second)
     {
-        sLog.Error("DgmTypeAttrMgr", "something went majorly wrong with typeID: %u, db problem.... maybe", typeID);
+        sLog.Error("DgmTypeAttrMgr", "something went wrong with typeID: %u, db problem.... maybe", typeID);
         return NULL;
     }
 
     // whooo we found it :D
     return itr->second;
+}
+
+
+DgmTypeAttributeSet::~DgmTypeAttributeSet()
+{
+    AttrSetItr itr = attributeset.begin();
+    for (; itr != attributeset.end(); itr++)
+    {
+        delete (*itr);
+    }
 }

@@ -33,6 +33,7 @@ static const char* const CONFIG_FILE = EVEMU_ROOT_DIR"/etc/eve-server.xml";
 static const uint32 MAIN_LOOP_DELAY = 10; // delay 10 ms.
 
 static volatile bool RunLoops = true;
+dgmtypeattributemgr * _sDgmTypeAttrMgr;
 
 int main( int argc, char* argv[] )
 {
@@ -104,8 +105,7 @@ int main( int argc, char* argv[] )
         sLog.Error( "server init", "Unable to connect to the database: %s", err.c_str() );
         return 1;
     }
-
-    dgmtypeattributemgr * _sDgmTypeAttrMgr = new dgmtypeattributemgr(); // needs to be after db init as its using it
+    _sDgmTypeAttrMgr = new dgmtypeattributemgr(); // needs to be after db init as its using it
 
     //Start up the TCP server
     EVETCPServer tcps;

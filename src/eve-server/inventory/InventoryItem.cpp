@@ -112,6 +112,7 @@ InventoryItem::InventoryItem(
     const ItemData &_data)
 : RefObject( 0 ),
   attributes(_factory, *this, true, true),
+  mAttributeMap(*this),// new attrib system..
   m_factory(_factory),
   m_itemID(_itemID),
   m_itemName(_data.name),
@@ -764,14 +765,47 @@ void InventoryItem::Relocate(const GPoint &pos) {
     SaveItem();
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, int num )
+bool InventoryItem::SetAttribute( uint32 attributeID, int64 num, bool notify /* true */ )
 {
     EvilNumber devil_number(num);
-    return mAttributeMap.SetAttribute(attributeID, devil_number);
+    return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, float num )
+bool InventoryItem::SetAttribute( uint32 attributeID, double num, bool notify /* true */ )
 {
     EvilNumber devil_number(num);
-    return mAttributeMap.SetAttribute(attributeID, devil_number);
+    return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+}
+
+bool InventoryItem::SetAttribute( uint32 attributeID, EvilNumber& num, bool notify /* true */ )
+{
+    return mAttributeMap.SetAttribute(attributeID, num, notify);
+}
+
+bool InventoryItem::SetAttribute( uint32 attributeID, int num, bool notify /* true */ )
+{
+    EvilNumber devil_number(num);
+    return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+}
+
+bool InventoryItem::SetAttribute( uint32 attributeID, uint64 num, bool notify /* true */ )
+{
+    EvilNumber devil_number(*((int64*)&num));
+    return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+}
+
+bool InventoryItem::SetAttribute( uint32 attributeID, uint32 num, bool notify /* true */ )
+{
+    EvilNumber devil_number((int64)num);
+    return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+}
+
+EvilNumber InventoryItem::GetAttribute( uint32 attributeID )
+{
+    return mAttributeMap.GetAttribute(attributeID);
+}
+
+EvilNumber InventoryItem::GetAttribute( const uint32 attributeID ) const
+{
+    return mAttributeMap.GetAttribute(attributeID);
 }
