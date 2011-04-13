@@ -495,12 +495,24 @@ struct AddBall_loot {
 // 
 // Possible names for bits:
 // Global, Free, Massive, Interactive
+
+enum ball_sub_type
+{
+    IsFree = 0x01,          // set if ball is free to move, has extra BallData
+    IsGlobal = 0x02,        // set if ball should be visible from all
+    IsMassive = 0x04,       // set if ball is solid
+    IsInteractive = 0x08,   // set if ball is interactive
+    IsMoribund = 0x10,      // set if ball is dieing.. this is a rough guess..
+    HasMiniBalls = 0x40,    // if set, the reader tries to read extra mini balls
+};
+
+
 // 
 enum {
-	AddBallSubType_asteroidBelt = 2,	//seen rigids
-	AddBallSubType_cargoContainer_asteroid = 4,	//and some NPCs and asteroids
-	AddBallSubType_orbitingNPC = 5,
-	AddBallSubType_planet = 6,	//star & moon too
+	AddBallSubType_asteroidBelt = IsGlobal,	//seen rigids
+	AddBallSubType_cargoContainer_asteroid = IsMassive,	//and some NPCs and asteroids
+	AddBallSubType_orbitingNPC = IsMassive | IsFree,
+	AddBallSubType_planet = IsMassive | IsGlobal,	//star & moon too
 	//subtype 8 gets put on some list during evolution.
 	//seen a player with 9.
 	AddBallSubType_player = 13,

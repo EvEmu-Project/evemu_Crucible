@@ -652,6 +652,7 @@ SystemEntity *SystemManager::get(uint32 entityID) const {
 	return(res->second);
 }
 
+/* maybe this is the reason why warping sucks... */
 //in m/s
 double SystemManager::GetWarpSpeed() const {
 	//right now, warp speed is hard coded to 3 AU/s

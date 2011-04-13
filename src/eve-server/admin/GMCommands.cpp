@@ -101,7 +101,7 @@ PyResult Command_createitem( Client* who, CommandDB* db, PyServiceMgr* services,
 		    qty = atoi( args.arg( 2 ).c_str() );
     }
 
-	_log( COMMAND__MESSAGE, "Create %s %u times", args.arg( 1 ).c_str(), qty );
+    sLog.Log("command message", "Create %s %u times", args.arg( 1 ).c_str(), qty );
 
 	//create into their cargo hold unless they are docked in a station,
 	//then stick it in their hangar instead.

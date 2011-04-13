@@ -2,7 +2,7 @@
 #include "utils/EvilNumber.h"
 #include "python/PyRep.h"
 
-const EvilNumber EvilTime_Second(10000000);
+const EvilNumber EvilTime_Second(10000000L);
 const EvilNumber EvilTime_Minute = Win32Time_Second * 60;
 const EvilNumber EvilTime_Hour = Win32Time_Minute * 60;
 const EvilNumber EvilTime_Day = Win32Time_Hour * 24;
