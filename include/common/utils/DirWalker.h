@@ -65,7 +65,7 @@ public:
      * @note This function must be called after OpenDir()
      *       before calling currentFileName().
      *
-     * @retval true  Iteration successfull.
+     * @retval true  Iteration successful.
      * @retval false Iteration failed; most likely there are no more files.
      */
     bool NextFile();

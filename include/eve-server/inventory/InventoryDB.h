@@ -146,7 +146,7 @@ public:
 	 *
 	 * @param[in] typeID ID of type which attributes should be loaded.
 	 * @param[in] into Attribute manager the attributes should be loaded into.
-	 * @return True if load was successfull, false if not.
+	 * @return True if load was successful, false if not.
 	 */
 	bool LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into);
 
@@ -173,7 +173,7 @@ public:
 	 *
 	 * @param[in] itemID ID of item which attributes should be loaded.
 	 * @param[in] into Attribute manager the attributes should be loaded into.
-	 * @return True if load was successfull, false if not.
+	 * @return True if load was successful, false if not.
 	 */
 	bool LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into);
 

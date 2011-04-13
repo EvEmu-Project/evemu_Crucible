@@ -245,6 +245,9 @@ int main( int argc, char* argv[] )
 
     services.serviceDB().SetServerOnlineStatus(false);
 
+    sLog.Log("server shutdown", "Cleanup db cache" );
+    delete _sDgmTypeAttrMgr;
+
     log_close_logfile();
 
     // win crap.

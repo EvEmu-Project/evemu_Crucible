@@ -115,7 +115,7 @@ public:
      *
      * @param[in] field The element to be parsed.
      *
-     * @retval true  Parsing successfull.
+     * @retval true  Parsing successful.
      * @retval false Parsing failed.
      */
     bool Parse( const TiXmlElement* field )
@@ -158,7 +158,7 @@ public:
      *
      * @param[in] field The element to be parsed.
      *
-     * @retval true  Parsing successfull.
+     * @retval true  Parsing successful.
      * @retval false Parsing failed.
      */
     bool Parse( const TiXmlElement* field )

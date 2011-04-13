@@ -238,6 +238,9 @@ bool InventoryItem::_Load()
     if(!attributes.Load())
         return false;
 
+    // load attributes
+    mAttributeMap.Load();
+
     // update inventory
     Inventory *inventory = m_factory.GetInventory( locationID(), false );
     if( inventory != NULL )

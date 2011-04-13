@@ -47,7 +47,7 @@ public:
          *
          * @param[in] field The element to be parsed.
          *
-         * @retval true  Parsing successfull.
+         * @retval true  Parsing successful.
          * @retval false Parsing failed.
          */
         virtual bool Parse( const TiXmlElement* field ) = 0;
@@ -67,7 +67,7 @@ public:
      *
      * @param[in] file File to parse.
      *
-     * @retval true  Parsing successfull.
+     * @retval true  Parsing successful.
      * @retval false Error occurred during parsing.
      */
     bool ParseFile( const char* file ) const;
@@ -76,7 +76,7 @@ public:
      *
      * @param[in] element Element to be parsed.
      *
-     * @retval true  Parsing successfull.
+     * @retval true  Parsing successful.
      * @retval false Error occurred during parsing.
      */
     bool ParseElement( const TiXmlElement* element ) const;
@@ -86,7 +86,7 @@ public:
      * @param[in] element Element the children of which should be parsed.
      * @param[in] max     The maximal count of children to be processed; 0 means all.
      *
-     * @retval true  Parsing successfull.
+     * @retval true  Parsing successful.
      * @retval false Error occurred during parsing.
      */
     bool ParseElementChildren( const TiXmlElement* element, size_t max = 0 ) const;

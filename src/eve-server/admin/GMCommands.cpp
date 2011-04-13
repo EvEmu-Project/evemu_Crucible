@@ -79,7 +79,7 @@ PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, con
 	//Move to location
 	i->Move( locationID, flag, true );
 
-	return new PyString( "Creation successfull." );
+	return new PyString( "Creation successful." );
 }
 
 PyResult Command_createitem( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
@@ -133,7 +133,7 @@ PyResult Command_createitem( Client* who, CommandDB* db, PyServiceMgr* services,
 	//Move to location
 	i->Move( locationID, flag, true );
 
-	return new PyString( "Creation successfull." );
+	return new PyString( "Creation successful." );
 }
 
 
@@ -209,7 +209,7 @@ PyResult Command_translocate( Client* who, CommandDB* db, PyServiceMgr* services
 	}
 
 	who->MoveToLocation( loc, p );
-	return new PyString( "Translocation successfull." );
+	return new PyString( "Translocation successful." );
 }
 
 
@@ -245,7 +245,7 @@ PyResult Command_tr( Client* who, CommandDB* db, PyServiceMgr* services, const S
 	}
 
 	who->MoveToLocation( loc , p );
-	return new PyString( "Translocation successfull." );
+	return new PyString( "Translocation successful." );
 }
 
 PyResult Command_giveisk( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
@@ -274,7 +274,7 @@ PyResult Command_giveisk( Client* who, CommandDB* db, PyServiceMgr* services, co
 	}
 	
 	tgt->AddBalance( amount );
-	return new PyString( "Operation successfull." );
+	return new PyString( "Operation successful." );
 }
 
 PyResult Command_pop( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
@@ -318,7 +318,7 @@ PyResult Command_goto( Client* who, CommandDB* db, PyServiceMgr* services, const
     sLog.Log( "Command", "%s: Goto (%.13f, %.13f, %.13f)", who->GetName(), p.x, p.y, p.z );
 
 	who->MoveToPosition( p );
-	return new PyString( "Goto successfull." );
+	return new PyString( "Goto successful." );
 }
 
 PyResult Command_spawnn( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
@@ -621,9 +621,10 @@ PyResult Command_setattr( Client* who, CommandDB* db, PyServiceMgr* services, co
 	if( !item )
 		throw PyException( MakeCustomError( "Failed to load item %u.", itemID ) );
 
-	item->attributes.SetReal( attribute, value );
+	//item->attributes.SetReal( attribute, value );
+    item->SetAttribute(attribute, value);
 
-	return new PyString( "Operation successfull." );
+	return new PyString( "Operation successful." );
 }
 
 PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
@@ -685,7 +686,7 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 
 	    who->MoveItem( i->itemID(), who->GetShipID(), flag );
 
-	    return new PyString( "Creation successfull." );
+	    return new PyString( "Creation successful." );
     }
 }
 
@@ -947,7 +948,7 @@ PyResult Command_unspawn( Client* who, CommandDB* db, PyServiceMgr* services, co
 
     sLog.Log( "Command", "%s: Un-Spawned %u.", who->GetName(), itemID );
 
-	return new PyString( "Un-Spawn successfull." );
+	return new PyString( "Un-Spawn successful." );
 }
 
 PyResult Command_dogma( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )

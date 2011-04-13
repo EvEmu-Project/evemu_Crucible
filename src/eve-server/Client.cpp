@@ -1362,7 +1362,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         return false;
     }
 
-	sLog.Log("Client","Successfull");
+	sLog.Log("Client","successful");
 
     m_services.serviceDB().SetAccountOnlineStatus( accountID, true );
 

@@ -192,7 +192,7 @@ public:
      *
      * @param[in] v Visitor to be used for visiting.
      *
-     * @retval true  Visit successfull.
+     * @retval true  Visit successful.
      * @retval false Error during visit.
      */
     virtual bool visit( PyVisitor& v ) const = 0;
