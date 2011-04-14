@@ -349,7 +349,8 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 						newItem->PutOffline();
 
 					//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
-					c->GetShip()->Set_mass( c->GetShip()->mass() + newItem->massAddition() );
+					//c->GetShip()->Set_mass( c->GetShip()->mass() + newItem->massAddition() );
+                    c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) + newItem->GetAttribute(AttrMassAddition) );
 				}
 				else
 				{
@@ -358,10 +359,11 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 
 				if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
 				{
-					//comming from ship, we need to deactivate it and remove mass if it isn't a charge
+					//coming from ship, we need to deactivate it and remove mass if it isn't a charge
 					if( newItem->categoryID() != EVEDB::invCategories::Charge ) {
 						c->modules.Deactivate( newItem->itemID(), "online" );
-						c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
+						//c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
+                        c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) - newItem->GetAttribute(AttrMassAddition) );
 					}
 
 					//Move New item to its new location
@@ -409,7 +411,8 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 					sourceItem->PutOffline();
 
 				//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
-				c->GetShip()->Set_mass( c->GetShip()->mass() + sourceItem->massAddition() );
+				//c->GetShip()->Set_mass( c->GetShip()->mass() + sourceItem->massAddition() );
+                c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) + sourceItem->GetAttribute(AttrMassAddition) );
 
 			}
 			else
@@ -419,10 +422,11 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 
 			if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
 			{
-					//comming from ship, we need to deactivate it and remove mass if it isn't a charge
+					//coming from ship, we need to deactivate it and remove mass if it isn't a charge
 					if( sourceItem->categoryID() != EVEDB::invCategories::Charge ) {
 						c->modules.Deactivate( sourceItem->itemID(), "online" );
-						c->GetShip()->Set_mass( c->GetShip()->mass() - sourceItem->massAddition() );
+						//c->GetShip()->Set_mass( c->GetShip()->mass() - sourceItem->massAddition() );
+                        c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) + sourceItem->GetAttribute(AttrMassAddition) );
 					}
 
 					c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);

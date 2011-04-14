@@ -26,6 +26,8 @@
 #ifndef __UTILS_TIME_H__INCL__
 #define __UTILS_TIME_H__INCL__
 
+#include "../eve-common/utils/EvilNumber.h"
+
 /*
 SEC = 10000000L
 MIN = (SEC * 60L)
@@ -43,6 +45,7 @@ extern const uint64 Win32Time_Year;
 
 extern uint64 UnixTimeToWin32Time( time_t sec, uint32 nsec );
 extern uint64 Win32TimeNow();
+extern EvilNumber EvilTimeNow();
 extern void Win32TimeToUnixTime( uint64 win32t, time_t &unix_time, uint32 &nsec );
 extern std::string Win32TimeToString(uint64 win32t);
 

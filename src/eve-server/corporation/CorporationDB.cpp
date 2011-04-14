@@ -1274,15 +1274,36 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDic
 
 //replace all the typeID of the character's clones
 bool CorporationDB::ChangeCloneType(uint32 characterID, uint32 typeID) {
-	DBQueryResult res;
+    DBQueryResult res;
+
+    if(sDatabase.RunQuery(res,
+        "SELECT "
+        " typeID, typeName "
+        "FROM "
+        " invTypes "
+        "WHERE typeID = %u",
+        typeID))
+    {
+		_log(DATABASE__ERROR, "Failed to change clone type of char %u: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+    DBResultRow row;
+    if( !(res.GetRow(row)) )
+    {
+        sLog.Error( "CorporationDB::ChangeCloneType()", "Could not find Clone typeID = %u in invTypes table.", typeID );
+        return false;
+    }
+    std::string typeNameString = row.GetText(1);
 
 	if(sDatabase.RunQuery(res,
 		"UPDATE "
 		"entity "
-		"SET typeID=%u "
+		"SET typeID=%u, itemName='%s' "
 		"where ownerID=%u "
 		"and flag='400'",
 		typeID,
+        typeNameString.c_str(),
 		characterID))
 	{
 		_log(DATABASE__ERROR, "Failed to change clone type of char %u: %s.", characterID, res.error.c_str());

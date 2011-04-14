@@ -405,6 +405,15 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 					// Calculate final warp-to point along common vector from celestial body's origin and add randomized position adjustment for multiple ships coming out of warp to not bump
 					GPoint celestialOrigin(se->GetPosition());							// Make a celestial body origin point variable
                     GVector vectorFromOrigin(celestialOrigin, origin);					// Make a celestial body TO system origin origin vector variable
+                    if( vectorFromOrigin.length() == 0 )
+                    {
+                        // This is the special case where we are warping to the Star, so we have to construct
+                        // a vector from the star's center (0,0,0) to the warp-in point using the distanceFromBodyOrigin
+                        // calculated earlier:
+                        vectorFromOrigin = GVector( celestialOrigin, call.client->GetPosition() );
+                        vectorFromOrigin.normalize();
+                        vectorFromOrigin *= distanceFromBodyOrigin;
+                    }
                     GVector vectorToWarpPoint(vectorFromOrigin);                        // Make a vector to the Warp-In point
 					distanceFromSystemOrigin = vectorFromOrigin.length();		        // Calculate distance from system origin to celestial body origin
 
@@ -622,7 +631,7 @@ PyResult BeyonceBound::Handle_Stop(PyCallArgs &call) {
 
     // Only disallow Stopping ship when in warp state AND ship speed is greater than 0.75 times ship's maxVelocity
     if( (destiny->GetState() == Destiny::DSTBALL_WARP)
-        && (destiny->GetVelocity().length() >= (0.75*call.client->GetShip()->maxVelocity())) ) {
+        && (destiny->GetVelocity().length() >= (0.75*call.client->GetShip()->GetAttribute(AttrMaxVelocity).get_float())) ) {
 		    call.client->SendNotifyMsg( "You can't do this while warping");
 		    return NULL;
 	}

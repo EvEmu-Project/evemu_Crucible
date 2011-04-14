@@ -393,3 +393,4 @@ const char *LSCChannel::GetTypeString() {
 	}
 	return("unknown");
 }
+

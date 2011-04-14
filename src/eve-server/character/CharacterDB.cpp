@@ -133,6 +133,58 @@ PyObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
 	
 }
 
+//void CharacterDB::GetCharacterData(uint32 characterID, std::vector<uint32> &characterDataVector) {
+void CharacterDB::GetCharacterData(uint32 characterID, std::map<std::string, uint32> &characterDataMap) {
+
+	DBQueryResult res;
+    DBResultRow row;
+
+    if(!sDatabase.RunQuery(res,
+        "SELECT "
+        "  character_.corporationID, "
+        "  character_.stationID, "
+        "  character_.solarSystemID, "
+        "  character_.constellationID, "
+        "  character_.regionID, "
+        "  corporation.stationID, "
+        "  character_.corpRole, "
+        "  character_.rolesAtAll, "
+        "  character_.rolesAtBase, "
+        "  character_.rolesAtHQ, "
+        "  character_.rolesAtOther, "
+        "  entity.locationID "
+        " FROM character_ "
+        "  LEFT JOIN corporation USING (corporationID) "
+        "  LEFT JOIN entity ON entity.itemID = character_.characterID "
+        " WHERE characterID = %u",
+        characterID))
+    {
+        sLog.Error("CharacterDB::GetCharPublicInfo2()", "Failed to query HQ of character's %u corporation: %s.", characterID, res.error.c_str());
+    }
+
+	if(!res.GetRow(row))
+    {
+        sLog.Error("CharacterDB::GetCharacterData()", "No valid rows were returned by the database query.");
+	}
+	
+//    std::map<std::string,uint32> characterDataMap;
+//    for( uint32 i=0; i<=characterDataVector.size(); i++ )
+//        characterDataVector.push_back( row.GetUInt(i) );
+
+    characterDataMap["corporationID"] = row.GetUInt(0);
+    characterDataMap["stationID"] = row.GetUInt(1);
+    characterDataMap["solarSystemID"] = row.GetUInt(2);
+    characterDataMap["constellationID"] = row.GetUInt(3);
+    characterDataMap["regionID"] = row.GetUInt(4);
+    characterDataMap["corporationHQ"] = row.GetUInt(5);
+    characterDataMap["corpRole"] = row.GetUInt(6);
+    characterDataMap["rolesAtAll"] = row.GetUInt(7);
+    characterDataMap["rolesAtBase"] = row.GetUInt(8);
+    characterDataMap["rolesAtHQ"] = row.GetUInt(9);
+    characterDataMap["rolesAtOther"] = row.GetUInt(10);
+    characterDataMap["locationID"] = row.GetUInt(11);
+}
+
 PyObject *CharacterDB::GetCharPublicInfo3(uint32 characterID) {
 
 	DBQueryResult res;

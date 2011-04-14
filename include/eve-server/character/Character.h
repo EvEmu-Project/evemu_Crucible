@@ -32,6 +32,8 @@
 #include "inventory/InventoryDB.h"
 #include "character/Skill.h"
 
+#define MAX_SP_FOR_100PCT_TRAINING_BONUS    1600000     // After 1.6 million Skill Points are trained, the 100% bonus to skill training goes away
+
 /**
  * Simple container for raw character type data.
  */
@@ -403,18 +405,30 @@ public:
 	 * @return Pointer to Skill object; NULL if skill was not found.
 	 */
 	SkillRef GetSkillInTraining() const;
+	/**
+	 * Returns entire list of skills learned by this character
+	 *
+	 * @param[in] empty std::vector<InventoryItemRef> which is populated with list of skills
+	 */
+    void GetSkillsList(std::vector<InventoryItemRef> &skills) const;
 
+	/**
+	 * Calculates Total Skillpoints the character has trained
+	 *
+	 * @return Skillpoints per minute rate.
+	 */
+    EvilNumber GetTotalSPTrained() { return m_totalSPtrained; };
 	/**
 	 * Calculates Skillpoints per minute rate.
 	 *
 	 * @param[in] skill Skill for which the rate is calculated.
 	 * @return Skillpoints per minute rate.
 	 */
-	double GetSPPerMin(SkillRef skill) const;
+    EvilNumber GetSPPerMin(SkillRef skill);
 	/**
 	 * @return Timestamp at which current skill training finishes.
 	 */
-	uint64 GetEndOfTraining() const;
+	EvilNumber GetEndOfTraining() const;
 
 	/* InjectSkillIntoBrain(InventoryItem *skill)
 	 * 
@@ -512,6 +526,9 @@ public:
 	uint64                  createDateTime() const { return m_createDateTime; }
 	uint64                  corporationDateTime() const { return m_corporationDateTime; }
 
+	void SaveCharacter();
+	void SaveSkillQueue() const;
+
 protected:
 	Character(
 		ItemFactory &_factory,
@@ -578,8 +595,7 @@ protected:
 
 	void AddItem(InventoryItemRef item);
 
-	void SaveCharacter() const;
-	void SaveSkillQueue() const;
+    void Character::_CalculateTotalSPTrained();
 
 	/*
 	 * Data members
@@ -622,6 +638,7 @@ protected:
 
 	// Skill queue:
 	SkillQueue m_skillQueue;
+    EvilNumber m_totalSPtrained;
 };
 
 #endif /* !__CHARACTER__H__INCL__ */

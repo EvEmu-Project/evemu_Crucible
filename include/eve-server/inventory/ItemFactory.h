@@ -231,8 +231,14 @@ public:
 	 */
 	Inventory *GetInventory(uint32 inventoryID, bool load=true);
 
+    void SetUsingClient(Client *pClient);
+
+    Client * GetUsingClient();
+
 protected:
 	InventoryDB m_db;
+
+    Client * m_pClient;     // pointer to client currently using the ItemFactory, we do not own this
 
 	/*
 	 * Member functions and variables:

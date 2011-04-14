@@ -195,7 +195,8 @@ public:
 	void MoveToLocation(uint32 location, const GPoint &pt);
 	void MoveToPosition(const GPoint &pt);
 	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
-	bool EnterSystem(bool login=false);
+	bool EnterSystem(bool login);
+    bool UpdateLocation();
 	bool SelectCharacter( uint32 char_id );
 	void JoinCorporationUpdate(uint32 corp_id);
 	void SavePosition();
@@ -275,6 +276,7 @@ public:
 protected:
 	void _ReduceDamage(Damage &d);
     void _UpdateSession( const CharacterConstRef& character );
+    void _UpdateSession2( uint32 characterID  );
 
     // Packet stuff
 	void _SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel = NULL );
@@ -311,7 +313,7 @@ protected:
     GPoint m_undockAlignToPoint;
     // --- END HACK VARIABLES FOR UNDOCK ---
 
-	uint64 m_timeEndTrain;
+	EvilNumber m_timeEndTrain;
 
     /********************************************************************/
     /* EVEClientSession interface                                       */
@@ -345,8 +347,17 @@ private:
 	//FunctorTimerQueue m_delayQueue;
 	
 	uint32 m_nextNotifySequence;
-};
 
+
+
+    /************************************************************************/
+    /* new system for MultiEvents                                           */
+    /************************************************************************/
+    bool ScatterEvent(const char* event_name, PyRep* packet);
+
+    bool DoDestinyUpdate();
+    std::list<PyTuple*> mDogmaMessages;
+};
 
 //simple functor for void calls.
 //not needed right now

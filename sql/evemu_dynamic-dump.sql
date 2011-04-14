@@ -691,6 +691,7 @@ CREATE TABLE `market_transactions` (
   `clientID` int(10) unsigned NOT NULL default '0',
   `regionID` int(10) unsigned NOT NULL default '0',
   `stationID` int(10) unsigned NOT NULL default '0',
+  `corpTransaction` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`transactionID`),
   KEY `regionID` (`regionID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -259,11 +259,13 @@ void CelestialEntity::EncodeDestiny( Buffer& into ) const
 }
 */
 
-void CelestialEntity::MakeDamageState(DoDestinyDamageState &into) const {
-	into.shield = m_shieldCharge / m_self->shieldCapacity();
-	into.tau = 100000;	//no freakin clue.
+void CelestialEntity::MakeDamageState(DoDestinyDamageState &into) const
+{
+	into.shield = (m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
+	into.tau = 100000;	//no freaking clue.
 	into.timestamp = Win32TimeNow();
-	into.armor = 1.0 - (m_armorDamage / m_self->armorHP());
-	into.structure = 1.0 - (m_hullDamage / m_self->hp());
+//	armor damage isn't working...
+	into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
+	into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHp).get_float());
 }
 

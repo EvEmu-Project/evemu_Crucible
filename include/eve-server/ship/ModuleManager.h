@@ -35,7 +35,7 @@ class ShipModule {
 public:
 
 	//Declarations
-		typedef enum {
+	typedef enum {
 		Offline, 
 		Online,
 		Active,
@@ -91,21 +91,21 @@ public:
 	virtual void DoEffect(bool active);
 	
 
-
+/*
 	//Effects Functions
-	virtual void DoPassiveEffects(bool add, bool notify);
-	virtual void DoActiveModulePassiveEffects(bool add, bool notify);
-	virtual void DoUpgradeLoad(bool add, bool notify);
-	virtual void DoCapacitorNeed(bool startup, bool notify);
-	virtual void DoArmorHPBonus(bool add, bool notify);
-	virtual void DoArmorHPBonusAdd(bool add, bool notify);
-	virtual void DoArmorHPMultiplier(bool add, bool notify);
-	virtual void DoArmorEmDamageResistanceBonus(bool add, bool notify);
-	virtual void DoArmorExplosiveDamageResistanceBonus(bool add, bool notify);
-	virtual void DoArmorKineticDamageResistanceBonus(bool add, bool notify);
-	virtual void DoArmorThermalDamageResistanceBonu(bool add, bool notify);
-	virtual void DoShieldCapacity(bool add, bool notify);
-	virtual void DoShieldCapacityBonus(bool add, bool notify);
+	virtual void DoPassiveEffects(bool add, bool notify) = 0;
+	virtual void DoActiveModulePassiveEffects(bool add, bool notify) = 0;
+	virtual void DoUpgradeLoad(bool add, bool notify) = 0;
+	virtual void DoCapacitorNeed(bool startup, bool notify) = 0;
+	virtual void DoArmorHPBonus(bool add, bool notify) = 0;
+	virtual void DoArmorHPBonusAdd(bool add, bool notify) = 0;
+	virtual void DoArmorHPMultiplier(bool add, bool notify) = 0;
+	virtual void DoArmorEmDamageResistanceBonus(bool add, bool notify) = 0;
+	virtual void DoArmorExplosiveDamageResistanceBonus(bool add, bool notify) = 0;
+	virtual void DoArmorKineticDamageResistanceBonus(bool add, bool notify) = 0;
+	virtual void DoArmorThermalDamageResistanceBonu(bool add, bool notify) = 0;
+	virtual void DoShieldCapacity(bool add, bool notify) = 0;
+	virtual void DoShieldCapacityBonus(bool add, bool notify) = 0;
 	virtual void DoShieldCapacityMultiplier(bool add, bool notify);
 	virtual void DoShieldEmDamageResistanceBonus(bool add, bool notify);
 	virtual void DoShieldExplosiveDamageResistanceBonus(bool add, bool notify);
@@ -154,6 +154,8 @@ public:
 	virtual void DoPassiveShieldExplosiveDamageResistanceBonus(bool add, bool notify);
 	virtual void DoPassiveShieldKineticDamageResistanceBonus(bool add, bool notify);
 	virtual void DoPassiveShieldThermalDamageResistanceBonus(bool add, bool notify);
+
+    */
 
 
 	//Helper Functions

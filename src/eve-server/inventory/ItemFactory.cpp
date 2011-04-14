@@ -35,7 +35,7 @@ ItemFactory::~ItemFactory() {
         end = m_items.end();
         for(; cur != end; cur++) {
             // save attributes of item (because of rechargable attributes)
-            cur->second->attributes.Save();
+            //cur->second->attributes.Save();
         }
     }
     // types
@@ -62,6 +62,9 @@ ItemFactory::~ItemFactory() {
         for(; cur != end; cur++)
             delete cur->second;
     }
+
+    // Set Client pointer to NULL
+    m_pClient = NULL;
 }
 
 const ItemCategory *ItemFactory::GetCategory(EVEItemCategories category) {
@@ -315,4 +318,14 @@ void ItemFactory::_DeleteItem(uint32 itemID)
     {
         m_items.erase( res );
     }
+}
+
+void ItemFactory::SetUsingClient(Client *pClient)
+{
+    m_pClient = pClient;
+}
+
+Client * ItemFactory::GetUsingClient()
+{
+    return m_pClient;
 }

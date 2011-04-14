@@ -106,19 +106,42 @@ bool Inventory::LoadContents(ItemFactory &factory)
     }
 
     //Now get each one from the factory (possibly recursing)
+    ItemData into;
+    uint32 characterID;
+    uint32 corporationID;
+    uint32 locationID;
     std::vector<uint32>::iterator cur, end;
     cur = items.begin();
     end = items.end();
     for(; cur != end; cur++)
     {
-        InventoryItemRef i = factory.GetItem( *cur );
-        if( !i )
+        // Each "cur" item should be checked to see if they are "owned" by the character connected to this client,
+        // and if not, then do not "get" the entire contents of this for() loop for that item, except in the case that
+        // this item is located in space or belongs to this character's corporation:
+        factory.db().GetItem( *cur, into );
+        if( factory.GetUsingClient() != NULL )
         {
-            sLog.Error("Inventory", "Failed to load item %u contained in %u. Skipping.", *cur, inventoryID() );
-            continue;
+            characterID = factory.GetUsingClient()->GetCharacterID();
+            corporationID = factory.GetUsingClient()->GetCorporationID();
+            locationID = factory.GetUsingClient()->GetLocationID();
         }
+        else
+            sLog.Error( "Inventory::LoadContents()", "Failed to resolve pointer to Client object currently using the ItemFactory." );
+        if( (into.ownerID == characterID) || (characterID == 0) || (into.ownerID == corporationID) || (into.locationID == locationID) )
+        {
+            // Continue to GetItem() if the client calling this is owned by the character that owns this item
+            // --OR--
+            // The characterID == 0, which means this is attempting to load the character of this client for the first time.
 
-        AddItem( i );
+            InventoryItemRef i = factory.GetItem( *cur );
+            if( !i )
+            {
+                sLog.Error("Inventory::LoadContents()", "Failed to load item %u contained in %u. Skipping.", *cur, inventoryID() );
+                continue;
+            }
+
+            AddItem( i );
+        }
     }
 
     mContentsLoaded = true;
@@ -373,7 +396,8 @@ void Inventory::StackAll(EVEItemFlags locFlag, uint32 forOwner)
 
 double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
 {
-    double totalVolume = 0.0;
+    //double totalVolume = 0.0;
+    EvilNumber totalVolume(0.0);
     //TODO: And implement Sizes for packaged ships
 
     std::map<uint32, InventoryItemRef>::const_iterator cur, end;
@@ -382,10 +406,12 @@ double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
     for(; cur != end; cur++)
     {
         if( cur->second->flag() == locationFlag )
-            totalVolume += cur->second->quantity() * cur->second->volume();
+            //totalVolume += cur->second->quantity() * cur->second->volume();
+            totalVolume += cur->second->GetAttribute(AttrQuantity) * cur->second->GetAttribute(AttrVolume);
     }
 
-    return totalVolume;
+    // this is crap... bleh... as it should return a EvilNumber
+    return totalVolume.get_float();
 }
 
 /*
@@ -393,14 +419,15 @@ double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
  */
 void InventoryEx::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const
 {
-    double volume = item->quantity() * item->volume();
+    //double volume = item->quantity() * item->volume();
+    EvilNumber volume = item->GetAttribute(AttrQuantity) * item->GetAttribute(AttrVolume);
     double capacity = GetRemainingCapacity( flag );
     if( volume > capacity )
     {
         std::map<std::string, PyRep *> args;
 
         args["available"] = new PyFloat( capacity );
-        args["volume"] = new PyFloat( volume );
+        args["volume"] = volume.GetPyObject();
 
         throw PyException( MakeUserError( "NotEnoughCargoSpace", args ) );
     }

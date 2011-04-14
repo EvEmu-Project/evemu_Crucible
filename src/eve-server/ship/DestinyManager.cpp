@@ -25,6 +25,7 @@
 
 #include "EVEServerPCH.h"
 
+
 using namespace Destiny;
 
 const double SPACE_FRICTION = 1.0e+6;		//straight from client. Do not change.
@@ -467,7 +468,7 @@ void DestinyManager::_InitWarp() {
 	//double warp_speed = m_system->GetWarpSpeed();
     double warp_speed = 0.0;
     if( m_self->CastToClient()->GetShip() != NULL )
-        warp_speed = (double)(m_self->CastToClient()->GetShip()->warpSpeedMultiplier()) * ONE_AU_IN_METERS;
+        warp_speed = (double)(m_self->CastToClient()->GetShip()->GetAttribute(AttrWarpSpeedMultiplier).get_float()) * ONE_AU_IN_METERS;
     else
         warp_speed = m_system->GetWarpSpeed();
 
@@ -930,11 +931,11 @@ void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {
 
 void DestinyManager::SetShipCapabilities(InventoryItemRef ship)
 {
-	double mass = ship->mass();
-	double radius = ship->radius();
-	double Inertia = ship->Inertia();
-	double agility = ship->agility();
-	int maxVelocity = ship->maxVelocity();
+	double mass = ship->GetAttribute(AttrMass).get_int();               // Aknor: EVEAttributeMgr cant find this
+	double radius = ship->GetAttribute(AttrRadius).get_float();         // Aknor: EVEAttributeMgr cant find this, assertion failed: "mType == evil_number_float", line 189 EvilNumber.h
+	double Inertia = ship->GetAttribute(AttrInertia).get_float();       // Aknor: EVEAttributeMgr cant find this, assertion failed: "mType == evil_number_float", line 189 EvilNumber.h
+	double agility = ship->GetAttribute(AttrAgility).get_float();
+	int maxVelocity = ship->GetAttribute(AttrMaxVelocity).get_int();
 
 	//might need to care about turnAngle: Maximum turn angle of a ship in Radians, 0 to pi (3.14). 
 	//might need newAgility: Maximum "Thrust angle" for an object in Radians, 0 to pi (3.14).
@@ -1422,7 +1423,7 @@ void DestinyManager::SendEjectShip(const ShipRef capsuleRef, const ShipRef oldSh
     // Set Capsule's max velocity:
     DoDestiny_SetMaxSpeed du_setMaxSpeed;
     du_setMaxSpeed.entityID = capsuleRef->itemID();
-    du_setMaxSpeed.speed = capsuleRef->maxVelocity();
+    du_setMaxSpeed.speed = capsuleRef->GetAttribute(AttrMaxVelocity).get_float();
     updates.push_back(du_setMaxSpeed.Encode());
 
 	SendDestinyUpdate(updates, false);

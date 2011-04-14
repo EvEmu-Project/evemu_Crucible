@@ -100,8 +100,7 @@ double CargoContainer::GetCapacity(EVEItemFlags flag) const
 {
     switch( flag ) {
         case flagAutoFit:
-        case flagCargoHold:
-            return capacity();
+        case flagCargoHold:     return GetAttribute(AttrCapacity).get_float();
         default:
             return 0.0;
     }
@@ -111,39 +110,18 @@ void CargoContainer::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, C
 {
 	CharacterRef character = c->GetChar();
 	
-	if( flag == flagDroneBay )
-    {
-        if( item->categoryID() != EVEDB::invCategories::Drone )
-            //Can only put drones in drone bay
-            throw PyException( MakeUserError( "ItemCannotBeInDroneBay" ) );
-    }
-    else if( flag == flagShipHangar )
-    {
-		if( !c->GetShip()->attributes.Attr_hasShipMaintenanceBay )
-            // We have no ship maintenance bay
-			throw PyException( MakeCustomError( "%s has no ship maintenance bay.", item->itemName().c_str() ) );
-        if( item->categoryID() != EVEDB::invCategories::Ship )
-            // Only ships may be put here
-            throw PyException( MakeCustomError( "Only ships may be placed into ship maintenance bay." ) );
-    }
-    else if( flag == flagHangar )
-    {
-		if( !c->GetShip()->attributes.Attr_hasCorporateHangars )
-            // We have no corporate hangars
-            throw PyException( MakeCustomError( "%s has no corporate hangars.", item->itemName().c_str() ) );
-    }
-    else if( flag == flagCargoHold )
+    if( flag == flagCargoHold )
 	{
 		//get all items in cargohold
-		uint32 capacityUsed = 0;
+		EvilNumber capacityUsed(0);
 		std::vector<InventoryItemRef> items;
 		c->GetShip()->FindByFlag(flag, items);
 		for(uint32 i = 0; i < items.size(); i++){
-			capacityUsed += items[i]->volume();
+			capacityUsed += items[i]->GetAttribute(AttrVolume);
 		}
-		if( capacityUsed + item->volume() > c->GetShip()->capacity() )
+		if( capacityUsed + item->GetAttribute(AttrVolume) > c->GetShip()->GetAttribute(AttrCapacity) )
 			throw PyException( MakeCustomError( "Not enough cargo space!") );
-	}
+    }
 }
 
 PyObject *CargoContainer::CargoContainerGetInfo()
@@ -307,7 +285,7 @@ void ContainerEntity::EncodeDestiny( Buffer& into ) const
     DSTBALL_RIGID_Struct main;
 	main.formationID = 0xFF;
     into.Append( main );
-
+/*
     const uint16 miniballsCount = 1;
     into.Append( miniballsCount );
 
@@ -317,7 +295,7 @@ void ContainerEntity::EncodeDestiny( Buffer& into ) const
     miniball.z = 27878.900;
     miniball.radius = 1639.241;
     into.Append( miniball );
-
+*/
     const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
     into.Append( nameLen );
 
@@ -326,11 +304,13 @@ void ContainerEntity::EncodeDestiny( Buffer& into ) const
     utf8::utf8to16( itemName.begin(), itemName.end(), name );
 }
 
-void ContainerEntity::MakeDamageState(DoDestinyDamageState &into) const {
-	into.shield = m_shieldCharge / m_self->shieldCapacity();
-	into.tau = 100000;	//no freakin clue.
+void ContainerEntity::MakeDamageState(DoDestinyDamageState &into) const
+{
+	into.shield = (m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
+	into.tau = 100000;	//no freaking clue.
 	into.timestamp = Win32TimeNow();
-	into.armor = 1.0 - (m_armorDamage / m_self->armorHP());
-	into.structure = 1.0 - (m_hullDamage / m_self->hp());
+//	armor damage isn't working...
+	into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
+	into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHp).get_float());
 }
 

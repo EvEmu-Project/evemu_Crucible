@@ -46,8 +46,8 @@ void ModuleManager::OnlineAll()
 	for(p = m_moduleByID.begin(); p!=m_moduleByID.end(); ++p)
 	{
 		ShipModule *mod = m_modules[p->second];
-		if(mod->GetState() == 0)
-			mod->Activate("online",m_pilot->GetAccountID(),0);
+		//if(mod->GetState() == 0)
+		//	mod->Activate("online",m_pilot->GetAccountID(),0);
 	}
 }
 
@@ -57,7 +57,7 @@ void ModuleManager::RepairModules()
 	for(p = m_moduleByID.begin(); p!=m_moduleByID.end(); ++p)
 	{
 		ShipModule *mod = m_modules[p->second];
-		mod->item()->Set_damage(0);
+//		mod->item()->Set_damage(0);
 	}
 }
 
@@ -72,7 +72,7 @@ void ModuleManager::UnloadModule(uint32 itemID)
 		
 		if(mod->item()->typeID()==itemID)
 		{
-			mod->Deactivate("online");
+			//mod->Deactivate("online");
 
 			m_modules[p->second]->item()->Move(m_pilot->GetStationID(), flagHangar, true);
 			m_moduleByID.erase(p);
@@ -91,10 +91,10 @@ void ModuleManager::UnloadAllModules()
 	for(p = m_moduleByID.begin(); p!=m_moduleByID.end(); ++p)
 	{
 		mod = m_modules[p->second];
-		mod->Deactivate("online");
+//		mod->Deactivate("online");
 		m_modules[p->second]->item()->Move(m_pilot->GetStationID(), flagHangar, true);
-		if( m_modules[p->second]->item()->massAddition() != 0 )
-			m_pilot->GetShip()->Set_mass( m_pilot->GetShip()->mass() - m_modules[p->second]->item()->massAddition() );
+//		if( m_modules[p->second]->item()->massAddition() != 0 )
+//			m_pilot->GetShip()->Set_mass( m_pilot->GetShip()->mass() - m_modules[p->second]->item()->massAddition() );
 	}
 	//shouldn't need these
 	//m_pilot->GetShip()->Set_cpuLoad( 0 );
@@ -111,7 +111,7 @@ void ModuleManager::Process() {
 	for(r = 0; r < MAX_MODULE_COUNT; r++, cur++) {
 		if(*cur == NULL)
 			continue;
-		(*cur)->Process();
+		//(*cur)->Process();
 	}
 }
 
@@ -314,7 +314,7 @@ void ModuleManager::Downgrade(uint32 itemID) {
 		return;
 	}
 
-	mod->Downgrade();
+	//mod->Downgrade();
 }
 
 
@@ -363,7 +363,7 @@ void ModuleManager::ReplaceCharges(EVEItemFlags flag, InventoryItemRef new_charg
 	new_charge->ChangeSingleton(true);
 	
 	//call change charge to send update
-	m_modules[slot]->ChangeCharge(new_charge);
+	//m_modules[slot]->ChangeCharge(new_charge);
 }
 
 void ModuleManager::DeactivateAllModules()
@@ -376,7 +376,7 @@ void ModuleManager::DeactivateAllModules()
         {
             try
             {
-				mod->Deactivate();
+				//mod->Deactivate();
             }
             catch( char * str )
             {
@@ -400,10 +400,11 @@ ShipModule::ShipModule(Client *pilot, InventoryItemRef self, InventoryItemRef ch
   m_activationInterval(0)
 {
 	//activate it if it's a new module
-	if( !m_item->isOnline() )
+	// TODO: update to use GetAttribute(AttrOnline) or something like that
+	/*(if( !m_item->isOnline() )
 		Activate();
 	else
-		m_state = Online;
+		m_state = Online;*/
 }
 ShipModule::ShipModule(Client *pilot, InventoryItemRef self)
 : m_state(Offline),
@@ -419,10 +420,11 @@ ShipModule::ShipModule(Client *pilot, InventoryItemRef self)
 	sLog.Debug("ModuleMgr", "Called Upgrade Ship stub");
 
 	//activate it if it's a new rig
-	if( !m_item->isOnline() )
+	// TODO: update to use GetAttribute(AttrOnline) or something like that
+	/*if( !m_item->isOnline() )
 		Upgrade();
 	else
-		m_state = Online;
+		m_state = Online;*/
 }
 
 ShipModule::~ShipModule()
@@ -461,7 +463,7 @@ void ShipModule::Process() {
 	
 	switch(m_state) {
 		case Active:
-			if( m_activationTimer.Check() )
+			//if( m_activationTimer.Check() )
 			
 			break;
 		case Overloaded:
@@ -499,23 +501,23 @@ void ShipModule::Deactivate(const std::string &effectName) {
 }
 int ShipModule::Upgrade() {
 
-	if( m_item->upgradeCost() + m_pilot->GetShip()->upgradeLoad() > m_pilot->GetShip()->upgradeCapacity() )
-		sLog.Error("ModuleMgr","Invalid ship upgrade. Check Ship::ValidateAddItem function");
+	//if( m_item->upgradeCost() + m_pilot->GetShip()->upgradeLoad() > m_pilot->GetShip()->upgradeCapacity() )
+	//	sLog.Error("ModuleMgr","Invalid ship upgrade. Check Ship::ValidateAddItem function");
 	
 	m_item->PutOnline();
 	m_state = Online;
 
-	DoUpgradeLoad(true,false);
+	//DoUpgradeLoad(true,false);
 
-	DoPassiveEffects(true,false);
+	//DoPassiveEffects(true,false);
 	return 1;
 }
 void ShipModule::Downgrade() {
 
 	//TODO: check that modules exists
-	DoUpgradeLoad(false,false);
+	//DoUpgradeLoad(false,false);
 
-	DoPassiveEffects(false,false);
+	//DoPassiveEffects(false,false);
 
 }
 
@@ -544,7 +546,7 @@ bool ShipModule::ValidateEffect(bool activate) {
 bool ShipModule::ValidateOnline() {
 
 	//check for cpu
-	if( m_item->cpu() + m_pilot->GetShip()->cpuLoad() > m_pilot->GetShip()->cpuOutput() ) {
+	/*if( m_item->cpu() + m_pilot->GetShip()->cpuLoad() > m_pilot->GetShip()->cpuOutput() ) {
 		m_pilot->SendNotifyMsg("You do not have enough available cpu for this");
 		return false;
 	}
@@ -561,7 +563,7 @@ bool ShipModule::ValidateOnline() {
 			m_pilot->SendNotifyMsg("You do not have enough available capacitor charge for this");
 			return false;
 		}
-	}
+	}*/
 
 	//check maxgroupsOnline attribute (id 978) 0 = no limit, 1 = 1
 
@@ -590,12 +592,12 @@ bool ShipModule::ValidateActive() {
 			return false;
 
 	//check for activation energy
-	double capacitorNeed = m_item->capacitorNeed();
+	/*double capacitorNeed = m_item->capacitorNeed();
 	double charge = m_pilot->GetShip()->charge();
 	if( capacitorNeed > charge ) {
 		m_pilot->SendNotifyMsg("You do not have enough capacitor to activate this module");
 		return false;
-	}
+	}*/
 
 	//check reactivation delay
 	//check maxGroupActive 0 = no limit, 1 = only 1;
@@ -622,20 +624,20 @@ void ShipModule::DoEffect(bool active) {
 			m_item->PutOnline();
 			
 			//consume cpu and powergrid
-			m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() + m_item->cpu() );
-			m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() + m_item->power() );
+			//m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() + m_item->cpu() );
+			//m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() + m_item->power() );
 
 
 			//if in space, consume all capacitor
-			if( m_pilot->IsInSpace() )
-				m_pilot->GetShip()->Set_charge( 0 );
+			//if( m_pilot->IsInSpace() )
+			//	m_pilot->GetShip()->Set_charge( 0 );
 
 			//if the module is passive, do passive effects
-			if( m_item->capacitorNeed() == 0 ){
-				DoPassiveEffects(true,false);
-			} else {
-				DoActiveModulePassiveEffects(true,false);
-			}
+			//if( m_item->capacitorNeed() == 0 ){
+			//	DoPassiveEffects(true,false);
+			//} else {
+			//	DoActiveModulePassiveEffects(true,false);
+			//}
 		} else {
 			sLog.Debug("ModuleManager","Called Activate Effect stub");
 			//don't forget to consume ammo Attr 713
@@ -648,15 +650,15 @@ void ShipModule::DoEffect(bool active) {
 			m_item->PutOffline();
 	
 			//give back cpu and powergrid
-			m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() - m_item->cpu() );
-			m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() - m_item->power() );
+			//m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() - m_item->cpu() );
+			//m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() - m_item->power() );
 
 			//if the module is passive, do passive effects
-			if( m_item->capacitorNeed() == 0 ){
+			/*if( m_item->capacitorNeed() == 0 ){
 				DoPassiveEffects(false,false);
 			} else {
 				DoActiveModulePassiveEffects(false,false);
-			}
+			}*/
 		} else {
 			sLog.Debug("ModuleManager", "Called Deactivate Effect stub");
 		}
@@ -674,6 +676,7 @@ void ShipModule::DoEffect(bool active) {
     omac.oldValue = new PyInt(newval?0:1);   //hack... should use old, but its not cooperating today.
 */
 
+#if 0
 void ShipModule::DoPassiveEffects(bool add, bool notify) {
 	
 	//this is extremely slow compared to the switch, however, as the effect "online" tells us little about what actually happens, this is how it's done
@@ -2287,6 +2290,8 @@ void ShipModule::DoPassiveShieldThermalDamageResistanceBonus(bool add, bool noti
 		}
 	}
 }
+
+#endif
 void ShipModule::DoGodmaEffects(bool active) {
 	
 	Notify_OnGodmaShipEffect gse;
@@ -2392,7 +2397,7 @@ bool ShipModule::TypeCast(double a) {
 }
 void ShipModule::GetActivationInterval() {
 	
-	m_activationInterval = 4000;  //need to fix this
+//	m_activationInterval = 4000;  //need to fix this
 
 }
 

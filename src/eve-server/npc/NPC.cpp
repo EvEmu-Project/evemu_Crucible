@@ -52,10 +52,10 @@ NPC::NPC(
 	m_destiny->SetPosition(position, false);
 	
 	/* Gets the value from the NPC and put on our own vars */
-	m_shieldCharge = self->shieldCharge();
+	//m_shieldCharge = self->shieldCharge();
+    m_shieldCharge = self->GetAttribute(AttrShieldCharge).get_float();
 	m_armorDamage = 0.0;
 	m_hullDamage = 0.0;
-
 }
 
 NPC::~NPC() {
@@ -197,20 +197,26 @@ void NPC::EncodeDestiny( Buffer& into ) const
 
 
 void NPC::MakeDamageState(DoDestinyDamageState &into) const {
-	into.shield = m_shieldCharge / m_self->shieldCapacity();
+	//into.shield = m_shieldCharge / m_self->shieldCapacity();
+    into.shield = m_shieldCharge / m_self->GetAttribute(AttrShieldCapacity).get_float();
 	into.tau = 100000;	//no freakin clue.
 	into.timestamp = Win32TimeNow();
-	into.armor = 1.0 - (m_armorDamage / m_self->armorHP());
-	into.structure = 1.0 - (m_hullDamage / m_self->hp());
+	//into.armor = 1.0 - (m_armorDamage / m_self->armorHP());
+	//into.structure = 1.0 - (m_hullDamage / m_self->hp());
+    
+    // the get_float is still a hack... majorly
+    into.armor = 1.0 - (m_armorDamage / m_self->GetAttribute(AttrArmorHP).get_float());
+    into.structure = 1.0 - (m_hullDamage / m_self->GetAttribute(AttrHp).get_float());
 }
  
 void NPC::UseShieldRecharge()
 {
 	// We recharge our shield until it's reaches the shield capacity.
-	if( m_shieldCharge < this->Item()->shieldCapacity() )
+	if( this->Item()->GetAttribute(AttrShieldCapacity) > m_shieldCharge )
 	{
 		// Not found the information on how much it's consume from capacitor
-		m_shieldCharge += this->Item()->entityShieldBoostAmount();
+		//m_shieldCharge += this->Item()->entityShieldBoostAmount();
+        m_shieldCharge += this->Item()->GetAttribute(AttrEntityShieldBoostAmount).get_float();
 	}
 	// TODO: Need to send SpecialFX / amount update
 }
@@ -221,7 +227,8 @@ void NPC::UseArmorRepairer()
 	if( m_armorDamage > 0 )
 	{
 		// Not found the information on how much it's consume from capacitor
-		m_armorDamage -= this->Item()->entityArmorRepairAmount();
+		//m_armorDamage -= this->Item()->entityArmorRepairAmount();
+        m_armorDamage -= this->Item()->GetAttribute(AttrEntityArmorRepairAmount).get_float();
 		if( m_armorDamage < 0.0 )
 			m_armorDamage = 0.0;
 	}

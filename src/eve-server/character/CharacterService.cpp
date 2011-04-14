@@ -67,6 +67,11 @@ CharacterService::~CharacterService() {
     delete m_dispatch;
 }
 
+//void CharacterService::GetCharacterData(uint32 characterID, std::vector<uint32> &characterDataVector)
+void CharacterService::GetCharacterData(uint32 characterID, std::map<std::string, uint32> &characterDataMap) {
+    m_db.GetCharacterData( characterID, characterDataMap );
+}
+
 PyResult CharacterService::Handle_GetCharactersToSelect(PyCallArgs &call) {
     return(m_db.GetCharacterList(call.client->GetAccountID()));
 }
@@ -169,6 +174,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
             arg.bloodlineID, arg.genderID, arg.ancestryID);
 
     // obtain character type
+    m_manager->item_factory.SetUsingClient( call.client );
     const CharacterType *char_type = m_manager->item_factory.GetCharacterTypeByBloodline(arg.bloodlineID);
     if(char_type == NULL)
         return NULL;
@@ -225,7 +231,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
     cdata.regionID = 10000016;
 
     cdata.bounty = 0;
-    cdata.balance = 100000000000000.0;//sConfig.character.startBalance;
+    cdata.balance = sConfig.character.startBalance;
     cdata.securityRating = 0;
     cdata.logonMinutes = 0;
     cdata.title = "No Title";
@@ -260,16 +266,24 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
     // add attribute bonuses
     // (use Set_##_persist to properly persist attributes into DB)
-    char_item->Set_intelligence_persist(intelligence);
+    /*char_item->Set_intelligence_persist(intelligence);
     char_item->Set_charisma_persist(charisma);
     char_item->Set_perception_persist(perception);
     char_item->Set_memory_persist(memory);
-    char_item->Set_willpower_persist(willpower);
+    char_item->Set_willpower_persist(willpower);*/
+
+    char_item->SetAttribute(AttrIntelligence, intelligence);
+    char_item->SetAttribute(AttrCharisma, charisma);
+    char_item->SetAttribute(AttrPerception, perception);
+    char_item->SetAttribute(AttrMemory, memory);
+    char_item->SetAttribute(AttrWillpower, willpower);
 
     // register name
     m_db.add_name_validation_set(char_item->itemName().c_str(), char_item->itemID());
 
     //spawn all the skills
+    uint32 skillLevel;
+    EvilNumber skillPoints;
     CharSkillMapItr cur, end;
     cur = startingSkills.begin();
     end = startingSkills.end();
@@ -282,9 +296,18 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
             continue;
         }
 
-        _log(CLIENT__MESSAGE, "Training skill %u to level %d (%d points)", i->typeID(), i->skillLevel(), i->skillPoints());
-        i->Set_skillLevel( cur->second );
-        i->Set_skillPoints( i->GetSPForLevel( cur->second ) );
+        //_log(CLIENT__MESSAGE, "Training skill %u to level %d (%d points)", i->typeID(), i->skillLevel(), i->skillPoints());
+        //i->Set_skillLevel( cur->second );
+        skillLevel = cur->second;
+        i->SetAttribute(AttrSkillLevel, skillLevel );
+        //i->Set_skillPoints( i->GetSPForLevel( cur->second ) );
+        skillPoints = i->GetSPForLevel( EvilNumber((uint64)cur->second) );
+        skillPoints.to_float();
+        //if( !(skillPoints.to_int()) )
+        //    sLog.Error( "CharacterService::Handle_CreateCharacter2()", "skillPoints.to_int() failed, resulting in a floating point value larger than a 64-bit signed integer... o.O !!" );
+        i->SetAttribute(AttrSkillPoints, skillPoints );
+        i->mAttributeMap.SaveAttributes();
+        //i->mAttributeMap.Save();
     }
 
     //now set up some initial inventory:
@@ -302,9 +325,9 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
     initInvItem = m_manager->item_factory.SpawnItem( itemTritanium );
 
     // add 1 unit of "Clone Grade Alpha"
-    ItemData itemClonAlpha( 164, char_item->itemID(), char_item->locationID(), flagClone, 1 );
-	itemClonAlpha.customInfo="active";
-    initInvItem = m_manager->item_factory.SpawnItem( itemClonAlpha );
+    ItemData itemCloneAlpha( 164, char_item->itemID(), char_item->locationID(), flagClone, 1 );
+	itemCloneAlpha.customInfo="active";
+    initInvItem = m_manager->item_factory.SpawnItem( itemCloneAlpha );
 
     if( !initInvItem )
         codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());
@@ -352,6 +375,7 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
     sLog.Debug( "CharacterService", "Called PrepareCharacterForDelete stub: deleting immediately." );
 
     { // character scope to make sure char_item is deleted immediately
+        m_manager->item_factory.SetUsingClient( call.client );
         CharacterRef char_item = m_manager->item_factory.GetCharacter( args.arg );
         if( !char_item ) {
             codelog(CLIENT__ERROR, "Failed to load char item %u.", args.arg);
@@ -500,6 +524,7 @@ PyResult CharacterService::Handle_GetCharacterDescription(PyCallArgs &call) {
         return NULL;
     }
 
+    m_manager->item_factory.SetUsingClient( call.client );
     CharacterRef c = m_manager->item_factory.GetCharacter(args.arg);
     if( !c ) {
         _log(CLIENT__ERROR, "Failed to load character %u.", args.arg);

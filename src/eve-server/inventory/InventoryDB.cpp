@@ -25,7 +25,6 @@
 
 #include "EVEServerPCH.h"
 
-#include "ship/ModuleManager.h"
 
 bool InventoryDB::GetCategory(EVEItemCategories category, CategoryData &into) {
     DBQueryResult res;
@@ -664,6 +663,7 @@ bool InventoryDB::GetItemContents(uint32 itemID, EVEItemFlags flag, uint32 owner
 }
 
 bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
+#if 0
     DBQueryResult res;
 
     if(!sDatabase.RunQuery(res,
@@ -699,6 +699,23 @@ bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
             into.SetReal(attr, row.GetDouble(2));
         }
     }
+#else
+
+    DgmTypeAttributeSet *attrset = sDgmTypeAttrMgr.GetDmgTypeAttributeSet(typeID);
+    
+    // if not found return true because there can be items without attributes I guess
+    if (attrset == NULL)
+        return true;
+
+    DgmTypeAttributeSet::AttrSetItr itr = attrset->begin();
+    
+    for (; itr != attrset->end(); itr++) {
+        if ((*itr)->number.get_type() == evil_number_int)
+            into.SetInt((EVEAttributeMgr::Attr)(*itr)->attributeID, (*itr)->number.get_int());
+        else
+            into.SetReal((EVEAttributeMgr::Attr)(*itr)->attributeID, (*itr)->number.get_float());
+    }
+#endif
     return true;
 }
 
@@ -1813,25 +1830,29 @@ bool InventoryDB::GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 &into)
 		//TODO: Implement Rigs
 		attributeID = 1137;
 		firstFlag = 92; //rigslot0
-		slotsOnShip = ship->rigSlots();
+		//slotsOnShip = ship->rigSlots();
+        slotsOnShip = ship->GetAttribute(AttrRigSlots).get_int();
 	}
 	else if( slotType == 1 )
 	{
 		attributeID = 12;
 		firstFlag = 11; //lowslot0
-		slotsOnShip = ship->lowSlots();
+		//slotsOnShip = ship->lowSlots();
+        slotsOnShip = ship->GetAttribute(AttrLowSlots).get_int();
 	}
 	else if( slotType == 2 )
 	{
 		attributeID = 13;
 		firstFlag = 19; //medslot0
-		slotsOnShip = ship->medSlots();
+		//slotsOnShip = ship->medSlots();
+        slotsOnShip = ship->GetAttribute(AttrMedSlots).get_int();
 	}
 	else if( slotType == 3 )
 	{
 		attributeID = 14;
 		firstFlag = 27; //hislot0
-		slotsOnShip = ship->hiSlots();
+		//slotsOnShip = ship->hiSlots();
+        slotsOnShip = ship->GetAttribute(AttrHiSlots).get_int();
 	}	
 	
 	for( uint32 flag = firstFlag; flag < (firstFlag + slotsOnShip); flag++ )

@@ -125,6 +125,8 @@
 #include "tables/invGroups.h"
 
 #include "utils/EVEUtils.h"
+#include "utils/EvilNumber.h"
+
 
 /************************************************************************/
 /* eve-server includes                                                  */
@@ -194,6 +196,7 @@
 #include "dogmaim/DogmaIMService.h"
 
 // item stuff
+#include "inventory/AttributeEnum.h"
 #include "inventory/AttributeMgr.h"
 #include "inventory/EVEAttributeMgr.h"
 #include "inventory/InvBrokerService.h"
@@ -266,6 +269,7 @@
 #include "ship/ShipDB.h"
 #include "ship/ShipService.h"
 #include "ship/TargetManager.h"
+#include "ship/dgmtypeattributeinfo.h"
 
 #include "spawn/SpawnDB.h"
 #include "spawn/SpawnManager.h"

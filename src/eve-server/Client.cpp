@@ -66,6 +66,14 @@ Client::~Client() {
         //before we remove ourself from the system, store our last location.
         SavePosition();
 
+        // Save character info including attributes, save current ship's attributes, current ship's fitted modules,
+        // and save all skill attributes to the Database:
+        //modules.SaveModules();                          // Save fitted Modules attributes to DB
+        GetShip()->mAttributeMap.SaveAttributes();      // Save Ship's attributes to DB
+        //GetShip()->mAttributeMap.Save();                // Save Ship's attributes to DB
+        GetChar()->SaveCharacter();                     // Save Character info to DB
+        GetChar()->SaveSkillQueue();                    // Save Skill Queue to DB
+
         // remove ourselves from system
         if(m_system != NULL)
             m_system->RemoveClient(this);   //handles removing us from bubbles and sending RemoveBall events.
@@ -139,6 +147,18 @@ void Client::Process() {
             break;
         }
     }
+
+    // Check Character Save Timer Expiry:
+    if( GetChar()->CheckSaveTimer() )
+        GetChar()->SaveCharacter();
+
+    // Check Ship Save Timer Expiry:
+    if( GetShip()->CheckSaveTimer() )
+        GetShip()->SaveShip();
+
+    // Check Module Manager Save Timer Expiry:
+    //if( modules.CheckSaveTimer() )
+    //    modules.SaveModules();
 
     if( m_timeEndTrain != 0 )
     {
@@ -304,6 +324,10 @@ bool Client::EnterSystem(bool login) {
         m_system->AddClient(this);
     }
 
+    return true;
+}
+
+bool Client::UpdateLocation() {
     if(IsStation(GetLocationID())) {
         //we entered station, delete m_destiny
         delete m_destiny;
@@ -396,7 +420,8 @@ void Client::MoveToLocation( uint32 location, const GPoint& pt )
     //update session with new values
     _UpdateSession( GetChar() );
 
-    EnterSystem();
+    EnterSystem( false );
+    UpdateLocation();
 
     _SendSessionChange();
 }
@@ -411,6 +436,7 @@ void Client::MoveToPosition(const GPoint &pt) {
 
 void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
 {
+    m_services.item_factory.SetUsingClient( this );
     InventoryItemRef item = m_services.item_factory.GetItem( itemID );
     if( !item ) {
 		sLog.Error("Client","%s: Unable to load item %u", GetName(), itemID);
@@ -488,6 +514,82 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     mSession.SetLong( "rolesAtOther", character->rolesAtOther() );
 
     mSession.SetInt( "shipid", character->locationID() );
+}
+
+void Client::_UpdateSession2( uint32 characterID )
+{
+    std::vector<uint32> characterDataVector;
+    std::map<std::string, uint32> characterDataMap;
+
+    if( characterID == 0 )
+    {
+        sLog.Error( "Client::_UpdateSession2()", "characterID == 0, which is illegal" );
+        return;
+    }
+
+    uint32 corporationID = 0;
+    uint32 stationID = 0;
+    uint32 solarSystemID = 0;
+    uint32 constellationID = 0;
+    uint32 regionID = 0;
+    uint32 corporationHQ = 0;
+    uint32 corpRole = 0;
+    uint32 rolesAtAll = 0;
+    uint32 rolesAtBase = 0;
+    uint32 rolesAtHQ = 0;
+    uint32 rolesAtOther = 0;
+    uint32 locationID = 0;
+
+    ((CharacterService *)(m_services.LookupService("character")))->GetCharacterData( characterID, characterDataMap );
+
+    if( characterDataMap.size() == 0 )
+    {
+        sLog.Error( "Client::_UpdateSession2()", "characterDataMap.size() returned zero." );
+        return;
+    }
+
+    corporationID = characterDataMap["corporationID"];
+    stationID = characterDataMap["stationID"];
+    solarSystemID = characterDataMap["solarSystemID"];
+    constellationID = characterDataMap["constellationID"];
+    regionID = characterDataMap["regionID"];
+    corporationHQ = characterDataMap["corporationHQ"];
+    corpRole = characterDataMap["corpRole"];
+    rolesAtAll = characterDataMap["rolesAtAll"];
+    rolesAtBase = characterDataMap["rolesAtBase"];
+    rolesAtHQ = characterDataMap["rolesAtHQ"];
+    rolesAtOther = characterDataMap["rolesAtOther"];
+    locationID = characterDataMap["locationID"];
+
+
+    mSession.SetInt( "charid", characterID );
+    mSession.SetInt( "corpid", corporationID );
+    if( stationID == 0 )
+    {
+        mSession.Clear( "stationid" );
+
+        mSession.SetInt( "solarsystemid", solarSystemID );
+        mSession.SetInt( "locationid", solarSystemID );
+    }
+    else
+    {
+        mSession.Clear( "solarsystemid" );
+
+        mSession.SetInt( "stationid", stationID );
+        mSession.SetInt( "locationid", stationID );
+    }
+    mSession.SetInt( "solarsystemid2", solarSystemID );
+    mSession.SetInt( "constellationid", constellationID );
+    mSession.SetInt( "regionid", regionID );
+
+    mSession.SetInt( "hqID", corporationHQ );
+    mSession.SetLong( "corprole", corpRole );
+    mSession.SetLong( "rolesAtAll", rolesAtAll );
+    mSession.SetLong( "rolesAtBase", rolesAtBase );
+    mSession.SetLong( "rolesAtHQ", rolesAtHQ );
+    mSession.SetLong( "rolesAtOther", rolesAtOther );
+
+    mSession.SetInt( "shipid", locationID );
 }
 
 void Client::_SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel )
@@ -926,20 +1028,29 @@ bool Client::AddBalance(double amount) {
 
 bool Client::SelectCharacter( uint32 char_id )
 {
+    m_services.item_factory.SetUsingClient( this );
+
+    _UpdateSession2( char_id );
+
+//    if( !EnterSystem( true ) )
+//        return false;
+
     m_char = m_services.item_factory.GetCharacter( char_id );
     if( !GetChar() )
         return false;
-
-    _UpdateSession( GetChar() );
 
     ShipRef ship = m_services.item_factory.GetShip( GetShipID() );
     if( !ship )
         return false;
 
+    ship->Load( m_services.item_factory, GetShipID() );
+
     BoardShip( ship );
 
     if( !EnterSystem( true ) )
         return false;
+
+    UpdateLocation();
 
     // update skill queue
     GetChar()->UpdateSkillQueue();
@@ -964,17 +1075,29 @@ double Client::GetPropulsionStrength() const {
         return(3.0f);
     //just making shit up, I think skills modify this, as newbies
     //tend to end up with 3.038 instead of the base 3.0 on their ship..
-    double res;
-    res =  GetShip()->propulsionFusionStrength();
+    //double res;
+    EvilNumber res;
+    res = GetShip()->GetAttribute(AttrPropulsionFusionStrength);
+    res += GetShip()->GetAttribute(AttrPropulsionIonStrength);
+    res += GetShip()->GetAttribute(AttrPropulsionMagpulseStrength);
+    res += GetShip()->GetAttribute(AttrPropulsionPlasmaStrength);
+    res += GetShip()->GetAttribute(AttrPropulsionFusionStrengthBonus);
+    res += GetShip()->GetAttribute(AttrPropulsionIonStrengthBonus);
+    res += GetShip()->GetAttribute(AttrPropulsionMagpulseStrengthBonus);
+    res += GetShip()->GetAttribute(AttrPropulsionPlasmaStrengthBonus);
+
+    /*res =  GetShip()->propulsionFusionStrength();
     res += GetShip()->propulsionIonStrength();
     res += GetShip()->propulsionMagpulseStrength();
     res += GetShip()->propulsionPlasmaStrength();
     res += GetShip()->propulsionFusionStrengthBonus();
     res += GetShip()->propulsionIonStrengthBonus();
     res += GetShip()->propulsionMagpulseStrengthBonus();
-    res += GetShip()->propulsionPlasmaStrengthBonus();
+    res += GetShip()->propulsionPlasmaStrengthBonus();*/
     res += 0.038f;
-    return res;
+    
+    // watch out... we know for a fact that it returns a float... but... only because we do "res += 0.038f;".
+    return res.get_float();
 }
 
 void Client::TargetAdded( SystemEntity* who )

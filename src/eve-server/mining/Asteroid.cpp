@@ -57,7 +57,6 @@ void AsteroidEntity::EncodeDestiny( Buffer& into ) const
 {
 	const GPoint& position = GetPosition();
     const std::string itemName( GetName() );
-
 	/*if(m_orbitingID != 0) {
 		#pragma pack(1)
 		struct AddBall_Orbit {
@@ -103,7 +102,7 @@ void AsteroidEntity::EncodeDestiny( Buffer& into ) const
 		
 		item->name.name_len = slen;	// in number of unicode chars
 		//strcpy_fake_unicode(item->name.name, GetName());
-	} else */{
+	} else {
         BallHeader head;
 		head.entityID = GetID();
 		head.mode = Destiny::DSTBALL_STOP;
@@ -145,6 +144,37 @@ void AsteroidEntity::EncodeDestiny( Buffer& into ) const
         into.ResizeAt( name, nameLen );
         utf8::utf8to16( itemName.begin(), itemName.end(), name );
 	}
+*/
+    BallHeader head;
+	head.entityID = GetID();
+	head.mode = Destiny::DSTBALL_RIGID;
+	head.radius = GetRadius();
+	head.x = position.x;
+	head.y = position.y;
+	head.z = position.z;
+	head.sub_type = AddBallSubType_station;
+    into.Append( head );
+
+    DSTBALL_RIGID_Struct main;
+	main.formationID = 0xFF;
+    into.Append( main );
+/*
+    const uint16 miniballsCount = 1;
+    into.Append( miniballsCount );
+
+    MiniBall miniball;
+    miniball.x = -7701.181;
+    miniball.y = 8060.06;
+    miniball.z = 27878.900;
+    miniball.radius = 1639.241;
+    into.Append( miniball );
+*/
+    const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
+    into.Append( nameLen );
+
+    const Buffer::iterator<uint16> name = into.end<uint16>();
+    into.ResizeAt( name, nameLen );
+    utf8::utf8to16( itemName.begin(), itemName.end(), name );
 }
 
 void AsteroidEntity::MakeDamageState(DoDestinyDamageState &into) const {

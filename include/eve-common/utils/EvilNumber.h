@@ -1,6 +1,9 @@
 #ifndef EvilNumber_h__
 #define EvilNumber_h__
 
+#define MAX_EVIL_INTEGER    0x7FFFFFFFFFFFFFFF      // 64-bit signed integer
+
+
 // this file should have all stuff regarding damage type attribute caching..
 enum EVIL_NUMBER_TYPE
 {
@@ -220,8 +223,10 @@ public:
         return mType;
     }
 
-    int64 get_int();
+    bool to_int();
+    bool to_float();
 
+    int64 get_int();
     double get_float();
     /************************************************************************/
     /* end of old system support                                            */

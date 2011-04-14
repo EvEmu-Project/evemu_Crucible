@@ -27,25 +27,24 @@
 
 NPCAIMgr::NPCAIMgr(NPC *who)
 : m_state(Idle),
-  m_entityFlyRange2(who->Item()->entityFlyRange()*who->Item()->entityFlyRange()),
-  m_entityChaseMaxDistance2(who->Item()->entityChaseMaxDistance()*who->Item()->entityChaseMaxDistance()),
-  m_entityAttackRange2(who->Item()->entityAttackRange()*who->Item()->entityAttackRange()),
+  m_entityFlyRange2(who->Item()->GetAttribute(AttrEntityFlyRange)*who->Item()->GetAttribute(AttrEntityFlyRange)),
+  m_entityChaseMaxDistance2(who->Item()->GetAttribute(AttrEntityChaseMaxDistance)*who->Item()->GetAttribute(AttrEntityChaseMaxDistance)),
+  m_entityAttackRange2(who->Item()->GetAttribute(AttrEntityAttackRange)*who->Item()->GetAttribute(AttrEntityAttackRange)),
   m_npc(who),
   m_processTimer(50),	//arbitrary.
   m_mainAttackTimer(1),	//we want this to always trigger the first time through.
-  m_shieldBoosterTimer(who->Item()->entityShieldBoostDuration()),
-  m_armorRepairTimer(who->Item()->entityArmorRepairDuration())
+  m_shieldBoosterTimer(who->Item()->GetAttribute(AttrEntityShieldBoostDuration).get_int()),
+  m_armorRepairTimer(who->Item()->GetAttribute(AttrEntityArmorRepairDuration).get_int())
 {
 	m_processTimer.Start();
 	m_mainAttackTimer.Start();
 
 	// This NPC uses Shield Booster
-	if( who->Item()->entityShieldBoostDuration() > 0 )
+	if( who->Item()->GetAttribute(AttrEntityShieldBoostDuration) > 0 )
 		m_shieldBoosterTimer.Start();
 	// This NPC uses armor repairer
-	if( who->Item()->entityArmorRepairDuration() > 0 )
+	if( who->Item()->GetAttribute(AttrEntityArmorRepairDuration) > 0 )
 		m_armorRepairTimer.Start();
-
 }
 	
 void NPCAIMgr::Process() {
@@ -92,7 +91,7 @@ void NPCAIMgr::Process() {
 			return;
 		}
 		
-		if(m_npc->DistanceTo2(target) < m_entityAttackRange2) {
+        if(m_npc->DistanceTo2(target) < m_entityAttackRange2.get_float()) {
 			//we caught up... off to follow mode. Should orbit, but that
 			//isnt working yet.
 			_log(NPC__AI_TRACE, "[%u] Was chasing %u, but they are close enough now. Following.", m_npc->GetID(), target->GetID());
@@ -118,7 +117,7 @@ void NPCAIMgr::Process() {
 			return;
 		}
 		
-		if(m_npc->DistanceTo2(target) > m_entityChaseMaxDistance2) {
+        if(m_npc->DistanceTo2(target) > m_entityChaseMaxDistance2.get_float()) {
 			//they are too far away now...
 			_log(NPC__AI_TRACE, "[%u] Was chasing with %u, but they are too far away now. Chasing.", m_npc->GetID(), target->GetID());
 			_EnterChasing(target);
@@ -143,7 +142,7 @@ void NPCAIMgr::Process() {
 			return;
 		}
 		
-		if(m_npc->DistanceTo2(target) > m_entityAttackRange2) {
+        if(m_npc->DistanceTo2(target) > m_entityAttackRange2.get_float()) {
 			//they are too far away now...
 			_log(NPC__AI_TRACE, "[%u] Was engaged with %u, but they are too far away now. Following.", m_npc->GetID(), target->GetID());
 			_EnterFollowing(target);
@@ -159,12 +158,12 @@ void NPCAIMgr::Process() {
 
 void NPCAIMgr::_EnterChasing(SystemEntity *target) {
 	//TODO: we actually use MWD if we have them...
-	m_npc->Destiny()->Follow(target, m_npc->Item()->entityFlyRange());
+	m_npc->Destiny()->Follow(target, m_npc->Item()->GetAttribute(AttrEntityFlyRange).get_float());
 	m_state = Chasing;
 }
 
 void NPCAIMgr::_EnterFollowing(SystemEntity *target) {
-	m_npc->Destiny()->Follow(target, m_npc->Item()->entityFlyRange());
+	m_npc->Destiny()->Follow(target, m_npc->Item()->GetAttribute(AttrEntityFlyRange).get_float());
 	m_state = Following;
 }
 
@@ -176,11 +175,11 @@ void NPCAIMgr::_EnterIdle() {
 void NPCAIMgr::_EnterEngaged(SystemEntity *target) {
 	//m_npc->Destiny()->Follow(target, m_npc->Item()->entityFlyRange());
 	//not sure if we should use orbitRange or entityFlyRange...
-	double orbit_range = m_npc->Item()->orbitRange();
-	if(orbit_range > m_npc->Item()->entityAttackRange()) {
-		orbit_range = m_npc->Item()->entityFlyRange();
+	EvilNumber orbit_range = m_npc->Item()->GetAttribute(AttrOrbitRange);
+	if(orbit_range > m_npc->Item()->GetAttribute(AttrEntityAttackRange)) {
+		orbit_range = m_npc->Item()->GetAttribute(AttrEntityFlyRange);
 	}
-	m_npc->Destiny()->Orbit(target, orbit_range);
+	m_npc->Destiny()->Orbit(target, orbit_range.get_float());
 	m_state = Engaged;
 }
 
@@ -188,16 +187,16 @@ void NPCAIMgr::Targeted(SystemEntity *by_who) {
 	//TODO: determind lock speed.
 	//TODO: obey maxLockedTargets
 	//m_npc->targets.StartTargeting(by_who, 1000);
-	if( m_npc->targets.GetTotalTargets() < m_npc->Item()->maxLockedTargets() )
+	if( m_npc->Item()->GetAttribute(AttrMaxLockedTargets) > m_npc->targets.GetTotalTargets())
 		m_npc->targets.StartTargeting( by_who, 1000 );
 	
 	switch(m_state) {
 	case Idle: {
 		_log(NPC__AI_TRACE, "[%u] Targeted by %u in Idle. Attacking.", m_npc->GetID(), by_who->GetID());
 		double dist = m_npc->DistanceTo2(by_who);
-		if(dist < m_entityAttackRange2) {
+		if(dist < m_entityAttackRange2.get_float()) {
 			_EnterEngaged(by_who);
-		} else if(dist < m_entityChaseMaxDistance2) {
+		} else if(dist < m_entityChaseMaxDistance2.get_float()) {
 			_EnterFollowing(by_who);
 		} else {
 			_EnterChasing(by_who);
@@ -245,7 +244,7 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
 		//NOTE: there is probably a more intelligent way to make this descision.
 		//if(self->entityAttackDelayMax() <= 0) {
 			//use speed field...
-			m_mainAttackTimer.Start(self->speed());
+			m_mainAttackTimer.Start(self->GetAttribute(AttrSpeed).get_int());
 		//} else {
 			//I think this field is actually meant as a reaction time to the player showing up in range.
 		//	m_mainAttackTimer.Start(MakeRandomInt(
@@ -255,7 +254,7 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
 		//Do main attack...
 
 		//check our attack range...
-		if(m_npc->DistanceTo2(target) > m_entityAttackRange2) {
+		if(m_npc->DistanceTo2(target) > m_entityAttackRange2.get_float()) {
 			_log(NPC__AI_TRACE, "[%u] Target (%u) is too far away (%.2f > %.2f)", m_npc->GetID(), target->GetID(), m_npc->DistanceTo2(target), m_entityAttackRange2);
 			_EnterFollowing(target);
 			return;
@@ -290,9 +289,11 @@ void NPCAIMgr::_SendWeaponEffect( const char*effect, SystemEntity *target )
 	sfx.isOffensive = 1;
 	sfx.start = 1;
 	sfx.active = 1;
-//omit these for now, setting up the repeat might be a network optimization, but we dont need it right now.
+    
+    //omit these for now, setting up the repeat might be a network optimization, but we don't need it right now.
 	//sfx.duration_ms = 1960;	//no idea...
-	sfx.duration_ms = m_npc->Item()->speed();
+	//sfx.duration_ms = m_npc->Item()->speed();
+    sfx.duration_ms = m_npc->Item()->GetAttribute(AttrSpeed).get_float();
 	sfx.repeat = 1;
 	sfx.startTime = Win32TimeNow();
 	

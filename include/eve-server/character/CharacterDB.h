@@ -52,6 +52,7 @@ public:
 	bool GetCharClones(uint32 characterID, std::vector<uint32> &into); 
 	bool GetActiveClone(uint32 characterID, uint32 &itemID); 
 	bool GetActiveCloneType(uint32 characterID, uint32 &typeID); 
+	void GetCharacterData(uint32 characterID, std::map<std::string, uint32> &characterDataMap);
 
 	bool ValidateCharName(const char *name);
 	/**

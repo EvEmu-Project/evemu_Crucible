@@ -29,6 +29,7 @@
 #include "Client.h"
 #include "inventory/InventoryDB.h"
 #include "inventory/InventoryItem.h"
+#include "inventory/AttributeEnum.h"
 
 PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
@@ -596,7 +597,8 @@ PyResult Command_getattr( Client* who, CommandDB* db, PyServiceMgr* services, co
 	if( !item )
 		throw PyException( MakeCustomError( "Failed to load item %u.", itemID ) );
 
-	return item->attributes.PyGet( attribute );
+	//return item->attributes.PyGet( attribute );
+    return item->GetAttribute(attribute).GetPyObject();
 }
 
 PyResult Command_setattr( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
@@ -622,7 +624,8 @@ PyResult Command_setattr( Client* who, CommandDB* db, PyServiceMgr* services, co
 		throw PyException( MakeCustomError( "Failed to load item %u.", itemID ) );
 
 	//item->attributes.SetReal( attribute, value );
-    item->SetAttribute(attribute, value);
+    sLog.Warning( "GMCommands: Command_dogma()", "This command will modify attribute and send change to client, but change does not take effect in client for some reason." );
+    item->SetAttribute(attribute, (float)value);
 
 	return new PyString( "Operation successful." );
 }
@@ -707,7 +710,8 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
 	CharacterRef character;
 	EVEItemFlags flag;
 	uint32 gty = 1;
-	uint8 oldSkillLevel = 0;
+	//uint8 oldSkillLevel = 0;
+    EvilNumber oldSkillLevel(0);
 	uint32 ownerID = 0;
 
 	if( args.argCount() == 4 )
@@ -748,34 +752,43 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
 	} else
 		throw PyException( MakeCustomError("Correct Usage: /giveskill [Character Name or ID] [skillID] [desired level]") );
 
-	ItemData idata(
-		typeID,
-		ownerID,
-		0, //temp location
-		flag = (EVEItemFlags)flagSkill,
-		gty
-	);
+    SkillRef skill;
 
-	InventoryItemRef item = services->item_factory.SpawnItem( idata );
-	SkillRef skill = SkillRef::StaticCast( item );
-
-
-	if( !item )
-		throw PyException( MakeCustomError( "Unable to create item of type %s.", item->typeID() ) );
-	
-	if(character->HasSkill( skill->typeID() ) )
+	if(character->HasSkill( typeID ) )
 	{
-		SkillRef oldSkill = character->GetSkill( skill->typeID() );
-		oldSkillLevel = oldSkill->attributes.GetInt( oldSkill->attributes.Attr_skillLevel );
-	}
-		
-	if( level > oldSkillLevel )
-	{
-		character->InjectSkillIntoBrain( skill, level);
+        // Character already has this skill, so let's get the current level and check to see
+        // if we need to update its level to what's required:
+		SkillRef oldSkill = character->GetSkill( typeID );
+        oldSkillLevel = oldSkill->GetAttribute( AttrSkillLevel );
+
+        // Now check the current level to the required level and update it 
+        if( oldSkillLevel < level )
+        {
+            character->InjectSkillIntoBrain( oldSkill, level);
+            return new PyString ( "Gifting skills complete" );
+        }
+    }
+    else
+    {
+        // Character DOES NOT have this skill, so spawn a new one and then add this
+        // to the character with required level and skill points:
+	    ItemData idata(
+		    typeID,
+		    ownerID,
+		    0, //temp location
+		    flag = (EVEItemFlags)flagSkill,
+		    gty
+	    );
+
+	    InventoryItemRef item = services->item_factory.SpawnItem( idata );
+	    skill = SkillRef::StaticCast( item );
+
+	    if( !item )
+		    throw PyException( MakeCustomError( "Unable to create item of type %s.", item->typeID() ) );
+
+        character->InjectSkillIntoBrain( skill, level);
 		return new PyString ( "Gifting skills complete" );
-	}
-
-
+    }
 
 	return new PyString ("Skill Gifting Failure");
 }
@@ -864,9 +877,13 @@ PyResult Command_heal( Client* who, CommandDB* db, PyServiceMgr* services, const
 {
 	if( args.argCount()== 1 )
 	{
-		who->GetShip()->Set_armorDamage(0);
+		/*who->GetShip()->Set_armorDamage(0);
 		who->GetShip()->Set_damage(0);
-		who->GetShip()->Set_shieldCharge(who->GetShip()->shieldCapacity());
+		who->GetShip()->Set_shieldCharge(who->GetShip()->shieldCapacity());*/
+
+        who->GetShip()->SetAttribute(AttrArmorDamage, 0);
+        who->GetShip()->SetAttribute(AttrDamage, 0);
+        who->GetShip()->SetAttribute(AttrShieldCharge, who->GetShip()->GetAttribute(AttrShieldCapacity));
 	}
 	if( args.argCount() == 2 )
 	{
@@ -879,9 +896,10 @@ PyResult Command_heal( Client* who, CommandDB* db, PyServiceMgr* services, const
 		Client *target = services->entity_list.FindCharacter( entity );
 		if(target == NULL)
 			throw PyException( MakeCustomError( "Cannot find Character by the entity %d", entity ) );
-		target->GetShip()->Set_armorDamage(0);
-		target->GetShip()->Set_damage(0);
-		target->GetShip()->Set_shieldCharge(who->GetShip()->shieldCapacity());
+		
+        who->GetShip()->SetAttribute(AttrArmorDamage, 0);
+        who->GetShip()->SetAttribute(AttrDamage, 0);
+        who->GetShip()->SetAttribute(AttrShieldCharge, who->GetShip()->GetAttribute(AttrShieldCapacity));
 	}
 
 	return(new PyString("Heal successful!"));
@@ -972,14 +990,17 @@ PyResult Command_dogma( Client* who, CommandDB* db, PyServiceMgr* services, cons
 	if( !args.isNumber( 4 ) ){
 		throw PyException( MakeCustomError("Invalid attribute value. \n Correct Usage: /dogma [itemID] [attributeName] = [value]") );
 	}
-	double atributeValue = atof( args.arg( 4 ).c_str() );
+	double attributeValue = atof( args.arg( 4 ).c_str() );
 
 	//get item
 	InventoryItemRef item = services->item_factory.GetItem( itemID );
 
 	//get attributeID
 	uint32 attributeID = db->GetAttributeID( attributeName );
-	
+
+    sLog.Warning( "GMCommands: Command_dogma()", "This command will modify attribute and send change to client, but change does not take effect in client for some reason." );
+    item->mAttributeMap.SetAttribute( attributeID, EvilNumber( attributeValue ), true );
+
 	return NULL;
 }
 

@@ -100,6 +100,7 @@ static EvilNumber e_pow(int num, EvilNumber power_of)
         return EvilNumber(pow(num, power_of.get_float()));
     else
         return EvilNumber(pow(num, double(power_of.get_int())));
+
 }
 
 #endif // dgmtypeattributeinfo_h__

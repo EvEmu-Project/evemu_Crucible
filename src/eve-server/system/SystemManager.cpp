@@ -100,6 +100,19 @@ bool SystemManager::_LoadSystemCelestials() {
 			        codelog(SERVICE__ERROR, "Failed to create entity for item %u (type %u)", cur->itemID, cur->typeID);
 			        continue;
 		        }
+
+                // Create default dynamic attributes in the AttributeMap:
+                StationRef stationRef = stationEntity->GetStationObject();
+                stationRef->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                        // Is Online
+                stationRef->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                        // Structure Damage
+                stationRef->mAttributeMap.SetAttribute(AttrShieldCapacity,EvilNumber(20000000.0),true);                         // Shield Capacity
+                stationRef->mAttributeMap.SetAttribute(AttrShieldCharge,stationRef->GetAttribute(AttrShieldCapacity),true);     // Shield Charge
+                stationRef->mAttributeMap.SetAttribute(AttrArmorHP,EvilNumber(stationRef->type().attributes.armorHP()),true);   // Armor HP
+                stationRef->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                   // Armor Damage
+                stationRef->mAttributeMap.SetAttribute(AttrMass,EvilNumber(stationRef->type().attributes.mass()),true);         // Mass
+                stationRef->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(stationRef->type().attributes.radius()),true);     // Radius
+                stationRef->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(stationRef->type().attributes.volume()),true);     // Volume
+
                 m_entities[stationEntity->GetStationObject()->itemID()] = stationEntity;
 		        bubbles.Add(stationEntity, true);
 		        m_entityChanged = true;
@@ -156,21 +169,10 @@ public:
 
                 // TODO: this should really be loaded from the 'entity_attributes' table assuming it's been saved there for
                 // each asteroid, amongst other attributes for asteroids.  Attribute manager should have already done this.
-                asteroid->Set_radius( 600 );
+                //asteroid->SetAttribute(AttrRadius, EvilNumber(600));
 
                 AsteroidEntity * asteroidObj = new AsteroidEntity( asteroid, &system, *(system.GetServiceMgr()), location );
                 return asteroidObj;
-
-                // OLD Asteroid spawning code:
-                /*
-				InventoryItemRef i = factory.GetItem( entity.itemID );	//should not have any contents...
-				if( !i ) {
-					//this should not happen... we just got this list from the DB...
-					codelog(SERVICE__ERROR, "Unable to load item for entity %u", entity.itemID);
-					return NULL;
-				}
-				return(new Asteroid(&system, i));	//takes a ref.
-                */
 			} break;
 			case EVEDB::invCategories::Ship: {
                 // Ships of all kinds NOT owned by any player but only by the EVE System (ownerID = 1):
@@ -222,7 +224,7 @@ public:
 
                 // Set radius of warp disruptor bubble
                 // TODO: GET THIS FROM DB 'entity_attributes' perhaps
-                deployable->Set_radius( deployable->type().radius() );     // Can you set this somehow from the type class ?
+                //deployable->SetAttribute(AttrRadius, EvilNumber(deployable->type().radius()) );     // Can you set this somehow from the type class ?
 
                 // Add the ItemRef to SystemManagers' Inventory:
                 system.AddItemToInventory( deployable );
@@ -338,7 +340,7 @@ public:
                     // Set radius of celestial object
                     // TODO: GET THIS FROM DB 'entity_attributes' perhaps
                     //celestial->Set_radius( 5000 );
-                    celestial->Set_radius( celestial->type().radius()  );     // Can you set this somehow from the type class ?
+                    celestial->SetAttribute(AttrRadius, EvilNumber(celestial->type().radius()) );     // Can you set this somehow from the type class ?
 
                     // Add the ItemRef to SystemManagers' Inventory:
                     system.AddItemToInventory( celestial );

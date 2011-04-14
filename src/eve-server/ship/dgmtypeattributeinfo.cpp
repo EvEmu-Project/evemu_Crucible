@@ -24,7 +24,6 @@
 */
 
 #include "EVEServerPCH.h"
-#include "ship/dgmtypeattributeinfo.h"
 
 dgmtypeattributemgr::dgmtypeattributemgr()
 {

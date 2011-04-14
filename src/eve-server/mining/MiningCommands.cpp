@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+#include "inventory\AttributeEnum.h"
 
 uint32 GetAsteroidType( double p, const std::map<double, uint32>& roids );
 void SpawnAsteroid( SystemManager* system, uint32 typeID, double radius, const GVector& position );
@@ -61,9 +62,9 @@ PyResult Command_spawnbelt( Client* who, CommandDB* db, PyServiceMgr* services, 
 
     const double beltradius = 100000.0;
 	const double beltdistance = 25000.0;
-	const double roidradius = 600.0;
+	const double roidradius = MakeRandomFloat( 100.0, 1000.0 );
 	const double beltangle = M_PI * 2.0 / 3.0;
-	const uint32 pcs = 160 + MakeRandomInt( -10, 10 );
+	const uint32 pcs = 20 + MakeRandomInt( -10, 10 );   // reduced from 160 + MakeRandomInt( -10, 10 )
 
 	const GPoint position( who->GetPosition() );
 
@@ -83,6 +84,7 @@ PyResult Command_spawnbelt( Client* who, CommandDB* db, PyServiceMgr* services, 
 		throw PyException( MakeCustomError( "Couldn't get roid list for system security %s", sys->GetSystemSecurity() ) );
 	}
 
+    //double distanceToMe;
 	double alpha;
     GPoint mposition;
 
@@ -93,8 +95,8 @@ PyResult Command_spawnbelt( Client* who, CommandDB* db, PyServiceMgr* services, 
 		mposition.x = beltradius * sin( phi + alpha ) + roidradius * MakeRandomFloat( 0, 15 );
 		mposition.z = beltradius * cos( phi + alpha ) + roidradius * MakeRandomFloat( 0, 15 );
 		mposition.y = position.y - r.y + roidradius * MakeRandomFloat( 0, 15 );
-
-		SpawnAsteroid( who->System(), GetAsteroidType( MakeRandomFloat(), roidDist ), roidradius * MakeRandomFloat( 0.5, 1.5 ), r + mposition );
+        //distanceToMe = (r + mposition - position).length();
+        SpawnAsteroid( who->System(), GetAsteroidType( MakeRandomFloat(), roidDist ), roidradius, r + mposition );
 	}
 
 	return new PyString( "Spawn successsfull." );
@@ -133,10 +135,26 @@ void SpawnAsteroid( SystemManager* system, uint32 typeID, double radius, const G
 	if( !i )
 		throw PyException( MakeCustomError( "Unable to spawn item of type %u.", typeID ) );
 
-	i->Set_radius( radius );
+	//i->Set_radius( radius );
+    // Calculate 1/10000th of the volume of a sphere with radius 'radius':
+    // (this should yield around 90,000 units of Veldspar in an asteroid with 1000.0m radius)
+    double volume = (1.0/10000.0) * (4.0/3.0) * M_PI * pow(radius,3);
+
+    i->SetAttribute(AttrRadius, EvilNumber(radius));
+    i->SetAttribute(AttrVolume, EvilNumber(volume));
+    //i->SetAttribute(AttrIsOnline,EvilNumber(1));                            // Is Online
+    //i->SetAttribute(AttrDamage,EvilNumber(0.0));                            // Structure Damage
+    //i->SetAttribute(AttrShieldCharge,i->GetAttribute(AttrShieldCapacity));  // Shield Charge
+    //i->SetAttribute(AttrArmorDamage,EvilNumber(0.0));                       // Armor Damage
+    //i->SetAttribute(AttrMass,EvilNumber(i->type().attributes.mass()));      // Mass
+    //i->SetAttribute(AttrRadius,EvilNumber(i->type().attributes.radius()));  // Radius
+    //i->SetAttribute(AttrVolume,EvilNumber(i->type().attributes.volume()));  // Volume
 
     // TODO: Rework this code now that 
-	AsteroidEntity* new_roid = new AsteroidEntity( i, system, *(system->GetServiceMgr()), position );
+	AsteroidEntity* new_roid = NULL;
+    new_roid = new AsteroidEntity( i, system, *(system->GetServiceMgr()), position );
+    if( new_roid != NULL )
+        sLog.Debug( "SpawnAsteroid()", "Spawned new asteroid of radius= %fm and volume= %f m3", radius, volume );
 	//TODO: check for a local asteroid belt object?
 	//TODO: actually add this to the asteroid belt too...
 	system->AddEntity( new_roid );

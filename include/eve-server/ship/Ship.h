@@ -208,6 +208,7 @@ public:
 	 */
 	bool ValidateBoardShip(ShipRef ship, CharacterRef who);
 
+    void SaveShip();
 
 protected:
 	Ship(

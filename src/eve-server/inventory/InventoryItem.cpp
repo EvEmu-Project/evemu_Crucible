@@ -24,13 +24,14 @@
 */
 
 #include "EVEServerPCH.h"
-#include "ship/dgmtypeattributeinfo.h"
 
 #ifndef INT_MAX
 #   define INT_MAX 0x7FFFFFFF
 #endif
 
-const uint32 SKILL_BASE_POINTS = 250;
+//const uint32 SKILL_BASE_POINTS = 250;
+const EvilNumber EVIL_SKILL_BASE_POINTS(250);
+const int32 ITEM_DB_SAVE_TIMER_EXPIRY(10);
 
 /*
  * ItemData
@@ -111,8 +112,9 @@ InventoryItem::InventoryItem(
     const ItemType &_type,
     const ItemData &_data)
 : RefObject( 0 ),
-  attributes(_factory, *this, true, true),
-  mAttributeMap(*this),// new attrib system..
+  //attributes(_factory, *this, true, true),
+  mAttributeMap(*this),
+  m_saveTimer(0,true),
   m_factory(_factory),
   m_itemID(_itemID),
   m_itemName(_data.name),
@@ -125,15 +127,25 @@ InventoryItem::InventoryItem(
   m_quantity(_data.quantity),
   m_position(_data.position),
   m_customInfo(_data.customInfo)
+  
 {
     // assert for data consistency
     assert(_data.typeID == _type.id());
+
+    //m_saveTimerExpiryTime = ITEM_DB_SAVE_TIMER_EXPIRY * 60 * 1000;      // 10 minutes in milliseconds
+    //m_saveTimer.SetTimer(m_saveTimerExpiryTime);                        // set timer in milliseconds
+    m_saveTimer.Disable();                                              // disable timer by default
 
     _log(ITEM__TRACE, "Created object %p for item %s (%u).", this, itemName().c_str(), itemID());
 }
 
 InventoryItem::~InventoryItem()
 {
+    // Save this item's entity_attributes info to the Database before it is destroyed
+    //mAttributeMap.SaveAttributes();
+
+    // Save this item's entity table info to the Database before it is destroyed
+    //SaveItem();
 }
 
 InventoryItemRef InventoryItem::Load(ItemFactory &factory, uint32 itemID)
@@ -235,8 +247,7 @@ RefPtr<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
 bool InventoryItem::_Load()
 {
     // load attributes
-    if(!attributes.Load())
-        return false;
+    mAttributeMap.Load();
 
     // load attributes
     mAttributeMap.Load();
@@ -263,18 +274,13 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
         case EVEDB::invCategories::Station:
         case EVEDB::invCategories::Material:
         case EVEDB::invCategories::Accessories:
-        case EVEDB::invCategories::Module:
         case EVEDB::invCategories::Charge:
         case EVEDB::invCategories::Trading:
         case EVEDB::invCategories::Entity:
         case EVEDB::invCategories::Bonus:
         case EVEDB::invCategories::Commodity:
-        case EVEDB::invCategories::Drone:
         case EVEDB::invCategories::Implant:
-        case EVEDB::invCategories::Deployable:
-        case EVEDB::invCategories::Structure:
         case EVEDB::invCategories::Reaction:
-        case EVEDB::invCategories::Asteroid:
              break;
         ///////////////////////////////////////
         // Blueprint:
@@ -282,7 +288,10 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
         case EVEDB::invCategories::Blueprint: {
             BlueprintData bdata; // use default blueprint attributes
 
-            return Blueprint::Spawn( factory, data, bdata );
+            BlueprintRef blueRef = Blueprint::Spawn( factory, data, bdata );
+            blueRef.get()->mAttributeMap.SaveAttributes();
+
+            return blueRef;
         }
 
         ///////////////////////////////////////
@@ -303,7 +312,22 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
                 uint32 itemID = CargoContainer::_Spawn( factory, data );
                 if( itemID == 0 )
                     return CargoContainerRef();
-                return CargoContainer::Load( factory, itemID );
+
+                CargoContainerRef cargoRef = CargoContainer::Load( factory, itemID );
+
+                // THESE SHOULD BE MOVED INTO A CargoContainer::Spawn() function that does not exist yet
+                // Create default dynamic attributes in the AttributeMap:
+                cargoRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                            // Is Online
+                cargoRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                            // Structure Damage
+                cargoRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,cargoRef.get()->GetAttribute(AttrShieldCapacity),true);     // Shield Charge
+                cargoRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                       // Armor Damage
+                cargoRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(cargoRef.get()->type().attributes.mass()),true);         // Mass
+                cargoRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(cargoRef.get()->type().attributes.radius()),true);     // Radius
+                cargoRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(cargoRef.get()->type().attributes.volume()),true);     // Volume
+                cargoRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(cargoRef.get()->type().attributes.capacity()),true); // Capacity
+                cargoRef.get()->mAttributeMap.SaveAttributes();
+
+                return cargoRef;
                 //uint32 itemID = InventoryItem::_Spawn( factory, data );
                 //if( itemID == 0 )
                 //    return InventoryItemRef();
@@ -315,7 +339,10 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
                 uint32 itemID = CelestialObject::_Spawn( factory, data );
                 if( itemID == 0 )
                     return CelestialObjectRef();
-                return CelestialObject::Load( factory, itemID );
+                CelestialObjectRef celestialRef = CelestialObject::Load( factory, itemID );
+                celestialRef.get()->mAttributeMap.SaveAttributes();
+
+                return celestialRef;
             }
         }
 
@@ -323,7 +350,10 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
         // Ship:
         ///////////////////////////////////////
         case EVEDB::invCategories::Ship: {
-            return Ship::Spawn( factory, data );
+            ShipRef shipRef = Ship::Spawn( factory, data );
+            shipRef.get()->mAttributeMap.SaveAttributes();
+
+            return shipRef;
         }
 
         ///////////////////////////////////////
@@ -340,6 +370,136 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
         {
             return Owner::Spawn( factory, data );
         }
+
+        ///////////////////////////////////////
+        // Module:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Module:
+        {
+            // Spawn generic item:
+            uint32 itemID = InventoryItem::_Spawn( factory, data );
+            if( itemID == 0 )
+                return InventoryItemRef();
+
+            InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
+
+            // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
+            // Create default dynamic attributes in the AttributeMap:
+            itemRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                             // Is Online
+            itemRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                             // Structure Damage
+            itemRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,itemRef.get()->GetAttribute(AttrShieldCapacity),true);       // Shield Charge
+            itemRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                        // Armor Damage
+            itemRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(itemRef.get()->type().attributes.mass()),true);           // Mass
+            itemRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(itemRef.get()->type().attributes.radius()),true);       // Radius
+            itemRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(itemRef.get()->type().attributes.volume()),true);       // Volume
+            itemRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(itemRef.get()->type().attributes.capacity()),true);   // Capacity
+            itemRef.get()->mAttributeMap.SaveAttributes();
+
+            return itemRef;
+        }
+
+        ///////////////////////////////////////
+        // Drone:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Drone:
+        {
+            // Spawn generic item:
+            uint32 itemID = InventoryItem::_Spawn( factory, data );
+            if( itemID == 0 )
+                return InventoryItemRef();
+
+            InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
+
+            // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
+            // Create default dynamic attributes in the AttributeMap:
+            itemRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                             // Is Online
+            itemRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                             // Structure Damage
+            itemRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,itemRef.get()->GetAttribute(AttrShieldCapacity),true);       // Shield Charge
+            itemRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                        // Armor Damage
+            itemRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(itemRef.get()->type().attributes.mass()),true);           // Mass
+            itemRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(itemRef.get()->type().attributes.radius()),true);       // Radius
+            itemRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(itemRef.get()->type().attributes.volume()),true);       // Volume
+            itemRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(itemRef.get()->type().attributes.capacity()),true);   // Capacity
+            itemRef.get()->mAttributeMap.SaveAttributes();
+
+            return itemRef;
+        }
+
+        ///////////////////////////////////////
+        // Deployable:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Deployable:
+        {
+            // Spawn generic item:
+            uint32 itemID = InventoryItem::_Spawn( factory, data );
+            if( itemID == 0 )
+                return InventoryItemRef();
+
+            InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
+
+            // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
+            // Create default dynamic attributes in the AttributeMap:
+            itemRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                             // Is Online
+            itemRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                             // Structure Damage
+            itemRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,itemRef.get()->GetAttribute(AttrShieldCapacity),true);       // Shield Charge
+            itemRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                        // Armor Damage
+            itemRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(itemRef.get()->type().attributes.mass()),true);           // Mass
+            itemRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(itemRef.get()->type().attributes.radius()),true);       // Radius
+            itemRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(itemRef.get()->type().attributes.volume()),true);       // Volume
+            itemRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(itemRef.get()->type().attributes.capacity()),true);   // Capacity
+            itemRef.get()->mAttributeMap.SaveAttributes();
+
+            return itemRef;
+        }
+
+        ///////////////////////////////////////
+        // Asteroid:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Asteroid:
+        {
+            // Spawn generic item:
+            uint32 itemID = InventoryItem::_Spawn( factory, data );
+            if( itemID == 0 )
+                return InventoryItemRef();
+
+            InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
+
+            // THESE SHOULD BE MOVED INTO A Asteroid::Spawn() function that does not exist yet
+            // Create default dynamic attributes in the AttributeMap:
+            itemRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(1000.0),true);       // Radius
+            itemRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(1000000.0),true);           // Mass
+            itemRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(8000.0),true);       // Volume
+            itemRef.get()->mAttributeMap.SaveAttributes();
+
+            return itemRef;
+        }
+
+        ///////////////////////////////////////
+        // Structure:
+        ///////////////////////////////////////
+        case EVEDB::invCategories::Structure:
+        {
+            // Spawn generic item:
+            uint32 itemID = InventoryItem::_Spawn( factory, data );
+            if( itemID == 0 )
+                return InventoryItemRef();
+
+            InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
+
+            // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
+            // Create default dynamic attributes in the AttributeMap:
+            itemRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                             // Is Online
+            itemRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                             // Structure Damage
+            itemRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,itemRef.get()->GetAttribute(AttrShieldCapacity),true);       // Shield Charge
+            itemRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                        // Armor Damage
+            itemRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(itemRef.get()->type().attributes.mass()),true);           // Mass
+            itemRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(itemRef.get()->type().attributes.radius()),true);       // Radius
+            itemRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(itemRef.get()->type().attributes.volume()),true);       // Volume
+            itemRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(itemRef.get()->type().attributes.capacity()),true);   // Capacity
+            itemRef.get()->mAttributeMap.SaveAttributes();
+
+            return itemRef;
+        }
     }
 
     switch( t->groupID() ) {
@@ -353,7 +513,22 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
             uint32 itemID = Station::_Spawn( factory, data );
             if( itemID == 0 )
                 return StationRef();
-            return Station::Load( factory, itemID );
+
+            StationRef stationRef = Station::Load( factory, itemID );
+
+            // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
+            // Create default dynamic attributes in the AttributeMap:
+            stationRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                              // Is Online
+            stationRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                              // Structure Damage
+            stationRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,stationRef.get()->GetAttribute(AttrShieldCapacity),true);     // Shield Charge
+            stationRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                         // Armor Damage
+            stationRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(stationRef.get()->type().attributes.mass()),true);         // Mass
+            stationRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(stationRef.get()->type().attributes.radius()),true);     // Radius
+            stationRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(stationRef.get()->type().attributes.volume()),true);     // Volume
+            stationRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(stationRef.get()->type().attributes.capacity()),true); // Capacity
+            stationRef.get()->mAttributeMap.SaveAttributes();
+
+            return stationRef;
         }
     }
 
@@ -361,7 +536,9 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
     uint32 itemID = InventoryItem::_Spawn( factory, data );
     if( itemID == 0 )
         return InventoryItemRef();
-    return InventoryItem::Load( factory, itemID );
+    InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
+    itemRef.get()->mAttributeMap.SaveAttributes();
+    return itemRef;
 }
 
 uint32 InventoryItem::_Spawn(ItemFactory &factory,
@@ -389,7 +566,7 @@ void InventoryItem::Delete() {
     ChangeOwner( 2 );
 
     //take ourself out of the DB
-    attributes.Delete();
+    //attributes.Delete();
     m_factory.db().DeleteItem( itemID() );
 
     //delete ourselves from factory cache
@@ -431,7 +608,7 @@ void InventoryItem::GetItemRow( PyPackedRow* into ) const
     into->SetField( "customInfo", new PyString( customInfo() ) );
 }
 
-bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result ) const
+bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result )
 {
     //itemID:
     result.itemID = itemID();
@@ -441,7 +618,7 @@ bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result ) const
     result.invItem = GetItemRow();
 
     //hacky, but it doesn't really hurt anything.
-    if( 0 != isOnline() )
+    if( GetAttribute(AttrIsOnline).get_int() != 0 )
     {
         //there is an effect that goes along with this. We should
         //probably be properly tracking the effect due to some
@@ -465,7 +642,11 @@ bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result ) const
     //result..activeEffects[id] = List[11];
 
     //attributes:
-    attributes.EncodeAttributes( result.attributes );
+    AttributeMap::AttrMapItr itr = mAttributeMap.begin();
+    AttributeMap::AttrMapItr itr_end = mAttributeMap.end();
+    for (; itr != itr_end; itr++) {
+        result.attributes[(*itr).first] = (*itr).second.GetPyObject();
+    }
 
     //no idea what time this is supposed to be
     result.time = Win32TimeNow();
@@ -473,7 +654,8 @@ bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result ) const
     return true;
 }
 
-PyObject *InventoryItem::ItemGetInfo() const {
+PyObject * InventoryItem::ItemGetInfo()
+{
     Rsp_ItemGetInfo result;
 
     if(!Populate(result.entry))
@@ -481,7 +663,6 @@ PyObject *InventoryItem::ItemGetInfo() const {
 
     return(result.Encode());
 }
-
 
 void InventoryItem::Rename(const char *to) {
     
@@ -669,9 +850,12 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify) {
     }
 }
 
-void InventoryItem::SaveItem() const
+void InventoryItem::SaveItem()
 {
-    _log( ITEM__TRACE, "Saving item %u.", itemID() );
+    //_log( ITEM__TRACE, "Saving item %u.", itemID() );
+    
+    //mAttributeMap.Save();
+    mAttributeMap.SaveAttributes();
 
     m_factory.db().SaveItem(
         itemID(),
@@ -707,18 +891,32 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<int32, PyRep *> &change
     c->SendNotification("OnItemChange", "charid", &tmp, false); //unsequenced.
 }
 
-void InventoryItem::SetOnline(bool newval) {
-    //bool old = isOnline();
-    Set_isOnline(newval);
 
-    Client *c = m_factory.entity_list.FindCharacter(m_ownerID);
+/*typedef enum {
+    dgmEffPassive = 0,
+    dgmEffActivation = 1,
+    dgmEffTarget = 2,
+    dgmEffArea = 3,
+    dgmEffOnline = 4,
+    dgmEffOverload = 5,
+} EffectCategories;*/
+
+
+void InventoryItem::SetOnline(bool newval) {
+
+    SetAttribute(AttrIsOnline, int(newval));
+
+    Client *c = sEntityList.FindCharacter(m_ownerID);
     if(c == NULL)
-        return; //not found or not online...
+    {
+        sLog.Error("InventoryItem", "unable to set outselfs online//offline because we can't find the client");
+        return;
+    }
 
     Notify_OnModuleAttributeChange omac;
     omac.ownerID = m_ownerID;
     omac.itemKey = m_itemID;
-    omac.attributeID = ItemAttributeMgr::Attr_isOnline;
+    omac.attributeID = GetAttribute(AttrIsOnline).get_int();
     omac.time = Win32TimeNow();
     omac.newValue = new PyInt(newval?1:0);
     omac.oldValue = new PyInt(newval?0:1);   //hack... should use old, but its not cooperating today.
@@ -810,5 +1008,5 @@ EvilNumber InventoryItem::GetAttribute( uint32 attributeID )
 
 EvilNumber InventoryItem::GetAttribute( const uint32 attributeID ) const
 {
-    return mAttributeMap.GetAttribute(attributeID);
+     return mAttributeMap.GetAttribute(attributeID);
 }

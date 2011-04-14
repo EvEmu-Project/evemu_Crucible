@@ -129,7 +129,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
             // Check for boarding perimeter maximum distance, after subtracting ship's radius
             // from the distance from player's existing ship to the dead center of the ship to board:
             GVector boardingVector( shipPosition, pShipEntity->GetPosition() );
-            double rangeToBoardShip = boardingVector.length() - boardShipRef->radius();
+            double rangeToBoardShip = boardingVector.length() - boardShipRef->GetAttribute(AttrRadius).get_float();
             if( rangeToBoardShip < 0.0)
                 rangeToBoardShip = 0.0;
 
@@ -151,6 +151,9 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
                     // move from current ship into new ship:
                     boardShipRef->ChangeOwner( call.client->GetCharacterID(), true );
 				    call.client->BoardShip( boardShipRef );
+
+                    //oldShipRef->DisableSaveTimer();     // Stop auto-save timer for old ship
+                    //boardShipRef->EnableSaveTimer();    // Start auto-save timer for new ship
 
 				    if( oldShipRef->typeID() == itemTypeCapsule )
                     {
@@ -634,7 +637,7 @@ PyResult ShipBound::Handle_Scoop(PyCallArgs &call) {
 
     // Check cargo bay capacity:
     double capacity = call.client->GetShip()->GetCapacity( flagCargoHold );
-    double volume = item->volume();
+    double volume = item->GetAttribute(AttrVolume).get_float();
     if( capacity < volume )
         throw PyException( MakeCustomError( "%s is too large to fit in remaining Cargo bay capacity.", item->itemName().c_str() ) );
     else
@@ -692,7 +695,7 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
 
         // Check drone bay capacity:
         double capacity = call.client->GetShip()->GetCapacity( flagDroneBay );
-        double volume = item->volume();
+        double volume = item->GetAttribute(AttrVolume).get_float();
         if( capacity < volume )
             throw PyException( MakeCustomError( "%s is too large to fit in remaining Drone bay capacity.", item->itemName().c_str() ) );
         else
@@ -914,9 +917,9 @@ PyResult ShipBound::Handle_Eject(PyCallArgs &call) {
     GPoint capsulePosition = call.client->GetPosition();
 
     //set capsule position 500m off from old ship:
-    capsulePosition.x += call.client->GetShip()->radius() + 100.0;
-    capsulePosition.y += call.client->GetShip()->radius() + 100.0;
-    capsulePosition.z += call.client->GetShip()->radius() - 100.0;
+    capsulePosition.x += call.client->GetShip()->GetAttribute(AttrRadius).get_float() + 100.0;
+    capsulePosition.y += call.client->GetShip()->GetAttribute(AttrRadius).get_float() + 100.0;
+    capsulePosition.z += call.client->GetShip()->GetAttribute(AttrRadius).get_float() - 100.0;
 
     //spawn capsule (inside ship, flagCapsule, singleton)
 	ItemData idata(

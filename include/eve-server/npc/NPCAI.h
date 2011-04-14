@@ -55,9 +55,9 @@ protected:
 	State m_state;
 
 	//cached to reduce access times.
-	const double m_entityFlyRange2;
-	const double m_entityChaseMaxDistance2;
-	const double m_entityAttackRange2;
+	EvilNumber m_entityFlyRange2;
+	EvilNumber m_entityChaseMaxDistance2;
+	EvilNumber m_entityAttackRange2;
 	
 	NPC *const m_npc;
 	
