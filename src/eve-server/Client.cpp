@@ -30,7 +30,7 @@ static const uint32 PING_INTERVAL_US = 60000;
 Client::Client(PyServiceMgr &services, EVETCPConnection** con)
 : DynamicSystemEntity(NULL),
   EVEClientSession( con ),
-  modules(this),
+  mModulesMgr(this),
   m_services(services),
   m_pingTimer(PING_INTERVAL_US),
   m_system(NULL),
@@ -66,9 +66,9 @@ Client::~Client() {
         //before we remove ourself from the system, store our last location.
         SavePosition();
 
-        // Save character info including attributes, save current ship's attributes, current ship's fitted modules,
+        // Save character info including attributes, save current ship's attributes, current ship's fitted mModulesMgr,
         // and save all skill attributes to the Database:
-        //modules.SaveModules();                            // Save fitted Modules attributes to DB
+        //mModulesMgr.SaveModules();                            // Save fitted Modules attributes to DB
         GetShip()->SaveAttributes();                        // Save Ship's attributes to DB
         //GetShip()->mAttributeMap.Save();                  // Save Ship's attributes to DB
         GetChar()->SaveCharacter();                         // Save Character info to DB
@@ -157,8 +157,8 @@ void Client::Process() {
         GetShip()->SaveShip();
 
     // Check Module Manager Save Timer Expiry:
-    //if( modules.CheckSaveTimer() )
-    //    modules.SaveModules();
+    //if( mModulesMgr.CheckSaveTimer() )
+    //    mModulesMgr.SaveModules();
 
     if( m_timeEndTrain != 0 )
     {
@@ -166,7 +166,7 @@ void Client::Process() {
             GetChar()->UpdateSkillQueue();
     }
 
-    modules.Process();
+    mModulesMgr.Process();
 
     SystemEntity::Process();
 }
@@ -449,8 +449,8 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
     item->Move(location, flag);
 
     if(was_module || (item->flag() >= flagSlotFirst && item->flag() <= flagSlotLast)) {
-        //it was equipped, or is now. so modules need to know.
-        modules.UpdateModules();
+        //it was equipped, or is now. so mModulesMgr need to know.
+        mModulesMgr.UpdateModules();
     }
 }
 
@@ -470,7 +470,7 @@ void Client::BoardShip(ShipRef new_ship) {
 
     mSession.SetInt( "shipid", new_ship->itemID() );
 
-    modules.UpdateModules();
+    mModulesMgr.UpdateModules();
 
     if(m_system != NULL)
         m_system->AddClient(this);
@@ -892,7 +892,7 @@ PyDict *Client::MakeSlimItem() const {
     slim->SetItemString("allianceID", new PyNone);
     slim->SetItemString("warFactionID", new PyNone);
 
-    //encode the modules list, if we have any visible modules
+    //encode the mModulesMgr list, if we have any visible mModulesMgr
     std::vector<InventoryItemRef> items;
     GetShip()->FindByFlagRange( flagHiSlot0, flagHiSlot7, items );
     if( !items.empty() )
@@ -911,7 +911,7 @@ PyDict *Client::MakeSlimItem() const {
             l->AddItem(t);
         }
 
-        slim->SetItemString("modules", l);
+        slim->SetItemString("mModulesMgr", l);
     }
 
     slim->SetItemString("color", new PyFloat(0.0));
@@ -950,7 +950,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         return;
     }
 
-    modules.DeactivateAllModules();
+    mModulesMgr.DeactivateAllModules();
 
     m_moveSystemID = solarSystemID;
     m_movePoint = position;

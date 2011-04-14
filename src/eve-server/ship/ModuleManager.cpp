@@ -30,7 +30,7 @@ ModuleManager::ModuleManager(Client *pilot)
 	memset(m_modules, 0, sizeof(m_modules));
 }
 
-//Deconstructor for the module manager
+//De constructor for the module manager
 //iterates through and destroys all modules
 ModuleManager::~ModuleManager() {
 	
@@ -103,7 +103,7 @@ void ModuleManager::UnloadAllModules()
 	m_moduleByID.clear();
 }
 
-//Basic module mananger process
+//Basic module manager process
 //essentially goes through all fitted modules, and processes them individually
 void ModuleManager::Process() {
 	uint8 r;
@@ -267,7 +267,7 @@ int ModuleManager::Activate(uint32 itemID, const std::string &effectName, uint32
 	}
 
 	//activate it and return that we did to the client
-	return(mod->Activate(effectName, target, repeat));
+	return mod->Activate(effectName, target, repeat);
 }
 
 int ModuleManager::Upgrade(uint32 itemID) {
@@ -291,7 +291,7 @@ int ModuleManager::Upgrade(uint32 itemID) {
 		return 0;
 	}
 
-	return(mod->Upgrade());
+	return mod->Upgrade();
 }
 void ModuleManager::Downgrade(uint32 itemID) {
 	
@@ -434,12 +434,12 @@ ShipModule::~ShipModule()
 ShipModule *ShipModule::CreateModule(Client *owner, InventoryItemRef self, InventoryItemRef charge_) {
 
 	//This module is then built out to a specific type
-	return(new ShipModule(owner, self, charge_));
+	return new ShipModule(owner, self, charge_);
 
 }
 ShipModule *ShipModule::CreateRig(Client *owner, InventoryItemRef self) {
 	//These modules are all extremely similar, and simple
-	return(new ShipModule(owner, self));
+	return new ShipModule(owner, self);
 }
 
 void ShipModule::ChangeCharge(InventoryItemRef new_charge) {
@@ -455,9 +455,7 @@ void ShipModule::ChangeCharge(InventoryItemRef new_charge) {
 			//change charges
 			m_charge = new_charge;
 		}
-
 	}
-
 }
 void ShipModule::Process() {
 	

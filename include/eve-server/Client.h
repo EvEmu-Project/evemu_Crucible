@@ -137,7 +137,7 @@ public:
 	Client(PyServiceMgr &services, EVETCPConnection** con);
 	virtual ~Client();
 	
-	ModuleManager modules;
+	ModuleManager mModulesMgr;
 
 	bool            ProcessNet();
 	virtual void    Process();

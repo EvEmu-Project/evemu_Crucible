@@ -421,11 +421,11 @@ bool AttributeMap::Add( uint32 attributeID, EvilNumber& num )
 {
     mChanged = true;
     PyTuple* AttrChange = new PyTuple(7);
-    AttrChange->SetItem(0, new PyString("OnModuleAttributeChange"));
-    AttrChange->SetItem(1, new PyInt(mItem.ownerID()));
-    AttrChange->SetItem(2, new PyInt(mItem.itemID()));
-    AttrChange->SetItem(3, new PyInt(attributeID));
-    AttrChange->SetItem(4, new PyLong(Win32TimeNow()));
+    AttrChange->SetItem(0, new PyString( "OnModuleAttributeChange" ));
+    AttrChange->SetItem(1, new PyInt( mItem.ownerID() ));
+    AttrChange->SetItem(2, new PyInt( mItem.itemID() ));
+    AttrChange->SetItem(3, new PyInt( attributeID ));
+    AttrChange->SetItem(4, new PyLong( Win32TimeNow() ));
     AttrChange->SetItem(5, num.GetPyObject());
     AttrChange->SetItem(6, num.GetPyObject());
 
@@ -649,6 +649,7 @@ bool AttributeMap::Save()
 
 bool AttributeMap::SaveAttributes()
 {
+#if 0
     bool status = true;
     AttrMap::iterator cur, end;
     cur = mAttributes.begin();
@@ -668,6 +669,8 @@ bool AttributeMap::SaveAttributes()
     sLog.Debug( "AttributeMap::SaveAttributes()", "Attributes SAVED: item= %s, itemID= %u", mItem.itemName().c_str(), mItem.itemID() );
 
     return status;
+#endif
+    return Save();
 }
 
 AttributeMap::AttrMapItr AttributeMap::begin()

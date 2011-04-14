@@ -242,7 +242,7 @@ PyResult DogmaIMBound::Handle_Activate( PyCallArgs& call )
 	    }
 
         //TODO: make sure we are allowed to do this.
-	    return new PyInt( call.client->modules.Activate( args.itemID, args.effectName, args.target, args.repeat ) );
+	    return new PyInt( call.client->mModulesMgr.Activate( args.itemID, args.effectName, args.target, args.repeat ) );
     }
 
     return NULL;
@@ -258,7 +258,7 @@ PyResult DogmaIMBound::Handle_Deactivate( PyCallArgs& call )
 	}
 
     //TODO: make sure we are allowed to do this.
-    call.client->modules.Deactivate( args.itemID, args.effectName );
+    call.client->mModulesMgr.Deactivate( args.itemID, args.effectName );
 
 	return NULL;
 }

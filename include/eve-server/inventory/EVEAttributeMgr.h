@@ -364,8 +364,6 @@ protected:
      */
     bool SendAttributeChanges(PyTuple* attrChange);
 
-    void _SendAttributeChange(uint32 attr, PyRep *oldValue, PyRep *newValue);
-
     bool SaveIntAttribute(uint32 attributeID);
     bool SaveFloatAttribute(uint32 attributeID);
 
@@ -373,7 +371,7 @@ protected:
      * @note possible design flaw because only items contain AttributeMap's so
      *       we don't need to store this.
      */
-    InventoryItem &mItem;    
+    InventoryItem &mItem;
 
     /**
      * @note possible design flaw, stack corruption because of a enormous amount

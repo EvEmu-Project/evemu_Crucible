@@ -93,7 +93,7 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
     }
 
     // new ref is consumed, we don't release it
-    call.client->modules.ReplaceCharges( (EVEItemFlags) args.flag, (InventoryItemRef)new_charge );
+    call.client->mModulesMgr.ReplaceCharges( (EVEItemFlags) args.flag, (InventoryItemRef)new_charge );
 
     return(new PyInt(1));
 }
@@ -287,7 +287,7 @@ PyResult InventoryBound::Handle_DestroyFitting(PyCallArgs &call) {
 		sLog.Error("Destroy Fittings","Failed to decode args.");
 	}
 	//remove the rig effects from the ship
-	call.client->modules.Downgrade(args.arg);
+	call.client->mModulesMgr.Downgrade(args.arg);
 	
 	//get the actual item
 	InventoryItemRef item = m_manager->item_factory.GetItem(args.arg);
@@ -361,13 +361,13 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 				{
 					//coming from ship, we need to deactivate it and remove mass if it isn't a charge
 					if( newItem->categoryID() != EVEDB::invCategories::Charge ) {
-						c->modules.Deactivate( newItem->itemID(), "online" );
+						c->mModulesMgr.Deactivate( newItem->itemID(), "online" );
 						//c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
                         c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) - newItem->GetAttribute(AttrMassAddition) );
 					}
 
 					//Move New item to its new location
-					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh modules
+					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh mModulesMgr
 
 					//Create new item id return result
 					Call_SingleIntegerArg result;
@@ -377,7 +377,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 					return result.Encode(); 
 
 				} else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) {
-					c->modules.Downgrade(newItem->itemID());
+					c->mModulesMgr.Downgrade(newItem->itemID());
 
 					//move the item to the void or w/e
 					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flagAutoFit);
@@ -388,7 +388,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 				} else {
 
 					//Move New item to its new location
-					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh modules
+					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh mModulesMgr
 
 					//Create new item id return result
 					Call_SingleIntegerArg result;
@@ -424,7 +424,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 			{
 					//coming from ship, we need to deactivate it and remove mass if it isn't a charge
 					if( sourceItem->categoryID() != EVEDB::invCategories::Charge ) {
-						c->modules.Deactivate( sourceItem->itemID(), "online" );
+						c->mModulesMgr.Deactivate( sourceItem->itemID(), "online" );
 						//c->GetShip()->Set_mass( c->GetShip()->mass() - sourceItem->massAddition() );
                         c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) + sourceItem->GetAttribute(AttrMassAddition) );
 					}
@@ -433,7 +433,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 
 			} else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) {
 				//remove effects
-				c->modules.Downgrade(sourceItem->itemID());
+				c->mModulesMgr.Downgrade(sourceItem->itemID());
 				
 				//move the item to the void or w/e
 				c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flagAutoFit);
@@ -448,8 +448,8 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 			}
         }
 
-		//update modules
-		c->modules.UpdateModules();
+		//update mModulesMgr
+		c->mModulesMgr.UpdateModules();
     }
 
     //Return Null if no item was created

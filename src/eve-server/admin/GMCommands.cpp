@@ -815,11 +815,11 @@ PyResult Command_online(Client *who, CommandDB *db, PyServiceMgr *services, cons
 		//check if in capsule. this is very bad. a better aproach would be an
 		//inPod function, but this is a fast hack
 		if( tgt->GetShip()->typeID()!=670 )
-			tgt->modules.OnlineAll();
+			tgt->mModulesMgr.OnlineAll();
 		else
-			throw PyException( MakeCustomError( "Command failed: You can't activate modules while in pod"));
+			throw PyException( MakeCustomError( "Command failed: You can't activate mModulesMgr while in pod"));
 
-		return(new PyString("All modules have been put Online"));
+		return(new PyString("All mModulesMgr have been put Online"));
 	}
 	else
 		throw PyException( MakeCustomError( "Command failed: You got the arguments all wrong!"));
@@ -862,12 +862,12 @@ PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, cons
 			throw PyException( MakeCustomError( "Character needs to be docked!" ) );
 
 		if( args.argCount() == 3 && strcmp("all", args.arg( 2 ).c_str())!=0)
-			tgt->modules.UnloadModule(item);
+			tgt->mModulesMgr.UnloadModule(item);
 
 		if( args.argCount() == 3 && strcmp("all", args.arg( 2 ).c_str())==0)
-			tgt->modules.UnloadAllModules();
+			tgt->mModulesMgr.UnloadAllModules();
 
-		return(new PyString("All modules have been unloaded"));
+		return(new PyString("All mModulesMgr have been unloaded"));
 	}
 	else
 		throw PyException( MakeCustomError( "Command failed: You got the arguments all wrong!"));
@@ -910,7 +910,7 @@ PyResult Command_repairmodules( Client* who, CommandDB* db, PyServiceMgr* servic
 	
 	if(args.argCount()==1)
 	{
-		who->modules.RepairModules();
+		who->mModulesMgr.RepairModules();
 	}
 	if(args.argCount()==2)
 	{
@@ -923,7 +923,7 @@ PyResult Command_repairmodules( Client* who, CommandDB* db, PyServiceMgr* servic
 		Client *target = services->entity_list.FindCharacter( charID );
 		if(target == NULL)
 			throw PyException( MakeCustomError( "Cannot find Character by the entity %d", charID ) );
-		target->modules.RepairModules();
+		target->mModulesMgr.RepairModules();
 	}
 
 	return(new PyString("Modules repaired successful!"));
