@@ -306,6 +306,9 @@ void StructureEntity::EncodeDestiny( Buffer& into ) const
     DSTBALL_RIGID_Struct main;
 	main.formationID = 0xFF;
     into.Append( main );
+    
+    const uint16 miniballsCount = 0;
+    into.Append( miniballsCount );
 /*
     const uint16 miniballsCount = 1;
     into.Append( miniballsCount );
