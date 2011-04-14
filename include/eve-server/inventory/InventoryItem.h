@@ -179,7 +179,9 @@ public:
     /************************************************************************/
     /* start experimental new attribute system ( not operational )          */
     /************************************************************************/
+private:
     AttributeMap mAttributeMap;
+public:
     bool SetAttribute(uint32 attributeID, int num, bool notify = true);
     bool SetAttribute(uint32 attributeID, uint32 num, bool notify = true);
     bool SetAttribute(uint32 attributeID, int64 num, bool notify = true);
@@ -187,9 +189,17 @@ public:
     bool SetAttribute(uint32 attributeID, double num, bool notify = true);
     bool SetAttribute(uint32 attributeID, EvilNumber& num, bool notify = true);
     
-
     EvilNumber GetAttribute(uint32 attributeID);
     EvilNumber GetAttribute(const uint32 attributeID) const;
+
+    /**
+     * SaveAttributes
+     *
+     * save all the attributes from a InventoryItem.
+     *
+     * @note this should be incorperated into the normal save function and only save when things have changes.
+     */
+    bool SaveAttributes();
     /************************************************************************/
     /* end experimental new attribute system                                */
     /************************************************************************/

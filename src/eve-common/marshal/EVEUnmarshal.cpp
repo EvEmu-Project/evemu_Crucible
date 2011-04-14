@@ -157,8 +157,8 @@ PyRep* UnmarshalStream::LoadRep()
 {
     const uint8 header = Read<uint8>();
 
-    const bool flagUnknown = ( header & PyRepUnknownMask );
-    const bool flagSave = ( header & PyRepSaveMask );
+    const bool flagUnknown = ( header & PyRepUnknownMask ) != 0;
+    const bool flagSave = ( header & PyRepSaveMask ) != 0;
     const uint8 opcode = ( header & PyRepOpcodeMask );
 
     if( flagUnknown )

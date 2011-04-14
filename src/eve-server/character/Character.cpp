@@ -371,7 +371,7 @@ CharacterRef Character::Spawn(ItemFactory &factory,
     CharacterRef charRef = Character::Load( factory, characterID );
 
     // Create default dynamic attributes in the AttributeMap:
-    charRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);     // Is Online
+    charRef.get()->SetAttribute(AttrIsOnline,EvilNumber(1),true);     // Is Online
 
     return charRef;
 }
@@ -514,11 +514,11 @@ void Character::GetSkillsList(std::vector<InventoryItemRef> &skills) const
 
 EvilNumber Character::GetSPPerMin( SkillRef skill )
 {
-    EvilNumber primarySkillTrainingAttr = skill->mAttributeMap.GetAttribute(AttrPrimaryAttribute);
-    EvilNumber secondarySkillTrainingAttr = skill->mAttributeMap.GetAttribute(AttrSecondaryAttribute);
+    EvilNumber primarySkillTrainingAttr = skill->GetAttribute(AttrPrimaryAttribute);
+    EvilNumber secondarySkillTrainingAttr = skill->GetAttribute(AttrSecondaryAttribute);
 
-    EvilNumber primarySPperMin = mAttributeMap.GetAttribute( (uint32)(primarySkillTrainingAttr.get_int()) );
-    EvilNumber secondarySPperMin = mAttributeMap.GetAttribute( (uint32)(secondarySkillTrainingAttr.get_int()) );
+    EvilNumber primarySPperMin = GetAttribute( (uint32)(primarySkillTrainingAttr.get_int()) );
+    EvilNumber secondarySPperMin = GetAttribute( (uint32)(secondarySkillTrainingAttr.get_int()) );
 
     EvilNumber skillLearningLevel(0);
 
@@ -959,7 +959,7 @@ void Character::SaveCharacter()
     );
 
     // Save this character's own attributes:
-    mAttributeMap.SaveAttributes();
+    SaveAttributes();
 
     // Loop through all skills and invoke mAttributeMap.SaveAttributes() for each
     std::vector<InventoryItemRef> skills;
@@ -968,7 +968,7 @@ void Character::SaveCharacter()
     cur = skills.begin();
     end = skills.end();
     for(; cur != end; cur++)
-        cur->get()->mAttributeMap.SaveAttributes();
+        cur->get()->SaveAttributes();
         //cur->get()->mAttributeMap.Save();
 }
 
@@ -998,8 +998,8 @@ void Character::_CalculateTotalSPTrained()
     for(; cur != end; cur++)
     {
         // Calculate exact SP from each skill and add to total SP
-        skillLevel = cur->get()->mAttributeMap.GetAttribute( AttrSkillLevel );
-        skillRank = cur->get()->mAttributeMap.GetAttribute( AttrSkillTimeConstant );
+        skillLevel = cur->get()->GetAttribute( AttrSkillLevel );
+        skillRank = cur->get()->GetAttribute( AttrSkillTimeConstant );
         totalSP += 250.0f * (double)(skillRank.get_int()) * pow(32.0, (double)(((double)(skillLevel.get_int()) - 1.0f) / 2.0f));
     }
 

@@ -289,7 +289,7 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
             BlueprintData bdata; // use default blueprint attributes
 
             BlueprintRef blueRef = Blueprint::Spawn( factory, data, bdata );
-            blueRef.get()->mAttributeMap.SaveAttributes();
+            blueRef.get()->SaveAttributes();
 
             return blueRef;
         }
@@ -317,15 +317,15 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
                 // THESE SHOULD BE MOVED INTO A CargoContainer::Spawn() function that does not exist yet
                 // Create default dynamic attributes in the AttributeMap:
-                cargoRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                            // Is Online
-                cargoRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                            // Structure Damage
-                cargoRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,cargoRef.get()->GetAttribute(AttrShieldCapacity),true);     // Shield Charge
-                cargoRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                       // Armor Damage
-                cargoRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(cargoRef.get()->type().attributes.mass()),true);         // Mass
-                cargoRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(cargoRef.get()->type().attributes.radius()),true);     // Radius
-                cargoRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(cargoRef.get()->type().attributes.volume()),true);     // Volume
-                cargoRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(cargoRef.get()->type().attributes.capacity()),true); // Capacity
-                cargoRef.get()->mAttributeMap.SaveAttributes();
+                cargoRef.get()->SetAttribute(AttrIsOnline,      1);                                                 // Is Online
+                cargoRef.get()->SetAttribute(AttrDamage,        0.0);                                               // Structure Damage
+                cargoRef.get()->SetAttribute(AttrShieldCharge,  cargoRef.get()->GetAttribute(AttrShieldCapacity));  // Shield Charge
+                cargoRef.get()->SetAttribute(AttrArmorDamage,   0.0);                                               // Armor Damage
+                cargoRef.get()->SetAttribute(AttrMass,          cargoRef.get()->type().attributes.mass());          // Mass
+                cargoRef.get()->SetAttribute(AttrRadius,        cargoRef.get()->type().attributes.radius());        // Radius
+                cargoRef.get()->SetAttribute(AttrVolume,        cargoRef.get()->type().attributes.volume());        // Volume
+                cargoRef.get()->SetAttribute(AttrCapacity,      cargoRef.get()->type().attributes.capacity());      // Capacity
+                cargoRef.get()->SaveAttributes();
 
                 return cargoRef;
                 //uint32 itemID = InventoryItem::_Spawn( factory, data );
@@ -340,7 +340,7 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
                 if( itemID == 0 )
                     return CelestialObjectRef();
                 CelestialObjectRef celestialRef = CelestialObject::Load( factory, itemID );
-                celestialRef.get()->mAttributeMap.SaveAttributes();
+                celestialRef.get()->SaveAttributes();
 
                 return celestialRef;
             }
@@ -351,7 +351,7 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
         ///////////////////////////////////////
         case EVEDB::invCategories::Ship: {
             ShipRef shipRef = Ship::Spawn( factory, data );
-            shipRef.get()->mAttributeMap.SaveAttributes();
+            shipRef.get()->SaveAttributes();
 
             return shipRef;
         }
@@ -385,15 +385,15 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
-            itemRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                             // Is Online
-            itemRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                             // Structure Damage
-            itemRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,itemRef.get()->GetAttribute(AttrShieldCapacity),true);       // Shield Charge
-            itemRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                        // Armor Damage
-            itemRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(itemRef.get()->type().attributes.mass()),true);           // Mass
-            itemRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(itemRef.get()->type().attributes.radius()),true);       // Radius
-            itemRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(itemRef.get()->type().attributes.volume()),true);       // Volume
-            itemRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(itemRef.get()->type().attributes.capacity()),true);   // Capacity
-            itemRef.get()->mAttributeMap.SaveAttributes();
+            itemRef.get()->SetAttribute(AttrIsOnline,   1);                                             // Is Online
+            itemRef.get()->SetAttribute(AttrDamage,     0.0);                                             // Structure Damage
+            itemRef.get()->SetAttribute(AttrShieldCharge, itemRef.get()->GetAttribute(AttrShieldCapacity));       // Shield Charge
+            itemRef.get()->SetAttribute(AttrArmorDamage, 0.0);                                        // Armor Damage
+            itemRef.get()->SetAttribute(AttrMass,       itemRef.get()->type().attributes.mass());           // Mass
+            itemRef.get()->SetAttribute(AttrRadius,     itemRef.get()->type().attributes.radius());       // Radius
+            itemRef.get()->SetAttribute(AttrVolume,     itemRef.get()->type().attributes.volume());       // Volume
+            itemRef.get()->SetAttribute(AttrCapacity,   itemRef.get()->type().attributes.capacity());   // Capacity
+            itemRef.get()->SaveAttributes();
 
             return itemRef;
         }
@@ -412,15 +412,15 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
-            itemRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                             // Is Online
-            itemRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                             // Structure Damage
-            itemRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,itemRef.get()->GetAttribute(AttrShieldCapacity),true);       // Shield Charge
-            itemRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                        // Armor Damage
-            itemRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(itemRef.get()->type().attributes.mass()),true);           // Mass
-            itemRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(itemRef.get()->type().attributes.radius()),true);       // Radius
-            itemRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(itemRef.get()->type().attributes.volume()),true);       // Volume
-            itemRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(itemRef.get()->type().attributes.capacity()),true);   // Capacity
-            itemRef.get()->mAttributeMap.SaveAttributes();
+            itemRef.get()->SetAttribute(AttrIsOnline,       1);                                             // Is Online
+            itemRef.get()->SetAttribute(AttrDamage,         0.0);                                             // Structure Damage
+            itemRef.get()->SetAttribute(AttrShieldCharge,   itemRef.get()->GetAttribute(AttrShieldCapacity));       // Shield Charge
+            itemRef.get()->SetAttribute(AttrArmorDamage,    0.0);                                        // Armor Damage
+            itemRef.get()->SetAttribute(AttrMass,           itemRef.get()->type().attributes.mass());           // Mass
+            itemRef.get()->SetAttribute(AttrRadius,         itemRef.get()->type().attributes.radius());       // Radius
+            itemRef.get()->SetAttribute(AttrVolume,         itemRef.get()->type().attributes.volume());       // Volume
+            itemRef.get()->SetAttribute(AttrCapacity,       itemRef.get()->type().attributes.capacity());   // Capacity
+            itemRef.get()->SaveAttributes();
 
             return itemRef;
         }
@@ -439,15 +439,15 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
-            itemRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                             // Is Online
-            itemRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                             // Structure Damage
-            itemRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,itemRef.get()->GetAttribute(AttrShieldCapacity),true);       // Shield Charge
-            itemRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                        // Armor Damage
-            itemRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(itemRef.get()->type().attributes.mass()),true);           // Mass
-            itemRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(itemRef.get()->type().attributes.radius()),true);       // Radius
-            itemRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(itemRef.get()->type().attributes.volume()),true);       // Volume
-            itemRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(itemRef.get()->type().attributes.capacity()),true);   // Capacity
-            itemRef.get()->mAttributeMap.SaveAttributes();
+            itemRef.get()->SetAttribute(AttrIsOnline,       1);                                             // Is Online
+            itemRef.get()->SetAttribute(AttrDamage,         0.0);                                             // Structure Damage
+            itemRef.get()->SetAttribute(AttrShieldCharge,   itemRef.get()->GetAttribute(AttrShieldCapacity));       // Shield Charge
+            itemRef.get()->SetAttribute(AttrArmorDamage,    0.0);                                        // Armor Damage
+            itemRef.get()->SetAttribute(AttrMass,           itemRef.get()->type().attributes.mass());           // Mass
+            itemRef.get()->SetAttribute(AttrRadius,         itemRef.get()->type().attributes.radius());       // Radius
+            itemRef.get()->SetAttribute(AttrVolume,         itemRef.get()->type().attributes.volume());       // Volume
+            itemRef.get()->SetAttribute(AttrCapacity,       itemRef.get()->type().attributes.capacity());   // Capacity
+            itemRef.get()->SaveAttributes();
 
             return itemRef;
         }
@@ -466,10 +466,10 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             // THESE SHOULD BE MOVED INTO A Asteroid::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
-            itemRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(1000.0),true);       // Radius
-            itemRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(1000000.0),true);           // Mass
-            itemRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(8000.0),true);       // Volume
-            itemRef.get()->mAttributeMap.SaveAttributes();
+            itemRef.get()->SetAttribute(AttrRadius, 1000.0);       // Radius
+            itemRef.get()->SetAttribute(AttrMass,   1000000.0);    // Mass
+            itemRef.get()->SetAttribute(AttrVolume, 8000.0);       // Volume
+            itemRef.get()->SaveAttributes();
 
             return itemRef;
         }
@@ -488,15 +488,15 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
-            itemRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                             // Is Online
-            itemRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                             // Structure Damage
-            itemRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,itemRef.get()->GetAttribute(AttrShieldCapacity),true);       // Shield Charge
-            itemRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                        // Armor Damage
-            itemRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(itemRef.get()->type().attributes.mass()),true);           // Mass
-            itemRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(itemRef.get()->type().attributes.radius()),true);       // Radius
-            itemRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(itemRef.get()->type().attributes.volume()),true);       // Volume
-            itemRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(itemRef.get()->type().attributes.capacity()),true);   // Capacity
-            itemRef.get()->mAttributeMap.SaveAttributes();
+            itemRef.get()->SetAttribute(AttrIsOnline,       1);                                             // Is Online
+            itemRef.get()->SetAttribute(AttrDamage,         0.0);                                             // Structure Damage
+            itemRef.get()->SetAttribute(AttrShieldCharge,   itemRef.get()->GetAttribute(AttrShieldCapacity));       // Shield Charge
+            itemRef.get()->SetAttribute(AttrArmorDamage,    0.0);                                        // Armor Damage
+            itemRef.get()->SetAttribute(AttrMass,           itemRef.get()->type().attributes.mass());           // Mass
+            itemRef.get()->SetAttribute(AttrRadius,         itemRef.get()->type().attributes.radius());       // Radius
+            itemRef.get()->SetAttribute(AttrVolume,         itemRef.get()->type().attributes.volume());       // Volume
+            itemRef.get()->SetAttribute(AttrCapacity,       itemRef.get()->type().attributes.capacity());   // Capacity
+            itemRef.get()->SaveAttributes();
 
             return itemRef;
         }
@@ -518,15 +518,15 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
-            stationRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                              // Is Online
-            stationRef.get()->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                              // Structure Damage
-            stationRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,stationRef.get()->GetAttribute(AttrShieldCapacity),true);     // Shield Charge
-            stationRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                         // Armor Damage
-            stationRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(stationRef.get()->type().attributes.mass()),true);         // Mass
-            stationRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(stationRef.get()->type().attributes.radius()),true);     // Radius
-            stationRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(stationRef.get()->type().attributes.volume()),true);     // Volume
-            stationRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(stationRef.get()->type().attributes.capacity()),true); // Capacity
-            stationRef.get()->mAttributeMap.SaveAttributes();
+            stationRef.get()->SetAttribute(AttrIsOnline,    1);                                              // Is Online
+            stationRef.get()->SetAttribute(AttrDamage,      0.0);                                              // Structure Damage
+            stationRef.get()->SetAttribute(AttrShieldCharge,stationRef.get()->GetAttribute(AttrShieldCapacity));     // Shield Charge
+            stationRef.get()->SetAttribute(AttrArmorDamage, 0.0);                                         // Armor Damage
+            stationRef.get()->SetAttribute(AttrMass,        stationRef.get()->type().attributes.mass());         // Mass
+            stationRef.get()->SetAttribute(AttrRadius,      stationRef.get()->type().attributes.radius());     // Radius
+            stationRef.get()->SetAttribute(AttrVolume,      stationRef.get()->type().attributes.volume());     // Volume
+            stationRef.get()->SetAttribute(AttrCapacity,    stationRef.get()->type().attributes.capacity()); // Capacity
+            stationRef.get()->SaveAttributes();
 
             return stationRef;
         }
@@ -537,7 +537,7 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
     if( itemID == 0 )
         return InventoryItemRef();
     InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
-    itemRef.get()->mAttributeMap.SaveAttributes();
+    itemRef.get()->SaveAttributes();
     return itemRef;
 }
 
@@ -855,7 +855,7 @@ void InventoryItem::SaveItem()
     //_log( ITEM__TRACE, "Saving item %u.", itemID() );
     
     //mAttributeMap.Save();
-    mAttributeMap.SaveAttributes();
+    SaveAttributes();
 
     m_factory.db().SaveItem(
         itemID(),
@@ -1009,4 +1009,9 @@ EvilNumber InventoryItem::GetAttribute( uint32 attributeID )
 EvilNumber InventoryItem::GetAttribute( const uint32 attributeID ) const
 {
      return mAttributeMap.GetAttribute(attributeID);
+}
+
+bool InventoryItem::SaveAttributes()
+{
+    return mAttributeMap.SaveAttributes();
 }

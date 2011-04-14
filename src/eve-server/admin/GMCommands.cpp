@@ -999,7 +999,7 @@ PyResult Command_dogma( Client* who, CommandDB* db, PyServiceMgr* services, cons
 	uint32 attributeID = db->GetAttributeID( attributeName );
 
     sLog.Warning( "GMCommands: Command_dogma()", "This command will modify attribute and send change to client, but change does not take effect in client for some reason." );
-    item->mAttributeMap.SetAttribute( attributeID, EvilNumber( attributeValue ), true );
+    item->SetAttribute( attributeID, attributeValue );
 
 	return NULL;
 }

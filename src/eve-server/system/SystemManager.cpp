@@ -103,15 +103,15 @@ bool SystemManager::_LoadSystemCelestials() {
 
                 // Create default dynamic attributes in the AttributeMap:
                 StationRef stationRef = stationEntity->GetStationObject();
-                stationRef->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                        // Is Online
-                stationRef->mAttributeMap.SetAttribute(AttrDamage,EvilNumber(0.0),true);                                        // Structure Damage
-                stationRef->mAttributeMap.SetAttribute(AttrShieldCapacity,EvilNumber(20000000.0),true);                         // Shield Capacity
-                stationRef->mAttributeMap.SetAttribute(AttrShieldCharge,stationRef->GetAttribute(AttrShieldCapacity),true);     // Shield Charge
-                stationRef->mAttributeMap.SetAttribute(AttrArmorHP,EvilNumber(stationRef->type().attributes.armorHP()),true);   // Armor HP
-                stationRef->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                   // Armor Damage
-                stationRef->mAttributeMap.SetAttribute(AttrMass,EvilNumber(stationRef->type().attributes.mass()),true);         // Mass
-                stationRef->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(stationRef->type().attributes.radius()),true);     // Radius
-                stationRef->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(stationRef->type().attributes.volume()),true);     // Volume
+                stationRef->SetAttribute(AttrIsOnline,      1);                                        // Is Online
+                stationRef->SetAttribute(AttrDamage,        0.0);                                        // Structure Damage
+                stationRef->SetAttribute(AttrShieldCapacity,20000000.0);                         // Shield Capacity
+                stationRef->SetAttribute(AttrShieldCharge,  stationRef->GetAttribute(AttrShieldCapacity));     // Shield Charge
+                stationRef->SetAttribute(AttrArmorHP,       stationRef->type().attributes.armorHP());   // Armor HP
+                stationRef->SetAttribute(AttrArmorDamage,   0.0);                                   // Armor Damage
+                stationRef->SetAttribute(AttrMass,          stationRef->type().attributes.mass());         // Mass
+                stationRef->SetAttribute(AttrRadius,        stationRef->type().attributes.radius());     // Radius
+                stationRef->SetAttribute(AttrVolume,        stationRef->type().attributes.volume());     // Volume
 
                 m_entities[stationEntity->GetStationObject()->itemID()] = stationEntity;
 		        bubbles.Add(stationEntity, true);

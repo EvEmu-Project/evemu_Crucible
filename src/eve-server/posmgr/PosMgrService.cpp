@@ -34,7 +34,6 @@ PosMgrService::PosMgrService(PyServiceMgr *mgr)
 	_SetCallDispatcher(m_dispatch);
 
 	PyCallable_REG_CALL(PosMgrService, GetControlTowerFuelRequirements)
-	//PyCallable_REG_CALL(PosMgrService, )
 }
 
 PosMgrService::~PosMgrService() {
@@ -53,4 +52,3 @@ PyBoundObject* PosMgrService::_CreateBoundObject( Client* c, const PyRep* bind_a
 PyResult PosMgrService::Handle_GetControlTowerFuelRequirements(PyCallArgs &args) {
 	return m_db.GetControlTowerFuelRequirements();
 }
-

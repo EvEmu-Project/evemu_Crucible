@@ -59,7 +59,7 @@ SkillRef Skill::Spawn(ItemFactory &factory, ItemData &data)
 
     SkillRef skillRef = Skill::Load( factory, skillID );
 
-    skillRef->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);      // Is Online
+    skillRef->SetAttribute(AttrIsOnline, 1);      // Is Online
 
     return skillRef;
 }
@@ -88,7 +88,7 @@ uint32 Skill::_Spawn(ItemFactory &factory, ItemData &data)
 
 EvilNumber Skill::GetSPForLevel( EvilNumber level )
 {
-    return(EVIL_SKILL_BASE_POINTS * GetAttribute(AttrSkillTimeConstant) * e_pow(32, (level - 1) / 2.0));
+    return EVIL_SKILL_BASE_POINTS * GetAttribute(AttrSkillTimeConstant) * e_pow(32, (level - 1) / 2.0);
 }
 
 bool Skill::SkillPrereqsComplete(Character &ch)

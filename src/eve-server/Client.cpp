@@ -68,11 +68,11 @@ Client::~Client() {
 
         // Save character info including attributes, save current ship's attributes, current ship's fitted modules,
         // and save all skill attributes to the Database:
-        //modules.SaveModules();                          // Save fitted Modules attributes to DB
-        GetShip()->mAttributeMap.SaveAttributes();      // Save Ship's attributes to DB
-        //GetShip()->mAttributeMap.Save();                // Save Ship's attributes to DB
-        GetChar()->SaveCharacter();                     // Save Character info to DB
-        GetChar()->SaveSkillQueue();                    // Save Skill Queue to DB
+        //modules.SaveModules();                            // Save fitted Modules attributes to DB
+        GetShip()->SaveAttributes();                        // Save Ship's attributes to DB
+        //GetShip()->mAttributeMap.Save();                  // Save Ship's attributes to DB
+        GetChar()->SaveCharacter();                         // Save Character info to DB
+        GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
 
         // remove ourselves from system
         if(m_system != NULL)
@@ -1071,32 +1071,36 @@ void Client::UpdateSkillTraining()
 }
 
 double Client::GetPropulsionStrength() const {
-    if(GetShip() == NULL)
-        return(3.0f);
-    //just making shit up, I think skills modify this, as newbies
-    //tend to end up with 3.038 instead of the base 3.0 on their ship..
-    //double res;
-    EvilNumber res;
-    res = GetShip()->GetAttribute(AttrPropulsionFusionStrength);
-    res += GetShip()->GetAttribute(AttrPropulsionIonStrength);
-    res += GetShip()->GetAttribute(AttrPropulsionMagpulseStrength);
-    res += GetShip()->GetAttribute(AttrPropulsionPlasmaStrength);
-    res += GetShip()->GetAttribute(AttrPropulsionFusionStrengthBonus);
-    res += GetShip()->GetAttribute(AttrPropulsionIonStrengthBonus);
-    res += GetShip()->GetAttribute(AttrPropulsionMagpulseStrengthBonus);
-    res += GetShip()->GetAttribute(AttrPropulsionPlasmaStrengthBonus);
 
-    /*res =  GetShip()->propulsionFusionStrength();
-    res += GetShip()->propulsionIonStrength();
-    res += GetShip()->propulsionMagpulseStrength();
-    res += GetShip()->propulsionPlasmaStrength();
-    res += GetShip()->propulsionFusionStrengthBonus();
-    res += GetShip()->propulsionIonStrengthBonus();
-    res += GetShip()->propulsionMagpulseStrengthBonus();
-    res += GetShip()->propulsionPlasmaStrengthBonus();*/
+    /**
+     * if we don't have a ship return bogus propulsion strength
+     * @note we should report a error for this
+     */
+    if( GetShip() == NULL )
+        return 3.0f;
+
+    /**
+     * Old comments:
+     * just making shit up, I think skills modify this, as newbies
+     * tend to end up with 3.038 instead of the base 3.0 on their ship..
+     */
+    EvilNumber res;
+    res =  GetShip()->GetAttribute( AttrPropulsionFusionStrength );
+    res += GetShip()->GetAttribute( AttrPropulsionIonStrength );
+    res += GetShip()->GetAttribute( AttrPropulsionMagpulseStrength );
+    res += GetShip()->GetAttribute( AttrPropulsionPlasmaStrength );
+    res += GetShip()->GetAttribute( AttrPropulsionFusionStrengthBonus );
+    res += GetShip()->GetAttribute( AttrPropulsionIonStrengthBonus );
+    res += GetShip()->GetAttribute( AttrPropulsionMagpulseStrengthBonus );
+    res += GetShip()->GetAttribute( AttrPropulsionPlasmaStrengthBonus );
+
     res += 0.038f;
     
-    // watch out... we know for a fact that it returns a float... but... only because we do "res += 0.038f;".
+    /**
+     * we should watch out here, because we know for a fact that this function returns a floating point.
+     * the only reason we know for sure is because we do the "res += 0.038f;" at the end of the bogus calculation.
+     * @note this function isn't even used... lolz
+     */
     return res.get_float();
 }
 

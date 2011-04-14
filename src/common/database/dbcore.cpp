@@ -123,7 +123,7 @@ bool DBcore::RunQuery(DBerror &err, uint32 &affected_rows, const char *query_fmt
     }
     free(query);
 
-    affected_rows = mysql_affected_rows(&mysql);
+    affected_rows = (uint32)mysql_affected_rows(&mysql);
 
     return true;
 }
@@ -144,7 +144,7 @@ bool DBcore::RunQueryLID(DBerror &err, uint32 &last_insert_id, const char *query
     }
     free(query);
 
-    last_insert_id = mysql_insert_id(&mysql);
+    last_insert_id = (uint32)mysql_insert_id(&mysql);
 
     return true;
 }
@@ -217,9 +217,9 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
         }
     }
     if (affected_rows)
-        *affected_rows = mysql_affected_rows(&mysql);
+        *affected_rows = (uint32)mysql_affected_rows(&mysql);
     if (last_insert_id)
-        *last_insert_id = mysql_insert_id(&mysql);
+        *last_insert_id = (uint32)mysql_insert_id(&mysql);
     return true;
 }
 

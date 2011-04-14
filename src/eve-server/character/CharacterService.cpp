@@ -306,7 +306,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
         //if( !(skillPoints.to_int()) )
         //    sLog.Error( "CharacterService::Handle_CreateCharacter2()", "skillPoints.to_int() failed, resulting in a floating point value larger than a 64-bit signed integer... o.O !!" );
         i->SetAttribute(AttrSkillPoints, skillPoints );
-        i->mAttributeMap.SaveAttributes();
+        i->SaveAttributes();
         //i->mAttributeMap.Save();
     }
 

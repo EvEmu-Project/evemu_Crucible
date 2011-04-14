@@ -114,14 +114,14 @@ ShipRef Ship::Spawn(ItemFactory &factory,
     ShipRef sShipRef = Ship::Load( factory, shipID );
 
     // Create default dynamic attributes in the AttributeMap:
-    sShipRef.get()->mAttributeMap.SetAttribute(AttrIsOnline,EvilNumber(1),true);                                            // Is Online
-    sShipRef.get()->mAttributeMap.SetAttribute(AttrShieldCharge,sShipRef.get()->GetAttribute(AttrShieldCapacity),true);     // Shield Charge
-    sShipRef.get()->mAttributeMap.SetAttribute(AttrArmorDamage,EvilNumber(0.0),true);                                       // Armor Damage
-    sShipRef.get()->mAttributeMap.SetAttribute(AttrMass,EvilNumber(sShipRef.get()->type().attributes.mass()),true);         // Mass
-    sShipRef.get()->mAttributeMap.SetAttribute(AttrRadius,EvilNumber(sShipRef.get()->type().attributes.radius()),true);     // Radius
-    sShipRef.get()->mAttributeMap.SetAttribute(AttrVolume,EvilNumber(sShipRef.get()->type().attributes.volume()),true);     // Volume
-    sShipRef.get()->mAttributeMap.SetAttribute(AttrCapacity,EvilNumber(sShipRef.get()->type().attributes.capacity()),true); // Capacity
-    sShipRef.get()->mAttributeMap.SetAttribute(AttrInertia,EvilNumber(1),true);                                             // Inertia
+    sShipRef.get()->SetAttribute(AttrIsOnline,      1);                                                 // Is Online
+    sShipRef.get()->SetAttribute(AttrShieldCharge,  sShipRef.get()->GetAttribute(AttrShieldCapacity));  // Shield Charge
+    sShipRef.get()->SetAttribute(AttrArmorDamage,   0.0);                                               // Armor Damage
+    sShipRef.get()->SetAttribute(AttrMass,          sShipRef.get()->type().attributes.mass());          // Mass
+    sShipRef.get()->SetAttribute(AttrRadius,        sShipRef.get()->type().attributes.radius());        // Radius
+    sShipRef.get()->SetAttribute(AttrVolume,        sShipRef.get()->type().attributes.volume());        // Volume
+    sShipRef.get()->SetAttribute(AttrCapacity,      sShipRef.get()->type().attributes.capacity());      // Capacity
+    sShipRef.get()->SetAttribute(AttrInertia,       1);                                                 // Inertia
 
     return sShipRef;
 }
@@ -396,7 +396,7 @@ void Ship::SaveShip()
 {
     sLog.Debug( "Ship::SaveShip()", "Saving all 'entity' info and attribute info to DB for ship %s (%u)...", itemName().c_str(), itemID() );
     SaveItem();
-    mAttributeMap.SaveAttributes();
+    SaveAttributes();
 }
 
 bool Ship::ValidateItemSpecifics(Client *c, InventoryItemRef equip) {

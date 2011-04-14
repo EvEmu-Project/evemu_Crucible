@@ -67,7 +67,7 @@ public:
     DBerror error;
 
     bool GetRow( DBResultRow& into );
-    size_t GetRowCount() { return mResult->row_count; }
+    size_t GetRowCount() { return (size_t)mResult->row_count; }
     void Reset();
 
     uint32 ColumnCount() const { return mColumnCount; }

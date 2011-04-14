@@ -262,10 +262,6 @@ protected:
 class AttributeMap
 {
 public:
-
-    // lazy ass anti compile errors
-    //AttributeMap() {}
-
     /**
      * we store our keeper so we can use it in the various functions.
      * @note capt: the way I see it this isn't really needed... ( design thingy )
@@ -305,6 +301,13 @@ public:
     typedef AttrMap::const_iterator         AttrMapConstItr;
 
     bool Load();
+
+    /**
+     * SaveAttributes
+     *
+     * @note this function always saves everything and doesn't take into account the fact that we should only save the
+     * changes attributes.
+     */
     bool SaveAttributes();
     bool SaveIntAttribute(uint32 attributeID, int64 value);
     bool SaveFloatAttribute(uint32 attributeID, double value);
