@@ -350,31 +350,6 @@ AttributeMap::AttributeMap( InventoryItem & item ) : mItem(item), mChanged(false
     //Load();
 }
 
-PyRep *AttributeMap::PyGet(EvilNumber attribute) const
-{
-    if( attribute.get_type() == evil_number_int )
-    {
-        return new PyLong( attribute.get_int() );
-    }
-    else
-    {
-        return new PyFloat( attribute.get_float() );
-    }
-}
-
-void AttributeMap::EncodeAttributes(std::map<int32, PyRep *> &into) const
-{
-    AttrMap::const_iterator cur, end;
-    cur = mAttributes.begin();
-    end = mAttributes.end();
-    for(; cur != end; cur++)
-    {
-        if(into.find(cur->first) != into.end())
-            PyDecRef( into[cur->first] );
-        into[cur->first] = PyGet(cur->second);
-    }
-}
-
 bool AttributeMap::SetAttribute( uint32 attributeId, EvilNumber &num, bool nofity /*= true*/ )
 {
     AttrMapItr itr = mAttributes.find(attributeId);

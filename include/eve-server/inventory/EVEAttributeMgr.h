@@ -268,9 +268,6 @@ public:
      */
     AttributeMap(InventoryItem & item);
 
-    PyRep *PyGet(EvilNumber attribute) const;
-    void EncodeAttributes(std::map<int32, PyRep *> &into) const;
-
     /**
      * @brief set the attribute with @num
      *
