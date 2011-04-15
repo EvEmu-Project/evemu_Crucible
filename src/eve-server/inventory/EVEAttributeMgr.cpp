@@ -621,8 +621,8 @@ bool AttributeMap::Save()
     {
         if ( itr->second.get_type() == evil_number_int ) {
 
-            DBQueryResult res;
-            bool success = sDatabase.RunQuery(res,
+            DBerror err;
+            bool success = sDatabase.RunQuery(err,
                 "REPLACE INTO entity_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, "I64d", NULL)",
                 mItem.itemID(), itr->first, itr->second.get_int());
 
@@ -631,8 +631,8 @@ bool AttributeMap::Save()
 
         } else if (itr->second.get_type() == evil_number_float ) {
 
-            DBQueryResult res;
-            bool success = sDatabase.RunQuery(res,
+            DBerror err;
+            bool success = sDatabase.RunQuery(err,
                 "REPLACE INTO entity_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, NULL, %f)",
                 mItem.itemID(), itr->first, itr->second.get_float());
 
