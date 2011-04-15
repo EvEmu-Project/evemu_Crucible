@@ -208,7 +208,7 @@ void ContainerEntity::EncodeDestiny( Buffer& into ) const
 		item->head.x = x();
 		item->head.y = y();
 		item->head.z = z();
-		item->head.sub_type = AddBallSubType_orbitingNPC;
+		item->head.sub_type = IsMassive | IsFree;
 		
 		item->mass.mass = m_self->mass();
 		item->mass.unknown51 = 0;
@@ -237,7 +237,7 @@ void ContainerEntity::EncodeDestiny( Buffer& into ) const
 		head.x = position.x;
 		head.y = position.y;
 		head.z = position.z;
-		head.sub_type = AddBallSubType_orbitingNPC;
+		head.sub_type = IsMassive | IsFree;
         into.Append( head );
 
         MassSector mass;

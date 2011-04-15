@@ -482,20 +482,6 @@ struct AddBall_loot {
 
 #endif//OLD_STRUCTS
 
-//I am thinking this might be a bitfield of flags..
-//enum {
-// 	isMobile = 0x01,
-//  isRigid = 0x02,		//maybe
-//  unknown4 = 0x04,
-//  isPlayer = 0x08,	//maybe...
-//  hasMiniBalls = 0x40
-//};
-//if this number is odd, the update will contain ShipSector
-//if this number has bit 0x40 set, it will include a MiniBallList
-// 
-// Possible names for bits:
-// Global, Free, Massive, Interactive
-
 enum ball_sub_type
 {
     IsFree = 0x01,          // set if ball is free to move, has extra BallData
@@ -506,60 +492,61 @@ enum ball_sub_type
     HasMiniBalls = 0x40,    // if set, the reader tries to read extra mini balls
 };
 
+/**
+ * a orbital asteroid entity has sub_type IsFree | IsMassive
+ */
 
-// 
+/** old nd shouldn't be used
 enum {
-	AddBallSubType_asteroidBelt = IsGlobal,	//seen rigids
-	AddBallSubType_cargoContainer_asteroid = IsMassive,	//and some NPCs and asteroids
-	AddBallSubType_orbitingNPC = IsMassive | IsFree,
-	AddBallSubType_planet = IsMassive | IsGlobal,	//star & moon too
-	//subtype 8 gets put on some list during evolution.
-	//seen a player with 9.
-	AddBallSubType_player = 13,
-	AddBallSubType_dungeonEntrance = 64,
-	AddBallSubType_station = 0x42//66	//stargate too
+    AddBallSubType_asteroidBelt = 2,	//seen rigids
+    AddBallSubType_cargoContainer_asteroid = 4,	//and some NPCs and asteroids
+    AddBallSubType_orbitingNPC = 5,
+    AddBallSubType_planet = 6,	//star & moon too
+    //subtype 8 gets put on some list during evolution.
+    //seen a player with 9.
+    AddBallSubType_player = 13,
+    AddBallSubType_dungeonEntrance = 64,
+    AddBallSubType_station = 66	//stargate too
 };
-
-
+*/
 
 struct BallHeader {
-/*005*/uint32 entityID;
-/*009*/uint8 mode;		//see DSTBALL_		  object+0x0B8
-/*010*/double radius;	//7.230769230769231e-3
-/*018*/double x;	//1.33638303942e12			object+0x048
-/*026*/double y;	//6.252761088e10			object+0x050
-/*034*/double z;	//4.1517330432e11			object+0x058
-/*042*/uint8  sub_type;		// seen 13
-/*043*/
+    uint32 entityID;
+    uint8 mode;		//see DSTBALL_
+    double radius;	//7.230769230769231e-3
+    double x;	//1.33638303942e12
+    double y;	//6.252761088e10
+    double z;	//4.1517330432e11
+    uint8  sub_type;		// seen 13
 };
 
 //included if not a RIGID body
 struct MassSector {
-/*043*/double mass;		//1.7e6			object+0x010
-/*051*/uint8  cloak;		// indicates cloak
-/*052*/uint64 unknown52;	// seen all 1's  "harmonic_30"
-/*060*/uint32 corpID;		//may be all 1's
-/*064*/uint32 allianceID;	// seen all 1's
+    double mass;
+    uint8  cloak;		// indicates cloak
+    uint64 unknown52;	// seen all 1's  "harmonic_30"
+    uint32 corpID;		// may be all 1's
+    uint32 allianceID;	// seen all 1's
 };
 
 //only included if the thing can move...
 struct ShipSector {
-/*068*/double max_speed;		//maybe object+0x20
-/*076*/double velocity_x;
-/*084*/double velocity_y;
-/*092*/double velocity_z;
-/*100*/double unknown_x; //might not really be x at all
-/*108*/double unknown_y; //might not really be y at all
-/*116*/double unknown_z; //might not really be z at all
-/*124*/double agility;	//3.037999998778105 = object+0x0A8
-/*132*/double speed_fraction;	//I think this is object+0x0B0
+    double max_speed;
+    double velocity_x;
+    double velocity_y;
+    double velocity_z;
+    double unknown_x; //might not really be x at all
+    double unknown_y; //might not really be y at all
+    double unknown_z; //might not really be z at all
+    double agility;	//3.037999998778105 = object+0x0A8
+    double speed_fraction;
 };
 
 struct MiniBall {
-/*119*/double x;
-/*127*/double y;
-/*135*/double z;
-/*143*/double radius;
+    double x;
+    double y;
+    double z;
+    double radius;
 };
 
 struct MiniBallList {
@@ -573,78 +560,78 @@ struct NameStruct {
 };
 
 struct DSTBALL_GOTO_Struct {
-/*116*/	uint8  formationID;
-/*117*/double x;		//object+0xD0 (as a set of 3)
-/*125*/double y;
-/*133*/double z;
+    uint8  formationID;
+    double x;		//object+0xD0 (as a set of 3)
+    double y;
+    double z;
 };
 
 struct DSTBALL_FOLLOW_Struct {
-/*116*/uint8  formationID;
-/*117*/	uint32 followID;
-/*121*/	double followRange;
+    uint8  formationID;
+    uint32 followID;
+    double followRange;
 };
 
 struct DSTBALL_STOP_Struct {
-/*116*/uint8  formationID;
+    uint8  formationID;
 };
 
 struct DSTBALL_WARP_Struct {
-/*116*/uint8  formationID;
-/*117*/double unknown_x;	//object+0xD0 (as a set of 3)
-/*125*/double unknown_y;
-/*133*/double unknown_z;
-/*141*/	uint32 effectStamp;	//might be a destiny sequence number (back)
-/*145*/	double followRange;
-/*149*/	uint32 followID;
-/*153*/	uint32 ownerID;
+    uint8  formationID;
+    double unknown_x;	//object+0xD0 (as a set of 3)
+    double unknown_y;
+    double unknown_z;
+    uint32 effectStamp;	//might be a destiny sequence number (back)
+    double followRange;
+    uint32 followID;
+    uint32 ownerID;
 };
 
 struct DSTBALL_ORBIT_Struct {
-/*116*/uint8  formationID;
-/*117*/	uint32 followID;	//orbitID
-/*121*/	double followRange;
+    uint8  formationID;
+    uint32 followID;	//orbitID
+    double followRange;
 };
 
 struct DSTBALL_MISSILE_Struct {
-/*116*/uint8  formationID;
-/*117*/	uint32 followID;	//targetID
-/*121*/	double followRange;
-/*129*/	uint32 ownerID;
-/*133*/	uint32 effectStamp;
-/*137*/double x;		//object+0xD0 (as a set of 3)
-/*145*/double y;
-/*143*/double z;
+    uint8  formationID;
+    uint32 followID;	//targetID
+    double followRange;
+    uint32 ownerID;
+    uint32 effectStamp;
+    double x;
+    double y;
+    double z;
 };
 
 struct DSTBALL_MUSHROOM_Struct {
-/*116*/uint8  formationID;
-/*117*/	double followRange;
-/*125*/	double unknown125;	//maybe object+0xD0
-/*133*/	uint32 effectStamp;
-/*137*/	uint32 ownerID;
+    uint8  formationID;
+    double followRange;
+    double unknown125;
+    uint32 effectStamp;
+    uint32 ownerID;
 };
 
 struct DSTBALL_TROLL_Struct {
-/*116*/uint8  formationID;
-/*117*/	uint32 effectStamp;	//is a destiny sequence number (forward)
+    uint8  formationID;
+    uint32 effectStamp;	//is a destiny sequence number (forward)
 };
 
 struct DSTBALL_FIELD_Struct {
-/*116*/uint8  formationID;
+    uint8  formationID;
 };
 
 struct DSTBALL_RIGID_Struct {
-/*116*/uint8  formationID;
+    uint8  formationID;
 /* there is an optional 2 byte thing here, if it is non-zero. not sure what it
    is yet. */
 };
 
 struct DSTBALL_FORMATION_Struct {
-/*116*/uint8  formationID;
-/*117*/	uint32 followID;
-/*121*/	double followRange;
-/*129*/	uint32 effectStamp;	//is a destiny sequence number (forward?)
+    uint8  formationID;
+    uint32 followID;
+    double followRange;
+    uint32 effectStamp;	//is a destiny sequence number (forward?)
 };
 
 union SpecificSectors {

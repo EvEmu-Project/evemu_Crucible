@@ -99,7 +99,7 @@ void SystemPlanetEntity::EncodeDestiny( Buffer& into ) const
 	head.x = data.position.x;
 	head.y = data.position.y;
 	head.z = data.position.z;
-	head.sub_type = AddBallSubType_planet;
+	head.sub_type = IsMassive | IsGlobal;
     into.Append( head );
 
     DSTBALL_RIGID_Struct main;
@@ -303,7 +303,7 @@ void SystemDungeonEntranceEntity::EncodeDestiny( Buffer& into ) const
 	head.x = position.x;
 	head.y = position.y;
 	head.z = position.z;
-	head.sub_type = AddBallSubType_dungeonEntrance;
+	head.sub_type = HasMiniBalls; // I dono if this is correct... we'll see
     into.Append( head );
 
     MassSector mass;

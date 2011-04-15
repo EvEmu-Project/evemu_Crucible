@@ -196,7 +196,7 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
 		item->head.x = position.x;
 		item->head.y = position.y;
 		item->head.z = position.z;
-		item->head.sub_type = AddBallSubType_player;
+		item->head.sub_type = IsFree | IsMassive | IsInteractive;
 		item->mass.mass = Ship()->mass();
 		item->mass.unknown51 = 0;
 		item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
@@ -233,7 +233,7 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
 		head.x = position.x;
 		head.y = position.y;
 		head.z = position.z;
-		head.sub_type = AddBallSubType_player;
+		head.sub_type = IsFree | IsMassive | IsInteractive;
         into.Append( head );
 
         MassSector mass;
@@ -324,7 +324,7 @@ void CelestialDynamicSystemEntity::EncodeDestiny( Buffer& into ) const
 	head.x = data.position.x;
 	head.y = data.position.y;
 	head.z = data.position.z;
-	head.sub_type = AddBallSubType_planet;
+	head.sub_type = IsMassive | IsGlobal;
     into.Append( head );
 
     DSTBALL_RIGID_Struct main;
@@ -340,7 +340,7 @@ void CelestialDynamicSystemEntity::EncodeDestiny( Buffer& into ) const
 	head.x = position.x;
 	head.y = position.y;
 	head.z = position.z;
-	head.sub_type = AddBallSubType_planet;
+	head.sub_type = IsMassive | IsGlobal;
     into.Append( head );
 /*
     MassSector mass;
