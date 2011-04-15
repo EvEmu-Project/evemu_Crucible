@@ -152,15 +152,13 @@ void AsteroidEntity::EncodeDestiny( Buffer& into ) const
 	head.x = position.x;
 	head.y = position.y;
 	head.z = position.z;
-	head.sub_type = AddBallSubType_station;
+	head.sub_type = /*HasMiniBalls | */IsGlobal;
     into.Append( head );
 
     DSTBALL_RIGID_Struct main;
 	main.formationID = 0xFF;
     into.Append( main );
 
-    const uint16 miniballsCount = 0;
-    into.Append( miniballsCount );
 /*
     const uint16 miniballsCount = 1;
     into.Append( miniballsCount );

@@ -517,7 +517,7 @@ enum {
 	//seen a player with 9.
 	AddBallSubType_player = 13,
 	AddBallSubType_dungeonEntrance = 64,
-	AddBallSubType_station = 66	//stargate too
+	AddBallSubType_station = 0x42//66	//stargate too
 };
 
 

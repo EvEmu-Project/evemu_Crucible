@@ -127,7 +127,7 @@ void SystemStationEntity::EncodeDestiny( Buffer& into ) const
 	head.x = data.position.x;
 	head.y = data.position.y;
 	head.z = data.position.z;
-	head.sub_type = AddBallSubType_station;
+	head.sub_type = HasMiniBalls | IsGlobal;
     into.Append( head );
 
     DSTBALL_RIGID_Struct main;
@@ -169,6 +169,7 @@ SystemStargateEntity::SystemStargateEntity(SystemManager *system, const DBSystem
   m_jumps(NULL)
 {
 }
+
 SystemStargateEntity::~SystemStargateEntity() {
 	targets.DoDestruction();
 	PySafeDecRef( m_jumps );
@@ -216,7 +217,7 @@ void SystemAsteroidBeltEntity::EncodeDestiny( Buffer& into ) const
 	head.x = data.position.x;
 	head.y = data.position.y;
 	head.z = data.position.z;
-	head.sub_type = AddBallSubType_asteroidBelt;
+	head.sub_type = IsGlobal;
     into.Append( head );
 
     DSTBALL_RIGID_Struct main;
