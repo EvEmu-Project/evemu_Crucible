@@ -1788,7 +1788,7 @@ bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)
 	if(!sDatabase.RunQuery(res,
 		" SELECT "
 		" effectID "
-		" FROM dgmtypeeffects "
+		" FROM dgmTypeEffects "
 		" WHERE typeID = '%u' AND ( effectID = 11 OR effectID = 12 OR effectID = 13 ) ",
 		typeID))
 	{

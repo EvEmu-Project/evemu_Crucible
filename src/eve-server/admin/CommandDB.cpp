@@ -125,7 +125,7 @@ int CommandDB::GetAttributeID(const char *attributeName) {
 	if(!sDatabase.RunQuery(res,
 		" SELECT "
 		" attributeID "
-		" FROM dgmattributetypes "
+		" FROM dgmAttributeTypes "
 		" WHERE attributeName = '%s' ",
 		escape.c_str() ) )
 	{
