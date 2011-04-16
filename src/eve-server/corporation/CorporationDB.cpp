@@ -785,6 +785,7 @@ uint32 CorporationDB::GetOffices(uint32 corpID) {
     }
     return row.GetUInt(0);
 }
+
 PyRep *CorporationDB::Fetch(uint32 corpID, uint32 from, uint32 count) {
     DBQueryResult res;
     DBResultRow rr;

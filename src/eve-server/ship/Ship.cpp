@@ -274,9 +274,15 @@ PyObject *Ship::ShipGetInfo()
     SetAttribute(AttrArmorMaxDamageResonance, 1.0f, false);
     SetAttribute(AttrShieldMaxDamageResonance, 1.0f, false);
 
+    
+    SetAttribute(AttrWarpSpeedMultiplier, 1.0f, false);
+    
+
     entry.attributes.insert(std::make_pair(AttrArmorMaxDamageResonance, new PyFloat( 1.0 )));
     entry.attributes.insert(std::make_pair(AttrShieldMaxDamageResonance, new PyFloat( 1.0 )));
 
+
+    entry.attributes.insert(std::make_pair(AttrWarpSpeedMultiplier, new PyFloat( 1.0 )));
 
     result.items[ itemID() ] = entry.Encode();
 
