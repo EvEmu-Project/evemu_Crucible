@@ -31,9 +31,9 @@
 static const uint16 MachoNetVersion = 267;
 static const double EVEVersionNumber = 6.43;
 static const int32 EVEBuildVersion = 247655;
-static const char *const EVEProjectCodename = "EVE-EVE-RELEASE";
+static const char *const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
 static const char *const EVEProjectRegion = "ccp";
-static const char *const EVEProjectVersion = "EVE-EVE-RELEASE@ccp";
+static const char *const EVEProjectVersion = "EVE-EVE-TRANQUILITY@ccp";
 
 static const int32 EVEBirthday = 170472;
 
