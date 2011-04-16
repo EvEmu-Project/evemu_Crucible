@@ -978,7 +978,7 @@ bool InventoryItem::SetAttribute( uint32 attributeID, double num, bool notify /*
     return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, EvilNumber& num, bool notify /* true */ )
+bool InventoryItem::SetAttribute( uint32 attributeID, EvilNumber num, bool notify /* true */ )
 {
     return mAttributeMap.SetAttribute(attributeID, num, notify);
 }

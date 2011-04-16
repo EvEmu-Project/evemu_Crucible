@@ -371,7 +371,7 @@ CharacterRef Character::Spawn(ItemFactory &factory,
     CharacterRef charRef = Character::Load( factory, characterID );
 
     // Create default dynamic attributes in the AttributeMap:
-    charRef.get()->SetAttribute(AttrIsOnline,EvilNumber(1),true);     // Is Online
+    charRef.get()->SetAttribute(AttrIsOnline, 1);     // Is Online
 
     return charRef;
 }
@@ -772,7 +772,7 @@ void Character::UpdateSkillQueue()
             //currentTraining->Clear_expiryTime();
 
             currentTraining->SetAttribute(AttrSkillLevel, currentTraining->GetAttribute(AttrSkillLevel) + 1 );
-            currentTraining->SetAttribute(AttrSkillPoints,  currentTraining->GetSPForLevel( currentTraining->GetAttribute(AttrSkillLevel) ) );
+            currentTraining->SetAttribute(AttrSkillPoints,  currentTraining->GetSPForLevel( currentTraining->GetAttribute(AttrSkillLevel) ), true);
 
             nextStartTime = currentTraining->GetAttribute(AttrExpiryTime);
             currentTraining->SetAttribute(AttrExpiryTime, 0);

@@ -147,6 +147,7 @@ SET( chat_SOURCE
      "${TARGET_SOURCE_DIR}/chat/VoiceMgrService.cpp" )
 
 SET( inventory_INCLUDE
+     "${TARGET_INCLUDE_DIR}/inventory/AttributeEnum.h"
      "${TARGET_INCLUDE_DIR}/inventory/AttributeMgr.h"
      "${TARGET_INCLUDE_DIR}/inventory/EVEAttributeMgr.h"
      "${TARGET_INCLUDE_DIR}/inventory/EVEAttributes.h"

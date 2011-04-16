@@ -883,7 +883,8 @@ PyResult Command_heal( Client* who, CommandDB* db, PyServiceMgr* services, const
 
         who->GetShip()->SetAttribute(AttrArmorDamage, 0);
         who->GetShip()->SetAttribute(AttrDamage, 0);
-        who->GetShip()->SetAttribute(AttrShieldCharge, who->GetShip()->GetAttribute(AttrShieldCapacity));
+    	EvilNumber shield_charge = who->GetShip()->GetAttribute(AttrShieldCapacity);
+        who->GetShip()->SetAttribute(AttrShieldCharge, shield_charge);
 	}
 	if( args.argCount() == 2 )
 	{
@@ -899,7 +900,8 @@ PyResult Command_heal( Client* who, CommandDB* db, PyServiceMgr* services, const
 		
         who->GetShip()->SetAttribute(AttrArmorDamage, 0);
         who->GetShip()->SetAttribute(AttrDamage, 0);
-        who->GetShip()->SetAttribute(AttrShieldCharge, who->GetShip()->GetAttribute(AttrShieldCapacity));
+    	EvilNumber shield_charge = who->GetShip()->GetAttribute(AttrShieldCapacity);
+        who->GetShip()->SetAttribute(AttrShieldCharge, shield_charge);
 	}
 
 	return(new PyString("Heal successful!"));

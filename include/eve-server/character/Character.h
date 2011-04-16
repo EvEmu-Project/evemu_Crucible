@@ -595,7 +595,7 @@ protected:
 
 	void AddItem(InventoryItemRef item);
 
-    void Character::_CalculateTotalSPTrained();
+    void _CalculateTotalSPTrained();
 
 	/*
 	 * Data members
