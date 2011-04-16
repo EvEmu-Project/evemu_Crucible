@@ -197,7 +197,7 @@ public:
      *
      * save all the attributes from a InventoryItem.
      *
-     * @note this should be incorperated into the normal save function and only save when things have changes.
+     * @note this should be incorporated into the normal save function and only save when things have changes.
      */
     bool SaveAttributes();
     /************************************************************************/

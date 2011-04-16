@@ -591,12 +591,8 @@ int64 DBResultRow::GetInt64( uint32 index ) const
     //sscanf( GetText( index ), I64d, &value );
     //return value;
 
-#ifdef WIN32
     //use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
-    return _strtoi64( GetText( index ), NULL, 0 );
-#else
     return strtoll( GetText( index ), NULL, 0 );
-#endif
 }
 
 uint64 DBResultRow::GetUInt64( uint32 index ) const
@@ -609,12 +605,8 @@ uint64 DBResultRow::GetUInt64( uint32 index ) const
     }
 #endif
 
-#ifdef WIN32
     //use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
-    return _strtoui64( GetText( index ), NULL, 0 );
-#else
     return strtoull( GetText( index ), NULL, 0 );
-#endif   
 }
 
 float DBResultRow::GetFloat( uint32 index ) const

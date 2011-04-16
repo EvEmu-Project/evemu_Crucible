@@ -362,6 +362,11 @@ char* strlwr( char* tmp );
 #   define strcasecmp          _stricmp
 #   define localtime_r( x, y ) localtime_s( y, x )
 
+//#   define strtoq   _strtoi64
+//#   define strtouq  _strtoui64
+#   define strtoll  _strtoi64
+#   define strtoull _strtoui64
+
 #   if( _MSC_VER < 1500 )
 #       define vsnprintf _vsnprintf
 #   else /* _MSC_VER >= 1500 */
