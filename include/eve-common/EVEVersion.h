@@ -26,11 +26,11 @@
 #ifndef __EVE_VERSION_H
 #define __EVE_VERSION_H
 
-//supported client is the Apocrypha client build 101786
+// supported client is Incursion build 247655
 
-static const uint8 MachoNetVersion = 219;//235;//
-static const double EVEVersionNumber = 6.14;//6.21;//
-static const int32 EVEBuildVersion = 101786;//127381;//
+static const uint16 MachoNetVersion = 267;
+static const double EVEVersionNumber = 6.43;
+static const int32 EVEBuildVersion = 247655;
 static const char *const EVEProjectCodename = "EVE-EVE-RELEASE";
 static const char *const EVEProjectRegion = "ccp";
 static const char *const EVEProjectVersion = "EVE-EVE-RELEASE@ccp";

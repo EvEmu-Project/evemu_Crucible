@@ -13,6 +13,8 @@
 	    <real name="version_number" />
 	    <int name="build_version" />
 	    <string name="project_version" />
+	    <!-- update_info -->
+	    <none />
     </tupleInline>
   </elementDef>
 
