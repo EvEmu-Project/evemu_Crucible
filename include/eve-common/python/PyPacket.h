@@ -44,24 +44,24 @@ public:
     void operator=(const PyAddress &right);
 
     typedef enum {
-        Any     = 'A',
+        Any     = 8,
             /*
             * [1]   service
             * [2]   callID
             */
-        Node    = 'N',
+        Node    = 1,
             /*
             * [1]   nodeID
             * [2]   service
             * [3]   callID
             */
-        Client  = 'C',
+        Client  = 2,
             /*
             * [1]   clientID
             * [2]   callID
             * [3]   service
             */
-        Broadcast = 'B',
+        Broadcast = 4,
             /*
             * [1]   broadcastID
             * [2]   narrowcast??
