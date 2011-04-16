@@ -1386,7 +1386,7 @@ void Client::BanClient()
 /************************************************************************/
 /* EVEClientSession interface                                           */
 /************************************************************************/
-void Client::_GetVersion( VersionExchange& version )
+void Client::_GetVersion( VersionExchangeServer& version )
 {
     version.birthday = EVEBirthday;
     version.macho_version = MachoNetVersion;
@@ -1401,7 +1401,7 @@ uint32 Client::_GetUserCount()
     return services().entity_list.GetClientCount();
 }
 
-bool Client::_VerifyVersion( VersionExchange& version )
+bool Client::_VerifyVersion( VersionExchangeClient& version )
 {
 	sLog.Log("Client","%s: Received Low Level Version Exchange:", GetAddress().c_str());
     version.Dump(NET__PRES_REP, "    ");

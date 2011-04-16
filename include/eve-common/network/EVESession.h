@@ -31,7 +31,8 @@
 class PyPacket;
 class PyRep;
 
-class VersionExchange;
+class VersionExchangeClient;
+class VersionExchangeServer;
 class CryptoRequestPacket;
 class CryptoChallengePacket;
 class CryptoHandshakeResult;
@@ -104,7 +105,7 @@ protected:
      *
      * @param[in] version Object to be filled with version information.
      */
-    virtual void _GetVersion( VersionExchange& version ) = 0;
+    virtual void _GetVersion( VersionExchangeServer& version ) = 0;
     /** @return Current count of connected users. */
 	virtual uint32 _GetUserCount() = 0;
     /** @return Current position in connection queue. */
@@ -118,7 +119,7 @@ protected:
      * @retval true  Verification succeeded; proceeds to next state.
      * @retval false Verification failed; stays in current state.
      */
-    virtual bool _VerifyVersion( VersionExchange& version ) = 0;
+    virtual bool _VerifyVersion( VersionExchangeClient& version ) = 0;
     /**
      * @brief Verifies VIP key.
      *

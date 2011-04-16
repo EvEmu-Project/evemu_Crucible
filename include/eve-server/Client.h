@@ -318,11 +318,11 @@ protected:
     /********************************************************************/
     /* EVEClientSession interface                                       */
     /********************************************************************/
-    void _GetVersion( VersionExchange& version );
+    void _GetVersion( VersionExchangeServer& version );
     uint32 _GetUserCount();
     uint32 _GetQueuePosition() { /* hack */ return 1; }
 
-    bool _VerifyVersion( VersionExchange& version );
+    bool _VerifyVersion( VersionExchangeClient& version );
     bool _VerifyCrypto( CryptoRequestPacket& cr );
     bool _VerifyLogin( CryptoChallengePacket& ccp );
     bool _VerifyVIPKey( const std::string& vipKey ) { /* do nothing */ return true; }
