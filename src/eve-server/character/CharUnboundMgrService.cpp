@@ -29,7 +29,7 @@ PyCallable_Make_InnerDispatcher(CharUnboundMgrService)
 
 CharUnboundMgrService::CharUnboundMgrService(PyServiceMgr* mgr)
 : PyService(mgr, "charUnboundMgr"),
-  m_dispatch(new Dispatchere(this)) 
+  m_dispatch(new Dispatcher(this)) 
 {
 	_SetCallDispatcher(m_dispatch);
 
@@ -60,9 +60,49 @@ PyResult CharUnboundMgrService::Handle_ValidateNameEx(PyCallArgs &call)
 	Call_SingleWStringArg arg;
 	if (!arg.Decode(&call.tuple))
 	{
-		_log(SERVICE_ERROR, "Failed to decode args.");
+		codelog(CLIENT__ERROR, "Failed to decode args for ValidateNameEx call");
 		return NULL;
 	}
 
 	return new PyBool(m_db.ValidateCharName(arg.arg.c_str()));
+}
+
+PyResult CharUnboundMgrService::Handle_SelectCharacterID(PyCallArgs &call) {
+	return NULL;
+}
+
+PyResult CharUnboundMgrService::Handle_GetCharactersToSelect(PyCallArgs &call) {
+	return NULL;
+}
+
+PyResult CharUnboundMgrService::Handle_GetCharacterToSelect(PyCallArgs &call) {
+	return NULL;
+}
+
+PyResult CharUnboundMgrService::Handle_DeleteCharacter(PyCallArgs &call) {
+	return NULL;
+}
+
+PyResult CharUnboundMgrService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
+	return NULL;
+}
+
+PyResult CharUnboundMgrService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call) {
+	return NULL;
+}
+
+PyResult CharUnboundMgrService::Handle_GetCharacterInfo(PyCallArgs &call) {
+	return NULL;
+}
+
+PyResult CharUnboundMgrService::Handle_GetCharCreationInfo(PyCallArgs &call) {
+	return NULL;
+}
+
+PyResult CharUnboundMgrService::Handle_GetCharNewExtraCreationInfo(PyCallArgs &call) {
+	return NULL;
+}
+
+PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call) {
+	return NULL;
 }

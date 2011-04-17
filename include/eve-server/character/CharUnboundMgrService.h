@@ -27,7 +27,7 @@
 #define __CHARUNBOUNDMGRSERVICE__H__INCL__
 
 #include "PyService.h"
-#include "CharacterDB.h"
+#include "character/CharacterDB.h"
 
 /**
  * \class CharUnboundMgrService
