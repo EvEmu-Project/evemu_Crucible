@@ -68,6 +68,11 @@ PyResult CharUnboundMgrService::Handle_ValidateNameEx(PyCallArgs &call)
 }
 
 PyResult CharUnboundMgrService::Handle_SelectCharacterID(PyCallArgs &call) {
+	CallSelectCharacterID arg;
+	if (!arg.Decode(&call.tuple)) {
+		codelog(CLIENT__ERROR, "Failed to decode args for SelectCharacterID call");
+		return NULL;
+	}
 	return NULL;
 }
 
@@ -76,6 +81,11 @@ PyResult CharUnboundMgrService::Handle_GetCharactersToSelect(PyCallArgs &call) {
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharacterToSelect(PyCallArgs &call) {
+	CallGetCharacterToSelect arg;
+	if (!arg.Decode(&call.tuple)) {
+		codelog(CLIENT__ERROR, "Failed to decode args for GetCharacterToSelect call");
+		return NULL;
+	}
 	return NULL;
 }
 

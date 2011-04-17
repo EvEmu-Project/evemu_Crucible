@@ -45,7 +45,7 @@
 	    <!-- 1 -->
 	    <bool name="loadTutorialDungeon" soft="true" />
 	    <!-- 2 -->
-	    <raw name="unknown" />
+	    <raw name="secondChoiceID" />
     </tupleInline>
   </elementDef>
 

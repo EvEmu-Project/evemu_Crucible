@@ -51,6 +51,15 @@ private:
 	CharacterDB m_db;
 
 	PyCallable_DECL_CALL(SelectCharacterID)
+
+	/**
+	 * \brief Get details on a character id
+	 *
+	 * Get details on a character ud
+	 *
+	 * @param[in] call character id
+	 * @return PyResult character details
+	 */
 	PyCallable_DECL_CALL(GetCharacterToSelect)
 
 	/**
