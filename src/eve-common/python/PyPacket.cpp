@@ -377,19 +377,14 @@ bool PyAddress::Decode(PyRep *&in_object) {
     }
 
     //decode the address type.
-    if(!args->items[0]->IsString()) {
+    if(!args->items[0]->IsInt()) {
         codelog(NET__PACKET_ERROR, "Wrong type on address type element (0)");
         args->items[0]->Dump(NET__PACKET_ERROR, "  ");
         PyDecRef(base);
         return false;
     }
-    PyString *types = (PyString *) args->items[0];
-    if(types->content().empty()) {
-        codelog(NET__PACKET_ERROR, "Empty string for address type element (0)");
-        PyDecRef(base);
-        return false;
-    }
-    switch( types->content()[0] ) {
+    PyInt *typei = (PyInt *) args->items[0];
+    switch(typei->value()) {
     case Any: {
         if(args->items.size() != 3) {
             codelog(NET__PACKET_ERROR, "Invalid number of elements in Any address tuple: %lu", args->items.size());
@@ -474,7 +469,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
         break;
     }
     default:
-        codelog(NET__PACKET_ERROR, "Unknown address type: %c", types->content()[0] );
+        codelog(NET__PACKET_ERROR, "Unknown address type: %c", typei->value() );
         PyDecRef(base);
         return false;
     }
@@ -488,7 +483,7 @@ PyRep *PyAddress::Encode() {
     switch(type) {
     case Any:
         t = new PyTuple(3);
-        t->items[0] = new PyString("A");
+        t->items[0] = new PyInt((int)type);
 
         if(service == "")
             t->items[1] = new PyNone();
@@ -504,7 +499,7 @@ PyRep *PyAddress::Encode() {
 
     case Node:
         t = new PyTuple(4);
-        t->items[0] = new PyString("N");
+        t->items[0] = new PyInt((int)type);
         t->items[1] = new PyLong(typeID);
 
         if(service == "")
@@ -521,7 +516,7 @@ PyRep *PyAddress::Encode() {
 
     case Client:
         t = new PyTuple(4);
-        t->items[0] = new PyString("C");
+        t->items[0] = new PyInt((int)type);
         t->items[1] = new PyLong(typeID);
         t->items[2] = new PyLong(callID);
         if(service == "")
@@ -533,7 +528,7 @@ PyRep *PyAddress::Encode() {
 
     case Broadcast:
         t = new PyTuple(4);
-        t->items[0] = new PyString("B");
+        t->items[0] = new PyInt((int)type);
         //broadcastID
         if(service == "")
             t->items[1] = new PyNone();
@@ -660,17 +655,17 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
         return false;
     }
 
-    //decode payload tuple
-    if(payload->items.size() != 2) {
-        codelog(NET__PACKET_ERROR, "invalid tuple length %lu", payload->items.size());
-        PyDecRef(payload);
-        return false;
-    }
-    if(!payload->items[0]->IsTuple()) {
-        codelog(NET__PACKET_ERROR, "non-tuple payload[0]");
-        PyDecRef(payload);
-        return false;
-    }
+	if (payload->items.size() != 1) {
+		codelog(NET__PACKET_ERROR, "invalid tuple length %lu", payload->items.size());
+		PyDecRef(payload);
+		return false;
+	}
+	if (!payload->items[0]->IsTuple()) {
+		codelog(NET__PACKET_ERROR, "non tuple payload[0]");
+		PyDecRef(payload);
+		return false;
+	}
+
     PyTuple *payload2 = (PyTuple *) payload->items[0];
     if(payload2->items.size() != 2) {
         codelog(NET__PACKET_ERROR, "invalid tuple2 length %lu", payload2->items.size());
