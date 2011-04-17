@@ -77,16 +77,23 @@ PyResult CharUnboundMgrService::Handle_SelectCharacterID(PyCallArgs &call) {
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharactersToSelect(PyCallArgs &call) {
-	return NULL;
+	return(m_db.GetCharacterList(call.client->GetAccountID()));
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharacterToSelect(PyCallArgs &call) {
-	CallGetCharacterToSelect arg;
-	if (!arg.Decode(&call.tuple)) {
-		codelog(CLIENT__ERROR, "Failed to decode args for GetCharacterToSelect call");
+	Call_SingleIntegerArg args;
+	if(!args.Decode(&call.tuple)) {
+		codelog(CLIENT__ERROR, "Invalid arguments");
 		return NULL;
 	}
-	return NULL;
+
+	PyRep *result = m_db.GetCharSelectInfo(args.arg);
+	if(result == NULL) {
+		_log(CLIENT__ERROR, "Failed to load character %d", args.arg);
+		return NULL;
+	}
+
+	return result;
 }
 
 PyResult CharUnboundMgrService::Handle_DeleteCharacter(PyCallArgs &call) {

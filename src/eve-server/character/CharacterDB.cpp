@@ -30,7 +30,7 @@ CharacterDB::CharacterDB()
 	load_name_validation_set();
 }
 
-PyObject *CharacterDB::GetCharacterList(uint32 accountID) {
+PyRep *CharacterDB::GetCharacterList(uint32 accountID) {
 	DBQueryResult res;
 	
 	if(!sDatabase.RunQuery(res,
@@ -51,7 +51,7 @@ PyObject *CharacterDB::GetCharacterList(uint32 accountID) {
 		return NULL;
 	}
 	
-	return DBResultToRowset(res);
+	return DBResultToCRowset(res);
 }
 
 bool CharacterDB::ValidateCharName(const char *name)
