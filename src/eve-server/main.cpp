@@ -188,6 +188,7 @@ int main( int argc, char* argv[] )
     services.RegisterService(new NetService(&services));
 	services.RegisterService(new TradeService(&services));
 	services.RegisterService(new CharUnboundMgrService(&services));
+	services.RegisterService(new PaperDollService(&services));
 
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();
