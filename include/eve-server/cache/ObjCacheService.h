@@ -80,6 +80,8 @@ protected:
 	static const uint32 CharCreateCachableObjectCount;
 	static const char *const AppearanceCachableObjects[];
 	static const uint32 AppearanceCachableObjectCount;
+	static const char *const CharCreateNewExtraCachableObjects[];
+	static const uint32 CharCreateNewExtraCachableObjectCount;
 	
 	class Dispatcher;
 	Dispatcher *const m_dispatch;

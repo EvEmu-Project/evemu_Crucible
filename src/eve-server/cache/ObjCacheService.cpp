@@ -104,6 +104,15 @@ const char *const ObjCacheService::AppearanceCachableObjects[] = {
 };
 const uint32 ObjCacheService::AppearanceCachableObjectCount = sizeof(ObjCacheService::AppearanceCachableObjects) / sizeof(const char *);
 
+const char *const ObjCacheService::CharCreateNewExtraCachableObjects[] = {
+	"charNewExtraCreationInfo.raceskills",
+	"charNewExtraCreationInfo.careerskills",
+	"charNewExtraCreationInfo.specialityskills",
+	"charNewExtraCreationInfo.careers",
+	"charNewExtraCreationInfo.specialities"
+};
+const uint32 ObjCacheService::CharCreateNewExtraCachableObjectCount = sizeof(ObjCacheService::CharCreateNewExtraCachableObjects) / sizeof(const char *);
+
 PyCallable_Make_InnerDispatcher(ObjCacheService)
 
 ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)

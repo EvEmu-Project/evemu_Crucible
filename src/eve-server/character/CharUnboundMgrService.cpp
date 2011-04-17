@@ -96,11 +96,20 @@ PyResult CharUnboundMgrService::Handle_GetCharacterInfo(PyCallArgs &call) {
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharCreationInfo(PyCallArgs &call) {
-	return NULL;
+	PyDict *result = new PyDict();
+
+	//send all the cache hints needed for char creation.
+	m_manager->cache_service->InsertCacheHints(
+		ObjCacheService::hCharCreateCachables,
+		result);
+	_log(CLIENT__MESSAGE, "Sending char creation info reply");
+
+	return result;
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharNewExtraCreationInfo(PyCallArgs &call) {
-	return NULL;
+	_log(CLIENT__MESSAGE, "Sending empty char new extra creation info");
+	return new PyDict();
 }
 
 PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call) {

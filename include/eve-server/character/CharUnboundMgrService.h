@@ -20,7 +20,7 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		caytchen
+	Author:		caytchen, Zhur
 */
 
 #ifndef __CHARUNBOUNDMGRSERVICE__H__INCL__
@@ -52,7 +52,25 @@ private:
 
 	PyCallable_DECL_CALL(SelectCharacterID)
 	PyCallable_DECL_CALL(GetCharacterToSelect)
+
+	/**
+	 * \brief Get a list of characters on this account
+	 *
+	 * This is the real deal and cached in the central 'cc' service in the game.
+	 *
+	 * @param[in] call empty
+	 * @return PyResult list of characters
+	 */
 	PyCallable_DECL_CALL(GetCharactersToSelect)
+
+	/**
+	 * \brief Get a lightweight list of characters on this account
+	 *
+	 * Only used when creating a petition and not ingame. This is basically a lightweight GetCharactersToSelect in that it only sends characterID and characterName.
+	 *
+	 * @param[in] call empty
+	 * @return PyResult list of characters with characterID and characterName
+	 */
 	PyCallable_DECL_CALL(GetCharacterInfo)
 
 	/**
