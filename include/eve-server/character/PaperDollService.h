@@ -33,7 +33,7 @@
  *
  * @brief Deals with character image stuff
  *
- * Introduced with the sculpting and nextgen character creation
+ * Introduced with the sculpting and nextgen character creation. Seems to be only used for _recustomization_ of existing characters, so not a priority right now.
  *
  * @author caytchen
  * @date April 2011
