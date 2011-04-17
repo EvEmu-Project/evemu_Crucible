@@ -168,6 +168,7 @@
 #include "character/CharMgrService.h"
 #include "character/Skill.h"
 #include "character/SkillMgrService.h"
+#include "character/CharUnboundMgrService.h"
 
 // chat stuff
 #include "chat/LookupService.h"
