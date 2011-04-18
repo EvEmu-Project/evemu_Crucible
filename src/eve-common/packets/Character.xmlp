@@ -96,6 +96,18 @@
       <dictStr name="appearance" />
     </tupleInline>
   </elementDef>
+  
+    <elementDef name="CallCreateCharacterWithDoll">
+    <tupleInline>
+      <wstring name="name" />
+      <int name="bloodlineID" />
+      <int name="genderID" />
+      <int name="ancestryID" />
+      <raw name="charInfo" />
+      <raw name="portraitInfo" />
+      <int name="schoolID" />
+    </tupleInline>
+  </elementDef>
 
   <elementDef name="RspCreateCharacter">
     <tupleInline>

@@ -196,6 +196,12 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
 	m_cacheKeys["charCreationInfo.skins"] = "skins";
 	m_cacheKeys["charCreationInfo.lipsticks"] = "lipsticks";
 
+	m_cacheKeys["charNewExtraCreationInfo.raceskills"] = "raceskills";
+	m_cacheKeys["charNewExtraCreationInfo.careerskills"] = "careerskills";
+	m_cacheKeys["charNewExtraCreationInfo.specialityskills"] = "specialityskills";
+	m_cacheKeys["charNewExtraCreationInfo.careers"] = "careers";
+	m_cacheKeys["charNewExtraCreationInfo.specialities"] = "specialities";
+
 	m_cacheKeys["dogmaIM.attributesByName"] = "dogmaIM.attributesByName";
 }
 
@@ -326,6 +332,10 @@ void ObjCacheService::InsertCacheHints(hintSet hset, PyDict *into) {
 	case hAppearanceCachables:
 		objects = AppearanceCachableObjects;
 		object_count = AppearanceCachableObjectCount;
+		break;
+	case hCharCreateNewExtraCachables:
+		objects = CharCreateNewExtraCachableObjects;
+		object_count = CharCreateNewExtraCachableObjectCount;
 		break;
 	}
 	if(objects == NULL)

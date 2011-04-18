@@ -80,11 +80,12 @@ PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 		"SELECT "
 		" itemName AS shortName,bloodlineID,gender,bounty,character_.corporationID,allianceID,title,startDateTime,createDateTime,"
 		" securityRating,character_.balance,character_.stationID,solarSystemID,constellationID,regionID,"
-		" petitionMessage,logonMinutes,tickerName"
+		" petitionMessage,logonMinutes,tickerName, 0 AS worldSpaceID, shipEntity.itemName AS shipName, shipEntity.typeID AS shipTypeID"
 		" FROM character_ "
 		"	LEFT JOIN entity ON characterID = itemID"
 		"	LEFT JOIN corporation USING (corporationID)"
 		"	LEFT JOIN bloodlineTypes USING (typeID)"
+		"   LEFT JOIN entity AS shipEntity ON itemID == entity.locationID"
 		" WHERE characterID=%u", characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());

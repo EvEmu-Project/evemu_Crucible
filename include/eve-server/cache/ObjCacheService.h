@@ -51,6 +51,7 @@ public:
 	typedef enum {
 		hLoginCachables,
 		hCharCreateCachables,
+		hCharCreateNewExtraCachables,
 		hAppearanceCachables
 	} hintSet;
 	void InsertCacheHints(hintSet hset, PyDict *into);
