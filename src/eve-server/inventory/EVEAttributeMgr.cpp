@@ -402,6 +402,15 @@ EvilNumber AttributeMap::GetAttribute( const uint32 attributeId ) const
     }
 }
 
+bool AttributeMap::HasAttribute(uint32 attributeID)
+{
+    AttrMapConstItr itr = mAttributes.find(attributeID);
+    if (itr != mAttributes.end())
+        return true;
+    else
+        return false;
+}
+
 bool AttributeMap::Change( uint32 attributeID, EvilNumber& old_val, EvilNumber& new_val )
 {
     mChanged = true;
@@ -671,6 +680,23 @@ bool AttributeMap::SaveAttributes()
     return status;
 #endif
     return Save();
+}
+
+bool AttributeMap::Delete()
+{
+    // Remove all attributes from the entity_attributes table for this item:
+    DBerror err;
+    if(!sDatabase.RunQuery(err,
+        "DELETE"
+        " FROM entity_attributes"
+        " WHERE itemID=%u",
+        mItem.itemID()
+    ))
+    {
+        sLog.Error( "", "Failed to delete item %u: %s", mItem.itemID(), err.c_str());
+        return false;
+    }
+    return true;
 }
 
 AttributeMap::AttrMapItr AttributeMap::begin()

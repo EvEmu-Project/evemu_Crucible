@@ -285,11 +285,22 @@ public:
     
     EvilNumber GetAttribute(const uint32 attributeId) const;
 
+    /*
+     * HasAttribute
+     *
+     * returns true if this item has the attribute 'attributeID', false if it does not have this attribute
+     *
+     * @note this function should be used very infrequently and only for specific reasons
+     */
+    bool HasAttribute(uint32 attributeID);
+
     /* ATM we don't load or save as we assume that all attribute modifiers are calculated on the fly
      * except charge attributes but we won't handle them for now
      */
     bool Save();
     
+    bool Delete();
+
     // load the default attributes that come with the itemID
 
 

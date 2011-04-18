@@ -192,6 +192,15 @@ public:
     EvilNumber GetAttribute(uint32 attributeID);
     EvilNumber GetAttribute(const uint32 attributeID) const;
 
+    /*
+     * HasAttribute
+     *
+     * returns true if this item has the attribute 'attributeID', false if it does not have this attribute
+     *
+     * @note this function should be used very infrequently and only for specific reasons
+     */
+    bool HasAttribute(uint32 attributeID);
+
     /**
      * SaveAttributes
      *

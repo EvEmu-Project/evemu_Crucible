@@ -198,7 +198,12 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
     res.dialogue = new PyList;
 
 	std::map<uint32, std::string> choices;
-	m_agent->DoAction( call.client, args.arg->AsInt()->value(), res.agentSays, choices );
+    if( !(args.arg->IsInt()) )
+    {
+        sLog.Error( "AgentMgrBound::Handle_DoAction()", "args.arg->IsInt() failed.  Expected type Int, got type %s", args.arg->TypeString() );
+    }
+    else
+	    m_agent->DoAction( call.client, args.arg->AsInt()->value(), res.agentSays, choices );
 
 	DoAction_Dialogue_Item choice;
 

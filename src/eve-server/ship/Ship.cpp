@@ -114,14 +114,30 @@ ShipRef Ship::Spawn(ItemFactory &factory,
     ShipRef sShipRef = Ship::Load( factory, shipID );
 
     // Create default dynamic attributes in the AttributeMap:
-    sShipRef.get()->SetAttribute(AttrIsOnline,      1);                                                 // Is Online
-    sShipRef.get()->SetAttribute(AttrShieldCharge,  sShipRef.get()->GetAttribute(AttrShieldCapacity));  // Shield Charge
-    sShipRef.get()->SetAttribute(AttrArmorDamage,   0.0);                                               // Armor Damage
-    sShipRef.get()->SetAttribute(AttrMass,          sShipRef.get()->type().attributes.mass());          // Mass
-    sShipRef.get()->SetAttribute(AttrRadius,        sShipRef.get()->type().attributes.radius());        // Radius
-    sShipRef.get()->SetAttribute(AttrVolume,        sShipRef.get()->type().attributes.volume());        // Volume
-    sShipRef.get()->SetAttribute(AttrCapacity,      sShipRef.get()->type().attributes.capacity());      // Capacity
-    sShipRef.get()->SetAttribute(AttrInertia,       1);                                                 // Inertia
+    sShipRef->SetAttribute(AttrIsOnline,            1);                                             // Is Online
+    sShipRef->SetAttribute(AttrShieldCharge,        sShipRef->GetAttribute(AttrShieldCapacity));    // Shield Charge
+    sShipRef->SetAttribute(AttrArmorDamage,         0.0);                                           // Armor Damage
+    sShipRef->SetAttribute(AttrMass,                sShipRef->type().attributes.mass());            // Mass
+    sShipRef->SetAttribute(AttrRadius,              sShipRef->type().attributes.radius());          // Radius
+    sShipRef->SetAttribute(AttrVolume,              sShipRef->type().attributes.volume());          // Volume
+    sShipRef->SetAttribute(AttrCapacity,            sShipRef->type().attributes.capacity());        // Capacity
+    sShipRef->SetAttribute(AttrInertia,             1);                                             // Inertia
+    sShipRef->SetAttribute(AttrCharge,              sShipRef->GetAttribute(AttrCapacitorCapacity)); // Set Capacitor Charge to the Capacitor Capacity
+
+    // Check for existence of some attributes that may or may not have already been loaded and set them
+    // to default values:
+    // Maximum Range Capacitor
+    if( !(sShipRef->HasAttribute(AttrMaximumRangeCap)) )
+        sShipRef->SetAttribute(AttrMaximumRangeCap, 249999.0 );
+    // Maximum Armor Damage Resonance
+    if( !(sShipRef->HasAttribute(AttrArmorMaxDamageResonance)) )
+        sShipRef->SetAttribute(AttrArmorMaxDamageResonance, 1.0f);
+    // Maximum Shield Damage Resonance
+    if( !(sShipRef->HasAttribute(AttrShieldMaxDamageResonance)) )
+        sShipRef->SetAttribute(AttrShieldMaxDamageResonance, 1.0f);
+    // Warp Speed Multiplier
+    if( !(sShipRef.get()->HasAttribute(AttrWarpSpeedMultiplier)) )
+        sShipRef.get()->SetAttribute(AttrWarpSpeedMultiplier, 1.0f);
 
     return sShipRef;
 }
@@ -263,26 +279,6 @@ PyObject *Ship::ShipGetInfo()
     //first populate the ship.
     if( !Populate( entry ) )
         return NULL;    //print already done.
-
-    //hacking:
-    //maximumRangeCap
-    /* this is a ugly hack... */
-    if (entry.attributes.find(AttrMaximumRangeCap) == entry.attributes.end())
-        entry.attributes.insert(std::make_pair(AttrMaximumRangeCap, new PyFloat( 249999.0 )));
-
-    // more hacking
-    SetAttribute(AttrArmorMaxDamageResonance, 1.0f, false);
-    SetAttribute(AttrShieldMaxDamageResonance, 1.0f, false);
-
-    
-    SetAttribute(AttrWarpSpeedMultiplier, 1.0f, false);
-    
-
-    entry.attributes.insert(std::make_pair(AttrArmorMaxDamageResonance, new PyFloat( 1.0 )));
-    entry.attributes.insert(std::make_pair(AttrShieldMaxDamageResonance, new PyFloat( 1.0 )));
-
-
-    entry.attributes.insert(std::make_pair(AttrWarpSpeedMultiplier, new PyFloat( 1.0 )));
 
     result.items[ itemID() ] = entry.Encode();
 

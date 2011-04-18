@@ -319,8 +319,8 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
                 // Create default dynamic attributes in the AttributeMap:
                 cargoRef.get()->SetAttribute(AttrIsOnline,      1);                                                 // Is Online
                 cargoRef.get()->SetAttribute(AttrDamage,        0.0);                                               // Structure Damage
-                cargoRef.get()->SetAttribute(AttrShieldCharge,  cargoRef.get()->GetAttribute(AttrShieldCapacity));  // Shield Charge
-                cargoRef.get()->SetAttribute(AttrArmorDamage,   0.0);                                               // Armor Damage
+                //cargoRef.get()->SetAttribute(AttrShieldCharge,  cargoRef.get()->GetAttribute(AttrShieldCapacity));  // Shield Charge
+                //cargoRef.get()->SetAttribute(AttrArmorDamage,   0.0);                                               // Armor Damage
                 cargoRef.get()->SetAttribute(AttrMass,          cargoRef.get()->type().attributes.mass());          // Mass
                 cargoRef.get()->SetAttribute(AttrRadius,        cargoRef.get()->type().attributes.radius());        // Radius
                 cargoRef.get()->SetAttribute(AttrVolume,        cargoRef.get()->type().attributes.volume());        // Volume
@@ -387,8 +387,8 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
             // Create default dynamic attributes in the AttributeMap:
             itemRef.get()->SetAttribute(AttrIsOnline,   1);                                             // Is Online
             itemRef.get()->SetAttribute(AttrDamage,     0.0);                                             // Structure Damage
-            itemRef.get()->SetAttribute(AttrShieldCharge, itemRef.get()->GetAttribute(AttrShieldCapacity));       // Shield Charge
-            itemRef.get()->SetAttribute(AttrArmorDamage, 0.0);                                        // Armor Damage
+            //itemRef.get()->SetAttribute(AttrShieldCharge, itemRef.get()->GetAttribute(AttrShieldCapacity));       // Shield Charge
+            //itemRef.get()->SetAttribute(AttrArmorDamage, 0.0);                                        // Armor Damage
             itemRef.get()->SetAttribute(AttrMass,       itemRef.get()->type().attributes.mass());           // Mass
             itemRef.get()->SetAttribute(AttrRadius,     itemRef.get()->type().attributes.radius());       // Radius
             itemRef.get()->SetAttribute(AttrVolume,     itemRef.get()->type().attributes.volume());       // Volume
@@ -441,8 +441,8 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
             // Create default dynamic attributes in the AttributeMap:
             itemRef.get()->SetAttribute(AttrIsOnline,       1);                                             // Is Online
             itemRef.get()->SetAttribute(AttrDamage,         0.0);                                             // Structure Damage
-            itemRef.get()->SetAttribute(AttrShieldCharge,   itemRef.get()->GetAttribute(AttrShieldCapacity));       // Shield Charge
-            itemRef.get()->SetAttribute(AttrArmorDamage,    0.0);                                        // Armor Damage
+            //itemRef.get()->SetAttribute(AttrShieldCharge,   itemRef.get()->GetAttribute(AttrShieldCapacity));       // Shield Charge
+            //itemRef.get()->SetAttribute(AttrArmorDamage,    0.0);                                        // Armor Damage
             itemRef.get()->SetAttribute(AttrMass,           itemRef.get()->type().attributes.mass());           // Mass
             itemRef.get()->SetAttribute(AttrRadius,         itemRef.get()->type().attributes.radius());       // Radius
             itemRef.get()->SetAttribute(AttrVolume,         itemRef.get()->type().attributes.volume());       // Volume
@@ -466,9 +466,10 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             // THESE SHOULD BE MOVED INTO A Asteroid::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
-            itemRef.get()->SetAttribute(AttrRadius, 1000.0);       // Radius
+            itemRef.get()->SetAttribute(AttrRadius, 500.0);       // Radius
             itemRef.get()->SetAttribute(AttrMass,   1000000.0);    // Mass
             itemRef.get()->SetAttribute(AttrVolume, 8000.0);       // Volume
+            itemRef.get()->SetAttribute(AttrQuantity, 1000.0);      // Quantity
             itemRef.get()->SaveAttributes();
 
             return itemRef;
@@ -568,6 +569,8 @@ void InventoryItem::Delete() {
     //take ourself out of the DB
     //attributes.Delete();
     m_factory.db().DeleteItem( itemID() );
+
+    mAttributeMap.Delete();
 
     //delete ourselves from factory cache
     m_factory._DeleteItem( itemID() );
@@ -916,7 +919,7 @@ void InventoryItem::SetOnline(bool newval) {
     Notify_OnModuleAttributeChange omac;
     omac.ownerID = m_ownerID;
     omac.itemKey = m_itemID;
-    omac.attributeID = GetAttribute(AttrIsOnline).get_int();
+    omac.attributeID = AttrIsOnline;//GetAttribute(AttrIsOnline).get_int();
     omac.time = Win32TimeNow();
     omac.newValue = new PyInt(newval?1:0);
     omac.oldValue = new PyInt(newval?0:1);   //hack... should use old, but its not cooperating today.
@@ -1009,6 +1012,11 @@ EvilNumber InventoryItem::GetAttribute( uint32 attributeID )
 EvilNumber InventoryItem::GetAttribute( const uint32 attributeID ) const
 {
      return mAttributeMap.GetAttribute(attributeID);
+}
+
+bool InventoryItem::HasAttribute(uint32 attributeID)
+{
+    return mAttributeMap.HasAttribute(attributeID);
 }
 
 bool InventoryItem::SaveAttributes()

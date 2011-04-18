@@ -46,8 +46,8 @@ void ModuleManager::OnlineAll()
 	for(p = m_moduleByID.begin(); p!=m_moduleByID.end(); ++p)
 	{
 		ShipModule *mod = m_modules[p->second];
-		//if(mod->GetState() == 0)
-		//	mod->Activate("online",m_pilot->GetAccountID(),0);
+		if(mod->GetState() == 0)
+			mod->Activate("online",m_pilot->GetAccountID(),0);
 	}
 }
 
@@ -57,7 +57,7 @@ void ModuleManager::RepairModules()
 	for(p = m_moduleByID.begin(); p!=m_moduleByID.end(); ++p)
 	{
 		ShipModule *mod = m_modules[p->second];
-//		mod->item()->Set_damage(0);
+        mod->item()->SetAttribute(AttrDamage, 0.0);
 	}
 }
 
@@ -72,7 +72,7 @@ void ModuleManager::UnloadModule(uint32 itemID)
 		
 		if(mod->item()->typeID()==itemID)
 		{
-			//mod->Deactivate("online");
+			mod->Deactivate("online");
 
 			m_modules[p->second]->item()->Move(m_pilot->GetStationID(), flagHangar, true);
 			m_moduleByID.erase(p);
@@ -91,14 +91,20 @@ void ModuleManager::UnloadAllModules()
 	for(p = m_moduleByID.begin(); p!=m_moduleByID.end(); ++p)
 	{
 		mod = m_modules[p->second];
-//		mod->Deactivate("online");
+		mod->Deactivate("online");
 		m_modules[p->second]->item()->Move(m_pilot->GetStationID(), flagHangar, true);
-//		if( m_modules[p->second]->item()->massAddition() != 0 )
-//			m_pilot->GetShip()->Set_mass( m_pilot->GetShip()->mass() - m_modules[p->second]->item()->massAddition() );
+        if( m_modules[p->second]->item()->GetAttribute(EveAttrEnum::AttrMassAddition).get_float() != 0 )
+        {
+            m_pilot->GetShip()->SetAttribute
+            (
+                AttrMass,
+                (m_pilot->GetShip()->GetAttribute(AttrMass) - m_pilot->GetShip()->GetAttribute(AttrMassAddition))
+            );
+        }
 	}
-	//shouldn't need these
-	//m_pilot->GetShip()->Set_cpuLoad( 0 );
-	//m_pilot->GetShip()->Set_powerLoad( 0 );
+	// Reset CPU and Power load
+    m_pilot->GetShip()->SetAttribute( AttrCpuLoad, 0 );
+    m_pilot->GetShip()->SetAttribute( AttrPowerLoad, 0 );
 
 	m_moduleByID.clear();
 }
@@ -111,7 +117,7 @@ void ModuleManager::Process() {
 	for(r = 0; r < MAX_MODULE_COUNT; r++, cur++) {
 		if(*cur == NULL)
 			continue;
-		//(*cur)->Process();
+		(*cur)->Process();
 	}
 }
 
@@ -293,6 +299,7 @@ int ModuleManager::Upgrade(uint32 itemID) {
 
 	return mod->Upgrade();
 }
+
 void ModuleManager::Downgrade(uint32 itemID) {
 	
 	std::map<uint32, uint8>::const_iterator res;
@@ -314,9 +321,8 @@ void ModuleManager::Downgrade(uint32 itemID) {
 		return;
 	}
 
-	//mod->Downgrade();
+	mod->Downgrade();
 }
-
 
 void ModuleManager::Deactivate(uint32 itemID, const std::string &effectName) {
 
@@ -363,7 +369,7 @@ void ModuleManager::ReplaceCharges(EVEItemFlags flag, InventoryItemRef new_charg
 	new_charge->ChangeSingleton(true);
 	
 	//call change charge to send update
-	//m_modules[slot]->ChangeCharge(new_charge);
+	m_modules[slot]->ChangeCharge(new_charge);
 }
 
 void ModuleManager::DeactivateAllModules()
@@ -386,7 +392,6 @@ void ModuleManager::DeactivateAllModules()
     }
 }
 
-
 ShipModule::ShipModule(Client *pilot, InventoryItemRef self, InventoryItemRef charge_)
 : m_state(Offline),
   m_pilot(pilot),
@@ -406,6 +411,7 @@ ShipModule::ShipModule(Client *pilot, InventoryItemRef self, InventoryItemRef ch
 	else
 		m_state = Online;*/
 }
+
 ShipModule::ShipModule(Client *pilot, InventoryItemRef self)
 : m_state(Offline),
   m_pilot(pilot),
@@ -435,8 +441,8 @@ ShipModule *ShipModule::CreateModule(Client *owner, InventoryItemRef self, Inven
 
 	//This module is then built out to a specific type
 	return new ShipModule(owner, self, charge_);
-
 }
+
 ShipModule *ShipModule::CreateRig(Client *owner, InventoryItemRef self) {
 	//These modules are all extremely similar, and simple
 	return new ShipModule(owner, self);
@@ -457,21 +463,20 @@ void ShipModule::ChangeCharge(InventoryItemRef new_charge) {
 		}
 	}
 }
+
 void ShipModule::Process() {
 	
-	switch(m_state) {
+	switch(m_state)
+    {
 		case Active:
-			//if( m_activationTimer.Check() )
-			
+			if( m_activationTimer.Check() )
 			break;
 		case Overloaded:
-
 			//not implemented yet
+            sLog.Error( "ModuleManager ShipModule::Process()", "Module Overload state NOT supported at this time." );
 			break;
 
 	}
-	
-
 }
 
 int ShipModule::Activate(const std::string &effectName, uint32 target, uint32 repeat) {
@@ -489,6 +494,7 @@ int ShipModule::Activate(const std::string &effectName, uint32 target, uint32 re
 		return 0;
 	}
 }
+
 void ShipModule::Deactivate(const std::string &effectName) {
 
 	m_effectName = effectName;
@@ -497,26 +503,28 @@ void ShipModule::Deactivate(const std::string &effectName) {
 		DoEffect(false);
 	}
 }
+
 int ShipModule::Upgrade() {
 
-	//if( m_item->upgradeCost() + m_pilot->GetShip()->upgradeLoad() > m_pilot->GetShip()->upgradeCapacity() )
-	//	sLog.Error("ModuleMgr","Invalid ship upgrade. Check Ship::ValidateAddItem function");
+    if( (m_item->GetAttribute(AttrUpgradeCost) + m_pilot->GetShip()->GetAttribute(AttrUpgradeLoad))
+        > m_pilot->GetShip()->GetAttribute(AttrUpgradeCapacity) )
+		    sLog.Error( "ModuleManager ShipModule::Upgrade()","Invalid ship upgrade. Check Ship::ValidateAddItem function");
 	
 	m_item->PutOnline();
 	m_state = Online;
 
-	//DoUpgradeLoad(true,false);
+	DoUpgradeLoad(true,false);
 
-	//DoPassiveEffects(true,false);
+	DoPassiveEffects(true,false);
 	return 1;
 }
+
 void ShipModule::Downgrade() {
 
 	//TODO: check that modules exists
-	//DoUpgradeLoad(false,false);
+	DoUpgradeLoad(false,false);
 
-	//DoPassiveEffects(false,false);
-
+	DoPassiveEffects(false,false);
 }
 
 bool ShipModule::ValidateEffect(bool activate) {
@@ -541,27 +549,28 @@ bool ShipModule::ValidateEffect(bool activate) {
 	}
 	return false;
 }
+
 bool ShipModule::ValidateOnline() {
 
 	//check for cpu
-	/*if( m_item->cpu() + m_pilot->GetShip()->cpuLoad() > m_pilot->GetShip()->cpuOutput() ) {
+    if( m_item->GetAttribute(AttrCpu) + m_pilot->GetShip()->GetAttribute(AttrCpuLoad) > m_pilot->GetShip()->GetAttribute(AttrCpuOutput) ) {
 		m_pilot->SendNotifyMsg("You do not have enough available cpu for this");
 		return false;
 	}
 
 	//check for powergrid
-	if (m_item->power() + m_pilot->GetShip()->powerLoad() > m_pilot->GetShip()->powerOutput() ) {
+    if (m_item->GetAttribute(AttrPower) + m_pilot->GetShip()->GetAttribute(AttrPowerLoad) > m_pilot->GetShip()->GetAttribute(AttrPowerOutput) ) {
 		m_pilot->SendNotifyMsg("You do not have enough available power for this");
 		return false;
 	}
 
 	//if in space, check for cap
 	if( m_pilot->IsInSpace() ) {
-		if( !m_pilot->GetShip()->charge() == m_pilot->GetShip()->capacitorCapacity() ){
+        if( !(m_pilot->GetShip()->GetAttribute(AttrCharge) == m_pilot->GetShip()->GetAttribute(AttrCapacitorCapacity)) ){
 			m_pilot->SendNotifyMsg("You do not have enough available capacitor charge for this");
 			return false;
 		}
-	}*/
+	}
 
 	//check maxgroupsOnline attribute (id 978) 0 = no limit, 1 = 1
 
@@ -590,12 +599,13 @@ bool ShipModule::ValidateActive() {
 			return false;
 
 	//check for activation energy
-	/*double capacitorNeed = m_item->capacitorNeed();
-	double charge = m_pilot->GetShip()->charge();
-	if( capacitorNeed > charge ) {
+    double capacitorNeed = m_item->GetAttribute(AttrCapacitorNeed).get_float();
+    double charge = m_pilot->GetShip()->GetAttribute(AttrCharge).get_float();
+	if( capacitorNeed > charge )
+    {
 		m_pilot->SendNotifyMsg("You do not have enough capacitor to activate this module");
 		return false;
-	}*/
+	}
 
 	//check reactivation delay
 	//check maxGroupActive 0 = no limit, 1 = only 1;
@@ -620,24 +630,23 @@ void ShipModule::DoEffect(bool active) {
 			//change state
 			ChangeMState(Online);
 			m_item->PutOnline();
-			
-			//consume cpu and powergrid
-			//m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() + m_item->cpu() );
-			//m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() + m_item->power() );
 
+			//consume cpu and powergrid
+            m_pilot->GetShip()->SetAttribute( AttrCpuLoad, (m_pilot->GetShip()->GetAttribute(AttrCpuLoad) + m_item->GetAttribute(AttrCpu)) );
+            m_pilot->GetShip()->SetAttribute( AttrPowerLoad, (m_pilot->GetShip()->GetAttribute(AttrPowerLoad) + m_item->GetAttribute(AttrPower)) );
 
 			//if in space, consume all capacitor
-			//if( m_pilot->IsInSpace() )
-			//	m_pilot->GetShip()->Set_charge( 0 );
+			if( m_pilot->IsInSpace() )
+				m_pilot->GetShip()->SetAttribute(AttrCharge,0);
 
 			//if the module is passive, do passive effects
-			//if( m_item->capacitorNeed() == 0 ){
-			//	DoPassiveEffects(true,false);
-			//} else {
-			//	DoActiveModulePassiveEffects(true,false);
-			//}
+            if( m_item->GetAttribute(AttrCapacitorNeed).get_float() == 0 ){
+				DoPassiveEffects(true,false);
+			} else {
+				DoActiveModulePassiveEffects(true,false);
+			}
 		} else {
-			sLog.Debug("ModuleManager","Called Activate Effect stub");
+			sLog.Debug("ModuleManager ShipModule::DoEffect()","Called Activate Effect stub");
 			//don't forget to consume ammo Attr 713
 			//jumpDelayDuration timer public interface needed
 		}
@@ -648,20 +657,19 @@ void ShipModule::DoEffect(bool active) {
 			m_item->PutOffline();
 	
 			//give back cpu and powergrid
-			//m_pilot->GetShip()->Set_cpuLoad( m_pilot->GetShip()->cpuLoad() - m_item->cpu() );
-			//m_pilot->GetShip()->Set_powerLoad( m_pilot->GetShip()->powerLoad() - m_item->power() );
+			m_pilot->GetShip()->SetAttribute( AttrCpuLoad, (m_pilot->GetShip()->GetAttribute(AttrCpuLoad) - m_item->GetAttribute(AttrCpu)) );
+			m_pilot->GetShip()->SetAttribute( AttrPowerLoad, (m_pilot->GetShip()->GetAttribute(AttrPowerLoad) - m_item->GetAttribute(AttrPower)) );
 
 			//if the module is passive, do passive effects
-			/*if( m_item->capacitorNeed() == 0 ){
+			if( m_item->GetAttribute(AttrCapacitorNeed).get_float() == 0 ){
 				DoPassiveEffects(false,false);
 			} else {
 				DoActiveModulePassiveEffects(false,false);
-			}*/
+			}
 		} else {
-			sLog.Debug("ModuleManager", "Called Deactivate Effect stub");
+			sLog.Debug("ModuleManager ShipModule::DoEffect()", "Called Deactivate Effect stub");
 		}
 	}
-
 }
 
 /* change stuff
@@ -674,9 +682,8 @@ void ShipModule::DoEffect(bool active) {
     omac.oldValue = new PyInt(newval?0:1);   //hack... should use old, but its not cooperating today.
 */
 
-#if 0
 void ShipModule::DoPassiveEffects(bool add, bool notify) {
-	
+/*	
 	//this is extremely slow compared to the switch, however, as the effect "online" tells us little about what actually happens, this is how it's done
 	 DoArmorHPBonus(add,notify);
 	 DoArmorHPBonusAdd(add,notify);
@@ -699,10 +706,10 @@ void ShipModule::DoPassiveEffects(bool add, bool notify) {
 	 DoStructureExplosiveDamageResistanceBonus(add,notify);
 	 DoStructureKineticDamageResistanceBonus(add,notify);
 	 DoStructureThermalDamageResistanceBonu(add,notify);
-	 DoImplantBonusVelocity(add,notify);
+*/	 DoImplantBonusVelocity(add,notify);
 	 DoSpeedBonus(add,notify);
 	 DoMaxVelocityBonus(add,notify);
-	 DoCpuMultiplier(add,notify);
+/*	 DoCpuMultiplier(add,notify);
 	 DoPowerIncrease(add,notify);
 	 DoPowerOutputBonus(add,notify);
 	 DoPowerOutputMultiplier(add,notify);
@@ -727,11 +734,11 @@ void ShipModule::DoPassiveEffects(bool add, bool notify) {
 	 DoPropulsionIonStrength(add,notify);
 	 DoPropulsionMagpulseStrength(add,notify);
 	 DoPropulsionPlasmaStrength(add,notify);
-
+*/
 }
 
 void ShipModule::DoActiveModulePassiveEffects(bool add, bool notify) {
-	
+/*	
 	 DoPassiveArmorEmDamageResistanceBonus(add,notify);
 	 DoPassiveArmorExplosiveDamageResistanceBonus(add,notify);
 	 DoPassiveArmorKineticDamageResistanceBonus(add,notify);
@@ -740,7 +747,7 @@ void ShipModule::DoActiveModulePassiveEffects(bool add, bool notify) {
 	 DoPassiveShieldExplosiveDamageResistanceBonus(add,notify);
 	 DoPassiveShieldKineticDamageResistanceBonus(add,notify);
 	 DoPassiveShieldThermalDamageResistanceBonus(add,notify);
-
+*/
 }
 
 void ShipModule::DoUpgradeLoad(bool add, bool notify) {
@@ -750,20 +757,20 @@ void ShipModule::DoUpgradeLoad(bool add, bool notify) {
 	double newUpgradeLoad;
 
 	if( add ) {
-		if( !Equals(m_item->upgradeCost(), 0) ) {
-			upgradeLoad = m_pilot->GetShip()->upgradeLoad();
-			upgradeLoadModifier = m_item->upgradeCost();
+        if( !Equals(m_item->GetAttribute(AttrUpgradeCost).get_float(), 0) ) {
+            upgradeLoad = m_pilot->GetShip()->GetAttribute(AttrUpgradeLoad).get_float();
+            upgradeLoadModifier = m_item->GetAttribute(AttrUpgradeCost).get_float();
 			newUpgradeLoad = upgradeLoad + upgradeLoadModifier;
-			m_pilot->GetShip()->Set_upgradeLoad( newUpgradeLoad );
+			m_pilot->GetShip()->SetAttribute( AttrUpgradeCost, newUpgradeLoad );
 		}
 	} else {
-		if( !Equals(m_item->upgradeCost(), 0) ) {
-			upgradeLoad = m_pilot->GetShip()->upgradeLoad();
-			upgradeLoadModifier = m_item->upgradeCost();
+		if( !Equals(m_item->GetAttribute(AttrUpgradeCost).get_float(), 0) ) {
+			upgradeLoad = m_pilot->GetShip()->GetAttribute(AttrUpgradeLoad).get_float();
+            upgradeLoadModifier = m_item->GetAttribute(AttrUpgradeCost).get_float();
 			newUpgradeLoad = upgradeLoad - upgradeLoadModifier;
-			m_pilot->GetShip()->Set_upgradeLoad( newUpgradeLoad );
+			m_pilot->GetShip()->SetAttribute( AttrUpgradeCost, newUpgradeLoad );
 		}
-	}
+    }
 }
 
 void ShipModule::DoCapacitorNeed(bool startup, bool notify) {
@@ -775,19 +782,19 @@ void ShipModule::DoCapacitorNeed(bool startup, bool notify) {
 	//idk if there is a difference, but for now, we'll keep the startup case in here
 	if( startup ) {
 		//do first time activation charge requirements
-		if( !Equals(m_item->capacitorNeed(), 0) ) {
-			capacitorCharge = m_pilot->GetShip()->charge();
-			capacitorChargeModifier = m_item->capacitorNeed();
+        if( !Equals(m_item->GetAttribute(AttrCapacitorNeed).get_float(), 0) ) {
+            capacitorCharge = m_pilot->GetShip()->GetAttribute(AttrCharge).get_float();
+            capacitorChargeModifier = m_item->GetAttribute(AttrCapacitorNeed).get_float();
 			newCapacitorCharge = capacitorCharge - capacitorChargeModifier;
-			m_pilot->GetShip()->Set_charge( newCapacitorCharge );
+            m_pilot->GetShip()->SetAttribute(EveAttrEnum::AttrCharge, newCapacitorCharge );
 		}
 	} else {
 		//consume normal activation cap charge
-		if( !Equals(m_item->capacitorNeed(), 0) ) {
-			capacitorCharge = m_pilot->GetShip()->charge();
-			capacitorChargeModifier = m_item->capacitorNeed();
+		if( !Equals(m_item->GetAttribute(AttrCapacitorNeed).get_float(), 0) ) {
+			capacitorCharge = m_pilot->GetShip()->GetAttribute(AttrCharge).get_float();
+			capacitorChargeModifier = m_item->GetAttribute(AttrCapacitorNeed).get_float();
 			newCapacitorCharge = capacitorCharge - capacitorChargeModifier;
-			m_pilot->GetShip()->Set_charge( newCapacitorCharge );
+            m_pilot->GetShip()->SetAttribute(AttrCharge, newCapacitorCharge );
 		}
 	}
 	if( notify ) {
@@ -796,7 +803,7 @@ void ShipModule::DoCapacitorNeed(bool startup, bool notify) {
 		
 		omac.ownerID = m_pilot->GetCharacterID();
 		omac.itemKey = m_item->itemID();
-		omac.attributeID = ItemAttributeMgr::Attr_charge;
+        omac.attributeID = EveAttrEnum::AttrCharge;
 		omac.time = Win32TimeNow();
 		omac.newValue = new PyInt(newCapacitorCharge);
 		omac.oldValue = new PyInt(capacitorCharge);
@@ -805,6 +812,8 @@ void ShipModule::DoCapacitorNeed(bool startup, bool notify) {
 		m_pilot->SendNotification("OnItemAttributeChange", "clientID", &tmp );
 	}
 }
+
+#if 0
 void ShipModule::DoArmorHPBonus(bool add, bool notify) {
 	
 	if( !AffectsArmor() )
@@ -830,6 +839,7 @@ void ShipModule::DoArmorHPBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoArmorHPBonusAdd(bool add, bool notify) {
 
 	if( !AffectsArmor() )
@@ -855,6 +865,7 @@ void ShipModule::DoArmorHPBonusAdd(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoArmorHPMultiplier(bool add, bool notify) {
 
 	if( !AffectsArmor() )
@@ -882,6 +893,7 @@ void ShipModule::DoArmorHPMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoArmorEmDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsArmor() )
@@ -909,6 +921,7 @@ void ShipModule::DoArmorEmDamageResistanceBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoArmorExplosiveDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsArmor() )
@@ -936,6 +949,7 @@ void ShipModule::DoArmorExplosiveDamageResistanceBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoArmorKineticDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsArmor() )
@@ -963,6 +977,7 @@ void ShipModule::DoArmorKineticDamageResistanceBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoArmorThermalDamageResistanceBonu(bool add, bool notify) {
 
 	if( !AffectsArmor() )
@@ -990,6 +1005,7 @@ void ShipModule::DoArmorThermalDamageResistanceBonu(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoShieldCapacity(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -1015,6 +1031,7 @@ void ShipModule::DoShieldCapacity(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoShieldCapacityBonus(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -1040,6 +1057,7 @@ void ShipModule::DoShieldCapacityBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoShieldCapacityMultiplier(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -1067,6 +1085,7 @@ void ShipModule::DoShieldCapacityMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoShieldEmDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -1094,6 +1113,7 @@ void ShipModule::DoShieldEmDamageResistanceBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoShieldExplosiveDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -1121,6 +1141,7 @@ void ShipModule::DoShieldExplosiveDamageResistanceBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoShieldKineticDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -1148,6 +1169,7 @@ void ShipModule::DoShieldKineticDamageResistanceBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoShieldThermalDamageResistanceBonu(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -1175,6 +1197,7 @@ void ShipModule::DoShieldThermalDamageResistanceBonu(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoShieldRechargeRateMultiplier(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -1202,6 +1225,7 @@ void ShipModule::DoShieldRechargeRateMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoHullHpBonus(bool add, bool notify) {
 
 	if( !AffectsHull() )
@@ -1227,6 +1251,7 @@ void ShipModule::DoHullHpBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoStructureHPMultiplier(bool add, bool notify) {
 
 	if( !AffectsHull() )
@@ -1254,6 +1279,7 @@ void ShipModule::DoStructureHPMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoStructureEmDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsHull() )
@@ -1281,6 +1307,7 @@ void ShipModule::DoStructureEmDamageResistanceBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoStructureExplosiveDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsHull() )
@@ -1308,6 +1335,7 @@ void ShipModule::DoStructureExplosiveDamageResistanceBonus(bool add, bool notify
 		}
 	}
 }
+
 void ShipModule::DoStructureKineticDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsHull() )
@@ -1335,6 +1363,7 @@ void ShipModule::DoStructureKineticDamageResistanceBonus(bool add, bool notify) 
 		}
 	}
 }
+
 void ShipModule::DoStructureThermalDamageResistanceBonu(bool add, bool notify) {
 
 	if( !AffectsHull() )
@@ -1362,6 +1391,8 @@ void ShipModule::DoStructureThermalDamageResistanceBonu(bool add, bool notify) {
 		}
 	}
 }
+#endif
+
 void ShipModule::DoImplantBonusVelocity(bool add, bool notify) {
 
 	double maxVelocity;
@@ -1369,21 +1400,22 @@ void ShipModule::DoImplantBonusVelocity(bool add, bool notify) {
 	double newMaxVelocity;
 
 	if( add ) {
-		if( !m_item->implantBonusVelocity() == 0 ) {
-			maxVelocity = m_pilot->GetShip()->maxVelocity();
-			maxVelocityModifier = m_item->implantBonusVelocity();
+        if( !m_item->GetAttribute(AttrImplantBonusVelocity).get_float() == 0 ) {
+            maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
+            maxVelocityModifier = m_item->GetAttribute(AttrImplantBonusVelocity).get_float();
 			newMaxVelocity = maxVelocity + maxVelocity * maxVelocityModifier / 100;
-			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute( AttrMaxVelocity, (long)newMaxVelocity );
 		}
 	} else {
-		if( !m_item->implantBonusVelocity() == 0 || -100 ) {
-			maxVelocity = m_pilot->GetShip()->maxVelocity();
-			maxVelocityModifier = m_item->implantBonusVelocity();
+        if( !m_item->GetAttribute(AttrImplantBonusVelocity).get_float() == 0 || -100 ) {
+            maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
+            maxVelocityModifier = m_item->GetAttribute(AttrImplantBonusVelocity).get_float();
 			newMaxVelocity = maxVelocity / ( 1 + maxVelocityModifier / 100 ) + 0.8; //round up
-			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute( AttrMaxVelocity, (long)newMaxVelocity );
 		}
 	}
 }
+
 void ShipModule::DoSpeedBonus(bool add, bool notify) {
 
 	double maxVelocity;
@@ -1391,21 +1423,22 @@ void ShipModule::DoSpeedBonus(bool add, bool notify) {
 	double newMaxVelocity;
 
 	if( add ) {
-		if( !m_item->speedBonus() == 0 ) {
-			maxVelocity = m_pilot->GetShip()->maxVelocity();
-			maxVelocityModifier = m_item->speedBonus();
+        if( !m_item->GetAttribute(AttrSpeedBonus).get_float() == 0 ) {
+            maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
+            maxVelocityModifier = m_item->GetAttribute(EveAttrEnum::AttrSpeedBonus).get_float();
 			newMaxVelocity = maxVelocity + maxVelocityModifier;
-			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute(AttrMaxVelocity, (long)newMaxVelocity );
 		}
 	} else {
-		if( !m_item->speedBonus() == 0 ) {
-			maxVelocity = m_pilot->GetShip()->maxVelocity();
-			maxVelocityModifier = m_item->speedBonus();
+        if( !m_item->GetAttribute(AttrSpeedBonus).get_float() == 0 ) {
+            maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
+            maxVelocityModifier = m_item->GetAttribute(EveAttrEnum::AttrSpeedBonus).get_float();
 			newMaxVelocity = maxVelocity - maxVelocityModifier;
-			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute(AttrMaxVelocity, (long)newMaxVelocity );
 		}
 	}
 }
+
 void ShipModule::DoMaxVelocityBonus(bool add, bool notify) {
 
 	double maxVelocity;
@@ -1413,23 +1446,25 @@ void ShipModule::DoMaxVelocityBonus(bool add, bool notify) {
 	double newMaxVelocity;
 
 	if( add ) {
-		if( !Equals(m_item->maxVelocityBonus(), 1) ) {
-			maxVelocity = m_pilot->GetShip()->maxVelocity();
-			maxVelocityModifier = m_item->maxVelocityBonus();
+        if( !Equals(m_item->GetAttribute(AttrMaxVelocityBonus).get_float(), 1) ) {
+            maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
+			maxVelocityModifier = m_item->GetAttribute(AttrMaxVelocityBonus).get_float();
 			newMaxVelocity = maxVelocity * maxVelocityModifier;
-			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute( AttrMaxVelocity, (long)newMaxVelocity );
 		}
 	} else {
-		if( !Equals(m_item->maxVelocityBonus(), 1) &&
-			!Equals(m_item->maxVelocityBonus(), 0) )
+		if( !Equals(m_item->GetAttribute(AttrMaxVelocityBonus).get_float(), 1) &&
+			!Equals(m_item->GetAttribute(AttrMaxVelocityBonus).get_float(), 0) )
 		{
-			maxVelocity = m_pilot->GetShip()->maxVelocity();
-			maxVelocityModifier = m_item->maxVelocityBonus();
-			newMaxVelocity = maxVelocity / maxVelocityModifier + 0.8; //round up
-			m_pilot->GetShip()->Set_maxVelocity( newMaxVelocity );
+			maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
+			maxVelocityModifier = m_item->GetAttribute(AttrMaxVelocityBonus).get_float();
+			newMaxVelocity = (maxVelocity / maxVelocityModifier) + 0.8; //round up
+            m_pilot->GetShip()->SetAttribute( AttrMaxVelocity, (long)newMaxVelocity );
 		}
 	}
 }
+
+#if 0
 void ShipModule::DoCpuMultiplier(bool add, bool notify) {
 	
 	double cpuOutput;
@@ -1454,6 +1489,7 @@ void ShipModule::DoCpuMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoPowerIncrease(bool add, bool notify) {
 
 	double powerOutput;
@@ -1476,6 +1512,7 @@ void ShipModule::DoPowerIncrease(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoPowerOutputBonus(bool add, bool notify) {
 
 	double powerOutput;
@@ -1502,6 +1539,7 @@ void ShipModule::DoPowerOutputBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoPowerOutputMultiplier(bool add, bool notify) {
 
 	double powerOutput;
@@ -1528,6 +1566,7 @@ void ShipModule::DoPowerOutputMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoCapacitorBonus(bool add, bool notify) {
 
 	double capacitorCapacity;
@@ -1550,6 +1589,7 @@ void ShipModule::DoCapacitorBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoCapacitorCapacityMultiplier(bool add, bool notify) {
 
 	double capacitorCapacity;
@@ -1576,6 +1616,7 @@ void ShipModule::DoCapacitorCapacityMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoCapacitorRechargeRateMultiplier(bool add, bool notify) {
 
 	double rechargeRate;
@@ -1600,6 +1641,7 @@ void ShipModule::DoCapacitorRechargeRateMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoCargoCapacityMultiplier(bool add, bool notify) {
 
 	double cargoCapacity;
@@ -1624,6 +1666,7 @@ void ShipModule::DoCargoCapacityMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoScanStrengthBonus(bool add, bool notify) {
 
 	double scanStrength;
@@ -1702,6 +1745,7 @@ void ShipModule::DoScanStrengthBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoScanGravimetricStrengthPercent(bool add, bool notify) {
 	
 	double scanStrength;
@@ -1726,6 +1770,7 @@ void ShipModule::DoScanGravimetricStrengthPercent(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoScanLadarStrengthPercent(bool add, bool notify) {
 
 	double scanStrength;
@@ -1750,6 +1795,7 @@ void ShipModule::DoScanLadarStrengthPercent(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoScanMagnetometricStrengthPercent(bool add, bool notify) {
 	
 	double scanStrength;
@@ -1774,6 +1820,7 @@ void ShipModule::DoScanMagnetometricStrengthPercent(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoScanRadarStrengthPercent(bool add, bool notify) {
 	
 	double scanStrength;
@@ -1798,6 +1845,7 @@ void ShipModule::DoScanRadarStrengthPercent(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoSignatureRadiusBonus(bool add, bool notify) {
 
 	double signatureRadius;
@@ -1820,6 +1868,7 @@ void ShipModule::DoSignatureRadiusBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoDroneCapacityBonus(bool add, bool notify) {
 
 	double droneCapacity;
@@ -1842,6 +1891,7 @@ void ShipModule::DoDroneCapacityBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoAgilityMultiplier(bool add, bool notify) {
 
 	double agility;
@@ -1866,6 +1916,7 @@ void ShipModule::DoAgilityMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoScanResultionBonus(bool add, bool notify) {
 
 	double scanResolution;
@@ -1890,6 +1941,7 @@ void ShipModule::DoScanResultionBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoScanResultionMultiplier(bool add, bool notify) {
 
 	double scanResolution;
@@ -1916,6 +1968,7 @@ void ShipModule::DoScanResultionMultiplier(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoMaxTargetRangeBonus(bool add, bool notify) {
 
 	double maxTargetRange;
@@ -1940,6 +1993,7 @@ void ShipModule::DoMaxTargetRangeBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoMaxLockedTargetsBonus(bool add, bool notify) {
 
 	double maxLockedTargets;
@@ -1962,6 +2016,7 @@ void ShipModule::DoMaxLockedTargetsBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoWarpScrambleStrength(bool add, bool notify) {
 
 	double warpScrambleStrength;
@@ -1984,6 +2039,7 @@ void ShipModule::DoWarpScrambleStrength(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoPropulsionFusionStrength(bool add, bool notify) {
 
 	double propulsionStrength;
@@ -2006,6 +2062,7 @@ void ShipModule::DoPropulsionFusionStrength(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoPropulsionIonStrength(bool add, bool notify) {
 
 	double propulsionStrength;
@@ -2028,6 +2085,7 @@ void ShipModule::DoPropulsionIonStrength(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoPropulsionMagpulseStrength(bool add, bool notify) {
 
 	double propulsionStrength;
@@ -2050,6 +2108,7 @@ void ShipModule::DoPropulsionMagpulseStrength(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoPropulsionPlasmaStrength(bool add, bool notify) {
 
 	double propulsionStrength;
@@ -2072,6 +2131,7 @@ void ShipModule::DoPropulsionPlasmaStrength(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoPassiveArmorEmDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsArmor() )
@@ -2099,6 +2159,7 @@ void ShipModule::DoPassiveArmorEmDamageResistanceBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoPassiveArmorExplosiveDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsArmor() )
@@ -2126,6 +2187,7 @@ void ShipModule::DoPassiveArmorExplosiveDamageResistanceBonus(bool add, bool not
 		}
 	}
 }
+
 void ShipModule::DoPassiveArmorKineticDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsArmor() )
@@ -2153,6 +2215,7 @@ void ShipModule::DoPassiveArmorKineticDamageResistanceBonus(bool add, bool notif
 		}
 	}
 }
+
 void ShipModule::DoPassiveArmorThermalDamageResistanceBonu(bool add, bool notify) {
 
 	if( !AffectsArmor() )
@@ -2180,6 +2243,7 @@ void ShipModule::DoPassiveArmorThermalDamageResistanceBonu(bool add, bool notify
 		}
 	}
 }
+
 void ShipModule::DoPassiveShieldEmDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -2207,6 +2271,7 @@ void ShipModule::DoPassiveShieldEmDamageResistanceBonus(bool add, bool notify) {
 		}
 	}
 }
+
 void ShipModule::DoPassiveShieldExplosiveDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -2234,6 +2299,7 @@ void ShipModule::DoPassiveShieldExplosiveDamageResistanceBonus(bool add, bool no
 		}
 	}
 }
+
 void ShipModule::DoPassiveShieldKineticDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -2261,6 +2327,7 @@ void ShipModule::DoPassiveShieldKineticDamageResistanceBonus(bool add, bool noti
 		}
 	}
 }
+
 void ShipModule::DoPassiveShieldThermalDamageResistanceBonus(bool add, bool notify) {
 
 	if( !AffectsShield() )
@@ -2288,8 +2355,8 @@ void ShipModule::DoPassiveShieldThermalDamageResistanceBonus(bool add, bool noti
 		}
 	}
 }
-
 #endif
+
 void ShipModule::DoGodmaEffects(bool active) {
 	
 	Notify_OnGodmaShipEffect gse;
