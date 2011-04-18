@@ -73,7 +73,7 @@ bool CharacterDB::ValidateCharName(const char *name)
 	return true;
 }
 
-PyObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
+PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 	DBQueryResult res;
 	
 	if(!sDatabase.RunQuery(res,
@@ -91,7 +91,7 @@ PyObject *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 		return NULL;
 	}
 	
-	return DBResultToRowset(res);
+	return DBResultToCRowset(res);
 }
 
 PyObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {

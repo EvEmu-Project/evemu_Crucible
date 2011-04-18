@@ -41,7 +41,7 @@ public:
 	CharacterDB();
 
 	PyRep *GetCharacterList(uint32 accountID);
-	PyObject *GetCharSelectInfo(uint32 characterID);
+	PyRep *GetCharSelectInfo(uint32 characterID);
 	PyObject *GetCharPublicInfo(uint32 characterID);
 	PyObject *GetCharPublicInfo3(uint32 characterID);
 	//PyObject *GetAgentPublicInfo(uint32 agentID);
