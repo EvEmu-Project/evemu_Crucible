@@ -47,6 +47,13 @@ protected:
 	PyRep *DBResultToRowsetTuple(DBQueryResult &result);
 	
 	//declare all the generators
+	PyRep *Generate_PaperdollResources();
+	PyRep *Generate_PaperdollColors();
+	PyRep *Generate_PaperdollModifierLocations();
+	PyRep *Generate_PaperdollSculptingLocations();
+	PyRep *Generate_PaperdollColorNames();
+	PyRep *Generate_PaperdollColorRestrictions();
+
 	PyRep *Generate_BillTypes();
 	PyRep *Generate_AllianceShortnames();
 	PyRep *Generate_invCategories();

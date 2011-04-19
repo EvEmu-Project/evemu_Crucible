@@ -28,6 +28,13 @@
 ObjCacheDB::ObjCacheDB()
 {
 	//register all the generators
+	m_generators["config.BulkData.paperdollResources"] = &ObjCacheDB::Generate_PaperdollResources;
+	m_generators["config.BulkData.paperdollColors"] = &ObjCacheDB::Generate_PaperdollColors;
+	m_generators["config.BulkData.paperdollModifierLocations"] = &ObjCacheDB::Generate_PaperdollModifierLocations;
+	m_generators["config.BulkData.paperdollSculptingLocations"] = &ObjCacheDB::Generate_PaperdollSculptingLocations;
+	m_generators["config.BulkData.paperdollColorNames"] = &ObjCacheDB::Generate_PaperdollColorNames;
+	m_generators["config.BulkData.paperdollColorRestrictions"] = &ObjCacheDB::Generate_PaperdollColorRestrictions;
+
 	m_generators["config.BulkData.billtypes"] = &ObjCacheDB::Generate_BillTypes;
 	m_generators["config.BulkData.allianceshortnames"] = &ObjCacheDB::Generate_AllianceShortnames;
 	m_generators["config.BulkData.categories"] = &ObjCacheDB::Generate_invCategories;
@@ -119,6 +126,78 @@ PyRep *ObjCacheDB::GetCachableObject(const std::string &type)
 }
 
 //implement all the generators:
+PyRep *ObjCacheDB::Generate_PaperdollColors()
+{
+	DBQueryResult res;
+	const char *q = "SELECT colorID, colorKey, hasSecondary, hasWeight, hasGloss FROM paperdollcolors";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollColors': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_PaperdollColorRestrictions()
+{
+	DBQueryResult res;
+	const char *q = "SELECT colorNameID, gender, restrictions FROM paperdollcolorrestrictions";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollColorRestrictions': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_PaperdollColorNames()
+{
+	DBQueryResult res;
+	const char *q = "SELECT colorNameID, colorName FROM paperdollcolornames";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollColorNames': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_PaperdollSculptingLocations()
+{
+	DBQueryResult res;
+	const char *q = "SELECT sculptLocationID, weightKeyCategory, weightKeyPrefix FROM paperdollsculptinglocations";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollSculptingLocations': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_PaperdollModifierLocations()
+{
+	DBQueryResult res;
+	const char *q = "SELECT modifierLocationID, modifierKey, variationKey FROM paperdollmodifierlocations";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollModifierLocations': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_PaperdollResources()
+{
+	DBQueryResult res;
+	const char *q = "SELECT paperdollResourceID, resGender, resPath, restrictions FROM paperdollresources";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollresources': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
 PyRep *ObjCacheDB::Generate_BillTypes()
 {
 	DBQueryResult res;
