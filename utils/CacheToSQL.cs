@@ -108,7 +108,7 @@ namespace CacheToSQL
                     query.AppendLine(Indention + singleRow.Columns[i].Name + " " + GetSQLType(fieldTypes[i]) + ",");
 
                 if (createAutoIncrement)
-                    query.AppendLine(Indention + "PRIMARY KEY (" + autoIncrementName + ")");
+                    query.AppendLine(Indention + "PRIMARY KEY (" + autoIncrementName + "),");
                 else
                     query.AppendLine(Indention + "PRIMARY KEY (" + singleRow.Columns[0].Name + "),");
 
@@ -200,13 +200,16 @@ namespace CacheToSQL
         {
             CacheManager.LoadAll();
 
-            var targets = new[] { "config.BulkData.paperdollResources",
-                "config.BulkData.paperdollSculptingLocations", 
-                "config.BulkData.paperdollModifierLocations",
-                "config.BulkData.paperdollColors",
-                "config.BulkData.paperdollColorRestrictions",
-                "config.BulkData.paperdollColorNames",
-                "machoNet.serviceInfo"};
+            var targets = new[] { "config.BulkData.bloodlineNames",
+                "config.BulkData.locationscenes",
+                "config.BulkData.overviewDefaults",
+                "config.BulkData.schematicspinmap",
+                "config.BulkData.overviewDefaultGroups",
+                "config.BulkData.schematics",
+                "config.BulkData.schematicstypemap",
+                "config.BulkData.sounds",
+                "config.BulkData.invtypematerials",
+                "config.BulkData.ownericons"};
 
             foreach (var target in targets)
             {
