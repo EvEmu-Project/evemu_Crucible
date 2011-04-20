@@ -535,7 +535,7 @@ PyRep *ObjCacheDB::Generate_ramTypeRequirements()
 PyRep *ObjCacheDB::Generate_mapCelestialDescriptions()
 {
 	DBQueryResult res;
-	const char *q = "SELECT celestialID,description FROM mapCelestialDescriptions";
+	const char *q = "SELECT celestialID, description FROM mapCelestialDescriptions";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.mapcelestialdescriptions': %s", res.error.c_str());
