@@ -26,7 +26,6 @@
 #include "EVEServerPCH.h"
 
 const char *const ObjCacheService::LoginCachableObjects[] = {
-	"machoNet.serviceInfo",
 	"config.BulkData.paperdollResources",
 	"config.BulkData.ramactivities",
 	"config.BulkData.billtypes",
@@ -143,7 +142,6 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
 	PyCallable_REG_CALL(ObjCacheService, GetCachableObject)
 
 	//register full name -> short key in m_cacheKeys
-	m_cacheKeys["machoNet.serviceInfo"] = "machoNet.serviceInfo";
 	m_cacheKeys["config.BulkData.paperdollResources"] = "config.BulkData.paperdollResources";
 	m_cacheKeys["config.BulkData.bloodlineNames"] = "config.BulkData.bloodlineNames";
 	m_cacheKeys["config.BulkData.locationscenes"] = "config.BulkData.locationscenes";
