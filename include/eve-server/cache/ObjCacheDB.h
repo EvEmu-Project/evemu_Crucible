@@ -64,6 +64,11 @@ protected:
 	PyRep *Generate_Invtypematerials();
 	PyRep *Generate_Ownericons();
 	PyRep *Generate_Icons();
+	PyRep *Generate_CharNewExtraRaceSkills();
+	PyRep *Generate_CharNewExtraCareerSkills();
+	PyRep *Generate_CharNewExtraSpecialitySkills();
+	PyRep *Generate_CharNewExtraCareers();
+	PyRep *Generate_CharNewExtraSpecialities();
 
 	PyRep *Generate_BillTypes();
 	PyRep *Generate_AllianceShortnames();
