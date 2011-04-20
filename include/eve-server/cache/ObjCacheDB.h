@@ -53,6 +53,16 @@ protected:
 	PyRep *Generate_PaperdollSculptingLocations();
 	PyRep *Generate_PaperdollColorNames();
 	PyRep *Generate_PaperdollColorRestrictions();
+	PyRep *Generate_BloodlineNames();
+	PyRep *Generate_Locationscenes();
+	PyRep *Generate_OverviewDefaults();
+	PyRep *Generate_Schematicspinmap();
+	PyRep *Generate_OverviewDefaultGroups();
+	PyRep *Generate_Schematics();
+	PyRep *Generate_Schematicstypemap();
+	PyRep *Generate_Sounds();
+	PyRep *Generate_Invtypematerials();
+	PyRep *Generate_Ownericons();
 
 	PyRep *Generate_BillTypes();
 	PyRep *Generate_AllianceShortnames();

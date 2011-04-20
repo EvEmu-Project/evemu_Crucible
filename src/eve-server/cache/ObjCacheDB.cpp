@@ -35,6 +35,17 @@ ObjCacheDB::ObjCacheDB()
 	m_generators["config.BulkData.paperdollColorNames"] = &ObjCacheDB::Generate_PaperdollColorNames;
 	m_generators["config.BulkData.paperdollColorRestrictions"] = &ObjCacheDB::Generate_PaperdollColorRestrictions;
 
+	m_generators["config.BulkData.bloodlineNames"] = &ObjCacheDB::Generate_BloodlineNames;
+	m_generators["config.BulkData.locationscenes"] = &ObjCacheDB::Generate_Locationscenes;
+	m_generators["config.BulkData.overviewDefaults"] = &ObjCacheDB::Generate_OverviewDefaults;
+	m_generators["config.BulkData.schematicspinmap"] = &ObjCacheDB::Generate_Schematicspinmap;
+	m_generators["config.BulkData.overviewDefaultGroups"] = &ObjCacheDB::Generate_OverviewDefaultGroups;
+	m_generators["config.BulkData.schematics"] = &ObjCacheDB::Generate_Schematics;
+	m_generators["config.BulkData.schematicstypemap"] = &ObjCacheDB::Generate_Schematicstypemap;
+	m_generators["config.BulkData.sounds"] = &ObjCacheDB::Generate_Sounds;
+	m_generators["config.BulkData.invtypematerials"] = &ObjCacheDB::Generate_Invtypematerials;
+	m_generators["config.BulkData.ownericons"] = &ObjCacheDB::Generate_Ownericons;
+
 	m_generators["config.BulkData.billtypes"] = &ObjCacheDB::Generate_BillTypes;
 	m_generators["config.BulkData.allianceshortnames"] = &ObjCacheDB::Generate_AllianceShortnames;
 	m_generators["config.BulkData.categories"] = &ObjCacheDB::Generate_invCategories;
@@ -126,6 +137,126 @@ PyRep *ObjCacheDB::GetCachableObject(const std::string &type)
 }
 
 //implement all the generators:
+PyRep *ObjCacheDB::Generate_Ownericons()
+{
+	DBQueryResult res;
+	const char *q = "SELECT ownerID, iconID FROM ownericons";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.ownericons': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_Invtypematerials()
+{
+	DBQueryResult res;
+	const char *q = "SELECT typeID, materialTypeID, quantity FROM invtypematerials";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.invtypematerials': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_Sounds()
+{
+	DBQueryResult res;
+	const char *q = "SELECT soundID, soundFile, description, obsolete FROM sounds";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.sounds': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_Schematicstypemap()
+{
+	DBQueryResult res;
+	const char *q = "SELECT schematicID, typeID, quantity, isInput FROM schematicstypemap";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.schematicstypemap': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_Schematics()
+{
+	DBQueryResult res;
+	const char *q = "SELECT schematicID, schematicName, cycleTime, dataID FROM schematics";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.schematics': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_OverviewDefaultGroups()
+{
+	DBQueryResult res;
+	const char *q = "SELECT overviewID, groupID FROM overviewdefaultgroups";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.overviewDefaultGroups': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_Schematicspinmap()
+{
+	DBQueryResult res;
+	const char *q = "SELECT schematicID, pinTypeID FROM schematicspinmap";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.schematicspinmap': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_OverviewDefaults()
+{
+	DBQueryResult res;
+	const char *q = "SELECT dataID, overviewID, overviewName, overviewShortName FROM overviewdefaults";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.overviewDefaults': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_Locationscenes()
+{
+	DBQueryResult res;
+	const char *q = "SELECT locationID, sceneID FROM locationscenes";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.locationscenes': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
+PyRep *ObjCacheDB::Generate_BloodlineNames()
+{
+	DBQueryResult res;
+	const char *q = "SELECT nameID, bloodlineID, lastName FROM bloodlinenames";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.bloodlineNames': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
 PyRep *ObjCacheDB::Generate_PaperdollColors()
 {
 	DBQueryResult res;
