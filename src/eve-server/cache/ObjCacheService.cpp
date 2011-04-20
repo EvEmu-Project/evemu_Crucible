@@ -57,7 +57,6 @@ const char *const ObjCacheService::LoginCachableObjects[] = {
 	"config.BulkData.invtypereactions",
 	"config.BulkData.dgmtypeeffects",
 	"config.BulkData.metagroups",
-	"config.BulkData.ramtypematerials",
 	"config.BulkData.ramaltypesdetailpercategory",
 	"config.BulkData.owners",
 	"config.StaticOwners",
@@ -173,7 +172,6 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
 	m_cacheKeys["config.BulkData.ramaltypesdetailpercategory"] = "config.BulkData.ramaltypesdetailpercategory";
 	m_cacheKeys["config.BulkData.ramaltypes"] = "config.BulkData.ramaltypes";
 	m_cacheKeys["config.BulkData.ramcompletedstatuses"] = "config.BulkData.ramcompletedstatuses";
-	m_cacheKeys["config.BulkData.ramtypematerials"] = "config.BulkData.ramtypematerials";
 	m_cacheKeys["config.BulkData.ramtyperequirements"] = "config.BulkData.ramtyperequirements";
 	m_cacheKeys["config.BulkData.mapcelestialdescriptions"] = "config.BulkData.mapcelestialdescriptions";
 	m_cacheKeys["config.BulkData.tickernames"] = "config.BulkData.tickernames";

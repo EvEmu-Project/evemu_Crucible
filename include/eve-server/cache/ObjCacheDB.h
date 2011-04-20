@@ -82,7 +82,6 @@ protected:
 	PyRep *Generate_ramALTypeCategory();
 	PyRep *Generate_ramALTypes();
 	PyRep *Generate_ramCompletedStatuses();
-	PyRep *Generate_ramTypeMaterials();
 	PyRep *Generate_ramTypeRequirements();
 
 	PyRep *Generate_mapCelestialDescriptions();

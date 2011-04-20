@@ -62,7 +62,6 @@ ObjCacheDB::ObjCacheDB()
 	m_generators["config.BulkData.ramaltypesdetailpercategory"] = &ObjCacheDB::Generate_ramALTypeCategory;
 	m_generators["config.BulkData.ramaltypes"] = &ObjCacheDB::Generate_ramALTypes;
 	m_generators["config.BulkData.ramcompletedstatuses"] = &ObjCacheDB::Generate_ramCompletedStatuses;
-	m_generators["config.BulkData.ramtypematerials"] = &ObjCacheDB::Generate_ramTypeMaterials;
 	m_generators["config.BulkData.ramtyperequirements"] = &ObjCacheDB::Generate_ramTypeRequirements;
 
 	m_generators["config.BulkData.mapcelestialdescriptions"] = &ObjCacheDB::Generate_mapCelestialDescriptions;
@@ -506,18 +505,6 @@ PyRep *ObjCacheDB::Generate_ramCompletedStatuses()
 		return NULL;
 	}
 	return DBResultToTupleSet(res);
-}
-
-PyRep *ObjCacheDB::Generate_ramTypeMaterials()
-{
-	DBQueryResult res;
-	const char *q = "SELECT typeID, requiredTypeID AS materialTypeID, quantity FROM typeActivityMaterials WHERE activityID = 6 AND damagePerJob = 1.0 UNION SELECT productTypeID AS typeID, requiredTypeID AS materialTypeID, quantity FROM typeActivityMaterials JOIN invBlueprintTypes ON typeID = blueprintTypeID WHERE activityID = 1 AND damagePerJob = 1.0";
-	if(sDatabase.RunQuery(res, q)==false)
-	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.ramtypematerials': %s",res.error.c_str());
-		return NULL;
-	}
-	return DBResultToRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_ramTypeRequirements()
