@@ -510,7 +510,7 @@ PyRep *ObjCacheDB::Generate_ramCompletedStatuses()
 PyRep *ObjCacheDB::Generate_ramTypeRequirements()
 {
 	DBQueryResult res;
-	const char *q = "SELECT typeID, activityID, requiredTypeID, quantity, damagePerJob, recycle FROM typeActivityMaterials WHERE damagePerJob != 1.0 OR recycle = 1";
+	const char *q = "SELECT typeID, activityID, requiredTypeID, quantity, damagePerJob, recycle FROM ramtyperequirements";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.ramtyperequirements': %s", res.error.c_str());
