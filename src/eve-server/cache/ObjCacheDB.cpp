@@ -45,6 +45,7 @@ ObjCacheDB::ObjCacheDB()
 	m_generators["config.BulkData.sounds"] = &ObjCacheDB::Generate_Sounds;
 	m_generators["config.BulkData.invtypematerials"] = &ObjCacheDB::Generate_Invtypematerials;
 	m_generators["config.BulkData.ownericons"] = &ObjCacheDB::Generate_Ownericons;
+	m_generators["config.BulkData.icons"] = &ObjCacheDB::Generate_Icons;
 
 	m_generators["config.BulkData.billtypes"] = &ObjCacheDB::Generate_BillTypes;
 	m_generators["config.BulkData.allianceshortnames"] = &ObjCacheDB::Generate_AllianceShortnames;
@@ -135,6 +136,18 @@ PyRep *ObjCacheDB::GetCachableObject(const std::string &type)
 }
 
 //implement all the generators:
+PyRep *ObjCacheDB::Generate_Icons()
+{
+	DBQueryResult res;
+	const char *q = "SELECT iconID, iconFile, description, obsolete, iconType FROM icons";
+	if (sDatabase.RunQuery(res, q) == false)
+	{
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.icons': %s", res.error.c_str());
+		return NULL;
+	}
+	return DBResultToCRowset(res);
+}
+
 PyRep *ObjCacheDB::Generate_Ownericons()
 {
 	DBQueryResult res;

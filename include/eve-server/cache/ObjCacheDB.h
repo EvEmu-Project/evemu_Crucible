@@ -63,6 +63,7 @@ protected:
 	PyRep *Generate_Sounds();
 	PyRep *Generate_Invtypematerials();
 	PyRep *Generate_Ownericons();
+	PyRep *Generate_Icons();
 
 	PyRep *Generate_BillTypes();
 	PyRep *Generate_AllianceShortnames();
