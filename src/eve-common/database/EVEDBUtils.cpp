@@ -84,13 +84,7 @@ PyRep* DBColumnToPyRep( const DBResultRow& row, uint32 index )
             return new PyFloat( row.GetDouble( index ) );
 
         case DBTYPE_BOOL:
-        {
-            const int32 field_data = row.GetInt( index );
-            // safe thingy to make sure we don't fuck things up in the db
-            assert( field_data == 0 || field_data == 1 );
-
-            return new PyBool( field_data != 0 );
-        }
+            return new PyBool( row.GetBool(index) );
 
         case DBTYPE_STR:
             return new PyString( row.GetText( index ), row.ColumnLength( index ) );
