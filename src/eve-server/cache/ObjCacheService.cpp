@@ -236,8 +236,6 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
 	m_cacheKeys["charNewExtraCreationInfo.careers"] = "careers";
 	m_cacheKeys["charNewExtraCreationInfo.specialities"] = "specialities";
 	*/
-
-	m_cacheKeys["dogmaIM.attributesByName"] = "dogmaIM.attributesByName";
 }
 
 ObjCacheService::~ObjCacheService() {

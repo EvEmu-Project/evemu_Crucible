@@ -117,8 +117,6 @@ ObjCacheDB::ObjCacheDB()
 	m_generators["charCreationInfo.beards"] = &ObjCacheDB::Generate_a_beards;
 	m_generators["charCreationInfo.skins"] = &ObjCacheDB::Generate_a_skins;
 	m_generators["charCreationInfo.lipsticks"] = &ObjCacheDB::Generate_a_lipsticks;
-
-	m_generators["dogmaIM.attributesByName"] = &ObjCacheDB::Generate_dgmAttributesByName;
 }
 
 PyRep *ObjCacheDB::GetCachableObject(const std::string &type)
@@ -668,7 +666,7 @@ PyRep *ObjCacheDB::Generate_invMetaTypes()
 PyRep *ObjCacheDB::Generate_chrBloodlines()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,bloodlineName,raceID,description,maleDescription,femaleDescription,shipTypeID,corporationID,perception,willpower,charisma,memory,intelligence,graphicID,shortDescription,shortMaleDescription,shortFemaleDescription,0 AS dataID FROM chrBloodlines";
+	const char *q = "SELECT bloodlineID, bloodlineName, raceID, description, maleDescription, femaleDescription, shipTypeID, corporationID, perception, willpower,charisma, memory, intelligence, iconID, shortDescription, shortMaleDescription, shortFemaleDescription, 0 as dataID FROM chrBloodlines";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.Bloodlines': %s", res.error.c_str());
@@ -728,7 +726,7 @@ PyRep *ObjCacheDB::Generate_eveStaticOwners()
 PyRep *ObjCacheDB::Generate_chrRaces()
 {
 	DBQueryResult res;
-	const char *q = "SELECT raceID,raceName,description,graphicID,shortDescription,0 AS dataID FROM chrRaces";
+	const char *q = "SELECT raceID, raceName, description, iconID, shortDescription, 0 AS dataID FROM chrRaces";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.Races': %s", res.error.c_str());
@@ -740,7 +738,7 @@ PyRep *ObjCacheDB::Generate_chrRaces()
 PyRep *ObjCacheDB::Generate_chrAttributes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT attributeID,attributeName,description,graphicID FROM chrAttributes";
+	const char *q = "SELECT attributeID, attributeName, description, iconID FROM chrAttributes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.Attributes': %s", res.error.c_str());
@@ -800,7 +798,7 @@ PyRep *ObjCacheDB::Generate_c_chrBloodlines()
 PyRep *ObjCacheDB::Generate_c_chrRaces()
 {
 	DBQueryResult res;
-	const char *q = "SELECT raceID,raceName,description,graphicID,shortDescription,0 AS dataID FROM chrRaces";
+	const char *q = "SELECT raceID, raceName, description, iconID, shortDescription, 0 AS dataID FROM chrRaces";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.races': %s", res.error.c_str());
@@ -824,7 +822,7 @@ PyRep *ObjCacheDB::Generate_c_chrAncestries()
 PyRep *ObjCacheDB::Generate_c_chrSchools()
 {
 	DBQueryResult res;
-	const char *q = "SELECT raceID,schoolID,schoolName,description,graphicID,corporationID,agentID,newAgentID FROM chrSchools LEFT JOIN agtAgents USING (corporationID) GROUP BY schoolID";
+	const char *q = "SELECT raceID, schoolID, schoolName, description, iconID, corporationID, agentID, newAgentID FROM chrSchools LEFT JOIN agtAgents USING (corporationID) GROUP BY schoolID";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.schools': %s", res.error.c_str());
@@ -1131,16 +1129,4 @@ PyRep *ObjCacheDB::Generate_a_lipsticks()
 		return NULL;
 	}
 	return DBResultToRowset(res);
-}
-
-PyRep *ObjCacheDB::Generate_dgmAttributesByName()
-{
-	DBQueryResult res;
-	const char *q = "SELECT attributeID,attributeName,attributeCategory,description,maxAttributeID,attributeIdx,graphicID,chargeRechargeTimeID,defaultValue,published,displayName,unitID,stackable,highIsGood,categoryID,0 AS dataID FROM dgmAttributeTypes";
-	if(sDatabase.RunQuery(res, q)==false)
-	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'dogmaIM.attributesByName': %s", res.error.c_str());
-		return NULL;
-	}
-	return DBResultToIndexRowset(res, "attributeName");
 }
