@@ -582,7 +582,7 @@ PyRep *ObjCacheDB::Generate_certificateRelationships()
 PyRep *ObjCacheDB::Generate_invShipTypes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT shipTypeID,weaponTypeID,miningTypeID,skillTypeID FROM invShipTypes";
+	const char *q = "SELECT shipTypeID, weaponTypeID, miningTypeID, skillTypeID FROM shiptypes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.shiptypes': %s", res.error.c_str());
