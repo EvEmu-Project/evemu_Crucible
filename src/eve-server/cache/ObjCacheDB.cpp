@@ -354,7 +354,7 @@ PyRep *ObjCacheDB::Generate_AllianceShortnames()
 PyRep *ObjCacheDB::Generate_invCategories()
 {
 	DBQueryResult res;
-	const char *q = "SELECT categoryID,categoryName,description,graphicID,published,0 AS dataID FROM invCategories";
+	const char *q = "SELECT categoryID, categoryName, description, iconID, published, 0 AS dataID FROM invCategories";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.categories': %s",res.error.c_str());
@@ -402,7 +402,7 @@ PyRep *ObjCacheDB::Generate_dgmTypeEffects()
 PyRep *ObjCacheDB::Generate_dgmEffects()
 {
 	DBQueryResult res;
-	const char *q = "SELECT effectID,effectName,effectCategory,preExpression,postExpression,description,guid,graphicID,isOffensive,isAssistance,durationAttributeID,trackingSpeedAttributeID,dischargeAttributeID,rangeAttributeID,falloffAttributeID,published,displayName,isWarpSafe,rangeChance,electronicChance,propulsionChance,distribution,sfxName,npcUsageChanceAttributeID,npcActivationChanceAttributeID,0 AS fittingUsageChanceAttributeID,0 AS dataID FROM dgmEffects";
+	const char *q = "SELECT effectID, effectName, effectCategory, preExpression, postExpression, description, guid, iconID, isOffensive, isAssistance, durationAttributeID, trackingSpeedAttributeID, dischargeAttributeID, rangeAttributeID, falloffAttributeID, published, displayName, isWarpSafe, rangeChance, electronicChance, propulsionChance, distribution, sfxName, npcUsageChanceAttributeID, npcActivationChanceAttributeID, 0 AS fittingUsageChanceAttributeID, 0 AS dataID FROM dgmEffects";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.dgmeffects': %s",res.error.c_str());
@@ -414,7 +414,7 @@ PyRep *ObjCacheDB::Generate_dgmEffects()
 PyRep *ObjCacheDB::Generate_dgmAttribs()
 {
 	DBQueryResult res;
-	const char *q = "SELECT attributeID,attributeName,attributeCategory,description,maxAttributeID,attributeIdx,graphicID,chargeRechargeTimeID,defaultValue,published,displayName,unitID,stackable,highIsGood,categoryID,0 AS dataID FROM dgmAttributeTypes";
+	const char *q = "SELECT attributeID, attributeName, attributeCategory, description, maxAttributeID, attributeIdx, iconID, chargeRechargeTimeID, defaultValue, published, displayName, unitID, stackable, highIsGood, categoryID, 0 AS dataID FROM dgmAttributeTypes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.dgmattribs': %s",res.error.c_str());
@@ -426,7 +426,7 @@ PyRep *ObjCacheDB::Generate_dgmAttribs()
 PyRep *ObjCacheDB::Generate_invMetaGroups()
 {
 	DBQueryResult res;
-	const char *q = "SELECT metaGroupID,metaGroupName,description,graphicID,0 AS dataID FROM invMetaGroups";
+	const char *q = "SELECT metaGroupID, metaGroupName, description, iconID, 0 AS dataID FROM invMetaGroups";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.metagroups': %s",res.error.c_str());
@@ -546,7 +546,7 @@ PyRep *ObjCacheDB::Generate_tickerNames()
 PyRep *ObjCacheDB::Generate_invGroups()
 {
 	DBQueryResult res;
-	const char *q = "SELECT groupID,categoryID,groupName,description,graphicID,useBasePrice,allowManufacture,allowRecycler,anchored,anchorable,fittableNonSingleton,1 AS published,0 AS dataID FROM invGroups";
+	const char *q = "SELECT groupID, categoryID, groupName, description, iconID, useBasePrice, allowManufacture, allowRecycler, anchored, anchorable, fittableNonSingleton, 1 AS published, 0 AS dataID FROM invGroups";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.groups': %s", res.error.c_str());
@@ -618,7 +618,7 @@ PyRep *ObjCacheDB::Generate_locationWormholeClasses()
 PyRep *ObjCacheDB::Generate_invBlueprintTypes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT invTypes.typeName AS blueprintTypeName,invTypes.description,invTypes.graphicID,invTypes.basePrice,blueprintTypeID,parentBlueprintTypeID,productTypeID,productionTime,techLevel,researchProductivityTime,researchMaterialTime,researchCopyTime,researchTechTime,productivityModifier,materialModifier,wasteFactor,chanceOfReverseEngineering,maxProductionLimit FROM invBlueprintTypes,invTypes WHERE invBlueprintTypes.blueprintTypeID=invTypes.typeID";
+	const char *q = "SELECT invTypes.typeName AS blueprintTypeName, invTypes.description, invTypes.iconID, invTypes.basePrice, blueprintTypeID, parentBlueprintTypeID, productTypeID, productionTime, techLevel, researchProductivityTime, researchMaterialTime, researchCopyTime, researchTechTime, productivityModifier, materialModifier, wasteFactor, chanceOfReverseEngineering, maxProductionLimit FROM invBlueprintTypes, invTypes WHERE invBlueprintTypes.blueprintTypeID=invTypes.typeID";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.bptypes': %s", res.error.c_str());
@@ -630,19 +630,19 @@ PyRep *ObjCacheDB::Generate_invBlueprintTypes()
 PyRep *ObjCacheDB::Generate_eveGraphics()
 {
 	DBQueryResult res;
-	const char *q = "SELECT graphicID,url3D,urlWeb,icon,urlSound,explosionID FROM eveGraphics";
+	const char *q = "SELECT graphicID, graphicFile, description, obsolete, graphicType, collidable, explosionID, directoryID, graphicName FROM eveGraphics";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.graphics': %s", res.error.c_str());
 		return NULL;
 	}
-	return DBResultToTupleSet(res);
+	return DBResultToCRowset(res);
 }
 
 PyRep *ObjCacheDB::Generate_invTypes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT typeID,groupID,typeName,description,graphicID,radius,mass,volume,capacity,portionSize,raceID,basePrice,published,marketGroupID,chanceOfDuplicating,0 AS dataID FROM invTypes";
+	const char *q = "SELECT typeID, groupID, typeName, description, graphicID, radius, mass, volume, capacity, portionSize, raceID, basePrice, published, marketGroupID, chanceOfDuplicating, iconID, 0 AS dataID FROM invTypes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.types': %s", res.error.c_str());
@@ -786,7 +786,7 @@ PyRep *ObjCacheDB::Generate_invContrabandTypes()
 PyRep *ObjCacheDB::Generate_c_chrBloodlines()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,bloodlineName,raceID,description,maleDescription,femaleDescription,shipTypeID,corporationID,perception,willpower,charisma,memory,intelligence,graphicID,shortDescription,shortMaleDescription,shortFemaleDescription,0 AS dataID FROM chrBloodlines";
+	const char *q = "SELECT bloodlineID, bloodlineName, raceID, description, maleDescription, femaleDescription, shipTypeID, corporationID, perception, willpower, charisma ,memory, intelligence, iconID, shortDescription, shortMaleDescription, shortFemaleDescription, 0 AS dataID FROM chrBloodlines";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bloodlines': %s", res.error.c_str());
