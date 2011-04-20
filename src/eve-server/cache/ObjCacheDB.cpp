@@ -414,7 +414,7 @@ PyRep *ObjCacheDB::Generate_dgmEffects()
 PyRep *ObjCacheDB::Generate_dgmAttribs()
 {
 	DBQueryResult res;
-	const char *q = "SELECT attributeID, attributeName, attributeCategory, description, maxAttributeID, attributeIdx, iconID, chargeRechargeTimeID, defaultValue, published, displayName, unitID, stackable, highIsGood, categoryID, 0 AS dataID FROM dgmAttributeTypes";
+	const char *q = "SELECT attributeID, attributeName, description, iconID, defaultValue, published, displayName, unitID, stackable, highIsGood, categoryID, 0 AS dataID FROM dgmAttributeTypes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.dgmattribs': %s",res.error.c_str());
@@ -570,7 +570,7 @@ PyRep *ObjCacheDB::Generate_certificates()
 PyRep *ObjCacheDB::Generate_certificateRelationships()
 {
 	DBQueryResult res;
-	const char *q = "SELECT relationshipID,parentID,parentTypeID,parentLevel,childID,childTypeID FROM crtRelationships";
+	const char *q = "SELECT relationshipID,parentID,parentTypeID,parentLevel,childID FROM crtRelationships";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.groups': %s", res.error.c_str());
@@ -618,7 +618,7 @@ PyRep *ObjCacheDB::Generate_locationWormholeClasses()
 PyRep *ObjCacheDB::Generate_invBlueprintTypes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT invTypes.typeName AS blueprintTypeName, invTypes.description, invTypes.iconID, invTypes.basePrice, blueprintTypeID, parentBlueprintTypeID, productTypeID, productionTime, techLevel, researchProductivityTime, researchMaterialTime, researchCopyTime, researchTechTime, productivityModifier, materialModifier, wasteFactor, chanceOfReverseEngineering, maxProductionLimit FROM invBlueprintTypes, invTypes WHERE invBlueprintTypes.blueprintTypeID=invTypes.typeID";
+	const char *q = "SELECT invTypes.typeName AS blueprintTypeName, invTypes.description, invTypes.iconID, invTypes.basePrice, blueprintTypeID, parentBlueprintTypeID, productTypeID, productionTime, techLevel, researchProductivityTime, researchMaterialTime, researchCopyTime, researchTechTime, productivityModifier, materialModifier, wasteFactor, maxProductionLimit FROM invBlueprintTypes, invTypes WHERE invBlueprintTypes.blueprintTypeID=invTypes.typeID";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.bptypes': %s", res.error.c_str());
