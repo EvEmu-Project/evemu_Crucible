@@ -750,7 +750,7 @@ PyRep *ObjCacheDB::Generate_chrAttributes()
 PyRep *ObjCacheDB::Generate_invFlags()
 {
 	DBQueryResult res;
-	const char *q = "SELECT flagID,flagName,flagText,flagType,orderID FROM invFlags";
+	const char *q = "SELECT flagID, flagName, flagText, orderID FROM invFlags";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.Flags': %s", res.error.c_str());
