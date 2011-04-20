@@ -812,7 +812,7 @@ PyRep *ObjCacheDB::Generate_c_chrRaces()
 PyRep *ObjCacheDB::Generate_c_chrAncestries()
 {
 	DBQueryResult res;
-	const char *q = "SELECT ancestryID,ancestryName,bloodlineID,description,perception,willpower,charisma,memory,intelligence,graphicID,shortDescription,0 AS dataID FROM chrAncestries";
+	const char *q = "SELECT ancestryID, ancestryName, bloodlineID, description, perception, willpower, charisma, memory, intelligence, iconID, shortDescription FROM chrAncestries";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.ancestries': %s", res.error.c_str());
@@ -836,7 +836,7 @@ PyRep *ObjCacheDB::Generate_c_chrSchools()
 PyRep *ObjCacheDB::Generate_c_chrAttributes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT attributeID,attributeName,description,graphicID FROM chrAttributes";
+	const char *q = "SELECT attributeID, attributeName, description, iconID, shortDescription, notes FROM chrAttributes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.attributes': %s", res.error.c_str());
@@ -848,7 +848,7 @@ PyRep *ObjCacheDB::Generate_c_chrAttributes()
 PyRep *ObjCacheDB::Generate_bl_accessories()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,gender,accessoryID,npc FROM chrBLAccessories";
+	const char *q = "SELECT bloodlineID, gender, accessoryID, npc FROM chrBLAccessories";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_accessories': %s", res.error.c_str());
@@ -860,7 +860,7 @@ PyRep *ObjCacheDB::Generate_bl_accessories()
 PyRep *ObjCacheDB::Generate_bl_lights()
 {
 	DBQueryResult res;
-	const char *q = "SELECT lightID,lightName FROM chrBLLights";
+	const char *q = "SELECT lightID, lightName FROM chrBLLights";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_lights': %s", res.error.c_str());
@@ -872,7 +872,7 @@ PyRep *ObjCacheDB::Generate_bl_lights()
 PyRep *ObjCacheDB::Generate_bl_skins()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,gender,skinID,npc FROM chrBLSkins";
+	const char *q = "SELECT bloodlineID, gender, skinID, npc FROM chrBLSkins";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_skins': %s", res.error.c_str());
@@ -884,7 +884,7 @@ PyRep *ObjCacheDB::Generate_bl_skins()
 PyRep *ObjCacheDB::Generate_bl_beards()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,gender,beardID,npc FROM chrBLBeards";
+	const char *q = "SELECT bloodlineID, gender, beardID, npc FROM chrBLBeards";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_beards': %s", res.error.c_str());
@@ -896,7 +896,7 @@ PyRep *ObjCacheDB::Generate_bl_beards()
 PyRep *ObjCacheDB::Generate_bl_eyes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,gender,eyesID,npc FROM chrBLEyes";
+	const char *q = "SELECT bloodlineID, gender, eyesID, npc FROM chrBLEyes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_eyes': %s", res.error.c_str());
@@ -908,7 +908,7 @@ PyRep *ObjCacheDB::Generate_bl_eyes()
 PyRep *ObjCacheDB::Generate_bl_lipsticks()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,gender,lipstickID,npc FROM chrBLLipsticks";
+	const char *q = "SELECT bloodlineID, gender, lipstickID, npc FROM chrBLLipsticks";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_lipsticks': %s", res.error.c_str());
@@ -920,7 +920,7 @@ PyRep *ObjCacheDB::Generate_bl_lipsticks()
 PyRep *ObjCacheDB::Generate_bl_makeups()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,gender,makeupID,npc FROM chrBLMakeups";
+	const char *q = "SELECT bloodlineID, gender, makeupID, npc FROM chrBLMakeups";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_makeups': %s", res.error.c_str());
@@ -932,7 +932,7 @@ PyRep *ObjCacheDB::Generate_bl_makeups()
 PyRep *ObjCacheDB::Generate_bl_hairs()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,gender,hairID,npc FROM chrBLHairs";
+	const char *q = "SELECT bloodlineID, gender, hairID, npc FROM chrBLHairs";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_hairs': %s", res.error.c_str());
@@ -944,7 +944,7 @@ PyRep *ObjCacheDB::Generate_bl_hairs()
 PyRep *ObjCacheDB::Generate_bl_backgrounds()
 {
 	DBQueryResult res;
-	const char *q = "SELECT backgroundID,backgroundName FROM chrBLBackgrounds";
+	const char *q = "SELECT backgroundID, backgroundName FROM chrBLBackgrounds";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_backgrounds': %s", res.error.c_str());
@@ -956,7 +956,7 @@ PyRep *ObjCacheDB::Generate_bl_backgrounds()
 PyRep *ObjCacheDB::Generate_bl_decos()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,gender,decoID,npc FROM chrBLDecos";
+	const char *q = "SELECT bloodlineID, gender, decoID, npc FROM chrBLDecos";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_decos': %s", res.error.c_str());
@@ -968,7 +968,7 @@ PyRep *ObjCacheDB::Generate_bl_decos()
 PyRep *ObjCacheDB::Generate_bl_eyebrows()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,gender,eyebrowsID,npc FROM chrBLEyebrows";
+	const char *q = "SELECT bloodlineID, gender, eyebrowsID, npc FROM chrBLEyebrows";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_eyebrows': %s", res.error.c_str());
@@ -980,7 +980,7 @@ PyRep *ObjCacheDB::Generate_bl_eyebrows()
 PyRep *ObjCacheDB::Generate_bl_costumes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID,gender,costumeID,npc FROM chrBLCostumes";
+	const char *q = "SELECT bloodlineID, gender, costumeID, npc FROM chrBLCostumes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bl_costumes': %s", res.error.c_str());
@@ -992,7 +992,7 @@ PyRep *ObjCacheDB::Generate_bl_costumes()
 PyRep *ObjCacheDB::Generate_a_eyebrows()
 {
 	DBQueryResult res;
-	const char *q = "SELECT eyebrowsID,eyebrowsName FROM chrEyebrows";
+	const char *q = "SELECT eyebrowsID, eyebrowsName FROM chrEyebrows";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.eyebrows': %s", res.error.c_str());
@@ -1004,7 +1004,7 @@ PyRep *ObjCacheDB::Generate_a_eyebrows()
 PyRep *ObjCacheDB::Generate_a_eyes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT eyesID,eyesName FROM chrEyes";
+	const char *q = "SELECT eyesID, eyesName FROM chrEyes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.eyes': %s", res.error.c_str());
@@ -1016,7 +1016,7 @@ PyRep *ObjCacheDB::Generate_a_eyes()
 PyRep *ObjCacheDB::Generate_a_decos()
 {
 	DBQueryResult res;
-	const char *q = "SELECT decoID,decoName FROM chrDecos";
+	const char *q = "SELECT decoID, decoName FROM chrDecos";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.decos': %s", res.error.c_str());
@@ -1028,7 +1028,7 @@ PyRep *ObjCacheDB::Generate_a_decos()
 PyRep *ObjCacheDB::Generate_a_hairs()
 {
 	DBQueryResult res;
-	const char *q = "SELECT hairID,hairName FROM chrHairs";
+	const char *q = "SELECT hairID, hairName FROM chrHairs";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.hairs': %s", res.error.c_str());
@@ -1040,7 +1040,7 @@ PyRep *ObjCacheDB::Generate_a_hairs()
 PyRep *ObjCacheDB::Generate_a_backgrounds()
 {
 	DBQueryResult res;
-	const char *q = "SELECT backgroundID,backgroundName FROM chrBackgrounds";
+	const char *q = "SELECT backgroundID, backgroundName FROM chrBackgrounds";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.backgrounds': %s", res.error.c_str());
@@ -1052,7 +1052,7 @@ PyRep *ObjCacheDB::Generate_a_backgrounds()
 PyRep *ObjCacheDB::Generate_a_accessories()
 {
 	DBQueryResult res;
-	const char *q = "SELECT accessoryID,accessoryName FROM chrAccessories";
+	const char *q = "SELECT accessoryID, accessoryName FROM chrAccessories";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.accessories': %s", res.error.c_str());
@@ -1064,7 +1064,7 @@ PyRep *ObjCacheDB::Generate_a_accessories()
 PyRep *ObjCacheDB::Generate_a_lights()
 {
 	DBQueryResult res;
-	const char *q = "SELECT lightID,lightName FROM chrLights";
+	const char *q = "SELECT lightID, lightName FROM chrLights";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.lights': %s", res.error.c_str());
@@ -1076,7 +1076,7 @@ PyRep *ObjCacheDB::Generate_a_lights()
 PyRep *ObjCacheDB::Generate_a_costumes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT costumeID,costumeName FROM chrCostumes";
+	const char *q = "SELECT costumeID, costumeName FROM chrCostumes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.costumes': %s", res.error.c_str());
@@ -1088,7 +1088,7 @@ PyRep *ObjCacheDB::Generate_a_costumes()
 PyRep *ObjCacheDB::Generate_a_makeups()
 {
 	DBQueryResult res;
-	const char *q = "SELECT makeupID,makeupName FROM chrMakeups";
+	const char *q = "SELECT makeupID, makeupName FROM chrMakeups";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.makeups': %s", res.error.c_str());
@@ -1100,7 +1100,7 @@ PyRep *ObjCacheDB::Generate_a_makeups()
 PyRep *ObjCacheDB::Generate_a_beards()
 {
 	DBQueryResult res;
-	const char *q = "SELECT beardID,beardName FROM chrBeards";
+	const char *q = "SELECT beardID, beardName FROM chrBeards";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.beards': %s", res.error.c_str());
@@ -1112,7 +1112,7 @@ PyRep *ObjCacheDB::Generate_a_beards()
 PyRep *ObjCacheDB::Generate_a_skins()
 {
 	DBQueryResult res;
-	const char *q = "SELECT skinID,skinName FROM chrSkins";
+	const char *q = "SELECT skinID, skinName FROM chrSkins";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.skins': %s", res.error.c_str());
@@ -1124,7 +1124,7 @@ PyRep *ObjCacheDB::Generate_a_skins()
 PyRep *ObjCacheDB::Generate_a_lipsticks()
 {
 	DBQueryResult res;
-	const char *q = "SELECT lipstickID,lipstickName FROM chrLipsticks";
+	const char *q = "SELECT lipstickID, lipstickName FROM chrLipsticks";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.lipsticks': %s", res.error.c_str());
