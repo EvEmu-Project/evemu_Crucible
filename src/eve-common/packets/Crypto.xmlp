@@ -156,6 +156,13 @@
 	      <dictInlineEntry key="user_logonqueueposition">
 		      <int name="user_logonqueueposition" />
 	      </dictInlineEntry>
+	      <dictInlineEntry key="config_vals">
+		      <dictInline>
+			      <dictInlineEntry key="imageserverurl">
+				      <string name="imageserverurl" />
+				  </dictInlineEntry>  
+			  </dictInline>
+		  </dictInlineEntry>
 	    </dictInline>
     </tupleInline>
   </elementDef>
@@ -169,6 +176,26 @@
 	    <!-- 2 -->
 	    <raw name="func_result" />
     </tupleInline>
+  </elementDef>
+
+  <elementDef name="LiveUpdateInner">
+	<objectInline>
+		<stringInline value="util.KeyVal" />
+		<dictInline>
+		    <dictInlineEntry key="codeType">
+			    <string name="codeType" />
+		    </dictInlineEntry>
+		    <dictInlineEntry key="objectID">
+			    <string name="objectID" />
+			</dictInlineEntry>
+			<dictInlineEntry key="methodName">
+				<string name="methodName" />
+			</dictInlineEntry>
+			<dictInlineEntry key="code">
+			    <string name="code" />
+			</dictInlineEntry>
+		</dictInline>
+	</objectInline>
   </elementDef>
 
   <elementDef name="CryptoHandshakeAck">
