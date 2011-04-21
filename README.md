@@ -3,7 +3,8 @@ EVEmu modified to support the latest Incursion client
 
 # Status
 - Login works again
-- Character selection and creation is next
+- Character selection and creation is working
+- Character portraits are next!
 
 # Legal
 	------------------------------------------------------------------------------------

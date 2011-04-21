@@ -80,12 +80,11 @@ PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 		"SELECT "
 		" itemName AS shortName,bloodlineID,gender,bounty,character_.corporationID,allianceID,title,startDateTime,createDateTime,"
 		" securityRating,character_.balance,character_.stationID,solarSystemID,constellationID,regionID,"
-		" petitionMessage,logonMinutes,tickerName, 0 AS worldSpaceID, shipEntity.itemName AS shipName, shipEntity.typeID AS shipTypeID"
+		" petitionMessage,logonMinutes,tickerName, 0 AS worldSpaceID, 'Filler' AS shipName, 606 AS shipTypeID, 0 AS unreadMailCount, 0 AS upcomingEventCount, 0 AS unprocessedNotifications, 14 AS daysLeft, 23 AS userType, 0 AS paperDollState, 0 AS newPaperdollState, 0 AS oldPaperdollState, 1337 AS skillPoints, 0 AS skillQueueEndTime, 0 AS allianceMemberStartDate, 0 AS startDate"
 		" FROM character_ "
 		"	LEFT JOIN entity ON characterID = itemID"
 		"	LEFT JOIN corporation USING (corporationID)"
 		"	LEFT JOIN bloodlineTypes USING (typeID)"
-		"   LEFT JOIN entity AS shipEntity ON itemID == entity.locationID"
 		" WHERE characterID=%u", characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -372,8 +371,8 @@ bool CharacterDB::GetLocationCorporationByCareer(CharacterData &cdata) {
 	 " FROM staStations"
 	 "  LEFT JOIN corporation ON corporation.stationID=staStations.stationID"
 	 "  LEFT JOIN chrSchools ON corporation.corporationID=chrSchools.corporationID"
-	 "  LEFT JOIN chrCareers ON chrSchools.careerID=chrCareers.careerID"
-	 " WHERE chrCareers.careerID = %u", cdata.careerID))
+	 "  LEFT JOIN careers ON chrSchools.schoolID=careers.schoolID"
+	 " WHERE careers.careerID = %u", cdata.careerID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return (false);
@@ -403,7 +402,7 @@ bool CharacterDB::GetSkillsByRace(uint32 raceID, std::map<uint32, uint32> &into)
 	if (!sDatabase.RunQuery(res,
 		"SELECT "
 		"        skillTypeID, levels"
-		" FROM chrRaceSkills "
+		" FROM raceSkills "
 		" WHERE raceID = %u ", raceID))
 	{
 		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -430,7 +429,7 @@ bool CharacterDB::GetSkillsByCareer(uint32 careerID, std::map<uint32, uint32> &i
 	if (!sDatabase.RunQuery(res,
 		"SELECT "
 		"        skillTypeID, levels"
-		" FROM chrCareerSkills"
+		" FROM careerSkills"
 		" WHERE careerID = %u", careerID))
 	{
 		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -457,7 +456,7 @@ bool CharacterDB::GetSkillsByCareerSpeciality(uint32 careerSpecialityID, std::ma
 	if (!sDatabase.RunQuery(res,
 		"SELECT "
 		"        skillTypeID, levels"
-		" FROM chrCareerSpecialitySkills"
+		" FROM specialitySkills"
 		" WHERE specialityID = %u", careerSpecialityID))
 	{
 		_log(SERVICE__ERROR, "Error in query: %s", res.error.c_str());

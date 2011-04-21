@@ -317,7 +317,7 @@ bool InventoryDB::GetShipType(uint32 shipTypeID, ShipTypeData &into) {
     if(!sDatabase.RunQuery(res,
         "SELECT"
         " weaponTypeID, miningTypeID, skillTypeID"
-        " FROM invShipTypes"
+        " FROM shiptypes"
         " WHERE shipTypeID = %u",
         shipTypeID))
     {
