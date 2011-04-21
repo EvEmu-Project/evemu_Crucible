@@ -1506,6 +1506,9 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     server_shake.user_logonqueueposition = _GetQueuePosition();
     // binascii.crc_hqx of marshaled single-element tuple containing 64 zero-bytes string
     server_shake.challenge_responsehash = "55087";
+	
+	// the image server used by the client to download images
+	server_shake.imageserverurl = sConfig.net.imageServer;
 
     server_shake.macho_version = MachoNetVersion;
     server_shake.boot_version = EVEVersionNumber;

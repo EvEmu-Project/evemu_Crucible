@@ -70,6 +70,7 @@ EVEServerConfig::EVEServerConfig()
 
     // net
     net.port = 26001;
+	net.imageServer = "localhost";
 }
 
 bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
@@ -156,10 +157,12 @@ bool EVEServerConfig::ProcessFiles( const TiXmlElement* ele )
 bool EVEServerConfig::ProcessNet( const TiXmlElement* ele )
 {
     AddValueParser( "port", net.port );
+	AddValueParser( "imageServer", net.imageServer);
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "port" );
+	RemoveParser( "imageServer" );
 
     return result;
 }

@@ -88,6 +88,8 @@ public:
     {
         /// Port at which the server should listen.
         uint16 port;
+		/// the imageServer for char images. should be the evemu server external ip/host
+		std::string imageServer;
     } net;
 
 protected:
