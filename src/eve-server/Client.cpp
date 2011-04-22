@@ -1548,6 +1548,7 @@ bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
     ack.inDetention = new PyNone;
     ack.client_hashes = new PyList;
     ack.user_clientid = GetAccountID();
+	ack.live_updates = LiveUpdateDB::get().GetUpdates();
 
 	PyRep* r = ack.Encode();
     mNet->QueueRep( r );

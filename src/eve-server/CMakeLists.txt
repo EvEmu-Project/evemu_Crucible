@@ -27,7 +27,8 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/PyService.h"
      "${TARGET_INCLUDE_DIR}/PyServiceCD.h"
      "${TARGET_INCLUDE_DIR}/PyServiceMgr.h"
-     "${TARGET_INCLUDE_DIR}/ServiceDB.h" )
+     "${TARGET_INCLUDE_DIR}/ServiceDB.h"
+     "${TARGET_INCLUDE_DIR}/LiveUpdateDB.h" )
 SET( SOURCE
      "${TARGET_SOURCE_DIR}/Client.cpp"
      "${TARGET_SOURCE_DIR}/ClientSession.cpp"
@@ -39,7 +40,8 @@ SET( SOURCE
      "${TARGET_SOURCE_DIR}/PyCallable.cpp"
      "${TARGET_SOURCE_DIR}/PyService.cpp"
      "${TARGET_SOURCE_DIR}/PyServiceMgr.cpp"
-     "${TARGET_SOURCE_DIR}/ServiceDB.cpp" )
+     "${TARGET_SOURCE_DIR}/ServiceDB.cpp"
+     "${TARGET_SOURCE_DIR}/LiveUpdateDB.cpp" )
 
 SET( account_INCLUDE
      "${TARGET_INCLUDE_DIR}/account/AccountDB.h"
@@ -120,7 +122,9 @@ SET( character_INCLUDE
      "${TARGET_INCLUDE_DIR}/character/CharacterService.h"
      "${TARGET_INCLUDE_DIR}/character/CharMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/Skill.h"
-     "${TARGET_INCLUDE_DIR}/character/SkillMgrService.h" )
+     "${TARGET_INCLUDE_DIR}/character/SkillMgrService.h"
+     "${TARGET_INCLUDE_DIR}/character/CharUnboundMgrService.h"
+     "${TARGET_INCLUDE_DIR}/character/PaperDollService.h" )
 SET( character_SOURCE
      "${TARGET_SOURCE_DIR}/character/CertificateMgrDB.cpp"
      "${TARGET_SOURCE_DIR}/character/CertificateMgrService.cpp"
@@ -129,7 +133,9 @@ SET( character_SOURCE
      "${TARGET_SOURCE_DIR}/character/CharacterService.cpp"
      "${TARGET_SOURCE_DIR}/character/CharMgrService.cpp"
      "${TARGET_SOURCE_DIR}/character/Skill.cpp"
-     "${TARGET_SOURCE_DIR}/character/SkillMgrService.cpp" )
+     "${TARGET_SOURCE_DIR}/character/SkillMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/character/CharUnboundMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/character/PaperDollService.cpp" )
 
 SET( chat_INCLUDE
      "${TARGET_INCLUDE_DIR}/chat/LookupService.h"

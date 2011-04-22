@@ -136,8 +136,10 @@ bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep )
         case DBTYPE_BYTES:
             return rep->IsBuffer();
 
+			// this looks like a horrible hack, and it is - but one that is used on live!
         case DBTYPE_STR:
-            return rep->IsString();
+			return true;
+            //return rep->IsString();
 
         case DBTYPE_WSTR:
             return rep->IsWString();

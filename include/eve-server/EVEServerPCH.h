@@ -294,4 +294,6 @@
 #include "tutorial/TutorialDB.h"
 #include "tutorial/TutorialService.h"
 
+#include "LiveUpdateDB.h"
+
 #endif//__EVE_SERVER_PCH_H__INCL__
