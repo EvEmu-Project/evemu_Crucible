@@ -168,7 +168,7 @@ PyRep *ObjCacheDB::Generate_CharNewExtraCareers()
 PyRep *ObjCacheDB::Generate_CharNewExtraSpecialitySkills()
 {
 	DBQueryResult res;
-	const char *q = "SELECT specialityID, skillTypeID, levels FROM specialityskills";
+	const char *q = "SELECT specialityID, skillTypeID, levels FROM specialitySkills";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.specialityskills': %s", res.error.c_str());
@@ -180,7 +180,7 @@ PyRep *ObjCacheDB::Generate_CharNewExtraSpecialitySkills()
 PyRep *ObjCacheDB::Generate_CharNewExtraCareerSkills()
 {
 	DBQueryResult res;
-	const char *q = "SELECT careerID, skillTypeID, levels FROM careerskills";
+	const char *q = "SELECT careerID, skillTypeID, levels FROM careerSkills";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.careerskills': %s", res.error.c_str());
@@ -192,10 +192,10 @@ PyRep *ObjCacheDB::Generate_CharNewExtraCareerSkills()
 PyRep *ObjCacheDB::Generate_CharNewExtraRaceSkills()
 {
 	DBQueryResult res;
-	const char *q = "SELECT raceID, skillTypeID, levels FROM raceskills";
+	const char *q = "SELECT raceID, skillTypeID, levels FROM raceSkills";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.raceskills': %s", res.error.c_str());
+		_log(SERVICE__ERROR, "Error in query for cached object 'charNewExtraCreationInfo.raceSkills': %s", res.error.c_str());
 		return NULL;
 	}
 	return DBResultToCRowset(res);
@@ -216,10 +216,10 @@ PyRep *ObjCacheDB::Generate_Icons()
 PyRep *ObjCacheDB::Generate_Ownericons()
 {
 	DBQueryResult res;
-	const char *q = "SELECT ownerID, iconID FROM ownericons";
+	const char *q = "SELECT ownerID, iconID FROM ownerIcons";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.ownericons': %s", res.error.c_str());
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.ownerIcons': %s", res.error.c_str());
 		return NULL;
 	}
 	return DBResultToCRowset(res);
@@ -228,10 +228,10 @@ PyRep *ObjCacheDB::Generate_Ownericons()
 PyRep *ObjCacheDB::Generate_Invtypematerials()
 {
 	DBQueryResult res;
-	const char *q = "SELECT typeID, materialTypeID, quantity FROM invtypematerials";
+	const char *q = "SELECT typeID, materialTypeID, quantity FROM invTypeMaterials";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.invtypematerials': %s", res.error.c_str());
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.invTypeMaterials': %s", res.error.c_str());
 		return NULL;
 	}
 	return DBResultToCRowset(res);
@@ -252,10 +252,10 @@ PyRep *ObjCacheDB::Generate_Sounds()
 PyRep *ObjCacheDB::Generate_Schematicstypemap()
 {
 	DBQueryResult res;
-	const char *q = "SELECT schematicID, typeID, quantity, isInput FROM schematicstypemap";
+	const char *q = "SELECT schematicID, typeID, quantity, isInput FROM schematicsTypeMap";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.schematicstypemap': %s", res.error.c_str());
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.schematicsTypeMap': %s", res.error.c_str());
 		return NULL;
 	}
 	return DBResultToCRowset(res);
@@ -276,7 +276,7 @@ PyRep *ObjCacheDB::Generate_Schematics()
 PyRep *ObjCacheDB::Generate_OverviewDefaultGroups()
 {
 	DBQueryResult res;
-	const char *q = "SELECT overviewID, groupID FROM overviewdefaultgroups";
+	const char *q = "SELECT overviewID, groupID FROM overviewDefaultGroups";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.overviewDefaultGroups': %s", res.error.c_str());
@@ -288,10 +288,10 @@ PyRep *ObjCacheDB::Generate_OverviewDefaultGroups()
 PyRep *ObjCacheDB::Generate_Schematicspinmap()
 {
 	DBQueryResult res;
-	const char *q = "SELECT schematicID, pinTypeID FROM schematicspinmap";
+	const char *q = "SELECT schematicID, pinTypeID FROM schematicsPinMap";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.schematicspinmap': %s", res.error.c_str());
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.schematicsPinMap': %s", res.error.c_str());
 		return NULL;
 	}
 	return DBResultToCRowset(res);
@@ -300,7 +300,7 @@ PyRep *ObjCacheDB::Generate_Schematicspinmap()
 PyRep *ObjCacheDB::Generate_OverviewDefaults()
 {
 	DBQueryResult res;
-	const char *q = "SELECT dataID, overviewID, overviewName, overviewShortName FROM overviewdefaults";
+	const char *q = "SELECT dataID, overviewID, overviewName, overviewShortName FROM overviewDefaults";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.overviewDefaults': %s", res.error.c_str());
@@ -312,10 +312,10 @@ PyRep *ObjCacheDB::Generate_OverviewDefaults()
 PyRep *ObjCacheDB::Generate_Locationscenes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT locationID, sceneID FROM locationscenes";
+	const char *q = "SELECT locationID, sceneID FROM locationScenes";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.locationscenes': %s", res.error.c_str());
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.locationScenes': %s", res.error.c_str());
 		return NULL;
 	}
 	return DBResultToCRowset(res);
@@ -324,7 +324,7 @@ PyRep *ObjCacheDB::Generate_Locationscenes()
 PyRep *ObjCacheDB::Generate_BloodlineNames()
 {
 	DBQueryResult res;
-	const char *q = "SELECT nameID, bloodlineID, lastName FROM bloodlinenames";
+	const char *q = "SELECT nameID, bloodlineID, lastName FROM bloodlineNames";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.bloodlineNames': %s", res.error.c_str());
@@ -336,7 +336,7 @@ PyRep *ObjCacheDB::Generate_BloodlineNames()
 PyRep *ObjCacheDB::Generate_PaperdollColors()
 {
 	DBQueryResult res;
-	const char *q = "SELECT colorID, colorKey, hasSecondary, hasWeight, hasGloss FROM paperdollcolors";
+	const char *q = "SELECT colorID, colorKey, hasSecondary, hasWeight, hasGloss FROM paperdollColors";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollColors': %s", res.error.c_str());
@@ -348,7 +348,7 @@ PyRep *ObjCacheDB::Generate_PaperdollColors()
 PyRep *ObjCacheDB::Generate_PaperdollColorRestrictions()
 {
 	DBQueryResult res;
-	const char *q = "SELECT colorNameID, gender, restrictions FROM paperdollcolorrestrictions";
+	const char *q = "SELECT colorNameID, gender, restrictions FROM paperdollColorRestrictions";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollColorRestrictions': %s", res.error.c_str());
@@ -360,7 +360,7 @@ PyRep *ObjCacheDB::Generate_PaperdollColorRestrictions()
 PyRep *ObjCacheDB::Generate_PaperdollColorNames()
 {
 	DBQueryResult res;
-	const char *q = "SELECT colorNameID, colorName FROM paperdollcolornames";
+	const char *q = "SELECT colorNameID, colorName FROM paperdollColorNames";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollColorNames': %s", res.error.c_str());
@@ -372,7 +372,7 @@ PyRep *ObjCacheDB::Generate_PaperdollColorNames()
 PyRep *ObjCacheDB::Generate_PaperdollSculptingLocations()
 {
 	DBQueryResult res;
-	const char *q = "SELECT sculptLocationID, weightKeyCategory, weightKeyPrefix FROM paperdollsculptinglocations";
+	const char *q = "SELECT sculptLocationID, weightKeyCategory, weightKeyPrefix FROM paperdollSculptingLocations";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollSculptingLocations': %s", res.error.c_str());
@@ -384,7 +384,7 @@ PyRep *ObjCacheDB::Generate_PaperdollSculptingLocations()
 PyRep *ObjCacheDB::Generate_PaperdollModifierLocations()
 {
 	DBQueryResult res;
-	const char *q = "SELECT modifierLocationID, modifierKey, variationKey FROM paperdollmodifierlocations";
+	const char *q = "SELECT modifierLocationID, modifierKey, variationKey FROM paperdollModifierLocations";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollModifierLocations': %s", res.error.c_str());
@@ -396,10 +396,10 @@ PyRep *ObjCacheDB::Generate_PaperdollModifierLocations()
 PyRep *ObjCacheDB::Generate_PaperdollResources()
 {
 	DBQueryResult res;
-	const char *q = "SELECT paperdollResourceID, resGender, resPath, restrictions FROM paperdollresources";
+	const char *q = "SELECT paperdollResourceID, resGender, resPath, restrictions FROM paperdollResources";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollresources': %s", res.error.c_str());
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.paperdollResources': %s", res.error.c_str());
 		return NULL;
 	}
 	return DBResultToCRowset(res);
@@ -420,10 +420,10 @@ PyRep *ObjCacheDB::Generate_BillTypes()
 PyRep *ObjCacheDB::Generate_AllianceShortnames()
 {
 	DBQueryResult res;
-	const char *q = "SELECT allianceID,shortName FROM alliance_shortnames";
+	const char *q = "SELECT allianceID,shortName FROM alliance_ShortNames";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
-		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.allianceshortnames': %s",res.error.c_str());
+		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.alliance_ShortNames': %s",res.error.c_str());
 		return NULL;
 	}
 	return DBResultToCRowset(res);
@@ -576,7 +576,7 @@ PyRep *ObjCacheDB::Generate_ramCompletedStatuses()
 PyRep *ObjCacheDB::Generate_ramTypeRequirements()
 {
 	DBQueryResult res;
-	const char *q = "SELECT typeID, activityID, requiredTypeID, quantity, damagePerJob, recycle FROM ramtyperequirements";
+	const char *q = "SELECT typeID, activityID, requiredTypeID, quantity, damagePerJob, recycle FROM ramTypeRequirements";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.ramtyperequirements': %s", res.error.c_str());
@@ -636,7 +636,7 @@ PyRep *ObjCacheDB::Generate_certificates()
 PyRep *ObjCacheDB::Generate_certificateRelationships()
 {
 	DBQueryResult res;
-	const char *q = "SELECT relationshipID, parentID, parentTypeID, parentLevel, childID, childTypeID FROM certificaterelationships";
+	const char *q = "SELECT relationshipID, parentID, parentTypeID, parentLevel, childID, childTypeID FROM certificateRelationShips";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.certificaterelationships': %s", res.error.c_str());
@@ -648,7 +648,7 @@ PyRep *ObjCacheDB::Generate_certificateRelationships()
 PyRep *ObjCacheDB::Generate_invShipTypes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT shipTypeID, weaponTypeID, miningTypeID, skillTypeID FROM shiptypes";
+	const char *q = "SELECT shipTypeID, weaponTypeID, miningTypeID, skillTypeID FROM shipTypes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.shiptypes': %s", res.error.c_str());
@@ -684,7 +684,7 @@ PyRep *ObjCacheDB::Generate_locationWormholeClasses()
 PyRep *ObjCacheDB::Generate_invBlueprintTypes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT blueprintTypeID, parentBlueprintTypeID, productTypeID, productionTime, techLevel, researchProductivityTime, researchMaterialTime, researchCopyTime, researchTechTime, productivityModifier, materialModifier, wasteFactor, chanceOfReverseEngineering, maxProductionLimit FROM bptypes";
+	const char *q = "SELECT blueprintTypeID, parentBlueprintTypeID, productTypeID, productionTime, techLevel, researchProductivityTime, researchMaterialTime, researchCopyTime, researchTechTime, productivityModifier, materialModifier, wasteFactor, chanceOfReverseEngineering, maxProductionLimit FROM bpTypes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.bptypes': %s", res.error.c_str());
@@ -889,7 +889,7 @@ PyRep *ObjCacheDB::Generate_c_chrAncestries()
 PyRep *ObjCacheDB::Generate_c_chrSchools()
 {
 	DBQueryResult res;
-	const char *q = "SELECT raceID, schoolID, schoolName, description, graphicID, chrschools.corporationID, chrschools.agentID, newAgentID, iconID FROM chrschools LEFT JOIN agtAgents USING (corporationID) GROUP BY schoolID";
+	const char *q = "SELECT raceID, schoolID, schoolName, description, graphicID, chrSchools.corporationID, chrSchools.agentID, newAgentID, iconID FROM chrSchools LEFT JOIN agtAgents USING (corporationID) GROUP BY schoolID";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.schools': %s", res.error.c_str());
