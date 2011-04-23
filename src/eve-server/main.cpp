@@ -189,6 +189,7 @@ int main( int argc, char* argv[] )
 	services.RegisterService(new TradeService(&services));
 	services.RegisterService(new CharUnboundMgrService(&services));
 	services.RegisterService(new PaperDollService(&services));
+	services.RegisterService(new PhotoUploadService(&services));
 
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();
