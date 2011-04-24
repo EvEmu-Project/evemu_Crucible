@@ -30,6 +30,16 @@
 #include "imageserver/ImageServerConnection.h"
 #include <asio.hpp>
 
+/**
+ * \class ImageServerListener
+ *
+ * @brief Handles listening for new clients
+ *
+ * Asynchronously listens for new clients and creates new connections for them to process them
+ *
+ * @author caytchen
+ * @date April 2011
+ */
 class ImageServerListener
 {
 public:

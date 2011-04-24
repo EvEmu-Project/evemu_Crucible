@@ -39,6 +39,17 @@ namespace asio
 
 class ImageServerListener;
 
+/**
+ * \class ImageServer
+ *
+ * @brief Handles distribution of character and related game images
+ *
+ * A very limited HTTP server that can efficiently deliver character and other images to clients
+ * Uses asio for efficient asynchronous network communication
+ *
+ * @author caytchen
+ * @date April 2011
+ */
 class ImageServer : public Singleton<ImageServer>
 {
 public:

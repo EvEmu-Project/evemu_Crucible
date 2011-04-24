@@ -29,6 +29,16 @@
 #include <memory>
 #include <asio.hpp>
 
+/**
+ * \class ImageServerConnection
+ *
+ * @brief Handles a client connection to the image server
+ *
+ * Handles exactly one client; does all the protocol related stuff. Very limited HTTP handling.
+ *
+ * @author caytchen
+ * @date April 2011
+ */
 class ImageServerConnection : public std::enable_shared_from_this<ImageServerConnection>
 {
 public:
