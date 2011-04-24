@@ -108,8 +108,8 @@ std::string ImageServer::GetFilePath(std::string& category, uint32 id, uint32 si
 	// HACK: We don't have any other
 	size = 512;
 
-	std::stringstream builder(_basePath);
-	builder << category << "/" << id << "_" << size << "." << extension;
+	std::stringstream builder;
+	builder << _basePath << category << "/" << id << "_" << size << "." << extension;
 	return builder.str();
 }
 
