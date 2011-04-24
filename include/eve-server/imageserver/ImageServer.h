@@ -64,6 +64,7 @@ private:
 	void RunInternal();
 	bool ValidateCategory(std::string& category);
 	bool ValidateSize(std::string& category, uint32 size);
+	static bool CreateNewDirectory(std::string& path);
 
 	static const char *const Categories[];
 	static const uint32 CategoryCount;

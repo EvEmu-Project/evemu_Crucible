@@ -44,8 +44,17 @@ ImageServer::ImageServer()
 	if (_basePath[_basePath.size() - 1] != '/')
 		_basePath += "/";
 
+	CreateNewDirectory(_basePath);
+	for (int i = 0; i < CategoryCount; i++)
+		CreateNewDirectory(_basePath + Categories[i]);
+
 	sLog.Log("image server", "our URL: %s", _url.c_str());
 	sLog.Log("image server", "our base: %s", _basePath.c_str());
+}
+
+bool ImageServer::CreateNewDirectory(std::string& path)
+{
+	return mkdir(path.c_str(), 777) == 0;
 }
 
 void ImageServer::ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char>> imageData)
