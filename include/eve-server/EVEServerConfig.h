@@ -81,6 +81,8 @@ public:
         std::string logSettings;
         /// A directory at which the cache files should be stored.
         std::string cacheDir;
+		// used as the base directory for the image server
+		std::string imageDir;
     } files;
 
     /// From <net/>

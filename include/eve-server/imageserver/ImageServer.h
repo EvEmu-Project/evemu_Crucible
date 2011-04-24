@@ -30,12 +30,8 @@
 
 #include <memory>
 #include <string>
-
-namespace asio
-{
-	class thread;
-	class io_service;
-}
+#include <unordered_map>
+#include <asio.hpp>
 
 class ImageServerListener;
 
@@ -58,13 +54,36 @@ public:
 
 	std::string& url();
 
+	void ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char>> imageData);
+	void ReportNewCharacter(uint32 creatorAccountID, uint32 characterID);
+
+	std::string GetFilePath(std::string& category, uint32 id, uint32 size);
+	std::shared_ptr<std::vector<char>> Get(std::string& category, uint32 id, uint32 size);
+
 private:
 	void RunInternal();
+	bool ValidateCategory(std::string& category);
+	bool ValidateSize(std::string& category, uint32 size);
 
+	static const char *const Categories[];
+	static const uint32 CategoryCount;
+
+	std::unordered_map<uint32 /*accountID*/, std::shared_ptr<std::vector<char>> /*imageData*/> _limboImages;
 	std::auto_ptr<asio::thread> _ioThread;
 	std::auto_ptr<asio::io_service> _io;
 	std::auto_ptr<ImageServerListener> _listener;
 	std::string _url;
+	std::string _basePath;
+	asio::detail::mutex _limboLock;
+
+	class Lock
+	{
+	public:
+		Lock(asio::detail::mutex& mutex);
+		~Lock();
+	private:
+		asio::detail::mutex& _mutex;
+	};
 };
 
 #endif // __IMAGESERVER__H__INCL__

@@ -67,6 +67,7 @@ EVEServerConfig::EVEServerConfig()
     files.log = "../log/eve-server.log";
     files.logSettings = "../etc/log.ini";
     files.cacheDir = "";
+	files.imageDir = "../images/";
 
     // net
     net.port = 26001;
@@ -144,12 +145,14 @@ bool EVEServerConfig::ProcessFiles( const TiXmlElement* ele )
     AddValueParser( "log",         files.log );
     AddValueParser( "logSettings", files.logSettings );
     AddValueParser( "cacheDir",    files.cacheDir );
+	AddValueParser( "imageDir",	   files.imageDir );
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "log" );
     RemoveParser( "logSettings" );
     RemoveParser( "cacheDir" );
+	RemoveParser( "imageDir" );
 
     return result;
 }

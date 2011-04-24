@@ -24,6 +24,15 @@
 */
 
 #include "EVEServerPCH.h"
+#include <iostream>
+#include <fstream>
+
+const char *const ImageServer::Categories[] = { "Alliance",
+	"Corporation",
+	"Character", 
+	"InventoryType",
+	"Render" };
+const uint32 ImageServer::CategoryCount = 5;
 
 ImageServer::ImageServer()
 {
@@ -31,7 +40,91 @@ ImageServer::ImageServer()
 	urlBuilder << "http://" << sConfig.net.imageServer << ":" << (sConfig.net.port +1) << "/";
 	_url = urlBuilder.str();
 
+	_basePath = sConfig.files.imageDir;
+	if (_basePath[_basePath.size() - 1] != '/')
+		_basePath += "/";
+
 	sLog.Log("image server", "our URL: %s", _url.c_str());
+	sLog.Log("image server", "our base: %s", _basePath.c_str());
+}
+
+void ImageServer::ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char>> imageData)
+{
+	Lock lock(_limboLock);
+
+	if (_limboImages.find(accountID) != _limboImages.end())
+		_limboImages.insert(std::pair<uint32,std::shared_ptr<std::vector<char>>>(accountID, imageData));
+	else
+		_limboImages[accountID] = imageData;
+}
+
+void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID)
+{
+	Lock lock(_limboLock);
+
+	// check if we received an image from this account previously
+	if (_limboImages.find(creatorAccountID) == _limboImages.end())
+		return;
+
+	// we have, so save it
+	std::ofstream stream;
+	std::string path(GetFilePath(std::string("Character"), characterID, 512));
+	stream.open(path, std::ofstream::binary | std::ofstream::trunc | std::ofstream::out);
+	auto data = _limboImages[creatorAccountID];
+	std::copy(data->begin(), data->end(), std::ostream_iterator<char>(stream));
+	stream.flush();
+	stream.close();
+
+	sLog.Log("image server", "saved image from %i as %s", creatorAccountID, path.c_str());
+}
+
+std::shared_ptr<std::vector<char>> ImageServer::Get(std::string& category, uint32 id, uint32 size)
+{
+	if (!ValidateCategory(category) || !ValidateSize(category, size))
+		return std::shared_ptr<std::vector<char>>();
+
+	std::ifstream stream;
+	std::string path(GetFilePath(category, id, size));
+	stream.open(path, std::ifstream::binary | std::ifstream::in);
+	// not found or other error
+	if (stream.fail())
+		return std::shared_ptr<std::vector<char>>();
+	return std::shared_ptr<std::vector<char>>(new std::vector<char>(std::istream_iterator<char>(stream), std::istream_iterator<char>()));
+}
+
+std::string ImageServer::GetFilePath(std::string& category, uint32 id, uint32 size)
+{
+	auto extension = category == "Character" ? "jpg" : "png";
+
+	// HACK: We don't have any other
+	size = 512;
+
+	std::stringstream builder(_basePath);
+	builder << category << "/" << id << "_" << size << "." << extension;
+	return builder.str();
+}
+
+bool ImageServer::ValidateSize(std::string& category, uint32 size)
+{
+	if (category == "InventoryType")
+		return size == 64 || size == 32;
+
+	if (category == "Alliance")
+		return size == 128 || size == 64 || size == 32;
+
+	if (category == "Corporation")
+		return size == 256 || size == 128 || size == 64 || size == 32;
+
+	// Render and Character
+	return size == 512 || size == 256 || size == 128 || size == 64 || size == 32;
+}
+
+bool ImageServer::ValidateCategory(std::string& category)
+{
+	for (int i = 0; i < 5; i++)
+		if (category == Categories[i])
+			return true;
+	return false;
 }
 
 std::string& ImageServer::url()
@@ -49,4 +142,15 @@ void ImageServer::RunInternal()
 	_io = std::auto_ptr<asio::io_service>(new asio::io_service());
 	_listener = std::auto_ptr<ImageServerListener>(new ImageServerListener(*_io));
 	_io->run();
+}
+
+ImageServer::Lock::Lock(asio::detail::mutex& mutex)
+	: _mutex(mutex)
+{
+	_mutex.lock();
+}
+
+ImageServer::Lock::~Lock()
+{
+	_mutex.unlock();
 }
