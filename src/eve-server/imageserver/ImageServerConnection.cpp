@@ -25,8 +25,8 @@
 
 #include "EVEServerPCH.h"
 
-asio::const_buffers_1 ImageServerConnection::_responseOK = asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n");
-asio::const_buffers_1 ImageServerConnection::_responseNotFound = asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n");
+asio::const_buffers_1 ImageServerConnection::_responseOK = asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
+asio::const_buffers_1 ImageServerConnection::_responseNotFound = asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);
 
 ImageServerConnection::ImageServerConnection(asio::io_service& io)
 	: _socket(io)
@@ -48,6 +48,7 @@ void ImageServerConnection::ProcessHeaders()
 {
 	std::istream stream(&_buffer);
 	std::string request;
+
 	// every request line ends with \r\n
 	std::getline(stream, request, '\r');
 
@@ -56,11 +57,63 @@ void ImageServerConnection::ProcessHeaders()
 		NotFound();
 		return;
 	}
+	request = request.substr(5);
+
+	bool found = false;
+	std::string category;
+	for (int i = 0; i < ImageServer::CategoryCount; i++)
+	{
+		if (starts_with(request, ImageServer::Categories[i]))
+		{
+			found = true;
+			category = ImageServer::Categories[i];
+			request = request.substr(strlen(ImageServer::Categories[i]));
+			break;
+		}
+	}
+	if (!found)
+	{
+		NotFound();
+		return;
+	}
+
+	if (!starts_with(request, "/"))
+	{
+		NotFound();
+		return;
+	}
+	request = request.substr(1);
+
+	int del = request.find_first_of('_');
+	if (del == std::string::npos)
+	{
+		NotFound();
+		return;
+	}
+
+	// might have some extra data but atoi shouldn't care
+	std::string idStr = request.substr(0, del);
+	std::string sizeStr = request.substr(del + 1);
+
+	_imageData = ImageServer::get().GetImage(category, atoi(idStr.c_str()), atoi(sizeStr.c_str()));
+	if (!_imageData)
+	{
+		NotFound();
+		return;
+	}
+
+	// first we have to send the responseOK, then our actual result
+	asio::async_write(_socket, _responseOK, asio::transfer_all(), std::bind(&ImageServerConnection::SendImage, shared_from_this()));
+}
+
+void ImageServerConnection::SendImage()
+{
+	asio::async_write(_socket, asio::buffer(*_imageData, _imageData->size()), asio::transfer_all(), std::bind(&ImageServerConnection::Close, shared_from_this()));
 }
 
 void ImageServerConnection::NotFound()
 {
-	asio::async_write(_socket, _responseNotFound, std::bind(&ImageServerConnection::Close, shared_from_this()));
+	asio::async_write(_socket, _responseNotFound, asio::transfer_all(), std::bind(&ImageServerConnection::Close, shared_from_this()));
 }
 
 void ImageServerConnection::Close()
@@ -68,7 +121,7 @@ void ImageServerConnection::Close()
 	_socket.close();
 }
 
-bool ImageServerConnection::starts_with(std::string& haystack, char* needle)
+bool ImageServerConnection::starts_with(std::string& haystack, const char *const needle)
 {
 	return haystack.substr(0, strlen(needle)).compare(needle) == 0;
 }

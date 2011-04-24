@@ -78,7 +78,7 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
 	// we have, so save it
 	std::ofstream stream;
 	std::string path(GetFilePath(std::string("Character"), characterID, 512));
-	stream.open(path, std::ofstream::binary | std::ofstream::trunc | std::ofstream::out);
+	stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
 	auto data = _limboImages[creatorAccountID];
 	std::copy(data->begin(), data->end(), std::ostream_iterator<char>(stream));
 	stream.flush();
@@ -87,18 +87,30 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
 	sLog.Log("image server", "saved image from %i as %s", creatorAccountID, path.c_str());
 }
 
-std::shared_ptr<std::vector<char>> ImageServer::Get(std::string& category, uint32 id, uint32 size)
+std::shared_ptr<std::vector<char>> ImageServer::GetImage(std::string& category, uint32 id, uint32 size)
 {
 	if (!ValidateCategory(category) || !ValidateSize(category, size))
 		return std::shared_ptr<std::vector<char>>();
 
 	std::ifstream stream;
 	std::string path(GetFilePath(category, id, size));
-	stream.open(path, std::ifstream::binary | std::ifstream::in);
+	stream.open(path, std::ios::binary | std::ios::in);
 	// not found or other error
 	if (stream.fail())
 		return std::shared_ptr<std::vector<char>>();
-	return std::shared_ptr<std::vector<char>>(new std::vector<char>(std::istream_iterator<char>(stream), std::istream_iterator<char>()));
+
+	// get length
+	stream.seekg(0, std::ios::end);
+	int length = stream.tellg();
+	stream.seekg(0, std::ios::beg);
+
+	auto ret = std::shared_ptr<std::vector<char>>(new std::vector<char>());
+	ret->resize(length);
+
+	// HACK
+	stream.read(&((*ret)[0]), length);
+
+	return ret;
 }
 
 std::string ImageServer::GetFilePath(std::string& category, uint32 id, uint32 size)

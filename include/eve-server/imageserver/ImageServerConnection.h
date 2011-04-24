@@ -27,6 +27,7 @@
 #define __IMAGESERVERCONNECTION__H__INCL__
 
 #include <memory>
+#include <vector>
 #include <asio.hpp>
 
 /**
@@ -49,13 +50,15 @@ public:
 private:
 	ImageServerConnection(asio::io_service& io);
 	void ProcessHeaders();
+	void SendImage();
 	void NotFound();
 	void Close();
 
-	static bool starts_with(std::string& haystack, char* needle);
+	static bool starts_with(std::string& haystack, const char *const needle);
 
 	asio::streambuf _buffer;
 	asio::ip::tcp::socket _socket;
+	std::shared_ptr<std::vector<char>> _imageData;
 	
 	static asio::const_buffers_1 _responseOK;
 	static asio::const_buffers_1 _responseNotFound;
