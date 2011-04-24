@@ -25,9 +25,52 @@
 
 #include "EVEServerPCH.h"
 
-ImageServerConnection::ImageServerConnection(asio::io_service& io)
-{
+asio::const_buffers_1 ImageServerConnection::_responseOK = asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n");
+asio::const_buffers_1 ImageServerConnection::_responseNotFound = asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n");
 
+ImageServerConnection::ImageServerConnection(asio::io_service& io)
+	: _socket(io)
+{
+}
+
+asio::ip::tcp::socket& ImageServerConnection::socket()
+{
+	return _socket;
+}
+
+void ImageServerConnection::Process()
+{
+	// receive all HTTP headers from the client
+	asio::async_read_until(_socket, _buffer, "\r\n\r\n", std::bind(&ImageServerConnection::ProcessHeaders, shared_from_this()));
+}
+
+void ImageServerConnection::ProcessHeaders()
+{
+	std::istream stream(&_buffer);
+	std::string request;
+	// every request line ends with \r\n
+	std::getline(stream, request, '\r');
+
+	if (!starts_with(request, "GET /"))
+	{
+		NotFound();
+		return;
+	}
+}
+
+void ImageServerConnection::NotFound()
+{
+	asio::async_write(_socket, _responseNotFound, std::bind(&ImageServerConnection::Close, shared_from_this()));
+}
+
+void ImageServerConnection::Close()
+{
+	_socket.close();
+}
+
+bool ImageServerConnection::starts_with(std::string& haystack, char* needle)
+{
+	return haystack.substr(0, strlen(needle)).compare(needle) == 0;
 }
 
 std::shared_ptr<ImageServerConnection> ImageServerConnection::create(asio::io_service& io)

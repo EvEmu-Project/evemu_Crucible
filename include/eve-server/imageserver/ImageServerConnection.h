@@ -27,21 +27,28 @@
 #define __IMAGESERVERCONNECTION__H__INCL__
 
 #include <memory>
-
-namespace asio
-{
-	class io_service;
-}
+#include <asio.hpp>
 
 class ImageServerConnection : public std::enable_shared_from_this<ImageServerConnection>
 {
 public:
 	static std::shared_ptr<ImageServerConnection> create(asio::io_service& io);
+	void Process();
+	asio::ip::tcp::socket& socket();
 
 private:
 	ImageServerConnection(asio::io_service& io);
+	void ProcessHeaders();
+	void NotFound();
+	void Close();
 
+	static bool starts_with(std::string& haystack, char* needle);
 
+	asio::streambuf _buffer;
+	asio::ip::tcp::socket _socket;
+	
+	static asio::const_buffers_1 _responseOK;
+	static asio::const_buffers_1 _responseNotFound;
 };
 
 #endif // __IMAGESERVERCONNECTION__H__INCL__

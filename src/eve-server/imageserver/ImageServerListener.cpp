@@ -29,6 +29,7 @@ ImageServerListener::ImageServerListener(asio::io_service& io)
 {
 	_acceptor = new asio::ip::tcp::acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), sConfig.net.port + 1));
 	sLog.Log("image server", "listening on port %i", (sConfig.net.port + 1));
+	StartAccept();
 }
 
 ImageServerListener::~ImageServerListener()
@@ -38,10 +39,12 @@ ImageServerListener::~ImageServerListener()
 
 void ImageServerListener::StartAccept()
 {
-
+	auto connection = ImageServerConnection::create(_acceptor->get_io_service());
+	_acceptor->async_accept(connection->socket(), std::bind(&ImageServerListener::HandleAccept, this, connection));
 }
 
 void ImageServerListener::HandleAccept(std::shared_ptr<ImageServerConnection> connection)
 {
-
+	connection->Process();
+	StartAccept();
 }
