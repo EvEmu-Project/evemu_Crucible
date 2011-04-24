@@ -195,6 +195,8 @@ int main( int argc, char* argv[] )
     services.cache_service->PrimeCache();
     sLog.Log("server init", "finished priming");
 
+	// start up the image server
+	ImageServer::get().Run();
 
     services.serviceDB().SetServerOnlineStatus(true);
 

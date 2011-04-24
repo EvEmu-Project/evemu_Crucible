@@ -159,6 +159,9 @@ IF( NOT UTF8CPP_FOUND )
     SET( UTF8CPP_LIBRARIES   "utf8cpp" )
 ENDIF( NOT UTF8CPP_FOUND )
 
+ADD_SUBDIRECTORY( "dep/asio" )
+SET ( ASIO_INCLUDE_DIR "${asio_INCLUDE_DIR}" )
+
 ###########################
 # Generated documentation #
 ###########################

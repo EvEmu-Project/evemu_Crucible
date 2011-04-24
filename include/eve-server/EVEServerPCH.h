@@ -43,6 +43,8 @@
 
 #include <utf8.h>
 
+#include <asio.hpp>
+
 /************************************************************************/
 /* common includes                                                      */
 /************************************************************************/
@@ -294,6 +296,10 @@
 
 #include "tutorial/TutorialDB.h"
 #include "tutorial/TutorialService.h"
+
+#include "imageserver/ImageServer.h"
+#include "imageserver/ImageServerConnection.h"
+#include "imageserver/ImageServerListener.h"
 
 #include "LiveUpdateDB.h"
 

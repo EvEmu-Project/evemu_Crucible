@@ -129,6 +129,8 @@
  *       but it gives you the general idea.
  */
 
+#include <functional>
+
 #ifdef MSVC
 #   include <tuple>
 #   include <unordered_map>
@@ -178,7 +180,7 @@
 #   ifndef NDEBUG
 #       include <crtdbg.h>
 //#       include <vld.h>  // Only enable if you have VLD installed
-#       define new new( _NORMAL_BLOCK, __FILE__, __LINE__ )
+//#       define new new( _NORMAL_BLOCK, __FILE__, __LINE__ )
 #   endif /* !NDEBUG */
 #endif /* MSVC */
 

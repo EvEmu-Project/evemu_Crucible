@@ -359,6 +359,16 @@ SET( tutorial_INCLUDE
 SET( tutorial_SOURCE
      "${TARGET_SOURCE_DIR}/tutorial/TutorialDB.cpp"
      "${TARGET_SOURCE_DIR}/tutorial/TutorialService.cpp" )
+     
+SET( imageserver_INCLUDE
+     "${TARGET_INCLUDE_DIR}/imageserver/ImageServer.h"
+     "${TARGET_INCLUDE_DIR}/imageserver/ImageServerListener.h"
+     "${TARGET_INCLUDE_DIR}/imageserver/ImageServerConnection.h" )
+SET( imageserver_SOURCE
+     "${TARGET_SOURCE_DIR}/imageserver/ImageServer.cpp"
+     "${TARGET_SOURCE_DIR}/imageserver/ImageServerListener.cpp"
+     "${TARGET_SOURCE_DIR}/imageserver/ImageServerConnection.cpp" )
+     
 
 ########################
 # Setup the executable #
@@ -367,6 +377,7 @@ INCLUDE_DIRECTORIES( "${GANGSTA_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${MYSQL_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${TINYXML_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${UTF8CPP_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${ASIO_INCLUDE_DIR}" )
 
 INCLUDE_DIRECTORIES( "${utils_INCLUDE_DIR}" )
 
@@ -399,6 +410,7 @@ SOURCE_GROUP( "include\\station"       FILES ${station_INCLUDE} )
 SOURCE_GROUP( "include\\system"        FILES ${system_INCLUDE} )
 SOURCE_GROUP( "include\\trade"         FILES ${trade_INCLUDE} )
 SOURCE_GROUP( "include\\tutorial"      FILES ${tutorial_INCLUDE} )
+SOURCE_GROUP( "include\\imageserver"   FILES ${imageserver_INCLUDE} )
 
 SOURCE_GROUP( "src"                FILES ${SOURCE} )
 SOURCE_GROUP( "src\\account"       FILES ${account_SOURCE} )
@@ -424,6 +436,7 @@ SOURCE_GROUP( "src\\station"       FILES ${station_SOURCE} )
 SOURCE_GROUP( "src\\system"        FILES ${system_SOURCE} )
 SOURCE_GROUP( "src\\trade"         FILES ${trade_SOURCE} )
 SOURCE_GROUP( "src\\tutorial"      FILES ${tutorial_SOURCE} )
+SOURCE_GROUP( "src\\imageserver"   FILES ${imageserver_SOURCE} )
 
 ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${INCLUDE}                ${SOURCE}
@@ -449,7 +462,8 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${station_INCLUDE}        ${station_SOURCE}
                 ${system_INCLUDE}         ${system_SOURCE}
                 ${trade_INCLUDE}          ${trade_SOURCE}
-                ${tutorial_INCLUDE}       ${tutorial_SOURCE} )
+                ${tutorial_INCLUDE}       ${tutorial_SOURCE}
+                ${imageserver_INCLUDE}    ${imageserver_SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "EVEServerPCH.h"
