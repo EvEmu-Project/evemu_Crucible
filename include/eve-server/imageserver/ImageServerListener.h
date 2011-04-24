@@ -33,12 +33,10 @@
 class ImageServerListener
 {
 public:
-
 	ImageServerListener(asio::io_service& io);
 	~ImageServerListener();
 
 private:
-
 	void StartAccept();
 	void HandleAccept(std::shared_ptr<ImageServerConnection> connection);
 

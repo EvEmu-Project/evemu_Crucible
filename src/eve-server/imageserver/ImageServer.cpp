@@ -25,6 +25,20 @@
 
 #include "EVEServerPCH.h"
 
+ImageServer::ImageServer()
+{
+	std::stringstream urlBuilder;
+	urlBuilder << "http://" << sConfig.net.imageServer << ":" << (sConfig.net.port +1) << "/";
+	_url = urlBuilder.str();
+
+	sLog.Log("image server", "our URL: %s", _url.c_str());
+}
+
+std::string& ImageServer::url()
+{
+	return _url;
+}
+
 void ImageServer::Run()
 {
 	_ioThread = std::auto_ptr<asio::thread>(new asio::thread(std::bind(&ImageServer::RunInternal, this)));

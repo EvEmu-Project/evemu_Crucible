@@ -36,12 +36,11 @@ namespace asio
 class ImageServerConnection : public std::enable_shared_from_this<ImageServerConnection>
 {
 public:
-
 	static std::shared_ptr<ImageServerConnection> create(asio::io_service& io);
 
 private:
-
 	ImageServerConnection(asio::io_service& io);
+
 
 };
 

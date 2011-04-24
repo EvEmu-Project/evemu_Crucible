@@ -27,7 +27,9 @@
 #define __IMAGESERVER__H__INCL__
 
 #include "utils/Singleton.h"
+
 #include <memory>
+#include <string>
 
 namespace asio
 {
@@ -40,7 +42,10 @@ class ImageServerListener;
 class ImageServer : public Singleton<ImageServer>
 {
 public:
+	ImageServer();
 	void Run();
+
+	std::string& url();
 
 private:
 	void RunInternal();
@@ -48,6 +53,7 @@ private:
 	std::auto_ptr<asio::thread> _ioThread;
 	std::auto_ptr<asio::io_service> _io;
 	std::auto_ptr<ImageServerListener> _listener;
+	std::string _url;
 };
 
 #endif // __IMAGESERVER__H__INCL__

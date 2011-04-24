@@ -1508,7 +1508,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     server_shake.challenge_responsehash = "55087";
 	
 	// the image server used by the client to download images
-	server_shake.imageserverurl = sConfig.net.imageServer;
+	server_shake.imageserverurl = ImageServer::get().url();
 
     server_shake.macho_version = MachoNetVersion;
     server_shake.boot_version = EVEVersionNumber;
