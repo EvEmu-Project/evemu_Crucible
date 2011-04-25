@@ -84,6 +84,9 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
 	stream.flush();
 	stream.close();
 
+	// and delete it from our limbo map
+	_limboImages.erase(creatorAccountID);
+
 	sLog.Log("image server", "saved image from %i as %s", creatorAccountID, path.c_str());
 }
 
