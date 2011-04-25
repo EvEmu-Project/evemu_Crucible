@@ -343,7 +343,7 @@ bool InventoryDB::GetStationType(uint32 stationTypeID, StationTypeData &into) {
 
     if(!sDatabase.RunQuery(res,
         "SELECT"
-        " dockingBayGraphicID, hangarGraphicID,"
+        " 0 as dockingBayGraphicID, 0 as hangarGraphicID,"
         " dockEntryX, dockEntryY, dockEntryZ,"
         " dockOrientationX, dockOrientationY, dockOrientationZ,"
         " operationID, officeSlots, reprocessingEfficiency, conquerable"

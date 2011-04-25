@@ -73,6 +73,8 @@ PyResult CharUnboundMgrService::Handle_SelectCharacterID(PyCallArgs &call) {
 		codelog(CLIENT__ERROR, "Failed to decode args for SelectCharacterID call");
 		return NULL;
 	}
+
+	call.client->SelectCharacter(arg.charID);
 	return NULL;
 }
 

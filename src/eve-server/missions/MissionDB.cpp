@@ -34,15 +34,14 @@ PyObjectEx *MissionDB::GetAgents() {
 		"	agt.agentTypeID,"
 		"	agt.divisionID,"
 		"	agt.level,"
-		"	agt.stationID,"
+		"	chr.stationID,"
 		"	agt.quality,"
 		"	agt.corporationID,"
 		"	bl.bloodlineID,"
 		"	chr.gender"
 		" FROM agtAgents AS agt"
-		" LEFT JOIN character_ AS chr ON chr.characterID=agt.agentID"
-		" LEFT JOIN entity AS ent ON ent.itemID=chr.characterID"
-		" LEFT JOIN bloodlineTypes AS bl USING (typeID)"
+		" LEFT JOIN characterstatic AS chr ON chr.characterID = agt.agentID"
+		" LEFT JOIN bloodlineTypes AS bl ON bl.bloodlineID = agt.agentTypeID"
 	))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
