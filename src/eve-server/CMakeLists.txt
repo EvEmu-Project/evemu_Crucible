@@ -132,6 +132,7 @@ SET( character_SOURCE
      "${TARGET_SOURCE_DIR}/character/SkillMgrService.cpp" )
 
 SET( chat_INCLUDE
+	 "${TARGET_INCLUDE_DIR}/chat/kenny.h"
      "${TARGET_INCLUDE_DIR}/chat/LookupService.h"
      "${TARGET_INCLUDE_DIR}/chat/LSCDB.h"
      "${TARGET_INCLUDE_DIR}/chat/LSCChannel.h"
@@ -139,6 +140,7 @@ SET( chat_INCLUDE
      "${TARGET_INCLUDE_DIR}/chat/OnlineStatusService.h"
      "${TARGET_INCLUDE_DIR}/chat/VoiceMgrService.h" )
 SET( chat_SOURCE
+	 "${TARGET_SOURCE_DIR}/chat/kenny.cpp"
      "${TARGET_SOURCE_DIR}/chat/LookupService.cpp"
      "${TARGET_SOURCE_DIR}/chat/LSCDB.cpp"
      "${TARGET_SOURCE_DIR}/chat/LSCChannel.cpp"
