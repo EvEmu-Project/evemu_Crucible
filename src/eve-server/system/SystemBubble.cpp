@@ -25,12 +25,16 @@
 
 #include "EVEServerPCH.h"
 
+uint32 SystemBubble::m_bubbleIncrementer = 0;
+
 SystemBubble::SystemBubble(const GPoint &center, double radius)
 : m_center(center),
   m_radius(radius),
   m_radius2(radius*radius)
 {
 	_log(DESTINY__BUBBLE_DEBUG, "Created new bubble %p at (%.2f,%.2f,%.2f) with radius %.2f", this, m_center.x, m_center.y, m_center.z, m_radius);
+    m_bubbleIncrementer++;
+    m_bubbleID = m_bubbleIncrementer;
 }
 
 //send a set of destiny events and updates to everybody in the bubble.

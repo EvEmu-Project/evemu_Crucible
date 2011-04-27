@@ -82,6 +82,7 @@ public:
 	virtual const char *GetName() const { return(data.itemName.c_str()); }
 	virtual double GetRadius() const { return(data.radius); }
 	virtual const GPoint &GetPosition() const { return( data.position ); }
+    virtual const GVector &GetVelocity() const;
 };
 
 class SystemPlanetEntity : public SimpleSystemEntity {

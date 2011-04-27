@@ -57,6 +57,8 @@ COMMAND( ban, ROLE_ADMIN,
 		"(charName) - bans player's account from the server")
 COMMAND( unban, ROLE_ADMIN,
 		"(charName) - removes ban on player's account")
+COMMAND( kenny, ROLE_ADMIN,
+        "(ON,OFF,0,1) - enable/disable the Kenny Translator for your chatting entertainment!")
 /*COMMAND( entity, ROLE_ADMIN,
 		"(entityID) - unknown" )
 COMMAND( chatban, ROLE_ADMIN,

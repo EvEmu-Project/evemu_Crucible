@@ -234,6 +234,9 @@ public:
 	void ChannelJoined(LSCChannel *chan);
 	void ChannelLeft(LSCChannel *chan);
 	void UpdateSession( const char *sessionType, int value );
+    bool IsKennyTranslatorEnabled() { return bKennyfied; };
+    void EnableKennyTranslator() { bKennyfied = true; };
+    void DisableKennyTranslator() { bKennyfied = false; };
 
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, void (Client::* clientCall)() );
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, ClientFunctor **functor );
@@ -348,7 +351,7 @@ private:
 	
 	uint32 m_nextNotifySequence;
 
-
+    bool bKennyfied;
 
     /************************************************************************/
     /* new system for MultiEvents                                           */

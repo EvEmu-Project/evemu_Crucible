@@ -125,6 +125,12 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="Call_AssembleShipTech3">
+    <tupleInline>
+      <int name="item" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="EntityEffectState">
     <listInline>
       <!--

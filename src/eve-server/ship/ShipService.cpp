@@ -311,28 +311,94 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
     //TODO: Return correct values
     Call_AssembleShip args;
-    if(!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Failed to decode arguments");
-        //TODO: throw exception
+    Call_AssembleShipTech3 argsT3;
+    uint32 itemID = 0;
+    std::vector<uint32> subSystemList;
+    bool completeTech3Assembly = false;
+
+    if( !(call.tuple->IsTuple()) )
         return NULL;
+
+    if( !(call.tuple->GetItem(0)->IsList()) )
+    {
+        if( !(call.tuple->GetItem(0)->IsInt()) )
+        {
+            sLog.Error( "ShipBound::Handle_AssembleShip()", "Failed to decode arguments: call.tuple->GetItem(0)->IsInt() == false");
+            //TODO: throw exception
+            return NULL;
+        }
+        else
+        {
+            // Tuple contains single Integer, this is for Tech 3 Ship Assembly:
+            if( !argsT3.Decode(&call.tuple) )
+            {
+                sLog.Error( "ShipBound::Handle_AssembleShip()", "Failed to decode arguments: argsT3.Decode(&call.tuple) failed");
+                //TODO: throw exception
+                return NULL;
+            }
+            itemID = argsT3.item;
+            if( call.byname.find("subSystems") != call.byname.end() )
+            {
+                PyList * list;
+                if( call.byname.find("subSystems")->second->IsList() )
+                {
+                    list = call.byname.find("subSystems")->second->AsList();
+                    for(uint32 index=0; index<list->size(); index++)
+                        subSystemList.push_back( list->GetItem( index )->AsInt()->value() );
+                }
+                else
+                {
+                    sLog.Error( "ShipBound::Handle_AssembleShip()", "Failed to decode arguments: !call.byname.find(\"subSystems\")->second->IsList() failed");
+                    //TODO: throw exception
+                    return NULL;
+                }
+            }
+            else
+            {
+                sLog.Error( "ShipBound::Handle_AssembleShip()", "Failed to decode arguments: call.byname.find(\"subSystems\") != call.byname.end() failed" );
+                return NULL;
+            }
+            completeTech3Assembly = true;
+        }
+    }
+    else
+    {
+        if(!args.Decode(&call.tuple))
+        {
+            codelog(SERVICE__ERROR, "Failed to decode arguments");
+            //TODO: throw exception
+            return NULL;
+        }
+        itemID = args.items.front();
     }
 
-	
-    InventoryItemRef item = m_manager->item_factory.GetItem( args.items.front() );
-    if( !item )
+    ShipRef ship = m_manager->item_factory.GetShip( itemID );
+
+    if( !ship )
     {
-        _log( ITEM__ERROR, "Failed to load ship %u to assemble.", args.items.front() );
+        _log( ITEM__ERROR, "Failed to load ship %u to assemble.", itemID );
         return NULL;
     }
 	
-	//check if the item is a stack
-	if( item->quantity() > 1 )
+	//check if the ship is a stack
+	if( ship->quantity() > 1 )
 	{
 		//Split the stack and assemble one ship
-		InventoryItemRef new_item = item->Split(1,true);
+		InventoryItemRef new_item = ship->Split(1,true);
 	}
 
-    item->ChangeSingleton(true, true);
+    ship->ChangeSingleton(true, true);
+
+    if( completeTech3Assembly )
+    {
+        // Move the five specified subsystems to the newly assembled Tech 3 ship
+        InventoryItemRef subSystemItem;
+        for(uint32 index=0; index<subSystemList.size(); index++)
+        {
+            subSystemItem = m_manager->item_factory.GetItem( subSystemList.at( index ) );
+            subSystemItem->MoveInto( *ship, (EVEItemFlags)(subSystemItem->GetAttribute(AttrSubSystemSlot).get_int()), true );
+        }
+    }
 
     return NULL;
 }

@@ -170,6 +170,7 @@
 #include "character/SkillMgrService.h"
 
 // chat stuff
+#include "chat/kenny.h"
 #include "chat/LookupService.h"
 #include "chat/LSCChannel.h"
 #include "chat/LSCDB.h"

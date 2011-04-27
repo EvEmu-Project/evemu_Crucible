@@ -78,6 +78,11 @@ void SimpleSystemEntity::MakeDamageState(DoDestinyDamageState &into) const {
 	into.timestamp = Win32TimeNow();
 }
 
+const GVector &SimpleSystemEntity::GetVelocity() const {
+	static const GVector err(0.0, 0.0, 0.0);
+	return(err);
+}
+
 void InanimateSystemEntity::QueueDestinyUpdate(PyTuple **du) {
 	//do nothing, the caller will handle it properly.
 	//this gives them the opportunity to reduce a copy if they are smart.

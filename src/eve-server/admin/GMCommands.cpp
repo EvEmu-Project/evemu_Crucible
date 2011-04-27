@@ -414,9 +414,11 @@ PyResult Command_spawn( Client* who, CommandDB* db, PyServiceMgr* services, cons
     double actualRadius = 0.0;
     InventoryItemRef item;
     ShipRef ship;
+    double radius;
+    bool offsetLocationSet = false;
     
 	if( args.argCount() < 2 ) {
-		throw PyException( MakeCustomError("Correct Usage: /spawn [typeID(int)/typeName(string)]") );
+		throw PyException( MakeCustomError("Correct Usage: /spawn [typeID(int)/typeName(string)]  with optional X Y Z coordinate as in /spawn [typeID(int/typeName(string)] [x(float)] [y(float)] [z(float)]") );
 	}
 	
 	if( !(args.isNumber( 1 )) )
@@ -433,11 +435,40 @@ PyResult Command_spawn( Client* who, CommandDB* db, PyServiceMgr* services, cons
         return new PyString( "Unknown typeID or typeName returned no matches." );
     }
 
+    // Check to see if the X Y Z optional coordinates were supplied with the command:
+    GPoint offsetLocation;
+    if( args.argCount() > 2 )
+    {
+        if( !(args.isNumber(2)) )
+            throw PyException( MakeCustomError( "Argument 2 should be the X distance from your ship in meters you want the item spawned" ) );
+        if( !(args.isNumber(3)) )
+            throw PyException( MakeCustomError( "Argument 3 should be the Y distance from your ship in meters you want the item spawned" ) );
+        if( !(args.isNumber(4)) )
+            throw PyException( MakeCustomError( "Argument 4 should be the Z distance from your ship in meters you want the item spawned" ) );
+
+        offsetLocation.x = atoi( args.arg( 2 ).c_str() );
+        offsetLocation.y = atoi( args.arg( 3 ).c_str() );
+        offsetLocation.z = atoi( args.arg( 4 ).c_str() );
+        offsetLocationSet = true;
+    }
+
 	GPoint loc( who->GetPosition() );
-    // Calculate a random coordinate on the sphere centered on the player's position with
-    // a radius equal to the radius of the ship/celestial being spawned times 10 for really good measure of separation:
-    double radius = (actualRadius * 5.0) * (double)(MakeRandomInt( 1, 3));     // Scale the distance from player that the object will spawn to between 10x and 15x the object's radius
-    loc.MakeRandomPointOnSphere( radius );
+
+    if( offsetLocationSet )
+    {
+        // An X, Y, Z coordinate offset was specified along with the command, so use this to calculate
+        // the final cooridnate of the newly spawned item:
+        loc.x += offsetLocation.x;
+        loc.y += offsetLocation.y;
+        loc.z += offsetLocation.z;
+    }
+    else
+    {
+        // Calculate a random coordinate on the sphere centered on the player's position with
+        // a radius equal to the radius of the ship/celestial being spawned times 10 for really good measure of separation:
+        radius = (actualRadius * 5.0) * (double)(MakeRandomInt( 1, 3));     // Scale the distance from player that the object will spawn to between 10x and 15x the object's radius
+        loc.MakeRandomPointOnSphere( radius );
+    }
 
     // Spawn the item:
 	ItemData idata(
@@ -1008,7 +1039,6 @@ PyResult Command_dogma( Client* who, CommandDB* db, PyServiceMgr* services, cons
 
 PyResult Command_kick( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-	
 	Client *target;
 
 	if( args.argCount() == 2 ) 
@@ -1024,7 +1054,6 @@ PyResult Command_kick( Client* who, CommandDB* db, PyServiceMgr* services, const
 			const char *name = args.arg( 1 ).c_str();
 			target = services->entity_list.FindCharacter( name );
 		}
-
 	} 
 	//support for characters with first and last names
 	else if( args.argCount() == 3 )
@@ -1034,11 +1063,9 @@ PyResult Command_kick( Client* who, CommandDB* db, PyServiceMgr* services, const
 
 		std::string name = args.arg( 1 ) + " " + args.arg( 2 );
 		target = services->entity_list.FindCharacter( name.c_str() ) ;
-
 	} 
 	else
 		throw PyException( MakeCustomError("Correct Usage: /kick [Character Name]") );
-
 
 	if(target == NULL)
 		throw PyException( MakeCustomError( "Cannot find Character" ) );
@@ -1046,8 +1073,8 @@ PyResult Command_kick( Client* who, CommandDB* db, PyServiceMgr* services, const
 		target->DisconnectClient();
 
 	return NULL;
-
 }
+
 PyResult Command_ban( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
 	Client *target;
@@ -1062,7 +1089,6 @@ PyResult Command_ban( Client* who, CommandDB* db, PyServiceMgr* services, const 
 		}
 		else
 			throw PyException( MakeCustomError("Correct Usage: /ban [Character Name]") );
-
 	} 
 	//support for characters with first and last names
 	else if( args.argCount() == 3 )
@@ -1072,7 +1098,6 @@ PyResult Command_ban( Client* who, CommandDB* db, PyServiceMgr* services, const 
 
 		std::string name = args.arg( 1 ) + " " + args.arg( 2 );
 		target = services->entity_list.FindCharacter( name.c_str() ) ;
-
 	} 
 	else
 		throw PyException( MakeCustomError("Correct Usage: /ban [Character Name]") );
@@ -1085,9 +1110,9 @@ PyResult Command_ban( Client* who, CommandDB* db, PyServiceMgr* services, const 
 
 	return NULL;
 }
+
 PyResult Command_unban( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {
-
 	if( args.argCount() == 2 ) 
 	{
 
@@ -1098,7 +1123,6 @@ PyResult Command_unban( Client* who, CommandDB* db, PyServiceMgr* services, cons
 		}
 		else
 			throw PyException( MakeCustomError("Correct Usage: /ban [Character Name]") );
-
 	} 
 	//support for characters with first and last names
 	else if( args.argCount() == 3 )
@@ -1108,13 +1132,35 @@ PyResult Command_unban( Client* who, CommandDB* db, PyServiceMgr* services, cons
 
 		std::string name = args.arg( 1 ) + " " + args.arg( 2 );
 		services->serviceDB().SetAccountBanStatus(db->GetAccountID(name),false);
-		
-
 	} 
 	else
 		throw PyException( MakeCustomError("Correct Usage: /unban [Character Name / Character ID]") );
 
-	
+	return NULL;
+}
+
+PyResult Command_kenny( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	if( args.argCount() == 2 ) 
+	{
+        if( args.arg(1) == "ON" || args.arg(1) == "On" || args.arg(1) == "oN" || args.arg(1) == "on" ||
+            args.arg(1) == "1" )
+		{
+            // Enable Kenny Translator
+            who->EnableKennyTranslator();
+		}
+        else if( args.arg(1) == "OFF" || args.arg(1) == "off" || args.arg(1) == "Off" ||
+            args.arg(1) == "0" )
+        {
+            // Disable Kenny Translator
+            who->DisableKennyTranslator();
+        }
+		else
+			throw PyException( MakeCustomError("Correct Usage: /kenny ON/OFF On/Off on/off 1/0") );
+	} 
+	else
+		throw PyException( MakeCustomError("Correct Usage: /kenny ON/OFF On/Off on/off 1/0") );
 	
 	return NULL;
 }
+

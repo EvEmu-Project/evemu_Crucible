@@ -109,6 +109,11 @@ const GPoint &ItemSystemEntity::GetPosition() const {
 	return(m_self->position());
 }
 
+const GVector &ItemSystemEntity::GetVelocity() const {
+	static const GVector err(0.0, 0.0, 0.0);
+	return(err);
+}
+
 PyDict *ItemSystemEntity::MakeSlimItem() const {
 	PyDict *slim = new PyDict();
 	slim->SetItemString("itemID", new PyInt(Item()->itemID()));
@@ -146,6 +151,13 @@ const GPoint &DynamicSystemEntity::GetPosition() const {
 	if(m_destiny == NULL)
 		return(ItemSystemEntity::GetPosition());
 	return(m_destiny->GetPosition());
+}
+
+const GVector &DynamicSystemEntity::GetVelocity() const {
+   	static const GVector err(0.0, 0.0, 0.0);
+	if(m_destiny == NULL)
+		return(err);
+    return(m_destiny->GetVelocity());
 }
 
 double DynamicSystemEntity::GetMass() const {

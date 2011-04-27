@@ -233,7 +233,8 @@ void LSCChannel::Evacuate(Client * c) {
 }
 
 void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
-	MulticastTarget mct;
+/*
+    MulticastTarget mct;
 
 	OnLSC_SendMessage sm;
 
@@ -260,8 +261,93 @@ void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
 	sm.message = message;
 	sm.member_count = m_chars.size();
 
-	PyTuple *answer = sm.Encode();
+    PyTuple *answer = sm.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
+*/
+
+    // NEW KENNY TRANSLATOR VERSION:
+    // execute Multicast() twice: once for all clients where IsKennyTranslatorEnabled() == false and once for all clients where it is true
+	MulticastTarget mct_Kennyfied;
+	OnLSC_SendMessage sm_Kennyfied;
+    uint32 kennyfiedCharListSize = 0;
+	MulticastTarget mct_NotKennyfied;
+    OnLSC_SendMessage sm_NotKennyfied;
+    uint32 notKennyfiedCharListSize = 0;
+
+	if (message[0] == '#') {
+		m_service->ExecuteCommand(c, message);
+		mct_Kennyfied.characters.insert(c->GetCharacterID());
+		sm_Kennyfied.sender = _MakeSenderInfo(c);
+	} else {
+		if (self) {
+            if( c->IsKennyTranslatorEnabled() )
+            {
+			    mct_Kennyfied.characters.insert(c->GetCharacterID());
+			    sm_Kennyfied.sender = _FakeSenderInfo();
+                kennyfiedCharListSize++;
+            }
+            else
+            {
+			    mct_NotKennyfied.characters.insert(c->GetCharacterID());
+			    sm_NotKennyfied.sender = _FakeSenderInfo();
+                notKennyfiedCharListSize++;
+            }
+		} else {
+			std::map<uint32, LSCChannelChar>::iterator cur, end;
+			cur = m_chars.begin();
+			end = m_chars.end();
+			for(; cur != end; cur++)
+            {
+                if( (m_service->entityList().FindCharacter(cur->first)->IsKennyTranslatorEnabled()) )
+                {
+				    mct_Kennyfied.characters.insert( cur->first );
+                    kennyfiedCharListSize++;
+                }
+                else
+                {
+				    mct_NotKennyfied.characters.insert( cur->first );
+                    notKennyfiedCharListSize++;
+                }
+            }
+
+            //if( c->IsKennyTranslatorEnabled() )
+            //{
+			    sm_Kennyfied.sender = _MakeSenderInfo(c);
+                kennyfiedCharListSize++;
+            //}
+            //else
+            //{
+                sm_NotKennyfied.sender = _MakeSenderInfo(c);
+                notKennyfiedCharListSize++;
+            //}
+	}
+	}
+
+    PyTuple *answerNotKennyfied;
+	sm_NotKennyfied.channelID = EncodeID();
+	sm_NotKennyfied.message = message;
+	sm_NotKennyfied.member_count = notKennyfiedCharListSize;
+
+    // Check if number of non-kennyfied recipients is greater than zero, and if so, send a Multicast() to them
+    // with the normal message sent through kenny translator IF the sender has the Kenny Translator enabled
+    if( notKennyfiedCharListSize > 0 )
+    {
+        std::string kennyfied_message;
+        if( c->IsKennyTranslatorEnabled() )
+        {
+            normal_to_kennyspeak(sm_NotKennyfied.message, kennyfied_message);
+            sm_NotKennyfied.message = kennyfied_message;
+        }
+	    answerNotKennyfied = sm_NotKennyfied.Encode();
+	    m_service->entityList().Multicast("OnLSC", GetTypeString(), &answerNotKennyfied, mct_NotKennyfied);
+    }
+
+	sm_Kennyfied.channelID = EncodeID();
+	sm_Kennyfied.message = message;
+	sm_Kennyfied.member_count = kennyfiedCharListSize;
+
+    PyTuple *answerKennyfied = sm_Kennyfied.Encode();
+	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answerKennyfied, mct_Kennyfied);
 }
 
 bool LSCChannel::IsJoined(uint32 charID) {

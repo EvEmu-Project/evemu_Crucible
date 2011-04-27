@@ -50,7 +50,7 @@ bool IsNumber( char c )
 bool IsNumber( const char* str, size_t len )
 {
     // skip sign if there is one
-    if( 1 >= len )
+    if( len >= 1 )
     {
         if(    '-' == str[0]
             || '+' == str[0] )

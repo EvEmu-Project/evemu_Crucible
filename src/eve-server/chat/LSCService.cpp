@@ -978,7 +978,7 @@ PyResult LSCService::Handle_SendMessage( PyCallArgs& call )
 
 		channel_id = (call.tuple->AsTuple()->items[0]->AsInt())->value();
 		message = ((call.tuple->AsTuple()->items[1]->AsWString())->content());
-		sLog.Log( "LSCService", "Handle_SwndMessage: call is either User-created chat message or bad packet.");
+		sLog.Log( "LSCService", "Handle_SendMessage: call is either User-created chat message or bad packet.");
     }
 	else
 	{
@@ -990,7 +990,7 @@ PyResult LSCService::Handle_SendMessage( PyCallArgs& call )
 		}
 		channel_id = args.channel.id;
 		message = args.message;
-		sLog.Log( "LSCService", "Handle_SwndMessage: call is Corp/Local/Region/Constellation chat.");
+		sLog.Log( "LSCService", "Handle_SendMessage: call is Corp/Local/Region/Constellation chat.");
 	}
 
     std::map<uint32, LSCChannel*>::iterator res = m_channels.find( channel_id );

@@ -52,6 +52,8 @@ Client::Client(PyServiceMgr &services, EVETCPConnection** con)
     m_justUndocked = false;
     m_needToDock = false;
 
+    bKennyfied = false;     // by default, we do NOT want chat messages kennyfied, LOL
+
     // Start handshake
     Reset();
 }
