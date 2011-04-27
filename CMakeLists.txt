@@ -35,7 +35,7 @@ SET( EVEMU_SOURCE_SCM       ""
 SET( EVEMU_TOOL_ENABLE      OFF
      CACHE BOOL   "Build eve-tool." )
 
-SET( EVEMU_ROOT_DIR "../"
+SET( EVEMU_ROOT_DIR "..////"
      CACHE PATH "The root of EVEmu workspace." )
 MARK_AS_ADVANCED( EVEMU_ROOT_DIR )
 
