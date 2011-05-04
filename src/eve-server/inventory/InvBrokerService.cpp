@@ -48,6 +48,8 @@ public:
         PyCallable_REG_CALL(InvBrokerBound, GetInventory)
         PyCallable_REG_CALL(InvBrokerBound, SetLabel)
         PyCallable_REG_CALL(InvBrokerBound, TrashItems)
+		// it seems as if this has superseded all other broker service calls
+		PyCallable_REG_CALL(InvBrokerBound, GetItemDescriptor)
     }
     virtual ~InvBrokerBound()
 	{
@@ -63,6 +65,7 @@ public:
     PyCallable_DECL_CALL(GetInventory)
     PyCallable_DECL_CALL(SetLabel)
     PyCallable_DECL_CALL(TrashItems)
+	PyCallable_DECL_CALL(GetItemDescriptor)
 
 
 protected:
@@ -97,6 +100,11 @@ PyBoundObject *InvBrokerService::_CreateBoundObject(Client *c, const PyRep *bind
     args.Dump(CLIENT__MESSAGE, "    ");
 
     return(new InvBrokerBound(m_manager, args.entityID));
+}
+
+PyResult InvBrokerBound::Handle_GetItemDescriptor(PyCallArgs &call)
+{
+	return NULL;
 }
 
 //this is a view into the entire inventory item.
