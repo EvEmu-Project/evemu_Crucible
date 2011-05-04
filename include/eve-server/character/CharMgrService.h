@@ -44,6 +44,7 @@ protected:
 	PyCallable_DECL_CALL(GetPublicInfo)
 	PyCallable_DECL_CALL(GetPublicInfo3)
 	PyCallable_DECL_CALL(GetTopBounties)
+	PyCallable_DECL_CALL(GetOwnerNoteLabels)
 };
 
 

@@ -62,7 +62,7 @@ SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db)
     PyCallable_REG_CALL(SkillMgrBound, GetSkillHistory)
     PyCallable_REG_CALL(SkillMgrBound, CharAddImplant)
     PyCallable_REG_CALL(SkillMgrBound, RemoveImplantFromCharacter)
-    PyCallable_REG_CALL(SkillMgrBound, GetSkillQueue)
+    PyCallable_REG_CALL(SkillMgrBound, GetSkillQueueAndFreePoints)
     PyCallable_REG_CALL(SkillMgrBound, SaveSkillQueue)
     PyCallable_REG_CALL(SkillMgrBound, AddToEndOfSkillQueue)
 
@@ -142,7 +142,7 @@ PyResult SkillMgrBound::Handle_RemoveImplantFromCharacter( PyCallArgs& call )
     return NULL;
 }
 
-PyResult SkillMgrBound::Handle_GetSkillQueue(PyCallArgs &call) {
+PyResult SkillMgrBound::Handle_GetSkillQueueAndFreePoints(PyCallArgs &call) {
     // returns list of skills currently in the skill queue.
     CharacterRef ch = call.client->GetChar();
 

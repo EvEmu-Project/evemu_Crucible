@@ -36,10 +36,17 @@ CharMgrService::CharMgrService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(CharMgrService, GetPublicInfo)
 	PyCallable_REG_CALL(CharMgrService, GetPublicInfo3)
 	PyCallable_REG_CALL(CharMgrService, GetTopBounties)
+	PyCallable_REG_CALL(CharMgrService, GetOwnerNoteLabels)
 }
 
 CharMgrService::~CharMgrService() {
 	delete m_dispatch;
+}
+
+PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
+{
+	// just a dummy for now
+	return new PyList();
 }
 
 PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
