@@ -219,7 +219,7 @@
 					  <int name="userType" />
 				  </dictInlineEntry>
 				  <dictInlineEntry key="role">
-					  <int name="role" />
+					  <long name="role" />
 				  </dictInlineEntry>
 				  <dictInlineEntry key="address">
 					  <string name="address" />

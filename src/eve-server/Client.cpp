@@ -1474,7 +1474,8 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         return false;
     }
 
-    uint32 accountID, accountRole;
+    uint32 accountID;
+	uint64 accountRole;
 	if( !services().serviceDB().DoLogin(
             ccp.user_name.c_str(),
             ccp.user_password->GetPassword()->content().c_str(),
@@ -1527,7 +1528,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     //user type 1 is normal user, type 23 is a trial account user.
     mSession.SetInt( "userType", 1 );
     mSession.SetInt( "userid", accountID );
-    mSession.SetInt( "role", accountRole );
+    mSession.SetLong( "role", accountRole );
 
     return true;
 }

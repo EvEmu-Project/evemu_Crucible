@@ -152,7 +152,7 @@ public:
 
     uint32 GetAccountType() const                   { return mSession.GetCurrentInt( "userType" ); }
     uint32 GetAccountID() const                     { return mSession.GetCurrentInt( "userid" ); }
-	uint32 GetAccountRole() const                   { return mSession.GetCurrentInt( "role" ); }
+	uint64 GetAccountRole() const                   { return mSession.GetCurrentLong( "role" ); }
 
 	uint32 GetCharacterID() const                   { return mSession.GetCurrentInt( "charid" ); }
         std::string GetCharacterName() const            { return mSession.GetCurrentString( "charname" ); }
