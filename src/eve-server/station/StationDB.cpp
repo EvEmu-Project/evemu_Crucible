@@ -117,7 +117,7 @@ PyRep *StationDB::GetStationItemBits(uint32 sid) {
 		" SELECT "
 		" staStations.stationID, "
 		" staStations.stationTypeID, staStations.corporationID AS ownerID, "
-		" 244 AS hangarGraphicID, "
+		" staStations.hangarGraphicID, "
 		// damn mysql returns the result of the sum as string and so it is sent to the client as string and so it freaks out...
 		" CAST(SUM(staOperationServices.serviceID) as UNSIGNED INTEGER) AS serviceMask "
 		" FROM staStations "
@@ -144,8 +144,7 @@ PyRep *StationDB::GetStationItemBits(uint32 sid) {
 	result->items[3] = new PyInt(row.GetUInt(4));
 	result->items[4] = new PyInt(row.GetUInt(1));
 
-	PySubStream *sub = new PySubStream(result);
-	return sub;
+	return result;
 }
 
 
