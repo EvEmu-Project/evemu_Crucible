@@ -125,7 +125,8 @@ SET( character_INCLUDE
      "${TARGET_INCLUDE_DIR}/character/SkillMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/CharUnboundMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/PaperDollService.h"
-     "${TARGET_INCLUDE_DIR}/character/PhotoUploadService.h" )
+     "${TARGET_INCLUDE_DIR}/character/PhotoUploadService.h"
+     "${TARGET_INCLUDE_DIR}/character/AggressionMgrService.h" )
 SET( character_SOURCE
      "${TARGET_SOURCE_DIR}/character/CertificateMgrDB.cpp"
      "${TARGET_SOURCE_DIR}/character/CertificateMgrService.cpp"
@@ -137,7 +138,8 @@ SET( character_SOURCE
      "${TARGET_SOURCE_DIR}/character/SkillMgrService.cpp"
      "${TARGET_SOURCE_DIR}/character/CharUnboundMgrService.cpp"
      "${TARGET_SOURCE_DIR}/character/PaperDollService.cpp"
-     "${TARGET_SOURCE_DIR}/character/PhotoUploadService.cpp" )
+     "${TARGET_SOURCE_DIR}/character/PhotoUploadService.cpp"
+     "${TARGET_SOURCE_DIR}/character/AggressionMgrService.cpp" )
 
 SET( chat_INCLUDE
      "${TARGET_INCLUDE_DIR}/chat/LookupService.h"

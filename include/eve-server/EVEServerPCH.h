@@ -173,6 +173,7 @@
 #include "character/CharUnboundMgrService.h"
 #include "character/PaperDollService.h"
 #include "character/PhotoUploadService.h"
+#include "character/AggressionMgrService.h"
 
 // chat stuff
 #include "chat/LookupService.h"
