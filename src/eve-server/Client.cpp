@@ -491,6 +491,7 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     if( character->stationID() == 0 )
     {
         mSession.Clear( "stationid" );
+		mSession.Clear( "stationid2" );
 
         mSession.SetInt( "solarsystemid", character->solarSystemID() );
         mSession.SetInt( "locationid", character->solarSystemID() );
@@ -500,6 +501,7 @@ void Client::_UpdateSession( const CharacterConstRef& character )
         mSession.Clear( "solarsystemid" );
 
         mSession.SetInt( "stationid", character->stationID() );
+		mSession.SetInt( "stationid2", character->stationID() );
         mSession.SetInt( "locationid", character->stationID() );
     }
     mSession.SetInt( "solarsystemid2", character->solarSystemID() );
@@ -567,6 +569,7 @@ void Client::_UpdateSession2( uint32 characterID )
     if( stationID == 0 )
     {
         mSession.Clear( "stationid" );
+		mSession.Clear( "stationid2" );
 
         mSession.SetInt( "solarsystemid", solarSystemID );
         mSession.SetInt( "locationid", solarSystemID );
@@ -576,6 +579,7 @@ void Client::_UpdateSession2( uint32 characterID )
         mSession.Clear( "solarsystemid" );
 
         mSession.SetInt( "stationid", stationID );
+		mSession.SetInt( "stationid2", stationID );
         mSession.SetInt( "locationid", stationID );
     }
     mSession.SetInt( "solarsystemid2", solarSystemID );
