@@ -73,8 +73,7 @@ PyResult AggressionMgrBound::Handle_GetCriminalTimeStamps(PyCallArgs &call)
 		return NULL;
 	}
 
-	// no idea what is returned from this right now
-	return new PyList();
+	return new PyDict();
 }
 
 PyResult AggressionMgrBound::Handle_CheckLootRightExceptions(PyCallArgs &call)
