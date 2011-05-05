@@ -114,7 +114,7 @@ PyDict *CorporationDB::ListAllCorpInfo() {
     if(!sDatabase.RunQuery(res,
         "SELECT "
         "   corporationName,"
-        "   corporationID,mainActivityID,secondaryActivityID,"
+        "   corporationID,"
         "   size,extent,solarSystemID,investorID1,investorShares1,"
         "   investorID2, investorShares2, investorID3,investorShares3,"
         "   investorID4,investorShares4,"

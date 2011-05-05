@@ -48,8 +48,6 @@ public:
         PyCallable_REG_CALL(InvBrokerBound, GetInventory)
         PyCallable_REG_CALL(InvBrokerBound, SetLabel)
         PyCallable_REG_CALL(InvBrokerBound, TrashItems)
-		// it seems as if this has superseded all other broker service calls
-		PyCallable_REG_CALL(InvBrokerBound, GetItemDescriptor)
     }
     virtual ~InvBrokerBound()
 	{
@@ -65,7 +63,6 @@ public:
     PyCallable_DECL_CALL(GetInventory)
     PyCallable_DECL_CALL(SetLabel)
     PyCallable_DECL_CALL(TrashItems)
-	PyCallable_DECL_CALL(GetItemDescriptor)
 
 
 protected:
@@ -80,7 +77,25 @@ InvBrokerService::InvBrokerService(PyServiceMgr *mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-    //PyCallable_REG_CALL(InvBrokerService, MachoBindObject)
+	PyCallable_REG_CALL(InvBrokerService, GetItemDescriptor)
+}
+
+PyResult InvBrokerService::Handle_GetItemDescriptor(PyCallArgs &call)
+{
+	// not really clear on the use of this one? just a general header update?!
+	// from Inventory::List
+	DBRowDescriptor* header = new DBRowDescriptor;
+	header->AddColumn( "itemID",     DBTYPE_I4 );
+	header->AddColumn( "typeID",     DBTYPE_I2 );
+	header->AddColumn( "ownerID",    DBTYPE_I4 );
+	header->AddColumn( "locationID", DBTYPE_I4 );
+	header->AddColumn( "flagID",     DBTYPE_I2 );
+	header->AddColumn( "singleton",  DBTYPE_BOOL );
+	header->AddColumn( "quantity",   DBTYPE_I4 );
+	header->AddColumn( "groupID",    DBTYPE_I2 );
+	header->AddColumn( "categoryID", DBTYPE_UI1 );
+	header->AddColumn( "customInfo", DBTYPE_STR );
+	return header;
 }
 
 InvBrokerService::~InvBrokerService() {
@@ -100,11 +115,6 @@ PyBoundObject *InvBrokerService::_CreateBoundObject(Client *c, const PyRep *bind
     args.Dump(CLIENT__MESSAGE, "    ");
 
     return(new InvBrokerBound(m_manager, args.entityID));
-}
-
-PyResult InvBrokerBound::Handle_GetItemDescriptor(PyCallArgs &call)
-{
-	return NULL;
 }
 
 //this is a view into the entire inventory item.
