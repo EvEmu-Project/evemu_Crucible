@@ -44,6 +44,7 @@ protected:
 
 	PyCallable_DECL_CALL(GetStationItemBits)
 	PyCallable_DECL_CALL(GetGuests)
+	PyCallable_DECL_CALL(GetSolarSystem)
 };
 
 

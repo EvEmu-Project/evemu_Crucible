@@ -37,16 +37,40 @@ CharMgrService::CharMgrService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(CharMgrService, GetPublicInfo3)
 	PyCallable_REG_CALL(CharMgrService, GetTopBounties)
 	PyCallable_REG_CALL(CharMgrService, GetOwnerNoteLabels)
+	PyCallable_REG_CALL(CharMgrService, GetContactList)
 }
 
 CharMgrService::~CharMgrService() {
 	delete m_dispatch;
 }
 
+PyResult CharMgrService::Handle_GetContactList(PyCallArgs &call)
+{
+	// another dummy
+	DBRowDescriptor *header = new DBRowDescriptor();
+	header->AddColumn("contactID", DBTYPE_I4);
+	header->AddColumn("inWatchList", DBTYPE_BOOL);
+	header->AddColumn("relationshipID", DBTYPE_R8);
+	header->AddColumn("labelMask", DBTYPE_I8);
+	CRowSet *rowset = new CRowSet( &header );
+
+	PyDict* dict = new PyDict();
+	dict->SetItemString("addresses", rowset);
+	dict->SetItemString("blocked", rowset);
+	PyObject *keyVal = new PyObject(new PyString("util.KeyVal"), dict);
+
+	return new PySubStream(keyVal);
+}
+
 PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
 {
 	// just a dummy for now
-	return new PyList();
+	DBRowDescriptor *header = new DBRowDescriptor();
+	header->AddColumn("noteID", DBTYPE_I4);
+	header->AddColumn("label", DBTYPE_WSTR);
+	CRowSet *rowset = new CRowSet( &header );
+
+	return new PySubStream(rowset);
 }
 
 PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {

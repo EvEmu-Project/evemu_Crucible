@@ -35,10 +35,26 @@ StationService::StationService(PyServiceMgr *mgr)
 
 	PyCallable_REG_CALL(StationService, GetStationItemBits)
 	PyCallable_REG_CALL(StationService, GetGuests)
+	PyCallable_REG_CALL(StationService, GetSolarSystem)
 }
 
 StationService::~StationService() {
 	delete m_dispatch;
+}
+
+PyResult StationService::Handle_GetSolarSystem(PyCallArgs &call)
+{
+	Call_SingleIntegerArg arg;
+	if (!arg.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "%s: Failed to decode GetSolarSystem arguments.", call.client->GetName());
+		return NULL;
+	}
+
+	int system = arg.arg;
+
+	// this needs to return some cache status?
+	return NULL;
 }
 
 PyResult StationService::Handle_GetStationItemBits(PyCallArgs &call) {
