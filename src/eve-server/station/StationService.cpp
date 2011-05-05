@@ -28,7 +28,7 @@
 PyCallable_Make_InnerDispatcher(StationService)
 
 StationService::StationService(PyServiceMgr *mgr)
-: PyService(mgr, "station"),
+: PyService(mgr, "stationSvc"),
   m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);

@@ -126,13 +126,13 @@ PyRep *StationDB::GetStationItemBits(uint32 sid) {
 		" GROUP BY staStations.stationID ", sid
 	))
 	{
-		_log(SERVICE__ERROR, "Error in DoGetStation query: %s", res.error.c_str());
+		_log(SERVICE__ERROR, "Error in GetStationItemBits query: %s", res.error.c_str());
 		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(SERVICE__ERROR, "Error in DoGetStation query: no station for id %d", sid);
+		_log(SERVICE__ERROR, "Error in GetStationItemBits query: no station for id %d", sid);
 		return NULL;
 	}
 
