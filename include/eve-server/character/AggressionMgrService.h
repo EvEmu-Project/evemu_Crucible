@@ -28,4 +28,18 @@
 
 #include "PyService.h"
 
+class AggressionMgrService : public PyService
+{
+public:
+	AggressionMgrService(PyServiceMgr *mgr);
+	virtual ~AggressionMgrService();
+
+protected:
+	class Dispatcher;
+	Dispatcher *const m_dispatch;
+
+	//overloaded in order to support bound objects
+	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+};
+
 #endif // __AGGRESSIONMGRSERVICE__H__INCL__

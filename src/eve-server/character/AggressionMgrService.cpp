@@ -25,3 +25,87 @@
 
 #include "EVEServerPCH.h"
 
+PyCallable_Make_InnerDispatcher(AggressionMgrService)
+
+class AggressionMgrBound : public PyBoundObject
+{
+public:
+
+	PyCallable_Make_Dispatcher(AggressionMgrBound)
+
+	AggressionMgrBound(PyServiceMgr* mgr)
+	: PyBoundObject(mgr), m_dispatch(new Dispatcher(this))
+	{
+		_SetCallDispatcher(m_dispatch);
+
+		m_strBoundObjectName = "AggressionMgrBound";
+
+		PyCallable_REG_CALL(AggressionMgrBound, GetCriminalTimeStamps)
+		PyCallable_REG_CALL(AggressionMgrBound, CheckLootRightExceptions)
+	}
+
+	virtual ~AggressionMgrBound()
+	{
+		delete m_dispatch;
+	}
+
+	virtual void Release()
+	{
+		// this is not recommended
+		delete this;
+	}
+
+protected:
+
+	PyCallable_DECL_CALL(GetCriminalTimeStamps)
+	PyCallable_DECL_CALL(CheckLootRightExceptions)
+
+	Dispatcher *const m_dispatch;
+};
+
+PyResult AggressionMgrBound::Handle_GetCriminalTimeStamps(PyCallArgs &call)
+{
+	// arguments: charID
+	Call_SingleIntegerArg arg;
+	if (!arg.Decode(&call.tuple))
+	{
+		_log(CLIENT__ERROR, "Invalid GetCriminalTimeStamps call");
+		return NULL;
+	}
+
+	// no idea what is returned from this right now
+	return new PyList();
+}
+
+PyResult AggressionMgrBound::Handle_CheckLootRightExceptions(PyCallArgs &call)
+{
+	// arguments: containerID
+	Call_SingleIntegerArg arg;
+	if (!arg.Decode(&call.tuple))
+	{
+		_log(CLIENT__ERROR, "Invalid CheckLootRightExceptions call");
+		return NULL;
+	}
+
+	// return true to allow looting
+	return new PyBool(true);
+}
+
+AggressionMgrService::AggressionMgrService(PyServiceMgr *mgr)
+: PyService(mgr, "aggressionMgr"), m_dispatch(new Dispatcher(this))
+{
+	_SetCallDispatcher(m_dispatch);
+}
+
+AggressionMgrService::~AggressionMgrService()
+{
+	delete m_dispatch;
+}
+
+PyBoundObject *AggressionMgrService::_CreateBoundObject(Client *c, const PyRep *bind_args)
+{
+	_log(CLIENT__MESSAGE, "AggressionMgrService bind request for:");
+	bind_args->Dump(CLIENT__MESSAGE, "    ");
+
+	return(new AggressionMgrBound(m_manager));
+}
