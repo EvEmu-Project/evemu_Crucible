@@ -59,7 +59,7 @@ PyResult CharMgrService::Handle_GetContactList(PyCallArgs &call)
 	dict->SetItemString("blocked", rowset);
 	PyObject *keyVal = new PyObject(new PyString("util.KeyVal"), dict);
 
-	return new PySubStream(keyVal);
+	return keyVal;
 }
 
 PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
@@ -70,7 +70,7 @@ PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
 	header->AddColumn("label", DBTYPE_WSTR);
 	CRowSet *rowset = new CRowSet( &header );
 
-	return new PySubStream(rowset);
+	return rowset;
 }
 
 PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
