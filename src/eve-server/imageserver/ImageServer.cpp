@@ -27,6 +27,8 @@
 #include <iostream>
 #include <fstream>
 
+const char *const ImageServer::FallbackURL = "http://image.eveonline.com/";
+
 const char *const ImageServer::Categories[] = { "Alliance",
 	"Corporation",
 	"Character", 

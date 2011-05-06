@@ -53,8 +53,17 @@ private:
 	void SendImage();
 	void NotFound();
 	void Close();
+	void Redirect();
+	void RedirectLocation();
+	void RedirectFinalize();
 
 	static bool starts_with(std::string& haystack, const char *const needle);
+
+	// request data
+	std::string _category;
+	uint32 _id;
+	uint32 _size;
+	std::string _redirectUrl;
 
 	asio::streambuf _buffer;
 	asio::ip::tcp::socket _socket;
@@ -62,6 +71,8 @@ private:
 	
 	static asio::const_buffers_1 _responseOK;
 	static asio::const_buffers_1 _responseNotFound;
+	static asio::const_buffers_1 _responseRedirectBegin;
+	static asio::const_buffers_1 _responseRedirectEnd;
 };
 
 #endif // __IMAGESERVERCONNECTION__H__INCL__

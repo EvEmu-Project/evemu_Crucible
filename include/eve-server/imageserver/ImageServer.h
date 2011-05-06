@@ -63,6 +63,10 @@ public:
 	static const char *const Categories[];
 	static const uint32 CategoryCount;
 
+	// used when the ImageServer can't find the image requested
+	// this way we don't have to transfer over all the static NPC images
+	static const char *const FallbackURL;
+
 private:
 	void RunInternal();
 	bool ValidateCategory(std::string& category);

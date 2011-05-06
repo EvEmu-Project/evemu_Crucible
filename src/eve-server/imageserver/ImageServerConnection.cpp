@@ -27,6 +27,8 @@
 
 asio::const_buffers_1 ImageServerConnection::_responseOK = asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
 asio::const_buffers_1 ImageServerConnection::_responseNotFound = asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);
+asio::const_buffers_1 ImageServerConnection::_responseRedirectBegin = asio::buffer("HTTP/1.0 301 Moved Permanently\r\nLocation: ", 42);
+asio::const_buffers_1 ImageServerConnection::_responseRedirectEnd = asio::buffer("\r\n\r\n", 4);
 
 ImageServerConnection::ImageServerConnection(asio::io_service& io)
 	: _socket(io)
@@ -60,13 +62,12 @@ void ImageServerConnection::ProcessHeaders()
 	request = request.substr(5);
 
 	bool found = false;
-	std::string category;
 	for (int i = 0; i < ImageServer::CategoryCount; i++)
 	{
 		if (starts_with(request, ImageServer::Categories[i]))
 		{
 			found = true;
-			category = ImageServer::Categories[i];
+			_category = ImageServer::Categories[i];
 			request = request.substr(strlen(ImageServer::Categories[i]));
 			break;
 		}
@@ -94,11 +95,13 @@ void ImageServerConnection::ProcessHeaders()
 	// might have some extra data but atoi shouldn't care
 	std::string idStr = request.substr(0, del);
 	std::string sizeStr = request.substr(del + 1);
+	_id = atoi(idStr.c_str());
+	_size = atoi(sizeStr.c_str());
 
-	_imageData = ImageServer::get().GetImage(category, atoi(idStr.c_str()), atoi(sizeStr.c_str()));
+	_imageData = ImageServer::get().GetImage(_category, _id, _size);
 	if (!_imageData)
 	{
-		NotFound();
+		Redirect();
 		return;
 	}
 
@@ -114,6 +117,25 @@ void ImageServerConnection::SendImage()
 void ImageServerConnection::NotFound()
 {
 	asio::async_write(_socket, _responseNotFound, asio::transfer_all(), std::bind(&ImageServerConnection::Close, shared_from_this()));
+}
+
+void ImageServerConnection::Redirect()
+{
+	asio::async_write(_socket, _responseRedirectBegin, asio::transfer_all(), std::bind(&ImageServerConnection::RedirectLocation, shared_from_this()));
+}
+
+void ImageServerConnection::RedirectLocation()
+{
+	auto extension = _category == "Character" ? "jpg" : "png";
+	std::stringstream url;
+	url << ImageServer::FallbackURL << _category << "/" << _id << "_" << _size << "." << extension;
+	_redirectUrl = url.str();
+	asio::async_write(_socket, asio::buffer(_redirectUrl), asio::transfer_all(), std::bind(&ImageServerConnection::RedirectFinalize, shared_from_this()));
+}
+
+void ImageServerConnection::RedirectFinalize()
+{
+	asio::async_write(_socket, _responseRedirectEnd, asio::transfer_all(), std::bind(&ImageServerConnection::Close, shared_from_this()));
 }
 
 void ImageServerConnection::Close()
