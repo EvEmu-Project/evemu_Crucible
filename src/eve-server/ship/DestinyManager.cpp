@@ -469,7 +469,7 @@ void DestinyManager::_InitWarp() {
     double warp_speed = 0.0;
     if( m_self->CastToClient()->GetShip() != NULL )
     {
-        double baseWarpSpeed = m_self->CastToClient()->GetShip()->GetAttribute(EveAttrEnum::AttrBaseWarpSpeed).get_float();
+        double baseWarpSpeed = m_self->CastToClient()->GetShip()->GetAttribute(AttrBaseWarpSpeed).get_float();
         double warpSpeedMultiplier = m_self->CastToClient()->GetShip()->GetAttribute(AttrWarpSpeedMultiplier).get_float();
         
         //warp_speed = (double)(m_self->CastToClient()->GetShip()->GetAttribute(AttrWarpSpeedMultiplier).get_float()) * ONE_AU_IN_METERS;

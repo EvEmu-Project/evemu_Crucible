@@ -134,6 +134,7 @@ void BubbleManager::Remove(SystemEntity *ent, bool notify) {
 	for(; cur != end; ++cur) {
 		SystemBubble *b = *cur;
         if(b->IsEmpty()) {
+            sLog.Debug( "BubbleManager::Remove()", "Bubble %u is empty and is therefore being deleted from the system right now.", b->GetBubbleID() );
 			m_bubbles.erase(cur,cur);
 		}
 	}

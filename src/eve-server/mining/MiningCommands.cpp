@@ -61,9 +61,9 @@ PyResult Command_spawnbelt( Client* who, CommandDB* db, PyServiceMgr* services, 
 
     const double beltradius = 100000.0;
 	const double beltdistance = 25000.0;
-	const double roidradius = MakeRandomFloat( 100.0, 1000.0 );
+	double roidradius;
 	const double beltangle = M_PI * 2.0 / 3.0;
-	const uint32 pcs = 20 + MakeRandomInt( -10, 10 );   // reduced from 160 + MakeRandomInt( -10, 10 )
+	const uint32 pcs = 20 + MakeRandomInt( -10, 10 );   // reduced from 160 + MakeRandomInt( -10, 10 ) to facilitate easier debugging
 
 	const GPoint position( who->GetPosition() );
 
@@ -83,7 +83,7 @@ PyResult Command_spawnbelt( Client* who, CommandDB* db, PyServiceMgr* services, 
 		throw PyException( MakeCustomError( "Couldn't get roid list for system security %s", sys->GetSystemSecurity() ) );
 	}
 
-    //double distanceToMe;
+    double distanceToMe;
 	double alpha;
     GPoint mposition;
 
@@ -91,10 +91,11 @@ PyResult Command_spawnbelt( Client* who, CommandDB* db, PyServiceMgr* services, 
     {
 		alpha = beltangle * MakeRandomFloat( -0.5, 0.5 );
 
+        roidradius = MakeRandomFloat( 100.0, 1000.0 );
 		mposition.x = beltradius * sin( phi + alpha ) + roidradius * MakeRandomFloat( 0, 15 );
 		mposition.z = beltradius * cos( phi + alpha ) + roidradius * MakeRandomFloat( 0, 15 );
 		mposition.y = position.y - r.y + roidradius * MakeRandomFloat( 0, 15 );
-        //distanceToMe = (r + mposition - position).length();
+        distanceToMe = (r + mposition - position).length();
         SpawnAsteroid( who->System(), GetAsteroidType( MakeRandomFloat(), roidDist ), roidradius, r + mposition );
 	}
 
