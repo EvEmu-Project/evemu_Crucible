@@ -90,13 +90,13 @@ void ItemSystemEntity::_SetSelf(InventoryItemRef self) {
 }
 
 const char *ItemSystemEntity::GetName() const {
-	if(m_self == NULL)
+	if(!m_self)
 		return("NoName");
 	return(m_self->itemName().c_str());
 }
 
 double ItemSystemEntity::GetRadius() const {
-	if(m_self == NULL)
+	if(!m_self)
 		return(1.0f);
 	//return(m_self->radius());
     return m_self->GetAttribute(AttrRadius).get_float();
@@ -104,7 +104,7 @@ double ItemSystemEntity::GetRadius() const {
 
 const GPoint &ItemSystemEntity::GetPosition() const {
 	static const GPoint err(0.0, 0.0, 0.0);
-	if(m_self == NULL)
+	if(!m_self)
 		return(err);
 	return(m_self->position());
 }
@@ -123,7 +123,7 @@ PyDict *ItemSystemEntity::MakeSlimItem() const {
 }
 
 uint32 ItemSystemEntity::GetID() const {
-	if(Item() == NULL)
+	if(!Item())
 		return(0);
 	return(Item()->itemID());
 }
@@ -161,19 +161,19 @@ const GVector &DynamicSystemEntity::GetVelocity() const {
 }
 
 double DynamicSystemEntity::GetMass() const {
-	if(Item() == NULL)
+	if(!Item())
 		return(0.0f);
 	return Item()->GetAttribute(AttrMass).get_float();
 }
 
 double DynamicSystemEntity::GetMaxVelocity() const {
-	if(Item() == NULL)
+	if(!Item())
 		return(0.0f);
     return Item()->GetAttribute(AttrMaxVelocity).get_float();
 }
 
 double DynamicSystemEntity::GetAgility() const {
-	if(Item() == NULL)
+	if(!Item())
 		return(0.0f);
 	return Item()->GetAttribute(AttrAgility).get_float();
 }

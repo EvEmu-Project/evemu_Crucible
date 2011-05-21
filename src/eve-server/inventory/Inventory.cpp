@@ -256,7 +256,7 @@ uint32 Inventory::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItemRef> &
     end = mContents.end();
     for(; cur != end; cur++)
     {
-        if (cur->second != NULL) 
+        if (cur->second)
         {
             if(cur->second->flag() == _flag)
             {
@@ -274,7 +274,7 @@ bool Inventory::FindSingleByFlag( EVEItemFlags flag, InventoryItemRef &item ) co
     end = mContents.end();
     for(; cur != end; cur++)
     {
-        if (cur->second != NULL)
+        if (cur->second)
         {
             if(cur->second->flag() == flag)
             {
@@ -293,7 +293,7 @@ bool Inventory::IsEmptyByFlag( EVEItemFlags flag )
     end = mContents.end();
     for(; cur != end; cur++)
     {
-        if (cur->second != NULL)
+        if (cur->second)
         {
             if(cur->second->flag() == flag)
             {

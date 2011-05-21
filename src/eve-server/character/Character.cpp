@@ -484,7 +484,7 @@ void Character::SetDescription(const char *newDescription) {
 
 bool Character::HasSkill(uint32 skillTypeID) const
 {
-    return(GetSkill(skillTypeID) != NULL);
+    return GetSkill(skillTypeID);
 }
 
 SkillRef Character::GetSkill(uint32 skillTypeID) const

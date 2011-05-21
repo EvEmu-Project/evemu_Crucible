@@ -26,7 +26,6 @@
 #include "CommonPCH.h"
 
 #include "utils/utils_time.h"
-#include "../eve-common/utils/EvilNumber.h"
 
 const uint64 Win32Time_Second = 10000000L;
 const uint64 Win32Time_Minute = Win32Time_Second*60;
@@ -77,8 +76,4 @@ uint64 Win32TimeNow() {
 #else
     return(UnixTimeToWin32Time(time(NULL), 0));
 #endif
-}
-
-EvilNumber EvilTimeNow(){
-    return EvilNumber(Win32TimeNow());
 }

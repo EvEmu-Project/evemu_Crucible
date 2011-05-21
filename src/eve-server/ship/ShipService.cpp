@@ -159,7 +159,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
                     {
                         // Move pod out of inventory, then delete its Inventory Item object:
 					    call.client->MoveItem( oldShipRef->itemID(), 0, (EVEItemFlags)flagNone );
-                        if( oldShipRef != NULL )
+                        if( oldShipRef )
 					        oldShipRef->Delete();
 				    }
 				    else
@@ -919,7 +919,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
         {
             // This item is NOT a type of cargo container, so spawn a new cargo container in space and place the item
             // inside of it OR place it in the cargo container already created in this function:
-            if( cargoItem == NULL )
+            if( !cargoItem )
             {
                 // Spawn cargo container for the first time and only time in this function:
                 Client * who = call.client;

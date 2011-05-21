@@ -157,7 +157,7 @@ uint32 SystemDB::GetObjectLocationID( uint32 itemID ) {
 	
 	//TODO: implement database logic and query
 
-	return NULL;
+	return 0;
 }
 
 

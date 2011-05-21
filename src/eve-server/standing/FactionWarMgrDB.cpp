@@ -66,13 +66,13 @@ uint32 FactionWarMgrDB::GetFactionMilitiaCorporation(const uint32 factionID) {
 		factionID))
 	{
 		_log(DATABASE__ERROR, "Failed to query militia corporation for faction %u: %s.", factionID, res.error.c_str());
-		return NULL;
+		return 0;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "Faction %u not found.", factionID);
-		return NULL;
+		return 0;
 	}
 
 	return(row.GetUInt(0));

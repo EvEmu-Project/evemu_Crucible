@@ -255,7 +255,7 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
 
 		//check our attack range...
 		if(m_npc->DistanceTo2(target) > m_entityAttackRange2.get_float()) {
-			_log(NPC__AI_TRACE, "[%u] Target (%u) is too far away (%.2f > %.2f)", m_npc->GetID(), target->GetID(), m_npc->DistanceTo2(target), m_entityAttackRange2);
+			_log(NPC__AI_TRACE, "[%u] Target (%u) is too far away (%.2f > %.2f)", m_npc->GetID(), target->GetID(), m_npc->DistanceTo2(target), m_entityAttackRange2.get_float());
 			_EnterFollowing(target);
 			return;
 		}

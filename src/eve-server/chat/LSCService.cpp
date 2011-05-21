@@ -965,7 +965,7 @@ PyResult LSCService::Handle_SendMessage( PyCallArgs& call )
 		{
 			_log( NET__PACKET_ERROR, "LSCService::Handle_SendMessage failed: tuple0 is the wrong type: %s", call.tuple->TypeString() );
 
-			return false;
+			return NULL;
 		}
 		PyTuple* tuple0 = call.tuple->AsTuple();
 
@@ -973,7 +973,7 @@ PyResult LSCService::Handle_SendMessage( PyCallArgs& call )
 		{
 			_log( NET__PACKET_ERROR, "LSCService::Handle_SendMessage failed: tuple0 is the wrong size: expected 2, but got %lu", tuple0->size() );
 
-			return false;
+			return NULL;
 		}
 
 		channel_id = (call.tuple->AsTuple()->items[0]->AsInt())->value();

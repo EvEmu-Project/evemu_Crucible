@@ -269,7 +269,7 @@ public:
 	} \
 	uint32 Get_##v() const \
     { \
-		return ( IsNull_##v() ? NULL : *v ); \
+		return ( IsNull_##v() ? 0 : *v ); \
 	} \
 	void Set_##v(uint32 val)\
     { \
@@ -291,7 +291,7 @@ public:
 	} \
 	double Get_##v() const \
     { \
-		return ( IsNull_##v() ? NULL : *v ); \
+		return ( IsNull_##v() ? 0.0 : *v ); \
 	} \
 	void Set_##v(double val) \
     { \

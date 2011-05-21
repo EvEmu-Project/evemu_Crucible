@@ -93,7 +93,7 @@ void ModuleManager::UnloadAllModules()
 		mod = m_modules[p->second];
 		mod->Deactivate("online");
 		m_modules[p->second]->item()->Move(m_pilot->GetStationID(), flagHangar, true);
-        if( m_modules[p->second]->item()->GetAttribute(EveAttrEnum::AttrMassAddition).get_float() != 0 )
+        if( m_modules[p->second]->item()->GetAttribute(AttrMassAddition).get_float() != 0 )
         {
             m_pilot->GetShip()->SetAttribute
             (
@@ -786,7 +786,7 @@ void ShipModule::DoCapacitorNeed(bool startup, bool notify) {
             capacitorCharge = m_pilot->GetShip()->GetAttribute(AttrCharge).get_float();
             capacitorChargeModifier = m_item->GetAttribute(AttrCapacitorNeed).get_float();
 			newCapacitorCharge = capacitorCharge - capacitorChargeModifier;
-            m_pilot->GetShip()->SetAttribute(EveAttrEnum::AttrCharge, newCapacitorCharge );
+            m_pilot->GetShip()->SetAttribute(AttrCharge, newCapacitorCharge );
 		}
 	} else {
 		//consume normal activation cap charge
@@ -803,7 +803,7 @@ void ShipModule::DoCapacitorNeed(bool startup, bool notify) {
 		
 		omac.ownerID = m_pilot->GetCharacterID();
 		omac.itemKey = m_item->itemID();
-        omac.attributeID = EveAttrEnum::AttrCharge;
+        omac.attributeID = AttrCharge;
 		omac.time = Win32TimeNow();
 		omac.newValue = new PyInt(newCapacitorCharge);
 		omac.oldValue = new PyInt(capacitorCharge);
@@ -1404,14 +1404,14 @@ void ShipModule::DoImplantBonusVelocity(bool add, bool notify) {
             maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
             maxVelocityModifier = m_item->GetAttribute(AttrImplantBonusVelocity).get_float();
 			newMaxVelocity = maxVelocity + maxVelocity * maxVelocityModifier / 100;
-            m_pilot->GetShip()->SetAttribute( AttrMaxVelocity, (long)newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute( (uint32)AttrMaxVelocity, (int64)newMaxVelocity );
 		}
 	} else {
         if( !m_item->GetAttribute(AttrImplantBonusVelocity).get_float() == 0 || -100 ) {
             maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
             maxVelocityModifier = m_item->GetAttribute(AttrImplantBonusVelocity).get_float();
 			newMaxVelocity = maxVelocity / ( 1 + maxVelocityModifier / 100 ) + 0.8; //round up
-            m_pilot->GetShip()->SetAttribute( AttrMaxVelocity, (long)newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute( (uint32)AttrMaxVelocity, (int64)newMaxVelocity );
 		}
 	}
 }
@@ -1425,16 +1425,16 @@ void ShipModule::DoSpeedBonus(bool add, bool notify) {
 	if( add ) {
         if( !m_item->GetAttribute(AttrSpeedBonus).get_float() == 0 ) {
             maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
-            maxVelocityModifier = m_item->GetAttribute(EveAttrEnum::AttrSpeedBonus).get_float();
+            maxVelocityModifier = m_item->GetAttribute(AttrSpeedBonus).get_float();
 			newMaxVelocity = maxVelocity + maxVelocityModifier;
-            m_pilot->GetShip()->SetAttribute(AttrMaxVelocity, (long)newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute((uint32)AttrMaxVelocity, (int64)newMaxVelocity );
 		}
 	} else {
         if( !m_item->GetAttribute(AttrSpeedBonus).get_float() == 0 ) {
             maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
-            maxVelocityModifier = m_item->GetAttribute(EveAttrEnum::AttrSpeedBonus).get_float();
+            maxVelocityModifier = m_item->GetAttribute(AttrSpeedBonus).get_float();
 			newMaxVelocity = maxVelocity - maxVelocityModifier;
-            m_pilot->GetShip()->SetAttribute(AttrMaxVelocity, (long)newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute((uint32)AttrMaxVelocity, (int64)newMaxVelocity );
 		}
 	}
 }
@@ -1450,7 +1450,7 @@ void ShipModule::DoMaxVelocityBonus(bool add, bool notify) {
             maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
 			maxVelocityModifier = m_item->GetAttribute(AttrMaxVelocityBonus).get_float();
 			newMaxVelocity = maxVelocity * maxVelocityModifier;
-            m_pilot->GetShip()->SetAttribute( AttrMaxVelocity, (long)newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute( (uint32)AttrMaxVelocity, (int64)newMaxVelocity );
 		}
 	} else {
 		if( !Equals(m_item->GetAttribute(AttrMaxVelocityBonus).get_float(), 1) &&
@@ -1459,7 +1459,7 @@ void ShipModule::DoMaxVelocityBonus(bool add, bool notify) {
 			maxVelocity = m_pilot->GetShip()->GetAttribute(AttrMaxVelocity).get_float();
 			maxVelocityModifier = m_item->GetAttribute(AttrMaxVelocityBonus).get_float();
 			newMaxVelocity = (maxVelocity / maxVelocityModifier) + 0.8; //round up
-            m_pilot->GetShip()->SetAttribute( AttrMaxVelocity, (long)newMaxVelocity );
+            m_pilot->GetShip()->SetAttribute( (uint32)AttrMaxVelocity, (int64)newMaxVelocity );
 		}
 	}
 }

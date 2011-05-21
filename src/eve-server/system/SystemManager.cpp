@@ -90,7 +90,7 @@ bool SystemManager::_LoadSystemCelestials() {
 	cur = entities.begin();
 	end = entities.end();
 	for(; cur != end; ++cur) {
-        if( itemFactory().GetItem( cur->itemID ) != NULL )
+        if( itemFactory().GetItem( cur->itemID ) )
         {
             if( itemFactory().GetItem( cur->itemID )->categoryID() == EVEDB::invCategories::Station )
             {

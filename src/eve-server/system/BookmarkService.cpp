@@ -26,7 +26,7 @@
 #include "EVEServerPCH.h"
 
 // Set the maximum number for any user-created bookmark.
-const uint32 BookmarkService::MAX_BOOKMARK_ID = 4294967295;
+const uint32 BookmarkService::MAX_BOOKMARK_ID = 0xFFFFFFFF;
 
 PyCallable_Make_InnerDispatcher(BookmarkService)
 

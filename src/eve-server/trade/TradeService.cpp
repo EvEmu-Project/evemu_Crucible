@@ -105,10 +105,10 @@ PyResult TradeService::Handle_InitiateTrade(PyCallArgs &call){
 	rsp.stationID = target->GetStationID();
 	rsp.ownerID = call.client->GetCharacterID();
 	rsp.targetID = target->GetCharacterID();
-	rsp.moneyToGive = NULL;
-	rsp.moneyToReceive = NULL;
+	rsp.moneyToGive = 0;
+	rsp.moneyToReceive = 0;
 	rsp.when = Win32TimeNow();
-	rsp.unknown7 = NULL;
+	rsp.unknown7 = 0;
 
 	sLog.Debug("Trade Service", "Called InitiateTrade with character: %u", args.arg);
 

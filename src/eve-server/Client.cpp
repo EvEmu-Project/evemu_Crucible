@@ -1078,7 +1078,7 @@ double Client::GetPropulsionStrength() const {
      * if we don't have a ship return bogus propulsion strength
      * @note we should report a error for this
      */
-    if( GetShip() == NULL )
+    if( !GetShip() )
         return 3.0f;
 
     /**
@@ -1187,7 +1187,7 @@ void Client::TargetsCleared()
 }
 
 void Client::SavePosition() {
-    if(GetShip() == NULL || m_destiny == NULL) {
+    if( !GetShip() || m_destiny == NULL ) {
 		sLog.Debug("Client","%s: Unable to save position. We are probably not in space.", GetName());
         return;
     }

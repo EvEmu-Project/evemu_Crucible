@@ -467,7 +467,7 @@ void DestinyManager::_InitWarp() {
 
 	//double warp_speed = m_system->GetWarpSpeed();
     double warp_speed = 0.0;
-    if( m_self->CastToClient()->GetShip() != NULL )
+    if( m_self->CastToClient()->GetShip() )
     {
         double baseWarpSpeed = m_self->CastToClient()->GetShip()->GetAttribute(AttrBaseWarpSpeed).get_float();
         double warpSpeedMultiplier = m_self->CastToClient()->GetShip()->GetAttribute(AttrWarpSpeedMultiplier).get_float();

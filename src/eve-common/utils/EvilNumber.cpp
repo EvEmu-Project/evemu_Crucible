@@ -3,7 +3,7 @@
 #include "python/PyRep.h"
 #include <limits.h>
 
-const EvilNumber EvilTime_Second(10000000LL);
+const EvilNumber EvilTime_Second = 10000000;
 const EvilNumber EvilTime_Minute = Win32Time_Second * 60;
 const EvilNumber EvilTime_Hour = Win32Time_Minute * 60;
 const EvilNumber EvilTime_Day = Win32Time_Hour * 24;
@@ -251,4 +251,8 @@ EvilNumber operator*(const EvilNumber& val, const EvilNumber& val2)
     //val.Multiply((EvilNumber &)val2);
     //return *this;
     //return EvilNumber(0);
+}
+
+EvilNumber EvilTimeNow(){
+    return EvilNumber(Win32TimeNow());
 }

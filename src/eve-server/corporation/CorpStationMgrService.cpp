@@ -255,7 +255,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if (!arg.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Wrong incoming param in RentOffice");
-		return false;
+		return NULL;
 	}
 
 	uint32 location = call.client->GetLocationID();

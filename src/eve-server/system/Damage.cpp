@@ -211,7 +211,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
         m_self->SetAttribute(AttrShieldCharge, new_charge);
 
 		total_damage += total_shield_damage;
-		_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to shields. New charge: %.1f", GetName(), GetID(), total_shield_damage, new_charge);
+		_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to shields. New charge: %.1f", GetName(), GetID(), total_shield_damage, new_charge.get_float());
 	}
 	else
 	{
@@ -262,7 +262,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
             m_self->SetAttribute(AttrArmorDamage, new_damage);
 			
 			total_damage += total_armor_damage;
-			_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to armor. New armor damage: %.1f", GetName(), GetID(), total_armor_damage, new_damage);
+			_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to armor. New armor damage: %.1f", GetName(), GetID(), total_armor_damage, new_damage.get_float());
 		}
 		else
 		{
@@ -321,7 +321,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 				m_self->Set_damage(new_damage);*/
                 EvilNumber new_damage = m_self->GetAttribute(AttrDamage) + EvilNumber(total_hull_damage);
                 m_self->SetAttribute(AttrDamage, new_damage);
-				_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to structure. New structure damage: %.1f", GetName(), GetID(), total_hull_damage, new_damage);
+				_log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to structure. New structure damage: %.1f", GetName(), GetID(), total_hull_damage, new_damage.get_float());
 			}
 			else
 			{

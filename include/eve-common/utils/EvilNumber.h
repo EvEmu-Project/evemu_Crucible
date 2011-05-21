@@ -1,7 +1,7 @@
 #ifndef EvilNumber_h__
 #define EvilNumber_h__
 
-#define MAX_EVIL_INTEGER    0x7FFFFFFFFFFFFFFF      // 64-bit signed integer
+#define MAX_EVIL_INTEGER    0x7FFFFFFFFFFFFFFFLL      // 64-bit signed integer
 
 
 // this file should have all stuff regarding damage type attribute caching..
@@ -284,5 +284,6 @@ extern const EvilNumber EvilTime_Day;
 extern const EvilNumber EvilTime_Month;
 extern const EvilNumber EvilTime_Year;
 
+extern EvilNumber EvilTimeNow();
 
 #endif // EvilNumber_h__

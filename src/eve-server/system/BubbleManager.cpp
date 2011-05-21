@@ -128,7 +128,7 @@ void BubbleManager::Remove(SystemEntity *ent, bool notify) {
 	b->Remove(ent, notify);
     sLog.Debug( "BubbleManager::Remove()", "SystemEntity '%s' being removed from Bubble %u", ent->GetName(), b->GetBubbleID() );
 
-	std::vector<SystemBubble *>::const_iterator cur, end;
+	std::vector<SystemBubble *>::iterator cur, end;
 	cur = m_bubbles.begin();
 	end = m_bubbles.end();
 	for(; cur != end; ++cur) {
