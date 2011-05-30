@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -311,7 +311,7 @@ void ItemAttributeMgr::Save() const {
 void ItemAttributeMgr::EncodeAttributes(std::map<int32, PyRep *> &into) const {
     // first insert type attributes
     m_item.type().attributes.EncodeAttributes(into);
-    // now isert (or overwrite) with our values
+    // now insert (or overwrite) with our values
     EVEAdvancedAttributeMgr::EncodeAttributes(into);
 }
 
@@ -341,5 +341,374 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
     }
 }
 
+/************************************************************************/
+/* Start of new attribute system                                        */
+/************************************************************************/
+AttributeMap::AttributeMap( InventoryItem & item ) : mItem(item), mChanged(false)
+{
+    // load the initial attributes for this item
+    //Load();
+}
 
+bool AttributeMap::SetAttribute( uint32 attributeId, EvilNumber &num, bool nofity /*= true*/ )
+{
+    AttrMapItr itr = mAttributes.find(attributeId);
+
+    /* most attribute have default value's which are related to the item type */
+    if (itr == mAttributes.end()) {
+        mAttributes.insert(std::make_pair(attributeId, num));
+        if (nofity == true)
+            return Add(attributeId, num);
+        return true;
+    }
+
+    // I dono if this should happen... in short... if nothing changes... do nothing
+    if (itr->second == num)
+        return false;
+
+    // notify dogma to change the attribute, if we are unable to queue the change
+    // event. Don't change the value.
+    if (nofity == true)
+        if (!Change(attributeId, itr->second, num))
+            return false;
+
+    itr->second = num;
+    return true;
+}
+
+EvilNumber AttributeMap::GetAttribute( uint32 attributeId )
+{
+    AttrMapItr itr = mAttributes.find(attributeId);
+    if (itr != mAttributes.end()) {
+        return itr->second;
+    }
+    else
+    {
+        sLog.Error("AttributeMap::GetAttribute()", "unable to find attribute: %u for item %u, '%s' of type %u", attributeId, mItem.itemID(), mItem.itemName().c_str(), mItem.typeID());
+        return EvilNumber(0);
+    }
+}
+
+EvilNumber AttributeMap::GetAttribute( const uint32 attributeId ) const
+{
+    AttrMapConstItr itr = mAttributes.find(attributeId);
+    if (itr != mAttributes.end()) {
+        return itr->second;
+    }
+    else
+    {
+        sLog.Error("AttributeMap::GetAttribute()", "unable to find attribute: %u for item %u, '%s' of type %u", attributeId, mItem.itemID(), mItem.itemName().c_str(), mItem.typeID());
+        return EvilNumber(0);
+    }
+}
+
+bool AttributeMap::HasAttribute(uint32 attributeID)
+{
+    AttrMapConstItr itr = mAttributes.find(attributeID);
+    if (itr != mAttributes.end())
+        return true;
+    else
+        return false;
+}
+
+bool AttributeMap::Change( uint32 attributeID, EvilNumber& old_val, EvilNumber& new_val )
+{
+    mChanged = true;
+    PyTuple* AttrChange = new PyTuple(7);
+    AttrChange->SetItem(0, new PyString("OnModuleAttributeChange"));
+    AttrChange->SetItem(1, new PyInt(mItem.ownerID()));
+    AttrChange->SetItem(2, new PyInt(mItem.itemID()));
+    AttrChange->SetItem(3, new PyInt(attributeID));
+    AttrChange->SetItem(4, new PyLong(Win32TimeNow()));
+    AttrChange->SetItem(5, old_val.GetPyObject());
+    AttrChange->SetItem(6, new_val.GetPyObject());
+
+    return SendAttributeChanges(AttrChange);
+}
+
+bool AttributeMap::Add( uint32 attributeID, EvilNumber& num )
+{
+    mChanged = true;
+    PyTuple* AttrChange = new PyTuple(7);
+    AttrChange->SetItem(0, new PyString( "OnModuleAttributeChange" ));
+    AttrChange->SetItem(1, new PyInt( mItem.ownerID() ));
+    AttrChange->SetItem(2, new PyInt( mItem.itemID() ));
+    AttrChange->SetItem(3, new PyInt( attributeID ));
+    AttrChange->SetItem(4, new PyLong( Win32TimeNow() ));
+    AttrChange->SetItem(5, num.GetPyObject());
+    AttrChange->SetItem(6, num.GetPyObject());
+
+    return SendAttributeChanges(AttrChange);
+}
+
+bool AttributeMap::SendAttributeChanges( PyTuple* attrChange )
+{
+    if (attrChange == NULL)
+    {
+        sLog.Error("AttributeMap", "unable to send NULL packet");
+        return false;
+    }
+
+    // Oh hell, this character finding needs to be optimized ( redesigned so its not needed.. ).
+    if( (mItem.ownerID() == 1) || (IsStation(mItem.itemID())) )
+    {
+        // This item is owned by the EVE System either directly, as in the case of a character object,
+        // or indirectly, as in the case of a Station, which is owned by the corporation that runs it.
+        // So, we don't need to queue up Destiny events in these cases.
+        return true;
+    }
+    else
+    {
+        //Client *client = sEntityList.FindCharacter(mItem.ownerID());
+        Client *client = this->mItem.GetItemFactory()->GetUsingClient();
+
+        if (client == NULL)
+        {
+            sLog.Error("AttributeMap::SendAttributeChanges()", "unable to find client:%u", mItem.ownerID());
+            return false;
+        }
+        else
+        {
+            if( client->Destiny() == NULL )
+            {
+                sLog.Warning( "AttributeMap::SendAttributeChanges()", "client->Destiny() returned NULL" );
+                //return false;
+            }
+            else
+                client->QueueDestinyEvent(&attrChange);
+
+            return true;
+        }
+    }
+}
+
+bool AttributeMap::Load()
+{
+    /* then we possibly overwrite the attributes value's with the default's.. */
+    DgmTypeAttributeSet *attr_set = sDgmTypeAttrMgr.GetDmgTypeAttributeSet( mItem.typeID() );
+    if (attr_set == NULL)
+        return false;
+
+    DgmTypeAttributeSet::AttrSetItr itr = attr_set->attributeset.begin();
+
+    for (; itr != attr_set->attributeset.end(); itr++)
+        SetAttribute((*itr)->attributeID, (*itr)->number, false);
+
+    /* first we load the saved attributes from the db */
+    DBQueryResult res;
+
+    if(!sDatabase.RunQuery(res, "SELECT * FROM entity_attributes WHERE itemID='%u'", mItem.itemID())) {
+        sLog.Error("AttributeMap", "Error in db load query: %s", res.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+
+    int amount = res.GetRowCount();
+    for (int i = 0; i < amount; i++)
+    {
+        EvilNumber attr_value;
+        res.GetRow(row);
+        uint32 attributeID = row.GetUInt(1);
+        if (!row.IsNull(2))
+            attr_value = row.GetInt64(2);
+        else
+            attr_value = row.GetDouble(3);
+        SetAttribute(attributeID, attr_value, false);
+    }
+
+    return true;
+
+/*
+	/// EXISTING AttributeMap::Load() function
+    DBQueryResult res;
+
+    if(!sDatabase.RunQuery(res,"SELECT * FROM entity_attributes WHERE itemID='%u'", mItem.itemID())) {
+        sLog.Error("AttributeMap", "Error in db load query: %s", res.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+
+    int amount = res.GetRowCount();
+
+    // Right now, assume that we need to load all attributes with default values from dgmTypeAttributes table
+    // IF AND ONLY IF the number of attributes pulled from the entity_attributes table for this item is ZERO:
+    if( amount > 0 )
+    {
+        // This item was found in the 'entity_attributes' table, so load all attributes found there
+        // into the Attribute Map for this item:
+        for (int i = 0; i < amount; i++)
+        {
+            res.GetRow(row);
+            EvilNumber attr_value;
+            uint32 attributeID = row.GetUInt(1);
+            if ( !row.IsNull(2) )
+                attr_value = row.GetInt64(2);
+            else if( !row.IsNull(3) )
+                attr_value = row.GetDouble(3);
+            else
+                sLog.Error( "AttributeMap::Load()", "Both valueInt and valueFloat fields of this (itemID,attributeID) = (%u,%u) are NULL.", row.GetInt(0), attributeID );
+
+            SetAttribute(attributeID, attr_value, false);
+            //Add(attributeID, attr_value);
+        }
+    }
+    else
+    {
+        // This item was NOT found in the 'entity_attributes' table, so let's assume that
+        // this item was just created.
+        // 1) Get complete list of attributes with default values from dgmTypeAttributes table using the item's typeID:
+        DgmTypeAttributeSet *attr_set = sDgmTypeAttrMgr.GetDmgTypeAttributeSet( mItem.typeID() );
+        if (attr_set == NULL)
+            return false;
+
+        DgmTypeAttributeSet::AttrSetItr itr = attr_set->attributeset.begin();
+    
+        // Store all these attributes to the item's AttributeMap
+        for (; itr != attr_set->attributeset.end(); itr++)
+        {
+            SetAttribute((*itr)->attributeID, (*itr)->number, false);
+            //Add((*itr)->attributeID, (*itr)->number);
+        }
+
+        // 2) Save these newly created and loaded attributes to the 'entity_attributes' table
+        SaveAttributes();
+    }
+
+    return true;
+*/
+}
+
+bool AttributeMap::SaveIntAttribute(uint32 attributeID, int64 value)
+{
+    // SAVE INTEGER ATTRIBUTE
+    DBerror err;
+    if(!sDatabase.RunQuery(err,
+        "REPLACE INTO entity_attributes"
+        "   (itemID, attributeID, valueInt, valueFloat)"
+        " VALUES"
+        "   (%u, %u, %d, NULL)",
+        mItem.itemID(), attributeID, value)
+    ) {
+        codelog(SERVICE__ERROR, "Failed to store attribute %d for item %u: %s", attributeID, mItem.itemID(), err.c_str());
+        return false;
+    }
+
+    return true;
+}
+
+bool AttributeMap::SaveFloatAttribute(uint32 attributeID, double value)
+{
+    // SAVE FLOAT ATTRIBUTE
+    DBerror err;
+    if(!sDatabase.RunQuery(err,
+        "REPLACE INTO entity_attributes"
+        "   (itemID, attributeID, valueInt, valueFloat)"
+        " VALUES"
+        "   (%u, %u, NULL, %f)",
+        mItem.itemID(), attributeID, value)
+    ) {
+        codelog(SERVICE__ERROR, "Failed to store attribute %d for item %u: %s", attributeID, mItem.itemID(), err.c_str());
+        return false;
+    }
+
+    return true;
+}
+
+/* hmmm only save 'state' related attributes... and calculate the rest on the fly....*/
+/* we should save skills */
+bool AttributeMap::Save()
+{
+    /* if nothing changed... it means this action has been successful we return true... */
+    if (mChanged == false)
+        return true;
+
+    AttrMapItr itr = mAttributes.begin();
+    AttrMapItr itr_end = mAttributes.end();
+    for (; itr != itr_end; itr++)
+    {
+        if ( itr->second.get_type() == evil_number_int ) {
+
+            DBerror err;
+            bool success = sDatabase.RunQuery(err,
+                "REPLACE INTO entity_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, "I64d", NULL)",
+                mItem.itemID(), itr->first, itr->second.get_int());
+
+            if (!success)
+                sLog.Error("AttributeMap", "unable to save attribute");
+
+        } else if (itr->second.get_type() == evil_number_float ) {
+
+            DBerror err;
+            bool success = sDatabase.RunQuery(err,
+                "REPLACE INTO entity_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, NULL, %f)",
+                mItem.itemID(), itr->first, itr->second.get_float());
+
+            if (!success)
+                sLog.Error("AttributeMap", "unable to save attribute");
+        }
+    }
+
+    mChanged = false;
+
+    return true;
+}
+
+
+bool AttributeMap::SaveAttributes()
+{
+#if 0
+    bool status = true;
+    AttrMap::iterator cur, end;
+    cur = mAttributes.begin();
+    end = mAttributes.end();
+    for(; cur != end; cur++)
+    {
+        if( cur->second.get_type() == evil_number_int )
+            SaveIntAttribute( cur->first, cur->second.get_int() );
+        else if( cur->second.get_type() == evil_number_float )
+            SaveFloatAttribute( cur->first, cur->second.get_float() );
+        else
+        {
+            status = false;
+            sLog.Error( "AttributeMap::SaveAttributes()", "Attribute #%u is of an invalid type, neither integer nor float.", cur->first );
+        }
+    }
+    sLog.Debug( "AttributeMap::SaveAttributes()", "Attributes SAVED: item= %s, itemID= %u", mItem.itemName().c_str(), mItem.itemID() );
+
+    return status;
+#endif
+    return Save();
+}
+
+bool AttributeMap::Delete()
+{
+    // Remove all attributes from the entity_attributes table for this item:
+    DBerror err;
+    if(!sDatabase.RunQuery(err,
+        "DELETE"
+        " FROM entity_attributes"
+        " WHERE itemID=%u",
+        mItem.itemID()
+    ))
+    {
+        sLog.Error( "", "Failed to delete item %u: %s", mItem.itemID(), err.c_str());
+        return false;
+    }
+    return true;
+}
+
+AttributeMap::AttrMapItr AttributeMap::begin()
+{
+    return mAttributes.begin();
+}
+
+AttributeMap::AttrMapItr AttributeMap::end()
+{
+    return mAttributes.end();
+}
+/************************************************************************/
+/* End of new attribute system                                          */
+/************************************************************************/
 

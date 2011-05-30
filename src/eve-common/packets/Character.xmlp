@@ -145,16 +145,16 @@
 
   <elementDef name="Call_AddOwnerNote">
     <tupleInline>
-      <string name="label" />
-      <string name="content" />
+      <wstring name="label" soft="true" />
+      <wstring name="content" soft="true" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="Call_EditOwnerNote">
     <tupleInline>
       <int name="noteID" />
-      <string name="label" />
-      <string name="content" />
+      <wstring name="label" soft="true" />
+      <wstring name="content" soft="true"/>
     </tupleInline>
   </elementDef>
 

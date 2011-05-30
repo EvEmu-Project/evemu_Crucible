@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -65,7 +65,7 @@ public:
      * @note This function must be called after OpenDir()
      *       before calling currentFileName().
      *
-     * @retval true  Iteration successfull.
+     * @retval true  Iteration successful.
      * @retval false Iteration failed; most likely there are no more files.
      */
     bool NextFile();

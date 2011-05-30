@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -55,17 +55,22 @@ protected:
 	State m_state;
 
 	//cached to reduce access times.
-	const double m_entityFlyRange2;
-	const double m_entityChaseMaxDistance2;
-	const double m_entityAttackRange2;
+	EvilNumber m_entityFlyRange2;
+	EvilNumber m_entityChaseMaxDistance2;
+	EvilNumber m_entityAttackRange2;
 	
 	NPC *const m_npc;
 	
 	Timer m_processTimer;
 	Timer m_mainAttackTimer;
+
+	Timer m_shieldBoosterTimer;
+	Timer m_armorRepairTimer;
+
+	//Timer m_warpScramblerTimer;
+	//Timer m_webifierTimer;
+
 };
-
-
 
 #endif
 

@@ -35,10 +35,10 @@
 
   <elementDef name="Call_AddCorporation">
     <tupleInline>
-      <string name="corpName" />
-      <string name="corpTicker" />
-      <string name="description" />
-      <string name="url" />
+      <wstring name="corpName" soft="true"/>
+      <wstring name="corpTicker" soft="true"/>
+      <wstring name="description" soft="true"/>
+      <wstring name="url" soft="true" />
       <real name="taxRate" />
       <raw name="shape1" />
       <raw name="shape2" />
@@ -696,6 +696,12 @@
       <int name="isInAlliance" />
       <int name="minMembers" />
       <int name="maxMembers" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name ="Call_SetCloneTypeID">
+    <tupleInline>
+      <int name="CloneTypeID" />
     </tupleInline>
   </elementDef>
 

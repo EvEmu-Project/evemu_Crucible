@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -137,7 +137,7 @@ public:
 	Client(PyServiceMgr &services, EVETCPConnection** con);
 	virtual ~Client();
 	
-	ModuleManager modules;
+	ModuleManager mModulesMgr;
 
 	bool            ProcessNet();
 	virtual void    Process();
@@ -155,6 +155,7 @@ public:
 	uint32 GetAccountRole() const                   { return mSession.GetCurrentInt( "role" ); }
 
 	uint32 GetCharacterID() const                   { return mSession.GetCurrentInt( "charid" ); }
+        std::string GetCharacterName() const            { return mSession.GetCurrentString( "charname" ); }
 	uint32 GetCorporationID() const                 { return mSession.GetCurrentInt( "corpid" ); }
 	uint32 GetLocationID() const                    { return mSession.GetCurrentInt( "locationid" ); }
 	uint32 GetStationID() const                     { return mSession.GetCurrentInt( "stationid" ); }
@@ -172,6 +173,7 @@ public:
 	uint32 GetShipID() const                        { return mSession.GetCurrentInt( "shipid" ); }
     uint32 GetGangRole() const                      { return mSession.GetCurrentInt( "gangrole" ); }
 
+
 	// character data
 	CharacterRef GetChar() const                    { return m_char; }
 	ShipRef GetShip() const                         { return ShipRef::StaticCast( Item() ); }
@@ -182,6 +184,7 @@ public:
 	double z() const                                { return GetPosition().z; }	//this is terribly inefficient.
 
 	uint32 GetAllianceID() const                    { return GetChar() ? GetChar()->allianceID() : 0; }
+	uint32 GetWarFactionID() const                    { return GetChar() ? GetChar()->warFactionID() : 0; }
 	double GetBounty() const                        { return GetChar() ? GetChar()->bounty() : 0.0; }
 	double GetSecurityRating() const                { return GetChar() ? GetChar()->securityRating() : 0.0; }
 	double GetBalance() const                       { return GetChar() ? GetChar()->balance() : 0.0; }
@@ -192,7 +195,8 @@ public:
 	void MoveToLocation(uint32 location, const GPoint &pt);
 	void MoveToPosition(const GPoint &pt);
 	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
-	bool EnterSystem();
+	bool EnterSystem(bool login);
+    bool UpdateLocation();
 	bool SelectCharacter( uint32 char_id );
 	void JoinCorporationUpdate(uint32 corp_id);
 	void SavePosition();
@@ -208,6 +212,19 @@ public:
 	//destiny stuff...
 	void WarpTo(const GPoint &p, double distance);
 	void StargateJump(uint32 fromGate, uint32 toGate);
+    void SetDockStationID(uint32 stationID) { m_dockStationID = stationID; };
+    uint32 GetDockStationID() { return m_dockStationID; };
+    void SetDockingPoint(GPoint &dockPoint);
+    void GetDockingPoint(GPoint &dockPoint);
+    bool GetPendingDockOperation() { return m_needToDock; };
+    void SetPendingDockOperation(bool needToDock) { m_needToDock = needToDock; }
+
+    // THESE FUNCTIONS ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
+    void SetJustUndocking(bool justUndocking) { m_justUndocked = justUndocking; }
+    bool GetJustUndocking() { return m_justUndocked; };
+    void SetUndockAlignToPoint(GPoint &dest);
+    void GetUndockAlignToPoint(GPoint &dest);
+    // --- END HACK FUNCTIONS FOR UNDOCK ---
 	
 	void SendErrorMsg(const char *fmt, ...);
 	void SendNotifyMsg(const char *fmt, ...);
@@ -216,6 +233,10 @@ public:
 	void SelfEveMail(const char *subject, const char *fmt, ...);
 	void ChannelJoined(LSCChannel *chan);
 	void ChannelLeft(LSCChannel *chan);
+	void UpdateSession( const char *sessionType, int value );
+    bool IsKennyTranslatorEnabled() { return bKennyfied; };
+    void EnableKennyTranslator() { bKennyfied = true; };
+    void DisableKennyTranslator() { bKennyfied = false; };
 
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, void (Client::* clientCall)() );
 	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, ClientFunctor **functor );
@@ -248,10 +269,17 @@ public:
 	virtual bool ApplyDamage(Damage &d);
 	virtual void Killed(Damage &fatal_blow);
 	virtual SystemManager *System() const { return(m_system); }
+
+	/********************************************************************/
+    /* Server Administration Interface                                  */
+    /********************************************************************/
+	void DisconnectClient();
+	void BanClient();
 	
 protected:
 	void _ReduceDamage(Damage &d);
     void _UpdateSession( const CharacterConstRef& character );
+    void _UpdateSession2( uint32 characterID  );
 
     // Packet stuff
 	void _SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel = NULL );
@@ -279,9 +307,16 @@ protected:
 	Timer m_moveTimer;
 	uint32 m_moveSystemID;
 	GPoint m_movePoint;
+    uint32 m_dockStationID;
 	void _ExecuteJump();
+    bool m_needToDock;
 
-	uint64 m_timeEndTrain;
+    // THESE VARIABLES ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
+    bool m_justUndocked;
+    GPoint m_undockAlignToPoint;
+    // --- END HACK VARIABLES FOR UNDOCK ---
+
+	EvilNumber m_timeEndTrain;
 
     /********************************************************************/
     /* EVEClientSession interface                                       */
@@ -304,6 +339,8 @@ protected:
     bool Handle_PingReq( PyPacket* packet ) { _SendPingResponse( packet->dest, packet->source.callID ); return true; }
     bool Handle_PingRsp( PyPacket* packet ) { /* do nothing */ return true; }
 
+
+
 private:
 	//queues for destiny updates:
 	PyList* m_destinyEventQueue;	//we own these. These are events as used in OnMultiEvent
@@ -313,8 +350,17 @@ private:
 	//FunctorTimerQueue m_delayQueue;
 	
 	uint32 m_nextNotifySequence;
-};
 
+    bool bKennyfied;
+
+    /************************************************************************/
+    /* new system for MultiEvents                                           */
+    /************************************************************************/
+    bool ScatterEvent(const char* event_name, PyRep* packet);
+
+    bool DoDestinyUpdate();
+    std::list<PyTuple*> mDogmaMessages;
+};
 
 //simple functor for void calls.
 //not needed right now

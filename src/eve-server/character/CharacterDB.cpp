@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -133,6 +133,58 @@ PyObject *CharacterDB::GetCharPublicInfo(uint32 characterID) {
 	
 }
 
+//void CharacterDB::GetCharacterData(uint32 characterID, std::vector<uint32> &characterDataVector) {
+void CharacterDB::GetCharacterData(uint32 characterID, std::map<std::string, uint32> &characterDataMap) {
+
+	DBQueryResult res;
+    DBResultRow row;
+
+    if(!sDatabase.RunQuery(res,
+        "SELECT "
+        "  character_.corporationID, "
+        "  character_.stationID, "
+        "  character_.solarSystemID, "
+        "  character_.constellationID, "
+        "  character_.regionID, "
+        "  corporation.stationID, "
+        "  character_.corpRole, "
+        "  character_.rolesAtAll, "
+        "  character_.rolesAtBase, "
+        "  character_.rolesAtHQ, "
+        "  character_.rolesAtOther, "
+        "  entity.locationID "
+        " FROM character_ "
+        "  LEFT JOIN corporation USING (corporationID) "
+        "  LEFT JOIN entity ON entity.itemID = character_.characterID "
+        " WHERE characterID = %u",
+        characterID))
+    {
+        sLog.Error("CharacterDB::GetCharPublicInfo2()", "Failed to query HQ of character's %u corporation: %s.", characterID, res.error.c_str());
+    }
+
+	if(!res.GetRow(row))
+    {
+        sLog.Error("CharacterDB::GetCharacterData()", "No valid rows were returned by the database query.");
+	}
+	
+//    std::map<std::string,uint32> characterDataMap;
+//    for( uint32 i=0; i<=characterDataVector.size(); i++ )
+//        characterDataVector.push_back( row.GetUInt(i) );
+
+    characterDataMap["corporationID"] = row.GetUInt(0);
+    characterDataMap["stationID"] = row.GetUInt(1);
+    characterDataMap["solarSystemID"] = row.GetUInt(2);
+    characterDataMap["constellationID"] = row.GetUInt(3);
+    characterDataMap["regionID"] = row.GetUInt(4);
+    characterDataMap["corporationHQ"] = row.GetUInt(5);
+    characterDataMap["corpRole"] = row.GetUInt(6);
+    characterDataMap["rolesAtAll"] = row.GetUInt(7);
+    characterDataMap["rolesAtBase"] = row.GetUInt(8);
+    characterDataMap["rolesAtHQ"] = row.GetUInt(9);
+    characterDataMap["rolesAtOther"] = row.GetUInt(10);
+    characterDataMap["locationID"] = row.GetUInt(11);
+}
+
 PyObject *CharacterDB::GetCharPublicInfo3(uint32 characterID) {
 
 	DBQueryResult res;
@@ -175,6 +227,82 @@ bool CharacterDB::GetCharItems(uint32 characterID, std::vector<uint32> &into) {
 	
 	return true;
 }
+
+//returns a list of the itemID for all the clones belonging to the character
+bool CharacterDB::GetCharClones(uint32 characterID, std::vector<uint32> &into) {
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		"  itemID"
+		" FROM entity"
+		" WHERE ownerID = %u"
+		" and flag='400'",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query clones of char %u: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	while(res.GetRow(row))
+		into.push_back(row.GetUInt(0));
+	
+	return true;
+}
+
+//returns the itemID of the active clone
+//if you want to get the typeID of the clone, please use GetActiveCloneType
+bool CharacterDB::GetActiveClone(uint32 characterID, uint32 &itemID) {
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		"  itemID"
+		" FROM entity"
+		" WHERE ownerID = %u"
+		" and flag='400'"
+		" and customInfo='active'",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query active clone of char %u: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	res.GetRow(row);
+	itemID=row.GetUInt(0);
+	
+	return true;
+}
+
+//we use this function because, when we change the clone type,
+//the cached item type doesn't change, so we need to read it 
+//directly from the db
+bool CharacterDB::GetActiveCloneType(uint32 characterID, uint32 &typeID) {
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		"  typeID"
+		" FROM entity"
+		" WHERE ownerID = %u"
+		" and flag='400'"
+		" and customInfo='active'",
+		characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to query active clone of char %u: %s.", characterID, res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	res.GetRow(row);
+	typeID=row.GetUInt(0);
+	
+	return true;
+}
+
+
 
 PyObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
 	DBQueryResult res;

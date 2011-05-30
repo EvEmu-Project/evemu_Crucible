@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -53,6 +53,13 @@ public:
 		ecClient,
 		ecNPC,
 		ecCelestial,
+        ecStation,
+        ecAsteroidEntity,
+        ecShipEntity,
+        ecDroneEntity,
+        ecContainerEntity,
+        ecStructureEntity,
+        ecDeployableEntity,
 		ecOther
 	} EntityClass;
 	
@@ -76,6 +83,7 @@ public:
 	
 	virtual bool IsStaticEntity() const { return true; }	//will this entity's position never change?
 	virtual bool IsVisibleSystemWide() const { return false; }
+	virtual uint32 GetLocationID(SystemEntity *se);
 	
 	SystemBubble *Bubble() const { return(m_bubble); }	//may be NULL
 	
@@ -87,6 +95,8 @@ public:
 	virtual uint32 GetID() const = 0;
 	//get the position of this entity in space.
 	virtual const GPoint &GetPosition() const = 0;
+    //get the velocity vector of this entity in space.
+    virtual const GVector &GetVelocity() const = 0;
 	//get other attributes of the entity:
 	virtual const char *GetName() const = 0;
 	virtual double GetRadius() const = 0;
@@ -136,6 +146,7 @@ public:
 	virtual InventoryItemRef Item() const { return(m_self); }
 	virtual const char *GetName() const;
 	virtual const GPoint &GetPosition() const;
+	virtual const GVector &GetVelocity() const;
 	virtual double GetRadius() const;
 	virtual PyDict *MakeSlimItem() const;
 	virtual void MakeDamageState(DoDestinyDamageState &into) const;
@@ -163,6 +174,7 @@ public:
 	//partial implementation of SystemEntity interface:
 	virtual void ProcessDestiny();
 	virtual const GPoint &GetPosition() const;
+    virtual const GVector &GetVelocity() const;
 	virtual void EncodeDestiny( Buffer& into ) const;
 	virtual bool IsStaticEntity() const { return false; }
 
@@ -183,6 +195,20 @@ protected:
 	DestinyManager *m_destiny;	//we own this! NULL if we are not in a system
 };
 
+/*
+ * This class is used for Targetable and Destructable Celestial Objects
+ */
+class CelestialDynamicSystemEntity : public DynamicSystemEntity {
+public:
+	CelestialDynamicSystemEntity(DestinyManager *mgr=NULL /*ownership taken*/, InventoryItemRef self = InventoryItemRef());
+	virtual ~CelestialDynamicSystemEntity();
+
+	//partial implementation of SystemEntity interface:
+	virtual void EncodeDestiny( Buffer& into ) const;
+	virtual bool IsStaticEntity() const { return true; }
+    virtual bool IsVisibleSystemWide() const { return false; }
+
+};
 
 #endif
 

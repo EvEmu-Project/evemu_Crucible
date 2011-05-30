@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -33,6 +33,8 @@ class Ship;
 class CelestialObject;
 class Skill;
 class Owner;
+class Structure;
+class CargoContainer;
 
 class Character;
 class SolarSystem;
@@ -54,6 +56,10 @@ typedef RefPtr<Skill>                    SkillRef;
 typedef RefPtr<const Skill>              SkillConstRef;
 typedef RefPtr<Owner>                    OwnerRef;
 typedef RefPtr<const Owner>              OwnerConstRef;
+typedef RefPtr<Structure>                StructureRef;
+typedef RefPtr<const Structure>          StructureConstRef;
+typedef RefPtr<CargoContainer>           CargoContainerRef;
+typedef RefPtr<const CargoContainer>     CargoContainerConstRef;
 
 typedef RefPtr<Character>                CharacterRef;
 typedef RefPtr<const Character>          CharacterConstRef;

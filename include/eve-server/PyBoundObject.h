@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -22,7 +22,6 @@
 	------------------------------------------------------------------------------------
 	Author:		Zhur
 */
-
 
 #ifndef __PYBOUNDOBJECT_H_INCL__
 #define __PYBOUNDOBJECT_H_INCL__
@@ -42,6 +41,7 @@ public:
 
 	//returns string "N=(nodeID):(bindID)"
 	std::string GetBindStr() const;
+    std::string GetBoundObjectClassStr() const { return m_strBoundObjectName; };
 
 	//just to say who we are:
 	virtual PyResult Call(const std::string &method, PyCallArgs &args);
@@ -51,6 +51,7 @@ protected:
 	void _SetNodeBindID(uint32 nodeID, uint32 bindID) { m_nodeID = nodeID; m_bindID = bindID; }
 
 	PyServiceMgr *const m_manager;
+    std::string m_strBoundObjectName;
 
 private:
 	uint32 m_nodeID;
@@ -58,6 +59,3 @@ private:
 };
 
 #endif
-
-
-

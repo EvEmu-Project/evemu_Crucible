@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,7 +42,7 @@ public:
     PyRep *GetMultiGraphicsEx(const std::vector<int32> &entityIDs);
     PyRep *GetMultiInvTypesEx(const std::vector<int32> &typeIDs);
     PyObject *GetUnits();
-    PyObject *GetMapObjects(uint32 entityID, bool wantRegions, bool wantConstellations, bool wantSystems, bool wantStations);
+    PyObjectEx *GetMapObjects(uint32 entityID, bool wantRegions, bool wantConstellations, bool wantSystems, bool wantStations);
     PyObject *GetMap(uint32 solarSystemID);
     PyObject *ListLanguages();
     PyRep *GetStationSolarSystemsByOwner(uint32 ownerID);

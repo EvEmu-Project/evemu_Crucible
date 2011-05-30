@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -28,10 +28,11 @@
 static void SetupSignals();
 static void CatchSignal( int sig_num );
 
-static const char* const CONFIG_FILE = EVEMU_ROOT_DIR"/etc/eve-server.xml";
+static const char* const CONFIG_FILE = EVEMU_ROOT_DIR"etc/eve-server.xml";
 static const uint32 MAIN_LOOP_DELAY = 10; // delay 10 ms.
 
 static volatile bool RunLoops = true;
+dgmtypeattributemgr * _sDgmTypeAttrMgr;
 
 int main( int argc, char* argv[] )
 {
@@ -103,6 +104,9 @@ int main( int argc, char* argv[] )
         sLog.Error( "server init", "Unable to connect to the database: %s", err.c_str() );
         return 1;
     }
+    _sDgmTypeAttrMgr = new dgmtypeattributemgr(); // needs to be after db init as its using it
+
+    _sDgmTypeAttrMgr = new dgmtypeattributemgr(); // needs to be after db init as its using it
 
     //Start up the TCP server
     EVETCPServer tcps;
@@ -117,12 +121,11 @@ int main( int argc, char* argv[] )
         sLog.Error( "server init", "Failed to start TCP listener on port %u: %s.", sConfig.net.port, errbuf );
         return 1;
     }
-
-    EntityList entity_list;
-    ItemFactory item_factory( entity_list );
+	//make the item factory
+    ItemFactory item_factory( sEntityList );
 
     //now, the service manager...
-    PyServiceMgr services( 888444, entity_list, item_factory );
+    PyServiceMgr services( 888444, sEntityList, item_factory );
 
     //setup the command dispatcher
     CommandDispatcher command_dispatcher( services );
@@ -183,6 +186,7 @@ int main( int argc, char* argv[] )
     services.RegisterService(new RamProxyService(&services));
     services.RegisterService(new PosMgrService(&services));
     services.RegisterService(new NetService(&services));
+	services.RegisterService(new TradeService(&services));
 
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();
@@ -219,10 +223,10 @@ int main( int argc, char* argv[] )
         {
             Client* c = new Client( services, &tcpc );
 
-            entity_list.Add( &c );
+            sEntityList.Add( &c );
         }
 
-        entity_list.Process();
+        sEntityList.Process();
         services.Process();
 
         /* UPDATE */
@@ -241,6 +245,9 @@ int main( int argc, char* argv[] )
     sLog.Log("server shutdown", "TCP listener stopped." );
 
     services.serviceDB().SetServerOnlineStatus(false);
+
+    sLog.Log("server shutdown", "Cleanup db cache" );
+    delete _sDgmTypeAttrMgr;
 
     log_close_logfile();
 

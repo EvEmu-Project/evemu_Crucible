@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -32,7 +32,7 @@ const uint32 HEX_DUMP_PREVIEW_LIMIT = 1024;
 
 void build_hex_line( const uint8* buffer, size_t length, size_t offset, char* ret, unsigned int padding )
 {
-    ret += sprintf( ret, "%0*X:", padding, offset );
+    ret += snprintf( ret, length, "%0*X:", padding, offset );
 
     char printable[17];
 
@@ -40,24 +40,24 @@ void build_hex_line( const uint8* buffer, size_t length, size_t offset, char* re
     {
         if( i == 8 )
         {
-            ret += sprintf( ret, " -" );
+            ret += snprintf( ret, length, " -" );
         }
 
         if( ( i + offset ) < length )
         {
             uint8 c = *(const uint8*)( buffer + offset + i );
 
-            ret += sprintf( ret, " %02X", c );
+            ret += snprintf( ret, length, " %02X", c );
             printable[i] = ( IsPrintable( c ) ? (char)c : '.' );
         }
         else
         {
-            ret += sprintf( ret, "   " );
+            ret += snprintf( ret, length, "   " );
             printable[i] = 0;
         }
     }
 
-    sprintf( ret, "  | %.16s", printable );
+    snprintf( ret, length, "  | %.16s", printable );
 }
 
 void pfxHexDump( const char* pfx, FILE* into, const uint8* data, uint32 length )

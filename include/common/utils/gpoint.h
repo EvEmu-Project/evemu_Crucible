@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -35,6 +35,33 @@ public:
 	 GPoint(Ga::GaFloat X,Ga::GaFloat Y,Ga::GaFloat Z):Ga::GaVec3(X, Y, Z){}
 	 GPoint(const GPoint& oth):Ga::GaVec3(oth){}
 	 GPoint(const Ga::GaVec3& oth):Ga::GaVec3(oth){}
+
+     // Public functions for manipulating 3D coordinates in space:
+     // Take existing (x,y,z) point and use that as the center of a sphere of 'radius' and
+     // modify it to be a new (x,y,z) point randomly placed on that sphere about the original
+     // center coordinate: (x,y,z)
+     void MakeRandomPointOnSphere(double radius)
+     {
+        double theta = MakeRandomFloat( 0.0, (2*M_PI) );
+        double phi = MakeRandomFloat( 0.0, (2*M_PI) );
+        x += radius * sin(theta) * cos(phi);
+        y += radius * sin(theta) * sin(phi);
+        z += radius * cos(theta);
+     }
+
+     // Take existing (x,y,z) point and use that as the center of two spheres of 'radiusInner', the
+     // smaller radius sphere, and 'radiusOuter', the larger radius sphere, and modify
+     // the original coordinate to be a new (x,y,z) point randomly placed somewhere inside the volume
+     // enclosed between the smaller sphere and the large sphere
+    void MakeRandomPointOnSphereLayer(double radiusInner, double radiusOuter)
+    {
+        double theta = MakeRandomFloat( 0.0, (2*M_PI) );
+        double phi = MakeRandomFloat( 0.0, (2*M_PI) );
+        double intermediateRadius = MakeRandomFloat( radiusInner, radiusOuter );
+        x += intermediateRadius * sin(theta) * cos(phi);
+        y += intermediateRadius * sin(theta) * sin(phi);
+        z += intermediateRadius * cos(theta);
+    }
 };
 
 class GVector : public Ga::GaVec3 {

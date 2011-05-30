@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+
 
 TargetManager::TargetManager(SystemEntity *self)
 : m_destroyed(false),
@@ -164,7 +165,7 @@ void TargetManager::TargetLost(SystemEntity *who) {
 	m_self->TargetLost(who);
 }
 
-bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {
+bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {   // needs another argument: "ShipRef ship" to access ship attributes
 	//first make sure they are not already in the list
 	std::map<SystemEntity *, TargetEntry *>::iterator res;
 	res = m_targets.find(who);
@@ -174,7 +175,20 @@ bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {
 		return false;
 	}
 
-	//TODO: check against max locked target.
+	//Check that they aren't targeting themselves
+	if(who == m_self)
+		return false;
+
+    //TODO: check against max locked target count
+    uint32 maxLockedTargets = 4;        // hard-coded for now, but this should be queried from ShipRef ship->maxLockedTargets()
+    if( m_targets.size() >= maxLockedTargets )
+        return false;
+
+    //TODO: check against max locked target range
+    double maxTargetLockRange = 50000;  // hard-coded for now, but this should be queried from ShipRef ship->maxTargetRange()
+    GVector rangeToTarget( who->GetPosition(), m_self->GetPosition() );
+    if( rangeToTarget.length() > maxTargetLockRange )
+        return false;
 	
 	TargetEntry *te = new TargetEntry(who);
 	te->state = TargetEntry::Locking;
@@ -406,20 +420,29 @@ PyList *TargetManager::GetTargeters() const {
 	return result;
 }
 
+uint32 TargetManager::TimeToLock(ShipRef ship, SystemEntity *target) const {
 
+	/*double scanRes = ship->attributes.GetReal( ship->attributes.Attr_scanResolution );
+	double sigRad = 25;
+	
+		if( target->IsClient() || target->IsNPC() )
+			sigRad = target->Item()->attributes.GetReal( target->Item()->attributes.Attr_signatureRadius );
+		
 
+	uint32 time = ( 40000 / ( scanRes ) )/( pow( log( sigRad + sqrt( sigRad * sigRad + 1) ), 2) );
 
+	if( time > 180 )
+		time = 180;
 
+	return time;*/
 
+    EvilNumber scanRes = ship->GetAttribute(AttrScanResolution);
+    EvilNumber sigRad(25);
 
+    if( target->IsClient() || target->IsNPC() )
+        sigRad = target->Item()->GetAttribute(AttrSignatureRadius);
 
+    EvilNumber time = ( EvilNumber(40000) / ( scanRes ) ) /( e_pow( e_log( sigRad + e_sqrt( sigRad * sigRad + 1) ), 2) );
 
-
-
-
-
-
-
-
-
-
+    return time.get_int(); // hack...
+}

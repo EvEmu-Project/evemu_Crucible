@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -32,6 +32,8 @@ InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItem
     PyBoundObject(mgr), m_dispatch(new Dispatcher(this)), mInventory(inventory), mFlag(flag)
 {
     _SetCallDispatcher(m_dispatch);
+    
+    m_strBoundObjectName = "InventoryBound";
 
     PyCallable_REG_CALL(InventoryBound, List)
     PyCallable_REG_CALL(InventoryBound, Add)
@@ -41,6 +43,8 @@ InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItem
     PyCallable_REG_CALL(InventoryBound, ReplaceCharges)
     PyCallable_REG_CALL(InventoryBound, MultiMerge)
     PyCallable_REG_CALL(InventoryBound, StackAll)
+	PyCallable_REG_CALL(InventoryBound, DestroyFitting)
+    PyCallable_REG_CALL(InventoryBound, SetPassword)
 }
 
 InventoryBound::~InventoryBound()
@@ -89,7 +93,7 @@ PyResult InventoryBound::Handle_ReplaceCharges(PyCallArgs &call) {
     }
 
     // new ref is consumed, we don't release it
-    call.client->modules.ReplaceCharges( (EVEItemFlags) args.flag, (InventoryItemRef)new_charge );
+    call.client->mModulesMgr.ReplaceCharges( (EVEItemFlags) args.flag, (InventoryItemRef)new_charge );
 
     return(new PyInt(1));
 }
@@ -162,7 +166,14 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
-    if( call.tuple->items.size() == 3 )
+    
+	ShipRef ship = call.client->GetShip();
+	uint32 typeID;
+	uint32 powerSlot;
+	uint32 useableSlot;
+
+	
+	if( call.tuple->items.size() == 3 )
     {
         Call_MultiAdd_3 args;
         if(!args.Decode(&call.tuple)) {
@@ -170,10 +181,26 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
             return NULL;
         }
 
+		if((EVEItemFlags)args.flag == 0 )
+		{
+
+			//Get Item TypeID - this is bad
+			InventoryDB::GetTypeID(args.itemIDs[0], typeID);
+
+			//Get Range of slots for item
+			InventoryDB::GetModulePowerSlotByTypeID(typeID, powerSlot);
+
+			//Get open slots available on ship
+			InventoryDB::GetOpenPowerSlots(powerSlot,ship , useableSlot);			
+			
+			//Set item flag to first useable open slot found
+			args.flag = useableSlot;
+
+		}
+		
         //NOTE: They can specify "None" in the quantity field to indicate
         //their intention to move all... we turn this into a 0 for simplicity.
 
-        //TODO: should verify args.flag before casting!
         return _ExecAdd( call.client, args.itemIDs, args.quantity, (EVEItemFlags)args.flag );
     }
     else if( call.tuple->items.size() == 1 )
@@ -251,9 +278,41 @@ PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
     return NULL;
 }
 
+PyResult InventoryBound::Handle_DestroyFitting(PyCallArgs &call) {
+
+	sLog.Debug("InventoryBound","Called DestroyFittings stub");
+
+	Call_SingleIntegerArg args;
+	if(!args.Decode(&call.tuple)){
+		sLog.Error("Destroy Fittings","Failed to decode args.");
+	}
+	//remove the rig effects from the ship
+	call.client->mModulesMgr.Downgrade(args.arg);
+	
+	//get the actual item
+	InventoryItemRef item = m_manager->item_factory.GetItem(args.arg);
+
+	//move the item to the void or w/e
+	call.client->MoveItem(item->itemID(), mInventory.inventoryID(), flagAutoFit);
+
+	//delete the item
+	item->Delete();
+
+	return NULL;
+}
+
+PyResult InventoryBound::Handle_SetPassword(PyCallArgs &call) {
+    // TODO
+    uint32 item = 0;
+    item++;
+
+    return NULL;
+}
+
 PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint32 quantity, EVEItemFlags flag) {
     //If were here, we can try move all the items (validated)
-    std::vector<int32>::const_iterator cur, end;
+
+	std::vector<int32>::const_iterator cur, end;
     cur = items.begin();
     end = items.end();
     for(; cur != end; cur++) {
@@ -262,6 +321,9 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
             _log(SERVICE__ERROR, "Failed to load item %u. Skipping.", *cur);
             continue;
         }
+
+		//Get old position
+		EVEItemFlags old_flag = sourceItem->flag();
 
         //NOTE: a multi add can come in with quantity 0 to indicate "all"
         if( quantity == 0 )
@@ -277,26 +339,117 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
             }
             else
             {
-                mInventory.ValidateAddItem( flag, newItem );
+                //Unlike the other validate item requests, fitting an item requires a skill check, which means passing the character
+				if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
+				{
+					Ship::ValidateAddItem( flag, newItem, c );
+					
+					//it's a new module, make sure it's state starts at offline so that it is added correctly
+					if( newItem->categoryID() != EVEDB::invCategories::Charge )
+						newItem->PutOffline();
 
-                //Move New item to its new location
-                c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh modules
+					//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
+					//c->GetShip()->Set_mass( c->GetShip()->mass() + newItem->massAddition() );
+                    c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) + newItem->GetAttribute(AttrMassAddition) );
+				}
+				else
+				{
+					mInventory.ValidateAddItem( flag, newItem );
+				}
 
-                //Create new item id return result
-                Call_SingleIntegerArg result;
-                result.arg = newItem->itemID();
+				if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
+				{
+					//coming from ship, we need to deactivate it and remove mass if it isn't a charge
+					if( newItem->categoryID() != EVEDB::invCategories::Charge ) {
+						c->mModulesMgr.Deactivate( newItem->itemID(), "online" );
+						//c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
+                        c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) - newItem->GetAttribute(AttrMassAddition) );
+					}
 
-                //Return new item result
-                return result.Encode();
+					//Move New item to its new location
+					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh mModulesMgr
+
+					//Create new item id return result
+					Call_SingleIntegerArg result;
+					result.arg = newItem->itemID();
+
+					//Return new item result
+					return result.Encode(); 
+
+				} else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) {
+					c->mModulesMgr.Downgrade(newItem->itemID());
+
+					//move the item to the void or w/e
+					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flagAutoFit);
+
+					//delete the item
+					newItem->Delete();
+
+				} else {
+
+					//Move New item to its new location
+					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh mModulesMgr
+
+					//Create new item id return result
+					Call_SingleIntegerArg result;
+					result.arg = newItem->itemID();
+
+					//Return new item result
+					return result.Encode(); 
+				}
             }
         }
         else
         {
-            //Its a move request
-            mInventory.ValidateAddItem( flag, sourceItem );
+			//Unlike the other validate item requests, fitting an item requires a skill check
+			if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
+			{
+				Ship::ValidateAddItem( flag, sourceItem, c );
 
-            c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);  // properly refresh modules
+				//it's a new module, make sure it's state starts at offline so that it is added correctly
+				if( sourceItem->categoryID() != EVEDB::invCategories::Charge )
+					sourceItem->PutOffline();
+
+				//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
+				//c->GetShip()->Set_mass( c->GetShip()->mass() + sourceItem->massAddition() );
+                c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) + sourceItem->GetAttribute(AttrMassAddition) );
+
+			}
+			else
+			{
+				mInventory.ValidateAddItem( flag, sourceItem );
+			}
+
+			if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
+			{
+					//coming from ship, we need to deactivate it and remove mass if it isn't a charge
+					if( sourceItem->categoryID() != EVEDB::invCategories::Charge ) {
+						c->mModulesMgr.Deactivate( sourceItem->itemID(), "online" );
+						//c->GetShip()->Set_mass( c->GetShip()->mass() - sourceItem->massAddition() );
+                        c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) + sourceItem->GetAttribute(AttrMassAddition) );
+					}
+
+					c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);
+
+			} else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) {
+				//remove effects
+				c->mModulesMgr.Downgrade(sourceItem->itemID());
+				
+				//move the item to the void or w/e
+				c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flagAutoFit);
+
+				//delete the item
+				sourceItem->Delete();
+
+			} else {
+
+				c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);
+			
+			}
         }
+
+		//update mModulesMgr
+		c->mModulesMgr.UpdateModules();
     }
 
     //Return Null if no item was created

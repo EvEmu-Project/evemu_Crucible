@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -30,6 +30,9 @@
 #ifndef EVE_ENTITY_LIST_H
 #define EVE_ENTITY_LIST_H
 
+#include "threading/Mutex.h"
+#include "utils/Singleton.h"
+
 class Client;
 class PyAddress;
 class EVENotificationStream;
@@ -52,6 +55,7 @@ public:
 };
 
 class EntityList
+: public Singleton<EntityList>
 {
 public:
 	EntityList();
@@ -69,6 +73,8 @@ public:
 	Client *FindCharacter(const char *name) const;
 	Client *FindByShip(uint32 ship_id) const;
 	Client *FindAccount(uint32 account_id) const;
+        void FindByStationID(uint32 stationID, std::vector<Client *> &result) const;
+        void FindByRegionID(uint32 regionID, std::vector<Client *> &result) const;
 	uint32 GetClientCount() const { return(uint32(m_clients.size())); }
 
 	SystemManager *FindOrBootSystem(uint32 systemID);
@@ -88,8 +94,14 @@ protected:
 	typedef std::map<uint32, SystemManager *> system_list;
 	system_list m_systems;
 
+	Mutex mMutex;
+
 	PyServiceMgr *m_services;	//we do not own this, only used for booting systems.
 };
+
+//Singleton
+#define sEntityList \
+	( EntityList::get() )
 
 
 #endif

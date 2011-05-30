@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -56,7 +56,12 @@ SkillRef Skill::Spawn(ItemFactory &factory, ItemData &data)
 	uint32 skillID = _Spawn( factory, data );
 	if( skillID == 0 )
 		return SkillRef();
-	return Skill::Load( factory, skillID );
+
+    SkillRef skillRef = Skill::Load( factory, skillID );
+
+    skillRef->SetAttribute(AttrIsOnline, 1);      // Is Online
+
+    return skillRef;
 }
 
 uint32 Skill::_Spawn(ItemFactory &factory, ItemData &data)
@@ -76,47 +81,128 @@ uint32 Skill::_Spawn(ItemFactory &factory, ItemData &data)
 	return InventoryItem::_Spawn( factory, data );
 }
 
-uint32 Skill::GetSPForLevel(uint8 level)
+//uint32 Skill::GetSPForLevel(uint8 level)
+//{
+//	return(SKILL_BASE_POINTS * skillTimeConstant() * pow(32, (level - 1) / 2.0));
+//}
+
+EvilNumber Skill::GetSPForLevel( EvilNumber level )
 {
-	return(SKILL_BASE_POINTS * skillTimeConstant() * pow(32, (level - 1) / 2.0));
+    return EVIL_SKILL_BASE_POINTS * GetAttribute(AttrSkillTimeConstant) * e_pow(32, (level - 1) / 2.0);
 }
 
 bool Skill::SkillPrereqsComplete(Character &ch)
 {
 	SkillRef requiredSkill;
 
-	if( requiredSkill1() != 0 )
+    
+	if( GetAttribute(AttrRequiredSkill1) != 0 )
 	{
-		requiredSkill = ch.GetSkill( requiredSkill1() );
+		requiredSkill = ch.GetSkill( GetAttribute(AttrRequiredSkill1).get_int() );
 		if( !requiredSkill )
 			return false;
 
-		if( requiredSkill1Level() > requiredSkill->skillLevel() )
+		if( GetAttribute(AttrRequiredSkill1Level) > requiredSkill->GetAttribute(AttrSkillLevel) )
 			return false;
 	}
 
-	if( requiredSkill2() != 0 )
+	if( GetAttribute(AttrRequiredSkill2) != 0 )
 	{
-		requiredSkill = ch.GetSkill( requiredSkill2() );
+		requiredSkill = ch.GetSkill( GetAttribute(AttrRequiredSkill2).get_int() );
 		if( !requiredSkill )
 			return false;
 
-		if( requiredSkill2Level() > requiredSkill->skillLevel() )
+		if( GetAttribute(AttrRequiredSkill2Level) > requiredSkill->GetAttribute(AttrSkillLevel) )
 			return false;
 	}
 
-	if( requiredSkill3() != 0 )
-	{
-		requiredSkill = ch.GetSkill( requiredSkill3() );
-		if( !requiredSkill )
-			return false;
+    if( GetAttribute(AttrRequiredSkill3) != 0 )
+    {
+        requiredSkill = ch.GetSkill( GetAttribute(AttrRequiredSkill3).get_int() );
+        if( !requiredSkill )
+            return false;
 
-		if( requiredSkill3Level() > requiredSkill->skillLevel() )
-			return false;
-	}
+        if( GetAttribute(AttrRequiredSkill3Level) > requiredSkill->GetAttribute(AttrSkillLevel) )
+            return false;
+    }
 
 	return true;
 }
+
+bool Skill::FitModuleSkillCheck(InventoryItemRef item, CharacterRef character)
+{	
+	//TODO: move to skills
+	SkillRef requiredSkill;
+	
+	//Primary Skill
+	if(item->GetAttribute(AttrRequiredSkill1) != 0)
+	{
+		requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill1).get_int() );
+		if( !requiredSkill )
+			return false;
+
+		if( item->GetAttribute(AttrRequiredSkill1Level) > requiredSkill->GetAttribute(AttrSkillLevel) )
+			return false;
+	}
+
+	//Secondary Skill
+    if(item->GetAttribute(AttrRequiredSkill2) != 0)
+    {
+        requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill2).get_int() );
+        if( !requiredSkill )
+            return false;
+
+        if( item->GetAttribute(AttrRequiredSkill2Level) > requiredSkill->GetAttribute(AttrSkillLevel) )
+            return false;
+    }
+	
+	//Tertiary Skill
+    if(item->GetAttribute(AttrRequiredSkill3) != 0)
+    {
+        requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill3).get_int() );
+        if( !requiredSkill )
+            return false;
+
+        if( item->GetAttribute(AttrRequiredSkill3Level) > requiredSkill->GetAttribute(AttrSkillLevel) )
+            return false;
+    }
+	
+	//Quarternary Skill
+    if(item->GetAttribute(AttrRequiredSkill4) != 0)
+    {
+        requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill4).get_int() );
+        if( !requiredSkill )
+            return false;
+
+        if( item->GetAttribute(AttrRequiredSkill4Level) > requiredSkill->GetAttribute(AttrSkillLevel) )
+            return false;
+    }
+	
+	//Quinary Skill
+    if(item->GetAttribute(AttrRequiredSkill5) != 0)
+    {
+        requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill5).get_int() );
+        if( !requiredSkill )
+            return false;
+
+        if( item->GetAttribute(AttrRequiredSkill5Level) > requiredSkill->GetAttribute(AttrSkillLevel) )
+            return false;
+    }
+	
+	//Senary Skill
+    if(item->GetAttribute(AttrRequiredSkill6) != 0)
+    {
+        requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill6).get_int() );
+        if( !requiredSkill )
+            return false;
+
+        if( item->GetAttribute(AttrRequiredSkill6Level) > requiredSkill->GetAttribute(AttrSkillLevel) )
+            return false;
+    }
+
+	return true;
+}
+
 
 
 

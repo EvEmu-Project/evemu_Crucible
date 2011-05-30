@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -32,6 +32,8 @@ class DoDestiny_SetState;
 class SystemBubble {
 public:
 	SystemBubble(const GPoint &center, double radius);
+    ~SystemBubble() { m_bubbleID--; };
+
 	
 	const GPoint m_center;
 	const double m_radius;
@@ -47,6 +49,7 @@ public:
 	void clear();
 	bool IsEmpty() const { return(m_entities.empty()); }
 	void GetEntities(std::set<SystemEntity *> &into) const;
+    uint32 GetBubbleID() { return m_bubbleID; };
 
     //void AppendBalls(DoDestiny_SetState &ss, std::vector<uint8> &setstate_buffer) const;
 
@@ -59,6 +62,8 @@ protected:
 	void _BubblecastRemoveBall(SystemEntity *about_who);
 	
 	const double m_radius2;	//radius squared.
+    static uint32 m_bubbleIncrementer;
+    uint32 m_bubbleID;
 	std::map<uint32, SystemEntity *> m_entities;	//we do not own these.
 	std::set<SystemEntity *> m_dynamicEntities;	//entities which may move. we do not own these.
 };

@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -159,6 +159,13 @@ enum EVEContainerTypes {
 	containerCorpMarket			= 10012
 };
 
+enum EVERookieShipTypes {
+	amarrRookie						= 596,
+	caldariRookie					= 601,
+	gallenteRookie					= 606,
+	minmatarRookie					= 588,
+};
+
 
 #include "tables/invCategories.h"
 typedef EVEDB::invCategories::invCategories EVEItemCategories;
@@ -256,6 +263,7 @@ typedef enum EVEItemFlags
 	flagSecondaryStorage			= 122,	//Secondary Storage
 	flagCaptainsQuarters			= 123,	//Captains Quarters
 	flagWisPromenade				= 124,	//Wis Promenade
+    //Const: "flagWorldSpace" => "124"
 
 	flagSubSystem0					= 125,	//Sub system slot 0
 	flagSubSystem1					= 126,	//Sub system slot 1
@@ -266,19 +274,44 @@ typedef enum EVEItemFlags
 	flagSubSystem6					= 131,	//Sub system slot 6
 	flagSubSystem7					= 132,	//Sub system slot 7
 	
-	flagFactorySlotFirst			= 140,
-	flagFactorySlotLast				= 195,
+    flagSpecializedFuelBay          = 133,
+    flagSpecializedOreHold          = 134,
+    flagSpecializedGasHold          = 135,
+    flagSpecializedMineralHold      = 136,
+    flagSpecializedSalvageHold      = 137,
+    flagSpecializedShipHold         = 138,
+    flagSpecializedSmallShipHold    = 139,
+
+    flagFactorySlotFirst			= 140,
+    //flagSpecializedMediumShipHold   = 140,
+
+    flagSpecializedLargeShipHold    = 141,
+    flagSpecializedIndustrialShipHold = 142,
+    flagSpecializedAmmoHold         = 143,
+    flagStructureActive             = 144,
+    flagStructureInactive           = 145,
+    flagJunkyardReprocessed         = 146,
+    flagJunkyardTrashed             = 147,
+    flagSpecializedCommandCenterHold = 148,
+    flagSpecializedPlanetaryCommoditiesHold = 149,
+
+    flagFactorySlotLast				= 195,
 	
 	flagResearchFacilitySlotFirst	= 200,
-	flagResearchFacilitySlotLast	= 255
+	flagResearchFacilitySlotLast	= 255,
+
+	flagClone						= 400
 } EVEItemFlags;
 
 //some alternative names for entries above.
 static const EVEItemFlags flagSlotFirst = flagLowSlot0;	//duplicate values
 static const EVEItemFlags flagSlotLast = flagFixedSlot;
+static const EVEItemFlags flagNone = flagAutoFit;
 
 static const EVEItemFlags flagAnywhere = flagAutoFit;
 static const uint8 MAX_MODULE_COUNT = flagSlotLast - flagSlotFirst + 1;
+static const uint8 MAX_RIG_COUNT = flagRigSlot7 - flagRigSlot0 + 1;
+static const uint8 MAX_ASSEMBLY_COUNT = flagSubSystem7 - flagSubSystem0 + 1;
 
 #define FlagToSlot(flag) \
 	(flag - flagSlotFirst)
@@ -485,13 +518,19 @@ static const CorpRoleFlags corpRoleAll =
 
 //these come from dgmEffects.
 typedef enum {
+	effectShieldBoosting			= 4,	//effects.ShieldBoosting
+	effectSpeedBoost				= 7,	//effects.SpeedBoost
+	effectMissileLaunching			= 9,	//effects.MissileDeployment
 	effectTargetAttack				= 10,	//effects.Laser
 	effectLoPower					= 11,
 	effectHiPower					= 12,
 	effectMedPower					= 13,
 	effectOnline					= 16,
+	effectArmorRepair				= 27,	//effects.ArmorRepair
 	effectProjectileFired			= 34,
+	effectEMPWave					= 38,
 	effectMiningLaser				= 67,	//effects.Laser
+	effectEmpFieldRange				= 99,
 	effectSkillEffect				= 132,
 	effectAnchorDrop				= 649,
 	effectAnchorLift				= 650,
@@ -589,6 +628,7 @@ typedef enum {
 	dgmEffArea = 3,
 	dgmEffOnline = 4,
 } EffectCategories;
+
 
 /*
  *

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -41,7 +41,7 @@ bool ServiceDB::DoLogin( const char* login, const char* pass, uint32& accountID,
     
     DBQueryResult res;
     if( !sDatabase.RunQuery( res,
-        "SELECT accountID, role, password, PASSWORD( '%s' ), MD5( '%s' ), online"
+        "SELECT accountID, role, password, PASSWORD( '%s' ), MD5( '%s' ), online, banned"
         " FROM account"
         " WHERE accountName = '%s'",
         pass, pass, login ) )
@@ -58,6 +58,11 @@ bool ServiceDB::DoLogin( const char* login, const char* pass, uint32& accountID,
             sLog.Error( "ServiceDB", "Account '%s' already logged in.", login );
             return false;
         }
+		if( 0 != row.GetInt( 6 ) )
+		{
+			sLog.Error( "ServiceDB", "Account '%s' has been banned from the server.", login);
+			return false;
+		}
 
         const std::string dbPass = row.GetText( 2 );
 
@@ -447,6 +452,16 @@ void ServiceDB::SetCharacterOnlineStatus(uint32 char_id, bool onoff_status) {
     {
         codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
     }
+
+    if( onoff_status )
+    {
+        _log(CLIENT__TRACE, "SrvStatus: Incrementing ConnectSinceStartup.");
+
+        if(!sDatabase.RunQuery(err, "UPDATE srvStatus SET config_value = config_value + 1 WHERE config_name = 'connectSinceStartup'"))
+        {
+            codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+        }
+    }
 }
 
 //johnsus - serverStartType mod
@@ -460,6 +475,15 @@ void ServiceDB::SetServerOnlineStatus(bool onoff_status) {
         " VALUES ('%s', %s)",
         "serverStartTime",
         onoff_status ? "UNIX_TIMESTAMP(CURRENT_TIMESTAMP)" : "0"))
+    {
+        codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+    }
+
+    _log(SERVER__INIT, "SrvStatus: Resetting ConnectSinceStartup.");
+
+    if(!sDatabase.RunQuery(err, "REPLACE INTO srvStatus (config_name, config_value)"
+        " VALUES ('%s', '0')",
+        "connectSinceStartup"))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
     }
@@ -488,4 +512,19 @@ void ServiceDB::SetAccountOnlineStatus(uint32 accountID, bool onoff_status) {
     {
         codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
     }
+}
+
+void ServiceDB::SetAccountBanStatus(uint32 accountID, bool onoff_status) {
+	DBerror err;
+
+	_log(CLIENT__TRACE, "AccStatus: %s account %u.", onoff_status ? "Banned" : "Removed ban on", accountID );
+
+	if(!sDatabase.RunQuery(err,
+		" UPDATE account "
+		" SET account.banned = %d "
+		" WHERE accountID = %u ",
+		onoff_status, accountID))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+	}
 }

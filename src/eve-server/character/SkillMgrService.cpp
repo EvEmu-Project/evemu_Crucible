@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -53,6 +53,8 @@ SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db)
 {
     _SetCallDispatcher(m_dispatch);
 
+    m_strBoundObjectName = "SkillMgrBound";
+
     PyCallable_REG_CALL(SkillMgrBound, InjectSkillIntoBrain)
     PyCallable_REG_CALL(SkillMgrBound, CharStartTrainingSkillByTypeID)
     PyCallable_REG_CALL(SkillMgrBound, CharStopTrainingSkill)
@@ -92,7 +94,7 @@ PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
 PyResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
     CharacterRef ch = call.client->GetChar();
 
-    return new PyInt( ch->GetEndOfTraining() );
+    return new PyLong( ch->GetEndOfTraining().get_int() );
 }
 
 PyResult SkillMgrBound::Handle_GetSkillHistory( PyCallArgs& call )
@@ -198,10 +200,13 @@ PyResult SkillMgrBound::Handle_GetRespecInfo( PyCallArgs& call )
     // takes no arguments
     sLog.Debug( "SkillMgrBound", "Called GetRespecInfo stub." );
 
+
+	//Need to get Time since last respec
+
     // return dict
     PyDict* result = new PyDict;
     result->SetItemString( "freeRespecs", new PyInt( 0 ) );
-    result->SetItemString( "nextRespecTime", new PyLong( Win32TimeNow() + Win32Time_Year ) );
+    result->SetItemString( "nextRespecTime", new PyLong( Win32TimeNow() ) );
 
     return result;
 }

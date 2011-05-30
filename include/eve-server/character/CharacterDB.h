@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -48,6 +48,11 @@ public:
 	PyObject *GetOwnerNoteLabels(uint32 charID);
 	PyObject *GetOwnerNote(uint32 charID, uint32 noteID);
 	PyObject *GetCharacterAppearance(uint32 characterID);
+
+	bool GetCharClones(uint32 characterID, std::vector<uint32> &into); 
+	bool GetActiveClone(uint32 characterID, uint32 &itemID); 
+	bool GetActiveCloneType(uint32 characterID, uint32 &typeID); 
+	void GetCharacterData(uint32 characterID, std::map<std::string, uint32> &characterDataMap);
 
 	bool ValidateCharName(const char *name);
 	/**

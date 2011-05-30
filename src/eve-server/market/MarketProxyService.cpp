@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -78,6 +78,10 @@ MarketProxyService::MarketProxyService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(MarketProxyService, GetNewPriceHistory)
     PyCallable_REG_CALL(MarketProxyService, PlaceCharOrder)
     PyCallable_REG_CALL(MarketProxyService, GetCharOrders)
+    PyCallable_REG_CALL(MarketProxyService, ModifyCharOrder)
+    PyCallable_REG_CALL(MarketProxyService, CancelCharOrder)
+    PyCallable_REG_CALL(MarketProxyService, CharGetNewTransactions)
+    PyCallable_REG_CALL(MarketProxyService, StartupCheck)
 }
 
 MarketProxyService::~MarketProxyService() {
@@ -184,7 +188,7 @@ PyResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
         return NULL;
     }
 
-    PyRep *result = NULL;
+    /*PyRep *result = NULL;
 
     uint32 locid = call.client->GetSystemID();
     if(!IsSolarSystem(locid)) {
@@ -203,6 +207,47 @@ PyResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
         _log(SERVICE__ERROR, "%s: Failed to load GetOrders for item %u of region %u", call.client->GetName(), args.arg, regionID);
         return NULL;
     }
+
+    return result;*/
+    PyRep *result = NULL;
+
+    std::string method_name ("GetOrders_");
+    method_name += itoa(args.arg);
+    ObjectCachedMethodID method_id(GetName(), method_name.c_str());
+    #ifndef WIN32
+    #warning TODO: temporary solution, make cache objects with arguments
+    #endif
+
+
+    //check to see if this method is in the cache already.
+    if(!m_manager->cache_service->IsCacheLoaded(method_id))
+    {
+        //this method is not in cache yet, load up the contents and cache it.
+        uint32 locid = call.client->GetSystemID();
+        if(!IsSolarSystem(locid))
+        {
+            codelog(SERVICE__ERROR, "%s: GetSystemID() returned a non-system %u!", call.client->GetName(), locid);
+            return NULL;
+        }
+
+        uint32 regionID;
+        if(!m_db.GetSystemInfo(locid, NULL, &regionID, NULL, NULL))
+        {
+            codelog(SERVICE__ERROR, "%s: Failed to find parents of system %u!", call.client->GetName(), locid);
+            return NULL;
+        }
+
+        result = m_db.GetOrders(regionID, args.arg);
+        if(result == NULL) {
+            codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
+            result = new PyNone();
+        }
+        m_manager->cache_service->GiveCache(method_id, &result);
+    }
+
+    //now we know its in the cache one way or the other, so build a
+    //cached object cached method call result.
+    result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
 
     return result;
 }
@@ -345,7 +390,8 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
         }
 
         //send notification of new order...
-        _SendOnOwnOrderChanged(call.client, orderID, "Add", args.useCorp);
+        _InvalidateOrdersCache(args.typeID);
+        _BroadcastOnOwnOrderChanged(call.client->GetRegionID(), orderID, "Add", args.useCorp);
     } else {
         //sell order
 
@@ -448,20 +494,195 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
         }
 
         //notify client about new order.
-        _SendOnOwnOrderChanged(call.client, orderID, "Add", args.useCorp);
+        _InvalidateOrdersCache(args.typeID);
+        _BroadcastOnOwnOrderChanged(call.client->GetRegionID(), orderID, "Add", args.useCorp);
     }
 
     //returns nothing.
     return NULL;
 }
 
-void MarketProxyService::_SendOnOwnOrderChanged(Client *who, uint32 orderID, const char *action, bool isCorp) {
+PyResult MarketProxyService::Handle_ModifyCharOrder(PyCallArgs &call) {
+    Call_ModifyCharOrder args;
+    if(!args.Decode(&call.tuple))
+    {
+        codelog(MARKET__ERROR, "Invalid arguments");
+        return NULL;
+    }
+
+    uint32 typeID = 0;
+    uint32 quantity = 0;
+    double price = 0;
+    bool isBuy = false;
+    bool isCorp = false;
+
+    if(!m_db.GetOrderInfo(args.orderID, NULL, &typeID, NULL, &quantity, &price, &isBuy, &isCorp)) {
+        codelog(MARKET__ERROR, "%s: Failed to get info about order %u.", call.client->GetName(), args.orderID);
+        return NULL;
+    }
+
+    if(price == args.new_price)
+        return NULL;
+    
+    if(isBuy)
+    {
+        double money = (price - args.new_price) * quantity;
+        if(!call.client->AddBalance(money))
+            return NULL;
+    }
+
+    if(!m_db.AlterOrderPrice(args.orderID, args.new_price)) {
+        codelog(MARKET__ERROR, "%s: Failed to modify price for order %u.", call.client->GetName(), args.orderID);
+        return NULL;
+    }
+
+    _InvalidateOrdersCache(typeID);
+    _BroadcastOnOwnOrderChanged(call.client->GetRegionID(), args.orderID, "Modify", isCorp); //force a refresh of market data.
+    
+    return NULL;
+}
+
+PyResult MarketProxyService::Handle_CancelCharOrder(PyCallArgs &call) {
+    Call_CancelCharOrder args;
+    if(!args.Decode(&call.tuple))
+    {
+        codelog(MARKET__ERROR, "Invalid arguments");
+        return NULL;
+    }
+
+    uint32 ownerID = 0;
+    uint32 typeID = 0;
+    uint32 stationID = 0;
+    uint32 quantity = 0;
+    double price = 0;
+    bool isBuy = false;
+    bool isCorp = false;
+    
+    if(!m_db.GetOrderInfo(args.orderID, &ownerID, &typeID, &stationID, &quantity, &price, &isBuy, &isCorp)) {
+        codelog(MARKET__ERROR, "%s: Failed to get info about order %u.", call.client->GetName(), args.orderID);
+        return NULL;
+    }
+
+    ItemData idata(
+        typeID,
+        1, //temp owner ID, should really put the seller's ID in here...
+        stationID,
+        flagHangar,
+        quantity
+    );
+
+    if(isBuy)
+    {
+        double money = price * quantity;
+        if(!call.client->AddBalance(money))
+            return NULL;
+    }
+    else
+    {
+        InventoryItemRef new_item = m_manager->item_factory.SpawnItem(idata);
+        //use the owner change packet to alert the buyer of the new item
+        new_item->ChangeOwner(call.client->GetCharacterID(), true);
+    }
+
+    PyRep* order = m_db.GetOrderRow(args.orderID);
+    if(!m_db.DeleteOrder(args.orderID))
+    {
+        codelog(MARKET__ERROR, "Failed to delete order %u.", args.orderID);
+        return NULL;
+    }
+    _InvalidateOrdersCache(typeID);
+    _BroadcastOnOwnOrderChanged(call.client->GetRegionID(), args.orderID, "Expiry", isCorp, order); //force a refresh of market data.
+    _BroadcastOnMarketRefresh(call.client->GetRegionID());
+
+    return NULL;
+}
+
+PyResult MarketProxyService::Handle_CharGetNewTransactions(PyCallArgs &call)
+{
+	PyRep *result = NULL;
+	Call_CharGetNewTransactions args;
+	if(!args.Decode(&call.tuple))
+	{
+		codelog(MARKET__ERROR, "Invalid arguments");
+		return NULL;
+	}
+
+	double minPrice;
+	if(args.minPrice->IsInt())
+		minPrice = args.minPrice->AsInt()->value();
+	else if(args.minPrice->IsFloat())
+		minPrice = args.minPrice->AsFloat()->value();
+	else
+	{
+		codelog(CLIENT__ERROR, "%s: Invalid type %s for minPrice argument received.", call.client->GetName(), args.minPrice->TypeString());
+		return NULL;
+	}
+
+	result = m_db.GetTransactions(args.clientID==0?call.client->GetCharacterID():args.clientID,
+			args.typeID, args.quantity, minPrice, args.maxPrice, args.fromDate, args.buySell);
+	if(result == NULL)
+	{
+		_log(SERVICE__ERROR, "%s: Failed to load CharGetNewTransactions", call.client->GetName());
+		return NULL;
+	}
+
+	return result;
+}
+
+PyResult MarketProxyService::Handle_StartupCheck(PyCallArgs &call)
+{
+	//Don't have a clue what this is supposed to do.  If you figure it out, feel free to fill it in :)
+
+	return NULL;
+}
+
+void MarketProxyService::_SendOnOwnOrderChanged(Client *who, uint32 orderID, const char *action, bool isCorp, PyRep* order) {
     Notify_OnOwnOrderChanged ooc;
-    ooc.order = m_db.GetOrderRow(orderID);
+    if(order != NULL)
+        ooc.order = order;
+    else
+        ooc.order = m_db.GetOrderRow(orderID);
     ooc.reason = action;
     ooc.isCorp = isCorp;
     PyTuple *tmp = ooc.Encode();
     who->SendNotification("OnOwnOrderChanged", "clientID", &tmp);   //tmp consumed.
+}
+
+void MarketProxyService::_SendOnMarketRefresh(Client *who) {
+    PyTuple *tmp = new PyTuple(0);
+    who->SendNotification("OnMarketRefresh", "clientID", &tmp);   //tmp consumed.
+}
+
+void MarketProxyService::_BroadcastOnOwnOrderChanged(uint32 regionID, uint32 orderID, const char *action, bool isCorp, PyRep* order) {
+    std::vector<Client *> clients;
+    m_manager->entity_list.FindByRegionID(regionID, clients);
+    std::vector<Client *>::iterator cur, end;
+	cur = clients.begin();
+	end = clients.end();
+	for(; cur != end; cur++) {
+        PySafeIncRef(order);
+		_SendOnOwnOrderChanged(*cur, orderID, action, isCorp, order);
+	}
+    PySafeDecRef(order);
+}
+
+void MarketProxyService::_BroadcastOnMarketRefresh(uint32 regionID) {
+    std::vector<Client *> clients;
+    m_manager->entity_list.FindByRegionID(regionID, clients);
+    std::vector<Client *>::iterator cur, end;
+	cur = clients.begin();
+	end = clients.end();
+	for(; cur != end; cur++) {
+		_SendOnMarketRefresh(*cur);
+	}
+}
+
+void MarketProxyService::_InvalidateOrdersCache(uint32 typeID)
+{
+    std::string method_name ("GetOrders_");
+    method_name += itoa(typeID);
+    ObjectCachedMethodID method_id(GetName(), method_name.c_str());
+    m_manager->cache_service->InvalidateCache( method_id );
 }
 
 //NOTE: there are a lot of race conditions to deal with here if we ever
@@ -472,7 +693,7 @@ void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID,
     uint32 qtyReq = 0;
     double price = 0;
 
-    if(!m_db.GetOrderInfo(buy_order_id, orderOwnerID, typeID, qtyReq, price)) {
+    if(!m_db.GetOrderInfo(buy_order_id, &orderOwnerID, &typeID, NULL, &qtyReq, &price, NULL, NULL)) {
         codelog(MARKET__ERROR, "%s: Failed to get info about buy order %u.", seller->GetName(), buy_order_id);
         return;
     }
@@ -522,24 +743,25 @@ void MarketProxyService::_ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID,
     seller->AddBalance(money);
     //TODO: record this in the wallet history.
 
-    //they seem to send OnOwnOrderChanged with "Add" to the seller too...
-    //followed shortly by an OnOwnOrderChanged with "Expiry"...
-    //I dont feel like it though... seems dumb...
-    _SendOnOwnOrderChanged(seller, buy_order_id, "Expiry", isCorp); //force a refresh of market data.
-
-    //change order AFTER notification has been sent out
+    Client *buyer = m_manager->entity_list.FindCharacter(orderOwnerID);
     if(quantity == qtyReq) {
         _log(MARKET__TRACE, "%s: Completely satisfied order %u, deleting.", seller->GetName(), buy_order_id);
+        PyRep* order = m_db.GetOrderRow(buy_order_id);
         if(!m_db.DeleteOrder(buy_order_id)) {
             codelog(MARKET__ERROR, "Failed to delete order %u.", buy_order_id);
             return;
         }
+        _InvalidateOrdersCache(typeID);
+        _BroadcastOnOwnOrderChanged(seller->GetRegionID(), buy_order_id, "Expiry", isCorp, order);
+        _BroadcastOnMarketRefresh(seller->GetRegionID());
     } else {
         _log(MARKET__TRACE, "%s: Partially satisfied order %u, altering quantity to %u.", seller->GetName(), buy_order_id, qtyReq - quantity);
         if(!m_db.AlterOrderQuantity(buy_order_id, qtyReq - quantity)) {
             codelog(MARKET__ERROR, "Failed to alter quantity of order %u.", buy_order_id);
             return;
         }
+       _InvalidateOrdersCache(typeID);
+        _BroadcastOnOwnOrderChanged(seller->GetRegionID(), buy_order_id, "Modify", isCorp);
     }
 
     //record this transaction in market_transactions
@@ -560,7 +782,7 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
     uint32 qtyAvail = 0;
     double price = 0;
 
-    if(!m_db.GetOrderInfo(sell_order_id, orderOwnerID, typeID, qtyAvail, price)) {
+    if(!m_db.GetOrderInfo(sell_order_id, &orderOwnerID, &typeID, NULL, &qtyAvail, &price, NULL, NULL)) {
         codelog(MARKET__ERROR, "%s: Failed to get info about sell order %u.", buyer->GetName(), sell_order_id);
         return;
     }
@@ -604,32 +826,30 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
         //the seller is logged in, send them a notification...
         if(!seller->AddBalance(money))
             codelog(MARKET__ERROR, "%s: Failed to give seller %s (%u) %.2f ISK from order %u", buyer->GetName(), seller->GetName(), orderOwnerID, money, sell_order_id);
-        //send them an update.
-        _SendOnOwnOrderChanged(seller, sell_order_id, "Change", false); //made up action; we know it's not a corp
     } else {
         //seller is not online right now...
         if(!m_db.AddCharacterBalance(orderOwnerID, money))
            codelog(MARKET__ERROR, "%s: Failed to give seller ID %u %.2f ISK from order %u", buyer->GetName(), orderOwnerID, money, sell_order_id);
     }
 
-    //they seem to send OnOwnOrderChanged with "Add" to the seller too...
-    //followed shortly by an OnOwnOrderChanged with "Expiry"...
-    //I dont feel like it though... seems dumb...
-    _SendOnOwnOrderChanged(buyer, sell_order_id, "Expiry", isCorp); //force a refresh of market data.
-
-    //change order AFTER notification has been sent out
     if(quantity == qtyAvail) {
         _log(MARKET__TRACE, "%s: Completely satisfied order %u, deleting.", buyer->GetName(), sell_order_id);
+        PyRep* order = m_db.GetOrderRow(sell_order_id);
         if(!m_db.DeleteOrder(sell_order_id)) {
             codelog(MARKET__ERROR, "Failed to delete order %u.", sell_order_id);
             return;
         }
+        _InvalidateOrdersCache(typeID);
+        _BroadcastOnOwnOrderChanged(buyer->GetRegionID(), sell_order_id, "Expiry", isCorp, order);
+        _BroadcastOnMarketRefresh(buyer->GetRegionID());
     } else {
         _log(MARKET__TRACE, "%s: Partially satisfied order %u, altering quantity to %u.", buyer->GetName(), sell_order_id, qtyAvail - quantity);
         if(!m_db.AlterOrderQuantity(sell_order_id, qtyAvail - quantity)) {
             codelog(MARKET__ERROR, "Failed to alter quantity of order %u.", sell_order_id);
             return;
         }
+        _InvalidateOrdersCache(typeID);
+        _BroadcastOnOwnOrderChanged(buyer->GetRegionID(), sell_order_id, "Modify", isCorp);
     }
 
     //record this transaction in market_transactions

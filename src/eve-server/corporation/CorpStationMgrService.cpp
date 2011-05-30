@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -40,6 +40,8 @@ public:
 	  m_stationID(station_id)
 	{
 		_SetCallDispatcher(m_dispatch);
+
+        m_strBoundObjectName = "CorpStationMgrIMBound";
 		
 		PyCallable_REG_CALL(CorpStationMgrIMBound, GetEveOwners)
 		PyCallable_REG_CALL(CorpStationMgrIMBound, GetCorporateStationInfo)
@@ -50,6 +52,7 @@ public:
 		PyCallable_REG_CALL(CorpStationMgrIMBound, GetQuoteForRentingAnOffice)
 		PyCallable_REG_CALL(CorpStationMgrIMBound, RentOffice)
         PyCallable_REG_CALL(CorpStationMgrIMBound, GetCorporateStationOffice)
+		PyCallable_REG_CALL(CorpStationMgrIMBound, GetNumberOfUnrentedOffices)
 	}
 	virtual ~CorpStationMgrIMBound() { delete m_dispatch; }
 	virtual void Release() {
@@ -66,6 +69,7 @@ public:
 	PyCallable_DECL_CALL(GetQuoteForRentingAnOffice)
 	PyCallable_DECL_CALL(RentOffice)
     PyCallable_DECL_CALL(GetCorporateStationOffice)
+	PyCallable_DECL_CALL(GetNumberOfUnrentedOffices)
 
 protected:
     Dispatcher *const m_dispatch;
@@ -215,7 +219,25 @@ PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
 	//this takes an integer: cloneTypeID
 	//price is prompted for on the client side.
 
-    sLog.Debug( "CorpStationMgrIMBound", "Called SetCloneTypeID stub." );
+	Call_SetCloneTypeID arg;
+	if(!arg.Decode(&call.tuple)){
+		sLog.Debug("CoporationMgrIMBound","Failed to determine Clone Type");
+	}
+
+	//Get cost of clone
+	int cost = m_db.GetCloneTypeCostByID(arg.CloneTypeID);
+
+	//Check if player has enough money
+	if(call.client->GetBalance() > cost) {
+		//subtract amount
+		call.client->AddBalance(-cost);
+	}
+
+	//update type of clone
+	m_db.ChangeCloneType(call.client->GetCharacterID(),arg.CloneTypeID);
+	
+
+    //sLog.Debug( "CorpStationMgrIMBound", "Called SetCloneTypeID stub." );
 
     return new PyNone;
 }
@@ -233,7 +255,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if (!arg.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "Wrong incoming param in RentOffice");
-		return false;
+		return NULL;
 	}
 
 	uint32 location = call.client->GetLocationID();
@@ -545,6 +567,17 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice( PyCallArgs& ca
 
     return new PyNone;
 }
+
+PyResult CorpStationMgrIMBound::Handle_GetNumberOfUnrentedOffices( PyCallArgs &call ) 
+{
+	//Extremely hackish and temporary.  Just getting some number working to pass to the client.
+	//TODO: add handler that queries the data from the StationType struct.  Not exactly sure how to do this,
+	//		but will involve call.client->GetStationID as the arguments to StationType.officeSlots() (hopefully)
+	const int office_hack = 1;
+
+	return (new PyInt(office_hack));
+}
+
 
 
 

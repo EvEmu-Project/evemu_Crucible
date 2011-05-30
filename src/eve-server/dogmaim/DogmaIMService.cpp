@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -38,6 +38,8 @@ public:
 	  m_dispatch(new Dispatcher(this))
 	{
 		_SetCallDispatcher(m_dispatch);
+
+        m_strBoundObjectName = "DogmaIMBound";
 		
 		PyCallable_REG_CALL(DogmaIMBound, ShipGetInfo)
 		PyCallable_REG_CALL(DogmaIMBound, CharGetInfo)
@@ -167,15 +169,83 @@ PyResult DogmaIMBound::Handle_GetTargeters(PyCallArgs &call) {
 
 PyResult DogmaIMBound::Handle_Activate( PyCallArgs& call )
 {
-	Call_Dogma_Activate args;
-	if( !args.Decode( &call.tuple ) )
-    {
-		codelog( SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName() );
-		return NULL;
-	}
+    Call_Dogma_Activate args;
+    uint32 callTupleSize = call.tuple->size();
+    uint32 itemID = 0;
+    uint32 effect = 0;
 
-    //TODO: make sure we are allowed to do this.
-	return new PyInt( call.client->modules.Activate( args.itemID, args.effectName, args.target, args.repeat ) );
+    if( callTupleSize == 2 )
+    {
+        // This call is for Anchor/Unanchor a POS structure or Cargo Container,
+        // so get the new flag value and change the item referenced:
+        if( call.tuple->items.at( 0 )->IsInt() )
+        {
+            itemID = call.tuple->items.at( 0 )->AsInt()->value();
+
+            if( call.tuple->items.at( 1 )->IsInt() )
+            {
+                effect = call.tuple->items.at( 1 )->AsInt()->value();
+
+                SystemEntity * se = call.client->System()->get( itemID );
+
+                if( se == NULL )
+                {
+                    sLog.Error( "DogmaIMBound::Handle_Activate()", "Item ID = %u is not a valid SystemEntity found in this system.", itemID );
+                    return NULL;
+                }
+
+                // TODO: somehow notify client with one of these effects:
+                // 1) effectAnchorDrop for effect = 649
+                // 2) effectAnchorDropForStructures = 1022
+                // 3) effectAnchorLift = 650
+                // 4) effectAnchorLiftForStructures = 1023
+
+                // Send notification SFX appropriate effect for the value effect value supplied:
+                switch( effect )
+                {
+                    case 649:
+                        //call.client->Destiny()->SendContainerUnanchor( call.client->services().item_factory.GetCargoContainer( itemID ) );
+                        break;
+                    case 1022:
+                        //call.client->Destiny()->SendStructureUnanchor( call.client->services().item_factory.GetStructure( itemID ) );
+                        break;
+                    case 650:
+                        //call.client->Destiny()->SendContainerAnchor( call.client->services().item_factory.GetCargoContainer( itemID ) );
+                        break;
+                    case 1023:
+                        //call.client->Destiny()->SendStructureAnchor( call.client->services().item_factory.GetStructure( itemID ) );
+                        break;
+                    default:
+                        break;
+                }
+
+                return new PyInt( 1 );
+            }
+            else
+            {
+                sLog.Error( "DogmaIMBound::Handle_Activate()", "call.tuple->items.at( 1 ) was not PyInt expected type." );
+                return NULL;
+            }
+        }
+        else
+        {
+            sLog.Error( "DogmaIMBound::Handle_Activate()", "call.tuple->items.at( 0 ) was not PyInt expected type." );
+            return NULL;
+        }
+    }
+    else if( callTupleSize == 4 )
+    {
+	    if( !args.Decode( &call.tuple ) )
+        {
+		    codelog( SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName() );
+		    return NULL;
+	    }
+
+        //TODO: make sure we are allowed to do this.
+	    return new PyInt( call.client->mModulesMgr.Activate( args.itemID, args.effectName, args.target, args.repeat ) );
+    }
+
+    return NULL;
 }
 
 PyResult DogmaIMBound::Handle_Deactivate( PyCallArgs& call )
@@ -188,7 +258,7 @@ PyResult DogmaIMBound::Handle_Deactivate( PyCallArgs& call )
 	}
 
     //TODO: make sure we are allowed to do this.
-    call.client->modules.Deactivate( args.itemID, args.effectName );
+    call.client->mModulesMgr.Deactivate( args.itemID, args.effectName );
 
 	return NULL;
 }
@@ -210,10 +280,17 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {
 		codelog(SERVICE__ERROR, "Unable to find entity %u in system %u from '%s'", args.arg, smgr->GetID(), call.client->GetName());
 		return NULL;
 	}
+	
+	ShipRef ship = call.client->GetShip();
 
-	codelog(SERVICE__ERROR, "AddTarget timer not implemented.");
-	call.client->targets.StartTargeting(target, 2000);
+	if( !call.client->targets.StartTargeting(target, call.client->targets.TimeToLock( ship, target ) ) )
+		return NULL;
 
+    // For Debugging purposes, put a message in the log to print out the range to the target:
+    GVector vectorToTarget( call.client->GetPosition(), target->GetPosition() );
+    double rangeToTarget = vectorToTarget.length();
+    // TODO: calculate double distance = SQRT(x^2 + y^2 + z^), where x,y,z are to.x-from.x, etc
+    sLog.Warning( "DogmaIMBound::Handle_AddTarget()", "TARGET ADDED - Range to Target = %d meters.", rangeToTarget );
 
 	Rsp_Dogma_AddTarget rsp;
 	rsp.success = true;
@@ -240,6 +317,11 @@ PyResult DogmaIMBound::Handle_RemoveTarget(PyCallArgs &call) {
 		return NULL;
 	}
 	
+    // For Debugging purposes, put a message in the log to print out the range to the target:
+    GVector vectorToTarget( call.client->GetPosition(), target->GetPosition() );
+    double rangeToTarget = vectorToTarget.length();
+    sLog.Warning( "DogmaIMBound::Handle_AddTarget()", "TARGET REMOVED - Range to Target = %d meters.", rangeToTarget );
+
 	call.client->targets.ClearTarget(target);
 	
 	return NULL;

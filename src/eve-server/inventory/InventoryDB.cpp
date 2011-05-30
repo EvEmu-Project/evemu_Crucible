@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+
 
 bool InventoryDB::GetCategory(EVEItemCategories category, CategoryData &into) {
     DBQueryResult res;
@@ -601,7 +602,7 @@ bool InventoryDB::GetItemContents(uint32 itemID, std::vector<uint32> &into)
         "SELECT "
         " itemID"
         " FROM entity "
-        " WHERE locationID=%u",
+        " WHERE locationID = %u",
         itemID ) )
     {
         codelog(SERVICE__ERROR, "Error in query for item %u: %s", itemID, res.error.c_str());
@@ -614,7 +615,6 @@ bool InventoryDB::GetItemContents(uint32 itemID, std::vector<uint32> &into)
 
     return true;
 }
-
 bool InventoryDB::GetItemContents(uint32 itemID, EVEItemFlags flag, std::vector<uint32> &into)
 {
     DBQueryResult res;
@@ -663,6 +663,7 @@ bool InventoryDB::GetItemContents(uint32 itemID, EVEItemFlags flag, uint32 owner
 }
 
 bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
+#if 0
     DBQueryResult res;
 
     if(!sDatabase.RunQuery(res,
@@ -698,6 +699,23 @@ bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
             into.SetReal(attr, row.GetDouble(2));
         }
     }
+#else
+
+    DgmTypeAttributeSet *attrset = sDgmTypeAttrMgr.GetDmgTypeAttributeSet(typeID);
+    
+    // if not found return true because there can be items without attributes I guess
+    if (attrset == NULL)
+        return true;
+
+    DgmTypeAttributeSet::AttrSetItr itr = attrset->begin();
+    
+    for (; itr != attrset->end(); itr++) {
+        if ((*itr)->number.get_type() == evil_number_int)
+            into.SetInt((EVEAttributeMgr::Attr)(*itr)->attributeID, (*itr)->number.get_int());
+        else
+            into.SetReal((EVEAttributeMgr::Attr)(*itr)->attributeID, (*itr)->number.get_float());
+    }
+#endif
     return true;
 }
 
@@ -1487,28 +1505,66 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
 bool InventoryDB::GetCelestialObject(uint32 celestialID, CelestialObjectData &into) {
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res,
-        "SELECT"
-        " security, radius, celestialIndex, orbitIndex"
-        " FROM mapDenormalize"
-        " WHERE itemID = %u",
-        celestialID))
+    if( IsUniverseCelestial( celestialID )
+        || IsStaticMapItem( celestialID )
+        || IsRegion( celestialID )
+        || IsConstellation( celestialID )
+        || IsSolarSystem( celestialID )
+        || IsStargate( celestialID ) )
     {
-        _log(DATABASE__ERROR, "Failed to query celestial object %u: %s.", celestialID, res.error.c_str());
-        return false;
+        // This Celestial object is a static celestial, so get its data from the 'mapDenormalize' table:
+        if(!sDatabase.RunQuery(res,
+            "SELECT"
+            " security, radius, celestialIndex, orbitIndex"
+            " FROM mapDenormalize"
+            " WHERE itemID = %u",
+            celestialID))
+        {
+            _log(DATABASE__ERROR, "Failed to query celestial object %u: %s.", celestialID, res.error.c_str());
+            return false;
+        }
+
+        DBResultRow row;
+        if(!res.GetRow(row)) {
+            _log(DATABASE__ERROR, "Celestial object %u not found.", celestialID);
+
+            return false;
+        }
+
+        into.security = (row.IsNull(0) ? 0 : row.GetDouble(0));
+        into.radius = (row.IsNull(1) ? 0 : row.GetDouble(1));
+        into.celestialIndex = (row.IsNull(2) ? 0 : row.GetUInt(2));
+        into.orbitIndex = (row.IsNull(3) ? 0 : row.GetUInt(3));
     }
+    else
+    {
+        // Quite possibly, this Celestial object is a dynamic one, so try to get its data from the 'entity' table,
+        // and if it's not there either, then flag an error.
+        if(!sDatabase.RunQuery(res,
+            "SELECT"
+            " entity.itemID, "
+            " invTypes.radius "
+            " FROM entity "
+            "  LEFT JOIN invTypes ON entity.typeID = invTypes.typeID"
+            " WHERE entity.itemID = %u",
+            celestialID))
+        {
+            _log(DATABASE__ERROR, "Failed to query celestial object %u: %s.", celestialID, res.error.c_str());
+            return false;
+        }
 
-    DBResultRow row;
-    if(!res.GetRow(row)) {
-        _log(DATABASE__ERROR, "Celestial object %u not found.", celestialID);
+        DBResultRow row;
+        if(!res.GetRow(row)) {
+            _log(DATABASE__ERROR, "Celestial object %u not found.", celestialID);
 
-        return false;
+            return false;
+        }
+
+        into.security = 1.0;
+        into.radius = (row.IsNull(1) ? 0 : row.GetDouble(1));
+        into.celestialIndex = 0;
+        into.orbitIndex = 0;
     }
-
-    into.security = (row.IsNull(0) ? 0 : row.GetDouble(0));
-    into.radius = (row.IsNull(1) ? 0 : row.GetDouble(1));
-    into.celestialIndex = (row.IsNull(2) ? 0 : row.GetUInt(2));
-    into.orbitIndex = (row.IsNull(3) ? 0 : row.GetUInt(3));
 
     return true;
 }
@@ -1644,7 +1700,7 @@ bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
         const QueuedSkill &qs = queue[ i ];
 
         char buf[ 64 ];
-        snprintf( buf, 64, "(%u, %lu, %u, %u)", characterID, i, qs.typeID, qs.level );
+        snprintf( buf, 64, "(%u, %lu, %u, %u)", characterID, (unsigned long)i, qs.typeID, qs.level );
 
         if( i != 0 )
             query += ',';
@@ -1663,5 +1719,159 @@ bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
 
     return true;
 }
+bool InventoryDB::GetTypeID(uint32 itemID, uint32 &typeID)
+{
+	DBQueryResult res;
+	DBResultRow row;
+	
+	if(!sDatabase.RunQuery(res,
+		" SELECT "
+		" typeID "
+		" FROM entity "
+		" WHERE itemID = %u ",itemID))
+	{
+		_log(DATABASE__ERROR, "Failed to query for itemID = %u", itemID);
+	}
+
+    if(!res.GetRow(row)) {
+        _log(DATABASE__ERROR, "Item of type %u not found.", itemID);
+        return false;
+    }
+
+	typeID = row.GetUInt(0);
+    return true;
+}
+
+bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)
+{
+	DBQueryResult res;
+	DBResultRow row;
+
+	if(!sDatabase.RunQuery(res,
+		" SELECT "
+		" groupID "
+		" FROM invtypes "
+		" WHERE typeID = '%u' ",
+		typeID))
+	{
+		_log(DATABASE__ERROR, "Failed to get groupID for typeID = %u", typeID);
+	}
+	
+	if(!res.GetRow(row)) {
+        _log(DATABASE__ERROR, "Item of type %u not found.", typeID);
+        return false;
+    }
+
+	uint32 groupID = row.GetUInt(0);
+
+	//TODO: put in invCat
+	switch( groupID) {
+		case EVEDB::invGroups::Rig_Armor:
+		case EVEDB::invGroups::Rig_Astronautic:
+		case EVEDB::invGroups::Rig_Drone:
+		case EVEDB::invGroups::Rig_Electronics:
+		case EVEDB::invGroups::Rig_Electronics_Superiority:
+		case EVEDB::invGroups::Rig_Energy_Grid:
+		case EVEDB::invGroups::Rig_Energy_Weapon:
+		case EVEDB::invGroups::Rig_Hybrid_Weapon:
+		case EVEDB::invGroups::Rig_Launcher:
+		case EVEDB::invGroups::Rig_Mining:
+		case EVEDB::invGroups::Rig_Projectile_Weapon:
+		case EVEDB::invGroups::Rig_Security_Transponder:
+		case EVEDB::invGroups::Rig_Shield:
+
+			into = 0;
+			return true;
+	}
+
+
+	if(!sDatabase.RunQuery(res,
+		" SELECT "
+		" effectID "
+		" FROM dgmTypeEffects "
+		" WHERE typeID = '%u' AND ( effectID = 11 OR effectID = 12 OR effectID = 13 ) ",
+		typeID))
+	{
+		_log(DATABASE__ERROR, "Failed to get slot for typeID = %u", typeID);
+	}
+
+	if(!res.GetRow(row)) {
+        _log(DATABASE__ERROR, "Item of type %u not found.", typeID);
+        return false;
+    }
+
+	uint32 slotType = row.GetUInt(0);
+
+	//such crap...
+	if( slotType == 11 ) {
+		into = 1;
+		return true;
+	} else if( slotType == 12 ) {
+		into = 3;
+		return true;
+	} else if( slotType == 13 ){
+		into = 2;
+		return true;
+	} else
+		throw PyException( MakeCustomError( "Item of type: %u is not fittable (could be a rig, as they haven't been implemented)", typeID ) );
+
+}
+
+bool InventoryDB::GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 &into)
+{
+	DBQueryResult res;
+	uint32 attributeID = 0;
+	uint32 firstFlag;
+	DBResultRow row;
+	uint32 slotsOnShip;
+
+	if( slotType == 0 )
+	{
+		//TODO: Implement Rigs
+		attributeID = 1137;
+		firstFlag = 92; //rigslot0
+		//slotsOnShip = ship->rigSlots();
+        slotsOnShip = ship->GetAttribute(AttrRigSlots).get_int();
+	}
+	else if( slotType == 1 )
+	{
+		attributeID = 12;
+		firstFlag = 11; //lowslot0
+		//slotsOnShip = ship->lowSlots();
+        slotsOnShip = ship->GetAttribute(AttrLowSlots).get_int();
+	}
+	else if( slotType == 2 )
+	{
+		attributeID = 13;
+		firstFlag = 19; //medslot0
+		//slotsOnShip = ship->medSlots();
+        slotsOnShip = ship->GetAttribute(AttrMedSlots).get_int();
+	}
+	else if( slotType == 3 )
+	{
+		attributeID = 14;
+		firstFlag = 27; //hislot0
+		//slotsOnShip = ship->hiSlots();
+        slotsOnShip = ship->GetAttribute(AttrHiSlots).get_int();
+	}	
+	
+	for( uint32 flag = firstFlag; flag < (firstFlag + slotsOnShip); flag++ )
+	{
+        // this is far from efficient as we are iterating trough all of the ships item slots.... every iteration... so this will be slow when you got loads of players
+        // with a single free slot.
+    	if(ship->IsEmptyByFlag((EVEItemFlags)flag))
+		{
+			into = flag;
+			return true;
+		}
+	}
+
+	//Only time it should make it this far...
+	throw PyException( MakeCustomError( "There are no available slots" ));
+
+	return false;
+
+}
+
 
 

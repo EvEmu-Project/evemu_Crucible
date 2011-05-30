@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -68,6 +68,23 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         res.Reset();
     }
 
+	if(!res.GetRow(row)) {
+		if(!sDatabase.RunQuery(res,
+			"SELECT "
+			" characterID as ownerID,"
+			" itemName as ownerName,"
+			" typeID"
+			" FROM character_ "
+			" LEFT JOIN entity ON characterID = itemID"
+			" WHERE characterID in (%s)", ids.c_str()))
+		{
+			codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+			return NULL;
+		}
+	} else {
+		res.Reset();
+	}
+
     return(DBResultToTupleSet(res));
 }
 
@@ -122,10 +139,10 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
         if(!sDatabase.RunQuery(res,
             "SELECT "
             " mapDenormalize.itemID AS locationID,"
-            " mapDenormalize.itemName as locationName,"
-            " mapDenormalize.x,"
-            " mapDenormalize.y,"
-            " mapDenormalize.z"
+            " mapDenormalize.itemName AS locationName,"
+            " mapDenormalize.x AS x,"
+            " mapDenormalize.y AS y,"
+            " mapDenormalize.z AS z"
             " FROM mapDenormalize "
             " WHERE itemID in (%s)", ids.c_str()))
         {
@@ -137,9 +154,9 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
             "SELECT "
             " entity.itemID AS locationID,"
             " entity.itemName as locationName,"
-            " entity.x,"
-            " entity.y,"
-            " entity.z"
+            " entity.x AS x,"
+            " entity.y AS y,"
+            " entity.z AS z"
             " FROM entity "
             " WHERE itemID in (%s)", ids.c_str()))
         {
@@ -148,6 +165,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
         }
     }
 
+    //return(DBResultToRowset(res));
     return(DBResultToTupleSet(res));
 }
 
@@ -211,7 +229,7 @@ PyObject *ConfigDB::GetUnits() {
     return(DBResultToIndexRowset(res, "unitID"));
 }
 
-PyObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
+PyObjectEx *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
     bool wantConstellations, bool wantSystems, bool wantStations)
 {
     const char *key = "solarSystemID";
@@ -245,7 +263,8 @@ PyObject *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
         return NULL;
     }
 
-    return DBResultToRowset(res);
+    return DBResultToCRowset(res);
+//    return DBResultToRowset(res);
 }
 
 PyObject *ConfigDB::GetMap(uint32 solarSystemID) {

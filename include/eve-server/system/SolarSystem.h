@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -76,7 +76,8 @@ public:
  * CelestialObject which represents solar system.
  */
 class SolarSystem
-: public CelestialObject
+: public CelestialObject,
+  public Inventory
 {
 	friend class InventoryItem; // to let it construct us
 	friend class CelestialObject; // to let it construct us
@@ -111,6 +112,9 @@ public:
 	const ItemType &    sunType() const { return m_sunType; }
 	const std::string & securityClass() const { return m_securityClass; }
 
+    void AddItemToInventory(InventoryItemRef item);
+    void RemoveItemFromInventory(InventoryItemRef item);
+
 protected:
 	SolarSystem(
 		ItemFactory &_factory,
@@ -126,7 +130,13 @@ protected:
 	);
 	~SolarSystem();
 
-	/*
+    // Solar System Inventory Functions:
+	uint32 inventoryID() const { return itemID(); }
+	PyRep *GetItem() const { return new PyNone(); }
+    void AddItem(InventoryItemRef item);
+    void RemoveItem(InventoryItemRef item);
+
+    /*
 	 * Member functions:
 	 */
 	using CelestialObject::_Load;

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -65,9 +65,8 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
     uint32 querylen = vsnprintf(query, 16384, query_fmt, vlist);
     va_end(vlist);
 
-    if(!DoQuery_locked(into.error, query, querylen)) {
+    if(!DoQuery_locked(into.error, query, querylen))
         return false;
-    }
 
     uint32 col_count = mysql_field_count(&mysql);
     if(col_count == 0) {
@@ -80,6 +79,11 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 
     //give them the result set.
     into.SetResult(&result, col_count);
+	
+	//DEBUG STUFF
+	//sLog.Debug("%s",query);
+	//End Debug Stuff
+
 
     return true;
 }
@@ -119,7 +123,7 @@ bool DBcore::RunQuery(DBerror &err, uint32 &affected_rows, const char *query_fmt
     }
     free(query);
 
-    affected_rows = mysql_affected_rows(&mysql);
+    affected_rows = (uint32)mysql_affected_rows(&mysql);
 
     return true;
 }
@@ -140,7 +144,7 @@ bool DBcore::RunQueryLID(DBerror &err, uint32 &last_insert_id, const char *query
     }
     free(query);
 
-    last_insert_id = mysql_insert_id(&mysql);
+    last_insert_id = (uint32)mysql_insert_id(&mysql);
 
     return true;
 }
@@ -186,6 +190,10 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
         sLog.Error("DBCore Query", "Query: %s failed", query);
         if(errnum != NULL)
             *errnum = err.GetErrNo();
+        
+        /* @note possible buffer overflow because the size of 'errbuf' is unknown.
+         * @todo check if this function is actualy used and of so... change the strcpy to strncpy.
+         */
         if(errbuf != NULL)
             strcpy(errbuf, err.c_str());
         return false;
@@ -198,6 +206,10 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
             *result = NULL;
             if (errnum)
                 *errnum = UINT_MAX;
+ 
+            /* @note possible buffer overflow because the size of 'errbuf' is unknown.
+             * @todo check if this function is actualy used and of so... change the strcpy to strncpy.
+             */
             if (errbuf)
                 strcpy(errbuf, "DBcore::RunQuery: No Result");
             sLog.Error("DBCore Query", "Query: %s failed because it should return a result", query);
@@ -205,9 +217,9 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
         }
     }
     if (affected_rows)
-        *affected_rows = mysql_affected_rows(&mysql);
+        *affected_rows = (uint32)mysql_affected_rows(&mysql);
     if (last_insert_id)
-        *last_insert_id = mysql_insert_id(&mysql);
+        *last_insert_id = (uint32)mysql_insert_id(&mysql);
     return true;
 }
 
@@ -490,7 +502,7 @@ DBTYPE DBQueryResult::ColumnType( uint32 index ) const
 
 bool DBQueryResult::IsUnsigned( uint32 index ) const
 {
-    return 0 != ( mFields[index]->flags & UNSIGNED_FLAG );
+    return 0 != ( mFields[ index ]->flags & UNSIGNED_FLAG );
 }
 
 bool DBQueryResult::IsBinary( uint32 index ) const
@@ -575,11 +587,12 @@ int64 DBResultRow::GetInt64( uint32 index ) const
         return 0;       //nothing better to do...
     }
 #endif
+    //int64 value;
+    //sscanf( GetText( index ), I64d, &value );
+    //return value;
 
-    int64 value;
-    sscanf( GetText( index ), I64d, &value );
-
-    return value;
+    //use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
+    return strtoll( GetText( index ), NULL, 0 );
 }
 
 uint64 DBResultRow::GetUInt64( uint32 index ) const
@@ -592,10 +605,8 @@ uint64 DBResultRow::GetUInt64( uint32 index ) const
     }
 #endif
 
-    uint64 value;
-    sscanf( GetText( index ), I64u, &value );
-
-    return value;
+    //use base 0 on the obscure chance that this is a string column with an 0x hex number in it.
+    return strtoull( GetText( index ), NULL, 0 );
 }
 
 float DBResultRow::GetFloat( uint32 index ) const

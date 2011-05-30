@@ -45,7 +45,7 @@
       <string name="comparisonKey" />
       <bool name="memberless" />
       <string name="password" />
-      <int name="mailingList" />
+      <bool name="mailingList" />
       <int name="cspa" />
       <int name="temporary" />
       <int name="mode" />
@@ -83,7 +83,7 @@
             <string name="comparisonKey" />
             <bool name="memberless" />
             <raw name="password" />
-            <int name="mailingList" />
+            <bool name="mailingList" />
             <int name="cspa" />
             <int name="temporary" />
             <int name="subscribed" />
@@ -138,6 +138,7 @@
             <stringInline value="charID" />
             <stringInline value="corpID" />
             <stringInline value="allianceID" />
+			<stringInline value="warFactionID" />
             <stringInline value="role" />
             <stringInline value="extra" />
           </listInline>
@@ -157,8 +158,9 @@
       <int name="charID" />
       <int name="corpID" />
       <int name="allianceID" />
+	  <int name="warFactionID" />
       <int name="role" />
-      <int name="extra" />
+      <raw name="extra" />
     </listInline>
   </elementDef>
 
@@ -335,6 +337,8 @@
       <list name="channels" />
       <!-- 1 -->
       <bool name="unsubscribe" />
+	  <!-- 2 -->
+      <int name="unknown" />
     </tupleInline>
   </elementDef>
 
@@ -350,8 +354,8 @@
   <elementDef name="Call_Page">
     <tupleInline>
       <listInt name="recipients" />
-      <string name="subject" />
-      <string name="body" />
+      <wstring name="subject" soft="true" />
+      <wstring name="body" soft="true"/>
     </tupleInline>
   </elementDef>
 
@@ -446,7 +450,14 @@
       <wstring name="searchString" />
     </tupleInline>
   </elementDef>
-
+  
+  <elementDef name="CallGetMembers">
+    <tupleInline>
+      <!-- 0 -->
+      <raw name="channel" />
+    </tupleInline>
+  </elementDef>
+  
 </elements>
 
 

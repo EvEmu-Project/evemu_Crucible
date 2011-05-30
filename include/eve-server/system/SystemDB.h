@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -43,9 +43,18 @@ public:
 class DBSystemDynamicEntity {
 public:
 	uint32 itemID;
+    std::string itemName;
 	uint32 typeID;
 	uint32 groupID;
+    uint32 ownerID;
+    uint32 locationID;
+    uint32 flag;
 	uint32 categoryID;
+    uint32 corporationID;
+    uint32 allianceID;
+    double x;
+    double y;
+    double z;
 };
 
 class SystemDB
@@ -54,6 +63,7 @@ class SystemDB
 public:
 	bool LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &into);
 	bool LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity> &into);
+	static uint32 GetObjectLocationID( uint32 itemID );
 
 	PyObject *ListFactions();
 	PyObject *ListJumps(uint32 stargateID);

@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -43,7 +43,7 @@ protected:
 	AccountDB m_db;
 	
 	PyCallable_DECL_CALL(GetCashBalance)
-	PyCallable_DECL_CALL(GetRefTypes)
+	PyCallable_DECL_CALL(GetEntryTypes)
 	PyCallable_DECL_CALL(GetKeyMap)
 	PyCallable_DECL_CALL(GiveCash)
 	PyCallable_DECL_CALL(GiveCashFromCorpAccount)

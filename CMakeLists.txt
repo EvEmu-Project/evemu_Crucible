@@ -12,7 +12,7 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.6 FATAL_ERROR )
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
 SET( PROJECT_VENDOR              "The EVEmu development team" )
-SET( PROJECT_VERSION             "0.7-trunk" )
+SET( PROJECT_VERSION             "0.7-experimental" )
 
 SET( CMAKE_MODULE_PATH
      "${PROJECT_SOURCE_DIR}/cmake"
@@ -35,7 +35,7 @@ SET( EVEMU_SOURCE_SCM       ""
 SET( EVEMU_TOOL_ENABLE      OFF
      CACHE BOOL   "Build eve-tool." )
 
-SET( EVEMU_ROOT_DIR ".."
+SET( EVEMU_ROOT_DIR "..////"
      CACHE PATH "The root of EVEmu workspace." )
 MARK_AS_ADVANCED( EVEMU_ROOT_DIR )
 

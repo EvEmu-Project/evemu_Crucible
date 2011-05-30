@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -50,6 +50,12 @@ NPC::NPC(
 	m_AI = new NPCAIMgr(this);
 	
 	m_destiny->SetPosition(position, false);
+	
+	/* Gets the value from the NPC and put on our own vars */
+	//m_shieldCharge = self->shieldCharge();
+    m_shieldCharge = self->GetAttribute(AttrShieldCharge).get_float();
+	m_armorDamage = 0.0;
+	m_hullDamage = 0.0;
 }
 
 NPC::~NPC() {
@@ -124,7 +130,7 @@ void NPC::EncodeDestiny( Buffer& into ) const
 		item->head.x = x();
 		item->head.y = y();
 		item->head.z = z();
-		item->head.sub_type = AddBallSubType_orbitingNPC;
+		item->head.sub_type = IsMassive | IsFree;
 		
 		item->mass.mass = m_self->mass();
 		item->mass.unknown51 = 0;
@@ -153,7 +159,7 @@ void NPC::EncodeDestiny( Buffer& into ) const
 		head.x = position.x;
 		head.y = position.y;
 		head.z = position.z;
-		head.sub_type = AddBallSubType_orbitingNPC;
+		head.sub_type = IsMassive | IsFree;
         into.Append( head );
 
         MassSector mass;
@@ -190,8 +196,44 @@ void NPC::EncodeDestiny( Buffer& into ) const
 }
 
 
-
-
+void NPC::MakeDamageState(DoDestinyDamageState &into) const {
+	//into.shield = m_shieldCharge / m_self->shieldCapacity();
+    into.shield = m_shieldCharge / m_self->GetAttribute(AttrShieldCapacity).get_float();
+	into.tau = 100000;	//no freakin clue.
+	into.timestamp = Win32TimeNow();
+	//into.armor = 1.0 - (m_armorDamage / m_self->armorHP());
+	//into.structure = 1.0 - (m_hullDamage / m_self->hp());
+    
+    // the get_float is still a hack... majorly
+    into.armor = 1.0 - (m_armorDamage / m_self->GetAttribute(AttrArmorHP).get_float());
+    into.structure = 1.0 - (m_hullDamage / m_self->GetAttribute(AttrHp).get_float());
+}
+ 
+void NPC::UseShieldRecharge()
+{
+	// We recharge our shield until it's reaches the shield capacity.
+	if( this->Item()->GetAttribute(AttrShieldCapacity) > m_shieldCharge )
+	{
+		// Not found the information on how much it's consume from capacitor
+		//m_shieldCharge += this->Item()->entityShieldBoostAmount();
+        m_shieldCharge += this->Item()->GetAttribute(AttrEntityShieldBoostAmount).get_float();
+	}
+	// TODO: Need to send SpecialFX / amount update
+}
+ 
+void NPC::UseArmorRepairer()
+{
+	// We recharge our shield until it's reaches the shield capacity.
+	if( m_armorDamage > 0 )
+	{
+		// Not found the information on how much it's consume from capacitor
+		//m_armorDamage -= this->Item()->entityArmorRepairAmount();
+        m_armorDamage -= this->Item()->GetAttribute(AttrEntityArmorRepairAmount).get_float();
+		if( m_armorDamage < 0.0 )
+			m_armorDamage = 0.0;
+	}
+	// TODO: Need to send SpecialFX / amount update
+}
 
 
 

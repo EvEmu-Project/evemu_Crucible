@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -46,7 +46,9 @@ class ItemRowset_Row;
  * however, the creation and destruction time logic is why it has not been done.
  */
 
-extern const uint32 SKILL_BASE_POINTS;
+//extern const uint32 SKILL_BASE_POINTS;
+extern const EvilNumber EVIL_SKILL_BASE_POINTS;
+extern const int32 ITEM_DB_SAVE_TIMER_EXPIRY;
 
 /*
  * Simple container for raw item data.
@@ -115,6 +117,8 @@ public:
     bool SetQuantity(uint32 qty_new, bool notify=true);
     void Relocate(const GPoint &pos);
     void SetCustomInfo(const char *ci);
+    ItemFactory *GetItemFactory() { return &m_factory; };
+
 
     /*
      * Helper routines:
@@ -129,62 +133,85 @@ public:
     /*
      * Primary public packet builders:
      */
-    bool Populate(Rsp_CommonGetInfo_Entry &into) const;
+    bool Populate(Rsp_CommonGetInfo_Entry &into);
 
     PyPackedRow* GetItemRow() const;
     void GetItemRow( PyPackedRow* into ) const;
 
-    PyObject *ItemGetInfo() const;
+    PyObject *ItemGetInfo();
 
     /*
      * Public Fields:
      */
-    uint32                  itemID() const { return(m_itemID); }
-    const std::string &     itemName() const { return(m_itemName); }
-    const ItemType &        type() const { return(m_type); }
-    uint32                  ownerID() const { return(m_ownerID); }
-    uint32                  locationID() const { return(m_locationID); }
-    EVEItemFlags            flag() const { return(m_flag); }
-    bool                    contraband() const { return(m_contraband); }
-    bool                    singleton() const { return(m_singleton); }
-    uint32                  quantity() const { return(m_quantity); }
-    const GPoint &          position() const { return(m_position); }
-    const std::string &     customInfo() const { return(m_customInfo); }
+    uint32                  itemID() const      { return m_itemID; }
+    const std::string &     itemName() const    { return m_itemName; }
+    const ItemType &        type() const        { return m_type; }
+    uint32                  ownerID() const     { return m_ownerID; }
+    uint32                  locationID() const  { return m_locationID; }
+    EVEItemFlags            flag() const        { return m_flag; }
+    bool                    contraband() const  { return m_contraband; }
+    bool                    singleton() const   { return m_singleton; }
+    uint32                  quantity() const    { return m_quantity; }
+    const GPoint &          position() const    { return m_position; }
+    const std::string &     customInfo() const  { return m_customInfo; }
 
 
     // helper type methods
-    uint32                  typeID() const { return(type().id()); }
-    const ItemGroup &       group() const { return(type().group()); }
-    uint32                  groupID() const { return(type().groupID()); }
-    const ItemCategory &    category() const { return(type().category()); }
-    EVEItemCategories       categoryID() const { return(type().categoryID()); }
+    uint32                  typeID() const      { return type().id(); }
+    const ItemGroup &       group() const       { return type().group(); }
+    uint32                  groupID() const     { return type().groupID(); }
+    const ItemCategory &    category() const    { return type().category(); }
+    EVEItemCategories       categoryID() const  { return type().categoryID(); }
+
+
+    uint32 GetSaveTimerExpiry() { return m_saveTimerExpiryTime; };
+    void SetSaveTimerExpiry(uint32 saveTimerExpiry) { m_saveTimerExpiryTime = saveTimerExpiry; };
+    bool IsSaveTimerEnabled() { return m_saveTimer.Enabled(); };
+    void EnableSaveTimer() { m_saveTimer.Start( m_saveTimerExpiryTime * 1000, true ); };   // Ensure actual time is set in milliseconds
+    void DisableSaveTimer() { return m_saveTimer.Disable(); };
+    bool CheckSaveTimer(bool iReset = true) { return m_saveTimer.Check( iReset ); };
 
     /*
      * Attribute access:
      */
-    ItemAttributeMgr attributes;
+    //ItemAttributeMgr attributes;
+
+    /************************************************************************/
+    /* start experimental new attribute system ( not operational )          */
+    /************************************************************************/
+private:
+    AttributeMap mAttributeMap;
+public:
+    bool SetAttribute(uint32 attributeID, int num, bool notify = true);
+    bool SetAttribute(uint32 attributeID, uint32 num, bool notify = true);
+    bool SetAttribute(uint32 attributeID, int64 num, bool notify = true);
+    bool SetAttribute(uint32 attributeID, uint64 num, bool notify = true);
+    bool SetAttribute(uint32 attributeID, double num, bool notify = true);
+    bool SetAttribute(uint32 attributeID, EvilNumber num, bool notify = true);
+    
+    EvilNumber GetAttribute(uint32 attributeID);
+    EvilNumber GetAttribute(const uint32 attributeID) const;
 
     /*
-     * Redirections
+     * HasAttribute
+     *
+     * returns true if this item has the attribute 'attributeID', false if it does not have this attribute
+     *
+     * @note this function should be used very infrequently and only for specific reasons
      */
-    #define ATTRFUNC(name, type) \
-        inline type name() const { \
-            return(attributes.name()); \
-        } \
-        inline void Set_##name(const type &value) { \
-            attributes.Set_##name(value); \
-        } \
-        inline void Set_##name##_persist(const type &value) { \
-            attributes.Set_##name##_persist(value); \
-        } \
-        inline void Clear_##name() { \
-            attributes.Clear_##name(); \
-        }
-    #define ATTRI(ID, name, default_value, persistent) \
-        ATTRFUNC(name, int)
-    #define ATTRD(ID, name, default_value, persistent) \
-        ATTRFUNC(name, double)
-    #include "EVEAttributes.h"
+    bool HasAttribute(uint32 attributeID);
+
+    /**
+     * SaveAttributes
+     *
+     * save all the attributes from a InventoryItem.
+     *
+     * @note this should be incorporated into the normal save function and only save when things have changes.
+     */
+    bool SaveAttributes();
+    /************************************************************************/
+    /* end experimental new attribute system                                */
+    /************************************************************************/
 
 protected:
     InventoryItem(
@@ -245,7 +272,7 @@ protected:
         ItemData &data
     );
 
-    void SaveItem() const;  //save the item to the DB.
+    void SaveItem();  //save the item to the DB.
 
     void SendItemChange(uint32 toID, std::map<int32, PyRep *> &changes) const;
     void SetOnline(bool newval);
@@ -253,6 +280,10 @@ protected:
     /*
      * Member variables
      */
+    // our save timer and our default countdown value
+    Timer m_saveTimer;
+    uint32 m_saveTimerExpiryTime;
+
     // our factory
     ItemFactory &       m_factory;
 

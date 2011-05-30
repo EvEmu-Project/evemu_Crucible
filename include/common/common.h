@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -361,6 +361,11 @@ char* strlwr( char* tmp );
 #   define strncasecmp         _strnicmp
 #   define strcasecmp          _stricmp
 #   define localtime_r( x, y ) localtime_s( y, x )
+
+//#   define strtoq   _strtoi64
+//#   define strtouq  _strtoui64
+#   define strtoll  _strtoi64
+#   define strtoull _strtoui64
 
 #   if( _MSC_VER < 1500 )
 #       define vsnprintf _vsnprintf

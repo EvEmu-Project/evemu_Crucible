@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -41,6 +41,8 @@ public:
       m_entityID(entityID)
     {
         _SetCallDispatcher(m_dispatch);
+
+        m_strBoundObjectName = "InvBrokerBound";
 
         PyCallable_REG_CALL(InvBrokerBound, GetInventoryFromId)
         PyCallable_REG_CALL(InvBrokerBound, GetInventory)
@@ -106,6 +108,9 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
     }
     //bool passive = (args.arg2 != 0);  //no idea what this is for.
 
+	m_manager->item_factory.SetUsingClient( call.client );
+    // TODO: this line is insufficient for some object types, like containers in space, so expand it
+    // by having a switch that acts differently based on either categoryID or groupID or both:
     Inventory *inventory = m_manager->item_factory.GetInventory( args.arg1 );
     if(inventory == NULL) {
         codelog(SERVICE__ERROR, "%s: Unable to load inventory %u", call.client->GetName(), args.arg1);
@@ -140,6 +145,9 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
             break;
 
         case containerGlobal:
+			flag = flagNone;
+			break;
+
         case containerSolarSystem:
         case containerScrapHeap:
         case containerFactory:
@@ -153,6 +161,7 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
             return NULL;
     }
 
+    m_manager->item_factory.SetUsingClient( call.client );
     Inventory *inventory = m_manager->item_factory.GetInventory( m_entityID );
     if(inventory == NULL) {
         codelog(SERVICE__ERROR, "%s: Unable to load item %u", call.client->GetName(), m_entityID);
@@ -175,6 +184,7 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
         return NULL;
     }
 
+    m_manager->item_factory.SetUsingClient( call.client );
     InventoryItemRef item = m_manager->item_factory.GetItem( args.itemID );
     if( !item ) {
         codelog(SERVICE__ERROR, "%s: Unable to load item %u", call.client->GetName(), args.itemID);
@@ -185,11 +195,16 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
         _log(SERVICE__ERROR, "Character %u tried to rename item %u of character %u.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
         return NULL;
     }
+	
+    item->Rename( args.itemName.c_str() );
 
-    item->Rename(args.itemName.c_str());
 
-    //do we need to send some sort of update?
-
+	// This call as-is is NOT correct for any item category other than ships,
+    // so until we can get the right string argument for other kinds of session updates,
+    // we need to block this call so our characters don't "board" non-ship objects:
+    if( item->categoryID() == EVEDB::invCategories::Ship )
+	    call.client->UpdateSession("shipid", item->itemID() );
+	
     return NULL;
 }
 
@@ -203,6 +218,7 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
     std::vector<int32>::const_iterator cur, end;
     cur = args.items.begin();
     end = args.items.end();
+    m_manager->item_factory.SetUsingClient( call.client );
     for(; cur != end; cur++) {
         InventoryItemRef item = m_manager->item_factory.GetItem( *cur );
         if( !item ) {

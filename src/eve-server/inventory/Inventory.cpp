@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -28,82 +28,120 @@
 /*
  * Inventory
  */
+
+Inventory::Inventory() : mContentsLoaded(false) {}
+Inventory::~Inventory() {}
+
 Inventory *Inventory::Cast(InventoryItemRef item)
 {
-    if( item )
+    if( !item )
+        return NULL;
+    switch( item->categoryID() )
     {
-        switch( item->categoryID() )
-        {
-            //! TODO: not handled.
-            case EVEDB::invCategories::_System:
-            case EVEDB::invCategories::Owner:
-            case EVEDB::invCategories::Celestial:
-            case EVEDB::invCategories::Station:
-            case EVEDB::invCategories::Material:
-            case EVEDB::invCategories::Accessories:
-            case EVEDB::invCategories::Module:
-            case EVEDB::invCategories::Charge:
-            case EVEDB::invCategories::Blueprint:
-            case EVEDB::invCategories::Trading:
-            case EVEDB::invCategories::Entity:
-            case EVEDB::invCategories::Bonus:
-            case EVEDB::invCategories::Skill:
-            case EVEDB::invCategories::Commodity:
-            case EVEDB::invCategories::Drone:
-            case EVEDB::invCategories::Implant:
-            case EVEDB::invCategories::Deployable:
-            case EVEDB::invCategories::Structure:
-            case EVEDB::invCategories::Reaction:
-            case EVEDB::invCategories::Asteroid:
-                break;
-            case EVEDB::invCategories::Ship:    return ShipRef::StaticCast( item ).get();
-        }
-
-        switch( item->groupID() )
-        {
-            case EVEDB::invGroups::Station:     return StationRef::StaticCast( item ).get();
-            case EVEDB::invGroups::Character:   return CharacterRef::StaticCast( item ).get();
-        }
+        //! TODO: not handled.
+        case EVEDB::invCategories::_System:
+        case EVEDB::invCategories::Owner:
+        case EVEDB::invCategories::Celestial:
+        case EVEDB::invCategories::Station:
+        case EVEDB::invCategories::Material:
+        case EVEDB::invCategories::Accessories:
+        case EVEDB::invCategories::Module:
+        case EVEDB::invCategories::Charge:
+        case EVEDB::invCategories::Blueprint:
+        case EVEDB::invCategories::Trading:
+        case EVEDB::invCategories::Entity:
+        case EVEDB::invCategories::Bonus:
+        case EVEDB::invCategories::Skill:
+        case EVEDB::invCategories::Commodity:
+        case EVEDB::invCategories::Drone:
+        case EVEDB::invCategories::Implant:
+        case EVEDB::invCategories::Deployable:
+        case EVEDB::invCategories::Reaction:
+        case EVEDB::invCategories::Asteroid:
+            sLog.Warning("Inventory", "unhandled item categoryID used on cast");
+            break;
+        case EVEDB::invCategories::Structure:
+            return StructureRef::StaticCast( item ).get();
+            break;
+        case EVEDB::invCategories::Ship:
+            return ShipRef::StaticCast( item ).get();
+            break;
     }
 
+    switch( item->groupID() )
+    {
+        case EVEDB::invGroups::Wreck:
+        case EVEDB::invGroups::Secure_Cargo_Container:
+        case EVEDB::invGroups::Audit_Log_Secure_Container:
+        case EVEDB::invGroups::Cargo_Container:
+        case EVEDB::invGroups::Freight_Container:
+        case EVEDB::invGroups::Spawn_Container:
+            return CargoContainerRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Station:         return StationRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Character:       return CharacterRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Solar_System:    return SolarSystemRef::StaticCast( item ).get();
+    }
+
+    // maybe add extra debug info on what for type or item.
+    sLog.Error("Inventory::Cast()", "Item cast not supported for item typeID = %u, groupID = %u, categoryID = %u", item->typeID(), item->groupID(), item->categoryID() );
     return NULL;
-}
-
-Inventory::Inventory()
-: mContentsLoaded(false)
-{
-}
-
-Inventory::~Inventory()
-{
 }
 
 bool Inventory::LoadContents(ItemFactory &factory)
 {
+    // check if the contents has already been loaded...
     if( ContentsLoaded() )
+    {
         return true;
+    }
 
-    _log( ITEM__TRACE, "Recursively loading contents of inventory %u", inventoryID() );
+    sLog.Debug("Inventory", "Recursively loading contents of inventory %u", inventoryID() );
 
     //load the list of items we need
     std::vector<uint32> items;
     if( !GetItems( factory, items ) )
+    {
+        sLog.Error("Inventory", "Failed  to get items of %u", inventoryID() );
         return false;
+    }
 
     //Now get each one from the factory (possibly recursing)
+    ItemData into;
+    uint32 characterID;
+    uint32 corporationID;
+    uint32 locationID;
     std::vector<uint32>::iterator cur, end;
     cur = items.begin();
     end = items.end();
     for(; cur != end; cur++)
     {
-        InventoryItemRef i = factory.GetItem( *cur );
-        if( !i )
+        // Each "cur" item should be checked to see if they are "owned" by the character connected to this client,
+        // and if not, then do not "get" the entire contents of this for() loop for that item, except in the case that
+        // this item is located in space or belongs to this character's corporation:
+        factory.db().GetItem( *cur, into );
+        if( factory.GetUsingClient() != NULL )
         {
-            _log( ITEM__ERROR, "Failed to load item %u contained in %u. Skipping.", *cur, inventoryID() );
-            continue;
+            characterID = factory.GetUsingClient()->GetCharacterID();
+            corporationID = factory.GetUsingClient()->GetCorporationID();
+            locationID = factory.GetUsingClient()->GetLocationID();
         }
+        else
+            sLog.Error( "Inventory::LoadContents()", "Failed to resolve pointer to Client object currently using the ItemFactory." );
+        if( (into.ownerID == characterID) || (characterID == 0) || (into.ownerID == corporationID) || (into.locationID == locationID) )
+        {
+            // Continue to GetItem() if the client calling this is owned by the character that owns this item
+            // --OR--
+            // The characterID == 0, which means this is attempting to load the character of this client for the first time.
 
-        AddItem( i );
+            InventoryItemRef i = factory.GetItem( *cur );
+            if( !i )
+            {
+                sLog.Error("Inventory::LoadContents()", "Failed to load item %u contained in %u. Skipping.", *cur, inventoryID() );
+                continue;
+            }
+
+            AddItem( i );
+        }
     }
 
     mContentsLoaded = true;
@@ -181,6 +219,7 @@ InventoryItemRef Inventory::FindFirstByFlag(EVEItemFlags _flag) const
             return cur->second;
     }
 
+    sLog.Error("Inventory", "unable to find first by flag");
     return InventoryItemRef();
 }
 
@@ -212,21 +251,57 @@ InventoryItemRef Inventory::GetByTypeFlag(uint32 typeID, EVEItemFlags flag) cons
 
 uint32 Inventory::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItemRef> &items) const
 {
-    uint32 count = 0;
-
     std::map<uint32, InventoryItemRef>::const_iterator cur, end;
     cur = mContents.begin();
     end = mContents.end();
     for(; cur != end; cur++)
     {
-        if( cur->second->flag() == _flag )
+        if (cur->second)
         {
-            items.push_back( cur->second );
-            count++;
+            if(cur->second->flag() == _flag)
+            {
+                items.push_back( cur->second );
+            }
         }
     }
+    return items.size();
+}
 
-    return count;
+bool Inventory::FindSingleByFlag( EVEItemFlags flag, InventoryItemRef &item ) const
+{
+    std::map<uint32, InventoryItemRef>::const_iterator cur, end;
+    cur = mContents.begin();
+    end = mContents.end();
+    for(; cur != end; cur++)
+    {
+        if (cur->second)
+        {
+            if(cur->second->flag() == flag)
+            {
+                item = cur->second;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool Inventory::IsEmptyByFlag( EVEItemFlags flag )
+{
+    std::map<uint32, InventoryItemRef>::const_iterator cur, end;
+    cur = mContents.begin();
+    end = mContents.end();
+    for(; cur != end; cur++)
+    {
+        if (cur->second)
+        {
+            if(cur->second->flag() == flag)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 uint32 Inventory::FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItemRef> &items) const
@@ -275,9 +350,10 @@ void Inventory::AddItem(InventoryItemRef item)
     {
         mContents.insert( std::make_pair( item->itemID(), item ) );
 
-        _log( ITEM__TRACE, "   Updated location %u to contain item %u with flag %d.", inventoryID(), item->itemID(), (int)item->flag() );
+        sLog.Debug("Inventory", "Updated location %u to contain item %u with flag %d.", inventoryID(), item->itemID(), (int)item->flag() );
     }
     //else already here
+    sLog.Debug("Inventory", "unable to updated location %u to contain item %u with flag %d, because it already happend.", inventoryID(), item->itemID(), (int)item->flag() );
 }
 
 void Inventory::RemoveItem(uint32 itemID)
@@ -287,8 +363,9 @@ void Inventory::RemoveItem(uint32 itemID)
     {
         mContents.erase( res );
 
-        _log( ITEM__TRACE, "   Updated location %u to no longer contain item %u.", inventoryID(), itemID );
+        sLog.Debug("Inventory", "Updated location %u to no longer contain item %u.", inventoryID(), itemID );
     }
+    sLog.Debug("Inventory", "unable to remove %u from %u.", itemID, inventoryID() );
 }
 
 void Inventory::StackAll(EVEItemFlags locFlag, uint32 forOwner)
@@ -306,9 +383,7 @@ void Inventory::StackAll(EVEItemFlags locFlag, uint32 forOwner)
         InventoryItemRef i = cur->second;
         cur++;
 
-        if( !i->singleton()
-            && (forOwner == 0
-               || forOwner == i->ownerID() ) )
+        if( !i->singleton() && ( forOwner == 0 || forOwner == i->ownerID() ) )
         {
             std::map<uint32, InventoryItemRef>::iterator res = types.find( i->typeID() );
             if( res == types.end() )
@@ -321,7 +396,8 @@ void Inventory::StackAll(EVEItemFlags locFlag, uint32 forOwner)
 
 double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
 {
-    double totalVolume = 0.0;
+    //double totalVolume = 0.0;
+    EvilNumber totalVolume(0.0);
     //TODO: And implement Sizes for packaged ships
 
     std::map<uint32, InventoryItemRef>::const_iterator cur, end;
@@ -330,10 +406,12 @@ double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
     for(; cur != end; cur++)
     {
         if( cur->second->flag() == locationFlag )
-            totalVolume += cur->second->quantity() * cur->second->volume();
+            //totalVolume += cur->second->quantity() * cur->second->volume();
+            totalVolume += cur->second->GetAttribute(AttrQuantity) * cur->second->GetAttribute(AttrVolume);
     }
 
-    return totalVolume;
+    // this is crap... bleh... as it should return a EvilNumber
+    return totalVolume.get_float();
 }
 
 /*
@@ -341,17 +419,16 @@ double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
  */
 void InventoryEx::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const
 {
-    double volume = item->quantity() * item->volume();
+    //double volume = item->quantity() * item->volume();
+    EvilNumber volume = item->GetAttribute(AttrQuantity) * item->GetAttribute(AttrVolume);
     double capacity = GetRemainingCapacity( flag );
     if( volume > capacity )
     {
         std::map<std::string, PyRep *> args;
 
         args["available"] = new PyFloat( capacity );
-        args["volume"] = new PyFloat( volume );
+        args["volume"] = volume.GetPyObject();
 
         throw PyException( MakeUserError( "NotEnoughCargoSpace", args ) );
     }
 }
-
-

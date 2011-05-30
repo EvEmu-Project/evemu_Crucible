@@ -1,0 +1,73 @@
+<elements>
+  <include file="packets/General.h" />
+  <include file="Trade.h" />
+
+  <elementDef name="InitiateTradeRsp">
+    <objectInline>
+      <stringInline value="util.Moniker" />
+      <tupleInline>
+        <stringInline value="trademgr" />
+        <int name ="nodeID" />
+        <tupleInline>
+          <int name="stationID" />
+          <tupleInline>
+            <int name="ownerID" />
+            <int name="targetID" />
+          </tupleInline>
+          <long name="moneyToGive" />
+          <long name="moneyToReceive" />
+          <long name="when" />
+        </tupleInline>
+        <int name="unknown7" />
+      </tupleInline>
+    </objectInline>
+  </elementDef>
+
+  <elementDef name="Trade_BindArgs">
+    <tupleInline>
+      <int name="stationID" />
+      <tupleInline>
+        <int name="ownerID" />
+        <int name="targetID" />
+      </tupleInline>
+      <long name="moneyToGive" />
+      <long name="moneyToReceive" />
+      <long name="when" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="TradeListRsp">
+    <objectInline>
+      <stringInline value="util.Row" />
+      <dictInline>
+        <dictInlineEntry key="header">
+          <listInline>
+            <stringInline value="tradeContainerID" />
+            <stringInline value="traders" />
+            <stringInline value="state" />
+            <stringInline value="money" />
+            <stringInline value="items" />
+          </listInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="line">
+          <listInline>
+            <long name="tradeContainerID" />
+            <listInline>
+              <int name="tradeInitiatorID" />
+              <int name="tradeTargetID" />
+            </listInline>
+            <listInline>
+              <int name="unknown2" />
+              <int name="unknown3" />
+            </listInline>
+            <listInline>
+              <int name="unknown4" />
+              <int name="unknown5" />
+            </listInline>
+          </listInline>
+        </dictInlineEntry>
+      </dictInline>
+    </objectInline>
+  </elementDef>
+
+</elements>

@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -34,11 +34,13 @@ class LSCChannel;
 
 class LSCChannelChar {
 public:
-	LSCChannelChar(LSCChannel *chan, uint32 corpID, uint32 charID, uint32 allianceID, uint32 role, uint32 extra) :
+	LSCChannelChar(LSCChannel *chan, uint32 corpID, uint32 charID, std::string charName, uint32 allianceID, uint32 warFactionID, uint32 role, uint32 extra) :
 	  m_parent(chan),
 	  m_corpID(corpID),
 	  m_charID(charID),
+          m_charName(charName),
 	  m_allianceID(allianceID),
+	  m_warFactionID(warFactionID),
 	  m_role(role),
 	  m_extra(extra) { }
 
@@ -49,7 +51,9 @@ protected:
 	LSCChannel *m_parent;
 	uint32 m_corpID;
 	uint32 m_charID;
+        std::string m_charName;
 	uint32 m_allianceID;
+	uint32 m_warFactionID;
 	uint32 m_role;
 	uint32 m_extra;
 };
@@ -100,7 +104,7 @@ public:
 		const char *comparisonKey,
 		bool memberless,
 		const char *password,
-		uint32 mailingList,
+		bool mailingList,
 		uint32 cspa,
 		uint32 temporary,
 		uint32 mode
@@ -116,6 +120,37 @@ public:
 	PyRep *EncodeEmptyChannelChars();
 
 	const char *GetTypeString();
+
+	uint32 GetChannelID() { return m_channelID; }
+	uint32 GetOwnerID() { return m_ownerID; }
+	Type GetType() { return m_type; }
+	std::string GetDisplayName() { return m_displayName; }
+	std::string GetMOTD() { return m_motd; }
+	std::string GetComparisonKey() { return m_comparisonKey; }
+	bool GetMemberless() { return m_memberless; }
+	std::string GetPassword() { return m_password; }
+	bool GetMailingList() { return m_mailingList; }
+	uint32 GetCSPA() { return m_cspa; }
+	uint32 GetTemporary() { return m_temporary; }
+	uint32 GetMode() { return m_mode; }
+    uint32 GetMemberCount() { return m_chars.size(); }
+
+	void SetOwnerID(uint32 ownerID) { m_ownerID = ownerID; }
+	void SetType(Type new_type) { m_type = new_type; }
+	void SetDisplayName(std::string displayName) { m_displayName = displayName; }
+	void SetMOTD(std::string motd) { m_motd = motd; }
+	void SetComparisonKey(std::string comparisonKey) { m_comparisonKey = comparisonKey; }
+	void SetMemberless(bool memberless) { m_memberless = memberless; }
+	void SetPassword(std::string password) { m_password = password; }
+	void SetMailingList(bool mailingList) { m_mailingList = mailingList; }
+	void SetCSPA(uint32 cspa) { m_cspa = cspa; }
+	void SetTemporary(uint32 temporary) { m_temporary = temporary; }
+	void SetMode(uint32 mode) { m_mode = mode; }
+
+	void GetChannelInfo(uint32 * channelID, uint32 * ownerID, std::string &displayName, std::string &motd, std::string &comparisonKey,
+		bool * memberless, std::string &password, bool * mailingList, uint32 * cspa, uint32 * temporary, uint32 * mode);
+	void SetChannelInfo(uint32 ownerID, std::string displayName, std::string motd, std::string comparisonKey,
+		bool memberless, std::string password, bool mailingList, uint32 cspa, uint32 temporary, uint32 mode);
 
 	bool JoinChannel(Client * c);
 	void LeaveChannel(Client *c, bool self = true);
@@ -141,7 +176,7 @@ protected:
 	std::string m_comparisonKey;
 	bool m_memberless;
 	std::string m_password;
-	uint32 m_mailingList;
+	bool m_mailingList;
 	uint32 m_cspa;
 	uint32 m_temporary;
 	uint32 m_mode;

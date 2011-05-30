@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -35,6 +35,13 @@ SystemEntity::SystemEntity()
 
 void SystemEntity::Process() {
 	targets.Process();
+}
+
+uint32 SystemEntity::GetLocationID(SystemEntity *se)
+{
+	uint32 itemID = se->GetID();
+	
+	return (SystemDB::GetObjectLocationID( itemID ) );
 }
 
 double SystemEntity::DistanceTo2(const SystemEntity *other) const {
@@ -68,33 +75,43 @@ void ItemSystemEntity::_SetSelf(InventoryItemRef self) {
 	}
 
 	m_self = self;
-	
+
+    // DEPRECATED NOW WITH THE USE OF NEW ATTRIBUTE SYSTEM AND SAVING OF THOSE ATTRIBUTES TO THE DB -- Aknor Jaden
 	//I am not sure where the right place to do this is, but until
 	//we properly persist ship attributes into the DB, we are just
 	//going to do it here. Could be exploited. oh well.
 	// TODO: use the ship aggregate value.
-	int sc = m_self->shieldCapacity();
+	/*int sc = m_self->shieldCapacity();
 	if( sc > 0 )	//avoid polluting the attribute list with worthless entries.
-		m_self->Set_shieldCharge( sc );
+		m_self->Set_shieldCharge( sc );*/
+    //EvilNumber sc = m_self->GetAttribute(AttrShieldCapacity);
+    //if (sc > 0)
+    //    m_self->SetAttribute(AttrShieldCharge, sc);
 }
 
 const char *ItemSystemEntity::GetName() const {
-	if(m_self == NULL)
+	if(!m_self)
 		return("NoName");
 	return(m_self->itemName().c_str());
 }
 
 double ItemSystemEntity::GetRadius() const {
-	if(m_self == NULL)
+	if(!m_self)
 		return(1.0f);
-	return(m_self->radius());
+	//return(m_self->radius());
+    return m_self->GetAttribute(AttrRadius).get_float();
 }
 
 const GPoint &ItemSystemEntity::GetPosition() const {
 	static const GPoint err(0.0, 0.0, 0.0);
-	if(m_self == NULL)
+	if(!m_self)
 		return(err);
 	return(m_self->position());
+}
+
+const GVector &ItemSystemEntity::GetVelocity() const {
+	static const GVector err(0.0, 0.0, 0.0);
+	return(err);
 }
 
 PyDict *ItemSystemEntity::MakeSlimItem() const {
@@ -106,7 +123,7 @@ PyDict *ItemSystemEntity::MakeSlimItem() const {
 }
 
 uint32 ItemSystemEntity::GetID() const {
-	if(Item() == NULL)
+	if(!Item())
 		return(0);
 	return(Item()->itemID());
 }
@@ -136,22 +153,29 @@ const GPoint &DynamicSystemEntity::GetPosition() const {
 	return(m_destiny->GetPosition());
 }
 
+const GVector &DynamicSystemEntity::GetVelocity() const {
+   	static const GVector err(0.0, 0.0, 0.0);
+	if(m_destiny == NULL)
+		return(err);
+    return(m_destiny->GetVelocity());
+}
+
 double DynamicSystemEntity::GetMass() const {
-	if(Item() == NULL)
+	if(!Item())
 		return(0.0f);
-	return(Item()->mass());
+	return Item()->GetAttribute(AttrMass).get_float();
 }
 
 double DynamicSystemEntity::GetMaxVelocity() const {
-	if(Item() == NULL)
+	if(!Item())
 		return(0.0f);
-	return(Item()->maxVelocity());
+    return Item()->GetAttribute(AttrMaxVelocity).get_float();
 }
 
 double DynamicSystemEntity::GetAgility() const {
-	if(Item() == NULL)
+	if(!Item())
 		return(0.0f);
-	return(Item()->agility());
+	return Item()->GetAttribute(AttrAgility).get_float();
 }
 
 //TODO: ask the destiny manager to do this for us!
@@ -184,7 +208,7 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
 		item->head.x = position.x;
 		item->head.y = position.y;
 		item->head.z = position.z;
-		item->head.sub_type = AddBallSubType_player;
+		item->head.sub_type = IsFree | IsMassive | IsInteractive;
 		item->mass.mass = Ship()->mass();
 		item->mass.unknown51 = 0;
 		item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
@@ -221,7 +245,7 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
 		head.x = position.x;
 		head.y = position.y;
 		head.z = position.z;
-		head.sub_type = AddBallSubType_player;
+		head.sub_type = IsFree | IsMassive | IsInteractive;
         into.Append( head );
 
         MassSector mass;
@@ -233,15 +257,30 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
         into.Append( mass );
 
         ShipSector ship;
-		ship.max_speed = GetMaxVelocity();
-		ship.velocity_x = 0.0;	//TODO: use destiny's velocity
-		ship.velocity_y = 0.0;
-		ship.velocity_z = 0.0;
-        ship.unknown_x = 0.0;
-        ship.unknown_y = 0.0;
-        ship.unknown_z = 0.0;
-		ship.agility = GetAgility();
-		ship.speed_fraction = 0.0;	//TODO: put in speed fraction!
+        if( Destiny() == NULL )     // We dont have a destiny object or dont have one YET
+        {
+		    ship.max_speed = GetMaxVelocity();
+            ship.velocity_x = 0.0;
+		    ship.velocity_y = 0.0;
+		    ship.velocity_z = 0.0;
+            ship.unknown_x = 0.0;
+            ship.unknown_y = 0.0;
+            ship.unknown_z = 0.0;
+		    ship.agility = GetAgility();
+            ship.speed_fraction = 0.0;
+        }
+        else
+        {
+		    ship.max_speed = GetMaxVelocity();
+            ship.velocity_x = Destiny()->GetVelocity().x;
+		    ship.velocity_y = Destiny()->GetVelocity().y;
+		    ship.velocity_z = Destiny()->GetVelocity().z;
+            ship.unknown_x = 0.0;
+            ship.unknown_y = 0.0;
+            ship.unknown_z = 0.0;
+		    ship.agility = GetAgility();
+            ship.speed_fraction = Destiny()->GetSpeedFraction();
+        }
         into.Append( ship );
 
         DSTBALL_STOP_Struct main;
@@ -257,39 +296,81 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
 	}
 }
 
+
+
 void ItemSystemEntity::MakeDamageState(DoDestinyDamageState &into) const {
-	into.shield = m_self->shieldCharge() / m_self->shieldCapacity();
+	into.shield = (m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
 	into.tau = 100000;	//no freaking clue.
 	into.timestamp = Win32TimeNow();
 //	armor damage isn't working...
-	into.armor = 1.0 - (m_self->armorDamage() / m_self->armorHP());
-	into.structure = 1.0 - (m_self->damage() / m_self->hp());
+	into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
+	into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHp).get_float());
 }
 
 
+CelestialDynamicSystemEntity::CelestialDynamicSystemEntity(DestinyManager *dm, InventoryItemRef self)
+: DynamicSystemEntity(dm, self)
+{
+}
 
+CelestialDynamicSystemEntity::~CelestialDynamicSystemEntity() {
+	if(m_destiny != NULL) {
+		//Do not do anything with the destiny manager, as it's m_self
+		//is now partially destroyed, which will majority upset things.
+		delete m_destiny;
+	}
+}
 
+//TODO: ask the destiny manager to do this for us!
+void CelestialDynamicSystemEntity::EncodeDestiny( Buffer& into ) const
+{
+	const GPoint& position = GetPosition();
+    const std::string itemName( GetName() );
 
+    // From SimpleSystemEntity::EncodeDestiny() in SystemEntities.cpp:
+/*
+	BallHeader head;
+	head.entityID = data.itemID;
+	head.mode = Destiny::DSTBALL_RIGID;
+	head.radius = data.radius;
+	head.x = data.position.x;
+	head.y = data.position.y;
+	head.z = data.position.z;
+	head.sub_type = IsMassive | IsGlobal;
+    into.Append( head );
 
+    DSTBALL_RIGID_Struct main;
+	main.formationID = 0xFF;
+    into.Append( main );
 
+*/
 
+    BallHeader head;
+	head.entityID = GetID();
+	head.mode = Destiny::DSTBALL_RIGID;
+	head.radius = GetRadius();
+	head.x = position.x;
+	head.y = position.y;
+	head.z = position.z;
+	head.sub_type = IsMassive | IsGlobal;
+    into.Append( head );
+/*
+    MassSector mass;
+	mass.mass = GetMass();
+	mass.cloak = 0;
+	mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+	mass.corpID = GetCorporationID();
+	mass.allianceID = GetAllianceID();
+    into.Append( mass );
+*/
+    DSTBALL_RIGID_Struct main;
+	main.formationID = 0xFF;
+    into.Append( main );
 
+    const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
+    into.Append( nameLen );
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    const Buffer::iterator<uint16> name = into.end<uint16>();
+    into.ResizeAt( name, nameLen );
+    utf8::utf8to16( itemName.begin(), itemName.end(), name );
+}

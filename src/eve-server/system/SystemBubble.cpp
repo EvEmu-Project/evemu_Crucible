@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -25,12 +25,16 @@
 
 #include "EVEServerPCH.h"
 
+uint32 SystemBubble::m_bubbleIncrementer = 0;
+
 SystemBubble::SystemBubble(const GPoint &center, double radius)
 : m_center(center),
   m_radius(radius),
   m_radius2(radius*radius)
 {
 	_log(DESTINY__BUBBLE_DEBUG, "Created new bubble %p at (%.2f,%.2f,%.2f) with radius %.2f", this, m_center.x, m_center.y, m_center.z, m_radius);
+    m_bubbleIncrementer++;
+    m_bubbleID = m_bubbleIncrementer;
 }
 
 //send a set of destiny events and updates to everybody in the bubble.
@@ -161,6 +165,9 @@ void SystemBubble::Add(SystemEntity *ent, bool notify) {
 void SystemBubble::Remove(SystemEntity *ent, bool notify) {
 	//assume that the entity is properly registered for its ID, and that
 	//we do not need to search other values.
+    if( ent->m_bubble == NULL )
+        return;     // Get outta here in case this was called again
+
 	_log(DESTINY__BUBBLE_DEBUG, "Removing entity %u from bubble %p at (%.2f,%.2f,%.2f) with radius %.2f", ent->GetID(), this, m_center.x, m_center.y, m_center.z, m_radius);
 	ent->m_bubble = NULL;
 	m_entities.erase(ent->GetID());

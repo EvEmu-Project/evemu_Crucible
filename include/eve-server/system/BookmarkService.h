@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -32,17 +32,24 @@
 class BookmarkService : public PyService
 {
 public:
+    static const uint32 MAX_BOOKMARK_ID;
+
 	BookmarkService(PyServiceMgr *mgr);
 	virtual ~BookmarkService();
+
+    bool LookupBookmark(uint32 characterID, uint32 bookmarkID, uint32 &itemID, uint32 &typeID, double &x, double &y, double &z);
 
 protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
+    uint32 nextBookmarkID;
 
 	BookmarkDB m_db;
 
 	PyCallable_DECL_CALL(GetBookmarks)
 	PyCallable_DECL_CALL(BookmarkLocation)
+    PyCallable_DECL_CALL(DeleteBookmarks)
+    PyCallable_DECL_CALL(UpdateBookmark)
 };
 
 

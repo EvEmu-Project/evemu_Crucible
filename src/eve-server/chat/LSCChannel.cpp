@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -32,8 +32,18 @@ PyRep *LSCChannelChar::Encode() const {
 	line.allianceID = m_allianceID;
 	line.charID = m_charID;
 	line.corpID = m_corpID;
-	line.extra = m_extra;
 	line.role = m_role;
+	line.warFactionID = m_warFactionID;
+
+    util_Row rs;
+    rs.header.push_back("ownerID");
+    rs.header.push_back("ownerName");
+    rs.header.push_back("typeID");
+    rs.line = new PyList;
+    rs.line->AddItemInt( m_charID );
+	rs.line->AddItemString( m_charName.c_str() );
+	rs.line->AddItemInt( 1378 );
+    line.extra = rs.Encode();//m_extra;
 
 	return line.Encode();
 }
@@ -61,7 +71,7 @@ LSCChannel::LSCChannel(
 	const char *comparisonKey,
 	bool memberless,
 	const char *password,
-	uint32 mailingList,
+	bool mailingList,
 	uint32 cspa,
 	uint32 temporary,
 	uint32 mode
@@ -87,16 +97,46 @@ LSCChannel::~LSCChannel() {
 	_log(LSC__CHANNELS, "Destroying channel \"%s\"", m_displayName.c_str());
 }
 
+void LSCChannel::GetChannelInfo(uint32 * channelID, uint32 * ownerID, std::string &displayName, std::string &motd, std::string &comparisonKey,
+	bool * memberless, std::string &password, bool * mailingList, uint32 * cspa, uint32 * temporary, uint32 * mode)
+{
+	*channelID = GetChannelID();
+	*ownerID = GetOwnerID();
+	displayName = GetDisplayName();
+	motd = GetMOTD();
+	comparisonKey = GetComparisonKey();
+	*memberless = GetMemberless();
+	password = GetPassword();
+	*mailingList = GetMailingList();
+	*cspa = GetCSPA();
+	*temporary = GetTemporary();
+	*mode = GetMode();
+}
+
+void LSCChannel::SetChannelInfo(uint32 ownerID, std::string displayName, std::string motd, std::string comparisonKey,
+	bool memberless, std::string password, bool mailingList, uint32 cspa, uint32 temporary, uint32 mode)
+{
+	SetOwnerID(ownerID);
+	SetDisplayName(displayName);
+	SetMOTD(motd);
+	SetComparisonKey(comparisonKey);
+    SetMemberless(memberless);
+	SetPassword(password);
+	SetMailingList(mailingList);
+	SetCSPA(cspa);
+	SetTemporary(temporary);
+	SetMode(mode);
+}
+
 bool LSCChannel::JoinChannel(Client * c) {
 	_log(LSC__CHANNELS, "Channel %s: Join from %s", m_displayName.c_str(), c->GetName());
 
 	m_chars.insert(
 		std::make_pair(
 			c->GetCharacterID(),
-			LSCChannelChar( this, c->GetCorporationID(), c->GetCharacterID(), c->GetAllianceID(), c->GetAccountRole(), 0 )
+			LSCChannelChar( this, c->GetCorporationID(), c->GetCharacterID(), c->GetCharacterName(), c->GetAllianceID(), c->GetWarFactionID(), c->GetAccountRole(), 0 )
 		)
 	);
-	m_memberless = false;
 	c->ChannelJoined( this );
 
 	//if ((m_type != LSCChannel::normal) && (m_channelID > 2)) {
@@ -119,6 +159,7 @@ bool LSCChannel::JoinChannel(Client * c) {
 
 	return true;
 }
+
 void LSCChannel::LeaveChannel(uint32 charID, OnLSC_SenderInfo * si) {
 	_log(LSC__CHANNELS, "Channel %s: Leave from %u", m_displayName.c_str(), charID);
 
@@ -143,6 +184,7 @@ void LSCChannel::LeaveChannel(uint32 charID, OnLSC_SenderInfo * si) {
 	PyTuple *answer = leave.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
+
 void LSCChannel::LeaveChannel(Client *c, bool self) {
 	_log(LSC__CHANNELS, "Channel %s: Leave from %s", m_displayName.c_str(), c->GetName());
 
@@ -170,6 +212,7 @@ void LSCChannel::LeaveChannel(Client *c, bool self) {
 	m_chars.erase(charID);
 	c->ChannelLeft(this);
 }
+
 void LSCChannel::Evacuate(Client * c) {
 	OnLSC_DestroyChannel dc;
 
@@ -188,8 +231,10 @@ void LSCChannel::Evacuate(Client * c) {
 	PyTuple *answer = dc.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
 }
+
 void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
-	MulticastTarget mct;
+/*
+    MulticastTarget mct;
 
 	OnLSC_SendMessage sm;
 
@@ -216,20 +261,94 @@ void LSCChannel::SendMessage(Client * c, const char * message, bool self) {
 	sm.message = message;
 	sm.member_count = m_chars.size();
 
-	PyTuple *answer = sm.Encode();
+    PyTuple *answer = sm.Encode();
 	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answer, mct);
+*/
+
+    // NEW KENNY TRANSLATOR VERSION:
+    // execute Multicast() twice: once for all clients where IsKennyTranslatorEnabled() == false and once for all clients where it is true
+	MulticastTarget mct_Kennyfied;
+	OnLSC_SendMessage sm_Kennyfied;
+    uint32 kennyfiedCharListSize = 0;
+	MulticastTarget mct_NotKennyfied;
+    OnLSC_SendMessage sm_NotKennyfied;
+    uint32 notKennyfiedCharListSize = 0;
+
+	if (message[0] == '#') {
+		m_service->ExecuteCommand(c, message);
+		mct_Kennyfied.characters.insert(c->GetCharacterID());
+		sm_Kennyfied.sender = _MakeSenderInfo(c);
+	} else {
+		if (self) {
+            if( c->IsKennyTranslatorEnabled() )
+            {
+			    mct_Kennyfied.characters.insert(c->GetCharacterID());
+			    sm_Kennyfied.sender = _FakeSenderInfo();
+                kennyfiedCharListSize++;
+            }
+            else
+            {
+			    mct_NotKennyfied.characters.insert(c->GetCharacterID());
+			    sm_NotKennyfied.sender = _FakeSenderInfo();
+                notKennyfiedCharListSize++;
+            }
+		} else {
+			std::map<uint32, LSCChannelChar>::iterator cur, end;
+			cur = m_chars.begin();
+			end = m_chars.end();
+			for(; cur != end; cur++)
+            {
+                if( (m_service->entityList().FindCharacter(cur->first)->IsKennyTranslatorEnabled()) )
+                {
+				    mct_Kennyfied.characters.insert( cur->first );
+                    kennyfiedCharListSize++;
+                }
+                else
+                {
+				    mct_NotKennyfied.characters.insert( cur->first );
+                    notKennyfiedCharListSize++;
+                }
+            }
+
+            //if( c->IsKennyTranslatorEnabled() )
+            //{
+			    sm_Kennyfied.sender = _MakeSenderInfo(c);
+                kennyfiedCharListSize++;
+            //}
+            //else
+            //{
+                sm_NotKennyfied.sender = _MakeSenderInfo(c);
+                notKennyfiedCharListSize++;
+            //}
+	}
+	}
+
+    PyTuple *answerNotKennyfied;
+	sm_NotKennyfied.channelID = EncodeID();
+	sm_NotKennyfied.message = message;
+	sm_NotKennyfied.member_count = notKennyfiedCharListSize;
+
+    // Check if number of non-kennyfied recipients is greater than zero, and if so, send a Multicast() to them
+    // with the normal message sent through kenny translator IF the sender has the Kenny Translator enabled
+    if( notKennyfiedCharListSize > 0 )
+    {
+        std::string kennyfied_message;
+        if( c->IsKennyTranslatorEnabled() )
+        {
+            normal_to_kennyspeak(sm_NotKennyfied.message, kennyfied_message);
+            sm_NotKennyfied.message = kennyfied_message;
+        }
+	    answerNotKennyfied = sm_NotKennyfied.Encode();
+	    m_service->entityList().Multicast("OnLSC", GetTypeString(), &answerNotKennyfied, mct_NotKennyfied);
+    }
+
+	sm_Kennyfied.channelID = EncodeID();
+	sm_Kennyfied.message = message;
+	sm_Kennyfied.member_count = kennyfiedCharListSize;
+
+    PyTuple *answerKennyfied = sm_Kennyfied.Encode();
+	m_service->entityList().Multicast("OnLSC", GetTypeString(), &answerKennyfied, mct_Kennyfied);
 }
-
-	
-
-		
-	
-		
-	
-
-
-
-
 
 bool LSCChannel::IsJoined(uint32 charID) {
 	return m_chars.find(charID) != m_chars.end();
@@ -280,6 +399,7 @@ PyRep *LSCChannel::EncodeChannel(uint32 charID) {
 
 	return line.Encode();
 }
+
 PyRep *LSCChannel::EncodeID() {
 	if (m_type == normal)
 		return (new PyInt(m_channelID));
@@ -308,6 +428,7 @@ PyRep *LSCChannel::EncodeChannelSmall(uint32 charID) {
 	
 	return info.Encode();
 }
+
 PyRep *LSCChannel::EncodeChannelMods()
 {
 	ChannelJoinChannelMods info;
@@ -318,6 +439,7 @@ PyRep *LSCChannel::EncodeChannelMods()
 
 	return info.Encode();
 }
+
 PyRep *LSCChannel::EncodeChannelChars() {
 	ChannelJoinChannelChars info;
     info.lines = new PyList;
@@ -334,6 +456,7 @@ PyRep *LSCChannel::EncodeChannelChars() {
 
 	return info.Encode();
 }
+
 PyRep *LSCChannel::EncodeEmptyChannelChars() {
 	ChannelJoinChannelChars info;
     info.lines = new PyList;
@@ -356,16 +479,4 @@ const char *LSCChannel::GetTypeString() {
 	}
 	return("unknown");
 }
-
-
-
-
-
-
-
-
-
-
-
-
 

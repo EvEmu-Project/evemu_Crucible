@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,16 +42,18 @@ class MarketDB
 : public ServiceDB
 {
 public:
+	PyRep *CharGetNewTransactions(uint32 characterID);
 	PyRep *GetStationAsks(uint32 stationID);
 	PyRep *GetSystemAsks(uint32 solarSystemID);
 	PyRep *GetRegionBest(uint32 regionID);
 
-	PyRep *GetOrders(uint32 regionID, uint32 typeID);	//doesn't work right now
+	PyRep *GetOrders(uint32 regionID, uint32 typeID);
 	PyRep *GetCharOrders(uint32 characterID);
 	PyRep *GetOrderRow(uint32 orderID);
 
 	PyRep *GetOldPriceHistory(uint32 regionID, uint32 typeID);
 	PyRep *GetNewPriceHistory(uint32 regionID, uint32 typeID);
+	PyRep *GetTransactions(uint32 characterID, uint32 typeID, uint32 quantity, double minPrice, double maxPrice, uint64 fromDate, int buySell);
 
 	PyObject *GetMarketGroups();
 	PyObject *GetRefTypes();
@@ -60,7 +62,7 @@ public:
 	uint32 FindBuyOrder(uint32 stationID, uint32 typeID, double price, uint32 quantity, uint32 orderRange);
 	uint32 FindSellOrder(uint32 stationID, uint32 typeID, double price, uint32 quantity, uint32 orderRange);
 
-	bool GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID, uint32 &quantity, double &price);
+	bool GetOrderInfo(uint32 orderID, uint32 *orderOwnerID, uint32 *typeID, uint32 *stationID, uint32 *quantity, double *price, bool *isBuy, bool *isCorp);
 	bool AlterOrderQuantity(uint32 orderID, uint32 new_qty);
 	bool AlterOrderPrice(uint32 orderID, double new_price);
 	bool DeleteOrder(uint32 orderID);

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -157,8 +157,8 @@ PyRep* UnmarshalStream::LoadRep()
 {
     const uint8 header = Read<uint8>();
 
-    const bool flagUnknown = ( header & PyRepUnknownMask );
-    const bool flagSave = ( header & PyRepSaveMask );
+    const bool flagUnknown = ( header & PyRepUnknownMask ) != 0;
+    const bool flagSave = ( header & PyRepSaveMask ) != 0;
     const uint8 opcode = ( header & PyRepOpcodeMask );
 
     if( flagUnknown )

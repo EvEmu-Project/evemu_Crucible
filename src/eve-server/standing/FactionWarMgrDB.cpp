@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -66,13 +66,13 @@ uint32 FactionWarMgrDB::GetFactionMilitiaCorporation(const uint32 factionID) {
 		factionID))
 	{
 		_log(DATABASE__ERROR, "Failed to query militia corporation for faction %u: %s.", factionID, res.error.c_str());
-		return NULL;
+		return 0;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "Faction %u not found.", factionID);
-		return NULL;
+		return 0;
 	}
 
 	return(row.GetUInt(0));

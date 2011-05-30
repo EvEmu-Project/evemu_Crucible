@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -35,7 +35,7 @@ ItemFactory::~ItemFactory() {
         end = m_items.end();
         for(; cur != end; cur++) {
             // save attributes of item (because of rechargable attributes)
-            cur->second->attributes.Save();
+            //cur->second->attributes.Save();
         }
     }
     // types
@@ -62,6 +62,9 @@ ItemFactory::~ItemFactory() {
         for(; cur != end; cur++)
             delete cur->second;
     }
+
+    // Set Client pointer to NULL
+    m_pClient = NULL;
 }
 
 const ItemCategory *ItemFactory::GetCategory(EVEItemCategories category) {
@@ -201,6 +204,16 @@ OwnerRef ItemFactory::GetOwner(uint32 ownerID)
     return _GetItem<Owner>( ownerID );
 }
 
+StructureRef ItemFactory::GetStructure(uint32 structureID)
+{
+    return _GetItem<Structure>( structureID );
+}
+
+CargoContainerRef ItemFactory::GetCargoContainer(uint32 containerID)
+{
+    return _GetItem<CargoContainer>( containerID );
+}
+
 InventoryItemRef ItemFactory::SpawnItem(ItemData &data) {
     InventoryItemRef i = InventoryItem::Spawn(*this, data);
     if( !i )
@@ -208,7 +221,6 @@ InventoryItemRef ItemFactory::SpawnItem(ItemData &data) {
 
     // spawn successful; store the ref
     m_items.insert( std::make_pair( i->itemID(), i ) );
-    // return
     return i;
 }
 
@@ -259,6 +271,26 @@ OwnerRef ItemFactory::SpawnOwner(ItemData &data)
     return o;
 }
 
+StructureRef ItemFactory::SpawnStructure(ItemData &data)
+{
+    StructureRef o = Structure::Spawn( *this, data );
+    if( !o )
+        return StructureRef();
+
+    m_items.insert( std::make_pair( o->itemID(), o ) );
+    return o;
+}
+
+CargoContainerRef ItemFactory::SpawnCargoContainer(ItemData &data)
+{
+    CargoContainerRef o = CargoContainer::Spawn( *this, data );
+    if( !o )
+        return CargoContainerRef();
+
+    m_items.insert( std::make_pair( o->itemID(), o ) );
+    return o;
+}
+
 Inventory *ItemFactory::GetInventory(uint32 inventoryID, bool load)
 {
     InventoryItemRef item;
@@ -288,21 +320,12 @@ void ItemFactory::_DeleteItem(uint32 itemID)
     }
 }
 
+void ItemFactory::SetUsingClient(Client *pClient)
+{
+    m_pClient = pClient;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Client * ItemFactory::GetUsingClient()
+{
+    return m_pClient;
+}

@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -57,10 +57,26 @@ public:
 	InventoryItemRef GetByID(uint32 id) const;
 	InventoryItemRef GetByTypeFlag(uint32 typeID, EVEItemFlags flag) const;
 
+    /*
+     *
+     */
 	InventoryItemRef FindFirstByFlag(EVEItemFlags flag) const;
 	uint32 FindByFlag(EVEItemFlags flag, std::vector<InventoryItemRef> &items) const;
 	uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItemRef> &items) const;
 	uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItemRef> &items) const;
+
+    /* should do exactly the same as FindFirstByFlag, but only searches a single item.
+     * it asserts when it finds multiple items. It should be used to search single items... like rigs...
+     * @returns true if the object is found and false if its not.
+     */
+    bool FindSingleByFlag(EVEItemFlags flag, InventoryItemRef &item) const;
+
+    /* checks if a a item is present at a certain location flag.
+     *
+     * @returns true if its empty and false if its not.
+     */
+    bool IsEmptyByFlag(EVEItemFlags flag);
+
 
 	double GetStoredVolume(EVEItemFlags flag) const;
 

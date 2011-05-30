@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -82,6 +82,7 @@ public:
 	virtual const char *GetName() const { return(data.itemName.c_str()); }
 	virtual double GetRadius() const { return(data.radius); }
 	virtual const GPoint &GetPosition() const { return( data.position ); }
+    virtual const GVector &GetVelocity() const;
 };
 
 class SystemPlanetEntity : public SimpleSystemEntity {

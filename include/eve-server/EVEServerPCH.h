@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -59,6 +59,7 @@
 
 #include "utils/crc32.h"
 #include "utils/Deflate.h"
+#include "utils/EvilNumber.h"
 #include "utils/gpoint.h"
 #include "utils/misc.h"
 #include "utils/RefPtr.h"
@@ -106,6 +107,7 @@
 #include "packets/ObjectCaching.h"
 #include "packets/Market.h"
 #include "packets/Standing2.h"
+#include "packets/Trade.h"
 #include "packets/Tutorial.h"
 
 #include "python/PyVisitor.h"
@@ -123,6 +125,8 @@
 #include "tables/invGroups.h"
 
 #include "utils/EVEUtils.h"
+#include "utils/EvilNumber.h"
+
 
 /************************************************************************/
 /* eve-server includes                                                  */
@@ -166,6 +170,7 @@
 #include "character/SkillMgrService.h"
 
 // chat stuff
+#include "chat/kenny.h"
 #include "chat/LookupService.h"
 #include "chat/LSCChannel.h"
 #include "chat/LSCDB.h"
@@ -192,6 +197,7 @@
 #include "dogmaim/DogmaIMService.h"
 
 // item stuff
+#include "inventory/AttributeEnum.h"
 #include "inventory/AttributeMgr.h"
 #include "inventory/EVEAttributeMgr.h"
 #include "inventory/InvBrokerService.h"
@@ -233,6 +239,7 @@
 
 #include "posmgr/PosMgrDB.h"
 #include "posmgr/PosMgrService.h"
+#include "posmgr/Structure.h"
 
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
@@ -241,6 +248,8 @@
 #include "system/BookmarkService.h"
 #include "system/BubbleManager.h"
 #include "system/Celestial.h"
+#include "system/Container.h"
+#include "system/Deployable.h"
 #include "system/Damage.h"
 #include "system/DungeonService.h"
 #include "system/KeeperService.h"
@@ -255,11 +264,13 @@
 #include "ship/ModuleManager.h"
 #include "ship/BeyonceService.h"
 #include "ship/DestinyManager.h"
+#include "ship/Drone.h"
 #include "ship/InsuranceService.h"
 #include "ship/Ship.h"
 #include "ship/ShipDB.h"
 #include "ship/ShipService.h"
 #include "ship/TargetManager.h"
+#include "ship/dgmtypeattributeinfo.h"
 
 #include "spawn/SpawnDB.h"
 #include "spawn/SpawnManager.h"
@@ -275,6 +286,9 @@
 #include "station/StationDB.h"
 #include "station/StationService.h"
 #include "station/StationSvcService.h"
+
+#include "trade/TradeService.h"
+#include "trade/TradeDB.h"
 
 #include "tutorial/TutorialDB.h"
 #include "tutorial/TutorialService.h"

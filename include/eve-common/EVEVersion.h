@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -28,9 +28,9 @@
 
 //supported client is the Apocrypha client build 101786
 
-static const uint8 MachoNetVersion = 219;
-static const double EVEVersionNumber = 6.14;
-static const int32 EVEBuildVersion = 101786;
+static const uint8 MachoNetVersion = 219;//235;//
+static const double EVEVersionNumber = 6.14;//6.21;//
+static const int32 EVEBuildVersion = 101786;//127381;//
 static const char *const EVEProjectCodename = "EVE-EVE-RELEASE";
 static const char *const EVEProjectRegion = "ccp";
 static const char *const EVEProjectVersion = "EVE-EVE-RELEASE@ccp";

@@ -21,6 +21,7 @@ CREATE TABLE `account` (
   `password` varchar(43) NOT NULL default '',
   `role` int(10) unsigned NOT NULL default '0',
   `online` tinyint(1) NOT NULL default '0',
+  `banned` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`accountID`),
   UNIQUE KEY `accountName` (`accountName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -90,7 +91,7 @@ CREATE TABLE `bookmarks` (
   `typeID` int(10) unsigned NOT NULL default '0',
   `flag` int(10) unsigned NOT NULL default '0',
   `memo` varchar(85) NOT NULL default '',
-  `created` int(10) unsigned NOT NULL default '0',
+  `created` bigint(20) unsigned NOT NULL default '0',
   `x` double NOT NULL default '0',
   `y` double NOT NULL default '0',
   `z` double NOT NULL default '0',
@@ -690,6 +691,7 @@ CREATE TABLE `market_transactions` (
   `clientID` int(10) unsigned NOT NULL default '0',
   `regionID` int(10) unsigned NOT NULL default '0',
   `stationID` int(10) unsigned NOT NULL default '0',
+  `corpTransaction` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`transactionID`),
   KEY `regionID` (`regionID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

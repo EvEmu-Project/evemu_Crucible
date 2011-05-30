@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -65,6 +65,9 @@ LOG_TYPE( NET, ZEROCOMP, DISABLED, "0Compress" )
 LOG_TYPE( NET, PACKET_ERROR, ENABLED, "PacketError" )
 LOG_TYPE( NET, PACKET_WARNING, DISABLED, "PacketWarning" )
 LOG_TYPE( NET, DISPATCH_ERROR, ENABLED, "NetDispatch" )
+
+LOG_CATEGORY( DEBUG )
+LOG_TYPE( DEBUG, DEBUG, ENABLED, "Debug" )
 
 LOG_CATEGORY( COLLECT )
 LOG_TYPE( COLLECT, MESSAGE, DISABLED, "Message" )

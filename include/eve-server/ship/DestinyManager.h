@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -45,6 +45,7 @@ public:
 	static uint32 GetStamp() { return(m_stamp); }
 	static bool IsTicActive() { return(m_stampTimer.Check(false)); }
 	static void TicCompleted() { if(m_stampTimer.Check(true)) m_stamp++; }
+	Destiny::BallMode GetState() { return State; }
 
 	DestinyManager(SystemEntity *self, SystemManager *system);
 	~DestinyManager();
@@ -57,6 +58,7 @@ public:
 	
 	const GPoint &GetPosition() const { return(m_position); }
 	const GVector &GetVelocity() const { return(m_velocity); }
+    double GetSpeedFraction() { return(m_activeSpeedFraction); }
 	
 	//called whenever an entity is going away and can no longer be used as a target
 	void EntityRemoved(SystemEntity *who);
@@ -75,6 +77,7 @@ public:
 	void SetSpeedFraction(double fraction, bool update=true);
 	void AlignTo(const GPoint &direction, bool update=true);
 	void GotoDirection(const GPoint &direction, bool update=true);
+    PyResult AttemptDockOperation();
 	
 	//bigger movement:
 	void WarpTo(const GPoint &where, double distance, bool update=true);
@@ -85,6 +88,13 @@ public:
 	void SendJumpOut(uint32 stargateID) const;
 	void SendGateActivity() const;
 	void SendTerminalExplosion() const;
+    void SendBoardShip(const ShipRef boardShipRef) const;
+    void SendEjectShip(const ShipRef capsuleRef, const ShipRef oldShipRef) const;
+    void SendJettisonCargo(const InventoryItemRef itemRef) const;
+    void SendAnchorDrop(const InventoryItemRef itemRef) const;
+    void SendAnchorLift(const InventoryItemRef itemRef) const;
+    void SendCloakShip(const ShipRef shipRef, const bool IsWarpSafe) const;
+    void SendUncloakShip(const ShipRef shipRef) const;
 
 protected:
 	void ProcessTic();
@@ -112,6 +122,7 @@ protected:
 	double m_accelerationFactor;	//crazy units
 	double m_velocityAdjuster;		//unitless
 	
+    double m_warpDecelerateFactor;
 	
 	//User controlled information used by a state to determine what to do.
 	Destiny::BallMode State;
@@ -120,7 +131,8 @@ protected:
 	GPoint m_targetPoint;
 	double m_targetDistance;
 	uint32 m_stateStamp;			//some states need to know when they were entered.
-	SystemEntity *m_targetEntity;	//we do not own this.
+    std::pair<uint32, SystemEntity *> m_targetEntity;   //we do not own the SystemEntity *
+    //SystemEntity *m_targetEntity;	//we do not own this.
 	
 	//things dictated by our entity's configuration/equipment:
 	double m_radius;			//in m

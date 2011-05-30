@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -78,6 +78,11 @@ void SimpleSystemEntity::MakeDamageState(DoDestinyDamageState &into) const {
 	into.timestamp = Win32TimeNow();
 }
 
+const GVector &SimpleSystemEntity::GetVelocity() const {
+	static const GVector err(0.0, 0.0, 0.0);
+	return(err);
+}
+
 void InanimateSystemEntity::QueueDestinyUpdate(PyTuple **du) {
 	//do nothing, the caller will handle it properly.
 	//this gives them the opportunity to reduce a copy if they are smart.
@@ -99,7 +104,7 @@ void SystemPlanetEntity::EncodeDestiny( Buffer& into ) const
 	head.x = data.position.x;
 	head.y = data.position.y;
 	head.z = data.position.z;
-	head.sub_type = AddBallSubType_planet;
+	head.sub_type = IsMassive | IsGlobal;
     into.Append( head );
 
     DSTBALL_RIGID_Struct main;
@@ -127,7 +132,7 @@ void SystemStationEntity::EncodeDestiny( Buffer& into ) const
 	head.x = data.position.x;
 	head.y = data.position.y;
 	head.z = data.position.z;
-	head.sub_type = AddBallSubType_station;
+	head.sub_type = HasMiniBalls | IsGlobal;
     into.Append( head );
 
     DSTBALL_RIGID_Struct main;
@@ -169,6 +174,7 @@ SystemStargateEntity::SystemStargateEntity(SystemManager *system, const DBSystem
   m_jumps(NULL)
 {
 }
+
 SystemStargateEntity::~SystemStargateEntity() {
 	targets.DoDestruction();
 	PySafeDecRef( m_jumps );
@@ -216,7 +222,7 @@ void SystemAsteroidBeltEntity::EncodeDestiny( Buffer& into ) const
 	head.x = data.position.x;
 	head.y = data.position.y;
 	head.z = data.position.z;
-	head.sub_type = AddBallSubType_asteroidBelt;
+	head.sub_type = IsGlobal;
     into.Append( head );
 
     DSTBALL_RIGID_Struct main;
@@ -302,7 +308,7 @@ void SystemDungeonEntranceEntity::EncodeDestiny( Buffer& into ) const
 	head.x = position.x;
 	head.y = position.y;
 	head.z = position.z;
-	head.sub_type = AddBallSubType_dungeonEntrance;
+	head.sub_type = HasMiniBalls; // I dono if this is correct... we'll see
     into.Append( head );
 
     MassSector mass;

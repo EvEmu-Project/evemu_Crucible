@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Zhur
+    Author:     Zhur, Aknor Jaden
 */
 
 
@@ -63,6 +63,11 @@ class CommandDispatcher;
 class LSCService : public PyService
 {
 public:
+    // All user-created chat channels are created with IDs that are in this set:
+    //     [baseChannelID,maxChannelID]  (note the inclusivity in that set)
+    static const uint32 BASE_CHANNEL_ID;
+    static const uint32 MAX_CHANNEL_ID;
+
     LSCService(PyServiceMgr *mgr, CommandDispatcher *cd);
     virtual ~LSCService();
 
@@ -93,8 +98,13 @@ protected:
     PyCallable_DECL_CALL(LeaveChannels)
     PyCallable_DECL_CALL(LeaveChannel)
     PyCallable_DECL_CALL(CreateChannel)
+	PyCallable_DECL_CALL(Configure)
     PyCallable_DECL_CALL(DestroyChannel)
+    PyCallable_DECL_CALL(GetMembers)
+    PyCallable_DECL_CALL(GetMember)
     PyCallable_DECL_CALL(SendMessage)
+	PyCallable_DECL_CALL(Invite)
+    PyCallable_DECL_CALL(AccessControl)
 
     PyCallable_DECL_CALL(GetMyMessages)
     PyCallable_DECL_CALL(GetMessageDetails)
@@ -103,8 +113,8 @@ protected:
     PyCallable_DECL_CALL(DeleteMessages)
 
 private:
-    uint32 nextFreeChannelID;
-
+    LSCChannel *CreateChannel(uint32 channelID, const char * name, const char * motd, LSCChannel::Type type, const char * compkey,
+		uint32 ownerID, bool memberless, const char * password, bool maillist, uint32 cspa, uint32 temporary, uint32 mode);
     LSCChannel *CreateChannel(uint32 channelID, const char * name, const char * motd, LSCChannel::Type type, bool maillist = false);
     LSCChannel *CreateChannel(uint32 channelID, const char * name, LSCChannel::Type type, bool maillist = false);
     LSCChannel *CreateChannel(uint32 channelID, LSCChannel::Type type);

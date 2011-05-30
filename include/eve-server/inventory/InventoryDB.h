@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -28,6 +28,7 @@
 #define __INVENTORYDB_H_INCL__
 
 #include "ServiceDB.h"
+#include "inventory/ItemRef.h"
 
 class EVEAttributeMgr;
 
@@ -145,7 +146,7 @@ public:
 	 *
 	 * @param[in] typeID ID of type which attributes should be loaded.
 	 * @param[in] into Attribute manager the attributes should be loaded into.
-	 * @return True if load was successfull, false if not.
+	 * @return True if load was successful, false if not.
 	 */
 	bool LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into);
 
@@ -172,7 +173,7 @@ public:
 	 *
 	 * @param[in] itemID ID of item which attributes should be loaded.
 	 * @param[in] into Attribute manager the attributes should be loaded into.
-	 * @return True if load was successfull, false if not.
+	 * @return True if load was successful, false if not.
 	 */
 	bool LoadItemAttributes(uint32 itemID, EVEAttributeMgr &into);
 
@@ -267,6 +268,30 @@ public:
 	 * @return True if load succeeds, false if fails.
 	 */
 	bool GetStation(uint32 stationID, StationData &into);
+	
+	/* /Fit command helper function
+	 *
+	 * Determines which slots the selected module can be fit to
+	 *
+	 * @param[in] itemID of the item to be checked
+	 * @param[in] into Container where data should be stored.
+	 * @return True if load succeeds, false if fails.
+	 * returns 0,1,2,3 for module, low slot, med slot, or high slot respectively
+	 */
+	static bool GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into);
+	/*
+	 * Determines which slots are open on current ship
+	 *
+	 * @param[in] slotType 0,1,2,3 for module, low, med, or high slot respectively
+	 * @param[in] shipID of the ship to be checked
+	 * @param[in] into Container where data should be stored.
+	 * @return True if load succeeds, false if fails.
+	 * returns arry of slot flags 0 for open, 1 for filled
+	 */
+	static bool GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 &into);
+
+	static bool GetTypeID(uint32 itemID, uint32 &typeID);
+
 };
 
 

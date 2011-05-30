@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -51,6 +51,8 @@ public:
 	  m_agent(agt)
 	{
 		_SetCallDispatcher(m_dispatch);
+
+        m_strBoundObjectName = "AgentMgrBound";
 		
 		PyCallable_REG_CALL(AgentMgrBound, GetInfoServiceDetails)
 		PyCallable_REG_CALL(AgentMgrBound, DoAction)
@@ -196,7 +198,12 @@ PyResult AgentMgrBound::Handle_DoAction(PyCallArgs &call) {
     res.dialogue = new PyList;
 
 	std::map<uint32, std::string> choices;
-	m_agent->DoAction( call.client, args.arg->AsInt()->value(), res.agentSays, choices );
+    if( !(args.arg->IsInt()) )
+    {
+        sLog.Error( "AgentMgrBound::Handle_DoAction()", "args.arg->IsInt() failed.  Expected type Int, got type %s", args.arg->TypeString() );
+    }
+    else
+	    m_agent->DoAction( call.client, args.arg->AsInt()->value(), res.agentSays, choices );
 
 	DoAction_Dialogue_Item choice;
 

@@ -132,6 +132,7 @@ SET( character_SOURCE
      "${TARGET_SOURCE_DIR}/character/SkillMgrService.cpp" )
 
 SET( chat_INCLUDE
+	 "${TARGET_INCLUDE_DIR}/chat/kenny.h"
      "${TARGET_INCLUDE_DIR}/chat/LookupService.h"
      "${TARGET_INCLUDE_DIR}/chat/LSCDB.h"
      "${TARGET_INCLUDE_DIR}/chat/LSCChannel.h"
@@ -139,6 +140,7 @@ SET( chat_INCLUDE
      "${TARGET_INCLUDE_DIR}/chat/OnlineStatusService.h"
      "${TARGET_INCLUDE_DIR}/chat/VoiceMgrService.h" )
 SET( chat_SOURCE
+	 "${TARGET_SOURCE_DIR}/chat/kenny.cpp"
      "${TARGET_SOURCE_DIR}/chat/LookupService.cpp"
      "${TARGET_SOURCE_DIR}/chat/LSCDB.cpp"
      "${TARGET_SOURCE_DIR}/chat/LSCChannel.cpp"
@@ -147,6 +149,7 @@ SET( chat_SOURCE
      "${TARGET_SOURCE_DIR}/chat/VoiceMgrService.cpp" )
 
 SET( inventory_INCLUDE
+     "${TARGET_INCLUDE_DIR}/inventory/AttributeEnum.h"
      "${TARGET_INCLUDE_DIR}/inventory/AttributeMgr.h"
      "${TARGET_INCLUDE_DIR}/inventory/EVEAttributeMgr.h"
      "${TARGET_INCLUDE_DIR}/inventory/EVEAttributes.h"
@@ -240,14 +243,18 @@ SET( npc_SOURCE
 
 SET( posmgr_INCLUDE
      "${TARGET_INCLUDE_DIR}/posmgr/PosMgrDB.h"
-     "${TARGET_INCLUDE_DIR}/posmgr/PosMgrService.h" )
+     "${TARGET_INCLUDE_DIR}/posmgr/PosMgrService.h"
+     "${TARGET_INCLUDE_DIR}/posmgr/Structure.h" )
 SET( posmgr_SOURCE
      "${TARGET_SOURCE_DIR}/posmgr/PosMgrDB.cpp"
-     "${TARGET_SOURCE_DIR}/posmgr/PosMgrService.cpp" )
+     "${TARGET_SOURCE_DIR}/posmgr/PosMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/posmgr/Structure.cpp" )
 
 SET( ship_INCLUDE
      "${TARGET_INCLUDE_DIR}/ship/BeyonceService.h"
      "${TARGET_INCLUDE_DIR}/ship/DestinyManager.h"
+     "${TARGET_INCLUDE_DIR}/ship/dgmtypeattributeinfo.h"
+     "${TARGET_INCLUDE_DIR}/ship/Drone.h"
      "${TARGET_INCLUDE_DIR}/ship/InsuranceService.h"
      "${TARGET_INCLUDE_DIR}/ship/ModuleManager.h"
      "${TARGET_INCLUDE_DIR}/ship/Ship.h"
@@ -257,6 +264,8 @@ SET( ship_INCLUDE
 SET( ship_SOURCE
      "${TARGET_SOURCE_DIR}/ship/BeyonceService.cpp"
      "${TARGET_SOURCE_DIR}/ship/DestinyManager.cpp"
+     "${TARGET_SOURCE_DIR}/ship/dgmtypeattributeinfo.cpp"
+     "${TARGET_SOURCE_DIR}/ship/Drone.cpp"
      "${TARGET_SOURCE_DIR}/ship/InsuranceService.cpp"
      "${TARGET_SOURCE_DIR}/ship/ModuleManager.cpp"
      "${TARGET_SOURCE_DIR}/ship/Ship.cpp"
@@ -302,7 +311,9 @@ SET( system_INCLUDE
      "${TARGET_INCLUDE_DIR}/system/BookmarkService.h"
      "${TARGET_INCLUDE_DIR}/system/BubbleManager.h"
      "${TARGET_INCLUDE_DIR}/system/Celestial.h"
+     "${TARGET_INCLUDE_DIR}/system/Container.h"
      "${TARGET_INCLUDE_DIR}/system/Damage.h"
+     "${TARGET_INCLUDE_DIR}/system/Deployable.h"
      "${TARGET_INCLUDE_DIR}/system/DungeonService.h"
      "${TARGET_INCLUDE_DIR}/system/KeeperService.h"
      "${TARGET_INCLUDE_DIR}/system/ScenarioService.h"
@@ -317,7 +328,9 @@ SET( system_SOURCE
      "${TARGET_SOURCE_DIR}/system/BookmarkService.cpp"
      "${TARGET_SOURCE_DIR}/system/BubbleManager.cpp"
      "${TARGET_SOURCE_DIR}/system/Celestial.cpp"
+     "${TARGET_SOURCE_DIR}/system/Container.cpp"
      "${TARGET_SOURCE_DIR}/system/Damage.cpp"
+     "${TARGET_SOURCE_DIR}/system/Deployable.cpp"
      "${TARGET_SOURCE_DIR}/system/DungeonService.cpp"
      "${TARGET_SOURCE_DIR}/system/KeeperService.cpp"
      "${TARGET_SOURCE_DIR}/system/ScenarioService.cpp"
@@ -327,6 +340,12 @@ SET( system_SOURCE
      "${TARGET_SOURCE_DIR}/system/SystemEntities.cpp"
      "${TARGET_SOURCE_DIR}/system/SystemEntity.cpp"
      "${TARGET_SOURCE_DIR}/system/SystemManager.cpp" )
+
+SET( trade_INCLUDE
+     "${TARGET_INCLUDE_DIR}/trade/TradeService.h"
+     "${TARGET_INCLUDE_DIR}/trade/TradeDB.h" )
+SET( trade_SOURCE
+     "${TARGET_SOURCE_DIR}/trade/TradeService.cpp" )
 
 SET( tutorial_INCLUDE
      "${TARGET_INCLUDE_DIR}/tutorial/TutorialDB.h"
@@ -372,6 +391,7 @@ SOURCE_GROUP( "include\\spawn"         FILES ${spawn_INCLUDE} )
 SOURCE_GROUP( "include\\standing"      FILES ${standing_INCLUDE} )
 SOURCE_GROUP( "include\\station"       FILES ${station_INCLUDE} )
 SOURCE_GROUP( "include\\system"        FILES ${system_INCLUDE} )
+SOURCE_GROUP( "include\\trade"         FILES ${trade_INCLUDE} )
 SOURCE_GROUP( "include\\tutorial"      FILES ${tutorial_INCLUDE} )
 
 SOURCE_GROUP( "src"                FILES ${SOURCE} )
@@ -396,6 +416,7 @@ SOURCE_GROUP( "src\\spawn"         FILES ${spawn_SOURCE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_SOURCE} )
 SOURCE_GROUP( "src\\station"       FILES ${station_SOURCE} )
 SOURCE_GROUP( "src\\system"        FILES ${system_SOURCE} )
+SOURCE_GROUP( "src\\trade"         FILES ${trade_SOURCE} )
 SOURCE_GROUP( "src\\tutorial"      FILES ${tutorial_SOURCE} )
 
 ADD_EXECUTABLE( "${TARGET_NAME}"
@@ -421,6 +442,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${standing_INCLUDE}       ${standing_SOURCE}
                 ${station_INCLUDE}        ${station_SOURCE}
                 ${system_INCLUDE}         ${system_SOURCE}
+                ${trade_INCLUDE}          ${trade_SOURCE}
                 ${tutorial_INCLUDE}       ${tutorial_SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"

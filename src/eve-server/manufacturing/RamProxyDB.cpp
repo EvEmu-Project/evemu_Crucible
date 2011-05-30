@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -323,13 +323,13 @@ uint32 RamProxyDB::CountManufacturingJobs(const uint32 installerID) {
 		installerID))
 	{
 		_log(DATABASE__ERROR, "Failed to count manufacturing jobs for installer %u.", installerID);
-		return NULL;
+		return 0;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No rows returned while counting manufacturing jobs for installer %u.", installerID);
-		return NULL;
+		return 0;
 	}
 
 	return(row.GetUInt(0));
@@ -348,13 +348,13 @@ uint32 RamProxyDB::CountResearchJobs(const uint32 installerID) {
 		installerID))
 	{
 		_log(DATABASE__ERROR, "Failed to count research jobs for installer %u.", installerID);
-		return NULL;
+		return 0;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No rows returned while counting research jobs for installer %u.", installerID);
-		return NULL;
+		return 0;
 	}
 
 	return(row.GetUInt(0));
@@ -495,13 +495,13 @@ uint32 RamProxyDB::GetTech2Blueprint(const uint32 blueprintTypeID) {
 				blueprintTypeID))
 	{
 		_log(DATABASE__ERROR, "Unable to get T2 type for type ID %u: %s", blueprintTypeID, res.error.c_str());
-		return NULL;
+		return 0;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		// no error because it's normal
-		return NULL;
+		return 0;
 	}
 
 	return(row.GetUInt(0));
@@ -518,13 +518,13 @@ uint64 RamProxyDB::GetNextFreeTime(const uint32 assemblyLineID) {
 		assemblyLineID))
 	{
 		_log(DATABASE__ERROR, "Failed to query next free time for assembly line %u: %s.", assemblyLineID, res.error.c_str());
-		return NULL;
+		return 0;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "Assembly line %u not found.", assemblyLineID);
-		return NULL;
+		return 0;
 	} else
 		return(row.GetUInt64(0));
 }
@@ -539,13 +539,13 @@ uint32 RamProxyDB::GetRegionOfContainer(const uint32 containerID) {
 				containerID))
 	{
 		_log(DATABASE__ERROR, "Unable to query region for container %u: %s", containerID, res.error.c_str());
-		return NULL;
+		return 0;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
 		_log(DATABASE__ERROR, "No region found for container %u.", containerID);
-		return NULL;
+		return 0;
 	}
 
 	return(row.GetUInt(0));

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -40,12 +40,15 @@ public:
     {
         _SetCallDispatcher(m_dispatch);
 
+        m_strBoundObjectName = "CorpRegistryBound";
+
         PyCallable_REG_CALL(CorpRegistryBound, GetEveOwners)
         PyCallable_REG_CALL(CorpRegistryBound, GetCorporation)
         PyCallable_REG_CALL(CorpRegistryBound, GetCorporations)
         PyCallable_REG_CALL(CorpRegistryBound, GetInfoWindowDataForChar)
         PyCallable_REG_CALL(CorpRegistryBound, GetLockedItemLocations)
         PyCallable_REG_CALL(CorpRegistryBound, AddCorporation)
+        PyCallable_REG_CALL(CorpRegistryBound, GetMember)
         PyCallable_REG_CALL(CorpRegistryBound, GetSuggestedTickerNames)
         PyCallable_REG_CALL(CorpRegistryBound, GetOffices)
         PyCallable_REG_CALL(CorpRegistryBound, GetStations)
@@ -71,6 +74,7 @@ public:
     PyCallable_DECL_CALL(GetInfoWindowDataForChar)
     PyCallable_DECL_CALL(GetLockedItemLocations)
     PyCallable_DECL_CALL(AddCorporation)
+    PyCallable_DECL_CALL(GetMember)
     PyCallable_DECL_CALL(GetSuggestedTickerNames)
     PyCallable_DECL_CALL(GetOffices)
     PyCallable_DECL_CALL(GetStations)
@@ -298,6 +302,12 @@ bool CorpRegistryBound::JoinCorporation(Client *who, uint32 newCorpID, const Cor
 
     who->JoinCorporationUpdate(newCorpID);
     return true;
+}
+
+PyResult CorpRegistryBound::Handle_GetMember(PyCallArgs &call) {
+    uint32 item = 0;
+    item += 1;
+    return NULL;
 }
 
 PyResult CorpRegistryBound::Handle_GetSuggestedTickerNames(PyCallArgs &call) {
@@ -916,9 +926,3 @@ PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
 
     return m_db.GetCorporation(notif.key);
 }
-
-
-
-
-
-

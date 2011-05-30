@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -80,6 +80,12 @@ public:
 	
 	void ForcedSetPosition(const GPoint &pt);
 	
+
+	virtual bool ApplyDamage(Damage &d);
+	virtual void MakeDamageState(DoDestinyDamageState &into) const;
+
+	void UseShieldRecharge();
+	void UseArmorRepairer();
 	
 	/*
 	
@@ -101,7 +107,7 @@ entityAttackDelayMin
 entityAttackDelayMax
 	*/
 	
-	
+
 protected:
 	void _AwardBounty(SystemEntity *who);
 	void _DropLoot(SystemEntity *owner);
@@ -115,6 +121,19 @@ protected:
 	uint32 m_orbitingID;
 
 	NPCAIMgr *m_AI;	//never NULL
+
+
+	/* Used to calculate the damages on NPCs
+	 * I don't know why, npc->Set_shieldCharge does not work
+	 * calling npc->shieldCharge() return the complete shield
+	 * So we get the values on creation and use then instead.
+	*/
+	double m_shieldCharge;
+	double m_armorDamage;
+	double m_hullDamage;
+
+	void _SendDamageStateChanged() const;
+
 };
 
 #endif

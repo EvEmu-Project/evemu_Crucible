@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -33,8 +33,9 @@ PyRep *MarketDB::GetStationAsks(uint32 stationID) {
 		"SELECT"
 		"	typeID, MAX(price) AS price, volRemaining, stationID "
 		" FROM market_orders "
-		" WHERE stationID=%u AND bid=%d"
-		" GROUP BY typeID", stationID, TransactionTypeSell))
+		//" WHERE stationID=%u AND bid=%d"
+        " WHERE stationID=%u"
+		" GROUP BY typeID", stationID/*, TransactionTypeSell*/))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
@@ -54,7 +55,8 @@ PyRep *MarketDB::GetSystemAsks(uint32 solarSystemID) {
 		"SELECT"
 		"	typeID, MAX(price) AS price, volRemaining, stationID "
 		" FROM market_orders "
-		" WHERE solarSystemID=%u AND bid=0"
+		//" WHERE solarSystemID=%u AND bid=0"
+        " WHERE solarSystemID=%u"
 		" GROUP BY typeID", solarSystemID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
@@ -75,7 +77,8 @@ PyRep *MarketDB::GetRegionBest(uint32 regionID) {
 		"SELECT"
 		"	typeID, MAX(price) AS price, volRemaining, stationID "
 		" FROM market_orders "
-		" WHERE regionID=%u AND bid=0"
+		//" WHERE regionID=%u AND bid=0"
+        " WHERE regionID=%u"
 		" GROUP BY typeID", regionID))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
@@ -93,7 +96,7 @@ PyRep *MarketDB::GetOrders( uint32 regionID, uint32 typeID )
 {
 	DBQueryResult res;
 
-	PyTuple* tup = new PyTuple( 2 );
+	PyList* tup = new PyList();
 
 	/*DBColumnTypeMap colmap;
 	colmap["volRemaining"] = DBTYPE_R8;
@@ -148,7 +151,7 @@ PyRep *MarketDB::GetOrders( uint32 regionID, uint32 typeID )
 	}
 
 	//this is wrong.
-    tup->SetItem( 0, DBResultToCRowset( res ) );
+    tup->AddItem( DBResultToCRowset( res ) );
 	
 	//query buy orders
 	if(!sDatabase.RunQuery(res,
@@ -166,8 +169,8 @@ PyRep *MarketDB::GetOrders( uint32 regionID, uint32 typeID )
 	}
 	
 	//this is wrong.
-    tup->SetItem( 1, DBResultToCRowset( res ) );
-	
+    tup->AddItem( DBResultToCRowset( res ) );
+    
 	return tup;
 }
 
@@ -516,6 +519,8 @@ PyObject *MarketDB::GetMarketGroups() {
 	//marketGroupID, parentGroupID, marketGroupName, description, graphicID, hasTypes, types
 	std::map< int, std::set<uint32> >::const_iterator tt;
 	MarketGroup_Entry entry;
+    PyList* list;
+    PyList* parents = new PyList();
 	while( res.GetRow(row) )
 	{
 		entry.marketGroupID = row.GetUInt( 0 );
@@ -534,11 +539,18 @@ PyObject *MarketDB::GetMarketGroups() {
 		if( tt != types.end() )
 			entry.types.insert( entry.types.begin(), tt->second.begin(), tt->second.end() );
 
-		if( entry.parentGroupID == -1 )
-			parentSets->SetItem( new PyNone,                       entry.Encode() );
+        if(entry.parentGroupID == -1)
+			list = parents;
 		else
-			parentSets->SetItem( new PyInt( entry.parentGroupID ), entry.Encode() );
+			list = static_cast<PyList*> (parentSets->GetItem(new PyInt( entry.parentGroupID )));
+        if(list == NULL)
+            list = new PyList();
+        list->AddItem(entry.Encode());
+        PySafeIncRef(list);
+        if(entry.parentGroupID != -1)
+			parentSets->SetItem(new PyInt(entry.parentGroupID), list);
 	}
+    parentSets->SetItem(new PyNone, parents);
 
 	return new PyObject(
         new PyString( "util.FilterRowset" ), args
@@ -646,7 +658,7 @@ uint32 MarketDB::FindSellOrder(
 	return(row.GetUInt(0));
 }
 
-bool MarketDB::GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID, uint32 &quantity, double &price) {
+bool MarketDB::GetOrderInfo(uint32 orderID, uint32 *orderOwnerID, uint32 *typeID, uint32 *stationID, uint32 *quantity, double *price, bool *isBuy, bool *isCorp) {
 	DBQueryResult res;
 
 	if(!sDatabase.RunQuery(res,
@@ -654,7 +666,10 @@ bool MarketDB::GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID
 		" volRemaining,"
 		" price,"
 		" typeID,"
-		" charID"
+        " stationID,"
+		" charID,"
+        " bid,"
+        " isCorp"
 		" FROM market_orders"
 		" WHERE orderID=%u",
 		orderID))
@@ -669,10 +684,20 @@ bool MarketDB::GetOrderInfo(uint32 orderID, uint32 &orderOwnerID, uint32 &typeID
 		return false;
 	}
 
-	quantity = row.GetUInt(0);
-	price = row.GetDouble(1);
-	typeID = row.GetUInt(2);
-	orderOwnerID = row.GetUInt(3);
+    if(quantity != NULL)
+        *quantity = row.GetUInt(0);
+    if(price != NULL)
+        *price = row.GetDouble(1);
+    if(typeID != NULL)
+        *typeID = row.GetUInt(2);
+    if(stationID != NULL)
+        *stationID = row.GetUInt(3);
+    if(orderOwnerID != NULL)
+        *orderOwnerID = row.GetUInt(4);
+    if(isBuy != NULL)
+        *isBuy = row.GetInt(5) ? true : false;
+    if(isCorp != NULL)
+        *isCorp = row.GetInt(6) ? true : false;
 
 	return true;
 }
@@ -757,10 +782,11 @@ bool MarketDB::RecordTransaction(
 		"INSERT INTO"
 		" market_transactions ("
 		"	transactionID, transactionDateTime, typeID, quantity,"
-		"	price, transactionType, clientID, regionID, stationID"
+		"	price, transactionType, clientID, regionID, stationID,"
+		"	corpTransaction"
 		" ) VALUES ("
 		"	NULL, " I64u ", %u, %u,"
-		"	%f, %d, %u, %u, %u"
+		"	%f, %d, %u, %u, %u, 0"
 		" )", 
 			Win32TimeNow(), typeID, quantity,
 			price, transactionType, charID, regionID, stationID
@@ -822,4 +848,26 @@ uint32 MarketDB::_StoreOrder(
 	}
 
 	return(orderID);
+}
+
+PyRep *MarketDB::GetTransactions(uint32 characterID, uint32 typeID, uint32 quantity, double minPrice, double maxPrice, uint64 fromDate, int buySell)
+{
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		" transactionID,transactionDateTime,typeID,quantity,price,transactionType,"
+		" 0 AS corpTransaction,clientID,stationID"
+		" FROM market_transactions "
+		" WHERE clientID=%u AND (typeID=%u OR 0=%u) AND"
+		" quantity>=%u AND price>=%f AND (price<=%f OR 0=%f) AND"
+		" transactionDateTime>=" I64u " AND (transactionType=%d OR -1=%d)",
+		characterID, typeID, typeID, quantity, minPrice, maxPrice, maxPrice, fromDate, buySell, buySell))
+	{
+		codelog( MARKET__ERROR, "Error in query: %s", res.error.c_str() );
+
+		return NULL;
+	}
+
+	return DBResultToRowset(res);
 }

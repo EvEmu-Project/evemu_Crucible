@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -211,8 +211,11 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
 	/*if(m_cache.IsCacheUpToDate(args.objectID, args.version, args.timestamp)) {
 		//they throw an exception for "its up to date", lets give it a try...
 		objectCaching_CacheOK except;
-		return(PyException(except.Encode()));
-	}*/
+		PyObject *error = except.Encode();
+		
+		return error;
+	}
+	*/
 	
 	PyObject *result = m_cache.GetCachedObject(args.objectID);
 	

@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -24,7 +24,6 @@
 */
 
 #include "EVEServerPCH.h"
-
 
 EntityList::EntityList() : m_services( NULL ) {}
 EntityList::~EntityList() {
@@ -145,7 +144,7 @@ Client *EntityList::FindCharacter(const char *name) const {
 	for(; cur != end; cur++) {
 		CharacterRef c = (*cur)->GetChar();
 
-		if( !c ) {
+		if( c ) {
 			if( c->itemName() == name )
 				return *cur;
 		}
@@ -179,6 +178,30 @@ Client *EntityList::FindAccount(uint32 account_id) const {
 			return(*cur);
 	}
 	return NULL;
+}
+
+void EntityList::FindByStationID(uint32 stationID, std::vector<Client *> &result) const {
+	//this could likely be done better
+
+	client_list::const_iterator cur, end;
+	cur = m_clients.begin();
+	end = m_clients.end();
+	for(; cur != end; cur++) {
+		if((*cur)->GetStationID() == stationID)
+			result.push_back(*cur);
+	}
+}
+
+void EntityList::FindByRegionID(uint32 regionID, std::vector<Client *> &result) const {
+	//this could likely be done better
+
+	client_list::const_iterator cur, end;
+	cur = m_clients.begin();
+	end = m_clients.end();
+	for(; cur != end; cur++) {
+		if((*cur)->GetRegionID() == regionID)
+			result.push_back(*cur);
+	}
 }
 
 void EntityList::Broadcast(const char *notifyType, const char *idType, PyTuple **payload) const {
@@ -352,8 +375,16 @@ SystemManager *EntityList::FindOrBootSystem(uint32 systemID) {
 		return(res->second);
 
     sLog.Log("Entity List", "Booting system %u", systemID);
-	
-	SystemManager *mgr = new SystemManager(systemID, *m_services);
+/*	
+    ItemData idata(
+        5,
+        1,
+		systemID,
+		flagAutoFit,
+        1
+	);
+*/
+	SystemManager *mgr = new SystemManager(systemID, *m_services);//, idata);
 	if(!mgr->BootSystem()) {
 		delete mgr;
 		return NULL;

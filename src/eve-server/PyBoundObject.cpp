@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -32,13 +32,14 @@ PyBoundObject::PyBoundObject(PyServiceMgr *mgr)
   m_nodeID(0),
   m_bindID(0)
 {
+    m_strBoundObjectName = "PyBoundObject";
 }
 
 PyBoundObject::~PyBoundObject() {
 }
 
 PyResult PyBoundObject::Call(const std::string &method, PyCallArgs &args) {
-	_log(SERVICE__CALLS, "Bound object %u:%u: calling %s", nodeID(), bindID(), method.c_str());
+    sLog.Debug("Bound Object","NodeID: %u BindID: %u calling %s in service manager '%s'", nodeID(), bindID(), method.c_str(), GetBoundObjectClassStr().c_str()); 
 	args.Dump(SERVICE__CALL_TRACE);
 
 	return(PyCallable::Call(method, args));

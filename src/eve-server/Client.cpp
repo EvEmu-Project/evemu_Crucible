@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -30,7 +30,7 @@ static const uint32 PING_INTERVAL_US = 60000;
 Client::Client(PyServiceMgr &services, EVETCPConnection** con)
 : DynamicSystemEntity(NULL),
   EVEClientSession( con ),
-  modules(this),
+  mModulesMgr(this),
   m_services(services),
   m_pingTimer(PING_INTERVAL_US),
   m_system(NULL),
@@ -48,6 +48,12 @@ Client::Client(PyServiceMgr &services, EVETCPConnection** con)
     m_moveTimer.Disable();
     m_pingTimer.Start();
 
+    m_dockStationID = 0;
+    m_justUndocked = false;
+    m_needToDock = false;
+
+    bKennyfied = false;     // by default, we do NOT want chat messages kennyfied, LOL
+
     // Start handshake
     Reset();
 }
@@ -61,6 +67,14 @@ Client::~Client() {
 
         //before we remove ourself from the system, store our last location.
         SavePosition();
+
+        // Save character info including attributes, save current ship's attributes, current ship's fitted mModulesMgr,
+        // and save all skill attributes to the Database:
+        //mModulesMgr.SaveModules();                            // Save fitted Modules attributes to DB
+        GetShip()->SaveAttributes();                        // Save Ship's attributes to DB
+        //GetShip()->mAttributeMap.Save();                  // Save Ship's attributes to DB
+        GetChar()->SaveCharacter();                         // Save Character info to DB
+        GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
 
         // remove ourselves from system
         if(m_system != NULL)
@@ -127,7 +141,7 @@ void Client::Process() {
         m_moveState = msIdle;
         switch(s) {
         case msIdle:
-            _log(CLIENT__ERROR, "%s: Move timer expired when no move is pending.", GetName());
+			sLog.Error("Client","%s: Move timer expired when no move is pending.", GetName());
             break;
         //used to delay stargate animation
         case msJump:
@@ -136,13 +150,25 @@ void Client::Process() {
         }
     }
 
+    // Check Character Save Timer Expiry:
+    if( GetChar()->CheckSaveTimer() )
+        GetChar()->SaveCharacter();
+
+    // Check Ship Save Timer Expiry:
+    if( GetShip()->CheckSaveTimer() )
+        GetShip()->SaveShip();
+
+    // Check Module Manager Save Timer Expiry:
+    //if( mModulesMgr.CheckSaveTimer() )
+    //    mModulesMgr.SaveModules();
+
     if( m_timeEndTrain != 0 )
     {
         if( m_timeEndTrain <= Win32TimeNow() )
             GetChar()->UpdateSkillQueue();
     }
 
-    modules.Process();
+    mModulesMgr.Process();
 
     SystemEntity::Process();
 }
@@ -157,7 +183,7 @@ void Client::SendErrorMsg( const char* fmt, ... )
     vasprintf( &str, fmt, args );
     assert( str );
 
-    _log( CLIENT__ERROR, "Sending Error Message to %s:", GetName() );
+	sLog.Error("Client","Sending Error Message to %s:", GetName() );
     log_messageVA( CLIENT__ERROR, fmt, args );
     va_end( args );
 
@@ -183,7 +209,7 @@ void Client::SendInfoModalMsg( const char* fmt, ... )
     vasprintf( &str, fmt, args );
     assert( str );
 
-    _log( CLIENT__MESSAGE, "Info Modal to %s:", GetName() );
+	sLog.Log("Client","Info Modal to %s:", GetName() );
     log_messageVA( CLIENT__MESSAGE, fmt, args );
     va_end( args );
 
@@ -209,7 +235,7 @@ void Client::SendNotifyMsg( const char* fmt, ... )
     vasprintf( &str, fmt, args );
     assert( str );
 
-    _log( CLIENT__MESSAGE, "Notify to %s:", GetName() );
+	sLog.Log("Client","Notify to %s:", GetName() );
     log_messageVA( CLIENT__MESSAGE, fmt, args );
     va_end( args );
 
@@ -239,12 +265,12 @@ void Client::SelfChatMessage( const char* fmt, ... )
 
     if( m_channels.empty() )
     {
-        _log( CLIENT__ERROR, "%s: Tried to send self chat, but we are not joined to any channels: %s", GetName(), str );
+		sLog.Error("Client", "%s: Tried to send self chat, but we are not joined to any channels: %s", GetName(), str );
         free( str );
         return;
     }
 
-    _log( CLIENT__TEXT, "%s: Self message on all channels: %s", GetName(), str );
+	sLog.Log("Client","%s: Self message on all channels: %s", GetName(), str );
 
     //this is such a pile of crap, but im not sure whats better.
     //maybe a private message...
@@ -277,7 +303,8 @@ void Client::ChannelLeft(LSCChannel *chan) {
     m_channels.erase(chan);
 }
 
-bool Client::EnterSystem() {
+bool Client::EnterSystem(bool login) {
+
     if(m_system != NULL && m_system->GetID() != GetSystemID()) {
         //we have different m_system
         m_system->RemoveClient(this);
@@ -292,13 +319,17 @@ bool Client::EnterSystem() {
         //find our system manager and register ourself with it.
         m_system = m_services.entity_list.FindOrBootSystem(GetSystemID());
         if(m_system == NULL) {
-            _log(CLIENT__ERROR, "Failed to boot system %u for char %s (%u)", GetSystemID(), GetName(), GetCharacterID());
+			sLog.Error("Client", "Failed to boot system %u for char %s (%u)", GetSystemID(), GetName(), GetCharacterID());
             SendErrorMsg("Unable to boot system %u", GetSystemID());
             return false;
         }
         m_system->AddClient(this);
     }
 
+    return true;
+}
+
+bool Client::UpdateLocation() {
     if(IsStation(GetLocationID())) {
         //we entered station, delete m_destiny
         delete m_destiny;
@@ -313,10 +344,25 @@ bool Client::EnterSystem() {
         m_destiny = new DestinyManager(this, m_system);
         //ship should never be NULL.
         m_destiny->SetShipCapabilities( GetShip() );
-        //set position.
-        m_destiny->SetPosition(GetShip()->position(), false);
-        //for now, we always enter a system stopped.
-        m_destiny->Halt(false);
+        
+		/*if( login )
+		{
+			// We are just logging in, so we need to warp to our last position from a
+			// random vector 15.0AU away:
+			GPoint warpToPoint( GetShip()->position() );
+			GPoint warpFromPoint( GetShip()->position() );
+			warpFromPoint.MakeRandomPointOnSphere( 15.0*ONE_AU_IN_METERS );
+			m_destiny->SetPosition( warpFromPoint, true );
+            WarpTo( warpToPoint, 0.0 );		// Warp ship from the random login point to the position saved on last disconnect
+		}
+		else */
+		{
+        
+			// This is NOT a login, so we always enter a system stopped.
+			m_destiny->Halt(false);
+			//set position.
+			m_destiny->SetPosition(GetShip()->position(), false);
+		}
     }
 
     return true;
@@ -376,7 +422,8 @@ void Client::MoveToLocation( uint32 location, const GPoint& pt )
     //update session with new values
     _UpdateSession( GetChar() );
 
-    EnterSystem();
+    EnterSystem( false );
+    UpdateLocation();
 
     _SendSessionChange();
 }
@@ -391,9 +438,10 @@ void Client::MoveToPosition(const GPoint &pt) {
 
 void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
 {
+    m_services.item_factory.SetUsingClient( this );
     InventoryItemRef item = m_services.item_factory.GetItem( itemID );
     if( !item ) {
-        codelog(SERVICE__ERROR, "%s: Unable to load item %u", GetName(), itemID);
+		sLog.Error("Client","%s: Unable to load item %u", GetName(), itemID);
         return;
     }
 
@@ -403,16 +451,15 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
     item->Move(location, flag);
 
     if(was_module || (item->flag() >= flagSlotFirst && item->flag() <= flagSlotLast)) {
-        //it was equipped, or is now. so modules need to know.
-        modules.UpdateModules();
+        //it was equipped, or is now. so mModulesMgr need to know.
+        mModulesMgr.UpdateModules();
     }
 }
 
 void Client::BoardShip(ShipRef new_ship) {
-    //TODO: make sure we are really allowed to board this thing...
 
     if(!new_ship->singleton()) {
-        _log(CLIENT__ERROR, "%s: tried to board ship %u, which is not assembled.", GetName(), new_ship->itemID());
+		sLog.Error("Client","%s: tried to board ship %u, which is not assembled.", GetName(), new_ship->itemID());
         SendErrorMsg("You cannot board a ship which is not assembled!");
         return;
     }
@@ -421,17 +468,18 @@ void Client::BoardShip(ShipRef new_ship) {
         m_system->RemoveClient(this);
 
     _SetSelf( new_ship );
-    m_char->MoveInto( *new_ship, flagPilot, false );
+    m_char->MoveInto( *new_ship, flagPilot, true );
 
     mSession.SetInt( "shipid", new_ship->itemID() );
 
-    modules.UpdateModules();
+    mModulesMgr.UpdateModules();
 
     if(m_system != NULL)
         m_system->AddClient(this);
 
     if(m_destiny != NULL)
         m_destiny->SetShipCapabilities( GetShip() );
+
 }
 
 void Client::_UpdateSession( const CharacterConstRef& character )
@@ -440,6 +488,7 @@ void Client::_UpdateSession( const CharacterConstRef& character )
         return;
 
     mSession.SetInt( "charid", character->itemID() );
+    mSession.SetString( "charname", character->itemName().c_str() );
     mSession.SetInt( "corpid", character->corporationID() );
     if( character->stationID() == 0 )
     {
@@ -467,6 +516,82 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     mSession.SetLong( "rolesAtOther", character->rolesAtOther() );
 
     mSession.SetInt( "shipid", character->locationID() );
+}
+
+void Client::_UpdateSession2( uint32 characterID )
+{
+    std::vector<uint32> characterDataVector;
+    std::map<std::string, uint32> characterDataMap;
+
+    if( characterID == 0 )
+    {
+        sLog.Error( "Client::_UpdateSession2()", "characterID == 0, which is illegal" );
+        return;
+    }
+
+    uint32 corporationID = 0;
+    uint32 stationID = 0;
+    uint32 solarSystemID = 0;
+    uint32 constellationID = 0;
+    uint32 regionID = 0;
+    uint32 corporationHQ = 0;
+    uint32 corpRole = 0;
+    uint32 rolesAtAll = 0;
+    uint32 rolesAtBase = 0;
+    uint32 rolesAtHQ = 0;
+    uint32 rolesAtOther = 0;
+    uint32 locationID = 0;
+
+    ((CharacterService *)(m_services.LookupService("character")))->GetCharacterData( characterID, characterDataMap );
+
+    if( characterDataMap.size() == 0 )
+    {
+        sLog.Error( "Client::_UpdateSession2()", "characterDataMap.size() returned zero." );
+        return;
+    }
+
+    corporationID = characterDataMap["corporationID"];
+    stationID = characterDataMap["stationID"];
+    solarSystemID = characterDataMap["solarSystemID"];
+    constellationID = characterDataMap["constellationID"];
+    regionID = characterDataMap["regionID"];
+    corporationHQ = characterDataMap["corporationHQ"];
+    corpRole = characterDataMap["corpRole"];
+    rolesAtAll = characterDataMap["rolesAtAll"];
+    rolesAtBase = characterDataMap["rolesAtBase"];
+    rolesAtHQ = characterDataMap["rolesAtHQ"];
+    rolesAtOther = characterDataMap["rolesAtOther"];
+    locationID = characterDataMap["locationID"];
+
+
+    mSession.SetInt( "charid", characterID );
+    mSession.SetInt( "corpid", corporationID );
+    if( stationID == 0 )
+    {
+        mSession.Clear( "stationid" );
+
+        mSession.SetInt( "solarsystemid", solarSystemID );
+        mSession.SetInt( "locationid", solarSystemID );
+    }
+    else
+    {
+        mSession.Clear( "solarsystemid" );
+
+        mSession.SetInt( "stationid", stationID );
+        mSession.SetInt( "locationid", stationID );
+    }
+    mSession.SetInt( "solarsystemid2", solarSystemID );
+    mSession.SetInt( "constellationid", constellationID );
+    mSession.SetInt( "regionid", regionID );
+
+    mSession.SetInt( "hqID", corporationHQ );
+    mSession.SetLong( "corprole", corpRole );
+    mSession.SetLong( "rolesAtAll", rolesAtAll );
+    mSession.SetLong( "rolesAtBase", rolesAtBase );
+    mSession.SetLong( "rolesAtHQ", rolesAtHQ );
+    mSession.SetLong( "rolesAtOther", rolesAtOther );
+
+    mSession.SetInt( "shipid", locationID );
 }
 
 void Client::_SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel )
@@ -534,7 +659,7 @@ void Client::_SendSessionChange()
     if( scn.changes->empty() )
         return;
 
-    _log(CLIENT__SESSION, "Session updated, sending session change");
+	sLog.Log("Client","Session updated, sending session change");
     scn.changes->Dump(CLIENT__SESSION, "  Changes: ");
 
     //this is probably not necessary...
@@ -751,7 +876,7 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream &noti
         p->named_payload->SetItemString("sn", new PyInt(m_nextNotifySequence++));
     }
 
-    _log(CLIENT__NOTIFY_DUMP, "Sending notify of type %s with ID type %s", dest.service.c_str(), dest.bcast_idtype.c_str());
+	sLog.Log("Client","Sending notify of type %s with ID type %s", dest.service.c_str(), dest.bcast_idtype.c_str());
     if(is_log_enabled(CLIENT__NOTIFY_REP))
     {
         PyLogDumpVisitor dumper(CLIENT__NOTIFY_REP, CLIENT__NOTIFY_REP, "", true, true);
@@ -769,7 +894,7 @@ PyDict *Client::MakeSlimItem() const {
     slim->SetItemString("allianceID", new PyNone);
     slim->SetItemString("warFactionID", new PyNone);
 
-    //encode the modules list, if we have any visible modules
+    //encode the mModulesMgr list, if we have any visible mModulesMgr
     std::vector<InventoryItemRef> items;
     GetShip()->FindByFlagRange( flagHiSlot0, flagHiSlot7, items );
     if( !items.empty() )
@@ -788,7 +913,7 @@ PyDict *Client::MakeSlimItem() const {
             l->AddItem(t);
         }
 
-        slim->SetItemString("modules", l);
+        slim->SetItemString("mModulesMgr", l);
     }
 
     slim->SetItemString("color", new PyFloat(0.0));
@@ -800,7 +925,7 @@ PyDict *Client::MakeSlimItem() const {
 
 void Client::WarpTo(const GPoint &to, double distance) {
     if(m_moveState != msIdle || m_moveTimer.Enabled()) {
-        _log(CLIENT__ERROR, "%s: WarpTo called when a move is already pending. Ignoring.", GetName());
+		sLog.Log("Client","%s: WarpTo called when a move is already pending. Ignoring.", GetName());
         return;
     }
 
@@ -810,7 +935,7 @@ void Client::WarpTo(const GPoint &to, double distance) {
 
 void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     if(m_moveState != msIdle || m_moveTimer.Enabled()) {
-        _log(CLIENT__ERROR, "%s: StargateJump called when a move is already pending. Ignoring.", GetName());
+		sLog.Log("Client","%s: StargateJump called when a move is already pending. Ignoring.", GetName());
         return;
     }
 
@@ -823,13 +948,15 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         toGate,
         &solarSystemID, &constellationID, &regionID, &position
     )) {
-        codelog(CLIENT__ERROR, "%s: Failed to query information for stargate %u", GetName(), toGate);
+		sLog.Error("Client","%s: Failed to query information for stargate %u", GetName(), toGate);
         return;
     }
 
+    mModulesMgr.DeactivateAllModules();
+
     m_moveSystemID = solarSystemID;
     m_movePoint = position;
-    m_movePoint.x -= 15000;
+    m_movePoint.MakeRandomPointOnSphere( 10000 );   // Make Jump-In point a random spot on a 10km radius sphere about the stargate
 
     m_destiny->SendJumpOut(fromGate);
     //TODO: send 'effects.GateActivity' on 'toGate' at the same time
@@ -837,6 +964,40 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     //delay the move so they can see the JumpOut animation
     _postMove(msJump, 5000);
 }
+
+void Client::SetDockingPoint(GPoint &dockPoint)
+{
+    m_movePoint.x = dockPoint.x;
+    m_movePoint.y = dockPoint.y;
+    m_movePoint.z = dockPoint.z;
+}
+
+void Client::GetDockingPoint(GPoint &dockPoint)
+{
+    dockPoint.x = m_movePoint.x;
+    dockPoint.y = m_movePoint.y;
+    dockPoint.z = m_movePoint.z;
+}
+
+// THESE FUNCTIONS ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
+// *SetJustUndocking (only in Client.h)
+// *GetJustUndocking
+// *SetUndockAlignToPoint
+// *GetUndockAlignToPoint
+void Client::SetUndockAlignToPoint(GPoint &dest)
+{
+    m_undockAlignToPoint.x = dest.x;
+    m_undockAlignToPoint.y = dest.y;
+    m_undockAlignToPoint.z = dest.z;
+}
+
+void Client::GetUndockAlignToPoint(GPoint &dest)
+{
+    dest.x = m_undockAlignToPoint.x;
+    dest.y = m_undockAlignToPoint.y;
+    dest.z = m_undockAlignToPoint.z;
+}
+// --- END HACK FUNCTIONS FOR UNDOCK ---
 
 void Client::_postMove(_MoveState type, uint32 wait_ms) {
     m_moveState = type;
@@ -869,20 +1030,29 @@ bool Client::AddBalance(double amount) {
 
 bool Client::SelectCharacter( uint32 char_id )
 {
+    m_services.item_factory.SetUsingClient( this );
+
+    _UpdateSession2( char_id );
+
+//    if( !EnterSystem( true ) )
+//        return false;
+
     m_char = m_services.item_factory.GetCharacter( char_id );
     if( !GetChar() )
         return false;
-
-    _UpdateSession( GetChar() );
 
     ShipRef ship = m_services.item_factory.GetShip( GetShipID() );
     if( !ship )
         return false;
 
+    ship->Load( m_services.item_factory, GetShipID() );
+
     BoardShip( ship );
 
-    if( !EnterSystem() )
+    if( !EnterSystem( true ) )
         return false;
+
+    UpdateLocation();
 
     // update skill queue
     GetChar()->UpdateSkillQueue();
@@ -903,21 +1073,37 @@ void Client::UpdateSkillTraining()
 }
 
 double Client::GetPropulsionStrength() const {
-    if(GetShip() == NULL)
-        return(3.0f);
-    //just making shit up, I think skills modify this, as newbies
-    //tend to end up with 3.038 instead of the base 3.0 on their ship..
-    double res;
-    res =  GetShip()->propulsionFusionStrength();
-    res += GetShip()->propulsionIonStrength();
-    res += GetShip()->propulsionMagpulseStrength();
-    res += GetShip()->propulsionPlasmaStrength();
-    res += GetShip()->propulsionFusionStrengthBonus();
-    res += GetShip()->propulsionIonStrengthBonus();
-    res += GetShip()->propulsionMagpulseStrengthBonus();
-    res += GetShip()->propulsionPlasmaStrengthBonus();
+
+    /**
+     * if we don't have a ship return bogus propulsion strength
+     * @note we should report a error for this
+     */
+    if( !GetShip() )
+        return 3.0f;
+
+    /**
+     * Old comments:
+     * just making shit up, I think skills modify this, as newbies
+     * tend to end up with 3.038 instead of the base 3.0 on their ship..
+     */
+    EvilNumber res;
+    res =  GetShip()->GetAttribute( AttrPropulsionFusionStrength );
+    res += GetShip()->GetAttribute( AttrPropulsionIonStrength );
+    res += GetShip()->GetAttribute( AttrPropulsionMagpulseStrength );
+    res += GetShip()->GetAttribute( AttrPropulsionPlasmaStrength );
+    res += GetShip()->GetAttribute( AttrPropulsionFusionStrengthBonus );
+    res += GetShip()->GetAttribute( AttrPropulsionIonStrengthBonus );
+    res += GetShip()->GetAttribute( AttrPropulsionMagpulseStrengthBonus );
+    res += GetShip()->GetAttribute( AttrPropulsionPlasmaStrengthBonus );
+
     res += 0.038f;
-    return res;
+    
+    /**
+     * we should watch out here, because we know for a fact that this function returns a floating point.
+     * the only reason we know for sure is because we do the "res += 0.038f;" at the end of the bogus calculation.
+     * @note this function isn't even used... lolz
+     */
+    return res.get_float();
 }
 
 void Client::TargetAdded( SystemEntity* who )
@@ -1001,8 +1187,8 @@ void Client::TargetsCleared()
 }
 
 void Client::SavePosition() {
-    if(GetShip() == NULL || m_destiny == NULL) {
-        _log(CLIENT__TRACE, "%s: Unable to save position. We are probably not in space.", GetName());
+    if( !GetShip() || m_destiny == NULL ) {
+		sLog.Debug("Client","%s: Unable to save position. We are probably not in space.", GetName());
         return;
     }
     GetShip()->Relocate( m_destiny->GetPosition() );
@@ -1047,11 +1233,11 @@ DoDestinyUpdate ,*args= ([(31759,
 #endif
 
     if(!IsSolarSystem(GetLocationID())) {
-        _log(SERVICE__ERROR, "%s: Trying to launch drone when not in space!", GetName());
+		sLog.Log("Client","%s: Trying to launch drone when not in space!", GetName());
         return false;
     }
 
-    _log(CLIENT__MESSAGE, "%s: Launching drone %u", GetName(), drone->itemID());
+	sLog.Log("Client","%s: Launching drone %u", GetName(), drone->itemID());
 
     //first, the item gets moved into space
     //TODO: set customInfo to a tuple: (shipID, None)
@@ -1183,6 +1369,23 @@ void Client::OnCharNowInStation()
 }
 
 /************************************************************************/
+/* EVEAdministration Interface                                          */
+/************************************************************************/
+void Client::DisconnectClient()
+{
+	//initiate closing the client TCP Connection
+	CloseClientConnection();
+}
+void Client::BanClient()
+{
+	//send message to client
+	SendNotifyMsg("You have been banned from this server and will be disconnected shortly.  You will no longer be able to log in");
+
+	//ban the client
+	services().serviceDB().SetAccountBanStatus( GetAccountID(), true );
+}
+
+/************************************************************************/
 /* EVEClientSession interface                                           */
 /************************************************************************/
 void Client::_GetVersion( VersionExchange& version )
@@ -1202,23 +1405,24 @@ uint32 Client::_GetUserCount()
 
 bool Client::_VerifyVersion( VersionExchange& version )
 {
-    _log(NET__PRES_REP, "%s: Received Low Level Version Exchange:", GetAddress().c_str());
+	sLog.Log("Client","%s: Received Low Level Version Exchange:", GetAddress().c_str());
     version.Dump(NET__PRES_REP, "    ");
 
     if( version.birthday != EVEBirthday )
-        _log(NET__PRES_ERROR, "%s: Client's birthday does not match ours!", GetAddress().c_str());
+		sLog.Error("Client","%s: Client's birthday does not match ours!", GetAddress().c_str());
 
     if( version.macho_version != MachoNetVersion )
-        _log(NET__PRES_ERROR, "%s: Client's macho_version not match ours!", GetAddress().c_str());
+		sLog.Error("Client","%s: Client's macho_version not match ours!", GetAddress().c_str());
 
     if( version.version_number != EVEVersionNumber )
-        _log(NET__PRES_ERROR, "%s: Client's version_number not match ours!", GetAddress().c_str());
+		sLog.Error("Client","%s: Client's version_number not match ours!", GetAddress().c_str());
 
     if( version.build_version != EVEBuildVersion )
-        _log(NET__PRES_ERROR, "%s: Client's build_version not match ours!", GetAddress().c_str());
+		sLog.Error("Client","%s: Client's build_version not match ours!", GetAddress().c_str());
 
     if( version.project_version != EVEProjectVersion )
-        _log(NET__PRES_ERROR, "%s: Client's project_version not match ours!", GetAddress().c_str());
+		sLog.Error("Client","%s: Client's project_version not match ours!", GetAddress().c_str());
+
 
     return true;
 }
@@ -1231,19 +1435,19 @@ bool Client::_VerifyCrypto( CryptoRequestPacket& cr )
         CryptoAPIRequestParams car;
         if( !car.Decode( cr.keyParams ) )
         {
-            _log(NET__PRES_ERROR, "%s: Received invalid CryptoAPI request!", GetAddress().c_str());
+			sLog.Error("Client","%s: Received invalid CryptoAPI request!", GetAddress().c_str());
         }
         else
         {
-            _log(NET__PRES_ERROR, "%s: Unhandled CryptoAPI request: hashmethod=%s sessionkeylength=%d provider=%s sessionkeymethod=%s", GetAddress().c_str(), car.hashmethod.c_str(), car.sessionkeylength, car.provider.c_str(), car.sessionkeymethod.c_str());
-            _log(NET__PRES_ERROR, "%s: You must change your client to use Placebo crypto in common.ini to talk to this server!\n", GetAddress().c_str());
+			sLog.Error("Client","%s: Unhandled CryptoAPI request: hashmethod=%s sessionkeylength=%d provider=%s sessionkeymethod=%s", GetAddress().c_str(), car.hashmethod.c_str(), car.sessionkeylength, car.provider.c_str(), car.sessionkeymethod.c_str());
+			sLog.Error("Client","%s: You must change your client to use Placebo crypto in common.ini to talk to this server!\n", GetAddress().c_str());
         }
 
         return false;
     }
     else
     {
-        _log(NET__PRES_DEBUG, "%s: Received Placebo crypto request, accepting.", GetAddress().c_str());
+		sLog.Debug("Client","%s: Received Placebo crypto request, accepting.", GetAddress().c_str());
 
         //send out accept response
         PyRep* rsp = new PyString( "OK CC" );
@@ -1256,13 +1460,13 @@ bool Client::_VerifyCrypto( CryptoRequestPacket& cr )
 
 bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 {
-    _log(NET__PRES_DEBUG, "%s: Received Client Challenge.", GetAddress().c_str());
+	sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
 
-    _log(CLIENT__MESSAGE, "Login with %s:", ccp.user_name.c_str());
+	sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
 
     if( ccp.user_password == NULL )
     {
-        _log(CLIENT__MESSAGE, "    Rejected by server; requesting plain password");
+		sLog.Debug("Client","Rejected by server; requesting plain password");
 
         //send passwordVersion required: 1=plain, 2=hashed
         PyRep* rsp = new PyInt( 1 );
@@ -1278,7 +1482,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
             ccp.user_password->GetPassword()->content().c_str(),
             accountID, accountRole ) )
     {
-        _log(CLIENT__MESSAGE, "    Rejected by DB");
+		sLog.Log("Client", "Rejected by DB");
 
         GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
         mNet->QueueRep( except );
@@ -1287,7 +1491,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         return false;
     }
 
-    _log( CLIENT__MESSAGE, "    Successfull" );
+	sLog.Log("Client","successful");
 
     m_services.serviceDB().SetAccountOnlineStatus( accountID, true );
 
@@ -1366,20 +1570,20 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
         uint32 nodeID, bindID;
         if( sscanf( req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID ) != 2 )
         {
-            _log(CLIENT__ERROR, "Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
+			sLog.Error("Client","Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
             return false;
         }
 
         if( nodeID != m_services.GetNodeID() )
         {
-            _log(CLIENT__ERROR, "Unknown nodeID %u received (expected %u).", nodeID, m_services.GetNodeID());
+			sLog.Error("Client","Unknown nodeID %u received (expected %u).", nodeID, m_services.GetNodeID());
             return false;
         }
 
         dest = services().FindBoundObject( bindID );
         if( dest == NULL )
         {
-            _log(CLIENT__ERROR, "Failed to find bound object %u.", bindID);
+			sLog.Error("Client", "Failed to find bound object %u.", bindID);
             return false;
         }
     }
@@ -1389,7 +1593,7 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
         dest = services().LookupService( packet->dest.service );
         if( dest == NULL )
         {
-            _log(CLIENT__ERROR, "Unable to find service to handle call to:");
+			sLog.Error("Client","Unable to find service to handle call to:"); 
             packet->dest.Dump(CLIENT__ERROR, "    ");
 #ifndef WIN32
 #   warning TODO: throw proper exception to client (exceptions.ServiceNotFound).
@@ -1397,6 +1601,13 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
             throw PyException( new PyNone );
         }
     }
+
+	//Debug code	
+	if( req.method == "BeanCount" )
+		sLog.Error("Client","BeanCount");
+	else 
+		//this should be sLog.Debug, but because of the number of messages, I left it as .Log for readability, and ease of finding other debug messages
+		sLog.Log("Server", "%s call made to %s",req.method.c_str(),packet->dest.service.c_str()); 
 
     //build arguments
     PyCallArgs args( this, req.arg_tuple, req.arg_dict );
@@ -1416,7 +1627,7 @@ bool Client::Handle_Notify( PyPacket* packet )
     ServerNotification notify;
     if( !notify.Decode( packet->payload ) )
     {
-        _log(CLIENT__ERROR, "Failed to convert rep into a notify stream");
+		sLog.Error("Client","Failed to convert rep into a notify stream");
         return false;
     }
 
@@ -1430,19 +1641,19 @@ bool Client::Handle_Notify( PyPacket* packet )
         for(; cur != end; cur++)
         {
             if(!element.Decode( *cur )) {
-                _log(CLIENT__ERROR, "Notification '%s' from %s: Failed to decode element. Skipping.", notify.method.c_str(), GetName());
+				sLog.Error("Client","Notification '%s' from %s: Failed to decode element. Skipping.", notify.method.c_str(), GetName());
                 continue;
             }
 
             uint32 nodeID, bindID;
             if(sscanf(element.boundID.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
-                _log(CLIENT__ERROR, "Notification '%s' from %s: Failed to parse bind string '%s'. Skipping.",
-                    notify.method.c_str(), GetName(), element.boundID.c_str());
+				sLog.Error("Client","Notification '%s' from %s: Failed to parse bind string '%s'. Skipping.",
+					notify.method.c_str(), GetName(), element.boundID.c_str());
                 continue;
             }
 
             if(nodeID != m_services.GetNodeID()) {
-                _log(CLIENT__ERROR, "Notification '%s' from %s: Unknown nodeID %u received (expected %u). Skipping.",
+				sLog.Error("Client","Notification '%s' from %s: Unknown nodeID %u received (expected %u). Skipping.",
                     notify.method.c_str(), GetName(), nodeID, m_services.GetNodeID());
                 continue;
             }
@@ -1452,12 +1663,17 @@ bool Client::Handle_Notify( PyPacket* packet )
     }
     else
     {
-        _log(CLIENT__ERROR, "Unhandled notification from %s: unknown method '%s'", GetName(), notify.method.c_str());
+		sLog.Error("Client","Unhandled notification from %s: unknown method '%s'", GetName(), notify.method.c_str());
         return false;
     }
 
     _SendSessionChange();  //just for good measure...
     return true;
+}
+
+void Client::UpdateSession(const char *sessionType, int value)
+{
+	mSession.SetInt(sessionType, value);
 }
 
 /*
@@ -1538,4 +1754,3 @@ FunctorTimerQueue::Entry::~Entry() {
     delete func;
 }
 */
-

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -192,7 +192,7 @@ public:
      *
      * @param[in] v Visitor to be used for visiting.
      *
-     * @retval true  Visit successfull.
+     * @retval true  Visit successful.
      * @retval false Error during visit.
      */
     virtual bool visit( PyVisitor& v ) const = 0;
@@ -356,6 +356,13 @@ public:
 
     int32 hash() const;
 
+    /**
+     * @brief Obtains length of the buffer.
+     *
+     * @return Length of buffer.
+     */
+    size_t size() const;
+
 protected:
     virtual ~PyBuffer();
 
@@ -436,6 +443,7 @@ public:
      * @return the std::string reference.
      */
     const std::string& content() const { return mValue; }
+    
     /**
      * @brief Obtains length of string.
      *
@@ -546,7 +554,7 @@ public:
     int32 hash() const;
 
 	// This needs to be public for now.
-    storage_type items;
+	storage_type items;
 
 protected:
     virtual ~PyTuple();

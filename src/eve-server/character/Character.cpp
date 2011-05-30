@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -126,6 +126,7 @@ CharacterData::CharacterData(
     uint32 _logonMinutes,
     uint32 _corporationID,
     uint32 _allianceID,
+	uint32 _warFactionID,
     uint32 _stationID,
     uint32 _solarSystemID,
     uint32 _constellationID,
@@ -147,6 +148,7 @@ CharacterData::CharacterData(
   logonMinutes(_logonMinutes),
   corporationID(_corporationID),
   allianceID(_allianceID),
+  warFactionID(_warFactionID),
   stationID(_stationID),
   solarSystemID(_solarSystemID),
   constellationID(_constellationID),
@@ -314,6 +316,7 @@ Character::Character(
   m_corporationID(_charData.corporationID),
   m_corpHQ(_corpData.corpHQ),
   m_allianceID(_charData.allianceID),
+  m_warFactionID(_charData.warFactionID),
   m_corpRole(_corpData.corpRole),
   m_rolesAtAll(_corpData.rolesAtAll),
   m_rolesAtBase(_corpData.rolesAtBase),
@@ -333,6 +336,10 @@ Character::Character(
 {
     // allow characters to be only singletons
     assert(singleton() && quantity() == 1);
+
+    // Activate Save Info Timer with somewhat randomized timer value:
+    //SetSaveTimerExpiry( MakeRandomInt( (10 * 60), (15 * 60) ) );        // Randomize save timer expiry to between 10 and 15 minutes
+    //EnableSaveTimer();
 }
 
 CharacterRef Character::Load(ItemFactory &factory, uint32 characterID)
@@ -360,7 +367,13 @@ CharacterRef Character::Spawn(ItemFactory &factory,
     uint32 characterID = Character::_Spawn( factory, data, charData, appData, corpData );
     if( characterID == 0 )
         return CharacterRef();
-    return Character::Load( factory, characterID );
+
+    CharacterRef charRef = Character::Load( factory, characterID );
+
+    // Create default dynamic attributes in the AttributeMap:
+    charRef.get()->SetAttribute(AttrIsOnline, 1);     // Is Online
+
+    return charRef;
 }
 
 uint32 Character::_Spawn(ItemFactory &factory,
@@ -403,6 +416,9 @@ bool Character::_Load()
 
     if( !m_factory.db().LoadSkillQueue( itemID(), m_skillQueue ) )
         return false;
+
+    // Calculate total SP trained and store in internal variable:
+    _CalculateTotalSPTrained();
 
     return Owner::_Load();
 }
@@ -468,7 +484,7 @@ void Character::SetDescription(const char *newDescription) {
 
 bool Character::HasSkill(uint32 skillTypeID) const
 {
-    return(GetSkill(skillTypeID) != NULL);
+    return GetSkill(skillTypeID);
 }
 
 SkillRef Character::GetSkill(uint32 skillTypeID) const
@@ -482,33 +498,52 @@ SkillRef Character::GetSkill(uint32 skillTypeID) const
 
 SkillRef Character::GetSkillInTraining() const
 {
-    return SkillRef::StaticCast( FindFirstByFlag( flagSkillInTraining ) );
+    InventoryItemRef item;
+    if (!FindSingleByFlag(flagSkillInTraining, item))
+        sLog.Debug("Character","unable to find skill in training");
+
+    return SkillRef::StaticCast( item );
 }
 
-double Character::GetSPPerMin(SkillRef skill) const
+void Character::GetSkillsList(std::vector<InventoryItemRef> &skills) const
 {
-    double primaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill->primaryAttribute() );
-    double secondaryVal = attributes.GetReal( (EVEAttributeMgr::Attr)skill->secondaryAttribute() );
+    //find all the skills contained within ourself.
+    FindByFlag( flagSkill, skills );
+    FindByFlag( flagSkillInTraining, skills );
+}
 
-    uint8 skillLearningLevel = 0;
+EvilNumber Character::GetSPPerMin( SkillRef skill )
+{
+    EvilNumber primarySkillTrainingAttr = skill->GetAttribute(AttrPrimaryAttribute);
+    EvilNumber secondarySkillTrainingAttr = skill->GetAttribute(AttrSecondaryAttribute);
+
+    EvilNumber primarySPperMin = GetAttribute( (uint32)(primarySkillTrainingAttr.get_int()) );
+    EvilNumber secondarySPperMin = GetAttribute( (uint32)(secondarySkillTrainingAttr.get_int()) );
+
+    EvilNumber skillLearningLevel(0);
 
     //3374 - Skill Learning
     SkillRef skillLearning = GetSkill( 3374 );
     if( skillLearning )
-        skillLearningLevel = skillLearning->skillLevel();
+        skillLearningLevel = skillLearning->GetAttribute(AttrSkillLevel);
 
-    return (primaryVal + secondaryVal / 2.0)
-         * (1.0 + 0.02 * skillLearningLevel)
-         *  2.0; /* this is hacky and should be applied only if total SP < 1.6M */
+    primarySPperMin = primarySPperMin + secondarySPperMin / 2.0f;
+    primarySPperMin = primarySPperMin * (EvilNumber(1.0f) + EvilNumber(0.02f) * skillLearningLevel);
+
+    // Check Total SP Trained for this character against the threshold for granting the 100% training bonus:
+    if( m_totalSPtrained.get_float() < ((double)MAX_SP_FOR_100PCT_TRAINING_BONUS) )
+        primarySPperMin = primarySPperMin * EvilNumber(2.0f);
+
+    return primarySPperMin;
 }
 
-uint64 Character::GetEndOfTraining() const
+EvilNumber Character::GetEndOfTraining() const
 {
     SkillRef skill = GetSkillInTraining();
     if( !skill )
         return 0;
 
-    return skill->expiryTime();
+    return skill->GetAttribute(AttrExpiryTime);
 }
 
 bool Character::InjectSkillIntoBrain(SkillRef skill)
@@ -559,6 +594,55 @@ bool Character::InjectSkillIntoBrain(SkillRef skill)
     return true;
 }
 
+bool Character::InjectSkillIntoBrain(SkillRef skill, uint8 level)
+{
+    Client *c = m_factory.entity_list.FindCharacter( itemID() );
+	
+
+    SkillRef oldSkill = GetSkill( skill->typeID() );
+    if( oldSkill )
+    {
+
+		//oldSkill->attributes.SetNotify(true);
+		//oldSkill->Set_skillLevel( level );
+		//oldSkill->Set_skillPoints( pow(2, ( 2.5 * level ) - 2.5 ) * SKILL_BASE_POINTS * ( oldSkill->attributes.GetInt( oldSkill->attributes.Attr_skillTimeConstant ) ) );
+        
+        oldSkill->SetAttribute(AttrSkillLevel, level);
+        EvilNumber eTmp = skill->GetAttribute(AttrSkillTimeConstant) * ( pow(2,( 2.5 * level) - 2.5 ) * EVIL_SKILL_BASE_POINTS );
+        oldSkill->SetAttribute(AttrSkillPoints, eTmp);
+		return true;
+    }
+
+    // are we injecting from a stack of skills?
+    if( skill->quantity() > 1 )
+    {
+        // split the stack to obtain single item
+        InventoryItemRef single_skill = skill->Split( 1 );
+        if( !single_skill )
+        {
+            _log( ITEM__ERROR, "%s (%u): Unable to split stack of %s (%u).", itemName().c_str(), itemID(), skill->itemName().c_str(), skill->itemID() );
+            return false;
+        }
+
+        // use single_skill ...
+        single_skill->MoveInto( *this, flagSkill );
+    }
+    else
+		skill->MoveInto( *this, flagSkill );
+
+    skill->SetAttribute(AttrSkillLevel, level);
+	//TODO: get right number of skill points
+	
+	//skill->Set_skillPoints( pow(2,( 2.5 * level) - 2.5 ) * SKILL_BASE_POINTS * ( skill->attributes.GetInt( skill->attributes.Attr_skillTimeConstant ) ) );
+
+    EvilNumber tmp = pow(2,( 2.5 * level) - 2.5 ) * EVIL_SKILL_BASE_POINTS;
+    EvilNumber eTmp = skill->GetAttribute(AttrSkillTimeConstant);
+    eTmp = eTmp * tmp;
+    skill->SetAttribute(AttrSkillPoints, eTmp);
+
+    return true;
+}
+
 void Character::AddToSkillQueue(uint32 typeID, uint8 level)
 {
     QueuedSkill qs;
@@ -587,6 +671,7 @@ void Character::UpdateSkillQueue()
             // stop training:
             _log( ITEM__ERROR, "%s (%u): Stopping training of skill %s (%u).", itemName().c_str(), itemID(), currentTraining->itemName().c_str(), currentTraining->itemID() );
 
+            /*
             uint64 timeEndTrain = currentTraining->expiryTime();
             if(timeEndTrain != 0)
             {
@@ -598,6 +683,19 @@ void Character::UpdateSkillQueue()
             }
 
             currentTraining->Clear_expiryTime();
+            */
+
+            EvilNumber timeEndTrain = currentTraining->GetAttribute(AttrExpiryTime);
+            if (timeEndTrain != 0) {
+                EvilNumber nextLevelSP = currentTraining->GetSPForLevel( currentTraining->GetAttribute(AttrSkillLevel) + 1 );
+                EvilNumber SPPerMinute = GetSPPerMin( currentTraining );
+                EvilNumber minRemaining = (timeEndTrain - EvilNumber(Win32TimeNow())) / (double)Win32Time_Minute;
+
+                //currentTraining->Set_skillPoints( nextLevelSP - (minRemaining * SPPerMinute) );
+                currentTraining->SetAttribute(AttrSkillPoints, nextLevelSP - (minRemaining * SPPerMinute));
+            }
+
+            currentTraining->SetAttribute(AttrExpiryTime, 0);
 
             currentTraining->MoveInto( *this, flagSkill, true );
 
@@ -619,7 +717,8 @@ void Character::UpdateSkillQueue()
         }
     }
 
-    uint64 nextStartTime = Win32TimeNow();
+    EvilNumber nextStartTime = EvilTimeNow();
+    
     while( !m_skillQueue.empty() )
     {
         if( !currentTraining )
@@ -636,19 +735,22 @@ void Character::UpdateSkillQueue()
 
             _log( ITEM__TRACE, "%s (%u): Starting training of skill %s (%u).", m_itemName.c_str(), m_itemID, currentTraining->itemName().c_str(), currentTraining->itemID() );
 
-            double SPPerMinute = GetSPPerMin( currentTraining );
-            double SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 ) - currentTraining->skillPoints();
+            EvilNumber SPPerMinute = GetSPPerMin( currentTraining );
+            //  double SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 ) - currentTraining->skillPoints();
+            EvilNumber SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->GetAttribute(AttrSkillLevel) + 1) - currentTraining->GetAttribute(AttrSkillPoints);
 
-            uint64 timeTraining = nextStartTime + Win32Time_Minute * SPToNextLevel / SPPerMinute;
+            //uint64 timeTraining = nextStartTime + Win32Time_Minute * SPToNextLevel / SPPerMinute;
+            EvilNumber timeTraining = nextStartTime + EvilTime_Minute * SPToNextLevel / SPPerMinute;
 
             currentTraining->MoveInto( *this, flagSkillInTraining );
-            currentTraining->Set_expiryTime( timeTraining );
+            //currentTraining->Set_expiryTime( timeTraining );
+            currentTraining->SetAttribute(AttrExpiryTime, timeTraining);
 
             if( c != NULL )
             {
                 OnSkillStartTraining osst;
                 osst.itemID = currentTraining->itemID();
-                osst.endOfTraining = timeTraining;
+                osst.endOfTraining = timeTraining.get_int();
 
                 PyTuple* tmp = osst.Encode();
                 c->QueueDestinyEvent( &tmp );
@@ -658,16 +760,22 @@ void Character::UpdateSkillQueue()
             }
         }
 
-        if( currentTraining->expiryTime() <= Win32TimeNow() )
-        {
+        //if( currentTraining->expiryTime() <= Win32TimeNow() )
+        if( currentTraining->GetAttribute(AttrExpiryTime) <= EvilTimeNow() ) {
             // training has been finished:
             _log( ITEM__ERROR, "%s (%u): Finishing training of skill %s (%u).", itemName().c_str(), itemID(), currentTraining->itemName().c_str(), currentTraining->itemID() );
 
-            currentTraining->Set_skillLevel( currentTraining->skillLevel() + 1 );
-            currentTraining->Set_skillPoints( currentTraining->GetSPForLevel( currentTraining->skillLevel() ) );
+            //currentTraining->Set_skillLevel( currentTraining->skillLevel() + 1 );
+            //currentTraining->Set_skillPoints( currentTraining->GetSPForLevel( currentTraining->skillLevel() ) );
 
-            nextStartTime = currentTraining->expiryTime();
-            currentTraining->Clear_expiryTime();
+            //nextStartTime = currentTraining->expiryTime();
+            //currentTraining->Clear_expiryTime();
+
+            currentTraining->SetAttribute(AttrSkillLevel, currentTraining->GetAttribute(AttrSkillLevel) + 1 );
+            currentTraining->SetAttribute(AttrSkillPoints,  currentTraining->GetSPForLevel( currentTraining->GetAttribute(AttrSkillLevel) ), true);
+
+            nextStartTime = currentTraining->GetAttribute(AttrExpiryTime);
+            currentTraining->SetAttribute(AttrExpiryTime, 0);
 
             currentTraining->MoveInto( *this, flagSkill, true );
 
@@ -694,6 +802,11 @@ void Character::UpdateSkillQueue()
             break;
     }
 
+    // Re-Calculate total SP trained and store in internal variable:
+    _CalculateTotalSPTrained();
+
+    // Save character and skill data:
+    SaveCharacter();
     SaveSkillQueue();
 }
 
@@ -788,20 +901,21 @@ void Character::AddItem(InventoryItemRef item)
                 // Make it singleton and set initial skill values.
                 skill->ChangeSingleton( true );
 
-                skill->Set_skillLevel( 0 );
-                skill->Set_skillPoints( 0 );
+                skill->SetAttribute(AttrSkillLevel, 0);
+                skill->SetAttribute(AttrSkillPoints, 0);
 
                 if( skill->flag() != flagSkillInTraining )
-                    skill->Clear_expiryTime();
+                    skill->SetAttribute(AttrExpiryTime, 0);
             }
         }
     }
 }
 
-void Character::SaveCharacter() const
+void Character::SaveCharacter()
 {
     _log( ITEM__TRACE, "Saving character %u.", itemID() );
 
+    sLog.Debug( "Character::SaveCharacter()", "Saving all character info and skill attribute info to DB for character %s...", itemName().c_str() );
     // character data
     m_factory.db().SaveCharacter(
         itemID(),
@@ -816,6 +930,7 @@ void Character::SaveCharacter() const
             logonMinutes(),
             corporationID(),
             allianceID(),
+            warFactionID(),
             stationID(),
             solarSystemID(),
             constellationID(),
@@ -842,6 +957,19 @@ void Character::SaveCharacter() const
             rolesAtOther()
         )
     );
+
+    // Save this character's own attributes:
+    SaveAttributes();
+
+    // Loop through all skills and invoke mAttributeMap.SaveAttributes() for each
+    std::vector<InventoryItemRef> skills;
+    GetSkillsList( skills );
+    std::vector<InventoryItemRef>::iterator cur, end;
+    cur = skills.begin();
+    end = skills.end();
+    for(; cur != end; cur++)
+        cur->get()->SaveAttributes();
+        //cur->get()->mAttributeMap.Save();
 }
 
 void Character::SaveSkillQueue() const {
@@ -854,5 +982,28 @@ void Character::SaveSkillQueue() const {
     );
 }
 
+void Character::_CalculateTotalSPTrained()
+{
+    // Loop through all skills trained and calculate total SP this character has trained so far,
+    // NOT including the skill currently being trained:
+    double exponent = 0.0f;
+    double totalSP = 0.0f;
+    EvilNumber skillLevel;
+    EvilNumber skillRank;
+    std::vector<InventoryItemRef> skills;
+    GetSkillsList( skills );
+    std::vector<InventoryItemRef>::iterator cur, end;
+    cur = skills.begin();
+    end = skills.end();
+    for(; cur != end; cur++)
+    {
+        // Calculate exact SP from each skill and add to total SP
+        skillLevel = cur->get()->GetAttribute( AttrSkillLevel );
+        skillRank = cur->get()->GetAttribute( AttrSkillTimeConstant );
+        totalSP += 250.0f * (double)(skillRank.get_int()) * pow(32.0, (double)(((double)(skillLevel.get_int()) - 1.0f) / 2.0f));
+    }
+
+    m_totalSPtrained = totalSP;
+}
 
 

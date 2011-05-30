@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -31,6 +31,8 @@
 #include "inventory/Inventory.h"
 #include "inventory/InventoryDB.h"
 #include "character/Skill.h"
+
+#define MAX_SP_FOR_100PCT_TRAINING_BONUS    1600000     // After 1.6 million Skill Points are trained, the 100% bonus to skill training goes away
 
 /**
  * Simple container for raw character type data.
@@ -206,6 +208,7 @@ public:
 		uint32 _logonMinutes = 0,
 		uint32 _corporationID = 0,
 		uint32 _allianceID = 0,
+		uint32 _warFactionID = 0,
 		uint32 _stationID = 0,
 		uint32 _solarSystemID = 0,
 		uint32 _constellationID = 0,
@@ -231,6 +234,7 @@ public:
 
 	uint32 corporationID;
 	uint32 allianceID;
+	uint32 warFactionID;
 
 	uint32 stationID;
 	uint32 solarSystemID;
@@ -265,7 +269,7 @@ public:
 	} \
 	uint32 Get_##v() const \
     { \
-		return ( IsNull_##v() ? NULL : *v ); \
+		return ( IsNull_##v() ? 0 : *v ); \
 	} \
 	void Set_##v(uint32 val)\
     { \
@@ -287,7 +291,7 @@ public:
 	} \
 	double Get_##v() const \
     { \
-		return ( IsNull_##v() ? NULL : *v ); \
+		return ( IsNull_##v() ? 0.0 : *v ); \
 	} \
 	void Set_##v(double val) \
     { \
@@ -401,18 +405,30 @@ public:
 	 * @return Pointer to Skill object; NULL if skill was not found.
 	 */
 	SkillRef GetSkillInTraining() const;
+	/**
+	 * Returns entire list of skills learned by this character
+	 *
+	 * @param[in] empty std::vector<InventoryItemRef> which is populated with list of skills
+	 */
+    void GetSkillsList(std::vector<InventoryItemRef> &skills) const;
 
+	/**
+	 * Calculates Total Skillpoints the character has trained
+	 *
+	 * @return Skillpoints per minute rate.
+	 */
+    EvilNumber GetTotalSPTrained() { return m_totalSPtrained; };
 	/**
 	 * Calculates Skillpoints per minute rate.
 	 *
 	 * @param[in] skill Skill for which the rate is calculated.
 	 * @return Skillpoints per minute rate.
 	 */
-	double GetSPPerMin(SkillRef skill) const;
+    EvilNumber GetSPPerMin(SkillRef skill);
 	/**
 	 * @return Timestamp at which current skill training finishes.
 	 */
-	uint64 GetEndOfTraining() const;
+	EvilNumber GetEndOfTraining() const;
 
 	/* InjectSkillIntoBrain(InventoryItem *skill)
 	 * 
@@ -421,6 +437,10 @@ public:
 	 * @param InventoryItem
 	 */
 	bool InjectSkillIntoBrain(SkillRef skill);
+	/*
+	 * GM Version, allows level set
+	 */
+	bool InjectSkillIntoBrain(SkillRef skill, uint8 level);
 	/* AddSkillToSkillQueue()
 	 * 
 	 * This will add a skill into the skill queue.
@@ -437,6 +457,12 @@ public:
 	void UpdateSkillQueue();
 
 	// NOTE: We do not handle Split/Merge logic since singleton-restricted construction does this for us.
+
+	/**
+	 * Gets char base attributes
+	 */
+	PyObject *GetCharacterBaseAttributes();
+
 
 	/*
 	 * Primary public packet builders:
@@ -468,11 +494,13 @@ public:
 	double                  balance() const { return m_balance; }
 	double                  securityRating() const { return m_securityRating; }
 	uint32                  logonMinutes() const { return m_logonMinutes; }
+	void					addSecurityRating( double secutiryAmount ) { m_securityRating += secutiryAmount; }
 
 	// Corporation:
 	uint32                  corporationID() const { return m_corporationID; }
 	uint32                  corporationHQ() const { return m_corpHQ; }
 	uint32                  allianceID() const { return m_allianceID; }
+	uint32                  warFactionID() const { return m_warFactionID; }
 
 	// Corporation role:
 	uint64                  corpRole() const { return m_corpRole; }
@@ -497,6 +525,9 @@ public:
 	uint64                  startDateTime() const { return m_startDateTime; }
 	uint64                  createDateTime() const { return m_createDateTime; }
 	uint64                  corporationDateTime() const { return m_corporationDateTime; }
+
+	void SaveCharacter();
+	void SaveSkillQueue() const;
 
 protected:
 	Character(
@@ -564,8 +595,7 @@ protected:
 
 	void AddItem(InventoryItemRef item);
 
-	void SaveCharacter() const;
-	void SaveSkillQueue() const;
+    void _CalculateTotalSPTrained();
 
 	/*
 	 * Data members
@@ -584,6 +614,7 @@ protected:
 	uint32 m_corporationID;
 	uint32 m_corpHQ;
 	uint32 m_allianceID;
+	uint32 m_warFactionID;
 
 	uint64 m_corpRole;
 	uint64 m_rolesAtAll;
@@ -607,6 +638,7 @@ protected:
 
 	// Skill queue:
 	SkillQueue m_skillQueue;
+    EvilNumber m_totalSPtrained;
 };
 
 #endif /* !__CHARACTER__H__INCL__ */

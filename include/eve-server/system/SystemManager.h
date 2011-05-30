@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -29,6 +29,9 @@
 #include "system/BubbleManager.h"
 #include "system/SystemDB.h"
 
+#define ONE_AU_IN_METERS 1.495978707e11     // 1 astronomical unit in meters
+#define BASE_WARP_SPEED 3.0                 // base default max warp speed of 3.0 AU/s
+
 class PyRep;
 class PyDict;
 class PyTuple;
@@ -44,9 +47,12 @@ class DoDestiny_SetState;
 class SpawnManager;
 class PyServiceMgr;
 
-class SystemManager {
+class SystemManager
+//: public Inventory,
+//  public InventoryItem
+{
 public:
-	SystemManager(uint32 systemID, PyServiceMgr &svc);
+	SystemManager(uint32 systemID, PyServiceMgr &svc);//, ItemData idata);
 	virtual ~SystemManager();
 	
 	//bubble stuff:
@@ -60,6 +66,8 @@ public:
 	
 	bool Process();
 	void ProcessDestiny();	//called once for each destiny second.
+
+    bool BuildDynamicEntity(Client *who, const DBSystemDynamicEntity &entity);
 
 	void AddClient(Client *who);
 	void RemoveClient(Client *who);
@@ -76,9 +84,23 @@ public:
 	const char * GetSystemSecurity() { return m_systemSecurity.c_str(); }
 
 	ItemFactory &itemFactory() const;
-	
+
+    PyServiceMgr * GetServiceMgr() { return &m_services; }
+
+    void AddItemToInventory(InventoryItemRef item);
+    ShipRef GetShipFromInventory(uint32 shipID);
+    void RemoveItemFromInventory(InventoryItemRef item);
+
 protected:
-	bool _LoadSystemCelestials();
+    // Solar System Inventory Functions:
+	//uint32 inventoryID() const { return itemID(); }
+	//PyRep *GetItem() const { return new PyNone(); }
+    //void AddItem(InventoryItemRef item);
+
+    // Solar System Dynamic Inventory manager:
+    SolarSystemRef m_solarSystemRef;    // we do not own this
+
+    bool _LoadSystemCelestials();
 	bool _LoadSystemDynamics();
 	
 	const uint32 m_systemID;

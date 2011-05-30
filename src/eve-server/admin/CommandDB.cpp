@@ -3,8 +3,8 @@
 	LICENSE:
 	------------------------------------------------------------------------------------
 	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2008 The EVEmu Team
-	For the latest information visit http://evemu.mmoforge.org
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
 	------------------------------------------------------------------------------------
 	This program is free software; you can redistribute it and/or modify it under
 	the terms of the GNU Lesser General Public License as published by the Free Software
@@ -55,6 +55,46 @@ bool CommandDB::ItemSearch(const char *query, std::map<uint32, std::string> &int
 	return true;
 }
 
+bool CommandDB::ItemSearch(uint32 typeID, uint32 &actualTypeID,
+    std::string &actualTypeName, uint32 &actualGroupID, uint32 &actualCategoryID, double &actualRadius)
+{
+	DBQueryResult result;
+	DBResultRow row;
+	
+    if (!sDatabase.RunQuery(result,
+        "SELECT  "
+        " invTypes.typeID,"
+        " invTypes.typeName,"
+        " invTypes.groupID,"
+        " invTypes.radius,"
+        " invGroups.categoryID"
+        " FROM invTypes"
+        "  LEFT JOIN invGroups"
+        "   ON invGroups.groupID = invTypes.groupID"
+        " WHERE typeID = %u",
+        typeID
+		))
+	{
+        sLog.Error( "CommandDB::ItemSearch()", "Error in query: %s", result.error.c_str() );
+		return (false);
+	}
+
+    if( !result.GetRow(row) )
+    {
+        sLog.Error( "CommandDB::ItemSearch()", "Query returned NO results: %s", result.error.c_str() );
+		return (false);
+    }
+
+    // Extract values from the first row:
+    actualTypeID = row.GetUInt( 0 );
+    actualTypeName = row.GetText( 1 );
+    actualGroupID = row.GetUInt( 2 );
+    actualCategoryID = row.GetUInt( 4 );
+    actualRadius = row.GetDouble( 3 );
+
+    return true;
+}
+
 bool CommandDB::GetRoidDist(const char * sec, std::map<double, uint32> &roids) {
 	DBQueryResult res;
 	DBResultRow row;
@@ -73,6 +113,59 @@ bool CommandDB::GetRoidDist(const char * sec, std::map<double, uint32> &roids) {
 	}
 
 	return !roids.empty();
+}
+
+int CommandDB::GetAttributeID(const char *attributeName) {
+
+	DBQueryResult res;
+	DBResultRow row;
+	std::string escape;
+	sDatabase.DoEscapeString(escape, attributeName);
+
+	if(!sDatabase.RunQuery(res,
+		" SELECT "
+		" attributeID "
+		" FROM dgmAttributeTypes "
+		" WHERE attributeName = '%s' ",
+		escape.c_str() ) )
+	{
+		_log(DATABASE__ERROR, "Error retrieving attributeID for attributeName = '%s' ", escape.c_str() );
+		return 0;
+	}
+
+	if( !res.GetRow(row) ){
+		_log(DATABASE__ERROR, "Null result finding attributeID for attributeName = '%s' ", escape.c_str() );
+		return 0;
+	}
+
+	return row.GetUInt( 0 );
+
+}
+
+int CommandDB::GetAccountID(std::string name) {
+	
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		" SELECT "
+		" AccountID "
+		" FROM character_ "
+		" WHERE characterID = ( SELECT itemID FROM entity WHERE itemName = '%s' )", name.c_str()))
+	{
+		sLog.Error("CommandDB", "Failed to retrieve accountID for %s", name.c_str());
+		return 0;
+	}
+
+	DBResultRow row;
+
+	if( !res.GetRow(row) )
+	{
+		sLog.Error("CommandDB", "Query Returned no results");
+		return 0;
+	}
+
+	return row.GetInt( 0 );
+	
 }
 
 

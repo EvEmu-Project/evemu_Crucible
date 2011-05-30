@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -104,6 +104,8 @@ ReprocessingServiceBound::ReprocessingServiceBound(PyServiceMgr *mgr, Reprocessi
   m_tax(0.0)
 {
     _SetCallDispatcher(m_dispatch);
+
+    m_strBoundObjectName = "ReprocessingServiceBound";
 
     PyCallable_REG_CALL(ReprocessingServiceBound, GetOptionsForItemTypes)
     PyCallable_REG_CALL(ReprocessingServiceBound, GetReprocessingInfo)

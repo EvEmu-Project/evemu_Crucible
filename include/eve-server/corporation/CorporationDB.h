@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -76,6 +76,8 @@ public:
     uint32 GetStationCorporationCEO(uint32 stationID);
     uint32 GetCorporationCEO(uint32 corpID);
 
+	uint32 GetCloneTypeCostByID(uint32 cloneTypeID);
+
     bool GetCurrentApplicationInfo(uint32 charID, uint32 corpID, ApplicationInfo &app);
     bool InsertApplication(const ApplicationInfo & aInfo);
     bool UpdateApplication(const ApplicationInfo &app);
@@ -85,6 +87,8 @@ public:
     bool UpdateDivisionNames(uint32 corpID, const Call_UpdateDivisionNames & divs, PyDict * notif);
     bool UpdateCorporation(uint32 corpID, const Call_UpdateCorporation & upd, PyDict * notif);
     bool UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDict * notif);
+	
+	bool ChangeCloneType(uint32 characterID, uint32 typeID);
 
 protected:
 };
