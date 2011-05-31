@@ -53,6 +53,7 @@ public:
 		PyCallable_REG_CALL(DogmaIMBound, RemoveTarget)
 		PyCallable_REG_CALL(DogmaIMBound, ClearTargets)
 		PyCallable_REG_CALL(DogmaIMBound, GetWeaponBankInfoForShip)
+		PyCallable_REG_CALL(DogmaIMBound, GetLocationInfo)
 	}
 	virtual ~DogmaIMBound() {delete m_dispatch;}
 	virtual void Release() {
@@ -72,6 +73,7 @@ public:
 	PyCallable_DECL_CALL(RemoveTarget)
 	PyCallable_DECL_CALL(ClearTargets)
 	PyCallable_DECL_CALL(GetWeaponBankInfoForShip)
+	PyCallable_DECL_CALL(GetLocationInfo)
 
 protected:
 	
@@ -106,6 +108,14 @@ PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {
     PyDecRef( str );
 
 	return result;
+}
+
+PyResult DogmaIMBound::Handle_GetLocationInfo(PyCallArgs &call)
+{
+	// no arguments
+
+	// dummy right now, don't have any meaningful packet logs
+	return new PyDict();
 }
 
 PyResult DogmaIMBound::Handle_ShipGetInfo(PyCallArgs &call) {

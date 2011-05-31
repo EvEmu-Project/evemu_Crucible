@@ -493,6 +493,7 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     if( character->stationID() == 0 )
     {
         mSession.Clear( "stationid" );
+		mSession.Clear( "stationid2" );
 
         mSession.SetInt( "solarsystemid", character->solarSystemID() );
         mSession.SetInt( "locationid", character->solarSystemID() );
@@ -502,6 +503,7 @@ void Client::_UpdateSession( const CharacterConstRef& character )
         mSession.Clear( "solarsystemid" );
 
         mSession.SetInt( "stationid", character->stationID() );
+		mSession.SetInt( "stationid2", character->stationID() );
         mSession.SetInt( "locationid", character->stationID() );
     }
     mSession.SetInt( "solarsystemid2", character->solarSystemID() );
@@ -569,6 +571,7 @@ void Client::_UpdateSession2( uint32 characterID )
     if( stationID == 0 )
     {
         mSession.Clear( "stationid" );
+		mSession.Clear( "stationid2" );
 
         mSession.SetInt( "solarsystemid", solarSystemID );
         mSession.SetInt( "locationid", solarSystemID );
@@ -578,6 +581,7 @@ void Client::_UpdateSession2( uint32 characterID )
         mSession.Clear( "solarsystemid" );
 
         mSession.SetInt( "stationid", stationID );
+		mSession.SetInt( "stationid2", stationID );
         mSession.SetInt( "locationid", stationID );
     }
     mSession.SetInt( "solarsystemid2", solarSystemID );
@@ -1388,7 +1392,7 @@ void Client::BanClient()
 /************************************************************************/
 /* EVEClientSession interface                                           */
 /************************************************************************/
-void Client::_GetVersion( VersionExchange& version )
+void Client::_GetVersion( VersionExchangeServer& version )
 {
     version.birthday = EVEBirthday;
     version.macho_version = MachoNetVersion;
@@ -1403,7 +1407,7 @@ uint32 Client::_GetUserCount()
     return services().entity_list.GetClientCount();
 }
 
-bool Client::_VerifyVersion( VersionExchange& version )
+bool Client::_VerifyVersion( VersionExchangeClient& version )
 {
 	sLog.Log("Client","%s: Received Low Level Version Exchange:", GetAddress().c_str());
     version.Dump(NET__PRES_REP, "    ");
@@ -1476,7 +1480,8 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         return false;
     }
 
-    uint32 accountID, accountRole;
+    uint32 accountID;
+	uint64 accountRole;
 	if( !services().serviceDB().DoLogin(
             ccp.user_name.c_str(),
             ccp.user_password->GetPassword()->content().c_str(),
@@ -1508,6 +1513,9 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     server_shake.user_logonqueueposition = _GetQueuePosition();
     // binascii.crc_hqx of marshaled single-element tuple containing 64 zero-bytes string
     server_shake.challenge_responsehash = "55087";
+	
+	// the image server used by the client to download images
+	server_shake.imageserverurl = ImageServer::get().url();
 
     server_shake.macho_version = MachoNetVersion;
     server_shake.boot_version = EVEVersionNumber;
@@ -1526,7 +1534,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     //user type 1 is normal user, type 23 is a trial account user.
     mSession.SetInt( "userType", 1 );
     mSession.SetInt( "userid", accountID );
-    mSession.SetInt( "role", accountRole );
+    mSession.SetLong( "role", accountRole );
 
     return true;
 }
@@ -1547,6 +1555,7 @@ bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
     ack.inDetention = new PyNone;
     ack.client_hashes = new PyList;
     ack.user_clientid = GetAccountID();
+	ack.live_updates = LiveUpdateDB::get().GetUpdates();
 
 	PyRep* r = ack.Encode();
     mNet->QueueRep( r );

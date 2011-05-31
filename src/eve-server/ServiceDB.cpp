@@ -25,7 +25,7 @@
 
 #include "EVEServerPCH.h"
 
-bool ServiceDB::DoLogin( const char* login, const char* pass, uint32& accountID, uint32& role )
+bool ServiceDB::DoLogin( const char* login, const char* pass, uint32& accountID, uint64& role )
 {
     if( pass[0] == '\0' )
     {
@@ -75,7 +75,7 @@ bool ServiceDB::DoLogin( const char* login, const char* pass, uint32& accountID,
         }
 
         accountID = row.GetUInt( 0 );
-        role = row.GetUInt( 1 );
+        role = row.GetUInt64( 1 );
 
         return true;
     }

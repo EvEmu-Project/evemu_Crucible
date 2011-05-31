@@ -28,7 +28,7 @@
 static void SetupSignals();
 static void CatchSignal( int sig_num );
 
-static const char* const CONFIG_FILE = EVEMU_ROOT_DIR"etc/eve-server.xml";
+static const char* const CONFIG_FILE = EVEMU_ROOT_DIR"/etc/eve-server.xml";
 static const uint32 MAIN_LOOP_DELAY = 10; // delay 10 ms.
 
 static volatile bool RunLoops = true;
@@ -187,11 +187,17 @@ int main( int argc, char* argv[] )
     services.RegisterService(new PosMgrService(&services));
     services.RegisterService(new NetService(&services));
 	services.RegisterService(new TradeService(&services));
+	services.RegisterService(new CharUnboundMgrService(&services));
+	services.RegisterService(new PaperDollService(&services));
+	services.RegisterService(new PhotoUploadService(&services));
+	services.RegisterService(new AggressionMgrService(&services));
 
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();
     sLog.Log("server init", "finished priming");
 
+	// start up the image server
+	ImageServer::get().Run();
 
     services.serviceDB().SetServerOnlineStatus(true);
 

@@ -583,8 +583,7 @@ PyPackedRow* InventoryItem::GetItemRow() const
 	header->AddColumn( "typeID",     DBTYPE_I2 );
 	header->AddColumn( "ownerID",    DBTYPE_I4 );
 	header->AddColumn( "locationID", DBTYPE_I4 );
-	header->AddColumn( "flag",       DBTYPE_UI1 );
-	header->AddColumn( "contraband", DBTYPE_BOOL );
+	header->AddColumn( "flagID",     DBTYPE_I2 );
 	header->AddColumn( "singleton",  DBTYPE_BOOL );
 	header->AddColumn( "quantity",   DBTYPE_I4 );
 	header->AddColumn( "groupID",    DBTYPE_I2 );
@@ -602,8 +601,7 @@ void InventoryItem::GetItemRow( PyPackedRow* into ) const
     into->SetField( "typeID",     new PyInt( typeID() ) );
     into->SetField( "locationID", new PyInt( locationID() ) );
     into->SetField( "ownerID",    new PyInt( ownerID() ) );
-    into->SetField( "flag",       new PyInt( flag() ) );
-    into->SetField( "contraband", new PyBool( contraband() ) );
+    into->SetField( "flagID",     new PyInt( flag() ) );
     into->SetField( "singleton",  new PyBool( singleton() ) );
     into->SetField( "quantity",   new PyInt( quantity() ) );
     into->SetField( "groupID",    new PyInt( groupID() ) );

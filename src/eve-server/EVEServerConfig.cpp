@@ -67,9 +67,11 @@ EVEServerConfig::EVEServerConfig()
     files.log = "../log/eve-server.log";
     files.logSettings = "../etc/log.ini";
     files.cacheDir = "";
+	files.imageDir = "../images/";
 
     // net
     net.port = 26001;
+	net.imageServer = "localhost";
 }
 
 bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
@@ -143,12 +145,14 @@ bool EVEServerConfig::ProcessFiles( const TiXmlElement* ele )
     AddValueParser( "log",         files.log );
     AddValueParser( "logSettings", files.logSettings );
     AddValueParser( "cacheDir",    files.cacheDir );
+	AddValueParser( "imageDir",	   files.imageDir );
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "log" );
     RemoveParser( "logSettings" );
     RemoveParser( "cacheDir" );
+	RemoveParser( "imageDir" );
 
     return result;
 }
@@ -156,10 +160,12 @@ bool EVEServerConfig::ProcessFiles( const TiXmlElement* ele )
 bool EVEServerConfig::ProcessNet( const TiXmlElement* ele )
 {
     AddValueParser( "port", net.port );
+	AddValueParser( "imageServer", net.imageServer);
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "port" );
+	RemoveParser( "imageServer" );
 
     return result;
 }

@@ -152,7 +152,7 @@ public:
 
     uint32 GetAccountType() const                   { return mSession.GetCurrentInt( "userType" ); }
     uint32 GetAccountID() const                     { return mSession.GetCurrentInt( "userid" ); }
-	uint32 GetAccountRole() const                   { return mSession.GetCurrentInt( "role" ); }
+	uint64 GetAccountRole() const                   { return mSession.GetCurrentLong( "role" ); }
 
 	uint32 GetCharacterID() const                   { return mSession.GetCurrentInt( "charid" ); }
         std::string GetCharacterName() const            { return mSession.GetCurrentString( "charname" ); }
@@ -321,11 +321,11 @@ protected:
     /********************************************************************/
     /* EVEClientSession interface                                       */
     /********************************************************************/
-    void _GetVersion( VersionExchange& version );
+    void _GetVersion( VersionExchangeServer& version );
     uint32 _GetUserCount();
     uint32 _GetQueuePosition() { /* hack */ return 1; }
 
-    bool _VerifyVersion( VersionExchange& version );
+    bool _VerifyVersion( VersionExchangeClient& version );
     bool _VerifyCrypto( CryptoRequestPacket& cr );
     bool _VerifyLogin( CryptoChallengePacket& ccp );
     bool _VerifyVIPKey( const std::string& vipKey ) { /* do nothing */ return true; }

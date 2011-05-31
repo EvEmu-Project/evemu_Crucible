@@ -77,7 +77,25 @@ InvBrokerService::InvBrokerService(PyServiceMgr *mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-    //PyCallable_REG_CALL(InvBrokerService, MachoBindObject)
+	PyCallable_REG_CALL(InvBrokerService, GetItemDescriptor)
+}
+
+PyResult InvBrokerService::Handle_GetItemDescriptor(PyCallArgs &call)
+{
+	// not really clear on the use of this one? just a general header update?!
+	// from Inventory::List
+	DBRowDescriptor* header = new DBRowDescriptor;
+	header->AddColumn( "itemID",     DBTYPE_I4 );
+	header->AddColumn( "typeID",     DBTYPE_I2 );
+	header->AddColumn( "ownerID",    DBTYPE_I4 );
+	header->AddColumn( "locationID", DBTYPE_I4 );
+	header->AddColumn( "flagID",     DBTYPE_I2 );
+	header->AddColumn( "singleton",  DBTYPE_BOOL );
+	header->AddColumn( "quantity",   DBTYPE_I4 );
+	header->AddColumn( "groupID",    DBTYPE_I2 );
+	header->AddColumn( "categoryID", DBTYPE_UI1 );
+	header->AddColumn( "customInfo", DBTYPE_STR );
+	return header;
 }
 
 InvBrokerService::~InvBrokerService() {

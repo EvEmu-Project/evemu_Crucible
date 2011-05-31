@@ -40,8 +40,8 @@ class CharacterDB : public ServiceDB
 public:
 	CharacterDB();
 
-	PyObject *GetCharacterList(uint32 accountID);
-	PyObject *GetCharSelectInfo(uint32 characterID);
+	PyRep *GetCharacterList(uint32 accountID);
+	PyRep *GetCharSelectInfo(uint32 characterID);
 	PyObject *GetCharPublicInfo(uint32 characterID);
 	PyObject *GetCharPublicInfo3(uint32 characterID);
 	//PyObject *GetAgentPublicInfo(uint32 agentID);

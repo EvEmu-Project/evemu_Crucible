@@ -565,6 +565,18 @@ int32 DBResultRow::GetInt( uint32 index ) const
     return strtol( GetText( index ), NULL, 0 );
 }
 
+bool DBResultRow::GetBool( uint32 index ) const
+{
+#ifdef COLUMN_BOUNDS_CHECKING
+	if( index >= ColumnCount() )
+	{
+		sLog.Error( "DBCore Result Row", "GetInt: Column index %u exceeds number of columns (%u) in row", index, ColumnCount() );
+		return 0;       //nothing better to do...
+	}
+#endif
+	return GetText(index)[0] == 1;
+}
+
 uint32 DBResultRow::GetUInt( uint32 index ) const
 {
 #ifdef COLUMN_BOUNDS_CHECKING

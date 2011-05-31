@@ -26,9 +26,7 @@
 
 #include "EVEServerPCH.h"
 
-
 PyCallable_Make_InnerDispatcher(OnlineStatusService)
-
 
 OnlineStatusService::OnlineStatusService(PyServiceMgr *mgr)
 : PyService(mgr, "onlineStatus"),
@@ -43,16 +41,13 @@ OnlineStatusService::~OnlineStatusService() {
 	delete m_dispatch;
 }
 
-
 PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
 
-	//this is used to query the initial online state of all friends.
+	// this is used to query the initial online state of all friends. dummy.
 
-	util_Rowset rs;
-    rs.lines = new PyList;
-
-	rs.header.push_back( "characterID" );
-	rs.header.push_back( "online" );
-
-	return rs.Encode();
+	DBRowDescriptor *header = new DBRowDescriptor();
+	header->AddColumn("contactID", DBTYPE_I4);
+	header->AddColumn("online", DBTYPE_I4);
+	CRowSet *rowset = new CRowSet( &header );
+	return rowset;
 }

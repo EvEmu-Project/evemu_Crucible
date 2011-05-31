@@ -511,7 +511,7 @@ enum {
 */
 
 struct BallHeader {
-    uint32 entityID;
+    uint64 entityID;
     uint8 mode;		//see DSTBALL_
     double radius;	//7.230769230769231e-3
     double x;	//1.33638303942e12

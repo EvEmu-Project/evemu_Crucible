@@ -26,9 +26,26 @@
 #include "EVEServerPCH.h"
 
 const char *const ObjCacheService::LoginCachableObjects[] = {
+	"config.BulkData.paperdollResources",
 	"config.BulkData.ramactivities",
 	"config.BulkData.billtypes",
+	"config.BulkData.bloodlineNames",
+	"config.BulkData.locationscenes",
+	"config.BulkData.overviewDefaults",
+	"config.BulkData.schematicspinmap",
 	"config.Bloodlines",
+	"config.BulkData.overviewDefaultGroups",
+	"config.BulkData.schematics",
+	"config.BulkData.paperdollColors",
+	"config.BulkData.schematicstypemap",
+	"config.BulkData.sounds",
+	"config.BulkData.invtypematerials",
+	"config.BulkData.ownericons",
+	"config.BulkData.paperdollModifierLocations",
+	"config.BulkData.paperdollSculptingLocations",
+	"config.BulkData.paperdollColorNames",
+	"config.BulkData.paperdollColorRestrictions",
+	"config.BulkData.icons",
 	"config.Units",
 	"config.BulkData.tickernames",
 	"config.BulkData.ramtyperequirements",
@@ -40,7 +57,6 @@ const char *const ObjCacheService::LoginCachableObjects[] = {
 	"config.BulkData.invtypereactions",
 	"config.BulkData.dgmtypeeffects",
 	"config.BulkData.metagroups",
-	"config.BulkData.ramtypematerials",
 	"config.BulkData.ramaltypesdetailpercategory",
 	"config.BulkData.owners",
 	"config.StaticOwners",
@@ -104,6 +120,15 @@ const char *const ObjCacheService::AppearanceCachableObjects[] = {
 };
 const uint32 ObjCacheService::AppearanceCachableObjectCount = sizeof(ObjCacheService::AppearanceCachableObjects) / sizeof(const char *);
 
+const char *const ObjCacheService::CharCreateNewExtraCachableObjects[] = {
+	"charNewExtraCreationInfo.raceskills",
+	"charNewExtraCreationInfo.careerskills",
+	"charNewExtraCreationInfo.specialityskills",
+	"charNewExtraCreationInfo.careers",
+	"charNewExtraCreationInfo.specialities"
+};
+const uint32 ObjCacheService::CharCreateNewExtraCachableObjectCount = sizeof(ObjCacheService::CharCreateNewExtraCachableObjects) / sizeof(const char *);
+
 PyCallable_Make_InnerDispatcher(ObjCacheService)
 
 ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
@@ -116,6 +141,23 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
 	PyCallable_REG_CALL(ObjCacheService, GetCachableObject)
 
 	//register full name -> short key in m_cacheKeys
+	m_cacheKeys["config.BulkData.paperdollResources"] = "config.BulkData.paperdollResources";
+	m_cacheKeys["config.BulkData.bloodlineNames"] = "config.BulkData.bloodlineNames";
+	m_cacheKeys["config.BulkData.locationscenes"] = "config.BulkData.locationscenes";
+	m_cacheKeys["config.BulkData.overviewDefaults"] = "config.BulkData.overviewDefaults";
+	m_cacheKeys["config.BulkData.schematicspinmap"] = "config.BulkData.schematicspinmap";
+	m_cacheKeys["config.BulkData.overviewDefaultGroups"] = "config.BulkData.overviewDefaultGroups";
+	m_cacheKeys["config.BulkData.schematics"] = "config.BulkData.schematics";
+	m_cacheKeys["config.BulkData.paperdollColors"] = "config.BulkData.paperdollColors";
+	m_cacheKeys["config.BulkData.schematicstypemap"] = "config.BulkData.schematicstypemap";
+	m_cacheKeys["config.BulkData.sounds"] = "config.BulkData.sounds";
+	m_cacheKeys["config.BulkData.invtypematerials"] = "config.BulkData.invtypematerials";
+	m_cacheKeys["config.BulkData.ownericons"] = "config.BulkData.ownericons";
+	m_cacheKeys["config.BulkData.paperdollModifierLocations"] = "config.BulkData.paperdollModifierLocations";
+	m_cacheKeys["config.BulkData.paperdollSculptingLocations"] = "config.BulkData.paperdollSculptingLocations";
+	m_cacheKeys["config.BulkData.paperdollColorNames"] = "config.BulkData.paperdollColorNames";
+	m_cacheKeys["config.BulkData.paperdollColorRestrictions"] = "config.BulkData.paperdollColorRestrictions";
+	m_cacheKeys["config.BulkData.icons"] = "config.BulkData.icons";
 	m_cacheKeys["config.BulkData.billtypes"] = "config.BulkData.billtypes";
 	m_cacheKeys["config.BulkData.allianceshortnames"] = "config.BulkData.allianceshortnames";
 	m_cacheKeys["config.BulkData.categories"] = "config.BulkData.categories";
@@ -130,8 +172,6 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
 	m_cacheKeys["config.BulkData.ramaltypesdetailpercategory"] = "config.BulkData.ramaltypesdetailpercategory";
 	m_cacheKeys["config.BulkData.ramaltypes"] = "config.BulkData.ramaltypes";
 	m_cacheKeys["config.BulkData.ramcompletedstatuses"] = "config.BulkData.ramcompletedstatuses";
-	m_cacheKeys["config.BulkData.ramtypematerials"] = "config.BulkData.ramtypematerials";
-
 	m_cacheKeys["config.BulkData.ramtyperequirements"] = "config.BulkData.ramtyperequirements";
 	m_cacheKeys["config.BulkData.mapcelestialdescriptions"] = "config.BulkData.mapcelestialdescriptions";
 	m_cacheKeys["config.BulkData.tickernames"] = "config.BulkData.tickernames";
@@ -187,7 +227,11 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
 	m_cacheKeys["charCreationInfo.skins"] = "skins";
 	m_cacheKeys["charCreationInfo.lipsticks"] = "lipsticks";
 
-	m_cacheKeys["dogmaIM.attributesByName"] = "dogmaIM.attributesByName";
+	m_cacheKeys["charNewExtraCreationInfo.raceskills"] = "raceskills";
+	m_cacheKeys["charNewExtraCreationInfo.careerskills"] = "careerskills";
+	m_cacheKeys["charNewExtraCreationInfo.specialityskills"] = "specialityskills";
+	m_cacheKeys["charNewExtraCreationInfo.careers"] = "careers";
+	m_cacheKeys["charNewExtraCreationInfo.specialities"] = "specialities";
 }
 
 ObjCacheService::~ObjCacheService() {
@@ -317,6 +361,10 @@ void ObjCacheService::InsertCacheHints(hintSet hset, PyDict *into) {
 	case hAppearanceCachables:
 		objects = AppearanceCachableObjects;
 		object_count = AppearanceCachableObjectCount;
+		break;
+	case hCharCreateNewExtraCachables:
+		objects = CharCreateNewExtraCachableObjects;
+		object_count = CharCreateNewExtraCachableObjectCount;
 		break;
 	}
 	if(objects == NULL)

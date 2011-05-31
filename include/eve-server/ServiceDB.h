@@ -54,7 +54,7 @@ public:
      * @param[out] role
      * @author 
      */
-    bool DoLogin( const char* login, const char* pass, uint32& accountID, uint32& role );
+    bool DoLogin( const char* login, const char* pass, uint32& accountID, uint64& role );
 
     //entity/item stuff:
     PyObject *GetSolRow(uint32 systemID) const;

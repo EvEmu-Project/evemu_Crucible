@@ -860,7 +860,7 @@ PyObject *Character::GetDescription() const
     return row.Encode();
 }
 
-PyList *Character::GetSkillQueue() {
+PyTuple *Character::GetSkillQueue() {
     // return skills from skill queue
     PyList *list = new PyList;
 
@@ -877,7 +877,14 @@ PyList *Character::GetSkillQueue() {
         list->AddItem( el.Encode() );
     }
 
-    return list;
+	// now encapsulate it in a tuple with the free points
+	PyTuple *tuple = new PyTuple(2);
+	tuple->SetItem(0, list);
+	// sending 0, as done on retail, doesn't fuck up calculation for some reason
+	// so we can take the same shortcut here
+	tuple->SetItem(1, new PyInt(0));
+
+    return tuple;
 }
 
 void Character::AddItem(InventoryItemRef item)

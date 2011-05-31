@@ -74,12 +74,12 @@ public:
 	PyCallable_DECL_CALL(RemoveImplantFromCharacter)
 	
 	/**
-	 * GetSkillQueue
+	 * GetSkillQueueAndFreePoints
 	 *
 	 * Gets the list of skill currently in
-	 * the skill queue for a character.
+	 * the skill queue for a character and the free points.
 	 */	
-	PyCallable_DECL_CALL(GetSkillQueue)
+	PyCallable_DECL_CALL(GetSkillQueueAndFreePoints)
 
 	/**
 	 * SaveSkillQueue

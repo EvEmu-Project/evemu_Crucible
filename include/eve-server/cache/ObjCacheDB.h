@@ -47,6 +47,29 @@ protected:
 	PyRep *DBResultToRowsetTuple(DBQueryResult &result);
 	
 	//declare all the generators
+	PyRep *Generate_PaperdollResources();
+	PyRep *Generate_PaperdollColors();
+	PyRep *Generate_PaperdollModifierLocations();
+	PyRep *Generate_PaperdollSculptingLocations();
+	PyRep *Generate_PaperdollColorNames();
+	PyRep *Generate_PaperdollColorRestrictions();
+	PyRep *Generate_BloodlineNames();
+	PyRep *Generate_Locationscenes();
+	PyRep *Generate_OverviewDefaults();
+	PyRep *Generate_Schematicspinmap();
+	PyRep *Generate_OverviewDefaultGroups();
+	PyRep *Generate_Schematics();
+	PyRep *Generate_Schematicstypemap();
+	PyRep *Generate_Sounds();
+	PyRep *Generate_Invtypematerials();
+	PyRep *Generate_Ownericons();
+	PyRep *Generate_Icons();
+	PyRep *Generate_CharNewExtraRaceSkills();
+	PyRep *Generate_CharNewExtraCareerSkills();
+	PyRep *Generate_CharNewExtraSpecialitySkills();
+	PyRep *Generate_CharNewExtraCareers();
+	PyRep *Generate_CharNewExtraSpecialities();
+
 	PyRep *Generate_BillTypes();
 	PyRep *Generate_AllianceShortnames();
 	PyRep *Generate_invCategories();
@@ -56,7 +79,6 @@ protected:
 	PyRep *Generate_dgmTypeEffects();
 	PyRep *Generate_dgmEffects();
 	PyRep *Generate_dgmAttribs();
-	PyRep *Generate_dgmAttributesByName();
 
 	PyRep *Generate_invMetaGroups();
 
@@ -65,7 +87,6 @@ protected:
 	PyRep *Generate_ramALTypeCategory();
 	PyRep *Generate_ramALTypes();
 	PyRep *Generate_ramCompletedStatuses();
-	PyRep *Generate_ramTypeMaterials();
 	PyRep *Generate_ramTypeRequirements();
 
 	PyRep *Generate_mapCelestialDescriptions();

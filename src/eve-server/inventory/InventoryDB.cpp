@@ -317,7 +317,7 @@ bool InventoryDB::GetShipType(uint32 shipTypeID, ShipTypeData &into) {
     if(!sDatabase.RunQuery(res,
         "SELECT"
         " weaponTypeID, miningTypeID, skillTypeID"
-        " FROM invShipTypes"
+        " FROM shipTypes"
         " WHERE shipTypeID = %u",
         shipTypeID))
     {
@@ -343,7 +343,7 @@ bool InventoryDB::GetStationType(uint32 stationTypeID, StationTypeData &into) {
 
     if(!sDatabase.RunQuery(res,
         "SELECT"
-        " dockingBayGraphicID, hangarGraphicID,"
+        " 0 as dockingBayGraphicID, 0 as hangarGraphicID,"
         " dockEntryX, dockEntryY, dockEntryZ,"
         " dockOrientationX, dockOrientationY, dockOrientationZ,"
         " operationID, officeSlots, reprocessingEfficiency, conquerable"

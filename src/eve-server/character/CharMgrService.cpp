@@ -28,7 +28,7 @@
 PyCallable_Make_InnerDispatcher(CharMgrService)
 
 CharMgrService::CharMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "charmgr"),
+: PyService(mgr, "charMgr"),
   m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
@@ -36,10 +36,41 @@ CharMgrService::CharMgrService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(CharMgrService, GetPublicInfo)
 	PyCallable_REG_CALL(CharMgrService, GetPublicInfo3)
 	PyCallable_REG_CALL(CharMgrService, GetTopBounties)
+	PyCallable_REG_CALL(CharMgrService, GetOwnerNoteLabels)
+	PyCallable_REG_CALL(CharMgrService, GetContactList)
 }
 
 CharMgrService::~CharMgrService() {
 	delete m_dispatch;
+}
+
+PyResult CharMgrService::Handle_GetContactList(PyCallArgs &call)
+{
+	// another dummy
+	DBRowDescriptor *header = new DBRowDescriptor();
+	header->AddColumn("contactID", DBTYPE_I4);
+	header->AddColumn("inWatchList", DBTYPE_BOOL);
+	header->AddColumn("relationshipID", DBTYPE_R8);
+	header->AddColumn("labelMask", DBTYPE_I8);
+	CRowSet *rowset = new CRowSet( &header );
+
+	PyDict* dict = new PyDict();
+	dict->SetItemString("addresses", rowset);
+	dict->SetItemString("blocked", rowset);
+	PyObject *keyVal = new PyObject(new PyString("util.KeyVal"), dict);
+
+	return keyVal;
+}
+
+PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
+{
+	// just a dummy for now
+	DBRowDescriptor *header = new DBRowDescriptor();
+	header->AddColumn("noteID", DBTYPE_I4);
+	header->AddColumn("label", DBTYPE_WSTR);
+	CRowSet *rowset = new CRowSet( &header );
+
+	return rowset;
 }
 
 PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {

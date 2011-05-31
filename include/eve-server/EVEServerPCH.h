@@ -43,6 +43,8 @@
 
 #include <utf8.h>
 
+#include <asio.hpp>
+
 /************************************************************************/
 /* common includes                                                      */
 /************************************************************************/
@@ -168,6 +170,10 @@
 #include "character/CharMgrService.h"
 #include "character/Skill.h"
 #include "character/SkillMgrService.h"
+#include "character/CharUnboundMgrService.h"
+#include "character/PaperDollService.h"
+#include "character/PhotoUploadService.h"
+#include "character/AggressionMgrService.h"
 
 // chat stuff
 #include "chat/kenny.h"
@@ -292,5 +298,11 @@
 
 #include "tutorial/TutorialDB.h"
 #include "tutorial/TutorialService.h"
+
+#include "imageserver/ImageServer.h"
+#include "imageserver/ImageServerConnection.h"
+#include "imageserver/ImageServerListener.h"
+
+#include "LiveUpdateDB.h"
 
 #endif//__EVE_SERVER_PCH_H__INCL__

@@ -56,7 +56,7 @@ void EVEClientSession::Reset()
         // Connection has been lost, there's no point in reset
         return;
 
-    VersionExchange version;
+    VersionExchangeServer version;
     _GetVersion( version );
 
     PyRep* r = version.Encode();
@@ -117,7 +117,7 @@ PyPacket* EVEClientSession::PopPacket()
 PyPacket* EVEClientSession::_HandleVersion( PyRep* rep )
 {
     //we are waiting for their version information...
-    VersionExchange ve;
+    VersionExchangeClient ve;
     if( !ve.Decode( &rep ) )
         sLog.Error("Network", "%s: Received invalid version exchange!", GetAddress().c_str());
     else if( _VerifyVersion( ve ) )

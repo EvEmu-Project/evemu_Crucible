@@ -1,0 +1,2 @@
+ALTER TABLE `account`
+	CHANGE COLUMN `role` `role` BIGINT(10) UNSIGNED NOT NULL DEFAULT '0' AFTER `password`;

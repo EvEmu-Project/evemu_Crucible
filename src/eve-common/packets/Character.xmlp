@@ -45,7 +45,7 @@
 	    <!-- 1 -->
 	    <bool name="loadTutorialDungeon" soft="true" />
 	    <!-- 2 -->
-	    <raw name="unknown" />
+	    <raw name="secondChoiceID" />
     </tupleInline>
   </elementDef>
 
@@ -94,6 +94,18 @@
       <int name="ancestryID" />
       <!-- 4: appearance -->
       <dictStr name="appearance" />
+    </tupleInline>
+  </elementDef>
+  
+    <elementDef name="CallCreateCharacterWithDoll">
+    <tupleInline>
+      <wstring name="name" />
+      <int name="bloodlineID" />
+      <int name="genderID" />
+      <int name="ancestryID" />
+      <raw name="charInfo" />
+      <raw name="portraitInfo" />
+      <int name="schoolID" />
     </tupleInline>
   </elementDef>
 

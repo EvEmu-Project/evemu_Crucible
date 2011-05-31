@@ -474,7 +474,7 @@ public:
 	 * This will get the skills from the skill queue for a character.
 	 * @author xanarox
 	*/
-	PyList *GetSkillQueue();
+	PyTuple *GetSkillQueue();
 
 	/*
 	 * Public fields:

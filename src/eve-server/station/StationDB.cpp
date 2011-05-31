@@ -109,6 +109,7 @@ PyRep *StationDB::DoGetStation(uint32 sid) {
 //serviceMask
 //stationTypeID
 
+// TODO: hangarGraphicID went missing. maybe no longer in the dump?
 PyRep *StationDB::GetStationItemBits(uint32 sid) {
 	DBQueryResult res;
 
@@ -116,7 +117,7 @@ PyRep *StationDB::GetStationItemBits(uint32 sid) {
 		" SELECT "
 		" staStations.stationID, "
 		" staStations.stationTypeID, staStations.corporationID AS ownerID, "
-		" staStationTypes.hangarGraphicID, "
+		" staStations.hangarGraphicID, "
 		// damn mysql returns the result of the sum as string and so it is sent to the client as string and so it freaks out...
 		" CAST(SUM(staOperationServices.serviceID) as UNSIGNED INTEGER) AS serviceMask "
 		" FROM staStations "
@@ -126,13 +127,13 @@ PyRep *StationDB::GetStationItemBits(uint32 sid) {
 		" GROUP BY staStations.stationID ", sid
 	))
 	{
-		_log(SERVICE__ERROR, "Error in DoGetStation query: %s", res.error.c_str());
+		_log(SERVICE__ERROR, "Error in GetStationItemBits query: %s", res.error.c_str());
 		return NULL;
 	}
 
 	DBResultRow row;
 	if(!res.GetRow(row)) {
-		_log(SERVICE__ERROR, "Error in DoGetStation query: no station for id %d", sid);
+		_log(SERVICE__ERROR, "Error in GetStationItemBits query: no station for id %d", sid);
 		return NULL;
 	}
 

@@ -214,7 +214,7 @@
       <!-- 0 -->
       <list name="channels" />
       <!-- 1 -->
-      <int name="unknown" />
+      <long name="role" />
     </tupleInline>
   </elementDef>
 
