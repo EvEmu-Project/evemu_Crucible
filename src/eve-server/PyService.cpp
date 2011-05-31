@@ -40,14 +40,14 @@ PyService::~PyService()
 PyResult PyService::Call(const std::string &method, PyCallArgs &args) {
 	if(method == "MachoBindObject") {
 		_log(SERVICE__CALLS, "Service %s: handling MachoBindObject request directly", GetName());
-		return(Handle_MachoBindObject(args));
+		return Handle_MachoBindObject(args);
 	} else if(method == "MachoResolveObject"){
 		_log(SERVICE__CALLS, "Service %s: handling MachoResolveObject request directly", GetName());
-		return(Handle_MachoResolveObject(args));
+		return Handle_MachoResolveObject(args);
 	} else {
 		_log(SERVICE__CALLS, "Service %s: calling %s", GetName(), method.c_str());
 		args.Dump(SERVICE__CALL_TRACE);
-		return(PyCallable::Call(method, args));
+		return PyCallable::Call(method, args);
 	}
 }
 
