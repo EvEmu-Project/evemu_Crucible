@@ -178,3 +178,9 @@ PyObject *PyService::_BuildCachedReturn( PySubStream** in_result, const char* se
 	
 	return cached.Encode();
 }
+
+PyBoundObject * PyService::_CreateBoundObject( Client *c, const PyRep *bind_args )
+{
+    __asm{int 3};
+    return NULL;
+}

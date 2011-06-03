@@ -59,12 +59,12 @@ bool ImageServer::CreateNewDirectory(std::string& path)
 	return mkdir(path.c_str(), 777) == 0;
 }
 
-void ImageServer::ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char>> imageData)
+void ImageServer::ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char>> imageData)
 {
 	Lock lock(_limboLock);
 
 	if (_limboImages.find(accountID) != _limboImages.end())
-		_limboImages.insert(std::pair<uint32,std::shared_ptr<std::vector<char>>>(accountID, imageData));
+		_limboImages.insert(std::pair<uint32,std::tr1::shared_ptr<std::vector<char>>>(accountID, imageData));
 	else
 		_limboImages[accountID] = imageData;
 }
@@ -78,13 +78,21 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
 		return;
 
 	// we have, so save it
-	std::ofstream stream;
+	//std::ofstream stream;
 	std::string path(GetFilePath(std::string("Character"), characterID, 512));
-	stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
-	auto data = _limboImages[creatorAccountID];
-	std::copy(data->begin(), data->end(), std::ostream_iterator<char>(stream));
-	stream.flush();
-	stream.close();
+    FILE * fp = fopen(path.c_str(), "wb");
+    
+	//stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
+	std::tr1::shared_ptr<std::vector<char>> data = _limboImages[creatorAccountID];
+
+    
+
+    fwrite(&((*data)[0]), 1, data->size(), fp);
+    fclose(fp);
+    
+	//std::copy(data->begin(), data->end(), std::ostream_iterator<char>(stream));
+	//stream.flush();
+	//stream.close();
 
 	// and delete it from our limbo map
 	_limboImages.erase(creatorAccountID);
@@ -92,35 +100,43 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
 	sLog.Log("image server", "saved image from %i as %s", creatorAccountID, path.c_str());
 }
 
-std::shared_ptr<std::vector<char>> ImageServer::GetImage(std::string& category, uint32 id, uint32 size)
+std::tr1::shared_ptr<std::vector<char>> ImageServer::GetImage(std::string& category, uint32 id, uint32 size)
 {
 	if (!ValidateCategory(category) || !ValidateSize(category, size))
-		return std::shared_ptr<std::vector<char>>();
+		return std::tr1::shared_ptr<std::vector<char>>();
 
-	std::ifstream stream;
+	//std::ifstream stream;
 	std::string path(GetFilePath(category, id, size));
-	stream.open(path, std::ios::binary | std::ios::in);
+    FILE * fp = fopen(path.c_str(), "rb");
+    if (fp == NULL)
+        return std::tr1::shared_ptr<std::vector<char>>();
+    fseek(fp, 0, SEEK_END);
+    size_t length = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+	//stream.open(path, std::ios::binary | std::ios::in);
 	// not found or other error
-	if (stream.fail())
-		return std::shared_ptr<std::vector<char>>();
+	//if (stream.fail())
+	//	return std::tr1::shared_ptr<std::vector<char>>();
 
 	// get length
-	stream.seekg(0, std::ios::end);
-	int length = stream.tellg();
-	stream.seekg(0, std::ios::beg);
+	//stream.seekg(0, std::ios::end);
+	//int length = stream.tellg();
+	//stream.seekg(0, std::ios::beg);
 
-	auto ret = std::shared_ptr<std::vector<char>>(new std::vector<char>());
+	std::tr1::shared_ptr<std::vector<char>> ret = std::tr1::shared_ptr<std::vector<char>>(new std::vector<char>());
 	ret->resize(length);
 
 	// HACK
-	stream.read(&((*ret)[0]), length);
+	//stream.read(&((*ret)[0]), length);
+    fread(&((*ret)[0]), 1, length, fp);
 
 	return ret;
 }
 
 std::string ImageServer::GetFilePath(std::string& category, uint32 id, uint32 size)
 {
-	auto extension = category == "Character" ? "jpg" : "png";
+    std::string extension = category == "Character" ? "jpg" : "png";
 
 	// HACK: We don't have any other
 	size = 512;
@@ -160,12 +176,12 @@ std::string& ImageServer::url()
 
 void ImageServer::Run()
 {
-	_ioThread = std::auto_ptr<asio::thread>(new asio::thread(std::bind(&ImageServer::RunInternal, this)));
+    _ioThread = std::auto_ptr<asio::thread>(new asio::thread(std::tr1::bind(&ImageServer::RunInternal, this)));
 }
 
 void ImageServer::RunInternal()
 {
-	_io = std::auto_ptr<asio::io_service>(new asio::io_service());
+    _io = std::auto_ptr<asio::io_service>(new asio::io_service());
 	_listener = std::auto_ptr<ImageServerListener>(new ImageServerListener(*_io));
 	_io->run();
 }

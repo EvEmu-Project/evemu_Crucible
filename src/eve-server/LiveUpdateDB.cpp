@@ -27,7 +27,7 @@
 
 PyList* LiveUpdateDB::GenerateUpdates()
 {
-	auto query = "SELECT updateID, updateName, description, machoVersionMin, machoVersionMax, buildNumberMin, buildNumberMax, methodName, objectID, codeType, code FROM liveupdates";
+	const char* query = "SELECT updateID, updateName, description, machoVersionMin, machoVersionMax, buildNumberMin, buildNumberMax, methodName, objectID, codeType, code FROM liveupdates";
 	DBQueryResult res;
 
 	if (!sDatabase.RunQuery(res, query))
@@ -37,7 +37,7 @@ PyList* LiveUpdateDB::GenerateUpdates()
 	}
 
 	// setup the descriptor
-	auto header = new DBRowDescriptor();
+	DBRowDescriptor* header = new DBRowDescriptor();
 	header->AddColumn("updateID", DBTYPE_I4);
 	header->AddColumn("updateName", DBTYPE_WSTR);
 	header->AddColumn("description", DBTYPE_WSTR);
@@ -48,12 +48,12 @@ PyList* LiveUpdateDB::GenerateUpdates()
 	header->AddColumn("code", DBTYPE_STR);
 
 	// we need to manually create PyPackedRows since we don't want everything from the query in them
-	auto list = new PyList(res.GetRowCount());
+	PyList* list = new PyList(res.GetRowCount());
 	int listIndex = 0;
 	DBResultRow row;
 	while (res.GetRow(row))
 	{
-		auto packedRow = new PyPackedRow(header);
+		PyPackedRow* packedRow = new PyPackedRow(header);
 		for (int i = 0; i < 7; i++)
 			packedRow->SetField(i, DBColumnToPyRep(row, i));
 		PyIncRef(header);

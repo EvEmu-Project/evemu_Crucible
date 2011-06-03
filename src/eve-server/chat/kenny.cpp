@@ -24,32 +24,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-//#include <stdio.h>
 #include "EVEServerPCH.h"
 
 #define NORMAL 		0
 #define KENNYSPEAK 	1
-#define FALSE		0
-#define TRUE		1
 
-/*
-void usage (void)
-{
-	printf("kenny STRING\n");
-}
-*/
-
-int is_kennyspeak (char *str) 
+/* not used....
+bool is_kennyspeak (char *str) 
 {
 	int i=0;
 	for (i=0; i < strlen(str); i++) {
 		if ((*str >= 'a' && *str <= 'z' && *str != 'm' && *str != 'f' && *str != 'p')
 		 || (*str >= 'A' && *str <= 'Z' && *str != 'M' && *str != 'F' && *str != 'P')) 
-			return FALSE;
+			return false;
 		*str++;
 	}
-	return TRUE;
+	return true;
 }
+*/
 
 void normal_to_kennyspeak (std::string str, std::string &kenny_text)
 {
@@ -217,34 +209,3 @@ void kennyspeak_to_normal (std::string str, std::string &normal_text)
 		i+=3;
 	}
 }
-
-/*
-int main (int argc, char *argv[])
-{
-	if (argc < 2 || !strncmp(argv[1],"--help",6)) {
-		usage();
-	} else if (!strncmp(argv[1],"greggles is a steggles",22)) {
-		printf("oh yes he is\n");
-	} else if (!strncmp(argv[1],"hellokohan",10)) {
-		printf("fittzuzfa!\n");
-	} else if (!strncmp(argv[1],"ik!",3)) {
-		printf("\"ik!\" is not an easter egg.\n");
-	} else if (!strncmp(argv[1],"ik",2)) {
-		printf("\"ik\" was Simon's idea, not mine!\n");
-	} else if (!strncmp(argv[1],"ingy",4)) {
-		printf("\"Sad eggs....\"\n\n- Ingy\nwww.ingy.net\n");
-	} else if (!strncmp(argv[1],"CS302",5)) {
-		printf("Pat Quincy Upbottom\n");
-	} else if (!strncmp(argv[1],"Aeolas",6)) {
-		printf("Aeolas thinks KennySpeak sounds like "
-                       "someone getting head....\n\n"
-                       "http://pub28.ezboard.com/ftweetysnestofr"
-                       "eaksfrm1.showMessage?topicID=701.topic\n");
-	} else if (is_kennyspeak(argv[1])) {
-		printf("%s\n", to_normal(argv[1]));
-	} else {
-		printf("%s\n", to_kennyspeak(argv[1]));
-	}
-	return 0;
-}
-*/

@@ -82,7 +82,7 @@ PyBoundObject *WarRegistryService::_CreateBoundObject(Client *c, const PyRep *bi
 	}
 	//arg1 = corporationID
 	//arg2 = ???
-	return(new WarRegistryBound(m_manager, args.arg1));
+	return new WarRegistryBound(m_manager, args.arg1);
 }
 
 PyResult WarRegistryBound::Handle_GetWars( PyCallArgs& call )

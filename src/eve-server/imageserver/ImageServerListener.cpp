@@ -39,11 +39,11 @@ ImageServerListener::~ImageServerListener()
 
 void ImageServerListener::StartAccept()
 {
-	auto connection = ImageServerConnection::create(_acceptor->get_io_service());
-	_acceptor->async_accept(connection->socket(), std::bind(&ImageServerListener::HandleAccept, this, connection));
+    std::tr1::shared_ptr<ImageServerConnection> connection = ImageServerConnection::create(_acceptor->get_io_service());
+	_acceptor->async_accept(connection->socket(), std::tr1::bind(&ImageServerListener::HandleAccept, this, connection));
 }
 
-void ImageServerListener::HandleAccept(std::shared_ptr<ImageServerConnection> connection)
+void ImageServerListener::HandleAccept(std::tr1::shared_ptr<ImageServerConnection> connection)
 {
 	connection->Process();
 	StartAccept();

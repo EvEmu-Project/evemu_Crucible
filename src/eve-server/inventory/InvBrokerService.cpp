@@ -114,7 +114,7 @@ PyBoundObject *InvBrokerService::_CreateBoundObject(Client *c, const PyRep *bind
     _log(CLIENT__MESSAGE, "InvBrokerService bind request for:");
     args.Dump(CLIENT__MESSAGE, "    ");
 
-    return(new InvBrokerBound(m_manager, args.entityID));
+    return new InvBrokerBound(m_manager, args.entityID);
 }
 
 //this is a view into the entire inventory item.

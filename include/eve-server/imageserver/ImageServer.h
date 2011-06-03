@@ -54,11 +54,11 @@ public:
 
 	std::string& url();
 
-	void ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char>> imageData);
+    void ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char>> imageData);
 	void ReportNewCharacter(uint32 creatorAccountID, uint32 characterID);
 
 	std::string GetFilePath(std::string& category, uint32 id, uint32 size);
-	std::shared_ptr<std::vector<char>> GetImage(std::string& category, uint32 id, uint32 size);
+    std::tr1::shared_ptr<std::vector<char>> GetImage(std::string& category, uint32 id, uint32 size);
 
 	static const char *const Categories[];
 	static const uint32 CategoryCount;
@@ -73,7 +73,7 @@ private:
 	bool ValidateSize(std::string& category, uint32 size);
 	static bool CreateNewDirectory(std::string& path);
 
-	std::unordered_map<uint32 /*accountID*/, std::shared_ptr<std::vector<char>> /*imageData*/> _limboImages;
+    std::tr1::unordered_map<uint32 /*accountID*/, std::tr1::shared_ptr<std::vector<char>> /*imageData*/> _limboImages;
 	std::auto_ptr<asio::thread> _ioThread;
 	std::auto_ptr<asio::io_service> _io;
 	std::auto_ptr<ImageServerListener> _listener;
