@@ -348,8 +348,10 @@ void CachedObjectMgr::AddCacheHint(const char *oname, const char *key, PyDict *i
 }*/
 
 PySubStream* CachedObjectMgr::LoadCachedFile(const char *obj_name) {
-    PyString oname_str(obj_name);
-    return LoadCachedFile(&oname_str, obj_name);
+    PyString *oname_str = new PyString(obj_name);
+    PySubStream *sub = LoadCachedFile(oname_str, obj_name);
+    PySafeDecRef(oname_str);
+    return sub;
 }
 
 PySubStream *CachedObjectMgr::LoadCachedFile(PyRep *key, const char *oname) {
