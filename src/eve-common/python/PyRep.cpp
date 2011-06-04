@@ -97,11 +97,6 @@ int32 PyRep::hash() const
 PyInt::PyInt( const int32 i ) : PyRep( PyRep::PyTypeInt ), mValue( i ) {}
 PyInt::PyInt( const PyInt& oth ) : PyRep( PyRep::PyTypeInt ), mValue( oth.value() ) {}
 
-PyRep* PyInt::Clone() const
-{
-    return new PyInt( *this );
-}
-
 bool PyInt::visit( PyVisitor& v ) const
 {
     return v.VisitInteger( this );
@@ -122,11 +117,6 @@ int32 PyInt::hash() const
 /************************************************************************/
 PyLong::PyLong( const int64 i ) : PyRep( PyRep::PyTypeLong ), mValue( i ) {}
 PyLong::PyLong( const PyLong& oth ) : PyRep( PyRep::PyTypeLong ), mValue( oth.value() ) {}
-
-PyRep* PyLong::Clone() const
-{
-    return new PyLong( *this );
-}
 
 bool PyLong::visit( PyVisitor& v ) const
 {
@@ -185,11 +175,6 @@ int32 PyLong::hash() const
 /************************************************************************/
 PyFloat::PyFloat( const double& i ) : PyRep( PyRep::PyTypeFloat ), mValue( i ) {}
 PyFloat::PyFloat( const PyFloat& oth ) : PyRep( PyRep::PyTypeFloat ), mValue( oth.value() ) {}
-
-PyRep* PyFloat::Clone() const
-{
-	return new PyFloat( *this );
-}
 
 bool PyFloat::visit( PyVisitor& v ) const
 {
@@ -270,11 +255,6 @@ int32 PyFloat::hash() const
 PyBool::PyBool( bool i ) : PyRep( PyRep::PyTypeBool ), mValue( i ) {}
 PyBool::PyBool( const PyBool& oth ) : PyRep( PyRep::PyTypeBool ), mValue( oth.value() ) {}
 
-PyRep* PyBool::Clone() const
-{
-	return new PyBool( *this );
-}
-
 bool PyBool::visit( PyVisitor& v ) const
 {
 	return v.VisitBoolean( this );
@@ -285,11 +265,6 @@ bool PyBool::visit( PyVisitor& v ) const
 /************************************************************************/
 PyNone::PyNone() : PyRep( PyRep::PyTypeNone ) {}
 PyNone::PyNone( const PyNone& oth ) : PyRep( PyRep::PyTypeNone ) {}
-
-PyRep* PyNone::Clone() const
-{
-    return new PyNone( *this );
-}
 
 bool PyNone::visit( PyVisitor& v ) const
 {
@@ -314,11 +289,6 @@ PyBuffer::PyBuffer( const PyString& str ) : PyRep( PyRep::PyTypeBuffer ), mValue
 PyBuffer::PyBuffer( const PyBuffer& buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer.content() ) ), mHashCache( buffer.mHashCache ) {}
 
 PyBuffer::~PyBuffer() { delete mValue; }
-
-PyRep* PyBuffer::Clone() const
-{
-	return new PyBuffer( *this );
-}
 
 bool PyBuffer::visit( PyVisitor& v ) const
 {
@@ -378,11 +348,6 @@ PyString::PyString( const PyBuffer& buf ) : PyRep( PyRep::PyTypeString ), mValue
 PyString::PyString( const PyToken& token ) : PyRep( PyRep::PyTypeString ), mValue( token.content() ), mHashCache( -1 ) {}
 PyString::PyString( const PyString& oth ) : PyRep( PyRep::PyTypeString ), mValue( oth.mValue ), mHashCache( oth.mHashCache ) {}
 
-PyRep* PyString::Clone() const
-{
-	return new PyString( *this );
-}
-
 bool PyString::visit( PyVisitor& v ) const
 {
 	return v.VisitString( this );
@@ -418,11 +383,6 @@ PyWString::PyWString( const std::string& str ) : PyRep( PyRep::PyTypeWString ), 
 
 PyWString::PyWString( const PyString& str ) : PyRep( PyRep::PyTypeWString ), mValue( str.content() ), mHashCache( -1 ) {}
 PyWString::PyWString( const PyWString& oth ) : PyRep( PyRep::PyTypeWString ), mValue( oth.mValue ), mHashCache( oth.mHashCache ) {}
-
-PyRep* PyWString::Clone() const
-{
-    return new PyWString( *this );
-}
 
 bool PyWString::visit( PyVisitor& v ) const
 {
@@ -466,11 +426,6 @@ PyToken::PyToken( const std::string& token ) : PyRep( PyRep::PyTypeToken ), mVal
 PyToken::PyToken( const PyString& token ) : PyRep( PyRep::PyTypeToken ), mValue( token.content() ) {}
 PyToken::PyToken( const PyToken& oth ) : PyRep( PyRep::PyTypeToken ), mValue( oth.content() ) {}
 
-PyRep* PyToken::Clone() const
-{
-    return new PyToken( *this );
-}
-
 bool PyToken::visit( PyVisitor& v ) const
 {
     return v.VisitToken( this );
@@ -480,20 +435,16 @@ bool PyToken::visit( PyVisitor& v ) const
 /* PyRep Tuple Class                                                    */
 /************************************************************************/
 PyTuple::PyTuple( size_t item_count ) : PyRep( PyRep::PyTypeTuple ), items( item_count, NULL ) {}
-PyTuple::PyTuple( const PyTuple& oth ) : PyRep( PyRep::PyTypeTuple ), items()
+/*PyTuple::PyTuple( const PyTuple& oth ) : PyRep( PyRep::PyTypeTuple ), items()
 {
 	// Use assigment operator
 	*this = oth;
 }
+*/
 
 PyTuple::~PyTuple()
 {
     clear();
-}
-
-PyRep* PyTuple::Clone() const
-{
-	return new PyTuple( *this );
 }
 
 bool PyTuple::visit( PyVisitor& v ) const
@@ -511,7 +462,7 @@ void PyTuple::clear()
 
     items.clear();
 }
-
+/*
 PyTuple& PyTuple::operator=( const PyTuple& oth )
 {
 	clear();
@@ -534,6 +485,7 @@ PyTuple& PyTuple::operator=( const PyTuple& oth )
 
 	return *this;
 }
+*/
 
 int32 PyTuple::hash() const
 {
@@ -560,20 +512,16 @@ int32 PyTuple::hash() const
 /* PyRep List Class                                                     */
 /************************************************************************/
 PyList::PyList( size_t item_count ) : PyRep( PyRep::PyTypeList ), items( item_count, NULL ) {}
-PyList::PyList( const PyList& oth ) : PyRep( PyRep::PyTypeList ), items()
+/*PyList::PyList( const PyList& oth ) : PyRep( PyRep::PyTypeList ), items()
 {
 	// Use assigment operator
 	*this = oth;
 }
+*/
 
 PyList::~PyList()
 {
     clear();
-}
-
-PyRep* PyList::Clone() const
-{
-	return new PyList( *this );
 }
 
 bool PyList::visit( PyVisitor& v ) const
@@ -592,8 +540,9 @@ void PyList::clear()
     items.clear();
 }
 
-PyList& PyList::operator=( const PyList& oth )
+/*PyList& PyList::operator=( const PyList& oth )
 {
+    
 	clear();
 	items.resize( oth.size() );
 
@@ -614,26 +563,22 @@ PyList& PyList::operator=( const PyList& oth )
 	}
 
 	return *this;
-}
+}*/
+
 
 /************************************************************************/
 /* PyRep Dict Class                                                     */
 /************************************************************************/
 PyDict::PyDict() : PyRep( PyRep::PyTypeDict ), items() {}
-PyDict::PyDict( const PyDict& oth ) : PyRep( PyRep::PyTypeDict ), items()
+/*PyDict::PyDict( const PyDict& oth ) : PyRep( PyRep::PyTypeDict ), items()
 {
 	// Use assigment operator
 	*this = oth;
 }
-
+*/
 PyDict::~PyDict()
 {
     clear();
-}
-
-PyRep* PyDict::Clone() const
-{
-	return new PyDict( *this );
 }
 
 bool PyDict::visit( PyVisitor& v ) const
@@ -710,7 +655,7 @@ void PyDict::SetItem( PyRep* key, PyRep* value )
         itr->second = value;
     }
 }
-
+/*
 PyDict& PyDict::operator=( const PyDict& oth )
 {
 	clear();
@@ -728,21 +673,17 @@ PyDict& PyDict::operator=( const PyDict& oth )
 
 	return *this;
 }
+*/
 
 /************************************************************************/
 /* PyRep Object Class                                                   */
 /************************************************************************/
 PyObject::PyObject( PyString* type, PyRep* args ) : PyRep( PyRep::PyTypeObject ), mType( type ), mArguments( args ) {}
-PyObject::PyObject( const PyObject& oth ) : PyRep( PyRep::PyTypeObject ), mType( new PyString( *oth.type() ) ), mArguments( oth.arguments()->Clone() ) {}
+//PyObject::PyObject( const PyObject& oth ) : PyRep( PyRep::PyTypeObject ), mType( new PyString( *oth.type() ) ), mArguments( oth.arguments()->Clone() ) {}
 PyObject::~PyObject()
 {
     PyDecRef( mType );
     PyDecRef( mArguments );
-}
-
-PyRep* PyObject::Clone() const
-{
-	return new PyObject( *this );
 }
 
 bool PyObject::visit( PyVisitor& v ) const
@@ -754,12 +695,13 @@ bool PyObject::visit( PyVisitor& v ) const
 /* PyObjectEx                                                           */
 /************************************************************************/
 PyObjectEx::PyObjectEx( bool is_type_2, PyRep* header ) : PyRep( PyRep::PyTypeObjectEx ), mHeader( header ), mIsType2( is_type_2 ), mList( new PyList ), mDict( new PyDict ) {}
-PyObjectEx::PyObjectEx( const PyObjectEx& oth ) : PyRep( PyRep::PyTypeObjectEx ),
+/*PyObjectEx::PyObjectEx( const PyObjectEx& oth ) : PyRep( PyRep::PyTypeObjectEx ),
   mHeader( oth.header()->Clone() ), mIsType2( oth.isType2() ), mList( new PyList ), mDict( new PyDict )
 {
 	// Use assigment operator
 	*this = oth;
 }
+*/
 
 PyObjectEx::~PyObjectEx()
 {
@@ -769,23 +711,19 @@ PyObjectEx::~PyObjectEx()
     PyDecRef( mDict );
 }
 
-PyRep* PyObjectEx::Clone() const
-{
-	return new PyObjectEx( *this );
-}
-
 bool PyObjectEx::visit( PyVisitor& v ) const
 {
 	return v.VisitObjectEx( this );
 }
 
-PyObjectEx& PyObjectEx::operator=( const PyObjectEx& oth )
+/*PyObjectEx& PyObjectEx::operator=( const PyObjectEx& oth )
 {
 	list() = oth.list();
 	dict() = oth.dict();
 
 	return *this;
 }
+*/
 
 /************************************************************************/
 /* PyObjectEx_Type1                                                     */
@@ -899,23 +837,19 @@ PyTuple* PyObjectEx_Type2::_CreateHeader( PyTuple* args, PyDict* keywords )
 /* PyPackedRow                                                          */
 /************************************************************************/
 PyPackedRow::PyPackedRow( DBRowDescriptor* header ) : PyRep( PyRep::PyTypePackedRow ), mHeader( header ), mFields( new PyList( header->ColumnCount() ) ) {}
-PyPackedRow::PyPackedRow( const PyPackedRow& oth ) : PyRep( PyRep::PyTypePackedRow ),
+/*PyPackedRow::PyPackedRow( const PyPackedRow& oth ) : PyRep( PyRep::PyTypePackedRow ),
   mHeader( oth.header() ), mFields( new PyList( oth.header()->ColumnCount() ) )
 {
     PyIncRef( mHeader );
 
 	*this = oth;
 }
+*/
 
 PyPackedRow::~PyPackedRow()
 {
     PyDecRef( mHeader );
     PyDecRef( mFields );
-}
-
-PyRep* PyPackedRow::Clone() const
-{
-	return new PyPackedRow( *this );
 }
 
 bool PyPackedRow::visit( PyVisitor& v ) const
@@ -940,12 +874,13 @@ bool PyPackedRow::SetField( const char* colName, PyRep* value )
     return SetField( header()->FindColumn( colName ), value );
 }
 
-PyPackedRow& PyPackedRow::operator=( const PyPackedRow& oth )
+/*PyPackedRow& PyPackedRow::operator=( const PyPackedRow& oth )
 {
 	*mFields = *oth.mFields;
 
 	return *this;
 }
+*/
 
 int32 PyPackedRow::hash() const
 {
@@ -957,15 +892,10 @@ int32 PyPackedRow::hash() const
 /* PyRep SubStruct Class                                                */
 /************************************************************************/
 PySubStruct::PySubStruct( PyRep* t ) : PyRep( PyRep::PyTypeSubStruct ), mSub( t ) {}
-PySubStruct::PySubStruct( const PySubStruct& oth ) : PyRep( PyRep::PyTypeSubStruct ), mSub( oth.sub()->Clone() ) {}
+//PySubStruct::PySubStruct( const PySubStruct& oth ) : PyRep( PyRep::PyTypeSubStruct ), mSub( oth.sub()->Clone() ) {}
 PySubStruct::~PySubStruct()
 {
     PyDecRef( mSub );
-}
-
-PyRep* PySubStruct::Clone() const
-{
-	return new PySubStruct( *this );
 }
 
 bool PySubStruct::visit( PyVisitor& v ) const
@@ -978,18 +908,14 @@ bool PySubStruct::visit( PyVisitor& v ) const
 /************************************************************************/
 PySubStream::PySubStream( PyRep* rep ) : PyRep( PyRep::PyTypeSubStream ), mData( NULL ), mDecoded( rep ) {}
 PySubStream::PySubStream( PyBuffer* buffer ): PyRep(PyRep::PyTypeSubStream), mData(  buffer ), mDecoded( NULL ) {}
-PySubStream::PySubStream( const PySubStream& oth ) : PyRep(PyRep::PyTypeSubStream),
+/*PySubStream::PySubStream( const PySubStream& oth ) : PyRep(PyRep::PyTypeSubStream),
   mData( oth.data() == NULL ? NULL : new PyBuffer( *oth.data() ) ), mDecoded( oth.decoded() == NULL ? NULL : oth.decoded()->Clone() ) {}
+*/
 
 PySubStream::~PySubStream()
 {
 	PySafeDecRef( mData );
     PySafeDecRef( mDecoded );
-}
-
-PyRep* PySubStream::Clone() const
-{
-	return new PySubStream( *this );
 }
 
 bool PySubStream::visit( PyVisitor& v ) const
@@ -1027,20 +953,14 @@ void PySubStream::DecodeData() const
 /* PyRep ChecksumedStream Class                                         */
 /************************************************************************/
 PyChecksumedStream::PyChecksumedStream( PyRep* t, uint32 sum ) : PyRep( PyRep::PyTypeChecksumedStream ), mStream( t ), mChecksum( sum ) {}
-PyChecksumedStream::PyChecksumedStream( const PyChecksumedStream& oth ) : PyRep( PyRep::PyTypeChecksumedStream ), mStream( oth.stream()->Clone() ), mChecksum( oth.checksum() ) {}
+//PyChecksumedStream::PyChecksumedStream( const PyChecksumedStream& oth ) : PyRep( PyRep::PyTypeChecksumedStream ), mStream( oth.stream()->Clone() ), mChecksum( oth.checksum() ) {}
 PyChecksumedStream::~PyChecksumedStream()
 {
+    
     PyDecRef( mStream );
-}
-
-PyRep* PyChecksumedStream::Clone() const
-{
-	return new PyChecksumedStream( *this );
 }
 
 bool PyChecksumedStream::visit( PyVisitor& v ) const
 {
 	return v.VisitChecksumedStream( this );
 }
-
-

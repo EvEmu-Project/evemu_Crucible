@@ -649,7 +649,8 @@ PyRep* UnmarshalStream::LoadSavedStreamElement()
         return NULL;
 	}
 
-    return obj->Clone();
+    PyIncRef(obj);
+    return obj;
 }
 
 PyObjectEx* UnmarshalStream::LoadObjectEx( bool is_type_2 )

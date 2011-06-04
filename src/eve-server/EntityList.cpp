@@ -338,8 +338,9 @@ void EntityList::Multicast(const character_set &cset, const char *notifyType, co
 		} else {
 			if(*in_payload == NULL)
 				payload = NULL;
-			else
-				payload = (PyTuple *) (*in_payload)->Clone();
+            else {
+				payload = (PyTuple *) (*in_payload); PyIncRef(*in_payload);
+            }
 		}
 		
 		(*cur)->SendNotification(notifyType, idType, &payload, seq);

@@ -126,7 +126,7 @@ public:
 	PyRep *GetStationItemBits(uint32 sid);
 
 protected:
-	static storage thingy;
+	static storage g_station_db_storage;
 };
 
 #endif

@@ -25,16 +25,18 @@
 
 #include "EVEServerPCH.h"
 
-storage StationDB::thingy;
+storage StationDB::g_station_db_storage;
 
 StationDB::StationDB()
 {
-	thingy.load();
+	g_station_db_storage.load();
 }
 
 PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 	
-	return thingy.find(solarSystemID)->Clone();
+    PyRep* ret = (PyRep*)g_station_db_storage.find(solarSystemID);
+    PyIncRef(ret);
+	return ret;
 
 	// old code for reference.
 	/*DBQueryResult res;

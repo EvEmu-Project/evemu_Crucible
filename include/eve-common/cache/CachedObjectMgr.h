@@ -177,7 +177,7 @@ public:
     bool Decode(PySubStream **ss);   //consumes substream
     //PyRep *Encode();
     //PyRep *EncodeHint();
-    PyCachedCall *Clone() const;
+    //PyCachedCall *Clone() const;
 
     //rret:
         //objectCaching.CachedMethodCallResult object

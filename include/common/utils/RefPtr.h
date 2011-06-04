@@ -81,7 +81,7 @@ protected:
         assert( 0 < mRefCount );
         --mRefCount;
 
-        if( 0 == mRefCount )
+        if( 0 <= mRefCount )
             delete this;
     }
 

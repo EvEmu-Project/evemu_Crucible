@@ -186,7 +186,7 @@ public:
      *
      * @return Indentical copy of object.
      */
-    virtual PyRep* Clone() const = 0;
+    //virtual PyRep* Clone() const = 0;
     /**
      * @brief Visits object.
      *
@@ -227,7 +227,7 @@ public:
     PyInt( const int32 i );
 	PyInt( const PyInt& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     int32 value() const { return mValue; }
@@ -249,7 +249,7 @@ public:
     PyLong( const int64 i );
 	PyLong( const PyLong& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     int64 value() const { return mValue; }
@@ -271,7 +271,7 @@ public:
     PyFloat( const double& i );
 	PyFloat( const PyFloat& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     double value() const { return mValue; }
@@ -293,7 +293,7 @@ public:
     PyBool( bool i );
 	PyBool( const PyBool& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
 	bool value() const { return mValue; }
@@ -313,7 +313,7 @@ public:
     PyNone();
     PyNone( const PyNone& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     int32 hash() const;
@@ -344,7 +344,7 @@ public:
     /** Copy constructor. */
     PyBuffer( const PyBuffer& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     /**
@@ -395,7 +395,7 @@ public:
     /** Copy constructor. */
     PyString( const PyString& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     /**
@@ -434,7 +434,7 @@ public:
     /** Copy constructor. */
     PyWString( const PyWString& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     /**
@@ -481,7 +481,7 @@ public:
     /** Copy constructor. */
     PyToken( const PyToken& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     /**
@@ -508,9 +508,9 @@ public:
     typedef storage_type::const_iterator    const_iterator;
 
     PyTuple( size_t item_count );
-    PyTuple( const PyTuple& oth );
+    //PyTuple( const PyTuple& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     const_iterator begin() const { return items.begin(); }
@@ -549,7 +549,7 @@ public:
      * @param[in] oth Tuple the content of which is to be copied.
      * @return Itself.
      */
-    PyTuple& operator=( const PyTuple& oth );
+    //PyTuple& operator=( const PyTuple& oth );
 
     int32 hash() const;
 
@@ -573,9 +573,9 @@ public:
     typedef storage_type::const_iterator    const_iterator;
 
     PyList( size_t item_count = 0 );
-    PyList( const PyList& oth );
+    //PyList( const PyList& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     const_iterator begin() const { return items.begin(); }
@@ -627,7 +627,7 @@ public:
      * @param[in] oth List the content of which is to be copied.
      * @return Itself.
      */
-    PyList& operator=( const PyList& oth );
+    //PyList& operator=( const PyList& oth );
 
     // This needs to be public:
     storage_type items;
@@ -677,9 +677,9 @@ public:
     typedef storage_type::const_iterator                            const_iterator;
 
     PyDict();
-    PyDict( const PyDict& oth );
+    //PyDict( const PyDict& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     const_iterator begin() const { return items.begin(); }
@@ -733,7 +733,7 @@ public:
      * @param[in] oth PyDict the content of which is to be copied.
      * @return Itself.
      */
-    PyDict& operator=( const PyDict& oth );
+    //PyDict& operator=( const PyDict& oth );
 
     storage_type items;
 
@@ -753,7 +753,7 @@ public:
     PyObject( PyString* type, PyRep* args );
     PyObject( const PyObject& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     PyString* type() const { return mType; }
@@ -785,9 +785,9 @@ public:
     typedef dict_type::const_iterator       const_dict_iterator;
 
     PyObjectEx( bool is_type_2, PyRep* header );
-    PyObjectEx( const PyObjectEx& oth );
+    //PyObjectEx( const PyObjectEx& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     PyRep* header() const { return mHeader; }
@@ -805,7 +805,7 @@ public:
      * @param[in] oth PyObjectEx the content of which should be copied.
      * @return Itself.
      */
-    PyObjectEx& operator=( const PyObjectEx& oth );
+    //PyObjectEx& operator=( const PyObjectEx& oth );
 
 protected:
     virtual ~PyObjectEx();
@@ -872,7 +872,7 @@ public:
     PyPackedRow( DBRowDescriptor* header );
     PyPackedRow( const PyPackedRow& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     // Header:
@@ -894,7 +894,7 @@ public:
      * @param[in] oth PyPackedRow the content of which should be copied.
      * @return Itself.
      */
-    PyPackedRow& operator=( const PyPackedRow& oth );
+    //PyPackedRow& operator=( const PyPackedRow& oth );
 
     int32 hash() const;
 
@@ -911,7 +911,7 @@ public:
     PySubStruct( PyRep* t );
 	PySubStruct( const PySubStruct& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     PyRep* sub() const { return mSub; }
@@ -929,7 +929,7 @@ public:
     PySubStream( PyBuffer* buffer );
 	PySubStream( const PySubStream& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     PyBuffer* data() const { return mData; }
@@ -955,7 +955,7 @@ public:
     PyChecksumedStream( PyRep* t, uint32 sum );
 	PyChecksumedStream( const PyChecksumedStream& oth );
 
-    PyRep* Clone() const;
+    //PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
     PyRep* stream() const { return mStream; }
