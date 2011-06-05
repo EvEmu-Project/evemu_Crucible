@@ -29,11 +29,13 @@
 
 const char *const ImageServer::FallbackURL = "http://image.eveonline.com/";
 
-const char *const ImageServer::Categories[] = { "Alliance",
+const char *const ImageServer::Categories[] = {
+    "Alliance",
 	"Corporation",
 	"Character", 
 	"InventoryType",
 	"Render" };
+
 const uint32 ImageServer::CategoryCount = 5;
 
 ImageServer::ImageServer()
@@ -47,6 +49,7 @@ ImageServer::ImageServer()
 		_basePath += "/";
 
 	CreateNewDirectory(_basePath);
+
 	for (int i = 0; i < CategoryCount; i++)
 		CreateNewDirectory(_basePath + Categories[i]);
 
@@ -84,8 +87,6 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
     
 	//stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
 	std::tr1::shared_ptr<std::vector<char>> data = _limboImages[creatorAccountID];
-
-    
 
     fwrite(&((*data)[0]), 1, data->size(), fp);
     fclose(fp);

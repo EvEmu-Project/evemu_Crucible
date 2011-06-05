@@ -173,4 +173,3 @@ private:
 };
 
 #endif /* !__EVE_SESSION_H__INCL__ */
-
