@@ -138,7 +138,7 @@ PyPackedRow* CRowSet::NewRow()
     PyIncRef( rowDesc );
 
     PyPackedRow* row = new PyPackedRow( rowDesc );
-
+    
     list().AddItem( row );
 	return row;
 }
