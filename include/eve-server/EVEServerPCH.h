@@ -74,8 +74,6 @@
 /************************************************************************/
 /* eve-common includes                                                  */
 /************************************************************************/
-#include "EVEVersion.h"
-
 #include "cache/CachedObjectMgr.h"
 
 #include "database/EVEDBUtils.h"

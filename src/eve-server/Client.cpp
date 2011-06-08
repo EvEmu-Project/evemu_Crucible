@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+#include "EVEVersion.h"
 
 static const uint32 PING_INTERVAL_US = 60000;
 

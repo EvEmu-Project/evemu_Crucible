@@ -104,6 +104,7 @@ protected:
 
     class CacheRecord {
     public:
+        CacheRecord();
         ~CacheRecord();
 
         PyObject *EncodeHint() const;
@@ -113,7 +114,12 @@ protected:
         uint32 version;
         PyBuffer *cache; //we own this.
     };
-    std::map<std::string, CacheRecord *> m_cachedObjects;   //we own these pointers
+    typedef std::map<std::string, CacheRecord *>    CachedObjMap;
+    typedef CachedObjMap::iterator                  CachedObjMapItr;
+    typedef CachedObjMap::const_iterator            CachedObjMapConstItr;
+
+
+    CachedObjMap m_cachedObjects;   //we own these pointers
 };
 
 class PyCachedObject
