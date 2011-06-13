@@ -338,7 +338,7 @@
       <!-- 1 -->
       <bool name="unsubscribe" />
 	  <!-- 2 -->
-      <int name="unknown" />
+      <long name="unknown" />
     </tupleInline>
   </elementDef>
 

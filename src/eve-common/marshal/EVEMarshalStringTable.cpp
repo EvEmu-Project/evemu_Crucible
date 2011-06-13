@@ -226,14 +226,13 @@ const char* const MarshalStringTable::s_mStringTable[] =
     "agent.ResearchMissionDetails",
     "agent.StorylineMissionDetails",
 };
+
 const size_t MarshalStringTable::s_mStringTableSize = sizeof( MarshalStringTable::s_mStringTable ) / sizeof( const char* );
 
 MarshalStringTable::MarshalStringTable()
 {
     for( uint8 i = 1; i <= s_mStringTableSize; i++ )
-        mStringTableMap.insert(
-            std::make_pair( hash( LookupString( i ) ), i )
-        );
+        mStringTableMap.insert( std::make_pair( hash( LookupString( i ) ), i ) );
 }
 
 /* lookup a index using a string */

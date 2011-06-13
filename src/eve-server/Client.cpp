@@ -1546,7 +1546,6 @@ bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
 
     //send this before session change
     CryptoHandshakeAck ack;
-    ack.live_updates = new PyList;
     ack.jit = GetLanguageID();
     ack.userid = GetAccountID();
     ack.maxSessionTime = new PyNone;
