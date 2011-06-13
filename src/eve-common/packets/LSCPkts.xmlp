@@ -159,7 +159,7 @@
       <int name="corpID" />
       <int name="allianceID" />
 	  <int name="warFactionID" />
-      <int name="role" />
+      <long name="role" />
       <raw name="extra" />
     </listInline>
   </elementDef>
