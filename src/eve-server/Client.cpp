@@ -73,7 +73,6 @@ Client::~Client() {
         // and save all skill attributes to the Database:
         //mModulesMgr.SaveModules();                            // Save fitted Modules attributes to DB
         GetShip()->SaveAttributes();                        // Save Ship's attributes to DB
-        //GetShip()->mAttributeMap.Save();                  // Save Ship's attributes to DB
         GetChar()->SaveCharacter();                         // Save Character info to DB
         GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
 

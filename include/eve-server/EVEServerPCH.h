@@ -154,6 +154,8 @@
 #include "admin/PetitionerService.h"
 #include "admin/SlashService.h"
 
+#include "browser/browserLockdownSvc.h"
+
 // client object cache stuff
 #include "cache/ObjCacheService.h"
 #include "cache/ObjCacheDB.h"

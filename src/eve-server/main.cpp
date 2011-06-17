@@ -147,6 +147,7 @@ int main( int argc, char* argv[] )
     services.RegisterService(new AuthService(&services));
     services.RegisterService(new BillMgrService(&services));
     services.RegisterService(new BookmarkService(&services));
+    services.RegisterService(new BrowserLockDownService(&services));
     services.RegisterService(new CertificateMgrService(&services));
     services.RegisterService(new CharacterService(&services));
     services.RegisterService(new CharMgrService(&services));

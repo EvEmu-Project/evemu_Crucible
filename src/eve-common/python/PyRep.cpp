@@ -711,6 +711,13 @@ void PyDict::SetItem( PyRep* key, PyRep* value )
     }
 }
 
+void PyDict::SetItem( const char* key, PyRep* value )
+{
+    PyString *key_name = new PyString(key);
+    SetItem(key_name, value); // huge mem leak when object
+
+}
+
 PyDict& PyDict::operator=( const PyDict& oth )
 {
 	clear();
