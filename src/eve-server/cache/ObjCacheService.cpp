@@ -254,10 +254,7 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
 	// out until we have time to figure out how to properly throw the CacheOK exception.
 	/*if(m_cache.IsCacheUpToDate(args.objectID, args.version, args.timestamp)) {
 		//they throw an exception for "its up to date", lets give it a try...
-		objectCaching_CacheOK except;
-		PyObject *error = except.Encode();
-		
-		return error;
+        return new CacheOK();
 	}
 	*/
 	

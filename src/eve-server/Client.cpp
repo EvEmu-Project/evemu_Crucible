@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+#include "EVEVersion.h"
 
 static const uint32 PING_INTERVAL_US = 60000;
 
@@ -72,7 +73,6 @@ Client::~Client() {
         // and save all skill attributes to the Database:
         //mModulesMgr.SaveModules();                            // Save fitted Modules attributes to DB
         GetShip()->SaveAttributes();                        // Save Ship's attributes to DB
-        //GetShip()->mAttributeMap.Save();                  // Save Ship's attributes to DB
         GetChar()->SaveCharacter();                         // Save Character info to DB
         GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
 
@@ -1545,7 +1545,6 @@ bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
 
     //send this before session change
     CryptoHandshakeAck ack;
-    ack.live_updates = new PyList;
     ack.jit = GetLanguageID();
     ack.userid = GetAccountID();
     ack.maxSessionTime = new PyNone;

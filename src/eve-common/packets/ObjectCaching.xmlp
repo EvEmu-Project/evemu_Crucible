@@ -154,20 +154,6 @@
       </substreamInline>
     </tupleInline>
   </elementDef>
-
-  <elementDef name="objectCaching_CacheOK">
-    <objectInline>
-      <stringInline value="objectCaching.CacheOK" />
-      <dictInline>
-        <dictInlineEntry key="args">
-          <tupleInline>
-            <stringInline value="CacheOK" />
-          </tupleInline>
-        </dictInlineEntry>
-      </dictInline>
-    </objectInline>
-  </elementDef>
-
 </elements>
 
 

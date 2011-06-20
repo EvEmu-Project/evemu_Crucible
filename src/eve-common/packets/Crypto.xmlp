@@ -234,7 +234,7 @@
 			  <list name="client_hashes" />
 		  </dictInlineEntry>
 		  <dictInlineEntry key="user_clientid">
-			  <int name="user_clientid" />
+			  <long name="user_clientid" />
 		  </dictInlineEntry>
 	  </dictInline>
   </elementDef>

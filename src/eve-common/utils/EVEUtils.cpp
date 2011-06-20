@@ -83,6 +83,8 @@ bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep )
         // represents NULL
         return true;
 
+    return true;
+
     switch( type )
     {
         case DBTYPE_UI8:

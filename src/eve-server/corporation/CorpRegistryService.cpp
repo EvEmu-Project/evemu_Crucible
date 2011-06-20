@@ -42,13 +42,14 @@ public:
 
         m_strBoundObjectName = "CorpRegistryBound";
 
+        //PyCall_REG_CALL
         PyCallable_REG_CALL(CorpRegistryBound, GetEveOwners)
         PyCallable_REG_CALL(CorpRegistryBound, GetCorporation)
         PyCallable_REG_CALL(CorpRegistryBound, GetCorporations)
         PyCallable_REG_CALL(CorpRegistryBound, GetInfoWindowDataForChar)
         PyCallable_REG_CALL(CorpRegistryBound, GetLockedItemLocations)
         PyCallable_REG_CALL(CorpRegistryBound, AddCorporation)
-        PyCallable_REG_CALL(CorpRegistryBound, GetMember)
+
         PyCallable_REG_CALL(CorpRegistryBound, GetSuggestedTickerNames)
         PyCallable_REG_CALL(CorpRegistryBound, GetOffices)
         PyCallable_REG_CALL(CorpRegistryBound, GetStations)
@@ -61,6 +62,12 @@ public:
         PyCallable_REG_CALL(CorpRegistryBound, UpdateDivisionNames)
         PyCallable_REG_CALL(CorpRegistryBound, UpdateCorporation)
         PyCallable_REG_CALL(CorpRegistryBound, UpdateLogo)
+
+        // STUBBS
+        PyCallable_REG_CALL(CorpRegistryBound, GetMember)
+        PyCallable_REG_CALL(CorpRegistryBound, GetMembers)
+
+        
     }
     virtual ~CorpRegistryBound() { delete m_dispatch; }
     virtual void Release() {
@@ -74,7 +81,7 @@ public:
     PyCallable_DECL_CALL(GetInfoWindowDataForChar)
     PyCallable_DECL_CALL(GetLockedItemLocations)
     PyCallable_DECL_CALL(AddCorporation)
-    PyCallable_DECL_CALL(GetMember)
+    //PyCallable_DECL_CALL(GetMember)
     PyCallable_DECL_CALL(GetSuggestedTickerNames)
     PyCallable_DECL_CALL(GetOffices)
     PyCallable_DECL_CALL(GetStations)
@@ -87,6 +94,12 @@ public:
     PyCallable_DECL_CALL(UpdateDivisionNames)
     PyCallable_DECL_CALL(UpdateCorporation)
     PyCallable_DECL_CALL(UpdateLogo)
+
+    // STUBBS
+    PyCallable_DECL_CALL(GetMember)
+    PyCallable_DECL_CALL(GetMembers)
+
+    
 
 protected:
     bool JoinCorporation(Client *who, uint32 newCorpID, const CorpMemberInfo &roles);
@@ -304,9 +317,71 @@ bool CorpRegistryBound::JoinCorporation(Client *who, uint32 newCorpID, const Cor
     return true;
 }
 
+/* this is a stubb */
 PyResult CorpRegistryBound::Handle_GetMember(PyCallArgs &call) {
-    uint32 item = 0;
-    item += 1;
+//    uint32 item = 0;
+    //item += 1;
+    return NULL;
+}
+
+/*
+PyClass
+  PyString:"macho.CallRsp"
+  PyTuple:6
+    itr[0]:0x7
+    itr[1]:PyClass
+      PyString:"macho.MachoAddress"
+      PyTuple:4
+        itr[0]:0x1
+        itr[1]:0xACA03
+        itr[2]:None
+        itr[3]:None
+    itr[2]:PyClass
+      PyString:"macho.MachoAddress"
+      PyTuple:4
+        itr[0]:0x2
+        itr[1]:0x18BD39F1529E
+        itr[2]:0x41
+        itr[3]:None
+    itr[3]:0x77F625
+    itr[4]:PyTuple:1
+      itr[0]:PySubStream
+        PyClass
+          PyString:"util.SparseRowset"
+          PyTuple:3
+            itr[0]:PyList:19
+              itr:"characterID"
+              itr:"corporationID"
+              itr:"divisionID"
+              itr:"squadronID"
+              itr:"title"
+              itr:"roles"
+              itr:"grantableRoles"
+              itr:"startDateTime"
+              itr:"baseID"
+              itr:"rolesAtHQ"
+              itr:"grantableRolesAtHQ"
+              itr:"rolesAtBase"
+              itr:"grantableRolesAtBase"
+              itr:"rolesAtOther"
+              itr:"grantableRolesAtOther"
+              itr:"titleMask"
+              itr:"accountKey"
+              itr:"rowDate"
+              itr:"blockRoles"
+            itr[1]:PySubStruct
+              PySubStream
+                  PyTuple:3
+                    itr[0]:"N=707075:302"
+                    itr[1]:PyDict:1
+                      dict["realRowCount"]=0x1E
+                    itr[2]:0x1CC2383E961BFA8
+            itr[2]:0x1E
+    itr[5]:PyDict:1
+      dict["OID+"]=PyDict:1
+        dict["N=707075:302"]=0x1CC2383E961BFA8
+*/
+PyResult CorpRegistryBound::Handle_GetMembers(PyCallArgs &call) {
     return NULL;
 }
 

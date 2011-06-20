@@ -658,27 +658,6 @@ bool AttributeMap::Save()
 
 bool AttributeMap::SaveAttributes()
 {
-#if 0
-    bool status = true;
-    AttrMap::iterator cur, end;
-    cur = mAttributes.begin();
-    end = mAttributes.end();
-    for(; cur != end; cur++)
-    {
-        if( cur->second.get_type() == evil_number_int )
-            SaveIntAttribute( cur->first, cur->second.get_int() );
-        else if( cur->second.get_type() == evil_number_float )
-            SaveFloatAttribute( cur->first, cur->second.get_float() );
-        else
-        {
-            status = false;
-            sLog.Error( "AttributeMap::SaveAttributes()", "Attribute #%u is of an invalid type, neither integer nor float.", cur->first );
-        }
-    }
-    sLog.Debug( "AttributeMap::SaveAttributes()", "Attributes SAVED: item= %s, itemID= %u", mItem.itemName().c_str(), mItem.itemID() );
-
-    return status;
-#endif
     return Save();
 }
 

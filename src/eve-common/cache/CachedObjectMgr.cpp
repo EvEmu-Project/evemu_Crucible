@@ -39,20 +39,27 @@ static const uint32 HackCacheNodeID = 333444;
 
 CachedObjectMgr::~CachedObjectMgr()
 {
-    std::map<std::string, CacheRecord*>::iterator cur, end;
+    CachedObjMapItr cur, end;
     cur = m_cachedObjects.begin();
     end = m_cachedObjects.end();
-    for(; cur != end; cur++)
+    
+    for(; cur != end; cur++) {
         SafeDelete( cur->second );
+    }
 }
 
+/************************************************************************/
+/* CacheRecord                                                          */
+/************************************************************************/
+CachedObjectMgr::CacheRecord::CacheRecord() : objectID(NULL), timestamp(0), version(0), cache(NULL) {}
 CachedObjectMgr::CacheRecord::~CacheRecord()
 {
 	PyDecRef( objectID );
 	PyDecRef( cache );
 }
 
-PyObject *CachedObjectMgr::CacheRecord::EncodeHint() const {
+PyObject *CachedObjectMgr::CacheRecord::EncodeHint() const
+{
     objectCaching_CachedObject_spec spec;
 
     spec.objectID = objectID; PyIncRef(objectID);
@@ -63,38 +70,45 @@ PyObject *CachedObjectMgr::CacheRecord::EncodeHint() const {
     return spec.Encode();
 }
 
+
+
 //extract out the string contents of the object ID... if its a single string,
 // then this visit will be boring, but if its a nested structure of strings,
 // its more interesting, either way we should come out with some string...
-std::string CachedObjectMgr::OIDToString(const PyRep *objectID) {
+std::string CachedObjectMgr::OIDToString(const PyRep *objectID)
+{
     StringCollapseVisitor v;
-    if( !objectID->visit( v ) )
-    {
+    if( !objectID->visit( v ) ) {
         sLog.Error("Cached Obj Mgr", "Failed to convert cache hind object ID into collapsed string:");
         objectID->Dump(SERVICE__ERROR, "    ");
+        __asm{int 3};
         return "";
     }
     return v.result;
 }
 
-bool CachedObjectMgr::HaveCached(const std::string &objectID) const {
+bool CachedObjectMgr::HaveCached(const std::string &objectID) const
+{
     //this is very sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyString str( objectID );
-    return(HaveCached(&str));
+    PyString *str = new PyString( objectID );
+    bool ret = HaveCached(str);
+    PyDecRef(str);
+    return ret;
 }
 
-bool CachedObjectMgr::HaveCached(const PyRep *objectID) const {
+bool CachedObjectMgr::HaveCached(const PyRep *objectID) const
+{
     const std::string str = OIDToString(objectID);
 
-    return(m_cachedObjects.find(str) != m_cachedObjects.end());
+    return m_cachedObjects.find(str) != m_cachedObjects.end();
 }
 
-void CachedObjectMgr::InvalidateCache(const PyRep *objectID) {
+void CachedObjectMgr::InvalidateCache(const PyRep *objectID)
+{
     const std::string str = OIDToString(objectID);
+    CachedObjMapItr res = m_cachedObjects.find(str);
 
-    std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);;
-    if(res != m_cachedObjects.end())
-    {
+    if(res != m_cachedObjects.end()) {
         SafeDelete( res->second );
         m_cachedObjects.erase(res);
     }
@@ -102,10 +116,11 @@ void CachedObjectMgr::InvalidateCache(const PyRep *objectID) {
 
 //#define RAW_CACHE_CONTENTS
 
-void CachedObjectMgr::UpdateCacheFromSS(const std::string &objectID, PySubStream **in_cached_data) {
+void CachedObjectMgr::UpdateCacheFromSS(const std::string &objectID, PySubStream **in_cached_data)
+{
     PyCachedObjectDecoder cache;
     if(!cache.Decode(in_cached_data)) {
-		sLog.Error("CachedObjectMgr","Failed to decode stream");
+		sLog.Error("CachedObjMgr","Failed to decode stream");
         return;
     }
 
@@ -119,12 +134,15 @@ void CachedObjectMgr::UpdateCacheFromSS(const std::string &objectID, PySubStream
     PyDecRef( str );
 }
 
-void CachedObjectMgr::UpdateCache(const std::string &objectID, PyRep **in_cached_data) {
-    PyString str( objectID );
-    UpdateCache(&str, in_cached_data);
+void CachedObjectMgr::UpdateCache(const std::string &objectID, PyRep **in_cached_data)
+{
+    PyString *str = new PyString( objectID );
+    UpdateCache(str, in_cached_data);
+    PyDecRef(str);
 }
 
-void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data) {
+void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
+{
     PyRep *cached_data = *in_cached_data;
     *in_cached_data = NULL;
 
@@ -137,19 +155,18 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
     bool res = MarshalDeflate( cached_data, *data );
 	PyDecRef( cached_data );
 
-    if( res )
-    {
+    if( res ) {
 	    PyBuffer* buf = new PyBuffer( &data );
         _UpdateCache( objectID, &buf );
-    }
-    else
+    } else {
         sLog.Error( "Cached Obj Mgr", "Failed to marshal or deflate new cache object." );
+    }
 
     SafeDelete( data );
 }
 
-void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer) {
-
+void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer)
+{
     //this is the hard one..
     CacheRecord *r = new CacheRecord;
     r->timestamp = Win32TimeNow();
@@ -164,44 +181,53 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer) {
     const std::string str = OIDToString(objectID);
 
     //find and destroy any older version of this object.
-    std::map<std::string, CacheRecord *>::iterator res;
-    res = m_cachedObjects.find(str);
-    if(res != m_cachedObjects.end())
-    {
-		sLog.Debug("CahcedObjectMgr","Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->content().size(), res->second->version); 
+    CachedObjMapItr res = m_cachedObjects.find(str);
+
+    if(res != m_cachedObjects.end()) {
+
+		sLog.Debug("CachedObjMgr","Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->content().size(), res->second->version); 
 		SafeDelete( res->second );
     }
 
-	sLog.Debug("CachedObjectMgr","Registering new cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), r->cache->content().size(), r->version);
+	sLog.Debug("CachedObjMgr","Registering new cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), r->cache->content().size(), r->version);
 
     m_cachedObjects[str] = r;
 }
 
-PyObject *CachedObjectMgr::MakeCacheHint(const std::string &objectID) {
+PyObject *CachedObjectMgr::MakeCacheHint(const std::string &objectID)
+{
     //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyString str( objectID );
-    return(MakeCacheHint(&str));
+    PyString *str = new PyString( objectID );
+    PyObject * obj = MakeCacheHint(str);
+    PyDecRef(obj);
+    return obj;
 }
 
-PyObject *CachedObjectMgr::MakeCacheHint(const PyRep *objectID) {
+PyObject *CachedObjectMgr::MakeCacheHint(const PyRep *objectID)
+{
     const std::string str = OIDToString(objectID);
 
-    std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);
+    CachedObjMapItr res = m_cachedObjects.find(str);
     if(res == m_cachedObjects.end())
         return NULL;
-    return(res->second->EncodeHint());
+
+    return res->second->EncodeHint();
 }
 
-PyObject *CachedObjectMgr::GetCachedObject(const std::string &objectID) {
+PyObject *CachedObjectMgr::GetCachedObject(const std::string &objectID)
+{
     //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyString str( objectID );
-    return(GetCachedObject(&str));
+    PyString *str = new PyString( objectID );
+    PyObject* obj = GetCachedObject(str);
+    PyDecRef(str);
+    return obj;
 }
 
-PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
+PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID)
+{
     const std::string str = OIDToString(objectID);
 
-    std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);
+    CachedObjMapItr res = m_cachedObjects.find(str);
     if(res == m_cachedObjects.end())
         return NULL;
 
@@ -212,12 +238,13 @@ PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
     co.shared = true;
     co.objectID = res->second->objectID; PyIncRef(res->second->objectID);
     co.cache = res->second->cache;
+
     if(res->second->cache->content().size() == 0 || res->second->cache->content()[0] == MarshalHeaderByte)
         co.compressed = false;
     else
         co.compressed = true;
 
-	sLog.Debug("CachedObjectMgr","Returning cached object '%s' with checksum 0x%x", str.c_str(), co.version);
+	sLog.Debug("CachedObjMgr","Returning cached object '%s' with checksum 0x%x", str.c_str(), co.version);
 
     PyObject *result = co.Encode();
     co.cache = NULL;    //avoid a copy
@@ -225,10 +252,11 @@ PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID) {
     return result;
 }
 
-bool CachedObjectMgr::IsCacheUpToDate(const PyRep *objectID, uint32 version, uint64 timestamp) {
+bool CachedObjectMgr::IsCacheUpToDate(const PyRep *objectID, uint32 version, uint64 timestamp)
+{
     const std::string str = OIDToString(objectID);
 
-    std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find(str);
+    CachedObjMapItr res = m_cachedObjects.find(str);
     if(res == m_cachedObjects.end())
         return false;
 
@@ -237,71 +265,88 @@ bool CachedObjectMgr::IsCacheUpToDate(const PyRep *objectID, uint32 version, uin
             && res->second->timestamp == timestamp);
 }
 
-bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const std::string &objectID) {
+bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const std::string &objectID)
+{
     //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyString str(objectID);
-    return(LoadCachedFromFile(cacheDir, &str));
+    PyString *str = new PyString(objectID);
+    bool ret = LoadCachedFromFile(cacheDir, str);
+    PyDecRef(str);
+    return ret;
 }
 
-bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRep *objectID) {
+/**
+ * LoadCachedFromFile
+ *
+ * Load a cached object from file.
+ */
+bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRep *objectID)
+{
     const std::string str = OIDToString(objectID);
 
     std::string filename(cacheDir);
-    filename += "/";
-    filename += str;
-    filename += ".cache";
+    filename += "/" + str + ".cache";
 
     FILE *f = fopen(filename.c_str(), "rb");
-    if(f == NULL) {
+
+    if(f == NULL)
         return false;
-    }
 
     CacheFileHeader header;
     if(fread(&header, sizeof(header), 1, f) != 1) {
         fclose(f);
         return false;
     }
+
+    /* check if its a valid cache file */
     if(header.magic != CacheFileMagic) {
-        //not a valid cache file.
         fclose(f);
         return false;
     }
 
     Buffer* buf = new Buffer( header.length );
-    if( fread( &(*buf)[0], sizeof( uint8 ), header.length, f ) != header.length )
-    {
-        SafeDelete( buf );
 
+    if( fread( &(*buf)[0], sizeof( uint8 ), header.length, f ) != header.length ) {
+        SafeDelete( buf );
         fclose( f );
         return false;
     }
+
     fclose( f );
 
-    std::map<std::string, CacheRecord *>::iterator res = m_cachedObjects.find( str );
+    CachedObjMapItr res = m_cachedObjects.find( str );
+
     if( res != m_cachedObjects.end() )
         SafeDelete( res->second );
 
-    CacheRecord* cache = m_cachedObjects[ str ] = new CacheRecord;
+    CacheRecord* cache = new CacheRecord;
+    
     cache->objectID = (PyRep*)objectID; PyIncRef(objectID);
     cache->cache = new PyBuffer( &buf );
     cache->timestamp = header.timestamp;
     cache->version = header.version;
 
+    m_cachedObjects[ str ] = cache;
+
     return true;
 }
 
-bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const std::string &objectID) const {
-    //this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
-    PyString str(objectID);
-    return(SaveCachedToFile(cacheDir, &str));
+//this is sub-optimal, but it keeps things more consistent (in case StringCollapseVisitor ever gets more complicated)
+bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const std::string &objectID) const
+{
+    PyString *str = new PyString(objectID);
+    bool ret = SaveCachedToFile(cacheDir, str);
+    PyDecRef(str);
+    return ret;
 }
 
-bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep *objectID) const {
+bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep *objectID) const
+{
     const std::string str = OIDToString(objectID);
-    std::map<std::string, CacheRecord *>::const_iterator res;
-    res = m_cachedObjects.find(str);
+    CachedObjMapConstItr res = m_cachedObjects.find(str);
+
+    /* make sure we don't try to save a object we don't have */
     if(res == m_cachedObjects.end())
-        return false;   //cant save something we dont have...
+        return false;
 
     std::string filename(cacheDir);
     filename += "/";
@@ -309,20 +354,23 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
     filename += ".cache";
 
     FILE *f = fopen(filename.c_str(), "wb");
-    if(f == NULL) {
+
+    if(f == NULL)
         return false;
-    }
 
     CacheFileHeader header;
     header.timestamp = res->second->timestamp;
     header.version = res->second->version;
     header.magic = CacheFileMagic;
     header.length = res->second->cache->content().size();
+    
     if(fwrite(&header, sizeof(header), 1, f) != 1) {
         fclose(f);
         return false;
     }
+    
     if(fwrite(&res->second->cache->content()[0], sizeof(uint8), header.length, f) != header.length) {
+        __asm{int 3};
         fclose(f);
         return false;
     }
@@ -347,36 +395,37 @@ void CachedObjectMgr::AddCacheHint(const char *oname, const char *key, PyDict *i
 
 }*/
 
-PySubStream* CachedObjectMgr::LoadCachedFile(const char *obj_name) {
+PySubStream* CachedObjectMgr::LoadCachedFile(const char *obj_name)
+{
     PyString *oname_str = new PyString(obj_name);
-    PySubStream *sub = LoadCachedFile(oname_str, obj_name);
-    PySafeDecRef(oname_str);
-    return sub;
+    PySubStream* ret = LoadCachedFile(oname_str, obj_name);
+    PyDecRef(oname_str);
+    return ret;
 }
 
-PySubStream *CachedObjectMgr::LoadCachedFile(PyRep *key, const char *oname) {
+PySubStream *CachedObjectMgr::LoadCachedFile(PyRep *key, const char *oname)
+{
     std::string fname;
     GetCacheFileName(key, fname);
 
     std::string abs_fname = "../data/cache/";
     abs_fname += fname;
 
-    return(LoadCachedFile(abs_fname.c_str(), oname));
+    return LoadCachedFile(abs_fname.c_str(), oname);
 }
 
 PySubStream* CachedObjectMgr::LoadCachedFile( const char* abs_fname, const char* oname )
 {
     FILE* f = fopen( abs_fname, "rb" );
-    if( f == NULL )
-    {
-		sLog.Error("CachedObjectMgr","Unable to open cache file '%s' for oname '%s': %s", abs_fname, oname, strerror( errno ) );
+
+    if( f == NULL ) {
+		sLog.Error("CachedObjMgr","Unable to open cache file '%s' for oname '%s': %s", abs_fname, oname, strerror( errno ) );
         return false;
     }
 
     uint64 file_length = filesize( f );
-    if( file_length == 0 )
-    {
-		sLog.Error("CachedObjectMgr","Unable to stat cache file '%s' for oname '%s'", abs_fname, oname );
+    if( file_length == 0 ) {
+		sLog.Error("CachedObjMgr","Unable to stat cache file '%s' for oname '%s'", abs_fname, oname );
 
         fclose( f );
         return false;
@@ -384,22 +433,23 @@ PySubStream* CachedObjectMgr::LoadCachedFile( const char* abs_fname, const char*
 
     Buffer* buf = new Buffer( file_length );
 
-    if( file_length != fread( &( *buf )[0], sizeof( uint8 ), file_length, f ) )
-    {
-		sLog.Error("CachedObjectMgr","Unable to read cache file '%s' for oname '%s%': %s", abs_fname, oname, strerror( errno ) );
+    if( file_length != fread( &( *buf )[0], sizeof( uint8 ), file_length, f ) ) {
+		sLog.Error("CachedObjMgr","Unable to read cache file '%s' for oname '%s%': %s", abs_fname, oname, strerror( errno ) );
 
         SafeDelete( buf );
         fclose( f );
         return false;
     }
+
     fclose( f );
 
-	sLog.Debug("CachedObjectMgr","Loaded cache file for '%s': length %u", oname, file_length );
+	sLog.Debug("CachedObjMgr","Loaded cache file for '%s': length %u", oname, file_length );
 
     return new PySubStream( new PyBuffer( &buf ) );
 }
 
-PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(const char *filename, const char *oname) {
+PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(const char *filename, const char *oname)
+{
     PySubStream* ss = LoadCachedFile(filename, oname);
     if( ss == NULL )
         return NULL;
@@ -410,10 +460,11 @@ PyCachedObjectDecoder *CachedObjectMgr::LoadCachedObject(const char *filename, c
         return NULL;
     }
 
-    return(obj);
+    return obj;
 }
 
-PyCachedCall *CachedObjectMgr::LoadCachedCall(const char *filename, const char *oname) {
+PyCachedCall *CachedObjectMgr::LoadCachedCall(const char *filename, const char *oname)
+{
     PySubStream* ss = LoadCachedFile(filename, oname);
     if( ss == NULL )
         return NULL;
@@ -424,7 +475,7 @@ PyCachedCall *CachedObjectMgr::LoadCachedCall(const char *filename, const char *
         return NULL;
     }
 
-    return(obj);
+    return obj;
 }
 
 void CachedObjectMgr::GetCacheFileName(PyRep *key, std::string &into)
@@ -469,7 +520,8 @@ PyCachedObjectDecoder::PyCachedObjectDecoder()
 {
 }
 
-PyCachedObjectDecoder::~PyCachedObjectDecoder() {
+PyCachedObjectDecoder::~PyCachedObjectDecoder()
+{
     PySafeDecRef( cache );
     PySafeDecRef( objectID );
 }
@@ -485,12 +537,14 @@ PyCachedObject::PyCachedObject()
 {
 }
 
-PyCachedObject::~PyCachedObject() {
+PyCachedObject::~PyCachedObject()
+{
     PySafeDecRef( cache );
     PySafeDecRef( objectID );
 }
 
-PyCachedObject *PyCachedObject::Clone() const {
+PyCachedObject *PyCachedObject::Clone() const
+{
     PyCachedObject *res = new PyCachedObject();
     res->timestamp = timestamp;
     res->version  = version;
@@ -502,7 +556,8 @@ PyCachedObject *PyCachedObject::Clone() const {
     return res;
 }
 
-void PyCachedObjectDecoder::Dump(FILE *into, const char *pfx, bool contents_too) {
+void PyCachedObjectDecoder::Dump(FILE *into, const char *pfx, bool contents_too)
+{
     std::string s(pfx);
     s += "    ";
     fprintf(into, "%sCached Object:\n", pfx);
@@ -519,7 +574,8 @@ void PyCachedObjectDecoder::Dump(FILE *into, const char *pfx, bool contents_too)
     }
 }
 
-void PyCachedObject::Dump(FILE *into, const char *pfx, bool contents_too) {
+void PyCachedObject::Dump(FILE *into, const char *pfx, bool contents_too)
+{
     std::string s(pfx);
     s += "    ";
     fprintf(into, "%sCached Object:\n", pfx);
@@ -536,7 +592,8 @@ void PyCachedObject::Dump(FILE *into, const char *pfx, bool contents_too) {
     }
 }
 
-bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
+bool PyCachedObjectDecoder::Decode(PySubStream **in_ss)
+{
     PySubStream *ss = *in_ss;    //consume
     *in_ss = NULL;
 
@@ -593,11 +650,13 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
         PyDecRef( ss );
         return false;
     }
+
     if(!args->items[3]->IsInt()) {
 		sLog.Error("PyCachedObjectDecoder","Cache object's arg %d is not an Integer: %s", 3, args->items[3]->TypeString());
         PyDecRef( ss );
         return false;
     }
+
     if(!args->items[5]->IsInt()) {
 		sLog.Error("PyCachedObjectDecoder","Cache object's arg %d is not a : %s", 5, args->items[5]->TypeString());
         PyDecRef( ss );
@@ -610,6 +669,7 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
         PyDecRef( ss );
         return false;
     }
+
     if(!objVt->items[1]->IsInt()) {
 		sLog.Error("PyCachedObjectDecoder","Cache object's version tuple %d is not an Integer: %s", 1, objVt->items[1]->TypeString());
         PyDecRef( ss );
@@ -627,8 +687,6 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
     nodeID = nodeidr->value();
     shared = ( sharedr->value() != 0 );
     compressed = ( compressedr->value() != 0 );
-
-
 
     //content (do this as the last thing, since its the heavy lifting):
     if(args->items[4]->IsSubStream()) {
@@ -658,7 +716,8 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss) {
     return true;
 }
 
-PyObject *PyCachedObject::Encode() {
+PyObject *PyCachedObject::Encode()
+{
     PyTuple *arg_tuple = new PyTuple(7);
 
     PyTuple *versiont = new PyTuple(2);
@@ -727,21 +786,21 @@ PyObject *PyCachedObjectDecoder::EncodeHint() {
 }
 
 
-PyCachedCall::PyCachedCall() : result(NULL)
+PyCachedCall::PyCachedCall() : result(NULL) {}
+PyCachedCall::~PyCachedCall()
 {
-}
-
-PyCachedCall::~PyCachedCall() {
     PySafeDecRef( result );
 }
 
-// PyCachedCall *PyCachedCall::Clone() const {
-//     PyCachedCall *res = new PyCachedCall();
-//     res->result = result->Clone();
-//     return res;
-// }
+PyCachedCall *PyCachedCall::Clone() const
+{
+    PyCachedCall *res = new PyCachedCall();
+    res->result = result->Clone();
+    return res;
+}
 
-void PyCachedCall::Dump(FILE *into, const char *pfx, bool contents_too) {
+void PyCachedCall::Dump(FILE *into, const char *pfx, bool contents_too)
+{
     std::string s(pfx);
     s += "    ";
     fprintf(into, "%sCached Call: (empty right now) \n", pfx);
@@ -751,7 +810,8 @@ void PyCachedCall::Dump(FILE *into, const char *pfx, bool contents_too) {
     }
 }
 
-bool PyCachedCall::Decode(PySubStream **in_ss) {
+bool PyCachedCall::Decode(PySubStream **in_ss)
+{
     PySubStream *ss = *in_ss;    //consume
     *in_ss = NULL;
 

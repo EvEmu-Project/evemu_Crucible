@@ -74,8 +74,6 @@
 /************************************************************************/
 /* eve-common includes                                                  */
 /************************************************************************/
-#include "EVEVersion.h"
-
 #include "cache/CachedObjectMgr.h"
 
 #include "database/EVEDBUtils.h"
@@ -155,6 +153,8 @@
 #include "admin/CommandDB.h"
 #include "admin/PetitionerService.h"
 #include "admin/SlashService.h"
+
+#include "browser/browserLockdownSvc.h"
 
 // client object cache stuff
 #include "cache/ObjCacheService.h"

@@ -656,6 +656,13 @@ void PyDict::SetItem( PyRep* key, PyRep* value )
     }
 }
 /*
+void PyDict::SetItem( const char* key, PyRep* value )
+{
+    PyString *key_name = new PyString(key);
+    SetItem(key_name, value); // huge mem leak when object
+
+}
+
 PyDict& PyDict::operator=( const PyDict& oth )
 {
 	clear();
@@ -963,4 +970,64 @@ PyChecksumedStream::~PyChecksumedStream()
 bool PyChecksumedStream::visit( PyVisitor& v ) const
 {
 	return v.VisitChecksumedStream( this );
+}
+
+
+/************************************************************************/
+/* tuple large integer helper functions                                 */
+/************************************************************************/
+PyTuple * new_tuple(uint64 arg1)
+{
+    PyTuple * res = new PyTuple(1);
+    res->SetItem(0, new PyLong(arg1));
+
+    return res;
+}
+
+PyTuple * new_tuple(uint64 arg1, uint64 arg2)
+{
+    PyTuple * res = new PyTuple(2);
+    res->SetItem(0, new PyLong(arg1));
+    res->SetItem(1, new PyLong(arg2));
+
+    return res;
+}
+
+/************************************************************************/
+/* tuple string helper functions                                        */
+/************************************************************************/
+PyTuple * new_tuple(const char* arg1)
+{
+    PyTuple * res = new PyTuple(1);
+    res->SetItem(0, new PyString(arg1));
+    return res;
+}
+
+PyTuple * new_tuple(const char* arg1, const char* arg2)
+{
+    PyTuple * res = new PyTuple(2);
+    res->SetItem(0, new PyString(arg1));
+    res->SetItem(1, new PyString(arg2));
+    return res;
+}
+
+PyTuple * new_tuple(const char* arg1, const char* arg2, const char* arg3)
+{
+    PyTuple * res = new PyTuple(3);
+    res->SetItem(0, new PyString(arg1));
+    res->SetItem(1, new PyString(arg2));
+    res->SetItem(2, new PyString(arg3));
+    return res;
+}
+
+/************************************************************************/
+/* tulpe mixed helper functions                                         */
+/************************************************************************/
+PyTuple * new_tuple(const char* arg1, const char* arg2, PyTuple* arg3)
+{
+    PyTuple * res = new PyTuple(3);
+    res->SetItem(0, new PyString(arg1));
+    res->SetItem(1, new PyString(arg2));
+    res->SetItem(2, arg3);
+    return res;
 }

@@ -104,7 +104,13 @@ public:
     //using this method is discouraged, it generally means your doing something wrong... Is<type>() should cover almost all needs
     PyType GetType() const          { return mType; }
 
-    bool IsInt() const              { return mType == PyTypeInt; }
+    bool IsInt() const
+    {
+        /* crash when we missed a convertion... lol */
+        if (mType == PyTypeLong)
+            __asm{int 3};
+        return mType == PyTypeInt;
+    }
     bool IsLong() const             { return mType == PyTypeLong; }
     bool IsFloat() const            { return mType == PyTypeFloat; }
     bool IsBool() const             { return mType == PyTypeBool; }
@@ -716,6 +722,8 @@ public:
      * @param[in] value is the object that needs to be filed under key.
      */
     void SetItem( PyRep* key, PyRep* value );
+
+    void SetItem( const char* key, PyRep* value );
     /**
      * @brief SetItemString adds or sets a database entry.
      *
@@ -985,5 +993,16 @@ template<typename Iter>
 inline PyWString::PyWString( Iter first, Iter last ) : PyRep( PyRep::PyTypeWString ), mValue( first, last ), mHashCache( -1 ) {}
 template<typename Iter>
 inline PyToken::PyToken( Iter first, Iter last ) : PyRep( PyRep::PyTypeToken ), mValue( first, last ) {}
+
+
+/************************************************************************/
+/* tuple helper functions                                               */
+/************************************************************************/
+PyTuple * new_tuple(uint64 arg1);
+PyTuple * new_tuple(uint64 arg1, uint64 arg2);
+PyTuple * new_tuple(const char* arg1);
+PyTuple * new_tuple(const char* arg1, const char* arg2);
+PyTuple * new_tuple(const char* arg1, const char* arg2, const char* arg3);
+PyTuple * new_tuple(const char* arg1, const char* arg2, PyTuple* arg3);
 
 #endif//EVE_PY_REP_H
