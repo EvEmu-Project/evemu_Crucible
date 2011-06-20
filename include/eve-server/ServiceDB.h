@@ -55,6 +55,9 @@ public:
      * @author 
      */
     bool DoLogin( const char* login, const char* pass, uint32& accountID, uint64& role );
+    bool DoLogin2( const char* login, uint32& accountID, uint64& role );
+
+    bool GetUserPassword( const char* username, std::wstring & password );
 
     //entity/item stuff:
     PyObject *GetSolRow(uint32 systemID) const;

@@ -391,4 +391,60 @@ char* strlwr( char* tmp );
     ( (tm*)( memcpy( ( y ), localtime( x ), sizeof( tm ) ) ) )
 #endif /* MINGW */
 
+#ifdef WIN32
+#  define ASCENT_FORCEINLINE __forceinline
+#else
+#  define ASCENT_FORCEINLINE inline
+#endif
+
+// fast int abs
+static ASCENT_FORCEINLINE int int32abs( const int value )
+{
+    return (value ^ (value >> 31)) - (value >> 31);
+}
+
+// fast int abs and recast to unsigned
+static ASCENT_FORCEINLINE uint32 int32abs2uint32( const int value )
+{
+    return (uint32)(value ^ (value >> 31)) - (value >> 31);
+}
+
+/// Fastest Method of float2int32
+static ASCENT_FORCEINLINE int float2int32(const float value)
+{
+//#if !defined(X64) && ASCENT_COMPILER == COMPILER_MICROSOFT
+    #if !defined(X64) && !defined(MINGW)
+    int i;
+    __asm {
+        fld value
+        frndint
+        fistp i
+    }
+    return i;
+#else
+    union { int asInt[2]; double asDouble; } n;
+    n.asDouble = value + 6755399441055744.0;
+
+    return n.asInt [0];
+#endif
+}
+
+/// Fastest Method of double2int32
+static ASCENT_FORCEINLINE int double2int32(const double value)
+{
+#if !defined(X64) && ASCENT_COMPILER == COMPILER_MICROSOFT
+    int i;
+    __asm {
+        fld value
+        frndint
+        fistp i
+    }
+    return i;
+#else
+  union { int asInt[2]; double asDouble; } n;
+  n.asDouble = value + 6755399441055744.0;
+  return n.asInt [0];
+#endif
+}
+
 #endif /* !__COMMON_H__INCL__ */

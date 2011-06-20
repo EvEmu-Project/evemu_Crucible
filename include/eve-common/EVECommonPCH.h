@@ -60,5 +60,6 @@
 #include "utils/utils_hex.h"
 #include "utils/utils_string.h"
 #include "utils/utils_time.h"
+#include "utils/Util.h"
 
 #endif /* !__EVE_COMMON_PCH_H__INCL__ */

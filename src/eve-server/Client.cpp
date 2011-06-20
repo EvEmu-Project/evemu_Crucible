@@ -1468,32 +1468,50 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
 	sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
 
-    if( ccp.user_password == NULL )
+    /* here we generate the password hash our selfs */
+    std::wstring w_password;
+    std::wstring w_username;
+
+    w_username.resize(ccp.user_name.size());
+
+    size_t ret_len = mbstowcs(&w_username[0], ccp.user_name.c_str(), ccp.user_name.size());
+    assert(ret_len == ccp.user_name.size());
+
+    services().serviceDB().GetUserPassword(ccp.user_name.c_str(), w_password);
+
+    std::string password_hash;
+
+    PasswordModule::GeneratePassHash(w_username, w_password, password_hash);
+
+    // when hash is wrong...
+    if (password_hash != ccp.user_password_hash)
     {
-		sLog.Debug("Client","Rejected by server; requesting plain password");
-
-        //send passwordVersion required: 1=plain, 2=hashed
-        PyRep* rsp = new PyInt( 1 );
-        mNet->QueueRep( rsp );
-        PyDecRef( rsp );
-
-        return false;
-    }
-
-    uint32 accountID;
-	uint64 accountRole;
-	if( !services().serviceDB().DoLogin(
-            ccp.user_name.c_str(),
-            ccp.user_password->GetPassword()->content().c_str(),
-            accountID, accountRole ) )
-    {
-		sLog.Log("Client", "Rejected by DB");
+        //sLog.Log("Client", "Rejected by DB");
 
         GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
         mNet->QueueRep( except );
         PyDecRef( except );
 
         return false;
+    }
+
+    /* I know I do a double db lookup... lolz */
+
+    uint32 accountID;
+    uint64 accountRole;
+    if( !services().serviceDB().DoLogin2( ccp.user_name.c_str(), accountID, accountRole ) ) {
+        sLog.Log("Client", "Rejected by DB");
+
+        GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
+        mNet->QueueRep( except );
+        PyDecRef( except );
+
+        return false;
+    } else {
+        //send passwordVersion required: 1=plain, 2=hashed
+        PyRep* rsp = new PyInt( 2 );
+        mNet->QueueRep( rsp );
+        PyDecRef( rsp );
     }
 
 	sLog.Log("Client","successful");

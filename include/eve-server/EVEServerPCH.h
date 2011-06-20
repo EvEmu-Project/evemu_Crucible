@@ -70,10 +70,14 @@
 #include "utils/utils_time.h"
 #include "utils/utils_string.h"
 #include "utils/XMLParserEx.h"
+#include "utils/util.h"
+
 
 /************************************************************************/
 /* eve-common includes                                                  */
 /************************************************************************/
+
+#include "authorisation/PasswordModule.h"
 #include "cache/CachedObjectMgr.h"
 
 #include "database/EVEDBUtils.h"

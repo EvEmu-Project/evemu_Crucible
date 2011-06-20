@@ -105,6 +105,102 @@ bool ServiceDB::DoLogin( const char* login, const char* pass, uint32& accountID,
     }
 }
 
+bool ServiceDB::DoLogin2( const char* login, uint32& accountID, uint64& role )
+{
+    // lol do you really think this is safe enough?
+    if( !sDatabase.IsSafeString( login ))
+    {
+        sLog.Error( "AccountDB", "Invalid characters in login or password." );
+        return false;
+    }
+
+    DBQueryResult res;
+    if( !sDatabase.RunQuery( res,
+        "SELECT accountID, role, password, online, banned FROM account WHERE accountName = '%s'", login ) )
+    {
+        sLog.Error( "AccountDB", "Error in query: %s.", res.error.c_str() );
+        return false;
+    }
+
+    DBResultRow row;
+    if( res.GetRow( row ) )
+    {
+        if( 0 != row.GetInt( 3 ) )
+        {
+            sLog.Error( "ServiceDB", "Account '%s' already logged in.", login );
+            return false;
+        }
+		if( 0 != row.GetInt( 4 ) )
+		{
+			sLog.Error( "ServiceDB", "Account '%s' has been banned from the server.", login);
+			return false;
+		}
+
+        accountID = row.GetUInt( 0 );
+        role = row.GetUInt64( 1 );
+
+        return true;
+    }
+    //else if( 0 == sConfig.account.autoAccountRole )
+    else
+    {
+        // autoAccount disabled
+
+        sLog.Error( "ServiceDB", "Unknown account '%s'.", login );
+        return false;
+    }
+//     else
+//     {
+//         // autoAccount enabled, try to create a new account
+//
+//         sLog.Log( "ServiceDB", "Creating a new account '%s' with role %u.", login, sConfig.account.autoAccountRole );
+//
+//         accountID = CreateNewAccount( login, pass, sConfig.account.autoAccountRole );
+//         if( 0 == accountID )
+//         {
+//             sLog.Error( "ServiceDB", "Failed to create a new account." );
+//             return false;
+//         }
+//
+//         role = sConfig.account.autoAccountRole;
+//
+//         return true;
+//     }
+}
+
+
+/* this is wrong, because we only want to store hashed passwords... never plain passwords..
+ * this will change in the future so we only store the 1000x sha1 hashed username + password combo.
+ */
+bool ServiceDB::GetUserPassword( const char* username, std::wstring & password )
+{
+    std::string _username = username;
+    std::string _escaped_username;
+
+    sDatabase.DoEscapeString(_escaped_username, _username);
+
+    DBQueryResult res;
+    if( !sDatabase.RunQuery( res, "SELECT accountID, role, password, online, banned FROM account WHERE accountName = '%s'", _escaped_username.c_str() ) )
+    {
+        sLog.Error( "ServiceDB", "Error in query: %s.", res.error.c_str() );
+        return false;
+    }
+    DBResultRow row;
+    if (!res.GetRow( row ))
+        return false;
+
+    if (!row.IsNull(2)) {
+        std::string _pass = row.GetText(2);
+        password.resize(_pass.size());
+        size_t ret_len = mbstowcs(&password[0], _pass.c_str(), _pass.size());
+        //password = row.GetText(2);
+    } else {
+        sLog.Error("accountDB", "no password supplied for account: %s", username);
+        return false;
+    }
+    return true;
+}
+
 uint32 ServiceDB::CreateNewAccount( const char* login, const char* pass, uint64 role )
 {
     uint32 accountID;
@@ -122,7 +218,8 @@ uint32 ServiceDB::CreateNewAccount( const char* login, const char* pass, uint64 
     return accountID;
 }
 
-PyObject *ServiceDB::GetSolRow(uint32 systemID) const {
+PyObject *ServiceDB::GetSolRow(uint32 systemID) const
+{
     DBQueryResult res;
     
     if(!sDatabase.RunQuery(res,
@@ -528,3 +625,4 @@ void ServiceDB::SetAccountBanStatus(uint32 accountID, bool onoff_status) {
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 	}
 }
+
