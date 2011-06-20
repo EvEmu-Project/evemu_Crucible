@@ -792,12 +792,13 @@ PyCachedCall::~PyCachedCall()
     PySafeDecRef( result );
 }
 
-PyCachedCall *PyCachedCall::Clone() const
+/*PyCachedCall *PyCachedCall::Clone() const
 {
     PyCachedCall *res = new PyCachedCall();
     res->result = result->Clone();
     return res;
 }
+*/
 
 void PyCachedCall::Dump(FILE *into, const char *pfx, bool contents_too)
 {

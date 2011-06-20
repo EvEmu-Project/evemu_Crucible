@@ -650,9 +650,9 @@ protected:
 class PyDict : public PyRep
 {
 protected:
-    class _hash
-    : public std::unary_function<PyRep*, size_t>
-    {	// hash functor
+    // hash function
+    class _hash : public std::unary_function<PyRep*, size_t>
+    {
     public:
         size_t operator()( const PyRep* _Keyval ) const
         {
@@ -662,9 +662,9 @@ protected:
         }
     };
 
-    class _comp
-    : public std::binary_function<PyRep*, PyRep*, bool>
-    {   // comparison functor
+    // comparison function
+    class _comp : public std::binary_function<PyRep*, PyRep*, bool>
+    {
     public:
         bool operator()( const PyRep* _Arg1, const PyRep* _Arg2 ) const
         {

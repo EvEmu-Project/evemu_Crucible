@@ -80,53 +80,6 @@ class PyPacket;
 class Client;
 class PyRep;
 
-// not needed now:
-/*
-class Functor {
-public:
-	Functor() {}
-	virtual ~Functor() {}
-	virtual void operator()() = 0;
-};
-
-class ClientFunctor : public Functor {
-public:
-	ClientFunctor(Client *c) : m_client(c) {}
-	virtual ~ClientFunctor() {}
-	//leave () pure
-protected:
-	Client *const m_client;
-};
-
-class FunctorTimerQueue {
-public:
-	typedef uint32 TimerID;
-	
-	FunctorTimerQueue();
-	~FunctorTimerQueue();
-
-	//schedule takes ownership of the functor.
-	TimerID Schedule(Functor **what, uint32 in_how_many_ms);
-	bool Cancel(TimerID id);
-	
-	void Process();
-	
-protected:
-	//this could be done a TON better, but want to get something
-	//working first, it is call encapsulated in here, so it should
-	//be simple to gut this object and put in a real scheduler.
-	class Entry {
-	public:
-		Entry(TimerID id, Functor *func, uint32 time_ms);
-		~Entry();
-		const TimerID id;
-		Functor *const func;
-		Timer when;
-	};
-	TimerID m_nextID;
-	std::vector<Entry *> m_queue;	//not ordered or anything useful.
-};
-*/
 //DO NOT INHERIT THIS OBJECT!
 class Client
 : public DynamicSystemEntity,
@@ -238,9 +191,6 @@ public:
     void EnableKennyTranslator() { bKennyfied = true; };
     void DisableKennyTranslator() { bKennyfied = false; };
 
-	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, void (Client::* clientCall)() );
-	//FunctorTimerQueue::TimerID Delay( uint32 time_in_ms, ClientFunctor **functor );
-
 	/** character notification messages
 	  */
 	void OnCharNoLongerInStation();
@@ -339,16 +289,12 @@ protected:
     bool Handle_PingReq( PyPacket* packet ) { _SendPingResponse( packet->dest, packet->source.callID ); return true; }
     bool Handle_PingRsp( PyPacket* packet ) { /* do nothing */ return true; }
 
-
-
 private:
 	//queues for destiny updates:
 	PyList* m_destinyEventQueue;	//we own these. These are events as used in OnMultiEvent
 	PyList* m_destinyUpdateQueue;	//we own these. They are the `update` which go into DoDestinyAction
 	void _SendQueuedUpdates();
 
-	//FunctorTimerQueue m_delayQueue;
-	
 	uint32 m_nextNotifySequence;
 
     bool bKennyfied;
@@ -361,19 +307,5 @@ private:
     bool DoDestinyUpdate();
     std::list<PyTuple*> mDogmaMessages;
 };
-
-//simple functor for void calls.
-//not needed right now
-/*class SimpleClientFunctor : public ClientFunctor {
-public:
-	typedef void (Client::* clientCall)();
-	SimpleClientFunctor(Client *c, clientCall call) : ClientFunctor(c), m_call(call) {}
-	virtual ~SimpleClientFunctor() {}
-	virtual void operator()() {
-		(m_client->*m_call)();
-	}
-public:
-	const clientCall m_call;
-};*/
 
 #endif

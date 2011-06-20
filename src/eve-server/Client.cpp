@@ -1601,7 +1601,7 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
         dest = services().LookupService( packet->dest.service );
         if( dest == NULL )
         {
-			sLog.Error("Client","Unable to find service to handle call to:"); 
+			sLog.Error("Client","Unable to find service to handle call to: %s", packet->dest.service.c_str());
             packet->dest.Dump(CLIENT__ERROR, "    ");
 #ifndef WIN32
 #   warning TODO: throw proper exception to client (exceptions.ServiceNotFound).
@@ -1610,12 +1610,12 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
         }
     }
 
-	//Debug code	
+	//Debug code
 	if( req.method == "BeanCount" )
 		sLog.Error("Client","BeanCount");
 	else 
 		//this should be sLog.Debug, but because of the number of messages, I left it as .Log for readability, and ease of finding other debug messages
-		sLog.Log("Server", "%s call made to %s",req.method.c_str(),packet->dest.service.c_str()); 
+		sLog.Log("Server", "%s call made to %s",req.method.c_str(),packet->dest.service.c_str());
 
     //build arguments
     PyCallArgs args( this, req.arg_tuple, req.arg_dict );
@@ -1684,81 +1684,3 @@ void Client::UpdateSession(const char *sessionType, int value)
 	mSession.SetInt(sessionType, value);
 }
 
-/*
-FunctorTimerQueue::TimerID Client::Delay( uint32 time_in_ms, void (Client::* clientCall)() ) {
-    Functor *f = new SimpleClientFunctor(this, clientCall);
-    return(m_delayQueue.Schedule( &f, time_in_ms ));
-}
-
-FunctorTimerQueue::TimerID Client::Delay( uint32 time_in_ms, ClientFunctor **functor ) {
-    Functor *f = *functor;
-    *functor = NULL;
-    return(m_delayQueue.Schedule( &f, time_in_ms ));
-}
-
-
-
-
-FunctorTimerQueue::FunctorTimerQueue()
-: m_nextID(0)
-{
-}
-
-FunctorTimerQueue::~FunctorTimerQueue() {
-    std::vector<Entry *>::iterator cur, end;
-    cur = m_queue.begin();
-    end = m_queue.end();
-    for(; cur != end; cur++) {
-        delete *cur;
-    }
-}
-
-FunctorTimerQueue::TimerID FunctorTimerQueue::Schedule(Functor **what, uint32 in_how_many_ms) {
-    Entry *e = new Entry(++m_nextID, *what, in_how_many_ms);
-    *what = NULL;
-    m_queue.push_back(e);
-    return(e->id);
-}
-
-bool FunctorTimerQueue::Cancel(TimerID id) {
-    std::vector<Entry *>::iterator cur, end;
-    cur = m_queue.begin();
-    end = m_queue.end();
-    for(; cur != end; cur++) {
-        if((*cur)->id == id) {
-            m_queue.erase(cur);
-            return true;
-        }
-    }
-    return false;
-}
-
-void FunctorTimerQueue::Process() {
-    std::vector<Entry *>::iterator cur, tmp;
-    cur = m_queue.begin();
-    while(cur != m_queue.end()) {
-        Entry *e = *cur;
-        if(e->when.Check(false)) {
-            //call the functor.
-            (*e->func)();
-            //we are done with this crap.
-            delete e;
-            cur = m_queue.erase(cur);
-        } else {
-            cur++;
-        }
-    }
-}
-
-FunctorTimerQueue::Entry::Entry(TimerID _id, Functor *_func, uint32 time_ms)
-: id(_id),
-  func(_func),
-  when(time_ms)
-{
-    when.Start();
-}
-
-FunctorTimerQueue::Entry::~Entry() {
-    delete func;
-}
-*/
