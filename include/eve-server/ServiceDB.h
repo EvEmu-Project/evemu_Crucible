@@ -40,24 +40,23 @@ class Client;
 class CharacterData;
 class CorpMemberInfo;
 
+struct AccountInfo
+{
+    std::string name;
+    std::string password;
+    std::string hash;
+    uint64 id;
+    uint64 role;
+    bool online;
+    bool banned;
+};
+
 class ServiceDB
 {
 public:
-    /**
-     * DoLogin()
-     *
-     * This method performs checks when an account is logging into the server.
-     *
-     * @param[in] login
-     * @param[in] pass
-     * @param[out] acountID
-     * @param[out] role
-     * @author 
-     */
-    bool DoLogin( const char* login, const char* pass, uint32& accountID, uint64& role );
-    bool DoLogin2( const char* login, uint32& accountID, uint64& role );
+    bool GetAccountInformation( const char* username, AccountInfo & account_info );
+    bool UpdateAccountInfo( const char* username, std::string hash );
 
-    bool GetUserPassword( const char* username, std::wstring & password );
 
     //entity/item stuff:
     PyObject *GetSolRow(uint32 systemID) const;

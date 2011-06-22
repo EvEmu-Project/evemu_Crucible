@@ -25,154 +25,13 @@
 
 #include "EVEServerPCH.h"
 
-bool ServiceDB::DoLogin( const char* login, const char* pass, uint32& accountID, uint64& role )
-{
-    if( pass[0] == '\0' )
-    {
-        sLog.Error( "ServiceDB", "Empty password not allowed ('%s').", login );
-        return false;
-    }
-
-    if( !sDatabase.IsSafeString( login ) || !sDatabase.IsSafeString( pass ) )
-    {
-        sLog.Error( "ServiceDB", "Invalid characters in login or password." );
-        return false;
-    }
-    
-    DBQueryResult res;
-    if( !sDatabase.RunQuery( res,
-        "SELECT accountID, role, password, PASSWORD( '%s' ), MD5( '%s' ), online, banned"
-        " FROM account"
-        " WHERE accountName = '%s'",
-        pass, pass, login ) )
-    {
-        sLog.Error( "ServiceDB", "Error in query: %s.", res.error.c_str() );
-        return false;
-    }
-
-    DBResultRow row;
-    if( res.GetRow( row ) )
-    {
-        if( 0 != row.GetInt( 5 ) )
-        {
-            sLog.Error( "ServiceDB", "Account '%s' already logged in.", login );
-            return false;
-        }
-		if( 0 != row.GetInt( 6 ) )
-		{
-			sLog.Error( "ServiceDB", "Account '%s' has been banned from the server.", login);
-			return false;
-		}
-
-        const std::string dbPass = row.GetText( 2 );
-
-        if( dbPass != pass
-            && dbPass != row.GetText( 3 )
-            && dbPass != row.GetText( 4 ) )
-        {
-            sLog.Error( "ServiceDB", "Login failed for account '%s'.", login );
-            return false;
-        }
-
-        accountID = row.GetUInt( 0 );
-        role = row.GetUInt64( 1 );
-
-        return true;
-    }
-    else if( 0 == sConfig.account.autoAccountRole )
-    {
-        // autoAccount disabled
-
-        sLog.Error( "ServiceDB", "Unknown account '%s'.", login );
-        return false;
-    }
-    else
-    {
-        // autoAccount enabled, try to create a new account
-
-        sLog.Log( "ServiceDB", "Creating a new account '%s' with role %u.", login, sConfig.account.autoAccountRole );
-
-        accountID = CreateNewAccount( login, pass, sConfig.account.autoAccountRole );
-        if( 0 == accountID )
-        {
-            sLog.Error( "ServiceDB", "Failed to create a new account." );
-            return false;
-        }
-
-        role = sConfig.account.autoAccountRole;
-
-        return true;
-    }
-}
-
-bool ServiceDB::DoLogin2( const char* login, uint32& accountID, uint64& role )
-{
-    // lol do you really think this is safe enough?
-    if( !sDatabase.IsSafeString( login ))
-    {
-        sLog.Error( "AccountDB", "Invalid characters in login or password." );
-        return false;
-    }
-
-    DBQueryResult res;
-    if( !sDatabase.RunQuery( res,
-        "SELECT accountID, role, password, online, banned FROM account WHERE accountName = '%s'", login ) )
-    {
-        sLog.Error( "AccountDB", "Error in query: %s.", res.error.c_str() );
-        return false;
-    }
-
-    DBResultRow row;
-    if( res.GetRow( row ) )
-    {
-        if( 0 != row.GetInt( 3 ) )
-        {
-            sLog.Error( "ServiceDB", "Account '%s' already logged in.", login );
-            return false;
-        }
-		if( 0 != row.GetInt( 4 ) )
-		{
-			sLog.Error( "ServiceDB", "Account '%s' has been banned from the server.", login);
-			return false;
-		}
-
-        accountID = row.GetUInt( 0 );
-        role = row.GetUInt64( 1 );
-
-        return true;
-    }
-    //else if( 0 == sConfig.account.autoAccountRole )
-    else
-    {
-        // autoAccount disabled
-
-        sLog.Error( "ServiceDB", "Unknown account '%s'.", login );
-        return false;
-    }
-//     else
-//     {
-//         // autoAccount enabled, try to create a new account
-//
-//         sLog.Log( "ServiceDB", "Creating a new account '%s' with role %u.", login, sConfig.account.autoAccountRole );
-//
-//         accountID = CreateNewAccount( login, pass, sConfig.account.autoAccountRole );
-//         if( 0 == accountID )
-//         {
-//             sLog.Error( "ServiceDB", "Failed to create a new account." );
-//             return false;
-//         }
-//
-//         role = sConfig.account.autoAccountRole;
-//
-//         return true;
-//     }
-}
-
-
-/* this is wrong, because we only want to store hashed passwords... never plain passwords..
- * this will change in the future so we only store the 1000x sha1 hashed username + password combo.
+/**
+ * @todo add auto account stuff ...//sConfig.account.autoAccountRole
+ *       accountID = CreateNewAccount( login, pass, sConfig.account.autoAccountRole );
+ *       role = sConfig.account.autoAccountRole;
  */
-bool ServiceDB::GetUserPassword( const char* username, std::wstring & password )
+
+bool ServiceDB::GetAccountInformation( const char* username, AccountInfo & account_info )
 {
     std::string _username = username;
     std::string _escaped_username;
@@ -180,24 +39,49 @@ bool ServiceDB::GetUserPassword( const char* username, std::wstring & password )
     sDatabase.DoEscapeString(_escaped_username, _username);
 
     DBQueryResult res;
-    if( !sDatabase.RunQuery( res, "SELECT accountID, role, password, online, banned FROM account WHERE accountName = '%s'", _escaped_username.c_str() ) )
+    if( !sDatabase.RunQuery( res, "SELECT accountID, password, hash, role, online, banned FROM account WHERE accountName = '%s'", _escaped_username.c_str() ) )
     {
         sLog.Error( "ServiceDB", "Error in query: %s.", res.error.c_str() );
         return false;
     }
+
     DBResultRow row;
     if (!res.GetRow( row ))
         return false;
 
-    if (!row.IsNull(2)) {
-        std::string _pass = row.GetText(2);
-        password.resize(_pass.size());
-        size_t ret_len = mbstowcs(&password[0], _pass.c_str(), _pass.size());
-        //password = row.GetText(2);
-    } else {
-        sLog.Error("accountDB", "no password supplied for account: %s", username);
+    /* when any of the text gets are NULL it will fail... I think.. */
+    account_info.id         = row.GetUInt(0);
+
+    if (!row.IsNull(1))
+        account_info.password = row.GetText(1);
+
+    if (!row.IsNull(2))
+        account_info.hash   = row.GetText(2);
+
+    account_info.name       = _escaped_username;
+    account_info.role       = row.GetUInt(3);
+    account_info.online     = row.GetUInt(4);
+    account_info.banned     = row.GetUInt(5);
+
+    return true;
+}
+
+bool ServiceDB::UpdateAccountInfo( const char* username, std::string hash )
+{
+    DBerror err;
+    std::string user_name = username;
+    std::string escaped_hash;
+    std::string escaped_username;
+
+    sDatabase.DoEscapeString(escaped_hash, hash);
+    sDatabase.DoEscapeString(escaped_username, user_name);
+
+    if(!sDatabase.RunQuery(err, "UPDATE account SET password='',hash='%s' where accountName='%s'", escaped_hash.c_str(), escaped_username.c_str())) {
+
+        sLog.Error( "AccountDB", "Unable to update account information for: %s.", username );
         return false;
     }
+
     return true;
 }
 
@@ -625,4 +509,6 @@ void ServiceDB::SetAccountBanStatus(uint32 accountID, bool onoff_status) {
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 	}
 }
+
+
 

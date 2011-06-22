@@ -15,14 +15,19 @@ MySQL - 5.0.67-community-nt : Database - eve_evemu_dynamic
 
 DROP TABLE IF EXISTS `account`;
 
+-- ----------------------------
+-- Table structure for `account`
+-- ----------------------------
+DROP TABLE IF EXISTS `account`;
 CREATE TABLE `account` (
-  `accountID` int(10) unsigned NOT NULL auto_increment,
-  `accountName` varchar(43) NOT NULL default '',
-  `password` varchar(43) NOT NULL default '',
-  `role` int(10) unsigned NOT NULL default '0',
-  `online` tinyint(1) NOT NULL default '0',
-  `banned` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`accountID`),
+  `accountID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `accountName` varchar(43) NOT NULL DEFAULT '',
+  `password` varchar(43) NOT NULL DEFAULT '',
+  `hash` tinyblob,
+  `role` bigint(10) unsigned NOT NULL DEFAULT '0',
+  `online` tinyint(1) NOT NULL DEFAULT '0',
+  `banned` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`accountID`),
   UNIQUE KEY `accountName` (`accountName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

@@ -686,8 +686,9 @@ void Client::_SendSessionChange()
 
     p->payload = scn.Encode();
 
-    p->named_payload = new PyDict();
-    p->named_payload->SetItemString( "channel", new PyString( "sessionchange" ) );
+    p->named_payload = NULL;
+    //p->named_payload = new PyDict();
+    //p->named_payload->SetItemString( "channel", new PyString( "sessionchange" ) );
 
     FastQueuePacket( &p );
 }
@@ -1464,49 +1465,57 @@ bool Client::_VerifyCrypto( CryptoRequestPacket& cr )
 
 bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 {
-	sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
+    AccountInfo account_info;
 
-	sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
+	//sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
+	//sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
 
-    /* here we generate the password hash our selfs */
-    std::wstring w_password;
-    std::wstring w_username;
-
-    w_username.resize(ccp.user_name.size());
-
-    size_t ret_len = mbstowcs(&w_username[0], ccp.user_name.c_str(), ccp.user_name.size());
-    assert(ret_len == ccp.user_name.size());
-
-    services().serviceDB().GetUserPassword(ccp.user_name.c_str(), w_password);
-
-    std::string password_hash;
-
-    PasswordModule::GeneratePassHash(w_username, w_password, password_hash);
-
-    // when hash is wrong...
-    if (password_hash != ccp.user_password_hash)
-    {
-        //sLog.Log("Client", "Rejected by DB");
-
+    if (!services().serviceDB().GetAccountInformation( ccp.user_name.c_str(),  account_info)) {
         GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
         mNet->QueueRep( except );
         PyDecRef( except );
-
         return false;
     }
 
-    /* I know I do a double db lookup... lolz */
+    std::string account_hash;
 
-    uint32 accountID;
-    uint64 accountRole;
-    if( !services().serviceDB().DoLogin2( ccp.user_name.c_str(), accountID, accountRole ) ) {
-        sLog.Log("Client", "Rejected by DB");
+    /* if we have stored a password we need to create a hash from the username and pass and remove the pass */
+    if (account_info.password.size() != 0) {
+        
+        size_t ret_len;
+
+        /* here we generate the password hash our selfs */
+        std::wstring w_password;
+        std::wstring w_username;
+
+        w_username.resize( ccp.user_name.size() );
+
+        ret_len = mbstowcs( &w_username[0], ccp.user_name.c_str(), ccp.user_name.size() );
+        assert( ret_len == ccp.user_name.size() );
+
+        w_password.resize( account_info.password.size() );
+        ret_len = mbstowcs(&w_password[0], account_info.password.c_str(), account_info.password.size());
+        assert( ret_len == account_info.password.size() );
+
+
+        std::string password_hash;
+        PasswordModule::GeneratePassHash(w_username, w_password, password_hash);
+
+        services().serviceDB().UpdateAccountInfo(ccp.user_name.c_str(), password_hash);
+
+        account_hash = password_hash;
+    } else {
+        account_hash = account_info.hash;
+    }
+
+    // when hash is wrong...
+    if (account_hash != ccp.user_password_hash) {
 
         GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
         mNet->QueueRep( except );
         PyDecRef( except );
-
         return false;
+
     } else {
         //send passwordVersion required: 1=plain, 2=hashed
         PyRep* rsp = new PyInt( 2 );
@@ -1514,9 +1523,10 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         PyDecRef( rsp );
     }
 
-	sLog.Log("Client","successful");
+    /* I know I do a double db lookup... lolz */
+    sLog.Log("Client","successful");
 
-    m_services.serviceDB().SetAccountOnlineStatus( accountID, true );
+    m_services.serviceDB().SetAccountOnlineStatus( account_info.id, true );
 
     //marshaled Python string "None"
     static const uint8 handshakeFunc[] = { 0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65 };
@@ -1551,8 +1561,8 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
     //user type 1 is normal user, type 23 is a trial account user.
     mSession.SetInt( "userType", 1 );
-    mSession.SetInt( "userid", accountID );
-    mSession.SetLong( "role", accountRole );
+    mSession.SetInt( "userid", account_info.id );
+    mSession.SetLong( "role", account_info.role );
 
     return true;
 }
