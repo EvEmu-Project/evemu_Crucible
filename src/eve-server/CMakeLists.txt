@@ -74,6 +74,20 @@ SET( admin_SOURCE
      "${TARGET_SOURCE_DIR}/admin/PetitionerService.cpp"
      "${TARGET_SOURCE_DIR}/admin/SlashService.cpp" )
 
+SET( authorisation_INCLUDE
+     "${TARGET_INCLUDE_DIR}/authorisation/BinAsciiModule.h"
+     "${TARGET_INCLUDE_DIR}/authorisation/PasswordModule.h"
+     "${TARGET_INCLUDE_DIR}/authorisation/ShaModule.h" )
+
+SET( authorisation_SOURCE
+     "${TARGET_SOURCE_DIR}/authorisation/PasswordModule.cpp" )
+
+SET( browser_INCLUDE
+     "${TARGET_INCLUDE_DIR}/browser/browserLockdownSvc.h" )
+
+SET( browser_SOURCE
+     "${TARGET_SOURCE_DIR}/browser/browserLockdownSvc.cpp" )
+
 SET( cache_INCLUDE
      "${TARGET_INCLUDE_DIR}/cache/ObjCacheDB.h"
      "${TARGET_INCLUDE_DIR}/cache/ObjCacheService.h" )
@@ -372,7 +386,6 @@ SET( imageserver_SOURCE
      "${TARGET_SOURCE_DIR}/imageserver/ImageServer.cpp"
      "${TARGET_SOURCE_DIR}/imageserver/ImageServerListener.cpp"
      "${TARGET_SOURCE_DIR}/imageserver/ImageServerConnection.cpp" )
-     
 
 ########################
 # Setup the executable #
@@ -393,6 +406,8 @@ INCLUDE_DIRECTORIES( "${TARGET_INCLUDE_DIR}" )
 SOURCE_GROUP( "include"                FILES ${INCLUDE} )
 SOURCE_GROUP( "include\\account"       FILES ${account_INCLUDE} )
 SOURCE_GROUP( "include\\admin"         FILES ${admin_INCLUDE} )
+SOURCE_GROUP( "include\\authorisation" FILES ${authorisation_INCLUDE} )
+SOURCE_GROUP( "include\\browser"       FILES ${browser_INCLUDE} )
 SOURCE_GROUP( "include\\cache"         FILES ${cache_INCLUDE} )
 SOURCE_GROUP( "include\\config"        FILES ${config_INCLUDE} )
 SOURCE_GROUP( "include\\corporation"   FILES ${corporation_INCLUDE} )
@@ -416,9 +431,12 @@ SOURCE_GROUP( "include\\trade"         FILES ${trade_INCLUDE} )
 SOURCE_GROUP( "include\\tutorial"      FILES ${tutorial_INCLUDE} )
 SOURCE_GROUP( "include\\imageserver"   FILES ${imageserver_INCLUDE} )
 
+
 SOURCE_GROUP( "src"                FILES ${SOURCE} )
 SOURCE_GROUP( "src\\account"       FILES ${account_SOURCE} )
 SOURCE_GROUP( "src\\admin"         FILES ${admin_SOURCE} )
+SOURCE_GROUP( "src\\authorisation" FILES ${authorisation_SOURCE} )
+SOURCE_GROUP( "src\\browser"       FILES ${browser_SOURCE} )
 SOURCE_GROUP( "src\\cache"         FILES ${cache_SOURCE} )
 SOURCE_GROUP( "src\\config"        FILES ${config_SOURCE} )
 SOURCE_GROUP( "src\\corporation"   FILES ${corporation_SOURCE} )
@@ -442,10 +460,13 @@ SOURCE_GROUP( "src\\trade"         FILES ${trade_SOURCE} )
 SOURCE_GROUP( "src\\tutorial"      FILES ${tutorial_SOURCE} )
 SOURCE_GROUP( "src\\imageserver"   FILES ${imageserver_SOURCE} )
 
+
 ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${INCLUDE}                ${SOURCE}
                 ${account_INCLUDE}        ${account_SOURCE}
                 ${admin_INCLUDE}          ${admin_SOURCE}
+                ${authorisation_INCLUDE}  ${authorisation_SOURCE} 
+                ${browser_INCLUDE}        ${browser_SOURCE} 
                 ${cache_INCLUDE}          ${cache_SOURCE}
                 ${config_INCLUDE}         ${config_SOURCE}
                 ${corporation_INCLUDE}    ${corporation_SOURCE}
