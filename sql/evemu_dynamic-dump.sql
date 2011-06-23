@@ -33,17 +33,17 @@ CREATE TABLE `account` (
 
 /*Data for the table `account` */
 
-/*Table structure for table `alliance_shortnames` */
+/*Table structure for table `alliance_ShortNames` */
 
-DROP TABLE IF EXISTS `alliance_shortnames`;
+DROP TABLE IF EXISTS `alliance_ShortNames`;
 
-CREATE TABLE `alliance_shortnames` (
+CREATE TABLE `alliance_ShortNames` (
   `allianceID` int(10) unsigned NOT NULL default '0',
   `shortName` text NOT NULL,
   PRIMARY KEY  (`allianceID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Data for the table `alliance_shortnames` */
+/*Data for the table `alliance_ShortNames` */
 
 /*Table structure for table `billsPayable` */
 

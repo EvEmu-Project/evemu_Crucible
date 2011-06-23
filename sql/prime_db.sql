@@ -8,7 +8,7 @@
 /*
  * Truncate all the dynamic tables
  */
-TRUNCATE TABLE alliance_shortnames;
+TRUNCATE TABLE alliance_ShortNames;
 TRUNCATE TABLE billsPayable;
 TRUNCATE TABLE billsReceivable;
 TRUNCATE TABLE bookmarks;

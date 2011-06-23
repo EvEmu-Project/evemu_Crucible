@@ -40,7 +40,7 @@ PyObjectEx *MissionDB::GetAgents() {
 		"	bl.bloodlineID,"
 		"	chr.gender"
 		" FROM agtAgents AS agt"
-		" LEFT JOIN characterstatic AS chr ON chr.characterID = agt.agentID"
+		" LEFT JOIN characterStatic AS chr ON chr.characterID = agt.agentID"
 		" LEFT JOIN bloodlineTypes AS bl ON bl.bloodlineID = agt.agentTypeID"
 	))
 	{

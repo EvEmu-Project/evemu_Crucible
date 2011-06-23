@@ -1,4 +1,4 @@
-/*
+F/*
 	------------------------------------------------------------------------------------
 	LICENSE:
 	------------------------------------------------------------------------------------
@@ -316,14 +316,14 @@ PyRep *StationDB::DoGetStation(uint32 sid)
     "staStations.y,"
     "staStations.z,"
     "mapDenormalize.orbitID,"
-    "staStationTypes_old.hangarGraphicID,"
+    "staStationTypes.hangarGraphicID,"
     "staStations.stationID,"
     "0 AS upgradelevel,"
     "invtypes.graphicID,"
     "staStations.regionID,"
     "staStations.security,"
     "staStations.stationTypeID,"
-    "staStationTypes_old.dockingBayGraphicID,"
+    "staStationTypes.dockingBayGraphicID,"
     "staStations.officeRentalCost,"
     "staStations.stationName,"
     "staOperations.description,"
@@ -347,16 +347,14 @@ PyRep *StationDB::DoGetStation(uint32 sid)
     "staStationTypes.conquerable,"
     "mapDenormalize.radius"
     "from staStations "
-    "LEFT JOIN staStationTypes_old ON "
-    "staStations.stationTypeID=staStationTypes_old.stationTypeID "
+    "LEFT JOIN staStationTypes ON "
+    "staStations.stationTypeID=staStationTypes.stationTypeID "
     "LEFT JOIN mapDenormalize ON "
     "staStations.stationID=mapDenormalize.itemID "
     "LEFT JOIN invtypes ON "
     "staStations.stationTypeID=invtypes.typeID "
     "LEFT JOIN staOperations ON "
     "staStations.operationID=staOperations.operationID "
-    "LEFT JOIN staStationTypes ON "
-    "staStations.stationTypeID=staStationTypes_old.stationTypeID "
     "LEFT JOIN staOperationServices ON "
     "staStations.operationID=staOperationServices.operationID "
     "WHERE staStations.stationID = %u GROUP BY staStations.stationID", sid ))
@@ -410,11 +408,11 @@ PyRep *StationDB::GetStationItemBits(uint32 sid) {
 		" SELECT "
 		" staStations.stationID, "
 		" staStations.stationTypeID, staStations.corporationID AS ownerID, "
-		" staStationTypes_old.hangarGraphicID, "
+		" staStationTypes.hangarGraphicID, "
 		// damn mysql returns the result of the sum as string and so it is sent to the client as string and so it freaks out...
 		" CAST(SUM(staOperationServices.serviceID) as UNSIGNED INTEGER) AS serviceMask "
 		" FROM staStations "
-		" LEFT JOIN staStationTypes_old ON staStations.stationTypeID = staStationTypes_old.stationTypeID "
+		" LEFT JOIN staStationTypes ON staStations.stationTypeID = staStationTypes.stationTypeID "
 		" LEFT JOIN staOperationServices ON staStations.operationID = staOperationServices.operationID "
 		" WHERE staStations.stationID = %u "
 		" GROUP BY staStations.stationID ", sid
