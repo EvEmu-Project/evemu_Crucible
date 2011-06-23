@@ -655,13 +655,20 @@ void PyDict::SetItem( PyRep* key, PyRep* value )
         itr->second = value;
     }
 }
-/*
+
+void PyDict::SetItem( const char* key, const char* value )
+{
+    SetItem(key, (PyRep*)new PyString(value));
+}
+
+
 void PyDict::SetItem( const char* key, PyRep* value )
 {
     PyString *key_name = new PyString(key);
-    SetItem(key_name, value); // huge mem leak when object
-
+    SetItem(key_name, value);
 }
+
+/*
 
 PyDict& PyDict::operator=( const PyDict& oth )
 {

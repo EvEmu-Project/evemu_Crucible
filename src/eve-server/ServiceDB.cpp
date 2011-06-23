@@ -39,7 +39,7 @@ bool ServiceDB::GetAccountInformation( const char* username, AccountInfo & accou
     sDatabase.DoEscapeString(_escaped_username, _username);
 
     DBQueryResult res;
-    if( !sDatabase.RunQuery( res, "SELECT accountID, password, hash, role, online, banned FROM account WHERE accountName = '%s'", _escaped_username.c_str() ) )
+    if( !sDatabase.RunQuery( res, "SELECT accountID, password, hash, role, online, banned, logonCount, lastLogin FROM account WHERE accountName = '%s'", _escaped_username.c_str() ) )
     {
         sLog.Error( "ServiceDB", "Error in query: %s.", res.error.c_str() );
         return false;
@@ -62,11 +62,15 @@ bool ServiceDB::GetAccountInformation( const char* username, AccountInfo & accou
     account_info.role       = row.GetUInt(3);
     account_info.online     = row.GetUInt(4);
     account_info.banned     = row.GetUInt(5);
+    account_info.visits     = row.GetUInt(6);
+
+    if (!row.IsNull(7))
+        account_info.last_login = row.GetText(7);
 
     return true;
 }
 
-bool ServiceDB::UpdateAccountInfo( const char* username, std::string hash )
+bool ServiceDB::UpdateAccountInfo( const char* username, std::string & hash )
 {
     DBerror err;
     std::string user_name = username;
@@ -78,6 +82,21 @@ bool ServiceDB::UpdateAccountInfo( const char* username, std::string hash )
 
     if(!sDatabase.RunQuery(err, "UPDATE account SET password='',hash='%s' where accountName='%s'", escaped_hash.c_str(), escaped_username.c_str())) {
 
+        sLog.Error( "AccountDB", "Unable to update account information for: %s.", username );
+        return false;
+    }
+
+    return true;
+}
+
+bool ServiceDB::UpdateAccountInformation( const char* username )
+{
+    DBerror err;
+    std::string user_name = username;
+    std::string escaped_username;
+
+    sDatabase.DoEscapeString(escaped_username, user_name);
+    if(!sDatabase.RunQuery(err, "UPDATE account SET lastLogin=now(), logonCount=logonCount+1 where accountName='%s'", escaped_username.c_str())) {
         sLog.Error( "AccountDB", "Unable to update account information for: %s.", username );
         return false;
     }
@@ -509,6 +528,7 @@ void ServiceDB::SetAccountBanStatus(uint32 accountID, bool onoff_status) {
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 	}
 }
+
 
 
 

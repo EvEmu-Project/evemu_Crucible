@@ -47,6 +47,8 @@ struct AccountInfo
     std::string hash;
     uint64 id;
     uint64 role;
+    uint32 visits;
+    std::string last_login;
     bool online;
     bool banned;
 };
@@ -55,7 +57,8 @@ class ServiceDB
 {
 public:
     bool GetAccountInformation( const char* username, AccountInfo & account_info );
-    bool UpdateAccountInfo( const char* username, std::string hash );
+    bool UpdateAccountInfo( const char* username, std::string & hash );
+    bool UpdateAccountInformation( const char* username );
 
 
     //entity/item stuff:

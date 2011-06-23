@@ -724,6 +724,9 @@ public:
     void SetItem( PyRep* key, PyRep* value );
 
     void SetItem( const char* key, PyRep* value );
+
+    void SetItem( const char* key, const char* value );
+
     /**
      * @brief SetItemString adds or sets a database entry.
      *

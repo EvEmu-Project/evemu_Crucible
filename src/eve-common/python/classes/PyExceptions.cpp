@@ -35,10 +35,10 @@ GPSTransportClosed::GPSTransportClosed( const char* reason )
 
 void GPSTransportClosed::AddKeyword( const char* name, PyRep* value )
 {
-	_GetReasonArgs()->SetItemString( name, value );
+	GetReasonArgs()->SetItemString( name, value );
 }
 
-PyDict* GPSTransportClosed::_GetReasonArgs() const
+PyDict* GPSTransportClosed::GetReasonArgs() const
 {
 	PyRep* r = FindKeyword( "reasonArgs" );
 	assert( r );
@@ -71,6 +71,7 @@ PyDict* GPSTransportClosed::_CreateKeywords( const char* reason )
 
 	return keywords;
 }
+
 
 UserError::UserError( const char* msg )
 : PyObjectEx_Type1( new PyToken( "ccp_exceptions.UserError" ), _CreateArgs( msg ), _CreateKeywords( msg ) )
