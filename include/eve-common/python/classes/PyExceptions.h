@@ -50,8 +50,9 @@ public:
 	 */
 	void AddKeyword( const char* name, PyRep* value );
 
+
+	PyDict* GetReasonArgs() const;
 protected:
-	PyDict* _GetReasonArgs() const;
 
 	static PyTuple* _CreateArgs( const char* reason );
 	static PyDict* _CreateKeywords( const char* reason );

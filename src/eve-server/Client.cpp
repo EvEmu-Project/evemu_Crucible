@@ -1477,6 +1477,13 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         return false;
     }
 
+    if (account_info.banned) {
+        GPSTransportClosed* except = new GPSTransportClosed( "ACCOUNTBANNED" );
+        mNet->QueueRep( except );
+        PyDecRef( except );
+        return false;
+    }
+
     std::string account_hash;
 
     /* if we have stored a password we need to create a hash from the username and pass and remove the pass */
@@ -1490,6 +1497,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
         w_username.resize( ccp.user_name.size() );
 
+        /* convert from multibyte string to wide character string */
         ret_len = mbstowcs( &w_username[0], ccp.user_name.c_str(), ccp.user_name.size() );
         assert( ret_len == ccp.user_name.size() );
 
@@ -1508,7 +1516,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         account_hash = account_info.hash;
     }
 
-    // when hash is wrong...
+    // check if hash is correct...
     if (account_hash != ccp.user_password_hash) {
 
         GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
@@ -1523,10 +1531,13 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         PyDecRef( rsp );
     }
 
-    /* I know I do a double db lookup... lolz */
     sLog.Log("Client","successful");
 
+    /* these can be merged into a single query */
     m_services.serviceDB().SetAccountOnlineStatus( account_info.id, true );
+    m_services.serviceDB().UpdateAccountInformation( account_info.name.c_str() );
+
+
 
     //marshaled Python string "None"
     static const uint8 handshakeFunc[] = { 0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65 };
