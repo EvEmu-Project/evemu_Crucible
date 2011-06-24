@@ -57,8 +57,8 @@ class ServiceDB
 {
 public:
     bool GetAccountInformation( const char* username, AccountInfo & account_info );
-    bool UpdateAccountInfo( const char* username, std::string & hash );
-    bool UpdateAccountInformation( const char* username );
+    bool UpdateAccountHash( const char* username, std::string & hash );
+    bool UpdateAccountInformation( const char* username, bool isOnline );
 
 
     //entity/item stuff:

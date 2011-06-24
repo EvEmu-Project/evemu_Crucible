@@ -70,7 +70,7 @@ bool ServiceDB::GetAccountInformation( const char* username, AccountInfo & accou
     return true;
 }
 
-bool ServiceDB::UpdateAccountInfo( const char* username, std::string & hash )
+bool ServiceDB::UpdateAccountHash( const char* username, std::string & hash )
 {
     DBerror err;
     std::string user_name = username;
@@ -89,14 +89,14 @@ bool ServiceDB::UpdateAccountInfo( const char* username, std::string & hash )
     return true;
 }
 
-bool ServiceDB::UpdateAccountInformation( const char* username )
+bool ServiceDB::UpdateAccountInformation( const char* username, bool isOnline )
 {
     DBerror err;
     std::string user_name = username;
     std::string escaped_username;
 
     sDatabase.DoEscapeString(escaped_username, user_name);
-    if(!sDatabase.RunQuery(err, "UPDATE account SET lastLogin=now(), logonCount=logonCount+1 where accountName='%s'", escaped_username.c_str())) {
+    if(!sDatabase.RunQuery(err, "UPDATE account SET lastLogin=now(), logonCount=logonCount+1, online=%u where accountName='%s'", isOnline, escaped_username.c_str())) {
         sLog.Error( "AccountDB", "Unable to update account information for: %s.", username );
         return false;
     }

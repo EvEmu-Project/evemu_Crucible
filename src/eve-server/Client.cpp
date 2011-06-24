@@ -1471,10 +1471,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 	//sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
 
     if (!services().serviceDB().GetAccountInformation( ccp.user_name.c_str(),  account_info)) {
-        GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
-        mNet->QueueRep( except );
-        PyDecRef( except );
-        return false;
+        goto error_login_auth_failed;
     }
 
     if (account_info.banned) {
@@ -1490,40 +1487,54 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     if (account_info.password.size() != 0) {
         
         size_t ret_len;
-
-        /* here we generate the password hash our selfs */
         std::wstring w_password;
         std::wstring w_username;
+        std::string password_hash;
 
+        /* convert from multi byte strings to wide character strings */
         w_username.resize( ccp.user_name.size() );
-
-        /* convert from multibyte string to wide character string */
         ret_len = mbstowcs( &w_username[0], ccp.user_name.c_str(), ccp.user_name.size() );
-        assert( ret_len == ccp.user_name.size() );
+
+        if (ret_len != ccp.user_name.size()) {
+
+            sLog.Error("Client", "unable to convert username to wide char string, sending LoginAuthFailed");
+            goto error_login_auth_failed;
+
+        }
 
         w_password.resize( account_info.password.size() );
         ret_len = mbstowcs(&w_password[0], account_info.password.c_str(), account_info.password.size());
-        assert( ret_len == account_info.password.size() );
 
+        if (ret_len != account_info.password.size()) {
 
-        std::string password_hash;
-        PasswordModule::GeneratePassHash(w_username, w_password, password_hash);
+            sLog.Error("Client", "unable to convert password to wide char string, sending LoginAuthFailed");
+            goto error_login_auth_failed;
 
-        services().serviceDB().UpdateAccountInfo(ccp.user_name.c_str(), password_hash);
+        }
+
+         /* here we generate the password hash our selfs */
+        if (!PasswordModule::GeneratePassHash(w_username, w_password, password_hash)) {
+
+            sLog.Error("Client", "unable to generate password hash, sending LoginAuthFailed");
+            goto error_login_auth_failed;
+
+        }
+
+        if (!services().serviceDB().UpdateAccountHash(ccp.user_name.c_str(), password_hash)) {
+
+            sLog.Error("Client", "unable to update account hash, sending LoginAuthFailed");
+            goto error_login_auth_failed;
+
+        }
 
         account_hash = password_hash;
     } else {
         account_hash = account_info.hash;
     }
 
-    // check if hash is correct...
+    /* here we check if the user successfully entered his password or if he failed */
     if (account_hash != ccp.user_password_hash) {
-
-        GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
-        mNet->QueueRep( except );
-        PyDecRef( except );
-        return false;
-
+        goto error_login_auth_failed;
     } else {
         //send passwordVersion required: 1=plain, 2=hashed
         PyRep* rsp = new PyInt( 2 );
@@ -1533,16 +1544,13 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
     sLog.Log("Client","successful");
 
-    /* these can be merged into a single query */
-    m_services.serviceDB().SetAccountOnlineStatus( account_info.id, true );
-    m_services.serviceDB().UpdateAccountInformation( account_info.name.c_str() );
+    /* update account information, increase login count, last login timestamp and mark account as online */
+    m_services.serviceDB().UpdateAccountInformation( account_info.name.c_str(), true );
 
-
-
-    //marshaled Python string "None"
+    /* marshaled Python string "None" */
     static const uint8 handshakeFunc[] = { 0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65 };
 
-    //send our handshake
+    /* send our handshake */
     CryptoServerHandshake server_shake;
     server_shake.serverChallenge = "";
     server_shake.func_marshaled_code = new PyBuffer( handshakeFunc, handshakeFunc + sizeof( handshakeFunc ) );
@@ -1576,6 +1584,14 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     mSession.SetLong( "role", account_info.role );
 
     return true;
+
+error_login_auth_failed:
+
+    GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
+    mNet->QueueRep( except );
+    PyDecRef( except );
+
+    return false;
 }
 
 bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )

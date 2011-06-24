@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2009 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -23,8 +23,7 @@
     Author:     Captnoord
 */
 
-//#include "EvemuPCH.h"
-#include "EVEServerPCH.h"// I don't want to include this here...
+#include "EVEServerPCH.h"
 #include "authorisation\PasswordModule.h"
 #include "authorisation\ShaModule.h"
 
@@ -32,7 +31,7 @@ uint8 mDigest[SHA_DIGEST_SIZE];
 
 bool PasswordModule::GeneratePassHash(std::wstring &userName, std::wstring &passWord, std::string &passWordHash)
 {
-    if (userName.size() > 50 || passWord.size() > 50) {
+    if (userName.size() > 100 || passWord.size() > 100) {
         sLog.Error("PasswordModule", "username or password is simply to long");
         return false;
     }

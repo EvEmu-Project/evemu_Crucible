@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 #include "EVECommonPCH.h" // I don't want to include this here..
 #include "Common.h"
 //#include "Threading/Threading.h"
@@ -805,16 +806,13 @@ char* itoa( int value, char* result, int base ) {
 /************************************************************************/
 /* End of OpenFrag borrowed code                                        */
 /************************************************************************/
-
 std::string Strings::CaseFold( std::string & str )
 {
 	std::string s2 = str;
 	Utils::Strings::toUpperCase(s2);
 	Utils::Strings::toLowerCase(s2);
 	if (s2 != str)
-	{
 		return CaseFold(s2);
-	}
 	return s2;
 }
 
@@ -824,9 +822,7 @@ std::wstring Strings::CaseFold( std::wstring & str )
 	Utils::Strings::toUpperCase(s2);
 	Utils::Strings::toLowerCase(s2);
 	if (s2 != str)
-	{
 		return CaseFold(s2);
-	}
 	return s2;
 }
 }//namespace Utils

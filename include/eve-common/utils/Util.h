@@ -28,9 +28,7 @@
 #  define KILL_THIS_PROCESS kill(getpid(), -9);
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// String Functions ///////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
+
 	std::vector<std::string> StrSplit(const std::string &src, const std::string &sep);
 
 	// This HAS to be called outside the threads __try / __except block!
@@ -60,13 +58,13 @@
 	bool ParseCIDRBan(unsigned int IP, unsigned int Mask, unsigned int MaskBits);
 	unsigned int MakeIP(const char * str);
 
-	/************************************************************************/
-	/* Next piece of code borrowed from the OpenFrag project, original      */
-	/* header below this comment chunk.                                     */
-	/* @note I also added tweaks of my own, adding wide string support      */
-	/************************************************************************/
+/************************************************************************/
+/* Next piece of code borrowed from the OpenFrag project, original      */
+/* header below this comment chunk.                                     */
+/* @note I also added tweaks of my own, adding wide string support      */
+/************************************************************************/
 
-	/*
+/*
 	------------------------------------------------------------------------------------
 	LICENSE:
 	------------------------------------------------------------------------------------
@@ -92,7 +90,7 @@
 	Thanks goes also to yake - this class is a little bit bigger.
 	------------------------------------------------------------------------------------
 	Author:		Lars Wesselius
-	*/
+*/
 
 namespace Utils
 {
