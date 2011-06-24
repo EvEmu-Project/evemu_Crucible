@@ -1465,7 +1465,10 @@ bool Client::_VerifyCrypto( CryptoRequestPacket& cr )
 
 bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 {
+    std::string account_hash;
+
     AccountInfo account_info;
+    CryptoServerHandshake server_shake;
 
 	//sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
 	//sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
@@ -1480,8 +1483,6 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         PyDecRef( except );
         return false;
     }
-
-    std::string account_hash;
 
     /* if we have stored a password we need to create a hash from the username and pass and remove the pass */
     if (account_info.password.size() != 0) {
@@ -1551,7 +1552,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     static const uint8 handshakeFunc[] = { 0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65 };
 
     /* send our handshake */
-    CryptoServerHandshake server_shake;
+
     server_shake.serverChallenge = "";
     server_shake.func_marshaled_code = new PyBuffer( handshakeFunc, handshakeFunc + sizeof( handshakeFunc ) );
 	server_shake.verification = new PyBool( false );
@@ -1560,7 +1561,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     server_shake.user_logonqueueposition = _GetQueuePosition();
     // binascii.crc_hqx of marshaled single-element tuple containing 64 zero-bytes string
     server_shake.challenge_responsehash = "55087";
-	
+
 	// the image server used by the client to download images
 	server_shake.imageserverurl = ImageServer::get().url();
 
