@@ -42,7 +42,7 @@ int main( int argc, char* argv[] )
     _CrtSetDbgFlag( _CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG ) );
 #endif /* defined( MSVC ) && !defined( NDEBUG ) */
 
-    printf("Copyright (C) 2006-2009 EVEmu Team. http://evemu.mmoforge.org/\n");
+    printf("Copyright (C) 2006-2011 EVEmu Team. http://evemu.org/\n");
     printf("This program is free software; you can redistribute it and/or modify it under\n");
     printf("the terms of the GNU Lesser General Public License as published by the Free \n");
     printf("Software Foundation; either version 2 of the License, or (at your option) any\n");
