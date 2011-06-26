@@ -33,10 +33,11 @@
 		* create a SID system (session ID system)
 */
 
-ClientSession::ClientSession()
-: mSession( new PyDict ),
-  mDirty( false )
+ClientSession::ClientSession() : mSession( new PyDict ), mDirty( false )
 {
+    /* default value of attribute */
+    PyTuple* v = new_tuple(new PyNone, new PyLong(0x4000000000000000));
+    mSession->SetItemString( "role", v );
 }
 
 ClientSession::~ClientSession()
@@ -203,6 +204,7 @@ void ClientSession::_Set( const char* name, PyRep* value )
     PyRep* current = v->GetItem( 1 );
     if( value->hash() != current->hash() )
     {
+        //v->SetItem( 0, current ); /* didn't the session need to store the old value to? */
         v->SetItem( 1, value );
 
         mDirty = true;
