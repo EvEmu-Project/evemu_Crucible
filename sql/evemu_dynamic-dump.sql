@@ -27,7 +27,7 @@ CREATE TABLE `account` (
   `role` bigint(10) unsigned NOT NULL DEFAULT '0',
   `online` tinyint(1) NOT NULL DEFAULT '0',
   `banned` tinyint(1) NOT NULL DEFAULT '0',
-  `logonCount` int(10) unsigned DEFAULT NULL,
+  `logonCount` int(10) unsigned NOT NULL DEFAULT '0',
   `lastLogin` timestamp NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`accountID`),
   UNIQUE KEY `accountName` (`accountName`)
