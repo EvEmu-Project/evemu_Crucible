@@ -563,9 +563,39 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
 PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice( PyCallArgs& call )
 {
+	//Hack: Just passing the client an empty PyList to stop it throwing an exception.
+	//TODO: Fid out what needs to be in the PyList and when to send it.
     sLog.Debug( "CorpStationMgrIMBound", "Called GetCorporateStationOffice stub." );
+	/*
+	[PySubStream 99 bytes]
+        [PyObjectData Name: objectCaching.CachedMethodCallResult]
+          [PyTuple 3 items]
+            [PyDict 1 kvp]
+              [PyString "versionCheck"]
+              [PyTuple 3 items]
+                [PyString "always"]
+                [PyNone]
+                [PyNone]
+            [PySubStream 6 bytes]
+              [PyList 0 items]
+            [PyList 2 items] //Cache Information
+              [PyIntegerVar 129533580031608440] //Timestamp (fileTime)
+              [PyInt 52428965] //Hash??
+			  */
+	PyTuple * arg_tuple = new PyTuple(3);
 
-    return new PyNone;
+	PyTuple * arg_tuple2 = new PyTuple(3);
+	arg_tuple2->SetItem(0, new PyString("always"));
+	arg_tuple2->SetItem(1, new PyNone);
+	arg_tuple2->SetItem(2, new PyNone);
+
+	PyDict* itr_1 = new PyDict();
+	itr_1->SetItem("versionCheck", arg_tuple2);
+	
+	arg_tuple->SetItem(0, itr_1);
+	arg_tuple->SetItem(1, new PySubStream( new PyList() ) );
+	arg_tuple->SetItem(2, new_tuple(129533580031608440, 52428965));
+    return new PyObject( new PyString( "objectCaching.CachedMethodCallResult" ), arg_tuple );
 }
 
 PyResult CorpStationMgrIMBound::Handle_GetNumberOfUnrentedOffices( PyCallArgs &call ) 
