@@ -234,6 +234,7 @@ void SystemBubble::_SendAddBalls( SystemEntity* to_who )
     Destiny::AddBall_header head;
 	head.more = 0;
 	head.sequence = DestinyManager::GetStamp();
+
     destinyBuffer->Append( head );
 
     DoDestiny_AddBalls addballs;
