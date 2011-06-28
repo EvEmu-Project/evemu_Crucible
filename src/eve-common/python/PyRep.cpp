@@ -1039,6 +1039,15 @@ PyTuple * new_tuple(const char* arg1, const char* arg2, PyTuple* arg3)
     return res;
 }
 
+PyTuple * new_tuple(const char* arg1, PyRep* arg2, PyRep* arg3)
+{
+    PyTuple * res = new PyTuple(3);
+    res->SetItem(0, new PyString(arg1));
+    res->SetItem(1, arg2);
+    res->SetItem(2, arg3);
+    return res;
+}
+
 /* @note we should increase ref here.... but don't make it to complicated to use... for now... */
 PyTuple * new_tuple( PyRep* arg1, PyRep* arg2 )
 {
