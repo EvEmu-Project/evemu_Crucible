@@ -693,6 +693,12 @@ PyDict& PyDict::operator=( const PyDict& oth )
 /* PyRep Object Class                                                   */
 /************************************************************************/
 PyObject::PyObject( PyString* type, PyRep* args ) : PyRep( PyRep::PyTypeObject ), mType( type ), mArguments( args ) {}
+
+PyObject::PyObject( const char* type, PyRep* args ) : PyRep( PyRep::PyTypeObject ), mArguments( args )
+{
+    mType = new PyString(type);
+}
+
 //PyObject::PyObject( const PyObject& oth ) : PyRep( PyRep::PyTypeObject ), mType( new PyString( *oth.type() ) ), mArguments( oth.arguments()->Clone() ) {}
 PyObject::~PyObject()
 {

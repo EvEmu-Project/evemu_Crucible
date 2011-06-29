@@ -103,9 +103,7 @@ PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
 	d->SetItemString( "implants", new PyNone );
 	d->SetItemString( "timeLastJump", new PyNone );
 
-	return new PyObject(
-        new PyString( "util.KeyVal" ), d
-    );
+	return new PyObject( "util.KeyVal", d );
 }
 
 /*

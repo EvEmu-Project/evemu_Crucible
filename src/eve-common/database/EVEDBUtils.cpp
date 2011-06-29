@@ -112,8 +112,7 @@ PyObject *DBResultToRowset(DBQueryResult &result)
     uint32 cc = result.ColumnCount();
 
     PyDict *args = new PyDict();
-    PyObject *res = new PyObject(
-        new PyString( "util.Rowset" ), args
+    PyObject *res = new PyObject( "util.Rowset" , args
     );
 
     /* check if we have a empty query result and return a empty RowSet */
@@ -201,9 +200,7 @@ PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
 
     //start building the IndexRowset
     PyDict *args = new PyDict();
-    PyObject *res = new PyObject(
-        new PyString( "util.IndexRowset" ), args
-    );
+    PyObject *res = new PyObject( "util.IndexRowset", args );
 
     if(cc == 0 || cc < key_index)
         return res;
@@ -241,9 +238,7 @@ PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
 PyObject *DBRowToKeyVal(DBResultRow &row) {
 
     PyDict *args = new PyDict();
-    PyObject *res = new PyObject(
-        new PyString( "util.KeyVal" ), args
-    );
+    PyObject *res = new PyObject( "util.KeyVal", args );
     
     uint32 cc = row.ColumnCount();
     for( uint32 r = 0; r < cc; r++ )
@@ -256,17 +251,14 @@ PyObject *DBRowToRow(DBResultRow &row, const char *type)
 {
 
     PyDict *args = new PyDict();
-    PyObject *res = new PyObject(
-        new PyString( type ), args
-    );
+    PyObject *res = new PyObject( type, args );
 
     //list off the column names:
     uint32 cc = row.ColumnCount();
     PyList *header = new PyList(cc);
     args->SetItemString("header", header);
 
-    for(uint32 r = 0; r < cc; r++)
-    {
+    for(uint32 r = 0; r < cc; r++) {
         header->SetItemString(r, row.ColumnName(r));
     }
 
@@ -275,8 +267,7 @@ PyObject *DBRowToRow(DBResultRow &row, const char *type)
     args->SetItemString("line", rowlist);
 
     //add a line entry for the row:
-    for(uint32 r = 0; r < cc; r++)
-    {
+    for(uint32 r = 0; r < cc; r++) {
         rowlist->SetItem(r, DBColumnToPyRep(row, r));
     }
 

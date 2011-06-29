@@ -592,7 +592,7 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice( PyCallArgs& ca
 	arg_tuple->SetItem(0, itr_1);
 	arg_tuple->SetItem(1, new PySubStream( new PyList() ) );
 	arg_tuple->SetItem(2, new_tuple(129533580031608440, 52428965));
-    return new PyObject( new PyString( "objectCaching.CachedMethodCallResult" ), arg_tuple );
+    return new PyObject( "objectCaching.CachedMethodCallResult", arg_tuple );
 }
 
 PyResult CorpStationMgrIMBound::Handle_GetNumberOfUnrentedOffices( PyCallArgs &call ) 
