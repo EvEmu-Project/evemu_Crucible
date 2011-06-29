@@ -281,7 +281,7 @@ void SystemBubble::_SendRemoveBalls( SystemEntity* to_who )
 		_log( DESTINY__TRACE, "Remove Balls: Nothing to send." );
 		return;
 	}
-	
+
 	DoDestiny_RemoveBalls remove_balls;
 	
 	std::map<uint32, SystemEntity*>::const_iterator cur, end;
@@ -294,6 +294,10 @@ void SystemBubble::_SendRemoveBalls( SystemEntity* to_who )
 
 		remove_balls.balls.push_back( cur->second->GetID() );
 	}
+
+    if (remove_balls.balls.empty()) {
+        return;
+    }
 	
 	_log( DESTINY__TRACE, "Remove Balls:" );
 	remove_balls.Dump( DESTINY__TRACE, "    " );

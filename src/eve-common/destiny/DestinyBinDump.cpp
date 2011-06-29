@@ -85,8 +85,8 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		data += sizeof(Destiny::MassSector);
 		len -= sizeof(Destiny::MassSector);
 		
-		_log(into, "   mass=%.2f, cloak=%d, u52=0x"I64x", corp=%u, alliance=0x%x",
-			masschunk->mass, masschunk->cloak, masschunk->unknown52, masschunk->corpID, masschunk->allianceID);
+		_log(into, "   mass=%.2f, cloak=%d, hardmonic=%f, corp=%u, alliance=0xI64x",
+			masschunk->mass, masschunk->cloak, masschunk->Harmonic, masschunk->corpID, masschunk->allianceID);
 	}
 	
 	//this seems a little strange, but this is how it works...
@@ -95,10 +95,9 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
 		data += sizeof(Destiny::ShipSector);
 		len -= sizeof(Destiny::ShipSector);
 		
-		_log(into, "   maxSpeed=%.2f, V=(%.3f, %.3f, %.3f) unknown=(%.3f, %.3f, %.3f) PS=%.4f, SF=%.3f",
+		_log(into, "   maxSpeed=%.2f, V=(%.3f, %.3f, %.3f) PS=%.4f, SF=%.3f",
 			shipchunk->max_speed,
             shipchunk->velocity_x, shipchunk->velocity_y, shipchunk->velocity_z,
-            shipchunk->unknown_x, shipchunk->unknown_y, shipchunk->unknown_z,
 			shipchunk->agility,
             shipchunk->speed_fraction);
 	}

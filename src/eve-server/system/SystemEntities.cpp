@@ -316,7 +316,7 @@ void SystemDungeonEntranceEntity::EncodeDestiny( Buffer& into ) const
     MassSector mass;
 	mass.mass = 10000000000.00;
 	mass.cloak = 0;
-	mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+	mass.Harmonic = -1.0f;
 	mass.corpID = m_self->ownerID();	//a little hacky...
 	mass.allianceID = 0xFFFFFFFF;
     into.Append( mass );
