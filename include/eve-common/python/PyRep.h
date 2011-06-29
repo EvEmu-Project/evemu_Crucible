@@ -774,7 +774,7 @@ public:
 protected:
     virtual ~PyObject();
 
-    PyString* const mType;
+    PyString* mType;
     PyRep* const mArguments;
 };
 
