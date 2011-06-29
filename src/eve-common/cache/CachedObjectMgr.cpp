@@ -761,9 +761,7 @@ PyObject *PyCachedObject::Encode()
     //same cloning stattement as above.
     arg_tuple->items[6] = objectID; PyIncRef(objectID);
 
-    return new PyObject(
-        new PyString( "objectCaching.CachedObject" ), arg_tuple
-    );
+    return new PyObject( "objectCaching.CachedObject", arg_tuple );
 }
 
 PyObject *PyCachedObjectDecoder::EncodeHint() {
@@ -780,9 +778,7 @@ PyObject *PyCachedObjectDecoder::EncodeHint() {
 
     arg_tuple->items[2] = versiont;
 
-    return new PyObject(
-        new PyString( "util.CachedObject" ), arg_tuple
-    );
+    return new PyObject( "util.CachedObject", arg_tuple );
 }
 
 

@@ -761,6 +761,7 @@ protected:
 class PyObject : public PyRep
 {
 public:
+    PyObject( const char* type, PyRep* args );
     PyObject( PyString* type, PyRep* args );
     PyObject( const PyObject& oth );
 

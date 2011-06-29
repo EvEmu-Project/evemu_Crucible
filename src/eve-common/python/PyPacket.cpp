@@ -294,9 +294,7 @@ PyRep *PyPacket::Encode() {
         arg_tuple->items[5] = named_payload; PyIncRef(named_payload);
     }
 
-    return new PyObject(
-        new PyString( type_string ), arg_tuple
-    );
+    return new PyObject( type_string.c_str(), arg_tuple );
 }
 
 PyAddress::PyAddress() : type(Invalid), typeID(0), callID(0), service("") {}
@@ -549,9 +547,7 @@ PyRep *PyAddress::Encode() {
         break;
     }
 
-    return new PyObject(
-        new PyString( "macho.MachoAddress" ), t
-    );
+    return new PyObject( "macho.MachoAddress", t );
 }
 
 bool PyAddress::_DecodeService(PyRep *rep) {

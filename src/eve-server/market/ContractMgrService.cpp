@@ -52,9 +52,7 @@ PyResult ContractMgrService::Handle_NumRequiringAttention( PyCallArgs& call )
 	args->SetItemString( "n", new PyInt( 0 ) );
 	args->SetItemString( "ncorp", new PyInt( 0 ) );
 
-	return new PyObject(
-        new PyString( "util.KeyVal" ), args
-    );
+	return new PyObject( "util.KeyVal", args );
 }
 
 

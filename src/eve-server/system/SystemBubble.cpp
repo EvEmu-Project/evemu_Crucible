@@ -251,7 +251,7 @@ void SystemBubble::_SendAddBalls( SystemEntity* to_who )
         //damageState
 		addballs.damages[ cur->second->GetID() ] = cur->second->MakeDamageState();
 		//slim item
-		addballs.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), cur->second->MakeSlimItem() ) );
+		addballs.slims->AddItem( new PyObject( "foo.SlimItem", cur->second->MakeSlimItem() ) );
 		//append the destiny binary data...
 		cur->second->EncodeDestiny( *destinyBuffer );
 	}
@@ -330,7 +330,7 @@ void SystemBubble::_BubblecastAddBall( SystemEntity* about_who )
     //encode damage state
 	addballs.damages[ about_who->GetID() ] = about_who->MakeDamageState();
 	//encode SlimItem
-	addballs.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), about_who->MakeSlimItem() ) );
+	addballs.slims->AddItem( new PyObject( "foo.SlimItem", about_who->MakeSlimItem() ) );
 
     //bubblecast the update
 	PyTuple* t = addballs.Encode();
