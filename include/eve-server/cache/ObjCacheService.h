@@ -41,10 +41,10 @@ public:
 };
 
 //little helper class for repeated code and memory management
-class ObjectCachedSimpleMethodID {
+class ObjectCachedSessionMethodID {
 public:
-	ObjectCachedSimpleMethodID(const char *service, const char *method);
-	~ObjectCachedSimpleMethodID();
+	ObjectCachedSessionMethodID(const char *service, const char *method, int32 sessionValue);
+	~ObjectCachedSessionMethodID();
 	PyRep *objectID;
 };
 
@@ -71,18 +71,20 @@ public:
 	//handlers for simple cached method calls.
 	bool IsCacheLoaded(const PyRep *objectID) const;
 	bool IsCacheLoaded(const ObjectCachedMethodID &m) const { return(IsCacheLoaded(m.objectID)); }
-	bool IsCacheLoaded(const ObjectCachedSimpleMethodID &m) const { return(IsCacheLoaded(m.objectID)); }
+	bool IsCacheLoaded(const ObjectCachedSessionMethodID &m) const { return(IsCacheLoaded(m.objectID)); }
 
 	void InvalidateCache(const PyRep *objectID);
 	void InvalidateCache(const ObjectCachedMethodID &m) { InvalidateCache(m.objectID); }
 
 	void GiveCache(const PyRep *objectID, PyRep **contents);
 	void GiveCache(const ObjectCachedMethodID &m, PyRep **contents) { GiveCache(m.objectID, contents); }
-	void GiveCache(const ObjectCachedSimpleMethodID &m, PyRep **contents) { GiveCache(m.objectID, contents); }
+	void GiveCache(const ObjectCachedSessionMethodID &m, PyRep **contents) { GiveCache(m.objectID, contents); }
 
 	PyObject *MakeObjectCachedMethodCallResult(const PyRep *objectID, const char *versionCheck="run");
 	PyObject *MakeObjectCachedMethodCallResult(const ObjectCachedMethodID &m, const char *versionCheck="run") { return(MakeObjectCachedMethodCallResult(m.objectID, versionCheck)); }
-	PyObject *MakeObjectCachedMethodCallResult(const ObjectCachedSimpleMethodID &m, const char *versionCheck="run") { return(MakeObjectCachedMethodCallResult(m.objectID, versionCheck)); }
+	
+	PyObject *MakeObjectCachedSessionMethodCallResult(const PyRep *objectID, const char *sessionInfoName, const char *clientWhen="always");
+	PyObject *MakeObjectCachedSessionMethodCallResult(const ObjectCachedSessionMethodID &m, const char *sessionInfoName, const char *clientWhen="always") { return(MakeObjectCachedSessionMethodCallResult(m.objectID, sessionInfoName, clientWhen)); }
 	
 protected:
 

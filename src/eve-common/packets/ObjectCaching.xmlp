@@ -112,7 +112,7 @@
   </elementDef>
 
   <!-- The packet structure for CachedMethodCalls with versioncheck as Always has changed-->
-  <elementDef name="objectCaching_CachedMethodCallResultAlways_object">
+  <elementDef name="objectCaching_SessionCachedMethodCallResult_object">
     <objectInline>
       <stringInline value="objectCaching.CachedMethodCallResult" />
       <tupleInline>
@@ -122,13 +122,22 @@
             <!-- almost all simple objects on live use never...
                 a few use run, we default to run to be more flexible. -->
             <tupleInline>
-              <string name="versionCheck" default="always" />
+              <!-- these fields are one of:
+                   (always, never, (set of times))
+              -->
+              <!-- 0: clientWhen: expiry in the client -->
+              <string name="clientWhen" default="always" />
               <none />
               <none />
+              <!-- TODO Need to Find a way for it to be a String Or None -->
+              <!-- 1: proxyWhen: expiry on the proxy, may be None -->
+              <!-- <string name="proxyWhen" />-->
+              <!-- 2: serverWhen: expiry on the server, may be None -->
+              <!-- <string name="serverWhen" />-->
             </tupleInline>
           </dictInlineEntry>
           <dictInlineEntry key="sessionInfo">
-            <stringInline value="charid" />
+            <string name="sessionInfoName" />
           </dictInlineEntry>
         </dictInline>
         <!-- 1: result, in this case it is always a util.CachedObject hint -->
@@ -157,15 +166,15 @@
     </tupleInline>
   </elementDef>
 
-  <!-- A representation of a simple cached method call objectID, with no arguments -->
-  <elementDef name="SimpleMethodCallID">
+  <!-- A representation of a session cached method call objectID -->
+  <elementDef name="SessionMethodCallID">
     <tupleInline>
         <!-- 0 -->
         <string name="service" />
         <!-- 1 -->
         <string name="method" />
         <!-- 2 -->
-      <int name="unKnown" default="1" />
+        <int name="sessionValue" />
     </tupleInline>
   </elementDef>
   

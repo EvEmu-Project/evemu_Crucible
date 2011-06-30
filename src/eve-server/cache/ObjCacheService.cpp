@@ -401,25 +401,25 @@ void ObjCacheService::GiveCache(const PyRep *objectID, PyRep **contents) {
 	m_cache.UpdateCache(objectID, contents);
 }
 
+PyObject *ObjCacheService::MakeObjectCachedSessionMethodCallResult(const PyRep *objectID, const char *sessionInfoName, const char *clientWhen) {
+	if(!IsCacheLoaded(objectID))
+		return NULL;
+
+	objectCaching_SessionCachedMethodCallResult_object c;
+	c.clientWhen = clientWhen;
+	c.sessionInfoName = sessionInfoName;
+	c.object = m_cache.MakeCacheHint(objectID);
+	return c.Encode();
+}
+
 PyObject *ObjCacheService::MakeObjectCachedMethodCallResult(const PyRep *objectID, const char *versionCheck) {
 	if(!IsCacheLoaded(objectID))
 		return NULL;
 	
-	if(strcmp(versionCheck, "always") == 0)
-	{
-		objectCaching_CachedMethodCallResultAlways_object c;
-		c.versionCheck = versionCheck;
-		c.object = m_cache.MakeCacheHint(objectID);
-		return c.Encode();
-	} else
-	{
-		objectCaching_CachedMethodCallResult_object c;
-		c.versionCheck = versionCheck;
-		c.object = m_cache.MakeCacheHint(objectID);
-		return c.Encode();
-	}
-	
-	
+	objectCaching_CachedMethodCallResult_object c;
+	c.versionCheck = versionCheck;
+	c.object = m_cache.MakeCacheHint(objectID);
+	return c.Encode();
 }
 
 ObjectCachedMethodID::ObjectCachedMethodID(const char *service, const char *method)
@@ -435,9 +435,9 @@ ObjectCachedMethodID::~ObjectCachedMethodID()
 	PyDecRef( objectID );
 }
 
-ObjectCachedSimpleMethodID::ObjectCachedSimpleMethodID(const char *service, const char *method)
+ObjectCachedSessionMethodID::ObjectCachedSessionMethodID(const char *service, const char *method, int32 sessionValue)
 {
-	SimpleMethodCallID c;
+	SessionMethodCallID c;
 	c.service = service;
 	c.method = method;
 	/*
@@ -445,11 +445,11 @@ ObjectCachedSimpleMethodID::ObjectCachedSimpleMethodID(const char *service, cons
 	 charID but can also be corpID or other values need to make dynamic
 	 and also need to be able to update the "sessionInfo" kvp so that it knows what the field is.
 	*/
-	c.unKnown = 90000000; 
+	c.sessionValue = sessionValue; 
 	objectID = c.Encode();
 }
 
-ObjectCachedSimpleMethodID::~ObjectCachedSimpleMethodID()
+ObjectCachedSessionMethodID::~ObjectCachedSessionMethodID()
 {
 	PyDecRef( objectID );
 }
