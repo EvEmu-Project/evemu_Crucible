@@ -103,7 +103,12 @@ SET( config_SOURCE
      "${TARGET_SOURCE_DIR}/config/ConfigDB.cpp"
      "${TARGET_SOURCE_DIR}/config/ConfigService.cpp"
      "${TARGET_SOURCE_DIR}/config/LanguageService.cpp" )
-
+	 
+SET( contractproxy_INCLUDE
+	 "${TARGET_INCLUDE_DIR}/contractproxy/contractProxy.h" )
+SET( contractproxy_INCLUDE
+	 "${TARGET_SOURCE_DIR}/contractproxy/contractProxy.cpp" )
+	 
 SET( corporation_INCLUDE
      "${TARGET_INCLUDE_DIR}/corporation/CorpMgrService.h"
      "${TARGET_INCLUDE_DIR}/corporation/CorporationCarrier.h"
@@ -410,6 +415,7 @@ SOURCE_GROUP( "include\\authorisation" FILES ${authorisation_INCLUDE} )
 SOURCE_GROUP( "include\\browser"       FILES ${browser_INCLUDE} )
 SOURCE_GROUP( "include\\cache"         FILES ${cache_INCLUDE} )
 SOURCE_GROUP( "include\\config"        FILES ${config_INCLUDE} )
+SOURCE_GROUP( "include\\contractproxy" FILES ${contractproxy_INCLUDE} )
 SOURCE_GROUP( "include\\corporation"   FILES ${corporation_INCLUDE} )
 SOURCE_GROUP( "include\\dogmaim"       FILES ${dogmaim_INCLUDE} )
 SOURCE_GROUP( "include\\character"     FILES ${character_INCLUDE} )
@@ -439,6 +445,7 @@ SOURCE_GROUP( "src\\authorisation" FILES ${authorisation_SOURCE} )
 SOURCE_GROUP( "src\\browser"       FILES ${browser_SOURCE} )
 SOURCE_GROUP( "src\\cache"         FILES ${cache_SOURCE} )
 SOURCE_GROUP( "src\\config"        FILES ${config_SOURCE} )
+SOURCE_GROUP( "src\\contractproxy" FILES ${contractproxy_SOURCE} )
 SOURCE_GROUP( "src\\corporation"   FILES ${corporation_SOURCE} )
 SOURCE_GROUP( "src\\dogmaim"       FILES ${dogmaim_SOURCE} )
 SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
@@ -469,6 +476,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${browser_INCLUDE}        ${browser_SOURCE} 
                 ${cache_INCLUDE}          ${cache_SOURCE}
                 ${config_INCLUDE}         ${config_SOURCE}
+				${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
                 ${corporation_INCLUDE}    ${corporation_SOURCE}
                 ${dogmaim_INCLUDE}        ${dogmaim_SOURCE}
                 ${character_INCLUDE}      ${character_SOURCE}
