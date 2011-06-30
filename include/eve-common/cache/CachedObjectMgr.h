@@ -208,7 +208,7 @@ class StringCollapseVisitor
 public:
     std::string result;
 
-    bool VisitInteger( const PyInt* rep ) { return false; }
+    bool VisitInteger( const PyInt* rep ) { return true; }
     bool VisitLong( const PyLong* rep ) { return false; }
     bool VisitReal( const PyFloat* rep ) { return false; }
     bool VisitBoolean( const PyBool* rep ) { return false; }

@@ -141,7 +141,7 @@ PyResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) {
 }
 
 PyResult Standing2Service::Handle_GetCharStandings(PyCallArgs &call) {
-	ObjectCachedMethodID method_id(GetName(), "GetCharStandings");
+	ObjectCachedSimpleMethodID method_id("standingSvc2", "GetCharStandings");
 
 	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
 		PyTuple *t = new PyTuple(3);
@@ -153,7 +153,7 @@ PyResult Standing2Service::Handle_GetCharStandings(PyCallArgs &call) {
 		m_manager->cache_service->GiveCache(method_id, (PyRep **)&t);
 	}
 
-	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
+	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id, "always"));
 }
 
 
