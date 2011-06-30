@@ -185,6 +185,8 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
     CharacterAppearance capp;
     CorpMemberInfo corpData;
 
+    memset(&capp, 0, sizeof(CharacterAppearance));
+
     idata.typeID = char_type->id();
     idata.name = arg.name;
     idata.ownerID = 1; // EVE System

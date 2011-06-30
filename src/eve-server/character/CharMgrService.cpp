@@ -57,7 +57,7 @@ PyResult CharMgrService::Handle_GetContactList(PyCallArgs &call)
 	PyDict* dict = new PyDict();
 	dict->SetItemString("addresses", rowset);
 	dict->SetItemString("blocked", rowset);
-	PyObject *keyVal = new PyObject(new PyString("util.KeyVal"), dict);
+	PyObject *keyVal = new PyObject( "util.KeyVal", dict);
 
 	return keyVal;
 }

@@ -552,9 +552,7 @@ PyObject *MarketDB::GetMarketGroups() {
 	}
     parentSets->SetItem(new PyNone, parents);
 
-	return new PyObject(
-        new PyString( "util.FilterRowset" ), args
-    );
+	return new PyObject( "util.FilterRowset", args );
 }
 
 uint32 MarketDB::StoreBuyOrder(

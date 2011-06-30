@@ -37,7 +37,7 @@ PyString:"util.CachedObject"
     arg_tuple->SetItem(1, new PyInt(0xACECD));
     arg_tuple->SetItem(2, new_tuple(0x1CC26986D4B75A0, 0xC017));
     
-    return new PyObject( new PyString( "util.CachedObject" ), arg_tuple );
+    return new PyObject( "util.CachedObject" , arg_tuple );
 }
 
 /**
@@ -106,5 +106,5 @@ PyResult BrowserLockDownService::Handle_GetFlaggedSitesList(PyCallArgs &call) {
     arg_tuple->SetItem(1, GenerateLockDownCachedObject());
     arg_tuple->SetItem(2, new PyNone);
 
-    return new PyObject( new PyString( "objectCaching.CachedMethodCallResult" ), arg_tuple );
+    return new PyObject( "objectCaching.CachedMethodCallResult", arg_tuple );
     */

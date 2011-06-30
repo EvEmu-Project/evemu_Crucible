@@ -761,6 +761,7 @@ protected:
 class PyObject : public PyRep
 {
 public:
+    PyObject( const char* type, PyRep* args );
     PyObject( PyString* type, PyRep* args );
     PyObject( const PyObject& oth );
 
@@ -773,7 +774,7 @@ public:
 protected:
     virtual ~PyObject();
 
-    PyString* const mType;
+    PyString* mType;
     PyRep* const mArguments;
 };
 
@@ -1007,6 +1008,8 @@ PyTuple * new_tuple(const char* arg1);
 PyTuple * new_tuple(const char* arg1, const char* arg2);
 PyTuple * new_tuple(const char* arg1, const char* arg2, const char* arg3);
 PyTuple * new_tuple(const char* arg1, const char* arg2, PyTuple* arg3);
+/* mixed */
+PyTuple * new_tuple(const char* arg1, PyRep* arg2, PyRep* arg3);
 PyTuple * new_tuple(PyRep* arg1, PyRep* arg2);
 
 #endif//EVE_PY_REP_H

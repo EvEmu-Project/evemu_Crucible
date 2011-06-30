@@ -517,29 +517,26 @@ struct BallHeader {
     double x;	//1.33638303942e12
     double y;	//6.252761088e10
     double z;	//4.1517330432e11
-    uint8  sub_type;		// seen 13
+    uint8 sub_type;		// seen 13
 };
 
 //included if not a RIGID body
 struct MassSector {
     double mass;
     uint8  cloak;		// indicates cloak
-    uint64 unknown52;	// seen all 1's  "harmonic_30"
-    uint32 corpID;		// may be all 1's
-    uint32 allianceID;	// seen all 1's
+    uint64 allianceID;
+    uint32 corpID;
+    float Harmonic;
 };
 
 //only included if the thing can move...
 struct ShipSector {
-    double max_speed;
+    float max_speed;
     double velocity_x;
     double velocity_y;
     double velocity_z;
-    double unknown_x; //might not really be x at all
-    double unknown_y; //might not really be y at all
-    double unknown_z; //might not really be z at all
-    double agility;	//3.037999998778105 = object+0x0A8
-    double speed_fraction;
+    float agility;
+    float speed_fraction;
 };
 
 struct MiniBall {

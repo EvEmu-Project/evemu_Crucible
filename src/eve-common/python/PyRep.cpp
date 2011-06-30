@@ -693,6 +693,12 @@ PyDict& PyDict::operator=( const PyDict& oth )
 /* PyRep Object Class                                                   */
 /************************************************************************/
 PyObject::PyObject( PyString* type, PyRep* args ) : PyRep( PyRep::PyTypeObject ), mType( type ), mArguments( args ) {}
+
+PyObject::PyObject( const char* type, PyRep* args ) : PyRep( PyRep::PyTypeObject ), mArguments( args )
+{
+    mType = new PyString(type);
+}
+
 //PyObject::PyObject( const PyObject& oth ) : PyRep( PyRep::PyTypeObject ), mType( new PyString( *oth.type() ) ), mArguments( oth.arguments()->Clone() ) {}
 PyObject::~PyObject()
 {
@@ -1035,6 +1041,15 @@ PyTuple * new_tuple(const char* arg1, const char* arg2, PyTuple* arg3)
     PyTuple * res = new PyTuple(3);
     res->SetItem(0, new PyString(arg1));
     res->SetItem(1, new PyString(arg2));
+    res->SetItem(2, arg3);
+    return res;
+}
+
+PyTuple * new_tuple(const char* arg1, PyRep* arg2, PyRep* arg3)
+{
+    PyTuple * res = new PyTuple(3);
+    res->SetItem(0, new PyString(arg1));
+    res->SetItem(1, arg2);
     res->SetItem(2, arg3);
     return res;
 }
