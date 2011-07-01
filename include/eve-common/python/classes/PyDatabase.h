@@ -141,7 +141,7 @@ public:
 
 protected:
 	DBRowDescriptor* _GetRowDesc() const;
-	PyList* _GetColumnList() const;
+	//PyList* _GetColumnList() const;
 
 	static PyTuple* _CreateArgs();
 	static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);

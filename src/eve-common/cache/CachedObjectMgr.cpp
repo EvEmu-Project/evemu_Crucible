@@ -720,12 +720,7 @@ PyObject *PyCachedObject::Encode()
 {
     PyTuple *arg_tuple = new PyTuple(7);
 
-    PyTuple *versiont = new PyTuple(2);
-    versiont->items[0] = new PyLong(timestamp);
-    versiont->items[1] = new PyInt(version);
-
-
-    arg_tuple->items[0] = versiont;
+    arg_tuple->items[0] = new_tuple(new PyLong(timestamp), new PyInt(version));
 
     arg_tuple->items[1] = new PyNone();
 
@@ -758,7 +753,7 @@ PyObject *PyCachedObject::Encode()
 
     arg_tuple->items[5] = new PyInt(compressed?1:0);
 
-    //same cloning stattement as above.
+    //same cloning statement as above.
     arg_tuple->items[6] = objectID; PyIncRef(objectID);
 
     return new PyObject( "objectCaching.CachedObject", arg_tuple );
