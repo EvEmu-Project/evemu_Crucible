@@ -232,7 +232,7 @@ void SystemBubble::_SendAddBalls( SystemEntity* to_who )
     Buffer* destinyBuffer = new Buffer;
 
     Destiny::AddBall_header head;
-	head.more = 0;
+	head.packet_type = 0;
 	head.sequence = DestinyManager::GetStamp();
 
     destinyBuffer->Append( head );
@@ -319,7 +319,7 @@ void SystemBubble::_BubblecastAddBall( SystemEntity* about_who )
 
     //create AddBalls header
 	Destiny::AddBall_header head;
-	head.more = 0;
+	head.packet_type = 0;
 	head.sequence = DestinyManager::GetStamp();
     destinyBuffer->Append( head );
 
