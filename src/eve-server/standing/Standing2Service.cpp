@@ -141,19 +141,15 @@ PyResult Standing2Service::Handle_GetStandingTransactions(PyCallArgs &call) {
 }
 
 PyResult Standing2Service::Handle_GetCharStandings(PyCallArgs &call) {
-	ObjectCachedMethodID method_id(GetName(), "GetCharStandings");
+	ObjectCachedSessionMethodID method_id(GetName(), "GetCharStandings", call.client->GetCharacterID());
 
 	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
-		PyTuple *t = new PyTuple(3);
-
-		t->items[0] = m_db.GetCharStandings(call.client->GetCharacterID());
-		t->items[1] = m_db.GetCharPrimeStandings(call.client->GetCharacterID());
-		t->items[2] = m_db.GetCharNPCStandings(call.client->GetCharacterID());
+		PyObjectEx *t = m_db.GetCharStandings(call.client->GetCharacterID());
 
 		m_manager->cache_service->GiveCache(method_id, (PyRep **)&t);
 	}
 
-	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
+	return(m_manager->cache_service->MakeObjectCachedSessionMethodCallResult(method_id, "charID"));
 }
 
 

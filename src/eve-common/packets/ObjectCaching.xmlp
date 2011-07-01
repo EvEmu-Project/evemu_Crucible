@@ -45,6 +45,7 @@
           <!-- 1 -->
           <int name="version" />
         </tupleInline>
+        <bool name="test" value="false" />
       </tupleInline>
     </objectInline>
   </elementDef>
@@ -110,8 +111,46 @@
     </objectInline>
   </elementDef>
 
+  <!-- The packet structure for CachedMethodCalls with versioncheck as Always has changed-->
+  <elementDef name="objectCaching_SessionCachedMethodCallResult_object">
+    <objectInline>
+      <stringInline value="objectCaching.CachedMethodCallResult" />
+      <tupleInline>
+        <!-- 0: details -->
+        <dictInline>
+          <dictInlineEntry key="versionCheck">
+            <!-- almost all simple objects on live use never...
+                a few use run, we default to run to be more flexible. -->
+            <tupleInline>
+              <!-- these fields are one of:
+                   (always, never, (set of times))
+              -->
+              <!-- 0: clientWhen: expiry in the client -->
+              <string name="clientWhen" default="always" />
+              <none />
+              <none />
+              <!-- TODO Need to Find a way for it to be a String Or None -->
+              <!-- 1: proxyWhen: expiry on the proxy, may be None -->
+              <!-- <string name="proxyWhen" />-->
+              <!-- 2: serverWhen: expiry on the server, may be None -->
+              <!-- <string name="serverWhen" />-->
+            </tupleInline>
+          </dictInlineEntry>
+          <dictInlineEntry key="sessionInfo">
+            <string name="sessionInfoName" />
+          </dictInlineEntry>
+        </dictInline>
+        <!-- 1: result, in this case it is always a util.CachedObject hint -->
+        <!-- <element type="objectCaching_CachedObject_spec" name="object" /> -->
+        <raw name="object" />
+        <!-- 2: version, never present on a cached object cached method -->
+        <none />
+      </tupleInline>
+    </objectInline>
+  </elementDef>
+  
   <!-- A representation of a simple cached method call objectID, with no arguments -->
-  <elementDef name="SimpleMethodCallID">
+  <elementDef name="MethodCallID">
     <tupleInline>
       <!-- 0 -->
       <stringInline value="Method Call" />
@@ -127,10 +166,22 @@
     </tupleInline>
   </elementDef>
 
+  <!-- A representation of a session cached method call objectID -->
+  <elementDef name="SessionMethodCallID">
+    <tupleInline>
+        <!-- 0 -->
+        <string name="service" />
+        <!-- 1 -->
+        <string name="method" />
+        <!-- 2 -->
+        <int name="sessionValue" />
+    </tupleInline>
+  </elementDef>
+  
   <elementDef name="CallGetCachableObject">
     <tupleInline>
       <!-- 0 -->
-      <int name="shared" />
+      <bool name="shared" />
       <!-- 1 -->
 	    <!-- either a string or a tuple -->
       <raw name="objectID" />
