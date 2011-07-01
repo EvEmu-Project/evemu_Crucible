@@ -42,12 +42,13 @@ PyObject *StandingDB::GetNPCStandings() {
 }
 
 
-PyObject *StandingDB::GetCharStandings(uint32 characterID) {
+PyObjectEx *StandingDB::GetCharStandings(uint32 characterID) {
 	DBQueryResult res;
 
+	//Hack: Have hardcoded the rename of toId to fromID until i know if its going to affect anything else.
 	if(!sDatabase.RunQuery(res,
 		"SELECT "
-		" toID, standing"
+		" toID AS fromID, standing"
 		" FROM chrStandings"
 		" WHERE characterID=%u", characterID
 	))
@@ -56,7 +57,7 @@ PyObject *StandingDB::GetCharStandings(uint32 characterID) {
 		return NULL;
 	}
 	
-	return DBResultToRowset(res);
+	return DBResultToCRowset(res);
 }
 
 
