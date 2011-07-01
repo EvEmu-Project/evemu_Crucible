@@ -59,6 +59,23 @@ PyObjectEx *StandingDB::GetCharStandings(uint32 characterID) {
 	
 	return DBResultToCRowset(res);
 }
+PyObjectEx *StandingDB::GetCorpStandings(uint32 corporationID) {
+	DBQueryResult res;
+
+	//Hack: Have hardcoded the rename of toId to fromID until i know if its going to affect anything else.
+	if(!sDatabase.RunQuery(res,
+		"SELECT "
+		" toID AS fromID, standing"
+		" FROM crpStandings"
+		" WHERE corporationID=%u", corporationID
+	))
+	{
+		_log(SERVICE__ERROR, "Error in GetCorpStandings query: %s", res.error.c_str());
+		return NULL;
+	}
+	
+	return DBResultToCRowset(res);
+}
 
 
 PyObject *StandingDB::GetCharPrimeStandings(uint32 characterID) {

@@ -35,6 +35,7 @@ class StandingDB
 public:
 	PyObject *GetNPCStandings();
 	PyObjectEx *GetCharStandings(uint32 characterID);
+	PyObjectEx *GetCorpStandings(uint32 corporationID);
 	PyObject *GetCharPrimeStandings(uint32 characterID);
 	PyObject *GetCharNPCStandings(uint32 characterID);
 	PyObject *GetStandingTransactions(uint32 characterID);

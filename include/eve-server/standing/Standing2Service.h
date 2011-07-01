@@ -90,6 +90,7 @@ protected:
 	*/
 	PyCallable_DECL_CALL(GetStandingTransactions)
 	PyCallable_DECL_CALL(GetCharStandings)
+	PyCallable_DECL_CALL(GetCorpStandings)
 };
 
 
