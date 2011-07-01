@@ -41,6 +41,7 @@ Standing2Service::Standing2Service(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(Standing2Service, GetSecurityRating)
 	PyCallable_REG_CALL(Standing2Service, GetStandingTransactions)
 	PyCallable_REG_CALL(Standing2Service, GetCharStandings)
+	PyCallable_REG_CALL(Standing2Service, GetCorpStandings)
 	
 }
 
@@ -151,6 +152,18 @@ PyResult Standing2Service::Handle_GetCharStandings(PyCallArgs &call) {
 
 	return(m_manager->cache_service->MakeObjectCachedSessionMethodCallResult(method_id, "charID"));
 }
+PyResult Standing2Service::Handle_GetCorpStandings(PyCallArgs &call) {
+	ObjectCachedSessionMethodID method_id(GetName(), "GetCorpStandings", call.client->GetCorporationID());
+
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
+		PyObjectEx *t = m_db.GetCorpStandings(call.client->GetCorporationID());
+
+		m_manager->cache_service->GiveCache(method_id, (PyRep **)&t);
+	}
+
+	return(m_manager->cache_service->MakeObjectCachedSessionMethodCallResult(method_id, "corpID"));
+}
+
 
 
 
