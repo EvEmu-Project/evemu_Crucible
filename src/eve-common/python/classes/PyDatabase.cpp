@@ -151,13 +151,14 @@ DBRowDescriptor* CRowSet::_GetRowDesc() const
 	return (DBRowDescriptor*)r->AsObjectEx();
 }
 
-PyList* CRowSet::_GetColumnList() const
+/*PyList* CRowSet::_GetColumnList() const
 {
 	PyRep* r = FindKeyword( "columns" );
 	assert( r );
 
 	return r->AsList();
 }
+*/
 
 PyTuple* CRowSet::_CreateArgs()
 {
@@ -174,11 +175,11 @@ PyDict* CRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 	PyDict* keywords = new PyDict;
 	keywords->SetItemString( "header", rowDesc );
 
-	uint32 cc = rowDesc->ColumnCount();
-	PyList* columns = new PyList( cc );
-	for( uint32 i = 0; i < cc; i++ )
-		columns->SetItem( i,  new PyString( *rowDesc->GetColumnName( i ) ) );
-	keywords->SetItemString( "columns", columns );
+	//uint32 cc = rowDesc->ColumnCount();
+	//PyList* columns = new PyList( cc );
+	//for( uint32 i = 0; i < cc; i++ )
+	//	columns->SetItem( i,  new PyString( *rowDesc->GetColumnName( i ) ) );
+	//keywords->SetItemString( "columns", columns ); //The Type_2 i had no longer used this
 
 	return keywords;
 }

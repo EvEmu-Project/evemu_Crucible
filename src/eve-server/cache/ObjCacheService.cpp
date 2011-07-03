@@ -401,9 +401,21 @@ void ObjCacheService::GiveCache(const PyRep *objectID, PyRep **contents) {
 	m_cache.UpdateCache(objectID, contents);
 }
 
+PyObject *ObjCacheService::MakeObjectCachedSessionMethodCallResult(const PyRep *objectID, const char *sessionInfoName, const char *clientWhen) {
+	if(!IsCacheLoaded(objectID))
+		return NULL;
+
+	objectCaching_SessionCachedMethodCallResult_object c;
+	c.clientWhen = clientWhen;
+	c.sessionInfoName = sessionInfoName;
+	c.object = m_cache.MakeCacheHint(objectID);
+	return c.Encode();
+}
+
 PyObject *ObjCacheService::MakeObjectCachedMethodCallResult(const PyRep *objectID, const char *versionCheck) {
 	if(!IsCacheLoaded(objectID))
 		return NULL;
+	
 	objectCaching_CachedMethodCallResult_object c;
 	c.versionCheck = versionCheck;
 	c.object = m_cache.MakeCacheHint(objectID);
@@ -412,13 +424,32 @@ PyObject *ObjCacheService::MakeObjectCachedMethodCallResult(const PyRep *objectI
 
 ObjectCachedMethodID::ObjectCachedMethodID(const char *service, const char *method)
 {
-	SimpleMethodCallID c;
+	MethodCallID c;
 	c.service = service;
 	c.method = method;
 	objectID = c.Encode();
 }
 
 ObjectCachedMethodID::~ObjectCachedMethodID()
+{
+	PyDecRef( objectID );
+}
+
+ObjectCachedSessionMethodID::ObjectCachedSessionMethodID(const char *service, const char *method, int32 sessionValue)
+{
+	SessionMethodCallID c;
+	c.service = service;
+	c.method = method;
+	/*
+	 HACK: 
+	 charID but can also be corpID or other values need to make dynamic
+	 and also need to be able to update the "sessionInfo" kvp so that it knows what the field is.
+	*/
+	c.sessionValue = sessionValue; 
+	objectID = c.Encode();
+}
+
+ObjectCachedSessionMethodID::~ObjectCachedSessionMethodID()
 {
 	PyDecRef( objectID );
 }

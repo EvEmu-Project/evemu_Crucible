@@ -976,7 +976,6 @@ PyChecksumedStream::PyChecksumedStream( PyRep* t, uint32 sum ) : PyRep( PyRep::P
 //PyChecksumedStream::PyChecksumedStream( const PyChecksumedStream& oth ) : PyRep( PyRep::PyTypeChecksumedStream ), mStream( oth.stream()->Clone() ), mChecksum( oth.checksum() ) {}
 PyChecksumedStream::~PyChecksumedStream()
 {
-    
     PyDecRef( mStream );
 }
 
