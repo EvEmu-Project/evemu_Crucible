@@ -106,7 +106,7 @@ SET( config_SOURCE
 	 
 SET( contractproxy_INCLUDE
 	 "${TARGET_INCLUDE_DIR}/contractproxy/contractProxy.h" )
-SET( contractproxy_INCLUDE
+SET( contractproxy_SOURCE
 	 "${TARGET_SOURCE_DIR}/contractproxy/contractProxy.cpp" )
 	 
 SET( corporation_INCLUDE
