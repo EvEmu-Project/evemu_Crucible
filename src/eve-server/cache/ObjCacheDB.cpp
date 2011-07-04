@@ -705,11 +705,10 @@ PyRep *ObjCacheDB::Generate_eveGraphics()
 	return DBResultToCRowset(res);
 }
 
-// TODO: soundID, categoryID?
 PyRep *ObjCacheDB::Generate_invTypes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT typeID, groupID, typeName, description, graphicID, radius, mass, volume, capacity, portionSize, raceID, basePrice, published, marketGroupID, chanceOfDuplicating, 0 as soundID, 0 as categoryID, iconID, 0 AS dataID FROM invTypes";
+	const char *q = "SELECT typeID, groupID, typeName, description, graphicID, radius, mass, volume, capacity, portionSize, raceID, basePrice, published, marketGroupID, chanceOfDuplicating, soundID, categoryID, iconID, attributeID, dataID FROM invTypes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.types': %s", res.error.c_str());
