@@ -643,7 +643,7 @@ PyResult BeyonceBound::Handle_Stop(PyCallArgs &call) {
 }
 
 PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
-	Call_SingleIntegerArg arg;
+    Call_TwoIntegerArgs arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
 		return NULL;
@@ -661,7 +661,7 @@ PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
 	}
 
     // Attempt to Dock:
-    call.client->SetDockStationID( arg.arg );   // Set client to know what station it's trying to dock into just in case docking is delayed
+    call.client->SetDockStationID( arg.arg1 );   // Set client to know what station it's trying to dock into just in case docking is delayed
     return destiny->AttemptDockOperation();
 }
 
