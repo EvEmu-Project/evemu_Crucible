@@ -1466,6 +1466,7 @@ bool Client::_VerifyCrypto( CryptoRequestPacket& cr )
 bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 {
     std::string account_hash;
+	bool error_login_auth_failed = false;
 
     AccountInfo account_info;
     CryptoServerHandshake server_shake;
@@ -1474,15 +1475,22 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 	//sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
 
     if (!services().serviceDB().GetAccountInformation( ccp.user_name.c_str(),  account_info)) {
-        goto error_login_auth_failed;
+        error_login_auth_failed = true;
     }
 
-    if (account_info.banned) {
+	else if (account_info.banned) {
         GPSTransportClosed* except = new GPSTransportClosed( "ACCOUNTBANNED" );
         mNet->QueueRep( except );
         PyDecRef( except );
-        return false;
+        error_login_auth_failed = true;
     }
+
+	//adaug cacaturi pe aici sa vad daca pot opri autentificare in caz ca e online deja
+	else if(account_info.online == 1)
+	{
+		error_login_auth_failed = true;
+		sLog.Error("Client","Just blocked double authentification.");
+	}
 
     /* if we have stored a password we need to create a hash from the username and pass and remove the pass */
     if (account_info.password.size() != 0) {
@@ -1499,7 +1507,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         if (ret_len != ccp.user_name.size()) {
 
             sLog.Error("Client", "unable to convert username to wide char string, sending LoginAuthFailed");
-            goto error_login_auth_failed;
+            error_login_auth_failed = true;
 
         }
 
@@ -1509,7 +1517,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         if (ret_len != account_info.password.size()) {
 
             sLog.Error("Client", "unable to convert password to wide char string, sending LoginAuthFailed");
-            goto error_login_auth_failed;
+            error_login_auth_failed = true;
 
         }
 
@@ -1517,14 +1525,14 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         if (!PasswordModule::GeneratePassHash(w_username, w_password, password_hash)) {
 
             sLog.Error("Client", "unable to generate password hash, sending LoginAuthFailed");
-            goto error_login_auth_failed;
+            error_login_auth_failed = true;
 
         }
 
         if (!services().serviceDB().UpdateAccountHash(ccp.user_name.c_str(), password_hash)) {
 
             sLog.Error("Client", "unable to update account hash, sending LoginAuthFailed");
-            goto error_login_auth_failed;
+            error_login_auth_failed = true;
 
         }
 
@@ -1535,7 +1543,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
     /* here we check if the user successfully entered his password or if he failed */
     if (account_hash != ccp.user_password_hash) {
-        goto error_login_auth_failed;
+        error_login_auth_failed = true;
     } else {
         //send passwordVersion required: 1=plain, 2=hashed
         PyRep* rsp = new PyInt( 2 );
@@ -1543,56 +1551,61 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         PyDecRef( rsp );
     }
 
-    sLog.Log("Client","successful");
+	if(error_login_auth_failed == false)
+	{
 
-    /* update account information, increase login count, last login timestamp and mark account as online */
-    m_services.serviceDB().UpdateAccountInformation( account_info.name.c_str(), true );
+		sLog.Log("Client","successful");
 
-    /* marshaled Python string "None" */
-    static const uint8 handshakeFunc[] = { 0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65 };
+		/* update account information, increase login count, last login timestamp and mark account as online */
+		m_services.serviceDB().UpdateAccountInformation( account_info.name.c_str(), true );
 
-    /* send our handshake */
+		/* marshaled Python string "None" */
+		static const uint8 handshakeFunc[] = { 0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65 };
 
-    server_shake.serverChallenge = "";
-    server_shake.func_marshaled_code = new PyBuffer( handshakeFunc, handshakeFunc + sizeof( handshakeFunc ) );
-	server_shake.verification = new PyBool( false );
-    server_shake.cluster_usercount = _GetUserCount();
-    server_shake.proxy_nodeid = 0xFFAA;
-    server_shake.user_logonqueueposition = _GetQueuePosition();
-    // binascii.crc_hqx of marshaled single-element tuple containing 64 zero-bytes string
-    server_shake.challenge_responsehash = "55087";
+		/* send our handshake */
 
-	// the image server used by the client to download images
-	server_shake.imageserverurl = ImageServer::get().url();
+		server_shake.serverChallenge = "";
+		server_shake.func_marshaled_code = new PyBuffer( handshakeFunc, handshakeFunc + sizeof( handshakeFunc ) );
+		server_shake.verification = new PyBool( false );
+		server_shake.cluster_usercount = _GetUserCount();
+		server_shake.proxy_nodeid = 0xFFAA;
+		server_shake.user_logonqueueposition = _GetQueuePosition();
+		// binascii.crc_hqx of marshaled single-element tuple containing 64 zero-bytes string
+		server_shake.challenge_responsehash = "55087";
 
-    server_shake.macho_version = MachoNetVersion;
-    server_shake.boot_version = EVEVersionNumber;
-    server_shake.boot_build = EVEBuildVersion;
-    server_shake.boot_codename = EVEProjectCodename;
-    server_shake.boot_region = EVEProjectRegion;
+		// the image server used by the client to download images
+		server_shake.imageserverurl = ImageServer::get().url();
 
-    PyRep* rsp = server_shake.Encode();
-    mNet->QueueRep( rsp );
-    PyDecRef( rsp );
+		server_shake.macho_version = MachoNetVersion;
+		server_shake.boot_version = EVEVersionNumber;
+		server_shake.boot_build = EVEBuildVersion;
+		server_shake.boot_codename = EVEProjectCodename;
+		server_shake.boot_region = EVEProjectRegion;
 
-    // Setup session, but don't send the change yet.
-    mSession.SetString( "address", EVEClientSession::GetAddress().c_str() );
-    mSession.SetString( "languageID", ccp.user_languageid.c_str() );
+		PyRep* rsp = server_shake.Encode();
+		mNet->QueueRep( rsp );
+		PyDecRef( rsp );
 
-    //user type 1 is normal user, type 23 is a trial account user.
-    mSession.SetInt( "userType", 1 );
-    mSession.SetInt( "userid", account_info.id );
-    mSession.SetLong( "role", account_info.role );
+		// Setup session, but don't send the change yet.
+		mSession.SetString( "address", EVEClientSession::GetAddress().c_str() );
+		mSession.SetString( "languageID", ccp.user_languageid.c_str() );
 
-    return true;
+		//user type 1 is normal user, type 23 is a trial account user.
+		mSession.SetInt( "userType", 1 );
+		mSession.SetInt( "userid", account_info.id );
+		mSession.SetLong( "role", account_info.role );
 
-error_login_auth_failed:
+		return true;
+	}
+	else
+	{
 
-    GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
-    mNet->QueueRep( except );
-    PyDecRef( except );
+		GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
+		mNet->QueueRep( except );
+		PyDecRef( except );
 
-    return false;
+		return false;
+	}
 }
 
 bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )

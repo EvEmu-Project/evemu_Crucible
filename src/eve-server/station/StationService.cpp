@@ -62,7 +62,7 @@ PyResult StationService::Handle_GetStationItemBits(PyCallArgs &call) {
 }
 
 PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
-	PyList *res = new PyList();
+	/*PyList *res = new PyList();
 
     std::vector<Client *> clients;
     m_manager->entity_list.FindByStationID(call.client->GetStationID(), clients);
@@ -79,4 +79,7 @@ PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
     }
 
 	return res;
+	*/
+	sLog.Debug("StationService", "Called GetGuests stub.");
+	return NULL;
 }
