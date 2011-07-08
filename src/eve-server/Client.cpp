@@ -711,8 +711,7 @@ void Client::_SendPingRequest()
 
     ping_req->userid = GetAccountID();
 
-    ping_req->payload = new PyTuple(1);
-    ping_req->payload->items[0] = new PyList();  //times
+    ping_req->payload = new_tuple( new PyList() ); //times
     ping_req->named_payload = new PyDict();
 
     FastQueuePacket(&ping_req);
@@ -740,39 +739,39 @@ void Client::_SendPingResponse( const PyAddress& source, uint64 callID )
     PyTuple* pingTuple;
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);        // this should be the time the packet was received (we cheat here a bit)
-    pingTuple->items[1] = new PyLong(Win32TimeNow());             // this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
-    pingTuple->items[2] = new PyString("proxy::handle_message");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));        // this should be the time the packet was received (we cheat here a bit)
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));             // this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
+    pingTuple->SetItem(2, new PyString("proxy::handle_message"));
     pingList->AddItem( pingTuple );
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
-    pingTuple->items[1] = new PyLong(Win32TimeNow());
-    pingTuple->items[2] = new PyString("proxy::writing");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));
+    pingTuple->SetItem(2, new PyString("proxy::writing"));
     pingList->AddItem( pingTuple );
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
-    pingTuple->items[1] = new PyLong(Win32TimeNow());
-    pingTuple->items[2] = new PyString("server::handle_message");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));
+    pingTuple->SetItem(2, new PyString("server::handle_message"));
     pingList->AddItem( pingTuple );
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
-    pingTuple->items[1] = new PyLong(Win32TimeNow());
-    pingTuple->items[2] = new PyString("server::turnaround");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));
+    pingTuple->SetItem(2, new PyString("server::turnaround"));
     pingList->AddItem( pingTuple );
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
-    pingTuple->items[1] = new PyLong(Win32TimeNow());
-    pingTuple->items[2] = new PyString("proxy::handle_message");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));
+    pingTuple->SetItem(2, new PyString("proxy::handle_message"));
     pingList->AddItem( pingTuple );
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
-    pingTuple->items[1] = new PyLong(Win32TimeNow());
-    pingTuple->items[2] = new PyString("proxy::writing");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));
+    pingTuple->SetItem(2, new PyString("proxy::writing"));
     pingList->AddItem( pingTuple );
 
     // Set payload
@@ -910,11 +909,8 @@ PyDict *Client::MakeSlimItem() const {
         cur = items.begin();
         end = items.end();
         for(; cur != end; cur++) {
-            PyTuple* t = new PyTuple( 2 );
 
-            t->items[0] = new PyInt( (*cur)->itemID() );
-            t->items[1] = new PyInt( (*cur)->typeID() );
-
+            PyTuple* t = new_tuple( (*cur)->itemID(), (*cur)->typeID());
             l->AddItem(t);
         }
 
@@ -1466,6 +1462,7 @@ bool Client::_VerifyCrypto( CryptoRequestPacket& cr )
 bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 {
     std::string account_hash;
+    std::string transport_closed_msg = "LoginAuthFailed";
 
     AccountInfo account_info;
     CryptoServerHandshake server_shake;
@@ -1477,11 +1474,10 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         goto error_login_auth_failed;
     }
 
+    /* check wether the account has been banned and if so send the semi correct message */
     if (account_info.banned) {
-        GPSTransportClosed* except = new GPSTransportClosed( "ACCOUNTBANNED" );
-        mNet->QueueRep( except );
-        PyDecRef( except );
-        return false;
+        transport_closed_msg = "ACCOUNTBANNED";
+        goto error_login_auth_failed;
     }
 
     /* if we have stored a password we need to create a hash from the username and pass and remove the pass */
@@ -1536,12 +1532,21 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     /* here we check if the user successfully entered his password or if he failed */
     if (account_hash != ccp.user_password_hash) {
         goto error_login_auth_failed;
-    } else {
-        //send passwordVersion required: 1=plain, 2=hashed
-        PyRep* rsp = new PyInt( 2 );
-        mNet->QueueRep( rsp );
-        PyDecRef( rsp );
     }
+
+    /* Check if we already have a client online and if we do disconnect it
+     * @note we should send GPSTransportClosed with reason "The user's connection has been usurped on the proxy"
+     */
+    if (account_info.online) {
+        Client* client = sEntityList.FindAccount(account_info.id);
+        if (client != NULL)
+            client->DisconnectClient();
+    }
+
+    /* send passwordVersion required: 1=plain, 2=hashed */
+    PyRep* rsp = new PyInt( 2 );
+    mNet->QueueRep( rsp );
+    PyDecRef( rsp );
 
     sLog.Log("Client","successful");
 
@@ -1571,7 +1576,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     server_shake.boot_codename = EVEProjectCodename;
     server_shake.boot_region = EVEProjectRegion;
 
-    PyRep* rsp = server_shake.Encode();
+    rsp = server_shake.Encode();
     mNet->QueueRep( rsp );
     PyDecRef( rsp );
 
@@ -1588,7 +1593,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
 error_login_auth_failed:
 
-    GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
+    GPSTransportClosed* except = new GPSTransportClosed( transport_closed_msg );
     mNet->QueueRep( except );
     PyDecRef( except );
 
