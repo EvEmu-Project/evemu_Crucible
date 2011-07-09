@@ -179,7 +179,9 @@ public:
     // --- END HACK FUNCTIONS FOR UNDOCK ---
 	
 	void SendErrorMsg(const char *fmt, ...);
+	void SendErrorMsg(const char *fmt, va_list args);
 	void SendNotifyMsg(const char *fmt, ...);
+	void SendNotifyMsg(const char *fmt, va_list args);
 	void SendInfoModalMsg(const char *fmt, ...);
 	void SelfChatMessage(const char *fmt, ...);
 	void SelfEveMail(const char *subject, const char *fmt, ...);

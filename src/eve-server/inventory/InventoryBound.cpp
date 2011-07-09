@@ -318,7 +318,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
     for(; cur != end; cur++) {
         InventoryItemRef sourceItem = m_manager->item_factory.GetItem( *cur );
         if( !sourceItem ) {
-            _log(SERVICE__ERROR, "Failed to load item %u. Skipping.", *cur);
+            sLog.Error("_ExecAdd","Failed to load item %u. Skipping.", *cur);
             continue;
         }
 
@@ -335,22 +335,14 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
         {
             InventoryItemRef newItem = sourceItem->Split(quantity);
             if( !newItem ) {
-                codelog(SERVICE__ERROR, "Error splitting item %u. Skipping.", sourceItem->itemID() );
+                sLog.Error("_ExecAdd", "Error splitting item %u. Skipping.", sourceItem->itemID() );
             }
             else
             {
                 //Unlike the other validate item requests, fitting an item requires a skill check, which means passing the character
 				if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
 				{
-					Ship::ValidateAddItem( flag, newItem, c );
-					
-					//it's a new module, make sure it's state starts at offline so that it is added correctly
-					if( newItem->categoryID() != EVEDB::invCategories::Charge )
-						newItem->PutOffline();
-
-					//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
-					//c->GetShip()->Set_mass( c->GetShip()->mass() + newItem->massAddition() );
-                    c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) + newItem->GetAttribute(AttrMassAddition) );
+					c->GetShip()->AddItem( flag, newItem );
 				}
 				else
 				{
@@ -359,15 +351,8 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 
 				if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
 				{
-					//coming from ship, we need to deactivate it and remove mass if it isn't a charge
-					if( newItem->categoryID() != EVEDB::invCategories::Charge ) {
-						c->GetShip()->Deactivate( newItem->itemID(), "online" );
-						//c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
-                        c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) - newItem->GetAttribute(AttrMassAddition) );
-					}
 
-					//Move New item to its new location
-					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh mModulesMgr
+					c->GetShip()->RemoveItem( newItem, mInventory.inventoryID(), flag );
 
 					//Create new item id return result
 					Call_SingleIntegerArg result;
@@ -377,13 +362,8 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 					return result.Encode(); 
 
 				} else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) {
-					c->GetShip()->RemoveRig(newItem->itemID());
-
-					//move the item to the void or w/e
-					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flagAutoFit);
-
-					//delete the item
-					newItem->Delete();
+					
+					c->GetShip()->RemoveRig( newItem, mInventory.inventoryID() );
 
 				} else {
 
@@ -448,7 +428,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 			}
         }
 
-		//update mModulesMgr
+		//update modules
 		c->GetShip()->UpdateModules();
     }
 

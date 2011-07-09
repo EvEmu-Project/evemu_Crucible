@@ -198,9 +198,9 @@ double Ship::GetCapacity(EVEItemFlags flag) const
     }
 }
 
-void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
+void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
 {
-	CharacterRef character = c->GetChar();
+	CharacterRef character = m_Client->GetChar();
 	
 	if( flag == flagDroneBay )
     {
@@ -455,6 +455,33 @@ bool Ship::ValidateItemSpecifics(Client *c, InventoryItemRef equip) {
 
 /* Begin new Module Manager Interface */
 
+void Ship::AddItem(EVEItemFlags flag, InventoryItemRef item)
+{
+	
+	ValidateAddItem( flag, item );
+					
+	//it's a new module, make sure it's state starts at offline so that it is added correctly
+	if( item->categoryID() != EVEDB::invCategories::Charge )
+		item->PutOffline();
+
+	//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
+	//c->GetShip()->Set_mass( c->GetShip()->mass() + newItem->massAddition() );
+	m_Client->GetShip()->SetAttribute(AttrMass,  m_Client->GetShip()->GetAttribute(AttrMass) + item->GetAttribute(AttrMassAddition) );
+}
+
+void Ship::RemoveItem(InventoryItemRef item, uint32 inventoryID, EVEItemFlags flag)
+{
+	//coming from ship, we need to deactivate it and remove mass if it isn't a charge
+	if( item->categoryID() != EVEDB::invCategories::Charge ) {
+		m_Client->GetShip()->Deactivate( item->itemID(), "online" );
+		//c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
+		m_Client->GetShip()->SetAttribute(AttrMass,  m_Client->GetShip()->GetAttribute(AttrMass) - item->GetAttribute(AttrMassAddition) );
+	}
+
+	//Move New item to its new location
+	m_Client->MoveItem(item->itemID(), inventoryID, flag);
+}
+
 void Ship::UpdateModules()
 {
 
@@ -477,7 +504,7 @@ void Ship::RepairModules()
 
 int32 Ship::Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat)
 {
-	return 0;
+	return 1;
 }
 
 void Ship::Deactivate(int32 itemID, std::string effecetName)
@@ -485,9 +512,15 @@ void Ship::Deactivate(int32 itemID, std::string effecetName)
 
 }
 
-void Ship::RemoveRig( int32 itemID )
+void Ship::RemoveRig( InventoryItemRef item, uint32 inventoryID )
 {
+	m_ModuleManager->DestroyRig();
 
+	//move the item to the void or w/e
+	m_Client->MoveItem(item->itemID(), inventoryID, flagAutoFit);
+
+	//delete the item
+	item->Delete();
 }
 
 void Ship::Process()
@@ -503,6 +536,7 @@ void Ship::OnlineAll()
 void Ship::SetOwner(Client * client)
 {
 	m_ModuleManager->SetClient(client);
+	m_Client = client;
 }
 
 void Ship::ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge)

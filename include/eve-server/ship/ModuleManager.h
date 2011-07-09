@@ -121,7 +121,7 @@ public:
 	void SetClient(Client * client);
 
 	void InstallRig();
-	void DestroyRig();
+	void UninstallRig();
 	void InstallSubSystem();
 	void SwapSubSystem();
 	void FitModule();
@@ -130,7 +130,7 @@ public:
 	void OnlineAll();
 	void Offline();
 	void OfflineAll();
-	void Activate();
+	int32 Activate();
 	void Deactivate();
 	void DeactivateAllModules();
 	void Overload();
@@ -147,6 +147,9 @@ public:
 	void TargetedAction(ModuleAction *pModuleAction);
 	
 private:
+	void _SendInfoMessage(const char* fmt, ...);
+	void _SendErrorMessage(const char* fmt, ...);
+
 	//access to the ship that owns us.  We do not own this
 	Ship * m_Ship;
 

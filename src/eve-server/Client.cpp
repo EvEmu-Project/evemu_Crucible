@@ -198,6 +198,28 @@ void Client::SendErrorMsg( const char* fmt, ... )
     SafeFree( str );
 }
 
+void Client::SendErrorMsg( const char* fmt, va_list args )
+{
+	char* str = NULL;
+	vasprintf( &str, fmt, args );
+	assert( str );
+
+	sLog.Error("Client","Sending Error Message to %s:", GetName() );
+    log_messageVA( CLIENT__ERROR, fmt, args );
+
+	//want to send some sort of notify with a "ServerMessage" message ID maybe?
+    //else maybe a "ChatTxt"??
+    Notify_OnRemoteMessage n;
+    n.msgType = "CustomError";
+    n.args[ "error" ] = new PyString( str );
+
+    PyTuple* tmp = n.Encode();
+    SendNotification( "OnRemoteMessage", "charid", &tmp );
+
+    SafeFree( str );
+	
+}
+
 //this displays a modal info dialog on the client side.
 void Client::SendInfoModalMsg( const char* fmt, ... )
 {
@@ -237,6 +259,27 @@ void Client::SendNotifyMsg( const char* fmt, ... )
 	sLog.Log("Client","Notify to %s:", GetName() );
     log_messageVA( CLIENT__MESSAGE, fmt, args );
     va_end( args );
+
+    //want to send some sort of notify with a "ServerMessage" message ID maybe?
+    //else maybe a "ChatTxt"??
+    Notify_OnRemoteMessage n;
+    n.msgType = "CustomNotify";
+    n.args[ "notify" ] = new PyString( str );
+
+    PyTuple* tmp = n.Encode();
+    SendNotification( "OnRemoteMessage", "charid", &tmp );
+
+    SafeFree( str );
+}
+
+void Client::SendNotifyMsg( const char* fmt, va_list args )
+{
+    char* str = NULL;
+    vasprintf( &str, fmt, args );
+    assert( str );
+
+	sLog.Log("Client","Notify to %s:", GetName() );
+    log_messageVA( CLIENT__MESSAGE, fmt, args );
 
     //want to send some sort of notify with a "ServerMessage" message ID maybe?
     //else maybe a "ChatTxt"??

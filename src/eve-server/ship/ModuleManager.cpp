@@ -234,12 +234,39 @@ void ModuleManager::SetClient(Client * client)
 	m_Client = client;
 }
 
+void ModuleManager::_SendInfoMessage(const char *fmt, ...)
+{
+	if( m_Client == NULL )
+		sLog.Error("SendMessage","message should have been sent to character, but *m_Client is null.  Did you forget to call GetShip()->SetOwner(Client *c)?");
+	else
+	{
+		va_list args;
+		va_start(args,fmt);
+		m_Client->SendNotifyMsg(fmt,args);
+		va_end(args);
+
+	}
+}
+
+void ModuleManager::_SendErrorMessage(const char *fmt, ...)
+{
+	if( m_Client == NULL )
+		sLog.Error("SendMessage","message should have been sent to character, but *m_Client is null.  Did you forget to call GetShip()->SetOwner(Client *c)?");
+	else
+	{
+		va_list args;
+		va_start(args,fmt);
+		m_Client->SendErrorMsg(fmt,args);
+		va_end(args);
+	}
+}
+
 void ModuleManager::InstallRig()
 {
 
 }
 
-void ModuleManager::DestroyRig()
+void ModuleManager::UninstallRig()
 {
 
 }

@@ -188,7 +188,7 @@ public:
 	/*
 	 * _ExecAdd validation interface:
 	 */
-	static void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c);
+	void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c);
 	/*
 	 * Checks for conflicts between ship and fitting
 	 */
@@ -215,6 +215,8 @@ public:
     void SaveShip();
 
 	/* begin new module manager interface */
+	void AddItem( EVEItemFlags flag, InventoryItemRef item);
+	void RemoveItem( InventoryItemRef item, uint32 inventoryID, EVEItemFlags flag );
 	void UpdateModules();
 	void UnloadModule(uint32 itemID);
 	void UnloadAllModules();
@@ -222,7 +224,7 @@ public:
 	int32 Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat);
 	void Deactivate(int32 itemID, std::string effectName);
 	void ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge);
-	void RemoveRig(int32 itemID);
+	void RemoveRig(InventoryItemRef item, uint32 inventoryID);
 	void Process();
 	void DeactivateAllModules();
 	void OnlineAll();
@@ -283,6 +285,10 @@ protected:
 	void AddItem(InventoryItemRef item);
 
 private:
+	//access to the pilot client.  We do not own this, nor is it garunteed to not be null
+	Client * m_Client;
+
+	//the ship's module manager.  We own this
 	ModuleManager * m_ModuleManager;
 };
 
