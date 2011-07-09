@@ -301,8 +301,8 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 
     // THIS IS A HACK AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
     // SO SAVE THE UNDOCK ALIGN-TO POINT AND TELL CLIEN WE JUST UNDOCKED
-    call.client->SetUndockAlignToPoint( dest );
-    call.client->SetJustUndocking( true );
+    //call.client->SetUndockAlignToPoint( dest );
+    //call.client->SetJustUndocking( true );
     // --- END HACK ---
 
     return NULL;

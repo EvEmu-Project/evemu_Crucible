@@ -73,7 +73,10 @@ PyService *PyServiceMgr::LookupService(const std::string &name) {
 	end = m_services.end();
 	for(; cur != end; cur++) {
 		if(name == (*cur)->GetName())
+		{
+			sLog.Debug("Serviciu", (*cur)->GetName());
 			return(*cur);
+		}
 	}
 	return NULL;
 }

@@ -322,7 +322,7 @@ SET( standing_SOURCE
      "${TARGET_SOURCE_DIR}/standing/StandingDB.cpp"
      "${TARGET_SOURCE_DIR}/standing/WarRegistryService.cpp" )
 
-SET( station_INCLDUDE
+SET( station_INCLUDE
      "${TARGET_INCLUDE_DIR}/station/JumpCloneService.h"
      "${TARGET_INCLUDE_DIR}/station/Station.h"
      "${TARGET_INCLUDE_DIR}/station/StationDB.h"
