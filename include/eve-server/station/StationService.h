@@ -42,7 +42,6 @@ protected:
 
 	StationDB m_db;
 
-	PyCallable_DECL_CALL(GetStationItemBits)
 	PyCallable_DECL_CALL(GetGuests)
 	PyCallable_DECL_CALL(GetSolarSystem)
 };
