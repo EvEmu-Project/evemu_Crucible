@@ -711,8 +711,7 @@ void Client::_SendPingRequest()
 
     ping_req->userid = GetAccountID();
 
-    ping_req->payload = new PyTuple(1);
-    ping_req->payload->items[0] = new PyList();  //times
+    ping_req->payload = new_tuple( new PyList() ); //times
     ping_req->named_payload = new PyDict();
 
     FastQueuePacket(&ping_req);
@@ -740,39 +739,39 @@ void Client::_SendPingResponse( const PyAddress& source, uint64 callID )
     PyTuple* pingTuple;
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);        // this should be the time the packet was received (we cheat here a bit)
-    pingTuple->items[1] = new PyLong(Win32TimeNow());             // this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
-    pingTuple->items[2] = new PyString("proxy::handle_message");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));        // this should be the time the packet was received (we cheat here a bit)
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));             // this is the time the packet is (handled/writen) by the (proxy/server) so we're cheating a bit again.
+    pingTuple->SetItem(2, new PyString("proxy::handle_message"));
     pingList->AddItem( pingTuple );
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
-    pingTuple->items[1] = new PyLong(Win32TimeNow());
-    pingTuple->items[2] = new PyString("proxy::writing");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));
+    pingTuple->SetItem(2, new PyString("proxy::writing"));
     pingList->AddItem( pingTuple );
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
-    pingTuple->items[1] = new PyLong(Win32TimeNow());
-    pingTuple->items[2] = new PyString("server::handle_message");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));
+    pingTuple->SetItem(2, new PyString("server::handle_message"));
     pingList->AddItem( pingTuple );
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
-    pingTuple->items[1] = new PyLong(Win32TimeNow());
-    pingTuple->items[2] = new PyString("server::turnaround");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));
+    pingTuple->SetItem(2, new PyString("server::turnaround"));
     pingList->AddItem( pingTuple );
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
-    pingTuple->items[1] = new PyLong(Win32TimeNow());
-    pingTuple->items[2] = new PyString("proxy::handle_message");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));
+    pingTuple->SetItem(2, new PyString("proxy::handle_message"));
     pingList->AddItem( pingTuple );
 
     pingTuple = new PyTuple(3);
-    pingTuple->items[0] = new PyLong(Win32TimeNow() - 20);
-    pingTuple->items[1] = new PyLong(Win32TimeNow());
-    pingTuple->items[2] = new PyString("proxy::writing");
+    pingTuple->SetItem(0, new PyLong(Win32TimeNow() - 20));
+    pingTuple->SetItem(1, new PyLong(Win32TimeNow()));
+    pingTuple->SetItem(2, new PyString("proxy::writing"));
     pingList->AddItem( pingTuple );
 
     // Set payload
@@ -910,11 +909,8 @@ PyDict *Client::MakeSlimItem() const {
         cur = items.begin();
         end = items.end();
         for(; cur != end; cur++) {
-            PyTuple* t = new PyTuple( 2 );
 
-            t->items[0] = new PyInt( (*cur)->itemID() );
-            t->items[1] = new PyInt( (*cur)->typeID() );
-
+            PyTuple* t = new_tuple( (*cur)->itemID(), (*cur)->typeID());
             l->AddItem(t);
         }
 
@@ -1466,7 +1462,7 @@ bool Client::_VerifyCrypto( CryptoRequestPacket& cr )
 bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 {
     std::string account_hash;
-	bool error_login_auth_failed = false;
+    std::string transport_closed_msg = "LoginAuthFailed";
 
     AccountInfo account_info;
     CryptoServerHandshake server_shake;
@@ -1475,22 +1471,14 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 	//sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
 
     if (!services().serviceDB().GetAccountInformation( ccp.user_name.c_str(),  account_info)) {
-        error_login_auth_failed = true;
+        goto error_login_auth_failed;
     }
 
-	else if (account_info.banned) {
-        GPSTransportClosed* except = new GPSTransportClosed( "ACCOUNTBANNED" );
-        mNet->QueueRep( except );
-        PyDecRef( except );
-        error_login_auth_failed = true;
+    /* check wether the account has been banned and if so send the semi correct message */
+    if (account_info.banned) {
+        transport_closed_msg = "ACCOUNTBANNED";
+        goto error_login_auth_failed;
     }
-
-	//adaug cacaturi pe aici sa vad daca pot opri autentificare in caz ca e online deja
-	else if(account_info.online == 1)
-	{
-		error_login_auth_failed = true;
-		sLog.Error("Client","Just blocked double authentification.");
-	}
 
     /* if we have stored a password we need to create a hash from the username and pass and remove the pass */
     if (account_info.password.size() != 0) {
@@ -1507,7 +1495,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         if (ret_len != ccp.user_name.size()) {
 
             sLog.Error("Client", "unable to convert username to wide char string, sending LoginAuthFailed");
-            error_login_auth_failed = true;
+            goto error_login_auth_failed;
 
         }
 
@@ -1517,7 +1505,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         if (ret_len != account_info.password.size()) {
 
             sLog.Error("Client", "unable to convert password to wide char string, sending LoginAuthFailed");
-            error_login_auth_failed = true;
+            goto error_login_auth_failed;
 
         }
 
@@ -1525,14 +1513,14 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
         if (!PasswordModule::GeneratePassHash(w_username, w_password, password_hash)) {
 
             sLog.Error("Client", "unable to generate password hash, sending LoginAuthFailed");
-            error_login_auth_failed = true;
+            goto error_login_auth_failed;
 
         }
 
         if (!services().serviceDB().UpdateAccountHash(ccp.user_name.c_str(), password_hash)) {
 
             sLog.Error("Client", "unable to update account hash, sending LoginAuthFailed");
-            error_login_auth_failed = true;
+            goto error_login_auth_failed;
 
         }
 
@@ -1543,69 +1531,73 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
     /* here we check if the user successfully entered his password or if he failed */
     if (account_hash != ccp.user_password_hash) {
-        error_login_auth_failed = true;
-    } else {
-        //send passwordVersion required: 1=plain, 2=hashed
-        PyRep* rsp = new PyInt( 2 );
-        mNet->QueueRep( rsp );
-        PyDecRef( rsp );
+        goto error_login_auth_failed;
     }
 
-	if(error_login_auth_failed == false)
-	{
+    /* Check if we already have a client online and if we do disconnect it
+     * @note we should send GPSTransportClosed with reason "The user's connection has been usurped on the proxy"
+     */
+    if (account_info.online) {
+        Client* client = sEntityList.FindAccount(account_info.id);
+        if (client != NULL)
+            client->DisconnectClient();
+    }
 
-		sLog.Log("Client","successful");
+    /* send passwordVersion required: 1=plain, 2=hashed */
+    PyRep* rsp = new PyInt( 2 );
+    mNet->QueueRep( rsp );
+    PyDecRef( rsp );
 
-		/* update account information, increase login count, last login timestamp and mark account as online */
-		m_services.serviceDB().UpdateAccountInformation( account_info.name.c_str(), true );
+    sLog.Log("Client","successful");
 
-		/* marshaled Python string "None" */
-		static const uint8 handshakeFunc[] = { 0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65 };
+    /* update account information, increase login count, last login timestamp and mark account as online */
+    m_services.serviceDB().UpdateAccountInformation( account_info.name.c_str(), true );
 
-		/* send our handshake */
+    /* marshaled Python string "None" */
+    static const uint8 handshakeFunc[] = { 0x74, 0x04, 0x00, 0x00, 0x00, 0x4E, 0x6F, 0x6E, 0x65 };
 
-		server_shake.serverChallenge = "";
-		server_shake.func_marshaled_code = new PyBuffer( handshakeFunc, handshakeFunc + sizeof( handshakeFunc ) );
-		server_shake.verification = new PyBool( false );
-		server_shake.cluster_usercount = _GetUserCount();
-		server_shake.proxy_nodeid = 0xFFAA;
-		server_shake.user_logonqueueposition = _GetQueuePosition();
-		// binascii.crc_hqx of marshaled single-element tuple containing 64 zero-bytes string
-		server_shake.challenge_responsehash = "55087";
+    /* send our handshake */
 
-		// the image server used by the client to download images
-		server_shake.imageserverurl = ImageServer::get().url();
+    server_shake.serverChallenge = "";
+    server_shake.func_marshaled_code = new PyBuffer( handshakeFunc, handshakeFunc + sizeof( handshakeFunc ) );
+	server_shake.verification = new PyBool( false );
+    server_shake.cluster_usercount = _GetUserCount();
+    server_shake.proxy_nodeid = 0xFFAA;
+    server_shake.user_logonqueueposition = _GetQueuePosition();
+    // binascii.crc_hqx of marshaled single-element tuple containing 64 zero-bytes string
+    server_shake.challenge_responsehash = "55087";
 
-		server_shake.macho_version = MachoNetVersion;
-		server_shake.boot_version = EVEVersionNumber;
-		server_shake.boot_build = EVEBuildVersion;
-		server_shake.boot_codename = EVEProjectCodename;
-		server_shake.boot_region = EVEProjectRegion;
+	// the image server used by the client to download images
+	server_shake.imageserverurl = ImageServer::get().url();
 
-		PyRep* rsp = server_shake.Encode();
-		mNet->QueueRep( rsp );
-		PyDecRef( rsp );
+    server_shake.macho_version = MachoNetVersion;
+    server_shake.boot_version = EVEVersionNumber;
+    server_shake.boot_build = EVEBuildVersion;
+    server_shake.boot_codename = EVEProjectCodename;
+    server_shake.boot_region = EVEProjectRegion;
 
-		// Setup session, but don't send the change yet.
-		mSession.SetString( "address", EVEClientSession::GetAddress().c_str() );
-		mSession.SetString( "languageID", ccp.user_languageid.c_str() );
+    rsp = server_shake.Encode();
+    mNet->QueueRep( rsp );
+    PyDecRef( rsp );
 
-		//user type 1 is normal user, type 23 is a trial account user.
-		mSession.SetInt( "userType", 1 );
-		mSession.SetInt( "userid", account_info.id );
-		mSession.SetLong( "role", account_info.role );
+    // Setup session, but don't send the change yet.
+    mSession.SetString( "address", EVEClientSession::GetAddress().c_str() );
+    mSession.SetString( "languageID", ccp.user_languageid.c_str() );
 
-		return true;
-	}
-	else
-	{
+    //user type 1 is normal user, type 23 is a trial account user.
+    mSession.SetInt( "userType", 1 );
+    mSession.SetInt( "userid", account_info.id );
+    mSession.SetLong( "role", account_info.role );
 
-		GPSTransportClosed* except = new GPSTransportClosed( "LoginAuthFailed" );
-		mNet->QueueRep( except );
-		PyDecRef( except );
+    return true;
 
-		return false;
-	}
+error_login_auth_failed:
+
+    GPSTransportClosed* except = new GPSTransportClosed( transport_closed_msg );
+    mNet->QueueRep( except );
+    PyDecRef( except );
+
+    return false;
 }
 
 bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )

@@ -33,6 +33,11 @@ GPSTransportClosed::GPSTransportClosed( const char* reason )
 {
 }
 
+GPSTransportClosed::GPSTransportClosed( std::string& reason )
+: PyObjectEx_Type1( new PyToken( "exceptions.GPSTransportClosed" ), _CreateArgs( reason.c_str() ), _CreateKeywords( reason.c_str() ) )
+{
+
+}
 void GPSTransportClosed::AddKeyword( const char* name, PyRep* value )
 {
 	GetReasonArgs()->SetItemString( name, value );

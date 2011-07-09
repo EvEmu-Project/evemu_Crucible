@@ -1061,3 +1061,10 @@ PyTuple * new_tuple( PyRep* arg1, PyRep* arg2 )
     res->SetItem(1, arg2);
     return res;
 }
+
+PyTuple * new_tuple( PyRep* arg1 )
+{
+    PyTuple * res = new PyTuple(1);
+    res->SetItem(0, arg1);
+    return res;
+}

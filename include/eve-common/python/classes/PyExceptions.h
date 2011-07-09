@@ -41,6 +41,7 @@ class GPSTransportClosed
 {
 public:
 	GPSTransportClosed( const char* reason );
+    GPSTransportClosed( std::string& reason );
 
 	/**
 	 * @brief Adds keyword to exception.
