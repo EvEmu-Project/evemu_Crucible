@@ -263,7 +263,7 @@ void ModuleManager::_SendErrorMessage(const char *fmt, ...)
 
 void ModuleManager::InstallRig()
 {
-
+	//add the attribute changes
 }
 
 void ModuleManager::UninstallRig()
@@ -306,9 +306,9 @@ void ModuleManager::OfflineAll()
 
 }
 
-void ModuleManager::Activate()
+int32 ModuleManager::Activate()
 {
-
+	return 1;
 }
 
 void ModuleManager::Deactivate()

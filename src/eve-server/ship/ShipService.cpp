@@ -748,7 +748,7 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
         InventoryItemRef item = drone->Item();
 
         // Check to see that this is really a drone:
-        call.client->GetShip()->ValidateAddItem( flagDroneBay, item, call.client );
+        call.client->GetShip()->ValidateAddItem( flagDroneBay, item );
 
         //TODO: check ownership/control.
 

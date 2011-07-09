@@ -210,7 +210,7 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
     }
     else if( flag == flagShipHangar )
     {
-		if( c->GetShip()->GetAttribute(AttrHasShipMaintenanceBay ) != 0)
+		if( m_Client->GetShip()->GetAttribute(AttrHasShipMaintenanceBay ) != 0)
             // We have no ship maintenance bay
 			throw PyException( MakeCustomError( "%s has no ship maintenance bay.", item->itemName().c_str() ) );
         if( item->categoryID() != EVEDB::invCategories::Ship )
@@ -219,7 +219,7 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
     }
     else if( flag == flagHangar )
     {
-		if( c->GetShip()->GetAttribute(AttrHasCorporateHangars ) != 0)
+		if( m_Client->GetShip()->GetAttribute(AttrHasCorporateHangars ) != 0)
             // We have no corporate hangars
             throw PyException( MakeCustomError( "%s has no corporate hangars.", item->itemName().c_str() ) );
     }
@@ -228,22 +228,22 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
 		//get all items in cargohold
 		EvilNumber capacityUsed(0);
 		std::vector<InventoryItemRef> items;
-		c->GetShip()->FindByFlag(flag, items);
+		m_Client->GetShip()->FindByFlag(flag, items);
 		for(uint32 i = 0; i < items.size(); i++){
 			capacityUsed += items[i]->GetAttribute(AttrVolume);
 		}
-		if( capacityUsed + item->GetAttribute(AttrVolume) > c->GetShip()->GetAttribute(AttrCapacity) )
+		if( capacityUsed + item->GetAttribute(AttrVolume) > m_Client->GetShip()->GetAttribute(AttrCapacity) )
 			throw PyException( MakeCustomError( "Not enough cargo space!") );
 	}
 	else if( flag > flagLowSlot0  &&  flag < flagHiSlot7 )
 	{
 		if(!Skill::FitModuleSkillCheck(item, character))
 			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
-		if(!ValidateItemSpecifics(c,item))
+		if(!ValidateItemSpecifics(m_Client,item))
 			throw PyException( MakeCustomError( "Your ship cannot equip this module" ) );
 		if(item->categoryID() == EVEDB::invCategories::Charge) {
 			InventoryItemRef module;
-			c->GetShip()->FindSingleByFlag(flag, module);
+			m_Client->GetShip()->FindSingleByFlag(flag, module);
 			if(module->GetAttribute(AttrChargeSize) != item->GetAttribute(AttrChargeSize) )
 				throw PyException( MakeCustomError( "The charge is not the correct size for this module." ) );
 			if(module->GetAttribute(AttrChargeGroup1) != item->groupID())
@@ -254,9 +254,9 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
 	{
 		if(!Skill::FitModuleSkillCheck(item, character))
 			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
-		if(c->GetShip()->GetAttribute(AttrRigSize) != item->GetAttribute(AttrRigSize))
+		if(m_Client->GetShip()->GetAttribute(AttrRigSize) != item->GetAttribute(AttrRigSize))
 			throw PyException( MakeCustomError( "Your ship cannot fit this size module" ) );
-		if( c->GetShip()->GetAttribute(AttrUpgradeLoad) + item->GetAttribute(AttrUpgradeCost) > c->GetShip()->GetAttribute(AttrUpgradeCapacity) )
+		if( m_Client->GetShip()->GetAttribute(AttrUpgradeLoad) + item->GetAttribute(AttrUpgradeCost) > m_Client->GetShip()->GetAttribute(AttrUpgradeCapacity) )
 			throw PyException( MakeCustomError( "Your ship cannot handle the extra calibration" ) );
 	}
 	else if( flag > flagSubSystem0  &&  flag < flagSubSystem7 )
@@ -514,7 +514,7 @@ void Ship::Deactivate(int32 itemID, std::string effecetName)
 
 void Ship::RemoveRig( InventoryItemRef item, uint32 inventoryID )
 {
-	m_ModuleManager->DestroyRig();
+	m_ModuleManager->UninstallRig();
 
 	//move the item to the void or w/e
 	m_Client->MoveItem(item->itemID(), inventoryID, flagAutoFit);

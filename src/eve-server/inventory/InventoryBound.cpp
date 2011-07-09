@@ -286,11 +286,12 @@ PyResult InventoryBound::Handle_DestroyFitting(PyCallArgs &call) {
 	if(!args.Decode(&call.tuple)){
 		sLog.Error("Destroy Fittings","Failed to decode args.");
 	}
-	//remove the rig effects from the ship
-	call.client->GetShip()->RemoveRig(args.arg);
-	
+
 	//get the actual item
 	InventoryItemRef item = m_manager->item_factory.GetItem(args.arg);
+
+	//remove the rig effects from the ship
+	call.client->GetShip()->RemoveRig(item, mInventory.inventoryID());
 
 	//move the item to the void or w/e
 	call.client->MoveItem(item->itemID(), mInventory.inventoryID(), flagAutoFit);
@@ -384,16 +385,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 			//Unlike the other validate item requests, fitting an item requires a skill check
 			if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
 			{
-				Ship::ValidateAddItem( flag, sourceItem, c );
-
-				//it's a new module, make sure it's state starts at offline so that it is added correctly
-				if( sourceItem->categoryID() != EVEDB::invCategories::Charge )
-					sourceItem->PutOffline();
-
-				//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
-				//c->GetShip()->Set_mass( c->GetShip()->mass() + sourceItem->massAddition() );
-                c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) + sourceItem->GetAttribute(AttrMassAddition) );
-
+				c->GetShip()->AddItem( flag, sourceItem );
 			}
 			else
 			{
@@ -402,26 +394,15 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 
 			if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
 			{
-					//coming from ship, we need to deactivate it and remove mass if it isn't a charge
-					if( sourceItem->categoryID() != EVEDB::invCategories::Charge ) {
-						c->GetShip()->Deactivate( sourceItem->itemID(), "online" );
-						//c->GetShip()->Set_mass( c->GetShip()->mass() - sourceItem->massAddition() );
-                        c->GetShip()->SetAttribute(AttrMass,  c->GetShip()->GetAttribute(AttrMass) + sourceItem->GetAttribute(AttrMassAddition) );
-					}
-
-					c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);
-
-			} else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) {
-				//remove effects
-				c->GetShip()->RemoveRig(sourceItem->itemID());
-				
-				//move the item to the void or w/e
-				c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flagAutoFit);
-
-				//delete the item
-				sourceItem->Delete();
-
-			} else {
+				c->GetShip()->RemoveItem( sourceItem, mInventory.inventoryID(), flag );
+			} 
+			else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) 
+			{
+				//remove the rig
+				c->GetShip()->RemoveRig(sourceItem, mInventory.inventoryID());
+			} 
+			else 
+			{
 
 				c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);
 			

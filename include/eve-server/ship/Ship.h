@@ -188,7 +188,7 @@ public:
 	/*
 	 * _ExecAdd validation interface:
 	 */
-	void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c);
+	void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item);
 	/*
 	 * Checks for conflicts between ship and fitting
 	 */
