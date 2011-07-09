@@ -106,11 +106,14 @@ public:
 
     bool IsInt() const
     {
+#ifdef WIN32
         /* crash when we missed a convertion... lol */
         if (mType == PyTypeLong)
             __asm{int 3};
+#endif//WIN32
         return mType == PyTypeInt;
     }
+
     bool IsLong() const             { return mType == PyTypeLong; }
     bool IsFloat() const            { return mType == PyTypeFloat; }
     bool IsBool() const             { return mType == PyTypeBool; }
