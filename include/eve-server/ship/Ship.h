@@ -262,6 +262,8 @@ protected:
 	PyRep *GetItem() const { return GetItemRow(); }
 
 	void AddItem(InventoryItemRef item);
+private:
+	ModuleManager m_ModuleManager;
 };
 
 /**
