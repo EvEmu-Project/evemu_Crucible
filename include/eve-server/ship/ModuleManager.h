@@ -60,6 +60,7 @@ class ModuleContainer
 {
 public:
 	ModuleContainer(uint32 lowSlots, uint32 medSlots, uint32 highSlots, uint32 rigSlots, uint32 subSystemSlots);
+	~ModuleContainer();
 	
 	void AddModule(uint32 flag, GenericModule * mod);
 	GenericModule * GetModule(uint32 flag);
@@ -100,16 +101,63 @@ private:
 };
 
 
-class ModuleManager {
+class ModuleManagerInterface
+{
+
+};
+
+class ModuleAction
+{
+
+};
+
+class ModuleManager
+{
+	friend class ModuleManagerInterface;
 public:
-	ModuleManager( Ship * ship );
+	ModuleManager(Ship *const ship);
 	~ModuleManager();
+
+	void SetClient(Client * client);
+
+	void InstallRig();
+	void DestroyRig();
+	void InstallSubSystem();
+	void SwapSubSystem();
+	void FitModule();
+	void UnfitModule();
+	void Online();
+	void OnlineAll();
+	void Offline();
+	void OfflineAll();
+	void Activate();
+	void Deactivate();
+	void DeactivateAllModules();
+	void Overload();
+	void DeOverload();
+	void DamageModule();
+	void RepairModule();
+	void ReplaceCharges();
+	void UnloadAllModules();
+	void CharacterLeavingShip();
+	void CharacterBoardingShip();
+	void ShipWarping();
+	void ShipJumping();
+	void Process();
+	void TargetedAction(ModuleAction *pModuleAction);
 	
 private:
 	//access to the ship that owns us.  We do not own this
 	Ship * m_Ship;
 
-	//module arrays
+	//access to the client that owns the ship.  We do not own this
+	Client * m_Client;
+
+	//access to destiny.  We do not own this
+	DestinyManager * m_Destiny;
+
+	//modules storage
+	ModuleContainer * m_Modules;
 		
 
 };

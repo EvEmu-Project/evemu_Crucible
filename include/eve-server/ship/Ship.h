@@ -30,6 +30,7 @@
 #include "inventory/Inventory.h"
 #include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
+#include "ship/ModuleManager.h"
 
 /**
  * Basic container for raw ship type data.
@@ -208,7 +209,25 @@ public:
 	 */
 	bool ValidateBoardShip(ShipRef ship, CharacterRef who);
 
+	/*
+	 * Saves the ship state
+	 */
     void SaveShip();
+
+	/* begin new module manager interface */
+	void UpdateModules();
+	void UnloadModule(uint32 itemID);
+	void UnloadAllModules();
+	void RepairModules();
+	int32 Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat);
+	void Deactivate(int32 itemID, std::string effectName);
+	void ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge);
+	void RemoveRig(int32 itemID);
+	void Process();
+	void DeactivateAllModules();
+	void OnlineAll();
+	void SetOwner(Client * client);
+
 
 protected:
 	Ship(
@@ -262,8 +281,9 @@ protected:
 	PyRep *GetItem() const { return GetItemRow(); }
 
 	void AddItem(InventoryItemRef item);
+
 private:
-	ModuleManager m_ModuleManager;
+	ModuleManager * m_ModuleManager;
 };
 
 /**

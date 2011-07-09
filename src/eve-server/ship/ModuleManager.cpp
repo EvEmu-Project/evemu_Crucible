@@ -35,6 +35,11 @@ ModuleContainer::ModuleContainer(uint32 lowSlots, uint32 medSlots, uint32 highSl
 	m_SubSystemSlots = subSystemSlots;
 }
 
+ModuleContainer::~ModuleContainer()
+{
+
+}
+
 void ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
 {
 	switch(_checkBounds(flag))
@@ -58,8 +63,10 @@ GenericModule * ModuleContainer::GetModule(uint32 flag)
 	case slotTypeRig:			return _getRigModule(flag);					break;
 	case slotTypeLowPower:		return _getLowSlotModule(flag);				break;
 	case slotTypeMedPower:		return _getMediumSlotModule(flag);			break;
-	case slotTypeHiPower:		return _getHighSlotModule(flag);			break;
+	case slotTypeHiPower:		return _getHighSlotModule(flag);			break;					
 	}
+	
+	return NULL;
 }
 
 void ModuleContainer::_addSubSystemModule(uint32 flag, GenericModule * mod)
@@ -157,6 +164,8 @@ bool ModuleContainer::_isMediumSlot(uint32 flag)
 		else
 			sLog.Error("_isMediumSlot", "this shouldn't happen");
 	}
+
+	return false;
 }
 
 bool ModuleContainer::_isHighSlot(uint32 flag)
@@ -201,8 +210,144 @@ bool ModuleContainer::_isSubSystemSlot(uint32 flag)
 
 //ModuleManager class definitions
 #pragma region ModuleManagerClass
-ModuleManager::ModuleManager(Ship * ship)
+ModuleManager::ModuleManager(Ship *const ship)
+{
+	m_Modules = new ModuleContainer((uint32)ship->GetAttribute(AttrLowSlots).get_int(),
+									(uint32)ship->GetAttribute(AttrMedSlots).get_int(),
+									(uint32)ship->GetAttribute(AttrHiSlots).get_int(),
+									(uint32)ship->GetAttribute(AttrRigSlots).get_int(),
+									(uint32)ship->GetAttribute(AttrSubSystemSlot).get_int());
+
+	m_Ship = ship;
+	m_Client = NULL; //this is null until the ship is picked up by someone
+}
+
+ModuleManager::~ModuleManager()
 {
 
 }
+
+//necessary function to avoid complications in the 
+//ship constructor
+void ModuleManager::SetClient(Client * client)
+{
+	m_Client = client;
+}
+
+void ModuleManager::InstallRig()
+{
+
+}
+
+void ModuleManager::DestroyRig()
+{
+
+}
+
+void ModuleManager::SwapSubSystem()
+{
+
+}
+
+void ModuleManager::FitModule()
+{
+
+}
+
+void ModuleManager::UnfitModule()
+{
+
+}
+
+void ModuleManager::Online()
+{
+
+}
+
+void ModuleManager::OnlineAll()
+{
+
+}
+
+void ModuleManager::Offline()
+{
+
+}
+
+void ModuleManager::OfflineAll()
+{
+
+}
+
+void ModuleManager::Activate()
+{
+
+}
+
+void ModuleManager::Deactivate()
+{
+
+}
+
+void ModuleManager::DeactivateAllModules()
+{
+
+}
+
+void ModuleManager::Overload()
+{
+
+}
+
+void ModuleManager::DeOverload()
+{
+
+}
+
+void ModuleManager::DamageModule()
+{
+
+}
+
+void ModuleManager::RepairModule()
+{
+
+}
+
+void ModuleManager::ReplaceCharges()
+{
+
+}
+
+void ModuleManager::UnloadAllModules()
+{
+
+}
+
+void ModuleManager::CharacterLeavingShip()
+{
+
+}
+
+void ModuleManager::CharacterBoardingShip()
+{
+
+}
+
+void ModuleManager::ShipWarping()
+{
+
+}
+
+void ModuleManager::ShipJumping()
+{
+
+}
+
+void ModuleManager::Process()
+{
+
+}
+
+
 #pragma endregion

@@ -313,7 +313,7 @@ typedef enum EVEItemSlotType
 	slotTypeMedPower				= 4,
 	slotTypeHiPower					= 5
 
-} EVEItemSlotType
+} EVEItemSlotType;
 
 //some alternative names for entries above.
 static const EVEItemFlags flagSlotFirst = flagLowSlot0;	//duplicate values

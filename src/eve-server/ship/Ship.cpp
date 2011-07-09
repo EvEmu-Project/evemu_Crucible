@@ -84,6 +84,8 @@ Ship::Ship(
     const ItemData &_data)
 : InventoryItem(_factory, _shipID, _shipType, _data)
 {
+	m_ModuleManager = new ModuleManager(this);
+
     // Activate Save Info Timer with somewhat randomized timer value:
     //SetSaveTimerExpiry( MakeRandomInt( (10 * 60), (15 * 60) ) );        // Randomize save timer expiry to between 10 and 15 minutes
     //DisableSaveTimer();
@@ -100,7 +102,7 @@ RefPtr<_Ty> Ship::_LoadShip(ItemFactory &factory, uint32 shipID,
     const ShipType &shipType, const ItemData &data)
 {
     // we don't need any additional stuff
-    return ShipRef( new Ship( factory, shipID, shipType, data ) );
+    return ShipRef( new Ship(factory, shipID, shipType, data ) );
 }
 
 ShipRef Ship::Spawn(ItemFactory &factory,
@@ -451,6 +453,59 @@ bool Ship::ValidateItemSpecifics(Client *c, InventoryItemRef equip) {
 
 }
 
+/* Begin new Module Manager Interface */
+
+void Ship::UpdateModules()
+{
+
+}
+
+void Ship::UnloadModule(uint32 itemID)
+{
+
+}
+
+void Ship::UnloadAllModules()
+{
+
+}
+
+void Ship::RepairModules()
+{
+
+}
+
+int32 Ship::Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat)
+{
+	return 0;
+}
+
+void Ship::Deactivate(int32 itemID, std::string effecetName)
+{
+
+}
+
+void Ship::RemoveRig( int32 itemID )
+{
+
+}
+
+void Ship::Process()
+{
+
+}
+
+void Ship::OnlineAll()
+{
+
+}
+
+void Ship::SetOwner(Client * client)
+{
+	m_ModuleManager->SetClient(client);
+}
+
+/* End new Module Manager Interface */
 
 using namespace Destiny;
 

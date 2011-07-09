@@ -843,10 +843,9 @@ PyResult Command_online(Client *who, CommandDB *db, PyServiceMgr *services, cons
 			if( NULL == tgt )
 				throw PyException( MakeCustomError( "Unable to find character %u", entity ) );
 		}
-		//check if in capsule. this is very bad. a better aproach would be an
-		//inPod function, but this is a fast hack
-		if( tgt->GetShip()->typeID()!=670 )
-			tgt->mModulesMgr.OnlineAll();
+
+		if( !tgt->InPod() )
+			tgt->GetShip()->OnlineAll();
 		else
 			throw PyException( MakeCustomError( "Command failed: You can't activate mModulesMgr while in pod"));
 
@@ -893,10 +892,10 @@ PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, cons
 			throw PyException( MakeCustomError( "Character needs to be docked!" ) );
 
 		if( args.argCount() == 3 && strcmp("all", args.arg( 2 ).c_str())!=0)
-			tgt->mModulesMgr.UnloadModule(item);
+			tgt->GetShip()->UnloadModule(item);
 
 		if( args.argCount() == 3 && strcmp("all", args.arg( 2 ).c_str())==0)
-			tgt->mModulesMgr.UnloadAllModules();
+			tgt->GetShip()->UnloadAllModules();
 
 		return(new PyString("All mModulesMgr have been unloaded"));
 	}
@@ -943,7 +942,7 @@ PyResult Command_repairmodules( Client* who, CommandDB* db, PyServiceMgr* servic
 	
 	if(args.argCount()==1)
 	{
-		who->mModulesMgr.RepairModules();
+		who->GetShip()->RepairModules();
 	}
 	if(args.argCount()==2)
 	{
@@ -956,7 +955,7 @@ PyResult Command_repairmodules( Client* who, CommandDB* db, PyServiceMgr* servic
 		Client *target = services->entity_list.FindCharacter( charID );
 		if(target == NULL)
 			throw PyException( MakeCustomError( "Cannot find Character by the entity %d", charID ) );
-		target->mModulesMgr.RepairModules();
+		target->GetShip()->RepairModules();
 	}
 
 	return(new PyString("Modules repaired successful!"));
