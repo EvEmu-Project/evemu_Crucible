@@ -505,6 +505,16 @@ void Ship::SetOwner(Client * client)
 	m_ModuleManager->SetClient(client);
 }
 
+void Ship::ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge)
+{
+
+}
+
+void Ship::DeactivateAllModules()
+{
+
+}
+
 /* End new Module Manager Interface */
 
 using namespace Destiny;
