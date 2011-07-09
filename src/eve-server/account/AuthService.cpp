@@ -49,39 +49,17 @@ AuthService::~AuthService() {
 
 
 PyResult AuthService::Handle_Ping(PyCallArgs &call) {
-    return(new PyLong(Win32TimeNow()));
+    return new PyLong(Win32TimeNow());
 }
 
-
-PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call) {
-/*
-    PyObject *o = new PyObject();
-    result = o;
-        o->type = "util.KeyVal";
-        PyDict *obj_args = new PyDict();
-        o->arguments = obj_args;
-            obj_args->items[ new PyString("message") ] 
-                = new PyString("BrowseIGB");
-            PyDict *args = new PyDict();
-            obj_args->items[ new PyString("args") ] = args;
-                args->items[ new PyString("showStatusBar") ] = new PyInt(0);
-                args->items[ new PyString("center") ] = new PyInt(1);
-                args->items[ new PyString("showAddressBar") ] = new PyInt(0);
-                args->items[ new PyString("url") ] = new PyString(
-                    "http://www.eve-online.com/igb/login/?username=aaa&total"
-                    "Trial=1858&trialMax=3000&createDate=2006.07.04&daysLeft=8&"
-                    "trialLen=14&login=yes&totalPlayers=18034&");
-                args->items[ new PyString("showOptions") ] = new PyInt(0);
-                args->items[ new PyString("showButtons") ] = new PyInt(0);
-                args->items[ new PyString("showModal") ] = new PyInt(1);
-*/
-
+PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call)
+{
     if( !sConfig.account.loginMessage.empty() )
     {
         PyDict* args = new PyDict;
         args->SetItemString( "message", new PyString( sConfig.account.loginMessage ) );
 
-        return new PyObject( new PyString( "util.KeyVal" ), args );
+        return new PyObject( "util.KeyVal", args );
     }
     else
         return new PyNone;

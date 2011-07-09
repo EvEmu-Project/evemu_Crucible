@@ -157,6 +157,7 @@ int main( int argc, char* argv[] )
     services.RegisterService(new CorpStationMgrService(&services));
     services.RegisterService(new CorporationService(&services));
     services.RegisterService(new CorpRegistryService(&services));
+    services.RegisterService(new ContractProxyService(&services));
     services.RegisterService(new LPService(&services));
     services.RegisterService(new DogmaIMService(&services));
     services.RegisterService(new InvBrokerService(&services));

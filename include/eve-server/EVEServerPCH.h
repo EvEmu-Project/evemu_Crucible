@@ -159,6 +159,7 @@
 #include "admin/SlashService.h"
 
 #include "browser/browserLockdownSvc.h"
+#include "contractproxy/contractProxy.h"
 
 // client object cache stuff
 #include "cache/ObjCacheService.h"

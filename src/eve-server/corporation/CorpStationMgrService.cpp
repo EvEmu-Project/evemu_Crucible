@@ -584,18 +584,15 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice( PyCallArgs& ca
 			  */
 	PyTuple * arg_tuple = new PyTuple(3);
 
-	PyTuple * arg_tuple2 = new PyTuple(3);
-	arg_tuple2->SetItem(0, new PyString("always"));
-	arg_tuple2->SetItem(1, new PyNone);
-	arg_tuple2->SetItem(2, new PyNone);
+
 
 	PyDict* itr_1 = new PyDict();
-	itr_1->SetItem("versionCheck", arg_tuple2);
+	itr_1->SetItem("versionCheck", new_tuple("always", new PyNone, new PyNone));
 	
 	arg_tuple->SetItem(0, itr_1);
 	arg_tuple->SetItem(1, new PySubStream( new PyList() ) );
 	arg_tuple->SetItem(2, new_tuple(129533580031608440, 52428965));
-    return new PyObject( new PyString( "objectCaching.CachedMethodCallResult" ), arg_tuple );
+    return new PyObject( "objectCaching.CachedMethodCallResult", arg_tuple );
 }
 
 PyResult CorpStationMgrIMBound::Handle_GetNumberOfUnrentedOffices( PyCallArgs &call ) 
@@ -605,7 +602,7 @@ PyResult CorpStationMgrIMBound::Handle_GetNumberOfUnrentedOffices( PyCallArgs &c
 	//		but will involve call.client->GetStationID as the arguments to StationType.officeSlots() (hopefully)
 	const int office_hack = 1;
 
-	return (new PyInt(office_hack));
+	return new PyInt(office_hack);
 }
 
 

@@ -667,10 +667,11 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
     Buffer* stateBuffer = new Buffer;
 
     AddBall_header head;
-	head.more = 0;
+	head.packet_type = 0;
 	head.sequence = ss.stamp;
     stateBuffer->Append( head );
-	
+
+
 	//I am not thrilled with this mechanism, but I cant think of a better
 	//way to deal with it right now. The issue is that we need to send out
 	// info for all system-wide entities (celestials, etc), as well as all
@@ -714,7 +715,7 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 		ss.damageState[ ent->GetID() ] = ent->MakeDamageState();
 
 		//ss.slims
-		ss.slims->AddItem( new PyObject( new PyString( "foo.SlimItem" ), ent->MakeSlimItem() ) );
+		ss.slims->AddItem( new PyObject( "foo.SlimItem", ent->MakeSlimItem() ) );
 
 		//append the destiny binary data...
 		ent->EncodeDestiny( *stateBuffer );

@@ -160,7 +160,8 @@ void LSCService::InitiateStaticChannels() {
 }
 
 
-PyResult LSCService::Handle_GetChannels(PyCallArgs &call) {
+PyResult LSCService::Handle_GetChannels(PyCallArgs &call)
+{
     /*
         Assume this is only called when the char's logging in.
         Next step from the client is to join to all channels that's been sent by this

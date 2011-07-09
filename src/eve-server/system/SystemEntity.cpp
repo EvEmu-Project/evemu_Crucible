@@ -251,7 +251,7 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
         MassSector mass;
 		mass.mass = GetMass();
 		mass.cloak = 0;
-		mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+        mass.Harmonic = -1.0f;
 		mass.corpID = GetCorporationID();
 		mass.allianceID = GetAllianceID();
         into.Append( mass );
@@ -263,9 +263,6 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
             ship.velocity_x = 0.0;
 		    ship.velocity_y = 0.0;
 		    ship.velocity_z = 0.0;
-            ship.unknown_x = 0.0;
-            ship.unknown_y = 0.0;
-            ship.unknown_z = 0.0;
 		    ship.agility = GetAgility();
             ship.speed_fraction = 0.0;
         }
@@ -275,9 +272,6 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
             ship.velocity_x = Destiny()->GetVelocity().x;
 		    ship.velocity_y = Destiny()->GetVelocity().y;
 		    ship.velocity_z = Destiny()->GetVelocity().z;
-            ship.unknown_x = 0.0;
-            ship.unknown_y = 0.0;
-            ship.unknown_z = 0.0;
 		    ship.agility = GetAgility();
             ship.speed_fraction = Destiny()->GetSpeedFraction();
         }

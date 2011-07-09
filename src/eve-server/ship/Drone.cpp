@@ -112,7 +112,7 @@ void DroneEntity::EncodeDestiny( Buffer& into ) const
         MassSector mass;
 		mass.mass = GetMass();
 		mass.cloak = 0;
-		mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+		mass.Harmonic = -1.0f;
 		mass.corpID = GetCorporationID();
 		mass.allianceID = GetAllianceID();
         into.Append( mass );
@@ -122,9 +122,6 @@ void DroneEntity::EncodeDestiny( Buffer& into ) const
 		ship.velocity_x = 0.0;
 		ship.velocity_y = 0.0;
 		ship.velocity_z = 0.0;
-        ship.unknown_x = 0.0;
-        ship.unknown_y = 0.0;
-        ship.unknown_z = 0.0;
 		ship.agility = GetAgility();
 		ship.speed_fraction = 0.0;
         into.Append( ship );

@@ -262,6 +262,14 @@ protected:
     bool m_needToDock;
 
     // THESE VARIABLES ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
+    // Capt: the reason why the client sends stop is because we undock with the shit already
+    // having a speed. This results in the client taking action and tells the server to stop
+    // the ship. This is because of sync behaviored of the destiny system. Every entry regardless
+    // off its type starts stopped. When the next destiny packet tells the object that it got a
+    // certain speed it starts to move. The thing is we send 1 packet and they send 2. The reason
+    // why is rather obvious, if they always spawn objects not moving its easier to sync movements.
+    // It all makes more sense this way.
+
     bool m_justUndocked;
     GPoint m_undockAlignToPoint;
     // --- END HACK VARIABLES FOR UNDOCK ---

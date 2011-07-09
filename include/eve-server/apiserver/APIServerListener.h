@@ -20,39 +20,37 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Aknor Jaden, adapted from ImageServerListener.h authored by caytchen
 */
 
-#include "EVEServerPCH.h"
-//#include "ContractMgrService.h"
+#ifndef __APISERVERLISTENER__H__INCL__
+#define __APISERVERLISTENER__H__INCL__
 
+#include <memory>
+#include "apiserver/APIServerConnection.h"
+#include <asio.hpp>
 
-
-PyCallable_Make_InnerDispatcher(ContractMgrService)
-
-ContractMgrService::ContractMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "contractMgr"),
-  m_dispatch(new Dispatcher(this))
+/**
+ * \class APIServerListener
+ *
+ * @brief Handles listening for new clients
+ *
+ * Asynchronously listens for new clients and creates new connections for them to process them
+ *
+ * @author Aknor Jaden
+ * @date July 2011
+ */
+class APIServerListener
 {
-	_SetCallDispatcher(m_dispatch);
+public:
+	APIServerListener(asio::io_service& io);
+	~APIServerListener();
 
-	PyCallable_REG_CALL(ContractMgrService, NumRequiringAttention);
-}
+private:
+	void StartAccept();
+    void HandleAccept(std::tr1::shared_ptr<APIServerConnection> connection);
 
-ContractMgrService::~ContractMgrService()
-{
-	delete m_dispatch;
-}
+	asio::ip::tcp::acceptor* _acceptor;
+};
 
-PyResult ContractMgrService::Handle_NumRequiringAttention( PyCallArgs& call )
-{
-    sLog.Debug( "ContractMgrService", "Called NumRequiringAttention stub." );
-
-	PyDict* args = new PyDict;
-	args->SetItemString( "n", new PyInt( 0 ) );
-	args->SetItemString( "ncorp", new PyInt( 0 ) );
-
-	return new PyObject( "util.KeyVal", args );
-}
-
-
+#endif // __APISERVERLISTENER__H__INCL__

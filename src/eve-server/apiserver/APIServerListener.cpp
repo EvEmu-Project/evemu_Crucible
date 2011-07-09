@@ -20,39 +20,31 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Aknor Jaden, adapted from ImageServer.h authored by caytchen
 */
 
 #include "EVEServerPCH.h"
-//#include "ContractMgrService.h"
 
-
-
-PyCallable_Make_InnerDispatcher(ContractMgrService)
-
-ContractMgrService::ContractMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "contractMgr"),
-  m_dispatch(new Dispatcher(this))
+APIServerListener::APIServerListener(asio::io_service& io)
 {
-	_SetCallDispatcher(m_dispatch);
-
-	PyCallable_REG_CALL(ContractMgrService, NumRequiringAttention);
+    _acceptor = new asio::ip::tcp::acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), sConfig.net.apiServerPort));
+    sLog.Log("api server", "listening on port %i", (sConfig.net.apiServerPort));
+	StartAccept();
 }
 
-ContractMgrService::~ContractMgrService()
+APIServerListener::~APIServerListener()
 {
-	delete m_dispatch;
+	delete _acceptor;
 }
 
-PyResult ContractMgrService::Handle_NumRequiringAttention( PyCallArgs& call )
+void APIServerListener::StartAccept()
 {
-    sLog.Debug( "ContractMgrService", "Called NumRequiringAttention stub." );
-
-	PyDict* args = new PyDict;
-	args->SetItemString( "n", new PyInt( 0 ) );
-	args->SetItemString( "ncorp", new PyInt( 0 ) );
-
-	return new PyObject( "util.KeyVal", args );
+    std::tr1::shared_ptr<APIServerConnection> connection = APIServerConnection::create(_acceptor->get_io_service());
+	_acceptor->async_accept(connection->socket(), std::tr1::bind(&APIServerListener::HandleAccept, this, connection));
 }
 
-
+void APIServerListener::HandleAccept(std::tr1::shared_ptr<APIServerConnection> connection)
+{
+	connection->Process();
+	StartAccept();
+}
