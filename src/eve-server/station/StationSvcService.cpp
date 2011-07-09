@@ -74,6 +74,7 @@ StationSvcService::StationSvcService(PyServiceMgr *mgr)
 {
 	_SetCallDispatcher(m_dispatch);
 
+	PyCallable_REG_CALL(StationSvcService, GetStationItemBits)
 	PyCallable_REG_CALL(StationSvcService, GetSolarSystem)
 	PyCallable_REG_CALL(StationSvcService, GetStation)
 }
@@ -91,6 +92,11 @@ PyBoundObject* StationSvcService::_CreateBoundObject( Client* c, const PyRep* bi
 	return new StationSvcBound( m_manager, &m_db );
 }*/
 
+
+
+PyResult StationSvcService::Handle_GetStationItemBits(PyCallArgs &call) {
+	return m_db.GetStationItemBits(call.client->GetStationID());
+}
 
 PyResult StationSvcService::Handle_GetSolarSystem(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;

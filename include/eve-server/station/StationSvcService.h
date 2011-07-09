@@ -31,8 +31,7 @@
 #include "PyService.h"
 
 
-class StationSvcService
-: public PyService
+class StationSvcService: public PyService
 {
 public:
 	StationSvcService(PyServiceMgr *mgr);
@@ -44,6 +43,7 @@ protected:
 
 	StationDB m_db;
 
+	PyCallable_DECL_CALL(GetStationItemBits)
 	PyCallable_DECL_CALL(GetSolarSystem)
 	PyCallable_DECL_CALL(GetStation)
 
