@@ -1,6 +1,6 @@
 /*Table structure for table `crpStandings` */
 
-DROP TABLE IF EXISTS `chrStandings`;
+DROP TABLE IF EXISTS `crpStandings`;
 
 CREATE TABLE `crpStandings` (
   `corporationID` int(10) unsigned NOT NULL default '0',
