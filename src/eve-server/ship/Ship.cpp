@@ -484,12 +484,12 @@ void Ship::RemoveItem(InventoryItemRef item, uint32 inventoryID, EVEItemFlags fl
 
 void Ship::UpdateModules()
 {
-
+	
 }
 
 void Ship::UnloadModule(uint32 itemID)
 {
-
+	m_ModuleManager->UnfitModule(itemID);
 }
 
 void Ship::UnloadAllModules()
@@ -507,14 +507,14 @@ int32 Ship::Activate(int32 itemID, std::string effectName, int32 targetID, int32
 	return 1;
 }
 
-void Ship::Deactivate(int32 itemID, std::string effecetName)
+void Ship::Deactivate(int32 itemID, std::string effectName)
 {
-
+	m_ModuleManager->Deactivate(itemID, effectName);
 }
 
 void Ship::RemoveRig( InventoryItemRef item, uint32 inventoryID )
 {
-	m_ModuleManager->UninstallRig();
+	m_ModuleManager->UninstallRig(item->itemID());
 
 	//move the item to the void or w/e
 	m_Client->MoveItem(item->itemID(), inventoryID, flagAutoFit);
@@ -525,12 +525,12 @@ void Ship::RemoveRig( InventoryItemRef item, uint32 inventoryID )
 
 void Ship::Process()
 {
-
+	m_ModuleManager->Process();
 }
 
 void Ship::OnlineAll()
 {
-
+	m_ModuleManager->OnlineAll();
 }
 
 void Ship::SetOwner(Client * client)

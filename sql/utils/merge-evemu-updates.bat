@@ -2,8 +2,8 @@
 
 set SQL_ROOT=..
 
-set INPUT_FILE=%SQL_ROOT%\evemu-updates\*.sql
-set OUTPUT_FILE=%SQL_ROOT%\evemu-updates.sql
+set INPUT_FILE=C:\evemu\source\sql\evemu-updates\*.sql
+set OUTPUT_FILE=C:\evemu\source\sql\evemu-updates.sql
 set TEMP_FILE=_merge_temp_
 
 if exist %OUTPUT_FILE% del %OUTPUT_FILE%

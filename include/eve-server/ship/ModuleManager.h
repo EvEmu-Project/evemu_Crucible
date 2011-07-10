@@ -120,23 +120,23 @@ public:
 
 	void SetClient(Client * client);
 
-	void InstallRig();
-	void UninstallRig();
-	void InstallSubSystem();
+	void InstallRig(InventoryItemRef item);
+	void UninstallRig(uint32 itemID);
+	void InstallSubSystem(InventoryItemRef item);
 	void SwapSubSystem();
-	void FitModule();
-	void UnfitModule();
-	void Online();
+	void FitModule(InventoryItemRef item);
+	void UnfitModule(uint32 itemID);
+	void Online(uint32 itemID);
 	void OnlineAll();
-	void Offline();
+	void Offline(uint32 itemID);
 	void OfflineAll();
-	int32 Activate();
-	void Deactivate();
+	int32 Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat);
+	void Deactivate(int32 itemID, std::string effecetName);
 	void DeactivateAllModules();
 	void Overload();
 	void DeOverload();
-	void DamageModule();
-	void RepairModule();
+	void DamageModule(uint32 itemID);
+	void RepairModule(uint32 itemID);
 	void ReplaceCharges();
 	void UnloadAllModules();
 	void CharacterLeavingShip();

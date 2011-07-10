@@ -231,6 +231,7 @@ ModuleManager::~ModuleManager()
 //ship constructor
 void ModuleManager::SetClient(Client * client)
 {
+	sLog.Debug("SetClient","Recieved client pointer for %s", client->GetCharacterName());
 	m_Client = client;
 }
 
@@ -261,119 +262,120 @@ void ModuleManager::_SendErrorMessage(const char *fmt, ...)
 	}
 }
 
-void ModuleManager::InstallRig()
+void ModuleManager::InstallRig(InventoryItemRef item)
 {
-	//add the attribute changes
+	sLog.Debug("InstallRig","Needs to be implemented");
 }
 
-void ModuleManager::UninstallRig()
+void ModuleManager::UninstallRig(uint32 itemID)
 {
-
+	sLog.Debug("UninstallRig","Needs to be implemented");
 }
 
 void ModuleManager::SwapSubSystem()
 {
-
+	sLog.Debug("SwapSubSystem","Needs to be implemented");
 }
 
-void ModuleManager::FitModule()
+void ModuleManager::FitModule(InventoryItemRef item)
 {
-
+	sLog.Debug("FitModule","Needs to be implemented");
 }
 
-void ModuleManager::UnfitModule()
+void ModuleManager::UnfitModule(uint32 itemID)
 {
-
+	sLog.Debug("UnfitModule","Needs to be implemented");
 }
 
-void ModuleManager::Online()
+void ModuleManager::Online(uint32 itemID)
 {
-
+	sLog.Debug("Online","Needs to be implemented");
 }
 
 void ModuleManager::OnlineAll()
 {
-
+	sLog.Debug("OnlineAll","Needs to be implemented");
 }
 
-void ModuleManager::Offline()
+void ModuleManager::Offline(uint32 itemID)
 {
-
+	sLog.Debug("Offline","Needs to be implemented");
 }
 
 void ModuleManager::OfflineAll()
 {
-
+	sLog.Debug("OfflineAll","Needs to be implemented");
 }
 
-int32 ModuleManager::Activate()
+int32 ModuleManager::Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat)
 {
+	sLog.Debug("Activate","Needs to be implemented");
 	return 1;
 }
 
-void ModuleManager::Deactivate()
+void ModuleManager::Deactivate(int32 itemID, std::string effecetName)
 {
-
+	sLog.Debug("Deactivate","Needs to be implemented");
 }
 
 void ModuleManager::DeactivateAllModules()
 {
-
+	sLog.Debug("DeactivateAllModules","Needs to be implemented");
 }
 
 void ModuleManager::Overload()
 {
-
+	sLog.Debug("Overload","Needs to be implemented");
 }
 
 void ModuleManager::DeOverload()
 {
-
+	sLog.Debug("DeOverload","Needs to be implemented");
 }
 
-void ModuleManager::DamageModule()
+void ModuleManager::DamageModule(uint32 itemID)
 {
-
+	sLog.Debug("DamageModule","Needs to be implemented");
 }
 
-void ModuleManager::RepairModule()
+void ModuleManager::RepairModule(uint32 itemID)
 {
-
+	sLog.Debug("RepairModule","Needs to be implemented");
 }
 
 void ModuleManager::ReplaceCharges()
 {
-
+	sLog.Debug("ReplaceCharges","Needs to be implemented");
 }
 
 void ModuleManager::UnloadAllModules()
 {
-
+	sLog.Debug("UnloadAllModules","Needs to be implemented");
 }
 
 void ModuleManager::CharacterLeavingShip()
 {
-
+	sLog.Debug("CharacterLeavingShip","Needs to be implemented");
 }
 
 void ModuleManager::CharacterBoardingShip()
 {
-
+	sLog.Debug("CharacterBoardingShip","Needs to be implemented");
 }
 
 void ModuleManager::ShipWarping()
 {
-
+	sLog.Debug("ShipWarping","Needs to be implemented");
 }
 
 void ModuleManager::ShipJumping()
 {
-
+	sLog.Debug("ShipJumping","Needs to be implemented");
 }
 
 void ModuleManager::Process()
 {
-
+	sLog.Debug("Process","Needs to be implemented");
 }
 
 
