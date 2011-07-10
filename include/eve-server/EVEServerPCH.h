@@ -255,6 +255,8 @@
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
 
+#include "sovereignty/SovereigntyMgrService.h"
+
 #include "system/BookmarkDB.h"
 #include "system/BookmarkService.h"
 #include "system/BubbleManager.h"
