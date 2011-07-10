@@ -28,12 +28,11 @@
 PyCallable_Make_InnerDispatcher(StationService)
 
 StationService::StationService(PyServiceMgr *mgr)
-: PyService(mgr, "stationSvc"),
+: PyService(mgr, "station"),
   m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 
-	PyCallable_REG_CALL(StationService, GetStationItemBits)
 	PyCallable_REG_CALL(StationService, GetGuests)
 	PyCallable_REG_CALL(StationService, GetSolarSystem)
 }
@@ -57,10 +56,6 @@ PyResult StationService::Handle_GetSolarSystem(PyCallArgs &call)
 	return NULL;
 }
 
-PyResult StationService::Handle_GetStationItemBits(PyCallArgs &call) {
-	return m_db.GetStationItemBits(call.client->GetStationID());
-}
-
 PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
 	PyList *res = new PyList();
 
@@ -79,4 +74,7 @@ PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
     }
 
 	return res;
+	
+	//sLog.Debug("StationService", "Called GetGuests stub.");
+	//return NULL;
 }
