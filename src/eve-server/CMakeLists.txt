@@ -322,6 +322,11 @@ SET( standing_SOURCE
      "${TARGET_SOURCE_DIR}/standing/StandingDB.cpp"
      "${TARGET_SOURCE_DIR}/standing/WarRegistryService.cpp" )
 
+SET( sovereignty_INCLUDE
+     "${TARGET_INCLUDE_DIR}/sovereignty/SovereigntyMgrService.h")
+SET( sovereignty_SOURCE
+     "${TARGET_SOURCE_DIR}/sovereignty/SovereigntyMgrService.cpp")
+
 SET( station_INCLUDE
      "${TARGET_INCLUDE_DIR}/station/JumpCloneService.h"
      "${TARGET_INCLUDE_DIR}/station/Station.h"
@@ -429,6 +434,7 @@ SOURCE_GROUP( "include\\missions"      FILES ${missions_INCLUDE} )
 SOURCE_GROUP( "include\\npc"           FILES ${npc_INCLUDE} )
 SOURCE_GROUP( "include\\posmgr"        FILES ${posmgr_INCLUDE} )
 SOURCE_GROUP( "include\\ship"          FILES ${ship_INCLUDE} )
+SOURCE_GROUP( "include\\sovereignty"   FILES ${sovereignty_INCLUDE} )
 SOURCE_GROUP( "include\\spawn"         FILES ${spawn_INCLUDE} )
 SOURCE_GROUP( "include\\standing"      FILES ${standing_INCLUDE} )
 SOURCE_GROUP( "include\\station"       FILES ${station_INCLUDE} )
@@ -459,6 +465,7 @@ SOURCE_GROUP( "src\\missions"      FILES ${missions_SOURCE} )
 SOURCE_GROUP( "src\\npc"           FILES ${npc_SOURCE} )
 SOURCE_GROUP( "src\\posmgr"        FILES ${posmgr_SOURCE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_SOURCE} )
+SOURCE_GROUP( "src\\sovereignty"   FILES ${sovereignty_SOURCE} )
 SOURCE_GROUP( "src\\spawn"         FILES ${spawn_SOURCE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_SOURCE} )
 SOURCE_GROUP( "src\\station"       FILES ${station_SOURCE} )
@@ -476,7 +483,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${browser_INCLUDE}        ${browser_SOURCE} 
                 ${cache_INCLUDE}          ${cache_SOURCE}
                 ${config_INCLUDE}         ${config_SOURCE}
-				${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
+		${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
                 ${corporation_INCLUDE}    ${corporation_SOURCE}
                 ${dogmaim_INCLUDE}        ${dogmaim_SOURCE}
                 ${character_INCLUDE}      ${character_SOURCE}
@@ -489,6 +496,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${missions_INCLUDE}       ${missions_SOURCE}
                 ${npc_INCLUDE}            ${npc_SOURCE}
                 ${posmgr_INCLUDE}         ${posmgr_SOURCE}
+                ${sovereignty_INCLUDE}    ${sovereignty_SOURCE} 
                 ${ship_INCLUDE}           ${ship_SOURCE}
                 ${spawn_INCLUDE}          ${spawn_SOURCE}
                 ${standing_INCLUDE}       ${standing_SOURCE}

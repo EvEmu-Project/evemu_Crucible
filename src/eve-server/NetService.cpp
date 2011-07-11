@@ -146,6 +146,7 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 		dict->SetItemString("voiceMgr", new PyNone());
 		dict->SetItemString("onlineStatus", new PyNone());
 		dict->SetItemString("gangSvcObjectHandler", new PyNone());
+		dict->SetItemString("sovMgr", new PyNone());
 
 		//register it
 		m_manager->cache_service->GiveCache(str, (PyRep **)&dict);
