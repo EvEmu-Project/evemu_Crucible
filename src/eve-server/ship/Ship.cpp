@@ -464,9 +464,9 @@ void Ship::AddItem(EVEItemFlags flag, InventoryItemRef item)
 	if( item->categoryID() != EVEDB::invCategories::Charge )
 		item->PutOffline();
 
-	//add the mass to the ship ( this isn't handled by module manager because it doesn't matter if it's online or not
-	//c->GetShip()->Set_mass( c->GetShip()->mass() + newItem->massAddition() );
-	m_Client->GetShip()->SetAttribute(AttrMass,  m_Client->GetShip()->GetAttribute(AttrMass) + item->GetAttribute(AttrMassAddition) );
+	item->Move(m_Client->GetLocationID(), flag);  //TODO - check this
+
+	m_ModuleManager->FitModule(item);
 }
 
 void Ship::RemoveItem(InventoryItemRef item, uint32 inventoryID, EVEItemFlags flag)
@@ -546,7 +546,7 @@ void Ship::ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge)
 
 void Ship::DeactivateAllModules()
 {
-
+	m_ModuleManager->DeactivateAllModules();
 }
 
 /* End new Module Manager Interface */

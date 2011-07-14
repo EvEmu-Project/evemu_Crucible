@@ -113,6 +113,40 @@ GenericModule * ModuleContainer::GetModule(EVEItemFlags flag)
 GenericModule * ModuleContainer::GetModule(uint32 itemID)
 {
 	//iterate through the list and see if we have it
+	uint8 r;
+	for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++)
+	{
+		if(m_HighSlotModules[r]->itemID() == itemID)
+			return m_HighSlotModules[r];
+	}
+
+	for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++)
+	{
+		if(m_MediumSlotModules[r]->itemID() == itemID)
+			return m_MediumSlotModules[r];
+	}
+
+	for(r = 0; r < MAX_LOW_SLOT_COUNT; r++)
+	{
+		if(m_LowSlotModules[r]->itemID() == itemID)
+			return m_LowSlotModules[r];
+	}
+
+	for(r = 0; r < MAX_ASSEMBLY_COUNT; r++)
+	{
+		if(m_SubSystemModules[r]->itemID() == itemID)
+			return m_SubSystemModules[r];
+	}
+
+	for(r = 0; r < MAX_RIG_COUNT; r++)
+	{
+		if(m_RigModules[r]->itemID() == itemID)
+			return m_RigModules[r];
+	}
+
+	sLog.Warning("ModuleContainer","Search for itemID: %u yielded no results", itemID);
+
+	return NULL;  //we don't
 }
 
 void ModuleContainer::Process()
@@ -513,17 +547,26 @@ void ModuleManager::SwapSubSystem()
 
 void ModuleManager::FitModule(InventoryItemRef item)
 {
-	sLog.Debug("FitModule","Needs to be implemented");
+	GenericModule * mod = new GenericModule(item, m_Client->GetShip());
+	
+	m_Modules->AddModule(mod->flag(), mod);
 }
 
 void ModuleManager::UnfitModule(uint32 itemID)
 {
-	sLog.Debug("UnfitModule","Needs to be implemented");
+	GenericModule * mod = m_Modules->GetModule(itemID);
+	if( mod != NULL )
+	{
+		mod->Offline();
+		//remove it from m_Modules
+	}
 }
 
 void ModuleManager::Online(uint32 itemID)
 {
-	sLog.Debug("Online","Needs to be implemented");
+	GenericModule * mod = m_Modules->GetModule(itemID);
+	if( mod != NULL )
+		mod->Online();
 }
 
 void ModuleManager::OnlineAll()
@@ -533,7 +576,9 @@ void ModuleManager::OnlineAll()
 
 void ModuleManager::Offline(uint32 itemID)
 {
-	m_Modules->GetModule(
+	GenericModule * mod = m_Modules->GetModule(itemID);
+	if( mod != NULL )
+		mod->Offline();
 }
 
 void ModuleManager::OfflineAll()
