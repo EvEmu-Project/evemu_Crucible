@@ -34,9 +34,11 @@ class Client;
 class GenericModule
 {
 public:
-	GenericModule();
+	GenericModule(InventoryItemRef item);
 
 	virtual void Process();
+	virtual void Offline();
+	virtual void Online();
 	
 	~GenericModule();
 
@@ -67,13 +69,24 @@ public:
 	void AddModule(uint32 flag, GenericModule * mod);
 	GenericModule * GetModule(uint32 flag);
 
+	//batch processes handlers
 	void Process();
+	void OfflineAll();
+	void OnlineAll();
 	
 private:
 
-	void _processHigh();
-	void _processMedium();
-	void _processLow();
+	typedef enum processType
+	{
+		typeOnlineAll,
+		typeOfflineAll,
+		typeProcessAll
+	};
+
+	void _process(processType t);
+	void _processHigh(processType t);
+	void _processMedium(processType t);
+	void _processLow(processType t);
 
 	void _addHighSlotModule(uint32 flag, GenericModule * mod);
 	void _addMediumSlotModule(uint32 flag, GenericModule * mod);
@@ -88,11 +101,12 @@ private:
 	GenericModule * _getSubSystemModule(uint32 flag);
 	
 	EVEItemSlotType _checkBounds(uint32 flag);
-	bool			_isLowSlot(uint32 flag);
-	bool			_isMediumSlot(uint32 flag);
-	bool			_isHighSlot(uint32 flag);
-	bool			_isRigSlot(uint32 flag);
-	bool			_isSubSystemSlot(uint32 flag);
+
+	bool _isLowSlot(uint32 flag);
+	bool _isMediumSlot(uint32 flag);
+	bool _isHighSlot(uint32 flag);
+	bool _isRigSlot(uint32 flag);
+	bool _isSubSystemSlot(uint32 flag);
 
 	void _initializeModuleContainers();
 
@@ -106,14 +120,7 @@ private:
 	uint32 m_MediumSlots;
 	uint32 m_HighSlots;
 	uint32 m_RigSlots;
-	uint32 m_SubSystemSlots;
-	
-};
-
-
-class ModuleManagerInterface
-{
-
+	uint32 m_SubSystemSlots;	
 };
 
 class ModuleAction
@@ -123,7 +130,6 @@ class ModuleAction
 
 class ModuleManager
 {
-	friend class ModuleManagerInterface;
 public:
 	ModuleManager(Ship *const ship);
 	~ModuleManager();

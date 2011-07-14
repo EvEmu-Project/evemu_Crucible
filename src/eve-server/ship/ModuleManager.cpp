@@ -24,7 +24,9 @@
 */
 #include "EVEServerPCH.h"
 
-GenericModule::GenericModule()
+//GenericModule class definitions
+#pragma region GenericModuleClass
+GenericModule::GenericModule(InventoryItemRef item)
 {
 
 }
@@ -33,7 +35,7 @@ void GenericModule::Process()
 {
 
 }
-
+#pragma endregion
 
 //ModuleContainer class definitions
 #pragma region ModuleContainerClass
@@ -84,56 +86,147 @@ GenericModule * ModuleContainer::GetModule(uint32 flag)
 
 void ModuleContainer::Process()
 {
-	//Process High Slots
-	_processHigh();
-
-	//Process Medium Slots
-	_processMedium();
-
-	//Process Low Slots
-	_processLow();
-
+	_process(typeProcessAll);
 }
 
-void ModuleContainer::_processHigh()
+void ModuleContainer::OnlineAll()
+{
+	_process(typeOnlineAll);
+}
+
+void ModuleContainer::OfflineAll()
+{
+	_process(typeOfflineAll);
+}
+
+void ModuleContainer::_process(processType t)
+{
+	//Process High Slots
+	_processHigh(t);
+
+	//Process Medium Slots
+	_processMedium(t);
+
+	//Process Low Slots
+	_processLow(t);
+}
+
+void ModuleContainer::_processHigh(processType t)
 {
 	uint8 r;
 
 	GenericModule **cur = m_HighSlotModules;
-	for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++, cur++)
-	{
-		if(*cur == NULL)
-			continue;
 
-		(*cur)->Process();
+	switch(t)
+	{
+	case typeOnlineAll:
+		for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Online();
+		}
+		break;
+
+	case typeOfflineAll:
+		for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Offline();
+		}
+		break;
+
+	case typeProcessAll:
+		for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Process();
+		}
+		break;
 	}
+
 }
 
-void ModuleContainer::_processMedium()
+void ModuleContainer::_processMedium(processType t)
 {
 	uint8 r;
 
 	GenericModule **cur = m_MediumSlotModules;
-	for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
+	switch(t)
 	{
-		if(*cur == NULL)
-			continue;
+	case typeOnlineAll:
+		for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
 
-		(*cur)->Process();
+			(*cur)->Online();
+		}
+		break;
+
+	case typeOfflineAll:
+		for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Offline();
+		}
+		break;
+
+	case typeProcessAll:
+		for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Process();
+		}
+		break;
 	}
 }
 
-void ModuleContainer::_processLow()
+void ModuleContainer::_processLow(processType t)
 {
 	uint8 r;
 
 	GenericModule **cur = m_LowSlotModules;
-	for(r = 0; r < MAX_LOW_SLOT_COUNT; r++, cur++)
+	switch(t)
 	{
-		if(*cur == NULL)
-			continue;
+	case typeOnlineAll:
+		for(r = 0; r < MAX_LOW_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
 
-		(*cur)->Process();
+			(*cur)->Online();
+		}
+		break;
+
+	case typeOfflineAll:
+		for(r = 0; r < MAX_LOW_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Offline();
+		}
+		break;
+
+	case typeProcessAll:
+		for(r = 0; r < MAX_LOW_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Process();
+		}
+		break;
 	}
 }
 
