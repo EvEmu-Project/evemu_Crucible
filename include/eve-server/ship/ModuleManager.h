@@ -35,6 +35,8 @@ class GenericModule
 {
 public:
 	GenericModule();
+
+	virtual void Process();
 	
 	~GenericModule();
 
@@ -64,8 +66,14 @@ public:
 	
 	void AddModule(uint32 flag, GenericModule * mod);
 	GenericModule * GetModule(uint32 flag);
+
+	void Process();
 	
 private:
+
+	void _processHigh();
+	void _processMedium();
+	void _processLow();
 
 	void _addHighSlotModule(uint32 flag, GenericModule * mod);
 	void _addMediumSlotModule(uint32 flag, GenericModule * mod);
@@ -85,6 +93,8 @@ private:
 	bool			_isHighSlot(uint32 flag);
 	bool			_isRigSlot(uint32 flag);
 	bool			_isSubSystemSlot(uint32 flag);
+
+	void _initializeModuleContainers();
 
 	GenericModule * m_HighSlotModules[MAX_HIGH_SLOT_COUNT];
 	GenericModule * m_MediumSlotModules[MAX_MEDIUM_SLOT_COUNT];

@@ -131,6 +131,7 @@ void LSCChannel::SetChannelInfo(uint32 ownerID, std::string displayName, std::st
 bool LSCChannel::JoinChannel(Client * c) {
 	_log(LSC__CHANNELS, "Channel %s: Join from %s", m_displayName.c_str(), c->GetName());
 
+	
 	m_chars.insert(
 		std::make_pair(
 			c->GetCharacterID(),
@@ -139,6 +140,7 @@ bool LSCChannel::JoinChannel(Client * c) {
 	);
 	c->ChannelJoined( this );
 
+	
 	//if ((m_type != LSCChannel::normal) && (m_channelID > 2)) {
 		OnLSC_JoinChannel join;
 		join.sender = _MakeSenderInfo(c);
@@ -156,6 +158,7 @@ bool LSCChannel::JoinChannel(Client * c) {
 		PyTuple *answer = join.Encode();
 		m_service->entityList().Multicast( "OnLSC", GetTypeString(), &answer, mct );
 	//}
+	
 
 	return true;
 }

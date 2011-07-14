@@ -81,12 +81,13 @@ protected:
         assert( 0 < mRefCount );
         --mRefCount;
 
-        if( mRefCount <= 0 )
-            delete this;
+		if( mRefCount <= 0 )
+			delete this;
     }
 
     /// Reference count of instance.
     mutable size_t mRefCount;
+
 };
 
 /**

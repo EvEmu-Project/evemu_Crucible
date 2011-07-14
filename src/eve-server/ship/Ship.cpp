@@ -568,13 +568,15 @@ ShipEntity::ShipEntity(
 
 ShipEntity::~ShipEntity()
 {
+
 }
 
-void ShipEntity::Process() {
+void ShipEntity::Process() 
+{
 	SystemEntity::Process();
 }
 
-void ShipEntity::ForcedSetPosition(const GPoint &pt) {
+void ShipEntity::ForcedSetPosition( const GPoint &pt ) {
 	m_destiny->SetPosition(pt, false);
 }
 

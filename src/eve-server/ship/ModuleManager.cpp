@@ -24,6 +24,17 @@
 */
 #include "EVEServerPCH.h"
 
+GenericModule::GenericModule()
+{
+
+}
+
+void GenericModule::Process()
+{
+
+}
+
+
 //ModuleContainer class definitions
 #pragma region ModuleContainerClass
 ModuleContainer::ModuleContainer(uint32 lowSlots, uint32 medSlots, uint32 highSlots, uint32 rigSlots, uint32 subSystemSlots)
@@ -33,11 +44,13 @@ ModuleContainer::ModuleContainer(uint32 lowSlots, uint32 medSlots, uint32 highSl
 	m_HighSlots = highSlots;
 	m_RigSlots = rigSlots;
 	m_SubSystemSlots = subSystemSlots;
+
+	_initializeModuleContainers();
 }
 
 ModuleContainer::~ModuleContainer()
 {
-
+	//need to clean up the arrays
 }
 
 void ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
@@ -67,6 +80,61 @@ GenericModule * ModuleContainer::GetModule(uint32 flag)
 	}
 	
 	return NULL;
+}
+
+void ModuleContainer::Process()
+{
+	//Process High Slots
+	_processHigh();
+
+	//Process Medium Slots
+	_processMedium();
+
+	//Process Low Slots
+	_processLow();
+
+}
+
+void ModuleContainer::_processHigh()
+{
+	uint8 r;
+
+	GenericModule **cur = m_HighSlotModules;
+	for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++, cur++)
+	{
+		if(*cur == NULL)
+			continue;
+
+		(*cur)->Process();
+	}
+}
+
+void ModuleContainer::_processMedium()
+{
+	uint8 r;
+
+	GenericModule **cur = m_MediumSlotModules;
+	for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
+	{
+		if(*cur == NULL)
+			continue;
+
+		(*cur)->Process();
+	}
+}
+
+void ModuleContainer::_processLow()
+{
+	uint8 r;
+
+	GenericModule **cur = m_LowSlotModules;
+	for(r = 0; r < MAX_LOW_SLOT_COUNT; r++, cur++)
+	{
+		if(*cur == NULL)
+			continue;
+
+		(*cur)->Process();
+	}
 }
 
 void ModuleContainer::_addSubSystemModule(uint32 flag, GenericModule * mod)
@@ -206,6 +274,13 @@ bool ModuleContainer::_isSubSystemSlot(uint32 flag)
 
 	return false;
 }
+
+void ModuleContainer::_initializeModuleContainers()
+{
+	memset(m_HighSlotModules, 0, sizeof(m_HighSlotModules));
+	memset(m_MediumSlotModules, 0, sizeof(m_MediumSlotModules));
+	memset(m_LowSlotModules, 0, sizeof(m_LowSlotModules));
+}
 #pragma endregion
 
 //ModuleManager class definitions
@@ -224,7 +299,7 @@ ModuleManager::ModuleManager(Ship *const ship)
 
 ModuleManager::~ModuleManager()
 {
-
+	//TODO: cleanup
 }
 
 //necessary function to avoid complications in the 
@@ -375,7 +450,7 @@ void ModuleManager::ShipJumping()
 
 void ModuleManager::Process()
 {
-	sLog.Debug("Process","Needs to be implemented");
+	m_Modules->Process();
 }
 
 

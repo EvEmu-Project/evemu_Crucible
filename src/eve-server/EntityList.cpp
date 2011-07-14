@@ -313,7 +313,9 @@ void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple *
 			}
 
 			PyTuple *temp = new PyTuple( *payload );
+			payload->IncRef();
 			(*cur)->SendNotification( notifyType, idType, &temp, seq );
+			
 		}
 	}
 
@@ -339,7 +341,8 @@ void EntityList::Multicast(const character_set &cset, const char *notifyType, co
 			if(*in_payload == NULL)
 				payload = NULL;
             else {
-				payload = (PyTuple *) (*in_payload); PyIncRef(*in_payload);
+				payload = (PyTuple *) (*in_payload); 
+				PyIncRef(*in_payload);
             }
 		}
 		

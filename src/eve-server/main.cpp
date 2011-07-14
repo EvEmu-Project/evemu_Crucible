@@ -194,6 +194,8 @@ int main( int argc, char* argv[] )
 	services.RegisterService(new PaperDollService(&services));
 	services.RegisterService(new PhotoUploadService(&services));
 	services.RegisterService(new AggressionMgrService(&services));
+	services.RegisterService(new MailMgrService(&services));
+	services.RegisterService(new MailingListMgrService(&services));
 
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();
