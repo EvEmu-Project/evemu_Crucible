@@ -313,7 +313,6 @@ void EntityList::Multicast(const char *notifyType, const char *idType, PyTuple *
 			}
 
 			PyTuple *temp = new PyTuple( *payload );
-			payload->IncRef();
 			(*cur)->SendNotification( notifyType, idType, &temp, seq );
 			
 		}
