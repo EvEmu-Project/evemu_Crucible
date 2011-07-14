@@ -139,8 +139,8 @@ bool ClassCloneGenerator::ProcessRaw( const TiXmlElement* field )
         //"   delete %s;\n"
         "   if( oth.%s == NULL )\n"
         "       %s = NULL;\n"  //TODO: log an error
-        "   else\n"
-        "       %s = oth.%s; PyIncRef(%s);\n"
+        "   else {\n"
+        "       %s = oth.%s; PyIncRef(%s); }\n"
         "\n",
         name,
         name,
@@ -313,8 +313,8 @@ bool ClassCloneGenerator::ProcessToken( const TiXmlElement* field )
         "   PySafeDecRef( %s );\n"
         "   if( oth.%s == NULL )\n"
         "       %s = NULL;\n"  //TODO: log an error
-        "   else\n"
-        "       %s = oth.%s; PyIncRef(%s);\n"
+        "   else {\n"
+        "       %s = oth.%s; PyIncRef(%s) };\n"
         "\n",
         name,
         name,
