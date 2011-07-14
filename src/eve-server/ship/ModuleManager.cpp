@@ -35,6 +35,16 @@ void GenericModule::Process()
 {
 
 }
+
+void GenericModule::Online()
+{
+
+}
+
+void GenericModule::Offline()
+{
+
+}
 #pragma endregion
 
 //ModuleContainer class definitions
