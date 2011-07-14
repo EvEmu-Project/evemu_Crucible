@@ -52,6 +52,32 @@ void GenericModule::Deactivate()
 
 }
 
+void GenericModule::Repair()
+{
+
+}
+
+void GenericModule::Unload()
+{
+
+}
+
+
+void GenericModule::Overload()
+{
+
+}
+
+void GenericModule::DeOverload()
+{
+
+}
+
+void GenericModule::Load()
+{
+
+}
+
 uint32 GenericModule::itemID()
 {
 	return m_Item->itemID();
@@ -93,6 +119,17 @@ void ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
 	case slotTypeHiPower:		_addHighSlotModule(flag, mod);				break;
 	}
 
+}
+
+void ModuleContainer::RemoveModule(EVEItemFlags flag)
+{
+	GenericModule * mod = GetModule(flag);
+
+}
+
+void ModuleContainer::RemoveModule(uint32 itemID)
+{
+	GenericModule * mod = GetModule(itemID);
 }
 
 GenericModule * ModuleContainer::GetModule(EVEItemFlags flag)
@@ -149,6 +186,19 @@ GenericModule * ModuleContainer::GetModule(uint32 itemID)
 	return NULL;  //we don't
 }
 
+void ModuleContainer::_removeModule(EVEItemFlags flag)
+{
+	switch(_checkBounds(flag))
+	{
+	case NaT:					sLog.Error("AddModule","Out of bounds");	break; 
+	case slotTypeSubSystem:		_removeSubSystemModule(flag);				break;
+	case slotTypeRig:			_removeRigSlotModule(flag);					break;
+	case slotTypeLowPower:		_removeLowSlotModule(flag);					break;
+	case slotTypeMedPower:		_removeMediumSlotModule(flag);					break;
+	case slotTypeHiPower:		_removeHighSlotModule(flag);					break;
+	}
+}
+
 void ModuleContainer::Process()
 {
 	_process(typeProcessAll);
@@ -169,78 +219,42 @@ void ModuleContainer::DeactivateAll()
 	_process(typeDeactivateAll);
 }
 
-void ModuleContainer::_process(processType t)
+void ModuleContainer::UnloadAll()
 {
-	//Process High Slots
-	_processHigh(t);
-
-	//Process Medium Slots
-	_processMedium(t);
-
-	//Process Low Slots
-	_processLow(t);
+	_process(typeUnloadAll);
 }
 
-void ModuleContainer::_processHigh(processType t)
+void ModuleContainer::_process(processType p)
 {
-	uint8 r;
+	//high slots
+	_processEx(p, highSlot);
+
+	//med slots
+	_processEx(p, mediumSlot);
+
+	//low slots
+	_processEx(p, lowSlot);
+}
+
+void ModuleContainer::_processEx(processType p, slotType t)
+{
+	uint8 r, COUNT;
 
 	GenericModule **cur = m_HighSlotModules;
 
 	switch(t)
 	{
-	case typeOnlineAll:
-		for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
-
-			(*cur)->Online();
-		}
-		break;
-
-	case typeOfflineAll:
-		for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
-
-			(*cur)->Offline();
-		}
-		break;
-
-	case typeDeactivateAll:
-		for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
-
-			(*cur)->Deactivate();
-		}
-		break;
-
-	case typeProcessAll:
-		for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
-
-			(*cur)->Process();
-		}
-		break;
+	case highSlot:		COUNT = MAX_HIGH_SLOT_COUNT;		break;
+	case mediumSlot:	COUNT = MAX_MEDIUM_SLOT_COUNT;		break;
+	case lowSlot:		COUNT = MAX_LOW_SLOT_COUNT;			break;
+	//case rigSlot:		COUNT = MAX_RIG_COUNT;				break;  /* not needed now, but possible functionality extension */
+	//case subSystemSlot:	COUNT = MAX_ASSEMBLY_COUNT;		break;
 	}
 
-}
-
-void ModuleContainer::_processMedium(processType t)
-{
-	uint8 r;
-
-	GenericModule **cur = m_MediumSlotModules;
-	switch(t)
+	switch(p)
 	{
 	case typeOnlineAll:
-		for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
+		for(r = 0; r < COUNT; r++, cur++)
 		{
 			if(*cur == NULL)
 				continue;
@@ -250,7 +264,7 @@ void ModuleContainer::_processMedium(processType t)
 		break;
 
 	case typeOfflineAll:
-		for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
+		for(r = 0; r < COUNT; r++, cur++)
 		{
 			if(*cur == NULL)
 				continue;
@@ -260,7 +274,7 @@ void ModuleContainer::_processMedium(processType t)
 		break;
 
 	case typeDeactivateAll:
-		for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
+		for(r = 0; r < COUNT; r++, cur++)
 		{
 			if(*cur == NULL)
 				continue;
@@ -269,8 +283,18 @@ void ModuleContainer::_processMedium(processType t)
 		}
 		break;
 
+	case typeUnloadAll:
+		for(r = 0; r < COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Unload();
+		}
+		break;
+
 	case typeProcessAll:
-		for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
+		for(r = 0; r < COUNT; r++, cur++)
 		{
 			if(*cur == NULL)
 				continue;
@@ -281,54 +305,6 @@ void ModuleContainer::_processMedium(processType t)
 	}
 }
 
-void ModuleContainer::_processLow(processType t)
-{
-	uint8 r;
-
-	GenericModule **cur = m_LowSlotModules;
-	switch(t)
-	{
-	case typeOnlineAll:
-		for(r = 0; r < MAX_LOW_SLOT_COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
-
-			(*cur)->Online();
-		}
-		break;
-
-	case typeOfflineAll:
-		for(r = 0; r < MAX_LOW_SLOT_COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
-
-			(*cur)->Offline();
-		}
-		break;
-
-	case typeDeactivateAll:
-		for(r = 0; r < MAX_LOW_SLOT_COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
-
-			(*cur)->Deactivate();
-		}
-		break;
-
-	case typeProcessAll:
-		for(r = 0; r < MAX_LOW_SLOT_COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
-
-			(*cur)->Process();
-		}
-		break;
-	}
-}
 
 void ModuleContainer::_addSubSystemModule(uint32 flag, GenericModule * mod)
 {
@@ -378,6 +354,31 @@ GenericModule * ModuleContainer::_getMediumSlotModule(uint32 flag)
 GenericModule * ModuleContainer::_getHighSlotModule(uint32 flag)
 {
 	return m_HighSlotModules[flag - flagHiSlot0];
+}
+
+void ModuleContainer::_removeSubSystemModule(uint32 flag)
+{
+	m_SubSystemModules[flag-flagSubSystem0] = NULL;
+}
+
+void ModuleContainer::_removeRigSlotModule(uint32 flag)
+{
+	m_RigModules[flag-flagRigSlot0] = NULL;
+}
+
+void ModuleContainer::_removeLowSlotModule(uint32 flag)
+{
+	m_LowSlotModules[flag-flagLowSlot0] = NULL;
+}
+
+void ModuleContainer::_removeMediumSlotModule(uint32 flag)
+{
+	m_MediumSlotModules[flag-flagMedSlot0] = NULL;
+}
+
+void ModuleContainer::_removeHighSlotModule(uint32 flag)
+{
+	m_HighSlotModules[flag-flagHiSlot0] = NULL;
 }
 
 //TODO - make this better -Luck
@@ -492,7 +493,7 @@ ModuleManager::ModuleManager(Ship *const ship)
 
 ModuleManager::~ModuleManager()
 {
-	//TODO: cleanup
+	//module cleanup is handled in the ModuleContainer destructor
 }
 
 //necessary function to avoid complications in the 
@@ -532,7 +533,10 @@ void ModuleManager::_SendErrorMessage(const char *fmt, ...)
 
 void ModuleManager::InstallRig(InventoryItemRef item)
 {
-	sLog.Debug("InstallRig","Needs to be implemented");
+	if(item->groupID() >= 773 && item->groupID() <= 786 && item->groupID() != 783)
+		_fitModule(item);
+	else
+		sLog.Debug("ModuleManager","%s tried to fit item %u, which is not a rig", m_Client->GetName(), item->itemID());
 }
 
 void ModuleManager::UninstallRig(uint32 itemID)
@@ -540,16 +544,20 @@ void ModuleManager::UninstallRig(uint32 itemID)
 	sLog.Debug("UninstallRig","Needs to be implemented");
 }
 
-void ModuleManager::SwapSubSystem()
+void ModuleManager::SwapSubSystem(InventoryItemRef item)
 {
-	sLog.Debug("SwapSubSystem","Needs to be implemented");
+	if(item->groupID() >= 954 && item->groupID() <= 958)
+		_fitModule(item);
+	else
+		sLog.Debug("ModuleManager","%s tried to fit item %u, which is not a subsystem", m_Client->GetName(), item->itemID());
 }
 
 void ModuleManager::FitModule(InventoryItemRef item)
 {
-	GenericModule * mod = new GenericModule(item, m_Client->GetShip());
-	
-	m_Modules->AddModule(mod->flag(), mod);
+	if(item->categoryID() == EVEItemCategories::Module)
+		_fitModule(item);
+	else
+		sLog.Debug("ModuleManager","%s tried to fit item %u, which is not a module", m_Client->GetName(), item->itemID());
 }
 
 void ModuleManager::UnfitModule(uint32 itemID)
@@ -560,6 +568,13 @@ void ModuleManager::UnfitModule(uint32 itemID)
 		mod->Offline();
 		//remove it from m_Modules
 	}
+}
+
+void ModuleManager::_fitModule(InventoryItemRef item)
+{
+	GenericModule * mod = new GenericModule(item, m_Client->GetShip());
+
+	m_Modules->AddModule(mod->flag(), mod);
 }
 
 void ModuleManager::Online(uint32 itemID)
@@ -586,13 +601,13 @@ void ModuleManager::OfflineAll()
 	m_Modules->OfflineAll();
 }
 
-int32 ModuleManager::Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat)
+int32 ModuleManager::Activate(uint32 itemID, std::string effectName, int32 targetID, int32 repeat)
 {
 	sLog.Debug("Activate","Needs to be implemented");
 	return 1;
 }
 
-void ModuleManager::Deactivate(int32 itemID, std::string effecetName)
+void ModuleManager::Deactivate(uint32 itemID, std::string effecetName)
 {
 	sLog.Debug("Deactivate","Needs to be implemented");
 }
@@ -602,14 +617,22 @@ void ModuleManager::DeactivateAllModules()
 	m_Modules->DeactivateAll();
 }
 
-void ModuleManager::Overload()
+void ModuleManager::Overload(uint32 itemID)
 {
-	sLog.Debug("Overload","Needs to be implemented");
+	GenericModule * mod = m_Modules->GetModule(itemID);
+	if( mod != NULL )
+	{
+		mod->Overload();
+	}
 }
 
-void ModuleManager::DeOverload()
+void ModuleManager::DeOverload(uint32 itemID)
 {
-	sLog.Debug("DeOverload","Needs to be implemented");
+	GenericModule * mod = m_Modules->GetModule(itemID);
+	if( mod != NULL )
+	{
+		mod->DeOverload();
+	}
 }
 
 void ModuleManager::DamageModule(uint32 itemID)
@@ -619,7 +642,11 @@ void ModuleManager::DamageModule(uint32 itemID)
 
 void ModuleManager::RepairModule(uint32 itemID)
 {
-	sLog.Debug("RepairModule","Needs to be implemented");
+	GenericModule * mod = m_Modules->GetModule(itemID);
+	if( mod != NULL )
+	{
+		mod->Repair();
+	}
 }
 
 void ModuleManager::ReplaceCharges()
@@ -629,7 +656,7 @@ void ModuleManager::ReplaceCharges()
 
 void ModuleManager::UnloadAllModules()
 {
-	sLog.Debug("UnloadAllModules","Needs to be implemented");
+	m_Modules->UnloadAll();
 }
 
 void ModuleManager::CharacterLeavingShip()

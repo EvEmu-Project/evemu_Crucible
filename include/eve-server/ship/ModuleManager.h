@@ -41,6 +41,11 @@ public:
 	virtual void Offline();
 	virtual void Online();
 	virtual void Deactivate();
+	virtual void Load();
+	virtual void Unload();
+	virtual void Repair();
+	virtual void Overload();
+	virtual void DeOverload();
 
 	//access functions
 	uint32 itemID();
@@ -76,6 +81,8 @@ public:
 	~ModuleContainer();
 	
 	void AddModule(uint32 flag, GenericModule * mod);
+	void RemoveModule(EVEItemFlags flag);
+	void RemoveModule(uint32 itemID);
 	GenericModule * GetModule(EVEItemFlags flag);
 	GenericModule * GetModule(uint32 itemID);
 
@@ -84,6 +91,7 @@ public:
 	void OfflineAll();
 	void OnlineAll();
 	void DeactivateAll();
+	void UnloadAll();
 	
 private:
 
@@ -92,13 +100,23 @@ private:
 		typeOnlineAll,
 		typeOfflineAll,
 		typeDeactivateAll,
+		typeUnloadAll,
 		typeProcessAll
 	};
 
-	void _process(processType t);
-	void _processHigh(processType t);
-	void _processMedium(processType t);
-	void _processLow(processType t);
+	typedef enum slotType
+	{
+		highSlot,
+		mediumSlot,
+		lowSlot,
+		rigSlot,
+		subSystemSlot
+	};
+
+	void _removeModule(EVEItemFlags flag);
+
+	void _process(processType p);
+	void _processEx(processType p, slotType t);
 
 	void _addHighSlotModule(uint32 flag, GenericModule * mod);
 	void _addMediumSlotModule(uint32 flag, GenericModule * mod);
@@ -111,6 +129,12 @@ private:
 	GenericModule * _getLowSlotModule(uint32 flag);
 	GenericModule * _getRigModule(uint32 flag);
 	GenericModule * _getSubSystemModule(uint32 flag);
+
+	void _removeHighSlotModule(uint32 flag);
+	void _removeMediumSlotModule(uint32 flag);
+	void _removeLowSlotModule(uint32 flag);
+	void _removeRigSlotModule(uint32 flag);
+	void _removeSubSystemModule(uint32 flag);
 	
 	EVEItemSlotType _checkBounds(uint32 flag);
 
@@ -151,18 +175,18 @@ public:
 	void InstallRig(InventoryItemRef item);
 	void UninstallRig(uint32 itemID);
 	void InstallSubSystem(InventoryItemRef item);
-	void SwapSubSystem();
+	void SwapSubSystem(InventoryItemRef item);
 	void FitModule(InventoryItemRef item);
 	void UnfitModule(uint32 itemID);
 	void Online(uint32 itemID);
 	void OnlineAll();
 	void Offline(uint32 itemID);
 	void OfflineAll();
-	int32 Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat);
-	void Deactivate(int32 itemID, std::string effecetName);
+	int32 Activate(uint32 itemID, std::string effectName, int32 targetID, int32 repeat);
+	void Deactivate(uint32 itemID, std::string effecetName);
 	void DeactivateAllModules();
-	void Overload();
-	void DeOverload();
+	void Overload(uint32 itemID);
+	void DeOverload(uint32 itemID);
 	void DamageModule(uint32 itemID);
 	void RepairModule(uint32 itemID);
 	void ReplaceCharges();
@@ -175,6 +199,8 @@ public:
 	void TargetedAction(ModuleAction *pModuleAction);
 	
 private:
+	void _fitModule(InventoryItemRef item);
+
 	void _SendInfoMessage(const char* fmt, ...);
 	void _SendErrorMessage(const char* fmt, ...);
 
