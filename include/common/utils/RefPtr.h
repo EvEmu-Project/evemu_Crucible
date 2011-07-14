@@ -27,6 +27,23 @@
 #define __UTILS__REF_PTR_H__INCL__
 
 /**
+ * ENABLE_REF_TRACE
+ *
+ * A way to trace deleted objects still beeing handled in the python layer.
+ *
+ * As I remember Linux doesn't clear the deleted memory so this would work.
+ * Same goes for windows which does clear the memory but set it to 0xDEADBEEF or something.
+ * That way the assert will trigger a crash when the object is still being handled but in
+ * reality its already deleted.
+ */
+#define ENABLE_REF_TRACE
+#ifdef ENABLE_REF_TRACE
+#  define REF_TRACE_MACRO() do { assert( mDeleted == false ); } while (0)
+#else
+#  define REF_TRACE_MACRO() do {} while (0)
+#endif
+
+/**
  * @brief A reference-counted object.
  *
  * This class has all stuff needed to cooperate with
@@ -47,7 +64,7 @@ public:
      * @param[in] initRefCount Initial reference count.
      */
     RefObject( size_t initRefCount )
-    : mRefCount( initRefCount )
+    : mRefCount( initRefCount ), mDeleted( false )
     {
     }
 
@@ -59,6 +76,7 @@ public:
      */
     virtual ~RefObject()
     {
+        mDeleted = true;
         assert( 0 == mRefCount );
     }
 
@@ -68,6 +86,7 @@ protected:
      */
     void IncRef() const
     {
+        REF_TRACE_MACRO();
         ++mRefCount;
     }
     /**
@@ -78,6 +97,7 @@ protected:
      */
     void DecRef() const
     {
+        REF_TRACE_MACRO();
         assert( 0 < mRefCount );
         --mRefCount;
 
@@ -87,6 +107,9 @@ protected:
 
     /// Reference count of instance.
     mutable size_t mRefCount;
+#ifdef ENABLE_REF_TRACE
+    mutable bool mDeleted;
+#endif
 };
 
 /**
