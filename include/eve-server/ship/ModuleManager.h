@@ -30,17 +30,26 @@ class InventoryItem;
 class SystemEntity;
 class Client;
 
-//generic modulee base class
+//generic modulee base class - possibly should inherit from RefPtr...
 class GenericModule
 {
 public:
-	GenericModule(InventoryItemRef item);
+	GenericModule(InventoryItemRef item, ShipRef ship);
+	~GenericModule();
 
 	virtual void Process();
 	virtual void Offline();
 	virtual void Online();
+	virtual void Deactivate();
+
+	//access functions
+	uint32 itemID();
+	EVEItemFlags flag();
 	
-	~GenericModule();
+
+private:
+	InventoryItemRef m_Item;
+	ShipRef m_Ship;
 
 };
 
@@ -67,12 +76,14 @@ public:
 	~ModuleContainer();
 	
 	void AddModule(uint32 flag, GenericModule * mod);
-	GenericModule * GetModule(uint32 flag);
+	GenericModule * GetModule(EVEItemFlags flag);
+	GenericModule * GetModule(uint32 itemID);
 
 	//batch processes handlers
 	void Process();
 	void OfflineAll();
 	void OnlineAll();
+	void DeactivateAll();
 	
 private:
 
@@ -80,6 +91,7 @@ private:
 	{
 		typeOnlineAll,
 		typeOfflineAll,
+		typeDeactivateAll,
 		typeProcessAll
 	};
 

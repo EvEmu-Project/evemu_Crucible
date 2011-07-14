@@ -26,9 +26,10 @@
 
 //GenericModule class definitions
 #pragma region GenericModuleClass
-GenericModule::GenericModule(InventoryItemRef item)
+GenericModule::GenericModule(InventoryItemRef item, ShipRef ship)
 {
-
+	m_Item = item;
+	m_Ship = ship;
 }
 
 void GenericModule::Process()
@@ -44,6 +45,21 @@ void GenericModule::Online()
 void GenericModule::Offline()
 {
 
+}
+
+void GenericModule::Deactivate()
+{
+
+}
+
+uint32 GenericModule::itemID()
+{
+	return m_Item->itemID();
+}
+
+EVEItemFlags GenericModule::flag()
+{
+	return m_Ship->flag();
 }
 #pragma endregion
 
@@ -79,7 +95,7 @@ void ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
 
 }
 
-GenericModule * ModuleContainer::GetModule(uint32 flag)
+GenericModule * ModuleContainer::GetModule(EVEItemFlags flag)
 {
 	switch(_checkBounds(flag))
 	{
@@ -92,6 +108,11 @@ GenericModule * ModuleContainer::GetModule(uint32 flag)
 	}
 	
 	return NULL;
+}
+
+GenericModule * ModuleContainer::GetModule(uint32 itemID)
+{
+	//iterate through the list and see if we have it
 }
 
 void ModuleContainer::Process()
@@ -107,6 +128,11 @@ void ModuleContainer::OnlineAll()
 void ModuleContainer::OfflineAll()
 {
 	_process(typeOfflineAll);
+}
+
+void ModuleContainer::DeactivateAll()
+{
+	_process(typeDeactivateAll);
 }
 
 void ModuleContainer::_process(processType t)
@@ -146,6 +172,16 @@ void ModuleContainer::_processHigh(processType t)
 				continue;
 
 			(*cur)->Offline();
+		}
+		break;
+
+	case typeDeactivateAll:
+		for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Deactivate();
 		}
 		break;
 
@@ -189,6 +225,16 @@ void ModuleContainer::_processMedium(processType t)
 		}
 		break;
 
+	case typeDeactivateAll:
+		for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Deactivate();
+		}
+		break;
+
 	case typeProcessAll:
 		for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++, cur++)
 		{
@@ -225,6 +271,16 @@ void ModuleContainer::_processLow(processType t)
 				continue;
 
 			(*cur)->Offline();
+		}
+		break;
+
+	case typeDeactivateAll:
+		for(r = 0; r < MAX_LOW_SLOT_COUNT; r++, cur++)
+		{
+			if(*cur == NULL)
+				continue;
+
+			(*cur)->Deactivate();
 		}
 		break;
 
@@ -472,17 +528,17 @@ void ModuleManager::Online(uint32 itemID)
 
 void ModuleManager::OnlineAll()
 {
-	sLog.Debug("OnlineAll","Needs to be implemented");
+	m_Modules->OnlineAll();
 }
 
 void ModuleManager::Offline(uint32 itemID)
 {
-	sLog.Debug("Offline","Needs to be implemented");
+	m_Modules->GetModule(
 }
 
 void ModuleManager::OfflineAll()
 {
-	sLog.Debug("OfflineAll","Needs to be implemented");
+	m_Modules->OfflineAll();
 }
 
 int32 ModuleManager::Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat)
@@ -498,7 +554,7 @@ void ModuleManager::Deactivate(int32 itemID, std::string effecetName)
 
 void ModuleManager::DeactivateAllModules()
 {
-	sLog.Debug("DeactivateAllModules","Needs to be implemented");
+	m_Modules->DeactivateAll();
 }
 
 void ModuleManager::Overload()
