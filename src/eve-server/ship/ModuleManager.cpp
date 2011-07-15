@@ -474,6 +474,7 @@ void ModuleContainer::_initializeModuleContainers()
 	memset(m_HighSlotModules, 0, sizeof(m_HighSlotModules));
 	memset(m_MediumSlotModules, 0, sizeof(m_MediumSlotModules));
 	memset(m_LowSlotModules, 0, sizeof(m_LowSlotModules));
+	memset(m_RigModules, 0, sizeof(m_RigModules));
 }
 #pragma endregion
 
@@ -500,7 +501,7 @@ ModuleManager::~ModuleManager()
 //ship constructor
 void ModuleManager::SetClient(Client * client)
 {
-	sLog.Debug("SetClient","Recieved client pointer for %s", client->GetCharacterName());
+	sLog.Debug("SetClient","Received client pointer for %s", client->GetCharacterName());
 	m_Client = client;
 }
 
@@ -541,7 +542,9 @@ void ModuleManager::InstallRig(InventoryItemRef item)
 
 void ModuleManager::UninstallRig(uint32 itemID)
 {
-	sLog.Debug("UninstallRig","Needs to be implemented");
+	GenericModule * mod = m_Modules->GetModule(itemID);
+	if( mod != NULL )
+
 }
 
 void ModuleManager::SwapSubSystem(InventoryItemRef item)
@@ -566,7 +569,7 @@ void ModuleManager::UnfitModule(uint32 itemID)
 	if( mod != NULL )
 	{
 		mod->Offline();
-		//remove it from m_Modules
+		m_Modules->RemoveModule(itemID);
 	}
 }
 
