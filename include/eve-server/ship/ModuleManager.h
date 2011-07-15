@@ -183,7 +183,7 @@ public:
 	void OnlineAll();
 	void Offline(uint32 itemID);
 	void OfflineAll();
-	int32 Activate(uint32 itemID, std::string effectName, int32 targetID, int32 repeat);
+	int32 Activate(uint32 itemID, std::string effectName, uint32 targetID, uint32 repeat);
 	void Deactivate(uint32 itemID, std::string effecetName);
 	void DeactivateAllModules();
 	void Overload(uint32 itemID);
