@@ -78,6 +78,11 @@ void GenericModule::Load()
 
 }
 
+void GenericModule::DestroyRig()
+{
+
+}
+
 uint32 GenericModule::itemID()
 {
 	return m_Item->itemID();
@@ -475,6 +480,7 @@ void ModuleContainer::_initializeModuleContainers()
 	memset(m_MediumSlotModules, 0, sizeof(m_MediumSlotModules));
 	memset(m_LowSlotModules, 0, sizeof(m_LowSlotModules));
 	memset(m_RigModules, 0, sizeof(m_RigModules));
+	memset(m_SubSystemModules, 0, sizeof(m_SubSystemModules));
 }
 #pragma endregion
 
@@ -544,7 +550,7 @@ void ModuleManager::UninstallRig(uint32 itemID)
 {
 	GenericModule * mod = m_Modules->GetModule(itemID);
 	if( mod != NULL )
-
+		mod->DestroyRig();
 }
 
 void ModuleManager::SwapSubSystem(InventoryItemRef item)
@@ -604,7 +610,7 @@ void ModuleManager::OfflineAll()
 	m_Modules->OfflineAll();
 }
 
-int32 ModuleManager::Activate(uint32 itemID, std::string effectName, int32 targetID, int32 repeat)
+int32 ModuleManager::Activate(uint32 itemID, std::string effectName, uint32 targetID, uint32 repeat)
 {
 	sLog.Debug("Activate","Needs to be implemented");
 	return 1;

@@ -46,6 +46,7 @@ public:
 	virtual void Repair();
 	virtual void Overload();
 	virtual void DeOverload();
+	virtual void DestroyRig();
 
 	//access functions
 	uint32 itemID();
