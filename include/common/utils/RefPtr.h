@@ -36,7 +36,7 @@
  * That way the assert will trigger a crash when the object is still being handled but in
  * reality its already deleted.
  */
-#define ENABLE_REF_TRACE
+//#define ENABLE_REF_TRACE
 #ifdef ENABLE_REF_TRACE
 #  define REF_TRACE_MACRO() do { assert( mDeleted == false ); } while (0)
 #else
@@ -101,15 +101,15 @@ protected:
         assert( 0 < mRefCount );
         --mRefCount;
 
-        if( mRefCount <= 0 )
+        if( 0 == mRefCount )
             delete this;
     }
 
     /// Reference count of instance.
     mutable size_t mRefCount;
-#ifdef ENABLE_REF_TRACE
+//#ifdef ENABLE_REF_TRACE
     mutable bool mDeleted;
-#endif
+//#endif
 };
 
 /**

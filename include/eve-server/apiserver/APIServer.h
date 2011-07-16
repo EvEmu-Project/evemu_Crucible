@@ -60,8 +60,8 @@ public:
 	//std::string GetFilePath(std::string& category, uint32 id, uint32 size);
     std::tr1::shared_ptr<std::vector<char>> GetXML(std::string& category, uint32 id, uint32 size);
 
-	//static const char *const Categories[];
-	//static const uint32 CategoryCount;
+	static const char *const Categories[];
+	static const uint32 CategoryCount;
 
 	// used when the ImageServer can't find the image requested
 	// this way we don't have to transfer over all the static NPC images
@@ -70,7 +70,7 @@ public:
 private:
 	void RunInternal();
 	bool ValidateCategory(std::string& category);
-	//bool ValidateSize(std::string& category, uint32 size);
+	bool ValidateSize(std::string& category, uint32 size);
 	//static bool CreateNewDirectory(std::string& path);
 
     //std::tr1::unordered_map<uint32 /*accountID*/, std::tr1::shared_ptr<std::vector<char>> /*imageData*/> _limboImages;

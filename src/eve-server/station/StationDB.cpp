@@ -34,9 +34,7 @@ StationDB::StationDB()
 
 PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 	
-    PyRep* ret = (PyRep*)g_station_db_storage.find(solarSystemID);
-    PyIncRef(ret);
-	return ret;
+	return g_station_db_storage.find(solarSystemID)->Clone();
 
 	// old code for reference.
 	/*DBQueryResult res;

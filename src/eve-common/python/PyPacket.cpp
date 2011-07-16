@@ -71,14 +71,14 @@ PyPacket *PyPacket::Clone() const
     res->source = source;
     res->dest = dest;
     res->userid = userid;
-    res->payload = (PyTuple *) payload; PyIncRef(payload);
+    res->payload = (PyTuple *) payload->Clone();
     if(named_payload == NULL)
     {
         res->named_payload = NULL;
     }
     else
     {
-        res->named_payload = (PyDict *) named_payload; PyIncRef(named_payload);
+        res->named_payload = (PyDict *) named_payload->Clone();
     }
     return res;
 }
@@ -285,13 +285,13 @@ PyRep *PyPacket::Encode() {
     //payload
     //TODO: we don't really need to clone this if we can figure out a way to say "this is read only"
     //or if we can change this encode method to consume the PyPacket (which will almost always be the case)
-    arg_tuple->items[4] = payload; PyIncRef(payload);
+    arg_tuple->items[4] = payload->Clone();
 
     //named arguments
     if(named_payload == NULL) {
         arg_tuple->items[5] = new PyNone();
     } else {
-        arg_tuple->items[5] = named_payload; PyIncRef(named_payload);
+        arg_tuple->items[5] = named_payload->Clone();
     }
 
     return new PyObject( type_string.c_str(), arg_tuple );
@@ -810,8 +810,7 @@ EVENotificationStream::~EVENotificationStream() {
 
 EVENotificationStream *EVENotificationStream::Clone() const {
     EVENotificationStream *res = new EVENotificationStream();
-    res->args = (PyTuple *) args;
-    PyIncRef(args);
+    res->args = (PyTuple *) args->Clone();
     return res;
 }
 
@@ -957,7 +956,7 @@ PyTuple *EVENotificationStream::Encode() {
     PyTuple *t4 = new PyTuple(2);
     t4->items[0] = new PyInt(1);
     //see notes in other objects about what we could do to avoid this clone.
-    t4->items[1] = args; PyIncRef(args);
+    t4->items[1] = args->Clone();
 
     PyTuple *t3 = new PyTuple(2);
     t3->items[0] = new PyInt(0);

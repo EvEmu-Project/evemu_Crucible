@@ -90,8 +90,14 @@ public:
     {
         /// Port at which the server should listen.
         uint16 port;
+        /// Port at which the imageServer should listen.
+        uint16 imageServerPort;
 		/// the imageServer for char images. should be the evemu server external ip/host
 		std::string imageServer;
+        /// Port at which the apiServer should listen.
+        uint16 apiServerPort;
+        /// the apiServer for API functions. should be the evemu server external ip/host
+        std::string apiServer;
     } net;
 
 protected:

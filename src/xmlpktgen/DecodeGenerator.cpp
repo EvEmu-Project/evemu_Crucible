@@ -1639,7 +1639,7 @@ bool ClassDecodeGenerator::ProcessDictInt( const TiXmlElement* field )
 		"        }\n"
         "        const PyInt* k = %s_cur->first->AsInt();\n"
         "\n"
-        "        %s[ k->value() ] = %s_cur->second; PyIncRef(%s_cur->second);\n"
+        "        %s[ k->value() ] = %s_cur->second->Clone();\n"
 		"    }\n"
 		"\n",
 		v,
@@ -1653,7 +1653,7 @@ bool ClassDecodeGenerator::ProcessDictInt( const TiXmlElement* field )
 			iname,
 				mName, iname, iname, iname,
 			iname,
-			name, iname, iname
+			name, iname
 	);
 
 	pop();
@@ -1696,7 +1696,7 @@ bool ClassDecodeGenerator::ProcessDictStr( const TiXmlElement* field )
 		"        }\n"
         "        const PyString* k = %s_cur->first->AsString();\n"
         "\n"
-        "        %s[ k->content() ] = %s_cur->second; PyIncRef(%s_cur->second);\n"
+		"        %s[ k->content() ] = %s_cur->second->Clone();\n"
 		"    }\n"
 		"\n",
 		v,
@@ -1711,7 +1711,7 @@ bool ClassDecodeGenerator::ProcessDictStr( const TiXmlElement* field )
 			iname,
 				mName, iname, iname, iname,
 			iname,
-			name, iname, iname
+			name, iname
 	);
 
 	pop();
@@ -1795,3 +1795,25 @@ bool ClassDecodeGenerator::ProcessSubStructInline( const TiXmlElement* field )
 	pop();
 	return true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

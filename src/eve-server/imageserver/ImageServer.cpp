@@ -41,7 +41,7 @@ const uint32 ImageServer::CategoryCount = 5;
 ImageServer::ImageServer()
 {
 	std::stringstream urlBuilder;
-	urlBuilder << "http://" << sConfig.net.imageServer << ":" << (sConfig.net.port +1) << "/";
+    urlBuilder << "http://" << sConfig.net.imageServer << ":" << (sConfig.net.imageServerPort) << "/";
 	_url = urlBuilder.str();
 
 	_basePath = sConfig.files.imageDir;

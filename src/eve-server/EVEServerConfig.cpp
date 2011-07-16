@@ -160,12 +160,18 @@ bool EVEServerConfig::ProcessFiles( const TiXmlElement* ele )
 bool EVEServerConfig::ProcessNet( const TiXmlElement* ele )
 {
     AddValueParser( "port", net.port );
+    AddValueParser( "imageServerPort", net.imageServerPort);
 	AddValueParser( "imageServer", net.imageServer);
+    AddValueParser( "apiServerPort", net.apiServerPort);
+    AddValueParser( "apiServer", net.apiServer);
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "port" );
+	RemoveParser( "imageServerPort" );
 	RemoveParser( "imageServer" );
+	RemoveParser( "apiServerPort" );
+	RemoveParser( "apiServer" );
 
     return result;
 }

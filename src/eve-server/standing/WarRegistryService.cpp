@@ -75,7 +75,7 @@ WarRegistryService::~WarRegistryService()
 PyBoundObject *WarRegistryService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
 	Call_TwoIntegerArgs args;
 	//crap
-	PyRep *t = (PyRep *)bind_args; PyIncRef(bind_args);
+	PyRep *t = bind_args->Clone();
 	if(!args.Decode(&t)) {
 		_log(SERVICE__ERROR, "%s: Failed to decode bind object params.", GetName());
 		return NULL;
