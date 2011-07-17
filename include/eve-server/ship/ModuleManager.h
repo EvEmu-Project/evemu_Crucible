@@ -56,8 +56,6 @@ typedef enum ModuleCommand
 	DEOVERLOAD  //idk if this is used
 };
 
-
-
 //container for all ships modules
 #pragma region ModuleContainer
 class ModuleContainer
