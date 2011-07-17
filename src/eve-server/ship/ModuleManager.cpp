@@ -765,6 +765,7 @@ ModuleCommand ModuleManager::_translateActivate(std::string s)
 	//slow but it's better to do it once then many times as it gets passed around in modules or w/e
 	//all modules should expect a ModuleCommand instead of a string
 
+	/*
 	if( s == "Activate" )
 		return ACTIVATE;
 	else if( s == "Deactivate")
@@ -780,17 +781,20 @@ ModuleCommand ModuleManager::_translateActivate(std::string s)
 	else
 		sLog.Error("ModuleManager", "Unknown state: %s", s);
 
-	return CMD_ERROR;
+	*/
 	
+
 	//slightly faster version for when I know what things are really called
-	/*
+	//might as well use, but will definately not be right
+	
 	switch(s[0])
 	{
-	case A: return ACTIVATE;
-	case D: return s[2] == 'a' ? DEACTIVATE : DEOVERLOAD;
-	case O: return s[1] == 'n' ? ONLINE : (s[1] == 'f' ? OFFLINE : OVERLOAD);
+	case 'A': return ACTIVATE;
+	case 'D': return s[2] == 'a' ? DEACTIVATE : DEOVERLOAD;
+	case 'O': return s[1] == 'n' ? ONLINE : (s[1] == 'f' ? OFFLINE : OVERLOAD); //compound booleans ftw
 	}
-	*/
+	
+	return CMD_ERROR;
 }
 
 
