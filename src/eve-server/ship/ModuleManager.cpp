@@ -92,6 +92,33 @@ EVEItemFlags GenericModule::flag()
 {
 	return m_Ship->flag();
 }
+
+EvilNumber GenericModule::CalculateNewAttributeValue(EvilNumber attrVal, EvilNumber attrMod, EVECalculationType type)
+{
+	switch(type)
+	{
+	case ADD :					return Add(attrVal, attrMod);  
+	case SUBTRACT :				return Subtract(attrVal, attrMod);
+	case DIVIDE :				return Divide(attrVal, attrMod);
+	case MULTIPLY :				return Multiply(attrVal, attrMod);
+	case ADD_PERCENT :			return AddPercent(attrVal, attrMod);
+	case ADD_AS_PERCENT :		return AddAsPercent(attrVal, attrMod);
+	case SUBTRACT_PERCENT :		return SubtractPercent(attrVal, attrMod);
+	case SUBTRACT_AS_PERCENT :  return SubtractAsPercent(attrVal, attrMod);
+	}
+
+}
+
+void GenericModule::SetAttribute(uint32 attrID, EvilNumber val)
+{
+	m_Item->SetAttribute(attrID, val);
+}
+
+EvilNumber GenericModule::GetAttribute(uint32 attrID)
+{
+	return m_Item->GetAttribute(attrID);
+}
+
 #pragma endregion
 
 //ModuleContainer class definitions
@@ -646,7 +673,11 @@ void ModuleManager::DeOverload(uint32 itemID)
 
 void ModuleManager::DamageModule(uint32 itemID)
 {
-	sLog.Debug("DamageModule","Needs to be implemented");
+	GenericModule * mod = m_Modules->GetModule(itemID);
+	if( mod != NULL)
+	{
+
+	}
 }
 
 void ModuleManager::RepairModule(uint32 itemID)
@@ -671,11 +702,15 @@ void ModuleManager::UnloadAllModules()
 void ModuleManager::CharacterLeavingShip()
 {
 	sLog.Debug("CharacterLeavingShip","Needs to be implemented");
+	//this is complicated and im gonna leave it alone for now until
+	//a few things become more clear
 }
 
 void ModuleManager::CharacterBoardingShip()
 {
 	sLog.Debug("CharacterBoardingShip","Needs to be implemented");
+	//this is complicated and im gonna leave it alone for now until
+	//a few things become more clear
 }
 
 void ModuleManager::ShipWarping()
@@ -685,13 +720,47 @@ void ModuleManager::ShipWarping()
 
 void ModuleManager::ShipJumping()
 {
-	sLog.Debug("ShipJumping","Needs to be implemented");
+	m_Modules->OfflineAll();
+	//probably should to send a message to the client
 }
 
 void ModuleManager::Process()
 {
 	m_Modules->Process();
 }
+
+void ModuleManager::ProcessExternalEffect(Effect * e)
+{
+	while(e->hasEffect())
+	{
+		_processExternalEffect(e->next());
+	}
+}
+
+void ModuleManager::_processExternalEffect(SubEffect * s)
+{
+	//50-50 it's targeting a specific module ( i'm assuming here )
+	GenericModule * mod = m_Modules->GetModule(s->TargetItemID());
+	if( mod != NULL )
+	{
+		//calculate new attribute
+		mod->SetAttribute(s->AttributeID(), 
+			              mod->CalculateNewAttributeValue(mod->GetAttribute(s->AttributeID()),
+																			s->AppliedValue(), s->CalculationType()));
+	}
+	else if( s->TargetItemID() == m_Ship->itemID() ) //guess it's not, but that means it should be targeting our ship itself
+	{
+		//calculate new attribute
+		m_Ship->SetAttribute(s->AttributeID(), 
+			                 mod->CalculateNewAttributeValue(m_Ship->GetAttribute(s->AttributeID()), 
+							                                 s->AppliedValue(), s->CalculationType()));
+	}
+	else //i have no idea what their targeting X_X
+		sLog.Error("ModuleManager", "Process external effect inconsistency.  This shouldn't happen");
+
+}
+
+
 
 
 #pragma endregion

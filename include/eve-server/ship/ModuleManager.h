@@ -30,7 +30,23 @@ class InventoryItem;
 class SystemEntity;
 class Client;
 
-//generic modulee base class - possibly should inherit from RefPtr...
+//Type defs
+typedef enum EVECalculationType
+{
+	ADD,
+	SUBTRACT,
+	DIVIDE,
+	MULTIPLY,
+	ADD_PERCENT,
+	ADD_AS_PERCENT,
+	SUBTRACT_PERCENT,
+	SUBTRACT_AS_PERCENT
+	//more will show up, im sure
+};
+
+//Module inheritance definition
+#pragma region Modules
+//generic module base class - possibly should inherit from RefPtr...
 class GenericModule
 {
 public:
@@ -47,6 +63,11 @@ public:
 	virtual void Overload();
 	virtual void DeOverload();
 	virtual void DestroyRig();
+
+	virtual void SetAttribute(uint32 attrID, EvilNumber val);
+	virtual EvilNumber GetAttribute(uint32 attrID);
+
+	EvilNumber CalculateNewAttributeValue(EvilNumber attrVal, EvilNumber attrMod, EVECalculationType type);
 
 	//access functions
 	uint32 itemID();
@@ -74,7 +95,10 @@ class SubSystemModule : public PassiveModule
 
 };
 
+#pragma endregion
+
 //container for all ships modules
+#pragma region ModuleContainer
 class ModuleContainer
 {
 public:
@@ -160,10 +184,131 @@ private:
 	uint32 m_SubSystemSlots;	
 };
 
-class ModuleAction
+#pragma endregion
+
+//classes for passing effects around to targets
+#pragma region Effect Passing
+
+static const uint8 MAX_EFFECT_COUNT = 5;  //arbitrary, lazy etc.  The bigger this number, the larger these message classes will be
+
+class SubEffect
 {
+public:
+
+	SubEffect::SubEffect(uint32 attrID, EVECalculationType type, EvilNumber val, uint32 targetItemID = 0)
+	: m_AttrID( attrID ), m_TargetItemID( targetItemID ), m_CalcType( type ), m_Val( val )
+	{
+
+	}
+
+	~SubEffect() { }
+
+	//gets
+	uint32 SubEffect::AttributeID()					{ return m_AttrID; }
+	uint32 SubEffect::TargetItemID()				{ return m_TargetItemID; }
+	EVECalculationType SubEffect::CalculationType() { return m_CalcType; }
+	EvilNumber SubEffect::AppliedValue()			{ return m_Val; }
+
+private:
+	uint32 m_AttrID;
+	uint32 m_TargetItemID;
+	EVECalculationType m_CalcType;
+	EvilNumber m_Val;
 
 };
+
+
+
+class Effect
+{
+public:
+	Effect()
+	: m_Count( 0 )
+	{
+
+	}
+
+	~Effect() { }
+
+	void AddEffect(uint32 attributeID, EVECalculationType type, EvilNumber val, uint32 targetItemID = 0)
+	{
+		SubEffect * s = new SubEffect(attributeID, type, val, targetItemID);
+		if( m_Count + 1 < MAX_EFFECT_COUNT )
+		{
+			m_SubEffects[m_Count] = s;
+			m_Count++;
+		}
+	}
+
+	bool hasEffect() { return (m_Count > 0);  }
+
+	SubEffect * next()
+	{
+		m_Count--;
+		return m_SubEffects[m_Count];
+
+	}
+
+private:
+	SubEffect * m_SubEffects[MAX_EFFECT_COUNT];
+	int m_Count;
+
+};
+
+#pragma endregion
+
+//calculation functions
+#pragma region EveEffectsCalculations
+
+//TODO - check mem usage
+static EvilNumber Add(EvilNumber &val1, EvilNumber &val2)
+{
+	return val1 + val2;
+}
+
+static EvilNumber Subtract(EvilNumber &val1, EvilNumber &val2)
+{
+	return val1 - val2;
+}
+
+static EvilNumber Divide(EvilNumber &val1, EvilNumber &val2)
+{
+	return ( val1 / val2 );
+}
+
+static EvilNumber Multiply(EvilNumber &val1, EvilNumber &val2)
+{
+	return val1 * val2;
+}
+
+static EvilNumber AddPercent(EvilNumber &val1, EvilNumber &val2)
+{
+	return val1 + ( val1 * val2	);
+}
+
+static EvilNumber AddAsPercent(EvilNumber &val1, EvilNumber &val2)
+{
+	EvilNumber *val3 = new EvilNumber(100);
+	return val1 + ( val1 * val2 / *val3 );
+}
+
+static EvilNumber SubtractPercent(EvilNumber &val1, EvilNumber &val2)
+{
+	return val1 - ( val1 * val2 );
+}
+
+static EvilNumber SubtractAsPercent(EvilNumber &val1, EvilNumber &val2)
+{
+	EvilNumber *val3 = new EvilNumber(1);
+	EvilNumber *val4 = new EvilNumber(100);
+
+	return val1 / ( *val3 + ( val2 / *val4 ));
+}
+  
+#pragma endregion
+
+//Primary Module Manager
+#pragma region ModuleManager
 
 class ModuleManager
 {
@@ -197,10 +342,13 @@ public:
 	void ShipWarping();
 	void ShipJumping();
 	void Process();
-	void TargetedAction(ModuleAction *pModuleAction);
+	void ProcessExternalEffect(Effect * e);
 	
 private:
 	void _fitModule(InventoryItemRef item);
+
+	void _processExternalEffect(SubEffect * e);
+	
 
 	void _SendInfoMessage(const char* fmt, ...);
 	void _SendErrorMessage(const char* fmt, ...);
@@ -220,6 +368,8 @@ private:
 
 };
 
-#endif
+#pragma endregion
+
+#endif  /* MODULE_MANAGER_H */
 
 
