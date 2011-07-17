@@ -44,6 +44,17 @@ typedef enum EVECalculationType
 	//more will show up, im sure
 };
 
+typedef enum ModuleCommand
+{
+	CMD_ERROR,
+	ONLINE,
+	OFFLINE,
+	ACTIVATE,
+	DEACTIVATE,
+	OVERLOAD,   //idk if theis are used yet
+	DEOVERLOAD  //idk if this is used
+};
+
 //Module inheritance definition
 #pragma region Modules
 //generic module base class - possibly should inherit from RefPtr...
@@ -348,6 +359,8 @@ private:
 	void _fitModule(InventoryItemRef item);
 
 	void _processExternalEffect(SubEffect * e);
+
+	 ModuleCommand _translateActivate(std::string s);
 	
 
 	void _SendInfoMessage(const char* fmt, ...);

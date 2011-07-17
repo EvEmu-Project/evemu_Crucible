@@ -760,6 +760,39 @@ void ModuleManager::_processExternalEffect(SubEffect * s)
 
 }
 
+ModuleCommand ModuleManager::_translateActivate(std::string s)
+{
+	//slow but it's better to do it once then many times as it gets passed around in modules or w/e
+	//all modules should expect a ModuleCommand instead of a string
+
+	if( s == "Activate" )
+		return ACTIVATE;
+	else if( s == "Deactivate")
+		return DEACTIVATE;
+	else if( s == "Online")
+		return ONLINE;
+	else if( s == "Offline")
+		return OFFLINE;
+	else if( s == "Overload")
+		return OVERLOAD;
+	else if( s == "Deoverload")  //Placeholder: im 99% sure this ISN'T what they call it.  Oh well
+		return DEOVERLOAD;
+	else
+		sLog.Error("ModuleManager", "Unknown state: %s", s);
+
+	return CMD_ERROR;
+	
+	//slightly faster version for when I know what things are really called
+	/*
+	switch(s[0])
+	{
+	case A: return ACTIVATE;
+	case D: return s[2] == 'a' ? DEACTIVATE : DEOVERLOAD;
+	case O: return s[1] == 'n' ? ONLINE : (s[1] == 'f' ? OFFLINE : OVERLOAD);
+	}
+	*/
+}
+
 
 
 
