@@ -277,6 +277,7 @@
 #include "system/SystemManager.h"
 
 #include "ship/ModuleManager.h"
+#include "ship/Modules.h"
 #include "ship/BeyonceService.h"
 #include "ship/DestinyManager.h"
 #include "ship/Drone.h"
