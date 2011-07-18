@@ -84,6 +84,7 @@ Ship::Ship(
     const ItemData &_data)
 : InventoryItem(_factory, _shipID, _shipType, _data)
 {
+	//allocate the module manager
 	m_ModuleManager = new ModuleManager(this);
 
     // Activate Save Info Timer with somewhat randomized timer value:
