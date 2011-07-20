@@ -31,19 +31,9 @@ class GenericModule;
 class SystemEntity;
 class Client;
 
+#include "ship/Modules/Modules.h"
+
 //Type defs
-typedef enum EVECalculationType
-{
-	ADD,
-	SUBTRACT,
-	DIVIDE,
-	MULTIPLY,
-	ADD_PERCENT,
-	ADD_AS_PERCENT,
-	SUBTRACT_PERCENT,
-	SUBTRACT_AS_PERCENT
-	//more will show up, im sure
-};
 
 typedef enum ModuleCommand
 {
@@ -214,56 +204,6 @@ private:
 
 };
 
-#pragma endregion
-
-//calculation functions
-#pragma region EveEffectsCalculations
-
-//TODO - check mem usage
-static EvilNumber Add(EvilNumber &val1, EvilNumber &val2)
-{
-	return val1 + val2;
-}
-
-static EvilNumber Subtract(EvilNumber &val1, EvilNumber &val2)
-{
-	return val1 - val2;
-}
-
-static EvilNumber Divide(EvilNumber &val1, EvilNumber &val2)
-{
-	return ( val1 / val2 );
-}
-
-static EvilNumber Multiply(EvilNumber &val1, EvilNumber &val2)
-{
-	return val1 * val2;
-}
-
-static EvilNumber AddPercent(EvilNumber &val1, EvilNumber &val2)
-{
-	return val1 + ( val1 * val2	);
-}
-
-static EvilNumber AddAsPercent(EvilNumber &val1, EvilNumber &val2)
-{
-	EvilNumber *val3 = new EvilNumber(100);
-	return val1 + ( val1 * val2 / *val3 );
-}
-
-static EvilNumber SubtractPercent(EvilNumber &val1, EvilNumber &val2)
-{
-	return val1 - ( val1 * val2 );
-}
-
-static EvilNumber SubtractAsPercent(EvilNumber &val1, EvilNumber &val2)
-{
-	EvilNumber *val3 = new EvilNumber(1);
-	EvilNumber *val4 = new EvilNumber(100);
-
-	return val1 / ( *val3 + ( val2 / *val4 ));
-}
-  
 #pragma endregion
 
 //Primary Module Manager

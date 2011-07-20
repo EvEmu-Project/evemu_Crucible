@@ -511,7 +511,7 @@ void ModuleManager::UnfitModule(uint32 itemID)
 
 void ModuleManager::_fitModule(InventoryItemRef item)
 {
-	GenericModule * mod = new GenericModule(item, m_Client->GetShip());
+	GenericModule * mod = ModuleFactory(item, m_Client->GetShip());
 
 	m_Modules->AddModule(mod->flag(), mod);
 }
@@ -648,15 +648,15 @@ void ModuleManager::_processExternalEffect(SubEffect * s)
 	{
 		//calculate new attribute
 		mod->SetAttribute(s->AttributeID(), 
-			              mod->CalculateNewAttributeValue(mod->GetAttribute(s->AttributeID()),
-																			s->AppliedValue(), s->CalculationType()));
+			              CalculateNewAttributeValue(mod->GetAttribute(s->AttributeID()),
+																	   s->AppliedValue(), s->CalculationType()));
 	}
 	else if( s->TargetItemID() == m_Ship->itemID() ) //guess it's not, but that means it should be targeting our ship itself
 	{
 		//calculate new attribute
 		m_Ship->SetAttribute(s->AttributeID(), 
-			                 mod->CalculateNewAttributeValue(m_Ship->GetAttribute(s->AttributeID()), 
-							                                 s->AppliedValue(), s->CalculationType()));
+			                 CalculateNewAttributeValue(m_Ship->GetAttribute(s->AttributeID()), 
+							                                                 s->AppliedValue(), s->CalculationType()));
 	}
 	else //i have no idea what their targeting X_X
 		sLog.Error("ModuleManager", "Process external effect inconsistency.  This shouldn't happen");

@@ -1768,7 +1768,7 @@ bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)
 	switch( groupID) {
 		case EVEDB::invGroups::Rig_Armor:
 		case EVEDB::invGroups::Rig_Astronautic:
-		case EVEDB::invGroups::Rig_Drone:
+		case EVEDB::invGroups::Rig_Drones:
 		case EVEDB::invGroups::Rig_Electronics:
 		case EVEDB::invGroups::Rig_Electronics_Superiority:
 		case EVEDB::invGroups::Rig_Energy_Grid:
