@@ -2,7 +2,7 @@
 #ifndef PASSIVE_MODULES_H
 #define PASSIVE_MODULES_H
 
-#include "Modules.h"
+#include "ship/Modules/Modules.h"
 
 class PassiveModule : public GenericModule
 {

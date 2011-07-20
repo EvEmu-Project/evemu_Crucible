@@ -33,7 +33,7 @@ class GenericModule
 {
 public:
 	GenericModule() { }
-	~GenericModule() { }
+	virtual ~GenericModule() { }
 
 	virtual void Process() = 0;
 	virtual void Offline() = 0;

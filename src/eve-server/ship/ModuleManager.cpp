@@ -39,7 +39,19 @@ ModuleContainer::ModuleContainer(uint32 lowSlots, uint32 medSlots, uint32 highSl
 
 ModuleContainer::~ModuleContainer()
 {
-	//need to clean up the arrays
+	//clean up arrays of module pointers
+	delete[] m_LowSlotModules;
+	delete[] m_MediumSlotModules;
+	delete[] m_HighSlotModules;
+	delete[] m_RigModules;
+	delete[] m_SubSystemModules;
+
+	//nullify pointers
+	m_LowSlotModules = NULL;
+	m_MediumSlotModules = NULL;
+	m_HighSlotModules = NULL;
+	m_RigModules = NULL;
+	m_SubSystemModules = NULL;
 }
 
 void ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
@@ -129,8 +141,8 @@ void ModuleContainer::_removeModule(EVEItemFlags flag)
 	case slotTypeSubSystem:		_removeSubSystemModule(flag);				break;
 	case slotTypeRig:			_removeRigSlotModule(flag);					break;
 	case slotTypeLowPower:		_removeLowSlotModule(flag);					break;
-	case slotTypeMedPower:		_removeMediumSlotModule(flag);					break;
-	case slotTypeHiPower:		_removeHighSlotModule(flag);					break;
+	case slotTypeMedPower:		_removeMediumSlotModule(flag);				break;
+	case slotTypeHiPower:		_removeHighSlotModule(flag);				break;
 	}
 }
 
@@ -175,15 +187,30 @@ void ModuleContainer::_processEx(processType p, slotType t)
 {
 	uint8 r, COUNT;
 
-	GenericModule **cur = m_HighSlotModules;
+	GenericModule **cur;
 
 	switch(t)
 	{
-	case highSlot:		COUNT = MAX_HIGH_SLOT_COUNT;		break;
-	case mediumSlot:	COUNT = MAX_MEDIUM_SLOT_COUNT;		break;
-	case lowSlot:		COUNT = MAX_LOW_SLOT_COUNT;			break;
-	//case rigSlot:		COUNT = MAX_RIG_COUNT;				break;  /* not needed now, but possible functionality extension */
-	//case subSystemSlot:	COUNT = MAX_ASSEMBLY_COUNT;		break;
+	case highSlot:		
+		COUNT = MAX_HIGH_SLOT_COUNT;
+		cur = m_HighSlotModules;
+		break;
+	case mediumSlot:	
+		COUNT = MAX_MEDIUM_SLOT_COUNT;
+		cur = m_MediumSlotModules;
+		break;
+	case lowSlot:		
+		COUNT = MAX_LOW_SLOT_COUNT;		
+		cur = m_LowSlotModules;
+		break;
+	case rigSlot:		
+		COUNT = MAX_RIG_COUNT;
+		cur = m_RigModules;
+		break;  
+	case subSystemSlot:	
+		COUNT = MAX_ASSEMBLY_COUNT;
+		cur = m_SubSystemModules;
+		break;
 	}
 
 	switch(p)
@@ -343,7 +370,7 @@ bool ModuleContainer::_isLowSlot(uint32 flag)
 {
 	if( flag >= flagLowSlot0 && flag <= flagLowSlot7 )
 	{
-		if( flag < m_LowSlots )
+		if( (flag - flagLowSlot0) < m_LowSlots )
 			return true;
 		else
 			sLog.Error("_isLowSlot", "this shouldn't happen");
@@ -356,7 +383,7 @@ bool ModuleContainer::_isMediumSlot(uint32 flag)
 {
 	if( flag >= flagMedSlot0 && flag <= flagMedSlot7 )
 	{
-		if( flag < m_MediumSlots )
+		if( (flag - flagMedSlot0) < m_MediumSlots )
 			return true;
 		else
 			sLog.Error("_isMediumSlot", "this shouldn't happen");
@@ -369,7 +396,7 @@ bool ModuleContainer::_isHighSlot(uint32 flag)
 {
 	if( flag >= flagHiSlot0 && flag <= flagHiSlot7 )
 	{
-		if( flag < m_HighSlots )
+		if( (flag - flagHiSlot0) < m_HighSlots )
 			return true;
 		else
 			sLog.Error("_isHighSlot", "this shouldn't happen");
@@ -382,7 +409,7 @@ bool ModuleContainer::_isRigSlot(uint32 flag)
 {
 	if( flag >= flagRigSlot0 && flag <= flagRigSlot7 )
 	{
-		if( flag < m_RigSlots )
+		if( (flag - flagRigSlot0) < m_RigSlots )
 			return true;
 		else
 			sLog.Error("_isRigSlot", "this shouldn't happen");
@@ -395,7 +422,7 @@ bool ModuleContainer::_isSubSystemSlot(uint32 flag)
 {
 	if( flag >= flagSubSystem0 && flag <= flagSubSystem7 )
 	{
-		if( flag < m_SubSystemSlots )
+		if( (flag - flagSubSystem0) < m_SubSystemSlots )
 			return true;
 		else
 			sLog.Error("_isSubSystemSlot", "this shouldn't happen");
@@ -406,11 +433,13 @@ bool ModuleContainer::_isSubSystemSlot(uint32 flag)
 
 void ModuleContainer::_initializeModuleContainers()
 {
-	memset(m_HighSlotModules, 0, sizeof(m_HighSlotModules));
-	memset(m_MediumSlotModules, 0, sizeof(m_MediumSlotModules));
-	memset(m_LowSlotModules, 0, sizeof(m_LowSlotModules));
-	memset(m_RigModules, 0, sizeof(m_RigModules));
-	memset(m_SubSystemModules, 0, sizeof(m_SubSystemModules));
+	//initialize our arrays of pointers
+	m_HighSlotModules = new GenericModule*[MAX_HIGH_SLOT_COUNT];
+	m_MediumSlotModules = new GenericModule*[MAX_MEDIUM_SLOT_COUNT];
+	m_LowSlotModules = new GenericModule*[MAX_LOW_SLOT_COUNT];
+	m_RigModules = new GenericModule*[MAX_RIG_COUNT];
+	m_SubSystemModules = new GenericModule*[MAX_ASSEMBLY_COUNT];
+
 }
 #pragma endregion
 
@@ -418,6 +447,7 @@ void ModuleContainer::_initializeModuleContainers()
 #pragma region ModuleManagerClass
 ModuleManager::ModuleManager(Ship *const ship)
 {
+
 	m_Modules = new ModuleContainer((uint32)ship->GetAttribute(AttrLowSlots).get_int(),
 									(uint32)ship->GetAttribute(AttrMedSlots).get_int(),
 									(uint32)ship->GetAttribute(AttrHiSlots).get_int(),
@@ -431,6 +461,8 @@ ModuleManager::ModuleManager(Ship *const ship)
 ModuleManager::~ModuleManager()
 {
 	//module cleanup is handled in the ModuleContainer destructor
+	delete m_Modules;
+	m_Modules = NULL;
 }
 
 //necessary function to avoid complications in the 

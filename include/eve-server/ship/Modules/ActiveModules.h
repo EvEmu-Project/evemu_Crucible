@@ -12,7 +12,7 @@ public:
 
 	}
 
-	~ActiveModule() { }
+	virtual ~ActiveModule() { }
 
 	//should define process
 

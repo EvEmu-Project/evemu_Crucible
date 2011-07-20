@@ -282,7 +282,7 @@
 #include "ship/Modules/ActiveModules.h"
 #include "ship/Modules/PassiveModules.h"
 #include "ship/Modules/RigModule.h"
-#include "ship/Modules/SubSystemModule.h"
+#include "ship/Modules/SubSystemModules.h"
 #include "ship/BeyonceService.h"
 #include "ship/DestinyManager.h"
 #include "ship/Drone.h"

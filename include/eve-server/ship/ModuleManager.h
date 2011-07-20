@@ -120,11 +120,12 @@ private:
 
 	void _initializeModuleContainers();
 
-	GenericModule * m_HighSlotModules[MAX_HIGH_SLOT_COUNT];
-	GenericModule * m_MediumSlotModules[MAX_MEDIUM_SLOT_COUNT];
-	GenericModule * m_LowSlotModules[MAX_LOW_SLOT_COUNT];
-	GenericModule * m_RigModules[MAX_RIG_COUNT];
-	GenericModule * m_SubSystemModules[MAX_ASSEMBLY_COUNT];
+	//we own these
+	GenericModule ** m_HighSlotModules;
+	GenericModule ** m_MediumSlotModules;
+	GenericModule ** m_LowSlotModules;
+	GenericModule ** m_RigModules;
+	GenericModule ** m_SubSystemModules;
 
 	uint32 m_LowSlots;
 	uint32 m_MediumSlots;
