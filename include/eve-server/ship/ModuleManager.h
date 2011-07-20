@@ -238,7 +238,7 @@ private:
 
 	void _processExternalEffect(SubEffect * e);
 
-	 ModuleCommand _translateEffectName(std::string s);
+	ModuleCommand _translateEffectName(std::string s);
 	
 
 	void _SendInfoMessage(const char* fmt, ...);
