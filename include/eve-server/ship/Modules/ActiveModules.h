@@ -44,6 +44,11 @@ public:
 
 	 }
 
+	 void Activate()
+	 {
+
+	 }
+
 	 void Deactivate()
 	 {
 

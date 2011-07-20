@@ -27,6 +27,8 @@
 #ifndef MODULES_H
 #define MODULES_H
 
+#include "ship/Modules/ModuleDefs.h"
+
 //generic module base class - possibly should inherit from RefPtr...
 
 class GenericModule
@@ -38,6 +40,7 @@ public:
 	virtual void Process() = 0;
 	virtual void Offline() = 0;
 	virtual void Online() = 0;
+	virtual void Activate() = 0;
 	virtual void Deactivate() = 0;
 	virtual void Load() = 0;
 	virtual void Unload() = 0;

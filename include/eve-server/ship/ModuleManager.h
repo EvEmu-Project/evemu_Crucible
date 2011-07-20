@@ -32,19 +32,7 @@ class SystemEntity;
 class Client;
 
 #include "ship/Modules/Modules.h"
-
-//Type defs
-
-typedef enum ModuleCommand
-{
-	CMD_ERROR,
-	ONLINE,
-	OFFLINE,
-	ACTIVATE,
-	DEACTIVATE,
-	OVERLOAD,   //idk if theis are used yet
-	DEOVERLOAD  //idk if this is used
-};
+#include "ship/Modules/ModuleDefs.h"
 
 //container for all ships modules
 #pragma region ModuleContainer
@@ -69,6 +57,7 @@ public:
 	
 private:
 
+	//internal enums
 	typedef enum processType
 	{
 		typeOnlineAll,
@@ -233,7 +222,7 @@ public:
 	void DeactivateAllModules();
 	void Overload(uint32 itemID);
 	void DeOverload(uint32 itemID);
-	void DamageModule(uint32 itemID);
+	void DamageModule(uint32 itemID, EvilNumber val);
 	void RepairModule(uint32 itemID);
 	void ReplaceCharges();
 	void UnloadAllModules();
@@ -249,7 +238,7 @@ private:
 
 	void _processExternalEffect(SubEffect * e);
 
-	 ModuleCommand _translateActivate(std::string s);
+	 ModuleCommand _translateEffectName(std::string s);
 	
 
 	void _SendInfoMessage(const char* fmt, ...);
@@ -264,7 +253,7 @@ private:
 	//access to destiny.  We do not own this
 	DestinyManager * m_Destiny;
 
-	//modules storage
+	//modules storage, we own this
 	ModuleContainer * m_Modules;
 		
 

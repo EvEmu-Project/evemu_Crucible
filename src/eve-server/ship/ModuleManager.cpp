@@ -578,9 +578,16 @@ int32 ModuleManager::Activate(uint32 itemID, std::string effectName, uint32 targ
 	return 1;
 }
 
-void ModuleManager::Deactivate(uint32 itemID, std::string effecetName)
+void ModuleManager::Deactivate(uint32 itemID, std::string effectName)
 {
-	sLog.Debug("Deactivate","Needs to be implemented");
+	GenericModule * mod = m_Modules->GetModule(itemID);
+	if( mod != NULL )
+	{
+		ModuleCommand cmd = _translateEffectName(effectName);
+		if(cmd  == ModuleCommand::OFFLINE)
+			mod->Offline();
+		//there needs to be more cases here i just don't know what they're called yet
+	}
 }
 
 void ModuleManager::DeactivateAllModules()
@@ -606,12 +613,12 @@ void ModuleManager::DeOverload(uint32 itemID)
 	}
 }
 
-void ModuleManager::DamageModule(uint32 itemID)
+void ModuleManager::DamageModule(uint32 itemID, EvilNumber val)
 {
 	GenericModule * mod = m_Modules->GetModule(itemID);
 	if( mod != NULL)
 	{
-
+		mod->SetAttribute(EveAttrEnum::AttrHp, val);
 	}
 }
 
@@ -695,29 +702,10 @@ void ModuleManager::_processExternalEffect(SubEffect * s)
 
 }
 
-ModuleCommand ModuleManager::_translateActivate(std::string s)
+ModuleCommand ModuleManager::_translateEffectName(std::string s)
 {
 	//slow but it's better to do it once then many times as it gets passed around in modules or w/e
 	//all modules should expect a ModuleCommand instead of a string
-
-	/*
-	if( s == "Activate" )
-		return ACTIVATE;
-	else if( s == "Deactivate")
-		return DEACTIVATE;
-	else if( s == "Online")
-		return ONLINE;
-	else if( s == "Offline")
-		return OFFLINE;
-	else if( s == "Overload")
-		return OVERLOAD;
-	else if( s == "Deoverload")  //Placeholder: im 99% sure this ISN'T what they call it.  Oh well
-		return DEOVERLOAD;
-	else
-		sLog.Error("ModuleManager", "Unknown state: %s", s);
-
-	*/
-	
 
 	//slightly faster version for when I know what things are really called
 	//might as well use, but will definately not be right
