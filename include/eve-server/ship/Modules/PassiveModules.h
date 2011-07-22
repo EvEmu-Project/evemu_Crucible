@@ -59,6 +59,9 @@ public:
 	uint32 itemID()										{ return m_Item->itemID(); }
 	EVEItemFlags flag()									{ return m_Item->flag(); }
 	uint32 typeID()										{ return m_Item->typeID(); }
+	bool isHighPower()									{ return m_Effects->isHighSlot(); }
+	bool isMediumPower()								{ return m_Effects->isMediumSlot(); }
+	bool isLowPower()									{ return m_Effects->isLowSlot(); }
 	bool isRig()										{ return false; }
 	bool isSubSystem()									{ return false;	}
 
@@ -93,16 +96,6 @@ public:
 	{
 
 	}
-
-	bool isHighPower() { return false; }
-
-
-	bool isMediumPower() { return false;}
-
-
-	bool isLowPower() { return true; }
-
-
 
 };
 

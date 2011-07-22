@@ -12,7 +12,7 @@
 class ModuleEffects
 {
 public:
-	ModuleEffects(uint32 typeID) : m_TypeID( typeID )
+	ModuleEffects(uint32 typeID) : m_TypeID( typeID ), m_Cached( false )
 	{
 		_populate(typeID);
 	}
@@ -28,6 +28,65 @@ public:
 		m_Effects = NULL;
 	}
 
+	//useful accessors - probably a better way to do this, but at least it's fast
+	bool isHighSlot()
+	{
+		if( m_Cached )
+			return m_HighPower;
+		else
+		{
+			for(int i = 0; i < m_EffectCount; i++)
+			{
+				if( m_EffectIDs[i] == effectHiPower )
+				{
+					m_HighPower = true;
+					m_MediumPower = false;
+					m_LowPower = false;
+					m_Cached = true; //cache the result
+				}
+			}
+		}
+	}
+
+	bool isMediumSlot()
+	{
+		if( m_Cached )
+			return m_MediumPower;
+		else
+		{
+			for(int i = 0; i < m_EffectCount; i++)
+			{
+				if( m_EffectIDs[i] == effectMedPower )
+				{
+					m_HighPower = false;
+					m_MediumPower = true;
+					m_LowPower = false;
+					m_Cached = true;  //cache the result
+				}
+			}
+		}
+	}
+
+	bool isLowSlot()
+	{
+		if( m_Cached )
+			return m_LowPower;
+		else
+		{
+			for(int i = 0; i < m_EffectCount; i++)
+			{
+				if( m_EffectIDs[i] == effectLoPower )
+				{
+					m_HighPower = false;
+					m_MediumPower = false;
+					m_LowPower = true;
+					m_Cached = true; //cache the result
+				}
+			}
+		}
+	}
+
+
 private:
 
 	class MEffect
@@ -37,10 +96,11 @@ private:
 
 		void Populate(uint32 effectID)
 		{
-			DBQueryResult res = ModuleDB::GetDgmEffectsInformation(effectID);
+			DBQueryResult *res = new DBQueryResult();
+			ModuleDB::GetDgmEffectsInformation(effectID, *res);
 
 			DBResultRow row;
-			if( !res.GetRow(row) )
+			if( !res->GetRow(row) )
 				sLog.Error("MEffect","Could not populate effect information for effectID: %u", effectID);
 			else
 			{
@@ -88,6 +148,9 @@ private:
 					m_FittingUsageChanceAttributeID = row.GetInt(25);
 
 			}
+
+			delete res;
+			res = NULL;
 		}
 
 		int m_EffectID;
@@ -123,18 +186,19 @@ private:
 	void _populate(uint32 typeID)
 	{
 		//first get all of the effects associated with the typeID
-		DBQueryResult res = ModuleDB::GetDgmTypeEffectsInformation(typeID);
+		DBQueryResult *res = new DBQueryResult();
+		ModuleDB::GetDgmTypeEffectsInformation(typeID, *res);
 
 		//initialize our container to the correct size
-		m_Effects = new MEffect[res.GetRowCount()];
-		m_EffectIDs = new int[res.GetRowCount()];
+		m_Effects = new MEffect[res->GetRowCount()];
+		m_EffectIDs = new int[res->GetRowCount()];
 
 		//counter
 		int i = 0;
 
 		//go through and populate each effect
 		DBResultRow row;
-		while( res.GetRow(row) )
+		while( res->GetRow(row) )
 		{
 			//add new stuff to the arrays
 			m_EffectIDs[i] = row.GetInt(0);
@@ -150,12 +214,22 @@ private:
 			i++; //increment
 		}
 
+		m_EffectCount = i;
+
+		//cleanup
+		delete res;
+		res = NULL;
+
 	}
 
 	int m_TypeID;
 	int *m_EffectIDs;
 	MEffect * m_Effects;
 	int m_DefaultEffect;
+	int m_EffectCount;
+
+	//cached stuff
+	bool m_HighPower, m_MediumPower, m_LowPower, m_Cached;
 
 };
 

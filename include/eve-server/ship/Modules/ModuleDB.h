@@ -36,9 +36,8 @@ class ModuleDB : public ServiceDB
 {
 public:
 
-	static DBQueryResult* GetDgmEffectsInformation(uint32 effectID) 
+	static void GetDgmEffectsInformation(uint32 effectID, DBQueryResult &res) 
 	{
-		DBQueryResult res;
 
 		if(sDatabase.RunQuery(res,
 			" SELECT "
@@ -73,15 +72,13 @@ public:
 			effectID))
 		{
 			_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-			return NULL;
-		}
 
-		return res;
+		}
 	}
 
-	static DBQueryResult GetDgmTypeEffectsInformation(uint32 typeID)
+	static void GetDgmTypeEffectsInformation(uint32 typeID, DBQueryResult &res)
 	{
-		DBQueryResult res;
+
 
 		if(sDatabase.RunQuery(res,
 			" SELECT "
@@ -91,10 +88,8 @@ public:
 			typeID))
 		{
 			_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-			return NULL;
 		}
 
-		return res;
 	}
 };
 
