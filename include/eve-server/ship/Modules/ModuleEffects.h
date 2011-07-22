@@ -222,11 +222,15 @@ private:
 
 	}
 
+	//data members
 	int m_TypeID;
 	int *m_EffectIDs;
 	MEffect * m_Effects;
 	int m_DefaultEffect;
+
+	//internal counters
 	int m_EffectCount;
+	int m_SelectedEffect;
 
 	//cached stuff
 	bool m_HighPower, m_MediumPower, m_LowPower, m_Cached;
