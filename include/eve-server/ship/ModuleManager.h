@@ -48,12 +48,21 @@ public:
 	GenericModule * GetModule(EVEItemFlags flag);
 	GenericModule * GetModule(uint32 itemID);
 
+	int NumberOfSameType(uint32 typeID);
+
 	//batch processes handlers
 	void Process();
 	void OfflineAll();
 	void OnlineAll();
 	void DeactivateAll();
 	void UnloadAll();
+
+	//useful accessors
+	bool isHighPower(uint32 itemID);
+	bool isMediumPower(uint32 itemID);
+	bool isLowPower(uint32 itemID);
+	bool isRig(uint32 itemID);
+	bool isSubSystem(uint32 itemID);
 	
 private:
 
@@ -120,7 +129,9 @@ private:
 	uint32 m_MediumSlots;
 	uint32 m_HighSlots;
 	uint32 m_RigSlots;
-	uint32 m_SubSystemSlots;	
+	uint32 m_SubSystemSlots;
+
+	std::map<int,int> m_SameTypes;
 };
 
 #pragma endregion

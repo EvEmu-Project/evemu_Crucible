@@ -85,7 +85,7 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
 		case EVEDB::invGroups::Capacitor_Recharger:
 		case EVEDB::invGroups::Shield_Power_Relay:
 		case EVEDB::invGroups::Gyrostabilizer:
-		case EVEDB::invGroups::Damage_Control:								return new DamageControl(item,ship);
+		case EVEDB::invGroups::Damage_Control:								
 		case EVEDB::invGroups::Capacitor_Battery:
 		case EVEDB::invGroups::Shield_Hardener:
 		case EVEDB::invGroups::Reinforced_Bulkheads:
@@ -111,7 +111,7 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
 		case EVEDB::invGroups::Gang_Coordinator:
 		case EVEDB::invGroups::Computer_Interface_Node:
 		case EVEDB::invGroups::Armor_Plating_Energized:
-		case EVEDB::invGroups::Armor_Reinforcer:
+		case EVEDB::invGroups::Armor_Reinforcer:  new ArmorReinforcer(item, ship); break;
 		case EVEDB::invGroups::Shield_Boost_Amplifier:
 		case EVEDB::invGroups::Auxiliary_Power_Core:
 		case EVEDB::invGroups::GM_Modules:

@@ -25,6 +25,16 @@ public:
 		//does nothing for passive modules
 	}
 
+	void Load()
+	{
+		//does nothing
+	}
+
+	void Unload()
+	{
+		//does nothing
+	}
+
 	void Overload()
 	{
 		//does nothing
@@ -40,26 +50,33 @@ public:
 		//not a rig
 	}
 
-	void Load()
-	{
-		//does nothing
-	}
 
-	void Unload()
-	{
-		//does nothing
-	}
 
+	void SetAttribute(uint32 attrID, EvilNumber val)	{ m_Item->SetAttribute(attrID, val); }
+	EvilNumber GetAttribute(uint32 attrID)				{ return m_Item->GetAttribute(attrID); }
+
+	//access functions
+	uint32 itemID()										{ return m_Item->itemID(); }
+	EVEItemFlags flag()									{ return m_Item->flag(); }
+	uint32 typeID()										{ return m_Item->typeID(); }
+	bool isRig()										{ return false; }
+	bool isSubSystem()									{ return false;	}
 
 };
 
-class DamageControl : public PassiveModule
+class ArmorReinforcer : public PassiveModule
 {
 public:
-	DamageControl(InventoryItemRef item, ShipRef ship)
+	ArmorReinforcer(InventoryItemRef item, ShipRef ship)
 	{
 		m_Item = item;
 		m_Ship = ship;
+		m_Effects = new ModuleEffects(m_Item->typeID());
+	}
+
+	~ArmorReinforcer()
+	{
+
 	}
 
 	void Offline() 
@@ -77,25 +94,15 @@ public:
 
 	}
 
-	void SetAttribute(uint32 attrID, EvilNumber val) 
-	{
-		m_Item->SetAttribute(attrID, val);
-	}
-
-	EvilNumber GetAttribute(uint32 attrID)
-	{
-		return m_Item->GetAttribute(attrID);
-	}
+	bool isHighPower() { return false; }
 
 
-	//access functions
-	uint32 itemID() { return m_Item->itemID(); }
+	bool isMediumPower() { return false;}
 
-	EVEItemFlags flag() { return m_Item->flag(); }
 
-private:
-	InventoryItemRef m_Item;
-	ShipRef m_Ship;
+	bool isLowPower() { return true; }
+
+
 
 };
 

@@ -66,17 +66,23 @@ void ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
 	case slotTypeHiPower:		_addHighSlotModule(flag, mod);				break;
 	}
 
+
 }
 
 void ModuleContainer::RemoveModule(EVEItemFlags flag)
 {
 	GenericModule * mod = GetModule(flag);
-
 }
 
 void ModuleContainer::RemoveModule(uint32 itemID)
 {
 	GenericModule * mod = GetModule(itemID);
+
+	_removeModule(mod->flag());
+
+	//delete the module
+	delete mod;
+	mod = NULL;
 }
 
 GenericModule * ModuleContainer::GetModule(EVEItemFlags flag)
@@ -146,6 +152,7 @@ void ModuleContainer::_removeModule(EVEItemFlags flag)
 	}
 }
 
+
 void ModuleContainer::Process()
 {
 	_process(typeProcessAll);
@@ -169,6 +176,41 @@ void ModuleContainer::DeactivateAll()
 void ModuleContainer::UnloadAll()
 {
 	_process(typeUnloadAll);
+}
+
+bool ModuleContainer::isHighPower(uint32 itemID)
+{
+	GenericModule * mod = GetModule(itemID);
+
+	return mod->isHighPower();
+}
+
+bool ModuleContainer::isMediumPower(uint32 itemID)
+{
+	GenericModule * mod = GetModule(itemID);
+
+	return mod->isMediumPower();
+}
+
+bool ModuleContainer::isLowPower(uint32 itemID)
+{
+	GenericModule * mod = GetModule(itemID);
+
+	return mod->isLowPower();
+}
+
+bool ModuleContainer::isRig(uint32 itemID)
+{
+	GenericModule * mod = GetModule(itemID);
+
+	return mod->isRig();
+}
+
+bool ModuleContainer::isSubSystem(uint32 itemID)
+{
+	GenericModule * mod = GetModule(itemID);
+
+	return mod->isSubSystem();
 }
 
 void ModuleContainer::_process(processType p)
@@ -665,6 +707,7 @@ void ModuleManager::ShipJumping()
 	m_Modules->OfflineAll();
 	//probably should to send a message to the client
 }
+
 
 void ModuleManager::Process()
 {

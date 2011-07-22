@@ -28,6 +28,7 @@
 #define MODULES_H
 
 #include "ship/Modules/ModuleDefs.h"
+#include "ship/Modules/ModuleEffects.h"
 
 //generic module base class - possibly should inherit from RefPtr...
 
@@ -55,7 +56,17 @@ public:
 	//access functions
 	virtual uint32 itemID() = 0;
 	virtual EVEItemFlags flag() = 0;
+	virtual uint32 typeID() = 0;
+	virtual bool isHighPower() = 0;
+	virtual bool isMediumPower() = 0;
+	virtual bool isLowPower() = 0;
+	virtual bool isRig() = 0;
+	virtual bool isSubSystem() = 0;
 
+protected:
+	InventoryItemRef m_Item;
+	ShipRef m_Ship;
+	ModuleEffects * m_Effects;
 
 };
 

@@ -16,6 +16,17 @@ public:
 
 	//should define process
 
+	//accessors
+	void SetAttribute(uint32 attrID, EvilNumber val)		{ m_Item->SetAttribute(attrID, val); }
+	EvilNumber GetAttribute(uint32 attrID)					{ return m_Item->GetAttribute(attrID); }
+
+	uint32 itemID()											{ return m_Item->itemID(); }
+	EVEItemFlags flag()										{ return m_Item->flag(); }
+	uint32 typeID()											{ return m_Item->typeID(); }
+	bool isRig()											{ return false; }
+	bool isSubSystem()										{ return false; }
+
+
 };
 
 
@@ -27,6 +38,11 @@ public:
 	{
 		m_Item = item;
 		m_Ship = ship;
+	}
+
+	~Afterburner()
+	{
+
 	}
 
 	 void Process() 
@@ -84,27 +100,10 @@ public:
 
 	 }
 
-	 void SetAttribute(uint32 attrID, EvilNumber val) 
-	 {
-
-	 }
-
-	 EvilNumber GetAttribute(uint32 attrID)
-	 {
-		 return EvilNumber(1); //idk if this should be new'd or not
-	 }
-
-
-	//access functions
-	uint32 itemID() { return m_Item->itemID(); }
-
-	EVEItemFlags flag() { return m_Item->flag(); }
-
-
-
-private:
-	InventoryItemRef m_Item;      //we do not own this
-	ShipRef m_Ship;                     //we do not own this
+	 //accessors
+	 bool isHighPower()					{ return false; }
+	 bool isMediumPower()				{ return  true; }
+	 bool isLowPower()					{ return false; }
 
 };
 
