@@ -50,7 +50,7 @@ public:
 	virtual void DestroyRig() = 0;
 
 
-	void Repair()												{ m_Item->ResetAttribute(AttrHp, true); }
+	virtual void Repair()										{ m_Item->ResetAttribute(AttrHp, true); }
 
 
 	virtual void SetAttribute(uint32 attrID, EvilNumber val)	{ m_Item->SetAttribute(attrID, val); }
