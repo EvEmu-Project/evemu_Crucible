@@ -18,7 +18,7 @@ public:
 	void ModifyShipAttribute(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type)
 	{
 		//includes stacking calculation
-		m_Ship->SetAttribute(targetAttrID, _calculateNewValue(targetAttrID, sourceAttrID, type, m_Ship->GetStackedItems(m_Mod->typeID(), )));
+		m_Ship->SetAttribute(targetAttrID, _calculateNewValue(targetAttrID, sourceAttrID, type, m_Ship->GetStackedItems(m_Mod->typeID(), m_Mod->GetModulePowerLevel())));
 	}
 
 private:

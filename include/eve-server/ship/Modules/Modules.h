@@ -62,7 +62,7 @@ public:
 	virtual bool isLowPower() = 0;
 	virtual bool isRig() = 0;
 	virtual bool isSubSystem() = 0;
-	virtual ModulePowerLevel getModulePowerLevel() = 0; //shouldn't need this for normal use
+	virtual ModulePowerLevel GetModulePowerLevel() = 0; //shouldn't need this for normal use
 
 protected:
 	InventoryItemRef m_Item;
