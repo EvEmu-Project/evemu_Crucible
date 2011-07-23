@@ -1,5 +1,7 @@
 
 
+#include <vector>
+
 
 class ModifyShipAttributesComponent
 {
@@ -23,21 +25,18 @@ public:
 
 private:
 
-	EvilNumber _calculateNewValue(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type, GenericModule * mods)
+	EvilNumber _calculateNewValue(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type, std::vector<GenericModule *> mods)
 	{
+		//based on http://wiki.eve-id.net/Stacking
+
 		EvilNumber finalAttr;
 		EvilNumber modVal = m_Ship->GetAttribute(targetAttrID);
 
-		for(int i = 0; i < stacked; i++)
+
 			
-
-
-		EvilNumber finalAttr;
-
-		//consume mods
-		delete[] mods;
-		mods = NULL;
+		return finalAttr;
 	}
+
 
 	GenericModule *m_Mod;
 	ShipRef m_Ship;

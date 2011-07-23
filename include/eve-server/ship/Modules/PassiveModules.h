@@ -70,7 +70,7 @@ public:
 	
 
 protected:
-
+	ModifyShipAttributesComponent * m_ShipAttrComp;
 
 };
 
@@ -82,6 +82,7 @@ public:
 		m_Item = item;
 		m_Ship = ship;
 		m_Effects = new ModuleEffects(m_Item->typeID());
+		m_ShipAttrComp = new ModifyShipAttributesComponent(this, m_Ship);
 	}
 
 	~ArmorReinforcer()

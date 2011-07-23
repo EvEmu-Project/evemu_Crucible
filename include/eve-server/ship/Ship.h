@@ -31,6 +31,7 @@
 #include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
+#include <vector>
 
 /**
  * Basic container for raw ship type data.
@@ -229,6 +230,7 @@ public:
 	void DeactivateAllModules();
 	void OnlineAll();
 	void SetOwner(Client * client);
+	std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);
 
 
 protected:
