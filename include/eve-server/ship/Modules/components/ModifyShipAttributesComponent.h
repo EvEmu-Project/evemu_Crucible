@@ -25,7 +25,7 @@ public:
 	void ModifyShipAttribute(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type)
 	{
 		//first we must reset the attribute in order to properly recalculate the attribute
-		m_Ship->ResetAttribute(targetAttrID);
+		m_Ship->ResetAttribute(targetAttrID, false);
 
 		//recalculate the attribute for the ship with the new modifier
 		m_Ship->SetAttribute(targetAttrID, _calculateNewValue(targetAttrID, sourceAttrID, type, m_Ship->GetStackedItems(m_Mod->typeID(), m_Mod->GetModulePowerLevel())));
@@ -59,6 +59,7 @@ private:
 		return finalVal;
 	}
 
+	//calculate the new value including the stacking penalty
 	EvilNumber _calculateNewAttributeValue( EvilNumber sourceAttr, EvilNumber targetAttr, EVECalculationType type, int stackNumber )
 	{
 		EvilNumber effectiveness = exp(-pow((double)(stackNumber - 1),2)/7.1289);  //should be correct, but should be checked

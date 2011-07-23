@@ -19,7 +19,6 @@ public:
 
 	~ModuleEffects()
 	{
-
 		//delete arrays
 		delete[] m_Effects;
 		delete[] m_EffectIDs;
@@ -100,61 +99,89 @@ private:
 		void Populate(uint32 effectID)
 		{
 			DBQueryResult *res = new DBQueryResult();
-			ModuleDB::GetDgmEffectsInformation(effectID, *res);
+			ModuleDB::GetDgmEffects(effectID, *res);
 
-			DBResultRow row;
-			if( !res->GetRow(row) )
+			DBResultRow row1;
+			if( !res->GetRow(row1) )
 				sLog.Error("MEffect","Could not populate effect information for effectID: %u", effectID);
 			else
 			{
 				//get all the data from the query
 				m_EffectID = effectID;
-				m_EffectName = row.GetText(0);
-				m_EffectCategory = row.GetInt(1);
-				m_PreExpression = row.GetInt(2);
-				m_PostExpression = row.GetInt(3);
-				if( !row.IsNull(4) )
-					m_Description = row.GetText(4);
-				if( !row.IsNull(5) )
-					m_Guid = row.GetText(5);
-				if( !row.IsNull(6) )
-					m_IconID = row.GetInt(6);
-				m_IsOffensive = row.GetInt(7);
-				m_IsAssistance = row.GetInt(8);
-				if( !row.IsNull(9) )
-					m_DurationAttributeID = row.GetInt(9);
-				if( !row.IsNull(10) )
-					m_TrackingSpeedAttributeID = row.GetInt(10);
-				if( !row.IsNull(11) )
-					m_DischargeAttributeID = row.GetInt(11);
-				if( !row.IsNull(12) )
-					m_RangeAttributeID = row.GetInt(12);
-				if( !row.IsNull(13) )
-					m_FalloffAttributeID = row.GetInt(13);
-				m_DisallowAutoRepeat = row.GetInt(14);
-				m_Published = row.GetInt(15);
-				if( !row.IsNull(16) )
-					m_DisplayName = row.GetText(16);
-				m_IsWarpSafe = row.GetInt(17);
-				m_RangeChance = row.GetInt(18);
-				m_ElectronicChance = row.GetInt(19);
-				m_PropulsionChance = row.GetInt(20);
-				if( !row.IsNull(21) )
-					m_Distribution = row.GetInt(21);
-				if( !row.IsNull(22) )
-					m_SfxName = row.GetText(22);
-				if( !row.IsNull(23) )
-					m_NpcUsageChanceAttributeID = row.GetInt(23);
-				if( !row.IsNull(24) )
-					m_NpcActivationChanceAttributeID = row.GetInt(24);
-				if( !row.IsNull(25) )
-					m_FittingUsageChanceAttributeID = row.GetInt(25);
-
+				m_EffectName = row1.GetText(0);
+				m_EffectCategory = row1.GetInt(1);
+				m_PreExpression = row1.GetInt(2);
+				m_PostExpression = row1.GetInt(3);
+				if( !row1.IsNull(4) )
+					m_Description = row1.GetText(4);
+				if( !row1.IsNull(5) )
+					m_Guid = row1.GetText(5);
+				if( !row1.IsNull(6) )
+					m_IconID = row1.GetInt(6);
+				m_IsOffensive = row1.GetInt(7);
+				m_IsAssistance = row1.GetInt(8);
+				if( !row1.IsNull(9) )
+					m_DurationAttributeID = row1.GetInt(9);
+				if( !row1.IsNull(10) )
+					m_TrackingSpeedAttributeID = row1.GetInt(10);
+				if( !row1.IsNull(11) )
+					m_DischargeAttributeID = row1.GetInt(11);
+				if( !row1.IsNull(12) )
+					m_RangeAttributeID = row1.GetInt(12);
+				if( !row1.IsNull(13) )
+					m_FalloffAttributeID = row1.GetInt(13);
+				m_DisallowAutoRepeat = row1.GetInt(14);
+				m_Published = row1.GetInt(15);
+				if( !row1.IsNull(16) )
+					m_DisplayName = row1.GetText(16);
+				m_IsWarpSafe = row1.GetInt(17);
+				m_RangeChance = row1.GetInt(18);
+				m_ElectronicChance = row1.GetInt(19);
+				m_PropulsionChance = row1.GetInt(20);
+				if( !row1.IsNull(21) )
+					m_Distribution = row1.GetInt(21);
+				if( !row1.IsNull(22) )
+					m_SfxName = row1.GetText(22);
+				if( !row1.IsNull(23) )
+					m_NpcUsageChanceAttributeID = row1.GetInt(23);
+				if( !row1.IsNull(24) )
+					m_NpcActivationChanceAttributeID = row1.GetInt(24);
+				if( !row1.IsNull(25) )
+					m_FittingUsageChanceAttributeID = row1.GetInt(25);
 			}
+
+			//next get the info from the dgmEffectsInfo table
+			ModuleDB::GetDgmEffectsInfo(effectID, *res);
+
+			DBResultRow row2;
+
+			//initialize the new tables
+			m_TargetAttributeIDs = new int[res->GetRowCount()];
+			m_SourceAttributeIDs = new int[res->GetRowCount()];
+			m_CalculationTypeID = new int[res->GetRowCount()];
+
+			//counter
+			int count = 0;
+
+			while( res->GetRow(row2) )
+			{
+				m_TargetAttributeIDs[count] = row2.GetInt(count);
+				m_SourceAttributeIDs[count] = row2.GetInt(count);
+				m_CalculationTypeID[count] = row2.GetInt(count);
+				count++;
+			}
+
+			m_numOfIDs = count;
 
 			delete res;
 			res = NULL;
+
 		}
+
+		int * m_TargetAttributeIDs;
+		int * m_SourceAttributeIDs;
+		int * m_CalculationTypeID;
+		int m_numOfIDs;
 
 		int m_EffectID;
 		std::string m_EffectName;

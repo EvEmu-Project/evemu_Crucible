@@ -97,12 +97,12 @@ public:
 
 	void Online()
 	{
-
+		
 	}
 
 	void Repair()
 	{
-		m_Item->ResetAttribute(AttrHp);
+		m_Item->ResetAttribute(AttrHp, true);
 	}
 
 };

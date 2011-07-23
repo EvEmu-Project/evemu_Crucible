@@ -36,9 +36,8 @@ class ModuleDB : public ServiceDB
 {
 public:
 
-	static void GetDgmEffectsInformation(uint32 effectID, DBQueryResult &res) 
+	static void GetDgmEffects(uint32 effectID, DBQueryResult &res) 
 	{
-
 		if(sDatabase.RunQuery(res,
 			" SELECT "
 			" effectName, " 
@@ -72,14 +71,25 @@ public:
 			effectID))
 		{
 			_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+		}
+	}
 
+	static void GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res)
+	{
+		if(sDatabase.RunQuery(res,
+			" SELECT "
+			" targetAttributeID, "
+			" sourceAttributeID, "
+			" calculationTypeID "
+			" WHERE effectID = '%u' ",
+			effectID))
+		{
+			_log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
 		}
 	}
 
 	static void GetDgmTypeEffectsInformation(uint32 typeID, DBQueryResult &res)
 	{
-
-
 		if(sDatabase.RunQuery(res,
 			" SELECT "
 			" effectID, "
