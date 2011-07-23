@@ -70,8 +70,8 @@ static EvilNumber AddPercent(EvilNumber &val1, EvilNumber &val2)
 
 static EvilNumber AddAsPercent(EvilNumber &val1, EvilNumber &val2)
 {
-	EvilNumber *val3 = new EvilNumber(100);
-	return val1 + ( val1 * val2 / *val3 );
+	EvilNumber val3 = 100;
+	return val1 + ( val1 * val2 / val3 );
 }
 
 static EvilNumber SubtractPercent(EvilNumber &val1, EvilNumber &val2)
@@ -81,10 +81,10 @@ static EvilNumber SubtractPercent(EvilNumber &val1, EvilNumber &val2)
 
 static EvilNumber SubtractAsPercent(EvilNumber &val1, EvilNumber &val2)
 {
-	EvilNumber *val3 = new EvilNumber(1);
-	EvilNumber *val4 = new EvilNumber(100);
+	EvilNumber val3 = 1;
+	EvilNumber val4 = 100;
 
-	return val1 / ( *val3 + ( val2 / *val4 ));
+	return val1 / ( val3 + ( val2 / val4 ));
 }
 
 static EvilNumber CalculateNewAttributeValue(EvilNumber attrVal, EvilNumber attrMod, EVECalculationType type)
