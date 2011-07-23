@@ -110,11 +110,6 @@ public:
 		}
 	}
 
-	void Repair()
-	{
-		m_Item->ResetAttribute(AttrHp, true);
-	}
-
 };
 
 #endif

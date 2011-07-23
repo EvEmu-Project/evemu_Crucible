@@ -45,10 +45,13 @@ public:
 	virtual void Deactivate() = 0;
 	virtual void Load() = 0;
 	virtual void Unload() = 0;
-	virtual void Repair() = 0;
 	virtual void Overload() = 0;
 	virtual void DeOverload() = 0;
 	virtual void DestroyRig() = 0;
+
+
+	void Repair()												{ m_Item->ResetAttribute(AttrHp, true); }
+
 
 	virtual void SetAttribute(uint32 attrID, EvilNumber val)	{ m_Item->SetAttribute(attrID, val); }
 	virtual EvilNumber GetAttribute(uint32 attrID)				{ return m_Item->GetAttribute(attrID); }
