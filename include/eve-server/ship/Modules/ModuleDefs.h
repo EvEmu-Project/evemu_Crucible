@@ -15,6 +15,16 @@ typedef enum ModuleCommand
 	DEOVERLOAD  //idk if this is used
 };
 
+//this may or may not be redundant...idk
+typedef enum ModulePowerLevel
+{
+	HIGH_POWER,
+	MEDIUM_POWER,
+	LOW_POWER,
+	RIG,
+	SUBSYSTEM
+};
+
 //calculation types
 typedef enum EVECalculationType
 {

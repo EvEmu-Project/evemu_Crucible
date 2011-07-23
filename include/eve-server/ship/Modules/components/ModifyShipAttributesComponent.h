@@ -1,29 +1,45 @@
 
 
+
 class ModifyShipAttributesComponent
 {
 public:
-	ModifyShipAttributesComponent(InventoryItemRef item, ShipRef ship)
+	ModifyShipAttributesComponent(GenericModule * mod, ShipRef ship)
 	{
-		m_Item = item;
+		m_Mod = mod;
 		m_Ship = ship;
+	}
+
+	~ModifyShipAttributesComponent()
+	{
+
 	}
 
 	void ModifyShipAttribute(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type)
 	{
-		//need to check for stacking
-		
+		//includes stacking calculation
+		m_Ship->SetAttribute(targetAttrID, _calculateNewValue(targetAttrID, sourceAttrID, type, m_Ship->GetStackedItems(m_Mod->typeID(), )));
 	}
 
 private:
 
-	//probably wrap this into a class
-	int _numberOfStackedItems()
+	EvilNumber _calculateNewValue(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type, GenericModule * mods)
 	{
+		EvilNumber finalAttr;
+		EvilNumber modVal = m_Ship->GetAttribute(targetAttrID);
 
+		for(int i = 0; i < stacked; i++)
+			
+
+
+		EvilNumber finalAttr;
+
+		//consume mods
+		delete[] mods;
+		mods = NULL;
 	}
 
-	InventoryItemRef m_Item;
+	GenericModule *m_Mod;
 	ShipRef m_Ship;
 
 

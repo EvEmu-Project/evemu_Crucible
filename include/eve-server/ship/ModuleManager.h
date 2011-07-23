@@ -177,7 +177,10 @@ public:
 
 	}
 
-	~Effect() { }
+	~Effect() 
+	{
+		delete[] m_SubEffects;
+	}
 
 	void AddEffect(uint32 attributeID, EVECalculationType type, EvilNumber val, uint32 targetItemID = 0)
 	{

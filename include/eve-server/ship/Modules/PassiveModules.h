@@ -3,6 +3,7 @@
 #define PASSIVE_MODULES_H
 
 #include "ship/Modules/Modules.h"
+#include "ship/Modules/components/ModifyShipAttributesComponent.h"
 
 class PassiveModule : public GenericModule
 {
@@ -65,6 +66,9 @@ public:
 	bool isRig()										{ return false; }
 	bool isSubSystem()									{ return false;	}
 
+protected:
+
+
 };
 
 class ArmorReinforcer : public PassiveModule
@@ -79,7 +83,11 @@ public:
 
 	~ArmorReinforcer()
 	{
+		//delete members
+		delete m_Effects;
 
+		//null ptrs
+		m_Effects = NULL;
 	}
 
 	void Offline() 
