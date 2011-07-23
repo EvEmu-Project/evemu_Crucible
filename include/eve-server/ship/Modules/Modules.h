@@ -50,13 +50,14 @@ public:
 	virtual void DeOverload() = 0;
 	virtual void DestroyRig() = 0;
 
-	virtual void SetAttribute(uint32 attrID, EvilNumber val) = 0;
-	virtual EvilNumber GetAttribute(uint32 attrID) = 0;
+	virtual void SetAttribute(uint32 attrID, EvilNumber val)	{ m_Item->SetAttribute(attrID, val); }
+	virtual EvilNumber GetAttribute(uint32 attrID)				{ return m_Item->GetAttribute(attrID); }
 
 	//access functions
-	virtual uint32 itemID() = 0;
-	virtual EVEItemFlags flag() = 0;
-	virtual uint32 typeID() = 0;
+	virtual uint32 itemID()										{ return m_Item->itemID(); }
+	virtual EVEItemFlags flag()									{ return m_Item->flag(); }
+	virtual uint32 typeID()										{ return m_Item->typeID(); }
+	virtual bool isOnline()										{ return (m_Item->GetAttribute(AttrIsOnline) == 1); }
 	virtual bool isHighPower() = 0;
 	virtual bool isMediumPower() = 0;
 	virtual bool isLowPower() = 0;

@@ -245,6 +245,7 @@ public:
 	void ShipJumping();
 	void Process();
 	void ProcessExternalEffect(Effect * e);
+	std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);  //should only be used by components
 	
 private:
 	void _fitModule(InventoryItemRef item);

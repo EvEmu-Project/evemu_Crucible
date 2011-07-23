@@ -550,6 +550,11 @@ void Ship::DeactivateAllModules()
 	m_ModuleManager->DeactivateAllModules();
 }
 
+std::vector<GenericModule *> Ship::GetStackedItems(uint32 typeID, ModulePowerLevel level)
+{
+	return m_ModuleManager->GetStackedItems(typeID, level);
+}
+
 /* End new Module Manager Interface */
 
 using namespace Destiny;

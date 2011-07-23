@@ -2,6 +2,8 @@
 #ifndef MODULE_DEFS_H
 #define MODULE_DEFS_H
 
+#include "inventory/AttributeEnum.h"
+
 //more will go here
 //this is to avoid include complications and multiple dependancies etc..
 typedef enum ModuleCommand

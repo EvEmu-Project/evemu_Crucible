@@ -738,6 +738,58 @@ void ModuleManager::ProcessExternalEffect(Effect * e)
 	}
 }
 
+std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, ModulePowerLevel level)
+{
+	std::vector<GenericModule *> mods;
+	GenericModule * tmp;
+
+	switch(level)
+	{
+	case HIGH_POWER:
+		for(int i = flagHiSlot0; i < flagHiSlot7 + 1; i++)
+		{
+			tmp = m_Modules->GetModule((EVEItemFlags)i);
+			if( tmp->typeID() == typeID && tmp->isOnline() )
+				mods.push_back(tmp);
+		}
+		break;
+	case MEDIUM_POWER:
+		for(int i = flagMedSlot0; i < flagMedSlot7 + 1; i++)
+		{
+			tmp = m_Modules->GetModule((EVEItemFlags)i);
+			if( tmp->typeID() == typeID )
+				mods.push_back(tmp);
+		}
+		break;
+	case LOW_POWER:
+		for(int i = flagLowSlot0; i < flagLowSlot7 + 1; i++)
+		{
+			tmp = m_Modules->GetModule((EVEItemFlags)i);
+			if( tmp->typeID() == typeID )
+				mods.push_back(tmp);
+		}
+		break;
+	case RIG:
+		for(int i = flagRigSlot0; i < flagRigSlot7 + 1; i++)
+		{
+			tmp = m_Modules->GetModule((EVEItemFlags)i);
+			if( tmp->typeID() == typeID )
+				mods.push_back(tmp);
+		}
+		break;
+	case SUBSYSTEM:
+		for(int i = flagSubSystem0; i < flagSubSystem7 + 1; i++)
+		{
+			tmp = m_Modules->GetModule((EVEItemFlags)i);
+			if( tmp->typeID() == typeID )
+				mods.push_back(tmp);
+		}
+		break;
+	}
+
+	return mods;
+}
+
 void ModuleManager::_processExternalEffect(SubEffect * s)
 {
 	//50-50 it's targeting a specific module ( i'm assuming here )
@@ -778,6 +830,8 @@ ModuleCommand ModuleManager::_translateEffectName(std::string s)
 	
 	return CMD_ERROR;
 }
+
+
 
 
 

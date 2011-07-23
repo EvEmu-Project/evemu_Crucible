@@ -52,15 +52,9 @@ public:
 	}
 
 
-
-	void SetAttribute(uint32 attrID, EvilNumber val)		{ m_Item->SetAttribute(attrID, val); }
-	EvilNumber GetAttribute(uint32 attrID)					{ return m_Item->GetAttribute(attrID); }
+	//access functions
 	ModulePowerLevel GetModulePowerLevel()					{ return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }
 
-	//access functions
-	uint32 itemID()											{ return m_Item->itemID(); }
-	EVEItemFlags flag()										{ return m_Item->flag(); }
-	uint32 typeID()											{ return m_Item->typeID(); }
 	bool isHighPower()										{ return m_Effects->isHighSlot(); }
 	bool isMediumPower()									{ return m_Effects->isMediumSlot(); }
 	bool isLowPower()										{ return m_Effects->isLowSlot(); }

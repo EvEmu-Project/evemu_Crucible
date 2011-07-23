@@ -29,6 +29,8 @@ private:
 	{
 		//based on http://wiki.eve-id.net/Stacking
 
+		//first add our owner to the list
+
 		EvilNumber finalAttr;
 		EvilNumber modVal = m_Ship->GetAttribute(targetAttrID);
 
