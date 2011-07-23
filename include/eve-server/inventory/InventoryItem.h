@@ -215,7 +215,7 @@ public:
 	 *
 	 *@note this function will force reload the default value for the specified attribute
 	 */
-	bool ResetAttribute(uint32 attrID);
+	bool ResetAttribute(uint32 attrID, bool notify);
     /************************************************************************/
     /* end experimental new attribute system                                */
     /************************************************************************/

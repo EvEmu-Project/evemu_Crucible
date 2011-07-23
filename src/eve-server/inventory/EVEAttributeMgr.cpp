@@ -482,7 +482,7 @@ bool AttributeMap::SendAttributeChanges( PyTuple* attrChange )
     }
 }
 
-bool AttributeMap::ResetAttribute(uint32 attrID)
+bool AttributeMap::ResetAttribute(uint32 attrID, bool notify)
 {
 	//this isn't particularly efficient, but until I write a better solution, this will do
 	DBQueryResult res;
@@ -508,7 +508,7 @@ bool AttributeMap::ResetAttribute(uint32 attrID)
 			else
 				attrVal = row.GetDouble(3);
 
-			SetAttribute(attributeID, attrVal, false);
+			SetAttribute(attributeID, attrVal, notify);
 		}
 	}
 

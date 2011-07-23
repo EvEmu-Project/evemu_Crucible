@@ -325,7 +325,7 @@ public:
 	 *
 	 *@note this function will force reload the default value for the specified attribute
 	 */
-	bool ResetAttribute(uint32 attrID);
+	bool ResetAttribute(uint32 attrID, bool notify);
 
     //void set_item(InventoryItem *item) {mItem = item;}
 

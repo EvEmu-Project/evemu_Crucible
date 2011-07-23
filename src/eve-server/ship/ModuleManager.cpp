@@ -716,11 +716,13 @@ void ModuleManager::CharacterBoardingShip()
 void ModuleManager::ShipWarping()
 {
 	sLog.Debug("ShipWarping","Needs to be implemented");
+	//need to remove targets and such
 }
 
 void ModuleManager::ShipJumping()
 {
-	m_Modules->OfflineAll();
+	//disable non-warpsafe modules
+
 	//probably should to send a message to the client
 }
 

@@ -83,14 +83,16 @@ public:
 	{
 		//delete members
 		delete m_Effects;
+		delete m_ShipAttrComp;
 
 		//null ptrs
 		m_Effects = NULL;
+		m_ShipAttrComp = NULL;
 	}
 
 	void Offline() 
 	{
-
+		
 	}
 
 	void Online()
@@ -100,7 +102,7 @@ public:
 
 	void Repair()
 	{
-
+		m_Item->ResetAttribute(AttrHp);
 	}
 
 };
