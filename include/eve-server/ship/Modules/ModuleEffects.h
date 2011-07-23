@@ -19,6 +19,7 @@ public:
 
 	~ModuleEffects()
 	{
+
 		//delete arrays
 		delete[] m_Effects;
 		delete[] m_EffectIDs;
@@ -92,7 +93,9 @@ private:
 	class MEffect
 	{
 	public:
-		MEffect() { }
+		MEffect() { /* nothing to do */ }
+
+		~MEffect() { /* nothing to do */ }
 
 		void Populate(uint32 effectID)
 		{

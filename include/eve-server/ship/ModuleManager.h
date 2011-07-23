@@ -131,7 +131,6 @@ private:
 	uint32 m_RigSlots;
 	uint32 m_SubSystemSlots;
 
-	std::map<int,int> m_SameTypes;
 };
 
 #pragma endregion

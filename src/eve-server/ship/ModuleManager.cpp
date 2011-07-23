@@ -39,6 +39,22 @@ ModuleContainer::ModuleContainer(uint32 lowSlots, uint32 medSlots, uint32 highSl
 
 ModuleContainer::~ModuleContainer()
 {
+	//clean up array objects
+	for(int i = 0; i < MAX_HIGH_SLOT_COUNT; i++)
+		delete[] m_HighSlotModules[i];
+
+	for(int i = 0; i < MAX_MEDIUM_SLOT_COUNT; i++)
+		delete[] m_MediumSlotModules[i];
+
+	for(int i = 0; i < MAX_LOW_SLOT_COUNT; i++)
+		delete[] m_LowSlotModules[i];
+
+	for(int i = 0; i < MAX_RIG_COUNT; i++)
+		delete[] m_RigModules[i];
+
+	for(int i = 0; i < MAX_ASSEMBLY_COUNT; i++)
+		delete[] m_SubSystemModules[i];
+
 	//clean up arrays of module pointers
 	delete[] m_LowSlotModules;
 	delete[] m_MediumSlotModules;
