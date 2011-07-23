@@ -177,7 +177,7 @@ public:
     //ItemAttributeMgr attributes;
 
     /************************************************************************/
-    /* start experimental new attribute system ( not operational )          */
+    /* start experimental new attribute system ( semi-operational )         */
     /************************************************************************/
 private:
     AttributeMap mAttributeMap;
@@ -209,6 +209,13 @@ public:
      * @note this should be incorporated into the normal save function and only save when things have changes.
      */
     bool SaveAttributes();
+
+	/*
+	 * ResetAttribute
+	 *
+	 *@note this function will force reload the default value for the specified attribute
+	 */
+	bool ResetAttribute(uint32 attrID);
     /************************************************************************/
     /* end experimental new attribute system                                */
     /************************************************************************/

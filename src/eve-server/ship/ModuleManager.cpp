@@ -757,7 +757,7 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
 		for(int i = flagMedSlot0; i < flagMedSlot7 + 1; i++)
 		{
 			tmp = m_Modules->GetModule((EVEItemFlags)i);
-			if( tmp->typeID() == typeID )
+			if( tmp->typeID() == typeID && tmp->isOnline() )
 				mods.push_back(tmp);
 		}
 		break;
@@ -765,7 +765,7 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
 		for(int i = flagLowSlot0; i < flagLowSlot7 + 1; i++)
 		{
 			tmp = m_Modules->GetModule((EVEItemFlags)i);
-			if( tmp->typeID() == typeID )
+			if( tmp->typeID() == typeID && tmp->isOnline() )
 				mods.push_back(tmp);
 		}
 		break;
@@ -773,7 +773,7 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
 		for(int i = flagRigSlot0; i < flagRigSlot7 + 1; i++)
 		{
 			tmp = m_Modules->GetModule((EVEItemFlags)i);
-			if( tmp->typeID() == typeID )
+			if( tmp->typeID() == typeID && tmp->isOnline() )
 				mods.push_back(tmp);
 		}
 		break;
@@ -781,7 +781,7 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
 		for(int i = flagSubSystem0; i < flagSubSystem7 + 1; i++)
 		{
 			tmp = m_Modules->GetModule((EVEItemFlags)i);
-			if( tmp->typeID() == typeID )
+			if( tmp->typeID() == typeID && tmp->isOnline() )
 				mods.push_back(tmp);
 		}
 		break;

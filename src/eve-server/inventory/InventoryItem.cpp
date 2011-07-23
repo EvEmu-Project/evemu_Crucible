@@ -1010,3 +1010,8 @@ bool InventoryItem::SaveAttributes()
 {
     return mAttributeMap.SaveAttributes();
 }
+
+bool InventoryItem::ResetAttribute(uint32 attrID)
+{
+	return mAttributeMap.ResetAttribute(attrID);
+}
