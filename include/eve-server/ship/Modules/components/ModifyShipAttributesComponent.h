@@ -49,7 +49,7 @@ private:
 		EvilNumber startVal = m_Ship->GetAttribute(targetAttrID);  //start value
 
 		//iterate through all the modules, largest first
-		for(int i = 0; i < mods.size(); i++)
+		for(uint32 i = 0; i < mods.size(); i++)
 		{
 			finalVal = _calculateNewAttributeValue(mods[i]->GetAttribute(sourceAttrID), startVal, type, i );
 			startVal = finalVal; //set the starting value as the calculated value

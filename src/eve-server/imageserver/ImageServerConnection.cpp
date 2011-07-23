@@ -62,7 +62,7 @@ void ImageServerConnection::ProcessHeaders()
 	request = request.substr(5);
 
 	bool found = false;
-	for (int i = 0; i < ImageServer::CategoryCount; i++)
+	for (uint32 i = 0; i < ImageServer::CategoryCount; i++)
 	{
 		if (starts_with(request, ImageServer::Categories[i]))
 		{

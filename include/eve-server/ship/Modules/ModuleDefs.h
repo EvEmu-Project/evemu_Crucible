@@ -35,8 +35,8 @@ typedef enum EVECalculationType
 	DIVIDE,
 	MULTIPLY,
 	ADD_PERCENT,
-	ADD_AS_PERCENT,
 	SUBTRACT_PERCENT,
+	ADD_AS_PERCENT,
 	SUBTRACT_AS_PERCENT
 	//more will show up, im sure
 };

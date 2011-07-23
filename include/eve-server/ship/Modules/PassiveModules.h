@@ -92,12 +92,22 @@ public:
 
 	void Offline() 
 	{
-		
+		//m_Effects->SetActiveEffect(/*Find out what goes here */);
+		m_Effects->SetDefaultEffectAsActive();
+		for(int i = 0; i < m_Effects->GetSizeOfAttributeList(); i++)
+		{
+			m_ShipAttrComp->ModifyShipAttribute(m_Effects->GetTargetAttributeID(i), m_Effects->GetSourceAttributeID(i), m_Effects->GetReverseCalculationType(i));
+		}
 	}
 
 	void Online()
 	{
-		
+		//m_Effects->SetActiveEffect(/*Find out what goes here */);
+		m_Effects->SetDefaultEffectAsActive();
+		for(int i = 0; i < m_Effects->GetSizeOfAttributeList(); i++)
+		{
+			m_ShipAttrComp->ModifyShipAttribute(m_Effects->GetTargetAttributeID(i), m_Effects->GetSourceAttributeID(i), m_Effects->GetCalculationType(i));
+		}
 	}
 
 	void Repair()

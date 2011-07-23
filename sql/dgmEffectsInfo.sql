@@ -24,6 +24,7 @@ CREATE TABLE `dgmeffectsinfo` (
   `targetAttributeID` int(11) NOT NULL,
   `sourceAttributeID` int(11) NOT NULL,
   `calculationTypeID` int(11) NOT NULL,
+  `reverseCalculationTypeID` int(11) NOT NULL,
   PRIMARY KEY (`effectID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 

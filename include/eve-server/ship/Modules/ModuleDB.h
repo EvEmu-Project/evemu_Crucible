@@ -80,7 +80,9 @@ public:
 			" SELECT "
 			" targetAttributeID, "
 			" sourceAttributeID, "
-			" calculationTypeID "
+			" calculationTypeID, "
+			" reverseCalculationTypeID "
+			" FROM dgmEffectsInfo "
 			" WHERE effectID = '%u' ",
 			effectID))
 		{
@@ -94,6 +96,7 @@ public:
 			" SELECT "
 			" effectID, "
 			" isDefault "
+			" FROM dgmTypeEffects "
 			" WHERE typeID = '%u' ",
 			typeID))
 		{

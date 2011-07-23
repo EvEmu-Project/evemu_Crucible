@@ -437,7 +437,7 @@ PyRep *LSCChannel::EncodeChannelMods()
 	ChannelJoinChannelMods info;
     info.lines = new PyList;
 
-	for( int i = 0; i < m_mods.size(); i++ )
+	for( uint32 i = 0; i < m_mods.size(); i++ )
 		info.lines->AddItem( m_mods[i].Encode() );
 
 	return info.Encode();

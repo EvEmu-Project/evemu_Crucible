@@ -86,6 +86,73 @@ public:
 		}
 	}
 
+	//this will need to be reworked to implement a singleton architecture...i'll do it later -luck
+
+	//this class uses a system to set the "active effect" that you want to get information about
+	//returns false if the effect specified is not found
+	bool SetActiveEffect(uint32 effectID)
+	{
+		//iterate through the effects to find the one we want
+		for(int i = 0; i < m_EffectCount; i++)
+		{
+			if(m_EffectIDs[i] == effectID)
+			{
+				m_SelectedEffect = i;
+				return true;
+			}
+
+		}
+
+		return false;
+	}
+
+	bool SetDefaultEffectAsActive()
+	{
+		//iterate through the effects to find the one we want
+		if(m_DefaultEffect != NULL)
+		{
+			m_SelectedEffect = m_DefaultEffect;
+			return true;
+		}
+
+		return false;
+	}
+
+	//accessors for selected effect
+	uint32 GetEffectID()										{ return m_Effects[m_SelectedEffect].m_EffectID; }
+	std::string GetEffectName()									{ return m_Effects[m_SelectedEffect].m_EffectName; }
+	uint32 GetEffectCategory()									{ return m_Effects[m_SelectedEffect].m_EffectCategory; }
+	uint32 GetPreExpression()									{ return m_Effects[m_SelectedEffect].m_PreExpression; }
+	uint32 GetPostExpression()									{ return m_Effects[m_SelectedEffect].m_PostExpression; }
+	std::string GetDescription()								{ return m_Effects[m_SelectedEffect].m_Description; }
+	std::string GetGuid()										{ return m_Effects[m_SelectedEffect].m_Guid; }
+	uint32 GetIconID()											{ return m_Effects[m_SelectedEffect].m_IconID; }
+	bool GetIsOffensive()										{ return m_Effects[m_SelectedEffect].m_IsOffensive == 1; }
+	bool GetIsAssistance()										{ return m_Effects[m_SelectedEffect].m_IsAssistance == 1; }
+	uint32 GetDurationAttributeID()								{ return m_Effects[m_SelectedEffect].m_DurationAttributeID; }
+	uint32 GetTrackingSpeedAttributeID()						{ return m_Effects[m_SelectedEffect].m_TrackingSpeedAttributeID; }
+	uint32 GetDischargeAttributeID()							{ return m_Effects[m_SelectedEffect].m_DischargeAttributeID; }
+	uint32 GetRangeAttributeID()								{ return m_Effects[m_SelectedEffect].m_RangeAttributeID; }
+	uint32 GetFalloffAttributeID()								{ return m_Effects[m_SelectedEffect].m_FalloffAttributeID; }
+	bool GetDisallowAutoRepeat()								{ return m_Effects[m_SelectedEffect].m_DisallowAutoRepeat == 1; }
+	bool GetIsPublished()										{ return m_Effects[m_SelectedEffect].m_Published == 1; }
+	std::string GetDisplayName()								{ return m_Effects[m_SelectedEffect].m_DisplayName; }
+	bool GetIsWarpSafe()										{ return m_Effects[m_SelectedEffect].m_IsWarpSafe == 1; }
+	bool GetRangeChance()										{ return m_Effects[m_SelectedEffect].m_RangeChance == 1; }
+	bool GetPropulsionChance()									{ return m_Effects[m_SelectedEffect].m_PropulsionChance == 1; }
+	bool GetElectronicChance()									{ return m_Effects[m_SelectedEffect].m_ElectronicChance == 1; }
+	uint32 GetDistribution()									{ return m_Effects[m_SelectedEffect].m_Distribution; }
+	std::string GetSfxName()									{ return m_Effects[m_SelectedEffect].m_DisplayName; }
+	uint32 GetNpcUsageChanceAttributeID()						{ return m_Effects[m_SelectedEffect].m_NpcUsageChanceAttributeID; }
+	uint32 GetNpcActivationChanceAttributeID()					{ return m_Effects[m_SelectedEffect].m_NpcActivationChanceAttributeID; }
+	uint32 GetFittingUsageChanceAttributeID()					{ return m_Effects[m_SelectedEffect].m_FittingUsageChanceAttributeID; }
+
+	//accessors for the effects targetAttributeID, sourceAttributeID and calculation type
+	uint32 GetSizeOfAttributeList()								{ return m_Effects[m_SelectedEffect].m_numOfIDs; }
+	uint32 GetTargetAttributeID(uint32 count)					{ return m_Effects[m_SelectedEffect].m_TargetAttributeIDs[count]; }
+	uint32 GetSourceAttributeID(uint32 count)					{ return m_Effects[m_SelectedEffect].m_SourceAttributeIDs[count]; }
+	EVECalculationType GetCalculationType(uint32 count)			{ return (EVECalculationType)m_Effects[m_SelectedEffect].m_CalculationTypeID[count];}
+	EVECalculationType GetReverseCalculationType(uint32 count)	{ return (EVECalculationType)m_Effects[m_SelectedEffect].m_ReverseCalculationTypeID[count];}
 
 private:
 
@@ -159,15 +226,17 @@ private:
 			m_TargetAttributeIDs = new int[res->GetRowCount()];
 			m_SourceAttributeIDs = new int[res->GetRowCount()];
 			m_CalculationTypeID = new int[res->GetRowCount()];
+			m_ReverseCalculationTypeID = new int[res->GetRowCount()];
 
 			//counter
 			int count = 0;
 
 			while( res->GetRow(row2) )
 			{
-				m_TargetAttributeIDs[count] = row2.GetInt(count);
-				m_SourceAttributeIDs[count] = row2.GetInt(count);
-				m_CalculationTypeID[count] = row2.GetInt(count);
+				m_TargetAttributeIDs[count] = row2.GetInt(1);
+				m_SourceAttributeIDs[count] = row2.GetInt(2);
+				m_CalculationTypeID[count] = row2.GetInt(3);
+				m_ReverseCalculationTypeID[count] = row2.GetInt(4);
 				count++;
 			}
 
@@ -181,6 +250,7 @@ private:
 		int * m_TargetAttributeIDs;
 		int * m_SourceAttributeIDs;
 		int * m_CalculationTypeID;
+		int * m_ReverseCalculationTypeID;
 		int m_numOfIDs;
 
 		int m_EffectID;
@@ -259,8 +329,8 @@ private:
 	int m_DefaultEffect;
 
 	//internal counters
-	int m_EffectCount;
-	int m_SelectedEffect;
+	uint32 m_EffectCount;
+	uint32 m_SelectedEffect;
 
 	//cached stuff
 	bool m_HighPower, m_MediumPower, m_LowPower, m_Cached;
