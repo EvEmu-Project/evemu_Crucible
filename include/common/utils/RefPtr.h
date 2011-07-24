@@ -64,8 +64,11 @@ public:
      * @param[in] initRefCount Initial reference count.
      */
     RefObject( size_t initRefCount )
-    : mRefCount( initRefCount ), mDeleted( false )
+    : mRefCount( initRefCount )
     {
+#ifdef ENABLE_REF_TRACE
+         mDeleted = false;
+#endif
     }
 
     /**
@@ -76,8 +79,10 @@ public:
      */
     virtual ~RefObject()
     {
+#ifdef ENABLE_REF_TRACE
         mDeleted = true;
-        assert( 0 == mRefCount );
+#endif
+        assert( mRefCount == 0);
     }
 
 protected:
@@ -98,18 +103,18 @@ protected:
     void DecRef() const
     {
         REF_TRACE_MACRO();
-        assert( 0 < mRefCount );
+        assert( mRefCount > 0 );
         --mRefCount;
 
-        if( 0 == mRefCount )
+        if( mRefCount <= 0 )
             delete this;
     }
 
     /// Reference count of instance.
     mutable size_t mRefCount;
-//#ifdef ENABLE_REF_TRACE
+#ifdef ENABLE_REF_TRACE
     mutable bool mDeleted;
-//#endif
+#endif
 };
 
 /**
