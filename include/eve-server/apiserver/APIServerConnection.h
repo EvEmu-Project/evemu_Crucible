@@ -30,6 +30,10 @@
 #include <vector>
 #include <asio.hpp>
 
+#include "EVEServerPCH.h"
+
+typedef std::vector<std::pair<std::string, std::string>> APICommandCall;
+
 /**
  * \class APIServerConnection
  *
@@ -60,10 +64,10 @@ private:
 	static bool starts_with(std::string& haystack, const char *const needle);
 
 	// request data
-	std::string _category;
-	uint32 _id;
-	uint32 _size;
+	std::string _service;
+    std::string _service_handler;
 	std::string _redirectUrl;
+    APICommandCall m_apiCommandCall;
 
 	asio::streambuf _buffer;
 	asio::ip::tcp::socket _socket;

@@ -226,6 +226,14 @@ public:
 	 *
 	 */
 	static std::wstring CaseFold(std::wstring & str);
+
+	/**
+	 * StringToWString
+	 *
+	 * Converts a std::string to std::wstring
+	 *
+	 */
+    static std::wstring StringToWString(std::string & wstr);
 };
 
 /**

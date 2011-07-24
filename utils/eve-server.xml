@@ -40,11 +40,15 @@ a likely exception to this goal).
     <files>
         <!-- <log>../log/eve-server.log</log> -->
         <!-- <logSettings>../etc/log.ini</logSettings> -->
-        <!-- <cacheDir></cacheDir> -->
+        <!-- <cacheDir>../server_cache</cacheDir> -->
     </files>
 
     <net>
-        <!-- <port>26001</port> -->
+        <!-- <port>26000</port> -->
+		<!-- <imageServerPort>26001</imageServerPort> -->
+		<!-- <imageServer>localhost</imageServer> -->
+		<!-- <apiServerPort>26002</apiServerPort> -->
+		<!-- <apiServer>localhost</apiServer> -->
     </net>
 
 </eve-server>

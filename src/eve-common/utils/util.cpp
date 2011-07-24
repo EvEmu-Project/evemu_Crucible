@@ -825,4 +825,19 @@ std::wstring Strings::CaseFold( std::wstring & str )
 		return CaseFold(s2);
 	return s2;
 }
+
+std::wstring Strings::StringToWString( std::string & str )
+{
+    /* convert from multi byte strings to wide character strings */
+    std::wstring wstr;
+    wstr.resize( str.size() );
+    int ret_len = mbstowcs( &wstr[0], str.c_str(), str.size() );
+
+    if (ret_len != str.size()) {
+
+        sLog.Error("Utils::Strings::StringToWString", "unable to convert std::string to std::wstring, wide character string");
+    }
+    return wstr;
+}
+
 }//namespace Utils
