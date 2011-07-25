@@ -81,6 +81,8 @@ public:
 
 	bool GetCharItems(uint32 characterID, std::vector<uint32> &into);
 
+	bool GetLocationByStation(uint32 staID, CharacterData &cdata);
+
 	bool GetLocationCorporationByCareer(CharacterData &cdata);
 
 	/**
