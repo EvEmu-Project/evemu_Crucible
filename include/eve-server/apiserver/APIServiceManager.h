@@ -59,15 +59,21 @@ protected:
     bool _AuthenticateAPIQuery(std::string userID, std::string apiKey);
 
 	// Internal Utility functions used to make it easier to build the xml document to send back to the client:
-	void _BuildXMLHeader(uint32 cacheStyle);
+	void _BuildXMLHeader();
+    void _CloseXMLHeader(uint32 cacheStyle);
 	void _BuildXMLRowSet(std::string name, std::string key, const std::vector<std::string> * columns);
 	void _CloseXMLRowSet();
 	void _BuildXMLRow(const std::vector<std::string> * columns);
-	void _BuildXMLTag(std::string name, const std::vector<std::string> * params);
+    void _BuildXMLTag(std::string name);
+    void _BuildXMLTag(std::string name, const std::vector<std::pair<std::string, std::string>> * params);
+    void _BuildXMLTag(std::string name, const std::vector<std::pair<std::string, std::string>> * params, std::string value);
 	void _CloseXMLTag();
-	void _BuildXMLErrorTag(uint32 error);
+    void _BuildSingleXMLTag(std::string name, std::string param);
+    void _BuildErrorXMLTag(std::string code, std::string param);
 
-	std::tr1::shared_ptr<TiXmlDocument> _TiXmlDocument;
+	TiXmlDocument _XmlDoc;
+    TiXmlElement * _pXmlDocOuterTag;
+    std::stack<TiXmlElement *> * _pXmlElementStack;
 };
 
 #endif // __APISERVICEMANAGER__H__INCL__
