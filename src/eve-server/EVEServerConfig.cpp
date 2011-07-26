@@ -62,6 +62,7 @@ EVEServerConfig::EVEServerConfig()
     character.startBalance = 6666000000.0f;
 	character.startStation = 60004420;
 	character.startSecRating = 0.0;
+	character.startCorporation = 0;
 
     // database
     database.host = "localhost";
@@ -142,12 +143,14 @@ bool EVEServerConfig::ProcessCharacter( const TiXmlElement* ele )
     AddValueParser( "startBalance", character.startBalance );
     AddValueParser( "startStation", character.startStation );
     AddValueParser( "startSecRating", character.startSecRating );
+    AddValueParser( "startCorporation", character.startCorporation );
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "startBalance" );
     RemoveParser( "startStation" );
     RemoveParser( "startSecRating" );
+    RemoveParser( "startCorporation" );
 
     return result;
 }

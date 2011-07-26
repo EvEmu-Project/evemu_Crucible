@@ -70,6 +70,8 @@ public:
 		uint32 startStation;
 		/// Starting security rating for new characters.
 		double startSecRating;
+		/// Starting corp ID for new characters
+		uint32 startCorporation;
     } character;
 
     // From <database/>

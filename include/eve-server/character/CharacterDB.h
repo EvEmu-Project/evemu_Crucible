@@ -83,7 +83,11 @@ public:
 
 	bool GetLocationByStation(uint32 staID, CharacterData &cdata);
 
+	bool GetCareerBySchool(uint32 schoolID, uint32 &careerID);
+
 	bool GetLocationCorporationByCareer(CharacterData &cdata);
+
+	bool DoesCorporationExist(uint32 corpID);
 
 	/**
 	 * Obtains attribute bonuses for given ancestry.

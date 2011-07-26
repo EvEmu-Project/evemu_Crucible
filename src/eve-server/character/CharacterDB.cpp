@@ -358,6 +358,33 @@ bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligen
 	return (true);
 }
 
+bool CharacterDB::GetCareerBySchool(uint32 schoolID, uint32 &careerID) {
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res, 
+	 "SELECT "
+	 " careerID, "
+	 " schoolID, "
+	 " raceID "
+	 " FROM careers"
+	 " WHERE schoolID = %u", schoolID))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		return (false);
+	}
+	
+	
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		codelog(SERVICE__ERROR, "Failed to find matching career for school %u", schoolID);
+		return false;
+	}
+
+	careerID = row.GetInt(0);
+
+	return (true);
+}
+
+
 /**
   * @todo Here should come a call to Corp??::CharacterJoinToCorp or what the heck... for now we only put it there
   */
@@ -429,6 +456,28 @@ bool CharacterDB::GetLocationByStation(uint32 staID, CharacterData &cdata) {
 	return (true);
 
 }
+
+bool CharacterDB::DoesCorporationExist(uint32 corpID) {
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res, 
+	 "SELECT "
+	 "  corporationID, "
+	 "  corporationName "
+	 " FROM corporation"
+	 " WHERE corporationID = %u", corpID))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		return false;
+	}
+	
+	DBResultRow row;
+	if(!res.GetRow(row)) {
+		codelog(SERVICE__ERROR, "Failed to find corporation %u", corpID);
+		return false;
+	}
+	return true;
+}
+
 
 bool CharacterDB::GetSkillsByRace(uint32 raceID, std::map<uint32, uint32> &into) {
 	DBQueryResult res;
