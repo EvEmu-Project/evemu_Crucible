@@ -286,7 +286,7 @@ void ModuleContainer::_processEx(processType p, slotType t)
 	case typeOfflineAll:
 		for(r = 0; r < COUNT; r++, cur++)
 		{
-			if(*cur == NULL)
+			if(cur == NULL)
 				continue;
 
 			(*cur)->Offline();
@@ -497,6 +497,21 @@ void ModuleContainer::_initializeModuleContainers()
 	m_LowSlotModules = new GenericModule*[MAX_LOW_SLOT_COUNT];
 	m_RigModules = new GenericModule*[MAX_RIG_COUNT];
 	m_SubSystemModules = new GenericModule*[MAX_ASSEMBLY_COUNT];
+
+	for(int i = 0; i < MAX_HIGH_SLOT_COUNT; i++)
+		m_HighSlotModules[i] = NULL;
+
+	for(int i = 0; i < MAX_MEDIUM_SLOT_COUNT; i++)
+		m_MediumSlotModules[i] = NULL;
+
+	for(int i = 0; i < MAX_LOW_SLOT_COUNT; i++)
+		m_LowSlotModules[i] = NULL;
+
+	for(int i = 0; i < MAX_RIG_COUNT; i++)
+		m_RigModules[i] = NULL;
+
+	for( int i = 0; i < MAX_ASSEMBLY_COUNT; i++)
+		m_SubSystemModules[i] = NULL;
 
 }
 #pragma endregion

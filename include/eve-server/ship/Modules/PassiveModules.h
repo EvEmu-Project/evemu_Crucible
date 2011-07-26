@@ -11,55 +11,10 @@ public:
 	PassiveModule() { }
 	~PassiveModule() { }
 
-	void Process()
-	{
-		//does nothing for passive modules
-	}
-
-	void Activate()
-	{
-		//does nothing for passive modules
-	}
-
-	void Deactivate()
-	{
-		//does nothing for passive modules
-	}
-
-	void Load()
-	{
-		//does nothing
-	}
-
-	void Unload()
-	{
-		//does nothing
-	}
-
-	void Overload()
-	{
-		//does nothing
-	}
-
-	void DeOverload()
-	{
-		//does nothing
-	}
-
-	void DestroyRig()
-	{
-		//not a rig
-	}
-
 
 	//access functions
-	ModulePowerLevel GetModulePowerLevel()					{ return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }
+	
 
-	bool isHighPower()										{ return m_Effects->isHighSlot(); }
-	bool isMediumPower()									{ return m_Effects->isMediumSlot(); }
-	bool isLowPower()										{ return m_Effects->isLowSlot(); }
-	bool isRig()											{ return false; }
-	bool isSubSystem()										{ return false;	}
 
 	
 

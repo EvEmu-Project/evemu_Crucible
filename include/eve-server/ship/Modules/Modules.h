@@ -38,20 +38,20 @@ public:
 	GenericModule() { }
 	virtual ~GenericModule() { }
 
-	virtual void Process() = 0;
-	virtual void Offline() = 0;
-	virtual void Online() = 0;
-	virtual void Activate() = 0;
-	virtual void Deactivate() = 0;
-	virtual void Load() = 0;
-	virtual void Unload() = 0;
-	virtual void Overload() = 0;
-	virtual void DeOverload() = 0;
-	virtual void DestroyRig() = 0;
+	virtual void Process() { }
+	virtual void Offline() { }
+	virtual void Online() { }
+	virtual void Activate() { }
+	virtual void Deactivate() { }
+	virtual void Load() { }
+	virtual void Unload() { } 
+	virtual void Overload() { }
+	virtual void DeOverload() { }
+	virtual void DestroyRig() { }
 
 
 	virtual void Repair()										{ m_Item->ResetAttribute(AttrHp, true); }
-
+	virtual void Repair(EvilNumber amount)						{ m_Item->SetAttribute(AttrHp, m_Item->GetAttribute(AttrHp) + amount); }
 
 	virtual void SetAttribute(uint32 attrID, EvilNumber val)	{ m_Item->SetAttribute(attrID, val); }
 	virtual EvilNumber GetAttribute(uint32 attrID)				{ return m_Item->GetAttribute(attrID); }
@@ -61,12 +61,18 @@ public:
 	virtual EVEItemFlags flag()									{ return m_Item->flag(); }
 	virtual uint32 typeID()										{ return m_Item->typeID(); }
 	virtual bool isOnline()										{ return (m_Item->GetAttribute(AttrIsOnline) == 1); }
-	virtual bool isHighPower() = 0;
-	virtual bool isMediumPower() = 0;
-	virtual bool isLowPower() = 0;
-	virtual bool isRig() = 0;
-	virtual bool isSubSystem() = 0;
-	virtual ModulePowerLevel GetModulePowerLevel() = 0; //shouldn't need this for normal use
+	bool isHighPower()											{ return m_Effects->isHighSlot(); }
+	bool isMediumPower()										{ return m_Effects->isMediumSlot(); }
+	bool isLowPower()											{ return m_Effects->isLowSlot(); }
+	bool isRig() 
+	{
+		uint32 i = m_Item->categoryID();
+		return ( (i >= 773 && i <= 782) || (i == 786) || (i == 787) || (i == 896) || (i == 904) );
+	}
+	bool isSubSystem()											{ return (m_Item->categoryID() == EVEItemCategories::Subsystem); }
+
+	//override for rigs and subsystems
+	virtual ModulePowerLevel GetModulePowerLevel()				{ return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }  
 
 protected:
 	InventoryItemRef m_Item;

@@ -575,7 +575,6 @@ void InventoryItem::Delete() {
     //delete ourselves from factory cache
     m_factory._DeleteItem( itemID() );
 }
-
 PyPackedRow* InventoryItem::GetItemRow() const
 {
 	DBRowDescriptor* header = new DBRowDescriptor;
@@ -591,9 +590,62 @@ PyPackedRow* InventoryItem::GetItemRow() const
 	header->AddColumn( "customInfo", DBTYPE_STR );
 
 	PyPackedRow* row = new PyPackedRow( header );
-    GetItemRow( row );
-    return row;
+	GetItemRow( row );
+
+	return row;
 }
+
+/*
+PyTuple* InventoryItem::GetItemRow() const
+{
+	PyTuple * res = NULL;
+
+	PyTuple *tuple0 = new PyTuple(3);
+
+	//add the header description
+	tuple0->items[0] = new PyString("blue.DBRowDescriptor");
+
+	//create the DBRowDescription
+	DBRowDescriptor* header = new DBRowDescriptor;
+	header->AddColumn( "itemID",     DBTYPE_I4 );
+	header->AddColumn( "typeID",     DBTYPE_I2 );
+	header->AddColumn( "ownerID",    DBTYPE_I4 );
+	header->AddColumn( "locationID", DBTYPE_I4 );
+	header->AddColumn( "flagID",     DBTYPE_I2 );
+	header->AddColumn( "singleton",  DBTYPE_BOOL );
+	header->AddColumn( "quantity",   DBTYPE_I4 );
+	header->AddColumn( "groupID",    DBTYPE_I2 );
+	header->AddColumn( "categoryID", DBTYPE_UI1 );
+	header->AddColumn( "customInfo", DBTYPE_STR );
+
+	PyPackedRow* row = new PyPackedRow( header );
+    GetItemRow( row );
+
+	tuple0->items[1] = row;
+
+	//create the final information
+	PyList *list0 = new PyList(2);
+	PyTuple *tuple1 = new PyTuple(2);
+	
+	tuple1->items[0] = new PyString("stacksize");
+	tuple1->items[1] = new PyString("util.StackSize");
+
+	list0->items[0] = tuple1;
+	
+	PyTuple *tuple2 = new PyTuple(2);
+	
+	tuple2->items[0] = new PyString("singleton");
+	tuple2->items[1] = new PyString("util.Singleton");
+
+	list0->items[1] = tuple2;
+
+	tuple0->items[2] = list0;
+
+	res = tuple0;
+
+    return res;
+}
+*/
 
 void InventoryItem::GetItemRow( PyPackedRow* into ) const
 {
