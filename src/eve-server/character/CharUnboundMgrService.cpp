@@ -201,14 +201,6 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
         return NULL;
     }
 
-    //NOTE: these are currently hard coded to Todaki because other things are
-    //also hard coded to only work in Todaki. Once these various things get fixed,
-    //just take this code out and the above calls should have cdata populated correctly.
-    //cdata.stationID = idata.locationID = 60004420;
-    //cdata.solarSystemID = 30001407;
-    //cdata.constellationID = 20000206;
-    //cdata.regionID = 10000016;
-
 	// Added ability to set starting station in xml config by Pyrii
 	if( sConfig.character.startStation ) { // Skip if 0
 		if( !m_db.GetLocationByStation(sConfig.character.startStation, cdata) ) {

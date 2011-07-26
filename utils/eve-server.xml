@@ -32,8 +32,9 @@ a likely exception to this goal).
 
     <character>
         <!-- <startBalance>6666000000.0</startBalance> -->
-        <!-- <startStation>60004420</startStation> -->
+        <!-- <startStation>0</startStation> -->
         <!-- <startSecRating>0.0</startSecRating> -->
+        <!-- <startCorporation>0</startCorporation> -->
     </character>
 
     <database>
