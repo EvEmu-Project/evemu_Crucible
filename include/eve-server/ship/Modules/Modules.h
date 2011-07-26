@@ -36,18 +36,25 @@ class GenericModule
 {
 public:
 	GenericModule() { }
-	virtual ~GenericModule() { }
+	virtual ~GenericModule() 
+	{
+		//warn user - yes be obnoxious
+		sLog.Error("GenericModule","MEMORY LEAK!");
 
-	virtual void Process() { }
-	virtual void Offline() { }
-	virtual void Online() { }
-	virtual void Activate() { }
-	virtual void Deactivate() { }
-	virtual void Load() { }
-	virtual void Unload() { } 
-	virtual void Overload() { }
-	virtual void DeOverload() { }
-	virtual void DestroyRig() { }
+		//force the users to override the inherited destructor
+		assert(false); //crash if they don't
+	}
+
+	virtual void Process()										{ /* Do nothing here */ }
+	virtual void Offline()										{ /* Do nothing here */ }
+	virtual void Online()										{ /* Do nothing here */ }
+	virtual void Activate()										{ /* Do nothing here */ }
+	virtual void Deactivate()									{ /* Do nothing here */ }
+	virtual void Load()											{ /* Do nothing here */ }
+	virtual void Unload()										{ /* Do nothing here */ } 
+	virtual void Overload()										{ /* Do nothing here */ }
+	virtual void DeOverload()									{ /* Do nothing here */ }
+	virtual void DestroyRig()									{ /* Do nothing here */ }
 
 
 	virtual void Repair()										{ m_Item->ResetAttribute(AttrHp, true); }
@@ -61,15 +68,17 @@ public:
 	virtual EVEItemFlags flag()									{ return m_Item->flag(); }
 	virtual uint32 typeID()										{ return m_Item->typeID(); }
 	virtual bool isOnline()										{ return (m_Item->GetAttribute(AttrIsOnline) == 1); }
-	bool isHighPower()											{ return m_Effects->isHighSlot(); }
-	bool isMediumPower()										{ return m_Effects->isMediumSlot(); }
-	bool isLowPower()											{ return m_Effects->isLowSlot(); }
-	bool isRig() 
+	virtual bool isHighPower()									{ return m_Effects->isHighSlot(); }
+	virtual bool isMediumPower()								{ return m_Effects->isMediumSlot(); }
+	virtual bool isLowPower()									{ return m_Effects->isLowSlot(); }
+
+	virtual bool isRig() 
 	{
 		uint32 i = m_Item->categoryID();
-		return ( (i >= 773 && i <= 782) || (i == 786) || (i == 787) || (i == 896) || (i == 904) );
+		return ( (i >= 773 && i <= 782) || (i == 786) || (i == 787) || (i == 896) || (i == 904) );  //need to use enums, but the enum system is a huge mess
 	}
-	bool isSubSystem()											{ return (m_Item->categoryID() == EVEItemCategories::Subsystem); }
+
+	virtual bool isSubSystem()									{ return (m_Item->categoryID() == EVEItemCategories::Subsystem); }
 
 	//override for rigs and subsystems
 	virtual ModulePowerLevel GetModulePowerLevel()				{ return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }  

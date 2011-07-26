@@ -1,6 +1,32 @@
+/*
+	------------------------------------------------------------------------------------
+	LICENSE:
+	------------------------------------------------------------------------------------
+	This file is part of EVEmu: EVE Online Server Emulator
+	Copyright 2006 - 2011 The EVEmu Team
+	For the latest information visit http://evemu.org
+	------------------------------------------------------------------------------------
+	This program is free software; you can redistribute it and/or modify it under
+	the terms of the GNU Lesser General Public License as published by the Free Software
+	Foundation; either version 2 of the License, or (at your option) any later
+	version.
+
+	This program is distributed in the hope that it will be useful, but WITHOUT
+	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License along with
+	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+	http://www.gnu.org/copyleft/lesser.txt.
+	------------------------------------------------------------------------------------
+	Author:		Luck
+*/
 
 #include "ActiveModules.h"
 #include "PassiveModules.h"
+#include "RigModule.h"
+#include "SubSystemModules.h"
 
 //how you should access the modules
 static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
@@ -111,12 +137,12 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
 		case EVEDB::invGroups::Gang_Coordinator:
 		case EVEDB::invGroups::Computer_Interface_Node:
 		case EVEDB::invGroups::Armor_Plating_Energized:
-		case EVEDB::invGroups::Armor_Reinforcer:  new ArmorReinforcer(item, ship); break;
+		case EVEDB::invGroups::Armor_Reinforcer:  new PassiveModule(item, ship); break;
 		case EVEDB::invGroups::Shield_Boost_Amplifier:
-		case EVEDB::invGroups::Auxiliary_Power_Core:
+		case EVEDB::invGroups::Auxiliary_Power_Core: new PassiveModule(item, ship); break;
 		case EVEDB::invGroups::GM_Modules:
 		case EVEDB::invGroups::DroneBayExpander:
-		case EVEDB::invGroups::Ballistic_Control_system:
+		case EVEDB::invGroups::Ballistic_Control_system: new PassiveModule(item, ship); break;
 		case EVEDB::invGroups::Cruise_Control:		
 		case EVEDB::invGroups::Smartbomb_Supercharger:
 		case EVEDB::invGroups::Drone_Control_Unit:		
@@ -149,23 +175,23 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
 		case EVEDB::invGroups::Cloak_Enhancements:	
 		case EVEDB::invGroups::Mining_Enhancer:
 
-			/************************************/
-			/*			   Rigs                 */
-			/************************************/
+		/************************************/
+		/*			   Rigs                 */
+		/************************************/
 
-		case EVEDB::invGroups::Rig_Armor:
-		case EVEDB::invGroups::Rig_Shield:
-		case EVEDB::invGroups::Rig_Energy_Weapon:
-		case EVEDB::invGroups::Rig_Hybrid_Weapon:
-		case EVEDB::invGroups::Rig_Projectile_Weapon:
-		case EVEDB::invGroups::Rig_Drones:
-		case EVEDB::invGroups::Rig_Launcher:
-		case EVEDB::invGroups::Rig_Electronics:
-		case EVEDB::invGroups::Rig_Energy_Grid:
-		case EVEDB::invGroups::Rig_Astronautic:
-		case EVEDB::invGroups::Rig_Electronics_Superiority:
-		case EVEDB::invGroups::Rig_Mining:
-		case EVEDB::invGroups::Rig_Security_Transponder:
+		case EVEDB::invGroups::Rig_Armor:									return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Shield:									return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Energy_Weapon:							return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Hybrid_Weapon:							return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Projectile_Weapon:						return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Drones:									return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Launcher:								return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Electronics:								return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Energy_Grid:								return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Astronautic:								return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Electronics_Superiority:					return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Mining:									return new RigModule(item, ship);
+		case EVEDB::invGroups::Rig_Security_Transponder:					return new RigModule(item, ship);
 
 			break;
 		}
