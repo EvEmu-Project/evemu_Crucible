@@ -8,9 +8,9 @@ class ModifyShipAttributesComponent
 {
 public:
 	ModifyShipAttributesComponent(GenericModule * mod, ShipRef ship)
+	: m_Mod( mod ), m_Ship( ship )
 	{
-		m_Mod = mod;
-		m_Ship = ship;
+
 	}
 
 	~ModifyShipAttributesComponent()

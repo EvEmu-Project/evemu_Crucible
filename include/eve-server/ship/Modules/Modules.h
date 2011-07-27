@@ -50,7 +50,7 @@ public:
 	virtual void Online()										{ /* Do nothing here */ }
 	virtual void Activate()										{ /* Do nothing here */ }
 	virtual void Deactivate()									{ /* Do nothing here */ }
-	virtual void Load()											{ /* Do nothing here */ }
+	virtual void Load(InventoryItemRef charge)					{ /* Do nothing here */ }
 	virtual void Unload()										{ /* Do nothing here */ } 
 	virtual void Overload()										{ /* Do nothing here */ }
 	virtual void DeOverload()									{ /* Do nothing here */ }

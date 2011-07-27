@@ -12,7 +12,16 @@ public:
 
 	}
 
-	virtual ~ActiveModule() { }
+	virtual ~ActiveModule() 
+	{
+		//delete members
+		delete m_Effects;
+		delete m_ShipAttrComp;
+
+		//null ptrs
+		m_Effects = NULL;
+		m_ShipAttrComp = NULL;
+	}
 
 	//should define process
 
@@ -27,7 +36,10 @@ public:
 	bool isLowPower()										{ return m_Effects->isLowSlot(); }
 	bool isRig()											{ return false; }
 	bool isSubSystem()										{ return false; }
+	bool requiresTarget()									{ return m_Effects->GetIsAssistance() || m_Effects->GetIsOffensive(); }
 
+protected:
+	ModifyShipAttributesComponent m_ShipAttrComp;
 };
 
 
@@ -39,6 +51,8 @@ public:
 	{
 		m_Item = item;
 		m_Ship = ship;
+		m_Effects = new ModuleEffects(m_Item->typeID());
+		m_ShipAttrComp = new ModifyShipAttributesComponent(this, ship);
 	}
 
 	~Afterburner()
