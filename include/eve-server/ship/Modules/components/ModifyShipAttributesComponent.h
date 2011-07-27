@@ -1,4 +1,6 @@
 
+#ifndef MODIFY_SHIP_ATTRIBUTES_COMPONENT_H
+#define MODIFY_SHIP_ATTRIBUTES_COMPONENT_H
 
 #include <vector>
 #include <cmath>
@@ -124,3 +126,5 @@ private:
 	ShipRef m_Ship;
 
 };
+
+#endif

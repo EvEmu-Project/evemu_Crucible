@@ -30,6 +30,8 @@
 #include "ship/Modules/ModuleDefs.h"
 #include "ship/Modules/ModuleEffects.h"
 
+
+
 //generic module base class - possibly should inherit from RefPtr...
 
 class GenericModule
