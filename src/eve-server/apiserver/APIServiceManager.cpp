@@ -31,65 +31,97 @@ APIServiceManager::APIServiceManager()
 {
     _pXmlDocOuterTag = NULL;
     _pXmlElementStack = NULL;
+    _CurrentRowSetColumnString = "";
 }
 
 std::tr1::shared_ptr<std::string> APIServiceManager::ProcessCall(const APICommandCall * pAPICommandCall)
 {
     sLog.Debug("APIServiceManager::ProcessCall()", "EVEmu API - Default Service Manager");
 
-/*
-    TiXmlDocument retXml;
-    TiXmlDeclaration * decl = new TiXmlDeclaration( "1.0", "UTF-8", "" );
-    retXml.LinkEndChild( decl );
+    // EXAMPLE OF USING ALL FEATURES OF THE INHERITED APISERVICEMANAGER XML BUILDING HELPER FUNCTIONS:
+    /*
+    std::vector<std::string> rowset;
+    _BuildXMLHeader();
+    {
+        _BuildErrorXMLTag( "500", "EVEmu: Invalid Service Manager Specified." );
 
-    TiXmlElement * eveapi = new TiXmlElement( "eveapi" );
-    retXml.LinkEndChild( eveapi );
-    eveapi->SetAttribute( "version", "2" );
+        _BuildXMLTag( "attributes" );
+        {
+            _BuildXMLTag( "Aknor_Jaden" );
+            {
+                _BuildSingleXMLTag( "intelligence", "6" );
+                _BuildSingleXMLTag( "memory", "4" );
+                _BuildSingleXMLTag( "charisma", "7" );
+                _BuildSingleXMLTag( "perception", "12" );
+                _BuildSingleXMLTag( "willpower", "10" );
+            }
+            _CloseXMLTag(); // close "Aknor_Jaden" tag
+        }
+        _CloseXMLTag(); // close "attributes" tag
 
-    TiXmlElement * currentTime = new TiXmlElement( "currentTime" );
-    currentTime->LinkEndChild( new TiXmlText( Win32TimeToString(Win32TimeNow()).c_str() ));
-    eveapi->LinkEndChild( currentTime );
+        rowset.push_back("typeID");
+        rowset.push_back("skillpoints");
+        rowset.push_back("level");
+        rowset.push_back("published");
+        _BuildXMLRowSet( "skills", "typeID", &rowset );
+        {
+            rowset.clear();
+            rowset.push_back("3431");
+            rowset.push_back("8000");
+            rowset.push_back("3");
+            rowset.push_back("1");
+            _BuildXMLRow( &rowset );
+            rowset.clear();
+            rowset.push_back("3413");
+            rowset.push_back("8000");
+            rowset.push_back("3");
+            rowset.push_back("1");
+            _BuildXMLRow( &rowset );
+            rowset.clear();
+            rowset.push_back("21059");
+            rowset.push_back("500");
+            rowset.push_back("1");
+            rowset.push_back("1");
+            _BuildXMLRow( &rowset );
+            rowset.clear();
+            rowset.push_back("3416");
+            rowset.push_back("8000");
+            rowset.push_back("3");
+            rowset.push_back("1");
+            _BuildXMLRow( &rowset );
+            rowset.clear();
+            rowset.push_back("3445");
+            rowset.push_back("512000");
+            rowset.push_back("5");
+            rowset.push_back("0");
+            _BuildXMLRow( &rowset );
+        }
+        _CloseXMLRowSet();  // close rowset "skils"
 
-    TiXmlElement * error = new TiXmlElement( "error" );
-    error->SetAttribute( "code", "500" );
-    error->LinkEndChild( new TiXmlText( "EVEmu: Invalid Service Manager Specified." ));
-    eveapi->LinkEndChild( error );
-
-    TiXmlElement * tag = new TiXmlElement( "attributeEnhancers" );
-    TiXmlElement * innerTag1 = new TiXmlElement( "intelligence" );
-    innerTag1->LinkEndChild( new TiXmlText( "6" ));
-    TiXmlElement * innerTag2 = new TiXmlElement( "memory" );
-    innerTag2->LinkEndChild( new TiXmlText( "4" ));
-    TiXmlElement * innerTag3 = new TiXmlElement( "charisma" );
-    innerTag3->LinkEndChild( new TiXmlText( "7" ));
-    TiXmlElement * innerTag4 = new TiXmlElement( "perception" );
-    innerTag4->LinkEndChild( new TiXmlText( "12" ));
-    TiXmlElement * innerTag5 = new TiXmlElement( "willpower" );
-    innerTag5->LinkEndChild( new TiXmlText( "10" ));
-    tag->LinkEndChild( innerTag1 );
-    tag->LinkEndChild( innerTag2 );
-    tag->LinkEndChild( innerTag3 );
-    tag->LinkEndChild( innerTag4 );
-    tag->LinkEndChild( innerTag5 );
-    eveapi->LinkEndChild( tag );
-
-    TiXmlElement * cachedUntil = new TiXmlElement( "cachedUntil" );
-    cachedUntil->LinkEndChild( new TiXmlText( Win32TimeToString(Win32TimeNow() + 5*Win32Time_Minute).c_str() ));
-    eveapi->LinkEndChild( cachedUntil );
-
-    TiXmlPrinter xmlPrinter;
-    retXml.Accept( &xmlPrinter );
-*/
+        _BuildXMLTag( "attributeEnhancers" );
+        {
+            _BuildXMLTag( "memoryBonus" );
+            {
+                _BuildSingleXMLTag( "augmentatorName", "Memory Augmentation - Basic" );
+                _BuildSingleXMLTag( "augmentatorValue", "3" );
+            }
+            _CloseXMLTag(); // close tag "memoryBonus"
+            _BuildXMLTag( "perceptionBonus" );
+            {
+                _BuildSingleXMLTag( "augmentatorName", "Ocular Filter - Basic" );
+                _BuildSingleXMLTag( "augmentatorValue", "5" );
+            }
+            _CloseXMLTag(); // close tag "perceptionBonus"
+        }
+        _CloseXMLTag(); // close tag "attributeEnhancers"
+    }
+    _CloseXMLHeader( API_CACHE_STYLE_MODIFIED );
+    */
 
     _BuildXMLHeader();
-    _BuildErrorXMLTag( "500", "EVEmu: Invalid Service Manager Specified." );
-    _BuildXMLTag( "attributeEnhancers" );
-    _BuildSingleXMLTag( "intelligence", "6" );
-    _BuildSingleXMLTag( "memory", "4" );
-    _BuildSingleXMLTag( "charisma", "7" );
-    _BuildSingleXMLTag( "perception", "12" );
-    _BuildSingleXMLTag( "willpower", "10" );
-    _CloseXMLTag(); // close "attributeEnhancers" tag
+    {
+        _BuildErrorXMLTag( "500", "EVEmu: Invalid Service Manager Specified." );
+    }
     _CloseXMLHeader( API_CACHE_STYLE_MODIFIED );
 
     TiXmlPrinter xmlPrinter;
@@ -107,10 +139,12 @@ void APIServiceManager::_BuildXMLHeader()
 {
     // Build header at beginning of XML document, so clear existing xml document
     _XmlDoc.Clear();
-    if( _pXmlDocOuterTag != NULL )
-        delete _pXmlDocOuterTag;
+    // object pointed to by '_pXmlDocOuterTag' is automatically deleted by the TinyXML system with the above call
     if( _pXmlElementStack != NULL )
+    {
         delete _pXmlElementStack;
+        _pXmlElementStack = NULL;
+    }
     _pXmlElementStack = new std::stack<TiXmlElement *>();
 
     TiXmlDeclaration * decl = new TiXmlDeclaration( "1.0", "UTF-8", "" );
@@ -146,14 +180,49 @@ void APIServiceManager::_CloseXMLHeader(uint32 cacheStyle)
 
 void APIServiceManager::_BuildXMLRowSet(std::string name, std::string key, const std::vector<std::string> * columns)
 {
+    TiXmlElement * rowset = new TiXmlElement( "rowset" );
+
+    std::vector<std::string>::const_iterator current, end;
+    rowset->SetAttribute( "name", name.c_str() );
+    rowset->SetAttribute( "key", key.c_str() );
+    current = columns->begin();
+    end = columns->end();
+    _CurrentRowSetColumnString = *current;
+    ++current;
+	for(; current != end; ++current)
+    {
+        _CurrentRowSetColumnString += ",";
+        _CurrentRowSetColumnString += *current;
+    }
+    rowset->SetAttribute( "columns", _CurrentRowSetColumnString.c_str() );
+
+    _pXmlElementStack->push( rowset );
 }
 
 void APIServiceManager::_CloseXMLRowSet()
 {
+    _CloseXMLTag();
 }
 
 void APIServiceManager::_BuildXMLRow(const std::vector<std::string> * columns)
 {
+    TiXmlElement * row = new TiXmlElement( "row" );
+
+    std::vector<std::string>::const_iterator current, end;
+    std::string column_string = _CurrentRowSetColumnString;
+    std::string column_name;
+    int pos=0;
+    int pos2=0;
+    current = columns->begin();
+    end = columns->end();
+	for(; current != end; ++current)
+    {
+        pos = column_string.find_first_of(",");
+        column_name = column_string.substr(0,pos);
+        column_string = column_string.substr(pos+1);
+        row->SetAttribute( column_name.c_str(), current->c_str() );
+    }
+    _pXmlElementStack->top()->LinkEndChild( row );
 }
 
 void APIServiceManager::_BuildXMLTag(std::string name)
@@ -217,6 +286,6 @@ void APIServiceManager::_CloseXMLTag()
     else
     {
         TiXmlElement * _pNextTopElement = _pXmlElementStack->top();
-        _pTopElement->LinkEndChild( _pTopElement );
+        _pNextTopElement->LinkEndChild( _pTopElement );
     }
 }
