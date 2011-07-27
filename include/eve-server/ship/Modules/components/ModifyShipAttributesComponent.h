@@ -18,20 +18,44 @@ public:
 		//nothing to do yet
 	}
 
+	//modify our ship
+	void ModifyShipAttribute(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type)
+	{
+		_modifyShipAttributes(m_Ship, targetAttrID, sourceAttrID, type);
+	}
+
+	//modify target ship
+	void ModifyTargetShipAttribute(uint32 targetItemID, uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type )
+	{
+		//find the ship
+		ShipRef target = m_Ship->GetItemFactory()->GetShip(targetItemID);
+
+		//check if we found the ship
+		if( target == NULL)
+		{
+			sLog.Error("ModifyShipAttributesComponent","Failed to find target ship %u", targetItemID);
+			return;
+		}
+
+		//modify the attributes properly
+		_modifyShipAttributes(target, targetAttrID, sourceAttrID, type);
+
+	}
+
+private:
+
 	// implements a rudimentary but working stacking penalty.  Currently only penalizes for stacking same item, 
 	// but should penalize for modifying the same attribute, with some exceptions.  These exceptions are why
 	// it has not been implemented fully, as more data is needed and this is just a proof of concept.
 	// No module code will have to be changed to implement the fully functional stacking penalty
-	void ModifyShipAttribute(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type)
+	void _modifyShipAttributes(ShipRef ship, uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type)
 	{
 		//first we must reset the attribute in order to properly recalculate the attribute
-		m_Ship->ResetAttribute(targetAttrID, false);
+		ship->ResetAttribute(targetAttrID, false);
 
 		//recalculate the attribute for the ship with the new modifier
-		m_Ship->SetAttribute(targetAttrID, _calculateNewValue(targetAttrID, sourceAttrID, type, m_Ship->GetStackedItems(m_Mod->typeID(), m_Mod->GetModulePowerLevel())));
+		ship->SetAttribute(targetAttrID, _calculateNewValue(targetAttrID, sourceAttrID, type, m_Ship->GetStackedItems(m_Mod->typeID(), m_Mod->GetModulePowerLevel())));
 	}
-
-private:
 
 	EvilNumber _calculateNewValue(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type, std::vector<GenericModule *> mods)
 	{

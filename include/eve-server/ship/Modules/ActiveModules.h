@@ -23,11 +23,31 @@ public:
 		m_ShipAttrComp = NULL;
 	}
 
-	//should define process
+	void Process() 
+	{
 
-	
-	
+	}
 
+	void Offline() 
+	{
+
+	}
+
+	void Online()
+	{
+
+	}
+
+	void Activate(uint32 targetID)
+	{
+
+	}
+
+	void Deactivate()
+	{
+
+	}
+	
 	//access functions
 	ModulePowerLevel GetModulePowerLevel()					{ return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }
 
@@ -40,6 +60,7 @@ public:
 
 protected:
 	ModifyShipAttributesComponent m_ShipAttrComp;
+	uint32 targetID;  //passed to us by activate
 };
 
 
@@ -60,30 +81,7 @@ public:
 
 	}
 
-	 void Process() 
-	 {
-
-	 }
-
-	 void Offline() 
-	 {
-
-	 }
-
-	 void Online()
-	 {
-
-	 }
-
-	 void Activate()
-	 {
-
-	 }
-
-	 void Deactivate()
-	 {
-
-	 }
+	 
 
 	 void Load()
 	 {
