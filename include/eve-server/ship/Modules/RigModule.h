@@ -48,8 +48,10 @@ public:
 		m_Effects = NULL;
 		m_ShipAttrComp = NULL;
 	}
+
 	//not much to do here... hopefully there won't be
-	
+	virtual ModulePowerLevel GetModulePowerLevel()				{ return RIG; }
+
 };
 
 #endif

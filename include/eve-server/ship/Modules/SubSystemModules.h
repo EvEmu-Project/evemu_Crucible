@@ -50,7 +50,7 @@ public:
 	}
 
 	//not much to do here... hopefully there won't be
-
+	virtual ModulePowerLevel GetModulePowerLevel()				{ return SUBSYSTEM; }  
 };
 
 #endif
