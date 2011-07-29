@@ -71,7 +71,7 @@ protected:
     void _BuildSingleXMLTag(std::string name, std::string param);
     void _BuildErrorXMLTag(std::string code, std::string param);
 
-    //APIServiceDB m_db;
+    APIServiceDB m_db;
 
 	TiXmlDocument _XmlDoc;
     TiXmlElement * _pXmlDocOuterTag;

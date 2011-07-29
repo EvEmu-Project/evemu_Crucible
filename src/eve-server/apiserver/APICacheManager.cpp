@@ -23,82 +23,25 @@
 	Author:		Aknor Jaden
 */
 
-#ifndef __APISERVICEDB_H_INCL__
-#define __APISERVICEDB_H_INCL__
+
+#include "EVEServerPCH.h"
 
 
-class PyRep;
-
-
-class APIServiceDB
+APICacheManager::APICacheManager()
 {
-public:
-	APIServiceDB();
+}
 
-    /**
-     * @brief ?
-     *
-     * ?
-     *
-     * @param[in] ?
-     * @param[in] ?
-     *
-     * @retval ?
-     */
-	bool GetAccountIdFromUsername(std::string username, std::string * accountID);
+void APICacheManager::CacheRetrieve(const uint32 * userID, const std::string * apiKey, std::string * xmlDoc)
+{
+	// TODO:
+	// 1) run concatenated string of userID value and apiKey value through SHA1 hash, then search for a file
+	//    with the name of the hash with '.apiobj' extension
+	// 2) if no file found, then return FALSE
+	// 3) if file found, open it and grab first line, inspect this expriation time and compare to current time
+	// 4) if expiration has passed, return FALSE
+	// 5) if expiration has NOT passed, read rest of file contents and copy to xmlDoc string, then return TRUE
+}
 
-    /**
-     * @brief ?
-     *
-     * ?
-     *
-     * @param[in] ?
-     * @param[in] ?
-     *
-     * @retval ?
-     */
-	bool GetApiAccountInfoUsingAccountID(std::string accountID, uint32 * userID, std::vector<std::string> * apiKeys, uint32 * apiRole);
-	
-    /**
-     * @brief ?
-     *
-     * ?
-     *
-     * @param[in] ?
-     * @param[in] ?
-     *
-     * @retval ?
-     */
-	bool UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string limitedApiKey, std::string fullApiKey);
-
-    /**
-     * @brief ?
-     *
-     * ?
-     *
-     * @param[in] ?
-     * @param[in] ?
-     *
-     * @retval ?
-     */
-	bool InsertNewUserIdApiKeyInfoToDatabase(uint32 userID, std::string limitedApiKey, std::string fullApiKey, uint32 apiRole);
-
-    /**
-     * @brief ?
-     *
-     * ?
-     *
-     * @param[in] ?
-     * @param[in] ?
-     *
-     * @retval ?
-     */
-	bool UpdateUserIdApiRole(uint32 userID, uint32 apiRole);
-
-//protected:
-
-};
-
-#endif	//__APISERVICEDB_H_INCL__
-
-
+void APICacheManager::CacheDeposit(const uint32 * userID, const std::string * apiKey, const std::string * xmlDoc, uint64 win32timeExpiration)
+{
+}

@@ -312,6 +312,8 @@
 
 #include "apiserver/APIServer.h"
 #include "apiserver/APIServerConnection.h"
+#include "apiserver/APIServiceDB.h"
+#include "apiserver/APICacheManager.h"
 #include "apiserver/APIServerListener.h"
 #include "apiserver/APIServiceManager.h"
 #include "apiserver/APIAccountManager.h"

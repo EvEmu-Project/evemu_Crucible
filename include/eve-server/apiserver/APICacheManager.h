@@ -23,17 +23,15 @@
 	Author:		Aknor Jaden
 */
 
-#ifndef __APISERVICEDB_H_INCL__
-#define __APISERVICEDB_H_INCL__
+#ifndef __APIAPICACHEMANAGER_H_INCL__
+#define __APIAPICACHEMANAGER_H_INCL__
 
 
-class PyRep;
 
-
-class APIServiceDB
+class APICacheManager
 {
 public:
-	APIServiceDB();
+	APICacheManager();
 
     /**
      * @brief ?
@@ -45,7 +43,7 @@ public:
      *
      * @retval ?
      */
-	bool GetAccountIdFromUsername(std::string username, std::string * accountID);
+	void CacheRetrieve(const uint32 * userID, const std::string * apiKey, std::string * xmlDoc);
 
     /**
      * @brief ?
@@ -57,48 +55,12 @@ public:
      *
      * @retval ?
      */
-	bool GetApiAccountInfoUsingAccountID(std::string accountID, uint32 * userID, std::vector<std::string> * apiKeys, uint32 * apiRole);
-	
-    /**
-     * @brief ?
-     *
-     * ?
-     *
-     * @param[in] ?
-     * @param[in] ?
-     *
-     * @retval ?
-     */
-	bool UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string limitedApiKey, std::string fullApiKey);
-
-    /**
-     * @brief ?
-     *
-     * ?
-     *
-     * @param[in] ?
-     * @param[in] ?
-     *
-     * @retval ?
-     */
-	bool InsertNewUserIdApiKeyInfoToDatabase(uint32 userID, std::string limitedApiKey, std::string fullApiKey, uint32 apiRole);
-
-    /**
-     * @brief ?
-     *
-     * ?
-     *
-     * @param[in] ?
-     * @param[in] ?
-     *
-     * @retval ?
-     */
-	bool UpdateUserIdApiRole(uint32 userID, uint32 apiRole);
+	void CacheDeposit(const uint32 * userID, const std::string * apiKey, const std::string * xmlDoc, uint64 win32timeExpiration);
 
 //protected:
 
 };
 
-#endif	//__APISERVICEDB_H_INCL__
+#endif	//__APIAPICACHEMANAGER_H_INCL__
 
 
