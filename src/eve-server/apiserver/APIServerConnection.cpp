@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+#include <tr1/functional>
 
 asio::const_buffers_1 APIServerConnection::_responseOK = asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: text/xml\r\n\r\n", 45);
 asio::const_buffers_1 APIServerConnection::_responseNotFound = asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);

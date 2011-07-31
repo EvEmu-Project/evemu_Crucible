@@ -67,7 +67,7 @@ private:
 
 	asio::streambuf _buffer;
 	asio::ip::tcp::socket _socket;
-    std::tr1::shared_ptr<std::vector<char>> _xmlData;
+    std::tr1::shared_ptr<std::vector<char> > _xmlData;
 	
 	static asio::const_buffers_1 _responseOK;
 	static asio::const_buffers_1 _responseNotFound;

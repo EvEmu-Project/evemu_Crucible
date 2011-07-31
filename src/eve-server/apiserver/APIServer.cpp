@@ -26,6 +26,7 @@
 #include "EVEServerPCH.h"
 #include <iostream>
 #include <fstream>
+#include <tr1/functional>
 
 const char *const APIServer::FallbackURL = "http://api.eveonline.com/";
 
@@ -66,12 +67,12 @@ bool APIServer::CreateNewDirectory(std::string& path)
 	return mkdir(path.c_str(), 777) == 0;
 }
 
-void ImageServer::ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char>> imageData)
+void ImageServer::ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char> > imageData)
 {
 	Lock lock(_limboLock);
 
 	if (_limboImages.find(accountID) != _limboImages.end())
-		_limboImages.insert(std::pair<uint32,std::tr1::shared_ptr<std::vector<char>>>(accountID, imageData));
+		_limboImages.insert(std::pair<uint32,std::tr1::shared_ptr<std::vector<char> > >(accountID, imageData));
 	else
 		_limboImages[accountID] = imageData;
 }
@@ -90,7 +91,7 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
     FILE * fp = fopen(path.c_str(), "wb");
     
 	//stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
-	std::tr1::shared_ptr<std::vector<char>> data = _limboImages[creatorAccountID];
+	std::tr1::shared_ptr<std::vector<char> > data = _limboImages[creatorAccountID];
 
     fwrite(&((*data)[0]), 1, data->size(), fp);
     fclose(fp);
@@ -106,16 +107,16 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
 }
 */
 
-std::tr1::shared_ptr<std::vector<char>> APIServer::GetXML(std::string& category, uint32 id, uint32 size)
+std::tr1::shared_ptr<std::vector<char> > APIServer::GetXML(std::string& category, uint32 id, uint32 size)
 {
 	if (!ValidateCategory(category) || !ValidateSize(category, size))
-		return std::tr1::shared_ptr<std::vector<char>>();
+		return std::tr1::shared_ptr<std::vector<char> >();
 
 	//std::ifstream stream;
 	//std::string path(GetFilePath(category, id, size));
     //FILE * fp = fopen(path.c_str(), "rb");
     //if (fp == NULL)
-    //    return std::tr1::shared_ptr<std::vector<char>>();
+    //    return std::tr1::shared_ptr<std::vector<char> >();
     //fseek(fp, 0, SEEK_END);
     //size_t length = ftell(fp);
     //fseek(fp, 0, SEEK_SET);
@@ -123,14 +124,14 @@ std::tr1::shared_ptr<std::vector<char>> APIServer::GetXML(std::string& category,
 	//stream.open(path, std::ios::binary | std::ios::in);
 	// not found or other error
 	//if (stream.fail())
-	//	return std::tr1::shared_ptr<std::vector<char>>();
+	//	return std::tr1::shared_ptr<std::vector<char> >();
 
 	// get length
 	//stream.seekg(0, std::ios::end);
 	//int length = stream.tellg();
 	//stream.seekg(0, std::ios::beg);
 
-	std::tr1::shared_ptr<std::vector<char>> ret = std::tr1::shared_ptr<std::vector<char>>(new std::vector<char>());
+	std::tr1::shared_ptr<std::vector<char> > ret = std::tr1::shared_ptr<std::vector<char> >(new std::vector<char>());
 	//ret->resize(length);
 
 	// HACK
