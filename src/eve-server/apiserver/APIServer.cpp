@@ -47,11 +47,18 @@ APIServer::APIServer()
 
 std::tr1::shared_ptr<std::vector<char>> APIServer::GetXML(const APICommandCall * pAPICommandCall)
 {
-    if( m_APIServiceManagers.find(pAPICommandCall->at(0).first) != m_APIServiceManagers.end() )
+    //if( m_APIServiceManagers.find(pAPICommandCall->at(0).first) != m_APIServiceManagers.end() )
+    if( pAPICommandCall->find( "service" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APIserver::GetXML()", "Cannot find 'service' specifier in pAPICommandCall packet" );
+        return NULL;
+    }
+
+    if( m_APIServiceManagers.find(pAPICommandCall->find( "service" )->second) != m_APIServiceManagers.end() )
     {
         // Get reference to service manager object and call ProcessCall() with the pAPICommandCall packet
-        m_xmlString = m_APIServiceManagers.find("base")->second->ProcessCall(pAPICommandCall);
-        //m_xmlString = m_APIServiceManagers.find(pAPICommandCall->at(0).first)->second->ProcessCall(pAPICommandCall);
+        //m_xmlString = m_APIServiceManagers.find("base")->second->ProcessCall(pAPICommandCall);
+        m_xmlString = m_APIServiceManagers.find( pAPICommandCall->find( "service" )->second )->second->ProcessCall( pAPICommandCall );
 
         // Convert the std::string to the std::vector<char>:
 	    std::tr1::shared_ptr<std::vector<char>> ret = std::tr1::shared_ptr<std::vector<char>>(new std::vector<char>());

@@ -32,7 +32,7 @@
 
 #include "EVEServerPCH.h"
 
-typedef std::vector<std::pair<std::string, std::string>> APICommandCall;
+typedef std::map<std::string, std::string> APICommandCall;
 
 /**
  * \class APIServerConnection

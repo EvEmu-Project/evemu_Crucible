@@ -54,9 +54,11 @@ public:
 
 	// Common call shared to all derived classes called via polymorphism
 	virtual std::tr1::shared_ptr<std::string> ProcessCall(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> BuildErrorXMLResponse(std::string errorCode, std::string errorMessage);
 
 protected:
-    bool _AuthenticateAPIQuery(std::string userID, std::string apiKey);
+    bool _AuthenticateFullAPIQuery(std::string userID, std::string apiKey);
+    bool _AuthenticateLimitedAPIQuery(std::string userID, std::string apiKey);
 
 	// Internal Utility functions used to make it easier to build the xml document to send back to the client:
 	void _BuildXMLHeader();

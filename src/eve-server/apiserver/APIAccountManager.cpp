@@ -35,12 +35,17 @@ std::tr1::shared_ptr<std::string> APIAccountManager::ProcessCall(const APIComman
 {
     sLog.Debug("APIServiceManager::ProcessCall()", "EVEmu API - Account Service Manager");
 
+    return std::tr1::shared_ptr<std::string>(new std::string(""));
+}
+
+std::tr1::shared_ptr<std::string> _APIKeyRequest(const std::string accountName, const std::string password, const std::string keyType)
+{
     // TEST of generating username/password hash for authentication for generating new API keys:
     std::string passHash;
     std::string username = "mdrayman";
-    std::string password = "mdrayman";
+    std::string pwd = "mdrayman";
     std::wstring w_username = Utils::Strings::StringToWString(username);
-    std::wstring w_password = Utils::Strings::StringToWString(password);
+    std::wstring w_password = Utils::Strings::StringToWString(pwd);
     PasswordModule::GeneratePassHash(w_username,w_password,passHash);
     std::string hexHash = PasswordModule::GenerateHexString(passHash);
     std::string dateTime = Win32TimeToString(Win32TimeNow());

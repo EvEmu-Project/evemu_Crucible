@@ -31,17 +31,26 @@ APICacheManager::APICacheManager()
 {
 }
 
-void APICacheManager::CacheRetrieve(const uint32 * userID, const std::string * apiKey, std::string * xmlDoc)
+bool APICacheManager::CacheRetrieve(const std::string * apiDescriptor, std::string * xmlDoc)
 {
 	// TODO:
-	// 1) run concatenated string of userID value and apiKey value through SHA1 hash, then search for a file
+	// 1) run apiDescriptor string through SHA1 hash, then search for a file
 	//    with the name of the hash with '.apiobj' extension
 	// 2) if no file found, then return FALSE
 	// 3) if file found, open it and grab first line, inspect this expriation time and compare to current time
 	// 4) if expiration has passed, return FALSE
 	// 5) if expiration has NOT passed, read rest of file contents and copy to xmlDoc string, then return TRUE
+    return false;
 }
 
-void APICacheManager::CacheDeposit(const uint32 * userID, const std::string * apiKey, const std::string * xmlDoc, uint64 win32timeExpiration)
+bool APICacheManager::CacheDeposit(const std::string * apiDescriptor, const std::string * xmlDoc, uint64 win32timeExpiration)
 {
+    // TODO:
+    // 1) run apiDescriptor string through SHA1 hash, then create a file
+    //    with the name of the hash with '.apiobj' extension
+    // 2) check to see if this filename already exists, if so, return FALSE
+    // 3) place the win32timeExpiration value at the first line of the file, this indicates when this cached object expires
+    // 4) place the xmlDoc string in the rest of the file, save and close it
+    // 5) return TRUE
+    return false;
 }

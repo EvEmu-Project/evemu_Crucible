@@ -57,8 +57,21 @@ public:
      *
      * @retval ?
      */
-	bool GetApiAccountInfoUsingAccountID(std::string accountID, uint32 * userID, std::vector<std::string> * apiKeys, uint32 * apiRole);
-	
+	bool GetApiAccountInfoUsingAccountID(std::string accountID, uint32 * userID, std::string * apiFullKey,
+        std::string * apiLimitedKey, uint32 * apiRole);
+
+    /**
+     * @brief ?
+     *
+     * ?
+     *
+     * @param[in] ?
+     * @param[in] ?
+     *
+     * @retval ?
+     */
+	bool GetApiAccountInfoUsingUserID(std::string userID, std::string * apiFullKey, std::string * apiLimitedKey, uint32 * apiRole);
+
     /**
      * @brief ?
      *
@@ -95,7 +108,7 @@ public:
      */
 	bool UpdateUserIdApiRole(uint32 userID, uint32 apiRole);
 
-//protected:
+protected:
 
 };
 

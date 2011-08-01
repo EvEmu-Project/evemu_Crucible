@@ -35,5 +35,26 @@ std::tr1::shared_ptr<std::string> APIAdminManager::ProcessCall(const APICommandC
 {
     sLog.Debug("APIServiceManager::ProcessCall()", "EVEmu API - Admin Service Manager");
 
-    return std::tr1::shared_ptr<std::string>(new std::string(""));
+    if( pAPICommandCall->find( "servicehandler" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APIAdminManager::ProcessCall()", "Cannot find 'servicehandler' specifier in pAPICommandCall packet" );
+        return NULL;
+    }
+
+    if( pAPICommandCall->find( "servicehandler" )->second == "APIKeyRequest.xml.aspx" )
+        return _APIKeyRequest(pAPICommandCall);
+    //else if( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
+    //    return _TODO(pAPICommandCall);
+    else
+    {
+        sLog.Error("APIServiceManager::ProcessCall()", "EVEmu API - Admin Service Manager - ERROR: Cannot resolve '%s' as a valid service query for Admin Service Manager", pAPICommandCall->find("admin")->second.c_str() );
+        return std::tr1::shared_ptr<std::string>(new std::string(""));
+    }
+}
+
+std::tr1::shared_ptr<std::string> APIAdminManager::_APIKeyRequest(const APICommandCall * pAPICommandCall)
+{
+    sLog.Debug("APIServiceManager::_APIKeyRequest()", "EVEmu API - Admin Service Manager - CALL: API Key Request");
+
+    return BuildErrorXMLResponse( "203", "Authentication failure." );
 }

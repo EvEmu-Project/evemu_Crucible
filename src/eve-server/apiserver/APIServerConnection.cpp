@@ -132,10 +132,11 @@ void APIServerConnection::ProcessHeaders()
 
         pos = request.find_first_of('/');
         _service = request.substr(0,pos);
+        m_apiCommandCall.insert( std::make_pair<std::string, std::string>( "service", _service ) );
         request = request.substr(pos+1);
         pos = request.find_first_of('?');
         _service_handler = request.substr(0,pos);
-        m_apiCommandCall.push_back(std::pair<std::string, std::string>(_service, _service_handler));
+        m_apiCommandCall.insert( std::make_pair<std::string, std::string>( "servicehandler", _service_handler ) );
         request = request.substr(pos+1);
     }
     else if (post_chk_str.compare("POST") == 0)
@@ -172,10 +173,10 @@ void APIServerConnection::ProcessHeaders()
 
         pos = request.find_first_of('/');
         _service = request.substr(0,pos);
+        m_apiCommandCall.insert( std::make_pair<std::string, std::string>( "service", _service ) );
         request = request.substr(pos+1);
         _service_handler = request;
-        m_apiCommandCall.push_back(std::pair<std::string, std::string>(_service, _service_handler));
-        //request = request.substr(pos+1);
+        m_apiCommandCall.insert( std::make_pair<std::string, std::string>( "servicehandler", _service_handler ) );
       	std::getline(stream, request, '\r');
         query += request;
     	std::getline(stream, request, '\r');
@@ -211,21 +212,24 @@ void APIServerConnection::ProcessHeaders()
             else
                 request = request.substr(1);
         }
-        m_apiCommandCall.push_back(std::pair<std::string, std::string>(param, value));
+        m_apiCommandCall.insert( std::make_pair<std::string, std::string>( param, value ) );
     }
 
 	_xmlData = APIServer::get().GetXML(&m_apiCommandCall);
 	if (!_xmlData)
 	{
-        sLog.Error("APIserver", "Unknown or malformed EVEmu API HTTP CMD Received:\r\n%s\r\n", query.c_str());
+        sLog.Error("APIServerConnection::ProcessHeaders()", "Unknown or malformed EVEmu API HTTP CMD Received:\r\n%s\r\n", query.c_str());
         NotFound();
 		return;
 	}
 
     // Print out to the Log with basic info on the API call and all parameters and their values parsed out
-    sLog.Debug("APIserver", "HTTP %s CMD Received: Service: %s, Handler: %s", http_cmd_str.c_str(), _service.c_str(), _service_handler.c_str());
-    for (int i=1; i<m_apiCommandCall.size(); i++)
-        sLog.Debug("        ", "%d: param = %s  value = %s", i, m_apiCommandCall.at(i).first.c_str(), m_apiCommandCall.at(i).second.c_str());
+    sLog.Debug("APIServerConnection::ProcessHeaders()", "HTTP %s CMD Received: Service: %s, Handler: %s", http_cmd_str.c_str(), _service.c_str(), _service_handler.c_str());
+    APICommandCall::const_iterator cur, end;
+    cur = m_apiCommandCall.begin();
+    end = m_apiCommandCall.end();
+    for (int i=1; cur != end; cur++, i++)
+        sLog.Debug("        ", "%d: param = %s,  value = %s", i, cur->first.c_str(), cur->second.c_str() );
 
 	// first we have to send the responseOK, then our actual result
 	asio::async_write(_socket, _responseOK, asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));

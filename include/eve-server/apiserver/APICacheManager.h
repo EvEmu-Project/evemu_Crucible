@@ -43,7 +43,7 @@ public:
      *
      * @retval ?
      */
-	void CacheRetrieve(const uint32 * userID, const std::string * apiKey, std::string * xmlDoc);
+	bool CacheRetrieve(const std::string * apiDescriptor, std::string * xmlDoc);
 
     /**
      * @brief ?
@@ -55,9 +55,9 @@ public:
      *
      * @retval ?
      */
-	void CacheDeposit(const uint32 * userID, const std::string * apiKey, const std::string * xmlDoc, uint64 win32timeExpiration);
+	bool CacheDeposit(const std::string * apiDescriptor, const std::string * xmlDoc, uint64 win32timeExpiration);
 
-//protected:
+protected:
 
 };
 

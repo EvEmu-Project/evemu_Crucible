@@ -130,9 +130,46 @@ std::tr1::shared_ptr<std::string> APIServiceManager::ProcessCall(const APIComman
     return std::tr1::shared_ptr<std::string>(new std::string(xmlPrinter.CStr()));
 }
 
-bool APIServiceManager::_AuthenticateAPIQuery(std::string userID, std::string apiKey)
+std::tr1::shared_ptr<std::string> APIServiceManager::BuildErrorXMLResponse(std::string errorCode, std::string errorMessage)
 {
-    return true;
+    _BuildXMLHeader();
+    {
+        _BuildErrorXMLTag( errorCode, errorMessage );
+    }
+    _CloseXMLHeader( API_CACHE_STYLE_MODIFIED );
+
+    TiXmlPrinter xmlPrinter;
+    _XmlDoc.Accept( &xmlPrinter );
+
+    return std::tr1::shared_ptr<std::string>(new std::string(xmlPrinter.CStr()));
+}
+
+bool APIServiceManager::_AuthenticateFullAPIQuery(std::string userID, std::string apiKey)
+{
+    std::string apiFullKey;
+    std::string apiLimitedKey;
+    uint32 apiRole;
+
+    m_db.GetApiAccountInfoUsingUserID(userID, &apiFullKey, &apiLimitedKey, &apiRole);
+
+    if( apiKey.compare( apiFullKey ) )
+        return true;
+    else
+        return false;
+}
+
+bool APIServiceManager::_AuthenticateLimitedAPIQuery(std::string userID, std::string apiKey)
+{
+    std::string apiFullKey;
+    std::string apiLimitedKey;
+    uint32 apiRole;
+
+    m_db.GetApiAccountInfoUsingUserID(userID, &apiFullKey, &apiLimitedKey, &apiRole);
+
+    if( apiKey.compare( apiLimitedKey ) )
+        return true;
+    else
+        return false;
 }
 
 void APIServiceManager::_BuildXMLHeader()

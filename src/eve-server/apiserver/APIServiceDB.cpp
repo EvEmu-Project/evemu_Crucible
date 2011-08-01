@@ -57,7 +57,8 @@ bool APIServiceDB::GetAccountIdFromUsername(std::string username, std::string * 
 	return true;
 }
 
-bool APIServiceDB::GetApiAccountInfoUsingAccountID(std::string accountID, uint32 * userID, std::vector<std::string> * apiKeys, uint32 * apiRole)
+bool APIServiceDB::GetApiAccountInfoUsingAccountID(std::string accountID, uint32 * userID, std::string * apiFullKey,
+    std::string * apiLimitedKey, uint32 * apiRole)
 {
 	DBQueryResult res;
 
@@ -79,11 +80,38 @@ bool APIServiceDB::GetApiAccountInfoUsingAccountID(std::string accountID, uint32
 		return false;
 	}
 
-	*userID = row.GetUInt(0);				// Grab userID from retrieved row from the 'accountApi' table
-	apiKeys->clear();
-	apiKeys->push_back(row.GetText(1));		// Grab Full API Key from retrieved row from the 'accountApi' table
-	apiKeys->push_back(row.GetText(2));		// Grab Limited API Key from retrieved row from the 'accountApi' table
-	*apiRole = row.GetUInt(3);				// Grab API Role from retrieved row from the 'accountApi' table
+	*userID = row.GetUInt(0);			// Grab userID from retrieved row from the 'accountApi' table
+	*apiFullKey = row.GetText(1);		// Grab Full API Key from retrieved row from the 'accountApi' table
+	*apiLimitedKey = row.GetText(2);	// Grab Limited API Key from retrieved row from the 'accountApi' table
+	*apiRole = row.GetUInt(3);			// Grab API Role from retrieved row from the 'accountApi' table
+	return true;
+}
+
+bool APIServiceDB::GetApiAccountInfoUsingUserID(std::string userID, std::string * apiFullKey, std::string * apiLimitedKey, uint32 * apiRole)
+{
+	DBQueryResult res;
+
+	// Find fullKey, limitedKey, and apiRole from 'accountApi' table using userID supplied from an API query string:
+	if( !sDatabase.RunQuery(res,
+		"SELECT"
+		"	fullKey, limitedKey, apiRole "
+		" FROM accountApi "
+        " WHERE userID=%s" , userID.c_str() ))
+	{
+		sLog.Error( "APIServiceDB::GetApiAccountInfoUsingUserID()", "Cannot find userID '%s' in 'accountApi' table", userID.c_str() );
+		return false;
+	}
+
+	DBResultRow row;
+	if( !res.GetRow(row) )
+	{
+		sLog.Error( "APIServiceDB::GetApiAccountInfoUsingUserID()", "res.GetRow(row) failed for unknown reason." );
+		return false;
+	}
+
+	*apiFullKey = row.GetText(1);		// Grab Full API Key from retrieved row from the 'accountApi' table
+	*apiLimitedKey = row.GetText(2);	// Grab Limited API Key from retrieved row from the 'accountApi' table
+	*apiRole = row.GetUInt(3);			// Grab API Role from retrieved row from the 'accountApi' table
 	return true;
 }
 
