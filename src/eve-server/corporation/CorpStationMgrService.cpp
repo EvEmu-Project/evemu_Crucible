@@ -51,7 +51,7 @@ public:
 		PyCallable_REG_CALL(CorpStationMgrIMBound, SetCloneTypeID)
 		PyCallable_REG_CALL(CorpStationMgrIMBound, GetQuoteForRentingAnOffice)
 		PyCallable_REG_CALL(CorpStationMgrIMBound, RentOffice)
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetCorporateStationOffice)
+        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationOffices)
 		PyCallable_REG_CALL(CorpStationMgrIMBound, GetNumberOfUnrentedOffices)
 	}
 	virtual ~CorpStationMgrIMBound() { delete m_dispatch; }
@@ -68,7 +68,7 @@ public:
 	PyCallable_DECL_CALL(SetCloneTypeID)
 	PyCallable_DECL_CALL(GetQuoteForRentingAnOffice)
 	PyCallable_DECL_CALL(RentOffice)
-    PyCallable_DECL_CALL(GetCorporateStationOffice)
+    PyCallable_DECL_CALL(GetStationOffices)
 	PyCallable_DECL_CALL(GetNumberOfUnrentedOffices)
 
 protected:
@@ -561,7 +561,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 	  ScatterEvent( OnMessage ,*args= ([22222222, 33333333], 444444444, 1000090, 'Bill issued', 128291836200000000L) ,**kw= {} )
 	*/
 
-PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice( PyCallArgs& call )
+PyResult CorpStationMgrIMBound::Handle_GetStationOffices( PyCallArgs& call )
 {
 	//Hack: Just passing the client an empty PyList to stop it throwing an exception.
 	//TODO: Fid out what needs to be in the PyList and when to send it.
