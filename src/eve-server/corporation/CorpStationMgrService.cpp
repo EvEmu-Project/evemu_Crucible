@@ -53,6 +53,8 @@ public:
 		PyCallable_REG_CALL(CorpStationMgrIMBound, RentOffice)
         PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationOffices)
 		PyCallable_REG_CALL(CorpStationMgrIMBound, GetNumberOfUnrentedOffices)
+		//testing
+		PyCallable_REG_CALL(CorpStationMgrIMBound, GetCorporateStationOffice)
 	}
 	virtual ~CorpStationMgrIMBound() { delete m_dispatch; }
 	virtual void Release() {
@@ -70,6 +72,8 @@ public:
 	PyCallable_DECL_CALL(RentOffice)
     PyCallable_DECL_CALL(GetStationOffices)
 	PyCallable_DECL_CALL(GetNumberOfUnrentedOffices)
+	//testing
+	PyCallable_DECL_CALL(GetCorporateStationOffice)
 
 protected:
     Dispatcher *const m_dispatch;
@@ -565,7 +569,7 @@ PyResult CorpStationMgrIMBound::Handle_GetStationOffices( PyCallArgs& call )
 {
 	//Hack: Just passing the client an empty PyList to stop it throwing an exception.
 	//TODO: Fid out what needs to be in the PyList and when to send it.
-    sLog.Debug( "CorpStationMgrIMBound", "Called GetCorporateStationOffice stub." );
+    sLog.Debug( "CorpStationMgrIMBound", "Called GetStationOffices stub." );
 	/*
 	[PySubStream 99 bytes]
         [PyObjectData Name: objectCaching.CachedMethodCallResult]
@@ -605,8 +609,12 @@ PyResult CorpStationMgrIMBound::Handle_GetNumberOfUnrentedOffices( PyCallArgs &c
 	return new PyInt(office_hack);
 }
 
+PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice(PyCallArgs &call)
+{
+	sLog.Debug("Server","Called GetCorporateStationOffice Stub");
 
-
+	return NULL;
+}
 
 
 
