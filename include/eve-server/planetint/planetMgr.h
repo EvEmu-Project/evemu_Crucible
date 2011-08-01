@@ -20,40 +20,31 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Reve
 */
 
+#ifndef __PLANETMGR_SERVICE_H_INCL__
+#define __PLANETMGR_SERVICE_H_INCL__
 
-#ifndef __CHARMGR_SERVICE_H_INCL__
-#define __CHARMGR_SERVICE_H_INCL__
-
-#include "character/CharacterDB.h"
 #include "PyService.h"
 
-class CharMgrService : public PyService {
+class PyRep;
+
+class PlanetMgrService: public PyService
+{
 public:
-	CharMgrService(PyServiceMgr *mgr);
-	virtual ~CharMgrService();
+	PlanetMgrService(PyServiceMgr *mgr);
+	virtual ~PlanetMgrService();
 
 protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
 
-	CharacterDB m_db;	//using this for now until we decide if we need to split them. Might be bad since we actually have two instances of it, but so far it has no member data.
-	
-	PyCallable_DECL_CALL(GetPublicInfo)
-	PyCallable_DECL_CALL(GetPublicInfo3)
-	PyCallable_DECL_CALL(GetTopBounties)
-	PyCallable_DECL_CALL(GetOwnerNoteLabels)
-	PyCallable_DECL_CALL(GetContactList)
-	PyCallable_DECL_CALL(GetCloneTypeID)
-	PyCallable_DECL_CALL(GetHomeStation)
+	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+
+//	PyCallable_DECL_CALL(GetPlanetInfo)
+//	PyCallable_DECL_CALL(GetPlanetResourceInfo)
+//	PyCallable_DECL_CALL(GetPlanetsForChar)
 };
 
-
-
-
-
 #endif
-
-

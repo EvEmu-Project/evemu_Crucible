@@ -35,7 +35,7 @@ FactionWarMgrService::FactionWarMgrService(PyServiceMgr *mgr)
 
 	PyCallable_REG_CALL(FactionWarMgrService, GetWarFactions)
 	PyCallable_REG_CALL(FactionWarMgrService, GetFacWarSystems)
-	PyCallable_REG_CALL(FactionWarMgrService, GetCharacterRankOverview)
+	PyCallable_REG_CALL(FactionWarMgrService, GetMyCharacterRankOverview)
 	PyCallable_REG_CALL(FactionWarMgrService, GetFactionMilitiaCorporation)
 }
 
@@ -73,7 +73,7 @@ PyResult FactionWarMgrService::Handle_GetFacWarSystems( PyCallArgs& call )
 	return m_manager->cache_service->MakeObjectCachedMethodCallResult( method_id );
 }
 
-PyResult FactionWarMgrService::Handle_GetCharacterRankOverview( PyCallArgs& call )
+PyResult FactionWarMgrService::Handle_GetMyCharacterRankOverview( PyCallArgs& call )
 {
 	Call_SingleIntegerArg arg;
 	if( !arg.Decode( &call.tuple ) )
@@ -82,7 +82,7 @@ PyResult FactionWarMgrService::Handle_GetCharacterRankOverview( PyCallArgs& call
 		return NULL;
 	}
 
-    sLog.Debug( "FactionWarMgrService", "Called GetCharacterRankOverview stub." );
+    sLog.Debug( "FactionWarMgrService", "Called GetMyCharacterRankOverview stub." );
 
 	util_Rowset rs;
 
