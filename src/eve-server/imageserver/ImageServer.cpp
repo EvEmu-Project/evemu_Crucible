@@ -63,7 +63,7 @@ ImageServer::ImageServer()
 
 bool ImageServer::CreateNewDirectory(std::string& path)
 {
-	return mkdir(path.c_str(), 777) == 0;
+	return mkdir(path.c_str(), 0777) == 0;
 }
 
 void ImageServer::ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char> > imageData)
