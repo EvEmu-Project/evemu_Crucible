@@ -195,6 +195,7 @@ int main( int argc, char* argv[] )
 	services.RegisterService(new PhotoUploadService(&services));
 	services.RegisterService(new AggressionMgrService(&services));
 	services.RegisterService(new SovereigntyMgrService(&services));
+	services.RegisterService(new PlanetMgrService(&services));
 
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();
