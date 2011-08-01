@@ -1,14 +1,4 @@
-# Introduction
-EVEmu modified to support the latest Incursion client
-
-# Status
-- Login works again
-- Character selection and creation is working
-- Character portraits are working
-- Undocking and Docking is working
-- Items and Destiny packets are next
-
-# Legal
+/*
 	------------------------------------------------------------------------------------
 	LICENSE:
 	------------------------------------------------------------------------------------
@@ -30,4 +20,31 @@ EVEmu modified to support the latest Incursion client
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	
+	Author:		Reve
+*/
+
+#ifndef __PLANETMGR_SERVICE_H_INCL__
+#define __PLANETMGR_SERVICE_H_INCL__
+
+#include "PyService.h"
+
+class PyRep;
+
+class PlanetMgrService: public PyService
+{
+public:
+	PlanetMgrService(PyServiceMgr *mgr);
+	virtual ~PlanetMgrService();
+
+protected:
+	class Dispatcher;
+	Dispatcher *const m_dispatch;
+
+	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+
+//	PyCallable_DECL_CALL(GetPlanetInfo)
+//	PyCallable_DECL_CALL(GetPlanetResourceInfo)
+//	PyCallable_DECL_CALL(GetPlanetsForChar)
+};
+
+#endif

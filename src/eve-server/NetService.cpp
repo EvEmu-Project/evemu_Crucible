@@ -147,6 +147,7 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 		dict->SetItemString("onlineStatus", new PyNone());
 		dict->SetItemString("gangSvcObjectHandler", new PyNone());
 		dict->SetItemString("sovMgr", new PyNone());
+		dict->SetItemString("planetMgr", new PyNone());
 
 		//register it
 		m_manager->cache_service->GiveCache(str, (PyRep **)&dict);

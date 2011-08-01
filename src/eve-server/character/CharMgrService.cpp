@@ -38,6 +38,8 @@ CharMgrService::CharMgrService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(CharMgrService, GetTopBounties)
 	PyCallable_REG_CALL(CharMgrService, GetOwnerNoteLabels)
 	PyCallable_REG_CALL(CharMgrService, GetContactList)
+	PyCallable_REG_CALL(CharMgrService, GetCloneTypeID)
+	PyCallable_REG_CALL(CharMgrService, GetHomeStation)
 }
 
 CharMgrService::~CharMgrService() {
@@ -131,6 +133,20 @@ PyResult CharMgrService::Handle_GetTopBounties( PyCallArgs& call )
 	rs.header.push_back( "online" );
 
 	return rs.Encode();
+}
+
+PyResult CharMgrService::Handle_GetCloneTypeID( PyCallArgs& call )
+{
+	sLog.Debug( "CharMgrService", "Called GetCloneTypeID stub." );
+
+	return NULL;
+}
+
+PyResult CharMgrService::Handle_GetHomeStation( PyCallArgs& call )
+{
+	sLog.Debug( "CharMgrService", "Called GetHomeStation stub." );
+
+	return NULL;
 }
 
 
