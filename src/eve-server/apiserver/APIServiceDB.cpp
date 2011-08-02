@@ -40,7 +40,7 @@ bool APIServiceDB::GetAccountIdFromUsername(std::string username, std::string * 
 		"SELECT"
 		"	accountID "
 		" FROM account "
-        " WHERE accountName=%s" , username.c_str() ))
+        " WHERE accountName='%s'" , username.c_str() ))
 	{
 		sLog.Error( "APIServiceDB::GetAccountIdFromUsername()", "Cannot find accountID for username %s", username.c_str() );
 		return false;
@@ -67,7 +67,7 @@ bool APIServiceDB::GetApiAccountInfoUsingAccountID(std::string accountID, uint32
 		"SELECT"
 		"	userID, fullKey, limitedKey, apiRole "
 		" FROM accountApi "
-        " WHERE accountID=%s" , accountID.c_str() ))
+        " WHERE accountID='%s'" , accountID.c_str() ))
 	{
 		sLog.Error( "APIServiceDB::GetApiAccountInfoUsingAccountID()", "Cannot find accountID '%s' in 'accountApi' table", accountID.c_str() );
 		return false;
@@ -96,7 +96,7 @@ bool APIServiceDB::GetApiAccountInfoUsingUserID(std::string userID, std::string 
 		"SELECT"
 		"	fullKey, limitedKey, apiRole "
 		" FROM accountApi "
-        " WHERE userID=%s" , userID.c_str() ))
+        " WHERE userID='%s'" , userID.c_str() ))
 	{
 		sLog.Error( "APIServiceDB::GetApiAccountInfoUsingUserID()", "Cannot find userID '%s' in 'accountApi' table", userID.c_str() );
 		return false;
@@ -109,24 +109,24 @@ bool APIServiceDB::GetApiAccountInfoUsingUserID(std::string userID, std::string 
 		return false;
 	}
 
-	*apiFullKey = row.GetText(1);		// Grab Full API Key from retrieved row from the 'accountApi' table
-	*apiLimitedKey = row.GetText(2);	// Grab Limited API Key from retrieved row from the 'accountApi' table
-	*apiRole = row.GetUInt(3);			// Grab API Role from retrieved row from the 'accountApi' table
+	*apiFullKey = row.GetText(0);		// Grab Full API Key from retrieved row from the 'accountApi' table
+	*apiLimitedKey = row.GetText(1);	// Grab Limited API Key from retrieved row from the 'accountApi' table
+	*apiRole = row.GetUInt(2);			// Grab API Role from retrieved row from the 'accountApi' table
 	return true;
 }
 
-bool APIServiceDB::UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string limitedApiKey, std::string fullApiKey)
+bool APIServiceDB::UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string apiFullKey, std::string apiLimitedKey)
 {
 	// Check key lengths and report error and return if either are incorrect:
-	if( limitedApiKey.length() != 64 )
+	if( apiLimitedKey.length() != 64 )
 	{
-		sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "limitedApiKey length != 64, but rather %u", limitedApiKey.length() );
+		sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "limitedApiKey length != 64, but rather %u", apiLimitedKey.length() );
 		return false;
 	}
 
-	if( fullApiKey.length() != 64 )
+	if( apiFullKey.length() != 64 )
 	{
-		sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "fullApiKey length != 64, but rather %u", fullApiKey.length() );
+		sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "fullApiKey length != 64, but rather %u", apiFullKey.length() );
 		return false;
 	}
 
@@ -136,9 +136,9 @@ bool APIServiceDB::UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string limi
 	if( !sDatabase.RunQuery(err,
 		"UPDATE"
 		" accountApi"
-		" SET fullKey = %s, limitedKey = %s"
+		" SET fullKey = '%s', limitedKey = '%s'"
 		" WHERE userID = %u",
-		fullApiKey.c_str(), limitedApiKey.c_str(), userID ))
+		apiFullKey.c_str(), apiLimitedKey.c_str(), userID ))
 	{
 		sLog.Error( "", "Error in query: %s.", err.c_str());
 		return false;
@@ -147,24 +147,18 @@ bool APIServiceDB::UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string limi
 		return true;
 }
 
-bool APIServiceDB::InsertNewUserIdApiKeyInfoToDatabase(uint32 userID, std::string limitedApiKey, std::string fullApiKey, uint32 apiRole)
+bool APIServiceDB::InsertNewUserIdApiKeyInfoToDatabase(uint32 accountID, std::string apiFullKey, std::string apiLimitedKey, uint32 apiRole)
 {
 	// Check key lengths and report error and return if either are incorrect:
-	if( limitedApiKey.length() != 64 )
+	if( apiLimitedKey.length() != 64 )
 	{
-		sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "limitedApiKey length != 64, but rather %u", limitedApiKey.length() );
+		sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "limitedApiKey length != 64, but rather %u", apiLimitedKey.length() );
 		return false;
 	}
 	
-	if( fullApiKey.length() != 64 )
+	if( apiFullKey.length() != 64 )
 	{
-		sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "fullApiKey length != 64, but rather %u", fullApiKey.length() );
-		return false;
-	}
-
-	if( (userID > 9999999) || (userID < 1000000) )
-	{
-		sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "userID of %u has length that is not 7 digits", fullApiKey.length() );
+		sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "fullApiKey length != 64, but rather %u", apiFullKey.length() );
 		return false;
 	}
 
@@ -173,11 +167,11 @@ bool APIServiceDB::InsertNewUserIdApiKeyInfoToDatabase(uint32 userID, std::strin
 	if( !sDatabase.RunQuery(err,
 		"INSERT INTO"
 		" accountApi ("
-		"	userID, fullKey, limitedKey, apiRole"
+		"	accountID, fullKey, limitedKey, apiRole"
 		" ) VALUES ("
-		"	%u, %s, %s, %u"
+		"	%u, '%s', '%s', %u"
 		" )", 
-			userID, fullApiKey.c_str(), limitedApiKey.c_str(), apiRole
+			accountID, apiFullKey.c_str(), apiLimitedKey.c_str(), apiRole
 			))
 	{
 		sLog.Error( "", "Error in query: %s.", err.c_str());
@@ -196,7 +190,7 @@ bool APIServiceDB::UpdateUserIdApiRole(uint32 userID, uint32 apiRole)
 		"UPDATE"
 		" accountApi"
 		" SET apiRole = %u"
-		" WHERE userID = %s",
+		" WHERE userID = %u",
 		apiRole, userID ))
 	{
 		sLog.Error( "", "Error in query: %s.", err.c_str());

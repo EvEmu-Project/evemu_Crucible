@@ -24,7 +24,11 @@
 */
 
 #include "EVEServerPCH.h"
-#include <tr1/functional>
+
+#ifndef MSVC
+    // This is needed to build the server under linux using GCC
+    #include <tr1/functional>
+#endif
 
 ImageServerListener::ImageServerListener(asio::io_service& io)
 {

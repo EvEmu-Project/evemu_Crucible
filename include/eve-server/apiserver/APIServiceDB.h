@@ -82,7 +82,7 @@ public:
      *
      * @retval ?
      */
-	bool UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string limitedApiKey, std::string fullApiKey);
+	bool UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string apiFullKey, std::string apiLimitedKey);
 
     /**
      * @brief ?
@@ -94,7 +94,7 @@ public:
      *
      * @retval ?
      */
-	bool InsertNewUserIdApiKeyInfoToDatabase(uint32 userID, std::string limitedApiKey, std::string fullApiKey, uint32 apiRole);
+	bool InsertNewUserIdApiKeyInfoToDatabase(uint32 accountID, std::string apiFullKey, std::string apiLimitedKey, uint32 apiRole);
 
     /**
      * @brief ?

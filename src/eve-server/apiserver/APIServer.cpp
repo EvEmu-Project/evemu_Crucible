@@ -26,7 +26,11 @@
 #include "EVEServerPCH.h"
 #include <iostream>
 #include <fstream>
-#include <tr1/functional>
+
+#ifndef MSVC
+    // This is needed to build the server under linux using GCC
+    #include <tr1/functional>
+#endif
 
 const char *const APIServer::FallbackURL = "http://api.eveonline.com/";
 

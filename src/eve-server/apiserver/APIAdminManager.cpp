@@ -56,5 +56,25 @@ std::tr1::shared_ptr<std::string> APIAdminManager::_APIKeyRequest(const APIComma
 {
     sLog.Debug("APIServiceManager::_APIKeyRequest()", "EVEmu API - Admin Service Manager - CALL: API Key Request");
 
+    std::string username = "mdrayman";
+    std::string accountID;
+    std::string apiFullKey;
+    std::string apiLimitedKey;
+    uint32 userID;
+    uint32 apiRole;
+    uint32 accountIDint;
+    std::string userIDstr = "1000001";
+    bool status = false;
+    status = m_db.GetAccountIdFromUsername(username, &accountID);
+    status = m_db.GetApiAccountInfoUsingAccountID(accountID, &userID, &apiFullKey, &apiLimitedKey, &apiRole);
+    accountIDint = 3;
+    userID = 1000001;
+    status = m_db.InsertNewUserIdApiKeyInfoToDatabase(accountIDint, apiFullKey, apiLimitedKey, apiRole);
+    status = m_db.UpdateUserIdApiKeyDatabaseRow(userID, apiFullKey, apiLimitedKey);
+    apiRole = 2000;
+    status = m_db.UpdateUserIdApiRole(userID, apiRole);
+
+    status = m_db.GetApiAccountInfoUsingUserID(userIDstr, &apiFullKey, &apiLimitedKey, &apiRole);
+
     return BuildErrorXMLResponse( "203", "Authentication failure." );
 }
