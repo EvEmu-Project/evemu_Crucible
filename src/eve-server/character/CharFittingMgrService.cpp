@@ -34,8 +34,17 @@ CharFittingMgrService::CharFittingMgrService(PyServiceMgr *mgr)
 m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
+
+	PyCallable_REG_CALL(CharFittingMgrService, GetFittings);
 }
 
 CharFittingMgrService::~CharFittingMgrService() {
 	delete m_dispatch;
+}
+
+PyResult CharFittingMgrService::Handle_GetFittings(PyCallArgs &call) {
+
+	sLog.Debug("Server", "Called GetFittigs Stub.");
+
+	return NULL;
 }

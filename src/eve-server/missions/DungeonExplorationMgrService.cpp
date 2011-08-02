@@ -34,9 +34,18 @@ DungeonExplorationMgrService::DungeonExplorationMgrService(PyServiceMgr *mgr)
   m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
+
+	PyCallable_REG_CALL(DungeonExplorationMgrService, GetMyEscalatingPathDetails);
 }
 
 DungeonExplorationMgrService::~DungeonExplorationMgrService()
 {
 	delete m_dispatch;
+}
+
+PyResult DungeonExplorationMgrService::Handle_GetMyEscalatingPathDetails(PyCallArgs &call) {
+
+	sLog.Debug("Server", "Called GetMyEscalatingPathDetails Stub.");
+
+	return new PyList;
 }

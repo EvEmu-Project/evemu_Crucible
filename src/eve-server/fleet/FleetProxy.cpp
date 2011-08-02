@@ -35,9 +35,17 @@ FleetProxyService::FleetProxyService(PyServiceMgr *mgr)
 {
 	_SetCallDispatcher(m_dispatch);
 
+	PyCallable_REG_CALL(FleetProxyService, GetAvailableFleets);
 }
 
 FleetProxyService::~FleetProxyService() 
 {
 	delete m_dispatch;
+}
+
+PyResult FleetProxyService::Handle_GetAvailableFleets(PyCallArgs &call) {
+
+	sLog.Debug("Server", "Called GetAvailableFleets Stub.");
+
+	return NULL;
 }
