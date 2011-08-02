@@ -81,7 +81,13 @@ public:
 
 	bool GetCharItems(uint32 characterID, std::vector<uint32> &into);
 
+	bool GetLocationByStation(uint32 staID, CharacterData &cdata);
+
+	bool GetCareerBySchool(uint32 schoolID, uint32 &careerID);
+
 	bool GetLocationCorporationByCareer(CharacterData &cdata);
+
+	bool DoesCorporationExist(uint32 corpID);
 
 	/**
 	 * Obtains attribute bonuses for given ancestry.

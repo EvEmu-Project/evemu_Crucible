@@ -166,10 +166,17 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     cdata.accountID = call.client->GetAccountID();
     cdata.gender = arg.genderID;
     cdata.ancestryID = arg.ancestryID;
+	cdata.schoolID = arg.schoolID;
 
-    // just hack something
-    cdata.careerID = 11;
-    cdata.careerSpecialityID = 11;
+	//Set the character's career based on the school they picked.
+	if( m_db.GetCareerBySchool( cdata.schoolID, cdata.careerID ) ) {
+		// Right now we don't know what causes the specialization switch, so just make both values the same
+		cdata.careerSpecialityID = cdata.careerID;
+	} else {
+		codelog(SERVICE__WARNING, "Could not find default School ID %u. Using Caldari Military.", cdata.schoolID);
+		cdata.careerID = 11;
+		cdata.careerSpecialityID = 11;
+	}
 
     corpData.corpRole = 0;
     corpData.rolesAtAll = 0;
@@ -194,17 +201,27 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
         return NULL;
     }
 
-    //NOTE: these are currently hard coded to Todaki because other things are
-    //also hard coded to only work in Todaki. Once these various things get fixed,
-    //just take this code out and the above calls should have cdata populated correctly.
-    cdata.stationID = idata.locationID = 60004420;
-    cdata.solarSystemID = 30001407;
-    cdata.constellationID = 20000206;
-    cdata.regionID = 10000016;
+	// Added ability to set starting station in xml config by Pyrii
+	if( sConfig.character.startStation ) { // Skip if 0
+		if( !m_db.GetLocationByStation(sConfig.character.startStation, cdata) ) {
+			codelog(SERVICE__WARNING, "Could not find default station ID %u. Using Career Defaults instead.", sConfig.character.startStation);
+		}
+	}
+
+	idata.locationID = cdata.stationID; // Just so our starting items end up in the same place.
+
+	// Change starting corperation based on value in XML file.
+	if( sConfig.character.startCorporation ) { // Skip if 0
+		if( m_db.DoesCorporationExist( sConfig.character.startCorporation ) ) {
+			cdata.corporationID = sConfig.character.startCorporation;
+		} else {
+			codelog(SERVICE__WARNING, "Could not find default Corporation ID %u. Using Career Defaults instead.", sConfig.character.startCorporation);
+		}
+	}
 
     cdata.bounty = 0;
     cdata.balance = sConfig.character.startBalance;
-    cdata.securityRating = 0;
+    cdata.securityRating = sConfig.character.startSecRating;
     cdata.logonMinutes = 0;
     cdata.title = "No Title";
 

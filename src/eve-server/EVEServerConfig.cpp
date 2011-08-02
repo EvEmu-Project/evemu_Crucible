@@ -35,6 +35,11 @@ EVEServerConfig::EVEServerConfig()
 
     // Set sane defaults
 
+	// rates
+	rates.skillRate = 1.0;
+	rates.npcBountyMultiply = 1.0;
+	rates.secRate = 1.0;
+
     // account
     account.autoAccountRole = 0;
     account.loginMessage =
@@ -55,28 +60,35 @@ EVEServerConfig::EVEServerConfig()
 
     // character
     character.startBalance = 6666000000.0f;
+	character.startStation = 60004420; // Todaki, when no longer needed, change to 0.
+	character.startSecRating = 0.0;
+	character.startCorporation = 0;
 
     // database
     database.host = "localhost";
     database.port = 3306;
     database.username = "eve";
     database.password = "eve";
-    database.db = "eve";
+    database.db = "evemu";
 
     // files
     files.log = "../log/eve-server.log";
     files.logSettings = "../etc/log.ini";
-    files.cacheDir = "";
-	files.imageDir = "../images/";
+    files.cacheDir = "../server_cache/";
+	files.imageDir = "../image_cache/";
 
     // net
-    net.port = 26001;
+    net.port = 26000;
 	net.imageServer = "localhost";
+	net.imageServerPort = 26001;
+	net.apiServer = "localhost";
+	net.apiServerPort = 50001;
 }
 
 bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
 {
     // entering element, extend allowed syntax
+    AddMemberParser( "rates",   &EVEServerConfig::ProcessRates );
     AddMemberParser( "account",   &EVEServerConfig::ProcessAccount );
     AddMemberParser( "character", &EVEServerConfig::ProcessCharacter );
     AddMemberParser( "database",  &EVEServerConfig::ProcessDatabase );
@@ -87,6 +99,7 @@ bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
     const bool result = ParseElementChildren( ele );
 
     // leaving element, reduce allowed syntax
+    RemoveParser( "rates" );
     RemoveParser( "account" );
     RemoveParser( "character" );
     RemoveParser( "database" );
@@ -94,6 +107,21 @@ bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
     RemoveParser( "net" );
 
     // return status of parsing
+    return result;
+}
+
+bool EVEServerConfig::ProcessRates( const TiXmlElement* ele )
+{
+    AddValueParser( "skillRate", rates.skillRate );
+    AddValueParser( "secRate", rates.secRate );
+    AddValueParser( "npcBountyMultiply", rates.npcBountyMultiply );
+
+    const bool result = ParseElementChildren( ele );
+
+    RemoveParser( "skillRate" );
+    RemoveParser( "secRate" );
+	RemoveParser( "npcBountyMultiply" );
+
     return result;
 }
 
@@ -113,10 +141,16 @@ bool EVEServerConfig::ProcessAccount( const TiXmlElement* ele )
 bool EVEServerConfig::ProcessCharacter( const TiXmlElement* ele )
 {
     AddValueParser( "startBalance", character.startBalance );
+    AddValueParser( "startStation", character.startStation );
+    AddValueParser( "startSecRating", character.startSecRating );
+    AddValueParser( "startCorporation", character.startCorporation );
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "startBalance" );
+    RemoveParser( "startStation" );
+    RemoveParser( "startSecRating" );
+    RemoveParser( "startCorporation" );
 
     return result;
 }

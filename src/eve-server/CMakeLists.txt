@@ -270,6 +270,11 @@ SET( npc_SOURCE
      "${TARGET_SOURCE_DIR}/npc/NPCAI.cpp" )
      #"${TARGET_SOURCE_DIR}/npc/NPCAI_State.cpp"
 
+SET( planetint_INCLUDE
+	 "${TARGET_INCLUDE_DIR}/planetint/planetMgr.h" )
+SET( planetint_SOURCE
+	 "${TARGET_SOURCE_DIR}/planetint/planetMgr.cpp" )
+	 
 SET( posmgr_INCLUDE
      "${TARGET_INCLUDE_DIR}/posmgr/PosMgrDB.h"
      "${TARGET_INCLUDE_DIR}/posmgr/PosMgrService.h"
@@ -462,6 +467,7 @@ SOURCE_GROUP( "include\\market"        FILES ${market_INCLUDE} )
 SOURCE_GROUP( "include\\mining"        FILES ${mining_INCLUDE} )
 SOURCE_GROUP( "include\\missions"      FILES ${missions_INCLUDE} )
 SOURCE_GROUP( "include\\npc"           FILES ${npc_INCLUDE} )
+SOURCE_GROUP( "include\\planetint"	   FILES ${planetint_INCLUDE} )
 SOURCE_GROUP( "include\\posmgr"        FILES ${posmgr_INCLUDE} )
 SOURCE_GROUP( "include\\ship"          FILES ${ship_INCLUDE} )
 SOURCE_GROUP( "include\\sovereignty"   FILES ${sovereignty_INCLUDE} )
@@ -494,6 +500,7 @@ SOURCE_GROUP( "src\\market"        FILES ${market_SOURCE} )
 SOURCE_GROUP( "src\\mining"        FILES ${mining_SOURCE} )
 SOURCE_GROUP( "src\\missions"      FILES ${missions_SOURCE} )
 SOURCE_GROUP( "src\\npc"           FILES ${npc_SOURCE} )
+SOURCE_GROUP( "src\\planetint"     FILES ${planetint_SOURCE} )
 SOURCE_GROUP( "src\\posmgr"        FILES ${posmgr_SOURCE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_SOURCE} )
 SOURCE_GROUP( "src\\sovereignty"   FILES ${sovereignty_SOURCE} )
@@ -515,7 +522,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${browser_INCLUDE}        ${browser_SOURCE} 
                 ${cache_INCLUDE}          ${cache_SOURCE}
                 ${config_INCLUDE}         ${config_SOURCE}
-		${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
+				${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
                 ${corporation_INCLUDE}    ${corporation_SOURCE}
                 ${dogmaim_INCLUDE}        ${dogmaim_SOURCE}
                 ${character_INCLUDE}      ${character_SOURCE}
@@ -527,6 +534,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${mining_INCLUDE}         ${mining_SOURCE}
                 ${missions_INCLUDE}       ${missions_SOURCE}
                 ${npc_INCLUDE}            ${npc_SOURCE}
+				${planetint_INCLUDE}	  ${planetint_SOURCE}
                 ${posmgr_INCLUDE}         ${posmgr_SOURCE}
                 ${sovereignty_INCLUDE}    ${sovereignty_SOURCE} 
                 ${ship_INCLUDE}           ${ship_SOURCE}

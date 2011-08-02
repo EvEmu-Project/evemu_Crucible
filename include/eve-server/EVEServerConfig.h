@@ -41,6 +41,17 @@ public:
      */
     EVEServerConfig();
 
+	/// From <rates/>
+	struct
+	{
+		/// Rate at which skills train compared to normal speed
+		float skillRate;
+		/// Modifier for security rating changes. Changes how fast it goes up/down based on actions
+		float secRate;
+		/// Modifier for npc bounties automatically awarded for shooting down npc enemies.
+		float npcBountyMultiply;
+	} rates;
+
     /// From <account/>
     struct
     {
@@ -55,6 +66,12 @@ public:
     {
         /// Money balance of new created characters.
         double startBalance;
+		/// Starting station ID for new characters
+		uint32 startStation;
+		/// Starting security rating for new characters.
+		double startSecRating;
+		/// Starting corp ID for new characters
+		uint32 startCorporation;
     } character;
 
     // From <database/>
@@ -102,7 +119,7 @@ public:
 
 protected:
     bool ProcessEveServer( const TiXmlElement* ele );
-
+    bool ProcessRates( const TiXmlElement* ele );
     bool ProcessAccount( const TiXmlElement* ele );
     bool ProcessCharacter( const TiXmlElement* ele );
     bool ProcessDatabase( const TiXmlElement* ele );

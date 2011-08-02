@@ -248,13 +248,19 @@
 #include "market/MarketDB.h"
 #include "market/MarketProxyService.h"
 
+//planetary interaction
+#include "planetint/planetMgr.h"
+
+//POS
 #include "posmgr/PosMgrDB.h"
 #include "posmgr/PosMgrService.h"
 #include "posmgr/Structure.h"
 
+//NPC
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
 
+//sovereignty stuff
 #include "sovereignty/SovereigntyMgrService.h"
 
 #include "system/BookmarkDB.h"
