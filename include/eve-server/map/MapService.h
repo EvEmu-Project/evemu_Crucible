@@ -45,6 +45,7 @@ protected:
 	PyCallable_DECL_CALL(GetStationExtraInfo)
 	PyCallable_DECL_CALL(GetSolarSystemPseudoSecurities)
 	PyCallable_DECL_CALL(GetStuckSystems)
+	PyCallable_DECL_CALL(GetHistory)
 };
 
 #endif

@@ -37,6 +37,7 @@ MapService::MapService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(MapService, GetStationExtraInfo)
 	PyCallable_REG_CALL(MapService, GetSolarSystemPseudoSecurities)
 	PyCallable_REG_CALL(MapService, GetStuckSystems)
+	PyCallable_REG_CALL(MapService, GetHistory)
 }
 
 MapService::~MapService() {
@@ -119,4 +120,11 @@ PyResult MapService::Handle_GetStuckSystems(PyCallArgs &call) {
 	result = new PyDict();
 	
 	return result;
+}
+
+PyResult MapService::Handle_GetHistory(PyCallArgs &call) {
+
+	sLog.Debug("Server", "Called GetHistory Stub.");
+
+	return NULL;
 }
