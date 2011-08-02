@@ -46,7 +46,6 @@ public:
 
 		PyCallable_REG_CALL(PlanetMgrBound, GetPlanetInfo)
 		PyCallable_REG_CALL(PlanetMgrBound, GetPlanetResourceInfo)
-		PyCallable_REG_CALL(PlanetMgrBound, GetPlanetsForChar)
 	}
 	virtual ~PlanetMgrBound() { delete m_dispatch; }
 	virtual void Release() {
@@ -56,7 +55,6 @@ public:
 
 		PyCallable_DECL_CALL(GetPlanetInfo)
 		PyCallable_DECL_CALL(GetPlanetResourceInfo)
-		PyCallable_DECL_CALL(GetPlanetsForChar)
 
 protected:
 	Dispatcher *const m_dispatch;
@@ -68,6 +66,8 @@ PlanetMgrService::PlanetMgrService(PyServiceMgr *mgr)
   m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
+
+	PyCallable_REG_CALL(PlanetMgrService, GetPlanetsForChar)
 }
 
 PlanetMgrService::~PlanetMgrService() {
@@ -94,7 +94,7 @@ PyResult PlanetMgrBound::Handle_GetPlanetResourceInfo(PyCallArgs &call) {
 	return NULL;
 }
 
-PyResult PlanetMgrBound::Handle_GetPlanetsForChar(PyCallArgs &call) {
+PyResult PlanetMgrService::Handle_GetPlanetsForChar(PyCallArgs &call) {
 	sLog.Debug("Server", "Called GetPlanetsForChar Stub.");
 
 	return NULL;

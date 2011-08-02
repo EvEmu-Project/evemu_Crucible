@@ -57,6 +57,9 @@ public:
 		PyCallable_REG_CALL(AgentMgrBound, GetInfoServiceDetails)
 		PyCallable_REG_CALL(AgentMgrBound, DoAction)
 		PyCallable_REG_CALL(AgentMgrBound, GetMyJournalDetails)
+		PyCallable_REG_CALL(AgentMgrBound, GetMissionBriefingInfo)
+		PyCallable_REG_CALL(AgentMgrBound, GetAgentLocationWrap)
+		PyCallable_REG_CALL(AgentMgrBound, GetMissionObjectiveInfo)
 	}
 	virtual ~AgentMgrBound() { delete m_dispatch; }
 	virtual void Release() {
@@ -67,6 +70,9 @@ public:
 	PyCallable_DECL_CALL(GetInfoServiceDetails)
 	PyCallable_DECL_CALL(DoAction)
 	PyCallable_DECL_CALL(GetMyJournalDetails)
+	PyCallable_DECL_CALL(GetMissionBriefingInfo)
+	PyCallable_DECL_CALL(GetAgentLocationWrap)
+	PyCallable_DECL_CALL(GetMissionObjectiveInfo)
 
 protected:
 	MissionDB *const m_db;		//we do not own this
@@ -237,7 +243,26 @@ PyResult AgentMgrBound::Handle_GetMyJournalDetails(PyCallArgs &call) {
 	return result;
 }
 
+PyResult AgentMgrBound::Handle_GetMissionBriefingInfo(PyCallArgs &call) {
 
+	sLog.Debug("Server", "Called GetMissionBriefingInfo Stub.");
+
+	return NULL;
+}
+
+PyResult AgentMgrBound::Handle_GetAgentLocationWrap(PyCallArgs &call) {
+
+	sLog.Debug("Server", "Called GetAgentLocationWrap Stub.");
+
+	return NULL;
+}
+
+PyResult AgentMgrBound::Handle_GetMissionObjectiveInfo(PyCallArgs &call) {
+
+	sLog.Debug("Server", "Called GetMissionObjectiveInfo Stub.");
+
+	return NULL;
+}
 
 
 
