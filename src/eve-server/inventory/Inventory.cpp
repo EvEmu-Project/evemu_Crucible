@@ -184,6 +184,9 @@ CRowSet* Inventory::List( EVEItemFlags _flag, uint32 forOwner ) const
 	header->AddColumn( "customInfo", DBTYPE_STR );
 	header->AddColumn( "stacksize" , DBTYPE_I4 );
 
+
+
+
     CRowSet* rowset = new CRowSet( &header );
     List( rowset, _flag, forOwner );
     return rowset;
