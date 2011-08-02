@@ -26,6 +26,7 @@
 #include "EVEServerPCH.h"
 #include <iostream>
 #include <fstream>
+#include <tr1/functional>
 
 const char *const ImageServer::FallbackURL = "http://image.eveonline.com/";
 
@@ -50,8 +51,11 @@ ImageServer::ImageServer()
 
 	CreateNewDirectory(_basePath);
 
-	for (int i = 0; i < CategoryCount; i++)
-		CreateNewDirectory(_basePath + Categories[i]);
+	for (int i = 0; i < CategoryCount; i++) {
+		std::string subdir = _basePath;
+		subdir.append(Categories[i]);
+		CreateNewDirectory(subdir);
+	}
 
 	sLog.Log("image server", "our URL: %s", _url.c_str());
 	sLog.Log("image server", "our base: %s", _basePath.c_str());
@@ -59,15 +63,15 @@ ImageServer::ImageServer()
 
 bool ImageServer::CreateNewDirectory(std::string& path)
 {
-	return mkdir(path.c_str(), 777) == 0;
+	return mkdir(path.c_str(), 0777) == 0;
 }
 
-void ImageServer::ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char>> imageData)
+void ImageServer::ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char> > imageData)
 {
 	Lock lock(_limboLock);
 
 	if (_limboImages.find(accountID) != _limboImages.end())
-		_limboImages.insert(std::pair<uint32,std::tr1::shared_ptr<std::vector<char>>>(accountID, imageData));
+		_limboImages.insert(std::pair<uint32,std::tr1::shared_ptr<std::vector<char> > >(accountID, imageData));
 	else
 		_limboImages[accountID] = imageData;
 }
@@ -82,11 +86,12 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
 
 	// we have, so save it
 	//std::ofstream stream;
-	std::string path(GetFilePath(std::string("Character"), characterID, 512));
+	std::string dirName = "Character";
+	std::string path(GetFilePath(dirName, characterID, 512));
     FILE * fp = fopen(path.c_str(), "wb");
     
 	//stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
-	std::tr1::shared_ptr<std::vector<char>> data = _limboImages[creatorAccountID];
+	std::tr1::shared_ptr<std::vector<char> > data = _limboImages[creatorAccountID];
 
     fwrite(&((*data)[0]), 1, data->size(), fp);
     fclose(fp);
@@ -101,16 +106,16 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
 	sLog.Log("image server", "saved image from %i as %s", creatorAccountID, path.c_str());
 }
 
-std::tr1::shared_ptr<std::vector<char>> ImageServer::GetImage(std::string& category, uint32 id, uint32 size)
+std::tr1::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category, uint32 id, uint32 size)
 {
 	if (!ValidateCategory(category) || !ValidateSize(category, size))
-		return std::tr1::shared_ptr<std::vector<char>>();
+		return std::tr1::shared_ptr<std::vector<char> >();
 
 	//std::ifstream stream;
 	std::string path(GetFilePath(category, id, size));
     FILE * fp = fopen(path.c_str(), "rb");
     if (fp == NULL)
-        return std::tr1::shared_ptr<std::vector<char>>();
+        return std::tr1::shared_ptr<std::vector<char> >();
     fseek(fp, 0, SEEK_END);
     size_t length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -118,14 +123,14 @@ std::tr1::shared_ptr<std::vector<char>> ImageServer::GetImage(std::string& categ
 	//stream.open(path, std::ios::binary | std::ios::in);
 	// not found or other error
 	//if (stream.fail())
-	//	return std::tr1::shared_ptr<std::vector<char>>();
+	//	return std::tr1::shared_ptr<std::vector<char> >();
 
 	// get length
 	//stream.seekg(0, std::ios::end);
 	//int length = stream.tellg();
 	//stream.seekg(0, std::ios::beg);
 
-	std::tr1::shared_ptr<std::vector<char>> ret = std::tr1::shared_ptr<std::vector<char>>(new std::vector<char>());
+	std::tr1::shared_ptr<std::vector<char> > ret = std::tr1::shared_ptr<std::vector<char> >(new std::vector<char>());
 	ret->resize(length);
 
 	// HACK

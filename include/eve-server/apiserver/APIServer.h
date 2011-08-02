@@ -28,7 +28,12 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
+#if defined( MSVC )
+	#include <unordered_map>
+#else
+	#include <tr1/unordered_map>
+#endif
+
 #include <asio.hpp>
 
 #include "APIServerConnection.h"
@@ -56,7 +61,7 @@ public:
 
 	std::string& url();
 
-    std::tr1::shared_ptr<std::vector<char>> GetXML(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::vector<char> > GetXML(std::string& category, uint32 id, uint32 size);
 
 	// used when the ImageServer can't find the image requested
 	// this way we don't have to transfer over all the static NPC images

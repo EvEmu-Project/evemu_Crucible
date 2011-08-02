@@ -26,6 +26,7 @@
 #include "EVEServerPCH.h"
 #include <iostream>
 #include <fstream>
+#include <tr1/functional>
 
 const char *const APIServer::FallbackURL = "http://api.eveonline.com/";
 
@@ -45,7 +46,7 @@ APIServer::APIServer()
     m_APIServiceManagers.insert(std::make_pair("server", new APIServerManager()));
 }
 
-std::tr1::shared_ptr<std::vector<char>> APIServer::GetXML(const APICommandCall * pAPICommandCall)
+std::tr1::shared_ptr<std::vector<char> > APIServer::GetXML(const APICommandCall * pAPICommandCall)
 {
     //if( m_APIServiceManagers.find(pAPICommandCall->at(0).first) != m_APIServiceManagers.end() )
     if( pAPICommandCall->find( "service" ) == pAPICommandCall->end() )
