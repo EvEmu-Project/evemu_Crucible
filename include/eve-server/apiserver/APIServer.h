@@ -26,14 +26,21 @@
 #ifndef __APISERVER__H__INCL__
 #define __APISERVER__H__INCL__
 
-#include "utils/Singleton.h"
-
 #include <memory>
 #include <string>
-#include <unordered_map>
+#if defined( MSVC )
+	#include <unordered_map>
+#else
+	#include <tr1/unordered_map>
+#endif
+
 #include <asio.hpp>
 
+#include "APIServerConnection.h"
+#include "EVEServerPCH.h"
+
 class APIServerListener;
+class APIServiceManager;
 
 /**
  * \class APIServer
@@ -54,14 +61,7 @@ public:
 
 	std::string& url();
 
-    //void ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char>> imageData);
-	//void ReportNewCharacter(uint32 creatorAccountID, uint32 characterID);
-
-	//std::string GetFilePath(std::string& category, uint32 id, uint32 size);
-    std::tr1::shared_ptr<std::vector<char>> GetXML(std::string& category, uint32 id, uint32 size);
-
-	static const char *const Categories[];
-	static const uint32 CategoryCount;
+    std::tr1::shared_ptr<std::vector<char> > GetXML(const APICommandCall * pAPICommandCall);
 
 	// used when the ImageServer can't find the image requested
 	// this way we don't have to transfer over all the static NPC images
@@ -69,17 +69,17 @@ public:
 
 private:
 	void RunInternal();
-	bool ValidateCategory(std::string& category);
-	bool ValidateSize(std::string& category, uint32 size);
-	//static bool CreateNewDirectory(std::string& path);
 
-    //std::tr1::unordered_map<uint32 /*accountID*/, std::tr1::shared_ptr<std::vector<char>> /*imageData*/> _limboImages;
 	std::auto_ptr<asio::thread> _ioThread;
 	std::auto_ptr<asio::io_service> _io;
 	std::auto_ptr<APIServerListener> _listener;
 	std::string _url;
 	std::string _basePath;
 	asio::detail::mutex _limboLock;
+
+    std::tr1::shared_ptr<std::string> m_xmlString;
+
+    std::map<std::string, APIServiceManager *> m_APIServiceManagers;    // We own these
 
 	class Lock
 	{

@@ -20,36 +20,37 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Aknor Jaden, adapted from ImageServer.h authored by caytchen
+	Author:		Aknor Jaden
 */
+
+#ifndef __APIACCOUNTMANAGER__H__INCL__
+#define __APIACCOUNTMANAGER__H__INCL__
 
 #include "EVEServerPCH.h"
 
-#ifndef MSVC
-    // This is needed to build the server under linux using GCC
-    #include <tr1/functional>
-#endif
-
-APIServerListener::APIServerListener(asio::io_service& io)
+/**
+ * \class APIAccountManager
+ *
+ * @brief ???
+ *
+ * ???
+ * ???
+ * ???
+ *
+ * @author Aknor Jaden
+ * @date July 2011
+ */
+class APIAccountManager
+: public APIServiceManager
 {
-    _acceptor = new asio::ip::tcp::acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), sConfig.net.apiServerPort));
-    sLog.Log("api server", "listening on port %i", (sConfig.net.apiServerPort));
-	StartAccept();
-}
+public:
+	APIAccountManager();
 
-APIServerListener::~APIServerListener()
-{
-	delete _acceptor;
-}
+	// Common call shared to all derived classes called via polymorphism
+	std::tr1::shared_ptr<std::string> ProcessCall(const APICommandCall * pAPICommandCall);
 
-void APIServerListener::StartAccept()
-{
-    std::tr1::shared_ptr<APIServerConnection> connection = APIServerConnection::create(_acceptor->get_io_service());
-	_acceptor->async_accept(connection->socket(), std::tr1::bind(&APIServerListener::HandleAccept, this, connection));
-}
+protected:
+    std::tr1::shared_ptr<std::string> _APIKeyRequest(const std::string accountName, const std::string password, const std::string keyType);
+};
 
-void APIServerListener::HandleAccept(std::tr1::shared_ptr<APIServerConnection> connection)
-{
-	connection->Process();
-	StartAccept();
-}
+#endif // __APIACCOUNTMANAGER__H__INCL__

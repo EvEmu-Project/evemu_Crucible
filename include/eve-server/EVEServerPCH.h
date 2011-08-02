@@ -70,7 +70,7 @@
 #include "utils/utils_time.h"
 #include "utils/utils_string.h"
 #include "utils/XMLParserEx.h"
-#include "utils/util.h"
+#include "utils/Util.h"
 
 
 /************************************************************************/
@@ -323,7 +323,17 @@
 
 #include "apiserver/APIServer.h"
 #include "apiserver/APIServerConnection.h"
+#include "apiserver/APIServiceDB.h"
+#include "apiserver/APICacheManager.h"
 #include "apiserver/APIServerListener.h"
+#include "apiserver/APIServiceManager.h"
+#include "apiserver/APIAccountManager.h"
+#include "apiserver/APIAdminManager.h"
+#include "apiserver/APICharacterManager.h"
+#include "apiserver/APICorporationManager.h"
+#include "apiserver/APIEveSystemManager.h"
+#include "apiserver/APIMapManager.h"
+#include "apiserver/APIServerManager.h"
 
 #include "LiveUpdateDB.h"
 

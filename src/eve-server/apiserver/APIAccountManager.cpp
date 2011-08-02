@@ -20,36 +20,35 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Aknor Jaden, adapted from ImageServer.h authored by caytchen
+	Author:		Aknor Jaden
 */
+
 
 #include "EVEServerPCH.h"
 
-#ifndef MSVC
-    // This is needed to build the server under linux using GCC
-    #include <tr1/functional>
-#endif
 
-APIServerListener::APIServerListener(asio::io_service& io)
+APIAccountManager::APIAccountManager()
 {
-    _acceptor = new asio::ip::tcp::acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), sConfig.net.apiServerPort));
-    sLog.Log("api server", "listening on port %i", (sConfig.net.apiServerPort));
-	StartAccept();
 }
 
-APIServerListener::~APIServerListener()
+std::tr1::shared_ptr<std::string> APIAccountManager::ProcessCall(const APICommandCall * pAPICommandCall)
 {
-	delete _acceptor;
+    sLog.Debug("APIServiceManager::ProcessCall()", "EVEmu API - Account Service Manager");
+
+    return std::tr1::shared_ptr<std::string>(new std::string(""));
 }
 
-void APIServerListener::StartAccept()
+std::tr1::shared_ptr<std::string> _APIKeyRequest(const std::string accountName, const std::string password, const std::string keyType)
 {
-    std::tr1::shared_ptr<APIServerConnection> connection = APIServerConnection::create(_acceptor->get_io_service());
-	_acceptor->async_accept(connection->socket(), std::tr1::bind(&APIServerListener::HandleAccept, this, connection));
-}
+    // TEST of generating username/password hash for authentication for generating new API keys:
+    std::string passHash;
+    std::string username = "mdrayman";
+    std::string pwd = "mdrayman";
+    std::wstring w_username = Utils::Strings::StringToWString(username);
+    std::wstring w_password = Utils::Strings::StringToWString(pwd);
+    PasswordModule::GeneratePassHash(w_username,w_password,passHash);
+    std::string hexHash = PasswordModule::GenerateHexString(passHash);
+    std::string dateTime = Win32TimeToString(Win32TimeNow());
 
-void APIServerListener::HandleAccept(std::tr1::shared_ptr<APIServerConnection> connection)
-{
-	connection->Process();
-	StartAccept();
+    return std::tr1::shared_ptr<std::string>(new std::string(""));
 }

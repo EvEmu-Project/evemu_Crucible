@@ -20,36 +20,20 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Aknor Jaden, adapted from ImageServer.h authored by caytchen
+	Author:		Aknor Jaden
 */
+
 
 #include "EVEServerPCH.h"
 
-#ifndef MSVC
-    // This is needed to build the server under linux using GCC
-    #include <tr1/functional>
-#endif
 
-APIServerListener::APIServerListener(asio::io_service& io)
+APICorporationManager::APICorporationManager()
 {
-    _acceptor = new asio::ip::tcp::acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), sConfig.net.apiServerPort));
-    sLog.Log("api server", "listening on port %i", (sConfig.net.apiServerPort));
-	StartAccept();
 }
 
-APIServerListener::~APIServerListener()
+std::tr1::shared_ptr<std::string> APICorporationManager::ProcessCall(const APICommandCall * pAPICommandCall)
 {
-	delete _acceptor;
-}
+    sLog.Debug("APICorporationManager::ProcessCall()", "EVEmu API - Corporation Service Manager");
 
-void APIServerListener::StartAccept()
-{
-    std::tr1::shared_ptr<APIServerConnection> connection = APIServerConnection::create(_acceptor->get_io_service());
-	_acceptor->async_accept(connection->socket(), std::tr1::bind(&APIServerListener::HandleAccept, this, connection));
-}
-
-void APIServerListener::HandleAccept(std::tr1::shared_ptr<APIServerConnection> connection)
-{
-	connection->Process();
-	StartAccept();
+    return std::tr1::shared_ptr<std::string>(new std::string(""));
 }

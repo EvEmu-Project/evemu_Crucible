@@ -414,11 +414,31 @@ SET( imageserver_SOURCE
 SET( apiserver_INCLUDE
      "${TARGET_INCLUDE_DIR}/apiserver/APIServer.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APIServerListener.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServerConnection.h" )
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerConnection.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceDB.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICacheManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIAccountManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIAdminManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICharacterManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICorporationManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIEveSystemManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIMapManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerManager.h" )
 SET( apiserver_SOURCE
      "${TARGET_SOURCE_DIR}/apiserver/APIServer.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APIServerListener.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServerConnection.cpp" )
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerConnection.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServiceDB.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICacheManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServiceManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIAccountManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIAdminManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICharacterManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICorporationManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIEveSystemManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIMapManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerManager.cpp" )
 
 
 ########################
