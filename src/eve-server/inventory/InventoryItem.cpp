@@ -589,6 +589,7 @@ PyPackedRow* InventoryItem::GetItemRow() const
 	header->AddColumn( "groupID",    DBTYPE_I2 );
 	header->AddColumn( "categoryID", DBTYPE_UI1 );
 	header->AddColumn( "customInfo", DBTYPE_STR );
+	header->AddColumn( "stacksize" , DBTYPE_I4 );
 
 	PyPackedRow* row = new PyPackedRow( header );
     GetItemRow( row );
@@ -607,6 +608,7 @@ void InventoryItem::GetItemRow( PyPackedRow* into ) const
     into->SetField( "groupID",    new PyInt( groupID() ) );
     into->SetField( "categoryID", new PyInt( categoryID() ) );
     into->SetField( "customInfo", new PyString( customInfo() ) );
+	into->SetField( "stacksize",  new PyInt (quantity()) );
 }
 
 bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result )

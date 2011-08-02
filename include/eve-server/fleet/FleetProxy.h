@@ -20,42 +20,25 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Reve
 */
 
+#ifndef fleetProxy_h__
+#define fleetProxy_h__
 
-#ifndef __CORPORATION_SERVICE_H_INCL__
-#define __CORPORATION_SERVICE_H_INCL__
-
-#include "corporation/CorporationDB.h"
 #include "PyService.h"
 
-class CorporationService : public PyService
+class FleetProxyService: public PyService
 {
 public:
-	CorporationService(PyServiceMgr *mgr);
-	virtual ~CorporationService();
+	FleetProxyService(PyServiceMgr *mgr);
+	~FleetProxyService();
 
 protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
 
-	CorporationDB m_db;
-
-	PyCallable_DECL_CALL(GetFactionInfo)
-	PyCallable_DECL_CALL(GetCorpInfo)
-	PyCallable_DECL_CALL(GetNPCDivisions)
-	PyCallable_DECL_CALL(GetEmploymentRecord)
-	PyCallable_DECL_CALL(GetMedalsReceived)
-	PyCallable_DECL_CALL(GetAllCorpMedals)
-	PyCallable_DECL_CALL(GetRecruitmentAdTypes)
-	PyCallable_DECL_CALL(GetRecruitmentAdsByCriteria)
+	PyCallable_DECL_CALL(GetAvailableFleets)
 };
 
-
-
-
-
 #endif
-
-

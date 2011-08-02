@@ -1,0 +1,15 @@
+<elements>
+	
+	<elementDef name="Call_GetSystemSovereigntyInfo">
+    <tupleInline>
+      <int name="contested" />
+      <int name="corporationID" />
+      <int name="claimTime" />
+      <int name="claimStructureID" />
+      <int name="hubID" />
+      <int name="allianceID" />
+      <int name="solarSystemID" />
+    </tupleInline>
+	</elementDef>
+
+</elements>

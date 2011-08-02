@@ -196,6 +196,9 @@ int main( int argc, char* argv[] )
 	services.RegisterService(new AggressionMgrService(&services));
 	services.RegisterService(new SovereigntyMgrService(&services));
 	services.RegisterService(new PlanetMgrService(&services));
+	services.RegisterService(new CharFittingMgrService(&services));
+	services.RegisterService(new DungeonExplorationMgrService(&services));
+	services.RegisterService(new FleetProxyService(&services));
 
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();

@@ -46,6 +46,7 @@ public:
     PyCallable_DECL_CALL(ReplaceCharges)
     PyCallable_DECL_CALL(MultiMerge)
     PyCallable_DECL_CALL(StackAll)
+	PyCallable_DECL_CALL(StripFitting)
 	PyCallable_DECL_CALL(DestroyFitting)
     PyCallable_DECL_CALL(SetPassword)
 
