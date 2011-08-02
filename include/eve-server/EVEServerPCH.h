@@ -172,6 +172,7 @@
 #include "character/CharacterAppearance_fields.h"
 #include "character/CharacterDB.h"
 #include "character/CharacterService.h"
+#include "character/CharFittingMgrService.h"
 #include "character/CharMgrService.h"
 #include "character/Skill.h"
 #include "character/SkillMgrService.h"
@@ -207,6 +208,9 @@
 #include "dogmaim/DogmaIMDB.h"
 #include "dogmaim/DogmaIMService.h"
 
+// fleet stuff
+#include "fleet/FleetProxy.h"
+
 // item stuff
 #include "inventory/AttributeEnum.h"
 #include "inventory/AttributeMgr.h"
@@ -230,6 +234,7 @@
 
 //services:
 #include "missions/AgentMgrService.h"
+#include "missions/DungeonExplorationMgrService.h"
 #include "missions/MissionMgrService.h"
 #include "missions/Agent.h"
 #include "missions/MissionDB.h"

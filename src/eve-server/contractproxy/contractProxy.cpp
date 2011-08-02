@@ -3,7 +3,9 @@
 // crap
 PyCallable_Make_InnerDispatcher(ContractProxyService)
 
-ContractProxyService::ContractProxyService( PyServiceMgr *mgr ) : PyService(mgr, "contractProxy"), m_dispatch(new Dispatcher(this))
+ContractProxyService::ContractProxyService( PyServiceMgr *mgr ) 
+: PyService(mgr, "contractProxy"), 
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 
