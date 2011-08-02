@@ -42,9 +42,8 @@ protected:
 
 	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
 
-//	PyCallable_DECL_CALL(GetPlanetInfo)
-//	PyCallable_DECL_CALL(GetPlanetResourceInfo)
-//	PyCallable_DECL_CALL(GetPlanetsForChar)
+	PyCallable_DECL_CALL(GetPlanetsForChar)
+	PyCallable_DECL_CALL(GetMyLaunchesDetails)
 };
 
 #endif

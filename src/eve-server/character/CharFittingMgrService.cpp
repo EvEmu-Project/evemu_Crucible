@@ -20,42 +20,31 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Reve
 */
 
+//work in progress
 
-#ifndef __CORPORATION_SERVICE_H_INCL__
-#define __CORPORATION_SERVICE_H_INCL__
+#include "EVEServerPCH.h"
 
-#include "corporation/CorporationDB.h"
-#include "PyService.h"
+PyCallable_Make_InnerDispatcher(CharFittingMgrService)
 
-class CorporationService : public PyService
+CharFittingMgrService::CharFittingMgrService(PyServiceMgr *mgr)
+: PyService(mgr, "charFittingMgr"),
+m_dispatch(new Dispatcher(this))
 {
-public:
-	CorporationService(PyServiceMgr *mgr);
-	virtual ~CorporationService();
+	_SetCallDispatcher(m_dispatch);
 
-protected:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
+	PyCallable_REG_CALL(CharFittingMgrService, GetFittings);
+}
 
-	CorporationDB m_db;
+CharFittingMgrService::~CharFittingMgrService() {
+	delete m_dispatch;
+}
 
-	PyCallable_DECL_CALL(GetFactionInfo)
-	PyCallable_DECL_CALL(GetCorpInfo)
-	PyCallable_DECL_CALL(GetNPCDivisions)
-	PyCallable_DECL_CALL(GetEmploymentRecord)
-	PyCallable_DECL_CALL(GetMedalsReceived)
-	PyCallable_DECL_CALL(GetAllCorpMedals)
-	PyCallable_DECL_CALL(GetRecruitmentAdTypes)
-	PyCallable_DECL_CALL(GetRecruitmentAdsByCriteria)
-};
+PyResult CharFittingMgrService::Handle_GetFittings(PyCallArgs &call) {
 
+	sLog.Debug("Server", "Called GetFittigs Stub.");
 
-
-
-
-#endif
-
-
+	return NULL;
+}

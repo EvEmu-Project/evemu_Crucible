@@ -43,6 +43,7 @@ InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItem
     PyCallable_REG_CALL(InventoryBound, ReplaceCharges)
     PyCallable_REG_CALL(InventoryBound, MultiMerge)
     PyCallable_REG_CALL(InventoryBound, StackAll)
+	PyCallable_REG_CALL(InventoryBound, StripFitting)
 	PyCallable_REG_CALL(InventoryBound, DestroyFitting)
     PyCallable_REG_CALL(InventoryBound, SetPassword)
 }
@@ -276,6 +277,12 @@ PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
     mInventory.StackAll(stackFlag, call.client->GetCharacterID());
 
     return NULL;
+}
+
+PyResult InventoryBound::Handle_StripFitting(PyCallArgs &call) {
+	sLog.Debug("Server", "Called StripFitting Stub.");
+
+	return NULL;
 }
 
 PyResult InventoryBound::Handle_DestroyFitting(PyCallArgs &call) {

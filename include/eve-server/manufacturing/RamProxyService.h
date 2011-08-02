@@ -58,6 +58,8 @@ private:
     PyCallable_DECL_CALL(AssemblyLinesGet)
     PyCallable_DECL_CALL(InstallJob)
     PyCallable_DECL_CALL(CompleteJob)
+	PyCallable_DECL_CALL(GetRelevantCharSkills)
+	PyCallable_DECL_CALL(AssemblyLinesSelectPublic)
 };
 
 #endif

@@ -37,10 +37,26 @@ RamProxyService::RamProxyService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(RamProxyService, AssemblyLinesGet);
     PyCallable_REG_CALL(RamProxyService, InstallJob);
     PyCallable_REG_CALL(RamProxyService, CompleteJob);
+	PyCallable_REG_CALL(RamProxyService, GetRelevantCharSkills);
+	PyCallable_REG_CALL(RamProxyService, AssemblyLinesSelectPublic);
 }
 
 RamProxyService::~RamProxyService() {
     delete m_dispatch;
+}
+
+PyResult RamProxyService::Handle_AssemblyLinesSelectPublic(PyCallArgs &call) {
+
+	sLog.Debug("Server", "Called AsemblyLinesSelectPublic Stub.");
+
+	return new PyList;
+}
+
+PyResult RamProxyService::Handle_GetRelevantCharSkills(PyCallArgs &call) {
+
+	sLog.Debug("Server", "Called GetRelevantCharSkills Stub.");
+
+	return NULL;
 }
 
 PyResult RamProxyService::Handle_GetJobs2(PyCallArgs &call) {
