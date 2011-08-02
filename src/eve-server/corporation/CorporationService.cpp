@@ -34,6 +34,7 @@ CorporationService::CorporationService(PyServiceMgr *mgr)
 	_SetCallDispatcher(m_dispatch);
 
 	PyCallable_REG_CALL(CorporationService, GetFactionInfo)
+	PyCallable_REG_CALL(CorporationService, GetCorpInfo)
 	PyCallable_REG_CALL(CorporationService, GetNPCDivisions)
 	PyCallable_REG_CALL(CorporationService, GetEmploymentRecord)
 	PyCallable_REG_CALL(CorporationService, GetMedalsReceived)
@@ -45,7 +46,6 @@ CorporationService::CorporationService(PyServiceMgr *mgr)
 CorporationService::~CorporationService() {
 	delete m_dispatch;
 }
-
 
 PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 	
@@ -114,6 +114,13 @@ PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 
 	return(ss);
 */
+}
+
+PyResult CorporationService::Handle_GetCorpInfo(PyCallArgs &call) { 
+
+	sLog.Debug("Server", "Called GetCorpInfo Stub.");
+
+	return NULL;
 }
 
 

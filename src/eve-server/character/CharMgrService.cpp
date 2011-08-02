@@ -40,6 +40,7 @@ CharMgrService::CharMgrService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(CharMgrService, GetContactList)
 	PyCallable_REG_CALL(CharMgrService, GetCloneTypeID)
 	PyCallable_REG_CALL(CharMgrService, GetHomeStation)
+	PyCallable_REG_CALL(CharMgrService, GetFactions)
 }
 
 CharMgrService::~CharMgrService() {
@@ -145,6 +146,13 @@ PyResult CharMgrService::Handle_GetCloneTypeID( PyCallArgs& call )
 PyResult CharMgrService::Handle_GetHomeStation( PyCallArgs& call )
 {
 	sLog.Debug( "CharMgrService", "Called GetHomeStation stub." );
+
+	return NULL;
+}
+
+PyResult CharMgrService::Handle_GetFactions( PyCallArgs& call )
+{
+	sLog.Debug( "CharMgrService", "Called GetFactions stub." );
 
 	return NULL;
 }

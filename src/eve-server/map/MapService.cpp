@@ -38,6 +38,7 @@ MapService::MapService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(MapService, GetSolarSystemPseudoSecurities)
 	PyCallable_REG_CALL(MapService, GetStuckSystems)
 	PyCallable_REG_CALL(MapService, GetHistory)
+	PyCallable_REG_CALL(MapService, GetIncursionGlobalReport)
 }
 
 MapService::~MapService() {
@@ -125,6 +126,13 @@ PyResult MapService::Handle_GetStuckSystems(PyCallArgs &call) {
 PyResult MapService::Handle_GetHistory(PyCallArgs &call) {
 
 	sLog.Debug("Server", "Called GetHistory Stub.");
+
+	return NULL;
+}
+
+PyResult MapService::Handle_GetIncursionGlobalReport(PyCallArgs &call) {
+
+	sLog.Debug("Server", "Called GetIncursionGlobalReport Stub.");
 
 	return NULL;
 }

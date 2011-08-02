@@ -33,13 +33,22 @@ LPService::LPService(PyServiceMgr *mgr)
 {
 	_SetCallDispatcher(m_dispatch);
 
+	PyCallable_REG_CALL(LPService, GetLPExchangeRates)
 	PyCallable_REG_CALL(LPService, GetLPForCharacterCorp)
 	PyCallable_REG_CALL(LPService, GetLPsForCharacter)
+	PyCallable_REG_CALL(LPService, GetAvailableOffersFromCorp)
 }
 
 LPService::~LPService()
 {
 	delete m_dispatch;
+}
+
+PyResult LPService::Handle_GetLPExchangeRates( PyCallArgs& call )
+{
+    sLog.Debug( "LPService", "Called GetLPExchangeRates stub." );
+
+	return new PyList;
 }
 
 PyResult LPService::Handle_GetLPForCharacterCorp( PyCallArgs& call )
@@ -58,5 +67,12 @@ PyResult LPService::Handle_GetLPsForCharacter( PyCallArgs& call )
 	return new PyList;
 }
 
+PyResult LPService::Handle_GetAvailableOffersFromCorp( PyCallArgs& call )
+{
+
+	sLog.Debug( "LPService", "Called GetAvailableOffersFromCorp stub." );
+
+	return new PyList;
+}
 
 

@@ -68,6 +68,7 @@ PlanetMgrService::PlanetMgrService(PyServiceMgr *mgr)
 	_SetCallDispatcher(m_dispatch);
 
 	PyCallable_REG_CALL(PlanetMgrService, GetPlanetsForChar)
+	PyCallable_REG_CALL(PlanetMgrService, GetMyLaunchesDetails)
 }
 
 PlanetMgrService::~PlanetMgrService() {
@@ -96,6 +97,13 @@ PyResult PlanetMgrBound::Handle_GetPlanetResourceInfo(PyCallArgs &call) {
 
 PyResult PlanetMgrService::Handle_GetPlanetsForChar(PyCallArgs &call) {
 	sLog.Debug("Server", "Called GetPlanetsForChar Stub.");
+
+	return NULL;
+}
+
+PyResult PlanetMgrService::Handle_GetMyLaunchesDetails(PyCallArgs &call) {
+
+	sLog.Debug("Server", "Called GetMyLaunchesDetails Stub.");
 
 	return NULL;
 }

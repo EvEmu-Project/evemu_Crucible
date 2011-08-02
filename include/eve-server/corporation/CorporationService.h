@@ -43,6 +43,7 @@ protected:
 	CorporationDB m_db;
 
 	PyCallable_DECL_CALL(GetFactionInfo)
+	PyCallable_DECL_CALL(GetCorpInfo)
 	PyCallable_DECL_CALL(GetNPCDivisions)
 	PyCallable_DECL_CALL(GetEmploymentRecord)
 	PyCallable_DECL_CALL(GetMedalsReceived)

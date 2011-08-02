@@ -46,6 +46,7 @@ protected:
 	PyCallable_DECL_CALL(GetSolarSystemPseudoSecurities)
 	PyCallable_DECL_CALL(GetStuckSystems)
 	PyCallable_DECL_CALL(GetHistory)
+	PyCallable_DECL_CALL(GetIncursionGlobalReport)
 };
 
 #endif

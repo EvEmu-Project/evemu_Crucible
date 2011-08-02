@@ -10,11 +10,18 @@ ContractProxyService::ContractProxyService( PyServiceMgr *mgr )
     _SetCallDispatcher(m_dispatch);
 
     PyCallable_REG_CALL(ContractProxyService, GetLoginInfo)
+	PyCallable_REG_CALL(ContractProxyService, GetMyExpiredContractList)
 }
 
 ContractProxyService::~ContractProxyService()
 {
     delete m_dispatch;
+}
+
+PyResult ContractProxyService::Handle_GetMyExpiredContractList(PyCallArgs &call) {
+	sLog.Debug("Server", "Called GetMyExpiredContractList Stub.");
+
+	return NULL;
 }
 
 PyResult ContractProxyService::Handle_GetLoginInfo(PyCallArgs &call)
