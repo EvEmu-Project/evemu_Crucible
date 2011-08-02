@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+#include "tr1/functional"
 
 APIServerListener::APIServerListener(asio::io_service& io)
 {

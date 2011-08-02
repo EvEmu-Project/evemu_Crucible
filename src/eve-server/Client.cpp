@@ -1467,6 +1467,9 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     AccountInfo account_info;
     CryptoServerHandshake server_shake;
 
+    /* send passwordVersion required: 1=plain, 2=hashed */
+    PyRep* rsp = new PyInt( 2 );
+
 	//sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
 	//sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
 
@@ -1543,8 +1546,6 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
             client->DisconnectClient();
     }
 
-    /* send passwordVersion required: 1=plain, 2=hashed */
-    PyRep* rsp = new PyInt( 2 );
     mNet->QueueRep( rsp );
     PyDecRef( rsp );
 

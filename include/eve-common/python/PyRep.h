@@ -23,6 +23,8 @@
     Author:     Zhur
 */
 
+#include <assert.h>
+
 #ifndef EVE_PY_REP_H
 #define EVE_PY_REP_H
 

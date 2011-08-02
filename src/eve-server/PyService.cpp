@@ -181,6 +181,6 @@ PyObject *PyService::_BuildCachedReturn( PySubStream** in_result, const char* se
 
 PyBoundObject * PyService::_CreateBoundObject( Client *c, const PyRep *bind_args )
 {
-    __asm{int 3};
+    assert(false);
     return NULL;
 }

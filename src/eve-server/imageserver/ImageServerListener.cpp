@@ -24,6 +24,7 @@
 */
 
 #include "EVEServerPCH.h"
+#include <tr1/functional>
 
 ImageServerListener::ImageServerListener(asio::io_service& io)
 {

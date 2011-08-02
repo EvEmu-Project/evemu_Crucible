@@ -81,7 +81,7 @@ std::string CachedObjectMgr::OIDToString(const PyRep *objectID)
     if( !objectID->visit( v ) ) {
         sLog.Error("Cached Obj Mgr", "Failed to convert cache hind object ID into collapsed string:");
         objectID->Dump(SERVICE__ERROR, "    ");
-        __asm{int 3};
+        assert(false);
         return "";
     }
     return v.result;
@@ -369,7 +369,7 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
     }
     
     if(fwrite(&res->second->cache->content()[0], sizeof(uint8), header.length, f) != header.length) {
-        __asm{int 3};
+    	assert(false);
         fclose(f);
         return false;
     }
