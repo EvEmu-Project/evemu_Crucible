@@ -126,7 +126,6 @@ public:
 	uint32 GetShipID() const                        { return mSession.GetCurrentInt( "shipid" ); }
     uint32 GetGangRole() const                      { return mSession.GetCurrentInt( "gangrole" ); }
 
-
 	// character data
 	CharacterRef GetChar() const                    { return m_char; }
 	ShipRef GetShip() const                         { return ShipRef::StaticCast( Item() ); }

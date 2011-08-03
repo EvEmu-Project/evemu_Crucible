@@ -192,11 +192,9 @@ bool SystemStargateEntity::LoadExtras(SystemDB *db) {
 
 PyDict *SystemStargateEntity::MakeSlimItem() const {
 	PyDict *slim = SystemStationEntity::MakeSlimItem();
-    if(m_jumps != NULL) {
-        PyIncRef(m_jumps);
-		slim->SetItemString("jumps", m_jumps);
-    }
-	return slim;
+	if(m_jumps != NULL)
+		slim->SetItemString("jumps", m_jumps->Clone());
+	return(slim);
 }
 
 

@@ -27,157 +27,60 @@
 #include <iostream>
 #include <fstream>
 
+#ifndef MSVC
+    // This is needed to build the server under linux using GCC
+    #include <tr1/functional>
+#endif
+
 const char *const APIServer::FallbackURL = "http://api.eveonline.com/";
-
-const char *const APIServer::Categories[] = {
-    "admin",
-    "account",
-	"char",
-	"corp", 
-	"eve",
-	"map",
-	"server" };
-
-const uint32 APIServer::CategoryCount = 7;
 
 APIServer::APIServer()
 {
 	std::stringstream urlBuilder;
 	urlBuilder << "http://" << sConfig.net.apiServer << ":" << (sConfig.net.apiServerPort) << "/";
 	_url = urlBuilder.str();
-/*
-	_basePath = sConfig.files.imageDir;
-	if (_basePath[_basePath.size() - 1] != '/')
-		_basePath += "/";
 
-	CreateNewDirectory(_basePath);
-
-	for (int i = 0; i < CategoryCount; i++)
-		CreateNewDirectory(_basePath + Categories[i]);
-
-	sLog.Log("image server", "our URL: %s", _url.c_str());
-	sLog.Log("image server", "our base: %s", _basePath.c_str());
-*/
+    m_APIServiceManagers.insert(std::make_pair("base", new APIServiceManager()));
+    m_APIServiceManagers.insert(std::make_pair("account", new APIAccountManager()));
+    m_APIServiceManagers.insert(std::make_pair("admin", new APIAdminManager()));
+    m_APIServiceManagers.insert(std::make_pair("char", new APICharacterManager()));
+    m_APIServiceManagers.insert(std::make_pair("corp", new APICorporationManager()));
+    m_APIServiceManagers.insert(std::make_pair("eve", new APIEveSystemManager()));
+    m_APIServiceManagers.insert(std::make_pair("map", new APIMapManager()));
+    m_APIServiceManagers.insert(std::make_pair("server", new APIServerManager()));
 }
 
-/*
-bool APIServer::CreateNewDirectory(std::string& path)
+std::tr1::shared_ptr<std::vector<char> > APIServer::GetXML(const APICommandCall * pAPICommandCall)
 {
-	return mkdir(path.c_str(), 777) == 0;
-}
+    //if( m_APIServiceManagers.find(pAPICommandCall->at(0).first) != m_APIServiceManagers.end() )
+    if( pAPICommandCall->find( "service" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APIserver::GetXML()", "Cannot find 'service' specifier in pAPICommandCall packet" );
+		return std::tr1::shared_ptr<std::vector<char> >(new std::vector<char>() );
+        //return std::tr1::shared_ptr<std::string>(new std::string(""));
+    }
 
-void ImageServer::ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char>> imageData)
-{
-	Lock lock(_limboLock);
+    if( m_APIServiceManagers.find(pAPICommandCall->find( "service" )->second) != m_APIServiceManagers.end() )
+    {
+        // Get reference to service manager object and call ProcessCall() with the pAPICommandCall packet
+        //m_xmlString = m_APIServiceManagers.find("base")->second->ProcessCall(pAPICommandCall);
+        m_xmlString = m_APIServiceManagers.find( pAPICommandCall->find( "service" )->second )->second->ProcessCall( pAPICommandCall );
 
-	if (_limboImages.find(accountID) != _limboImages.end())
-		_limboImages.insert(std::pair<uint32,std::tr1::shared_ptr<std::vector<char>>>(accountID, imageData));
-	else
-		_limboImages[accountID] = imageData;
-}
+        // Convert the std::string to the std::vector<char>:
+	    std::tr1::shared_ptr<std::vector<char>> ret = std::tr1::shared_ptr<std::vector<char>>(new std::vector<char>());
+        unsigned long len = m_xmlString->length();
+        for(int i=0; i<m_xmlString->length(); i++)
+            ret->push_back(m_xmlString->at(i));
 
-void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID)
-{
-	Lock lock(_limboLock);
-
-	// check if we received an image from this account previously
-	if (_limboImages.find(creatorAccountID) == _limboImages.end())
-		return;
-
-	// we have, so save it
-	//std::ofstream stream;
-	std::string path(GetFilePath(std::string("Character"), characterID, 512));
-    FILE * fp = fopen(path.c_str(), "wb");
-    
-	//stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
-	std::tr1::shared_ptr<std::vector<char>> data = _limboImages[creatorAccountID];
-
-    fwrite(&((*data)[0]), 1, data->size(), fp);
-    fclose(fp);
-    
-	//std::copy(data->begin(), data->end(), std::ostream_iterator<char>(stream));
-	//stream.flush();
-	//stream.close();
-
-	// and delete it from our limbo map
-	_limboImages.erase(creatorAccountID);
-
-	sLog.Log("image server", "saved image from %i as %s", creatorAccountID, path.c_str());
-}
-*/
-
-std::tr1::shared_ptr<std::vector<char>> APIServer::GetXML(std::string& category, uint32 id, uint32 size)
-{
-	if (!ValidateCategory(category) || !ValidateSize(category, size))
-		return std::tr1::shared_ptr<std::vector<char>>();
-
-	//std::ifstream stream;
-	//std::string path(GetFilePath(category, id, size));
-    //FILE * fp = fopen(path.c_str(), "rb");
-    //if (fp == NULL)
-    //    return std::tr1::shared_ptr<std::vector<char>>();
-    //fseek(fp, 0, SEEK_END);
-    //size_t length = ftell(fp);
-    //fseek(fp, 0, SEEK_SET);
-
-	//stream.open(path, std::ios::binary | std::ios::in);
-	// not found or other error
-	//if (stream.fail())
-	//	return std::tr1::shared_ptr<std::vector<char>>();
-
-	// get length
-	//stream.seekg(0, std::ios::end);
-	//int length = stream.tellg();
-	//stream.seekg(0, std::ios::beg);
-
-	std::tr1::shared_ptr<std::vector<char>> ret = std::tr1::shared_ptr<std::vector<char>>(new std::vector<char>());
-	ret->resize(length);
-
-	// HACK
-	//stream.read(&((*ret)[0]), length);
-    fread(&((*ret)[0]), 1, length, fp);
-
-	return ret;
-}
-
-/*
-std::string ImageServer::GetFilePath(std::string& category, uint32 id, uint32 size)
-{
-    std::string extension = category == "Character" ? "jpg" : "png";
-
-	// HACK: We don't have any other
-	size = 512;
-
-	std::stringstream builder;
-	builder << _basePath << category << "/" << id << "_" << size << "." << extension;
-	return builder.str();
-}
-*/
-
-bool APIServer::ValidateSize(std::string& category, uint32 size)
-{
-/*
-	if (category == "InventoryType")
-		return size == 64 || size == 32;
-
-	if (category == "Alliance")
-		return size == 128 || size == 64 || size == 32;
-
-	if (category == "Corporation")
-		return size == 256 || size == 128 || size == 64 || size == 32;
-
-	// Render and Character
-	return size == 512 || size == 256 || size == 128 || size == 64 || size == 32;
-*/
-	return true;
-}
-
-bool APIServer::ValidateCategory(std::string& category)
-{
-	for (int i = 0; i < 5; i++)
-		if (category == Categories[i])
-			return true;
-	return false;
+        return ret;
+    }
+    else
+    {
+        // Service call not found, so return NULL:
+		return std::tr1::shared_ptr<std::vector<char> >(new std::vector<char>() );
+        //return NULL;
+        //m_xmlString = m_APIServiceManagers.find("base")->second->ProcessCall(pAPICommandCall);
+    }
 }
 
 std::string& APIServer::url()

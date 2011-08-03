@@ -139,7 +139,8 @@ SET( character_INCLUDE
      "${TARGET_INCLUDE_DIR}/character/CharacterAppearance_fields.h"
      "${TARGET_INCLUDE_DIR}/character/CharacterDB.h"
      "${TARGET_INCLUDE_DIR}/character/CharacterService.h"
-     "${TARGET_INCLUDE_DIR}/character/CharMgrService.h"
+     "${TARGET_INCLUDE_DIR}/character/CharFittingMgrService.h"
+	 "${TARGET_INCLUDE_DIR}/character/CharMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/Skill.h"
      "${TARGET_INCLUDE_DIR}/character/SkillMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/CharUnboundMgrService.h"
@@ -152,6 +153,7 @@ SET( character_SOURCE
      "${TARGET_SOURCE_DIR}/character/Character.cpp"
      "${TARGET_SOURCE_DIR}/character/CharacterDB.cpp"
      "${TARGET_SOURCE_DIR}/character/CharacterService.cpp"
+	 "${TARGET_SOURCE_DIR}/character/CharFittingMgrService.cpp"
      "${TARGET_SOURCE_DIR}/character/CharMgrService.cpp"
      "${TARGET_SOURCE_DIR}/character/Skill.cpp"
      "${TARGET_SOURCE_DIR}/character/SkillMgrService.cpp"
@@ -176,7 +178,12 @@ SET( chat_SOURCE
      "${TARGET_SOURCE_DIR}/chat/LSCService.cpp"
      "${TARGET_SOURCE_DIR}/chat/OnlineStatusService.cpp"
      "${TARGET_SOURCE_DIR}/chat/VoiceMgrService.cpp" )
-
+	 
+SET( fleet_INCLUDE
+	  "${TARGET_INCLUDE_DIR}/fleet/FleetProxy.h" )
+SET( fleet_SOURCE
+	  "${TARGET_SOURCE_DIR}/fleet/FleetProxy.cpp" )
+	  
 SET( inventory_INCLUDE
      "${TARGET_INCLUDE_DIR}/inventory/AttributeEnum.h"
      "${TARGET_INCLUDE_DIR}/inventory/AttributeMgr.h"
@@ -253,11 +260,13 @@ SET( mining_SOURCE
 SET( missions_INCLUDE
      "${TARGET_INCLUDE_DIR}/missions/Agent.h"
      "${TARGET_INCLUDE_DIR}/missions/AgentMgrService.h"
+	 "${TARGET_INCLUDE_DIR}/missions/DungeonExplorationMgrService.h"
      "${TARGET_INCLUDE_DIR}/missions/MissionDB.h"
      "${TARGET_INCLUDE_DIR}/missions/MissionMgrService.h" )
 SET( missions_SOURCE
      "${TARGET_SOURCE_DIR}/missions/Agent.cpp"
      "${TARGET_SOURCE_DIR}/missions/AgentMgrService.cpp"
+	 "${TARGET_SOURCE_DIR}/missions/DungeonExplorationMgrService.cpp"
      "${TARGET_SOURCE_DIR}/missions/MissionDB.cpp"
      "${TARGET_SOURCE_DIR}/missions/MissionMgrService.cpp" )
 
@@ -270,6 +279,11 @@ SET( npc_SOURCE
      "${TARGET_SOURCE_DIR}/npc/NPCAI.cpp" )
      #"${TARGET_SOURCE_DIR}/npc/NPCAI_State.cpp"
 
+SET( planetint_INCLUDE
+	 "${TARGET_INCLUDE_DIR}/planetint/planetMgr.h" )
+SET( planetint_SOURCE
+	 "${TARGET_SOURCE_DIR}/planetint/planetMgr.cpp" )
+	 
 SET( posmgr_INCLUDE
      "${TARGET_INCLUDE_DIR}/posmgr/PosMgrDB.h"
      "${TARGET_INCLUDE_DIR}/posmgr/PosMgrService.h"
@@ -396,6 +410,36 @@ SET( imageserver_SOURCE
      "${TARGET_SOURCE_DIR}/imageserver/ImageServer.cpp"
      "${TARGET_SOURCE_DIR}/imageserver/ImageServerListener.cpp"
      "${TARGET_SOURCE_DIR}/imageserver/ImageServerConnection.cpp" )
+     
+SET( apiserver_INCLUDE
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServer.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerListener.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerConnection.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceDB.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICacheManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIAccountManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIAdminManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICharacterManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICorporationManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIEveSystemManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIMapManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerManager.h" )
+SET( apiserver_SOURCE
+     "${TARGET_SOURCE_DIR}/apiserver/APIServer.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerListener.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerConnection.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServiceDB.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICacheManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServiceManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIAccountManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIAdminManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICharacterManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICorporationManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIEveSystemManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIMapManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerManager.cpp" )
+
 
 ########################
 # Setup the executable #
@@ -425,6 +469,7 @@ SOURCE_GROUP( "include\\corporation"   FILES ${corporation_INCLUDE} )
 SOURCE_GROUP( "include\\dogmaim"       FILES ${dogmaim_INCLUDE} )
 SOURCE_GROUP( "include\\character"     FILES ${character_INCLUDE} )
 SOURCE_GROUP( "include\\chat"          FILES ${chat_INCLUDE} )
+SOURCE_GROUP( "include\\fleet"		   FILES ${fleet_INCLUDE} )
 SOURCE_GROUP( "include\\inventory"     FILES ${inventory_INCLUDE} )
 SOURCE_GROUP( "include\\manufacturing" FILES ${manufacturing_INCLUDE} )
 SOURCE_GROUP( "include\\map"           FILES ${map_INCLUDE} )
@@ -432,6 +477,7 @@ SOURCE_GROUP( "include\\market"        FILES ${market_INCLUDE} )
 SOURCE_GROUP( "include\\mining"        FILES ${mining_INCLUDE} )
 SOURCE_GROUP( "include\\missions"      FILES ${missions_INCLUDE} )
 SOURCE_GROUP( "include\\npc"           FILES ${npc_INCLUDE} )
+SOURCE_GROUP( "include\\planetint"	   FILES ${planetint_INCLUDE} )
 SOURCE_GROUP( "include\\posmgr"        FILES ${posmgr_INCLUDE} )
 SOURCE_GROUP( "include\\ship"          FILES ${ship_INCLUDE} )
 SOURCE_GROUP( "include\\sovereignty"   FILES ${sovereignty_INCLUDE} )
@@ -442,6 +488,7 @@ SOURCE_GROUP( "include\\system"        FILES ${system_INCLUDE} )
 SOURCE_GROUP( "include\\trade"         FILES ${trade_INCLUDE} )
 SOURCE_GROUP( "include\\tutorial"      FILES ${tutorial_INCLUDE} )
 SOURCE_GROUP( "include\\imageserver"   FILES ${imageserver_INCLUDE} )
+SOURCE_GROUP( "include\\apiserver"     FILES ${apiserver_INCLUDE} )
 
 
 SOURCE_GROUP( "src"                FILES ${SOURCE} )
@@ -456,6 +503,7 @@ SOURCE_GROUP( "src\\corporation"   FILES ${corporation_SOURCE} )
 SOURCE_GROUP( "src\\dogmaim"       FILES ${dogmaim_SOURCE} )
 SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
 SOURCE_GROUP( "src\\chat"          FILES ${chat_SOURCE} )
+SOURCE_GROUP( "src\\fleet"         FILES ${fleet_SOURCE} )
 SOURCE_GROUP( "src\\inventory"     FILES ${inventory_SOURCE} )
 SOURCE_GROUP( "src\\manufacturing" FILES ${manufacturing_SOURCE} )
 SOURCE_GROUP( "src\\map"           FILES ${map_SOURCE} )
@@ -463,6 +511,7 @@ SOURCE_GROUP( "src\\market"        FILES ${market_SOURCE} )
 SOURCE_GROUP( "src\\mining"        FILES ${mining_SOURCE} )
 SOURCE_GROUP( "src\\missions"      FILES ${missions_SOURCE} )
 SOURCE_GROUP( "src\\npc"           FILES ${npc_SOURCE} )
+SOURCE_GROUP( "src\\planetint"     FILES ${planetint_SOURCE} )
 SOURCE_GROUP( "src\\posmgr"        FILES ${posmgr_SOURCE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_SOURCE} )
 SOURCE_GROUP( "src\\sovereignty"   FILES ${sovereignty_SOURCE} )
@@ -473,6 +522,7 @@ SOURCE_GROUP( "src\\system"        FILES ${system_SOURCE} )
 SOURCE_GROUP( "src\\trade"         FILES ${trade_SOURCE} )
 SOURCE_GROUP( "src\\tutorial"      FILES ${tutorial_SOURCE} )
 SOURCE_GROUP( "src\\imageserver"   FILES ${imageserver_SOURCE} )
+SOURCE_GROUP( "src\\apiserver"     FILES ${apiserver_SOURCE} )
 
 
 ADD_EXECUTABLE( "${TARGET_NAME}"
@@ -483,11 +533,12 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${browser_INCLUDE}        ${browser_SOURCE} 
                 ${cache_INCLUDE}          ${cache_SOURCE}
                 ${config_INCLUDE}         ${config_SOURCE}
-		${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
+				${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
                 ${corporation_INCLUDE}    ${corporation_SOURCE}
                 ${dogmaim_INCLUDE}        ${dogmaim_SOURCE}
                 ${character_INCLUDE}      ${character_SOURCE}
                 ${chat_INCLUDE}           ${chat_SOURCE}
+				${fleet_INCLUDE}		  ${fleet_SOURCE}
                 ${inventory_INCLUDE}      ${inventory_SOURCE}
                 ${manufacturing_INCLUDE}  ${manufacturing_SOURCE}
                 ${map_INCLUDE}            ${map_SOURCE}
@@ -495,6 +546,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${mining_INCLUDE}         ${mining_SOURCE}
                 ${missions_INCLUDE}       ${missions_SOURCE}
                 ${npc_INCLUDE}            ${npc_SOURCE}
+				${planetint_INCLUDE}	  ${planetint_SOURCE}
                 ${posmgr_INCLUDE}         ${posmgr_SOURCE}
                 ${sovereignty_INCLUDE}    ${sovereignty_SOURCE} 
                 ${ship_INCLUDE}           ${ship_SOURCE}
@@ -504,7 +556,8 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${system_INCLUDE}         ${system_SOURCE}
                 ${trade_INCLUDE}          ${trade_SOURCE}
                 ${tutorial_INCLUDE}       ${tutorial_SOURCE}
-                ${imageserver_INCLUDE}    ${imageserver_SOURCE} )
+                ${imageserver_INCLUDE}    ${imageserver_SOURCE}
+                ${apiserver_INCLUDE}      ${apiserver_SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "EVEServerPCH.h"

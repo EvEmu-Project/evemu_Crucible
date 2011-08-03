@@ -70,7 +70,7 @@
 #include "utils/utils_time.h"
 #include "utils/utils_string.h"
 #include "utils/XMLParserEx.h"
-#include "utils/util.h"
+#include "utils/Util.h"
 
 
 /************************************************************************/
@@ -172,6 +172,7 @@
 #include "character/CharacterAppearance_fields.h"
 #include "character/CharacterDB.h"
 #include "character/CharacterService.h"
+#include "character/CharFittingMgrService.h"
 #include "character/CharMgrService.h"
 #include "character/Skill.h"
 #include "character/SkillMgrService.h"
@@ -207,6 +208,9 @@
 #include "dogmaim/DogmaIMDB.h"
 #include "dogmaim/DogmaIMService.h"
 
+// fleet stuff
+#include "fleet/FleetProxy.h"
+
 // item stuff
 #include "inventory/AttributeEnum.h"
 #include "inventory/AttributeMgr.h"
@@ -230,6 +234,7 @@
 
 //services:
 #include "missions/AgentMgrService.h"
+#include "missions/DungeonExplorationMgrService.h"
 #include "missions/MissionMgrService.h"
 #include "missions/Agent.h"
 #include "missions/MissionDB.h"
@@ -248,13 +253,19 @@
 #include "market/MarketDB.h"
 #include "market/MarketProxyService.h"
 
+//planetary interaction
+#include "planetint/planetMgr.h"
+
+//POS
 #include "posmgr/PosMgrDB.h"
 #include "posmgr/PosMgrService.h"
 #include "posmgr/Structure.h"
 
+//NPC
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
 
+//sovereignty stuff
 #include "sovereignty/SovereigntyMgrService.h"
 
 #include "system/BookmarkDB.h"
@@ -309,6 +320,20 @@
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerConnection.h"
 #include "imageserver/ImageServerListener.h"
+
+#include "apiserver/APIServer.h"
+#include "apiserver/APIServerConnection.h"
+#include "apiserver/APIServiceDB.h"
+#include "apiserver/APICacheManager.h"
+#include "apiserver/APIServerListener.h"
+#include "apiserver/APIServiceManager.h"
+#include "apiserver/APIAccountManager.h"
+#include "apiserver/APIAdminManager.h"
+#include "apiserver/APICharacterManager.h"
+#include "apiserver/APICorporationManager.h"
+#include "apiserver/APIEveSystemManager.h"
+#include "apiserver/APIMapManager.h"
+#include "apiserver/APIServerManager.h"
 
 #include "LiveUpdateDB.h"
 

@@ -62,12 +62,12 @@ PyObject *CachedObjectMgr::CacheRecord::EncodeHint() const
 {
     objectCaching_CachedObject_spec spec;
 
-    spec.objectID = objectID; PyIncRef(objectID);
+    spec.objectID = objectID->Clone();
     spec.nodeID = HackCacheNodeID;
     spec.timestamp = timestamp;
     spec.version = version;
 
-    return spec.Encode();
+    return(spec.Encode());
 }
 
 
@@ -81,7 +81,7 @@ std::string CachedObjectMgr::OIDToString(const PyRep *objectID)
     if( !objectID->visit( v ) ) {
         sLog.Error("Cached Obj Mgr", "Failed to convert cache hind object ID into collapsed string:");
         objectID->Dump(SERVICE__ERROR, "    ");
-        __asm{int 3};
+        assert(false);
         return "";
     }
     return v.result;
@@ -170,7 +170,7 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer)
     //this is the hard one..
     CacheRecord *r = new CacheRecord;
     r->timestamp = Win32TimeNow();
-    r->objectID = (PyRep*)objectID; PyIncRef(objectID);
+    r->objectID = objectID->Clone();
 
 	// retake ownership
     r->cache = *buffer;
@@ -236,7 +236,7 @@ PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID)
     co.version = res->second->version;
     co.nodeID = HackCacheNodeID;    //hack, doesn't matter until we have multi-node networks.
     co.shared = true;
-    co.objectID = res->second->objectID; PyIncRef(res->second->objectID);
+    co.objectID = res->second->objectID->Clone();
     co.cache = res->second->cache;
 
     if(res->second->cache->content().size() == 0 || res->second->cache->content()[0] == MarshalHeaderByte)
@@ -318,9 +318,8 @@ bool CachedObjectMgr::LoadCachedFromFile(const std::string &cacheDir, const PyRe
     if( res != m_cachedObjects.end() )
         SafeDelete( res->second );
 
-    CacheRecord* cache = new CacheRecord;
-    
-    cache->objectID = (PyRep*)objectID; PyIncRef(objectID);
+    CacheRecord* cache = m_cachedObjects[ str ] = new CacheRecord;
+    cache->objectID = objectID->Clone();
     cache->cache = new PyBuffer( &buf );
     cache->timestamp = header.timestamp;
     cache->version = header.version;
@@ -370,7 +369,7 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
     }
     
     if(fwrite(&res->second->cache->content()[0], sizeof(uint8), header.length, f) != header.length) {
-        __asm{int 3};
+    	assert(false);
         fclose(f);
         return false;
     }
@@ -424,9 +423,9 @@ PySubStream* CachedObjectMgr::LoadCachedFile( const char* abs_fname, const char*
     }
 
     uint64 file_length = filesize( f );
-    if( file_length == 0 ) {
+    if( file_length == 0 )
+    {
 		sLog.Error("CachedObjMgr","Unable to stat cache file '%s' for oname '%s'", abs_fname, oname );
-
         fclose( f );
         return false;
     }
@@ -550,9 +549,9 @@ PyCachedObject *PyCachedObject::Clone() const
     res->version  = version;
     res->nodeID  = nodeID;
     res->shared = shared;
-    res->cache = (PyBuffer *) cache; PyIncRef(cache);
+    res->cache = (PyBuffer *) cache->Clone();
     res->compressed = compressed;
-    res->objectID = objectID; PyIncRef(objectID);
+    res->objectID = objectID->Clone();
     return res;
 }
 
@@ -710,7 +709,7 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss)
         return false;
     }
 
-    objectID = args->items[6]; PyIncRef(objectID);
+    objectID = args->items[6]->Clone();
 
     PyDecRef( ss );
     return true;
@@ -749,12 +748,12 @@ PyObject *PyCachedObject::Encode()
     }*/
     //TODO: we don't really need to clone this if we can figure out a way to say "this is read only"
     //or if we can change this encode method to consume the PyCachedObject (which will almost always be the case)
-    arg_tuple->items[4] = cache; PyIncRef(cache);
+    arg_tuple->items[4] = cache->Clone();
 
     arg_tuple->items[5] = new PyInt(compressed?1:0);
 
-    //same cloning statement as above.
-    arg_tuple->items[6] = objectID; PyIncRef(objectID);
+    //same cloning stattement as above.
+    arg_tuple->items[6] = objectID->Clone();
 
     return new PyObject( "objectCaching.CachedObject", arg_tuple );
 }
@@ -767,7 +766,7 @@ PyObject *PyCachedObjectDecoder::EncodeHint() {
     versiont->items[1] = new PyInt(version);
 
 
-    arg_tuple->items[0] = objectID; PyIncRef(objectID);
+    arg_tuple->items[0] = objectID->Clone();
 
     arg_tuple->items[1] = new PyInt(nodeID);
 
@@ -783,13 +782,11 @@ PyCachedCall::~PyCachedCall()
     PySafeDecRef( result );
 }
 
-/*PyCachedCall *PyCachedCall::Clone() const
-{
+PyCachedCall *PyCachedCall::Clone() const {
     PyCachedCall *res = new PyCachedCall();
     res->result = result->Clone();
     return res;
 }
-*/
 
 void PyCachedCall::Dump(FILE *into, const char *pfx, bool contents_too)
 {
@@ -830,11 +827,10 @@ bool PyCachedCall::Decode(PySubStream **in_ss)
         if(!cur->first->IsString())
             continue;
         PyString *key = (PyString *) cur->first;
-        if( key->content() == "lret" ) {
-            result = cur->second; PyIncRef(result);
-        }
+        if( key->content() == "lret" )
+            result = cur->second->Clone();
     }
 
     PyDecRef( ss );
-    return result != NULL;
+    return(result != NULL);
 }

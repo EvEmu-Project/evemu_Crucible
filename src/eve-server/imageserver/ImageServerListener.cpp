@@ -25,10 +25,15 @@
 
 #include "EVEServerPCH.h"
 
+#ifndef MSVC
+    // This is needed to build the server under linux using GCC
+    #include <tr1/functional>
+#endif
+
 ImageServerListener::ImageServerListener(asio::io_service& io)
 {
-	_acceptor = new asio::ip::tcp::acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), sConfig.net.port + 1));
-	sLog.Log("image server", "listening on port %i", (sConfig.net.port + 1));
+    _acceptor = new asio::ip::tcp::acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), sConfig.net.imageServerPort));
+    sLog.Log("image server", "listening on port %i", (sConfig.net.imageServerPort));
 	StartAccept();
 }
 

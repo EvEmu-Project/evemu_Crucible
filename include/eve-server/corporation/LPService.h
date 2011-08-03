@@ -39,8 +39,10 @@ protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
 
+	PyCallable_DECL_CALL(GetLPExchangeRates)
 	PyCallable_DECL_CALL(GetLPForCharacterCorp)
 	PyCallable_DECL_CALL(GetLPsForCharacter)
+	PyCallable_DECL_CALL(GetAvailableOffersFromCorp)
 };
 
 #endif /* !__LP_SERVICE__H__INCL__ */

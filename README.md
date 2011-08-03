@@ -5,8 +5,8 @@ EVEmu modified to support the latest Incursion client
 - Login works again
 - Character selection and creation is working
 - Character portraits are working
-- Idling docked in station is working
-- Undocking and fixing all the peripheral services is next
+- Undocking and Docking is working
+- Items and Destiny packets are next
 
 # Legal
 	------------------------------------------------------------------------------------

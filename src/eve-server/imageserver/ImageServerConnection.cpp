@@ -25,6 +25,11 @@
 
 #include "EVEServerPCH.h"
 
+#ifndef MSVC
+    // This is needed to build the server under linux using GCC
+    #include <tr1/functional>
+#endif
+
 asio::const_buffers_1 ImageServerConnection::_responseOK = asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
 asio::const_buffers_1 ImageServerConnection::_responseNotFound = asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);
 asio::const_buffers_1 ImageServerConnection::_responseRedirectBegin = asio::buffer("HTTP/1.0 301 Moved Permanently\r\nLocation: ", 42);

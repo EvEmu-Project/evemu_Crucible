@@ -24,8 +24,8 @@
 */
 
 #include "EVEServerPCH.h"
-#include "authorisation\PasswordModule.h"
-#include "authorisation\ShaModule.h"
+#include "authorisation/PasswordModule.h"
+#include "authorisation/ShaModule.h"
 
 uint8 mDigest[SHA_DIGEST_SIZE];
 

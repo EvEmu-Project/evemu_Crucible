@@ -41,6 +41,17 @@ public:
      */
     EVEServerConfig();
 
+	/// From <rates/>
+	struct
+	{
+		/// Rate at which skills train compared to normal speed
+		float skillRate;
+		/// Modifier for security rating changes. Changes how fast it goes up/down based on actions
+		float secRate;
+		/// Modifier for npc bounties automatically awarded for shooting down npc enemies.
+		float npcBountyMultiply;
+	} rates;
+
     /// From <account/>
     struct
     {
@@ -55,6 +66,12 @@ public:
     {
         /// Money balance of new created characters.
         double startBalance;
+		/// Starting station ID for new characters
+		uint32 startStation;
+		/// Starting security rating for new characters.
+		double startSecRating;
+		/// Starting corp ID for new characters
+		uint32 startCorporation;
     } character;
 
     // From <database/>
@@ -90,13 +107,19 @@ public:
     {
         /// Port at which the server should listen.
         uint16 port;
+        /// Port at which the imageServer should listen.
+        uint16 imageServerPort;
 		/// the imageServer for char images. should be the evemu server external ip/host
 		std::string imageServer;
+        /// Port at which the apiServer should listen.
+        uint16 apiServerPort;
+        /// the apiServer for API functions. should be the evemu server external ip/host
+        std::string apiServer;
     } net;
 
 protected:
     bool ProcessEveServer( const TiXmlElement* ele );
-
+    bool ProcessRates( const TiXmlElement* ele );
     bool ProcessAccount( const TiXmlElement* ele );
     bool ProcessCharacter( const TiXmlElement* ele );
     bool ProcessDatabase( const TiXmlElement* ele );

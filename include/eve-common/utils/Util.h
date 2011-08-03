@@ -20,7 +20,7 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
-#include "Common.h"
+#include "common.h"
 
 #ifdef WIN32
 #  define KILL_THIS_PROCESS TerminateProcess(GetCurrentProcess(), 0);
@@ -226,6 +226,14 @@ public:
 	 *
 	 */
 	static std::wstring CaseFold(std::wstring & str);
+
+	/**
+	 * StringToWString
+	 *
+	 * Converts a std::string to std::wstring
+	 *
+	 */
+    static std::wstring StringToWString(std::string & wstr);
 };
 
 /**

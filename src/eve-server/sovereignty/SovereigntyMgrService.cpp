@@ -44,7 +44,8 @@ SovereigntyMgrService::~SovereigntyMgrService() {
 }
 
 PyResult SovereigntyMgrService::Handle_GetSystemSovereigntyInfo(PyCallArgs &call) {
-	sLog.Debug("Server", "Called GetSystemSovereigntyInfo Stub.");
+	sLog.Debug("Server", "Called GetSystemSovereigntyInfo Stub");
 
-	return NULL;
+		return NULL;
+	
 }

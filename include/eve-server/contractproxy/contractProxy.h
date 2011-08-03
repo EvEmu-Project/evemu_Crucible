@@ -13,6 +13,7 @@ protected:
     Dispatcher *const m_dispatch;
 
     PyCallable_DECL_CALL(GetLoginInfo)
+	PyCallable_DECL_CALL(GetMyExpiredContractList)
 };
 
 #endif // contractProxy_h__

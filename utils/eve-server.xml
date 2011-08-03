@@ -4,6 +4,11 @@ for each parameter, and set them only if it does not work. (DB params are
 a likely exception to this goal).
 -->
 <eve-server>
+    <rates>
+        <!-- <skillRate>1.0</skillRate> -->
+        <!-- <secRate>1.0</secRate> -->
+        <!-- <npcBountyMultiply>1.0</npcBountyMultiply> -->
+    </rates>
 
     <account>
         <!-- <autoAccountRole>0</autoAccountRole> -->
@@ -27,24 +32,32 @@ a likely exception to this goal).
 
     <character>
         <!-- <startBalance>6666000000.0</startBalance> -->
+        <!-- <startStation>0</startStation> -->
+        <!-- <startSecRating>0.0</startSecRating> -->
+        <!-- <startCorporation>0</startCorporation> -->
     </character>
 
     <database>
-        <host>127.0.0.1</host>
+        <host>localhost</host>
         <username>eve</username>
         <password>eve</password>
-        <db>eve</db>
+        <db>evemu</db>
         <!-- <port>3306</port> -->
     </database>
 
     <files>
         <!-- <log>../log/eve-server.log</log> -->
         <!-- <logSettings>../etc/log.ini</logSettings> -->
-        <!-- <cacheDir></cacheDir> -->
+        <!-- <cacheDir>../server_cache/</cacheDir> -->
+        <!-- <imageDir>../image_cache/</imageDir> -->
     </files>
 
     <net>
-        <!-- <port>26001</port> -->
+        <!-- <port>26000</port> -->
+        <!-- <imageServer>localhost</imageServer> -->
+        <!-- <imageServerPort>26001</imageServerPort> -->
+        <!-- <apiServer>localhost</apiServer> -->
+        <!-- <apiServerPort>50001</apiServerPort> -->
     </net>
 
 </eve-server>

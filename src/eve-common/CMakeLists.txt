@@ -77,6 +77,7 @@ SET( packets_INCLUDE
      "${TARGET_PACKETS_DIR}/packets/Market.h"
      "${TARGET_PACKETS_DIR}/packets/Missions.h"
      "${TARGET_PACKETS_DIR}/packets/ObjectCaching.h"
+	 "${TARGET_PACKETS_DIR}/packets/Sovereignty.h"
      "${TARGET_PACKETS_DIR}/packets/Standing2.h"
      "${TARGET_PACKETS_DIR}/packets/Trade.h"
      "${TARGET_PACKETS_DIR}/packets/Tutorial.h"
@@ -96,6 +97,7 @@ SET( packets_SOURCE
      "${TARGET_PACKETS_DIR}/packets/Market.cpp"
      "${TARGET_PACKETS_DIR}/packets/Missions.cpp"
      "${TARGET_PACKETS_DIR}/packets/ObjectCaching.cpp"
+	 "${TARGET_PACKETS_DIR}/packets/Sovereignty.cpp"
      "${TARGET_PACKETS_DIR}/packets/Standing2.cpp"
      "${TARGET_PACKETS_DIR}/packets/Trade.cpp"
      "${TARGET_PACKETS_DIR}/packets/Tutorial.cpp"
@@ -115,6 +117,7 @@ SET( packets_XMLP
      "${TARGET_SOURCE_DIR}/packets/Market.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Missions.xmlp"
      "${TARGET_SOURCE_DIR}/packets/ObjectCaching.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Sovereignty.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Standing2.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Trade.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Tutorial.xmlp"
@@ -154,7 +157,7 @@ SET( tables_SOURCE
 SET( utils_INCLUDE
      "${TARGET_INCLUDE_DIR}/utils/EVEUtils.h"
      "${TARGET_INCLUDE_DIR}/utils/EvilNumber.h" 
-     "${TARGET_INCLUDE_DIR}/utils/util.h" )
+     "${TARGET_INCLUDE_DIR}/utils/Util.h" )
 SET( utils_SOURCE
      "${TARGET_SOURCE_DIR}/utils/EVEUtils.cpp"
      "${TARGET_SOURCE_DIR}/utils/EvilNumber.cpp" 
