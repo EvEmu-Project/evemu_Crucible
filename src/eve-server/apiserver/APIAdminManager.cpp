@@ -54,8 +54,18 @@ std::tr1::shared_ptr<std::string> APIAdminManager::ProcessCall(const APICommandC
 
 std::tr1::shared_ptr<std::string> APIAdminManager::_APIKeyRequest(const APICommandCall * pAPICommandCall)
 {
+    bool status = false;
+    uint32 userID, apiRole;
+    std::string accountID;
+    std::string apiLimitedKey;
+    std::string apiFullKey;
     sLog.Debug("APIServiceManager::_APIKeyRequest()", "EVEmu API - Admin Service Manager - CALL: API Key Request");
 
+    // 1: Determine if this account's userID exists:
+    status = m_db.GetApiAccountInfoUsingAccountID( accountID, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
+
+    // 2: If userID already exists, generate new 
+/*   
     std::string username = "mdrayman";
     std::string accountID;
     std::string apiFullKey;
@@ -77,4 +87,10 @@ std::tr1::shared_ptr<std::string> APIAdminManager::_APIKeyRequest(const APIComma
     status = m_db.GetApiAccountInfoUsingUserID(userIDstr, &apiFullKey, &apiLimitedKey, &apiRole);
 
     return BuildErrorXMLResponse( "203", "Authentication failure." );
+*/
+}
+
+std::string APIAdminManager::_GenerateAPIKey()
+{
+    //
 }

@@ -51,6 +51,9 @@ public:
 
 protected:
 	std::tr1::shared_ptr<std::string> _APIKeyRequest(const APICommandCall * pAPICommandCall);
+
+    // Utility Functions:
+    std::string _GenerateAPIKey();
 };
 
 #endif // __APIADMINMANAGER__H__INCL__
