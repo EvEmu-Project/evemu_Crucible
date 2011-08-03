@@ -38,7 +38,7 @@ std::tr1::shared_ptr<std::string> APIAdminManager::ProcessCall(const APICommandC
     if( pAPICommandCall->find( "servicehandler" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIAdminManager::ProcessCall()", "Cannot find 'servicehandler' specifier in pAPICommandCall packet" );
-        return NULL;
+        return std::tr1::shared_ptr<std::string>(new std::string(""));
     }
 
     if( pAPICommandCall->find( "servicehandler" )->second == "APIKeyRequest.xml.aspx" )
@@ -88,9 +88,11 @@ std::tr1::shared_ptr<std::string> APIAdminManager::_APIKeyRequest(const APIComma
 
     return BuildErrorXMLResponse( "203", "Authentication failure." );
 */
+	return std::tr1::shared_ptr<std::string>(new std::string(""));
 }
 
 std::string APIAdminManager::_GenerateAPIKey()
 {
     //
+	return "";
 }

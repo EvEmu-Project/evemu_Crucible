@@ -56,7 +56,8 @@ std::tr1::shared_ptr<std::vector<char> > APIServer::GetXML(const APICommandCall 
     if( pAPICommandCall->find( "service" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIserver::GetXML()", "Cannot find 'service' specifier in pAPICommandCall packet" );
-        return NULL;
+		return std::tr1::shared_ptr<std::vector<char> >(new std::vector<char>() );
+        //return std::tr1::shared_ptr<std::string>(new std::string(""));
     }
 
     if( m_APIServiceManagers.find(pAPICommandCall->find( "service" )->second) != m_APIServiceManagers.end() )
@@ -76,7 +77,8 @@ std::tr1::shared_ptr<std::vector<char> > APIServer::GetXML(const APICommandCall 
     else
     {
         // Service call not found, so return NULL:
-        return NULL;
+		return std::tr1::shared_ptr<std::vector<char> >(new std::vector<char>() );
+        //return NULL;
         //m_xmlString = m_APIServiceManagers.find("base")->second->ProcessCall(pAPICommandCall);
     }
 }
