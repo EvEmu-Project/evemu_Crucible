@@ -150,9 +150,9 @@ bool APIServiceManager::_AuthenticateFullAPIQuery(std::string userID, std::strin
     std::string apiLimitedKey;
     uint32 apiRole;
 
-    m_db.GetApiAccountInfoUsingUserID(userID, &apiFullKey, &apiLimitedKey, &apiRole);
+    bool status = m_db.GetApiAccountInfoUsingUserID(userID, &apiFullKey, &apiLimitedKey, &apiRole);
 
-    if( apiKey.compare( apiFullKey ) )
+    if( (apiKey.compare( apiFullKey )) && (status) )
         return true;
     else
         return false;
@@ -164,9 +164,9 @@ bool APIServiceManager::_AuthenticateLimitedAPIQuery(std::string userID, std::st
     std::string apiLimitedKey;
     uint32 apiRole;
 
-    m_db.GetApiAccountInfoUsingUserID(userID, &apiFullKey, &apiLimitedKey, &apiRole);
+    bool status = m_db.GetApiAccountInfoUsingUserID(userID, &apiFullKey, &apiLimitedKey, &apiRole);
 
-    if( apiKey.compare( apiLimitedKey ) )
+    if( (apiKey.compare( apiLimitedKey )) && (status) )
         return true;
     else
         return false;
