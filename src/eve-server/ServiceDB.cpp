@@ -59,7 +59,7 @@ bool ServiceDB::GetAccountInformation( const char* username, AccountInfo & accou
         account_info.hash   = row.GetText(2);
 
     account_info.name       = _escaped_username;
-    account_info.role       = row.GetUInt(3);
+    account_info.role       = row.GetUInt64(3);
     account_info.online     = row.GetUInt(4);
     account_info.banned     = row.GetUInt(5);
     account_info.visits     = row.GetUInt(6);
