@@ -50,7 +50,12 @@ public:
 	std::tr1::shared_ptr<std::string> ProcessCall(const APICommandCall * pAPICommandCall);
 
 protected:
-    std::tr1::shared_ptr<std::string> _APIKeyRequest(const std::string accountName, const std::string password, const std::string keyType);
+	std::tr1::shared_ptr<std::string> _APIKeyRequest(const APICommandCall * pAPICommandCall);
+
+    // Utility Functions:
+    std::string _GenerateAPIKey();
+
+    static std::string m_hexCharMap;
 };
 
 #endif // __APIACCOUNTMANAGER__H__INCL__

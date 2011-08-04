@@ -122,12 +122,9 @@ std::tr1::shared_ptr<std::string> APIServiceManager::ProcessCall(const APIComman
     {
         _BuildErrorXMLTag( "500", "EVEmu: Invalid Service Manager Specified." );
     }
-    _CloseXMLHeader( API_CACHE_STYLE_MODIFIED );
+    _CloseXMLHeader( EVEAPI::CacheStyles::Modified );
 
-    TiXmlPrinter xmlPrinter;
-    _XmlDoc.Accept( &xmlPrinter );
-
-    return std::tr1::shared_ptr<std::string>(new std::string(xmlPrinter.CStr()));
+    return _GetXMLDocumentString();
 }
 
 std::tr1::shared_ptr<std::string> APIServiceManager::BuildErrorXMLResponse(std::string errorCode, std::string errorMessage)
@@ -136,12 +133,9 @@ std::tr1::shared_ptr<std::string> APIServiceManager::BuildErrorXMLResponse(std::
     {
         _BuildErrorXMLTag( errorCode, errorMessage );
     }
-    _CloseXMLHeader( API_CACHE_STYLE_MODIFIED );
+    _CloseXMLHeader( EVEAPI::CacheStyles::Modified );
 
-    TiXmlPrinter xmlPrinter;
-    _XmlDoc.Accept( &xmlPrinter );
-
-    return std::tr1::shared_ptr<std::string>(new std::string(xmlPrinter.CStr()));
+    return _GetXMLDocumentString();
 }
 
 bool APIServiceManager::_AuthenticateFullAPIQuery(std::string userID, std::string apiKey)
@@ -200,15 +194,15 @@ void APIServiceManager::_CloseXMLHeader(uint32 cacheStyle)
 {
     switch( cacheStyle )
     {
-        case API_CACHE_STYLE_SHORT:
+        case EVEAPI::CacheStyles::Long:
             // 2 hour cache timer
             _BuildSingleXMLTag( "cachedUntil", Win32TimeToString(Win32TimeNow() + 120*Win32Time_Minute).c_str() );
             break;
-        case API_CACHE_STYLE_LONG:
+        case EVEAPI::CacheStyles::Short:
             // 5 minute cache timer
             _BuildSingleXMLTag( "cachedUntil", Win32TimeToString(Win32TimeNow() + 5*Win32Time_Minute).c_str() );
             break;
-        case API_CACHE_STYLE_MODIFIED:
+        case EVEAPI::CacheStyles::Modified:
             // 15 minute cache timer
             _BuildSingleXMLTag( "cachedUntil", Win32TimeToString(Win32TimeNow() + 15*Win32Time_Minute).c_str() );
             break;
@@ -325,4 +319,12 @@ void APIServiceManager::_CloseXMLTag()
         TiXmlElement * _pNextTopElement = _pXmlElementStack->top();
         _pNextTopElement->LinkEndChild( _pTopElement );
     }
+}
+
+std::tr1::shared_ptr<std::string> APIServiceManager::_GetXMLDocumentString()
+{
+    TiXmlPrinter xmlPrinter;
+    _XmlDoc.Accept( &xmlPrinter );
+
+    return std::tr1::shared_ptr<std::string>(new std::string(xmlPrinter.CStr()));
 }

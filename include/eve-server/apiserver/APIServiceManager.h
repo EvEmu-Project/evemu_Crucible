@@ -28,12 +28,32 @@
 
 #include "EVEServerPCH.h"
 
-enum
-{
-    API_CACHE_STYLE_SHORT,
-    API_CACHE_STYLE_LONG,
-    API_CACHE_STYLE_MODIFIED
-};
+namespace EVEAPI {
+    namespace CacheStyles {
+        enum
+        {
+            Short,
+            Long,
+            Modified
+        };
+    }
+
+    namespace KeyType {
+        enum
+        {
+            Limited,
+            Full
+        };
+    }
+
+    namespace Roles {
+        enum
+        {
+            Player = 100,
+            Admin = 1000
+        };
+    }
+}
 
 /**
  * \class APIServiceManager
@@ -72,6 +92,7 @@ protected:
 	void _CloseXMLTag();
     void _BuildSingleXMLTag(std::string name, std::string param);
     void _BuildErrorXMLTag(std::string code, std::string param);
+    std::tr1::shared_ptr<std::string> _GetXMLDocumentString();
 
     APIServiceDB m_db;
 
