@@ -32,8 +32,6 @@ CharacterDB::CharacterDB()
 
 uint64 CharacterDB::PrepareCharacterForDelete(uint32 accountID, uint32 charID)
 {
-	DBQueryResult res;
-
 	// this sets the time the character will spend in the biomass queue (currently: 1m30s)
 	const uint64 queueTime = Win32Time_Minute + (Win32Time_Second * 30);
 	uint64 deleteTime = Win32TimeNow() + queueTime;
@@ -41,7 +39,10 @@ uint64 CharacterDB::PrepareCharacterForDelete(uint32 accountID, uint32 charID)
 	// note: the queries relating to character deletion have been specifically designed to avoid wreaking havoc when used by a malicious client
 	// the client can't lie to us about accountID, only charID
 
-	if (!sDatabase.RunQuery(res, "UPDATE character_ SET deletePrepareDateTime = " I64u " WHERE accountID = %u AND characterID = %u", deleteTime, accountID, charID))
+	DBerror error;
+	uint32 affectedRows;
+	sDatabase.RunQuery(error, affectedRows, "UPDATE character_ SET deletePrepareDateTime = " I64u " WHERE accountID = %u AND characterID = %u", deleteTime, accountID, charID);
+	if (affectedRows != 1)
 		return 0;
 
 	return deleteTime;
@@ -49,8 +50,11 @@ uint64 CharacterDB::PrepareCharacterForDelete(uint32 accountID, uint32 charID)
 
 void CharacterDB::CancelCharacterDeletePrepare(uint32 accountID, uint32 charID)
 {
-	DBQueryResult res;
-	sDatabase.RunQuery(res, "UPDATE character_ SET deletePrepareDateTime = 0 WHERE accountID = %u AND characterID = %u", accountID, charID);
+	DBerror error;
+	uint32 affectedRows;
+	sDatabase.RunQuery(error, affectedRows, "UPDATE character_ SET deletePrepareDateTime = 0 WHERE accountID = %u AND characterID = %u", accountID, charID);
+	if (affectedRows != 1)
+		codelog(CLIENT__ERROR, "Failed to cancel character deletion, affected rows: %u", affectedRows);
 }
 
 PyRep* CharacterDB::DeleteCharacter(uint32 accountID, uint32 charID)
@@ -77,14 +81,7 @@ PyRep *CharacterDB::GetCharacterList(uint32 accountID) {
 	// we send zeroes for the old character appearance data since the original client does the same
 	if(!sDatabase.RunQuery(res,
 		"SELECT"
-		" characterID,itemName AS characterName, deletePrepareDateTime,"
-		" gender,0 AS accessoryID, 0 AS beardID, 0 AS costumeID, 0 AS decoID, 0 AS eyebrowsID, 0 AS eyesID, 0 AS hairID,"
-		" 0 AS lipstickID, 0 AS makeupID, 0 AS skinID, 0 AS backgroundID, 0 AS lightID,"
-		" 0.0 AS headRotation1, 0.0 AS headRotation2, 0.0 AS headRotation3, 0.0 AS eyeRotation1,"
-		" 0.0 AS eyeRotation2, 0.0 AS eyeRotation3, 0.0 AS camPos1, 0.0 AS camPos2, 0.0 AS camPos3,"
-		" 0.0 AS morph1e, 0.0 AS morph1n, 0.0 AS morph1s, 0.0 AS morph1w, 0.0 AS morph2e, 0.0 AS morph2n,"
-		" 0.0 AS morph2s, 0.0 AS morph2w, 0.0 AS morph3e, 0.0 AS morph3n, 0.0 AS morph3s, 0.0 AS morph3w,"
-		" 0.0 AS morph4e, 0.0 AS morph4n, 0.0 AS morph4s, 0.0 AS morph4w"
+		" characterID, itemName AS characterName, deletePrepareDateTime, gender"
 		" FROM character_ "
 		"	LEFT JOIN entity ON characterID = itemID"
 		" WHERE accountID=%u", accountID))
