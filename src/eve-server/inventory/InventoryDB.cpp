@@ -968,94 +968,6 @@ bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
     return true;
 }
 
-bool InventoryDB::GetCharacterAppearance(uint32 characterID, CharacterAppearance &into) {
-    DBQueryResult res;
-
-    if(!sDatabase.RunQuery(res,
-        "SELECT"
-        "  accessoryID,"
-        "  beardID,"
-        "  costumeID,"
-        "  decoID,"
-        "  eyebrowsID,"
-        "  eyesID,"
-        "  hairID,"
-        "  lipstickID,"
-        "  makeupID,"
-        "  skinID,"
-        "  backgroundID,"
-        "  lightID,"
-        "  headRotation1, headRotation2, headRotation3,"
-        "  eyeRotation1, eyeRotation2, eyeRotation3,"
-        "  camPos1, camPos2, camPos3,"
-        "  morph1n, morph1s, morph1w, morph1e,"
-        "  morph2n, morph2s, morph2w, morph2e,"
-        "  morph3n, morph3s, morph3w, morph3e,"
-        "  morph4n, morph4s, morph4w, morph4e"
-        " FROM character_"
-        " WHERE characterID = %u",
-        characterID))
-    {
-        _log(DATABASE__ERROR, "Failed to query character's %u appearance: %s.", characterID, res.error.c_str());
-        return false;
-    }
-
-    DBResultRow row;
-    if(!res.GetRow(row)) {
-        _log(DATABASE__ERROR, "No appearance data found for character %u.", characterID);
-        return false;
-    }
-
-    row.IsNull(0) ? into.Clear_accessoryID() : into.Set_accessoryID(row.GetUInt(0));
-    row.IsNull(1) ? into.Clear_beardID() : into.Set_beardID(row.GetUInt(1));
-    into.costumeID = row.GetUInt(2);
-    row.IsNull(3) ? into.Clear_decoID():into.Set_decoID(row.GetUInt(3));
-    into.eyebrowsID = row.GetUInt(4);
-    into.eyesID = row.GetUInt(5);
-    into.hairID = row.GetUInt(6);
-    row.IsNull(7) ? into.Clear_lipstickID() : into.Set_lipstickID(row.GetUInt(7));
-    row.IsNull(8) ? into.Clear_makeupID() : into.Set_makeupID(row.GetUInt(8));
-    into.skinID = row.GetUInt(9);
-    into.backgroundID = row.GetUInt(10);
-    into.lightID = row.GetUInt(11);
-
-    // none of these may be NULL
-    into.headRotation1 = row.GetDouble(12);
-    into.headRotation2 = row.GetDouble(13);
-    into.headRotation3 = row.GetDouble(14);
-
-    into.eyeRotation1 = row.GetDouble(15);
-    into.eyeRotation2 = row.GetDouble(16);
-    into.eyeRotation3 = row.GetDouble(17);
-
-    into.camPos1 = row.GetDouble(18);
-    into.camPos2 = row.GetDouble(19);
-    into.camPos3 = row.GetDouble(20);
-
-    // all of these may be NULL
-    row.IsNull(21) ? into.Clear_morph1n() : into.Set_morph1n(row.GetDouble(21));
-    row.IsNull(22) ? into.Clear_morph1s() : into.Set_morph1s(row.GetDouble(22));
-    row.IsNull(23) ? into.Clear_morph1w() : into.Set_morph1w(row.GetDouble(23));
-    row.IsNull(24) ? into.Clear_morph1e() : into.Set_morph1e(row.GetDouble(24));
-
-    row.IsNull(25) ? into.Clear_morph2n() : into.Set_morph2n(row.GetDouble(25));
-    row.IsNull(26) ? into.Clear_morph2s() : into.Set_morph2s(row.GetDouble(26));
-    row.IsNull(27) ? into.Clear_morph2w() : into.Set_morph2w(row.GetDouble(27));
-    row.IsNull(28) ? into.Clear_morph2e() : into.Set_morph2e(row.GetDouble(28));
-
-    row.IsNull(29) ? into.Clear_morph3n() : into.Set_morph3n(row.GetDouble(29));
-    row.IsNull(30) ? into.Clear_morph3s() : into.Set_morph3s(row.GetDouble(30));
-    row.IsNull(31) ? into.Clear_morph3w() : into.Set_morph3w(row.GetDouble(31));
-    row.IsNull(32) ? into.Clear_morph3e() : into.Set_morph3e(row.GetDouble(32));
-
-    row.IsNull(33) ? into.Clear_morph4n() : into.Set_morph4n(row.GetDouble(33));
-    row.IsNull(34) ? into.Clear_morph4s() : into.Set_morph4s(row.GetDouble(34));
-    row.IsNull(35) ? into.Clear_morph4w() : into.Set_morph4w(row.GetDouble(35));
-    row.IsNull(36) ? into.Clear_morph4e() : into.Set_morph4e(row.GetDouble(36));
-
-    return true;
-}
-
 bool InventoryDB::GetCorpMemberInfo(uint32 characterID, CorpMemberInfo &into) {
     DBQueryResult res;
     DBResultRow row;
@@ -1151,50 +1063,20 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
         "   logonMinutes, corporationID, corpRole, rolesAtAll, rolesAtBase, rolesAtHQ, rolesAtOther,"
         "   corporationDateTime, startDateTime, createDateTime,"
         "   ancestryID, careerID, schoolID, careerSpecialityID, gender,"
-        "   stationID, solarSystemID, constellationID, regionID,"
-        // CharacterAppearance:
-        "   accessoryID, beardID, costumeID, decoID, eyebrowsID, eyesID, hairID, lipstickID, makeupID, skinID, backgroundID,"
-        "   lightID,"
-        "   headRotation1, headRotation2, headRotation3,"
-        "   eyeRotation1, eyeRotation2, eyeRotation3,"
-        "   camPos1, camPos2, camPos3,"
-        "   morph1n, morph1s, morph1w, morph1e,"
-        "   morph2n, morph2s, morph2w, morph2e,"
-        "   morph3n, morph3s, morph3w, morph3e,"
-        "   morph4n, morph4s, morph4w, morph4e)"
+		"   stationID, solarSystemID, constellationID, regionID)"
         " VALUES"
         // CharacterData:
         "  (%u, %u, '%s', '%s', %f, %f, %f, '%s',"
         "   %u, %u, "I64u ", "I64u ", "I64u ", "I64u ", "I64u ", "
         "   "I64u ", " I64u ", " I64u ","
         "   %u, %u, %u, %u, %u,"
-        "   %u, %u, %u, %u,"
-        // CharacterAppearance:
-        "   %s, %s, %u, %s, %u, %u, %u, %s, %s, %u, %u,"
-        "   %u,"
-        "   %f, %f, %f,"
-        "   %f, %f, %f,"
-        "   %f, %f, %f,"
-        "   %s, %s, %s, %s,"
-        "   %s, %s, %s, %s,"
-        "   %s, %s, %s, %s,"
-        "   %s, %s, %s, %s)",
+		"   %u, %u, %u, %u)",
         // CharacterData:
         characterID, data.accountID, titleEsc.c_str(), descriptionEsc.c_str(), data.bounty, data.balance, data.securityRating, "No petition",
         data.logonMinutes, data.corporationID, corpData.corpRole, corpData.rolesAtAll, corpData.rolesAtBase, corpData.rolesAtHQ, corpData.rolesAtOther,
         data.corporationDateTime, data.startDateTime, data.createDateTime,
         data.ancestryID, data.careerID, data.schoolID, data.careerSpecialityID, data.gender,
-        data.stationID, data.solarSystemID, data.constellationID, data.regionID,
-        // CharacterAppearance:
-        _VoN(appData, accessoryID), _VoN(appData, beardID), appData.costumeID, _VoN(appData, decoID), appData.eyebrowsID, appData.eyesID, appData.hairID, _VoN(appData, lipstickID), _VoN(appData, makeupID), appData.skinID, appData.backgroundID,
-        appData.lightID,
-        appData.headRotation1, appData.headRotation2, appData.headRotation3,
-        appData.eyeRotation1, appData.eyeRotation2, appData.eyeRotation3,
-        appData.camPos1, appData.camPos2, appData.camPos3,
-        _VoN(appData, morph1n), _VoN(appData, morph1s), _VoN(appData, morph1w), _VoN(appData, morph1e),
-        _VoN(appData, morph2n), _VoN(appData, morph2s), _VoN(appData, morph2w), _VoN(appData, morph2e),
-        _VoN(appData, morph3n), _VoN(appData, morph3s), _VoN(appData, morph3w), _VoN(appData, morph3e),
-        _VoN(appData, morph4n), _VoN(appData, morph4s), _VoN(appData, morph4w), _VoN(appData, morph4e)
+        data.stationID, data.solarSystemID, data.constellationID, data.regionID
     )) {
         _log(DATABASE__ERROR, "Failed to insert character %u: %s.", characterID, err.c_str());
         return false;
@@ -1283,60 +1165,6 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
         characterID))
     {
         _log(DATABASE__ERROR, "Failed to save character %u: %s.", characterID, err.c_str());
-        return false;
-    }
-
-    return true;
-}
-
-bool InventoryDB::SaveCharacterAppearance(uint32 characterID, const CharacterAppearance &data) {
-    DBerror err;
-
-    if(!sDatabase.RunQuery(err,
-        "UPDATE character_"
-        " SET"
-        "  accessoryID = %s,"
-        "  beardID = %s,"
-        "  costumeID = %u,"
-        "  decoID = %s,"
-        "  eyebrowsID = %u,"
-        "  eyesID = %u,"
-        "  hairID = %u,"
-        "  lipstickID = %s,"
-        "  makeupID = %s,"
-        "  skinID = %u,"
-        "  backgroundID = %u,"
-        "  lightID = %u,"
-        "  headRotation1 = %f, headRotation2 = %f, headRotation3 = %f,"
-        "  eyeRotation1 = %f, eyeRotation2 = %f, eyeRotation3 = %f,"
-        "  camPos1 = %f, camPos2 = %f, camPos3 = %f,"
-        "  morph1n = %s, morph1s = %s, morph1w = %s, morph1e = %s,"
-        "  morph2n = %s, morph2s = %s, morph2w = %s, morph2e = %s,"
-        "  morph3n = %s, morph3s = %s, morph3w = %s, morph3e = %s,"
-        "  morph4n = %s, morph4s = %s, morph4w = %s, morph4e = %s"
-        " WHERE characterID = %u",
-        _VoN(data, accessoryID),
-        _VoN(data, beardID),
-        data.costumeID,
-        _VoN(data, decoID),
-        data.eyebrowsID,
-        data.eyesID,
-        data.hairID,
-        _VoN(data, lipstickID),
-        _VoN(data, makeupID),
-        data.skinID,
-        data.backgroundID,
-        data.lightID,
-        data.headRotation1, data.headRotation2, data.headRotation3,
-        data.eyeRotation1, data.eyeRotation2, data.eyeRotation3,
-        data.camPos1, data.camPos2, data.camPos3,
-        _VoN(data, morph1n), _VoN(data, morph1s), _VoN(data, morph1w), _VoN(data, morph1e),
-        _VoN(data, morph2n), _VoN(data, morph2s), _VoN(data, morph2w), _VoN(data, morph2e),
-        _VoN(data, morph3n), _VoN(data, morph3s), _VoN(data, morph3w), _VoN(data, morph3e),
-        _VoN(data, morph4n), _VoN(data, morph4s), _VoN(data, morph4w), _VoN(data, morph4e),
-        characterID))
-    {
-        _log(DATABASE__ERROR, "Failed to save character's %u appearance: %s.", characterID, err.c_str());
         return false;
     }
 

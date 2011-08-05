@@ -30,23 +30,58 @@ CharacterDB::CharacterDB()
 	load_name_validation_set();
 }
 
-/*
-SELECT characterID,itemName AS characterName,0 as deletePrepareDateTime, gender,accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,hairID, lipstickID,makeupID,skinID,backgroundID,lightID, headRotation1,headRotation2,headRotation3,eyeRotation1, eyeRotation2,eyeRotation3,camPos1,camPos2,camPos3, morph1e,morph1n,morph1s,morph1w,morph2e,morph2n, morph2s,morph2w,morph3e,morph3n,morph3s,morph3w, morph4e,morph4n,morph4s,morph4w FROM character_ LEFT JOIN entity ON characterID = itemID WHERE accountID=%u", accountID))
-*/
+uint64 CharacterDB::PrepareCharacterForDelete(uint32 accountID, uint32 charID)
+{
+	// this sets the time the character will spend in the biomass queue (currently: 1m30s)
+	const uint64 queueTime = Win32Time_Minute + (Win32Time_Second * 30);
+	uint64 deleteTime = Win32TimeNow() + queueTime;
+
+	// note: the queries relating to character deletion have been specifically designed to avoid wreaking havoc when used by a malicious client
+	// the client can't lie to us about accountID, only charID
+
+	DBerror error;
+	uint32 affectedRows;
+	sDatabase.RunQuery(error, affectedRows, "UPDATE character_ SET deletePrepareDateTime = " I64u " WHERE accountID = %u AND characterID = %u", deleteTime, accountID, charID);
+	if (affectedRows != 1)
+		return 0;
+
+	return deleteTime;
+}
+
+void CharacterDB::CancelCharacterDeletePrepare(uint32 accountID, uint32 charID)
+{
+	DBerror error;
+	uint32 affectedRows;
+	sDatabase.RunQuery(error, affectedRows, "UPDATE character_ SET deletePrepareDateTime = 0 WHERE accountID = %u AND characterID = %u", accountID, charID);
+	if (affectedRows != 1)
+		codelog(CLIENT__ERROR, "Failed to cancel character deletion, affected rows: %u", affectedRows);
+}
+
+PyRep* CharacterDB::DeleteCharacter(uint32 accountID, uint32 charID)
+{
+	DBerror error;
+	uint32 affectedRows;
+	sDatabase.RunQuery(error, affectedRows, "DELETE FROM character_ WHERE deletePrepareDateTime > 0 AND accountID = %u AND characterID = %u", accountID, charID);
+
+	if (affectedRows == 1)
+	{
+		// valid request; this means we may use charID safely here
+		sDatabase.RunQuery(error, "DELETE FROM entity WHERE ownerID = %u", charID);
+
+		// indicates 'no error' to the client
+		return NULL;
+	}
+	else
+		return new PyString("Invalid delete request");
+}
 
 PyRep *CharacterDB::GetCharacterList(uint32 accountID) {
 	DBQueryResult res;
 	
+	// we send zeroes for the old character appearance data since the original client does the same
 	if(!sDatabase.RunQuery(res,
 		"SELECT"
-		" characterID,itemName AS characterName,0 as deletePrepareDateTime,"
-		" gender,accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,hairID,"
-		" lipstickID,makeupID,skinID,backgroundID,lightID,"
-		" headRotation1,headRotation2,headRotation3,eyeRotation1,"
-		" eyeRotation2,eyeRotation3,camPos1,camPos2,camPos3,"
-		" morph1e,morph1n,morph1s,morph1w,morph2e,morph2n,"
-		" morph2s,morph2w,morph3e,morph3n,morph3s,morph3w,"
-		" morph4e,morph4n,morph4s,morph4w"
+		" characterID, itemName AS characterName, deletePrepareDateTime, gender"
 		" FROM character_ "
 		"	LEFT JOIN entity ON characterID = itemID"
 		" WHERE accountID=%u", accountID))
@@ -304,30 +339,6 @@ bool CharacterDB::GetActiveCloneType(uint32 characterID, uint32 &typeID) {
 	typeID=row.GetUInt(0);
 	
 	return true;
-}
-
-
-
-PyObject *CharacterDB::GetCharacterAppearance(uint32 charID) {
-	DBQueryResult res;
-	
-	if(!sDatabase.RunQuery(res,
-		"SELECT "
-		" accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,hairID,"
-		" lipstickID,makeupID,skinID,backgroundID,lightID,"
-		" headRotation1,headRotation2,headRotation3,eyeRotation1,"
-		" eyeRotation2,eyeRotation3,camPos1,camPos2,camPos3,"
-		" morph1e,morph1n,morph1s,morph1w,morph2e,morph2n,"
-		" morph2s,morph2w,morph3e,morph3n,morph3s,morph3w,"
-		" morph4e,morph4n,morph4s,morph4w"
-		" FROM character_ "
-		" WHERE characterID=%u", charID))
-	{
-		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-		return NULL;
-	}
-
-	return DBResultToRowset(res);
 }
 
 bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {

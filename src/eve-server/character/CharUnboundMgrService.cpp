@@ -99,14 +99,35 @@ PyResult CharUnboundMgrService::Handle_GetCharacterToSelect(PyCallArgs &call) {
 }
 
 PyResult CharUnboundMgrService::Handle_DeleteCharacter(PyCallArgs &call) {
-	return NULL;
+	Call_SingleIntegerArg args;
+	if (!args.Decode(&call.tuple)) {
+		codelog(CLIENT__ERROR, "Invalid arguments for DeleteCharacter call");
+		return NULL;
+	}
+
+	return m_db.DeleteCharacter(call.client->GetAccountID(), args.arg);
 }
 
 PyResult CharUnboundMgrService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
-	return NULL;
+	Call_SingleIntegerArg args;
+	if (!args.Decode(&call.tuple)) {
+		codelog(CLIENT__ERROR, "Invalid arguments for PrepareCharacterForDelete call");
+		return NULL;
+	}
+
+	return new PyLong((int64)m_db.PrepareCharacterForDelete(call.client->GetAccountID(), args.arg));
 }
 
 PyResult CharUnboundMgrService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call) {
+	Call_SingleIntegerArg args;
+	if (!args.Decode(&call.tuple)) {
+		codelog(CLIENT__ERROR, "Invalid arguments for CancelCharacterDeletePrepare call");
+		return NULL;
+	}
+
+	m_db.CancelCharacterDeletePrepare(call.client->GetAccountID(), args.arg);
+
+	// the client doesn't care what we return here
 	return NULL;
 }
 
