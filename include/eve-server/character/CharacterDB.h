@@ -126,6 +126,10 @@ public:
 	uint32 AddOwnerNote(uint32 charID, const std::string &label, const std::string &content);
 	bool EditOwnerNote(uint32 charID, uint32 noteID, const std::string &label, const std::string &content);
 
+	uint64 PrepareCharacterForDelete(uint32 accountID, uint32 charID);
+	void CancelCharacterDeletePrepare(uint32 accountID, uint32 charID);
+	PyRep* DeleteCharacter(uint32 accountID, uint32 charID);
+
 private:
 	/**
 	 * djb2 algorithm taken from http://www.cse.yorku.ca/~oz/hash.html slightly modified
