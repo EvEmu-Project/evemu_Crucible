@@ -67,8 +67,8 @@ protected:
 	void _CloseXMLRowSet();
 	void _BuildXMLRow(const std::vector<std::string> * columns);
     void _BuildXMLTag(std::string name);
-    void _BuildXMLTag(std::string name, const std::vector<std::pair<std::string, std::string>> * params);
-    void _BuildXMLTag(std::string name, const std::vector<std::pair<std::string, std::string>> * params, std::string value);
+    void _BuildXMLTag(std::string name, const std::vector<std::pair<std::string, std::string> > * params);
+    void _BuildXMLTag(std::string name, const std::vector<std::pair<std::string, std::string> > * params, std::string value);
 	void _CloseXMLTag();
     void _BuildSingleXMLTag(std::string name, std::string param);
     void _BuildErrorXMLTag(std::string code, std::string param);

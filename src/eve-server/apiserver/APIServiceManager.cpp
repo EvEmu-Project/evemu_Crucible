@@ -268,11 +268,11 @@ void APIServiceManager::_BuildXMLTag(std::string name)
     _pXmlElementStack->push( tag );
 }
 
-void APIServiceManager::_BuildXMLTag(std::string name, const std::vector<std::pair<std::string, std::string>> * params)
+void APIServiceManager::_BuildXMLTag(std::string name, const std::vector<std::pair<std::string, std::string> > * params)
 {
     TiXmlElement * tag = new TiXmlElement( name.c_str() );
 
-    std::vector<std::pair<std::string, std::string>>::const_iterator current, end;
+    std::vector<std::pair<std::string, std::string> >::const_iterator current, end;
     current = params->begin();
     end = params->end();
 	for(; current != end; ++current)
@@ -281,7 +281,7 @@ void APIServiceManager::_BuildXMLTag(std::string name, const std::vector<std::pa
     _pXmlElementStack->push( tag );
 }
 
-void APIServiceManager::_BuildXMLTag(std::string name, const std::vector<std::pair<std::string, std::string>> * params, std::string value)
+void APIServiceManager::_BuildXMLTag(std::string name, const std::vector<std::pair<std::string, std::string> > * params, std::string value)
 {
     _BuildXMLTag( name, params );
     _pXmlElementStack->top()->LinkEndChild( new TiXmlText( value.c_str() ));
