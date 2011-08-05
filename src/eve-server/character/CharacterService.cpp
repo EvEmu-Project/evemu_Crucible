@@ -51,7 +51,6 @@ CharacterService::CharacterService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(CharacterService, GetOwnerNote)
     PyCallable_REG_CALL(CharacterService, GetHomeStation)
     PyCallable_REG_CALL(CharacterService, GetCloneTypeID)
-    PyCallable_REG_CALL(CharacterService, GetCharacterAppearanceList)
     PyCallable_REG_CALL(CharacterService, GetRecentShipKillsAndLosses)
 
     PyCallable_REG_CALL(CharacterService, GetCharacterDescription)
@@ -553,29 +552,6 @@ PyResult CharacterService::Handle_SetCharacterDescription(PyCallArgs &call) {
     c->SetDescription( args.arg.c_str() );
 
     return NULL;
-}
-
-PyResult CharacterService::Handle_GetCharacterAppearanceList(PyCallArgs &call) {
-    Call_SingleIntList args;
-    if(!args.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: Invalid arguments", call.client->GetName());
-        return NULL;
-    }
-
-    PyList *l = new PyList();
-
-    std::vector<int32>::iterator cur, end;
-    cur = args.ints.begin();
-    end = args.ints.end();
-    for(; cur != end; cur++) {
-        PyRep* r = m_db.GetCharacterAppearance(*cur);
-        if(r == NULL)
-            r = new PyNone();
-
-        l->AddItem(r);
-    }
-
-    return(l);
 }
 
 /** Retrieves a Character note.
