@@ -20,7 +20,7 @@ public:
 
 		std::string command;
 		std::string description;
-		uint32 required_role;
+		uint64 required_role;
 		CommandFunc function;
 	};
 

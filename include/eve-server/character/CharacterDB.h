@@ -47,7 +47,6 @@ public:
 	//PyObject *GetAgentPublicInfo(uint32 agentID);
 	PyObject *GetOwnerNoteLabels(uint32 charID);
 	PyObject *GetOwnerNote(uint32 charID, uint32 noteID);
-	PyObject *GetCharacterAppearance(uint32 characterID);
 
 	bool GetCharClones(uint32 characterID, std::vector<uint32> &into); 
 	bool GetActiveClone(uint32 characterID, uint32 &itemID); 
@@ -126,6 +125,10 @@ public:
 	
 	uint32 AddOwnerNote(uint32 charID, const std::string &label, const std::string &content);
 	bool EditOwnerNote(uint32 charID, uint32 noteID, const std::string &label, const std::string &content);
+
+	uint64 PrepareCharacterForDelete(uint32 accountID, uint32 charID);
+	void CancelCharacterDeletePrepare(uint32 accountID, uint32 charID);
+	PyRep* DeleteCharacter(uint32 accountID, uint32 charID);
 
 private:
 	/**

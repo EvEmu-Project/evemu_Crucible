@@ -23,7 +23,6 @@
 	Author:		Zhur
 */
 
-
 #ifndef __INVENTORYDB_H_INCL__
 #define __INVENTORYDB_H_INCL__
 
@@ -197,12 +196,10 @@ public:
 	 * (character_, chrSkillQueue)
 	 */
 	bool GetCharacter(uint32 characterID, CharacterData &into);
-	bool GetCharacterAppearance(uint32 characterID, CharacterAppearance &into);
 	bool GetCorpMemberInfo(uint32 characterID, CorpMemberInfo &into);
 
 	bool NewCharacter(uint32 characterID, const CharacterData &data, const CharacterAppearance &appData, const CorpMemberInfo &corpData);
 	bool SaveCharacter(uint32 characterID, const CharacterData &data);
-	bool SaveCharacterAppearance(uint32 characterID, const CharacterAppearance &data);
 	bool SaveCorpMemberInfo(uint32 characterID, const CorpMemberInfo &data);
 	bool DeleteCharacter(uint32 characterID);
 
