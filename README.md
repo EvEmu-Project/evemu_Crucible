@@ -6,7 +6,7 @@ EVEmu modified to support the latest Incursion client
 - Character selection and creation is working
 - Character portraits are working
 - Undocking and Docking is working
-- Items and Destiny packets are next
+- Items and Destiny are working
 
 # Legal
 	------------------------------------------------------------------------------------
