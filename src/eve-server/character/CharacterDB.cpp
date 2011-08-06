@@ -32,9 +32,8 @@ CharacterDB::CharacterDB()
 
 uint64 CharacterDB::PrepareCharacterForDelete(uint32 accountID, uint32 charID)
 {
-	// this sets the time the character will spend in the biomass queue (currently: 1m30s)
-	const uint64 queueTime = Win32Time_Minute + (Win32Time_Second * 30);
-	uint64 deleteTime = Win32TimeNow() + queueTime;
+	// calculate the point in time from which this character may be deleted
+	uint64 deleteTime = Win32TimeNow() + (Win32Time_Second * sConfig.character.terminationDelay);
 
 	// note: the queries relating to character deletion have been specifically designed to avoid wreaking havoc when used by a malicious client
 	// the client can't lie to us about accountID, only charID
@@ -61,7 +60,7 @@ PyRep* CharacterDB::DeleteCharacter(uint32 accountID, uint32 charID)
 {
 	DBerror error;
 	uint32 affectedRows;
-	sDatabase.RunQuery(error, affectedRows, "DELETE FROM character_ WHERE deletePrepareDateTime > 0 AND accountID = %u AND characterID = %u", accountID, charID);
+	sDatabase.RunQuery(error, affectedRows, "DELETE FROM character_ WHERE deletePrepareDateTime > 0 AND deletePrepareDateTime <= " I64u " AND accountID = %u AND characterID = %u", Win32TimeNow(), accountID, charID);
 
 	if (affectedRows == 1)
 	{
@@ -78,7 +77,6 @@ PyRep* CharacterDB::DeleteCharacter(uint32 accountID, uint32 charID)
 PyRep *CharacterDB::GetCharacterList(uint32 accountID) {
 	DBQueryResult res;
 	
-	// we send zeroes for the old character appearance data since the original client does the same
 	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" characterID, itemName AS characterName, deletePrepareDateTime, gender"
