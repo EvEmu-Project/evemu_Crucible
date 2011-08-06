@@ -60,7 +60,7 @@ PyRep* CharacterDB::DeleteCharacter(uint32 accountID, uint32 charID)
 {
 	DBerror error;
 	uint32 affectedRows;
-	sDatabase.RunQuery(error, affectedRows, "DELETE FROM character_ WHERE deletePrepareDateTime > 0 AND accountID = %u AND characterID = %u", accountID, charID);
+	sDatabase.RunQuery(error, affectedRows, "DELETE FROM character_ WHERE deletePrepareDateTime > 0 AND deletePrepareDateTime <= " I64u " AND accountID = %u AND characterID = %u", Win32TimeNow(), accountID, charID);
 
 	if (affectedRows == 1)
 	{
