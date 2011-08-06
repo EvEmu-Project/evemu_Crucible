@@ -44,4 +44,7 @@ public:
 	}
 };
 
+#define sLiveUpdateDB \
+    ( LiveUpdateDB::get() )
+
 #endif // __LIVE_UPDATE_DB__H__INCL__

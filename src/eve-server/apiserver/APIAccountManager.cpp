@@ -57,32 +57,21 @@ std::tr1::shared_ptr<std::string> APIAccountManager::ProcessCall(const APIComman
 
 std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICommandCall * pAPICommandCall)
 {
-    // TEST of generating username/password hash for authentication for generating new API keys:
-    std::string passHash;
-    std::string username = "mdrayman";
-    std::string pwd = "mdrayman";
-    std::wstring w_username = Utils::Strings::StringToWString(username);
-    std::wstring w_password = Utils::Strings::StringToWString(pwd);
-    PasswordModule::GeneratePassHash(w_username,w_password,passHash);
-    std::string hexHash = PasswordModule::GenerateHexString(passHash);
-    std::string dateTime = Win32TimeToString(Win32TimeNow());
-    // END TEST
-
     bool status = false;
     uint32 userID, apiRole;
-    std::string accountID;
+    std::string username;
     std::string password;
     std::string keyType;
     std::string apiLimitedKey;
     std::string apiFullKey;
     sLog.Debug("APIAccountManager::_APIKeyRequest()", "EVEmu API - Account Service Manager - CALL: API Key Request");
 
-    // 0: Decode arguments:
-    if( pAPICommandCall->find( "accountID" ) != pAPICommandCall->end() )
-        accountID = pAPICommandCall->find( "accountID" )->second;
+    // 1: Decode arguments:
+    if( pAPICommandCall->find( "username" ) != pAPICommandCall->end() )
+        username = pAPICommandCall->find( "username" )->second;
     else
     {
-        sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: No 'accountID' parameter found in call argument list - exiting with error" );
+        sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: No 'username' parameter found in call argument list - exiting with error" );
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
@@ -109,21 +98,24 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
             return BuildErrorXMLResponse( "203", "Authentication failure." );
         }
 
-    // 1: Determine if this account's userID exists:
-    status = m_db.GetApiAccountInfoUsingAccountID( accountID, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
+    // 2: Authenticate the username and password against the account table:
+    _AuthenticateUserNamePassword( username, password );
 
-    // 2: Generate new random 64-character hexadecimal API Keys:
+    // 3: Determine if this account's userID exists:
+    status = m_db.GetApiAccountInfoUsingAccountID( username, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
+
+    // 4: Generate new random 64-character hexadecimal API Keys:
     apiLimitedKey = _GenerateAPIKey();
     apiFullKey = _GenerateAPIKey();
     if( !(status) )
-        // 2: If userID already exists, generate new API keys and write them back to the database under that userID:
+        // 4a: If userID already exists, generate new API keys and write them back to the database under that userID:
         status = m_db.UpdateUserIdApiKeyDatabaseRow( userID, apiFullKey, apiLimitedKey );
     else
-        // 3: If userID does not exist for this accountID, then insert a new row into the 'accountApi' table:
-        status = m_db.InsertNewUserIdApiKeyInfoToDatabase( atol(accountID.c_str()), apiFullKey, apiLimitedKey, EVEAPI::Roles::Player );
+        // 4b: If userID does not exist for this accountID, then insert a new row into the 'accountApi' table:
+        status = m_db.InsertNewUserIdApiKeyInfoToDatabase( atol(username.c_str()), apiFullKey, apiLimitedKey, EVEAPI::Roles::Player );
 
-    // 4: Build XML document to return to API client:
-    status = m_db.GetApiAccountInfoUsingAccountID( accountID, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
+    // 5: Build XML document to return to API client:
+    status = m_db.GetApiAccountInfoUsingAccountID( username, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
     _BuildXMLHeader();
     {
         _BuildSingleXMLTag( "userID", std::string(itoa(userID)) );

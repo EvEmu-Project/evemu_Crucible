@@ -1569,7 +1569,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     server_shake.challenge_responsehash = "55087";
 
 	// the image server used by the client to download images
-	server_shake.imageserverurl = ImageServer::get().url();
+	server_shake.imageserverurl = sImageServer.url();
 
     server_shake.macho_version = MachoNetVersion;
     server_shake.boot_version = EVEVersionNumber;
@@ -1616,7 +1616,7 @@ bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
     ack.inDetention = new PyNone;
     ack.client_hashes = new PyList;
     ack.user_clientid = GetAccountID();
-	ack.live_updates = LiveUpdateDB::get().GetUpdates();
+	ack.live_updates = sLiveUpdateDB.GetUpdates();
 
 	PyRep* r = ack.Encode();
     mNet->QueueRep( r );

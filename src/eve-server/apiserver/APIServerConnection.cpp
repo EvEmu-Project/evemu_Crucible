@@ -220,7 +220,7 @@ void APIServerConnection::ProcessHeaders()
         m_apiCommandCall.insert( std::make_pair<std::string, std::string>( param, value ) );
     }
 
-	_xmlData = APIServer::get().GetXML(&m_apiCommandCall);
+	_xmlData = sAPIServer.GetXML(&m_apiCommandCall);
 	if (!_xmlData)
 	{
         sLog.Error("APIServerConnection::ProcessHeaders()", "Unknown or malformed EVEmu API HTTP CMD Received:\r\n%s\r\n", query.c_str());

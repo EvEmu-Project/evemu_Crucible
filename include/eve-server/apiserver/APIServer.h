@@ -91,4 +91,7 @@ private:
 	};
 };
 
+#define sAPIServer \
+    ( APIServer::get() )
+
 #endif // __APISERVER__H__INCL__

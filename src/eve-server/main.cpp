@@ -205,10 +205,10 @@ int main( int argc, char* argv[] )
     sLog.Log("server init", "finished priming");
 
 	// start up the image server
-	ImageServer::get().Run();
+	sImageServer.Run();
 
 	// start up the api server
-	APIServer::get().Run();
+	sAPIServer.Run();
 
     services.serviceDB().SetServerOnlineStatus(true);
 

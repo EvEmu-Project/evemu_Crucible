@@ -103,7 +103,7 @@ void ImageServerConnection::ProcessHeaders()
 	_id = atoi(idStr.c_str());
 	_size = atoi(sizeStr.c_str());
 
-	_imageData = ImageServer::get().GetImage(_category, _id, _size);
+	_imageData = sImageServer.GetImage(_category, _id, _size);
 	if (!_imageData)
 	{
 		Redirect();

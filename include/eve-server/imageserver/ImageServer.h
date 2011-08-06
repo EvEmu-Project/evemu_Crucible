@@ -96,4 +96,7 @@ private:
 	};
 };
 
+#define sImageServer \
+    ( ImageServer::get() )
+
 #endif // __IMAGESERVER__H__INCL__

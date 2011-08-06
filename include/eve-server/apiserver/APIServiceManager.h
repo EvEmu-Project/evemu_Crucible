@@ -77,6 +77,7 @@ public:
     std::tr1::shared_ptr<std::string> BuildErrorXMLResponse(std::string errorCode, std::string errorMessage);
 
 protected:
+    bool _AuthenticateUserNamePassword(std::string userName, std::string password);
     bool _AuthenticateFullAPIQuery(std::string userID, std::string apiKey);
     bool _AuthenticateLimitedAPIQuery(std::string userID, std::string apiKey);
 

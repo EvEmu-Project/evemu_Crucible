@@ -337,7 +337,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     _log( CLIENT__MESSAGE, "Sending char create ID %u as reply", char_item->itemID() );
 
 	// we need to report the charID to the ImageServer so it can correctly assign a previously received image
-	ImageServer::get().ReportNewCharacter(call.client->GetAccountID(), char_item->itemID());
+	sImageServer.ReportNewCharacter(call.client->GetAccountID(), char_item->itemID());
 
     return new PyInt( char_item->itemID() );
 }
