@@ -63,6 +63,7 @@ EVEServerConfig::EVEServerConfig()
 	character.startStation = 60004420; // Todaki, when no longer needed, change to 0.
 	character.startSecRating = 0.0;
 	character.startCorporation = 0;
+	character.terminationDelay = 90 /*s*/;
 
     // database
     database.host = "localhost";
@@ -144,6 +145,7 @@ bool EVEServerConfig::ProcessCharacter( const TiXmlElement* ele )
     AddValueParser( "startStation", character.startStation );
     AddValueParser( "startSecRating", character.startSecRating );
     AddValueParser( "startCorporation", character.startCorporation );
+	AddValueParser( "terminationDelay", character.terminationDelay );
 
     const bool result = ParseElementChildren( ele );
 
@@ -151,6 +153,7 @@ bool EVEServerConfig::ProcessCharacter( const TiXmlElement* ele )
     RemoveParser( "startStation" );
     RemoveParser( "startSecRating" );
     RemoveParser( "startCorporation" );
+	RemoveParser( "terminationDelay" );
 
     return result;
 }

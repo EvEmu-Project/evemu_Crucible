@@ -72,6 +72,8 @@ public:
 		double startSecRating;
 		/// Starting corp ID for new characters
 		uint32 startCorporation;
+		/// Delay for terminating a character in seconds
+		uint32 terminationDelay;
     } character;
 
     // From <database/>
