@@ -78,7 +78,6 @@ PyRep* CharacterDB::DeleteCharacter(uint32 accountID, uint32 charID)
 PyRep *CharacterDB::GetCharacterList(uint32 accountID) {
 	DBQueryResult res;
 	
-	// we send zeroes for the old character appearance data since the original client does the same
 	if(!sDatabase.RunQuery(res,
 		"SELECT"
 		" characterID, itemName AS characterName, deletePrepareDateTime, gender"
