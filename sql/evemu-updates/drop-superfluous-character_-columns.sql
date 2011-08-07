@@ -23,4 +23,16 @@ ALTER TABLE `character_`
 	DROP COLUMN `morph1e`,
 	DROP COLUMN `morph1n`,
 	DROP COLUMN `morph1s`,
-	DROP COLUMN `morph1w`;
+	DROP COLUMN `morph1w`,
+	DROP COLUMN `morph2e`,
+	DROP COLUMN `morph2n`,
+	DROP COLUMN `morph2s`,
+	DROP COLUMN `morph2w`,
+	DROP COLUMN `morph3e`,
+	DROP COLUMN `morph3n`,
+	DROP COLUMN `morph3s`,
+	DROP COLUMN `morph3w`,
+	DROP COLUMN `morph4e`,
+	DROP COLUMN `morph4n`,
+	DROP COLUMN `morph4s`,
+	DROP COLUMN `morph4w`;
