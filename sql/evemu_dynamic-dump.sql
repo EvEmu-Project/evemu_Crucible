@@ -24,7 +24,7 @@ CREATE TABLE `account` (
   `accountName` varchar(43) NOT NULL DEFAULT '',
   `password` varchar(43) NOT NULL DEFAULT '',
   `hash` tinyblob,
-  `role` bigint(10) unsigned NOT NULL DEFAULT '0',
+  `role` bigint(20) unsigned NOT NULL DEFAULT '0',
   `online` tinyint(1) NOT NULL DEFAULT '0',
   `banned` tinyint(1) NOT NULL DEFAULT '0',
   `logonCount` int(10) unsigned NOT NULL DEFAULT '0',

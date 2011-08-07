@@ -27,7 +27,8 @@
 #include "EVEServerPCH.h"
 
 
-APIAdminManager::APIAdminManager()
+APIAdminManager::APIAdminManager(const PyServiceMgr &services)
+: APIServiceManager(services)
 {
 }
 

@@ -27,7 +27,8 @@
 #include "EVEServerPCH.h"
 
 
-APIEveSystemManager::APIEveSystemManager()
+APIEveSystemManager::APIEveSystemManager(const PyServiceMgr &services)
+: APIServiceManager(services)
 {
 }
 

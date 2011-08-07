@@ -208,6 +208,7 @@ int main( int argc, char* argv[] )
 	sImageServer.Run();
 
 	// start up the api server
+    sAPIServer.CreateServices( services );
 	sAPIServer.Run();
 
     services.serviceDB().SetServerOnlineStatus(true);

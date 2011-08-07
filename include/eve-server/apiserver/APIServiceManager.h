@@ -70,7 +70,8 @@ namespace EVEAPI {
 class APIServiceManager
 {
 public:
-	APIServiceManager();
+	APIServiceManager(const PyServiceMgr &services);
+	PyServiceMgr& services() { return m_services; }
 
 	// Common call shared to all derived classes called via polymorphism
 	virtual std::tr1::shared_ptr<std::string> ProcessCall(const APICommandCall * pAPICommandCall);
@@ -96,6 +97,7 @@ protected:
     std::tr1::shared_ptr<std::string> _GetXMLDocumentString();
 
     APIServiceDB m_db;
+	PyServiceMgr m_services;
 
 	TiXmlDocument _XmlDoc;
     TiXmlElement * _pXmlDocOuterTag;

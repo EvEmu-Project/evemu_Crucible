@@ -44,7 +44,7 @@ class APIAdminManager
 : public APIServiceManager
 {
 public:
-	APIAdminManager();
+	APIAdminManager(const PyServiceMgr &services);
 
 	// Common call shared to all derived classes called via polymorphism
 	std::tr1::shared_ptr<std::string> ProcessCall(const APICommandCall * pAPICommandCall);

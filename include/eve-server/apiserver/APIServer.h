@@ -58,6 +58,7 @@ class APIServer : public Singleton<APIServer>
 public:
 	APIServer();
 	void Run();
+    void CreateServices(const PyServiceMgr &services);
 
 	std::string& url();
 
@@ -76,6 +77,7 @@ private:
 	std::string _url;
 	std::string _basePath;
 	asio::detail::mutex _limboLock;
+    bool runonce;
 
     std::tr1::shared_ptr<std::string> m_xmlString;
 

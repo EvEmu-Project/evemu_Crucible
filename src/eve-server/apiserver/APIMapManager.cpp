@@ -27,7 +27,8 @@
 #include "EVEServerPCH.h"
 
 
-APIMapManager::APIMapManager()
+APIMapManager::APIMapManager(const PyServiceMgr &services)
+: APIServiceManager(services)
 {
 }
 

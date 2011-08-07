@@ -27,7 +27,8 @@
 #include "EVEServerPCH.h"
 
 
-APICharacterManager::APICharacterManager()
+APICharacterManager::APICharacterManager(const PyServiceMgr &services)
+: APIServiceManager(services)
 {
 }
 

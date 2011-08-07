@@ -30,7 +30,8 @@
 std::string APIAccountManager::m_hexCharMap("0123456789ABCDEF");
 
 
-APIAccountManager::APIAccountManager()
+APIAccountManager::APIAccountManager(const PyServiceMgr &services)
+: APIServiceManager(services)
 {
 }
 
@@ -64,6 +65,9 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
     std::string keyType;
     std::string apiLimitedKey;
     std::string apiFullKey;
+    std::string accountID;
+    std::string keyTag;
+
     sLog.Debug("APIAccountManager::_APIKeyRequest()", "EVEmu API - Account Service Manager - CALL: API Key Request");
 
     // 1: Decode arguments:
@@ -99,7 +103,12 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         }
 
     // 2: Authenticate the username and password against the account table:
-    _AuthenticateUserNamePassword( username, password );
+    status = _AuthenticateUserNamePassword( username, password );
+    if( !status )
+    {
+        sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: username='%s' password='%s' does not authenticate.", username.c_str(), password.c_str() );
+        return BuildErrorXMLResponse( "203", "Authentication failure." );
+    }
 
     // 3: Determine if this account's userID exists:
     status = m_db.GetApiAccountInfoUsingAccountID( username, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
@@ -107,7 +116,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
     // 4: Generate new random 64-character hexadecimal API Keys:
     apiLimitedKey = _GenerateAPIKey();
     apiFullKey = _GenerateAPIKey();
-    if( !(status) )
+    if( status )
         // 4a: If userID already exists, generate new API keys and write them back to the database under that userID:
         status = m_db.UpdateUserIdApiKeyDatabaseRow( userID, apiFullKey, apiLimitedKey );
     else
@@ -115,14 +124,38 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         status = m_db.InsertNewUserIdApiKeyInfoToDatabase( atol(username.c_str()), apiFullKey, apiLimitedKey, EVEAPI::Roles::Player );
 
     // 5: Build XML document to return to API client:
-    status = m_db.GetApiAccountInfoUsingAccountID( username, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
+    userID = 0;
+    apiFullKey = "";
+    apiLimitedKey = "";
+    apiRole = 0;
+    status = m_db.GetAccountIdFromUsername( username, &accountID );
+    if( !status )
+    {
+        sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: username='%s' cannot be found in 'account' table.", username.c_str() );
+        return BuildErrorXMLResponse( "203", "Authentication failure." );
+    }
+
+    status = m_db.GetApiAccountInfoUsingAccountID( accountID, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
+    if( !status )
+    {
+        sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: username='%s' cannot be found in 'account' table.", username.c_str() );
+        return BuildErrorXMLResponse( "203", "Authentication failure." );
+    }
+
+    // 6: Return the userID and the API key requested in the xml structure:
     _BuildXMLHeader();
     {
         _BuildSingleXMLTag( "userID", std::string(itoa(userID)) );
         if( keyType == "full" )
-            _BuildSingleXMLTag( "newKey", apiFullKey );
+        {
+            keyTag = "apiFullKey";
+            _BuildSingleXMLTag( keyTag, apiFullKey );
+        }
         else
-            _BuildSingleXMLTag( "newKey", apiLimitedKey );
+        {
+            keyTag = "apiLimitedKey";
+            _BuildSingleXMLTag( keyTag, apiLimitedKey );
+        }
     }
     _CloseXMLHeader( EVEAPI::CacheStyles::Long );
 

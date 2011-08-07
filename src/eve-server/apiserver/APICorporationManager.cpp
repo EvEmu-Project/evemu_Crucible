@@ -27,7 +27,8 @@
 #include "EVEServerPCH.h"
 
 
-APICorporationManager::APICorporationManager()
+APICorporationManager::APICorporationManager(const PyServiceMgr &services)
+: APIServiceManager(services)
 {
 }
 
