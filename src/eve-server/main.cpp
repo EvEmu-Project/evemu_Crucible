@@ -270,7 +270,10 @@ int main( int argc, char* argv[] )
     log_close_logfile();
 
     // win crap.
-    //_CrtDumpMemoryLeaks();
+#if defined( MSVC ) && !defined( NDEBUG )
+    _CrtDumpMemoryLeaks();
+#endif /* defined( MSVC ) && !defined( NDEBUG ) */
+
     return 0;
 }
 

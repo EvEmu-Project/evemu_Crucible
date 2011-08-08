@@ -109,9 +109,16 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: username='%s' password='%s' does not authenticate.", username.c_str(), password.c_str() );
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
+    // 2a: Get accountID using username, now that it's been validated:
+    status = m_db.GetAccountIdFromUsername( username, &accountID );
+    if( !status )
+    {
+        sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: username='%s' cannot be found in 'account' table.", username.c_str() );
+        return BuildErrorXMLResponse( "203", "Authentication failure." );
+    }
 
     // 3: Determine if this account's userID exists:
-    status = m_db.GetApiAccountInfoUsingAccountID( username, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
+    status = m_db.GetApiAccountInfoUsingAccountID( accountID, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
 
     // 4: Generate new random 64-character hexadecimal API Keys:
     apiLimitedKey = _GenerateAPIKey();
@@ -121,19 +128,14 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         status = m_db.UpdateUserIdApiKeyDatabaseRow( userID, apiFullKey, apiLimitedKey );
     else
         // 4b: If userID does not exist for this accountID, then insert a new row into the 'accountApi' table:
-        status = m_db.InsertNewUserIdApiKeyInfoToDatabase( atol(username.c_str()), apiFullKey, apiLimitedKey, EVEAPI::Roles::Player );
+        status = m_db.InsertNewUserIdApiKeyInfoToDatabase( atol(accountID.c_str()), apiFullKey, apiLimitedKey, EVEAPI::Roles::Player );
 
     // 5: Build XML document to return to API client:
     userID = 0;
     apiFullKey = "";
     apiLimitedKey = "";
     apiRole = 0;
-    status = m_db.GetAccountIdFromUsername( username, &accountID );
-    if( !status )
-    {
-        sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: username='%s' cannot be found in 'account' table.", username.c_str() );
-        return BuildErrorXMLResponse( "203", "Authentication failure." );
-    }
+    //status = m_db.GetAccountIdFromUsername( username, &accountID );
 
     status = m_db.GetApiAccountInfoUsingAccountID( accountID, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
     if( !status )
@@ -156,6 +158,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
             keyTag = "apiLimitedKey";
             _BuildSingleXMLTag( keyTag, apiLimitedKey );
         }
+        _BuildSingleXMLTag( "expiresOn", Win32TimeToString(Win32TimeNow() + 180*Win32Time_Day) );
     }
     _CloseXMLHeader( EVEAPI::CacheStyles::Long );
 
