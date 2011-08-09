@@ -56,17 +56,9 @@ INSERT INTO character_
   characterID,accountID,title,description,bounty,balance,securityRating,petitionMessage,logonMinutes,
   corporationID,0 AS corpRole,0 AS rolesAtAll,0 AS rolesAtBase,0 AS rolesAtHQ,0 AS rolesAtOther,
   corporationDateTime,startDateTime,createDateTime,
-  ancestryID,careerID,schoolID,careerSpecialityID,gender,
-  accessoryID,beardID,costumeID,decoID,eyebrowsID,eyesID,hairID,lipstickID,makeupID,skinID,backgroundID,lightID,
-  headRotation1,headRotation2,headRotation3,
-  eyeRotation1,eyeRotation2,eyeRotation3,
-  camPos1,camPos2,camPos3,
-  morph1e,morph1n,morph1s,morph1w,
-  morph2e,morph2n,morph2s,morph2w,
-  morph3e,morph3n,morph3s,morph3w,
-  morph4e,morph4n,morph4s,morph4w,
+  ancestryID,careerID,schoolID,careerSpecialityID, gender,
   stationID,solarSystemID,constellationID,regionID,
-  0 AS online
+  0 AS online, 0 as deletePrepareDateTime
  FROM characterStatic;
 
 /*
