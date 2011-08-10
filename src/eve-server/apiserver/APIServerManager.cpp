@@ -34,5 +34,41 @@ APIServerManager::APIServerManager(const PyServiceMgr &services)
 
 std::tr1::shared_ptr<std::string> APIServerManager::ProcessCall(const APICommandCall * pAPICommandCall)
 {
-    return std::tr1::shared_ptr<std::string>(new std::string(""));
+    sLog.Debug("APIServerManager::ProcessCall()", "EVEmu API - Server Service Manager");
+
+    if( pAPICommandCall->find( "servicehandler" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APIServerManager::ProcessCall()", "Cannot find 'servicehandler' specifier in pAPICommandCall packet" );
+        return std::tr1::shared_ptr<std::string>(new std::string(""));
+    }
+
+    if( pAPICommandCall->find( "servicehandler" )->second == "ServerStatus.xml.aspx" )
+        return _ServerStatus(pAPICommandCall);
+    //else if( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
+    //    return _TODO(pAPICommandCall);
+    else
+    {
+        sLog.Error("APIServerManager::ProcessCall()", "EVEmu API - Server Service Manager - ERROR: Cannot resolve '%s' as a valid service query for Server Service Manager",
+            pAPICommandCall->find("servicehandler")->second.c_str() );
+        return std::tr1::shared_ptr<std::string>(new std::string(""));
+    }
+}
+
+std::tr1::shared_ptr<std::string> APIServerManager::_ServerStatus(const APICommandCall * pAPICommandCall)
+{
+    uint32 playersOnline = services().entity_list.GetClientCount();
+    std::string playersOnlineStr( itoa( playersOnline ) );
+
+    _BuildXMLHeader();
+    {
+        _BuildXMLTag( "result" );
+        {
+            _BuildSingleXMLTag( "serverOpen", "True" );
+            _BuildSingleXMLTag( "onlinePlayers", playersOnlineStr );
+        }
+        _CloseXMLTag(); // close tag "result"
+    }
+    _CloseXMLHeader( EVEAPI::CacheStyles::Modified );
+
+    return _GetXMLDocumentString();
 }

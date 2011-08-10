@@ -51,6 +51,8 @@ public:
 
 protected:
 	std::tr1::shared_ptr<std::string> _APIKeyRequest(const APICommandCall * pAPICommandCall);
+	std::tr1::shared_ptr<std::string> _Characters(const APICommandCall * pAPICommandCall);
+	std::tr1::shared_ptr<std::string> _AccountStatus(const APICommandCall * pAPICommandCall);
 
     // Utility Functions:
     std::string _GenerateAPIKey();

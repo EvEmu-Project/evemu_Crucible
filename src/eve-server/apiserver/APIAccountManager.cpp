@@ -47,11 +47,16 @@ std::tr1::shared_ptr<std::string> APIAccountManager::ProcessCall(const APIComman
 
     if( pAPICommandCall->find( "servicehandler" )->second == "APIKeyRequest.xml.aspx" )
         return _APIKeyRequest(pAPICommandCall);
+    else if( pAPICommandCall->find( "servicehandler" )->second == "Characters.xml.aspx" )
+        return _Characters(pAPICommandCall);
+    else if( pAPICommandCall->find( "servicehandler" )->second == "AccountStatus.xml.aspx" )
+        return _AccountStatus(pAPICommandCall);
     //else if( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
     //    return _TODO(pAPICommandCall);
     else
     {
-        sLog.Error("APIAccountManager::ProcessCall()", "EVEmu API - Account Service Manager - ERROR: Cannot resolve '%s' as a valid service query for Admin Service Manager", pAPICommandCall->find("admin")->second.c_str() );
+        sLog.Error("APIAccountManager::ProcessCall()", "EVEmu API - Account Service Manager - ERROR: Cannot resolve '%s' as a valid service query for Admin Service Manager",
+            pAPICommandCall->find("servicehandler")->second.c_str() );
         return std::tr1::shared_ptr<std::string>(new std::string(""));
     }
 }
@@ -163,6 +168,28 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
     _CloseXMLHeader( EVEAPI::CacheStyles::Long );
 
     return _GetXMLDocumentString();
+}
+
+std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APICommandCall * pAPICommandCall)
+{
+    if( pAPICommandCall->find( "userID" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APIAccountManager::_Characters()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
+        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+    }
+
+    // TODO
+}
+
+std::tr1::shared_ptr<std::string> APIAccountManager::_AccountStatus(const APICommandCall * pAPICommandCall)
+{
+    if( pAPICommandCall->find( "userID" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APIAccountManager::_AccountStatus()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
+        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+    }
+
+    // TODO
 }
 
 std::string APIAccountManager::_GenerateAPIKey()

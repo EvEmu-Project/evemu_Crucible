@@ -182,17 +182,16 @@ void APIServerConnection::ProcessHeaders()
         request = request.substr(pos+1);
         _service_handler = request;
         m_apiCommandCall.insert( std::make_pair<std::string, std::string>( "servicehandler", _service_handler ) );
-      	std::getline(stream, request, '\r');
-        query += request;
-    	std::getline(stream, request, '\r');
-        query += request;
-	    std::getline(stream, request, '\r');
-        query += request;
-	    std::getline(stream, request, '\r');
-        query += request;
-    	std::getline(stream, request, '\r');
-        query += request;
+
+        while( (request.substr( 0,15 ).compare( "Content-Length:" )) != 0 )
+        {
+            std::getline(stream, request, '\r');
+            request = request.substr(1);
+            query += request;
+        }
+        std::getline(stream, request, '\r');
         request = request.substr(1);
+        query += request;
     }
     else
     {

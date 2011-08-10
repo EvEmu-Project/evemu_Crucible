@@ -46,7 +46,8 @@ std::tr1::shared_ptr<std::string> APIAdminManager::ProcessCall(const APICommandC
     //    return _TODO(pAPICommandCall);
     //else
     //{
-        sLog.Error("APIAdminManager::ProcessCall()", "EVEmu API - Admin Service Manager - ERROR: Cannot resolve '%s' as a valid service query for Admin Service Manager", pAPICommandCall->find("admin")->second.c_str() );
+        sLog.Error("APIAdminManager::ProcessCall()", "EVEmu API - Admin Service Manager - ERROR: Cannot resolve '%s' as a valid service query for Admin Service Manager",
+            pAPICommandCall->find("servicehandler")->second.c_str() );
         return std::tr1::shared_ptr<std::string>(new std::string(""));
     //}
 }

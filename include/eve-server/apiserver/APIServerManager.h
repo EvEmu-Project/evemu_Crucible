@@ -50,7 +50,8 @@ public:
 	std::tr1::shared_ptr<std::string> ProcessCall(const APICommandCall * pAPICommandCall);
 
 protected:
-	
+	std::tr1::shared_ptr<std::string> _ServerStatus(const APICommandCall * pAPICommandCall);
+
 };
 
 #endif // __APISERVERMANAGER__H__INCL__
