@@ -54,6 +54,7 @@ public:
 private:
 	APIServerConnection(asio::io_service& io);
 	void ProcessHeaders();
+    void ProcessPostData();
 	void SendXML();
 	void NotFound();
 	void Close();
@@ -67,9 +68,11 @@ private:
 	std::string _service;
     std::string _service_handler;
 	std::string _redirectUrl;
+    std::string _http_cmd_str;
     APICommandCall m_apiCommandCall;
 
 	asio::streambuf _buffer;
+    asio::streambuf _postBuffer;
 	asio::ip::tcp::socket _socket;
     std::tr1::shared_ptr<std::vector<char> > _xmlData;
 	

@@ -93,7 +93,6 @@ void APIServerConnection::ProcessHeaders()
 	std::string request;
     std::string get_chk_str;
     std::string post_chk_str;
-    std::string http_cmd_str;
     int pos, pos2;
     std::string param;
     std::string value;
@@ -115,7 +114,7 @@ void APIServerConnection::ProcessHeaders()
         // Format of an HTTP GET query:
         // 0    5     10          20
         // GET /service/ServiceHandler.xml.aspx?param1=value&param2=value&param3=value HTTP/1.0\r\n
-        http_cmd_str = get_chk_str;
+        _http_cmd_str = get_chk_str;
 
         request = request.substr(4);    // Strip off the "GET " prefix
 
@@ -143,6 +142,45 @@ void APIServerConnection::ProcessHeaders()
         _service_handler = request.substr(0,pos);
         m_apiCommandCall.insert( std::make_pair<std::string, std::string>( "servicehandler", _service_handler ) );
         request = request.substr(pos+1);
+
+        // Parse the query portion of the GET to a series of string pairs ("param", "value") from the URI
+        while( (pos = request.find_first_of('=')) >= 0 )
+        {
+            param = request.substr(0,pos);
+            request = request.substr(pos+1);
+            pos = request.find_first_of('&');
+            if( pos < 0 )
+                value = request;
+            else
+            {
+                value = request.substr(0,pos);
+                request = request.substr(pos);
+                if( request.substr(0,5) == "&amp;" )  // Strip out "&amp;" encoded for "&"
+                    request = request.substr(5);
+                else
+                    request = request.substr(1);
+            }
+            m_apiCommandCall.insert( std::make_pair<std::string, std::string>( param, value ) );
+        }
+
+	    _xmlData = sAPIServer.GetXML(&m_apiCommandCall);
+	    if (!_xmlData)
+	    {
+            sLog.Error("APIServerConnection::ProcessHeaders()", "Unknown or malformed EVEmu API HTTP CMD Received:\r\n%s\r\n", query.c_str());
+            NotFound();
+		    return;
+	    }
+
+        // Print out to the Log with basic info on the API call and all parameters and their values parsed out
+        sLog.Debug("APIServerConnection::ProcessHeaders()", "HTTP %s CMD Received: Service: %s, Handler: %s", _http_cmd_str.c_str(), _service.c_str(), _service_handler.c_str());
+        APICommandCall::const_iterator cur, end;
+        cur = m_apiCommandCall.begin();
+        end = m_apiCommandCall.end();
+        for (int i=1; cur != end; cur++, i++)
+            sLog.Debug("        ", "%d: param = %s,  value = %s", i, cur->first.c_str(), cur->second.c_str() );
+
+	    // first we have to send the responseOK, then our actual result
+	    asio::async_write(_socket, _responseOK, asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));
     }
     else if (post_chk_str.compare("POST") == 0)
     {
@@ -156,7 +194,7 @@ void APIServerConnection::ProcessHeaders()
         // param1=value&param2=value&param3=value\r\n
         // \r\n
         
-        http_cmd_str = post_chk_str;
+        _http_cmd_str = post_chk_str;
 
         request = request.substr(5);    // Strip off the "POST " prefix
 
@@ -189,15 +227,33 @@ void APIServerConnection::ProcessHeaders()
             request = request.substr(1);
             query += request;
         }
-        std::getline(stream, request, '\r');
-        request = request.substr(1);
-        query += request;
+        // 1) First read the integer after 'Content-Length:' and use that as the # of bytes in the next step
+        // 2) call asio::async_read() and feed it the # of bytes from step 1) to get the POST data
+        // caytchen says i'll need a 'CompleteCondition' for asio::async_read, a parameter that specifies when to stop reading,
+        // so it should be transfer_exactly(contentLength), where contentLength is the # of bytes
+        pos = request.find_first_of(' ');
+        request = request.substr( pos+1 );
+        uint32 postDataBytes = atoi( request.c_str() );
+        asio::async_read(_socket, _postBuffer, asio::transfer_exactly(postDataBytes), std::tr1::bind(&APIServerConnection::ProcessPostData, shared_from_this()));
     }
     else
     {
 		NotFound();
 		return;
     }
+}
+
+void APIServerConnection::ProcessPostData()
+{
+	std::istream stream(&_postBuffer);
+    std::string query;
+	std::string request;
+    int pos, pos2;
+    std::string param;
+    std::string value;
+
+    std::getline(stream, request, '\r');
+    _http_cmd_str += request;
 
     // Parse the query portion of the GET to a series of string pairs ("param", "value") from the URI
     while( (pos = request.find_first_of('=')) >= 0 )
@@ -222,13 +278,13 @@ void APIServerConnection::ProcessHeaders()
 	_xmlData = sAPIServer.GetXML(&m_apiCommandCall);
 	if (!_xmlData)
 	{
-        sLog.Error("APIServerConnection::ProcessHeaders()", "Unknown or malformed EVEmu API HTTP CMD Received:\r\n%s\r\n", query.c_str());
+        sLog.Error("APIServerConnection::ProcessPostData()", "Unknown or malformed EVEmu API HTTP CMD Received:\r\n%s\r\n", query.c_str());
         NotFound();
 		return;
 	}
 
     // Print out to the Log with basic info on the API call and all parameters and their values parsed out
-    sLog.Debug("APIServerConnection::ProcessHeaders()", "HTTP %s CMD Received: Service: %s, Handler: %s", http_cmd_str.c_str(), _service.c_str(), _service_handler.c_str());
+    sLog.Debug("APIServerConnection::ProcessPostData()", "HTTP %s CMD Received: Service: %s, Handler: %s", _http_cmd_str.c_str(), _service.c_str(), _service_handler.c_str());
     APICommandCall::const_iterator cur, end;
     cur = m_apiCommandCall.begin();
     end = m_apiCommandCall.end();
