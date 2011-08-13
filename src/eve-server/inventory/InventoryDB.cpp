@@ -1129,6 +1129,7 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
         "  balance = %f,"
         "  securityRating = %f,"
         "  logonMinutes = %u,"
+        "  skillPoints = %f,"
         "  corporationID = %u,"
         "  stationID = %u,"
         "  solarSystemID = %u,"
@@ -1150,6 +1151,7 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
         data.balance,
         data.securityRating,
         data.logonMinutes,
+        data.skillPoints,
         data.corporationID,
         data.stationID,
         data.solarSystemID,

@@ -206,6 +206,7 @@ public:
 		double _balance = 0.0,
 		double _securityRating = 0.0,
 		uint32 _logonMinutes = 0,
+        double _skillPoints = 0,
 		uint32 _corporationID = 0,
 		uint32 _allianceID = 0,
 		uint32 _warFactionID = 0,
@@ -231,6 +232,7 @@ public:
 	double balance;
 	double securityRating;
 	uint32 logonMinutes;
+    double skillPoints;
 
 	uint32 corporationID;
 	uint32 allianceID;

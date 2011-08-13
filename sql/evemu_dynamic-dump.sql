@@ -189,6 +189,7 @@ CREATE TABLE `character_` (
   `securityRating` double NOT NULL default '0',
   `petitionMessage` varchar(85) NOT NULL default '',
   `logonMinutes` int(10) unsigned NOT NULL default '0',
+  `skillPoints` double NOT NULL default '0',
   `corporationID` int(10) unsigned NOT NULL default '0',
   `corporationDateTime` bigint(20) unsigned NOT NULL default '0',
   `startDateTime` bigint(20) unsigned NOT NULL default '0',

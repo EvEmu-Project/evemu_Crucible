@@ -124,6 +124,7 @@ CharacterData::CharacterData(
     double _balance,
     double _securityRating,
     uint32 _logonMinutes,
+    double _skillPoints,
     uint32 _corporationID,
     uint32 _allianceID,
 	uint32 _warFactionID,
@@ -146,6 +147,7 @@ CharacterData::CharacterData(
   balance(_balance),
   securityRating(_securityRating),
   logonMinutes(_logonMinutes),
+  skillPoints(_skillPoints),
   corporationID(_corporationID),
   allianceID(_allianceID),
   warFactionID(_warFactionID),
@@ -313,6 +315,7 @@ Character::Character(
   m_balance(_charData.balance),
   m_securityRating(_charData.securityRating),
   m_logonMinutes(_charData.logonMinutes),
+  m_totalSPtrained(((double)(_charData.skillPoints))),
   m_corporationID(_charData.corporationID),
   m_corpHQ(_corpData.corpHQ),
   m_allianceID(_charData.allianceID),
@@ -922,6 +925,9 @@ void Character::SaveCharacter()
 {
     _log( ITEM__TRACE, "Saving character %u.", itemID() );
 
+    // Calculate total Skill Points trained at this time to save to DB:
+    _CalculateTotalSPTrained();
+
     sLog.Debug( "Character::SaveCharacter()", "Saving all character info and skill attribute info to DB for character %s...", itemName().c_str() );
     // character data
     m_factory.db().SaveCharacter(
@@ -935,6 +941,7 @@ void Character::SaveCharacter()
             balance(),
             securityRating(),
             logonMinutes(),
+            m_totalSPtrained.get_float(),
             corporationID(),
             allianceID(),
             warFactionID(),
