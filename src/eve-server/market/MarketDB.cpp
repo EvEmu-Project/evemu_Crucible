@@ -282,8 +282,8 @@ PyRep *MarketDB::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
 		"	MIN(price) AS lowPrice,"
 		"	MAX(price) AS highPrice,"
 		"	AVG(price) AS avgPrice,"
-		"	CAST(SUM(quantity) AS UNSIGNED INTEGER) AS volume,"
-		"	COUNT(transactionID) AS orders"
+		"	CAST(SUM(quantity) AS SIGNED INTEGER) AS volume,"
+        "	CAST(COUNT(transactionID) AS SIGNED INTEGER) AS orders"
 		" FROM market_transactions "
 		" WHERE regionID=%u AND typeID=%u"
 		"	AND transactionType=%d "	//both buy and sell transactions get recorded, only compound one set of data... choice was arbitrary.
@@ -484,7 +484,7 @@ PyObject *MarketDB::GetMarketGroups() {
 	//now we get to do the other query.
 	if(!sDatabase.RunQuery(res,
 		"SELECT"
-		"	marketGroupID, parentGroupID, marketGroupName, description, graphicID, hasTypes"
+		"	marketGroupID, parentGroupID, marketGroupName, description, iconID, hasTypes"
 		" FROM invMarketGroups"))
 	{
 		codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
@@ -501,7 +501,7 @@ PyObject *MarketDB::GetMarketGroups() {
 	header->AddItemString("parentGroupID");
 	header->AddItemString("marketGroupName");
 	header->AddItemString("description");
-	header->AddItemString("graphicID");
+	header->AddItemString("iconID");
 	header->AddItemString("hasTypes");
 	header->AddItemString("types");	//this column really contains an entire list.
 	header->AddItemString("dataID");
