@@ -30,6 +30,8 @@
 #include "inventory/Inventory.h"
 #include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
+#include "ship/ModuleManager.h"
+#include <vector>
 
 /**
  * Basic container for raw ship type data.
@@ -187,7 +189,7 @@ public:
 	/*
 	 * _ExecAdd validation interface:
 	 */
-	static void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c);
+	void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item);
 	/*
 	 * Checks for conflicts between ship and fitting
 	 */
@@ -208,7 +210,28 @@ public:
 	 */
 	bool ValidateBoardShip(ShipRef ship, CharacterRef who);
 
+	/*
+	 * Saves the ship state
+	 */
     void SaveShip();
+
+	/* begin new module manager interface */
+	void AddItem( EVEItemFlags flag, InventoryItemRef item);
+	void RemoveItem( InventoryItemRef item, uint32 inventoryID, EVEItemFlags flag );
+	void UpdateModules();
+	void UnloadModule(uint32 itemID);
+	void UnloadAllModules();
+	void RepairModules();
+	int32 Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat);
+	void Deactivate(int32 itemID, std::string effectName);
+	void ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge);
+	void RemoveRig(InventoryItemRef item, uint32 inventoryID);
+	void Process();
+	void DeactivateAllModules();
+	void OnlineAll();
+	void SetOwner(Client * client);
+	std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);
+
 
 protected:
 	Ship(
@@ -262,6 +285,13 @@ protected:
 	PyRep *GetItem() const { return GetItemRow(); }
 
 	void AddItem(InventoryItemRef item);
+
+private:
+	//access to the pilot client.  We do not own this, nor is it garunteed to not be null
+	Client * m_Client;
+
+	//the ship's module manager.  We own this
+	ModuleManager * m_ModuleManager;
 };
 
 /**

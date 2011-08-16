@@ -20,59 +20,27 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Luck
 */
 
-#include "EVEServerPCH.h"
+#ifndef MAIL_MGR_SERIVCE_H
+#define MAIL_MGR_SERVICE_H
 
-PyTuple* ShipDB::GetFormations()
+#include "PyService.h"
+
+class MailMgrService : public PyService
 {
-	//vicious crap... but this is gunna be a bit of work to load from the DB (nested tuples)
-	PyTuple* res = new PyTuple( 2 );
+public:
+	MailMgrService(PyServiceMgr *mgr);
+	virtual ~MailMgrService();
 
-	Beyonce_Formation f;
+protected:
+	class Dispatcher;
+	Dispatcher *const m_dispatch;
 
-	//Diamond formation
-	f.name = "Diamond";
+	//add PyCallable_DECL_CALL(function_name) here
+	PyCallable_DECL_CALL(SyncMail);
+};
 
-    f.pos1.x = 100;
-    f.pos1.y = 0;
-    f.pos1.z = 0;
 
-    f.pos2.x = 0;
-    f.pos2.y = 100;
-    f.pos2.z = 0;
-
-    f.pos3.x = -100;
-    f.pos3.y = 0;
-    f.pos3.z = 0;
-
-    f.pos4.x = 0;
-    f.pos4.y = -100;
-    f.pos4.z = 0;
-
-    res->SetItem( 0, f.Encode() );
-
-	//Arrow formation
-	f.name = "Arrow";
-
-    f.pos1.x = 100;
-    f.pos1.y = 0;
-    f.pos1.z = -50;
-
-    f.pos2.x = 50;
-    f.pos2.y = 0;
-    f.pos2.z = 0;
-
-    f.pos3.x = -100;
-    f.pos3.y = 0;
-    f.pos3.z = -50;
-
-    f.pos4.x = -50;
-    f.pos4.y = 0;
-    f.pos4.z = 0;
-
-    res->SetItem( 1, f.Encode() );
-
-	return res;
-}
+#endif /* MAIL_MGR_SERVICE_H */

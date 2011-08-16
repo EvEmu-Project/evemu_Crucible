@@ -73,6 +73,35 @@ SET( admin_SOURCE
      "${TARGET_SOURCE_DIR}/admin/GMCommands.cpp"
      "${TARGET_SOURCE_DIR}/admin/PetitionerService.cpp"
      "${TARGET_SOURCE_DIR}/admin/SlashService.cpp" )
+     
+SET( apiserver_INCLUDE
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServer.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerListener.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerConnection.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceDB.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICacheManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIAccountManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIAdminManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICharacterManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICorporationManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIEveSystemManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIMapManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerManager.h" )
+SET( apiserver_SOURCE
+     "${TARGET_SOURCE_DIR}/apiserver/APIServer.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerListener.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerConnection.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServiceDB.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICacheManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServiceManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIAccountManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIAdminManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICharacterManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICorporationManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIEveSystemManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIMapManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerManager.cpp" )
 
 SET( authorisation_INCLUDE
      "${TARGET_INCLUDE_DIR}/authorisation/BinAsciiModule.h"
@@ -210,6 +239,13 @@ SET( inventory_SOURCE
      "${TARGET_SOURCE_DIR}/inventory/ItemFactory.cpp"
      "${TARGET_SOURCE_DIR}/inventory/ItemType.cpp"
      "${TARGET_SOURCE_DIR}/inventory/Owner.cpp" )
+
+SET( mail_INCLUDE
+     "${TARGET_INCLUDE_DIR}/mail/MailingListMgrService.h"
+	 "${TARGET_INCLUDE_DIR}/mail/MailMgrService.h" )
+SET( mail_SOURCE
+     "${TARGET_SOURCE_DIR}/mail/MailingListMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/mail/MailMgrService.cpp" )
 
 SET( manufacturing_INCLUDE
      "${TARGET_INCLUDE_DIR}/manufacturing/Blueprint.h"
@@ -410,35 +446,6 @@ SET( imageserver_SOURCE
      "${TARGET_SOURCE_DIR}/imageserver/ImageServer.cpp"
      "${TARGET_SOURCE_DIR}/imageserver/ImageServerListener.cpp"
      "${TARGET_SOURCE_DIR}/imageserver/ImageServerConnection.cpp" )
-     
-SET( apiserver_INCLUDE
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServer.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServerListener.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServerConnection.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceDB.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APICacheManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIAccountManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIAdminManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APICharacterManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APICorporationManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIEveSystemManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIMapManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServerManager.h" )
-SET( apiserver_SOURCE
-     "${TARGET_SOURCE_DIR}/apiserver/APIServer.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServerListener.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServerConnection.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServiceDB.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APICacheManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServiceManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIAccountManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIAdminManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APICharacterManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APICorporationManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIEveSystemManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIMapManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServerManager.cpp" )
 
 
 ########################
@@ -471,6 +478,7 @@ SOURCE_GROUP( "include\\character"     FILES ${character_INCLUDE} )
 SOURCE_GROUP( "include\\chat"          FILES ${chat_INCLUDE} )
 SOURCE_GROUP( "include\\fleet"		   FILES ${fleet_INCLUDE} )
 SOURCE_GROUP( "include\\inventory"     FILES ${inventory_INCLUDE} )
+SOURCE_GROUP( "include\\mail"          FILES ${mail_INCLUDE} )
 SOURCE_GROUP( "include\\manufacturing" FILES ${manufacturing_INCLUDE} )
 SOURCE_GROUP( "include\\map"           FILES ${map_INCLUDE} )
 SOURCE_GROUP( "include\\market"        FILES ${market_INCLUDE} )
@@ -505,6 +513,7 @@ SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
 SOURCE_GROUP( "src\\chat"          FILES ${chat_SOURCE} )
 SOURCE_GROUP( "src\\fleet"         FILES ${fleet_SOURCE} )
 SOURCE_GROUP( "src\\inventory"     FILES ${inventory_SOURCE} )
+SOURCE_GROUP( "src\\mail"          FILES ${mail_SOURCE} )
 SOURCE_GROUP( "src\\manufacturing" FILES ${manufacturing_SOURCE} )
 SOURCE_GROUP( "src\\map"           FILES ${map_SOURCE} )
 SOURCE_GROUP( "src\\market"        FILES ${market_SOURCE} )
@@ -540,6 +549,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${chat_INCLUDE}           ${chat_SOURCE}
 				${fleet_INCLUDE}		  ${fleet_SOURCE}
                 ${inventory_INCLUDE}      ${inventory_SOURCE}
+				${mail_INCLUDE}           ${mail_SOURCE}
                 ${manufacturing_INCLUDE}  ${manufacturing_SOURCE}
                 ${map_INCLUDE}            ${map_SOURCE}
                 ${market_INCLUDE}         ${market_SOURCE}

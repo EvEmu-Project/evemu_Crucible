@@ -303,6 +303,18 @@ typedef enum EVEItemFlags
 	flagClone						= 400
 } EVEItemFlags;
 
+//for use in the new module manager
+typedef enum EVEItemSlotType
+{
+	NaT								= 0,
+	slotTypeSubSystem				= 1,
+	slotTypeRig						= 2,
+	slotTypeLowPower				= 3,
+	slotTypeMedPower				= 4,
+	slotTypeHiPower					= 5
+
+} EVEItemSlotType;
+
 //some alternative names for entries above.
 static const EVEItemFlags flagSlotFirst = flagLowSlot0;	//duplicate values
 static const EVEItemFlags flagSlotLast = flagFixedSlot;
@@ -310,6 +322,9 @@ static const EVEItemFlags flagNone = flagAutoFit;
 
 static const EVEItemFlags flagAnywhere = flagAutoFit;
 static const uint8 MAX_MODULE_COUNT = flagSlotLast - flagSlotFirst + 1;
+static const uint8 MAX_HIGH_SLOT_COUNT = flagHiSlot7 - flagHiSlot0 + 1;
+static const uint8 MAX_MEDIUM_SLOT_COUNT = flagMedSlot7 - flagMedSlot0 + 1;
+static const uint8 MAX_LOW_SLOT_COUNT = flagLowSlot7 - flagLowSlot0 + 1;
 static const uint8 MAX_RIG_COUNT = flagRigSlot7 - flagRigSlot0 + 1;
 static const uint8 MAX_ASSEMBLY_COUNT = flagSubSystem7 - flagSubSystem0 + 1;
 

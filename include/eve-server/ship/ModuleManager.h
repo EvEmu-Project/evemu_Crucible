@@ -27,236 +27,254 @@
 #define __MODULEMANAGER_H_INCL__
 
 class InventoryItem;
+class GenericModule;
 class SystemEntity;
 class Client;
 
+#include "ship/Modules/Modules.h"
+#include "ship/Modules/ModuleDefs.h"
 
-class ShipModule {
+//container for all ships modules
+#pragma region ModuleContainer
+class ModuleContainer
+{
 public:
-
-	//Declarations
-	typedef enum {
-		Offline, 
-		Online,
-		Active,
-		Overloaded,
-		Deactivating,
-		Deactive
-	} State;
-
-	State m_state;				//state of the module
-
-	Client *const m_pilot;		//owner of the ship the module is fitted to
-
-	InventoryItemRef m_item;	//the module itself
-	InventoryItemRef m_charge;	//charge in the module
-	InventoryItemRef m_targetItem;
-
-	Timer m_activationTimer;
-	Timer m_effectTimer;
-
-	uint32 m_repeatCount;
-	uint32 m_target;
-
-	SystemEntity *target;
+	ModuleContainer(uint32 lowSlots, uint32 medSlots, uint32 highSlots, uint32 rigSlots, uint32 subSystemSlots);
+	~ModuleContainer();
 	
-	//ModuleEffect *m_effect;
+	void AddModule(uint32 flag, GenericModule * mod);
+	void RemoveModule(EVEItemFlags flag);
+	void RemoveModule(uint32 itemID);
+	GenericModule * GetModule(EVEItemFlags flag);
+	GenericModule * GetModule(uint32 itemID);
 
-	std::string m_effectName;
+	int NumberOfSameType(uint32 typeID);
 
-	uint32 m_effectInterval;
-	uint32 m_activationInterval;
-
-	//static factory method
-	static ShipModule *CreateModule(Client *owner, InventoryItemRef self, InventoryItemRef charge); 
-	static ShipModule *CreateRig(Client *owner, InventoryItemRef self);
-	
-	//ShipModule building blocks
-	InventoryItemRef item() const { return(m_item); }
-	InventoryItemRef charge() const { return(m_charge); }
-
-	//ShipModule Processors
-	virtual void Process();												//functional ship module process loop
-	virtual void Deactivate(const std::string &effectName = "online" );
-	virtual int  Activate(const std::string &effectName = "online", uint32 target = 0, uint32 repeat = 0);
-	virtual int	 Upgrade();//adding rigs
-	virtual void Downgrade();//removing rigs
-
-	//ShipModule CoProcessors
-	virtual bool ValidateOnline();
-	virtual bool ValidateOffline();
-	virtual bool ValidateActive();
-	virtual bool ValidateDeactive();
-	virtual bool ValidateEffect(bool active);
-	virtual void DoEffect(bool active);
-	
-	//Effects Functions
-	virtual void DoPassiveEffects(bool add, bool notify);
-	virtual void DoActiveModulePassiveEffects(bool add, bool notify);
-	virtual void DoUpgradeLoad(bool add, bool notify);
-	virtual void DoCapacitorNeed(bool startup, bool notify);
-
- /*	virtual void DoArmorHPBonus(bool add, bool notify) = 0;
-	virtual void DoArmorHPBonusAdd(bool add, bool notify) = 0;
-	virtual void DoArmorHPMultiplier(bool add, bool notify) = 0;
-	virtual void DoArmorEmDamageResistanceBonus(bool add, bool notify) = 0;
-	virtual void DoArmorExplosiveDamageResistanceBonus(bool add, bool notify) = 0;
-	virtual void DoArmorKineticDamageResistanceBonus(bool add, bool notify) = 0;
-	virtual void DoArmorThermalDamageResistanceBonu(bool add, bool notify) = 0;
-
-    virtual void DoShieldCapacity(bool add, bool notify) = 0;
-	virtual void DoShieldCapacityBonus(bool add, bool notify) = 0;
-	virtual void DoShieldCapacityMultiplier(bool add, bool notify);
-	virtual void DoShieldEmDamageResistanceBonus(bool add, bool notify);
-	virtual void DoShieldExplosiveDamageResistanceBonus(bool add, bool notify);
-	virtual void DoShieldKineticDamageResistanceBonus(bool add, bool notify);
-	virtual void DoShieldThermalDamageResistanceBonu(bool add, bool notify);
-	virtual void DoShieldRechargeRateMultiplier(bool add, bool notify);
-
-    virtual void DoHullHpBonus(bool add, bool notify);
-
-    virtual void DoStructureHPMultiplier(bool add, bool notify);
-	virtual void DoStructureEmDamageResistanceBonus(bool add, bool notify);
-	virtual void DoStructureExplosiveDamageResistanceBonus(bool add, bool notify);
-	virtual void DoStructureKineticDamageResistanceBonus(bool add, bool notify);
-	virtual void DoStructureThermalDamageResistanceBonu(bool add, bool notify);                                     */
-
-    virtual void DoImplantBonusVelocity(bool add, bool notify);
-
-    virtual void DoSpeedBonus(bool add, bool notify);
-	virtual void DoMaxVelocityBonus(bool add, bool notify);
-
- /*	virtual void DoCpuMultiplier(bool add, bool notify);
-
-    virtual void DoPowerIncrease(bool add, bool notify);
-	virtual void DoPowerOutputBonus(bool add, bool notify);
-	virtual void DoPowerOutputMultiplier(bool add, bool notify);
-
-    virtual void DoCapacitorBonus(bool add, bool notify);
-	virtual void DoCapacitorCapacityMultiplier(bool add, bool notify);
-	virtual void DoCapacitorRechargeRateMultiplier(bool add, bool notify);
-
-    virtual void DoCargoCapacityMultiplier(bool add, bool notify);
-
-    virtual void DoScanStrengthBonus(bool add, bool notify);
-	virtual void DoScanGravimetricStrengthPercent(bool add, bool notify);
-	virtual void DoScanLadarStrengthPercent(bool add, bool notify);
-	virtual void DoScanMagnetometricStrengthPercent(bool add, bool notify);
-	virtual void DoScanRadarStrengthPercent(bool add, bool notify);
-
-    virtual void DoSignatureRadiusBonus(bool add, bool notify);
-	virtual void DoDroneCapacityBonus(bool add, bool notify);
-	virtual void DoAgilityMultiplier(bool add, bool notify);
-	virtual void DoScanResultionBonus(bool add, bool notify);
-	virtual void DoScanResultionMultiplier(bool add, bool notify);
-	virtual void DoMaxTargetRangeBonus(bool add, bool notify);
-	virtual void DoMaxLockedTargetsBonus(bool add, bool notify);
-	virtual void DoWarpScrambleStrength(bool add, bool notify);
-
-    virtual void DoPropulsionFusionStrength(bool add, bool notify);
-	virtual void DoPropulsionIonStrength(bool add, bool notify);
-	virtual void DoPropulsionMagpulseStrength(bool add, bool notify);
-	virtual void DoPropulsionPlasmaStrength(bool add, bool notify);
-
-    virtual void DoPassiveArmorEmDamageResistanceBonus(bool add, bool notify);
-	virtual void DoPassiveArmorExplosiveDamageResistanceBonus(bool add, bool notify);
-	virtual void DoPassiveArmorKineticDamageResistanceBonus(bool add, bool notify);
-	virtual void DoPassiveArmorThermalDamageResistanceBonu(bool add, bool notify);
-	virtual void DoPassiveShieldEmDamageResistanceBonus(bool add, bool notify);
-	virtual void DoPassiveShieldExplosiveDamageResistanceBonus(bool add, bool notify);
-	virtual void DoPassiveShieldKineticDamageResistanceBonus(bool add, bool notify);
-	virtual void DoPassiveShieldThermalDamageResistanceBonus(bool add, bool notify);
-*/
-
-    //Helper Functions
-	virtual void ChangeMState(State new_state);							//changes the m_state variable to the appropriate value
-	virtual bool Equals(double a, int b, double percision = 0.0001);	//used to determine if floats are equal to ints within a certain percision (less than the eve client uses)
-	virtual int	 ToInt(double a);										//used to return an integer to the client.  Rounds down
-	virtual bool TypeCast(double a);									//used to determine if the value is an integer or a float
-	virtual int GetState() { return m_state;}
-	virtual void GetActivationInterval();
-	virtual bool AffectsArmor();
-	virtual bool AffectsShield();
-	virtual bool AffectsHull();
-
-	//Godma Handlers
-	virtual void DoGodmaEffects(bool active);
-
-	//Graphics Handlers
-	virtual void DoSpecialFX(bool startup);
-	virtual int SFXEffectInterval();
-		
-	void ChangeCharge(InventoryItemRef new_charge);
-
-protected:
-	//Constructor
-	ShipModule(Client *owner, InventoryItemRef self, InventoryItemRef charge);
-	ShipModule(Client *owner, InventoryItemRef self);
-
-public:
-	//Deconstructor
-	virtual ~ShipModule();
-};
-
-class ModuleEffect {
-public:
-	ModuleEffect();
-	~ModuleEffect();
-
-	uint32			effectID;
-	std::string		effectName;
-	uint32			effectCategory;
-	uint32			preExpression;
-	uint32			postExpression;
-	std::string		description;
-	std::string		guid;
-	uint32			graphicID;
-	uint32			isOffensive;
-	uint32			isAssistance;
-	uint32			durationAttributeID;
-	uint32			trackingSpeedAttributeID;
-	uint32			dischargeAttributeID;
-	uint32			rangeAttributeID;
-	uint32			falloffAttributeID;
-	uint32			disallowAutoRepeat;
-	uint32			published;
-	uint32			isWarpSafe;
-	uint32			rangeChance;
-	uint32			electronicChance;
-	uint32			propulsionChance;
-	uint32			distribution;
-	std::string		sfxName;
-};
-
-class ModuleManager {
-public:
-	ModuleManager(Client *pilot);
-	~ModuleManager();
-	
+	//batch processes handlers
 	void Process();
-	void UpdateModules();
-	
-	int Activate(uint32 itemID, const std::string &effectName, uint32 target, uint32 repeat);
-	int Upgrade(uint32 itemID);
-	void Downgrade(uint32 itemID);
-	void Deactivate(uint32 itemID, const std::string &effectName);
-	void ReplaceCharges(EVEItemFlags flag, InventoryItemRef charge);
- 	void DeactivateAllModules();
-	
+	void OfflineAll();
 	void OnlineAll();
-	void UnloadModule(uint32 itemID);
-	void UnloadAllModules();
-	void RepairModules();
+	void DeactivateAll();
+	void UnloadAll();
 
-protected:
-	Client *const m_pilot;
+	//useful accessors
+	bool isHighPower(uint32 itemID);
+	bool isMediumPower(uint32 itemID);
+	bool isLowPower(uint32 itemID);
+	bool isRig(uint32 itemID);
+	bool isSubSystem(uint32 itemID);
 	
-	std::map<uint32, uint8> m_moduleByID;	//maps itemID to m_modules index
-	std::map<uint32, uint8> m_rigByID;
-	ShipModule *m_modules[MAX_MODULE_COUNT];
-	ShipModule *m_rigs[MAX_RIG_COUNT];
+private:
+
+	//internal enums
+	typedef enum processType
+	{
+		typeOnlineAll,
+		typeOfflineAll,
+		typeDeactivateAll,
+		typeUnloadAll,
+		typeProcessAll
+	};
+
+	typedef enum slotType
+	{
+		highSlot,
+		mediumSlot,
+		lowSlot,
+		rigSlot,
+		subSystemSlot
+	};
+
+	void _removeModule(EVEItemFlags flag);
+
+	void _process(processType p);
+	void _processEx(processType p, slotType t);
+
+	void _addHighSlotModule(uint32 flag, GenericModule * mod);
+	void _addMediumSlotModule(uint32 flag, GenericModule * mod);
+	void _addLowSlotModule(uint32 flag, GenericModule * mod);
+	void _addRigModule(uint32 flag, GenericModule * mod);
+	void _addSubSystemModule(uint32 flag, GenericModule * mod);
+
+	GenericModule * _getHighSlotModule(uint32 flag);
+	GenericModule * _getMediumSlotModule(uint32 flag);
+	GenericModule * _getLowSlotModule(uint32 flag);
+	GenericModule * _getRigModule(uint32 flag);
+	GenericModule * _getSubSystemModule(uint32 flag);
+
+	void _removeHighSlotModule(uint32 flag);
+	void _removeMediumSlotModule(uint32 flag);
+	void _removeLowSlotModule(uint32 flag);
+	void _removeRigSlotModule(uint32 flag);
+	void _removeSubSystemModule(uint32 flag);
+	
+	EVEItemSlotType _checkBounds(uint32 flag);
+
+	bool _isLowSlot(uint32 flag);
+	bool _isMediumSlot(uint32 flag);
+	bool _isHighSlot(uint32 flag);
+	bool _isRigSlot(uint32 flag);
+	bool _isSubSystemSlot(uint32 flag);
+
+	void _initializeModuleContainers();
+
+	//we own these
+	GenericModule ** m_HighSlotModules;
+	GenericModule ** m_MediumSlotModules;
+	GenericModule ** m_LowSlotModules;
+	GenericModule ** m_RigModules;
+	GenericModule ** m_SubSystemModules;
+
+	uint32 m_LowSlots;
+	uint32 m_MediumSlots;
+	uint32 m_HighSlots;
+	uint32 m_RigSlots;
+	uint32 m_SubSystemSlots;
+
 };
 
-#endif
+#pragma endregion
+
+//classes for passing effects around to targets
+#pragma region Effect Passing
+
+static const uint8 MAX_EFFECT_COUNT = 5;  //arbitrary, lazy etc.  The bigger this number, the larger these message classes will be
+
+class SubEffect
+{
+public:
+
+	SubEffect::SubEffect(uint32 attrID, EVECalculationType type, EvilNumber val, uint32 targetItemID = 0)
+	: m_AttrID( attrID ), m_TargetItemID( targetItemID ), m_CalcType( type ), m_Val( val )
+	{
+
+	}
+
+	~SubEffect() { }
+
+	//gets
+	uint32 SubEffect::AttributeID()					{ return m_AttrID; }
+	uint32 SubEffect::TargetItemID()				{ return m_TargetItemID; }
+	EVECalculationType SubEffect::CalculationType() { return m_CalcType; }
+	EvilNumber SubEffect::AppliedValue()			{ return m_Val; }
+
+private:
+	uint32 m_AttrID;
+	uint32 m_TargetItemID;
+	EVECalculationType m_CalcType;
+	EvilNumber m_Val;
+
+};
+
+
+
+class Effect
+{
+public:
+	Effect()
+	: m_Count( 0 )
+	{
+
+	}
+
+	~Effect() 
+	{
+		delete[] m_SubEffects;
+	}
+
+	void AddEffect(uint32 attributeID, EVECalculationType type, EvilNumber val, uint32 targetItemID = 0)
+	{
+		SubEffect * s = new SubEffect(attributeID, type, val, targetItemID);
+		if( m_Count + 1 < MAX_EFFECT_COUNT )
+		{
+			m_SubEffects[m_Count] = s;
+			m_Count++;
+		}
+	}
+
+	bool hasEffect() { return (m_Count > 0);  }
+
+	SubEffect * next()
+	{
+		m_Count--;
+		return m_SubEffects[m_Count];
+
+	}
+
+private:
+	SubEffect * m_SubEffects[MAX_EFFECT_COUNT];
+	int m_Count;
+
+};
+
+#pragma endregion
+
+//Primary Module Manager
+#pragma region ModuleManager
+
+class ModuleManager
+{
+public:
+	ModuleManager(Ship *const ship);
+	~ModuleManager();
+
+	void SetClient(Client * client);
+
+	void InstallRig(InventoryItemRef item);
+	void UninstallRig(uint32 itemID);
+	void InstallSubSystem(InventoryItemRef item);
+	void SwapSubSystem(InventoryItemRef item);
+	void FitModule(InventoryItemRef item);
+	void UnfitModule(uint32 itemID);
+	void Online(uint32 itemID);
+	void OnlineAll();
+	void Offline(uint32 itemID);
+	void OfflineAll();
+	int32 Activate(uint32 itemID, std::string effectName, uint32 targetID, uint32 repeat);
+	void Deactivate(uint32 itemID, std::string effecetName);
+	void DeactivateAllModules();
+	void Overload(uint32 itemID);
+	void DeOverload(uint32 itemID);
+	void DamageModule(uint32 itemID, EvilNumber val);
+	void RepairModule(uint32 itemID);
+	void ReplaceCharges();
+	void UnloadAllModules();
+	void CharacterLeavingShip();
+	void CharacterBoardingShip();
+	void ShipWarping();
+	void ShipJumping();
+	void Process();
+	void ProcessExternalEffect(Effect * e);
+	std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);  //should only be used by components
+	
+private:
+	void _fitModule(InventoryItemRef item);
+
+	void _processExternalEffect(SubEffect * e);
+
+	ModuleCommand _translateEffectName(std::string s);
+	
+
+	void _SendInfoMessage(const char* fmt, ...);
+	void _SendErrorMessage(const char* fmt, ...);
+
+	//access to the ship that owns us.  We do not own this
+	Ship * m_Ship;
+
+	//access to the client that owns the ship.  We do not own this
+	Client * m_Client;
+
+	//access to destiny.  We do not own this
+	DestinyManager * m_Destiny;
+
+	//modules storage, we own this
+	ModuleContainer * m_Modules;
+		
+
+};
+
+#pragma endregion
+
+#endif  /* MODULE_MANAGER_H */
 
 

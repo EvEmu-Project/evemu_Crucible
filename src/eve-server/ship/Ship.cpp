@@ -84,6 +84,9 @@ Ship::Ship(
     const ItemData &_data)
 : InventoryItem(_factory, _shipID, _shipType, _data)
 {
+	//allocate the module manager
+	m_ModuleManager = new ModuleManager(this);
+
     // Activate Save Info Timer with somewhat randomized timer value:
     //SetSaveTimerExpiry( MakeRandomInt( (10 * 60), (15 * 60) ) );        // Randomize save timer expiry to between 10 and 15 minutes
     //DisableSaveTimer();
@@ -100,7 +103,7 @@ RefPtr<_Ty> Ship::_LoadShip(ItemFactory &factory, uint32 shipID,
     const ShipType &shipType, const ItemData &data)
 {
     // we don't need any additional stuff
-    return ShipRef( new Ship( factory, shipID, shipType, data ) );
+    return ShipRef( new Ship(factory, shipID, shipType, data ) );
 }
 
 ShipRef Ship::Spawn(ItemFactory &factory,
@@ -196,9 +199,9 @@ double Ship::GetCapacity(EVEItemFlags flag) const
     }
 }
 
-void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
+void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
 {
-	CharacterRef character = c->GetChar();
+	CharacterRef character = m_Client->GetChar();
 	
 	if( flag == flagDroneBay )
     {
@@ -208,7 +211,7 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
     }
     else if( flag == flagShipHangar )
     {
-		if( c->GetShip()->GetAttribute(AttrHasShipMaintenanceBay ) != 0)
+		if( m_Client->GetShip()->GetAttribute(AttrHasShipMaintenanceBay ) != 0)
             // We have no ship maintenance bay
 			throw PyException( MakeCustomError( "%s has no ship maintenance bay.", item->itemName().c_str() ) );
         if( item->categoryID() != EVEDB::invCategories::Ship )
@@ -217,7 +220,7 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
     }
     else if( flag == flagHangar )
     {
-		if( c->GetShip()->GetAttribute(AttrHasCorporateHangars ) != 0)
+		if( m_Client->GetShip()->GetAttribute(AttrHasCorporateHangars ) != 0)
             // We have no corporate hangars
             throw PyException( MakeCustomError( "%s has no corporate hangars.", item->itemName().c_str() ) );
     }
@@ -226,22 +229,22 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
 		//get all items in cargohold
 		EvilNumber capacityUsed(0);
 		std::vector<InventoryItemRef> items;
-		c->GetShip()->FindByFlag(flag, items);
+		m_Client->GetShip()->FindByFlag(flag, items);
 		for(uint32 i = 0; i < items.size(); i++){
 			capacityUsed += items[i]->GetAttribute(AttrVolume);
 		}
-		if( capacityUsed + item->GetAttribute(AttrVolume) > c->GetShip()->GetAttribute(AttrCapacity) )
+		if( capacityUsed + item->GetAttribute(AttrVolume) > m_Client->GetShip()->GetAttribute(AttrCapacity) )
 			throw PyException( MakeCustomError( "Not enough cargo space!") );
 	}
 	else if( flag > flagLowSlot0  &&  flag < flagHiSlot7 )
 	{
 		if(!Skill::FitModuleSkillCheck(item, character))
 			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
-		if(!ValidateItemSpecifics(c,item))
+		if(!ValidateItemSpecifics(m_Client,item))
 			throw PyException( MakeCustomError( "Your ship cannot equip this module" ) );
 		if(item->categoryID() == EVEDB::invCategories::Charge) {
 			InventoryItemRef module;
-			c->GetShip()->FindSingleByFlag(flag, module);
+			m_Client->GetShip()->FindSingleByFlag(flag, module);
 			if(module->GetAttribute(AttrChargeSize) != item->GetAttribute(AttrChargeSize) )
 				throw PyException( MakeCustomError( "The charge is not the correct size for this module." ) );
 			if(module->GetAttribute(AttrChargeGroup1) != item->groupID())
@@ -252,9 +255,9 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
 	{
 		if(!Skill::FitModuleSkillCheck(item, character))
 			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
-		if(c->GetShip()->GetAttribute(AttrRigSize) != item->GetAttribute(AttrRigSize))
+		if(m_Client->GetShip()->GetAttribute(AttrRigSize) != item->GetAttribute(AttrRigSize))
 			throw PyException( MakeCustomError( "Your ship cannot fit this size module" ) );
-		if( c->GetShip()->GetAttribute(AttrUpgradeLoad) + item->GetAttribute(AttrUpgradeCost) > c->GetShip()->GetAttribute(AttrUpgradeCapacity) )
+		if( m_Client->GetShip()->GetAttribute(AttrUpgradeLoad) + item->GetAttribute(AttrUpgradeCost) > m_Client->GetShip()->GetAttribute(AttrUpgradeCapacity) )
 			throw PyException( MakeCustomError( "Your ship cannot handle the extra calibration" ) );
 	}
 	else if( flag > flagSubSystem0  &&  flag < flagSubSystem7 )
@@ -451,6 +454,108 @@ bool Ship::ValidateItemSpecifics(Client *c, InventoryItemRef equip) {
 
 }
 
+/* Begin new Module Manager Interface */
+
+void Ship::AddItem(EVEItemFlags flag, InventoryItemRef item)
+{
+	
+	ValidateAddItem( flag, item );
+					
+	//it's a new module, make sure it's state starts at offline so that it is added correctly
+	if( item->categoryID() != EVEDB::invCategories::Charge )
+		item->PutOffline();
+
+	item->Move(m_Client->GetLocationID(), flag);  //TODO - check this
+
+	m_ModuleManager->FitModule(item);
+}
+
+void Ship::RemoveItem(InventoryItemRef item, uint32 inventoryID, EVEItemFlags flag)
+{
+	//coming from ship, we need to deactivate it and remove mass if it isn't a charge
+	if( item->categoryID() != EVEDB::invCategories::Charge ) {
+		m_Client->GetShip()->Deactivate( item->itemID(), "online" );
+		//c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
+		m_Client->GetShip()->SetAttribute(AttrMass,  m_Client->GetShip()->GetAttribute(AttrMass) - item->GetAttribute(AttrMassAddition) );
+	}
+
+	//Move New item to its new location
+	m_Client->MoveItem(item->itemID(), inventoryID, flag);
+}
+
+void Ship::UpdateModules()
+{
+	
+}
+
+void Ship::UnloadModule(uint32 itemID)
+{
+	m_ModuleManager->UnfitModule(itemID);
+}
+
+void Ship::UnloadAllModules()
+{
+
+}
+
+void Ship::RepairModules()
+{
+
+}
+
+int32 Ship::Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat)
+{
+	return 1;
+}
+
+void Ship::Deactivate(int32 itemID, std::string effectName)
+{
+	m_ModuleManager->Deactivate(itemID, effectName);
+}
+
+void Ship::RemoveRig( InventoryItemRef item, uint32 inventoryID )
+{
+	m_ModuleManager->UninstallRig(item->itemID());
+
+	//move the item to the void or w/e
+	m_Client->MoveItem(item->itemID(), inventoryID, flagAutoFit);
+
+	//delete the item
+	item->Delete();
+}
+
+void Ship::Process()
+{
+	m_ModuleManager->Process();
+}
+
+void Ship::OnlineAll()
+{
+	m_ModuleManager->OnlineAll();
+}
+
+void Ship::SetOwner(Client * client)
+{
+	m_ModuleManager->SetClient(client);
+	m_Client = client;
+}
+
+void Ship::ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge)
+{
+
+}
+
+void Ship::DeactivateAllModules()
+{
+	m_ModuleManager->DeactivateAllModules();
+}
+
+std::vector<GenericModule *> Ship::GetStackedItems(uint32 typeID, ModulePowerLevel level)
+{
+	return m_ModuleManager->GetStackedItems(typeID, level);
+}
+
+/* End new Module Manager Interface */
 
 using namespace Destiny;
 
@@ -469,13 +574,15 @@ ShipEntity::ShipEntity(
 
 ShipEntity::~ShipEntity()
 {
+
 }
 
-void ShipEntity::Process() {
+void ShipEntity::Process() 
+{
 	SystemEntity::Process();
 }
 
-void ShipEntity::ForcedSetPosition(const GPoint &pt) {
+void ShipEntity::ForcedSetPosition( const GPoint &pt ) {
 	m_destiny->SetPosition(pt, false);
 }
 

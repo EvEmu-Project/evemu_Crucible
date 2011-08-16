@@ -320,6 +320,13 @@ public:
     bool SaveIntAttribute(uint32 attributeID, int64 value);
     bool SaveFloatAttribute(uint32 attributeID, double value);
 
+	/*
+	 * ResetAttribute
+	 *
+	 *@note this function will force reload the default value for the specified attribute
+	 */
+	bool ResetAttribute(uint32 attrID, bool notify);
+
     //void set_item(InventoryItem *item) {mItem = item;}
 
     /**

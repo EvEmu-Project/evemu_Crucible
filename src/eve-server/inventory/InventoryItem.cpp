@@ -575,7 +575,6 @@ void InventoryItem::Delete() {
     //delete ourselves from factory cache
     m_factory._DeleteItem( itemID() );
 }
-
 PyPackedRow* InventoryItem::GetItemRow() const
 {
 	DBRowDescriptor* header = new DBRowDescriptor;
@@ -592,8 +591,9 @@ PyPackedRow* InventoryItem::GetItemRow() const
 	header->AddColumn( "stacksize" , DBTYPE_I4 );
 
 	PyPackedRow* row = new PyPackedRow( header );
-    GetItemRow( row );
-    return row;
+	GetItemRow( row );
+
+	return row;
 }
 
 void InventoryItem::GetItemRow( PyPackedRow* into ) const
@@ -1011,4 +1011,9 @@ bool InventoryItem::HasAttribute(uint32 attributeID)
 bool InventoryItem::SaveAttributes()
 {
     return mAttributeMap.SaveAttributes();
+}
+
+bool InventoryItem::ResetAttribute(uint32 attrID, bool notify)
+{
+	return mAttributeMap.ResetAttribute(attrID, notify);
 }

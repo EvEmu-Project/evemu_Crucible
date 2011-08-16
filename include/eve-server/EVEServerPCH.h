@@ -225,6 +225,10 @@
 #include "inventory/ItemType.h"
 #include "inventory/Owner.h"
 
+//mail stuff
+#include "mail/MailMgrService.h"
+#include "mail/MailingListMgrService.h"
+
 // factory stuff
 #include "manufacturing/Blueprint.h"
 #include "manufacturing/FactoryDB.h"
@@ -286,6 +290,12 @@
 #include "system/SystemManager.h"
 
 #include "ship/ModuleManager.h"
+#include "ship/Modules/ModuleFactory.h"
+#include "ship/Modules/Modules.h"
+#include "ship/Modules/ActiveModules.h"
+#include "ship/Modules/PassiveModules.h"
+#include "ship/Modules/RigModule.h"
+#include "ship/Modules/SubSystemModules.h"
 #include "ship/BeyonceService.h"
 #include "ship/DestinyManager.h"
 #include "ship/Drone.h"
@@ -336,5 +346,7 @@
 #include "apiserver/APIServerManager.h"
 
 #include "LiveUpdateDB.h"
+
+
 
 #endif//__EVE_SERVER_PCH_H__INCL__

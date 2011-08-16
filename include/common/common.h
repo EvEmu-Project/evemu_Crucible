@@ -283,9 +283,9 @@ typedef void* thread_return_t;
 // Basic programming tips
 // URL: http://nedprod.com/programs/index.html
 // Note: always nullify pointers after deletion, why? because its safer on a MT application
-#define ENABLE_SAFE_DELETE       1       // only delete and NULL after
-#define ENABLE_EXTRA_SAFE_DELETE 1       // check the array for NULL pointer then delete and NULL after
-//#define ENABLE_ULTRA_SAFE_DELETE 1       // check object and array for NULL pointer then delete and NULL after
+//#define ENABLE_SAFE_DELETE       1       // only delete and NULL after
+//#define ENABLE_EXTRA_SAFE_DELETE 1       // check the array for NULL pointer then delete and NULL after
+#define ENABLE_ULTRA_SAFE_DELETE 1       // check object and array for NULL pointer then delete and NULL after
 
 #if defined( ENABLE_ULTRA_SAFE_DELETE )
 #   define SafeDelete( p )      { if( p != NULL ) { delete p; p = NULL; } }

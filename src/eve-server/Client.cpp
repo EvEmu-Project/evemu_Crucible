@@ -31,7 +31,6 @@ static const uint32 PING_INTERVAL_US = 60000;
 Client::Client(PyServiceMgr &services, EVETCPConnection** con)
 : DynamicSystemEntity(NULL),
   EVEClientSession( con ),
-  mModulesMgr(this),
   m_services(services),
   m_pingTimer(PING_INTERVAL_US),
   m_system(NULL),
@@ -168,7 +167,7 @@ void Client::Process() {
             GetChar()->UpdateSkillQueue();
     }
 
-    mModulesMgr.Process();
+    GetShip()->Process();
 
     SystemEntity::Process();
 }
@@ -197,6 +196,28 @@ void Client::SendErrorMsg( const char* fmt, ... )
     SendNotification( "OnRemoteMessage", "charid", &tmp );
 
     SafeFree( str );
+}
+
+void Client::SendErrorMsg( const char* fmt, va_list args )
+{
+	char* str = NULL;
+	vasprintf( &str, fmt, args );
+	assert( str );
+
+	sLog.Error("Client","Sending Error Message to %s:", GetName() );
+    log_messageVA( CLIENT__ERROR, fmt, args );
+
+	//want to send some sort of notify with a "ServerMessage" message ID maybe?
+    //else maybe a "ChatTxt"??
+    Notify_OnRemoteMessage n;
+    n.msgType = "CustomError";
+    n.args[ "error" ] = new PyString( str );
+
+    PyTuple* tmp = n.Encode();
+    SendNotification( "OnRemoteMessage", "charid", &tmp );
+
+    SafeFree( str );
+	
 }
 
 //this displays a modal info dialog on the client side.
@@ -238,6 +259,27 @@ void Client::SendNotifyMsg( const char* fmt, ... )
 	sLog.Log("Client","Notify to %s:", GetName() );
     log_messageVA( CLIENT__MESSAGE, fmt, args );
     va_end( args );
+
+    //want to send some sort of notify with a "ServerMessage" message ID maybe?
+    //else maybe a "ChatTxt"??
+    Notify_OnRemoteMessage n;
+    n.msgType = "CustomNotify";
+    n.args[ "notify" ] = new PyString( str );
+
+    PyTuple* tmp = n.Encode();
+    SendNotification( "OnRemoteMessage", "charid", &tmp );
+
+    SafeFree( str );
+}
+
+void Client::SendNotifyMsg( const char* fmt, va_list args )
+{
+    char* str = NULL;
+    vasprintf( &str, fmt, args );
+    assert( str );
+
+	sLog.Log("Client","Notify to %s:", GetName() );
+    log_messageVA( CLIENT__MESSAGE, fmt, args );
 
     //want to send some sort of notify with a "ServerMessage" message ID maybe?
     //else maybe a "ChatTxt"??
@@ -452,7 +494,7 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
 
     if(was_module || (item->flag() >= flagSlotFirst && item->flag() <= flagSlotLast)) {
         //it was equipped, or is now. so mModulesMgr need to know.
-        mModulesMgr.UpdateModules();
+		GetShip()->UpdateModules();
     }
 }
 
@@ -470,9 +512,11 @@ void Client::BoardShip(ShipRef new_ship) {
     _SetSelf( new_ship );
     m_char->MoveInto( *new_ship, flagPilot, true );
 
+	new_ship->SetOwner(this);
+
     mSession.SetInt( "shipid", new_ship->itemID() );
 
-    mModulesMgr.UpdateModules();
+    GetShip()->UpdateModules();
 
     if(m_system != NULL)
         m_system->AddClient(this);
@@ -953,7 +997,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         return;
     }
 
-    mModulesMgr.DeactivateAllModules();
+    GetShip()->DeactivateAllModules();
 
     m_moveSystemID = solarSystemID;
     m_movePoint = position;

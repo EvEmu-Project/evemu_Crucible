@@ -106,8 +106,8 @@ protected:
         assert( mRefCount > 0 );
         --mRefCount;
 
-        if( mRefCount <= 0 )
-            delete this;
+		if( mRefCount <= 0 )
+			delete this;
     }
 
     /// Reference count of instance.

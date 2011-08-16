@@ -89,8 +89,6 @@ class Client
 public:
 	Client(PyServiceMgr &services, EVETCPConnection** con);
 	virtual ~Client();
-	
-	ModuleManager mModulesMgr;
 
 	bool            ProcessNet();
 	virtual void    Process();
@@ -129,6 +127,7 @@ public:
 	// character data
 	CharacterRef GetChar() const                    { return m_char; }
 	ShipRef GetShip() const                         { return ShipRef::StaticCast( Item() ); }
+	bool InPod() const								{ return GetShip()->typeID() == 670; }
 
 	bool IsInSpace() const                          { return ( GetStationID() == 0 ); }
 	double x() const                                { return GetPosition().x; }	//this is terribly inefficient.
@@ -179,7 +178,9 @@ public:
     // --- END HACK FUNCTIONS FOR UNDOCK ---
 	
 	void SendErrorMsg(const char *fmt, ...);
+	void SendErrorMsg(const char *fmt, va_list args);
 	void SendNotifyMsg(const char *fmt, ...);
+	void SendNotifyMsg(const char *fmt, va_list args);
 	void SendInfoModalMsg(const char *fmt, ...);
 	void SelfChatMessage(const char *fmt, ...);
 	void SelfEveMail(const char *subject, const char *fmt, ...);

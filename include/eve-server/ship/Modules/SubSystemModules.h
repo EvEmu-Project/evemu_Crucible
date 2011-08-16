@@ -20,59 +20,37 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Luck
 */
 
-#include "EVEServerPCH.h"
+#ifndef SUB_SYSTEM_MODULE_H
+#define SUB_SYSTEM_MODULE_H
 
-PyTuple* ShipDB::GetFormations()
+class SubSystemModule : public PassiveModule
 {
-	//vicious crap... but this is gunna be a bit of work to load from the DB (nested tuples)
-	PyTuple* res = new PyTuple( 2 );
+public:
 
-	Beyonce_Formation f;
+	SubSystemModule(InventoryItemRef item, ShipRef ship)
+	{
+		m_Item = item;
+		m_Ship = ship;
+		m_Effects = new ModuleEffects(m_Item->typeID());
+		m_ShipAttrComp = new ModifyShipAttributesComponent(this, ship);
+	}
 
-	//Diamond formation
-	f.name = "Diamond";
+	~SubSystemModule()
+	{
+		//delete members
+		delete m_Effects;
+		delete m_ShipAttrComp;
 
-    f.pos1.x = 100;
-    f.pos1.y = 0;
-    f.pos1.z = 0;
+		//null ptrs
+		m_Effects = NULL;
+		m_ShipAttrComp = NULL;
+	}
 
-    f.pos2.x = 0;
-    f.pos2.y = 100;
-    f.pos2.z = 0;
+	//not much to do here... hopefully there won't be
+	virtual ModulePowerLevel GetModulePowerLevel()				{ return SUBSYSTEM; }  
+};
 
-    f.pos3.x = -100;
-    f.pos3.y = 0;
-    f.pos3.z = 0;
-
-    f.pos4.x = 0;
-    f.pos4.y = -100;
-    f.pos4.z = 0;
-
-    res->SetItem( 0, f.Encode() );
-
-	//Arrow formation
-	f.name = "Arrow";
-
-    f.pos1.x = 100;
-    f.pos1.y = 0;
-    f.pos1.z = -50;
-
-    f.pos2.x = 50;
-    f.pos2.y = 0;
-    f.pos2.z = 0;
-
-    f.pos3.x = -100;
-    f.pos3.y = 0;
-    f.pos3.z = -50;
-
-    f.pos4.x = -50;
-    f.pos4.y = 0;
-    f.pos4.z = 0;
-
-    res->SetItem( 1, f.Encode() );
-
-	return res;
-}
+#endif
