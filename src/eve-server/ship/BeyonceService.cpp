@@ -666,13 +666,14 @@ PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
 }
 
 PyResult BeyonceBound::Handle_StargateJump(PyCallArgs &call) {
-	Call_TwoIntegerArgs arg;
+	//Call_TwoIntegerArgs arg;
+	Call_StargateJump arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
 		return NULL;
 	}
 
-	call.client->StargateJump(arg.arg1, arg.arg2);
+	call.client->StargateJump(arg.fromStargateID, arg.toStargateID);
 	
 	return NULL;
 }

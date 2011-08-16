@@ -529,6 +529,14 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="Call_StargateJump">
+    <tupleInline>
+      <int name="fromStargateID"/>
+      <int name="toStargateID"/>
+      <int name="shipID"/>
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Call_FollowBall">
     <tupleInline>
       <int name="ballID" />
