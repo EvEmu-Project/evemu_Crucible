@@ -46,7 +46,7 @@ a likely exception to this goal).
     </database>
 
     <files>
-        <!-- <log>../log/eve-server.log</log> -->
+        <!-- <logDir>../log/</logDir> -->
         <!-- <logSettings>../etc/log.ini</logSettings> -->
         <!-- <cacheDir>../server_cache/</cacheDir> -->
         <!-- <imageDir>../image_cache/</imageDir> -->

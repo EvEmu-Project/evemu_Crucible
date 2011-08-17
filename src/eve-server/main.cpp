@@ -54,7 +54,18 @@ int main( int argc, char* argv[] )
     printf("details.\n");
     printf("\n");
 
-    sLog.Log("main", "EVEmu "EVEMU_VERSION );
+    // Load server configuration
+    if( !sConfig.ParseFile( CONFIG_FILE ) )
+    {
+		printf("ERROR: Loading server configuration '%s' failed.", CONFIG_FILE );
+        //sLog.Error( "server init", "Loading server configuration '%s' failed.", CONFIG_FILE );
+        return 1;
+    }
+
+	sLog.InitializeLogging(sConfig.files.logDir);
+    sLog.Log("server init", "Loading server configuration...");
+
+	sLog.Log("main", "EVEmu "EVEMU_VERSION );
     sLog.Log("server init", "\n"
         "\tSupported Client: %s\n"
         "\tVersion %.2f\n"
@@ -69,15 +80,6 @@ int main( int argc, char* argv[] )
     //it is important to do this before doing much of anything, in case they use it.
     Timer::SetCurrentTime();
 
-    // Load server configuration
-    sLog.Log("server init", "Loading server configuration...");
-
-    if( !sConfig.ParseFile( CONFIG_FILE ) )
-    {
-        sLog.Error( "server init", "Loading server configuration '%s' failed.", CONFIG_FILE );
-        return 1;
-    }
-
     // Load server log settings ( will be removed )
     if( load_log_settings( sConfig.files.logSettings.c_str() ) )
         sLog.Success( "server init", "Log settings loaded from %s", sConfig.files.logSettings.c_str() );
@@ -85,12 +87,13 @@ int main( int argc, char* argv[] )
         sLog.Warning( "server init", "Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str() );
 
     // open up the log file if specified ( will be removed )
-    if( !sConfig.files.log.empty() )
+    if( !sConfig.files.logDir.empty() )
     {
-        if( log_open_logfile( sConfig.files.log.c_str() ) )
-            sLog.Success( "server init", "Opened log file %s", sConfig.files.log.c_str() );
+		std::string logFile = sConfig.files.logDir + "eve-server.log";
+        if( log_open_logfile( logFile.c_str() ) )
+            sLog.Success( "server init", "Found log directory %s", sConfig.files.logDir.c_str() );
         else
-            sLog.Warning( "server init", "Unable to open log file '%s', only logging to the screen now.", sConfig.files.log.c_str() );
+            sLog.Warning( "server init", "Unable to find log directory '%s', only logging to the screen now.", sConfig.files.logDir.c_str() );
     }
 
     //connect to the database...
@@ -272,9 +275,9 @@ int main( int argc, char* argv[] )
     log_close_logfile();
 
     // win crap.
-#if defined( MSVC ) && !defined( NDEBUG )
-    _CrtDumpMemoryLeaks();
-#endif /* defined( MSVC ) && !defined( NDEBUG ) */
+//#if defined( MSVC ) && !defined( NDEBUG )
+//    _CrtDumpMemoryLeaks();
+//#endif /* defined( MSVC ) && !defined( NDEBUG ) */
 
     return 0;
 }

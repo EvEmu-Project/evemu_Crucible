@@ -73,7 +73,7 @@ EVEServerConfig::EVEServerConfig()
     database.db = "evemu";
 
     // files
-    files.log = "../log/eve-server.log";
+    files.logDir = "../log/";
     files.logSettings = "../etc/log.ini";
     files.cacheDir = "../server_cache/";
 	files.imageDir = "../image_cache/";
@@ -179,14 +179,14 @@ bool EVEServerConfig::ProcessDatabase( const TiXmlElement* ele )
 
 bool EVEServerConfig::ProcessFiles( const TiXmlElement* ele )
 {
-    AddValueParser( "log",         files.log );
+    AddValueParser( "logDir",      files.logDir );
     AddValueParser( "logSettings", files.logSettings );
     AddValueParser( "cacheDir",    files.cacheDir );
 	AddValueParser( "imageDir",	   files.imageDir );
 
     const bool result = ParseElementChildren( ele );
 
-    RemoveParser( "log" );
+    RemoveParser( "logDir" );
     RemoveParser( "logSettings" );
     RemoveParser( "cacheDir" );
 	RemoveParser( "imageDir" );

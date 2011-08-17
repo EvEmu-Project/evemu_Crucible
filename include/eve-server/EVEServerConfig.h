@@ -94,8 +94,8 @@ public:
     // From <files/>
     struct
     {
-        /// A logfile to be used.
-        std::string log;
+        /// A directory in which the log files are stored
+        std::string logDir;
         /// A log configuration file.
         std::string logSettings;
         /// A directory at which the cache files should be stored.

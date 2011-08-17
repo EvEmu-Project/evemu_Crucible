@@ -44,9 +44,16 @@ class NewLog
 public:
     /// Primary constructor, initializes logging.
     NewLog();
+	NewLog(std::string logPath);
     /// Destructor, closes the logfile.
     ~NewLog();
 
+    /**
+     * @brief Initializes and sets the Log file path.
+     *
+     * @param[in] logPath is the absolute or relative path where log files are to be stored
+     */
+	void InitializeLogging( std::string logPath );
     /**
      * @brief Logs a message to file.
      *
@@ -177,7 +184,7 @@ protected:
     /**
      * @brief Sets the default logfile.
      */
-    void SetLogfileDefault();
+	void SetLogfileDefault(std::string logPath);
 
     /// The active logfile.
     FILE* mLogfile;
@@ -185,6 +192,8 @@ protected:
     time_t mTime; // crap there should be 1 generic easy to understand time manager.
     /// Protection against concurrent log messages
     Mutex mMutex;
+
+	bool m_initialized;
 
 #ifdef WIN32
     /// Handle to standard output stream.
