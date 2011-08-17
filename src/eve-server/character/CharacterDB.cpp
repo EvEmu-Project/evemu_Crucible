@@ -113,16 +113,31 @@ bool CharacterDB::ValidateCharName(const char *name)
 PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 	DBQueryResult res;
 	
+    uint32 worldSpaceID = 0;
+
+    // "SELECT itemName, typeID FROM entity WHERE itemID = (SELECT locationID FROM entity WHERE itemID = %u)", characterID
+    std::string shipName = "My Ship";
+    uint32 shipTypeID = 606;
+
+    uint32 unreadMailCount = 0;
+    uint32 upcomingEventCount = 0;
+    uint32 unprocessedNotifications = 0;
+    uint32 daysLeft = 14;
+    uint32 userType = 23;
+    uint64 skillQueueEndTime = ( Win32TimeNow() + (5*Win32Time_Hour) + (25*Win32Time_Minute) );
+    uint64 allianceMemberStartDate = Win32TimeNow() - 15*Win32Time_Day;
+    uint64 startDate = Win32TimeNow() - 24*Win32Time_Day;
+
 	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" itemName AS shortName,bloodlineID,gender,bounty,character_.corporationID,allianceID,title,startDateTime,createDateTime,"
 		" securityRating,character_.balance,character_.stationID,solarSystemID,constellationID,regionID,"
-		" petitionMessage,logonMinutes,tickerName, 0 AS worldSpaceID, 'Filler' AS shipName, 606 AS shipTypeID, 0 AS unreadMailCount, 0 AS upcomingEventCount, 0 AS unprocessedNotifications, 14 AS daysLeft, 23 AS userType, 0 AS paperDollState, 0 AS newPaperdollState, 0 AS oldPaperdollState, skillPoints, 0 AS skillQueueEndTime, 0 AS allianceMemberStartDate, 0 AS startDate"
+		" petitionMessage,logonMinutes,tickerName, %u AS worldSpaceID, '%s' AS shipName, %u AS shipTypeID, %u AS unreadMailCount, %u AS upcomingEventCount, %u AS unprocessedNotifications, %u AS daysLeft, %u AS userType, 0 AS paperDollState, 0 AS newPaperdollState, 0 AS oldPaperdollState, skillPoints, " I64u " AS skillQueueEndTime, " I64u " AS allianceMemberStartDate, " I64u " AS startDate"
 		" FROM character_ "
 		"	LEFT JOIN entity ON characterID = itemID"
 		"	LEFT JOIN corporation USING (corporationID)"
 		"	LEFT JOIN bloodlineTypes USING (typeID)"
-		" WHERE characterID=%u", characterID))
+		" WHERE characterID=%u", worldSpaceID, shipName.c_str(), shipTypeID, unreadMailCount, upcomingEventCount, unprocessedNotifications, daysLeft, userType, skillQueueEndTime, allianceMemberStartDate, startDate, characterID))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
 		return NULL;
