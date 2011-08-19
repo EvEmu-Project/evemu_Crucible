@@ -197,16 +197,18 @@ PyResult SkillMgrBound::Handle_AddToEndOfSkillQueue(PyCallArgs &call) {
 
 PyResult SkillMgrBound::Handle_GetRespecInfo( PyCallArgs& call )
 {
-    // takes no arguments
-    sLog.Debug( "SkillMgrBound", "Called GetRespecInfo stub." );
+	uint32 freeRespecs;
+	uint64 nextRespec;
+	if (!m_db.GetRespecInfo(call.client->GetCharacterID(), freeRespecs, nextRespec))
+	{
+		// insert dummy values
+		freeRespecs = 0;
+		nextRespec = 0;
+	}
 
-
-	//Need to get Time since last respec
-
-    // return dict
     PyDict* result = new PyDict;
-    result->SetItemString( "freeRespecs", new PyInt( 0 ) );
-    result->SetItemString( "nextRespecTime", new PyLong( Win32TimeNow() ) );
+    result->SetItemString( "freeRespecs", new PyInt( freeRespecs ) );
+    result->SetItemString( "nextRespecTime", new PyLong( nextRespec ) );
 
     return result;
 }
