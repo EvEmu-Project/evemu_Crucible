@@ -67,6 +67,7 @@ SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db)
     PyCallable_REG_CALL(SkillMgrBound, AddToEndOfSkillQueue)
 
     PyCallable_REG_CALL(SkillMgrBound, GetRespecInfo)
+	PyCallable_REG_CALL(SkillMgrBound, RespecCharacter)
 }
 
 SkillMgrBound::~SkillMgrBound()
@@ -193,6 +194,14 @@ PyResult SkillMgrBound::Handle_AddToEndOfSkillQueue(PyCallArgs &call) {
     ch->UpdateSkillQueue();
 
     return NULL;
+}
+
+PyResult SkillMgrBound::Handle_RespecCharacter(PyCallArgs &call)
+{
+
+
+	// no return value
+	return NULL;
 }
 
 PyResult SkillMgrBound::Handle_GetRespecInfo( PyCallArgs& call )

@@ -96,6 +96,8 @@ public:
 	 * queue.
 	 */
 	PyCallable_DECL_CALL(AddToEndOfSkillQueue)
+
+	PyCallable_DECL_CALL(RespecCharacter)
 	PyCallable_DECL_CALL(GetRespecInfo)
 
 protected:
