@@ -30,6 +30,20 @@ CharacterDB::CharacterDB()
 	load_name_validation_set();
 }
 
+bool CharacterDB::GetCharacterRespecInfo(uint32 characterId, uint32& out_freeRespecs, uint64& out_nextRespec)
+{
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res, "SELECT freeRespecs, nextRespec FROM character_ WHERE characterID = %u", characterId))
+		return false;
+	if (res.GetRowCount() < 1)
+		return false;
+	DBResultRow row;
+	res.GetRow(row);
+	out_freeRespecs = row.GetUInt(0);
+	out_nextRespec = row.GetUInt64(1);
+	return true;
+}
+
 uint64 CharacterDB::PrepareCharacterForDelete(uint32 accountID, uint32 charID)
 {
 	// calculate the point in time from which this character may be deleted
