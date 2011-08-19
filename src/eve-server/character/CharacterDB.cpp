@@ -55,7 +55,8 @@ bool CharacterDB::GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uin
 			out_nextRespec = 0;
 
 		// reflect this in the database, too
-		sDatabase.RunQuery("UPDATE character_ SET freeRespecs = %u, nextRespec = " I64u " WHERE characterId = %u",
+		DBerror err;
+		sDatabase.RunQuery(err, "UPDATE character_ SET freeRespecs = %u, nextRespec = " I64u " WHERE characterId = %u",
 			out_freeRespecs, out_nextRespec, characterId); 
 	}
 
