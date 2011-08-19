@@ -123,7 +123,7 @@ PyResult DogmaIMBound::Handle_GetCharacterBaseAttributes(PyCallArgs &call)
 	result->SetItem(new PyInt(AttrWillpower), new PyInt(cref->GetAttribute(AttrWillpower).get_int()));
 	result->SetItem(new PyInt(AttrMemory), new PyInt(cref->GetAttribute(AttrMemory).get_int()));
 
-	return result,
+	return result;
 }
 
 PyResult DogmaIMBound::Handle_GetLocationInfo(PyCallArgs &call)
