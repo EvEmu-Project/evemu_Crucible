@@ -721,6 +721,7 @@ void Character::UpdateSkillQueue()
     }
 
     EvilNumber nextStartTime = EvilTimeNow();
+    EvilNumber nextStartTime2 = nextStartTime;
     
     while( !m_skillQueue.empty() )
     {
@@ -745,6 +746,9 @@ void Character::UpdateSkillQueue()
             //uint64 timeTraining = nextStartTime + Win32Time_Minute * SPToNextLevel / SPPerMinute;
             EvilNumber timeTraining = nextStartTime + EvilTime_Minute * SPToNextLevel / SPPerMinute;
 
+            EvilNumber timeTraining2 = timeTraining;
+            EvilNumber trainingTimeElapsed = timeTraining2 - nextStartTime2;
+
             currentTraining->MoveInto( *this, flagSkillInTraining );
             //currentTraining->Set_expiryTime( timeTraining );
             currentTraining->SetAttribute(AttrExpiryTime, timeTraining);
@@ -753,7 +757,7 @@ void Character::UpdateSkillQueue()
             {
                 OnSkillStartTraining osst;
                 osst.itemID = currentTraining->itemID();
-                osst.endOfTraining = timeTraining.get_int();
+                osst.endOfTraining = (int64)(timeTraining.get_float());
 
                 PyTuple* tmp = osst.Encode();
                 c->QueueDestinyEvent( &tmp );

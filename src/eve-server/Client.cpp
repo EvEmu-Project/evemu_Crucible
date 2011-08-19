@@ -161,9 +161,9 @@ void Client::Process() {
     //if( mModulesMgr.CheckSaveTimer() )
     //    mModulesMgr.SaveModules();
 
-    if( m_timeEndTrain != 0 )
+    if( m_timeEndTrain.get_int() != 0 )
     {
-        if( m_timeEndTrain <= Win32TimeNow() )
+        if( m_timeEndTrain <= EvilTimeNow() )    //Win32TimeNow()
             GetChar()->UpdateSkillQueue();
     }
 
