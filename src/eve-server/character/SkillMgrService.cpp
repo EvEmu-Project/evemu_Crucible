@@ -198,7 +198,25 @@ PyResult SkillMgrBound::Handle_AddToEndOfSkillQueue(PyCallArgs &call) {
 
 PyResult SkillMgrBound::Handle_RespecCharacter(PyCallArgs &call)
 {
+	Call_RespecCharacter spec;
+	if (!spec.Decode(call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode RespecCharacter arguments");
+		return NULL;
+	}
+	
+	// return early if this is an illegal call
+	if (!m_db.ReportRespec(call.client->GetCharacterID()))
+		return NULL;
 
+	// TODO: validate these values (and their sum)
+	CharacterRef cref = call.client->GetChar();
+	cref->SetAttribute(AttrCharisma, spec.charisma);
+	cref->SetAttribute(AttrIntelligence, spec.intelligence);
+	cref->SetAttribute(AttrMemory, spec.memory);
+	cref->SetAttribute(AttrPerception, spec.perception);
+	cref->SetAttribute(AttrWillpower, spec.willpower);
+	cref->SaveAttributes();
 
 	// no return value
 	return NULL;

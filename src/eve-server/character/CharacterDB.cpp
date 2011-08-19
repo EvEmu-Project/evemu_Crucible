@@ -30,6 +30,15 @@ CharacterDB::CharacterDB()
 	load_name_validation_set();
 }
 
+bool CharacterDB::ReportRespec(uint32 characterId)
+{
+	DBerror error;
+	if (!sDatabase.RunQuery(error, "UPDATE character_ SET freeRespecs = freeRespecs - 1, nextRespec = " I64u " WHERE characterId = %u AND freeRespecs > 0",
+		Win32TimeNow() + Win32Time_Year, characterId))
+		return false;
+	return true;
+}
+
 bool CharacterDB::GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uint64& out_nextRespec)
 {
 	DBQueryResult res;
