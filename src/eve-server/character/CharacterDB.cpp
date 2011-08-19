@@ -30,7 +30,7 @@ CharacterDB::CharacterDB()
 	load_name_validation_set();
 }
 
-bool CharacterDB::GetCharacterRespecInfo(uint32 characterId, uint32& out_freeRespecs, uint64& out_nextRespec)
+bool CharacterDB::GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uint64& out_nextRespec)
 {
 	DBQueryResult res;
 	if (!sDatabase.RunQuery(res, "SELECT freeRespecs, nextRespec FROM character_ WHERE characterID = %u", characterId))
