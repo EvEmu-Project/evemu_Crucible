@@ -41,6 +41,24 @@ bool CharacterDB::GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uin
 	res.GetRow(row);
 	out_freeRespecs = row.GetUInt(0);
 	out_nextRespec = row.GetUInt64(1);
+
+	// can't have more than two
+	if (out_freeRespecs == 2)
+		out_nextRespec = 0;
+	else if (out_freeRespecs < 2 && out_nextRespec < Win32TimeNow())
+	{
+		// you may get another
+		out_freeRespecs++;
+		if (out_freeRespecs == 1)
+			out_nextRespec = Win32TimeNow() + Win32Time_Year;
+		else
+			out_nextRespec = 0;
+
+		// reflect this in the database, too
+		sDatabase.RunQuery("UPDATE character_ SET freeRespecs = %u, nextRespec = " I64u " WHERE characterId = %u",
+			out_freeRespecs, out_nextRespec, characterId); 
+	}
+
 	return true;
 }
 
