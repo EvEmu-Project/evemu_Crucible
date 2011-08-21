@@ -16,7 +16,7 @@ PyRep* EvilNumber::GetPyObject()
         if ( mValue.iVal > INT_MAX || mValue.iVal < INT_MIN)
             return (PyRep*)new PyLong(mValue.iVal);
         else
-            return (PyRep*)new PyInt(mValue.iVal);
+            return (PyRep*)new PyInt((int32)(mValue.iVal));
     }
     else if (mType == evil_number_float)
         return (PyRep*)new PyFloat(mValue.fVal);

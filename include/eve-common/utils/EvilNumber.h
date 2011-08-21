@@ -49,6 +49,7 @@ public:
     /************************************************************************/
     /* EvilNumber manipulation operator handlers                            */
     /************************************************************************/
+    // TODO: code missing operators: %, -=, *=, /=, %=, ++, --
     EvilNumber operator*(const EvilNumber& val)
     {
         Multiply((EvilNumber &)val);
@@ -86,7 +87,7 @@ public:
     /************************************************************************/
     /* EvilNumber logic logic operator handlers                             */
     /************************************************************************/
-
+    // TODO: code missing operators: <, >=
     /**
      * @brief '==' operator overload
      *
@@ -158,20 +159,23 @@ public:
     bool operator a ( b val) \
     { \
         if (this->mType == evil_number_int) \
-            return this->mValue.iVal < val; \
+            return this->mValue.iVal a val; \
         else \
-            return this->mValue.fVal < double(val); \
+            return this->mValue.fVal a double(val); \
     }
 
 
     /* using a code generating macro to generate logic operator handlers
      * @note expand these if needed.
      */
+    // operators to code: >, <, !=, ==, <=, >=
     
     /* smaller */
+    LOGIC_OPERATOR( < , const int)
     LOGIC_OPERATOR( < , const uint8)
     LOGIC_OPERATOR( < , const uint16)
     LOGIC_OPERATOR( < , const uint32)
+    LOGIC_OPERATOR( < , const int64)
     LOGIC_OPERATOR( < , const double)
 
     /* bigger */
@@ -179,11 +183,28 @@ public:
     LOGIC_OPERATOR( > , const uint8)
     LOGIC_OPERATOR( > , const uint16)
     LOGIC_OPERATOR( > , const uint32)
-
+    LOGIC_OPERATOR( > , const int64)
     LOGIC_OPERATOR( > , const double)
+
+    /* less than or equal */
+    LOGIC_OPERATOR( <= , const uint32)
+    LOGIC_OPERATOR( <= , const int64)
+    LOGIC_OPERATOR( <= , const double)
+
+    /* greater than or equal */
+    LOGIC_OPERATOR( >= , const uint32)
+    LOGIC_OPERATOR( >= , const int64)
+    LOGIC_OPERATOR( >= , const double)
 
     /* not equal */
     LOGIC_OPERATOR( != , const uint32)
+    //LOGIC_OPERATOR( != , const int64)
+    //LOGIC_OPERATOR( != , const double)
+
+    /* equal equal */
+    LOGIC_OPERATOR( == , const uint32)
+    //LOGIC_OPERATOR( == , const int64)
+    //LOGIC_OPERATOR( == , const double)
 
     
 

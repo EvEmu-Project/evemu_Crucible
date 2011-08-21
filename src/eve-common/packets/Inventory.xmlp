@@ -6,7 +6,7 @@
     <tupleInline>
       <stringInline value="OnSkillStartTraining" />
       <int name="itemID" />
-      <long name="endOfTraining" />
+      <real name="endOfTraining" />
     </tupleInline>
   </elementDef>
 
