@@ -207,6 +207,7 @@ CREATE TABLE `character_` (
   `constellationID` int(10) unsigned NOT NULL default '0',
   `regionID` int(10) unsigned NOT NULL default '0',
   `online` tinyint(1) NOT NULL default '0',
+  `deletePrepareDateTime` BIGINT(20) UNSIGNED NULL DEFAULT '0',
   PRIMARY KEY  (`characterID`),
   UNIQUE KEY `characterName` (`characterName`),
   KEY `FK_CHARACTER__ACCOUNTS` (`accountID`),
