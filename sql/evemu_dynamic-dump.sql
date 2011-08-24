@@ -760,5 +760,16 @@ CREATE TABLE `accountApi` (
   PRIMARY KEY  (`userID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8;
 
+/*Table structure for table `crpStandings` */
+
+DROP TABLE IF EXISTS `crpStandings`;
+
+CREATE TABLE `crpStandings` (
+  `corporationID` int(10) unsigned NOT NULL default '0',
+  `fromID` int(10) unsigned NOT NULL default '0',
+  `standing` double NOT NULL default '0',
+  PRIMARY KEY  (`corporationID`,`fromID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
