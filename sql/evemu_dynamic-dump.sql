@@ -180,7 +180,6 @@ DROP TABLE IF EXISTS `character_`;
 
 CREATE TABLE `character_` (
   `characterID` int(10) unsigned NOT NULL default '0',
-  `characterName` varchar(43) NOT NULL default '',
   `accountID` int(10) unsigned default NULL,
   `title` varchar(85) NOT NULL default '',
   `description` text NOT NULL,
@@ -194,9 +193,6 @@ CREATE TABLE `character_` (
   `corporationDateTime` bigint(20) unsigned NOT NULL default '0',
   `startDateTime` bigint(20) unsigned NOT NULL default '0',
   `createDateTime` bigint(20) unsigned NOT NULL default '0',
-  `typeID` int(10) unsigned NOT NULL default '0',
-  `raceID` int(10) unsigned NOT NULL default '0',
-  `bloodlineID` int(10) unsigned NOT NULL default '0',
   `ancestryID` int(10) unsigned NOT NULL default '0',
   `careerID` int(10) unsigned NOT NULL default '0',
   `schoolID` int(10) unsigned NOT NULL default '0',
