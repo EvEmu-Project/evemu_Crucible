@@ -759,5 +759,13 @@ CREATE TABLE `crpStandings` (
 -- No longer needed
 DROP TABLE entityStatic;
 
+DROP TABLE IF EXISTS `chrSkillQueue`;
+
+CREATE TABLE `chrSkillQueue` (
+	`characterID` INT(10) UNSIGNED NOT NULL,
+	`orderIndex` INT(10) UNSIGNED NOT NULL,
+	`typeID` INT(10) UNSIGNED NOT NULL,
+	`level` INT(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
