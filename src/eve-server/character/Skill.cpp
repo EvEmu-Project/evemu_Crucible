@@ -88,7 +88,8 @@ uint32 Skill::_Spawn(ItemFactory &factory, ItemData &data)
 
 EvilNumber Skill::GetSPForLevel( EvilNumber level )
 {
-    return EVIL_SKILL_BASE_POINTS * GetAttribute(AttrSkillTimeConstant) * e_pow(32, (level - 1) / 2.0);
+    //return EVIL_SKILL_BASE_POINTS * GetAttribute(AttrSkillTimeConstant) * e_pow(32, (level - 1) / 2.0);
+    return EVIL_SKILL_BASE_POINTS * GetAttribute(AttrSkillTimeConstant) * e_pow(2, (2.5*(level - 1)));
 }
 
 bool Skill::SkillPrereqsComplete(Character &ch)
@@ -96,7 +97,7 @@ bool Skill::SkillPrereqsComplete(Character &ch)
 	SkillRef requiredSkill;
 
     
-	if( GetAttribute(AttrRequiredSkill1) != 0 )
+    if( GetAttribute(AttrRequiredSkill1).get_int() != 0 )
 	{
 		requiredSkill = ch.GetSkill( GetAttribute(AttrRequiredSkill1).get_int() );
 		if( !requiredSkill )
@@ -106,7 +107,7 @@ bool Skill::SkillPrereqsComplete(Character &ch)
 			return false;
 	}
 
-	if( GetAttribute(AttrRequiredSkill2) != 0 )
+	if( GetAttribute(AttrRequiredSkill2).get_int() != 0 )
 	{
 		requiredSkill = ch.GetSkill( GetAttribute(AttrRequiredSkill2).get_int() );
 		if( !requiredSkill )
@@ -116,7 +117,7 @@ bool Skill::SkillPrereqsComplete(Character &ch)
 			return false;
 	}
 
-    if( GetAttribute(AttrRequiredSkill3) != 0 )
+    if( GetAttribute(AttrRequiredSkill3).get_int() != 0 )
     {
         requiredSkill = ch.GetSkill( GetAttribute(AttrRequiredSkill3).get_int() );
         if( !requiredSkill )

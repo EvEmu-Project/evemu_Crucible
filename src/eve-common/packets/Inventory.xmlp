@@ -6,7 +6,7 @@
     <tupleInline>
       <stringInline value="OnSkillStartTraining" />
       <int name="itemID" />
-      <long name="endOfTraining" />
+      <real name="endOfTraining" />
     </tupleInline>
   </elementDef>
 
@@ -64,7 +64,15 @@
   <elementDef name="Call_Add_2">
     <tupleInline>
       <int name="itemID" />
-      <int name="quantity" none_marker="1" />
+      <int name="inventoryID" />
+      <!-- <int name="quantity" none_marker="1" /> -->
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_MultiAdd_2">
+    <tupleInline>
+      <listInt name="itemIDs" />
+      <int name="inventoryID" />
     </tupleInline>
   </elementDef>
 
@@ -95,6 +103,7 @@
   <elementDef name="Inventory_CallMultiMerge">
     <tupleInline>
       <list name="MMElements"/>
+      <int name="stationID"/>
     </tupleInline>
   </elementDef>
 

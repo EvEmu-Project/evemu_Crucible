@@ -40,15 +40,21 @@ public:
     } GenVal;
 
     EvilNumber();
-    EvilNumber(float val);
+    EvilNumber(char val);
+	EvilNumber(unsigned char val);
     EvilNumber(int val);
-    EvilNumber(double val);
+	EvilNumber(unsigned int val);
+	EvilNumber(long val);
+	EvilNumber(unsigned long val);
     EvilNumber(int64 val);
     EvilNumber(uint64 val);
+    EvilNumber(float val);
+    EvilNumber(double val);
     
     /************************************************************************/
     /* EvilNumber manipulation operator handlers                            */
     /************************************************************************/
+    // TODO: code missing operators: %, -=, *=, /=, %=, ++, --
     EvilNumber operator*(const EvilNumber& val)
     {
         Multiply((EvilNumber &)val);
@@ -86,7 +92,7 @@ public:
     /************************************************************************/
     /* EvilNumber logic logic operator handlers                             */
     /************************************************************************/
-
+    // TODO: code missing operators: <, >=
     /**
      * @brief '==' operator overload
      *
@@ -158,20 +164,39 @@ public:
     bool operator a ( b val) \
     { \
         if (this->mType == evil_number_int) \
-            return this->mValue.iVal < val; \
+            return this->mValue.iVal a val; \
         else \
-            return this->mValue.fVal < double(val); \
+            return this->mValue.fVal a double(val); \
     }
 
+#define LOGIC_OPERATORS_FOR( type ) \
+    LOGIC_OPERATOR( <, type ) \
+    LOGIC_OPERATOR( <=, type ) \
+    LOGIC_OPERATOR( >, type ) \
+    LOGIC_OPERATOR( >=, type ) \
+    LOGIC_OPERATOR( ==, type ) \
+    LOGIC_OPERATOR( !=, type )
 
     /* using a code generating macro to generate logic operator handlers
      * @note expand these if needed.
      */
+    // operators to code: >, <, !=, ==, <=, >=
     
+    //LOGIC_OPERATORS_FOR( const int)
+    //LOGIC_OPERATORS_FOR( const long)
+    //LOGIC_OPERATORS_FOR( const uint8)
+    //LOGIC_OPERATORS_FOR( const uint16)
+    //LOGIC_OPERATORS_FOR( const uint32)
+    //LOGIC_OPERATORS_FOR( const int64)
+    //LOGIC_OPERATORS_FOR( const float)
+    //LOGIC_OPERATORS_FOR( const double)
+
     /* smaller */
+    LOGIC_OPERATOR( < , const int)
     LOGIC_OPERATOR( < , const uint8)
     LOGIC_OPERATOR( < , const uint16)
     LOGIC_OPERATOR( < , const uint32)
+    LOGIC_OPERATOR( < , const int64)
     LOGIC_OPERATOR( < , const double)
 
     /* bigger */
@@ -179,11 +204,28 @@ public:
     LOGIC_OPERATOR( > , const uint8)
     LOGIC_OPERATOR( > , const uint16)
     LOGIC_OPERATOR( > , const uint32)
-
+    LOGIC_OPERATOR( > , const int64)
     LOGIC_OPERATOR( > , const double)
+
+    /* less than or equal */
+    LOGIC_OPERATOR( <= , const uint32)
+    LOGIC_OPERATOR( <= , const int64)
+    LOGIC_OPERATOR( <= , const double)
+
+    /* greater than or equal */
+    LOGIC_OPERATOR( >= , const uint32)
+    LOGIC_OPERATOR( >= , const int64)
+    LOGIC_OPERATOR( >= , const double)
 
     /* not equal */
     LOGIC_OPERATOR( != , const uint32)
+    //LOGIC_OPERATOR( != , const int64)
+    //LOGIC_OPERATOR( != , const double)
+
+    /* equal equal */
+    LOGIC_OPERATOR( == , const uint32)
+    //LOGIC_OPERATOR( == , const int64)
+    //LOGIC_OPERATOR( == , const double)
 
     
 

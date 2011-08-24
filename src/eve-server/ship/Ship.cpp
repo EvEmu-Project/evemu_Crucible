@@ -84,6 +84,7 @@ Ship::Ship(
     const ItemData &_data)
 : InventoryItem(_factory, _shipID, _shipType, _data)
 {
+    // TODO: MOVE THIS TO Ship::Load() or some other place AFTER InventoryItem::mAttributeMap has been loaded
 	//allocate the module manager
 	m_ModuleManager = new ModuleManager(this);
 
