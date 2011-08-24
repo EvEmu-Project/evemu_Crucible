@@ -54,9 +54,9 @@ TRUNCATE TABLE srvStatus;
 INSERT INTO character_
  SELECT
   characterID, characterName, accountID, title, description, bounty, balance, securityRating, petitionMessage, logonMinutes, 0 AS skillPoints,
-  corporationID,
+  corporationID, 0 AS corpRole, 0 AS rolesAtAll, 0 AS rolesAtBase, 0 AS rolesAtHQ, 0 AS rolesAtOther,
   corporationDateTime, startDateTime, createDateTime,
-  typeID, 0 AS raceID, 0 AS bloodlineID, ancestryID, careerID, schoolID, careerSpecialityID, gender,
+  ancestryID, careerID, schoolID, careerSpecialityID, gender,
   stationID, solarSystemID, constellationID, regionID,
   0 AS online, 2 AS freeRespecs, 0 AS nextRespec, 0 AS deletePrepareDateTime
  FROM characterStatic;
