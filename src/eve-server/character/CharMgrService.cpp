@@ -56,11 +56,10 @@ PyResult CharMgrService::Handle_GetContactList(PyCallArgs &call)
 	header->AddColumn("relationshipID", DBTYPE_R8);
 	header->AddColumn("labelMask", DBTYPE_I8);
 	CRowSet *rowset = new CRowSet( &header );
-	CRowSet *setBlocked = new CRowSet(&header);
 
 	PyDict* dict = new PyDict();
 	dict->SetItemString("addresses", rowset);
-	dict->SetItemString("blocked", setBlocked);
+	//dict->SetItemString("blocked", rowset);
 	PyObject *keyVal = new PyObject( "util.KeyVal", dict);
 
 	return keyVal;

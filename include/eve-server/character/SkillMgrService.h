@@ -99,6 +99,7 @@ public:
 
 	PyCallable_DECL_CALL(RespecCharacter)
 	PyCallable_DECL_CALL(GetRespecInfo)
+	PyCallable_DECL_CALL(GetCharacterAttributeModifiers)
 
 protected:
 	class Dispatcher;

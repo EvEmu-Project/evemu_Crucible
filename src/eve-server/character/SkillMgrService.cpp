@@ -68,6 +68,7 @@ SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db)
 
     PyCallable_REG_CALL(SkillMgrBound, GetRespecInfo)
 	PyCallable_REG_CALL(SkillMgrBound, RespecCharacter)
+	PyCallable_REG_CALL(SkillMgrBound, GetCharacterAttributeModifiers)
 }
 
 SkillMgrBound::~SkillMgrBound()
@@ -81,6 +82,11 @@ void SkillMgrBound::Release()
     delete this;
 }
 
+PyResult SkillMgrBound::Handle_GetCharacterAttributeModifiers(PyCallArgs &call) {
+	// since we don't currently support implants (I think), just a dummy
+	// expected data: for (itemID, typeID, operation, value,) in modifiers:
+	return new PyTuple(0);
+}
 
 PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
     CharacterRef ch = call.client->GetChar();
