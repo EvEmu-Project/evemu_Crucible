@@ -771,5 +771,8 @@ CREATE TABLE `crpStandings` (
   PRIMARY KEY  (`corporationID`,`fromID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- No longer needed
+DROP TABLE entityStatic;
+
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
