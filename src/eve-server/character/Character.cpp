@@ -759,7 +759,8 @@ void Character::UpdateSkillQueue()
 
             currentTraining->MoveInto( *this, flagSkillInTraining );
             //currentTraining->Set_expiryTime( timeTraining );
-            currentTraining->SetAttribute(AttrExpiryTime, timeTraining);
+            currentTraining->SetAttribute(AttrExpiryTime, (timeTraining.get_float() + (double)(Win32Time_Second * 10)));    // Set server-side
+                                                                                                                            // skill expiry + 10 sec
 
             if( c != NULL )
             {

@@ -119,6 +119,8 @@ PyResult InventoryBound::Handle_GetItem(PyCallArgs &call) {
 PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
     if( call.tuple->items.size() == 3 )
     {
+        // TODO: Add comments here to describe what kind of client action results in having
+        // to use the 'Call_Add_3' packet structure
         Call_Add_3 args;
         if(!args.Decode(&call.tuple)) {
             codelog(SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName());
@@ -132,20 +134,39 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
     }
     else if( call.tuple->items.size() == 2 )
     {
+        // TODO: Add comments here to describe what kind of client action results in having
+        // to use the 'Call_Add_2' packet structure
         Call_Add_2 args;
         //chances are its trying to transfer into a cargo container
-        if(!args.Decode(&call.tuple)) {
+        if(!args.Decode(&call.tuple))
+        {
             codelog(SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName());
             return NULL;
         }
 
+        if( call.byname.find("flag") == call.byname.end() )
+        {
+            sLog.Debug( "InventoryBound::Handle_Add()", "Cannot find key 'flag' from call.byname dictionary." );
+            return NULL;
+        }
+        uint32 flag = call.byname.find("flag")->second->AsInt()->value();
+
+        if( call.byname.find("qty") == call.byname.end() )
+        {
+            sLog.Debug( "InventoryBound::Handle_Add()", "Cannot find key 'qty' from call.byname dictionary." );
+            return NULL;
+        }
+        uint32 quantity = call.byname.find("qty")->second->AsInt()->value();
+
         std::vector<int32> items;
         items.push_back(args.itemID);
 
-        return _ExecAdd( call.client, items, args.quantity, mFlag );
+        return _ExecAdd( call.client, items, quantity, mFlag );
     }
     else if( call.tuple->items.size() == 1 )
     {
+        // TODO: Add comments here to describe what kind of client action results in having
+        // to use the 'Call_SingleIntegerArg' packet structure
         Call_SingleIntegerArg arg;
         if( !arg.Decode( &call.tuple ) )
         {
@@ -176,6 +197,8 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
 	
 	if( call.tuple->items.size() == 3 )
     {
+        // TODO: Add comments here to describe what kind of client action results in having
+        // to use the 'Call_MultiAdd_3' packet structure
         Call_MultiAdd_3 args;
         if(!args.Decode(&call.tuple)) {
             codelog(SERVICE__ERROR, "Unable to decode arguments");
@@ -204,8 +227,23 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
 
         return _ExecAdd( call.client, args.itemIDs, args.quantity, (EVEItemFlags)args.flag );
     }
+    else if( call.tuple->items.size() == 2 )
+    {
+        // TODO: Add comments here to describe what kind of client action results in having
+        // to use the 'Call_MultiAdd_2' packet structure
+        Call_MultiAdd_2 args;
+        if(!args.Decode(&call.tuple)) {
+            codelog(SERVICE__ERROR, "Unable to decode arguments");
+            return NULL;
+        }
+
+        // no quantity given, assume 1
+        return _ExecAdd( call.client, args.itemIDs, 1, mFlag );
+    }
     else if( call.tuple->items.size() == 1 )
     {
+        // TODO: Add comments here to describe what kind of client action results in having
+        // to use the 'Call_SingleIntList' packet structure
         Call_SingleIntList args;
         if(!args.Decode(&call.tuple)) {
             codelog(SERVICE__ERROR, "Unable to decode arguments");

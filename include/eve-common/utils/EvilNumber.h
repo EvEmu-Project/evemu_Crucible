@@ -40,11 +40,16 @@ public:
     } GenVal;
 
     EvilNumber();
-    EvilNumber(float val);
+    EvilNumber(char val);
+	EvilNumber(unsigned char val);
     EvilNumber(int val);
-    EvilNumber(double val);
+	EvilNumber(unsigned int val);
+	EvilNumber(long val);
+	EvilNumber(unsigned long val);
     EvilNumber(int64 val);
     EvilNumber(uint64 val);
+    EvilNumber(float val);
+    EvilNumber(double val);
     
     /************************************************************************/
     /* EvilNumber manipulation operator handlers                            */
@@ -164,12 +169,28 @@ public:
             return this->mValue.fVal a double(val); \
     }
 
+#define LOGIC_OPERATORS_FOR( type ) \
+    LOGIC_OPERATOR( <, type ) \
+    LOGIC_OPERATOR( <=, type ) \
+    LOGIC_OPERATOR( >, type ) \
+    LOGIC_OPERATOR( >=, type ) \
+    LOGIC_OPERATOR( ==, type ) \
+    LOGIC_OPERATOR( !=, type )
 
     /* using a code generating macro to generate logic operator handlers
      * @note expand these if needed.
      */
     // operators to code: >, <, !=, ==, <=, >=
     
+    //LOGIC_OPERATORS_FOR( const int)
+    //LOGIC_OPERATORS_FOR( const long)
+    //LOGIC_OPERATORS_FOR( const uint8)
+    //LOGIC_OPERATORS_FOR( const uint16)
+    //LOGIC_OPERATORS_FOR( const uint32)
+    //LOGIC_OPERATORS_FOR( const int64)
+    //LOGIC_OPERATORS_FOR( const float)
+    //LOGIC_OPERATORS_FOR( const double)
+
     /* smaller */
     LOGIC_OPERATOR( < , const int)
     LOGIC_OPERATOR( < , const uint8)

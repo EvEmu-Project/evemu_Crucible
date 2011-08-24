@@ -10,6 +10,71 @@ const EvilNumber EvilTime_Day = Win32Time_Hour * 24;
 const EvilNumber EvilTime_Month = Win32Time_Day * 30;
 const EvilNumber EvilTime_Year = Win32Time_Month * 12;
 
+
+// CONSTRUCTORS:
+
+EvilNumber::EvilNumber(char val) : mType(evil_number_int)
+{
+    mValue.iVal = val;
+}
+
+EvilNumber::EvilNumber(unsigned char val) : mType(evil_number_int)
+{
+    mValue.iVal = val;
+}
+
+EvilNumber::EvilNumber() : mType(evil_number_nan)
+{
+    mValue.iVal = 0;
+}
+
+EvilNumber::EvilNumber( int val ) : mType(evil_number_int)
+{
+    mValue.iVal = val;
+}
+
+EvilNumber::EvilNumber(unsigned int val) : mType(evil_number_int)
+{
+    mValue.iVal = val;
+}
+
+EvilNumber::EvilNumber(long val) : mType(evil_number_int)
+{
+    mValue.iVal = val;
+}
+
+EvilNumber::EvilNumber(unsigned long val) : mType(evil_number_int)
+{
+    mValue.iVal = val;
+}
+
+EvilNumber::EvilNumber( int64 val ) : mType(evil_number_int)
+{
+    mValue.iVal = val;
+}
+
+/* this is tricky, as we only handle signed calculations.
+ * so this has the potentional to go wrong.
+ */
+EvilNumber::EvilNumber( uint64 val ) : mType(evil_number_int)
+{
+	// TODO: put some check in here for greater than maximum positive integer
+    mValue.iVal = *((int64*)&val);
+}
+
+EvilNumber::EvilNumber( float val ) : mType(evil_number_float)
+{
+    mValue.fVal = val;
+}
+
+EvilNumber::EvilNumber( double val ) : mType(evil_number_float)
+{
+    mValue.fVal = val;
+}
+
+
+// PUBLIC FUNCTIONS:
+
 PyRep* EvilNumber::GetPyObject()
 {
     if (mType == evil_number_int) {
@@ -207,39 +272,6 @@ void EvilNumber::Sub( EvilNumber & val )
         // check if we are a integer
         CheckIntegrety();
     }
-}
-
-EvilNumber::EvilNumber() : mType(evil_number_nan)
-{
-    mValue.iVal = 0;
-}
-
-EvilNumber::EvilNumber( float val ) : mType(evil_number_float)
-{
-    mValue.fVal = val;
-}
-
-EvilNumber::EvilNumber( int val ) : mType(evil_number_int)
-{
-    mValue.iVal = val;
-}
-
-EvilNumber::EvilNumber( double val ) : mType(evil_number_float)
-{
-    mValue.fVal = val;
-}
-
-EvilNumber::EvilNumber( int64 val ) : mType(evil_number_int)
-{
-    mValue.iVal = val;
-}
-
-/* this is tricky, as we only handle signed calculations.
- * so this has the potentional to go wrong.
- */
-EvilNumber::EvilNumber( uint64 val ) : mType(evil_number_int)
-{
-    mValue.iVal = *((int64*)&val);
 }
 
 EvilNumber operator*(const EvilNumber& val, const EvilNumber& val2)
