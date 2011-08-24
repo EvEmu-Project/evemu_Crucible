@@ -209,6 +209,7 @@ CREATE TABLE `character_` (
   `online` tinyint(1) NOT NULL default '0',
   `freeRespecs` tinyint(1) unsigned NOT NULL default '0',
   `nextRespec` bigint(20) unsigned NOT NULL default '0',
+  `deletePrepareDateTime` BIGINT(20) UNSIGNED NULL DEFAULT '0',
   PRIMARY KEY  (`characterID`),
   UNIQUE KEY `characterName` (`characterName`),
   KEY `FK_CHARACTER__ACCOUNTS` (`accountID`),
