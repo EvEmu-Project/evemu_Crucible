@@ -190,6 +190,11 @@ CREATE TABLE `character_` (
   `logonMinutes` int(10) unsigned NOT NULL default '0',
   `skillPoints` double NOT NULL default '0',
   `corporationID` int(10) unsigned NOT NULL default '0',
+  `corpRole` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+  `rolesAtAll` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+  `rolesAtBase` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+  `rolesAtHQ` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+  `rolesAtOther` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
   `corporationDateTime` bigint(20) unsigned NOT NULL default '0',
   `startDateTime` bigint(20) unsigned NOT NULL default '0',
   `createDateTime` bigint(20) unsigned NOT NULL default '0',
@@ -236,22 +241,6 @@ CREATE TABLE `chrApplications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Data for the table `chrApplications` */
-
-/*Table structure for table `chrCorporationRoles` */
-
-DROP TABLE IF EXISTS `chrCorporationRoles`;
-
-CREATE TABLE `chrCorporationRoles` (
-  `characterID` int(10) unsigned NOT NULL default '0',
-  `corprole` bigint(20) unsigned NOT NULL default '0',
-  `rolesAtAll` bigint(20) unsigned NOT NULL default '0',
-  `rolesAtBase` bigint(20) unsigned NOT NULL default '0',
-  `rolesAtHQ` bigint(20) unsigned NOT NULL default '0',
-  `rolesAtOther` bigint(20) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`characterID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-/*Data for the table `chrCorporationRoles` */
 
 /*Table structure for table `chrEmployment` */
 
