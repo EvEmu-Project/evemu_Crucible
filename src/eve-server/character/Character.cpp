@@ -739,26 +739,17 @@ void Character::UpdateSkillQueue()
                 break;
             }
 
-            _log( ITEM__TRACE, "%s (%u): Starting training of skill %s (%u).", m_itemName.c_str(), m_itemID, currentTraining->itemName().c_str(), currentTraining->itemID() );
-            //sLog.Debug( "Character::UpdateSkillQueue()", "%s (%u): Starting training of skill %s (%u)",  m_itemName.c_str(), m_itemID, currentTraining->itemName().c_str(), currentTraining->itemID() );
+            sLog.Debug( "Character::UpdateSkillQueue()", "%s (%u): Starting training of skill %s (%u)",  m_itemName.c_str(), m_itemID, currentTraining->itemName().c_str(), currentTraining->itemID() );
 
             EvilNumber SPPerMinute = GetSPPerMin( currentTraining );
-            //  double SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->skillLevel() + 1 ) - currentTraining->skillPoints();
             EvilNumber SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->GetAttribute(AttrSkillLevel) + 1) - currentTraining->GetAttribute(AttrSkillPoints);
-            //sLog.Debug( "Character::UpdateSkillQueue()", "SPPerMinute = %u, SPToNextLevel = %u", SPPerMinute.get_int(), SPToNextLevel.get_int() );
 
             SPPerMinute.to_float();
             SPToNextLevel.to_float();
             nextStartTime.to_float();
-            //uint64 timeTraining = nextStartTime + Win32Time_Minute * SPToNextLevel / SPPerMinute;
             EvilNumber timeTraining = nextStartTime + EvilTime_Minute * SPToNextLevel / SPPerMinute;
 
-            //EvilNumber timeTraining2 = timeTraining;
-            //EvilNumber trainingTimeElapsed = timeTraining2 - nextStartTime2;
-            //sLog.Debug( "Character::UpdateSkillQueue()", "Training Time to Completion = %u", trainingTimeElapsed.get_int() );
-
             currentTraining->MoveInto( *this, flagSkillInTraining );
-            //currentTraining->Set_expiryTime( timeTraining );
             currentTraining->SetAttribute(AttrExpiryTime, (timeTraining.get_float() + (double)(Win32Time_Second * 10)));    // Set server-side
                                                                                                                             // skill expiry + 10 sec
 
@@ -776,19 +767,12 @@ void Character::UpdateSkillQueue()
             }
         }
 
-        //if( currentTraining->expiryTime() <= Win32TimeNow() )
         if( currentTraining->GetAttribute(AttrExpiryTime) <= EvilTimeNow() ) {
             // training has been finished:
             sLog.Debug( "Character::UpdateSkillQueue()", "%s (%u): Finishing training of skill %s (%u).", itemName().c_str(), itemID(), currentTraining->itemName().c_str(), currentTraining->itemID() );
 
-            //currentTraining->Set_skillLevel( currentTraining->skillLevel() + 1 );
-            //currentTraining->Set_skillPoints( currentTraining->GetSPForLevel( currentTraining->skillLevel() ) );
-
-            //nextStartTime = currentTraining->expiryTime();
-            //currentTraining->Clear_expiryTime();
-
             currentTraining->SetAttribute(AttrSkillLevel, currentTraining->GetAttribute(AttrSkillLevel) + 1 );
-            currentTraining->SetAttribute(AttrSkillPoints,  currentTraining->GetSPForLevel( currentTraining->GetAttribute(AttrSkillLevel) ), true);
+            currentTraining->SetAttribute(AttrSkillPoints, currentTraining->GetSPForLevel( currentTraining->GetAttribute(AttrSkillLevel) ), true);
 
             nextStartTime = currentTraining->GetAttribute(AttrExpiryTime);
             currentTraining->SetAttribute(AttrExpiryTime, 0);

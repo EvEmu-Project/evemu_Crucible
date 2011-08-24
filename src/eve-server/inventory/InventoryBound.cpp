@@ -161,7 +161,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
         std::vector<int32> items;
         items.push_back(args.itemID);
 
-        return _ExecAdd( call.client, items, quantity, mFlag );
+        return _ExecAdd( call.client, items, quantity, (EVEItemFlags)flag );
     }
     else if( call.tuple->items.size() == 1 )
     {
