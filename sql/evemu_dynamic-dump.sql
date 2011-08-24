@@ -212,9 +212,7 @@ CREATE TABLE `character_` (
   `nextRespec` bigint(20) unsigned NOT NULL default '0',
   `deletePrepareDateTime` BIGINT(20) UNSIGNED NULL DEFAULT '0',
   PRIMARY KEY  (`characterID`),
-  UNIQUE KEY `characterName` (`characterName`),
   KEY `FK_CHARACTER__ACCOUNTS` (`accountID`),
-  KEY `FK_CHARACTER__INVTYPES` (`typeID`),
   KEY `FK_CHARACTER__CHRANCESTRIES` (`ancestryID`),
   KEY `FK_CHARACTER__CHRCAREERS` (`careerID`),
   KEY `FK_CHARACTER__CHRCAREERSPECIALITIES` (`careerSpecialityID`),
@@ -757,7 +755,7 @@ CREATE TABLE `crpStandings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- No longer needed
-DROP TABLE entityStatic;
+DROP TABLE IF EXISTS entityStatic;
 
 DROP TABLE IF EXISTS `chrSkillQueue`;
 
