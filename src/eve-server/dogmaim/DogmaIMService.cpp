@@ -54,6 +54,7 @@ public:
 		PyCallable_REG_CALL(DogmaIMBound, ClearTargets)
 		PyCallable_REG_CALL(DogmaIMBound, GetWeaponBankInfoForShip)
 		PyCallable_REG_CALL(DogmaIMBound, GetLocationInfo)
+		PyCallable_REG_CALL(DogmaIMBound, GetCharacterBaseAttributes)
 	}
 	virtual ~DogmaIMBound() {delete m_dispatch;}
 	virtual void Release() {
@@ -74,6 +75,7 @@ public:
 	PyCallable_DECL_CALL(ClearTargets)
 	PyCallable_DECL_CALL(GetWeaponBankInfoForShip)
 	PyCallable_DECL_CALL(GetLocationInfo)
+	PyCallable_DECL_CALL(GetCharacterBaseAttributes)
 
 protected:
 	
@@ -106,6 +108,20 @@ PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {
     PyString* str = new PyString( "dogmaIM.attributesByName" );
 	PyRep* result = m_manager->cache_service->GetCacheHint( str );
     PyDecRef( str );
+
+	return result;
+}
+
+PyResult DogmaIMBound::Handle_GetCharacterBaseAttributes(PyCallArgs &call)
+{
+	CharacterRef cref = call.client->GetChar();
+
+	PyDict* result = new PyDict();
+	result->SetItem(new PyInt(AttrIntelligence), new PyInt(cref->GetAttribute(AttrIntelligence).get_int()));
+	result->SetItem(new PyInt(AttrPerception), new PyInt(cref->GetAttribute(AttrPerception).get_int()));
+	result->SetItem(new PyInt(AttrCharisma), new PyInt(cref->GetAttribute(AttrCharisma).get_int()));
+	result->SetItem(new PyInt(AttrWillpower), new PyInt(cref->GetAttribute(AttrWillpower).get_int()));
+	result->SetItem(new PyInt(AttrMemory), new PyInt(cref->GetAttribute(AttrMemory).get_int()));
 
 	return result;
 }

@@ -67,6 +67,8 @@ SkillMgrBound::SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db)
     PyCallable_REG_CALL(SkillMgrBound, AddToEndOfSkillQueue)
 
     PyCallable_REG_CALL(SkillMgrBound, GetRespecInfo)
+	PyCallable_REG_CALL(SkillMgrBound, RespecCharacter)
+	PyCallable_REG_CALL(SkillMgrBound, GetCharacterAttributeModifiers)
 }
 
 SkillMgrBound::~SkillMgrBound()
@@ -80,6 +82,11 @@ void SkillMgrBound::Release()
     delete this;
 }
 
+PyResult SkillMgrBound::Handle_GetCharacterAttributeModifiers(PyCallArgs &call) {
+	// since we don't currently support implants (I think), just a dummy
+	// expected data: for (itemID, typeID, operation, value,) in modifiers:
+	return new PyTuple(0);
+}
 
 PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
     CharacterRef ch = call.client->GetChar();
@@ -195,18 +202,46 @@ PyResult SkillMgrBound::Handle_AddToEndOfSkillQueue(PyCallArgs &call) {
     return NULL;
 }
 
+PyResult SkillMgrBound::Handle_RespecCharacter(PyCallArgs &call)
+{
+	Call_RespecCharacter spec;
+	if (!spec.Decode(call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode RespecCharacter arguments");
+		return NULL;
+	}
+	
+	// return early if this is an illegal call
+	if (!m_db.ReportRespec(call.client->GetCharacterID()))
+		return NULL;
+
+	// TODO: validate these values (and their sum)
+	CharacterRef cref = call.client->GetChar();
+	cref->SetAttribute(AttrCharisma, spec.charisma);
+	cref->SetAttribute(AttrIntelligence, spec.intelligence);
+	cref->SetAttribute(AttrMemory, spec.memory);
+	cref->SetAttribute(AttrPerception, spec.perception);
+	cref->SetAttribute(AttrWillpower, spec.willpower);
+	cref->SaveAttributes();
+
+	// no return value
+	return NULL;
+}
+
 PyResult SkillMgrBound::Handle_GetRespecInfo( PyCallArgs& call )
 {
-    // takes no arguments
-    sLog.Debug( "SkillMgrBound", "Called GetRespecInfo stub." );
+	uint32 freeRespecs;
+	uint64 nextRespec;
+	if (!m_db.GetRespecInfo(call.client->GetCharacterID(), freeRespecs, nextRespec))
+	{
+		// insert dummy values
+		freeRespecs = 0;
+		nextRespec = 0;
+	}
 
-
-	//Need to get Time since last respec
-
-    // return dict
     PyDict* result = new PyDict;
-    result->SetItemString( "freeRespecs", new PyInt( 0 ) );
-    result->SetItemString( "nextRespecTime", new PyLong( Win32TimeNow() ) );
+    result->SetItemString( "freeRespecs", new PyInt( freeRespecs ) );
+    result->SetItemString( "nextRespecTime", new PyLong( nextRespec ) );
 
     return result;
 }

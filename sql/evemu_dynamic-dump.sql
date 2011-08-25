@@ -180,7 +180,6 @@ DROP TABLE IF EXISTS `character_`;
 
 CREATE TABLE `character_` (
   `characterID` int(10) unsigned NOT NULL default '0',
-  `characterName` varchar(43) NOT NULL default '',
   `accountID` int(10) unsigned default NULL,
   `title` varchar(85) NOT NULL default '',
   `description` text NOT NULL,
@@ -191,12 +190,14 @@ CREATE TABLE `character_` (
   `logonMinutes` int(10) unsigned NOT NULL default '0',
   `skillPoints` double NOT NULL default '0',
   `corporationID` int(10) unsigned NOT NULL default '0',
+  `corpRole` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+  `rolesAtAll` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+  `rolesAtBase` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+  `rolesAtHQ` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
+  `rolesAtOther` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
   `corporationDateTime` bigint(20) unsigned NOT NULL default '0',
   `startDateTime` bigint(20) unsigned NOT NULL default '0',
   `createDateTime` bigint(20) unsigned NOT NULL default '0',
-  `typeID` int(10) unsigned NOT NULL default '0',
-  `raceID` int(10) unsigned NOT NULL default '0',
-  `bloodlineID` int(10) unsigned NOT NULL default '0',
   `ancestryID` int(10) unsigned NOT NULL default '0',
   `careerID` int(10) unsigned NOT NULL default '0',
   `schoolID` int(10) unsigned NOT NULL default '0',
@@ -207,11 +208,11 @@ CREATE TABLE `character_` (
   `constellationID` int(10) unsigned NOT NULL default '0',
   `regionID` int(10) unsigned NOT NULL default '0',
   `online` tinyint(1) NOT NULL default '0',
+  `freeRespecs` tinyint(1) unsigned NOT NULL default '0',
+  `nextRespec` bigint(20) unsigned NOT NULL default '0',
   `deletePrepareDateTime` BIGINT(20) UNSIGNED NULL DEFAULT '0',
   PRIMARY KEY  (`characterID`),
-  UNIQUE KEY `characterName` (`characterName`),
   KEY `FK_CHARACTER__ACCOUNTS` (`accountID`),
-  KEY `FK_CHARACTER__INVTYPES` (`typeID`),
   KEY `FK_CHARACTER__CHRANCESTRIES` (`ancestryID`),
   KEY `FK_CHARACTER__CHRCAREERS` (`careerID`),
   KEY `FK_CHARACTER__CHRCAREERSPECIALITIES` (`careerSpecialityID`),
@@ -238,22 +239,6 @@ CREATE TABLE `chrApplications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Data for the table `chrApplications` */
-
-/*Table structure for table `chrCorporationRoles` */
-
-DROP TABLE IF EXISTS `chrCorporationRoles`;
-
-CREATE TABLE `chrCorporationRoles` (
-  `characterID` int(10) unsigned NOT NULL default '0',
-  `corprole` bigint(20) unsigned NOT NULL default '0',
-  `rolesAtAll` bigint(20) unsigned NOT NULL default '0',
-  `rolesAtBase` bigint(20) unsigned NOT NULL default '0',
-  `rolesAtHQ` bigint(20) unsigned NOT NULL default '0',
-  `rolesAtOther` bigint(20) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`characterID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-/*Data for the table `chrCorporationRoles` */
 
 /*Table structure for table `chrEmployment` */
 
@@ -744,5 +729,51 @@ CREATE TABLE `srvStatus` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Data for the table `srvStatus` */
+
+/*Table structure for table `accountApi` */
+
+DROP TABLE IF EXISTS `accountApi`;
+
+CREATE TABLE `accountApi` (
+  `userID` int(10) unsigned NOT NULL auto_increment,
+  `accountID` int(10) unsigned NOT NULL default '0',
+  `fullKey` varchar(64) NOT NULL default '',
+  `limitedKey` varchar(64) NOT NULL default '',
+  `apiRole` int(10) NOT NULL default '0',
+  PRIMARY KEY  (`userID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `crpStandings` */
+
+DROP TABLE IF EXISTS `crpStandings`;
+
+CREATE TABLE `crpStandings` (
+  `corporationID` int(10) unsigned NOT NULL default '0',
+  `fromID` int(10) unsigned NOT NULL default '0',
+  `standing` double NOT NULL default '0',
+  PRIMARY KEY  (`corporationID`,`fromID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- No longer needed
+DROP TABLE IF EXISTS entityStatic;
+
+DROP TABLE IF EXISTS `chrSkillQueue`;
+
+CREATE TABLE `chrSkillQueue` (
+	`characterID` INT(10) UNSIGNED NOT NULL,
+	`orderIndex` INT(10) UNSIGNED NOT NULL,
+	`typeID` INT(10) UNSIGNED NOT NULL,
+	`level` INT(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
+
+DROP TABLE IF EXISTS `dgmeffectsinfo`;
+CREATE TABLE `dgmeffectsinfo` (
+  `effectID` int(11) NOT NULL,
+  `targetAttributeID` int(11) NOT NULL,
+  `sourceAttributeID` int(11) NOT NULL,
+  `calculationTypeID` int(11) NOT NULL,
+  `reverseCalculationTypeID` int(11) NOT NULL,
+  PRIMARY KEY (`effectID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

@@ -53,12 +53,12 @@ TRUNCATE TABLE srvStatus;
  */
 INSERT INTO character_
  SELECT
-  characterID,accountID,title,description,bounty,balance,securityRating,petitionMessage,logonMinutes,0 AS skillPoints,
-  corporationID,0 AS corpRole,0 AS rolesAtAll,0 AS rolesAtBase,0 AS rolesAtHQ,0 AS rolesAtOther,
-  corporationDateTime,startDateTime,createDateTime,
-  ancestryID,careerID,schoolID,careerSpecialityID, gender,
-  stationID,solarSystemID,constellationID,regionID,
-  0 AS online, 0 as deletePrepareDateTime
+  characterID, accountID, title, description, bounty, balance, securityRating, petitionMessage, logonMinutes, 0 AS skillPoints,
+  corporationID, 0 AS corpRole, 0 AS rolesAtAll, 0 AS rolesAtBase, 0 AS rolesAtHQ, 0 AS rolesAtOther,
+  corporationDateTime, startDateTime, createDateTime,
+  ancestryID, careerID, schoolID, careerSpecialityID, gender,
+  stationID, solarSystemID, constellationID, regionID,
+  0 AS online, 2 AS freeRespecs, 0 AS nextRespec, 0 AS deletePrepareDateTime
  FROM characterStatic;
 
 /*

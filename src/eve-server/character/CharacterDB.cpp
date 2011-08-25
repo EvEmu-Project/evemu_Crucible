@@ -30,6 +30,48 @@ CharacterDB::CharacterDB()
 	load_name_validation_set();
 }
 
+bool CharacterDB::ReportRespec(uint32 characterId)
+{
+	DBerror error;
+	if (!sDatabase.RunQuery(error, "UPDATE character_ SET freeRespecs = freeRespecs - 1, nextRespec = " I64u " WHERE characterId = %u AND freeRespecs > 0",
+		Win32TimeNow() + Win32Time_Year, characterId))
+		return false;
+	return true;
+}
+
+bool CharacterDB::GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uint64& out_nextRespec)
+{
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res, "SELECT freeRespecs, nextRespec FROM character_ WHERE characterID = %u", characterId))
+		return false;
+	if (res.GetRowCount() < 1)
+		return false;
+	DBResultRow row;
+	res.GetRow(row);
+	out_freeRespecs = row.GetUInt(0);
+	out_nextRespec = row.GetUInt64(1);
+
+	// can't have more than two
+	if (out_freeRespecs == 2)
+		out_nextRespec = 0;
+	else if (out_freeRespecs < 2 && out_nextRespec < Win32TimeNow())
+	{
+		// you may get another
+		out_freeRespecs++;
+		if (out_freeRespecs == 1)
+			out_nextRespec = Win32TimeNow() + Win32Time_Year;
+		else
+			out_nextRespec = 0;
+
+		// reflect this in the database, too
+		DBerror err;
+		sDatabase.RunQuery(err, "UPDATE character_ SET freeRespecs = %u, nextRespec = " I64u " WHERE characterId = %u",
+			out_freeRespecs, out_nextRespec, characterId); 
+	}
+
+	return true;
+}
+
 uint64 CharacterDB::PrepareCharacterForDelete(uint32 accountID, uint32 charID)
 {
 	// calculate the point in time from which this character may be deleted
