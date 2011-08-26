@@ -139,6 +139,9 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
     InventoryBound *ib = new InventoryBound(m_manager, *inventory, flagAutoFit);
     PyRep *result = m_manager->BindObject(call.client, ib);
 
+    // Release the item factory now that the ItemFactory is finished being used:
+    m_manager->item_factory.UnsetUsingClient();
+
     return result;
 }
 
@@ -192,6 +195,9 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
     InventoryBound *ib = new InventoryBound(m_manager, *inventory, flag);
     PyRep *result = m_manager->BindObject(call.client, ib);
 
+    // Release the item factory now that the ItemFactory is finished being used:
+    m_manager->item_factory.UnsetUsingClient();
+
     return result;
 }
 
@@ -222,6 +228,9 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
     // we need to block this call so our characters don't "board" non-ship objects:
     if( item->categoryID() == EVEDB::invCategories::Ship )
 	    call.client->UpdateSession("shipid", item->itemID() );
+
+    // Release the item factory now that the ItemFactory is finished being used:
+    m_manager->item_factory.UnsetUsingClient();
 	
     return NULL;
 }
@@ -251,5 +260,9 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
         else
             item->Delete();
     }
+
+    // Release the item factory now that the ItemFactory is finished being used:
+    m_manager->item_factory.UnsetUsingClient();
+
     return(new PyList());
 }

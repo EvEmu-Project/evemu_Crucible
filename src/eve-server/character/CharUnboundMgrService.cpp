@@ -360,5 +360,8 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
 	// we need to report the charID to the ImageServer so it can correctly assign a previously received image
 	sImageServer.ReportNewCharacter(call.client->GetAccountID(), char_item->itemID());
 
+    // Release the item factory now that the character is finished being accessed:
+    m_manager->item_factory.UnsetUsingClient();
+
     return new PyInt( char_item->itemID() );
 }

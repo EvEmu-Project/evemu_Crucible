@@ -127,11 +127,16 @@ bool Inventory::LoadContents(ItemFactory &factory)
         }
         else
             sLog.Error( "Inventory::LoadContents()", "Failed to resolve pointer to Client object currently using the ItemFactory." );
-        if( (into.ownerID == characterID) || (characterID == 0) || (into.ownerID == corporationID) || (into.locationID == locationID) )
+        if( (into.ownerID == characterID) || (characterID == 0) || (into.ownerID == corporationID) || (into.locationID == locationID) 
+            || (factory.GetUsingClient() == NULL) )
         {
             // Continue to GetItem() if the client calling this is owned by the character that owns this item
             // --OR--
             // The characterID == 0, which means this is attempting to load the character of this client for the first time.
+            // --OR--
+            // The pointer to the client object currently "using" the ItemFactory is NULL, meaning no client is using it at the moment.
+            if( factory.GetUsingClient() == NULL )
+                sLog.Error( "Inventory::LoadContents()", "WARNING! Loading Contents while ItemFactory::GetUsingClient() returned NULL!" );
 
             InventoryItemRef i = factory.GetItem( *cur );
             if( !i )

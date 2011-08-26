@@ -533,9 +533,11 @@ EvilNumber Character::GetSPPerMin( SkillRef skill )
     primarySPperMin = primarySPperMin + secondarySPperMin / 2.0f;
     //primarySPperMin = primarySPperMin * (EvilNumber(1.0f) + EvilNumber(0.02f) * skillLearningLevel);
 
+    // 100% Training bonus for 30day and under character age has been removed in Incursion
+    // http://www.eveonline.com/en/incursion/article/57/learning-skills-are-going-away
     // Check Total SP Trained for this character against the threshold for granting the 100% training bonus:
-    if( m_totalSPtrained.get_float() < ((double)MAX_SP_FOR_100PCT_TRAINING_BONUS) )
-        primarySPperMin = primarySPperMin * EvilNumber(2.0f);
+    //if( m_totalSPtrained.get_float() < ((double)MAX_SP_FOR_100PCT_TRAINING_BONUS) )
+    //    primarySPperMin = primarySPperMin * EvilNumber(2.0f);
 
     return primarySPperMin;
 }
@@ -723,7 +725,6 @@ void Character::UpdateSkillQueue()
     }
 
     EvilNumber nextStartTime = EvilTimeNow();
-    EvilNumber nextStartTime2 = nextStartTime;
     
     while( !m_skillQueue.empty() )
     {
@@ -742,7 +743,10 @@ void Character::UpdateSkillQueue()
             sLog.Debug( "Character::UpdateSkillQueue()", "%s (%u): Starting training of skill %s (%u)",  m_itemName.c_str(), m_itemID, currentTraining->itemName().c_str(), currentTraining->itemID() );
 
             EvilNumber SPPerMinute = GetSPPerMin( currentTraining );
-            EvilNumber SPToNextLevel = currentTraining->GetSPForLevel( currentTraining->GetAttribute(AttrSkillLevel) + 1) - currentTraining->GetAttribute(AttrSkillPoints);
+            EvilNumber NextLevel = currentTraining->GetAttribute(AttrSkillLevel) + 1;
+            EvilNumber SPToNextLevel = currentTraining->GetSPForLevel( NextLevel ) - currentTraining->GetAttribute(AttrSkillPoints);
+            sLog.Debug( "    ", "Training skill at %f SP/min", SPPerMinute.get_float() );
+            sLog.Debug( "    ", "%f SP to next Level of %d", SPToNextLevel.get_float(), NextLevel.get_int() );
 
             SPPerMinute.to_float();
             SPToNextLevel.to_float();
@@ -750,8 +754,11 @@ void Character::UpdateSkillQueue()
             EvilNumber timeTraining = nextStartTime + EvilTime_Minute * SPToNextLevel / SPPerMinute;
 
             currentTraining->MoveInto( *this, flagSkillInTraining );
-            currentTraining->SetAttribute(AttrExpiryTime, (timeTraining.get_float() + (double)(Win32Time_Second * 10)));    // Set server-side
-                                                                                                                            // skill expiry + 10 sec
+            double dbl_timeTraining = timeTraining.get_float() + (double)(Win32Time_Second * 10);
+            currentTraining->SetAttribute(AttrExpiryTime, dbl_timeTraining);    // Set server-side
+                                                                                // skill expiry + 10 sec
+
+            sLog.Debug( "    ", "Calculated time to complete training = %s", Win32TimeToString((uint64)dbl_timeTraining).c_str() );
 
             if( c != NULL )
             {

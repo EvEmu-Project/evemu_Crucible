@@ -348,6 +348,9 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
     _log( CLIENT__MESSAGE, "Sending char create ID %u as reply", char_item->itemID() );
 
+    // Release the item factory now that the character is created and loaded
+    m_manager->item_factory.UnsetUsingClient();
+
     return new PyInt( char_item->itemID() );
 }
 
@@ -386,6 +389,8 @@ PyResult CharacterService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
         m_db.del_name_validation_set( char_item->itemID() );
         //does the recursive delete of all contained items
         char_item->Delete();
+        // Release the item factory now that the character is unloaded and deleted
+        m_manager->item_factory.UnsetUsingClient();
     }
 
     //now, clean up all items which werent deleted
@@ -531,6 +536,9 @@ PyResult CharacterService::Handle_GetCharacterDescription(PyCallArgs &call) {
         _log(CLIENT__ERROR, "Failed to load character %u.", args.arg);
         return NULL;
     }
+
+    // Release the item factory now that the character is finished being accessed:
+    m_manager->item_factory.UnsetUsingClient();
 
     return c->GetDescription();
 }

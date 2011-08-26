@@ -235,6 +235,8 @@ public:
 
     Client * GetUsingClient();
 
+    void UnsetUsingClient();
+
 protected:
 	InventoryDB m_db;
 
