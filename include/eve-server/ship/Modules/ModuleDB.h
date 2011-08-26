@@ -66,7 +66,7 @@ public:
 			" npcUsageChanceAttributeID, "
 			" npcActivationChanceAttributeID, "
 			" fittingUsageChanceAttributeID "
-			" FROM dgmeffects "
+			" FROM dgmEffects "
 			" WHERE effectID = '%u' ",
 			effectID))
 		{
