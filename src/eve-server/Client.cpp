@@ -496,6 +496,9 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
         //it was equipped, or is now. so mModulesMgr need to know.
 		GetShip()->UpdateModules();
     }
+
+    // Release the item factory now that the ItemFactory is finished being used:
+    m_services.item_factory.UnsetUsingClient();
 }
 
 void Client::BoardShip(ShipRef new_ship) {
@@ -1084,18 +1087,30 @@ bool Client::SelectCharacter( uint32 char_id )
 
     m_char = m_services.item_factory.GetCharacter( char_id );
     if( !GetChar() )
+    {
+        // Release the item factory now that the ItemFactory is finished being used:
+        m_services.item_factory.UnsetUsingClient();
         return false;
+    }
 
     ShipRef ship = m_services.item_factory.GetShip( GetShipID() );
     if( !ship )
+    {
+        // Release the item factory now that the ItemFactory is finished being used:
+        m_services.item_factory.UnsetUsingClient();
         return false;
+    }
 
     ship->Load( m_services.item_factory, GetShipID() );
 
     BoardShip( ship );
 
     if( !EnterSystem( true ) )
+    {
+        // Release the item factory now that the ItemFactory is finished being used:
+        m_services.item_factory.UnsetUsingClient();
         return false;
+    }
 
     UpdateLocation();
 
@@ -1106,6 +1121,9 @@ bool Client::SelectCharacter( uint32 char_id )
     m_services.serviceDB().SetCharacterOnlineStatus( GetCharacterID(), true );
 
     _SendSessionChange();
+
+    // Release the item factory now that the ItemFactory is finished being used:
+    m_services.item_factory.UnsetUsingClient();
     return true;
 }
 

@@ -459,8 +459,8 @@ bool AttributeMap::SendAttributeChanges( PyTuple* attrChange )
     }
     else
     {
-        //Client *client = sEntityList.FindCharacter(mItem.ownerID());
-        Client *client = this->mItem.GetItemFactory()->GetUsingClient();
+        Client *client = sEntityList.FindCharacter(mItem.ownerID());
+        //Client *client = this->mItem.GetItemFactory()->GetUsingClient();
 
         if (client == NULL)
         {

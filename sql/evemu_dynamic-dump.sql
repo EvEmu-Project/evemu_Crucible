@@ -766,8 +766,8 @@ CREATE TABLE `chrSkillQueue` (
 	`level` INT(10) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
 
-DROP TABLE IF EXISTS `dgmeffectsinfo`;
-CREATE TABLE `dgmeffectsinfo` (
+DROP TABLE IF EXISTS `dgmEffectsInfo`;
+CREATE TABLE `dgmEffectsInfo` (
   `effectID` int(11) NOT NULL,
   `targetAttributeID` int(11) NOT NULL,
   `sourceAttributeID` int(11) NOT NULL,

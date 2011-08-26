@@ -223,7 +223,8 @@ private:
 					m_RangeAttributeID = row1.GetInt(12);
 				if( !row1.IsNull(13) )
 					m_FalloffAttributeID = row1.GetInt(13);
-				m_DisallowAutoRepeat = row1.GetInt(14);
+				if( !row1.IsNull(14) )
+					m_DisallowAutoRepeat = row1.GetInt(14);
 				m_Published = row1.GetInt(15);
 				if( !row1.IsNull(16) )
 					m_DisplayName = row1.GetText(16);

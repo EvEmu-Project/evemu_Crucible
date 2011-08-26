@@ -54,10 +54,10 @@ public:
 			" dischargeAttributeID, "
 			" rangeAttributeID, "
 			" falloffAttributeID, " 
-			" disallowAutoRepeate, "
+			" disallowAutoRepeat, "
 			" published, "
 			" displayName, " 
-			" isWarpStable, "
+			" isWarpSafe, "
 			" rangeChance, "
 			" electronicChance, "
 			" propulsionChance, "
@@ -66,7 +66,7 @@ public:
 			" npcUsageChanceAttributeID, "
 			" npcActivationChanceAttributeID, "
 			" fittingUsageChanceAttributeID "
-			" FROM dgmeffects "
+			" FROM dgmEffects "
 			" WHERE effectID = '%u' ",
 			effectID))
 		{

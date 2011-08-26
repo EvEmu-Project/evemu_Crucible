@@ -329,3 +329,8 @@ Client * ItemFactory::GetUsingClient()
 {
     return m_pClient;
 }
+
+void ItemFactory::UnsetUsingClient()
+{
+    m_pClient = NULL;
+}
