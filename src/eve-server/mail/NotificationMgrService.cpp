@@ -55,12 +55,12 @@ PyResult NotificationMgrService::Handle_GetByGroupID(PyCallArgs &call)
 		return NULL;
 	}
 	int groupID = args.arg;
-	return NULL;
+	return new PyTuple();
 }
 
 PyResult NotificationMgrService::Handle_GetUnprocessed(PyCallArgs &call)
 {
-	return NULL;
+	return new PyTuple();
 }
 
 PyResult NotificationMgrService::Handle_MarkGroupAsProcessed(PyCallArgs &call)
