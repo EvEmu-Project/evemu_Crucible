@@ -126,5 +126,14 @@ protected:
 	);
 };
 
+class Certificate
+: public InventoryItem
+{
+	friend class InventoryItem;
+	public:
+	protected:
+	private:
+};
+
 #endif /* !__SKILL__H__INCL__ */
 

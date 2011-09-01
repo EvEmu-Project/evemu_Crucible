@@ -1319,6 +1319,16 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
         _log(DATABASE__MESSAGE, "Ignoring error.");
     }
 
+	// certificates
+	if( !sDatabase.RunQuery( err,
+		 "DELETE FROM chrcertificates"
+		 " WHERE characterID=%u", characterID))
+	{
+		_log(DATABASE__ERROR, "Failed to delete certificates of character %u: %s", characterID, err.c_str() );
+		// ignore the error
+		_log(DATABASE__MESSAGE, "Ignoring error." );
+	}
+
     // character_
     if(!sDatabase.RunQuery(err,
         "DELETE FROM character_"
@@ -1503,6 +1513,82 @@ bool InventoryDB::LoadSkillQueue(uint32 characterID, SkillQueue &into) {
     }
 
     return true;
+}
+
+bool InventoryDB::LoadCertificates( uint32 characterID, Certificates &into )
+{
+	DBQueryResult res;
+
+	if( !sDatabase.RunQuery( res,
+		 "SELECT"
+	 	 " certificateID,"
+		 " grantDate,"
+		 " visibilityFlags"
+		 " FROM chrCertificates"
+		 " WHERE characterID=%u",
+		 characterID ))
+	{
+		_log(DATABASE__ERROR, "Failed to query certificates of character %u: %s", characterID, res.error.c_str() );
+		return false;
+	}
+
+	DBResultRow row;
+	while( res.GetRow( row ) )
+	{
+		currentCertificates i;
+		i.certificateID = row.GetUInt( 0 );
+		i.grantDate = row.GetUInt64( 1 );
+		i.visibilityFlags = row.GetUInt( 2 );
+
+		into.push_back( i );
+	}
+
+	return true;
+
+}
+
+bool InventoryDB::SaveCertificates( uint32 characterID, const Certificates &from )
+{
+	DBerror err;
+
+	if( !sDatabase.RunQuery( err,
+		 "DELETE"
+		 " FROM chrCertificates"
+		 " WHERE characterID = %u",
+		 characterID ))
+	{
+		_log(DATABASE__ERROR, "Failed to delete certificates of character %u: %s", characterID, err.c_str() );
+		return false;
+	}
+
+	if( from.empty( ) )
+		return true;
+
+	std::string query;
+
+	for(size_t i = 0; i < from.size(); i++)
+	{
+		const currentCertificates &im = from[ i ];
+
+		char buf[ 64 ];
+		snprintf( buf, 64, "(NULL, %u, %u, "I64u", %u)", characterID, im.certificateID, im.grantDate, im.visibilityFlags );
+		if( i != 0 )
+		query += ',';
+		query += buf;
+
+	}
+
+	if( !sDatabase.RunQuery( err,
+		 "INSERT"
+		 " INTO chrcertificates (id, characterID, certificateID, grantDate, visibilityFlags)"
+		 " VALUES %s",
+		 query.c_str() ))
+	{
+		_log(DATABASE__ERROR, "Failed to insert certificates of character %u: %s", characterID, err.c_str() );
+		return false;
+	}
+
+	return true;
 }
 
 bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {

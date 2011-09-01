@@ -226,6 +226,31 @@ public:
 	 * @return True if save succeeds, false if fails.
 	 */
 	bool SaveSkillQueue(uint32 characterID, const SkillQueue &queue);
+	// Certificates:
+	struct currentCertificates {
+		uint32 certificateID;
+		uint64 grantDate;
+		bool visibilityFlags;
+	};
+	typedef std::vector<currentCertificates> Certificates;
+
+	/**
+	* Loads certificates
+	*
+	* @param[in] characterID ID of character whose certificates should be loaded.
+	* @param[in] into Certificates wich loaded data should be stored.
+	* @return True if load succeeds, false if fails.
+	*/
+	bool LoadCertificates( uint32 characterID, Certificates &into );
+
+	/**
+	* Saves Certificates
+	*
+	* @param[in] characterID ID of the character whose Certificates are saved.
+	* @param[in] from Certificates to save.
+	* @return True if save succeds, false if fails.
+	*/
+	bool SaveCertificates( uint32 characterID, const Certificates &from );
 
 	/*
 	 * Celestial object stuff

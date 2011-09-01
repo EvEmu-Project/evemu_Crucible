@@ -354,6 +354,8 @@ class Character
 public:
 	typedef InventoryDB::QueuedSkill QueuedSkill;
 	typedef InventoryDB::SkillQueue SkillQueue;
+	typedef InventoryDB::currentCertificates cCertificates;
+	typedef InventoryDB::Certificates Certificates;
 
 	/**
 	 * Loads character.
@@ -458,6 +460,31 @@ public:
 	 */
 	void UpdateSkillQueue();
 
+	/* GrantCertificate( uint32 certificateID )
+	 * 
+	 * This will add a certificate into the character
+	 * @author almamu
+	 */
+	bool GrantCertificate( uint32 certificateID );
+	/* UpdateCertificate( uint32 certificateID, bool pub )
+	 * 
+	 * This will change the public status of the certificate
+	 * @author almamu
+	 */
+	void UpdateCertificate( uint32 certificateID, bool pub );
+	/* HasCertificate( uint32 certificateID )
+	 * 
+	 * This will check if the player has a certificate
+	 * @author almamu
+	 */
+	bool HasCertificate( uint32 certificateID ) const;
+	/* GetCertificates( )
+	 * 
+	 * This will check if the player has a certificate
+	 * @author almamu
+	 */
+	void GetCertificates( Certificates &crt );
+
 	// NOTE: We do not handle Split/Merge logic since singleton-restricted construction does this for us.
 
 	/**
@@ -530,6 +557,7 @@ public:
 
 	void SaveCharacter();
 	void SaveSkillQueue() const;
+	void SaveCertificates() const;
 
 protected:
 	Character(
@@ -641,6 +669,8 @@ protected:
 	// Skill queue:
 	SkillQueue m_skillQueue;
     EvilNumber m_totalSPtrained;
+
+	Certificates m_certificates;
 };
 
 #endif /* !__CHARACTER__H__INCL__ */

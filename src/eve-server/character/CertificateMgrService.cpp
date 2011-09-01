@@ -40,6 +40,7 @@ CertificateMgrService::CertificateMgrService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(CertificateMgrService, GrantCertificate)
     PyCallable_REG_CALL(CertificateMgrService, BatchCertificateGrant)
     PyCallable_REG_CALL(CertificateMgrService, BatchCertificateUpdate)
+	PyCallable_REG_CALL(CertificateMgrService, GetCertificatesByCharacter)
 }
 
 CertificateMgrService::~CertificateMgrService()
@@ -48,7 +49,29 @@ CertificateMgrService::~CertificateMgrService()
 }
 
 PyResult CertificateMgrService::Handle_GetMyCertificates(PyCallArgs &call) {
-    return(m_db.GetMyCertificates(call.client->GetCharacterID()));
+    Character::Certificates crt;
+	CharacterRef ch = call.client->GetChar();
+	ch->GetCertificates( crt );
+
+	util_Rowset rs;
+	rs.lines = new PyList;
+
+	rs.header.push_back( "certificateID" );
+	rs.header.push_back( "grantDate" );
+	rs.header.push_back( "visibilityFlags" );
+
+	uint32 i = 0;
+	PyList* fieldData = new PyList;
+	for( i = 0; i < crt.size(); i++ )
+	{
+		fieldData->AddItemInt( crt.at( i ).certificateID );
+		fieldData->AddItemInt( crt.at( i ).grantDate );
+		fieldData->AddItemInt( crt.at( i ).visibilityFlags );
+		rs.lines->AddItem( fieldData );
+		fieldData = new PyList;
+	}
+	return rs.Encode();
+
 }
 
 PyResult CertificateMgrService::Handle_GetCertificateCategories(PyCallArgs &call) {
@@ -102,8 +125,9 @@ PyResult CertificateMgrService::Handle_GrantCertificate(PyCallArgs &call) {
         _log(CLIENT__ERROR, "Failed to decode args.");
         return(NULL);
     }
+	CharacterRef ch = call.client->GetChar();
 
-    return(_GrantCertificate(call.client->GetCharacterID(), arg.arg) ? new PyInt(arg.arg) : NULL);
+	return(new PyBool( ch->GrantCertificate( arg.arg ) ) );
 }
 
 PyResult CertificateMgrService::Handle_BatchCertificateGrant(PyCallArgs &call) {
@@ -114,12 +138,13 @@ PyResult CertificateMgrService::Handle_BatchCertificateGrant(PyCallArgs &call) {
     }
 
     PyList *res = new PyList;
+	CharacterRef ch = call.client->GetChar();
 
     std::vector<int32>::iterator cur, end;
     cur = arg.ints.begin();
     end = arg.ints.end();
     for(; cur != end; cur++) {
-        if(_GrantCertificate(call.client->GetCharacterID(), *cur))
+        if( ch->GrantCertificate(*cur) )
             res->AddItemInt(*cur);
     }
 
@@ -133,27 +158,64 @@ PyResult CertificateMgrService::Handle_BatchCertificateUpdate(PyCallArgs &call) 
         return(NULL);
     }
 
+	CharacterRef ch = call.client->GetChar();
+
     std::map<uint32, uint32>::iterator cur, end;
     cur = args.update.begin();
     end = args.update.end();
     for(; cur != end; cur++)
-        _UpdateCertificate(call.client->GetCharacterID(), cur->first, cur->second);
+        ch->UpdateCertificate( cur->first, cur->second );
 
     return(NULL);
 }
 
-bool CertificateMgrService::_GrantCertificate(uint32 characterID, uint32 certificateID) {
-    _log(SERVICE__MESSAGE, "%u asked to grant certificate %u.", characterID, certificateID);
-    _log(SERVICE__ERROR, "Granting certificates not supported yet.");
+PyResult CertificateMgrService::Handle_GetCertificatesByCharacter( PyCallArgs& call )
+{
+	Call_SingleIntegerArg arg;
 
-    return(false);
+	if( !arg.Decode( &call.tuple ) )
+	{
+		_log( CLIENT__ERROR, "Bad arguments to function GetCertificatesByCharacter" );
+		return NULL;
+	}
+
+	CharacterRef ch = m_manager->item_factory.GetCharacter( arg.arg );
+	Character::Certificates crt;
+	ch->GetCertificates( crt );
+
+	util_Rowset rs;
+	rs.lines = new PyList;
+
+	rs.header.push_back( "certificateID" );
+	rs.header.push_back( "grantDate" );
+	rs.header.push_back( "visibilityFlags" );
+
+	uint32 i = 0;
+	PyList* fieldData = new PyList;
+	for( i = 0; i < crt.size(); i++ )
+	{
+		fieldData->AddItemInt( crt.at( i ).certificateID );
+		fieldData->AddItemInt( crt.at( i ).grantDate );
+		fieldData->AddItemInt( crt.at( i ).visibilityFlags );
+		rs.lines->AddItem( fieldData );
+		fieldData = new PyList;
+	}
+
+    return rs.Encode();
 }
 
-bool CertificateMgrService::_UpdateCertificate(uint32 characterID, uint32 certificateID, bool pub) {
-    _log(SERVICE__MESSAGE, "%u asked to make his certificate %u %s.", characterID, certificateID, (pub ? "public" : "private"));
-    _log(SERVICE__ERROR, "Updating certificates not supported yet.");
-
-    return(false);
-}
+//bool CertificateMgrService::_GrantCertificate(uint32 characterID, uint32 certificateID) {
+//    _log(SERVICE__MESSAGE, "%u asked to grant certificate %u.", characterID, certificateID);
+//    _log(SERVICE__ERROR, "Granting certificates not supported yet.");
+//
+//    return(false);
+//}
+//
+//bool CertificateMgrService::_UpdateCertificate(uint32 characterID, uint32 certificateID, bool pub) {
+//    _log(SERVICE__MESSAGE, "%u asked to make his certificate %u %s.", characterID, certificateID, (pub ? "public" : "private"));
+//    _log(SERVICE__ERROR, "Updating certificates not supported yet.");
+//
+//    return(false);
+//}
 
 

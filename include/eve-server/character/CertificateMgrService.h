@@ -49,6 +49,7 @@ protected:
 	PyCallable_DECL_CALL(GrantCertificate)
 	PyCallable_DECL_CALL(BatchCertificateGrant)
 	PyCallable_DECL_CALL(BatchCertificateUpdate)
+	PyCallable_DECL_CALL(GetCertificatesByCharacter)
 
 	bool _GrantCertificate(uint32 characterID, uint32 certificateID);
 	bool _UpdateCertificate(uint32 characterID, uint32 certificateID, bool pub);

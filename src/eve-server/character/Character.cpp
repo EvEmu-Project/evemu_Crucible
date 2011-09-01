@@ -420,8 +420,11 @@ bool Character::_Load()
     if( !m_factory.db().LoadSkillQueue( itemID(), m_skillQueue ) )
         return false;
 
-    // Calculate total SP trained and store in internal variable:
+	// Calculate total SP trained and store in internal variable:
     _CalculateTotalSPTrained();
+
+	if( !m_factory.db().LoadCertificates( itemID(), m_certificates ) )
+		return false;
 
     return Owner::_Load();
 }
@@ -488,6 +491,18 @@ void Character::SetDescription(const char *newDescription) {
 bool Character::HasSkill(uint32 skillTypeID) const
 {
     return GetSkill(skillTypeID);
+}
+
+bool Character::HasCertificate( uint32 certificateID ) const
+{
+	uint32 i = 0;
+	for( i = 0; i < m_certificates.size(); i++ )
+	{
+		if( m_certificates.at( i ).certificateID == certificateID )
+			return true;
+	}
+  
+	return false;
 }
 
 SkillRef Character::GetSkill(uint32 skillTypeID) const
@@ -655,6 +670,35 @@ void Character::AddToSkillQueue(uint32 typeID, uint8 level)
     qs.level = level;
 
     m_skillQueue.push_back( qs );
+}
+
+bool Character::GrantCertificate( uint32 certificateID )
+{
+	cCertificates i;
+	i.certificateID = certificateID;
+	i.grantDate = Win32TimeNow();
+	i.visibilityFlags = true;
+	m_certificates.push_back( i );
+	
+	return true;
+}
+
+
+void Character::UpdateCertificate( uint32 certificateID, bool pub )
+{
+	uint32 i;
+	for( i = 0; i < m_certificates.size(); i ++ )
+	{
+		if( m_certificates.at( i ).certificateID == certificateID )
+		{
+			m_certificates.at( i ).visibilityFlags = pub ;
+		}
+	}
+}
+
+void Character::GetCertificates( Certificates &crt )
+{
+	crt = m_certificates;
 }
 
 void Character::ClearSkillQueue()
@@ -988,6 +1032,7 @@ void Character::SaveCharacter()
     for(; cur != end; cur++)
         cur->get()->SaveAttributes();
         //cur->get()->mAttributeMap.Save();
+	SaveCertificates();
 }
 
 void Character::SaveSkillQueue() const {
@@ -998,6 +1043,16 @@ void Character::SaveSkillQueue() const {
         itemID(),
         m_skillQueue
     );
+}
+
+void Character::SaveCertificates() const 
+{
+	_log( ITEM__TRACE, "Saving Implants of character %u", itemID() );
+
+	m_factory.db().SaveCertificates(
+		itemID(),
+		m_certificates
+		);
 }
 
 void Character::_CalculateTotalSPTrained()
