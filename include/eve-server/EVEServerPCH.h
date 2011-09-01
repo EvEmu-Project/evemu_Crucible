@@ -228,6 +228,7 @@
 //mail stuff
 #include "mail/MailMgrService.h"
 #include "mail/MailingListMgrService.h"
+#include "mail/NotificationMgrService.h"
 
 // factory stuff
 #include "manufacturing/Blueprint.h"
