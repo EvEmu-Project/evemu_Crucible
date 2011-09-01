@@ -94,7 +94,7 @@ DROP TABLE IF EXISTS `bookmarks`;
 CREATE TABLE `bookmarks` (
   `bookmarkID` int(10) unsigned NOT NULL default '0',
   `ownerID` int(10) unsigned NOT NULL default '0',
-  `itemID` int(10) unsigned NOT NULL default '0',
+  `itemID` bigint(20) unsigned NOT NULL default '0',
   `typeID` int(10) unsigned NOT NULL default '0',
   `flag` int(10) unsigned NOT NULL default '0',
   `memo` varchar(85) NOT NULL default '',
@@ -103,6 +103,7 @@ CREATE TABLE `bookmarks` (
   `y` double NOT NULL default '0',
   `z` double NOT NULL default '0',
   `locationID` int(10) unsigned NOT NULL default '0',
+  `note` varchar(85) NOT NULL default '',
   PRIMARY KEY  (`bookmarkID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

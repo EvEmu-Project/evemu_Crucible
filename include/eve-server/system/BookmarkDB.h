@@ -32,7 +32,7 @@ class BookmarkDB
 : public ServiceDB
 {
 public:
-	PyObject *GetBookmarks(uint32 ownerID);
+	PyObjectEx *GetBookmarks(uint32 ownerID);
 
    	uint32 GetNextAvailableBookmarkID();
 

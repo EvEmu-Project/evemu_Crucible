@@ -690,8 +690,8 @@ void PyDict::SetItem( PyRep* key, PyRep* value )
 
     /* note: needs to be enabled when object reference is working.
      */
-    //PyIncRef( key );
-    //PyIncRef( value );
+    PyIncRef( key );
+    PyIncRef( value );
 
     /* check if we need to replace a dictionary entry */
     iterator itr = items.find( key );

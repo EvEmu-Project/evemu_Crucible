@@ -1,38 +1,8 @@
-DATABASE INSTALLATION GUIDE:
-=============================
- 1. Download official EVE database dump:
-     http://eve.no-ip.de/apo15/apo15-mysql5-v1.sql.bz2
-    Unpack it - you should get file with ".sql" extension.
+DATABASE SETUP:  Please see the following URL for full instructions on setting up the Database for the Incursion server:
 
- 2. Go to subdirectory utils and:
-    a) If you are on Windows:
-        Execute merge-evemu-updates.bat and merge-ofic-updates.bat.
-    b) If you are on Linux:
-        Execute merge-evemu-updates.sh and merge-ofic-updates.sh.
+http://trac.evemu.org/wiki/incursion/DatabaseSetup
 
-    After that browse back to parent directory sql. Note the 2 new files
-    called ofic-updates.sql and evemu-updates.sql.
 
- 3. Create database into which you want to stick all the EVEmu DB stuff.
+For all other information regarding the Incursion server, see this URL, it is the main Incursion wiki page:
 
- 4. Import the .sql files in following order:
-    a) apo15-mysql5-v1.sql (official dump; the one you downloaded and unpacked)
-    b) ofic-updates.sql
-    c) evemu_static-dump.sql
-    d) evemu_dynamic-dump.sql
-    e) evemu-updates.sql
-    f) prime_db.sql
-
-FILE DESCRIPTION:
-===================
-evemu_static-dump.sql
-**********************
-This file contains static data required by EVEmu.
-
-evemu_dynamic-dump.sql
-***********************
-This file contains dynamic database schema required by EVEmu.
-
-prime_db.sql
-*************
-This is special SQL batch, which is intended to reset all the dynamic stuff into default state.
+http://trac.evemu.org/wiki/incursion

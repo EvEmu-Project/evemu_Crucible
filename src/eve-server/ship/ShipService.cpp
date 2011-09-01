@@ -293,7 +293,6 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 	
 	//prevent client from stopping ship automatically stopping - this is sloppy
 
-
     //revert custom info, for testing.
     call.client->GetShip()->SetCustomInfo(NULL);
 
@@ -301,9 +300,9 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
     //should get a stationSvc.GetSolarSystem(solarsystemID)
 
     // THIS IS A HACK AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
-    // SO SAVE THE UNDOCK ALIGN-TO POINT AND TELL CLIEN WE JUST UNDOCKED
-    //call.client->SetUndockAlignToPoint( dest );
-    //call.client->SetJustUndocking( true );
+    // SO SAVE THE UNDOCK ALIGN-TO POINT AND TELL CLIENT WE JUST UNDOCKED
+    call.client->SetUndockAlignToPoint( dest );
+    call.client->SetJustUndocking( true );
     // --- END HACK ---
 
     return NULL;

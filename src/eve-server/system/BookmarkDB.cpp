@@ -26,20 +26,20 @@
 #include "EVEServerPCH.h"
 
 
-PyObject *BookmarkDB::GetBookmarks(uint32 ownerID) {
+PyObjectEx *BookmarkDB::GetBookmarks(uint32 ownerID) {
 	DBQueryResult res;
 
 	if(!sDatabase.RunQuery(res,
 		"SELECT"
-		" bookmarkID,"
-		" ownerID,"
-		" itemID,"
-		" typeID,"
-		" flag,"
+		" CAST(bookmarkID AS SIGNED INTEGER) AS bookmarkID,"
+		" CAST(ownerID AS SIGNED INTEGER) AS ownerID,"
+        " CAST(itemID AS SIGNED INTEGER) AS itemID,"
+		" CAST(typeID AS SIGNED INTEGER) AS typeID,"
 		" memo,"
 		" created,"
 		" x, y, z,"
-		" locationID"
+		" CAST(locationID AS SIGNED INTEGER) AS locationID,"
+        " note"
 		" FROM bookmarks"
 		" WHERE ownerID = %u",
 		ownerID))
@@ -48,7 +48,7 @@ PyObject *BookmarkDB::GetBookmarks(uint32 ownerID) {
 		return(NULL);
 	}
 
-	return DBResultToRowset(res);
+	return DBResultToCRowset(res);
 }
 
 
