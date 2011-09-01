@@ -43,7 +43,7 @@ private:
 	PyCallable_DECL_CALL(MarkAllAsProcessed)
 	PyCallable_DECL_CALL(MarkAsProcessed)
 	PyCallable_DECL_CALL(DeleteGroupNotifications)
-	PyCallable_DECL_CALL(DeleteAllNotification)
+	PyCallable_DECL_CALL(DeleteAllNotifications)
 	PyCallable_DECL_CALL(DeleteNotifications)
 };
 
