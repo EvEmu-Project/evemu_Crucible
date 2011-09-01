@@ -194,6 +194,11 @@ void SystemBubble::GetEntities(std::set<SystemEntity *> &into) const {
 	}
 }
 
+bool SystemBubble::InBubble(const GPoint &pt) const
+{
+    return(GVector(m_center, pt).lengthSquared() < m_radius2);
+}
+
 //NOTE: not used right now. May never be used... see SystemManager::MakeSetState
 //this is called as a part of the SetState routine for initial enter space.
 //it appends information for all entities contained within the bubble.

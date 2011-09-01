@@ -467,7 +467,16 @@ void DestinyManager::_InitWarp() {
 
 	//double warp_speed = m_system->GetWarpSpeed();
     double warp_speed = 0.0;
-    if( m_self->CastToClient()->GetShip() )
+    ShipRef shipRef;
+    if( m_self->IsClient() )
+        shipRef = m_self->CastToClient()->GetShip();
+    else if( m_self->IsNPC() )
+        sLog.Warning( "DestinyManager::_InitWarp():", "NPC Ship using DestinyManager is NOT supported at this time. NPC class MUST be inherited from ShipEntity" );
+        //shipRef = m_self->CastToNPC()->GetShip();
+    else
+        sLog.Error( "DestinyManager::_InitWarp():", "'m_self' was not found to be either a Client object nor an NPC object." );
+
+    if( shipRef )
     {
         double baseWarpSpeed = m_self->CastToClient()->GetShip()->GetAttribute(AttrBaseWarpSpeed).get_float();
         double warpSpeedMultiplier = m_self->CastToClient()->GetShip()->GetAttribute(AttrWarpSpeedMultiplier).get_float();
@@ -494,9 +503,9 @@ void DestinyManager::_InitWarp() {
 	warp_slow_time += warp_distance * 3.0f;
 	warp_slow_time /= warp_speed * 3.0f;	//v40 ~9.1105
 	
-	_log(PHYSICS__TRACEPOS, "Warp will accelerate for %f s, then slow down at %f s", warp_acceleration_time, warp_slow_time);
+    sLog.Debug( "DestinyManager::_InitWarp():", "Warp will accelerate for %f s, then slow down at %f s", warp_acceleration_time, warp_slow_time);
 	
-	_log(PHYSICS__TRACEPOS, "Opposite warp direction is (%.13f, %.13f, %.13f)",
+	sLog.Debug( "DestinyManager::_InitWarp():", "Opposite warp direction is (%.13f, %.13f, %.13f)",
 		vector_from_goal.x, vector_from_goal.y, vector_from_goal.z);
 
 	delete m_warpState;
@@ -544,10 +553,10 @@ void DestinyManager::_Warp() {
 		
 		velocity_magnitude = warp_progress * 3.0;
 		
-        // Remove ship from bubble when it passes 1000km from warp-out position
+        // Remove ship from bubble only when distance traveled takes the ship beyond the bubble's radius
         m_system->bubbles.UpdateBubble(m_self);
 
-		_log(PHYSICS__TRACEPOS, "Entity %u: Warp Accelerating: velocity %f m/s with %f m left to go.", 
+        sLog.Debug( "DestinyManager::_Warp():", "Entity %u: Warp Accelerating: velocity %f m/s with %f m left to go.", 
 			m_self->GetID(),
 			velocity_magnitude, dist_remaining);
 		
@@ -567,7 +576,7 @@ void DestinyManager::_Warp() {
 	//	    m_self->Bubble()->Remove(m_self);
 	//    }
 
-		_log(PHYSICS__TRACEPOS, "Entity %u: Warp Cruising: velocity %f m/s with %f m left to go.", 
+		sLog.Debug( "DestinyManager::_Warp():", "Entity %u: Warp Cruising: velocity %f m/s with %f m left to go.", 
 			m_self->GetID(),
 			velocity_magnitude, dist_remaining);
 	} else {
@@ -581,24 +590,25 @@ void DestinyManager::_Warp() {
 		
 		velocity_magnitude = exp(v58) * m_warpState->speed / 3.0f;
 		
-		dist_remaining = velocity_magnitude;
+		dist_remaining = velocity_magnitude / 1.65;
 		//dist_remaining = m_warpDecelerateFactor * velocity_magnitude;
 
 		if(velocity_magnitude < 0)
 			velocity_magnitude = -velocity_magnitude;
 		
-		_log(PHYSICS__TRACEPOS, "Entity %u: Warp Slowing: velocity %f m/s with %f m left to go.", 
+		sLog.Debug( "DestinyManager::_Warp():", "Entity %u: Warp Slowing: velocity %f m/s with %f m left to go.", 
 			m_self->GetID(),
 			velocity_magnitude, dist_remaining);
 		
 		// Put ourself back into a bubble once we reach the outer edge of the bubble's radius:
-        //if( dist_remaining <= m_self->Bubble()->m_radius )
+        if( dist_remaining <= m_self->Bubble()->m_radius )
 		    m_system->bubbles.UpdateBubble(m_self);
 		
 		//note, this should actually be checked AFTER we change new_velocity.
 		//but hey, it doesn't get copied into ball.velocity until later anyhow.
 		if(velocity_magnitude < m_maxShipVelocity) {
 			stop = true;
+            SetPosition( GetPosition(), true );
 		}
 	}
 
@@ -614,7 +624,7 @@ void DestinyManager::_Warp() {
 	m_velocity = m_warpState->normvec_them_to_us * (-velocity_magnitude);
 	
 	if(stop) {
-		_log(PHYSICS__TRACEPOS, "Entity %u: Warp completed. Exit velocity %f m/s with %f m left to go.", 
+		sLog.Debug( "DestinyManager::_Warp():", "Entity %u: Warp completed. Exit velocity %f m/s with %f m left to go.", 
 			m_self->GetID(),
 			velocity_magnitude, dist_remaining);
 		//they re-calculated the velocity, but it was exactly the same..

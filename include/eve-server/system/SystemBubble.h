@@ -53,7 +53,7 @@ public:
 
     //void AppendBalls(DoDestiny_SetState &ss, std::vector<uint8> &setstate_buffer) const;
 
-    bool InBubble(const GPoint &pt) const { return(GVector(m_center, pt).lengthSquared() < m_radius2); }
+    bool InBubble(const GPoint &pt) const;
 	
 protected:
 	void _SendAddBalls(SystemEntity *to_who);

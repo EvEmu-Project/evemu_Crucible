@@ -38,6 +38,7 @@ class ServiceDB;
 class NPCAIMgr;
 
 //Caution: do not inherit this, see constructor.
+// TODO: This class should be inheriting from ShipEntity so as to contain a ShipRef for use with DestinyManager
 class NPC
 : public DynamicSystemEntity {
 public:

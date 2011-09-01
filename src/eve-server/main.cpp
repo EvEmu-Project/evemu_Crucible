@@ -25,6 +25,7 @@
 
 #include "EVEServerPCH.h"
 #include "EVEVersion.h"
+#include <iostream>
 
 static void SetupSignals();
 static void CatchSignal( int sig_num );
@@ -59,6 +60,7 @@ int main( int argc, char* argv[] )
     {
 		printf("ERROR: Loading server configuration '%s' failed.", CONFIG_FILE );
         //sLog.Error( "server init", "Loading server configuration '%s' failed.", CONFIG_FILE );
+        std::cout << std::endl << "press any key to exit...";  std::cin.get();
         return 1;
     }
 
@@ -106,6 +108,7 @@ int main( int argc, char* argv[] )
         sConfig.database.port ) )
     {
         sLog.Error( "server init", "Unable to connect to the database: %s", err.c_str() );
+        std::cout << std::endl << "press any key to exit...";  std::cin.get();
         return 1;
     }
     _sDgmTypeAttrMgr = new dgmtypeattributemgr(); // needs to be after db init as its using it
@@ -123,6 +126,7 @@ int main( int argc, char* argv[] )
     else
     {
         sLog.Error( "server init", "Failed to start TCP listener on port %u: %s.", sConfig.net.port, errbuf );
+        std::cout << std::endl << "press any key to exit...";  std::cin.get();
         return 1;
     }
 	//make the item factory
@@ -278,6 +282,8 @@ int main( int argc, char* argv[] )
 //#if defined( MSVC ) && !defined( NDEBUG )
 //    _CrtDumpMemoryLeaks();
 //#endif /* defined( MSVC ) && !defined( NDEBUG ) */
+
+    std::cout << std::endl << "press any key to exit...";  std::cin.get();
 
     return 0;
 }
