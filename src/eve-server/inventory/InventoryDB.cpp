@@ -1321,7 +1321,7 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
 
 	// certificates
 	if( !sDatabase.RunQuery( err,
-		 "DELETE FROM chrcertificates"
+		 "DELETE FROM chrCertificates"
 		 " WHERE characterID=%u", characterID))
 	{
 		_log(DATABASE__ERROR, "Failed to delete certificates of character %u: %s", characterID, err.c_str() );
@@ -1580,7 +1580,7 @@ bool InventoryDB::SaveCertificates( uint32 characterID, const Certificates &from
 
 	if( !sDatabase.RunQuery( err,
 		 "INSERT"
-		 " INTO chrcertificates (id, characterID, certificateID, grantDate, visibilityFlags)"
+		 " INTO chrCertificates (id, characterID, certificateID, grantDate, visibilityFlags)"
 		 " VALUES %s",
 		 query.c_str() ))
 	{
