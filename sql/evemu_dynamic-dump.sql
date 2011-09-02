@@ -241,8 +241,8 @@ CREATE TABLE `chrApplications` (
 
 /*Data for the table `chrApplications` */
 
-/*Table structure for table `` */
-DRAP TABLR IF EXISTS `chrCertificates`;
+/*Table structure for table `chrCertificates` */
+DROP TABLE IF EXISTS `chrCertificates`;
 
 CREATE TABLE IF NOT EXISTS `chrCertificates` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -251,7 +251,7 @@ CREATE TABLE IF NOT EXISTS `chrCertificates` (
   `grantDate` bigint(20) NOT NULL,
   `visibilityFlags` int(10) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 /*Table structure for table `chrEmployment` */
 
