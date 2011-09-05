@@ -41,7 +41,7 @@ const EvilNumber EvilE = 2.71828182845904523536;
 
 // CONSTRUCTORS:
 
-EvilNumber::EvilNumber() : mType(evil_number_nan)
+EvilNumber::EvilNumber() : mType(evil_number_int)
 {
     mValue.iVal = 0;
 }
@@ -382,9 +382,9 @@ EvilNumber EvilNumber::_Multiply( const EvilNumber & val1, const EvilNumber & va
     } else {
         // we assume that the val1 argument type is the opposite of the val2 argument type
         if (val1.mType == evil_number_float) {
-            result.mValue.fVal = val1.mValue.fVal * float(val2.mValue.iVal);
+            result.mValue.fVal = val1.mValue.fVal * double(val2.mValue.iVal);
         } else if (val1.mType == evil_number_int) {
-            float tVal = (float)val1.mValue.iVal; // normal integer number
+            double tVal = (double)val1.mValue.iVal; // normal integer number
             result.mValue.fVal = tVal * val2.mValue.fVal;
             result.mType = evil_number_float;
         } else {
@@ -408,9 +408,9 @@ EvilNumber EvilNumber::_SelfMultiply( const EvilNumber & val )
     } else {
         // we assume that the val argument is the opposite of the 'this' type
         if (mType == evil_number_float) {
-            this->mValue.fVal = this->mValue.fVal * float(val.mValue.iVal);
+            this->mValue.fVal = this->mValue.fVal * double(val.mValue.iVal);
         } else if (mType == evil_number_int) {
-            float tVal = (float)mValue.iVal; // normal integer number
+            double tVal = (double)mValue.iVal; // normal integer number
             this->mValue.fVal = tVal * val.mValue.fVal;
             mType = evil_number_float;
         } else {
@@ -433,7 +433,7 @@ EvilNumber EvilNumber::_Divide( const EvilNumber & val1, const EvilNumber & val2
             result.mValue.fVal = val1.mValue.fVal / val2.mValue.fVal;
         } else if (val1.mType == evil_number_int) {
             // make sure we can do things like 2 / 4 = 0.5f
-            result.mValue.fVal = float(val1.mValue.iVal) / float(val2.mValue.iVal);
+            result.mValue.fVal = double(val1.mValue.iVal) / double(val2.mValue.iVal);
             result.mType = evil_number_float;
             // check if its possibly an integer
             result.CheckIntegrity();
@@ -441,9 +441,9 @@ EvilNumber EvilNumber::_Divide( const EvilNumber & val1, const EvilNumber & val2
     } else {
         // we assume that the val1 argument type is the opposite of the val2 argument type
         if (val1.mType == evil_number_float) {
-            result.mValue.fVal = val1.mValue.fVal / float(val2.mValue.iVal);
+            result.mValue.fVal = val1.mValue.fVal / double(val2.mValue.iVal);
         } else if (val1.mType == evil_number_int) {
-            float tVal = (float)val1.mValue.iVal; // normal integer number
+            double tVal = (double)val1.mValue.iVal; // normal integer number
             result.mValue.fVal = tVal / val2.mValue.fVal;
             result.mType = evil_number_float;
         } else {
@@ -463,7 +463,7 @@ EvilNumber EvilNumber::_SelfDivide( const EvilNumber & val )
             this->mValue.fVal = this->mValue.fVal / val.mValue.fVal;
         } else if (mType == evil_number_int) {
             // make sure we can do things like 2 / 4 = 0.5f
-            this->mValue.fVal = float(this->mValue.iVal) / float(val.mValue.iVal);
+            this->mValue.fVal = double(this->mValue.iVal) / double(val.mValue.iVal);
             mType = evil_number_float;
             // check if its possibly a integer
             CheckIntegrity();
@@ -471,9 +471,9 @@ EvilNumber EvilNumber::_SelfDivide( const EvilNumber & val )
     } else {
         // we assume that the val argument is the opposite of the 'this' type
         if (mType == evil_number_float) {
-            this->mValue.fVal = this->mValue.fVal / float(val.mValue.iVal);
+            this->mValue.fVal = this->mValue.fVal / double(val.mValue.iVal);
         } else if (mType == evil_number_int) {
-            float tVal = (float)mValue.iVal; // normal integer number
+            double tVal = (double)mValue.iVal; // normal integer number
             this->mValue.fVal = tVal / val.mValue.fVal;
             mType = evil_number_float;
         } else {
@@ -500,9 +500,9 @@ EvilNumber EvilNumber::_Add( const EvilNumber & val1, const EvilNumber & val2 )
     } else {
         // we assume that the val argument is the opposite of the 'this' type
         if (val1.mType == evil_number_float) {
-            result.mValue.fVal = val1.mValue.fVal + float(val2.mValue.iVal);
+            result.mValue.fVal = val1.mValue.fVal + double(val2.mValue.iVal);
         } else if (val1.mType == evil_number_int) {
-            float tVal = (float)val1.mValue.iVal; // normal integer number
+            double tVal = (double)val1.mValue.iVal; // normal integer number
             result.mValue.fVal = tVal + val2.mValue.fVal;
             result.mType = evil_number_float;
         } else {
@@ -526,9 +526,9 @@ EvilNumber EvilNumber::_SelfAdd( const EvilNumber & val )
     } else {
         // we assume that the val argument is the opposite of the 'this' type
         if (mType == evil_number_float) {
-            this->mValue.fVal = this->mValue.fVal + float(val.mValue.iVal);
+            this->mValue.fVal = this->mValue.fVal + double(val.mValue.iVal);
         } else if (mType == evil_number_int) {
-            float tVal = (float)mValue.iVal; // normal integer number
+            double tVal = (double)mValue.iVal; // normal integer number
             this->mValue.fVal = tVal + val.mValue.fVal;
             mType = evil_number_float;
         } else {
@@ -555,9 +555,9 @@ EvilNumber EvilNumber::_Subtract( const EvilNumber & val1, const EvilNumber & va
     } else {
         // we assume that the val argument is the opposite of the 'this' type
         if (val1.mType == evil_number_float) {
-            result.mValue.fVal = val1.mValue.fVal - float(val2.mValue.iVal);
+            result.mValue.fVal = val1.mValue.fVal - double(val2.mValue.iVal);
         } else if (val1.mType == evil_number_int) {
-            float tVal = (float)val1.mValue.iVal; // normal integer number
+            double tVal = (double)val1.mValue.iVal; // normal integer number
             result.mValue.fVal = tVal - val2.mValue.fVal;
             result.mType = evil_number_float;
         } else {
@@ -581,9 +581,9 @@ EvilNumber EvilNumber::_SelfSubtract( const EvilNumber & val )
     } else {
         // we assume that the val argument is the opposite of the 'this' type
         if (mType == evil_number_float) {
-            this->mValue.fVal = this->mValue.fVal - float(val.mValue.iVal);
+            this->mValue.fVal = this->mValue.fVal - double(val.mValue.iVal);
         } else if (mType == evil_number_int) {
-            float tVal = (float)mValue.iVal; // normal integer number
+            double tVal = (double)mValue.iVal; // normal integer number
             this->mValue.fVal = tVal - val.mValue.fVal;
             mType = evil_number_float;
         } else {

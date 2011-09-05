@@ -299,7 +299,7 @@ public:
             snprintf(buff, 32, "%f", mValue.fVal);
         else
             assert(false); // bleh crash..
-        return buff;
+        return std::string(buff);
     }
 
     /**
