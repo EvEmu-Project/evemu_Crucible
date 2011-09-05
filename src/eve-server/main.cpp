@@ -225,6 +225,50 @@ int main( int argc, char* argv[] )
 
     sLog.Log("server init", "Init done.");
 
+	// EVILNUMBER MATH TESTING:
+	sLog.Log( "EvilNumber Testing", ">>>>> BEGIN" );
+
+	EvilNumber fval(5.0);
+	EvilNumber ival(10);
+	EvilNumber result;
+	
+	result = EvilNumber::sin(EvilNumber(3.14159*1.5));
+	sLog.Log( "EvilNumber Test", "sin(3.14159*1.5)= %f, EvilNumber::sin(3.14159*1.5)= %f", sin(3.14159*1.5), result.get_float() );
+	
+	result = EvilNumber::cos(EvilNumber(3.14159*1.5));
+	sLog.Log( "EvilNumber Test", "cos(-3.14159*1.5)= %f, EvilNumber::cos(-3.14159*1.5)= %f", cos(-3.14159*1.5), result.get_float() );
+
+	result = EvilNumber::tan(EvilNumber(3.14159*3));
+	sLog.Log( "EvilNumber Test", "tan(-3.14159*3)= %f, EvilNumber:tan(-3.14159*3)= %f", tan(-3.14159*3), result.get_float() );
+
+	result = EvilNumber::asin(EvilNumber(0.5));
+	sLog.Log( "EvilNumber Test", "asin(0.5)= %f, EvilNumber::asin(0.5)= %f", asin(0.5), result.get_float() );
+
+	result = EvilNumber::acos(EvilNumber(-0.5));
+	sLog.Log( "EvilNumber Test", "acos(-0.5)= %f, EvilNumber::acos(-0.5)= %f", acos(-0.5), result.get_float() );
+
+	result = EvilNumber::atan(EvilNumber(3.0));
+	sLog.Log( "EvilNumber Test", "atan(3.0)= %f, EvilNumber::atan(3.0)= %f", atan(3.0), result.get_float() );
+
+	result = EvilNumber::sqrt(EvilNumber(400.0));
+	sLog.Log( "EvilNumber Test", "sqrt(400.0)= %f, EvilNumber::sqrt(400.0)= %f", sqrt(400.0), result.get_float() );
+
+	result = EvilNumber::pow(EvilNumber(39.0), EvilNumber(2.0));
+	sLog.Log( "EvilNumber Test", "pow(39.0,2.0)= %f, EvilNumber::pow(39.0,2.0)= %f", pow(39.0,2.0), result.get_float() );
+
+	result = EvilNumber::log(EvilNumber(1.5));
+	sLog.Log( "EvilNumber Test", "log(1.5)= %f, EvilNumber::log(1.5)= %f", log(1.5), result.get_float() );
+
+	result = EvilNumber::log10(EvilNumber(1.5));
+	sLog.Log( "EvilNumber Test", "log10(1.5)= %f, EvilNumber::log10(1.5)= %f", log10(1.5), result.get_float() );
+
+	result = EvilNumber::exp(EvilNumber(1.5));
+	sLog.Log( "EvilNumber Test", "exp(1.5)= %f, EvilNumber::exp(1.5)= %f", exp(1.5), result.get_float() );
+
+	
+	sLog.Log( "EvilNumber Testing", "<<<<< END" );
+
+
     /*
      * THE MAIN LOOP
      *

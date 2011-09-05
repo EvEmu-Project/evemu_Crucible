@@ -223,17 +223,17 @@ public:
      * @param[in] val
      * @return 
      */
-    EvilNumber sin( const EvilNumber & val );
-    EvilNumber cos( const EvilNumber & val );
-    EvilNumber tan( const EvilNumber & val );
-    EvilNumber asin( const EvilNumber & val );
-    EvilNumber acos( const EvilNumber & val );
-    EvilNumber atan( const EvilNumber & val );
-    EvilNumber sqrt( const EvilNumber & val );
-    EvilNumber pow( const EvilNumber & val1, const EvilNumber & val2 );
-    EvilNumber log( const EvilNumber & val );
-    EvilNumber log10( const EvilNumber & val );
-    EvilNumber exp( const EvilNumber & val );
+    static EvilNumber sin( const EvilNumber & val );
+    static EvilNumber cos( const EvilNumber & val );
+    static EvilNumber tan( const EvilNumber & val );
+    static EvilNumber asin( const EvilNumber & val );
+    static EvilNumber acos( const EvilNumber & val );
+    static EvilNumber atan( const EvilNumber & val );
+    static EvilNumber sqrt( const EvilNumber & val );
+    static EvilNumber pow( const EvilNumber & val1, const EvilNumber & val2 );
+    static EvilNumber log( const EvilNumber & val );
+    static EvilNumber log10( const EvilNumber & val );
+    static EvilNumber exp( const EvilNumber & val );
 
     /************************************************************************/
     /* End of EvilNumber Mathematical functions                             */
