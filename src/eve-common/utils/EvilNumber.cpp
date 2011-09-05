@@ -35,6 +35,9 @@ const EvilNumber EvilTime_Day = Win32Time_Hour * 24;
 const EvilNumber EvilTime_Month = Win32Time_Day * 30;
 const EvilNumber EvilTime_Year = Win32Time_Month * 12;
 
+const EvilNumber EvilPI = 3.14159265358979323846;
+const EvilNumber EvilE = 2.71828182845904523536;
+
 
 // CONSTRUCTORS:
 
@@ -107,59 +110,165 @@ EvilNumber::EvilNumber( double val ) : mType(evil_number_float)
 
 // PUBLIC FUNCTIONS:
 
-EvilNumber EvilNumber::sin( EvilNumber & val )
+EvilNumber EvilNumber::sin( const EvilNumber & val )
 {
-    return *(new EvilNumber(0));
+    EvilNumber result;
+
+    if( val.mType == evil_number_float )
+        result.mValue.fVal = std::sin( val.mValue.fVal );
+    else {
+        result.mValue.fVal = std::sin( (double)(val.mValue.iVal) );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
-EvilNumber EvilNumber::cos( EvilNumber & val )
+EvilNumber EvilNumber::cos( const EvilNumber & val )
 {
-    return *(new EvilNumber(0));
+    EvilNumber result;
+
+    if( val.mType == evil_number_float )
+        result.mValue.fVal = std::cos( val.mValue.fVal );
+    else {
+        result.mValue.fVal = std::cos( (double)(val.mValue.iVal) );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
-EvilNumber EvilNumber::tan( EvilNumber & val )
+EvilNumber EvilNumber::tan( const EvilNumber & val )
 {
-    return *(new EvilNumber(0));
+    EvilNumber result;
+
+    if( val.mType == evil_number_float )
+        result.mValue.fVal = std::tan( val.mValue.fVal );
+    else {
+        result.mValue.fVal = std::tan( (double)(val.mValue.iVal) );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
-EvilNumber EvilNumber::asin( EvilNumber & val )
+EvilNumber EvilNumber::asin( const EvilNumber & val )
 {
-    return *(new EvilNumber(0));
+    EvilNumber result;
+
+    if( val.mType == evil_number_float )
+        result.mValue.fVal = std::asin( val.mValue.fVal );
+    else {
+        result.mValue.fVal = std::asin( (double)(val.mValue.iVal) );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
-EvilNumber EvilNumber::acos( EvilNumber & val )
+EvilNumber EvilNumber::acos( const EvilNumber & val )
 {
-    return *(new EvilNumber(0));
+    EvilNumber result;
+
+    if( val.mType == evil_number_float )
+        result.mValue.fVal = std::acos( val.mValue.fVal );
+    else {
+        result.mValue.fVal = std::acos( (double)(val.mValue.iVal) );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
-EvilNumber EvilNumber::atan( EvilNumber & val )
+EvilNumber EvilNumber::atan( const EvilNumber & val )
 {
-    return *(new EvilNumber(0));
+    EvilNumber result;
+
+    if( val.mType == evil_number_float )
+        result.mValue.fVal = std::atan( val.mValue.fVal );
+    else {
+        result.mValue.fVal = std::atan( (double)(val.mValue.iVal) );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
-EvilNumber EvilNumber::sqrt( EvilNumber & val )
+EvilNumber EvilNumber::sqrt( const EvilNumber & val )
 {
-    return *(new EvilNumber(0));
+    EvilNumber result;
+
+    if( val.mType == evil_number_float )
+        result.mValue.fVal = std::sqrt( val.mValue.fVal );
+    else {
+        result.mValue.fVal = std::sqrt( (double)(val.mValue.iVal) );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
-EvilNumber EvilNumber::pow( EvilNumber & val )
+EvilNumber EvilNumber::pow( const EvilNumber & val1, const EvilNumber & val2 )
 {
-    return *(new EvilNumber(0));
+    EvilNumber exponent;
+    EvilNumber result;
+
+    if( val2.mType == evil_number_float )
+        exponent.mValue.fVal = val2.mValue.fVal;
+    else
+        exponent.mValue.fVal = (double)(val2.mValue.iVal);
+    exponent.mType = evil_number_float;
+
+    if( val1.mType == evil_number_float )
+        result.mValue.fVal = std::pow( val1.mValue.fVal, exponent.mValue.fVal );
+    else {
+        result.mValue.fVal = std::pow( (double)(val1.mValue.iVal), exponent.mValue.fVal );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
-EvilNumber EvilNumber::log( EvilNumber & val )
+EvilNumber EvilNumber::log( const EvilNumber & val )
 {
-    return *(new EvilNumber(0));
+    EvilNumber result;
+
+    if( val.mType == evil_number_float )
+        result.mValue.fVal = std::log( val.mValue.fVal );
+    else {
+        result.mValue.fVal = std::log( (float)(val.mValue.iVal) );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
-EvilNumber EvilNumber::ln( EvilNumber & val )
+EvilNumber EvilNumber::log10( const EvilNumber & val )
 {
-    return *(new EvilNumber(0));
+    EvilNumber result;
+
+    if( val.mType == evil_number_float )
+        result.mValue.fVal = std::log10( val.mValue.fVal );
+    else {
+        result.mValue.fVal = std::log10( (float)(val.mValue.iVal) );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
-EvilNumber EvilNumber::exp( EvilNumber & val )
+EvilNumber EvilNumber::exp( const EvilNumber & val )
 {
-    return *(new EvilNumber(0));
+    EvilNumber result;
+
+    if( val.mType == evil_number_float )
+        result.mValue.fVal = std::exp( val.mValue.fVal );
+    else {
+        result.mValue.fVal = std::exp( (float)(val.mValue.iVal) );
+        result.mType = evil_number_float;
+    }
+
+    return result;
 }
 
 PyRep* EvilNumber::GetPyObject()
