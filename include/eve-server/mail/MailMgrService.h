@@ -20,7 +20,7 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Luck
+	Author:		Luck, caytchen
 */
 
 #ifndef MAIL_MGR_SERIVCE_H
