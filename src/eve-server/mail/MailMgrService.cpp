@@ -67,6 +67,13 @@ MailMgrService::~MailMgrService() {
 
 PyResult MailMgrService::Handle_PrimeOwners(PyCallArgs &call)
 {
+	Call_SingleIntList args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode PrimeOwners args");
+		return NULL;
+	}
+
 	return NULL;
 }
 
@@ -87,36 +94,59 @@ PyResult MailMgrService::Handle_SyncMail(PyCallArgs &call)
 
 PyResult MailMgrService::Handle_AssignLabels(PyCallArgs &call)
 {
+	// arguments: tuple of messageIds, labelId
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_CreateLabel(PyCallArgs &call)
 {
+	// arguments: name, color
+	// returns new labelId
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_DeleteLabel(PyCallArgs &call)
 {
+	Call_SingleIntegerArg args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode DeleteLabel args");
+		return NULL;
+	}
+	
+	int labelId = args.arg;
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_DeleteMail(PyCallArgs &call)
 {
+	// contains message ids
+	Call_SingleIntList args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode DeleteMail args");
+		return NULL;
+	}
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_EditLabel(PyCallArgs &call)
 {
+	// arguments: labelId, name, color
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_EmptyTrash(PyCallArgs &call)
 {
+	// no arguments
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_GetBody(PyCallArgs &call)
 {
+	// arguments: messageId (integer), isUnread (bool)
 	return NULL;
 }
 
@@ -127,80 +157,180 @@ PyResult MailMgrService::Handle_GetLabels(PyCallArgs &call)
 
 PyResult MailMgrService::Handle_GetMailHeaders(PyCallArgs &call)
 {
+	// contains message ids
+	Call_SingleIntList args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode GetMailHeaders args");
+		return NULL;
+	}
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MarkAllAsRead(PyCallArgs &call)
 {
+	// no arguments
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MarkAllAsUnread(PyCallArgs &call)
 {
+	// no arguments
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MarkAsRead(PyCallArgs &call)
 {
+	// message id list
+	Call_SingleIntList args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode MarkAsRead args");
+		return NULL;
+	}
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MarkAsReadByLabel(PyCallArgs &call)
 {
+	Call_SingleIntegerArg args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode MarkAsReadByLabel args");
+		return NULL;
+	}
+
+	int labelId = args.arg;
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MarkAsReadByList(PyCallArgs &call)
 {
+	Call_SingleIntegerArg args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode MarkAsReadByList args");
+		return NULL;
+	}
+
+	int listId = args.arg;
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MarkAsUnread(PyCallArgs &call)
 {
+	// message id list
+	Call_SingleIntList args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode MarkAsUnread args");
+		return NULL;
+	}
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MarkAsUnreadByLabel(PyCallArgs &call)
 {
+	Call_SingleIntegerArg args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode MarkAsUnreadByLabel args");
+		return NULL;
+	}
+
+	int labelId = args.arg;
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MarkAsUnreadByList(PyCallArgs &call)
 {
+	Call_SingleIntegerArg args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode MarkAsUnreadByList args");
+		return NULL;
+	}
+
+	int listId = args.arg;
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MoveAllFromTrash(PyCallArgs &call)
 {
+	// no arguments
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MoveAllToTrash(PyCallArgs &call)
 {
+	// no arguments
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MoveFromTrash(PyCallArgs &call)
 {
+	// message id list
+	Call_SingleIntList args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode MoveFromTrash args");
+		return NULL;
+	}
+
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MoveToTrash(PyCallArgs &call)
 {
+	// message id list
+	Call_SingleIntList args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode MoveToTrash args");
+		return NULL;
+	}
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MoveToTrashByLabel(PyCallArgs &call)
 {
+	Call_SingleIntegerArg args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode MoveToTrashByLabel args");
+		return NULL;
+	}
+
+	int labelId = args.arg;
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_MoveToTrashByList(PyCallArgs &call)
 {
+	Call_SingleIntegerArg args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode MoveToTrashByList args");
+		return NULL;
+	}
+
+	int listId = args.arg;
+
 	return NULL;
 }
 
 PyResult MailMgrService::Handle_RemoveLabels(PyCallArgs &call)
 {
+	// arguments: tuple of messageIds, labelId (see AssignLabels)
 	return NULL;
 }
