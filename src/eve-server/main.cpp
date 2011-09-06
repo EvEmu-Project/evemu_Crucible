@@ -229,7 +229,7 @@ int main( int argc, char* argv[] )
 
     sLog.Log("server init", "Init done.");
 
-/*
+
 	// EVILNUMBER MATH TESTING:
 	sLog.Log( "EvilNumber Testing", ">>>>> BEGIN" );
 
@@ -238,7 +238,51 @@ int main( int argc, char* argv[] )
 	EvilNumber ival1(10);
 	EvilNumber ival2(123456);
 	EvilNumber result;
+
+    // UNARY:
+    sLog.Log( "EvilNumber Test", "before ival1++   ival1 = %s", ival1.to_str().c_str(), result.to_str().c_str() );
+    result = ival1++;
+    sLog.Log( "EvilNumber Test", "ival1++ = %s", ival1.to_str().c_str(), result.to_str().c_str() );
 	
+    sLog.Log( "EvilNumber Test", "before ival2--   ival2 = %s", ival2.to_str().c_str(), result.to_str().c_str() );
+    result = ival2--;
+    sLog.Log( "EvilNumber Test", "ival2-- = %s-- = %s", ival2.to_str().c_str(), result.to_str().c_str() );
+	
+    sLog.Log( "EvilNumber Test", "before fval1++   fval1 = %s", fval1.to_str().c_str(), result.to_str().c_str() );
+    result = fval1++;
+    sLog.Log( "EvilNumber Test", "fval1++ = %s++ = %s", fval1.to_str().c_str(), result.to_str().c_str() );
+	
+    sLog.Log( "EvilNumber Test", "before fval2--   fval2 = %s", fval2.to_str().c_str(), result.to_str().c_str() );
+    result = fval2--;
+    sLog.Log( "EvilNumber Test", "fval2-- = %s-- = %s", fval2.to_str().c_str(), result.to_str().c_str() );
+	
+    // MIXED:
+    result = fval1 + ival2;
+    sLog.Log( "EvilNumber Test", "fval1 + ival2 = %s + %s = %s", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+
+    result = fval1 - ival2;
+    sLog.Log( "EvilNumber Test", "fval1 - ival2 = %s - %s = %s", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+
+    result = fval1 * ival2;
+    sLog.Log( "EvilNumber Test", "fval1 * ival2 = %s * %s = %s", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+
+    result = fval1 / ival2;
+    sLog.Log( "EvilNumber Test", "fval1 / ival2 = %s / %s = %s", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+	
+    // BOTH INT:
+    result = ival1 + ival2;
+    sLog.Log( "EvilNumber Test", "ival1 + ival2 = %s + %s = %s", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+
+    result = ival1 - ival2;
+    sLog.Log( "EvilNumber Test", "ival1 - ival2 = %s - %s = %s", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+
+    result = ival1 * ival2;
+    sLog.Log( "EvilNumber Test", "ival1 * ival2 = %s * %s = %s", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+
+    result = ival1 / ival2;
+    sLog.Log( "EvilNumber Test", "ival1 / ival2 = %s / %s = %s", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+	
+    // BOTH FLOAT:
     result = fval1 + fval2;
     sLog.Log( "EvilNumber Test", "fval1 + fval2 = %s + %s = %s", fval1.to_str().c_str(), fval2.to_str().c_str(), result.to_str().c_str() );
 
@@ -299,7 +343,7 @@ int main( int argc, char* argv[] )
 
 	
 	sLog.Log( "EvilNumber Testing", "<<<<< END" );
-*/
+
 
     /*
      * THE MAIN LOOP
