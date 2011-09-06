@@ -18,9 +18,17 @@ MailMgrService::~MailMgrService() {
 	delete m_dispatch;
 }
 
-PyResult MailMgrService::Handle_SyncMail(PyCallArgs &args)
+PyResult MailMgrService::Handle_SyncMail(PyCallArgs &call)
 {
-	sLog.Debug("MailMgrService","Called SyncMail stub");
+	Call_TwoIntegerArgs args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode SyncMail args");
+		return NULL;
+	}
+
+	// referring to mail ids
+	int firstId = args.arg1, secondId = args.arg2;
 
 	return NULL;
 }
