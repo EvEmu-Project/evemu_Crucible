@@ -113,6 +113,7 @@
 #include "packets/Standing2.h"
 #include "packets/Trade.h"
 #include "packets/Tutorial.h"
+#include "packets/Mail.h"
 
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
