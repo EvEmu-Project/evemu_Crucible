@@ -173,8 +173,7 @@ PyResult MailMgrService::Handle_GetBody(PyCallArgs &call)
 
 PyResult MailMgrService::Handle_GetLabels(PyCallArgs &call)
 {
-	// returns a PyDict with key = labelId, value = util_KeyVal with keys: labelId, name, color
-	return NULL;
+	return m_db->GetLabels(call.client->GetCharacterID());
 }
 
 PyResult MailMgrService::Handle_GetMailHeaders(PyCallArgs &call)

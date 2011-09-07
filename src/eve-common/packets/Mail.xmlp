@@ -29,4 +29,21 @@
     </tupleInline>
   </elementDef>
   
+  <elementDef name="MailLabel">
+    <objectInline>
+		<stringInline value="util.KeyVal" />
+		<dictInline>
+		    <dictInlineEntry key="labelID">
+			    <int name="id" />
+		    </dictInlineEntry>
+		    <dictInlineEntry key="name">
+			    <string name="name" />
+			</dictInlineEntry>
+			<dictInlineEntry key="color">
+				<int name="color" />
+			</dictInlineEntry>
+		</dictInline>
+    </objectInline>
+  </elementDef>
+  
 </elements>

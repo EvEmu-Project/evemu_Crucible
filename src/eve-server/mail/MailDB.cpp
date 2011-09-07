@@ -25,3 +25,24 @@
 
 #include "EVEServerPCH.h"
 
+PyRep* MailDB::GetLabels(int characterID)
+{
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res, "SELECT labelID, name, color, ownerId FROM mailLabel WHERE ownerID = %u", characterID))
+		return NULL;
+	 
+	PyDict* ret = new PyDict();
+
+	DBResultRow row;
+	while (res.GetRow(row))
+	{
+		MailLabel label;
+		label.id = row.GetInt(0);
+		label.name = row.GetText(1);
+		label.color = row.GetInt(2);
+
+		ret->SetItem(new PyInt(label.id), label.Encode());
+	}
+
+	return ret;
+}

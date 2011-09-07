@@ -34,7 +34,7 @@ class PyString;
 class MailDB : public ServiceDB
 {
 public:
-
+	PyRep* GetLabels(int characterID);
 };
 
 #endif
