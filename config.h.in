@@ -53,7 +53,7 @@
 
 // EVEMU_VERSION
 // The version of source.
-#define EVEMU_VERSION "@PROJECT_VERSION@"
+//#define EVEMU_VERSION "@PROJECT_VERSION@"
 
 // TINYXML_USE_STL
 // Define this if tinyxml should use native STL.
