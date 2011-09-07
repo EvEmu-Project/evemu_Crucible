@@ -54,12 +54,14 @@ MailMgrService::MailMgrService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(MailMgrService, EmptyTrash);
 	PyCallable_REG_CALL(MailMgrService, DeleteMail);
 	PyCallable_REG_CALL(MailMgrService, GetBody);
+	PyCallable_REG_CALL(MailMgrService, AssignLabels);
+	PyCallable_REG_CALL(MailMgrService, RemoveLabels);
+
+	// implemented
 	PyCallable_REG_CALL(MailMgrService, GetLabels);
 	PyCallable_REG_CALL(MailMgrService, EditLabel);
 	PyCallable_REG_CALL(MailMgrService, CreateLabel);
 	PyCallable_REG_CALL(MailMgrService, DeleteLabel);
-	PyCallable_REG_CALL(MailMgrService, AssignLabels);
-	PyCallable_REG_CALL(MailMgrService, RemoveLabels);
 }
 
 MailMgrService::~MailMgrService() {

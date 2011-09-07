@@ -62,12 +62,14 @@ protected:
 	PyCallable_DECL_CALL(EmptyTrash);
 	PyCallable_DECL_CALL(DeleteMail);
 	PyCallable_DECL_CALL(GetBody);
+	PyCallable_DECL_CALL(AssignLabels);
+	PyCallable_DECL_CALL(RemoveLabels);
+
+	// implemented
 	PyCallable_DECL_CALL(GetLabels);
 	PyCallable_DECL_CALL(EditLabel);
 	PyCallable_DECL_CALL(CreateLabel);
 	PyCallable_DECL_CALL(DeleteLabel);
-	PyCallable_DECL_CALL(AssignLabels);
-	PyCallable_DECL_CALL(RemoveLabels);
 };
 
 
