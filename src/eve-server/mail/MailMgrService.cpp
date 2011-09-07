@@ -64,6 +64,7 @@ MailMgrService::MailMgrService(PyServiceMgr *mgr)
 
 MailMgrService::~MailMgrService() {
 	delete m_dispatch;
+	delete m_db;
 }
 
 PyResult MailMgrService::Handle_PrimeOwners(PyCallArgs &call)
@@ -112,7 +113,10 @@ PyResult MailMgrService::Handle_CreateLabel(PyCallArgs &call)
 		codelog(CLIENT__ERROR, "Failed to decode CreateLabel args");
 		return NULL;
 	}
-	// returns new labelId
+	
+	uint32 ret;
+	if (m_db->CreateLabel(call.client->GetCharacterID(), args, ret))
+		return new PyInt(ret);
 	return NULL;
 }
 

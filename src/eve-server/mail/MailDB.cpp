@@ -46,3 +46,18 @@ PyRep* MailDB::GetLabels(int characterID)
 
 	return ret;
 }
+
+bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID)
+{
+	DBerror error;
+	uint32 lastID;
+	if (!sDatabase.RunQueryLID(error, lastID, "INSERT INTO mailLabel (name, color, ownerId) VALUES (%s, %u, %u)", args.name, args.color, characterID))
+	{
+		codelog(SERVICE__ERROR, "Failed to insert new mail label into database");
+		// since this is an out parameter, make sure we assign this even in case of an error
+		newID = 0;
+		return false;
+	}
+	newID = lastID;
+	return true;
+}
