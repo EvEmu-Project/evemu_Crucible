@@ -37,6 +37,7 @@ class MailDB : public ServiceDB
 public:
 	PyRep* GetLabels(int characterID);
 	bool CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID);
+	void DeleteLabel(int characterID, int labelID);
 };
 
 #endif

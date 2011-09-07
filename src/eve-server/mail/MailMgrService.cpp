@@ -129,7 +129,7 @@ PyResult MailMgrService::Handle_DeleteLabel(PyCallArgs &call)
 		return NULL;
 	}
 	
-	int labelId = args.arg;
+	m_db->DeleteLabel(call.client->GetCharacterID(), args.arg /*labelID*/);
 
 	return NULL;
 }

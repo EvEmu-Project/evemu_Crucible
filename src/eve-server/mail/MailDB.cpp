@@ -61,3 +61,9 @@ bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID)
 	newID = lastID;
 	return true;
 }
+
+void MailDB::DeleteLabel(int characterID, int labelID)
+{
+	DBerror error;
+	sDatabase.RunQuery(error, "DELETE FROM mailLabel WHERE ownerId = %u AND labelID = %u", characterID, labelID); 
+}
