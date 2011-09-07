@@ -1,0 +1,11 @@
+<elements>
+
+  <elementDef name="Call_EditLabel">
+    <tupleInline>
+      <int name="labelId" />
+      <string name="name" optional="true" />
+      <int name="color" optional="true" />
+    </tupleInline>
+  </elementDef>
+  
+</elements>
