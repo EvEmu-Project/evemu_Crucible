@@ -28,6 +28,8 @@
 
 #include "PyService.h"
 
+class MailDB;
+
 class MailMgrService : public PyService
 {
 public:
@@ -35,6 +37,8 @@ public:
 	virtual ~MailMgrService();
 
 protected:
+	MailDB* m_db;
+
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
 

@@ -29,7 +29,8 @@ PyCallable_Make_InnerDispatcher(MailMgrService)
 
 MailMgrService::MailMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "mailMgr"),
-  m_dispatch(new Dispatcher(this))
+  m_dispatch(new Dispatcher(this)),
+  m_db(new MailDB())
 {
 	_SetCallDispatcher(m_dispatch);
 
