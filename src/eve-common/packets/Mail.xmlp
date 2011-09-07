@@ -22,4 +22,11 @@
     </tupleInline>
   </elementDef>
   
+  <elementDef name="Call_MailGetBody">
+    <tupleInline>
+      <int name="messageId" />
+      <bool name="isUnread" />
+    </tupleInline>
+  </elementDef>
+  
 </elements>

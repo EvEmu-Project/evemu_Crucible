@@ -161,7 +161,12 @@ PyResult MailMgrService::Handle_EmptyTrash(PyCallArgs &call)
 
 PyResult MailMgrService::Handle_GetBody(PyCallArgs &call)
 {
-	// arguments: messageId (integer), isUnread (bool)
+	Call_MailGetBody args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode GetBody args");
+		return NULL;
+	}
 	return NULL;
 }
 
@@ -346,6 +351,12 @@ PyResult MailMgrService::Handle_MoveToTrashByList(PyCallArgs &call)
 
 PyResult MailMgrService::Handle_RemoveLabels(PyCallArgs &call)
 {
-	// arguments: tuple of messageIds, labelId (see AssignLabels)
+	// we reuse Call_AssignLabels here because the arguments match
+	Call_AssignLabels args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode RemoveLabels args");
+		return NULL;
+	}
 	return NULL;
 }
