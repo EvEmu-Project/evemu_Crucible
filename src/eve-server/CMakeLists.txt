@@ -243,11 +243,13 @@ SET( inventory_SOURCE
 SET( mail_INCLUDE
      "${TARGET_INCLUDE_DIR}/mail/MailingListMgrService.h"
 	 "${TARGET_INCLUDE_DIR}/mail/MailMgrService.h"
-	 "${TARGET_INCLUDE_DIR}/mail/NotificationMgrService.h" )
+	 "${TARGET_INCLUDE_DIR}/mail/NotificationMgrService.h"
+	 "${TARGET_INCLUDE_DIR}/mail/MailDB.h" )
 SET( mail_SOURCE
      "${TARGET_SOURCE_DIR}/mail/MailingListMgrService.cpp"
      "${TARGET_SOURCE_DIR}/mail/MailMgrService.cpp"
-     "${TARGET_SOURCE_DIR}/mail/NotificationMgrService.cpp" )
+     "${TARGET_SOURCE_DIR}/mail/NotificationMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/mail/MailDB.cpp" )
 
 SET( manufacturing_INCLUDE
      "${TARGET_INCLUDE_DIR}/manufacturing/Blueprint.h"

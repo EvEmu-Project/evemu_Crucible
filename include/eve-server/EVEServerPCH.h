@@ -226,10 +226,11 @@
 #include "inventory/ItemType.h"
 #include "inventory/Owner.h"
 
-//mail stuff
+// mail stuff
 #include "mail/MailMgrService.h"
 #include "mail/MailingListMgrService.h"
 #include "mail/NotificationMgrService.h"
+#include "mail/MailDB.h"
 
 // factory stuff
 #include "manufacturing/Blueprint.h"
