@@ -67,3 +67,14 @@ void MailDB::DeleteLabel(int characterID, int labelID)
 	DBerror error;
 	sDatabase.RunQuery(error, "DELETE FROM mailLabel WHERE ownerId = %u AND labelID = %u", characterID, labelID); 
 }
+
+void MailDB::EditLabel(int characterID, Call_EditLabel& args)
+{
+	DBerror error;
+	if (args.name.length() == 0)
+		sDatabase.RunQuery(error, "UPDATE mailLabel SET color = %u WHERE labelID = %u AND ownerId = %u", args.color, args.labelId, characterID);
+	else if (args.color == -1)
+		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = %s WHERE labelID = %u AND ownerId = %u", args.name.c_str(), args.labelId, characterID);
+	else
+		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = %s, color = %u WHERE labelID = %u AND ownerId = %u", args.name.c_str(), args.color, args.labelId, characterID);
+}

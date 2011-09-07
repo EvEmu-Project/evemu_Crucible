@@ -4,7 +4,7 @@
     <tupleInline>
       <int name="labelId" />
       <string name="name" optional="true" />
-      <int name="color" optional="true" />
+      <int name="color" optional="true" default="-1" />
     </tupleInline>
   </elementDef>
   

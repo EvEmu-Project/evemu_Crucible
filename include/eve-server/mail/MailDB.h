@@ -31,6 +31,7 @@
 class PyObject;
 class PyString;
 class Call_CreateLabel;
+class Call_EditLabel;
 
 class MailDB : public ServiceDB
 {
@@ -38,6 +39,7 @@ public:
 	PyRep* GetLabels(int characterID);
 	bool CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID);
 	void DeleteLabel(int characterID, int labelID);
+	void EditLabel(int characterID, Call_EditLabel& args);
 };
 
 #endif

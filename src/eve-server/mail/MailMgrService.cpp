@@ -155,6 +155,8 @@ PyResult MailMgrService::Handle_EditLabel(PyCallArgs &call)
 		codelog(CLIENT__ERROR, "Failed to decode EditLabel args");
 		return NULL;
 	}
+
+	m_db->EditLabel(call.client->GetCharacterID(), args);
 	return NULL;
 }
 
