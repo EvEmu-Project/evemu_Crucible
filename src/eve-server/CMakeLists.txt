@@ -363,7 +363,7 @@ SET( shipmodules_INCLUDE
      "${TARGET_INCLUDE_DIR}/ship/Modules/Modules.h"
      "${TARGET_INCLUDE_DIR}/ship/Modules/PassiveModules.h"
      "${TARGET_INCLUDE_DIR}/ship/Modules/RigModule.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/SubSystemModule.h" )
+     "${TARGET_INCLUDE_DIR}/ship/Modules/SubSystemModules.h" )
 SET( shipmodules_SOURCE
                                                 )
      #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp"
@@ -478,6 +478,7 @@ SET( imageserver_SOURCE
 ########################
 INCLUDE_DIRECTORIES( "${GANGSTA_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${MYSQL_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${LUA_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${TINYXML_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${UTF8CPP_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${ASIO_INCLUDE_DIR}" )
