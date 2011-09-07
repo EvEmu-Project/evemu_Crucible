@@ -8,4 +8,11 @@
     </tupleInline>
   </elementDef>
   
+    <elementDef name="Call_CreateLabel">
+    <tupleInline>
+      <string name="name" />
+      <int name="color" optional="true" />
+    </tupleInline>
+  </elementDef>
+  
 </elements>

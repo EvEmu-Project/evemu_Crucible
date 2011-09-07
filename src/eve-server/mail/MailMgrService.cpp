@@ -100,7 +100,12 @@ PyResult MailMgrService::Handle_AssignLabels(PyCallArgs &call)
 
 PyResult MailMgrService::Handle_CreateLabel(PyCallArgs &call)
 {
-	// arguments: name, color
+	Call_CreateLabel args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode CreateLabel args");
+		return NULL;
+	}
 	// returns new labelId
 	return NULL;
 }
@@ -134,7 +139,12 @@ PyResult MailMgrService::Handle_DeleteMail(PyCallArgs &call)
 
 PyResult MailMgrService::Handle_EditLabel(PyCallArgs &call)
 {
-	// arguments: labelId, name, color
+	Call_EditLabel args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode EditLabel args");
+		return NULL;
+	}
 	return NULL;
 }
 
