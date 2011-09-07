@@ -94,7 +94,12 @@ PyResult MailMgrService::Handle_SyncMail(PyCallArgs &call)
 
 PyResult MailMgrService::Handle_AssignLabels(PyCallArgs &call)
 {
-	// arguments: tuple of messageIds, labelId
+	Call_AssignLabels args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode AssignLabels args");
+		return NULL;
+	}
 	return NULL;
 }
 
