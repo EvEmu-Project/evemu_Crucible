@@ -789,4 +789,13 @@ CREATE TABLE `dgmEffectsInfo` (
   PRIMARY KEY (`effectID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+DROP TABLE IF EXISTS `mailLabel`;
+CREATE TABLE `mailLabel` (
+	`labelID` INT(10) NULL AUTO_INCREMENT,
+	`name` VARCHAR(100) NULL DEFAULT '0',
+	`color` INT NULL DEFAULT '0',
+	`ownerId` bigint(20) unsigned NOT NULL default '0',
+	PRIMARY KEY (`labelID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1000 DEFAULT CHARSET=utf8;
+
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

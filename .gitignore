@@ -93,6 +93,13 @@ zlib/
 # evemu output
 build/
 
+# we don't want those to be part of the repository:
+# external
+inc15-mysql5-v1.sql
+# generated
+ofic-updates.sql
+evemu-updates.sql
+
 # evemu svn ignores
 *.a
 aclocal.m4
