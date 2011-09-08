@@ -40,6 +40,9 @@ public:
 	bool CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID);
 	void DeleteLabel(int characterID, int labelID);
 	void EditLabel(int characterID, Call_EditLabel& args);
+
+protected:
+	int BitFromLabelID(int id);
 };
 
 #endif

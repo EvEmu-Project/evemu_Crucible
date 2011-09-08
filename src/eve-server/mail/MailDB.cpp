@@ -28,7 +28,7 @@
 PyRep* MailDB::GetLabels(int characterID)
 {
 	DBQueryResult res;
-	if (!sDatabase.RunQuery(res, "SELECT labelID, name, color, ownerId FROM mailLabel WHERE ownerID = %u", characterID))
+	if (!sDatabase.RunQuery(res, "SELECT bit, name, color, ownerId FROM mailLabel WHERE ownerID = %u", characterID))
 		return NULL;
 	 
 	PyDict* ret = new PyDict();
@@ -37,7 +37,7 @@ PyRep* MailDB::GetLabels(int characterID)
 	while (res.GetRow(row))
 	{
 		MailLabel label;
-		label.id = row.GetInt(0);
+		label.id = (int)pow((float)2, row.GetInt(0));
 		label.name = row.GetText(1);
 		label.color = row.GetInt(2);
 
@@ -49,32 +49,59 @@ PyRep* MailDB::GetLabels(int characterID)
 
 bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID)
 {
+	// we need to get the next free bit index; can't avoid a SELECT
+	DBQueryResult res;
+	sDatabase.RunQuery(res, "SELECT bit FROM mailLabel WHERE ownerID = %u ORDER BY bit DESC LIMIT 1", characterID);
+
+	// 6 is a guessed default; there are some hardcoded labels that we don't have the details on yet
+	int bit = 6;
+
+	if (res.GetRowCount() > 0)
+	{
+		DBResultRow row;
+		res.GetRow(row);
+		// we want the next one, not the current one, so +1
+		bit = row.GetInt(0) + 1;
+	}
+
 	DBerror error;
-	uint32 lastID;
-	if (!sDatabase.RunQueryLID(error, lastID, "INSERT INTO mailLabel (name, color, ownerId) VALUES (%s, %u, %u)", args.name, args.color, characterID))
+	if (!sDatabase.RunQuery(error, "INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, %s, %u, %u)", bit, args.name, args.color, characterID))
 	{
 		codelog(SERVICE__ERROR, "Failed to insert new mail label into database");
 		// since this is an out parameter, make sure we assign this even in case of an error
 		newID = 0;
 		return false;
 	}
-	newID = lastID;
+
+	// the client wants the power of 2, not the bitset index
+	newID = (uint32)pow((float)2, bit);
 	return true;
 }
 
 void MailDB::DeleteLabel(int characterID, int labelID)
 {
+	int bit = BitFromLabelID(labelID);
 	DBerror error;
-	sDatabase.RunQuery(error, "DELETE FROM mailLabel WHERE ownerId = %u AND labelID = %u", characterID, labelID); 
+	sDatabase.RunQuery(error, "DELETE FROM mailLabel WHERE ownerID = %u AND bit = %u", characterID, bit); 
 }
 
 void MailDB::EditLabel(int characterID, Call_EditLabel& args)
 {
+	int bit = BitFromLabelID(args.labelId);
+
 	DBerror error;
 	if (args.name.length() == 0)
-		sDatabase.RunQuery(error, "UPDATE mailLabel SET color = %u WHERE labelID = %u AND ownerId = %u", args.color, args.labelId, characterID);
+		sDatabase.RunQuery(error, "UPDATE mailLabel SET color = %u WHERE bit = %u AND ownerID = %u", args.color, bit, characterID);
 	else if (args.color == -1)
-		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = %s WHERE labelID = %u AND ownerId = %u", args.name.c_str(), args.labelId, characterID);
+		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = %s WHERE bit = %u AND ownerID = %u", args.name.c_str(), bit, characterID);
 	else
-		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = %s, color = %u WHERE labelID = %u AND ownerId = %u", args.name.c_str(), args.color, args.labelId, characterID);
+		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = %s, color = %u WHERE bit = %u AND ownerID = %u", args.name.c_str(), args.color, bit, characterID);
+}
+
+int MailDB::BitFromLabelID(int id)
+{
+	// lets hope the compiler can do this better; I guess it still beats a floating point log, though
+	for (int i = 0; i < sizeof(int); i++)
+		if ((id & (1 << i)) > 0)
+			return i;
 }
