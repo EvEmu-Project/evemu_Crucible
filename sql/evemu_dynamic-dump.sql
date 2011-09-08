@@ -789,6 +789,7 @@ CREATE TABLE `dgmEffectsInfo` (
   PRIMARY KEY (`effectID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+-- Mail subsystem
 DROP TABLE IF EXISTS `mailLabel`;
 CREATE TABLE `mailLabel` (
 	`id` INT(10) NOT NULL AUTO_INCREMENT,
@@ -797,6 +798,21 @@ CREATE TABLE `mailLabel` (
 	`color` INT(11) NULL DEFAULT '0',
 	`ownerID` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `mailMessage`;
+CREATE TABLE `mailMessage` (
+	`messageID` INT(10) NULL AUTO_INCREMENT,
+	`senderID` BIGINT(20) NULL DEFAULT '0',
+	`toCharacterIDs` VARCHAR(250) NULL DEFAULT '0',
+	`toListID` INT(10) NULL DEFAULT '0',
+	`toCorpOrAllianceID` INT(10) NULL DEFAULT '0',
+	`title` VARCHAR(250) NULL DEFAULT '0',
+	`sentDate` BIGINT(20) NULL DEFAULT '0',
+	`body` TEXT NULL DEFAULT '0',
+	`statusMask` INT(10) NULL DEFAULT '0',
+	`labelMask` INT(10) NULL DEFAULT '0',
+	PRIMARY KEY (`messageID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
