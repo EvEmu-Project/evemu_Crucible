@@ -809,7 +809,7 @@ CREATE TABLE `mailMessage` (
 	`toCorpOrAllianceID` INT(10) NULL DEFAULT '0',
 	`title` VARCHAR(250) NULL DEFAULT '0',
 	`sentDate` BIGINT(20) NULL DEFAULT '0',
-	`body` TEXT NULL DEFAULT '0',
+	`body` TEXT NULL,
 	`statusMask` INT(10) NULL DEFAULT '0',
 	`labelMask` INT(10) NULL DEFAULT '0',
 	PRIMARY KEY (`messageID`)
