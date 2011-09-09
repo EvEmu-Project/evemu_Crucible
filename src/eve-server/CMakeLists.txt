@@ -354,6 +354,29 @@ SET( ship_SOURCE
      "${TARGET_SOURCE_DIR}/ship/ShipService.cpp"
      "${TARGET_SOURCE_DIR}/ship/TargetManager.cpp" )
 
+SET( shipmodules_INCLUDE
+     "${TARGET_INCLUDE_DIR}/ship/Modules/ActiveModules.h"
+     "${TARGET_INCLUDE_DIR}/ship/Modules/ModuleDB.h"
+     "${TARGET_INCLUDE_DIR}/ship/Modules/ModuleDefs.h"
+     "${TARGET_INCLUDE_DIR}/ship/Modules/ModuleEffects.h"
+     "${TARGET_INCLUDE_DIR}/ship/Modules/ModuleFactory.h"
+     "${TARGET_INCLUDE_DIR}/ship/Modules/Modules.h"
+     "${TARGET_INCLUDE_DIR}/ship/Modules/PassiveModules.h"
+     "${TARGET_INCLUDE_DIR}/ship/Modules/RigModule.h"
+     "${TARGET_INCLUDE_DIR}/ship/Modules/SubSystemModules.h" )
+SET( shipmodules_SOURCE
+                                                )
+     #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp"
+     #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp" )
+
+SET( shipmodulecomponents_INCLUDE
+     "${TARGET_INCLUDE_DIR}/ship/Modules/components/ActiveModuleProcessingComponent.h"
+     "${TARGET_INCLUDE_DIR}/ship/Modules/components/ModifyShipAttributesComponent.h" )
+SET( shipmodulecomponents_SOURCE
+                                                )
+     #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp"
+     #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp" )
+
 SET( spawn_INCLUDE
      "${TARGET_INCLUDE_DIR}/spawn/SpawnDB.h"
      "${TARGET_INCLUDE_DIR}/spawn/SpawnManager.h" )
@@ -455,6 +478,7 @@ SET( imageserver_SOURCE
 ########################
 INCLUDE_DIRECTORIES( "${GANGSTA_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${MYSQL_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${LUA_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${TINYXML_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${UTF8CPP_INCLUDE_DIR}" )
 INCLUDE_DIRECTORIES( "${ASIO_INCLUDE_DIR}" )
@@ -490,6 +514,8 @@ SOURCE_GROUP( "include\\npc"           FILES ${npc_INCLUDE} )
 SOURCE_GROUP( "include\\planetint"	   FILES ${planetint_INCLUDE} )
 SOURCE_GROUP( "include\\posmgr"        FILES ${posmgr_INCLUDE} )
 SOURCE_GROUP( "include\\ship"          FILES ${ship_INCLUDE} )
+SOURCE_GROUP( "include\\ship\\Modules" FILES ${shipmodules_INCLUDE} )
+SOURCE_GROUP( "include\\ship\\Modules\\components" FILES ${shipmodulecomponents_INCLUDE})
 SOURCE_GROUP( "include\\sovereignty"   FILES ${sovereignty_INCLUDE} )
 SOURCE_GROUP( "include\\spawn"         FILES ${spawn_INCLUDE} )
 SOURCE_GROUP( "include\\standing"      FILES ${standing_INCLUDE} )
@@ -525,6 +551,8 @@ SOURCE_GROUP( "src\\npc"           FILES ${npc_SOURCE} )
 SOURCE_GROUP( "src\\planetint"     FILES ${planetint_SOURCE} )
 SOURCE_GROUP( "src\\posmgr"        FILES ${posmgr_SOURCE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_SOURCE} )
+SOURCE_GROUP( "src\\ship\\Modules" FILES ${shipmodules_SOURCE} )
+SOURCE_GROUP( "src\\ship\\Modules\\components" FILES ${shipmodulecomponents_SOURCE} )
 SOURCE_GROUP( "src\\sovereignty"   FILES ${sovereignty_SOURCE} )
 SOURCE_GROUP( "src\\spawn"         FILES ${spawn_SOURCE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_SOURCE} )
@@ -562,6 +590,8 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${posmgr_INCLUDE}         ${posmgr_SOURCE}
                 ${sovereignty_INCLUDE}    ${sovereignty_SOURCE} 
                 ${ship_INCLUDE}           ${ship_SOURCE}
+                ${shipmodules_INCLUDE}    ${shipmodules_SOURCE}
+                ${shipmodulecomponents_INCLUDE}     ${shipmodulecomponents_SOURCE}
                 ${spawn_INCLUDE}          ${spawn_SOURCE}
                 ${standing_INCLUDE}       ${standing_SOURCE}
                 ${station_INCLUDE}        ${station_SOURCE}

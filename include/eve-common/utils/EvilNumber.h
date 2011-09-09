@@ -113,8 +113,22 @@ public:
     EvilNumber operator++()
     {    return _SelfIncrement();       }
 
+    EvilNumber operator++(int)
+    {
+        EvilNumber temp = *this;
+        _SelfIncrement();
+        return temp;
+    }
+
     EvilNumber operator--()
     {    return _SelfDecrement();       }
+
+    EvilNumber operator--(int)
+    {
+        EvilNumber temp = *this;
+        _SelfDecrement();
+        return temp;
+    }
 
     /************************************************************************/
     /* End of EvilNumber manipulation operator handlers                     */
