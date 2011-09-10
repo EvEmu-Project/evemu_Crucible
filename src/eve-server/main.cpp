@@ -117,8 +117,6 @@ int main( int argc, char* argv[] )
     }
     _sDgmTypeAttrMgr = new dgmtypeattributemgr(); // needs to be after db init as its using it
 
-    _sDgmTypeAttrMgr = new dgmtypeattributemgr(); // needs to be after db init as its using it
-
     //Start up the TCP server
     EVETCPServer tcps;
 

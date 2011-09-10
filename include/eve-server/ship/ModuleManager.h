@@ -218,7 +218,7 @@ public:
 	ModuleManager(Ship *const ship);
 	~ModuleManager();
 
-	void SetClient(Client * client);
+	//void SetClient(Client * client);
 
 	void InstallRig(InventoryItemRef item);
 	void UninstallRig(uint32 itemID);
@@ -261,8 +261,8 @@ private:
 	//access to the ship that owns us.  We do not own this
 	Ship * m_Ship;
 
-	//access to the client that owns the ship.  We do not own this
-	Client * m_Client;
+	////access to the client that owns the ship.  We do not own this
+	//Client * m_Client;
 
 	//access to destiny.  We do not own this
 	DestinyManager * m_Destiny;
