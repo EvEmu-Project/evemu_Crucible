@@ -25,7 +25,7 @@
 
 #include "EVEServerPCH.h"
 
-PyRep* MailDB::GetLabels(int characterID)
+PyRep* MailDB::GetLabels(int characterID) const
 {
 	DBQueryResult res;
 	if (!sDatabase.RunQuery(res, "SELECT bit, name, color, ownerId FROM mailLabel WHERE ownerID = %u", characterID))
@@ -47,7 +47,7 @@ PyRep* MailDB::GetLabels(int characterID)
 	return ret;
 }
 
-bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID)
+bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID) const
 {
 	// we need to get the next free bit index; can't avoid a SELECT
 	DBQueryResult res;
@@ -78,14 +78,14 @@ bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID)
 	return true;
 }
 
-void MailDB::DeleteLabel(int characterID, int labelID)
+void MailDB::DeleteLabel(int characterID, int labelID) const
 {
 	int bit = BitFromLabelID(labelID);
 	DBerror error;
 	sDatabase.RunQuery(error, "DELETE FROM mailLabel WHERE ownerID = %u AND bit = %u", characterID, bit); 
 }
 
-void MailDB::EditLabel(int characterID, Call_EditLabel& args)
+void MailDB::EditLabel(int characterID, Call_EditLabel& args) const
 {
 	int bit = BitFromLabelID(args.labelId);
 

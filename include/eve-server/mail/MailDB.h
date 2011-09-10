@@ -36,13 +36,13 @@ class Call_EditLabel;
 class MailDB : public ServiceDB
 {
 public:
-	PyRep* GetLabels(int characterID);
-	bool CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID);
-	void DeleteLabel(int characterID, int labelID);
-	void EditLabel(int characterID, Call_EditLabel& args);
+	PyRep* GetLabels(int characterID) const;
+	bool CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID) const;
+	void DeleteLabel(int characterID, int labelID) const;
+	void EditLabel(int characterID, Call_EditLabel& args) const;
 
 protected:
-	int BitFromLabelID(int id);
+	static int BitFromLabelID(int id);
 };
 
 #endif
