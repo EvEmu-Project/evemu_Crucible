@@ -284,7 +284,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
         (
             call.client->x() + dockOrientation.x*1.0e6,
             call.client->y() + dockOrientation.y*1.0e6,
-            call.client->z() + dockOrientation.z*1.0e6
+            call.client->z() - dockOrientation.z*1.0e6
         );
 
 	//move away from dock
