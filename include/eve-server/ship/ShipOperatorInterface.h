@@ -37,13 +37,21 @@ public:
 	{
 		m_pClient = NULL;
 		m_pNPC = NULL;
-		sLog.Error( "ShipOperatorInterface default Constructor:", "YOU MUST NOT INVOKE DEFAULT CONSTRUCTOR !" );
-		assert( false );
+        //m_pPCP = NULL;
+		//sLog.Error( "ShipOperatorInterface default Constructor:", "YOU MUST NOT INVOKE DEFAULT CONSTRUCTOR !" );
+		//assert( false );
 	}
-	
-	ShipOperatorInterface(Client * pClient);
-	ShipOperatorInterface(NPC * pNPC);
-	//ShipOperatorInterface(PCP * pPCP);
+
+    ~ShipOperatorInterface()
+    {
+        m_pClient = NULL;
+        m_pNPC = NULL;
+        //m_pPCP = NULL;
+    }
+
+	void SetOperatorObject(Client * pClient);
+	void SetOperatorObject(NPC * pNPC);
+	//void SetOperatorObject(PCP * pPCP);
 
 	// Public Interface Functions:
 	void SendNotifyMsg( const char* fmt, va_list args );

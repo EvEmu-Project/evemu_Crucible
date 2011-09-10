@@ -515,7 +515,8 @@ void Client::BoardShip(ShipRef new_ship) {
     _SetSelf( new_ship );
     m_char->MoveInto( *new_ship, flagPilot, true );
 
-	new_ship->SetOwner(this);
+	//new_ship->SetOwner(this);
+    new_ship->GetOperator()->SetOperatorObject(this);
 
     mSession.SetInt( "shipid", new_ship->itemID() );
 

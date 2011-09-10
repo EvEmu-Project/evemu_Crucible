@@ -25,14 +25,14 @@
 
 #include "EVEServerPCH.h"
 
-ShipOperatorInterface::ShipOperatorInterface(Client * pClient)
+void ShipOperatorInterface::SetOperatorObject(Client * pClient)
 {
     m_pClient = pClient;
     m_pNPC = NULL;
 //    m_pPCP = NULL;
 }
 
-ShipOperatorInterface::ShipOperatorInterface(NPC * pNPC)
+void ShipOperatorInterface::SetOperatorObject(NPC * pNPC)
 {
     m_pClient = NULL;
     m_pNPC = pNPC;
@@ -40,7 +40,7 @@ ShipOperatorInterface::ShipOperatorInterface(NPC * pNPC)
 }
 
 /*
-ShipOperatorInterface::ShipOperatorInterface(PCP * pPCP)
+void ShipOperatorInterface::SetOperatorObject(PCP * pPCP)
 {
     m_pClient = NULL;
     m_pNPC = NULL;

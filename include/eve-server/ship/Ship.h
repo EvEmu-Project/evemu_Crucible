@@ -26,12 +26,16 @@
 #ifndef __SHIP__H__INCL__
 #define __SHIP__H__INCL__
 
+//#include "EVEServerPCH.h"
+
 #include "inventory/ItemType.h"
 #include "inventory/Inventory.h"
 #include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
 #include <vector>
+
+class ShipOperatorInterface;
 
 /**
  * Basic container for raw ship type data.
@@ -193,7 +197,7 @@ public:
 	/*
 	 * Checks for conflicts between ship and fitting
 	 */
-	static bool ValidateItemSpecifics(Client *c, InventoryItemRef equip);
+	bool ValidateItemSpecifics(InventoryItemRef equip);
 
 	/*
 	 * Public fields:
@@ -229,9 +233,9 @@ public:
 	void Process();
 	void DeactivateAllModules();
 	void OnlineAll();
-	void SetOwner(Client * client);
+    ShipOperatorInterface * GetOperator() { return m_pOperator; }
+	//void SetOwner(Client * client);
 	std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);
-
 
 protected:
 	Ship(
@@ -288,7 +292,9 @@ protected:
 
 private:
 	//access to the pilot client.  We do not own this, nor is it garunteed to not be null
-	Client * m_Client;
+	//Client * m_Client;
+    ShipOperatorInterface * m_pOperator;
+
 
 	//the ship's module manager.  We own this
 	ModuleManager * m_ModuleManager;
