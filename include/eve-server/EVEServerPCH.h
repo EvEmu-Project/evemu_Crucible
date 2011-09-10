@@ -39,6 +39,8 @@
 
 #include <mysql.h>
 
+#include <lua.h>
+
 #include <tinyxml.h>
 
 #include <utf8.h>

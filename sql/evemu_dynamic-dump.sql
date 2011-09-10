@@ -506,8 +506,8 @@ DROP TABLE IF EXISTS `entity_attributes`;
 CREATE TABLE `entity_attributes` (
   `itemID` int(10) unsigned NOT NULL default '0',
   `attributeID` int(10) unsigned NOT NULL default '0',
-  `valueInt` int(10) unsigned default NULL,
-  `valueFloat` double unsigned default NULL,
+  `valueInt` int(10) default NULL,
+  `valueFloat` double default NULL,
   PRIMARY KEY  (`itemID`,`attributeID`),
   KEY `attributeID` (`attributeID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
