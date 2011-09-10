@@ -814,7 +814,8 @@ void DestinyManager::Stop(bool update) {
         m_self->CastToClient()->SetJustUndocking( false );
         GPoint dest;
         m_self->CastToClient()->GetUndockAlignToPoint( dest );
-        AlignTo( dest, true );
+        //AlignTo( dest, true );
+        GotoDirection( dest.normalize(), true );
         SetSpeedFraction( 1.0, true );
     }
     else
@@ -1366,6 +1367,29 @@ void DestinyManager::SendSetState(const SystemBubble *b) const {
 
 	PyTuple *tmp = ss.Encode();
 	SendSingleDestinyUpdate(&tmp, true);	//consumed
+}
+
+void DestinyManager::SendBallInfoOnUndock(bool update) const {
+	std::vector<PyTuple *> updates;
+
+    DoDestiny_SetBallMassive sbmassive;
+    sbmassive.entityID = m_self->GetID();
+    sbmassive.is_massive = 0;
+    updates.push_back(sbmassive.Encode());
+
+    DoDestiny_SetBallMass sbmass;
+    sbmass.entityID = m_self->GetID();
+    sbmass.mass = m_self->Item()->GetAttribute(AttrMass).get_float();
+    updates.push_back(sbmass.Encode());
+
+    DoDestiny_SetBallVelocity sbvelocity;
+    sbvelocity.entityID = m_self->GetID();
+    sbvelocity.x = m_velocity.x;
+    sbvelocity.y = m_velocity.y;
+    sbvelocity.z = m_velocity.z;
+    updates.push_back(sbvelocity.Encode());
+
+    SendDestinyUpdate(updates, true);	//consumed
 }
 
 void DestinyManager::SendBoardShip(const ShipRef boardShipRef) const {

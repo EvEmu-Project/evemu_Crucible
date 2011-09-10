@@ -84,6 +84,7 @@ public:
 
 	//Destiny Update stuff:
 	void SendSetState(const SystemBubble *b) const;
+    void SendBallInfoOnUndock(bool update=true) const;
 	void SendJumpIn() const;
 	void SendJumpOut(uint32 stargateID) const;
 	void SendGateActivity() const;

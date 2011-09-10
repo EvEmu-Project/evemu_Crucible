@@ -340,6 +340,7 @@ SET( ship_INCLUDE
      "${TARGET_INCLUDE_DIR}/ship/ModuleManager.h"
      "${TARGET_INCLUDE_DIR}/ship/Ship.h"
      "${TARGET_INCLUDE_DIR}/ship/ShipDB.h"
+     "${TARGET_INCLUDE_DIR}/ship/ShipOperatorInterface.h"
      "${TARGET_INCLUDE_DIR}/ship/ShipService.h"
      "${TARGET_INCLUDE_DIR}/ship/TargetManager.h" )
 SET( ship_SOURCE
@@ -351,6 +352,7 @@ SET( ship_SOURCE
      "${TARGET_SOURCE_DIR}/ship/ModuleManager.cpp"
      "${TARGET_SOURCE_DIR}/ship/Ship.cpp"
      "${TARGET_SOURCE_DIR}/ship/ShipDB.cpp"
+     "${TARGET_SOURCE_DIR}/ship/ShipOperatorInterface.cpp"
      "${TARGET_SOURCE_DIR}/ship/ShipService.cpp"
      "${TARGET_SOURCE_DIR}/ship/TargetManager.cpp" )
 

@@ -308,7 +308,7 @@ bool ServiceDB::GetStationInfo(uint32 stationID, uint32 *systemID, uint32 *const
         *dockPosition = GPoint(
             row.GetDouble(3) + row.GetDouble(6),
             row.GetDouble(4) + row.GetDouble(7),
-            row.GetDouble(5) + row.GetDouble(8)
+            row.GetDouble(5) - row.GetDouble(8)
         );
     if(dockOrientation != NULL) {
         *dockOrientation = GVector(

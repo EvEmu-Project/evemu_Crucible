@@ -305,6 +305,7 @@
 #include "ship/InsuranceService.h"
 #include "ship/Ship.h"
 #include "ship/ShipDB.h"
+#include "ship/ShipOperatorInterface.h"
 #include "ship/ShipService.h"
 #include "ship/TargetManager.h"
 #include "ship/dgmtypeattributeinfo.h"
