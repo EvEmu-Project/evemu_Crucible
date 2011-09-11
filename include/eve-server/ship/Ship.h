@@ -234,7 +234,6 @@ public:
 	void DeactivateAllModules();
 	void OnlineAll();
     ShipOperatorInterface * GetOperator() { return m_pOperator; }
-	//void SetOwner(Client * client);
 	std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);
 
 protected:
