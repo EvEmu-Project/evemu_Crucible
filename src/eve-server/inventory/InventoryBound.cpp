@@ -136,6 +136,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
     {
         // TODO: Add comments here to describe what kind of client action results in having
         // to use the 'Call_Add_2' packet structure
+        // * Moving cargo items from ship cargo bay to a container in space goes here
         Call_Add_2 args;
         //chances are its trying to transfer into a cargo container
         if(!args.Decode(&call.tuple))
@@ -144,12 +145,15 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
             return NULL;
         }
 
+        /*
         if( call.byname.find("flag") == call.byname.end() )
         {
             sLog.Debug( "InventoryBound::Handle_Add()", "Cannot find key 'flag' from call.byname dictionary." );
             return NULL;
         }
         uint32 flag = call.byname.find("flag")->second->AsInt()->value();
+        */
+        uint32 flag = 5;    // hard-code this since ship cargo to cargo container move flag since key 'flag' in client.byname does not exist
 
         if( call.byname.find("qty") == call.byname.end() )
         {
