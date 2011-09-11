@@ -153,7 +153,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
         }
         uint32 flag = call.byname.find("flag")->second->AsInt()->value();
         */
-        uint32 flag = 5;    // hard-code this since ship cargo to cargo container move flag since key 'flag' in client.byname does not exist
+        uint32 flag = flagCargoHold;    // hard-code this since ship cargo to cargo container move flag since key 'flag' in client.byname does not exist
 
         if( call.byname.find("qty") == call.byname.end() )
         {
