@@ -84,9 +84,7 @@ Ship::Ship(
     const ItemData &_data)
 : InventoryItem(_factory, _shipID, _shipType, _data)
 {
-    // TODO: MOVE THIS TO Ship::Load() or some other place AFTER InventoryItem::mAttributeMap has been loaded
-	//allocate the module manager
-	m_ModuleManager = new ModuleManager(this);
+    m_ModuleManager = NULL;
     m_pOperator = new ShipOperatorInterface();
 
     // Activate Save Info Timer with somewhat randomized timer value:
@@ -172,7 +170,15 @@ bool Ship::_Load()
     if( !LoadContents( m_factory ) )
         return false;
 
-    return InventoryItem::_Load();
+    bool loadSuccess = InventoryItem::_Load();      // Attributes are loaded here!
+
+    // TODO: MOVE THIS TO Ship::Load() or some other place AFTER InventoryItem::mAttributeMap has been loaded
+	//allocate the module manager
+	m_ModuleManager = new ModuleManager(this);
+    if( m_ModuleManager == NULL )
+        loadSuccess = false;
+
+    return loadSuccess;
 }
 
 void Ship::Delete()
