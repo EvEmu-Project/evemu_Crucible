@@ -186,11 +186,6 @@ void Ship::Delete()
 double Ship::GetCapacity(EVEItemFlags flag) const
 {
     switch( flag ) {
-        /*case flagCargoHold:     return capacity();
-        case flagDroneBay:      return droneCapacity();
-        case flagShipHangar:    return shipMaintenanceBayCapacity();
-        case flagHangar:        return corporateHangarCapacity();*/
-
         // the .get_float() part is a evil hack.... as this function should return a EvilNumber.
         case flagAutoFit:
         case flagCargoHold:     return GetAttribute(AttrCapacity).get_float();
@@ -203,8 +198,7 @@ double Ship::GetCapacity(EVEItemFlags flag) const
 
 void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
 {
-	//CharacterRef character = m_Client->GetChar();
-    CharacterRef character = m_pOperator->GetChar();
+    CharacterRef character = m_pOperator->GetChar();        // Operator assumed to be Client *
 	
 	if( flag == flagDroneBay )
     {
@@ -214,7 +208,7 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
     }
     else if( flag == flagShipHangar )
     {
-		if( m_pOperator->GetShip()->GetAttribute(AttrHasShipMaintenanceBay ) != 0)
+		if( m_pOperator->GetShip()->GetAttribute(AttrHasShipMaintenanceBay ) != 0)      // Operator assumed to be Client *
             // We have no ship maintenance bay
 			throw PyException( MakeCustomError( "%s has no ship maintenance bay.", item->itemName().c_str() ) );
         if( item->categoryID() != EVEDB::invCategories::Ship )
@@ -223,7 +217,7 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
     }
     else if( flag == flagHangar )
     {
-		if( m_pOperator->GetShip()->GetAttribute(AttrHasCorporateHangars ) != 0)
+		if( m_pOperator->GetShip()->GetAttribute(AttrHasCorporateHangars ) != 0)        // Operator assumed to be Client *
             // We have no corporate hangars
             throw PyException( MakeCustomError( "%s has no corporate hangars.", item->itemName().c_str() ) );
     }
@@ -232,22 +226,23 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
 		//get all items in cargohold
 		EvilNumber capacityUsed(0);
 		std::vector<InventoryItemRef> items;
-		m_pOperator->GetShip()->FindByFlag(flag, items);
+		m_pOperator->GetShip()->FindByFlag(flag, items);        // Operator assumed to be Client *
 		for(uint32 i = 0; i < items.size(); i++){
 			capacityUsed += items[i]->GetAttribute(AttrVolume);
 		}
-		if( capacityUsed + item->GetAttribute(AttrVolume) > m_pOperator->GetShip()->GetAttribute(AttrCapacity) )
+		if( capacityUsed + item->GetAttribute(AttrVolume) > m_pOperator->GetShip()->GetAttribute(AttrCapacity) )    // Operator assumed to be Client *
 			throw PyException( MakeCustomError( "Not enough cargo space!") );
 	}
 	else if( flag > flagLowSlot0  &&  flag < flagHiSlot7 )
 	{
-		if(!Skill::FitModuleSkillCheck(item, character))
-			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+        if( m_pOperator->IsClient() )
+		    if(!Skill::FitModuleSkillCheck(item, character))        // SKIP THIS SKILL CHECK if Operator is NOT Client *
+			    throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
 		if(!ValidateItemSpecifics(item))
 			throw PyException( MakeCustomError( "Your ship cannot equip this module" ) );
 		if(item->categoryID() == EVEDB::invCategories::Charge) {
 			InventoryItemRef module;
-			m_pOperator->GetShip()->FindSingleByFlag(flag, module);
+			m_pOperator->GetShip()->FindSingleByFlag(flag, module);     // Operator assumed to be Client *
 			if(module->GetAttribute(AttrChargeSize) != item->GetAttribute(AttrChargeSize) )
 				throw PyException( MakeCustomError( "The charge is not the correct size for this module." ) );
 			if(module->GetAttribute(AttrChargeGroup1) != item->groupID())
@@ -256,17 +251,19 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
 	}
 	else if( flag > flagRigSlot0  &&  flag < flagRigSlot7 )
 	{
-		if(!Skill::FitModuleSkillCheck(item, character))
-			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
-		if(m_pOperator->GetShip()->GetAttribute(AttrRigSize) != item->GetAttribute(AttrRigSize))
+        if( m_pOperator->IsClient() )
+    		if(!Skill::FitModuleSkillCheck(item, character))        // SKIP THIS SKILL CHECK if Operator is NOT Client *
+			    throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+		if(m_pOperator->GetShip()->GetAttribute(AttrRigSize) != item->GetAttribute(AttrRigSize))        // Operator assumed to be Client *
 			throw PyException( MakeCustomError( "Your ship cannot fit this size module" ) );
-		if( m_pOperator->GetShip()->GetAttribute(AttrUpgradeLoad) + item->GetAttribute(AttrUpgradeCost) > m_pOperator->GetShip()->GetAttribute(AttrUpgradeCapacity) )
+		if( m_pOperator->GetShip()->GetAttribute(AttrUpgradeLoad) + item->GetAttribute(AttrUpgradeCost) > m_pOperator->GetShip()->GetAttribute(AttrUpgradeCapacity) )   // Operator assumed to be Client *
 			throw PyException( MakeCustomError( "Your ship cannot handle the extra calibration" ) );
 	}
 	else if( flag > flagSubSystem0  &&  flag < flagSubSystem7 )
 	{
-		if(!Skill::FitModuleSkillCheck(item, character))
-			throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+        if( m_pOperator->IsClient() )
+		    if(!Skill::FitModuleSkillCheck(item, character))        // SKIP THIS SKILL CHECK if Operator is NOT Client *
+			    throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
 	}
 	
 }
@@ -478,7 +475,7 @@ void Ship::RemoveItem(InventoryItemRef item, uint32 inventoryID, EVEItemFlags fl
 	//coming from ship, we need to deactivate it and remove mass if it isn't a charge
 	if( item->categoryID() != EVEDB::invCategories::Charge ) {
 		m_pOperator->GetShip()->Deactivate( item->itemID(), "online" );
-		//c->GetShip()->Set_mass( c->GetShip()->mass() - newItem->massAddition() );
+		// m_pOperator->GetShip()->Set_mass( m_pOperator->GetShip()->mass() - item->massAddition() );
 		m_pOperator->GetShip()->SetAttribute(AttrMass,  m_pOperator->GetShip()->GetAttribute(AttrMass) - item->GetAttribute(AttrMassAddition) );
 	}
 
@@ -536,14 +533,6 @@ void Ship::OnlineAll()
 {
 	m_ModuleManager->OnlineAll();
 }
-
-/*
-void Ship::SetOwner(Client * client)
-{
-	m_ModuleManager->SetClient(client);
-	m_Client = client;
-}
-*/
 
 void Ship::ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge)
 {

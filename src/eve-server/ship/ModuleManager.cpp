@@ -528,7 +528,6 @@ ModuleManager::ModuleManager(Ship *const ship)
 									(uint32)ship->GetAttribute(AttrSubSystemSlot).get_int());
 
 	m_Ship = ship;
-	//m_Client = NULL; //this is null until the ship is picked up by someone
 }
 
 ModuleManager::~ModuleManager()
@@ -538,24 +537,14 @@ ModuleManager::~ModuleManager()
 	m_Modules = NULL;
 }
 
-////necessary function to avoid complications in the 
-////ship constructor
-//void ModuleManager::SetClient(Client * client)
-//{
-//	sLog.Debug("SetClient","Received client pointer for %s", client->GetCharacterName());
-//	m_Client = client;
-//}
-
 void ModuleManager::_SendInfoMessage(const char *fmt, ...)
 {
-	//if( m_Client == NULL )
-    if( m_Ship->GetOperator() == NULL )
+    if( m_Ship->GetOperator() == NULL )     // Operator assumed to be Client *
 		sLog.Error("SendMessage","message should have been sent to character, but *m_Client is null.  Did you forget to call GetShip()->SetOwner(Client *c)?");
 	else
 	{
 		va_list args;
 		va_start(args,fmt);
-		//m_Client->SendNotifyMsg(fmt,args);
         m_Ship->GetOperator()->SendNotifyMsg(fmt,args);
 		va_end(args);
 
@@ -564,14 +553,12 @@ void ModuleManager::_SendInfoMessage(const char *fmt, ...)
 
 void ModuleManager::_SendErrorMessage(const char *fmt, ...)
 {
-	//if( m_Client == NULL )
-    if( m_Ship->GetOperator() == NULL )
+    if( m_Ship->GetOperator() == NULL )     // Operator assumed to be Client *
 		sLog.Error("SendMessage","message should have been sent to character, but *m_Client is null.  Did you forget to call GetShip()->SetOwner(Client *c)?");
 	else
 	{
 		va_list args;
 		va_start(args,fmt);
-		//m_Client->SendErrorMsg(fmt,args);
         m_Ship->GetOperator()->SendErrorMsg(fmt,args);
 		va_end(args);
 	}
@@ -851,10 +838,5 @@ ModuleCommand ModuleManager::_translateEffectName(std::string s)
 	
 	return CMD_ERROR;
 }
-
-
-
-
-
 
 #pragma endregion

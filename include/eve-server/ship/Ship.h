@@ -291,10 +291,9 @@ protected:
 	void AddItem(InventoryItemRef item);
 
 private:
-	//access to the pilot client.  We do not own this, nor is it garunteed to not be null
-	//Client * m_Client;
-    ShipOperatorInterface * m_pOperator;
-
+	// Access to the pilot object, which could be Client, NPC, or other type,
+    // so access is through an interface object.
+    ShipOperatorInterface * m_pOperator;    // We own this
 
 	//the ship's module manager.  We own this
 	ModuleManager * m_ModuleManager;

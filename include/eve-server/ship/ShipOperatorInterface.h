@@ -54,6 +54,12 @@ public:
 	//void SetOperatorObject(PCP * pPCP);
 
 	// Public Interface Functions:
+    bool IsClient() { if( m_pClient != NULL ) return true; else return false; }
+    bool IsNPC() { if( m_pNPC != NULL ) return true; else return false; }
+    //bool IsPCP() { if( m_pPCP != NULL ) return true; else return false; }
+
+    // Pass Through calls to Operator object:
+    // CLIENT Object calls:
 	void SendNotifyMsg( const char* fmt, va_list args );
 	void SendErrorMsg( const char* fmt, va_list args );
 	const char *GetName() const;
@@ -61,7 +67,13 @@ public:
 	CharacterRef GetChar() const;
 	uint32 GetLocationID() const;
 	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
-	
+
+    // NPC Object calls:
+    // none
+
+    // PCP Object calls:
+    // none
+
 protected:
 	Client * m_pClient;		// We do not own this
 	NPC * m_pNPC;			// We do not own this
