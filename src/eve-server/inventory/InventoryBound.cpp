@@ -145,15 +145,14 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
             return NULL;
         }
 
-        /*
+        uint32 flag = 0;
         if( call.byname.find("flag") == call.byname.end() )
         {
             sLog.Debug( "InventoryBound::Handle_Add()", "Cannot find key 'flag' from call.byname dictionary." );
-            return NULL;
+            flag = flagCargoHold;    // hard-code this since ship cargo to cargo container move flag since key 'flag' in client.byname does not exist
         }
-        uint32 flag = call.byname.find("flag")->second->AsInt()->value();
-        */
-        uint32 flag = flagCargoHold;    // hard-code this since ship cargo to cargo container move flag since key 'flag' in client.byname does not exist
+        else
+            flag = call.byname.find("flag")->second->AsInt()->value();
 
         if( call.byname.find("qty") == call.byname.end() )
         {
