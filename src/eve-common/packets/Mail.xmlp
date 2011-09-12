@@ -1,0 +1,49 @@
+<elements>
+
+  <elementDef name="Call_EditLabel">
+    <tupleInline>
+      <int name="labelId" />
+      <string name="name" optional="true" />
+      <int name="color" optional="true" default="-1" />
+    </tupleInline>
+  </elementDef>
+  
+  <elementDef name="Call_CreateLabel">
+    <tupleInline>
+      <string name="name" />
+      <int name="color" optional="true" />
+    </tupleInline>
+  </elementDef>
+  
+  <elementDef name="Call_AssignLabels">
+    <tupleInline>
+      <listInt name="messageIds" />
+      <int name="labelId" />
+    </tupleInline>
+  </elementDef>
+  
+  <elementDef name="Call_MailGetBody">
+    <tupleInline>
+      <int name="messageId" />
+      <bool name="isUnread" />
+    </tupleInline>
+  </elementDef>
+  
+  <elementDef name="MailLabel">
+    <objectInline>
+		<stringInline value="util.KeyVal" />
+		<dictInline>
+		    <dictInlineEntry key="labelID">
+			    <int name="id" />
+		    </dictInlineEntry>
+		    <dictInlineEntry key="name">
+			    <string name="name" />
+			</dictInlineEntry>
+			<dictInlineEntry key="color">
+				<int name="color" />
+			</dictInlineEntry>
+		</dictInline>
+    </objectInline>
+  </elementDef>
+  
+</elements>

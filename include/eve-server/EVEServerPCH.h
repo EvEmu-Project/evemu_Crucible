@@ -115,6 +115,7 @@
 #include "packets/Standing2.h"
 #include "packets/Trade.h"
 #include "packets/Tutorial.h"
+#include "packets/Mail.h"
 
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
@@ -227,10 +228,11 @@
 #include "inventory/ItemType.h"
 #include "inventory/Owner.h"
 
-//mail stuff
+// mail stuff
 #include "mail/MailMgrService.h"
 #include "mail/MailingListMgrService.h"
 #include "mail/NotificationMgrService.h"
+#include "mail/MailDB.h"
 
 // factory stuff
 #include "manufacturing/Blueprint.h"

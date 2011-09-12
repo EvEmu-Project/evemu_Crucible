@@ -81,7 +81,8 @@ SET( packets_INCLUDE
      "${TARGET_PACKETS_DIR}/packets/Standing2.h"
      "${TARGET_PACKETS_DIR}/packets/Trade.h"
      "${TARGET_PACKETS_DIR}/packets/Tutorial.h"
-     "${TARGET_PACKETS_DIR}/packets/Wallet.h" )
+     "${TARGET_PACKETS_DIR}/packets/Wallet.h"
+     "${TARGET_PACKETS_DIR}/packets/Mail.h" )
 SET( packets_SOURCE
      "${TARGET_PACKETS_DIR}/packets/AccountPkts.cpp"
      "${TARGET_PACKETS_DIR}/packets/CorporationPkts.cpp"
@@ -101,7 +102,8 @@ SET( packets_SOURCE
      "${TARGET_PACKETS_DIR}/packets/Standing2.cpp"
      "${TARGET_PACKETS_DIR}/packets/Trade.cpp"
      "${TARGET_PACKETS_DIR}/packets/Tutorial.cpp"
-     "${TARGET_PACKETS_DIR}/packets/Wallet.cpp" )
+     "${TARGET_PACKETS_DIR}/packets/Wallet.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Mail.cpp" )
 SET( packets_XMLP
      "${TARGET_SOURCE_DIR}/packets/AccountPkts.xmlp"
      "${TARGET_SOURCE_DIR}/packets/CorporationPkts.xmlp"
@@ -121,7 +123,8 @@ SET( packets_XMLP
      "${TARGET_SOURCE_DIR}/packets/Standing2.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Trade.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Tutorial.xmlp"
-     "${TARGET_SOURCE_DIR}/packets/Wallet.xmlp" )
+     "${TARGET_SOURCE_DIR}/packets/Wallet.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Mail.xmlp" )
 
 SET( python_INCLUDE
      "${TARGET_INCLUDE_DIR}/python/PyDumpVisitor.h"

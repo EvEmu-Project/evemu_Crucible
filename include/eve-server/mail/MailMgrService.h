@@ -20,13 +20,15 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Luck
+	Author:		Luck, caytchen
 */
 
 #ifndef MAIL_MGR_SERIVCE_H
 #define MAIL_MGR_SERVICE_H
 
 #include "PyService.h"
+
+class MailDB;
 
 class MailMgrService : public PyService
 {
@@ -35,11 +37,39 @@ public:
 	virtual ~MailMgrService();
 
 protected:
+	MailDB* m_db;
+
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
 
-	//add PyCallable_DECL_CALL(function_name) here
+	PyCallable_DECL_CALL(PrimeOwners);
 	PyCallable_DECL_CALL(SyncMail);
+	PyCallable_DECL_CALL(GetMailHeaders);
+	PyCallable_DECL_CALL(MoveToTrash);
+	PyCallable_DECL_CALL(MoveFromTrash);
+	PyCallable_DECL_CALL(MarkAsUnread);
+	PyCallable_DECL_CALL(MarkAsRead);
+	PyCallable_DECL_CALL(MoveAllToTrash);
+	PyCallable_DECL_CALL(MoveToTrashByLabel);
+	PyCallable_DECL_CALL(MoveToTrashByList);
+	PyCallable_DECL_CALL(MarkAllAsUnread);
+	PyCallable_DECL_CALL(MarkAsUnreadByLabel);
+	PyCallable_DECL_CALL(MarkAsUnreadByList);
+	PyCallable_DECL_CALL(MarkAllAsRead);
+	PyCallable_DECL_CALL(MarkAsReadByLabel);
+	PyCallable_DECL_CALL(MarkAsReadByList);
+	PyCallable_DECL_CALL(MoveAllFromTrash);
+	PyCallable_DECL_CALL(EmptyTrash);
+	PyCallable_DECL_CALL(DeleteMail);
+	PyCallable_DECL_CALL(GetBody);
+	PyCallable_DECL_CALL(AssignLabels);
+	PyCallable_DECL_CALL(RemoveLabels);
+
+	// implemented
+	PyCallable_DECL_CALL(GetLabels);
+	PyCallable_DECL_CALL(EditLabel);
+	PyCallable_DECL_CALL(CreateLabel);
+	PyCallable_DECL_CALL(DeleteLabel);
 };
 
 
