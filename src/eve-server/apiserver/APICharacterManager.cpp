@@ -34,7 +34,37 @@ APICharacterManager::APICharacterManager(const PyServiceMgr &services)
 
 std::tr1::shared_ptr<std::string> APICharacterManager::ProcessCall(const APICommandCall * pAPICommandCall)
 {
+    sLog.Debug("APIAdminManager::ProcessCall()", "EVEmu API - Character Service Manager");
+
+    if( pAPICommandCall->find( "servicehandler" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APICharacterManager::ProcessCall()", "Cannot find 'servicehandler' specifier in pAPICommandCall packet" );
+        return std::tr1::shared_ptr<std::string>(new std::string(""));
+    }
+
+    if( pAPICommandCall->find( "servicehandler" )->second == "CharacterSheet.xml.aspx" )
+        return _CharacterSheet(pAPICommandCall);
+    //else if( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
+    //    return _TODO(pAPICommandCall);
+    else
+    {
+        sLog.Error("APIAdminManager::ProcessCall()", "EVEmu API - Admin Service Manager - ERROR: Cannot resolve '%s' as a valid service query for Admin Service Manager",
+            pAPICommandCall->find("servicehandler")->second.c_str() );
+        return std::tr1::shared_ptr<std::string>(new std::string(""));
+    }
     sLog.Debug("APICharacterManager::ProcessCall()", "EVEmu API - Character Service Manager");
 
     return std::tr1::shared_ptr<std::string>(new std::string(""));
+}
+
+std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const APICommandCall * pAPICommandCall)
+{
+    if( pAPICommandCall->find( "userID" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
+        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+    }
+
+    // TODO
+    return BuildErrorXMLResponse( "9999", "EVEmu API Server: Character Manager - CharacterSheet.xml.aspx STUB" );
 }

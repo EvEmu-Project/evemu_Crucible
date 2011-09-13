@@ -59,6 +59,8 @@ std::tr1::shared_ptr<std::string> APIAccountManager::ProcessCall(const APIComman
             pAPICommandCall->find("servicehandler")->second.c_str() );
         return std::tr1::shared_ptr<std::string>(new std::string(""));
     }
+
+    return BuildErrorXMLResponse( "9999", "EVEmu API Server: Account Manager - Unknown call." );
 }
 
 std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICommandCall * pAPICommandCall)
@@ -179,6 +181,40 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APIComman
     }
 
     // TODO
+    //return BuildErrorXMLResponse( "9999", "EVEmu API Server: Account Manager - Characters.xml.aspx STUB" );
+
+    // EXAMPLE:
+    std::vector<std::string> rowset;
+    _BuildXMLHeader();
+    {
+        _BuildXMLTag( "result" );
+        {
+            rowset.push_back("name");
+            rowset.push_back("characterID");
+            rowset.push_back("corporationName");
+            rowset.push_back("corporationID");
+            _BuildXMLRowSet( "characters", "characterID", &rowset );
+            {
+                rowset.clear();
+                rowset.push_back("Aknor Jaden");
+                rowset.push_back("5954416610");
+                rowset.push_back("Munich Lumberjacks");
+                rowset.push_back("98038978");
+                _BuildXMLRow( &rowset );
+                rowset.clear();
+                rowset.push_back("Archon Phoenix");
+                rowset.push_back("5862205200");
+                rowset.push_back("Imperial Academy");
+                rowset.push_back("1000166");
+                _BuildXMLRow( &rowset );
+            }
+            _CloseXMLRowSet();  // close rowset "skils"
+        }
+        _CloseXMLTag(); // close tag "result"
+    }
+    _CloseXMLHeader( EVEAPI::CacheStyles::Long );
+
+    return _GetXMLDocumentString();
 }
 
 std::tr1::shared_ptr<std::string> APIAccountManager::_AccountStatus(const APICommandCall * pAPICommandCall)
@@ -190,6 +226,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_AccountStatus(const APICom
     }
 
     // TODO
+    return BuildErrorXMLResponse( "9999", "EVEmu API Server: Account Manager - AccountStatus.xml.aspx STUB" );
 }
 
 std::string APIAccountManager::_GenerateAPIKey()
