@@ -26,7 +26,7 @@
 #ifndef __EVE_VERSION_H
 #define __EVE_VERSION_H
 
-// supported client is Incursion build 247655
+// supported client is Incursion v1.6 build 264377
 
 static const uint16 MachoNetVersion = 271;
 static const double EVEVersionNumber = 6.45;
@@ -40,7 +40,7 @@ static const int32 EVEBirthday = 170472;
 // EVEMU_VERSION
 // The version of source.
 #define EVEMU_SOURCE_LOCATION "http://www.github.com/evemuproject/evemu_incursion"
-#define EVEMU_VERSION "0.7.5"
+#define EVEMU_VERSION "0.7.6"
 
 
 #endif
