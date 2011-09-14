@@ -78,6 +78,7 @@ private:
 	
 	static asio::const_buffers_1 _responseOK;
 	static asio::const_buffers_1 _responseNotFound;
+	static asio::const_buffers_1 _responseNoContent;
 	static asio::const_buffers_1 _responseRedirectBegin;
 	static asio::const_buffers_1 _responseRedirectEnd;
 };

@@ -94,8 +94,8 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-    if( pAPICommandCall->find( "keyType" ) != pAPICommandCall->end() )
-        keyType = pAPICommandCall->find( "keyType" )->second;
+    if( pAPICommandCall->find( "keytype" ) != pAPICommandCall->end() )
+        keyType = pAPICommandCall->find( "keytype" )->second;
     else
     {
         sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: No 'keyType' parameter found in call argument list - exiting with error" );
@@ -174,15 +174,38 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
 
 std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APICommandCall * pAPICommandCall)
 {
-    if( pAPICommandCall->find( "userID" ) == pAPICommandCall->end() )
+    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIAccountManager::_Characters()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
-        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+		return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+	}
+/*
+    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
+    {
+		std::vector<std::string> rowset;
+		_BuildXMLHeader();
+		{
+			_BuildXMLTag( "result" );
+			{
+				rowset.push_back("name");
+				rowset.push_back("characterID");
+				rowset.push_back("corporationName");
+				rowset.push_back("corporationID");
+				_BuildXMLRowSet( "characters", "characterID", &rowset );
+					// Intentionally fill with NO characters since NO userid was specified in the API call
+				_CloseXMLRowSet();  // close rowset "characters"
+			}
+			_CloseXMLTag(); // close tag "result"
+		}
+		_CloseXMLHeader( EVEAPI::CacheStyles::Long );
+	
+        sLog.Error( "APIAccountManager::_Characters()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
+		return std::tr1::shared_ptr<std::string>(new std::string(""));
+
+		//sLog.Error( "APIAccountManager::_Characters()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
+        //return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
-
-    // TODO
-    //return BuildErrorXMLResponse( "9999", "EVEmu API Server: Account Manager - Characters.xml.aspx STUB" );
-
+*/
     // EXAMPLE:
     std::vector<std::string> rowset;
     _BuildXMLHeader();
@@ -208,7 +231,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APIComman
                 rowset.push_back("1000166");
                 _BuildXMLRow( &rowset );
             }
-            _CloseXMLRowSet();  // close rowset "skils"
+            _CloseXMLRowSet();  // close rowset "characters"
         }
         _CloseXMLTag(); // close tag "result"
     }

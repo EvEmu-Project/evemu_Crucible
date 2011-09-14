@@ -59,12 +59,146 @@ std::tr1::shared_ptr<std::string> APICharacterManager::ProcessCall(const APIComm
 
 std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const APICommandCall * pAPICommandCall)
 {
-    if( pAPICommandCall->find( "userID" ) == pAPICommandCall->end() )
+    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
-        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
-        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
+        return std::tr1::shared_ptr<std::string>(new std::string(""));
+		//return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+    }
+
+	if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
+        return std::tr1::shared_ptr<std::string>(new std::string(""));
+		//return BuildErrorXMLResponse( "", "" );
+    }
+
+	if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
+        return std::tr1::shared_ptr<std::string>(new std::string(""));
+		//return BuildErrorXMLResponse( "", "" );
     }
 
     // TODO
-    return BuildErrorXMLResponse( "9999", "EVEmu API Server: Character Manager - CharacterSheet.xml.aspx STUB" );
+	
+	//return BuildErrorXMLResponse( "9999", "EVEmu API Server: Character Manager - CharacterSheet.xml.aspx STUB" );
+
+	// EXAMPLE:
+    std::vector<std::string> rowset;
+    _BuildXMLHeader();
+    {
+        _BuildXMLTag( "result" );
+        {
+            _BuildSingleXMLTag( "characterID", "5954416610" );
+            _BuildSingleXMLTag( "name", "Aknor Jaden" );
+            _BuildSingleXMLTag( "DoB", "2006-01-01 00:00:00" );
+            _BuildSingleXMLTag( "race", "Minmatar" );
+            _BuildSingleXMLTag( "bloodLine", "Brutor" );
+            _BuildSingleXMLTag( "ancestry", "Slave Child" );
+            _BuildSingleXMLTag( "gender", "Male" );
+            _BuildSingleXMLTag( "corporationName", "Munich Lumberjacks" );
+            _BuildSingleXMLTag( "corporationID", "98038978" );
+            _BuildSingleXMLTag( "allianceName", "" );
+            _BuildSingleXMLTag( "allianceID", "0" );
+            _BuildSingleXMLTag( "cloneName", "Clone Grade Pi" );
+            _BuildSingleXMLTag( "cloneSkillPoints", "54600000" );
+            _BuildSingleXMLTag( "balance", "100000000000.00" );
+
+            // Attribute Enhancers (implants)
+            _BuildXMLTag( "attributeEnhancers" );
+            {
+                _BuildXMLTag( "memoryBonus" );
+                {
+                    _BuildSingleXMLTag( "augmentatorName", "Memory Augmentation - Basic" );
+                    _BuildSingleXMLTag( "augmentatorValue", "3" );
+                }
+                _CloseXMLTag(); // close tag "memoryBonus"
+                _BuildXMLTag( "perceptionBonus" );
+                {
+                    _BuildSingleXMLTag( "augmentatorName", "Ocular Filter - Basic" );
+                    _BuildSingleXMLTag( "augmentatorValue", "3" );
+                }
+                _CloseXMLTag(); // close tag "perceptionBonus"
+                _BuildXMLTag( "willpowerBonus" );
+                {
+                    _BuildSingleXMLTag( "augmentatorName", "Neural Boost - Basic" );
+                    _BuildSingleXMLTag( "augmentatorValue", "3" );
+                }
+                _CloseXMLTag(); // close tag "willpowerBonus"
+                _BuildXMLTag( "intelligenceBonus" );
+                {
+                    _BuildSingleXMLTag( "augmentatorName", "Snake Delta" );
+                    _BuildSingleXMLTag( "augmentatorValue", "3" );
+                }
+                _CloseXMLTag(); // close tag "intelligenceBonus"
+                _BuildXMLTag( "charismaBonus" );
+                {
+                    _BuildSingleXMLTag( "augmentatorName", "Limited Social Adaptation Chip" );
+                    _BuildSingleXMLTag( "augmentatorValue", "3" );
+                }
+                _CloseXMLTag(); // close tag "charismaBonus"
+            }
+            _CloseXMLTag(); // close tag "attributeEnhancers"
+
+            // Attributes
+            _BuildXMLTag( "attributes" );
+            {
+                _BuildSingleXMLTag( "intelligence", "6" );
+                _BuildSingleXMLTag( "memory", "4" );
+                _BuildSingleXMLTag( "charisma", "7" );
+                _BuildSingleXMLTag( "perception", "12" );
+                _BuildSingleXMLTag( "willpower", "10" );
+            }
+            _CloseXMLTag(); // close tag "attributes"
+
+            // Skills
+            rowset.push_back("typeID");
+            rowset.push_back("skillpoints");
+            rowset.push_back("level");
+            rowset.push_back("published");
+            _BuildXMLRowSet( "skills", "typeID", &rowset );
+            {
+                rowset.clear();
+                rowset.push_back("3431");
+                rowset.push_back("8000");
+                rowset.push_back("3");
+                rowset.push_back("1");
+                _BuildXMLRow( &rowset );
+                rowset.clear();
+                rowset.push_back("3413");
+                rowset.push_back("8000");
+                rowset.push_back("3");
+                rowset.push_back("1");
+                _BuildXMLRow( &rowset );
+                rowset.clear();
+                rowset.push_back("21059");
+                rowset.push_back("500");
+                rowset.push_back("1");
+                rowset.push_back("1");
+                _BuildXMLRow( &rowset );
+                rowset.clear();
+                rowset.push_back("3416");
+                rowset.push_back("8000");
+                rowset.push_back("3");
+                rowset.push_back("1");
+                _BuildXMLRow( &rowset );
+            }
+            _CloseXMLRowSet();  // close rowset "skills"
+
+            // Certificates:
+            rowset.push_back("certificateID");
+            _BuildXMLRowSet( "certificates", "certificateID", &rowset );
+            {
+            }
+            _CloseXMLRowSet();  // close rowset "certificates"
+
+            // Corporation Roles:
+            // TODO
+        }
+        _CloseXMLTag(); // close tag "result"
+    }
+    _CloseXMLHeader( EVEAPI::CacheStyles::Long );
+
+    return _GetXMLDocumentString();
 }
