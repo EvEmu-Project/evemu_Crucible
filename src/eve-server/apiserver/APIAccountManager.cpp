@@ -70,6 +70,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
     std::string username;
     std::string password;
     std::string keyType;
+    std::string action;
     std::string apiLimitedKey;
     std::string apiFullKey;
     std::string accountID;
@@ -98,14 +99,29 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         keyType = pAPICommandCall->find( "keytype" )->second;
     else
     {
-        sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: No 'keyType' parameter found in call argument list - exiting with error" );
+        sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: No 'keytype' parameter found in call argument list - exiting with error" );
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
     if( keyType != "full" )
         if( keyType != "limited" )
         {
-            sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: 'keyType' parameter has invalid value '%s' - exiting with error", keyType.c_str() );
+            sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: 'keytype' parameter has invalid value '%s' - exiting with error", keyType.c_str() );
+            return BuildErrorXMLResponse( "203", "Authentication failure." );
+        }
+
+    if( pAPICommandCall->find( "action" ) != pAPICommandCall->end() )
+        action = pAPICommandCall->find( "action" )->second;
+    else
+    {
+        sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: No 'action' parameter found in call argument list - exiting with error" );
+        return BuildErrorXMLResponse( "203", "Authentication failure." );
+    }
+
+    if( action != "new" )
+        if( action != "get" )
+        {
+            sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: 'action' parameter has invalid value '%s' - exiting with error", action.c_str() );
             return BuildErrorXMLResponse( "203", "Authentication failure." );
         }
 
@@ -128,12 +144,21 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
     status = m_db.GetApiAccountInfoUsingAccountID( accountID, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
 
     // 4: Generate new random 64-character hexadecimal API Keys:
-    apiLimitedKey = _GenerateAPIKey();
-    apiFullKey = _GenerateAPIKey();
-    if( status )
-        // 4a: If userID already exists, generate new API keys and write them back to the database under that userID:
-        status = m_db.UpdateUserIdApiKeyDatabaseRow( userID, apiFullKey, apiLimitedKey );
-    else
+    if( action == "new" )
+        if( keyType == "limited" )
+            apiLimitedKey = _GenerateAPIKey();
+        else //if( keyType == "full" )
+            apiFullKey = _GenerateAPIKey();
+
+    // Write new API Key to database if key request 'action' is 'new':
+    if( action == "new" )
+    {
+        if( status )
+            // 4a: If userID already exists, generate new API keys and write them back to the database under that userID:
+            status = m_db.UpdateUserIdApiKeyDatabaseRow( userID, apiFullKey, apiLimitedKey );
+    }
+
+    if( !status )
         // 4b: If userID does not exist for this accountID, then insert a new row into the 'accountApi' table:
         status = m_db.InsertNewUserIdApiKeyInfoToDatabase( atol(accountID.c_str()), apiFullKey, apiLimitedKey, EVEAPI::Roles::Player );
 
