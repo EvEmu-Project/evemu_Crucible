@@ -40,7 +40,7 @@ static const int32 EVEBirthday = 170472;
 // EVEMU_VERSION
 // The version of source.
 #define EVEMU_SOURCE_LOCATION "http://www.github.com/evemuproject/evemu_incursion"
-#define EVEMU_VERSION "0.7.7"
+#define EVEMU_VERSION "0.7.8"
 
 
 #endif
