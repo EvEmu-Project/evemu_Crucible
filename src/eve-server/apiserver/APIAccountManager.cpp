@@ -144,23 +144,27 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
     status = m_db.GetApiAccountInfoUsingAccountID( accountID, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
 
     // 4: Generate new random 64-character hexadecimal API Keys:
+    // Write new API Key to database if key request 'action' is 'new':
+    if( !status )
+    {
+        // 4a: If userID does not exist for this accountID, then insert a new row into the 'accountApi' table regardless of 'get' or 'new':
+        apiLimitedKey = _GenerateAPIKey();
+        apiFullKey = _GenerateAPIKey();
+        status = m_db.InsertNewUserIdApiKeyInfoToDatabase( atol(accountID.c_str()), apiFullKey, apiLimitedKey, EVEAPI::Roles::Player );
+    }
+
     if( action == "new" )
         if( keyType == "limited" )
             apiLimitedKey = _GenerateAPIKey();
         else //if( keyType == "full" )
             apiFullKey = _GenerateAPIKey();
 
-    // Write new API Key to database if key request 'action' is 'new':
     if( action == "new" )
     {
         if( status )
-            // 4a: If userID already exists, generate new API keys and write them back to the database under that userID:
+            // 4b: If userID already exists, generate new API keys and write them back to the database under that userID:
             status = m_db.UpdateUserIdApiKeyDatabaseRow( userID, apiFullKey, apiLimitedKey );
     }
-
-    if( !status )
-        // 4b: If userID does not exist for this accountID, then insert a new row into the 'accountApi' table:
-        status = m_db.InsertNewUserIdApiKeyInfoToDatabase( atol(accountID.c_str()), apiFullKey, apiLimitedKey, EVEAPI::Roles::Player );
 
     // 5: Build XML document to return to API client:
     userID = 0;
