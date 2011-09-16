@@ -23,6 +23,7 @@
 	Author:		Luck
 */
 
+
 #ifndef __MODULEMANAGER_H_INCL__
 #define __MODULEMANAGER_H_INCL__
 
@@ -33,6 +34,7 @@ class Client;
 
 #include "ship/Modules/Modules.h"
 #include "ship/Modules/ModuleDefs.h"
+
 
 //container for all ships modules
 #pragma region ModuleContainer

@@ -22,7 +22,9 @@
 	------------------------------------------------------------------------------------
 	Author:		Luck
 */
+
 #include "EVEServerPCH.h"
+
 
 //ModuleContainer class definitions
 #pragma region ModuleContainerClass

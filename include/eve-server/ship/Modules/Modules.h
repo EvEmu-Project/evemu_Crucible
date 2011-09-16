@@ -24,12 +24,11 @@
 */
 
 
-#ifndef MODULES_H
-#define MODULES_H
+#ifndef __MODULES_H__
+#define __MODULES_H__
 
 #include "ship/Modules/ModuleDefs.h"
 #include "ship/Modules/ModuleEffects.h"
-
 
 
 //generic module base class - possibly should inherit from RefPtr...
@@ -92,4 +91,4 @@ protected:
 
 };
 
-#endif /* MODULES_H */
+#endif /* __MODULES_H__ */

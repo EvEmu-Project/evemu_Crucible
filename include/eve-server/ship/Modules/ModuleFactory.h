@@ -23,6 +23,11 @@
 	Author:		Luck
 */
 
+
+#ifndef __MODULEFACTORY_H__
+#define __MODULEFACTORY_H__
+
+//#include "EVEServerPCH.h"
 #include "ActiveModules.h"
 #include "PassiveModules.h"
 #include "RigModule.h"
@@ -222,3 +227,5 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
         }
     }
 }
+
+#endif /* __MODULEFACTORY_H__ */
