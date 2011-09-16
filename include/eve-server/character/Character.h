@@ -394,6 +394,14 @@ public:
 	 * @return True if character has the skill, false if doesn't.
 	 */
 	bool HasSkill(uint32 skillTypeID) const;
+    /**
+     * Checks whether the character has the skill, and if so, if it has been trained to the level specified.
+     *
+     * @param[in] skillTypeID ID of skill type to be checked
+     * @param[in] skillLevel Level of the skill to be checked to see if it is trained already to at least this level
+     * @return True if character has the skill AND that skill has been trained to at least the level specified, False otherwise
+     */
+    bool HasSkillTrainedToLevel(uint32 skillTypeID, uint32 skillLevel) const;
 	/**
 	 * Returns skill.
 	 *

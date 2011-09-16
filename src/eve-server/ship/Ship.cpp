@@ -333,8 +333,35 @@ bool Ship::ValidateBoardShip(ShipRef ship, CharacterRef character)
 {
 
 	SkillRef requiredSkill;
+    uint32 skillTypeID = 0;
 	
-	//Primary Skill
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill1).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill1Level).get_int() ))
+            return false;
+
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill2).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill2Level).get_int() ))
+            return false;
+
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill3).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill3Level).get_int() ))
+            return false;
+
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill4).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill4Level).get_int() ))
+            return false;
+
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill5).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill5Level).get_int() ))
+            return false;
+
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill6).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill6Level).get_int() ))
+            return false;
+
+    return true;
+/*
+    //Primary Skill
 	if(ship->GetAttribute(AttrRequiredSkill1).get_int() != 0)
 	{
 		requiredSkill = character->GetSkill( ship->GetAttribute(AttrRequiredSkill1).get_int() );
@@ -401,6 +428,7 @@ bool Ship::ValidateBoardShip(ShipRef ship, CharacterRef character)
 	}
 
 	return true;
+*/
 }
 
 void Ship::SaveShip()
