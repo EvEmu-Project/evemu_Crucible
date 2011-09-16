@@ -482,7 +482,8 @@ void Ship::RemoveItem(InventoryItemRef item, uint32 inventoryID, EVEItemFlags fl
 	if( item->categoryID() != EVEDB::invCategories::Charge ) {
 		m_pOperator->GetShip()->Deactivate( item->itemID(), "online" );
 		// m_pOperator->GetShip()->Set_mass( m_pOperator->GetShip()->mass() - item->massAddition() );
-		m_pOperator->GetShip()->SetAttribute(AttrMass,  m_pOperator->GetShip()->GetAttribute(AttrMass) - item->GetAttribute(AttrMassAddition) );
+		//m_pOperator->GetShip()->SetAttribute(AttrMass,  m_pOperator->GetShip()->GetAttribute(AttrMass) - item->GetAttribute(AttrMassAddition) );
+        m_pOperator->GetShip()->UnloadModule( item->itemID() );
 	}
 
 	//Move New item to its new location
