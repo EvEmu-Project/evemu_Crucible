@@ -50,17 +50,17 @@ bool APIAccountDB::GetCharactersList(uint32 accountID, std::map<std::string, std
 		sLog.Error( "APIAccountDB::GetCharactersList()", "Cannot find accountID %u", accountID );
 		return false;
 	}
-
+/*
 	DBResultRow row;
     std::map<std::string, std::string> charInfo;
     while( res.GetRow( row ) )
     {
         charInfo.clear();
-        charInfo.insert( "corporationID", row.GetText(1) );
-        charInfo.insert( "corporationName", row.GetText(2) );
-        charInfo.insert( "name", row.GetText(3) );
-        characterList->insert( std::make_pair<std::string, std::map<std::string, std::string> >( row.GetText(0), charInfo ));
+        charInfo.insert( std::string("corporationID"), std::string(row.GetText(1)) );
+        charInfo.insert( std::string("corporationName"), std::string(row.GetText(2)) );
+        charInfo.insert( std::string("name"), std::string(row.GetText(3)) );
+        characterList->insert( std::make_pair<std::string, std::map<std::string, std::string> >( std::string(row.GetText(0)), charInfo ));
     }
-
+*/
 	return true;
 }

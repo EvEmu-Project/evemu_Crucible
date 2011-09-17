@@ -383,8 +383,9 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
 	//check if the ship is a stack
 	if( ship->quantity() > 1 )
 	{
-		//Split the stack and assemble one ship
-		InventoryItemRef new_item = ship->Split(1,true);
+		// Split the stack into a new inventory item (new_item) with quantity minus one,
+        // original item (ship) will be left with quantity = 1, then will be assembled:
+		InventoryItemRef new_item = ship->Split(ship->quantity()-1,true);
 	}
 
     ship->ChangeSingleton(true, true);

@@ -336,27 +336,27 @@ bool Ship::ValidateBoardShip(ShipRef ship, CharacterRef character)
     uint32 skillTypeID = 0;
 	
     if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill1).get_int()) != 0)
-        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill1Level).get_int() ))
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill1Level).get_int() )) )
             return false;
 
     if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill2).get_int()) != 0)
-        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill2Level).get_int() ))
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill2Level).get_int() )) )
             return false;
 
     if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill3).get_int()) != 0)
-        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill3Level).get_int() ))
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill3Level).get_int() )) )
             return false;
 
     if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill4).get_int()) != 0)
-        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill4Level).get_int() ))
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill4Level).get_int() )) )
             return false;
 
     if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill5).get_int()) != 0)
-        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill5Level).get_int() ))
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill5Level).get_int() )) )
             return false;
 
     if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill6).get_int()) != 0)
-        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill6Level).get_int() ))
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill6Level).get_int() )) )
             return false;
 
     return true;
