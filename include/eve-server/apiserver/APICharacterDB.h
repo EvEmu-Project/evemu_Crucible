@@ -23,45 +23,37 @@
 	Author:		Aknor Jaden
 */
 
-#ifndef __APIACCOUNTMANAGER__H__INCL__
-#define __APIACCOUNTMANAGER__H__INCL__
+#ifndef __APICHARACTERDB_H_INCL__
+#define __APICHARACTERDB_H_INCL__
 
-#include "EVEServerPCH.h"
 
-class APIAccountDB;
 
-/**
- * \class APIAccountManager
- *
- * @brief ???
- *
- * ???
- * ???
- * ???
- *
- * @author Aknor Jaden
- * @date July 2011
- */
-class APIAccountManager
-: public APIServiceManager
+class APICharacterDB
 {
 public:
-	APIAccountManager(const PyServiceMgr &services);
+	APICharacterDB();
 
-	// Common call shared to all derived classes called via polymorphism
-	std::tr1::shared_ptr<std::string> ProcessCall(const APICommandCall * pAPICommandCall);
+    /**
+     * @brief ?
+     *
+     * ?
+     *
+     * @param[in] ?
+     * @param[in] ?
+     *
+     * @retval ?
+     */
+    bool GetCharacterSkillsTrained(uint32 characterID, std::map<std::string, std::vector<std::string> > * skillList);
+    bool GetCharacterInfo(uint32 characterID, std::map<std::string, std::map<std::string, std::string> > * charInfoList);
+    bool GetCharacterImplants(uint32 characterID, std::map<std::string, std::string> * implantList);
+    bool GetCharacterAttributes(uint32 characterID, std::map<std::string, std::string> * attribList);
+    bool GetCharacterCertificates(uint32 characterID, std::vector<std::string> * certList);
+    bool GetCharacterCorporationRoles(uint32 characterID, std::string roleType, std::map<std::string, std::string> * roleList);
 
 protected:
-	std::tr1::shared_ptr<std::string> _APIKeyRequest(const APICommandCall * pAPICommandCall);
-	std::tr1::shared_ptr<std::string> _Characters(const APICommandCall * pAPICommandCall);
-	std::tr1::shared_ptr<std::string> _AccountStatus(const APICommandCall * pAPICommandCall);
-
-    // Utility Functions:
-    std::string _GenerateAPIKey();
-
-    APIAccountDB m_accountDB;
-    static std::string m_hexCharMap;
 
 };
 
-#endif // __APIACCOUNTMANAGER__H__INCL__
+#endif	//__APICHARACTERDB_H_INCL__
+
+

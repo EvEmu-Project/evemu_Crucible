@@ -337,9 +337,11 @@
 #include "imageserver/ImageServerConnection.h"
 #include "imageserver/ImageServerListener.h"
 
+#include "apiserver/APIServiceDB.h"
+#include "apiserver/APIAccountDB.h"
+#include "apiserver/APICharacterDB.h"
 #include "apiserver/APIServer.h"
 #include "apiserver/APIServerConnection.h"
-#include "apiserver/APIServiceDB.h"
 #include "apiserver/APICacheManager.h"
 #include "apiserver/APIServerListener.h"
 #include "apiserver/APIServiceManager.h"

@@ -23,45 +23,44 @@
 	Author:		Aknor Jaden
 */
 
-#ifndef __APIACCOUNTMANAGER__H__INCL__
-#define __APIACCOUNTMANAGER__H__INCL__
 
 #include "EVEServerPCH.h"
 
-class APIAccountDB;
 
-/**
- * \class APIAccountManager
- *
- * @brief ???
- *
- * ???
- * ???
- * ???
- *
- * @author Aknor Jaden
- * @date July 2011
- */
-class APIAccountManager
-: public APIServiceManager
+APIAccountDB::APIAccountDB()
 {
-public:
-	APIAccountManager(const PyServiceMgr &services);
+}
 
-	// Common call shared to all derived classes called via polymorphism
-	std::tr1::shared_ptr<std::string> ProcessCall(const APICommandCall * pAPICommandCall);
+bool APIAccountDB::GetCharactersList(uint32 accountID, std::map<std::string, std::map<std::string, std::string> > * characterList)
+{
+	DBQueryResult res;
 
-protected:
-	std::tr1::shared_ptr<std::string> _APIKeyRequest(const APICommandCall * pAPICommandCall);
-	std::tr1::shared_ptr<std::string> _Characters(const APICommandCall * pAPICommandCall);
-	std::tr1::shared_ptr<std::string> _AccountStatus(const APICommandCall * pAPICommandCall);
+	// Find accountID in 'account' table using accountName:
+	if( !sDatabase.RunQuery(res,
+        " SELECT "
+        "   character_.characterID, "
+        "   character_.corporationID, "
+        "   corporation.corporationName, "
+        "   entity.itemName AS name "
+        " FROM `character_` "
+        "   LEFT JOIN corporation ON corporation.corporationID = character_.corporationID "
+        "   LEFT JOIN entity ON entity.itemID = character_.characterID "
+        " WHERE `accountID` = %u ", accountID ))
+	{
+		sLog.Error( "APIAccountDB::GetCharactersList()", "Cannot find accountID %u", accountID );
+		return false;
+	}
 
-    // Utility Functions:
-    std::string _GenerateAPIKey();
+	DBResultRow row;
+    std::map<std::string, std::string> charInfo;
+    while( res.GetRow( row ) )
+    {
+        charInfo.clear();
+        charInfo.insert( "corporationID", row.GetText(1) );
+        charInfo.insert( "corporationName", row.GetText(2) );
+        charInfo.insert( "name", row.GetText(3) );
+        characterList->insert( std::make_pair<std::string, std::map<std::string, std::string> >( row.GetText(0), charInfo ));
+    }
 
-    APIAccountDB m_accountDB;
-    static std::string m_hexCharMap;
-
-};
-
-#endif // __APIACCOUNTMANAGER__H__INCL__
+	return true;
+}

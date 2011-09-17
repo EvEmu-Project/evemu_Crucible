@@ -28,6 +28,8 @@
 
 #include "EVEServerPCH.h"
 
+class APICharacterDB;
+
 /**
  * \class APICharacterManager
  *
@@ -50,7 +52,9 @@ public:
 	std::tr1::shared_ptr<std::string> ProcessCall(const APICommandCall * pAPICommandCall);
 
 protected:
-	std::tr1::shared_ptr<std::string> _CharacterSheet(const APICommandCall * pAPICommandCall);
+
+    APICharacterDB m_charDB;
+    std::tr1::shared_ptr<std::string> _CharacterSheet(const APICommandCall * pAPICommandCall);
 
 };
 
