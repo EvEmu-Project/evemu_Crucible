@@ -400,6 +400,7 @@ EvilNumber AttributeMap::GetAttribute( uint32 attributeId )
             case AttrCanFitShipType2:
             case AttrCanFitShipType3:
             case AttrCanFitShipType4:
+            case AttrSubSystemSlot:
                 // DO NOT OUTPUT AN ERROR ON THESE MISSING ATTRIBUTES SINCE THEY ARE COMMONLY "MISSING" FROM MANY ITEMS
                 break;
 
@@ -436,6 +437,7 @@ EvilNumber AttributeMap::GetAttribute( const uint32 attributeId ) const
             case AttrCanFitShipType2:
             case AttrCanFitShipType3:
             case AttrCanFitShipType4:
+            case AttrSubSystemSlot:
                 // DO NOT OUTPUT AN ERROR ON THESE MISSING ATTRIBUTES SINCE THEY ARE COMMONLY "MISSING" FROM MANY ITEMS
                 break;
 
