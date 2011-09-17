@@ -22,7 +22,9 @@
 	------------------------------------------------------------------------------------
 	Author:		Luck
 */
+
 #include "EVEServerPCH.h"
+
 
 //ModuleContainer class definitions
 #pragma region ModuleContainerClass
@@ -88,6 +90,12 @@ void ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
 void ModuleContainer::RemoveModule(EVEItemFlags flag)
 {
 	GenericModule * mod = GetModule(flag);
+
+	_removeModule(mod->flag());
+
+	//delete the module
+	delete mod;
+	mod = NULL;
 }
 
 void ModuleContainer::RemoveModule(uint32 itemID)

@@ -384,7 +384,30 @@ EvilNumber AttributeMap::GetAttribute( uint32 attributeId )
     }
     else
     {
-        sLog.Error("AttributeMap::GetAttribute()", "unable to find attribute: %u for item %u, '%s' of type %u", attributeId, mItem.itemID(), mItem.itemName().c_str(), mItem.typeID());
+        // ONLY output ERROR message for a "missing" attributeID if it is not in the list of commonly "not found" attributes:
+        switch( attributeId )
+        {
+            case AttrRequiredSkill2:
+            case AttrRequiredSkill3:
+            case AttrRequiredSkill4:
+            case AttrRequiredSkill5:
+            case AttrRequiredSkill6:
+            case AttrCanFitShipGroup1:
+            case AttrCanFitShipGroup2:
+            case AttrCanFitShipGroup3:
+            case AttrCanFitShipGroup4:
+            case AttrCanFitShipType1:
+            case AttrCanFitShipType2:
+            case AttrCanFitShipType3:
+            case AttrCanFitShipType4:
+                // DO NOT OUTPUT AN ERROR ON THESE MISSING ATTRIBUTES SINCE THEY ARE COMMONLY "MISSING" FROM MANY ITEMS
+                break;
+
+            default:
+                sLog.Error("AttributeMap::GetAttribute()", "unable to find attribute: %u for item %u, '%s' of type %u", attributeId, mItem.itemID(), mItem.itemName().c_str(), mItem.typeID());
+                break;
+        }
+
         return EvilNumber(0);
     }
 }
@@ -397,7 +420,30 @@ EvilNumber AttributeMap::GetAttribute( const uint32 attributeId ) const
     }
     else
     {
-        sLog.Error("AttributeMap::GetAttribute()", "unable to find attribute: %u for item %u, '%s' of type %u", attributeId, mItem.itemID(), mItem.itemName().c_str(), mItem.typeID());
+        // ONLY output ERROR message for a "missing" attributeID if it is not in the list of commonly "not found" attributes:
+        switch( attributeId )
+        {
+            case AttrRequiredSkill2:
+            case AttrRequiredSkill3:
+            case AttrRequiredSkill4:
+            case AttrRequiredSkill5:
+            case AttrRequiredSkill6:
+            case AttrCanFitShipGroup1:
+            case AttrCanFitShipGroup2:
+            case AttrCanFitShipGroup3:
+            case AttrCanFitShipGroup4:
+            case AttrCanFitShipType1:
+            case AttrCanFitShipType2:
+            case AttrCanFitShipType3:
+            case AttrCanFitShipType4:
+                // DO NOT OUTPUT AN ERROR ON THESE MISSING ATTRIBUTES SINCE THEY ARE COMMONLY "MISSING" FROM MANY ITEMS
+                break;
+
+            default:
+                sLog.Error("AttributeMap::GetAttribute()", "unable to find attribute: %u for item %u, '%s' of type %u", attributeId, mItem.itemID(), mItem.itemName().c_str(), mItem.typeID());
+                break;
+        }
+
         return EvilNumber(0);
     }
 }

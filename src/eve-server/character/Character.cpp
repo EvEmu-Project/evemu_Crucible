@@ -493,6 +493,22 @@ bool Character::HasSkill(uint32 skillTypeID) const
     return GetSkill(skillTypeID);
 }
 
+bool Character::HasSkillTrainedToLevel(uint32 skillTypeID, uint32 skillLevel) const
+{
+    SkillRef requiredSkill;
+
+    // First, check for existence of skill trained or in training:
+	requiredSkill = GetSkill( skillTypeID );
+	if( !requiredSkill )
+		return false;
+
+    // Second, check for required minimum level of skill, note it must already be trained to this level:
+	if( requiredSkill->GetAttribute(AttrSkillLevel) < skillLevel )
+		return false;
+
+    return true;
+}
+
 bool Character::HasCertificate( uint32 certificateID ) const
 {
 	uint32 i = 0;

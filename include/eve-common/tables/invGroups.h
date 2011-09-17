@@ -50,8 +50,7 @@ typedef enum {
 	Mining_Laser = 54,
 	Projectile_Weapon = 55,
 	Missile_Launcher = 56,
-	Power_Manager = 57, //Another duplicate
-	Shield_Power_Relay = 57, //---
+	Shield_Power_Relay = 57,
 	Gyrostabilizer = 59,
 	Damage_Control = 60,
 	Capacitor_Battery = 61,
@@ -65,8 +64,7 @@ typedef enum {
 	Hybrid_Weapon = 74,
 	Capacitor_Booster = 76,
 	Shield_Hardener = 77,
-	Hull_Mods = 78, //should be reinforced bulkheads
-	Reinforced_Bulkheads = 78, //need to remove Hull_Mods
+	Reinforced_Bulkheads = 78,
 	ECM_Burst = 80,
 	Passive_Targeting_System = 82,
 	Ammo = 83,
@@ -199,7 +197,7 @@ typedef enum {
 	Faction_Drone = 288,
 	Projected_ECCM = 289,
 	Remote_Sensor_Booster = 290,
-	Tracking_Disrupter = 291,
+	Tracking_Disruptor = 291,
 	Shield_Amplifier = 295,
 	Shield_Amplifier_Blueprint = 296,
 	Convoy = 297,
@@ -220,8 +218,7 @@ typedef enum {
 	Planetary_Cloud = 312,
 	Drugs = 313,
 	Miscellaneous = 314,
-	Anti_Warp_Scrambler = 315,	//Another duplicate
-	Warp_Core_Stabilizer = 315, //----
+	Warp_Core_Stabilizer = 315,
 	Gang_Coordinator = 316,
 	Computer_Interface_Node = 317,
 	Landmark = 318,
@@ -578,6 +575,7 @@ typedef enum {
 	Capacitor_Flux_Coil = 768,
 	Reactor_Control_Unit = 769,
 	Shield_Flux_Coil = 770,
+    Missile_Launcher_Heavy_Assault = 771,
 	Rig_Armor = 773,
 	Rig_Shield = 774,
 	Rig_Energy_Weapon = 775,
@@ -604,6 +602,11 @@ typedef enum {
 	Rig_Mining = 904,
 	Covert_Cynosural_Field_Generator = 905,
     Effect_Beacon = 920,
+    Defensive_Systems = 954,
+    Electronic_Systems = 955,
+    Offensive_Systems = 956,
+    Propulsion_Systems = 957,
+    Engineering_Systems = 958,
     Wormhole = 988,
     Secondary_Sun = 995
 

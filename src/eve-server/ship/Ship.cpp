@@ -333,8 +333,35 @@ bool Ship::ValidateBoardShip(ShipRef ship, CharacterRef character)
 {
 
 	SkillRef requiredSkill;
+    uint32 skillTypeID = 0;
 	
-	//Primary Skill
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill1).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill1Level).get_int() ))
+            return false;
+
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill2).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill2Level).get_int() ))
+            return false;
+
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill3).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill3Level).get_int() ))
+            return false;
+
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill4).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill4Level).get_int() ))
+            return false;
+
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill5).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill5Level).get_int() ))
+            return false;
+
+    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill6).get_int()) != 0)
+        if(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill6Level).get_int() ))
+            return false;
+
+    return true;
+/*
+    //Primary Skill
 	if(ship->GetAttribute(AttrRequiredSkill1).get_int() != 0)
 	{
 		requiredSkill = character->GetSkill( ship->GetAttribute(AttrRequiredSkill1).get_int() );
@@ -401,6 +428,7 @@ bool Ship::ValidateBoardShip(ShipRef ship, CharacterRef character)
 	}
 
 	return true;
+*/
 }
 
 void Ship::SaveShip()
@@ -482,7 +510,8 @@ void Ship::RemoveItem(InventoryItemRef item, uint32 inventoryID, EVEItemFlags fl
 	if( item->categoryID() != EVEDB::invCategories::Charge ) {
 		m_pOperator->GetShip()->Deactivate( item->itemID(), "online" );
 		// m_pOperator->GetShip()->Set_mass( m_pOperator->GetShip()->mass() - item->massAddition() );
-		m_pOperator->GetShip()->SetAttribute(AttrMass,  m_pOperator->GetShip()->GetAttribute(AttrMass) - item->GetAttribute(AttrMassAddition) );
+		//m_pOperator->GetShip()->SetAttribute(AttrMass,  m_pOperator->GetShip()->GetAttribute(AttrMass) - item->GetAttribute(AttrMassAddition) );
+        m_pOperator->GetShip()->UnloadModule( item->itemID() );
 	}
 
 	//Move New item to its new location

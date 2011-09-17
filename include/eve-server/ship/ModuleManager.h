@@ -23,6 +23,7 @@
 	Author:		Luck
 */
 
+
 #ifndef __MODULEMANAGER_H_INCL__
 #define __MODULEMANAGER_H_INCL__
 
@@ -33,6 +34,7 @@ class Client;
 
 #include "ship/Modules/Modules.h"
 #include "ship/Modules/ModuleDefs.h"
+
 
 //container for all ships modules
 #pragma region ModuleContainer
@@ -144,7 +146,7 @@ class SubEffect
 {
 public:
 
-	SubEffect::SubEffect(uint32 attrID, EVECalculationType type, EvilNumber val, uint32 targetItemID = 0)
+	SubEffect(uint32 attrID, EVECalculationType type, EvilNumber val, uint32 targetItemID = 0)
 	: m_AttrID( attrID ), m_TargetItemID( targetItemID ), m_CalcType( type ), m_Val( val )
 	{
 
@@ -153,10 +155,10 @@ public:
 	~SubEffect() { }
 
 	//gets
-	uint32 SubEffect::AttributeID()					{ return m_AttrID; }
-	uint32 SubEffect::TargetItemID()				{ return m_TargetItemID; }
-	EVECalculationType SubEffect::CalculationType() { return m_CalcType; }
-	EvilNumber SubEffect::AppliedValue()			{ return m_Val; }
+	uint32 AttributeID()                    { return m_AttrID; }
+	uint32 TargetItemID()                   { return m_TargetItemID; }
+	EVECalculationType CalculationType()    { return m_CalcType; }
+	EvilNumber AppliedValue()               { return m_Val; }
 
 private:
 	uint32 m_AttrID;
