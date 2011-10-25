@@ -31,7 +31,8 @@ APIAccountDB::APIAccountDB()
 {
 }
 
-bool APIAccountDB::GetCharactersList(uint32 accountID, std::map<std::string, std::map<std::string, std::string> > * characterList)
+bool APIAccountDB::GetCharactersList(uint32 accountID, std::vector<std::string> & charIDList, std::vector<std::string> & charNameList,
+    std::vector<std::string> & charCorpIDList, std::vector<std::string> & charCorpNameList)
 {
 	DBQueryResult res;
 
@@ -55,11 +56,10 @@ bool APIAccountDB::GetCharactersList(uint32 accountID, std::map<std::string, std
     std::map<std::string, std::string> charInfo;
     while( res.GetRow( row ) )
     {
-        charInfo.clear();
-        charInfo.insert( std::string("corporationID"), std::string(row.GetText(1)) );
-        charInfo.insert( std::string("corporationName"), std::string(row.GetText(2)) );
-        charInfo.insert( std::string("name"), std::string(row.GetText(3)) );
-        characterList->insert( std::make_pair<std::string, std::map<std::string, std::string> >( std::string(row.GetText(0)), charInfo ));
+        charIDList.push_back( std::string(row.GetText(0)) );
+        charCorpIDList.push_back( std::string(row.GetText(1)) );
+        charCorpNameList.push_back( std::string(row.GetText(2)) );
+        charNameList.push_back( std::string(row.GetText(3)) );
     }
 
 	return true;

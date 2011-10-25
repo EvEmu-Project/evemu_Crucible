@@ -235,6 +235,18 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APIComman
         //return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 */
+
+    uint32 accountID = 0;
+    std::vector<std::string> charIDList;
+    std::vector<std::string> charNameList;
+    std::vector<std::string> charCorpIDList;
+    std::vector<std::string> charCorpNameList;
+
+    if( !( m_accountDB.GetCharactersList(accountID, charIDList, charNameList, charCorpIDList, charCorpNameList) ) )
+    {
+        //
+    }
+
     // EXAMPLE:
     std::vector<std::string> rowset;
     _BuildXMLHeader();
