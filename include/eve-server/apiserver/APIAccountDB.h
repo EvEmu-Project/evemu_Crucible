@@ -43,7 +43,8 @@ public:
      *
      * @retval ?
      */
-    bool GetCharactersList(uint32 accountID, std::map<std::string, std::map<std::string, std::string> > * characterList);
+    bool GetCharactersList(uint32 accountID, std::vector<std::string> & charIDList, std::vector<std::string> & charNameList,
+    std::vector<std::string> & charCorpIDList, std::vector<std::string> & charCorpNameList);
 
 protected:
 

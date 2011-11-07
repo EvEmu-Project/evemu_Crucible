@@ -57,6 +57,32 @@ bool APIServiceDB::GetAccountIdFromUsername(std::string username, std::string * 
 	return true;
 }
 
+bool APIServiceDB::GetAccountIdFromUserID(std::string userID, uint32 * accountID)
+{
+	DBQueryResult res;
+
+	// Find accountID in 'accountapi' table using userID:
+	if( !sDatabase.RunQuery(res,
+		"SELECT"
+		"	accountID "
+		" FROM accountApi "
+        " WHERE userID='%s'" , userID.c_str() ))
+	{
+		sLog.Error( "APIServiceDB::GetAccountIdFromUserID()", "Cannot find accountID for userID %s", userID.c_str() );
+		return false;
+	}
+
+	DBResultRow row;
+	if( !res.GetRow(row) )
+	{
+		sLog.Error( "APIServiceDB::GetAccountIdFromUserID()", "res.GetRow(row) failed for unknown reason." );
+		return false;
+	}
+
+    *accountID = row.GetUInt(0);		// Grab accountID from the retrieved row from the 'accountapi' table
+	return true;
+}
+
 bool APIServiceDB::GetApiAccountInfoUsingAccountID(std::string accountID, uint32 * userID, std::string * apiFullKey,
     std::string * apiLimitedKey, uint32 * apiRole)
 {
