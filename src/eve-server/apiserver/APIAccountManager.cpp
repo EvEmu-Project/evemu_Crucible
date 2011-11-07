@@ -76,7 +76,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
     std::string accountID;
     std::string keyTag;
 
-    sLog.Debug("APIAccountManager::_APIKeyRequest()", "EVEmu API - Account Service Manager - CALL: API Key Request");
+    sLog.Debug("APIAccountManager::_APIKeyRequest()", "EVEmu API - Account Service Manager - CALL: APIKeyRequest.xml.aspx");
 
     // 1: Decode arguments:
     if( pAPICommandCall->find( "username" ) != pAPICommandCall->end() )
@@ -203,48 +203,35 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
 
 std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APICommandCall * pAPICommandCall)
 {
+
+    sLog.Debug("APIAccountManager::_Characters()", "EVEmu API - Account Service Manager - CALL: Characters.xml.aspx");
+
     if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIAccountManager::_Characters()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
 		return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
 	}
-/*
-    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
-    {
-		std::vector<std::string> rowset;
-		_BuildXMLHeader();
-		{
-			_BuildXMLTag( "result" );
-			{
-				rowset.push_back("name");
-				rowset.push_back("characterID");
-				rowset.push_back("corporationName");
-				rowset.push_back("corporationID");
-				_BuildXMLRowSet( "characters", "characterID", &rowset );
-					// Intentionally fill with NO characters since NO userid was specified in the API call
-				_CloseXMLRowSet();  // close rowset "characters"
-			}
-			_CloseXMLTag(); // close tag "result"
-		}
-		_CloseXMLHeader( EVEAPI::CacheStyles::Long );
-	
-        sLog.Error( "APIAccountManager::_Characters()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
-		return std::tr1::shared_ptr<std::string>(new std::string(""));
 
-		//sLog.Error( "APIAccountManager::_Characters()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
-        //return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
-    }
-*/
-
+    uint32 status = 0;
     uint32 accountID = 0;
     std::vector<std::string> charIDList;
     std::vector<std::string> charNameList;
     std::vector<std::string> charCorpIDList;
     std::vector<std::string> charCorpNameList;
 
+    std::string userID = pAPICommandCall->find( "userid" )->second;
+
+    status = m_db.GetAccountIdFromUserID( userID, &accountID );
+    if( !status )
+    {
+        sLog.Error( "APIAccountManager::_Characters()", "ERROR: userID='%s' cannot be found in 'accountApi' table.", userID.c_str() );
+        return BuildErrorXMLResponse( "203", "Authentication failure." );
+    }
+
     if( !( m_accountDB.GetCharactersList(accountID, charIDList, charNameList, charCorpIDList, charCorpNameList) ) )
     {
-        //
+        sLog.Error( "APIAccountManager::_Characters()", "ERROR: m_accountDB.GetCharactersList() call failed for unknown reason - exiting with error" );
+        BuildErrorXMLResponse( "9999", "EVEmu API Server: Account Manager - Characters.xml.aspx STUB" );
     }
 
     // EXAMPLE:
@@ -259,18 +246,15 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APIComman
             rowset.push_back("corporationID");
             _BuildXMLRowSet( "characters", "characterID", &rowset );
             {
-                rowset.clear();
-                rowset.push_back("Aknor Jaden");
-                rowset.push_back("5954416610");
-                rowset.push_back("Munich Lumberjacks");
-                rowset.push_back("98038978");
-                _BuildXMLRow( &rowset );
-                rowset.clear();
-                rowset.push_back("Archon Phoenix");
-                rowset.push_back("5862205200");
-                rowset.push_back("Imperial Academy");
-                rowset.push_back("1000166");
-                _BuildXMLRow( &rowset );
+                for(int i=0; i<charIDList.size(); i++)
+                {
+                    rowset.clear();
+                    rowset.push_back(charNameList.at(i));
+                    rowset.push_back(charIDList.at(i));
+                    rowset.push_back(charCorpNameList.at(i));
+                    rowset.push_back(charCorpIDList.at(i));
+                    _BuildXMLRow( &rowset );
+                }
             }
             _CloseXMLRowSet();  // close rowset "characters"
         }

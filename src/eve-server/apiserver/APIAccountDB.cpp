@@ -36,7 +36,7 @@ bool APIAccountDB::GetCharactersList(uint32 accountID, std::vector<std::string> 
 {
 	DBQueryResult res;
 
-	// Find accountID in 'account' table using accountName:
+	// Get list of characters and their corporation info from the accountID:
 	if( !sDatabase.RunQuery(res,
         " SELECT "
         "   character_.characterID, "

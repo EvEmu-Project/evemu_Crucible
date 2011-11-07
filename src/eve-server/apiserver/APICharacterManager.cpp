@@ -59,28 +59,34 @@ std::tr1::shared_ptr<std::string> APICharacterManager::ProcessCall(const APIComm
 
 std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const APICommandCall * pAPICommandCall)
 {
+
+    sLog.Debug("APICharacterManager::_CharacterSheet()", "EVEmu API - Character Service Manager - CALL: CharacterSheet.xml.aspx");
+
     if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
-        return std::tr1::shared_ptr<std::string>(new std::string(""));
-		//return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+		return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 
 	if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
-        return std::tr1::shared_ptr<std::string>(new std::string(""));
-		//return BuildErrorXMLResponse( "", "" );
+		return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
 	if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
-        return std::tr1::shared_ptr<std::string>(new std::string(""));
-		//return BuildErrorXMLResponse( "", "" );
+		return BuildErrorXMLResponse( "105", "Invalid characterID." );
     }
 
-    // TODO
+    // TODO: Implement calls in APICharacterDB class to grab all data for this call and populate the xml structure with that data
+    uint32 characterID = atoi( pAPICommandCall->find( "characterid" )->second.c_str() );
+    std::vector<std::string> skillTypeIDList;
+    std::vector<std::string> skillPointsList;
+    std::vector<std::string> skillLevelList;
+    std::vector<std::string> skillPublishedList;
+    m_charDB.GetCharacterSkillsTrained( characterID, skillTypeIDList, skillPointsList, skillLevelList, skillPublishedList );
 	
 	//return BuildErrorXMLResponse( "9999", "EVEmu API Server: Character Manager - CharacterSheet.xml.aspx STUB" );
 
@@ -159,30 +165,15 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             rowset.push_back("published");
             _BuildXMLRowSet( "skills", "typeID", &rowset );
             {
-                rowset.clear();
-                rowset.push_back("3431");
-                rowset.push_back("8000");
-                rowset.push_back("3");
-                rowset.push_back("1");
-                _BuildXMLRow( &rowset );
-                rowset.clear();
-                rowset.push_back("3413");
-                rowset.push_back("8000");
-                rowset.push_back("3");
-                rowset.push_back("1");
-                _BuildXMLRow( &rowset );
-                rowset.clear();
-                rowset.push_back("21059");
-                rowset.push_back("500");
-                rowset.push_back("1");
-                rowset.push_back("1");
-                _BuildXMLRow( &rowset );
-                rowset.clear();
-                rowset.push_back("3416");
-                rowset.push_back("8000");
-                rowset.push_back("3");
-                rowset.push_back("1");
-                _BuildXMLRow( &rowset );
+                for(int i=0; i<skillTypeIDList.size(); i++)
+                {
+                    rowset.clear();
+                    rowset.push_back(skillTypeIDList.at(i));
+                    rowset.push_back(skillPointsList.at(i));
+                    rowset.push_back(skillLevelList.at(i));
+                    rowset.push_back(skillPublishedList.at(i));
+                    _BuildXMLRow( &rowset );
+                }
             }
             _CloseXMLRowSet();  // close rowset "skills"
 

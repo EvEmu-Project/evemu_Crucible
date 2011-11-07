@@ -57,6 +57,18 @@ public:
      *
      * @retval ?
      */
+	bool GetAccountIdFromUserID(std::string userID, uint32 * accountID);
+
+    /**
+     * @brief ?
+     *
+     * ?
+     *
+     * @param[in] ?
+     * @param[in] ?
+     *
+     * @retval ?
+     */
 	bool GetApiAccountInfoUsingAccountID(std::string accountID, uint32 * userID, std::string * apiFullKey,
         std::string * apiLimitedKey, uint32 * apiRole);
 

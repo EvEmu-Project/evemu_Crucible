@@ -31,9 +31,52 @@ APICharacterDB::APICharacterDB()
 {
 }
 
-bool APICharacterDB::GetCharacterSkillsTrained(uint32 characterID, std::map<std::string, std::vector<std::string> > * skillList)
+bool APICharacterDB::GetCharacterSkillsTrained(uint32 characterID, std::vector<std::string> & skillTypeIDList, std::vector<std::string> & skillPointsList,
+    std::vector<std::string> & skillLevelList, std::vector<std::string> & skillPublishedList)
 {
-    return false;
+	DBQueryResult res;
+
+	// Get list of characters and their corporation info from the accountID:
+	if( !sDatabase.RunQuery(res,
+        " SELECT "
+        "   entity.itemID, "
+        "   entity.typeID, "
+        "   entity_attributes.attributeID, "
+        "   entity_attributes.valueInt, "
+        "   invTypes.groupID, "
+        "   invTypes.published, "
+        "   invGroups.categoryID "
+        " FROM `entity` "
+        "   LEFT JOIN entity_attributes ON entity_attributes.itemID = entity.itemID "
+        "   LEFT JOIN invTypes ON invTypes.typeID = entity.typeID "
+        "   LEFT JOIN invGroups ON invGroups.groupID = invTypes.groupID "
+        " WHERE `ownerID` = %u AND invGroups.categoryID = 16 ", characterID ))
+	{
+		sLog.Error( "APIAccountDB::GetCharacterSkillsTrained()", "Cannot find characterID %u", characterID );
+		return false;
+	}
+
+    uint32 prevTypeID = 0;
+	DBResultRow row;
+    std::map<std::string, std::string> charInfo;
+    while( res.GetRow( row ) )
+    {
+        if( prevTypeID != row.GetUInt(1) )
+        {
+            skillTypeIDList.push_back( std::string(row.GetText(1)) );
+            skillPublishedList.push_back( std::string(row.GetText(5)) );
+        }
+
+        prevTypeID = row.GetUInt(1);
+        
+        if( row.GetUInt(2) == 276 )
+            skillPointsList.push_back( std::string((row.GetText(3) == NULL ? "" : row.GetText(3))) );
+
+        if( row.GetUInt(2) == 280 )
+            skillLevelList.push_back( std::string((row.GetText(3) == NULL ? "" : row.GetText(3))) );
+    }
+
+	return true;
 }
 
 bool APICharacterDB::GetCharacterInfo(uint32 characterID, std::map<std::string, std::map<std::string, std::string> > * charInfoList)
