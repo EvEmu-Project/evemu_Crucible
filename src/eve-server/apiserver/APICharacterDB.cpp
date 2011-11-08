@@ -81,6 +81,51 @@ bool APICharacterDB::GetCharacterSkillsTrained(uint32 characterID, std::vector<s
 
 bool APICharacterDB::GetCharacterInfo(uint32 characterID, std::map<std::string, std::map<std::string, std::string> > * charInfoList)
 {
+	DBQueryResult res;
+
+	// Get list of characters and their corporation info from the accountID:
+	if( !sDatabase.RunQuery(res,
+        " SELECT "
+        "  character_.*, "
+        "  chrAncestries.ancestryName, "
+        "  chrBloodlines.bloodlineName, "
+        "  chrRaces.raceName, "
+        "  entity.itemName, "
+        "  corporation.corporationName "
+        " FROM character_ "
+        "  LEFT JOIN chrAncestries ON character_.ancestryID = chrAncestries.ancestryID "
+        "  LEFT JOIN chrBloodlines ON chrAncestries.bloodlineID = chrBloodlines.bloodlineID "
+        "  LEFT JOIN chrRaces ON chrBloodlines.raceID = chrRaces.raceID "
+        "  LEFT JOIN entity ON entity.itemID = character_.characterID "
+        "  LEFT JOIN corporation ON corporation.corporationID = character_.corporationID "
+        " WHERE character_.characterID = %u ", characterID ))
+	{
+		sLog.Error( "APIAccountDB::GetCharacterSkillsTrained()", "Cannot find characterID %u", characterID );
+		return false;
+	}
+
+    uint32 prevTypeID = 0;
+	DBResultRow row;
+    std::map<std::string, std::string> charInfo;
+    while( res.GetRow( row ) )
+    {
+        if( prevTypeID != row.GetUInt(1) )
+        {
+            skillTypeIDList.push_back( std::string(row.GetText(1)) );
+            skillPublishedList.push_back( std::string(row.GetText(5)) );
+        }
+
+        prevTypeID = row.GetUInt(1);
+        
+        if( row.GetUInt(2) == 276 )
+            skillPointsList.push_back( std::string((row.GetText(3) == NULL ? "" : row.GetText(3))) );
+
+        if( row.GetUInt(2) == 280 )
+            skillLevelList.push_back( std::string((row.GetText(3) == NULL ? "" : row.GetText(3))) );
+    }
+
+	return true;
+
     return false;
 }
 

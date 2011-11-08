@@ -45,7 +45,8 @@ public:
      */
     bool GetCharacterSkillsTrained(uint32 characterID, std::vector<std::string> & skillTypeIDList, std::vector<std::string> & skillPointsList,
         std::vector<std::string> & skillLevelList, std::vector<std::string> & skillPublishedList);
-    bool GetCharacterInfo(uint32 characterID, std::map<std::string, std::map<std::string, std::string> > * charInfoList);
+    bool GetCharacterInfo(uint32 characterID, std::vector<std::string> & charInfoList);
+
     bool GetCharacterImplants(uint32 characterID, std::map<std::string, std::string> * implantList);
     bool GetCharacterAttributes(uint32 characterID, std::map<std::string, std::string> * attribList);
     bool GetCharacterCertificates(uint32 characterID, std::vector<std::string> * certList);
