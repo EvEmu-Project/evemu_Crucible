@@ -69,17 +69,17 @@ bool APICharacterDB::GetCharacterSkillsTrained(uint32 characterID, std::vector<s
 
         prevTypeID = row.GetUInt(1);
         
-        if( row.GetUInt(2) == 276 )
+        if( row.GetUInt(2) == AttrSkillPoints )
             skillPointsList.push_back( std::string((row.GetText(3) == NULL ? "" : row.GetText(3))) );
 
-        if( row.GetUInt(2) == 280 )
+        if( row.GetUInt(2) == AttrSkillLevel )
             skillLevelList.push_back( std::string((row.GetText(3) == NULL ? "" : row.GetText(3))) );
     }
 
 	return true;
 }
 
-bool APICharacterDB::GetCharacterInfo(uint32 characterID, std::map<std::string, std::map<std::string, std::string> > * charInfoList)
+bool APICharacterDB::GetCharacterInfo(uint32 characterID, std::vector<std::string> & charInfoList)
 {
 	DBQueryResult res;
 
@@ -104,29 +104,30 @@ bool APICharacterDB::GetCharacterInfo(uint32 characterID, std::map<std::string, 
 		return false;
 	}
 
-    uint32 prevTypeID = 0;
 	DBResultRow row;
-    std::map<std::string, std::string> charInfo;
-    while( res.GetRow( row ) )
-    {
-        if( prevTypeID != row.GetUInt(1) )
-        {
-            skillTypeIDList.push_back( std::string(row.GetText(1)) );
-            skillPublishedList.push_back( std::string(row.GetText(5)) );
-        }
+	if( !res.GetRow(row) )
+	{
+		sLog.Error( "APIServiceDB::GetAccountIdFromUsername()", "res.GetRow(row) failed for unknown reason." );
+		return false;
+	}
 
-        prevTypeID = row.GetUInt(1);
-        
-        if( row.GetUInt(2) == 276 )
-            skillPointsList.push_back( std::string((row.GetText(3) == NULL ? "" : row.GetText(3))) );
-
-        if( row.GetUInt(2) == 280 )
-            skillLevelList.push_back( std::string((row.GetText(3) == NULL ? "" : row.GetText(3))) );
-    }
+    charInfoList.push_back( std::string(row.GetText(5)) );      // 0. Balance
+    charInfoList.push_back( std::string(row.GetText(9)) );      // 1. Skill Points
+    charInfoList.push_back( std::string(row.GetText(10)) );     // 2. corporationID
+    charInfoList.push_back( std::string(row.GetText(11)) );     // 3. corp Role
+    charInfoList.push_back( std::string(row.GetText(12)) );     // 4. roles At All
+    charInfoList.push_back( std::string(row.GetText(13)) );     // 5. roles At Base
+    charInfoList.push_back( std::string(row.GetText(14)) );     // 6. roles At HQ
+    charInfoList.push_back( std::string(row.GetText(15)) );     // 7. roles At Other
+    charInfoList.push_back( std::string(row.GetText(17)) );     // 8. birthday
+    charInfoList.push_back( std::string(row.GetText(32)) );     // 9. ancestry Name
+    charInfoList.push_back( std::string(row.GetText(33)) );     // 10. bloodline Name
+    charInfoList.push_back( std::string(row.GetText(34)) );     // 11. race Name
+    charInfoList.push_back( std::string(row.GetText(35)) );     // 12. char Name
+    charInfoList.push_back( std::string(row.GetText(36)) );     // 13. corp Name
+    charInfoList.push_back( std::string(row.GetText(23)) );     // 14. gender (0 = female, 1 = male)
 
 	return true;
-
-    return false;
 }
 
 bool APICharacterDB::GetCharacterImplants(uint32 characterID, std::map<std::string, std::string> * implantList)

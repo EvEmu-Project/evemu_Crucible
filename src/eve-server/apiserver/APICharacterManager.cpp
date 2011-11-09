@@ -87,7 +87,10 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
     std::vector<std::string> skillLevelList;
     std::vector<std::string> skillPublishedList;
     m_charDB.GetCharacterSkillsTrained( characterID, skillTypeIDList, skillPointsList, skillLevelList, skillPublishedList );
-	
+
+    std::vector<std::string> charInfoList;
+    m_charDB.GetCharacterInfo( characterID, charInfoList );
+
 	//return BuildErrorXMLResponse( "9999", "EVEmu API Server: Character Manager - CharacterSheet.xml.aspx STUB" );
 
 	// EXAMPLE:
@@ -96,20 +99,20 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
     {
         _BuildXMLTag( "result" );
         {
-            _BuildSingleXMLTag( "characterID", "5954416610" );
-            _BuildSingleXMLTag( "name", "Aknor Jaden" );
-            _BuildSingleXMLTag( "DoB", "2006-01-01 00:00:00" );
-            _BuildSingleXMLTag( "race", "Minmatar" );
-            _BuildSingleXMLTag( "bloodLine", "Brutor" );
-            _BuildSingleXMLTag( "ancestry", "Slave Child" );
-            _BuildSingleXMLTag( "gender", "Male" );
-            _BuildSingleXMLTag( "corporationName", "Munich Lumberjacks" );
-            _BuildSingleXMLTag( "corporationID", "98038978" );
+            _BuildSingleXMLTag( "characterID", std::string(itoa(characterID)) );
+            _BuildSingleXMLTag( "name", charInfoList.at(12) );
+            _BuildSingleXMLTag( "DoB", Win32TimeToString(atol(charInfoList.at(8).c_str()) );
+            _BuildSingleXMLTag( "race", charInfoList.at(11) );
+            _BuildSingleXMLTag( "bloodLine", charInfoList.at(10) );
+            _BuildSingleXMLTag( "ancestry", charInfoList.at(9) );
+            _BuildSingleXMLTag( "gender", (charInfoList.at(14).compare("0") ? "Female" : "Male") );
+            _BuildSingleXMLTag( "corporationName", charInfoList.at(13) );
+            _BuildSingleXMLTag( "corporationID", charInfoList.at(2) );
             _BuildSingleXMLTag( "allianceName", "" );
             _BuildSingleXMLTag( "allianceID", "0" );
             _BuildSingleXMLTag( "cloneName", "Clone Grade Pi" );
             _BuildSingleXMLTag( "cloneSkillPoints", "54600000" );
-            _BuildSingleXMLTag( "balance", "100000000000.00" );
+            _BuildSingleXMLTag( "balance", charInfoList.at(0) );
 
             // Attribute Enhancers (implants)
             _BuildXMLTag( "attributeEnhancers" );
