@@ -101,7 +101,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
         {
             _BuildSingleXMLTag( "characterID", std::string(itoa(characterID)) );
             _BuildSingleXMLTag( "name", charInfoList.at(12) );
-            _BuildSingleXMLTag( "DoB", Win32TimeToString(atol(charInfoList.at(8).c_str()) );
+            _BuildSingleXMLTag( "DoB", Win32TimeToString(strtoull(charInfoList.at(8).c_str(), NULL, 0) ));
             _BuildSingleXMLTag( "race", charInfoList.at(11) );
             _BuildSingleXMLTag( "bloodLine", charInfoList.at(10) );
             _BuildSingleXMLTag( "ancestry", charInfoList.at(9) );
