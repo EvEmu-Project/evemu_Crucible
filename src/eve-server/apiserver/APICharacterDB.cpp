@@ -43,6 +43,7 @@ bool APICharacterDB::GetCharacterSkillsTrained(uint32 characterID, std::vector<s
         "   entity.typeID, "
         "   entity_attributes.attributeID, "
         "   entity_attributes.valueInt, "
+        "   entity_attributes.valueFloat, "
         "   invTypes.groupID, "
         "   invTypes.published, "
         "   invGroups.categoryID "
@@ -64,16 +65,26 @@ bool APICharacterDB::GetCharacterSkillsTrained(uint32 characterID, std::vector<s
         if( prevTypeID != row.GetUInt(1) )
         {
             skillTypeIDList.push_back( std::string(row.GetText(1)) );
-            skillPublishedList.push_back( std::string(row.GetText(5)) );
+            skillPublishedList.push_back( std::string(row.GetText(6)) );
         }
 
         prevTypeID = row.GetUInt(1);
         
         if( row.GetUInt(2) == AttrSkillPoints )
-            skillPointsList.push_back( std::string((row.GetText(3) == NULL ? "" : row.GetText(3))) );
+            if( row.GetText(3) == NULL )
+                // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
+                skillPointsList.push_back( std::string((row.GetText(4) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(4))))) );
+            else
+                // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
+                skillPointsList.push_back( std::string((row.GetText(3) == NULL ? "0" : row.GetText(3))) );
 
         if( row.GetUInt(2) == AttrSkillLevel )
-            skillLevelList.push_back( std::string((row.GetText(3) == NULL ? "" : row.GetText(3))) );
+            if( row.GetText(3) == NULL )
+                // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
+                skillLevelList.push_back( std::string((row.GetText(4) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(4))))) );
+            else
+                // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
+                skillLevelList.push_back( std::string((row.GetText(3) == NULL ? "0" : row.GetText(3))) );
     }
 
 	return true;

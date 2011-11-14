@@ -64,3 +64,37 @@ bool APIAccountDB::GetCharactersList(uint32 accountID, std::vector<std::string> 
 
 	return true;
 }
+
+
+bool APIAccountDB::GetAccountInfo(uint32 accountID, std::vector<std::string> & accountInfoList)
+{
+	DBQueryResult res;
+
+	// Get account table info using the accountID:
+	if( !sDatabase.RunQuery(res,
+        " SELECT "
+        "   online, "
+        "   banned, "
+        "   logonCount, "
+        "   lastLogin "
+        " FROM account "
+        " WHERE `accountID` = %u ", accountID ))
+	{
+		sLog.Error( "APIAccountDB::GetAccountInfo()", "Cannot find accountID %u", accountID );
+		return false;
+	}
+
+	DBResultRow row;
+    if( !res.GetRow(row) )
+	{
+		sLog.Error( "APIServiceDB::GetAccountInfo()", "res.GetRow(row) failed for unknown reason." );
+		return false;
+	}
+
+    accountInfoList.push_back( std::string(row.GetText(0)) );
+    accountInfoList.push_back( std::string(row.GetText(1)) );
+    accountInfoList.push_back( std::string(row.GetText(2)) );
+    accountInfoList.push_back( std::string(row.GetText(3)) );
+
+	return true;
+}

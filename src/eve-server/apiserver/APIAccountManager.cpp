@@ -204,6 +204,8 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
 std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APICommandCall * pAPICommandCall)
 {
 
+    sLog.Error( "APIAccountManager::_Characters()", "TODO: Insert code to validate userID and apiKey" );
+
     sLog.Debug("APIAccountManager::_Characters()", "EVEmu API - Account Service Manager - CALL: Characters.xml.aspx");
 
     if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
@@ -234,7 +236,6 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APIComman
         BuildErrorXMLResponse( "9999", "EVEmu API Server: Account Manager - Characters.xml.aspx STUB" );
     }
 
-    // EXAMPLE:
     std::vector<std::string> rowset;
     _BuildXMLHeader();
     {
@@ -267,14 +268,43 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APIComman
 
 std::tr1::shared_ptr<std::string> APIAccountManager::_AccountStatus(const APICommandCall * pAPICommandCall)
 {
-    if( pAPICommandCall->find( "userID" ) == pAPICommandCall->end() )
+    sLog.Error( "APIAccountManager::_AccountStatus()", "TODO: Insert code to validate userID and apiKey" );
+
+    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIAccountManager::_AccountStatus()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
         return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 
-    // TODO
-    return BuildErrorXMLResponse( "9999", "EVEmu API Server: Account Manager - AccountStatus.xml.aspx STUB" );
+    uint32 accountID = 0;
+    std::vector<std::string> accountInfoList;
+    
+    if( !(m_db.GetAccountIdFromUserID( pAPICommandCall->find( "userid" )->second, &accountID )) )
+    {
+        sLog.Error( "APIAccountManager::_AccountStatus()", "ERROR: Could not find 'accountID' in 'accountApi' table - exiting with error" );
+        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+    }
+
+    if( !(m_accountDB.GetAccountInfo( accountID, accountInfoList )) )
+    {
+        sLog.Error( "APIAccountManager::_AccountStatus()", "ERROR: Could not find 'accountID' in 'account' table; there is an invalid 'accountID' referenced by api account 'userID' = %s - exiting with error", pAPICommandCall->find( "userid" )->second );
+        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+    }
+
+    _BuildXMLHeader();
+    {
+        _BuildXMLTag( "result" );
+        {
+            _BuildSingleXMLTag( "paidUntil", "2100-12-31 12:00:00" );
+            _BuildSingleXMLTag( "createDate", "2000-01-01 12:00:00" );
+            _BuildSingleXMLTag( "logonCount", accountInfoList.at(2) );
+            _BuildSingleXMLTag( "logonMinutes", "1000" );
+        }
+        _CloseXMLTag(); // close tag "result"
+    }
+    _CloseXMLHeader( EVEAPI::CacheStyles::Short );
+
+    return _GetXMLDocumentString();
 }
 
 std::string APIAccountManager::_GenerateAPIKey()

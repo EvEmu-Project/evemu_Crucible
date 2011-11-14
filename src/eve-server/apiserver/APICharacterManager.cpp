@@ -44,6 +44,8 @@ std::tr1::shared_ptr<std::string> APICharacterManager::ProcessCall(const APIComm
 
     if( pAPICommandCall->find( "servicehandler" )->second == "CharacterSheet.xml.aspx" )
         return _CharacterSheet(pAPICommandCall);
+    if( pAPICommandCall->find( "servicehandler" )->second == "SkillQueue.xml.aspx" )
+        return _SkillQueue(pAPICommandCall);
     //else if( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
     //    return _TODO(pAPICommandCall);
     else
@@ -59,6 +61,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::ProcessCall(const APIComm
 
 std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const APICommandCall * pAPICommandCall)
 {
+    sLog.Error( "APICharacterManager::_CharacterSheet()", "TODO: Insert code to validate userID and apiKey" );
 
     sLog.Debug("APICharacterManager::_CharacterSheet()", "EVEmu API - Character Service Manager - CALL: CharacterSheet.xml.aspx");
 
@@ -91,9 +94,8 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
     std::vector<std::string> charInfoList;
     m_charDB.GetCharacterInfo( characterID, charInfoList );
 
-	//return BuildErrorXMLResponse( "9999", "EVEmu API Server: Character Manager - CharacterSheet.xml.aspx STUB" );
+    sLog.Error( "APICharacterManager::_CharacterSheet()", "INFO: Sections Currently hard-coded: attributeEnhancers, attributes, certificates, corporation roles" );
 
-	// EXAMPLE:
     std::vector<std::string> rowset;
     _BuildXMLHeader();
     {
@@ -108,12 +110,13 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             _BuildSingleXMLTag( "gender", (charInfoList.at(14).compare("0") ? "Female" : "Male") );
             _BuildSingleXMLTag( "corporationName", charInfoList.at(13) );
             _BuildSingleXMLTag( "corporationID", charInfoList.at(2) );
-            _BuildSingleXMLTag( "allianceName", "" );
+            _BuildSingleXMLTag( "allianceName", "none" );
             _BuildSingleXMLTag( "allianceID", "0" );
             _BuildSingleXMLTag( "cloneName", "Clone Grade Pi" );
             _BuildSingleXMLTag( "cloneSkillPoints", "54600000" );
             _BuildSingleXMLTag( "balance", charInfoList.at(0) );
 
+            // TODO: code these for real, as what follows are hard coded examples to fill out the whole xml document:
             // Attribute Enhancers (implants)
             _BuildXMLTag( "attributeEnhancers" );
             {
@@ -150,6 +153,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             }
             _CloseXMLTag(); // close tag "attributeEnhancers"
 
+            // TODO: code these for real, as what follows are hard coded examples to fill out the whole xml document:
             // Attributes
             _BuildXMLTag( "attributes" );
             {
@@ -162,6 +166,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             _CloseXMLTag(); // close tag "attributes"
 
             // Skills
+            rowset.clear();
             rowset.push_back("typeID");
             rowset.push_back("skillpoints");
             rowset.push_back("level");
@@ -180,19 +185,117 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             }
             _CloseXMLRowSet();  // close rowset "skills"
 
+            // TODO: code these for real, as what follows are hard coded examples to fill out the whole xml document:
             // Certificates:
+            rowset.clear();
             rowset.push_back("certificateID");
             _BuildXMLRowSet( "certificates", "certificateID", &rowset );
             {
+            //    for(int i=0; i<skillTypeIDList.size(); i++)
+            //    {
+                    rowset.clear();
+                    //rowset.push_back(certificatesList.at(i));
+                    rowset.push_back("1");
+                    _BuildXMLRow( &rowset );
+            //    }
             }
             _CloseXMLRowSet();  // close rowset "certificates"
 
+            // TODO: code these for real, as what follows are hard coded examples to fill out the whole xml document:
             // Corporation Roles:
-            // TODO
+            //rowset.clear();
+            //rowset.push_back("");
+            //_BuildXMLRowSet( "", "", &rowset );
+            //{
+            //}
+            _CloseXMLRowSet();  // close rowset ""
         }
         _CloseXMLTag(); // close tag "result"
     }
     _CloseXMLHeader( EVEAPI::CacheStyles::Long );
+
+    return _GetXMLDocumentString();
+}
+
+std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APICommandCall * pAPICommandCall)
+{
+    sLog.Error( "APICharacterManager::_CharacterSheet()", "TODO: Insert code to validate userID and apiKey" );
+
+    sLog.Debug("APICharacterManager::_CharacterSheet()", "EVEmu API - Character Service Manager - CALL: CharacterSheet.xml.aspx");
+
+    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
+		return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+    }
+
+	if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
+		return BuildErrorXMLResponse( "203", "Authentication failure." );
+    }
+
+	if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
+		return BuildErrorXMLResponse( "105", "Invalid characterID." );
+    }
+/*
+    // TODO: Implement calls in APICharacterDB class to grab all data for this call and populate the xml structure with that data
+    uint32 characterID = atoi( pAPICommandCall->find( "characterid" )->second.c_str() );
+    std::vector<std::string> skillTypeIDList;
+    std::vector<std::string> skillPointsList;
+    std::vector<std::string> skillLevelList;
+    std::vector<std::string> skillPublishedList;
+    m_charDB.GetCharacterSkillsTrained( characterID, skillTypeIDList, skillPointsList, skillLevelList, skillPublishedList );
+
+    std::vector<std::string> charInfoList;
+    m_charDB.GetCharacterInfo( characterID, charInfoList );
+
+	//return BuildErrorXMLResponse( "9999", "EVEmu API Server: Character Manager - CharacterSheet.xml.aspx STUB" );
+*/
+	// EXAMPLE:
+    std::vector<std::string> rowset;
+    _BuildXMLHeader();
+    {
+        _BuildXMLTag( "result" );
+        {
+            // Skill Queue
+            rowset.push_back("queuePosition");
+            rowset.push_back("typeID");
+            rowset.push_back("level");
+            rowset.push_back("startSP");
+            rowset.push_back("endSP");
+            rowset.push_back("startTime");
+            rowset.push_back("endTime");
+            _BuildXMLRowSet( "skillqueue", "queuePosition", &rowset );
+            {
+                    rowset.clear();
+                    rowset.push_back("1");
+                    rowset.push_back("11441");
+                    rowset.push_back("3");
+                    rowset.push_back("7072");
+                    rowset.push_back("40000");
+                    rowset.push_back("2011-11-12 11:00:00");
+                    rowset.push_back("2011-11-12 22:00:00");
+                    _BuildXMLRow( &rowset );
+                /*
+                for(int i=0; i<skillTypeIDList.size(); i++)
+                {
+                    rowset.clear();
+                    rowset.push_back(skillTypeIDList.at(i));
+                    rowset.push_back(skillPointsList.at(i));
+                    rowset.push_back(skillLevelList.at(i));
+                    rowset.push_back(skillPublishedList.at(i));
+                    _BuildXMLRow( &rowset );
+                }
+                */
+            }
+            _CloseXMLRowSet();  // close rowset "skillqueue"
+        }
+        _CloseXMLTag(); // close tag "result"
+    }
+    _CloseXMLHeader( EVEAPI::CacheStyles::Modified );
 
     return _GetXMLDocumentString();
 }
