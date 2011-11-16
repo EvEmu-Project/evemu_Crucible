@@ -64,6 +64,197 @@ bool IsPrintable( const PyWString* str );
  */
 bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep );
 
+//////////////////////////////////////////////////////////////////////////////////////////
+//
+// EVE Math Equations for in-game features
+// (pulled directly from http://wiki.eve-id.net/Equations)
+//
+//////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber ME_EffectOnWaste(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber ME_LevelToEliminateWaste(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber WasteSkillBased(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber ME_ResearchTime(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber PE_ResearchTime(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber BluePrintCopyTime(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber ProductionTime(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber StationTaxesForReprocessing(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber EffectiveRefiningYield(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber BlueprintInventionTime(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber BlueprintInventionChance(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber ResearchPointsPerDay(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber AgentEffectiveQuality(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber EffectiveStanding(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber RequiredAgentStanding(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber MissionStandingIncrease(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber AgentEfficiency(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber SkillPointsAtLevel(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber EffectiveAttribute(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber SkillPointsPerMinute(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber TargetingLockTime(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber AlignTimeInSeconds(  );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber TradeBrokerFee(  );
+
 #endif
 
 
