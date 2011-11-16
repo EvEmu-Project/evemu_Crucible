@@ -26,6 +26,7 @@
 #ifndef __EVEUTILS_H__
 #define __EVEUTILS_H__
 
+#include "EvilNumber.h"
 #include "python/PyRep.h"
 
 class UserError;
@@ -64,6 +65,7 @@ bool IsPrintable( const PyWString* str );
  */
 bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep );
 
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //
 // EVE Math Equations for in-game features
@@ -77,7 +79,7 @@ bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep );
  * @param[in] ?
  * @return ?
  */
-EvilNumber ME_EffectOnWaste(  );
+EvilNumber ME_EffectOnWaste( EvilNumber MaterialAmount, EvilNumber BaseWasteFactor, EvilNumber MaterialEfficiency );
 
 /**
  * ?
@@ -85,7 +87,7 @@ EvilNumber ME_EffectOnWaste(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber ME_LevelToEliminateWaste(  );
+EvilNumber ME_LevelToEliminateWaste( EvilNumber MaterialAmount, EvilNumber BaseWasteFactor );
 
 /**
  * ?
@@ -93,7 +95,7 @@ EvilNumber ME_LevelToEliminateWaste(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber WasteSkillBased(  );
+EvilNumber WasteSkillBased( EvilNumber MaterialAmount, EvilNumber ProductionEfficiency );
 
 /**
  * ?
@@ -101,7 +103,7 @@ EvilNumber WasteSkillBased(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber ME_ResearchTime(  );
+EvilNumber ME_ResearchTime( EvilNumber BlueprintBaseResearchTime, EvilNumber MetallurgySkillLevel, EvilNumber ResearchSlotModifier, EvilNumber ImplantModifier );
 
 /**
  * ?
@@ -109,7 +111,7 @@ EvilNumber ME_ResearchTime(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber PE_ResearchTime(  );
+EvilNumber PE_ResearchTime( EvilNumber BlueprintBaseResearchTime, EvilNumber ResearchSkillLevel, EvilNumber ResearchSlotModifier, EvilNumber ImplantModifier );
 
 /**
  * ?
@@ -117,7 +119,7 @@ EvilNumber PE_ResearchTime(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber BluePrintCopyTime(  );
+EvilNumber BluePrintCopyTime( EvilNumber BlueprintBaseCopyTime, EvilNumber ScienceSkillLevel, EvilNumber CopySlotModifier, EvilNumber ImplantModifier );
 
 /**
  * ?
@@ -125,7 +127,7 @@ EvilNumber BluePrintCopyTime(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber ProductionTime(  );
+EvilNumber ProductionTimeModifier( EvilNumber IndustrySkillLevel, EvilNumber ImplantModifier, EvilNumber ProductionSlotModifier );
 
 /**
  * ?
@@ -133,7 +135,7 @@ EvilNumber ProductionTime(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber StationTaxesForReprocessing(  );
+EvilNumber ProductionTime( EvilNumber BaseProductionTime, EvilNumber ProductivityModifier, EvilNumber ProductionEfficiency, EvilNumber ProductionTimeModifier );
 
 /**
  * ?
@@ -141,7 +143,7 @@ EvilNumber StationTaxesForReprocessing(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber EffectiveRefiningYield(  );
+EvilNumber StationTaxesForReprocessing( EvilNumber CharacterStandingWithStationOwner );
 
 /**
  * ?
@@ -149,7 +151,7 @@ EvilNumber EffectiveRefiningYield(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber BlueprintInventionTime(  );
+EvilNumber EffectiveRefiningYield( EvilNumber StationEquipmentYield, EvilNumber RefiningSkillLevel, EvilNumber RefiningEfficiencySkillLevel, EvilNumber OreSpecificProcessingSkillLevel );
 
 /**
  * ?
@@ -157,7 +159,7 @@ EvilNumber BlueprintInventionTime(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber BlueprintInventionChance(  );
+EvilNumber BlueprintInventionTime( EvilNumber BlueprintBaseInventionTime, EvilNumber InventionSlotModifier, EvilNumber ImplantModifier );
 
 /**
  * ?
@@ -165,7 +167,7 @@ EvilNumber BlueprintInventionChance(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber ResearchPointsPerDay(  );
+EvilNumber BlueprintInventionChance( EvilNumber BaseChance, EvilNumber EncryptionSkillLevel, EvilNumber DataCore1SkillLevel, EvilNumber DataCore2SkillLevel, EvilNumber MetaLevel, EvilNumber DecryptorModifier );
 
 /**
  * ?
@@ -173,7 +175,7 @@ EvilNumber ResearchPointsPerDay(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber AgentEffectiveQuality(  );
+EvilNumber ResearchPointsPerDay( EvilNumber Multiplier, EvilNumber AgentEffectiveQuality, EvilNumber YourResearchSkillLevel, EvilNumber AgentResearchSkillLevel );
 
 /**
  * ?
@@ -181,7 +183,7 @@ EvilNumber AgentEffectiveQuality(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber EffectiveStanding(  );
+EvilNumber AgentEffectiveQuality( EvilNumber AgentQuality, EvilNumber NegotiationSkillLevel, EvilNumber AgentPersonalStanding );
 
 /**
  * ?
@@ -189,7 +191,7 @@ EvilNumber EffectiveStanding(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber RequiredAgentStanding(  );
+EvilNumber EffectiveStanding( EvilNumber YourStanding, EvilNumber ConnectionsSkillLevel, EvilNumber DiplomacySkillLevel );
 
 /**
  * ?
@@ -197,7 +199,7 @@ EvilNumber RequiredAgentStanding(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber MissionStandingIncrease(  );
+EvilNumber RequiredAgentStanding( EvilNumber AgentLevel, EvilNumber AgentQuality );
 
 /**
  * ?
@@ -205,7 +207,7 @@ EvilNumber MissionStandingIncrease(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber AgentEfficiency(  );
+EvilNumber MissionStandingIncrease( EvilNumber BaseMissionIncrease, EvilNumber YourSocialSkillLevel );
 
 /**
  * ?
@@ -213,7 +215,7 @@ EvilNumber AgentEfficiency(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber SkillPointsAtLevel(  );
+EvilNumber AgentEfficiency( EvilNumber AgentLevel, EvilNumber AgentQuality );
 
 /**
  * ?
@@ -221,7 +223,7 @@ EvilNumber SkillPointsAtLevel(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber EffectiveAttribute(  );
+EvilNumber SkillPointsAtLevel( EvilNumber SkillLevel, EvilNumber SkillRank );
 
 /**
  * ?
@@ -229,7 +231,7 @@ EvilNumber EffectiveAttribute(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber SkillPointsPerMinute(  );
+EvilNumber EffectiveAttribute( EvilNumber BaseAttribute, EvilNumber ImplantAttributeBonus );
 
 /**
  * ?
@@ -237,7 +239,7 @@ EvilNumber SkillPointsPerMinute(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber TargetingLockTime(  );
+EvilNumber SkillPointsPerMinute( EvilNumber EffectivePrimaryAttribute, EvilNumber EffectiveSecondaryAttribute );
 
 /**
  * ?
@@ -245,7 +247,7 @@ EvilNumber TargetingLockTime(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber AlignTimeInSeconds(  );
+EvilNumber TargetingLockTime( EvilNumber YourEffectiveScanResolution, EvilNumber TargetEffectiveSignatureRadius );
 
 /**
  * ?
@@ -253,9 +255,14 @@ EvilNumber AlignTimeInSeconds(  );
  * @param[in] ?
  * @return ?
  */
-EvilNumber TradeBrokerFee(  );
+EvilNumber AlignTimeInSeconds( EvilNumber InertiaModifier, EvilNumber Mass );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber TradeBrokerFee( EvilNumber BrokerRelationsSkillLevel, EvilNumber FactionStanding, EvilNumber CorporationStanding );
 
 #endif
-
-
-
