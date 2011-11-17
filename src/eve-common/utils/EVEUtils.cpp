@@ -232,18 +232,22 @@ EvilNumber MissionStandingIncrease( EvilNumber BaseMissionIncrease, EvilNumber Y
 
 EvilNumber AgentEfficiency( EvilNumber AgentLevel, EvilNumber AgentQuality )
 {
+    return (0.01 * ((8 * AgentLevel) + (0.1 * AgentQuality) - 4));
 }
 
 EvilNumber SkillPointsAtLevel( EvilNumber SkillLevel, EvilNumber SkillRank )
 {
+    return (pow( 2, (2.5 * SkillLevel.get_float()) - 2.5 ) * 250.0 * SkillRank);
 }
 
 EvilNumber EffectiveAttribute( EvilNumber BaseAttribute, EvilNumber ImplantAttributeBonus )
 {
+    return (BaseAttribute + ImplantAttributeBonus);
 }
 
 EvilNumber SkillPointsPerMinute( EvilNumber EffectivePrimaryAttribute, EvilNumber EffectiveSecondaryAttribute )
 {
+    return (EffectivePrimaryAttribute + (0.5 * EffectiveSecondaryAttribute));
 }
 
 EvilNumber TargetingLockTime( EvilNumber YourEffectiveScanResolution, EvilNumber TargetEffectiveSignatureRadius )
@@ -252,8 +256,10 @@ EvilNumber TargetingLockTime( EvilNumber YourEffectiveScanResolution, EvilNumber
 
 EvilNumber AlignTimeInSeconds( EvilNumber InertiaModifier, EvilNumber Mass )
 {
+    return ((log(2.0) * InertiaModifier * Mass) / 500000);
 }
 
 EvilNumber TradeBrokerFee( EvilNumber BrokerRelationsSkillLevel, EvilNumber FactionStanding, EvilNumber CorporationStanding )
 {
+
 }
