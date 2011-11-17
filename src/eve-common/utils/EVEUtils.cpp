@@ -164,96 +164,120 @@ bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep )
 
 EvilNumber ME_EffectOnWaste( EvilNumber MaterialAmount, EvilNumber BaseWasteFactor, EvilNumber MaterialEfficiency )
 {
+	return false;
 }
 
 EvilNumber ME_LevelToEliminateWaste( EvilNumber MaterialAmount, EvilNumber BaseWasteFactor )
 {
+	return false;
 }
 
 EvilNumber WasteSkillBased( EvilNumber MaterialAmount, EvilNumber ProductionEfficiency )
 {
+	return false;
 }
 
 EvilNumber ME_ResearchTime( EvilNumber BlueprintBaseResearchTime, EvilNumber MetallurgySkillLevel, EvilNumber ResearchSlotModifier, EvilNumber ImplantModifier )
 {
+	return false;
 }
 
 EvilNumber PE_ResearchTime( EvilNumber BlueprintBaseResearchTime, EvilNumber ResearchSkillLevel, EvilNumber ResearchSlotModifier, EvilNumber ImplantModifier )
 {
+	return false;
 }
 
 EvilNumber BluePrintCopyTime( EvilNumber BlueprintBaseCopyTime, EvilNumber ScienceSkillLevel, EvilNumber CopySlotModifier, EvilNumber ImplantModifier )
 {
+	return false;
 }
 
 EvilNumber ProductionTimeModifier( EvilNumber IndustrySkillLevel, EvilNumber ImplantModifier, EvilNumber ProductionSlotModifier )
 {
+	return false;
 }
 
 EvilNumber ProductionTime( EvilNumber BaseProductionTime, EvilNumber ProductivityModifier, EvilNumber ProductionEfficiency, EvilNumber ProductionTimeModifier )
 {
+	return false;
 }
 
 EvilNumber StationTaxesForReprocessing( EvilNumber CharacterStandingWithStationOwner )
 {
+	return false;
 }
 
 EvilNumber EffectiveRefiningYield( EvilNumber StationEquipmentYield, EvilNumber RefiningSkillLevel, EvilNumber RefiningEfficiencySkillLevel, EvilNumber OreSpecificProcessingSkillLevel )
 {
+	return false;
 }
 
 EvilNumber BlueprintInventionTime( EvilNumber BlueprintBaseInventionTime, EvilNumber InventionSlotModifier, EvilNumber ImplantModifier )
 {
+	return false;
 }
 
 EvilNumber BlueprintInventionChance( EvilNumber BaseChance, EvilNumber EncryptionSkillLevel, EvilNumber DataCore1SkillLevel, EvilNumber DataCore2SkillLevel, EvilNumber MetaLevel, EvilNumber DecryptorModifier )
 {
+	return false;
 }
 
 EvilNumber ResearchPointsPerDay( EvilNumber Multiplier, EvilNumber AgentEffectiveQuality, EvilNumber YourResearchSkillLevel, EvilNumber AgentResearchSkillLevel )
 {
+	return false;
 }
 
 EvilNumber AgentEffectiveQuality( EvilNumber AgentQuality, EvilNumber NegotiationSkillLevel, EvilNumber AgentPersonalStanding )
 {
+	return false;
 }
 
 EvilNumber EffectiveStanding( EvilNumber YourStanding, EvilNumber ConnectionsSkillLevel, EvilNumber DiplomacySkillLevel )
 {
+	return false;
 }
 
 EvilNumber RequiredAgentStanding( EvilNumber AgentLevel, EvilNumber AgentQuality )
 {
+	return false;
 }
 
 EvilNumber MissionStandingIncrease( EvilNumber BaseMissionIncrease, EvilNumber YourSocialSkillLevel )
 {
+	return false;
 }
 
 EvilNumber AgentEfficiency( EvilNumber AgentLevel, EvilNumber AgentQuality )
 {
+	return false;
 }
 
 EvilNumber SkillPointsAtLevel( EvilNumber SkillLevel, EvilNumber SkillRank )
 {
+	return false;
 }
 
 EvilNumber EffectiveAttribute( EvilNumber BaseAttribute, EvilNumber ImplantAttributeBonus )
 {
+	return false;
 }
 
 EvilNumber SkillPointsPerMinute( EvilNumber EffectivePrimaryAttribute, EvilNumber EffectiveSecondaryAttribute )
 {
+	return false;
 }
 
 EvilNumber TargetingLockTime( EvilNumber YourEffectiveScanResolution, EvilNumber TargetEffectiveSignatureRadius )
 {
+	return false;
 }
 
 EvilNumber AlignTimeInSeconds( EvilNumber InertiaModifier, EvilNumber Mass )
 {
+	return false;
 }
 
 EvilNumber TradeBrokerFee( EvilNumber BrokerRelationsSkillLevel, EvilNumber FactionStanding, EvilNumber CorporationStanding )
 {
+	return false;
 }
