@@ -65,7 +65,7 @@ bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID)
 	}
 
 	DBerror error;
-	if (!sDatabase.RunQuery(error, "INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, %s, %u, %u)", bit, args.name, args.color, characterID))
+	if (!sDatabase.RunQuery(error, "INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, %s, %u, %u)", bit, args.name.c_str(), args.color, characterID))
 	{
 		codelog(SERVICE__ERROR, "Failed to insert new mail label into database");
 		// since this is an out parameter, make sure we assign this even in case of an error

@@ -139,11 +139,11 @@ void APIServerConnection::ProcessHeaders()
 
         pos = request.find_first_of('/');
         _service = request.substr(0,pos);
-        m_apiCommandCall.insert( std::make_pair<std::string, std::string>( "service", _service ) );
+        m_apiCommandCall.insert( std::pair<std::string, std::string>( "service", _service ) );
         request = request.substr(pos+1);
         pos = request.find_first_of('?');
         _service_handler = request.substr(0,pos);
-        m_apiCommandCall.insert( std::make_pair<std::string, std::string>( "servicehandler", _service_handler ) );
+        m_apiCommandCall.insert( std::pair<std::string, std::string>( "servicehandler", _service_handler ) );
         request = request.substr(pos+1);
 
 		//// DUPLICATE
@@ -165,7 +165,7 @@ void APIServerConnection::ProcessHeaders()
                 else
                     request = request.substr(1);
             }
-            m_apiCommandCall.insert( std::make_pair<std::string, std::string>( param, value ) );
+            m_apiCommandCall.insert( std::pair<std::string, std::string>( param, value ) );
         }
 
 	    _xmlData = sAPIServer.GetXML(&m_apiCommandCall);
@@ -224,10 +224,10 @@ void APIServerConnection::ProcessHeaders()
 
         pos = request.find_first_of('/');
         _service = request.substr(0,pos);
-        m_apiCommandCall.insert( std::make_pair<std::string, std::string>( "service", _service ) );
+        m_apiCommandCall.insert( std::pair<std::string, std::string>( "service", _service ) );
         request = request.substr(pos+1);
         _service_handler = request;
-        m_apiCommandCall.insert( std::make_pair<std::string, std::string>( "servicehandler", _service_handler ) );
+        m_apiCommandCall.insert( std::pair<std::string, std::string>( "servicehandler", _service_handler ) );
 
 		// Read the integer after 'Content-Length:' and use that as the # of bytes in the next step
         while( (request.substr( 0,15 ).compare( "Content-Length:" )) != 0 )
@@ -278,7 +278,7 @@ void APIServerConnection::ProcessHeaders()
 					else
 						request = request.substr(1);
 				}
-				m_apiCommandCall.insert( std::make_pair<std::string, std::string>( param, value ) );
+				m_apiCommandCall.insert( std::pair<std::string, std::string>( param, value ) );
 			}
 
             // Did we somehow not detect a lack of POST data?  If so, and NO parameters were recovered, queue up the trigger for PostProcessHeaders():
@@ -365,7 +365,7 @@ void APIServerConnection::ProcessPostData()
             else
                 request = request.substr(1);
         }
-        m_apiCommandCall.insert( std::make_pair<std::string, std::string>( param, value ) );
+        m_apiCommandCall.insert( std::pair<std::string, std::string>( param, value ) );
     }
 
 	_xmlData = sAPIServer.GetXML(&m_apiCommandCall);

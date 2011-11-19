@@ -287,7 +287,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_AccountStatus(const APICom
 
     if( !(m_accountDB.GetAccountInfo( accountID, accountInfoList )) )
     {
-        sLog.Error( "APIAccountManager::_AccountStatus()", "ERROR: Could not find 'accountID' in 'account' table; there is an invalid 'accountID' referenced by api account 'userID' = %s - exiting with error", pAPICommandCall->find( "userid" )->second );
+        sLog.Error( "APIAccountManager::_AccountStatus()", "ERROR: Could not find 'accountID' in 'account' table; there is an invalid 'accountID' referenced by api account 'userID' = %s - exiting with error", pAPICommandCall->find( "userid" )->second.c_str() );
         return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 

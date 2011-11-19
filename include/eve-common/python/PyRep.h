@@ -109,9 +109,11 @@ public:
     bool IsInt() const
     {
 #ifdef WIN32
+	#ifdef _M_IX86
         /* crash when we missed a convertion... lol */
         if (mType == PyTypeLong)
             __asm{int 3};
+	#endif
 #endif//WIN32
         return mType == PyTypeInt;
     }
