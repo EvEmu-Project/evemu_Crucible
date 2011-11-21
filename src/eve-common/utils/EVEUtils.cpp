@@ -27,7 +27,13 @@
 
 #include "python/classes/PyExceptions.h"
 #include "utils/EVEUtils.h"
-#include "boost/math/special_functions.hpp"
+
+#if defined( MSVC )
+    #include <boost/math/special_functions.hpp>
+    #define asinh boost::math::asinh
+#else
+    #include <math.h>
+#endif
 
 UserError *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args)
 {
@@ -302,7 +308,7 @@ EvilNumber SkillPointsPerMinute( EvilNumber EffectivePrimaryAttribute, EvilNumbe
 
 EvilNumber TargetingLockTime( EvilNumber YourEffectiveScanResolution, EvilNumber TargetEffectiveSignatureRadius )
 {
-    return (40000.0 / (YourEffectiveScanResolution.get_float() * pow(boost::math::asinh(TargetEffectiveSignatureRadius.get_float()),2)));
+    return (40000.0 / (YourEffectiveScanResolution.get_float() * pow(asinh(TargetEffectiveSignatureRadius.get_float()),2)));
 }
 
 EvilNumber AlignTimeInSeconds( EvilNumber InertiaModifier, EvilNumber Mass )

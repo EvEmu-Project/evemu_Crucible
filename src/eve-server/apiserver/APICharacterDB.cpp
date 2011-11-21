@@ -58,12 +58,22 @@ bool APICharacterDB::GetCharacterSkillsTrained(uint32 characterID, std::vector<s
 	}
 
     uint32 prevTypeID = 0;
+    bool gotSkillPoints = false;
+    bool gotSkillLevel = false;
 	DBResultRow row;
     std::map<std::string, std::string> charInfo;
     while( res.GetRow( row ) )
     {
         if( prevTypeID != row.GetUInt(1) )
         {
+            if( (!gotSkillPoints) && (prevTypeID != 0) )
+                skillPointsList.push_back( std::string("0") );
+
+            if( (!gotSkillLevel) && (prevTypeID != 0) )
+                skillLevelList.push_back( std::string("0") );
+
+            gotSkillPoints = false;
+            gotSkillLevel = false;
             skillTypeIDList.push_back( std::string(row.GetText(1)) );
             skillPublishedList.push_back( std::string(row.GetText(6)) );
         }
@@ -71,20 +81,26 @@ bool APICharacterDB::GetCharacterSkillsTrained(uint32 characterID, std::vector<s
         prevTypeID = row.GetUInt(1);
         
         if( row.GetUInt(2) == AttrSkillPoints )
+        {
+            gotSkillPoints = true;
             if( row.GetText(3) == NULL )
                 // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
                 skillPointsList.push_back( std::string((row.GetText(4) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(4))))) );
             else
                 // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
                 skillPointsList.push_back( std::string((row.GetText(3) == NULL ? "0" : row.GetText(3))) );
+        }
 
         if( row.GetUInt(2) == AttrSkillLevel )
+        {
+            gotSkillLevel = true;
             if( row.GetText(3) == NULL )
                 // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
                 skillLevelList.push_back( std::string((row.GetText(4) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(4))))) );
             else
                 // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
                 skillLevelList.push_back( std::string((row.GetText(3) == NULL ? "0" : row.GetText(3))) );
+        }
     }
 
 	return true;
@@ -141,22 +157,106 @@ bool APICharacterDB::GetCharacterInfo(uint32 characterID, std::vector<std::strin
 	return true;
 }
 
-bool APICharacterDB::GetCharacterImplants(uint32 characterID, std::map<std::string, std::string> * implantList)
+bool APICharacterDB::GetCharacterImplants(uint32 characterID, std::map<std::string, std::string> & implantList)
 {
     return false;
 }
 
-bool APICharacterDB::GetCharacterAttributes(uint32 characterID, std::map<std::string, std::string> * attribList)
+bool APICharacterDB::GetCharacterAttributes(uint32 characterID, std::map<std::string, std::string> & attribList)
+{
+	DBQueryResult res;
+
+	// Get list of characters and their corporation info from the accountID:
+	if( !sDatabase.RunQuery(res,
+        " SELECT "
+        "  itemID, "
+        "  attributeID, "
+        "  valueInt, "
+        "  valueFloat "
+        " FROM entity_attributes "
+        " WHERE itemID = %u ", characterID ))
+	{
+		sLog.Error( "APIAccountDB::GetCharacterAttributes()", "Cannot find characterID %u", characterID );
+		return false;
+	}
+
+	DBResultRow row;
+    bool row_found = false;
+    while( res.GetRow( row ) )
+    {
+        row_found = true;
+
+        if( row.GetUInt(1) == EveAttrEnum::AttrCharisma )
+        {
+            // Charisma
+            if( row.GetText(2) == NULL )
+                // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrCharisma)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
+            else
+                // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrCharisma)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
+        }
+
+        if( row.GetUInt(1) == EveAttrEnum::AttrIntelligence )
+        {
+            // Intelligence
+            if( row.GetText(2) == NULL )
+                // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrIntelligence)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
+            else
+                // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrIntelligence)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
+        }
+
+        if( row.GetUInt(1) == EveAttrEnum::AttrMemory )
+        {
+            // Memory
+            if( row.GetText(2) == NULL )
+                // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrMemory)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
+            else
+                // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrMemory)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
+        }
+
+        if( row.GetUInt(1) == EveAttrEnum::AttrPerception )
+        {
+            // Perception
+            if( row.GetText(2) == NULL )
+                // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrPerception)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
+            else
+                // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrPerception)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
+        }
+
+        if( row.GetUInt(1) == EveAttrEnum::AttrWillpower )
+        {
+            // Will Power
+            if( row.GetText(2) == NULL )
+                // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrWillpower)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
+            else
+                // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrWillpower)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
+        }
+    }
+
+    if( !row_found )
+	{
+		sLog.Error( "APIServiceDB::GetAccountIdFromUsername()", "res.GetRow(row) failed for unknown reason." );
+		return false;
+	}
+
+    return true;
+}
+
+bool APICharacterDB::GetCharacterCertificates(uint32 characterID, std::vector<std::string> & certList)
 {
     return false;
 }
 
-bool APICharacterDB::GetCharacterCertificates(uint32 characterID, std::vector<std::string> * certList)
-{
-    return false;
-}
-
-bool APICharacterDB::GetCharacterCorporationRoles(uint32 characterID, std::string roleType, std::map<std::string, std::string> * roleList)
+bool APICharacterDB::GetCharacterCorporationRoles(uint32 characterID, std::string roleType, std::map<std::string, std::string> & roleList)
 {
     return false;
 }

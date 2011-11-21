@@ -83,7 +83,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
 		return BuildErrorXMLResponse( "105", "Invalid characterID." );
     }
 
-    // TODO: Implement calls in APICharacterDB class to grab all data for this call and populate the xml structure with that data
+    // Make calls to the APICharacterDB class to grab all data for this call and populate the xml structure with that data
     uint32 characterID = atoi( pAPICommandCall->find( "characterid" )->second.c_str() );
     std::vector<std::string> skillTypeIDList;
     std::vector<std::string> skillPointsList;
@@ -94,7 +94,10 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
     std::vector<std::string> charInfoList;
     m_charDB.GetCharacterInfo( characterID, charInfoList );
 
-    sLog.Error( "APICharacterManager::_CharacterSheet()", "INFO: Sections Currently hard-coded: attributeEnhancers, attributes, certificates, corporation roles" );
+    std::map<std::string, std::string> charAttributes;
+    m_charDB.GetCharacterAttributes( characterID, charAttributes );
+
+    sLog.Error( "APICharacterManager::_CharacterSheet()", "INFO: Sections Currently hard-coded: attributeEnhancers, certificates, corporation roles" );
 
     std::vector<std::string> rowset;
     _BuildXMLHeader();
@@ -157,11 +160,11 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             // Attributes
             _BuildXMLTag( "attributes" );
             {
-                _BuildSingleXMLTag( "intelligence", "6" );
-                _BuildSingleXMLTag( "memory", "4" );
-                _BuildSingleXMLTag( "charisma", "7" );
-                _BuildSingleXMLTag( "perception", "12" );
-                _BuildSingleXMLTag( "willpower", "10" );
+                _BuildSingleXMLTag( "intelligence", charAttributes.find( std::string(itoa(EveAttrEnum::AttrIntelligence)))->second );
+                _BuildSingleXMLTag( "memory", charAttributes.find( std::string(itoa(EveAttrEnum::AttrMemory)))->second );
+                _BuildSingleXMLTag( "charisma", charAttributes.find( std::string(itoa(EveAttrEnum::AttrCharisma)))->second );
+                _BuildSingleXMLTag( "perception", charAttributes.find( std::string(itoa(EveAttrEnum::AttrPerception)))->second );
+                _BuildSingleXMLTag( "willpower", charAttributes.find( std::string(itoa(EveAttrEnum::AttrWillpower)))->second );
             }
             _CloseXMLTag(); // close tag "attributes"
 
@@ -240,20 +243,24 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
         sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
 		return BuildErrorXMLResponse( "105", "Invalid characterID." );
     }
-/*
+
     // TODO: Implement calls in APICharacterDB class to grab all data for this call and populate the xml structure with that data
     uint32 characterID = atoi( pAPICommandCall->find( "characterid" )->second.c_str() );
     std::vector<std::string> skillTypeIDList;
     std::vector<std::string> skillPointsList;
     std::vector<std::string> skillLevelList;
     std::vector<std::string> skillPublishedList;
-    m_charDB.GetCharacterSkillsTrained( characterID, skillTypeIDList, skillPointsList, skillLevelList, skillPublishedList );
+    //m_charDB.GetCharacterSkillQueue( characterID, skillTypeIDList, skillPointsList, skillLevelList, skillPublishedList );
 
-    std::vector<std::string> charInfoList;
-    m_charDB.GetCharacterInfo( characterID, charInfoList );
+    std::map<std::string, std::string> charLearningAttributesString;
+    std::map<uint32, uint32> charLearningAttributes;
+    m_charDB.GetCharacterAttributes( characterID, charLearningAttributesString );
+    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrMemory, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrMemory)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrIntelligence, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrIntelligence)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrCharisma, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrCharisma)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrWillpower, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrWillpower)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrPerception, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrPerception)))->second.c_str()))) ));
 
-	//return BuildErrorXMLResponse( "9999", "EVEmu API Server: Character Manager - CharacterSheet.xml.aspx STUB" );
-*/
 	// EXAMPLE:
     std::vector<std::string> rowset;
     _BuildXMLHeader();
