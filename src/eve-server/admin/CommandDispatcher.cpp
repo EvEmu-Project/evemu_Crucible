@@ -62,7 +62,7 @@ PyResult CommandDispatcher::Execute( Client *from, const char* msg )
 
 		throw PyException( err );
 	}
-	
+
 	std::map<std::string, CommandRecord*>::const_iterator res = m_commands.find( sep.arg( 0 ) );
 	if( m_commands.end() == res )
     {
@@ -70,7 +70,7 @@ PyResult CommandDispatcher::Execute( Client *from, const char* msg )
 
 		throw PyException( MakeCustomError( "Unknown command '%s'", sep.arg( 0 ).c_str() ) );
 	}
-	
+
 	CommandRecord* rec = res->second;
 
 	if( ( from->GetAccountRole() & rec->required_role ) != rec->required_role )
@@ -84,7 +84,7 @@ PyResult CommandDispatcher::Execute( Client *from, const char* msg )
 	return ( *rec->function )( from, &m_db, &m_services, sep );
 }
 
-void CommandDispatcher::AddCommand( const char* cmd, const char* desc, uint32 required_role, CommandFunc function )
+void CommandDispatcher::AddCommand( const char* cmd, const char* desc, uint64 required_role, CommandFunc function )
 {
 	std::map<std::string, CommandRecord*>::iterator res = m_commands.find( cmd );
 	if( m_commands.end() != res )

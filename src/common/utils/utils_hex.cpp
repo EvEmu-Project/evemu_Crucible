@@ -32,7 +32,7 @@ const uint32 HEX_DUMP_PREVIEW_LIMIT = 1024;
 
 void build_hex_line( const uint8* buffer, size_t length, size_t offset, char* ret, unsigned int padding )
 {
-    ret += snprintf( ret, length, "%0*X:", padding, offset );
+    ret += snprintf( ret, length, "%0*zX:", padding, offset );
 
     char printable[17];
 

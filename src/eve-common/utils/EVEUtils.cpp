@@ -27,7 +27,13 @@
 
 #include "python/classes/PyExceptions.h"
 #include "utils/EVEUtils.h"
+
+#if defined (MSVC)
 #include "boost/math/special_functions.hpp"
+#define asinh boost::math::asinh
+#else
+#include <math.h>
+#endif
 
 UserError *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args)
 {
@@ -187,19 +193,19 @@ EvilNumber WasteSkillBased( EvilNumber MaterialAmount, EvilNumber ProductionEffi
 
 EvilNumber ME_ResearchTime( EvilNumber BlueprintBaseResearchTime, EvilNumber MetallurgySkillLevel, EvilNumber ResearchSlotModifier, EvilNumber ImplantModifier )
 {
-    return (BlueprintBaseResearchTime.get_float() * (1.0 - (0.05 * MetallurgySkillLevel.get_float())) 
+    return (BlueprintBaseResearchTime.get_float() * (1.0 - (0.05 * MetallurgySkillLevel.get_float()))
         * ResearchSlotModifier.get_float() * ImplantModifier.get_float());
 }
 
 EvilNumber PE_ResearchTime( EvilNumber BlueprintBaseResearchTime, EvilNumber ResearchSkillLevel, EvilNumber ResearchSlotModifier, EvilNumber ImplantModifier )
 {
-    return (BlueprintBaseResearchTime.get_float() * (1.0 - (0.05 * ResearchSkillLevel.get_float())) 
+    return (BlueprintBaseResearchTime.get_float() * (1.0 - (0.05 * ResearchSkillLevel.get_float()))
         * ResearchSlotModifier.get_float() * ImplantModifier.get_float());
 }
 
 EvilNumber BluePrintCopyTime( EvilNumber BlueprintBaseCopyTime, EvilNumber ScienceSkillLevel, EvilNumber CopySlotModifier, EvilNumber ImplantModifier )
 {
-    return (BlueprintBaseCopyTime.get_float() * (1.0 - (0.05 * ScienceSkillLevel.get_float())) 
+    return (BlueprintBaseCopyTime.get_float() * (1.0 - (0.05 * ScienceSkillLevel.get_float()))
         * CopySlotModifier.get_float() * ImplantModifier.get_float());
 }
 
@@ -217,8 +223,8 @@ EvilNumber ProductionTime( EvilNumber BaseProductionTime, EvilNumber Productivit
     else
         PE_Factor = (ProductionEfficiency.get_float() - 1.0);
 
-    return (BaseProductionTime.get_float() 
-        * (1.0 - (ProductivityModifier.get_float() / BaseProductionTime.get_float()) 
+    return (BaseProductionTime.get_float()
+        * (1.0 - (ProductivityModifier.get_float() / BaseProductionTime.get_float())
         * (PE_Factor.get_float()))
         * ProductionTimeModifier.get_float());
 }
@@ -230,8 +236,8 @@ EvilNumber StationTaxesForReprocessing( EvilNumber CharacterStandingWithStationO
 
 EvilNumber EffectiveRefiningYield( EvilNumber StationEquipmentYield, EvilNumber RefiningSkillLevel, EvilNumber RefiningEfficiencySkillLevel, EvilNumber OreSpecificProcessingSkillLevel )
 {
-    return (StationEquipmentYield.get_float() + 0.375 * (1 + (RefiningSkillLevel.get_float() * 0.02)) 
-        * (1 + (RefiningEfficiencySkillLevel.get_float() * 0.04)) 
+    return (StationEquipmentYield.get_float() + 0.375 * (1 + (RefiningSkillLevel.get_float() * 0.02))
+        * (1 + (RefiningEfficiencySkillLevel.get_float() * 0.04))
         * (1 + (OreSpecificProcessingSkillLevel.get_float() * 0.05)));
 }
 
@@ -242,14 +248,14 @@ EvilNumber BlueprintInventionTime( EvilNumber BlueprintBaseInventionTime, EvilNu
 
 EvilNumber BlueprintInventionChance( EvilNumber BaseChance, EvilNumber EncryptionSkillLevel, EvilNumber DataCore1SkillLevel, EvilNumber DataCore2SkillLevel, EvilNumber MetaLevel, EvilNumber DecryptorModifier )
 {
-    return (BaseChance.get_float() * (1+0.01*EncryptionSkillLevel.get_float()) 
-        * (1+(DataCore1SkillLevel.get_float()+DataCore2SkillLevel.get_float()) 
+    return (BaseChance.get_float() * (1+0.01*EncryptionSkillLevel.get_float())
+        * (1+(DataCore1SkillLevel.get_float()+DataCore2SkillLevel.get_float())
         * (0.1 / (5 - MetaLevel.get_float())) * DecryptorModifier.get_float()));
 }
 
 EvilNumber ResearchPointsPerDay( EvilNumber Multiplier, EvilNumber AgentEffectiveQuality, EvilNumber YourResearchSkillLevel, EvilNumber AgentResearchSkillLevel )
 {
-    return (Multiplier.get_float() * (1 + (AgentEffectiveQuality.get_float() / 100.0)) 
+    return (Multiplier.get_float() * (1 + (AgentEffectiveQuality.get_float() / 100.0))
         * pow(YourResearchSkillLevel.get_float() + AgentResearchSkillLevel.get_float(),2));
 }
 
@@ -302,7 +308,7 @@ EvilNumber SkillPointsPerMinute( EvilNumber EffectivePrimaryAttribute, EvilNumbe
 
 EvilNumber TargetingLockTime( EvilNumber YourEffectiveScanResolution, EvilNumber TargetEffectiveSignatureRadius )
 {
-    return (40000.0 / (YourEffectiveScanResolution.get_float() * pow(boost::math::asinh(TargetEffectiveSignatureRadius.get_float()),2)));
+    return (40000.0 / (YourEffectiveScanResolution.get_float() * pow(asinh(TargetEffectiveSignatureRadius.get_float()),2)));
 }
 
 EvilNumber AlignTimeInSeconds( EvilNumber InertiaModifier, EvilNumber Mass )
@@ -312,6 +318,6 @@ EvilNumber AlignTimeInSeconds( EvilNumber InertiaModifier, EvilNumber Mass )
 
 EvilNumber TradeBrokerFee( EvilNumber BrokerRelationsSkillLevel, EvilNumber FactionStanding, EvilNumber CorporationStanding )
 {
-    return (100.0 * ((0.01 - 0.0005 * BrokerRelationsSkillLevel.get_float()) 
+    return (100.0 * ((0.01 - 0.0005 * BrokerRelationsSkillLevel.get_float())
         / (pow( 2, (0.14 * FactionStanding.get_float() + 0.06 * CorporationStanding.get_float()) ))));
 }

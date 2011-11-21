@@ -39,7 +39,7 @@ AsteroidBeltManager::~AsteroidBeltManager() {
 }
 
 void AsteroidBeltManager::_Clear() {
-	std::vector<Asteroid *>::const_iterator cur, end;
+	std::vector<AsteroidEntity*>::const_iterator cur, end;
 	cur = m_asteroids.begin();
 	end = m_asteroids.end();
 	for(; cur != end; cur++) {
@@ -54,7 +54,7 @@ void AsteroidBeltManager::Process() {
 }
 
 void AsteroidBeltManager::_TriggerGrowth() {
-	std::vector<Asteroid *>::const_iterator cur, end;
+	std::vector<AsteroidEntity*>::const_iterator cur, end;
 	cur = m_asteroids.begin();
 	end = m_asteroids.end();
 	for(; cur != end; cur++) {
@@ -62,7 +62,7 @@ void AsteroidBeltManager::_TriggerGrowth() {
 		//(*cur)->Grow();
 	}
 }
-	
+
 
 bool AsteroidBeltManager::LoadState() {
 	//load list of asteroids.
@@ -71,7 +71,7 @@ bool AsteroidBeltManager::LoadState() {
 }
 
 bool AsteroidBeltManager::SaveState() {
-	std::vector<Asteroid *>::const_iterator cur, end;
+	std::vector<AsteroidEntity*>::const_iterator cur, end;
 	cur = m_asteroids.begin();
 	end = m_asteroids.end();
 	for(; cur != end; cur++) {
