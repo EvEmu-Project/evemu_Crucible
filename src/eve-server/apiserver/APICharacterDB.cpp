@@ -157,11 +157,6 @@ bool APICharacterDB::GetCharacterInfo(uint32 characterID, std::vector<std::strin
 	return true;
 }
 
-bool APICharacterDB::GetCharacterImplants(uint32 characterID, std::map<std::string, std::string> & implantList)
-{
-    return false;
-}
-
 bool APICharacterDB::GetCharacterAttributes(uint32 characterID, std::map<std::string, std::string> & attribList)
 {
 	DBQueryResult res;
@@ -249,6 +244,57 @@ bool APICharacterDB::GetCharacterAttributes(uint32 characterID, std::map<std::st
 	}
 
     return true;
+}
+
+bool APICharacterDB::GetCharacterSkillQueue(uint32 characterID, std::vector<std::string> & orderList, std::vector<std::string> & typeIdList,
+    std::vector<std::string> & levelList, std::vector<std::string> & rankList)
+{
+	DBQueryResult res;
+
+	// Get list of characters and their corporation info from the accountID:
+	if( !sDatabase.RunQuery(res,
+        " SELECT "
+        "  chrSkillQueue.*, "
+        "  dgmTypeAttributes.valueInt, "
+        "  dgmTypeAttributes.valueFloat "
+        " FROM chrSkillQueue "
+        "  LEFT JOIN dgmTypeAttributes ON dgmTypeAttributes.typeID = chrSkillQueue.typeID "
+        " WHERE chrSkillQueue.characterID = %u AND dgmTypeAttributes.typeID = chrSkillQueue.typeID AND dgmTypeAttributes.attributeID = %u ", characterID, EveAttrEnum::AttrSkillTimeConstant ))
+	{
+		sLog.Error( "APIAccountDB::GetCharacterSkillQueue()", "Cannot find characterID %u", characterID );
+		return false;
+	}
+
+	DBResultRow row;
+    bool row_found = false;
+    while( res.GetRow( row ) )
+    {
+        row_found = true;
+
+        orderList.push_back( std::string(row.GetText(1)) );
+        typeIdList.push_back( std::string(row.GetText(2)) );
+        levelList.push_back( std::string(row.GetText(3)) );
+
+        if( row.GetText(4) == NULL )
+            // Get value from the query's 'valueFloat' column since 'valueInt' contains 'NULL'
+            rankList.push_back( std::string((row.GetText(5) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(5))))) );
+        else
+            // Get value from the query's 'valueInt' column since it does not contain 'NULL'
+            rankList.push_back( std::string((row.GetText(4) == NULL ? "0" : row.GetText(4))) );
+    }
+
+    if( !row_found )
+	{
+		sLog.Error( "APIServiceDB::GetCharacterSkillQueue()", "res.GetRow(row) failed for unknown reason." );
+		return false;
+	}
+
+    return true;
+}
+
+bool APICharacterDB::GetCharacterImplants(uint32 characterID, std::map<std::string, std::string> & implantList)
+{
+    return false;
 }
 
 bool APICharacterDB::GetCharacterCertificates(uint32 characterID, std::vector<std::string> & certList)

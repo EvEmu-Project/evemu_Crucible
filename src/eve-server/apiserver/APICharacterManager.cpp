@@ -222,35 +222,35 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
 
 std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APICommandCall * pAPICommandCall)
 {
-    sLog.Error( "APICharacterManager::_CharacterSheet()", "TODO: Insert code to validate userID and apiKey" );
+    sLog.Error( "APICharacterManager::_SkillQueue()", "TODO: Insert code to validate userID and apiKey" );
 
-    sLog.Debug("APICharacterManager::_CharacterSheet()", "EVEmu API - Character Service Manager - CALL: CharacterSheet.xml.aspx");
+    sLog.Debug("APICharacterManager::_SkillQueue()", "EVEmu API - Character Service Manager - CALL: SkillQueue.xml.aspx");
 
     if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
-        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
+        sLog.Error( "APICharacterManager::_SkillQueue()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
 		return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 
 	if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
     {
-        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
+        sLog.Error( "APICharacterManager::_SkillQueue()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
 		return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
 	if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
     {
-        sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
+        sLog.Error( "APICharacterManager::_SkillQueue()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
 		return BuildErrorXMLResponse( "105", "Invalid characterID." );
     }
 
-    // TODO: Implement calls in APICharacterDB class to grab all data for this call and populate the xml structure with that data
+    // Make calls to the APICharacterDB class to grab all data for this call and populate the xml structure with that data
     uint32 characterID = atoi( pAPICommandCall->find( "characterid" )->second.c_str() );
-    std::vector<std::string> skillTypeIDList;
-    std::vector<std::string> skillPointsList;
-    std::vector<std::string> skillLevelList;
-    std::vector<std::string> skillPublishedList;
-    //m_charDB.GetCharacterSkillQueue( characterID, skillTypeIDList, skillPointsList, skillLevelList, skillPublishedList );
+    std::vector<std::string> queueOrderList;
+    std::vector<std::string> queueSkillTypeIdList;
+    std::vector<std::string> queueSkillLevelList;
+    std::vector<std::string> queueSkillRankList;
+    m_charDB.GetCharacterSkillQueue( characterID, queueOrderList, queueSkillTypeIdList, queueSkillLevelList, queueSkillRankList );
 
     std::map<std::string, std::string> charLearningAttributesString;
     std::map<uint32, uint32> charLearningAttributes;
@@ -277,26 +277,18 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
             rowset.push_back("endTime");
             _BuildXMLRowSet( "skillqueue", "queuePosition", &rowset );
             {
-                    rowset.clear();
-                    rowset.push_back("1");
-                    rowset.push_back("11441");
-                    rowset.push_back("3");
-                    rowset.push_back("7072");
-                    rowset.push_back("40000");
-                    rowset.push_back("2011-11-12 11:00:00");
-                    rowset.push_back("2011-11-12 22:00:00");
-                    _BuildXMLRow( &rowset );
-                /*
-                for(int i=0; i<skillTypeIDList.size(); i++)
+                for(int i=0; i<queueOrderList.size(); i++)
                 {
                     rowset.clear();
-                    rowset.push_back(skillTypeIDList.at(i));
-                    rowset.push_back(skillPointsList.at(i));
-                    rowset.push_back(skillLevelList.at(i));
-                    rowset.push_back(skillPublishedList.at(i));
-                    _BuildXMLRow( &rowset );
+                    rowset.push_back( queueOrderList.at(i) );
+                    rowset.push_back( queueSkillTypeIdList.at(i) );
+                    rowset.push_back( queueSkillLevelList.at(i) );
+                    rowset.push_back("7072");
+                    rowset.push_back("40000");
+                    rowset.push_back( Win32TimeToString(Win32TimeNow() + 120*Win32Time_Minute*i) );
+                    rowset.push_back( Win32TimeToString(Win32TimeNow() + 120*Win32Time_Minute*(i+1)) );
                 }
-                */
+                    _BuildXMLRow( &rowset );
             }
             _CloseXMLRowSet();  // close rowset "skillqueue"
         }

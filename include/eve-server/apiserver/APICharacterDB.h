@@ -45,12 +45,78 @@ public:
      */
     bool GetCharacterSkillsTrained(uint32 characterID, std::vector<std::string> & skillTypeIDList, std::vector<std::string> & skillPointsList,
         std::vector<std::string> & skillLevelList, std::vector<std::string> & skillPublishedList);
-    bool GetCharacterInfo(uint32 characterID, std::vector<std::string> & charInfoList);
-    bool GetCharacterAttributes(uint32 characterID, std::map<std::string, std::string> & attribList);
-    bool GetCharacterSkillQueue(uint32 characterID, 
 
+    /**
+     * @brief ?
+     *
+     * ?
+     *
+     * @param[in] ?
+     * @param[in] ?
+     *
+     * @retval ?
+     */
+    bool GetCharacterInfo(uint32 characterID, std::vector<std::string> & charInfoList);
+
+    /**
+     * @brief ?
+     *
+     * ?
+     *
+     * @param[in] ?
+     * @param[in] ?
+     *
+     * @retval ?
+     */
+    bool GetCharacterAttributes(uint32 characterID, std::map<std::string, std::string> & attribList);
+
+    /**
+     * @brief ?
+     *
+     * ?
+     *
+     * @param[in] ?
+     * @param[in] ?
+     *
+     * @retval ?
+     */
+    bool GetCharacterSkillQueue(uint32 characterID, std::vector<std::string> & orderList, std::vector<std::string> & typeIdList,
+        std::vector<std::string> & levelList, std::vector<std::string> & rankList);
+
+    /**
+     * @brief NOT DEFINED YET
+     *
+     * ?
+     *
+     * @param[in] ?
+     * @param[in] ?
+     *
+     * @retval ?
+     */
     bool GetCharacterImplants(uint32 characterID, std::map<std::string, std::string> & implantList);
+
+    /**
+     * @brief NOT DEFINED YET
+     *
+     * ?
+     *
+     * @param[in] ?
+     * @param[in] ?
+     *
+     * @retval ?
+     */
     bool GetCharacterCertificates(uint32 characterID, std::vector<std::string> & certList);
+
+    /**
+     * @brief NOT DEFINED YET
+     *
+     * ?
+     *
+     * @param[in] ?
+     * @param[in] ?
+     *
+     * @retval ?
+     */
     bool GetCharacterCorporationRoles(uint32 characterID, std::string roleType, std::map<std::string, std::string> & roleList);
 
 protected:
