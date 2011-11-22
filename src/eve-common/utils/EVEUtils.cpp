@@ -321,3 +321,13 @@ EvilNumber TradeBrokerFee( EvilNumber BrokerRelationsSkillLevel, EvilNumber Fact
     return (100.0 * ((0.01 - 0.0005 * BrokerRelationsSkillLevel.get_float()) 
         / (pow( 2, (0.14 * FactionStanding.get_float() + 0.06 * CorporationStanding.get_float()) ))));
 }
+
+EvilNumber SkillStartingTime( EvilNumber currentSkillSP, EvilNumber nextLevelSkillSP, EvilNumber effectiveSPperMinute, EvilNumber timeNow )
+{
+    return (timeNow - (currentSkillSP * effectiveSPperMinute * EvilTime_Minute));
+}
+
+EvilNumber SkillEndingTime( EvilNumber currentSkillSP, EvilNumber nextLevelSkillSP, EvilNumber effectiveSPperMinute, EvilNumber timeNow )
+{
+    return (((nextLevelSkillSP - currentSkillSP) * effectiveSPperMinute) + timeNow);
+}

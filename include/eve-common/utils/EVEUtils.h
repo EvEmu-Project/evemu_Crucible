@@ -265,4 +265,20 @@ EvilNumber AlignTimeInSeconds( EvilNumber InertiaModifier, EvilNumber Mass );
  */
 EvilNumber TradeBrokerFee( EvilNumber BrokerRelationsSkillLevel, EvilNumber FactionStanding, EvilNumber CorporationStanding );
 
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber SkillStartingTime( EvilNumber currentSkillSP, EvilNumber nextLevelSkillSP, EvilNumber effectiveSPperMinute, EvilNumber timeNow );
+
+/**
+ * ?
+ *
+ * @param[in] ?
+ * @return ?
+ */
+EvilNumber SkillEndingTime( EvilNumber currentSkillSP, EvilNumber nextLevelSkillSP, EvilNumber effectiveSPperMinute, EvilNumber timeNow );
+
 #endif

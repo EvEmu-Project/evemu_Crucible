@@ -255,11 +255,19 @@ bool APICharacterDB::GetCharacterSkillQueue(uint32 characterID, std::vector<std:
 	if( !sDatabase.RunQuery(res,
         " SELECT "
         "  chrSkillQueue.*, "
+        "  dgmTypeAttributes.attributeID, "
         "  dgmTypeAttributes.valueInt, "
-        "  dgmTypeAttributes.valueFloat "
+        "  dgmTypeAttributes.valueFloat, "
+        "  entity.itemID, "
+        "  entity_attributes.valueInt, "
+        "  entity_attributes.valueFloat "
         " FROM chrSkillQueue "
         "  LEFT JOIN dgmTypeAttributes ON dgmTypeAttributes.typeID = chrSkillQueue.typeID "
-        " WHERE chrSkillQueue.characterID = %u AND dgmTypeAttributes.typeID = chrSkillQueue.typeID AND dgmTypeAttributes.attributeID = %u ", characterID, EveAttrEnum::AttrSkillTimeConstant ))
+        "  LEFT JOIN entity ON entity.typeID = chrSkillQueue.typeID "
+        "  LEFT JOIN entity_attributes ON entity_attributes.itemID = entity.itemID "
+        " WHERE chrSkillQueue.characterID = %u AND dgmTypeAttributes.typeID = chrSkillQueue.typeID AND "
+        "  dgmTypeAttributes.attributeID IN (%u,%u,%u) AND entity.ownerID = %u AND entity_attributes.attributeID = %u ",
+        characterID, AttrPrimaryAttribute, AttrSecondaryAttribute, AttrSkillTimeConstant, characterID, AttrSkillPoints ))
 	{
 		sLog.Error( "APIAccountDB::GetCharacterSkillQueue()", "Cannot find characterID %u", characterID );
 		return false;
@@ -270,6 +278,8 @@ bool APICharacterDB::GetCharacterSkillQueue(uint32 characterID, std::vector<std:
     while( res.GetRow( row ) )
     {
         row_found = true;
+
+        // THIS IS ALL WRONG NOW
 
         orderList.push_back( std::string(row.GetText(1)) );
         typeIdList.push_back( std::string(row.GetText(2)) );
