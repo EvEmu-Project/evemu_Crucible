@@ -250,7 +250,17 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
     std::vector<std::string> queueSkillTypeIdList;
     std::vector<std::string> queueSkillLevelList;
     std::vector<std::string> queueSkillRankList;
-    m_charDB.GetCharacterSkillQueue( characterID, queueOrderList, queueSkillTypeIdList, queueSkillLevelList, queueSkillRankList );
+    std::vector<std::string> queueSkillIdList;
+    std::vector<std::string> queueSkillPrimaryAttrList;
+    std::vector<std::string> queueSkillSecondaryAttrList;
+    std::vector<std::string> queueSkillPointsTrainedList;
+    m_charDB.GetCharacterSkillQueue( characterID, queueOrderList, queueSkillTypeIdList, queueSkillLevelList, queueSkillRankList,
+        queueSkillIdList, queueSkillPrimaryAttrList, queueSkillSecondaryAttrList, queueSkillPointsTrainedList);
+
+    std::vector<uint32> queueSkillStartSP;
+    std::vector<uint32> queueSkillEndSP;
+    std::vector<uint64> queueSkillStartTime;
+    std::vector<uint64> queueSkillEndTime;
 
     std::map<std::string, std::string> charLearningAttributesString;
     std::map<uint32, uint32> charLearningAttributes;
@@ -283,8 +293,8 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
                     rowset.push_back( queueOrderList.at(i) );
                     rowset.push_back( queueSkillTypeIdList.at(i) );
                     rowset.push_back( queueSkillLevelList.at(i) );
-                    rowset.push_back("7072");
-                    rowset.push_back("40000");
+                    rowset.push_back( std::string(itoa(queueSkillStartSP.at(i))) );
+                    rowset.push_back( std::string(itoa(queueSkillEndSP.at(i)))  );
                     rowset.push_back( Win32TimeToString(Win32TimeNow() + 120*Win32Time_Minute*i) );
                     rowset.push_back( Win32TimeToString(Win32TimeNow() + 120*Win32Time_Minute*(i+1)) );
                 }

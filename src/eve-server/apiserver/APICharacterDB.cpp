@@ -247,7 +247,8 @@ bool APICharacterDB::GetCharacterAttributes(uint32 characterID, std::map<std::st
 }
 
 bool APICharacterDB::GetCharacterSkillQueue(uint32 characterID, std::vector<std::string> & orderList, std::vector<std::string> & typeIdList,
-    std::vector<std::string> & levelList, std::vector<std::string> & rankList)
+    std::vector<std::string> & levelList, std::vector<std::string> & rankList, std::vector<std::string> & skillIdList,
+    std::vector<std::string> & primaryAttrList, std::vector<std::string> & secondaryAttrList, std::vector<std::string> & skillPointsTrainedList)
 {
 	DBQueryResult res;
 
@@ -275,22 +276,54 @@ bool APICharacterDB::GetCharacterSkillQueue(uint32 characterID, std::vector<std:
 
 	DBResultRow row;
     bool row_found = false;
+    uint32 prev_orderIndex = 4294967295;
     while( res.GetRow( row ) )
     {
         row_found = true;
+        
+        if( prev_orderIndex != row.GetUInt(1) )
+        {
+            prev_orderIndex = row.GetUInt(1);
+            orderList.push_back( std::string(row.GetText(1)) );
+            typeIdList.push_back( std::string(row.GetText(2)) );
+            levelList.push_back( std::string(row.GetText(3)) );
+            skillIdList.push_back( std::string(row.GetText(7)) );
 
-        // THIS IS ALL WRONG NOW
+            if( row.GetText(8) == NULL )
+                // Get value from the query's 'valueFloat' column since 'valueInt' contains 'NULL'
+                skillPointsTrainedList.push_back( std::string((row.GetText(9) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(9))))) );
+            else
+                // Get value from the query's 'valueInt' column since it does not contain 'NULL'
+                skillPointsTrainedList.push_back( std::string((row.GetText(8) == NULL ? "0" : row.GetText(8))) );
+        }
 
-        orderList.push_back( std::string(row.GetText(1)) );
-        typeIdList.push_back( std::string(row.GetText(2)) );
-        levelList.push_back( std::string(row.GetText(3)) );
-
-        if( row.GetText(4) == NULL )
-            // Get value from the query's 'valueFloat' column since 'valueInt' contains 'NULL'
-            rankList.push_back( std::string((row.GetText(5) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(5))))) );
-        else
-            // Get value from the query's 'valueInt' column since it does not contain 'NULL'
-            rankList.push_back( std::string((row.GetText(4) == NULL ? "0" : row.GetText(4))) );
+        if( row.GetUInt(4) == EveAttrEnum::AttrPrimaryAttribute )
+        {
+            if( row.GetText(5) == NULL )
+                // Get value from the query's 'valueFloat' column since 'valueInt' contains 'NULL'
+                primaryAttrList.push_back( std::string((row.GetText(6) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(6))))) );
+            else
+                // Get value from the query's 'valueInt' column since it does not contain 'NULL'
+                primaryAttrList.push_back( std::string((row.GetText(5) == NULL ? "0" : row.GetText(5))) );
+        }
+        else if( row.GetUInt(4) == EveAttrEnum::AttrSecondaryAttribute )
+        {
+            if( row.GetText(5) == NULL )
+                // Get value from the query's 'valueFloat' column since 'valueInt' contains 'NULL'
+                secondaryAttrList.push_back( std::string((row.GetText(6) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(6))))) );
+            else
+                // Get value from the query's 'valueInt' column since it does not contain 'NULL'
+                secondaryAttrList.push_back( std::string((row.GetText(5) == NULL ? "0" : row.GetText(5))) );
+        }
+        else if( row.GetUInt(4) == EveAttrEnum::AttrSkillTimeConstant )
+        {
+            if( row.GetText(5) == NULL )
+                // Get value from the query's 'valueFloat' column since 'valueInt' contains 'NULL'
+                rankList.push_back( std::string((row.GetText(6) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(6))))) );
+            else
+                // Get value from the query's 'valueInt' column since it does not contain 'NULL'
+                rankList.push_back( std::string((row.GetText(5) == NULL ? "0" : row.GetText(5))) );
+        }
     }
 
     if( !row_found )
