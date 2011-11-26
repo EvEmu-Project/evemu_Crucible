@@ -99,13 +99,13 @@ std::string& APIServer::url()
 
 void APIServer::Run()
 {
-    _ioThread = std::auto_ptr<asio::thread>(new asio::thread(std::tr1::bind(&APIServer::RunInternal, this)));
+    _ioThread = std::unique_ptr<asio::thread>(new asio::thread(std::tr1::bind(&APIServer::RunInternal, this)));
 }
 
 void APIServer::RunInternal()
 {
-    _io = std::auto_ptr<asio::io_service>(new asio::io_service());
-	_listener = std::auto_ptr<APIServerListener>(new APIServerListener(*_io));
+    _io = std::unique_ptr<asio::io_service>(new asio::io_service());
+	_listener = std::unique_ptr<APIServerListener>(new APIServerListener(*_io));
 	_io->run();
 }
 

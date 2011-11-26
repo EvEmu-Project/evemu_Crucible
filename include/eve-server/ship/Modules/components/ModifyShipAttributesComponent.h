@@ -57,7 +57,7 @@ public:
 		ShipRef target = m_Ship->GetItemFactory()->GetShip(targetItemID);
 
 		//check if we found the ship
-		if( target == NULL)
+		if( target == 0)
 		{
 			sLog.Error("ModifyShipAttributesComponent","Failed to find target ship %u", targetItemID);
 			return;
@@ -70,7 +70,7 @@ public:
 
 private:
 
-	// implements a rudimentary but working stacking penalty.  Currently only penalizes for stacking same item, 
+	// implements a rudimentary but working stacking penalty.  Currently only penalizes for stacking same item,
 	// but should penalize for modifying the same attribute, with some exceptions.  These exceptions are why
 	// it has not been implemented fully, as more data is needed and this is just a proof of concept.
 	// No module code will have to be changed to implement the fully functional stacking penalty
@@ -105,7 +105,7 @@ private:
 			startVal = finalVal; //set the starting value as the calculated value
 		}
 
-			
+
 		return finalVal;
 	}
 
@@ -132,7 +132,7 @@ private:
 				if( mods[i]->GetAttribute(sortAttrID) > mods[i+1]->GetAttribute(sortAttrID) )  //check if each pair is sorted
 				{
 					//it's not, so flip the values
-					GenericModule * tmp = mods[i];  
+					GenericModule * tmp = mods[i];
 					mods[i] = mods[i+1];
 					mods[i] = tmp;
 

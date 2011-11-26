@@ -30,7 +30,7 @@
 
 //more will go here
 //this is to avoid include complications and multiple dependancies etc..
-typedef enum ModuleCommand
+enum ModuleCommand
 {
 	CMD_ERROR,
 	ONLINE,
@@ -42,7 +42,7 @@ typedef enum ModuleCommand
 };
 
 //this may or may not be redundant...idk
-typedef enum ModulePowerLevel
+enum ModulePowerLevel
 {
 	HIGH_POWER,
 	MEDIUM_POWER,
@@ -52,7 +52,7 @@ typedef enum ModulePowerLevel
 };
 
 //calculation types
-typedef enum EVECalculationType
+enum EVECalculationType
 {
 	ADD,
 	SUBTRACT,
@@ -115,7 +115,7 @@ static EvilNumber CalculateNewAttributeValue(EvilNumber attrVal, EvilNumber attr
 {
 	switch(type)
 	{
-	case ADD :					return Add(attrVal, attrMod);  
+	case ADD :					return Add(attrVal, attrMod);
 	case SUBTRACT :				return Subtract(attrVal, attrMod);
 	case DIVIDE :				return Divide(attrVal, attrMod);
 	case MULTIPLY :				return Multiply(attrVal, attrMod);
