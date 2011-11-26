@@ -135,7 +135,7 @@ public:
 	bool SetDefaultEffectAsActive()
 	{
 		//iterate through the effects to find the one we want
-		if(m_DefaultEffect != NULL)
+		if(m_DefaultEffect != 0)
 		{
 			m_SelectedEffect = m_DefaultEffect;
 			return true;

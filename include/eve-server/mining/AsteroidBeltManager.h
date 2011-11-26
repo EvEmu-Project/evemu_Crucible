@@ -28,7 +28,7 @@
 
 #include "system/SystemEntities.h"
 
-class Asteroid;
+class AsteroidEntity;
 class MiningDB;
 
 static const uint32 ASTEROID_GROWTH_INTERVAL_MS = 3600000;	//RuleI(Mining, AsteroidGrowthInterval_ms)
@@ -48,17 +48,17 @@ public:
 
 	virtual void Process();
 	virtual void ForceGrowth();
-	
+
 protected:
 	const uint32 m_beltID;
 	MiningDB *const m_db;	//we own this.
 
 	//runtime state:
 	Timer m_growthTimer;
-	std::vector<Asteroid *> m_asteroids;	//we own these
-	
+	std::vector<AsteroidEntity*> m_asteroids;	//we own these
+
 	void _TriggerGrowth();
-	
+
 	void _Clear();
 };
 
@@ -72,7 +72,7 @@ public:
 	virtual void Process();
 	//SimpleSystemEntity:
 	virtual bool LoadExtras(SystemDB *db);
-	
+
 protected:
 	AsteroidBeltManager *m_manager;	//dynamic to simplify dependancy issues.
 };

@@ -43,7 +43,7 @@ class ModuleContainer
 public:
 	ModuleContainer(uint32 lowSlots, uint32 medSlots, uint32 highSlots, uint32 rigSlots, uint32 subSystemSlots);
 	~ModuleContainer();
-	
+
 	void AddModule(uint32 flag, GenericModule * mod);
 	void RemoveModule(EVEItemFlags flag);
 	void RemoveModule(uint32 itemID);
@@ -65,11 +65,11 @@ public:
 	bool isLowPower(uint32 itemID);
 	bool isRig(uint32 itemID);
 	bool isSubSystem(uint32 itemID);
-	
+
 private:
 
 	//internal enums
-	typedef enum processType
+	enum processType
 	{
 		typeOnlineAll,
 		typeOfflineAll,
@@ -78,7 +78,7 @@ private:
 		typeProcessAll
 	};
 
-	typedef enum slotType
+	enum slotType
 	{
 		highSlot,
 		mediumSlot,
@@ -109,7 +109,7 @@ private:
 	void _removeLowSlotModule(uint32 flag);
 	void _removeRigSlotModule(uint32 flag);
 	void _removeSubSystemModule(uint32 flag);
-	
+
 	EVEItemSlotType _checkBounds(uint32 flag);
 
 	bool _isLowSlot(uint32 flag);
@@ -179,7 +179,7 @@ public:
 
 	}
 
-	~Effect() 
+	~Effect()
 	{
 		delete[] m_SubEffects;
 	}
@@ -246,14 +246,14 @@ public:
 	void Process();
 	void ProcessExternalEffect(Effect * e);
 	std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);  //should only be used by components
-	
+
 private:
 	void _fitModule(InventoryItemRef item);
 
 	void _processExternalEffect(SubEffect * e);
 
 	ModuleCommand _translateEffectName(std::string s);
-	
+
 
 	void _SendInfoMessage(const char* fmt, ...);
 	void _SendErrorMessage(const char* fmt, ...);
@@ -266,7 +266,7 @@ private:
 
 	//modules storage, we own this
 	ModuleContainer * m_Modules;
-		
+
 
 };
 

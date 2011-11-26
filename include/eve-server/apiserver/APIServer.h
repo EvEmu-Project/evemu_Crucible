@@ -71,9 +71,9 @@ public:
 private:
 	void RunInternal();
 
-	std::auto_ptr<asio::thread> _ioThread;
-	std::auto_ptr<asio::io_service> _io;
-	std::auto_ptr<APIServerListener> _listener;
+	std::unique_ptr<asio::thread> _ioThread;
+	std::unique_ptr<asio::io_service> _io;
+	std::unique_ptr<APIServerListener> _listener;
 	std::string _url;
 	std::string _basePath;
 	asio::detail::mutex _limboLock;

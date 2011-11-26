@@ -27,7 +27,7 @@
 #ifndef EVE_PACKET_TYPES_H
 #define EVE_PACKET_TYPES_H
 
-/*                                                                              
+/*
  *
 SERVICE_STOPPED = 1
 SERVICE_START_PENDING = 2
@@ -183,7 +183,7 @@ typedef enum EVEItemFlags
 	flagReward						= 8,
 	flagConnected					= 9,	//Character in station connected
 	flagDisconnected				= 10,	//Character in station offline
-	
+
 	//ship fittings:
 	flagLowSlot0					= 11,	//Low power slot 1
 	flagLowSlot1					= 12,
@@ -230,7 +230,7 @@ typedef enum EVEItemFlags
 	flagCorpMarket					= 62,	//Corporation Market Deliveries / Returns
 	flagLocked						= 63,	//Locked item, can not be moved unless unlocked
 	flagUnlocked					= 64,
-	
+
 	flagOfficeSlotFirst				= 70,
 	flagOfficeSlotLast				= 85,
 
@@ -273,7 +273,7 @@ typedef enum EVEItemFlags
 	flagSubSystem5					= 130,	//Sub system slot 5
 	flagSubSystem6					= 131,	//Sub system slot 6
 	flagSubSystem7					= 132,	//Sub system slot 7
-	
+
     flagSpecializedFuelBay          = 133,
     flagSpecializedOreHold          = 134,
     flagSpecializedGasHold          = 135,
@@ -296,7 +296,7 @@ typedef enum EVEItemFlags
     flagSpecializedPlanetaryCommoditiesHold = 149,
 
     flagFactorySlotLast				= 195,
-	
+
 	flagResearchFacilitySlotFirst	= 200,
 	flagResearchFacilitySlotLast	= 255,
 
@@ -357,7 +357,7 @@ typedef enum {
        skillScrapmetalProcessing = 12196
 } EVESkillID;
 
-//List of eve item types which have special purposes in the game. 
+//List of eve item types which have special purposes in the game.
 //try to keep this list as short as possible, most things should be accomplish able
 //by looking at the attributes of an item, not its type.
 typedef enum {
@@ -446,7 +446,7 @@ enum:uint64 {
 	ROLE_BANNING			= 562949953421312L,
 	ROLE_DUST				= 1125899906842624L,
 
-	ROLE_ANY				= (18446744073709551615L & ~ROLE_IGB),
+	ROLE_ANY				= (18446744073709551615UL & ~ROLE_IGB),
 	ROLE_SLASH				= (ROLE_GML | ROLE_LEGIONEER),
 	ROLEMASK_ELEVATEDPLAYER	= (ROLE_ANY & ~(((ROLE_LOGIN | ROLE_PLAYER) | ROLE_NEWBIE) | ROLE_VIPLOGIN)),
 	ROLEMASK_VIEW			= ((((ROLE_ADMIN | ROLE_CONTENT) | ROLE_GML) | ROLE_GMH) | ROLE_QA),
@@ -511,7 +511,7 @@ static const CorpRoleFlags corpRoleStarbaseConfig = 9007199254740992LL;
 static const CorpRoleFlags corpRoleTrader = 18014398509481984LL;
 static const CorpRoleFlags corpRoleChatManager = 36028797018963968LL;
 //some combos:
-static const CorpRoleFlags corpRoleAllHangar = 
+static const CorpRoleFlags corpRoleAllHangar =
 		corpRoleHangarCanTake1|corpRoleHangarCanTake2|
 		corpRoleHangarCanTake3|corpRoleHangarCanTake4|
 		corpRoleHangarCanTake5|corpRoleHangarCanTake6|
@@ -527,13 +527,13 @@ static const CorpRoleFlags corpRoleAllAccount = corpRoleJuniorAccountant |
 		corpRoleAccountCanQuery2|corpRoleAccountCanQuery3|
 		corpRoleAccountCanQuery4|corpRoleAccountCanQuery5|
 		corpRoleAccountCanQuery6|corpRoleAccountCanQuery7;
-static const CorpRoleFlags corpRoleAllContainer = 
+static const CorpRoleFlags corpRoleAllContainer =
 		corpRoleContainerCanTake1|corpRoleContainerCanTake2|
 		corpRoleContainerCanTake3|corpRoleContainerCanTake4|
 		corpRoleContainerCanTake5|corpRoleContainerCanTake6|
 		corpRoleContainerCanTake7;
 static const CorpRoleFlags corpRoleAllOffice = corpRoleCanRentOffice|corpRoleCanRentFactorySlot|corpRoleCanRentResearchSlot;
-static const CorpRoleFlags corpRoleAll = 
+static const CorpRoleFlags corpRoleAll =
 		corpRoleAllHangar | corpRoleAllAccount | corpRoleAllContainer |
 		corpRoleAllOffice |
 		corpRoleDirector | corpRolePersonnelManager | corpRoleAccountant |
@@ -608,7 +608,7 @@ typedef enum {
 // 	encyclopediaType -> config.EncyclopediaTypes
 // 	activity   -> config.BulkData.ramactivities
 // 	completedStatus -> config.BulkData.ramcompletedstatuses
-//  
+//
 // First letter of `Name` field if capitalized when prefixed.
 // see InsertConstantsFromRowset
 
