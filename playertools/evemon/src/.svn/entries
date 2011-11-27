@@ -1,0 +1,129 @@
+10
+
+dir
+2784
+svn://svn.battleclinic.com/EVEMon/EVEMon/trunk
+svn://svn.battleclinic.com/EVEMon
+
+
+
+2011-06-29T20:23:20.018364Z
+2784
+Jimi
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+18aec19e-6c5d-ac4a-b0cc-1ebaae3e0e25
+
+EVEMon.Sales
+dir
+
+Contrib
+dir
+
+EVEMon.Common
+dir
+
+Tools
+dir
+
+EVEMon.LogitechG15
+dir
+
+EVEMon.sln
+file
+
+
+
+
+2011-07-05T02:20:43.092571Z
+e7d2e36a652ef9ee65b8f58952f636c3
+2011-05-15T07:30:08.070191Z
+2744
+Jimi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+14950
+
+EVEMon.PieChart
+dir
+
+EVEMon.Watchdog
+dir
+
+EVEMon
+dir
+
+Tests.EVEMon
+dir
+
+UpdateSVNRevision.cmd
+file
+
+
+
+
+2011-07-05T02:20:43.150571Z
+a185d1092b5751e4847541d2b38611b6
+2011-03-08T18:34:52.222553Z
+2581
+Jimi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+264
+
+Designs
+dir
+
+EVEMon.WindowsApi
+dir
+
