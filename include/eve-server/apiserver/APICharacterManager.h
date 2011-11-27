@@ -56,6 +56,7 @@ protected:
     APICharacterDB m_charDB;
     std::tr1::shared_ptr<std::string> _CharacterSheet(const APICommandCall * pAPICommandCall);
     std::tr1::shared_ptr<std::string> _SkillQueue(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _SkillInTraining(const APICommandCall * pAPICommandCall);
 
 };
 

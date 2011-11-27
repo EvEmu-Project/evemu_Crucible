@@ -324,10 +324,10 @@ EvilNumber TradeBrokerFee( EvilNumber BrokerRelationsSkillLevel, EvilNumber Fact
 
 EvilNumber SkillStartingTime( EvilNumber currentSkillSP, EvilNumber nextLevelSkillSP, EvilNumber effectiveSPperMinute, EvilNumber timeNow )
 {
-    return (timeNow - (currentSkillSP * effectiveSPperMinute * EvilTime_Minute));
+    return (timeNow - ((currentSkillSP / effectiveSPperMinute) * EvilTime_Minute));
 }
 
 EvilNumber SkillEndingTime( EvilNumber currentSkillSP, EvilNumber nextLevelSkillSP, EvilNumber effectiveSPperMinute, EvilNumber timeNow )
 {
-    return (((nextLevelSkillSP - currentSkillSP) * effectiveSPperMinute) + timeNow);
+    return ((((nextLevelSkillSP - currentSkillSP) / effectiveSPperMinute) * EvilTime_Minute) + timeNow);
 }

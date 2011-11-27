@@ -81,8 +81,8 @@ public:
      * @retval ?
      */
     bool GetCharacterSkillQueue(uint32 characterID, std::vector<std::string> & orderList, std::vector<std::string> & typeIdList,
-    std::vector<std::string> & levelList, std::vector<std::string> & rankList, std::vector<std::string> & skillIdList,
-    std::vector<std::string> & primaryAttrList, std::vector<std::string> & secondaryAttrList, std::vector<std::string> & skillPointsTrainedList);
+        std::vector<std::string> & levelList, std::vector<std::string> & rankList, std::vector<std::string> & skillIdList,
+        std::vector<std::string> & primaryAttrList, std::vector<std::string> & secondaryAttrList, std::vector<std::string> & skillPointsTrainedList);
 
     /**
      * @brief NOT DEFINED YET
@@ -125,5 +125,3 @@ protected:
 };
 
 #endif	//__APICHARACTERDB_H_INCL__
-
-

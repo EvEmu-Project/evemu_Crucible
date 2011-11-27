@@ -46,6 +46,8 @@ std::tr1::shared_ptr<std::string> APICharacterManager::ProcessCall(const APIComm
         return _CharacterSheet(pAPICommandCall);
     if( pAPICommandCall->find( "servicehandler" )->second == "SkillQueue.xml.aspx" )
         return _SkillQueue(pAPICommandCall);
+    if( pAPICommandCall->find( "servicehandler" )->second == "SkillInTraining.xml.aspx" )
+        return _SkillInTraining(pAPICommandCall);
     //else if( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
     //    return _TODO(pAPICommandCall);
     else
@@ -61,6 +63,8 @@ std::tr1::shared_ptr<std::string> APICharacterManager::ProcessCall(const APIComm
 
 std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const APICommandCall * pAPICommandCall)
 {
+    uint32 i;
+
     sLog.Error( "APICharacterManager::_CharacterSheet()", "TODO: Insert code to validate userID and apiKey" );
 
     sLog.Debug("APICharacterManager::_CharacterSheet()", "EVEmu API - Character Service Manager - CALL: CharacterSheet.xml.aspx");
@@ -123,6 +127,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             // Attribute Enhancers (implants)
             _BuildXMLTag( "attributeEnhancers" );
             {
+                /*
                 _BuildXMLTag( "memoryBonus" );
                 {
                     _BuildSingleXMLTag( "augmentatorName", "Memory Augmentation - Basic" );
@@ -153,6 +158,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
                     _BuildSingleXMLTag( "augmentatorValue", "3" );
                 }
                 _CloseXMLTag(); // close tag "charismaBonus"
+                */
             }
             _CloseXMLTag(); // close tag "attributeEnhancers"
 
@@ -176,7 +182,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             rowset.push_back("published");
             _BuildXMLRowSet( "skills", "typeID", &rowset );
             {
-                for(int i=0; i<skillTypeIDList.size(); i++)
+                for( i=0; i<skillTypeIDList.size(); i++ )
                 {
                     rowset.clear();
                     rowset.push_back(skillTypeIDList.at(i));
@@ -222,6 +228,8 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
 
 std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APICommandCall * pAPICommandCall)
 {
+    uint32 i;
+
     sLog.Error( "APICharacterManager::_SkillQueue()", "TODO: Insert code to validate userID and apiKey" );
 
     sLog.Debug("APICharacterManager::_SkillQueue()", "EVEmu API - Character Service Manager - CALL: SkillQueue.xml.aspx");
@@ -246,21 +254,6 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
 
     // Make calls to the APICharacterDB class to grab all data for this call and populate the xml structure with that data
     uint32 characterID = atoi( pAPICommandCall->find( "characterid" )->second.c_str() );
-    std::vector<std::string> queueOrderList;
-    std::vector<std::string> queueSkillTypeIdList;
-    std::vector<std::string> queueSkillLevelList;
-    std::vector<std::string> queueSkillRankList;
-    std::vector<std::string> queueSkillIdList;
-    std::vector<std::string> queueSkillPrimaryAttrList;
-    std::vector<std::string> queueSkillSecondaryAttrList;
-    std::vector<std::string> queueSkillPointsTrainedList;
-    m_charDB.GetCharacterSkillQueue( characterID, queueOrderList, queueSkillTypeIdList, queueSkillLevelList, queueSkillRankList,
-        queueSkillIdList, queueSkillPrimaryAttrList, queueSkillSecondaryAttrList, queueSkillPointsTrainedList);
-
-    std::vector<uint32> queueSkillStartSP;
-    std::vector<uint32> queueSkillEndSP;
-    std::vector<uint64> queueSkillStartTime;
-    std::vector<uint64> queueSkillEndTime;
 
     std::map<std::string, std::string> charLearningAttributesString;
     std::map<uint32, uint32> charLearningAttributes;
@@ -270,6 +263,53 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
     charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrCharisma, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrCharisma)))->second.c_str()))) ));
     charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrWillpower, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrWillpower)))->second.c_str()))) ));
     charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrPerception, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrPerception)))->second.c_str()))) ));
+
+    std::vector<std::string> queueOrderList;
+    std::vector<std::string> queueSkillTypeIdList;
+    std::vector<std::string> queueSkillLevelList;
+    std::vector<std::string> queueSkillRankList;
+    std::vector<std::string> queueSkillIdList;
+    std::vector<std::string> queueSkillPrimaryAttrList;
+    std::vector<std::string> queueSkillSecondaryAttrList;
+    std::vector<std::string> queueSkillPointsTrainedList;
+
+    uint32 queueSkillPrimaryAttribute;
+    uint32 queueSkillSecondaryAttribute;
+    std::vector<uint32> queueSkillStartSP;
+    std::vector<uint32> queueSkillEndSP;
+    std::vector<uint64> queueSkillStartTime;
+    std::vector<uint64> queueSkillEndTime;
+    EvilNumber spPerMinute(0.0);
+    EvilNumber skillStartSP(0.0);
+    EvilNumber skillEndSP(0.0);
+    EvilNumber timeNow(0.0);
+    uint64 skillStartTime;
+    uint64 skillEndTime;
+
+    bool status = m_charDB.GetCharacterSkillQueue( characterID, queueOrderList, queueSkillTypeIdList, queueSkillLevelList, queueSkillRankList,
+        queueSkillIdList, queueSkillPrimaryAttrList, queueSkillSecondaryAttrList, queueSkillPointsTrainedList );
+
+    sLog.Error( "APICharacterManager::_SkillQueue()", "INFO: Calculation of Skill End Time based on Effective SP/min does NOT include implants/boosters at this time" );
+
+    if( status )
+    {
+        timeNow = EvilTimeNow();
+        for( i=0; i<queueOrderList.size(); i++ )
+        {
+            queueSkillPrimaryAttribute = charLearningAttributes.find( atoi(queueSkillPrimaryAttrList.at(i).c_str()) )->second;
+            queueSkillSecondaryAttribute = charLearningAttributes.find( atoi(queueSkillSecondaryAttrList.at(i).c_str()) )->second;
+            skillStartSP = EvilNumber(atoi( queueSkillPointsTrainedList.at(i).c_str() ));
+            queueSkillStartSP.push_back( static_cast<uint32>( skillStartSP.get_int() ));
+            skillEndSP = SkillPointsAtLevel( atoi(queueSkillLevelList.at(i).c_str()), atoi(queueSkillRankList.at(i).c_str()) );
+            queueSkillEndSP.push_back( static_cast<uint32>( skillEndSP.get_int() ) );
+            spPerMinute = SkillPointsPerMinute( queueSkillPrimaryAttribute, queueSkillSecondaryAttribute );
+            skillStartTime = static_cast<uint64>(SkillStartingTime( skillStartSP, skillEndSP, spPerMinute, timeNow ).get_int());
+            skillEndTime = static_cast<uint64>(SkillEndingTime( skillStartSP, skillEndSP, spPerMinute, timeNow ).get_int());
+            queueSkillStartTime.push_back( skillStartTime );
+            queueSkillEndTime.push_back( skillEndTime );
+            timeNow = skillEndTime;
+        }
+    }
 
 	// EXAMPLE:
     std::vector<std::string> rowset;
@@ -287,20 +327,133 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
             rowset.push_back("endTime");
             _BuildXMLRowSet( "skillqueue", "queuePosition", &rowset );
             {
-                for(int i=0; i<queueOrderList.size(); i++)
+                if( status )
                 {
-                    rowset.clear();
-                    rowset.push_back( queueOrderList.at(i) );
-                    rowset.push_back( queueSkillTypeIdList.at(i) );
-                    rowset.push_back( queueSkillLevelList.at(i) );
-                    rowset.push_back( std::string(itoa(queueSkillStartSP.at(i))) );
-                    rowset.push_back( std::string(itoa(queueSkillEndSP.at(i)))  );
-                    rowset.push_back( Win32TimeToString(Win32TimeNow() + 120*Win32Time_Minute*i) );
-                    rowset.push_back( Win32TimeToString(Win32TimeNow() + 120*Win32Time_Minute*(i+1)) );
+                    for( i=0; i<queueOrderList.size(); i++ )
+                    {
+                        rowset.clear();
+                        rowset.push_back( queueOrderList.at(i) );
+                        rowset.push_back( queueSkillTypeIdList.at(i) );
+                        rowset.push_back( queueSkillLevelList.at(i) );
+                        rowset.push_back( std::string(itoa(queueSkillStartSP.at(i))) );
+                        rowset.push_back( std::string(itoa(queueSkillEndSP.at(i))) );
+                        rowset.push_back( Win32TimeToString(queueSkillStartTime.at(i)) );
+                        rowset.push_back( Win32TimeToString(queueSkillEndTime.at(i)) );
+                        _BuildXMLRow( &rowset );
+                    }
                 }
-                    _BuildXMLRow( &rowset );
             }
             _CloseXMLRowSet();  // close rowset "skillqueue"
+        }
+        _CloseXMLTag(); // close tag "result"
+    }
+    _CloseXMLHeader( EVEAPI::CacheStyles::Modified );
+
+    return _GetXMLDocumentString();
+}
+
+std::tr1::shared_ptr<std::string> APICharacterManager::_SkillInTraining(const APICommandCall * pAPICommandCall)
+{
+    uint32 i;
+
+    sLog.Error( "APICharacterManager::_SkillInTraining()", "TODO: Insert code to validate userID and apiKey" );
+
+    sLog.Debug("APICharacterManager::_SkillInTraining()", "EVEmu API - Character Service Manager - CALL: SkillInTraining.xml.aspx");
+
+    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APICharacterManager::_SkillInTraining()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
+		return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+    }
+
+	if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APICharacterManager::_SkillInTraining()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
+		return BuildErrorXMLResponse( "203", "Authentication failure." );
+    }
+
+	if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
+    {
+        sLog.Error( "APICharacterManager::_SkillInTraining()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
+		return BuildErrorXMLResponse( "105", "Invalid characterID." );
+    }
+
+    // Make calls to the APICharacterDB class to grab all data for this call and populate the xml structure with that data
+    uint32 characterID = atoi( pAPICommandCall->find( "characterid" )->second.c_str() );
+
+    std::map<std::string, std::string> charLearningAttributesString;
+    std::map<uint32, uint32> charLearningAttributes;
+    m_charDB.GetCharacterAttributes( characterID, charLearningAttributesString );
+    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrMemory, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrMemory)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrIntelligence, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrIntelligence)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrCharisma, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrCharisma)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrWillpower, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrWillpower)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrPerception, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrPerception)))->second.c_str()))) ));
+
+    std::vector<std::string> queueOrderList;
+    std::vector<std::string> queueSkillTypeIdList;
+    std::vector<std::string> queueSkillLevelList;
+    std::vector<std::string> queueSkillRankList;
+    std::vector<std::string> queueSkillIdList;
+    std::vector<std::string> queueSkillPrimaryAttrList;
+    std::vector<std::string> queueSkillSecondaryAttrList;
+    std::vector<std::string> queueSkillPointsTrainedList;
+
+    uint32 queueSkillPrimaryAttribute;
+    uint32 queueSkillSecondaryAttribute;
+    std::vector<uint32> queueSkillStartSP;
+    std::vector<uint32> queueSkillEndSP;
+    std::vector<uint64> queueSkillStartTime;
+    std::vector<uint64> queueSkillEndTime;
+    EvilNumber spPerMinute(0.0);
+    EvilNumber skillStartSP(0.0);
+    EvilNumber skillEndSP(0.0);
+    EvilNumber timeNow(0.0);
+    uint64 skillStartTime;
+    uint64 skillEndTime;
+
+    bool status = m_charDB.GetCharacterSkillQueue( characterID, queueOrderList, queueSkillTypeIdList, queueSkillLevelList, queueSkillRankList,
+        queueSkillIdList, queueSkillPrimaryAttrList, queueSkillSecondaryAttrList, queueSkillPointsTrainedList );
+
+    if( status )
+    {
+        sLog.Error( "APICharacterManager::_SkillInTraining()", "INFO: Calculation of Skill End Time based on Effective SP/min does NOT include implants/boosters at this time" );
+        timeNow = EvilTimeNow();
+
+        queueSkillPrimaryAttribute = charLearningAttributes.find( atoi(queueSkillPrimaryAttrList.at(0).c_str()) )->second;
+        queueSkillSecondaryAttribute = charLearningAttributes.find( atoi(queueSkillSecondaryAttrList.at(0).c_str()) )->second;
+        skillStartSP = EvilNumber(atoi( queueSkillPointsTrainedList.at(0).c_str() ));
+        queueSkillStartSP.push_back( static_cast<uint32>( skillStartSP.get_int() ));
+        skillEndSP = SkillPointsAtLevel( atoi(queueSkillLevelList.at(0).c_str()), atoi(queueSkillRankList.at(0).c_str()) );
+        queueSkillEndSP.push_back( static_cast<uint32>( skillEndSP.get_int() ) );
+        spPerMinute = SkillPointsPerMinute( queueSkillPrimaryAttribute, queueSkillSecondaryAttribute );
+        skillStartTime = static_cast<uint64>(SkillStartingTime( skillStartSP, skillEndSP, spPerMinute, timeNow ).get_int());
+        skillEndTime = static_cast<uint64>(SkillEndingTime( skillStartSP, skillEndSP, spPerMinute, timeNow ).get_int());
+        queueSkillStartTime.push_back( skillStartTime );
+        queueSkillEndTime.push_back( skillEndTime );
+    }
+
+	// EXAMPLE:
+    std::vector<std::string> rowset;
+    _BuildXMLHeader();
+    {
+        _BuildXMLTag( "result" );
+        {
+            if( status )
+            {
+                _BuildSingleXMLTag( "currentTQTime", Win32TimeToString(static_cast<uint64>(timeNow.get_int())) );
+                _BuildSingleXMLTag( "trainingEndTime", Win32TimeToString(skillEndTime) );
+                _BuildSingleXMLTag( "trainingStartTime", Win32TimeToString(skillStartTime) );
+                _BuildSingleXMLTag( "trainingTypeID", queueSkillTypeIdList.at(0) );
+                _BuildSingleXMLTag( "trainingStartSP", std::string(itoa(skillStartSP.get_int())) );
+                _BuildSingleXMLTag( "trainingDestinationSP", std::string(itoa(skillEndSP.get_int())) );
+                _BuildSingleXMLTag( "trainingToLevel", queueSkillLevelList.at(0) );
+                _BuildSingleXMLTag( "skillInTraining", "1" );
+            }
+            else
+            {
+                _BuildSingleXMLTag( "skillInTraining", "0" );
+            }
         }
         _CloseXMLTag(); // close tag "result"
     }
