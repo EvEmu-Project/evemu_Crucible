@@ -93,7 +93,7 @@ void APIServerConnection::ProcessHeaders()
 	std::string request;
     std::string get_chk_str;
     std::string post_chk_str;
-    int pos, pos2;
+    int pos;
     int parameterCount;
     std::string param;
     std::string value;
@@ -330,7 +330,7 @@ void APIServerConnection::ProcessPostData()
 	std::istream stream(&_postBuffer);
     std::string query;
 	std::string request;
-    int pos, pos2;
+    int pos;
     std::string param;
     std::string value;
 

@@ -798,7 +798,7 @@ bool InventoryItem::Merge(InventoryItemRef to_merge, uint32 qty, bool notify) {
 
     if(qty == to_merge->quantity()) {
         to_merge->Delete();
-    } else if(!to_merge->AlterQuantity(-qty, notify)) {
+    } else if(!to_merge->AlterQuantity(static_cast<int32>(-qty), notify)) {
         _log(ITEM__ERROR, "%s (%u): Failed to remove quantity %d.", to_merge->itemName().c_str(), to_merge->itemID(), qty);
         return false;
     }

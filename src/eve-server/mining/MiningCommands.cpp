@@ -63,7 +63,7 @@ PyResult Command_spawnbelt( Client* who, CommandDB* db, PyServiceMgr* services, 
 	const double beltdistance = 25000.0;
 	double roidradius;
 	const double beltangle = M_PI * 2.0 / 3.0;
-	const uint32 pcs = 20 + MakeRandomInt( -10, 10 );   // reduced from 160 + MakeRandomInt( -10, 10 ) to facilitate easier debugging
+	const uint32 pcs = 20 + static_cast<uint32>(MakeRandomInt( -10, 10 ));   // reduced from 160 + MakeRandomInt( -10, 10 ) to facilitate easier debugging
 
 	const GPoint position( who->GetPosition() );
 

@@ -824,7 +824,7 @@ void Character::UpdateSkillQueue()
             {
                 OnSkillStartTraining osst;
                 osst.itemID = currentTraining->itemID();
-                osst.endOfTraining = (int64)(timeTraining.get_float());
+                osst.endOfTraining = timeTraining.get_float();
 
                 PyTuple* tmp = osst.Encode();
                 c->QueueDestinyEvent( &tmp );

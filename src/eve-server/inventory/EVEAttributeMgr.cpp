@@ -64,7 +64,7 @@ PyRep *EVEAttributeMgr::_PyGet(const real_t &v)
 {
     if(_IsInt(v) == true)
     {
-        return new PyInt(v);
+        return new PyInt(static_cast<int32>(v));
     }
     else
     {
@@ -172,7 +172,7 @@ void ItemAttributeMgr::SetRealEx(Attr attr, const real_t &v, bool persist) {
     // first check if it can be stored as integer
     if(_IsInt(v)) {
         // store as integer
-        SetIntEx(attr, v, persist);
+        SetIntEx(attr, static_cast<int32>(v), persist);
     } else {
         // store as real
         PyRep *oldValue = NULL;
@@ -288,7 +288,7 @@ void ItemAttributeMgr::Save() const {
         for(; cur != end; cur++) {
             real_t v = GetReal(cur->first);
             if(_IsInt(v))
-                m_factory.db().UpdateAttribute_int(m_item.itemID(), cur->first, v);
+                m_factory.db().UpdateAttribute_int(m_item.itemID(), cur->first, static_cast<int32>(v));
             else
                 m_factory.db().UpdateAttribute_double(m_item.itemID(), cur->first, v);
         }
@@ -301,7 +301,7 @@ void ItemAttributeMgr::Save() const {
         for(; cur != end; cur++) {
             real_t v = GetReal(cur->first);
             if(_IsInt(v))
-                m_factory.db().UpdateAttribute_int(m_item.itemID(), cur->first, v);
+                m_factory.db().UpdateAttribute_int(m_item.itemID(), cur->first, static_cast<int32>(v));
             else
                 m_factory.db().UpdateAttribute_double(m_item.itemID(), cur->first, v);
         }

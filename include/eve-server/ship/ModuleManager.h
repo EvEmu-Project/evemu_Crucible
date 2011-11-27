@@ -181,7 +181,7 @@ public:
 
 	~Effect()
 	{
-		delete[] m_SubEffects;
+		delete[] &m_SubEffects;
 	}
 
 	void AddEffect(uint32 attributeID, EVECalculationType type, EvilNumber val, uint32 targetItemID = 0)

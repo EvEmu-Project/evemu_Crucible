@@ -98,7 +98,7 @@ public:
         /* check if we need to store it as a integer or as a float */
 		if(_IsInt(v) == true)
         {
-			SetInt(attr, v);
+			SetInt(attr, static_cast<const int>(v));
 		}
         else
         {

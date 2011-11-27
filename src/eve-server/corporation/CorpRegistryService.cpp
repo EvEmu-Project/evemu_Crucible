@@ -525,18 +525,18 @@ PyResult CorpRegistryBound::Handle_InsertApplication(PyCallArgs &call) {
 
 void CorpRegistryBound::FillOCApplicationChange(Notify_OnCorporationApplicationChanged & OCAC, const ApplicationInfo & Old, const ApplicationInfo & New) {
     if (Old.valid) {
-        OCAC.applicationDateTimeOld = new PyInt(Old.appTime);
+        OCAC.applicationDateTimeOld = new PyLong(Old.appTime);
         OCAC.applicationTextOld = new PyString(Old.appText);
         OCAC.characterIDOld = new PyInt(Old.charID);
         OCAC.corporationIDOld = new PyInt(Old.corpID);
         OCAC.deletedOld = new PyInt(Old.deleted);
-        OCAC.grantableRolesOld = new PyInt(Old.grantRole);
+        OCAC.grantableRolesOld = new PyLong(Old.grantRole);
         if (Old.lastCID) {
             OCAC.lastCorpUpdaterIDOld = new PyInt(Old.lastCID);
         } else {
             OCAC.lastCorpUpdaterIDOld = new PyNone();
         }
-        OCAC.rolesOld = new PyInt(Old.role);
+        OCAC.rolesOld = new PyLong(Old.role);
         OCAC.statusOld = new PyInt(Old.status);
     } else {
         OCAC.applicationDateTimeOld = new PyNone();
@@ -551,18 +551,18 @@ void CorpRegistryBound::FillOCApplicationChange(Notify_OnCorporationApplicationC
     }
 
     if (New.valid) {
-        OCAC.applicationDateTimeNew = new PyInt(New.appTime);
+        OCAC.applicationDateTimeNew = new PyLong(New.appTime);
         OCAC.applicationTextNew = new PyString(New.appText);
         OCAC.characterIDNew = new PyInt(New.charID);
         OCAC.corporationIDNew = new PyInt(New.corpID);
         OCAC.deletedNew = new PyInt(New.deleted);
-        OCAC.grantableRolesNew = new PyInt(New.grantRole);
+        OCAC.grantableRolesNew = new PyLong(New.grantRole);
         if (New.lastCID) {
             OCAC.lastCorpUpdaterIDNew = new PyInt(New.lastCID);
         } else {
             OCAC.lastCorpUpdaterIDNew = new PyNone();
         }
-        OCAC.rolesNew = new PyInt(New.role);
+        OCAC.rolesNew = new PyLong(New.role);
         OCAC.statusNew = new PyInt(New.status);
     } else {
         OCAC.applicationDateTimeNew = new PyNone();

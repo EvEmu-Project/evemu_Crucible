@@ -226,6 +226,8 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
                 break;
         }
     }
+
+    return NULL;
 }
 
 #endif /* __MODULEFACTORY_H__ */

@@ -256,7 +256,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
         cur_rec = recoverables.begin();
         end_rec = recoverables.end();
         for(; cur_rec != end_rec; cur_rec++) {
-            uint32 quantity = cur_rec->amountPerBatch * efficiency * (1.0 - m_tax) * item->quantity() / item->type().portionSize();
+            uint32 quantity = static_cast<uint32>(cur_rec->amountPerBatch * efficiency * (1.0 - m_tax) * item->quantity() / item->type().portionSize());
             if(quantity == 0)
                 continue;
 

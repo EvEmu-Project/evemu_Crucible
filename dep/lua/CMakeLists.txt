@@ -84,3 +84,6 @@ ADD_LIBRARY( "${TARGET_NAME}"
 # Export directories #
 ######################
 SET( ${TARGET_NAME}_INCLUDE_DIR "${TARGET_INCLUDE_DIR}" PARENT_SCOPE )
+
+# Disable safety warnings because this is a C library
+ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)

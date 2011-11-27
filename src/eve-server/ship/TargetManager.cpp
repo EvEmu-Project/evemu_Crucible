@@ -444,5 +444,5 @@ uint32 TargetManager::TimeToLock(ShipRef ship, SystemEntity *target) const {
 
     EvilNumber time = ( EvilNumber(40000) / ( scanRes ) ) /( e_pow( e_log( sigRad + e_sqrt( sigRad * sigRad + 1) ), 2) );
 
-    return time.get_int(); // hack...
+    return static_cast<uint32>(time.get_int()); // hack...
 }

@@ -171,11 +171,11 @@ void NPC::EncodeDestiny( Buffer& into ) const
         into.Append( mass );
 
         ShipSector ship;
-		ship.max_speed = GetMaxVelocity();
+		ship.max_speed = static_cast<float>(GetMaxVelocity());
 		ship.velocity_x = 0.0;
 		ship.velocity_y = 0.0;
 		ship.velocity_z = 0.0;
-		ship.agility = GetAgility();
+		ship.agility = static_cast<float>(GetAgility());
 		ship.speed_fraction = 0.0;
         into.Append( ship );
 

@@ -36,7 +36,7 @@ static const double DESTINY_UPDATE_RANGE = 1.0e8;	//totally made up. a more comp
 static const double FOLLOW_BAND_WIDTH = 100.0f;	//totally made up
 
 uint32 DestinyManager::m_stamp(40000);	//completely arbitrary starting point.
-Timer DestinyManager::m_stampTimer(TIC_DURATION_IN_SECONDS * 1000, true);	//accurate timing is essential.
+Timer DestinyManager::m_stampTimer(static_cast<int32>(TIC_DURATION_IN_SECONDS * 1000), true);	//accurate timing is essential.
 
 DestinyManager::DestinyManager(SystemEntity *self, SystemManager *system)
 : m_self(self),
@@ -948,11 +948,11 @@ void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {
 
 void DestinyManager::SetShipCapabilities(InventoryItemRef ship)
 {
-	double mass = ship->GetAttribute(AttrMass).get_int();               // Aknor: EVEAttributeMgr cant find this
+	double mass = ship->GetAttribute(AttrMass).get_float();               // Aknor: EVEAttributeMgr cant find this
 	double radius = ship->GetAttribute(AttrRadius).get_float();         // Aknor: EVEAttributeMgr cant find this, assertion failed: "mType == evil_number_float", line 189 EvilNumber.h
 	double Inertia = ship->GetAttribute(AttrInertia).get_float();       // Aknor: EVEAttributeMgr cant find this, assertion failed: "mType == evil_number_float", line 189 EvilNumber.h
 	double agility = ship->GetAttribute(AttrAgility).get_float();
-	int maxVelocity = ship->GetAttribute(AttrMaxVelocity).get_int();
+	double maxVelocity = ship->GetAttribute(AttrMaxVelocity).get_float();
 
 	//might need to care about turnAngle: Maximum turn angle of a ship in Radians, 0 to pi (3.14). 
 	//might need newAgility: Maximum "Thrust angle" for an object in Radians, 0 to pi (3.14).
@@ -1226,7 +1226,7 @@ void DestinyManager::WarpTo(const GPoint &where, double distance, bool update) {
 		du.dest_x = where.x;
 		du.dest_y = where.y;
 		du.dest_z = where.z;
-		du.distance = distance;
+		du.distance = static_cast<int32>(distance);
 		du.u5 = 30;
 		
 		updates.push_back(du.Encode());

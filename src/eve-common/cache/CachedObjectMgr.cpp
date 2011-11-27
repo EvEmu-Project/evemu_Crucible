@@ -430,9 +430,9 @@ PySubStream* CachedObjectMgr::LoadCachedFile( const char* abs_fname, const char*
         return false;
     }
 
-    Buffer* buf = new Buffer( file_length );
+    Buffer* buf = new Buffer(static_cast<size_t>(file_length));
 
-    if( file_length != fread( &( *buf )[0], sizeof( uint8 ), file_length, f ) ) {
+    if( file_length != fread( &( *buf )[0], sizeof( uint8 ), static_cast<size_t>(file_length), f ) ) {
 		sLog.Error("CachedObjMgr","Unable to read cache file '%s' for oname '%s%': %s", abs_fname, oname, strerror( errno ) );
 
         SafeDelete( buf );

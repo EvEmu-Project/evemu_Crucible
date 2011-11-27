@@ -80,7 +80,7 @@ public:
 	const DBSystemEntity data;
 	uint32 GetID() const { return(data.itemID); }
 	virtual const char *GetName() const { return(data.itemName.c_str()); }
-	virtual double GetRadius() const { return(data.radius); }
+	virtual float GetRadius() const { return(static_cast<float>(data.radius)); }
 	virtual const GPoint &GetPosition() const { return( data.position ); }
     virtual const GVector &GetVelocity() const;
 };

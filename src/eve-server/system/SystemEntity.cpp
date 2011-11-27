@@ -95,11 +95,11 @@ const char *ItemSystemEntity::GetName() const {
 	return(m_self->itemName().c_str());
 }
 
-double ItemSystemEntity::GetRadius() const {
+float ItemSystemEntity::GetRadius() const {
 	if(!m_self)
 		return(1.0f);
 	//return(m_self->radius());
-    return m_self->GetAttribute(AttrRadius).get_float();
+    return static_cast<float>(m_self->GetAttribute(AttrRadius).get_float());
 }
 
 const GPoint &ItemSystemEntity::GetPosition() const {
@@ -259,21 +259,21 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
         ShipSector ship;
         if( Destiny() == NULL )     // We dont have a destiny object or dont have one YET
         {
-		    ship.max_speed = GetMaxVelocity();
+		    ship.max_speed = static_cast<float>(GetMaxVelocity());
             ship.velocity_x = 0.0;
 		    ship.velocity_y = 0.0;
 		    ship.velocity_z = 0.0;
-		    ship.agility = GetAgility();
+		    ship.agility = static_cast<float>(GetAgility());
             ship.speed_fraction = 0.0;
         }
         else
         {
-		    ship.max_speed = GetMaxVelocity();
+		    ship.max_speed = static_cast<float>(GetMaxVelocity());
             ship.velocity_x = Destiny()->GetVelocity().x;
 		    ship.velocity_y = Destiny()->GetVelocity().y;
 		    ship.velocity_z = Destiny()->GetVelocity().z;
-		    ship.agility = GetAgility();
-            ship.speed_fraction = Destiny()->GetSpeedFraction();
+		    ship.agility = static_cast<float>(GetAgility());
+            ship.speed_fraction = static_cast<float>(Destiny()->GetSpeedFraction());
         }
         into.Append( ship );
 

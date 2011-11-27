@@ -99,7 +99,7 @@ bool Skill::SkillPrereqsComplete(Character &ch)
     
     if( GetAttribute(AttrRequiredSkill1).get_int() != 0 )
 	{
-		requiredSkill = ch.GetSkill( GetAttribute(AttrRequiredSkill1).get_int() );
+		requiredSkill = ch.GetSkill(static_cast<uint32>(GetAttribute(AttrRequiredSkill1).get_int()));
 		if( !requiredSkill )
 			return false;
 
@@ -109,7 +109,7 @@ bool Skill::SkillPrereqsComplete(Character &ch)
 
 	if( GetAttribute(AttrRequiredSkill2).get_int() != 0 )
 	{
-		requiredSkill = ch.GetSkill( GetAttribute(AttrRequiredSkill2).get_int() );
+		requiredSkill = ch.GetSkill(static_cast<uint32>(GetAttribute(AttrRequiredSkill2).get_int()));
 		if( !requiredSkill )
 			return false;
 
@@ -119,7 +119,7 @@ bool Skill::SkillPrereqsComplete(Character &ch)
 
     if( GetAttribute(AttrRequiredSkill3).get_int() != 0 )
     {
-        requiredSkill = ch.GetSkill( GetAttribute(AttrRequiredSkill3).get_int() );
+        requiredSkill = ch.GetSkill(static_cast<uint32>(GetAttribute(AttrRequiredSkill3).get_int()));
         if( !requiredSkill )
             return false;
 
@@ -138,7 +138,7 @@ bool Skill::FitModuleSkillCheck(InventoryItemRef item, CharacterRef character)
 	//Primary Skill
 	if(item->GetAttribute(AttrRequiredSkill1) != 0)
 	{
-		requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill1).get_int() );
+		requiredSkill = character->GetSkill( static_cast<uint32>(item->GetAttribute(AttrRequiredSkill1).get_int()) );
 		if( !requiredSkill )
 			return false;
 
@@ -149,7 +149,7 @@ bool Skill::FitModuleSkillCheck(InventoryItemRef item, CharacterRef character)
 	//Secondary Skill
     if(item->GetAttribute(AttrRequiredSkill2) != 0)
     {
-        requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill2).get_int() );
+        requiredSkill = character->GetSkill( static_cast<uint32>(item->GetAttribute(AttrRequiredSkill2).get_int()) );
         if( !requiredSkill )
             return false;
 
@@ -160,7 +160,7 @@ bool Skill::FitModuleSkillCheck(InventoryItemRef item, CharacterRef character)
 	//Tertiary Skill
     if(item->GetAttribute(AttrRequiredSkill3) != 0)
     {
-        requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill3).get_int() );
+        requiredSkill = character->GetSkill( static_cast<uint32>(item->GetAttribute(AttrRequiredSkill3).get_int()) );
         if( !requiredSkill )
             return false;
 
@@ -171,7 +171,7 @@ bool Skill::FitModuleSkillCheck(InventoryItemRef item, CharacterRef character)
 	//Quarternary Skill
     if(item->GetAttribute(AttrRequiredSkill4) != 0)
     {
-        requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill4).get_int() );
+        requiredSkill = character->GetSkill( static_cast<uint32>(item->GetAttribute(AttrRequiredSkill4).get_int()) );
         if( !requiredSkill )
             return false;
 
@@ -182,7 +182,7 @@ bool Skill::FitModuleSkillCheck(InventoryItemRef item, CharacterRef character)
 	//Quinary Skill
     if(item->GetAttribute(AttrRequiredSkill5) != 0)
     {
-        requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill5).get_int() );
+        requiredSkill = character->GetSkill(static_cast<uint32>(item->GetAttribute(AttrRequiredSkill5).get_int()));
         if( !requiredSkill )
             return false;
 
@@ -193,7 +193,7 @@ bool Skill::FitModuleSkillCheck(InventoryItemRef item, CharacterRef character)
 	//Senary Skill
     if(item->GetAttribute(AttrRequiredSkill6) != 0)
     {
-        requiredSkill = character->GetSkill( item->GetAttribute(AttrRequiredSkill6).get_int() );
+        requiredSkill = character->GetSkill(static_cast<uint32>(item->GetAttribute(AttrRequiredSkill6).get_int()));
         if( !requiredSkill )
             return false;
 
