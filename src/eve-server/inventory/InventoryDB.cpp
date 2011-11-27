@@ -711,7 +711,7 @@ bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
     
     for (; itr != attrset->end(); itr++) {
         if ((*itr)->number.get_type() == evil_number_int)
-            into.SetInt((EVEAttributeMgr::Attr)(*itr)->attributeID, static_cast<int>((*itr)->number.get_int()));
+            into.SetInt((EVEAttributeMgr::Attr)(*itr)->attributeID, static_cast<int32>((*itr)->number.get_int()));
         else
             into.SetReal((EVEAttributeMgr::Attr)(*itr)->attributeID, (*itr)->number.get_float());
     }

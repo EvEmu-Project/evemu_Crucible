@@ -176,7 +176,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             rowset.push_back("published");
             _BuildXMLRowSet( "skills", "typeID", &rowset );
             {
-                for(uint16 i=0; i<skillTypeIDList.size(); i++)
+                for(size_t i=0; i<skillTypeIDList.size(); i++)
                 {
                     rowset.clear();
                     rowset.push_back(skillTypeIDList.at(i));
@@ -287,7 +287,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
             rowset.push_back("endTime");
             _BuildXMLRowSet( "skillqueue", "queuePosition", &rowset );
             {
-                for(uint16 i=0; i<queueOrderList.size(); i++)
+                for(size_t i=0; i<queueOrderList.size(); i++)
                 {
                     rowset.clear();
                     rowset.push_back( queueOrderList.at(i) );
