@@ -379,7 +379,7 @@ bool ServiceDB::GetConstant(const char *name, uint32 &into) {
         return false;
     }
     
-    into = row.GetUInt64(0);
+    into = row.GetUInt(0);
     
     return true;
 }

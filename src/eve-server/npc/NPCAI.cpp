@@ -33,8 +33,8 @@ NPCAIMgr::NPCAIMgr(NPC *who)
   m_npc(who),
   m_processTimer(50),	//arbitrary.
   m_mainAttackTimer(1),	//we want this to always trigger the first time through.
-  m_shieldBoosterTimer(who->Item()->GetAttribute(AttrEntityShieldBoostDuration).get_int()),
-  m_armorRepairTimer(who->Item()->GetAttribute(AttrEntityArmorRepairDuration).get_int())
+  m_shieldBoosterTimer(static_cast<int32>(who->Item()->GetAttribute(AttrEntityShieldBoostDuration).get_int())),
+  m_armorRepairTimer(static_cast<int32>(who->Item()->GetAttribute(AttrEntityArmorRepairDuration).get_int()))
 {
 	m_processTimer.Start();
 	m_mainAttackTimer.Start();
@@ -244,7 +244,7 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
 		//NOTE: there is probably a more intelligent way to make this descision.
 		//if(self->entityAttackDelayMax() <= 0) {
 			//use speed field...
-			m_mainAttackTimer.Start(self->GetAttribute(AttrSpeed).get_int());
+			m_mainAttackTimer.Start(static_cast<uint32>(self->GetAttribute(AttrSpeed).get_int()));
 		//} else {
 			//I think this field is actually meant as a reaction time to the player showing up in range.
 		//	m_mainAttackTimer.Start(MakeRandomInt(

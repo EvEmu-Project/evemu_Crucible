@@ -26,6 +26,9 @@
 #ifndef __EVE_SERVER_PCH_H__INCL__
 #define __EVE_SERVER_PCH_H__INCL__
 
+// Disable 'this' used in base member initializer list warning
+#pragma warning(disable: 4355)
+
 #include "common.h"
 
 /************************************************************************/

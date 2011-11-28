@@ -335,28 +335,28 @@ bool Ship::ValidateBoardShip(ShipRef ship, CharacterRef character)
 	SkillRef requiredSkill;
     uint32 skillTypeID = 0;
 	
-    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill1).get_int()) != 0)
-        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill1Level).get_int() )) )
+    if( (skillTypeID = static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill1).get_int())) != 0)
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill1Level).get_int()) )) )
             return false;
 
-    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill2).get_int()) != 0)
-        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill2Level).get_int() )) )
+    if( (skillTypeID = static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill2).get_int())) != 0)
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill2Level).get_int() ))) )
             return false;
 
-    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill3).get_int()) != 0)
-        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill3Level).get_int() )) )
+    if( (skillTypeID = static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill3).get_int())) != 0)
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill3Level).get_int() ))) )
             return false;
 
-    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill4).get_int()) != 0)
-        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill4Level).get_int() )) )
+    if( (skillTypeID = static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill4).get_int())) != 0)
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill4Level).get_int() ))) )
             return false;
 
-    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill5).get_int()) != 0)
-        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill5Level).get_int() )) )
+    if( (skillTypeID = static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill5).get_int())) != 0)
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill5Level).get_int() )) ))
             return false;
 
-    if( (skillTypeID = ship->GetAttribute(AttrRequiredSkill6).get_int()) != 0)
-        if( !(character->HasSkillTrainedToLevel( skillTypeID, ship->GetAttribute(AttrRequiredSkill6Level).get_int() )) )
+    if( (skillTypeID = static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill6).get_int())) != 0)
+        if( !(character->HasSkillTrainedToLevel( skillTypeID, static_cast<uint32>(ship->GetAttribute(AttrRequiredSkill6Level).get_int() )) ))
             return false;
 
     return true;
@@ -685,11 +685,11 @@ void ShipEntity::EncodeDestiny( Buffer& into ) const
         into.Append( mass );
 
         ShipSector ship;
-		ship.max_speed = GetMaxVelocity();
+		ship.max_speed = static_cast<float>(GetMaxVelocity());
 		ship.velocity_x = 0.0;
 		ship.velocity_y = 0.0;
 		ship.velocity_z = 0.0;
-		ship.agility = GetAgility();
+		ship.agility = static_cast<float>(GetAgility());
 		ship.speed_fraction = 0.0;
         into.Append( ship );
 

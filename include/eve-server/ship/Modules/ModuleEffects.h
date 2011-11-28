@@ -70,6 +70,8 @@ public:
 				}
 			}
 		}
+
+        return false;
 	}
 
 	bool isMediumSlot()
@@ -90,6 +92,8 @@ public:
 				}
 			}
 		}
+
+        return false;
 	}
 
 	bool isLowSlot()
@@ -110,6 +114,8 @@ public:
 				}
 			}
 		}
+
+        return false;
 	}
 
 	//this will need to be reworked to implement a singleton architecture...i'll do it later -luck

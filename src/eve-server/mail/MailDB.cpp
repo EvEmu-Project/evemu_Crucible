@@ -104,4 +104,8 @@ int MailDB::BitFromLabelID(int id)
 	for (int i = 0; i < sizeof(int); i++)
 		if ((id & (1 << i)) > 0)
 			return i;
+
+    // This just gets rid of a warning, code execution should never reach here.
+    sLog.Error("MailDB::BitFromLabelID", "ERROR: Could not get bit.");
+    return NULL;
 }

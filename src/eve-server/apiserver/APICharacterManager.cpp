@@ -160,11 +160,11 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             // Attributes
             _BuildXMLTag( "attributes" );
             {
-                _BuildSingleXMLTag( "intelligence", charAttributes.find( std::string(itoa(EveAttrEnum::AttrIntelligence)))->second );
-                _BuildSingleXMLTag( "memory", charAttributes.find( std::string(itoa(EveAttrEnum::AttrMemory)))->second );
-                _BuildSingleXMLTag( "charisma", charAttributes.find( std::string(itoa(EveAttrEnum::AttrCharisma)))->second );
-                _BuildSingleXMLTag( "perception", charAttributes.find( std::string(itoa(EveAttrEnum::AttrPerception)))->second );
-                _BuildSingleXMLTag( "willpower", charAttributes.find( std::string(itoa(EveAttrEnum::AttrWillpower)))->second );
+                _BuildSingleXMLTag( "intelligence", charAttributes.find( std::string(itoa(AttrIntelligence)))->second );
+                _BuildSingleXMLTag( "memory", charAttributes.find( std::string(itoa(AttrMemory)))->second );
+                _BuildSingleXMLTag( "charisma", charAttributes.find( std::string(itoa(AttrCharisma)))->second );
+                _BuildSingleXMLTag( "perception", charAttributes.find( std::string(itoa(AttrPerception)))->second );
+                _BuildSingleXMLTag( "willpower", charAttributes.find( std::string(itoa(AttrWillpower)))->second );
             }
             _CloseXMLTag(); // close tag "attributes"
 
@@ -176,7 +176,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             rowset.push_back("published");
             _BuildXMLRowSet( "skills", "typeID", &rowset );
             {
-                for(int i=0; i<skillTypeIDList.size(); i++)
+                for(size_t i=0; i<skillTypeIDList.size(); i++)
                 {
                     rowset.clear();
                     rowset.push_back(skillTypeIDList.at(i));
@@ -265,11 +265,11 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
     std::map<std::string, std::string> charLearningAttributesString;
     std::map<uint32, uint32> charLearningAttributes;
     m_charDB.GetCharacterAttributes( characterID, charLearningAttributesString );
-    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrMemory, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrMemory)))->second.c_str()))) ));
-    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrIntelligence, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrIntelligence)))->second.c_str()))) ));
-    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrCharisma, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrCharisma)))->second.c_str()))) ));
-    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrWillpower, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrWillpower)))->second.c_str()))) ));
-    charLearningAttributes.insert( std::pair<uint32, uint32>( EveAttrEnum::AttrPerception, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(EveAttrEnum::AttrPerception)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>(AttrMemory, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(AttrMemory)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>(AttrIntelligence, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(AttrIntelligence)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>(AttrCharisma, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(AttrCharisma)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>(AttrWillpower, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(AttrWillpower)))->second.c_str()))) ));
+    charLearningAttributes.insert( std::pair<uint32, uint32>(AttrPerception, ((uint32)(atoi(charLearningAttributesString.find(std::string(itoa(AttrPerception)))->second.c_str()))) ));
 
 	// EXAMPLE:
     std::vector<std::string> rowset;
@@ -287,7 +287,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
             rowset.push_back("endTime");
             _BuildXMLRowSet( "skillqueue", "queuePosition", &rowset );
             {
-                for(int i=0; i<queueOrderList.size(); i++)
+                for(size_t i=0; i<queueOrderList.size(); i++)
                 {
                     rowset.clear();
                     rowset.push_back( queueOrderList.at(i) );

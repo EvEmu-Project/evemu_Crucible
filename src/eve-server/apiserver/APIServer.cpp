@@ -78,7 +78,7 @@ std::tr1::shared_ptr<std::vector<char> > APIServer::GetXML(const APICommandCall 
         // Convert the std::string to the std::vector<char>:
 	    std::tr1::shared_ptr<std::vector<char> > ret = std::tr1::shared_ptr<std::vector<char> >(new std::vector<char>());
         unsigned long len = m_xmlString->length();
-        for(int i=0; i<m_xmlString->length(); i++)
+        for(size_t i=0; i<m_xmlString->length(); i++)
             ret->push_back(m_xmlString->at(i));
 
         return ret;

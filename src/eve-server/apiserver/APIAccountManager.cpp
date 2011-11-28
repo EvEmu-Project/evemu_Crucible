@@ -247,7 +247,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APIComman
             rowset.push_back("corporationID");
             _BuildXMLRowSet( "characters", "characterID", &rowset );
             {
-                for(int i=0; i<charIDList.size(); i++)
+                for(uint32 i=0; i<charIDList.size(); i++)
                 {
                     rowset.clear();
                     rowset.push_back(charNameList.at(i));
@@ -312,7 +312,7 @@ std::string APIAccountManager::_GenerateAPIKey()
     std::string key = "";
 
     for( int i=0; i<64; i++ )
-        key += m_hexCharMap.substr( MakeRandomInt( 0, 15 ), 1 );
+        key += m_hexCharMap.substr(static_cast<uint16>(MakeRandomInt(0, 15)), 1);
 
     return key;
 }

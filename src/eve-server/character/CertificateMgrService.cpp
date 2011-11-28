@@ -65,7 +65,7 @@ PyResult CertificateMgrService::Handle_GetMyCertificates(PyCallArgs &call) {
 	for( i = 0; i < crt.size(); i++ )
 	{
 		fieldData->AddItemInt( crt.at( i ).certificateID );
-		fieldData->AddItemInt( crt.at( i ).grantDate );
+		fieldData->AddItemLong( crt.at( i ).grantDate );
 		fieldData->AddItemInt( crt.at( i ).visibilityFlags );
 		rs.lines->AddItem( fieldData );
 		fieldData = new PyList;
@@ -195,7 +195,7 @@ PyResult CertificateMgrService::Handle_GetCertificatesByCharacter( PyCallArgs& c
 	for( i = 0; i < crt.size(); i++ )
 	{
 		fieldData->AddItemInt( crt.at( i ).certificateID );
-		fieldData->AddItemInt( crt.at( i ).grantDate );
+		fieldData->AddItemLong( crt.at( i ).grantDate );
 		fieldData->AddItemInt( crt.at( i ).visibilityFlags );
 		rs.lines->AddItem( fieldData );
 		fieldData = new PyList;

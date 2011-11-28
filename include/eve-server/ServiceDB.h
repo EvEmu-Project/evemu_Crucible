@@ -45,7 +45,7 @@ struct AccountInfo
     std::string name;
     std::string password;
     std::string hash;
-    uint64 id;
+    uint32 id;
     uint64 role;
     uint32 visits;
     std::string last_login;

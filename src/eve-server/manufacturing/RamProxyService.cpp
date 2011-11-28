@@ -216,9 +216,9 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
                 continue;       // not interested
 
             // calculate needed quantity
-            uint32 qtyNeeded = ceil(cur->quantity * rsp.materialMultiplier * args.runs);
+            uint32 qtyNeeded = static_cast<uint32>(ceil(cur->quantity * rsp.materialMultiplier * args.runs));
             if(cur->damagePerJob == 1.0)
-                qtyNeeded = ceil(qtyNeeded * rsp.charMaterialMultiplier);   // skill multiplier is applied only on fully consumed materials
+                qtyNeeded = static_cast<uint32>(ceil(qtyNeeded * rsp.charMaterialMultiplier));   // skill multiplier is applied only on fully consumed materials
 
             std::vector<InventoryItemRef>::iterator curi, endi;
             curi = items.begin();
@@ -274,7 +274,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
     end = reqItems.end();
     for(; cur != end; cur++) {
         if(!cur->isSkill && cur->damagePerJob != 1.0) {
-            uint32 quantity = cur->quantity * runs * (1.0 - cur->damagePerJob);
+            uint32 quantity = static_cast<uint32>(cur->quantity * runs * (1.0 - cur->damagePerJob));
             if(quantity == 0)
                 continue;
 
@@ -706,9 +706,9 @@ void RamProxyService::_VerifyInstallJob_Install(const Rsp_InstallJob &rsp, const
             // check materials
 
             // calculate needed quantity
-            uint32 qtyNeeded = ceil(cur->quantity * rsp.materialMultiplier * runs);
+            uint32 qtyNeeded = static_cast<uint32>(ceil(cur->quantity * rsp.materialMultiplier * runs));
             if(cur->damagePerJob == 1.0)
-                qtyNeeded = ceil(qtyNeeded * rsp.charMaterialMultiplier);   // skill multiplier is applied only on fully consumed materials
+                qtyNeeded = static_cast<uint32>(ceil(qtyNeeded * rsp.charMaterialMultiplier));   // skill multiplier is applied only on fully consumed materials
 
             std::vector<InventoryItemRef>::iterator curi, endi;
             curi = items.begin();
@@ -850,7 +850,7 @@ bool RamProxyService::_Calculate(const Call_InstallJob &args, InventoryItemRef i
         return false;
 
     // calculate the remaining things
-    into.productionTime *= into.timeMultiplier * into.charTimeMultiplier * args.runs;
+    into.productionTime *= static_cast<int32>(into.timeMultiplier * into.charTimeMultiplier * args.runs);
     into.usageCost *= ceil(into.productionTime / 3600.0);
     into.cost = into.installCost + into.usageCost;
 
@@ -884,7 +884,7 @@ void RamProxyService::_EncodeBillOfMaterials(const std::vector<RequiredItem> &re
         // otherwise, make line for material list
         MaterialList_Line line;
         line.requiredTypeID = cur->typeID;
-        line.quantity = ceil(cur->quantity * materialMultiplier * runs);
+        line.quantity = static_cast<int32>(ceil(cur->quantity * materialMultiplier * runs));
         line.damagePerJob = cur->damagePerJob;
         line.isSkillCheck = false;  // no idea what is this for
         line.requiresHP = false;    // no idea what is this for
@@ -897,7 +897,7 @@ void RamProxyService::_EncodeBillOfMaterials(const std::vector<RequiredItem> &re
             // if there are losses, make line for waste material list
             if(charMaterialMultiplier > 1.0) {
                 MaterialList_Line wastage( line );  // simply copy origial line ...
-                wastage.quantity = ceil(wastage.quantity * (charMaterialMultiplier - 1.0)); // ... and calculate proper quantity
+                wastage.quantity = static_cast<int32>(ceil(wastage.quantity * (charMaterialMultiplier - 1.0))); // ... and calculate proper quantity
 
                 into.wasteMaterials.lines->AddItem( wastage.Encode() );
             }
@@ -924,9 +924,9 @@ void RamProxyService::_EncodeMissingMaterials(const std::vector<RequiredItem> &r
     for(; cur != end; cur++) {
         uint32 qtyReq = cur->quantity;
         if(!cur->isSkill) {
-            qtyReq = ceil(qtyReq * materialMultiplier * runs);
+            qtyReq = static_cast<uint32>(ceil(qtyReq * materialMultiplier * runs));
             if(cur->damagePerJob == 1.0)
-                qtyReq = ceil(qtyReq * charMaterialMultiplier);
+                qtyReq = static_cast<uint32>(ceil(qtyReq * charMaterialMultiplier));
         }
 
         std::vector<InventoryItemRef>::const_iterator curi, endi;

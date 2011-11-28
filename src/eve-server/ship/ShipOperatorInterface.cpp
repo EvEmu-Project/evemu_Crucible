@@ -83,6 +83,7 @@ const char * ShipOperatorInterface::GetName() const
 
     sLog.Error( "ShipOperatorInterface::GetName()", "ERROR: All Operator types should be accounted for" );
     assert(false);
+    return NULL;
 }
 
 ShipRef ShipOperatorInterface::GetShip() const
@@ -94,6 +95,10 @@ ShipRef ShipOperatorInterface::GetShip() const
 
     sLog.Error( "ShipOperatorInterface::GetShip()", "ERROR: All Operator types should be accounted for" );
     assert(false);
+    
+    // Hack to get rid of warning, code execution should never reach this point
+    ShipRef ret;
+    return ret;
 }
 
 CharacterRef ShipOperatorInterface::GetChar() const
@@ -105,6 +110,10 @@ CharacterRef ShipOperatorInterface::GetChar() const
 
     sLog.Error( "ShipOperatorInterface::GetChar()", "ERROR: All Operator types should be accounted for" );
     assert(false);
+
+    // Hack to get rid of warning, code execution should never reach this point
+    CharacterRef ret;
+    return ret;
 }
 
 uint32 ShipOperatorInterface::GetLocationID() const
@@ -116,6 +125,9 @@ uint32 ShipOperatorInterface::GetLocationID() const
     
     sLog.Error( "ShipOperatorInterface::GetLocationID()", "ERROR: All Operator types should be accounted for" );
     assert(false);
+
+    // Hack to get rid of warning, code execution should never reach this point
+    return NULL;
 }
 
 void ShipOperatorInterface::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)

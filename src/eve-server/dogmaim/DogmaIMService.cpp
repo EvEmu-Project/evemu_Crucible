@@ -117,11 +117,11 @@ PyResult DogmaIMBound::Handle_GetCharacterBaseAttributes(PyCallArgs &call)
 	CharacterRef cref = call.client->GetChar();
 
 	PyDict* result = new PyDict();
-	result->SetItem(new PyInt(AttrIntelligence), new PyInt(cref->GetAttribute(AttrIntelligence).get_int()));
-	result->SetItem(new PyInt(AttrPerception), new PyInt(cref->GetAttribute(AttrPerception).get_int()));
-	result->SetItem(new PyInt(AttrCharisma), new PyInt(cref->GetAttribute(AttrCharisma).get_int()));
-	result->SetItem(new PyInt(AttrWillpower), new PyInt(cref->GetAttribute(AttrWillpower).get_int()));
-	result->SetItem(new PyInt(AttrMemory), new PyInt(cref->GetAttribute(AttrMemory).get_int()));
+	result->SetItem(new PyInt(AttrIntelligence), new PyInt(static_cast<int32>(cref->GetAttribute(AttrIntelligence).get_int())));
+	result->SetItem(new PyInt(AttrPerception), new PyInt(static_cast<int32>(cref->GetAttribute(AttrPerception).get_int())));
+	result->SetItem(new PyInt(AttrCharisma), new PyInt(static_cast<int32>(cref->GetAttribute(AttrCharisma).get_int())));
+	result->SetItem(new PyInt(AttrWillpower), new PyInt(static_cast<int32>(cref->GetAttribute(AttrWillpower).get_int())));
+	result->SetItem(new PyInt(AttrMemory), new PyInt(static_cast<int32>(cref->GetAttribute(AttrMemory).get_int())));
 
 	return result;
 }

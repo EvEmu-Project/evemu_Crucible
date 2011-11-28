@@ -127,7 +127,7 @@ static EvilNumber CalculateNewAttributeValue(EvilNumber attrVal, EvilNumber attr
 
 	sLog.Error("CalculateNewAttributeValue", "Unknown EveCalculationType used");
 	assert(false);
-
+    return NULL;
 }
 
 #endif
