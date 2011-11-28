@@ -181,7 +181,10 @@ public:
 
 	~Effect()
 	{
-		delete[] m_SubEffects;
+        for (int i = 0; i <= m_Count; i++)
+        {
+            delete m_SubEffects[i];
+        }
 	}
 
 	void AddEffect(uint32 attributeID, EVECalculationType type, EvilNumber val, uint32 targetItemID = 0)

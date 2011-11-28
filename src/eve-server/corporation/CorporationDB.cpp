@@ -506,7 +506,7 @@ bool CorporationDB::CreateCorporationChangePacket(Notify_OnCorporaionChanged & c
     cc.stationIDOld = new PyInt(row.GetUInt(12));
     _NI(raceIDOld, 13);
     _NI(allianceIDOld, 14);
-    cc.sharesOld = new PyInt(row.GetUInt64(15));
+    cc.sharesOld = new PyLong(row.GetUInt64(15));
     cc.memberCountOld = new PyInt(row.GetUInt(16));
     cc.memberLimitOld = new PyInt(row.GetUInt(17));
     cc.allowedMemberRaceIDsOld = new PyInt(row.GetUInt(18));
@@ -1107,7 +1107,7 @@ bool CorporationDB::CreateMemberAttributeUpdate(MemberAttributeUpdate & attrib, 
 #define PRI(i) new PyInt(i)
 #define PRL(i) new PyLong(i)
 #define PRS(s) new PyString(s)
-#define PRNI(i) (row.IsNull(i) ? PRI(0) : PRI(row.GetUInt64(i)))
+#define PRNI(i) (row.IsNull(i) ? PRL(0) : PRL(row.GetUInt64(i)))
 #define F(name, o, n) \
     attrib.name##Old = o; \
     attrib.name##New = n

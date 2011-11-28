@@ -145,17 +145,17 @@ bool MarshalStream::VisitLong( const PyLong* rep )
     else if( val + 0x8000u > 0xFFFF )
     {
         Put<uint8>( Op_PyLong );
-        Put<int32>( val );
+        Put<int32>(static_cast<int32>(val));
     }
     else if( val + 0x80u > 0xFF )
     {
         Put<uint8>( Op_PySignedShort );
-        Put<int16>( val );
+        Put<int16>(static_cast<int16>(val));
     }
     else
     {
         Put<uint8>( Op_PyByte );
-        Put<int8>( val );
+        Put<int8>(static_cast<int8>(val));
     }
 
     return true;
@@ -450,7 +450,7 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
 
             case DBTYPE_R4:
             {
-                unpacked.Append<float>( r->IsNone() ? 0.0 : r->AsFloat()->value() );
+                unpacked.Append<float>(static_cast<float>(r->IsNone() ? 0.0 : r->AsFloat()->value()));
             } break;
 
             case DBTYPE_BOOL:

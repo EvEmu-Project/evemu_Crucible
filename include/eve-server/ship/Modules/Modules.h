@@ -79,7 +79,7 @@ public:
 		return ( (i >= 773 && i <= 782) || (i == 786) || (i == 787) || (i == 896) || (i == 904) );  //need to use enums, but the enum system is a huge mess
 	}
 
-	virtual bool isSubSystem()									{ return (m_Item->categoryID() == EVEItemCategories::Subsystem); }
+	virtual bool isSubSystem()									{ return (m_Item->categoryID() == EVEDB::invCategories::Subsystem); }
 
 	//override for rigs and subsystems
 	virtual ModulePowerLevel GetModulePowerLevel()				{ return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }  

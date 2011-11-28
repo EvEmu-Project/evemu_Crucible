@@ -181,59 +181,59 @@ bool APICharacterDB::GetCharacterAttributes(uint32 characterID, std::map<std::st
     {
         row_found = true;
 
-        if( row.GetUInt(1) == EveAttrEnum::AttrCharisma )
+        if( row.GetUInt(1) == AttrCharisma )
         {
             // Charisma
             if( row.GetText(2) == NULL )
                 // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
-                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrCharisma)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(AttrCharisma)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
             else
                 // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
-                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrCharisma)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(AttrCharisma)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
         }
 
-        if( row.GetUInt(1) == EveAttrEnum::AttrIntelligence )
+        if( row.GetUInt(1) == AttrIntelligence )
         {
             // Intelligence
             if( row.GetText(2) == NULL )
                 // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
-                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrIntelligence)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(AttrIntelligence)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
             else
                 // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
-                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrIntelligence)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(AttrIntelligence)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
         }
 
-        if( row.GetUInt(1) == EveAttrEnum::AttrMemory )
+        if( row.GetUInt(1) == AttrMemory )
         {
             // Memory
             if( row.GetText(2) == NULL )
                 // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
-                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrMemory)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(AttrMemory)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
             else
                 // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
-                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrMemory)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(AttrMemory)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
         }
 
-        if( row.GetUInt(1) == EveAttrEnum::AttrPerception )
+        if( row.GetUInt(1) == AttrPerception )
         {
             // Perception
             if( row.GetText(2) == NULL )
                 // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
-                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrPerception)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(AttrPerception)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
             else
                 // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
-                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrPerception)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(AttrPerception)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
         }
 
-        if( row.GetUInt(1) == EveAttrEnum::AttrWillpower )
+        if( row.GetUInt(1) == AttrWillpower )
         {
             // Will Power
             if( row.GetText(2) == NULL )
                 // Get value from 'entity_attributes' table 'valueFloat' column since 'valueInt' contains 'NULL'
-                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrWillpower)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(AttrWillpower)), std::string((row.GetText(3) == NULL ? "0.0" : itoa((uint32)(row.GetFloat(3))))) ));
             else
                 // Get value from 'entity_attributes' table 'valueInt' column since it does not contain 'NULL'
-                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(EveAttrEnum::AttrWillpower)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
+                attribList.insert( std::pair<std::string, std::string>(std::string(itoa(AttrWillpower)), std::string((row.GetText(2) == NULL ? "0" : row.GetText(2))) ));
         }
     }
 
@@ -297,7 +297,7 @@ bool APICharacterDB::GetCharacterSkillQueue(uint32 characterID, std::vector<std:
                 skillPointsTrainedList.push_back( std::string((row.GetText(8) == NULL ? "0" : row.GetText(8))) );
         }
 
-        if( row.GetUInt(4) == EveAttrEnum::AttrPrimaryAttribute )
+        if( row.GetUInt(4) == AttrPrimaryAttribute )
         {
             if( row.GetText(5) == NULL )
                 // Get value from the query's 'valueFloat' column since 'valueInt' contains 'NULL'
@@ -306,7 +306,7 @@ bool APICharacterDB::GetCharacterSkillQueue(uint32 characterID, std::vector<std:
                 // Get value from the query's 'valueInt' column since it does not contain 'NULL'
                 primaryAttrList.push_back( std::string((row.GetText(5) == NULL ? "0" : row.GetText(5))) );
         }
-        else if( row.GetUInt(4) == EveAttrEnum::AttrSecondaryAttribute )
+        else if( row.GetUInt(4) == AttrSecondaryAttribute )
         {
             if( row.GetText(5) == NULL )
                 // Get value from the query's 'valueFloat' column since 'valueInt' contains 'NULL'
@@ -315,7 +315,7 @@ bool APICharacterDB::GetCharacterSkillQueue(uint32 characterID, std::vector<std:
                 // Get value from the query's 'valueInt' column since it does not contain 'NULL'
                 secondaryAttrList.push_back( std::string((row.GetText(5) == NULL ? "0" : row.GetText(5))) );
         }
-        else if( row.GetUInt(4) == EveAttrEnum::AttrSkillTimeConstant )
+        else if( row.GetUInt(4) == AttrSkillTimeConstant )
         {
             if( row.GetText(5) == NULL )
                 // Get value from the query's 'valueFloat' column since 'valueInt' contains 'NULL'

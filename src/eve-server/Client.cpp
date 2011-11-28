@@ -965,7 +965,7 @@ PyDict *Client::MakeSlimItem() const {
     }
 
     slim->SetItemString("color", new PyFloat(0.0));
-    slim->SetItemString("bounty", new PyInt(GetBounty()));
+    slim->SetItemString("bounty", new PyFloat(GetBounty()));
     slim->SetItemString("securityStatus", new PyFloat(GetSecurityRating()));
 
     return(slim);

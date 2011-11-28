@@ -100,7 +100,7 @@ void SystemPlanetEntity::EncodeDestiny( Buffer& into ) const
 	BallHeader head;
 	head.entityID = data.itemID;
 	head.mode = Destiny::DSTBALL_RIGID;
-	head.radius = data.radius;
+	head.radius = static_cast<float>(data.radius);
 	head.x = data.position.x;
 	head.y = data.position.y;
 	head.z = data.position.z;
@@ -128,7 +128,7 @@ void SystemStationEntity::EncodeDestiny( Buffer& into ) const
     BallHeader head;
 	head.entityID = data.itemID;
 	head.mode = Destiny::DSTBALL_RIGID;
-	head.radius = data.radius;
+	head.radius = static_cast<float>(data.radius);
 	head.x = data.position.x;
 	head.y = data.position.y;
 	head.z = data.position.z;
@@ -218,7 +218,7 @@ void SystemAsteroidBeltEntity::EncodeDestiny( Buffer& into ) const
     BallHeader head;
 	head.entityID = data.itemID;
 	head.mode = Destiny::DSTBALL_RIGID;
-	head.radius = data.radius;
+	head.radius = static_cast<float>(data.radius);
 	head.x = data.position.x;
 	head.y = data.position.y;
 	head.z = data.position.z;

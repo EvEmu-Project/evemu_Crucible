@@ -34,7 +34,7 @@ class LSCChannel;
 
 class LSCChannelChar {
 public:
-	LSCChannelChar(LSCChannel *chan, uint32 corpID, uint32 charID, std::string charName, uint32 allianceID, uint32 warFactionID, uint32 role, uint32 extra) :
+	LSCChannelChar(LSCChannel *chan, uint32 corpID, uint32 charID, std::string charName, uint32 allianceID, uint32 warFactionID, uint64 role, uint32 extra) :
 	  m_parent(chan),
 	  m_corpID(corpID),
 	  m_charID(charID),
@@ -54,7 +54,7 @@ protected:
         std::string m_charName;
 	uint32 m_allianceID;
 	uint32 m_warFactionID;
-	uint32 m_role;
+	uint64 m_role;
 	uint32 m_extra;
 };
 

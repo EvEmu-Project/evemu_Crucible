@@ -265,9 +265,9 @@ public:
 		bool operator a ( b val) \
 		{ \
 			if (this->mType == evil_number_int) \
-				return this->mValue.iVal a val; \
+				return this->mValue.iVal a static_cast<int64>(val); \
 			else \
-				return this->mValue.fVal a double(val); \
+				return this->mValue.fVal a static_cast<double>(val); \
 		}
 
     /**

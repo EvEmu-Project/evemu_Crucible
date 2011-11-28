@@ -15,7 +15,7 @@ public:
 
 	class CommandRecord {
 	public:
-        CommandRecord( const char * cmd, const char * desc, uint32 req_role, CommandFunc& callback ) : command(cmd),
+        CommandRecord( const char * cmd, const char * desc, uint64 req_role, CommandFunc& callback ) : command(cmd),
             description(desc), required_role(req_role), function(callback) {}
 
 		std::string command;

@@ -597,7 +597,7 @@ void ModuleManager::SwapSubSystem(InventoryItemRef item)
 
 void ModuleManager::FitModule(InventoryItemRef item)
 {
-	if(item->categoryID() == EVEItemCategories::Module)
+	if(item->categoryID() == EVEDB::invCategories::Module)
 		_fitModule(item);
 	else
 		sLog.Debug("ModuleManager","%s tried to fit item %u, which is not a module", m_Ship->GetOperator()->GetName(), item->itemID());
@@ -656,7 +656,7 @@ void ModuleManager::Deactivate(uint32 itemID, std::string effectName)
 	if( mod != NULL )
 	{
 		ModuleCommand cmd = _translateEffectName(effectName);
-		if(cmd  == ModuleCommand::OFFLINE)
+		if(cmd  == OFFLINE)
 			mod->Offline();
 		//there needs to be more cases here i just don't know what they're called yet
 	}
@@ -690,7 +690,7 @@ void ModuleManager::DamageModule(uint32 itemID, EvilNumber val)
 	GenericModule * mod = m_Modules->GetModule(itemID);
 	if( mod != NULL)
 	{
-		mod->SetAttribute(EveAttrEnum::AttrHp, val);
+		mod->SetAttribute(AttrHp, val);
 	}
 }
 

@@ -180,7 +180,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 	//uniformity (chance of seeping through to armor)
 
 	// Make a random value to use in msg's and attack multiplier
-	random_damage = MakeRandomInt( 0, 5 );
+	random_damage = static_cast<int32>(MakeRandomInt(0, 5));
 	random_damage_mult = (double)(random_damage / 10.0);	// chance from 0 to 50% more damage
 
 	/*
@@ -469,7 +469,7 @@ bool NPC::ApplyDamage(Damage &d) {
 	*/
 
 	// Make a random value to use in msg's and attack multiplier
-	random_damage = MakeRandomInt( 0, 5 );
+	random_damage = static_cast<int32>(MakeRandomInt(0, 5));
 	random_damage_mult = (double)(random_damage / 10.0);
 
 	// Not sure about this, but with this we get some random hits... :)
