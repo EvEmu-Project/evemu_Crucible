@@ -167,7 +167,7 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 	}
 	
 	if(spawned.empty()) {
-		int timer = static_cast<int>(MakeRandomInt(m_timerMin, m_timerMax));
+		int32 timer = static_cast<int32>(MakeRandomInt(m_timerMin, m_timerMax));
 		_log(SPAWN__POP, "No NPCs produced by spawn entry %u. Resetting spawn timer to %d s.", m_id, timer);
 		m_timer.Start(timer*1000);
 		return;
