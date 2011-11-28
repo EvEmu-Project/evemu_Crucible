@@ -218,7 +218,7 @@ void SpawnEntry::SpawnDepoped(uint32 npcID) {
 	}
 	
 	if(m_spawnedIDs.empty()) {
-		int timer = static_cast<int>(MakeRandomInt(m_timerMin, m_timerMax));
+		int32 timer = static_cast<int32>(MakeRandomInt(m_timerMin, m_timerMax));
 		_log(SPAWN__DEPOP, "Spawn entry %u's entire spawn group has depopped, resetting timer to %d s.", m_id, timer);
 		m_timer.Start(timer*1000);
 	}
