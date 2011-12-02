@@ -46,6 +46,13 @@ class PasswordModule
 {
 public:
     /**
+     *
+     */
+    #ifndef WIN32
+    static uint8 * wchar_tToUtf16(uint8 * chars, int charLen);
+    #endif
+
+    /**
      * @brief this functions converts a username and password into a Sha1 hash.
      *
      *

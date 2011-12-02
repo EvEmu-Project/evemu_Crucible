@@ -26,8 +26,32 @@
 #include "EVEServerPCH.h"
 #include "authorisation/PasswordModule.h"
 #include "authorisation/ShaModule.h"
+#ifndef WIN32
+    #include <iconv.h>
+#endif
 
 uint8 mDigest[SHA_DIGEST_SIZE];
+
+#ifndef WIN32
+    uint8 * PasswordModule::wchar_tToUtf16(uint8 * chars, int charLen)
+    {
+        iconv_t cd;
+	size_t iconv_value;
+	cd = iconv_open("UTF-16", "WCHAR_T");
+	long unsigned int len;
+	long unsigned int utf16len;
+	char * utf16;
+	uint8 * utf16start;
+	len = charLen*4;
+	utf16len = charLen*2;
+	cd = iconv_open("UTF-16LE", "UTF-32");
+	utf16 = (char *)calloc(utf16len, 1);
+	utf16start = (uint8*)utf16;
+	iconv_value = iconv(cd, (char**)&chars, &len, &utf16, &utf16len);
+	
+	return utf16start;
+    }
+#endif
 
 bool PasswordModule::GeneratePassHash(std::wstring &userName, std::wstring &passWord, std::string &passWordHash)
 {
@@ -46,10 +70,18 @@ bool PasswordModule::GeneratePassHash(std::wstring &userName, std::wstring &pass
 
     std::wstring init = passWord + salt;
 
+    int saltInitLen = (int)init.size() * 2;
+    uint8 * saltInitChar = (uint8*)&init[0];
+
+    #ifndef WIN32
+        saltChar = wchar_tToUtf16(saltChar, salt.size());
+        saltInitChar = wchar_tToUtf16(saltInitChar, init.size());
+    #endif
+
     ShaModule::SHAobject shaObj;
 
     ShaModule::sha_init(&shaObj);
-    ShaModule::sha_update(&shaObj, init);
+    ShaModule::sha_update(&shaObj, saltInitChar, saltInitLen);
 
     int daylySaltLen = SHA_DIGEST_SIZE + saltLen;
 
@@ -94,11 +126,19 @@ bool PasswordModule::GeneratePassHash(const wchar_t *userName, const wchar_t *pa
 
     std::wstring init(passWord);
     init += salt;
+    
+    int saltInitLen = (int)init.size() * 2;
+    uint8 * saltInitChar = (uint8*)&init[0];
+    
+    #ifndef WIN32
+        saltChar = wchar_tToUtf16(saltChar, salt.size());
+        saltInitChar = wchar_tToUtf16(saltInitChar, init.size());
+    #endif
 
     ShaModule::SHAobject shaObj;
 
     ShaModule::sha_init(&shaObj);
-    ShaModule::sha_update(&shaObj, init);
+    ShaModule::sha_update(&shaObj, saltInitChar, saltInitLen);
 
     int daylySaltLen = SHA_DIGEST_SIZE + saltLen;
 
