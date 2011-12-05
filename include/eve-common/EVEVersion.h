@@ -28,9 +28,9 @@
 
 // supported client is Incursion v1.6 build 264377
 
-static const uint16 MachoNetVersion = 271;
-static const double EVEVersionNumber = 6.45;
-static const int32 EVEBuildVersion = 264377;
+static const uint16 MachoNetVersion = 299;
+static const double EVEVersionNumber = 7.20;
+static const int32 EVEBuildVersion = 321452;
 static const char *const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
 static const char *const EVEProjectRegion = "ccp";
 static const char *const EVEProjectVersion = "EVE-EVE-TRANQUILITY@ccp";
