@@ -160,9 +160,9 @@ bool PyPacket::Decode(PyRep **in_packet)
 
     PyTuple *tuple = (PyTuple *) packeto->arguments();
 
-    if(tuple->items.size() != 6)
+    if(tuple->items.size() != 7)
     {
-        codelog(NET__PACKET_ERROR, "failed: packet body does not contain a tuple of length 6");
+        codelog(NET__PACKET_ERROR, "failed: packet body does not contain a tuple of length 7");
         PyDecRef(packet);
 
         return false;
@@ -265,7 +265,7 @@ bool PyPacket::Decode(PyRep **in_packet)
 
 
 PyRep *PyPacket::Encode() {
-    PyTuple *arg_tuple = new PyTuple(6);
+    PyTuple *arg_tuple = new PyTuple(7);
 
     //command
     arg_tuple->items[0] = new PyInt(type);
@@ -293,6 +293,9 @@ PyRep *PyPacket::Encode() {
     } else {
         arg_tuple->items[5] = named_payload->Clone();
     }
+
+    //TODO: Not sure what this is, On packets so far they always have as PyNone
+    arg_tuple->items[6] = new PyNone();
 
     return new PyObject( type_string.c_str(), arg_tuple );
 }

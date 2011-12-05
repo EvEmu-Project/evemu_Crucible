@@ -156,6 +156,7 @@ int main( int argc, char* argv[] )
     services.RegisterService(new AuthService(&services));
     services.RegisterService(new BillMgrService(&services));
     services.RegisterService(new BookmarkService(&services));
+    services.RegisterService(new BulkMgrService(&services));
     services.RegisterService(new BrowserLockDownService(&services));
     services.RegisterService(new CertificateMgrService(&services));
     services.RegisterService(new CharacterService(&services));
@@ -211,6 +212,7 @@ int main( int argc, char* argv[] )
 	services.RegisterService(new MailMgrService(&services));
 	services.RegisterService(new MailingListMgrService(&services));
 	services.RegisterService(new NotificationMgrService(&services));
+	services.RegisterService(new LocalizationServerService(&services));
 
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();

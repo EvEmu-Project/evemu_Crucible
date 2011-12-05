@@ -121,6 +121,12 @@ SET( browser_INCLUDE
 SET( browser_SOURCE
      "${TARGET_SOURCE_DIR}/browser/browserLockdownSvc.cpp" )
 
+SET( bulk_INCLUDE
+     "${TARGET_INCLUDE_DIR}/bulk/BulkMgrService.h" )
+
+SET( bulk_SOURCE
+     "${TARGET_SOURCE_DIR}/bulk/BulkMgrService.cpp" )
+
 SET( cache_INCLUDE
      "${TARGET_INCLUDE_DIR}/cache/ObjCacheDB.h"
      "${TARGET_INCLUDE_DIR}/cache/ObjCacheService.h" )
@@ -243,6 +249,11 @@ SET( inventory_SOURCE
      "${TARGET_SOURCE_DIR}/inventory/ItemFactory.cpp"
      "${TARGET_SOURCE_DIR}/inventory/ItemType.cpp"
      "${TARGET_SOURCE_DIR}/inventory/Owner.cpp" )
+
+SET( localization_INCLUDE
+    "${TARGET_INCLUDE_DIR}/localization/localizationServerService.h" )
+SET( localization_SOURCE
+    "${TARGET_SOURCE_DIR}/localization/localizationServerService.cpp" )
 
 SET( mail_INCLUDE
      "${TARGET_INCLUDE_DIR}/mail/MailingListMgrService.h"
@@ -503,6 +514,7 @@ SOURCE_GROUP( "include\\account"       FILES ${account_INCLUDE} )
 SOURCE_GROUP( "include\\admin"         FILES ${admin_INCLUDE} )
 SOURCE_GROUP( "include\\authorisation" FILES ${authorisation_INCLUDE} )
 SOURCE_GROUP( "include\\browser"       FILES ${browser_INCLUDE} )
+SOURCE_GROUP( "include\\bulk"          FILES ${bulk_INCLUDE} )
 SOURCE_GROUP( "include\\cache"         FILES ${cache_INCLUDE} )
 SOURCE_GROUP( "include\\config"        FILES ${config_INCLUDE} )
 SOURCE_GROUP( "include\\contractproxy" FILES ${contractproxy_INCLUDE} )
@@ -512,6 +524,7 @@ SOURCE_GROUP( "include\\character"     FILES ${character_INCLUDE} )
 SOURCE_GROUP( "include\\chat"          FILES ${chat_INCLUDE} )
 SOURCE_GROUP( "include\\fleet"		   FILES ${fleet_INCLUDE} )
 SOURCE_GROUP( "include\\inventory"     FILES ${inventory_INCLUDE} )
+SOURCE_GROUP( "include\\localization"     FILES ${localization_INCLUDE} )
 SOURCE_GROUP( "include\\mail"          FILES ${mail_INCLUDE} )
 SOURCE_GROUP( "include\\manufacturing" FILES ${manufacturing_INCLUDE} )
 SOURCE_GROUP( "include\\map"           FILES ${map_INCLUDE} )
@@ -540,6 +553,7 @@ SOURCE_GROUP( "src\\account"       FILES ${account_SOURCE} )
 SOURCE_GROUP( "src\\admin"         FILES ${admin_SOURCE} )
 SOURCE_GROUP( "src\\authorisation" FILES ${authorisation_SOURCE} )
 SOURCE_GROUP( "src\\browser"       FILES ${browser_SOURCE} )
+SOURCE_GROUP( "src\\bulk"          FILES ${bulk_SOURCE} )
 SOURCE_GROUP( "src\\cache"         FILES ${cache_SOURCE} )
 SOURCE_GROUP( "src\\config"        FILES ${config_SOURCE} )
 SOURCE_GROUP( "src\\contractproxy" FILES ${contractproxy_SOURCE} )
@@ -549,6 +563,7 @@ SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
 SOURCE_GROUP( "src\\chat"          FILES ${chat_SOURCE} )
 SOURCE_GROUP( "src\\fleet"         FILES ${fleet_SOURCE} )
 SOURCE_GROUP( "src\\inventory"     FILES ${inventory_SOURCE} )
+SOURCE_GROUP( "src\\localization"     FILES ${localization_SOURCE} )
 SOURCE_GROUP( "src\\mail"          FILES ${mail_SOURCE} )
 SOURCE_GROUP( "src\\manufacturing" FILES ${manufacturing_SOURCE} )
 SOURCE_GROUP( "src\\map"           FILES ${map_SOURCE} )
@@ -578,23 +593,25 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${admin_INCLUDE}          ${admin_SOURCE}
                 ${authorisation_INCLUDE}  ${authorisation_SOURCE} 
                 ${browser_INCLUDE}        ${browser_SOURCE} 
+		${bulk_INCLUDE}            ${bulk_SOURCE}
                 ${cache_INCLUDE}          ${cache_SOURCE}
                 ${config_INCLUDE}         ${config_SOURCE}
-				${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
+		${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
                 ${corporation_INCLUDE}    ${corporation_SOURCE}
                 ${dogmaim_INCLUDE}        ${dogmaim_SOURCE}
                 ${character_INCLUDE}      ${character_SOURCE}
                 ${chat_INCLUDE}           ${chat_SOURCE}
-				${fleet_INCLUDE}		  ${fleet_SOURCE}
+		${fleet_INCLUDE}	  ${fleet_SOURCE}
                 ${inventory_INCLUDE}      ${inventory_SOURCE}
-				${mail_INCLUDE}           ${mail_SOURCE}
+		${localization_INCLUDE}   ${localization_SOURCE}
+		${mail_INCLUDE}           ${mail_SOURCE}
                 ${manufacturing_INCLUDE}  ${manufacturing_SOURCE}
                 ${map_INCLUDE}            ${map_SOURCE}
                 ${market_INCLUDE}         ${market_SOURCE}
                 ${mining_INCLUDE}         ${mining_SOURCE}
                 ${missions_INCLUDE}       ${missions_SOURCE}
                 ${npc_INCLUDE}            ${npc_SOURCE}
-				${planetint_INCLUDE}	  ${planetint_SOURCE}
+		${planetint_INCLUDE}	  ${planetint_SOURCE}
                 ${posmgr_INCLUDE}         ${posmgr_SOURCE}
                 ${sovereignty_INCLUDE}    ${sovereignty_SOURCE} 
                 ${ship_INCLUDE}           ${ship_SOURCE}

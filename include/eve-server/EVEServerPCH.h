@@ -165,6 +165,9 @@
 #include "admin/SlashService.h"
 
 #include "browser/browserLockdownSvc.h"
+
+#include "bulk/BulkMgrService.h"
+
 #include "contractproxy/contractProxy.h"
 
 // client object cache stuff
@@ -230,6 +233,9 @@
 #include "inventory/ItemRef.h"
 #include "inventory/ItemType.h"
 #include "inventory/Owner.h"
+
+// localization stuff
+#include "localization/localizationServerService.h"
 
 // mail stuff
 #include "mail/MailMgrService.h"

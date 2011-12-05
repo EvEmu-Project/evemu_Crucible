@@ -205,7 +205,7 @@
 		  </dictInlineEntry>
 		  <dictInlineEntry key="session_init">
 			  <dictInline>
-				  <dictInlineEntry key="jit">
+				  <dictInlineEntry key="languageID">
 					  <string name="jit" />
 				  </dictInlineEntry>
 				  <dictInlineEntry key="userid">
