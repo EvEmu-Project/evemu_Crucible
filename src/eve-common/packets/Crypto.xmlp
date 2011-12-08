@@ -230,8 +230,8 @@
 				  </dictInlineEntry>
 			  </dictInline>
 		  </dictInlineEntry>
-		  <dictInlineEntry key="client_hashes">
-			  <list name="client_hashes" />
+		  <dictInlineEntry key="client_hash">
+			  <list name="client_hash" />
 		  </dictInlineEntry>
 		  <dictInlineEntry key="user_clientid">
 			  <long name="user_clientid" />

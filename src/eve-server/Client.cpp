@@ -737,6 +737,13 @@ void Client::_SendSessionChange()
     //p->named_payload = new PyDict();
     //p->named_payload->SetItemString( "channel", new PyString( "sessionchange" ) );
 
+    
+    //_log(CLIENT__IN_ALL, "Sending Session packet:");
+    //PyLogDumpVisitor dumper(CLIENT__OUT_ALL, CLIENT__OUT_ALL);
+    //p->Dump(CLIENT__OUT_ALL, dumper);
+
+
+
     FastQueuePacket( &p );
 }
 
@@ -1676,13 +1683,13 @@ bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
     ack.role = GetAccountRole();
     ack.address = GetAddress();
     ack.inDetention = new PyNone;
-    ack.client_hashes = new PyList;
+    ack.client_hash = new PyList;
     ack.user_clientid = GetAccountID();
-	ack.live_updates = sLiveUpdateDB.GetUpdates();
-
-	PyRep* r = ack.Encode();
+    ack.live_updates = sLiveUpdateDB.GetUpdates();
+    
+    PyRep* r = ack.Encode();
     mNet->QueueRep( r );
-	PyDecRef( r );
+    PyDecRef( r );
 
     // Send out the session change
     _SendSessionChange();

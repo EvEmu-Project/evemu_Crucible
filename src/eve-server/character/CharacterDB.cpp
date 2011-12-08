@@ -173,7 +173,7 @@ PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 	if(!sDatabase.RunQuery(res,
 		"SELECT "
 		" itemName AS shortName,bloodlineID,gender,bounty,character_.corporationID,allianceID,title,startDateTime,createDateTime,"
-		" securityRating,character_.balance,character_.stationID,solarSystemID,constellationID,regionID,"
+		" securityRating,character_.balance, 0 As aurBalance,character_.stationID,solarSystemID,constellationID,regionID,"
 		" petitionMessage,logonMinutes,tickerName, %u AS worldSpaceID, '%s' AS shipName, %u AS shipTypeID, %u AS unreadMailCount, %u AS upcomingEventCount, %u AS unprocessedNotifications, %u AS daysLeft, %u AS userType, 0 AS paperDollState, 0 AS newPaperdollState, 0 AS oldPaperdollState, skillPoints, " I64u " AS skillQueueEndTime, " I64u " AS allianceMemberStartDate, " I64u " AS startDate"
 		" FROM character_ "
 		"	LEFT JOIN entity ON characterID = itemID"

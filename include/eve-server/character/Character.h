@@ -204,6 +204,7 @@ public:
 		bool _gender = false,
 		double _bounty = 0.0,
 		double _balance = 0.0,
+		double _aurBalance = 0.0,
 		double _securityRating = 0.0,
 		uint32 _logonMinutes = 0,
         double _skillPoints = 0,
@@ -230,6 +231,7 @@ public:
 
 	double bounty;
 	double balance;
+	double aurBalance;
 	double securityRating;
 	uint32 logonMinutes;
     double skillPoints;

@@ -122,6 +122,7 @@ CharacterData::CharacterData(
     bool _gender,
     double _bounty,
     double _balance,
+    double _aurBalance,
     double _securityRating,
     uint32 _logonMinutes,
     double _skillPoints,

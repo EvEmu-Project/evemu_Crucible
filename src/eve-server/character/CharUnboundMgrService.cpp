@@ -242,6 +242,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
 
     cdata.bounty = 0;
     cdata.balance = sConfig.character.startBalance;
+    cdata.aurBalance = 0; // TODO Add aurBalance to the databas
     cdata.securityRating = sConfig.character.startSecRating;
     cdata.logonMinutes = 0;
     cdata.title = "No Title";
