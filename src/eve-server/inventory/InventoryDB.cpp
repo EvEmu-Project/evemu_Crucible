@@ -913,6 +913,7 @@ bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
         "  chr.gender,"
         "  chr.bounty,"
         "  chr.balance,"
+        "  chr.aurBalance,"
         "  chr.securityRating,"
         "  chr.logonMinutes,"
         "  chr.corporationID,"
@@ -949,21 +950,22 @@ bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
     into.gender = row.GetUInt( 3 ) ? true : false;
     into.bounty = row.GetDouble( 4 );
     into.balance = row.GetDouble( 5 );
-    into.securityRating = row.GetDouble( 6 );
-    into.logonMinutes = row.GetUInt( 7 );
-    into.corporationID = row.GetUInt( 8 );
-    into.allianceID = row.IsNull( 9 ) ? 0 : row.GetUInt( 9 );
-    into.stationID = row.GetUInt( 10 );
-    into.solarSystemID = row.GetUInt( 11 );
-    into.constellationID = row.GetUInt( 12 );
-    into.regionID = row.GetUInt( 13 );
-    into.ancestryID = row.GetUInt( 14 );
-    into.careerID = row.GetUInt( 15 );
-    into.schoolID = row.GetUInt( 16 );
-    into.careerSpecialityID = row.GetUInt( 17 );
-    into.startDateTime = row.GetUInt64( 18 );
-    into.createDateTime = row.GetUInt64( 19 );
-    into.corporationDateTime = row.GetUInt64( 20 );
+    into.aurBalance = row.GetDouble( 6 );
+    into.securityRating = row.GetDouble( 7 );
+    into.logonMinutes = row.GetUInt( 8 );
+    into.corporationID = row.GetUInt( 9 );
+    into.allianceID = row.IsNull( 10 ) ? 0 : row.GetUInt( 10 );
+    into.stationID = row.GetUInt( 11 );
+    into.solarSystemID = row.GetUInt( 12 );
+    into.constellationID = row.GetUInt( 13 );
+    into.regionID = row.GetUInt( 14 );
+    into.ancestryID = row.GetUInt( 15 );
+    into.careerID = row.GetUInt( 16 );
+    into.schoolID = row.GetUInt( 17 );
+    into.careerSpecialityID = row.GetUInt( 18 );
+    into.startDateTime = row.GetUInt64( 19 );
+    into.createDateTime = row.GetUInt64( 20 );
+    into.corporationDateTime = row.GetUInt64( 21 );
 
     return true;
 }
@@ -1127,6 +1129,7 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
         "  gender = %u,"
         "  bounty = %f,"
         "  balance = %f,"
+        "  aurBalance = %f,"
         "  securityRating = %f,"
         "  logonMinutes = %u,"
         "  skillPoints = %f,"
@@ -1149,6 +1152,7 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
         data.gender,
         data.bounty,
         data.balance,
+        data.aurBalance,
         data.securityRating,
         data.logonMinutes,
         data.skillPoints,

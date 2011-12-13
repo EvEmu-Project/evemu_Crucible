@@ -26,11 +26,11 @@
 #ifndef __EVE_VERSION_H
 #define __EVE_VERSION_H
 
-// supported client is Incursion v1.6 build 264377
+// supported client is Crucible v1.0.1 build 323364
 
-static const uint16 MachoNetVersion = 299;
+static const uint16 MachoNetVersion = 300;
 static const double EVEVersionNumber = 7.20;
-static const int32 EVEBuildVersion = 321452;
+static const int32 EVEBuildVersion = 323364;
 static const char *const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
 static const char *const EVEProjectRegion = "ccp";
 static const char *const EVEProjectVersion = "EVE-EVE-TRANQUILITY@ccp";
