@@ -28,7 +28,7 @@
 
 // supported client is Incursion v1.6 build 264377
 
-static const uint16 MachoNetVersion = 299;
+static const uint16 MachoNetVersion = 300;
 static const double EVEVersionNumber = 7.20;
 static const int32 EVEBuildVersion = 321452;
 static const char *const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
