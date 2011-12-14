@@ -531,6 +531,7 @@ public:
 
 	double                  bounty() const { return m_bounty; }
 	double                  balance() const { return m_balance; }
+    double                  aurBalance() const { return m_aurBalance; }
 	double                  securityRating() const { return m_securityRating; }
 	uint32                  logonMinutes() const { return m_logonMinutes; }
 	void					addSecurityRating( double secutiryAmount ) { m_securityRating += secutiryAmount; }
@@ -648,6 +649,7 @@ protected:
 
 	double m_bounty;
 	double m_balance;
+    double m_aurBalance;
 	double m_securityRating;
 	uint32 m_logonMinutes;
 
