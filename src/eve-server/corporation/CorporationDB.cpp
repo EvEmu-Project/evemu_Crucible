@@ -731,6 +731,7 @@ PyObject *CorporationDB::GetEveOwners() {
         "(SELECT"
         " itemID AS ownerID,"
         " itemName AS ownerName,"
+	" 0 AS ownerNameID,"
         " typeID"
         " FROM entity"
         " WHERE itemID < 140000000"

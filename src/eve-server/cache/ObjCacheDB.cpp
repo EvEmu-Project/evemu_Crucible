@@ -708,7 +708,7 @@ PyRep *ObjCacheDB::Generate_eveGraphics()
 PyRep *ObjCacheDB::Generate_invTypes()
 {
 	DBQueryResult res;
-	const char *q = "SELECT typeID, groupID, typeName, description, graphicID, radius, mass, volume, capacity, portionSize, raceID, basePrice, published, marketGroupID, chanceOfDuplicating, soundID, categoryID, iconID, attributeID, dataID FROM invTypes";
+	const char *q = "SELECT typeID, groupID, typeName, description, graphicID, radius, mass, volume, capacity, portionSize, raceID, basePrice, published, marketGroupID, chanceOfDuplicating, soundID, iconID, dataID, typeNameID, descriptionID FROM invTypes";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.types': %s", res.error.c_str());
@@ -732,7 +732,7 @@ PyRep *ObjCacheDB::Generate_invMetaTypes()
 PyRep *ObjCacheDB::Generate_chrBloodlines()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID, bloodlineName, raceID, description, maleDescription, femaleDescription, shipTypeID, corporationID, perception, willpower,charisma, memory, intelligence, iconID, shortDescription, shortMaleDescription, shortFemaleDescription, 0 as dataID FROM chrBloodlines";
+	const char *q = "SELECT bloodlineID, bloodlineName, raceID, description, maleDescription, femaleDescription, shipTypeID, corporationID, perception, willpower, charisma, memory, intelligence, shortDescription, shortMaleDescription, shortFemaleDescription, iconID, bloodlineNameID, descriptionID, dataID FROM chrBloodlines";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.Bloodlines': %s", res.error.c_str());
@@ -852,7 +852,7 @@ PyRep *ObjCacheDB::Generate_invContrabandTypes()
 PyRep *ObjCacheDB::Generate_c_chrBloodlines()
 {
 	DBQueryResult res;
-	const char *q = "SELECT bloodlineID, bloodlineName, raceID, description, maleDescription, femaleDescription, shipTypeID, corporationID, perception, willpower, charisma, memory, intelligence, iconID, iconID as graphicID, shortDescription, shortMaleDescription, shortFemaleDescription, 0 AS bloodlineNameID, 0 AS descriptionID, 0 AS dataID FROM chrBloodlines";
+	const char *q = "SELECT bloodlineID, bloodlineName, raceID, description, maleDescription, femaleDescription, shipTypeID, corporationID, perception, willpower, charisma, memory, intelligence, shortDescription, shortMaleDescription, shortFemaleDescription, iconID, bloodlineNameID, descriptionID, dataID FROM chrBloodlines";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.bloodlines': %s", res.error.c_str());
@@ -876,7 +876,7 @@ PyRep *ObjCacheDB::Generate_c_chrRaces()
 PyRep *ObjCacheDB::Generate_c_chrAncestries()
 {
 	DBQueryResult res;
-	const char *q = "SELECT ancestryID, ancestryName, bloodlineID, description, perception, willpower, charisma, memory, intelligence, iconID, iconID AS graphicID, shortDescription, 0 AS ancestryNameID, 0 AS descriptionID, 0 AS dataID FROM chrAncestries";
+	const char *q = "SELECT ancestryID, ancestryName, bloodlineID, description, perception, willpower, charisma, memory, intelligence, iconID, iconID AS graphicID, shortDescription, ancestryNameID, descriptionID, dataID FROM chrAncestries";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.ancestries': %s", res.error.c_str());
@@ -888,7 +888,7 @@ PyRep *ObjCacheDB::Generate_c_chrAncestries()
 PyRep *ObjCacheDB::Generate_c_chrSchools()
 {
 	DBQueryResult res;
-	const char *q = "SELECT raceID, schoolID, schoolName, description, graphicID, chrSchools.corporationID, chrSchools.agentID, newAgentID, iconID, 0 AS schoolNameID, 0 AS descriptionID FROM chrSchools LEFT JOIN agtAgents USING (corporationID) GROUP BY schoolID";
+	const char *q = "SELECT raceID, schoolID, schoolName, description, graphicID, chrSchools.corporationID, chrSchools.agentID, newAgentID, iconID, schoolNameID, descriptionID FROM chrSchools LEFT JOIN agtAgents USING (corporationID) GROUP BY schoolID";
 	if(sDatabase.RunQuery(res, q)==false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'charCreationInfo.schools': %s", res.error.c_str());
