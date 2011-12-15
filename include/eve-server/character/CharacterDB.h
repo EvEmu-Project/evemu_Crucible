@@ -82,6 +82,8 @@ public:
 
 	bool GetLocationByStation(uint32 staID, CharacterData &cdata);
 
+    bool GetCareerStationByCorporation(uint32 corporationID, uint32 &stationID);
+
 	bool GetCareerBySchool(uint32 schoolID, uint32 &careerID);
 
     bool GetCorporationBySchool(uint32 schoolID, uint32 &corporationID);

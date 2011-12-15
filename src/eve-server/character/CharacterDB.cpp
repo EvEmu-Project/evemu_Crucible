@@ -544,6 +544,26 @@ bool CharacterDB::GetLocationByStation(uint32 staID, CharacterData &cdata) {
 
 }
 
+bool CharacterDB::GetCareerStationByCorporation(uint32 corporationID, uint32 &stationID)
+{
+    DBQueryResult res;
+    if(!sDatabase.RunQuery(res, "SELECT stationID FROM corporation WHERE corporationID = %u", corporationID))
+    {
+        codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+    if(!res.GetRow(row))
+    {
+        codelog(SERVICE__ERROR, "Failed to find corporation %u", corporationID);
+        return false;
+    }
+
+    stationID = row.GetUInt(0);
+    return true;
+}
+
 bool CharacterDB::DoesCorporationExist(uint32 corpID) {
 	DBQueryResult res;
 	if (!sDatabase.RunQuery(res, 

@@ -46,7 +46,7 @@ EVEServerConfig::EVEServerConfig()
 
     // character
     character.startBalance = 6666000000.0f;
-	character.startStation = 60004420; // Todaki, when no longer needed, change to 0.
+	character.startStation = 0;
 	character.startSecRating = 0.0;
 	character.startCorporation = 0;
 	character.terminationDelay = 90 /*s*/;
