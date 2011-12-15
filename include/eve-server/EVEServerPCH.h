@@ -161,6 +161,7 @@
 #include "admin/AllCommands.h"
 #include "admin/CommandDispatcher.h"
 #include "admin/CommandDB.h"
+#include "admin/DevToolsProviderService.h"
 #include "admin/PetitionerService.h"
 #include "admin/SlashService.h"
 
@@ -205,6 +206,7 @@
 #include "config/LanguageService.h"
 
 // corporation stuff
+#include "corporation/CorpBookmarkMgrService.h"
 #include "corporation/CorpMgrService.h"
 #include "corporation/CorporationCarrier.h"
 #include "corporation/CorporationDB.h"

@@ -20,31 +20,25 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		ozatomic
+	Author:		Ubiquitatis
 */
 
-#include "EVEServerPCH.h"
+#ifndef DEVTOOLSPROVIDER_SERVICE_H
+#define DEVTOOLSPROVIDER_SERVICE_H
 
-PyCallable_Make_InnerDispatcher(LocalizationServerService)
+#include "PyService.h"
 
-LocalizationServerService::LocalizationServerService( PyServiceMgr *mgr ) : PyService(mgr, "localizationServer"), m_dispatch(new Dispatcher(this))
+class DevToolsProviderService : public PyService
 {
-    _SetCallDispatcher(m_dispatch);
+public:
+    DevToolsProviderService(PyServiceMgr* mgr);
+    virtual ~DevToolsProviderService();
 
-    PyCallable_REG_CALL(LocalizationServerService, GetAllTextChanges);
-    PyCallable_REG_CALL(LocalizationServerService, UpdateLocalizationQASettings);
-}
+protected:
+    class Dispatcher;
+    Dispatcher* const m_dispatch;
 
-LocalizationServerService::~LocalizationServerService() {
-    delete m_dispatch;
-}
+    PyCallable_DECL_CALL(GetLoader)
+};
 
-PyResult LocalizationServerService::Handle_GetAllTextChanges(PyCallArgs &call)
-{
-    return new PyNone();
-}
-
-PyResult LocalizationServerService::Handle_UpdateLocalizationQASettings(PyCallArgs &call)
-{
-    return new PyNone();
-}
+#endif

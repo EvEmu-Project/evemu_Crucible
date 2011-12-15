@@ -239,6 +239,18 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
 			codelog(SERVICE__WARNING, "Could not find default Corporation ID %u. Using Career Defaults instead.", sConfig.character.startCorporation);
 		}
 	}
+    else
+    {
+        uint32 corporationID;
+        if(m_db.GetCorporationBySchool(cdata.schoolID, corporationID))
+        {
+            cdata.corporationID = corporationID;
+        }
+        else
+        {
+            codelog(SERVICE__ERROR, "Could not place character in default corporation for school.");
+        }
+    }
 
     cdata.bounty = 0;
     cdata.balance = sConfig.character.startBalance;
