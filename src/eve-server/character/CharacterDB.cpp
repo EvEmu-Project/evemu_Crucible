@@ -450,6 +450,27 @@ bool CharacterDB::GetCareerBySchool(uint32 schoolID, uint32 &careerID) {
 	return (true);
 }
 
+bool CharacterDB::GetCorporationBySchool(uint32 schoolID, uint32 &corporationID)
+{    
+    DBQueryResult res;
+
+    if(!sDatabase.RunQuery(res, "SELECT corporationID FROM chrSchools WHERE schoolID = %u", schoolID))
+    {
+        codelog(SERVICE__ERROR, "Error in query: %S", res.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+    if(!res.GetRow(row))
+    {
+        codelog(SERVICE__ERROR, "Failed to find matching corporation for school %u", schoolID);
+        return false;
+    }
+
+    corporationID = row.GetInt(0);
+
+    return true;
+}
 
 /**
   * @todo Here should come a call to Corp??::CharacterJoinToCorp or what the heck... for now we only put it there

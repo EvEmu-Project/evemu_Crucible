@@ -39,7 +39,7 @@ protected:
 	Dispatcher *const m_dispatch;
 	
 	PyCallable_DECL_CALL(GetAllTextChanges)
-	
+	PyCallable_DECL_CALL(UpdateLocalizationQASettings)
 };
 
 #endif

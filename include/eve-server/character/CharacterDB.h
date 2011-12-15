@@ -84,6 +84,8 @@ public:
 
 	bool GetCareerBySchool(uint32 schoolID, uint32 &careerID);
 
+    bool GetCorporationBySchool(uint32 schoolID, uint32 &corporationID);
+
 	bool GetLocationCorporationByCareer(CharacterData &cdata);
 
 	bool DoesCorporationExist(uint32 corpID);

@@ -62,6 +62,7 @@ SET( admin_INCLUDE
      "${TARGET_INCLUDE_DIR}/admin/AllCommandsList.h"
      "${TARGET_INCLUDE_DIR}/admin/CommandDB.h"
      "${TARGET_INCLUDE_DIR}/admin/CommandDispatcher.h"
+	 "${TARGET_INCLUDE_DIR}/admin/DevToolsProviderService.h"
      "${TARGET_INCLUDE_DIR}/admin/GMCommands.h"
      "${TARGET_INCLUDE_DIR}/admin/PetitionerService.h"
      "${TARGET_INCLUDE_DIR}/admin/SlashService.h" )
@@ -70,6 +71,7 @@ SET( admin_SOURCE
      "${TARGET_SOURCE_DIR}/admin/AllCommands.cpp"
      "${TARGET_SOURCE_DIR}/admin/CommandDB.cpp"
      "${TARGET_SOURCE_DIR}/admin/CommandDispatcher.cpp"
+	 "${TARGET_SOURCE_DIR}/admin/DevToolsProviderService.cpp"
      "${TARGET_SOURCE_DIR}/admin/GMCommands.cpp"
      "${TARGET_SOURCE_DIR}/admin/PetitionerService.cpp"
      "${TARGET_SOURCE_DIR}/admin/SlashService.cpp" )
@@ -149,6 +151,7 @@ SET( contractproxy_SOURCE
 	 "${TARGET_SOURCE_DIR}/contractproxy/contractProxy.cpp" )
 	 
 SET( corporation_INCLUDE
+	"${TARGET_INCLUDE_DIR}/corporation/CorpBookmarkMgrService.h"
      "${TARGET_INCLUDE_DIR}/corporation/CorpMgrService.h"
      "${TARGET_INCLUDE_DIR}/corporation/CorporationCarrier.h"
      "${TARGET_INCLUDE_DIR}/corporation/CorporationDB.h"
@@ -157,6 +160,7 @@ SET( corporation_INCLUDE
      "${TARGET_INCLUDE_DIR}/corporation/CorpStationMgrService.h"
      "${TARGET_INCLUDE_DIR}/corporation/LPService.h" )
 SET( corporation_SOURCE
+	 "${TARGET_SOURCE_DIR}/corporation/CorpBookmarkMgrService.cpp"
      "${TARGET_SOURCE_DIR}/corporation/CorpMgrService.cpp"
      "${TARGET_SOURCE_DIR}/corporation/CorporationDB.cpp"
      "${TARGET_SOURCE_DIR}/corporation/CorporationService.cpp"
