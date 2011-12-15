@@ -5,9 +5,10 @@
 DROP TABLE IF EXISTS overviewDefaultGroups;
 DROP TABLE IF EXISTS chrDefaultOverviewGroups;
 CREATE TABLE chrDefaultOverviewGroups (
+    id INT AUTO_INCREMENT,
     overviewID INT,
     groupID INT,
-    PRIMARY KEY (overviewID),
+    PRIMARY KEY (id),
     INDEX groupID (groupID)
 );
 
