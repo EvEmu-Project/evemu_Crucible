@@ -42,21 +42,7 @@ EVEServerConfig::EVEServerConfig()
 
     // account
     account.autoAccountRole = 0;
-    account.loginMessage =
-        "<html>"
-            "<head>"
-            "</head>"
-            "<body>"
-                "Welcome to <b>EVEmu server</b>.<br>"
-                "<br>"
-                "You can find a lot of interesting information about this project at <a href=\"http://forum.evemu.org/\">forum.evemu.org</a>.<br>"
-                "<br>"
-                "You can also join our IRC channel at <b>irc.mmoforge.org:6667</b>, channel <b>#evemu</b>.<br>"
-                "<br>"
-                "Best wishes,<br>"
-                "EVEmu development team"
-           "</body>"
-        "</html>";
+    account.loginMessage = "";
 
     // character
     character.startBalance = 6666000000.0f;
