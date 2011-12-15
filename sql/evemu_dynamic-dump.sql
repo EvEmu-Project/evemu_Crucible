@@ -186,6 +186,7 @@ CREATE TABLE `character_` (
   `description` text NOT NULL,
   `bounty` double NOT NULL default '0',
   `balance` double NOT NULL default '0',
+  `aurBalance` double NOT NULL default '0',
   `securityRating` double NOT NULL default '0',
   `petitionMessage` varchar(85) NOT NULL default '',
   `logonMinutes` int(10) unsigned NOT NULL default '0',
