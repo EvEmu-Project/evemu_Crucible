@@ -28,9 +28,9 @@
 
 // supported client is Crucible v1.0.1 build 323364
 
-static const uint16 MachoNetVersion = 300;
+static const uint16 MachoNetVersion = 301;
 static const double EVEVersionNumber = 7.20;
-static const int32 EVEBuildVersion = 323364;
+static const int32 EVEBuildVersion = 326279;
 static const char *const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
 static const char *const EVEProjectRegion = "ccp";
 static const char *const EVEProjectVersion = "EVE-EVE-TRANQUILITY@ccp";
@@ -39,7 +39,7 @@ static const int32 EVEBirthday = 170472;
 
 // EVEMU_VERSION
 // The version of source.
-#define EVEMU_SOURCE_LOCATION "http://www.github.com/evemuproject/evemu_incursion"
+#define EVEMU_SOURCE_LOCATION "http://www.github.com/evemuproject/evemu_crucible"
 #define EVEMU_VERSION "0.7.9"
 
 

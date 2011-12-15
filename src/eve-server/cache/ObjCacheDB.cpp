@@ -276,7 +276,7 @@ PyRep *ObjCacheDB::Generate_Schematics()
 PyRep *ObjCacheDB::Generate_OverviewDefaultGroups()
 {
 	DBQueryResult res;
-	const char *q = "SELECT overviewID, groupID FROM chrDefaultOverviewGroups;
+	const char *q = "SELECT overviewID, groupID FROM chrDefaultOverviewGroups";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.overviewDefaultGroups': %s", res.error.c_str());
