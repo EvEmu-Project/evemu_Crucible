@@ -276,7 +276,7 @@ PyRep *ObjCacheDB::Generate_Schematics()
 PyRep *ObjCacheDB::Generate_OverviewDefaultGroups()
 {
 	DBQueryResult res;
-	const char *q = "SELECT overviewID, groupID FROM overviewDefaultGroups";
+	const char *q = "SELECT overviewID, groupID FROM chrDefaultOverviewGroups;
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.overviewDefaultGroups': %s", res.error.c_str());
@@ -300,7 +300,7 @@ PyRep *ObjCacheDB::Generate_Schematicspinmap()
 PyRep *ObjCacheDB::Generate_OverviewDefaults()
 {
 	DBQueryResult res;
-	const char *q = "SELECT dataID, overviewID, overviewName, overviewShortName FROM overviewDefaults";
+	const char *q = "SELECT dataID, overviewID, overviewName, overviewShortName FROM chrDefaultOverviews";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.overviewDefaults': %s", res.error.c_str());
@@ -324,7 +324,7 @@ PyRep *ObjCacheDB::Generate_Locationscenes()
 PyRep *ObjCacheDB::Generate_BloodlineNames()
 {
 	DBQueryResult res;
-	const char *q = "SELECT nameID, bloodlineID, lastName FROM bloodlineNames";
+	const char *q = "SELECT nameID, bloodlineID, lastName FROM chrBloodlineNames";
 	if (sDatabase.RunQuery(res, q) == false)
 	{
 		_log(SERVICE__ERROR, "Error in query for cached object 'config.BulkData.bloodlineNames': %s", res.error.c_str());
