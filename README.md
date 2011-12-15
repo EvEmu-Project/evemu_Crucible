@@ -1,5 +1,5 @@
 # Introduction
-EVEmu modified to support the latest Incursion client
+EVEmu modified to support the latest Crucible client
 
 # Disclaimer
 
