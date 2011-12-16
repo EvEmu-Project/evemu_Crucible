@@ -222,13 +222,6 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
         return NULL;
     }
 
-	// Added ability to set starting station in xml config by Pyrii
-	if( sConfig.character.startStation ) { // Skip if 0
-		if( !m_db.GetLocationByStation(sConfig.character.startStation, cdata) ) {
-			codelog(SERVICE__WARNING, "Could not find default station ID %u. Using Career Defaults instead.", sConfig.character.startStation);
-		}
-	}
-
 	idata.locationID = cdata.stationID; // Just so our starting items end up in the same place.
 
 	// Change starting corperation based on value in XML file.
@@ -249,6 +242,26 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
         else
         {
             codelog(SERVICE__ERROR, "Could not place character in default corporation for school.");
+        }
+    }
+
+    // Added ability to set starting station in xml config by Pyrii
+	if( sConfig.character.startStation ) { // Skip if 0
+		if( !m_db.GetLocationByStation(sConfig.character.startStation, cdata) ) {
+			codelog(SERVICE__WARNING, "Could not find default station ID %u. Using Career Defaults instead.", sConfig.character.startStation);
+		}
+	}
+    else
+    {
+        uint32 stationID;
+        if (m_db.GetCareerStationByCorporation(cdata.corporationID, stationID))
+        {
+            if(!m_db.GetLocationByStation(stationID, cdata))
+                codelog(SERVICE__WARNING, "Could not find default station ID %u.", stationID);
+        }
+        else
+        {
+            codelog(SERVICE__ERROR, "Could not place character in default station for school.");
         }
     }
 
