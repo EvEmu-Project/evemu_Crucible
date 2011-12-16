@@ -93,7 +93,7 @@ PyObject *CorporationDB::ListStationOwners(uint32 station_id) {
 
     if(!sDatabase.RunQuery(res,
         "SELECT "
-        "   itemID AS ownerID, itemName AS ownerName, typeID"
+        "   itemID AS ownerID, itemName AS ownerName, typeID, NULL AS ownerNameID"
         " FROM corporation"
 //no idea what the criteria should be here...
         "   LEFT JOIN eveNames ON (creatorID=itemID OR ceoID=itemID)"
