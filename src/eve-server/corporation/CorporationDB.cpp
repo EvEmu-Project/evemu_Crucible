@@ -738,7 +738,7 @@ PyObject *CorporationDB::GetEveOwners() {
         " AND itemID NOT IN ( SELECT ownerID from eveStaticOwners ) )"
         " UNION ALL "
         "(SELECT"
-        " *"
+        " ownerID, ownerName, 0 AS ownerNameID, typeID"
         " FROM eveStaticOwners)"
         " ORDER BY ownerID" ) )
     {
