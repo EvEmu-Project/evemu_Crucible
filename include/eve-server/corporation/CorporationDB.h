@@ -90,6 +90,8 @@ public:
 	
 	bool ChangeCloneType(uint32 characterID, uint32 typeID);
 
+    PyObjectEx* GetBookmarks(uint32 corporationID);
+
 protected:
 };
 
