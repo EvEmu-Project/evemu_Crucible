@@ -26,6 +26,7 @@
 #ifndef CORPBOOKMARKMGR_SERVICE_H
 #define CORPBOOKMARKMGR_SERVICE_H
 
+#include "CorporationDB.h"
 #include "PyService.h"
 
 class CorpBookmarkMgrService : public PyService
@@ -37,6 +38,8 @@ public:
 protected:
     class Dispatcher;
     Dispatcher* const m_dispatch;
+
+    CorporationDB m_db;
 
     PyCallable_DECL_CALL(GetBookmarks)
 };
