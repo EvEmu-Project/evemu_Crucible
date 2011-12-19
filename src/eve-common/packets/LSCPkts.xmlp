@@ -70,8 +70,10 @@
             <stringInline value="mailingList" />
             <stringInline value="cspa" />
             <stringInline value="temporary" />
-            <stringInline value="subscribed" />
             <stringInline value="languageRestriction" />
+            <stringInline value="groupMessageID" />
+            <stringInline value="channelMessageID" />
+            <stringInline value="subscribed" />
           </listInline>
         </dictInlineEntry>
         <dictInlineEntry key="line">
@@ -85,9 +87,11 @@
             <raw name="password" />
             <bool name="mailingList" />
             <int name="cspa" />
-            <int name="temporary" />
-            <int name="subscribed" />
+            <bool name="temporary" />
             <bool name="languageRestriction" default="false" />
+            <int name="groupMessageID" />
+            <int name="channelMessageID" />
+            <int name="subscribed" />
           </listInline>
         </dictInlineEntry>
       </dictInline>
