@@ -41,5 +41,5 @@ DevToolsProviderService::~DevToolsProviderService()
 
 PyResult DevToolsProviderService::Handle_GetLoader(PyCallArgs& call)
 {
-    return new PyNone();
+    return new PyString("test");
 }
