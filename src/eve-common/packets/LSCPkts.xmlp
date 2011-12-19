@@ -84,7 +84,7 @@
             <string name="motd" />
             <string name="comparisonKey" />
             <bool name="memberless" />
-            <raw name="password" />
+            <string name="password" />
             <bool name="mailingList" />
             <int name="cspa" />
             <bool name="temporary" />
