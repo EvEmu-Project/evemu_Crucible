@@ -170,6 +170,7 @@ int main( int argc, char* argv[] )
     services.RegisterService(new ContractProxyService(&services));
     services.RegisterService(new LPService(&services));
     services.RegisterService(new DogmaIMService(&services));
+	services.RegisterService(new DogmaService(&services));
     services.RegisterService(new InvBrokerService(&services));
     services.RegisterService(services.lsc_service = new LSCService(&services, &command_dispatcher));
     services.RegisterService(services.cache_service = new ObjCacheService(&services, sConfig.files.cacheDir.c_str()));

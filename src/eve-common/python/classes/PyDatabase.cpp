@@ -183,3 +183,51 @@ PyDict* CRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 
 	return keywords;
 }
+
+/************************************************************************/
+/* CIndexedRowSet                                                              */
+/************************************************************************/
+CIndexedRowSet::CIndexedRowSet( DBRowDescriptor** rowDesc )
+: PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
+{
+	*rowDesc = NULL;
+}
+
+PyPackedRow* CIndexedRowSet::NewRow( PyRep* key )
+{
+    DBRowDescriptor* rowDesc = _GetRowDesc();
+    PyIncRef( rowDesc );
+
+    PyPackedRow* row = new PyPackedRow( rowDesc );
+    
+	dict().SetItem( key , row );
+	return row;
+}
+
+DBRowDescriptor* CIndexedRowSet::_GetRowDesc() const
+{
+	PyRep* r = FindKeyword( "header" );
+	assert( r );
+
+	return (DBRowDescriptor*)r->AsObjectEx();
+}
+
+PyTuple* CIndexedRowSet::_CreateArgs()
+{
+	PyTuple* args = new PyTuple( 1 );
+	args->SetItem( 0, new PyToken( "dbutil.CIndexedRowset" ) );
+
+	return args;
+}
+
+PyDict* CIndexedRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
+{
+	assert( rowDesc );
+
+	PyDict* keywords = new PyDict;
+	keywords->SetItemString( "header", rowDesc );
+	keywords->SetItemString( "columnName", rowDesc->GetColumnName(0) );
+
+	
+	return keywords;
+}

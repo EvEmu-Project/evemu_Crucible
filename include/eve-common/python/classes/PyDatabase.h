@@ -147,4 +147,51 @@ protected:
 	static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
 };
 
+/**
+ * @brief Python object "dbutil.CIndexedRowset".
+ *
+ * This object contains DBRowDescriptor header
+ * and bunch of PyPackedRows.
+ *
+ * @note At the moment it's designed that once
+ * it's created, its header cannot be changed.
+ * I don't know whether it's correct or not,
+ * but it makes our life easier.
+ *
+ * @author ozatomic
+ */
+class CIndexedRowSet
+: public PyObjectEx_Type2
+{
+public:
+    /**
+     * @param[in] rowDesc DBRowDescriptor header to be used.
+     */
+    CIndexedRowSet( DBRowDescriptor** rowDesc );
+
+    /**
+     * @return Row count.
+     */
+    size_t GetRowCount() const { return list().size(); }
+
+    /**
+     * @param[in] Index of row to be returned.
+     *
+     * @return Row with given index.
+     */
+    PyPackedRow* GetRow( PyRep* index ) const { return dict().GetItem( index )->AsPackedRow(); }
+
+    /**
+     * @return New row which user may fill.
+     */
+    PyPackedRow* NewRow( PyRep* key );
+
+protected:
+	DBRowDescriptor* _GetRowDesc() const;
+	//PyList* _GetColumnList() const;
+
+	static PyTuple* _CreateArgs();
+	static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
+};
+
 #endif /* !__PY_DATABASE_H__INCL__ */

@@ -880,7 +880,7 @@ void Character::UpdateSkillQueue()
     SaveSkillQueue();
 }
 
-PyObject *Character::CharGetInfo() {
+PyDict *Character::CharGetInfo() {
     //TODO: verify that we are a char?
 
     if( !LoadContents( m_factory ) ) {
@@ -888,14 +888,12 @@ PyObject *Character::CharGetInfo() {
         return NULL;
     }
 
-    Rsp_CommonGetInfo result;
-    Rsp_CommonGetInfo_Entry entry;
+    PyDict *result = new PyDict;
+	Rsp_CommonGetInfo_Entry entry;
 
-    //first encode self.
-    if(!Populate(entry))
-        return NULL;    //print already done.
-
-    result.items[m_itemID] = entry.Encode();
+	if(!Populate(entry))
+		return NULL;
+	result->SetItem(new PyInt(m_itemID), new PyObject("util.KeyVal", entry.Encode()));
 
     //now encode skills...
     std::vector<InventoryItemRef> skills;
@@ -911,11 +909,11 @@ PyObject *Character::CharGetInfo() {
         if(!(*cur)->Populate(entry)) {
             codelog(ITEM__ERROR, "%s (%u): Failed to load skill item %u for CharGetInfo", m_itemName.c_str(), itemID(), (*cur)->itemID());
         } else {
-            result.items[(*cur)->itemID()] = entry.Encode();
+            result->SetItem(new PyInt((*cur)->itemID()), new PyObject("util.KeyVal", entry.Encode()));
         }
     }
 
-    return(result.Encode());
+    return result;
 }
 
 PyObject *Character::GetDescription() const

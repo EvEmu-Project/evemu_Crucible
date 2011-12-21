@@ -611,7 +611,7 @@ void InventoryItem::GetItemRow( PyPackedRow* into ) const
 bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result )
 {
     //itemID:
-    result.itemID = itemID();
+	result.itemID = itemID();
 
     //invItem:
     PySafeDecRef( result.invItem );

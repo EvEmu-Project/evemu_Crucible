@@ -170,10 +170,14 @@ SET( corporation_SOURCE
 
 SET( dogmaim_INCLUDE
      "${TARGET_INCLUDE_DIR}/dogmaim/DogmaIMDB.h"
-     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaIMService.h" )
+     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaIMService.h"
+     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaDB.h"
+     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaService.h")
 SET( dogmaim_SOURCE
      "${TARGET_SOURCE_DIR}/dogmaim/DogmaIMDB.cpp"
-     "${TARGET_SOURCE_DIR}/dogmaim/DogmaIMService.cpp" )
+     "${TARGET_SOURCE_DIR}/dogmaim/DogmaIMService.cpp"
+     "${TARGET_SOURCE_DIR}/dogmaim/DogmaDB.cpp"
+     "${TARGET_SOURCE_DIR}/dogmaim/DogmaService.cpp" )
 
 SET( character_INCLUDE
      "${TARGET_INCLUDE_DIR}/character/CertificateMgrDB.h"

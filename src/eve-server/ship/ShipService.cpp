@@ -50,6 +50,7 @@ public:
         PyCallable_REG_CALL(ShipBound, Jettison)
 		PyCallable_REG_CALL(ShipBound, Eject)
 		PyCallable_REG_CALL(ShipBound, LeaveShip)
+		PyCallable_REG_CALL(ShipBound, ActivateShip)
     }
 
     virtual ~ShipBound() {delete m_dispatch;}
@@ -67,6 +68,7 @@ public:
     PyCallable_DECL_CALL(Jettison)
     PyCallable_DECL_CALL(Eject)
 	PyCallable_DECL_CALL(LeaveShip)
+	PyCallable_DECL_CALL(ActivateShip)
 
 protected:
     ShipDB& m_db;
@@ -1102,28 +1104,8 @@ PyResult ShipBound::Handle_LeaveShip(PyCallArgs &call){
 	return NULL;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call) 
+{
+	return new PyNone;
+}
 

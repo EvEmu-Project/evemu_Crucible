@@ -55,6 +55,8 @@ public:
 		PyCallable_REG_CALL(DogmaIMBound, GetWeaponBankInfoForShip)
 		PyCallable_REG_CALL(DogmaIMBound, GetLocationInfo)
 		PyCallable_REG_CALL(DogmaIMBound, GetCharacterBaseAttributes)
+
+		PyCallable_REG_CALL(DogmaIMBound, GetAllInfo)
 	}
 	virtual ~DogmaIMBound() {delete m_dispatch;}
 	virtual void Release() {
@@ -76,6 +78,7 @@ public:
 	PyCallable_DECL_CALL(GetWeaponBankInfoForShip)
 	PyCallable_DECL_CALL(GetLocationInfo)
 	PyCallable_DECL_CALL(GetCharacterBaseAttributes)
+	PyCallable_DECL_CALL(GetAllInfo)
 
 protected:
 	
@@ -137,13 +140,14 @@ PyResult DogmaIMBound::Handle_GetLocationInfo(PyCallArgs &call)
 PyResult DogmaIMBound::Handle_ShipGetInfo(PyCallArgs &call) {
 	//takes no arguments
 	
-	PyObject *result = call.client->GetShip()->ShipGetInfo();
+	/*PyObject *result = call.client->GetShip()->ShipGetInfo();
 	if(result == NULL) {
 		codelog(SERVICE__ERROR, "Unable to build ship info for ship %u", call.client->GetShipID());
 		return NULL;
 	}
 	
-    return result;
+    return result;*/
+	return new PyNone;
 }
 
 PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
@@ -165,13 +169,15 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs &call) {
 PyResult DogmaIMBound::Handle_CharGetInfo(PyCallArgs &call) {
 	//no arguments
 	
-	PyObject *result = call.client->GetChar()->CharGetInfo();
+	/*PyObject *result = call.client->GetChar()->CharGetInfo();
 	if(result == NULL) {
 		codelog(SERVICE__ERROR, "Unable to build char info for char %u", call.client->GetCharacterID());
 		return NULL;
 	}
 
 	return result;
+	*/
+	return new PyNone;
 }
 
 PyResult DogmaIMBound::Handle_CheckSendLocationInfo( PyCallArgs& call )
@@ -366,4 +372,43 @@ PyResult DogmaIMBound::Handle_GetWeaponBankInfoForShip( PyCallArgs& call )
     sLog.Debug( "DogmaIMBound", "Called GetWeaponBankInfoForShip stub." );
 
     return new PyDict;
+}
+
+PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
+{
+	//arg1: getCharInfo, arg2: getShipInfo
+	Call_TwoBoolArgs args;
+	if(!args.Decode(&call.tuple)) {
+		codelog(SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName());
+		return NULL;
+	}
+
+	PyDict *rsp = new PyDict;
+	
+	rsp->SetItemString("charInfo", new PyNone);
+	rsp->SetItemString("activeShipID", new PyInt(call.client->GetShipID()));
+	rsp->SetItemString("locationInfo", new PyNone);
+	rsp->SetItemString("shipInfo", new PyNone);
+
+	if(args.arg1)
+	{
+		PyDict *charResult = call.client->GetChar()->CharGetInfo();
+		if(charResult == NULL) {
+			codelog(SERVICE__ERROR, "Unable to build char info for char %u", call.client->GetCharacterID());
+			return NULL;
+		}
+
+		rsp->SetItemString("charInfo", charResult);
+	}
+	if(args.arg2)
+	{
+		PyDict *shipResult = call.client->GetShip()->ShipGetInfo();
+		if(shipResult == NULL) {
+			codelog(SERVICE__ERROR, "Unable to build ship info for ship %u", call.client->GetShipID());
+			return NULL;
+		}
+		rsp->SetItemString("shipInfo", shipResult);
+	}
+
+	return new PyObject( "util.KeyVal", rsp );
 }

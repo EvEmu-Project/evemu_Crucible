@@ -274,7 +274,7 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
 	
 }
 
-PyObject *Ship::ShipGetInfo()
+PyDict *Ship::ShipGetInfo()
 {
     if( !LoadContents( m_factory ) )
     {
@@ -282,14 +282,14 @@ PyObject *Ship::ShipGetInfo()
         return NULL;
     }
 
-    Rsp_CommonGetInfo result;
+    PyDict *result = new PyDict;
     Rsp_CommonGetInfo_Entry entry;
 
     //first populate the ship.
     if( !Populate( entry ) )
         return NULL;    //print already done.
 
-    result.items[ itemID() ] = entry.Encode();
+    result->SetItem(new PyInt( itemID()), new PyObject("util.KeyVal", entry.Encode()));
 
     //now encode contents...
     std::vector<InventoryItemRef> equipped;
@@ -310,10 +310,10 @@ PyObject *Ship::ShipGetInfo()
             codelog( ITEM__ERROR, "%s (%u): Failed to load item %u for ShipGetInfo", itemName().c_str(), itemID(), (*cur)->itemID() );
         }
         else
-            result.items[ (*cur)->itemID() ] = entry.Encode();
+			result->SetItem(new PyInt((*cur)->itemID()), new PyObject("util.KeyVal", entry.Encode()));
     }
 
-    return result.Encode();
+    return result;
 }
 
 void Ship::AddItem(InventoryItemRef item)

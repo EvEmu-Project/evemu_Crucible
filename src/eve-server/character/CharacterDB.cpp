@@ -121,7 +121,11 @@ PyRep *CharacterDB::GetCharacterList(uint32 accountID) {
 	
 	if(!sDatabase.RunQuery(res,
 		"SELECT"
-		" characterID, itemName AS characterName, deletePrepareDateTime, gender"
+		" characterID,"
+		" itemName AS characterName,"
+		" deletePrepareDateTime,"
+		" gender,"
+		" typeID"
 		" FROM character_ "
 		"	LEFT JOIN entity ON characterID = itemID"
 		" WHERE accountID=%u", accountID))
@@ -188,7 +192,10 @@ PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
 		"SELECT "
 		" itemName AS shortName,bloodlineID,gender,bounty,character_.corporationID,allianceID,title,startDateTime,createDateTime,"
 		" securityRating,character_.balance, 0 As aurBalance,character_.stationID,solarSystemID,constellationID,regionID,"
-		" petitionMessage,logonMinutes,tickerName, %u AS worldSpaceID, '%s' AS shipName, %u AS shipTypeID, %u AS unreadMailCount, %u AS upcomingEventCount, %u AS unprocessedNotifications, %u AS daysLeft, %u AS userType, 0 AS paperDollState, 0 AS newPaperdollState, 0 AS oldPaperdollState, skillPoints, " I64u " AS skillQueueEndTime, " I64u " AS allianceMemberStartDate, " I64u " AS startDate"
+		" petitionMessage,logonMinutes,tickerName, %u AS worldSpaceID, '%s' AS shipName, %u AS shipTypeID, %u AS unreadMailCount,"
+		" %u AS upcomingEventCount, %u AS unprocessedNotifications, %u AS daysLeft, %u AS userType, 0 AS paperDollState, 0 AS newPaperdollState,"
+		" 0 AS oldPaperdollState, skillPoints, " I64u " AS skillQueueEndTime, " I64u " AS allianceMemberStartDate, " I64u " AS startDate,"
+		" 0 AS locationSecurity"
 		" FROM character_ "
 		"	LEFT JOIN entity ON characterID = itemID"
 		"	LEFT JOIN corporation USING (corporationID)"
