@@ -20,39 +20,29 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		ozatomic
 */
 
-
-#ifndef __DOGMAIM_SERVICE_H_INCL__
-#define __DOGMAIM_SERVICE_H_INCL__
+#ifndef __DOGMA_SERVICE_H_INCL__
+#define __DOGMA_SERVICE_H_INCL__
 
 #include "PyService.h"
-#include "dogmaim/DogmaIMDB.h"
 
-class PyRep;
-
-class DogmaIMService : public PyService
+class DogmaService : public PyService
 {
 public:
-	DogmaIMService(PyServiceMgr *mgr);
-	virtual ~DogmaIMService();
+	DogmaService(PyServiceMgr *mgr);
+	virtual ~DogmaService();
 
 protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;
+	
+	DogmaDB m_db;
 
-	DogmaIMDB m_db;
-
-	PyCallable_DECL_CALL(GetAttributeTypes)
-	//overloaded in order to support bound objects:
-	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+	PyCallable_DECL_CALL(GetOperandsForChar)
+	
 };
 
-
-
-
-
 #endif
-
 

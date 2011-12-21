@@ -45,7 +45,8 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         " entity.itemID as ownerID,"
         " entity.itemName as ownerName,"
         " entity.typeID,"
-	" NULL as ownerNameID"
+		" NULL as ownerNameID,"
+		" 0 as gender"
         " FROM entity "
         " WHERE itemID in (%s)", ids.c_str()))
     {
@@ -59,7 +60,8 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         if(!sDatabase.RunQuery(res,
             "SELECT "
             " ownerID,ownerName,typeID,"
-	" NULL as ownerNameID"
+			" NULL as ownerNameID,"
+			" 0 as gender"
             " FROM eveStaticOwners "
             " WHERE ownerID in (%s)", ids.c_str()))
         {
@@ -76,7 +78,8 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
 			" characterID as ownerID,"
 			" itemName as ownerName,"
 			" typeID,"
-			" NULL as ownerNameID"
+			" NULL as ownerNameID,"
+			" 0 as gender"
 			" FROM character_ "
 			" LEFT JOIN entity ON characterID = itemID"
 			" WHERE characterID in (%s)", ids.c_str()))

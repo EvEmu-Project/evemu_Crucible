@@ -21,8 +21,8 @@
             <stringInline value="mailingList" />
             <stringInline value="cspa" />
             <stringInline value="temporary" />
-            <stringInline value="mode" />
             <stringInline value="subscribed" />
+            <stringInline value="mode" />
             <stringInline value="estimatedMemberCount" />
           </listInline>
         </dictInlineEntry>
@@ -49,9 +49,9 @@
       <int name="cspa" />
       <int name="temporary" />
       <int name="mode" />
-      <bool name="subscribed" />
       <int name="estimatedMemberCount" />
-	  </listInline>
+      <bool name="subscribed" />
+    </listInline>
   </elementDef>
 
   <elementDef name="ChannelJoinChannelInfo">
@@ -72,6 +72,8 @@
             <stringInline value="temporary" />
             <stringInline value="subscribed" />
             <stringInline value="languageRestriction" />
+            <stringInline value="groupMessageID" />
+            <stringInline value="channelMessageID" />
           </listInline>
         </dictInlineEntry>
         <dictInlineEntry key="line">
@@ -88,6 +90,8 @@
             <int name="temporary" />
             <int name="subscribed" />
             <bool name="languageRestriction" default="false" />
+            <int name="groupMessageID" />
+            <int name="channelMessageID" />
           </listInline>
         </dictInlineEntry>
       </dictInline>

@@ -20,39 +20,36 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		ozatomic
 */
 
+#include "EVEServerPCH.h"
 
-#ifndef __DOGMAIM_SERVICE_H_INCL__
-#define __DOGMAIM_SERVICE_H_INCL__
+PyCallable_Make_InnerDispatcher(DogmaService)
 
-#include "PyService.h"
-#include "dogmaim/DogmaIMDB.h"
-
-class PyRep;
-
-class DogmaIMService : public PyService
+DogmaService::DogmaService( PyServiceMgr *mgr ) : PyService(mgr, "dogma"), m_dispatch(new Dispatcher(this))
 {
-public:
-	DogmaIMService(PyServiceMgr *mgr);
-	virtual ~DogmaIMService();
+    _SetCallDispatcher(m_dispatch);
 
-protected:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
+    PyCallable_REG_CALL(DogmaService, GetOperandsForChar);
+}
 
-	DogmaIMDB m_db;
+DogmaService::~DogmaService() {
+    delete m_dispatch;
+}
 
-	PyCallable_DECL_CALL(GetAttributeTypes)
-	//overloaded in order to support bound objects:
-	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
-};
+PyResult DogmaService::Handle_GetOperandsForChar(PyCallArgs &call)
+{
+	ObjectCachedMethodID method_id(GetName(), "GetOperandsForChar");
 
+	if( !m_manager->cache_service->IsCacheLoaded( method_id ) )
+    {
+		PyRep* res = m_db.GetOperand();
+		if( res == NULL )
+			return NULL;
 
+		m_manager->cache_service->GiveCache( method_id, &res );
+	}
 
-
-
-#endif
-
-
+	return m_manager->cache_service->MakeObjectCachedMethodCallResult( method_id );
+}

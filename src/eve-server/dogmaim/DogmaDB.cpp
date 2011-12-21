@@ -20,39 +20,49 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		ozatomic
 */
 
+#include "EVEServerPCH.h"
 
-#ifndef __DOGMAIM_SERVICE_H_INCL__
-#define __DOGMAIM_SERVICE_H_INCL__
+PyRep *DogmaDB::GetOperand() {
+	DBQueryResult res;
 
-#include "PyService.h"
-#include "dogmaim/DogmaIMDB.h"
-
-class PyRep;
-
-class DogmaIMService : public PyService
-{
-public:
-	DogmaIMService(PyServiceMgr *mgr);
-	virtual ~DogmaIMService();
-
-protected:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
-
-	DogmaIMDB m_db;
-
-	PyCallable_DECL_CALL(GetAttributeTypes)
-	//overloaded in order to support bound objects:
-	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
-};
-
+	if(!sDatabase.RunQuery(res,
+		"SELECT "
+		" operandID,"
+		" operandKey,"
+		" description,"
+		" format,"
+		" arg1categoryID,"
+		" arg2categoryID,"
+		" resultCategoryID,"
+		" pythonFormat"
+		" FROM operand"
+		))
+	{
+		_log(DATABASE__ERROR, "Failed to query war factions: %s.", res.error.c_str());
+		return NULL;
+	}
+	
+	return DBResultToCIndexedRowset(res, "operandID");
+}
 
 
 
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

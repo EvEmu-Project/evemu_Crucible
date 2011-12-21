@@ -477,6 +477,13 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="Call_TwoBoolArgs">
+    <tupleInline>
+      <bool name="arg1" />
+      <bool name="arg2" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Call_SingleStringArg">
     <tupleInline>
       <string name="arg" />

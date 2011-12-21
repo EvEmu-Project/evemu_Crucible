@@ -218,6 +218,8 @@
 // dogma crap dono what this is
 #include "dogmaim/DogmaIMDB.h"
 #include "dogmaim/DogmaIMService.h"
+#include "dogmaim/DogmaDB.h"
+#include "dogmaim/DogmaService.h"
 
 // fleet stuff
 #include "fleet/FleetProxy.h"

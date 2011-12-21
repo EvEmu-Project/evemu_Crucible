@@ -171,18 +171,28 @@
   </elementDef>
 
   <elementDef name="Rsp_CommonGetInfo_Entry">
-    <listInline>
-      <int name="itemID" />
+    <dictInline>
+      <dictInlineEntry key="itemID">
+        <int name="itemID" />
+      </dictInlineEntry>
       <!-- this is an ItemRow -->
-      <raw name="invItem" />
+      <dictInlineEntry key="invItem">
+        <raw name="invItem" />
+      </dictInlineEntry>
       <!-- this maps effectType to EntityEffectState -->
-      <dictInt name="activeEffects" />
+      <dictInlineEntry key="activeEffects">
+        <dictInt name="activeEffects" />
+      </dictInlineEntry>
       <!-- maps attribute ID to it's value, which may be int or real -->
-      <dictInt name="attributes" />
+      <dictInlineEntry key="attributes">
+       <dictInt name="attributes" />
+      </dictInlineEntry>
+        <dictInlineEntry key="time">
       <long name="time" />
-    </listInline>
+      </dictInlineEntry>
+    </dictInline>
   </elementDef>
-
+  
   <elementDef name="Rsp_ItemGetInfo">
     <objectInline>
       <stringInline value="util.Row" />
