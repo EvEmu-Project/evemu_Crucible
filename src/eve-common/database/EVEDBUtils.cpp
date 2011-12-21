@@ -503,6 +503,38 @@ PyObjectEx *DBResultToCRowset( DBQueryResult &result )
 	return rowset;
 }
 
+PyObjectEx *DBResultToCIndexedRowset( DBQueryResult &result, const char *key )
+{
+	uint32 cc = result.ColumnCount();
+    uint32 key_index;
+
+    for(key_index = 0; key_index < cc; key_index++)
+        if(strcmp(key, result.ColumnName(key_index)) == 0)
+            break;
+
+    if(key_index == cc)
+    {
+        sLog.Error("EVEDBUtils", "DBResultToCIndexedRowset | Failed to find key column '%s' in result for CIndexRowset", key);
+        return NULL;
+    }
+
+    return DBResultToCIndexedRowset(result, key_index);
+}
+
+PyObjectEx *DBResultToCIndexedRowset(DBQueryResult &result, uint32 key_index) {
+	DBRowDescriptor *header = new DBRowDescriptor( result );
+	CIndexedRowSet *rowset = new CIndexedRowSet( &header );
+
+	DBResultRow row;
+	while( result.GetRow( row ) )
+	{
+		PyPackedRow* into = rowset->NewRow( DBColumnToPyRep(row, key_index) );
+		FillPackedRow( row, into );
+	}
+
+	return rowset;
+}
+
 PyPackedRow *DBRowToPackedRow( DBResultRow &row )
 {
     DBRowDescriptor *header = new DBRowDescriptor( row );
