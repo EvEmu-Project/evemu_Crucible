@@ -34,7 +34,7 @@ FactionWarMgrService::FactionWarMgrService(PyServiceMgr *mgr)
 	_SetCallDispatcher(m_dispatch);
 
 	PyCallable_REG_CALL(FactionWarMgrService, GetWarFactions)
-	PyCallable_REG_CALL(FactionWarMgrService, GetFacWarSystems)
+	PyCallable_REG_CALL(FactionWarMgrService, GetFWSystems)
 	PyCallable_REG_CALL(FactionWarMgrService, GetMyCharacterRankOverview)
 	PyCallable_REG_CALL(FactionWarMgrService, GetFactionMilitiaCorporation)
 }
@@ -57,7 +57,7 @@ PyResult FactionWarMgrService::Handle_GetWarFactions(PyCallArgs &call) {
 	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
 }
 
-PyResult FactionWarMgrService::Handle_GetFacWarSystems( PyCallArgs& call )
+PyResult FactionWarMgrService::Handle_GetFWSystems( PyCallArgs& call )
 {
 	ObjectCachedMethodID method_id( GetName(), "GetFacWarSystems" );
 
