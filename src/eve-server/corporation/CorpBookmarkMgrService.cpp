@@ -41,5 +41,5 @@ CorpBookmarkMgrService::~CorpBookmarkMgrService()
 
 PyResult CorpBookmarkMgrService::Handle_GetBookmarks(PyCallArgs& call)
 {
-    return new PyNone();
+    return(m_db.GetBookmarks(call.client->GetCorporationID()));
 }
