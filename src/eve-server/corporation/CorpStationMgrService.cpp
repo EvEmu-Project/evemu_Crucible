@@ -613,7 +613,7 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice(PyCallArgs &cal
 {
 	sLog.Debug("Server","Called GetCorporateStationOffice Stub");
 
-	return NULL;
+	return new PyTuple(0);
 }
 
 
