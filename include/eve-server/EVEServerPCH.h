@@ -339,6 +339,7 @@
 #include "standing/StandingDB.h"
 #include "standing/WarRegistryService.h"
 
+#include "station/HoloscreenMgrService.h"
 #include "station/JumpCloneService.h"
 #include "station/Station.h"
 #include "station/StationDB.h"
