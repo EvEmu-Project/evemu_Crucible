@@ -65,7 +65,7 @@ PyObjectEx *StandingDB::GetCorpStandings(uint32 corporationID) {
 	//Hack: Have hardcoded the rename of toId to fromID until i know if its going to affect anything else.
 	if(!sDatabase.RunQuery(res,
 		"SELECT "
-		" toID AS fromID, standing"
+		" fromID, standing"
 		" FROM crpStandings"
 		" WHERE corporationID=%u", corporationID
 	))

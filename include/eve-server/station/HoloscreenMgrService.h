@@ -20,33 +20,26 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Ubiquitatis
 */
 
-#ifndef __FACTION_WAR_MGR__H__INCL__
-#define __FACTION_WAR_MGR__H__INCL__
+#ifndef HOLOSCREENMGR_SERVICE_H
+#define HOLOSCREENMGR_SERVICE_H
 
-#include "standing/FactionWarMgrDB.h"
 #include "PyService.h"
 
-class FactionWarMgrService : public PyService
+class HoloscreenMgrService : public PyService
 {
 public:
-	FactionWarMgrService(PyServiceMgr *mgr);
-	~FactionWarMgrService();
+    HoloscreenMgrService(PyServiceMgr* mgr);
+    virtual ~HoloscreenMgrService();
 
-	PyCallable_DECL_CALL(GetWarFactions)
-	PyCallable_DECL_CALL(GetFWSystems)
-	PyCallable_DECL_CALL(GetMyCharacterRankOverview)
-	PyCallable_DECL_CALL(GetFactionMilitiaCorporation)
+protected:
+    class Dispatcher;
+    Dispatcher* const m_dispatch;
 
-private:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
-
-	FactionWarMgrDB m_db;
+    PyCallable_DECL_CALL(GetTwoHourCache)
+    PyCallable_DECL_CALL(GetRecentEpicArcCompletions)
 };
 
-#endif /* __FACTION_WAR_MGR_SERVICE__H__INCL__ */
-
-
+#endif

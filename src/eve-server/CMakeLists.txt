@@ -430,12 +430,14 @@ SET( sovereignty_SOURCE
      "${TARGET_SOURCE_DIR}/sovereignty/SovereigntyMgrService.cpp")
 
 SET( station_INCLUDE
+	 "${TARGET_INCLUDE_DIR}/station/HoloscreenMgrService.h"
      "${TARGET_INCLUDE_DIR}/station/JumpCloneService.h"
      "${TARGET_INCLUDE_DIR}/station/Station.h"
      "${TARGET_INCLUDE_DIR}/station/StationDB.h"
      "${TARGET_INCLUDE_DIR}/station/StationService.h"
      "${TARGET_INCLUDE_DIR}/station/StationSvcService.h" )
 SET( station_SOURCE
+	 "${TARGET_SOURCE_DIR}/station/HoloscreenMgrService.cpp"
      "${TARGET_SOURCE_DIR}/station/JumpCloneService.cpp"
      "${TARGET_SOURCE_DIR}/station/Station.cpp"
      "${TARGET_SOURCE_DIR}/station/StationDB.cpp"

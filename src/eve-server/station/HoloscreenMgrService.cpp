@@ -20,33 +20,32 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Ubiquitatis
 */
 
-#ifndef __FACTION_WAR_MGR__H__INCL__
-#define __FACTION_WAR_MGR__H__INCL__
+#include "EVEServerPCH.h"
 
-#include "standing/FactionWarMgrDB.h"
-#include "PyService.h"
+PyCallable_Make_InnerDispatcher(HoloscreenMgrService)
 
-class FactionWarMgrService : public PyService
+HoloscreenMgrService::HoloscreenMgrService(PyServiceMgr* mgr) : PyService(mgr, "holoscreenMgr"), m_dispatch(new Dispatcher(this))
 {
-public:
-	FactionWarMgrService(PyServiceMgr *mgr);
-	~FactionWarMgrService();
+    _SetCallDispatcher(m_dispatch);
 
-	PyCallable_DECL_CALL(GetWarFactions)
-	PyCallable_DECL_CALL(GetFWSystems)
-	PyCallable_DECL_CALL(GetMyCharacterRankOverview)
-	PyCallable_DECL_CALL(GetFactionMilitiaCorporation)
+    PyCallable_REG_CALL(HoloscreenMgrService, GetTwoHourCache);
+    PyCallable_REG_CALL(HoloscreenMgrService, GetRecentEpicArcCompletions);
+}
 
-private:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
+HoloscreenMgrService::~HoloscreenMgrService()
+{
+    delete m_dispatch;
+}
 
-	FactionWarMgrDB m_db;
-};
+PyResult HoloscreenMgrService::Handle_GetTwoHourCache(PyCallArgs& call)
+{
+    return new PyNone();
+}
 
-#endif /* __FACTION_WAR_MGR_SERVICE__H__INCL__ */
-
-
+PyResult HoloscreenMgrService::Handle_GetRecentEpicArcCompletions(PyCallArgs& call)
+{
+    return new PyNone();
+}
