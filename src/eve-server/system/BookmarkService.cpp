@@ -65,7 +65,12 @@ bool BookmarkService::LookupBookmark(uint32 characterID, uint32 bookmarkID, uint
 
 
 PyResult BookmarkService::Handle_GetBookmarks(PyCallArgs &call) {
-	return(m_db.GetBookmarks(call.client->GetCharacterID()));
+	PyTuple* result = new PyTuple(2);
+	
+	result->items[0] = m_db.GetBookmarks(call.client->GetCharacterID());
+	result->items[1] = m_db.GetFolders(call.client->GetCharacterID());
+
+	return result;
 }
 
 

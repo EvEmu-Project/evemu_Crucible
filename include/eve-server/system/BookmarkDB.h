@@ -33,6 +33,7 @@ class BookmarkDB
 {
 public:
 	PyObjectEx *GetBookmarks(uint32 ownerID);
+	PyObjectEx *GetFolders(uint32 ownerID);
 
    	uint32 GetNextAvailableBookmarkID();
 
