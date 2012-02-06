@@ -1,0 +1,25 @@
+------------------------------------------------------------
+revno: 3516 [merge]
+tags: clone-5.1.53-build
+committer: Georgi Kodinov <Georgi.Kodinov@Oracle.com>
+branch nick: merge-5.1-security
+timestamp: Wed 2010-11-03 12:24:47 +0200
+message:
+  merge
+    ------------------------------------------------------------
+    revno: 3461.1.12 [merge]
+    author: karen.langford@oracle.com
+    committer: MySQL Build Team <build@mysql.com>
+    branch nick: mysql-5.1
+    timestamp: Mon 2010-11-01 19:44:43 +0100
+    message:
+      Merge from mysql-5.1.52-release
+        ------------------------------------------------------------
+        revno: 3496.1.1
+        tags: mysql-5.1.52
+        author: karen.langford@oracle.com
+        committer: Karen Langford <karen.langford@oracle.com>
+        branch nick: mysql-5.1.52-release
+        timestamp: Mon 2010-10-11 22:13:47 +0200
+        message:
+          Fix bug #57345
