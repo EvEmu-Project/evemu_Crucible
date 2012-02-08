@@ -9,6 +9,7 @@ BrowserLockDownService::BrowserLockDownService( PyServiceMgr *mgr ) : PyService(
 
     PyCallable_REG_CALL(BrowserLockDownService, GetFlaggedSitesHash)
     PyCallable_REG_CALL(BrowserLockDownService, GetFlaggedSitesList)
+	PyCallable_REG_CALL(BrowserLockDownService, GetDefaultHomePage)
 }
 
 BrowserLockDownService::~BrowserLockDownService() {
@@ -108,3 +109,7 @@ PyResult BrowserLockDownService::Handle_GetFlaggedSitesList(PyCallArgs &call) {
 
     return new PyObject( "objectCaching.CachedMethodCallResult", arg_tuple );
     */
+
+PyResult BrowserLockDownService::Handle_GetDefaultHomePage(PyCallArgs &call) {
+    return NULL;
+}

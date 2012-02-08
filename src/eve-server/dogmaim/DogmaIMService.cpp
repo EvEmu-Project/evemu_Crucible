@@ -389,6 +389,10 @@ PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
 	rsp->SetItemString("activeShipID", new PyInt(call.client->GetShipID()));
 	rsp->SetItemString("locationInfo", new PyNone);
 	rsp->SetItemString("shipInfo", new PyNone);
+	rsp->SetItemString("shipModifiedCharAttribs", new PyNone);
+	rsp->SetItemString("shipState", new PyNone);
+
+
 
 	if(args.arg1)
 	{

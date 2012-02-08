@@ -1319,7 +1319,24 @@ PyObjectEx* CorporationDB::GetBookmarks(uint32 corporationID)
 {
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res, "SELECT bookmarkID, ownerID, itemID, typeID, memo, created, x, y, z, locationID, note FROM bookmarks WHERE ownerID = %u", corporationID))
+    if(!sDatabase.RunQuery(res, 
+		"SELECT "
+		" bookmarkID,"
+		" ownerID,"
+		" itemID,"
+		" typeID,"
+		" memo,"
+		" created,"
+		" x,"
+		" y,"
+		" z,"
+		" locationID,"
+		" note,"
+		" creatorID,"
+		" folderID"
+		" FROM bookmarks"
+		" WHERE ownerID = %u",
+		corporationID))
     {
         sLog.Error("CorporationDB::GetBookmarks()", "Failed to query corporation bookmarks for corporation %u: %s", corporationID, res.error.c_str());
         return NULL;

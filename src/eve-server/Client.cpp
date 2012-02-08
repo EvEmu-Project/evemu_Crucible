@@ -513,7 +513,7 @@ void Client::BoardShip(ShipRef new_ship) {
         m_system->RemoveClient(this);
 
     _SetSelf( new_ship );
-    m_char->MoveInto( *new_ship, flagPilot, true );
+    //m_char->MoveInto( *new_ship, flagPilot, true );
 
     new_ship->GetOperator()->SetOperatorObject(this);
 
@@ -590,6 +590,7 @@ void Client::_UpdateSession2( uint32 characterID )
     uint32 rolesAtHQ = 0;
     uint32 rolesAtOther = 0;
     uint32 locationID = 0;
+	uint32 shipID = 0;
 
     ((CharacterService *)(m_services.LookupService("character")))->GetCharacterData( characterID, characterDataMap );
 
@@ -611,7 +612,7 @@ void Client::_UpdateSession2( uint32 characterID )
     rolesAtHQ = characterDataMap["rolesAtHQ"];
     rolesAtOther = characterDataMap["rolesAtOther"];
     locationID = characterDataMap["locationID"];
-
+	shipID = characterDataMap["shipID"];
 
     mSession.SetInt( "charid", characterID );
     mSession.SetInt( "corpid", corporationID );
@@ -629,7 +630,7 @@ void Client::_UpdateSession2( uint32 characterID )
 
         mSession.SetInt( "stationid", stationID );
 		mSession.SetInt( "stationid2", stationID );
-        mSession.SetInt( "locationid", stationID );
+        mSession.SetInt( "locationid", locationID );
     }
     mSession.SetInt( "solarsystemid2", solarSystemID );
     mSession.SetInt( "constellationid", constellationID );
@@ -642,7 +643,7 @@ void Client::_UpdateSession2( uint32 characterID )
     mSession.SetLong( "rolesAtHQ", rolesAtHQ );
     mSession.SetLong( "rolesAtOther", rolesAtOther );
 
-    mSession.SetInt( "shipid", locationID );
+    mSession.SetInt( "shipid", shipID );
 }
 
 void Client::_SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel )

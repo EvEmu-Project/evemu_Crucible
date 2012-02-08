@@ -39,7 +39,9 @@ PyObjectEx *BookmarkDB::GetBookmarks(uint32 ownerID) {
 		" created,"
 		" x, y, z,"
 		" CAST(locationID AS SIGNED INTEGER) AS locationID,"
-        " note"
+        " note,"
+		" creatorID,"
+		" folderID"
 		" FROM bookmarks"
 		" WHERE ownerID = %u",
 		ownerID))
@@ -51,6 +53,25 @@ PyObjectEx *BookmarkDB::GetBookmarks(uint32 ownerID) {
 	return DBResultToCRowset(res);
 }
 
+PyObjectEx *BookmarkDB::GetFolders(uint32 ownerID) {
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		"SELECT"
+		" ownerID,"
+		" folderID,"
+		" folderName,"
+		" creatorID"
+		" FROM bookmarkFolders"
+		" WHERE ownerID = %u",
+		ownerID))
+	{
+        sLog.Error( "BookmarkDB::GetBookmarks()", "Failed to query bookmarks for owner %u: %s.", ownerID, res.error.c_str() );
+		return(NULL);
+	}
+
+	return DBResultToCRowset(res);
+}
 
 uint32 BookmarkDB::GetNextAvailableBookmarkID()
 {
