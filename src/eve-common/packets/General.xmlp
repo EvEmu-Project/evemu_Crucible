@@ -355,16 +355,16 @@
       <!-- 0 -->
       <substreamInline>
         <tupleInline>
-          <!-- 0 -->
-          <int name="integer0" />
-          <!-- 1 -->
-          <int name="integer1" />
-          <!-- 2 -->
-          <int name="integer2" />
-          <!-- 3 -->
-          <int name="integer3" />
-          <!-- 4 -->
-          <int name="integer4" />
+          <!-- hangarGraphicID -->
+          <int name="hangarGraphicID" />
+          <!-- ownerID -->
+          <int name="ownerID" />
+          <!-- itemID -->
+          <int name="itemID" />
+          <!-- serviceMask -->
+          <int name="serviceMask" />
+          <!-- stationTypeID -->
+          <int name="stationTypeID" />
         </tupleInline>
       </substreamInline>
     </tupleInline>

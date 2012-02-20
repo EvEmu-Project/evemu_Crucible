@@ -62,6 +62,9 @@ PyList *DBResultToPackedRowList(DBQueryResult &result);
 PyTuple *DBResultToPackedRowListTuple(DBQueryResult &result);
 PyObjectEx *DBResultToCRowset(DBQueryResult &result);
 
+PyDict *DBResultToPackedRowDict(DBQueryResult &result, const char *key);
+PyDict *DBResultToPackedRowDict(DBQueryResult &result, uint32 key_index);
+
 PyObjectEx *DBResultToCIndexedRowset(DBQueryResult &result, const char *key);
 PyObjectEx *DBResultToCIndexedRowset(DBQueryResult &result, uint32 key_index);
 

@@ -139,6 +139,9 @@ public:
 	PyPackedRow* GetItemRow() const;
     void GetItemRow( PyPackedRow* into ) const;
 
+	PyPackedRow* GetItemStatusRow() const;
+    void GetItemStatusRow( PyPackedRow* into ) const;
+
     PyObject *ItemGetInfo();
 
     /*
@@ -152,7 +155,7 @@ public:
     EVEItemFlags            flag() const        { return m_flag; }
     bool                    contraband() const  { return m_contraband; }
     bool                    singleton() const   { return m_singleton; }
-    uint32                  quantity() const    { return m_quantity; }
+    int32				    quantity() const    { return m_quantity; }
     const GPoint &          position() const    { return m_position; }
     const std::string &     customInfo() const  { return m_customInfo; }
 
@@ -304,7 +307,7 @@ protected:
     EVEItemFlags        m_flag;
     bool                m_contraband;
     bool                m_singleton;
-    uint32              m_quantity;
+    int32               m_quantity;
     GPoint              m_position;
     std::string         m_customInfo;
 };

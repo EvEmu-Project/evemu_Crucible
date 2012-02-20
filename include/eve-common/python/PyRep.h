@@ -844,7 +844,9 @@ protected:
 class PyObjectEx_Type1 : public PyObjectEx
 {
 public:
+	PyObjectEx_Type1( PyToken* type, PyTuple* args );
     PyObjectEx_Type1( PyToken* type, PyTuple* args, PyDict* keywords );
+	PyObjectEx_Type1( PyToken* type, PyTuple* args, PyList* keywords );
 
     PyToken* GetType() const;
     PyTuple* GetArgs() const;
@@ -853,7 +855,9 @@ public:
     PyRep* FindKeyword( const char* keyword ) const;
 
 protected:
-    static PyTuple* _CreateHeader( PyToken* type, PyTuple* args, PyDict* keywords );
+    static PyTuple* _CreateHeader( PyToken* type, PyTuple* args );
+	static PyTuple* _CreateHeader( PyToken* type, PyTuple* args, PyDict* keywords );
+	static PyTuple* _CreateHeader( PyToken* type, PyTuple* args, PyList* keywords );
 };
 
 /**

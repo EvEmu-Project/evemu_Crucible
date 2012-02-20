@@ -316,6 +316,37 @@ PyDict *Ship::ShipGetInfo()
     return result;
 }
 
+PyDict *Ship::ShipGetState()
+{
+	if( !LoadContents( m_factory ) )
+    {
+        codelog( ITEM__ERROR, "%s (%u): Failed to load contents for ShipGetInfo", itemName().c_str(), itemID() );
+        return NULL;
+    }
+
+    PyDict *result = new PyDict;
+	
+	result->SetItem(new PyInt(itemID()), GetItemStatusRow());
+	/*
+	std::vector<InventoryItemRef> equipped;
+	std::vector<InventoryItemRef> integrated;
+
+	FindByFlagRange( flagLowSlot0, flagFixedSlot, equipped );
+	FindByFlagRange( flagRigSlot0, flagRigSlot7, integrated );
+
+	equipped.insert(equipped.end(), integrated.begin(), integrated.end() );
+
+	std::vector<InventoryItemRef>::iterator cur, end;
+    cur = equipped.begin();
+    end = equipped.end();
+    for(; cur != end; cur++)
+    {
+        result->SetItem(new PyInt((*cur)->itemID()), (*cur)->GetItemStatusRow());
+    }
+	*/
+	return result;
+}
+
 void Ship::AddItem(InventoryItemRef item)
 {
     InventoryEx::AddItem( item );

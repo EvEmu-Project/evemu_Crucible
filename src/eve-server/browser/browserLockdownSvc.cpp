@@ -47,7 +47,7 @@ PyString:"util.CachedObject"
 class CacheOK : public PyObjectEx_Type1
 {
 public:
-    CacheOK() : PyObjectEx_Type1( new PyToken("objectCaching.CacheOK"), new_tuple("CacheOK"), NULL) {}
+    CacheOK() : PyObjectEx_Type1( new PyToken("objectCaching.CacheOK"), new_tuple("CacheOK") ) {}
 };
 
 

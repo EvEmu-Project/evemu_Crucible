@@ -341,7 +341,8 @@ Character::Character(
   m_corporationDateTime(_charData.corporationDateTime)
 {
     // allow characters to be only singletons
-    assert(singleton() && quantity() == 1);
+    //assert(singleton() && quantity() == -1);
+	assert(singleton());
 
     // Activate Save Info Timer with somewhat randomized timer value:
     //SetSaveTimerExpiry( MakeRandomInt( (10 * 60), (15 * 60) ) );        // Randomize save timer expiry to between 10 and 15 minutes

@@ -208,6 +208,7 @@ public:
 	 * Primary public packet builders:
 	 */
 	PyDict *ShipGetInfo();
+	PyDict *ShipGetState();
 
 	/*
 	 * Validates boarding ship

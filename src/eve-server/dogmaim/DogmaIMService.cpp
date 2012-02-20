@@ -374,6 +374,13 @@ PyResult DogmaIMBound::Handle_GetWeaponBankInfoForShip( PyCallArgs& call )
     return new PyDict;
 }
 
+
+class BuiltinSet : public PyObjectEx_Type1
+{
+public:
+    BuiltinSet() : PyObjectEx_Type1( new PyToken("collections.defaultdict"), new_tuple(new PyToken("__builtin__.set")) ) {}
+};
+
 PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
 {
 	//arg1: getCharInfo, arg2: getShipInfo
@@ -390,7 +397,7 @@ PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
 	rsp->SetItemString("locationInfo", new PyNone);
 	rsp->SetItemString("shipInfo", new PyNone);
 	rsp->SetItemString("shipModifiedCharAttribs", new PyNone);
-	rsp->SetItemString("shipState", new PyNone);
+	//rsp->SetItemString("shipState", new PyNone);
 
 
 
@@ -414,5 +421,27 @@ PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
 		rsp->SetItemString("shipInfo", shipResult);
 	}
 
+	//Get some attributes about the ship and its modules for shipState
+	PyTuple *rspShipState = new PyTuple(3);
+	
+	//Contains a dict of the ship and its modules
+	
+	if(call.client->GetShip() == NULL) {
+		codelog(SERVICE__ERROR, "Unable to build ship status for ship %u", call.client->GetShipID());
+		return NULL;
+	}
+	PyDict *shipState = call.client->GetShip()->ShipGetState();
+	rspShipState->items[0] = shipState;
+
+	//Contains a dict with the ship and an empty dict
+	PyDict *shipStateItem2 = new PyDict();
+	shipStateItem2->SetItem(new PyInt(call.client->GetShipID()), new PyDict());
+	rspShipState->items[1] = shipStateItem2;
+
+	//Some PyObjectEx
+	rspShipState->items[2] = new BuiltinSet();
+
+	rsp->SetItemString("shipState", rspShipState);
 	return new PyObject( "util.KeyVal", rsp );
 }
+
