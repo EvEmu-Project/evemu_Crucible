@@ -40,6 +40,7 @@ protected:
 	Dispatcher *const m_dispatch;
 
 	PyCallable_DECL_CALL(GetRedeemTokens)
+	PyCallable_DECL_CALL(GetCreateDate)
 };
 
 #endif /* __USER_SERVICE__H__INCL__ */

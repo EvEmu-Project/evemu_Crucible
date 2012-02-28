@@ -41,6 +41,8 @@ CharMgrService::CharMgrService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(CharMgrService, GetCloneTypeID)
 	PyCallable_REG_CALL(CharMgrService, GetHomeStation)
 	PyCallable_REG_CALL(CharMgrService, GetFactions)
+	PyCallable_REG_CALL(CharMgrService, SetActivityStatus)
+	PyCallable_REG_CALL(CharMgrService, GetSettingsInfo)
 }
 
 CharMgrService::~CharMgrService() {
@@ -157,26 +159,16 @@ PyResult CharMgrService::Handle_GetFactions( PyCallArgs& call )
 	return NULL;
 }
 
+PyResult CharMgrService::Handle_SetActivityStatus( PyCallArgs& call )
+{
+	sLog.Debug( "CharMgrService", "Called SetActivityStatus stub." );
 
+	return NULL;
+}
 
+PyResult CharMgrService::Handle_GetSettingsInfo( PyCallArgs& call )
+{
+	sLog.Debug( "CharMgrService", "Called GetSettingsInfo stub." );
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	return NULL;
+}
