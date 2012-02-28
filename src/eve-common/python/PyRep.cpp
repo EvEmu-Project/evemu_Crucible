@@ -807,7 +807,9 @@ PyObjectEx& PyObjectEx::operator=( const PyObjectEx& oth )
 /************************************************************************/
 /* PyObjectEx_Type1                                                     */
 /************************************************************************/
+PyObjectEx_Type1::PyObjectEx_Type1( PyToken* type, PyTuple* args ) : PyObjectEx( false, _CreateHeader( type, args ) ) {}
 PyObjectEx_Type1::PyObjectEx_Type1( PyToken* type, PyTuple* args, PyDict* keywords ) : PyObjectEx( false, _CreateHeader( type, args, keywords ) ) {}
+PyObjectEx_Type1::PyObjectEx_Type1( PyToken* type, PyTuple* args, PyList* keywords ) : PyObjectEx( false, _CreateHeader( type, args, keywords ) ) {}
 
 PyToken* PyObjectEx_Type1::GetType() const
 {
@@ -851,7 +853,33 @@ PyRep* PyObjectEx_Type1::FindKeyword( const char* keyword ) const
 	return NULL;
 }
 
+PyTuple* PyObjectEx_Type1::_CreateHeader( PyToken* type, PyTuple* args )
+{
+	if( args == NULL )
+		args = new PyTuple( 0 );
+
+	PyTuple* head = new PyTuple( 2 );
+	head->SetItem( 0, type );
+	head->SetItem( 1, args );
+	
+	return head;
+}
+
 PyTuple* PyObjectEx_Type1::_CreateHeader( PyToken* type, PyTuple* args, PyDict* keywords )
+{
+	if( args == NULL )
+		args = new PyTuple( 0 );
+
+	PyTuple* head = new PyTuple( keywords == NULL ? 2 : 3 );
+	head->SetItem( 0, type );
+	head->SetItem( 1, args );
+	if( head->size() > 2 )
+		head->SetItem( 2, keywords );
+
+	return head;
+}
+
+PyTuple* PyObjectEx_Type1::_CreateHeader( PyToken* type, PyTuple* args, PyList* keywords )
 {
 	if( args == NULL )
 		args = new PyTuple( 0 );

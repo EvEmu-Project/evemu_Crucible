@@ -165,7 +165,7 @@ PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
     uint32 shipTypeID = 606;
 
     DBQueryResult res2;
-    if(!sDatabase.RunQuery(res2, "SELECT itemName, typeID FROM entity WHERE itemID = (SELECT locationID FROM entity WHERE itemID = %u)", characterID))
+    if(!sDatabase.RunQuery(res2, "SELECT itemName, typeID FROM entity WHERE itemID = (SELECT shipID FROM character_ WHERE characterID = %u)", characterID))
     {
         codelog(SERVICE__WARNING, "Unable to get current ship: %s", res.error.c_str());
     }
@@ -298,7 +298,7 @@ void CharacterDB::GetCharacterData(uint32 characterID, std::map<std::string, uin
     characterDataMap["rolesAtBase"] = row.GetUInt(8);
     characterDataMap["rolesAtHQ"] = row.GetUInt(9);
     characterDataMap["rolesAtOther"] = row.GetUInt(10);
-    characterDataMap["shipID"] = row.GetUInt(12);
+    characterDataMap["shipID"] = row.GetUInt(11);
 	characterDataMap["locationID"] = row.GetUInt(12);
 }
 

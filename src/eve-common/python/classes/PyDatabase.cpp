@@ -33,12 +33,17 @@
 /* DBRowDescriptor                                                      */
 /************************************************************************/
 DBRowDescriptor::DBRowDescriptor()
-: PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs(), NULL )
+: PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs() )
+{
+}
+
+DBRowDescriptor::DBRowDescriptor(PyList* keywords)
+: PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs(), keywords )
 {
 }
 
 DBRowDescriptor::DBRowDescriptor( const DBQueryResult& res )
-: PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs(), NULL )
+: PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs() )
 {
 	uint32 cc = res.ColumnCount();
 
@@ -47,7 +52,7 @@ DBRowDescriptor::DBRowDescriptor( const DBQueryResult& res )
 }
 
 DBRowDescriptor::DBRowDescriptor( const DBResultRow& row )
-: PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs(), NULL )
+: PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs() )
 {
 	uint32 cc = row.ColumnCount();
 

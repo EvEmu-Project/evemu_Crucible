@@ -41,5 +41,21 @@ CorpBookmarkMgrService::~CorpBookmarkMgrService()
 
 PyResult CorpBookmarkMgrService::Handle_GetBookmarks(PyCallArgs& call)
 {
-    return(m_db.GetBookmarks(call.client->GetCorporationID()));
+	ObjectCachedMethodID method_id(GetName(), "GetBookmarks");
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
+		PyDict *res = m_db.GetBookmarks(call.client->GetCorporationID());
+		if(res == NULL)
+			return NULL;
+
+		PyRep* result = NULL;
+
+		PyTuple *tuple = new PyTuple(2);
+		tuple->items[0] = res;
+		tuple->items[1] = new PyDict();
+
+		result = tuple;
+		m_manager->cache_service->GiveCache(method_id, &result);
+	}
+
+	return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
 }

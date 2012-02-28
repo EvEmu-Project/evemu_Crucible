@@ -572,20 +572,56 @@ void InventoryItem::Delete() {
     //delete ourselves from factory cache
     m_factory._DeleteItem( itemID() );
 }
-PyPackedRow* InventoryItem::GetItemRow() const
+
+PyPackedRow* InventoryItem::GetItemStatusRow() const
 {
 	DBRowDescriptor* header = new DBRowDescriptor;
-	header->AddColumn( "itemID",     DBTYPE_I4 );
-	header->AddColumn( "typeID",     DBTYPE_I2 );
+	header->AddColumn( "instanceID",    DBTYPE_I8 );
+	header->AddColumn( "online",        DBTYPE_BOOL );
+	header->AddColumn( "damage",        DBTYPE_R8 );
+	header->AddColumn( "charge",        DBTYPE_R8 );
+	header->AddColumn( "skillPoints",   DBTYPE_I4 );
+	header->AddColumn( "armorDamage",   DBTYPE_R8 );
+	header->AddColumn( "shieldCharge",  DBTYPE_R8 );
+	header->AddColumn( "incapacitated", DBTYPE_BOOL );
+
+	PyPackedRow* row = new PyPackedRow( header );
+	GetItemStatusRow( row );
+
+	return row;
+}
+
+void InventoryItem::GetItemStatusRow( PyPackedRow* into ) const
+{
+    into->SetField( "instanceID",    new PyLong( itemID() ) );
+    into->SetField( "online",        new PyBool( 0 ) );
+    into->SetField( "damage",        new PyFloat( 0 ) );
+    into->SetField( "charge",        new PyFloat( 0 ) );
+    into->SetField( "skillPoints",   new PyInt( 0 ) );
+    into->SetField( "armorDamage",   new PyFloat( 0 ) );
+    into->SetField( "shieldCharge",  new PyFloat( 0 ) );
+    into->SetField( "incapacitated", new PyBool( 0 ) );
+}
+
+PyPackedRow* InventoryItem::GetItemRow() const
+{
+	PyList *keywords = new PyList();
+	keywords->AddItem(new_tuple(new PyString("stacksize"), new PyToken("util.StackSize")));
+	keywords->AddItem(new_tuple(new PyString("singleton"), new PyToken("util.Singleton")));
+
+	DBRowDescriptor* header = new DBRowDescriptor(keywords);
+	header->AddColumn( "itemID",     DBTYPE_I8 );
+	header->AddColumn( "typeID",     DBTYPE_I4 );
 	header->AddColumn( "ownerID",    DBTYPE_I4 );
-	header->AddColumn( "locationID", DBTYPE_I4 );
+	header->AddColumn( "locationID", DBTYPE_I8 );
 	header->AddColumn( "flagID",     DBTYPE_I2 );
-	header->AddColumn( "singleton",  DBTYPE_BOOL );
 	header->AddColumn( "quantity",   DBTYPE_I4 );
 	header->AddColumn( "groupID",    DBTYPE_I2 );
-	header->AddColumn( "categoryID", DBTYPE_UI1 );
+	header->AddColumn( "categoryID", DBTYPE_I4 );
 	header->AddColumn( "customInfo", DBTYPE_STR );
-	header->AddColumn( "stacksize" , DBTYPE_I4 );
+	
+	//header->AddColumn( "singleton",  DBTYPE_BOOL );
+	//header->AddColumn( "stacksize" , DBTYPE_I4 );
 
 	PyPackedRow* row = new PyPackedRow( header );
 	GetItemRow( row );
@@ -595,17 +631,18 @@ PyPackedRow* InventoryItem::GetItemRow() const
 
 void InventoryItem::GetItemRow( PyPackedRow* into ) const
 {
-    into->SetField( "itemID",     new PyInt( itemID() ) );
+    into->SetField( "itemID",     new PyLong( itemID() ) );
     into->SetField( "typeID",     new PyInt( typeID() ) );
-    into->SetField( "locationID", new PyInt( locationID() ) );
     into->SetField( "ownerID",    new PyInt( ownerID() ) );
+	into->SetField( "locationID", new PyLong( locationID() ) );
     into->SetField( "flagID",     new PyInt( flag() ) );
-    into->SetField( "singleton",  new PyBool( singleton() ) );
     into->SetField( "quantity",   new PyInt( quantity() ) );
     into->SetField( "groupID",    new PyInt( groupID() ) );
     into->SetField( "categoryID", new PyInt( categoryID() ) );
     into->SetField( "customInfo", new PyString( customInfo() ) );
-	into->SetField( "stacksize",  new PyInt (quantity()) );
+
+    //into->SetField( "singleton",  new PyBool( singleton() ) );
+	//into->SetField( "stacksize",  new PyInt (quantity()) );
 }
 
 bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result )

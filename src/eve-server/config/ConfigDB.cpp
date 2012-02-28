@@ -148,7 +148,8 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
             " mapDenormalize.itemName AS locationName,"
             " mapDenormalize.x AS x,"
             " mapDenormalize.y AS y,"
-            " mapDenormalize.z AS z"
+            " mapDenormalize.z AS z,"
+			" NULL AS locationNameID"
             " FROM mapDenormalize "
             " WHERE itemID in (%s)", ids.c_str()))
         {
@@ -162,7 +163,8 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
             " entity.itemName as locationName,"
             " entity.x AS x,"
             " entity.y AS y,"
-            " entity.z AS z"
+            " entity.z AS z,"
+			" NULL AS locationNameID"
             " FROM entity "
             " WHERE itemID in (%s)", ids.c_str()))
         {

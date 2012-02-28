@@ -460,6 +460,41 @@ PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
     return root;
 }
 
+PyDict *DBResultToPackedRowDict( DBQueryResult &result, const char *key )
+{
+	uint32 cc = result.ColumnCount();
+    uint32 key_index;
+
+    for(key_index = 0; key_index < cc; key_index++)
+        if(strcmp(key, result.ColumnName(key_index)) == 0)
+            break;
+
+    if(key_index == cc)
+    {
+        sLog.Error("EVEDBUtils", "DBResultToPackedRowDict | Failed to find key column '%s' in result for CIndexRowset", key);
+        return NULL;
+    }
+
+    return DBResultToPackedRowDict(result, key_index);
+}
+
+PyDict *DBResultToPackedRowDict( DBQueryResult &result, uint32 key_index )
+{
+	DBRowDescriptor *header = new DBRowDescriptor( result );
+
+    PyDict *res = new PyDict();
+
+    DBResultRow row;
+    for( uint32 i = 0; result.GetRow( row ); i++ )
+    {
+        res->SetItem( DBColumnToPyRep(row, key_index), CreatePackedRow( row, header ) );
+        PyIncRef( header );
+    }
+
+    PyDecRef( header );
+    return res;
+}
+
 /* Class structure
  * PyClass
  *   PyTuple:2

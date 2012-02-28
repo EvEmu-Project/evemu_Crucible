@@ -14,8 +14,9 @@ do with the source code downloaded from this project.
 - Login works again
 - Character selection and creation is working
 - Character portraits are working
-- Undocking and Docking is working
-- Items and Destiny are working
+- Undocking and Docking is not working
+- Items and Ships display in station
+- Destiny are not sure
 
 # Legal
 	------------------------------------------------------------------------------------

@@ -1315,7 +1315,7 @@ bool CorporationDB::ChangeCloneType(uint32 characterID, uint32 typeID) {
 	return true;
 }
 
-PyObjectEx* CorporationDB::GetBookmarks(uint32 corporationID)
+PyDict* CorporationDB::GetBookmarks(uint32 corporationID)
 {
     DBQueryResult res;
 
@@ -1341,6 +1341,6 @@ PyObjectEx* CorporationDB::GetBookmarks(uint32 corporationID)
         sLog.Error("CorporationDB::GetBookmarks()", "Failed to query corporation bookmarks for corporation %u: %s", corporationID, res.error.c_str());
         return NULL;
     }
-
-    return DBResultToCRowset(res);
+	return DBResultToPackedRowDict(res, "bookmarkID");
+    //return DBResultToCRowset(res);
 }

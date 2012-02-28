@@ -176,21 +176,23 @@ void Inventory::DeleteContents(ItemFactory &factory)
 
 CRowSet* Inventory::List( EVEItemFlags _flag, uint32 forOwner ) const
 {
-	DBRowDescriptor* header = new DBRowDescriptor;
-	header->AddColumn( "itemID",     DBTYPE_I4 );
-	header->AddColumn( "typeID",     DBTYPE_I2 );
+	PyList *keywords = new PyList();
+	keywords->AddItem(new_tuple(new PyString("stacksize"), new PyToken("util.StackSize")));
+	keywords->AddItem(new_tuple(new PyString("singleton"), new PyToken("util.Singleton")));
+
+	DBRowDescriptor* header = new DBRowDescriptor(keywords);
+	header->AddColumn( "itemID",     DBTYPE_I8 );
+	header->AddColumn( "typeID",     DBTYPE_I4 );
 	header->AddColumn( "ownerID",    DBTYPE_I4 );
-	header->AddColumn( "locationID", DBTYPE_I4 );
+	header->AddColumn( "locationID", DBTYPE_I8 );
 	header->AddColumn( "flagID",     DBTYPE_I2 );
-	header->AddColumn( "singleton",  DBTYPE_BOOL );
 	header->AddColumn( "quantity",   DBTYPE_I4 );
 	header->AddColumn( "groupID",    DBTYPE_I2 );
-	header->AddColumn( "categoryID", DBTYPE_UI1 );
+	header->AddColumn( "categoryID", DBTYPE_I4 );
 	header->AddColumn( "customInfo", DBTYPE_STR );
-	header->AddColumn( "stacksize" , DBTYPE_I4 );
 
-
-
+	//header->AddColumn( "singleton",  DBTYPE_BOOL );
+	//header->AddColumn( "stacksize" , DBTYPE_I4 );
 
     CRowSet* rowset = new CRowSet( &header );
     List( rowset, _flag, forOwner );

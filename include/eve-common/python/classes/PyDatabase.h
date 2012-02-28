@@ -42,6 +42,12 @@ class DBRowDescriptor
 {
 public:
 	DBRowDescriptor();
+
+	/**
+	 * @param[in] keywords Some sort of keyword list.
+	 */
+	DBRowDescriptor(PyList* keywords);
+
 	/**
 	 * @param[in] result Query result to build column list from.
 	 */
