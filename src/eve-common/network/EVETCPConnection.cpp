@@ -61,7 +61,7 @@ void EVETCPConnection::QueueRep( const PyRep* rep )
         sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %lu.", buf->size(), PACKET_SIZE_LIMIT );
     else
     {
-		DumpBuffer( buf, PACKET_OUTBOUND );
+		//DumpBuffer( buf, PACKET_OUTBOUND );
         // write length
         *bufLen = ( buf->size() - sizeof( uint32 ) );
 		
@@ -88,7 +88,7 @@ PyRep* EVETCPConnection::PopRep()
             sLog.Error( "Network", "Packet length %lu exceeds hardcoded packet length limit %u.", packet->size(), PACKET_SIZE_LIMIT );
         else
 		{
-			DumpBuffer( packet, PACKET_INBOUND );
+			//DumpBuffer( packet, PACKET_INBOUND );
             res = InflateUnmarshal( *packet );
 		}
     }
