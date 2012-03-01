@@ -104,6 +104,8 @@ CREATE TABLE `bookmarks` (
   `z` double NOT NULL default '0',
   `locationID` int(10) unsigned NOT NULL default '0',
   `note` varchar(85) NOT NULL default '',
+  `creatorID` int(10) unsigned NOT NULL default '0',
+  `folderID` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`bookmarkID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
