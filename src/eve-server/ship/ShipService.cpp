@@ -238,12 +238,12 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 }
 
 PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
-    /*Call_SingleBoolArg args;
+    Call_IntBoolArg args;
     if(!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "Failed to decode arguments");
         //TODO: throw exception
         return NULL;
-    }*/
+    }
 
     //int ignoreContraband = args.arg;
 
