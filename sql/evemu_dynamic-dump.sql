@@ -109,6 +109,16 @@ CREATE TABLE `bookmarks` (
 
 /*Data for the table `bookmarks` */
 
+DROP TABLE IF EXISTS `bookmarkFolders`;
+
+CREATE TABLE `bookmarkFolders` (
+	`folderID` int (10),
+	`folderName` varchar (255),
+	`ownerID` int (10),
+	`creatorID` int (10),
+	PRIMARY KEY (`folderID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8; 
+
 /*Table structure for table `cacheLocations` */
 
 DROP TABLE IF EXISTS `cacheLocations`;
@@ -213,6 +223,7 @@ CREATE TABLE `character_` (
   `freeRespecs` tinyint(1) unsigned NOT NULL default '0',
   `nextRespec` bigint(20) unsigned NOT NULL default '0',
   `deletePrepareDateTime` BIGINT(20) UNSIGNED NULL DEFAULT '0',
+  `shipID` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`characterID`),
   KEY `FK_CHARACTER__ACCOUNTS` (`accountID`),
   KEY `FK_CHARACTER__CHRANCESTRIES` (`ancestryID`),

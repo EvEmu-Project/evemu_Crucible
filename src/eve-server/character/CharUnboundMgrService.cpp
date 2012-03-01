@@ -374,12 +374,16 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     ItemData shipItem( char_type->shipTypeID(), char_item->itemID(), char_item->locationID(), flagHangar, ship_name.c_str() );
     ShipRef ship_item = m_manager->item_factory.SpawnShip( shipItem );
 
+	// Set shipID
+	DBQueryResult res;
+	sDatabase.RunQuery(res, "UPDATE character_ SET shipID = %u WHERE characterID = %u", ship_item->itemID(), char_item->itemID());
+
     if( !ship_item ) {
         codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());
     }
     else
         //welcome on board your starting ship
-        char_item->MoveInto( *ship_item, flagPilot, false );
+        //char_item->MoveInto( *ship_item, flagPilot, false );
 
     _log( CLIENT__MESSAGE, "Sending char create ID %u as reply", char_item->itemID() );
 

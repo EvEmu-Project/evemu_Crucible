@@ -40,6 +40,7 @@ TutorialService::TutorialService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(TutorialService, GetCategories)
 	PyCallable_REG_CALL(TutorialService, GetContextHelp)
 	PyCallable_REG_CALL(TutorialService, GetCharacterTutorialState)
+	PyCallable_REG_CALL(TutorialService, GetTutorialsAndConnections)
 }
 
 TutorialService::~TutorialService() {
@@ -114,4 +115,11 @@ PyResult TutorialService::Handle_GetCharacterTutorialState( PyCallArgs& call )
 	rs.header.push_back( "eventTypeID" );
 
 	return rs.Encode();
+}
+
+PyResult TutorialService::Handle_GetTutorialsAndConnections( PyCallArgs& call )
+{
+    sLog.Debug( "TutorialService", "Called GetTutorialsAndConnections stub." );
+
+    return new PyNone;
 }
