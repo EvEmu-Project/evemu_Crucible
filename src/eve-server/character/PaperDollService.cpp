@@ -38,6 +38,7 @@ PaperDollService::PaperDollService(PyServiceMgr* mgr)
 	PyCallable_REG_CALL(PaperDollService, UpdateExistingCharacterFull)
 	PyCallable_REG_CALL(PaperDollService, UpdateExistingCharacterLimited)
 	PyCallable_REG_CALL(PaperDollService, GetPaperDollPortraitDataFor)
+	PyCallable_REG_CALL(PaperDollService, GetMyPaperDollData)
 }
 
 PaperDollService::~PaperDollService() {
@@ -61,5 +62,10 @@ PyResult PaperDollService::Handle_UpdateExistingCharacterLimited(PyCallArgs &cal
 }
 
 PyResult PaperDollService::Handle_GetPaperDollPortraitDataFor(PyCallArgs &call) {
+	return NULL;
+}
+
+PyResult PaperDollService::Handle_GetMyPaperDollData(PyCallArgs &call) 
+{
 	return NULL;
 }

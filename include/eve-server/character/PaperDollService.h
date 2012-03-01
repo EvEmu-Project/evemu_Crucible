@@ -52,6 +52,7 @@ private:
 	PyCallable_DECL_CALL(UpdateExistingCharacterFull)
 	PyCallable_DECL_CALL(UpdateExistingCharacterLimited)
 	PyCallable_DECL_CALL(GetPaperDollPortraitDataFor)
+	PyCallable_DECL_CALL(GetMyPaperDollData)
 };
 
 #endif // __PAPERDOLLSERVICE__H__INCL__

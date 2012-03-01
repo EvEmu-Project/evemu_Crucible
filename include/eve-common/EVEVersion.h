@@ -28,9 +28,9 @@
 
 // supported client is Crucible v1.0.1 build 336683
 
-static const uint16 MachoNetVersion = 306;
-static const double EVEVersionNumber = 7.21;
-static const int32 EVEBuildVersion = 336683;
+static const uint16 MachoNetVersion = 309;
+static const double EVEVersionNumber = 7.22;
+static const int32 EVEBuildVersion = 342397;
 static const char *const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
 static const char *const EVEProjectRegion = "ccp";
 static const char *const EVEProjectVersion = "EVE-EVE-TRANQUILITY@ccp";

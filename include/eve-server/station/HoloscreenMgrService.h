@@ -40,6 +40,7 @@ protected:
 
     PyCallable_DECL_CALL(GetTwoHourCache)
     PyCallable_DECL_CALL(GetRecentEpicArcCompletions)
+	PyCallable_DECL_CALL(GetRuntimeCache)
 };
 
 #endif

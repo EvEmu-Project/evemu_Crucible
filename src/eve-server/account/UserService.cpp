@@ -33,6 +33,7 @@ UserService::UserService(PyServiceMgr *mgr) : PyService(mgr, "userSvc"),
 	_SetCallDispatcher(m_dispatch);
 
 	PyCallable_REG_CALL(UserService, GetRedeemTokens)
+	PyCallable_REG_CALL(UserService, GetCreateDate)
 }
 
 UserService::~UserService() {
@@ -48,7 +49,9 @@ PyResult UserService::Handle_GetRedeemTokens( PyCallArgs& call )
 	return new PyList;
 }
 
+PyResult UserService::Handle_GetCreateDate( PyCallArgs& call )
+{
+    sLog.Debug( "UserService", "Called GetCreateDate stub." );
 
-
-
-
+	return NULL;
+}

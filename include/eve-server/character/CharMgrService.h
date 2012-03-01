@@ -49,12 +49,8 @@ protected:
 	PyCallable_DECL_CALL(GetCloneTypeID)
 	PyCallable_DECL_CALL(GetHomeStation)
 	PyCallable_DECL_CALL(GetFactions)
+	PyCallable_DECL_CALL(SetActivityStatus)
+	PyCallable_DECL_CALL(GetSettingsInfo)
 };
 
-
-
-
-
 #endif
-
-

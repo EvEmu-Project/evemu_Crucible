@@ -31,8 +31,9 @@ HoloscreenMgrService::HoloscreenMgrService(PyServiceMgr* mgr) : PyService(mgr, "
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(HoloscreenMgrService, GetTwoHourCache);
-    PyCallable_REG_CALL(HoloscreenMgrService, GetRecentEpicArcCompletions);
+    PyCallable_REG_CALL(HoloscreenMgrService, GetTwoHourCache)
+    PyCallable_REG_CALL(HoloscreenMgrService, GetRecentEpicArcCompletions)
+	PyCallable_REG_CALL(HoloscreenMgrService, GetRuntimeCache)
 }
 
 HoloscreenMgrService::~HoloscreenMgrService()
@@ -42,10 +43,21 @@ HoloscreenMgrService::~HoloscreenMgrService()
 
 PyResult HoloscreenMgrService::Handle_GetTwoHourCache(PyCallArgs& call)
 {
+	sLog.Debug("HoloscreenMgrService", "Called GetTwoHourCache stub.");
+
     return new PyNone();
 }
 
 PyResult HoloscreenMgrService::Handle_GetRecentEpicArcCompletions(PyCallArgs& call)
 {
+	sLog.Debug("HoloscreenMgrService", "Called GetTwoHourCache stub.");
+
+    return new PyNone();
+}
+
+PyResult HoloscreenMgrService::Handle_GetRuntimeCache(PyCallArgs& call)
+{
+	sLog.Debug("HoloscreenMgrService", "Called GetTwoHourCache stub.");
+
     return new PyNone();
 }
