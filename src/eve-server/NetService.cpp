@@ -151,6 +151,7 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 		dict->SetItemString("charFittingMgr", new PyNone());
 		dict->SetItemString("dungeonExplorationMgr", new PyNone());
 		dict->SetItemString("fleetProxy", new PyNone());
+		dict->SetItemString("infoGatheringMgr", new PyNone());
 
 		//register it
 		m_manager->cache_service->GiveCache(str, (PyRep **)&dict);
