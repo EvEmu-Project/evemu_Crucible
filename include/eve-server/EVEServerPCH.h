@@ -151,6 +151,8 @@
 #include "PyServiceCD.h"
 #include "PyServiceMgr.h"
 
+#include "infoGatheringMgr.h"
+
 #include "account/AccountDB.h"
 #include "account/AccountService.h"
 #include "account/AuthService.h"

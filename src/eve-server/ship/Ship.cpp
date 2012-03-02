@@ -142,6 +142,9 @@ ShipRef Ship::Spawn(ItemFactory &factory,
     if( !(sShipRef.get()->HasAttribute(AttrWarpSpeedMultiplier)) )
         sShipRef.get()->SetAttribute(AttrWarpSpeedMultiplier, 1.0f);
 
+	//Save Ship To Database.
+	sShipRef->SaveShip();
+
     return sShipRef;
 }
 

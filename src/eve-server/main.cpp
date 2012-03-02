@@ -217,7 +217,7 @@ int main( int argc, char* argv[] )
     services.RegisterService(new DevToolsProviderService(&services));
     services.RegisterService(new CorpBookmarkMgrService(&services));
     services.RegisterService(new HoloscreenMgrService(&services));
-	services.RegisterService(new InfoGatheringService(&services));
+	services.RegisterService(new infoGatheringMgr(&services));
 
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();
