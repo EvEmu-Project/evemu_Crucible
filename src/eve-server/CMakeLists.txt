@@ -28,7 +28,8 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/PyServiceCD.h"
      "${TARGET_INCLUDE_DIR}/PyServiceMgr.h"
      "${TARGET_INCLUDE_DIR}/ServiceDB.h"
-     "${TARGET_INCLUDE_DIR}/LiveUpdateDB.h" )
+     "${TARGET_INCLUDE_DIR}/LiveUpdateDB.h"
+     "${TARGET_INCLUDE_DIR}/infoGatheringMgr.h" )
 SET( SOURCE
      "${TARGET_SOURCE_DIR}/Client.cpp"
      "${TARGET_SOURCE_DIR}/ClientSession.cpp"
@@ -41,7 +42,8 @@ SET( SOURCE
      "${TARGET_SOURCE_DIR}/PyService.cpp"
      "${TARGET_SOURCE_DIR}/PyServiceMgr.cpp"
      "${TARGET_SOURCE_DIR}/ServiceDB.cpp"
-     "${TARGET_SOURCE_DIR}/LiveUpdateDB.cpp" )
+     "${TARGET_SOURCE_DIR}/LiveUpdateDB.cpp" 
+     "${TARGET_SOURCE_DIR}/infoGatheringMgr.cpp" )
 
 SET( account_INCLUDE
      "${TARGET_INCLUDE_DIR}/account/AccountDB.h"
