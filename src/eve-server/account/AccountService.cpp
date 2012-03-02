@@ -48,8 +48,7 @@ AccountService::~AccountService() {
 PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 	Call_SingleArg args;
 	if(!args.Decode(&call.tuple)) {
-		codelog(CLIENT__ERROR, "Invalid arguments");
-		return NULL;
+		args.arg = new PyInt(0);
 	}
 	
 	//we can get an integer or a boolean right now...
