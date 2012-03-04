@@ -226,6 +226,9 @@
 // fleet stuff
 #include "fleet/FleetProxy.h"
 
+// info gathering stuff
+#include "infogathering/InfoGathering.h"
+
 // item stuff
 #include "inventory/AttributeEnum.h"
 #include "inventory/AttributeMgr.h"

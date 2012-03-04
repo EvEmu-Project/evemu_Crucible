@@ -67,5 +67,11 @@ PyResult PaperDollService::Handle_GetPaperDollPortraitDataFor(PyCallArgs &call) 
 
 PyResult PaperDollService::Handle_GetMyPaperDollData(PyCallArgs &call) 
 {
-	return NULL;
+	PyDict* args = new PyDict;
+
+	args->SetItemString( "colors", new PyDict );
+	args->SetItemString( "modifiers", new PyDict );
+	args->SetItemString( "sculpts", new PyDict );
+
+	return new PyObject("util.KeyVal", args);
 }

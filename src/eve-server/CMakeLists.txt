@@ -233,6 +233,11 @@ SET( fleet_INCLUDE
 SET( fleet_SOURCE
 	  "${TARGET_SOURCE_DIR}/fleet/FleetProxy.cpp" )
 	  
+SET( infogathering_INCLUDE
+	  "${TARGET_INCLUDE_DIR}/infogathering/InfoGathering.h" )
+SET( infogathering_SOURCE
+	  "${TARGET_SOURCE_DIR}/infogathering/InfoGathering.cpp" )
+	  
 SET( inventory_INCLUDE
      "${TARGET_INCLUDE_DIR}/inventory/AttributeEnum.h"
      "${TARGET_INCLUDE_DIR}/inventory/AttributeMgr.h"
@@ -535,6 +540,7 @@ SOURCE_GROUP( "include\\dogmaim"       FILES ${dogmaim_INCLUDE} )
 SOURCE_GROUP( "include\\character"     FILES ${character_INCLUDE} )
 SOURCE_GROUP( "include\\chat"          FILES ${chat_INCLUDE} )
 SOURCE_GROUP( "include\\fleet"		   FILES ${fleet_INCLUDE} )
+SOURCE_GROUP( "include\\infogathering" FILES ${infogathering_INCLUDE} )
 SOURCE_GROUP( "include\\inventory"     FILES ${inventory_INCLUDE} )
 SOURCE_GROUP( "include\\localization"     FILES ${localization_INCLUDE} )
 SOURCE_GROUP( "include\\mail"          FILES ${mail_INCLUDE} )
@@ -574,6 +580,7 @@ SOURCE_GROUP( "src\\dogmaim"       FILES ${dogmaim_SOURCE} )
 SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
 SOURCE_GROUP( "src\\chat"          FILES ${chat_SOURCE} )
 SOURCE_GROUP( "src\\fleet"         FILES ${fleet_SOURCE} )
+SOURCE_GROUP( "src\\infogathering" FILES ${infogathering_SOURCE} )
 SOURCE_GROUP( "src\\inventory"     FILES ${inventory_SOURCE} )
 SOURCE_GROUP( "src\\localization"     FILES ${localization_SOURCE} )
 SOURCE_GROUP( "src\\mail"          FILES ${mail_SOURCE} )
@@ -605,25 +612,26 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${admin_INCLUDE}          ${admin_SOURCE}
                 ${authorisation_INCLUDE}  ${authorisation_SOURCE} 
                 ${browser_INCLUDE}        ${browser_SOURCE} 
-		${bulk_INCLUDE}            ${bulk_SOURCE}
+				${bulk_INCLUDE}            ${bulk_SOURCE}
                 ${cache_INCLUDE}          ${cache_SOURCE}
                 ${config_INCLUDE}         ${config_SOURCE}
-		${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
+				${contractproxy_INCLUDE}  ${contractproxy_SOURCE}
                 ${corporation_INCLUDE}    ${corporation_SOURCE}
                 ${dogmaim_INCLUDE}        ${dogmaim_SOURCE}
                 ${character_INCLUDE}      ${character_SOURCE}
                 ${chat_INCLUDE}           ${chat_SOURCE}
-		${fleet_INCLUDE}	  ${fleet_SOURCE}
+				${fleet_INCLUDE}	  	  ${fleet_SOURCE}
+				${infogathering_INCLUDE}  ${infogathering_SOURCE}
                 ${inventory_INCLUDE}      ${inventory_SOURCE}
-		${localization_INCLUDE}   ${localization_SOURCE}
-		${mail_INCLUDE}           ${mail_SOURCE}
+				${localization_INCLUDE}   ${localization_SOURCE}
+				${mail_INCLUDE}           ${mail_SOURCE}
                 ${manufacturing_INCLUDE}  ${manufacturing_SOURCE}
                 ${map_INCLUDE}            ${map_SOURCE}
                 ${market_INCLUDE}         ${market_SOURCE}
                 ${mining_INCLUDE}         ${mining_SOURCE}
                 ${missions_INCLUDE}       ${missions_SOURCE}
                 ${npc_INCLUDE}            ${npc_SOURCE}
-		${planetint_INCLUDE}	  ${planetint_SOURCE}
+				${planetint_INCLUDE}	  ${planetint_SOURCE}
                 ${posmgr_INCLUDE}         ${posmgr_SOURCE}
                 ${sovereignty_INCLUDE}    ${sovereignty_SOURCE} 
                 ${ship_INCLUDE}           ${ship_SOURCE}
