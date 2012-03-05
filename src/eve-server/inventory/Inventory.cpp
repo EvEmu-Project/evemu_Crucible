@@ -40,9 +40,9 @@ Inventory *Inventory::Cast(InventoryItemRef item)
     {
         //! TODO: not handled.
         case EVEDB::invCategories::_System:
+			sLog.Warning("Inventory", "System item categoryID used on cast");
+            break;
         case EVEDB::invCategories::Owner:
-        case EVEDB::invCategories::Celestial:
-        case EVEDB::invCategories::Station:
         case EVEDB::invCategories::Material:
         case EVEDB::invCategories::Accessories:
         case EVEDB::invCategories::Module:
@@ -51,19 +51,49 @@ Inventory *Inventory::Cast(InventoryItemRef item)
         case EVEDB::invCategories::Trading:
         case EVEDB::invCategories::Entity:
         case EVEDB::invCategories::Bonus:
-        case EVEDB::invCategories::Skill:
         case EVEDB::invCategories::Commodity:
         case EVEDB::invCategories::Drone:
         case EVEDB::invCategories::Implant:
         case EVEDB::invCategories::Deployable:
         case EVEDB::invCategories::Reaction:
         case EVEDB::invCategories::Asteroid:
+		case EVEDB::invCategories::WorldSpace:
+		case EVEDB::invCategories::Apparel:
+		case EVEDB::invCategories::Subsystem:
+		case EVEDB::invCategories::AncientRelics:
+		case EVEDB::invCategories::Decryptors:
+		case EVEDB::invCategories::InfrastructureUpgrades:
+		case EVEDB::invCategories::SovereigntyStructures:
+		case EVEDB::invCategories::PlanetaryInteraction:
+		case EVEDB::invCategories::PlanetaryResources:
+		case EVEDB::invCategories::PlanetaryCommodities:
+		case EVEDB::invCategories::Orbitals:
+		case EVEDB::invCategories::Placeables:
+		case EVEDB::invCategories::Effects:
+		case EVEDB::invCategories::Lights:
+		case EVEDB::invCategories::Cells:
             sLog.Warning("Inventory", "unhandled item categoryID used on cast");
             break;
+		case EVEDB::invCategories::Skill:
+			sLog.Warning("Inventory", "Skill item categoryID used on cast");
+			//return SkillRef::StaticCast( item ).get();
+			break;
+		case EVEDB::invCategories::Celestial:
+			sLog.Warning("Inventoy", "Celestial item categoryID used on cast");
+			//don't know ho to do this but it's missing in a lot of places in the log
+			//it says that the return is not of Inventory type
+			//return CelestialObjectRef::StaticCast( item ).get();
+			break;
+		case EVEDB::invCategories::Station:
+			sLog.Warning("Inventory", "Station item categoryID used on cast");
+			return StationRef::StaticCast( item ).get();
+			break;
         case EVEDB::invCategories::Structure:
+			sLog.Warning("Inventory", "Structure item categoryID used on cast");
             return StructureRef::StaticCast( item ).get();
             break;
         case EVEDB::invCategories::Ship:
+			sLog.Warning("Inventory", "Ship item categoryID used on cast");
             return ShipRef::StaticCast( item ).get();
             break;
     }
@@ -75,11 +105,10 @@ Inventory *Inventory::Cast(InventoryItemRef item)
         case EVEDB::invGroups::Audit_Log_Secure_Container:
         case EVEDB::invGroups::Cargo_Container:
         case EVEDB::invGroups::Freight_Container:
-        case EVEDB::invGroups::Spawn_Container:
-            return CargoContainerRef::StaticCast( item ).get();
-        case EVEDB::invGroups::Station:         return StationRef::StaticCast( item ).get();
-        case EVEDB::invGroups::Character:       return CharacterRef::StaticCast( item ).get();
-        case EVEDB::invGroups::Solar_System:    return SolarSystemRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Spawn_Container:				 return CargoContainerRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Station:						 return StationRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Character:					 return CharacterRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Solar_System:				 return SolarSystemRef::StaticCast( item ).get();
     }
 
     // maybe add extra debug info on what for type or item.

@@ -30,11 +30,11 @@
 #include "tutorial/TutorialDB.h"
 #include "PyService.h"
 
-class infoGatheringMgr : public PyService
+class InfoGatheringMgr : public PyService
 {
 public:
-	infoGatheringMgr(PyServiceMgr *mgr);
-	virtual ~infoGatheringMgr();
+	InfoGatheringMgr(PyServiceMgr *mgr);
+	virtual ~InfoGatheringMgr();
 
 protected:
 	class Dispatcher;

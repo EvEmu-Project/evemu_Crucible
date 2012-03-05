@@ -115,6 +115,7 @@
 #include "packets/Manufacturing.h"
 #include "packets/ObjectCaching.h"
 #include "packets/Market.h"
+#include "packets/Sovereignty.h"
 #include "packets/Standing2.h"
 #include "packets/Trade.h"
 #include "packets/Tutorial.h"
@@ -151,7 +152,7 @@
 #include "PyServiceCD.h"
 #include "PyServiceMgr.h"
 
-#include "infoGatheringMgr.h"
+#include "InfoGatheringMgr.h"
 
 #include "account/AccountDB.h"
 #include "account/AccountService.h"
@@ -280,6 +281,10 @@
 #include "market/MarketDB.h"
 #include "market/MarketProxyService.h"
 
+//NPC
+#include "npc/NPC.h"
+#include "npc/NPCAI.h"
+
 //planetary interaction
 #include "planetint/planetMgr.h"
 
@@ -287,10 +292,6 @@
 #include "posmgr/PosMgrDB.h"
 #include "posmgr/PosMgrService.h"
 #include "posmgr/Structure.h"
-
-//NPC
-#include "npc/NPC.h"
-#include "npc/NPCAI.h"
 
 //sovereignty stuff
 #include "sovereignty/SovereigntyMgrService.h"

@@ -325,22 +325,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="CallGetCashBalance">
-    <tupleInline>
-      <!-- 0 -->
-      <int name="isCorpWallet" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspGetCashBalance">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <real name="credits" />
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="RspGetOwnerNoteLabels">
     <tupleInline>
       <!-- 0 -->

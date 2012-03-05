@@ -41,23 +41,49 @@ HoloscreenMgrService::~HoloscreenMgrService()
     delete m_dispatch;
 }
 
+//those objects should be cached
+
 PyResult HoloscreenMgrService::Handle_GetTwoHourCache(PyCallArgs& call)
 {
 	sLog.Debug("HoloscreenMgrService", "Called GetTwoHourCache stub.");
 
-    return new PyNone();
+    PyDict* agents = new PyDict;
+
+	agents->SetItemString("Agent_DUMMY", new PyDict);
+
+
+	PyDict* args = new PyDict;
+	
+	args->SetItemString("careerAgents", agents);
+	args->SetItemString("incursionReport", new PyList);
+	args->SetItemString("epicArcAgents", new PyDict);
+	args->SetItemString("sovChangesReport", new PyList);
+
+    return new PyObject("util.KeyVal", args);
 }
 
 PyResult HoloscreenMgrService::Handle_GetRecentEpicArcCompletions(PyCallArgs& call)
 {
-	sLog.Debug("HoloscreenMgrService", "Called GetTwoHourCache stub.");
+	sLog.Debug("HoloscreenMgrService", "Called GetRecentEpicArcCompletions stub.");
 
-    return new PyNone();
+    return NULL;
 }
 
 PyResult HoloscreenMgrService::Handle_GetRuntimeCache(PyCallArgs& call)
 {
-	sLog.Debug("HoloscreenMgrService", "Called GetTwoHourCache stub.");
+	sLog.Debug("HoloscreenMgrService", "Called GetRuntimeCache stub.");
 
-    return new PyNone();
+    PyDict* agents = new PyDict;
+
+	agents->SetItemString("Agent_DUMMY", new PyDict);
+
+
+	PyDict* args = new PyDict;
+	
+	args->SetItemString("careerAgents", agents);
+	args->SetItemString("incursionReport", new PyList);
+	args->SetItemString("epicArcAgents", new PyDict);
+	args->SetItemString("sovChangesReport", new PyList);
+
+    return new PyObject("util.KeyVal", args);
 }

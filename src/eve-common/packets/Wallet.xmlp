@@ -18,6 +18,22 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="CallGetCashBalance">
+    <tupleInline>
+      <!-- 0 -->
+      <bool name="isCorpWallet" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="RspGetCashBalance">
+    <tupleInline>
+      <!-- 0 -->
+      <substreamInline>
+        <real name="credits" />
+      </substreamInline>
+    </tupleInline>
+  </elementDef>
+  
 </elements>
 
 

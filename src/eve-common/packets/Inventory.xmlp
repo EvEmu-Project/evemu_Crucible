@@ -147,19 +147,13 @@
         fields indexed by ENV_IDX_*, see OnGodmaShipEffect
       -->
 
-      <!-- Begin Environment -->
       <int name="env_itemID" />
+      <int name="env_effectID" />
+      <int name="env_target" none_marker="0" default="0" />
       <int name="env_charID" />
       <int name="env_shipID" />
-      <!-- optional -->
-      <int name="env_target" none_marker="0" default="0" />
-      <!-- can be complex -->
       <raw name="env_other" />
-      <!-- not sure what data goes in here. -->
-      <list name="env_area"/>
-      <int name="env_effectID" />
-	    <!-- End Environment -->
-
+      <!-- not sure if charID, shipID and other is needed anymore. -->
 	    <long name="startTime" />
 	    <!-- saw 0x7 placeholder -->
 	    <int name="duration"/>

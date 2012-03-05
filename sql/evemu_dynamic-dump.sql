@@ -103,8 +103,6 @@ CREATE TABLE `bookmarks` (
   `y` double NOT NULL default '0',
   `z` double NOT NULL default '0',
   `locationID` int(10) unsigned NOT NULL default '0',
-  `creatorID` int(10) unsigned NOT NULL default '0',
-  `folderID` int(10) unsigned NOT NULL default '0',
   `note` varchar(85) NOT NULL default '',
   `creatorID` int(10) unsigned NOT NULL default '0',
   `folderID` int(10) unsigned NOT NULL default '0',
