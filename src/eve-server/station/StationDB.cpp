@@ -325,7 +325,7 @@ PyRep *StationDB::DoGetStation(uint32 sid)
     " staStationTypes.dockingBayGraphicID,"
     " staStations.officeRentalCost,"
     " staStations.stationName,"
-    " staOperations.description,"
+    " staOperations.description AS descriptionID,"
     " staStations.constellationID,"
     " staStations.operationID,"
     " staStations.solarSystemID,"

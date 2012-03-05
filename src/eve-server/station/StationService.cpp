@@ -41,8 +41,7 @@ StationService::~StationService() {
 	delete m_dispatch;
 }
 
-PyResult StationService::Handle_GetSolarSystem(PyCallArgs &call)
-{
+PyResult StationService::Handle_GetSolarSystem(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if (!arg.Decode(&call.tuple))
 	{
@@ -53,7 +52,7 @@ PyResult StationService::Handle_GetSolarSystem(PyCallArgs &call)
 	int system = arg.arg;
 
 	// this needs to return some cache status?
-	return NULL;
+	return new PyObject("util.CachedObject", new PyInt(system));
 }
 
 PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
