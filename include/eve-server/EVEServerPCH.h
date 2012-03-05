@@ -162,6 +162,7 @@
 
 #include "admin/AlertService.h"
 #include "admin/AllCommands.h"
+#include "admin/ClientStatLogger.h"
 #include "admin/CommandDispatcher.h"
 #include "admin/CommandDB.h"
 #include "admin/DevToolsProviderService.h"

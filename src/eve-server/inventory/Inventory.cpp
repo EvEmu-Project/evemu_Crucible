@@ -40,9 +40,6 @@ Inventory *Inventory::Cast(InventoryItemRef item)
     {
         //! TODO: not handled.
         case EVEDB::invCategories::_System:
-			sLog.Warning("Inventory", "System item categoryID used on cast");
-            break;
-        case EVEDB::invCategories::Owner:
         case EVEDB::invCategories::Material:
         case EVEDB::invCategories::Accessories:
         case EVEDB::invCategories::Module:
@@ -57,7 +54,6 @@ Inventory *Inventory::Cast(InventoryItemRef item)
         case EVEDB::invCategories::Deployable:
         case EVEDB::invCategories::Reaction:
         case EVEDB::invCategories::Asteroid:
-		case EVEDB::invCategories::WorldSpace:
 		case EVEDB::invCategories::Apparel:
 		case EVEDB::invCategories::Subsystem:
 		case EVEDB::invCategories::AncientRelics:
@@ -73,6 +69,16 @@ Inventory *Inventory::Cast(InventoryItemRef item)
 		case EVEDB::invCategories::Lights:
 		case EVEDB::invCategories::Cells:
             sLog.Warning("Inventory", "unhandled item categoryID used on cast");
+            break;
+
+		case EVEDB::invCategories::Owner:
+			sLog.Warning("Inventory", "Owner item categoryID used on cast");
+
+			//return OwnerRef::StaticCast( item ).get();
+
+            break;
+		case EVEDB::invCategories::WorldSpace:
+			sLog.Warning("Inventory", "WorldSpace item categoryID used on cast");
             break;
 		case EVEDB::invCategories::Skill:
 			sLog.Warning("Inventory", "Skill item categoryID used on cast");

@@ -164,6 +164,7 @@ int main( int argc, char* argv[] )
 	services.RegisterService(new CharFittingMgrService(&services));
 	services.RegisterService(new CharUnboundMgrService(&services));
     services.RegisterService(new CharMgrService(&services));
+	services.RegisterService(new ClientStatLogger(&services));
     services.RegisterService(new ClientStatsMgr(&services));
 	services.RegisterService(new ConfigService(&services));
 	services.RegisterService(new CorpBookmarkMgrService(&services));
