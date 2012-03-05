@@ -98,13 +98,23 @@ PyResult StationSvcService::Handle_GetStationItemBits(PyCallArgs &call) {
 	return m_db.GetStationItemBits(call.client->GetStationID());
 }
 
+
 PyResult StationSvcService::Handle_GetSolarSystem(PyCallArgs &call) {
 	Call_SingleIntegerArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(SERVICE__ERROR, "%s: Bad arguments", call.client->GetName());
 		return NULL;
 	}
-	return(m_db.GetSolarSystem(arg.arg));
+
+	ObjectCachedSessionMethodID method_id(GetName(), "GetSolarSystem", arg.arg);
+
+	if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
+		PyPackedRow *t = m_db.GetSolarSystem(arg.arg);
+
+		m_manager->cache_service->GiveCache(method_id, (PyRep **)&t);
+	}
+
+	return(m_manager->cache_service->MakeObjectCachedSessionMethodCallResult(method_id, "charID"));
 }
 
 PyResult StationSvcService::Handle_GetStation(PyCallArgs &call) {
