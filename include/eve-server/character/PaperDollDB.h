@@ -20,43 +20,19 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Reve 
+	Providing clothes to the poor
 */
 
+#ifndef __PAPERDOLL_DB_H__
+#define __PAPERDOLL_DB_H__
 
-#ifndef __CORPORATION_SERVICE_H_INCL__
-#define __CORPORATION_SERVICE_H_INCL__
+#include "ServiceDB.h"
 
-#include "corporation/CorporationDB.h"
-#include "PyService.h"
-
-class CorporationService : public PyService
+class PaperDollDB: public ServiceDB
 {
 public:
-	CorporationService(PyServiceMgr *mgr);
-	virtual ~CorporationService();
-
-protected:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
-
-	CorporationDB m_db;
-
-	PyCallable_DECL_CALL(GetFactionInfo)
-	PyCallable_DECL_CALL(GetCorpInfo)
-	PyCallable_DECL_CALL(GetNPCDivisions)
-	PyCallable_DECL_CALL(GetEmploymentRecord)
-	PyCallable_DECL_CALL(GetMedalsReceived)
-	PyCallable_DECL_CALL(GetAllCorpMedals)
-	PyCallable_DECL_CALL(GetRecruitmentAdTypes)
-	PyCallable_DECL_CALL(GetRecruitmentAdsByCriteria)
-	PyCallable_DECL_CALL(GetSharesByShareholder)
+	PyRep* GetMyPaperDollData() const;
 };
 
-
-
-
-
 #endif
-
-

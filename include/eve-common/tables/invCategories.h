@@ -26,12 +26,22 @@ typedef enum {
 	Structure = 23,
 	Reaction = 24,
 	Asteroid = 25,
-    Interiors = 26,
-    Placeables = 27,
+    WorldSpace = 26,
     Abstract = 29,
+	Apparel = 30,
     Subsystem = 32,
     AncientRelics = 34,
-    Decryptors = 35
+    Decryptors = 35,
+	InfrastructureUpgrades = 39,
+	SovereigntyStructures = 40,
+	PlanetaryInteraction = 41,
+	PlanetaryResources = 42,
+	PlanetaryCommodities = 43,
+	Orbitals = 46,
+	Placeables = 49,
+	Effects = 53,
+	Lights = 54,
+	Cells = 59
  } invCategories;
 
  }

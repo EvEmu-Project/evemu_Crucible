@@ -26,24 +26,24 @@
 #include "EVEServerPCH.h"
 
 
-PyCallable_Make_InnerDispatcher(infoGatheringMgr)
+PyCallable_Make_InnerDispatcher(InfoGatheringMgr)
 
-infoGatheringMgr::infoGatheringMgr(PyServiceMgr *mgr)
+InfoGatheringMgr::InfoGatheringMgr(PyServiceMgr *mgr)
 : PyService(mgr, "infoGatheringMgr"),
   m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 
-	PyCallable_REG_CALL(infoGatheringMgr, GetStateAndConfig);
-	PyCallable_REG_CALL(infoGatheringMgr, LogInfoEventsFromClient);
+	PyCallable_REG_CALL(InfoGatheringMgr, GetStateAndConfig);
+	PyCallable_REG_CALL(InfoGatheringMgr, LogInfoEventsFromClient);
 
 }
 
-infoGatheringMgr::~infoGatheringMgr() {
+InfoGatheringMgr::~InfoGatheringMgr() {
 	delete m_dispatch;
 }
 
-PyResult infoGatheringMgr::Handle_GetStateAndConfig(PyCallArgs &call) {
+PyResult InfoGatheringMgr::Handle_GetStateAndConfig(PyCallArgs &call) {
 	
 	PyDict *rsp = new PyDict;
 	
@@ -62,6 +62,6 @@ PyResult infoGatheringMgr::Handle_GetStateAndConfig(PyCallArgs &call) {
 	return new PyObject( "util.KeyVal", rsp );
 }
 
-PyResult infoGatheringMgr::Handle_LogInfoEventsFromClient(PyCallArgs &call) {
+PyResult InfoGatheringMgr::Handle_LogInfoEventsFromClient(PyCallArgs &call) {
 	return new PyNone;
 }

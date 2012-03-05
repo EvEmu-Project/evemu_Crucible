@@ -46,7 +46,7 @@ PaperDollService::~PaperDollService() {
 }
 
 PyResult PaperDollService::Handle_GetPaperDollData(PyCallArgs &call) {
-	return NULL;
+	return new PyList;
 }
 
 PyResult PaperDollService::Handle_ConvertAndSavePaperDoll(PyCallArgs &call) {

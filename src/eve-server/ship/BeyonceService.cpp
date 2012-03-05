@@ -44,10 +44,10 @@ public:
 		PyCallable_REG_CALL(BeyonceBound, FollowBall)
 		PyCallable_REG_CALL(BeyonceBound, Orbit)
 		PyCallable_REG_CALL(BeyonceBound, AlignTo)
-		PyCallable_REG_CALL(BeyonceBound, GotoDirection)
+		PyCallable_REG_CALL(BeyonceBound, CmdGotoDirection)
         PyCallable_REG_CALL(BeyonceBound, GotoBookmark)
 		PyCallable_REG_CALL(BeyonceBound, SetSpeedFraction)
-		PyCallable_REG_CALL(BeyonceBound, Stop)
+		PyCallable_REG_CALL(BeyonceBound, CmdStop)
 		PyCallable_REG_CALL(BeyonceBound, WarpToStuff)
 		PyCallable_REG_CALL(BeyonceBound, Dock)
 		PyCallable_REG_CALL(BeyonceBound, StargateJump)
@@ -66,10 +66,10 @@ public:
 	PyCallable_DECL_CALL(FollowBall)
 	PyCallable_DECL_CALL(Orbit)
 	PyCallable_DECL_CALL(AlignTo)
-	PyCallable_DECL_CALL(GotoDirection)
+	PyCallable_DECL_CALL(CmdGotoDirection)
     PyCallable_DECL_CALL(GotoBookmark)
 	PyCallable_DECL_CALL(SetSpeedFraction)
-	PyCallable_DECL_CALL(Stop)
+	PyCallable_DECL_CALL(CmdStop)
 	PyCallable_DECL_CALL(WarpToStuff)
 	PyCallable_DECL_CALL(Dock)
 	PyCallable_DECL_CALL(StargateJump)
@@ -227,7 +227,7 @@ PyResult BeyonceBound::Handle_AlignTo(PyCallArgs &call) {
 	return NULL;
 }
 
-PyResult BeyonceBound::Handle_GotoDirection(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdGotoDirection(PyCallArgs &call) {
 	Call_PointArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
@@ -622,7 +622,7 @@ PyResult BeyonceBound::Handle_UpdateStateRequest(PyCallArgs &call) {
 	return NULL;
 }
 
-PyResult BeyonceBound::Handle_Stop(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdStop(PyCallArgs &call) {
 	DestinyManager *destiny = call.client->Destiny();
 	if(destiny == NULL) {
 		codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
@@ -637,7 +637,7 @@ PyResult BeyonceBound::Handle_Stop(PyCallArgs &call) {
 	}
 		
 
-	destiny->Stop();
+	//destiny->Stop();
 
 	return NULL;
 }

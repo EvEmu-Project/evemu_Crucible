@@ -843,7 +843,7 @@ void DestinyManager::Stop(bool update) {
 	    State = DSTBALL_STOP;
 
 	    if(update) {
-		    DoDestiny_Stop du;
+		    DoDestiny_CmdStop du;
 		    du.entityID = m_self->GetID();
 		
 		    PyTuple *tmp = du.Encode();
@@ -1060,7 +1060,7 @@ void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
 	}
 	
 	if(update) {
-		DoDestiny_GotoDirection du;
+		DoDestiny_CmdGotoDirection du;
 		du.entityID = m_self->GetID();
 		du.x = direction.x;
 		du.y = direction.y;
@@ -1281,7 +1281,7 @@ void DestinyManager::SendJumpOut(uint32 stargateID) const {
 	std::vector<PyTuple *> updates;
 	
 	{
-	DoDestiny_Stop du;
+	DoDestiny_CmdStop du;
 	du.entityID = m_self->GetID();
 	updates.push_back(du.Encode());
 	}

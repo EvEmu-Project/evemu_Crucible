@@ -383,10 +383,10 @@ DST_WARPEXIT = 11
 	  </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_Stop">
+  <elementDef name="DoDestiny_CmdStop">
 	  <tupleInline>
 	    <!-- 0 -->
-	    <stringInline value="Stop" />
+	    <stringInline value="CmdStop" />
 	    <!-- 1 -->
 	    <tupleInline>
 		    <!-- 0 -->
@@ -395,10 +395,10 @@ DST_WARPEXIT = 11
 	  </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_GotoDirection">
+  <elementDef name="DoDestiny_CmdGotoDirection">
 	  <tupleInline>
 	    <!-- 0 -->
-	    <stringInline value="GotoDirection" />
+	    <stringInline value="CmdGotoDirection" />
 	    <!-- 1 -->
 	    <tupleInline>
 		    <int name="entityID" />

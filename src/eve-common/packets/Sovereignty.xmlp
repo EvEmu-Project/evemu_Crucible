@@ -1,6 +1,6 @@
 <elements>
 	
-	<elementDef name="Call_GetSystemSovereigntyInfo">
+	<elementDef name="RspGetSystemSovereigntyInfo">
     <tupleInline>
       <int name="contested" />
       <int name="corporationID" />

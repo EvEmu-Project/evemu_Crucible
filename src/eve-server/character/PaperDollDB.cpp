@@ -20,43 +20,23 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Reve 
+	Providing clothes to the poor
 */
 
+#include "EVEServerPCH.h"
 
-#ifndef __CORPORATION_SERVICE_H_INCL__
-#define __CORPORATION_SERVICE_H_INCL__
+PyRep* PaperDollDB::GetMyPaperDollData() const {
 
-#include "corporation/CorporationDB.h"
-#include "PyService.h"
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res,
+		" SELECT "
+		" sculptLocationID, weightKeyCategory, weightKeyPrefix "
+		" FROM paperdollsculptinglocations"))
+	{
+		_log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
+		return (NULL);
+	}
 
-class CorporationService : public PyService
-{
-public:
-	CorporationService(PyServiceMgr *mgr);
-	virtual ~CorporationService();
-
-protected:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
-
-	CorporationDB m_db;
-
-	PyCallable_DECL_CALL(GetFactionInfo)
-	PyCallable_DECL_CALL(GetCorpInfo)
-	PyCallable_DECL_CALL(GetNPCDivisions)
-	PyCallable_DECL_CALL(GetEmploymentRecord)
-	PyCallable_DECL_CALL(GetMedalsReceived)
-	PyCallable_DECL_CALL(GetAllCorpMedals)
-	PyCallable_DECL_CALL(GetRecruitmentAdTypes)
-	PyCallable_DECL_CALL(GetRecruitmentAdsByCriteria)
-	PyCallable_DECL_CALL(GetSharesByShareholder)
-};
-
-
-
-
-
-#endif
-
-
+	return DBResultToRowset(res);
+}
